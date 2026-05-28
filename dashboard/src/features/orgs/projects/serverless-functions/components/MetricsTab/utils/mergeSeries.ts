@@ -1,16 +1,16 @@
 import type { MetricSeries } from '@/features/orgs/projects/serverless-functions/types';
 
-export interface MergedSeries {
+interface MergedSeries {
   keys: string[];
   rows: Array<Record<string, number | null> & { timestamp: number }>;
 }
 
 type Row = Record<string, number | null> & { timestamp: number };
 
-// Mirrors Grafana's "Disconnect values" with a threshold. When two adjacent
-// samples are farther apart than 1.5× the typical bucket step, insert a
-// synthetic null row between them so Recharts (with connectNulls={false})
-// breaks the line instead of drawing a misleading slope across the gap.
+// When two adjacent samples are farther apart than 1.5× the typical bucket
+// step, insert a synthetic null row between them so Recharts (with
+// connectNulls={false}) breaks the line instead of drawing a misleading slope
+// across the gap.
 const GAP_THRESHOLD_FACTOR = 1.5;
 
 export function mergeSeries(
@@ -40,7 +40,6 @@ export function mergeSeries(
     const map = new Map<number, number>();
     const len = Math.min(s.timestamps.length, s.datapoints.length);
     for (let i = 0; i < len; i += 1) {
-      // returns ISO 8601 timestamps via the `Timestamp` scalar.
       const ts = new Date(s.timestamps[i]).getTime();
       const value = s.datapoints[i];
       if (!Number.isNaN(ts) && typeof value === 'number') {

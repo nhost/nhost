@@ -2,7 +2,7 @@ import type { ChartConfig } from '@/components/ui/v3/chart';
 import { CHART_COLOR_PALETTE } from '@/features/orgs/projects/serverless-functions/components/MetricsTab/constants';
 import type { MetricSeries } from '@/features/orgs/projects/serverless-functions/types';
 
-export interface BuildChartConfigOptions {
+interface BuildChartConfigOptions {
   keyFor: (labels: Record<string, string>) => string;
   labelFor?: (key: string, labels: Record<string, string>) => string;
   colorFor?: (

@@ -178,7 +178,18 @@ func introspectTable(
 	tableName string,
 	isView bool,
 ) (*introspection.Table, error) {
-	columns, pks, err := getColumnsAndPKs(ctx, q, tableName)
+	hasExplicitPKIndex := false
+
+	if !isView {
+		has, err := tableHasExplicitPKIndex(ctx, q, tableName)
+		if err != nil {
+			return nil, fmt.Errorf("reading explicit PK index flag: %w", err)
+		}
+
+		hasExplicitPKIndex = has
+	}
+
+	columns, pks, err := getColumnsAndPKs(ctx, q, tableName, hasExplicitPKIndex)
 	if err != nil {
 		return nil, fmt.Errorf("reading columns: %w", err)
 	}
@@ -360,18 +371,34 @@ func isIdentByte(b byte) bool {
 	}
 }
 
+// pkEntry pairs a primary-key column name with its ordinal position (1-based)
+// so PK columns scanned from PRAGMA table_xinfo in row order can be re-sorted
+// into the table's declared PK order.
+type pkEntry struct {
+	name  string
+	order int
+}
+
 // getColumnsAndPKs returns the column metadata and primary-key column list
 // for tableName by querying PRAGMA table_xinfo. The xinfo variant is used over
 // table_info so that hidden / generated columns are included.
 //
 // PRAGMA table_xinfo returns rows of (cid, name, type, notnull, dflt_value,
 // pk, hidden); the Scan call below tracks that exact column order. The hidden
-// column carries 0 (normal), 1 (alias), 2 (virtual generated), or 3 (stored
-// generated) — values 2 and 3 mark a column as generated. The pk column is
-// 0 for non-PK columns and an ascending 1-based index identifying the PK
-// component otherwise.
+// column carries 0 (normal), 1 (virtual-table hidden), 2 (virtual generated),
+// or 3 (stored generated) — values 2 and 3 mark a column as generated. The pk
+// column is 0 for non-PK columns and an ascending 1-based index identifying
+// the PK component otherwise.
+//
+// hasExplicitPKIndex signals that SQLite has synthesised an explicit
+// `pk`-origin index for this table's primary key (see
+// [tableHasExplicitPKIndex]). Any such index disqualifies the table from the
+// rowid-alias rule: it fires for WITHOUT ROWID tables, INTEGER PRIMARY KEY
+// DESC (the DESC form cannot alias the rowid), and PK declarations that
+// otherwise diverge from the integer-affinity-as-alias shortcut. Views
+// always pass false.
 func getColumnsAndPKs(
-	ctx context.Context, q Querier, tableName string,
+	ctx context.Context, q Querier, tableName string, hasExplicitPKIndex bool,
 ) ([]introspection.Column, []string, error) {
 	query := "PRAGMA table_xinfo(" + core.QuoteIdentifier(tableName) + ")"
 
@@ -381,14 +408,10 @@ func getColumnsAndPKs(
 	}
 	defer rows.Close()
 
-	type pkEntry struct {
-		name  string
-		order int
-	}
-
 	var (
-		columns []introspection.Column
-		pkCols  []pkEntry
+		columns      []introspection.Column
+		pkCols       []pkEntry
+		declaredType = make(map[string]string)
 	)
 
 	for rows.Next() {
@@ -407,12 +430,14 @@ func getColumnsAndPKs(
 		}
 
 		mappedType := mapSQLiteType(colType)
+		declaredType[name] = colType
 
 		columns = append(columns, introspection.Column{
 			Name:           name,
 			Type:           mappedType,
 			IsNullable:     !notNull,
 			IsGenerated:    hidden == 2 || hidden == 3, // virtual or stored generated
+			IsIdentity:     false,                      // populated by markRowidAliasIdentity
 			IsArray:        false,
 			SupportsMinMax: typeSupportsMinMax(mappedType),
 			SupportsInc:    typeSupportsInc(mappedType),
@@ -435,7 +460,100 @@ func getColumnsAndPKs(
 		pks[p.order-1] = p.name
 	}
 
+	markRowidAliasIdentity(columns, pks, declaredType, hasExplicitPKIndex)
+
 	return columns, pks, nil
+}
+
+// markRowidAliasIdentity applies SQLite's rowid-alias rule in place against
+// columns: a single-column PK whose declared type is exactly "INTEGER"
+// (case-insensitive, no precision/affinity suffixes) becomes an alias for the
+// implicit ROWID and is auto-populated by the engine when the insert payload
+// omits it. AUTOINCREMENT only adds monotonicity guarantees on top of the
+// alias, so the detection here intentionally matches both with-and-without-
+// AUTOINCREMENT shapes.
+//
+// hasExplicitPKIndex is the structural disqualifier: when SQLite has
+// synthesised an explicit `pk`-origin index for the PK
+// (see [tableHasExplicitPKIndex]) the table cannot have a rowid alias. That
+// single signal covers WITHOUT ROWID tables and INTEGER PRIMARY KEY DESC —
+// the DESC form is documented as a non-alias because it cannot use the
+// rowid's ascending B-tree order — without parsing the CREATE TABLE text.
+func markRowidAliasIdentity(
+	columns []introspection.Column,
+	pks []string,
+	declaredType map[string]string,
+	hasExplicitPKIndex bool,
+) {
+	if hasExplicitPKIndex || len(pks) != 1 {
+		return
+	}
+
+	pkName := pks[0]
+	if !strings.EqualFold(strings.TrimSpace(declaredType[pkName]), "INTEGER") {
+		return
+	}
+
+	for i := range columns {
+		if columns[i].Name == pkName {
+			columns[i].IsIdentity = true
+
+			return
+		}
+	}
+}
+
+// tableHasExplicitPKIndex reports whether SQLite has synthesised an explicit
+// `pk`-origin index for tableName's primary key. Reading PRAGMA index_list
+// for any row with origin = 'pk' is the structural signal that the table's
+// PK is NOT backed by the implicit rowid — i.e. it cannot be a rowid alias:
+//
+//   - WITHOUT ROWID tables always get a `pk`-origin index over the PK.
+//   - INTEGER PRIMARY KEY DESC gets a `pk`-origin index because the DESC
+//     ordering disables the rowid-alias shortcut.
+//   - Plain INTEGER PRIMARY KEY (with or without AUTOINCREMENT, with or
+//     without an explicit ASC) does NOT get one; the PK is the rowid alias.
+//
+// Using this single PRAGMA signal replaces a fragile substring scan of the
+// CREATE TABLE text that previously misidentified tables whose SQL contained
+// `WITHOUT ROWID` inside a CHECK literal, comment, or quoted identifier.
+//
+// Returns false (and no error) for tables with no indexes, which is the
+// expected shape for the rowid-aliased case.
+func tableHasExplicitPKIndex(
+	ctx context.Context, q Querier, tableName string,
+) (bool, error) {
+	query := "PRAGMA index_list(" + core.QuoteIdentifier(tableName) + ")"
+
+	rows, err := q.QueryContext(ctx, query)
+	if err != nil {
+		return false, fmt.Errorf("failed to query index_list: %w", err)
+	}
+	defer rows.Close()
+
+	for rows.Next() {
+		var (
+			seq     int
+			name    string
+			unique  bool
+			origin  string
+			partial bool
+		)
+
+		if err := rows.Scan(&seq, &name, &unique, &origin, &partial); err != nil {
+			return false, fmt.Errorf("failed to scan index_list entry: %w", err)
+		}
+
+		if origin == "pk" {
+			return true, nil
+		}
+	}
+
+	if err := rows.Err(); err != nil {
+		return false, fmt.Errorf("error iterating index_list: %w", err)
+	}
+
+	return false, nil
 }
 
 // getForeignKeys returns the outbound foreign keys declared on tableName via

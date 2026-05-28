@@ -363,6 +363,7 @@ func populateTableColumns( //nolint:funlen
 			END as typname,
 			CASE WHEN a.attnotnull THEN 'NO' ELSE 'YES' END as is_nullable,
 			a.attgenerated != '' as is_generated,
+			a.attidentity != '' as is_identity,
 			t.typcategory = 'A' as is_array,
 			COALESCE(ta.supports_min_max, false) as supports_min_max,
 			COALESCE(ta.supports_inc, false) as supports_inc,
@@ -406,6 +407,7 @@ func populateTableColumns( //nolint:funlen
 			typeName       string
 			isNullable     string
 			isGenerated    bool
+			isIdentity     bool
 			isArray        bool
 			supportsMinMax bool
 			supportsInc    bool
@@ -415,7 +417,7 @@ func populateTableColumns( //nolint:funlen
 		)
 
 		if err := rows.Scan(
-			&tableName, &columnName, &typeName, &isNullable, &isGenerated,
+			&tableName, &columnName, &typeName, &isNullable, &isGenerated, &isIdentity,
 			&isArray,
 			&supportsMinMax, &supportsInc, &supportsAgg,
 			&columnDefault, &columnComment,
@@ -453,6 +455,7 @@ func populateTableColumns( //nolint:funlen
 			Type:           typeName,
 			IsNullable:     isNullable == "YES",
 			IsGenerated:    isGenerated,
+			IsIdentity:     isIdentity,
 			IsArray:        isArray,
 			Default:        columnDefault,
 			Comment:        columnComment,

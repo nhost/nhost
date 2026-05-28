@@ -12,6 +12,7 @@ import {
 import { useTableSchemaQuery } from '@/features/orgs/projects/database/common/hooks/useTableSchemaQuery';
 import type { RolePermissionEditorFormValues } from '@/features/orgs/projects/database/dataGrid/components/EditPermissionsForm/RolePermissionEditorForm';
 import type { DatabaseAction } from '@/features/orgs/projects/database/dataGrid/types/dataBrowser';
+import { isGeneratedColumn } from '@/features/orgs/projects/database/dataGrid/utils/isGeneratedColumn';
 import PermissionSettingsSection from './PermissionSettingsSection';
 
 export interface ColumnPermissionsSectionProps {
@@ -22,7 +23,7 @@ export interface ColumnPermissionsSectionProps {
   /**
    * The action that is being edited.
    */
-  action: DatabaseAction;
+  action: Exclude<DatabaseAction, 'delete'>;
   /**
    * The schema that is being edited.
    */
@@ -62,11 +63,21 @@ export default function ColumnPermissionsSection({
     throw tableError;
   }
 
+  const isSelectAction = action === 'select';
   const showComputedFields =
-    action === 'select' && availableComputedFields.length > 0;
+    isSelectAction && availableComputedFields.length > 0;
+
+  const selectableColumns =
+    (isSelectAction
+      ? tableData?.columns
+      : tableData?.columns?.filter((column) => !isGeneratedColumn(column))) ??
+    [];
 
   const isAllSelected =
-    selectedColumns?.length === tableData?.columns?.length &&
+    selectableColumns.length > 0 &&
+    selectableColumns.every((column) =>
+      selectedColumns.includes(column.column_name),
+    ) &&
     (!showComputedFields ||
       selectedComputedFields?.length === availableComputedFields.length);
 
@@ -93,7 +104,7 @@ export default function ColumnPermissionsSection({
 
             setValue(
               'columns',
-              tableData?.columns?.map((column) => column.column_name),
+              selectableColumns.map((column) => column.column_name),
             );
             if (showComputedFields) {
               setValue('computedFields', availableComputedFields);
@@ -110,15 +121,43 @@ export default function ColumnPermissionsSection({
 
       {tableStatus === 'success' && (
         <div className="flex flex-row flex-wrap items-center justify-start gap-6">
-          {tableData?.columns?.map((column) => (
-            <Checkbox
-              value={column.column_name}
-              label={column.column_name}
-              key={column.column_name}
-              checked={selectedColumns.includes(column.column_name)}
-              {...register('columns')}
-            />
-          ))}
+          {tableData?.columns?.map((column) => {
+            const isDisabledGeneratedColumn =
+              !isSelectAction && isGeneratedColumn(column);
+
+            if (isDisabledGeneratedColumn) {
+              return (
+                <Tooltip key={column.column_name}>
+                  <TooltipTrigger asChild>
+                    <span className="inline-block cursor-not-allowed">
+                      <Checkbox
+                        className="pointer-events-none"
+                        value={column.column_name}
+                        label={column.column_name}
+                        checked={selectedColumns.includes(column.column_name)}
+                        disabled
+                        {...register('columns')}
+                      />
+                    </span>
+                  </TooltipTrigger>
+                  <TooltipContent>
+                    Generated column — value is computed by Postgres, can't be{' '}
+                    {action === 'insert' ? 'inserted' : 'updated'}.
+                  </TooltipContent>
+                </Tooltip>
+              );
+            }
+
+            return (
+              <Checkbox
+                key={column.column_name}
+                value={column.column_name}
+                label={column.column_name}
+                checked={selectedColumns.includes(column.column_name)}
+                {...register('columns')}
+              />
+            );
+          })}
           {showComputedFields &&
             availableComputedFields.map((fieldName) => (
               <Checkbox

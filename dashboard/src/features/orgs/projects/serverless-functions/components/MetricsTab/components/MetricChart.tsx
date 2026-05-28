@@ -1,7 +1,5 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import {
-  Area,
-  AreaChart,
   CartesianGrid,
   Line,
   LineChart,
@@ -34,7 +32,6 @@ import type { MetricSeries } from '@/features/orgs/projects/serverless-functions
 import { cn } from '@/lib/utils';
 
 export interface MetricChartProps {
-  kind?: 'line' | 'area-stacked';
   data: MetricSeries[];
   seriesKeyFor: (labels: Record<string, string>) => string;
   seriesLabelFor?: (key: string, labels: Record<string, string>) => string;
@@ -44,9 +41,7 @@ export interface MetricChartProps {
     index: number,
   ) => string | undefined;
   valueFormatter?: (v: number) => string;
-  connectNulls?: boolean;
   height?: number;
-  className?: string;
   // Explicit [fromMs, toMs] for the XAxis so the full requested window renders
   xDomain?: [number, number];
   onZoomRange?: (fromMs: number, toMs: number) => void;
@@ -90,15 +85,12 @@ const MIN_ZOOM_RANGE_MS = 10_000;
 const DAY_MS = 24 * 60 * 60_000;
 
 export default function MetricChart({
-  kind = 'line',
   data,
   seriesKeyFor,
   seriesLabelFor,
   colorFor,
   valueFormatter,
-  connectNulls = false,
   height = 260,
-  className,
   xDomain,
   onZoomRange,
   onZoomOut,
@@ -223,7 +215,6 @@ export default function MetricChart({
           rows,
           xScale,
           yScale,
-          connectNulls,
         );
         if (distSq < bestDistSq) {
           bestDistSq = distSq;
@@ -232,7 +223,7 @@ export default function MetricChart({
       }
       setFocusedKey((prev) => (prev === bestKey ? prev : bestKey));
     },
-    [keys, rows, hiddenSet, connectNulls],
+    [keys, rows, hiddenSet],
   );
 
   useEffect(() => {
@@ -362,7 +353,7 @@ export default function MetricChart({
   );
 
   return (
-    <div className={cn('flex flex-col gap-2', className)}>
+    <div className="flex flex-col gap-2">
       {isEmpty ? (
         <div className="flex items-center justify-center" style={{ height }}>
           <p className="text-muted-foreground text-sm">No data available.</p>
@@ -377,132 +368,65 @@ export default function MetricChart({
             className="aspect-auto w-full select-none"
             style={{ height }}
           >
-            {kind === 'area-stacked' ? (
-              <AreaChart {...chartProps}>
-                <CartesianGrid vertical={false} strokeDasharray="3 3" />
-                <XAxis
-                  dataKey="timestamp"
-                  type="number"
-                  scale="time"
-                  domain={xDomain ?? ['dataMin', 'dataMax']}
-                  ticks={ticks}
-                  tickFormatter={tickFormatter}
-                  tickLine={false}
-                  axisLine={false}
-                  minTickGap={40}
-                />
-                <YAxis
-                  tickLine={false}
-                  axisLine={false}
-                  width="auto"
-                  tickFormatter={
-                    valueFormatter
-                      ? (v) => valueFormatter(Number(v))
-                      : undefined
-                  }
-                />
-                <ChartTooltip
-                  cursor={!pinned}
-                  active={pinned ? false : undefined}
-                  content={tooltipContent}
-                />
-                <ChartLegend
-                  content={
-                    <InteractiveChartLegend
-                      config={config}
-                      hiddenSet={hiddenSet}
-                      onItemClick={handleLegendClick}
-                    />
-                  }
-                />
-                {keys.map((key) => (
-                  <Area
-                    key={key}
-                    type="linear"
-                    dataKey={key}
-                    stackId="a"
-                    stroke={`var(--color-${key})`}
-                    fill={`var(--color-${key})`}
-                    fillOpacity={0.35}
-                    strokeWidth={1.5}
-                    isAnimationActive={false}
-                    connectNulls={connectNulls}
-                    hide={hiddenSet.has(key)}
+            <LineChart {...chartProps}>
+              <CartesianGrid vertical={false} strokeDasharray="3 3" />
+              <XAxis
+                dataKey="timestamp"
+                type="number"
+                scale="time"
+                domain={xDomain ?? ['dataMin', 'dataMax']}
+                ticks={ticks}
+                tickFormatter={tickFormatter}
+                tickLine={false}
+                axisLine={false}
+                minTickGap={40}
+              />
+              <YAxis
+                tickLine={false}
+                axisLine={false}
+                width="auto"
+                tickFormatter={
+                  valueFormatter ? (v) => valueFormatter(Number(v)) : undefined
+                }
+              />
+              <ChartTooltip
+                cursor={!pinned}
+                active={pinned ? false : undefined}
+                content={tooltipContent}
+              />
+              <ChartLegend
+                content={
+                  <InteractiveChartLegend
+                    config={config}
+                    hiddenSet={hiddenSet}
+                    onItemClick={handleLegendClick}
+                    onItemHover={setLegendHover}
                   />
-                ))}
-                {refAreaLeft !== '' && refAreaRight !== '' ? (
-                  <ReferenceArea
-                    x1={refAreaLeft}
-                    x2={refAreaRight}
-                    strokeOpacity={0.3}
-                    fillOpacity={0.1}
-                  />
-                ) : null}
-              </AreaChart>
-            ) : (
-              <LineChart {...chartProps}>
-                <CartesianGrid vertical={false} strokeDasharray="3 3" />
-                <XAxis
-                  dataKey="timestamp"
-                  type="number"
-                  scale="time"
-                  domain={xDomain ?? ['dataMin', 'dataMax']}
-                  ticks={ticks}
-                  tickFormatter={tickFormatter}
-                  tickLine={false}
-                  axisLine={false}
-                  minTickGap={40}
+                }
+              />
+              <ScaleCapture xScaleRef={xScaleRef} yScaleRef={yScaleRef} />
+              {keys.map((key) => (
+                <Line
+                  key={key}
+                  type="linear"
+                  dataKey={key}
+                  stroke={`var(--color-${key})`}
+                  strokeWidth={1.8}
+                  dot={false}
+                  isAnimationActive={false}
+                  hide={hiddenSet.has(key)}
+                  zIndex={focusedKey === key ? 500 : undefined}
                 />
-                <YAxis
-                  tickLine={false}
-                  axisLine={false}
-                  width="auto"
-                  tickFormatter={
-                    valueFormatter
-                      ? (v) => valueFormatter(Number(v))
-                      : undefined
-                  }
+              ))}
+              {refAreaLeft !== '' && refAreaRight !== '' ? (
+                <ReferenceArea
+                  x1={refAreaLeft}
+                  x2={refAreaRight}
+                  strokeOpacity={0.3}
+                  fillOpacity={0.1}
                 />
-                <ChartTooltip
-                  cursor={!pinned}
-                  active={pinned ? false : undefined}
-                  content={tooltipContent}
-                />
-                <ChartLegend
-                  content={
-                    <InteractiveChartLegend
-                      config={config}
-                      hiddenSet={hiddenSet}
-                      onItemClick={handleLegendClick}
-                      onItemHover={setLegendHover}
-                    />
-                  }
-                />
-                <ScaleCapture xScaleRef={xScaleRef} yScaleRef={yScaleRef} />
-                {keys.map((key) => (
-                  <Line
-                    key={key}
-                    type="linear"
-                    dataKey={key}
-                    stroke={`var(--color-${key})`}
-                    strokeWidth={1.8}
-                    dot={false}
-                    isAnimationActive={false}
-                    connectNulls={connectNulls}
-                    hide={hiddenSet.has(key)}
-                    zIndex={focusedKey === key ? 500 : undefined}
-                  />
-                ))}
-                {refAreaLeft !== '' && refAreaRight !== '' ? (
-                  <ReferenceArea
-                    x1={refAreaLeft}
-                    x2={refAreaRight}
-                    strokeOpacity={0.3}
-                    fillOpacity={0.1}
-                  />
-                ) : null}
-              </LineChart>
-            )}
+              ) : null}
+            </LineChart>
           </ChartContainer>
 
           {pinned ? (
@@ -863,41 +787,8 @@ function distanceSqToSeries(
   rows: ReadonlyArray<Row>,
   xScale: ScaleFunction,
   yScale: ScaleFunction,
-  connectNulls: boolean,
 ): number {
   let minDistSq = Number.POSITIVE_INFINITY;
-  if (connectNulls) {
-    let prev: { x: number; y: number } | null = null;
-    for (const row of rows) {
-      const point = pixelAt(row, key, xScale, yScale);
-      if (!point) {
-        continue;
-      }
-      if (prev) {
-        const d = distanceSqPointToSegment(
-          cursorX,
-          cursorY,
-          prev.x,
-          prev.y,
-          point.x,
-          point.y,
-        );
-        if (d < minDistSq) {
-          minDistSq = d;
-        }
-      } else {
-        const dx = cursorX - point.x;
-        const dy = cursorY - point.y;
-        const d = dx * dx + dy * dy;
-        if (d < minDistSq) {
-          minDistSq = d;
-        }
-      }
-      prev = point;
-    }
-    return minDistSq;
-  }
-  // connectNulls=false: only adjacent non-null pairs form line segments.
   for (let i = 0; i < rows.length - 1; i += 1) {
     const a = pixelAt(rows[i], key, xScale, yScale);
     const b = pixelAt(rows[i + 1], key, xScale, yScale);

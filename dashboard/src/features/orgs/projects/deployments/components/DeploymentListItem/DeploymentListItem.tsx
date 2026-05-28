@@ -1,4 +1,8 @@
 import { formatDistanceToNowStrict, parseISO } from 'date-fns';
+import {
+  RotateCcw as ArrowCounterclockwiseIcon,
+  ChevronRightIcon,
+} from 'lucide-react';
 import type { MouseEvent } from 'react';
 import { twMerge } from 'tailwind-merge';
 import { NavLink } from '@/components/common/NavLink';
@@ -7,8 +11,6 @@ import { StatusCircle } from '@/components/presentational/StatusCircle';
 import { Avatar } from '@/components/ui/v2/Avatar';
 import { Button } from '@/components/ui/v2/Button';
 import { Chip } from '@/components/ui/v2/Chip';
-import { ArrowCounterclockwiseIcon } from '@/components/ui/v2/icons/ArrowCounterclockwiseIcon';
-import { ChevronRightIcon } from '@/components/ui/v2/icons/ChevronRightIcon';
 import { ListItem } from '@/components/ui/v2/ListItem';
 import { Tooltip } from '@/components/ui/v2/Tooltip';
 import { DeploymentDurationLabel } from '@/features/orgs/projects/deployments/components/DeploymentDurationLabel';

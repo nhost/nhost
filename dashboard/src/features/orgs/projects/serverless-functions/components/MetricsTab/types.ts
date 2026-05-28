@@ -1,4 +1,4 @@
-export const METRIC_PANEL_SLUGS = [
+const METRIC_PANEL_SLUGS = [
   'invocations',
   'response-status',
   'avg-response-size',

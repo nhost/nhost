@@ -32,7 +32,11 @@ import { getSchemaColor } from './schemaColor';
 import { TableActionsProvider } from './TableActionsContext';
 import TableNode from './TableNode';
 import useAllTableColumns from './useAllTableColumns';
-import useSchemaGraph, { EDGE_MARKER_IDS, nodeIdFor } from './useSchemaGraph';
+import useSchemaGraph, {
+  EDGE_MARKER_IDS,
+  type NamingMode,
+  nodeIdFor,
+} from './useSchemaGraph';
 
 const nodeTypes = { tableNode: TableNode } as const;
 const edgeTypes = { smart: SmartStepEdge } as const;
@@ -175,6 +179,7 @@ function SchemaDiagramContent() {
     () => new Set(),
   );
   const [hideEmpty, setHideEmpty] = useState(false);
+  const [namingMode, setNamingMode] = useState<NamingMode>('graphql');
   const [selectedNodeIds, setSelectedNodeIds] = useState<Set<string>>(
     () => new Set(),
   );
@@ -232,11 +237,14 @@ function SchemaDiagramContent() {
 
   const { nodes, edges, totalTableCount } = useSchemaGraph({
     metadataTables: metadataTables ?? [],
+    tableLikeObjects: databaseData?.tableLikeObjects ?? [],
     columns: schemaData?.columns ?? [],
     foreignKeys: schemaData?.foreignKeys ?? [],
+    functionReturnTypes: schemaData?.functionReturnTypes ?? [],
     role: selectedRole,
     visibleSchemas,
     hideTablesWithoutPermissions: hideEmpty,
+    namingMode,
   });
 
   const focusedNodeIds = useMemo(() => {
@@ -429,6 +437,8 @@ function SchemaDiagramContent() {
           onSelectedSchemasChange={handleSelectedSchemasChange}
           hideEmpty={hideEmpty}
           onHideEmptyChange={setHideEmpty}
+          namingMode={namingMode}
+          onNamingModeChange={setNamingMode}
           onNewTable={dataBrowserActions.openCreateTableDrawer}
           canCreateTable={!!targetSchema}
           targetSchema={targetSchema}

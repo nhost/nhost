@@ -8,7 +8,7 @@ describe('buildCronTriggerDTO', () => {
     const values: BaseCronTriggerFormValues = {
       triggerName: 'triggerName',
       comment: 'triggerComment',
-      webhook: 'https://httpbin.org/delay/5',
+      webhook: 'https://httpbin.org/post',
       schedule: '0 0 1 * *',
       payload: '{\n    "payload": "value"\n}',
       retryConf: {
@@ -46,7 +46,7 @@ describe('buildCronTriggerDTO', () => {
 
     const expected: CreateCronTriggerArgs = {
       name: 'triggerName',
-      webhook: 'https://httpbin.org/delay/5',
+      webhook: 'https://httpbin.org/post',
       schedule: '0 0 1 * *',
       payload: {
         payload: 'value',

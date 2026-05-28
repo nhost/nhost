@@ -77,6 +77,9 @@ version = "0.2.1"
 # CORS allowed origins. If set, used as-is.
 # If unset, origins are derived from auth.redirections.clientUrl and
 # auth.redirections.allowedUrls (paths/queries/fragments stripped).
+# Entries may use "*" as a wildcard matching any run of characters
+# (e.g. "https://my-app-*-org.vercel.app"). A bare "*" cannot be combined
+# with credentials and is rejected at startup.
 corsAllowedOrigins = []
 
 # Enable debug logging.
@@ -172,7 +175,7 @@ All flags are also available as environment variables. The most common:
 | `--metadata-database-url` | `CONSTELLATION_METADATA_DATABASE_URL` | *(unset → file mode)* |
 | `--admin-secret` | `CONSTELLATION_ADMIN_SECRET` | *(required)* |
 | `--jwt-secret` | `CONSTELLATION_JWT_SECRET` | *(required)* |
-| `--cors-allowed-origins` | `CONSTELLATION_CORS_ALLOWED_ORIGINS` | *(empty — denies all cross-origin requests)* |
+| `--cors-allowed-origins` | `CONSTELLATION_CORS_ALLOWED_ORIGINS` | *(empty — denies all cross-origin requests)*; entries may use `*` as a wildcard (e.g. `https://my-app-*-org.vercel.app`); a bare `*` cannot be combined with credentials and is rejected at startup |
 | `--subscription-poll-interval` | `CONSTELLATION_SUBSCRIPTION_POLL_INTERVAL` | `1s` |
 | `--enable-playground` | `CONSTELLATION_ENABLE_PLAYGROUND` | `false` |
 | `--debug` | `CONSTELLATION_DEBUG` | `false` |

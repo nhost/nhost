@@ -14,7 +14,7 @@ export const METRICS_RANGE_PRESETS = [
 
 export type MetricsRangePreset = (typeof METRICS_RANGE_PRESETS)[number];
 
-export const PRESET_MINUTES: Record<MetricsRangePreset, number> = {
+const PRESET_MINUTES: Record<MetricsRangePreset, number> = {
   '5m': 5,
   '15m': 15,
   '30m': 30,
@@ -56,7 +56,7 @@ export function isMetricsRangePreset(
   );
 }
 
-export interface ResolvedTimeRange {
+interface ResolvedTimeRange {
   from: Date;
   to: Date;
 }

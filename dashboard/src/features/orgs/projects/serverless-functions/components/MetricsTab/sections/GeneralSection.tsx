@@ -61,7 +61,6 @@ export default function GeneralSection({
         onExpand={onExpand}
       >
         <MetricChart
-          kind="line"
           data={invocationsByMethod}
           seriesKeyFor={methodKey}
           seriesLabelFor={methodLabel}
@@ -80,7 +79,6 @@ export default function GeneralSection({
         onExpand={onExpand}
       >
         <MetricChart
-          kind="line"
           data={responseStatus}
           seriesKeyFor={statusKey}
           seriesLabelFor={statusLabel}
@@ -98,7 +96,6 @@ export default function GeneralSection({
         onExpand={onExpand}
       >
         <MetricChart
-          kind="line"
           data={averageResponseSize}
           seriesKeyFor={methodKey}
           seriesLabelFor={methodLabel}

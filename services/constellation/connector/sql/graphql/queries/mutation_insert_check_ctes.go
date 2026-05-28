@@ -7,6 +7,7 @@ import (
 
 	"github.com/nhost/nhost/services/constellation/connector/sql/graphql/queries/arguments"
 	"github.com/nhost/nhost/services/constellation/connector/sql/graphql/queries/core"
+	"github.com/nhost/nhost/services/constellation/connector/sql/graphql/queries/where"
 )
 
 // errMsgInsertPermissionFailed is the message embedded in dialect.ThrowError
@@ -56,26 +57,35 @@ func (t *table) buildCheckConstraintSelectClause(
 }
 
 // buildCheckConstraintWhereClause builds the WHERE clause for the check_constraint CTE.
-// It applies insert permissions and substitutes session variables.
+// It applies insert permissions and substitutes session variables. The
+// optional tableSubs redirects relationship-EXISTS subqueries that target a
+// table currently being inserted into to its parent CTE instead — needed for
+// nested array-relationship inserts whose permission reaches the parent via
+// a relationship.
 func (t *table) buildCheckConstraintWhereClause(
 	b *strings.Builder,
 	role string,
 	sessionVariables map[string]any,
+	tableSubs where.TableSubstitutions,
 	params []any,
 	paramIndex int,
 ) ([]any, int, bool, error) {
-	return t.permissions.WriteInsertCheck( //nolint:wrapcheck
-		b, role, sessionVariables, params, paramIndex, "data",
+	return t.permissions.WriteInsertCheckSubstituted( //nolint:wrapcheck
+		b, role, sessionVariables, params, paramIndex, "data", tableSubs,
 	)
 }
 
 // buildCheckConstraintCTE builds the check_constraint CTE for permissions validation.
 // Returns updated params, paramIndex, and whether permissions were applied.
+// tableSubs redirects relationship-EXISTS subqueries that target a table
+// currently being inserted into to its parent CTE (nested array-rel inserts).
 func (t *table) buildCheckConstraintCTE(
 	b *strings.Builder,
 	checkCTEName string,
 	insertObj arguments.InsertObject,
 	nestedFKColumns map[string]struct{},
+	nestedFKIndex map[string]string,
+	tableSubs where.TableSubstitutions,
 	role string,
 	sessionVariables map[string]any,
 	params []any,
@@ -88,7 +98,13 @@ func (t *table) buildCheckConstraintCTE(
 
 	// Add NULL columns for any columns referenced by the permission check
 	// that aren't in the insert data, to prevent "column does not exist" errors.
-	t.appendMissingPermissionColumns(b, insertObj, nestedFKColumns, role)
+	// FK columns drawn from a sibling CTE pull from that CTE instead of NULL
+	// so the permission predicate sees the real id.
+	fromCTEs := t.appendMissingPermissionColumns(
+		b, insertObj, nestedFKColumns, nestedFKIndex, role,
+	)
+
+	writeFromCTEs(b, fromCTEs)
 
 	b.WriteString(") AS data WHERE ")
 
@@ -101,6 +117,7 @@ func (t *table) buildCheckConstraintCTE(
 		b,
 		role,
 		sessionVariables,
+		tableSubs,
 		params,
 		paramIndex,
 	)
@@ -150,6 +167,7 @@ func (t *table) buildSingleInsertCTEPreCheck(
 	insertObj arguments.InsertObject,
 	onConflict *arguments.OnConflict,
 	nestedFKIndex map[string]string,
+	tableSubs where.TableSubstitutions,
 	params []any,
 	paramIndex int,
 	role string,
@@ -172,6 +190,8 @@ func (t *table) buildSingleInsertCTEPreCheck(
 		checkCTEName,
 		insertObj,
 		nestedFKColumns,
+		nestedFKIndex,
+		tableSubs,
 		role,
 		sessionVariables,
 		params,
@@ -205,13 +225,20 @@ func (t *table) buildSingleInsertCTEPreCheck(
 }
 
 // buildSingleInsertCTEPostCheck builds a single-row insert using the post-mutation permission check.
-// Used when generated columns are referenced by insert permissions.
+// Used when an insert permission references a column whose final value is only
+// known after the INSERT runs (generated columns, or DB-defaulted columns the
+// payload omits). tableSubs mirrors the pre-check path: when the post-check
+// predicate reaches a sibling in-flight CTE via a relationship-EXISTS, it
+// redirects the EXISTS subquery from the underlying table to the CTE so it
+// sees the just-inserted rows. nil/empty for top-level inserts; populated for
+// nested-insert children that key off a parent CTE.
 func (t *table) buildSingleInsertCTEPostCheck(
 	b *strings.Builder,
 	cteName string,
 	insertObj arguments.InsertObject,
 	onConflict *arguments.OnConflict,
 	nestedFKIndex map[string]string,
+	tableSubs where.TableSubstitutions,
 	params []any,
 	paramIndex int,
 	role string,
@@ -257,7 +284,7 @@ func (t *table) buildSingleInsertCTEPostCheck(
 	var err error
 
 	params, paramIndex, err = t.buildPostCheckCTEWithName(
-		b, postCheckName, rawCTEName, role, sessionVariables, params, paramIndex,
+		b, postCheckName, rawCTEName, tableSubs, role, sessionVariables, params, paramIndex,
 	)
 	if err != nil {
 		return nil, 0, err
@@ -268,21 +295,28 @@ func (t *table) buildSingleInsertCTEPostCheck(
 	b.WriteString(rawCTEName)
 	b.WriteString(" WHERE (SELECT status FROM ")
 	b.WriteString(postCheckName)
-	b.WriteString(") = 1), ")
+	b.WriteString(") = 1)")
 
 	return params, paramIndex, nil
 }
 
-// appendMissingPermissionColumns appends NULL-valued columns to the SELECT clause
-// for columns referenced by the insert permission check that aren't in the insert data.
-// Permission-side column discovery is delegated to permissions.Store; this method
-// only emits the SQL.
+// appendMissingPermissionColumns appends columns referenced by the insert
+// permission check that aren't in the insert data. Columns mapped in
+// nestedFKIndex (FK columns drawn from a sibling CTE) are emitted with that
+// CTE's id so the permission predicate sees the real value; other missing
+// columns are emitted as typed NULLs to prevent "column does not exist"
+// errors. Returns the unique sibling CTEs that must be added to the SELECT's
+// FROM clause (in stable order of first appearance).
+//
+// Permission-side column discovery is delegated to permissions.Store; this
+// method only emits the SQL.
 func (t *table) appendMissingPermissionColumns(
 	b *strings.Builder,
 	insertObj arguments.InsertObject,
 	nestedFKColumns map[string]struct{},
+	nestedFKIndex map[string]string,
 	role string,
-) {
+) []string {
 	present := make(map[string]struct{})
 	for _, col := range insertObj.Columns {
 		if _, isNested := nestedFKColumns[col.Column.SQLName]; !isNested {
@@ -291,8 +325,26 @@ func (t *table) appendMissingPermissionColumns(
 	}
 
 	missing := t.permissions.MissingInsertColumns(role, present, t.columnFromSQLName)
+
+	seenCTE := make(map[string]struct{})
+
+	var fromCTEs []string
+
 	for _, col := range missing {
 		b.WriteString(", ")
+
+		if cte, isFK := nestedFKIndex[col.SQLName]; isFK {
+			b.WriteString(cte)
+			b.WriteString(".\"id\" AS ")
+			core.WriteQuotedIdentifier(b, col.SQLName)
+
+			if _, dup := seenCTE[cte]; !dup {
+				seenCTE[cte] = struct{}{}
+				fromCTEs = append(fromCTEs, cte)
+			}
+
+			continue
+		}
 
 		if col.SQLType != "" {
 			b.WriteString(t.dialect.TypeCast("NULL", col.SQLType))
@@ -303,6 +355,8 @@ func (t *table) appendMissingPermissionColumns(
 			core.WriteQuotedIdentifier(b, col.SQLName)
 		}
 	}
+
+	return fromCTEs
 }
 
 // extendWithPermissionColumns delegates to permissions.Store; kept as an
@@ -312,20 +366,78 @@ func (t *table) extendWithPermissionColumns(allColumns []string, role string) []
 	return t.permissions.ExtendInsertColumns(allColumns, role, t.columnFromSQLName)
 }
 
-// permissionReferencesGeneratedColumns delegates to permissions.Store.
-func (t *table) permissionReferencesGeneratedColumns(role string) bool {
-	return t.permissions.ReferencesGeneratedColumns(role, t.columnFromSQLName)
+// requiresPostInsertCheck reports whether the insert-check for role must run
+// after the INSERT (against RETURNING *) instead of against the input data.
+// See permissions.Store.RequiresPostInsertCheck for the rationale; presentCols
+// is the set of columns that carry a concrete value for every row, computed by
+// insertPresentColumns.
+func (t *table) requiresPostInsertCheck(
+	role string,
+	presentCols map[string]struct{},
+) bool {
+	return t.permissions.RequiresPostInsertCheck(role, presentCols, t.columnFromSQLName)
+}
+
+// insertPresentColumns returns the set of column SQL names that carry a
+// concrete value for every row in insertObjs: the intersection of the columns
+// explicitly supplied across all rows, plus FK columns whose value is sourced
+// from a parent CTE (nestedFKIndex). Columns outside this set fall back to
+// their database default for at least one row, which the pre-mutation check
+// can't observe — see requiresPostInsertCheck.
+func insertPresentColumns(
+	insertObjs []arguments.InsertObject,
+	nestedFKIndex map[string]string,
+) map[string]struct{} {
+	var present map[string]struct{}
+
+	for i, obj := range insertObjs {
+		rowCols := make(map[string]struct{}, len(obj.Columns))
+		for _, col := range obj.Columns {
+			rowCols[col.Column.SQLName] = struct{}{}
+		}
+
+		if i == 0 {
+			present = rowCols
+
+			continue
+		}
+
+		for col := range present {
+			if _, ok := rowCols[col]; !ok {
+				delete(present, col)
+			}
+		}
+	}
+
+	if present == nil {
+		present = make(map[string]struct{})
+	}
+
+	for col := range nestedFKIndex {
+		present[col] = struct{}{}
+	}
+
+	return present
 }
 
 // buildPostCheckCTEWithName builds a post-mutation permission check CTE with a custom name.
-// This is used when generated columns are referenced by insert permissions,
-// since their values are only available after the INSERT (via RETURNING *).
-// The CTE checks that ALL inserted rows pass the permission filter applied
-// against the actual data (where generated columns have their real computed values).
+// This is used when an insert permission references columns whose final value
+// is only known after the INSERT runs (generated columns, or DB-defaulted
+// columns omitted from the payload), since those values are only available
+// via RETURNING *. The CTE checks that ALL inserted rows pass the permission
+// filter applied against the actual data.
+//
+// tableSubs threads through to permissions.Store.WriteInsertCheckSubstituted
+// so that, when the post-check predicate reaches an in-flight sibling CTE via
+// a relationship-EXISTS, the EXISTS subquery reads the CTE instead of the
+// underlying table. This matches the pre-check path's substitution semantics
+// (see buildCheckConstraintWhereClause) and is required for nested
+// array-relationship children whose check column is defaulted-and-absent.
 func (t *table) buildPostCheckCTEWithName(
 	b *strings.Builder,
 	checkName string,
 	rawCTEName string,
+	tableSubs where.TableSubstitutions,
 	role string,
 	sessionVariables map[string]any,
 	params []any,
@@ -340,8 +452,8 @@ func (t *table) buildPostCheckCTEWithName(
 	b.WriteString(rawCTEName)
 	b.WriteString(" WHERE ")
 
-	params, paramIndex, _, err := t.permissions.WriteInsertCheck(
-		b, role, sessionVariables, params, paramIndex, rawCTEName,
+	params, paramIndex, _, err := t.permissions.WriteInsertCheckSubstituted(
+		b, role, sessionVariables, params, paramIndex, rawCTEName, tableSubs,
 	)
 	if err != nil {
 		return nil, 0, fmt.Errorf("failed to write post-check permission: %w", err)
@@ -356,7 +468,9 @@ func (t *table) buildPostCheckCTEWithName(
 	return params, paramIndex, nil
 }
 
-// buildPostCheckCTE builds a post-mutation permission check CTE named "post_check".
+// buildPostCheckCTE builds a post-mutation permission check CTE named
+// "post_check". Top-level callers pass tableSubs=nil because there is no
+// parent CTE in flight to substitute into.
 func (t *table) buildPostCheckCTE(
 	b *strings.Builder,
 	rawCTEName string,
@@ -366,7 +480,7 @@ func (t *table) buildPostCheckCTE(
 	paramIndex int,
 ) ([]any, int, error) {
 	return t.buildPostCheckCTEWithName(
-		b, "post_check", rawCTEName, role, sessionVariables, params, paramIndex,
+		b, "post_check", rawCTEName, nil, role, sessionVariables, params, paramIndex,
 	)
 }
 
@@ -403,15 +517,23 @@ func (t *table) collectAllColumns(
 }
 
 // buildUnionAllSelect builds a UNION ALL SELECT for multiple insert objects.
-// Each SELECT includes all columns, using NULL for missing values.
+// Each SELECT includes all columns. For columns mapped in nestedFKIndex (FK
+// columns whose values come from a sibling CTE) it selects the CTE's id; for
+// columns absent from columnToValue[i] it falls back to NULL; otherwise it
+// emits a typed placeholder. When any FK columns are referenced, each UNION
+// ALL branch joins the relevant CTE(s) via FROM so the permission predicate
+// in the surrounding check CTE sees the real FK value rather than NULL.
 func (t *table) buildUnionAllSelect(
 	b *strings.Builder,
 	insertObjs []arguments.InsertObject,
 	allColumns []string,
 	columnToValue []map[string]any,
+	nestedFKIndex map[string]string,
 	params []any,
 	paramIndex int,
 ) ([]any, int) {
+	fromCTEs := collectFKSourceCTEs(allColumns, nestedFKIndex)
+
 	for i := range insertObjs {
 		if i > 0 {
 			b.WriteString(" UNION ALL ")
@@ -419,55 +541,155 @@ func (t *table) buildUnionAllSelect(
 
 		b.WriteString("SELECT ")
 
-		for j, col := range allColumns {
-			if j > 0 {
-				b.WriteString(", ")
-			}
+		params, paramIndex = t.writeUnionAllRow(
+			b, allColumns, columnToValue[i], nestedFKIndex, params, paramIndex,
+		)
 
-			var colType string
-			for _, tableCol := range t.columns {
-				if tableCol.SQLName == col {
-					colType = tableCol.SQLType
-					break
-				}
-			}
+		writeFromCTEs(b, fromCTEs)
+	}
 
-			if value, hasValue := columnToValue[i][col]; hasValue { //nolint:nestif
-				ph := t.dialect.Placeholder(paramIndex)
-				if colType != "" {
-					b.WriteString(t.dialect.TypeCast(ph, colType))
-				} else {
-					b.WriteString(ph)
-				}
+	return params, paramIndex
+}
 
-				b.WriteString(" AS ")
-				core.WriteQuotedIdentifier(b, col)
+// writeUnionAllRow emits the column list for a single UNION-ALL branch.
+// Columns mapped in nestedFKIndex select the parent CTE's id; columns present
+// in rowValues emit a typed placeholder; remaining columns emit a typed NULL.
+func (t *table) writeUnionAllRow(
+	b *strings.Builder,
+	allColumns []string,
+	rowValues map[string]any,
+	nestedFKIndex map[string]string,
+	params []any,
+	paramIndex int,
+) ([]any, int) {
+	for j, col := range allColumns {
+		if j > 0 {
+			b.WriteString(", ")
+		}
 
-				params = append(params, value)
-				paramIndex++
-			} else {
-				if colType != "" {
-					b.WriteString(t.dialect.TypeCast("NULL", colType))
-				} else {
-					b.WriteString("NULL")
-				}
+		if cte, isFK := nestedFKIndex[col]; isFK {
+			b.WriteString(cte)
+			b.WriteString(".\"id\" AS ")
+			core.WriteQuotedIdentifier(b, col)
 
-				b.WriteString(" AS ")
-				core.WriteQuotedIdentifier(b, col)
-			}
+			continue
+		}
+
+		colType := t.columnSQLType(col)
+
+		value, hasValue := rowValues[col]
+		if hasValue {
+			params, paramIndex = t.writeTypedPlaceholder(b, col, colType, value, params, paramIndex)
+		} else {
+			t.writeTypedNull(b, col, colType)
 		}
 	}
 
 	return params, paramIndex
 }
 
+// columnSQLType returns the SQL type registered for col on t, or "" if the
+// column isn't in t.columns. "" signals to callers that no type-cast should
+// be emitted.
+func (t *table) columnSQLType(col string) string {
+	for _, tableCol := range t.columns {
+		if tableCol.SQLName == col {
+			return tableCol.SQLType
+		}
+	}
+
+	return ""
+}
+
+// writeTypedPlaceholder emits a parameter placeholder for value, type-cast
+// when colType is set, aliased as col, and appends value to params.
+func (t *table) writeTypedPlaceholder(
+	b *strings.Builder,
+	col, colType string,
+	value any,
+	params []any,
+	paramIndex int,
+) ([]any, int) {
+	ph := t.dialect.Placeholder(paramIndex)
+	if colType != "" {
+		b.WriteString(t.dialect.TypeCast(ph, colType))
+	} else {
+		b.WriteString(ph)
+	}
+
+	b.WriteString(" AS ")
+	core.WriteQuotedIdentifier(b, col)
+
+	return append(params, value), paramIndex + 1
+}
+
+// writeTypedNull emits a NULL literal, type-cast when colType is set, aliased
+// as col.
+func (t *table) writeTypedNull(b *strings.Builder, col, colType string) {
+	if colType != "" {
+		b.WriteString(t.dialect.TypeCast("NULL", colType))
+	} else {
+		b.WriteString("NULL")
+	}
+
+	b.WriteString(" AS ")
+	core.WriteQuotedIdentifier(b, col)
+}
+
+// writeFromCTEs appends a `FROM cte1, cte2, ...` clause to b. No-op when ctes
+// is empty.
+func writeFromCTEs(b *strings.Builder, ctes []string) {
+	for k, cte := range ctes {
+		if k == 0 {
+			b.WriteString(" FROM ")
+		} else {
+			b.WriteString(", ")
+		}
+
+		b.WriteString(cte)
+	}
+}
+
+// collectFKSourceCTEs returns the unique source CTEs (in stable order of
+// first appearance) referenced by columns that are mapped in nestedFKIndex.
+// Stable ordering keeps the generated SQL deterministic.
+func collectFKSourceCTEs(columns []string, nestedFKIndex map[string]string) []string {
+	if len(nestedFKIndex) == 0 {
+		return nil
+	}
+
+	seen := make(map[string]struct{}, len(nestedFKIndex))
+
+	var ctes []string
+
+	for _, col := range columns {
+		cte, ok := nestedFKIndex[col]
+		if !ok {
+			continue
+		}
+
+		if _, dup := seen[cte]; dup {
+			continue
+		}
+
+		seen[cte] = struct{}{}
+		ctes = append(ctes, cte)
+	}
+
+	return ctes
+}
+
 // buildCheckMutationResultCTE builds the check_mutation_result CTE with permissions.
 // This CTE contains all rows to be inserted after permission filtering.
+// This path is used only for top-level inserts; there is no in-flight parent
+// to substitute into relationship-EXISTS subqueries, so tableSubs is always
+// nil here.
 func (t *table) buildCheckMutationResultCTE(
 	b *strings.Builder,
 	insertObjs []arguments.InsertObject,
 	allColumns []string,
 	columnToValue []map[string]any,
+	nestedFKIndex map[string]string,
 	role string,
 	sessionVariables map[string]any,
 	params []any,
@@ -478,7 +700,7 @@ func (t *table) buildCheckMutationResultCTE(
 	b.WriteString(" AS (SELECT * FROM (") //nolint:unqueryvet
 
 	params, paramIndex = t.buildUnionAllSelect(
-		b, insertObjs, allColumns, columnToValue, params, paramIndex,
+		b, insertObjs, allColumns, columnToValue, nestedFKIndex, params, paramIndex,
 	)
 
 	b.WriteString(") AS data WHERE ")
@@ -492,6 +714,7 @@ func (t *table) buildCheckMutationResultCTE(
 		b,
 		role,
 		sessionVariables,
+		nil,
 		params,
 		paramIndex,
 	)
@@ -548,7 +771,9 @@ func (t *table) buildMutationResultInsertCTE(
 }
 
 // buildInsertMutationCTEPreCheck builds insert CTEs using the pre-mutation permission check
-// pattern. This is the default path when no generated columns are referenced by permissions.
+// pattern. This is the default path when no check-referenced column requires
+// post-INSERT evaluation (see requiresPostInsertCheck): the check predicate is
+// validated against the input data subquery before the INSERT runs.
 func (t *table) buildInsertMutationCTEPreCheck(
 	b *strings.Builder,
 	insertObjs []arguments.InsertObject,
@@ -571,7 +796,8 @@ func (t *table) buildInsertMutationCTEPreCheck(
 	)
 
 	params, paramIndex, hasCheckPermissions, err = t.buildCheckMutationResultCTE(
-		b, insertObjs, dataColumns, columnToValue, role, sessionVariables, params, paramIndex,
+		b, insertObjs, dataColumns, columnToValue, nestedFKIndex,
+		role, sessionVariables, params, paramIndex,
 	)
 	if err != nil {
 		return nil, 0, err
@@ -592,8 +818,9 @@ func (t *table) buildInsertMutationCTEPreCheck(
 }
 
 // buildInsertMutationCTEPostCheck builds insert CTEs using the post-mutation permission check
-// pattern. This is used when generated columns are referenced by insert permissions, because
-// generated column values are only available after the INSERT (via RETURNING *).
+// pattern. This is used when an insert-check-referenced column's final value is only known
+// after the INSERT runs (generated columns, or DB-defaulted columns omitted from the payload —
+// see requiresPostInsertCheck), so the predicate is validated against RETURNING *.
 //
 // SQL structure:
 //
@@ -616,7 +843,7 @@ func (t *table) buildInsertMutationCTEPostCheck(
 	b.WriteString("insert_data AS (SELECT * FROM (") //nolint:unqueryvet
 
 	params, paramIndex = t.buildUnionAllSelect(
-		b, insertObjs, allColumns, columnToValue, params, paramIndex,
+		b, insertObjs, allColumns, columnToValue, nestedFKIndex, params, paramIndex,
 	)
 
 	b.WriteString(") AS data), ")

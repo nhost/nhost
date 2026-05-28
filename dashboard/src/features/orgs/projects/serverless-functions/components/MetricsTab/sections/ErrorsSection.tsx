@@ -50,7 +50,6 @@ export default function ErrorsSection({
         onExpand={onExpand}
       >
         <MetricChart
-          kind="line"
           data={errorRate}
           seriesKeyFor={methodKey}
           seriesLabelFor={methodLabel}

@@ -57,7 +57,6 @@ export default function ResponseTimesSection({
             onExpand={onExpand}
           >
             <MetricChart
-              kind="line"
               data={data}
               seriesKeyFor={methodKey}
               seriesLabelFor={methodLabel}

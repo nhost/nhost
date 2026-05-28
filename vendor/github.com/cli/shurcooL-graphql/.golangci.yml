@@ -1,0 +1,11 @@
+linters:
+  enable:
+  - gofmt
+  - godot
+
+linters-settings:
+  godot:
+    # comments to be checked: `declarations`, `toplevel`, or `all`
+    scope: declarations
+    # check that each sentence starts with a capital letter
+    capital: true

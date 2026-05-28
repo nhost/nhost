@@ -581,6 +581,107 @@ func TestInsertOneBuildQuery(t *testing.T) { //nolint:paralleltest,maintidx
 			},
 		},
 
+		// Nested array-relationship insert where the child's insert permission
+		// references the parent — either directly via the FK column
+		// (`kb_entry_id: _in: ...`) or indirectly via a relationship to the
+		// parent (`kb_entry: {uploader_id: _eq: ...}`).
+		//
+		// Two issues had to be fixed for this case:
+		//   1. The pre-check data subquery emitted NULL for the FK column
+		//      (because the parent INSERT hasn't produced its RETURNING yet),
+		//      so any predicate on that column rejected every row. The check
+		//      CTE now pulls the FK from the parent CTE.
+		//   2. A relationship-based predicate compiles to EXISTS against the
+		//      parent's underlying table — which doesn't see the in-flight
+		//      parent INSERT (Postgres WITH snapshot rule). The relationship's
+		//      EXISTS is now rewritten to query the parent CTE in nested
+		//      contexts so it sees the freshly-inserted row.
+		{
+			name: "permissions: nested array insert references FK (single row)",
+			query: query{
+				Query: `
+					mutation {
+					  insert_kb_entries_one(
+						object: {
+						  title: "Single-row nested array test",
+						  summary: "summary",
+						  content: "content",
+						  kb_entry_departments: {
+							data: [
+							  { department_id: "2db9de0a-b9ba-416e-8619-783a399ae2b3" }
+							]
+						  }
+						}) {
+						title
+					  }
+					}`,
+				Variables: map[string]any{},
+				Role:      "user",
+				SessionVariables: map[string]any{
+					"x-hasura-user-id":     "550e8400-e29b-41d4-a716-446655440001",
+					"x-hasura-departments": "{2db9de0a-b9ba-416e-8619-783a399ae2b3,fd1e6bba-c292-4b2f-872e-ae16146cdd82}",
+				},
+			},
+		},
+
+		{
+			name: "permissions: nested array insert references FK (multiple rows)",
+			query: query{
+				Query: `
+					mutation {
+					  insert_kb_entries_one(
+						object: {
+						  title: "Multi-row nested array test",
+						  summary: "summary",
+						  content: "content",
+						  kb_entry_departments: {
+							data: [
+							  { department_id: "2db9de0a-b9ba-416e-8619-783a399ae2b3" },
+							  { department_id: "fd1e6bba-c292-4b2f-872e-ae16146cdd82" }
+							]
+						  }
+						}) {
+						title
+					  }
+					}`,
+				Variables: map[string]any{},
+				Role:      "user",
+				SessionVariables: map[string]any{
+					"x-hasura-user-id":     "550e8400-e29b-41d4-a716-446655440001",
+					"x-hasura-departments": "{2db9de0a-b9ba-416e-8619-783a399ae2b3,fd1e6bba-c292-4b2f-872e-ae16146cdd82}",
+				},
+			},
+		},
+
+		{
+			name: "permissions: nested array insert references FK (denied)",
+			query: query{
+				Query: `
+					mutation {
+					  insert_kb_entries_one(
+						object: {
+						  title: "Multi-row nested array denied",
+						  summary: "summary",
+						  content: "content",
+						  kb_entry_departments: {
+							data: [
+							  { department_id: "2db9de0a-b9ba-416e-8619-783a399ae2b3" },
+							  { department_id: "fd1e6bba-c292-4b2f-872e-ae16146cdd82" }
+							]
+						  }
+						}) {
+						title
+					  }
+					}`,
+				Variables: map[string]any{},
+				Role:      "user",
+				SessionVariables: map[string]any{
+					"x-hasura-user-id":     "550e8400-e29b-41d4-a716-446655440001",
+					"x-hasura-departments": "{fd1e6bba-c292-4b2f-872e-ae16146cdd82}",
+				},
+			},
+		},
+
 		// on_conflict with where clause
 		{
 			name: "insert_one with on_conflict where clause - simple condition",
@@ -877,6 +978,211 @@ func TestInsertOneBuildQuery(t *testing.T) { //nolint:paralleltest,maintidx
 					}
 				}`,
 				Role: "generated_col_test",
+			},
+		},
+
+		// Insert through a composite-FK object relationship whose join column
+		// (parent_kind) is a DB-defaulted discriminator the client never supplies.
+		// Locks the post-check SQL shape and end-to-end execution (parent_kind
+		// defaults to 'strength' on insert, the check sees the real row).
+		{
+			name: "permissions: composite-FK relationship with defaulted discriminator",
+			query: query{
+				Query: `
+					mutation {
+					  insert_exercise_log_sets_one(
+						object: {
+						  parent_id: "0199aaaa-0000-7000-8000-000000000001"
+						  reps: 10
+						}
+					  ) {
+						parent_id
+						reps
+					  }
+					}`,
+				Role: "user",
+				SessionVariables: map[string]any{
+					"x-hasura-user-id": "550e8400-e29b-41d4-a716-446655440001",
+				},
+			},
+		},
+
+		{
+			name: "permissions: composite-FK relationship with defaulted discriminator (denied)",
+			query: query{
+				Query: `
+					mutation {
+					  insert_exercise_log_sets_one(
+						object: {
+						  parent_id: "0199aaaa-0000-7000-8000-000000000001"
+						  reps: 10
+						}
+					  ) {
+						parent_id
+					  }
+					}`,
+				Role: "user",
+				SessionVariables: map[string]any{
+					"x-hasura-user-id": "11111111-1111-1111-1111-111111111111",
+				},
+			},
+		},
+
+		// Insert where the check references the table's GENERATED BY DEFAULT
+		// AS IDENTITY primary key. `id` carries neither IsGenerated nor
+		// HasDefault — it surfaces via pg_attribute.attidentity — so without
+		// the IsIdentity post-check trigger the pre-mutation check would
+		// build its data CTE with NULL standing in for id and the
+		// `id._is_null: false` predicate (from public_identity_check_logs.yaml)
+		// would fail. Locks the post-check SQL shape so the predicate runs
+		// against the engine-assigned value.
+		{
+			name: "permissions: identity column referenced by insert check",
+			query: query{
+				Query: `
+					mutation {
+					  insert_identity_check_logs_one(
+						object: {
+						  note: "hello"
+						}
+					  ) {
+						owner_id
+						note
+					  }
+					}`,
+				Role: "user",
+				SessionVariables: map[string]any{
+					"x-hasura-user-id": "550e8400-e29b-41d4-a716-446655440001",
+				},
+			},
+		},
+
+		// Nested array-relationship insert of a child (note_replies) from its
+		// parent (notes) where the child's insert check references the parent
+		// via the `note` object relationship and the child's `visibility`
+		// column is a DB default that the payload omits. requiresPostInsertCheck
+		// fires for the child (defaulted column referenced by check, absent
+		// from payload, not in nestedFKIndex). extendSubsForArrayChild populates
+		// tableSubs[notes.TableFromClause()] = mutation_result. Threading
+		// tableSubs into buildSingleInsertCTEPostCheck must redirect the
+		// relationship-EXISTS in the post-check predicate so it reads the
+		// parent's just-inserted row in mutation_result instead of the
+		// underlying (empty in this isolated DB) notes table. Locks the SQL
+		// shape AND end-to-end execution (parent is empty otherwise, so a
+		// non-substituted EXISTS would deny every row).
+		{
+			name: "permissions: nested array-rel insert with post-check substituted to parent CTE",
+			query: query{
+				Query: `
+					mutation {
+					  insert_notes_one(object: {
+						id: "0199bbbb-0000-7000-8000-000000000010"
+						author_id: "550e8400-e29b-41d4-a716-446655440001"
+						title: "Top-level note"
+						replies: {
+						  data: [
+							{ body: "first reply" }
+						  ]
+						}
+					  }) {
+						id
+						replies { body }
+					  }
+					}`,
+				Role: "user",
+				SessionVariables: map[string]any{
+					"x-hasura-user-id": "550e8400-e29b-41d4-a716-446655440001",
+				},
+			},
+		},
+
+		// Same shape but with two nested rows: forces the multi-row nested
+		// path (buildMultiNestedInsertCTEPostCheck) so the SQL shape for the
+		// multi-row sibling of the above case is locked too.
+		{
+			name: "permissions: nested array-rel insert with post-check (multi-row child)",
+			query: query{
+				Query: `
+					mutation {
+					  insert_notes_one(object: {
+						id: "0199bbbb-0000-7000-8000-000000000011"
+						author_id: "550e8400-e29b-41d4-a716-446655440001"
+						title: "Note with multiple replies"
+						replies: {
+						  data: [
+							{ body: "reply 1" },
+							{ body: "reply 2" }
+						  ]
+						}
+					  }) {
+						id
+					  }
+					}`,
+				Role: "user",
+				SessionVariables: map[string]any{
+					"x-hasura-user-id": "550e8400-e29b-41d4-a716-446655440001",
+				},
+			},
+		},
+
+		// Same shape as "(multi-row child)" but selects ONLY the parent
+		// `title` scalar — no `id`, no `replies`. This is the exact
+		// shape that historically left the gated `nested_replies` and
+		// `nested_replies_post_check` CTEs unreferenced by the outer
+		// SELECT, allowing Postgres to elide them and silently bypass
+		// `constellation_throw_error`. Locks the WHERE-clause force
+		// reference emitted by writeNestedCTEForceRef so the regression
+		// can't sneak back in.
+		{
+			name: "permissions: nested array-rel insert with post-check (parent scalar only, force CTE reference)",
+			query: query{
+				Query: `
+					mutation {
+					  insert_notes_one(object: {
+						id: "0199bbbb-0000-7000-8000-000000000014"
+						author_id: "550e8400-e29b-41d4-a716-446655440001"
+						title: "Parent scalar only"
+						replies: {
+						  data: [
+							{ body: "reply" }
+						  ]
+						}
+					  }) {
+						title
+					  }
+					}`,
+				Role: "user",
+				SessionVariables: map[string]any{
+					"x-hasura-user-id": "550e8400-e29b-41d4-a716-446655440001",
+				},
+			},
+		},
+
+		// Denied at the PARENT pre-check: session user_id doesn't match the
+		// parent's author_id. The nested child's post-check never runs at
+		// execution time, but the SQL is still generated using the substituted
+		// path — locking the shape of the post-check CTE under denial
+		// conditions as well.
+		{
+			name: "permissions: nested array-rel insert with post-check (denied at parent)",
+			query: query{
+				Query: `
+					mutation {
+					  insert_notes_one(object: {
+						id: "0199bbbb-0000-7000-8000-000000000012"
+						author_id: "550e8400-e29b-41d4-a716-446655440001"
+						title: "Denied note"
+						replies: {
+						  data: [{ body: "reply" }]
+						}
+					  }) {
+						id
+					  }
+					}`,
+				Role: "user",
+				SessionVariables: map[string]any{
+					"x-hasura-user-id": "11111111-1111-1111-1111-111111111111",
+				},
 			},
 		},
 	}

@@ -1,69 +1,55 @@
-// Mirrors Grafana's rangeutil.ts → roundInterval. Snaps a raw step (ms) to one
-// of Grafana's "nice" buckets so distinct viewers of the same range preset
-// produce identical (start, end, step) tuples and share Prometheus cache keys.
-export function roundInterval(intervalMs: number): number {
-  switch (true) {
-    case intervalMs < 10:
-      return 1;
-    case intervalMs < 15:
-      return 10;
-    case intervalMs < 35:
-      return 20;
-    case intervalMs < 75:
-      return 50;
-    case intervalMs < 150:
-      return 100;
-    case intervalMs < 350:
-      return 200;
-    case intervalMs < 750:
-      return 500;
-    case intervalMs < 1_500:
-      return 1_000;
-    case intervalMs < 3_500:
-      return 2_000;
-    case intervalMs < 7_500:
-      return 5_000;
-    case intervalMs < 12_500:
-      return 10_000;
-    case intervalMs < 17_500:
-      return 15_000;
-    case intervalMs < 25_000:
-      return 20_000;
-    case intervalMs < 45_000:
-      return 30_000;
-    case intervalMs < 90_000:
-      return 60_000;
-    case intervalMs < 210_000:
-      return 120_000;
-    case intervalMs < 450_000:
-      return 300_000;
-    case intervalMs < 750_000:
-      return 600_000;
-    case intervalMs < 1_050_000:
-      return 900_000;
-    case intervalMs < 1_500_000:
-      return 1_200_000;
-    case intervalMs < 2_700_000:
-      return 1_800_000;
-    case intervalMs < 5_400_000:
-      return 3_600_000;
-    case intervalMs < 9_000_000:
-      return 7_200_000;
-    case intervalMs < 16_200_000:
-      return 10_800_000;
-    case intervalMs < 32_400_000:
-      return 21_600_000;
-    case intervalMs < 86_400_000:
-      return 43_200_000;
-    case intervalMs < 604_800_000:
-      return 86_400_000;
-    case intervalMs < 1_814_400_000:
-      return 604_800_000;
-    case intervalMs < 3_628_800_000:
-      return 2_592_000_000;
-    default:
-      return 31_536_000_000;
-  }
+const SEC = 1_000;
+const MIN = 60 * SEC;
+const HOUR = 60 * MIN;
+const DAY = 24 * HOUR;
+const WEEK = 7 * DAY;
+const YEAR = 365 * DAY;
+
+// [ltMs, bucketMs]: first row where intervalMs < ltMs wins; fallback is YEAR.
+// Below 1d the thresholds are arithmetic midpoints between adjacent buckets;
+// from 1d up they're hand-tuned to bias toward the coarser bucket.
+const NICE_BUCKETS: ReadonlyArray<readonly [ltMs: number, bucketMs: number]> = [
+  // sub-second
+  [10, 1],
+  [15, 10],
+  [35, 20],
+  [75, 50],
+  [150, 100],
+  [350, 200],
+  [750, 500],
+  // sub-minute
+  [1_500, SEC],
+  [3_500, 2 * SEC],
+  [7_500, 5 * SEC],
+  [12_500, 10 * SEC],
+  [17_500, 15 * SEC],
+  [25_000, 20 * SEC],
+  [45_000, 30 * SEC],
+  // sub-hour
+  [90 * SEC, MIN],
+  [3.5 * MIN, 2 * MIN],
+  [7.5 * MIN, 5 * MIN],
+  [12.5 * MIN, 10 * MIN],
+  [17.5 * MIN, 15 * MIN],
+  [25 * MIN, 20 * MIN],
+  [45 * MIN, 30 * MIN],
+  // sub-day
+  [90 * MIN, HOUR],
+  [2.5 * HOUR, 2 * HOUR],
+  [4.5 * HOUR, 3 * HOUR],
+  [9 * HOUR, 6 * HOUR],
+  [DAY, 12 * HOUR],
+  // long range
+  [WEEK, DAY],
+  [3 * WEEK, WEEK],
+  [6 * WEEK, 30 * DAY],
+];
+
+// Snaps a raw step (ms) to a fixed bucket set so the same range / chart-width
+// combination always produces the same `step`, smoothing over small width
+// differences and keeping the resolution stable across refetches.
+export function roundIntervalMs(intervalMs: number): number {
+  return NICE_BUCKETS.find(([lt]) => intervalMs < lt)?.[1] ?? YEAR;
 }
 
 // Fallback when the panel hasn't been measured yet (first render, before the
@@ -95,7 +81,7 @@ export function resolveMaxDataPoints(chartWidth: number): number {
   );
 }
 
-export interface QueryStep {
+interface QueryStep {
   intervalMs: number;
   maxDataPoints: number;
 }
@@ -113,5 +99,5 @@ export function computeQueryStep(
     };
   }
   const rawStep = span / maxDataPoints;
-  return { intervalMs: roundInterval(rawStep), maxDataPoints };
+  return { intervalMs: roundIntervalMs(rawStep), maxDataPoints };
 }

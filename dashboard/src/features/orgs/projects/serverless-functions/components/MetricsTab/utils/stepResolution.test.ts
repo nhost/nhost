@@ -2,7 +2,7 @@ import {
   computeQueryStep,
   DEFAULT_MAX_DATA_POINTS,
   resolveMaxDataPoints,
-  roundInterval,
+  roundIntervalMs,
 } from '@/features/orgs/projects/serverless-functions/components/MetricsTab/utils/stepResolution';
 
 const minutesAgo = (now: Date, minutes: number) =>
@@ -11,10 +11,8 @@ const minutesAgo = (now: Date, minutes: number) =>
 describe('computeQueryStep', () => {
   const now = new Date('2026-05-26T12:00:00Z');
 
-  it('snaps short presets to the matching Grafana bucket (no client floor)', () => {
-    // 15m / 600 = 1500ms raw → bucket: 2000ms. The 15s scrape-interval floor
-    // now lives on the server (minInterval), so the dashboard sends the raw
-    // snapped step.
+  it('snaps short presets to the matching bucket (no client floor)', () => {
+    // 15m / 600 = 1500ms raw → bucket: 2000ms.
     const { intervalMs, maxDataPoints } = computeQueryStep(
       minutesAgo(now, 15),
       now,
@@ -23,7 +21,7 @@ describe('computeQueryStep', () => {
     expect(maxDataPoints).toBe(DEFAULT_MAX_DATA_POINTS);
   });
 
-  it('snaps long presets to a Grafana nice bucket', () => {
+  it('snaps long presets to a nice bucket', () => {
     // 7d (10080m) / 600 = 1_008_000ms raw → bucket: 900_000ms (15min).
     const { intervalMs } = computeQueryStep(minutesAgo(now, 10_080), now);
     expect(intervalMs).toBe(900_000);
@@ -48,10 +46,10 @@ describe('computeQueryStep', () => {
   });
 });
 
-describe('roundInterval', () => {
+describe('roundIntervalMs', () => {
   it('snaps below/at the 1500ms threshold to the right bucket', () => {
-    expect(roundInterval(1_499)).toBe(1_000);
-    expect(roundInterval(1_500)).toBe(2_000);
+    expect(roundIntervalMs(1_499)).toBe(1_000);
+    expect(roundIntervalMs(1_500)).toBe(2_000);
   });
 });
 

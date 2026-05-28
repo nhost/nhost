@@ -166,7 +166,6 @@ export default function ExpandedMetricPanel({
 
         <div ref={chartHostRef} className="min-h-0 flex-1">
           <MetricChart
-            kind="line"
             data={sourceData}
             height={chartHeight}
             seriesKeyFor={

@@ -1,6 +1,7 @@
 import { formatDistanceToNowStrict, parseISO } from 'date-fns';
 import { Clock, Code, FileCode, History } from 'lucide-react';
 import { useRouter } from 'next/router';
+import { useEffect } from 'react';
 import { UpgradeToProBanner } from '@/components/common/UpgradeToProBanner';
 import { Container } from '@/components/layout/Container';
 import { Tabs, TabsList, TabsTrigger } from '@/components/ui/v3/tabs';
@@ -41,9 +42,19 @@ export default function FunctionDetailsPanel({
   fn,
 }: FunctionDetailsPanelProps) {
   const router = useRouter();
+  const isPlatform = useIsPlatform();
   const activeTab: FunctionTab = isFunctionTab(router.query.tab)
     ? router.query.tab
     : 'overview';
+
+  // Metrics is platform-only; a shared ?tab=metrics link on a self-hosted
+  // project would otherwise mount <MetricsTab> and hit missing resolvers.
+  // biome-ignore lint/correctness/useExhaustiveDependencies: router is stable
+  useEffect(() => {
+    if (activeTab === 'metrics' && !isPlatform) {
+      router.push('/404');
+    }
+  }, [activeTab, isPlatform]);
 
   const handleTabChange = (newTab: FunctionTab) => {
     router.replace(
@@ -56,7 +67,6 @@ export default function FunctionDetailsPanel({
     );
   };
 
-  const isPlatform = useIsPlatform();
   const { org } = useCurrentOrg();
   const localMimirClient = useLocalMimirClient();
   const { project } = useProject();
@@ -170,7 +180,7 @@ export default function FunctionDetailsPanel({
           />
         </div>
       )}
-      {activeTab === 'metrics' && (
+      {activeTab === 'metrics' && isPlatform && (
         <div className="flex-1 overflow-auto">
           {showMetricsPaywall ? (
             <Container

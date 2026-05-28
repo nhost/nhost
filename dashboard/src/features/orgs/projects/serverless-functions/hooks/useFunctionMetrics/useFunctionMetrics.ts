@@ -16,9 +16,9 @@ import { useGetFunctionsMetricsDashboardQuery } from '@/utils/__generated__/grap
 interface UseFunctionMetricsOptions {
   route: string;
   range: MetricsTimeRange;
-  // Measured panel width in pixels. Drives maxDataPoints (and therefore step)
-  // the way Grafana does — panel-pixel-width → datasource. 0 / undefined falls
-  // back to DEFAULT_MAX_DATA_POINTS until the ResizeObserver lands.
+  // Measured panel width in pixels. Drives maxDataPoints (and therefore step):
+  // panel-pixel-width → datasource. 0 / undefined falls back to
+  // DEFAULT_MAX_DATA_POINTS until the ResizeObserver lands.
   chartWidth: number;
 }
 
