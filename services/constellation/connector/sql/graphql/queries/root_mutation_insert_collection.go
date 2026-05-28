@@ -2,6 +2,7 @@ package queries
 
 import (
 	"fmt"
+	"sort"
 	"strings"
 
 	"github.com/vektah/gqlparser/v2/ast"
@@ -82,7 +83,7 @@ func (t *table) buildInsertCollectionSQL(
 	params := make([]any, 0, len(insertObjs)*8) //nolint:mnd
 	paramIndex := 1
 
-	cteSQL, params, paramIndex, _, err := t.buildInsertMutationCTE(
+	cteSQL, params, paramIndex, nestedCTEs, err := t.buildInsertMutationCTE(
 		insertObjs,
 		onConflict,
 		role,
@@ -96,6 +97,16 @@ func (t *table) buildInsertCollectionSQL(
 
 	b.WriteString(cteSQL)
 	b.WriteString(" ")
+
+	// Sum the affected_rows over every gated nested-insert CTE so the count
+	// matches Hasura (parent + nested children) and — more importantly —
+	// keeps Postgres from skipping the nested CTEs as unreferenced. Without
+	// this reference a nested post-check that would have thrown via
+	// constellation_throw_error is silently elided. See
+	// selectionAffectedRows.nestedCTENames for the full rationale.
+	if selection.affectedRows != nil && len(nestedCTEs) > 0 {
+		selection.affectedRows.nestedCTENames = sortedNestedCTEValues(nestedCTEs)
+	}
 
 	params, _, err = selection.WriteSQL(
 		b,
@@ -320,6 +331,26 @@ func (t *table) buildInsertMutationCTE(
 	nestedCTEs := t.buildNestedCTEsMap(insertObjs)
 
 	return b.String(), params, paramIndex, nestedCTEs, nil
+}
+
+// sortedNestedCTEValues extracts and sorts the CTE names from the
+// nestedCTEs map (keyed by relationship name) so the affected_rows
+// projection's `+ (SELECT COUNT(*) FROM …)` order is deterministic for
+// golden-file diffs. Sorting on the CTE name keeps the convention used
+// by `nested_<rel>` so multi-relationship inserts produce stable SQL.
+func sortedNestedCTEValues(nestedCTEs map[string]string) []string {
+	if len(nestedCTEs) == 0 {
+		return nil
+	}
+
+	values := make([]string, 0, len(nestedCTEs))
+	for _, v := range nestedCTEs {
+		values = append(values, v)
+	}
+
+	sort.Strings(values)
+
+	return values
 }
 
 // buildInsertMutationCTEBody emits the check + INSERT CTEs for a top-level

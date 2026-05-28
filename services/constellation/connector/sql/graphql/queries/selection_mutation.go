@@ -110,6 +110,19 @@ func (s mutationSelection) WriteSQLWithCTE(
 
 type selectionAffectedRows struct {
 	alias string
+	// nestedCTENames lists the gated nested-insert CTE names whose row
+	// counts must be summed into affected_rows alongside the parent CTE.
+	// Populated by collection-insert callers when a top-level insert has
+	// nested array/object-relationship children; nil otherwise.
+	//
+	// Summing from these CTEs is load-bearing for Postgres: each nested
+	// gated CTE wraps a `WHERE (SELECT status FROM <post_check>) = 1`
+	// predicate around `constellation_throw_error`, and Postgres skips
+	// non-modifying CTEs that nothing in the outer SELECT references —
+	// so without this sum, a permission-violating nested row would slip
+	// through silently. The Hasura-parity payoff (affected_rows reports
+	// parent + nested rows) is the same shape Hasura emits.
+	nestedCTENames []string
 }
 
 // WriteSQL writes the affected_rows JSON pair against the default
@@ -119,7 +132,9 @@ func (s selectionAffectedRows) WriteSQL(b *strings.Builder) {
 }
 
 // WriteSQLWithCTE writes the affected_rows JSON pair as a COUNT(*) over the
-// given CTE.
+// given CTE, plus a COUNT(*) over each gated nested-insert CTE in
+// s.nestedCTENames. When there are no nested CTEs, the emission is
+// byte-identical to the single-CTE form.
 func (s selectionAffectedRows) WriteSQLWithCTE(cteName string, b *strings.Builder) {
 	alias := s.alias
 	if alias == "" {
@@ -128,8 +143,26 @@ func (s selectionAffectedRows) WriteSQLWithCTE(cteName string, b *strings.Builde
 
 	b.WriteByte('\'')
 	b.WriteString(alias)
-	b.WriteString("', (SELECT COUNT(*) FROM ")
+	b.WriteString("', ")
+
+	if len(s.nestedCTENames) == 0 {
+		b.WriteString("(SELECT COUNT(*) FROM ")
+		b.WriteString(cteName)
+		b.WriteByte(')')
+
+		return
+	}
+
+	b.WriteString("((SELECT COUNT(*) FROM ")
 	b.WriteString(cteName)
+	b.WriteByte(')')
+
+	for _, nested := range s.nestedCTENames {
+		b.WriteString(" + (SELECT COUNT(*) FROM ")
+		b.WriteString(nested)
+		b.WriteByte(')')
+	}
+
 	b.WriteByte(')')
 }
 
