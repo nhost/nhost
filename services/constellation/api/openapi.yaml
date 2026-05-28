@@ -1,0 +1,74 @@
+openapi: "3.0.0"
+
+info:
+  version: 1.0.0
+  title: "Nhost Constellation API"
+  description: >-
+    Non-GraphQL HTTP surface served by Constellation. The GraphQL endpoint
+    (/v1/graphql) is mounted natively and is intentionally not described here.
+    Endpoints that Constellation does not yet implement natively (e.g.
+    /v1/metadata, /v2/query, /apis/*) are reverse-proxied to Hasura and are
+    added to this spec as they are migrated.
+  license:
+    name: "MIT License"
+    url: "https://opensource.org/licenses/MIT"
+  contact:
+    name: "Nhost Support"
+    url: "https://nhost.io"
+
+servers:
+  - url: "/"
+    description: "Constellation server"
+
+tags:
+  - name: system
+    description: "System operations: health checks and service version"
+
+paths:
+  /healthz:
+    get:
+      summary: Health check (GET)
+      description: Verify if the service is operational using GET method
+      operationId: healthzGet
+      tags:
+        - system
+      responses:
+        "200":
+          description: "Service is healthy and operational"
+          content:
+            text/plain:
+              schema:
+                type: string
+                example: "ok"
+    head:
+      summary: Health check (HEAD)
+      description: Verify if the service is operational using HEAD method
+      operationId: healthzHead
+      tags:
+        - system
+      responses:
+        "200":
+          description: "Service is healthy and operational"
+
+  /v1/version:
+    get:
+      summary: Get service version
+      description: Retrieve version information about the service
+      operationId: getVersion
+      tags:
+        - system
+      responses:
+        "200":
+          description: "Version information successfully retrieved"
+          content:
+            application/json:
+              schema:
+                type: object
+                additionalProperties: false
+                properties:
+                  version:
+                    type: string
+                    description: "The version of the service"
+                    example: "1.2.3"
+                required:
+                  - version

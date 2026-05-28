@@ -51,6 +51,8 @@ type TableMetadata struct {
 	InsertPermissions   []InsertPermission   `json:"insert_permissions,omitempty"   yaml:"insert_permissions,omitempty"`
 	UpdatePermissions   []UpdatePermission   `json:"update_permissions,omitempty"   yaml:"update_permissions,omitempty"`
 	DeletePermissions   []DeletePermission   `json:"delete_permissions,omitempty"   yaml:"delete_permissions,omitempty"`
+
+	Unknown jsontext.Value `json:",unknown" yaml:"-"`
 }
 
 // UnmarshalYAML handles entries that may be `!include <path>` directives in
@@ -83,11 +85,15 @@ func (t *TableMetadata) UnmarshalYAML(ctx context.Context, unmarshal func(any) e
 type TableSource struct {
 	Name   string `json:"name"   yaml:"name"`
 	Schema string `json:"schema" yaml:"schema"`
+
+	Unknown jsontext.Value `json:",unknown" yaml:"-"`
 }
 
 // ColumnConfig overrides the GraphQL name a SQL column is exposed under.
 type ColumnConfig struct {
 	CustomName string `json:"custom_name" yaml:"custom_name"`
+
+	Unknown jsontext.Value `json:",unknown" yaml:"-"`
 }
 
 // CustomRootFields overrides the default GraphQL field names generated for a
@@ -104,6 +110,8 @@ type CustomRootFields struct {
 	Update          string `json:"update,omitempty"           yaml:"update"`
 	UpdateByPk      string `json:"update_by_pk,omitempty"     yaml:"update_by_pk"`
 	UpdateMany      string `json:"update_many,omitempty"      yaml:"update_many"`
+
+	Unknown jsontext.Value `json:",unknown" yaml:"-"`
 }
 
 // TableConfiguration bundles per-table GraphQL customisations: column
@@ -112,30 +120,40 @@ type TableConfiguration struct {
 	ColumnConfig     map[string]ColumnConfig `json:"column_config,omitempty" yaml:"column_config,omitempty"`
 	CustomName       string                  `json:"custom_name,omitempty"   yaml:"custom_name,omitempty"`
 	CustomRootFields CustomRootFields        `json:"custom_root_fields"      yaml:"custom_root_fields,omitempty"`
+
+	Unknown jsontext.Value `json:",unknown" yaml:"-"`
 }
 
 // SelectPermission binds a role to its select-permission configuration.
 type SelectPermission struct {
 	Role       string                 `json:"role"       yaml:"role"`
 	Permission SelectPermissionConfig `json:"permission" yaml:"permission"`
+
+	Unknown jsontext.Value `json:",unknown" yaml:"-"`
 }
 
 // InsertPermission binds a role to its insert-permission configuration.
 type InsertPermission struct {
 	Role       string                 `json:"role"       yaml:"role"`
 	Permission InsertPermissionConfig `json:"permission" yaml:"permission"`
+
+	Unknown jsontext.Value `json:",unknown" yaml:"-"`
 }
 
 // UpdatePermission binds a role to its update-permission configuration.
 type UpdatePermission struct {
 	Role       string                 `json:"role"       yaml:"role"`
 	Permission UpdatePermissionConfig `json:"permission" yaml:"permission"`
+
+	Unknown jsontext.Value `json:",unknown" yaml:"-"`
 }
 
 // DeletePermission binds a role to its delete-permission configuration.
 type DeletePermission struct {
 	Role       string                 `json:"role"       yaml:"role"`
 	Permission DeletePermissionConfig `json:"permission" yaml:"permission"`
+
+	Unknown jsontext.Value `json:",unknown" yaml:"-"`
 }
 
 // PermissionExpression is a Hasura boolean expression or preset map. Its JSON
@@ -170,6 +188,8 @@ type SelectPermissionConfig struct {
 	Columns           []string             `json:"columns,omitempty"           yaml:"columns,omitempty"`
 	Filter            PermissionExpression `json:"filter,omitempty"            yaml:"filter,omitempty"`
 	AllowAggregations bool                 `json:"allow_aggregations,omitzero" yaml:"allow_aggregations,omitempty"`
+
+	Unknown jsontext.Value `json:",unknown" yaml:"-"`
 }
 
 // UnmarshalYAML accepts Hasura's select-permission `columns: '*'` shorthand
@@ -304,6 +324,8 @@ type InsertPermissionConfig struct {
 	Columns []string             `json:"columns,omitempty" yaml:"columns,omitempty"`
 	Check   PermissionExpression `json:"check,omitempty"   yaml:"check,omitempty"`
 	Set     PermissionExpression `json:"set,omitempty"     yaml:"set,omitempty"`
+
+	Unknown jsontext.Value `json:",unknown" yaml:"-"`
 }
 
 // UnmarshalYAML accepts Hasura's insert-permission `columns: '*'` shorthand
@@ -368,6 +390,8 @@ type UpdatePermissionConfig struct {
 	Filter  PermissionExpression `json:"filter,omitempty"  yaml:"filter,omitempty"`
 	Check   PermissionExpression `json:"check,omitempty"   yaml:"check,omitempty"`
 	Set     PermissionExpression `json:"set,omitempty"     yaml:"set,omitempty"`
+
+	Unknown jsontext.Value `json:",unknown" yaml:"-"`
 }
 
 // UnmarshalYAML accepts Hasura's update-permission `columns: '*'` shorthand
@@ -432,18 +456,24 @@ func (p *UpdatePermissionConfig) UnmarshalJSON(data []byte) error {
 // DeletePermissionConfig captures the row filter a delete permission applies.
 type DeletePermissionConfig struct {
 	Filter PermissionExpression `json:"filter,omitempty" yaml:"filter,omitempty"`
+
+	Unknown jsontext.Value `json:",unknown" yaml:"-"`
 }
 
 // ObjectRelationship is a many-to-one relationship from this table to another.
 type ObjectRelationship struct {
 	Name  string            `json:"name"  yaml:"name"`
 	Using RelationshipUsing `json:"using" yaml:"using"`
+
+	Unknown jsontext.Value `json:",unknown" yaml:"-"`
 }
 
 // ArrayRelationship is a one-to-many relationship from this table to another.
 type ArrayRelationship struct {
 	Name  string            `json:"name"  yaml:"name"`
 	Using RelationshipUsing `json:"using" yaml:"using"`
+
+	Unknown jsontext.Value `json:",unknown" yaml:"-"`
 }
 
 // RelationshipUsing describes how a relationship is defined. Hasura's
@@ -498,7 +528,7 @@ func mapToForeignKeyConstraint(m map[string]any) (*ForeignKeyConstraint, error) 
 		}
 	}
 
-	return &ForeignKeyConstraint{Columns: columns, Table: ts}, nil
+	return &ForeignKeyConstraint{Columns: columns, Table: ts, Unknown: nil}, nil
 }
 
 // UnmarshalYAML accepts foreign_key_constraint_on as any of:
@@ -649,7 +679,37 @@ func unmarshalForeignKeyConstraintJSON(data []byte) (*ForeignKeyConstraint, erro
 		columns = []string{raw.Column}
 	}
 
-	return &ForeignKeyConstraint{Columns: columns, Table: raw.Table}, nil
+	return &ForeignKeyConstraint{Columns: columns, Table: raw.Table, Unknown: nil}, nil
+}
+
+// MarshalJSON inverts UnmarshalJSON. Emits the polymorphic
+// `foreign_key_constraint_on` shape that matches how the value was originally
+// populated: a bare string for a single column on the parent table, an array
+// for a composite FK on the parent, or an object with `column(s)` and `table`
+// for an FK on the target table. ManualConfiguration is emitted alongside
+// when present, mirroring the input structure.
+func (r RelationshipUsing) MarshalJSON() ([]byte, error) {
+	out := map[string]any{}
+
+	switch {
+	case r.ForeignKeyConstraint != nil:
+		out["foreign_key_constraint_on"] = r.ForeignKeyConstraint
+	case len(r.ForeignKeyColumns) == 1:
+		out["foreign_key_constraint_on"] = r.ForeignKeyColumns[0]
+	case len(r.ForeignKeyColumns) > 1:
+		out["foreign_key_constraint_on"] = r.ForeignKeyColumns
+	}
+
+	if r.ManualConfiguration != nil {
+		out["manual_configuration"] = r.ManualConfiguration
+	}
+
+	b, err := json.Marshal(out)
+	if err != nil {
+		return nil, fmt.Errorf("marshaling relationship using: %w", err)
+	}
+
+	return b, nil
 }
 
 // ManualConfiguration describes a relationship that isn't backed by a database
@@ -665,6 +725,8 @@ type ManualConfiguration struct {
 
 	LHSFields   []string                   `json:"-" yaml:"-"`
 	RemoteField map[string]RemoteFieldCall `json:"-" yaml:"-"`
+
+	Unknown jsontext.Value `json:",unknown" yaml:"-"`
 }
 
 // ForeignKeyConstraint identifies the columns and table that anchor a
@@ -674,6 +736,8 @@ type ManualConfiguration struct {
 type ForeignKeyConstraint struct {
 	Columns []string    `json:"columns" yaml:"columns"`
 	Table   TableSource `json:"table"   yaml:"table"`
+
+	Unknown jsontext.Value `json:",unknown" yaml:"-"`
 }
 
 // RemoteRelationship represents a cross-database relationship in Hasura format.
@@ -682,12 +746,16 @@ type ForeignKeyConstraint struct {
 type RemoteRelationship struct {
 	Name       string                `json:"name"       yaml:"name"`
 	Definition RemoteRelationshipDef `json:"definition" yaml:"definition"`
+
+	Unknown jsontext.Value `json:",unknown" yaml:"-"`
 }
 
 // RemoteRelationshipDef defines the remote relationship configuration.
 type RemoteRelationshipDef struct {
 	ToSource       *ToSourceRelationship       `json:"to_source,omitempty"        yaml:"to_source,omitempty"`
 	ToRemoteSchema *ToRemoteSchemaRelationship `json:"to_remote_schema,omitempty" yaml:"to_remote_schema,omitempty"`
+
+	Unknown jsontext.Value `json:",unknown" yaml:"-"`
 }
 
 // ToRemoteSchemaRelationship defines a relationship to a remote GraphQL schema.
@@ -695,12 +763,16 @@ type ToRemoteSchemaRelationship struct {
 	RemoteSchema string                     `json:"remote_schema" yaml:"remote_schema"`
 	LHSFields    []string                   `json:"lhs_fields"    yaml:"lhs_fields"`
 	RemoteField  map[string]RemoteFieldCall `json:"remote_field"  yaml:"remote_field"`
+
+	Unknown jsontext.Value `json:",unknown" yaml:"-"`
 }
 
 // RemoteFieldCall defines a remote field path with arguments.
 type RemoteFieldCall struct {
 	Arguments map[string]string          `json:"arguments,omitempty" yaml:"arguments,omitempty"`
 	Field     map[string]RemoteFieldCall `json:"field,omitempty"     yaml:"field,omitempty"`
+
+	Unknown jsontext.Value `json:",unknown" yaml:"-"`
 }
 
 // Relationship-type discriminator values for a to_source relationship's
@@ -718,6 +790,8 @@ type ToSourceRelationship struct {
 	RelationshipType string            `json:"relationship_type" yaml:"relationship_type"`
 	Source           string            `json:"source"            yaml:"source"`
 	Table            TableSource       `json:"table"             yaml:"table"`
+
+	Unknown jsontext.Value `json:",unknown" yaml:"-"`
 }
 
 // convertRemoteRelationships lowers Hasura-style remote_relationships into
@@ -725,8 +799,26 @@ type ToSourceRelationship struct {
 // to_remote_schema relationships, the raw RemoteField map and lhs_fields are
 // preserved verbatim; the native metadata package handles the flattening and
 // the SQL→GraphQL column rename during conversion.
+//
+// The conversion is idempotent: a remote relationship whose name is already
+// present in ObjectRelationships or ArrayRelationships is skipped. This
+// keeps FromJSON ∘ ToJSON ∘ FromJSON stable, since ToJSON emits both the
+// auto-lowered relationships and the originals.
 func (t *TableMetadata) convertRemoteRelationships() {
+	existing := make(map[string]struct{}, len(t.ObjectRelationships)+len(t.ArrayRelationships))
+	for _, r := range t.ObjectRelationships {
+		existing[r.Name] = struct{}{}
+	}
+
+	for _, r := range t.ArrayRelationships {
+		existing[r.Name] = struct{}{}
+	}
+
 	for _, remote := range t.RemoteRelationships {
+		if _, dup := existing[remote.Name]; dup {
+			continue
+		}
+
 		if remote.Definition.ToSource != nil {
 			t.appendToSourceRelationship(remote)
 			continue
@@ -745,27 +837,31 @@ func (t *TableMetadata) appendToSourceRelationship(remote RemoteRelationship) {
 		ForeignKeyConstraint: nil,
 		ManualConfiguration: &ManualConfiguration{
 			RemoteTable: TableSource{
-				Name:   toSource.Table.Name,
-				Schema: toSource.Table.Schema,
+				Name:    toSource.Table.Name,
+				Schema:  toSource.Table.Schema,
+				Unknown: nil,
 			},
 			ColumnMapping: toSource.FieldMapping,
 			Source:        toSource.Source,
 			RemoteSchema:  "",
 			LHSFields:     nil,
 			RemoteField:   nil,
+			Unknown:       nil,
 		},
 	}
 
 	switch toSource.RelationshipType {
 	case relationshipTypeObject:
 		t.ObjectRelationships = append(t.ObjectRelationships, ObjectRelationship{
-			Name:  remote.Name,
-			Using: using,
+			Name:    remote.Name,
+			Using:   using,
+			Unknown: nil,
 		})
 	case relationshipTypeArray:
 		t.ArrayRelationships = append(t.ArrayRelationships, ArrayRelationship{
-			Name:  remote.Name,
-			Using: using,
+			Name:    remote.Name,
+			Using:   using,
+			Unknown: nil,
 		})
 	default:
 		// Keep invalid entries in RemoteRelationships only. The native conversion
@@ -786,13 +882,15 @@ func (t *TableMetadata) appendToRemoteSchemaRelationship(remote RemoteRelationsh
 			ForeignKeyColumns:    nil,
 			ForeignKeyConstraint: nil,
 			ManualConfiguration: &ManualConfiguration{
-				RemoteTable:   TableSource{Name: "", Schema: ""},
+				RemoteTable:   TableSource{Name: "", Schema: "", Unknown: nil},
 				ColumnMapping: nil,
 				Source:        "",
 				RemoteSchema:  toRemoteSchema.RemoteSchema,
 				LHSFields:     toRemoteSchema.LHSFields,
 				RemoteField:   toRemoteSchema.RemoteField,
+				Unknown:       nil,
 			},
 		},
+		Unknown: nil,
 	})
 }

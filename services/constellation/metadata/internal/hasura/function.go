@@ -2,6 +2,7 @@ package hasura
 
 import (
 	"context"
+	"encoding/json/jsontext"
 	"fmt"
 )
 
@@ -12,11 +13,15 @@ type FunctionMetadata struct {
 	// Permissions defines explicit permissions for volatile functions (mutations).
 	// For stable/immutable functions, permissions are inherited from the base table.
 	Permissions []FunctionPermission `json:"permissions,omitempty" yaml:"permissions,omitempty"`
+
+	Unknown jsontext.Value `json:",unknown" yaml:"-"`
 }
 
 // FunctionPermission represents a role's permission to execute a function.
 type FunctionPermission struct {
 	Role string `json:"role" yaml:"role"`
+
+	Unknown jsontext.Value `json:",unknown" yaml:"-"`
 }
 
 // UnmarshalYAML handles entries that may be `!include <path>` directives in
@@ -48,6 +53,8 @@ func (f *FunctionMetadata) UnmarshalYAML(ctx context.Context, unmarshal func(any
 type FunctionSource struct {
 	Name   string `json:"name"   yaml:"name"`
 	Schema string `json:"schema" yaml:"schema"`
+
+	Unknown jsontext.Value `json:",unknown" yaml:"-"`
 }
 
 // FunctionConfiguration allows customizing the function's GraphQL representation.
@@ -64,10 +71,14 @@ type FunctionConfiguration struct {
 	// as a JSON object. When set, this argument is hidden from the GraphQL schema and
 	// automatically populated with the session variables at query execution time.
 	SessionArgument string `json:"session_argument,omitempty" yaml:"session_argument,omitempty"`
+
+	Unknown jsontext.Value `json:",unknown" yaml:"-"`
 }
 
 // FunctionCustomRootFields allows overriding the default GraphQL field names for functions.
 type FunctionCustomRootFields struct {
 	Function          string `json:"function,omitempty"           yaml:"function,omitempty"`
 	FunctionAggregate string `json:"function_aggregate,omitempty" yaml:"function_aggregate,omitempty"`
+
+	Unknown jsontext.Value `json:",unknown" yaml:"-"`
 }

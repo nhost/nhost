@@ -1,0 +1,14 @@
+# Generates Go types from Hasura's metadata OpenAPI schema (vendored copy of
+# third-party/hasura/graphql-engine/metadata.openapi.json). Schemas-only — no
+# paths — so this only produces request/response models that we'll reference
+# from our own openapi.yaml when migrating /v1/metadata operations.
+#
+# Local edits to the vendored copy (and the re-sync procedure) are documented
+# in api/hasura/PATCHES.md. skip-prune is required: with no paths referencing
+# them, every component schema would otherwise be discarded.
+package: hasura
+generate:
+  models: true
+output-options:
+  skip-prune: true
+output: api/hasura/types.gen.go
