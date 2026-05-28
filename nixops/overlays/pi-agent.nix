@@ -49,7 +49,15 @@ final.stdenvNoCC.mkDerivation {
     # telemetry/version-check are disabled (matching numtide/llm-agents.nix).
     makeWrapper ${final.bun}/bin/bun $out/bin/pi \
       --add-flags "$out/libexec/pi/${cliPath}" \
-      --prefix PATH : ${final.lib.makeBinPath (with final; [ fd ripgrep ])} \
+      --prefix PATH : ${
+        final.lib.makeBinPath (
+          with final;
+          [
+            fd
+            ripgrep
+          ]
+        )
+      } \
       --set PI_SKIP_VERSION_CHECK 1 \
       --set PI_TELEMETRY 0
   '';
