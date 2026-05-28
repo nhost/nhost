@@ -361,6 +361,7 @@ CREATE TABLE exercise_log_sets (
     parent_kind TEXT NOT NULL DEFAULT 'strength' CHECK (parent_kind = 'strength'),
     reps INTEGER,
     FOREIGN KEY (parent_id, parent_kind) REFERENCES exercise_logs(id, kind)
+        ON UPDATE CASCADE ON DELETE CASCADE
 );
 
 -- notes / note_replies: nested array-rel + post-check + parent-CTE

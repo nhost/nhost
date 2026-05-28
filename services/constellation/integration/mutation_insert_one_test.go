@@ -792,6 +792,49 @@ func TestInsertOneMutations(t *testing.T) { //nolint:paralleltest,maintidx
 			},
 		},
 
+		// Direct denial through the SUBSTITUTED child post-check: the parent
+		// pre-check passes (author_id == X-Hasura-User-Id), so the post-check
+		// path runs end-to-end. The child supplies `visibility: "private"`,
+		// which trips ONLY the `visibility _eq "public"` half of the child's
+		// `_and`; the relationship-EXISTS half against the parent's in-flight
+		// mutation_result CTE still passes via tableSubs substitution. Locks
+		// the buildSingleInsertCTEPostCheck dispatch as the actual point of
+		// failure (not the parent's pre-check).
+		{
+			name: "permissions: nested array insert denied at substituted child post-check (visibility private)",
+			query: query{
+				Query: `
+					mutation {
+					  insert_notes_one(
+						object: {
+						  id: "0199bbbb-0000-7000-8000-000000000013"
+						  author_id: "550e8400-e29b-41d4-a716-446655440001"
+						  title: "Parent passes, child denied"
+						  replies: {
+							data: [
+							  { body: "private reply", visibility: "private" }
+							]
+						  }
+						}
+					  ) {
+						title
+					  }
+					}`,
+				Variables: map[string]any{},
+				Role:      "user",
+				SessionVariables: map[string]string{
+					"user-id": "550e8400-e29b-41d4-a716-446655440001",
+				},
+			},
+			expected: map[string]any{
+				"errors": []any{
+					map[string]any{
+						"message": `failed to execute operations: failed to execute operation insert_notes_one: failed to scan result row: ERROR: check constraint of an insert/update permission has failed (SQLSTATE ZZ901)`,
+					},
+				},
+			},
+		},
+
 		// on_conflict with where clause
 		{
 			name: "insert_one with on_conflict where clause - simple condition",

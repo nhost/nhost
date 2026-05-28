@@ -682,6 +682,60 @@ func TestInsertMutations(t *testing.T) { //nolint:paralleltest,maintidx
 				},
 			},
 		},
+
+		// Multi-row sibling of the single-row denial: parent pre-check passes
+		// for every row, so each child runs through
+		// buildMultiNestedInsertCTEPostCheck with tableSubs pointing the
+		// note.author_id EXISTS at the parents' in-flight mutation_result CTE.
+		// One child supplies `visibility: "private"` to trip the leaf
+		// `visibility _eq "public"` half of the child's `_and`; the
+		// substituted relationship half still passes, so the denial
+		// demonstrably comes from the child post-check evaluated against
+		// RETURNING *.
+		{
+			name: "permissions: multi-row parent insert denied at substituted child post-check (visibility private)",
+			query: query{
+				Query: `
+					mutation {
+					  insert_notes(objects: [
+						{
+						  id: "0199bbbb-0000-7000-8000-000000000023"
+						  author_id: "550e8400-e29b-41d4-a716-446655440001"
+						  title: "Parent passes A"
+						  replies: {
+							data: [
+							  { body: "ok reply" }
+							]
+						  }
+						}
+						{
+						  id: "0199bbbb-0000-7000-8000-000000000024"
+						  author_id: "550e8400-e29b-41d4-a716-446655440001"
+						  title: "Parent passes B"
+						  replies: {
+							data: [
+							  { body: "private reply", visibility: "private" }
+							]
+						  }
+						}
+					  ]) {
+						affected_rows
+					  }
+					}`,
+				Variables: map[string]any{},
+				Role:      "user",
+				SessionVariables: map[string]string{
+					"user-id": "550e8400-e29b-41d4-a716-446655440001",
+				},
+			},
+			expected: map[string]any{
+				"errors": []any{
+					map[string]any{
+						"message": `failed to execute operations: failed to execute operation insert_notes: failed to scan result row: ERROR: check constraint of an insert/update permission has failed (SQLSTATE ZZ901)`,
+					},
+				},
+			},
+		},
 	}
 
 	RunGraphQLTests(t, cases, TestConfig{

@@ -5474,6 +5474,7 @@ input note_replies_stream_cursor_input {
 input type for inserting data into table "note_replies"
 """
 input note_replies_insert_input {
+  visibility: String
   body: String
   note: notes_obj_rel_insert_input
 }
