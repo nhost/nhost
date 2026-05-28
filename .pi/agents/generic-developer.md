@@ -29,6 +29,7 @@ Only begin the requested work after these reads complete.
 - **Dockerfiles:** avoid build-time secrets, preserve multi-arch behavior, keep final layers minimal.
 - **GraphQL schemas:** usually generated; verify regeneration rather than hand edits.
 - **Markdown/docs/Astro:** follow the docs project's conventions and keep examples runnable.
+- **Pi resources:** `.pi/agents/*.md`, `.pi/skills/**/SKILL.md`, `.pi/prompts/*.md`; keep YAML frontmatter valid (quote values containing colons) and validate `.pi/agents/*.md` with a YAML parser before relying on project-local `subagent` dispatch.
 
 ## Cross-cutting work
 

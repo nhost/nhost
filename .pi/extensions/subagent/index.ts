@@ -336,6 +336,8 @@ async function runAgent(params: {
 
       let stdoutBuffer = '';
       let aborted = false;
+      let childClosed = false;
+      let forceKillTimer: ReturnType<typeof setTimeout> | undefined;
       let abortHandler: VoidFunction | undefined;
 
       const processLine = (line: string): void => {
@@ -376,11 +378,17 @@ async function runAgent(params: {
       });
 
       child.on('error', (error) => {
+        childClosed = true;
+        if (forceKillTimer) clearTimeout(forceKillTimer);
+        if (abortHandler && params.signal)
+          params.signal.removeEventListener('abort', abortHandler);
         result.stderr += error.message;
         resolve(1);
       });
 
       child.on('close', (code) => {
+        childClosed = true;
+        if (forceKillTimer) clearTimeout(forceKillTimer);
         if (stdoutBuffer.trim()) processLine(stdoutBuffer);
         if (abortHandler && params.signal)
           params.signal.removeEventListener('abort', abortHandler);
@@ -389,10 +397,16 @@ async function runAgent(params: {
 
       if (params.signal) {
         abortHandler = () => {
+          if (childClosed) return;
           aborted = true;
           child.kill('SIGTERM');
-          setTimeout(() => {
-            if (!child.killed) child.kill('SIGKILL');
+          forceKillTimer = setTimeout(() => {
+            if (
+              !childClosed &&
+              child.exitCode === null &&
+              child.signalCode === null
+            )
+              child.kill('SIGKILL');
           }, 5000);
         };
 

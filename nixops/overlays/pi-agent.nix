@@ -1,6 +1,7 @@
 { final }:
 let
-  version = "0.75.4";
+  packageJson = builtins.fromJSON (builtins.readFile ./pi-agent/package.json);
+  version = packageJson.dependencies."@earendil-works/pi-coding-agent";
   cliPath = "node_modules/@earendil-works/pi-coding-agent/dist/cli.js";
 
   # Hermetic `bun install` of the pinned agent + its transitive deps.
