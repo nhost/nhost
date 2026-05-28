@@ -1,6 +1,6 @@
 ---
 name: generic-developer
-description: Fallback agent for non-Go and non-JS/TS work: SQL, YAML metadata, Nix, Makefiles, GitHub workflows, Dockerfiles, GraphQL schemas, Markdown/docs, and cross-cutting changes that span multiple languages.
+description: "Fallback agent for non-Go and non-JS/TS work: SQL, YAML metadata, Nix, Makefiles, GitHub workflows, Dockerfiles, GraphQL schemas, Markdown/docs, and cross-cutting changes that span multiple languages."
 tools: read, write, edit, grep, find, ls, bash, subagent
 ---
 
