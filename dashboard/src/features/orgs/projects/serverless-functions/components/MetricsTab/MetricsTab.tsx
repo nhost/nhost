@@ -1,11 +1,13 @@
-import { RefreshCw } from 'lucide-react';
+import { AlertCircle, RefreshCw } from 'lucide-react';
 import { useCallback, useEffect, useRef, useState } from 'react';
+import { CodeBlock } from '@/components/presentational/CodeBlock';
 import {
   Accordion,
   AccordionContent,
   AccordionItem,
   AccordionTrigger,
 } from '@/components/ui/v3/accordion';
+import { Alert, AlertDescription, AlertTitle } from '@/components/ui/v3/alert';
 import { Button } from '@/components/ui/v3/button';
 import { Skeleton } from '@/components/ui/v3/skeleton';
 import MetricPanelDialog from '@/features/orgs/projects/serverless-functions/components/MetricsTab/components/MetricPanelDialog';
@@ -118,7 +120,7 @@ export default function MetricsTab({ fn }: MetricsTabProps) {
       >
         <div ref={chartCellRef} className="h-0" />
       </div>
-      <div className="flex flex-row items-center justify-end gap-2">
+      <div className="sticky top-0 z-10 flex flex-row items-center justify-end gap-2 bg-background py-2">
         <MetricsTimeRangeFilter value={range} onChange={setRange} />
         <Button
           variant="outline"
@@ -133,9 +135,36 @@ export default function MetricsTab({ fn }: MetricsTabProps) {
       </div>
 
       {error && (
-        <p className="text-destructive text-sm">
-          Failed to load metrics. {error.message}
-        </p>
+        <Alert variant="destructive">
+          <AlertCircle className="h-4 w-4" />
+          <AlertTitle>Couldn't load metrics</AlertTitle>
+          <AlertDescription className="mt-2 flex flex-col gap-3">
+            <span>
+              Please try again in a few minutes. This is usually temporary.
+            </span>
+            <div className="rounded bg-[#f4f7f9] py-2 dark:bg-[#21262d]">
+              <CodeBlock
+                copyToClipboardToastTitle="Error details"
+                className="!mt-0 text-sm"
+              >
+                {error.message}
+              </CodeBlock>
+            </div>
+            <Button
+              type="button"
+              variant="outline"
+              size="sm"
+              onClick={refetch}
+              disabled={loading}
+              className="self-start text-foreground"
+            >
+              <RefreshCw
+                className={cn('mr-2 h-3.5 w-3.5', loading && 'animate-spin')}
+              />
+              Try again
+            </Button>
+          </AlertDescription>
+        </Alert>
       )}
 
       {!error && loading && !data && <MetricsLoadingSkeleton />}

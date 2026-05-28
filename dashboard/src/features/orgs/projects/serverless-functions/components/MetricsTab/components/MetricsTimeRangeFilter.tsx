@@ -123,6 +123,7 @@ export default function MetricsTimeRangeFilter({
                 dateTime={resolved.from.toISOString()}
                 onDateTimeChange={handleFromChange}
                 withTimezone
+                align="end"
               />
             </div>
             <div className="flex flex-col gap-1.5">
@@ -131,6 +132,7 @@ export default function MetricsTimeRangeFilter({
                 dateTime={resolved.to.toISOString()}
                 onDateTimeChange={handleToChange}
                 withTimezone
+                align="end"
               />
             </div>
             {isInvalid && (
