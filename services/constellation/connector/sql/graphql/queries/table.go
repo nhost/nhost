@@ -113,6 +113,8 @@ func (t *table) Initialize(
 			SQLType:     sqlType,
 			IsArray:     colObj.IsArray,
 			IsGenerated: colObj.IsGenerated,
+			IsIdentity:  colObj.IsIdentity,
+			HasDefault:  colObj.Default != nil,
 		}
 
 		if slices.Contains(tableObj.PrimaryKeys, colObj.Name) {
