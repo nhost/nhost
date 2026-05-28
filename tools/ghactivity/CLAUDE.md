@@ -11,7 +11,7 @@
 - **No new HTTP/auth stack** — always go through the `gh` CLI via `internal/gh`. The tool inherits the user's existing `gh auth` session and never handles tokens directly.
 - **The bucket classifier is the contract.** The five sections of the output (`InProgress`, `ReadyForReview`, `Blocked`, `ClosedOrMerged`, `Tentative`) are what users build their day around. Any change to `classifyPR` / `classifyIssue` must be accompanied by tests covering the moved cases.
 - **First-match-wins routing.** Each item lands in exactly one section. Priority order (top wins): `ClosedOrMerged` → `Blocked` → `ReadyForReview` → `InProgress` → `Tentative`. Preserve this order unless you have a clear reason.
-- **Project status name is configurable.** Don't hardcode `"Waiting"` / `"Ready for review"`; route through `Params.WaitingStatus` / `Params.ReadyStatus` so teams with different column names can use the tool.
+- **Project status name is configurable.** Don't hardcode `"Waiting"` / `"Ready for review"`; route through `Params.WaitingStatus` / `Params.ReadyStatus` so teams with different column names can use the tool. The Projects v2 *field* itself is also configurable via `Params.StatusField` (default `activity.DefaultStatusField` = `"Status"`, CLI flag `--status-field`, env var `GHACTIVITY_STATUS_FIELD`) and is threaded into the GraphQL query as the `$statusField` variable — do not reintroduce a hardcoded `fieldValueByName(name: "Status")`.
 
 ## Directory Structure
 

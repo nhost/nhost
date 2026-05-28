@@ -26,7 +26,7 @@ func TestMarkdownEmpty(t *testing.T) {
 		"### ✅ Closed / merged",
 		"### 🎯 Today's focus",
 		"### 📝 Other",
-		"### Temptative",
+		"### Tentative",
 	}
 	for _, h := range wantHeadings {
 		if !strings.Contains(got, h) {

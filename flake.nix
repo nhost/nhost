@@ -267,7 +267,6 @@
               # others
               postgresql_18-client
               bun
-              gh
 
               # docs
               vale

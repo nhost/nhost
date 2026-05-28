@@ -83,7 +83,7 @@ func (c *Client) GraphQL(
 			msgs = append(msgs, e.Message)
 		}
 
-		return fmt.Errorf("%w: %s", ErrGraphQL, joinNonEmpty(msgs, "; "))
+		return fmt.Errorf("%w: %s", ErrGraphQL, strings.Join(msgs, "; "))
 	}
 
 	if len(envelope.Data) == 0 {
@@ -132,21 +132,4 @@ func (c *Client) AuthenticatedLogin(ctx context.Context) (string, error) {
 	}
 
 	return resp.Login, nil
-}
-
-func joinNonEmpty(parts []string, sep string) string {
-	out := ""
-	for _, p := range parts {
-		if p == "" {
-			continue
-		}
-
-		if out != "" {
-			out += sep
-		}
-
-		out += p
-	}
-
-	return out
 }

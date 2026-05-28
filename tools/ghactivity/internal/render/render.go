@@ -51,7 +51,7 @@ What you're planning to work on today (especially anything not yet on the board)
 
 Anything not tracked on GitHub, FYIs, heads-ups
 
-### Temptative
+### Tentative
 
 `
 	if _, err := fmt.Fprint(w, tail); err != nil {

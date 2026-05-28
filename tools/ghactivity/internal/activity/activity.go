@@ -8,9 +8,16 @@ import (
 	"fmt"
 	"strings"
 	"time"
-
-	"github.com/nhost/nhost/tools/ghactivity/internal/gh"
 )
+
+// ghClient is the subset of *gh.Client this package depends on. Defining it
+// here lets classifier tests stub the GitHub boundary without standing up the
+// real `gh` CLI.
+//
+//go:generate mockgen -package mock -destination mock/gh.go . ghClient
+type ghClient interface {
+	GraphQL(ctx context.Context, query string, vars map[string]any, out any) error
+}
 
 // Item is a single PR or issue surfaced in the report.
 type Item struct {
@@ -44,12 +51,24 @@ type Params struct {
 	User          string
 	Since         time.Time
 	Until         time.Time
+	StatusField   string // Projects v2 single-select field name (defaults to "Status")
 	ReadyStatus   string // project column name treated as "ready for review"
 	WaitingStatus string // project column name treated as "blocked / waiting"
 }
 
-// Build queries GitHub through gh and returns the bucketed report.
-func Build(ctx context.Context, c *gh.Client, p Params) (*Report, error) {
+// DefaultStatusField is the Projects v2 single-select field name used when
+// Params.StatusField is empty. Exported so the CLI layer can surface the same
+// default in flag help.
+const DefaultStatusField = "Status"
+
+// Build queries GitHub through the supplied client and returns the bucketed
+// report. The client is normally a *gh.Client; the interface boundary exists
+// so the classifier can be exercised without spawning the `gh` CLI.
+func Build(ctx context.Context, c ghClient, p Params) (*Report, error) {
+	if p.StatusField == "" {
+		p.StatusField = DefaultStatusField
+	}
+
 	since := p.Since.Format(time.RFC3339)
 	until := p.Until.Format(time.RFC3339)
 
@@ -63,7 +82,7 @@ func Build(ctx context.Context, c *gh.Client, p Params) (*Report, error) {
 
 	var nodes []searchNode
 	for _, q := range queries {
-		batch, err := runSearch(ctx, c, q)
+		batch, err := runSearch(ctx, c, q, p.StatusField)
 		if err != nil {
 			return nil, fmt.Errorf("search %q: %w", q, err)
 		}
@@ -81,7 +100,7 @@ func Build(ctx context.Context, c *gh.Client, p Params) (*Report, error) {
 	return categorise(nodes, p), nil
 }
 
-const searchQuery = `query($q: String!, $cursor: String) {
+const searchQuery = `query($q: String!, $cursor: String, $statusField: String!) {
   search(query: $q, type: ISSUE, first: 50, after: $cursor) {
     pageInfo { hasNextPage endCursor }
     nodes {
@@ -109,7 +128,7 @@ const searchQuery = `query($q: String!, $cursor: String) {
         projectItems(first: 10) {
           nodes {
             project { title number }
-            fieldValueByName(name: "Status") {
+            fieldValueByName(name: $statusField) {
               __typename
               ... on ProjectV2ItemFieldSingleSelectValue { name updatedAt }
             }
@@ -199,12 +218,17 @@ type projectItem struct {
 	} `json:"fieldValueByName"`
 }
 
-func runSearch(ctx context.Context, c *gh.Client, query string) ([]searchNode, error) {
+func runSearch(
+	ctx context.Context,
+	c ghClient,
+	query string,
+	statusField string,
+) ([]searchNode, error) {
 	var out []searchNode
 
 	cursor := ""
 	for {
-		vars := map[string]any{"q": query}
+		vars := map[string]any{"q": query, "statusField": statusField}
 		if cursor != "" {
 			vars["cursor"] = cursor
 		} else {
@@ -284,9 +308,11 @@ func classifyPR(n searchNode, p Params, r *Report) {
 		return
 	}
 
-	// 5. Tentative: any other PR activity by the user (reviews, comments,
-	// being review-requested, mentions, assignments) within the window.
-	if hasUserTimelineActivity(n.TimelineItems.Nodes, p) || !isAuthor {
+	// 5. Tentative: any other in-window PR activity by the user (reviews or
+	// comments). The search uses `updated:Since..Until`, which matches third-
+	// party updates too, so we require an actual user signal — being non-
+	// authored is not enough on its own.
+	if hasUserTimelineActivity(n.TimelineItems.Nodes, p) {
 		r.Tentative = append(r.Tentative, item)
 	}
 }

@@ -21,6 +21,7 @@ const (
 	flagUntil         = "until"
 	flagUser          = "user"
 	flagOutput        = "output"
+	flagStatusField   = "status-field"
 	flagReadyStatus   = "ready-status"
 	flagWaitingStatus = "waiting-status"
 
@@ -63,6 +64,13 @@ func Flags() []cli.Flag {
 			Name:    flagOutput,
 			Usage:   "Write the markdown to this file (defaults to stdout)",
 			Sources: cli.EnvVars("GHACTIVITY_OUTPUT"),
+		},
+		&cli.StringFlag{ //nolint:exhaustruct
+			Name: flagStatusField,
+			Usage: "GitHub Projects v2 single-select field name that holds the " +
+				"status column (e.g. 'Status', 'Workflow Status', 'Stage')",
+			Value:   activity.DefaultStatusField,
+			Sources: cli.EnvVars("GHACTIVITY_STATUS_FIELD"),
 		},
 		&cli.StringFlag{ //nolint:exhaustruct
 			Name:    flagReadyStatus,
@@ -117,6 +125,7 @@ func Action(ctx context.Context, c *cli.Command) error {
 		User:          user,
 		Since:         since,
 		Until:         until,
+		StatusField:   c.String(flagStatusField),
 		ReadyStatus:   c.String(flagReadyStatus),
 		WaitingStatus: c.String(flagWaitingStatus),
 	})
@@ -133,8 +142,14 @@ func Action(ctx context.Context, c *cli.Command) error {
 		return cli.Exit(fmt.Sprintf("collecting activity: %v", err), 1)
 	}
 
+	return writeReport(c.String(flagOutput), report)
+}
+
+// writeReport opens the destination (stdout if path is empty) and renders the
+// markdown report into it.
+func writeReport(path string, report *activity.Report) error {
 	out := os.Stdout
-	if path := c.String(flagOutput); path != "" {
+	if path != "" {
 		f, err := os.Create(path)
 		if err != nil {
 			return cli.Exit(fmt.Sprintf("opening output file: %v", err), 1)
