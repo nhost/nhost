@@ -51,14 +51,14 @@ What you're planning to work on today (especially anything not yet on the board)
 
 Anything not tracked on GitHub, FYIs, heads-ups
 
-### Tentative
+### Uncategorized
 
 `
 	if _, err := fmt.Fprint(w, tail); err != nil {
 		return wrap(err)
 	}
 
-	return writeItems(w, r.Tentative)
+	return writeItems(w, r.Uncategorized)
 }
 
 func writeItems(w io.Writer, items []activity.Item) error {

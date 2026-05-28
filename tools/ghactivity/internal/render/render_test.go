@@ -26,7 +26,7 @@ func TestMarkdownEmpty(t *testing.T) {
 		"### ✅ Closed / merged",
 		"### 🎯 Today's focus",
 		"### 📝 Other",
-		"### Tentative",
+		"### Uncategorized",
 	}
 	for _, h := range wantHeadings {
 		if !strings.Contains(got, h) {
@@ -49,7 +49,7 @@ func TestMarkdownItemsSortedAndFormatted(t *testing.T) {
 				URL: "https://example.com/pr/4319", Repository: "nhost/nhost",
 			},
 		},
-		Tentative: []activity.Item{
+		Uncategorized: []activity.Item{
 			{
 				Kind: activity.KindIssue, Number: 12, Title: "an issue",
 				URL: "https://example.com/issue/12", Repository: "nhost/other",

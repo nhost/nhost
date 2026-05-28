@@ -42,7 +42,7 @@ type Report struct {
 	ReadyForReview []Item
 	Blocked        []Item
 	ClosedOrMerged []Item
-	Tentative      []Item
+	Uncategorized  []Item
 }
 
 // Params drives one collection run.
@@ -257,7 +257,7 @@ func categorise(nodes []searchNode, p Params) *Report {
 		ReadyForReview: nil,
 		Blocked:        nil,
 		ClosedOrMerged: nil,
-		Tentative:      nil,
+		Uncategorized:  nil,
 	}
 	for _, n := range nodes {
 		switch n.Typename {
@@ -308,12 +308,12 @@ func classifyPR(n searchNode, p Params, r *Report) {
 		return
 	}
 
-	// 5. Tentative: any other in-window PR activity by the user (reviews or
-	// comments). The search uses `updated:Since..Until`, which matches third-
-	// party updates too, so we require an actual user signal — being non-
-	// authored is not enough on its own.
+	// 5. Uncategorized: any other in-window PR activity by the user (reviews
+	// or comments). The search uses `updated:Since..Until`, which matches
+	// third-party updates too, so we require an actual user signal — being
+	// non-authored is not enough on its own.
 	if hasUserTimelineActivity(n.TimelineItems.Nodes, p) {
-		r.Tentative = append(r.Tentative, item)
+		r.Uncategorized = append(r.Uncategorized, item)
 	}
 }
 
@@ -330,7 +330,7 @@ func classifyIssue(n searchNode, p Params, r *Report) {
 
 	if (isAuthor && inWindow(n.CreatedAt, p)) ||
 		hasUserTimelineActivity(n.TimelineItems.Nodes, p) {
-		r.Tentative = append(r.Tentative, item)
+		r.Uncategorized = append(r.Uncategorized, item)
 	}
 }
 

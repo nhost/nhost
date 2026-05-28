@@ -82,7 +82,7 @@ For each PR, in this order:
 4. **`InProgress`** — the user authored the PR **and** either:
    - the PR was opened in the window (`createdAt` is in range), or
    - the user pushed a commit in the window.
-5. **`Tentative`** — anything else where the user left a review or comment on the PR inside the window. The "tentative" name is literal: the search's `updated:` qualifier is broad, so being merely returned by search isn't enough — there has to be an actual user action (a `PullRequestReview` submitted or an `IssueComment` posted by the user) inside the window.
+5. **`Uncategorized`** — anything else where the user left a review or comment on the PR inside the window. The name is literal: the search's `updated:` qualifier is broad, so being merely returned by search isn't enough — there has to be an actual user action (a `PullRequestReview` submitted or an `IssueComment` posted by the user) inside the window.
 
 PRs that don't match any of the above are dropped from the report.
 
@@ -90,13 +90,13 @@ PRs that don't match any of the above are dropped from the report.
 
 Issues use a simpler rule because they don't have draft/ready or merge states:
 
-- **`Tentative`** — the user authored the issue and opened it in the window, **or** the user commented on the issue in the window.
+- **`Uncategorized`** — the user authored the issue and opened it in the window, **or** the user commented on the issue in the window.
 
-All issue activity lands in `Tentative` today; if a richer issue taxonomy is ever needed, it would go in front of this rule in the same first-match-wins cascade.
+All issue activity lands in `Uncategorized` today; if a richer issue taxonomy is ever needed, it would go in front of this rule in the same first-match-wins cascade.
 
 ### Why "first-match-wins"
 
-The bucket order encodes how a stand-up reads top-to-bottom: things that wrapped up (`ClosedOrMerged`) lead, then the things blocking the user (`Blocked`), then what's awaiting review (`ReadyForReview`), then live work (`InProgress`), and finally context items (`Tentative`). A PR that was opened and then merged in the same window is reported as merged, not as in-progress — which is what you'd say in stand-up.
+The bucket order encodes how a stand-up reads top-to-bottom: things that wrapped up (`ClosedOrMerged`) lead, then the things blocking the user (`Blocked`), then what's awaiting review (`ReadyForReview`), then live work (`InProgress`), and finally context items (`Uncategorized`). A PR that was opened and then merged in the same window is reported as merged, not as in-progress — which is what you'd say in stand-up.
 
 ### Why the status field is configurable
 
@@ -112,7 +112,7 @@ A markdown report with a fixed set of level-3 (`###`) sections, in this order:
 4. `### ✅ Closed / merged`
 5. `### 🎯 Today's focus` — scaffolding for the human to fill in.
 6. `### 📝 Other` — scaffolding for the human to fill in.
-7. `### Tentative` — items the user merely touched (reviewed/commented) inside the window.
+7. `### Uncategorized` — items the user merely touched (reviewed/commented) inside the window.
 
 Every heading is always emitted, even when its bucket is empty — the layout is designed to be pasted into a stand-up channel and filled in by hand, so the empty sections act as a checklist. Within a bucket, items are sorted by repository then PR/issue number for stable diffs day-to-day, and rendered as `- [PR #N](URL) Title` (or `- [Issue #N](URL) Title`).
 
@@ -139,7 +139,7 @@ What you're planning to work on today (especially anything not yet on the board)
 
 Anything not tracked on GitHub, FYIs, heads-ups
 
-### Tentative
+### Uncategorized
 
 - [Issue #12](https://github.com/nhost/example/issues/12) Investigate flaky test
 ```

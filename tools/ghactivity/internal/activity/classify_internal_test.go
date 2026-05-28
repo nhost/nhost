@@ -88,7 +88,7 @@ func onlyItem(t *testing.T, r *Report) (string, Item) {
 		"ReadyForReview": r.ReadyForReview,
 		"Blocked":        r.Blocked,
 		"ClosedOrMerged": r.ClosedOrMerged,
-		"Tentative":      r.Tentative,
+		"Uncategorized":  r.Uncategorized,
 	}
 
 	var (
@@ -118,7 +118,7 @@ func bucketCounts(r *Report) map[string]int {
 		"ReadyForReview": len(r.ReadyForReview),
 		"Blocked":        len(r.Blocked),
 		"ClosedOrMerged": len(r.ClosedOrMerged),
-		"Tentative":      len(r.Tentative),
+		"Uncategorized":  len(r.Uncategorized),
 	}
 }
 
@@ -132,7 +132,7 @@ func TestClassifyPR_BucketPriority(t *testing.T) {
 
 	// Build a PR that satisfies every bucket's signal. Priority order
 	// (top wins): ClosedOrMerged > Blocked > ReadyForReview > InProgress >
-	// Tentative. We then peel signals off the top and check the next bucket
+	// Uncategorized. We then peel signals off the top and check the next bucket
 	// fires.
 
 	full := authoredPR()
@@ -207,7 +207,7 @@ func TestClassifyPR_BucketPriority(t *testing.T) {
 			want: "InProgress",
 		},
 		{
-			name: "Tentative when only a timeline comment by the user remains",
+			name: "Uncategorized when only a timeline comment by the user remains",
 			mut: func(n *searchNode) {
 				n.MergedAt = ""
 				n.ClosedAt = ""
@@ -217,7 +217,7 @@ func TestClassifyPR_BucketPriority(t *testing.T) {
 					{Typename: "IssueComment", CreatedAt: in, Author: &actor{Login: testUser}},
 				}
 			},
-			want: "Tentative",
+			want: "Uncategorized",
 		},
 	}
 
@@ -259,7 +259,7 @@ func TestClassifyPR_NonAuthorRequiresInWindowSignal(t *testing.T) {
 		wantCount map[string]int
 	}{
 		{
-			name: "non-authored PR with no in-window user activity is NOT Tentative",
+			name: "non-authored PR with no in-window user activity is NOT Uncategorized",
 			node: func() searchNode {
 				n := nonAuthoredPR()
 				// Some third-party update bumped `updated`, but the user did
@@ -273,11 +273,11 @@ func TestClassifyPR_NonAuthorRequiresInWindowSignal(t *testing.T) {
 			},
 			wantCount: map[string]int{
 				"InProgress": 0, "ReadyForReview": 0, "Blocked": 0,
-				"ClosedOrMerged": 0, "Tentative": 0,
+				"ClosedOrMerged": 0, "Uncategorized": 0,
 			},
 		},
 		{
-			name: "non-authored PR with an in-window user review IS Tentative",
+			name: "non-authored PR with an in-window user review IS Uncategorized",
 			node: func() searchNode {
 				n := nonAuthoredPR()
 				n.TimelineItems.Nodes = []timelineItem{
@@ -293,7 +293,7 @@ func TestClassifyPR_NonAuthorRequiresInWindowSignal(t *testing.T) {
 			},
 			wantCount: map[string]int{
 				"InProgress": 0, "ReadyForReview": 0, "Blocked": 0,
-				"ClosedOrMerged": 0, "Tentative": 1,
+				"ClosedOrMerged": 0, "Uncategorized": 1,
 			},
 		},
 		{
@@ -301,7 +301,7 @@ func TestClassifyPR_NonAuthorRequiresInWindowSignal(t *testing.T) {
 			node: authoredPR,
 			wantCount: map[string]int{
 				"InProgress": 0, "ReadyForReview": 0, "Blocked": 0,
-				"ClosedOrMerged": 0, "Tentative": 0,
+				"ClosedOrMerged": 0, "Uncategorized": 0,
 			},
 		},
 	}
@@ -360,7 +360,7 @@ func TestClassifyPR_EmptyProjectAndTimelineDoNotPanic(t *testing.T) {
 	classifyPR(authoredPR(), p, r)
 
 	if got := bucketCounts(r); got["InProgress"]+got["ReadyForReview"]+
-		got["Blocked"]+got["ClosedOrMerged"]+got["Tentative"] != 0 {
+		got["Blocked"]+got["ClosedOrMerged"]+got["Uncategorized"] != 0 {
 		t.Fatalf("expected no buckets to fire for empty PR, got %v", got)
 	}
 }
@@ -437,17 +437,17 @@ func TestClassifyIssue(t *testing.T) {
 		wantCount map[string]int
 	}{
 		{
-			name: "authored issue created in window is Tentative",
+			name: "authored issue created in window is Uncategorized",
 			node: func() searchNode {
 				n := authoredIssue()
 				n.CreatedAt = in
 
 				return n
 			},
-			wantCount: map[string]int{"Tentative": 1},
+			wantCount: map[string]int{"Uncategorized": 1},
 		},
 		{
-			name: "non-authored issue with user comment in window is Tentative",
+			name: "non-authored issue with user comment in window is Uncategorized",
 			node: func() searchNode {
 				n := authoredIssue()
 				n.Author = &actor{Login: testOtherUsr}
@@ -457,7 +457,7 @@ func TestClassifyIssue(t *testing.T) {
 
 				return n
 			},
-			wantCount: map[string]int{"Tentative": 1},
+			wantCount: map[string]int{"Uncategorized": 1},
 		},
 		{
 			name: "non-authored issue with no user activity is not bucketed",
@@ -537,8 +537,8 @@ func TestCategorise_DispatchesByTypename(t *testing.T) {
 		t.Fatalf("expected one ClosedOrMerged item, got %+v", r.ClosedOrMerged)
 	}
 
-	if len(r.Tentative) != 1 {
-		t.Fatalf("expected one Tentative item, got %+v", r.Tentative)
+	if len(r.Uncategorized) != 1 {
+		t.Fatalf("expected one Uncategorized item, got %+v", r.Uncategorized)
 	}
 }
 
