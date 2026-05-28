@@ -12,6 +12,11 @@ import {
   PopoverTrigger,
 } from '@/components/ui/v3/popover';
 import {
+  Tooltip,
+  TooltipContent,
+  TooltipTrigger,
+} from '@/components/ui/v3/tooltip';
+import {
   METRICS_RANGE_PRESETS,
   type MetricsRangePreset,
   type MetricsTimeRange,
@@ -44,6 +49,7 @@ export default function MetricsTimeRangeFilter({
   const [draft, setDraft] = useState<MetricsTimeRange>(value);
 
   const resolved = resolveTimeRange(draft);
+  const resolvedValue = resolveTimeRange(value);
   const activePreset = draft.kind === 'preset' ? draft.preset : null;
   const isInvalid = resolved.from.getTime() >= resolved.to.getTime();
 
@@ -85,16 +91,27 @@ export default function MetricsTimeRangeFilter({
 
   return (
     <Popover open={open} onOpenChange={handleOpenChange}>
-      <PopoverTrigger asChild>
-        <Button
-          variant="outline"
-          className="justify-start gap-2 font-normal"
-          data-testid="metricsTimeRangeTrigger"
-        >
-          <CalendarIcon className="h-4 w-4" />
-          <span className="tabular-nums">{formatTriggerLabel(value)}</span>
-        </Button>
-      </PopoverTrigger>
+      <Tooltip>
+        <TooltipTrigger asChild>
+          <PopoverTrigger asChild>
+            <Button
+              variant="outline"
+              className="justify-start gap-2 font-normal"
+              data-testid="metricsTimeRangeTrigger"
+            >
+              <CalendarIcon className="h-4 w-4" />
+              <span className="tabular-nums">{formatTriggerLabel(value)}</span>
+            </Button>
+          </PopoverTrigger>
+        </TooltipTrigger>
+        <TooltipContent className="text-center">
+          {resolvedValue.from.toISOString()}
+          <br />
+          to
+          <br />
+          {resolvedValue.to.toISOString()}
+        </TooltipContent>
+      </Tooltip>
       <PopoverContent align="end" className="w-auto p-0">
         <div className="flex">
           <div className="flex min-w-[180px] flex-col gap-1 border-r p-3">

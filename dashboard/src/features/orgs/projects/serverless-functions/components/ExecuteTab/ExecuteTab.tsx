@@ -25,6 +25,7 @@ import { KeyValueEditor } from '@/features/orgs/projects/serverless-functions/co
 import { ResponseArea } from '@/features/orgs/projects/serverless-functions/components/ResponseArea';
 import {
   type ExecuteFormValues,
+  HTTP_METHOD_TEXT_CLASSES,
   HTTP_METHODS,
   type HttpMethod,
   type ResponseState,
@@ -33,16 +34,6 @@ import { buildServerlessFunctionRequestBody } from '@/features/orgs/projects/ser
 import { buildServerlessFunctionRequestHeaders } from '@/features/orgs/projects/serverless-functions/utils/buildServerlessFunctionRequestHeaders';
 import { buildServerlessFunctionRequestUrl } from '@/features/orgs/projects/serverless-functions/utils/buildServerlessFunctionRequestUrl';
 import { cn } from '@/lib/utils';
-
-const METHOD_COLORS: Record<HttpMethod, string> = {
-  GET: 'text-blue-600 dark:text-blue-400',
-  POST: 'text-green-600 dark:text-green-400',
-  PUT: 'text-amber-600 dark:text-amber-400',
-  PATCH: 'text-pink-600 dark:text-pink-400',
-  DELETE: 'text-red-600 dark:text-red-400',
-  OPTIONS: 'text-purple-600 dark:text-purple-400',
-  HEAD: 'text-teal-600 dark:text-teal-400',
-};
 
 export interface ExecuteTabProps {
   endpointUrl: string;
@@ -155,7 +146,7 @@ export default function ExecuteTab({ endpointUrl }: ExecuteTabProps) {
                 <SelectTrigger
                   className={cn(
                     'h-10 w-24 font-mono font-semibold text-sm',
-                    METHOD_COLORS[method],
+                    HTTP_METHOD_TEXT_CLASSES[method],
                   )}
                 >
                   <SelectValue />
@@ -167,7 +158,7 @@ export default function ExecuteTab({ endpointUrl }: ExecuteTabProps) {
                       value={httpMethod}
                       className={cn(
                         'font-mono font-semibold',
-                        METHOD_COLORS[httpMethod],
+                        HTTP_METHOD_TEXT_CLASSES[httpMethod],
                       )}
                     >
                       {httpMethod}

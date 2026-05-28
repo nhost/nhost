@@ -36,14 +36,20 @@ export default function useFunctionMetrics({
   chartWidth,
 }: UseFunctionMetricsOptions): UseFunctionMetricsResult {
   const { project, loading: loadingProject } = useProject();
-  const [refetchKey, setRefetchKey] = useState(0);
+  const [now, setNow] = useState(() => new Date());
+  const [prevRange, setPrevRange] = useState(range);
 
-  // refetchKey forces a fresh "now" when the user clicks refresh; range/now changes
-  // propagate to from/to and Apollo re-fetches automatically on variable change.
-  // biome-ignore lint/correctness/useExhaustiveDependencies: refetchKey is a re-run trigger.
+  // Re-anchor "now" when range changes, so a freshly-picked preset is evaluated
+  // at the current time, not page-load time. Derive-during-render (vs useEffect)
+  // avoids a double-fetch — React retries the render with the new state.
+  if (prevRange !== range) {
+    setPrevRange(range);
+    setNow(new Date());
+  }
+
   const { from, to } = useMemo(
-    () => resolveTimeRange(range),
-    [range, refetchKey],
+    () => resolveTimeRange(range, now),
+    [range, now],
   );
 
   const { intervalMs, maxDataPoints } = useMemo(
@@ -59,6 +65,7 @@ export default function useFunctionMetrics({
     previousData,
     loading: loadingQuery,
     error,
+    refetch: apolloRefetch,
   } = useGetFunctionsMetricsDashboardQuery({
     variables: {
       appID: project?.id ?? '',
@@ -86,8 +93,14 @@ export default function useFunctionMetrics({
   );
 
   const refetch = useCallback(() => {
-    setRefetchKey((k) => k + 1);
-  }, []);
+    if (range.kind === 'preset') {
+      // Re-anchor "now"; Apollo refetches automatically on the variable change.
+      setNow(new Date());
+    } else {
+      // Absolute range — variables unchanged, so force a network request.
+      apolloRefetch();
+    }
+  }, [range.kind, apolloRefetch]);
 
   const xDomain = useMemo<[number, number]>(
     () => [from.getTime(), to.getTime()],

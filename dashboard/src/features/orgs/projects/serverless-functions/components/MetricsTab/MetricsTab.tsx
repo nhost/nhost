@@ -8,8 +8,13 @@ import {
   AccordionTrigger,
 } from '@/components/ui/v3/accordion';
 import { Alert, AlertDescription, AlertTitle } from '@/components/ui/v3/alert';
-import { Button } from '@/components/ui/v3/button';
+import { Button, ButtonWithLoading } from '@/components/ui/v3/button';
 import { Skeleton } from '@/components/ui/v3/skeleton';
+import {
+  Tooltip,
+  TooltipContent,
+  TooltipTrigger,
+} from '@/components/ui/v3/tooltip';
 import MetricPanelDialog from '@/features/orgs/projects/serverless-functions/components/MetricsTab/components/MetricPanelDialog';
 import MetricsTimeRangeFilter from '@/features/orgs/projects/serverless-functions/components/MetricsTab/components/MetricsTimeRangeFilter';
 import useMetricsPanelUrlState from '@/features/orgs/projects/serverless-functions/components/MetricsTab/hooks/useMetricsPanelUrlState';
@@ -113,134 +118,142 @@ export default function MetricsTab({ fn }: MetricsTabProps) {
   }, [range, setRange]);
 
   return (
-    <div className="relative flex flex-col gap-6 p-6">
+    <div className="relative flex flex-col">
       <div
         aria-hidden
         className="pointer-events-none invisible absolute inset-x-6 top-6 grid grid-cols-1 gap-4 xl:grid-cols-2"
       >
         <div ref={chartCellRef} className="h-0" />
       </div>
-      <div className="sticky top-0 z-10 flex flex-row items-center justify-end gap-2 bg-background py-2">
+      <div className="sticky top-0 z-10 flex flex-row items-center justify-end gap-2 border-b bg-background px-6 py-4">
         <MetricsTimeRangeFilter value={range} onChange={setRange} />
-        <Button
-          variant="outline"
-          size="icon"
-          onClick={refetch}
-          disabled={loading}
-          aria-label="Refresh metrics"
-          data-testid="metricsRefreshButton"
-        >
-          <RefreshCw className={cn('h-4 w-4', loading && 'animate-spin')} />
-        </Button>
+        <Tooltip>
+          <TooltipTrigger asChild>
+            <ButtonWithLoading
+              variant="outline"
+              size="icon"
+              onClick={refetch}
+              loading={loading}
+              loaderClassName="mr-0 h-4 w-4"
+              aria-label="Refresh metrics"
+              data-testid="metricsRefreshButton"
+            >
+              {!loading && <RefreshCw className="h-4 w-4" />}
+            </ButtonWithLoading>
+          </TooltipTrigger>
+          <TooltipContent>Refresh metrics</TooltipContent>
+        </Tooltip>
       </div>
 
-      {error && (
-        <Alert variant="destructive">
-          <AlertCircle className="h-4 w-4" />
-          <AlertTitle>Couldn't load metrics</AlertTitle>
-          <AlertDescription className="mt-2 flex flex-col gap-3">
-            <span>
-              Please try again in a few minutes. This is usually temporary.
-            </span>
-            <div className="rounded bg-[#f4f7f9] py-2 dark:bg-[#21262d]">
-              <CodeBlock
-                copyToClipboardToastTitle="Error details"
-                className="!mt-0 text-sm"
+      <div className="flex flex-col gap-6 p-6">
+        {error && (
+          <Alert variant="destructive">
+            <AlertCircle className="h-4 w-4" />
+            <AlertTitle>Couldn't load metrics</AlertTitle>
+            <AlertDescription className="mt-2 flex flex-col gap-3">
+              <span>
+                Please try again in a few minutes. This is usually temporary.
+              </span>
+              <div className="rounded bg-[#f4f7f9] py-2 dark:bg-[#21262d]">
+                <CodeBlock
+                  copyToClipboardToastTitle="Error details"
+                  className="!mt-0 text-sm"
+                >
+                  {error.message}
+                </CodeBlock>
+              </div>
+              <Button
+                type="button"
+                variant="outline"
+                size="sm"
+                onClick={refetch}
+                disabled={loading}
+                className="self-start text-foreground"
               >
-                {error.message}
-              </CodeBlock>
-            </div>
-            <Button
-              type="button"
-              variant="outline"
-              size="sm"
-              onClick={refetch}
-              disabled={loading}
-              className="self-start text-foreground"
+                <RefreshCw
+                  className={cn('mr-2 h-3.5 w-3.5', loading && 'animate-spin')}
+                />
+                Try again
+              </Button>
+            </AlertDescription>
+          </Alert>
+        )}
+
+        {!error && loading && !data && <MetricsLoadingSkeleton />}
+
+        {!error && data && (
+          <>
+            <Accordion
+              type="multiple"
+              defaultValue={['summary', 'general', 'responseTimes', 'errors']}
             >
-              <RefreshCw
-                className={cn('mr-2 h-3.5 w-3.5', loading && 'animate-spin')}
-              />
-              Try again
-            </Button>
-          </AlertDescription>
-        </Alert>
-      )}
+              <AccordionItem value="summary">
+                <AccordionTrigger>Summary</AccordionTrigger>
+                <AccordionContent>
+                  <SummarySection summary={data.summary} />
+                </AccordionContent>
+              </AccordionItem>
 
-      {!error && loading && !data && <MetricsLoadingSkeleton />}
+              <AccordionItem value="general">
+                <AccordionTrigger>General</AccordionTrigger>
+                <AccordionContent>
+                  <GeneralSection
+                    invocationsByMethod={data.general.invocationsByMethod}
+                    responseStatus={data.general.responseStatus}
+                    averageResponseSize={data.general.averageResponseSize}
+                    totalRequests={data.general.totalRequests}
+                    xDomain={xDomain}
+                    onExpand={open}
+                    onZoomRange={handleZoomRange}
+                    onZoomOut={handleZoomOut}
+                  />
+                </AccordionContent>
+              </AccordionItem>
 
-      {!error && data && (
-        <>
-          <Accordion
-            type="multiple"
-            defaultValue={['summary', 'general', 'responseTimes', 'errors']}
-          >
-            <AccordionItem value="summary">
-              <AccordionTrigger>Summary</AccordionTrigger>
-              <AccordionContent>
-                <SummarySection summary={data.summary} />
-              </AccordionContent>
-            </AccordionItem>
+              <AccordionItem value="responseTimes">
+                <AccordionTrigger>Response Times</AccordionTrigger>
+                <AccordionContent>
+                  <ResponseTimesSection
+                    max={data.responseTimes.max}
+                    p95={data.responseTimes.p95}
+                    p75={data.responseTimes.p75}
+                    avg={data.responseTimes.avg}
+                    xDomain={xDomain}
+                    onExpand={open}
+                    onZoomRange={handleZoomRange}
+                    onZoomOut={handleZoomOut}
+                  />
+                </AccordionContent>
+              </AccordionItem>
 
-            <AccordionItem value="general">
-              <AccordionTrigger>General</AccordionTrigger>
-              <AccordionContent>
-                <GeneralSection
-                  invocationsByMethod={data.general.invocationsByMethod}
-                  responseStatus={data.general.responseStatus}
-                  averageResponseSize={data.general.averageResponseSize}
-                  totalRequests={data.general.totalRequests}
-                  xDomain={xDomain}
-                  onExpand={open}
-                  onZoomRange={handleZoomRange}
-                  onZoomOut={handleZoomOut}
-                />
-              </AccordionContent>
-            </AccordionItem>
+              <AccordionItem value="errors">
+                <AccordionTrigger>Errors</AccordionTrigger>
+                <AccordionContent>
+                  <ErrorsSection
+                    errorRate={data.errors.errorRate}
+                    totalErrors={data.errors.totalErrors}
+                    xDomain={xDomain}
+                    onExpand={open}
+                    onZoomRange={handleZoomRange}
+                    onZoomOut={handleZoomOut}
+                  />
+                </AccordionContent>
+              </AccordionItem>
+            </Accordion>
 
-            <AccordionItem value="responseTimes">
-              <AccordionTrigger>Response Times</AccordionTrigger>
-              <AccordionContent>
-                <ResponseTimesSection
-                  max={data.responseTimes.max}
-                  p95={data.responseTimes.p95}
-                  p75={data.responseTimes.p75}
-                  avg={data.responseTimes.avg}
-                  xDomain={xDomain}
-                  onExpand={open}
-                  onZoomRange={handleZoomRange}
-                  onZoomOut={handleZoomOut}
-                />
-              </AccordionContent>
-            </AccordionItem>
-
-            <AccordionItem value="errors">
-              <AccordionTrigger>Errors</AccordionTrigger>
-              <AccordionContent>
-                <ErrorsSection
-                  errorRate={data.errors.errorRate}
-                  totalErrors={data.errors.totalErrors}
-                  xDomain={xDomain}
-                  onExpand={open}
-                  onZoomRange={handleZoomRange}
-                  onZoomOut={handleZoomOut}
-                />
-              </AccordionContent>
-            </AccordionItem>
-          </Accordion>
-
-          <MetricPanelDialog
-            openPanel={openPanel}
-            hiddenKeys={hiddenKeys}
-            metrics={data}
-            xDomain={xDomain}
-            onClose={close}
-            onHiddenKeysChange={setHiddenKeys}
-            onZoomRange={handleZoomRange}
-            onZoomOut={handleZoomOut}
-          />
-        </>
-      )}
+            <MetricPanelDialog
+              openPanel={openPanel}
+              hiddenKeys={hiddenKeys}
+              metrics={data}
+              xDomain={xDomain}
+              onClose={close}
+              onHiddenKeysChange={setHiddenKeys}
+              onZoomRange={handleZoomRange}
+              onZoomOut={handleZoomOut}
+            />
+          </>
+        )}
+      </div>
     </div>
   );
 }
