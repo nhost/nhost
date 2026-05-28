@@ -553,7 +553,17 @@ func (t *table) buildUnionAllSelect(
 
 // writeUnionAllRow emits the column list for a single UNION-ALL branch.
 // Columns mapped in nestedFKIndex select their mapped source CTE column;
-// columns present in rowValues emit a typed placeholder; remaining columns emit a typed NULL.
+// columns present in rowValues emit a typed placeholder; remaining columns emit
+// the column's DB default expression when one is registered, otherwise a typed
+// NULL.
+//
+// Emitting the default inline (rather than NULL) is required for parity with
+// Hasura on multi-row inserts whose rows have different column sets: when a
+// NOT NULL DEFAULT column is supplied by some rows but omitted by others, a
+// NULL branch would trip 23502 at INSERT time, whereas Hasura lets the DB
+// default apply per row. Volatile defaults (now(), gen_random_uuid()) evaluate
+// per row inside INSERT ... SELECT, so inline emission preserves per-row
+// semantics.
 func (t *table) writeUnionAllRow(
 	b *strings.Builder,
 	allColumns []string,
@@ -575,30 +585,39 @@ func (t *table) writeUnionAllRow(
 			continue
 		}
 
-		colType := t.columnSQLType(col)
+		tableCol := t.tableColumn(col)
+
+		var (
+			colType     string
+			defaultExpr string
+		)
+
+		if tableCol != nil {
+			colType = tableCol.SQLType
+			defaultExpr = tableCol.DefaultExpr
+		}
 
 		value, hasValue := rowValues[col]
 		if hasValue {
 			params, paramIndex = t.writeTypedPlaceholder(b, col, colType, value, params, paramIndex)
 		} else {
-			t.writeTypedNull(b, col, colType)
+			t.writeAbsentColumn(b, col, colType, defaultExpr)
 		}
 	}
 
 	return params, paramIndex
 }
 
-// columnSQLType returns the SQL type registered for col on t, or "" if the
-// column isn't in t.columns. "" signals to callers that no type-cast should
-// be emitted.
-func (t *table) columnSQLType(col string) string {
+// tableColumn returns the registered column metadata for col on t, or nil if
+// the column isn't in t.columns.
+func (t *table) tableColumn(col string) *core.Column {
 	for _, tableCol := range t.columns {
 		if tableCol.SQLName == col {
-			return tableCol.SQLType
+			return tableCol
 		}
 	}
 
-	return ""
+	return nil
 }
 
 // writeTypedPlaceholder emits a parameter placeholder for value, type-cast
@@ -630,6 +649,31 @@ func (t *table) writeTypedNull(b *strings.Builder, col, colType string) {
 		b.WriteString(t.dialect.TypeCast("NULL", colType))
 	} else {
 		b.WriteString("NULL")
+	}
+
+	b.WriteString(" AS ")
+	core.WriteQuotedIdentifier(b, col)
+}
+
+// writeAbsentColumn emits the value used for a column missing from a row in a
+// UNION-ALL data CTE branch. When defaultExpr is non-empty, the column's DB
+// default expression is emitted inline (parenthesised and type-cast when
+// colType is set) so the resulting INSERT ... SELECT supplies the default per
+// row rather than NULL — see writeUnionAllRow for the Hasura-parity rationale.
+// Otherwise it falls back to writeTypedNull.
+func (t *table) writeAbsentColumn(b *strings.Builder, col, colType, defaultExpr string) {
+	if defaultExpr == "" {
+		t.writeTypedNull(b, col, colType)
+
+		return
+	}
+
+	expr := "(" + defaultExpr + ")"
+
+	if colType != "" {
+		b.WriteString(t.dialect.TypeCast(expr, colType))
+	} else {
+		b.WriteString(expr)
 	}
 
 	b.WriteString(" AS ")
