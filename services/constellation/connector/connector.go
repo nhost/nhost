@@ -324,7 +324,7 @@ func resolveDBURL(dbMeta *metadata.DatabaseMetadata) (string, error) {
 	return dbURL, nil
 }
 
-func newPostgresConnector( //nolint:ireturn
+func newPostgresConnector( //nolint:ireturn,nolintlint
 	ctx context.Context,
 	dbMeta *metadata.DatabaseMetadata,
 	inconsistencies *metadata.Inconsistencies,
@@ -345,7 +345,7 @@ func newPostgresConnector( //nolint:ireturn
 	return backend, nil
 }
 
-func newSQLiteConnector( //nolint:ireturn
+func newSQLiteConnector( //nolint:ireturn,nolintlint
 	ctx context.Context,
 	dbMeta *metadata.DatabaseMetadata,
 	inconsistencies *metadata.Inconsistencies,

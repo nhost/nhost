@@ -13,7 +13,10 @@ var (
 	errFunctionDoesNotReturnTableType = errors.New("function does not return a table type")
 	errArgsMustBeObject               = errors.New("args must be an object")
 
-	errNestedInsertTargetTableType = errors.New("nested insert target table has unexpected type")
+	errNestedInsertTargetTableType = errors.New(
+		"nested insert target table has unexpected type",
+	)
+	errPartitionedParentCTECountMismatch = errors.New("partitioned parent CTE count mismatch")
 
 	errRelationshipTargetTableNotFound = errors.New(
 		"unable to find relationship target table",

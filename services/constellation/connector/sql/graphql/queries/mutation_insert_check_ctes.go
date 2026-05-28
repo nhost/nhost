@@ -84,7 +84,7 @@ func (t *table) buildCheckConstraintCTE(
 	checkCTEName string,
 	insertObj arguments.InsertObject,
 	nestedFKColumns map[string]struct{},
-	nestedFKIndex map[string]string,
+	nestedFKIndex arguments.NestedFKSources,
 	tableSubs where.TableSubstitutions,
 	role string,
 	sessionVariables map[string]any,
@@ -166,7 +166,7 @@ func (t *table) buildSingleInsertCTEPreCheck(
 	cteName string,
 	insertObj arguments.InsertObject,
 	onConflict *arguments.OnConflict,
-	nestedFKIndex map[string]string,
+	nestedFKIndex arguments.NestedFKSources,
 	tableSubs where.TableSubstitutions,
 	params []any,
 	paramIndex int,
@@ -237,7 +237,7 @@ func (t *table) buildSingleInsertCTEPostCheck(
 	cteName string,
 	insertObj arguments.InsertObject,
 	onConflict *arguments.OnConflict,
-	nestedFKIndex map[string]string,
+	nestedFKIndex arguments.NestedFKSources,
 	tableSubs where.TableSubstitutions,
 	params []any,
 	paramIndex int,
@@ -302,8 +302,8 @@ func (t *table) buildSingleInsertCTEPostCheck(
 
 // appendMissingPermissionColumns appends columns referenced by the insert
 // permission check that aren't in the insert data. Columns mapped in
-// nestedFKIndex (FK columns drawn from a sibling CTE) are emitted with that
-// CTE's id so the permission predicate sees the real value; other missing
+// nestedFKIndex (FK columns drawn from a sibling CTE) are emitted with their
+// mapped source CTE column so the permission predicate sees the real value; other missing
 // columns are emitted as typed NULLs to prevent "column does not exist"
 // errors. Returns the unique sibling CTEs that must be added to the SELECT's
 // FROM clause (in stable order of first appearance).
@@ -314,7 +314,7 @@ func (t *table) appendMissingPermissionColumns(
 	b *strings.Builder,
 	insertObj arguments.InsertObject,
 	nestedFKColumns map[string]struct{},
-	nestedFKIndex map[string]string,
+	nestedFKIndex arguments.NestedFKSources,
 	role string,
 ) []string {
 	present := make(map[string]struct{})
@@ -333,14 +333,14 @@ func (t *table) appendMissingPermissionColumns(
 	for _, col := range missing {
 		b.WriteString(", ")
 
-		if cte, isFK := nestedFKIndex[col.SQLName]; isFK {
-			b.WriteString(cte)
-			b.WriteString(".\"id\" AS ")
+		if source, isFK := nestedFKIndex[col.SQLName]; isFK {
+			writeFKSourceColumn(b, source.CTEName, source.ColumnName)
+			b.WriteString(" AS ")
 			core.WriteQuotedIdentifier(b, col.SQLName)
 
-			if _, dup := seenCTE[cte]; !dup {
-				seenCTE[cte] = struct{}{}
-				fromCTEs = append(fromCTEs, cte)
+			if _, dup := seenCTE[source.CTEName]; !dup {
+				seenCTE[source.CTEName] = struct{}{}
+				fromCTEs = append(fromCTEs, source.CTEName)
 			}
 
 			continue
@@ -386,7 +386,7 @@ func (t *table) requiresPostInsertCheck(
 // can't observe — see requiresPostInsertCheck.
 func insertPresentColumns(
 	insertObjs []arguments.InsertObject,
-	nestedFKIndex map[string]string,
+	nestedFKIndex arguments.NestedFKSources,
 ) map[string]struct{} {
 	var present map[string]struct{}
 
@@ -518,8 +518,8 @@ func (t *table) collectAllColumns(
 
 // buildUnionAllSelect builds a UNION ALL SELECT for multiple insert objects.
 // Each SELECT includes all columns. For columns mapped in nestedFKIndex (FK
-// columns whose values come from a sibling CTE) it selects the CTE's id; for
-// columns absent from columnToValue[i] it falls back to NULL; otherwise it
+// columns whose values come from a sibling CTE) it selects the mapped CTE
+// column; for columns absent from columnToValue[i] it falls back to NULL; otherwise it
 // emits a typed placeholder. When any FK columns are referenced, each UNION
 // ALL branch joins the relevant CTE(s) via FROM so the permission predicate
 // in the surrounding check CTE sees the real FK value rather than NULL.
@@ -528,7 +528,7 @@ func (t *table) buildUnionAllSelect(
 	insertObjs []arguments.InsertObject,
 	allColumns []string,
 	columnToValue []map[string]any,
-	nestedFKIndex map[string]string,
+	nestedFKIndex arguments.NestedFKSources,
 	params []any,
 	paramIndex int,
 ) ([]any, int) {
@@ -552,9 +552,10 @@ func (t *table) buildUnionAllSelect(
 }
 
 // writeUnionAllRow emits the column list for a single UNION-ALL branch.
-// Columns mapped in nestedFKIndex select the parent CTE's id; columns present
-// in rowValues emit a typed placeholder; remaining columns emit the column's
-// DB default expression when one is registered, otherwise a typed NULL.
+// Columns mapped in nestedFKIndex select their mapped source CTE column;
+// columns present in rowValues emit a typed placeholder; remaining columns emit
+// the column's DB default expression when one is registered, otherwise a typed
+// NULL.
 //
 // Emitting the default inline (rather than NULL) is required for parity with
 // Hasura on multi-row inserts whose rows have different column sets: when a
@@ -567,7 +568,7 @@ func (t *table) writeUnionAllRow(
 	b *strings.Builder,
 	allColumns []string,
 	rowValues map[string]any,
-	nestedFKIndex map[string]string,
+	nestedFKIndex arguments.NestedFKSources,
 	params []any,
 	paramIndex int,
 ) ([]any, int) {
@@ -576,9 +577,9 @@ func (t *table) writeUnionAllRow(
 			b.WriteString(", ")
 		}
 
-		if cte, isFK := nestedFKIndex[col]; isFK {
-			b.WriteString(cte)
-			b.WriteString(".\"id\" AS ")
+		if source, isFK := nestedFKIndex[col]; isFK {
+			writeFKSourceColumn(b, source.CTEName, source.ColumnName)
+			b.WriteString(" AS ")
 			core.WriteQuotedIdentifier(b, col)
 
 			continue
@@ -679,6 +680,12 @@ func (t *table) writeAbsentColumn(b *strings.Builder, col, colType, defaultExpr 
 	core.WriteQuotedIdentifier(b, col)
 }
 
+func writeFKSourceColumn(b *strings.Builder, cteName, columnName string) {
+	b.WriteString(cteName)
+	b.WriteByte('.')
+	core.WriteQuotedIdentifier(b, columnName)
+}
+
 // writeFromCTEs appends a `FROM cte1, cte2, ...` clause to b. No-op when ctes
 // is empty.
 func writeFromCTEs(b *strings.Builder, ctes []string) {
@@ -696,7 +703,7 @@ func writeFromCTEs(b *strings.Builder, ctes []string) {
 // collectFKSourceCTEs returns the unique source CTEs (in stable order of
 // first appearance) referenced by columns that are mapped in nestedFKIndex.
 // Stable ordering keeps the generated SQL deterministic.
-func collectFKSourceCTEs(columns []string, nestedFKIndex map[string]string) []string {
+func collectFKSourceCTEs(columns []string, nestedFKIndex arguments.NestedFKSources) []string {
 	if len(nestedFKIndex) == 0 {
 		return nil
 	}
@@ -706,17 +713,17 @@ func collectFKSourceCTEs(columns []string, nestedFKIndex map[string]string) []st
 	var ctes []string
 
 	for _, col := range columns {
-		cte, ok := nestedFKIndex[col]
-		if !ok {
+		source, ok := nestedFKIndex[col]
+		if !ok || source.CTEName == "" {
 			continue
 		}
 
-		if _, dup := seen[cte]; dup {
+		if _, dup := seen[source.CTEName]; dup {
 			continue
 		}
 
-		seen[cte] = struct{}{}
-		ctes = append(ctes, cte)
+		seen[source.CTEName] = struct{}{}
+		ctes = append(ctes, source.CTEName)
 	}
 
 	return ctes
@@ -732,7 +739,7 @@ func (t *table) buildCheckMutationResultCTE(
 	insertObjs []arguments.InsertObject,
 	allColumns []string,
 	columnToValue []map[string]any,
-	nestedFKIndex map[string]string,
+	nestedFKIndex arguments.NestedFKSources,
 	role string,
 	sessionVariables map[string]any,
 	params []any,
@@ -774,7 +781,7 @@ func (t *table) buildCheckMutationResultCTE(
 func (t *table) buildMutationResultInsertCTE(
 	b *strings.Builder,
 	allColumns []string,
-	nestedFKIndex map[string]string,
+	nestedFKIndex arguments.NestedFKSources,
 	onConflict *arguments.OnConflict,
 	hasCheckPermissions bool,
 	params []any,
@@ -782,11 +789,7 @@ func (t *table) buildMutationResultInsertCTE(
 ) ([]any, int, error) {
 	checkCTEName := "check_mutation_result"
 
-	finalColumns := append([]string{}, allColumns...)
-
-	for col := range nestedFKIndex {
-		finalColumns = append(finalColumns, col)
-	}
+	finalColumns := insertColumnsWithNestedFK(allColumns, nestedFKIndex)
 
 	b.WriteString("mutation_result AS (INSERT INTO ")
 	b.WriteString(t.tableFromClause())
@@ -822,7 +825,7 @@ func (t *table) buildInsertMutationCTEPreCheck(
 	insertObjs []arguments.InsertObject,
 	allColumns []string,
 	columnToValue []map[string]any,
-	nestedFKIndex map[string]string,
+	nestedFKIndex arguments.NestedFKSources,
 	onConflict *arguments.OnConflict,
 	role string,
 	sessionVariables map[string]any,
@@ -876,7 +879,7 @@ func (t *table) buildInsertMutationCTEPostCheck(
 	insertObjs []arguments.InsertObject,
 	allColumns []string,
 	columnToValue []map[string]any,
-	nestedFKIndex map[string]string,
+	nestedFKIndex arguments.NestedFKSources,
 	onConflict *arguments.OnConflict,
 	role string,
 	sessionVariables map[string]any,
@@ -891,10 +894,7 @@ func (t *table) buildInsertMutationCTEPostCheck(
 
 	b.WriteString(") AS data), ")
 
-	finalColumns := append([]string{}, allColumns...)
-	for col := range nestedFKIndex {
-		finalColumns = append(finalColumns, col)
-	}
+	finalColumns := insertColumnsWithNestedFK(allColumns, nestedFKIndex)
 
 	b.WriteString("_mutation_result AS (INSERT INTO ")
 	b.WriteString(t.tableFromClause())

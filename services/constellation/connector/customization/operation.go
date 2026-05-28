@@ -219,7 +219,7 @@ func (c *Customizer) reverseSelections(
 	return rebuilt
 }
 
-func (c *Customizer) reverseSelection( //nolint:ireturn
+func (c *Customizer) reverseSelection( //nolint:ireturn,nolintlint
 	selection ast.Selection,
 	isRoot bool,
 ) ast.Selection {
