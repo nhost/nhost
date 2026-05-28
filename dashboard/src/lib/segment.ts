@@ -1,3 +1,5 @@
+import { isPlatform } from '@/utils/env';
+import { isDevOrStaging } from '@/utils/helpers';
 import { AnalyticsBrowser, type ID } from '@segment/analytics-next';
 
 export const analytics = AnalyticsBrowser.load(
@@ -6,17 +8,25 @@ export const analytics = AnalyticsBrowser.load(
     writeKey: process.env.NEXT_PUBLIC_ANALYTICS_WRITE_KEY!,
   },
   {
-    disable: true,
+    disable: !isPlatform() || isDevOrStaging(),
   },
 );
 
-export async function getAnonId() {
-  let anonId: ID;
+export async function getAnonId(): Promise<ID> {
+  const timeout = new Promise<undefined>((resolve) => {
+    setTimeout(() => resolve(undefined), 300);
+  });
+
   try {
-    const user = await analytics.user();
-    anonId = user.anonymousId();
+    return await Promise.race([
+      analytics
+        .user()
+        .then((user) => user.anonymousId())
+        .catch(() => undefined),
+      timeout,
+    ]);
   } catch (err) {
     console.error('Failed to get anonymous ID:', err);
+    return undefined;
   }
-  return anonId;
 }
