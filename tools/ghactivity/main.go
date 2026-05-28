@@ -12,8 +12,9 @@ import (
 var Version string
 
 func main() {
+	// Invoked as `gh activity` once installed with `gh extension install`.
 	cmd := &cli.Command{ //nolint:exhaustruct
-		Name:    "ghactivity",
+		Name:    "activity",
 		Version: Version,
 		Usage:   "Generate a markdown report of a user's GitHub activity in an org over a time range.",
 		Flags:   report.Flags(),

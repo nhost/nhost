@@ -110,7 +110,10 @@ func Action(ctx context.Context, c *cli.Command) error {
 		return cli.Exit("--until must be after --since", 1)
 	}
 
-	client := gh.New()
+	client, err := gh.New()
+	if err != nil {
+		return cli.Exit(fmt.Sprintf("initialising gh client: %v", err), 1)
+	}
 
 	user := c.String(flagUser)
 	if user == "" {

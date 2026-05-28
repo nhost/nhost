@@ -13,7 +13,8 @@ require (
 	github.com/blevesearch/bleve/v2 v2.5.7
 	github.com/bradfitz/gomemcache v0.0.0-20250403215159-8d39553ac7cf
 	github.com/cespare/xxhash/v2 v2.3.0
-	github.com/charmbracelet/lipgloss v1.1.0
+	github.com/charmbracelet/lipgloss v1.1.1-0.20250319133953-166f707985bc
+	github.com/cli/go-gh/v2 v2.13.0
 	github.com/creack/pty v1.1.24
 	github.com/cshum/vipsgen v1.2.1
 	github.com/docker/docker v28.3.3+incompatible
@@ -110,8 +111,10 @@ require (
 	github.com/bytedance/sonic/loader v0.3.0 // indirect
 	github.com/charmbracelet/colorprofile v0.2.3-0.20250311203215-f60798e515dc // indirect
 	github.com/charmbracelet/x/ansi v0.8.0 // indirect
-	github.com/charmbracelet/x/cellbuf v0.0.13-0.20250311204145-2c3ea96c31dd // indirect
+	github.com/charmbracelet/x/cellbuf v0.0.13 // indirect
 	github.com/charmbracelet/x/term v0.2.1 // indirect
+	github.com/cli/safeexec v1.0.0 // indirect
+	github.com/cli/shurcooL-graphql v0.0.4 // indirect
 	github.com/cloudflare/circl v1.6.3 // indirect
 	github.com/cloudwego/base64x v0.1.6 // indirect
 	github.com/cockroachdb/apd/v3 v3.2.1 // indirect
@@ -149,6 +152,7 @@ require (
 	github.com/hashicorp/errwrap v1.1.0 // indirect
 	github.com/hashicorp/go-multierror v1.1.1 // indirect
 	github.com/hashicorp/golang-lru/v2 v2.0.7 // indirect
+	github.com/henvic/httpretty v0.0.6 // indirect
 	github.com/invopop/jsonschema v0.13.0 // indirect
 	github.com/jackc/pgpassfile v1.0.0 // indirect
 	github.com/jackc/pgservicefile v0.0.0-20240606120523-5a60cdf6a761 // indirect
@@ -193,6 +197,7 @@ require (
 	github.com/sosodev/duration v1.3.1 // indirect
 	github.com/speakeasy-api/jsonpath v0.6.2 // indirect
 	github.com/spf13/cast v1.10.0 // indirect
+	github.com/thlib/go-timezone-local v0.0.0-20210907160436-ef149e42d28e // indirect
 	github.com/tidwall/gjson v1.18.0 // indirect
 	github.com/tidwall/match v1.1.1 // indirect
 	github.com/tidwall/pretty v1.2.1 // indirect

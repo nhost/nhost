@@ -4,10 +4,10 @@
   nixops-lib,
 }:
 let
-  name = "ghactivity";
-  description = "Generate a markdown report of a user's GitHub activity in an org over a time range";
+  name = "gh-activity";
+  description = "gh CLI extension that generates a markdown report of a user's GitHub activity in an org over a time range";
   version = "0.0.0-dev";
-  submodule = "tools/${name}";
+  submodule = "tools/ghactivity";
 
   fs = pkgs.lib.fileset;
 
@@ -48,7 +48,7 @@ in
 
   devShell = nixops-lib.go.devShell {
     buildInputs = [
-      pkgs.gh
+      pkgs.gh # for local `gh extension install --force .` workflow
     ]
     ++ checkDeps
     ++ buildInputs
@@ -66,5 +66,11 @@ in
       buildInputs
       nativeBuildInputs
       ;
+    # Go names the binary after the subpackage's last path segment (`ghactivity`),
+    # but this tool is meant to be installed as a `gh` extension, which discovers
+    # binaries by the `gh-<name>` prefix. Rename to match.
+    postInstall = ''
+      mv $out/bin/ghactivity $out/bin/gh-activity
+    '';
   };
 }
