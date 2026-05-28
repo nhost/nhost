@@ -32,7 +32,7 @@ export default function ExpandablePanelCard({
       )}
     >
       <div className="flex items-start justify-between gap-2">
-        <div className="space-y-1">
+        <div className="min-h-10 space-y-1">
           <h3 className="font-medium text-foreground text-sm">{title}</h3>
           {description ? (
             <p className="text-muted-foreground text-xs">{description}</p>
@@ -43,7 +43,7 @@ export default function ExpandablePanelCard({
             type="button"
             variant="ghost"
             size="icon"
-            className="h-7 w-7 shrink-0 text-muted-foreground hover:text-foreground"
+            className="-mt-1 h-7 w-7 shrink-0 text-muted-foreground hover:text-foreground"
             onClick={() => onExpand(slug)}
             aria-label={`Expand ${title}`}
           >

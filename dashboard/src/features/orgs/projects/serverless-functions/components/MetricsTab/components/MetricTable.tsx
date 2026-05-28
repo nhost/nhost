@@ -37,9 +37,9 @@ export default function MetricTable<Row>({
   const visibleRows = maxRows != null ? rows.slice(0, maxRows) : rows;
 
   return (
-    <div className={cn('flex flex-col gap-2', className)}>
+    <div className={cn('flex flex-1 flex-col gap-2', className)}>
       {visibleRows.length === 0 ? (
-        <div className="flex h-40 items-center justify-center">
+        <div className="flex min-h-[260px] flex-1 items-center justify-center">
           <p className="text-muted-foreground text-sm">{emptyLabel}</p>
         </div>
       ) : (

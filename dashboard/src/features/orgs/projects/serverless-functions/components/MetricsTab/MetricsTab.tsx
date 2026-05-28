@@ -15,7 +15,7 @@ import {
   TooltipContent,
   TooltipTrigger,
 } from '@/components/ui/v3/tooltip';
-import MetricPanelDialog from '@/features/orgs/projects/serverless-functions/components/MetricsTab/components/MetricPanelDialog';
+import ExpandedMetricPanel from '@/features/orgs/projects/serverless-functions/components/MetricsTab/components/ExpandedMetricPanel';
 import MetricsTimeRangeFilter from '@/features/orgs/projects/serverless-functions/components/MetricsTab/components/MetricsTimeRangeFilter';
 import useMetricsPanelUrlState from '@/features/orgs/projects/serverless-functions/components/MetricsTab/hooks/useMetricsPanelUrlState';
 import useMetricsTimeRangeUrlState from '@/features/orgs/projects/serverless-functions/components/MetricsTab/hooks/useMetricsTimeRangeUrlState';
@@ -46,7 +46,7 @@ function MetricsLoadingSkeleton() {
         <Skeleton className="h-64 w-full" />
         <Skeleton className="h-64 w-full" />
         <Skeleton className="h-64 w-full" />
-        <Skeleton className="h-48 w-full" />
+        <Skeleton className="h-64 w-full" />
       </div>
       <div className="grid grid-cols-1 gap-4 xl:grid-cols-2">
         <Skeleton className="h-64 w-full" />
@@ -117,15 +117,17 @@ export default function MetricsTab({ fn }: MetricsTabProps) {
     });
   }, [range, setRange]);
 
+  const isExpanded = !!openPanel && !!data && !error;
+
   return (
-    <div className="relative flex flex-col">
+    <div className="relative flex h-full flex-col bg-accent-background">
       <div
         aria-hidden
         className="pointer-events-none invisible absolute inset-x-6 top-6 grid grid-cols-1 gap-4 xl:grid-cols-2"
       >
         <div ref={chartCellRef} className="h-0" />
       </div>
-      <div className="sticky top-0 z-10 flex flex-row items-center justify-end gap-2 border-b bg-background px-6 py-4">
+      <div className="flex flex-row items-center justify-end gap-2 border-b bg-background px-6 py-4">
         <MetricsTimeRangeFilter value={range} onChange={setRange} />
         <Tooltip>
           <TooltipTrigger asChild>
@@ -145,44 +147,58 @@ export default function MetricsTab({ fn }: MetricsTabProps) {
         </Tooltip>
       </div>
 
-      <div className="flex flex-col gap-6 p-6">
-        {error && (
-          <Alert variant="destructive">
-            <AlertCircle className="h-4 w-4" />
-            <AlertTitle>Couldn't load metrics</AlertTitle>
-            <AlertDescription className="mt-2 flex flex-col gap-3">
-              <span>
-                Please try again in a few minutes. This is usually temporary.
-              </span>
-              <div className="rounded bg-[#f4f7f9] py-2 dark:bg-[#21262d]">
-                <CodeBlock
-                  copyToClipboardToastTitle="Error details"
-                  className="!mt-0 text-sm"
+      {isExpanded && openPanel && data ? (
+        <ExpandedMetricPanel
+          openPanel={openPanel}
+          hiddenKeys={hiddenKeys}
+          metrics={data}
+          xDomain={xDomain}
+          onClose={close}
+          onHiddenKeysChange={setHiddenKeys}
+          onZoomRange={handleZoomRange}
+          onZoomOut={handleZoomOut}
+        />
+      ) : (
+        <div className="flex min-h-0 flex-1 flex-col gap-6 overflow-auto p-6">
+          {error && (
+            <Alert variant="destructive">
+              <AlertCircle className="h-4 w-4" />
+              <AlertTitle>Couldn't load metrics</AlertTitle>
+              <AlertDescription className="mt-2 flex flex-col gap-3">
+                <span>
+                  Please try again in a few minutes. This is usually temporary.
+                </span>
+                <div className="rounded bg-[#f4f7f9] py-2 dark:bg-[#21262d]">
+                  <CodeBlock
+                    copyToClipboardToastTitle="Error details"
+                    className="!mt-0 text-sm"
+                  >
+                    {error.message}
+                  </CodeBlock>
+                </div>
+                <Button
+                  type="button"
+                  variant="outline"
+                  size="sm"
+                  onClick={refetch}
+                  disabled={loading}
+                  className="self-start text-foreground"
                 >
-                  {error.message}
-                </CodeBlock>
-              </div>
-              <Button
-                type="button"
-                variant="outline"
-                size="sm"
-                onClick={refetch}
-                disabled={loading}
-                className="self-start text-foreground"
-              >
-                <RefreshCw
-                  className={cn('mr-2 h-3.5 w-3.5', loading && 'animate-spin')}
-                />
-                Try again
-              </Button>
-            </AlertDescription>
-          </Alert>
-        )}
+                  <RefreshCw
+                    className={cn(
+                      'mr-2 h-3.5 w-3.5',
+                      loading && 'animate-spin',
+                    )}
+                  />
+                  Try again
+                </Button>
+              </AlertDescription>
+            </Alert>
+          )}
 
-        {!error && loading && !data && <MetricsLoadingSkeleton />}
+          {!error && loading && !data && <MetricsLoadingSkeleton />}
 
-        {!error && data && (
-          <>
+          {!error && data && (
             <Accordion
               type="multiple"
               defaultValue={['summary', 'general', 'responseTimes', 'errors']}
@@ -240,20 +256,9 @@ export default function MetricsTab({ fn }: MetricsTabProps) {
                 </AccordionContent>
               </AccordionItem>
             </Accordion>
-
-            <MetricPanelDialog
-              openPanel={openPanel}
-              hiddenKeys={hiddenKeys}
-              metrics={data}
-              xDomain={xDomain}
-              onClose={close}
-              onHiddenKeysChange={setHiddenKeys}
-              onZoomRange={handleZoomRange}
-              onZoomOut={handleZoomOut}
-            />
-          </>
-        )}
-      </div>
+          )}
+        </div>
+      )}
     </div>
   );
 }
