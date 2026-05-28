@@ -357,6 +357,41 @@ enum exercise_logs_select_column {
   owner_id
 }
 """
+unique or primary key constraints on table "identity_check_logs"
+"""
+enum identity_check_logs_constraint {
+  """
+  unique or primary key constraint on columns "id"
+  """
+  identity_check_logs_pkey
+}
+"""
+placeholder for update columns of table "identity_check_logs" (current role has no relevant permissions)
+"""
+enum identity_check_logs_update_column {
+  """
+  placeholder (do not use)
+  """
+  _PLACEHOLDER
+}
+"""
+select columns of table "identity_check_logs"
+"""
+enum identity_check_logs_select_column {
+  """
+  column name
+  """
+  id
+  """
+  column name
+  """
+  owner_id
+  """
+  column name
+  """
+  note
+}
+"""
 unique or primary key constraints on table "kb_entries"
 """
 enum kb_entries_constraint {
@@ -1495,6 +1530,27 @@ type exercise_logs_mutation_response {
   returning: [exercise_logs!]!
 }
 """
+columns and relationships of "identity_check_logs"
+"""
+type identity_check_logs {
+  id: bigint
+  owner_id: uuid!
+  note: String
+}
+"""
+response of any mutation on the table "identity_check_logs"
+"""
+type identity_check_logs_mutation_response {
+  """
+  number of rows affected by the mutation
+  """
+  affected_rows: Int!
+  """
+  data from the rows affected by the mutation
+  """
+  returning: [identity_check_logs!]!
+}
+"""
 columns and relationships of "kb_entries"
 """
 type kb_entries {
@@ -2289,6 +2345,34 @@ type query_root {
   """
   exercise_logs_by_pk(id: uuid!): exercise_logs
   """
+  fetch data from the table: "identity_check_logs"
+  """
+  identity_check_logs(
+    """
+    limit the number of rows returned
+    """
+    limit: Int
+
+    """
+    skip the first n rows. Use only with order_by
+    """
+    offset: Int
+
+    """
+    sort the rows by one or more columns
+    """
+    order_by: [identity_check_logs_order_by!]
+
+    """
+    filter the rows returned
+    """
+    where: identity_check_logs_bool_exp
+  ): [identity_check_logs!]!
+  """
+  fetch data from the table: "identity_check_logs" using primary key columns
+  """
+  identity_check_logs_by_pk(id: bigint!): identity_check_logs
+  """
   fetch data from the table: "kb_entries"
   """
   kb_entries(
@@ -2843,6 +2927,34 @@ type mutation_root {
     """
     on_conflict: exercise_logs_on_conflict
   ): exercise_logs_mutation_response
+  """
+  insert a single row into the table: "identity_check_logs"
+  """
+  insert_identity_check_logs_one(
+    """
+    the row to be inserted
+    """
+    object: identity_check_logs_insert_input!
+
+    """
+    upsert condition
+    """
+    on_conflict: identity_check_logs_on_conflict
+  ): identity_check_logs
+  """
+  insert data into the table: "identity_check_logs"
+  """
+  insert_identity_check_logs(
+    """
+    the rows to be inserted
+    """
+    objects: [identity_check_logs_insert_input!]!
+
+    """
+    upsert condition
+    """
+    on_conflict: identity_check_logs_on_conflict
+  ): identity_check_logs_mutation_response
   """
   delete single row from the table: "kb_entries"
   """
@@ -3735,6 +3847,53 @@ type subscription_root {
     """
     where: exercise_logs_bool_exp
   ): [exercise_logs!]!
+  """
+  fetch data from the table: "identity_check_logs"
+  """
+  identity_check_logs(
+    """
+    limit the number of rows returned
+    """
+    limit: Int
+
+    """
+    skip the first n rows. Use only with order_by
+    """
+    offset: Int
+
+    """
+    sort the rows by one or more columns
+    """
+    order_by: [identity_check_logs_order_by!]
+
+    """
+    filter the rows returned
+    """
+    where: identity_check_logs_bool_exp
+  ): [identity_check_logs!]!
+  """
+  fetch data from the table: "identity_check_logs" using primary key columns
+  """
+  identity_check_logs_by_pk(id: bigint!): identity_check_logs
+  """
+  fetch data from the table in a streaming manner: "identity_check_logs"
+  """
+  identity_check_logs_stream(
+    """
+    maximum number of rows returned in a single batch
+    """
+    batch_size: Int!
+
+    """
+    cursor to stream the results returned by the query
+    """
+    cursor: [identity_check_logs_stream_cursor_input]!
+
+    """
+    filter the rows returned
+    """
+    where: identity_check_logs_bool_exp
+  ): [identity_check_logs!]!
   """
   fetch data from the table: "kb_entries"
   """
@@ -5152,6 +5311,60 @@ input exercise_logs_obj_rel_insert_input {
   upsert condition
   """
   on_conflict: exercise_logs_on_conflict
+}
+"""
+Boolean expression to filter rows from the table "identity_check_logs". All fields are combined with a logical 'AND'.
+"""
+input identity_check_logs_bool_exp {
+  _and: [identity_check_logs_bool_exp!]
+  _not: identity_check_logs_bool_exp
+  _or: [identity_check_logs_bool_exp!]
+  id: bigint_sqlite_comparison_exp
+  owner_id: uuid_sqlite_comparison_exp
+  note: String_sqlite_comparison_exp
+}
+"""
+Ordering options when selecting data from "identity_check_logs".
+"""
+input identity_check_logs_order_by {
+  id: order_by
+  owner_id: order_by
+  note: order_by
+}
+"""
+Initial value of the column from where the streaming should start
+"""
+input identity_check_logs_stream_cursor_value_input {
+  id: bigint
+  owner_id: uuid
+  note: String
+}
+"""
+Streaming cursor of the table "identity_check_logs"
+"""
+input identity_check_logs_stream_cursor_input {
+  """
+  Stream column input with initial value
+  """
+  initial_value: identity_check_logs_stream_cursor_value_input!
+  """
+  cursor ordering
+  """
+  ordering: cursor_ordering
+}
+"""
+input type for inserting data into table "identity_check_logs"
+"""
+input identity_check_logs_insert_input {
+  note: String
+}
+"""
+on_conflict condition type for table "identity_check_logs"
+"""
+input identity_check_logs_on_conflict {
+  constraint: identity_check_logs_constraint!
+  update_columns: [identity_check_logs_update_column!]! = []
+  where: identity_check_logs_bool_exp
 }
 """
 Boolean expression to filter rows from the table "kb_entries". All fields are combined with a logical 'AND'.

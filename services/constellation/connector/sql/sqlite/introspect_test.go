@@ -288,3 +288,127 @@ BEGIN UPDATE base SET name = NEW.name WHERE id = OLD.id; END;
 		})
 	}
 }
+
+// TestIntrospectRowidAliasIdentity locks the SQLite rowid-alias detection
+// against a representative matrix of CREATE TABLE shapes. The rowid alias
+// fires only for a single-column primary key whose declared type is exactly
+// "INTEGER" (case-insensitive, no precision suffix) and the table is not
+// declared WITHOUT ROWID. AUTOINCREMENT is orthogonal — it adds monotonicity
+// guarantees but does not change alias status.
+func TestIntrospectRowidAliasIdentity(t *testing.T) {
+	t.Parallel()
+
+	dbPath := filepath.Join(t.TempDir(), "identity.db")
+
+	db, err := sql.Open("sqlite3", dbPath)
+	if err != nil {
+		t.Fatalf("failed to open database: %v", err)
+	}
+
+	schema := `
+-- Plain INTEGER PRIMARY KEY: classic rowid alias, IsIdentity must be true.
+CREATE TABLE rowid_alias (id INTEGER PRIMARY KEY, name TEXT);
+
+-- AUTOINCREMENT does not change alias status, only monotonicity. Still identity.
+CREATE TABLE rowid_alias_autoinc (id INTEGER PRIMARY KEY AUTOINCREMENT, name TEXT);
+
+-- BIGINT shares integer affinity but is NOT the magic "INTEGER" spelling;
+-- SQLite does not treat it as a rowid alias, so IsIdentity must be false.
+CREATE TABLE bigint_pk (id BIGINT PRIMARY KEY, name TEXT);
+
+-- Composite primary key including an INTEGER column: rowid-alias rule does
+-- not apply (it requires the PK to be a single INTEGER column).
+CREATE TABLE composite_int_pk (
+    id INTEGER NOT NULL,
+    tenant TEXT NOT NULL,
+    PRIMARY KEY (id, tenant)
+);
+
+-- WITHOUT ROWID disables the rowid alias even for INTEGER PRIMARY KEY.
+CREATE TABLE without_rowid_int_pk (
+    id INTEGER PRIMARY KEY,
+    name TEXT
+) WITHOUT ROWID;
+
+-- TEXT primary key is never an alias.
+CREATE TABLE text_pk (id TEXT PRIMARY KEY, name TEXT);
+`
+
+	if _, err := db.ExecContext(t.Context(), schema); err != nil {
+		t.Fatalf("failed to create schema: %v", err)
+	}
+
+	db.Close()
+
+	sqlDB, err := sqlite.Open(t.Context(), dbPath)
+	if err != nil {
+		t.Fatalf("failed to open sqlite: %v", err)
+	}
+
+	client := sqlite.NewClient(sqlDB)
+	t.Cleanup(func() { client.Close() })
+
+	got, err := client.Introspect(t.Context(), &metadata.DatabaseMetadata{
+		Tables: []metadata.TableMetadata{
+			{Table: metadata.TableSource{Name: "rowid_alias"}},
+			{Table: metadata.TableSource{Name: "rowid_alias_autoinc"}},
+			{Table: metadata.TableSource{Name: "bigint_pk"}},
+			{Table: metadata.TableSource{Name: "composite_int_pk"}},
+			{Table: metadata.TableSource{Name: "without_rowid_int_pk"}},
+			{Table: metadata.TableSource{Name: "text_pk"}},
+		},
+	})
+	if err != nil {
+		t.Fatalf("failed to introspect: %v", err)
+	}
+
+	schemaObjs := got.Schemas[""]
+	if schemaObjs == nil {
+		t.Fatalf("expected default schema in introspection objects")
+	}
+
+	cases := []struct {
+		table          string
+		column         string
+		wantIsIdentity bool
+	}{
+		{"rowid_alias", "id", true},
+		{"rowid_alias_autoinc", "id", true},
+		{"bigint_pk", "id", false},
+		{"composite_int_pk", "id", false},
+		{"without_rowid_int_pk", "id", false},
+		{"text_pk", "id", false},
+	}
+
+	for _, tc := range cases {
+		t.Run(tc.table, func(t *testing.T) {
+			t.Parallel()
+
+			tbl, ok := schemaObjs.Tables[tc.table]
+			if !ok {
+				t.Fatalf("missing table %q in introspection", tc.table)
+			}
+
+			var found bool
+
+			for _, col := range tbl.Columns {
+				if col.Name != tc.column {
+					continue
+				}
+
+				found = true
+
+				if col.IsIdentity != tc.wantIsIdentity {
+					t.Errorf(
+						"%s.%s IsIdentity = %v, want %v",
+						tc.table, tc.column, col.IsIdentity, tc.wantIsIdentity,
+					)
+				}
+			}
+
+			if !found {
+				t.Fatalf("column %q not found in %q", tc.column, tc.table)
+			}
+		})
+	}
+}

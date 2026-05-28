@@ -17,6 +17,7 @@
 - "!include public_departments.yaml"
 - "!include public_exercise_log_sets.yaml"
 - "!include public_exercise_logs.yaml"
+- "!include public_identity_check_logs.yaml"
 - "!include public_kb_entries.yaml"
 - "!include public_kb_entry_departments.yaml"
 - "!include public_news.yaml"

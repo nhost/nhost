@@ -841,7 +841,11 @@ type columnLookup func(sqlName string) *core.Column
 // from the inserted row whenever a check-referenced column takes a database
 // value the payload doesn't carry:
 //
-//   - generated columns (value computed by the DB), or
+//   - generated columns (value computed by the DB);
+//   - identity columns (Postgres GENERATED [ALWAYS|BY DEFAULT] AS IDENTITY,
+//     SQLite INTEGER PRIMARY KEY rowid aliases) — the engine populates the
+//     value at INSERT time and the pre-check would compare against the NULL
+//     placeholder regardless of whether the payload could ever carry it; or
 //   - columns with a DEFAULT that are absent from the insert payload — the
 //     pre-check sees NULL, but the inserted row carries the default.
 //
@@ -869,7 +873,7 @@ func (s *Store) RequiresPostInsertCheck(
 			continue
 		}
 
-		if col.IsGenerated {
+		if col.IsGenerated || col.IsIdentity {
 			return true
 		}
 
@@ -884,9 +888,12 @@ func (s *Store) RequiresPostInsertCheck(
 }
 
 // MissingInsertColumns lists the columns the insert-check filter for role
-// references that aren't in present and aren't generated. Generated columns
-// are skipped — they require a post-mutation check (see
-// RequiresPostInsertCheck).
+// references that aren't in present and aren't generated or identity. Both
+// generated and identity columns are skipped — they require a post-mutation
+// check (see RequiresPostInsertCheck) and a NULL placeholder for them in the
+// pre-mutation data CTE would either be unused (post-check is taken) or
+// outright wrong (NULL against a NOT NULL identity column would mask the real
+// engine-assigned value).
 //
 // Returned in source-walk order, deduplicated. Useful for emitting NULL
 // placeholders in the pre-mutation check data subquery so the WHERE doesn't
@@ -920,7 +927,7 @@ func (s *Store) MissingInsertColumns(
 		}
 
 		col := lookup(colName)
-		if col == nil || col.IsGenerated {
+		if col == nil || col.IsGenerated || col.IsIdentity {
 			continue
 		}
 
@@ -932,10 +939,15 @@ func (s *Store) MissingInsertColumns(
 	return missing
 }
 
-// ExtendInsertColumns returns allColumns with any non-generated columns the
-// insert-check filter for role references appended. The returned slice does
-// not share backing storage with allColumns (callers can keep using the
-// original safely).
+// ExtendInsertColumns returns allColumns with any non-generated, non-identity
+// columns the insert-check filter for role references appended. Generated and
+// identity columns are excluded for the same reason MissingInsertColumns
+// skips them: the post-check path is taken in those cases, so extending the
+// pre-check column list would be wasted work or, worse, would lead the
+// pre-check subquery to project a NULL placeholder under the identity column
+// name and shadow the engine-assigned value. The returned slice does not
+// share backing storage with allColumns (callers can keep using the original
+// safely).
 func (s *Store) ExtendInsertColumns(
 	allColumns []string,
 	role string,
@@ -964,7 +976,7 @@ func (s *Store) ExtendInsertColumns(
 		}
 
 		colObj := lookup(col)
-		if colObj != nil && !colObj.IsGenerated {
+		if colObj != nil && !colObj.IsGenerated && !colObj.IsIdentity {
 			existing[col] = struct{}{}
 			extended = append(extended, col)
 		}

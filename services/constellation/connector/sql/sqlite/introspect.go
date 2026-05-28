@@ -178,7 +178,18 @@ func introspectTable(
 	tableName string,
 	isView bool,
 ) (*introspection.Table, error) {
-	columns, pks, err := getColumnsAndPKs(ctx, q, tableName)
+	withoutRowid := false
+
+	if !isView {
+		wr, err := tableIsWithoutRowid(ctx, q, tableName)
+		if err != nil {
+			return nil, fmt.Errorf("reading WITHOUT ROWID flag: %w", err)
+		}
+
+		withoutRowid = wr
+	}
+
+	columns, pks, err := getColumnsAndPKs(ctx, q, tableName, withoutRowid)
 	if err != nil {
 		return nil, fmt.Errorf("reading columns: %w", err)
 	}
@@ -366,12 +377,17 @@ func isIdentByte(b byte) bool {
 //
 // PRAGMA table_xinfo returns rows of (cid, name, type, notnull, dflt_value,
 // pk, hidden); the Scan call below tracks that exact column order. The hidden
-// column carries 0 (normal), 1 (alias), 2 (virtual generated), or 3 (stored
-// generated) — values 2 and 3 mark a column as generated. The pk column is
-// 0 for non-PK columns and an ascending 1-based index identifying the PK
-// component otherwise.
+// column carries 0 (normal), 1 (virtual-table hidden), 2 (virtual generated),
+// or 3 (stored generated) — values 2 and 3 mark a column as generated. The pk
+// column is 0 for non-PK columns and an ascending 1-based index identifying
+// the PK component otherwise.
+//
+// withoutRowid signals that the parent table was declared WITHOUT ROWID, in
+// which case the INTEGER PRIMARY KEY rowid-alias rule does not apply — the
+// PK column behaves like any other and the client supplies its value on
+// insert. Views always pass false.
 func getColumnsAndPKs(
-	ctx context.Context, q Querier, tableName string,
+	ctx context.Context, q Querier, tableName string, withoutRowid bool,
 ) ([]introspection.Column, []string, error) {
 	query := "PRAGMA table_xinfo(" + core.QuoteIdentifier(tableName) + ")"
 
@@ -381,14 +397,40 @@ func getColumnsAndPKs(
 	}
 	defer rows.Close()
 
-	type pkEntry struct {
-		name  string
-		order int
+	columns, pkCols, declaredType, err := scanColumnRows(rows)
+	if err != nil {
+		return nil, nil, err
 	}
 
+	pks := make([]string, len(pkCols))
+	for _, p := range pkCols {
+		pks[p.order-1] = p.name
+	}
+
+	markRowidAliasIdentity(columns, pks, declaredType, withoutRowid)
+
+	return columns, pks, nil
+}
+
+// pkEntry pairs a primary-key column name with its ordinal position (1-based),
+// so scanColumnRows can return PK entries in row order and getColumnsAndPKs
+// can re-sort them into the table's declared PK order.
+type pkEntry struct {
+	name  string
+	order int
+}
+
+// scanColumnRows iterates a PRAGMA table_xinfo result set into the
+// [introspection.Column] slice the caller will return, the per-row PK entries
+// (re-sorted into PK order by the caller), and a name->declared-type map used
+// by [markRowidAliasIdentity] to apply SQLite's exact-"INTEGER" rule.
+func scanColumnRows(
+	rows Rows,
+) ([]introspection.Column, []pkEntry, map[string]string, error) {
 	var (
-		columns []introspection.Column
-		pkCols  []pkEntry
+		columns      []introspection.Column
+		pkCols       []pkEntry
+		declaredType = make(map[string]string)
 	)
 
 	for rows.Next() {
@@ -403,16 +445,18 @@ func getColumnsAndPKs(
 		)
 
 		if err := rows.Scan(&cid, &name, &colType, &notNull, &dfltValue, &pk, &hidden); err != nil {
-			return nil, nil, fmt.Errorf("failed to scan column: %w", err)
+			return nil, nil, nil, fmt.Errorf("failed to scan column: %w", err)
 		}
 
 		mappedType := mapSQLiteType(colType)
+		declaredType[name] = colType
 
 		columns = append(columns, introspection.Column{
 			Name:           name,
 			Type:           mappedType,
 			IsNullable:     !notNull,
 			IsGenerated:    hidden == 2 || hidden == 3, // virtual or stored generated
+			IsIdentity:     false,                      // populated by markRowidAliasIdentity
 			IsArray:        false,
 			SupportsMinMax: typeSupportsMinMax(mappedType),
 			SupportsInc:    typeSupportsInc(mappedType),
@@ -427,15 +471,75 @@ func getColumnsAndPKs(
 	}
 
 	if err := rows.Err(); err != nil {
-		return nil, nil, fmt.Errorf("error iterating columns: %w", err)
+		return nil, nil, nil, fmt.Errorf("error iterating columns: %w", err)
 	}
 
-	pks := make([]string, len(pkCols))
-	for _, p := range pkCols {
-		pks[p.order-1] = p.name
+	return columns, pkCols, declaredType, nil
+}
+
+// markRowidAliasIdentity applies SQLite's rowid-alias rule in place against
+// columns: a single-column PK whose declared type is exactly "INTEGER"
+// (case-insensitive, no precision/affinity suffixes) becomes an alias for the
+// implicit ROWID and is auto-populated by the engine when the insert payload
+// omits it. WITHOUT ROWID tables disable the alias entirely. AUTOINCREMENT
+// only adds monotonicity guarantees on top of the alias, so the detection
+// here intentionally matches both with-and-without-AUTOINCREMENT shapes.
+func markRowidAliasIdentity(
+	columns []introspection.Column,
+	pks []string,
+	declaredType map[string]string,
+	withoutRowid bool,
+) {
+	if withoutRowid || len(pks) != 1 {
+		return
 	}
 
-	return columns, pks, nil
+	pkName := pks[0]
+	if !strings.EqualFold(strings.TrimSpace(declaredType[pkName]), "INTEGER") {
+		return
+	}
+
+	for i := range columns {
+		if columns[i].Name == pkName {
+			columns[i].IsIdentity = true
+
+			return
+		}
+	}
+}
+
+// tableIsWithoutRowid reports whether tableName was declared WITHOUT ROWID.
+// SQLite does not expose this directly via PRAGMA, so the check inspects the
+// CREATE TABLE text in sqlite_master. The substring match runs against the
+// upper-cased SQL with normalized whitespace; SQLite's grammar places the
+// WITHOUT ROWID clause after the closing paren of the column list, so any
+// occurrence of the standalone tokens is conclusive.
+//
+// Returns false (and no error) for missing tables — the caller has already
+// filtered the introspected names through sqlite_master.
+func tableIsWithoutRowid(
+	ctx context.Context, q Querier, tableName string,
+) (bool, error) {
+	var sqlText *string
+
+	err := q.QueryRowContext(
+		ctx,
+		`SELECT sql FROM sqlite_master WHERE type = 'table' AND name = ?`,
+		tableName,
+	).Scan(&sqlText)
+	if err != nil {
+		return false, fmt.Errorf("failed to query sqlite_master for table sql: %w", err)
+	}
+
+	if sqlText == nil {
+		return false, nil
+	}
+
+	// Collapse internal whitespace so "WITHOUT  ROWID", "WITHOUT\tROWID" etc.
+	// all match. Case-insensitive comparison is via ToUpper on the haystack.
+	upper := strings.ToUpper(strings.Join(strings.Fields(*sqlText), " "))
+
+	return strings.Contains(upper, "WITHOUT ROWID"), nil
 }
 
 // getForeignKeys returns the outbound foreign keys declared on tableName via
