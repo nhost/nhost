@@ -225,13 +225,20 @@ func (t *table) buildSingleInsertCTEPreCheck(
 }
 
 // buildSingleInsertCTEPostCheck builds a single-row insert using the post-mutation permission check.
-// Used when generated columns are referenced by insert permissions.
+// Used when an insert permission references a column whose final value is only
+// known after the INSERT runs (generated columns, or DB-defaulted columns the
+// payload omits). tableSubs mirrors the pre-check path: when the post-check
+// predicate reaches a sibling in-flight CTE via a relationship-EXISTS, it
+// redirects the EXISTS subquery from the underlying table to the CTE so it
+// sees the just-inserted rows. nil/empty for top-level inserts; populated for
+// nested-insert children that key off a parent CTE.
 func (t *table) buildSingleInsertCTEPostCheck(
 	b *strings.Builder,
 	cteName string,
 	insertObj arguments.InsertObject,
 	onConflict *arguments.OnConflict,
 	nestedFKIndex map[string]string,
+	tableSubs where.TableSubstitutions,
 	params []any,
 	paramIndex int,
 	role string,
@@ -277,7 +284,7 @@ func (t *table) buildSingleInsertCTEPostCheck(
 	var err error
 
 	params, paramIndex, err = t.buildPostCheckCTEWithName(
-		b, postCheckName, rawCTEName, role, sessionVariables, params, paramIndex,
+		b, postCheckName, rawCTEName, tableSubs, role, sessionVariables, params, paramIndex,
 	)
 	if err != nil {
 		return nil, 0, err
@@ -414,14 +421,23 @@ func insertPresentColumns(
 }
 
 // buildPostCheckCTEWithName builds a post-mutation permission check CTE with a custom name.
-// This is used when generated columns are referenced by insert permissions,
-// since their values are only available after the INSERT (via RETURNING *).
-// The CTE checks that ALL inserted rows pass the permission filter applied
-// against the actual data (where generated columns have their real computed values).
+// This is used when an insert permission references columns whose final value
+// is only known after the INSERT runs (generated columns, or DB-defaulted
+// columns omitted from the payload), since those values are only available
+// via RETURNING *. The CTE checks that ALL inserted rows pass the permission
+// filter applied against the actual data.
+//
+// tableSubs threads through to permissions.Store.WriteInsertCheckSubstituted
+// so that, when the post-check predicate reaches an in-flight sibling CTE via
+// a relationship-EXISTS, the EXISTS subquery reads the CTE instead of the
+// underlying table. This matches the pre-check path's substitution semantics
+// (see buildCheckConstraintWhereClause) and is required for nested
+// array-relationship children whose check column is defaulted-and-absent.
 func (t *table) buildPostCheckCTEWithName(
 	b *strings.Builder,
 	checkName string,
 	rawCTEName string,
+	tableSubs where.TableSubstitutions,
 	role string,
 	sessionVariables map[string]any,
 	params []any,
@@ -436,8 +452,8 @@ func (t *table) buildPostCheckCTEWithName(
 	b.WriteString(rawCTEName)
 	b.WriteString(" WHERE ")
 
-	params, paramIndex, _, err := t.permissions.WriteInsertCheck(
-		b, role, sessionVariables, params, paramIndex, rawCTEName,
+	params, paramIndex, _, err := t.permissions.WriteInsertCheckSubstituted(
+		b, role, sessionVariables, params, paramIndex, rawCTEName, tableSubs,
 	)
 	if err != nil {
 		return nil, 0, fmt.Errorf("failed to write post-check permission: %w", err)
@@ -452,7 +468,9 @@ func (t *table) buildPostCheckCTEWithName(
 	return params, paramIndex, nil
 }
 
-// buildPostCheckCTE builds a post-mutation permission check CTE named "post_check".
+// buildPostCheckCTE builds a post-mutation permission check CTE named
+// "post_check". Top-level callers pass tableSubs=nil because there is no
+// parent CTE in flight to substitute into.
 func (t *table) buildPostCheckCTE(
 	b *strings.Builder,
 	rawCTEName string,
@@ -462,7 +480,7 @@ func (t *table) buildPostCheckCTE(
 	paramIndex int,
 ) ([]any, int, error) {
 	return t.buildPostCheckCTEWithName(
-		b, "post_check", rawCTEName, role, sessionVariables, params, paramIndex,
+		b, "post_check", rawCTEName, nil, role, sessionVariables, params, paramIndex,
 	)
 }
 

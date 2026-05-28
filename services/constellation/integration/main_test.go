@@ -64,6 +64,8 @@ func ReinitializeTestData(t *testing.T) {
 // Tables are listed in reverse dependency order to avoid foreign key conflicts.
 func cleanTables(ctx context.Context, conn *pgx.Conn) error {
 	tables := []string{
+		"note_replies",
+		"notes",
 		"exercise_log_sets",
 		"exercise_logs",
 		"department_files",

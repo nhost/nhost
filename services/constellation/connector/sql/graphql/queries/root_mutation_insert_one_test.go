@@ -1027,6 +1027,102 @@ func TestInsertOneBuildQuery(t *testing.T) { //nolint:paralleltest,maintidx
 				},
 			},
 		},
+
+		// Nested array-relationship insert of a child (note_replies) from its
+		// parent (notes) where the child's insert check references the parent
+		// via the `note` object relationship and the child's `visibility`
+		// column is a DB default that the payload omits. requiresPostInsertCheck
+		// fires for the child (defaulted column referenced by check, absent
+		// from payload, not in nestedFKIndex). extendSubsForArrayChild populates
+		// tableSubs[notes.TableFromClause()] = mutation_result. Threading
+		// tableSubs into buildSingleInsertCTEPostCheck must redirect the
+		// relationship-EXISTS in the post-check predicate so it reads the
+		// parent's just-inserted row in mutation_result instead of the
+		// underlying (empty in this isolated DB) notes table. Locks the SQL
+		// shape AND end-to-end execution (parent is empty otherwise, so a
+		// non-substituted EXISTS would deny every row).
+		{
+			name: "permissions: nested array-rel insert with post-check substituted to parent CTE",
+			query: query{
+				Query: `
+					mutation {
+					  insert_notes_one(object: {
+						id: "0199bbbb-0000-7000-8000-000000000010"
+						author_id: "550e8400-e29b-41d4-a716-446655440001"
+						title: "Top-level note"
+						replies: {
+						  data: [
+							{ body: "first reply" }
+						  ]
+						}
+					  }) {
+						id
+						replies { body }
+					  }
+					}`,
+				Role: "user",
+				SessionVariables: map[string]any{
+					"x-hasura-user-id": "550e8400-e29b-41d4-a716-446655440001",
+				},
+			},
+		},
+
+		// Same shape but with two nested rows: forces the multi-row nested
+		// path (buildMultiNestedInsertCTEPostCheck) so the SQL shape for the
+		// multi-row sibling of the above case is locked too.
+		{
+			name: "permissions: nested array-rel insert with post-check (multi-row child)",
+			query: query{
+				Query: `
+					mutation {
+					  insert_notes_one(object: {
+						id: "0199bbbb-0000-7000-8000-000000000011"
+						author_id: "550e8400-e29b-41d4-a716-446655440001"
+						title: "Note with multiple replies"
+						replies: {
+						  data: [
+							{ body: "reply 1" },
+							{ body: "reply 2" }
+						  ]
+						}
+					  }) {
+						id
+					  }
+					}`,
+				Role: "user",
+				SessionVariables: map[string]any{
+					"x-hasura-user-id": "550e8400-e29b-41d4-a716-446655440001",
+				},
+			},
+		},
+
+		// Denied at the PARENT pre-check: session user_id doesn't match the
+		// parent's author_id. The nested child's post-check never runs at
+		// execution time, but the SQL is still generated using the substituted
+		// path — locking the shape of the post-check CTE under denial
+		// conditions as well.
+		{
+			name: "permissions: nested array-rel insert with post-check (denied at parent)",
+			query: query{
+				Query: `
+					mutation {
+					  insert_notes_one(object: {
+						id: "0199bbbb-0000-7000-8000-000000000012"
+						author_id: "550e8400-e29b-41d4-a716-446655440001"
+						title: "Denied note"
+						replies: {
+						  data: [{ body: "reply" }]
+						}
+					  }) {
+						id
+					  }
+					}`,
+				Role: "user",
+				SessionVariables: map[string]any{
+					"x-hasura-user-id": "11111111-1111-1111-1111-111111111111",
+				},
+			},
+		},
 	}
 
 	testBuildQuery(t, cases, true)

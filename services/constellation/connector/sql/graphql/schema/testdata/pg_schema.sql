@@ -364,3 +364,18 @@ CREATE TABLE public.exercise_log_sets (
   reps INTEGER,
   FOREIGN KEY (parent_id, parent_kind) REFERENCES public.exercise_logs(id, kind) ON UPDATE CASCADE ON DELETE CASCADE
 );
+
+-- notes / note_replies: nested array-rel + post-check + parent-CTE
+-- substitution fixture.
+CREATE TABLE public.notes (
+  id UUID NOT NULL DEFAULT gen_random_uuid() PRIMARY KEY,
+  author_id UUID NOT NULL,
+  title TEXT NOT NULL
+);
+
+CREATE TABLE public.note_replies (
+  id UUID NOT NULL DEFAULT gen_random_uuid() PRIMARY KEY,
+  note_id UUID NOT NULL REFERENCES public.notes(id) ON UPDATE CASCADE ON DELETE CASCADE,
+  visibility TEXT NOT NULL DEFAULT 'public' CHECK (visibility IN ('public', 'private')),
+  body TEXT NOT NULL
+);

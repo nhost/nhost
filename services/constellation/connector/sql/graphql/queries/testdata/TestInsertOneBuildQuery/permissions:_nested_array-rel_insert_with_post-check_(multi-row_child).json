@@ -1,0 +1,17 @@
+[
+  {
+    "Name": "insert_notes_one",
+    "SQL": "WITH check_mutation_result AS (SELECT * FROM (SELECT $1::uuid AS \"id\", $2::uuid AS \"author_id\", $3::text AS \"title\") AS data WHERE data.\"author_id\" = $4::uuid), check_count AS (SELECT CASE WHEN (SELECT COUNT(*) FROM check_mutation_result) >= 1 THEN 1 ELSE (SELECT 0 FROM (SELECT constellation_throw_error('check constraint of an insert/update permission has failed', 'ZZ901')) x) END AS status), mutation_result AS (INSERT INTO \"public\".\"notes\" (\"id\", \"author_id\", \"title\") SELECT check_mutation_result.\"id\", check_mutation_result.\"author_id\", check_mutation_result.\"title\" FROM check_mutation_result WHERE (SELECT status FROM check_count) = 1 RETURNING *), nested_replies_data AS (SELECT * FROM (SELECT $5::text AS \"body\" UNION ALL SELECT $6::text AS \"body\") AS data), _nested_replies AS (INSERT INTO \"public\".\"note_replies\" (\"body\", \"note_id\") SELECT nested_replies_data.\"body\", mutation_result.\"id\" FROM nested_replies_data, mutation_result RETURNING *), nested_replies_post_check AS (SELECT CASE WHEN (SELECT COUNT(*) FROM _nested_replies WHERE EXISTS (SELECT 1 FROM mutation_result g WHERE _nested_replies.\"note_id\" = g.\"id\" AND g.\"author_id\" = $7::uuid) AND _nested_replies.\"visibility\" = $8::text) = (SELECT COUNT(*) FROM _nested_replies) THEN 1 ELSE (SELECT 0 FROM (SELECT constellation_throw_error('check constraint of an insert/update permission has failed', 'ZZ901')) x) END AS status), nested_replies AS (SELECT * FROM _nested_replies WHERE (SELECT status FROM nested_replies_post_check) = 1) SELECT row_to_json((SELECT \"_e\" FROM (SELECT mutation_result.\"id\" AS \"id\") AS \"_e\")) FROM mutation_result",
+    "Parameters": [
+      "0199bbbb-0000-7000-8000-000000000011",
+      "550e8400-e29b-41d4-a716-446655440001",
+      "Note with multiple replies",
+      "550e8400-e29b-41d4-a716-446655440001",
+      "reply 1",
+      "reply 2",
+      "550e8400-e29b-41d4-a716-446655440001",
+      "public"
+    ],
+    "StreamCursors": null
+  }
+]

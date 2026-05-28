@@ -20,6 +20,8 @@
 - "!include public_kb_entries.yaml"
 - "!include public_kb_entry_departments.yaml"
 - "!include public_news.yaml"
+- "!include public_note_replies.yaml"
+- "!include public_notes.yaml"
 - "!include public_published_news.yaml"
 - "!include public_user_departments.yaml"
 - "!include storage_buckets.yaml"

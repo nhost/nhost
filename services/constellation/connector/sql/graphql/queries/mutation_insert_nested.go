@@ -171,7 +171,7 @@ func (t *table) buildMultiNestedInsertCTE(
 	if t.requiresPostInsertCheck(role, presentCols) {
 		return t.buildMultiNestedInsertCTEPostCheck(
 			b, cteName, insertObjs, allColumns, columnToValue,
-			nestedFKIndex, onConflict, role, sessionVariables,
+			nestedFKIndex, tableSubs, onConflict, role, sessionVariables,
 			params, paramIndex,
 		)
 	}
@@ -249,6 +249,12 @@ func (t *table) buildMultiNestedInsertCTEPreCheck(
 	return params, paramIndex, nil
 }
 
+// buildMultiNestedInsertCTEPostCheck emits the multi-row nested-insert path
+// when the role's insert check must run against RETURNING * (generated
+// columns or DB-defaulted columns absent from the payload). tableSubs mirrors
+// the pre-check sibling: it redirects relationship-EXISTS subqueries that
+// target a sibling in-flight CTE (typically the parent's mutation_result) so
+// they read the just-inserted rows instead of the underlying empty table.
 func (t *table) buildMultiNestedInsertCTEPostCheck(
 	b *strings.Builder,
 	cteName string,
@@ -256,6 +262,7 @@ func (t *table) buildMultiNestedInsertCTEPostCheck(
 	allColumns []string,
 	columnToValue []map[string]any,
 	nestedFKIndex map[string]string,
+	tableSubs where.TableSubstitutions,
 	onConflict *arguments.OnConflict,
 	role string,
 	sessionVariables map[string]any,
@@ -300,7 +307,7 @@ func (t *table) buildMultiNestedInsertCTEPostCheck(
 	b.WriteString(" RETURNING *), ")
 
 	params, paramIndex, err := t.buildPostCheckCTEWithName(
-		b, postCheckName, rawCTEName, role, sessionVariables, params, paramIndex,
+		b, postCheckName, rawCTEName, tableSubs, role, sessionVariables, params, paramIndex,
 	)
 	if err != nil {
 		return nil, 0, err

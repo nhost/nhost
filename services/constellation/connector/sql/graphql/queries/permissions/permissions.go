@@ -686,38 +686,24 @@ func (s *Store) WriteRowLevel(
 	return params, paramIndex, nil
 }
 
-// WriteInsertCheck emits the insert-check permission predicate for role.
-// hasCheck reports whether any predicate was written: when role has no insert
-// permission, WriteInsertCheck writes "true" and returns hasCheck=false so
-// callers can elide downstream all-or-nothing CTEs.
+// WriteInsertCheckSubstituted emits the insert-check permission predicate for
+// role. hasCheck reports whether any predicate was written: when role has no
+// insert permission, WriteInsertCheckSubstituted writes "true" and returns
+// hasCheck=false so callers can elide downstream all-or-nothing CTEs.
 //
 // sourceRef is the alias for the data subquery the predicate runs against
 // (typically the "data" CTE alias for pre-mutation checks, or the
-// "_mutation_result" CTE for post-mutation checks).
-func (s *Store) WriteInsertCheck(
-	b *strings.Builder,
-	role string,
-	sessionVariables map[string]any,
-	params []any,
-	paramIndex int,
-	sourceRef string,
-) ([]any, int, bool, error) {
-	return s.WriteInsertCheckSubstituted(
-		b, role, sessionVariables, params, paramIndex, sourceRef, nil,
-	)
-}
-
-// WriteInsertCheckSubstituted is the table-substitution-aware variant of
-// WriteInsertCheck used by nested-insert builders. When the role's insert
-// permission references the parent via a relationship, the relationship's
-// EXISTS subquery normally targets the parent table — but Postgres CTE
-// snapshot semantics mean a sibling CTE doesn't see the in-flight parent
-// INSERT, so the EXISTS reads stale state and rejects every nested row.
+// "_mutation_result" / "_<nested_cte>" CTE for post-mutation checks).
 //
-// Passing TableSubstitutions like {`"public"."workout_sessions"`: `mutation_result`}
-// redirects those EXISTS subqueries to the parent CTE that holds the freshly
-// inserted rows. With a nil/empty map, behaviour is identical to the
-// non-substituted path.
+// subs redirects relationship-EXISTS subqueries that target a sibling table
+// currently being inserted into in the same CTE chain to its in-flight CTE.
+// This is required by Postgres' WITH snapshot semantics: a sibling CTE
+// doesn't see in-flight INSERTs in the same statement, so an EXISTS against
+// the underlying table reads stale state. Passing TableSubstitutions like
+// {`"public"."workout_sessions"`: `mutation_result`} redirects those EXISTS
+// subqueries to the parent CTE that holds the freshly inserted rows. With a
+// nil or empty map, behaviour is identical to a non-substituted render —
+// top-level callers pass nil.
 func (s *Store) WriteInsertCheckSubstituted(
 	b *strings.Builder,
 	role string,
@@ -780,13 +766,13 @@ func (s *Store) WriteUpdateFilter(
 
 // WriteUpdateCheck emits the post-update check predicate for role against
 // sourceRef (the CTE holding the UPDATE's RETURNING * rows). It is the update
-// analogue of WriteInsertCheck's post-mutation path: the predicate is rendered
-// so the caller can assert every updated row satisfies it.
+// analogue of WriteInsertCheckSubstituted's post-mutation path: the predicate
+// is rendered so the caller can assert every updated row satisfies it.
 //
 // hasCheck reports whether a predicate was written. When role has no check, or
 // only an empty clause, WriteUpdateCheck writes "true" and returns
 // hasCheck=false so callers can elide the all-or-nothing CTE. Mirrors
-// WriteInsertCheck so both mutation paths share the same shape.
+// WriteInsertCheckSubstituted so both mutation paths share the same shape.
 func (s *Store) WriteUpdateCheck(
 	b *strings.Builder,
 	role string,

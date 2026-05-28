@@ -1,0 +1,38 @@
+table:
+  name: note_replies
+  schema: public
+object_relationships:
+  - name: note
+    using:
+      foreign_key_constraint_on: note_id
+insert_permissions:
+  - role: user
+    permission:
+      # The check both references a sibling relationship to the parent
+      # (note.author_id, walked via the note_id FK) and a DB-defaulted column
+      # on the child (visibility). When inserted as the nested side of an
+      # array relationship from notes, visibility is absent from the payload
+      # and parents are still in-flight in the same CTE chain. This forces
+      # the post-check path with tableSubs populated, exercising the
+      # post-check substitution fix.
+      check:
+        _and:
+          - note:
+              author_id:
+                _eq: X-Hasura-User-Id
+          - visibility:
+              _eq: public
+      columns:
+        - body
+select_permissions:
+  - role: user
+    permission:
+      columns:
+        - id
+        - note_id
+        - visibility
+        - body
+      filter:
+        note:
+          author_id:
+            _eq: X-Hasura-User-Id

@@ -246,7 +246,7 @@ func (t *table) buildSingleInsertCTE(
 	presentCols := insertPresentColumns([]arguments.InsertObject{insertObj}, nestedFKIndex)
 	if t.requiresPostInsertCheck(role, presentCols) {
 		return t.buildSingleInsertCTEPostCheck(
-			b, cteName, insertObj, onConflict, nestedFKIndex,
+			b, cteName, insertObj, onConflict, nestedFKIndex, tableSubs,
 			params, paramIndex, role, sessionVariables,
 		)
 	}

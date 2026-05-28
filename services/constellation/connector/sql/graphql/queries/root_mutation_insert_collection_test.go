@@ -684,6 +684,41 @@ func TestInsertBuildQuery(t *testing.T) { //nolint:paralleltest,maintidx
 				},
 			},
 		},
+
+		// Multi-row top-level insert of notes (parents) each with multi-row
+		// nested array-rel children (note_replies). The child's check has both
+		// a relationship-EXISTS against the parent and a defaulted-and-absent
+		// column (visibility), forcing the multi-row nested post-check path
+		// (buildMultiNestedInsertCTEPostCheck) with tableSubs populated. Locks
+		// the SQL shape of the multi-row sibling of the insert_one case.
+		{
+			name: "permissions: multi-row nested array-rel insert with post-check substituted to parent CTE",
+			query: query{
+				Query: `
+					mutation {
+					  insert_notes(objects: [
+						{
+						  id: "0199bbbb-0000-7000-8000-000000000020"
+						  author_id: "550e8400-e29b-41d4-a716-446655440001"
+						  title: "Note A"
+						  replies: {
+							data: [
+							  { body: "reply A1" }
+							  { body: "reply A2" }
+							]
+						  }
+						}
+					  ]) {
+						affected_rows
+						returning { id }
+					  }
+					}`,
+				Role: "user",
+				SessionVariables: map[string]any{
+					"x-hasura-user-id": "550e8400-e29b-41d4-a716-446655440001",
+				},
+			},
+		},
 	}
 
 	testBuildQuery(t, cases, true)

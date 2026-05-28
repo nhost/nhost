@@ -1177,8 +1177,8 @@ func TestStoreWriteInsertCheck_NoPermission_WritesTrue(t *testing.T) {
 
 	var b strings.Builder
 
-	params, paramIndex, hasCheck, err := s.WriteInsertCheck(
-		&b, "user", nil, []any{"keep"}, 7, "src",
+	params, paramIndex, hasCheck, err := s.WriteInsertCheckSubstituted(
+		&b, "user", nil, []any{"keep"}, 7, "src", nil,
 	)
 	if err != nil {
 		t.Fatalf("unexpected error: %v", err)
@@ -1211,8 +1211,8 @@ func TestStoreWriteInsertCheck_WithPermission_RendersClause(t *testing.T) {
 
 	sessionVars := map[string]any{"x-hasura-user-id": "42"}
 
-	params, paramIndex, hasCheck, err := s.WriteInsertCheck(
-		&b, "user", sessionVars, nil, 1, "data",
+	params, paramIndex, hasCheck, err := s.WriteInsertCheckSubstituted(
+		&b, "user", sessionVars, nil, 1, "data", nil,
 	)
 	if err != nil {
 		t.Fatalf("unexpected error: %v", err)
@@ -1244,8 +1244,8 @@ func TestStoreWriteInsertCheck_MissingSessionVariableErrors(t *testing.T) {
 	s := NewStore()
 	s.Insert["user"] = where.Clause{appendParamStatement("user_id", "x-hasura-missing")}
 
-	params, paramIndex, hasCheck, err := s.WriteInsertCheck(
-		&strings.Builder{}, "user", map[string]any{}, nil, 1, "data",
+	params, paramIndex, hasCheck, err := s.WriteInsertCheckSubstituted(
+		&strings.Builder{}, "user", map[string]any{}, nil, 1, "data", nil,
 	)
 	if !errors.Is(err, ErrSessionVariableNotFound) {
 		t.Fatalf("expected ErrSessionVariableNotFound, got %v", err)
@@ -1631,8 +1631,8 @@ func TestStoreWriteInsertCheck_ClauseError(t *testing.T) {
 	s := NewStore()
 	s.Insert["user"] = where.Clause{errStatement(sentinel)}
 
-	params, paramIndex, hasCheck, err := s.WriteInsertCheck(
-		&strings.Builder{}, "user", nil, []any{"keep"}, 1, "data",
+	params, paramIndex, hasCheck, err := s.WriteInsertCheckSubstituted(
+		&strings.Builder{}, "user", nil, []any{"keep"}, 1, "data", nil,
 	)
 	if err == nil {
 		t.Fatal("expected error, got nil")

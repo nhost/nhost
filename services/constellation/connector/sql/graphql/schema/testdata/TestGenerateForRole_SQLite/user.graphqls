@@ -526,6 +526,88 @@ enum news_select_column {
   content
 }
 """
+unique or primary key constraints on table "note_replies"
+"""
+enum note_replies_constraint {
+  """
+  unique or primary key constraint on columns "id"
+  """
+  note_replies_pkey
+  """
+  unique or primary key constraint on columns "id"
+  """
+  sqlite_autoindex_note_replies_1
+}
+"""
+placeholder for update columns of table "note_replies" (current role has no relevant permissions)
+"""
+enum note_replies_update_column {
+  """
+  placeholder (do not use)
+  """
+  _PLACEHOLDER
+}
+"""
+select columns of table "note_replies"
+"""
+enum note_replies_select_column {
+  """
+  column name
+  """
+  id
+  """
+  column name
+  """
+  note_id
+  """
+  column name
+  """
+  visibility
+  """
+  column name
+  """
+  body
+}
+"""
+unique or primary key constraints on table "notes"
+"""
+enum notes_constraint {
+  """
+  unique or primary key constraint on columns "id"
+  """
+  notes_pkey
+  """
+  unique or primary key constraint on columns "id"
+  """
+  sqlite_autoindex_notes_1
+}
+"""
+placeholder for update columns of table "notes" (current role has no relevant permissions)
+"""
+enum notes_update_column {
+  """
+  placeholder (do not use)
+  """
+  _PLACEHOLDER
+}
+"""
+select columns of table "notes"
+"""
+enum notes_select_column {
+  """
+  column name
+  """
+  id
+  """
+  column name
+  """
+  author_id
+  """
+  column name
+  """
+  title
+}
+"""
 select columns of table "published_news"
 """
 enum publishedNews_select_column {
@@ -1656,6 +1738,77 @@ type news_mutation_response {
   returning: [news!]!
 }
 """
+columns and relationships of "note_replies"
+"""
+type note_replies {
+  id: uuid!
+  note_id: uuid!
+  visibility: String!
+  body: String!
+  """
+  An object relationship
+  """
+  note: notes!
+}
+"""
+response of any mutation on the table "note_replies"
+"""
+type note_replies_mutation_response {
+  """
+  number of rows affected by the mutation
+  """
+  affected_rows: Int!
+  """
+  data from the rows affected by the mutation
+  """
+  returning: [note_replies!]!
+}
+"""
+columns and relationships of "notes"
+"""
+type notes {
+  id: uuid!
+  author_id: uuid!
+  title: String!
+  """
+  An array relationship
+  """
+  replies(
+    """
+    limit the number of rows returned
+    """
+    limit: Int
+
+    """
+    skip the first n rows. Use only with order_by
+    """
+    offset: Int
+
+    """
+    sort the rows by one or more columns
+    """
+    order_by: [note_replies_order_by!]
+
+    """
+    filter the rows returned
+    """
+    where: note_replies_bool_exp
+  ): [note_replies!]!
+}
+"""
+response of any mutation on the table "notes"
+"""
+type notes_mutation_response {
+  """
+  number of rows affected by the mutation
+  """
+  affected_rows: Int!
+  """
+  data from the rows affected by the mutation
+  """
+  returning: [notes!]!
+}
+"""
 columns and relationships of "published_news"
 """
 type publishedNews {
@@ -2292,6 +2445,62 @@ type query_root {
     where: news_bool_exp
   ): news_aggregate!
   """
+  fetch data from the table: "note_replies"
+  """
+  note_replies(
+    """
+    limit the number of rows returned
+    """
+    limit: Int
+
+    """
+    skip the first n rows. Use only with order_by
+    """
+    offset: Int
+
+    """
+    sort the rows by one or more columns
+    """
+    order_by: [note_replies_order_by!]
+
+    """
+    filter the rows returned
+    """
+    where: note_replies_bool_exp
+  ): [note_replies!]!
+  """
+  fetch data from the table: "note_replies" using primary key columns
+  """
+  note_replies_by_pk(id: uuid!): note_replies
+  """
+  fetch data from the table: "notes"
+  """
+  notes(
+    """
+    limit the number of rows returned
+    """
+    limit: Int
+
+    """
+    skip the first n rows. Use only with order_by
+    """
+    offset: Int
+
+    """
+    sort the rows by one or more columns
+    """
+    order_by: [notes_order_by!]
+
+    """
+    filter the rows returned
+    """
+    where: notes_bool_exp
+  ): [notes!]!
+  """
+  fetch data from the table: "notes" using primary key columns
+  """
+  notes_by_pk(id: uuid!): notes
+  """
   fetch data from the table: "published_news"
   """
   publishedNews(
@@ -2821,6 +3030,62 @@ type mutation_root {
     """
     updates: [news_updates!]!
   ): [news_mutation_response]
+  """
+  insert a single row into the table: "note_replies"
+  """
+  insert_note_replies_one(
+    """
+    the row to be inserted
+    """
+    object: note_replies_insert_input!
+
+    """
+    upsert condition
+    """
+    on_conflict: note_replies_on_conflict
+  ): note_replies
+  """
+  insert data into the table: "note_replies"
+  """
+  insert_note_replies(
+    """
+    the rows to be inserted
+    """
+    objects: [note_replies_insert_input!]!
+
+    """
+    upsert condition
+    """
+    on_conflict: note_replies_on_conflict
+  ): note_replies_mutation_response
+  """
+  insert a single row into the table: "notes"
+  """
+  insert_notes_one(
+    """
+    the row to be inserted
+    """
+    object: notes_insert_input!
+
+    """
+    upsert condition
+    """
+    on_conflict: notes_on_conflict
+  ): notes
+  """
+  insert data into the table: "notes"
+  """
+  insert_notes(
+    """
+    the rows to be inserted
+    """
+    objects: [notes_insert_input!]!
+
+    """
+    upsert condition
+    """
+    on_conflict: notes_on_conflict
+  ): notes_mutation_response
   """
   delete single row from the table: "user_departments"
   """
@@ -3683,6 +3948,100 @@ type subscription_root {
     """
     where: news_bool_exp
   ): [news!]!
+  """
+  fetch data from the table: "note_replies"
+  """
+  note_replies(
+    """
+    limit the number of rows returned
+    """
+    limit: Int
+
+    """
+    skip the first n rows. Use only with order_by
+    """
+    offset: Int
+
+    """
+    sort the rows by one or more columns
+    """
+    order_by: [note_replies_order_by!]
+
+    """
+    filter the rows returned
+    """
+    where: note_replies_bool_exp
+  ): [note_replies!]!
+  """
+  fetch data from the table: "note_replies" using primary key columns
+  """
+  note_replies_by_pk(id: uuid!): note_replies
+  """
+  fetch data from the table in a streaming manner: "note_replies"
+  """
+  note_replies_stream(
+    """
+    maximum number of rows returned in a single batch
+    """
+    batch_size: Int!
+
+    """
+    cursor to stream the results returned by the query
+    """
+    cursor: [note_replies_stream_cursor_input]!
+
+    """
+    filter the rows returned
+    """
+    where: note_replies_bool_exp
+  ): [note_replies!]!
+  """
+  fetch data from the table: "notes"
+  """
+  notes(
+    """
+    limit the number of rows returned
+    """
+    limit: Int
+
+    """
+    skip the first n rows. Use only with order_by
+    """
+    offset: Int
+
+    """
+    sort the rows by one or more columns
+    """
+    order_by: [notes_order_by!]
+
+    """
+    filter the rows returned
+    """
+    where: notes_bool_exp
+  ): [notes!]!
+  """
+  fetch data from the table: "notes" using primary key columns
+  """
+  notes_by_pk(id: uuid!): notes
+  """
+  fetch data from the table in a streaming manner: "notes"
+  """
+  notes_stream(
+    """
+    maximum number of rows returned in a single batch
+    """
+    batch_size: Int!
+
+    """
+    cursor to stream the results returned by the query
+    """
+    cursor: [notes_stream_cursor_input]!
+
+    """
+    filter the rows returned
+    """
+    where: notes_bool_exp
+  ): [notes!]!
   """
   fetch data from the table: "published_news"
   """
@@ -5065,6 +5424,171 @@ input news_updates {
   filter the rows which have to be updated
   """
   where: news_bool_exp!
+}
+"""
+Boolean expression to filter rows from the table "note_replies". All fields are combined with a logical 'AND'.
+"""
+input note_replies_bool_exp {
+  _and: [note_replies_bool_exp!]
+  _not: note_replies_bool_exp
+  _or: [note_replies_bool_exp!]
+  id: uuid_sqlite_comparison_exp
+  note_id: uuid_sqlite_comparison_exp
+  visibility: String_sqlite_comparison_exp
+  body: String_sqlite_comparison_exp
+  note: notes_bool_exp
+}
+"""
+Ordering options when selecting data from "note_replies".
+"""
+input note_replies_order_by {
+  id: order_by
+  note_id: order_by
+  visibility: order_by
+  body: order_by
+  note: notes_order_by
+}
+"""
+Initial value of the column from where the streaming should start
+"""
+input note_replies_stream_cursor_value_input {
+  id: uuid
+  note_id: uuid
+  visibility: String
+  body: String
+}
+"""
+Streaming cursor of the table "note_replies"
+"""
+input note_replies_stream_cursor_input {
+  """
+  Stream column input with initial value
+  """
+  initial_value: note_replies_stream_cursor_value_input!
+  """
+  cursor ordering
+  """
+  ordering: cursor_ordering
+}
+"""
+input type for inserting data into table "note_replies"
+"""
+input note_replies_insert_input {
+  body: String
+  note: notes_obj_rel_insert_input
+}
+"""
+on_conflict condition type for table "note_replies"
+"""
+input note_replies_on_conflict {
+  constraint: note_replies_constraint!
+  update_columns: [note_replies_update_column!]! = []
+  where: note_replies_bool_exp
+}
+"""
+input type for inserting array relation for remote table "note_replies"
+"""
+input note_replies_arr_rel_insert_input {
+  data: [note_replies_insert_input!]!
+  """
+  upsert condition
+  """
+  on_conflict: note_replies_on_conflict
+}
+"""
+order by max() on columns of table "note_replies"
+"""
+input note_replies_max_order_by {
+  id: order_by
+  note_id: order_by
+  visibility: order_by
+  body: order_by
+}
+"""
+order by min() on columns of table "note_replies"
+"""
+input note_replies_min_order_by {
+  id: order_by
+  note_id: order_by
+  visibility: order_by
+  body: order_by
+}
+"""
+order by aggregate values of table "note_replies"
+"""
+input note_replies_aggregate_order_by {
+  count: order_by
+  max: note_replies_max_order_by
+  min: note_replies_min_order_by
+}
+"""
+Boolean expression to filter rows from the table "notes". All fields are combined with a logical 'AND'.
+"""
+input notes_bool_exp {
+  _and: [notes_bool_exp!]
+  _not: notes_bool_exp
+  _or: [notes_bool_exp!]
+  id: uuid_sqlite_comparison_exp
+  author_id: uuid_sqlite_comparison_exp
+  title: String_sqlite_comparison_exp
+  replies: note_replies_bool_exp
+}
+"""
+Ordering options when selecting data from "notes".
+"""
+input notes_order_by {
+  id: order_by
+  author_id: order_by
+  title: order_by
+  replies_aggregate: note_replies_aggregate_order_by
+}
+"""
+Initial value of the column from where the streaming should start
+"""
+input notes_stream_cursor_value_input {
+  id: uuid
+  author_id: uuid
+  title: String
+}
+"""
+Streaming cursor of the table "notes"
+"""
+input notes_stream_cursor_input {
+  """
+  Stream column input with initial value
+  """
+  initial_value: notes_stream_cursor_value_input!
+  """
+  cursor ordering
+  """
+  ordering: cursor_ordering
+}
+"""
+input type for inserting data into table "notes"
+"""
+input notes_insert_input {
+  id: uuid
+  author_id: uuid
+  title: String
+  replies: note_replies_arr_rel_insert_input
+}
+"""
+on_conflict condition type for table "notes"
+"""
+input notes_on_conflict {
+  constraint: notes_constraint!
+  update_columns: [notes_update_column!]! = []
+  where: notes_bool_exp
+}
+"""
+input type for inserting object relation for remote table "notes"
+"""
+input notes_obj_rel_insert_input {
+  data: notes_insert_input!
+  """
+  upsert condition
+  """
+  on_conflict: notes_on_conflict
 }
 """
 Boolean expression to filter rows from the table "published_news". All fields are combined with a logical 'AND'.

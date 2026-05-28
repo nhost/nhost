@@ -599,6 +599,89 @@ func TestInsertMutations(t *testing.T) { //nolint:paralleltest,maintidx
 				},
 			},
 		},
+
+		// Top-level multi-row parent insert with nested array-relationship
+		// children whose post-check (`note.author_id = X-Hasura-User-Id AND
+		// visibility = 'public'`) reaches the parent through note_id and
+		// references the DB-defaulted `visibility` column absent from the
+		// payload. Exercises buildMultiNestedInsertCTEPostCheck threading
+		// tableSubs into permissions.Store.WriteInsertCheckSubstituted so the
+		// EXISTS subquery reads from each parent's in-flight mutation_result
+		// CTE instead of the empty public.notes table.
+		{
+			name: "permissions: multi-row parent insert with nested array replies through parent CTE",
+			query: query{
+				Query: `
+					mutation {
+					  insert_notes(objects: [
+						{
+						  id: "0199bbbb-0000-7000-8000-000000000020"
+						  author_id: "550e8400-e29b-41d4-a716-446655440001"
+						  title: "Parent one"
+						  replies: {
+							data: [
+							  { body: "reply 1a" }
+							  { body: "reply 1b" }
+							]
+						  }
+						}
+						{
+						  id: "0199bbbb-0000-7000-8000-000000000021"
+						  author_id: "550e8400-e29b-41d4-a716-446655440001"
+						  title: "Parent two"
+						  replies: {
+							data: [
+							  { body: "reply 2a" }
+							]
+						  }
+						}
+					  ]) {
+						affected_rows
+						returning { title }
+					  }
+					}`,
+				Variables: map[string]any{},
+				Role:      "user",
+				SessionVariables: map[string]string{
+					"user-id": "550e8400-e29b-41d4-a716-446655440001",
+				},
+			},
+		},
+
+		{
+			name: "permissions: multi-row parent insert with nested replies denied (wrong author)",
+			query: query{
+				Query: `
+					mutation {
+					  insert_notes(objects: [
+						{
+						  id: "0199bbbb-0000-7000-8000-000000000022"
+						  author_id: "550e8400-e29b-41d4-a716-446655440099"
+						  title: "Wrong owner"
+						  replies: {
+							data: [
+							  { body: "should not insert" }
+							]
+						  }
+						}
+					  ]) {
+						affected_rows
+					  }
+					}`,
+				Variables: map[string]any{},
+				Role:      "user",
+				SessionVariables: map[string]string{
+					"user-id": "550e8400-e29b-41d4-a716-446655440001",
+				},
+			},
+			expected: map[string]any{
+				"errors": []any{
+					map[string]any{
+						"message": `failed to execute operations: failed to execute operation insert_notes: failed to scan result row: ERROR: check constraint of an insert/update permission has failed (SQLSTATE ZZ901)`,
+					},
+				},
+			},
+		},
 	}
 
 	RunGraphQLTests(t, cases, TestConfig{

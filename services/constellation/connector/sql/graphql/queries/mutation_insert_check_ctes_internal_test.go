@@ -317,8 +317,9 @@ func TestBuildSingleInsertCTEPreCheckNoPermissions(t *testing.T) {
 
 	got := b.String()
 
-	// No insert permission for role "user" -> WriteInsertCheck writes "true"
-	// and hasCheckPermissions=false, so no check_count CTE is emitted.
+	// No insert permission for role "user" -> WriteInsertCheckSubstituted
+	// writes "true" and hasCheckPermissions=false, so no check_count CTE is
+	// emitted.
 	wantPrefix := `check_mutation_result AS (SELECT * FROM (SELECT $1::uuid AS "id", $2::text AS "name") AS data WHERE true), ` //nolint:unqueryvet
 	if !strings.HasPrefix(got, wantPrefix) {
 		t.Errorf("check CTE missing/wrong prefix\n got: %s\nwant prefix: %s", got, wantPrefix)
@@ -429,7 +430,7 @@ func TestBuildSingleInsertCTEPostCheckShape(t *testing.T) {
 	var b strings.Builder
 
 	_, _, err := tbl.buildSingleInsertCTEPostCheck(
-		&b, "mutation_result", obj, nil, nil, nil, 1, "user",
+		&b, "mutation_result", obj, nil, nil, nil, nil, 1, "user",
 		map[string]any{"x-hasura-user-id": "user-42"},
 	)
 	if err != nil {
@@ -489,7 +490,7 @@ func TestRequiresPostInsertCheckBranching(t *testing.T) {
 			var b strings.Builder
 
 			_, _, err := tbl.buildSingleInsertCTEPostCheck(
-				&b, "mutation_result", obj, nil, nil, nil, 1, "user", nil,
+				&b, "mutation_result", obj, nil, nil, nil, nil, 1, "user", nil,
 			)
 
 			return b.String(), err
@@ -584,5 +585,113 @@ func TestRequiresPostInsertCheckDefaultedColumn(t *testing.T) {
 		[]arguments.InsertObject{absent}, map[string]string{"kind": "parent_cte"},
 	)) {
 		t.Errorf("defaulted column sourced from parent CTE should not require post-check")
+	}
+}
+
+// TestBuildPostCheckCTEWithNameThreadsSubs locks the threading of the
+// tableSubs parameter through buildPostCheckCTEWithName. With a leaf-only
+// permission predicate (no relationship-EXISTS to substitute), passing nil
+// and a non-nil-but-irrelevant subs map must produce byte-identical SQL —
+// proving the parameter flows to permissions.Store.WriteInsertCheckSubstituted
+// without altering the no-subs output path. The end-to-end substituted shape
+// for relationship-EXISTS predicates is locked by the
+// "nested array-rel insert with post-check" goldens, which use real
+// introspected tables.
+func TestBuildPostCheckCTEWithNameThreadsSubs(t *testing.T) {
+	t.Parallel()
+
+	idCol := col("id", "uuid", false)
+	tenantCol := col("tenant_id", "uuid", false)
+
+	tbl := newTestTable(
+		t,
+		[]*core.Column{idCol, tenantCol},
+		map[string]where.Clause{"user": equalsClause(tenantCol, "x-hasura-tenant-id")},
+	)
+
+	build := func(subs where.TableSubstitutions) string {
+		var b strings.Builder
+
+		_, _, err := tbl.buildPostCheckCTEWithName(
+			&b, "post_check", "_mutation_result", subs, "user",
+			map[string]any{"x-hasura-tenant-id": "t-1"}, nil, 1,
+		)
+		if err != nil {
+			t.Fatalf("buildPostCheckCTEWithName: %v", err)
+		}
+
+		return b.String()
+	}
+
+	nilSubs := build(nil)
+	irrelevantSubs := build(where.TableSubstitutions{
+		`"public"."unrelated_table"`: "some_cte",
+	})
+
+	if nilSubs != irrelevantSubs {
+		t.Errorf(
+			"non-relationship predicate must render identically with or without irrelevant subs\nnil:    %s\nsubs:   %s",
+			nilSubs,
+			irrelevantSubs,
+		)
+	}
+
+	// Sanity: the rendered SQL must be the post-check CTE shape against
+	// _mutation_result with the leaf predicate threaded through.
+	if !strings.Contains(
+		nilSubs,
+		"post_check AS (SELECT CASE WHEN (SELECT COUNT(*) FROM _mutation_result WHERE _mutation_result.\"tenant_id\" = $1",
+	) {
+		t.Errorf("post_check CTE shape unexpected; got: %s", nilSubs)
+	}
+}
+
+// TestBuildSingleInsertCTEPostCheckPropagatesSubs ensures the
+// buildSingleInsertCTEPostCheck wrapper threads tableSubs into
+// buildPostCheckCTEWithName. The same leaf predicate-stability invariant from
+// TestBuildPostCheckCTEWithNameThreadsSubs applies, so calling the wrapper
+// with nil vs. an irrelevant subs map must produce byte-identical SQL.
+func TestBuildSingleInsertCTEPostCheckPropagatesSubs(t *testing.T) {
+	t.Parallel()
+
+	idCol := col("id", "uuid", false)
+	nameCol := col("name", "text", false)
+	createdByCol := col("created_by", "uuid", true) // generated -> post-check
+
+	tbl := newTestTable(
+		t,
+		[]*core.Column{idCol, nameCol, createdByCol},
+		map[string]where.Clause{"user": equalsClause(createdByCol, "x-hasura-user-id")},
+	)
+
+	obj := arguments.InsertObject{Columns: []arguments.InsertColumn{
+		insertCol(idCol, "u1"),
+		insertCol(nameCol, "alice"),
+	}}
+
+	build := func(subs where.TableSubstitutions) string {
+		var b strings.Builder
+
+		_, _, err := tbl.buildSingleInsertCTEPostCheck(
+			&b, "mutation_result", obj, nil, nil, subs, nil, 1, "user",
+			map[string]any{"x-hasura-user-id": "user-42"},
+		)
+		if err != nil {
+			t.Fatalf("buildSingleInsertCTEPostCheck: %v", err)
+		}
+
+		return b.String()
+	}
+
+	if got := build(nil); !strings.Contains(got, "mutation_result_post_check AS") {
+		t.Errorf("post-check CTE name missing; got: %s", got)
+	}
+
+	if build(nil) != build(where.TableSubstitutions{
+		`"public"."unrelated_table"`: "some_cte",
+	}) {
+		t.Error(
+			"non-relationship predicate must render identically with or without irrelevant subs",
+		)
 	}
 }

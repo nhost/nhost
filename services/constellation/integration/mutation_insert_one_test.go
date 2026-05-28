@@ -690,6 +690,108 @@ func TestInsertOneMutations(t *testing.T) { //nolint:paralleltest,maintidx
 			},
 		},
 
+		// Nested array-relationship insert through a parent whose CTE is the
+		// substitution target for the child's post-check EXISTS. The child
+		// (note_replies) has insert_check `note.author_id = X-Hasura-User-Id
+		// AND visibility = 'public'` -- visibility is DB-defaulted and absent
+		// from the payload, so requiresPostInsertCheck routes the child
+		// through buildSingleInsertCTEPostCheck. tableSubs must redirect the
+		// note.author_id EXISTS to the parent's in-flight mutation_result CTE;
+		// without that the EXISTS reads the empty public.notes and the insert
+		// silently denies (or diverges from Hasura).
+		{
+			name: "permissions: nested array insert with single reply through parent CTE",
+			query: query{
+				Query: `
+					mutation {
+					  insert_notes_one(
+						object: {
+						  id: "0199bbbb-0000-7000-8000-000000000010"
+						  author_id: "550e8400-e29b-41d4-a716-446655440001"
+						  title: "Parent note with one reply"
+						  replies: {
+							data: [
+							  { body: "first reply" }
+							]
+						  }
+						}
+					  ) {
+						title
+					  }
+					}`,
+				Variables: map[string]any{},
+				Role:      "user",
+				SessionVariables: map[string]string{
+					"user-id": "550e8400-e29b-41d4-a716-446655440001",
+				},
+			},
+		},
+
+		{
+			name: "permissions: nested array insert with multiple replies through parent CTE",
+			query: query{
+				Query: `
+					mutation {
+					  insert_notes_one(
+						object: {
+						  id: "0199bbbb-0000-7000-8000-000000000011"
+						  author_id: "550e8400-e29b-41d4-a716-446655440001"
+						  title: "Parent note with several replies"
+						  replies: {
+							data: [
+							  { body: "first reply" }
+							  { body: "second reply" }
+							  { body: "third reply" }
+							]
+						  }
+						}
+					  ) {
+						title
+					  }
+					}`,
+				Variables: map[string]any{},
+				Role:      "user",
+				SessionVariables: map[string]string{
+					"user-id": "550e8400-e29b-41d4-a716-446655440001",
+				},
+			},
+		},
+
+		{
+			name: "permissions: nested array insert denied when parent author mismatches session user",
+			query: query{
+				Query: `
+					mutation {
+					  insert_notes_one(
+						object: {
+						  id: "0199bbbb-0000-7000-8000-000000000012"
+						  author_id: "550e8400-e29b-41d4-a716-446655440099"
+						  title: "Parent note owned by someone else"
+						  replies: {
+							data: [
+							  { body: "should not insert" }
+							]
+						  }
+						}
+					  ) {
+						title
+					  }
+					}`,
+				Variables: map[string]any{},
+				Role:      "user",
+				SessionVariables: map[string]string{
+					"user-id": "550e8400-e29b-41d4-a716-446655440001",
+				},
+			},
+			expected: map[string]any{
+				"errors": []any{
+					map[string]any{
+						"message": `failed to execute operations: failed to execute operation insert_notes_one: failed to scan result row: ERROR: check constraint of an insert/update permission has failed (SQLSTATE ZZ901)`,
+					},
+				},
+			},
+		},
+
 		// on_conflict with where clause
 		{
 			name: "insert_one with on_conflict where clause - simple condition",

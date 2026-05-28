@@ -361,3 +361,18 @@ CREATE TABLE exercise_log_sets (
     reps INTEGER,
     FOREIGN KEY (parent_id, parent_kind) REFERENCES exercise_logs(id, kind)
 );
+
+-- notes / note_replies: nested array-rel + post-check + parent-CTE
+-- substitution fixture (mirrored from pg_schema.sql).
+CREATE TABLE notes (
+    id UUID NOT NULL PRIMARY KEY,
+    author_id UUID NOT NULL,
+    title TEXT NOT NULL
+);
+
+CREATE TABLE note_replies (
+    id UUID NOT NULL PRIMARY KEY,
+    note_id UUID NOT NULL REFERENCES notes(id) ON UPDATE CASCADE ON DELETE CASCADE,
+    visibility TEXT NOT NULL DEFAULT 'public' CHECK (visibility IN ('public', 'private')),
+    body TEXT NOT NULL
+);
