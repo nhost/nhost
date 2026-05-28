@@ -186,6 +186,16 @@ type Column struct {
 	// default rather than NULL, so an insert-check that references it (directly
 	// or via a relationship join column) must be evaluated after the INSERT.
 	HasDefault bool
+	// DefaultExpr is the raw SQL default expression (e.g. "'public'::text",
+	// "now()", "gen_random_uuid()"), or "" when the column has no default. It
+	// is used by multi-row insert builders to emit the default expression
+	// inline for rows that omit a column whose siblings supply it: a
+	// UNION-ALL branch that wrote NULL for an absent NOT NULL DEFAULT column
+	// would raise a 23502 not-null-violation at INSERT time, where Hasura
+	// would let the DB default apply per row. Volatile defaults like now()
+	// and gen_random_uuid() evaluate per row in INSERT ... SELECT, so emitting
+	// the expression inline preserves the per-row semantics.
+	DefaultExpr string
 }
 
 // Operation is the function signature for the per-field SQL builders

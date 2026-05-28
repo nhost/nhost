@@ -51,6 +51,17 @@ func colWithDefault(sqlName, sqlType string) *core.Column {
 	}
 }
 
+func colWithDefaultExpr(sqlName, sqlType, defaultExpr string) *core.Column {
+	return &core.Column{
+		SQLName:     sqlName,
+		GraphqlName: sqlName,
+		SQLType:     sqlType,
+		IsGenerated: false,
+		HasDefault:  true,
+		DefaultExpr: defaultExpr,
+	}
+}
+
 func insertCol(c *core.Column, value any) arguments.InsertColumn {
 	return arguments.InsertColumn{Column: c, Value: value}
 }
@@ -194,6 +205,58 @@ func TestBuildUnionAllSelectTypedNullForMissing(t *testing.T) {
 
 	if paramIndex != 5 {
 		t.Errorf("paramIndex = %d, want 5", paramIndex)
+	}
+}
+
+// TestBuildUnionAllSelectDefaultExprForMissing locks the Hasura-parity fix
+// for multi-row inserts whose rows have different column sets: when a row
+// omits a column that has a registered DB default, the UNION-ALL branch must
+// emit the default expression (parenthesised and type-cast) instead of a
+// typed NULL, otherwise INSERT into a NOT NULL DEFAULT column trips 23502
+// where Hasura would let the default apply per row.
+func TestBuildUnionAllSelectDefaultExprForMissing(t *testing.T) {
+	t.Parallel()
+
+	idCol := col("id", "uuid", false)
+	bodyCol := col("body", "text", false)
+	visibilityCol := colWithDefaultExpr("visibility", "text", "'public'::text")
+
+	tbl := newTestTable(t, []*core.Column{idCol, bodyCol, visibilityCol}, nil)
+
+	objs := []arguments.InsertObject{
+		// Row 0 omits visibility -> must render the default expression.
+		{Columns: []arguments.InsertColumn{
+			insertCol(idCol, "u1"),
+			insertCol(bodyCol, "first"),
+		}},
+		// Row 1 supplies visibility -> renders the typed placeholder as usual.
+		{Columns: []arguments.InsertColumn{
+			insertCol(idCol, "u2"),
+			insertCol(bodyCol, "second"),
+			insertCol(visibilityCol, "private"),
+		}},
+	}
+
+	allColumns, columnToValue := tbl.collectAllColumns(objs, nil)
+
+	var b strings.Builder
+
+	params, _ := tbl.buildUnionAllSelect(&b, objs, allColumns, columnToValue, nil, nil, 1)
+
+	got := b.String()
+
+	wantFirst := `SELECT $1::uuid AS "id", $2::text AS "body", ` +
+		`('public'::text)::text AS "visibility"`
+	wantSecond := `SELECT $3::uuid AS "id", $4::text AS "body", $5::text AS "visibility"`
+
+	want := wantFirst + " UNION ALL " + wantSecond
+	if got != want {
+		t.Errorf("buildUnionAllSelect SQL mismatch\n got: %s\nwant: %s", got, want)
+	}
+
+	wantParams := []any{"u1", "first", "u2", "second", "private"}
+	if len(params) != len(wantParams) {
+		t.Fatalf("params length = %d, want %d (params=%v)", len(params), len(wantParams), params)
 	}
 }
 
