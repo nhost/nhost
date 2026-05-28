@@ -288,6 +288,91 @@ func TestBuildUnionAllSelectFKFromParentCTE(t *testing.T) {
 	}
 }
 
+func TestBuildPartitionedUnionAllSelectFKFromParentCTE(t *testing.T) {
+	t.Parallel()
+
+	bodyCol := col("body", "text", false)
+	fkCol := col("note_id", "uuid", false)
+
+	tbl := newTestTable(t, []*core.Column{bodyCol, fkCol}, nil)
+
+	objs := []arguments.InsertObject{
+		{Columns: []arguments.InsertColumn{insertCol(bodyCol, "reply one")}},
+		{Columns: []arguments.InsertColumn{insertCol(bodyCol, "reply two")}},
+	}
+	columnToValue := []map[string]any{
+		{"body": "reply one"},
+		{"body": "reply two"},
+	}
+
+	var b strings.Builder
+
+	params, paramIndex := tbl.buildPartitionedUnionAllSelect(
+		&b,
+		objs,
+		[]int{0, 1},
+		[]string{"body", "note_id"},
+		columnToValue,
+		map[string]string{"note_id": ""},
+		nil,
+		1,
+	)
+
+	want := `SELECT $1::text AS "body", mutation_result_0."id" AS "note_id" ` +
+		`FROM mutation_result_0 UNION ALL SELECT $2::text AS "body", ` +
+		`mutation_result_1."id" AS "note_id" FROM mutation_result_1`
+	if got := b.String(); got != want {
+		t.Errorf("buildPartitionedUnionAllSelect SQL mismatch\n got: %s\nwant: %s", got, want)
+	}
+
+	wantParams := []any{"reply one", "reply two"}
+	if len(params) != len(wantParams) {
+		t.Fatalf("params length = %d, want %d (params=%v)", len(params), len(wantParams), params)
+	}
+
+	for i, p := range wantParams {
+		if params[i] != p {
+			t.Errorf("params[%d] = %v, want %v", i, params[i], p)
+		}
+	}
+
+	if paramIndex != 3 {
+		t.Errorf("paramIndex = %d, want 3", paramIndex)
+	}
+}
+
+func TestBuildPartitionedUnionAllSelectSQLiteHasNoPostgresCasts(t *testing.T) {
+	t.Parallel()
+
+	bodyCol := col("body", "text", false)
+	fkCol := col("note_id", "uuid", false)
+
+	tbl := newTable("public", "note_replies", &dialect.SQLiteDialect{})
+	tbl.columns = []*core.Column{bodyCol, fkCol}
+
+	objs := []arguments.InsertObject{
+		{Columns: []arguments.InsertColumn{insertCol(bodyCol, "reply")}},
+	}
+	columnToValue := []map[string]any{{"body": "reply"}}
+
+	var b strings.Builder
+
+	_, _ = tbl.buildPartitionedUnionAllSelect(
+		&b,
+		objs,
+		[]int{0},
+		[]string{"body", "note_id"},
+		columnToValue,
+		map[string]string{"note_id": ""},
+		nil,
+		1,
+	)
+
+	if got := b.String(); strings.Contains(got, "::") {
+		t.Fatalf("SQLite partitioned SELECT contains PostgreSQL cast: %s", got)
+	}
+}
+
 // equalsClause returns a where.Clause with a single equals filter on c = v.
 func equalsClause(c *core.Column, v any) where.Clause {
 	return where.Clause{where.NewEqualsFilter(c, v, &dialect.PostgresDialect{})}

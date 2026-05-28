@@ -857,13 +857,12 @@ func TestInsertMutations(t *testing.T) { //nolint:paralleltest,maintidx
 
 		// The 2-row sibling (each row with its own nested file parent)
 		// would also be a useful Hasura-parity lock — Hasura reports
-		// affected_rows = 4 — but in the current code it is blocked by
-		// the same pre-existing multi-parent nested-insert bug noted in
-		// the array-rel TODO blocks above: buildNestedCTEsMap only walks
-		// insertObjs[0].NestedInserts, so the second row's nested file is
-		// dropped and Constellation diverges. Re-add when that bug is
-		// fixed; the 1-row case above is sufficient to lock the summing
-		// shape introduced by this PR.
+		// affected_rows = 4 — but Constellation still only emits object-rel
+		// nested CTEs/FK mappings from insertObjs[0].NestedInserts. Later
+		// parent rows therefore cannot attach their own nested object-rel
+		// parent yet. Re-add when multi-parent object-rel nested inserts are
+		// implemented; the 1-row case above is sufficient to lock the
+		// affected_rows summing shape introduced by this PR.
 	}
 
 	RunGraphQLTests(t, cases, TestConfig{

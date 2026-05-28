@@ -311,12 +311,19 @@ func (t *table) buildInsertMutationCTE(
 		nestedFKColumns[col] = struct{}{}
 	}
 
-	allColumns, columnToValue := t.collectAllColumns(insertObjs, nestedFKColumns)
+	if len(insertObjs) > 1 && hasArrayNestedInserts(insertObjs) {
+		params, paramIndex, err = t.buildPartitionedParentInsertMutationCTEBody(
+			&b, insertObjs, nestedFKIndex, onConflict, role, sessionVariables, params, paramIndex,
+		)
+	} else {
+		allColumns, columnToValue := t.collectAllColumns(insertObjs, nestedFKColumns)
 
-	params, paramIndex, err = t.buildInsertMutationCTEBody(
-		&b, insertObjs, allColumns, columnToValue,
-		nestedFKIndex, onConflict, role, sessionVariables, params, paramIndex,
-	)
+		params, paramIndex, err = t.buildInsertMutationCTEBody(
+			&b, insertObjs, allColumns, columnToValue,
+			nestedFKIndex, onConflict, role, sessionVariables, params, paramIndex,
+		)
+	}
+
 	if err != nil {
 		return "", nil, 0, nil, err
 	}

@@ -794,12 +794,12 @@ func TestInsertBuildQuery(t *testing.T) { //nolint:paralleltest,maintidx
 		// asserts the execution-time count matches Hasura's 2.
 		// Multi-parent nested array-rel insert. Two parents each with their
 		// own children: parent[0] has 2 replies, parent[1] has 1 reply.
-		// Locks the partitioned shape — every child is tagged with a
-		// `_parent_idx` literal and the INSERT joins against a row-numbered
-		// view of mutation_result on that column, so each reply lands on its
-		// rightful parent. Pre-bug, parent[1]'s reply was dropped during arg
-		// parsing and parent[0]'s replies were inserted twice (once per
-		// parent) via the unbounded cross-join.
+		// Locks the partitioned shape — each parent insert has its own CTE,
+		// and each child row sources its FK from the matching parent CTE so it
+		// lands on its rightful parent without depending on RETURNING row
+		// order. Pre-bug, parent[1]'s reply was dropped during arg parsing
+		// and parent[0]'s replies were inserted twice (once per parent) via
+		// the unbounded cross-join.
 		{
 			name: "permissions: multi-parent nested array-rel insert partitions children by parent",
 			query: query{
@@ -839,14 +839,58 @@ func TestInsertBuildQuery(t *testing.T) { //nolint:paralleltest,maintidx
 			},
 		},
 
+		// Multi-parent nested array-rel insert where every child explicitly
+		// supplies the permission-checked `visibility: "public"` column. This
+		// keeps the child on the pre-check path and verifies the data CTE uses
+		// the matched parent FK value instead of NULL when evaluating the
+		// FK-backed `note.author_id` predicate.
+		{
+			name: "permissions: multi-parent nested array-rel insert with explicit public children passes pre-check",
+			query: query{
+				Query: `
+					mutation {
+					  insert_notes(objects: [
+						{
+						  id: "0199bbbb-0000-7000-8000-000000000036"
+						  author_id: "550e8400-e29b-41d4-a716-446655440001"
+						  title: "Parent public A"
+						  replies: {
+							data: [
+							  { body: "public reply A", visibility: "public" }
+							]
+						  }
+						}
+						{
+						  id: "0199bbbb-0000-7000-8000-000000000037"
+						  author_id: "550e8400-e29b-41d4-a716-446655440001"
+						  title: "Parent public B"
+						  replies: {
+							data: [
+							  { body: "public reply B", visibility: "public" }
+							]
+						  }
+						}
+					  ]) {
+						affected_rows
+						returning { id title }
+					  }
+					}`,
+				Role: "user",
+				SessionVariables: map[string]any{
+					"x-hasura-user-id": "550e8400-e29b-41d4-a716-446655440001",
+				},
+			},
+		},
+
 		// Multi-parent nested array-rel insert where parent[1]'s child trips
 		// the child's `visibility _eq "public"` insert check via
 		// `visibility: "private"`. With partitioning the offending row
-		// survives parse-time, reaches the post-check, and the mutation
-		// errors out — matching Hasura. Pre-bug, parent[1]'s row was
-		// silently dropped and the post-check passed: a permission bypass.
+		// survives parse-time, reaches the pre-check with its matched parent
+		// FK, and the mutation errors out — matching Hasura. Pre-bug,
+		// parent[1]'s row was silently dropped and the check passed: a
+		// permission bypass.
 		{
-			name: "permissions: multi-parent nested array-rel insert with private child trips post-check",
+			name: "permissions: multi-parent nested array-rel insert with private child trips pre-check",
 			query: query{
 				Query: `
 					mutation {
