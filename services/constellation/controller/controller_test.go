@@ -645,6 +645,12 @@ func (f *fakeMetadataSource) Close() {
 	}
 }
 
+// HasuraSnapshot satisfies the Source interface. The controller tests don't
+// exercise the /v1/metadata export_metadata path, so a stub return is fine.
+func (f *fakeMetadataSource) HasuraSnapshotJSON() ([]byte, int64) {
+	return nil, 0
+}
+
 func TestNew_InitialLoadErrorPropagated(t *testing.T) {
 	t.Parallel()
 

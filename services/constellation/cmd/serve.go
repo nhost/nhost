@@ -9,7 +9,9 @@ import (
 	"fmt"
 	"log/slog"
 	"net/http"
+	"net/http/httputil"
 	_ "net/http/pprof" //nolint:gosec // pprof is gated behind a CLI flag
+	"net/url"
 	"strings"
 	"time"
 
@@ -41,8 +43,9 @@ const (
 	flagGraphQLRequestBodyLimitBytes = "graphql-request-body-limit-bytes"
 	flagHTTPReadTimeout              = "http-read-timeout"
 	//nolint:gosec // CLI flag name contains "write" but is not a credential.
-	flagHTTPWriteTimeout = "http-write-timeout"
-	flagHTTPIdleTimeout  = "http-idle-timeout"
+	flagHTTPWriteTimeout  = "http-write-timeout"
+	flagHTTPIdleTimeout   = "http-idle-timeout"
+	flagHasuraUpstreamURL = "hasura-upstream-url"
 
 	defaultHTTPReadTimeout   = 30 * time.Second
 	defaultHTTPWriteTimeout  = 5 * time.Minute
@@ -70,7 +73,7 @@ func generalFlags() []cli.Flag {
 	}
 }
 
-func serverFlags() []cli.Flag {
+func serverFlags() []cli.Flag { //nolint:funlen // long flag list; splitting harms readability
 	return []cli.Flag{
 		&cli.BoolFlag{ //nolint:exhaustruct
 			Name:     flagEnablePlayground,
@@ -144,6 +147,16 @@ func serverFlags() []cli.Flag {
 			Value:    defaultHTTPIdleTimeout,
 			Category: "server",
 			Sources:  cli.EnvVars("CONSTELLATION_HTTP_IDLE_TIMEOUT"),
+		},
+		&cli.StringFlag{ //nolint:exhaustruct
+			Name: flagHasuraUpstreamURL,
+			Usage: "absolute URL of a Hasura instance to reverse-proxy requests " +
+				"to for endpoints Constellation does not yet serve natively " +
+				"(e.g. /v1/metadata, /v2/query, /apis/*). When empty, unhandled " +
+				"routes return 404",
+			Value:    "http://hasura-service:8080/",
+			Category: "server",
+			Sources:  cli.EnvVars("CONSTELLATION_HASURA_UPSTREAM_URL"),
 		},
 	}
 }
@@ -283,10 +296,12 @@ func playgroundHandler(path string) gin.HandlerFunc {
 	}
 }
 
+//nolint:funlen // assembles the full HTTP wiring; splitting fragments the topology
 func getRouter(
 	ctx context.Context,
 	cmd *cli.Command,
 	ctrl *controller.Controller,
+	metadataSrc metadata.Source,
 	jwtAuth middleware.JWTAuthenticator,
 	logger *slog.Logger,
 ) (*gin.Engine, error) {
@@ -301,6 +316,11 @@ func getRouter(
 	}
 
 	router := gin.New()
+	// Allow gin.Context.Value to fall through to c.Request.Context().Value
+	// so middlewares (e.g. captureRawBody) can stash values in the request
+	// context that downstream handlers read via the context.Context parameter
+	// of the strict-handler interface.
+	router.ContextWithFallback = true
 
 	router.Use(
 		gin.Recovery(),
@@ -309,18 +329,55 @@ func getRouter(
 		corsHandler,
 		//nolint:contextcheck // middleware runs per-request with the request's
 		// own context; the startup ctx must not be propagated here.
+		// Session runs globally, including for the Hasura proxy fallback
+		// (NoRoute) below: a proxied request carrying an invalid/expired JWT
+		// and no admin secret is aborted with 401 before it reaches Hasura,
+		// so the proxy is not a fully transparent passthrough on that path.
+		// Acceptable today — the proxied endpoints (/v1/metadata, /v2/query,
+		// /apis/*) all require admin-secret auth, which Session passes
+		// through, and Hasura would reject the same invalid JWT itself.
+		// Headers are not stripped or rewritten by Session, so header
+		// fidelity to Hasura is intact. If transparency for endpoints with
+		// independent auth is needed later, scope Session to the native
+		// GraphQL routes via a route group instead of router.Use.
 		middleware.Session(cmd.String(flagAdminSecret), jwtAuth),
 	)
 
-	router.GET("/healthz", func(c *gin.Context) {
-		c.String(http.StatusOK, "ok")
-	})
-	router.HEAD("/healthz", func(c *gin.Context) {
-		c.Status(http.StatusOK)
+	apiHandler := api.NewStrictHandler(&apiServer{version: cmd.Root().Version}, nil)
+	api.RegisterHandlersWithOptions(router, apiHandler, api.GinServerOptions{
+		BaseURL:      "",
+		Middlewares:  nil,
+		ErrorHandler: nil,
 	})
 
-	router.GET("/v1/version", func(c *gin.Context) {
-		c.JSON(http.StatusOK, gin.H{"version": cmd.Root().Version})
+	// Hasura upstream proxy. Used both as the NoRoute fallback (any path
+	// Constellation does not serve natively) and as the per-op fallback
+	// inside the /v1/metadata dispatcher (any metadata op not yet migrated).
+	// Nil when --hasura-upstream-url is unset — unimplemented routes return
+	// 404 and unknown metadata ops return `not-supported`.
+	var hasuraProxy *httputil.ReverseProxy
+
+	if upstream := cmd.String(flagHasuraUpstreamURL); upstream != "" {
+		proxy, err := newHasuraProxy(upstream, logger)
+		if err != nil {
+			return nil, err
+		}
+
+		hasuraProxy = proxy
+	}
+
+	metadataHandler := metadataapi.NewStrictHandler(
+		&metadataServer{
+			adminSecret: cmd.String(flagAdminSecret),
+			proxy:       hasuraProxy,
+			source:      metadataSrc,
+		},
+		nil,
+	)
+	metadataapi.RegisterHandlersWithOptions(router, metadataHandler, metadataapi.GinServerOptions{
+		BaseURL:      "",
+		Middlewares:  []metadataapi.MiddlewareFunc{captureRawBody},
+		ErrorHandler: nil,
 	})
 
 	if cmd.Bool(flagEnablePlayground) {
@@ -342,6 +399,12 @@ func getRouter(
 	router.POST("/v1", postHandler)
 	router.GET("/v1", ctrl.HandlerGet)
 
+	if hasuraProxy != nil {
+		router.NoRoute(func(c *gin.Context) {
+			hasuraProxy.ServeHTTP(c.Writer, c.Request)
+		})
+	}
+
 	return router, nil
 }
 
@@ -354,6 +417,33 @@ func getMaxGraphQLRequestBodyBytes(cmd *cli.Command) (int64, error) {
 	}
 
 	return maxBodyBytes, nil
+}
+
+func newHasuraProxy(rawURL string, logger *slog.Logger) (*httputil.ReverseProxy, error) {
+	target, err := url.Parse(rawURL)
+	if err != nil {
+		return nil, fmt.Errorf("parsing %s: %w", flagHasuraUpstreamURL, err)
+	}
+
+	if target.Scheme == "" || target.Host == "" {
+		return nil, fmt.Errorf( //nolint:err113
+			"%s must be an absolute URL (scheme and host), got %q",
+			flagHasuraUpstreamURL, rawURL,
+		)
+	}
+
+	proxy := httputil.NewSingleHostReverseProxy(target)
+	proxy.ErrorHandler = func(w http.ResponseWriter, r *http.Request, err error) {
+		logger.ErrorContext(
+			r.Context(),
+			"failed to proxy request to hasura upstream",
+			slog.String("path", r.URL.Path),
+			slog.String("error", err.Error()),
+		)
+		w.WriteHeader(http.StatusBadGateway)
+	}
+
+	return proxy, nil
 }
 
 // initJWTAuth builds a JWT authenticator from the configured secrets. At least
@@ -437,17 +527,18 @@ func serve(ctx context.Context, cmd *cli.Command) error {
 		return fmt.Errorf("failed to create controller: %w", err)
 	}
 
-	return runServer(ctx, cmd, ctrl, jwtAuth, logger)
+	return runServer(ctx, cmd, ctrl, source, jwtAuth, logger)
 }
 
 func runServer(
 	ctx context.Context,
 	cmd *cli.Command,
 	ctrl *controller.Controller,
+	metadataSrc metadata.Source,
 	jwtAuth middleware.JWTAuthenticator,
 	logger *slog.Logger,
 ) error {
-	router, err := getRouter(ctx, cmd, ctrl, jwtAuth, logger)
+	router, err := getRouter(ctx, cmd, ctrl, metadataSrc, jwtAuth, logger)
 	if err != nil {
 		return fmt.Errorf("building HTTP router: %w", err)
 	}

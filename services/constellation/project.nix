@@ -22,6 +22,14 @@ let
       ../../govulncheck.yaml
       ../../internal/lib/oapi
       (fs.fileFilter (f: f.hasExt "go") ./.)
+      ./api/openapi.yaml
+      ./api/server.cfg.yaml
+      ./api/types.cfg.yaml
+      ./api/hasura/types.cfg.yaml
+      ./api/hasura/metadata.openapi.json
+      ./api/metadata/openapi.yaml
+      ./api/metadata/server.cfg.yaml
+      ./api/metadata/types.cfg.yaml
       ./connector/testdata
       ./connector/sql/postgres/testdata
       ./connector/sql/sqlite/testdata

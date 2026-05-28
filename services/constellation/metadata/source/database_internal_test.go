@@ -1,9 +1,10 @@
-// White-box test file: accesses unexported state (poll, src.resourceVersion).
+// White-box test file: accesses unexported state (poll, src.snapshot).
 // See fake_store_test.go for the same-package fake of the metadataStore interface.
 
 package source
 
 import (
+	"bytes"
 	"context"
 	"errors"
 	"log/slog"
@@ -11,6 +12,8 @@ import (
 	"sync/atomic"
 	"testing"
 	"time"
+
+	"github.com/nhost/nhost/services/constellation/metadata"
 )
 
 const validV3JSON = `{"version":3,"sources":[]}`
@@ -90,10 +93,75 @@ func TestDatabaseMetadataSource_InitialLoad(t *testing.T) {
 				t.Fatal("expected non-nil metadata")
 			}
 
-			if got := src.resourceVersion.Load(); got != tt.wantVersion {
-				t.Errorf("resourceVersion = %d, want %d", got, tt.wantVersion)
+			snap := src.snapshot.Load()
+			if snap == nil {
+				t.Fatal("snapshot was not stored after successful InitialLoad")
+			}
+
+			if snap.version != tt.wantVersion {
+				t.Errorf("snapshot.version = %d, want %d", snap.version, tt.wantVersion)
 			}
 		})
+	}
+}
+
+// TestDatabaseMetadataSource_HasuraSnapshotJSON_AfterInitialLoad verifies
+// that HasuraSnapshotJSON returns the MarshalHasura form of the metadata
+// just loaded, paired with the scanned resource_version.
+func TestDatabaseMetadataSource_HasuraSnapshotJSON_AfterInitialLoad(t *testing.T) {
+	t.Parallel()
+
+	store := &fakeStore{
+		metadataRows: []fakeRow{
+			{dest: []any{[]byte(validV3JSON), int64(42)}},
+		},
+	}
+
+	src := newTestSource(store, time.Hour)
+	defer src.Close()
+
+	if _, err := src.InitialLoad(t.Context()); err != nil {
+		t.Fatalf("InitialLoad: %v", err)
+	}
+
+	// Recompute the expected snapshot by parsing the same input the source
+	// loaded, then re-marshaling through MarshalHasura — mirroring what the
+	// source does internally so the assertion is byte-for-byte exact.
+	_, h, err := metadata.FromHasuraJSONWithHasura([]byte(validV3JSON))
+	if err != nil {
+		t.Fatalf("FromHasuraJSONWithHasura: %v", err)
+	}
+
+	want, err := metadata.MarshalHasura(h)
+	if err != nil {
+		t.Fatalf("MarshalHasura: %v", err)
+	}
+
+	gotRaw, gotVersion := src.HasuraSnapshotJSON()
+	if !bytes.Equal(gotRaw, want) {
+		t.Errorf("HasuraSnapshotJSON bytes = %q; want %q", gotRaw, want)
+	}
+
+	if gotVersion != 42 {
+		t.Errorf("HasuraSnapshotJSON version = %d; want 42", gotVersion)
+	}
+}
+
+// TestDatabaseMetadataSource_HasuraSnapshotJSON_NilBeforeLoad covers the
+// pre-InitialLoad state: getter returns (nil, 0).
+func TestDatabaseMetadataSource_HasuraSnapshotJSON_NilBeforeLoad(t *testing.T) {
+	t.Parallel()
+
+	src := newTestSource(&fakeStore{}, time.Hour)
+	defer src.Close()
+
+	gotRaw, gotVersion := src.HasuraSnapshotJSON()
+	if gotRaw != nil {
+		t.Errorf("HasuraSnapshotJSON bytes = %q; want nil", gotRaw)
+	}
+
+	if gotVersion != 0 {
+		t.Errorf("HasuraSnapshotJSON version = %d; want 0", gotVersion)
 	}
 }
 
@@ -154,8 +222,13 @@ func TestDatabaseMetadataSource_Poll_VersionChanged(t *testing.T) {
 		t.Error("expected non-nil Metadata")
 	}
 
-	if got := src.resourceVersion.Load(); got != 6 {
-		t.Errorf("resourceVersion = %d, want 6", got)
+	snap := src.snapshot.Load()
+	if snap == nil {
+		t.Fatal("snapshot was not stored after poll")
+	}
+
+	if snap.version != 6 {
+		t.Errorf("snapshot.version = %d, want 6", snap.version)
 	}
 }
 
@@ -296,10 +369,11 @@ func TestDatabaseMetadataSource_Watch_DeliversUpdate(t *testing.T) {
 }
 
 // TestDatabaseMetadataSource_ResourceVersion_ConcurrentAccess drives the
-// Watch poller (which reads/writes resourceVersion) concurrently with direct
-// poll calls and a Store, so the race detector flags any unsynchronised
-// access to resourceVersion. It guards the atomic.Int64 invariant even under
-// the unsupported "second poller" call pattern the Watch godoc warns about.
+// Watch poller (which reads/writes the snapshot pointer) concurrently with
+// direct poll calls and a snapshot rewrite, so the race detector flags any
+// unsynchronised access. It guards the atomic.Pointer[snapshot] invariant
+// even under the unsupported "second poller" call pattern the Watch godoc
+// warns about.
 func TestDatabaseMetadataSource_ResourceVersion_ConcurrentAccess(t *testing.T) {
 	t.Parallel()
 
@@ -326,7 +400,7 @@ func TestDatabaseMetadataSource_ResourceVersion_ConcurrentAccess(t *testing.T) {
 	}
 
 	// Spawn a background poller via Watch, racing with the direct poll/Store
-	// loop below. Both touch resourceVersion concurrently.
+	// loop below. Both touch the snapshot pointer concurrently.
 	ch := src.Watch(t.Context())
 
 	var wg sync.WaitGroup
@@ -339,7 +413,15 @@ func TestDatabaseMetadataSource_ResourceVersion_ConcurrentAccess(t *testing.T) {
 	for range iterations {
 		_ = src.poll(t.Context())
 
-		src.resourceVersion.Store(src.resourceVersion.Load() + 1)
+		cur := src.snapshot.Load()
+		next := &snapshot{raw: nil, version: 0}
+
+		if cur != nil {
+			next.raw = cur.raw
+			next.version = cur.version + 1
+		}
+
+		src.snapshot.Store(next)
 	}
 
 	src.Close()
@@ -355,7 +437,7 @@ func TestLoadMetadataFromStore_PropagatesParseError(t *testing.T) {
 		},
 	}
 
-	if _, _, err := loadMetadataFromStore(t.Context(), store); err == nil {
+	if _, _, _, err := loadMetadataFromStore(t.Context(), store); err == nil {
 		t.Fatal("expected parse error, got nil")
 	}
 }
