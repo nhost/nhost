@@ -47,7 +47,7 @@ final.stdenvNoCC.mkDerivation {
     # cli.js so bun resolves the sibling @earendil-works/* deps from
     # $out/libexec/pi/node_modules. fd/ripgrep are made available on PATH and
     # telemetry/version-check are disabled (matching numtide/llm-agents.nix).
-    makeWrapper ${final.bun}/bin/bun $out/bin/pi \
+    makeWrapper ${final.bun}/bin/bun $out/bin/pi-agent \
       --add-flags "$out/libexec/pi/${cliPath}" \
       --prefix PATH : ${
         final.lib.makeBinPath (
