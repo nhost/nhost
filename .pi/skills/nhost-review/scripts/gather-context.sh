@@ -1,17 +1,15 @@
 #!/usr/bin/env bash
 set -euo pipefail
 
-# Gather all context for nhost_reviewer skill using local git.
+# Gather all context for the native Pi Nhost review skill using local git.
 # Usage: gather-context.sh [base-ref]
 # If no base ref is provided, defaults to origin/main.
 
 BASE="${1:-origin/main}"
 
-# Try to detect PR number from current branch, fall back to XXX
 PR=$(gh pr view --json number -q .number 2>/dev/null || echo "XXX")
 REPO=$(gh repo view --json nameWithOwner -q .nameWithOwner 2>/dev/null || echo "OWNER/REPO")
 
-# Portable SHA256: sha256sum on Linux, shasum on macOS
 if command -v sha256sum &>/dev/null; then
   sha256() { sha256sum | cut -d' ' -f1; }
 else
@@ -43,7 +41,6 @@ fetch_base_ref() {
 fetch_base_ref "$BASE"
 MERGE_BASE=$(git merge-base "$BASE" HEAD)
 
-# Pathspec to exclude generated/vendored files from the diff
 EXCLUDES=(
   ':(exclude)vendor/**'
   ':(exclude)**/node_modules/**'
@@ -74,5 +71,4 @@ echo ""
 
 echo "### DIFF"
 echo "Diff of changed files (excluding generated/vendored):"
-
 git diff "$MERGE_BASE" -- . "${EXCLUDES[@]}"
