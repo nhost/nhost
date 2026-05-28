@@ -9,6 +9,7 @@ export type {
   SchemaDiagramColumn,
   SchemaDiagramData,
   SchemaDiagramForeignKey,
+  SchemaDiagramFunctionReturnType,
 } from './fetchSchemaDiagramData';
 
 export const ALL_TABLE_COLUMNS_QUERY_KEY = 'schema-diagram-all-columns';
