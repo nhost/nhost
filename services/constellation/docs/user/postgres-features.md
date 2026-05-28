@@ -85,6 +85,7 @@ Columns are introspected with the following metadata:
 | `IsNullable` | `information_schema.columns` | — |
 | `Default` | `column_default` | Captures `nextval(...)` (sequences), `gen_random_uuid()`, `now()`, etc. |
 | `IsGenerated` | `pg_attribute.attgenerated != ''` | `GENERATED ALWAYS AS` columns; not insertable |
+| `IsIdentity` | `pg_attribute.attidentity != ''` | `GENERATED [ALWAYS\|BY DEFAULT] AS IDENTITY` columns. Distinct from `IsGenerated`: the value is engine-assigned at INSERT time rather than computed from other columns, and insert-check predicates referencing the column run post-INSERT (against `RETURNING *`). SQLite's `INTEGER PRIMARY KEY` rowid alias is the cross-dialect twin. |
 | `IsArray` | `pg_type.typcategory = 'A'` | Postgres-only |
 | `SupportsMinMax` | derived from type | Drives `min`/`max` aggregates |
 | `SupportsInc` | derived from type | Drives `_inc` update operator |
@@ -417,6 +418,7 @@ See [`remote-schema.md`](./remote-schema.md). Remote schemas are configured per 
 | Array columns and `_contains` / `_contained_in` | yes | no |
 | `ILIKE` | yes | LIKE fallback |
 | Generated columns | yes | no |
+| Identity columns | yes (`GENERATED AS IDENTITY`) | yes (`INTEGER PRIMARY KEY` rowid alias) |
 | `gen_random_uuid()` / sequence defaults | yes | partial |
 | `pg_enum` types | yes | no |
 | Views (read) | yes (track as table) | yes (track as table) |

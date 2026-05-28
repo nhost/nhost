@@ -192,11 +192,19 @@ func (t *table) buildFinalSelect( //nolint:funlen
 	params []any,
 	paramIndex int,
 ) ([]any, error) {
+	// nestedForceRefNames lists every nested-insert CTE this top-level
+	// insert produced. Emitted as a no-op WHERE so the gated subset
+	// (array-rel children with a post-INSERT check) is not elided by
+	// Postgres. Non-gated CTEs are referenced redundantly but harmlessly
+	// — see writeNestedCTEForceRef.
+	nestedForceRefNames := sortedNestedCTEValues(nestedCTEs)
+
 	if len(columns) == 0 && len(relationships) == 0 {
 		// No fields selected, just return the mutated row
 		b.WriteString("SELECT ")
 		b.WriteString(t.dialect.ToJSON("mutation_result.*"))
 		b.WriteString(" FROM mutation_result")
+		writeNestedCTEForceRef(b, nestedForceRefNames)
 
 		return params, nil
 	}
@@ -230,6 +238,10 @@ func (t *table) buildFinalSelect( //nolint:funlen
 		if err != nil {
 			return nil, err
 		}
+
+		// Append the nested-CTE force reference AFTER the LATERAL joins
+		// so it parses as a SELECT-level WHERE clause.
+		writeNestedCTEForceRef(b, nestedForceRefNames)
 	} else {
 		// SQLite: embed relationships as correlated subqueries or nested CTE subqueries
 		for _, relSel := range relationships {
@@ -268,6 +280,7 @@ func (t *table) buildFinalSelect( //nolint:funlen
 
 		t.dialect.WriteJSONRowSuffixNoAlias(b)
 		b.WriteString(" FROM mutation_result")
+		writeNestedCTEForceRef(b, nestedForceRefNames)
 	}
 
 	return params, nil

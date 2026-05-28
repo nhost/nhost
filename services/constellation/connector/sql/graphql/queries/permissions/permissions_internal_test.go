@@ -591,30 +591,6 @@ func TestFixColumns_LogicalOperators(t *testing.T) {
 	})
 }
 
-func TestReferencesGeneratedColumns(t *testing.T) {
-	t.Parallel()
-
-	lookup := func(name string) *core.Column {
-		switch name {
-		case "id":
-			return &core.Column{SQLName: "id", IsGenerated: true}
-		case "user_id":
-			return &core.Column{SQLName: "user_id", IsGenerated: false}
-		default:
-			return nil
-		}
-	}
-
-	t.Run("no insert permission for role", func(t *testing.T) {
-		t.Parallel()
-
-		s := NewStore()
-		if s.ReferencesGeneratedColumns("user", lookup) {
-			t.Fatal("expected false when role has no insert permission")
-		}
-	})
-}
-
 func TestExtendInsertColumns_NoPermission(t *testing.T) {
 	t.Parallel()
 
@@ -1201,8 +1177,8 @@ func TestStoreWriteInsertCheck_NoPermission_WritesTrue(t *testing.T) {
 
 	var b strings.Builder
 
-	params, paramIndex, hasCheck, err := s.WriteInsertCheck(
-		&b, "user", nil, []any{"keep"}, 7, "src",
+	params, paramIndex, hasCheck, err := s.WriteInsertCheckSubstituted(
+		&b, "user", nil, []any{"keep"}, 7, "src", nil,
 	)
 	if err != nil {
 		t.Fatalf("unexpected error: %v", err)
@@ -1235,8 +1211,8 @@ func TestStoreWriteInsertCheck_WithPermission_RendersClause(t *testing.T) {
 
 	sessionVars := map[string]any{"x-hasura-user-id": "42"}
 
-	params, paramIndex, hasCheck, err := s.WriteInsertCheck(
-		&b, "user", sessionVars, nil, 1, "data",
+	params, paramIndex, hasCheck, err := s.WriteInsertCheckSubstituted(
+		&b, "user", sessionVars, nil, 1, "data", nil,
 	)
 	if err != nil {
 		t.Fatalf("unexpected error: %v", err)
@@ -1268,8 +1244,8 @@ func TestStoreWriteInsertCheck_MissingSessionVariableErrors(t *testing.T) {
 	s := NewStore()
 	s.Insert["user"] = where.Clause{appendParamStatement("user_id", "x-hasura-missing")}
 
-	params, paramIndex, hasCheck, err := s.WriteInsertCheck(
-		&strings.Builder{}, "user", map[string]any{}, nil, 1, "data",
+	params, paramIndex, hasCheck, err := s.WriteInsertCheckSubstituted(
+		&strings.Builder{}, "user", map[string]any{}, nil, 1, "data", nil,
 	)
 	if !errors.Is(err, ErrSessionVariableNotFound) {
 		t.Fatalf("expected ErrSessionVariableNotFound, got %v", err)
@@ -1655,8 +1631,8 @@ func TestStoreWriteInsertCheck_ClauseError(t *testing.T) {
 	s := NewStore()
 	s.Insert["user"] = where.Clause{errStatement(sentinel)}
 
-	params, paramIndex, hasCheck, err := s.WriteInsertCheck(
-		&strings.Builder{}, "user", nil, []any{"keep"}, 1, "data",
+	params, paramIndex, hasCheck, err := s.WriteInsertCheckSubstituted(
+		&strings.Builder{}, "user", nil, []any{"keep"}, 1, "data", nil,
 	)
 	if err == nil {
 		t.Fatal("expected error, got nil")
@@ -1717,6 +1693,7 @@ func TestExtendInsertColumns_WithPermission_AppendsMissingNonGenerated(t *testin
 	s.Insert["user"] = where.Clause{
 		where.NewEqualsFilter(&core.Column{SQLName: "tenant_id"}, nil, nil),
 		where.NewEqualsFilter(&core.Column{SQLName: "id"}, nil, nil),
+		where.NewEqualsFilter(&core.Column{SQLName: "identity_id"}, nil, nil),
 		where.NewEqualsFilter(&core.Column{SQLName: "user_id"}, nil, nil),
 	}
 
@@ -1726,6 +1703,8 @@ func TestExtendInsertColumns_WithPermission_AppendsMissingNonGenerated(t *testin
 			return &core.Column{SQLName: "tenant_id", IsGenerated: false}
 		case "id":
 			return &core.Column{SQLName: "id", IsGenerated: true}
+		case "identity_id":
+			return &core.Column{SQLName: "identity_id", IsIdentity: true}
 		case "user_id":
 			return &core.Column{SQLName: "user_id", IsGenerated: false}
 		default:
@@ -1736,7 +1715,8 @@ func TestExtendInsertColumns_WithPermission_AppendsMissingNonGenerated(t *testin
 	got := s.ExtendInsertColumns([]string{"tenant_id"}, "user", lookup)
 
 	// tenant_id already present (kept once); id is generated (skipped);
-	// user_id is appended.
+	// identity_id is an IDENTITY column (skipped — same rationale as
+	// generated); user_id is appended.
 	want := []string{"tenant_id", "user_id"}
 	if diff := cmp.Diff(want, got); diff != "" {
 		t.Errorf("ExtendInsertColumns mismatch (-want +got):\n%s", diff)
@@ -1749,10 +1729,11 @@ func TestMissingInsertColumns_WithPermission(t *testing.T) {
 	s := NewStore()
 	s.Insert["user"] = where.Clause{
 		where.NewEqualsFilter(&core.Column{SQLName: "tenant_id"}, nil, nil),
-		where.NewEqualsFilter(&core.Column{SQLName: "tenant_id"}, nil, nil), // dup
-		where.NewEqualsFilter(&core.Column{SQLName: "id"}, nil, nil),        // generated
-		where.NewEqualsFilter(&core.Column{SQLName: "user_id"}, nil, nil),   // present
-		where.NewEqualsFilter(&core.Column{SQLName: "team_id"}, nil, nil),   // missing
+		where.NewEqualsFilter(&core.Column{SQLName: "tenant_id"}, nil, nil),   // dup
+		where.NewEqualsFilter(&core.Column{SQLName: "id"}, nil, nil),          // generated
+		where.NewEqualsFilter(&core.Column{SQLName: "identity_id"}, nil, nil), // identity
+		where.NewEqualsFilter(&core.Column{SQLName: "user_id"}, nil, nil),     // present
+		where.NewEqualsFilter(&core.Column{SQLName: "team_id"}, nil, nil),     // missing
 	}
 
 	lookup := func(name string) *core.Column {
@@ -1761,6 +1742,8 @@ func TestMissingInsertColumns_WithPermission(t *testing.T) {
 			return &core.Column{SQLName: "tenant_id", IsGenerated: false}
 		case "id":
 			return &core.Column{SQLName: "id", IsGenerated: true}
+		case "identity_id":
+			return &core.Column{SQLName: "identity_id", IsIdentity: true}
 		case "user_id":
 			return &core.Column{SQLName: "user_id", IsGenerated: false}
 		case "team_id":
@@ -1774,6 +1757,10 @@ func TestMissingInsertColumns_WithPermission(t *testing.T) {
 
 	got := s.MissingInsertColumns("user", present, lookup)
 
+	// id (generated) and identity_id (identity) are both excluded — the
+	// post-check path handles them, and emitting a NULL placeholder for
+	// either would either be unused or actively wrong (NULL would shadow the
+	// engine-assigned identity value).
 	wantNames := []string{"tenant_id", "team_id"}
 	gotNames := make([]string, len(got))
 
@@ -1786,50 +1773,141 @@ func TestMissingInsertColumns_WithPermission(t *testing.T) {
 	}
 }
 
-func TestReferencesGeneratedColumns_WithPermission(t *testing.T) {
+func TestRequiresPostInsertCheck(t *testing.T) {
 	t.Parallel()
 
-	gen := func(name string, generated bool) *core.Column {
-		return &core.Column{SQLName: name, IsGenerated: generated}
+	makeCol := func(name string, generated, identity, hasDefault bool) *core.Column {
+		return &core.Column{
+			SQLName:     name,
+			IsGenerated: generated,
+			IsIdentity:  identity,
+			HasDefault:  hasDefault,
+		}
 	}
 
 	lookup := func(name string) *core.Column {
 		switch name {
 		case "id":
-			return gen("id", true)
+			return makeCol("id", true, false, false) // generated
+		case "identity_id":
+			return makeCol("identity_id", false, true, false) // IDENTITY column
+		case "parent_kind":
+			return makeCol("parent_kind", false, false, true) // DB default
+		case "parent_id":
+			return makeCol("parent_id", false, false, false)
 		case "user_id":
-			return gen("user_id", false)
+			return makeCol("user_id", false, false, false)
 		default:
 			return nil
 		}
 	}
 
-	t.Run("returns true when a generated column is referenced", func(t *testing.T) {
-		t.Parallel()
-
-		s := NewStore()
-		s.Insert["user"] = where.Clause{
-			where.NewEqualsFilter(&core.Column{SQLName: "user_id"}, nil, nil),
-			where.NewEqualsFilter(&core.Column{SQLName: "id"}, nil, nil),
+	insertCheck := func(cols ...string) where.Clause {
+		clause := where.Clause{}
+		for _, c := range cols {
+			clause = append(
+				clause,
+				where.NewEqualsFilter(&core.Column{SQLName: c}, nil, nil),
+			)
 		}
 
-		if !s.ReferencesGeneratedColumns("user", lookup) {
-			t.Fatal("expected true when insert filter references a generated column")
-		}
-	})
+		return clause
+	}
 
-	t.Run("returns false when no referenced column is generated", func(t *testing.T) {
-		t.Parallel()
+	// hasClause toggles between "role has an insert clause" and "role has no
+	// insert clause at all". When false the case is asserting the missing-key
+	// branch of RequiresPostInsertCheck, and checkCols is ignored.
+	tests := []struct {
+		name      string
+		hasClause bool
+		checkCols []string
+		present   []string
+		want      bool
+	}{
+		{
+			// Even if "id" were somehow present in the payload, generated
+			// columns can't be supplied — post-check is unconditional.
+			name:      "generated column always triggers post-check",
+			hasClause: true,
+			checkCols: []string{"id"},
+			present:   []string{"id"},
+			want:      true,
+		},
+		{
+			// IDENTITY columns (Postgres GENERATED [ALWAYS|BY DEFAULT] AS
+			// IDENTITY, SQLite INTEGER PRIMARY KEY rowid aliases) auto-populate
+			// at INSERT time. The pre-check data CTE would carry NULL under the
+			// column name regardless of payload state, so post-check must run
+			// unconditionally — same as IsGenerated.
+			name:      "identity column always triggers post-check",
+			hasClause: true,
+			checkCols: []string{"identity_id"},
+			present:   []string{"identity_id"},
+			want:      true,
+		},
+		{
+			name:      "defaulted column absent from payload triggers post-check",
+			hasClause: true,
+			checkCols: []string{"parent_kind"},
+			present:   []string{"parent_id"},
+			want:      true,
+		},
+		{
+			name:      "defaulted column present in payload stays on pre-check",
+			hasClause: true,
+			checkCols: []string{"parent_kind"},
+			present:   []string{"parent_id", "parent_kind"},
+			want:      false,
+		},
+		{
+			name:      "plain column referenced by check stays on pre-check",
+			hasClause: true,
+			checkCols: []string{"user_id"},
+			want:      false,
+		},
+		{
+			name:      "unknown column (lookup nil) is ignored",
+			hasClause: true,
+			checkCols: []string{"ghost_column"},
+			want:      false,
+		},
+		{
+			name:      "no insert clause for role is pre-check",
+			hasClause: false,
+			want:      false,
+		},
+		{
+			// user_id is present (would be pre-check on its own); parent_kind
+			// is defaulted-absent, so any column being post-check-triggering
+			// promotes the whole clause to post-check.
+			name:      "multiple referenced columns: one defaulted-absent is enough",
+			hasClause: true,
+			checkCols: []string{"user_id", "parent_kind"},
+			present:   []string{"user_id"},
+			want:      true,
+		},
+	}
 
-		s := NewStore()
-		s.Insert["user"] = where.Clause{
-			where.NewEqualsFilter(&core.Column{SQLName: "user_id"}, nil, nil),
-		}
+	for _, tc := range tests {
+		t.Run(tc.name, func(t *testing.T) {
+			t.Parallel()
 
-		if s.ReferencesGeneratedColumns("user", lookup) {
-			t.Fatal("expected false when no referenced column is generated")
-		}
-	})
+			s := NewStore()
+			if tc.hasClause {
+				s.Insert["user"] = insertCheck(tc.checkCols...)
+			}
+
+			present := make(map[string]struct{}, len(tc.present))
+			for _, c := range tc.present {
+				present[c] = struct{}{}
+			}
+
+			got := s.RequiresPostInsertCheck("user", present, lookup)
+			if got != tc.want {
+				t.Fatalf("RequiresPostInsertCheck = %v, want %v", got, tc.want)
+			}
+		})
+	}
 }
 
 func TestStoreHasAccessors(t *testing.T) {

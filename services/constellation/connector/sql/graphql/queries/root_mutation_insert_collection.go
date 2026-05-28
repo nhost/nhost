@@ -2,6 +2,7 @@ package queries
 
 import (
 	"fmt"
+	"sort"
 	"strings"
 
 	"github.com/vektah/gqlparser/v2/ast"
@@ -82,7 +83,7 @@ func (t *table) buildInsertCollectionSQL(
 	params := make([]any, 0, len(insertObjs)*8) //nolint:mnd
 	paramIndex := 1
 
-	cteSQL, params, paramIndex, _, err := t.buildInsertMutationCTE(
+	cteSQL, params, paramIndex, nestedCTEs, err := t.buildInsertMutationCTE(
 		insertObjs,
 		onConflict,
 		role,
@@ -96,6 +97,23 @@ func (t *table) buildInsertCollectionSQL(
 
 	b.WriteString(cteSQL)
 	b.WriteString(" ")
+
+	// The two force-ref sites cover non-overlapping selection shapes, not
+	// duplicate coverage. When the user requests only `affected_rows`, the
+	// returning subquery is omitted entirely, so the affected_rows COUNT sum
+	// is the only structural reference to the gated nested chain. When the
+	// user requests only `returning { ... }`, selection.affectedRows is nil,
+	// so the returning-side WHERE no-op is the only reference. When both are
+	// selected the references duplicate harmlessly. Removing either site
+	// silently regresses the shape it covers.
+	if len(nestedCTEs) > 0 {
+		nestedNames := sortedNestedCTEValues(nestedCTEs)
+		if selection.affectedRows != nil {
+			selection.affectedRows.nestedCTENames = nestedNames
+		}
+
+		selection.returning.nestedCTENames = nestedNames
+	}
 
 	params, _, err = selection.WriteSQL(
 		b,
@@ -226,11 +244,12 @@ func (t *table) buildInsertCTE(
 
 // buildSingleInsertCTE builds the check_constraint CTE and INSERT statement for a single insert operation.
 // This is used for both top-level inserts and nested inserts to ensure consistent permissions handling.
-// Dispatches to the pre-check or post-check path depending on whether insert
-// permissions reference generated columns (whose values are only available
-// after the INSERT runs). tableSubs redirects relationship-EXISTS subqueries
-// that target a table being inserted into in the same statement to its
-// parent CTE — nil for top-level inserts, populated for nested ones.
+// Dispatches to the pre-check or post-check path via requiresPostInsertCheck:
+// post-check whenever a check-referenced column's final value is only known
+// after the INSERT (generated columns, or DB-defaulted columns absent from
+// the payload), pre-check otherwise. tableSubs redirects relationship-EXISTS
+// subqueries that target a table being inserted into in the same statement to
+// its parent CTE — nil for top-level inserts, populated for nested ones.
 func (t *table) buildSingleInsertCTE(
 	b *strings.Builder,
 	cteName string,
@@ -243,9 +262,10 @@ func (t *table) buildSingleInsertCTE(
 	role string,
 	sessionVariables map[string]any,
 ) ([]any, int, error) {
-	if t.permissionReferencesGeneratedColumns(role) {
+	presentCols := insertPresentColumns([]arguments.InsertObject{insertObj}, nestedFKIndex)
+	if t.requiresPostInsertCheck(role, presentCols) {
 		return t.buildSingleInsertCTEPostCheck(
-			b, cteName, insertObj, onConflict, nestedFKIndex,
+			b, cteName, insertObj, onConflict, nestedFKIndex, tableSubs,
 			params, paramIndex, role, sessionVariables,
 		)
 	}
@@ -293,20 +313,10 @@ func (t *table) buildInsertMutationCTE(
 
 	allColumns, columnToValue := t.collectAllColumns(insertObjs, nestedFKColumns)
 
-	if t.permissionReferencesGeneratedColumns(role) {
-		params, paramIndex, err = t.buildInsertMutationCTEPostCheck(
-			&b, insertObjs, allColumns, columnToValue,
-			nestedFKIndex, onConflict, role, sessionVariables,
-			params, paramIndex,
-		)
-	} else {
-		params, paramIndex, err = t.buildInsertMutationCTEPreCheck(
-			&b, insertObjs, allColumns, columnToValue,
-			nestedFKIndex, onConflict, role, sessionVariables,
-			params, paramIndex,
-		)
-	}
-
+	params, paramIndex, err = t.buildInsertMutationCTEBody(
+		&b, insertObjs, allColumns, columnToValue,
+		nestedFKIndex, onConflict, role, sessionVariables, params, paramIndex,
+	)
 	if err != nil {
 		return "", nil, 0, nil, err
 	}
@@ -328,4 +338,54 @@ func (t *table) buildInsertMutationCTE(
 	nestedCTEs := t.buildNestedCTEsMap(insertObjs)
 
 	return b.String(), params, paramIndex, nestedCTEs, nil
+}
+
+// sortedNestedCTEValues extracts and sorts the CTE names from the
+// nestedCTEs map (keyed by relationship name) so the affected_rows
+// projection's `+ (SELECT COUNT(*) FROM …)` order is deterministic for
+// golden-file diffs. Sorting on the CTE name keeps the convention used
+// by `nested_<rel>` so multi-relationship inserts produce stable SQL.
+func sortedNestedCTEValues(nestedCTEs map[string]string) []string {
+	if len(nestedCTEs) == 0 {
+		return nil
+	}
+
+	values := make([]string, 0, len(nestedCTEs))
+	for _, v := range nestedCTEs {
+		values = append(values, v)
+	}
+
+	sort.Strings(values)
+
+	return values
+}
+
+// buildInsertMutationCTEBody emits the check + INSERT CTEs for a top-level
+// insert, dispatching to the post-check path when the insert permission must
+// be validated against the inserted row (see requiresPostInsertCheck) or the
+// pre-check path otherwise.
+func (t *table) buildInsertMutationCTEBody(
+	b *strings.Builder,
+	insertObjs []arguments.InsertObject,
+	allColumns []string,
+	columnToValue []map[string]any,
+	nestedFKIndex map[string]string,
+	onConflict *arguments.OnConflict,
+	role string,
+	sessionVariables map[string]any,
+	params []any,
+	paramIndex int,
+) ([]any, int, error) {
+	presentCols := insertPresentColumns(insertObjs, nestedFKIndex)
+	if t.requiresPostInsertCheck(role, presentCols) {
+		return t.buildInsertMutationCTEPostCheck(
+			b, insertObjs, allColumns, columnToValue,
+			nestedFKIndex, onConflict, role, sessionVariables, params, paramIndex,
+		)
+	}
+
+	return t.buildInsertMutationCTEPreCheck(
+		b, insertObjs, allColumns, columnToValue,
+		nestedFKIndex, onConflict, role, sessionVariables, params, paramIndex,
+	)
 }
