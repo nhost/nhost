@@ -79,4 +79,17 @@ func (r *relationship) TargetTable() arguments.Table { //nolint:ireturn,nolintli
 
 func (r *relationship) FKColumns() []string { return r.fkColumns }
 
+// ReferencedColumns returns the column names on the sibling-CTE side of the
+// FK, paired by index with FKColumns. For object relationships the parent
+// owns the FK and the CTE holds nested-target rows, so the referenced cols
+// are r.targetColumns. For array relationships the child owns the FK and the
+// CTE holds parent rows, so the referenced cols are r.parentColumns.
+func (r *relationship) ReferencedColumns() []string {
+	if r.isArray {
+		return r.parentColumns
+	}
+
+	return r.targetColumns
+}
+
 func (r *relationship) IsArray() bool { return r.isArray }

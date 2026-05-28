@@ -178,13 +178,28 @@ func ParseOnConflict( //nolint:funlen
 // elements for array relationships (Hasura accepts both `data: {...}` and
 // `data: [{...}, ...]` for array relationships via GraphQL list-input
 // coercion).
+//
+// ReferencedColumns is parallel to ForeignKeyColumns: entry i names the
+// column on the sibling CTE that ForeignKeyColumns[i] should be sourced from.
+// For composite FKs this varies per column; for single-column FKs it is
+// typically the parent PK ("id"). It is set from
+// Relationship.ReferencedColumns at parse time.
 type NestedInsert struct {
 	RelationshipName    string
 	TargetTable         Table
 	NestedObjects       []InsertObject
 	OnConflict          *OnConflict
 	ForeignKeyColumns   []string
+	ReferencedColumns   []string
 	IsArrayRelationship bool
+}
+
+// NestedFKRef points each FK column at the sibling CTE it should be sourced
+// from and the column name on that CTE. For a single-column FK this is
+// typically {parentCTE, "id"}; composite FKs vary the column per FK entry.
+type NestedFKRef struct {
+	CTE       string
+	ParentCol string
 }
 
 // ApplyArrayFKColumn appends the FK columns to every nested object (so they
@@ -204,27 +219,41 @@ type NestedInsert struct {
 // a missing FK column there simply produces a SELECT that does not reference
 // the parent — which is the correct outcome when the schema says no such FK
 // column exists.
-func (n *NestedInsert) ApplyArrayFKColumn(parentCTEName string) map[string]string {
-	nestedFKIndex := make(map[string]string)
+func (n *NestedInsert) ApplyArrayFKColumn(parentCTEName string) map[string]NestedFKRef {
+	nestedFKIndex := make(map[string]NestedFKRef)
 	if !n.IsArrayRelationship {
 		return nestedFKIndex
 	}
 
-	for _, fkName := range n.ForeignKeyColumns {
+	for i, fkName := range n.ForeignKeyColumns {
 		fkColumn := n.TargetTable.ColumnFromSQLName(fkName)
 		if fkColumn != nil {
-			for i := range n.NestedObjects {
-				n.NestedObjects[i].Columns = append(n.NestedObjects[i].Columns, InsertColumn{
+			for j := range n.NestedObjects {
+				n.NestedObjects[j].Columns = append(n.NestedObjects[j].Columns, InsertColumn{
 					Column: fkColumn,
 					Value:  nil,
 				})
 			}
 		}
 
-		nestedFKIndex[fkName] = parentCTEName
+		parentCol := referencedColumnAt(n.ReferencedColumns, i)
+		nestedFKIndex[fkName] = NestedFKRef{CTE: parentCTEName, ParentCol: parentCol}
 	}
 
 	return nestedFKIndex
+}
+
+// referencedColumnAt returns referenced[i], falling back to "id" when the slice
+// is missing the entry or carries an empty string. The fallback preserves
+// pre-composite-FK behaviour for relationships whose metadata only declares
+// the FK column list — single-column FKs against a PK named "id" continue to
+// emit the same SQL.
+func referencedColumnAt(referenced []string, i int) string {
+	if i < len(referenced) && referenced[i] != "" {
+		return referenced[i]
+	}
+
+	return "id"
 }
 
 // InsertColumn is a column/value pair in an insert object.
@@ -555,6 +584,7 @@ func parseNestedInsert( //nolint:funlen
 		NestedObjects:       nestedObjects,
 		OnConflict:          onConflict,
 		ForeignKeyColumns:   relationship.FKColumns(),
+		ReferencedColumns:   relationship.ReferencedColumns(),
 		IsArrayRelationship: isArray,
 	}, nil
 }

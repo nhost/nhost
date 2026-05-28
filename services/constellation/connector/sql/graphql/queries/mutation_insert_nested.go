@@ -123,7 +123,7 @@ func buildSingleNestedInsertCTE(
 	target *table,
 	cteName string,
 	ni *arguments.NestedInsert,
-	nestedFKIndex map[string]string,
+	nestedFKIndex map[string]arguments.NestedFKRef,
 	tableSubs where.TableSubstitutions,
 	params []any,
 	paramIndex int,
@@ -153,7 +153,7 @@ func (t *table) buildMultiNestedInsertCTE(
 	cteName string,
 	insertObjs []arguments.InsertObject,
 	onConflict *arguments.OnConflict,
-	nestedFKIndex map[string]string,
+	nestedFKIndex map[string]arguments.NestedFKRef,
 	tableSubs where.TableSubstitutions,
 	params []any,
 	paramIndex int,
@@ -189,7 +189,7 @@ func (t *table) buildMultiNestedInsertCTEPreCheck(
 	insertObjs []arguments.InsertObject,
 	allColumns []string,
 	columnToValue []map[string]any,
-	nestedFKIndex map[string]string,
+	nestedFKIndex map[string]arguments.NestedFKRef,
 	tableSubs where.TableSubstitutions,
 	onConflict *arguments.OnConflict,
 	role string,
@@ -261,7 +261,7 @@ func (t *table) buildMultiNestedInsertCTEPostCheck(
 	insertObjs []arguments.InsertObject,
 	allColumns []string,
 	columnToValue []map[string]any,
-	nestedFKIndex map[string]string,
+	nestedFKIndex map[string]arguments.NestedFKRef,
 	tableSubs where.TableSubstitutions,
 	onConflict *arguments.OnConflict,
 	role string,
@@ -409,15 +409,18 @@ func (t *table) buildArrayNestedInsertCTEs(
 // buildNestedFKIndex maps foreign-key columns to their nested CTE names for
 // object-relationship nested inserts only. For object relationships the FK
 // lives on the parent row, so we record the CTE that supplies each FK column's
-// value and append a placeholder column to every parent insert object.
+// value plus the column on that CTE the FK references — composite FKs need
+// the per-column referenced name (e.g. nested_author."kind") rather than a
+// hardcoded ."id". The referenced column comes from NestedInsert.ReferencedColumns
+// which the arguments parser populates from Relationship.ReferencedColumns.
 //
 // Array-relationship nested inserts put the FK on the child; the parent INSERT
 // must not include those columns, so they are intentionally excluded from this
 // index (which drives the parent's INSERT column list).
 func (t *table) buildNestedFKIndex(
 	insertObjs []arguments.InsertObject,
-) map[string]string {
-	nestedFKIndex := make(map[string]string) // column -> CTE name
+) map[string]arguments.NestedFKRef {
+	nestedFKIndex := make(map[string]arguments.NestedFKRef)
 	if len(insertObjs) == 0 {
 		return nestedFKIndex
 	}
@@ -429,16 +432,17 @@ func (t *table) buildNestedFKIndex(
 
 		cteName := "nested_" + nested.RelationshipName
 
-		for _, fkName := range nested.ForeignKeyColumns {
-			nestedFKIndex[fkName] = cteName
+		for i, fkName := range nested.ForeignKeyColumns {
+			parentCol := referencedColumnAt(nested.ReferencedColumns, i)
+			nestedFKIndex[fkName] = arguments.NestedFKRef{CTE: cteName, ParentCol: parentCol}
 
 			fkColumn := t.columnFromSQLName(fkName)
 			if fkColumn == nil {
 				continue
 			}
 
-			for i := range insertObjs {
-				insertObjs[i].Columns = append(insertObjs[i].Columns, arguments.InsertColumn{
+			for j := range insertObjs {
+				insertObjs[j].Columns = append(insertObjs[j].Columns, arguments.InsertColumn{
 					Column: fkColumn,
 					Value:  nil,
 				})
@@ -447,6 +451,18 @@ func (t *table) buildNestedFKIndex(
 	}
 
 	return nestedFKIndex
+}
+
+// referencedColumnAt returns referenced[i], falling back to "id" when the slice
+// is missing the entry or carries an empty string. Mirrors the arguments
+// package helper used by NestedInsert.ApplyArrayFKColumn; kept here because
+// buildNestedFKIndex (object-rel path) lives in the queries package.
+func referencedColumnAt(referenced []string, i int) string {
+	if i < len(referenced) && referenced[i] != "" {
+		return referenced[i]
+	}
+
+	return "id"
 }
 
 // buildNestedCTEsMap builds a map of relationship names to CTE names for response building.

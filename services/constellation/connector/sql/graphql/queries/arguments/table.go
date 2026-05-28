@@ -80,6 +80,15 @@ type Relationship interface {
 	// as a one-element slice.
 	FKColumns() []string
 
+	// ReferencedColumns returns the column SQL names on the side referenced by
+	// each FK column (same indices as FKColumns). For object relationships
+	// these are the target-table columns the parent's FK points at; for array
+	// relationships these are the parent-table columns the child's FK points
+	// at. Used by nested-insert builders to source per-column values from the
+	// sibling CTE — composite FKs need this to avoid hardcoding the referenced
+	// column to "id".
+	ReferencedColumns() []string
+
 	// IsArray reports whether this is an array relationship (vs an object
 	// relationship). Array relationships place the FK on the child row;
 	// object relationships place it on the parent.

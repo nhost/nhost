@@ -152,20 +152,25 @@ func (t *table) buildInsertColumnsClause(
 
 // buildInsertSelectClause builds the SELECT clause for the INSERT statement.
 // It references columns from the check_constraint CTE or nested insert CTEs.
+// For columns sourced from a sibling CTE the parent-side referenced column
+// comes from the NestedFKRef so composite FKs map each FK column to its
+// matching reference (e.g. parent_kind → mutation_result."kind"), not all
+// FK columns to a hardcoded "id".
 func (t *table) buildInsertSelectClause(
 	b *strings.Builder,
 	columns []string,
 	checkCTEName string,
-	nestedFKIndex map[string]string,
+	nestedFKIndex map[string]arguments.NestedFKRef,
 ) {
 	for i, col := range columns {
 		if i > 0 {
 			b.WriteString(", ")
 		}
 
-		if refCTEName, isNested := nestedFKIndex[col]; isNested {
-			b.WriteString(refCTEName)
-			b.WriteString(".\"id\"")
+		if ref, isNested := nestedFKIndex[col]; isNested {
+			b.WriteString(ref.CTE)
+			b.WriteByte('.')
+			core.WriteQuotedIdentifier(b, ref.ParentCol)
 		} else {
 			b.WriteString(checkCTEName)
 			b.WriteByte('.')
@@ -175,18 +180,46 @@ func (t *table) buildInsertSelectClause(
 }
 
 // buildInsertFromClause builds the FROM clause for the INSERT statement.
+// Sibling CTEs are joined in stable order (sorted by name) so the emitted
+// SQL is deterministic across runs — Go map iteration would otherwise vary.
 func (t *table) buildInsertFromClause(
 	b *strings.Builder,
 	checkCTEName string,
-	nestedFKIndex map[string]string,
+	nestedFKIndex map[string]arguments.NestedFKRef,
 ) {
 	b.WriteString(" FROM ")
 	b.WriteString(checkCTEName)
 
-	for _, refCTEName := range nestedFKIndex {
+	for _, refCTEName := range uniqueCTEsFromFKIndex(nestedFKIndex) {
 		b.WriteString(", ")
 		b.WriteString(refCTEName)
 	}
+}
+
+// uniqueCTEsFromFKIndex returns the unique CTE names referenced by entries in
+// nestedFKIndex, in sorted order. Composite FKs map multiple FK columns to the
+// same CTE — listing the CTE once keeps the FROM clause valid.
+func uniqueCTEsFromFKIndex(nestedFKIndex map[string]arguments.NestedFKRef) []string {
+	if len(nestedFKIndex) == 0 {
+		return nil
+	}
+
+	seen := make(map[string]struct{}, len(nestedFKIndex))
+	ctes := make([]string, 0, len(nestedFKIndex))
+
+	for _, ref := range nestedFKIndex {
+		if _, dup := seen[ref.CTE]; dup {
+			continue
+		}
+
+		seen[ref.CTE] = struct{}{}
+
+		ctes = append(ctes, ref.CTE)
+	}
+
+	sort.Strings(ctes)
+
+	return ctes
 }
 
 // buildInsertWhereClause builds the WHERE clause for the INSERT statement.
@@ -212,7 +245,7 @@ func (t *table) buildInsertCTE(
 	insertObj arguments.InsertObject,
 	onConflict *arguments.OnConflict,
 	checkCTEName string,
-	nestedFKIndex map[string]string,
+	nestedFKIndex map[string]arguments.NestedFKRef,
 	hasCheckPermissions bool,
 	params []any,
 	paramIndex int,
@@ -255,7 +288,7 @@ func (t *table) buildSingleInsertCTE(
 	cteName string,
 	insertObj arguments.InsertObject,
 	onConflict *arguments.OnConflict,
-	nestedFKIndex map[string]string, // column -> CTE name mapping for foreign keys
+	nestedFKIndex map[string]arguments.NestedFKRef, // column -> CTE name mapping for foreign keys
 	tableSubs where.TableSubstitutions,
 	params []any,
 	paramIndex int,
@@ -369,7 +402,7 @@ func (t *table) buildInsertMutationCTEBody(
 	insertObjs []arguments.InsertObject,
 	allColumns []string,
 	columnToValue []map[string]any,
-	nestedFKIndex map[string]string,
+	nestedFKIndex map[string]arguments.NestedFKRef,
 	onConflict *arguments.OnConflict,
 	role string,
 	sessionVariables map[string]any,

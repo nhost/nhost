@@ -260,7 +260,9 @@ func TestBuildUnionAllSelectFKFromParentCTE(t *testing.T) {
 		{"exercise_id": "ex2", "position": 2},
 	}
 
-	nestedFKIndex := map[string]string{"workout_session_id": "mutation_result"}
+	nestedFKIndex := map[string]arguments.NestedFKRef{
+		"workout_session_id": {CTE: "mutation_result", ParentCol: "id"},
+	}
 
 	var b strings.Builder
 
@@ -582,7 +584,8 @@ func TestRequiresPostInsertCheckDefaultedColumn(t *testing.T) {
 
 	// FK columns sourced from a parent CTE count as present.
 	if tbl.requiresPostInsertCheck("user", insertPresentColumns(
-		[]arguments.InsertObject{absent}, map[string]string{"kind": "parent_cte"},
+		[]arguments.InsertObject{absent},
+		map[string]arguments.NestedFKRef{"kind": {CTE: "parent_cte", ParentCol: "id"}},
 	)) {
 		t.Errorf("defaulted column sourced from parent CTE should not require post-check")
 	}

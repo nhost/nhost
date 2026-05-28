@@ -687,12 +687,13 @@ func TestNestedInsert_ApplyArrayFKColumn(t *testing.T) {
 			},
 			OnConflict:          nil,
 			ForeignKeyColumns:   []string{"fk"},
+			ReferencedColumns:   []string{"id"},
 			IsArrayRelationship: true,
 		}
 
 		fk := n.ApplyArrayFKColumn("parent_cte")
-		if got, ok := fk["fk"]; !ok || got != "parent_cte" {
-			t.Errorf("fk map = %v, want fk=parent_cte", fk)
+		if got, ok := fk["fk"]; !ok || got.CTE != "parent_cte" || got.ParentCol != "id" {
+			t.Errorf("fk map = %v, want fk={CTE:parent_cte, ParentCol:id}", fk)
 		}
 
 		for i, row := range n.NestedObjects {
@@ -715,6 +716,7 @@ func TestNestedInsert_ApplyArrayFKColumn(t *testing.T) {
 			NestedObjects:       []arguments.InsertObject{{Columns: nil, NestedInserts: nil}},
 			OnConflict:          nil,
 			ForeignKeyColumns:   []string{"fk"},
+			ReferencedColumns:   []string{"id"},
 			IsArrayRelationship: true,
 		}
 
@@ -724,8 +726,40 @@ func TestNestedInsert_ApplyArrayFKColumn(t *testing.T) {
 		}
 
 		// FK index entry is still added, regardless of column resolution.
-		if fk["fk"] != "parent_cte" {
-			t.Errorf("fk map = %v, expected fk=parent_cte entry", fk)
+		if got := fk["fk"]; got.CTE != "parent_cte" || got.ParentCol != "id" {
+			t.Errorf("fk map = %v, expected fk={CTE:parent_cte, ParentCol:id}", fk)
+		}
+	})
+
+	t.Run("array relationship: composite FK uses ReferencedColumns per index", func(t *testing.T) {
+		t.Parallel()
+
+		ctrl := gomock.NewController(t)
+		target := mock.NewMockTable(ctrl)
+
+		parentIDCol := newColumn("parent_id", "parent_id", "uuid")
+		parentKindCol := newColumn("parent_kind", "parent_kind", "text")
+
+		target.EXPECT().ColumnFromSQLName("parent_id").Return(parentIDCol)
+		target.EXPECT().ColumnFromSQLName("parent_kind").Return(parentKindCol)
+
+		n := arguments.NestedInsert{
+			RelationshipName:    "sets",
+			TargetTable:         target,
+			NestedObjects:       []arguments.InsertObject{{Columns: nil, NestedInserts: nil}},
+			OnConflict:          nil,
+			ForeignKeyColumns:   []string{"parent_id", "parent_kind"},
+			ReferencedColumns:   []string{"id", "kind"},
+			IsArrayRelationship: true,
+		}
+
+		fk := n.ApplyArrayFKColumn("mutation_result")
+		if got := fk["parent_id"]; got.CTE != "mutation_result" || got.ParentCol != "id" {
+			t.Errorf("fk[parent_id] = %+v, want {CTE:mutation_result, ParentCol:id}", got)
+		}
+
+		if got := fk["parent_kind"]; got.CTE != "mutation_result" || got.ParentCol != "kind" {
+			t.Errorf("fk[parent_kind] = %+v, want {CTE:mutation_result, ParentCol:kind}", got)
 		}
 	})
 }
@@ -746,6 +780,7 @@ func TestParseInsert_NestedRelationship(t *testing.T) {
 	// Relationship metadata used to construct NestedInsert.
 	rel.EXPECT().TargetTable().Return(target)
 	rel.EXPECT().FKColumns().Return([]string{"author_id"})
+	rel.EXPECT().ReferencedColumns().Return([]string{"id"})
 	rel.EXPECT().IsArray().Return(true)
 
 	// Target table parses its own object as a normal insert.
@@ -792,6 +827,7 @@ func TestParseInsert_NestedArrayRelationshipDataIsList(t *testing.T) {
 
 	rel.EXPECT().TargetTable().Return(target)
 	rel.EXPECT().FKColumns().Return([]string{"author_id"})
+	rel.EXPECT().ReferencedColumns().Return([]string{"id"})
 	rel.EXPECT().IsArray().Return(true)
 
 	// Each element of the list is parsed independently.
