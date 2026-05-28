@@ -63,7 +63,7 @@ When extending the classifier:
 
 - `render_test.go` covers the formatter (empty report, ordering, item rendering).
 - `report_test.go` covers `ParseTimestamp` (the only `time` boundary).
-- `internal/activity` has no unit tests today because the collector talks directly to `gh`. If you add non-trivial classifier logic, introduce a `gh.Client` interface and stub it in a `classify_internal_test.go` (white-box) so the bucket priorities are pinned by tests.
+- `internal/activity` pins the classifier with white-box tests in `classify_internal_test.go` against the unexported `ghClient` boundary. Stub the boundary with an inline type implementing the interface — do **not** add a `mock/` subpackage, since `package activity` cannot import it without an import cycle.
 
 ## Key Dependencies
 

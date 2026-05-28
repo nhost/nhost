@@ -12,9 +12,9 @@ import (
 
 // ghClient is the subset of *gh.Client this package depends on. Defining it
 // here lets classifier tests stub the GitHub boundary without standing up the
-// real `gh` CLI.
-//
-//go:generate mockgen -package mock -destination mock/gh.go . ghClient
+// real `gh` CLI. The interface is unexported, so white-box tests stub it with
+// an inline type rather than a generated mock (a `mock/` subpackage would
+// create an import cycle).
 type ghClient interface {
 	GraphQL(ctx context.Context, query string, vars map[string]any, out any) error
 }

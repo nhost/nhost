@@ -104,17 +104,44 @@ Different teams name their Projects v2 status field differently — `Status`, `W
 
 ## Output
 
-A markdown report with one section per non-empty bucket. Within a section, items are sorted by repository then PR/issue number for stable diffs day-to-day.
+A markdown report with a fixed set of level-3 (`###`) sections, in this order:
+
+1. `### 🟢 In progress`
+2. `### 👀 Moved to waiting for review`
+3. `### ⏸️ Blocked / waiting on something else`
+4. `### ✅ Closed / merged`
+5. `### 🎯 Today's focus` — scaffolding for the human to fill in.
+6. `### 📝 Other` — scaffolding for the human to fill in.
+7. `### Tentative` — items the user merely touched (reviewed/commented) inside the window.
+
+Every heading is always emitted, even when its bucket is empty — the layout is designed to be pasted into a stand-up channel and filled in by hand, so the empty sections act as a checklist. Within a bucket, items are sorted by repository then PR/issue number for stable diffs day-to-day, and rendered as `- [PR #N](URL) Title` (or `- [Issue #N](URL) Title`).
 
 ```markdown
-## Closed or Merged
-- [nhost/example#42](https://github.com/nhost/example/pull/42) — Tidy up the foo handler
+### 🟢 In progress
 
-## Ready for review
-- [nhost/example#45](https://github.com/nhost/example/pull/45) — Add bar endpoint
+- [PR #46](https://github.com/nhost/example/pull/46) WIP: baz refactor
 
-## In progress
-- [nhost/example#46](https://github.com/nhost/example/pull/46) — WIP: baz refactor
+### 👀 Moved to waiting for review
+
+- [PR #45](https://github.com/nhost/example/pull/45) Add bar endpoint
+
+### ⏸️ Blocked / waiting on something else
+
+### ✅ Closed / merged
+
+- [PR #42](https://github.com/nhost/example/pull/42) Tidy up the foo handler
+
+### 🎯 Today's focus
+
+What you're planning to work on today (especially anything not yet on the board)
+
+### 📝 Other
+
+Anything not tracked on GitHub, FYIs, heads-ups
+
+### Tentative
+
+- [Issue #12](https://github.com/nhost/example/issues/12) Investigate flaky test
 ```
 
 ## Auth

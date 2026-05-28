@@ -9,6 +9,7 @@ import (
 	"context"
 	"errors"
 	"fmt"
+	"net/http"
 	"strings"
 
 	"github.com/cli/go-gh/v2/pkg/api"
@@ -66,8 +67,8 @@ func (c *Client) GraphQL(
 
 // APIJSON runs a GET against the REST API and decodes the JSON response into
 // out. The path is the same `gh api PATH` accepts (e.g. "user").
-func (c *Client) APIJSON(_ context.Context, path string, out any) error {
-	if err := c.rest.Get(path, out); err != nil {
+func (c *Client) APIJSON(ctx context.Context, path string, out any) error {
+	if err := c.rest.DoWithContext(ctx, http.MethodGet, path, nil, out); err != nil {
 		return fmt.Errorf("%w: GET %s: %w", ErrREST, path, err)
 	}
 

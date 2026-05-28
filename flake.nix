@@ -281,8 +281,8 @@
 
               # internal packages
               self.packages.${system}.codegen
-              self.packages.${system}.govulncheck-wrapper
               self.packages.${system}.ghactivity
+              self.packages.${system}.govulncheck-wrapper
             ];
 
             shellHook = ''

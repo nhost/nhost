@@ -150,14 +150,19 @@ func Action(ctx context.Context, c *cli.Command) error {
 
 // writeReport opens the destination (stdout if path is empty) and renders the
 // markdown report into it.
-func writeReport(path string, report *activity.Report) error {
+func writeReport(path string, report *activity.Report) (err error) {
 	out := os.Stdout
 	if path != "" {
-		f, err := os.Create(path)
-		if err != nil {
-			return cli.Exit(fmt.Sprintf("opening output file: %v", err), 1)
+		f, ferr := os.Create(path)
+		if ferr != nil {
+			return cli.Exit(fmt.Sprintf("opening output file: %v", ferr), 1)
 		}
-		defer f.Close()
+
+		defer func() {
+			if cerr := f.Close(); cerr != nil && err == nil {
+				err = cli.Exit(fmt.Sprintf("closing output file: %v", cerr), 1)
+			}
+		}()
 
 		out = f
 	}
