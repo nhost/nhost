@@ -46,7 +46,7 @@ type customizedConnector struct {
 // non-empty, returning inner unchanged otherwise. It is the single point where
 // schema customization is layered onto a connector, keeping the composer,
 // planner, and controller oblivious to it.
-func applyCustomization( //nolint:ireturn
+func applyCustomization( //nolint:ireturn,nolintlint
 	name string,
 	inner Connector,
 	cfg metadata.Customization,

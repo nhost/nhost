@@ -260,7 +260,9 @@ func TestBuildUnionAllSelectFKFromParentCTE(t *testing.T) {
 		{"exercise_id": "ex2", "position": 2},
 	}
 
-	nestedFKIndex := map[string]string{"workout_session_id": "mutation_result"}
+	nestedFKIndex := arguments.NestedFKSources{
+		"workout_session_id": {CTEName: "mutation_result", ColumnName: "id"},
+	}
 
 	var b strings.Builder
 
@@ -285,6 +287,153 @@ func TestBuildUnionAllSelectFKFromParentCTE(t *testing.T) {
 	wantParams := []any{"ex1", 1, "ex2", 2}
 	if len(params) != len(wantParams) {
 		t.Fatalf("params length = %d, want %d (params=%v)", len(params), len(wantParams), params)
+	}
+}
+
+func TestBuildPartitionedUnionAllSelectFKFromParentCTE(t *testing.T) {
+	t.Parallel()
+
+	bodyCol := col("body", "text", false)
+	fkCol := col("note_id", "uuid", false)
+
+	tbl := newTestTable(t, []*core.Column{bodyCol, fkCol}, nil)
+
+	objs := []arguments.InsertObject{
+		{Columns: []arguments.InsertColumn{insertCol(bodyCol, "reply one")}},
+		{Columns: []arguments.InsertColumn{insertCol(bodyCol, "reply two")}},
+	}
+	columnToValue := []map[string]any{
+		{"body": "reply one"},
+		{"body": "reply two"},
+	}
+
+	var b strings.Builder
+
+	params, paramIndex := tbl.buildPartitionedUnionAllSelect(
+		&b,
+		objs,
+		partitionedParentCTENames(2),
+		[]string{"body", "note_id"},
+		columnToValue,
+		arguments.NestedFKSources{"note_id": {ColumnName: "id"}},
+		nil,
+		1,
+	)
+
+	want := `SELECT $1::text AS "body", mutation_result_0."id" AS "note_id" ` +
+		`FROM mutation_result_0 UNION ALL SELECT $2::text AS "body", ` +
+		`mutation_result_1."id" AS "note_id" FROM mutation_result_1`
+	if got := b.String(); got != want {
+		t.Errorf("buildPartitionedUnionAllSelect SQL mismatch\n got: %s\nwant: %s", got, want)
+	}
+
+	wantParams := []any{"reply one", "reply two"}
+	if len(params) != len(wantParams) {
+		t.Fatalf("params length = %d, want %d (params=%v)", len(params), len(wantParams), params)
+	}
+
+	for i, p := range wantParams {
+		if params[i] != p {
+			t.Errorf("params[%d] = %v, want %v", i, params[i], p)
+		}
+	}
+
+	if paramIndex != 3 {
+		t.Errorf("paramIndex = %d, want 3", paramIndex)
+	}
+}
+
+func TestBuildPartitionedUnionAllSelectCompositeFKFromParentCTE(t *testing.T) {
+	t.Parallel()
+
+	repsCol := col("reps", "int", false)
+	parentIDCol := col("parent_id", "uuid", false)
+	parentKindCol := col("parent_kind", "text", false)
+
+	tbl := newTestTable(t, []*core.Column{repsCol, parentIDCol, parentKindCol}, nil)
+
+	objs := []arguments.InsertObject{
+		{Columns: []arguments.InsertColumn{insertCol(repsCol, 8)}},
+		{Columns: []arguments.InsertColumn{insertCol(repsCol, 10)}},
+	}
+	columnToValue := []map[string]any{
+		{"reps": 8},
+		{"reps": 10},
+	}
+
+	var b strings.Builder
+
+	params, paramIndex := tbl.buildPartitionedUnionAllSelect(
+		&b,
+		objs,
+		partitionedParentCTENames(2),
+		[]string{"reps", "parent_id", "parent_kind"},
+		columnToValue,
+		arguments.NestedFKSources{
+			"parent_id":   {ColumnName: "id"},
+			"parent_kind": {ColumnName: "kind"},
+		},
+		nil,
+		1,
+	)
+
+	want := `SELECT $1::int AS "reps", mutation_result_0."id" AS "parent_id", ` +
+		`mutation_result_0."kind" AS "parent_kind" FROM mutation_result_0 UNION ALL ` +
+		`SELECT $2::int AS "reps", mutation_result_1."id" AS "parent_id", ` +
+		`mutation_result_1."kind" AS "parent_kind" FROM mutation_result_1`
+	if got := b.String(); got != want {
+		t.Errorf(
+			"buildPartitionedUnionAllSelect composite SQL mismatch\n got: %s\nwant: %s",
+			got,
+			want,
+		)
+	}
+
+	wantParams := []any{8, 10}
+	if len(params) != len(wantParams) {
+		t.Fatalf("params length = %d, want %d (params=%v)", len(params), len(wantParams), params)
+	}
+
+	for i, p := range wantParams {
+		if params[i] != p {
+			t.Errorf("params[%d] = %v, want %v", i, params[i], p)
+		}
+	}
+
+	if paramIndex != 3 {
+		t.Errorf("paramIndex = %d, want 3", paramIndex)
+	}
+}
+
+func TestBuildPartitionedUnionAllSelectSQLiteHasNoPostgresCasts(t *testing.T) {
+	t.Parallel()
+
+	bodyCol := col("body", "text", false)
+	fkCol := col("note_id", "uuid", false)
+
+	tbl := newTable("public", "note_replies", &dialect.SQLiteDialect{})
+	tbl.columns = []*core.Column{bodyCol, fkCol}
+
+	objs := []arguments.InsertObject{
+		{Columns: []arguments.InsertColumn{insertCol(bodyCol, "reply")}},
+	}
+	columnToValue := []map[string]any{{"body": "reply"}}
+
+	var b strings.Builder
+
+	_, _ = tbl.buildPartitionedUnionAllSelect(
+		&b,
+		objs,
+		partitionedParentCTENames(1),
+		[]string{"body", "note_id"},
+		columnToValue,
+		arguments.NestedFKSources{"note_id": {ColumnName: "id"}},
+		nil,
+		1,
+	)
+
+	if got := b.String(); strings.Contains(got, "::") {
+		t.Fatalf("SQLite partitioned SELECT contains PostgreSQL cast: %s", got)
 	}
 }
 
@@ -582,7 +731,8 @@ func TestRequiresPostInsertCheckDefaultedColumn(t *testing.T) {
 
 	// FK columns sourced from a parent CTE count as present.
 	if tbl.requiresPostInsertCheck("user", insertPresentColumns(
-		[]arguments.InsertObject{absent}, map[string]string{"kind": "parent_cte"},
+		[]arguments.InsertObject{absent},
+		arguments.NestedFKSources{"kind": {CTEName: "parent_cte", ColumnName: "kind"}},
 	)) {
 		t.Errorf("defaulted column sourced from parent CTE should not require post-check")
 	}
