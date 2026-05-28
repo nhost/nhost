@@ -76,6 +76,14 @@
             ;
         };
 
+        ghactivityf = import ./tools/ghactivity/project.nix {
+          inherit
+            self
+            pkgs
+            nixops-lib
+            ;
+        };
+
         govulncheck-wrapperf = import ./tools/govulncheck-wrapper/project.nix {
           inherit
             self
@@ -201,6 +209,7 @@
           cli = clif.check;
           codegen = codegenf.check;
           constellation = constellationf.check;
+          ghactivity = ghactivityf.check;
           govulncheck-wrapper = govulncheck-wrapperf.check;
           dashboard = dashboardf.check;
           demos = demosf.check;
@@ -258,6 +267,7 @@
               # others
               postgresql_18-client
               bun
+              gh
 
               # docs
               vale
@@ -273,6 +283,7 @@
               # internal packages
               self.packages.${system}.codegen
               self.packages.${system}.govulncheck-wrapper
+              self.packages.${system}.ghactivity
             ];
 
             shellHook = ''
@@ -331,6 +342,7 @@
           cli = clif.devShell;
           codegen = codegenf.devShell;
           constellation = constellationf.devShell;
+          ghactivity = ghactivityf.devShell;
           govulncheck-wrapper = govulncheck-wrapperf.devShell;
           dashboard = dashboardf.devShell;
           demos = demosf.devShell;
@@ -356,6 +368,7 @@
           codegen = codegenf.package;
           constellation = constellationf.package;
           constellation-docker-image = constellationf.dockerImage;
+          ghactivity = ghactivityf.package;
           govulncheck-wrapper = govulncheck-wrapperf.package;
           dashboard = dashboardf.package;
           dashboard-docker-image = dashboardf.dockerImage;
