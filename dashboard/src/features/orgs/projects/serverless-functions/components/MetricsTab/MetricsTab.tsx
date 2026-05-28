@@ -1,5 +1,5 @@
 import { RefreshCw } from 'lucide-react';
-import { useCallback } from 'react';
+import { useCallback, useEffect, useRef, useState } from 'react';
 import {
   Accordion,
   AccordionContent,
@@ -53,12 +53,30 @@ function MetricsLoadingSkeleton() {
 
 export default function MetricsTab({ fn }: MetricsTabProps) {
   const { range, setRange } = useMetricsTimeRangeUrlState();
+  const { openPanel, hiddenKeys, open, close, setHiddenKeys } =
+    useMetricsPanelUrlState();
+
+  const chartCellRef = useRef<HTMLDivElement | null>(null);
+  const [chartWidth, setChartWidth] = useState(0);
+
+  useEffect(() => {
+    const el = chartCellRef.current;
+    if (!el) {
+      return undefined;
+    }
+    const observer = new ResizeObserver((entries) => {
+      const next = entries[0]?.contentRect.width ?? 0;
+      setChartWidth(Math.round(next));
+    });
+    observer.observe(el);
+    return () => observer.disconnect();
+  }, []);
+
   const { data, loading, error, refetch, xDomain } = useFunctionMetrics({
     route: fn.route,
     range,
+    chartWidth,
   });
-  const { openPanel, hiddenKeys, open, close, setHiddenKeys } =
-    useMetricsPanelUrlState();
 
   const handleZoomRange = useCallback(
     (fromMs: number, toMs: number) => {
@@ -93,7 +111,13 @@ export default function MetricsTab({ fn }: MetricsTabProps) {
   }, [range, setRange]);
 
   return (
-    <div className="flex flex-col gap-6 p-6">
+    <div className="relative flex flex-col gap-6 p-6">
+      <div
+        aria-hidden
+        className="pointer-events-none invisible absolute inset-x-6 top-6 grid grid-cols-1 gap-4 xl:grid-cols-2"
+      >
+        <div ref={chartCellRef} className="h-0" />
+      </div>
       <div className="flex flex-row items-center justify-end gap-2">
         <MetricsTimeRangeFilter value={range} onChange={setRange} />
         <Button

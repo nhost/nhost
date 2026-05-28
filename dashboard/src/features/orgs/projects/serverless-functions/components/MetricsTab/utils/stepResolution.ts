@@ -66,14 +66,34 @@ export function roundInterval(intervalMs: number): number {
   }
 }
 
-// Static target points for the batched dashboard query. The 10 panels in the
-// query share one step, so we can't size to any individual panel — 600 is a
-// reasonable midpoint for a typical desktop layout.
+// Fallback when the panel hasn't been measured yet (first render, before the
+// ResizeObserver fires). Close enough to a typical xl:grid-cols-2 chart cell
+// that the post-measurement query usually deep-equals and doesn't re-fire.
 export const DEFAULT_MAX_DATA_POINTS = 600;
 
-// Floor matching our Prometheus scrape interval. Steps below this don't add
-// resolution, they just multiply work.
-export const MIN_STEP_MS = 15_000;
+// Prometheus duration string that floors the computed step on the server.
+export const DEFAULT_MIN_INTERVAL = '2m';
+
+// Used when the range is degenerate (from === to). The backend's minInterval
+// floors the effective step server-side; we still need to send a positive Int.
+const FALLBACK_INTERVAL_MS = 15_000;
+
+const MAX_DATA_POINTS_CAP = 2000;
+const MAX_DATA_POINTS_FLOOR = 200;
+// Round chartWidth to this so trivial pixel shifts don't re-fire the query.
+const MAX_DATA_POINTS_STEP = 50;
+
+export function resolveMaxDataPoints(chartWidth: number): number {
+  if (!Number.isFinite(chartWidth) || chartWidth <= 0) {
+    return DEFAULT_MAX_DATA_POINTS;
+  }
+  const stepped =
+    Math.round(chartWidth / MAX_DATA_POINTS_STEP) * MAX_DATA_POINTS_STEP;
+  return Math.max(
+    MAX_DATA_POINTS_FLOOR,
+    Math.min(MAX_DATA_POINTS_CAP, stepped),
+  );
+}
 
 export interface QueryStep {
   intervalMs: number;
@@ -87,10 +107,11 @@ export function computeQueryStep(
 ): QueryStep {
   const span = to.getTime() - from.getTime();
   if (span <= 0 || maxDataPoints <= 0) {
-    return { intervalMs: MIN_STEP_MS, maxDataPoints: DEFAULT_MAX_DATA_POINTS };
+    return {
+      intervalMs: FALLBACK_INTERVAL_MS,
+      maxDataPoints: DEFAULT_MAX_DATA_POINTS,
+    };
   }
   const rawStep = span / maxDataPoints;
-  const rounded = roundInterval(rawStep);
-  const intervalMs = Math.max(rounded, MIN_STEP_MS);
-  return { intervalMs, maxDataPoints };
+  return { intervalMs: roundInterval(rawStep), maxDataPoints };
 }

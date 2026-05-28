@@ -122,6 +122,7 @@ export default function MetricsTimeRangeFilter({
               <DateTimePicker
                 dateTime={resolved.from.toISOString()}
                 onDateTimeChange={handleFromChange}
+                withTimezone
               />
             </div>
             <div className="flex flex-col gap-1.5">
@@ -129,6 +130,7 @@ export default function MetricsTimeRangeFilter({
               <DateTimePicker
                 dateTime={resolved.to.toISOString()}
                 onDateTimeChange={handleToChange}
+                withTimezone
               />
             </div>
             {isInvalid && (

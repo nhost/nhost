@@ -4,7 +4,11 @@ import {
   type MetricsTimeRange,
   resolveTimeRange,
 } from '@/features/orgs/projects/serverless-functions/components/MetricsTab/timeRange';
-import { computeQueryStep } from '@/features/orgs/projects/serverless-functions/components/MetricsTab/utils/stepResolution';
+import {
+  computeQueryStep,
+  DEFAULT_MIN_INTERVAL,
+  resolveMaxDataPoints,
+} from '@/features/orgs/projects/serverless-functions/components/MetricsTab/utils/stepResolution';
 import type { FunctionMetricsResponse } from '@/features/orgs/projects/serverless-functions/types';
 import { transformFunctionMetrics } from '@/features/orgs/projects/serverless-functions/utils/transformFunctionMetrics';
 import { useGetFunctionsMetricsDashboardQuery } from '@/utils/__generated__/graphql';
@@ -12,6 +16,10 @@ import { useGetFunctionsMetricsDashboardQuery } from '@/utils/__generated__/grap
 interface UseFunctionMetricsOptions {
   route: string;
   range: MetricsTimeRange;
+  // Measured panel width in pixels. Drives maxDataPoints (and therefore step)
+  // the way Grafana does — panel-pixel-width → datasource. 0 / undefined falls
+  // back to DEFAULT_MAX_DATA_POINTS until the ResizeObserver lands.
+  chartWidth: number;
 }
 
 interface UseFunctionMetricsResult {
@@ -25,6 +33,7 @@ interface UseFunctionMetricsResult {
 export default function useFunctionMetrics({
   route,
   range,
+  chartWidth,
 }: UseFunctionMetricsOptions): UseFunctionMetricsResult {
   const { project, loading: loadingProject } = useProject();
   const [refetchKey, setRefetchKey] = useState(0);
@@ -38,8 +47,8 @@ export default function useFunctionMetrics({
   );
 
   const { intervalMs, maxDataPoints } = useMemo(
-    () => computeQueryStep(from, to),
-    [from, to],
+    () => computeQueryStep(from, to, resolveMaxDataPoints(chartWidth)),
+    [from, to, chartWidth],
   );
 
   // Function paths like `/api/users.ts` contain regex metacharacters, so escape them for literal match.
@@ -58,6 +67,7 @@ export default function useFunctionMetrics({
       to: to.toISOString(),
       intervalMs,
       maxDataPoints,
+      minInterval: DEFAULT_MIN_INTERVAL,
     },
     fetchPolicy: 'cache-and-network',
     notifyOnNetworkStatusChange: true,
