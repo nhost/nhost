@@ -367,7 +367,7 @@ func orElement(conditions Clause) Clause {
 	return conditions
 }
 
-func parseLogicalNot(
+func parseLogicalNot( //nolint:ireturn,nolintlint
 	t Table,
 	value *ast.Value,
 	variables map[string]any,
