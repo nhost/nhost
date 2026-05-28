@@ -110,18 +110,31 @@ func (s mutationSelection) WriteSQLWithCTE(
 
 type selectionAffectedRows struct {
 	alias string
-	// nestedCTENames lists the gated nested-insert CTE names whose row
-	// counts must be summed into affected_rows alongside the parent CTE.
-	// Populated by collection-insert callers when a top-level insert has
-	// nested array/object-relationship children; nil otherwise.
+	// nestedCTENames lists every nested-insert CTE produced by this
+	// top-level insert — both object-relationship and array-relationship,
+	// both gated by a post-check and not. Populated by collection-insert
+	// callers; nil otherwise.
 	//
-	// Summing from these CTEs is load-bearing for Postgres: each nested
-	// gated CTE wraps a `WHERE (SELECT status FROM <post_check>) = 1`
-	// predicate around `constellation_throw_error`, and Postgres skips
-	// non-modifying CTEs that nothing in the outer SELECT references —
-	// so without this sum, a permission-violating nested row would slip
-	// through silently. The Hasura-parity payoff (affected_rows reports
-	// parent + nested rows) is the same shape Hasura emits.
+	// The list serves two purposes that have different effective scopes:
+	//
+	//   - affected_rows summing (here): each entry contributes a
+	//     COUNT(*) added to the parent's count. This matches Hasura's
+	//     parity rule that affected_rows totals every row inserted by
+	//     the mutation — parent plus every nested-rel row. Verified
+	//     against Hasura's admin role: a collection insert of N rows
+	//     each with one object-rel nested parent reports affected_rows
+	//     = 2N (the parent file plus the joining row).
+	//
+	//   - force-ref (see selectionReturning.nestedCTENames): only the
+	//     gated subset (array-rel children with requiresPostInsertCheck)
+	//     structurally needs the reference. Non-gated nested CTEs are
+	//     data-modifying INSERTs Postgres already runs unconditionally,
+	//     so emitting the no-op reference for them is harmless and is
+	//     kept for dispatch symmetry.
+	//
+	// Either field alone is load-bearing — see the case-by-case rationale
+	// on selectionReturning.nestedCTENames and the populating site in
+	// buildInsertCollectionSQL.
 	nestedCTENames []string
 }
 
@@ -132,9 +145,10 @@ func (s selectionAffectedRows) WriteSQL(b *strings.Builder) {
 }
 
 // WriteSQLWithCTE writes the affected_rows JSON pair as a COUNT(*) over the
-// given CTE, plus a COUNT(*) over each gated nested-insert CTE in
-// s.nestedCTENames. When there are no nested CTEs, the emission is
-// byte-identical to the single-CTE form.
+// given CTE, plus a COUNT(*) over each nested-insert CTE in
+// s.nestedCTENames (both gated and non-gated — see the field doc for why
+// non-gated CTEs are also summed). When there are no nested CTEs, the
+// emission is byte-identical to the single-CTE form.
 func (s selectionAffectedRows) WriteSQLWithCTE(cteName string, b *strings.Builder) {
 	alias := s.alias
 	if alias == "" {
@@ -171,6 +185,31 @@ type selectionReturning struct {
 	columns       []columnSelection
 	relationships []relationshipSelection
 	dialect       dialect.Dialect
+	// nestedCTENames lists every nested-insert CTE produced by this
+	// top-level insert (mirrors selectionAffectedRows.nestedCTENames).
+	// Populated by collection-insert callers; nil otherwise.
+	//
+	// The structural force-ref is only load-bearing for the *gated*
+	// subset — array-rel children whose insert check goes through
+	// requiresPostInsertCheck. For those, Postgres would otherwise skip
+	// the non-modifying `nested_<rel>_post_check` chain (it gates a
+	// constellation_throw_error inside a CTE that nothing in the outer
+	// SELECT references), silently letting a permission-violating nested
+	// row land. For non-gated nested CTEs (object-rel parents, array-rel
+	// children without a post-check) the emission is a no-op because
+	// those are data-modifying INSERTs Postgres always evaluates; it is
+	// kept for dispatch symmetry with the affected_rows path.
+	//
+	// Why this field exists alongside the same on selectionAffectedRows:
+	// the two sites cover non-overlapping selection shapes, not
+	// duplicate coverage. When the user requests only `affected_rows`,
+	// the returning subquery is omitted entirely, so the affected_rows
+	// COUNT sum is the only structural reference to the gated chain.
+	// When the user requests only `returning { … }`, selection.affectedRows
+	// is nil, so this WHERE no-op is the only reference. When both are
+	// selected the references duplicate harmlessly. Removing either
+	// site silently regresses the shape it covers.
+	nestedCTENames []string
 }
 
 // WriteSQL writes the returning JSON pair against the default
@@ -298,12 +337,23 @@ func (s selectionReturning) writeReturningLateral( //nolint:funlen
 	b.WriteString(cteName)
 
 	if emptyRelationships {
+		writeNestedCTEForceRef(b, s.nestedCTENames)
+
 		return params, paramIndex, nil
 	}
 
-	return s.writeLateralJoinsWithCTE(
+	params, paramIndex, err := s.writeLateralJoinsWithCTE(
 		cteName, b, fragments, variables, role, sessionVariables, roots, params, paramIndex,
 	)
+	if err != nil {
+		return nil, 0, err
+	}
+
+	// Append the nested-CTE force reference AFTER the LATERAL joins so it
+	// parses as a SELECT-level WHERE clause.
+	writeNestedCTEForceRef(b, s.nestedCTENames)
+
+	return params, paramIndex, nil
 }
 
 func (s selectionReturning) writeReturningCorrelated( //nolint:funlen
@@ -388,8 +438,41 @@ func (s selectionReturning) writeReturningCorrelated( //nolint:funlen
 	b.WriteString(s.dialect.EmptyJSONArray())
 	b.WriteString(") FROM ")
 	b.WriteString(cteName)
+	writeNestedCTEForceRef(b, s.nestedCTENames)
 
 	return params, paramIndex, nil
+}
+
+// writeNestedCTEForceRef appends a WHERE predicate that scalar-references
+// each nested-insert CTE in names. Each `(SELECT COUNT(*) FROM <cte>) IS
+// NOT NULL` term is always true (COUNT is never NULL), so the predicate is
+// a logical no-op — but the syntactic reference forces Postgres to evaluate
+// the nested CTE chain. The reference is only load-bearing for the *gated*
+// subset (array-rel children whose insert check runs post-INSERT and is
+// wrapped by `<cte>_post_check` → `constellation_throw_error`); without it,
+// Postgres elides the non-modifying gated CTEs and the throw never fires,
+// silently letting a permission-violating nested row land. For non-gated
+// CTEs the emission is redundant — those are data-modifying INSERTs PG
+// always runs — but it is kept so callers don't need to partition the list.
+//
+// When names is empty the emission is the empty string, so callers that
+// never produce nested inserts (the common case) see byte-identical SQL.
+func writeNestedCTEForceRef(b *strings.Builder, names []string) {
+	if len(names) == 0 {
+		return
+	}
+
+	for i, name := range names {
+		if i == 0 {
+			b.WriteString(" WHERE ")
+		} else {
+			b.WriteString(" AND ")
+		}
+
+		b.WriteString("(SELECT COUNT(*) FROM ")
+		b.WriteString(name)
+		b.WriteString(") IS NOT NULL")
+	}
 }
 
 func (s selectionReturning) writeLateralJoinsWithCTE(
@@ -507,10 +590,11 @@ func (t *table) processMutationField(
 		}
 
 		result.returning = selectionReturning{
-			alias:         returningAlias,
-			columns:       columns,
-			relationships: relationships,
-			dialect:       t.dialect,
+			alias:          returningAlias,
+			columns:        columns,
+			relationships:  relationships,
+			dialect:        t.dialect,
+			nestedCTENames: nil,
 		}
 	case "affected_rows":
 		affectedRowsAlias := sel.Alias
@@ -518,7 +602,10 @@ func (t *table) processMutationField(
 			affectedRowsAlias = sel.Name
 		}
 
-		result.affectedRows = &selectionAffectedRows{alias: affectedRowsAlias}
+		result.affectedRows = &selectionAffectedRows{
+			alias:          affectedRowsAlias,
+			nestedCTENames: nil,
+		}
 	}
 
 	return nil

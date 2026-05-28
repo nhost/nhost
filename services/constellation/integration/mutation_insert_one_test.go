@@ -695,8 +695,10 @@ func TestInsertOneMutations(t *testing.T) { //nolint:paralleltest,maintidx
 		// pg_attrdef, so it carries IsIdentity=true with IsGenerated=false and
 		// HasDefault=false. requiresPostInsertCheck must treat IsIdentity the
 		// same as IsGenerated and route the predicate through the post-mutation
-		// path so the (id > 0) clause sees the engine-assigned value rather
-		// than the NULL placeholder a pre-check data CTE would carry.
+		// path so the `id._is_null: false` clause (see public_identity_check_logs.yaml)
+		// sees the engine-assigned value rather than the NULL placeholder a
+		// pre-check data CTE would carry — under a pre-check the row would be
+		// denied as if id were literally NULL.
 		{
 			name: "permissions: insert with identity column referenced by check",
 			query: query{
@@ -718,11 +720,12 @@ func TestInsertOneMutations(t *testing.T) { //nolint:paralleltest,maintidx
 		},
 
 		// The denial branch for the identity column itself is unreachable in
-		// production — the engine always assigns id > 0 monotonically — so the
-		// integration locks only the positive shape. The orthogonal "wrong
-		// session user" deny path is already covered by the composite-FK case
-		// above; rewiring it here would duplicate that coverage without
-		// exercising any new code path.
+		// production — IDENTITY columns are always engine-assigned and never
+		// NULL after INSERT, so the `id._is_null: false` half can never fail
+		// on a successful insert — so the integration locks only the positive
+		// shape. The orthogonal "wrong session user" deny path is already
+		// covered by the composite-FK case above; rewiring it here would
+		// duplicate that coverage without exercising any new code path.
 
 		// Nested array-relationship insert through a parent whose CTE is the
 		// substitution target for the child's post-check EXISTS. The child

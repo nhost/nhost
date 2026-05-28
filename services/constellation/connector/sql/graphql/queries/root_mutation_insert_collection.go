@@ -98,14 +98,21 @@ func (t *table) buildInsertCollectionSQL(
 	b.WriteString(cteSQL)
 	b.WriteString(" ")
 
-	// Sum the affected_rows over every gated nested-insert CTE so the count
-	// matches Hasura (parent + nested children) and — more importantly —
-	// keeps Postgres from skipping the nested CTEs as unreferenced. Without
-	// this reference a nested post-check that would have thrown via
-	// constellation_throw_error is silently elided. See
-	// selectionAffectedRows.nestedCTENames for the full rationale.
-	if selection.affectedRows != nil && len(nestedCTEs) > 0 {
-		selection.affectedRows.nestedCTENames = sortedNestedCTEValues(nestedCTEs)
+	// The two force-ref sites cover non-overlapping selection shapes, not
+	// duplicate coverage. When the user requests only `affected_rows`, the
+	// returning subquery is omitted entirely, so the affected_rows COUNT sum
+	// is the only structural reference to the gated nested chain. When the
+	// user requests only `returning { ... }`, selection.affectedRows is nil,
+	// so the returning-side WHERE no-op is the only reference. When both are
+	// selected the references duplicate harmlessly. Removing either site
+	// silently regresses the shape it covers.
+	if len(nestedCTEs) > 0 {
+		nestedNames := sortedNestedCTEValues(nestedCTEs)
+		if selection.affectedRows != nil {
+			selection.affectedRows.nestedCTENames = nestedNames
+		}
+
+		selection.returning.nestedCTENames = nestedNames
 	}
 
 	params, _, err = selection.WriteSQL(

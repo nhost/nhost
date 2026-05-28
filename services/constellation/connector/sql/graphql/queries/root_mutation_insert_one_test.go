@@ -1032,9 +1032,10 @@ func TestInsertOneBuildQuery(t *testing.T) { //nolint:paralleltest,maintidx
 		// AS IDENTITY primary key. `id` carries neither IsGenerated nor
 		// HasDefault — it surfaces via pg_attribute.attidentity — so without
 		// the IsIdentity post-check trigger the pre-mutation check would
-		// build its data CTE with NULL standing in for id and the (id > 0)
-		// predicate would fail. Locks the post-check SQL shape so the
-		// predicate runs against the engine-assigned value.
+		// build its data CTE with NULL standing in for id and the
+		// `id._is_null: false` predicate (from public_identity_check_logs.yaml)
+		// would fail. Locks the post-check SQL shape so the predicate runs
+		// against the engine-assigned value.
 		{
 			name: "permissions: identity column referenced by insert check",
 			query: query{
@@ -1115,6 +1116,39 @@ func TestInsertOneBuildQuery(t *testing.T) { //nolint:paralleltest,maintidx
 						}
 					  }) {
 						id
+					  }
+					}`,
+				Role: "user",
+				SessionVariables: map[string]any{
+					"x-hasura-user-id": "550e8400-e29b-41d4-a716-446655440001",
+				},
+			},
+		},
+
+		// Same shape as "(multi-row child)" but selects ONLY the parent
+		// `title` scalar — no `id`, no `replies`. This is the exact
+		// shape that historically left the gated `nested_replies` and
+		// `nested_replies_post_check` CTEs unreferenced by the outer
+		// SELECT, allowing Postgres to elide them and silently bypass
+		// `constellation_throw_error`. Locks the WHERE-clause force
+		// reference emitted by writeNestedCTEForceRef so the regression
+		// can't sneak back in.
+		{
+			name: "permissions: nested array-rel insert with post-check (parent scalar only, force CTE reference)",
+			query: query{
+				Query: `
+					mutation {
+					  insert_notes_one(object: {
+						id: "0199bbbb-0000-7000-8000-000000000014"
+						author_id: "550e8400-e29b-41d4-a716-446655440001"
+						title: "Parent scalar only"
+						replies: {
+						  data: [
+							{ body: "reply" }
+						  ]
+						}
+					  }) {
+						title
 					  }
 					}`,
 				Role: "user",
