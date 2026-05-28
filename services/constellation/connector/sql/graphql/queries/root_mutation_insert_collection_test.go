@@ -642,6 +642,48 @@ func TestInsertBuildQuery(t *testing.T) { //nolint:paralleltest,maintidx
 				Role: "generated_col_test",
 			},
 		},
+
+		// Multi-row insert through a composite-FK object relationship whose
+		// join column (parent_kind) is a DB-defaulted discriminator the client
+		// never supplies. Exercises the buildInsertMutationCTE dispatch into
+		// the post-check path for batches.
+		{
+			name: "permissions: multi-row composite-FK with defaulted discriminator",
+			query: query{
+				Query: `
+					mutation {
+					  insert_exercise_log_sets(objects: [
+						{ parent_id: "0199aaaa-0000-7000-8000-000000000001", reps: 5 }
+						{ parent_id: "0199aaaa-0000-7000-8000-000000000001", reps: 8 }
+					  ]) {
+						affected_rows
+						returning { parent_id reps }
+					  }
+					}`,
+				Role: "user",
+				SessionVariables: map[string]any{
+					"x-hasura-user-id": "550e8400-e29b-41d4-a716-446655440001",
+				},
+			},
+		},
+
+		{
+			name: "permissions: multi-row composite-FK with defaulted discriminator (denied)",
+			query: query{
+				Query: `
+					mutation {
+					  insert_exercise_log_sets(objects: [
+						{ parent_id: "0199aaaa-0000-7000-8000-000000000001", reps: 5 }
+					  ]) {
+						affected_rows
+					  }
+					}`,
+				Role: "user",
+				SessionVariables: map[string]any{
+					"x-hasura-user-id": "11111111-1111-1111-1111-111111111111",
+				},
+			},
+		},
 	}
 
 	testBuildQuery(t, cases, true)

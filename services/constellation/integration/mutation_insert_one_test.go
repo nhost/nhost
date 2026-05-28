@@ -634,6 +634,62 @@ func TestInsertOneMutations(t *testing.T) { //nolint:paralleltest,maintidx
 			},
 		},
 
+		// Insert check reached through a composite-FK object relationship whose
+		// join column (parent_kind) is a DB-defaulted discriminator the client
+		// never supplies. The check must see the default ('strength'), so the
+		// row must be inserted before the check runs — matching Hasura.
+		{
+			name: "permissions: insert through composite-FK relationship with defaulted discriminator",
+			query: query{
+				Query: `
+					mutation {
+					  insert_exercise_log_sets_one(
+						object: {
+						  parent_id: "0199aaaa-0000-7000-8000-000000000001"
+						  reps: 10
+						}
+					  ) {
+						parent_id
+						reps
+					  }
+					}`,
+				Variables: map[string]any{},
+				Role:      "user",
+				SessionVariables: map[string]string{
+					"user-id": "550e8400-e29b-41d4-a716-446655440001",
+				},
+			},
+		},
+
+		{
+			name: "permissions: insert through composite-FK relationship (denied, wrong owner)",
+			query: query{
+				Query: `
+					mutation {
+					  insert_exercise_log_sets_one(
+						object: {
+						  parent_id: "0199aaaa-0000-7000-8000-000000000001"
+						  reps: 10
+						}
+					  ) {
+						parent_id
+					  }
+					}`,
+				Variables: map[string]any{},
+				Role:      "user",
+				SessionVariables: map[string]string{
+					"user-id": "550e8400-e29b-41d4-a716-446655440099",
+				},
+			},
+			expected: map[string]any{
+				"errors": []any{
+					map[string]any{
+						"message": `failed to execute operations: failed to execute operation insert_exercise_log_sets_one: failed to scan result row: ERROR: check constraint of an insert/update permission has failed (SQLSTATE ZZ901)`,
+					},
+				},
+			},
+		},
+
 		// on_conflict with where clause
 		{
 			name: "insert_one with on_conflict where clause - simple condition",

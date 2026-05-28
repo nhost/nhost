@@ -344,3 +344,20 @@ INSERT INTO refresh_token_types (value, comment) VALUES
 INSERT INTO department_roles (value, comment) VALUES
     ('member', 'Regular department member'),
     ('manager', 'Department manager');
+
+-- exercise_logs / exercise_log_sets fixture (composite-FK post-check regression).
+CREATE TABLE exercise_logs (
+    id UUID NOT NULL,
+    kind TEXT NOT NULL,
+    owner_id UUID NOT NULL,
+    PRIMARY KEY (id),
+    UNIQUE (id, kind)
+);
+
+CREATE TABLE exercise_log_sets (
+    id UUID NOT NULL PRIMARY KEY,
+    parent_id UUID NOT NULL,
+    parent_kind TEXT NOT NULL DEFAULT 'strength' CHECK (parent_kind = 'strength'),
+    reps INTEGER,
+    FOREIGN KEY (parent_id, parent_kind) REFERENCES exercise_logs(id, kind)
+);

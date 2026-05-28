@@ -243,7 +243,8 @@ func (t *table) buildSingleInsertCTE(
 	role string,
 	sessionVariables map[string]any,
 ) ([]any, int, error) {
-	if t.permissionReferencesGeneratedColumns(role) {
+	presentCols := insertPresentColumns([]arguments.InsertObject{insertObj}, nestedFKIndex)
+	if t.requiresPostInsertCheck(role, presentCols) {
 		return t.buildSingleInsertCTEPostCheck(
 			b, cteName, insertObj, onConflict, nestedFKIndex,
 			params, paramIndex, role, sessionVariables,
@@ -293,20 +294,10 @@ func (t *table) buildInsertMutationCTE(
 
 	allColumns, columnToValue := t.collectAllColumns(insertObjs, nestedFKColumns)
 
-	if t.permissionReferencesGeneratedColumns(role) {
-		params, paramIndex, err = t.buildInsertMutationCTEPostCheck(
-			&b, insertObjs, allColumns, columnToValue,
-			nestedFKIndex, onConflict, role, sessionVariables,
-			params, paramIndex,
-		)
-	} else {
-		params, paramIndex, err = t.buildInsertMutationCTEPreCheck(
-			&b, insertObjs, allColumns, columnToValue,
-			nestedFKIndex, onConflict, role, sessionVariables,
-			params, paramIndex,
-		)
-	}
-
+	params, paramIndex, err = t.buildInsertMutationCTEBody(
+		&b, insertObjs, allColumns, columnToValue,
+		nestedFKIndex, onConflict, role, sessionVariables, params, paramIndex,
+	)
 	if err != nil {
 		return "", nil, 0, nil, err
 	}
@@ -328,4 +319,34 @@ func (t *table) buildInsertMutationCTE(
 	nestedCTEs := t.buildNestedCTEsMap(insertObjs)
 
 	return b.String(), params, paramIndex, nestedCTEs, nil
+}
+
+// buildInsertMutationCTEBody emits the check + INSERT CTEs for a top-level
+// insert, dispatching to the post-check path when the insert permission must
+// be validated against the inserted row (see requiresPostInsertCheck) or the
+// pre-check path otherwise.
+func (t *table) buildInsertMutationCTEBody(
+	b *strings.Builder,
+	insertObjs []arguments.InsertObject,
+	allColumns []string,
+	columnToValue []map[string]any,
+	nestedFKIndex map[string]string,
+	onConflict *arguments.OnConflict,
+	role string,
+	sessionVariables map[string]any,
+	params []any,
+	paramIndex int,
+) ([]any, int, error) {
+	presentCols := insertPresentColumns(insertObjs, nestedFKIndex)
+	if t.requiresPostInsertCheck(role, presentCols) {
+		return t.buildInsertMutationCTEPostCheck(
+			b, insertObjs, allColumns, columnToValue,
+			nestedFKIndex, onConflict, role, sessionVariables, params, paramIndex,
+		)
+	}
+
+	return t.buildInsertMutationCTEPreCheck(
+		b, insertObjs, allColumns, columnToValue,
+		nestedFKIndex, onConflict, role, sessionVariables, params, paramIndex,
+	)
 }

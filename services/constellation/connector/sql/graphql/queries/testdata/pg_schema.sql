@@ -349,3 +349,23 @@ INSERT INTO auth.refresh_token_types (value, comment) VALUES
 INSERT INTO public.department_roles (value, comment) VALUES
   ('member', 'Regular department member'),
   ('manager', 'Department manager');
+
+-- exercise_logs / exercise_log_sets: composite-FK + defaulted-discriminator
+-- fixture for the insert-permission post-check regression (see
+-- public_exercise_log_sets.yaml).
+CREATE TABLE public.exercise_logs (
+  id       UUID NOT NULL DEFAULT gen_random_uuid(),
+  kind     TEXT NOT NULL,
+  owner_id UUID NOT NULL,
+  PRIMARY KEY (id),
+  UNIQUE (id, kind)
+);
+
+CREATE TABLE public.exercise_log_sets (
+  id          UUID NOT NULL DEFAULT gen_random_uuid() PRIMARY KEY,
+  parent_id   UUID NOT NULL,
+  parent_kind TEXT NOT NULL DEFAULT 'strength' CHECK (parent_kind = 'strength'),
+  reps        INTEGER,
+  FOREIGN KEY (parent_id, parent_kind)
+    REFERENCES public.exercise_logs(id, kind) ON UPDATE CASCADE ON DELETE CASCADE
+);

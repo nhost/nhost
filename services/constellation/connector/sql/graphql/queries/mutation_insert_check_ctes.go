@@ -359,9 +359,58 @@ func (t *table) extendWithPermissionColumns(allColumns []string, role string) []
 	return t.permissions.ExtendInsertColumns(allColumns, role, t.columnFromSQLName)
 }
 
-// permissionReferencesGeneratedColumns delegates to permissions.Store.
-func (t *table) permissionReferencesGeneratedColumns(role string) bool {
-	return t.permissions.ReferencesGeneratedColumns(role, t.columnFromSQLName)
+// requiresPostInsertCheck reports whether the insert-check for role must run
+// after the INSERT (against RETURNING *) instead of against the input data.
+// See permissions.Store.RequiresPostInsertCheck for the rationale; presentCols
+// is the set of columns that carry a concrete value for every row, computed by
+// insertPresentColumns.
+func (t *table) requiresPostInsertCheck(
+	role string,
+	presentCols map[string]struct{},
+) bool {
+	return t.permissions.RequiresPostInsertCheck(role, presentCols, t.columnFromSQLName)
+}
+
+// insertPresentColumns returns the set of column SQL names that carry a
+// concrete value for every row in insertObjs: the intersection of the columns
+// explicitly supplied across all rows, plus FK columns whose value is sourced
+// from a parent CTE (nestedFKIndex). Columns outside this set fall back to
+// their database default for at least one row, which the pre-mutation check
+// can't observe — see requiresPostInsertCheck.
+func insertPresentColumns(
+	insertObjs []arguments.InsertObject,
+	nestedFKIndex map[string]string,
+) map[string]struct{} {
+	var present map[string]struct{}
+
+	for i, obj := range insertObjs {
+		rowCols := make(map[string]struct{}, len(obj.Columns))
+		for _, col := range obj.Columns {
+			rowCols[col.Column.SQLName] = struct{}{}
+		}
+
+		if i == 0 {
+			present = rowCols
+
+			continue
+		}
+
+		for col := range present {
+			if _, ok := rowCols[col]; !ok {
+				delete(present, col)
+			}
+		}
+	}
+
+	if present == nil {
+		present = make(map[string]struct{})
+	}
+
+	for col := range nestedFKIndex {
+		present[col] = struct{}{}
+	}
+
+	return present
 }
 
 // buildPostCheckCTEWithName builds a post-mutation permission check CTE with a custom name.

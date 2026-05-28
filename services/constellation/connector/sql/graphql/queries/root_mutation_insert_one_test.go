@@ -980,6 +980,53 @@ func TestInsertOneBuildQuery(t *testing.T) { //nolint:paralleltest,maintidx
 				Role: "generated_col_test",
 			},
 		},
+
+		// Insert through a composite-FK object relationship whose join column
+		// (parent_kind) is a DB-defaulted discriminator the client never supplies.
+		// Locks the post-check SQL shape and end-to-end execution (parent_kind
+		// defaults to 'strength' on insert, the check sees the real row).
+		{
+			name: "permissions: composite-FK relationship with defaulted discriminator",
+			query: query{
+				Query: `
+					mutation {
+					  insert_exercise_log_sets_one(
+						object: {
+						  parent_id: "0199aaaa-0000-7000-8000-000000000001"
+						  reps: 10
+						}
+					  ) {
+						parent_id
+						reps
+					  }
+					}`,
+				Role: "user",
+				SessionVariables: map[string]any{
+					"x-hasura-user-id": "550e8400-e29b-41d4-a716-446655440001",
+				},
+			},
+		},
+
+		{
+			name: "permissions: composite-FK relationship with defaulted discriminator (denied)",
+			query: query{
+				Query: `
+					mutation {
+					  insert_exercise_log_sets_one(
+						object: {
+						  parent_id: "0199aaaa-0000-7000-8000-000000000001"
+						  reps: 10
+						}
+					  ) {
+						parent_id
+					  }
+					}`,
+				Role: "user",
+				SessionVariables: map[string]any{
+					"x-hasura-user-id": "11111111-1111-1111-1111-111111111111",
+				},
+			},
+		},
 	}
 
 	testBuildQuery(t, cases, true)

@@ -547,6 +547,58 @@ func TestInsertMutations(t *testing.T) { //nolint:paralleltest,maintidx
 				},
 			},
 		},
+
+		// Multi-row insert through a composite-FK object relationship with a
+		// DB-defaulted discriminator join column (parent_kind, defaulted to
+		// 'strength' and pinned by CHECK). All rows must be inserted with the
+		// default applied before the check fires — locks Hasura parity for
+		// the buildInsertMutationCTE post-check dispatch on batches.
+		{
+			name: "permissions: multi-row composite-FK with defaulted discriminator",
+			query: query{
+				Query: `
+					mutation {
+					  insert_exercise_log_sets(objects: [
+						{ parent_id: "0199aaaa-0000-7000-8000-000000000001", reps: 5 }
+						{ parent_id: "0199aaaa-0000-7000-8000-000000000001", reps: 8 }
+					  ]) {
+						affected_rows
+						returning { parent_id reps }
+					  }
+					}`,
+				Variables: map[string]any{},
+				Role:      "user",
+				SessionVariables: map[string]string{
+					"user-id": "550e8400-e29b-41d4-a716-446655440001",
+				},
+			},
+		},
+
+		{
+			name: "permissions: multi-row composite-FK with defaulted discriminator (denied)",
+			query: query{
+				Query: `
+					mutation {
+					  insert_exercise_log_sets(objects: [
+						{ parent_id: "0199aaaa-0000-7000-8000-000000000001", reps: 5 }
+					  ]) {
+						affected_rows
+					  }
+					}`,
+				Variables: map[string]any{},
+				Role:      "user",
+				SessionVariables: map[string]string{
+					"user-id": "550e8400-e29b-41d4-a716-446655440099",
+				},
+			},
+			expected: map[string]any{
+				"errors": []any{
+					map[string]any{
+						"message": `failed to execute operations: failed to execute operation insert_exercise_log_sets: failed to scan result row: ERROR: check constraint of an insert/update permission has failed (SQLSTATE ZZ901)`,
+					},
+				},
+			},
+		},
 	}
 
 	RunGraphQLTests(t, cases, TestConfig{

@@ -37,6 +37,17 @@ func col(sqlName, sqlType string, generated bool) *core.Column {
 		GraphqlName: sqlName,
 		SQLType:     sqlType,
 		IsGenerated: generated,
+		HasDefault:  false,
+	}
+}
+
+func colWithDefault(sqlName, sqlType string) *core.Column {
+	return &core.Column{
+		SQLName:     sqlName,
+		GraphqlName: sqlName,
+		SQLType:     sqlType,
+		IsGenerated: false,
+		HasDefault:  true,
 	}
 }
 
@@ -461,7 +472,7 @@ func TestPermissionReferencesGeneratedColumnsBranching(t *testing.T) {
 
 	// Same insertObj and table layout in both cases; only the permission
 	// filter's column changes. This locks the branch decision inside
-	// permissionReferencesGeneratedColumns to the column.IsGenerated flag.
+	// requiresPostInsertCheck to the column.IsGenerated flag.
 	build := func(insertCheckCol *core.Column) (string, error) {
 		tbl := newTestTable(
 			t,
@@ -474,7 +485,8 @@ func TestPermissionReferencesGeneratedColumnsBranching(t *testing.T) {
 			insertCol(nameCol, "alice"),
 		}}
 
-		if tbl.permissionReferencesGeneratedColumns("user") {
+		presentCols := insertPresentColumns([]arguments.InsertObject{obj}, nil)
+		if tbl.requiresPostInsertCheck("user", presentCols) {
 			var b strings.Builder
 
 			_, _, err := tbl.buildSingleInsertCTEPostCheck(
@@ -520,5 +532,58 @@ func TestPermissionReferencesGeneratedColumnsBranching(t *testing.T) {
 
 	if strings.Contains(postSQL, "_check_count") {
 		t.Errorf("post-check path should not emit check_count CTE; got: %s", postSQL)
+	}
+}
+
+// TestRequiresPostInsertCheckDefaultedColumn covers the composite-FK /
+// defaulted-discriminator bug: an insert check that references a column with a
+// DEFAULT must run post-INSERT when that column is absent from the payload
+// (the pre-check would see NULL instead of the default), but may stay on the
+// fast pre-check path when the payload supplies the column.
+func TestRequiresPostInsertCheckDefaultedColumn(t *testing.T) {
+	t.Parallel()
+
+	idCol := col("id", "uuid", false)
+	kindCol := colWithDefault("kind", "text") // DEFAULT 'strength', pinned by CHECK
+
+	tbl := newTestTable(
+		t,
+		[]*core.Column{idCol, kindCol},
+		map[string]where.Clause{"user": equalsClause(kindCol, "v")},
+	)
+
+	// Absent from the payload -> must use post-check (default applies on insert).
+	absent := arguments.InsertObject{Columns: []arguments.InsertColumn{
+		insertCol(idCol, "u1"),
+	}}
+	if !tbl.requiresPostInsertCheck("user", insertPresentColumns(
+		[]arguments.InsertObject{absent}, nil,
+	)) {
+		t.Errorf("defaulted column absent from insert should require post-check")
+	}
+
+	// Supplied in the payload -> pre-check is safe (no divergence from NULL).
+	present := arguments.InsertObject{Columns: []arguments.InsertColumn{
+		insertCol(idCol, "u1"),
+		insertCol(kindCol, "strength"),
+	}}
+	if tbl.requiresPostInsertCheck("user", insertPresentColumns(
+		[]arguments.InsertObject{present}, nil,
+	)) {
+		t.Errorf("defaulted column supplied in insert should not require post-check")
+	}
+
+	// Multi-row: absent in any one row forces post-check (intersection rule).
+	if !tbl.requiresPostInsertCheck("user", insertPresentColumns(
+		[]arguments.InsertObject{present, absent}, nil,
+	)) {
+		t.Errorf("defaulted column missing from one row should require post-check")
+	}
+
+	// FK columns sourced from a parent CTE count as present.
+	if tbl.requiresPostInsertCheck("user", insertPresentColumns(
+		[]arguments.InsertObject{absent}, map[string]string{"kind": "parent_cte"},
+	)) {
+		t.Errorf("defaulted column sourced from parent CTE should not require post-check")
 	}
 }

@@ -867,6 +867,55 @@ func (s *Store) ReferencesGeneratedColumns(role string, lookup columnLookup) boo
 	return false
 }
 
+// RequiresPostInsertCheck reports whether the insert-check for role must be
+// evaluated after the INSERT (against RETURNING *) rather than against the
+// input data. The pre-mutation check builds its data subquery from the insert
+// payload, filling any referenced-but-absent column with NULL. That diverges
+// from the inserted row whenever a check-referenced column takes a database
+// value the payload doesn't carry:
+//
+//   - generated columns (value computed by the DB), or
+//   - columns with a DEFAULT that are absent from the insert payload — the
+//     pre-check sees NULL, but the inserted row carries the default.
+//
+// The divergence is silent and dangerous for relationship checks: a composite
+// FK join column (e.g. a pinned `parent_kind` discriminator) defaulted by the
+// DB would join on NULL and fail the check even though the row is valid.
+//
+// presentColumns is the set of column SQL names that carry a concrete value
+// for every row being inserted (the intersection across rows, plus FK columns
+// sourced from a parent CTE); a column outside it may fall back to its default
+// for at least one row.
+func (s *Store) RequiresPostInsertCheck(
+	role string,
+	presentColumns map[string]struct{},
+	lookup columnLookup,
+) bool {
+	clause, ok := s.Insert[role]
+	if !ok {
+		return false
+	}
+
+	for _, colName := range where.CollectSourceColumns(clause) {
+		col := lookup(colName)
+		if col == nil {
+			continue
+		}
+
+		if col.IsGenerated {
+			return true
+		}
+
+		if col.HasDefault {
+			if _, present := presentColumns[colName]; !present {
+				return true
+			}
+		}
+	}
+
+	return false
+}
+
 // MissingInsertColumns lists the columns the insert-check filter for role
 // references that aren't in present and aren't generated. Generated columns
 // are skipped — they require a post-mutation check (see

@@ -170,6 +170,11 @@ type Column struct {
 	// (GENERATED ALWAYS / STORED / VIRTUAL); such columns are excluded from
 	// insert and update mutation input types.
 	IsGenerated bool
+	// HasDefault is true when the column has a database DEFAULT expression.
+	// When such a column is omitted from an insert, the row carries the
+	// default rather than NULL, so an insert-check that references it (directly
+	// or via a relationship join column) must be evaluated after the INSERT.
+	HasDefault bool
 }
 
 // Operation is the function signature for the per-field SQL builders

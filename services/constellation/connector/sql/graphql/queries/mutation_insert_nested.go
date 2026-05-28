@@ -167,7 +167,8 @@ func (t *table) buildMultiNestedInsertCTE(
 
 	allColumns, columnToValue := t.collectAllColumns(insertObjs, nestedFKColumns)
 
-	if t.permissionReferencesGeneratedColumns(role) {
+	presentCols := insertPresentColumns(insertObjs, nestedFKIndex)
+	if t.requiresPostInsertCheck(role, presentCols) {
 		return t.buildMultiNestedInsertCTEPostCheck(
 			b, cteName, insertObjs, allColumns, columnToValue,
 			nestedFKIndex, onConflict, role, sessionVariables,

@@ -1832,6 +1832,126 @@ func TestReferencesGeneratedColumns_WithPermission(t *testing.T) {
 	})
 }
 
+func TestRequiresPostInsertCheck(t *testing.T) {
+	t.Parallel()
+
+	makeCol := func(name string, generated, hasDefault bool) *core.Column {
+		return &core.Column{
+			SQLName:     name,
+			IsGenerated: generated,
+			HasDefault:  hasDefault,
+		}
+	}
+
+	lookup := func(name string) *core.Column {
+		switch name {
+		case "id":
+			return makeCol("id", true, false) // generated
+		case "parent_kind":
+			return makeCol("parent_kind", false, true) // DB default
+		case "parent_id":
+			return makeCol("parent_id", false, false)
+		case "user_id":
+			return makeCol("user_id", false, false)
+		default:
+			return nil
+		}
+	}
+
+	insertCheck := func(cols ...string) where.Clause {
+		clause := where.Clause{}
+		for _, c := range cols {
+			clause = append(
+				clause,
+				where.NewEqualsFilter(&core.Column{SQLName: c}, nil, nil),
+			)
+		}
+
+		return clause
+	}
+
+	t.Run("generated column always triggers post-check", func(t *testing.T) {
+		t.Parallel()
+
+		s := NewStore()
+		s.Insert["user"] = insertCheck("id")
+
+		// Even if "id" were somehow "present" in the payload, generated
+		// columns can't be supplied — post-check is unconditional.
+		if !s.RequiresPostInsertCheck("user", map[string]struct{}{"id": {}}, lookup) {
+			t.Fatal("expected post-check when check references a generated column")
+		}
+	})
+
+	t.Run("defaulted column absent from payload triggers post-check", func(t *testing.T) {
+		t.Parallel()
+
+		s := NewStore()
+		s.Insert["user"] = insertCheck("parent_kind")
+
+		if !s.RequiresPostInsertCheck("user", map[string]struct{}{"parent_id": {}}, lookup) {
+			t.Fatal("expected post-check when defaulted check column is absent")
+		}
+	})
+
+	t.Run("defaulted column present in payload stays on pre-check", func(t *testing.T) {
+		t.Parallel()
+
+		s := NewStore()
+		s.Insert["user"] = insertCheck("parent_kind")
+
+		present := map[string]struct{}{"parent_id": {}, "parent_kind": {}}
+		if s.RequiresPostInsertCheck("user", present, lookup) {
+			t.Fatal("expected pre-check when defaulted check column is supplied")
+		}
+	})
+
+	t.Run("plain column referenced by check stays on pre-check", func(t *testing.T) {
+		t.Parallel()
+
+		s := NewStore()
+		s.Insert["user"] = insertCheck("user_id")
+
+		if s.RequiresPostInsertCheck("user", map[string]struct{}{}, lookup) {
+			t.Fatal("expected pre-check for non-generated, non-defaulted column")
+		}
+	})
+
+	t.Run("unknown column (lookup nil) is ignored", func(t *testing.T) {
+		t.Parallel()
+
+		s := NewStore()
+		s.Insert["user"] = insertCheck("ghost_column")
+
+		if s.RequiresPostInsertCheck("user", map[string]struct{}{}, lookup) {
+			t.Fatal("expected pre-check when referenced column isn't in the lookup")
+		}
+	})
+
+	t.Run("no insert clause for role is pre-check", func(t *testing.T) {
+		t.Parallel()
+
+		s := NewStore()
+
+		if s.RequiresPostInsertCheck("user", map[string]struct{}{}, lookup) {
+			t.Fatal("expected pre-check when role has no insert clause")
+		}
+	})
+
+	t.Run("multiple referenced columns: one defaulted-absent is enough", func(t *testing.T) {
+		t.Parallel()
+
+		s := NewStore()
+		s.Insert["user"] = insertCheck("user_id", "parent_kind")
+
+		// user_id present (would be pre-check on its own); parent_kind defaulted-absent.
+		present := map[string]struct{}{"user_id": {}}
+		if !s.RequiresPostInsertCheck("user", present, lookup) {
+			t.Fatal("expected post-check when any check column is defaulted-absent")
+		}
+	})
+}
+
 func TestStoreHasAccessors(t *testing.T) {
 	t.Parallel()
 
