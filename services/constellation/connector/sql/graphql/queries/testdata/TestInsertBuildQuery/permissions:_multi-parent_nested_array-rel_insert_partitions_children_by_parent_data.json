@@ -1,0 +1,17 @@
+[
+  [
+    {
+      "affected_rows": 5,
+      "returning": [
+        {
+          "id": "0199bbbb-0000-7000-8000-000000000030",
+          "title": "Parent one"
+        },
+        {
+          "title": "Parent two",
+          "id": "0199bbbb-0000-7000-8000-000000000031"
+        }
+      ]
+    }
+  ]
+]

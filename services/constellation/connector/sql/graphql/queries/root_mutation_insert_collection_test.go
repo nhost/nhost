@@ -792,6 +792,133 @@ func TestInsertBuildQuery(t *testing.T) { //nolint:paralleltest,maintidx
 		// term to the parent count. Pairs with the integration test of the
 		// same shape (TestInsertMutations / "object-rel nested ..."), which
 		// asserts the execution-time count matches Hasura's 2.
+		// Multi-parent nested array-rel insert. Two parents each with their
+		// own children: parent[0] has 2 replies, parent[1] has 1 reply.
+		// Locks the partitioned shape — every child is tagged with a
+		// `_parent_idx` literal and the INSERT joins against a row-numbered
+		// view of mutation_result on that column, so each reply lands on its
+		// rightful parent. Pre-bug, parent[1]'s reply was dropped during arg
+		// parsing and parent[0]'s replies were inserted twice (once per
+		// parent) via the unbounded cross-join.
+		{
+			name: "permissions: multi-parent nested array-rel insert partitions children by parent",
+			query: query{
+				Query: `
+					mutation {
+					  insert_notes(objects: [
+						{
+						  id: "0199bbbb-0000-7000-8000-000000000030"
+						  author_id: "550e8400-e29b-41d4-a716-446655440001"
+						  title: "Parent one"
+						  replies: {
+							data: [
+							  { body: "reply 1a" }
+							  { body: "reply 1b" }
+							]
+						  }
+						}
+						{
+						  id: "0199bbbb-0000-7000-8000-000000000031"
+						  author_id: "550e8400-e29b-41d4-a716-446655440001"
+						  title: "Parent two"
+						  replies: {
+							data: [
+							  { body: "reply 2a" }
+							]
+						  }
+						}
+					  ]) {
+						affected_rows
+						returning { id title }
+					  }
+					}`,
+				Role: "user",
+				SessionVariables: map[string]any{
+					"x-hasura-user-id": "550e8400-e29b-41d4-a716-446655440001",
+				},
+			},
+		},
+
+		// Multi-parent nested array-rel insert where parent[1]'s child trips
+		// the child's `visibility _eq "public"` insert check via
+		// `visibility: "private"`. With partitioning the offending row
+		// survives parse-time, reaches the post-check, and the mutation
+		// errors out — matching Hasura. Pre-bug, parent[1]'s row was
+		// silently dropped and the post-check passed: a permission bypass.
+		{
+			name: "permissions: multi-parent nested array-rel insert with private child trips post-check",
+			query: query{
+				Query: `
+					mutation {
+					  insert_notes(objects: [
+						{
+						  id: "0199bbbb-0000-7000-8000-000000000032"
+						  author_id: "550e8400-e29b-41d4-a716-446655440001"
+						  title: "Parent A"
+						  replies: {
+							data: [
+							  { body: "ok reply", visibility: "public" }
+							]
+						  }
+						}
+						{
+						  id: "0199bbbb-0000-7000-8000-000000000033"
+						  author_id: "550e8400-e29b-41d4-a716-446655440001"
+						  title: "Parent B"
+						  replies: {
+							data: [
+							  { body: "private reply", visibility: "private" }
+							]
+						  }
+						}
+					  ]) {
+						affected_rows
+					  }
+					}`,
+				Role: "user",
+				SessionVariables: map[string]any{
+					"x-hasura-user-id": "550e8400-e29b-41d4-a716-446655440001",
+				},
+			},
+		},
+
+		// Multi-parent variant where only parent[1] has nested children, so
+		// parent[0].NestedInserts is empty. Pre-bug, the code keyed off
+		// `insertObjs[0].NestedInserts` and skipped the relationship
+		// entirely; partitioning iterates every parent.
+		{
+			name: "permissions: multi-parent nested array-rel insert with children only on second parent",
+			query: query{
+				Query: `
+					mutation {
+					  insert_notes(objects: [
+						{
+						  id: "0199bbbb-0000-7000-8000-000000000034"
+						  author_id: "550e8400-e29b-41d4-a716-446655440001"
+						  title: "No children"
+						}
+						{
+						  id: "0199bbbb-0000-7000-8000-000000000035"
+						  author_id: "550e8400-e29b-41d4-a716-446655440001"
+						  title: "Has child"
+						  replies: {
+							data: [
+							  { body: "only child" }
+							]
+						  }
+						}
+					  ]) {
+						affected_rows
+						returning { id title }
+					  }
+					}`,
+				Role: "user",
+				SessionVariables: map[string]any{
+					"x-hasura-user-id": "550e8400-e29b-41d4-a716-446655440001",
+				},
+			},
+		},
+
 		{
 			name: "object-rel nested insert sums affected_rows over parent + nested CTE",
 			query: query{
