@@ -1218,7 +1218,10 @@ func (t *table) buildPartitionedUnionAllSelect(
 				continue
 			}
 
-			colType := t.columnSQLType(col)
+			var colType string
+			if tableCol := t.tableColumn(col); tableCol != nil {
+				colType = tableCol.SQLType
+			}
 
 			value, hasValue := columnToValue[i][col]
 			if hasValue {
