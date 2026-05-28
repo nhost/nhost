@@ -226,11 +226,12 @@ func (t *table) buildInsertCTE(
 
 // buildSingleInsertCTE builds the check_constraint CTE and INSERT statement for a single insert operation.
 // This is used for both top-level inserts and nested inserts to ensure consistent permissions handling.
-// Dispatches to the pre-check or post-check path depending on whether insert
-// permissions reference generated columns (whose values are only available
-// after the INSERT runs). tableSubs redirects relationship-EXISTS subqueries
-// that target a table being inserted into in the same statement to its
-// parent CTE — nil for top-level inserts, populated for nested ones.
+// Dispatches to the pre-check or post-check path via requiresPostInsertCheck:
+// post-check whenever a check-referenced column's final value is only known
+// after the INSERT (generated columns, or DB-defaulted columns absent from
+// the payload), pre-check otherwise. tableSubs redirects relationship-EXISTS
+// subqueries that target a table being inserted into in the same statement to
+// its parent CTE — nil for top-level inserts, populated for nested ones.
 func (t *table) buildSingleInsertCTE(
 	b *strings.Builder,
 	cteName string,

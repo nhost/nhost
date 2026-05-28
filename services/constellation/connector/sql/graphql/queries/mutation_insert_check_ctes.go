@@ -771,7 +771,9 @@ func (t *table) buildMutationResultInsertCTE(
 }
 
 // buildInsertMutationCTEPreCheck builds insert CTEs using the pre-mutation permission check
-// pattern. This is the default path when no generated columns are referenced by permissions.
+// pattern. This is the default path when no check-referenced column requires
+// post-INSERT evaluation (see requiresPostInsertCheck): the check predicate is
+// validated against the input data subquery before the INSERT runs.
 func (t *table) buildInsertMutationCTEPreCheck(
 	b *strings.Builder,
 	insertObjs []arguments.InsertObject,
@@ -816,8 +818,9 @@ func (t *table) buildInsertMutationCTEPreCheck(
 }
 
 // buildInsertMutationCTEPostCheck builds insert CTEs using the post-mutation permission check
-// pattern. This is used when generated columns are referenced by insert permissions, because
-// generated column values are only available after the INSERT (via RETURNING *).
+// pattern. This is used when an insert-check-referenced column's final value is only known
+// after the INSERT runs (generated columns, or DB-defaulted columns omitted from the payload —
+// see requiresPostInsertCheck), so the predicate is validated against RETURNING *.
 //
 // SQL structure:
 //

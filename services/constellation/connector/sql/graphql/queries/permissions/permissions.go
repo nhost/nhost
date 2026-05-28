@@ -8,7 +8,8 @@
 //     substitution;
 //   - helping insert-mutation CTE builders locate permission-referenced
 //     columns that aren't in the user's insert payload, and detecting when an
-//     insert check references generated columns (post-mutation check required).
+//     insert check requires post-mutation evaluation (generated columns, or
+//     DB-defaulted columns absent from the payload).
 //
 // The package depends on queries/where for filter parsing and queries/core
 // for the Column type. It does not emit any insert/update/delete-specific
