@@ -581,6 +581,7 @@ func TestInsertMutations(t *testing.T) { //nolint:paralleltest,maintidx
 					mutation {
 					  insert_exercise_log_sets(objects: [
 						{ parent_id: "0199aaaa-0000-7000-8000-000000000001", reps: 5 }
+						{ parent_id: "0199aaaa-0000-7000-8000-000000000001", reps: 8 }
 					  ]) {
 						affected_rows
 					  }
