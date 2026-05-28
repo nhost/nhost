@@ -1,0 +1,17 @@
+[
+  {
+    "Name": "insert_exercise_logs",
+    "SQL": "WITH check_mutation_result_0 AS (SELECT * FROM (SELECT $1::uuid AS \"id\", $2::text AS \"kind\", $3::uuid AS \"owner_id\") AS data WHERE true), mutation_result_0 AS (INSERT INTO \"public\".\"exercise_logs\" (\"id\", \"kind\", \"owner_id\") SELECT check_mutation_result_0.\"id\", check_mutation_result_0.\"kind\", check_mutation_result_0.\"owner_id\" FROM check_mutation_result_0 RETURNING *), check_mutation_result_1 AS (SELECT * FROM (SELECT $4::uuid AS \"id\", $5::text AS \"kind\", $6::uuid AS \"owner_id\") AS data WHERE true), mutation_result_1 AS (INSERT INTO \"public\".\"exercise_logs\" (\"id\", \"kind\", \"owner_id\") SELECT check_mutation_result_1.\"id\", check_mutation_result_1.\"kind\", check_mutation_result_1.\"owner_id\" FROM check_mutation_result_1 RETURNING *), mutation_result AS (SELECT mutation_result_0.\"id\", mutation_result_0.\"kind\", mutation_result_0.\"owner_id\" FROM mutation_result_0 UNION ALL SELECT mutation_result_1.\"id\", mutation_result_1.\"kind\", mutation_result_1.\"owner_id\" FROM mutation_result_1), check_nested_sets AS (SELECT * FROM (SELECT $7::int4 AS \"reps\", mutation_result_0.\"id\" AS \"parent_id\", mutation_result_0.\"kind\" AS \"parent_kind\" FROM mutation_result_0 UNION ALL SELECT $8::int4 AS \"reps\", mutation_result_1.\"id\" AS \"parent_id\", mutation_result_1.\"kind\" AS \"parent_kind\" FROM mutation_result_1) AS data WHERE true), nested_sets AS (INSERT INTO \"public\".\"exercise_log_sets\" (\"reps\", \"parent_id\", \"parent_kind\") SELECT check_nested_sets.\"reps\", check_nested_sets.\"parent_id\", check_nested_sets.\"parent_kind\" FROM check_nested_sets RETURNING *) SELECT json_build_object('affected_rows', ((SELECT COUNT(*) FROM mutation_result) + (SELECT COUNT(*) FROM nested_sets)))",
+    "Parameters": [
+      "0199aaaa-0000-7000-8000-000000000101",
+      "strength",
+      "550e8400-e29b-41d4-a716-446655440001",
+      "0199aaaa-0000-7000-8000-000000000102",
+      "strength",
+      "550e8400-e29b-41d4-a716-446655440001",
+      6,
+      8
+    ],
+    "StreamCursors": null
+  }
+]

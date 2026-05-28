@@ -209,6 +209,20 @@ func (mr *MockRelationshipMockRecorder) FKColumns() *gomock.Call {
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "FKColumns", reflect.TypeOf((*MockRelationship)(nil).FKColumns))
 }
 
+// FKSourceColumns mocks base method.
+func (m *MockRelationship) FKSourceColumns() map[string]string {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "FKSourceColumns")
+	ret0, _ := ret[0].(map[string]string)
+	return ret0
+}
+
+// FKSourceColumns indicates an expected call of FKSourceColumns.
+func (mr *MockRelationshipMockRecorder) FKSourceColumns() *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "FKSourceColumns", reflect.TypeOf((*MockRelationship)(nil).FKSourceColumns))
+}
+
 // IsArray mocks base method.
 func (m *MockRelationship) IsArray() bool {
 	m.ctrl.T.Helper()

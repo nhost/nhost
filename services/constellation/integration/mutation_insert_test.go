@@ -761,19 +761,16 @@ func TestInsertMutations(t *testing.T) { //nolint:paralleltest,maintidx
 			},
 		},
 
-		// Multi-row sibling of the single-row denial: parent pre-check passes
-		// for every row, so each child runs through
-		// buildMultiNestedInsertCTEPostCheck with tableSubs pointing the
-		// note.author_id EXISTS at the parents' in-flight mutation_result CTE.
-		// One child supplies `visibility: "private"` to trip the leaf
-		// `visibility _eq "public"` half of the child's `_and`; the
-		// substituted relationship half still passes, so the denial
-		// demonstrably comes from the child post-check evaluated against
-		// RETURNING *. Multi-parent partitioning is required: parent 2's
-		// private reply must reach the post-check (not be silently dropped),
-		// and parent 1's "ok reply" must not be cross-joined onto parent 2.
+		// Multi-parent nested array-rel insert where parent[1]'s child trips
+		// the child's `visibility _eq "public"` insert check via
+		// `visibility: "private"`. Because every child explicitly supplies
+		// visibility, the child insert stays on the pre-check path. With
+		// partitioning the offending row survives parse-time, reaches the
+		// pre-check with its matched parent FK, and the mutation errors out —
+		// matching Hasura. Pre-bug, parent[1]'s row was silently dropped and
+		// the check passed: a permission bypass.
 		{
-			name: "permissions: multi-row parent insert denied at substituted child post-check (visibility private)",
+			name: "permissions: multi-parent nested array-rel insert with private child trips pre-check",
 			query: query{
 				Query: `
 					mutation {

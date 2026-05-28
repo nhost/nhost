@@ -156,16 +156,15 @@ func (t *table) buildInsertSelectClause(
 	b *strings.Builder,
 	columns []string,
 	checkCTEName string,
-	nestedFKIndex map[string]string,
+	nestedFKIndex arguments.NestedFKSources,
 ) {
 	for i, col := range columns {
 		if i > 0 {
 			b.WriteString(", ")
 		}
 
-		if refCTEName, isNested := nestedFKIndex[col]; isNested {
-			b.WriteString(refCTEName)
-			b.WriteString(".\"id\"")
+		if source, isNested := nestedFKIndex[col]; isNested {
+			writeFKSourceColumn(b, source.CTEName, source.ColumnName)
 		} else {
 			b.WriteString(checkCTEName)
 			b.WriteByte('.')
@@ -178,15 +177,41 @@ func (t *table) buildInsertSelectClause(
 func (t *table) buildInsertFromClause(
 	b *strings.Builder,
 	checkCTEName string,
-	nestedFKIndex map[string]string,
+	nestedFKIndex arguments.NestedFKSources,
 ) {
 	b.WriteString(" FROM ")
 	b.WriteString(checkCTEName)
 
-	for _, refCTEName := range nestedFKIndex {
+	for _, refCTEName := range sortedNestedFKSourceCTEs(nestedFKIndex) {
 		b.WriteString(", ")
 		b.WriteString(refCTEName)
 	}
+}
+
+func sortedNestedFKSourceCTEs(nestedFKIndex arguments.NestedFKSources) []string {
+	if len(nestedFKIndex) == 0 {
+		return nil
+	}
+
+	seen := make(map[string]struct{}, len(nestedFKIndex))
+	ctes := make([]string, 0, len(nestedFKIndex))
+
+	for _, source := range nestedFKIndex {
+		if source.CTEName == "" {
+			continue
+		}
+
+		if _, ok := seen[source.CTEName]; ok {
+			continue
+		}
+
+		seen[source.CTEName] = struct{}{}
+		ctes = append(ctes, source.CTEName)
+	}
+
+	sort.Strings(ctes)
+
+	return ctes
 }
 
 // buildInsertWhereClause builds the WHERE clause for the INSERT statement.
@@ -212,7 +237,7 @@ func (t *table) buildInsertCTE(
 	insertObj arguments.InsertObject,
 	onConflict *arguments.OnConflict,
 	checkCTEName string,
-	nestedFKIndex map[string]string,
+	nestedFKIndex arguments.NestedFKSources,
 	hasCheckPermissions bool,
 	params []any,
 	paramIndex int,
@@ -255,7 +280,7 @@ func (t *table) buildSingleInsertCTE(
 	cteName string,
 	insertObj arguments.InsertObject,
 	onConflict *arguments.OnConflict,
-	nestedFKIndex map[string]string, // column -> CTE name mapping for foreign keys
+	nestedFKIndex arguments.NestedFKSources, // column -> source CTE column for foreign keys
 	tableSubs where.TableSubstitutions,
 	params []any,
 	paramIndex int,
@@ -304,12 +329,12 @@ func (t *table) buildInsertMutationCTE(
 		b.WriteString(", ")
 	}
 
-	nestedFKIndex := t.buildNestedFKIndex(insertObjs)
-
-	nestedFKColumns := make(map[string]struct{})
-	for col := range nestedFKIndex {
-		nestedFKColumns[col] = struct{}{}
+	nestedFKIndex, err := t.buildNestedFKIndex(insertObjs)
+	if err != nil {
+		return "", nil, 0, nil, err
 	}
+
+	nestedFKColumns := nestedFKColumnSet(nestedFKIndex)
 
 	if len(insertObjs) > 1 && hasArrayNestedInserts(insertObjs) {
 		params, paramIndex, err = t.buildPartitionedParentInsertMutationCTEBody(
@@ -328,8 +353,8 @@ func (t *table) buildInsertMutationCTE(
 		return "", nil, 0, nil, err
 	}
 
-	// Array-relationship nested CTEs reference mutation_result.<pk>, so they
-	// have to be emitted after the parent INSERT CTE.
+	// Array-relationship nested CTEs reference columns from mutation_result, so
+	// they have to be emitted after the parent INSERT CTE.
 	arrayNestedSQL, params, paramIndex, err := t.buildArrayNestedInsertCTEs(
 		insertObjs, role, sessionVariables, params, paramIndex,
 	)
@@ -342,16 +367,19 @@ func (t *table) buildInsertMutationCTE(
 		b.WriteString(arrayNestedSQL)
 	}
 
-	nestedCTEs := t.buildNestedCTEsMap(insertObjs)
+	nestedCTEs, err := t.buildNestedCTEsMap(insertObjs)
+	if err != nil {
+		return "", nil, 0, nil, err
+	}
 
 	return b.String(), params, paramIndex, nestedCTEs, nil
 }
 
-// sortedNestedCTEValues extracts and sorts the CTE names from the
-// nestedCTEs map (keyed by relationship name) so the affected_rows
-// projection's `+ (SELECT COUNT(*) FROM …)` order is deterministic for
-// golden-file diffs. Sorting on the CTE name keeps the convention used
-// by `nested_<rel>` so multi-relationship inserts produce stable SQL.
+// sortedNestedCTEValues extracts and sorts the CTE names from the nestedCTEs
+// map so the affected_rows projection's `+ (SELECT COUNT(*) FROM …)` order is
+// deterministic for golden-file diffs. Sorting on the CTE name keeps the
+// convention used by `nested_<rel>` so multi-relationship inserts produce
+// stable SQL, including split CTEs for incompatible nested on_conflict clauses.
 func sortedNestedCTEValues(nestedCTEs map[string]string) []string {
 	if len(nestedCTEs) == 0 {
 		return nil
@@ -376,7 +404,7 @@ func (t *table) buildInsertMutationCTEBody(
 	insertObjs []arguments.InsertObject,
 	allColumns []string,
 	columnToValue []map[string]any,
-	nestedFKIndex map[string]string,
+	nestedFKIndex arguments.NestedFKSources,
 	onConflict *arguments.OnConflict,
 	role string,
 	sessionVariables map[string]any,

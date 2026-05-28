@@ -359,15 +359,15 @@ func parseLogicalOr(
 // (`{}` or `_and: []`) is always true, and Hasura keeps it as a true disjunct
 // (e.g. `_or: [{}, ...]` matches everything). Returning the constant avoids an
 // empty fragment inside the parenthesised OR.
-func orElement(conditions Clause) Statement { //nolint:ireturn
+func orElement(conditions Clause) Clause {
 	if len(conditions) == 0 {
-		return boolConstant(true)
+		return Clause{boolConstant(true)}
 	}
 
 	return conditions
 }
 
-func parseLogicalNot( //nolint:ireturn
+func parseLogicalNot(
 	t Table,
 	value *ast.Value,
 	variables map[string]any,
