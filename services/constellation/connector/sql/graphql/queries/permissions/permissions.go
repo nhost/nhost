@@ -847,26 +847,6 @@ func (s *Store) WriteDeleteFilter(
 // and we only need a one-shot lookup when inspecting insert-check filters.
 type columnLookup func(sqlName string) *core.Column
 
-// ReferencesGeneratedColumns reports whether the insert-check filter for role
-// references any generated column. When it does, the pre-mutation check CTE
-// can't validate that column (it would be NULL in the data subquery), so the
-// caller must use a post-mutation check against RETURNING * instead.
-func (s *Store) ReferencesGeneratedColumns(role string, lookup columnLookup) bool {
-	clause, ok := s.Insert[role]
-	if !ok {
-		return false
-	}
-
-	for _, colName := range where.CollectSourceColumns(clause) {
-		col := lookup(colName)
-		if col != nil && col.IsGenerated {
-			return true
-		}
-	}
-
-	return false
-}
-
 // RequiresPostInsertCheck reports whether the insert-check for role must be
 // evaluated after the INSERT (against RETURNING *) rather than against the
 // input data. The pre-mutation check builds its data subquery from the insert
@@ -919,7 +899,7 @@ func (s *Store) RequiresPostInsertCheck(
 // MissingInsertColumns lists the columns the insert-check filter for role
 // references that aren't in present and aren't generated. Generated columns
 // are skipped — they require a post-mutation check (see
-// ReferencesGeneratedColumns).
+// RequiresPostInsertCheck).
 //
 // Returned in source-walk order, deduplicated. Useful for emitting NULL
 // placeholders in the pre-mutation check data subquery so the WHERE doesn't

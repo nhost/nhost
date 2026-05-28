@@ -591,30 +591,6 @@ func TestFixColumns_LogicalOperators(t *testing.T) {
 	})
 }
 
-func TestReferencesGeneratedColumns(t *testing.T) {
-	t.Parallel()
-
-	lookup := func(name string) *core.Column {
-		switch name {
-		case "id":
-			return &core.Column{SQLName: "id", IsGenerated: true}
-		case "user_id":
-			return &core.Column{SQLName: "user_id", IsGenerated: false}
-		default:
-			return nil
-		}
-	}
-
-	t.Run("no insert permission for role", func(t *testing.T) {
-		t.Parallel()
-
-		s := NewStore()
-		if s.ReferencesGeneratedColumns("user", lookup) {
-			t.Fatal("expected false when role has no insert permission")
-		}
-	})
-}
-
 func TestExtendInsertColumns_NoPermission(t *testing.T) {
 	t.Parallel()
 
@@ -1784,52 +1760,6 @@ func TestMissingInsertColumns_WithPermission(t *testing.T) {
 	if diff := cmp.Diff(wantNames, gotNames); diff != "" {
 		t.Errorf("MissingInsertColumns names mismatch (-want +got):\n%s", diff)
 	}
-}
-
-func TestReferencesGeneratedColumns_WithPermission(t *testing.T) {
-	t.Parallel()
-
-	gen := func(name string, generated bool) *core.Column {
-		return &core.Column{SQLName: name, IsGenerated: generated}
-	}
-
-	lookup := func(name string) *core.Column {
-		switch name {
-		case "id":
-			return gen("id", true)
-		case "user_id":
-			return gen("user_id", false)
-		default:
-			return nil
-		}
-	}
-
-	t.Run("returns true when a generated column is referenced", func(t *testing.T) {
-		t.Parallel()
-
-		s := NewStore()
-		s.Insert["user"] = where.Clause{
-			where.NewEqualsFilter(&core.Column{SQLName: "user_id"}, nil, nil),
-			where.NewEqualsFilter(&core.Column{SQLName: "id"}, nil, nil),
-		}
-
-		if !s.ReferencesGeneratedColumns("user", lookup) {
-			t.Fatal("expected true when insert filter references a generated column")
-		}
-	})
-
-	t.Run("returns false when no referenced column is generated", func(t *testing.T) {
-		t.Parallel()
-
-		s := NewStore()
-		s.Insert["user"] = where.Clause{
-			where.NewEqualsFilter(&core.Column{SQLName: "user_id"}, nil, nil),
-		}
-
-		if s.ReferencesGeneratedColumns("user", lookup) {
-			t.Fatal("expected false when no referenced column is generated")
-		}
-	})
 }
 
 func TestRequiresPostInsertCheck(t *testing.T) {

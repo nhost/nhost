@@ -288,8 +288,7 @@ func TestBuildUnionAllSelectFKFromParentCTE(t *testing.T) {
 	}
 }
 
-// permTableFor returns the permTable adapter usable for tests that need to
-// install where.Clause values into Store.Insert directly via t.permissions.
+// equalsClause returns a where.Clause with a single equals filter on c = v.
 func equalsClause(c *core.Column, v any) where.Clause {
 	return where.Clause{where.NewEqualsFilter(c, v, &dialect.PostgresDialect{})}
 }
@@ -462,7 +461,7 @@ func TestBuildSingleInsertCTEPostCheckShape(t *testing.T) {
 	}
 }
 
-func TestPermissionReferencesGeneratedColumnsBranching(t *testing.T) {
+func TestRequiresPostInsertCheckBranching(t *testing.T) {
 	t.Parallel()
 
 	idCol := col("id", "uuid", false)
