@@ -32,7 +32,11 @@ func (w Clause) WriteCondition(
 	for i, condition := range w {
 		params, paramIndex, err = condition.WriteCondition(b, source, params, paramIndex)
 		if err != nil {
-			return nil, 0, fmt.Errorf("failed to write where condition at pos %d: %w", i, err)
+			return nil, 0, fmt.Errorf(
+				"failed to write where condition at pos %d: %w",
+				i,
+				err,
+			)
 		}
 
 		if i < len(w)-1 {
@@ -43,27 +47,20 @@ func (w Clause) WriteCondition(
 	return params, paramIndex, nil
 }
 
-func parseWhereResolveVariable(
-	whereArg *ast.Value,
-	variables map[string]any,
-) (*ast.Value, error) {
-	whereArg, err := values.ResolveVariable(whereArg, variables)
-	if err != nil {
-		return nil, fmt.Errorf("resolving where variable: %w", err)
-	}
-
-	if whereArg.Kind != ast.ObjectValue {
-		return nil, fmt.Errorf("%w: got %v", errExpectedObjectValue, whereArg.Kind)
-	}
-
-	return whereArg, nil
-}
-
-// Parse parses a GraphQL where-clause argument value into a Clause.
-// It walks the object, dispatching logical combinators, _exists, field
-// comparisons, and relationship traversals. nestingLevel and aliases control
-// alias generation for EXISTS subqueries; pass 0 and QueryAliases at the top
-// level for user queries, PermissionAliases for permission filters.
+// Parse parses a top-level GraphQL where-clause argument into a Clause. The
+// where argument is nullable, matching Hasura: a literal `where: null` or a
+// variable that resolves to null (`where: $where` with $where = null) imposes
+// no filter and yields a nil clause, exactly like omitting the argument. A
+// genuinely omitted variable still errors, since values.ResolveVariable returns
+// ErrVariableNotFound for a key absent from the variables map.
+//
+// Every nested bool_exp position (a relationship, `_not`, or an `_and`/`_or`
+// element) goes through parseBoolExp instead, which rejects an explicit null:
+// Hasura permits null only for the top-level argument.
+//
+// nestingLevel and aliases control alias generation for EXISTS subqueries; pass
+// 0 and QueryAliases at the top level for user queries, PermissionAliases for
+// permission filters.
 func Parse(
 	t Table,
 	whereArg *ast.Value,
@@ -77,9 +74,41 @@ func Parse(
 		return nil, nil
 	}
 
-	whereArg, err := parseWhereResolveVariable(whereArg, variables)
+	resolved, err := values.ResolveVariable(whereArg, variables)
 	if err != nil {
-		return nil, err
+		return nil, fmt.Errorf("resolving where variable: %w", err)
+	}
+
+	if resolved.Kind == ast.NullValue {
+		return nil, nil
+	}
+
+	return parseBoolExp(
+		t, resolved, variables, role, sessionVariables, nestingLevel, aliases,
+	)
+}
+
+// parseBoolExp parses a non-null bool_exp object into a Clause. It backs the
+// resolved top-level argument and every nested bool_exp position. A value that
+// resolves to anything other than an object -- including an explicit null -- is
+// a validation error, matching Hasura, which only treats the top-level where
+// argument as nullable.
+func parseBoolExp(
+	t Table,
+	whereArg *ast.Value,
+	variables map[string]any,
+	role string,
+	sessionVariables map[string]any,
+	nestingLevel int,
+	aliases Aliases,
+) (Clause, error) {
+	whereArg, err := values.ResolveVariable(whereArg, variables)
+	if err != nil {
+		return nil, fmt.Errorf("resolving where variable: %w", err)
+	}
+
+	if whereArg.Kind != ast.ObjectValue {
+		return nil, fmt.Errorf("%w: got %v", errExpectedObjectValue, whereArg.Kind)
 	}
 
 	conditions := make(Clause, 0, len(whereArg.Children))
@@ -202,10 +231,13 @@ func parseFieldOrRelationship( //nolint:ireturn,nolintlint
 }
 
 // parseRelationshipField builds a relationshipFilter by recursively parsing
-// the nested where object against the relationship's target table. The
-// nil-Clause guard preserves a nil Statement interface rather than wrapping
-// a nil Clause in a non-nil interface, which downstream WriteCondition
-// callers rely on.
+// the nested where object against the relationship's target table via
+// parseBoolExp, so a null nested filter (`relationship: null`) is rejected like
+// Hasura does. An empty nested object (`relationship: {}`) parses to an empty
+// clause: the empty-Clause guard leaves conds as a nil Statement interface so
+// the filter renders the EXISTS join with no inner predicate (Hasura's
+// "any related row exists"), rather than wrapping an empty clause in a non-nil
+// interface, which downstream WriteCondition callers must not see.
 func parseRelationshipField(
 	relationship Relationship,
 	value *ast.Value,
@@ -215,7 +247,7 @@ func parseRelationshipField(
 	nestingLevel int,
 	aliases Aliases,
 ) (*relationshipFilter, error) {
-	relationshipConditions, err := Parse(
+	relationshipConditions, err := parseBoolExp(
 		relationship.Target(),
 		value,
 		variables,
@@ -229,7 +261,7 @@ func parseRelationshipField(
 	}
 
 	var conds Statement
-	if relationshipConditions != nil {
+	if len(relationshipConditions) > 0 {
 		conds = relationshipConditions
 	}
 
@@ -253,7 +285,15 @@ func parseLogicalAnd(
 	aliases Aliases,
 ) (Clause, error) {
 	if value.Kind == ast.ObjectValue {
-		return Parse(t, value, variables, role, sessionVariables, nestingLevel, aliases)
+		return parseBoolExp(
+			t,
+			value,
+			variables,
+			role,
+			sessionVariables,
+			nestingLevel,
+			aliases,
+		)
 	}
 
 	if value.Kind != ast.ListValue {
@@ -263,7 +303,7 @@ func parseLogicalAnd(
 	conditions := make(Clause, 0, len(value.Children))
 
 	for _, item := range value.Children {
-		itemConditions, err := Parse(
+		itemConditions, err := parseBoolExp(
 			t, item.Value, variables, role, sessionVariables, nestingLevel, aliases,
 		)
 		if err != nil {
@@ -286,14 +326,14 @@ func parseLogicalOr(
 	aliases Aliases,
 ) (*orFilter, error) {
 	if value.Kind == ast.ObjectValue {
-		itemConditions, err := Parse(
+		itemConditions, err := parseBoolExp(
 			t, value, variables, role, sessionVariables, nestingLevel, aliases,
 		)
 		if err != nil {
 			return nil, err
 		}
 
-		return &orFilter{conditions: []Statement{itemConditions}}, nil
+		return &orFilter{conditions: []Statement{orElement(itemConditions)}}, nil
 	}
 
 	if value.Kind != ast.ListValue {
@@ -302,20 +342,32 @@ func parseLogicalOr(
 
 	orConditions := make([]Statement, 0, len(value.Children))
 	for _, item := range value.Children {
-		itemConditions, err := Parse(
+		itemConditions, err := parseBoolExp(
 			t, item.Value, variables, role, sessionVariables, nestingLevel, aliases,
 		)
 		if err != nil {
 			return nil, err
 		}
 
-		orConditions = append(orConditions, itemConditions)
+		orConditions = append(orConditions, orElement(itemConditions))
 	}
 
 	return &orFilter{conditions: orConditions}, nil
 }
 
-func parseLogicalNot(
+// orElement renders one element of an `_or` list. An empty bool_exp element
+// (`{}` or `_and: []`) is always true, and Hasura keeps it as a true disjunct
+// (e.g. `_or: [{}, ...]` matches everything). Returning the constant avoids an
+// empty fragment inside the parenthesised OR.
+func orElement(conditions Clause) Statement { //nolint:ireturn
+	if len(conditions) == 0 {
+		return boolConstant(true)
+	}
+
+	return conditions
+}
+
+func parseLogicalNot( //nolint:ireturn
 	t Table,
 	value *ast.Value,
 	variables map[string]any,
@@ -323,12 +375,21 @@ func parseLogicalNot(
 	sessionVariables map[string]any,
 	nestingLevel int,
 	aliases Aliases,
-) (*notFilter, error) {
-	conditions, err := Parse(
+) (Statement, error) {
+	conditions, err := parseBoolExp(
 		t, value, variables, role, sessionVariables, nestingLevel, aliases,
 	)
 	if err != nil {
 		return nil, err
+	}
+
+	// `_not: {}` (and `_not: {_and: []}`) negate the always-true empty bool_exp,
+	// so they are always false -- matching Hasura, where `_not: {}` returns no
+	// rows. Emit the constant rather than `NOT ()`, which is invalid SQL.
+	// `_not: null` never reaches here: parseBoolExp rejects a null bool_exp, as
+	// Hasura does.
+	if len(conditions) == 0 {
+		return boolConstant(false), nil
 	}
 
 	return &notFilter{condition: conditions}, nil
@@ -352,7 +413,10 @@ func resolveScalarValue(operatorValue *ast.Value, variables map[string]any) (any
 
 // resolveArrayValue resolves a variable reference and extracts an array of values.
 // This is the common pattern for array operators (_in, _nin).
-func resolveArrayValue(operatorValue *ast.Value, variables map[string]any) ([]any, error) {
+func resolveArrayValue(
+	operatorValue *ast.Value,
+	variables map[string]any,
+) ([]any, error) {
 	resolved, err := values.ResolveVariable(operatorValue, variables)
 	if err != nil {
 		return nil, fmt.Errorf("resolving array variable: %w", err)
@@ -368,7 +432,10 @@ func resolveArrayValue(operatorValue *ast.Value, variables map[string]any) ([]an
 
 // resolveStringArrayValue resolves a variable reference and extracts a string array.
 // This is the common pattern for JSONB key operators (_has_keys_all, _has_keys_any).
-func resolveStringArrayValue(operatorValue *ast.Value, variables map[string]any) ([]string, error) {
+func resolveStringArrayValue(
+	operatorValue *ast.Value,
+	variables map[string]any,
+) ([]string, error) {
 	resolved, err := values.ResolveVariable(operatorValue, variables)
 	if err != nil {
 		return nil, fmt.Errorf("resolving string array variable: %w", err)
@@ -442,7 +509,11 @@ func (f *andFilter) WriteCondition(
 
 		params, paramIndex, err = condition.WriteCondition(b, source, params, paramIndex)
 		if err != nil {
-			return nil, 0, fmt.Errorf("failed to write AND condition at pos %d: %w", i, err)
+			return nil, 0, fmt.Errorf(
+				"failed to write AND condition at pos %d: %w",
+				i,
+				err,
+			)
 		}
 	}
 
@@ -459,13 +530,25 @@ func (f *orFilter) WriteCondition(
 	params []any,
 	paramIndex int,
 ) ([]any, int, error) {
+	// An empty disjunction (`_or: []`) is false, matching Hasura. Rendering the
+	// constant also avoids the invalid empty `()` fragment.
+	if len(f.conditions) == 0 {
+		b.WriteString("false")
+
+		return params, paramIndex, nil
+	}
+
 	b.WriteByte('(')
 
 	var err error
 	for i, clause := range f.conditions {
 		params, paramIndex, err = clause.WriteCondition(b, source, params, paramIndex)
 		if err != nil {
-			return nil, 0, fmt.Errorf("failed to write OR condition at pos %d: %w", i, err)
+			return nil, 0, fmt.Errorf(
+				"failed to write OR condition at pos %d: %w",
+				i,
+				err,
+			)
 		}
 
 		if i < len(f.conditions)-1 {
@@ -474,6 +557,24 @@ func (f *orFilter) WriteCondition(
 	}
 
 	b.WriteByte(')')
+
+	return params, paramIndex, nil
+}
+
+// boolConstant renders a SQL boolean literal for logical expressions whose
+// truth value is fixed regardless of any row: an empty `_or` element is true, a
+// `_not` of the always-true empty bool_exp is false. Mirrors how Hasura
+// evaluates these degenerate forms.
+type boolConstant bool
+
+func (c boolConstant) WriteCondition(
+	b *strings.Builder, _ string, params []any, paramIndex int,
+) ([]any, int, error) {
+	if c {
+		b.WriteString("true")
+	} else {
+		b.WriteString("false")
+	}
 
 	return params, paramIndex, nil
 }
