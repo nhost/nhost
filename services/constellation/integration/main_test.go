@@ -22,6 +22,22 @@ const (
 	defaultDBURL = "postgresql://postgres:postgres@localhost:5432/local"
 )
 
+func connectIntegrationDB(t *testing.T) *pgx.Conn {
+	t.Helper()
+
+	dbURL := os.Getenv("DATABASE_URL")
+	if dbURL == "" {
+		dbURL = defaultDBURL
+	}
+
+	conn, err := pgx.Connect(t.Context(), dbURL)
+	if err != nil {
+		t.Fatalf("failed to connect to database: %v", err)
+	}
+
+	return conn
+}
+
 // ReinitializeTestData cleans all seeded tables and re-applies the seed data
 // from integration/nhost/seeds/default directory.
 // This should be called before mutation tests to ensure a clean, stable state.
@@ -38,15 +54,7 @@ const (
 func ReinitializeTestData(t *testing.T) {
 	t.Helper()
 
-	dbURL := os.Getenv("DATABASE_URL")
-	if dbURL == "" {
-		dbURL = defaultDBURL
-	}
-
-	conn, err := pgx.Connect(t.Context(), dbURL)
-	if err != nil {
-		t.Fatalf("failed to connect to database: %v", err)
-	}
+	conn := connectIntegrationDB(t)
 	defer conn.Close(t.Context())
 
 	// Clean all tables in reverse dependency order
@@ -138,9 +146,22 @@ type query struct {
 
 // TestCase represents a single test case for GraphQL queries/mutations.
 type TestCase struct {
-	name     string
-	query    query
-	expected any
+	name                     string
+	query                    query
+	expected                 any
+	assertConstellationState func(t *testing.T)
+}
+
+func (tc TestCase) assertResult(t *testing.T, hasuraResp, constellationResp any) {
+	t.Helper()
+
+	if diff := cmp.Diff(hasuraResp, constellationResp); diff != "" {
+		t.Errorf("responses differ (-hasura +constellation):\n%s", diff)
+	}
+
+	if tc.assertConstellationState != nil {
+		tc.assertConstellationState(t)
+	}
 }
 
 // TestConfig configures how the test runner should execute tests.
@@ -310,10 +331,8 @@ func RunGraphQLTests(t *testing.T, cases []TestCase, config TestConfig) {
 				t.Logf("🐌 Constellation was slower by %s for test case: %s", delta, tc.name)
 			}
 
-			// Compare responses
-			if diff := cmp.Diff(hasuraResp, constellationResp); diff != "" {
-				t.Errorf("responses differ (-hasura +constellation):\n%s", diff)
-			}
+			// Compare responses and optional side effects.
+			tc.assertResult(t, hasuraResp, constellationResp)
 		})
 	}
 }
