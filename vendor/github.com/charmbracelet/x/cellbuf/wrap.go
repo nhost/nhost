@@ -8,6 +8,8 @@ import (
 	"github.com/charmbracelet/x/ansi"
 )
 
+const nbsp = '\u00a0'
+
 // Wrap returns a string that is wrapped to the specified limit applying any
 // ANSI escape sequences in the string. It tries to wrap the string at word
 // boundaries, but will break words if necessary.
@@ -38,6 +40,11 @@ func Wrap(s string, limit int, breakpoints string) string {
 		curWidth        int
 		wordLen         int
 	)
+
+	hasBlankStyle := func() bool {
+		// Only follow reverse attribute, bg color and underline style
+		return !style.Attrs.Contains(ReverseAttr) && style.Bg == nil && style.UlStyle == NoUnderline
+	}
 
 	addSpace := func() {
 		curWidth += space.Len()
@@ -114,7 +121,7 @@ func Wrap(s string, limit int, breakpoints string) string {
 			if len(seq) == 1 {
 				// ASCII
 				r, _ := utf8.DecodeRuneInString(seq)
-				if unicode.IsSpace(r) {
+				if r != nbsp && unicode.IsSpace(r) && hasBlankStyle() {
 					addWord()
 					space.WriteRune(r)
 					break
