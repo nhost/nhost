@@ -1,5 +1,0 @@
-mutation insertAnnouncementRead($announcementID: uuid!) {
-  insertAnnouncementRead(object: { announcementID: $announcementID }) {
-    id
-  }
-}

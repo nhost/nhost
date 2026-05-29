@@ -1,8 +1,0 @@
-mutation insertOrgApplication($app: apps_insert_input!) {
-  insertApp(object: $app) {
-    id
-    name
-    slug
-    subdomain
-  }
-}

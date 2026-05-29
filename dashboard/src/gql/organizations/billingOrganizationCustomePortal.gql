@@ -1,3 +1,0 @@
-query billingOrganizationCustomePortal($organizationID: uuid!) {
-  billingOrganizationCustomePortal(organizationID: $organizationID)
-}

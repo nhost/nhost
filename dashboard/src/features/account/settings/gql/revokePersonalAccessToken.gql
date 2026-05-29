@@ -1,6 +1,0 @@
-mutation DeletePersonalAccessToken($patId: uuid!) {
-  deletePersonalAccessToken: deleteAuthRefreshToken(id: $patId) {
-    id
-    metadata
-  }
-}

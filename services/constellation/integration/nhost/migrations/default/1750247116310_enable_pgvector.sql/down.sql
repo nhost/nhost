@@ -1,2 +1,0 @@
-SET ROLE postgres;
-DROP EXTENSION IF EXISTS vector;

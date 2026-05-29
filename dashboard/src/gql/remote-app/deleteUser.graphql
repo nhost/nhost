@@ -1,5 +1,0 @@
-mutation remoteAppDeleteUser($id: uuid!) {
-  deleteUser(id: $id) {
-    id
-  }
-}

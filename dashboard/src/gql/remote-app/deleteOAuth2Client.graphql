@@ -1,5 +1,0 @@
-mutation DeleteOAuth2Client($clientId: String!) {
-  deleteAuthOauth2Clients(where: { clientId: { _eq: $clientId } }) {
-    affected_rows
-  }
-}

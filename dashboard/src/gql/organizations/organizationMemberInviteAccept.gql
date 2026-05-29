@@ -1,5 +1,0 @@
-mutation organizationMemberInviteAccept($inviteId: uuid!) {
-  organizationMemberInviteAccept(args: { id: $inviteId }) {
-    __typename
-  }
-}

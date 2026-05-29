@@ -1,7 +1,0 @@
-- name: default
-  kind: postgres
-  configuration:
-    connection_info:
-      database_url:
-        from_env: NHOST_GRAPHQL_DATABASE_URL
-  tables: "!include default/tables/tables.yaml"

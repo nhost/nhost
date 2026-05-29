@@ -1,9 +1,0 @@
-query getApplicationState($appId: uuid!) {
-  app(id: $appId) {
-    id
-    name
-    appStates(order_by: { createdAt: desc }, limit: 10) {
-      ...AppStateHistory
-    }
-  }
-}

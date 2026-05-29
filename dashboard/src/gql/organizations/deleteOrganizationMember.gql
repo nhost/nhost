@@ -1,5 +1,0 @@
-mutation deleteOrganizationMember($memberId: uuid!) {
-  deleteOrganizationMember(id: $memberId) {
-    __typename
-  }
-}

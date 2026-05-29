@@ -1,3 +1,0 @@
-// Package exec defines tasks for running commands.
-//
-// These are the supported tasks:

@@ -1,3 +1,0 @@
-// Package cli provides tasks dealing with a console.
-//
-// These are the supported tasks:

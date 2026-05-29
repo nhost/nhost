@@ -1,6 +1,0 @@
-query getAppFunctionsMetadata($id: uuid!) {
-  app(id: $id) {
-    id
-    metadataFunctions
-  }
-}

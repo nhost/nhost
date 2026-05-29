@@ -1,8 +1,0 @@
-[
-  {
-    "Name": "departments",
-    "SQL": "SELECT coalesce(json_group_array(json(\"_root\")), '[]') AS \"_root\" FROM (WITH \"_root.base\" AS (SELECT * FROM \"departments\") SELECT json_object('name', \"_root.base\".\"name\", 'files_aggregate', (WITH \"_root.base\" AS (SELECT * FROM \"department_files\" WHERE \"department_id\" = \"_root.base\".\"id\") SELECT json_object('aggregate', (SELECT json_object('count', COUNT(*)) FROM \"_root.base\")) AS \"files_aggregate\")) AS \"_root\" FROM \"_root.base\") AS \"_root\"",
-    "Parameters": [],
-    "StreamCursors": null
-  }
-]

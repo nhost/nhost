@@ -1,6 +1,0 @@
-mutation billingChangeOrganizationPlan($organizationID: uuid!, $planID: uuid!) {
-  billingChangeOrganizationPlan(
-    organizationID: $organizationID
-    planID: $planID
-  )
-}

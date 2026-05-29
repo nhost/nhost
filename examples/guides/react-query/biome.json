@@ -1,7 +1,0 @@
-{
-  "root": false,
-  "extends": "//",
-  "linter": {
-    "includes": ["**", "!src/lib/graphql/__generated__/graphql.ts"]
-  }
-}

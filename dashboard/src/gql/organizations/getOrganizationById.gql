@@ -1,7 +1,0 @@
-query getOrganizationById($orgId: uuid!) {
-  organizations(where: { id: { _eq: $orgId } }) {
-    id
-    name
-    slug
-  }
-}

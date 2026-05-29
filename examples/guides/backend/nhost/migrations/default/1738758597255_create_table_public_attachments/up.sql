@@ -1,1 +1,0 @@
-CREATE TABLE "public"."attachments" ("task_id" uuid NOT NULL, "file_id" uuid NOT NULL, PRIMARY KEY ("task_id","file_id") , FOREIGN KEY ("task_id") REFERENCES "public"."tasks"("id") ON UPDATE cascade ON DELETE cascade, FOREIGN KEY ("file_id") REFERENCES "storage"."files"("id") ON UPDATE restrict ON DELETE restrict);

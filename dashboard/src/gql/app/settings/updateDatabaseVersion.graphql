@@ -1,3 +1,0 @@
-mutation UpdateDatabaseVersion($appId: uuid!, $version: String!) {
-  changeDatabaseVersion(appID: $appId, version: $version)
-}

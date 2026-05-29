@@ -1,3 +1,0 @@
-mutation billingTransferApp($appID: uuid!, $organizationID: uuid!) {
-  billingTransferApp(appID: $appID, organizationID: $organizationID)
-}

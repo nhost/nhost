@@ -1,5 +1,0 @@
-mutation UnpauseApplication($appId: uuid!) {
-  updateApp(pk_columns: { id: $appId }, _set: { desiredState: 5 }) {
-    id
-  }
-}

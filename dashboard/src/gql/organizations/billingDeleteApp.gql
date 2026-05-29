@@ -1,3 +1,0 @@
-mutation billingDeleteApp($appID: uuid!) {
-  billingDeleteApp(appID: $appID)
-}

@@ -1,7 +1,0 @@
-{
-  "name": "nhost-pi-agent",
-  "private": true,
-  "dependencies": {
-    "@earendil-works/pi-coding-agent": "0.75.4"
-  }
-}

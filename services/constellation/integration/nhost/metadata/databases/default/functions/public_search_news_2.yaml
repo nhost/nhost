@@ -1,8 +1,0 @@
-function:
-  name: search_news_2
-  schema: public
-configuration:
-  custom_name: searchNews
-  custom_root_fields: {}
-permissions:
-  - role: user

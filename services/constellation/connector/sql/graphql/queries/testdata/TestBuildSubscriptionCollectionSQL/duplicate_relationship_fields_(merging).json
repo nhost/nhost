@@ -1,8 +1,0 @@
-[
-  {
-    "Name": "departments",
-    "QueryType": "subscription",
-    "SQL": "SELECT \"_subs\".\"result_id\", \"_fld_resp\".\"root\" AS \"result\" FROM UNNEST($1::text[], $2::json[]) AS \"_subs\"(\"result_id\", \"result_vars\") LEFT OUTER JOIN LATERAL (SELECT json_build_object('departments', (SELECT coalesce(json_agg(\"_root\"), '[]') AS \"_root\" FROM (WITH \"_root.base\" AS (SELECT * FROM \"public\".\"departments\" LIMIT 3) SELECT row_to_json((SELECT \"_e\" FROM (SELECT \"_root.base\".\"id\" AS \"id\", \"_root.r.employees\".\"employees\" AS \"employees\") AS \"_e\")) AS \"_root\" FROM \"_root.base\" LEFT OUTER JOIN LATERAL (SELECT coalesce(json_agg(\"_root.r.employees\"), '[]') AS \"employees\" FROM (WITH \"_root.r.employees.base\" AS (SELECT * FROM \"public\".\"user_departments\" WHERE \"department_id\" = \"_root.base\".\"id\") SELECT row_to_json((SELECT \"_e\" FROM (SELECT \"_root.r.employees.base\".\"user_id\" AS \"user_id\", \"_root.r.employees.base\".\"role\" AS \"role\") AS \"_e\")) AS \"_root.r.employees\" FROM \"_root.r.employees.base\") AS \"_root.r.employees\") AS \"_root.r.employees\" ON ('true')) AS \"_root\")) AS \"root\") AS \"_fld_resp\" ON ('true')",
-    "Parameters": null
-  }
-]

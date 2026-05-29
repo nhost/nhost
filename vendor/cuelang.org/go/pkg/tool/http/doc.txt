@@ -1,3 +1,0 @@
-// Package http provides tasks related to the HTTP protocol.
-//
-// These are the supported tasks:

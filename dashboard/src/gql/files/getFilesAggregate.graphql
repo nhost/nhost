@@ -1,7 +1,0 @@
-query getFilesAggregate($where: files_bool_exp) {
-  filesAggregate(where: $where) {
-    aggregate {
-      count
-    }
-  }
-}

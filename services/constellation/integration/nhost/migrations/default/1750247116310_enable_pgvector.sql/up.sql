@@ -1,2 +1,0 @@
-SET ROLE postgres;
-CREATE EXTENSION IF NOT EXISTS vector;

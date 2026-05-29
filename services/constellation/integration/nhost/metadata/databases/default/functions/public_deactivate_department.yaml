@@ -1,9 +1,0 @@
-function:
-  name: deactivate_department
-  schema: public
-configuration:
-  custom_name: deactivateDepartment
-  custom_root_fields: {}
-  session_argument: session
-permissions:
-  - role: user

@@ -1,7 +1,0 @@
-query GetConfigRawJSON($appID: uuid!) {
-  configRawJSON(appID: $appID, resolve: false)
-}
-
-mutation ReplaceConfigRawJSON($appID: uuid!, $rawJSON: String!) {
-  replaceConfigRawJSON(appID: $appID, rawJSON: $rawJSON)
-}

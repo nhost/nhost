@@ -1,5 +1,0 @@
-mutation deleteAssistant($id: String!) {
-  graphite {
-    deleteAssistant(assistantID: $id)
-  }
-}

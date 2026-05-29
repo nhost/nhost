@@ -1,5 +1,0 @@
-mutation insertBucket($bucket: buckets_insert_input!) {
-  insertBucket(object: $bucket) {
-    id
-  }
-}

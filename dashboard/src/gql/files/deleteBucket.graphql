@@ -1,5 +1,0 @@
-mutation deleteBucket($id: String!) {
-  deleteBucket(id: $id) {
-    id
-  }
-}

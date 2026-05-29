@@ -1,5 +1,0 @@
-mutation deleteAnnouncementRead($id: uuid!) {
-  deleteAnnouncementRead(id: $id) {
-    announcementID
-  }
-}

@@ -1,5 +1,0 @@
-function:
-  name: get_department_manager
-  schema: public
-permissions:
-  - role: user
