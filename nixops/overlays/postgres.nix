@@ -1,25 +1,18 @@
 final: prev: rec {
-  # fails to compile against LLVM 21 on aarch64 (RTDyldObjectLinkingLayer
-  # signature change), and we don't rely on JIT because we use this only for client tools
-  postgresql_14 =
-    (prev.postgresql_14.override {
-      systemdSupport = false;
-      jitSupport = false;
-    }).overrideAttrs
-      (
-        finalAttrs: previousAttrs: rec {
-          pname = "postgresql";
-          version = "14.20";
+  postgresql_14 = (prev.postgresql_14.override { systemdSupport = false; }).overrideAttrs (
+    finalAttrs: previousAttrs: rec {
+      pname = "postgresql";
+      version = "14.23";
 
-          src = final.fetchurl {
-            url = "mirror://postgresql/source/v${version}/${pname}-${version}.tar.bz2";
-            hash = "sha256-dSfxDxZAdhvCgK2X0QXShtDPcuVNNteM9o5eX3UrZGs=";
-          };
+      src = final.fetchurl {
+        url = "mirror://postgresql/source/v${version}/${pname}-${version}.tar.bz2";
+        hash = "sha256-fjoboaUhrHFDqusmIXzSS5ZnIpSRHO9+qcqvkchl2dM=";
+      };
 
-          doCheck = false;
-          doInstallCheck = false;
-        }
-      );
+      doCheck = false;
+      doInstallCheck = false;
+    }
+  );
 
   postgresql_14-client = final.stdenv.mkDerivation {
     pname = "postgresql-client";
@@ -39,11 +32,11 @@ final: prev: rec {
   postgresql_15 = (prev.postgresql_15.override { systemdSupport = false; }).overrideAttrs (
     finalAttrs: previousAttrs: rec {
       pname = "postgresql";
-      version = "15.15";
+      version = "15.18";
 
       src = final.fetchurl {
         url = "mirror://postgresql/source/v${version}/${pname}-${version}.tar.bz2";
-        hash = "sha256-V1Oq64sJy/YQFveKppv1y98BtDJj8BDL8WjIKJYhOqo=";
+        hash = "sha256-tw1zzgLXx7Jr4bi8rMKRmTJzOSQFGvrP2nHr9FcVrjs=";
       };
     }
   );
@@ -66,11 +59,11 @@ final: prev: rec {
   postgresql_16 = (prev.postgresql_16.override { systemdSupport = false; }).overrideAttrs (
     finalAttrs: previousAttrs: rec {
       pname = "postgresql";
-      version = "16.13";
+      version = "16.14";
 
       src = final.fetchurl {
         url = "mirror://postgresql/source/v${version}/${pname}-${version}.tar.bz2";
-        hash = "sha256-3C3bvSRcAmWmiUCOPS8vP5ui2pa9GTGCFLMTzdl5coc=";
+        hash = "sha256-g2+OdB2dGIKBSFJ24Z3Yy7oRAFywNMSVDdWfnsaeJJQ=";
       };
     }
   );
@@ -93,11 +86,11 @@ final: prev: rec {
   postgresql_17 = (prev.postgresql_17.override { systemdSupport = false; }).overrideAttrs (
     finalAttrs: previousAttrs: rec {
       pname = "postgresql";
-      version = "17.9";
+      version = "17.10";
 
       src = final.fetchurl {
         url = "mirror://postgresql/source/v${version}/${pname}-${version}.tar.bz2";
-        hash = "sha256-O5piU4qNoVHoB6PdsRmOhgXyAyVE149AOuiD0n7PHuQ=";
+        hash = "sha256-3ZAqlT3R8ywhNH13oqz2VUbSwpOJ2JaICbxZ29awaMw=";
       };
     }
   );
@@ -120,11 +113,11 @@ final: prev: rec {
   postgresql_18 = (prev.postgresql_18.override { systemdSupport = false; }).overrideAttrs (
     finalAttrs: previousAttrs: rec {
       pname = "postgresql";
-      version = "18.3";
+      version = "18.4";
 
       src = final.fetchurl {
         url = "mirror://postgresql/source/v${version}/${pname}-${version}.tar.bz2";
-        hash = "sha256-2VZj+786gPganZjYlSZr3LdLonS8wE7212Ywpy3uAW8=";
+        hash = "sha256-Ac/Dqcj8vjcW3my5vsnKaMiQqTq/HPtUzckJ3SMyrfA=";
       };
     }
   );
