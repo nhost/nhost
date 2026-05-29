@@ -72,7 +72,7 @@ in
     buildInputs =
       with pkgs;
       [
-        nodePackages.vercel
+        vercel
       ]
       ++ checkDeps
       ++ buildInputs

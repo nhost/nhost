@@ -2,7 +2,7 @@
   nixConfig = {
     sandbox = "relaxed";
     extra-substituters = [
-      "s3://nhost-nix-cache?region=eu-central-1&profile=nhost-nix-cache"
+      "s3://nhost-nix-cache?endpoint=https://14bc02755b64adb7c8c62b5420d0a457.eu.r2.cloudflarestorage.com&region=auto&profile=nhost-nix-cache"
       "https://cache.nixos.org"
     ];
     extra-trusted-public-keys = [
@@ -242,7 +242,7 @@
               nhost-cli
 
               # dashboard
-              nodePackages.vercel
+              vercel
               playwright-driver
               lychee
 
@@ -334,7 +334,7 @@
             buildInputs = with pkgs; [
               pnpm
               nodejs
-              nodePackages.vercel
+              vercel
             ];
           };
 

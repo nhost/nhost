@@ -168,22 +168,18 @@ final: prev: rec {
     ];
   };
 
-  wal-g = prev.wal-g.override {
-    buildGoModule =
-      args:
-      final.buildGoModule (
-        args
-        // rec {
-          version = "3.0.7";
-          src = final.fetchFromGitHub {
-            owner = "wal-g";
-            repo = "wal-g";
-            rev = "v${version}";
-            sha256 = "sha256-kUn1pJEdGec+WIZivqVAhELoBTKOF4E07Ovn795DgIY=";
-          };
+  wal-g = prev.wal-g.overrideAttrs (
+    finalAttrs: previousAttrs: {
+      version = "3.0.7";
 
-          vendorHash = "sha256-TwYl3B/VS24clUv1ge/RroULIY/04xTxc11qPNGhnfs=";
-        }
-      );
-  };
+      src = final.fetchFromGitHub {
+        owner = "wal-g";
+        repo = "wal-g";
+        rev = "v${finalAttrs.version}";
+        hash = "sha256-kUn1pJEdGec+WIZivqVAhELoBTKOF4E07Ovn795DgIY=";
+      };
+
+      vendorHash = "sha256-TwYl3B/VS24clUv1ge/RroULIY/04xTxc11qPNGhnfs=";
+    }
+  );
 }
