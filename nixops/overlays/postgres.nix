@@ -1,18 +1,25 @@
 final: prev: rec {
-  postgresql_14 = (prev.postgresql_14.override { systemdSupport = false; }).overrideAttrs (
-    finalAttrs: previousAttrs: rec {
-      pname = "postgresql";
-      version = "14.20";
+  # fails to compile against LLVM 21 on aarch64 (RTDyldObjectLinkingLayer
+  # signature change), and we don't rely on JIT because we use this only for client tools
+  postgresql_14 =
+    (prev.postgresql_14.override {
+      systemdSupport = false;
+      jitSupport = false;
+    }).overrideAttrs
+      (
+        finalAttrs: previousAttrs: rec {
+          pname = "postgresql";
+          version = "14.20";
 
-      src = final.fetchurl {
-        url = "mirror://postgresql/source/v${version}/${pname}-${version}.tar.bz2";
-        hash = "sha256-dSfxDxZAdhvCgK2X0QXShtDPcuVNNteM9o5eX3UrZGs=";
-      };
+          src = final.fetchurl {
+            url = "mirror://postgresql/source/v${version}/${pname}-${version}.tar.bz2";
+            hash = "sha256-dSfxDxZAdhvCgK2X0QXShtDPcuVNNteM9o5eX3UrZGs=";
+          };
 
-      doCheck = false;
-      doInstallCheck = false;
-    }
-  );
+          doCheck = false;
+          doInstallCheck = false;
+        }
+      );
 
   postgresql_14-client = final.stdenv.mkDerivation {
     pname = "postgresql-client";
