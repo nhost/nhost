@@ -6,7 +6,7 @@ final: prev: rec {
 
       src = final.fetchurl {
         url = "mirror://postgresql/source/v${version}/${pname}-${version}.tar.bz2";
-        hash = "sha256-fjoboaUhrHFDqusmIXzSS5ZnIpSRHO9+qcqvkchl2dM=";
+        hash = "sha256-zHIWgitUYzDinC+R4SPIc0pMQXlQghRbuWKqcS6MlKU=";
       };
 
       doCheck = false;
@@ -36,7 +36,7 @@ final: prev: rec {
 
       src = final.fetchurl {
         url = "mirror://postgresql/source/v${version}/${pname}-${version}.tar.bz2";
-        hash = "sha256-tw1zzgLXx7Jr4bi8rMKRmTJzOSQFGvrP2nHr9FcVrjs=";
+        hash = "sha256-Ed8N+X/j6kupp5H6rznO4dL+Vx54iFtbVdhRfSfDI7Q=";
       };
     }
   );
@@ -63,7 +63,7 @@ final: prev: rec {
 
       src = final.fetchurl {
         url = "mirror://postgresql/source/v${version}/${pname}-${version}.tar.bz2";
-        hash = "sha256-g2+OdB2dGIKBSFJ24Z3Yy7oRAFywNMSVDdWfnsaeJJQ=";
+        hash = "sha256-9tB3FCc3kghYzpWMzbdcbuE3pjtbCFPHBpPUAax+NHE=";
       };
     }
   );
@@ -90,7 +90,7 @@ final: prev: rec {
 
       src = final.fetchurl {
         url = "mirror://postgresql/source/v${version}/${pname}-${version}.tar.bz2";
-        hash = "sha256-3ZAqlT3R8ywhNH13oqz2VUbSwpOJ2JaICbxZ29awaMw=";
+        hash = "sha256-B4oDUW3NvbcF/sr0Feo9E6lWxYnkbwn+1ooG+wBZjJA=";
       };
     }
   );
@@ -117,7 +117,7 @@ final: prev: rec {
 
       src = final.fetchurl {
         url = "mirror://postgresql/source/v${version}/${pname}-${version}.tar.bz2";
-        hash = "sha256-Ac/Dqcj8vjcW3my5vsnKaMiQqTq/HPtUzckJ3SMyrfA=";
+        hash = "sha256-gagexpX7DHkBQH3vqh0veXNhcVTPJ7p046erjmRDYJQ=";
       };
     }
   );
