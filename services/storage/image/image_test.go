@@ -79,7 +79,7 @@ func TestManipulate(t *testing.T) {
 		{
 			name:     "heic",
 			filename: "testdata/nhost.heic",
-			sum:      "60f53adc17faf5868ab155ad92b67b3cd47fa60d99f3450e53ecc6cc0976e21",
+			sum:      "60f53adc17faf5868ab155ad92b67b3cd47fa60d99f3450e53ecc6cc0976e219",
 			size:     12968,
 			options: image.Options{
 				Width:   300,
