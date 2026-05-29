@@ -135,7 +135,8 @@ func generateAggregateFieldsType( //nolint:funlen
 	}
 
 	if hasNumericColumns {
-		aggregateFieldsFields = append(aggregateFieldsFields,
+		aggregateFieldsFields = append(
+			aggregateFieldsFields,
 			&graph.Field{ //nolint:exhaustruct
 				Name: "avg",
 				Type: graph.NewNamedType(customTableName + "_avg_fields"),
@@ -467,7 +468,8 @@ func appendNumericAggregateOrderByFields(
 	fields []*graph.InputField,
 	customTableName string,
 ) []*graph.InputField {
-	return append(fields,
+	return append(
+		fields,
 		&graph.InputField{ //nolint:exhaustruct
 			Name: "avg",
 			Type: graph.NewNamedType(customTableName + "_avg_order_by"),
@@ -655,7 +657,8 @@ func generateAggregateBoolExpTypes( //nolint:funlen
 	}
 
 	if len(booleanColumns) > 0 {
-		aggregateBoolExpFields = append(aggregateBoolExpFields,
+		aggregateBoolExpFields = append(
+			aggregateBoolExpFields,
 			&graph.InputField{ //nolint:exhaustruct
 				Name: "bool_and",
 				Type: graph.NewNamedType(customTableName + "_aggregate_bool_exp_bool_and"),

@@ -265,9 +265,11 @@ func printCloudInfo(
 	w := tabwriter.NewWriter(os.Stdout, 0, 0, 4, ' ', 0) //nolint:mnd
 	fmt.Fprintf(w, "URLs:\n")
 	fmt.Fprintf(w, "- Console:\t\t%s\n", dockercompose.URL(
-		subdomain, "hasura", httpPort, useTLS))
+		subdomain, "hasura", httpPort, useTLS,
+	))
 	fmt.Fprintf(w, "- Dashboard:\t\t%s\n", dockercompose.URL(
-		subdomain, "dashboard", httpPort, useTLS))
+		subdomain, "dashboard", httpPort, useTLS,
+	))
 
 	w.Flush()
 }

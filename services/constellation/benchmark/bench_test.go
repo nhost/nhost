@@ -75,7 +75,8 @@ func TestMain(m *testing.M) {
 
 func userObjects() []*graph.ObjectType {
 	return []*graph.ObjectType{
-		memconnector.Object("User",
+		memconnector.Object(
+			"User",
 			memconnector.ID("id"),
 			memconnector.String("createdAt"),
 			memconnector.String("updatedAt"),
@@ -90,15 +91,18 @@ func userObjects() []*graph.ObjectType {
 			memconnector.String("metadata"),
 			memconnector.Field("roles", memconnector.NonNullList(memconnector.NonNull("Role"))),
 		),
-		memconnector.Object("Role",
+		memconnector.Object(
+			"Role",
 			memconnector.ID("id"),
 			memconnector.String("role"),
 		),
-		memconnector.Object("users_aggregate",
+		memconnector.Object(
+			"users_aggregate",
 			memconnector.Field("aggregate", memconnector.Named("users_aggregate_fields")),
 			memconnector.Field("nodes", memconnector.NonNullList(memconnector.NonNull("User"))),
 		),
-		memconnector.Object("users_aggregate_fields",
+		memconnector.Object(
+			"users_aggregate_fields",
 			memconnector.Int("count"),
 		),
 	}
@@ -169,11 +173,13 @@ func buildHandler(logger *slog.Logger) (http.Handler, error) {
 	conn, err := memconnector.New(
 		userObjects(),
 		[]memconnector.QueryDef{
-			memconnector.Query("users",
+			memconnector.Query(
+				"users",
 				graph.NewNonNullListType(graph.NewNonNullType("User")),
 				usersResponse,
 			),
-			memconnector.Query("users_aggregate",
+			memconnector.Query(
+				"users_aggregate",
 				graph.NewNonNullType("users_aggregate"),
 				aggregateResponse,
 			),
@@ -230,7 +236,8 @@ func buildLargeHandler(logger *slog.Logger) (http.Handler, error) {
 	conn, err := memconnector.New(
 		userObjects(),
 		[]memconnector.QueryDef{
-			memconnector.Query("users",
+			memconnector.Query(
+				"users",
 				graph.NewNonNullListType(graph.NewNonNullType("User")),
 				usersResponse,
 			),
@@ -274,7 +281,8 @@ func buildMarshalHandler(logger *slog.Logger) (http.Handler, error) {
 	conn, err := memconnector.New(
 		userObjects(),
 		[]memconnector.QueryDef{
-			memconnector.Query("users",
+			memconnector.Query(
+				"users",
 				graph.NewNonNullListType(graph.NewNonNullType("User")),
 				usersResponse,
 			),
@@ -535,7 +543,8 @@ func BenchmarkIntrospection(b *testing.B) {
 
 func orderObjects() []*graph.ObjectType {
 	return []*graph.ObjectType{
-		memconnector.Object("Order",
+		memconnector.Object(
+			"Order",
 			memconnector.ID("id"),
 			memconnector.String("userId"),
 			memconnector.String("product"),
@@ -558,7 +567,8 @@ func buildRemoteRelHandler(logger *slog.Logger) (http.Handler, error) {
 	}
 
 	userObjects := []*graph.ObjectType{
-		memconnector.Object("User",
+		memconnector.Object(
+			"User",
 			memconnector.ID("id"),
 			memconnector.String("displayName"),
 			memconnector.String("email"),
@@ -571,7 +581,8 @@ func buildRemoteRelHandler(logger *slog.Logger) (http.Handler, error) {
 	db1, err := memconnector.New(
 		userObjects,
 		[]memconnector.QueryDef{
-			memconnector.Query("users",
+			memconnector.Query(
+				"users",
 				graph.NewNonNullListType(graph.NewNonNullType("User")),
 				usersResponse,
 			),
@@ -600,7 +611,8 @@ func buildRemoteRelHandler(logger *slog.Logger) (http.Handler, error) {
 	db2, err := memconnector.New(
 		orderObjects(),
 		[]memconnector.QueryDef{
-			memconnector.Query("orders",
+			memconnector.Query(
+				"orders",
 				graph.NewNonNullListType(graph.NewNonNullType("Order")),
 				ordersResponse,
 			),

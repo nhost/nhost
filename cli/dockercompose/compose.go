@@ -359,7 +359,8 @@ func dashboard(
 			"NEXT_PUBLIC_NHOST_APP_ID":       appID,
 			"NEXT_PUBLIC_NHOST_ADMIN_SECRET": cfg.Hasura.AdminSecret,
 			"NEXT_PUBLIC_NHOST_AUTH_URL": URL(
-				subdomain, "auth", httpPort, useTLS) + "/v1",
+				subdomain, "auth", httpPort, useTLS,
+			) + "/v1",
 			"NEXT_PUBLIC_NHOST_CONFIGSERVER_URL": URL(
 				subdomain, "dashboard", httpPort, useTLS,
 			) + "/v1/configserver/graphql",
@@ -373,15 +374,18 @@ func dashboard(
 				subdomain, "dashboard", httpPort, useTLS,
 			) + "/v1/logs/graphql",
 			"NEXT_PUBLIC_NHOST_GRAPHQL_URL": URL(
-				subdomain, "graphql", httpPort, useTLS) + "/v1",
+				subdomain, "graphql", httpPort, useTLS,
+			) + "/v1",
 			"NEXT_PUBLIC_NHOST_HASURA_API_URL": URL(subdomain, "hasura", httpPort, useTLS),
 			"NEXT_PUBLIC_NHOST_HASURA_CONSOLE_URL": URL(
 				subdomain, "hasura", httpPort, useTLS,
 			) + "/console",
 			"NEXT_PUBLIC_NHOST_HASURA_MIGRATIONS_API_URL": URL(
-				subdomain, "hasura", httpPort, useTLS) + "/apis/migrate",
+				subdomain, "hasura", httpPort, useTLS,
+			) + "/apis/migrate",
 			"NEXT_PUBLIC_NHOST_STORAGE_URL": URL(
-				subdomain, "storage", httpPort, useTLS) + "/v1",
+				subdomain, "storage", httpPort, useTLS,
+			) + "/v1",
 		},
 		ExtraHosts:  extraHosts(subdomain),
 		HealthCheck: nil,

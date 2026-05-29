@@ -159,7 +159,8 @@ func (a *Authenticator) Authenticate(
 		// Token found — must validate successfully or return error.
 		claims, err := sv.parseAndValidate(token)
 		if err != nil {
-			a.logger.Debug("jwt validation failed",
+			a.logger.Debug(
+				"jwt validation failed",
 				slog.Int("secret_index", i),
 				slog.String("error", err.Error()),
 			)

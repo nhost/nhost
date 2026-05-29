@@ -47,7 +47,8 @@ func sanitizeConnectorError(
 ) string {
 	if devMode {
 		if logger != nil {
-			logger.ErrorContext(ctx, "connector execution error",
+			logger.ErrorContext(
+				ctx, "connector execution error",
 				slog.String("error", err.Error()),
 			)
 		}
@@ -61,7 +62,8 @@ func sanitizeConnectorError(
 	}
 
 	if logger != nil {
-		logger.ErrorContext(ctx, "connector execution error",
+		logger.ErrorContext(
+			ctx, "connector execution error",
 			slog.String("trace_id", traceID),
 			slog.String("error", err.Error()),
 		)

@@ -97,7 +97,8 @@ func newLocalRelationship(
 
 	if table == nil {
 		return nil, fmt.Errorf(
-			"%w: %s", errRelationshipTargetTableObjectNotFound, name)
+			"%w: %s", errRelationshipTargetTableObjectNotFound, name,
+		)
 	}
 
 	return &relationship{

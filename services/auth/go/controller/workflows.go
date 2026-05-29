@@ -600,7 +600,8 @@ func (wf *Workflows) GetJWTInContext(
 ) (uuid.UUID, *APIError) {
 	jwtToken, ok := wf.jwtGetter.FromContext(ctx)
 	if !ok {
-		logger.ErrorContext(ctx,
+		logger.ErrorContext(
+			ctx,
 			"jwt token not found in context, this should not be possible due to middleware",
 		)
 

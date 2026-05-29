@@ -94,7 +94,8 @@ func (i *RefreshTokenInterceptor) Intercept(
 
 		i.accessToken = resp.JSON200.AccessToken
 		i.expiresAt = time.Now().Add(
-			time.Second * time.Duration(resp.JSON200.AccessTokenExpiresIn))
+			time.Second * time.Duration(resp.JSON200.AccessTokenExpiresIn),
+		)
 
 		if resp.JSON200.RefreshToken != "" {
 			i.currentRT = resp.JSON200.RefreshToken
@@ -144,7 +145,8 @@ func WithPAT(
 
 			accessToken = resp.JSON200.Session.AccessToken
 			expiresAt = time.Now().Add(
-				time.Second * time.Duration(resp.JSON200.Session.AccessTokenExpiresIn))
+				time.Second * time.Duration(resp.JSON200.Session.AccessTokenExpiresIn),
+			)
 		}
 
 		req.Header.Set("Authorization", "Bearer "+accessToken)
