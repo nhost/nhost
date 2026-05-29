@@ -110,7 +110,7 @@ jobs:
             security
           draft: false
 
-      - name: "Cache nix store on s3"
+      - name: "Cache nix store on R2"
         uses: ./.github/actions/cache-nix
         with:
           NIX_CACHE_PRIV_KEY: ${{ secrets.NIX_CACHE_PRIV_KEY }}
