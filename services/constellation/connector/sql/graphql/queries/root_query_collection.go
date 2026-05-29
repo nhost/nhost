@@ -91,7 +91,8 @@ func (t *table) writeQueryCollectionSQL(
 		alias,
 		t.tableFromClause(),
 		t.tableSourceRef(),
-		queryModifiers...)
+		queryModifiers...,
+	)
 	if err != nil {
 		return nil, 0, err
 	}

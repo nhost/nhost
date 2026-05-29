@@ -78,7 +78,8 @@ func (c *Connector) ExecuteMultiplexedQueryWithCursor(
 	)
 	params = append(params, op.Parameters...)
 
-	logger.DebugContext(ctx, "executing multiplexed query",
+	logger.DebugContext(
+		ctx, "executing multiplexed query",
 		"sql", op.SQL,
 		"subscription_count", len(subscriptionIDs),
 		"has_cursor", len(cursorValues) > 0,

@@ -94,7 +94,8 @@ func (h *webSocketHandler) OnConnectionInit(
 
 	h.session = session
 
-	h.logger.DebugContext(ctx, "connection initialized",
+	h.logger.DebugContext(
+		ctx, "connection initialized",
 		slog.String("role", h.session.Role),
 	)
 

@@ -42,13 +42,15 @@ func newTestController(t *testing.T) *controller.Controller {
 
 	conn, err := memconnector.New(
 		[]*graph.ObjectType{
-			memconnector.Object("User",
+			memconnector.Object(
+				"User",
 				memconnector.ID("id"),
 				memconnector.String("name"),
 			),
 		},
 		[]memconnector.QueryDef{
-			memconnector.Query("users",
+			memconnector.Query(
+				"users",
 				graph.NewNonNullListType(graph.NewNonNullType("User")),
 				usersResponse,
 			),
@@ -884,13 +886,15 @@ func TestHandlerPost_MultiConnectorMergesResults(t *testing.T) {
 	// should route each field to its owning connector and merge results.
 	connA, err := memconnector.New(
 		[]*graph.ObjectType{
-			memconnector.Object("User",
+			memconnector.Object(
+				"User",
 				memconnector.ID("id"),
 				memconnector.String("name"),
 			),
 		},
 		[]memconnector.QueryDef{
-			memconnector.Query("users",
+			memconnector.Query(
+				"users",
 				graph.NewNonNullListType(graph.NewNonNullType("User")),
 				jsontext.Value(`[{"id":"1","name":"Alice"}]`),
 			),
@@ -902,13 +906,15 @@ func TestHandlerPost_MultiConnectorMergesResults(t *testing.T) {
 
 	connB, err := memconnector.New(
 		[]*graph.ObjectType{
-			memconnector.Object("Order",
+			memconnector.Object(
+				"Order",
 				memconnector.ID("id"),
 				memconnector.String("product"),
 			),
 		},
 		[]memconnector.QueryDef{
-			memconnector.Query("orders",
+			memconnector.Query(
+				"orders",
 				graph.NewNonNullListType(graph.NewNonNullType("Order")),
 				jsontext.Value(`[{"id":"o1","product":"Widget"}]`),
 			),
@@ -964,13 +970,15 @@ func TestHandlerPost_ConnectorErrorSurfacedAsGraphQLError(t *testing.T) {
 	// detail) while preserving connA's data (partial-merge behaviour).
 	connA, err := memconnector.New(
 		[]*graph.ObjectType{
-			memconnector.Object("User",
+			memconnector.Object(
+				"User",
 				memconnector.ID("id"),
 				memconnector.String("name"),
 			),
 		},
 		[]memconnector.QueryDef{
-			memconnector.Query("users",
+			memconnector.Query(
+				"users",
 				graph.NewNonNullListType(graph.NewNonNullType("User")),
 				jsontext.Value(`[{"id":"1","name":"Alice"}]`),
 			),
@@ -982,12 +990,14 @@ func TestHandlerPost_ConnectorErrorSurfacedAsGraphQLError(t *testing.T) {
 
 	baseB, err := memconnector.New(
 		[]*graph.ObjectType{
-			memconnector.Object("Order",
+			memconnector.Object(
+				"Order",
 				memconnector.ID("id"),
 			),
 		},
 		[]memconnector.QueryDef{
-			memconnector.Query("orders",
+			memconnector.Query(
+				"orders",
 				graph.NewNonNullListType(graph.NewNonNullType("Order")),
 				jsontext.Value(`[]`),
 			),
@@ -1062,12 +1072,14 @@ func TestHandlerPost_GraphQLErrorTypePathIsExercised(t *testing.T) {
 	// empty slice; a populated case is covered separately further down.
 	connA, err := memconnector.New(
 		[]*graph.ObjectType{
-			memconnector.Object("User",
+			memconnector.Object(
+				"User",
 				memconnector.ID("id"),
 			),
 		},
 		[]memconnector.QueryDef{
-			memconnector.Query("users",
+			memconnector.Query(
+				"users",
 				graph.NewNonNullListType(graph.NewNonNullType("User")),
 				jsontext.Value(`[]`),
 			),
@@ -1128,7 +1140,8 @@ func TestHandlerPost_RemoteRelationshipsResolvedEndToEnd(t *testing.T) {
 
 	connA, err := memconnector.New(
 		[]*graph.ObjectType{
-			memconnector.Object("User",
+			memconnector.Object(
+				"User",
 				memconnector.ID("id"),
 				memconnector.String("name"),
 				memconnector.Field("orders",
@@ -1136,7 +1149,8 @@ func TestHandlerPost_RemoteRelationshipsResolvedEndToEnd(t *testing.T) {
 			),
 		},
 		[]memconnector.QueryDef{
-			memconnector.Query("users",
+			memconnector.Query(
+				"users",
 				graph.NewNonNullListType(graph.NewNonNullType("User")),
 				usersResponse,
 			),
@@ -1153,14 +1167,16 @@ func TestHandlerPost_RemoteRelationshipsResolvedEndToEnd(t *testing.T) {
 
 	connB, err := memconnector.New(
 		[]*graph.ObjectType{
-			memconnector.Object("Order",
+			memconnector.Object(
+				"Order",
 				memconnector.ID("id"),
 				memconnector.String("userId"),
 				memconnector.String("product"),
 			),
 		},
 		[]memconnector.QueryDef{
-			memconnector.Query("orders",
+			memconnector.Query(
+				"orders",
 				graph.NewNonNullListType(graph.NewNonNullType("Order")),
 				ordersResponse,
 			),

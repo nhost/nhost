@@ -215,21 +215,22 @@ func TestSignInPAT(t *testing.T) { //nolint:maintidx
 			},
 			jwtTokenFn: nil,
 			getControllerOpts: []getControllerOptsFunc{
-				withCusomClaimer(func(ctrl *gomock.Controller) controller.CustomClaimer {
-					mock := mock.NewMockCustomClaimer(ctrl)
-					mock.EXPECT().GetClaims(
-						gomock.Any(),
-						"db477732-48fa-4289-b694-2886a646b6eb",
-					).Return(map[string]any{
-						"claim1":      "value1",
-						"claim2":      "value2",
-						"claimArray":  []any{"value1", "value2"},
-						"claimObject": map[string]any{"key1": "value1", "key2": "value2"},
-						"claimNil":    nil,
-					}, nil)
+				withCusomClaimer(
+					func(ctrl *gomock.Controller) controller.CustomClaimer {
+						mock := mock.NewMockCustomClaimer(ctrl)
+						mock.EXPECT().GetClaims(
+							gomock.Any(),
+							"db477732-48fa-4289-b694-2886a646b6eb",
+						).Return(map[string]any{
+							"claim1":      "value1",
+							"claim2":      "value2",
+							"claimArray":  []any{"value1", "value2"},
+							"claimObject": map[string]any{"key1": "value1", "key2": "value2"},
+							"claimNil":    nil,
+						}, nil)
 
-					return mock
-				},
+						return mock
+					},
 				),
 			},
 		},

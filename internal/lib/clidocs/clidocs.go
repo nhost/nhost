@@ -98,7 +98,8 @@ func prepareCommands(commands []*cli.Command, level int) []string {
 		usageText := prepareUsageText(command)
 		usage := prepareUsage(command, usageText)
 
-		prepared := fmt.Sprintf("%s %s\n\n%s%s",
+		prepared := fmt.Sprintf(
+			"%s %s\n\n%s%s",
 			strings.Repeat("#", level+2), //nolint:mnd
 			strings.Join(command.Names(), ", "),
 			usage,

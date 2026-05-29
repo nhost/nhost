@@ -338,7 +338,8 @@ func executeOperation(ctx context.Context, q Querier, op core.SQLOperation) (any
 func (c *Client) ExecuteMultiplexedOperation(
 	ctx context.Context, sqlQuery string, args []any, logger *slog.Logger,
 ) ([]core.MultiplexedResult, error) {
-	logger.DebugContext(ctx, "executing multiplexed query",
+	logger.DebugContext(
+		ctx, "executing multiplexed query",
 		slog.String("sql", sqlQuery),
 		slog.Int("args", len(args)),
 	)
@@ -371,7 +372,8 @@ func (c *Client) ExecuteMultiplexedOperation(
 		return nil, fmt.Errorf("error iterating multiplexed results: %w", err)
 	}
 
-	logger.DebugContext(ctx, "multiplexed query returned results",
+	logger.DebugContext(
+		ctx, "multiplexed query returned results",
 		slog.Int("count", len(results)),
 	)
 

@@ -88,7 +88,8 @@ func generateUpdateManyBatchField(
 		updateName = "update_" + customTableName + "_many"
 	default:
 		updateName = "update_" + getDefaultTypeName(
-			tableMeta.Table.Schema, tableMeta.Table.Name) + "_many"
+			tableMeta.Table.Schema, tableMeta.Table.Name,
+		) + "_many"
 	}
 
 	return &graph.Field{ //nolint:exhaustruct
@@ -181,7 +182,8 @@ func generateUpdatesInput(
 func collectUpdateOps(hasJSONB, hasNumeric bool) []updateOp {
 	ops := make([]updateOp, 0, len("jsonb")+2) //nolint:mnd // 5 jsonb ops + _inc + _set upper bound
 	if hasJSONB {
-		ops = append(ops,
+		ops = append(
+			ops,
 			updateOp{
 				suffix:      "_append_input",
 				description: "append existing jsonb value of filtered columns with new jsonb value",

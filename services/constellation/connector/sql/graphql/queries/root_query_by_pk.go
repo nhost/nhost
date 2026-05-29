@@ -111,7 +111,8 @@ func (t *table) writeQueryByPkSQL(
 		relName,
 		t.tableFromClause(),
 		t.tableSourceRef(),
-		queryModifiers...)
+		queryModifiers...,
+	)
 }
 
 // buildQuerySQL is the core SQL generation logic shared by both collection and by_pk queries.

@@ -219,7 +219,8 @@ func TestResolve_RemoteRelationshipSuccess(t *testing.T) {
 
 	connA, err := memconnector.New(
 		[]*graph.ObjectType{
-			memconnector.Object("User",
+			memconnector.Object(
+				"User",
 				memconnector.ID("id"),
 				memconnector.String("name"),
 				memconnector.Field("orders",
@@ -227,7 +228,8 @@ func TestResolve_RemoteRelationshipSuccess(t *testing.T) {
 			),
 		},
 		[]memconnector.QueryDef{
-			memconnector.Query("users",
+			memconnector.Query(
+				"users",
 				graph.NewNonNullListType(graph.NewNonNullType("User")),
 				usersResponse,
 			),
@@ -244,14 +246,16 @@ func TestResolve_RemoteRelationshipSuccess(t *testing.T) {
 
 	connB, err := memconnector.New(
 		[]*graph.ObjectType{
-			memconnector.Object("Order",
+			memconnector.Object(
+				"Order",
 				memconnector.ID("id"),
 				memconnector.String("userId"),
 				memconnector.String("product"),
 			),
 		},
 		[]memconnector.QueryDef{
-			memconnector.Query("orders",
+			memconnector.Query(
+				"orders",
 				graph.NewNonNullListType(graph.NewNonNullType("Order")),
 				ordersResponse,
 			),
@@ -368,7 +372,8 @@ func remoteRelationshipControllerWithTargetExecErr(
 
 	connA, err := memconnector.New(
 		[]*graph.ObjectType{
-			memconnector.Object("User",
+			memconnector.Object(
+				"User",
 				memconnector.ID("id"),
 				memconnector.String("name"),
 				memconnector.Field("orders",
@@ -376,7 +381,8 @@ func remoteRelationshipControllerWithTargetExecErr(
 			),
 		},
 		[]memconnector.QueryDef{
-			memconnector.Query("users",
+			memconnector.Query(
+				"users",
 				graph.NewNonNullListType(graph.NewNonNullType("User")),
 				usersResponse,
 			),
@@ -388,14 +394,16 @@ func remoteRelationshipControllerWithTargetExecErr(
 
 	connB, err := memconnector.New(
 		[]*graph.ObjectType{
-			memconnector.Object("Order",
+			memconnector.Object(
+				"Order",
 				memconnector.ID("id"),
 				memconnector.String("userId"),
 				memconnector.String("product"),
 			),
 		},
 		[]memconnector.QueryDef{
-			memconnector.Query("orders",
+			memconnector.Query(
+				"orders",
 				graph.NewNonNullListType(graph.NewNonNullType("Order")),
 				[]any{},
 			),
@@ -549,14 +557,16 @@ func TestNewFromConnectors_PlannerWiredWithRelationships(t *testing.T) {
 	// (any other wiring would fail to stitch the cross-connector field).
 	connA, err := memconnector.New(
 		[]*graph.ObjectType{
-			memconnector.Object("User",
+			memconnector.Object(
+				"User",
 				memconnector.ID("id"),
 				memconnector.Field("orders",
 					memconnector.NonNullList(memconnector.NonNull("Order"))),
 			),
 		},
 		[]memconnector.QueryDef{
-			memconnector.Query("users",
+			memconnector.Query(
+				"users",
 				graph.NewNonNullListType(graph.NewNonNullType("User")),
 				[]any{map[string]any{"id": "1"}},
 			),
@@ -568,13 +578,15 @@ func TestNewFromConnectors_PlannerWiredWithRelationships(t *testing.T) {
 
 	connB, err := memconnector.New(
 		[]*graph.ObjectType{
-			memconnector.Object("Order",
+			memconnector.Object(
+				"Order",
 				memconnector.ID("id"),
 				memconnector.String("userId"),
 			),
 		},
 		[]memconnector.QueryDef{
-			memconnector.Query("orders",
+			memconnector.Query(
+				"orders",
 				graph.NewNonNullListType(graph.NewNonNullType("Order")),
 				[]any{},
 			),
@@ -664,13 +676,15 @@ func TestNewFromConnectors_NilRelationshipsResolvesPlainQuery(t *testing.T) {
 
 	conn, err := memconnector.New(
 		[]*graph.ObjectType{
-			memconnector.Object("User",
+			memconnector.Object(
+				"User",
 				memconnector.ID("id"),
 				memconnector.String("name"),
 			),
 		},
 		[]memconnector.QueryDef{
-			memconnector.Query("users",
+			memconnector.Query(
+				"users",
 				graph.NewNonNullListType(graph.NewNonNullType("User")),
 				usersResponse,
 			),

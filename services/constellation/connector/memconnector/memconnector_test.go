@@ -64,13 +64,15 @@ func TestGetSchema(t *testing.T) {
 
 	conn, err := memconnector.New(
 		[]*graph.ObjectType{
-			memconnector.Object("User",
+			memconnector.Object(
+				"User",
 				memconnector.ID("id"),
 				memconnector.String("name"),
 			),
 		},
 		[]memconnector.QueryDef{
-			memconnector.Query("users",
+			memconnector.Query(
+				"users",
 				graph.NewNonNullListType(graph.NewNonNullType("User")),
 				nil,
 			),
@@ -113,9 +115,11 @@ func TestGetSchema(t *testing.T) {
 func TestGetSchemaValidates(t *testing.T) {
 	t.Parallel()
 
-	buildAndValidate(t,
+	buildAndValidate(
+		t,
 		[]*graph.ObjectType{
-			memconnector.Object("User",
+			memconnector.Object(
+				"User",
 				memconnector.ID("id"),
 				memconnector.String("email"),
 				memconnector.Int("age"),
@@ -124,7 +128,8 @@ func TestGetSchemaValidates(t *testing.T) {
 			),
 		},
 		[]memconnector.QueryDef{
-			memconnector.Query("users",
+			memconnector.Query(
+				"users",
 				graph.NewNonNullListType(graph.NewNonNullType("User")),
 				nil,
 			),
@@ -147,15 +152,18 @@ func TestExecute(t *testing.T) {
 
 	response := jsontext.Value(`[{"id":"1","name":"Alice"}]`)
 
-	c, validatedSchema := buildAndValidate(t,
+	c, validatedSchema := buildAndValidate(
+		t,
 		[]*graph.ObjectType{
-			memconnector.Object("User",
+			memconnector.Object(
+				"User",
 				memconnector.ID("id"),
 				memconnector.String("name"),
 			),
 		},
 		[]memconnector.QueryDef{
-			memconnector.Query("users",
+			memconnector.Query(
+				"users",
 				graph.NewNonNullListType(graph.NewNonNullType("User")),
 				response,
 			),
@@ -204,15 +212,18 @@ func TestExecute(t *testing.T) {
 func TestExecuteErrors(t *testing.T) {
 	t.Parallel()
 
-	c, validatedSchema := buildAndValidate(t,
+	c, validatedSchema := buildAndValidate(
+		t,
 		[]*graph.ObjectType{
-			memconnector.Object("User",
+			memconnector.Object(
+				"User",
 				memconnector.ID("id"),
 				memconnector.String("name"),
 			),
 		},
 		[]memconnector.QueryDef{
-			memconnector.Query("users",
+			memconnector.Query(
+				"users",
 				graph.NewNonNullListType(graph.NewNonNullType("User")),
 				jsontext.Value(`[]`),
 			),
@@ -281,16 +292,19 @@ func TestExecuteErrors(t *testing.T) {
 func TestFieldBuilders(t *testing.T) {
 	t.Parallel()
 
-	buildAndValidate(t,
+	buildAndValidate(
+		t,
 		[]*graph.ObjectType{
-			memconnector.Object("Thing",
+			memconnector.Object(
+				"Thing",
 				memconnector.Field("related", memconnector.Named("Thing")),
 				memconnector.Field("ref", memconnector.NonNull("ID")),
 				memconnector.Field("tags", memconnector.NonNullList(memconnector.Named("String"))),
 			),
 		},
 		[]memconnector.QueryDef{
-			memconnector.Query("things",
+			memconnector.Query(
+				"things",
 				memconnector.NonNullList(memconnector.NonNull("Thing")),
 				nil,
 			),
@@ -428,16 +442,19 @@ func TestNew_DuplicateNames(t *testing.T) {
 
 	conn, err := memconnector.New(
 		[]*graph.ObjectType{
-			memconnector.Object("User",
+			memconnector.Object(
+				"User",
 				memconnector.ID("id"),
 			),
 		},
 		[]memconnector.QueryDef{
-			memconnector.Query("users",
+			memconnector.Query(
+				"users",
 				graph.NewNonNullListType(graph.NewNonNullType("User")),
 				jsontext.Value(`[{"id":"1"}]`),
 			),
-			memconnector.Query("users",
+			memconnector.Query(
+				"users",
 				graph.NewNonNullListType(graph.NewNonNullType("User")),
 				jsontext.Value(`[{"id":"2"}]`),
 			),
@@ -463,12 +480,14 @@ func TestExecute_NonFieldSelection(t *testing.T) {
 
 	conn, err := memconnector.New(
 		[]*graph.ObjectType{
-			memconnector.Object("User",
+			memconnector.Object(
+				"User",
 				memconnector.ID("id"),
 			),
 		},
 		[]memconnector.QueryDef{
-			memconnector.Query("users",
+			memconnector.Query(
+				"users",
 				graph.NewNonNullListType(graph.NewNonNullType("User")),
 				jsontext.Value(`[]`),
 			),
@@ -520,12 +539,14 @@ func TestExecute_UnknownField(t *testing.T) {
 
 	conn, err := memconnector.New(
 		[]*graph.ObjectType{
-			memconnector.Object("User",
+			memconnector.Object(
+				"User",
 				memconnector.ID("id"),
 			),
 		},
 		[]memconnector.QueryDef{
-			memconnector.Query("users",
+			memconnector.Query(
+				"users",
 				graph.NewNonNullListType(graph.NewNonNullType("User")),
 				jsontext.Value(`[]`),
 			),

@@ -85,7 +85,8 @@ func TestBuildQueryDispatch_QueryByPk(t *testing.T) {
 		t.Fatalf("BuildRoots: %v", err)
 	}
 
-	op, _, _ := parseSingleField(t,
+	op, _, _ := parseSingleField(
+		t,
 		`query { users_by_pk(id: "11111111-1111-1111-1111-111111111111") { id } }`,
 	)
 
