@@ -9,7 +9,8 @@ import (
 
 func traefikHostMatch(name string) string {
 	return fmt.Sprintf(
-		"(HostRegexp(`^.+\\.%s\\.local\\.nhost\\.run$`) || Host(`local.%s.nhost.run`))", name, name)
+		"(HostRegexp(`^.+\\.%s\\.local\\.nhost\\.run$`) || Host(`local.%s.nhost.run`))", name, name,
+	)
 }
 
 func authPatchPre022(svc Service, useTLS bool) *Service {
