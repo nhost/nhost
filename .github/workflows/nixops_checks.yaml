@@ -1,7 +1,6 @@
 ---
 name: "nixops: check and build"
 on:
-  push:
   pull_request_target:
     paths:
       - ".github/workflows/wf_check.yaml"
