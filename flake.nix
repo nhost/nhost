@@ -242,7 +242,7 @@
               nhost-cli
 
               # dashboard
-              nodePackages.vercel
+              vercel
               playwright-driver
               lychee
 
@@ -334,7 +334,7 @@
             buildInputs = with pkgs; [
               pnpm
               nodejs
-              nodePackages.vercel
+              vercel
             ];
           };
 

@@ -55,7 +55,7 @@ let
       nhost-cli
       nixfmt
       nodejs
-      nodePackages.vercel
+      vercel
       oapi-codegen
       pkg-config
       playwright-driver
