@@ -79,7 +79,7 @@ func TestManipulate(t *testing.T) {
 		{
 			name:     "heic",
 			filename: "testdata/nhost.heic",
-			sum:      "1a2ab1930eef77710d35254a6fbd3e59f60b929070c44e47d0c6043e05b5ab99",
+			sum:      "60f53adc17faf5868ab155ad92b67b3cd47fa60d99f3450e53ecc6cc0976e21",
 			size:     12968,
 			options: image.Options{
 				Width:   300,
@@ -92,7 +92,7 @@ func TestManipulate(t *testing.T) {
 		{
 			name:     "jpeg to heic",
 			filename: "testdata/nhost.jpg",
-			sum:      "0a86fa5dbfd545656fa97bfcace038440dba154c878b4cd002328d6cf8062249",
+			sum:      "8ce5b758bfd6f78f8dc170c41f817e0e9d696aebda8d9b1d2e6766c4f58647c7",
 			size:     33399,
 			options: image.Options{
 				Width:   300,
@@ -105,7 +105,7 @@ func TestManipulate(t *testing.T) {
 		{
 			name:     "webp to heic",
 			filename: "testdata/nhost.webp",
-			sum:      "34f36705183310f9a88f147aca2905a872981920e93e9ab9714413185b395aa1",
+			sum:      "812a1f6953a2fbfcaa9e584398b8ff7733e66110d2d18534f854ac598b398870",
 			size:     17784,
 			options:  image.Options{Width: 300, Height: 100, Blur: 2, Format: image.ImageTypeHEIC},
 		},
