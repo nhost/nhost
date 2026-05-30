@@ -1483,6 +1483,105 @@ func TestStoreWriteRowLevel_WithPermission(t *testing.T) {
 	}
 }
 
+// TestStoreWritePermission_PreservesUserParams is the regression guard for the
+// session-variable misclassification bug (BUG_MEDIUM_10): each Write* helper
+// substitutes only the parameters its own permission clause appended, never the
+// user-supplied values already in the slice. A user value that happens to equal
+// a session-variable name ("x-hasura-user-id") must survive verbatim while the
+// permission-appended marker is resolved to the requester's session value —
+// matching Hasura, which never reinterprets user argument values as session
+// variables. Before the boundary fix the whole slice was substituted, rewriting
+// the user value (or hard-failing with ErrSessionVariableNotFound).
+func TestStoreWritePermission_PreservesUserParams(t *testing.T) {
+	t.Parallel()
+
+	sessionVars := map[string]any{"x-hasura-user-id": "42"}
+
+	permClause := func() where.Clause {
+		return where.Clause{appendParamStatement("user_id", "x-hasura-user-id")}
+	}
+
+	tests := []struct {
+		name string
+		run  func(s *Store, params []any) ([]any, error)
+	}{
+		{
+			name: "WriteRowLevel",
+			run: func(s *Store, params []any) ([]any, error) {
+				s.Select["user"] = permClause()
+				p, _, err := s.WriteRowLevel(
+					&strings.Builder{}, params, 2, "user", sessionVars, "t",
+				)
+
+				return p, err
+			},
+		},
+		{
+			name: "WriteUpdateFilter",
+			run: func(s *Store, params []any) ([]any, error) {
+				s.Update["user"] = permClause()
+				p, _, _, err := s.WriteUpdateFilter(
+					&strings.Builder{}, params, 2, "user", sessionVars, "t",
+				)
+
+				return p, err
+			},
+		},
+		{
+			name: "WriteDeleteFilter",
+			run: func(s *Store, params []any) ([]any, error) {
+				s.Delete["user"] = permClause()
+				p, _, _, err := s.WriteDeleteFilter(
+					&strings.Builder{}, params, 2, "user", sessionVars, "t",
+				)
+
+				return p, err
+			},
+		},
+		{
+			name: "WriteUpdateCheck",
+			run: func(s *Store, params []any) ([]any, error) {
+				s.UpdateCheck["user"] = permClause()
+				p, _, _, err := s.WriteUpdateCheck(
+					&strings.Builder{}, "user", sessionVars, params, 2, "_mutation_result",
+				)
+
+				return p, err
+			},
+		},
+		{
+			name: "WriteInsertCheckSubstituted",
+			run: func(s *Store, params []any) ([]any, error) {
+				s.Insert["user"] = permClause()
+				p, _, _, err := s.WriteInsertCheckSubstituted(
+					&strings.Builder{}, "user", sessionVars, params, 2, "data", nil,
+				)
+
+				return p, err
+			},
+		},
+	}
+
+	for _, tc := range tests {
+		t.Run(tc.name, func(t *testing.T) {
+			t.Parallel()
+
+			// Index 0 is a user-supplied literal that collides with a
+			// session-variable name; the permission clause appends its marker
+			// after it.
+			got, err := tc.run(NewStore(), []any{"x-hasura-user-id"})
+			if err != nil {
+				t.Fatalf("unexpected error: %v", err)
+			}
+
+			want := []any{"x-hasura-user-id", "42"}
+			if diff := cmp.Diff(want, got); diff != "" {
+				t.Errorf("params mismatch (-want +got):\n%s", diff)
+			}
+		})
+	}
+}
+
 func TestStoreWriteUpdateFilter_ClauseError(t *testing.T) {
 	t.Parallel()
 

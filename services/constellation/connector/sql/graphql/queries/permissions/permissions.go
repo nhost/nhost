@@ -602,14 +602,22 @@ func SubstituteSessionVariable(v any, sessionVariables map[string]any) (any, err
 	return v, nil
 }
 
-// substituteSessionVariables resolves all session-variable markers in params
-// in place. Returns the (now-mutated) params slice so callers can use a single
-// = assignment instead of a separate error check + reassignment.
+// substituteSessionVariables resolves session-variable markers in params[start:]
+// in place, leaving params[:start] untouched. Callers pass start = len(params)
+// captured *before* the permission clause appended its own parameters, so only
+// the permission clause's values are substituted — never the user-supplied
+// where/_set/_in/by_pk literals that precede them in the slice. A user literal
+// that happens to begin with "x-hasura-" must stay verbatim (it is data, not a
+// session-variable reference), matching Hasura; only the permission metadata is
+// a legitimate source of session-variable markers.
+//
+// Returns the (now-mutated) params slice so callers can use a single =
+// assignment instead of a separate error check + reassignment.
 func substituteSessionVariables(
-	params []any, sessionVariables map[string]any,
+	params []any, sessionVariables map[string]any, start int,
 ) ([]any, error) {
-	for i, p := range params {
-		substituted, err := SubstituteSessionVariable(p, sessionVariables)
+	for i := start; i < len(params); i++ {
+		substituted, err := SubstituteSessionVariable(params[i], sessionVariables)
 		if err != nil {
 			return nil, err
 		}
@@ -674,12 +682,14 @@ func (s *Store) WriteRowLevel(
 		return params, paramIndex, nil
 	}
 
+	startLen := len(params)
+
 	params, paramIndex, err := clause.WriteCondition(b, sourceRef, params, paramIndex)
 	if err != nil {
 		return nil, 0, fmt.Errorf("writing row-level permission clause: %w", err)
 	}
 
-	params, err = substituteSessionVariables(params, sessionVariables)
+	params, err = substituteSessionVariables(params, sessionVariables, startLen)
 	if err != nil {
 		return nil, 0, err
 	}
@@ -720,6 +730,8 @@ func (s *Store) WriteInsertCheckSubstituted(
 		return params, paramIndex, false, nil
 	}
 
+	startLen := len(params)
+
 	params, paramIndex, err := where.WriteConditionSubstituted(
 		clause, b, sourceRef, params, paramIndex, subs,
 	)
@@ -727,7 +739,7 @@ func (s *Store) WriteInsertCheckSubstituted(
 		return nil, 0, false, fmt.Errorf("failed to apply insert permission check: %w", err)
 	}
 
-	params, err = substituteSessionVariables(params, sessionVariables)
+	params, err = substituteSessionVariables(params, sessionVariables, startLen)
 	if err != nil {
 		return nil, 0, false, err
 	}
@@ -752,12 +764,14 @@ func (s *Store) WriteUpdateFilter(
 		return params, paramIndex, false, nil
 	}
 
+	startLen := len(params)
+
 	params, paramIndex, err := clause.WriteCondition(b, sourceRef, params, paramIndex)
 	if err != nil {
 		return nil, 0, false, fmt.Errorf("writing update permission clause: %w", err)
 	}
 
-	params, err = substituteSessionVariables(params, sessionVariables)
+	params, err = substituteSessionVariables(params, sessionVariables, startLen)
 	if err != nil {
 		return nil, 0, false, err
 	}
@@ -788,12 +802,14 @@ func (s *Store) WriteUpdateCheck(
 		return params, paramIndex, false, nil
 	}
 
+	startLen := len(params)
+
 	params, paramIndex, err := clause.WriteCondition(b, sourceRef, params, paramIndex)
 	if err != nil {
 		return nil, 0, false, fmt.Errorf("failed to apply update permission check: %w", err)
 	}
 
-	params, err = substituteSessionVariables(params, sessionVariables)
+	params, err = substituteSessionVariables(params, sessionVariables, startLen)
 	if err != nil {
 		return nil, 0, false, err
 	}
@@ -816,12 +832,14 @@ func (s *Store) WriteDeleteFilter(
 		return params, paramIndex, false, nil
 	}
 
+	startLen := len(params)
+
 	params, paramIndex, err := clause.WriteCondition(b, sourceRef, params, paramIndex)
 	if err != nil {
 		return nil, 0, false, fmt.Errorf("writing delete permission clause: %w", err)
 	}
 
-	params, err = substituteSessionVariables(params, sessionVariables)
+	params, err = substituteSessionVariables(params, sessionVariables, startLen)
 	if err != nil {
 		return nil, 0, false, err
 	}
