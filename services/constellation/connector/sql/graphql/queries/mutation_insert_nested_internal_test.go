@@ -3,6 +3,7 @@ package queries
 import (
 	"maps"
 	"slices"
+	"strings"
 	"testing"
 
 	"github.com/nhost/nhost/services/constellation/connector/sql/graphql/queries/arguments"
@@ -155,6 +156,71 @@ func TestBuildNestedCTEsMapMirrorsEmittedCTEs(t *testing.T) {
 				t.Fatalf("buildNestedCTEsMap() = %#v, want %#v", got, tt.want)
 			}
 		})
+	}
+}
+
+// TestBuildPartitionedUnionAllSelectDefaultExprForMissing locks the
+// Hasura-parity fix for the multi-parent partitioned nested-array path
+// (INCON_HIGH_4): when a partitioned UNION-ALL branch omits a column that has a
+// registered DB default, the branch must emit the default expression
+// (parenthesised and type-cast) instead of a typed NULL. The partitioned path
+// feeds INSERT INTO <table>(cols...) SELECT ..., so a typed NULL for a NOT NULL
+// DEFAULT column omitted by one row but supplied by a sibling would trip
+// Postgres 23502 where Hasura lets the per-row default apply. Mirrors
+// TestBuildUnionAllSelectDefaultExprForMissing for the single-parent path.
+func TestBuildPartitionedUnionAllSelectDefaultExprForMissing(t *testing.T) {
+	t.Parallel()
+
+	idCol := col("id", "uuid", false)
+	bodyCol := col("body", "text", false)
+	visibilityCol := colWithDefaultExpr("visibility", "text", "'public'::text")
+
+	tbl := newTestTable(t, []*core.Column{idCol, bodyCol, visibilityCol}, nil)
+
+	objs := []arguments.InsertObject{
+		// Row 0 omits visibility -> must render the default expression.
+		{Columns: []arguments.InsertColumn{
+			insertCol(idCol, "u1"),
+			insertCol(bodyCol, "first"),
+		}},
+		// Row 1 supplies visibility -> renders the typed placeholder as usual.
+		{Columns: []arguments.InsertColumn{
+			insertCol(idCol, "u2"),
+			insertCol(bodyCol, "second"),
+			insertCol(visibilityCol, "private"),
+		}},
+	}
+
+	allColumns, columnToValue := tbl.collectAllColumns(objs, nil)
+	parentCTENames := []string{"mutation_result_0", "mutation_result_1"}
+
+	var b strings.Builder
+
+	params, _ := tbl.buildPartitionedUnionAllSelect(
+		&b, objs, parentCTENames, allColumns, columnToValue, nil, nil, 1,
+	)
+
+	got := b.String()
+
+	// No FK columns are mapped, so neither branch emits a FROM clause.
+	wantFirst := `SELECT $1::uuid AS "id", $2::text AS "body", ` +
+		`('public'::text)::text AS "visibility"`
+	wantSecond := `SELECT $3::uuid AS "id", $4::text AS "body", $5::text AS "visibility"`
+
+	want := wantFirst + " UNION ALL " + wantSecond
+	if got != want {
+		t.Errorf("buildPartitionedUnionAllSelect SQL mismatch\n got: %s\nwant: %s", got, want)
+	}
+
+	wantParams := []any{"u1", "first", "u2", "second", "private"}
+	if len(params) != len(wantParams) {
+		t.Fatalf("params length = %d, want %d (params=%v)", len(params), len(wantParams), params)
+	}
+
+	for i, p := range wantParams {
+		if params[i] != p {
+			t.Errorf("params[%d] = %v, want %v", i, params[i], p)
+		}
 	}
 }
 

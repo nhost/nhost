@@ -1182,7 +1182,11 @@ func (t *table) buildPartitionedNestedArrayCTEPostCheck(
 // sources FK columns from that row's dedicated parent CTE (mutation_result_N
 // at the top level, nested_<rel>_row_N for array grandchildren), so permission
 // checks see the real parent FK value and final INSERTs do not depend on
-// unordered RETURNING rows.
+// unordered RETURNING rows. Columns a given row omits emit the column's DB
+// default expression when one is registered (via writeAbsentColumn), otherwise
+// a typed NULL — matching writeUnionAllRow so a NOT NULL DEFAULT column
+// supplied by some rows but omitted by others does not trip 23502 where Hasura
+// lets the default apply per row.
 func (t *table) buildPartitionedUnionAllSelect(
 	b *strings.Builder,
 	insertObjs []arguments.InsertObject,
@@ -1218,9 +1222,14 @@ func (t *table) buildPartitionedUnionAllSelect(
 				continue
 			}
 
-			var colType string
+			var (
+				colType     string
+				defaultExpr string
+			)
+
 			if tableCol := t.tableColumn(col); tableCol != nil {
 				colType = tableCol.SQLType
+				defaultExpr = tableCol.DefaultExpr
 			}
 
 			value, hasValue := columnToValue[i][col]
@@ -1229,7 +1238,7 @@ func (t *table) buildPartitionedUnionAllSelect(
 					b, col, colType, value, params, paramIndex,
 				)
 			} else {
-				t.writeTypedNull(b, col, colType)
+				t.writeAbsentColumn(b, col, colType, defaultExpr)
 			}
 		}
 
