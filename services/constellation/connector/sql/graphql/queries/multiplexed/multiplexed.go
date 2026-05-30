@@ -117,6 +117,10 @@ func extractSessionVarName(param any) (string, bool) {
 				return sv.Name, true
 			}
 		}
+	case []core.SessionVarValue:
+		if len(v) == 1 {
+			return v[0].Name, true
+		}
 	}
 
 	return "", false

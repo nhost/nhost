@@ -553,8 +553,9 @@ func normalizePresets(presets map[string]any) map[string]any {
 
 // SubstituteSessionVariable resolves a single permission-filter parameter:
 // "x-hasura-*" strings are replaced with the matching value from
-// sessionVariables; slice values recurse element-wise and substitute in
-// place. As a special case, a single-element slice whose lone element is a
+// sessionVariables; slice values recurse element-wise into a copied slice so
+// shared permission metadata is not mutated by one request/subscription build.
+// As a special case, a single-element slice whose lone element is a
 // session-variable marker that resolves to a non-slice value is flattened to
 // that scalar — this preserves the semantics of
 // `column _eq x-hasura-user-id` against a scalar variable. Multi-element
@@ -574,6 +575,11 @@ func SubstituteSessionVariable(v any, sessionVariables map[string]any) (any, err
 			return nil, fmt.Errorf("%w: %s", ErrSessionVariableNotFound, v)
 		}
 	case []any:
+		if v == nil {
+			return v, nil
+		}
+
+		out := make([]any, len(v))
 		for i, item := range v {
 			substituted, err := SubstituteSessionVariable(item, sessionVariables)
 			if err != nil {
@@ -595,8 +601,10 @@ func SubstituteSessionVariable(v any, sessionVariables map[string]any) (any, err
 				}
 			}
 
-			v[i] = substituted
+			out[i] = substituted
 		}
+
+		return out, nil
 	}
 
 	return v, nil
