@@ -22,7 +22,7 @@ var (
 		"jwt secret must have either type+key or jwk_url",
 	)
 	ErrSecretBothKeyAndJWKURL = errors.New(
-		"jwt secret cannot have both type+key and jwk_url",
+		"jwt secret cannot have type or key with jwk_url",
 	)
 	ErrClaimsNamespaceConflict = errors.New(
 		"jwt secret cannot have both claims_namespace and claims_namespace_path",
@@ -180,7 +180,7 @@ type Secret struct {
 	// secrets and static RSA keys.
 	Kid string `json:"kid,omitempty"`
 	// JWKURL is the JWKS endpoint to fetch signing keys from. Mutually
-	// exclusive with Type+Key. Required when not using a static key.
+	// exclusive with Type and Key. Required when not using a static key.
 	JWKURL string `json:"jwk_url,omitempty"`
 	// ClaimsFormat selects how the Hasura claims object is encoded inside the
 	// JWT. Defaults to [ClaimsFormatJSON]. Mutually exclusive with ClaimsMap.
@@ -297,18 +297,19 @@ func (s *Secret) EffectiveClaimsFormat() ClaimsFormat {
 
 // Validate enforces mutual exclusions and required fields.
 func (s *Secret) Validate() error {
-	hasTypeAndKey := s.Type != "" && s.Key != ""
+	hasType := s.Type != ""
+	hasKey := s.Key != ""
 	hasJWKURL := s.JWKURL != ""
 
-	if !hasTypeAndKey && !hasJWKURL {
-		return ErrSecretMissingKeyOrJWKURL
-	}
-
-	if hasTypeAndKey && hasJWKURL {
+	if hasJWKURL && (hasType || hasKey) {
 		return ErrSecretBothKeyAndJWKURL
 	}
 
-	if hasTypeAndKey {
+	if !hasJWKURL && (!hasType || !hasKey) {
+		return ErrSecretMissingKeyOrJWKURL
+	}
+
+	if hasType {
 		if err := validateAlgorithm(s.Type); err != nil {
 			return err
 		}
