@@ -673,7 +673,7 @@ func TestAuthenticator(t *testing.T) { //nolint:maintidx
 			},
 		},
 		{
-			name: "multiple secrets same header - token found but first key fails returns error",
+			name: "multiple secrets same header - second key verifies after first fails (fall-through)",
 			config: jwtconfig.Config{
 				Secrets: []jwtconfig.Secret{
 					{Type: jwtconfig.AlgorithmHS256, Key: "key-1"},
@@ -686,9 +686,53 @@ func TestAuthenticator(t *testing.T) { //nolint:maintidx
 					[]string{"user"}, "user", nil,
 				),
 			}),
-			// Token is found by first secret (both use Authorization header),
-			// but fails validation with key-1 -> error, does not try key-2
+			// Both secrets read the Authorization header, so the first secret
+			// extracts the token but fails signature verification with key-1.
+			// Hasura's any-secret-validates contract requires falling through to
+			// the second secret, which verifies the token with key-2.
+			expectedSession: &jwt.SessionResult{
+				Role:      "user",
+				Variables: expectedVars("user", []string{"user"}, "user", nil),
+			},
+		},
+		{
+			name: "multiple secrets same header - all keys fail returns error",
+			config: jwtconfig.Config{
+				Secrets: []jwtconfig.Secret{
+					{Type: jwtconfig.AlgorithmHS256, Key: "key-1"},
+					{Type: jwtconfig.AlgorithmHS256, Key: "key-2"},
+				},
+			},
+			headersFn: bearerTokenFn("key-3", gojwt.SigningMethodHS256, gojwt.MapClaims{
+				"exp": gojwt.NewNumericDate(time.Now().Add(time.Hour)),
+				"https://hasura.io/jwt/claims": hasuraClaims(
+					[]string{"user"}, "user", nil,
+				),
+			}),
+			// Token is signed with an unconfigured key (key-3): every secret
+			// extracts it but none verifies it, so authentication fails 401.
 			wantErr: true,
+		},
+		{
+			name: "multiple secrets same header - verifying secret's extractor is used",
+			config: jwtconfig.Config{
+				Secrets: []jwtconfig.Secret{
+					{Type: jwtconfig.AlgorithmHS256, Key: "key-1", ClaimsNamespace: "ns-1"},
+					{Type: jwtconfig.AlgorithmHS256, Key: "key-2", ClaimsNamespace: "ns-2"},
+				},
+			},
+			headersFn: bearerTokenFn("key-2", gojwt.SigningMethodHS256, gojwt.MapClaims{
+				"exp": gojwt.NewNumericDate(time.Now().Add(time.Hour)),
+				// Claims live under the second secret's namespace. The first
+				// secret extracts the token but fails verification; the second
+				// secret verifies it AND its paired extractor (ns-2) must be the
+				// one used to resolve claims.
+				"ns-2": hasuraClaims([]string{"editor"}, "editor", nil),
+			}),
+			expectedSession: &jwt.SessionResult{
+				Role:      "editor",
+				Variables: expectedVars("editor", []string{"editor"}, "editor", nil),
+			},
 		},
 		{
 			name: "multiple secrets different headers - second matches via Authorization",
