@@ -588,9 +588,9 @@ func TestParseQuery(t *testing.T) {
 
 // TestParseQueryDistinctOnOrderByValidation covers ParseQuery's validation of
 // the distinct_on / order_by combination so it matches Hasura exactly: inject a
-// leading ORDER BY when none was given, allow an order_by whose leading columns
-// are the distinct_on columns, and reject any other order_by with
-// ErrDistinctOnOrderByMismatch instead of silently reconciling it.
+// leading ORDER BY when none was given, allow an order_by whose leading prefix
+// contains the distinct_on columns (in any order), and reject any other order_by
+// with ErrDistinctOnOrderByMismatch instead of silently reconciling it.
 func TestParseQueryDistinctOnOrderByValidation(t *testing.T) {
 	t.Parallel()
 
@@ -699,13 +699,9 @@ func TestParseQueryDistinctOnOrderByValidation(t *testing.T) {
 
 		// order_by: [{name: asc}, {budget: desc}], distinct_on: [name, budget].
 		tbl.EXPECT().ColumnFromGraphqlName("name").
-			Return(newColumn("name", "name", "text"))
+			Return(newColumn("name", "name", "text")).Times(2)
 		tbl.EXPECT().ColumnFromGraphqlName("budget").
-			Return(newColumn("budget", "budget", "numeric"))
-		tbl.EXPECT().ColumnFromGraphqlName("name").
-			Return(newColumn("name", "name", "text"))
-		tbl.EXPECT().ColumnFromGraphqlName("budget").
-			Return(newColumn("budget", "budget", "numeric"))
+			Return(newColumn("budget", "budget", "numeric")).Times(2)
 
 		args := ast.ArgumentList{
 			&ast.Argument{
@@ -738,6 +734,53 @@ func TestParseQueryDistinctOnOrderByValidation(t *testing.T) {
 			{Column: "budget", Direction: core.OrderDesc},
 		})
 	})
+
+	t.Run("distinct_on columns may appear in any order within the order_by prefix",
+		func(t *testing.T) {
+			t.Parallel()
+
+			ctrl := gomock.NewController(t)
+			tbl := mock.NewMockTable(ctrl)
+
+			// PostgreSQL/Hasura require the first N order_by columns to be the
+			// distinct_on columns, but those first N columns may be permuted.
+			tbl.EXPECT().ColumnFromGraphqlName("emailVerified").
+				Return(newColumn("emailVerified", "email_verified", "boolean")).Times(2)
+			tbl.EXPECT().ColumnFromGraphqlName("disabled").
+				Return(newColumn("disabled", "disabled", "boolean")).Times(2)
+			tbl.EXPECT().ColumnFromGraphqlName("id").
+				Return(newColumn("id", "id", "uuid"))
+
+			args := ast.ArgumentList{
+				&ast.Argument{
+					Name: "order_by",
+					Value: listValue(
+						child("", objectValue(child("emailVerified", enumValue("desc")))),
+						child("", objectValue(child("disabled", enumValue("asc")))),
+						child("", objectValue(child("id", enumValue("asc")))),
+					),
+				},
+				&ast.Argument{
+					Name: "distinct_on",
+					Value: listValue(
+						child("", enumValue("disabled")),
+						child("", enumValue("emailVerified")),
+					),
+				},
+			}
+
+			_, mods, _, err := arguments.ParseQuery(tbl, args, nil, "user", nil)
+			if err != nil {
+				t.Fatalf("ParseQuery: %v", err)
+			}
+
+			ob := firstOrderBy(t, mods)
+			assertOrderByItems(t, ob.Items, []arguments.OrderByItem{
+				{Column: "email_verified", Direction: core.OrderDesc},
+				{Column: "disabled", Direction: core.OrderAsc},
+				{Column: "id", Direction: core.OrderAsc},
+			})
+		})
 }
 
 // TestQueryValidationErrorAsMap locks the GraphQL error envelope a

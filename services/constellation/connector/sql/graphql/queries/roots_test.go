@@ -8,6 +8,7 @@ import (
 	"github.com/vektah/gqlparser/v2/ast"
 
 	"github.com/nhost/nhost/services/constellation/connector/sql/graphql/queries"
+	"github.com/nhost/nhost/services/constellation/connector/sql/graphql/queries/arguments"
 	"github.com/nhost/nhost/services/constellation/connector/sql/graphql/queries/core"
 )
 
@@ -97,6 +98,52 @@ func TestRootsBuildQuery_FieldNotRegistered(t *testing.T) {
 
 	if !strings.Contains(err.Error(), "users") {
 		t.Errorf("error should mention the missing field, got: %v", err)
+	}
+}
+
+func TestRootsBuildQuery_StampsQueryValidationError(t *testing.T) {
+	t.Parallel()
+
+	var stubOp core.Operation = func(
+		_ *ast.Field,
+		_ ast.FragmentDefinitionList,
+		_ map[string]any,
+		_ string,
+		_ map[string]any,
+		_ map[string]core.Operation,
+	) (core.SQLOperation, error) {
+		return core.SQLOperation{}, &arguments.QueryValidationError{
+			Err:       arguments.ErrDistinctOnOrderByMismatch,
+			RootField: "",
+		}
+	}
+
+	r := queries.Roots{
+		Operations: map[queries.OperationKind]map[string]core.Operation{
+			queries.OperationQuery: {"users": stubOp},
+		},
+		StreamFields: nil,
+	}
+
+	op := &ast.OperationDefinition{
+		Operation: ast.Query,
+		SelectionSet: ast.SelectionSet{
+			&ast.Field{Name: "users", Alias: "people"},
+		},
+	}
+
+	_, err := r.BuildQuery(op, nil, nil, "admin", nil)
+	if !errors.Is(err, arguments.ErrDistinctOnOrderByMismatch) {
+		t.Fatalf("err = %v, want errors.Is ErrDistinctOnOrderByMismatch", err)
+	}
+
+	var vErr *arguments.QueryValidationError
+	if !errors.As(err, &vErr) {
+		t.Fatalf("err = %T, want *QueryValidationError", err)
+	}
+
+	if vErr.RootField != "people" {
+		t.Fatalf("RootField = %q, want alias %q", vErr.RootField, "people")
 	}
 }
 

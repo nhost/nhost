@@ -101,11 +101,11 @@ func ParseQuery(
 //     distinct columns (ASC NULLS LAST, the same default the aggregate
 //     json_agg ordering uses) so row selection is deterministic.
 //   - distinct_on present, order_by whose leading columns are exactly the
-//     distinct_on columns (same columns, same order, as a prefix; direction is
-//     irrelevant): allowed, left untouched — the DISTINCT ON / ORDER BY already
-//     agree.
-//   - distinct_on present, order_by that does NOT start with the distinct_on
-//     columns: rejected with a *QueryValidationError wrapping
+//     distinct_on columns (same set of columns within the prefix; prefix order
+//     and direction are irrelevant): allowed, left untouched — the DISTINCT ON /
+//     ORDER BY already agree.
+//   - distinct_on present, order_by whose leading prefix does NOT contain the
+//     distinct_on columns: rejected with a *QueryValidationError wrapping
 //     ErrDistinctOnOrderByMismatch, mirroring Hasura's validation-failed error.
 //     Constellation does not silently reorder the ORDER BY, because that would
 //     return different rows than the user's order_by requested and diverge from
@@ -134,10 +134,11 @@ func validateDistinctOnOrderBy(
 		return append([]QueryModifier{&OrderBy{Items: prefix}}, modifiers...), nil
 	}
 
-	// An order_by was supplied; its leading columns must match the distinct_on
-	// columns (same columns, same order). Direction is irrelevant to the
-	// PostgreSQL constraint and to Hasura's check. Reject otherwise.
-	if !distinctOnIsOrderByPrefix(dOn.Columns, userItems) {
+	// An order_by was supplied; its leading prefix must contain exactly the
+	// distinct_on columns. Prefix order and direction are irrelevant to the
+	// PostgreSQL constraint and to Hasura's check; a non-distinct column before
+	// the full distinct_on set is not allowed. Reject otherwise.
+	if !distinctOnMatchesOrderByPrefix(dOn.Columns, userItems) {
 		return nil, &QueryValidationError{
 			Err:       ErrDistinctOnOrderByMismatch,
 			RootField: "",
@@ -147,19 +148,26 @@ func validateDistinctOnOrderBy(
 	return modifiers, nil
 }
 
-// distinctOnIsOrderByPrefix reports whether the distinct_on columns are the
-// leading prefix of the order_by items: order_by must have at least as many
-// items as distinct columns and the first len(columns) of them must name the
-// distinct columns in the same order.
-func distinctOnIsOrderByPrefix(columns []string, orderBy []OrderByItem) bool {
+// distinctOnMatchesOrderByPrefix reports whether the leading order_by prefix
+// contains exactly the distinct_on columns. PostgreSQL accepts the distinct_on
+// expressions in any order within the leftmost ORDER BY prefix, but no
+// non-distinct expression may appear before that prefix is complete.
+func distinctOnMatchesOrderByPrefix(columns []string, orderBy []OrderByItem) bool {
 	if len(orderBy) < len(columns) {
 		return false
 	}
 
-	for i, col := range columns {
-		if orderBy[i].Column != col {
+	remaining := make(map[string]int, len(columns))
+	for _, col := range columns {
+		remaining[col]++
+	}
+
+	for _, item := range orderBy[:len(columns)] {
+		if remaining[item.Column] == 0 {
 			return false
 		}
+
+		remaining[item.Column]--
 	}
 
 	return true

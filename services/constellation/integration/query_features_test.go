@@ -546,6 +546,26 @@ func TestQueryFeatures(t *testing.T) { //nolint:maintidx,paralleltest
 				Role: "admin",
 			},
 		},
+		// PostgreSQL and Hasura allow the distinct_on columns to appear in any
+		// order within the leading order_by prefix; only non-distinct columns in
+		// that prefix are rejected.
+		{
+			name: "distinct_on multiple columns with permuted order_by prefix",
+			query: query{
+				Query: `query {
+					users(
+						distinct_on: [disabled, emailVerified],
+						order_by: [{emailVerified: desc}, {disabled: asc}, {id: asc}]
+					) {
+						id
+						disabled
+						emailVerified
+						displayName
+					}
+				}`,
+				Role: "admin",
+			},
+		},
 
 		// Nested with all query arguments
 		{

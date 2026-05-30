@@ -416,7 +416,8 @@ func TestClassifyConnectorError_QueryValidationError(t *testing.T) {
 
 	wrapped := fmt.Errorf(
 		"failed to execute operations: %w",
-		fmt.Errorf("failed to build query for field %q: %w", "departments",
+		fmt.Errorf(
+			"failed to build query for field %q: %w", "departments",
 			&arguments.QueryValidationError{
 				Err:       arguments.ErrDistinctOnOrderByMismatch,
 				RootField: "departments",

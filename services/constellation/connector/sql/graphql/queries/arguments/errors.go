@@ -19,9 +19,10 @@ var ErrUnsupportedAggregateOrderBy = errors.New("unsupported aggregate order_by"
 
 // ErrDistinctOnOrderByMismatch is the sentinel wrapped by a
 // *QueryValidationError when a distinct_on argument is combined with an
-// order_by whose leading columns do not match the distinct_on columns (same
-// columns, same order, as a prefix). Hasura rejects this combination at query
-// validation, so Constellation does too rather than silently reconciling it.
+// order_by whose leading prefix does not contain the distinct_on columns (same
+// column set; prefix order is irrelevant). Hasura rejects this combination at
+// query validation, so Constellation does too rather than silently reconciling
+// it.
 var ErrDistinctOnOrderByMismatch = errors.New(
 	`"distinct_on" columns must match initial "order_by" columns`,
 )
@@ -39,31 +40,32 @@ const graphqlCodeValidationFailed = "validation-failed"
 //
 // It mirrors remoteschema.RemoteError: a trusted, already-shaped GraphQL error
 // the controller passes through (via AsMap) instead of sanitising into a trace
-// id, so the wire envelope matches Hasura exactly.
+// id. The distinct_on/order_by mismatch message intentionally matches Hasura
+// byte-for-byte.
 type QueryValidationError struct {
-	// Err is the wrapped sentinel (e.g. ErrDistinctOnOrderByMismatch); its
-	// message is the verbatim Hasura error message.
+	// Err is the wrapped validation error (e.g.
+	// ErrDistinctOnOrderByMismatch). Its message is safe to expose to the
+	// GraphQL client.
 	Err error
 	// RootField is the queried root field (alias or name) used to build the
 	// extensions.path. Empty until the SQL connector stamps it.
 	RootField string
 }
 
-// Error implements error, returning the wrapped sentinel's message verbatim so
-// it equals the Hasura message even when further wrapped with call-site
-// context.
+// Error implements error, returning the wrapped validation message verbatim so
+// call-site wrapping can preserve the client-facing text through errors.As.
 func (e *QueryValidationError) Error() string {
 	return e.Err.Error()
 }
 
-// Unwrap exposes the wrapped sentinel so errors.Is(err,
-// ErrDistinctOnOrderByMismatch) matches through any call-site wrapping.
+// Unwrap exposes the wrapped validation error so errors.Is matches through any
+// call-site wrapping.
 func (e *QueryValidationError) Unwrap() error {
 	return e.Err
 }
 
-// AsMap renders the error in Hasura's GraphQL error response shape: the
-// verbatim message plus an extensions block carrying the "validation-failed"
+// AsMap renders the error in Hasura's GraphQL error response shape: the safe
+// validation message plus an extensions block carrying the "validation-failed"
 // code and the "$.selectionSet.<rootField>.args" path. No top-level path or
 // locations are emitted, matching Hasura.
 func (e *QueryValidationError) AsMap() map[string]any {

@@ -194,15 +194,7 @@ func (r Roots) BuildQuery(
 		// Build the SQL query for this field
 		sqlOp, err := opFn(field, fragments, variables, role, sessionVariables, rootMap)
 		if err != nil {
-			// Stamp the queried root field onto a query-validation error so the
-			// controller can render Hasura's "$.selectionSet.<rootField>.args"
-			// path. The argument parser only sees the table, so the field name
-			// (alias preferred, matching Hasura) is only known here. Other
-			// errors pass through unchanged.
-			if vErr, ok := errors.AsType[*arguments.QueryValidationError](err); ok &&
-				vErr.RootField == "" {
-				vErr.RootField = rootFieldName(field)
-			}
+			err = annotateQueryValidationError(err, field)
 
 			return nil, fmt.Errorf("failed to build query for field %q: %w", field.Name, err)
 		}
@@ -211,6 +203,21 @@ func (r Roots) BuildQuery(
 	}
 
 	return operations, nil
+}
+
+// annotateQueryValidationError stamps the queried root field onto trusted
+// GraphQL validation errors so the controller can render Hasura's
+// "$.selectionSet.<rootField>.args" path. The argument parser only sees the
+// table, so the field name (alias preferred, matching Hasura) is only known
+// here. Non-validation errors pass through unchanged and remain subject to
+// controller sanitisation.
+func annotateQueryValidationError(err error, field *ast.Field) error {
+	if vErr, ok := errors.AsType[*arguments.QueryValidationError](err); ok &&
+		vErr.RootField == "" {
+		vErr.RootField = rootFieldName(field)
+	}
+
+	return err
 }
 
 // rootFieldName returns the name used to refer to a root field in a GraphQL

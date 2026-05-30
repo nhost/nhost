@@ -84,8 +84,8 @@ func sanitizeConnectorError(
 // A *arguments.QueryValidationError is a query-validation failure (e.g. a
 // distinct_on that does not match the leading order_by) that Constellation
 // detects while building SQL. It carries no PII and its envelope must match
-// Hasura's validation-failed error byte-for-byte, so it passes through
-// verbatim via AsMap rather than being sanitised.
+// Hasura's validation-failed shape, so it passes through verbatim via AsMap
+// rather than being sanitised.
 //
 // Any other error is treated as a raw connector/driver failure and routed
 // through sanitizeConnectorError so SQLSTATE codes, table/column names, and
