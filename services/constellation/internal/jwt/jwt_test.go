@@ -943,6 +943,41 @@ func TestAuthenticator(t *testing.T) { //nolint:maintidx
 			},
 		},
 		{
+			name: "numeric x-hasura session variable claim is rejected (matches Hasura)",
+			config: jwtconfig.Config{
+				Secrets: []jwtconfig.Secret{
+					{Type: jwtconfig.AlgorithmHS256, Key: "key"},
+				},
+			},
+			headersFn: bearerTokenFn("key", gojwt.SigningMethodHS256, gojwt.MapClaims{
+				"exp": gojwt.NewNumericDate(time.Now().Add(time.Hour)),
+				"https://hasura.io/jwt/claims": hasuraClaims(
+					[]string{"user"}, "user",
+					// A non-conforming issuer emits a JSON number; golang-jwt
+					// decodes it to float64. Hasura rejects this with
+					// "x-hasura-* claims: parsing Text failed, expected String".
+					map[string]any{"x-hasura-user-id": 42},
+				),
+			}),
+			wantErr: true,
+		},
+		{
+			name: "boolean x-hasura session variable claim is rejected (matches Hasura)",
+			config: jwtconfig.Config{
+				Secrets: []jwtconfig.Secret{
+					{Type: jwtconfig.AlgorithmHS256, Key: "key"},
+				},
+			},
+			headersFn: bearerTokenFn("key", gojwt.SigningMethodHS256, gojwt.MapClaims{
+				"exp": gojwt.NewNumericDate(time.Now().Add(time.Hour)),
+				"https://hasura.io/jwt/claims": hasuraClaims(
+					[]string{"user"}, "user",
+					map[string]any{"x-hasura-is-admin": true},
+				),
+			}),
+			wantErr: true,
+		},
+		{
 			name: "x-hasura claim with uppercase prefix is lowercased and kept",
 			config: jwtconfig.Config{
 				Secrets: []jwtconfig.Secret{

@@ -24,15 +24,24 @@ var (
 	ErrClaimsStringifiedJSON   = errors.New(
 		"claims_format is stringified_json but claims value is not a string",
 	)
-	ErrClaimsExpectedObject    = errors.New("expected object for claims")
-	ErrClaimsUnsupportedFormat = errors.New("unsupported claims format")
-	ErrAllowedRolesRequired    = errors.New("x-hasura-allowed-roles claim is required")
-	ErrDefaultRoleRequired     = errors.New("x-hasura-default-role claim is required")
-	ErrDefaultRoleMustBeString = errors.New("x-hasura-default-role must be a string")
-	ErrRoleNotAllowed          = errors.New("role is not in x-hasura-allowed-roles")
-	ErrClaimsMustBeArray       = errors.New("must be an array")
-	ErrClaimsElementNotString  = errors.New("element is not a string")
+	ErrClaimsExpectedObject     = errors.New("expected object for claims")
+	ErrClaimsUnsupportedFormat  = errors.New("unsupported claims format")
+	ErrAllowedRolesRequired     = errors.New("x-hasura-allowed-roles claim is required")
+	ErrDefaultRoleRequired      = errors.New("x-hasura-default-role claim is required")
+	ErrDefaultRoleMustBeString  = errors.New("x-hasura-default-role must be a string")
+	ErrRoleNotAllowed           = errors.New("role is not in x-hasura-allowed-roles")
+	ErrClaimsMustBeArray        = errors.New("must be an array")
+	ErrClaimsElementNotString   = errors.New("element is not a string")
+	ErrSessionVariableNotString = errors.New(
+		"x-hasura-* session variable claim must be a string",
+	)
 )
+
+// allowedRolesClaim is the one x-hasura-* session-variable claim that is
+// permitted to be a string array rather than a plain string. Every other
+// x-hasura-* claim must be a string (Hasura rejects non-string session
+// variables with "x-hasura-* claims: parsing Text failed, expected String").
+const allowedRolesClaim = "x-hasura-allowed-roles"
 
 // claimsExtractor extracts Hasura claims from JWT claims.
 type claimsExtractor struct {
@@ -226,12 +235,26 @@ func buildSessionVariables(
 	// (connector/sql/graphql/queries/permissions and
 	// connector/remoteschema/execute), so non-prefixed claims would be unused
 	// while still widening the surface a JWT issuer can influence.
+	//
+	// Every session-variable claim must be a string, matching Hasura: a
+	// numeric, boolean, object, or (non allowed-roles) array value is rejected
+	// rather than coerced, so a column comparison such as
+	// `column _eq x-hasura-user-id` binds the same text value Hasura would and
+	// neither engine silently accepts a non-conforming token. The sole
+	// exception is x-hasura-allowed-roles, which Hasura permits as a string
+	// array (already validated by toStringSlice above).
 	variables := make(map[string]any, len(claims))
 
 	for k, v := range claims {
 		lk := strings.ToLower(k)
 		if !strings.HasPrefix(lk, sessionVariablePrefix) {
 			continue
+		}
+
+		if lk != allowedRolesClaim {
+			if _, ok := v.(string); !ok {
+				return "", nil, fmt.Errorf("%w: %q is %T", ErrSessionVariableNotString, lk, v)
+			}
 		}
 
 		variables[lk] = v

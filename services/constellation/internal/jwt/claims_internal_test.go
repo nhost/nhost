@@ -252,3 +252,148 @@ func TestToStringSlice(t *testing.T) {
 		})
 	}
 }
+
+// TestBuildSessionVariables pins the Hasura-parity contract for the type of
+// x-hasura-* session-variable claims: every claim must be a string (Hasura
+// rejects non-string session variables with "x-hasura-* claims: parsing Text
+// failed, expected String"), with the sole exception of x-hasura-allowed-roles
+// which Hasura permits as a string array. golang-jwt decodes JSON numbers to
+// float64 and booleans to bool, so a non-conforming issuer that emits e.g.
+// {"x-hasura-user-id": 42} must be rejected rather than silently bound as a
+// non-string SQL parameter that would diverge from Hasura.
+func TestBuildSessionVariables(t *testing.T) {
+	t.Parallel()
+
+	baseRoles := func() any { return []any{"user"} }
+
+	cases := []struct {
+		name         string
+		claims       map[string]any
+		roleOverride string
+		wantRole     string
+		wantVars     map[string]any
+		wantErr      bool
+	}{
+		{
+			name: "string claims preserved",
+			claims: map[string]any{
+				"x-hasura-allowed-roles": baseRoles(),
+				"x-hasura-default-role":  "user",
+				"x-hasura-user-id":       "42",
+				"x-hasura-org-id":        "org-7",
+			},
+			roleOverride: "",
+			wantRole:     "user",
+			wantVars: map[string]any{
+				"x-hasura-role":          "user",
+				"x-hasura-allowed-roles": []any{"user"},
+				"x-hasura-default-role":  "user",
+				"x-hasura-user-id":       "42",
+				"x-hasura-org-id":        "org-7",
+			},
+			wantErr: false,
+		},
+		{
+			name: "numeric claim rejected (matches Hasura)",
+			claims: map[string]any{
+				"x-hasura-allowed-roles": baseRoles(),
+				"x-hasura-default-role":  "user",
+				// golang-jwt decodes JSON numbers as float64.
+				"x-hasura-user-id": float64(42),
+			},
+			roleOverride: "",
+			wantRole:     "",
+			wantVars:     nil,
+			wantErr:      true,
+		},
+		{
+			name: "boolean claim rejected (matches Hasura)",
+			claims: map[string]any{
+				"x-hasura-allowed-roles": baseRoles(),
+				"x-hasura-default-role":  "user",
+				"x-hasura-is-admin":      true,
+			},
+			roleOverride: "",
+			wantRole:     "",
+			wantVars:     nil,
+			wantErr:      true,
+		},
+		{
+			name: "non-allowed-roles array claim rejected (matches Hasura)",
+			claims: map[string]any{
+				"x-hasura-allowed-roles": baseRoles(),
+				"x-hasura-default-role":  "user",
+				"x-hasura-org-ids":       []any{"a", "b"},
+			},
+			roleOverride: "",
+			wantRole:     "",
+			wantVars:     nil,
+			wantErr:      true,
+		},
+		{
+			name: "object claim rejected (matches Hasura)",
+			claims: map[string]any{
+				"x-hasura-allowed-roles": baseRoles(),
+				"x-hasura-default-role":  "user",
+				"x-hasura-meta":          map[string]any{"k": "v"},
+			},
+			roleOverride: "",
+			wantRole:     "",
+			wantVars:     nil,
+			wantErr:      true,
+		},
+		{
+			name: "allowed-roles array is exempt from string check",
+			claims: map[string]any{
+				"x-hasura-allowed-roles": []any{"user", "editor"},
+				"x-hasura-default-role":  "user",
+			},
+			roleOverride: "",
+			wantRole:     "user",
+			wantVars: map[string]any{
+				"x-hasura-role":          "user",
+				"x-hasura-allowed-roles": []any{"user", "editor"},
+				"x-hasura-default-role":  "user",
+			},
+			wantErr: false,
+		},
+	}
+
+	for _, tc := range cases {
+		t.Run(tc.name, func(t *testing.T) {
+			t.Parallel()
+
+			role, vars, err := buildSessionVariables(tc.claims, tc.roleOverride)
+			if tc.wantErr {
+				if err == nil {
+					t.Fatalf("buildSessionVariables: expected error, got nil (vars=%+v)", vars)
+				}
+
+				return
+			}
+
+			if err != nil {
+				t.Fatalf("buildSessionVariables: unexpected error: %v", err)
+			}
+
+			if role != tc.wantRole {
+				t.Errorf("role = %q, want %q", role, tc.wantRole)
+			}
+
+			if diff := cmp.Diff(tc.wantVars, vars); diff != "" {
+				t.Errorf("session variables mismatch (-want +got):\n%s", diff)
+			}
+
+			// Every value other than allowed-roles must be a string.
+			for k, v := range vars {
+				if k == "x-hasura-allowed-roles" {
+					continue
+				}
+
+				if _, ok := v.(string); !ok {
+					t.Errorf("session variable %q is %T, want string", k, v)
+				}
+			}
+		})
+	}
+}
