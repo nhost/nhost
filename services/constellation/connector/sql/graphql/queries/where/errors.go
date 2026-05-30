@@ -15,6 +15,7 @@ var (
 	errUnknownFieldInWhereClause   = errors.New("unknown field in where clause")
 	errAndMustBeListOrObject       = errors.New("_and must be a list or an object")
 	errOrMustBeListOrObject        = errors.New("_or must be a list or an object")
+	errIsNullMustBeBoolean         = errors.New("_is_null must be a boolean")
 	errFieldComparisonMustBeObject = errors.New("field comparison must be an object")
 	errUnknownWhereOperator        = errors.New("unknown operator")
 )
