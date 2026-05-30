@@ -3,6 +3,7 @@ package queries_test
 import (
 	"testing"
 
+	"github.com/nhost/nhost/services/constellation/connector/sql/graphql/queries/arguments"
 	"github.com/nhost/nhost/services/constellation/connector/sql/graphql/queries/permissions"
 )
 
@@ -347,6 +348,42 @@ func TestBuildSelectionSQL(t *testing.T) { //nolint:maintidx,paralleltest
 				Role:      "admin",
 				Variables: nil,
 			},
+		},
+
+		{
+			// Hasura rejects a negative limit during query parsing; Constellation
+			// must do the same rather than forwarding "LIMIT -1" to Postgres
+			// (which raises an execution-time error).
+			name: "negative limit rejected",
+			query: query{
+				Query: `
+					query {
+						departments(limit: -1) {
+							id
+							name
+						}
+					}`,
+				Role:      "admin",
+				Variables: nil,
+			},
+			expectError: arguments.ErrInvalidArgument,
+		},
+
+		{
+			// Same pre-execution rejection for a negative offset.
+			name: "negative offset rejected",
+			query: query{
+				Query: `
+					query {
+						departments(offset: -1) {
+							id
+							name
+						}
+					}`,
+				Role:      "admin",
+				Variables: nil,
+			},
+			expectError: arguments.ErrInvalidArgument,
 		},
 
 		{

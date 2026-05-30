@@ -273,6 +273,24 @@ func TestBuildSelectionSQL_SQLite(t *testing.T) { //nolint:paralleltest
 		},
 
 		{
+			// Negative limit must be rejected at parse time on SQLite too, where
+			// otherwise a negative LIMIT silently means "unlimited" — diverging
+			// from both Hasura and the Postgres backend.
+			name: "negative limit rejected",
+			query: query{
+				Query: `
+					query {
+						departments(limit: -1) {
+							id
+							name
+						}
+					}`,
+				Role: "admin",
+			},
+			expectError: arguments.ErrInvalidArgument,
+		},
+
+		{
 			name: "combined where, order by, limit",
 			query: query{
 				Query: `

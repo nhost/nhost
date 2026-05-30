@@ -117,6 +117,16 @@ func ParseLimitOffset(value *ast.Value, variables map[string]any) (*int, error) 
 		return nil, fmt.Errorf("%w: limit must be an integer", ErrInvalidArgument)
 	}
 
+	// Hasura rejects negative limit/offset during query parsing rather than
+	// forwarding the value to the database (where Postgres raises "LIMIT must
+	// not be negative" / "OFFSET must not be negative" at execution and SQLite
+	// silently treats a negative LIMIT as unlimited / a negative OFFSET as 0).
+	// Reject here so the request fails pre-execution with a stable validation
+	// error, matching Hasura and keeping behaviour consistent across dialects.
+	if intVal < 0 {
+		return nil, fmt.Errorf("%w: limit/offset must be non-negative", ErrInvalidArgument)
+	}
+
 	return &intVal, nil
 }
 

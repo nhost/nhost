@@ -72,38 +72,82 @@ func TestParseLimitOffset(t *testing.T) {
 		variables map[string]any
 		want      *int
 		wantErr   bool
+		// wantErrIs, when non-nil, additionally asserts the returned error
+		// wraps this sentinel (used to pin the validation-error class).
+		wantErrIs error
 	}{
 		{
-			name:  "int",
-			value: intValue("10"),
-			want:  new(10),
+			name:      "int",
+			value:     intValue("10"),
+			want:      new(10),
+			wantErr:   false,
+			wantErrIs: nil,
 		},
 		{
-			name:  "float whole",
-			value: floatValue("5"),
-			want:  new(5),
+			name:      "zero",
+			value:     intValue("0"),
+			want:      new(0),
+			wantErr:   false,
+			wantErrIs: nil,
 		},
 		{
-			name:    "float fractional",
-			value:   floatValue("3.14"),
-			wantErr: true,
+			name:      "float whole",
+			value:     floatValue("5"),
+			want:      new(5),
+			wantErr:   false,
+			wantErrIs: nil,
 		},
 		{
-			name:    "string is not an integer",
-			value:   stringValue("nope"),
-			wantErr: true,
+			name:      "float fractional",
+			value:     floatValue("3.14"),
+			want:      nil,
+			wantErr:   true,
+			wantErrIs: arguments.ErrInvalidArgument,
+		},
+		{
+			name:      "string is not an integer",
+			value:     stringValue("nope"),
+			want:      nil,
+			wantErr:   true,
+			wantErrIs: arguments.ErrInvalidArgument,
+		},
+		{
+			name:      "negative int rejected",
+			value:     intValue("-1"),
+			want:      nil,
+			wantErr:   true,
+			wantErrIs: arguments.ErrInvalidArgument,
+		},
+		{
+			name:      "negative float rejected",
+			value:     floatValue("-1.0"),
+			want:      nil,
+			wantErr:   true,
+			wantErrIs: arguments.ErrInvalidArgument,
 		},
 		{
 			name:      "variable resolves to int",
 			value:     variableValue("v"),
 			variables: map[string]any{"v": 7},
 			want:      new(7),
+			wantErr:   false,
+			wantErrIs: nil,
+		},
+		{
+			name:      "variable resolves to negative int rejected",
+			value:     variableValue("v"),
+			variables: map[string]any{"v": -5},
+			want:      nil,
+			wantErr:   true,
+			wantErrIs: arguments.ErrInvalidArgument,
 		},
 		{
 			name:      "variable missing",
 			value:     variableValue("v"),
 			variables: map[string]any{},
+			want:      nil,
 			wantErr:   true,
+			wantErrIs: nil,
 		},
 	}
 
