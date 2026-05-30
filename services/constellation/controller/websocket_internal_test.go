@@ -124,13 +124,13 @@ func firstErrorMessage(t *testing.T, ch <-chan *websocket.Message) string {
 }
 
 func queryValidationSubscriptionError(rootField string) error {
+	vErr := arguments.NewDistinctOnOrderByMismatchError()
+	vErr.StampArgumentPath(rootField)
+
 	return fmt.Errorf(
 		"%w: failed to build subscription SQL: %w",
 		subscription.ErrInvalidSubscription,
-		&arguments.QueryValidationError{
-			Err:       arguments.ErrDistinctOnOrderByMismatch,
-			RootField: rootField,
-		},
+		vErr,
 	)
 }
 

@@ -414,15 +414,12 @@ func TestClassifyConnectorError_QueryValidationError(t *testing.T) {
 
 	c := &Controller{devMode: false}
 
+	vErr := arguments.NewDistinctOnOrderByMismatchError()
+	vErr.StampArgumentPath("departments")
+
 	wrapped := fmt.Errorf(
 		"failed to execute operations: %w",
-		fmt.Errorf(
-			"failed to build query for field %q: %w", "departments",
-			&arguments.QueryValidationError{
-				Err:       arguments.ErrDistinctOnOrderByMismatch,
-				RootField: "departments",
-			},
-		),
+		fmt.Errorf("failed to build query for field %q: %w", "departments", vErr),
 	)
 
 	got := c.classifyConnectorError(context.Background(), slog.Default(), wrapped)

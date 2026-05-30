@@ -105,8 +105,9 @@ func ParseQuery(
 //     and direction are irrelevant): allowed, left untouched — the DISTINCT ON /
 //     ORDER BY already agree.
 //   - distinct_on present, order_by whose leading prefix does NOT contain the
-//     distinct_on columns: rejected with a *QueryValidationError wrapping
-//     ErrDistinctOnOrderByMismatch, mirroring Hasura's validation-failed error.
+//     distinct_on columns: rejected with a *QueryValidationError wrapping both
+//     ErrInvalidArgument and ErrDistinctOnOrderByMismatch, mirroring Hasura's
+//     validation-failed error.
 //     Constellation does not silently reorder the ORDER BY, because that would
 //     return different rows than the user's order_by requested and diverge from
 //     Hasura.
@@ -139,11 +140,7 @@ func validateDistinctOnOrderBy(
 	// PostgreSQL constraint and to Hasura's check; a non-distinct column before
 	// the full distinct_on set is not allowed. Reject otherwise.
 	if !distinctOnMatchesOrderByPrefix(dOn.Columns, userItems) {
-		return nil, &QueryValidationError{
-			Err:          ErrDistinctOnOrderByMismatch,
-			RootField:    "",
-			argumentName: "",
-		}
+		return nil, NewDistinctOnOrderByMismatchError()
 	}
 
 	return modifiers, nil
@@ -204,14 +201,7 @@ func parseLimitOffsetArgument(
 	// the shared integer parser used by stream batch_size, whose validation
 	// message names batch_size rather than limit/offset.
 	if parsed != nil && *parsed < 0 {
-		return nil, &QueryValidationError{
-			Err: &validationMessageError{
-				message: "unexpected negative value for " + argumentName,
-				err:     fmt.Errorf("%w: limit/offset must be non-negative", ErrInvalidArgument),
-			},
-			RootField:    "",
-			argumentName: argumentName,
-		}
+		return nil, newNegativeLimitOffsetError(argumentName)
 	}
 
 	return parsed, nil

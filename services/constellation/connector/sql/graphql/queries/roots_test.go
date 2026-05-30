@@ -112,10 +112,7 @@ func TestRootsBuildQuery_StampsQueryValidationError(t *testing.T) {
 		_ map[string]any,
 		_ map[string]core.Operation,
 	) (core.SQLOperation, error) {
-		return core.SQLOperation{}, &arguments.QueryValidationError{
-			Err:       arguments.ErrDistinctOnOrderByMismatch,
-			RootField: "",
-		}
+		return core.SQLOperation{}, arguments.NewDistinctOnOrderByMismatchError()
 	}
 
 	r := queries.Roots{
@@ -142,8 +139,13 @@ func TestRootsBuildQuery_StampsQueryValidationError(t *testing.T) {
 		t.Fatalf("err = %T, want *QueryValidationError", err)
 	}
 
-	if vErr.RootField != "people" {
-		t.Fatalf("RootField = %q, want alias %q", vErr.RootField, "people")
+	ext, ok := vErr.AsMap()["extensions"].(map[string]any)
+	if !ok {
+		t.Fatalf("extensions = %T, want map[string]any", vErr.AsMap()["extensions"])
+	}
+
+	if got := ext["path"]; got != "$.selectionSet.people.args" {
+		t.Fatalf("extensions.path = %v, want $.selectionSet.people.args", got)
 	}
 }
 

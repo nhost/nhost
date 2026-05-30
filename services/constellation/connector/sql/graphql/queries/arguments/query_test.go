@@ -630,7 +630,7 @@ func TestParseQueryNegativeLimitOffsetValidationError(t *testing.T) {
 				t.Fatalf("expected a *QueryValidationError, got %T", err)
 			}
 
-			vErr.RootField = "departments"
+			vErr.StampArgumentPath("departments")
 
 			got := vErr.AsMap()
 			if got["message"] != tt.wantMessage {
@@ -682,6 +682,10 @@ func TestParseQueryDistinctOnOrderByValidation(t *testing.T) {
 		}
 
 		_, _, _, err := arguments.ParseQuery(tbl, args, nil, "user", nil)
+		if !errors.Is(err, arguments.ErrInvalidArgument) {
+			t.Fatalf("expected ErrInvalidArgument, got %v", err)
+		}
+
 		if !errors.Is(err, arguments.ErrDistinctOnOrderByMismatch) {
 			t.Fatalf("expected ErrDistinctOnOrderByMismatch, got %v", err)
 		}
@@ -689,6 +693,16 @@ func TestParseQueryDistinctOnOrderByValidation(t *testing.T) {
 		var vErr *arguments.QueryValidationError
 		if !errors.As(err, &vErr) {
 			t.Fatalf("expected a *QueryValidationError, got %T", err)
+		}
+
+		vErr.StampArgumentPath("departments")
+
+		if got := vErr.AsMap()["message"]; got != arguments.ErrDistinctOnOrderByMismatch.Error() {
+			t.Fatalf(
+				"message: got %q, want %q",
+				got,
+				arguments.ErrDistinctOnOrderByMismatch.Error(),
+			)
 		}
 	})
 
@@ -858,10 +872,8 @@ func TestParseQueryDistinctOnOrderByValidation(t *testing.T) {
 func TestQueryValidationErrorAsMap(t *testing.T) {
 	t.Parallel()
 
-	vErr := &arguments.QueryValidationError{
-		Err:       arguments.ErrDistinctOnOrderByMismatch,
-		RootField: "departments",
-	}
+	vErr := arguments.NewDistinctOnOrderByMismatchError()
+	vErr.StampArgumentPath("departments")
 
 	got := vErr.AsMap()
 
@@ -885,6 +897,35 @@ func TestQueryValidationErrorAsMap(t *testing.T) {
 
 	if ext["code"] != "validation-failed" {
 		t.Errorf("extensions.code: got %v, want validation-failed", ext["code"])
+	}
+
+	if ext["path"] != "$.selectionSet.departments.args" {
+		t.Errorf("extensions.path: got %v, want $.selectionSet.departments.args", ext["path"])
+	}
+}
+
+func TestQueryValidationErrorZeroValueAsMapUsesSafeFallback(t *testing.T) {
+	t.Parallel()
+
+	vErr := new(arguments.QueryValidationError)
+	vErr.StampArgumentPath("departments")
+
+	if !errors.Is(vErr, arguments.ErrInvalidArgument) {
+		t.Fatalf("expected zero-value QueryValidationError to unwrap ErrInvalidArgument")
+	}
+
+	got := vErr.AsMap()
+	if got["message"] != arguments.ErrInvalidArgument.Error() {
+		t.Errorf(
+			"message: got %q, want %q",
+			got["message"],
+			arguments.ErrInvalidArgument.Error(),
+		)
+	}
+
+	ext, ok := got["extensions"].(map[string]any)
+	if !ok {
+		t.Fatalf("extensions: got %T, want map[string]any", got["extensions"])
 	}
 
 	if ext["path"] != "$.selectionSet.departments.args" {

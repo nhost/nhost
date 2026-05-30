@@ -1,6 +1,9 @@
 package arguments
 
-import "errors"
+import (
+	"errors"
+	"fmt"
+)
 
 // ErrInvalidArgument is the sentinel error wrapped by every validation failure
 // emitted by the Parse* functions (e.g. missing required argument, unknown
@@ -35,38 +38,95 @@ const graphqlCodeValidationFailed = "validation-failed"
 // client with the same GraphQL error envelope Hasura produces: an
 // extensions.code of "validation-failed" and an extensions.path of
 // "$.selectionSet.<fieldPath>.args" (or that path plus the offending argument
-// name when Hasura reports an argument-specific failure). It carries the
-// offending field path suffix (set by the SQL connector once it is known, since
-// the argument parser only sees the table) so the controller can render the
-// path verbatim.
+// name when Hasura reports an argument-specific failure). Its client-facing
+// message and wrapped sentinel errors are private so packages outside
+// arguments cannot smuggle arbitrary raw error strings through the controller's
+// structured-error bypass.
 //
 // It mirrors remoteschema.RemoteError: a trusted, already-shaped GraphQL error
 // the controller passes through (via AsMap) instead of sanitising into a trace
-// id. The distinct_on/order_by mismatch message intentionally matches Hasura
-// byte-for-byte.
+// id. Constructors in this package are the trust boundary for which validation
+// messages are safe to expose.
 type QueryValidationError struct {
-	// Err is the wrapped validation error (e.g.
-	// ErrDistinctOnOrderByMismatch). Its message is safe to expose to the
-	// GraphQL client.
-	Err error
-	// RootField is the queried field-path suffix used to build extensions.path:
-	// the root field alias/name, or that root plus nested ".selectionSet.<field>"
-	// hops for relationship arguments. Empty until the SQL connector stamps it.
-	RootField string
-
+	message      string
+	err          error
+	argumentPath string
 	argumentName string
 }
 
-// Error implements error, returning the wrapped validation message verbatim so
-// call-site wrapping can preserve the client-facing text through errors.As.
-func (e *QueryValidationError) Error() string {
-	return e.Err.Error()
+// NewDistinctOnOrderByMismatchError returns the Hasura-compatible validation
+// failure emitted when distinct_on columns do not match the leading order_by
+// columns.
+func NewDistinctOnOrderByMismatchError() *QueryValidationError {
+	return newQueryValidationError(
+		ErrDistinctOnOrderByMismatch.Error(),
+		errors.Join(ErrInvalidArgument, ErrDistinctOnOrderByMismatch),
+		"",
+	)
 }
 
-// Unwrap exposes the wrapped validation error so errors.Is matches through any
-// call-site wrapping.
+func newNegativeLimitOffsetError(argumentName string) *QueryValidationError {
+	message := "unexpected negative value"
+	if argumentName == "limit" || argumentName == "offset" {
+		message += " for " + argumentName
+	} else {
+		argumentName = ""
+	}
+
+	return newQueryValidationError(
+		message,
+		fmt.Errorf("%w: limit/offset must be non-negative", ErrInvalidArgument),
+		argumentName,
+	)
+}
+
+func newQueryValidationError(message string, err error, argumentName string) *QueryValidationError {
+	if message == "" {
+		message = ErrInvalidArgument.Error()
+	}
+
+	if err == nil {
+		err = ErrInvalidArgument
+	}
+
+	return &QueryValidationError{
+		message:      message,
+		err:          err,
+		argumentPath: "",
+		argumentName: argumentName,
+	}
+}
+
+// StampArgumentPath records the GraphQL selection-path suffix used to render
+// extensions.path. The first non-empty path wins so a root-field annotation
+// cannot overwrite the more specific relationship path stamped deeper in the
+// SQL builder.
+func (e *QueryValidationError) StampArgumentPath(argumentPath string) {
+	if e == nil || e.argumentPath != "" || argumentPath == "" {
+		return
+	}
+
+	e.argumentPath = argumentPath
+}
+
+// Error implements error, returning the safe validation message verbatim so
+// call-site wrapping can preserve the client-facing text through errors.As.
+func (e *QueryValidationError) Error() string {
+	return e.clientMessage()
+}
+
+// Unwrap exposes the wrapped validation sentinels so errors.Is matches through
+// any call-site wrapping.
 func (e *QueryValidationError) Unwrap() error {
-	return e.Err
+	if e == nil {
+		return nil
+	}
+
+	if e.err == nil {
+		return ErrInvalidArgument
+	}
+
+	return e.err
 }
 
 // AsMap renders the error in Hasura's GraphQL error response shape: the safe
@@ -75,7 +135,7 @@ func (e *QueryValidationError) Unwrap() error {
 // locations are emitted, matching Hasura.
 func (e *QueryValidationError) AsMap() map[string]any {
 	return map[string]any{
-		"message": e.Err.Error(),
+		"message": e.clientMessage(),
 		"extensions": map[string]any{
 			"code": graphqlCodeValidationFailed,
 			"path": e.extensionsPath(),
@@ -83,26 +143,26 @@ func (e *QueryValidationError) AsMap() map[string]any {
 	}
 }
 
+func (e *QueryValidationError) clientMessage() string {
+	if e == nil || e.message == "" {
+		return ErrInvalidArgument.Error()
+	}
+
+	return e.message
+}
+
 func (e *QueryValidationError) extensionsPath() string {
-	path := "$.selectionSet." + e.RootField + ".args"
-	if e.argumentName != "" {
+	path := "$.selectionSet"
+	if e != nil && e.argumentPath != "" {
+		path += "." + e.argumentPath
+	}
+
+	path += ".args"
+	if e != nil && e.argumentName != "" {
 		path += "." + e.argumentName
 	}
 
 	return path
-}
-
-type validationMessageError struct {
-	message string
-	err     error
-}
-
-func (e *validationMessageError) Error() string {
-	return e.message
-}
-
-func (e *validationMessageError) Unwrap() error {
-	return e.err
 }
 
 // argNameWhere is the GraphQL argument name for the WHERE clause shared by

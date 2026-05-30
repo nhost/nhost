@@ -570,6 +570,27 @@ func TestQueryFeatures(t *testing.T) { //nolint:maintidx,paralleltest
 				Role: "admin",
 			},
 		},
+		// The aggregate root is generated through a separate SQL path from the
+		// collection root above, so assert its synthesised order_by behavior against
+		// live Hasura too.
+		{
+			name: "distinct_on aggregate without order_by",
+			query: query{
+				Query: `query {
+					departments_aggregate(distinct_on: name) {
+						aggregate {
+							count
+						}
+						nodes {
+							id
+							name
+							budget
+						}
+					}
+				}`,
+				Role: "admin",
+			},
+		},
 		// Multi-column distinct_on whose order_by prefix does not match the
 		// distinct columns (order_by leads with a non-distinct column). Hasura
 		// rejects this at validation; Constellation must return the same

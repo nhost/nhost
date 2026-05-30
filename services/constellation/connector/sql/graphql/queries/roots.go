@@ -212,9 +212,8 @@ func (r Roots) BuildQuery(
 // field path provide the suffix here. Non-validation errors pass through
 // unchanged and remain subject to controller sanitisation.
 func annotateQueryValidationError(err error, argumentPath string) error {
-	if vErr, ok := errors.AsType[*arguments.QueryValidationError](err); ok &&
-		vErr.RootField == "" && argumentPath != "" {
-		vErr.RootField = argumentPath
+	if vErr, ok := errors.AsType[*arguments.QueryValidationError](err); ok {
+		vErr.StampArgumentPath(argumentPath)
 	}
 
 	return err
@@ -232,8 +231,8 @@ func rootFieldName(field *ast.Field) string {
 }
 
 // childArgumentPath appends a field (alias preferred) to the GraphQL selection
-// path suffix stored on QueryValidationError.RootField. The suffix deliberately
-// omits the leading "$.selectionSet." and trailing ".args" because
+// path suffix stamped on QueryValidationError. The suffix deliberately omits
+// the leading "$.selectionSet." and trailing ".args" because
 // QueryValidationError adds those when rendering the final GraphQL error.
 func childArgumentPath(parentPath string, field *ast.Field) string {
 	child := rootFieldName(field)
