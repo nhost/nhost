@@ -209,8 +209,8 @@ func parseRSAPublicKey(key string) (*rsa.PublicKey, error) {
 
 // jwksAllowedMethods returns the signing-algorithm allowlist pinned at the
 // parser layer for JWKS-backed secrets. A JWKS secret has no configured
-// algorithm (Type is empty by construction — jwtconfig enforces Type+Key and
-// JWKURL as mutually exclusive), so the allowlist is derived from the
+// algorithm (Type is empty by construction — jwtconfig rejects Type/Key with
+// JWKURL), so the allowlist is derived from the
 // asymmetric families the static-key path already accepts (RS*). It
 // deliberately excludes every symmetric (HS*) algorithm and "none": a JWKS
 // endpoint only ever serves asymmetric public keys, so pinning the RSA family
