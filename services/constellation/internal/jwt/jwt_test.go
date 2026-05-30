@@ -1942,6 +1942,55 @@ func TestAuthenticatorJWKURLUnknownKid(t *testing.T) {
 	}
 }
 
+// TestAuthenticatorJWKURLRejectsHS256 asserts that a JWKS-backed secret pins an
+// asymmetric (RS*) algorithm allowlist at the parser layer, so a token signed
+// with a symmetric algorithm (HS256) — the classic algorithm-confusion attempt
+// where the attacker signs with the public key bytes as an HMAC secret — is
+// rejected before key resolution. This mirrors the allowlist the static-key
+// path already pins via WithValidMethods.
+func TestAuthenticatorJWKURLRejectsHS256(t *testing.T) {
+	t.Parallel()
+
+	rsaPrivKey, _ := generateRSAKeyPair(t)
+	kid := "hs-confusion-kid"
+	srv := startJWKSServer(t, &rsaPrivKey.PublicKey, kid)
+
+	auth, err := jwt.NewAuthenticator(context.Background(), jwtconfig.Config{
+		Secrets: []jwtconfig.Secret{{JWKURL: srv.URL}},
+	}, slog.Default())
+	if err != nil {
+		t.Fatalf("NewAuthenticator() error = %v", err)
+	}
+	defer auth.Close()
+
+	// Sign with HS256 (symmetric). Even with a kid header set, the parser-level
+	// algorithm allowlist must reject the token because HS256 is not in the
+	// JWKS allowlist.
+	token := gojwt.NewWithClaims(gojwt.SigningMethodHS256, gojwt.MapClaims{
+		"exp": gojwt.NewNumericDate(time.Now().Add(time.Hour)),
+		"https://hasura.io/jwt/claims": hasuraClaims(
+			[]string{"user"}, "user", nil,
+		),
+	})
+	token.Header["kid"] = kid
+
+	tokenStr, signErr := token.SignedString([]byte("attacker-hmac-secret"))
+	if signErr != nil {
+		t.Fatalf("failed to sign HS256 token: %v", signErr)
+	}
+
+	result, authErr := auth.Authenticate(
+		http.Header{"Authorization": {"Bearer " + tokenStr}}, "",
+	)
+	if authErr == nil {
+		t.Error("expected error for HS256 token against JWKS secret, got nil")
+	}
+
+	if result != nil {
+		t.Errorf("expected nil result, got %+v", result)
+	}
+}
+
 func TestAuthenticatorJWKURLWithIssuerAndAudience(t *testing.T) {
 	t.Parallel()
 

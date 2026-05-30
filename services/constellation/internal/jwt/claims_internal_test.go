@@ -1,11 +1,42 @@
 package jwt
 
 import (
+	"strings"
 	"testing"
 
 	"github.com/google/go-cmp/cmp"
 	"github.com/nhost/nhost/services/constellation/internal/jwt/jwtconfig"
 )
+
+// TestJWKSAllowedMethods pins the JWKS algorithm allowlist: it must contain
+// only asymmetric (RS*) families that the static-key path also accepts, and
+// must never include any symmetric (HS*) algorithm or "none". A symmetric or
+// "none" entry would reintroduce the algorithm-confusion surface the allowlist
+// exists to close.
+func TestJWKSAllowedMethods(t *testing.T) {
+	t.Parallel()
+
+	methods := jwksAllowedMethods()
+	if len(methods) == 0 {
+		t.Fatal("jwksAllowedMethods must not be empty")
+	}
+
+	want := map[string]bool{
+		string(jwtconfig.AlgorithmRS256): true,
+		string(jwtconfig.AlgorithmRS384): true,
+		string(jwtconfig.AlgorithmRS512): true,
+	}
+
+	for _, m := range methods {
+		if !want[m] {
+			t.Errorf("unexpected method %q in jwksAllowedMethods", m)
+		}
+
+		if strings.HasPrefix(m, "HS") || strings.EqualFold(m, "none") {
+			t.Errorf("jwksAllowedMethods must not include symmetric/none method %q", m)
+		}
+	}
+}
 
 func TestNavigatePath(t *testing.T) {
 	t.Parallel()
