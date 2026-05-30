@@ -388,6 +388,36 @@ func TestBuildSessionVariables(t *testing.T) {
 			},
 			wantErr: false,
 		},
+		{
+			// A mixed-case duplicate of allowed-roles must not smuggle an
+			// unvalidated object past the array exemption and overwrite the
+			// canonical value by map-iteration order.
+			name: "mixed-case duplicate allowed-roles rejected",
+			claims: map[string]any{
+				"x-hasura-allowed-roles": []any{"user"},
+				"X-Hasura-Allowed-Roles": map[string]any{"evil": true},
+				"x-hasura-default-role":  "user",
+			},
+			roleOverride: "",
+			wantRole:     "",
+			wantVars:     nil,
+			wantErr:      true,
+		},
+		{
+			// Any case-insensitive duplicate is ambiguous (last-writer-wins by
+			// map order) and is rejected, not just allowed-roles.
+			name: "mixed-case duplicate session variable rejected",
+			claims: map[string]any{
+				"x-hasura-allowed-roles": baseRoles(),
+				"x-hasura-default-role":  "user",
+				"x-hasura-user-id":       "42",
+				"X-Hasura-User-Id":       "99",
+			},
+			roleOverride: "",
+			wantRole:     "",
+			wantVars:     nil,
+			wantErr:      true,
+		},
 	}
 
 	for _, tc := range cases {

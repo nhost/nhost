@@ -35,6 +35,9 @@ var (
 	ErrSessionVariableNotString = errors.New(
 		"x-hasura-* session variable claim must be a string",
 	)
+	ErrDuplicateSessionVariable = errors.New(
+		"duplicate x-hasura-* session variable claim (case-insensitive)",
+	)
 )
 
 // allowedRolesClaim is the one x-hasura-* session-variable claim that is
@@ -251,10 +254,25 @@ func buildSessionVariables(
 			continue
 		}
 
-		if lk != allowedRolesClaim {
-			if _, ok := v.(string); !ok {
-				return "", nil, fmt.Errorf("%w: %q is %T", ErrSessionVariableNotString, lk, v)
+		// Reject case-insensitive duplicate keys (e.g. both
+		// "x-hasura-allowed-roles" and "X-Hasura-Allowed-Roles"). They
+		// normalize to the same session variable, so the surviving value would
+		// otherwise depend on map iteration order; for the allowed-roles
+		// exemption a duplicate could also smuggle an unvalidated object/number
+		// past the string check below. Fail closed on the ambiguity.
+		if _, dup := variables[lk]; dup {
+			return "", nil, fmt.Errorf("%w: %q", ErrDuplicateSessionVariable, lk)
+		}
+
+		if lk == allowedRolesClaim {
+			// Hasura permits a string array here; validate the value itself
+			// rather than exempting it unchecked, so a non-array can never be
+			// stored under the allowed-roles session variable.
+			if _, err := toStringSlice(v); err != nil {
+				return "", nil, fmt.Errorf("x-hasura-allowed-roles: %w", err)
 			}
+		} else if _, ok := v.(string); !ok {
+			return "", nil, fmt.Errorf("%w: %q is %T", ErrSessionVariableNotString, lk, v)
 		}
 
 		variables[lk] = v
