@@ -7,12 +7,29 @@ package multiplexed
 
 import (
 	json "encoding/json/v2"
+	"errors"
 	"fmt"
 	"regexp"
+	"slices"
 	"strconv"
 	"strings"
 
 	"github.com/nhost/nhost/services/constellation/connector/sql/graphql/queries/core"
+)
+
+// ErrSessionVarInMultiElementArray is returned by Multiplex when a permission
+// session-variable marker is trapped inside a multi-element array parameter
+// (e.g. `_in: ["x-hasura-user-id", "<literal>"]` or
+// `_has_keys_any: ["x-hasura-key", "<literal>"]`). Such an array maps to a
+// single SQL placeholder bound as a whole array, so its session-variable
+// element cannot be rewritten into a per-subscriber result_vars JSON path
+// without restructuring the array into per-element expressions — which is not
+// yet supported. Rather than silently binding the variable's literal name (and
+// evaluating the row-level permission against "x-hasura-…" instead of the
+// subscriber's session value), the subscription is rejected so the divergence
+// is loud rather than a silent wrong/empty result set.
+var ErrSessionVarInMultiElementArray = errors.New(
+	"session variable in a multi-element array filter is not supported in subscriptions",
 )
 
 // paramPattern matches $N optionally followed by ::type or ::type[].
@@ -32,25 +49,36 @@ var paramPattern = regexp.MustCompile(`\$(\d+)(?:::([a-zA-Z_][a-zA-Z0-9_]*(?:\[\
 // placeholders for session/cursor values, while static GraphQL variables remain
 // as numbered parameters ($3, $4, ...).
 //
-// Session variables (strings prefixed with "x-hasura-") and cursor values
-// (core.CursorValue markers) in op.Parameters are recognised and rewritten to
-// JSON path expressions accessing _subs.result_vars. Type casts are extracted
-// from the SQL pattern $N::type. The remaining entries form the static params
-// slice, renumbered starting at $3 (after $1=sub_ids, $2=result_vars). Callers
-// pass that slice as the tail of the parameter list — see PrepareParams.
-func Multiplex(op core.SQLOperation) (string, []any) {
-	innerSQL, staticParams := rewriteMultiplexedSQL(op)
+// Session variables (core.SessionVarValue markers) and cursor values
+// (core.CursorValue markers) in op.Parameters are recognised by type and
+// rewritten to JSON path expressions accessing _subs.result_vars. Type casts
+// are extracted from the SQL pattern $N::type. The remaining entries form the
+// static params slice, renumbered starting at $3 (after $1=sub_ids,
+// $2=result_vars). Callers pass that slice as the tail of the parameter list —
+// see PrepareParams.
+//
+// Classification is purely by marker type, never by sniffing a parameter's
+// string value: a user-supplied where/_set/_in/by_pk literal that happens to
+// begin with "x-hasura-" is ordinary data and is left as a static parameter,
+// matching Hasura (which tracks session-variable positions structurally).
+func Multiplex(op core.SQLOperation) (string, []any, error) {
+	innerSQL, staticParams, err := rewriteMultiplexedSQL(op)
+	if err != nil {
+		return "", nil, err
+	}
 
-	return buildMultiplexedSQL(op.Name, innerSQL), staticParams
+	return buildMultiplexedSQL(op.Name, innerSQL), staticParams, nil
 }
 
 // rewriteMultiplexedSQL converts a regular core.SQLOperation into its inner
 // multiplexed form: the SQL with session and cursor parameter references
 // rewritten to JSON path expressions, and the residual static parameters
-// (renumbered to start at $3).
-func rewriteMultiplexedSQL(op core.SQLOperation) (string, []any) {
+// (renumbered to start at $3). It returns ErrSessionVarInMultiElementArray when
+// a session-variable marker is trapped inside a multi-element array parameter
+// that cannot be rewritten into a single result_vars lookup.
+func rewriteMultiplexedSQL(op core.SQLOperation) (string, []any, error) {
 	if len(op.Parameters) == 0 {
-		return op.SQL, nil
+		return op.SQL, nil, nil
 	}
 
 	sessionVarIndices := make(map[int]string)
@@ -64,6 +92,17 @@ func rewriteMultiplexedSQL(op core.SQLOperation) (string, []any) {
 			sessionVarIndices[paramIdx] = varName
 		} else if cursorVal, ok := param.(core.CursorValue); ok {
 			cursorVarIndices[paramIdx] = cursorVal.ColumnName
+		} else if containsSessionVarMarker(param) {
+			// extractSessionVarName recognises a lone (or single-element-array)
+			// session-variable marker above; if a marker survives here it is
+			// trapped inside a multi-element array param that cannot be rewritten
+			// to a result_vars path, so reject the subscription rather than bind
+			// the variable's literal name.
+			return "", nil, fmt.Errorf(
+				"%w: parameter %d",
+				ErrSessionVarInMultiElementArray,
+				paramIdx,
+			)
 		} else {
 			staticParamOldIndices = append(staticParamOldIndices, paramIdx)
 		}
@@ -90,39 +129,54 @@ func rewriteMultiplexedSQL(op core.SQLOperation) (string, []any) {
 		staticParamMapping,
 	)
 
-	return innerSQL, staticParams
+	return innerSQL, staticParams, nil
 }
 
-// extractSessionVarName extracts the session variable name from a parameter.
-// It handles both direct string values and arrays containing a single session variable reference.
+// extractSessionVarName extracts the session-variable name from a parameter
+// that is a core.SessionVarValue marker (or a single-element array wrapping
+// one, the shape a scalar session variable in an `_in` filter can take).
+// Classification is by marker type only: a plain string is never treated as a
+// session variable, even when it begins with "x-hasura-", because such a value
+// is user-supplied data rather than a permission session-variable reference.
+// The marker is produced exclusively by the subscription cohort managers (see
+// core.SessionVarValue), so it cannot originate from user input.
 func extractSessionVarName(param any) (string, bool) {
-	if s, ok := param.(string); ok {
-		if strings.HasPrefix(strings.ToLower(s), "x-hasura-") {
-			return s, true
-		}
-
-		return "", false
-	}
-
-	if arr, ok := param.([]string); ok {
-		if len(arr) == 1 && strings.HasPrefix(strings.ToLower(arr[0]), "x-hasura-") {
-			return arr[0], true
-		}
-
-		return "", false
-	}
-
-	if arr, ok := param.([]any); ok {
-		if len(arr) == 1 {
-			if s, ok := arr[0].(string); ok && strings.HasPrefix(strings.ToLower(s), "x-hasura-") {
-				return s, true
+	switch v := param.(type) {
+	case core.SessionVarValue:
+		return v.Name, true
+	case []any:
+		if len(v) == 1 {
+			if sv, ok := v[0].(core.SessionVarValue); ok {
+				return sv.Name, true
 			}
 		}
-
-		return "", false
+	case []core.SessionVarValue:
+		if len(v) == 1 {
+			return v[0].Name, true
+		}
 	}
 
 	return "", false
+}
+
+// containsSessionVarMarker reports whether param is, or transitively contains,
+// a core.SessionVarValue marker. extractSessionVarName already recognises a lone
+// marker and a single-element array wrapping one (the rewritable shapes); this
+// detects a marker trapped in a multi-element array, where it cannot be reduced
+// to a single result_vars path. rewriteMultiplexedSQL rejects such params rather
+// than letting a marker reach the driver (pgx cannot encode it) or silently
+// binding the variable's literal name.
+func containsSessionVarMarker(param any) bool {
+	switch v := param.(type) {
+	case core.SessionVarValue:
+		return true
+	case []any:
+		return slices.ContainsFunc(v, containsSessionVarMarker)
+	case []core.SessionVarValue:
+		return len(v) > 0
+	}
+
+	return false
 }
 
 // rewriteSQLForMultiplexing rewrites SQL to use JSON path extraction for session variables
