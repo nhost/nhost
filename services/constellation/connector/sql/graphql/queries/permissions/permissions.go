@@ -605,9 +605,58 @@ func SubstituteSessionVariable(v any, sessionVariables map[string]any) (any, err
 		}
 
 		return out, nil
+	case []string:
+		return substituteStringArray(v, sessionVariables)
 	}
 
 	return v, nil
+}
+
+// substituteStringArray resolves session-variable references inside the
+// []string produced by the JSONB key operators (_has_keys_all / _has_keys_any).
+// A single whole-array session variable (e.g. `_has_keys_any: X-Hasura-Keys`)
+// flattens to the resolved value — a SessionVarValue marker on the subscription
+// template path, or the concrete session value on the direct path — mirroring
+// the []any (_in) handling. When any element is a session variable the slice
+// widens to []any so it can carry a marker alongside literal keys; a slice of
+// plain literals is returned unchanged so ordinary JSONB keys keep their type.
+// Only permission metadata is fed through here, so a user-supplied look-alike
+// literal such as ["x-hasura-foo"] is never reinterpreted as a session variable.
+func substituteStringArray(v []string, sessionVariables map[string]any) (any, error) {
+	hasSessionVar := false
+
+	for _, item := range v {
+		if strings.HasPrefix(strings.ToLower(item), "x-hasura-") {
+			hasSessionVar = true
+
+			break
+		}
+	}
+
+	if !hasSessionVar {
+		return v, nil
+	}
+
+	out := make([]any, len(v))
+
+	for i, item := range v {
+		substituted, err := SubstituteSessionVariable(item, sessionVariables)
+		if err != nil {
+			return nil, err
+		}
+
+		// Flatten a single whole-array session variable to its resolved value
+		// (marker or concrete value), matching the []any scalar flatten.
+		if len(v) == 1 {
+			if _, isSlice := substituted.([]any); !isSlice {
+				return substituted, nil
+			}
+		}
+
+		out[i] = substituted
+	}
+
+	return out, nil
 }
 
 // substituteSessionVariables resolves session-variable markers in params[start:]

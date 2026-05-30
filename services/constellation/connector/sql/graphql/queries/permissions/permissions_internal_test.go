@@ -236,6 +236,65 @@ func TestSubstituteSessionVariable_DoesNotMutateSharedSlice(t *testing.T) {
 	}
 }
 
+// TestSubstituteSessionVariable_StringArray covers the []string shape produced
+// by the JSONB key operators (_has_keys_all / _has_keys_any). A session variable
+// there must be carried structurally like an _in session variable: flattened to
+// its resolved value on the direct path and to a SessionVarValue marker on the
+// subscription template path, while ordinary literal keys stay a plain []string
+// so a user-supplied look-alike is never reinterpreted.
+func TestSubstituteSessionVariable_StringArray(t *testing.T) {
+	t.Parallel()
+
+	marker := core.SessionVarValue{Name: "x-hasura-keys"}
+
+	tests := []struct {
+		name        string
+		in          []string
+		sessionVars map[string]any
+		want        any
+	}{
+		{
+			name:        "single whole-array session var flattens to concrete value (direct path)",
+			in:          []string{"x-hasura-keys"},
+			sessionVars: map[string]any{"x-hasura-keys": "{a,b}"},
+			want:        "{a,b}",
+		},
+		{
+			name:        "single whole-array session var flattens to marker (template path)",
+			in:          []string{"x-hasura-keys"},
+			sessionVars: map[string]any{"x-hasura-keys": marker},
+			want:        marker,
+		},
+		{
+			name:        "plain literal keys stay a []string",
+			in:          []string{"alpha", "beta"},
+			sessionVars: map[string]any{},
+			want:        []string{"alpha", "beta"},
+		},
+		{
+			name:        "multi-element mix widens to []any carrying the marker",
+			in:          []string{"x-hasura-keys", "literal"},
+			sessionVars: map[string]any{"x-hasura-keys": marker},
+			want:        []any{marker, "literal"},
+		},
+	}
+
+	for _, tc := range tests {
+		t.Run(tc.name, func(t *testing.T) {
+			t.Parallel()
+
+			got, err := SubstituteSessionVariable(tc.in, tc.sessionVars)
+			if err != nil {
+				t.Fatalf("unexpected error: %v", err)
+			}
+
+			if diff := cmp.Diff(tc.want, got); diff != "" {
+				t.Errorf("SubstituteSessionVariable mismatch (-want +got):\n%s", diff)
+			}
+		})
+	}
+}
+
 func TestNormalizePresets(t *testing.T) {
 	t.Parallel()
 
