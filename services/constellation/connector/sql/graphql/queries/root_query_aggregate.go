@@ -38,6 +38,7 @@ func (t *table) buildQueryAggregateSQL(
 		alias,
 		t.tableFromClause(),
 		t.tableSourceRef(),
+		rootFieldName(field),
 	)
 	if err != nil {
 		putBuilder(b)
@@ -72,6 +73,7 @@ func (t *table) writeQueryAggregateSQL( //nolint:cyclop,funlen
 	outputAlias string,
 	fromClause string,
 	sourceRef string,
+	argumentPath string,
 	queryModifiers ...queryModifierFunc,
 ) ([]any, int, error) {
 	outerTypenames, aggregateFields, nodesFields, err := t.astToAggregateSelection(
@@ -90,6 +92,8 @@ func (t *table) writeQueryAggregateSQL( //nolint:cyclop,funlen
 		sourceRef,
 	)
 	if err != nil {
+		err = annotateQueryValidationError(err, argumentPath)
+
 		return nil, 0, fmt.Errorf(
 			"parsing query arguments for %s.%s: %w", t.schemaName, t.tableName, err,
 		)
@@ -189,6 +193,7 @@ func (t *table) writeQueryAggregateSQL( //nolint:cyclop,funlen
 			nodesFields[i].responseName,
 			nodesFields[i].field,
 			baseAlias,
+			argumentPath,
 			hasOuterFields,
 		)
 		if err != nil {
@@ -259,6 +264,7 @@ func (t *table) writeAggregateNodes(
 	responseName string,
 	nodesField *ast.Field,
 	baseAlias string,
+	argumentPath string,
 	hasPrecedingFields bool,
 ) ([]any, int, error) {
 	if hasPrecedingFields {
@@ -294,18 +300,20 @@ func (t *table) writeAggregateNodes(
 
 	var err error
 
+	nodesArgumentPath := childArgumentPath(argumentPath, nodesField)
+
 	// Build nodes selection using buildQuerySQL but referencing the CTE
 	if distinctOn != nil && len(distinctOn.Columns) > 0 {
 		// With distinct_on, we need to expose the distinct columns for ordering
 		params, paramIndex, err = t.buildNodesWithDistinctOn(
 			b, nodesField, fragments, variables, role, sessionVariables,
-			roots, params, paramIndex, baseAlias, distinctOn,
+			roots, params, paramIndex, baseAlias, nodesArgumentPath, distinctOn,
 		)
 	} else {
 		// Without distinct_on, just build normal nodes
 		params, paramIndex, err = t.buildNodesFromCTE(
 			b, nodesField, fragments, variables, role, sessionVariables,
-			roots, params, paramIndex, baseAlias,
+			roots, params, paramIndex, baseAlias, nodesArgumentPath,
 		)
 	}
 
@@ -330,6 +338,7 @@ func (t *table) buildNodesFromCTE(
 	params []any,
 	paramIndex int,
 	cteAlias string,
+	argumentPath string,
 ) ([]any, int, error) {
 	// Note: Remote relationships in aggregate nodes are not supported and are ignored
 	columns, relationships, err := t.astToQuerySelection(nodesField, fragments)
@@ -346,13 +355,13 @@ func (t *table) buildNodesFromCTE(
 	if t.dialect.SupportsLateral() {
 		return t.buildNodesRelationshipsLateral(
 			b, relationships, fragments, variables, role, sessionVariables,
-			roots, params, paramIndex, cteAlias, first,
+			roots, params, paramIndex, cteAlias, argumentPath, first,
 		)
 	}
 
 	return t.buildNodesRelationshipsSubquery(
 		b, relationships, fragments, variables, role, sessionVariables,
-		roots, params, paramIndex, cteAlias, first,
+		roots, params, paramIndex, cteAlias, argumentPath, first,
 	)
 }
 
@@ -395,6 +404,7 @@ func (t *table) buildNodesRelationshipsLateral(
 	params []any,
 	paramIndex int,
 	cteAlias string,
+	argumentPath string,
 	hasColumns bool,
 ) ([]any, int, error) {
 	for _, relSel := range relationships {
@@ -424,7 +434,7 @@ func (t *table) buildNodesRelationshipsLateral(
 
 		params, paramIndex, err = relSel.relationship.buildSelectionSQL(
 			b, relSel.field, fragments, variables, role, sessionVariables,
-			roots, params, paramIndex, cteAlias, relAlias,
+			roots, params, paramIndex, cteAlias, relAlias, argumentPath,
 		)
 		if err != nil {
 			return nil, 0, fmt.Errorf("error building relationship %s: %w", relSel.alias, err)
@@ -450,6 +460,7 @@ func (t *table) buildNodesRelationshipsSubquery(
 	params []any,
 	paramIndex int,
 	cteAlias string,
+	argumentPath string,
 	hasColumns bool,
 ) ([]any, int, error) {
 	var err error
@@ -467,7 +478,7 @@ func (t *table) buildNodesRelationshipsSubquery(
 
 		params, paramIndex, err = relSel.relationship.buildSelectionSQL(
 			b, relSel.field, fragments, variables, role, sessionVariables,
-			roots, params, paramIndex, cteAlias, relAlias,
+			roots, params, paramIndex, cteAlias, relAlias, argumentPath,
 		)
 		if err != nil {
 			return nil, 0, fmt.Errorf("error building relationship %s: %w", relSel.alias, err)
@@ -499,6 +510,7 @@ func (t *table) buildNodesWithDistinctOn( //nolint:funlen
 	params []any,
 	paramIndex int,
 	cteAlias string,
+	argumentPath string,
 	distinctOn *arguments.DistinctOn,
 ) ([]any, int, error) {
 	columns, relationships, err := t.astToQuerySelection(nodesField, fragments)
@@ -548,7 +560,7 @@ func (t *table) buildNodesWithDistinctOn( //nolint:funlen
 
 		params, paramIndex, err = relSel.relationship.buildSelectionSQL(
 			b, relSel.field, fragments, variables, role, sessionVariables,
-			roots, params, paramIndex, cteAlias, relAlias,
+			roots, params, paramIndex, cteAlias, relAlias, argumentPath,
 		)
 		if err != nil {
 			return nil, 0, fmt.Errorf("error building relationship %s: %w", relSel.alias, err)

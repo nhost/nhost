@@ -153,6 +153,7 @@ func (t *table) buildLateralJoins(
 	roots map[string]core.Operation,
 	params []any,
 	paramIndex int,
+	argumentPath string,
 ) ([]any, int, error) {
 	for _, relSel := range relationships {
 		// Skip relationships that were direct nested inserts.
@@ -178,6 +179,7 @@ func (t *table) buildLateralJoins(
 			paramIndex,
 			"mutation_result",
 			relAlias,
+			argumentPath,
 		)
 		if err != nil {
 			return nil, 0, fmt.Errorf("error building relationship %s: %w", relSel.alias, err)
@@ -206,6 +208,7 @@ func (t *table) buildFinalSelect( //nolint:funlen
 	roots map[string]core.Operation,
 	params []any,
 	paramIndex int,
+	argumentPath string,
 ) ([]any, error) {
 	// nestedForceRefNames lists every nested-insert CTE this top-level
 	// insert produced. Emitted as a no-op WHERE so the gated subset
@@ -248,7 +251,7 @@ func (t *table) buildFinalSelect( //nolint:funlen
 
 		params, _, err = t.buildLateralJoins(
 			b, relationships, nestedSelectionCTEs, fragments, variables,
-			role, sessionVariables, roots, params, paramIndex,
+			role, sessionVariables, roots, params, paramIndex, argumentPath,
 		)
 		if err != nil {
 			return nil, err
@@ -281,7 +284,7 @@ func (t *table) buildFinalSelect( //nolint:funlen
 
 				params, paramIndex, err = relSel.relationship.buildSelectionSQL(
 					b, relSel.field, fragments, variables, role, sessionVariables,
-					roots, params, paramIndex, "mutation_result", relAlias,
+					roots, params, paramIndex, "mutation_result", relAlias, argumentPath,
 				)
 				if err != nil {
 					return nil, fmt.Errorf("error building relationship %s: %w", relSel.alias, err)

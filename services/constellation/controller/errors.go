@@ -98,22 +98,34 @@ func sanitizeConnectorError(
 func (c *Controller) classifyConnectorError(
 	ctx context.Context, logger *slog.Logger, err error,
 ) []map[string]any {
+	if structuredErrs, ok := classifyStructuredConnectorError(err); ok {
+		return structuredErrs
+	}
+
+	return []map[string]any{{
+		"message": sanitizeConnectorError(ctx, logger, c.devMode, err),
+	}}
+}
+
+// classifyStructuredConnectorError extracts trusted, already-shaped GraphQL
+// errors from a connector error without applying the raw driver-error
+// sanitizer. It is shared by HTTP execution and WebSocket subscription paths so
+// validation failures keep the same wire envelope across transports.
+func classifyStructuredConnectorError(err error) ([]map[string]any, bool) {
 	if gqlErrs, ok := errors.AsType[*remoteschema.GraphQLError](err); ok {
 		out := make([]map[string]any, len(gqlErrs.Errors))
 		for i, re := range gqlErrs.Errors {
 			out[i] = re.AsMap()
 		}
 
-		return out
+		return out, true
 	}
 
 	if vErr, ok := errors.AsType[*arguments.QueryValidationError](err); ok {
-		return []map[string]any{vErr.AsMap()}
+		return []map[string]any{vErr.AsMap()}, true
 	}
 
-	return []map[string]any{{
-		"message": sanitizeConnectorError(ctx, logger, c.devMode, err),
-	}}
+	return nil, false
 }
 
 // Pre-allocated error responses for common cases. Treating them as package

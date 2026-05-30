@@ -11,6 +11,7 @@ import (
 	"testing"
 
 	"github.com/google/go-cmp/cmp"
+	"github.com/nhost/nhost/services/constellation/connector/sql/graphql/queries/arguments"
 	"github.com/nhost/nhost/services/constellation/controller/middleware"
 	"github.com/nhost/nhost/services/constellation/controller/websocket"
 	"github.com/nhost/nhost/services/constellation/internal/lib/syncmap"
@@ -84,9 +85,9 @@ func TestGetConnectorForOperation(t *testing.T) {
 
 // --- startSubscription error-classification tests -------------------------
 
-// firstErrorMessage drains a single error frame from ch and returns the
-// message string carried in its first error entry.
-func firstErrorMessage(t *testing.T, ch <-chan *websocket.Message) string {
+// firstErrorPayload drains a single error frame from ch and returns the
+// decoded GraphQL errors payload.
+func firstErrorPayload(t *testing.T, ch <-chan *websocket.Message) []map[string]any {
 	t.Helper()
 
 	select {
@@ -100,15 +101,48 @@ func firstErrorMessage(t *testing.T, ch <-chan *websocket.Message) string {
 			t.Fatalf("expected at least one error entry, got none")
 		}
 
-		got, ok := errs[0]["message"].(string)
-		if !ok {
-			t.Fatalf("error entry missing string message: %v", errs[0])
-		}
-
-		return got
+		return errs
 	default:
 		t.Fatalf("expected an error frame on sendCh, got none")
-		return ""
+		return nil
+	}
+}
+
+// firstErrorMessage drains a single error frame from ch and returns the
+// message string carried in its first error entry.
+func firstErrorMessage(t *testing.T, ch <-chan *websocket.Message) string {
+	t.Helper()
+
+	errs := firstErrorPayload(t, ch)
+
+	got, ok := errs[0]["message"].(string)
+	if !ok {
+		t.Fatalf("error entry missing string message: %v", errs[0])
+	}
+
+	return got
+}
+
+func queryValidationSubscriptionError(rootField string) error {
+	return fmt.Errorf(
+		"%w: failed to build subscription SQL: %w",
+		subscription.ErrInvalidSubscription,
+		&arguments.QueryValidationError{
+			Err:       arguments.ErrDistinctOnOrderByMismatch,
+			RootField: rootField,
+		},
+	)
+}
+
+func queryValidationErrors(rootField string) []map[string]any {
+	return []map[string]any{
+		{
+			"message": `"distinct_on" columns must match initial "order_by" columns`,
+			"extensions": map[string]any{
+				"code": "validation-failed",
+				"path": "$.selectionSet." + rootField + ".args",
+			},
+		},
 	}
 }
 
@@ -215,6 +249,70 @@ func TestStartSubscriptionStartErrorClassification(t *testing.T) {
 	}
 }
 
+func TestStartSubscriptionQueryValidationErrorPreservesStructuredEnvelope(t *testing.T) {
+	t.Parallel()
+
+	ctrl := gomock.NewController(t)
+
+	mockHandler := subscriptionmock.NewMockHandler(ctrl)
+	mockHandler.EXPECT().
+		Start(gomock.Any(), gomock.Any(), gomock.Any()).
+		Return(nil, queryValidationSubscriptionError("users"))
+
+	sendCh := make(chan *websocket.Message, 1)
+
+	h := &webSocketHandler{
+		state:           &controllerState{},
+		adminSecret:     "",
+		jwtAuth:         nil,
+		pollingInterval: defaultPollingInterval,
+		devMode:         false,
+		logger:          slog.New(slog.DiscardHandler),
+		session:         &middleware.SessionVariables{Role: "user", Variables: nil},
+		sendCh:          sendCh,
+		subs:            syncmap.New[string, *subscriptionState](),
+	}
+
+	op := &ast.OperationDefinition{
+		Operation:           ast.Subscription,
+		Name:                "",
+		VariableDefinitions: nil,
+		Directives:          nil,
+		SelectionSet: ast.SelectionSet{
+			&ast.Field{Name: "users"},
+		},
+		Position: nil,
+		Comment:  nil,
+	}
+
+	h.startSubscription(
+		context.Background(),
+		"sub-1",
+		websocket.SubscribePayload{
+			OperationName: "",
+			Query:         "subscription { users { id } }",
+			Variables:     nil,
+			Extensions:    nil,
+		},
+		mockHandler,
+		op,
+		nil,
+		nil,
+		h.logger,
+	)
+
+	got := firstErrorPayload(t, sendCh)
+	want := queryValidationErrors("users")
+
+	if diff := cmp.Diff(want, got); diff != "" {
+		t.Errorf("structured error payload mismatch (-want +got):\n%s", diff)
+	}
+
+	if _, exists := h.subs.Load("sub-1"); exists {
+		t.Error("subscription should have been removed after a Start failure")
+	}
+}
+
 // TestStartSubscriptionNewRequestErrorClassification ensures that an
 // ErrInvalidRequest from subscription.NewRequest (e.g. an empty session role)
 // is surfaced verbatim to the client rather than collapsed into an opaque
@@ -294,12 +392,12 @@ func TestStartSubscriptionNewRequestErrorClassification(t *testing.T) {
 
 // --- forwardUpdates classification tests ----------------------------------
 
-// TestForwardUpdatesErrorClassification ensures that a plan failure surfaced
-// asynchronously via Update.Error reaches the client verbatim (mirroring the
-// startSubscription path) while driver/runtime faults remain sanitized into a
-// trace id. Live-query subscriptions only build SQL inside their polling
-// goroutine, so this is the sole place where ErrInvalidSubscription crosses
-// the protocol boundary for them.
+// TestForwardUpdatesErrorClassification ensures that a non-structured plan
+// failure surfaced asynchronously via Update.Error reaches the client verbatim
+// (mirroring the startSubscription path) while driver/runtime faults remain
+// sanitized into a trace id. Live-query subscriptions only build SQL inside
+// their polling goroutine, so this is the sole place where
+// ErrInvalidSubscription crosses the protocol boundary for them.
 func TestForwardUpdatesErrorClassification(t *testing.T) {
 	t.Parallel()
 
@@ -375,6 +473,51 @@ func TestForwardUpdatesErrorClassification(t *testing.T) {
 				t.Errorf("message %q must not contain %q", got, tc.forbiddenSubst)
 			}
 		})
+	}
+}
+
+func TestForwardUpdatesQueryValidationErrorPreservesStructuredEnvelope(t *testing.T) {
+	t.Parallel()
+
+	sendCh := make(chan *websocket.Message, 1)
+
+	h := &webSocketHandler{
+		state:           &controllerState{},
+		adminSecret:     "",
+		jwtAuth:         nil,
+		pollingInterval: defaultPollingInterval,
+		devMode:         false,
+		logger:          slog.New(slog.DiscardHandler),
+		session:         &middleware.SessionVariables{Role: "user", Variables: nil},
+		sendCh:          sendCh,
+		subs:            syncmap.New[string, *subscriptionState](),
+	}
+
+	sub := &subscriptionState{
+		id:            "sub-1",
+		handler:       nil,
+		query:         "subscription { users { id } }",
+		operationName: "",
+		variables:     nil,
+		lastHash:      "",
+		stopCh:        make(chan struct{}),
+	}
+
+	updateCh := make(chan subscription.Update, 1)
+	updateCh <- subscription.NewUpdateError(
+		"sub-1",
+		queryValidationSubscriptionError("users"),
+	)
+
+	close(updateCh)
+
+	h.forwardUpdates(context.Background(), sub, updateCh, h.logger)
+
+	got := firstErrorPayload(t, sendCh)
+	want := queryValidationErrors("users")
+
+	if diff := cmp.Diff(want, got); diff != "" {
+		t.Errorf("structured error payload mismatch (-want +got):\n%s", diff)
 	}
 }
 

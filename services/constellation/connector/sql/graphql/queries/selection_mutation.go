@@ -182,6 +182,7 @@ func (s selectionAffectedRows) WriteSQLWithCTE(cteName string, b *strings.Builde
 
 type selectionReturning struct {
 	alias         string
+	argumentPath  string
 	columns       []columnSelection
 	relationships []relationshipSelection
 	dialect       dialect.Dialect
@@ -422,7 +423,7 @@ func (s selectionReturning) writeReturningCorrelated( //nolint:funlen
 
 			params, paramIndex, err = relSel.relationship.buildSelectionSQL(
 				b, relSel.field, fragments, variables, role, sessionVariables,
-				roots, params, paramIndex, cteName, relAlias,
+				roots, params, paramIndex, cteName, relAlias, s.argumentPath,
 			)
 			if err != nil {
 				return nil, 0, fmt.Errorf("error building relationship %s: %w", relSel.alias, err)
@@ -505,6 +506,7 @@ func (s selectionReturning) writeLateralJoinsWithCTE(
 			paramIndex,
 			cteName,
 			relAlias,
+			s.argumentPath,
 		)
 		if err != nil {
 			return nil, 0, fmt.Errorf("error building relationship %s: %w", relSel.alias, err)
@@ -591,6 +593,7 @@ func (t *table) processMutationField(
 
 		result.returning = selectionReturning{
 			alias:          returningAlias,
+			argumentPath:   childArgumentPath(rootAlias, sel),
 			columns:        columns,
 			relationships:  relationships,
 			dialect:        t.dialect,

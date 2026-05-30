@@ -10,6 +10,7 @@ import (
 	"github.com/vektah/gqlparser/v2/parser"
 
 	"github.com/nhost/nhost/services/constellation/connector/sql/graphql/queries"
+	"github.com/nhost/nhost/services/constellation/connector/sql/graphql/queries/arguments"
 	"github.com/nhost/nhost/services/constellation/connector/sql/graphql/queries/dialect"
 	groupedaggdispatch "github.com/nhost/nhost/services/constellation/connector/sql/graphql/queries/groupedaggregate"
 	"github.com/nhost/nhost/services/constellation/connector/sql/introspection"
@@ -185,6 +186,75 @@ func TestBuildQueryDispatch_UnknownFieldErrors(t *testing.T) {
 
 	if !strings.Contains(err.Error(), "not_a_root") {
 		t.Errorf("error should mention unknown field; got: %v", err)
+	}
+}
+
+func TestBuildQueryNestedRelationshipValidationErrorPath(t *testing.T) {
+	t.Parallel()
+
+	objects := buildObjectsWithUsersAndOrders()
+	md := &metadata.DatabaseMetadata{
+		Tables: []metadata.TableMetadata{
+			{
+				Table: metadata.TableSource{Schema: "public", Name: "users"},
+				ArrayRelationships: []metadata.ArrayRelationship{
+					{
+						Name: "orders",
+						Using: metadata.RelationshipUsing{
+							ForeignKeyConstraint: &metadata.ForeignKeyConstraint{
+								Columns: []string{"user_id"},
+								Table: metadata.TableSource{
+									Schema: "public",
+									Name:   "orders",
+								},
+							},
+						},
+					},
+				},
+			},
+			tableMetaFor("orders"),
+		},
+	}
+
+	roots, _, err := queries.BuildRoots(objects, md, &dialect.PostgresDialect{})
+	if err != nil {
+		t.Fatalf("BuildRoots: %v", err)
+	}
+
+	op, _, _ := parseSingleField(t, `query {
+		people: users {
+			id
+			orderList: orders(distinct_on: id, order_by: { user_id: asc }) { id }
+		}
+	}`)
+
+	_, err = roots.BuildQuery(op, nil, nil, "admin", nil)
+	if !errors.Is(err, arguments.ErrDistinctOnOrderByMismatch) {
+		t.Fatalf("expected ErrDistinctOnOrderByMismatch, got %v", err)
+	}
+
+	assertValidationPath(
+		t,
+		err,
+		"$.selectionSet.people.selectionSet.orderList.args",
+	)
+}
+
+func assertValidationPath(t *testing.T, err error, want string) {
+	t.Helper()
+
+	var vErr *arguments.QueryValidationError
+	if !errors.As(err, &vErr) {
+		t.Fatalf("err = %T, want *QueryValidationError", err)
+	}
+
+	ext, ok := vErr.AsMap()["extensions"].(map[string]any)
+	if !ok {
+		t.Fatalf("extensions = %T, want map[string]any", vErr.AsMap()["extensions"])
+	}
+
+	if got := ext["path"]; got != want {
+		t.Fatalf("extensions.path = %v, want %s", got, want)
 	}
 }
 
@@ -676,6 +746,46 @@ func TestBuildGroupedAggregate_DistinctOnUnsupportedDialect(t *testing.T) {
 	if !errors.Is(err, queries.ErrGroupedAggregateDistinctOnUnsupported) {
 		t.Fatalf("expected ErrGroupedAggregateDistinctOnUnsupported, got %v", err)
 	}
+}
+
+func TestBuildGroupedAggregateValidationErrorPath(t *testing.T) {
+	t.Parallel()
+
+	objects := buildObjectsWithUsersAndOrders()
+	md := &metadata.DatabaseMetadata{Tables: []metadata.TableMetadata{tableMetaFor("orders")}}
+
+	_, groupedAgg, err := queries.BuildRoots(objects, md, &dialect.PostgresDialect{})
+	if err != nil {
+		t.Fatalf("BuildRoots: %v", err)
+	}
+
+	_, field, fragments := parseSingleField(t, `query {
+		_root(distinct_on: id, order_by: { user_id: asc }) {
+			aggregate { count }
+		}
+	}`)
+
+	_, err = groupedAgg.BuildGroupedAggregateSQL(groupedaggdispatch.BuildInput{
+		TableSchema:       "public",
+		TableName:         "orders",
+		Field:             field,
+		ArgumentPath:      "users.selectionSet.ordersAgg",
+		Fragments:         fragments,
+		Variables:         nil,
+		Role:              "admin",
+		SessionVariables:  nil,
+		JoinColumnSQLName: "user_id",
+		JoinValues:        []any{"11111111-1111-1111-1111-111111111111"},
+	})
+	if !errors.Is(err, arguments.ErrDistinctOnOrderByMismatch) {
+		t.Fatalf("expected ErrDistinctOnOrderByMismatch, got %v", err)
+	}
+
+	assertValidationPath(
+		t,
+		err,
+		"$.selectionSet.users.selectionSet.ordersAgg.args",
+	)
 }
 
 func TestBuildGroupedAggregate_NestedRelationshipsRejected(t *testing.T) {

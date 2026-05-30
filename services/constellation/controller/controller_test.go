@@ -18,6 +18,10 @@ import (
 	"github.com/nhost/nhost/services/constellation/connector"
 	"github.com/nhost/nhost/services/constellation/connector/memconnector"
 	"github.com/nhost/nhost/services/constellation/connector/remoteschema"
+	sqlconnector "github.com/nhost/nhost/services/constellation/connector/sql"
+	"github.com/nhost/nhost/services/constellation/connector/sql/graphql/queries/core"
+	"github.com/nhost/nhost/services/constellation/connector/sql/graphql/queries/dialect"
+	"github.com/nhost/nhost/services/constellation/connector/sql/introspection"
 	"github.com/nhost/nhost/services/constellation/controller"
 	"github.com/nhost/nhost/services/constellation/controller/middleware"
 	plannerpkg "github.com/nhost/nhost/services/constellation/controller/planner"
@@ -879,6 +883,54 @@ func (e *errorConnector) Execute(
 	return e.Connector.Execute(ctx, op, frags, vars, role, sessionVars, logger) //nolint:wrapcheck
 }
 
+type validationTestDriver struct{}
+
+func (d validationTestDriver) Introspect(
+	context.Context,
+	*metadata.DatabaseMetadata,
+) (*introspection.Objects, error) {
+	objs := introspection.NewObjects()
+	objs.Schemas["public"] = &introspection.Schema{
+		Tables: map[string]*introspection.Table{
+			"users": {
+				Schema:      "public",
+				Name:        "users",
+				Columns:     []introspection.Column{{Name: "id", Type: "uuid"}},
+				PrimaryKeys: []string{"id"},
+			},
+		},
+	}
+
+	return objs, nil
+}
+
+func (d validationTestDriver) ExecuteOperations(
+	context.Context,
+	[]core.SQLOperation,
+	*slog.Logger,
+) (map[string]any, error) {
+	return nil, errors.New( //nolint:err113 // test-only guard if validation unexpectedly reaches execution.
+		"ExecuteOperations should not run for a query-validation failure",
+	)
+}
+
+func (d validationTestDriver) ExecuteMultiplexedOperation(
+	context.Context,
+	string,
+	[]any,
+	*slog.Logger,
+) ([]core.MultiplexedResult, error) {
+	return nil, errors.New( //nolint:err113 // test-only guard if HTTP query unexpectedly multiplexes.
+		"ExecuteMultiplexedOperation should not run in HTTP query tests",
+	)
+}
+
+func (d validationTestDriver) Dialect() dialect.Dialect {
+	return dialect.NewPostgresDialect()
+}
+
+func (d validationTestDriver) Close() {}
+
 func TestHandlerPost_MultiConnectorMergesResults(t *testing.T) {
 	t.Parallel()
 
@@ -1060,6 +1112,110 @@ func TestHandlerPost_ConnectorErrorSurfacedAsGraphQLError(t *testing.T) {
 	data, _ := body2["data"].(map[string]any)
 	if _, hasUsers := data["users"]; !hasUsers {
 		t.Errorf("expected partial-merge of connA data under 'users', got %v", body2)
+	}
+}
+
+func TestHandlerPost_NegativeLimitOffsetReturnsValidationFailed(t *testing.T) {
+	t.Parallel()
+
+	dbMeta := &metadata.DatabaseMetadata{
+		Kind: "postgres",
+		Tables: []metadata.TableMetadata{
+			{Table: metadata.TableSource{Schema: "public", Name: "users"}},
+		},
+	}
+
+	sqlConn, err := sqlconnector.NewConnector(
+		t.Context(),
+		validationTestDriver{},
+		dbMeta,
+		nil,
+		slog.New(slog.DiscardHandler),
+	)
+	if err != nil {
+		t.Fatalf("NewConnector: %v", err)
+	}
+
+	ctrl, err := controller.NewFromConnectors(
+		testAdminSecret,
+		map[string]connector.Connector{"sql": sqlConn},
+		nil,
+		slog.New(slog.DiscardHandler),
+	)
+	if err != nil {
+		t.Fatalf("NewFromConnectors: %v", err)
+	}
+
+	router := newTestRouter(t, ctrl)
+
+	tests := []struct {
+		name        string
+		query       string
+		wantMessage string
+		wantPath    string
+	}{
+		{
+			name:        "limit",
+			query:       `{"query":"{ staff: users(limit: -1) { id } }"}`,
+			wantMessage: "unexpected negative value for limit",
+			wantPath:    "$.selectionSet.staff.args.limit",
+		},
+		{
+			name:        "offset",
+			query:       `{"query":"{ staff: users(offset: -1) { id } }"}`,
+			wantMessage: "unexpected negative value for offset",
+			wantPath:    "$.selectionSet.staff.args.offset",
+		},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			t.Parallel()
+
+			req := httptest.NewRequest(
+				http.MethodPost,
+				"/graphql",
+				strings.NewReader(tt.query),
+			)
+			req.Header.Set("Content-Type", "application/json")
+			req.Header.Set("X-Hasura-Admin-Secret", testAdminSecret)
+
+			w := httptest.NewRecorder()
+			router.ServeHTTP(w, req)
+
+			if w.Code != http.StatusOK {
+				t.Fatalf("expected 200, got %d: %s", w.Code, w.Body.String())
+			}
+
+			body := readJSONBody(t, w)
+
+			errs, ok := body["errors"].([]any)
+			if !ok || len(errs) != 1 {
+				t.Fatalf("expected one error in response, got %v", body)
+			}
+
+			errObj, ok := errs[0].(map[string]any)
+			if !ok {
+				t.Fatalf("error: got %T, want map[string]any", errs[0])
+			}
+
+			if errObj["message"] != tt.wantMessage {
+				t.Fatalf("message: got %q, want %q", errObj["message"], tt.wantMessage)
+			}
+
+			ext, ok := errObj["extensions"].(map[string]any)
+			if !ok {
+				t.Fatalf("extensions: got %T, want map[string]any", errObj["extensions"])
+			}
+
+			if ext["code"] != "validation-failed" {
+				t.Errorf("extensions.code: got %v, want validation-failed", ext["code"])
+			}
+
+			if ext["path"] != tt.wantPath {
+				t.Errorf("extensions.path: got %v, want %s", ext["path"], tt.wantPath)
+			}
+		})
 	}
 }
 

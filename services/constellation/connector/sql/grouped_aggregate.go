@@ -47,6 +47,7 @@ func (c *Connector) ExecuteGroupedAggregate(
 		TableSchema:       req.TableSchema,
 		TableName:         req.TableName,
 		Field:             req.Field,
+		ArgumentPath:      req.ArgumentPath,
 		Fragments:         req.Fragments,
 		Variables:         req.Variables,
 		Role:              role,

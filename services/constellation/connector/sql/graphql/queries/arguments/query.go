@@ -1,6 +1,7 @@
 package arguments
 
 import (
+	"errors"
 	"fmt"
 
 	"github.com/vektah/gqlparser/v2/ast"
@@ -53,9 +54,9 @@ func ParseQuery(
 	}
 
 	if arg := arguments.ForName("limit"); arg != nil {
-		limitVal, err := ParseLimitOffset(arg.Value, variables)
+		limitVal, err := parseLimitOffsetArgument("limit", arg.Value, variables)
 		if err != nil {
-			return nil, nil, nil, fmt.Errorf("failed to parse limit: %w", err)
+			return nil, nil, nil, err
 		}
 
 		if limitVal != nil {
@@ -64,9 +65,9 @@ func ParseQuery(
 	}
 
 	if arg := arguments.ForName("offset"); arg != nil {
-		offsetVal, err := ParseLimitOffset(arg.Value, variables)
+		offsetVal, err := parseLimitOffsetArgument("offset", arg.Value, variables)
 		if err != nil {
-			return nil, nil, nil, fmt.Errorf("failed to parse offset: %w", err)
+			return nil, nil, nil, err
 		}
 
 		if offsetVal != nil {
@@ -140,8 +141,9 @@ func validateDistinctOnOrderBy(
 	// the full distinct_on set is not allowed. Reject otherwise.
 	if !distinctOnMatchesOrderByPrefix(dOn.Columns, userItems) {
 		return nil, &QueryValidationError{
-			Err:       ErrDistinctOnOrderByMismatch,
-			RootField: "",
+			Err:          ErrDistinctOnOrderByMismatch,
+			RootField:    "",
+			argumentName: "",
 		}
 	}
 
@@ -185,6 +187,30 @@ func findOrderBy(modifiers []QueryModifier) (int, []OrderByItem) {
 	return -1, nil
 }
 
+func parseLimitOffsetArgument(
+	argumentName string,
+	value *ast.Value,
+	variables map[string]any,
+) (*int, error) {
+	parsed, err := ParseLimitOffset(value, variables)
+	if err == nil {
+		return parsed, nil
+	}
+
+	if errors.Is(err, errNegativeLimitOffset) {
+		return nil, &QueryValidationError{
+			Err: &validationMessageError{
+				message: "unexpected negative value for " + argumentName,
+				err:     err,
+			},
+			RootField:    "",
+			argumentName: argumentName,
+		}
+	}
+
+	return nil, fmt.Errorf("failed to parse %s: %w", argumentName, err)
+}
+
 // ParseLimitOffset parses a limit or offset integer argument from GraphQL.
 // Accepts both IntValue and FloatValue because JSON numbers come in as floats
 // by default after variable resolution.
@@ -226,7 +252,7 @@ func ParseLimitOffset(value *ast.Value, variables map[string]any) (*int, error) 
 	// Reject here so the request fails pre-execution with a stable validation
 	// error, matching Hasura and keeping behaviour consistent across dialects.
 	if intVal < 0 {
-		return nil, fmt.Errorf("%w: limit/offset must be non-negative", ErrInvalidArgument)
+		return nil, fmt.Errorf("%w: %w", ErrInvalidArgument, errNegativeLimitOffset)
 	}
 
 	return &intVal, nil

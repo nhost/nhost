@@ -586,6 +586,73 @@ func TestParseQuery(t *testing.T) {
 	})
 }
 
+func TestParseQueryNegativeLimitOffsetValidationError(t *testing.T) {
+	t.Parallel()
+
+	tests := []struct {
+		name        string
+		argName     string
+		wantMessage string
+		wantPath    string
+	}{
+		{
+			name:        "limit",
+			argName:     "limit",
+			wantMessage: "unexpected negative value for limit",
+			wantPath:    "$.selectionSet.departments.args.limit",
+		},
+		{
+			name:        "offset",
+			argName:     "offset",
+			wantMessage: "unexpected negative value for offset",
+			wantPath:    "$.selectionSet.departments.args.offset",
+		},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			t.Parallel()
+
+			ctrl := gomock.NewController(t)
+			tbl := mock.NewMockTable(ctrl)
+
+			args := ast.ArgumentList{
+				&ast.Argument{Name: tt.argName, Value: intValue("-1")},
+			}
+
+			_, _, _, err := arguments.ParseQuery(tbl, args, nil, "user", nil)
+			if !errors.Is(err, arguments.ErrInvalidArgument) {
+				t.Fatalf("expected ErrInvalidArgument, got %v", err)
+			}
+
+			var vErr *arguments.QueryValidationError
+			if !errors.As(err, &vErr) {
+				t.Fatalf("expected a *QueryValidationError, got %T", err)
+			}
+
+			vErr.RootField = "departments"
+
+			got := vErr.AsMap()
+			if got["message"] != tt.wantMessage {
+				t.Errorf("message: got %q, want %q", got["message"], tt.wantMessage)
+			}
+
+			ext, ok := got["extensions"].(map[string]any)
+			if !ok {
+				t.Fatalf("extensions: got %T, want map[string]any", got["extensions"])
+			}
+
+			if ext["code"] != "validation-failed" {
+				t.Errorf("extensions.code: got %v, want validation-failed", ext["code"])
+			}
+
+			if ext["path"] != tt.wantPath {
+				t.Errorf("extensions.path: got %v, want %s", ext["path"], tt.wantPath)
+			}
+		})
+	}
+}
+
 // TestParseQueryDistinctOnOrderByValidation covers ParseQuery's validation of
 // the distinct_on / order_by combination so it matches Hasura exactly: inject a
 // leading ORDER BY when none was given, allow an order_by whose leading prefix

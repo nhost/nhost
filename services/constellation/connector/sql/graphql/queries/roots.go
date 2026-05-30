@@ -194,7 +194,7 @@ func (r Roots) BuildQuery(
 		// Build the SQL query for this field
 		sqlOp, err := opFn(field, fragments, variables, role, sessionVariables, rootMap)
 		if err != nil {
-			err = annotateQueryValidationError(err, field)
+			err = annotateQueryValidationError(err, rootFieldName(field))
 
 			return nil, fmt.Errorf("failed to build query for field %q: %w", field.Name, err)
 		}
@@ -205,16 +205,16 @@ func (r Roots) BuildQuery(
 	return operations, nil
 }
 
-// annotateQueryValidationError stamps the queried root field onto trusted
-// GraphQL validation errors so the controller can render Hasura's
-// "$.selectionSet.<rootField>.args" path. The argument parser only sees the
-// table, so the field name (alias preferred, matching Hasura) is only known
-// here. Non-validation errors pass through unchanged and remain subject to
-// controller sanitisation.
-func annotateQueryValidationError(err error, field *ast.Field) error {
+// annotateQueryValidationError stamps the GraphQL argument path suffix onto
+// trusted validation errors so the controller can render Hasura-style paths
+// such as "$.selectionSet.<root>.selectionSet.<relationship>.args". The
+// arguments parser only sees the table, so callers that still have the AST
+// field path provide the suffix here. Non-validation errors pass through
+// unchanged and remain subject to controller sanitisation.
+func annotateQueryValidationError(err error, argumentPath string) error {
 	if vErr, ok := errors.AsType[*arguments.QueryValidationError](err); ok &&
-		vErr.RootField == "" {
-		vErr.RootField = rootFieldName(field)
+		vErr.RootField == "" && argumentPath != "" {
+		vErr.RootField = argumentPath
 	}
 
 	return err
@@ -229,6 +229,19 @@ func rootFieldName(field *ast.Field) string {
 	}
 
 	return field.Name
+}
+
+// childArgumentPath appends a field (alias preferred) to the GraphQL selection
+// path suffix stored on QueryValidationError.RootField. The suffix deliberately
+// omits the leading "$.selectionSet." and trailing ".args" because
+// QueryValidationError adds those when rendering the final GraphQL error.
+func childArgumentPath(parentPath string, field *ast.Field) string {
+	child := rootFieldName(field)
+	if parentPath == "" {
+		return child
+	}
+
+	return parentPath + ".selectionSet." + child
 }
 
 // IsStreamSubscription reports whether field corresponds to a _stream

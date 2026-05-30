@@ -17,6 +17,8 @@ var ErrInvalidArgument = errors.New("invalid argument")
 // PostgreSQL/Hasura, so the ordering is rejected rather than silently wrong.
 var ErrUnsupportedAggregateOrderBy = errors.New("unsupported aggregate order_by")
 
+var errNegativeLimitOffset = errors.New("limit/offset must be non-negative")
+
 // ErrDistinctOnOrderByMismatch is the sentinel wrapped by a
 // *QueryValidationError when a distinct_on argument is combined with an
 // order_by whose leading prefix does not contain the distinct_on columns (same
@@ -34,9 +36,11 @@ const graphqlCodeValidationFailed = "validation-failed"
 // QueryValidationError is a query-validation failure that must surface to the
 // client with the same GraphQL error envelope Hasura produces: an
 // extensions.code of "validation-failed" and an extensions.path of
-// "$.selectionSet.<rootField>.args". It carries the offending root field name
-// (set by the SQL connector once it is known, since the argument parser only
-// sees the table) so the controller can render the path verbatim.
+// "$.selectionSet.<fieldPath>.args" (or that path plus the offending argument
+// name when Hasura reports an argument-specific failure). It carries the
+// offending field path suffix (set by the SQL connector once it is known, since
+// the argument parser only sees the table) so the controller can render the
+// path verbatim.
 //
 // It mirrors remoteschema.RemoteError: a trusted, already-shaped GraphQL error
 // the controller passes through (via AsMap) instead of sanitising into a trace
@@ -47,9 +51,12 @@ type QueryValidationError struct {
 	// ErrDistinctOnOrderByMismatch). Its message is safe to expose to the
 	// GraphQL client.
 	Err error
-	// RootField is the queried root field (alias or name) used to build the
-	// extensions.path. Empty until the SQL connector stamps it.
+	// RootField is the queried field-path suffix used to build extensions.path:
+	// the root field alias/name, or that root plus nested ".selectionSet.<field>"
+	// hops for relationship arguments. Empty until the SQL connector stamps it.
 	RootField string
+
+	argumentName string
 }
 
 // Error implements error, returning the wrapped validation message verbatim so
@@ -66,16 +73,38 @@ func (e *QueryValidationError) Unwrap() error {
 
 // AsMap renders the error in Hasura's GraphQL error response shape: the safe
 // validation message plus an extensions block carrying the "validation-failed"
-// code and the "$.selectionSet.<rootField>.args" path. No top-level path or
+// code and the "$.selectionSet.<fieldPath>.args" path. No top-level path or
 // locations are emitted, matching Hasura.
 func (e *QueryValidationError) AsMap() map[string]any {
 	return map[string]any{
 		"message": e.Err.Error(),
 		"extensions": map[string]any{
 			"code": graphqlCodeValidationFailed,
-			"path": "$.selectionSet." + e.RootField + ".args",
+			"path": e.extensionsPath(),
 		},
 	}
+}
+
+func (e *QueryValidationError) extensionsPath() string {
+	path := "$.selectionSet." + e.RootField + ".args"
+	if e.argumentName != "" {
+		path += "." + e.argumentName
+	}
+
+	return path
+}
+
+type validationMessageError struct {
+	message string
+	err     error
+}
+
+func (e *validationMessageError) Error() string {
+	return e.message
+}
+
+func (e *validationMessageError) Unwrap() error {
+	return e.err
 }
 
 // argNameWhere is the GraphQL argument name for the WHERE clause shared by
