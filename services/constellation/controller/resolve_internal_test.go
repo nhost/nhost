@@ -4,6 +4,7 @@ import (
 	"bytes"
 	"context"
 	"errors"
+	"fmt"
 	"log/slog"
 	"strings"
 	"testing"
@@ -12,6 +13,7 @@ import (
 	"github.com/vektah/gqlparser/v2/ast"
 	"github.com/vektah/gqlparser/v2/gqlerror"
 
+	"github.com/nhost/nhost/services/constellation/connector/sql/graphql/queries/arguments"
 	"github.com/nhost/nhost/services/constellation/internal/lib/oapi/tracing"
 )
 
@@ -398,5 +400,43 @@ func TestSanitizeConnectorError_UsesTraceFromContext(t *testing.T) {
 
 	if !strings.Contains(buf.String(), wantTraceID) {
 		t.Fatalf("server log %q did not carry the trace id from ctx", buf.String())
+	}
+}
+
+// TestClassifyConnectorError_QueryValidationError pins that a query-validation
+// failure passes through classifyConnectorError verbatim (via AsMap) instead of
+// being sanitised into a generic trace-id message, so the wire envelope matches
+// Hasura. It is wrapped with call-site context (as Connector.Execute and
+// BuildQuery do) to prove the errors.AsType lookup still finds it through the
+// wrap chain. devMode is false to prove the pass-through is independent of it.
+func TestClassifyConnectorError_QueryValidationError(t *testing.T) {
+	t.Parallel()
+
+	c := &Controller{devMode: false}
+
+	wrapped := fmt.Errorf(
+		"failed to execute operations: %w",
+		fmt.Errorf("failed to build query for field %q: %w", "departments",
+			&arguments.QueryValidationError{
+				Err:       arguments.ErrDistinctOnOrderByMismatch,
+				RootField: "departments",
+			},
+		),
+	)
+
+	got := c.classifyConnectorError(context.Background(), slog.Default(), wrapped)
+
+	want := []map[string]any{
+		{
+			"message": `"distinct_on" columns must match initial "order_by" columns`,
+			"extensions": map[string]any{
+				"code": "validation-failed",
+				"path": "$.selectionSet.departments.args",
+			},
+		},
+	}
+
+	if diff := cmp.Diff(want, got); diff != "" {
+		t.Errorf("classifyConnectorError (-want +got):\n%s", diff)
 	}
 }

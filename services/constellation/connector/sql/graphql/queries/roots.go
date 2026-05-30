@@ -6,6 +6,7 @@ import (
 
 	"github.com/vektah/gqlparser/v2/ast"
 
+	"github.com/nhost/nhost/services/constellation/connector/sql/graphql/queries/arguments"
 	"github.com/nhost/nhost/services/constellation/connector/sql/graphql/queries/core"
 	"github.com/nhost/nhost/services/constellation/connector/sql/graphql/queries/dialect"
 	groupedaggdispatch "github.com/nhost/nhost/services/constellation/connector/sql/graphql/queries/groupedaggregate"
@@ -193,6 +194,16 @@ func (r Roots) BuildQuery(
 		// Build the SQL query for this field
 		sqlOp, err := opFn(field, fragments, variables, role, sessionVariables, rootMap)
 		if err != nil {
+			// Stamp the queried root field onto a query-validation error so the
+			// controller can render Hasura's "$.selectionSet.<rootField>.args"
+			// path. The argument parser only sees the table, so the field name
+			// (alias preferred, matching Hasura) is only known here. Other
+			// errors pass through unchanged.
+			if vErr, ok := errors.AsType[*arguments.QueryValidationError](err); ok &&
+				vErr.RootField == "" {
+				vErr.RootField = rootFieldName(field)
+			}
+
 			return nil, fmt.Errorf("failed to build query for field %q: %w", field.Name, err)
 		}
 
@@ -200,6 +211,17 @@ func (r Roots) BuildQuery(
 	}
 
 	return operations, nil
+}
+
+// rootFieldName returns the name used to refer to a root field in a GraphQL
+// error path: the response alias when one is given, otherwise the field name.
+// This matches how Hasura builds the "$.selectionSet.<rootField>.args" path.
+func rootFieldName(field *ast.Field) string {
+	if field.Alias != "" {
+		return field.Alias
+	}
+
+	return field.Name
 }
 
 // IsStreamSubscription reports whether field corresponds to a _stream

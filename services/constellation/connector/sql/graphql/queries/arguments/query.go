@@ -13,8 +13,13 @@ import (
 // ParseQuery parses the where/order_by/limit/offset/distinct_on arguments of a
 // collection or aggregate query. sourceRef is the qualified reference of the
 // base relation being filtered/ordered (the table ref, or a function-call
-// alias); relationship order_by correlates its subqueries against it.
-func ParseQuery( //nolint:funlen
+// alias); relationship order_by correlates its subqueries against it. The
+// function is a flat sequence of one independent block per GraphQL argument;
+// that is clearer than threading shared variables/err state through
+// per-argument helpers.
+//
+//nolint:funlen // see godoc above for rationale
+func ParseQuery(
 	t Table,
 	arguments ast.ArgumentList,
 	variables map[string]any,
@@ -80,7 +85,96 @@ func ParseQuery( //nolint:funlen
 		}
 	}
 
+	modifiers, err = validateDistinctOnOrderBy(dOn, modifiers)
+	if err != nil {
+		return nil, nil, nil, err
+	}
+
 	return whereClause, modifiers, dOn, nil
+}
+
+// validateDistinctOnOrderBy enforces PostgreSQL's rule that the DISTINCT ON
+// expressions must be the leading ORDER BY expressions, matching Hasura's
+// behaviour exactly:
+//
+//   - distinct_on present, no order_by: synthesise a leading ORDER BY on the
+//     distinct columns (ASC NULLS LAST, the same default the aggregate
+//     json_agg ordering uses) so row selection is deterministic.
+//   - distinct_on present, order_by whose leading columns are exactly the
+//     distinct_on columns (same columns, same order, as a prefix; direction is
+//     irrelevant): allowed, left untouched — the DISTINCT ON / ORDER BY already
+//     agree.
+//   - distinct_on present, order_by that does NOT start with the distinct_on
+//     columns: rejected with a *QueryValidationError wrapping
+//     ErrDistinctOnOrderByMismatch, mirroring Hasura's validation-failed error.
+//     Constellation does not silently reorder the ORDER BY, because that would
+//     return different rows than the user's order_by requested and diverge from
+//     Hasura.
+//
+// It is a no-op when there is no distinct_on (dOn == nil), so non-distinct
+// queries and dialects without DISTINCT ON support (SQLite) are unaffected.
+func validateDistinctOnOrderBy(
+	dOn *DistinctOn,
+	modifiers []QueryModifier,
+) ([]QueryModifier, error) {
+	if dOn == nil || len(dOn.Columns) == 0 {
+		return modifiers, nil
+	}
+
+	orderByIdx, userItems := findOrderBy(modifiers)
+
+	// No user order_by existed; synthesise a leading ORDER BY on the distinct
+	// columns so row selection is deterministic (matching Hasura).
+	if orderByIdx < 0 {
+		prefix := make([]OrderByItem, len(dOn.Columns))
+		for i, col := range dOn.Columns {
+			prefix[i] = OrderByItem{Column: col, Direction: core.OrderAscNullsLast}
+		}
+
+		return append([]QueryModifier{&OrderBy{Items: prefix}}, modifiers...), nil
+	}
+
+	// An order_by was supplied; its leading columns must match the distinct_on
+	// columns (same columns, same order). Direction is irrelevant to the
+	// PostgreSQL constraint and to Hasura's check. Reject otherwise.
+	if !distinctOnIsOrderByPrefix(dOn.Columns, userItems) {
+		return nil, &QueryValidationError{
+			Err:       ErrDistinctOnOrderByMismatch,
+			RootField: "",
+		}
+	}
+
+	return modifiers, nil
+}
+
+// distinctOnIsOrderByPrefix reports whether the distinct_on columns are the
+// leading prefix of the order_by items: order_by must have at least as many
+// items as distinct columns and the first len(columns) of them must name the
+// distinct columns in the same order.
+func distinctOnIsOrderByPrefix(columns []string, orderBy []OrderByItem) bool {
+	if len(orderBy) < len(columns) {
+		return false
+	}
+
+	for i, col := range columns {
+		if orderBy[i].Column != col {
+			return false
+		}
+	}
+
+	return true
+}
+
+// findOrderBy returns the index of the *OrderBy modifier in modifiers and its
+// items, or (-1, nil) when no order_by was supplied.
+func findOrderBy(modifiers []QueryModifier) (int, []OrderByItem) {
+	for i, m := range modifiers {
+		if ob, ok := m.(*OrderBy); ok {
+			return i, ob.Items
+		}
+	}
+
+	return -1, nil
 }
 
 // ParseLimitOffset parses a limit or offset integer argument from GraphQL.

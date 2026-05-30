@@ -8,6 +8,7 @@ import (
 	"github.com/google/uuid"
 
 	"github.com/nhost/nhost/services/constellation/connector/remoteschema"
+	"github.com/nhost/nhost/services/constellation/connector/sql/graphql/queries/arguments"
 	"github.com/nhost/nhost/services/constellation/internal/lib/oapi/tracing"
 )
 
@@ -80,6 +81,12 @@ func sanitizeConnectorError(
 // remote schema that has already shaped its own GraphQL errors (path,
 // locations, extensions). They pass through verbatim via RemoteError.AsMap.
 //
+// A *arguments.QueryValidationError is a query-validation failure (e.g. a
+// distinct_on that does not match the leading order_by) that Constellation
+// detects while building SQL. It carries no PII and its envelope must match
+// Hasura's validation-failed error byte-for-byte, so it passes through
+// verbatim via AsMap rather than being sanitised.
+//
 // Any other error is treated as a raw connector/driver failure and routed
 // through sanitizeConnectorError so SQLSTATE codes, table/column names, and
 // offending values never reach an unauthenticated caller.
@@ -98,6 +105,10 @@ func (c *Controller) classifyConnectorError(
 		}
 
 		return out
+	}
+
+	if vErr, ok := errors.AsType[*arguments.QueryValidationError](err); ok {
+		return []map[string]any{vErr.AsMap()}
 	}
 
 	return []map[string]any{{

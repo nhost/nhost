@@ -3,6 +3,7 @@ package queries_test
 import (
 	"testing"
 
+	"github.com/nhost/nhost/services/constellation/connector/sql/graphql/queries/arguments"
 	"github.com/nhost/nhost/services/constellation/connector/sql/graphql/queries/permissions"
 )
 
@@ -357,6 +358,43 @@ func TestBuildSubscriptionCollectionSQL(t *testing.T) { //nolint:maintidx,parall
 						user_departments(distinct_on: department_id, order_by: {department_id: asc}) {
 							department_id
 							user_id
+						}
+					}`,
+				Role:      "admin",
+				Variables: nil,
+			},
+		},
+
+		{
+			// distinct_on column differs from the leading order_by column. Hasura
+			// rejects this at validation rather than reconciling, so Constellation
+			// does too instead of silently reordering the user's order_by.
+			name: "distinct on with mismatched order by",
+			query: query{
+				Query: `
+					subscription {
+						departments(distinct_on: name, order_by: {budget: desc}) {
+							id
+							name
+							budget
+						}
+					}`,
+				Role:      "admin",
+				Variables: nil,
+			},
+			expectError: arguments.ErrDistinctOnOrderByMismatch,
+		},
+
+		{
+			// distinct_on with no order_by must still emit a leading ORDER BY on
+			// the distinct columns, matching Hasura.
+			name: "distinct on without order by",
+			query: query{
+				Query: `
+					subscription {
+						departments(distinct_on: name) {
+							id
+							name
 						}
 					}`,
 				Role:      "admin",

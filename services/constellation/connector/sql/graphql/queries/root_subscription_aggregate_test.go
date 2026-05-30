@@ -2,6 +2,8 @@ package queries_test
 
 import (
 	"testing"
+
+	"github.com/nhost/nhost/services/constellation/connector/sql/graphql/queries/arguments"
 )
 
 func TestBuildSubscriptionAggregateSQL(t *testing.T) { //nolint:paralleltest,maintidx
@@ -362,6 +364,33 @@ func TestBuildSubscriptionAggregateSQL(t *testing.T) { //nolint:paralleltest,mai
 				}`,
 				Role: "admin",
 			},
+		},
+
+		{
+			// distinct_on column differs from the leading order_by column. Hasura
+			// rejects this at validation rather than reconciling, so Constellation
+			// does too instead of silently reordering the user's order_by.
+			name: "aggregate with distinct_on mismatched order by",
+			query: query{
+				Query: `subscription {
+					departments_aggregate(
+						distinct_on: name,
+						order_by: {budget: desc},
+						limit: 10
+					) {
+						aggregate {
+							count
+						}
+						nodes {
+							id
+							name
+							budget
+						}
+					}
+				}`,
+				Role: "admin",
+			},
+			expectError: arguments.ErrDistinctOnOrderByMismatch,
 		},
 
 		{

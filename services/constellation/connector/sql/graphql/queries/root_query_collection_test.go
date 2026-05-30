@@ -402,6 +402,45 @@ func TestBuildSelectionSQL(t *testing.T) { //nolint:maintidx,paralleltest
 		},
 
 		{
+			// distinct_on column differs from the leading order_by column. Hasura
+			// rejects this at validation ("distinct_on" columns must match initial
+			// "order_by" columns) rather than reconciling, so Constellation does
+			// too — it does not silently reorder the user's order_by.
+			name: "distinct on with mismatched order by",
+			query: query{
+				Query: `
+					query {
+						departments(distinct_on: name, order_by: {budget: desc}) {
+							id
+							name
+							budget
+						}
+					}`,
+				Role:      "admin",
+				Variables: nil,
+			},
+			expectError: arguments.ErrDistinctOnOrderByMismatch,
+		},
+
+		{
+			// distinct_on with no order_by must still emit a leading ORDER BY on
+			// the distinct columns so row selection is deterministic, matching
+			// Hasura.
+			name: "distinct on without order by",
+			query: query{
+				Query: `
+					query {
+						departments(distinct_on: name) {
+							id
+							name
+						}
+					}`,
+				Role:      "admin",
+				Variables: nil,
+			},
+		},
+
+		{
 			name: "combined where, order by, limit",
 			query: query{
 				Query: `

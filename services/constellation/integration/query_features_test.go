@@ -485,6 +485,68 @@ func TestQueryFeatures(t *testing.T) { //nolint:maintidx,paralleltest
 			},
 		},
 
+		// distinct_on column differs from the leading order_by column. Hasura
+		// rejects this at validation with a "validation-failed" error
+		// ("distinct_on" columns must match initial "order_by" columns) rather
+		// than reconciling; this asserts Constellation returns the same error
+		// envelope instead of silently reordering the order_by.
+		{
+			name: "distinct_on with mismatched order_by",
+			query: query{
+				Query: `query {
+					departments(
+						distinct_on: name,
+						order_by: {budget: desc}
+					) {
+						id
+						name
+						budget
+					}
+				}`,
+				Role: "admin",
+			},
+		},
+		// distinct_on without any order_by: the distinct columns must still lead
+		// a synthesised ORDER BY so row selection / output ordering is
+		// deterministic and matches Hasura.
+		{
+			name: "distinct_on without order_by",
+			query: query{
+				Query: `query {
+					departments(distinct_on: name) {
+						id
+						name
+						budget
+					}
+				}`,
+				Role: "admin",
+			},
+		},
+		// Multi-column distinct_on whose order_by prefix does not match the
+		// distinct columns (order_by leads with a non-distinct column). Hasura
+		// rejects this at validation; Constellation must return the same
+		// "validation-failed" error envelope.
+		{
+			name: "distinct_on multiple columns with non-matching order_by prefix",
+			query: query{
+				// order_by leads with createdAt (a non-distinct column); Hasura
+				// rejects the request, so the row-determinism tiebreaker only
+				// matters for the rendered query, not the (error) result.
+				Query: `query {
+					users(
+						distinct_on: [disabled, emailVerified],
+						order_by: [{createdAt: desc}, {id: asc}]
+					) {
+						id
+						disabled
+						emailVerified
+						displayName
+					}
+				}`,
+				Role: "admin",
+			},
+		},
+
 		// Nested with all query arguments
 		{
 			name: "nested with all arguments",
