@@ -33,7 +33,12 @@ func multiplexify(name string, builder core.Operation) core.Operation {
 			)
 		}
 
-		op.SQL, op.Parameters = multiplexed.Multiplex(op)
+		op.SQL, op.Parameters, err = multiplexed.Multiplex(op)
+		if err != nil {
+			return core.SQLOperation{}, fmt.Errorf(
+				"failed to multiplex subscription %s SQL: %w", name, err,
+			)
+		}
 
 		return op, nil
 	}

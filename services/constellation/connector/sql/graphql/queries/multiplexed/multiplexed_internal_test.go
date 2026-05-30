@@ -2,6 +2,8 @@ package multiplexed
 
 import (
 	"testing"
+
+	"github.com/nhost/nhost/services/constellation/connector/sql/graphql/queries/core"
 )
 
 func TestExtractSessionVarName(t *testing.T) {
@@ -14,16 +16,36 @@ func TestExtractSessionVarName(t *testing.T) {
 		wantOK   bool
 	}{
 		{
-			name:     "direct session variable string",
-			param:    "x-hasura-user-id",
+			name:     "session variable marker",
+			param:    core.SessionVarValue{Name: "x-hasura-user-id"},
 			wantName: "x-hasura-user-id",
 			wantOK:   true,
 		},
 		{
-			name:     "case insensitive prefix",
-			param:    "X-Hasura-Role",
-			wantName: "X-Hasura-Role",
+			name:     "single-element any array wrapping a marker",
+			param:    []any{core.SessionVarValue{Name: "x-hasura-org-id"}},
+			wantName: "x-hasura-org-id",
 			wantOK:   true,
+		},
+		{
+			name:     "single-element typed marker array",
+			param:    []core.SessionVarValue{{Name: "x-hasura-team-id"}},
+			wantName: "x-hasura-team-id",
+			wantOK:   true,
+		},
+		{
+			// Regression for the misclassification bug: a user-supplied literal
+			// that merely begins with "x-hasura-" is ordinary data, not a
+			// session-variable reference, and must NOT be rewritten into a
+			// result_vars lookup.
+			name:   "plain x-hasura string is not a session variable",
+			param:  "x-hasura-legacy",
+			wantOK: false,
+		},
+		{
+			name:   "plain x-hasura string inside any array is not a session variable",
+			param:  []any{"x-hasura-legacy"},
+			wantOK: false,
 		},
 		{
 			name:   "non-session string",
@@ -31,21 +53,12 @@ func TestExtractSessionVarName(t *testing.T) {
 			wantOK: false,
 		},
 		{
-			name:     "single-element string array",
-			param:    []string{"x-hasura-departments"},
-			wantName: "x-hasura-departments",
-			wantOK:   true,
-		},
-		{
-			name:   "multi-element string array",
-			param:  []string{"x-hasura-a", "x-hasura-b"},
+			// A multi-element array (e.g. an _in mixing a session var and a
+			// literal) is not a single rewritable marker, so it stays a static
+			// parameter rather than becoming a JSON path.
+			name:   "multi-element any array with a marker",
+			param:  []any{core.SessionVarValue{Name: "x-hasura-a"}, "literal"},
 			wantOK: false,
-		},
-		{
-			name:     "single-element any array",
-			param:    []any{"x-hasura-org-id"},
-			wantName: "x-hasura-org-id",
-			wantOK:   true,
 		},
 		{
 			name:   "integer param",
@@ -58,12 +71,12 @@ func TestExtractSessionVarName(t *testing.T) {
 			wantOK: false,
 		},
 		{
-			name:   "empty string array",
-			param:  []string{},
+			name:   "empty any array",
+			param:  []any{},
 			wantOK: false,
 		},
 		{
-			name:   "any array with non-string",
+			name:   "any array with non-marker",
 			param:  []any{42},
 			wantOK: false,
 		},

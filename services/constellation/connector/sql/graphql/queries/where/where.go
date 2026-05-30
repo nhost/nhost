@@ -284,6 +284,16 @@ func parseLogicalAnd(
 	nestingLevel int,
 	aliases Aliases,
 ) (Clause, error) {
+	// Resolve a `_and: $conds` whole-argument variable before inspecting Kind:
+	// the schema types _and as [<table>_bool_exp!], so a list-typed variable is
+	// valid GraphQL and must be substituted to its list (or object) AST here,
+	// exactly as parseBoolExp does. Element-level variables (`_and: [$c]`) are
+	// resolved by the per-item parseBoolExp call below.
+	value, err := values.ResolveVariable(value, variables)
+	if err != nil {
+		return nil, fmt.Errorf("resolving _and value: %w", err)
+	}
+
 	if value.Kind == ast.ObjectValue {
 		return parseBoolExp(
 			t,
@@ -325,6 +335,14 @@ func parseLogicalOr(
 	nestingLevel int,
 	aliases Aliases,
 ) (*orFilter, error) {
+	// Resolve a `_or: $conds` whole-argument variable before inspecting Kind,
+	// mirroring parseLogicalAnd: _or is also typed [<table>_bool_exp!], so a
+	// list/object variable for the whole argument must be substituted here.
+	value, err := values.ResolveVariable(value, variables)
+	if err != nil {
+		return nil, fmt.Errorf("resolving _or value: %w", err)
+	}
+
 	if value.Kind == ast.ObjectValue {
 		itemConditions, err := parseBoolExp(
 			t, value, variables, role, sessionVariables, nestingLevel, aliases,

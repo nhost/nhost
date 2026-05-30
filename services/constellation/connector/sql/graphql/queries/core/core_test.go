@@ -1,11 +1,61 @@
 package core_test
 
 import (
+	json "encoding/json/v2"
 	"strings"
 	"testing"
 
 	"github.com/nhost/nhost/services/constellation/connector/sql/graphql/queries/core"
 )
+
+func TestSessionVarValue_MarshalJSON(t *testing.T) {
+	t.Parallel()
+
+	cases := []struct {
+		name string
+		in   core.SessionVarValue
+		want string
+	}{
+		{"x-hasura name", core.SessionVarValue{Name: "x-hasura-user-id"}, `"x-hasura-user-id"`},
+		{"empty name", core.SessionVarValue{Name: ""}, `""`},
+	}
+
+	for _, tc := range cases {
+		t.Run(tc.name, func(t *testing.T) {
+			t.Parallel()
+
+			got, err := json.Marshal(tc.in)
+			if err != nil {
+				t.Fatalf("Marshal(%+v) error: %v", tc.in, err)
+			}
+
+			if string(got) != tc.want {
+				t.Fatalf("Marshal(%+v) = %s, want %s", tc.in, got, tc.want)
+			}
+		})
+	}
+}
+
+// TestSessionVarValue_MarshalJSONInMap covers the shape that motivates the
+// custom marshaller: a SQL function's session argument is built by marshalling
+// the (template) session-variable map, whose values are SessionVarValue markers.
+// Each marker must serialise as its bare name so the embedded JSON is identical
+// to the pre-marker behaviour (a plain x-hasura-* string), not a struct.
+func TestSessionVarValue_MarshalJSONInMap(t *testing.T) {
+	t.Parallel()
+
+	got, err := json.Marshal(map[string]any{
+		"x-hasura-user-id": core.SessionVarValue{Name: "x-hasura-user-id"},
+	})
+	if err != nil {
+		t.Fatalf("Marshal map error: %v", err)
+	}
+
+	want := `{"x-hasura-user-id":"x-hasura-user-id"}`
+	if string(got) != want {
+		t.Fatalf("Marshal map = %s, want %s", got, want)
+	}
+}
 
 func TestOrderDirection_SQL(t *testing.T) {
 	t.Parallel()
