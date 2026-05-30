@@ -7,12 +7,29 @@ package multiplexed
 
 import (
 	json "encoding/json/v2"
+	"errors"
 	"fmt"
 	"regexp"
+	"slices"
 	"strconv"
 	"strings"
 
 	"github.com/nhost/nhost/services/constellation/connector/sql/graphql/queries/core"
+)
+
+// ErrSessionVarInMultiElementArray is returned by Multiplex when a permission
+// session-variable marker is trapped inside a multi-element array parameter
+// (e.g. `_in: ["x-hasura-user-id", "<literal>"]` or
+// `_has_keys_any: ["x-hasura-key", "<literal>"]`). Such an array maps to a
+// single SQL placeholder bound as a whole array, so its session-variable
+// element cannot be rewritten into a per-subscriber result_vars JSON path
+// without restructuring the array into per-element expressions — which is not
+// yet supported. Rather than silently binding the variable's literal name (and
+// evaluating the row-level permission against "x-hasura-…" instead of the
+// subscriber's session value), the subscription is rejected so the divergence
+// is loud rather than a silent wrong/empty result set.
+var ErrSessionVarInMultiElementArray = errors.New(
+	"session variable in a multi-element array filter is not supported in subscriptions",
 )
 
 // paramPattern matches $N optionally followed by ::type or ::type[].
@@ -47,19 +64,25 @@ var paramPattern = regexp.MustCompile(`\$(\d+)(?:::([a-zA-Z_][a-zA-Z0-9_]*(?:\[\
 // happens to begin with "x-hasura-" is ordinary data and is left as a static
 // parameter, matching Hasura (which tracks session-variable positions
 // structurally).
-func Multiplex(op core.SQLOperation) (string, []any) {
-	innerSQL, staticParams := rewriteMultiplexedSQL(op)
+func Multiplex(op core.SQLOperation) (string, []any, error) {
+	innerSQL, staticParams, err := rewriteMultiplexedSQL(op)
+	if err != nil {
+		return "", nil, err
+	}
 
-	return buildMultiplexedSQL(op.Name, innerSQL), staticParams
+	return buildMultiplexedSQL(op.Name, innerSQL), staticParams, nil
 }
 
 // rewriteMultiplexedSQL converts a regular core.SQLOperation into its inner
 // multiplexed form: the SQL with session, cursor, and function session_argument
 // parameter references rewritten to JSON path expressions, and the residual
-// static parameters (renumbered to start at $3).
-func rewriteMultiplexedSQL(op core.SQLOperation) (string, []any) {
+// static parameters (renumbered to start at $3). It returns
+// ErrSessionVarInMultiElementArray when a session-variable marker is trapped
+// inside a multi-element array parameter that cannot be rewritten into a single
+// result_vars lookup.
+func rewriteMultiplexedSQL(op core.SQLOperation) (string, []any, error) {
 	if len(op.Parameters) == 0 {
-		return op.SQL, nil
+		return op.SQL, nil, nil
 	}
 
 	sessionVarIndices := make(map[int]string)
@@ -76,6 +99,17 @@ func rewriteMultiplexedSQL(op core.SQLOperation) (string, []any) {
 			cursorVarIndices[paramIdx] = cursorVal.ColumnName
 		} else if sessionArg, ok := param.(core.FunctionSessionArgument); ok {
 			functionSessionArgumentIndices[paramIdx] = sessionArg.SQLType
+		} else if containsSessionVarMarker(param) {
+			// extractSessionVarName recognises a lone (or single-element-array)
+			// session-variable marker above; if a marker survives here it is
+			// trapped inside a multi-element array param that cannot be rewritten
+			// to a result_vars path, so reject the subscription rather than bind
+			// the variable's literal name.
+			return "", nil, fmt.Errorf(
+				"%w: parameter %d",
+				ErrSessionVarInMultiElementArray,
+				paramIdx,
+			)
 		} else {
 			staticParamOldIndices = append(staticParamOldIndices, paramIdx)
 		}
@@ -92,7 +126,7 @@ func rewriteMultiplexedSQL(op core.SQLOperation) (string, []any) {
 
 	staticParams := make([]any, len(staticParamOldIndices))
 	for i, oldIdx := range staticParamOldIndices {
-		staticParams[i] = sanitizeStaticParam(op.Parameters[oldIdx-1])
+		staticParams[i] = op.Parameters[oldIdx-1]
 	}
 
 	innerSQL := rewriteSQLForMultiplexing(
@@ -103,7 +137,7 @@ func rewriteMultiplexedSQL(op core.SQLOperation) (string, []any) {
 		staticParamMapping,
 	)
 
-	return innerSQL, staticParams
+	return innerSQL, staticParams, nil
 }
 
 // extractSessionVarName extracts the session-variable name from a parameter
@@ -133,44 +167,21 @@ func extractSessionVarName(param any) (string, bool) {
 	return "", false
 }
 
-// sanitizeStaticParam unwraps any core.SessionVarValue marker that has reached
-// the static-parameter list back into its bare name string. A lone marker is
-// rewritten to a result_vars JSON path by extractSessionVarName and never
-// reaches here, but a permission `_in`/`_nin` filter that mixes a session
-// variable with another element — e.g. _in: ["x-hasura-tenant-id", "<uuid>"] —
-// leaves the marker nested inside a multi-element []any that cannot be reduced
-// to a single JSON path, so it falls through to the static params. Per-element
-// array rewriting is out of scope (and Postgres-only), so we preserve the
-// pre-existing behaviour of binding the variable's name rather than letting a
-// marker reach the driver, where pgx would fail to encode it.
-func sanitizeStaticParam(param any) any {
+// containsSessionVarMarker reports whether param is, or transitively contains,
+// a core.SessionVarValue marker. extractSessionVarName already recognises a lone
+// marker and a single-element array wrapping one (the rewritable shapes); this
+// detects a marker trapped in a multi-element array, where it cannot be reduced
+// to a single result_vars path. rewriteMultiplexedSQL rejects such params rather
+// than letting a marker reach the driver (pgx cannot encode it) or silently
+// binding the variable's literal name.
+func containsSessionVarMarker(param any) bool {
 	switch v := param.(type) {
 	case core.SessionVarValue:
-		return v.Name
+		return true
 	case []any:
-		if !containsSessionVarMarker(v) {
-			return param
-		}
-
-		out := make([]any, len(v))
-		for i, elem := range v {
-			out[i] = sanitizeStaticParam(elem)
-		}
-
-		return out
-	default:
-		return param
-	}
-}
-
-// containsSessionVarMarker reports whether arr has any core.SessionVarValue
-// element, so sanitizeStaticParam copies (rather than mutates) only the rare
-// slices that actually carry a stray marker.
-func containsSessionVarMarker(arr []any) bool {
-	for _, elem := range arr {
-		if _, ok := elem.(core.SessionVarValue); ok {
-			return true
-		}
+		return slices.ContainsFunc(v, containsSessionVarMarker)
+	case []core.SessionVarValue:
+		return len(v) > 0
 	}
 
 	return false

@@ -2,6 +2,7 @@ package multiplexed_test
 
 import (
 	"encoding/json"
+	"errors"
 	"testing"
 
 	"github.com/google/go-cmp/cmp"
@@ -18,6 +19,7 @@ func TestMultiplex(t *testing.T) {
 		expectedSQL     string
 		expectedParams  []any
 		expectedNoParam bool
+		expectErr       error
 	}{
 		{
 			name: "no parameters",
@@ -185,11 +187,12 @@ func TestMultiplex(t *testing.T) {
 		},
 		{
 			// A permission _in mixing a session variable with a literal leaves
-			// the marker nested in a multi-element array that cannot reduce to a
-			// single JSON path; it stays a static array parameter ($3), and the
-			// stray marker is unwrapped to its name so pgx can bind the array
-			// instead of failing to encode a SessionVarValue.
-			name: "multi-element in with marker is sanitized to a static array",
+			// the marker trapped in a multi-element array that cannot reduce to a
+			// single result_vars path. Rather than silently bind the variable's
+			// literal name (which would evaluate the row-level permission against
+			// "x-hasura-…" instead of the subscriber's value), Multiplex rejects
+			// the subscription with a clear error.
+			name: "multi-element in with marker is rejected",
 			op: core.SQLOperation{
 				Name: "users",
 				SQL:  `SELECT "id" FROM "users" WHERE "tenant_id" = ANY($1::uuid[])`,
@@ -198,12 +201,7 @@ func TestMultiplex(t *testing.T) {
 				},
 				StreamCursors: nil,
 			},
-			expectedSQL: `SELECT "_subs"."result_id", "_fld_resp"."root" AS "result" FROM ` +
-				`UNNEST($1::text[], $2::json[]) AS "_subs"("result_id", "result_vars") ` +
-				`LEFT OUTER JOIN LATERAL (SELECT json_build_object('users', (` +
-				`SELECT "id" FROM "users" WHERE "tenant_id" = ANY($3::uuid[])` +
-				`)) AS "root") AS "_fld_resp" ON ('true')`,
-			expectedParams: []any{[]any{"x-hasura-tenant-id", "default"}},
+			expectErr: multiplexed.ErrSessionVarInMultiElementArray,
 		},
 	}
 
@@ -211,7 +209,19 @@ func TestMultiplex(t *testing.T) {
 		t.Run(tc.name, func(t *testing.T) {
 			t.Parallel()
 
-			gotSQL, gotParams := multiplexed.Multiplex(tc.op)
+			gotSQL, gotParams, err := multiplexed.Multiplex(tc.op)
+
+			if tc.expectErr != nil {
+				if !errors.Is(err, tc.expectErr) {
+					t.Fatalf("Multiplex error = %v, want errors.Is %v", err, tc.expectErr)
+				}
+
+				return
+			}
+
+			if err != nil {
+				t.Fatalf("unexpected error: %v", err)
+			}
 
 			if gotSQL != tc.expectedSQL {
 				t.Errorf("sql:\ngot:  %s\nwant: %s", gotSQL, tc.expectedSQL)
