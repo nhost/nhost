@@ -532,6 +532,28 @@ func TestQueryFeatures(t *testing.T) { //nolint:maintidx,paralleltest
 				Role: "admin",
 			},
 		},
+		// The top-level aggregate path is generated separately from the collection
+		// path above. Diff the full validation error against live Hasura so the
+		// message, code, and extensions.path stay parity-pinned.
+		{
+			name: "distinct_on aggregate with mismatched order_by",
+			query: query{
+				Query: `query {
+					departments_aggregate(
+						distinct_on: name,
+						order_by: {budget: desc}
+					) {
+						aggregate {
+							count
+						}
+						nodes {
+							id
+						}
+					}
+				}`,
+				Role: "admin",
+			},
+		},
 		// distinct_on without any order_by: the distinct columns must still lead
 		// a synthesised ORDER BY so row selection / output ordering is
 		// deterministic and matches Hasura.

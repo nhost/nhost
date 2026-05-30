@@ -1,7 +1,6 @@
 package arguments
 
 import (
-	"errors"
 	"fmt"
 
 	"github.com/vektah/gqlparser/v2/ast"
@@ -193,27 +192,36 @@ func parseLimitOffsetArgument(
 	variables map[string]any,
 ) (*int, error) {
 	parsed, err := ParseLimitOffset(value, variables)
-	if err == nil {
-		return parsed, nil
+	if err != nil {
+		return nil, fmt.Errorf("failed to parse %s: %w", argumentName, err)
 	}
 
-	if errors.Is(err, errNegativeLimitOffset) {
+	// Hasura rejects negative limit/offset during query parsing rather than
+	// forwarding the value to the database (where Postgres raises "LIMIT must
+	// not be negative" / "OFFSET must not be negative" at execution and SQLite
+	// silently treats a negative LIMIT as unlimited / a negative OFFSET as 0).
+	// Keep this check at the query-argument layer so ParseLimitOffset can remain
+	// the shared integer parser used by stream batch_size, whose validation
+	// message names batch_size rather than limit/offset.
+	if parsed != nil && *parsed < 0 {
 		return nil, &QueryValidationError{
 			Err: &validationMessageError{
 				message: "unexpected negative value for " + argumentName,
-				err:     err,
+				err:     fmt.Errorf("%w: limit/offset must be non-negative", ErrInvalidArgument),
 			},
 			RootField:    "",
 			argumentName: argumentName,
 		}
 	}
 
-	return nil, fmt.Errorf("failed to parse %s: %w", argumentName, err)
+	return parsed, nil
 }
 
 // ParseLimitOffset parses a limit or offset integer argument from GraphQL.
 // Accepts both IntValue and FloatValue because JSON numbers come in as floats
-// by default after variable resolution.
+// by default after variable resolution. Sign constraints are enforced by callers
+// because stream batch_size shares this parser but has a different validation
+// message.
 func ParseLimitOffset(value *ast.Value, variables map[string]any) (*int, error) {
 	value, err := values.ResolveVariable(value, variables)
 	if err != nil {
@@ -243,16 +251,6 @@ func ParseLimitOffset(value *ast.Value, variables map[string]any) (*int, error) 
 		intVal = int(floatVal)
 	default:
 		return nil, fmt.Errorf("%w: limit must be an integer", ErrInvalidArgument)
-	}
-
-	// Hasura rejects negative limit/offset during query parsing rather than
-	// forwarding the value to the database (where Postgres raises "LIMIT must
-	// not be negative" / "OFFSET must not be negative" at execution and SQLite
-	// silently treats a negative LIMIT as unlimited / a negative OFFSET as 0).
-	// Reject here so the request fails pre-execution with a stable validation
-	// error, matching Hasura and keeping behaviour consistent across dialects.
-	if intVal < 0 {
-		return nil, fmt.Errorf("%w: %w", ErrInvalidArgument, errNegativeLimitOffset)
 	}
 
 	return &intVal, nil

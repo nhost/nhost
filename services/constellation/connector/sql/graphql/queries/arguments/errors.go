@@ -17,8 +17,6 @@ var ErrInvalidArgument = errors.New("invalid argument")
 // PostgreSQL/Hasura, so the ordering is rejected rather than silently wrong.
 var ErrUnsupportedAggregateOrderBy = errors.New("unsupported aggregate order_by")
 
-var errNegativeLimitOffset = errors.New("limit/offset must be non-negative")
-
 // ErrDistinctOnOrderByMismatch is the sentinel wrapped by a
 // *QueryValidationError when a distinct_on argument is combined with an
 // order_by whose leading prefix does not contain the distinct_on columns (same
