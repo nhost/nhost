@@ -2432,48 +2432,65 @@ func TestParse_NotOfEmptyOr(t *testing.T) {
 	}
 }
 
-// TestParse_NullAnd covers `where: {_and: null}`. Unlike `_not`, the null
-// handling in the shared Parse never runs for `_and`: parseLogicalAnd inspects
-// the child value's Kind directly and rejects a NullValue, so `_and: null` is a
-// clean error (it is neither a list nor an object). This pins that pre-existing
-// behavior, which is unaffected by the `_not: null` fix.
-func TestParse_NullAnd(t *testing.T) {
-	t.Parallel()
+func assertNullLogicalCombinatorRejected(t *testing.T, fieldName string) {
+	t.Helper()
 
 	tbl := &parseTestTable{}
 
-	value := &ast.Value{
-		Kind: ast.ObjectValue,
-		Children: []*ast.ChildValue{
-			{Name: "_and", Value: &ast.Value{Kind: ast.NullValue}},
+	tests := []struct {
+		name      string
+		child     *ast.Value
+		variables map[string]any
+	}{
+		{
+			name:  "literal null",
+			child: &ast.Value{Kind: ast.NullValue},
+		},
+		{
+			name:      "variable resolving to null",
+			child:     &ast.Value{Kind: ast.Variable, Raw: "conds"},
+			variables: map[string]any{"conds": nil},
 		},
 	}
 
-	_, err := where.Parse(tbl, value, nil, "", nil, 0, where.QueryAliases)
-	if err == nil {
-		t.Fatal("expected error for null _and, got nil")
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			t.Parallel()
+
+			value := &ast.Value{
+				Kind: ast.ObjectValue,
+				Children: []*ast.ChildValue{
+					{Name: fieldName, Value: tt.child},
+				},
+			}
+
+			_, err := where.Parse(tbl, value, tt.variables, "", nil, 0, where.QueryAliases)
+			if err == nil {
+				t.Fatalf("expected error for null %s, got nil", fieldName)
+			}
+		})
 	}
 }
 
-// TestParse_NullOr covers `where: {_or: null}`. Like `_and`, parseLogicalOr
-// inspects the child value's Kind directly and rejects a NullValue (neither a
-// list nor an object), matching Hasura's "expected a list, but found null".
+// TestParse_NullAnd covers `where: {_and: null}` and `_and: $conds` with a
+// null variable. Unlike top-level where, `_and` does not treat null as an
+// omitted filter: parseLogicalAnd resolves the child value and then rejects
+// NullValue because it is neither a list nor an object. This pins the behavior
+// preserved by whole-list variable resolution.
+func TestParse_NullAnd(t *testing.T) {
+	t.Parallel()
+
+	assertNullLogicalCombinatorRejected(t, "_and")
+}
+
+// TestParse_NullOr covers `where: {_or: null}` and `_or: $conds` with a null
+// variable. Like `_and`, parseLogicalOr resolves the child value and then
+// rejects NullValue because it is neither a list nor an object, matching
+// Hasura's "expected a list, but found null".
 func TestParse_NullOr(t *testing.T) {
 	t.Parallel()
 
-	tbl := &parseTestTable{}
-
-	value := &ast.Value{
-		Kind: ast.ObjectValue,
-		Children: []*ast.ChildValue{
-			{Name: "_or", Value: &ast.Value{Kind: ast.NullValue}},
-		},
-	}
-
-	_, err := where.Parse(tbl, value, nil, "", nil, 0, where.QueryAliases)
-	if err == nil {
-		t.Fatal("expected error for null _or, got nil")
-	}
+	assertNullLogicalCombinatorRejected(t, "_or")
 }
 
 // TestParseFieldComparison_Regex_Supported exercises the SupportsRegex=true
