@@ -329,26 +329,9 @@ func (t *table) buildInsertMutationCTE(
 		b.WriteString(", ")
 	}
 
-	nestedFKIndex, err := t.buildNestedFKIndex(insertObjs)
-	if err != nil {
-		return "", nil, 0, nil, err
-	}
-
-	nestedFKColumns := nestedFKColumnSet(nestedFKIndex)
-
-	if len(insertObjs) > 1 && hasArrayNestedInserts(insertObjs) {
-		params, paramIndex, err = t.buildPartitionedParentInsertMutationCTEBody(
-			&b, insertObjs, nestedFKIndex, onConflict, role, sessionVariables, params, paramIndex,
-		)
-	} else {
-		allColumns, columnToValue := t.collectAllColumns(insertObjs, nestedFKColumns)
-
-		params, paramIndex, err = t.buildInsertMutationCTEBody(
-			&b, insertObjs, allColumns, columnToValue,
-			nestedFKIndex, onConflict, role, sessionVariables, params, paramIndex,
-		)
-	}
-
+	params, paramIndex, err = t.buildParentInsertMutationCTEBody(
+		&b, insertObjs, onConflict, role, sessionVariables, params, paramIndex,
+	)
 	if err != nil {
 		return "", nil, 0, nil, err
 	}
@@ -373,6 +356,51 @@ func (t *table) buildInsertMutationCTE(
 	}
 
 	return b.String(), params, paramIndex, nestedCTEs, nil
+}
+
+// buildParentInsertMutationCTEBody emits the parent INSERT CTE(s) up to and
+// including mutation_result.
+//
+// A multi-parent insert that carries any nested insert (array- or
+// object-relationship) takes the partitioned parent path: one parent CTE per
+// input row. Array-rel children source their FK from mutation_result_N and
+// object-rel parents source their FK from nested_<rel>_N — both need a
+// per-parent parent CTE rather than a single mutation_result cross-joined onto
+// every row. All other inserts use the shared single-body path.
+func (t *table) buildParentInsertMutationCTEBody(
+	b *strings.Builder,
+	insertObjs []arguments.InsertObject,
+	onConflict *arguments.OnConflict,
+	role string,
+	sessionVariables map[string]any,
+	params []any,
+	paramIndex int,
+) ([]any, int, error) {
+	if len(insertObjs) > 1 &&
+		(hasArrayNestedInserts(insertObjs) || hasObjectNestedInserts(insertObjs)) {
+		nestedFKIndexes, err := t.buildPartitionedNestedFKIndexes(insertObjs)
+		if err != nil {
+			return nil, 0, err
+		}
+
+		return t.buildPartitionedParentInsertMutationCTEBody(
+			b, insertObjs, nestedFKIndexes, onConflict, role, sessionVariables, params, paramIndex,
+		)
+	}
+
+	nestedFKIndex, err := t.buildNestedFKIndex(insertObjs)
+	if err != nil {
+		return nil, 0, err
+	}
+
+	nestedFKColumns := nestedFKColumnSet(nestedFKIndex)
+
+	allColumns, columnToValue := t.collectAllColumns(insertObjs, nestedFKColumns)
+
+	return t.buildInsertMutationCTEBody(
+		b, insertObjs, allColumns, columnToValue,
+		nestedFKIndex, onConflict, role, sessionVariables, params, paramIndex,
+	)
 }
 
 // sortedNestedCTEValues extracts and sorts the CTE names from the nestedCTEs

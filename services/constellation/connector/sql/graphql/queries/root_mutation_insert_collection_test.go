@@ -1077,6 +1077,48 @@ func TestInsertBuildQuery(t *testing.T) { //nolint:paralleltest,maintidx
 				Role: "admin",
 			},
 		},
+
+		// Multi-parent object-rel nested insert (BUG_HIGH_1): each parent row
+		// carries its OWN nested file. Pre-fix only the first row's file CTE
+		// was emitted (nested_file) and cross-joined onto every parent, so the
+		// second file was silently dropped and both department_files rows were
+		// linked to the first file. The partitioned path emits nested_file_0
+		// and nested_file_1, and parent N sources file_id from its own CTE.
+		{
+			name: "multi-parent object-rel nested insert partitions files per parent",
+			query: query{
+				Query: `mutation {
+					insert_department_files(objects: [
+						{
+							id: "00000000-0000-0000-0000-00000000010a"
+							description: "object-rel-parent-a"
+							department_id: "2db9de0a-b9ba-416e-8619-783a399ae2b3"
+							file: {
+								data: {
+									id: "00000000-0000-0000-0000-00000000010b"
+									bucketId: "default"
+								}
+							}
+						}
+						{
+							id: "00000000-0000-0000-0000-00000000010c"
+							description: "object-rel-parent-b"
+							department_id: "023d4410-715e-4675-96a5-a58fd50ef33c"
+							file: {
+								data: {
+									id: "00000000-0000-0000-0000-00000000010d"
+									bucketId: "default"
+								}
+							}
+						}
+					]) {
+						affected_rows
+						returning { id file_id description }
+					}
+				}`,
+				Role: "admin",
+			},
+		},
 	}
 
 	testBuildQuery(t, cases, true)

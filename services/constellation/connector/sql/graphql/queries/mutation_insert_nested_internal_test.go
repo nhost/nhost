@@ -21,7 +21,11 @@ func TestBuildNestedCTEsMapMirrorsEmittedCTEs(t *testing.T) {
 		want       map[string]string
 	}{
 		{
-			name: "keeps first-parent object rels and all array rels",
+			// Multi-parent inserts emit one object-rel CTE per parent, so both
+			// parents' object rels appear (nested_<rel>_<parentIdx>) — the
+			// pre-fix behavior dropped every parent past the first, which
+			// silently lost rows and misrouted FKs (BUG_HIGH_1).
+			name: "keeps every parent's object rels and all array rels",
 			insertObjs: []arguments.InsertObject{
 				{
 					NestedInserts: []arguments.NestedInsert{
@@ -37,13 +41,16 @@ func TestBuildNestedCTEsMapMirrorsEmittedCTEs(t *testing.T) {
 				},
 			},
 			want: map[string]string{
-				"file":        "nested_file",
+				"file":        "nested_file_0",
+				"avatar":      "nested_avatar_1",
 				"replies":     "nested_replies",
 				"attachments": "nested_attachments",
 			},
 		},
 		{
-			name: "keeps later array rel when first parent has no nested inserts",
+			// The object rel lives only on the second parent, so it is emitted
+			// from parent index 1 (nested_file_1).
+			name: "keeps later object and array rels when first parent has no nested inserts",
 			insertObjs: []arguments.InsertObject{
 				{},
 				{
@@ -54,6 +61,7 @@ func TestBuildNestedCTEsMapMirrorsEmittedCTEs(t *testing.T) {
 				},
 			},
 			want: map[string]string{
+				"file":    "nested_file_1",
 				"replies": "nested_replies",
 			},
 		},
@@ -137,6 +145,42 @@ func TestBuildNestedCTEsMapMirrorsEmittedCTEs(t *testing.T) {
 			want: map[string]string{
 				"replies":   "nested_replies",
 				"replies#1": "nested_replies_1",
+			},
+		},
+		{
+			// Object-rel-only multi-parent insert: each parent's object rel is
+			// emitted from its own CTE (nested_<rel>_<parentIdx>), the
+			// affected_rows / force-ref counterpart of BUG_HIGH_1's per-parent
+			// object CTE emission.
+			name: "maps per-parent object rel for object-only multi-parent insert",
+			insertObjs: []arguments.InsertObject{
+				{
+					NestedInserts: []arguments.NestedInsert{
+						{RelationshipName: "file", IsArrayRelationship: false},
+					},
+				},
+				{
+					NestedInserts: []arguments.NestedInsert{
+						{RelationshipName: "file", IsArrayRelationship: false},
+					},
+				},
+			},
+			want: map[string]string{
+				"file":   "nested_file_0",
+				"file#1": "nested_file_1",
+			},
+		},
+		{
+			name: "keeps single-parent object rel as bare nested name",
+			insertObjs: []arguments.InsertObject{
+				{
+					NestedInserts: []arguments.NestedInsert{
+						{RelationshipName: "file", IsArrayRelationship: false},
+					},
+				},
+			},
+			want: map[string]string{
+				"file": "nested_file",
 			},
 		},
 	}

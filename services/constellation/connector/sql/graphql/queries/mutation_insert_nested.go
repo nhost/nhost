@@ -39,6 +39,17 @@ func extendSubsForArrayChild(
 	return childSubs
 }
 
+// nestedCTENamer maps a nested-insert relationship name to the CTE alias used
+// for its insert. The single-parent path uses bareNestedCTEName (`nested_<rel>`)
+// so existing goldens are unchanged; the multi-parent object-rel path passes a
+// parent-indexed namer so each parent's object-rel CTE (and its deeper nested
+// chain) stays distinct.
+type nestedCTENamer func(relationshipName string) string
+
+func bareNestedCTEName(relationshipName string) string {
+	return "nested_" + relationshipName
+}
+
 // buildNestedInsertCTE renders the CTE for a single nested insert, recursing
 // into deeper nested inserts. It replaces the (*nestedInsert).buildCTE method
 // from before the arguments extraction: arguments.NestedInsert is pure data,
@@ -49,9 +60,15 @@ func extendSubsForArrayChild(
 // path (one row INSERT per CTE). Array relationships with multiple rows use
 // the multi-row path (UNION-ALL fed INSERT) — matching how top-level
 // multi-row inserts are emitted.
+//
+// cteName is the alias for this nested insert's CTE; childNamer derives the
+// alias for any deeper nested insert reached by the recursion. Callers that
+// want the historical `nested_<rel>` naming pass bareNestedCTEName for both.
 func buildNestedInsertCTE(
 	b *strings.Builder,
 	ni *arguments.NestedInsert,
+	cteName string,
+	childNamer nestedCTENamer,
 	parentCTEName string,
 	parentTableFromClause string,
 	tableSubs where.TableSubstitutions,
@@ -60,8 +77,6 @@ func buildNestedInsertCTE(
 	role string,
 	sessionVariables map[string]any,
 ) ([]any, int, error) {
-	cteName := "nested_" + ni.RelationshipName
-
 	if b.Len() > 0 {
 		b.WriteString(", ")
 	}
@@ -110,7 +125,8 @@ func buildNestedInsertCTE(
 		nested := &ni.NestedObjects[0].NestedInserts[i]
 
 		params, paramIndex, err = buildNestedInsertCTE(
-			b, nested, cteName, target.tableFromClause(), childSubs,
+			b, nested, childNamer(nested.RelationshipName), childNamer,
+			cteName, target.tableFromClause(), childSubs,
 			params, paramIndex, role, sessionVariables,
 		)
 		if err != nil {
@@ -329,6 +345,12 @@ func (t *table) buildMultiNestedInsertCTEPostCheck(
 // Array-relationship nested inserts go through buildArrayNestedInsertCTEs and
 // run AFTER the parent, since the FK lives on the child and references the
 // parent's PK.
+//
+// Single-parent inserts emit one CTE per object-rel named `nested_<rel>`.
+// Multi-parent inserts emit one CTE per parent per object-rel named
+// `nested_<rel>_<parentIdx>`, so parent N's FK column can source from its own
+// object instead of every parent cross-joining the first row's nested CTE
+// (which silently dropped the other parents' objects and misrouted their FKs).
 func (t *table) buildNestedInsertCTEs(
 	insertObjs []arguments.InsertObject,
 	role string,
@@ -336,29 +358,51 @@ func (t *table) buildNestedInsertCTEs(
 	params []any,
 	paramIndex int,
 ) (string, []any, int, error) {
-	if len(insertObjs) == 0 || len(insertObjs[0].NestedInserts) == 0 {
+	if len(insertObjs) == 0 || !hasObjectNestedInserts(insertObjs) {
 		return "", params, paramIndex, nil
 	}
 
+	multiParent := len(insertObjs) > 1
+
 	var cteSQL strings.Builder
-	for i := range insertObjs[0].NestedInserts {
-		nested := &insertObjs[0].NestedInserts[i]
-		if nested.IsArrayRelationship {
-			continue
-		}
 
-		var err error
+	// Single-parent inserts have exactly one element, so this loop emits parent
+	// 0's object rels only; multi-parent inserts emit each parent's own object
+	// rels under a parent-indexed CTE name.
+	for parentIdx := range insertObjs {
+		for i := range insertObjs[parentIdx].NestedInserts {
+			nested := &insertObjs[parentIdx].NestedInserts[i]
+			if nested.IsArrayRelationship {
+				continue
+			}
 
-		params, paramIndex, err = buildNestedInsertCTE(
-			&cteSQL, nested, "mutation_result", t.tableFromClause(), nil,
-			params, paramIndex, role, sessionVariables,
-		)
-		if err != nil {
-			return "", nil, 0, fmt.Errorf(
-				"failed to build CTE for %s: %w",
-				nested.RelationshipName,
-				err,
+			cteName := bareNestedCTEName(nested.RelationshipName)
+			childNamer := bareNestedCTEName
+			parentCTEName := "mutation_result"
+
+			if multiParent {
+				idx := parentIdx
+				cteName = partitionedNestedObjectCTEName(nested.RelationshipName, idx)
+				childNamer = func(rel string) string {
+					return partitionedNestedObjectCTEName(rel, idx)
+				}
+				parentCTEName = partitionedParentCTEName(idx)
+			}
+
+			var err error
+
+			params, paramIndex, err = buildNestedInsertCTE(
+				&cteSQL, nested, cteName, childNamer,
+				parentCTEName, t.tableFromClause(), nil,
+				params, paramIndex, role, sessionVariables,
 			)
+			if err != nil {
+				return "", nil, 0, fmt.Errorf(
+					"failed to build CTE for %s: %w",
+					nested.RelationshipName,
+					err,
+				)
+			}
 		}
 	}
 
@@ -414,7 +458,8 @@ func (t *table) buildArrayNestedInsertCTEs(
 		var err error
 
 		params, paramIndex, err = buildNestedInsertCTE(
-			&cteSQL, nested, "mutation_result", t.tableFromClause(), nil,
+			&cteSQL, nested, bareNestedCTEName(nested.RelationshipName), bareNestedCTEName,
+			"mutation_result", t.tableFromClause(), nil,
 			params, paramIndex, role, sessionVariables,
 		)
 		if err != nil {
@@ -441,6 +486,30 @@ func hasArrayNestedInserts(insertObjs []arguments.InsertObject) bool {
 	return false
 }
 
+func hasObjectNestedInserts(insertObjs []arguments.InsertObject) bool {
+	for i := range insertObjs {
+		for j := range insertObjs[i].NestedInserts {
+			if !insertObjs[i].NestedInserts[j].IsArrayRelationship {
+				return true
+			}
+		}
+	}
+
+	return false
+}
+
+// partitionedNestedObjectCTEName is the per-parent CTE name for an
+// object-relationship nested insert in a multi-parent insert. The parent index
+// suffix keeps each parent's object-rel CTE distinct so parent N can source its
+// FK column from its own nested object (nested_<rel>_<parentIdx>) rather than
+// every parent cross-joining the single first-row CTE. The conflict-index
+// suffix used by array-rel split CTEs starts at 1 and the per-row suffix is
+// `_row_N`, so this `_<parentIdx>` scheme (relationship name is unique per
+// parent table) cannot collide with an array-rel CTE name.
+func partitionedNestedObjectCTEName(relationshipName string, parentIdx int) string {
+	return "nested_" + relationshipName + "_" + strconv.Itoa(parentIdx)
+}
+
 func partitionedParentCTEName(parentIdx int) string {
 	return "mutation_result_" + strconv.Itoa(parentIdx)
 }
@@ -455,13 +524,19 @@ func partitionedParentCTENames(count int) []string {
 }
 
 // buildPartitionedParentInsertMutationCTEBody emits one parent INSERT CTE per
-// input row for multi-parent array-relationship inserts. Each child row can
-// then source its FK from the exact parent CTE that owns it, avoiding any
-// dependence on RETURNING row order.
+// input row for multi-parent nested inserts. Each array-rel child row can then
+// source its FK from the exact parent CTE that owns it, avoiding any dependence
+// on RETURNING row order; each object-rel parent sources its FK column from its
+// own nested object CTE via nestedFKIndexes[i].
+//
+// nestedFKIndexes is the per-parent object-relationship FK index built by
+// buildPartitionedNestedFKIndexes — index i applies to parent CTE i. It is
+// empty for array-only inserts (array-rel FKs live on the child, not the
+// parent).
 func (t *table) buildPartitionedParentInsertMutationCTEBody(
 	b *strings.Builder,
 	insertObjs []arguments.InsertObject,
-	nestedFKIndex arguments.NestedFKSources,
+	nestedFKIndexes []arguments.NestedFKSources,
 	onConflict *arguments.OnConflict,
 	role string,
 	sessionVariables map[string]any,
@@ -472,6 +547,8 @@ func (t *table) buildPartitionedParentInsertMutationCTEBody(
 		if i > 0 {
 			b.WriteString(", ")
 		}
+
+		nestedFKIndex := nestedFKIndexes[i]
 
 		for _, col := range insertObjs[i].Columns {
 			if _, isFK := nestedFKIndex[col.Column.SQLName]; !isFK {
@@ -1283,13 +1360,17 @@ func nestedForeignKeyColumns(nested *arguments.NestedInsert) []string {
 }
 
 // buildNestedFKIndex maps foreign-key columns to their nested CTE source
-// columns for object-relationship nested inserts only. For object relationships
-// the FK lives on the parent row, so we record the CTE column that supplies
-// each FK column's value and append a placeholder column to every parent insert object.
+// columns for object-relationship nested inserts only, for the single-parent
+// (and single-row) path. For object relationships the FK lives on the parent
+// row, so we record the CTE column (`nested_<rel>`) that supplies each FK
+// column's value and append a placeholder column to the parent insert object.
 //
 // Array-relationship nested inserts put the FK on the child; the parent INSERT
 // must not include those columns, so they are intentionally excluded from this
 // index (which drives the parent's INSERT column list).
+//
+// Multi-parent inserts use buildPartitionedNestedFKIndexes instead, so each
+// parent sources its FK from its own object CTE.
 func (t *table) buildNestedFKIndex(
 	insertObjs []arguments.InsertObject,
 ) (arguments.NestedFKSources, error) {
@@ -1298,44 +1379,97 @@ func (t *table) buildNestedFKIndex(
 		return nestedFKIndex, nil
 	}
 
-	for _, nested := range insertObjs[0].NestedInserts {
+	for i := range insertObjs[0].NestedInserts {
+		nested := &insertObjs[0].NestedInserts[i]
 		if nested.IsArrayRelationship {
 			continue
 		}
 
-		cteName := "nested_" + nested.RelationshipName
-
-		for _, fkName := range nestedForeignKeyColumns(&nested) {
-			sourceColumn, ok := nested.ForeignKeySourceColumns[fkName]
-			if !ok || sourceColumn == "" {
-				return nil, fmt.Errorf(
-					"%w: nested insert %s: missing source column for FK %s",
-					arguments.ErrInvalidArgument,
-					nested.RelationshipName,
-					fkName,
-				)
-			}
-
-			nestedFKIndex[fkName] = arguments.NestedFKSource{
-				CTEName:    cteName,
-				ColumnName: sourceColumn,
-			}
-
-			fkColumn := t.columnFromSQLName(fkName)
-			if fkColumn == nil {
-				continue
-			}
-
-			for i := range insertObjs {
-				insertObjs[i].Columns = append(insertObjs[i].Columns, arguments.InsertColumn{
-					Column: fkColumn,
-					Value:  nil,
-				})
-			}
+		cteName := bareNestedCTEName(nested.RelationshipName)
+		if err := t.applyNestedObjectFKColumns(
+			nested, cteName, nestedFKIndex, insertObjs, 0,
+		); err != nil {
+			return nil, err
 		}
 	}
 
 	return nestedFKIndex, nil
+}
+
+// buildPartitionedNestedFKIndexes returns a per-parent object-relationship FK
+// index for a multi-parent insert: parent N's index sources each object-rel FK
+// column from that parent's own object CTE (`nested_<rel>_<N>`), and the FK
+// placeholder column is appended only to that parent's columns. This is the
+// per-parent counterpart of buildNestedFKIndex and the structural fix for
+// dropping rows 1..n / misrouting every parent's FK to the first row's object.
+func (t *table) buildPartitionedNestedFKIndexes(
+	insertObjs []arguments.InsertObject,
+) ([]arguments.NestedFKSources, error) {
+	indexes := make([]arguments.NestedFKSources, len(insertObjs))
+	for i := range indexes {
+		indexes[i] = make(arguments.NestedFKSources)
+	}
+
+	for parentIdx := range insertObjs {
+		for i := range insertObjs[parentIdx].NestedInserts {
+			nested := &insertObjs[parentIdx].NestedInserts[i]
+			if nested.IsArrayRelationship {
+				continue
+			}
+
+			cteName := partitionedNestedObjectCTEName(nested.RelationshipName, parentIdx)
+			if err := t.applyNestedObjectFKColumns(
+				nested, cteName, indexes[parentIdx], insertObjs, parentIdx,
+			); err != nil {
+				return nil, err
+			}
+		}
+	}
+
+	return indexes, nil
+}
+
+// applyNestedObjectFKColumns records every FK column of an object-relationship
+// nested insert against cteName in nestedFKIndex and appends the FK placeholder
+// column to the owning parent's insert object (insertObjs[parentIdx]).
+func (t *table) applyNestedObjectFKColumns(
+	nested *arguments.NestedInsert,
+	cteName string,
+	nestedFKIndex arguments.NestedFKSources,
+	insertObjs []arguments.InsertObject,
+	parentIdx int,
+) error {
+	for _, fkName := range nestedForeignKeyColumns(nested) {
+		sourceColumn, ok := nested.ForeignKeySourceColumns[fkName]
+		if !ok || sourceColumn == "" {
+			return fmt.Errorf(
+				"%w: nested insert %s: missing source column for FK %s",
+				arguments.ErrInvalidArgument,
+				nested.RelationshipName,
+				fkName,
+			)
+		}
+
+		nestedFKIndex[fkName] = arguments.NestedFKSource{
+			CTEName:    cteName,
+			ColumnName: sourceColumn,
+		}
+
+		fkColumn := t.columnFromSQLName(fkName)
+		if fkColumn == nil {
+			continue
+		}
+
+		insertObjs[parentIdx].Columns = append(
+			insertObjs[parentIdx].Columns,
+			arguments.InsertColumn{
+				Column: fkColumn,
+				Value:  nil,
+			},
+		)
+	}
+
+	return nil
 }
 
 func nestedCTEMapKey(nestedCTEs map[string]string, relationshipName string) string {
@@ -1384,34 +1518,52 @@ func addPartitionedArrayNestedCTEsMap(
 }
 
 // buildNestedCTEsMap builds a map of response relationship keys to CTE names.
-// It must mirror the CTEs the insert builder actually emits:
-// array-relationship nested inserts are emitted from every parent row (and can
-// split into multiple CTEs for incompatible on_conflict clauses), while
-// object-relationship nested inserts are currently emitted only from the first
-// parent row by buildNestedInsertCTEs/buildNestedFKIndex. Split array-rel CTEs
-// use synthetic map keys so affected_rows and force-ref tracking include every
-// emitted CTE while single-CTE relationship lookups keep their relationship key.
+// It must mirror the CTEs the insert builder actually emits so affected_rows
+// and force-ref tracking include every emitted CTE:
+//
+//   - Single-parent inserts emit one CTE per nested rel named `nested_<rel>`.
+//   - Multi-parent inserts emit array-relationship children through the
+//     partitioned path (addPartitionedArrayNestedCTEsMap, which can split a rel
+//     into multiple CTEs for incompatible on_conflict clauses) and object-rel
+//     children one CTE per parent named `nested_<rel>_<parentIdx>`.
+//
+// Synthetic map keys (`<rel>#N`) are used when one relationship maps to more
+// than one emitted CTE so single-CTE relationship lookups keep their plain key.
 func (t *table) buildNestedCTEsMap(
 	insertObjs []arguments.InsertObject,
 ) (map[string]string, error) {
 	nestedCTEs := make(map[string]string)
+	multiParent := len(insertObjs) > 1
 
 	for parentIdx := range insertObjs {
-		for _, nested := range insertObjs[parentIdx].NestedInserts {
-			if nested.IsArrayRelationship && len(insertObjs) > 1 {
+		for i := range insertObjs[parentIdx].NestedInserts {
+			nested := &insertObjs[parentIdx].NestedInserts[i]
+
+			// Array-rel CTEs are mapped below by the partitioned helper when
+			// multi-parent; single-parent keeps them here.
+			if nested.IsArrayRelationship && multiParent {
 				continue
 			}
 
-			if !nested.IsArrayRelationship && parentIdx > 0 {
+			// Object-rel CTEs are emitted per parent when multi-parent, so map
+			// every parent (each to its own nested_<rel>_<parentIdx>); when
+			// single-parent only the first parent's object rels are emitted.
+			if !nested.IsArrayRelationship && !multiParent && parentIdx > 0 {
 				continue
 			}
 
 			key := nestedCTEMapKey(nestedCTEs, nested.RelationshipName)
-			nestedCTEs[key] = "nested_" + nested.RelationshipName
+			if !nested.IsArrayRelationship && multiParent {
+				nestedCTEs[key] = partitionedNestedObjectCTEName(
+					nested.RelationshipName, parentIdx,
+				)
+			} else {
+				nestedCTEs[key] = bareNestedCTEName(nested.RelationshipName)
+			}
 		}
 	}
 
-	if len(insertObjs) > 1 && hasArrayNestedInserts(insertObjs) {
+	if multiParent && hasArrayNestedInserts(insertObjs) {
 		if err := addPartitionedArrayNestedCTEsMap(nestedCTEs, insertObjs, ""); err != nil {
 			return nil, err
 		}
