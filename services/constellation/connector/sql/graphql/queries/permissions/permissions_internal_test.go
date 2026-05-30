@@ -190,6 +190,52 @@ func TestSubstituteSessionVariable(t *testing.T) {
 	}
 }
 
+func TestSubstituteSessionVariable_DoesNotMutateSharedSlice(t *testing.T) {
+	t.Parallel()
+
+	metadataValues := []any{"x-hasura-user-id", "alice"}
+
+	s := NewStore()
+	s.Select["user"] = where.Clause{appendParamStatement("user_id", metadataValues)}
+
+	marker := core.SessionVarValue{Name: "x-hasura-user-id"}
+
+	params, _, err := s.WriteRowLevel(
+		&strings.Builder{}, nil, 1, "user",
+		map[string]any{"x-hasura-user-id": marker},
+		"t",
+	)
+	if err != nil {
+		t.Fatalf("template substitution failed: %v", err)
+	}
+
+	if diff := cmp.Diff([]any{[]any{marker, "alice"}}, params); diff != "" {
+		t.Fatalf("template params mismatch (-want +got):\n%s", diff)
+	}
+
+	// The subscription/template build above must not poison the permission
+	// clause's stored []any value with SessionVarValue. The same Store is reused
+	// across requests, so a later direct query must still substitute the original
+	// string marker to the concrete requester value rather than trying to bind the
+	// template marker as a SQL argument.
+	params, _, err = s.WriteRowLevel(
+		&strings.Builder{}, nil, 1, "user",
+		map[string]any{"x-hasura-user-id": "42"},
+		"t",
+	)
+	if err != nil {
+		t.Fatalf("direct substitution failed: %v", err)
+	}
+
+	if diff := cmp.Diff([]any{[]any{"42", "alice"}}, params); diff != "" {
+		t.Errorf("direct params mismatch (-want +got):\n%s", diff)
+	}
+
+	if diff := cmp.Diff([]any{"x-hasura-user-id", "alice"}, metadataValues); diff != "" {
+		t.Errorf("metadata values were mutated (-want +got):\n%s", diff)
+	}
+}
+
 func TestNormalizePresets(t *testing.T) {
 	t.Parallel()
 

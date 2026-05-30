@@ -28,6 +28,12 @@ func TestExtractSessionVarName(t *testing.T) {
 			wantOK:   true,
 		},
 		{
+			name:     "single-element typed marker array",
+			param:    []core.SessionVarValue{{Name: "x-hasura-team-id"}},
+			wantName: "x-hasura-team-id",
+			wantOK:   true,
+		},
+		{
 			// Regression for the misclassification bug: a user-supplied literal
 			// that merely begins with "x-hasura-" is ordinary data, not a
 			// session-variable reference, and must NOT be rewritten into a
