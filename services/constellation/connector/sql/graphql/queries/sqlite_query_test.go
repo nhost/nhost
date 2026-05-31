@@ -565,6 +565,28 @@ func TestAggregateBuildQuery_SQLite(t *testing.T) { //nolint:paralleltest
 			},
 		},
 		{
+			// SQLite shares the aggregate-root selection writer with PostgreSQL, so
+			// aliases for aggregate, nested aggregate columns, and nodes must affect
+			// JSON keys even though the emitted JSON functions differ.
+			name: "aggregate field aliases at every scope",
+			query: query{
+				Query: `
+					query {
+						depts: departments_aggregate(order_by: {name: asc}, limit: 3) {
+							summary: aggregate {
+								total: count
+								budget_total: sum {
+									amount: budget
+								}
+							}
+							rows: nodes {
+								dept_id: id
+							}
+						}
+					}`,
+			},
+		},
+		{
 			name: "sum aggregate",
 			query: query{
 				Query: `

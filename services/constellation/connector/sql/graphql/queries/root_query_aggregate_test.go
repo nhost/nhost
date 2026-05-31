@@ -140,6 +140,36 @@ func TestAggregateBuildQuery(t *testing.T) { //nolint:paralleltest,maintidx
 			},
 		},
 		{
+			// Aliases must be honored at every aggregate-root level: the root
+			// operation name, aggregate field, aggregate-function columns, and nodes.
+			// The second aggregate alias catches accidental merging of differently
+			// aliased `aggregate` selections into one JSON key.
+			name: "aggregate field aliases at every scope",
+			query: query{
+				Query: `
+					query {
+						depts: departments_aggregate(order_by: {name: asc}, limit: 3) {
+							summary: aggregate {
+								total: count
+								distinct_ids: count(columns: [id], distinct: true)
+								budget_total: sum {
+									amount: budget
+								}
+							}
+							extremes: aggregate {
+								budget_high: max {
+									value: budget
+								}
+							}
+							rows: nodes {
+								dept_id: id
+								label: name
+							}
+						}
+					}`,
+			},
+		},
+		{
 			name: "sum aggregate",
 			query: query{
 				Query: `

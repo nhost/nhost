@@ -84,12 +84,11 @@ func (lo groupedLimitOffset) effectiveOffset() int {
 // array-aggregate relationship resolution to batch-fetch aggregates across
 // many parent rows in a single round-trip.
 //
-// The returned SQL emits rows shaped:
-//
-//	{ "_join_key": <value>, "aggregate": {...}, "nodes": [...] }
-//
-// One row is emitted for every value in in.JoinValues, including those with
-// no matching target rows (count is 0, nodes is []).
+// The returned SQL emits one JSON object per join key. Each object contains
+// "_join_key" plus the requested aggregate/nodes response names (aliases when
+// present, otherwise "aggregate" / "nodes"). One row is emitted for every value
+// in in.JoinValues, including those with no matching target rows (count is 0,
+// and nodes selections are []).
 func (t *table) BuildGroupedAggregateSQL(
 	in groupedaggdispatch.BuildInput,
 ) (core.SQLOperation, error) {
@@ -107,7 +106,7 @@ func (t *table) BuildGroupedAggregateSQL(
 		alias = in.Field.Name
 	}
 
-	outerTypenames, aggregateSel, nodesField, err := t.astToAggregateSelection(
+	outerTypenames, aggregateFields, nodesFields, err := t.astToAggregateSelection(
 		in.Field,
 		in.Fragments,
 		in.Variables,
@@ -122,13 +121,13 @@ func (t *table) BuildGroupedAggregateSQL(
 	}
 
 	sel := groupedAggregateSelection{
-		outerTypenames: outerTypenames,
-		aggregateSel:   aggregateSel,
-		nodesField:     nodesField,
-		whereClause:    whereClause,
-		distinctOn:     distinctOn,
-		orderBy:        orderBy,
-		limitOffset:    limitOffset,
+		outerTypenames:  outerTypenames,
+		aggregateFields: aggregateFields,
+		nodesFields:     nodesFields,
+		whereClause:     whereClause,
+		distinctOn:      distinctOn,
+		orderBy:         orderBy,
+		limitOffset:     limitOffset,
 	}
 
 	sql, params, err := t.writeGroupedAggregateStatement(in, joinCol, alias, sel)
@@ -148,13 +147,13 @@ func (t *table) BuildGroupedAggregateSQL(
 // grouped-aggregate query so they can be threaded through the SQL-assembly
 // helper without an unwieldy parameter list.
 type groupedAggregateSelection struct {
-	outerTypenames []typenameSelection
-	aggregateSel   []aggregateQuerySelection
-	nodesField     *ast.Field
-	whereClause    where.Clause
-	distinctOn     *arguments.DistinctOn
-	orderBy        *arguments.OrderBy
-	limitOffset    groupedLimitOffset
+	outerTypenames  []typenameSelection
+	aggregateFields []aggregateFieldSelection
+	nodesFields     []aggregateNodesSelection
+	whereClause     where.Clause
+	distinctOn      *arguments.DistinctOn
+	orderBy         *arguments.OrderBy
+	limitOffset     groupedLimitOffset
 }
 
 // writeGroupedAggregateStatement assembles the full grouped-aggregate SQL: the
@@ -195,7 +194,7 @@ func (t *table) writeGroupedAggregateStatement(
 
 	params, err = t.writeGroupedAggregateOuter(
 		b, params, paramIndex,
-		in.Fragments, sel.outerTypenames, sel.aggregateSel, sel.nodesField, joinCol, alias,
+		in.Fragments, sel.outerTypenames, sel.aggregateFields, sel.nodesFields, joinCol, alias,
 		sel.distinctOn, sel.orderBy, sourceAlias, sel.limitOffset,
 	)
 	if err != nil {
@@ -556,14 +555,15 @@ func writeGroupedDistinctOrderBy(b *strings.Builder, orderBy *arguments.OrderBy)
 //
 // The single-row, single-column result preserves the existing one-row-per-
 // operation contract of Driver.ExecuteOperations: the value is a JSON array
-// of group objects, each shaped { "_join_key": ..., "aggregate": ..., "nodes": ... }.
+// of group objects, each shaped with "_join_key" plus the requested aggregate
+// and nodes response names.
 func (t *table) writeGroupedAggregateOuter( //nolint:funlen
 	b *strings.Builder,
 	params []any, paramIndex int,
 	fragments ast.FragmentDefinitionList,
 	outerTypenames []typenameSelection,
-	aggregateSel []aggregateQuerySelection,
-	nodesField *ast.Field,
+	aggregateFields []aggregateFieldSelection,
+	nodesFields []aggregateNodesSelection,
 	joinCol *core.Column,
 	outputAlias string,
 	distinctOn *arguments.DistinctOn,
@@ -598,13 +598,19 @@ func (t *table) writeGroupedAggregateOuter( //nolint:funlen
 		outerTypenames[i].Write(b)
 	}
 
-	if len(aggregateSel) > 0 {
-		b.WriteString(", 'aggregate', ")
+	for i := range aggregateFields {
+		if len(aggregateFields[i].selections) == 0 {
+			continue
+		}
+
+		b.WriteString(", '")
+		b.WriteString(aggregateFields[i].responseName)
+		b.WriteString("', ")
 		b.WriteString(t.dialect.JSONBuildObject())
 		b.WriteByte('(')
 
-		for i, agg := range aggregateSel {
-			if i > 0 {
+		for j, agg := range aggregateFields[i].selections {
+			if j > 0 {
 				b.WriteString(", ")
 			}
 
@@ -614,9 +620,10 @@ func (t *table) writeGroupedAggregateOuter( //nolint:funlen
 		b.WriteByte(')')
 	}
 
-	if nodesField != nil {
+	for i := range nodesFields {
 		if err := t.writeGroupedAggregateNodes(
-			b, nodesField, fragments, joinCol, distinctOn, orderBy, sourceAlias,
+			b, nodesFields[i].responseName, nodesFields[i].field,
+			fragments, joinCol, distinctOn, orderBy, sourceAlias,
 		); err != nil {
 			return nil, err
 		}
@@ -680,7 +687,7 @@ func (t *table) writeGroupedAggregateSelection(
 	agg.Write(b)
 }
 
-// writeGroupedAggregateNodes writes the 'nodes' entry: a json_agg of an
+// writeGroupedAggregateNodes writes the nodes response entry: a json_agg of an
 // inline row-to-json expression, FILTERed by join_col IS NOT NULL so empty
 // groups produce [] rather than an array containing a single all-null row.
 // sourceAlias is the base CTE, or the windowed CTE when a per-group limit/offset
@@ -696,6 +703,7 @@ func (t *table) writeGroupedAggregateSelection(
 // that don't compose with the GROUP BY here.
 func (t *table) writeGroupedAggregateNodes(
 	b *strings.Builder,
+	responseName string,
 	nodesField *ast.Field,
 	fragments ast.FragmentDefinitionList,
 	joinCol *core.Column,
@@ -712,7 +720,9 @@ func (t *table) writeGroupedAggregateNodes(
 		return errGroupedAggregateNestedRelationships
 	}
 
-	b.WriteString(", 'nodes', coalesce(")
+	b.WriteString(", '")
+	b.WriteString(responseName)
+	b.WriteString("', coalesce(")
 
 	var rowB strings.Builder
 
