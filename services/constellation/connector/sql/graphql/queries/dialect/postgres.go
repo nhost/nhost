@@ -159,6 +159,54 @@ func (d *PostgresDialect) SupportsArrays() bool {
 	return true
 }
 
+// WriteCountAggregate uses PostgreSQL's row-constructor form for multi-column
+// counts: COUNT((c1, c2)) / COUNT(DISTINCT (c1, c2)).
+func (d *PostgresDialect) WriteCountAggregate(
+	b *strings.Builder, distinct bool, expressions []string,
+) {
+	b.WriteString("COUNT(")
+
+	if len(expressions) == 0 {
+		b.WriteByte('*')
+		b.WriteByte(')')
+
+		return
+	}
+
+	if distinct {
+		b.WriteString("DISTINCT ")
+	}
+
+	b.WriteByte('(')
+	writeExpressionList(b, expressions)
+	b.WriteString("))")
+}
+
+// WriteAggregateOrderByExpr writes PostgreSQL's native aggregate function call.
+func (d *PostgresDialect) WriteAggregateOrderByExpr(
+	b *strings.Builder, function string, expression string,
+) {
+	b.WriteString(strings.ToUpper(function))
+	b.WriteByte('(')
+	b.WriteString(expression)
+	b.WriteByte(')')
+}
+
+// SupportsStableVarianceOrderBy returns true: PostgreSQL has native, numerically
+// stable stddev/variance aggregates, so ordering by them is well-defined.
+func (d *PostgresDialect) SupportsStableVarianceOrderBy() bool { return true }
+
+// SupportsVarianceAggregates returns true: PostgreSQL has native stddev/variance
+// aggregate functions, so the corresponding aggregate selection fields are
+// exposed and computed.
+func (d *PostgresDialect) SupportsVarianceAggregates() bool { return true }
+
+// BoolAndFunc returns PostgreSQL's native bool_and aggregate.
+func (d *PostgresDialect) BoolAndFunc() string { return "bool_and" }
+
+// BoolOrFunc returns PostgreSQL's native bool_or aggregate.
+func (d *PostgresDialect) BoolOrFunc() string { return "bool_or" }
+
 func (d *PostgresDialect) WriteJSONRowPrefix(b *strings.Builder) {
 	b.WriteString(`row_to_json((SELECT "_e" FROM (SELECT `)
 }

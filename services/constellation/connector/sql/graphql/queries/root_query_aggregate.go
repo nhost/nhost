@@ -74,7 +74,9 @@ func (t *table) writeQueryAggregateSQL( //nolint:cyclop,funlen
 	sourceRef string,
 	queryModifiers ...queryModifierFunc,
 ) ([]any, int, error) {
-	outerTypenames, aggregateSel, nodesField, err := t.astToAggregateSelection(field, fragments)
+	outerTypenames, aggregateSel, nodesField, err := t.astToAggregateSelection(
+		field, fragments, variables,
+	)
 	if err != nil {
 		return nil, 0, err
 	}
@@ -85,6 +87,7 @@ func (t *table) writeQueryAggregateSQL( //nolint:cyclop,funlen
 		variables,
 		role,
 		sessionVariables,
+		sourceRef,
 	)
 	if err != nil {
 		return nil, 0, fmt.Errorf(
@@ -141,7 +144,11 @@ func (t *table) writeQueryAggregateSQL( //nolint:cyclop,funlen
 	// Add modifiers (ORDER BY, LIMIT, OFFSET)
 	for _, m := range modifiers {
 		b.WriteString(" ")
-		m.WriteSQL(b)
+
+		params, paramIndex, err = m.WriteSQL(b, params, paramIndex)
+		if err != nil {
+			return nil, 0, fmt.Errorf("error building query modifier: %w", err)
+		}
 	}
 
 	b.WriteString(") ")

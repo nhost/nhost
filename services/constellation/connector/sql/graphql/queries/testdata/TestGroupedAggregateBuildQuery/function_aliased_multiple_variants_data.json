@@ -1,0 +1,55 @@
+[
+  [
+    {
+      "_join_key": "00000000-0000-0000-0000-000000000099",
+      "aggregate": {
+        "b": {
+          "role": null
+        },
+        "highest_role": {
+          "role": null
+        },
+        "lowest_role": {
+          "role": null
+        },
+        "a": {
+          "role": null
+        }
+      }
+    },
+    {
+      "_join_key": "550e8400-e29b-41d4-a716-446655440001",
+      "aggregate": {
+        "highest_role": {
+          "role": "member"
+        },
+        "lowest_role": {
+          "role": "manager"
+        },
+        "a": {
+          "role": "member"
+        },
+        "b": {
+          "role": "member"
+        }
+      }
+    },
+    {
+      "_join_key": "550e8400-e29b-41d4-a716-446655440002",
+      "aggregate": {
+        "highest_role": {
+          "role": "member"
+        },
+        "lowest_role": {
+          "role": "member"
+        },
+        "a": {
+          "role": "member"
+        },
+        "b": {
+          "role": "member"
+        }
+      }
+    }
+  ]
+]

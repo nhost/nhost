@@ -1276,15 +1276,21 @@ func (p *parseTestTable) ParseFieldComparison(
 
 // parseTestRelationship is a controllable Relationship double for Parse tests.
 type parseTestRelationship struct {
-	target     where.Table
-	parentCols []string
-	joinWriter func(b *strings.Builder, parent, target string)
+	target        where.Table
+	parentCols    []string
+	name          string
+	aggregateName string
+	isArray       bool
+	joinWriter    func(b *strings.Builder, parent, target string)
 }
 
 func (r *parseTestRelationship) Target() where.Table { return r.target }
 func (r *parseTestRelationship) ParentColumns() []string {
 	return r.parentCols
 }
+func (r *parseTestRelationship) Name() string          { return r.name }
+func (r *parseTestRelationship) AggregateName() string { return r.aggregateName }
+func (r *parseTestRelationship) IsArray() bool         { return r.isArray }
 
 func (r *parseTestRelationship) WriteJoinConditionAliased(
 	b *strings.Builder, parent, target string,

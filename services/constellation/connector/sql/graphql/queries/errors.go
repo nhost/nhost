@@ -44,6 +44,7 @@ var (
 	errStreamBatchSizeMustBePositive = errors.New("stream batch_size must be positive")
 	errNoOperationForFieldInRole     = errors.New("no operation found for field in role")
 	errUnknownAggregateColumn        = errors.New("unknown column")
+	errInvalidCountArgument          = errors.New("invalid count argument")
 	errTableNotFoundInIntrospection  = errors.New(
 		"unable to find table in introspection objects",
 	)
@@ -51,4 +52,17 @@ var (
 	// ErrNoRootsForRole is returned by Roots.BuildQuery when the Roots value has
 	// no map for the operation kind of the request.
 	ErrNoRootsForRole = errors.New("no roots found for role")
+
+	// ErrUnsupportedVarianceAggregate is wrapped when an aggregate selection
+	// requests a stddev/variance-family function (stddev, stddev_pop,
+	// stddev_samp, var_pop, var_samp, variance) on a backend that has no such
+	// aggregate function (SQLite). Schema generation already omits these fields,
+	// so a schema-validated request never reaches the builder; this guards
+	// callers that bypass validation, turning what would be an opaque "no such
+	// function" execution error into a clear typed error that the HTTP layer can
+	// errors.Is-classify as a client error. It is the aggregate-selection
+	// counterpart to arguments.ErrUnsupportedAggregateOrderBy.
+	ErrUnsupportedVarianceAggregate = errors.New(
+		"stddev/variance aggregates are not supported on this database backend",
+	)
 )

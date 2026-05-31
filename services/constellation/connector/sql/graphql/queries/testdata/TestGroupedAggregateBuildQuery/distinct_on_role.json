@@ -1,0 +1,14 @@
+[
+  {
+    "Name": "_root",
+    "SQL": "WITH \"_root.base\" AS MATERIALIZED (SELECT DISTINCT ON (\"__cs_join_key\", \"role\") \"public\".\"user_departments\".*, \"__cs_grp_keys\".\"_join_key\" AS \"__cs_join_key\" FROM unnest($1::uuid[]) AS \"__cs_grp_keys\"(\"_join_key\") LEFT JOIN \"public\".\"user_departments\" ON \"public\".\"user_departments\".\"user_id\" = \"__cs_grp_keys\".\"_join_key\" ORDER BY \"__cs_join_key\") SELECT coalesce(json_agg(\"per_group\"), '[]'::json) AS \"_root\" FROM (SELECT json_build_object('_join_key', \"__cs_join_key\", 'aggregate', json_build_object('count', COUNT(\"_root.base\".\"user_id\")), 'nodes', coalesce(json_agg(row_to_json((SELECT \"_e\" FROM (SELECT \"_root.base\".\"role\" AS \"role\") AS \"_e\")) ORDER BY \"_root.base\".\"role\" ASC NULLS LAST) FILTER (WHERE \"_root.base\".\"user_id\" IS NOT NULL), '[]'::json)) AS \"per_group\" FROM \"_root.base\" GROUP BY \"__cs_join_key\") AS \"_groups\"",
+    "Parameters": [
+      [
+        "550e8400-e29b-41d4-a716-446655440001",
+        "550e8400-e29b-41d4-a716-446655440002",
+        "00000000-0000-0000-0000-000000000099"
+      ]
+    ],
+    "StreamCursors": null
+  }
+]

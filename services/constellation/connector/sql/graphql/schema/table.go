@@ -109,7 +109,7 @@ func generateForTable( //nolint:funlen,cyclop
 
 	if allowAggregations(tableMeta, role) {
 		generateAggregateTypes(
-			schema, tableMeta, tableInfo, customTableName, qualifiedName, allowedColumns, md,
+			schema, tableMeta, tableInfo, customTableName, qualifiedName, allowedColumns, md, caps,
 		)
 	}
 
@@ -285,7 +285,8 @@ func generateArrayRelationshipFields(
 		// type name below.
 		if targetTable != "" {
 			maybeGenerateAggregateOrderByForTargetTable(
-				schema, md, objects, targetSchema, targetTable, role, generatedAggregateOrderBy,
+				schema, md, objects, targetSchema, targetTable, role,
+				generatedAggregateOrderBy, caps,
 			)
 		}
 

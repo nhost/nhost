@@ -40,6 +40,34 @@ func (m *MockDialect) EXPECT() *MockDialectMockRecorder {
 	return m.recorder
 }
 
+// BoolAndFunc mocks base method.
+func (m *MockDialect) BoolAndFunc() string {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "BoolAndFunc")
+	ret0, _ := ret[0].(string)
+	return ret0
+}
+
+// BoolAndFunc indicates an expected call of BoolAndFunc.
+func (mr *MockDialectMockRecorder) BoolAndFunc() *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "BoolAndFunc", reflect.TypeOf((*MockDialect)(nil).BoolAndFunc))
+}
+
+// BoolOrFunc mocks base method.
+func (m *MockDialect) BoolOrFunc() string {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "BoolOrFunc")
+	ret0, _ := ret[0].(string)
+	return ret0
+}
+
+// BoolOrFunc indicates an expected call of BoolOrFunc.
+func (mr *MockDialectMockRecorder) BoolOrFunc() *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "BoolOrFunc", reflect.TypeOf((*MockDialect)(nil).BoolOrFunc))
+}
+
 // CoalesceJSONArray mocks base method.
 func (m *MockDialect) CoalesceJSONArray(alias string) string {
 	m.ctrl.T.Helper()
@@ -264,6 +292,34 @@ func (mr *MockDialectMockRecorder) SupportsRegex() *gomock.Call {
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "SupportsRegex", reflect.TypeOf((*MockDialect)(nil).SupportsRegex))
 }
 
+// SupportsStableVarianceOrderBy mocks base method.
+func (m *MockDialect) SupportsStableVarianceOrderBy() bool {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "SupportsStableVarianceOrderBy")
+	ret0, _ := ret[0].(bool)
+	return ret0
+}
+
+// SupportsStableVarianceOrderBy indicates an expected call of SupportsStableVarianceOrderBy.
+func (mr *MockDialectMockRecorder) SupportsStableVarianceOrderBy() *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "SupportsStableVarianceOrderBy", reflect.TypeOf((*MockDialect)(nil).SupportsStableVarianceOrderBy))
+}
+
+// SupportsVarianceAggregates mocks base method.
+func (m *MockDialect) SupportsVarianceAggregates() bool {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "SupportsVarianceAggregates")
+	ret0, _ := ret[0].(bool)
+	return ret0
+}
+
+// SupportsVarianceAggregates indicates an expected call of SupportsVarianceAggregates.
+func (mr *MockDialectMockRecorder) SupportsVarianceAggregates() *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "SupportsVarianceAggregates", reflect.TypeOf((*MockDialect)(nil).SupportsVarianceAggregates))
+}
+
 // TableRef mocks base method.
 func (m *MockDialect) TableRef(schema, table string) string {
 	m.ctrl.T.Helper()
@@ -320,6 +376,18 @@ func (mr *MockDialectMockRecorder) TypeCast(placeholder, sqlType any) *gomock.Ca
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "TypeCast", reflect.TypeOf((*MockDialect)(nil).TypeCast), placeholder, sqlType)
 }
 
+// WriteAggregateOrderByExpr mocks base method.
+func (m *MockDialect) WriteAggregateOrderByExpr(b *strings.Builder, function, expression string) {
+	m.ctrl.T.Helper()
+	m.ctrl.Call(m, "WriteAggregateOrderByExpr", b, function, expression)
+}
+
+// WriteAggregateOrderByExpr indicates an expected call of WriteAggregateOrderByExpr.
+func (mr *MockDialectMockRecorder) WriteAggregateOrderByExpr(b, function, expression any) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "WriteAggregateOrderByExpr", reflect.TypeOf((*MockDialect)(nil).WriteAggregateOrderByExpr), b, function, expression)
+}
+
 // WriteArrayContainedIn mocks base method.
 func (m *MockDialect) WriteArrayContainedIn(b *strings.Builder, column, castPlaceholder string) {
 	m.ctrl.T.Helper()
@@ -372,6 +440,18 @@ func (m *MockDialect) WriteArrayNotIn(b *strings.Builder, source, sqlName, sqlTy
 func (mr *MockDialectMockRecorder) WriteArrayNotIn(b, source, sqlName, sqlType, values, params, paramIndex any) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "WriteArrayNotIn", reflect.TypeOf((*MockDialect)(nil).WriteArrayNotIn), b, source, sqlName, sqlType, values, params, paramIndex)
+}
+
+// WriteCountAggregate mocks base method.
+func (m *MockDialect) WriteCountAggregate(b *strings.Builder, distinct bool, expressions []string) {
+	m.ctrl.T.Helper()
+	m.ctrl.Call(m, "WriteCountAggregate", b, distinct, expressions)
+}
+
+// WriteCountAggregate indicates an expected call of WriteCountAggregate.
+func (mr *MockDialectMockRecorder) WriteCountAggregate(b, distinct, expressions any) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "WriteCountAggregate", reflect.TypeOf((*MockDialect)(nil).WriteCountAggregate), b, distinct, expressions)
 }
 
 // WriteGroupKeysFrom mocks base method.
