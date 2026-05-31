@@ -4,6 +4,8 @@ import (
 	"bytes"
 	"flag"
 	"os"
+	"regexp"
+	"slices"
 	"testing"
 
 	"github.com/nhost/nhost/services/constellation/connector/sql/graphql/schema"
@@ -194,6 +196,107 @@ func TestSQLiteFixtureCoversMetadataTables(t *testing.T) {
 				tableMeta.Table.Name,
 			)
 		}
+	}
+}
+
+// createFunctionRE matches a top-level CREATE FUNCTION / CREATE OR REPLACE
+// FUNCTION statement in the Postgres DDL fixture and captures the
+// schema-qualified function name (e.g. "public.search_news"). It mirrors the
+// fixture's hand-written style: every tracked function is declared
+// schema-qualified with the name immediately followed by its argument list.
+var createFunctionRE = regexp.MustCompile(
+	`(?im)^\s*CREATE\s+(?:OR\s+REPLACE\s+)?FUNCTION\s+([a-z_][a-z0-9_]*\.[a-z_][a-z0-9_]*)\s*\(`,
+)
+
+// fixtureFunctionNamesAtPath extracts the set of schema-qualified function
+// names defined in the Postgres DDL fixture at relpath by scanning its CREATE
+// FUNCTION statements. The path is relative to the test's working directory
+// (the package dir), matching loadTestDDL's file-only access: no database is
+// required.
+func fixtureFunctionNamesAtPath(t *testing.T, relpath string) map[string]struct{} {
+	t.Helper()
+
+	ddl, err := os.ReadFile(relpath)
+	if err != nil {
+		t.Fatalf("failed to read test DDL %q: %v", relpath, err)
+	}
+
+	defined := make(map[string]struct{})
+	for _, m := range createFunctionRE.FindAllStringSubmatch(string(ddl), -1) {
+		defined[m[1]] = struct{}{}
+	}
+
+	return defined
+}
+
+// TestPgFixtureCoversMetadataFunctions guards against drift between the shared
+// integration metadata (integration/nhost/metadata/) and the four
+// hand-maintained Postgres DDL fixtures the SQL tests introspect. The same
+// function definitions are independently maintained in all four:
+//
+//   - testdata/pg_schema.sql               (schema package)
+//   - ../queries/testdata/pg_schema.sql    (queries package)
+//   - ../../../testdata/pg_schema.sql      (connector package)
+//   - ../../postgres/testdata/pg_schema.sql (postgres driver package)
+//
+// It is the function-level counterpart to TestSQLiteFixtureCoversMetadataTables;
+// functions are a Postgres-only concept (SQLite sets SupportsFunctions=false),
+// so the fixtures under test are the Postgres ones.
+//
+// The files are maintained independently: the metadata declares which functions
+// are tracked, while each fixture declares which functions Postgres
+// introspection can actually see. introspectFunctions silently elides a tracked
+// function with no matching pg_proc row, so a function present in metadata but
+// missing from a fixture never reaches that fixture's connector/schema/
+// introspection goldens — its argument contract is silently dropped from
+// coverage instead of failing. Keeping the four copies in sync by hand has
+// already caused real data loss, so this test fails fast instead, naming both
+// the function that is tracked in metadata and the fixture that is missing it.
+//
+// It reads the fixture and metadata files only and needs no live database.
+func TestPgFixtureCoversMetadataFunctions(t *testing.T) {
+	t.Parallel()
+
+	md, err := metadata.FromDetect(t.Context(), "../../../../integration/nhost/metadata/")
+	if err != nil {
+		t.Fatalf("failed to load metadata: %v", err)
+	}
+
+	fixtures := []struct {
+		label string
+		path  string
+	}{
+		{label: "schema", path: "testdata/pg_schema.sql"},
+		{label: "queries", path: "../queries/testdata/pg_schema.sql"},
+		{label: "connector", path: "../../../testdata/pg_schema.sql"},
+		{label: "postgres", path: "../../postgres/testdata/pg_schema.sql"},
+	}
+
+	for _, fixture := range fixtures {
+		t.Run(fixture.label, func(t *testing.T) {
+			t.Parallel()
+
+			defined := fixtureFunctionNamesAtPath(t, fixture.path)
+
+			var missing []string
+
+			for _, fnMeta := range md.Databases[0].Functions {
+				key := fnMeta.Function.Schema + "." + fnMeta.Function.Name
+				if _, ok := defined[key]; !ok {
+					missing = append(missing, key)
+				}
+			}
+
+			slices.Sort(missing)
+
+			for _, key := range missing {
+				t.Errorf(
+					"metadata tracks function %q but %s has no matching CREATE FUNCTION; "+
+						"add it and regenerate goldens",
+					key, fixture.path,
+				)
+			}
+		})
 	}
 }
 

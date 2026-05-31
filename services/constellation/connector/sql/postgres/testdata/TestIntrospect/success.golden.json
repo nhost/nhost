@@ -2350,12 +2350,54 @@
     ]
   },
   "Functions": {
+    "public.search_news_positional": {
+      "Arguments": [
+        {
+          "Name": "",
+          "Type": "text",
+          "HasDefault": false
+        },
+        {
+          "Name": "",
+          "Type": "integer",
+          "HasDefault": true
+        }
+      ],
+      "ReturnType": {
+        "Type": "news",
+        "IsSetOf": true,
+        "TableSchema": "public",
+        "TableName": "news"
+      },
+      "Volatility": "STABLE"
+    },
     "public.search_news_3": {
       "Arguments": [
         {
           "Name": "search",
           "Type": "text",
           "HasDefault": false
+        }
+      ],
+      "ReturnType": {
+        "Type": "news",
+        "IsSetOf": true,
+        "TableSchema": "public",
+        "TableName": "news"
+      },
+      "Volatility": "STABLE"
+    },
+    "public.search_news_default": {
+      "Arguments": [
+        {
+          "Name": "search",
+          "Type": "text",
+          "HasDefault": false
+        },
+        {
+          "Name": "max_len",
+          "Type": "integer",
+          "HasDefault": true
         }
       ],
       "ReturnType": {

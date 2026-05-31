@@ -7,8 +7,15 @@ var (
 	errRemoteRelationship = errors.New(
 		"remote relationship - handled by remote join executor",
 	)
-	errFunctionNotFound                = errors.New("function not found in introspection")
-	errMissingRequiredFunctionArgument = errors.New("missing required function argument")
+	errFunctionNotFound = errors.New(
+		"function not found in introspection",
+	)
+	errMissingRequiredFunctionArgument = errors.New(
+		"missing required function argument",
+	)
+	errCannotCallFunctionArgumentPositionally = errors.New(
+		"cannot omit a defaulted function argument before a later supplied unnamed argument",
+	)
 
 	errFunctionDoesNotReturnTableType = errors.New("function does not return a table type")
 	errArgsMustBeObject               = errors.New("args must be an object")
