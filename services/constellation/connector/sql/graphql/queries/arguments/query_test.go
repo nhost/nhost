@@ -63,6 +63,49 @@ func child(name string, v *ast.Value) *ast.ChildValue {
 	return &ast.ChildValue{Name: name, Value: v}
 }
 
+// wantDistinctOnOrderByMismatchMessage is the exact client-facing message
+// Hasura emits for a distinct_on/order_by mismatch. It is hardcoded here (not
+// read from an arguments symbol) so the assertion pins the byte-for-byte
+// Hasura-parity wire message independently of the package internals, mirroring
+// how TestParseQueryNegativeLimitOffsetValidationError asserts its literal.
+const wantDistinctOnOrderByMismatchMessage = `"distinct_on" columns must match initial "order_by" columns`
+
+// distinctOnOrderByMismatchError builds a real *QueryValidationError by driving
+// the public ParseQuery with a distinct_on that does not match the leading
+// order_by, so tests exercise the production validation path instead of a
+// hand-minted error. The order_by references budget while distinct_on
+// references name, which ParseQuery rejects.
+func distinctOnOrderByMismatchError(t *testing.T) *arguments.QueryValidationError {
+	t.Helper()
+
+	ctrl := gomock.NewController(t)
+	tbl := mock.NewMockTable(ctrl)
+	tbl.EXPECT().ColumnFromGraphqlName("budget").
+		Return(newColumn("budget", "budget", "numeric"))
+	tbl.EXPECT().ColumnFromGraphqlName("name").
+		Return(newColumn("name", "name", "text"))
+
+	args := ast.ArgumentList{
+		&ast.Argument{
+			Name:  "order_by",
+			Value: objectValue(child("budget", enumValue("desc"))),
+		},
+		&ast.Argument{Name: "distinct_on", Value: enumValue("name")},
+	}
+
+	clause, _, _, err := arguments.ParseQuery(tbl, args, nil, "user", nil)
+	if clause != nil {
+		t.Fatalf("ParseQuery: expected nil where clause on the error path, got %v", clause)
+	}
+
+	var vErr *arguments.QueryValidationError
+	if !errors.As(err, &vErr) {
+		t.Fatalf("ParseQuery: expected a *QueryValidationError, got %T (%v)", err, err)
+	}
+
+	return vErr
+}
+
 func TestParseLimitOffset(t *testing.T) {
 	t.Parallel()
 
@@ -657,7 +700,8 @@ func TestParseQueryNegativeLimitOffsetValidationError(t *testing.T) {
 // the distinct_on / order_by combination so it matches Hasura exactly: inject a
 // leading ORDER BY when none was given, allow an order_by whose leading prefix
 // contains the distinct_on columns (in any order), and reject any other order_by
-// with ErrDistinctOnOrderByMismatch instead of silently reconciling it.
+// with the Hasura distinct_on/order_by mismatch message (wrapping
+// ErrInvalidArgument) instead of silently reconciling it.
 func TestParseQueryDistinctOnOrderByValidation(t *testing.T) {
 	t.Parallel()
 
@@ -686,10 +730,6 @@ func TestParseQueryDistinctOnOrderByValidation(t *testing.T) {
 			t.Fatalf("expected ErrInvalidArgument, got %v", err)
 		}
 
-		if !errors.Is(err, arguments.ErrDistinctOnOrderByMismatch) {
-			t.Fatalf("expected ErrDistinctOnOrderByMismatch, got %v", err)
-		}
-
 		var vErr *arguments.QueryValidationError
 		if !errors.As(err, &vErr) {
 			t.Fatalf("expected a *QueryValidationError, got %T", err)
@@ -697,11 +737,11 @@ func TestParseQueryDistinctOnOrderByValidation(t *testing.T) {
 
 		vErr.StampArgumentPath("departments")
 
-		if got := vErr.AsMap()["message"]; got != arguments.ErrDistinctOnOrderByMismatch.Error() {
+		if got := vErr.AsMap()["message"]; got != wantDistinctOnOrderByMismatchMessage {
 			t.Fatalf(
 				"message: got %q, want %q",
 				got,
-				arguments.ErrDistinctOnOrderByMismatch.Error(),
+				wantDistinctOnOrderByMismatchMessage,
 			)
 		}
 	})
@@ -743,8 +783,21 @@ func TestParseQueryDistinctOnOrderByValidation(t *testing.T) {
 			}
 
 			_, _, _, err := arguments.ParseQuery(tbl, args, nil, "user", nil)
-			if !errors.Is(err, arguments.ErrDistinctOnOrderByMismatch) {
-				t.Fatalf("expected ErrDistinctOnOrderByMismatch, got %v", err)
+			if !errors.Is(err, arguments.ErrInvalidArgument) {
+				t.Fatalf("expected ErrInvalidArgument, got %v", err)
+			}
+
+			var vErr *arguments.QueryValidationError
+			if !errors.As(err, &vErr) {
+				t.Fatalf("expected a *QueryValidationError, got %T", err)
+			}
+
+			if got := vErr.AsMap()["message"]; got != wantDistinctOnOrderByMismatchMessage {
+				t.Fatalf(
+					"message: got %q, want %q",
+					got,
+					wantDistinctOnOrderByMismatchMessage,
+				)
 			}
 		})
 
@@ -872,14 +925,13 @@ func TestParseQueryDistinctOnOrderByValidation(t *testing.T) {
 func TestQueryValidationErrorAsMap(t *testing.T) {
 	t.Parallel()
 
-	vErr := arguments.NewDistinctOnOrderByMismatchError()
+	vErr := distinctOnOrderByMismatchError(t)
 	vErr.StampArgumentPath("departments")
 
 	got := vErr.AsMap()
 
-	const wantMessage = `"distinct_on" columns must match initial "order_by" columns`
-	if got["message"] != wantMessage {
-		t.Errorf("message: got %q, want %q", got["message"], wantMessage)
+	if got["message"] != wantDistinctOnOrderByMismatchMessage {
+		t.Errorf("message: got %q, want %q", got["message"], wantDistinctOnOrderByMismatchMessage)
 	}
 
 	if _, ok := got["path"]; ok {

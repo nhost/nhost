@@ -306,12 +306,27 @@ func (t *table) buildFinalSelect( //nolint:funlen
 
 // buildDeleteFinalSelect builds the final SELECT for delete_by_pk mutations.
 // It returns columns normally but returns empty arrays for relationships
-// since the related data cannot be fetched after deletion.
+// since the related data cannot be fetched after deletion. The relationship
+// arguments are still validated first (the same parsing the SELECT path runs),
+// so an invalid argument rejects the whole mutation with no row deleted,
+// matching Hasura, rather than being silently dropped by the empty-array path.
 func (t *table) buildDeleteFinalSelect(
 	b *strings.Builder,
 	columns []columnSelection,
 	relationships []relationshipSelection,
-) {
+	fragments ast.FragmentDefinitionList,
+	variables map[string]any,
+	role string,
+	sessionVariables map[string]any,
+	roots map[string]core.Operation,
+	argumentPath string,
+) error {
+	if err := validateReturningRelationshipArgs(
+		relationships, fragments, variables, role, sessionVariables, roots, argumentPath,
+	); err != nil {
+		return err
+	}
+
 	b.WriteString("SELECT ")
 	t.dialect.WriteJSONRowPrefix(b)
 
@@ -345,4 +360,6 @@ func (t *table) buildDeleteFinalSelect(
 
 	t.dialect.WriteJSONRowSuffixNoAlias(b)
 	b.WriteString(" FROM mutation_result")
+
+	return nil
 }

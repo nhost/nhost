@@ -104,6 +104,72 @@ func assertWrappedError(t *testing.T, err, innerErr error) {
 	}
 }
 
+func TestCustomizedConnectorValidateOperation(t *testing.T) {
+	t.Parallel()
+
+	t.Run("reverses operation and returns nil on success", func(t *testing.T) {
+		t.Parallel()
+
+		inner := &fakeConnector{schema: teamSchema()}
+
+		conn, err := newCustomizedConnector(
+			"default",
+			inner,
+			metadata.Customization{
+				RootFieldsNamespace: "league",
+				TypeNamesPrefix:     "League",
+			},
+			customization.FlavorDatabase,
+		)
+		if err != nil {
+			t.Fatalf("newCustomizedConnector: %v", err)
+		}
+
+		if err := conn.ValidateOperation(
+			namespacedQueryOp(), nil, nil, metadata.RoleAdmin, nil,
+		); err != nil {
+			t.Fatalf("unexpected error: %v", err)
+		}
+
+		// The inner connector must validate the same native operation it would
+		// execute, so a customized SQL source rejects an invalid argument before
+		// the controller executes any sibling connector.
+		assertReversedToNative(t, inner.gotValOp)
+	})
+
+	t.Run("wraps inner validation error with connector name", func(t *testing.T) {
+		t.Parallel()
+
+		inner := &fakeConnector{schema: teamSchema(), validateErr: errCustomizedExecBoom}
+
+		conn, err := newCustomizedConnector(
+			"default",
+			inner,
+			metadata.Customization{
+				RootFieldsNamespace: "league",
+				TypeNamesPrefix:     "League",
+			},
+			customization.FlavorDatabase,
+		)
+		if err != nil {
+			t.Fatalf("newCustomizedConnector: %v", err)
+		}
+
+		err = conn.ValidateOperation(namespacedQueryOp(), nil, nil, metadata.RoleAdmin, nil)
+		if err == nil {
+			t.Fatal("expected error, got nil")
+		}
+
+		if !errors.Is(err, errCustomizedExecBoom) {
+			t.Errorf("error chain does not wrap inner error: %v", err)
+		}
+
+		if !strings.Contains(err.Error(), "validating customized connector default") {
+			t.Errorf("error not annotated with connector name: %v", err)
+		}
+	})
+}
+
 func TestCustomizedConnectorExecute(t *testing.T) {
 	t.Parallel()
 

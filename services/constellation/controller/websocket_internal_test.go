@@ -11,7 +11,6 @@ import (
 	"testing"
 
 	"github.com/google/go-cmp/cmp"
-	"github.com/nhost/nhost/services/constellation/connector/sql/graphql/queries/arguments"
 	"github.com/nhost/nhost/services/constellation/controller/middleware"
 	"github.com/nhost/nhost/services/constellation/controller/websocket"
 	"github.com/nhost/nhost/services/constellation/internal/lib/syncmap"
@@ -123,9 +122,10 @@ func firstErrorMessage(t *testing.T, ch <-chan *websocket.Message) string {
 	return got
 }
 
-func queryValidationSubscriptionError(rootField string) error {
-	vErr := arguments.NewDistinctOnOrderByMismatchError()
-	vErr.StampArgumentPath(rootField)
+func queryValidationSubscriptionError(t *testing.T, rootField string) error {
+	t.Helper()
+
+	vErr := distinctOnOrderByMismatchError(t, rootField)
 
 	return fmt.Errorf(
 		"%w: failed to build subscription SQL: %w",
@@ -257,7 +257,7 @@ func TestStartSubscriptionQueryValidationErrorPreservesStructuredEnvelope(t *tes
 	mockHandler := subscriptionmock.NewMockHandler(ctrl)
 	mockHandler.EXPECT().
 		Start(gomock.Any(), gomock.Any(), gomock.Any()).
-		Return(nil, queryValidationSubscriptionError("users"))
+		Return(nil, queryValidationSubscriptionError(t, "users"))
 
 	sendCh := make(chan *websocket.Message, 1)
 
@@ -506,7 +506,7 @@ func TestForwardUpdatesQueryValidationErrorPreservesStructuredEnvelope(t *testin
 	updateCh := make(chan subscription.Update, 1)
 	updateCh <- subscription.NewUpdateError(
 		"sub-1",
-		queryValidationSubscriptionError("users"),
+		queryValidationSubscriptionError(t, "users"),
 	)
 
 	close(updateCh)

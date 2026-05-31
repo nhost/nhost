@@ -382,7 +382,7 @@ func TestBuildSubscriptionCollectionSQL(t *testing.T) { //nolint:maintidx,parall
 				Role:      "admin",
 				Variables: nil,
 			},
-			expectError: arguments.ErrDistinctOnOrderByMismatch,
+			expectError: arguments.ErrInvalidArgument,
 		},
 
 		{

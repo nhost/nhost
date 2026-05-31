@@ -35,6 +35,30 @@ func (c *Connector) Execute(
 	return results, nil
 }
 
+// ValidateOperation builds the SQL for the operation and discards it, surfacing
+// any query-validation failure (e.g. a distinct_on / order_by mismatch or a
+// negative limit/offset) without touching the database. BuildQuery is the same
+// pure, side-effect-free step Execute runs first, so the controller can use
+// this to validate every connector in a multi-connector request before any of
+// them executes — matching Hasura, which rejects the whole request on a
+// validation failure rather than returning partial data or running sibling
+// mutations.
+func (c *Connector) ValidateOperation(
+	operation *ast.OperationDefinition,
+	fragments ast.FragmentDefinitionList,
+	variables map[string]any,
+	role string,
+	sessionVariables map[string]any,
+) error {
+	if _, err := c.roots.BuildQuery(
+		operation, fragments, variables, role, sessionVariables,
+	); err != nil {
+		return fmt.Errorf("failed to build query: %w", err)
+	}
+
+	return nil
+}
+
 // ExecuteMultiplexedQuery executes a pre-built multiplexed subscription query.
 // The op should be built using roots.BuildSubscription() which produces ready-to-use SQL.
 // This is a thin convenience wrapper over [Connector.ExecuteMultiplexedQueryWithCursor]

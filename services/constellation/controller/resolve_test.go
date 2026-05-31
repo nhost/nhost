@@ -4,6 +4,7 @@ import (
 	"context"
 	"encoding/json/jsontext"
 	"errors"
+	"fmt"
 	"log/slog"
 	"net/http"
 	"net/http/httptest"
@@ -14,12 +15,64 @@ import (
 	"github.com/nhost/nhost/services/constellation/connector"
 	"github.com/nhost/nhost/services/constellation/connector/memconnector"
 	"github.com/nhost/nhost/services/constellation/connector/remoteschema"
+	"github.com/nhost/nhost/services/constellation/connector/sql/graphql/queries/arguments"
+	argmock "github.com/nhost/nhost/services/constellation/connector/sql/graphql/queries/arguments/mock"
+	"github.com/nhost/nhost/services/constellation/connector/sql/graphql/queries/core"
 	"github.com/nhost/nhost/services/constellation/controller"
 	"github.com/nhost/nhost/services/constellation/controller/middleware"
 	plannerpkg "github.com/nhost/nhost/services/constellation/controller/planner"
 	"github.com/nhost/nhost/services/constellation/graph"
 	"github.com/vektah/gqlparser/v2/ast"
+	"go.uber.org/mock/gomock"
 )
+
+// distinctOnOrderByMismatchError builds a real *arguments.QueryValidationError
+// by driving the public arguments.ParseQuery with a distinct_on that does not
+// match the leading order_by, then stamps the given root-field argument path.
+// Using the production parser (rather than a hand-minted error through an
+// exported constructor) keeps the arguments trust boundary closed while still
+// feeding the controller a faithful structured error. order_by references
+// budget while distinct_on references name, which ParseQuery rejects.
+func distinctOnOrderByMismatchError(
+	t *testing.T,
+	rootField string,
+) *arguments.QueryValidationError {
+	t.Helper()
+
+	ctrl := gomock.NewController(t)
+	tbl := argmock.NewMockTable(ctrl)
+	tbl.EXPECT().ColumnFromGraphqlName("budget").
+		Return(&core.Column{SQLName: "budget", GraphqlName: "budget", SQLType: "numeric"})
+	tbl.EXPECT().ColumnFromGraphqlName("name").
+		Return(&core.Column{SQLName: "name", GraphqlName: "name", SQLType: "text"})
+
+	args := ast.ArgumentList{
+		&ast.Argument{
+			Name: "order_by",
+			Value: &ast.Value{
+				Kind: ast.ObjectValue,
+				Children: []*ast.ChildValue{
+					{Name: "budget", Value: &ast.Value{Kind: ast.EnumValue, Raw: "desc"}},
+				},
+			},
+		},
+		&ast.Argument{Name: "distinct_on", Value: &ast.Value{Kind: ast.EnumValue, Raw: "name"}},
+	}
+
+	clause, _, _, err := arguments.ParseQuery(tbl, args, nil, "user", nil)
+	if clause != nil {
+		t.Fatalf("ParseQuery: expected nil where clause on the error path, got %v", clause)
+	}
+
+	var vErr *arguments.QueryValidationError
+	if !errors.As(err, &vErr) {
+		t.Fatalf("ParseQuery: expected a *QueryValidationError, got %T (%v)", err, err)
+	}
+
+	vErr.StampArgumentPath(rootField)
+
+	return vErr
+}
 
 // adminSessionContext returns a context with an admin SessionVariables populated
 // by running an HTTP request through the production Session middleware. We do
@@ -545,6 +598,159 @@ func getMessage(m map[string]any) string {
 	msg, _ := m["message"].(string)
 
 	return msg
+}
+
+// validateErrConnector wraps a real connector but overrides ValidateOperation
+// to return a fixed error, so a multi-connector request can be driven into the
+// "one root field fails query validation" branch without a real SQL backend.
+type validateErrConnector struct {
+	connector.Connector
+
+	validateErr error
+}
+
+func (c validateErrConnector) ValidateOperation(
+	*ast.OperationDefinition,
+	ast.FragmentDefinitionList,
+	map[string]any,
+	string,
+	map[string]any,
+) error {
+	return c.validateErr
+}
+
+// execSpyConnector wraps a real connector and records whether Execute was
+// called. It is the side-effect proxy: in a multi-connector request where a
+// sibling connector fails query validation, a correct validate-before-execute
+// controller must never reach this connector's Execute (which, for a real SQL
+// mutation, would have committed rows).
+type execSpyConnector struct {
+	connector.Connector
+
+	executed *bool
+}
+
+func (c execSpyConnector) Execute(
+	ctx context.Context,
+	operation *ast.OperationDefinition,
+	fragments ast.FragmentDefinitionList,
+	variables map[string]any,
+	role string,
+	sessionVariables map[string]any,
+	logger *slog.Logger,
+) (map[string]any, error) {
+	*c.executed = true
+
+	res, err := c.Connector.Execute(
+		ctx, operation, fragments, variables, role, sessionVariables, logger,
+	)
+	if err != nil {
+		return res, fmt.Errorf("exec spy: %w", err)
+	}
+
+	return res, nil
+}
+
+// TestResolve_MultiConnectorQueryValidationErrorAbortsWholeRequest pins the
+// Hasura-matching contract that a query-validation failure in one root field
+// rejects the whole multi-connector request: no data, only the validation-failed
+// envelope, and crucially the sibling connector that owns the other root field
+// is never executed (so a sibling mutation would commit nothing). Two
+// memconnectors own one root field each; the "items" connector's
+// ValidateOperation fails, the "things" connector spies on Execute. Because map
+// iteration order is randomized, the spy assertion would flake if the fix only
+// stopped on the invalid connector after already executing the valid one — it
+// holds only because validation runs for every connector before any executes.
+func TestResolve_MultiConnectorQueryValidationErrorAbortsWholeRequest(t *testing.T) {
+	t.Parallel()
+
+	itemsConn, err := memconnector.New(
+		[]*graph.ObjectType{
+			memconnector.Object("Item", memconnector.ID("id")),
+		},
+		[]memconnector.QueryDef{
+			memconnector.Query(
+				"items",
+				graph.NewNonNullListType(graph.NewNonNullType("Item")),
+				[]any{map[string]any{"id": "i1"}},
+			),
+		},
+	)
+	if err != nil {
+		t.Fatalf("memconnector.New(items): %v", err)
+	}
+
+	thingsConn, err := memconnector.New(
+		[]*graph.ObjectType{
+			memconnector.Object("Thing", memconnector.ID("id")),
+		},
+		[]memconnector.QueryDef{
+			memconnector.Query(
+				"things",
+				graph.NewNonNullListType(graph.NewNonNullType("Thing")),
+				[]any{map[string]any{"id": "t1"}},
+			),
+		},
+	)
+	if err != nil {
+		t.Fatalf("memconnector.New(things): %v", err)
+	}
+
+	vErr := distinctOnOrderByMismatchError(t, "items")
+
+	var thingsExecuted bool
+
+	ctrl, err := controller.NewFromConnectors(
+		testAdminSecret,
+		map[string]connector.Connector{
+			"items":  validateErrConnector{Connector: itemsConn, validateErr: vErr},
+			"things": execSpyConnector{Connector: thingsConn, executed: &thingsExecuted},
+		},
+		nil,
+		slog.New(slog.DiscardHandler),
+	)
+	if err != nil {
+		t.Fatalf("NewFromConnectors: %v", err)
+	}
+
+	resp, err := ctrl.Resolve(adminSessionContext(t), controller.GraphQLRequest{
+		OperationName: "",
+		Query:         `{ items { id } things { id } }`,
+		Variables:     nil,
+	})
+	if err != nil {
+		t.Fatalf("unexpected error: %v", err)
+	}
+
+	if resp.Data != nil {
+		t.Errorf("validation failure must return no data, got %+v", resp.Data)
+	}
+
+	if thingsExecuted {
+		t.Error(
+			"sibling connector was executed despite a query-validation failure in another root field",
+		)
+	}
+
+	errs, ok := resp.Errors.([]map[string]any)
+	if !ok || len(errs) != 1 {
+		t.Fatalf("expected exactly one error, got %+v", resp.Errors)
+	}
+
+	if got := getMessage(
+		errs[0],
+	); got != `"distinct_on" columns must match initial "order_by" columns` {
+		t.Errorf("unexpected validation message: %q", got)
+	}
+
+	ext, _ := errs[0]["extensions"].(map[string]any)
+	if ext["code"] != "validation-failed" {
+		t.Errorf("expected validation-failed code, got %v", errs[0]["extensions"])
+	}
+
+	if ext["path"] != "$.selectionSet.items.args" {
+		t.Errorf("expected stamped argument path, got %v", ext["path"])
+	}
 }
 
 // --- NewFromConnectors direct happy-path -----------------------------------

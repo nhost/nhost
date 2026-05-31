@@ -20,15 +20,13 @@ var ErrInvalidArgument = errors.New("invalid argument")
 // PostgreSQL/Hasura, so the ordering is rejected rather than silently wrong.
 var ErrUnsupportedAggregateOrderBy = errors.New("unsupported aggregate order_by")
 
-// ErrDistinctOnOrderByMismatch is the sentinel wrapped by a
-// *QueryValidationError when a distinct_on argument is combined with an
-// order_by whose leading prefix does not contain the distinct_on columns (same
-// column set; prefix order is irrelevant). Hasura rejects this combination at
-// query validation, so Constellation does too rather than silently reconciling
-// it.
-var ErrDistinctOnOrderByMismatch = errors.New(
-	`"distinct_on" columns must match initial "order_by" columns`,
-)
+// distinctOnOrderByMismatchMessage is the client-facing validation message
+// Hasura emits (and Constellation mirrors byte-for-byte) when a distinct_on
+// argument is combined with an order_by whose leading prefix does not contain
+// the distinct_on columns (same column set; prefix order is irrelevant). Hasura
+// rejects this combination at query validation, so Constellation does too
+// rather than silently reconciling it.
+const distinctOnOrderByMismatchMessage = `"distinct_on" columns must match initial "order_by" columns`
 
 // graphqlCodeValidationFailed is the extensions.code Hasura attaches to query
 // validation failures and that Constellation mirrors byte-for-byte.
@@ -54,13 +52,13 @@ type QueryValidationError struct {
 	argumentName string
 }
 
-// NewDistinctOnOrderByMismatchError returns the Hasura-compatible validation
+// newDistinctOnOrderByMismatchError returns the Hasura-compatible validation
 // failure emitted when distinct_on columns do not match the leading order_by
 // columns.
-func NewDistinctOnOrderByMismatchError() *QueryValidationError {
+func newDistinctOnOrderByMismatchError() *QueryValidationError {
 	return newQueryValidationError(
-		ErrDistinctOnOrderByMismatch.Error(),
-		errors.Join(ErrInvalidArgument, ErrDistinctOnOrderByMismatch),
+		distinctOnOrderByMismatchMessage,
+		fmt.Errorf("%w: %s", ErrInvalidArgument, distinctOnOrderByMismatchMessage),
 		"",
 	)
 }

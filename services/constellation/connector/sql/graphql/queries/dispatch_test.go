@@ -272,8 +272,8 @@ func TestBuildNestedRelationshipValidationErrorPath(t *testing.T) {
 			op, _, _ := parseSingleField(t, tt.query)
 
 			_, err := roots.BuildQuery(op, nil, nil, "admin", nil)
-			if !errors.Is(err, arguments.ErrDistinctOnOrderByMismatch) {
-				t.Fatalf("expected ErrDistinctOnOrderByMismatch, got %v", err)
+			if !errors.Is(err, arguments.ErrInvalidArgument) {
+				t.Fatalf("expected ErrInvalidArgument, got %v", err)
 			}
 
 			assertValidationPath(t, err, tt.wantPath)
@@ -281,6 +281,16 @@ func TestBuildNestedRelationshipValidationErrorPath(t *testing.T) {
 	}
 }
 
+// wantDistinctOnOrderByMismatchMessage is the exact client-facing message
+// Hasura emits for a distinct_on/order_by mismatch, asserted verbatim so the
+// byte-for-byte wire parity is pinned without depending on an arguments
+// internal sentinel.
+const wantDistinctOnOrderByMismatchMessage = `"distinct_on" columns must match initial "order_by" columns`
+
+// assertValidationPath verifies the rendered Hasura envelope of a validation
+// error: the distinct_on/order_by mismatch message plus the stamped
+// extensions.path. Asserting the wire message (not an internal sentinel)
+// matches what a GraphQL client actually receives.
 func assertValidationPath(t *testing.T, err error, want string) {
 	t.Helper()
 
@@ -289,9 +299,14 @@ func assertValidationPath(t *testing.T, err error, want string) {
 		t.Fatalf("err = %T, want *QueryValidationError", err)
 	}
 
-	ext, ok := vErr.AsMap()["extensions"].(map[string]any)
+	asMap := vErr.AsMap()
+	if got := asMap["message"]; got != wantDistinctOnOrderByMismatchMessage {
+		t.Fatalf("message = %v, want %s", got, wantDistinctOnOrderByMismatchMessage)
+	}
+
+	ext, ok := asMap["extensions"].(map[string]any)
 	if !ok {
-		t.Fatalf("extensions = %T, want map[string]any", vErr.AsMap()["extensions"])
+		t.Fatalf("extensions = %T, want map[string]any", asMap["extensions"])
 	}
 
 	if got := ext["path"]; got != want {
@@ -818,8 +833,8 @@ func TestBuildGroupedAggregateValidationErrorPath(t *testing.T) {
 		JoinColumnSQLName: "user_id",
 		JoinValues:        []any{"11111111-1111-1111-1111-111111111111"},
 	})
-	if !errors.Is(err, arguments.ErrDistinctOnOrderByMismatch) {
-		t.Fatalf("expected ErrDistinctOnOrderByMismatch, got %v", err)
+	if !errors.Is(err, arguments.ErrInvalidArgument) {
+		t.Fatalf("expected ErrInvalidArgument, got %v", err)
 	}
 
 	assertValidationPath(

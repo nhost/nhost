@@ -435,6 +435,26 @@ func TestGetTypeName(t *testing.T) {
 	}
 }
 
+func TestValidateOperation(t *testing.T) {
+	t.Parallel()
+
+	c, err := memconnector.New(nil, nil)
+	if err != nil {
+		t.Fatalf("memconnector.New: %v", err)
+	}
+
+	op := &ast.OperationDefinition{
+		Operation:    ast.Query,
+		SelectionSet: ast.SelectionSet{&ast.Field{Name: "anything"}},
+	}
+
+	// The in-memory connector has no pre-execution validation and must return
+	// nil for any operation, deferring unknown-field failures to Execute.
+	if err := c.ValidateOperation(op, nil, nil, "admin", nil); err != nil {
+		t.Fatalf("ValidateOperation must be a no-op returning nil, got: %v", err)
+	}
+}
+
 // TestNew_DuplicateNames asserts that New rejects two QueryDef entries that
 // share the same name, rather than silently overriding the first registration.
 func TestNew_DuplicateNames(t *testing.T) {

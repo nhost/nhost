@@ -586,7 +586,7 @@ func TestAggregateBuildQuery(t *testing.T) { //nolint:paralleltest,maintidx
 				}`,
 				Role: "admin",
 			},
-			expectError: arguments.ErrDistinctOnOrderByMismatch,
+			expectError: arguments.ErrInvalidArgument,
 		},
 
 		{

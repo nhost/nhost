@@ -412,7 +412,7 @@ func TestBuildSubscriptionAggregateSQL(t *testing.T) { //nolint:paralleltest,mai
 				}`,
 				Role: "admin",
 			},
-			expectError: arguments.ErrDistinctOnOrderByMismatch,
+			expectError: arguments.ErrInvalidArgument,
 		},
 
 		{

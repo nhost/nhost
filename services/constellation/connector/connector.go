@@ -40,6 +40,23 @@ type Connector interface {
 		sessionVariables map[string]any,
 		logger *slog.Logger,
 	) (map[string]any, error)
+	// ValidateOperation runs the connector's pre-execution validation for the
+	// given operation without producing any result or side effect, returning a
+	// non-nil error when the operation is rejected. The controller calls it for
+	// every connector a multi-connector request fans out to before executing
+	// any of them, so a query-validation failure in one root field aborts the
+	// whole request the way Hasura does — no partial data, no mutation side
+	// effects from sibling connectors. It is the connector's own concern which
+	// failures it can detect before execution; connectors whose validation is
+	// inseparable from execution (remote schemas, the in-memory connector)
+	// return nil and report such failures from Execute instead.
+	ValidateOperation(
+		operation *ast.OperationDefinition,
+		fragments ast.FragmentDefinitionList,
+		variables map[string]any,
+		role string,
+		sessionVariables map[string]any,
+	) error
 	// GetTypeName returns the GraphQL type name for a given identifier
 	// (e.g., a query field name for remote schemas, a table name for SQL).
 	// Returns empty string if the identifier cannot be resolved.

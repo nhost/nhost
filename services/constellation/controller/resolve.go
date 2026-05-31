@@ -219,6 +219,18 @@ func (c *Controller) runConnectorsAndStitch(
 	sessionVariables map[string]any,
 	logger *slog.Logger,
 ) *GraphQLResponse {
+	// Validate every connector's slice of the operation before executing any of
+	// them. A query-validation failure (e.g. a distinct_on / order_by mismatch)
+	// in one root field must reject the whole request the way Hasura does, with
+	// no partial data and — for mutations spanning connectors — no side effects
+	// from the sibling connectors that would otherwise have already run by the
+	// time the invalid field was reached.
+	if resp := c.validateConnectors(
+		state, plan, operation, fieldsByConnector, fragments, variables, role, sessionVariables,
+	); resp != nil {
+		return resp
+	}
+
 	results, allErrors := c.executeConnectors(
 		ctx, state, plan, operation, fieldsByConnector,
 		fragments, variables, role, sessionVariables, logger,
@@ -271,6 +283,56 @@ func groupFieldsByConnector(
 	}
 
 	return fieldsByConnector, nil
+}
+
+// validateConnectors runs each owning connector's pre-execution validation over
+// its slice of the operation and returns a validation-failed GraphQLResponse
+// (no data) as soon as one connector reports a query-validation error, so the
+// whole request is rejected before any connector executes — matching Hasura.
+//
+// Only query-validation errors short-circuit here. Any other error a connector
+// surfaces from ValidateOperation (an unknown field, an internal build failure)
+// is left for executeConnectors to report, so non-validation failures keep their
+// existing wire shape and per-connector partial-data semantics unchanged.
+func (c *Controller) validateConnectors(
+	state *controllerState,
+	plan *planner.QueryPlan,
+	operation *ast.OperationDefinition,
+	fieldsByConnector map[string][]ast.Selection,
+	fragments ast.FragmentDefinitionList,
+	variables map[string]any,
+	role string,
+	sessionVariables map[string]any,
+) *GraphQLResponse {
+	for connName, selections := range fieldsByConnector {
+		conn := state.connectors[connName]
+		if conn == nil {
+			// A missing connector is reported by executeConnectors, which owns
+			// the no-connector error envelope; skip it here.
+			continue
+		}
+
+		execOp, execFragments := buildConnectorOperation(
+			plan, connName, operation, selections, fragments,
+		)
+
+		err := conn.ValidateOperation(
+			execOp, execFragments, variables, role, sessionVariables,
+		)
+		if err == nil {
+			continue
+		}
+
+		if structuredErrs, ok := classifyStructuredConnectorError(err); ok {
+			return &GraphQLResponse{
+				Data:        nil,
+				Errors:      structuredErrs,
+				rawResponse: nil,
+			}
+		}
+	}
+
+	return nil
 }
 
 // executeConnectors runs the operation's fields against each owning connector and

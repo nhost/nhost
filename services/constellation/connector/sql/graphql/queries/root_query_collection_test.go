@@ -419,7 +419,7 @@ func TestBuildSelectionSQL(t *testing.T) { //nolint:maintidx,paralleltest
 				Role:      "admin",
 				Variables: nil,
 			},
-			expectError: arguments.ErrDistinctOnOrderByMismatch,
+			expectError: arguments.ErrInvalidArgument,
 		},
 
 		{

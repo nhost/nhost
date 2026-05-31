@@ -6,11 +6,54 @@ import (
 	"testing"
 
 	"github.com/vektah/gqlparser/v2/ast"
+	"go.uber.org/mock/gomock"
 
 	"github.com/nhost/nhost/services/constellation/connector/sql/graphql/queries"
 	"github.com/nhost/nhost/services/constellation/connector/sql/graphql/queries/arguments"
+	"github.com/nhost/nhost/services/constellation/connector/sql/graphql/queries/arguments/mock"
 	"github.com/nhost/nhost/services/constellation/connector/sql/graphql/queries/core"
 )
+
+// distinctOnOrderByMismatchError builds a real *QueryValidationError by driving
+// the public arguments.ParseQuery with a distinct_on that does not match the
+// leading order_by, so tests exercise the production validation path instead of
+// a hand-minted error. order_by references budget while distinct_on references
+// name, which ParseQuery rejects.
+func distinctOnOrderByMismatchError(t *testing.T) *arguments.QueryValidationError {
+	t.Helper()
+
+	ctrl := gomock.NewController(t)
+	tbl := mock.NewMockTable(ctrl)
+	tbl.EXPECT().ColumnFromGraphqlName("budget").
+		Return(&core.Column{SQLName: "budget", GraphqlName: "budget", SQLType: "numeric"})
+	tbl.EXPECT().ColumnFromGraphqlName("name").
+		Return(&core.Column{SQLName: "name", GraphqlName: "name", SQLType: "text"})
+
+	args := ast.ArgumentList{
+		&ast.Argument{
+			Name: "order_by",
+			Value: &ast.Value{
+				Kind: ast.ObjectValue,
+				Children: []*ast.ChildValue{
+					{Name: "budget", Value: &ast.Value{Kind: ast.EnumValue, Raw: "desc"}},
+				},
+			},
+		},
+		&ast.Argument{Name: "distinct_on", Value: &ast.Value{Kind: ast.EnumValue, Raw: "name"}},
+	}
+
+	clause, _, _, err := arguments.ParseQuery(tbl, args, nil, "user", nil)
+	if clause != nil {
+		t.Fatalf("ParseQuery: expected nil where clause on the error path, got %v", clause)
+	}
+
+	var vErr *arguments.QueryValidationError
+	if !errors.As(err, &vErr) {
+		t.Fatalf("ParseQuery: expected a *QueryValidationError, got %T (%v)", err, err)
+	}
+
+	return vErr
+}
 
 func TestRootsBuildQuery_NoRootsForOperation(t *testing.T) {
 	t.Parallel()
@@ -104,6 +147,8 @@ func TestRootsBuildQuery_FieldNotRegistered(t *testing.T) {
 func TestRootsBuildQuery_StampsQueryValidationError(t *testing.T) {
 	t.Parallel()
 
+	vErr := distinctOnOrderByMismatchError(t)
+
 	var stubOp core.Operation = func(
 		_ *ast.Field,
 		_ ast.FragmentDefinitionList,
@@ -112,7 +157,7 @@ func TestRootsBuildQuery_StampsQueryValidationError(t *testing.T) {
 		_ map[string]any,
 		_ map[string]core.Operation,
 	) (core.SQLOperation, error) {
-		return core.SQLOperation{}, arguments.NewDistinctOnOrderByMismatchError()
+		return core.SQLOperation{}, vErr
 	}
 
 	r := queries.Roots{
@@ -130,18 +175,18 @@ func TestRootsBuildQuery_StampsQueryValidationError(t *testing.T) {
 	}
 
 	_, err := r.BuildQuery(op, nil, nil, "admin", nil)
-	if !errors.Is(err, arguments.ErrDistinctOnOrderByMismatch) {
-		t.Fatalf("err = %v, want errors.Is ErrDistinctOnOrderByMismatch", err)
+	if !errors.Is(err, arguments.ErrInvalidArgument) {
+		t.Fatalf("err = %v, want errors.Is ErrInvalidArgument", err)
 	}
 
-	var vErr *arguments.QueryValidationError
-	if !errors.As(err, &vErr) {
+	var gotErr *arguments.QueryValidationError
+	if !errors.As(err, &gotErr) {
 		t.Fatalf("err = %T, want *QueryValidationError", err)
 	}
 
-	ext, ok := vErr.AsMap()["extensions"].(map[string]any)
+	ext, ok := gotErr.AsMap()["extensions"].(map[string]any)
 	if !ok {
-		t.Fatalf("extensions = %T, want map[string]any", vErr.AsMap()["extensions"])
+		t.Fatalf("extensions = %T, want map[string]any", gotErr.AsMap()["extensions"])
 	}
 
 	if got := ext["path"]; got != "$.selectionSet.people.args" {

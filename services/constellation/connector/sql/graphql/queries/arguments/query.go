@@ -105,9 +105,9 @@ func ParseQuery(
 //     and direction are irrelevant): allowed, left untouched — the DISTINCT ON /
 //     ORDER BY already agree.
 //   - distinct_on present, order_by whose leading prefix does NOT contain the
-//     distinct_on columns: rejected with a *QueryValidationError wrapping both
-//     ErrInvalidArgument and ErrDistinctOnOrderByMismatch, mirroring Hasura's
-//     validation-failed error.
+//     distinct_on columns: rejected with a *QueryValidationError wrapping
+//     ErrInvalidArgument and carrying Hasura's distinct_on/order_by mismatch
+//     message, mirroring Hasura's validation-failed error.
 //     Constellation does not silently reorder the ORDER BY, because that would
 //     return different rows than the user's order_by requested and diverge from
 //     Hasura.
@@ -140,7 +140,7 @@ func validateDistinctOnOrderBy(
 	// PostgreSQL constraint and to Hasura's check; a non-distinct column before
 	// the full distinct_on set is not allowed. Reject otherwise.
 	if !distinctOnMatchesOrderByPrefix(dOn.Columns, userItems) {
-		return nil, NewDistinctOnOrderByMismatchError()
+		return nil, newDistinctOnOrderByMismatchError()
 	}
 
 	return modifiers, nil

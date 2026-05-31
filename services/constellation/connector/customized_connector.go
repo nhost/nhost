@@ -139,6 +139,30 @@ func (c *customizedConnector) Execute(
 	return reshaped, nil
 }
 
+// ValidateOperation reverses the customization on the operation before
+// delegating to the wrapped connector, mirroring Execute so validation runs
+// against the native field/argument names the inner connector understands. The
+// wrapped connector sees the same operation it would during Execute, so a
+// customized SQL source still rejects an invalid argument before the controller
+// executes any sibling connector.
+func (c *customizedConnector) ValidateOperation(
+	operation *ast.OperationDefinition,
+	fragments ast.FragmentDefinitionList,
+	variables map[string]any,
+	role string,
+	sessionVariables map[string]any,
+) error {
+	nativeOp, nativeFragments := c.customizer.ReverseOperation(operation, fragments)
+
+	if err := c.inner.ValidateOperation(
+		nativeOp, nativeFragments, variables, role, sessionVariables,
+	); err != nil {
+		return fmt.Errorf("validating customized connector %s: %w", c.name, err)
+	}
+
+	return nil
+}
+
 // GetTypeName delegates unchanged. The composer resolves database relationship
 // source types through this; remote-schema relationship types come from
 // metadata directly. See the customization × relationships note on the type.
