@@ -1,17 +1,24 @@
 import { BlogPostLayout } from '@/components/blog/BlogPostLayout'
 
 export const article = {
-  title: 'Introducing Constellation: a Hasura-compatible GraphQL engine at a fraction of the resources',
+  title:
+    'Introducing Constellation: an open-source, Hasura-compatible GraphQL engine',
   description:
-    'A near-drop-in replacement for Hasura Community Edition that speaks the same metadata, serves the same GraphQL, and runs our production traffic on ~90% less memory. It is alpha — come help us harden it.',
-  image: '/images/blog/introducing-constellation/cpu-memory.png',
+    "Meet Constellation, Nhost's open-source GraphQL engine written in Go: Hasura-compatible on the request path, production-tested, and using a fraction of the resources.",
+  image: '/images/blog/introducing-constellation/og-constellation.png',
   date: '2026-05-27',
   authors: [
     {
       name: 'David Barroso',
-      title: 'Engineering',
+      title: 'CTO',
       avatarUrl: '/images/avatars/david.jpeg',
       url: 'https://twitter.com/dbarrosop',
+    },
+    {
+      name: 'Nuno Pato',
+      title: 'CEO',
+      avatarUrl: '/images/avatars/nuno.jpeg',
+      url: 'https://twitter.com/nunopato',
     },
   ],
   tags: ['Product', 'GraphQL', 'Open Source'],
@@ -19,11 +26,13 @@ export const article = {
 
 export default (props) => <BlogPostLayout article={article} {...props} />
 
-Today we're sharing **Constellation**, a new GraphQL engine we've been building at Nhost. Constellation turns a relational database into a role-based GraphQL API, and it's designed to be a **near-drop-in replacement for [Hasura](https://hasura.io/) Community Edition**: it speaks the same metadata format, generates a Hasura-compatible schema, and serves the same query, mutation, and subscription surface — including remote schemas and cross-source relationships.
+Today we're sharing **Constellation**, a new open-source GraphQL engine written in Go.
 
-It's also already serving production traffic here at Nhost, on a tiny fraction of the resources Hasura needs. It is, however, **early days** — so this post is equal parts announcement and invitation. Here be dragons, and we'd love your help finding them.
+Constellation turns a relational database into a role-based GraphQL API, and it's designed to be a **near drop-in replacement for [Hasura](https://hasura.io/) Community Edition on the GraphQL request path**. It reads the same metadata, generates a Hasura-compatible schema, and serves the same query, mutation, and subscription surface — including remote schemas and cross-source relationships.
 
-## What is Constellation?
+It's already serving production traffic here at Nhost, using a tiny fraction of the memory our Hasura workloads required. It is also **early**. This post is equal parts announcement and invitation: try it next to Hasura, compare the two engines, and help us find the edges.
+
+## A Hasura-compatible GraphQL engine, written in Go
 
 If you've used Hasura CE, you already know how to use Constellation. Point it at the same metadata and the same database and it produces the same GraphQL API:
 
@@ -31,7 +40,7 @@ If you've used Hasura CE, you already know how to use Constellation. Point it at
 - The **same generated schema** — same types, same relationships, same permission-aware shape per role. We verify this with byte-level schema diffs (more on that below).
 - The **same request surface** — queries, mutations, and subscriptions over the same `/v1/graphql` endpoint, plus remote schemas and cross-source remote relationships.
 
-Under the hood it's a fresh codebase: PostgreSQL and SQLite are first-class backends today, with a connector design that lets other databases plug in without touching the query planner.
+Under the hood, Constellation is a fresh Go codebase. PostgreSQL and SQLite are first-class backends today, with small interfaces, golden-file tests, and a connector design that lets other databases plug in without touching the query planner.
 
 ## Why we built it
 
@@ -41,11 +50,11 @@ Hasura v2 has been the backbone of Nhost's GraphQL layer for years, and it's a g
 - **We wanted a lighter, more predictable footprint.** A GraphQL engine shouldn't be the most expensive thing in your stack. Memory in particular is hard to throttle gracefully under load, and it was consistently our heaviest line item per project.
 - **We wanted a codebase we can move fast on.** Small interfaces, golden-file tests, per-package docs — so a fix is a fix, not an archaeology expedition.
 
-So rather than keep investing in something being abandoned, we built our own — keeping full compatibility on the GraphQL request path, while we own the engine end to end. Where Hasura's behavior is surprising or outright incorrect, we occasionally and deliberately diverge; every such case is documented in our `KNOWN_DIFFERENCES.md`.
+Continuing to depend on a deprecated open-source engine, or moving our GraphQL and permissions layer to a closed one, wasn't the right path for Nhost. So we built our own — keeping Hasura compatibility on the GraphQL request path, while we own the engine end to end. Where Hasura's behavior is surprising or outright incorrect, we occasionally and deliberately diverge; every such case is documented in [`KNOWN_DIFFERENCES.md`](https://github.com/nhost/nhost/blob/main/services/constellation/KNOWN_DIFFERENCES.md).
 
-## Early results
+## Early production results
 
-We've been running Constellation against real production workloads, side by side with Hasura, on the same database and the same traffic. The short version: **slightly faster, at a fraction of the resources** — and this is *before* the performance-focused work still on the roadmap.
+We've been running Constellation against real production workloads, side by side with Hasura, on the same database and the same traffic. The short version: **slightly faster, at a fraction of the resources** — and this is _before_ the performance-focused work still on the roadmap.
 
 ### Memory: the headline
 
@@ -67,13 +76,13 @@ To make the comparison concrete, here's the per-period **delta** of Constellatio
 
 These are raw production dashboards, not a curated benchmark — which is rather the point. We didn't tune anything special to get here.
 
-## Here be dragons
+## Early, and running alongside Hasura
 
-Now the honest part. Constellation is **alpha**. The label reflects *feature coverage* versus Hasura, not the stability of what's there — the core query/mutation/subscription pipeline is battle-tested and in production — but you should go in with eyes open:
+Now the honest part. Constellation is **alpha**. The label reflects _feature coverage_ versus Hasura, not the stability of what's there — the core query/mutation/subscription pipeline is battle-tested and in production — but you should go in with eyes open:
 
-- **It runs *alongside* Hasura today, not instead of it.** Constellation consumes metadata but doesn't yet implement Hasura's metadata HTTP API (`POST /v1/metadata`). So the deployment model right now is: **Hasura owns metadata authoring, Constellation owns request serving**, both pointed at the same database. Once Constellation can manage metadata on its own, the Hasura half can be dropped.
+- **It runs _alongside_ Hasura today, not instead of it.** Constellation consumes metadata but doesn't yet implement Hasura's metadata HTTP API (`POST /v1/metadata`). So the deployment model right now is: **Hasura owns metadata authoring, Constellation owns request serving**, both pointed at the same database. Once Constellation can manage metadata on its own, the Hasura half can be dropped.
 - **What's solid:** the PostgreSQL and SQLite connectors, the full GraphQL request path, JWT/admin-secret auth, role-based permissions, remote schemas, and cross-source remote relationships.
-- **What's missing:** essentially everything *outside* the GraphQL request path — Actions, event/cron triggers, REST endpoints, allowlists, query collections, inherited roles, native queries, computed fields, and the MSSQL/BigQuery/Snowflake backends.
+- **What's missing:** essentially everything _outside_ the GraphQL request path — Actions, event/cron triggers, REST endpoints, allowlists, query collections, inherited roles, native queries, computed fields, and the MSSQL/BigQuery/Snowflake backends.
 
 If your app lives mostly in the query/mutation/subscription world, there's a good chance Constellation already does what you need. If you lean heavily on Actions or event triggers, keep those on Hasura for now.
 
@@ -83,10 +92,10 @@ Because Constellation and Hasura can share the same database and metadata, the l
 
 ```toml
 [experimental.constellation]
-version = "0.2.1"
+version = "0.4.0"
 ```
 
-(Pick the latest tag from Constellation's `CHANGELOG.md` — we recommend always running the latest.)
+(Pick the latest tag from Constellation's [`CHANGELOG.md`](https://github.com/nhost/nhost/blob/main/services/constellation/CHANGELOG.md) — we recommend always running the latest.)
 
 With that in place, your project runs both engines side by side:
 
@@ -109,7 +118,7 @@ nhost schema dump --role user --subdomain <subdomain> \
 nhost schema diff -a schema.hasura.user.graphqls -b schema.constellation.user.graphqls
 ```
 
-An empty diff means Constellation produced a byte-equivalent schema for that role. A non-empty diff *should* map to one of the documented entries in `KNOWN_DIFFERENCES.md`.
+An empty diff means Constellation produced a byte-equivalent schema for that role. A non-empty diff _should_ map to one of the documented entries in [`KNOWN_DIFFERENCES.md`](https://github.com/nhost/nhost/blob/main/services/constellation/KNOWN_DIFFERENCES.md).
 
 (Prefer to run it standalone, with no Nhost project? You can — the [repository](https://github.com/nhost/nhost/tree/main/services/constellation) has full build-and-run instructions.)
 
@@ -118,10 +127,10 @@ An empty diff means Constellation produced a byte-equivalent schema for that rol
 This is genuinely a call for help, and every path below is useful:
 
 1. **Flip it on** on a project and point real traffic at it. The Nhost route above is the fastest way in, and it unlocks everything else on this list.
-2. **Report schema diffs.** If `nhost schema diff` turns up a divergence that *isn't* covered in `KNOWN_DIFFERENCES.md`, [open an issue](https://github.com/nhost/nhost/issues/new) with the diff hunk and a minimal metadata snippet. That's literally how new categories get documented or fixed.
+2. **Report schema diffs.** If `nhost schema diff` turns up a divergence that _isn't_ covered in [`KNOWN_DIFFERENCES.md`](https://github.com/nhost/nhost/blob/main/services/constellation/KNOWN_DIFFERENCES.md), [open an issue](https://github.com/nhost/nhost/issues/new) with the diff hunk and a minimal metadata snippet. That's literally how new categories get documented or fixed.
 3. **Report runtime bugs and inconsistencies.** A query that returns different results, a subscription that misbehaves, a permission that doesn't line up — under live traffic these are the most valuable reports we can get.
 4. **Dig into the code.** It's open source and we've tried hard to make it approachable. PRs and questions welcome.
 
-Constellation is early, but it's already doing real work for us, and the resource numbers above are why we're betting on it. If you run Hasura today, we'd love for you to take it for a spin and tell us what breaks.
+Constellation is early, but it's already doing real work for us, and the resource numbers above are why we're betting on it. If you run Hasura today, Constellation is ready for the most useful kind of feedback: real metadata, real schemas, real traffic, and real differences. Try it next to your existing Hasura instance, diff the schema, send traffic through it, and tell us what breaks.
 
 Find Constellation, its README, and the issue tracker in the <a href="https://github.com/nhost/nhost/tree/main/services/constellation" target="_blank" rel="noopener noreferrer">Nhost monorepo on GitHub</a>.
