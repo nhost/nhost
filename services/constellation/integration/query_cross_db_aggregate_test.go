@@ -81,7 +81,7 @@ func TestQueryCrossDBAggregate(t *testing.T) { //nolint:paralleltest
 				Query: `query {
 					userProfiles {
 						id
-						departments_aggregate(where: { role: { _eq: "manager" } }) {
+						departments_aggregate(where: { role: { _eq: manager } }) {
 							aggregate { count }
 							nodes { role }
 						}

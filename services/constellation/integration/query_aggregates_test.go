@@ -860,7 +860,7 @@ func TestQueryAggregateBoolExpFilter(t *testing.T) { //nolint:paralleltest
 							arguments: [user_id]
 							distinct: true
 							predicate: {_gte: 8}
-							filter: {role: {_eq: "member"}}
+							filter: {role: {_eq: member}}
 						}}
 					}) {
 						name
