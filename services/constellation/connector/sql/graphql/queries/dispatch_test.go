@@ -189,7 +189,16 @@ func TestBuildQueryDispatch_UnknownFieldErrors(t *testing.T) {
 	}
 }
 
-func TestBuildQueryNestedRelationshipValidationErrorPath(t *testing.T) {
+// TestBuildNestedRelationshipValidationErrorPath pins the Hasura-style
+// extensions.path stamped on a *QueryValidationError raised by an invalid
+// distinct_on/order_by combination on an array relationship, across every
+// threaded argumentPath surface. The query case nests the relationship under a
+// collection root; the mutation case nests it under `returning`, which is the
+// only surface adding a `.returning.` path segment and the only one without a
+// dedicated test before this. Both share the same users->orders metadata and
+// the same offending relationship args, so the only meaningful difference is
+// the operation shape and the resulting path.
+func TestBuildNestedRelationshipValidationErrorPath(t *testing.T) {
 	t.Parallel()
 
 	objects := buildObjectsWithUsersAndOrders()
@@ -221,23 +230,55 @@ func TestBuildQueryNestedRelationshipValidationErrorPath(t *testing.T) {
 		t.Fatalf("BuildRoots: %v", err)
 	}
 
-	op, _, _ := parseSingleField(t, `query {
-		people: users {
-			id
-			orderList: orders(distinct_on: id, order_by: { user_id: asc }) { id }
-		}
-	}`)
-
-	_, err = roots.BuildQuery(op, nil, nil, "admin", nil)
-	if !errors.Is(err, arguments.ErrDistinctOnOrderByMismatch) {
-		t.Fatalf("expected ErrDistinctOnOrderByMismatch, got %v", err)
+	tests := []struct {
+		name     string
+		query    string
+		wantPath string
+	}{
+		{
+			name: "collection root relationship",
+			query: `query {
+				people: users {
+					id
+					orderList: orders(distinct_on: id, order_by: { user_id: asc }) { id }
+				}
+			}`,
+			wantPath: "$.selectionSet.people.selectionSet.orderList.args",
+		},
+		{
+			// The invalid relationship args live under the mutation's
+			// `returning` selection. The surrounding insert is valid (admin
+			// role, single PK column) so the build reaches
+			// selectionReturning.WriteSQL, where the relationship's argumentPath
+			// is threaded through buildSelectionSQL and stamped onto the error.
+			name: "mutation returning relationship",
+			query: `mutation {
+				insert_users(objects: [{ id: "11111111-1111-1111-1111-111111111111" }]) {
+					affected_rows
+					returning {
+						id
+						orderList: orders(distinct_on: id, order_by: { user_id: asc }) { id }
+					}
+				}
+			}`,
+			wantPath: "$.selectionSet.insert_users.selectionSet.returning.selectionSet.orderList.args",
+		},
 	}
 
-	assertValidationPath(
-		t,
-		err,
-		"$.selectionSet.people.selectionSet.orderList.args",
-	)
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			t.Parallel()
+
+			op, _, _ := parseSingleField(t, tt.query)
+
+			_, err := roots.BuildQuery(op, nil, nil, "admin", nil)
+			if !errors.Is(err, arguments.ErrDistinctOnOrderByMismatch) {
+				t.Fatalf("expected ErrDistinctOnOrderByMismatch, got %v", err)
+			}
+
+			assertValidationPath(t, err, tt.wantPath)
+		})
+	}
 }
 
 func assertValidationPath(t *testing.T, err error, want string) {
