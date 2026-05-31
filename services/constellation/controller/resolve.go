@@ -7,6 +7,7 @@ import (
 	"fmt"
 	"log/slog"
 	"maps"
+	"slices"
 	"sync"
 
 	"github.com/nhost/nhost/services/constellation/controller/introspection"
@@ -219,16 +220,20 @@ func (c *Controller) runConnectorsAndStitch(
 	sessionVariables map[string]any,
 	logger *slog.Logger,
 ) *GraphQLResponse {
-	// Validate every connector's slice of the operation before executing any of
-	// them. A query-validation failure (e.g. a distinct_on / order_by mismatch)
-	// in one root field must reject the whole request the way Hasura does, with
-	// no partial data and — for mutations spanning connectors — no side effects
-	// from the sibling connectors that would otherwise have already run by the
-	// time the invalid field was reached.
-	if resp := c.validateConnectors(
-		state, plan, operation, fieldsByConnector, fragments, variables, role, sessionVariables,
-	); resp != nil {
-		return resp
+	// Multi-connector requests validate every connector's slice of the operation
+	// before executing any of them. A query-validation failure (e.g. a distinct_on
+	// / order_by mismatch) in one root field must reject the whole request the way
+	// Hasura does, with no partial data and — for mutations spanning connectors —
+	// no side effects from sibling connectors that would otherwise have already run
+	// by the time the invalid field was reached. Single-connector requests skip
+	// this pre-pass because Execute already runs the same build/validation before
+	// touching the database.
+	if len(fieldsByConnector) > 1 {
+		if resp := c.validateConnectors(
+			state, plan, operation, fieldsByConnector, fragments, variables, role, sessionVariables,
+		); resp != nil {
+			return resp
+		}
 	}
 
 	results, allErrors := c.executeConnectors(
@@ -286,14 +291,18 @@ func groupFieldsByConnector(
 }
 
 // validateConnectors runs each owning connector's pre-execution validation over
-// its slice of the operation and returns a validation-failed GraphQLResponse
-// (no data) as soon as one connector reports a query-validation error, so the
-// whole request is rejected before any connector executes — matching Hasura.
+// its slice of a multi-connector operation and returns a validation-failed
+// GraphQLResponse (no data) when any connector reports a query-validation error,
+// so the whole request is rejected before any connector executes — matching
+// Hasura. Multiple structured validation errors are accumulated in sorted
+// connector-name order so the envelope is deterministic even though the input
+// connector map is not.
 //
-// Only query-validation errors short-circuit here. Any other error a connector
-// surfaces from ValidateOperation (an unknown field, an internal build failure)
-// is left for executeConnectors to report, so non-validation failures keep their
-// existing wire shape and per-connector partial-data semantics unchanged.
+// Only query-validation errors short-circuit the request here. Any other error a
+// connector surfaces from ValidateOperation (an unknown field, an internal build
+// failure) is left for executeConnectors to report, so non-validation failures
+// keep their existing wire shape and per-connector partial-data semantics
+// unchanged.
 func (c *Controller) validateConnectors(
 	state *controllerState,
 	plan *planner.QueryPlan,
@@ -304,7 +313,11 @@ func (c *Controller) validateConnectors(
 	role string,
 	sessionVariables map[string]any,
 ) *GraphQLResponse {
-	for connName, selections := range fieldsByConnector {
+	var allStructuredErrs []map[string]any
+
+	for _, connName := range slices.Sorted(maps.Keys(fieldsByConnector)) {
+		selections := fieldsByConnector[connName]
+
 		conn := state.connectors[connName]
 		if conn == nil {
 			// A missing connector is reported by executeConnectors, which owns
@@ -324,11 +337,15 @@ func (c *Controller) validateConnectors(
 		}
 
 		if structuredErrs, ok := classifyStructuredConnectorError(err); ok {
-			return &GraphQLResponse{
-				Data:        nil,
-				Errors:      structuredErrs,
-				rawResponse: nil,
-			}
+			allStructuredErrs = append(allStructuredErrs, structuredErrs...)
+		}
+	}
+
+	if len(allStructuredErrs) > 0 {
+		return &GraphQLResponse{
+			Data:        nil,
+			Errors:      allStructuredErrs,
+			rawResponse: nil,
 		}
 	}
 

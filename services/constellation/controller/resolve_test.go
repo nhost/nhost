@@ -619,6 +619,26 @@ func (c validateErrConnector) ValidateOperation(
 	return c.validateErr
 }
 
+// validateSpyConnector wraps a real connector and records pre-execution
+// validation calls while preserving the wrapped connector's Execute behavior.
+type validateSpyConnector struct {
+	connector.Connector
+
+	validateCalls *int
+}
+
+func (c validateSpyConnector) ValidateOperation(
+	*ast.OperationDefinition,
+	ast.FragmentDefinitionList,
+	map[string]any,
+	string,
+	map[string]any,
+) error {
+	(*c.validateCalls)++
+
+	return nil
+}
+
 // execSpyConnector wraps a real connector and records whether Execute was
 // called. It is the side-effect proxy: in a multi-connector request where a
 // sibling connector fails query validation, a correct validate-before-execute
@@ -750,6 +770,160 @@ func TestResolve_MultiConnectorQueryValidationErrorAbortsWholeRequest(t *testing
 
 	if ext["path"] != "$.selectionSet.items.args" {
 		t.Errorf("expected stamped argument path, got %v", ext["path"])
+	}
+}
+
+func TestResolve_MultiConnectorQueryValidationErrorsAreDeterministic(t *testing.T) {
+	t.Parallel()
+
+	itemsConn, err := memconnector.New(
+		[]*graph.ObjectType{
+			memconnector.Object("Item", memconnector.ID("id")),
+		},
+		[]memconnector.QueryDef{
+			memconnector.Query(
+				"items",
+				graph.NewNonNullListType(graph.NewNonNullType("Item")),
+				[]any{map[string]any{"id": "i1"}},
+			),
+		},
+	)
+	if err != nil {
+		t.Fatalf("memconnector.New(items): %v", err)
+	}
+
+	thingsConn, err := memconnector.New(
+		[]*graph.ObjectType{
+			memconnector.Object("Thing", memconnector.ID("id")),
+		},
+		[]memconnector.QueryDef{
+			memconnector.Query(
+				"things",
+				graph.NewNonNullListType(graph.NewNonNullType("Thing")),
+				[]any{map[string]any{"id": "t1"}},
+			),
+		},
+	)
+	if err != nil {
+		t.Fatalf("memconnector.New(things): %v", err)
+	}
+
+	ctrl, err := controller.NewFromConnectors(
+		testAdminSecret,
+		map[string]connector.Connector{
+			"z_items": validateErrConnector{
+				Connector:   itemsConn,
+				validateErr: distinctOnOrderByMismatchError(t, "items"),
+			},
+			"a_things": validateErrConnector{
+				Connector:   thingsConn,
+				validateErr: distinctOnOrderByMismatchError(t, "things"),
+			},
+		},
+		nil,
+		slog.New(slog.DiscardHandler),
+	)
+	if err != nil {
+		t.Fatalf("NewFromConnectors: %v", err)
+	}
+
+	resp, err := ctrl.Resolve(adminSessionContext(t), controller.GraphQLRequest{
+		OperationName: "",
+		Query:         `{ items { id } things { id } }`,
+		Variables:     nil,
+	})
+	if err != nil {
+		t.Fatalf("unexpected error: %v", err)
+	}
+
+	if resp.Data != nil {
+		t.Errorf("validation failure must return no data, got %+v", resp.Data)
+	}
+
+	errs, ok := resp.Errors.([]map[string]any)
+	if !ok || len(errs) != 2 {
+		t.Fatalf("expected two structured errors, got %+v", resp.Errors)
+	}
+
+	// The query asks for items first, but connector names sort as a_things before
+	// z_items. This pins the validation-error envelope to a stable connector-name
+	// order instead of Go's randomized map iteration order.
+	wantPaths := []string{
+		"$.selectionSet.things.args",
+		"$.selectionSet.items.args",
+	}
+
+	for i, wantPath := range wantPaths {
+		ext, ok := errs[i]["extensions"].(map[string]any)
+		if !ok {
+			t.Fatalf("error %d missing extensions: %+v", i, errs[i])
+		}
+
+		if ext["code"] != "validation-failed" {
+			t.Errorf("error %d expected validation-failed code, got %v", i, ext["code"])
+		}
+
+		if ext["path"] != wantPath {
+			t.Errorf("error %d expected path %q, got %v", i, wantPath, ext["path"])
+		}
+	}
+}
+
+func TestResolve_SingleConnectorSkipsPreExecutionValidation(t *testing.T) {
+	t.Parallel()
+
+	conn, err := memconnector.New(
+		[]*graph.ObjectType{
+			memconnector.Object(
+				"User",
+				memconnector.ID("id"),
+				memconnector.String("name"),
+			),
+		},
+		[]memconnector.QueryDef{
+			memconnector.Query(
+				"users",
+				graph.NewNonNullListType(graph.NewNonNullType("User")),
+				[]any{map[string]any{"id": "1", "name": "Alice"}},
+			),
+		},
+	)
+	if err != nil {
+		t.Fatalf("memconnector.New: %v", err)
+	}
+
+	var validateCalls int
+
+	ctrl, err := controller.NewFromConnectors(
+		testAdminSecret,
+		map[string]connector.Connector{
+			"mem": validateSpyConnector{Connector: conn, validateCalls: &validateCalls},
+		},
+		nil,
+		slog.New(slog.DiscardHandler),
+	)
+	if err != nil {
+		t.Fatalf("NewFromConnectors: %v", err)
+	}
+
+	resp, err := ctrl.Resolve(adminSessionContext(t), controller.GraphQLRequest{
+		OperationName: "",
+		Query:         `{ users { id name } }`,
+		Variables:     nil,
+	})
+	if err != nil {
+		t.Fatalf("unexpected error: %v", err)
+	}
+
+	if resp.Errors != nil {
+		t.Fatalf("expected no errors, got %+v", resp.Errors)
+	}
+
+	if validateCalls != 0 {
+		t.Fatalf(
+			"single-connector request ran redundant pre-execution validation %d time(s)",
+			validateCalls,
+		)
 	}
 }
 
