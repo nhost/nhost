@@ -11,6 +11,7 @@ package mock
 
 import (
 	reflect "reflect"
+	strings "strings"
 
 	arguments "github.com/nhost/nhost/services/constellation/connector/sql/graphql/queries/arguments"
 	core "github.com/nhost/nhost/services/constellation/connector/sql/graphql/queries/core"
@@ -86,6 +87,20 @@ func (mr *MockTableMockRecorder) Dialect() *gomock.Call {
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "Dialect", reflect.TypeOf((*MockTable)(nil).Dialect))
 }
 
+// HasRowLevelPermissions mocks base method.
+func (m *MockTable) HasRowLevelPermissions(role string) bool {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "HasRowLevelPermissions", role)
+	ret0, _ := ret[0].(bool)
+	return ret0
+}
+
+// HasRowLevelPermissions indicates an expected call of HasRowLevelPermissions.
+func (mr *MockTableMockRecorder) HasRowLevelPermissions(role any) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "HasRowLevelPermissions", reflect.TypeOf((*MockTable)(nil).HasRowLevelPermissions), role)
+}
+
 // InsertPresets mocks base method.
 func (m *MockTable) InsertPresets(role string) map[string]any {
 	m.ctrl.T.Helper()
@@ -143,6 +158,20 @@ func (mr *MockTableMockRecorder) Relationship(name any) *gomock.Call {
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "Relationship", reflect.TypeOf((*MockTable)(nil).Relationship), name)
 }
 
+// TableFromClause mocks base method.
+func (m *MockTable) TableFromClause() string {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "TableFromClause")
+	ret0, _ := ret[0].(string)
+	return ret0
+}
+
+// TableFromClause indicates an expected call of TableFromClause.
+func (mr *MockTableMockRecorder) TableFromClause() *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "TableFromClause", reflect.TypeOf((*MockTable)(nil).TableFromClause))
+}
+
 // TableName mocks base method.
 func (m *MockTable) TableName() string {
 	m.ctrl.T.Helper()
@@ -171,6 +200,22 @@ func (mr *MockTableMockRecorder) UpdatePresets(role any) *gomock.Call {
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "UpdatePresets", reflect.TypeOf((*MockTable)(nil).UpdatePresets), role)
 }
 
+// WriteRowLevelPermissions mocks base method.
+func (m *MockTable) WriteRowLevelPermissions(b *strings.Builder, params []any, paramIndex int, role string, sessionVariables map[string]any, sourceRef string) ([]any, int, error) {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "WriteRowLevelPermissions", b, params, paramIndex, role, sessionVariables, sourceRef)
+	ret0, _ := ret[0].([]any)
+	ret1, _ := ret[1].(int)
+	ret2, _ := ret[2].(error)
+	return ret0, ret1, ret2
+}
+
+// WriteRowLevelPermissions indicates an expected call of WriteRowLevelPermissions.
+func (mr *MockTableMockRecorder) WriteRowLevelPermissions(b, params, paramIndex, role, sessionVariables, sourceRef any) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "WriteRowLevelPermissions", reflect.TypeOf((*MockTable)(nil).WriteRowLevelPermissions), b, params, paramIndex, role, sessionVariables, sourceRef)
+}
+
 // MockRelationship is a mock of Relationship interface.
 type MockRelationship struct {
 	ctrl     *gomock.Controller
@@ -193,6 +238,20 @@ func NewMockRelationship(ctrl *gomock.Controller) *MockRelationship {
 // EXPECT returns an object that allows the caller to indicate expected use.
 func (m *MockRelationship) EXPECT() *MockRelationshipMockRecorder {
 	return m.recorder
+}
+
+// AggregateName mocks base method.
+func (m *MockRelationship) AggregateName() string {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "AggregateName")
+	ret0, _ := ret[0].(string)
+	return ret0
+}
+
+// AggregateName indicates an expected call of AggregateName.
+func (mr *MockRelationshipMockRecorder) AggregateName() *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "AggregateName", reflect.TypeOf((*MockRelationship)(nil).AggregateName))
 }
 
 // FKColumns mocks base method.
@@ -237,6 +296,20 @@ func (mr *MockRelationshipMockRecorder) IsArray() *gomock.Call {
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "IsArray", reflect.TypeOf((*MockRelationship)(nil).IsArray))
 }
 
+// Name mocks base method.
+func (m *MockRelationship) Name() string {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "Name")
+	ret0, _ := ret[0].(string)
+	return ret0
+}
+
+// Name indicates an expected call of Name.
+func (mr *MockRelationshipMockRecorder) Name() *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "Name", reflect.TypeOf((*MockRelationship)(nil).Name))
+}
+
 // TargetTable mocks base method.
 func (m *MockRelationship) TargetTable() arguments.Table {
 	m.ctrl.T.Helper()
@@ -249,4 +322,16 @@ func (m *MockRelationship) TargetTable() arguments.Table {
 func (mr *MockRelationshipMockRecorder) TargetTable() *gomock.Call {
 	mr.mock.ctrl.T.Helper()
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "TargetTable", reflect.TypeOf((*MockRelationship)(nil).TargetTable))
+}
+
+// WriteJoinConditionAliased mocks base method.
+func (m *MockRelationship) WriteJoinConditionAliased(b *strings.Builder, parentAlias, targetAlias string) {
+	m.ctrl.T.Helper()
+	m.ctrl.Call(m, "WriteJoinConditionAliased", b, parentAlias, targetAlias)
+}
+
+// WriteJoinConditionAliased indicates an expected call of WriteJoinConditionAliased.
+func (mr *MockRelationshipMockRecorder) WriteJoinConditionAliased(b, parentAlias, targetAlias any) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "WriteJoinConditionAliased", reflect.TypeOf((*MockRelationship)(nil).WriteJoinConditionAliased), b, parentAlias, targetAlias)
 }

@@ -818,6 +818,244 @@ func TestBuildSelectionSQL(t *testing.T) { //nolint:maintidx,paralleltest
 				},
 			},
 		},
+		{
+			name: "aggregate filter: count predicate",
+			query: query{
+				Query: `
+					query {
+						departments(order_by: {name: asc}, where: {
+							employees_aggregate: {count: {predicate: {_gt: 7}}}
+						}) {
+							name
+						}
+					}`,
+				Role: "admin",
+			},
+		},
+		{
+			name: "aggregate filter: count with arguments, distinct and filter",
+			query: query{
+				Query: `
+					query {
+						departments(order_by: {name: asc}, where: {
+							employees_aggregate: {count: {
+								arguments: [user_id]
+								distinct: true
+								predicate: {_gte: 8}
+								filter: {is_active: {_eq: true}}
+							}}
+						}) {
+							name
+						}
+					}`,
+				Role: "admin",
+			},
+		},
+		{
+			name: "aggregate filter: bool_and",
+			query: query{
+				Query: `
+					query {
+						departments(order_by: {name: asc}, where: {
+							employees_aggregate: {bool_and: {arguments: is_active, predicate: {_eq: true}}}
+						}) {
+							name
+						}
+					}`,
+				Role: "admin",
+			},
+		},
+		{
+			name: "aggregate filter: bool_or",
+			query: query{
+				Query: `
+					query {
+						departments(order_by: {name: asc}, where: {
+							employees_aggregate: {bool_or: {arguments: is_active, predicate: {_eq: false}}}
+						}) {
+							name
+						}
+					}`,
+				Role: "admin",
+			},
+		},
+		{
+			// The `predicate` field is typed as Int_comparison_exp!, so binding
+			// the whole comparison object to a variable is valid GraphQL. It must
+			// resolve to the same SQL/params as the inline `predicate: {_gt: 7}`
+			// case above; if the variable is not resolved at the predicate
+			// boundary it errors with "field comparison must be an object".
+			name: "aggregate filter: count predicate via variable",
+			query: query{
+				Query: `
+					query($p: Int_comparison_exp!) {
+						departments(order_by: {name: asc}, where: {
+							employees_aggregate: {count: {predicate: $p}}
+						}) {
+							name
+						}
+					}`,
+				Role: "admin",
+				Variables: map[string]any{
+					"p": map[string]any{"_gt": 7},
+				},
+			},
+		},
+		{
+			// Same variable-resolution path for the Boolean_comparison_exp!
+			// predicate used by bool_and/bool_or.
+			name: "aggregate filter: bool_and predicate via variable",
+			query: query{
+				Query: `
+					query($p: Boolean_comparison_exp!) {
+						departments(order_by: {name: asc}, where: {
+							employees_aggregate: {bool_and: {arguments: is_active, predicate: $p}}
+						}) {
+							name
+						}
+					}`,
+				Role: "admin",
+				Variables: map[string]any{
+					"p": map[string]any{"_eq": true},
+				},
+			},
+		},
+		{
+			// The aggregate subquery MUST apply the target table's row-level
+			// permissions so a restricted role cannot filter on (and thereby
+			// infer the size of) related rows it is not allowed to see. The
+			// generated SQL for this case includes the user_departments RLS
+			// predicate inside the EXISTS subquery.
+			name: "aggregate filter: applies target row-level permissions",
+			query: query{
+				Query: `
+					query {
+						departments(order_by: {name: asc}, where: {
+							employees_aggregate: {count: {predicate: {_gt: 7}}}
+						}) {
+							name
+						}
+					}`,
+				Role: "user",
+				SessionVariables: map[string]any{
+					"x-hasura-user-id":     "550e8400-e29b-41d4-a716-446655440011",
+					"x-hasura-departments": "{023d4410-715e-4675-96a5-a58fd50ef33c,24e9b8db-acf8-439f-9d63-7f83de523fb3,fd1e6bba-c292-4b2f-872e-ae16146cdd82}",
+				},
+			},
+		},
+		{
+			name: "order_by object relationship column",
+			query: query{
+				Query: `
+					query {
+						user_departments(order_by: {department: {name: asc}}, limit: 10) {
+							user_id
+							role
+						}
+					}`,
+				Role: "admin",
+			},
+		},
+		{
+			name: "order_by object relationship multiple columns",
+			query: query{
+				Query: `
+					query {
+						user_departments(
+							order_by: {department: {budget: desc_nulls_last, name: asc}}
+							limit: 10
+						) {
+							user_id
+						}
+					}`,
+				Role: "admin",
+			},
+		},
+		{
+			name: "order_by array relationship aggregate count",
+			query: query{
+				Query: `
+					query {
+						departments(order_by: {employees_aggregate: {count: desc}}) {
+							name
+						}
+					}`,
+				Role: "admin",
+			},
+		},
+		{
+			name: "order_by array relationship aggregate max column",
+			query: query{
+				Query: `
+					query {
+						departments(order_by: {employees_aggregate: {max: {joined_at: asc_nulls_first}}}) {
+							name
+						}
+					}`,
+				Role: "admin",
+			},
+		},
+		{
+			// Relationship ordering applies the target table's row-level
+			// permissions inside the correlated subquery, matching Hasura. The
+			// generated SQL for this case includes the departments RLS predicate.
+			name: "order_by object relationship applies target permissions",
+			query: query{
+				Query: `
+					query {
+						user_departments(order_by: {department: {name: asc}}, limit: 10) {
+							user_id
+						}
+					}`,
+				Role: "user",
+				SessionVariables: map[string]any{
+					"x-hasura-user-id":     "550e8400-e29b-41d4-a716-446655440011",
+					"x-hasura-departments": "{023d4410-715e-4675-96a5-a58fd50ef33c,24e9b8db-acf8-439f-9d63-7f83de523fb3,fd1e6bba-c292-4b2f-872e-ae16146cdd82}",
+				},
+			},
+		},
+		{
+			// Nested object-into-object ordering. kb_entry_departments ->
+			// kb_entry (object) -> uploader (object) -> displayName (a
+			// customized column name on auth.users). The inner column subquery
+			// is wrapped in the enclosing relationship's subquery, producing two
+			// distinct correlated subqueries with distinct _cs_ob aliases (outer
+			// correlates to kb_entry_departments, inner to the kb_entries alias).
+			name: "order_by nested object relationship column",
+			query: query{
+				Query: `
+					query {
+						kb_entry_departments(
+							order_by: {kb_entry: {uploader: {displayName: asc}}}
+							limit: 10
+						) {
+							id
+						}
+					}`,
+				Role: "admin",
+			},
+		},
+		{
+			// Nested object-into-aggregate ordering. user_departments ->
+			// department (object) -> employees_aggregate (array) -> count. The
+			// inner correlated aggregate subquery is wrapped in the object
+			// relationship's subquery, producing two distinct _cs_ob aliases
+			// (outer correlates to user_departments, inner aggregates the
+			// employees of the departments alias).
+			name: "order_by nested object relationship aggregate count",
+			query: query{
+				Query: `
+					query {
+						user_departments(
+							order_by: {department: {employees_aggregate: {count: asc}}}
+							limit: 10
+						) {
+							user_id
+						}
+					}`,
+				Role: "admin",
+			},
+		},
 	}
 
 	testBuildQuery(t, cases, false)

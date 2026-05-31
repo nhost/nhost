@@ -182,7 +182,7 @@ func (t *table) buildQueryCTE(
 	queryModifiers ...queryModifierFunc,
 ) ([]any, int, error) {
 	whereClause, modifiers, distinctOn, err := arguments.ParseQuery(
-		t, field.Arguments, variables, role, sessionVariables,
+		t, field.Arguments, variables, role, sessionVariables, sourceRef,
 	)
 	if err != nil {
 		return nil, 0, fmt.Errorf(
@@ -215,7 +215,11 @@ func (t *table) buildQueryCTE(
 
 	for _, m := range modifiers {
 		b.WriteString(" ")
-		m.WriteSQL(b)
+
+		params, paramIndex, err = m.WriteSQL(b, params, paramIndex)
+		if err != nil {
+			return nil, 0, fmt.Errorf("error building query modifier: %w", err)
+		}
 	}
 
 	b.WriteString(") ")

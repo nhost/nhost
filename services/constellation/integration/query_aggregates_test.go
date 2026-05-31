@@ -22,6 +22,75 @@ func TestQueryAggregates(t *testing.T) { //nolint:paralleltest,maintidx
 			},
 		},
 		{
+			name: "count with column",
+			query: query{
+				Query: `query {
+					departments_aggregate {
+						aggregate {
+							count(columns: [id])
+						}
+					}
+				}`,
+				Role: "admin",
+			},
+		},
+		{
+			name: "count with nullable column",
+			query: query{
+				Query: `query {
+					departments_aggregate {
+						aggregate {
+							count(columns: [budget])
+						}
+					}
+				}`,
+				Role: "admin",
+			},
+		},
+		{
+			name: "count distinct single column",
+			query: query{
+				Query: `query {
+					user_departments_aggregate {
+						aggregate {
+							count(columns: [role], distinct: true)
+						}
+					}
+				}`,
+				Role: "admin",
+			},
+		},
+		{
+			name: "count distinct multiple columns",
+			query: query{
+				Query: `query {
+					user_departments_aggregate {
+						aggregate {
+							count(columns: [role, is_active], distinct: true)
+						}
+					}
+				}`,
+				Role: "admin",
+			},
+		},
+		{
+			name: "count columns via variable",
+			query: query{
+				Query: `query Q($cols: [user_departments_select_column!], $d: Boolean) {
+					user_departments_aggregate {
+						aggregate {
+							count(columns: $cols, distinct: $d)
+						}
+					}
+				}`,
+				Variables: map[string]any{
+					"cols": []any{"role"},
+					"d":    true,
+				},
+				Role: "admin",
+			},
+		},
+		{
 			name: "sum aggregate",
 			query: query{
 				Query: `query {
@@ -737,6 +806,127 @@ func TestQueryAggregates(t *testing.T) { //nolint:paralleltest,maintidx
 							}
 						}
 					}`,
+			},
+		},
+	}
+
+	RunGraphQLTests(t, cases, TestConfig{
+		IsMutation: false,
+	})
+}
+
+func TestQueryAggregateBoolExpFilter(t *testing.T) { //nolint:paralleltest
+	ReinitializeTestData(t)
+
+	cases := []TestCase{
+		{
+			name: "count predicate filters parents",
+			query: query{
+				Query: `query {
+					departments(order_by: {name: asc}, where: {
+						employees_aggregate: {count: {predicate: {_gt: 7}}}
+					}) {
+						name
+					}
+				}`,
+				Role: "admin",
+			},
+		},
+		{
+			name: "count predicate equality",
+			query: query{
+				Query: `query {
+					departments(order_by: {name: asc}, where: {
+						employees_aggregate: {count: {predicate: {_eq: 8}}}
+					}) {
+						name
+					}
+				}`,
+				Role: "admin",
+			},
+		},
+		{
+			// The filter sub-clause must actually trim the counted rows: role
+			// splits the seed (each department has one manager row), so
+			// filtering to members lowers every department's distinct-user count
+			// by one and changes which departments clear the _gte: 8 predicate.
+			// An all-matching filter would leave the count untouched and never
+			// exercise this branch.
+			name: "count with arguments, distinct and filter",
+			query: query{
+				Query: `query {
+					departments(order_by: {name: asc}, where: {
+						employees_aggregate: {count: {
+							arguments: [user_id]
+							distinct: true
+							predicate: {_gte: 8}
+							filter: {role: {_eq: member}}
+						}}
+					}) {
+						name
+					}
+				}`,
+				Role: "admin",
+			},
+		},
+		{
+			name: "bool_and predicate",
+			query: query{
+				Query: `query {
+					departments(order_by: {name: asc}, where: {
+						employees_aggregate: {bool_and: {arguments: is_active, predicate: {_eq: true}}}
+					}) {
+						name
+					}
+				}`,
+				Role: "admin",
+			},
+		},
+		{
+			name: "bool_or predicate",
+			query: query{
+				Query: `query {
+					departments(order_by: {name: asc}, where: {
+						employees_aggregate: {bool_or: {arguments: is_active, predicate: {_eq: false}}}
+					}) {
+						name
+					}
+				}`,
+				Role: "admin",
+			},
+		},
+		{
+			name: "combined with scalar where",
+			query: query{
+				Query: `query {
+					departments(order_by: {name: asc}, where: {
+						budget: {_gt: 0}
+						employees_aggregate: {count: {predicate: {_lt: 8}}}
+					}) {
+						name
+					}
+				}`,
+				Role: "admin",
+			},
+		},
+		{
+			// Non-admin role: the aggregate subquery must honour the target
+			// table's row-level permissions, and the parent's. Verified equal to
+			// Hasura, which applies the same permissions.
+			name: "user role applies row-level permissions",
+			query: query{
+				Query: `query {
+					departments(order_by: {name: asc}, where: {
+						employees_aggregate: {count: {predicate: {_gt: 7}}}
+					}) {
+						name
+					}
+				}`,
+				Role: "user",
+				SessionVariables: map[string]string{
+					"user-id":     "550e8400-e29b-41d4-a716-446655440011",
+					"departments": "{023d4410-715e-4675-96a5-a58fd50ef33c,24e9b8db-acf8-439f-9d63-7f83de523fb3,fd1e6bba-c292-4b2f-872e-ae16146cdd82}",
+				},
 			},
 		},
 	}
