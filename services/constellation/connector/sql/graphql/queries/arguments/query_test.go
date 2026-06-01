@@ -997,6 +997,55 @@ func TestParseQueryDistinctOnOrderByValidation(t *testing.T) {
 		})
 }
 
+func TestParseQueryDistinctOnEmptyOrderBySynthesizesOrderBy(t *testing.T) {
+	t.Parallel()
+
+	tests := []struct {
+		name    string
+		orderBy *ast.Value
+	}{
+		{
+			name:    "empty object",
+			orderBy: objectValue(),
+		},
+		{
+			name:    "empty list",
+			orderBy: listValue(),
+		},
+		{
+			name:    "list containing empty object",
+			orderBy: listValue(child("", objectValue())),
+		},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			t.Parallel()
+
+			ctrl := gomock.NewController(t)
+			tbl := mock.NewMockTable(ctrl)
+
+			tbl.EXPECT().ColumnFromGraphqlName("locale").
+				Return(newColumn("locale", "locale", "text"))
+
+			args := ast.ArgumentList{
+				&ast.Argument{Name: "order_by", Value: tt.orderBy},
+				&ast.Argument{Name: "distinct_on", Value: enumValue("locale")},
+			}
+
+			_, mods, _, err := arguments.ParseQuery(tbl, args, nil, "user", nil, "")
+			if err != nil {
+				t.Fatalf("ParseQuery: %v", err)
+			}
+
+			ob := firstOrderBy(t, mods)
+			assertOrderByItems(t, ob.Items, []arguments.OrderByItem{
+				{Column: "locale", Direction: core.OrderAscNullsLast},
+			})
+		})
+	}
+}
+
 // TestQueryValidationErrorAsMap locks the GraphQL error envelope a
 // *QueryValidationError renders to Hasura's exact shape: the verbatim message
 // plus an extensions block with code "validation-failed" and the

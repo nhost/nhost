@@ -49,7 +49,7 @@ func ParseQuery(
 			return nil, nil, nil, fmt.Errorf("failed to parse order_by: %w", err)
 		}
 
-		modifiers = append(modifiers, &OrderBy{Items: items})
+		modifiers = appendOrderByModifier(modifiers, items)
 	}
 
 	if arg := arguments.ForName("limit"); arg != nil {
@@ -91,6 +91,14 @@ func ParseQuery(
 	}
 
 	return whereClause, modifiers, dOn, nil
+}
+
+func appendOrderByModifier(modifiers []QueryModifier, items []OrderByItem) []QueryModifier {
+	if len(items) == 0 {
+		return modifiers
+	}
+
+	return append(modifiers, &OrderBy{Items: items})
 }
 
 // validateDistinctOnOrderBy enforces PostgreSQL's rule that the DISTINCT ON
