@@ -41,6 +41,19 @@ type Update struct {
 	Where where.Clause
 }
 
+// IsEmpty reports whether no update operator targets any column. WHERE-only
+// update mutations are schema-valid, but they cannot produce a valid SQL SET
+// clause and must be rejected before execution.
+func (a Update) IsEmpty() bool {
+	return len(a.Set) == 0 &&
+		len(a.Inc) == 0 &&
+		len(a.AppendJSONB) == 0 &&
+		len(a.PrependJSONB) == 0 &&
+		len(a.DeleteKey) == 0 &&
+		len(a.DeleteElem) == 0 &&
+		len(a.DeleteAtPath) == 0
+}
+
 // WriteSQL writes the SET clause of an UPDATE statement (all variants of the
 // update operators) using the given dialect for placeholders and type casts.
 func (a Update) WriteSQL( //nolint:funlen
@@ -267,7 +280,77 @@ func ParseUpdate( //nolint:cyclop,funlen,gocognit
 		return Update{}, fmt.Errorf("failed to apply update presets: %w", err)
 	}
 
+	if err := validateUpdateOperators(update); err != nil {
+		return Update{}, err
+	}
+
 	return update, nil
+}
+
+func validateUpdateOperators(update Update) error {
+	if update.IsEmpty() {
+		return fmt.Errorf(
+			"%w: at least one update operator must be provided",
+			ErrInvalidArgument,
+		)
+	}
+
+	seen := make(map[string]struct{})
+	for _, col := range update.targetColumns() {
+		if err := checkDuplicateUpdateColumn(seen, col); err != nil {
+			return err
+		}
+	}
+
+	return nil
+}
+
+// targetColumns returns every SQL column targeted by an update operator, in the
+// same deterministic order WriteSQL emits assignments.
+func (a Update) targetColumns() []*core.Column {
+	columns := make([]*core.Column, 0,
+		len(a.Set)+len(a.Inc)+len(a.AppendJSONB)+len(a.PrependJSONB)+
+			len(a.DeleteKey)+len(a.DeleteElem)+len(a.DeleteAtPath),
+	)
+
+	columns = appendUpdateColumns(columns, a.Set)
+	columns = appendUpdateColumns(columns, a.Inc)
+	columns = appendUpdateColumns(columns, a.AppendJSONB)
+	columns = appendUpdateColumns(columns, a.PrependJSONB)
+	columns = appendUpdateColumns(columns, a.DeleteKey)
+	columns = appendUpdateColumns(columns, a.DeleteElem)
+
+	for _, col := range a.DeleteAtPath {
+		columns = append(columns, col.Column)
+	}
+
+	return columns
+}
+
+func appendUpdateColumns(columns []*core.Column, updateColumns []updateColumn) []*core.Column {
+	for _, col := range updateColumns {
+		columns = append(columns, col.Column)
+	}
+
+	return columns
+}
+
+func checkDuplicateUpdateColumn(seen map[string]struct{}, col *core.Column) error {
+	if col == nil {
+		return nil
+	}
+
+	if _, exists := seen[col.SQLName]; exists {
+		return fmt.Errorf(
+			"%w: column %q cannot be updated by more than one operator",
+			ErrInvalidArgument,
+			col.SQLName,
+		)
+	}
+
+	seen[col.SQLName] = struct{}{}
+
+	return nil
 }
 
 // ApplyUpdatePresets adds preset columns to the SET clause of an update

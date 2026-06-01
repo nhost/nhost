@@ -871,7 +871,7 @@ func TestInsertOneBuildQuery(t *testing.T) { //nolint:paralleltest,maintidx
 		},
 
 		{
-			name: "on_conflict where clause - actual conflict with _and condition matching",
+			name: "on_conflict where clause - actual conflict with _and condition only matching incoming row",
 			query: query{
 				Query: `mutation {
 					insert_departments_one(

@@ -54,6 +54,7 @@ func (t *table) buildQueryAggregateSQL(
 		SQL:           sql,
 		Parameters:    params,
 		StreamCursors: nil,
+		Sequential:    nil,
 	}, nil
 }
 

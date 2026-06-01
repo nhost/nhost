@@ -61,11 +61,17 @@ func TestParseUpdate(t *testing.T) {
 			name: "pk_columns argument builds where",
 			setupMock: func(tbl *mock.MockTable) {
 				pk := newColumn("id", "id", "uuid")
+				tbl.EXPECT().ColumnFromGraphqlName("name").
+					Return(newColumn("name", "name", "text"))
 				tbl.EXPECT().PKColumns().Return([]*core.Column{pk})
 				tbl.EXPECT().Dialect().Return(pgDialect())
 				tbl.EXPECT().UpdatePresets("user").Return(nil)
 			},
 			args: ast.ArgumentList{
+				&ast.Argument{
+					Name:  "_set",
+					Value: objectValue(child("name", stringValue("Alice"))),
+				},
 				&ast.Argument{
 					Name:  "pk_columns",
 					Value: objectValue(child("id", stringValue("abc"))),
@@ -77,6 +83,10 @@ func TestParseUpdate(t *testing.T) {
 
 				if len(got.Where) != 1 {
 					t.Errorf("expected single pk filter, got %v", got.Where)
+				}
+
+				if len(got.Set) != 1 || got.Set[0].Value != "Alice" {
+					t.Errorf("unexpected Set=%+v", got.Set)
 				}
 			},
 		},
@@ -215,6 +225,103 @@ func TestParseUpdate_UnknownArgumentSentinel(t *testing.T) {
 	if !errors.Is(err, arguments.ErrInvalidArgument) {
 		t.Errorf("error %v does not wrap ErrInvalidArgument", err)
 	}
+}
+
+func TestParseUpdate_RejectsEmptyAndDuplicateOperators(t *testing.T) {
+	t.Parallel()
+
+	t.Run("where-only update is rejected after presets", func(t *testing.T) {
+		t.Parallel()
+
+		ctrl := gomock.NewController(t)
+		tbl := mock.NewMockTable(ctrl)
+
+		tbl.EXPECT().ParseWhere(
+			gomock.Any(), gomock.Any(), "user", gomock.Any(),
+			0, where.QueryAliases,
+		).Return(where.Clause{}, nil)
+		tbl.EXPECT().UpdatePresets("user").Return(nil)
+
+		args := ast.ArgumentList{
+			&ast.Argument{Name: "where", Value: objectValue()},
+		}
+
+		_, err := arguments.ParseUpdate(tbl, args, nil, "user", nil)
+		if err == nil {
+			t.Fatal("expected error: empty update")
+		}
+
+		if !errors.Is(err, arguments.ErrInvalidArgument) {
+			t.Fatalf("error %v does not wrap ErrInvalidArgument", err)
+		}
+
+		if !strings.Contains(err.Error(), "at least one update operator") {
+			t.Errorf("error %q missing empty-update context", err.Error())
+		}
+	})
+
+	t.Run("same column across operators is rejected", func(t *testing.T) {
+		t.Parallel()
+
+		ctrl := gomock.NewController(t)
+		tbl := mock.NewMockTable(ctrl)
+
+		budgetCol := newColumn("budget", "budget", "numeric")
+		tbl.EXPECT().ColumnFromGraphqlName("budget").Return(budgetCol).Times(2)
+		tbl.EXPECT().UpdatePresets("user").Return(nil)
+
+		args := ast.ArgumentList{
+			&ast.Argument{
+				Name:  "_set",
+				Value: objectValue(child("budget", intValue("100"))),
+			},
+			&ast.Argument{
+				Name:  "_inc",
+				Value: objectValue(child("budget", intValue("5"))),
+			},
+		}
+
+		_, err := arguments.ParseUpdate(tbl, args, nil, "user", nil)
+		if err == nil {
+			t.Fatal("expected error: duplicate update column")
+		}
+
+		if !errors.Is(err, arguments.ErrInvalidArgument) {
+			t.Fatalf("error %v does not wrap ErrInvalidArgument", err)
+		}
+
+		if !strings.Contains(err.Error(), "budget") {
+			t.Errorf("error %q missing duplicate column name", err.Error())
+		}
+	})
+
+	t.Run("preset colliding with user update is rejected", func(t *testing.T) {
+		t.Parallel()
+
+		ctrl := gomock.NewController(t)
+		tbl := mock.NewMockTable(ctrl)
+
+		localeCol := newColumn("locale", "locale", "text")
+		tbl.EXPECT().ColumnFromGraphqlName("locale").Return(localeCol)
+		tbl.EXPECT().UpdatePresets("user").Return(map[string]any{"locale": "en"})
+		tbl.EXPECT().ColumnFromSQLName("locale").Return(localeCol)
+
+		args := ast.ArgumentList{
+			&ast.Argument{
+				Name:  "_set",
+				Value: objectValue(child("locale", stringValue("fr"))),
+			},
+		}
+
+		_, err := arguments.ParseUpdate(tbl, args, nil, "user", nil)
+		if err == nil {
+			t.Fatal("expected error: preset duplicate")
+		}
+
+		if !errors.Is(err, arguments.ErrInvalidArgument) {
+			t.Fatalf("error %v does not wrap ErrInvalidArgument", err)
+		}
+	})
 }
 
 func TestParseUpdate_OperatorRouting(t *testing.T) {

@@ -42,6 +42,12 @@ func (t *table) writeOnConflictSQL(
 		return params, paramIndex, nil
 	}
 
+	if onConflict.TargetTableRef == "" {
+		cloned := *onConflict
+		cloned.TargetTableRef = t.tableSourceRef()
+		onConflict = &cloned
+	}
+
 	params, paramIndex, err := onConflict.ToSQLWithWhere(
 		b,
 		params,

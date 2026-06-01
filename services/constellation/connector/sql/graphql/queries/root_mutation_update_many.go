@@ -2,8 +2,6 @@ package queries
 
 import (
 	"fmt"
-	"strconv"
-	"strings"
 
 	"github.com/vektah/gqlparser/v2/ast"
 
@@ -11,7 +9,7 @@ import (
 	"github.com/nhost/nhost/services/constellation/connector/sql/graphql/queries/core"
 )
 
-func (t *table) buildMutationUpdateManySQL( //nolint:dupl
+func (t *table) buildMutationUpdateManySQL(
 	field *ast.Field,
 	fragments ast.FragmentDefinitionList,
 	variables map[string]any,
@@ -36,89 +34,45 @@ func (t *table) buildMutationUpdateManySQL( //nolint:dupl
 		return core.SQLOperation{}, fmt.Errorf("failed to parse selection set: %w", err)
 	}
 
-	b := getBuilder()
+	sequential := make([]core.SQLOperation, len(updates))
 
-	params, err := t.writeMutationUpdateManySQL(
-		b, updates, selection, fragments, variables, role, sessionVariables, roots,
-	)
-	if err != nil {
+	for i := range updates {
+		b := getBuilder()
+
+		params, buildErr := t.buildUpdateCollectionSQL(
+			b,
+			updates[i],
+			selection,
+			fragments,
+			variables,
+			role,
+			sessionVariables,
+			roots,
+		)
+		if buildErr != nil {
+			putBuilder(b)
+
+			return core.SQLOperation{}, fmt.Errorf(
+				"failed to build UPDATE MANY SQL for index %d: %w", i, buildErr,
+			)
+		}
+
+		sequential[i] = core.SQLOperation{
+			Name:          fmt.Sprintf("%s[%d]", alias, i),
+			SQL:           b.String(),
+			Parameters:    params,
+			StreamCursors: nil,
+			Sequential:    nil,
+		}
+
 		putBuilder(b)
-
-		return core.SQLOperation{}, fmt.Errorf("failed to build UPDATE MANY SQL: %w", err)
 	}
-
-	sql := b.String()
-	putBuilder(b)
 
 	return core.SQLOperation{
 		Name:          alias,
-		SQL:           sql,
-		Parameters:    params,
+		SQL:           "",
+		Parameters:    nil,
 		StreamCursors: nil,
+		Sequential:    sequential,
 	}, nil
-}
-
-// writeMutationUpdateManySQL emits the SQL for the update_many root field —
-// a sequence of update CTEs followed by a SELECT json_build_array — into b.
-func (t *table) writeMutationUpdateManySQL(
-	b *strings.Builder,
-	updates []arguments.Update,
-	selection mutationSelection,
-	fragments ast.FragmentDefinitionList,
-	variables map[string]any,
-	role string,
-	sessionVariables map[string]any,
-	roots map[string]core.Operation,
-) ([]any, error) {
-	var (
-		params     = make([]any, 0, len(updates)*8) //nolint:mnd
-		paramIndex = 1
-		cteNames   = make([]string, len(updates))
-		err        error
-	)
-
-	// Build CTEs
-	b.WriteString("WITH ")
-
-	for i := range updates {
-		cteName := "mutation_result_" + strconv.Itoa(i)
-		cteNames[i] = cteName
-
-		if i > 0 {
-			b.WriteString(", ")
-		}
-
-		params, paramIndex, err = t.buildUpdateCTEBody(
-			b, cteName, updates[i], role, sessionVariables, params, paramIndex,
-		)
-		if err != nil {
-			return nil, fmt.Errorf("failed to build UPDATE SQL for index %d: %w", i, err)
-		}
-	}
-
-	// Build SELECT with jsonb_build_array
-	b.WriteString(" SELECT ")
-	b.WriteString(t.dialect.JSONBuildArray())
-	b.WriteByte('(')
-
-	for i, cteName := range cteNames {
-		if i > 0 {
-			b.WriteString(", ")
-		}
-
-		b.WriteString("(")
-
-		params, paramIndex, err = selection.WriteSQLWithCTE(
-			b, cteName, fragments, variables, role, sessionVariables, roots, params, paramIndex,
-		)
-		if err != nil {
-			return nil, fmt.Errorf("failed to write SELECT for index %d: %w", i, err)
-		}
-
-		b.WriteString(")")
-	}
-
-	b.WriteString(")")
-
-	return params, nil
 }

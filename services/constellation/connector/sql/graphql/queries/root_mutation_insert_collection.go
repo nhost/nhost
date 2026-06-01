@@ -64,6 +64,7 @@ func (t *table) buildMutationInsertCollectionSQL(
 		SQL:           sql,
 		Parameters:    params,
 		StreamCursors: nil,
+		Sequential:    nil,
 	}, nil
 }
 

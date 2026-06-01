@@ -83,6 +83,7 @@ func (t *table) buildSubscriptionStreamSQL(
 		SQL:           sql,
 		Parameters:    params,
 		StreamCursors: streamCursors,
+		Sequential:    nil,
 	}
 
 	// Convert to multiplexed and build final SQL
