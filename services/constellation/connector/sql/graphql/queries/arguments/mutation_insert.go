@@ -20,6 +20,14 @@ type OnConflict struct {
 	Where          where.Clause
 }
 
+// OnConflictWhereWriter appends an additional DO UPDATE WHERE predicate.
+// It returns hasCondition=false when nothing was written.
+type OnConflictWhereWriter func(
+	b *strings.Builder,
+	params []any,
+	paramIndex int,
+) ([]any, int, bool, error)
+
 // ToSQL generates the SQL ON CONFLICT clause with parameters.
 // For example:
 //
@@ -32,6 +40,17 @@ func (oc *OnConflict) ToSQL(
 	b *strings.Builder,
 	params []any,
 	paramIndex int,
+) ([]any, int, error) {
+	return oc.ToSQLWithWhere(b, params, paramIndex, nil)
+}
+
+// ToSQLWithWhere generates the SQL ON CONFLICT clause and AND-combines an
+// optional server-side predicate into DO UPDATE WHERE.
+func (oc *OnConflict) ToSQLWithWhere(
+	b *strings.Builder,
+	params []any,
+	paramIndex int,
+	extraWhere OnConflictWhereWriter,
 ) ([]any, int, error) {
 	if oc == nil {
 		return params, paramIndex, nil
@@ -58,6 +77,22 @@ func (oc *OnConflict) ToSQL(
 		core.WriteQuotedIdentifier(b, col)
 	}
 
+	params, paramIndex, err := oc.writeWhere(b, params, paramIndex, extraWhere)
+	if err != nil {
+		return nil, 0, err
+	}
+
+	return params, paramIndex, nil
+}
+
+func (oc *OnConflict) writeWhere(
+	b *strings.Builder,
+	params []any,
+	paramIndex int,
+	extraWhere OnConflictWhereWriter,
+) ([]any, int, error) {
+	hasWhere := false
+
 	if len(oc.Where) > 0 {
 		b.WriteString(" WHERE ")
 
@@ -67,7 +102,38 @@ func (oc *OnConflict) ToSQL(
 		if err != nil {
 			return nil, 0, fmt.Errorf("failed to write on_conflict where clause: %w", err)
 		}
+
+		hasWhere = true
 	}
+
+	if extraWhere == nil {
+		return params, paramIndex, nil
+	}
+
+	var extra strings.Builder
+
+	var (
+		hasExtra bool
+		err      error
+	)
+
+	params, paramIndex, hasExtra, err = extraWhere(&extra, params, paramIndex)
+	if err != nil {
+		return nil, 0, err
+	}
+
+	if !hasExtra {
+		return params, paramIndex, nil
+	}
+
+	if hasWhere {
+		b.WriteString(" AND (")
+	} else {
+		b.WriteString(" WHERE (")
+	}
+
+	b.WriteString(extra.String())
+	b.WriteByte(')')
 
 	return params, paramIndex, nil
 }

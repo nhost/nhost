@@ -33,10 +33,11 @@ type table struct {
 	mutationDeleteCollectionName string
 	mutationDeleteByPkName       string
 
-	pkColumns     []*core.Column
-	columns       []*core.Column
-	relationships []*relationship
-	functions     []*function
+	pkColumns       []*core.Column
+	columns         []*core.Column
+	conflictColumns map[string][]string
+	relationships   []*relationship
+	functions       []*function
 
 	// allTables is retained so _exists permission predicates can resolve
 	// references to sibling tables within the same database.
@@ -69,6 +70,7 @@ func newTable(schemaName, tableName string, dialect dialect.Dialect) *table {
 		mutationDeleteByPkName:       "",
 		pkColumns:                    []*core.Column{},
 		columns:                      []*core.Column{},
+		conflictColumns:              map[string][]string{},
 		relationships:                []*relationship{},
 		functions:                    []*function{},
 		allTables:                    nil,
@@ -129,6 +131,7 @@ func (t *table) Initialize(
 	}
 
 	t.columns = columns
+	t.conflictColumns = tableConflictColumns(tableObj)
 	t.allTables = tables
 
 	t.initializeRootNames(md)
@@ -138,6 +141,25 @@ func (t *table) Initialize(
 	}
 
 	return nil
+}
+
+func tableConflictColumns(tableObj *introspection.Table) map[string][]string {
+	constraints := make(map[string][]string)
+
+	if len(tableObj.PrimaryKeys) > 0 {
+		pkeyName := tableObj.PrimaryKeyConstraintName
+		if pkeyName == "" {
+			pkeyName = tableObj.Name + "_pkey"
+		}
+
+		constraints[pkeyName] = append([]string(nil), tableObj.PrimaryKeys...)
+	}
+
+	for _, constraint := range tableObj.UniqueConstraints {
+		constraints[constraint.Name] = append([]string(nil), constraint.Columns...)
+	}
+
+	return constraints
 }
 
 func (t *table) initializeRootNames(md metadata.TableMetadata) {

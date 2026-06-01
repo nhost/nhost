@@ -235,11 +235,14 @@ func (t *table) buildInsertWhereClause(
 func (t *table) buildInsertCTE(
 	b *strings.Builder,
 	cteName string,
+	checkCountBaseName string,
 	insertObj arguments.InsertObject,
 	onConflict *arguments.OnConflict,
 	checkCTEName string,
 	nestedFKIndex arguments.NestedFKSources,
 	hasCheckPermissions bool,
+	role string,
+	sessionVariables map[string]any,
 	params []any,
 	paramIndex int,
 ) ([]any, int, error) {
@@ -252,14 +255,16 @@ func (t *table) buildInsertCTE(
 	t.buildInsertColumnsClause(b, columnNames)
 	t.buildInsertSelectClause(b, columnNames, checkCTEName, nestedFKIndex)
 	t.buildInsertFromClause(b, checkCTEName, nestedFKIndex)
-	t.buildInsertWhereClause(b, cteName, hasCheckPermissions)
+	t.buildInsertWhereClause(b, checkCountBaseName, hasCheckPermissions)
 
 	if onConflict != nil {
 		var err error
 
-		params, paramIndex, err = onConflict.ToSQL(b, params, paramIndex)
+		params, paramIndex, err = t.writeOnConflictSQL(
+			b, onConflict, role, sessionVariables, params, paramIndex,
+		)
 		if err != nil {
-			return nil, 0, err //nolint:wrapcheck
+			return nil, 0, err
 		}
 	}
 
