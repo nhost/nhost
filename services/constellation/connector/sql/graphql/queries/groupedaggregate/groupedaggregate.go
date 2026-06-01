@@ -19,6 +19,12 @@ import (
 // requested schema.table has no registered Builder.
 var ErrTableNotRegistered = errors.New("table not registered for grouped aggregate builds")
 
+// ResultJoinKeyField is the internal JSON field used to carry each grouped
+// aggregate row's join key from the SQL builder to the SQL connector parser.
+// It is reserved for this transport contract and must not be emitted as a
+// GraphQL response field.
+const ResultJoinKeyField = "_join_key"
+
 // BuildInput bundles the inputs to a grouped-aggregate SQL build. The
 // dispatcher and the per-table Builder both take this single value so callers
 // initialise fields by name; this prevents silent argument swaps among the

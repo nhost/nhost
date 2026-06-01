@@ -162,6 +162,30 @@ func TestGroupedAggregateBuildQuery(t *testing.T) { //nolint:paralleltest,mainti
 				}`,
 		},
 		{
+			// The grouped path shares astToAggregateSelection with root aggregates
+			// but has its own outer writer. Exercise aliases for the aggregate key,
+			// aggregate-function column key, and nodes key there too.
+			name:              "outer_field_aliases",
+			tableSchema:       "public",
+			tableName:         "user_departments",
+			joinColumnSQLName: "user_id",
+			joinValues:        []any{testUser1, testUser2, testUserMissing},
+			query: `
+				query {
+					_root {
+						stats: aggregate {
+							total: count
+							highest: max {
+								role_name: role
+							}
+						}
+						rows: nodes {
+							role_name: role
+						}
+					}
+				}`,
+		},
+		{
 			name:              "aggregate_with_nodes",
 			tableSchema:       "public",
 			tableName:         "user_departments",

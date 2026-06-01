@@ -420,6 +420,79 @@ func TestBuildGroupedAggregate_NoWindowWithoutLimitOffset(t *testing.T) {
 	}
 }
 
+func TestBuildGroupedAggregate_ReservedJoinKeyResponseNameRejected(t *testing.T) {
+	t.Parallel()
+
+	objects := buildObjectsWithUsersTable()
+	md := &metadata.DatabaseMetadata{Tables: []metadata.TableMetadata{tableMetaFor("users")}}
+
+	_, groupedAgg, err := queries.BuildRoots(objects, md, &dialect.PostgresDialect{})
+	if err != nil {
+		t.Fatalf("BuildRoots: %v", err)
+	}
+
+	tests := []struct {
+		name  string
+		query string
+	}{
+		{
+			name: "aggregate alias",
+			query: `query {
+				_root {
+					_join_key: aggregate { count }
+				}
+			}`,
+		},
+		{
+			name: "nodes alias",
+			query: `query {
+				_root {
+					_join_key: nodes { id }
+				}
+			}`,
+		},
+		{
+			name: "typename alias",
+			query: `query {
+				_root {
+					_join_key: __typename
+				}
+			}`,
+		},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			t.Parallel()
+
+			_, field, fragments := parseSingleField(t, tt.query)
+
+			_, err := groupedAgg.BuildGroupedAggregateSQL(groupedaggdispatch.BuildInput{
+				TableSchema:       "public",
+				TableName:         "users",
+				Field:             field,
+				Fragments:         fragments,
+				Variables:         nil,
+				Role:              "admin",
+				SessionVariables:  nil,
+				JoinColumnSQLName: "id",
+				JoinValues:        []any{"11111111-1111-1111-1111-111111111111"},
+			})
+			if err == nil {
+				t.Fatal("expected reserved response-name error, got nil")
+			}
+
+			if !strings.Contains(err.Error(), "grouped aggregate response name is reserved") {
+				t.Errorf("error should mention reserved response name; got: %v", err)
+			}
+
+			if !strings.Contains(err.Error(), groupedaggdispatch.ResultJoinKeyField) {
+				t.Errorf("error should name reserved field; got: %v", err)
+			}
+		})
+	}
+}
+
 // TestBuildGroupedAggregate_DistinctOnApplied asserts that distinct_on partitions
 // the DISTINCT ON by the parent join key so each group is deduplicated
 // independently, matching Hasura's per-parent-row distinct_on on a cross-database

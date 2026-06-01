@@ -74,7 +74,7 @@ func (t *table) writeQueryAggregateSQL( //nolint:cyclop,funlen
 	sourceRef string,
 	queryModifiers ...queryModifierFunc,
 ) ([]any, int, error) {
-	outerTypenames, aggregateSel, nodesField, err := t.astToAggregateSelection(
+	outerTypenames, aggregateFields, nodesFields, err := t.astToAggregateSelection(
 		field, fragments, variables,
 	)
 	if err != nil {
@@ -170,20 +170,68 @@ func (t *table) writeQueryAggregateSQL( //nolint:cyclop,funlen
 		firstOuter = false
 	}
 
-	// Add aggregate functions if requested
-	if len(aggregateSel) > 0 {
-		if !firstOuter {
+	hasOuterFields := !firstOuter
+	hasOuterFields = t.writeAggregateFieldSelections(
+		b, aggregateFields, baseAlias, hasOuterFields,
+	)
+
+	for i := range nodesFields {
+		params, paramIndex, err = t.writeAggregateNodes(
+			b,
+			fragments,
+			variables,
+			role,
+			sessionVariables,
+			roots,
+			params,
+			paramIndex,
+			distinctOn,
+			nodesFields[i].responseName,
+			nodesFields[i].field,
+			baseAlias,
+			hasOuterFields,
+		)
+		if err != nil {
+			return nil, 0, err
+		}
+
+		hasOuterFields = true
+	}
+
+	b.WriteString(`) AS "`)
+	b.WriteString(outputAlias)
+	b.WriteByte('"')
+
+	return params, paramIndex, nil
+}
+
+func (t *table) writeAggregateFieldSelections(
+	b *strings.Builder,
+	aggregateFields []aggregateFieldSelection,
+	baseAlias string,
+	hasPrecedingFields bool,
+) bool {
+	hasOuterFields := hasPrecedingFields
+
+	for i := range aggregateFields {
+		if len(aggregateFields[i].selections) == 0 {
+			continue
+		}
+
+		if hasOuterFields {
 			b.WriteString(", ")
 		}
 
-		firstOuter = false
+		hasOuterFields = true
 
-		b.WriteString("'aggregate', (SELECT ")
+		b.WriteByte('\'')
+		b.WriteString(aggregateFields[i].responseName)
+		b.WriteString("', (SELECT ")
 		b.WriteString(t.dialect.JSONBuildObject())
 		b.WriteByte('(')
 
-		for i, agg := range aggregateSel {
-			if i > 0 {
+		for j, agg := range aggregateFields[i].selections {
+			if j > 0 {
 				b.WriteString(", ")
 			}
 
@@ -195,31 +243,7 @@ func (t *table) writeQueryAggregateSQL( //nolint:cyclop,funlen
 		b.WriteString(`")`)
 	}
 
-	if nodesField != nil {
-		params, paramIndex, err = t.writeAggregateNodes(
-			b,
-			fragments,
-			variables,
-			role,
-			sessionVariables,
-			roots,
-			params,
-			paramIndex,
-			distinctOn,
-			nodesField,
-			baseAlias,
-			!firstOuter,
-		)
-		if err != nil {
-			return nil, 0, err
-		}
-	}
-
-	b.WriteString(`) AS "`)
-	b.WriteString(outputAlias)
-	b.WriteByte('"')
-
-	return params, paramIndex, nil
+	return hasOuterFields
 }
 
 func (t *table) writeAggregateNodes(
@@ -232,6 +256,7 @@ func (t *table) writeAggregateNodes(
 	params []any,
 	paramIndex int,
 	distinctOn *arguments.DistinctOn,
+	responseName string,
 	nodesField *ast.Field,
 	baseAlias string,
 	hasPrecedingFields bool,
@@ -261,7 +286,9 @@ func (t *table) writeAggregateNodes(
 		jsonAggExpr = t.dialect.JSONAggQuotedAlias("_root")
 	}
 
-	b.WriteString("'nodes', (SELECT coalesce(")
+	b.WriteByte('\'')
+	b.WriteString(responseName)
+	b.WriteString("', (SELECT coalesce(")
 	b.WriteString(jsonAggExpr)
 	b.WriteString(", '[]') FROM (")
 

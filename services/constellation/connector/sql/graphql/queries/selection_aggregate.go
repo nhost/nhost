@@ -123,8 +123,16 @@ func (s *typenameSelection) Write(b *strings.Builder) {
 	b.WriteByte('\'')
 }
 
+// aggregateColumnSelection is one column inside an aggregate function
+// selection. responseName is the GraphQL response key for that column: the
+// alias when present, otherwise the column field name.
+type aggregateColumnSelection struct {
+	responseName string
+	column       *core.Column
+}
+
 type aggregateFunctionSelection struct {
-	Columns   []*core.Column
+	Columns   []aggregateColumnSelection
 	Typenames []typenameSelection
 	// responseName is the JSON key for this aggregate sub-object: the field
 	// alias if present, otherwise the field name ("sum", "avg", ...). Storing
@@ -146,7 +154,7 @@ func newAggregateFunctionSelection(
 	selectionSet ast.SelectionSet,
 	fragments ast.FragmentDefinitionList,
 ) (*aggregateFunctionSelection, error) {
-	columns := make([]*core.Column, 0, len(selectionSet))
+	columns := make([]aggregateColumnSelection, 0, len(selectionSet))
 	fieldsTypeName := t.graphqlTypeName + "_" + fieldName + "_fields"
 
 	var (
@@ -168,13 +176,10 @@ func newAggregateFunctionSelection(
 					continue
 				}
 
-				col := t.columnFromGraphqlName(s.Name)
-				if col == nil {
-					collectErr = fmt.Errorf("%w: %s", errUnknownAggregateColumn, s.Name)
+				columns, collectErr = t.appendAggregateFunctionColumn(columns, s)
+				if collectErr != nil {
 					return
 				}
-
-				columns = append(columns, col)
 
 			case *ast.InlineFragment:
 				collectFields(s.SelectionSet)
@@ -206,6 +211,36 @@ func newAggregateFunctionSelection(
 	}, nil
 }
 
+func (t *table) appendAggregateFunctionColumn(
+	columns []aggregateColumnSelection,
+	field *ast.Field,
+) ([]aggregateColumnSelection, error) {
+	col := t.columnFromGraphqlName(field.Name)
+	if col == nil {
+		return nil, fmt.Errorf("%w: %s", errUnknownAggregateColumn, field.Name)
+	}
+
+	columnResponseName := fieldResponseName(field)
+	if hasAggregateColumnResponseName(columns, columnResponseName) {
+		return columns, nil
+	}
+
+	return append(columns, aggregateColumnSelection{
+		responseName: columnResponseName,
+		column:       col,
+	}), nil
+}
+
+func hasAggregateColumnResponseName(columns []aggregateColumnSelection, responseName string) bool {
+	for i := range columns {
+		if columns[i].responseName == responseName {
+			return true
+		}
+	}
+
+	return false
+}
+
 // Write emits a JSON key/value pair where the value is a nested object of
 // per-column aggregate results, e.g. 'sum', json_build_object('col', SUM(col)).
 // The key is the field's response name (alias if present, otherwise the field
@@ -227,17 +262,17 @@ func (s *aggregateFunctionSelection) write(b *strings.Builder, source string) {
 
 	first := true
 
-	for _, col := range s.Columns {
+	for _, colSel := range s.Columns {
 		if !first {
 			b.WriteString(", ")
 		}
 
 		b.WriteByte('\'')
-		b.WriteString(col.GraphqlName)
+		b.WriteString(colSel.responseName)
 		b.WriteString("', ")
 		b.WriteString(s.FuncName)
 		b.WriteByte('(')
-		core.WriteQualifiedColumn(b, source, col.SQLName)
+		core.WriteQualifiedColumn(b, source, colSel.column.SQLName)
 		b.WriteByte(')')
 
 		first = false
@@ -256,18 +291,32 @@ func (s *aggregateFunctionSelection) write(b *strings.Builder, source string) {
 	b.WriteString(")")
 }
 
+// aggregateFieldSelection is one `aggregate` field at the aggregate-root
+// scope. responseName is the field alias if present, otherwise "aggregate".
+type aggregateFieldSelection struct {
+	responseName string
+	selections   []aggregateQuerySelection
+}
+
+// aggregateNodesSelection is one `nodes` field at the aggregate-root scope.
+// responseName is the field alias if present, otherwise "nodes".
+type aggregateNodesSelection struct {
+	responseName string
+	field        *ast.Field
+}
+
 // aggregateSelectionCollector walks an aggregate root selection, accumulating
-// the outer __typename entries, the aggregate-scope selections, and the merged
-// `nodes` field. It is constructed once per call to astToAggregateSelection.
+// the outer __typename entries plus aggregate/nodes fields keyed by response
+// name. It is constructed once per call to astToAggregateSelection.
 type aggregateSelectionCollector struct {
-	table          *table
-	fragments      ast.FragmentDefinitionList
-	variables      map[string]any
-	outerTypeName  string
-	outerTypenames []typenameSelection
-	sel            []aggregateQuerySelection
-	nodesField     *ast.Field
-	err            error
+	table           *table
+	fragments       ast.FragmentDefinitionList
+	variables       map[string]any
+	outerTypeName   string
+	outerTypenames  []typenameSelection
+	aggregateFields []aggregateFieldSelection
+	nodesFields     []aggregateNodesSelection
+	err             error
 }
 
 // collectFields walks a selection set, recursing through inline fragments and
@@ -314,36 +363,67 @@ func (c *aggregateSelectionCollector) collectField(s *ast.Field) {
 			return
 		}
 
-		c.sel = append(c.sel, aggSel...)
+		c.mergeAggregateField(fieldResponseName(s), aggSel)
 	case "nodes":
-		// Merge nodes fields according to GraphQL field selection merging.
-		// Shallow-copy the first occurrence so appending to SelectionSet
-		// does not mutate the original AST (avoids accumulating duplicates
-		// when the same AST is processed more than once).
-		if c.nodesField == nil {
-			tmp := *s
-			tmp.SelectionSet = append(ast.SelectionSet(nil), s.SelectionSet...)
-			c.nodesField = &tmp
-		} else {
-			c.nodesField.SelectionSet = append(c.nodesField.SelectionSet, s.SelectionSet...)
+		c.mergeNodesField(fieldResponseName(s), s)
+	}
+}
+
+func (c *aggregateSelectionCollector) mergeAggregateField(
+	responseName string, selections []aggregateQuerySelection,
+) {
+	for i := range c.aggregateFields {
+		if c.aggregateFields[i].responseName == responseName {
+			c.aggregateFields[i].selections = append(
+				c.aggregateFields[i].selections, selections...,
+			)
+
+			return
 		}
 	}
+
+	c.aggregateFields = append(c.aggregateFields, aggregateFieldSelection{
+		responseName: responseName,
+		selections:   selections,
+	})
+}
+
+func (c *aggregateSelectionCollector) mergeNodesField(responseName string, field *ast.Field) {
+	for i := range c.nodesFields {
+		if c.nodesFields[i].responseName == responseName {
+			c.nodesFields[i].field.SelectionSet = append(
+				c.nodesFields[i].field.SelectionSet, field.SelectionSet...,
+			)
+
+			return
+		}
+	}
+
+	// Shallow-copy the first occurrence so appending to SelectionSet does not
+	// mutate the original AST (avoids accumulating duplicates when the same AST
+	// is processed more than once).
+	tmp := *field
+	tmp.SelectionSet = append(ast.SelectionSet(nil), field.SelectionSet...)
+	c.nodesFields = append(c.nodesFields, aggregateNodesSelection{
+		responseName: responseName,
+		field:        &tmp,
+	})
 }
 
 func (t *table) astToAggregateSelection(
 	field *ast.Field,
 	fragments ast.FragmentDefinitionList,
 	variables map[string]any,
-) ([]typenameSelection, []aggregateQuerySelection, *ast.Field, error) {
+) ([]typenameSelection, []aggregateFieldSelection, []aggregateNodesSelection, error) {
 	c := &aggregateSelectionCollector{
-		table:          t,
-		fragments:      fragments,
-		variables:      variables,
-		outerTypeName:  t.graphqlTypeName + "_aggregate",
-		outerTypenames: nil,
-		sel:            nil,
-		nodesField:     nil,
-		err:            nil,
+		table:           t,
+		fragments:       fragments,
+		variables:       variables,
+		outerTypeName:   t.graphqlTypeName + "_aggregate",
+		outerTypenames:  nil,
+		aggregateFields: nil,
+		nodesFields:     nil,
+		err:             nil,
 	}
 
 	c.collectFields(field.SelectionSet)
@@ -352,7 +432,15 @@ func (t *table) astToAggregateSelection(
 		return nil, nil, nil, c.err
 	}
 
-	return c.outerTypenames, c.sel, c.nodesField, nil
+	return c.outerTypenames, c.aggregateFields, c.nodesFields, nil
+}
+
+func fieldResponseName(field *ast.Field) string {
+	if field.Alias != "" {
+		return field.Alias
+	}
+
+	return field.Name
 }
 
 // appendTypename appends a typenameSelection for the __typename meta-field,
@@ -362,10 +450,7 @@ func appendTypename(
 	field *ast.Field,
 	typeName string,
 ) []typenameSelection {
-	alias := field.Alias
-	if alias == "" {
-		alias = field.Name
-	}
+	alias := fieldResponseName(field)
 
 	if hasTypenameAlias(dst, alias) {
 		return dst
@@ -415,10 +500,7 @@ func (t *table) appendAggregateField(
 ) ([]aggregateQuerySelection, error) {
 	switch f.Name {
 	case typenameField:
-		tnAlias := f.Alias
-		if tnAlias == "" {
-			tnAlias = f.Name
-		}
+		tnAlias := fieldResponseName(f)
 
 		if hasTypenameAliasInSelections(sel, tnAlias) {
 			return sel, nil
@@ -446,10 +528,7 @@ func (t *table) appendAggregateField(
 			return nil, fmt.Errorf("%w: %s", ErrUnsupportedVarianceAggregate, f.Name)
 		}
 
-		responseName := f.Alias
-		if responseName == "" {
-			responseName = f.Name
-		}
+		responseName := fieldResponseName(f)
 
 		a, err := newAggregateFunctionSelection(
 			f.Name, responseName, strings.ToUpper(f.Name), t, f.SelectionSet, fragments,
@@ -473,10 +552,7 @@ func (t *table) parseCountSelection(
 	f *ast.Field,
 	variables map[string]any,
 ) (*countSelection, error) {
-	responseName := f.Alias
-	if responseName == "" {
-		responseName = f.Name
-	}
+	responseName := fieldResponseName(f)
 
 	cs := &countSelection{
 		columns:      nil,
