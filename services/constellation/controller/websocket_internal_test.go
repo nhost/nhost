@@ -9,6 +9,7 @@ import (
 	"net/http"
 	"strings"
 	"testing"
+	"time"
 
 	"github.com/google/go-cmp/cmp"
 	"github.com/nhost/nhost/services/constellation/controller/middleware"
@@ -21,6 +22,29 @@ import (
 )
 
 // --- getConnectorForOperation tests ---------------------------------------
+
+func TestWebSocketHandlerConnectionExpiresAt(t *testing.T) {
+	t.Parallel()
+
+	expiresAt := time.Unix(1893456000, 0).UTC()
+	handler := &webSocketHandler{
+		session: &middleware.SessionVariables{ExpiresAt: &expiresAt},
+	}
+
+	got, ok := handler.ConnectionExpiresAt()
+	if !ok {
+		t.Fatal("expected expiration to be available")
+	}
+
+	if !got.Equal(expiresAt) {
+		t.Fatalf("expiration mismatch: want %s, got %s", expiresAt, got)
+	}
+
+	handler.session = &middleware.SessionVariables{}
+	if _, ok := handler.ConnectionExpiresAt(); ok {
+		t.Fatal("expected no expiration for non-JWT session")
+	}
+}
 
 func TestGetConnectorForOperation(t *testing.T) {
 	t.Parallel()
