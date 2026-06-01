@@ -1,23 +1,23 @@
 import { act } from 'react';
 import { renderHook, waitFor } from '@/tests/testUtils';
-import useSqlEditorPagination from './useSqlEditorPagination';
+import useSQLEditorPagination from './useSQLEditorPagination';
 
 const makeRows = (n: number) => Array.from({ length: n }, (_, i) => i);
 
-describe('useSqlEditorPagination', () => {
+describe('useSQLEditorPagination', () => {
   describe('initial state', () => {
     it('starts at page 1 with the default limit of 100', () => {
-      const { result } = renderHook(() =>
-        useSqlEditorPagination({ rows: makeRows(200) }),
-      );
+      const rows = makeRows(200);
+      const { result } = renderHook(() => useSQLEditorPagination({ rows }));
 
       expect(result.current.currentPage).toBe(1);
       expect(result.current.limit).toBe(100);
     });
 
     it('respects a custom initialLimit', () => {
+      const rows = makeRows(200);
       const { result } = renderHook(() =>
-        useSqlEditorPagination({ rows: makeRows(200), initialLimit: 25 }),
+        useSQLEditorPagination({ rows, initialLimit: 25 }),
       );
 
       expect(result.current.limit).toBe(25);
@@ -26,24 +26,25 @@ describe('useSqlEditorPagination', () => {
 
   describe('totalNrOfPages', () => {
     it('computes total pages correctly', () => {
+      const rows = makeRows(250);
       const { result } = renderHook(() =>
-        useSqlEditorPagination({ rows: makeRows(250), initialLimit: 100 }),
+        useSQLEditorPagination({ rows, initialLimit: 100 }),
       );
 
       expect(result.current.totalNrOfPages).toBe(3);
     });
 
     it('returns 1 when there are no rows', () => {
-      const { result } = renderHook(() =>
-        useSqlEditorPagination({ rows: [] }),
-      );
+      const rows: number[] = [];
+      const { result } = renderHook(() => useSQLEditorPagination({ rows }));
 
       expect(result.current.totalNrOfPages).toBe(1);
     });
 
     it('returns 1 when rows fit exactly on one page', () => {
+      const rows = makeRows(100);
       const { result } = renderHook(() =>
-        useSqlEditorPagination({ rows: makeRows(100), initialLimit: 100 }),
+        useSQLEditorPagination({ rows, initialLimit: 100 }),
       );
 
       expect(result.current.totalNrOfPages).toBe(1);
@@ -54,7 +55,7 @@ describe('useSqlEditorPagination', () => {
     it('returns the first slice on page 1', () => {
       const rows = makeRows(250);
       const { result } = renderHook(() =>
-        useSqlEditorPagination({ rows, initialLimit: 100 }),
+        useSQLEditorPagination({ rows, initialLimit: 100 }),
       );
 
       expect(result.current.paginatedRows).toEqual(rows.slice(0, 100));
@@ -63,7 +64,7 @@ describe('useSqlEditorPagination', () => {
     it('returns the correct slice after navigating to the next page', async () => {
       const rows = makeRows(250);
       const { result } = renderHook(() =>
-        useSqlEditorPagination({ rows, initialLimit: 100 }),
+        useSQLEditorPagination({ rows, initialLimit: 100 }),
       );
 
       act(() => result.current.goNext());
@@ -75,7 +76,7 @@ describe('useSqlEditorPagination', () => {
     it('returns a partial last slice when rows do not divide evenly', async () => {
       const rows = makeRows(250);
       const { result } = renderHook(() =>
-        useSqlEditorPagination({ rows, initialLimit: 100 }),
+        useSQLEditorPagination({ rows, initialLimit: 100 }),
       );
 
       act(() => result.current.goNext());
@@ -88,8 +89,9 @@ describe('useSqlEditorPagination', () => {
 
   describe('navigation', () => {
     it('does not go below page 1 when calling goPrev on the first page', async () => {
+      const rows = makeRows(200);
       const { result } = renderHook(() =>
-        useSqlEditorPagination({ rows: makeRows(200), initialLimit: 100 }),
+        useSQLEditorPagination({ rows, initialLimit: 100 }),
       );
 
       expect(result.current.currentPage).toBe(1);
@@ -99,8 +101,9 @@ describe('useSqlEditorPagination', () => {
     });
 
     it('does not exceed the last page when calling goNext on the last page', async () => {
+      const rows = makeRows(200);
       const { result } = renderHook(() =>
-        useSqlEditorPagination({ rows: makeRows(200), initialLimit: 100 }),
+        useSQLEditorPagination({ rows, initialLimit: 100 }),
       );
 
       act(() => result.current.goNext());
@@ -111,8 +114,9 @@ describe('useSqlEditorPagination', () => {
     });
 
     it('can go forward and then back to page 1', async () => {
+      const rows = makeRows(300);
       const { result } = renderHook(() =>
-        useSqlEditorPagination({ rows: makeRows(300), initialLimit: 100 }),
+        useSQLEditorPagination({ rows, initialLimit: 100 }),
       );
 
       act(() => result.current.goNext());
@@ -123,8 +127,9 @@ describe('useSqlEditorPagination', () => {
     });
 
     it('setCurrentPage navigates to an arbitrary page', async () => {
+      const rows = makeRows(500);
       const { result } = renderHook(() =>
-        useSqlEditorPagination({ rows: makeRows(500), initialLimit: 100 }),
+        useSQLEditorPagination({ rows, initialLimit: 100 }),
       );
 
       act(() => result.current.setCurrentPage(4));
@@ -134,27 +139,28 @@ describe('useSqlEditorPagination', () => {
 
   describe('boundary flags', () => {
     it('hasNoPreviousPage is true on the first page', () => {
+      const rows = makeRows(200);
       const { result } = renderHook(() =>
-        useSqlEditorPagination({ rows: makeRows(200), initialLimit: 100 }),
+        useSQLEditorPagination({ rows, initialLimit: 100 }),
       );
 
       expect(result.current.hasNoPreviousPage).toBe(true);
     });
 
     it('hasNoPreviousPage is false after navigating forward', async () => {
+      const rows = makeRows(200);
       const { result } = renderHook(() =>
-        useSqlEditorPagination({ rows: makeRows(200), initialLimit: 100 }),
+        useSQLEditorPagination({ rows, initialLimit: 100 }),
       );
 
       act(() => result.current.goNext());
-      await waitFor(() =>
-        expect(result.current.hasNoPreviousPage).toBe(false),
-      );
+      await waitFor(() => expect(result.current.hasNoPreviousPage).toBe(false));
     });
 
     it('hasNoNextPage is true on the last page', async () => {
+      const rows = makeRows(200);
       const { result } = renderHook(() =>
-        useSqlEditorPagination({ rows: makeRows(200), initialLimit: 100 }),
+        useSQLEditorPagination({ rows, initialLimit: 100 }),
       );
 
       act(() => result.current.goNext());
@@ -162,16 +168,18 @@ describe('useSqlEditorPagination', () => {
     });
 
     it('hasNoNextPage is false when not on the last page', () => {
+      const rows = makeRows(200);
       const { result } = renderHook(() =>
-        useSqlEditorPagination({ rows: makeRows(200), initialLimit: 100 }),
+        useSQLEditorPagination({ rows, initialLimit: 100 }),
       );
 
       expect(result.current.hasNoNextPage).toBe(false);
     });
 
     it('both flags are true when all rows fit on one page', () => {
+      const rows = makeRows(50);
       const { result } = renderHook(() =>
-        useSqlEditorPagination({ rows: makeRows(50), initialLimit: 100 }),
+        useSQLEditorPagination({ rows, initialLimit: 100 }),
       );
 
       expect(result.current.hasNoPreviousPage).toBe(true);
@@ -181,8 +189,9 @@ describe('useSqlEditorPagination', () => {
 
   describe('setLimitAndReset', () => {
     it('changes the limit and resets to page 1', async () => {
+      const rows = makeRows(500);
       const { result } = renderHook(() =>
-        useSqlEditorPagination({ rows: makeRows(500), initialLimit: 100 }),
+        useSQLEditorPagination({ rows, initialLimit: 100 }),
       );
 
       act(() => result.current.goNext());
@@ -196,8 +205,9 @@ describe('useSqlEditorPagination', () => {
     });
 
     it('recalculates totalNrOfPages after the limit changes', async () => {
+      const rows = makeRows(100);
       const { result } = renderHook(() =>
-        useSqlEditorPagination({ rows: makeRows(100), initialLimit: 100 }),
+        useSQLEditorPagination({ rows, initialLimit: 100 }),
       );
 
       expect(result.current.totalNrOfPages).toBe(1);
@@ -209,8 +219,9 @@ describe('useSqlEditorPagination', () => {
 
   describe('handleLimitChange', () => {
     it('updates the limit when called with a valid PageSize value', async () => {
+      const rows = makeRows(500);
       const { result } = renderHook(() =>
-        useSqlEditorPagination({ rows: makeRows(500), initialLimit: 100 }),
+        useSQLEditorPagination({ rows, initialLimit: 100 }),
       );
 
       act(() => result.current.handleLimitChange(null, 50));
@@ -218,8 +229,9 @@ describe('useSqlEditorPagination', () => {
     });
 
     it('does nothing when called with null', async () => {
+      const rows = makeRows(500);
       const { result } = renderHook(() =>
-        useSqlEditorPagination({ rows: makeRows(500), initialLimit: 100 }),
+        useSQLEditorPagination({ rows, initialLimit: 100 }),
       );
 
       act(() => result.current.handleLimitChange(null, null));
@@ -227,31 +239,46 @@ describe('useSqlEditorPagination', () => {
     });
   });
 
-  describe('resetKey', () => {
-    it('resets to page 1 when the resetKey changes', async () => {
-      let resetKey = 'query-a';
+  describe('reset on new query', () => {
+    it('restarts at the first page when a new result set arrives', async () => {
+      let rows = makeRows(300);
       const { result, rerender } = renderHook(() =>
-        useSqlEditorPagination({ rows: makeRows(300), initialLimit: 100, resetKey }),
+        useSQLEditorPagination({ rows, initialLimit: 100 }),
       );
 
-      act(() => result.current.goNext());
-      await waitFor(() => expect(result.current.currentPage).toBe(2));
+      act(() => result.current.setCurrentPage(3));
+      await waitFor(() => expect(result.current.currentPage).toBe(3));
 
-      resetKey = 'query-b';
+      rows = makeRows(500);
       rerender();
       await waitFor(() => expect(result.current.currentPage).toBe(1));
     });
 
-    it('does not reset when the resetKey stays the same', async () => {
+    it('restarts at page 1 even when the previous page is still valid', async () => {
+      let rows = makeRows(10_000);
       const { result, rerender } = renderHook(() =>
-        useSqlEditorPagination({
-          rows: makeRows(300),
-          initialLimit: 100,
-          resetKey: 'stable-key',
-        }),
+        useSQLEditorPagination({ rows, initialLimit: 100 }),
       );
 
-      act(() => result.current.goNext());
+      act(() => result.current.setCurrentPage(40));
+      await waitFor(() => expect(result.current.currentPage).toBe(40));
+
+      rows = makeRows(50);
+      rerender();
+      await waitFor(() => expect(result.current.currentPage).toBe(1));
+
+      rows = makeRows(10_000);
+      rerender();
+      await waitFor(() => expect(result.current.currentPage).toBe(1));
+    });
+
+    it('keeps the current page when rows keep the same reference', async () => {
+      const rows = makeRows(300);
+      const { result, rerender } = renderHook(() =>
+        useSQLEditorPagination({ rows, initialLimit: 100 }),
+      );
+
+      act(() => result.current.setCurrentPage(2));
       await waitFor(() => expect(result.current.currentPage).toBe(2));
 
       rerender();

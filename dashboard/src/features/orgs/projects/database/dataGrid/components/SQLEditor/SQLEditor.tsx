@@ -7,6 +7,7 @@ import CodeMirror from '@uiw/react-codemirror';
 import { InfoIcon, PlayIcon } from 'lucide-react';
 import { useCallback, useState } from 'react';
 import { useResizable } from 'react-resizable-layout';
+import { Pagination } from '@/components/common/Pagination';
 import { ActivityIndicator } from '@/components/ui/v2/ActivityIndicator';
 import { Alert } from '@/components/ui/v2/Alert';
 import { Box } from '@/components/ui/v2/Box';
@@ -22,13 +23,12 @@ import { TableHead } from '@/components/ui/v2/TableHead';
 import { TableRow } from '@/components/ui/v2/TableRow';
 import { Text } from '@/components/ui/v2/Text';
 import { Tooltip } from '@/components/ui/v2/Tooltip';
-import { Pagination } from '@/components/common/Pagination';
 import { useIsPlatform } from '@/features/orgs/projects/common/hooks/useIsPlatform';
 import { useRunSQL } from '@/features/orgs/projects/database/dataGrid/hooks/useRunSQL';
 import {
   PAGE_SIZE_OPTIONS,
   useSQLEditorPagination,
-} from '@/features/orgs/projects/database/dataGrid/hooks/useSqlEditorPagination';
+} from '@/features/orgs/projects/database/dataGrid/hooks/useSQLEditorPagination';
 
 interface SQLEditorProps {
   initialSQL?: string;
@@ -69,13 +69,10 @@ export default function SQLEditor({ initialSQL }: SQLEditorProps) {
     totalNrOfPages,
     paginatedRows,
     setCurrentPage,
-    setLimitAndReset: _setLimitAndReset,
     handleLimitChange,
     goPrev,
     goNext,
-    hasNoPreviousPage,
-    hasNoNextPage,
-  } = useSQLEditorPagination({ rows, resetKey: sqlCode });
+  } = useSQLEditorPagination({ rows });
 
   return (
     <Box className="flex flex-1 flex-col justify-center overflow-hidden">
@@ -190,10 +187,7 @@ export default function SQLEditor({ initialSQL }: SQLEditorProps) {
         {...separatorProps}
       />
 
-      <Box
-        className="flex flex-col overflow-auto"
-        style={{ height: position }}
-      >
+      <Box className="flex flex-col overflow-auto" style={{ height: position }}>
         {loading && (
           <Box className="flex flex-1 items-center justify-center p-4">
             <ActivityIndicator
@@ -224,7 +218,7 @@ export default function SQLEditor({ initialSQL }: SQLEditorProps) {
           </Box>
         )}
 
-        {!loading && !errorMessage && rows.length > 0 && (
+        {!loading && !errorMessage && rows.length > 0 && columns.length > 0 && (
           <Box className="flex flex-1 flex-col overflow-hidden">
             <Box className="flex-1 overflow-auto p-4">
               <Table style={{ tableLayout: 'auto' }} className="w-auto">
@@ -294,10 +288,6 @@ export default function SQLEditor({ initialSQL }: SQLEditorProps) {
                 onPrevPageClick={goPrev}
                 onNextPageClick={goNext}
                 onPageChange={setCurrentPage}
-                slotProps={{
-                  prevButton: { disabled: hasNoPreviousPage },
-                  nextButton: { disabled: hasNoNextPage },
-                }}
               />
             </Box>
           </Box>

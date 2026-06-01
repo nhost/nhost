@@ -1,5 +1,5 @@
 import type { SyntheticEvent } from 'react';
-import { useCallback, useEffect, useMemo, useState } from 'react';
+import { useCallback, useMemo, useState } from 'react';
 
 export const PAGE_SIZE_OPTIONS = [25, 50, 100, 250, 500] as const;
 export type PageSize = (typeof PAGE_SIZE_OPTIONS)[number];
@@ -7,18 +7,14 @@ export type PageSize = (typeof PAGE_SIZE_OPTIONS)[number];
 export interface UseSQLPaginationOptions<TRow> {
   /**
    * Rows returned by the SQL query. The hook slices this array client-side.
+   * A new array reference is treated as a new query result and resets the view
+   * to the first page, so pass a referentially stable value between runs.
    */
   rows: TRow[];
   /**
    * Initial page size. Defaults to 100.
    */
   initialLimit?: PageSize;
-  /**
-   * When this key changes the hook resets to page 1.
-   * Pass the current query string or a run-counter so a new query always
-   * starts at the top.
-   */
-  resetKey?: unknown;
 }
 
 export interface UseSQLPaginationResult<TRow> {
@@ -38,10 +34,17 @@ export interface UseSQLPaginationResult<TRow> {
 export default function useSQLEditorPagination<TRow>({
   rows,
   initialLimit = 100,
-  resetKey,
 }: UseSQLPaginationOptions<TRow>): UseSQLPaginationResult<TRow> {
   const [currentPage, setCurrentPage] = useState(1);
   const [limit, setLimit] = useState<PageSize>(initialLimit);
+  const [prevRows, setPrevRows] = useState(rows);
+
+  // Each query run yields a fresh `rows` reference. Restart at the first page
+  // so the page you were on for a previous result never carries over.
+  if (rows !== prevRows) {
+    setPrevRows(rows);
+    setCurrentPage(1);
+  }
 
   const totalNrOfPages = Math.max(1, Math.ceil(rows.length / limit));
 
@@ -72,11 +75,6 @@ export default function useSQLEditorPagination<TRow>({
   const goNext = useCallback(() => {
     setCurrentPage((p) => Math.min(totalNrOfPages, p + 1));
   }, [totalNrOfPages]);
-
-  // biome-ignore lint/correctness/useExhaustiveDependencies: intentional reset when key changes
-  useEffect(() => {
-    setCurrentPage(1);
-  }, [resetKey]);
 
   return {
     currentPage,
