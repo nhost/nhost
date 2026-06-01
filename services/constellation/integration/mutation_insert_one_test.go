@@ -1173,3 +1173,76 @@ func TestInsertOneMutations(t *testing.T) { //nolint:paralleltest,maintidx
 		ReinitBetweenQueries: true,
 	})
 }
+
+// TestUpsertOnConflictWhereTargetRow verifies that on_conflict.where is
+// evaluated against the existing conflict-target row, not the incoming
+// (EXCLUDED) row — matching Hasura. Each case is constructed so the existing
+// row and the incoming row differ on the filtered column, so target-row and
+// EXCLUDED semantics produce different results (the earlier suite at
+// "on_conflict where clause - actual conflict ..." could not distinguish them
+// because both rows satisfied or both failed the filter). See INCON_MEDIUM_9.
+func TestUpsertOnConflictWhereTargetRow(t *testing.T) { //nolint:paralleltest
+	cases := []TestCase{
+		{
+			// Existing row "Human Resources" matches H%; incoming
+			// "Renamed Non-H Dept" does not. Target-row semantics => the
+			// existing row matches => the update applies. EXCLUDED semantics
+			// would have skipped it.
+			name: "on_conflict where - existing row matches filter, incoming does not (update applies)",
+			query: query{
+				Query: `mutation {
+					insert_departments_one(
+						object: {
+							id: "2db9de0a-b9ba-416e-8619-783a399ae2b3"
+							name: "Renamed Non-H Dept"
+							description: "changed"
+						}
+						on_conflict: {
+							constraint: departments_pkey
+							update_columns: [name, description]
+							where: { name: { _like: "H%" } }
+						}
+					) {
+						id
+						name
+						description
+					}
+				}`,
+				Role: "admin",
+			},
+		},
+		{
+			// Incoming row "Zeta Dept" matches Z%; existing "Human Resources"
+			// does not. Target-row semantics => the existing row fails the
+			// filter => the update is skipped (insert_one returns null).
+			// EXCLUDED semantics would have applied the update.
+			name: "on_conflict where - incoming row matches filter, existing does not (update skipped)",
+			query: query{
+				Query: `mutation {
+					insert_departments_one(
+						object: {
+							id: "2db9de0a-b9ba-416e-8619-783a399ae2b3"
+							name: "Zeta Dept"
+							description: "zeta"
+						}
+						on_conflict: {
+							constraint: departments_pkey
+							update_columns: [name, description]
+							where: { name: { _like: "Z%" } }
+						}
+					) {
+						id
+						name
+						description
+					}
+				}`,
+				Role: "admin",
+			},
+		},
+	}
+
+	RunGraphQLTests(t, cases, TestConfig{
+		IsMutation:           true,
+		ReinitBetweenQueries: true,
+	})
+}

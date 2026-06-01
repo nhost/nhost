@@ -1291,3 +1291,120 @@ func TestUpdateMutations(t *testing.T) { //nolint:paralleltest,maintidx
 		ReinitBetweenQueries: true,
 	})
 }
+
+// TestUpdateOperatorValidationErrors checks the GraphQL error envelope for
+// invalid update-operator input.
+//
+//   - Same column in two operators (_set + _inc on budget): both engines reject
+//     at validation and the envelope matches Hasura byte-for-byte
+//     (validation-failed, path $.selectionSet.update_departments.args), so it is
+//     compared live against Hasura.
+//   - No operator supplied (update / update_by_pk / update_many): Constellation
+//     rejects all three with the same clean validation-failed envelope, whereas
+//     Hasura diverges — it silently no-ops the collection update (affected_rows
+//     0), returns {} for _by_pk, and emits a SET-less SQL syntax error for a
+//     _many element. That is an intentional, documented deviation
+//     (KNOWN_DIFFERENCES.md), so each no-operator case asserts Constellation's
+//     envelope via a fixed expected response — guarding against a regression to
+//     a sanitized "internal server error" in production — rather than diffing
+//     against Hasura.
+func TestUpdateOperatorValidationErrors(t *testing.T) { //nolint:paralleltest
+	cases := []TestCase{
+		{
+			name: "update with same column in two operators (validation error)",
+			query: query{
+				Query: `mutation {
+					update_departments(
+						where: { name: { _eq: "Marketing" } }
+						_set: { budget: 100 }
+						_inc: { budget: 5 }
+					) {
+						affected_rows
+					}
+				}`,
+				Role: "admin",
+			},
+		},
+		{
+			name: "update with no operators (validation error)",
+			query: query{
+				Query: `mutation {
+					update_departments(where: { name: { _eq: "Marketing" } }) {
+						affected_rows
+					}
+				}`,
+				Role: "admin",
+			},
+			expected: map[string]any{
+				"errors": []any{
+					map[string]any{
+						"message": "at least one update operator must be provided",
+						"extensions": map[string]any{
+							"code": "validation-failed",
+							"path": "$.selectionSet.update_departments.args",
+						},
+					},
+				},
+			},
+		},
+		{
+			// Hasura returns an empty object {} for a no-operator _by_pk update;
+			// Constellation rejects with the validation-failed envelope.
+			name: "update_by_pk with no operators (validation error)",
+			query: query{
+				Query: `mutation {
+					update_departments_by_pk(
+						pk_columns: { id: "dcd52518-58d0-4834-9683-ba6dee33833f" }
+					) {
+						id
+					}
+				}`,
+				Role: "admin",
+			},
+			expected: map[string]any{
+				"errors": []any{
+					map[string]any{
+						"message": "at least one update operator must be provided",
+						"extensions": map[string]any{
+							"code": "validation-failed",
+							"path": "$.selectionSet.update_departments_by_pk.args",
+						},
+					},
+				},
+			},
+		},
+		{
+			// Hasura returns [] for a single empty _many element (and a SET-less
+			// SQL syntax error when an empty element is mixed with a non-empty
+			// one); Constellation rejects the empty element with the
+			// validation-failed envelope.
+			name: "update_many with an empty update element (validation error)",
+			query: query{
+				Query: `mutation {
+					update_departments_many(
+						updates: [{ where: { name: { _eq: "Marketing" } } }]
+					) {
+						affected_rows
+					}
+				}`,
+				Role: "admin",
+			},
+			expected: map[string]any{
+				"errors": []any{
+					map[string]any{
+						"message": "at least one update operator must be provided",
+						"extensions": map[string]any{
+							"code": "validation-failed",
+							"path": "$.selectionSet.update_departments_many.args",
+						},
+					},
+				},
+			},
+		},
+	}
+
+	RunGraphQLTests(t, cases, TestConfig{
+		IsMutation:           true,
+		ReinitBetweenQueries: true,
+	})
+}
