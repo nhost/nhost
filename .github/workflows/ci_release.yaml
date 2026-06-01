@@ -14,9 +14,9 @@ jobs:
     steps:
       - name: "Extract project and version from tag"
         id: extract
+        env:
+          TAG: ${{ github.event.release.tag_name }}
         run: |
-          TAG="${{ github.event.release.tag_name }}"
-
           PROJECT=$(echo "${TAG}" | sed 's/@[^@]*$//')
           if [ -z "$PROJECT" ]; then
             echo "Error: Could not extract project name from tag"
