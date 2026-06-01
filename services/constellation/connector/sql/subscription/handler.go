@@ -160,7 +160,7 @@ func (h *Handler) detectStreamSubscription(
 
 	templateSessionVars := make(map[string]any)
 	for varName := range req.SessionVariables {
-		templateSessionVars[varName] = core.SessionVarValue{Name: varName}
+		templateSessionVars[varName] = varName
 	}
 
 	operations, err := h.roots.BuildQuery(

@@ -35,7 +35,12 @@ type function struct {
 }
 
 type functionArgument struct {
-	Name       string
+	// Name is the GraphQL input-field name. Positional-only PostgreSQL
+	// arguments use generated GraphQL names such as arg_1.
+	Name string
+	// SQLName is the PostgreSQL argument name for named-argument calls. It is
+	// empty for positional-only PostgreSQL arguments.
+	SQLName    string
 	SQLType    string
 	HasDefault bool
 }
@@ -90,9 +95,10 @@ func (f *function) Initialize(
 	f.sessionArgument = fnMeta.Configuration.SessionArgument
 
 	f.arguments = make([]*functionArgument, 0, len(fnInfo.Arguments))
-	for _, arg := range fnInfo.Arguments {
+	for i, arg := range fnInfo.Arguments {
 		f.arguments = append(f.arguments, &functionArgument{
-			Name:       arg.Name,
+			Name:       arg.GraphQLName(i),
+			SQLName:    arg.Name,
 			SQLType:    arg.Type,
 			HasDefault: arg.HasDefault,
 		})
@@ -175,47 +181,13 @@ func (f *function) buildFunctionFromClause(
 	core.WriteQuotedIdentifier(b, f.functionName)
 	b.WriteByte('(')
 
-	for i, arg := range f.arguments {
-		if i > 0 {
-			b.WriteString(", ")
-		}
+	var err error
 
-		// If this is the session argument, inject session variables as JSON
-		if f.sessionArgument != "" && arg.Name == f.sessionArgument {
-			// Use empty map if session variables are nil to ensure consistent JSON serialization
-			sv := sessionVariables
-			if sv == nil {
-				sv = make(map[string]any)
-			}
-
-			// Encode as JSON string to ensure pgx treats it as JSON, not as nested PostgreSQL types
-			jsonBytes, err := json.Marshal(sv)
-			if err != nil {
-				return functionCallResult{}, fmt.Errorf(
-					"failed to marshal session variables for function argument %q: %w",
-					arg.Name, err,
-				)
-			}
-
-			params = append(params, string(jsonBytes))
-
-			b.WriteString(f.dialect.Placeholder(paramIndex))
-			paramIndex++
-
-			continue
-		}
-
-		if value, ok := argsMap[arg.Name]; ok {
-			params = append(params, value)
-
-			b.WriteString(f.dialect.Placeholder(paramIndex))
-			paramIndex++
-		} else if arg.HasDefault {
-			b.WriteString("DEFAULT")
-		} else {
-			return functionCallResult{}, fmt.Errorf("%w: %s.%s argument %q",
-				errMissingRequiredFunctionArgument, f.schemaName, f.functionName, arg.Name)
-		}
+	params, paramIndex, err = f.writeFunctionArguments(
+		b, argsMap, sessionVariables, params, paramIndex,
+	)
+	if err != nil {
+		return functionCallResult{}, err
 	}
 
 	b.WriteString(")")
@@ -233,4 +205,199 @@ func (f *function) buildFunctionFromClause(
 		params:     params,
 		paramIndex: paramIndex,
 	}, nil
+}
+
+// writeFunctionArguments emits the argument list for a function call, mixing
+// PostgreSQL positional and named-argument notation as the signature requires.
+//
+// Omitted defaulted arguments are dropped entirely so PostgreSQL applies their
+// declared defaults; the SQL DEFAULT keyword is invalid in a function call and
+// must never be emitted.
+//
+// PostgreSQL requires every positional argument to precede every named one, a
+// positional argument cannot skip an earlier slot, and an unnamed argument can
+// only ever be bound positionally (its generated GraphQL name, arg_1 ..., is
+// not a valid SQL argument name). The notation for each argument therefore
+// depends on look-ahead, not on the argument alone: every unnamed *supplied*
+// argument forces the positional region to extend at least to its index, so
+// any earlier argument — even a named one — must also be emitted positionally.
+//
+// The rule, keyed off lastUnnamedSuppliedIdx (the highest index among supplied
+// arguments that is unnamed, or -1 when none is), is:
+//   - supplied, index <= lastUnnamedSuppliedIdx → positional ($N); it must
+//     precede the trailing unnamed positional argument, even if it has a name.
+//   - supplied, index > lastUnnamedSuppliedIdx → named ("name" := $N); such an
+//     argument is guaranteed to have a SQL name (an unnamed supplied argument
+//     would have pushed lastUnnamedSuppliedIdx higher), and naming keeps the
+//     binding correct across omitted middle/later defaults.
+//   - omitted (defaulted) before lastUnnamedSuppliedIdx → genuine error: the
+//     positional region cannot skip a gap, and the trailing unnamed argument
+//     cannot be named to escape it.
+//   - omitted (defaulted) after lastUnnamedSuppliedIdx → skipped; PostgreSQL
+//     applies the default and we are in (or entering) the named region.
+func (f *function) writeFunctionArguments(
+	b *strings.Builder,
+	argsMap map[string]any,
+	sessionVariables map[string]any,
+	params []any,
+	paramIndex int,
+) ([]any, int, error) {
+	lastUnnamedSuppliedIdx := f.lastUnnamedSuppliedArgIndex(argsMap)
+
+	w := functionArgWriter{
+		f:                      f,
+		b:                      b,
+		params:                 params,
+		paramIndex:             paramIndex,
+		wrote:                  false,
+		lastUnnamedSuppliedIdx: lastUnnamedSuppliedIdx,
+	}
+
+	for i, arg := range f.arguments {
+		value, supplied := argsMap[arg.Name]
+
+		switch {
+		// If this is the session argument, inject session variables as JSON for
+		// ordinary execution or as a whole-session marker for subscription cohorts.
+		case f.isSessionArgument(arg):
+			sessionArgument, err := f.sessionArgumentValue(arg, sessionVariables)
+			if err != nil {
+				return nil, 0, err
+			}
+
+			w.write(i, arg, sessionArgument)
+
+		case supplied:
+			w.write(i, arg, value)
+
+		case arg.HasDefault:
+			// Omit so PostgreSQL applies the declared default. An omitted slot
+			// before a later supplied unnamed (positional) argument leaves an
+			// unfillable gap in the positional region, which PostgreSQL cannot
+			// express.
+			if i < lastUnnamedSuppliedIdx {
+				return nil, 0, fmt.Errorf("%w: %s.%s argument %q",
+					errCannotCallFunctionArgumentPositionally,
+					f.schemaName, f.functionName, arg.Name)
+			}
+
+		default:
+			return nil, 0, fmt.Errorf("%w: %s.%s argument %q",
+				errMissingRequiredFunctionArgument, f.schemaName, f.functionName, arg.Name)
+		}
+	}
+
+	return w.params, w.paramIndex, nil
+}
+
+// isSessionArgument reports whether arg is the configured session argument,
+// which is injected from the role's session variables rather than from user
+// input.
+func (f *function) isSessionArgument(arg *functionArgument) bool {
+	return f.sessionArgument != "" && arg.Name == f.sessionArgument
+}
+
+func (f *function) sessionArgumentValue(
+	arg *functionArgument,
+	sessionVariables map[string]any,
+) (any, error) {
+	if isSubscriptionTemplateSessionArgument(sessionVariables) {
+		return core.FunctionSessionArgument{SQLType: arg.SQLType}, nil
+	}
+
+	sessionJSON, err := marshalSessionArgument(arg.Name, sessionVariables)
+	if err != nil {
+		return nil, err
+	}
+
+	return sessionJSON, nil
+}
+
+// lastUnnamedSuppliedArgIndex returns the highest index among arguments that
+// are supplied (user-provided or the session argument) and have no SQL name,
+// or -1 when no such argument exists. It defines the extent of the positional
+// region: every argument up to and including this index must be emitted
+// positionally so the trailing unnamed argument keeps its declared slot.
+func (f *function) lastUnnamedSuppliedArgIndex(argsMap map[string]any) int {
+	last := -1
+
+	for i, arg := range f.arguments {
+		if arg.SQLName != "" {
+			continue
+		}
+
+		_, supplied := argsMap[arg.Name]
+		if supplied || f.isSessionArgument(arg) {
+			last = i
+		}
+	}
+
+	return last
+}
+
+// functionArgWriter accumulates the SQL argument list for a single function
+// call. It threads the params slice and placeholder index through each emitted
+// argument and uses the precomputed lastUnnamedSuppliedIdx to choose positional
+// vs named notation (see function.writeFunctionArguments for the rules).
+type functionArgWriter struct {
+	f          *function
+	b          *strings.Builder
+	params     []any
+	paramIndex int
+	// wrote reports whether at least one argument has already been emitted, so
+	// the next one is prefixed with ", ".
+	wrote bool
+	// lastUnnamedSuppliedIdx is the highest index among supplied arguments that
+	// is unnamed, or -1 when none is. Arguments at or below it are emitted
+	// positionally; arguments above it are emitted by name.
+	lastUnnamedSuppliedIdx int
+}
+
+// write emits one supplied argument at position idx, choosing positional
+// notation while idx is within the positional region (<= lastUnnamedSuppliedIdx)
+// and named notation otherwise. Every argument emitted by name is guaranteed to
+// carry a SQL name, because any unnamed supplied argument would have pushed
+// lastUnnamedSuppliedIdx to at least idx.
+func (w *functionArgWriter) write(idx int, arg *functionArgument, value any) {
+	if w.wrote {
+		w.b.WriteString(", ")
+	}
+
+	w.wrote = true
+
+	w.params = append(w.params, value)
+
+	if idx > w.lastUnnamedSuppliedIdx {
+		core.WriteQuotedIdentifier(w.b, arg.SQLName)
+		w.b.WriteString(" := ")
+	}
+
+	w.b.WriteString(w.f.dialect.Placeholder(w.paramIndex))
+	w.paramIndex++
+}
+
+// marshalSessionArgument encodes the role's session variables as a JSON string
+// for binding to the function's session argument. A nil map is encoded as an
+// empty object so the serialization is consistent. The value is returned as a
+// string (not raw bytes) so pgx binds it as JSON rather than nested PostgreSQL
+// types.
+func marshalSessionArgument(argName string, sessionVariables map[string]any) (string, error) {
+	sv := sessionVariables
+	if sv == nil {
+		sv = make(map[string]any)
+	}
+
+	// Deterministic(true) sorts map keys so the serialized session object is
+	// byte-stable across runs/processes; without it json/v2 emits map keys in
+	// randomized order, which makes the bound parameter (and golden files)
+	// flap.
+	jsonBytes, err := json.Marshal(sv, json.Deterministic(true))
+	if err != nil {
+		return "", fmt.Errorf(
+			"failed to marshal session variables for function argument %q: %w",
+			argName, err,
+		)
+	}
+
+	return string(jsonBytes), nil
 }

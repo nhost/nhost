@@ -2937,7 +2937,7 @@ type query_root {
   """
   search_news_aggregate(
     """
-    input parameters for function "search_news"
+    input parameters for function "search_news_aggregate"
     """
     args: search_news_args!
 
@@ -3005,7 +3005,7 @@ type query_root {
   """
   searchNews_aggregate(
     """
-    input parameters for function "searchNews"
+    input parameters for function "searchNews_aggregate"
     """
     args: searchNews_args!
 
@@ -3073,9 +3073,145 @@ type query_root {
   """
   searchNewsAggregate(
     """
-    input parameters for function "searchNewsCollection"
+    input parameters for function "searchNewsAggregate"
     """
     args: search_news_3_args!
+
+    """
+    distinct select on columns
+    """
+    distinct_on: [news_select_column!]
+
+    """
+    limit the number of rows returned
+    """
+    limit: Int
+
+    """
+    skip the first n rows. Use only with order_by
+    """
+    offset: Int
+
+    """
+    sort the rows by one or more columns
+    """
+    order_by: [news_order_by!]
+
+    """
+    filter the rows returned
+    """
+    where: news_bool_exp
+  ): news_aggregate!
+  """
+  execute function "search_news_default" which returns "news"
+  """
+  search_news_default(
+    """
+    input parameters for function "search_news_default"
+    """
+    args: search_news_default_args!
+
+    """
+    distinct select on columns
+    """
+    distinct_on: [news_select_column!]
+
+    """
+    limit the number of rows returned
+    """
+    limit: Int
+
+    """
+    skip the first n rows. Use only with order_by
+    """
+    offset: Int
+
+    """
+    sort the rows by one or more columns
+    """
+    order_by: [news_order_by!]
+
+    """
+    filter the rows returned
+    """
+    where: news_bool_exp
+  ): [news!]!
+  """
+  execute function "search_news_default" and query aggregates on result of table type "news"
+  """
+  search_news_default_aggregate(
+    """
+    input parameters for function "search_news_default_aggregate"
+    """
+    args: search_news_default_args!
+
+    """
+    distinct select on columns
+    """
+    distinct_on: [news_select_column!]
+
+    """
+    limit the number of rows returned
+    """
+    limit: Int
+
+    """
+    skip the first n rows. Use only with order_by
+    """
+    offset: Int
+
+    """
+    sort the rows by one or more columns
+    """
+    order_by: [news_order_by!]
+
+    """
+    filter the rows returned
+    """
+    where: news_bool_exp
+  ): news_aggregate!
+  """
+  execute function "search_news_positional" which returns "news"
+  """
+  search_news_positional(
+    """
+    input parameters for function "search_news_positional"
+    """
+    args: search_news_positional_args!
+
+    """
+    distinct select on columns
+    """
+    distinct_on: [news_select_column!]
+
+    """
+    limit the number of rows returned
+    """
+    limit: Int
+
+    """
+    skip the first n rows. Use only with order_by
+    """
+    offset: Int
+
+    """
+    sort the rows by one or more columns
+    """
+    order_by: [news_order_by!]
+
+    """
+    filter the rows returned
+    """
+    where: news_bool_exp
+  ): [news!]!
+  """
+  execute function "search_news_positional" and query aggregates on result of table type "news"
+  """
+  search_news_positional_aggregate(
+    """
+    input parameters for function "search_news_positional_aggregate"
+    """
+    args: search_news_positional_args!
 
     """
     distinct select on columns
@@ -5097,7 +5233,7 @@ type subscription_root {
   """
   search_news_aggregate(
     """
-    input parameters for function "search_news"
+    input parameters for function "search_news_aggregate"
     """
     args: search_news_args!
 
@@ -5165,7 +5301,7 @@ type subscription_root {
   """
   searchNews_aggregate(
     """
-    input parameters for function "searchNews"
+    input parameters for function "searchNews_aggregate"
     """
     args: searchNews_args!
 
@@ -5233,9 +5369,145 @@ type subscription_root {
   """
   searchNewsAggregate(
     """
-    input parameters for function "searchNewsCollection"
+    input parameters for function "searchNewsAggregate"
     """
     args: search_news_3_args!
+
+    """
+    distinct select on columns
+    """
+    distinct_on: [news_select_column!]
+
+    """
+    limit the number of rows returned
+    """
+    limit: Int
+
+    """
+    skip the first n rows. Use only with order_by
+    """
+    offset: Int
+
+    """
+    sort the rows by one or more columns
+    """
+    order_by: [news_order_by!]
+
+    """
+    filter the rows returned
+    """
+    where: news_bool_exp
+  ): news_aggregate!
+  """
+  execute function "search_news_default" which returns "news"
+  """
+  search_news_default(
+    """
+    input parameters for function "search_news_default"
+    """
+    args: search_news_default_args!
+
+    """
+    distinct select on columns
+    """
+    distinct_on: [news_select_column!]
+
+    """
+    limit the number of rows returned
+    """
+    limit: Int
+
+    """
+    skip the first n rows. Use only with order_by
+    """
+    offset: Int
+
+    """
+    sort the rows by one or more columns
+    """
+    order_by: [news_order_by!]
+
+    """
+    filter the rows returned
+    """
+    where: news_bool_exp
+  ): [news!]!
+  """
+  execute function "search_news_default" and query aggregates on result of table type "news"
+  """
+  search_news_default_aggregate(
+    """
+    input parameters for function "search_news_default_aggregate"
+    """
+    args: search_news_default_args!
+
+    """
+    distinct select on columns
+    """
+    distinct_on: [news_select_column!]
+
+    """
+    limit the number of rows returned
+    """
+    limit: Int
+
+    """
+    skip the first n rows. Use only with order_by
+    """
+    offset: Int
+
+    """
+    sort the rows by one or more columns
+    """
+    order_by: [news_order_by!]
+
+    """
+    filter the rows returned
+    """
+    where: news_bool_exp
+  ): news_aggregate!
+  """
+  execute function "search_news_positional" which returns "news"
+  """
+  search_news_positional(
+    """
+    input parameters for function "search_news_positional"
+    """
+    args: search_news_positional_args!
+
+    """
+    distinct select on columns
+    """
+    distinct_on: [news_select_column!]
+
+    """
+    limit the number of rows returned
+    """
+    limit: Int
+
+    """
+    skip the first n rows. Use only with order_by
+    """
+    offset: Int
+
+    """
+    sort the rows by one or more columns
+    """
+    order_by: [news_order_by!]
+
+    """
+    filter the rows returned
+    """
+    where: news_bool_exp
+  ): [news!]!
+  """
+  execute function "search_news_positional" and query aggregates on result of table type "news"
+  """
+  search_news_positional_aggregate(
+    """
+    input parameters for function "search_news_positional_aggregate"
+    """
+    args: search_news_positional_args!
 
     """
     distinct select on columns
@@ -7088,6 +7360,14 @@ input searchNews_args {
 }
 input search_news_3_args {
   search: String!
+}
+input search_news_default_args {
+  search: String!
+  max_len: Int
+}
+input search_news_positional_args {
+  arg_1: String!
+  arg_2: Int
 }
 input set_department_manager_args {
   p_user_id: uuid!

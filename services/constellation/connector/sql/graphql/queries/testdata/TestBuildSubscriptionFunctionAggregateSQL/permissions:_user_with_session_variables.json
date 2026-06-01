@@ -1,13 +1,13 @@
 [
   {
     "Name": "search_news_aggregate",
-    "QueryType": "select_aggregate",
-    "SQL": "SELECT \"_subs\".\"result_id\", \"_fld_resp\".\"root\" AS \"result\" FROM UNNEST($1::text[], $2::json[]) AS \"_subs\"(\"result_id\", \"result_vars\") LEFT OUTER JOIN LATERAL (SELECT json_build_object('search_news_aggregate', (WITH \"_root.base\" AS MATERIALIZED (SELECT * FROM \"public\".\"search_news\"($3) AS \"_fn_search_news\" WHERE EXISTS (SELECT 1 FROM \"public\".\"departments\" f WHERE \"_fn_search_news\".\"department_id\" = f.\"id\" AND f.\"budget\" > $4::numeric AND f.\"id\" = ANY($5::uuid[]))) SELECT json_build_object('aggregate', (SELECT json_build_object('count', COUNT(*)) FROM \"_root.base\"), 'nodes', (SELECT coalesce(json_agg(\"_root\"), '[]') FROM (SELECT row_to_json((SELECT \"_e\" FROM (SELECT \"_root.base\".\"content\" AS \"content\", \"_root.r.department\".\"department\" AS \"department\") AS \"_e\")) AS \"_root\" FROM \"_root.base\" LEFT OUTER JOIN LATERAL (WITH \"_root.r.department.base\" AS (SELECT * FROM \"public\".\"departments\" WHERE \"_root.base\".\"department_id\" = \"id\" AND \"public\".\"departments\".\"id\" = ANY($6::uuid[]) LIMIT 1) SELECT row_to_json((SELECT \"_e\" FROM (SELECT \"_root.r.department.base\".\"name\" AS \"name\") AS \"_e\")) AS \"department\" FROM \"_root.r.department.base\") AS \"_root.r.department\" ON ('true')) AS \"_root\")) AS \"search_news_aggregate\")) AS \"root\") AS \"_fld_resp\" ON ('true')",
+    "SQL": "SELECT \"_subs\".\"result_id\", \"_fld_resp\".\"root\" AS \"result\" FROM UNNEST($1::text[], $2::json[]) AS \"_subs\"(\"result_id\", \"result_vars\") LEFT OUTER JOIN LATERAL (SELECT json_build_object('search_news_aggregate', (WITH \"_root.base\" AS MATERIALIZED (SELECT * FROM \"public\".\"search_news\"(\"search\" := $3) AS \"_fn_search_news\" WHERE EXISTS (SELECT 1 FROM \"public\".\"departments\" f WHERE \"_fn_search_news\".\"department_id\" = f.\"id\" AND f.\"budget\" > $4::numeric AND f.\"id\" = ANY($5::uuid[]))) SELECT json_build_object('aggregate', (SELECT json_build_object('count', COUNT(*)) FROM \"_root.base\"), 'nodes', (SELECT coalesce(json_agg(\"_root\"), '[]') FROM (SELECT row_to_json((SELECT \"_e\" FROM (SELECT \"_root.base\".\"content\" AS \"content\", \"_root.r.department\".\"department\" AS \"department\") AS \"_e\")) AS \"_root\" FROM \"_root.base\" LEFT OUTER JOIN LATERAL (WITH \"_root.r.department.base\" AS (SELECT * FROM \"public\".\"departments\" WHERE \"_root.base\".\"department_id\" = \"id\" AND \"public\".\"departments\".\"id\" = ANY($6::uuid[]) LIMIT 1) SELECT row_to_json((SELECT \"_e\" FROM (SELECT \"_root.r.department.base\".\"name\" AS \"name\") AS \"_e\")) AS \"department\" FROM \"_root.r.department.base\") AS \"_root.r.department\" ON ('true')) AS \"_root\")) AS \"search_news_aggregate\")) AS \"root\") AS \"_fld_resp\" ON ('true')",
     "Parameters": [
       "a",
       1,
       "{2db9de0a-b9ba-416e-8619-783a399ae2b3,fd1e6bba-c292-4b2f-872e-ae16146cdd82}",
       "{2db9de0a-b9ba-416e-8619-783a399ae2b3,fd1e6bba-c292-4b2f-872e-ae16146cdd82}"
-    ]
+    ],
+    "StreamCursors": null
   }
 ]

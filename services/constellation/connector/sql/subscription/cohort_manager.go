@@ -352,14 +352,10 @@ func (m *cohortManager) getOrBuildSQL(
 		return *c.cachedOp, nil
 	}
 
-	// Build template session vars: each resolves to a SessionVarValue marker
-	// (names only — values don't affect SQL shape). The marker lets the
-	// multiplexed converter recognise genuine permission session variables by
-	// type and rewrite them into per-subscriber result_vars lookups, while
-	// user-supplied literals beginning with "x-hasura-" stay ordinary data.
+	// Build template session vars (names only — values don't affect SQL shape).
 	templateSessionVars := make(map[string]any, len(sessionVarArrays))
 	for varName := range sessionVarArrays {
-		templateSessionVars[varName] = core.SessionVarValue{Name: varName}
+		templateSessionVars[varName] = varName
 	}
 
 	// Use any subscriber's GraphQL variables — they're identical within a cohort.
