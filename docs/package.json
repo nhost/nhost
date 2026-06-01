@@ -17,14 +17,14 @@
     "test:check-links": "./check_broken_links.sh"
   },
   "dependencies": {
-    "@astrojs/markdown-remark": "^7.1.1",
-    "@astrojs/starlight": "^0.38.4",
-    "@astrojs/vercel": "^10.0.6",
-    "@babel/parser": "^7.29.2",
+    "@astrojs/markdown-remark": "^7.2.0",
+    "@astrojs/starlight": "^0.38.5",
+    "@astrojs/vercel": "^10.0.8",
+    "@babel/parser": "^7.29.7",
     "@expressive-code/plugin-line-numbers": "^0.41.7",
-    "@readme/openapi-parser": "^6.0.1",
+    "@readme/openapi-parser": "^6.1.2",
     "@resvg/resvg-js": "^2.6.2",
-    "astro": "^6.3.1",
+    "astro": "^6.4.2",
     "github-slugger": "^2.0.0",
     "glob": "^13.0.6",
     "gray-matter": "^4.0.3",
@@ -33,13 +33,13 @@
     "satori": "^0.26.0",
     "sharp": "^0.34.5",
     "starlight-sidebar-topics": "^0.7.1",
-    "tsx": "^4.21.0",
+    "tsx": "^4.22.3",
     "url-template": "^3.1.1"
   },
   "devDependencies": {
     "linkinator": "^7.6.1",
-    "prettier": "^3.8.1",
-    "typedoc": "^0.28.18",
+    "prettier": "^3.8.3",
+    "typedoc": "^0.28.19",
     "typedoc-plugin-markdown": "^4.11.0"
   }
 }
