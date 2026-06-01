@@ -53,7 +53,7 @@ func getComparisonOperators(scalarType string, caps Capabilities) []string {
 	var ops []string
 
 	switch scalarType {
-	case "String", "bpchar":
+	case "String", "bpchar": //nolint:goconst,nolintlint
 		ops = []string{
 			"_eq", "_gt", "_gte", "_ilike", "_in", "_iregex", "_is_null",
 			"_like", "_lt", "_lte", "_neq", "_nilike", "_nin", "_niregex",
