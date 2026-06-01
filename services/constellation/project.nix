@@ -1,7 +1,6 @@
 {
   self,
   pkgs,
-  nix-filter,
   nixops-lib,
 }:
 let
@@ -11,16 +10,24 @@ let
   created = "1970-01-01T00:00:00Z";
   submodule = "services/${name}";
 
-  src = nix-filter.lib.filter {
+  fs = pkgs.lib.fileset;
+
+  src = fs.toSource {
     root = ../..;
-    include = with nix-filter.lib; [
-      "go.mod"
-      "go.sum"
-      (inDirectory "vendor")
-      ".golangci.yaml"
-      "govulncheck.yaml"
-      isDirectory
-      (and (inDirectory submodule) (matchExt "go"))
+    fileset = fs.unions [
+      ../../go.mod
+      ../../go.sum
+      ../../vendor
+      ../../.golangci.yaml
+      ../../govulncheck.yaml
+      (fs.fileFilter (f: f.hasExt "go") ./.)
+      ./connector/testdata
+      ./connector/sql/postgres/testdata
+      ./connector/sql/sqlite/testdata
+      ./connector/sql/graphql/queries/testdata
+      ./connector/sql/graphql/schema/testdata
+      ./metadata/internal/hasura/testdata
+      ./integration/nhost
     ];
   };
 
@@ -39,7 +46,9 @@ let
 
   buildInputs = [ ];
 
-  nativeBuildInputs = [ ];
+  nativeBuildInputs = pkgs.lib.optionals pkgs.stdenv.isDarwin [
+    pkgs.apple-sdk_14
+  ];
 in
 rec {
   check = nixops-lib.go.check {
@@ -52,6 +61,10 @@ rec {
       nativeBuildInputs
       checkDeps
       ;
+
+    preCheck = ''
+      export GOEXPERIMENT=jsonv2;
+    '';
   };
 
   devShell = nixops-lib.go.devShell {
@@ -63,20 +76,28 @@ rec {
       ++ checkDeps
       ++ buildInputs
       ++ nativeBuildInputs;
+
+    shellHook = "export GOEXPERIMENT=jsonv2";
   };
 
-  package = nixops-lib.go.package {
-    inherit
-      name
-      description
-      version
-      src
-      submodule
-      ldflags
-      buildInputs
-      nativeBuildInputs
-      ;
-  };
+  package =
+    (nixops-lib.go.package {
+      inherit
+        name
+        description
+        version
+        src
+        submodule
+        ldflags
+        buildInputs
+        nativeBuildInputs
+        ;
+    }).overrideAttrs
+      (old: {
+        env = (old.env or { }) // {
+          GOEXPERIMENT = "jsonv2";
+        };
+      });
 
   dockerImage = nixops-lib.go.docker-image {
     inherit

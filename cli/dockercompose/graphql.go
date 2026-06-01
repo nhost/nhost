@@ -15,12 +15,15 @@ func graphql( //nolint:funlen
 	useTLS bool,
 	httpPort, port uint,
 ) (*Service, error) {
+	constellationEnabled := cfg.GetExperimental().GetConstellation() != nil
+
 	envars, err := appconfig.HasuraEnv(
 		cfg,
 		subdomain,
 		"local",
 		"nhost.run",
 		"postgres://nhost_hasura@postgres:5432/local",
+		URL(subdomain, "dashboard", httpPort, useTLS),
 		useTLS,
 		httpPort,
 	)
@@ -36,6 +39,33 @@ func graphql( //nolint:funlen
 		}
 
 		env[v.Name] = v.Value
+	}
+
+	labels := Ingresses{
+		{
+			Name: "hasura",
+			TLS:  useTLS,
+			Rule: traefikHostMatch(
+				"hasura",
+			) + "&& ( PathPrefix(`/v1`) || PathPrefix(`/v2`) || PathPrefix(`/api/`) || PathPrefix(`/console/assets`) )", //nolint:lll
+			Port:    hasuraPort,
+			Rewrite: nil,
+		},
+	}
+
+	if !constellationEnabled {
+		labels = append(
+			labels, Ingress{
+				Name: "graphql",
+				TLS:  useTLS,
+				Rule: traefikHostMatch("graphql") + "&& PathPrefix(`/v1`)",
+				Port: hasuraPort,
+				Rewrite: &Rewrite{
+					Regex:       "/v1(/|$$)(.*)",
+					Replacement: "/v1/graphql$$2",
+				},
+			},
+		)
 	}
 
 	return &Service{
@@ -58,27 +88,7 @@ func graphql( //nolint:funlen
 			Interval:    "5s",
 			StartPeriod: "60s",
 		},
-		Labels: Ingresses{
-			{
-				Name: "graphql",
-				TLS:  useTLS,
-				Rule: traefikHostMatch("graphql") + "&& PathPrefix(`/v1`)",
-				Port: hasuraPort,
-				Rewrite: &Rewrite{
-					Regex:       "/v1(/|$$)(.*)",
-					Replacement: "/v1/graphql$$2",
-				},
-			},
-			{
-				Name: "hasura",
-				TLS:  useTLS,
-				Rule: traefikHostMatch(
-					"hasura",
-				) + "&& ( PathPrefix(`/v1`) || PathPrefix(`/v2`) || PathPrefix(`/api/`) || PathPrefix(`/console/assets`) )", //nolint:lll
-				Port:    hasuraPort,
-				Rewrite: nil,
-			},
-		}.Labels(),
+		Labels:     labels.Labels(),
 		Networks:   networkAliases("hasura-service"),
 		Ports:      ports(port, hasuraPort),
 		Restart:    "always",
@@ -113,6 +123,7 @@ func console( //nolint:funlen
 		"local",
 		"nhost.run",
 		"postgres://nhost_hasura@postgres:5432/local",
+		URL(subdomain, "dashboard", httpPort, useTLS),
 		useTLS,
 		httpPort,
 	)

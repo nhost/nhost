@@ -1,0 +1,2507 @@
+{
+  "Schemas": {
+    "auth": {
+      "Tables": {
+        "users": {
+          "Schema": "auth",
+          "Name": "users",
+          "Comment": "User account information. Don't modify its structure as Hasura Auth relies on it to function properly.",
+          "Columns": [
+            {
+              "Name": "id",
+              "Type": "uuid",
+              "IsNullable": false,
+              "IsGenerated": false,
+              "IsIdentity": false,
+              "IsArray": false,
+              "SupportsMinMax": true,
+              "SupportsInc": false,
+              "SupportsAgg": false,
+              "Default": "gen_random_uuid()",
+              "Comment": null
+            },
+            {
+              "Name": "created_at",
+              "Type": "timestamptz",
+              "IsNullable": false,
+              "IsGenerated": false,
+              "IsIdentity": false,
+              "IsArray": false,
+              "SupportsMinMax": true,
+              "SupportsInc": false,
+              "SupportsAgg": false,
+              "Default": "now()",
+              "Comment": null
+            },
+            {
+              "Name": "updated_at",
+              "Type": "timestamptz",
+              "IsNullable": false,
+              "IsGenerated": false,
+              "IsIdentity": false,
+              "IsArray": false,
+              "SupportsMinMax": true,
+              "SupportsInc": false,
+              "SupportsAgg": false,
+              "Default": "now()",
+              "Comment": null
+            },
+            {
+              "Name": "last_seen",
+              "Type": "timestamptz",
+              "IsNullable": true,
+              "IsGenerated": false,
+              "IsIdentity": false,
+              "IsArray": false,
+              "SupportsMinMax": true,
+              "SupportsInc": false,
+              "SupportsAgg": false,
+              "Default": null,
+              "Comment": null
+            },
+            {
+              "Name": "disabled",
+              "Type": "bool",
+              "IsNullable": false,
+              "IsGenerated": false,
+              "IsIdentity": false,
+              "IsArray": false,
+              "SupportsMinMax": true,
+              "SupportsInc": false,
+              "SupportsAgg": false,
+              "Default": "false",
+              "Comment": null
+            },
+            {
+              "Name": "display_name",
+              "Type": "text",
+              "IsNullable": false,
+              "IsGenerated": false,
+              "IsIdentity": false,
+              "IsArray": false,
+              "SupportsMinMax": true,
+              "SupportsInc": false,
+              "SupportsAgg": false,
+              "Default": "''::text",
+              "Comment": null
+            },
+            {
+              "Name": "avatar_url",
+              "Type": "text",
+              "IsNullable": false,
+              "IsGenerated": false,
+              "IsIdentity": false,
+              "IsArray": false,
+              "SupportsMinMax": true,
+              "SupportsInc": false,
+              "SupportsAgg": false,
+              "Default": "''::text",
+              "Comment": null
+            },
+            {
+              "Name": "locale",
+              "Type": "varchar",
+              "IsNullable": false,
+              "IsGenerated": false,
+              "IsIdentity": false,
+              "IsArray": false,
+              "SupportsMinMax": true,
+              "SupportsInc": false,
+              "SupportsAgg": false,
+              "Default": "'en'::character varying",
+              "Comment": null
+            },
+            {
+              "Name": "email",
+              "Type": "citext",
+              "IsNullable": true,
+              "IsGenerated": false,
+              "IsIdentity": false,
+              "IsArray": false,
+              "SupportsMinMax": true,
+              "SupportsInc": false,
+              "SupportsAgg": false,
+              "Default": null,
+              "Comment": null
+            },
+            {
+              "Name": "phone_number",
+              "Type": "text",
+              "IsNullable": true,
+              "IsGenerated": false,
+              "IsIdentity": false,
+              "IsArray": false,
+              "SupportsMinMax": true,
+              "SupportsInc": false,
+              "SupportsAgg": false,
+              "Default": null,
+              "Comment": null
+            },
+            {
+              "Name": "password_hash",
+              "Type": "text",
+              "IsNullable": true,
+              "IsGenerated": false,
+              "IsIdentity": false,
+              "IsArray": false,
+              "SupportsMinMax": true,
+              "SupportsInc": false,
+              "SupportsAgg": false,
+              "Default": null,
+              "Comment": null
+            },
+            {
+              "Name": "email_verified",
+              "Type": "bool",
+              "IsNullable": false,
+              "IsGenerated": false,
+              "IsIdentity": false,
+              "IsArray": false,
+              "SupportsMinMax": true,
+              "SupportsInc": false,
+              "SupportsAgg": false,
+              "Default": "false",
+              "Comment": null
+            },
+            {
+              "Name": "phone_number_verified",
+              "Type": "bool",
+              "IsNullable": false,
+              "IsGenerated": false,
+              "IsIdentity": false,
+              "IsArray": false,
+              "SupportsMinMax": true,
+              "SupportsInc": false,
+              "SupportsAgg": false,
+              "Default": "false",
+              "Comment": null
+            },
+            {
+              "Name": "new_email",
+              "Type": "citext",
+              "IsNullable": true,
+              "IsGenerated": false,
+              "IsIdentity": false,
+              "IsArray": false,
+              "SupportsMinMax": true,
+              "SupportsInc": false,
+              "SupportsAgg": false,
+              "Default": null,
+              "Comment": null
+            },
+            {
+              "Name": "otp_method_last_used",
+              "Type": "text",
+              "IsNullable": true,
+              "IsGenerated": false,
+              "IsIdentity": false,
+              "IsArray": false,
+              "SupportsMinMax": true,
+              "SupportsInc": false,
+              "SupportsAgg": false,
+              "Default": null,
+              "Comment": null
+            },
+            {
+              "Name": "otp_hash",
+              "Type": "text",
+              "IsNullable": true,
+              "IsGenerated": false,
+              "IsIdentity": false,
+              "IsArray": false,
+              "SupportsMinMax": true,
+              "SupportsInc": false,
+              "SupportsAgg": false,
+              "Default": null,
+              "Comment": null
+            },
+            {
+              "Name": "otp_hash_expires_at",
+              "Type": "timestamptz",
+              "IsNullable": false,
+              "IsGenerated": false,
+              "IsIdentity": false,
+              "IsArray": false,
+              "SupportsMinMax": true,
+              "SupportsInc": false,
+              "SupportsAgg": false,
+              "Default": "now()",
+              "Comment": null
+            },
+            {
+              "Name": "default_role",
+              "Type": "text",
+              "IsNullable": false,
+              "IsGenerated": false,
+              "IsIdentity": false,
+              "IsArray": false,
+              "SupportsMinMax": true,
+              "SupportsInc": false,
+              "SupportsAgg": false,
+              "Default": "'user'::text",
+              "Comment": null
+            },
+            {
+              "Name": "is_anonymous",
+              "Type": "bool",
+              "IsNullable": false,
+              "IsGenerated": false,
+              "IsIdentity": false,
+              "IsArray": false,
+              "SupportsMinMax": true,
+              "SupportsInc": false,
+              "SupportsAgg": false,
+              "Default": "false",
+              "Comment": null
+            },
+            {
+              "Name": "totp_secret",
+              "Type": "text",
+              "IsNullable": true,
+              "IsGenerated": false,
+              "IsIdentity": false,
+              "IsArray": false,
+              "SupportsMinMax": true,
+              "SupportsInc": false,
+              "SupportsAgg": false,
+              "Default": null,
+              "Comment": null
+            },
+            {
+              "Name": "active_mfa_type",
+              "Type": "text",
+              "IsNullable": true,
+              "IsGenerated": false,
+              "IsIdentity": false,
+              "IsArray": false,
+              "SupportsMinMax": true,
+              "SupportsInc": false,
+              "SupportsAgg": false,
+              "Default": null,
+              "Comment": null
+            },
+            {
+              "Name": "ticket",
+              "Type": "text",
+              "IsNullable": true,
+              "IsGenerated": false,
+              "IsIdentity": false,
+              "IsArray": false,
+              "SupportsMinMax": true,
+              "SupportsInc": false,
+              "SupportsAgg": false,
+              "Default": null,
+              "Comment": null
+            },
+            {
+              "Name": "ticket_expires_at",
+              "Type": "timestamptz",
+              "IsNullable": false,
+              "IsGenerated": false,
+              "IsIdentity": false,
+              "IsArray": false,
+              "SupportsMinMax": true,
+              "SupportsInc": false,
+              "SupportsAgg": false,
+              "Default": "now()",
+              "Comment": null
+            },
+            {
+              "Name": "metadata",
+              "Type": "jsonb",
+              "IsNullable": true,
+              "IsGenerated": false,
+              "IsIdentity": false,
+              "IsArray": false,
+              "SupportsMinMax": true,
+              "SupportsInc": false,
+              "SupportsAgg": false,
+              "Default": null,
+              "Comment": null
+            },
+            {
+              "Name": "webauthn_current_challenge",
+              "Type": "text",
+              "IsNullable": true,
+              "IsGenerated": false,
+              "IsIdentity": false,
+              "IsArray": false,
+              "SupportsMinMax": true,
+              "SupportsInc": false,
+              "SupportsAgg": false,
+              "Default": null,
+              "Comment": null
+            }
+          ],
+          "PrimaryKeys": [
+            "id"
+          ],
+          "PrimaryKeyConstraintName": "users_pkey",
+          "ForeignKeys": [
+            {
+              "ColumnName": "default_role",
+              "ForeignSchema": "auth",
+              "ForeignTable": "roles",
+              "ForeignColumnName": "role"
+            }
+          ],
+          "UniqueConstraints": [
+            {
+              "Name": "users_email_key",
+              "Columns": [
+                "email"
+              ]
+            },
+            {
+              "Name": "users_phone_number_key",
+              "Columns": [
+                "phone_number"
+              ]
+            }
+          ],
+          "IsView": false,
+          "IsInsertable": true,
+          "IsUpdatable": true
+        },
+        "refresh_tokens": {
+          "Schema": "auth",
+          "Name": "refresh_tokens",
+          "Comment": "User refresh tokens. Hasura auth uses them to rotate new access tokens as long as the refresh token is not expired. Don't modify its structure as Hasura Auth relies on it to function properly.",
+          "Columns": [
+            {
+              "Name": "id",
+              "Type": "uuid",
+              "IsNullable": false,
+              "IsGenerated": false,
+              "IsIdentity": false,
+              "IsArray": false,
+              "SupportsMinMax": true,
+              "SupportsInc": false,
+              "SupportsAgg": false,
+              "Default": null,
+              "Comment": null
+            },
+            {
+              "Name": "created_at",
+              "Type": "timestamptz",
+              "IsNullable": false,
+              "IsGenerated": false,
+              "IsIdentity": false,
+              "IsArray": false,
+              "SupportsMinMax": true,
+              "SupportsInc": false,
+              "SupportsAgg": false,
+              "Default": "now()",
+              "Comment": null
+            },
+            {
+              "Name": "expires_at",
+              "Type": "timestamptz",
+              "IsNullable": false,
+              "IsGenerated": false,
+              "IsIdentity": false,
+              "IsArray": false,
+              "SupportsMinMax": true,
+              "SupportsInc": false,
+              "SupportsAgg": false,
+              "Default": null,
+              "Comment": null
+            },
+            {
+              "Name": "user_id",
+              "Type": "uuid",
+              "IsNullable": false,
+              "IsGenerated": false,
+              "IsIdentity": false,
+              "IsArray": false,
+              "SupportsMinMax": true,
+              "SupportsInc": false,
+              "SupportsAgg": false,
+              "Default": null,
+              "Comment": null
+            },
+            {
+              "Name": "metadata",
+              "Type": "jsonb",
+              "IsNullable": true,
+              "IsGenerated": false,
+              "IsIdentity": false,
+              "IsArray": false,
+              "SupportsMinMax": true,
+              "SupportsInc": false,
+              "SupportsAgg": false,
+              "Default": null,
+              "Comment": null
+            },
+            {
+              "Name": "type",
+              "Type": "text",
+              "IsNullable": false,
+              "IsGenerated": false,
+              "IsIdentity": false,
+              "IsArray": false,
+              "SupportsMinMax": true,
+              "SupportsInc": false,
+              "SupportsAgg": false,
+              "Default": "'regular'::text",
+              "Comment": null
+            },
+            {
+              "Name": "refresh_token_hash",
+              "Type": "text",
+              "IsNullable": true,
+              "IsGenerated": false,
+              "IsIdentity": false,
+              "IsArray": false,
+              "SupportsMinMax": true,
+              "SupportsInc": false,
+              "SupportsAgg": false,
+              "Default": null,
+              "Comment": null
+            }
+          ],
+          "PrimaryKeys": [
+            "id"
+          ],
+          "PrimaryKeyConstraintName": "refresh_tokens_pkey",
+          "ForeignKeys": [
+            {
+              "ColumnName": "type",
+              "ForeignSchema": "auth",
+              "ForeignTable": "refresh_token_types",
+              "ForeignColumnName": "value"
+            },
+            {
+              "ColumnName": "user_id",
+              "ForeignSchema": "auth",
+              "ForeignTable": "users",
+              "ForeignColumnName": "id"
+            }
+          ],
+          "UniqueConstraints": null,
+          "IsView": false,
+          "IsInsertable": true,
+          "IsUpdatable": true
+        },
+        "roles": {
+          "Schema": "auth",
+          "Name": "roles",
+          "Comment": "Persistent Hasura roles for users. Don't modify its structure as Hasura Auth relies on it to function properly.",
+          "Columns": [
+            {
+              "Name": "role",
+              "Type": "text",
+              "IsNullable": false,
+              "IsGenerated": false,
+              "IsIdentity": false,
+              "IsArray": false,
+              "SupportsMinMax": true,
+              "SupportsInc": false,
+              "SupportsAgg": false,
+              "Default": null,
+              "Comment": null
+            }
+          ],
+          "PrimaryKeys": [
+            "role"
+          ],
+          "PrimaryKeyConstraintName": "roles_pkey",
+          "ForeignKeys": null,
+          "UniqueConstraints": null,
+          "IsView": false,
+          "IsInsertable": true,
+          "IsUpdatable": true
+        },
+        "providers": {
+          "Schema": "auth",
+          "Name": "providers",
+          "Comment": "List of available Oauth providers. Don't modify its structure as Hasura Auth relies on it to function properly.",
+          "Columns": [
+            {
+              "Name": "id",
+              "Type": "text",
+              "IsNullable": false,
+              "IsGenerated": false,
+              "IsIdentity": false,
+              "IsArray": false,
+              "SupportsMinMax": true,
+              "SupportsInc": false,
+              "SupportsAgg": false,
+              "Default": null,
+              "Comment": null
+            }
+          ],
+          "PrimaryKeys": [
+            "id"
+          ],
+          "PrimaryKeyConstraintName": "providers_pkey",
+          "ForeignKeys": null,
+          "UniqueConstraints": null,
+          "IsView": false,
+          "IsInsertable": true,
+          "IsUpdatable": true
+        },
+        "user_security_keys": {
+          "Schema": "auth",
+          "Name": "user_security_keys",
+          "Comment": "User webauthn security keys. Don't modify its structure as Hasura Auth relies on it to function properly.",
+          "Columns": [
+            {
+              "Name": "id",
+              "Type": "uuid",
+              "IsNullable": false,
+              "IsGenerated": false,
+              "IsIdentity": false,
+              "IsArray": false,
+              "SupportsMinMax": true,
+              "SupportsInc": false,
+              "SupportsAgg": false,
+              "Default": "gen_random_uuid()",
+              "Comment": null
+            },
+            {
+              "Name": "user_id",
+              "Type": "uuid",
+              "IsNullable": false,
+              "IsGenerated": false,
+              "IsIdentity": false,
+              "IsArray": false,
+              "SupportsMinMax": true,
+              "SupportsInc": false,
+              "SupportsAgg": false,
+              "Default": null,
+              "Comment": null
+            },
+            {
+              "Name": "credential_id",
+              "Type": "text",
+              "IsNullable": false,
+              "IsGenerated": false,
+              "IsIdentity": false,
+              "IsArray": false,
+              "SupportsMinMax": true,
+              "SupportsInc": false,
+              "SupportsAgg": false,
+              "Default": null,
+              "Comment": null
+            },
+            {
+              "Name": "credential_public_key",
+              "Type": "bytea",
+              "IsNullable": true,
+              "IsGenerated": false,
+              "IsIdentity": false,
+              "IsArray": false,
+              "SupportsMinMax": true,
+              "SupportsInc": false,
+              "SupportsAgg": false,
+              "Default": null,
+              "Comment": null
+            },
+            {
+              "Name": "counter",
+              "Type": "int8",
+              "IsNullable": false,
+              "IsGenerated": false,
+              "IsIdentity": false,
+              "IsArray": false,
+              "SupportsMinMax": true,
+              "SupportsInc": true,
+              "SupportsAgg": true,
+              "Default": "0",
+              "Comment": null
+            },
+            {
+              "Name": "transports",
+              "Type": "text",
+              "IsNullable": false,
+              "IsGenerated": false,
+              "IsIdentity": false,
+              "IsArray": false,
+              "SupportsMinMax": true,
+              "SupportsInc": false,
+              "SupportsAgg": false,
+              "Default": "''::text",
+              "Comment": null
+            },
+            {
+              "Name": "nickname",
+              "Type": "text",
+              "IsNullable": true,
+              "IsGenerated": false,
+              "IsIdentity": false,
+              "IsArray": false,
+              "SupportsMinMax": true,
+              "SupportsInc": false,
+              "SupportsAgg": false,
+              "Default": null,
+              "Comment": null
+            }
+          ],
+          "PrimaryKeys": [
+            "id"
+          ],
+          "PrimaryKeyConstraintName": "user_security_keys_pkey",
+          "ForeignKeys": [
+            {
+              "ColumnName": "user_id",
+              "ForeignSchema": "auth",
+              "ForeignTable": "users",
+              "ForeignColumnName": "id"
+            }
+          ],
+          "UniqueConstraints": [
+            {
+              "Name": "user_security_keys_credential_id_key",
+              "Columns": [
+                "credential_id"
+              ]
+            }
+          ],
+          "IsView": false,
+          "IsInsertable": true,
+          "IsUpdatable": true
+        },
+        "refresh_token_types": {
+          "Schema": "auth",
+          "Name": "refresh_token_types",
+          "Comment": null,
+          "Columns": [
+            {
+              "Name": "value",
+              "Type": "text",
+              "IsNullable": false,
+              "IsGenerated": false,
+              "IsIdentity": false,
+              "IsArray": false,
+              "SupportsMinMax": true,
+              "SupportsInc": false,
+              "SupportsAgg": false,
+              "Default": null,
+              "Comment": null
+            },
+            {
+              "Name": "comment",
+              "Type": "text",
+              "IsNullable": true,
+              "IsGenerated": false,
+              "IsIdentity": false,
+              "IsArray": false,
+              "SupportsMinMax": true,
+              "SupportsInc": false,
+              "SupportsAgg": false,
+              "Default": null,
+              "Comment": null
+            }
+          ],
+          "PrimaryKeys": [
+            "value"
+          ],
+          "PrimaryKeyConstraintName": "refresh_token_types_pkey",
+          "ForeignKeys": null,
+          "UniqueConstraints": null,
+          "IsView": false,
+          "IsInsertable": true,
+          "IsUpdatable": true
+        },
+        "user_providers": {
+          "Schema": "auth",
+          "Name": "user_providers",
+          "Comment": "Active providers for a given user. Don't modify its structure as Hasura Auth relies on it to function properly.",
+          "Columns": [
+            {
+              "Name": "id",
+              "Type": "uuid",
+              "IsNullable": false,
+              "IsGenerated": false,
+              "IsIdentity": false,
+              "IsArray": false,
+              "SupportsMinMax": true,
+              "SupportsInc": false,
+              "SupportsAgg": false,
+              "Default": "gen_random_uuid()",
+              "Comment": null
+            },
+            {
+              "Name": "created_at",
+              "Type": "timestamptz",
+              "IsNullable": false,
+              "IsGenerated": false,
+              "IsIdentity": false,
+              "IsArray": false,
+              "SupportsMinMax": true,
+              "SupportsInc": false,
+              "SupportsAgg": false,
+              "Default": "now()",
+              "Comment": null
+            },
+            {
+              "Name": "updated_at",
+              "Type": "timestamptz",
+              "IsNullable": false,
+              "IsGenerated": false,
+              "IsIdentity": false,
+              "IsArray": false,
+              "SupportsMinMax": true,
+              "SupportsInc": false,
+              "SupportsAgg": false,
+              "Default": "now()",
+              "Comment": null
+            },
+            {
+              "Name": "user_id",
+              "Type": "uuid",
+              "IsNullable": false,
+              "IsGenerated": false,
+              "IsIdentity": false,
+              "IsArray": false,
+              "SupportsMinMax": true,
+              "SupportsInc": false,
+              "SupportsAgg": false,
+              "Default": null,
+              "Comment": null
+            },
+            {
+              "Name": "access_token",
+              "Type": "text",
+              "IsNullable": false,
+              "IsGenerated": false,
+              "IsIdentity": false,
+              "IsArray": false,
+              "SupportsMinMax": true,
+              "SupportsInc": false,
+              "SupportsAgg": false,
+              "Default": null,
+              "Comment": null
+            },
+            {
+              "Name": "refresh_token",
+              "Type": "text",
+              "IsNullable": true,
+              "IsGenerated": false,
+              "IsIdentity": false,
+              "IsArray": false,
+              "SupportsMinMax": true,
+              "SupportsInc": false,
+              "SupportsAgg": false,
+              "Default": null,
+              "Comment": null
+            },
+            {
+              "Name": "provider_id",
+              "Type": "text",
+              "IsNullable": false,
+              "IsGenerated": false,
+              "IsIdentity": false,
+              "IsArray": false,
+              "SupportsMinMax": true,
+              "SupportsInc": false,
+              "SupportsAgg": false,
+              "Default": null,
+              "Comment": null
+            },
+            {
+              "Name": "provider_user_id",
+              "Type": "text",
+              "IsNullable": false,
+              "IsGenerated": false,
+              "IsIdentity": false,
+              "IsArray": false,
+              "SupportsMinMax": true,
+              "SupportsInc": false,
+              "SupportsAgg": false,
+              "Default": null,
+              "Comment": null
+            }
+          ],
+          "PrimaryKeys": [
+            "id"
+          ],
+          "PrimaryKeyConstraintName": "user_providers_pkey",
+          "ForeignKeys": [
+            {
+              "ColumnName": "provider_id",
+              "ForeignSchema": "auth",
+              "ForeignTable": "providers",
+              "ForeignColumnName": "id"
+            },
+            {
+              "ColumnName": "user_id",
+              "ForeignSchema": "auth",
+              "ForeignTable": "users",
+              "ForeignColumnName": "id"
+            }
+          ],
+          "UniqueConstraints": [
+            {
+              "Name": "user_providers_provider_id_provider_user_id_key",
+              "Columns": [
+                "provider_id",
+                "provider_user_id"
+              ]
+            },
+            {
+              "Name": "user_providers_user_id_provider_id_key",
+              "Columns": [
+                "user_id",
+                "provider_id"
+              ]
+            }
+          ],
+          "IsView": false,
+          "IsInsertable": true,
+          "IsUpdatable": true
+        },
+        "provider_requests": {
+          "Schema": "auth",
+          "Name": "provider_requests",
+          "Comment": "Oauth requests, inserted before redirecting to the provider's site. Don't modify its structure as Hasura Auth relies on it to function properly.",
+          "Columns": [
+            {
+              "Name": "id",
+              "Type": "uuid",
+              "IsNullable": false,
+              "IsGenerated": false,
+              "IsIdentity": false,
+              "IsArray": false,
+              "SupportsMinMax": true,
+              "SupportsInc": false,
+              "SupportsAgg": false,
+              "Default": null,
+              "Comment": null
+            },
+            {
+              "Name": "options",
+              "Type": "jsonb",
+              "IsNullable": true,
+              "IsGenerated": false,
+              "IsIdentity": false,
+              "IsArray": false,
+              "SupportsMinMax": true,
+              "SupportsInc": false,
+              "SupportsAgg": false,
+              "Default": null,
+              "Comment": null
+            }
+          ],
+          "PrimaryKeys": [
+            "id"
+          ],
+          "PrimaryKeyConstraintName": "provider_requests_pkey",
+          "ForeignKeys": null,
+          "UniqueConstraints": null,
+          "IsView": false,
+          "IsInsertable": true,
+          "IsUpdatable": true
+        },
+        "user_roles": {
+          "Schema": "auth",
+          "Name": "user_roles",
+          "Comment": "Roles of users. Don't modify its structure as Hasura Auth relies on it to function properly.",
+          "Columns": [
+            {
+              "Name": "id",
+              "Type": "uuid",
+              "IsNullable": false,
+              "IsGenerated": false,
+              "IsIdentity": false,
+              "IsArray": false,
+              "SupportsMinMax": true,
+              "SupportsInc": false,
+              "SupportsAgg": false,
+              "Default": "gen_random_uuid()",
+              "Comment": null
+            },
+            {
+              "Name": "created_at",
+              "Type": "timestamptz",
+              "IsNullable": false,
+              "IsGenerated": false,
+              "IsIdentity": false,
+              "IsArray": false,
+              "SupportsMinMax": true,
+              "SupportsInc": false,
+              "SupportsAgg": false,
+              "Default": "now()",
+              "Comment": null
+            },
+            {
+              "Name": "user_id",
+              "Type": "uuid",
+              "IsNullable": false,
+              "IsGenerated": false,
+              "IsIdentity": false,
+              "IsArray": false,
+              "SupportsMinMax": true,
+              "SupportsInc": false,
+              "SupportsAgg": false,
+              "Default": null,
+              "Comment": null
+            },
+            {
+              "Name": "role",
+              "Type": "text",
+              "IsNullable": false,
+              "IsGenerated": false,
+              "IsIdentity": false,
+              "IsArray": false,
+              "SupportsMinMax": true,
+              "SupportsInc": false,
+              "SupportsAgg": false,
+              "Default": null,
+              "Comment": null
+            }
+          ],
+          "PrimaryKeys": [
+            "id"
+          ],
+          "PrimaryKeyConstraintName": "user_roles_pkey",
+          "ForeignKeys": [
+            {
+              "ColumnName": "role",
+              "ForeignSchema": "auth",
+              "ForeignTable": "roles",
+              "ForeignColumnName": "role"
+            },
+            {
+              "ColumnName": "user_id",
+              "ForeignSchema": "auth",
+              "ForeignTable": "users",
+              "ForeignColumnName": "id"
+            }
+          ],
+          "UniqueConstraints": [
+            {
+              "Name": "user_roles_user_id_role_key",
+              "Columns": [
+                "user_id",
+                "role"
+              ]
+            }
+          ],
+          "IsView": false,
+          "IsInsertable": true,
+          "IsUpdatable": true
+        }
+      }
+    },
+    "public": {
+      "Tables": {
+        "department_roles": {
+          "Schema": "public",
+          "Name": "department_roles",
+          "Comment": null,
+          "Columns": [
+            {
+              "Name": "value",
+              "Type": "text",
+              "IsNullable": false,
+              "IsGenerated": false,
+              "IsIdentity": false,
+              "IsArray": false,
+              "SupportsMinMax": true,
+              "SupportsInc": false,
+              "SupportsAgg": false,
+              "Default": null,
+              "Comment": null
+            },
+            {
+              "Name": "comment",
+              "Type": "text",
+              "IsNullable": true,
+              "IsGenerated": false,
+              "IsIdentity": false,
+              "IsArray": false,
+              "SupportsMinMax": true,
+              "SupportsInc": false,
+              "SupportsAgg": false,
+              "Default": null,
+              "Comment": null
+            }
+          ],
+          "PrimaryKeys": [
+            "value"
+          ],
+          "PrimaryKeyConstraintName": "department_roles_pkey",
+          "ForeignKeys": null,
+          "UniqueConstraints": null,
+          "IsView": false,
+          "IsInsertable": true,
+          "IsUpdatable": true
+        },
+        "identity_check_logs": {
+          "Schema": "public",
+          "Name": "identity_check_logs",
+          "Comment": null,
+          "Columns": [
+            {
+              "Name": "id",
+              "Type": "int8",
+              "IsNullable": false,
+              "IsGenerated": false,
+              "IsIdentity": true,
+              "IsArray": false,
+              "SupportsMinMax": true,
+              "SupportsInc": true,
+              "SupportsAgg": true,
+              "Default": null,
+              "Comment": null
+            },
+            {
+              "Name": "owner_id",
+              "Type": "uuid",
+              "IsNullable": false,
+              "IsGenerated": false,
+              "IsIdentity": false,
+              "IsArray": false,
+              "SupportsMinMax": true,
+              "SupportsInc": false,
+              "SupportsAgg": false,
+              "Default": null,
+              "Comment": null
+            },
+            {
+              "Name": "note",
+              "Type": "text",
+              "IsNullable": true,
+              "IsGenerated": false,
+              "IsIdentity": false,
+              "IsArray": false,
+              "SupportsMinMax": true,
+              "SupportsInc": false,
+              "SupportsAgg": false,
+              "Default": null,
+              "Comment": null
+            }
+          ],
+          "PrimaryKeys": [
+            "id"
+          ],
+          "PrimaryKeyConstraintName": "identity_check_logs_pkey",
+          "ForeignKeys": null,
+          "UniqueConstraints": null,
+          "IsView": false,
+          "IsInsertable": true,
+          "IsUpdatable": true
+        },
+        "department_files": {
+          "Schema": "public",
+          "Name": "department_files",
+          "Comment": null,
+          "Columns": [
+            {
+              "Name": "id",
+              "Type": "uuid",
+              "IsNullable": false,
+              "IsGenerated": false,
+              "IsIdentity": false,
+              "IsArray": false,
+              "SupportsMinMax": true,
+              "SupportsInc": false,
+              "SupportsAgg": false,
+              "Default": "gen_random_uuid()",
+              "Comment": null
+            },
+            {
+              "Name": "file_id",
+              "Type": "uuid",
+              "IsNullable": false,
+              "IsGenerated": false,
+              "IsIdentity": false,
+              "IsArray": false,
+              "SupportsMinMax": true,
+              "SupportsInc": false,
+              "SupportsAgg": false,
+              "Default": null,
+              "Comment": null
+            },
+            {
+              "Name": "department_id",
+              "Type": "uuid",
+              "IsNullable": false,
+              "IsGenerated": false,
+              "IsIdentity": false,
+              "IsArray": false,
+              "SupportsMinMax": true,
+              "SupportsInc": false,
+              "SupportsAgg": false,
+              "Default": null,
+              "Comment": null
+            },
+            {
+              "Name": "description",
+              "Type": "text",
+              "IsNullable": true,
+              "IsGenerated": false,
+              "IsIdentity": false,
+              "IsArray": false,
+              "SupportsMinMax": true,
+              "SupportsInc": false,
+              "SupportsAgg": false,
+              "Default": null,
+              "Comment": null
+            }
+          ],
+          "PrimaryKeys": [
+            "id"
+          ],
+          "PrimaryKeyConstraintName": "department_files_pkey",
+          "ForeignKeys": [
+            {
+              "ColumnName": "department_id",
+              "ForeignSchema": "public",
+              "ForeignTable": "departments",
+              "ForeignColumnName": "id"
+            },
+            {
+              "ColumnName": "file_id",
+              "ForeignSchema": "storage",
+              "ForeignTable": "files",
+              "ForeignColumnName": "id"
+            }
+          ],
+          "UniqueConstraints": null,
+          "IsView": false,
+          "IsInsertable": true,
+          "IsUpdatable": true
+        },
+        "kb_entries": {
+          "Schema": "public",
+          "Name": "kb_entries",
+          "Comment": null,
+          "Columns": [
+            {
+              "Name": "id",
+              "Type": "uuid",
+              "IsNullable": false,
+              "IsGenerated": false,
+              "IsIdentity": false,
+              "IsArray": false,
+              "SupportsMinMax": true,
+              "SupportsInc": false,
+              "SupportsAgg": false,
+              "Default": "gen_random_uuid()",
+              "Comment": null
+            },
+            {
+              "Name": "title",
+              "Type": "text",
+              "IsNullable": false,
+              "IsGenerated": false,
+              "IsIdentity": false,
+              "IsArray": false,
+              "SupportsMinMax": true,
+              "SupportsInc": false,
+              "SupportsAgg": false,
+              "Default": null,
+              "Comment": null
+            },
+            {
+              "Name": "summary",
+              "Type": "text",
+              "IsNullable": true,
+              "IsGenerated": false,
+              "IsIdentity": false,
+              "IsArray": false,
+              "SupportsMinMax": true,
+              "SupportsInc": false,
+              "SupportsAgg": false,
+              "Default": null,
+              "Comment": null
+            },
+            {
+              "Name": "content",
+              "Type": "text",
+              "IsNullable": false,
+              "IsGenerated": false,
+              "IsIdentity": false,
+              "IsArray": false,
+              "SupportsMinMax": true,
+              "SupportsInc": false,
+              "SupportsAgg": false,
+              "Default": null,
+              "Comment": null
+            },
+            {
+              "Name": "uploader_id",
+              "Type": "uuid",
+              "IsNullable": false,
+              "IsGenerated": false,
+              "IsIdentity": false,
+              "IsArray": false,
+              "SupportsMinMax": true,
+              "SupportsInc": false,
+              "SupportsAgg": false,
+              "Default": null,
+              "Comment": null
+            },
+            {
+              "Name": "created_at",
+              "Type": "timestamptz",
+              "IsNullable": false,
+              "IsGenerated": false,
+              "IsIdentity": false,
+              "IsArray": false,
+              "SupportsMinMax": true,
+              "SupportsInc": false,
+              "SupportsAgg": false,
+              "Default": "now()",
+              "Comment": null
+            },
+            {
+              "Name": "updated_at",
+              "Type": "timestamptz",
+              "IsNullable": false,
+              "IsGenerated": false,
+              "IsIdentity": false,
+              "IsArray": false,
+              "SupportsMinMax": true,
+              "SupportsInc": false,
+              "SupportsAgg": false,
+              "Default": "now()",
+              "Comment": null
+            },
+            {
+              "Name": "embeddings",
+              "Type": "text",
+              "IsNullable": true,
+              "IsGenerated": false,
+              "IsIdentity": false,
+              "IsArray": false,
+              "SupportsMinMax": true,
+              "SupportsInc": false,
+              "SupportsAgg": false,
+              "Default": null,
+              "Comment": null
+            },
+            {
+              "Name": "embeddings_outdated",
+              "Type": "bool",
+              "IsNullable": false,
+              "IsGenerated": false,
+              "IsIdentity": false,
+              "IsArray": false,
+              "SupportsMinMax": true,
+              "SupportsInc": false,
+              "SupportsAgg": false,
+              "Default": "true",
+              "Comment": null
+            }
+          ],
+          "PrimaryKeys": [
+            "id"
+          ],
+          "PrimaryKeyConstraintName": "kb_entries_pkey",
+          "ForeignKeys": [
+            {
+              "ColumnName": "uploader_id",
+              "ForeignSchema": "auth",
+              "ForeignTable": "users",
+              "ForeignColumnName": "id"
+            }
+          ],
+          "UniqueConstraints": null,
+          "IsView": false,
+          "IsInsertable": true,
+          "IsUpdatable": true
+        },
+        "kb_entry_departments": {
+          "Schema": "public",
+          "Name": "kb_entry_departments",
+          "Comment": null,
+          "Columns": [
+            {
+              "Name": "id",
+              "Type": "uuid",
+              "IsNullable": false,
+              "IsGenerated": false,
+              "IsIdentity": false,
+              "IsArray": false,
+              "SupportsMinMax": true,
+              "SupportsInc": false,
+              "SupportsAgg": false,
+              "Default": "gen_random_uuid()",
+              "Comment": null
+            },
+            {
+              "Name": "kb_entry_id",
+              "Type": "uuid",
+              "IsNullable": false,
+              "IsGenerated": false,
+              "IsIdentity": false,
+              "IsArray": false,
+              "SupportsMinMax": true,
+              "SupportsInc": false,
+              "SupportsAgg": false,
+              "Default": null,
+              "Comment": null
+            },
+            {
+              "Name": "department_id",
+              "Type": "uuid",
+              "IsNullable": false,
+              "IsGenerated": false,
+              "IsIdentity": false,
+              "IsArray": false,
+              "SupportsMinMax": true,
+              "SupportsInc": false,
+              "SupportsAgg": false,
+              "Default": null,
+              "Comment": null
+            }
+          ],
+          "PrimaryKeys": [
+            "id"
+          ],
+          "PrimaryKeyConstraintName": "kb_entry_departments_pkey",
+          "ForeignKeys": [
+            {
+              "ColumnName": "department_id",
+              "ForeignSchema": "public",
+              "ForeignTable": "departments",
+              "ForeignColumnName": "id"
+            },
+            {
+              "ColumnName": "kb_entry_id",
+              "ForeignSchema": "public",
+              "ForeignTable": "kb_entries",
+              "ForeignColumnName": "id"
+            }
+          ],
+          "UniqueConstraints": [
+            {
+              "Name": "kb_entry_departments_kb_entry_id_department_id_key",
+              "Columns": [
+                "kb_entry_id",
+                "department_id"
+              ]
+            }
+          ],
+          "IsView": false,
+          "IsInsertable": true,
+          "IsUpdatable": true
+        },
+        "news": {
+          "Schema": "public",
+          "Name": "news",
+          "Comment": null,
+          "Columns": [
+            {
+              "Name": "id",
+              "Type": "uuid",
+              "IsNullable": false,
+              "IsGenerated": false,
+              "IsIdentity": false,
+              "IsArray": false,
+              "SupportsMinMax": true,
+              "SupportsInc": false,
+              "SupportsAgg": false,
+              "Default": "gen_random_uuid()",
+              "Comment": null
+            },
+            {
+              "Name": "created_at",
+              "Type": "timestamptz",
+              "IsNullable": false,
+              "IsGenerated": false,
+              "IsIdentity": false,
+              "IsArray": false,
+              "SupportsMinMax": true,
+              "SupportsInc": false,
+              "SupportsAgg": false,
+              "Default": "now()",
+              "Comment": null
+            },
+            {
+              "Name": "updated_at",
+              "Type": "timestamptz",
+              "IsNullable": false,
+              "IsGenerated": false,
+              "IsIdentity": false,
+              "IsArray": false,
+              "SupportsMinMax": true,
+              "SupportsInc": false,
+              "SupportsAgg": false,
+              "Default": "now()",
+              "Comment": null
+            },
+            {
+              "Name": "is_public",
+              "Type": "bool",
+              "IsNullable": false,
+              "IsGenerated": false,
+              "IsIdentity": false,
+              "IsArray": false,
+              "SupportsMinMax": true,
+              "SupportsInc": false,
+              "SupportsAgg": false,
+              "Default": "false",
+              "Comment": null
+            },
+            {
+              "Name": "title",
+              "Type": "text",
+              "IsNullable": false,
+              "IsGenerated": false,
+              "IsIdentity": false,
+              "IsArray": false,
+              "SupportsMinMax": true,
+              "SupportsInc": false,
+              "SupportsAgg": false,
+              "Default": null,
+              "Comment": null
+            },
+            {
+              "Name": "content",
+              "Type": "text",
+              "IsNullable": false,
+              "IsGenerated": false,
+              "IsIdentity": false,
+              "IsArray": false,
+              "SupportsMinMax": true,
+              "SupportsInc": false,
+              "SupportsAgg": false,
+              "Default": null,
+              "Comment": null
+            },
+            {
+              "Name": "department_id",
+              "Type": "uuid",
+              "IsNullable": false,
+              "IsGenerated": false,
+              "IsIdentity": false,
+              "IsArray": false,
+              "SupportsMinMax": true,
+              "SupportsInc": false,
+              "SupportsAgg": false,
+              "Default": null,
+              "Comment": null
+            },
+            {
+              "Name": "author_id",
+              "Type": "uuid",
+              "IsNullable": false,
+              "IsGenerated": false,
+              "IsIdentity": false,
+              "IsArray": false,
+              "SupportsMinMax": true,
+              "SupportsInc": false,
+              "SupportsAgg": false,
+              "Default": null,
+              "Comment": null
+            }
+          ],
+          "PrimaryKeys": [
+            "id"
+          ],
+          "PrimaryKeyConstraintName": "news_pkey",
+          "ForeignKeys": [
+            {
+              "ColumnName": "author_id",
+              "ForeignSchema": "auth",
+              "ForeignTable": "users",
+              "ForeignColumnName": "id"
+            },
+            {
+              "ColumnName": "department_id",
+              "ForeignSchema": "public",
+              "ForeignTable": "departments",
+              "ForeignColumnName": "id"
+            }
+          ],
+          "UniqueConstraints": [
+            {
+              "Name": "news_title_key",
+              "Columns": [
+                "title"
+              ]
+            }
+          ],
+          "IsView": false,
+          "IsInsertable": true,
+          "IsUpdatable": true
+        },
+        "published_news": {
+          "Schema": "public",
+          "Name": "published_news",
+          "Comment": null,
+          "Columns": [
+            {
+              "Name": "id",
+              "Type": "uuid",
+              "IsNullable": true,
+              "IsGenerated": false,
+              "IsIdentity": false,
+              "IsArray": false,
+              "SupportsMinMax": true,
+              "SupportsInc": false,
+              "SupportsAgg": false,
+              "Default": null,
+              "Comment": null
+            },
+            {
+              "Name": "created_at",
+              "Type": "timestamptz",
+              "IsNullable": true,
+              "IsGenerated": false,
+              "IsIdentity": false,
+              "IsArray": false,
+              "SupportsMinMax": true,
+              "SupportsInc": false,
+              "SupportsAgg": false,
+              "Default": null,
+              "Comment": null
+            },
+            {
+              "Name": "updated_at",
+              "Type": "timestamptz",
+              "IsNullable": true,
+              "IsGenerated": false,
+              "IsIdentity": false,
+              "IsArray": false,
+              "SupportsMinMax": true,
+              "SupportsInc": false,
+              "SupportsAgg": false,
+              "Default": null,
+              "Comment": null
+            },
+            {
+              "Name": "title",
+              "Type": "text",
+              "IsNullable": true,
+              "IsGenerated": false,
+              "IsIdentity": false,
+              "IsArray": false,
+              "SupportsMinMax": true,
+              "SupportsInc": false,
+              "SupportsAgg": false,
+              "Default": null,
+              "Comment": null
+            },
+            {
+              "Name": "content",
+              "Type": "text",
+              "IsNullable": true,
+              "IsGenerated": false,
+              "IsIdentity": false,
+              "IsArray": false,
+              "SupportsMinMax": true,
+              "SupportsInc": false,
+              "SupportsAgg": false,
+              "Default": null,
+              "Comment": null
+            },
+            {
+              "Name": "department_id",
+              "Type": "uuid",
+              "IsNullable": true,
+              "IsGenerated": false,
+              "IsIdentity": false,
+              "IsArray": false,
+              "SupportsMinMax": true,
+              "SupportsInc": false,
+              "SupportsAgg": false,
+              "Default": null,
+              "Comment": null
+            },
+            {
+              "Name": "author_id",
+              "Type": "uuid",
+              "IsNullable": true,
+              "IsGenerated": false,
+              "IsIdentity": false,
+              "IsArray": false,
+              "SupportsMinMax": true,
+              "SupportsInc": false,
+              "SupportsAgg": false,
+              "Default": null,
+              "Comment": null
+            }
+          ],
+          "PrimaryKeys": null,
+          "PrimaryKeyConstraintName": "",
+          "ForeignKeys": null,
+          "UniqueConstraints": null,
+          "IsView": true,
+          "IsInsertable": true,
+          "IsUpdatable": true
+        },
+        "content_feed": {
+          "Schema": "public",
+          "Name": "content_feed",
+          "Comment": null,
+          "Columns": [
+            {
+              "Name": "id",
+              "Type": "uuid",
+              "IsNullable": true,
+              "IsGenerated": false,
+              "IsIdentity": false,
+              "IsArray": false,
+              "SupportsMinMax": true,
+              "SupportsInc": false,
+              "SupportsAgg": false,
+              "Default": null,
+              "Comment": null
+            },
+            {
+              "Name": "source",
+              "Type": "text",
+              "IsNullable": true,
+              "IsGenerated": false,
+              "IsIdentity": false,
+              "IsArray": false,
+              "SupportsMinMax": true,
+              "SupportsInc": false,
+              "SupportsAgg": false,
+              "Default": null,
+              "Comment": null
+            },
+            {
+              "Name": "title",
+              "Type": "text",
+              "IsNullable": true,
+              "IsGenerated": false,
+              "IsIdentity": false,
+              "IsArray": false,
+              "SupportsMinMax": true,
+              "SupportsInc": false,
+              "SupportsAgg": false,
+              "Default": null,
+              "Comment": null
+            },
+            {
+              "Name": "content",
+              "Type": "text",
+              "IsNullable": true,
+              "IsGenerated": false,
+              "IsIdentity": false,
+              "IsArray": false,
+              "SupportsMinMax": true,
+              "SupportsInc": false,
+              "SupportsAgg": false,
+              "Default": null,
+              "Comment": null
+            },
+            {
+              "Name": "created_at",
+              "Type": "timestamptz",
+              "IsNullable": true,
+              "IsGenerated": false,
+              "IsIdentity": false,
+              "IsArray": false,
+              "SupportsMinMax": true,
+              "SupportsInc": false,
+              "SupportsAgg": false,
+              "Default": null,
+              "Comment": null
+            }
+          ],
+          "PrimaryKeys": null,
+          "PrimaryKeyConstraintName": "",
+          "ForeignKeys": null,
+          "UniqueConstraints": null,
+          "IsView": true,
+          "IsInsertable": false,
+          "IsUpdatable": false
+        },
+        "departments": {
+          "Schema": "public",
+          "Name": "departments",
+          "Comment": null,
+          "Columns": [
+            {
+              "Name": "id",
+              "Type": "uuid",
+              "IsNullable": false,
+              "IsGenerated": false,
+              "IsIdentity": false,
+              "IsArray": false,
+              "SupportsMinMax": true,
+              "SupportsInc": false,
+              "SupportsAgg": false,
+              "Default": "gen_random_uuid()",
+              "Comment": null
+            },
+            {
+              "Name": "name",
+              "Type": "text",
+              "IsNullable": false,
+              "IsGenerated": false,
+              "IsIdentity": false,
+              "IsArray": false,
+              "SupportsMinMax": true,
+              "SupportsInc": false,
+              "SupportsAgg": false,
+              "Default": null,
+              "Comment": null
+            },
+            {
+              "Name": "description",
+              "Type": "text",
+              "IsNullable": true,
+              "IsGenerated": false,
+              "IsIdentity": false,
+              "IsArray": false,
+              "SupportsMinMax": true,
+              "SupportsInc": false,
+              "SupportsAgg": false,
+              "Default": null,
+              "Comment": null
+            },
+            {
+              "Name": "budget",
+              "Type": "numeric",
+              "IsNullable": true,
+              "IsGenerated": false,
+              "IsIdentity": false,
+              "IsArray": false,
+              "SupportsMinMax": true,
+              "SupportsInc": true,
+              "SupportsAgg": true,
+              "Default": null,
+              "Comment": null
+            },
+            {
+              "Name": "has_high_budget",
+              "Type": "bool",
+              "IsNullable": true,
+              "IsGenerated": true,
+              "IsIdentity": false,
+              "IsArray": false,
+              "SupportsMinMax": true,
+              "SupportsInc": false,
+              "SupportsAgg": false,
+              "Default": null,
+              "Comment": null
+            },
+            {
+              "Name": "created_at",
+              "Type": "timestamptz",
+              "IsNullable": false,
+              "IsGenerated": false,
+              "IsIdentity": false,
+              "IsArray": false,
+              "SupportsMinMax": true,
+              "SupportsInc": false,
+              "SupportsAgg": false,
+              "Default": "now()",
+              "Comment": null
+            },
+            {
+              "Name": "updated_at",
+              "Type": "timestamptz",
+              "IsNullable": false,
+              "IsGenerated": false,
+              "IsIdentity": false,
+              "IsArray": false,
+              "SupportsMinMax": true,
+              "SupportsInc": false,
+              "SupportsAgg": false,
+              "Default": "now()",
+              "Comment": null
+            }
+          ],
+          "PrimaryKeys": [
+            "id"
+          ],
+          "PrimaryKeyConstraintName": "departments_pkey",
+          "ForeignKeys": null,
+          "UniqueConstraints": [
+            {
+              "Name": "departments_name_key",
+              "Columns": [
+                "name"
+              ]
+            }
+          ],
+          "IsView": false,
+          "IsInsertable": true,
+          "IsUpdatable": true
+        },
+        "user_departments": {
+          "Schema": "public",
+          "Name": "user_departments",
+          "Comment": null,
+          "Columns": [
+            {
+              "Name": "user_id",
+              "Type": "uuid",
+              "IsNullable": false,
+              "IsGenerated": false,
+              "IsIdentity": false,
+              "IsArray": false,
+              "SupportsMinMax": true,
+              "SupportsInc": false,
+              "SupportsAgg": false,
+              "Default": null,
+              "Comment": null
+            },
+            {
+              "Name": "department_id",
+              "Type": "uuid",
+              "IsNullable": false,
+              "IsGenerated": false,
+              "IsIdentity": false,
+              "IsArray": false,
+              "SupportsMinMax": true,
+              "SupportsInc": false,
+              "SupportsAgg": false,
+              "Default": null,
+              "Comment": null
+            },
+            {
+              "Name": "role",
+              "Type": "text",
+              "IsNullable": true,
+              "IsGenerated": false,
+              "IsIdentity": false,
+              "IsArray": false,
+              "SupportsMinMax": true,
+              "SupportsInc": false,
+              "SupportsAgg": false,
+              "Default": "'member'::text",
+              "Comment": null
+            },
+            {
+              "Name": "joined_at",
+              "Type": "timestamptz",
+              "IsNullable": false,
+              "IsGenerated": false,
+              "IsIdentity": false,
+              "IsArray": false,
+              "SupportsMinMax": true,
+              "SupportsInc": false,
+              "SupportsAgg": false,
+              "Default": "now()",
+              "Comment": null
+            },
+            {
+              "Name": "is_active",
+              "Type": "bool",
+              "IsNullable": false,
+              "IsGenerated": false,
+              "IsIdentity": false,
+              "IsArray": false,
+              "SupportsMinMax": true,
+              "SupportsInc": false,
+              "SupportsAgg": false,
+              "Default": "true",
+              "Comment": null
+            }
+          ],
+          "PrimaryKeys": [
+            "user_id",
+            "department_id"
+          ],
+          "PrimaryKeyConstraintName": "user_departments_pkey",
+          "ForeignKeys": [
+            {
+              "ColumnName": "department_id",
+              "ForeignSchema": "public",
+              "ForeignTable": "departments",
+              "ForeignColumnName": "id"
+            },
+            {
+              "ColumnName": "role",
+              "ForeignSchema": "public",
+              "ForeignTable": "department_roles",
+              "ForeignColumnName": "value"
+            },
+            {
+              "ColumnName": "user_id",
+              "ForeignSchema": "auth",
+              "ForeignTable": "users",
+              "ForeignColumnName": "id"
+            }
+          ],
+          "UniqueConstraints": null,
+          "IsView": false,
+          "IsInsertable": true,
+          "IsUpdatable": true
+        }
+      }
+    },
+    "storage": {
+      "Tables": {
+        "buckets": {
+          "Schema": "storage",
+          "Name": "buckets",
+          "Comment": null,
+          "Columns": [
+            {
+              "Name": "id",
+              "Type": "text",
+              "IsNullable": false,
+              "IsGenerated": false,
+              "IsIdentity": false,
+              "IsArray": false,
+              "SupportsMinMax": true,
+              "SupportsInc": false,
+              "SupportsAgg": false,
+              "Default": null,
+              "Comment": null
+            },
+            {
+              "Name": "created_at",
+              "Type": "timestamptz",
+              "IsNullable": false,
+              "IsGenerated": false,
+              "IsIdentity": false,
+              "IsArray": false,
+              "SupportsMinMax": true,
+              "SupportsInc": false,
+              "SupportsAgg": false,
+              "Default": "now()",
+              "Comment": null
+            },
+            {
+              "Name": "updated_at",
+              "Type": "timestamptz",
+              "IsNullable": false,
+              "IsGenerated": false,
+              "IsIdentity": false,
+              "IsArray": false,
+              "SupportsMinMax": true,
+              "SupportsInc": false,
+              "SupportsAgg": false,
+              "Default": "now()",
+              "Comment": null
+            },
+            {
+              "Name": "download_expiration",
+              "Type": "int4",
+              "IsNullable": false,
+              "IsGenerated": false,
+              "IsIdentity": false,
+              "IsArray": false,
+              "SupportsMinMax": true,
+              "SupportsInc": true,
+              "SupportsAgg": true,
+              "Default": "30",
+              "Comment": null
+            },
+            {
+              "Name": "min_upload_file_size",
+              "Type": "int4",
+              "IsNullable": false,
+              "IsGenerated": false,
+              "IsIdentity": false,
+              "IsArray": false,
+              "SupportsMinMax": true,
+              "SupportsInc": true,
+              "SupportsAgg": true,
+              "Default": "1",
+              "Comment": null
+            },
+            {
+              "Name": "max_upload_file_size",
+              "Type": "int4",
+              "IsNullable": false,
+              "IsGenerated": false,
+              "IsIdentity": false,
+              "IsArray": false,
+              "SupportsMinMax": true,
+              "SupportsInc": true,
+              "SupportsAgg": true,
+              "Default": "50000000",
+              "Comment": null
+            },
+            {
+              "Name": "cache_control",
+              "Type": "text",
+              "IsNullable": true,
+              "IsGenerated": false,
+              "IsIdentity": false,
+              "IsArray": false,
+              "SupportsMinMax": true,
+              "SupportsInc": false,
+              "SupportsAgg": false,
+              "Default": "'max-age=3600'::text",
+              "Comment": null
+            },
+            {
+              "Name": "presigned_urls_enabled",
+              "Type": "bool",
+              "IsNullable": false,
+              "IsGenerated": false,
+              "IsIdentity": false,
+              "IsArray": false,
+              "SupportsMinMax": true,
+              "SupportsInc": false,
+              "SupportsAgg": false,
+              "Default": "true",
+              "Comment": null
+            }
+          ],
+          "PrimaryKeys": [
+            "id"
+          ],
+          "PrimaryKeyConstraintName": "buckets_pkey",
+          "ForeignKeys": null,
+          "UniqueConstraints": null,
+          "IsView": false,
+          "IsInsertable": true,
+          "IsUpdatable": true
+        },
+        "files": {
+          "Schema": "storage",
+          "Name": "files",
+          "Comment": null,
+          "Columns": [
+            {
+              "Name": "id",
+              "Type": "uuid",
+              "IsNullable": false,
+              "IsGenerated": false,
+              "IsIdentity": false,
+              "IsArray": false,
+              "SupportsMinMax": true,
+              "SupportsInc": false,
+              "SupportsAgg": false,
+              "Default": "gen_random_uuid()",
+              "Comment": null
+            },
+            {
+              "Name": "created_at",
+              "Type": "timestamptz",
+              "IsNullable": false,
+              "IsGenerated": false,
+              "IsIdentity": false,
+              "IsArray": false,
+              "SupportsMinMax": true,
+              "SupportsInc": false,
+              "SupportsAgg": false,
+              "Default": "now()",
+              "Comment": null
+            },
+            {
+              "Name": "updated_at",
+              "Type": "timestamptz",
+              "IsNullable": false,
+              "IsGenerated": false,
+              "IsIdentity": false,
+              "IsArray": false,
+              "SupportsMinMax": true,
+              "SupportsInc": false,
+              "SupportsAgg": false,
+              "Default": "now()",
+              "Comment": null
+            },
+            {
+              "Name": "bucket_id",
+              "Type": "text",
+              "IsNullable": false,
+              "IsGenerated": false,
+              "IsIdentity": false,
+              "IsArray": false,
+              "SupportsMinMax": true,
+              "SupportsInc": false,
+              "SupportsAgg": false,
+              "Default": "'default'::text",
+              "Comment": null
+            },
+            {
+              "Name": "name",
+              "Type": "text",
+              "IsNullable": true,
+              "IsGenerated": false,
+              "IsIdentity": false,
+              "IsArray": false,
+              "SupportsMinMax": true,
+              "SupportsInc": false,
+              "SupportsAgg": false,
+              "Default": null,
+              "Comment": null
+            },
+            {
+              "Name": "size",
+              "Type": "int4",
+              "IsNullable": true,
+              "IsGenerated": false,
+              "IsIdentity": false,
+              "IsArray": false,
+              "SupportsMinMax": true,
+              "SupportsInc": true,
+              "SupportsAgg": true,
+              "Default": null,
+              "Comment": null
+            },
+            {
+              "Name": "mime_type",
+              "Type": "text",
+              "IsNullable": true,
+              "IsGenerated": false,
+              "IsIdentity": false,
+              "IsArray": false,
+              "SupportsMinMax": true,
+              "SupportsInc": false,
+              "SupportsAgg": false,
+              "Default": null,
+              "Comment": null
+            },
+            {
+              "Name": "etag",
+              "Type": "text",
+              "IsNullable": true,
+              "IsGenerated": false,
+              "IsIdentity": false,
+              "IsArray": false,
+              "SupportsMinMax": true,
+              "SupportsInc": false,
+              "SupportsAgg": false,
+              "Default": null,
+              "Comment": null
+            },
+            {
+              "Name": "is_uploaded",
+              "Type": "bool",
+              "IsNullable": true,
+              "IsGenerated": false,
+              "IsIdentity": false,
+              "IsArray": false,
+              "SupportsMinMax": true,
+              "SupportsInc": false,
+              "SupportsAgg": false,
+              "Default": "false",
+              "Comment": null
+            },
+            {
+              "Name": "uploaded_by_user_id",
+              "Type": "uuid",
+              "IsNullable": true,
+              "IsGenerated": false,
+              "IsIdentity": false,
+              "IsArray": false,
+              "SupportsMinMax": true,
+              "SupportsInc": false,
+              "SupportsAgg": false,
+              "Default": null,
+              "Comment": null
+            },
+            {
+              "Name": "metadata",
+              "Type": "jsonb",
+              "IsNullable": true,
+              "IsGenerated": false,
+              "IsIdentity": false,
+              "IsArray": false,
+              "SupportsMinMax": true,
+              "SupportsInc": false,
+              "SupportsAgg": false,
+              "Default": null,
+              "Comment": null
+            }
+          ],
+          "PrimaryKeys": [
+            "id"
+          ],
+          "PrimaryKeyConstraintName": "files_pkey",
+          "ForeignKeys": [
+            {
+              "ColumnName": "bucket_id",
+              "ForeignSchema": "storage",
+              "ForeignTable": "buckets",
+              "ForeignColumnName": "id"
+            }
+          ],
+          "UniqueConstraints": null,
+          "IsView": false,
+          "IsInsertable": true,
+          "IsUpdatable": true
+        },
+        "virus": {
+          "Schema": "storage",
+          "Name": "virus",
+          "Comment": null,
+          "Columns": [
+            {
+              "Name": "id",
+              "Type": "uuid",
+              "IsNullable": false,
+              "IsGenerated": false,
+              "IsIdentity": false,
+              "IsArray": false,
+              "SupportsMinMax": true,
+              "SupportsInc": false,
+              "SupportsAgg": false,
+              "Default": "gen_random_uuid()",
+              "Comment": null
+            },
+            {
+              "Name": "created_at",
+              "Type": "timestamptz",
+              "IsNullable": false,
+              "IsGenerated": false,
+              "IsIdentity": false,
+              "IsArray": false,
+              "SupportsMinMax": true,
+              "SupportsInc": false,
+              "SupportsAgg": false,
+              "Default": "now()",
+              "Comment": null
+            },
+            {
+              "Name": "updated_at",
+              "Type": "timestamptz",
+              "IsNullable": false,
+              "IsGenerated": false,
+              "IsIdentity": false,
+              "IsArray": false,
+              "SupportsMinMax": true,
+              "SupportsInc": false,
+              "SupportsAgg": false,
+              "Default": "now()",
+              "Comment": null
+            },
+            {
+              "Name": "file_id",
+              "Type": "uuid",
+              "IsNullable": false,
+              "IsGenerated": false,
+              "IsIdentity": false,
+              "IsArray": false,
+              "SupportsMinMax": true,
+              "SupportsInc": false,
+              "SupportsAgg": false,
+              "Default": null,
+              "Comment": null
+            },
+            {
+              "Name": "filename",
+              "Type": "text",
+              "IsNullable": false,
+              "IsGenerated": false,
+              "IsIdentity": false,
+              "IsArray": false,
+              "SupportsMinMax": true,
+              "SupportsInc": false,
+              "SupportsAgg": false,
+              "Default": null,
+              "Comment": null
+            },
+            {
+              "Name": "virus",
+              "Type": "text",
+              "IsNullable": false,
+              "IsGenerated": false,
+              "IsIdentity": false,
+              "IsArray": false,
+              "SupportsMinMax": true,
+              "SupportsInc": false,
+              "SupportsAgg": false,
+              "Default": null,
+              "Comment": null
+            },
+            {
+              "Name": "user_session",
+              "Type": "jsonb",
+              "IsNullable": false,
+              "IsGenerated": false,
+              "IsIdentity": false,
+              "IsArray": false,
+              "SupportsMinMax": true,
+              "SupportsInc": false,
+              "SupportsAgg": false,
+              "Default": null,
+              "Comment": null
+            }
+          ],
+          "PrimaryKeys": [
+            "id"
+          ],
+          "PrimaryKeyConstraintName": "virus_pkey",
+          "ForeignKeys": [
+            {
+              "ColumnName": "file_id",
+              "ForeignSchema": "storage",
+              "ForeignTable": "files",
+              "ForeignColumnName": "id"
+            }
+          ],
+          "UniqueConstraints": null,
+          "IsView": false,
+          "IsInsertable": true,
+          "IsUpdatable": true
+        }
+      }
+    }
+  },
+  "EnumValues": {
+    "auth.refresh_token_types": [
+      {
+        "Value": "pat",
+        "Comment": "Personal access token"
+      },
+      {
+        "Value": "regular",
+        "Comment": "Regular refresh token"
+      }
+    ],
+    "public.department_roles": [
+      {
+        "Value": "manager",
+        "Comment": "Department manager"
+      },
+      {
+        "Value": "member",
+        "Comment": "Regular department member"
+      }
+    ]
+  },
+  "Functions": {
+    "public.search_news_positional": {
+      "Arguments": [
+        {
+          "Name": "",
+          "Type": "text",
+          "HasDefault": false
+        },
+        {
+          "Name": "",
+          "Type": "integer",
+          "HasDefault": true
+        }
+      ],
+      "ReturnType": {
+        "Type": "news",
+        "IsSetOf": true,
+        "TableSchema": "public",
+        "TableName": "news"
+      },
+      "Volatility": "STABLE"
+    },
+    "public.search_news_3": {
+      "Arguments": [
+        {
+          "Name": "search",
+          "Type": "text",
+          "HasDefault": false
+        }
+      ],
+      "ReturnType": {
+        "Type": "news",
+        "IsSetOf": true,
+        "TableSchema": "public",
+        "TableName": "news"
+      },
+      "Volatility": "STABLE"
+    },
+    "public.search_news_default": {
+      "Arguments": [
+        {
+          "Name": "search",
+          "Type": "text",
+          "HasDefault": false
+        },
+        {
+          "Name": "max_len",
+          "Type": "integer",
+          "HasDefault": true
+        }
+      ],
+      "ReturnType": {
+        "Type": "news",
+        "IsSetOf": true,
+        "TableSchema": "public",
+        "TableName": "news"
+      },
+      "Volatility": "STABLE"
+    },
+    "public.set_department_manager": {
+      "Arguments": [
+        {
+          "Name": "p_user_id",
+          "Type": "uuid",
+          "HasDefault": false
+        },
+        {
+          "Name": "p_department_id",
+          "Type": "uuid",
+          "HasDefault": false
+        },
+        {
+          "Name": "session",
+          "Type": "json",
+          "HasDefault": false
+        }
+      ],
+      "ReturnType": {
+        "Type": "user_departments",
+        "IsSetOf": false,
+        "TableSchema": "public",
+        "TableName": "user_departments"
+      },
+      "Volatility": "VOLATILE"
+    },
+    "public.deactivate_department": {
+      "Arguments": [
+        {
+          "Name": "p_department_id",
+          "Type": "uuid",
+          "HasDefault": false
+        },
+        {
+          "Name": "session",
+          "Type": "json",
+          "HasDefault": false
+        }
+      ],
+      "ReturnType": {
+        "Type": "user_departments",
+        "IsSetOf": true,
+        "TableSchema": "public",
+        "TableName": "user_departments"
+      },
+      "Volatility": "VOLATILE"
+    },
+    "public.get_department_manager": {
+      "Arguments": [
+        {
+          "Name": "department_id",
+          "Type": "uuid",
+          "HasDefault": false
+        }
+      ],
+      "ReturnType": {
+        "Type": "user_departments",
+        "IsSetOf": false,
+        "TableSchema": "public",
+        "TableName": "user_departments"
+      },
+      "Volatility": "STABLE"
+    },
+    "public.search_news": {
+      "Arguments": [
+        {
+          "Name": "search",
+          "Type": "text",
+          "HasDefault": false
+        }
+      ],
+      "ReturnType": {
+        "Type": "news",
+        "IsSetOf": true,
+        "TableSchema": "public",
+        "TableName": "news"
+      },
+      "Volatility": "STABLE"
+    },
+    "public.search_news_2": {
+      "Arguments": [
+        {
+          "Name": "search",
+          "Type": "text",
+          "HasDefault": false
+        }
+      ],
+      "ReturnType": {
+        "Type": "news",
+        "IsSetOf": true,
+        "TableSchema": "public",
+        "TableName": "news"
+      },
+      "Volatility": "STABLE"
+    }
+  }
+}

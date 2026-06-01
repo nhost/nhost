@@ -1,0 +1,197 @@
+[
+  [
+    {
+      "departments": [
+        {
+          "id": "2db9de0a-b9ba-416e-8619-783a399ae2b3",
+          "name": "Human Resources",
+          "activeEmployees": [
+            {
+              "role": "manager",
+              "user": {
+                "id": "550e8400-e29b-41d4-a716-446655440001",
+                "displayName": "Sarah Martinez"
+              }
+            },
+            {
+              "user": {
+                "id": "550e8400-e29b-41d4-a716-446655440002",
+                "displayName": "David Chen"
+              },
+              "role": "member"
+            },
+            {
+              "role": "member",
+              "user": {
+                "id": "550e8400-e29b-41d4-a716-446655440003",
+                "displayName": "Lisa Thompson"
+              }
+            },
+            {
+              "role": "member",
+              "user": {
+                "id": "550e8400-e29b-41d4-a716-446655440004",
+                "displayName": "Michael Rodriguez"
+              }
+            },
+            {
+              "role": "member",
+              "user": {
+                "id": "550e8400-e29b-41d4-a716-446655440022",
+                "displayName": "Ryan Lee"
+              }
+            },
+            {
+              "role": "member",
+              "user": {
+                "id": "550e8400-e29b-41d4-a716-446655440033",
+                "displayName": "Natalie Davis"
+              }
+            },
+            {
+              "role": "member",
+              "user": {
+                "id": "550e8400-e29b-41d4-a716-446655440043",
+                "displayName": "Michelle White"
+              }
+            },
+            {
+              "role": "member",
+              "user": {
+                "id": "550e8400-e29b-41d4-a716-446655440054",
+                "displayName": "Christopher Bell"
+              }
+            }
+          ],
+          "inactiveEmployees": []
+        },
+        {
+          "id": "023d4410-715e-4675-96a5-a58fd50ef33c",
+          "name": "Engineering",
+          "activeEmployees": [
+            {
+              "user": {
+                "id": "550e8400-e29b-41d4-a716-446655440011",
+                "displayName": "Alex Kim"
+              },
+              "role": "manager"
+            },
+            {
+              "user": {
+                "id": "550e8400-e29b-41d4-a716-446655440012",
+                "displayName": "Emma Wilson"
+              },
+              "role": "member"
+            },
+            {
+              "role": "member",
+              "user": {
+                "id": "550e8400-e29b-41d4-a716-446655440013",
+                "displayName": "James Brown"
+              }
+            },
+            {
+              "user": {
+                "displayName": "Priya Patel",
+                "id": "550e8400-e29b-41d4-a716-446655440014"
+              },
+              "role": "member"
+            },
+            {
+              "user": {
+                "id": "550e8400-e29b-41d4-a716-446655440002",
+                "displayName": "David Chen"
+              },
+              "role": "member"
+            },
+            {
+              "role": "member",
+              "user": {
+                "id": "550e8400-e29b-41d4-a716-446655440032",
+                "displayName": "Kevin Wong"
+              }
+            },
+            {
+              "role": "member",
+              "user": {
+                "displayName": "Daniel Clark",
+                "id": "550e8400-e29b-41d4-a716-446655440042"
+              }
+            },
+            {
+              "role": "member",
+              "user": {
+                "id": "550e8400-e29b-41d4-a716-446655440052",
+                "displayName": "Matthew Turner"
+              }
+            }
+          ],
+          "inactiveEmployees": []
+        },
+        {
+          "id": "dcd52518-58d0-4834-9683-ba6dee33833f",
+          "name": "Marketing",
+          "activeEmployees": [
+            {
+              "role": "manager",
+              "user": {
+                "displayName": "Jessica Garcia",
+                "id": "550e8400-e29b-41d4-a716-446655440021"
+              }
+            },
+            {
+              "role": "member",
+              "user": {
+                "id": "550e8400-e29b-41d4-a716-446655440022",
+                "displayName": "Ryan Lee"
+              }
+            },
+            {
+              "role": "member",
+              "user": {
+                "id": "550e8400-e29b-41d4-a716-446655440023",
+                "displayName": "Sofia Andersson"
+              }
+            },
+            {
+              "role": "member",
+              "user": {
+                "id": "550e8400-e29b-41d4-a716-446655440024",
+                "displayName": "Carlos Santos"
+              }
+            },
+            {
+              "role": "member",
+              "user": {
+                "id": "550e8400-e29b-41d4-a716-446655440004",
+                "displayName": "Michael Rodriguez"
+              }
+            },
+            {
+              "role": "member",
+              "user": {
+                "id": "550e8400-e29b-41d4-a716-446655440012",
+                "displayName": "Emma Wilson"
+              }
+            },
+            {
+              "role": "member",
+              "user": {
+                "id": "550e8400-e29b-41d4-a716-446655440044",
+                "displayName": "Thomas Hall"
+              }
+            },
+            {
+              "role": "member",
+              "user": {
+                "id": "550e8400-e29b-41d4-a716-446655440053",
+                "displayName": "Stephanie Cooper"
+              }
+            }
+          ],
+          "inactiveEmployees": []
+        }
+      ]
+    }
+  ]
+]

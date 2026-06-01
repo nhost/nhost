@@ -1,4 +1,5 @@
 import { yupResolver } from '@hookform/resolvers/yup';
+import { InfoIcon } from 'lucide-react';
 import { useEffect, useState } from 'react';
 import { FormProvider, useForm } from 'react-hook-form';
 import { ApplyLocalSettingsDialog } from '@/components/common/ApplyLocalSettingsDialog';
@@ -7,7 +8,6 @@ import { Form } from '@/components/form/Form';
 import { SettingsContainer } from '@/components/layout/SettingsContainer';
 import { ActivityIndicator } from '@/components/ui/v2/ActivityIndicator';
 import { Box } from '@/components/ui/v2/Box';
-import { InfoIcon } from '@/components/ui/v2/icons/InfoIcon';
 import { Tooltip } from '@/components/ui/v2/Tooltip';
 import { Label } from '@/components/ui/v3/label';
 import { RadioGroup, RadioGroupItem } from '@/components/ui/v3/radio-group';
@@ -330,8 +330,7 @@ export default function JWTSettings() {
                   >
                     <InfoIcon
                       aria-label="Info"
-                      className="h-4 w-4"
-                      color="primary"
+                      className="h-4 w-4 text-primary"
                     />
                   </Tooltip>
                 </Label>
@@ -360,8 +359,7 @@ export default function JWTSettings() {
                   >
                     <InfoIcon
                       aria-label="Info"
-                      className="h-4 w-4"
-                      color="primary"
+                      className="h-4 w-4 text-primary"
                     />
                   </Tooltip>
                 </Label>
@@ -390,8 +388,7 @@ export default function JWTSettings() {
                   >
                     <InfoIcon
                       aria-label="Info"
-                      className="h-4 w-4"
-                      color="primary"
+                      className="h-4 w-4 text-primary"
                     />
                   </Tooltip>
                 </Label>

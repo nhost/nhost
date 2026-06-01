@@ -4,7 +4,7 @@ import { Box } from '@/components/ui/v2/Box';
 import { Button } from '@/components/ui/v2/Button';
 import { Checkbox } from '@/components/ui/v2/Checkbox';
 import { Text } from '@/components/ui/v2/Text';
-import { useAdminApolloClient } from '@/features/orgs/projects/hooks/useAdminApolloClient';
+import { useRemoteApplicationGQLClient } from '@/features/orgs/hooks/useRemoteApplicationGQLClient';
 import { execPromiseWithErrorToast } from '@/features/orgs/utils/execPromiseWithErrorToast';
 import type { Assistant } from '@/pages/orgs/[orgSlug]/projects/[appSubdomain]/ai/assistants';
 import { useDeleteAssistantMutation } from '@/utils/__generated__/graphite.graphql';
@@ -23,10 +23,10 @@ export default function DeleteAssistantModal({
   const [remove, setRemove] = useState(false);
   const [loadingRemove, setLoadingRemove] = useState(false);
 
-  const { adminClient } = useAdminApolloClient();
+  const remoteProjectGQLClient = useRemoteApplicationGQLClient();
 
   const [deleteAssistantMutation] = useDeleteAssistantMutation({
-    client: adminClient,
+    client: remoteProjectGQLClient,
   });
 
   const deleteAssistant = async () => {

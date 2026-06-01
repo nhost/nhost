@@ -18,7 +18,29 @@ else
   sha256() { shasum -a 256 | cut -d' ' -f1; }
 fi
 
-git fetch origin main --quiet 2>/dev/null || true
+fetch_base_ref() {
+  local base="$1"
+  local remote=""
+  local ref=""
+
+  if [[ "$base" == refs/remotes/*/* ]]; then
+    local remote_ref="${base#refs/remotes/}"
+    remote="${remote_ref%%/*}"
+    ref="${remote_ref#*/}"
+  elif [[ "$base" == */* ]]; then
+    remote="${base%%/*}"
+    ref="${base#*/}"
+  else
+    return 0
+  fi
+
+  if git remote get-url "$remote" &>/dev/null; then
+    # Best-effort refresh only; an existing local tracking ref may still be usable.
+    git fetch --quiet "$remote" "+refs/heads/${ref}:refs/remotes/${remote}/${ref}" || true
+  fi
+}
+
+fetch_base_ref "$BASE"
 MERGE_BASE=$(git merge-base "$BASE" HEAD)
 
 # Pathspec to exclude generated/vendored files from the diff
@@ -38,6 +60,8 @@ EXCLUDES=(
 
 echo "### PR_NUMBER: ${PR}"
 echo "### REPO: ${REPO}"
+echo "### BASE_REF: ${BASE}"
+echo "### MERGE_BASE: ${MERGE_BASE}"
 echo ""
 
 echo "### CHANGED_FILES_WITH_STATS"

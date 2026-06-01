@@ -1,10 +1,9 @@
+import { ChevronLeftIcon, ChevronRightIcon } from 'lucide-react';
 import { useRouter } from 'next/router';
 import { Fragment } from 'react';
 import { IconLink } from '@/components/common/IconLink';
 import { ActivityIndicator } from '@/components/ui/v2/ActivityIndicator';
 import { Divider } from '@/components/ui/v2/Divider';
-import { ChevronLeftIcon } from '@/components/ui/v2/icons/ChevronLeftIcon';
-import { ChevronRightIcon } from '@/components/ui/v2/icons/ChevronRightIcon';
 import { List } from '@/components/ui/v2/List';
 import { Text } from '@/components/ui/v2/Text';
 import { DeploymentListItem } from '@/features/orgs/projects/deployments/components/DeploymentListItem';

@@ -16,6 +16,7 @@ function setup(overrides: Partial<SchemaDiagramToolbarProps> = {}) {
   const onRoleChange = vi.fn();
   const onSelectedSchemasChange = vi.fn();
   const onHideEmptyChange = vi.fn();
+  const onNamingModeChange = vi.fn();
   const onNewTable = vi.fn();
   const onSelectTable = vi.fn();
 
@@ -28,6 +29,8 @@ function setup(overrides: Partial<SchemaDiagramToolbarProps> = {}) {
     onSelectedSchemasChange,
     hideEmpty: false,
     onHideEmptyChange,
+    namingMode: 'graphql',
+    onNamingModeChange,
     onNewTable,
     canCreateTable: true,
     targetSchema: 'public',
@@ -46,6 +49,7 @@ function setup(overrides: Partial<SchemaDiagramToolbarProps> = {}) {
     onRoleChange,
     onSelectedSchemasChange,
     onHideEmptyChange,
+    onNamingModeChange,
     onNewTable,
     onSelectTable,
   };

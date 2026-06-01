@@ -41,14 +41,14 @@ func (m *mockAuthClient) SignInPATWithResponse(
 
 	resp := &auth.SignInPATR{
 		Body:         []byte(`{}`),
-		HTTPResponse: &http.Response{StatusCode: m.statusCode}, //nolint:exhaustruct
+		HTTPResponse: &http.Response{StatusCode: m.statusCode},
 		JSON200:      nil,
 		JSONDefault:  nil,
 	}
 
 	if m.statusCode == http.StatusOK {
 		resp.JSON200 = &auth.SessionPayload{
-			Session: &auth.Session{ //nolint:exhaustruct
+			Session: &auth.Session{
 				AccessToken:          m.accessToken,
 				AccessTokenExpiresIn: m.expiresIn,
 			},
@@ -71,13 +71,13 @@ func (m *mockAuthClient) RefreshTokenWithResponse(
 
 	resp := &auth.RefreshTokenR{
 		Body:         []byte(`{}`),
-		HTTPResponse: &http.Response{StatusCode: m.rtStatusCode}, //nolint:exhaustruct
+		HTTPResponse: &http.Response{StatusCode: m.rtStatusCode},
 		JSON200:      nil,
 		JSONDefault:  nil,
 	}
 
 	if m.rtStatusCode == http.StatusOK {
-		resp.JSON200 = &auth.Session{ //nolint:exhaustruct
+		resp.JSON200 = &auth.Session{
 			AccessToken:          m.rtAccessToken,
 			AccessTokenExpiresIn: m.rtExpiresIn,
 			RefreshToken:         m.rtRefreshTok,
@@ -90,7 +90,7 @@ func (m *mockAuthClient) RefreshTokenWithResponse(
 func TestWithPAT_CachesToken(t *testing.T) {
 	t.Parallel()
 
-	mock := &mockAuthClient{ //nolint:exhaustruct
+	mock := &mockAuthClient{
 		accessToken: "token-abc",
 		expiresIn:   3600,
 		statusCode:  http.StatusOK,
@@ -129,7 +129,7 @@ func TestWithPAT_CachesToken(t *testing.T) {
 func TestWithPAT_RefreshesExpiredToken(t *testing.T) {
 	t.Parallel()
 
-	mock := &mockAuthClient{ //nolint:exhaustruct
+	mock := &mockAuthClient{
 		accessToken: "token-1",
 		expiresIn:   0, // expires immediately
 		statusCode:  http.StatusOK,
@@ -172,7 +172,7 @@ func TestWithPAT_RefreshesExpiredToken(t *testing.T) {
 func TestWithPAT_PropagatesSignInError(t *testing.T) {
 	t.Parallel()
 
-	mock := &mockAuthClient{ //nolint:exhaustruct
+	mock := &mockAuthClient{
 		err: errTransient,
 	}
 
@@ -190,7 +190,7 @@ func TestWithPAT_PropagatesSignInError(t *testing.T) {
 func TestWithPAT_HandlesNon200(t *testing.T) {
 	t.Parallel()
 
-	mock := &mockAuthClient{ //nolint:exhaustruct
+	mock := &mockAuthClient{
 		statusCode: http.StatusUnauthorized,
 	}
 
@@ -264,7 +264,7 @@ func TestWithPAT_ConcurrentAccess(t *testing.T) {
 
 	const goroutines = 10
 
-	mock := &mockAuthClient{ //nolint:exhaustruct
+	mock := &mockAuthClient{
 		accessToken: "concurrent-token",
 		expiresIn:   3600,
 		statusCode:  http.StatusOK,
@@ -298,7 +298,7 @@ func TestWithPAT_ConcurrentAccess(t *testing.T) {
 func TestRefreshTokenInterceptor_CachesToken(t *testing.T) {
 	t.Parallel()
 
-	mock := &mockAuthClient{ //nolint:exhaustruct
+	mock := &mockAuthClient{
 		rtAccessToken: "access-abc",
 		rtRefreshTok:  "rt-abc",
 		rtExpiresIn:   3600,
@@ -338,7 +338,7 @@ func TestRefreshTokenInterceptor_CachesToken(t *testing.T) {
 func TestRefreshTokenInterceptor_RefreshesExpiredToken(t *testing.T) {
 	t.Parallel()
 
-	mock := &mockAuthClient{ //nolint:exhaustruct
+	mock := &mockAuthClient{
 		rtAccessToken: "token-1",
 		rtRefreshTok:  "rt-1",
 		rtExpiresIn:   0, // expires immediately
@@ -381,7 +381,7 @@ func TestRefreshTokenInterceptor_RefreshesExpiredToken(t *testing.T) {
 func TestRefreshTokenInterceptor_PropagatesError(t *testing.T) {
 	t.Parallel()
 
-	mock := &mockAuthClient{ //nolint:exhaustruct
+	mock := &mockAuthClient{
 		rtErr: errTransient,
 	}
 
@@ -399,7 +399,7 @@ func TestRefreshTokenInterceptor_PropagatesError(t *testing.T) {
 func TestRefreshTokenInterceptor_HandlesNon200(t *testing.T) {
 	t.Parallel()
 
-	mock := &mockAuthClient{ //nolint:exhaustruct
+	mock := &mockAuthClient{
 		rtStatusCode: http.StatusUnauthorized,
 	}
 
@@ -417,7 +417,7 @@ func TestRefreshTokenInterceptor_HandlesNon200(t *testing.T) {
 func TestRefreshTokenInterceptor_RotatesRefreshToken(t *testing.T) {
 	t.Parallel()
 
-	mock := &mockAuthClient{ //nolint:exhaustruct
+	mock := &mockAuthClient{
 		rtAccessToken: "access-1",
 		rtRefreshTok:  "rt-rotated",
 		rtExpiresIn:   3600,
@@ -442,7 +442,7 @@ func TestRefreshTokenInterceptor_RotatesRefreshToken(t *testing.T) {
 func TestRefreshTokenInterceptor_KeepsRefreshTokenWhenEmpty(t *testing.T) {
 	t.Parallel()
 
-	mock := &mockAuthClient{ //nolint:exhaustruct
+	mock := &mockAuthClient{
 		rtAccessToken: "access-1",
 		rtRefreshTok:  "",
 		rtExpiresIn:   3600,
@@ -469,7 +469,7 @@ func TestRefreshTokenInterceptor_ConcurrentAccess(t *testing.T) {
 
 	const goroutines = 10
 
-	mock := &mockAuthClient{ //nolint:exhaustruct
+	mock := &mockAuthClient{
 		rtAccessToken: "concurrent-token",
 		rtRefreshTok:  "rt-concurrent",
 		rtExpiresIn:   3600,

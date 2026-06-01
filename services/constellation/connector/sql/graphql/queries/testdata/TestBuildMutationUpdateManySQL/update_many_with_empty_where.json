@@ -1,0 +1,10 @@
+[
+  {
+    "Name": "update_departments_many",
+    "QueryType": "update_many",
+    "SQL": "WITH mutation_result_0 AS (UPDATE \"public\".\"departments\" SET \"description\" = $1::text WHERE true RETURNING *) SELECT jsonb_build_array((SELECT json_build_object('affected_rows', (SELECT COUNT(*) FROM mutation_result_0))))",
+    "Parameters": [
+      "All departments"
+    ]
+  }
+]

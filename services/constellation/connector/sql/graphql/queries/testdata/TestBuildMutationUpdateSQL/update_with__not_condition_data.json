@@ -1,0 +1,129 @@
+[
+  [
+    {
+      "affected_rows": 24,
+      "returning": [
+        {
+          "id": "550e8400-e29b-41d4-a716-446655440001",
+          "disabled": false,
+          "locale": "ja"
+        },
+        {
+          "locale": "ja",
+          "id": "550e8400-e29b-41d4-a716-446655440002",
+          "disabled": false
+        },
+        {
+          "id": "550e8400-e29b-41d4-a716-446655440003",
+          "disabled": false,
+          "locale": "ja"
+        },
+        {
+          "id": "550e8400-e29b-41d4-a716-446655440004",
+          "disabled": false,
+          "locale": "ja"
+        },
+        {
+          "id": "550e8400-e29b-41d4-a716-446655440011",
+          "disabled": false,
+          "locale": "ja"
+        },
+        {
+          "id": "550e8400-e29b-41d4-a716-446655440012",
+          "disabled": false,
+          "locale": "ja"
+        },
+        {
+          "disabled": false,
+          "locale": "ja",
+          "id": "550e8400-e29b-41d4-a716-446655440013"
+        },
+        {
+          "disabled": false,
+          "locale": "ja",
+          "id": "550e8400-e29b-41d4-a716-446655440014"
+        },
+        {
+          "id": "550e8400-e29b-41d4-a716-446655440021",
+          "disabled": false,
+          "locale": "ja"
+        },
+        {
+          "disabled": false,
+          "locale": "ja",
+          "id": "550e8400-e29b-41d4-a716-446655440022"
+        },
+        {
+          "locale": "ja",
+          "id": "550e8400-e29b-41d4-a716-446655440023",
+          "disabled": false
+        },
+        {
+          "id": "550e8400-e29b-41d4-a716-446655440024",
+          "disabled": false,
+          "locale": "ja"
+        },
+        {
+          "id": "550e8400-e29b-41d4-a716-446655440031",
+          "disabled": false,
+          "locale": "ja"
+        },
+        {
+          "id": "550e8400-e29b-41d4-a716-446655440032",
+          "disabled": false,
+          "locale": "ja"
+        },
+        {
+          "id": "550e8400-e29b-41d4-a716-446655440033",
+          "disabled": false,
+          "locale": "ja"
+        },
+        {
+          "id": "550e8400-e29b-41d4-a716-446655440034",
+          "disabled": false,
+          "locale": "ja"
+        },
+        {
+          "id": "550e8400-e29b-41d4-a716-446655440041",
+          "disabled": false,
+          "locale": "ja"
+        },
+        {
+          "id": "550e8400-e29b-41d4-a716-446655440042",
+          "disabled": false,
+          "locale": "ja"
+        },
+        {
+          "id": "550e8400-e29b-41d4-a716-446655440043",
+          "disabled": false,
+          "locale": "ja"
+        },
+        {
+          "id": "550e8400-e29b-41d4-a716-446655440044",
+          "disabled": false,
+          "locale": "ja"
+        },
+        {
+          "id": "550e8400-e29b-41d4-a716-446655440051",
+          "disabled": false,
+          "locale": "ja"
+        },
+        {
+          "id": "550e8400-e29b-41d4-a716-446655440052",
+          "disabled": false,
+          "locale": "ja"
+        },
+        {
+          "locale": "ja",
+          "id": "550e8400-e29b-41d4-a716-446655440053",
+          "disabled": false
+        },
+        {
+          "id": "550e8400-e29b-41d4-a716-446655440054",
+          "disabled": false,
+          "locale": "ja"
+        }
+      ]
+    }
+  ]
+]

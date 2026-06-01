@@ -1,0 +1,8 @@
+[
+  {
+    "Name": "departments_aggregate",
+    "QueryType": "select_aggregate",
+    "SQL": "SELECT \"_subs\".\"result_id\", \"_fld_resp\".\"root\" AS \"result\" FROM UNNEST($1::text[], $2::json[]) AS \"_subs\"(\"result_id\", \"result_vars\") LEFT OUTER JOIN LATERAL (SELECT json_build_object('departments_aggregate', (WITH \"_root.base\" AS MATERIALIZED (SELECT * FROM \"public\".\"departments\") SELECT json_build_object('aggregate', (SELECT json_build_object('min', json_build_object('budget', MIN(\"budget\"))) FROM \"_root.base\")) AS \"departments_aggregate\")) AS \"root\") AS \"_fld_resp\" ON ('true')",
+    "Parameters": null
+  }
+]

@@ -45,8 +45,8 @@ func TestSignUpEmailPassword(t *testing.T) { //nolint:maintidx
 						DisplayName:           "jane@acme.com",
 						AvatarUrl:             "",
 						Email:                 sql.Text("jane@acme.com"),
-						PasswordHash:          pgtype.Text{}, //nolint:exhaustruct
-						Ticket:                pgtype.Text{}, //nolint:exhaustruct
+						PasswordHash:          pgtype.Text{},
+						Ticket:                pgtype.Text{},
 						TicketExpiresAt:       sql.TimestampTz(time.Now()),
 						EmailVerified:         false,
 						Locale:                "en",
@@ -54,7 +54,7 @@ func TestSignUpEmailPassword(t *testing.T) { //nolint:maintidx
 						Metadata:              []byte("null"),
 						Roles:                 []string{"user", "me"},
 						IsAnonymous:           false,
-						RefreshTokenHash:      pgtype.Text{}, //nolint:exhaustruct
+						RefreshTokenHash:      pgtype.Text{},
 						RefreshTokenExpiresAt: sql.TimestampTz(time.Now().Add(30 * 24 * time.Hour)),
 					}),
 				).Return(insertResponse, nil)
@@ -62,7 +62,7 @@ func TestSignUpEmailPassword(t *testing.T) { //nolint:maintidx
 				return mock
 			},
 			request: api.SignUpEmailPasswordRequestObject{
-				Body: &api.SignUpEmailPasswordJSONRequestBody{ //nolint:exhaustruct
+				Body: &api.SignUpEmailPasswordJSONRequestBody{
 					Email:    "jane@acme.com",
 					Password: "password",
 					Options:  nil,
@@ -131,8 +131,8 @@ func TestSignUpEmailPassword(t *testing.T) { //nolint:maintidx
 						DisplayName:           "Jane Doe",
 						AvatarUrl:             "",
 						Email:                 sql.Text("jane@acme.com"),
-						PasswordHash:          pgtype.Text{}, //nolint:exhaustruct
-						Ticket:                pgtype.Text{}, //nolint:exhaustruct
+						PasswordHash:          pgtype.Text{},
+						Ticket:                pgtype.Text{},
 						TicketExpiresAt:       sql.TimestampTz(time.Now()),
 						EmailVerified:         false,
 						Locale:                "se",
@@ -140,7 +140,7 @@ func TestSignUpEmailPassword(t *testing.T) { //nolint:maintidx
 						Metadata:              []byte(`{"firstName":"Jane","lastName":"Doe"}`),
 						Roles:                 []string{"me"},
 						IsAnonymous:           false,
-						RefreshTokenHash:      pgtype.Text{}, //nolint:exhaustruct
+						RefreshTokenHash:      pgtype.Text{},
 						RefreshTokenExpiresAt: sql.TimestampTz(time.Now().Add(30 * 24 * time.Hour)),
 					}),
 				).Return(insertResponse, nil)
@@ -148,7 +148,7 @@ func TestSignUpEmailPassword(t *testing.T) { //nolint:maintidx
 				return mock
 			},
 			request: api.SignUpEmailPasswordRequestObject{
-				Body: &api.SignUpEmailPasswordJSONRequestBody{ //nolint:exhaustruct
+				Body: &api.SignUpEmailPasswordJSONRequestBody{
 					Email:    "jane@acme.com",
 					Password: "password",
 					Options: &api.SignUpOptions{
@@ -228,7 +228,7 @@ func TestSignUpEmailPassword(t *testing.T) { //nolint:maintidx
 				return mock
 			},
 			request: api.SignUpEmailPasswordRequestObject{
-				Body: &api.SignUpEmailPasswordJSONRequestBody{ //nolint:exhaustruct
+				Body: &api.SignUpEmailPasswordJSONRequestBody{
 					Email:    "jane@acme.com",
 					Password: "password",
 					Options:  nil,
@@ -257,27 +257,27 @@ func TestSignUpEmailPassword(t *testing.T) { //nolint:maintidx
 
 				mock.EXPECT().InsertUser(
 					gomock.Any(),
-					cmpDBParams(sql.InsertUserParams{
-						ID:                uuid.UUID{},
-						Disabled:          true,
-						DisplayName:       "jane@acme.com",
-						AvatarUrl:         "",
-						Email:             sql.Text("jane@acme.com"),
-						PasswordHash:      pgtype.Text{}, //nolint:exhaustruct
-						Ticket:            sql.Text("verifyEmail:xxxx"),
-						TicketExpiresAt:   sql.TimestampTz(time.Now().Add(30 * 24 * time.Hour)),
-						EmailVerified:     false,
-						Locale:            "en",
-						DefaultRole:       "user",
-						Metadata:          []byte("null"),
-						Roles:             []string{"user", "me"},
-						PhoneNumber:       pgtype.Text{}, //nolint:exhaustruct
-						Otp:               "",
-						OtpHashExpiresAt:  pgtype.Timestamptz{}, //nolint:exhaustruct
-						OtpMethodLastUsed: pgtype.Text{},        //nolint:exhaustruct
-					},
-						cmpopts.IgnoreFields(sql.InsertUserParams{}, "ID"), //nolint:exhaustruct
-
+					cmpDBParams(
+						sql.InsertUserParams{
+							ID:                uuid.UUID{},
+							Disabled:          true,
+							DisplayName:       "jane@acme.com",
+							AvatarUrl:         "",
+							Email:             sql.Text("jane@acme.com"),
+							PasswordHash:      pgtype.Text{},
+							Ticket:            sql.Text("verifyEmail:xxxx"),
+							TicketExpiresAt:   sql.TimestampTz(time.Now().Add(30 * 24 * time.Hour)),
+							EmailVerified:     false,
+							Locale:            "en",
+							DefaultRole:       "user",
+							Metadata:          []byte("null"),
+							Roles:             []string{"user", "me"},
+							PhoneNumber:       pgtype.Text{},
+							Otp:               "",
+							OtpHashExpiresAt:  pgtype.Timestamptz{},
+							OtpMethodLastUsed: pgtype.Text{},
+						},
+						cmpopts.IgnoreFields(sql.InsertUserParams{}, "ID"),
 					),
 				).Return(sql.InsertUserRow{
 					UserID:    uuid.MustParse("DB477732-48FA-4289-B694-2886A646B6EB"),
@@ -287,7 +287,7 @@ func TestSignUpEmailPassword(t *testing.T) { //nolint:maintidx
 				return mock
 			},
 			request: api.SignUpEmailPasswordRequestObject{
-				Body: &api.SignUpEmailPasswordJSONRequestBody{ //nolint:exhaustruct
+				Body: &api.SignUpEmailPasswordJSONRequestBody{
 					Email:    "jane@acme.com",
 					Password: "password",
 					Options:  nil,
@@ -315,26 +315,27 @@ func TestSignUpEmailPassword(t *testing.T) { //nolint:maintidx
 
 				mock.EXPECT().InsertUser(
 					gomock.Any(),
-					cmpDBParams(sql.InsertUserParams{
-						ID:                uuid.UUID{},
-						Disabled:          true,
-						DisplayName:       "jane@acme.com",
-						AvatarUrl:         "",
-						Email:             sql.Text("jane@acme.com"),
-						PasswordHash:      pgtype.Text{}, //nolint:exhaustruct
-						Ticket:            sql.Text("verifyEmail:xxxx"),
-						TicketExpiresAt:   sql.TimestampTz(time.Now().Add(30 * 24 * time.Hour)),
-						EmailVerified:     false,
-						Locale:            "en",
-						DefaultRole:       "user",
-						Metadata:          []byte("null"),
-						Roles:             []string{"user", "me"},
-						PhoneNumber:       pgtype.Text{}, //nolint:exhaustruct
-						Otp:               "",
-						OtpHashExpiresAt:  pgtype.Timestamptz{}, //nolint:exhaustruct
-						OtpMethodLastUsed: pgtype.Text{},        //nolint:exhaustruct
-					},
-						cmpopts.IgnoreFields(sql.InsertUserParams{}, "ID"), //nolint:exhaustruct
+					cmpDBParams(
+						sql.InsertUserParams{
+							ID:                uuid.UUID{},
+							Disabled:          true,
+							DisplayName:       "jane@acme.com",
+							AvatarUrl:         "",
+							Email:             sql.Text("jane@acme.com"),
+							PasswordHash:      pgtype.Text{},
+							Ticket:            sql.Text("verifyEmail:xxxx"),
+							TicketExpiresAt:   sql.TimestampTz(time.Now().Add(30 * 24 * time.Hour)),
+							EmailVerified:     false,
+							Locale:            "en",
+							DefaultRole:       "user",
+							Metadata:          []byte("null"),
+							Roles:             []string{"user", "me"},
+							PhoneNumber:       pgtype.Text{},
+							Otp:               "",
+							OtpHashExpiresAt:  pgtype.Timestamptz{},
+							OtpMethodLastUsed: pgtype.Text{},
+						},
+						cmpopts.IgnoreFields(sql.InsertUserParams{}, "ID"),
 					),
 				).Return(sql.InsertUserRow{
 					UserID:    uuid.MustParse("DB477732-48FA-4289-B694-2886A646B6EB"),
@@ -344,7 +345,7 @@ func TestSignUpEmailPassword(t *testing.T) { //nolint:maintidx
 				return mock
 			},
 			request: api.SignUpEmailPasswordRequestObject{
-				Body: &api.SignUpEmailPasswordJSONRequestBody{ //nolint:exhaustruct
+				Body: &api.SignUpEmailPasswordJSONRequestBody{
 					Email:    "jane@acme.com",
 					Password: "password",
 					Options:  nil,
@@ -371,26 +372,27 @@ func TestSignUpEmailPassword(t *testing.T) { //nolint:maintidx
 
 				mock.EXPECT().InsertUser(
 					gomock.Any(),
-					cmpDBParams(sql.InsertUserParams{
-						ID:                uuid.UUID{},
-						Disabled:          false,
-						DisplayName:       "jane@acme.com",
-						AvatarUrl:         "",
-						Email:             sql.Text("jane@acme.com"),
-						PasswordHash:      pgtype.Text{}, //nolint:exhaustruct
-						Ticket:            sql.Text("verifyEmail:xxxx"),
-						TicketExpiresAt:   sql.TimestampTz(time.Now().Add(30 * 24 * time.Hour)),
-						EmailVerified:     false,
-						Locale:            "en",
-						DefaultRole:       "user",
-						Metadata:          []byte("null"),
-						Roles:             []string{"user", "me"},
-						PhoneNumber:       pgtype.Text{}, //nolint:exhaustruct
-						Otp:               "",
-						OtpHashExpiresAt:  pgtype.Timestamptz{}, //nolint:exhaustruct
-						OtpMethodLastUsed: pgtype.Text{},        //nolint:exhaustruct
-					},
-						cmpopts.IgnoreFields(sql.InsertUserParams{}, "ID"), //nolint:exhaustruct
+					cmpDBParams(
+						sql.InsertUserParams{
+							ID:                uuid.UUID{},
+							Disabled:          false,
+							DisplayName:       "jane@acme.com",
+							AvatarUrl:         "",
+							Email:             sql.Text("jane@acme.com"),
+							PasswordHash:      pgtype.Text{},
+							Ticket:            sql.Text("verifyEmail:xxxx"),
+							TicketExpiresAt:   sql.TimestampTz(time.Now().Add(30 * 24 * time.Hour)),
+							EmailVerified:     false,
+							Locale:            "en",
+							DefaultRole:       "user",
+							Metadata:          []byte("null"),
+							Roles:             []string{"user", "me"},
+							PhoneNumber:       pgtype.Text{},
+							Otp:               "",
+							OtpHashExpiresAt:  pgtype.Timestamptz{},
+							OtpMethodLastUsed: pgtype.Text{},
+						},
+						cmpopts.IgnoreFields(sql.InsertUserParams{}, "ID"),
 					),
 				).Return(sql.InsertUserRow{
 					UserID:    uuid.MustParse("DB477732-48FA-4289-B694-2886A646B6EB"),
@@ -423,7 +425,7 @@ func TestSignUpEmailPassword(t *testing.T) { //nolint:maintidx
 						notifications.TemplateNameEmailVerify,
 						testhelpers.GomockCmpOpts(
 							notifications.TemplateData{
-								Link:        "https://local.auth.nhost.run/verify?codeChallenge=E9Melhoa2OwvFrEMTJguCHaoeK1t8URWbuGJSstw-cM&redirectTo=http%3A%2F%2Flocalhost%3A3000&ticket=verifyEmail%3A55fa0d55-631c-490a-a744-b5feca4c22a1&type=emailVerify", //nolint:lll
+								Link:        "https://local.auth.nhost.run/verify?codeChallenge=E9Melhoa2OwvFrEMTJguCHaoeK1t8URWbuGJSstw-cM&redirectTo=http%3A%2F%2Flocalhost%3A3000&ticket=verifyEmail%3A55fa0d55-631c-490a-a744-b5feca4c22a1&type=emailVerify",
 								DisplayName: "jane@acme.com",
 								Email:       "jane@acme.com",
 								NewEmail:    "",
@@ -434,11 +436,14 @@ func TestSignUpEmailPassword(t *testing.T) { //nolint:maintidx
 								ClientURL:   "http://localhost:3000",
 							},
 							testhelpers.FilterPathLast(
-								[]string{".Ticket"}, cmp.Comparer(cmpTicket)),
+								[]string{".Ticket"}, cmp.Comparer(cmpTicket),
+							),
 
 							testhelpers.FilterPathLast(
-								[]string{".Link"}, cmp.Comparer(cmpLink)),
-						)).Return(nil)
+								[]string{".Link"}, cmp.Comparer(cmpLink),
+							),
+						),
+					).Return(nil)
 
 					return mock
 				}),
@@ -458,8 +463,8 @@ func TestSignUpEmailPassword(t *testing.T) { //nolint:maintidx
 						DisplayName:           "jane@acme.com",
 						AvatarUrl:             "",
 						Email:                 sql.Text("jane@acme.com"),
-						PasswordHash:          pgtype.Text{}, //nolint:exhaustruct
-						Ticket:                pgtype.Text{}, //nolint:exhaustruct
+						PasswordHash:          pgtype.Text{},
+						Ticket:                pgtype.Text{},
 						TicketExpiresAt:       sql.TimestampTz(time.Now()),
 						EmailVerified:         false,
 						Locale:                "en",
@@ -467,18 +472,18 @@ func TestSignUpEmailPassword(t *testing.T) { //nolint:maintidx
 						Metadata:              []byte("null"),
 						Roles:                 []string{"user", "me"},
 						IsAnonymous:           false,
-						RefreshTokenHash:      pgtype.Text{}, //nolint:exhaustruct
+						RefreshTokenHash:      pgtype.Text{},
 						RefreshTokenExpiresAt: sql.TimestampTz(time.Now().Add(30 * 24 * time.Hour)),
 					}),
 				).Return(
-					sql.InsertUserWithRefreshTokenRow{}, //nolint:exhaustruct
-					errors.New(`ERROR: duplicate key value violates unique constraint "users_email_key" (SQLSTATE 23505)`), //nolint:err113,lll
+					sql.InsertUserWithRefreshTokenRow{},
+					errors.New(`ERROR: duplicate key value violates unique constraint "users_email_key" (SQLSTATE 23505)`), //nolint:err113
 				)
 
 				return mock
 			},
 			request: api.SignUpEmailPasswordRequestObject{
-				Body: &api.SignUpEmailPasswordJSONRequestBody{ //nolint:exhaustruct
+				Body: &api.SignUpEmailPasswordJSONRequestBody{
 					Email:    "jane@acme.com",
 					Password: "password",
 					Options:  nil,
@@ -512,8 +517,8 @@ func TestSignUpEmailPassword(t *testing.T) { //nolint:maintidx
 						DisplayName:           "jane@acme.com",
 						AvatarUrl:             "",
 						Email:                 sql.Text("jane@acme.com"),
-						PasswordHash:          pgtype.Text{}, //nolint:exhaustruct
-						Ticket:                pgtype.Text{}, //nolint:exhaustruct
+						PasswordHash:          pgtype.Text{},
+						Ticket:                pgtype.Text{},
 						TicketExpiresAt:       sql.TimestampTz(time.Now()),
 						EmailVerified:         false,
 						Locale:                "en",
@@ -521,18 +526,18 @@ func TestSignUpEmailPassword(t *testing.T) { //nolint:maintidx
 						Metadata:              []byte("null"),
 						Roles:                 []string{"user", "me"},
 						IsAnonymous:           false,
-						RefreshTokenHash:      pgtype.Text{}, //nolint:exhaustruct
+						RefreshTokenHash:      pgtype.Text{},
 						RefreshTokenExpiresAt: sql.TimestampTz(time.Now().Add(30 * 24 * time.Hour)),
 					}),
 				).Return(
-					sql.InsertUserWithRefreshTokenRow{}, //nolint:exhaustruct
-					errors.New(`ERROR: duplicate key value violates unique constraint "users_email_key" (SQLSTATE 23505)`), //nolint:err113,lll
+					sql.InsertUserWithRefreshTokenRow{},
+					errors.New(`ERROR: duplicate key value violates unique constraint "users_email_key" (SQLSTATE 23505)`), //nolint:err113
 				)
 
 				return mock
 			},
 			request: api.SignUpEmailPasswordRequestObject{
-				Body: &api.SignUpEmailPasswordJSONRequestBody{ //nolint:exhaustruct
+				Body: &api.SignUpEmailPasswordJSONRequestBody{
 					Email:    "jane@acme.com",
 					Password: "password",
 					Options:  nil,
@@ -562,7 +567,7 @@ func TestSignUpEmailPassword(t *testing.T) { //nolint:maintidx
 				return mock
 			},
 			request: api.SignUpEmailPasswordRequestObject{
-				Body: &api.SignUpEmailPasswordJSONRequestBody{ //nolint:exhaustruct
+				Body: &api.SignUpEmailPasswordJSONRequestBody{
 					Email:    "jane@acme.com",
 					Password: "p",
 					Options:  nil,
@@ -592,7 +597,7 @@ func TestSignUpEmailPassword(t *testing.T) { //nolint:maintidx
 				return mock
 			},
 			request: api.SignUpEmailPasswordRequestObject{
-				Body: &api.SignUpEmailPasswordJSONRequestBody{ //nolint:exhaustruct
+				Body: &api.SignUpEmailPasswordJSONRequestBody{
 					Email:    "jane@acme.com",
 					Password: "password",
 					Options:  nil,
@@ -637,8 +642,8 @@ func TestSignUpEmailPassword(t *testing.T) { //nolint:maintidx
 						DisplayName:           "jane@acme.com",
 						AvatarUrl:             "",
 						Email:                 sql.Text("jane@acme.com"),
-						PasswordHash:          pgtype.Text{}, //nolint:exhaustruct
-						Ticket:                pgtype.Text{}, //nolint:exhaustruct
+						PasswordHash:          pgtype.Text{},
+						Ticket:                pgtype.Text{},
 						TicketExpiresAt:       sql.TimestampTz(time.Now()),
 						EmailVerified:         false,
 						Locale:                "en",
@@ -646,7 +651,7 @@ func TestSignUpEmailPassword(t *testing.T) { //nolint:maintidx
 						Metadata:              []byte("null"),
 						Roles:                 []string{"user", "me"},
 						IsAnonymous:           false,
-						RefreshTokenHash:      pgtype.Text{}, //nolint:exhaustruct
+						RefreshTokenHash:      pgtype.Text{},
 						RefreshTokenExpiresAt: sql.TimestampTz(time.Now().Add(30 * 24 * time.Hour)),
 					}),
 				).Return(insertResponse, nil)
@@ -654,7 +659,7 @@ func TestSignUpEmailPassword(t *testing.T) { //nolint:maintidx
 				return mock
 			},
 			request: api.SignUpEmailPasswordRequestObject{
-				Body: &api.SignUpEmailPasswordJSONRequestBody{ //nolint:exhaustruct
+				Body: &api.SignUpEmailPasswordJSONRequestBody{
 					Email:    "jane@acme.com",
 					Password: "password",
 					Options:  nil,
@@ -730,7 +735,7 @@ func TestSignUpEmailPassword(t *testing.T) { //nolint:maintidx
 				return mock
 			},
 			request: api.SignUpEmailPasswordRequestObject{
-				Body: &api.SignUpEmailPasswordJSONRequestBody{ //nolint:exhaustruct
+				Body: &api.SignUpEmailPasswordJSONRequestBody{
 					Email:    "jane@acme.com",
 					Password: "password",
 					Options: &api.SignUpOptions{
@@ -769,10 +774,10 @@ func TestSignUpEmailPassword(t *testing.T) { //nolint:maintidx
 					cmpDBParams(sql.InsertUserWithRefreshTokenParams{
 						Disabled:              false,
 						DisplayName:           "jane@acme.com",
-						AvatarUrl:             "https://www.gravatar.com/avatar/a6b55dc639dd4151e97efbc42ee1a28b?d=blank&r=g", //nolint:lll
+						AvatarUrl:             "https://www.gravatar.com/avatar/a6b55dc639dd4151e97efbc42ee1a28b?d=blank&r=g",
 						Email:                 sql.Text("jane@acme.com"),
-						PasswordHash:          pgtype.Text{}, //nolint:exhaustruct
-						Ticket:                pgtype.Text{}, //nolint:exhaustruct
+						PasswordHash:          pgtype.Text{},
+						Ticket:                pgtype.Text{},
 						TicketExpiresAt:       sql.TimestampTz(time.Now()),
 						EmailVerified:         false,
 						Locale:                "en",
@@ -780,7 +785,7 @@ func TestSignUpEmailPassword(t *testing.T) { //nolint:maintidx
 						Metadata:              []byte("null"),
 						Roles:                 []string{"user", "me"},
 						IsAnonymous:           false,
-						RefreshTokenHash:      pgtype.Text{}, //nolint:exhaustruct
+						RefreshTokenHash:      pgtype.Text{},
 						RefreshTokenExpiresAt: sql.TimestampTz(time.Now().Add(30 * 24 * time.Hour)),
 					}),
 				).Return(insertResponse, nil)
@@ -788,7 +793,7 @@ func TestSignUpEmailPassword(t *testing.T) { //nolint:maintidx
 				return mock
 			},
 			request: api.SignUpEmailPasswordRequestObject{
-				Body: &api.SignUpEmailPasswordJSONRequestBody{ //nolint:exhaustruct
+				Body: &api.SignUpEmailPasswordJSONRequestBody{
 					Email:    "jane@acme.com",
 					Password: "password",
 					Options:  nil,
@@ -862,8 +867,8 @@ func TestSignUpEmailPassword(t *testing.T) { //nolint:maintidx
 						DisplayName:           "jane@acme.com",
 						AvatarUrl:             "",
 						Email:                 sql.Text("jane@acme.com"),
-						PasswordHash:          pgtype.Text{}, //nolint:exhaustruct
-						Ticket:                pgtype.Text{}, //nolint:exhaustruct
+						PasswordHash:          pgtype.Text{},
+						Ticket:                pgtype.Text{},
 						TicketExpiresAt:       sql.TimestampTz(time.Now()),
 						EmailVerified:         false,
 						Locale:                "en",
@@ -871,7 +876,7 @@ func TestSignUpEmailPassword(t *testing.T) { //nolint:maintidx
 						Metadata:              []byte("null"),
 						Roles:                 []string{"user", "me"},
 						IsAnonymous:           false,
-						RefreshTokenHash:      pgtype.Text{}, //nolint:exhaustruct
+						RefreshTokenHash:      pgtype.Text{},
 						RefreshTokenExpiresAt: sql.TimestampTz(time.Now().Add(30 * 24 * time.Hour)),
 					}),
 				).Return(insertResponse, nil)
@@ -879,7 +884,7 @@ func TestSignUpEmailPassword(t *testing.T) { //nolint:maintidx
 				return mock
 			},
 			request: api.SignUpEmailPasswordRequestObject{
-				Body: &api.SignUpEmailPasswordJSONRequestBody{ //nolint:exhaustruct
+				Body: &api.SignUpEmailPasswordJSONRequestBody{
 					Email:    "jane@acme.com",
 					Password: "password",
 					Options:  nil,
@@ -969,26 +974,27 @@ func TestSignUpEmailPassword(t *testing.T) { //nolint:maintidx
 
 				mock.EXPECT().InsertUser(
 					gomock.Any(),
-					cmpDBParams(sql.InsertUserParams{
-						ID:                uuid.UUID{},
-						Disabled:          false,
-						DisplayName:       "jane@acme.com",
-						AvatarUrl:         "",
-						Email:             sql.Text("jane@acme.com"),
-						PasswordHash:      pgtype.Text{}, //nolint:exhaustruct
-						Ticket:            sql.Text("verifyEmail:xxxx"),
-						TicketExpiresAt:   sql.TimestampTz(time.Now().Add(30 * 24 * time.Hour)),
-						EmailVerified:     false,
-						Locale:            "en",
-						DefaultRole:       "user",
-						Metadata:          []byte("null"),
-						Roles:             []string{"user", "me"},
-						PhoneNumber:       pgtype.Text{}, //nolint:exhaustruct
-						Otp:               "",
-						OtpHashExpiresAt:  pgtype.Timestamptz{}, //nolint:exhaustruct
-						OtpMethodLastUsed: pgtype.Text{},        //nolint:exhaustruct
-					},
-						cmpopts.IgnoreFields(sql.InsertUserParams{}, "ID"), //nolint:exhaustruct
+					cmpDBParams(
+						sql.InsertUserParams{
+							ID:                uuid.UUID{},
+							Disabled:          false,
+							DisplayName:       "jane@acme.com",
+							AvatarUrl:         "",
+							Email:             sql.Text("jane@acme.com"),
+							PasswordHash:      pgtype.Text{},
+							Ticket:            sql.Text("verifyEmail:xxxx"),
+							TicketExpiresAt:   sql.TimestampTz(time.Now().Add(30 * 24 * time.Hour)),
+							EmailVerified:     false,
+							Locale:            "en",
+							DefaultRole:       "user",
+							Metadata:          []byte("null"),
+							Roles:             []string{"user", "me"},
+							PhoneNumber:       pgtype.Text{},
+							Otp:               "",
+							OtpHashExpiresAt:  pgtype.Timestamptz{},
+							OtpMethodLastUsed: pgtype.Text{},
+						},
+						cmpopts.IgnoreFields(sql.InsertUserParams{}, "ID"),
 					),
 				).Return(sql.InsertUserRow{
 					UserID:    uuid.MustParse("DB477732-48FA-4289-B694-2886A646B6EB"),
@@ -998,7 +1004,7 @@ func TestSignUpEmailPassword(t *testing.T) { //nolint:maintidx
 				return mock
 			},
 			request: api.SignUpEmailPasswordRequestObject{
-				Body: &api.SignUpEmailPasswordJSONRequestBody{ //nolint:exhaustruct
+				Body: &api.SignUpEmailPasswordJSONRequestBody{
 					Email:    "jane@acme.com",
 					Password: "password",
 					Options:  nil,
@@ -1019,7 +1025,7 @@ func TestSignUpEmailPassword(t *testing.T) { //nolint:maintidx
 						notifications.TemplateNameEmailVerify,
 						testhelpers.GomockCmpOpts(
 							notifications.TemplateData{
-								Link:        "https://local.auth.nhost.run/verify?redirectTo=http%3A%2F%2Flocalhost%3A3000&ticket=verifyEmail%3Ac2ee89db-095c-4904-b796-f6a507ee1260&type=emailVerify", //nolint:lll
+								Link:        "https://local.auth.nhost.run/verify?redirectTo=http%3A%2F%2Flocalhost%3A3000&ticket=verifyEmail%3Ac2ee89db-095c-4904-b796-f6a507ee1260&type=emailVerify",
 								DisplayName: "jane@acme.com",
 								Email:       "jane@acme.com",
 								NewEmail:    "",
@@ -1030,11 +1036,14 @@ func TestSignUpEmailPassword(t *testing.T) { //nolint:maintidx
 								ClientURL:   "http://localhost:3000",
 							},
 							testhelpers.FilterPathLast(
-								[]string{".Ticket"}, cmp.Comparer(cmpTicket)),
+								[]string{".Ticket"}, cmp.Comparer(cmpTicket),
+							),
 
 							testhelpers.FilterPathLast(
-								[]string{".Link"}, cmp.Comparer(cmpLink)),
-						)).Return(nil)
+								[]string{".Link"}, cmp.Comparer(cmpLink),
+							),
+						),
+					).Return(nil)
 
 					return mock
 				}),
@@ -1055,7 +1064,7 @@ func TestSignUpEmailPassword(t *testing.T) { //nolint:maintidx
 				return mock
 			},
 			request: api.SignUpEmailPasswordRequestObject{
-				Body: &api.SignUpEmailPasswordJSONRequestBody{ //nolint:exhaustruct
+				Body: &api.SignUpEmailPasswordJSONRequestBody{
 					Email:    "jane@acme.com",
 					Password: "password",
 					Options:  nil,

@@ -1,10 +1,10 @@
+import { UserIcon } from 'lucide-react';
 import { ThemeSwitcher } from '@/components/common/ThemeSwitcher';
 import { Avatar } from '@/components/ui/v2/Avatar';
 import { Box } from '@/components/ui/v2/Box';
 import { Divider } from '@/components/ui/v2/Divider';
 import { Dropdown } from '@/components/ui/v2/Dropdown';
 import { IconButton } from '@/components/ui/v2/IconButton';
-import { UserIcon } from '@/components/ui/v2/icons/UserIcon';
 import { Text } from '@/components/ui/v2/Text';
 import { getDashboardVersion } from '@/utils/env';
 

@@ -1,8 +1,8 @@
+import { ExternalLink as ArrowSquareOutIcon } from 'lucide-react';
 import { useState } from 'react';
 import { OpenTransferDialogButton } from '@/components/common/OpenTransferDialogButton';
 import { NhostIcon } from '@/components/presentational/NhostIcon';
 import { Alert } from '@/components/ui/v2/Alert';
-import { ArrowSquareOutIcon } from '@/components/ui/v2/icons/ArrowSquareOutIcon';
 import { Link } from '@/components/ui/v2/Link';
 import { Text } from '@/components/ui/v2/Text';
 import { TransferProjectDialog } from '@/features/orgs/components/common/TransferProjectDialog';
@@ -43,13 +43,13 @@ function UpgradeNotification({ description }: Props) {
           target="_blank"
           rel="noopener noreferrer"
           underline="hover"
-          className="whitespace-nowrap text-center font-medium"
+          className="inline-flex items-center justify-center gap-2 font-medium"
           sx={{
             color: 'text.secondary',
           }}
         >
           See all features
-          <ArrowSquareOutIcon className="ml-1 h-4 w-4" />
+          <ArrowSquareOutIcon className="h-4 w-4" />
         </Link>
         <OpenTransferDialogButton onClick={handleTransferDialogOpen} />
       </Text>

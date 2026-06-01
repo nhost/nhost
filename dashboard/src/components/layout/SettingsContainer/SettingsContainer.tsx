@@ -1,3 +1,4 @@
+import { ExternalLink as ArrowSquareOutIcon } from 'lucide-react';
 import Image from 'next/image';
 import type { DetailedHTMLProps, HTMLProps, ReactNode } from 'react';
 import { twMerge } from 'tailwind-merge';
@@ -6,7 +7,6 @@ import type { BoxProps } from '@/components/ui/v2/Box';
 import { Box } from '@/components/ui/v2/Box';
 import type { ButtonProps } from '@/components/ui/v2/Button';
 import { Button } from '@/components/ui/v2/Button';
-import { ArrowSquareOutIcon } from '@/components/ui/v2/icons/ArrowSquareOutIcon';
 import { Link } from '@/components/ui/v2/Link';
 import type { SwitchProps } from '@/components/ui/v2/Switch';
 import { Switch } from '@/components/ui/v2/Switch';
@@ -181,10 +181,10 @@ export default function SettingsContainer({
                 target="_blank"
                 rel="noopener noreferrer"
                 underline="hover"
-                className="font-medium"
+                className="inline-flex items-center gap-1 font-medium"
               >
                 {docsTitle || title}
-                <ArrowSquareOutIcon className="ml-1 h-4 w-4" />
+                <ArrowSquareOutIcon className="h-4 w-4" />
               </Link>
             </Text>
           </div>

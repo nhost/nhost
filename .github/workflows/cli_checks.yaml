@@ -29,6 +29,9 @@ on:
       - "internal/lib/nhostclient/**"
       - "internal/lib/oapi/**"
 
+      # constellation (imported by `nhost schema` for SDL dump/diff)
+      - "services/constellation/**"
+
       # auth email templates (embedded into the CLI by `nhost init`)
       - "services/auth/email-templates/**"
 
@@ -62,6 +65,7 @@ jobs:
         internal/lib/clidocs/**
         internal/lib/nhostclient/**
         internal/lib/oapi/**
+        services/constellation/**
         services/auth/email-templates/**
         docs/**
 
@@ -88,6 +92,8 @@ jobs:
       AWS_ACCOUNT_ID: ${{ secrets.AWS_PRODUCTION_CORE_ACCOUNT_ID }}
       NIX_CACHE_PUB_KEY: ${{ secrets.NIX_CACHE_PUB_KEY }}
       NIX_CACHE_PRIV_KEY: ${{ secrets.NIX_CACHE_PRIV_KEY }}
+      NIX_CACHE_ACCESS_KEY_ID: ${{ secrets.NIX_CACHE_ACCESS_KEY_ID }}
+      NIX_CACHE_SECRET_ACCESS_KEY: ${{ secrets.NIX_CACHE_SECRET_ACCESS_KEY }}
       NHOST_PAT: ${{ secrets.NHOST_PAT }}
 
   build_artifacts:
@@ -106,6 +112,8 @@ jobs:
       AWS_ACCOUNT_ID: ${{ secrets.AWS_PRODUCTION_CORE_ACCOUNT_ID }}
       NIX_CACHE_PUB_KEY: ${{ secrets.NIX_CACHE_PUB_KEY }}
       NIX_CACHE_PRIV_KEY: ${{ secrets.NIX_CACHE_PRIV_KEY }}
+      NIX_CACHE_ACCESS_KEY_ID: ${{ secrets.NIX_CACHE_ACCESS_KEY_ID }}
+      NIX_CACHE_SECRET_ACCESS_KEY: ${{ secrets.NIX_CACHE_SECRET_ACCESS_KEY }}
 
   test_cli_build:
     uses: ./.github/workflows/cli_wf_test_new_project.yaml
@@ -123,6 +131,8 @@ jobs:
       AWS_ACCOUNT_ID: ${{ secrets.AWS_PRODUCTION_CORE_ACCOUNT_ID }}
       NIX_CACHE_PUB_KEY: ${{ secrets.NIX_CACHE_PUB_KEY }}
       NIX_CACHE_PRIV_KEY: ${{ secrets.NIX_CACHE_PRIV_KEY }}
+      NIX_CACHE_ACCESS_KEY_ID: ${{ secrets.NIX_CACHE_ACCESS_KEY_ID }}
+      NIX_CACHE_SECRET_ACCESS_KEY: ${{ secrets.NIX_CACHE_SECRET_ACCESS_KEY }}
       NHOST_PAT: ${{ secrets.NHOST_PAT }}
 
   remove_label:
