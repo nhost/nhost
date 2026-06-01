@@ -1596,6 +1596,57 @@ func TestAuthenticator(t *testing.T) { //nolint:maintidx
 	}
 }
 
+func TestAuthenticatorAuthenticateWithExpiration(t *testing.T) {
+	t.Parallel()
+
+	const hmacKey = "expiry-test-key"
+
+	expiresAt := time.Unix(1893456000, 0).UTC()
+	token := signHS256Token(t, hmacKey, gojwt.MapClaims{
+		"sub": "user-123",
+		"exp": gojwt.NewNumericDate(expiresAt),
+		"https://hasura.io/jwt/claims": hasuraClaims(
+			[]string{"user"}, "user", map[string]any{"x-hasura-user-id": "123"},
+		),
+	})
+
+	auth, err := jwt.NewAuthenticator(context.Background(), jwtconfig.Config{
+		Secrets: []jwtconfig.Secret{
+			{Type: jwtconfig.AlgorithmHS256, Key: hmacKey},
+		},
+	}, slog.Default())
+	if err != nil {
+		t.Fatalf("NewAuthenticator() error = %v", err)
+	}
+	defer auth.Close()
+
+	result, gotExpiresAt, err := auth.AuthenticateWithExpiration(
+		http.Header{"Authorization": {"Bearer " + token}},
+		"",
+	)
+	if err != nil {
+		t.Fatalf("AuthenticateWithExpiration() error = %v", err)
+	}
+
+	want := &jwt.SessionResult{
+		Role: "user",
+		Variables: expectedVars(
+			"user", []string{"user"}, "user", map[string]any{"x-hasura-user-id": "123"},
+		),
+	}
+	if diff := cmp.Diff(want, result); diff != "" {
+		t.Fatalf("session mismatch (-want +got):\n%s", diff)
+	}
+
+	if gotExpiresAt == nil {
+		t.Fatal("expected expiration to be returned")
+	}
+
+	if !gotExpiresAt.Equal(expiresAt) {
+		t.Fatalf("expiration mismatch: want %s, got %s", expiresAt, *gotExpiresAt)
+	}
+}
+
 func TestNewAuthenticatorErrorForEmptyConfig(t *testing.T) {
 	t.Parallel()
 

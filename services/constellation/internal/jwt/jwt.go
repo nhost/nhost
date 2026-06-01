@@ -20,6 +20,7 @@ import (
 	"fmt"
 	"log/slog"
 	"net/http"
+	"time"
 
 	"github.com/MicahParks/keyfunc/v3"
 	"github.com/nhost/nhost/services/constellation/internal/jwt/jwtconfig"
@@ -150,6 +151,24 @@ func newAuthenticator(
 func (a *Authenticator) Authenticate(
 	headers http.Header, roleOverride string,
 ) (*SessionResult, error) {
+	result, _, err := a.authenticate(headers, roleOverride)
+
+	return result, err
+}
+
+// AuthenticateWithExpiration is like [Authenticator.Authenticate] but also
+// returns the JWT exp claim for successfully authenticated bearer tokens. The
+// expiration pointer is nil when no token was found, matching Authenticate's
+// documented anonymous fall-through result.
+func (a *Authenticator) AuthenticateWithExpiration(
+	headers http.Header, roleOverride string,
+) (*SessionResult, *time.Time, error) {
+	return a.authenticate(headers, roleOverride)
+}
+
+func (a *Authenticator) authenticate(
+	headers http.Header, roleOverride string,
+) (*SessionResult, *time.Time, error) {
 	var lastErr error
 
 	sawToken := false
@@ -168,7 +187,7 @@ func (a *Authenticator) Authenticate(
 		// HASURA_GRAPHQL_JWT_SECRETS multi-IdP / key-rotation contract), so a
 		// token signed for a later secret must not be rejected just because an
 		// earlier secret reads the same header location.
-		claims, err := sv.parseAndValidate(token)
+		claims, expiresAt, err := sv.parseAndValidate(token)
 		if err != nil {
 			a.logger.Debug(
 				"jwt validation failed",
@@ -188,26 +207,26 @@ func (a *Authenticator) Authenticate(
 		// an authentication error, not a "try the next key" signal.
 		hasuraClaims, err := a.extractors[i].extractClaims(claims)
 		if err != nil {
-			return nil, fmt.Errorf("failed to extract hasura claims: %w", err)
+			return nil, nil, fmt.Errorf("failed to extract hasura claims: %w", err)
 		}
 
 		role, variables, err := buildSessionVariables(hasuraClaims, roleOverride)
 		if err != nil {
-			return nil, fmt.Errorf("failed to build session variables: %w", err)
+			return nil, nil, fmt.Errorf("failed to build session variables: %w", err)
 		}
 
 		return &SessionResult{
 			Role:      role,
 			Variables: variables,
-		}, nil
+		}, &expiresAt, nil
 	}
 
 	if sawToken {
 		// At least one secret extracted a token but none verified it.
-		return nil, fmt.Errorf("jwt authentication failed: %w", lastErr)
+		return nil, nil, fmt.Errorf("jwt authentication failed: %w", lastErr)
 	}
 
-	return nil, nil //nolint:nilnil // no token: caller falls through to anonymous, not an error
+	return nil, nil, nil //nolint:nilnil // no token: caller falls through to anonymous, not an error
 }
 
 // Close shuts down each configured secret validator, stopping any JWKS

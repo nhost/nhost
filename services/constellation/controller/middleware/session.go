@@ -11,6 +11,7 @@ import (
 	"log/slog"
 	"net/http"
 	"strings"
+	"time"
 
 	"github.com/gin-gonic/gin"
 	"github.com/nhost/nhost/services/constellation/internal/jwt"
@@ -41,14 +42,35 @@ func NewNoOpJWTAuthenticator() JWTAuthenticator { //nolint:ireturn,nolintlint
 	return noOpJWTAuthenticator{}
 }
 
+func authenticateJWT(
+	jwtAuth JWTAuthenticator,
+	headers http.Header,
+	roleOverride string,
+) (*jwt.SessionResult, *time.Time, error) {
+	if jwtAuthWithExpiration, ok := jwtAuth.(interface {
+		AuthenticateWithExpiration(http.Header, string) (*jwt.SessionResult, *time.Time, error)
+	}); ok {
+		return jwtAuthWithExpiration.AuthenticateWithExpiration(headers, roleOverride)
+	}
+
+	result, err := jwtAuth.Authenticate(headers, roleOverride)
+	if err != nil {
+		return nil, nil, err
+	}
+
+	return result, nil, nil
+}
+
 type sessionCtxKey struct{}
 
 // SessionVariables carries the resolved role and the Hasura session variables
 // for the current request. The "x-hasura-role" key in Variables always matches
-// Role; downstream code can rely on either.
+// Role; downstream code can rely on either. ExpiresAt is set only for JWT-backed
+// sessions and is nil for admin-secret and public-role sessions.
 type SessionVariables struct {
 	Role      string
 	Variables map[string]any
+	ExpiresAt *time.Time
 }
 
 const (
@@ -98,7 +120,7 @@ func ExtractSession(
 
 	roleOverride := headers.Get(sessionHeaderRole)
 
-	result, err := jwtAuth.Authenticate(headers, roleOverride)
+	result, expiresAt, err := authenticateJWT(jwtAuth, headers, roleOverride)
 	if err != nil {
 		return nil, fmt.Errorf("jwt authentication: %w", err)
 	}
@@ -107,6 +129,7 @@ func ExtractSession(
 		return &SessionVariables{
 			Role:      result.Role,
 			Variables: result.Variables,
+			ExpiresAt: expiresAt,
 		}, nil
 	}
 

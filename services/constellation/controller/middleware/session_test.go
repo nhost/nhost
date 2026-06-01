@@ -12,6 +12,7 @@ import (
 	"github.com/gin-gonic/gin"
 	gojwt "github.com/golang-jwt/jwt/v5"
 	"github.com/google/go-cmp/cmp"
+	"github.com/google/go-cmp/cmp/cmpopts"
 	"github.com/nhost/nhost/services/constellation/controller/middleware"
 	"github.com/nhost/nhost/services/constellation/controller/middleware/mock"
 	"github.com/nhost/nhost/services/constellation/internal/jwt"
@@ -278,10 +279,38 @@ func TestExtractSession(t *testing.T) {
 				t.Fatalf("unexpected error: %v", err)
 			}
 
-			if diff := cmp.Diff(tc.expected, session); diff != "" {
+			if diff := cmp.Diff(
+				tc.expected,
+				session,
+				cmpopts.IgnoreFields(middleware.SessionVariables{}, "ExpiresAt"),
+			); diff != "" {
 				t.Errorf("session mismatch (-want +got):\n%s", diff)
 			}
 		})
+	}
+}
+
+func TestExtractSessionJWTExpiration(t *testing.T) {
+	t.Parallel()
+
+	jwtAuth := testAuthenticator(t)
+	expiresAt := time.Unix(1893456000, 0).UTC()
+	claims := validJWTClaims()
+	claims["exp"] = gojwt.NewNumericDate(expiresAt)
+
+	session, err := middleware.ExtractSession("", jwtAuth, http.Header{
+		"Authorization": {"Bearer " + signToken(t, claims)},
+	})
+	if err != nil {
+		t.Fatalf("ExtractSession() error = %v", err)
+	}
+
+	if session.ExpiresAt == nil {
+		t.Fatal("expected JWT expiration to be propagated")
+	}
+
+	if !session.ExpiresAt.Equal(expiresAt) {
+		t.Fatalf("expiration mismatch: want %s, got %s", expiresAt, *session.ExpiresAt)
 	}
 }
 

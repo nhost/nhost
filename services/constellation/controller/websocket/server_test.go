@@ -2,6 +2,7 @@ package websocket_test
 
 import (
 	"context"
+	"encoding/json/jsontext"
 	json "encoding/json/v2"
 	"errors"
 	"log/slog"
@@ -179,6 +180,31 @@ func writeMessage(t *testing.T, client *gorillaWS.Conn, msg wsMessage) {
 	if err := client.WriteMessage(gorillaWS.TextMessage, data); err != nil {
 		t.Fatalf("write message failed: %v", err)
 	}
+}
+
+type expiringHandler struct {
+	expiresAt time.Time
+	closeCh   chan struct{}
+}
+
+func (h *expiringHandler) OnConnectionInit(context.Context, jsontext.Value) error {
+	return nil
+}
+
+func (h *expiringHandler) OnSubscribe(context.Context, string, websocket.SubscribePayload) {
+	panic("unexpected subscribe")
+}
+
+func (h *expiringHandler) OnComplete(context.Context, string) {
+	panic("unexpected complete")
+}
+
+func (h *expiringHandler) OnClose(context.Context) {
+	close(h.closeCh)
+}
+
+func (h *expiringHandler) ConnectionExpiresAt() (time.Time, bool) {
+	return h.expiresAt, true
 }
 
 // protocolStep describes a single client->server interaction in a
@@ -422,6 +448,45 @@ func TestProtocol_ConnectionInit_Rejected(t *testing.T) {
 	case <-tc.loopDone:
 	case <-time.After(2 * time.Second):
 		t.Fatal("timed out waiting for server loop to exit")
+	}
+}
+
+func TestProtocol_ConnectionClosesAtHandlerExpiration(t *testing.T) {
+	t.Parallel()
+
+	handler := &expiringHandler{
+		expiresAt: time.Now().Add(50 * time.Millisecond),
+		closeCh:   make(chan struct{}),
+	}
+	tc := dialTestServerCapturingErr(t, handler)
+	defer tc.client.Close()
+
+	writeMessage(t, tc.client, wsMessage{Type: "connection_init"})
+
+	ack := readMessage(t, tc.client)
+	if ack.Type != "connection_ack" {
+		t.Fatalf("expected connection_ack, got %s", ack.Type)
+	}
+
+	tc.client.SetReadDeadline(time.Now().Add(2 * time.Second)) //nolint:errcheck
+	_, _, err := tc.client.ReadMessage()
+	if err == nil {
+		t.Fatal("expected connection to close at expiration")
+	}
+
+	select {
+	case err := <-tc.loopErr:
+		if err == nil || !strings.Contains(err.Error(), "connection expired") {
+			t.Fatalf("expected connection expired error, got %v", err)
+		}
+	case <-time.After(2 * time.Second):
+		t.Fatal("timed out waiting for server loop to exit")
+	}
+
+	select {
+	case <-handler.closeCh:
+	case <-time.After(2 * time.Second):
+		t.Fatal("OnClose was not called")
 	}
 }
 

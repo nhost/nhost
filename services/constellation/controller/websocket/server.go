@@ -4,9 +4,12 @@ import (
 	"context"
 	"encoding/json/jsontext"
 	json "encoding/json/v2"
+	"errors"
 	"fmt"
 	"log/slog"
+	"net"
 	"net/http"
+	"sync"
 	"time"
 
 	"github.com/gorilla/websocket"
@@ -53,7 +56,14 @@ type MessageHandler interface {
 type wsConn interface {
 	ReadMessage() (int, []byte, error)
 	WriteMessage(messageType int, data []byte) error
+	SetReadDeadline(t time.Time) error
 	Close() error
+}
+
+// connectionExpirationProvider is an optional capability for handlers that can
+// provide an absolute authentication expiry for the WebSocket connection.
+type connectionExpirationProvider interface {
+	ConnectionExpiresAt() (time.Time, bool)
 }
 
 // Connection represents an upgraded WebSocket connection.
@@ -64,6 +74,7 @@ type Connection struct {
 	sendCh  chan *Message
 
 	initialized bool
+	expiresAt   time.Time
 }
 
 // NewConnection upgrades an HTTP connection to WebSocket.
@@ -98,6 +109,7 @@ func NewConnection(
 		handler:     handler,
 		sendCh:      sendCh,
 		initialized: false,
+		expiresAt:   time.Time{},
 	}, nil
 }
 
@@ -106,10 +118,24 @@ func NewConnection(
 func (c *Connection) Loop(ctx context.Context, logger *slog.Logger) error {
 	rctx, cancel := context.WithCancel(ctx)
 
+	var closeOnce sync.Once
+	closeConn := func(message string) {
+		closeOnce.Do(func() {
+			if err := c.conn.Close(); err != nil {
+				logger.DebugContext(ctx, message, slog.String("error", err.Error()))
+			}
+		})
+	}
+
 	defer func() {
 		c.handler.OnClose(ctx)
-		c.conn.Close()
+		closeConn("websocket close failed")
 		cancel()
+	}()
+
+	go func() {
+		<-rctx.Done()
+		closeConn("websocket close after cancellation failed")
 	}()
 
 	errWriteCh := make(chan error, 1)
@@ -139,6 +165,10 @@ func (c *Connection) readPump(ctx context.Context, logger *slog.Logger) error {
 	initTimer := time.NewTimer(connectionInitTimeout)
 	defer initTimer.Stop()
 
+	if err := c.conn.SetReadDeadline(time.Now().Add(connectionInitTimeout)); err != nil {
+		return fmt.Errorf("setting initial read deadline: %w", err)
+	}
+
 	for {
 		select {
 		case <-ctx.Done():
@@ -151,13 +181,19 @@ func (c *Connection) readPump(ctx context.Context, logger *slog.Logger) error {
 			// `default` is used so each loop iteration reaches ReadMessage even when
 			// ctx is not yet done and the init timer has not yet fired. Cancellation
 			// and the init timeout are observed by the next iteration's select once
-			// ReadMessage returns (typically via the read deadline or a close frame).
+			// ReadMessage returns via a read deadline, close frame, or conn.Close.
 			_, message, err := c.conn.ReadMessage()
 			switch {
+			case ctx.Err() != nil:
+				return nil
 			case websocket.IsCloseError(
 				err, websocket.CloseNormalClosure, websocket.CloseGoingAway,
 			):
 				return nil
+			case isReadTimeout(err) && !c.initialized:
+				return errConnectionInitTimeout
+			case isReadTimeout(err) && c.isExpired(time.Now()):
+				return errConnectionExpired
 			case err != nil:
 				return fmt.Errorf("%w: %w", errCouldNotReadMessage, err)
 			}
@@ -171,12 +207,35 @@ func (c *Connection) readPump(ctx context.Context, logger *slog.Logger) error {
 				return err
 			}
 
-			// Stop the init timeout once the handshake completes.
+			// Stop the init timeout once the handshake completes, then replace the
+			// pre-init read deadline with the JWT expiry bound (or no deadline for
+			// non-JWT sessions).
 			if msg.Type == messageTypeConnectionInit && c.initialized {
 				initTimer.Stop()
+				if err := c.setPostInitReadDeadline(); err != nil {
+					return fmt.Errorf("setting post-init read deadline: %w", err)
+				}
 			}
 		}
 	}
+}
+
+func (c *Connection) setPostInitReadDeadline() error {
+	if c.expiresAt.IsZero() {
+		return c.conn.SetReadDeadline(time.Time{})
+	}
+
+	return c.conn.SetReadDeadline(c.expiresAt)
+}
+
+func (c *Connection) isExpired(now time.Time) bool {
+	return !c.expiresAt.IsZero() && !now.Before(c.expiresAt)
+}
+
+func isReadTimeout(err error) bool {
+	var netErr net.Error
+
+	return errors.As(err, &netErr) && netErr.Timeout()
 }
 
 // writePump writes messages to the WebSocket connection.
@@ -237,6 +296,11 @@ func (c *Connection) handleConnectionInit(
 	}
 
 	c.initialized = true
+	if provider, ok := c.handler.(connectionExpirationProvider); ok {
+		if expiresAt, ok := provider.ConnectionExpiresAt(); ok && !expiresAt.IsZero() {
+			c.expiresAt = expiresAt
+		}
+	}
 
 	logger.DebugContext(ctx, "connection initialized")
 	c.sendMessage(ctx, newConnectionAckMessage(), logger)

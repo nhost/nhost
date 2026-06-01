@@ -60,6 +60,10 @@ func (f *fakeWSConn) WriteMessage(messageType int, data []byte) error {
 	return f.writeFn(messageType, data)
 }
 
+func (f *fakeWSConn) SetReadDeadline(time.Time) error {
+	return nil
+}
+
 func (f *fakeWSConn) Close() error {
 	f.mu.Lock()
 	f.closed = true
