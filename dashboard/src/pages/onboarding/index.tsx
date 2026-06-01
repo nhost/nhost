@@ -11,7 +11,7 @@ import { Spinner } from '@/components/ui/v3/spinner';
 import { Alert } from '@/components/ui/v2/Alert';
 import { Box } from '@/components/ui/v2/Box';
 import { Text } from '@/components/ui/v2/Text';
-import { Button } from '@/components/ui/v3/button';
+import { Button, ButtonWithLoading } from '@/components/ui/v3/button';
 import {
   Form,
   FormControl,
@@ -411,20 +411,15 @@ export default function OnboardingPage() {
                   </Button>
                 )}
 
-                <Button
+                <ButtonWithLoading
                   type="submit"
-                  disabled={form.formState.isSubmitting}
+                  loading={form.formState.isSubmitting}
                   className="w-full sm:w-auto"
                 >
-                  {form.formState.isSubmitting ? (
-                    <>
-                      <Spinner className="mr-2" size="xs" />
-                      Creating Organization...
-                    </>
-                  ) : (
-                    'Create Organization'
-                  )}
-                </Button>
+                  {form.formState.isSubmitting
+                    ? 'Creating Organization...'
+                    : 'Create Organization'}
+                </ButtonWithLoading>
               </div>
 
               {invites && invites.length > 0 && (

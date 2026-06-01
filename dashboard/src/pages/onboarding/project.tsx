@@ -11,7 +11,7 @@ import { Container } from '@/components/layout/Container';
 import { Spinner } from '@/components/ui/v3/spinner';
 import { Box } from '@/components/ui/v2/Box';
 import { Text } from '@/components/ui/v2/Text';
-import { Button } from '@/components/ui/v3/button';
+import { ButtonWithLoading } from '@/components/ui/v3/button';
 import {
   Form,
   FormControl,
@@ -303,20 +303,15 @@ export default function OnboardingProjectPage() {
                 />
 
                 <div className="flex justify-end">
-                  <Button
+                  <ButtonWithLoading
                     type="submit"
-                    disabled={form.formState.isSubmitting}
+                    loading={form.formState.isSubmitting}
                     className="w-full sm:w-auto"
                   >
-                    {form.formState.isSubmitting ? (
-                      <>
-                        <Spinner className="mr-2" size="xs" />
-                        Creating Project...
-                      </>
-                    ) : (
-                      'Create Project'
-                    )}
-                  </Button>
+                    {form.formState.isSubmitting
+                      ? 'Creating Project...'
+                      : 'Create Project'}
+                  </ButtonWithLoading>
                 </div>
               </form>
             </Form>
