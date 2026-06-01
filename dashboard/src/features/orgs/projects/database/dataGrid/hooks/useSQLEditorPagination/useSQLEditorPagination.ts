@@ -23,12 +23,9 @@ export interface UseSQLPaginationResult<TRow> {
   totalNrOfPages: number;
   paginatedRows: TRow[];
   setCurrentPage: (page: number) => void;
-  setLimitAndReset: (newLimit: PageSize) => void;
   handleLimitChange: (_: SyntheticEvent | null, value: {} | null) => void;
   goPrev: () => void;
   goNext: () => void;
-  hasNoPreviousPage: boolean;
-  hasNoNextPage: boolean;
 }
 
 export default function useSQLEditorPagination<TRow>({
@@ -82,11 +79,8 @@ export default function useSQLEditorPagination<TRow>({
     totalNrOfPages,
     paginatedRows,
     setCurrentPage,
-    setLimitAndReset,
     handleLimitChange,
     goPrev,
     goNext,
-    hasNoPreviousPage: currentPage <= 1,
-    hasNoNextPage: currentPage >= totalNrOfPages,
   };
 }

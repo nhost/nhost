@@ -218,7 +218,7 @@ export default function SQLEditor({ initialSQL }: SQLEditorProps) {
           </Box>
         )}
 
-        {!loading && !errorMessage && rows.length > 0 && columns.length > 0 && (
+        {!loading && !errorMessage && columns.length > 0 && (
           <Box className="flex flex-1 flex-col overflow-hidden">
             <Box className="flex-1 overflow-auto p-4">
               <Table style={{ tableLayout: 'auto' }} className="w-auto">
@@ -255,41 +255,44 @@ export default function SQLEditor({ initialSQL }: SQLEditorProps) {
               </Table>
             </Box>
 
-            <Box className="flex shrink-0 items-center justify-between border-t px-4 py-1">
-              <Box className="flex items-center gap-2">
-                <Text
-                  variant="subtitle2"
-                  className="whitespace-nowrap text-xs"
-                  color="secondary"
-                >
-                  Rows per page
-                </Text>
-                <Select
-                  value={limit}
-                  onChange={handleLimitChange}
-                  slotProps={{
-                    root: { className: 'h-5 min-w-[60px] text-xs' },
-                  }}
-                >
-                  {PAGE_SIZE_OPTIONS.map((size) => (
-                    <Option key={size} value={size}>
-                      {size}
-                    </Option>
-                  ))}
-                </Select>
-              </Box>
+            {rows.length > 0 && (
+              <Box className="flex shrink-0 items-center justify-between border-t px-4 py-1">
+                <Box className="flex items-center gap-2">
+                  <Text
+                    variant="subtitle2"
+                    className="whitespace-nowrap text-xs"
+                    color="secondary"
+                  >
+                    Rows per page
+                  </Text>
+                  <Select
+                    aria-label="Rows per page"
+                    value={limit}
+                    onChange={handleLimitChange}
+                    slotProps={{
+                      root: { className: 'h-5 min-w-[60px] text-xs' },
+                    }}
+                  >
+                    {PAGE_SIZE_OPTIONS.map((size) => (
+                      <Option key={size} value={size}>
+                        {size}
+                      </Option>
+                    ))}
+                  </Select>
+                </Box>
 
-              <Pagination
-                totalNrOfPages={totalNrOfPages}
-                currentPageNumber={currentPage}
-                elementsPerPage={limit}
-                totalNrOfElements={rows.length}
-                itemsLabel="rows"
-                onPrevPageClick={goPrev}
-                onNextPageClick={goNext}
-                onPageChange={setCurrentPage}
-              />
-            </Box>
+                <Pagination
+                  totalNrOfPages={totalNrOfPages}
+                  currentPageNumber={currentPage}
+                  elementsPerPage={limit}
+                  totalNrOfElements={rows.length}
+                  itemsLabel="rows"
+                  onPrevPageClick={goPrev}
+                  onNextPageClick={goNext}
+                  onPageChange={setCurrentPage}
+                />
+              </Box>
+            )}
           </Box>
         )}
       </Box>

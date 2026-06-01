@@ -137,86 +137,6 @@ describe('useSQLEditorPagination', () => {
     });
   });
 
-  describe('boundary flags', () => {
-    it('hasNoPreviousPage is true on the first page', () => {
-      const rows = makeRows(200);
-      const { result } = renderHook(() =>
-        useSQLEditorPagination({ rows, initialLimit: 100 }),
-      );
-
-      expect(result.current.hasNoPreviousPage).toBe(true);
-    });
-
-    it('hasNoPreviousPage is false after navigating forward', async () => {
-      const rows = makeRows(200);
-      const { result } = renderHook(() =>
-        useSQLEditorPagination({ rows, initialLimit: 100 }),
-      );
-
-      act(() => result.current.goNext());
-      await waitFor(() => expect(result.current.hasNoPreviousPage).toBe(false));
-    });
-
-    it('hasNoNextPage is true on the last page', async () => {
-      const rows = makeRows(200);
-      const { result } = renderHook(() =>
-        useSQLEditorPagination({ rows, initialLimit: 100 }),
-      );
-
-      act(() => result.current.goNext());
-      await waitFor(() => expect(result.current.hasNoNextPage).toBe(true));
-    });
-
-    it('hasNoNextPage is false when not on the last page', () => {
-      const rows = makeRows(200);
-      const { result } = renderHook(() =>
-        useSQLEditorPagination({ rows, initialLimit: 100 }),
-      );
-
-      expect(result.current.hasNoNextPage).toBe(false);
-    });
-
-    it('both flags are true when all rows fit on one page', () => {
-      const rows = makeRows(50);
-      const { result } = renderHook(() =>
-        useSQLEditorPagination({ rows, initialLimit: 100 }),
-      );
-
-      expect(result.current.hasNoPreviousPage).toBe(true);
-      expect(result.current.hasNoNextPage).toBe(true);
-    });
-  });
-
-  describe('setLimitAndReset', () => {
-    it('changes the limit and resets to page 1', async () => {
-      const rows = makeRows(500);
-      const { result } = renderHook(() =>
-        useSQLEditorPagination({ rows, initialLimit: 100 }),
-      );
-
-      act(() => result.current.goNext());
-      await waitFor(() => expect(result.current.currentPage).toBe(2));
-
-      act(() => result.current.setLimitAndReset(25));
-      await waitFor(() => {
-        expect(result.current.limit).toBe(25);
-        expect(result.current.currentPage).toBe(1);
-      });
-    });
-
-    it('recalculates totalNrOfPages after the limit changes', async () => {
-      const rows = makeRows(100);
-      const { result } = renderHook(() =>
-        useSQLEditorPagination({ rows, initialLimit: 100 }),
-      );
-
-      expect(result.current.totalNrOfPages).toBe(1);
-
-      act(() => result.current.setLimitAndReset(25));
-      await waitFor(() => expect(result.current.totalNrOfPages).toBe(4));
-    });
-  });
-
   describe('handleLimitChange', () => {
     it('updates the limit when called with a valid PageSize value', async () => {
       const rows = makeRows(500);
@@ -236,6 +156,34 @@ describe('useSQLEditorPagination', () => {
 
       act(() => result.current.handleLimitChange(null, null));
       await waitFor(() => expect(result.current.limit).toBe(100));
+    });
+
+    it('changes the limit and resets to page 1', async () => {
+      const rows = makeRows(500);
+      const { result } = renderHook(() =>
+        useSQLEditorPagination({ rows, initialLimit: 100 }),
+      );
+
+      act(() => result.current.goNext());
+      await waitFor(() => expect(result.current.currentPage).toBe(2));
+
+      act(() => result.current.handleLimitChange(null, 25));
+      await waitFor(() => {
+        expect(result.current.limit).toBe(25);
+        expect(result.current.currentPage).toBe(1);
+      });
+    });
+
+    it('recalculates totalNrOfPages after the limit changes', async () => {
+      const rows = makeRows(100);
+      const { result } = renderHook(() =>
+        useSQLEditorPagination({ rows, initialLimit: 100 }),
+      );
+
+      expect(result.current.totalNrOfPages).toBe(1);
+
+      act(() => result.current.handleLimitChange(null, 25));
+      await waitFor(() => expect(result.current.totalNrOfPages).toBe(4));
     });
   });
 
