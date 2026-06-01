@@ -17,7 +17,7 @@ func (t *table) buildMutationDeleteByPkSQL(
 	variables map[string]any,
 	role string,
 	sessionVariables map[string]any,
-	_ map[string]core.Operation,
+	roots map[string]core.Operation,
 ) (core.SQLOperation, error) {
 	alias := field.Alias
 	if alias == "" {
@@ -42,7 +42,8 @@ func (t *table) buildMutationDeleteByPkSQL(
 	b := getBuilder()
 
 	params, err := t.buildDeleteByPkSQL(
-		b, whereClause, columns, relationships, role, sessionVariables,
+		b, field, whereClause, columns, relationships,
+		fragments, variables, role, sessionVariables, roots,
 	)
 	if err != nil {
 		putBuilder(b)
@@ -63,11 +64,15 @@ func (t *table) buildMutationDeleteByPkSQL(
 
 func (t *table) buildDeleteByPkSQL(
 	b *strings.Builder,
+	field *ast.Field,
 	whereClause where.Clause,
 	columns []columnSelection,
 	relationships []relationshipSelection,
+	fragments ast.FragmentDefinitionList,
+	variables map[string]any,
 	role string,
 	sessionVariables map[string]any,
+	roots map[string]core.Operation,
 ) ([]any, error) {
 	var (
 		params     = make([]any, 0, 8) //nolint:mnd
@@ -94,7 +99,12 @@ func (t *table) buildDeleteByPkSQL(
 
 	b.WriteString(" ")
 
-	t.buildDeleteFinalSelect(b, columns, relationships)
+	if err := t.buildDeleteFinalSelect(
+		b, columns, relationships, fragments, variables, role,
+		sessionVariables, roots, rootFieldName(field),
+	); err != nil {
+		return nil, err
+	}
 
 	return params, nil
 }

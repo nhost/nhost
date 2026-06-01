@@ -8,6 +8,7 @@ import (
 	"github.com/google/uuid"
 
 	"github.com/nhost/nhost/services/constellation/connector/remoteschema"
+	"github.com/nhost/nhost/services/constellation/connector/sql/graphql/queries/arguments"
 	"github.com/nhost/nhost/services/constellation/internal/lib/oapi/tracing"
 )
 
@@ -80,6 +81,17 @@ func sanitizeConnectorError(
 // remote schema that has already shaped its own GraphQL errors (path,
 // locations, extensions). They pass through verbatim via RemoteError.AsMap.
 //
+// A *arguments.QueryValidationError is a query-validation failure (e.g. a
+// distinct_on that does not match the leading order_by) that Constellation
+// detects while building SQL. It carries no PII and its envelope must match
+// Hasura's validation-failed shape, so it passes through verbatim via AsMap
+// rather than being sanitised.
+//
+// A *arguments.DataExceptionError is an argument failure whose Hasura-compatible
+// envelope is the safe data-exception shape (currently negative offset). It is
+// constructed by the arguments package with a fixed message, so it also passes
+// through verbatim via AsMap.
+//
 // Any other error is treated as a raw connector/driver failure and routed
 // through sanitizeConnectorError so SQLSTATE codes, table/column names, and
 // offending values never reach an unauthenticated caller.
@@ -91,18 +103,38 @@ func sanitizeConnectorError(
 func (c *Controller) classifyConnectorError(
 	ctx context.Context, logger *slog.Logger, err error,
 ) []map[string]any {
+	if structuredErrs, ok := classifyStructuredConnectorError(err); ok {
+		return structuredErrs
+	}
+
+	return []map[string]any{{
+		"message": sanitizeConnectorError(ctx, logger, c.devMode, err),
+	}}
+}
+
+// classifyStructuredConnectorError extracts trusted, already-shaped GraphQL
+// errors from a connector error without applying the raw driver-error
+// sanitizer. It is shared by HTTP execution and WebSocket subscription paths so
+// validation failures keep the same wire envelope across transports.
+func classifyStructuredConnectorError(err error) ([]map[string]any, bool) {
 	if gqlErrs, ok := errors.AsType[*remoteschema.GraphQLError](err); ok {
 		out := make([]map[string]any, len(gqlErrs.Errors))
 		for i, re := range gqlErrs.Errors {
 			out[i] = re.AsMap()
 		}
 
-		return out
+		return out, true
 	}
 
-	return []map[string]any{{
-		"message": sanitizeConnectorError(ctx, logger, c.devMode, err),
-	}}
+	if vErr, ok := errors.AsType[*arguments.QueryValidationError](err); ok {
+		return []map[string]any{vErr.AsMap()}, true
+	}
+
+	if dataErr, ok := errors.AsType[*arguments.DataExceptionError](err); ok {
+		return []map[string]any{dataErr.AsMap()}, true
+	}
+
+	return nil, false
 }
 
 // Pre-allocated error responses for common cases. Treating them as package

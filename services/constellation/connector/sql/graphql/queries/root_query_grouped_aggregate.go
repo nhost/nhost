@@ -280,6 +280,8 @@ func (t *table) parseGroupedAggregateArguments(
 		t, in.Field.Arguments, in.Variables, in.Role, in.SessionVariables, t.tableSourceRef(),
 	)
 	if err != nil {
+		err = annotateQueryValidationError(err, groupedAggregateArgumentPath(in))
+
 		return nil, nil, nil, limitOffset, fmt.Errorf(
 			"parsing query arguments for %s.%s: %w", t.schemaName, t.tableName, err,
 		)
@@ -317,6 +319,14 @@ func (t *table) parseGroupedAggregateArguments(
 	}
 
 	return whereClause, distinctOn, orderBy, limitOffset, nil
+}
+
+func groupedAggregateArgumentPath(in groupedaggdispatch.BuildInput) string {
+	if in.ArgumentPath != "" {
+		return in.ArgumentPath
+	}
+
+	return rootFieldName(in.Field)
 }
 
 // writeGroupedAggregateCTE writes the base CTE that LEFT JOINs the target

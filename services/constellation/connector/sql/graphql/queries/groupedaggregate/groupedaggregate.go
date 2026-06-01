@@ -38,9 +38,14 @@ type BuildInput struct {
 	// TableName is the unqualified name of the target table. Like TableSchema,
 	// it is used by Ops for dispatch and is informational for the Builder.
 	TableName string
-	// Field is the user's aggregate selection at the GraphQL root, used by
-	// the Builder to drive sub-field selection (aggregate / nodes).
+	// Field is the user's aggregate selection, used by the Builder to drive
+	// sub-field selection (aggregate / nodes).
 	Field *ast.Field
+	// ArgumentPath is the GraphQL selection path from the operation root to
+	// Field, using response field names joined by ".selectionSet.". It lets
+	// builders shape validation errors for nested aggregate relationships.
+	// Empty falls back to Field's alias/name for direct builder callers.
+	ArgumentPath string
 	// Fragments is the operation's fragment definition list, forwarded to the
 	// SQL builder so fragment spreads inside Field can be resolved.
 	Fragments ast.FragmentDefinitionList

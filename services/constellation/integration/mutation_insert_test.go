@@ -1001,6 +1001,42 @@ func TestInsertMutations(t *testing.T) { //nolint:paralleltest,maintidx
 				Role:      "admin",
 			},
 		},
+
+		// Hasura-parity lock for the mutation RETURNING validation path. An
+		// array relationship nested under `returning` (employees ->
+		// user_departments) carries a distinct_on whose column set does not
+		// match the leading order_by column. Hasura rejects this at query
+		// validation with a "validation-failed" envelope before the insert
+		// runs, and its extensions.path threads the `.returning.` segment:
+		// "$.selectionSet.insert_departments.selectionSet.returning.selectionSet.employees.args".
+		// RunGraphQLTests diffs the full response against live Hasura, so this
+		// pins message, extensions.code, and extensions.path for the only
+		// argumentPath surface (mutation returning) the query/aggregate cases in
+		// query_features_test.go do not cover. Mirrors the unit assertion in
+		// queries/dispatch_test.go's
+		// TestBuildNestedRelationshipValidationErrorPath.
+		{
+			name: "returning nested-relationship distinct_on/order_by mismatch validation error",
+			query: query{
+				Query: `mutation {
+					insert_departments(objects: [
+						{
+							id: "00000000-0000-0000-0000-0000000000ab"
+							name: "Returning Validation Dept"
+						}
+					]) {
+						affected_rows
+						returning {
+							id
+							employees(distinct_on: user_id, order_by: { joined_at: desc }) {
+								user_id
+							}
+						}
+					}
+				}`,
+				Role: "admin",
+			},
+		},
 	}
 
 	RunGraphQLTests(t, cases, TestConfig{

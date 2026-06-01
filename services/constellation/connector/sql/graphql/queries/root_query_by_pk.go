@@ -49,6 +49,7 @@ func (t *table) buildQueryByPkSQL(
 		"_root",
 		t.tableFromClause(),
 		t.tableSourceRef(),
+		rootFieldName(field),
 		func(whereClause where.Clause, modifiers []arguments.QueryModifier) (where.Clause, []arguments.QueryModifier) {
 			return append(whereClause, where.NewAndFilter(pkConditions)), modifiers
 		},
@@ -88,6 +89,7 @@ func (t *table) writeQueryByPkSQL(
 	paramIndex int,
 	alias string,
 	relName string,
+	argumentPath string,
 	queryModifiers ...queryModifierFunc,
 ) ([]any, int, error) {
 	queryModifiers = append(
@@ -111,6 +113,7 @@ func (t *table) writeQueryByPkSQL(
 		relName,
 		t.tableFromClause(),
 		t.tableSourceRef(),
+		argumentPath,
 		queryModifiers...,
 	)
 }
@@ -132,6 +135,7 @@ func (t *table) buildQuerySQL(
 	outputAlias string,
 	fromClause string,
 	sourceRef string,
+	argumentPath string,
 	queryModifiers ...queryModifierFunc,
 ) ([]any, int, error) {
 	columns, relationships, err := t.astToQuerySelection(field, fragments)
@@ -143,7 +147,7 @@ func (t *table) buildQuerySQL(
 
 	params, paramIndex, err = t.buildQueryCTE(
 		b, field, variables, role, sessionVariables, params, paramIndex,
-		baseAlias, fromClause, sourceRef, queryModifiers...,
+		baseAlias, fromClause, sourceRef, argumentPath, queryModifiers...,
 	)
 	if err != nil {
 		return nil, 0, err
@@ -157,13 +161,13 @@ func (t *table) buildQuerySQL(
 	if t.dialect.SupportsLateral() {
 		return t.buildQueryRelationshipsLateral(
 			b, relationships, fragments, variables, role, sessionVariables,
-			roots, params, paramIndex, baseAlias, alias, outputAlias, hasColumns,
+			roots, params, paramIndex, baseAlias, alias, outputAlias, argumentPath, hasColumns,
 		)
 	}
 
 	return t.buildQueryRelationshipsSubquery(
 		b, relationships, fragments, variables, role, sessionVariables,
-		roots, params, paramIndex, baseAlias, alias, outputAlias, hasColumns,
+		roots, params, paramIndex, baseAlias, alias, outputAlias, argumentPath, hasColumns,
 	)
 }
 
@@ -179,12 +183,15 @@ func (t *table) buildQueryCTE(
 	baseAlias string,
 	fromClause string,
 	sourceRef string,
+	argumentPath string,
 	queryModifiers ...queryModifierFunc,
 ) ([]any, int, error) {
 	whereClause, modifiers, distinctOn, err := arguments.ParseQuery(
 		t, field.Arguments, variables, role, sessionVariables, sourceRef,
 	)
 	if err != nil {
+		err = annotateQueryValidationError(err, argumentPath)
+
 		return nil, 0, fmt.Errorf(
 			"parsing query arguments for %s.%s: %w", t.schemaName, t.tableName, err,
 		)
@@ -289,6 +296,7 @@ func (t *table) buildQueryRelationshipsLateral(
 	baseAlias string,
 	alias string,
 	outputAlias string,
+	argumentPath string,
 	hasColumns bool,
 ) ([]any, int, error) {
 	for _, relSel := range relationships {
@@ -318,7 +326,7 @@ func (t *table) buildQueryRelationshipsLateral(
 
 		params, paramIndex, err = relSel.relationship.buildSelectionSQL(
 			b, relSel.field, fragments, variables, role, sessionVariables,
-			roots, params, paramIndex, baseAlias, relAlias,
+			roots, params, paramIndex, baseAlias, relAlias, argumentPath,
 		)
 		if err != nil {
 			return nil, 0, fmt.Errorf("error building relationship %s: %w", relSel.alias, err)
@@ -346,6 +354,7 @@ func (t *table) buildQueryRelationshipsSubquery(
 	baseAlias string,
 	alias string,
 	outputAlias string,
+	argumentPath string,
 	hasColumns bool,
 ) ([]any, int, error) {
 	for _, relSel := range relationships {
@@ -363,7 +372,7 @@ func (t *table) buildQueryRelationshipsSubquery(
 
 		params, paramIndex, err = relSel.relationship.buildSelectionSQL(
 			b, relSel.field, fragments, variables, role, sessionVariables,
-			roots, params, paramIndex, baseAlias, relAlias,
+			roots, params, paramIndex, baseAlias, relAlias, argumentPath,
 		)
 		if err != nil {
 			return nil, 0, fmt.Errorf("error building relationship %s: %w", relSel.alias, err)

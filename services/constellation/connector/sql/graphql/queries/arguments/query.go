@@ -13,8 +13,13 @@ import (
 // ParseQuery parses the where/order_by/limit/offset/distinct_on arguments of a
 // collection or aggregate query. sourceRef is the qualified reference of the
 // base relation being filtered/ordered (the table ref, or a function-call
-// alias); relationship order_by correlates its subqueries against it.
-func ParseQuery( //nolint:funlen
+// alias); relationship order_by correlates its subqueries against it. The
+// function is a flat sequence of one independent block per GraphQL argument;
+// that is clearer than threading shared variables/err state through
+// per-argument helpers.
+//
+//nolint:funlen // see godoc above for rationale
+func ParseQuery(
 	t Table,
 	arguments ast.ArgumentList,
 	variables map[string]any,
@@ -44,13 +49,13 @@ func ParseQuery( //nolint:funlen
 			return nil, nil, nil, fmt.Errorf("failed to parse order_by: %w", err)
 		}
 
-		modifiers = append(modifiers, &OrderBy{Items: items})
+		modifiers = appendOrderByModifier(modifiers, items)
 	}
 
 	if arg := arguments.ForName("limit"); arg != nil {
-		limitVal, err := ParseLimitOffset(arg.Value, variables)
+		limitVal, err := parseLimitOffsetArgument("limit", arg.Value, variables)
 		if err != nil {
-			return nil, nil, nil, fmt.Errorf("failed to parse limit: %w", err)
+			return nil, nil, nil, err
 		}
 
 		if limitVal != nil {
@@ -59,9 +64,9 @@ func ParseQuery( //nolint:funlen
 	}
 
 	if arg := arguments.ForName("offset"); arg != nil {
-		offsetVal, err := ParseLimitOffset(arg.Value, variables)
+		offsetVal, err := parseLimitOffsetArgument("offset", arg.Value, variables)
 		if err != nil {
-			return nil, nil, nil, fmt.Errorf("failed to parse offset: %w", err)
+			return nil, nil, nil, err
 		}
 
 		if offsetVal != nil {
@@ -80,12 +85,159 @@ func ParseQuery( //nolint:funlen
 		}
 	}
 
+	modifiers, err = validateDistinctOnOrderBy(dOn, modifiers)
+	if err != nil {
+		return nil, nil, nil, err
+	}
+
 	return whereClause, modifiers, dOn, nil
+}
+
+func appendOrderByModifier(modifiers []QueryModifier, items []OrderByItem) []QueryModifier {
+	if len(items) == 0 {
+		return modifiers
+	}
+
+	return append(modifiers, &OrderBy{Items: items})
+}
+
+// validateDistinctOnOrderBy enforces PostgreSQL's rule that the DISTINCT ON
+// expressions must be the leading ORDER BY expressions, matching Hasura's
+// behaviour exactly:
+//
+//   - distinct_on present, no order_by: synthesise a leading ORDER BY on the
+//     distinct columns (ASC NULLS LAST, the same default the aggregate
+//     json_agg ordering uses) so row selection is deterministic.
+//   - distinct_on present, order_by whose leading columns are exactly the
+//     distinct_on columns (same set of columns within the prefix; prefix order
+//     and direction are irrelevant): allowed, left untouched — the DISTINCT ON /
+//     ORDER BY already agree.
+//   - distinct_on present, order_by whose leading prefix does NOT contain the
+//     distinct_on columns: rejected with a *QueryValidationError wrapping
+//     ErrInvalidArgument and carrying Hasura's distinct_on/order_by mismatch
+//     message, mirroring Hasura's validation-failed error.
+//     Constellation does not silently reorder the ORDER BY, because that would
+//     return different rows than the user's order_by requested and diverge from
+//     Hasura.
+//
+// It is a no-op when there is no distinct_on (dOn == nil), so non-distinct
+// queries and dialects without DISTINCT ON support (SQLite) are unaffected.
+func validateDistinctOnOrderBy(
+	dOn *DistinctOn,
+	modifiers []QueryModifier,
+) ([]QueryModifier, error) {
+	if dOn == nil || len(dOn.Columns) == 0 {
+		return modifiers, nil
+	}
+
+	orderByIdx, userItems := findOrderBy(modifiers)
+
+	// No user order_by existed; synthesise a leading ORDER BY on the distinct
+	// columns so row selection is deterministic (matching Hasura).
+	if orderByIdx < 0 {
+		prefix := make([]OrderByItem, len(dOn.Columns))
+		for i, col := range dOn.Columns {
+			prefix[i] = OrderByItem{
+				Column:    col,
+				Direction: core.OrderAscNullsLast,
+				term:      nil,
+			}
+		}
+
+		return append([]QueryModifier{&OrderBy{Items: prefix}}, modifiers...), nil
+	}
+
+	// An order_by was supplied; its leading prefix must contain exactly the
+	// distinct_on columns. Prefix order and direction are irrelevant to the
+	// PostgreSQL constraint and to Hasura's check; a non-distinct column before
+	// the full distinct_on set is not allowed. Reject otherwise.
+	if !distinctOnMatchesOrderByPrefix(dOn.Columns, userItems) {
+		return nil, newDistinctOnOrderByMismatchError()
+	}
+
+	return modifiers, nil
+}
+
+// distinctOnMatchesOrderByPrefix reports whether the leading order_by prefix
+// contains exactly the distinct_on columns. PostgreSQL accepts the distinct_on
+// expressions in any order within the leftmost ORDER BY prefix, but no
+// non-distinct expression may appear before that prefix is complete.
+func distinctOnMatchesOrderByPrefix(columns []string, orderBy []OrderByItem) bool {
+	if len(orderBy) < len(columns) {
+		return false
+	}
+
+	remaining := make(map[string]int, len(columns))
+	for _, col := range columns {
+		remaining[col]++
+	}
+
+	for _, item := range orderBy[:len(columns)] {
+		if remaining[item.Column] == 0 {
+			return false
+		}
+
+		remaining[item.Column]--
+	}
+
+	return true
+}
+
+// findOrderBy returns the index of the *OrderBy modifier in modifiers and its
+// items, or (-1, nil) when no order_by was supplied.
+func findOrderBy(modifiers []QueryModifier) (int, []OrderByItem) {
+	for i, m := range modifiers {
+		if ob, ok := m.(*OrderBy); ok {
+			return i, ob.Items
+		}
+	}
+
+	return -1, nil
+}
+
+func parseLimitOffsetArgument(
+	argumentName string,
+	value *ast.Value,
+	variables map[string]any,
+) (*int, error) {
+	parsed, err := ParseLimitOffset(value, variables)
+	if err != nil {
+		return nil, fmt.Errorf("failed to parse %s: %w", argumentName, err)
+	}
+
+	// Hasura rejects a negative limit during query parsing with a
+	// validation-failed envelope, while a negative offset is surfaced as a safe
+	// data-exception at path "$". Emit those Hasura-compatible envelopes here so
+	// the shared parser still serves stream batch_size and SQLite cannot silently
+	// reinterpret negative LIMIT/OFFSET values.
+	if parsed != nil && *parsed < 0 {
+		return nil, newNegativeLimitOffsetError(
+			argumentName,
+			negativeLimitFoundType(value, variables),
+		)
+	}
+
+	return parsed, nil
+}
+
+func negativeLimitFoundType(value *ast.Value, variables map[string]any) string {
+	resolved, err := values.ResolveVariable(value, variables)
+	if err != nil {
+		return negativeLimitFoundInteger
+	}
+
+	if resolved.Kind == ast.FloatValue {
+		return negativeLimitFoundNumber
+	}
+
+	return negativeLimitFoundInteger
 }
 
 // ParseLimitOffset parses a limit or offset integer argument from GraphQL.
 // Accepts both IntValue and FloatValue because JSON numbers come in as floats
-// by default after variable resolution.
+// by default after variable resolution. Sign constraints are enforced by callers
+// because stream batch_size shares this parser but has a different validation
+// message.
 func ParseLimitOffset(value *ast.Value, variables map[string]any) (*int, error) {
 	value, err := values.ResolveVariable(value, variables)
 	if err != nil {

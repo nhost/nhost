@@ -72,6 +72,7 @@ func (r *RemoteRelationshipResolver) executeAndStitchAggregate(
 		JoinColumnSQLName: targetCol,
 		JoinValues:        joinValues,
 		Field:             rq.sourceField,
+		ArgumentPath:      rq.argumentPath(),
 		Fragments:         fragments,
 		Variables:         variables,
 	})

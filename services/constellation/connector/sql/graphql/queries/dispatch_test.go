@@ -10,6 +10,7 @@ import (
 	"github.com/vektah/gqlparser/v2/parser"
 
 	"github.com/nhost/nhost/services/constellation/connector/sql/graphql/queries"
+	"github.com/nhost/nhost/services/constellation/connector/sql/graphql/queries/arguments"
 	"github.com/nhost/nhost/services/constellation/connector/sql/graphql/queries/dialect"
 	groupedaggdispatch "github.com/nhost/nhost/services/constellation/connector/sql/graphql/queries/groupedaggregate"
 	"github.com/nhost/nhost/services/constellation/connector/sql/introspection"
@@ -185,6 +186,131 @@ func TestBuildQueryDispatch_UnknownFieldErrors(t *testing.T) {
 
 	if !strings.Contains(err.Error(), "not_a_root") {
 		t.Errorf("error should mention unknown field; got: %v", err)
+	}
+}
+
+// TestBuildNestedRelationshipValidationErrorPath pins the Hasura-style
+// extensions.path stamped on a *QueryValidationError raised by an invalid
+// distinct_on/order_by combination on an array relationship, across every
+// threaded argumentPath surface. The query case nests the relationship under a
+// collection root; the mutation case nests it under `returning`, which is the
+// only surface adding a `.returning.` path segment and the only one without a
+// dedicated test before this. Both share the same users->orders metadata and
+// the same offending relationship args, so the only meaningful difference is
+// the operation shape and the resulting path.
+func TestBuildNestedRelationshipValidationErrorPath(t *testing.T) {
+	t.Parallel()
+
+	objects := buildObjectsWithUsersAndOrders()
+	md := &metadata.DatabaseMetadata{
+		Tables: []metadata.TableMetadata{
+			{
+				Table: metadata.TableSource{Schema: "public", Name: "users"},
+				ArrayRelationships: []metadata.ArrayRelationship{
+					{
+						Name: "orders",
+						Using: metadata.RelationshipUsing{
+							ForeignKeyConstraint: &metadata.ForeignKeyConstraint{
+								Columns: []string{"user_id"},
+								Table: metadata.TableSource{
+									Schema: "public",
+									Name:   "orders",
+								},
+							},
+						},
+					},
+				},
+			},
+			tableMetaFor("orders"),
+		},
+	}
+
+	roots, _, err := queries.BuildRoots(objects, md, &dialect.PostgresDialect{})
+	if err != nil {
+		t.Fatalf("BuildRoots: %v", err)
+	}
+
+	tests := []struct {
+		name     string
+		query    string
+		wantPath string
+	}{
+		{
+			name: "collection root relationship",
+			query: `query {
+				people: users {
+					id
+					orderList: orders(distinct_on: id, order_by: { user_id: asc }) { id }
+				}
+			}`,
+			wantPath: "$.selectionSet.people.selectionSet.orderList.args",
+		},
+		{
+			// The invalid relationship args live under the mutation's
+			// `returning` selection. The surrounding insert is valid (admin
+			// role, single PK column) so the build reaches
+			// selectionReturning.WriteSQL, where the relationship's argumentPath
+			// is threaded through buildSelectionSQL and stamped onto the error.
+			name: "mutation returning relationship",
+			query: `mutation {
+				insert_users(objects: [{ id: "11111111-1111-1111-1111-111111111111" }]) {
+					affected_rows
+					returning {
+						id
+						orderList: orders(distinct_on: id, order_by: { user_id: asc }) { id }
+					}
+				}
+			}`,
+			wantPath: "$.selectionSet.insert_users.selectionSet.returning.selectionSet.orderList.args",
+		},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			t.Parallel()
+
+			op, _, _ := parseSingleField(t, tt.query)
+
+			_, err := roots.BuildQuery(op, nil, nil, "admin", nil)
+			if !errors.Is(err, arguments.ErrInvalidArgument) {
+				t.Fatalf("expected ErrInvalidArgument, got %v", err)
+			}
+
+			assertValidationPath(t, err, tt.wantPath)
+		})
+	}
+}
+
+// wantDistinctOnOrderByMismatchMessage is the exact client-facing message
+// Hasura emits for a distinct_on/order_by mismatch, asserted verbatim so the
+// byte-for-byte wire parity is pinned without depending on an arguments
+// internal sentinel.
+const wantDistinctOnOrderByMismatchMessage = `"distinct_on" columns must match initial "order_by" columns`
+
+// assertValidationPath verifies the rendered Hasura envelope of a validation
+// error: the distinct_on/order_by mismatch message plus the stamped
+// extensions.path. Asserting the wire message (not an internal sentinel)
+// matches what a GraphQL client actually receives.
+func assertValidationPath(t *testing.T, err error, want string) {
+	t.Helper()
+
+	var vErr *arguments.QueryValidationError
+	if !errors.As(err, &vErr) {
+		t.Fatalf("err = %T, want *QueryValidationError", err)
+	}
+
+	asMap := vErr.AsMap()
+	if got := asMap["message"]; got != wantDistinctOnOrderByMismatchMessage {
+		t.Fatalf("message = %v, want %s", got, wantDistinctOnOrderByMismatchMessage)
+	}
+
+	ext, ok := asMap["extensions"].(map[string]any)
+	if !ok {
+		t.Fatalf("extensions = %T, want map[string]any", asMap["extensions"])
+	}
+
+	if got := ext["path"]; got != want {
+		t.Fatalf("extensions.path = %v, want %s", got, want)
 	}
 }
 
@@ -676,6 +802,46 @@ func TestBuildGroupedAggregate_DistinctOnUnsupportedDialect(t *testing.T) {
 	if !errors.Is(err, queries.ErrGroupedAggregateDistinctOnUnsupported) {
 		t.Fatalf("expected ErrGroupedAggregateDistinctOnUnsupported, got %v", err)
 	}
+}
+
+func TestBuildGroupedAggregateValidationErrorPath(t *testing.T) {
+	t.Parallel()
+
+	objects := buildObjectsWithUsersAndOrders()
+	md := &metadata.DatabaseMetadata{Tables: []metadata.TableMetadata{tableMetaFor("orders")}}
+
+	_, groupedAgg, err := queries.BuildRoots(objects, md, &dialect.PostgresDialect{})
+	if err != nil {
+		t.Fatalf("BuildRoots: %v", err)
+	}
+
+	_, field, fragments := parseSingleField(t, `query {
+		_root(distinct_on: id, order_by: { user_id: asc }) {
+			aggregate { count }
+		}
+	}`)
+
+	_, err = groupedAgg.BuildGroupedAggregateSQL(groupedaggdispatch.BuildInput{
+		TableSchema:       "public",
+		TableName:         "orders",
+		Field:             field,
+		ArgumentPath:      "users.selectionSet.ordersAgg",
+		Fragments:         fragments,
+		Variables:         nil,
+		Role:              "admin",
+		SessionVariables:  nil,
+		JoinColumnSQLName: "user_id",
+		JoinValues:        []any{"11111111-1111-1111-1111-111111111111"},
+	})
+	if !errors.Is(err, arguments.ErrInvalidArgument) {
+		t.Fatalf("expected ErrInvalidArgument, got %v", err)
+	}
+
+	assertValidationPath(
+		t,
+		err,
+		"$.selectionSet.users.selectionSet.ordersAgg.args",
+	)
 }
 
 func TestBuildGroupedAggregate_NestedRelationshipsRejected(t *testing.T) {

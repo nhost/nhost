@@ -2,6 +2,8 @@ package queries_test
 
 import (
 	"testing"
+
+	"github.com/nhost/nhost/services/constellation/connector/sql/graphql/queries/arguments"
 )
 
 func TestAggregateBuildQuery(t *testing.T) { //nolint:paralleltest,maintidx
@@ -536,6 +538,55 @@ func TestAggregateBuildQuery(t *testing.T) { //nolint:paralleltest,maintidx
 				}`,
 				Role: "admin",
 			},
+		},
+
+		{
+			// distinct_on with no order_by must still emit a leading ORDER BY on
+			// the distinct columns in the aggregate base CTE so row selection and
+			// nodes output stay deterministic, matching Hasura.
+			name: "aggregate with distinct_on without order by",
+			query: query{
+				Query: `query {
+					departments_aggregate(distinct_on: name) {
+						aggregate {
+							count
+						}
+						nodes {
+							id
+							name
+							budget
+						}
+					}
+				}`,
+				Role: "admin",
+			},
+		},
+
+		{
+			// distinct_on column differs from the leading order_by column. Hasura
+			// rejects this at validation rather than reconciling, so Constellation
+			// does too instead of silently reordering the user's order_by.
+			name: "aggregate with distinct_on mismatched order by",
+			query: query{
+				Query: `query {
+					departments_aggregate(
+						distinct_on: name,
+						order_by: {budget: desc},
+						limit: 10
+					) {
+						aggregate {
+							count
+						}
+						nodes {
+							id
+							name
+							budget
+						}
+					}
+				}`,
+				Role: "admin",
+			},
+			expectError: arguments.ErrInvalidArgument,
 		},
 
 		{

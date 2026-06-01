@@ -37,9 +37,14 @@ type Request struct {
 	// nils or collapse duplicates, and a nil entry will be stringified to "<nil>"
 	// when keying the result map (see Executor godoc).
 	JoinValues []any
-	// Field is the user's aggregate selection at the GraphQL root, used by the
-	// executor to drive sub-field selection (aggregate / nodes).
+	// Field is the user's aggregate selection, used by the executor to drive
+	// sub-field selection (aggregate / nodes).
 	Field *ast.Field
+	// ArgumentPath is the GraphQL selection path from the operation root to
+	// Field, using response field names joined by ".selectionSet.". Connectors
+	// use it to render validation errors for nested aggregate relationships.
+	// Empty falls back to Field's alias/name for direct executor callers.
+	ArgumentPath string
 	// Fragments is the operation's fragment definition list, forwarded to the
 	// SQL builder so fragment spreads inside Field can be resolved.
 	Fragments ast.FragmentDefinitionList

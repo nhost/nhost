@@ -167,6 +167,30 @@ func (h *webSocketHandler) sendSubscriptionError(id string, err error) {
 	h.sendError(id, err.Error())
 }
 
+// sendSubscriptionRuntimeError classifies errors returned by a subscription
+// handler after GraphQL parse/validation has already succeeded. Structured
+// connector validation errors keep their GraphQL envelope, remaining
+// ErrInvalidSubscription failures surface verbatim, and raw driver/runtime
+// faults are sanitized.
+func (h *webSocketHandler) sendSubscriptionRuntimeError(
+	ctx context.Context,
+	id string,
+	logger *slog.Logger,
+	err error,
+) {
+	if structuredErrs, ok := classifyStructuredConnectorError(err); ok {
+		h.sendErrors(id, structuredErrs)
+		return
+	}
+
+	if errors.Is(err, subscription.ErrInvalidSubscription) {
+		h.sendError(id, err.Error())
+		return
+	}
+
+	h.sendError(id, sanitizeConnectorError(ctx, logger, h.devMode, err))
+}
+
 // startSubscription registers per-subscription state, kicks off the handler,
 // and spawns the update-forwarding goroutine. Mirrors the cleanup contract
 // of OnSubscribe so failures still send an error frame and unregister state.
@@ -223,14 +247,7 @@ func (h *webSocketHandler) startSubscription(
 
 	updateCh, err := subHandler.Start(ctx, req, logger)
 	if err != nil {
-		// A query that cannot be planned is a client-actionable error and is
-		// surfaced verbatim (mirroring the parse/validate path); only genuine
-		// driver/runtime faults are sanitized into a trace id.
-		if errors.Is(err, subscription.ErrInvalidSubscription) {
-			h.sendError(id, err.Error())
-		} else {
-			h.sendError(id, sanitizeConnectorError(ctx, logger, h.devMode, err))
-		}
+		h.sendSubscriptionRuntimeError(ctx, id, logger, err)
 
 		h.removeSubscription(id)
 
@@ -410,21 +427,11 @@ func (h *webSocketHandler) forwardUpdates(
 			}
 
 			if update.Error != nil {
-				// Mirror startSubscription's classification: a plan failure
-				// (wrapped with subscription.ErrInvalidSubscription) is a
-				// client-actionable error and is surfaced verbatim; only
-				// driver/runtime faults are sanitized into a trace id. Live
-				// query subscriptions only build SQL inside the polling
-				// goroutine, so this is the sole place the sentinel reaches
-				// the protocol layer for them.
-				if errors.Is(update.Error, subscription.ErrInvalidSubscription) {
-					h.sendError(update.SubscriptionID, update.Error.Error())
-				} else {
-					h.sendError(
-						update.SubscriptionID,
-						sanitizeConnectorError(ctx, logger, h.devMode, update.Error),
-					)
-				}
+				// Mirror startSubscription's classification. Live-query
+				// subscriptions only build SQL inside the polling goroutine, so
+				// this is the sole place async plan failures reach the protocol
+				// layer for them.
+				h.sendSubscriptionRuntimeError(ctx, update.SubscriptionID, logger, update.Error)
 
 				continue
 			}

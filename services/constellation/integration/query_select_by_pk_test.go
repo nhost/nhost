@@ -118,6 +118,36 @@ func TestSelectByPK(t *testing.T) { //nolint:paralleltest
 				},
 			},
 		},
+
+		// Hasura-parity lock for the by_pk argumentPath surface. The by_pk root
+		// field itself takes only the primary key, so the validation error is
+		// raised on the nested array relationship (employees -> user_departments)
+		// whose distinct_on column set does not match the leading order_by
+		// column. The surrounding by_pk is valid so the build reaches the
+		// relationship's buildSelectionSQL, where the argumentPath threaded by
+		// root_query_by_pk.go is stamped onto the error:
+		// "$.selectionSet.departments_by_pk.selectionSet.employees.args".
+		// RunGraphQLTests diffs the full response against live Hasura, pinning
+		// message, extensions.code, and extensions.path. Mirrors the unit
+		// assertion in queries/dispatch_test.go's
+		// TestBuildNestedRelationshipValidationErrorPath.
+		{
+			name: "nested-relationship distinct_on/order_by mismatch validation error",
+			query: query{
+				Query: `
+					{
+					  departments_by_pk(id: "2db9de0a-b9ba-416e-8619-783a399ae2b3") {
+						name
+						employees(distinct_on: role, order_by: { joined_at: desc }) {
+						  user_id
+						}
+					  }
+					}`,
+				Variables:        nil,
+				Role:             "admin",
+				SessionVariables: map[string]string{},
+			},
+		},
 	}
 
 	RunGraphQLTests(t, cases, TestConfig{

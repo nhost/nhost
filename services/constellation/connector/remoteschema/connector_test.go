@@ -620,6 +620,28 @@ func TestClose(t *testing.T) {
 	connector.Close()
 }
 
+func TestValidateOperation(t *testing.T) {
+	t.Parallel()
+
+	ctrl := gomock.NewController(t)
+	mockDoer := mock.NewMockHTTPDoer(ctrl)
+
+	// newMockConnector primes only the introspection HTTP call; no further Do
+	// expectation is set, so gomock fails the test if ValidateOperation makes
+	// any network call. Remote schemas have no pre-execution validation and must
+	// return nil without contacting the endpoint.
+	connector := newMockConnector(t, mockDoer)
+
+	op := &ast.OperationDefinition{
+		Operation:    ast.Query,
+		SelectionSet: ast.SelectionSet{&ast.Field{Name: "test"}},
+	}
+
+	if err := connector.ValidateOperation(op, nil, nil, "admin", nil); err != nil {
+		t.Fatalf("ValidateOperation must be a no-op returning nil, got: %v", err)
+	}
+}
+
 func TestExecute_BlackBox(t *testing.T) { //nolint:gocognit,cyclop,maintidx
 	t.Parallel()
 
