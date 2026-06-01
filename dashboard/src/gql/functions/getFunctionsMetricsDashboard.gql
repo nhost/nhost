@@ -52,6 +52,18 @@ query getFunctionsMetricsDashboard(
     labels
     value
   }
+  totalRequestsByMethod: getFunctionsInstantMetric(
+    metric: INVOCATIONS
+    aggregate: SUM
+    groupBy: [METHOD]
+    appID: $appID
+    route: $route
+    from: $from
+    to: $to
+  ) {
+    labels
+    value
+  }
   invocations: getFunctionsRangeMetric(
     metric: INVOCATIONS
     aggregate: SUM

@@ -19,6 +19,14 @@ const FIXTURE: GetFunctionsMetricsDashboardQuery = {
     { labels: { method: 'POST', status: '500' }, value: 142 },
     { labels: { method: 'GET', status: '404' }, value: 38 },
   ],
+  // Instant per-method totals — deliberately unrelated to the `invocations`
+  // range datapoints below, so the test proves the table reads this field (not
+  // the summed series) and applies `Math.ceil`.
+  totalRequestsByMethod: [
+    { labels: { method: 'GET' }, value: 10.2 },
+    { labels: { method: 'POST' }, value: 3 },
+    { labels: { method: 'OPTIONS' }, value: 2.4 },
+  ],
   invocations: [
     {
       labels: { method: 'GET' },
@@ -142,9 +150,9 @@ describe('transformFunctionMetrics', () => {
         responseStatus: FIXTURE.responseStatus,
         averageResponseSize: FIXTURE.averageResponseSize,
         totalRequests: [
-          { timestamp: TO_ISO, method: 'POST', value: 28825 },
-          { timestamp: TO_ISO, method: 'GET', value: 1204 },
-          { timestamp: TO_ISO, method: 'OPTIONS', value: 745 },
+          { timestamp: TO_ISO, method: 'GET', value: 11 },
+          { timestamp: TO_ISO, method: 'POST', value: 3 },
+          { timestamp: TO_ISO, method: 'OPTIONS', value: 3 },
         ],
       },
       responseTimes: {
@@ -171,6 +179,7 @@ describe('transformFunctionMetrics', () => {
       totalBytesSent: [],
       totalDuration: [],
       totalErrors: [],
+      totalRequestsByMethod: [],
       invocations: [],
       responseStatus: [],
       averageResponseSize: [],

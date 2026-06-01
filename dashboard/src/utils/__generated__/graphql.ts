@@ -31634,7 +31634,7 @@ export type GetFunctionsMetricsDashboardQueryVariables = Exact<{
 }>;
 
 
-export type GetFunctionsMetricsDashboardQuery = { __typename?: 'query_root', totalInvocations: Array<{ __typename?: 'FunctionsMetricValue', labels: any, value: any }>, totalBytesSent: Array<{ __typename?: 'FunctionsMetricValue', labels: any, value: any }>, totalDuration: Array<{ __typename?: 'FunctionsMetricValue', labels: any, value: any }>, totalErrors: Array<{ __typename?: 'FunctionsMetricValue', labels: any, value: any }>, invocations: Array<{ __typename?: 'FunctionsMetricSeries', labels: any, timestamps: Array<any>, datapoints: Array<any> }>, responseStatus: Array<{ __typename?: 'FunctionsMetricSeries', labels: any, timestamps: Array<any>, datapoints: Array<any> }>, averageResponseSize: Array<{ __typename?: 'FunctionsMetricSeries', labels: any, timestamps: Array<any>, datapoints: Array<any> }>, averageResponseTime: Array<{ __typename?: 'FunctionsMetricSeries', labels: any, timestamps: Array<any>, datapoints: Array<any> }>, errorRate: Array<{ __typename?: 'FunctionsMetricSeries', labels: any, timestamps: Array<any>, datapoints: Array<any> }>, durationP75: Array<{ __typename?: 'FunctionsMetricSeries', labels: any, timestamps: Array<any>, datapoints: Array<any> }>, durationP95: Array<{ __typename?: 'FunctionsMetricSeries', labels: any, timestamps: Array<any>, datapoints: Array<any> }>, durationMax: Array<{ __typename?: 'FunctionsMetricSeries', labels: any, timestamps: Array<any>, datapoints: Array<any> }> };
+export type GetFunctionsMetricsDashboardQuery = { __typename?: 'query_root', totalInvocations: Array<{ __typename?: 'FunctionsMetricValue', labels: any, value: any }>, totalBytesSent: Array<{ __typename?: 'FunctionsMetricValue', labels: any, value: any }>, totalDuration: Array<{ __typename?: 'FunctionsMetricValue', labels: any, value: any }>, totalErrors: Array<{ __typename?: 'FunctionsMetricValue', labels: any, value: any }>, totalRequestsByMethod: Array<{ __typename?: 'FunctionsMetricValue', labels: any, value: any }>, invocations: Array<{ __typename?: 'FunctionsMetricSeries', labels: any, timestamps: Array<any>, datapoints: Array<any> }>, responseStatus: Array<{ __typename?: 'FunctionsMetricSeries', labels: any, timestamps: Array<any>, datapoints: Array<any> }>, averageResponseSize: Array<{ __typename?: 'FunctionsMetricSeries', labels: any, timestamps: Array<any>, datapoints: Array<any> }>, averageResponseTime: Array<{ __typename?: 'FunctionsMetricSeries', labels: any, timestamps: Array<any>, datapoints: Array<any> }>, errorRate: Array<{ __typename?: 'FunctionsMetricSeries', labels: any, timestamps: Array<any>, datapoints: Array<any> }>, durationP75: Array<{ __typename?: 'FunctionsMetricSeries', labels: any, timestamps: Array<any>, datapoints: Array<any> }>, durationP95: Array<{ __typename?: 'FunctionsMetricSeries', labels: any, timestamps: Array<any>, datapoints: Array<any> }>, durationMax: Array<{ __typename?: 'FunctionsMetricSeries', labels: any, timestamps: Array<any>, datapoints: Array<any> }> };
 
 export type GithubRepositoryFragment = { __typename?: 'githubRepositories', id: any, name: string, fullName: string, private: boolean, githubAppInstallation: { __typename?: 'githubAppInstallations', id: any, accountLogin?: string | null, accountType?: string | null, accountAvatarUrl?: string | null } };
 
@@ -36128,6 +36128,18 @@ export const GetFunctionsMetricsDashboardDocument = gql`
     metric: ERRORS
     aggregate: SUM
     groupBy: [METHOD, STATUS]
+    appID: $appID
+    route: $route
+    from: $from
+    to: $to
+  ) {
+    labels
+    value
+  }
+  totalRequestsByMethod: getFunctionsInstantMetric(
+    metric: INVOCATIONS
+    aggregate: SUM
+    groupBy: [METHOD]
     appID: $appID
     route: $route
     from: $from
