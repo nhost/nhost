@@ -2,6 +2,7 @@ package arguments_test
 
 import (
 	"errors"
+	"fmt"
 	"strings"
 	"testing"
 
@@ -67,7 +68,7 @@ func child(name string, v *ast.Value) *ast.ChildValue {
 // Hasura emits for a distinct_on/order_by mismatch. It is hardcoded here (not
 // read from an arguments symbol) so the assertion pins the byte-for-byte
 // Hasura-parity wire message independently of the package internals, mirroring
-// how TestParseQueryNegativeLimitOffsetValidationError asserts its literal.
+// how the negative-limit validation test asserts its literal.
 const wantDistinctOnOrderByMismatchMessage = `"distinct_on" columns must match initial "order_by" columns`
 
 // distinctOnOrderByMismatchError builds a real *QueryValidationError by driving
@@ -93,7 +94,7 @@ func distinctOnOrderByMismatchError(t *testing.T) *arguments.QueryValidationErro
 		&ast.Argument{Name: "distinct_on", Value: enumValue("name")},
 	}
 
-	clause, _, _, err := arguments.ParseQuery(tbl, args, nil, "user", nil)
+	clause, _, _, err := arguments.ParseQuery(tbl, args, nil, "user", nil, "")
 	if clause != nil {
 		t.Fatalf("ParseQuery: expected nil where clause on the error path, got %v", clause)
 	}
@@ -629,70 +630,103 @@ func TestParseQuery(t *testing.T) {
 	})
 }
 
-func TestParseQueryNegativeLimitOffsetValidationError(t *testing.T) {
-	t.Parallel()
+func parseNegativeQueryArgument(t *testing.T, argName string) error {
+	t.Helper()
 
-	tests := []struct {
-		name        string
-		argName     string
-		wantMessage string
-		wantPath    string
-	}{
-		{
-			name:        "limit",
-			argName:     "limit",
-			wantMessage: "unexpected negative value for limit",
-			wantPath:    "$.selectionSet.departments.args.limit",
-		},
-		{
-			name:        "offset",
-			argName:     "offset",
-			wantMessage: "unexpected negative value for offset",
-			wantPath:    "$.selectionSet.departments.args.offset",
-		},
+	ctrl := gomock.NewController(t)
+	tbl := mock.NewMockTable(ctrl)
+
+	args := ast.ArgumentList{
+		&ast.Argument{Name: argName, Value: intValue("-1")},
 	}
 
-	for _, tt := range tests {
-		t.Run(tt.name, func(t *testing.T) {
-			t.Parallel()
+	clause, modifiers, distinctOn, err := arguments.ParseQuery(tbl, args, nil, "user", nil, "")
+	if clause != nil {
+		t.Fatalf("expected nil where clause on the error path, got %v", clause)
+	}
 
-			ctrl := gomock.NewController(t)
-			tbl := mock.NewMockTable(ctrl)
+	if len(modifiers) != 0 {
+		t.Fatalf("expected no query modifiers on the error path, got %d", len(modifiers))
+	}
 
-			args := ast.ArgumentList{
-				&ast.Argument{Name: tt.argName, Value: intValue("-1")},
-			}
+	if distinctOn != nil {
+		t.Fatalf("expected nil distinct_on on the error path, got %v", distinctOn)
+	}
 
-			_, _, _, err := arguments.ParseQuery(tbl, args, nil, "user", nil)
-			if !errors.Is(err, arguments.ErrInvalidArgument) {
-				t.Fatalf("expected ErrInvalidArgument, got %v", err)
-			}
+	if !errors.Is(err, arguments.ErrInvalidArgument) {
+		t.Fatalf("expected ErrInvalidArgument, got %v", err)
+	}
 
-			var vErr *arguments.QueryValidationError
-			if !errors.As(err, &vErr) {
-				t.Fatalf("expected a *QueryValidationError, got %T", err)
-			}
+	return fmt.Errorf("parse negative %s: %w", argName, err)
+}
 
-			vErr.StampArgumentPath("departments")
+func TestParseQueryNegativeLimitValidationError(t *testing.T) {
+	t.Parallel()
 
-			got := vErr.AsMap()
-			if got["message"] != tt.wantMessage {
-				t.Errorf("message: got %q, want %q", got["message"], tt.wantMessage)
-			}
+	err := parseNegativeQueryArgument(t, "limit")
 
-			ext, ok := got["extensions"].(map[string]any)
-			if !ok {
-				t.Fatalf("extensions: got %T, want map[string]any", got["extensions"])
-			}
+	var dataErr *arguments.DataExceptionError
+	if errors.As(err, &dataErr) {
+		t.Fatalf("negative limit returned DataExceptionError: %v", dataErr)
+	}
 
-			if ext["code"] != "validation-failed" {
-				t.Errorf("extensions.code: got %v, want validation-failed", ext["code"])
-			}
+	var vErr *arguments.QueryValidationError
+	if !errors.As(err, &vErr) {
+		t.Fatalf("expected a *QueryValidationError, got %T", err)
+	}
 
-			if ext["path"] != tt.wantPath {
-				t.Errorf("extensions.path: got %v, want %s", ext["path"], tt.wantPath)
-			}
-		})
+	vErr.StampArgumentPath("departments")
+
+	got := vErr.AsMap()
+	if got["message"] != "unexpected negative value for limit" {
+		t.Errorf("message: got %q, want negative-limit Hasura message", got["message"])
+	}
+
+	ext, ok := got["extensions"].(map[string]any)
+	if !ok {
+		t.Fatalf("extensions: got %T, want map[string]any", got["extensions"])
+	}
+
+	if ext["code"] != "validation-failed" {
+		t.Errorf("extensions.code: got %v, want validation-failed", ext["code"])
+	}
+
+	if ext["path"] != "$.selectionSet.departments.args.limit" {
+		t.Errorf("extensions.path: got %v, want negative-limit argument path", ext["path"])
+	}
+}
+
+func TestParseQueryNegativeOffsetDataExceptionError(t *testing.T) {
+	t.Parallel()
+
+	err := parseNegativeQueryArgument(t, "offset")
+
+	var vErr *arguments.QueryValidationError
+	if errors.As(err, &vErr) {
+		t.Fatalf("negative offset returned validation-failed error: %v", vErr.AsMap())
+	}
+
+	var dataErr *arguments.DataExceptionError
+	if !errors.As(err, &dataErr) {
+		t.Fatalf("expected a *DataExceptionError, got %T", err)
+	}
+
+	got := dataErr.AsMap()
+	if got["message"] != "OFFSET must not be negative" {
+		t.Errorf("message: got %q, want negative-offset Hasura message", got["message"])
+	}
+
+	ext, ok := got["extensions"].(map[string]any)
+	if !ok {
+		t.Fatalf("extensions: got %T, want map[string]any", got["extensions"])
+	}
+
+	if ext["code"] != "data-exception" {
+		t.Errorf("extensions.code: got %v, want data-exception", ext["code"])
+	}
+
+	if ext["path"] != "$" {
+		t.Errorf("extensions.path: got %v, want $", ext["path"])
 	}
 }
 
@@ -725,7 +759,7 @@ func TestParseQueryDistinctOnOrderByValidation(t *testing.T) {
 			&ast.Argument{Name: "distinct_on", Value: enumValue("name")},
 		}
 
-		_, _, _, err := arguments.ParseQuery(tbl, args, nil, "user", nil)
+		_, _, _, err := arguments.ParseQuery(tbl, args, nil, "user", nil, "")
 		if !errors.Is(err, arguments.ErrInvalidArgument) {
 			t.Fatalf("expected ErrInvalidArgument, got %v", err)
 		}
@@ -782,7 +816,7 @@ func TestParseQueryDistinctOnOrderByValidation(t *testing.T) {
 				},
 			}
 
-			_, _, _, err := arguments.ParseQuery(tbl, args, nil, "user", nil)
+			_, _, _, err := arguments.ParseQuery(tbl, args, nil, "user", nil, "")
 			if !errors.Is(err, arguments.ErrInvalidArgument) {
 				t.Fatalf("expected ErrInvalidArgument, got %v", err)
 			}
@@ -814,7 +848,7 @@ func TestParseQueryDistinctOnOrderByValidation(t *testing.T) {
 			&ast.Argument{Name: "distinct_on", Value: enumValue("locale")},
 		}
 
-		_, mods, _, err := arguments.ParseQuery(tbl, args, nil, "user", nil)
+		_, mods, _, err := arguments.ParseQuery(tbl, args, nil, "user", nil, "")
 		if err != nil {
 			t.Fatalf("ParseQuery: %v", err)
 		}
@@ -854,7 +888,7 @@ func TestParseQueryDistinctOnOrderByValidation(t *testing.T) {
 			},
 		}
 
-		_, mods, _, err := arguments.ParseQuery(tbl, args, nil, "user", nil)
+		_, mods, _, err := arguments.ParseQuery(tbl, args, nil, "user", nil, "")
 		if err != nil {
 			t.Fatalf("ParseQuery: %v", err)
 		}
@@ -903,7 +937,7 @@ func TestParseQueryDistinctOnOrderByValidation(t *testing.T) {
 				},
 			}
 
-			_, mods, _, err := arguments.ParseQuery(tbl, args, nil, "user", nil)
+			_, mods, _, err := arguments.ParseQuery(tbl, args, nil, "user", nil, "")
 			if err != nil {
 				t.Fatalf("ParseQuery: %v", err)
 			}
@@ -953,6 +987,45 @@ func TestQueryValidationErrorAsMap(t *testing.T) {
 
 	if ext["path"] != "$.selectionSet.departments.args" {
 		t.Errorf("extensions.path: got %v, want $.selectionSet.departments.args", ext["path"])
+	}
+}
+
+func TestQueryValidationErrorRemapArgumentPath(t *testing.T) {
+	t.Parallel()
+
+	vErr := distinctOnOrderByMismatchError(t)
+	vErr.StampArgumentPath("teams")
+
+	vErr.RemapArgumentPath(func(path string) string {
+		if path != "teams" {
+			t.Fatalf("remapper saw path %q, want teams", path)
+		}
+
+		return "league.selectionSet.teams"
+	})
+
+	got := vErr.AsMap()
+
+	ext, ok := got["extensions"].(map[string]any)
+	if !ok {
+		t.Fatalf("extensions missing: %#v", got)
+	}
+
+	if got := ext["path"]; got != "$.selectionSet.league.selectionSet.teams.args" {
+		t.Fatalf("path = %v, want remapped client path", got)
+	}
+
+	vErr.RemapArgumentPath(func(string) string { return "" })
+
+	got = vErr.AsMap()
+
+	ext, ok = got["extensions"].(map[string]any)
+	if !ok {
+		t.Fatalf("extensions missing after empty remap: %#v", got)
+	}
+
+	if got := ext["path"]; got != "$.selectionSet.league.selectionSet.teams.args" {
+		t.Fatalf("empty remap path = %v, want previous path preserved", got)
 	}
 }
 

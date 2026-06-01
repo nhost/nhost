@@ -370,7 +370,9 @@ func TestBuildSelectionSQL(t *testing.T) { //nolint:maintidx,paralleltest
 		},
 
 		{
-			// Same pre-execution rejection for a negative offset.
+			// Hasura surfaces a negative offset as a data-exception at path "$";
+			// Constellation builds that safe structured error before execution so
+			// SQLite cannot silently reinterpret OFFSET -1 as OFFSET 0.
 			name: "negative offset rejected",
 			query: query{
 				Query: `

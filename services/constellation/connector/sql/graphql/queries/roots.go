@@ -210,7 +210,8 @@ func (r Roots) BuildQuery(
 // such as "$.selectionSet.<root>.selectionSet.<relationship>.args". The
 // arguments parser only sees the table, so callers that still have the AST
 // field path provide the suffix here. Non-validation errors pass through
-// unchanged and remain subject to controller sanitisation.
+// unchanged; the controller decides whether they are another trusted structured
+// error or a raw connector failure that needs sanitisation.
 func annotateQueryValidationError(err error, argumentPath string) error {
 	if vErr, ok := errors.AsType[*arguments.QueryValidationError](err); ok {
 		vErr.StampArgumentPath(argumentPath)

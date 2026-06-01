@@ -36,13 +36,13 @@ func (c *Connector) Execute(
 }
 
 // ValidateOperation builds the SQL for the operation and discards it, surfacing
-// any query-validation failure (e.g. a distinct_on / order_by mismatch or a
-// negative limit/offset) without touching the database. BuildQuery is the same
-// pure, side-effect-free step Execute runs first, so the controller can use
-// this to validate every connector in a multi-connector request before any of
-// them executes — matching Hasura, which rejects the whole request on a
-// validation failure rather than returning partial data or running sibling
-// mutations.
+// any trusted argument failure (e.g. a distinct_on / order_by mismatch, negative
+// limit, or Hasura-shaped negative-offset data exception) without touching the
+// database. BuildQuery is the same pure, side-effect-free step Execute runs
+// first, so the controller can use this to validate every connector in a
+// multi-connector request before any of them executes — matching Hasura, which
+// rejects the whole request on an argument failure rather than returning partial
+// data or running sibling mutations.
 func (c *Connector) ValidateOperation(
 	operation *ast.OperationDefinition,
 	fragments ast.FragmentDefinitionList,

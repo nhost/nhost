@@ -59,9 +59,34 @@ func distinctOnOrderByMismatchError(
 		&ast.Argument{Name: "distinct_on", Value: &ast.Value{Kind: ast.EnumValue, Raw: "name"}},
 	}
 
-	clause, _, _, err := arguments.ParseQuery(tbl, args, nil, "user", nil)
+	clause, _, _, err := arguments.ParseQuery(tbl, args, nil, "user", nil, "")
 	if clause != nil {
 		t.Fatalf("ParseQuery: expected nil where clause on the error path, got %v", clause)
+	}
+
+	var vErr *arguments.QueryValidationError
+	if !errors.As(err, &vErr) {
+		t.Fatalf("ParseQuery: expected a *QueryValidationError, got %T (%v)", err, err)
+	}
+
+	vErr.StampArgumentPath(rootField)
+
+	return vErr
+}
+
+func negativeLimitValidationError(
+	t *testing.T,
+	rootField string,
+) *arguments.QueryValidationError {
+	t.Helper()
+
+	args := ast.ArgumentList{
+		&ast.Argument{Name: "limit", Value: &ast.Value{Kind: ast.IntValue, Raw: "-1"}},
+	}
+
+	whereClause, _, _, err := arguments.ParseQuery(nil, args, nil, "user", nil, "")
+	if whereClause != nil {
+		t.Fatalf("ParseQuery: expected nil where clause on the error path, got %v", whereClause)
 	}
 
 	var vErr *arguments.QueryValidationError
@@ -592,12 +617,246 @@ func TestResolve_RemoteRelationshipStructuredErrorPassesThrough(t *testing.T) {
 	}
 }
 
+func TestResolve_RemoteRelationshipExecutionValidationErrorUsesClientPath(t *testing.T) {
+	t.Parallel()
+
+	queryRoot := "query_root"
+
+	sourceSchema := &graph.Schema{
+		Types: []*graph.ObjectType{
+			graphTestObject(
+				"query_root",
+				graphTestField(
+					"users",
+					graph.NewNonNullListType(graph.NewNonNullType("User")),
+				),
+			),
+			graphTestObject(
+				"User",
+				graphTestField("id", graph.NewNonNullType("ID")),
+				graphTestField(
+					"orders",
+					graph.NewNonNullListType(graph.NewNonNullType("Order")),
+					graphTestLimitArgument(),
+				),
+			),
+		},
+		Scalars:          nil,
+		Enums:            nil,
+		Interfaces:       nil,
+		Unions:           nil,
+		Inputs:           nil,
+		Directives:       nil,
+		QueryType:        &queryRoot,
+		MutationType:     nil,
+		SubscriptionType: nil,
+	}
+
+	targetSchema := &graph.Schema{
+		Types: []*graph.ObjectType{
+			graphTestObject(
+				"query_root",
+				graphTestField(
+					"orders",
+					graph.NewNonNullListType(graph.NewNonNullType("Order")),
+					graphTestLimitArgument(),
+				),
+			),
+			graphTestObject(
+				"Order",
+				graphTestField("id", graph.NewNonNullType("ID")),
+				graphTestField("userId", graph.NewNamedType("ID")),
+			),
+		},
+		Scalars:          nil,
+		Enums:            nil,
+		Interfaces:       nil,
+		Unions:           nil,
+		Inputs:           nil,
+		Directives:       nil,
+		QueryType:        &queryRoot,
+		MutationType:     nil,
+		SubscriptionType: nil,
+	}
+
+	var targetExecuted bool
+
+	sourceConn := staticConnector{
+		schemas: map[string]*graph.Schema{"admin": sourceSchema},
+		types:   nil,
+		execute: func() (map[string]any, error) {
+			return map[string]any{
+				"users": []any{map[string]any{"id": "u1"}},
+			}, nil
+		},
+		validate: nil,
+	}
+	targetConn := staticConnector{
+		schemas: map[string]*graph.Schema{"admin": targetSchema},
+		types:   nil,
+		execute: func() (map[string]any, error) {
+			targetExecuted = true
+
+			return nil, negativeLimitValidationError(t, "orders")
+		},
+		validate: nil,
+	}
+
+	relationships := map[string][]*plannerpkg.RelationshipMetadata{
+		"source": {
+			{
+				Name:              "orders",
+				SourceType:        "User",
+				TargetConnector:   "target",
+				TargetTable:       "orders",
+				TargetTableSchema: "",
+				JoinMapping:       map[string]string{"id": "userId"},
+				IsArray:           true,
+				IsArrayAggregate:  false,
+				IsRemote:          true,
+				LHSFields:         nil,
+				RemoteFieldPath:   nil,
+			},
+		},
+	}
+
+	ctrl, err := controller.NewFromConnectors(
+		testAdminSecret,
+		map[string]connector.Connector{
+			"source": sourceConn,
+			"target": targetConn,
+		},
+		relationships,
+		slog.New(slog.DiscardHandler),
+	)
+	if err != nil {
+		t.Fatalf("NewFromConnectors: %v", err)
+	}
+
+	resp, err := ctrl.Resolve(adminSessionContext(t), controller.GraphQLRequest{
+		OperationName: "",
+		Query:         `{ users { id orders(limit: -1) { id } } }`,
+		Variables:     nil,
+	})
+	if err != nil {
+		t.Fatalf("unexpected error: %v", err)
+	}
+
+	if !targetExecuted {
+		t.Fatal("target remote relationship was not executed")
+	}
+
+	if resp.Data != nil {
+		t.Errorf("validation failure must return no data, got %+v", resp.Data)
+	}
+
+	errs, ok := resp.Errors.([]map[string]any)
+	if !ok || len(errs) != 1 {
+		t.Fatalf("expected exactly one error, got %+v", resp.Errors)
+	}
+
+	if got := getMessage(errs[0]); got != "unexpected negative value for limit" {
+		t.Errorf("unexpected validation message: %q", got)
+	}
+
+	ext, ok := errs[0]["extensions"].(map[string]any)
+	if !ok {
+		t.Fatalf("error missing extensions: %+v", errs[0])
+	}
+
+	if ext["code"] != "validation-failed" {
+		t.Errorf("expected validation-failed code, got %v", ext["code"])
+	}
+
+	wantPath := "$.selectionSet.users.selectionSet.orders.args.limit"
+	if ext["path"] != wantPath {
+		t.Errorf("expected path %q, got %v", wantPath, ext["path"])
+	}
+}
+
 // getMessage returns the "message" entry of a GraphQL error map as a string,
 // or "" when absent.
 func getMessage(m map[string]any) string {
 	msg, _ := m["message"].(string)
 
 	return msg
+}
+
+type staticConnector struct {
+	schemas  map[string]*graph.Schema
+	types    map[string]string
+	execute  func() (map[string]any, error)
+	validate func() error
+}
+
+func (c staticConnector) GetSchema() (map[string]*graph.Schema, error) {
+	return c.schemas, nil
+}
+
+func (c staticConnector) Execute(
+	context.Context,
+	*ast.OperationDefinition,
+	ast.FragmentDefinitionList,
+	map[string]any,
+	string,
+	map[string]any,
+	*slog.Logger,
+) (map[string]any, error) {
+	if c.execute == nil {
+		return map[string]any{}, nil
+	}
+
+	return c.execute()
+}
+
+func (c staticConnector) ValidateOperation(
+	*ast.OperationDefinition,
+	ast.FragmentDefinitionList,
+	map[string]any,
+	string,
+	map[string]any,
+) error {
+	if c.validate == nil {
+		return nil
+	}
+
+	return c.validate()
+}
+
+func (c staticConnector) GetTypeName(identifier string) string {
+	return c.types[identifier]
+}
+
+func (c staticConnector) Close() {}
+
+func graphTestObject(name string, fields ...*graph.Field) *graph.ObjectType {
+	return &graph.ObjectType{
+		Name:        name,
+		Description: "",
+		Fields:      fields,
+		Interfaces:  nil,
+		Directives:  nil,
+	}
+}
+
+func graphTestField(name string, typ *graph.Type, args ...*graph.Argument) *graph.Field {
+	return &graph.Field{
+		Name:        name,
+		Description: "",
+		Type:        typ,
+		Arguments:   args,
+		Directives:  nil,
+	}
+}
+
+func graphTestLimitArgument() *graph.Argument {
+	return &graph.Argument{
+		Name:         "limit",
+		Description:  "",
+		Type:         graph.NewNamedType("Int"),
+		DefaultValue: nil,
+		Directives:   nil,
+	}
 }
 
 // validateErrConnector wraps a real connector but overrides ValidateOperation
@@ -770,6 +1029,195 @@ func TestResolve_MultiConnectorQueryValidationErrorAbortsWholeRequest(t *testing
 
 	if ext["path"] != "$.selectionSet.items.args" {
 		t.Errorf("expected stamped argument path, got %v", ext["path"])
+	}
+}
+
+func TestResolve_RemoteRelationshipValidationErrorAbortsMutation(t *testing.T) {
+	t.Parallel()
+
+	queryRoot := "query_root"
+	mutationRoot := "mutation_root"
+
+	sourceSchema := &graph.Schema{
+		Types: []*graph.ObjectType{
+			graphTestObject(
+				"query_root",
+				graphTestField("source_noop", graph.NewNamedType("String")),
+			),
+			graphTestObject(
+				"mutation_root",
+				graphTestField(
+					"insert_users",
+					graph.NewNonNullType("UserMutationResponse"),
+				),
+			),
+			graphTestObject(
+				"UserMutationResponse",
+				graphTestField(
+					"returning",
+					graph.NewNonNullListType(graph.NewNonNullType("User")),
+				),
+			),
+			graphTestObject(
+				"User",
+				graphTestField("id", graph.NewNonNullType("ID")),
+				graphTestField(
+					"orders",
+					graph.NewNonNullListType(graph.NewNonNullType("Order")),
+					graphTestLimitArgument(),
+				),
+			),
+		},
+		Scalars:          nil,
+		Enums:            nil,
+		Interfaces:       nil,
+		Unions:           nil,
+		Inputs:           nil,
+		Directives:       nil,
+		QueryType:        &queryRoot,
+		MutationType:     &mutationRoot,
+		SubscriptionType: nil,
+	}
+
+	targetSchema := &graph.Schema{
+		Types: []*graph.ObjectType{
+			graphTestObject(
+				"query_root",
+				graphTestField(
+					"orders",
+					graph.NewNonNullListType(graph.NewNonNullType("Order")),
+					graphTestLimitArgument(),
+				),
+			),
+			graphTestObject(
+				"Order",
+				graphTestField("id", graph.NewNonNullType("ID")),
+				graphTestField("userId", graph.NewNamedType("ID")),
+			),
+		},
+		Scalars:          nil,
+		Enums:            nil,
+		Interfaces:       nil,
+		Unions:           nil,
+		Inputs:           nil,
+		Directives:       nil,
+		QueryType:        &queryRoot,
+		MutationType:     nil,
+		SubscriptionType: nil,
+	}
+
+	var (
+		sourceExecuted bool
+		targetExecuted bool
+	)
+
+	sourceConn := staticConnector{
+		schemas: map[string]*graph.Schema{"admin": sourceSchema},
+		types:   nil,
+		execute: func() (map[string]any, error) {
+			sourceExecuted = true
+
+			return map[string]any{
+				"insert_users": map[string]any{
+					"returning": []any{map[string]any{"id": "u1"}},
+				},
+			}, nil
+		},
+		validate: nil,
+	}
+	targetConn := staticConnector{
+		schemas: map[string]*graph.Schema{"admin": targetSchema},
+		types:   nil,
+		execute: func() (map[string]any, error) {
+			targetExecuted = true
+
+			return nil, negativeLimitValidationError(t, "orders")
+		},
+		validate: func() error {
+			return negativeLimitValidationError(t, "orders")
+		},
+	}
+
+	relationships := map[string][]*plannerpkg.RelationshipMetadata{
+		"source": {
+			{
+				Name:              "orders",
+				SourceType:        "User",
+				TargetConnector:   "target",
+				TargetTable:       "orders",
+				TargetTableSchema: "",
+				JoinMapping:       map[string]string{"id": "userId"},
+				IsArray:           true,
+				IsArrayAggregate:  false,
+				IsRemote:          true,
+				LHSFields:         nil,
+				RemoteFieldPath:   nil,
+			},
+		},
+	}
+
+	ctrl, err := controller.NewFromConnectors(
+		testAdminSecret,
+		map[string]connector.Connector{
+			"source": sourceConn,
+			"target": targetConn,
+		},
+		relationships,
+		slog.New(slog.DiscardHandler),
+	)
+	if err != nil {
+		t.Fatalf("NewFromConnectors: %v", err)
+	}
+
+	resp, err := ctrl.Resolve(adminSessionContext(t), controller.GraphQLRequest{
+		OperationName: "",
+		Query: `mutation {
+			insert_users {
+				returning {
+					id
+					orders(limit: -1) { id }
+				}
+			}
+		}`,
+		Variables: nil,
+	})
+	if err != nil {
+		t.Fatalf("unexpected error: %v", err)
+	}
+
+	if sourceExecuted {
+		t.Fatal("source mutation executed before remote relationship arguments were validated")
+	}
+
+	if targetExecuted {
+		t.Fatal("target remote relationship executed instead of failing in pre-validation")
+	}
+
+	if resp.Data != nil {
+		t.Errorf("validation failure must return no data, got %+v", resp.Data)
+	}
+
+	errs, ok := resp.Errors.([]map[string]any)
+	if !ok || len(errs) != 1 {
+		t.Fatalf("expected exactly one error, got %+v", resp.Errors)
+	}
+
+	if got := getMessage(errs[0]); got != "unexpected negative value for limit" {
+		t.Errorf("unexpected validation message: %q", got)
+	}
+
+	ext, ok := errs[0]["extensions"].(map[string]any)
+	if !ok {
+		t.Fatalf("error missing extensions: %+v", errs[0])
+	}
+
+	if ext["code"] != "validation-failed" {
+		t.Errorf("expected validation-failed code, got %v", ext["code"])
+	}
+
+	wantPath := "$.selectionSet.insert_users.selectionSet.returning.selectionSet.orders.args.limit"
+	if ext["path"] != wantPath {
+		t.Errorf("expected path %q, got %v", wantPath, ext["path"])
 	}
 }
 

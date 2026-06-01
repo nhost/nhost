@@ -129,7 +129,11 @@ func validateDistinctOnOrderBy(
 	if orderByIdx < 0 {
 		prefix := make([]OrderByItem, len(dOn.Columns))
 		for i, col := range dOn.Columns {
-			prefix[i] = OrderByItem{Column: col, Direction: core.OrderAscNullsLast}
+			prefix[i] = OrderByItem{
+				Column:    col,
+				Direction: core.OrderAscNullsLast,
+				term:      nil,
+			}
 		}
 
 		return append([]QueryModifier{&OrderBy{Items: prefix}}, modifiers...), nil
@@ -193,13 +197,11 @@ func parseLimitOffsetArgument(
 		return nil, fmt.Errorf("failed to parse %s: %w", argumentName, err)
 	}
 
-	// Hasura rejects negative limit/offset during query parsing rather than
-	// forwarding the value to the database (where Postgres raises "LIMIT must
-	// not be negative" / "OFFSET must not be negative" at execution and SQLite
-	// silently treats a negative LIMIT as unlimited / a negative OFFSET as 0).
-	// Keep this check at the query-argument layer so ParseLimitOffset can remain
-	// the shared integer parser used by stream batch_size, whose validation
-	// message names batch_size rather than limit/offset.
+	// Hasura rejects a negative limit during query parsing with a
+	// validation-failed envelope, while a negative offset is surfaced as a safe
+	// data-exception at path "$". Emit those Hasura-compatible envelopes here so
+	// the shared parser still serves stream batch_size and SQLite cannot silently
+	// reinterpret negative LIMIT/OFFSET values.
 	if parsed != nil && *parsed < 0 {
 		return nil, newNegativeLimitOffsetError(argumentName)
 	}

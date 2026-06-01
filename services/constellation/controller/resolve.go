@@ -220,15 +220,17 @@ func (c *Controller) runConnectorsAndStitch(
 	sessionVariables map[string]any,
 	logger *slog.Logger,
 ) *GraphQLResponse {
-	// Multi-connector requests validate every connector's slice of the operation
-	// before executing any of them. A query-validation failure (e.g. a distinct_on
-	// / order_by mismatch) in one root field must reject the whole request the way
-	// Hasura does, with no partial data and — for mutations spanning connectors —
-	// no side effects from sibling connectors that would otherwise have already run
-	// by the time the invalid field was reached. Single-connector requests skip
-	// this pre-pass because Execute already runs the same build/validation before
+	// Requests that fan out to multiple root connectors, or that will resolve
+	// remote relationships after the root pass, run every side-effect-free
+	// connector validation step before executing any root connector. A structured
+	// argument failure (e.g. a distinct_on / order_by mismatch or negative
+	// offset) must reject the whole request the way Hasura does, with no partial
+	// data and — for mutations — no side effects from connectors that would
+	// otherwise run before the invalid
+	// relationship query is discovered. Plain single-connector requests skip this
+	// pre-pass because Execute already runs the same build/validation before
 	// touching the database.
-	if len(fieldsByConnector) > 1 {
+	if len(fieldsByConnector) > 1 || plan.HasRemoteQueries() {
 		if resp := c.validateConnectors(
 			state, plan, operation, fieldsByConnector, fragments, variables, role, sessionVariables,
 		); resp != nil {
@@ -291,18 +293,19 @@ func groupFieldsByConnector(
 }
 
 // validateConnectors runs each owning connector's pre-execution validation over
-// its slice of a multi-connector operation and returns a validation-failed
-// GraphQLResponse (no data) when any connector reports a query-validation error,
-// so the whole request is rejected before any connector executes — matching
-// Hasura. Multiple structured validation errors are accumulated in sorted
-// connector-name order so the envelope is deterministic even though the input
-// connector map is not.
+// its root operation slice plus every planned database-backed remote
+// relationship query. It returns a structured GraphQL response (no data) when
+// any connector reports a trusted argument error, so the whole request is
+// rejected before any connector executes — matching Hasura. Root validations
+// and remote-target validations are each sorted by connector/path so the
+// envelope is deterministic even though
+// the input connector map is not.
 //
-// Only query-validation errors short-circuit the request here. Any other error a
-// connector surfaces from ValidateOperation (an unknown field, an internal build
-// failure) is left for executeConnectors to report, so non-validation failures
-// keep their existing wire shape and per-connector partial-data semantics
-// unchanged.
+// Only structured argument errors short-circuit the request here. Any other
+// error a connector surfaces from validation (an unknown field, an internal
+// build failure) is left for executeConnectors/resolveRemoteRelationships to
+// report, so non-validation failures keep their existing wire shape and
+// per-connector partial-data semantics unchanged.
 func (c *Controller) validateConnectors(
 	state *controllerState,
 	plan *planner.QueryPlan,
@@ -340,6 +343,11 @@ func (c *Controller) validateConnectors(
 			allStructuredErrs = append(allStructuredErrs, structuredErrs...)
 		}
 	}
+
+	allStructuredErrs = append(
+		allStructuredErrs,
+		c.validateRemoteTargets(state, plan, fragments, variables, role, sessionVariables)...,
+	)
 
 	if len(allStructuredErrs) > 0 {
 		return &GraphQLResponse{

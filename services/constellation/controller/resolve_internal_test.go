@@ -54,7 +54,7 @@ func distinctOnOrderByMismatchError(
 		&ast.Argument{Name: "distinct_on", Value: &ast.Value{Kind: ast.EnumValue, Raw: "name"}},
 	}
 
-	clause, _, _, err := arguments.ParseQuery(tbl, args, nil, "user", nil)
+	clause, _, _, err := arguments.ParseQuery(tbl, args, nil, "user", nil, "")
 	if clause != nil {
 		t.Fatalf("ParseQuery: expected nil where clause on the error path, got %v", clause)
 	}
@@ -67,6 +67,43 @@ func distinctOnOrderByMismatchError(
 	vErr.StampArgumentPath(rootField)
 
 	return vErr
+}
+
+func negativeOffsetDataExceptionError(t *testing.T) *arguments.DataExceptionError {
+	t.Helper()
+
+	ctrl := gomock.NewController(t)
+	tbl := argmock.NewMockTable(ctrl)
+
+	args := ast.ArgumentList{
+		&ast.Argument{
+			Name:  "offset",
+			Value: &ast.Value{Kind: ast.IntValue, Raw: "-1"},
+		},
+	}
+
+	clause, modifiers, distinctOn, err := arguments.ParseQuery(tbl, args, nil, "user", nil, "")
+	if clause != nil {
+		t.Fatalf("ParseQuery: expected nil where clause on the error path, got %v", clause)
+	}
+
+	if len(modifiers) != 0 {
+		t.Fatalf(
+			"ParseQuery: expected no query modifiers on the error path, got %d",
+			len(modifiers),
+		)
+	}
+
+	if distinctOn != nil {
+		t.Fatalf("ParseQuery: expected nil distinct_on on the error path, got %v", distinctOn)
+	}
+
+	var dataErr *arguments.DataExceptionError
+	if !errors.As(err, &dataErr) {
+		t.Fatalf("ParseQuery: expected a *DataExceptionError, got %T (%v)", err, err)
+	}
+
+	return dataErr
 }
 
 func TestFormatGQLErrors_MessageOnly(t *testing.T) {
@@ -481,6 +518,35 @@ func TestClassifyConnectorError_QueryValidationError(t *testing.T) {
 			"extensions": map[string]any{
 				"code": "validation-failed",
 				"path": "$.selectionSet.departments.args",
+			},
+		},
+	}
+
+	if diff := cmp.Diff(want, got); diff != "" {
+		t.Errorf("classifyConnectorError (-want +got):\n%s", diff)
+	}
+}
+
+func TestClassifyConnectorError_DataExceptionError(t *testing.T) {
+	t.Parallel()
+
+	c := &Controller{devMode: false}
+
+	dataErr := negativeOffsetDataExceptionError(t)
+
+	wrapped := fmt.Errorf(
+		"failed to execute operations: %w",
+		fmt.Errorf("failed to build query for field %q: %w", "departments", dataErr),
+	)
+
+	got := c.classifyConnectorError(context.Background(), slog.Default(), wrapped)
+
+	want := []map[string]any{
+		{
+			"message": "OFFSET must not be negative",
+			"extensions": map[string]any{
+				"code": "data-exception",
+				"path": "$",
 			},
 		},
 	}

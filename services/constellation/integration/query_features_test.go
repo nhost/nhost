@@ -56,9 +56,9 @@ func TestQueryFeatures(t *testing.T) { //nolint:maintidx,paralleltest
 			},
 		},
 
-		// Hasura rejects negative limit/offset values during query validation with
-		// a validation-failed error envelope; compare the full HTTP response so
-		// message, extensions.code, and extensions.path cannot drift.
+		// Hasura reports negative limit as validation-failed and negative offset as
+		// a data-exception at path "$"; compare the full HTTP response so message,
+		// extensions.code, and extensions.path cannot drift.
 		{
 			name: "negative limit validation error",
 			query: query{
@@ -71,7 +71,7 @@ func TestQueryFeatures(t *testing.T) { //nolint:maintidx,paralleltest
 			},
 		},
 		{
-			name: "negative offset validation error",
+			name: "negative offset data exception",
 			query: query{
 				Query: `query {
 					departments(offset: -1) {

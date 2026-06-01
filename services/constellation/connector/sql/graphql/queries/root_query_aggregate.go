@@ -251,6 +251,7 @@ func (t *table) writeAggregateFieldSelections(
 	return hasOuterFields
 }
 
+//nolint:funlen // Keep aggregate-node SQL assembly cohesive with the surrounding CTE builder.
 func (t *table) writeAggregateNodes(
 	b *strings.Builder,
 	fragments ast.FragmentDefinitionList,

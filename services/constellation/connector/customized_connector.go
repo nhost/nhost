@@ -2,6 +2,7 @@ package connector
 
 import (
 	"context"
+	"errors"
 	"fmt"
 	"log/slog"
 
@@ -40,6 +41,11 @@ type customizedConnector struct {
 	inner      Connector
 	customizer *customization.Customizer
 	schemas    map[string]*graph.Schema
+}
+
+type queryValidationArgumentPathRemapper interface {
+	error
+	RemapArgumentPath(remap func(argumentPath string) (mappedPath string))
 }
 
 // applyCustomization wraps inner in a customizedConnector when cfg is
@@ -133,6 +139,8 @@ func (c *customizedConnector) Execute(
 	// controller can still extract structured remote errors from it.
 	reshaped := c.customizer.ForwardResult(result, operation, fragments)
 	if err != nil {
+		err = c.remapQueryValidationArgumentPath(err, operation, fragments)
+
 		return reshaped, fmt.Errorf("executing customized connector %s: %w", c.name, err)
 	}
 
@@ -157,10 +165,27 @@ func (c *customizedConnector) ValidateOperation(
 	if err := c.inner.ValidateOperation(
 		nativeOp, nativeFragments, variables, role, sessionVariables,
 	); err != nil {
+		err = c.remapQueryValidationArgumentPath(err, operation, fragments)
+
 		return fmt.Errorf("validating customized connector %s: %w", c.name, err)
 	}
 
 	return nil
+}
+
+func (c *customizedConnector) remapQueryValidationArgumentPath(
+	err error,
+	operation *ast.OperationDefinition,
+	fragments ast.FragmentDefinitionList,
+) error {
+	var remapper queryValidationArgumentPathRemapper
+	if errors.As(err, &remapper) {
+		remapper.RemapArgumentPath(func(path string) string {
+			return c.customizer.ForwardArgumentPath(path, operation, fragments)
+		})
+	}
+
+	return err
 }
 
 // GetTypeName delegates unchanged. The composer resolves database relationship

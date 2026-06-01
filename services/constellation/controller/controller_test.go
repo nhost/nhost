@@ -910,7 +910,7 @@ func (d validationTestDriver) ExecuteOperations(
 	*slog.Logger,
 ) (map[string]any, error) {
 	return nil, errors.New( //nolint:err113 // test-only guard if validation unexpectedly reaches execution.
-		"ExecuteOperations should not run for a query-validation failure",
+		"ExecuteOperations should not run for a structured argument failure",
 	)
 }
 
@@ -1115,7 +1115,7 @@ func TestHandlerPost_ConnectorErrorSurfacedAsGraphQLError(t *testing.T) {
 	}
 }
 
-func TestHandlerPost_NegativeLimitOffsetReturnsValidationFailed(t *testing.T) {
+func TestHandlerPost_NegativeLimitOffsetReturnsHasuraErrors(t *testing.T) {
 	t.Parallel()
 
 	dbMeta := &metadata.DatabaseMetadata{
@@ -1152,19 +1152,22 @@ func TestHandlerPost_NegativeLimitOffsetReturnsValidationFailed(t *testing.T) {
 		name        string
 		query       string
 		wantMessage string
+		wantCode    string
 		wantPath    string
 	}{
 		{
 			name:        "limit",
 			query:       `{"query":"{ staff: users(limit: -1) { id } }"}`,
 			wantMessage: "unexpected negative value for limit",
+			wantCode:    "validation-failed",
 			wantPath:    "$.selectionSet.staff.args.limit",
 		},
 		{
 			name:        "offset",
 			query:       `{"query":"{ staff: users(offset: -1) { id } }"}`,
-			wantMessage: "unexpected negative value for offset",
-			wantPath:    "$.selectionSet.staff.args.offset",
+			wantMessage: "OFFSET must not be negative",
+			wantCode:    "data-exception",
+			wantPath:    "$",
 		},
 	}
 
@@ -1208,8 +1211,8 @@ func TestHandlerPost_NegativeLimitOffsetReturnsValidationFailed(t *testing.T) {
 				t.Fatalf("extensions: got %T, want map[string]any", errObj["extensions"])
 			}
 
-			if ext["code"] != "validation-failed" {
-				t.Errorf("extensions.code: got %v, want validation-failed", ext["code"])
+			if ext["code"] != tt.wantCode {
+				t.Errorf("extensions.code: got %v, want %s", ext["code"], tt.wantCode)
 			}
 
 			if ext["path"] != tt.wantPath {

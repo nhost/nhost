@@ -57,6 +57,139 @@ func (c *Customizer) ReverseOperation(
 	return rebuilt, rebuiltFragments
 }
 
+const argumentPathSelectionSet = ".selectionSet."
+
+// ForwardArgumentPath maps an argument-path suffix stamped while validating a
+// reversed native operation back onto the original client-facing operation.
+// QueryValidationError stores paths without the leading "$.selectionSet" and
+// trailing ".args" (for example, "teams.selectionSet.players"). Reversing a
+// namespaced operation lifts the namespace wrapper before validation, so this
+// method re-inserts the namespace response key while preserving aliases and any
+// remaining nested path. Paths that do not correspond to a namespaced root field
+// are returned unchanged.
+func (c *Customizer) ForwardArgumentPath(
+	nativePath string,
+	op *ast.OperationDefinition,
+	fragments ast.FragmentDefinitionList,
+) string {
+	if !c.enabled() || c.cfg.RootFieldsNamespace == "" || op == nil || nativePath == "" {
+		return nativePath
+	}
+
+	root, rest := splitArgumentPathRoot(nativePath)
+	forwarder := argumentPathForwarder{
+		customizer: c,
+		fragments:  fragments,
+		nativeRoot: root,
+		nativeRest: rest,
+	}
+
+	if mapped := forwarder.rootSelections(op.SelectionSet); mapped != "" {
+		return mapped
+	}
+
+	return nativePath
+}
+
+type argumentPathForwarder struct {
+	customizer *Customizer
+	fragments  ast.FragmentDefinitionList
+	nativeRoot string
+	nativeRest string
+}
+
+func splitArgumentPathRoot(path string) (string, string) {
+	root, rest, ok := strings.Cut(path, argumentPathSelectionSet)
+	if !ok {
+		return path, ""
+	}
+
+	return root, argumentPathSelectionSet + rest
+}
+
+func (f argumentPathForwarder) rootSelections(selections ast.SelectionSet) string {
+	for _, selection := range selections {
+		if mapped := f.rootSelection(selection); mapped != "" {
+			return mapped
+		}
+	}
+
+	return ""
+}
+
+func (f argumentPathForwarder) rootSelection(selection ast.Selection) string {
+	switch sel := selection.(type) {
+	case *ast.Field:
+		if sel.Name != f.customizer.cfg.RootFieldsNamespace {
+			return ""
+		}
+
+		return f.namespaceSelections(fieldResponseKey(sel), sel.SelectionSet)
+	case *ast.InlineFragment:
+		return f.rootSelections(sel.SelectionSet)
+	case *ast.FragmentSpread:
+		if def := resolveFragment(sel, f.fragments); def != nil {
+			return f.rootSelections(def.SelectionSet)
+		}
+	}
+
+	return ""
+}
+
+func (f argumentPathForwarder) namespaceSelections(
+	namespaceKey string,
+	selections ast.SelectionSet,
+) string {
+	for _, selection := range selections {
+		switch sel := selection.(type) {
+		case *ast.Field:
+			if !f.matchesNamespaceRoot(sel) {
+				continue
+			}
+
+			return namespaceKey + argumentPathSelectionSet + fieldResponseKey(sel) + f.nativeRest
+		case *ast.InlineFragment:
+			if mapped := f.namespaceSelections(namespaceKey, sel.SelectionSet); mapped != "" {
+				return mapped
+			}
+		case *ast.FragmentSpread:
+			if def := resolveFragment(sel, f.fragments); def != nil {
+				if mapped := f.namespaceSelections(namespaceKey, def.SelectionSet); mapped != "" {
+					return mapped
+				}
+			}
+		}
+	}
+
+	return ""
+}
+
+func (f argumentPathForwarder) matchesNamespaceRoot(field *ast.Field) bool {
+	if f.nativeRoot == fieldResponseKey(field) {
+		return true
+	}
+
+	nativeName := f.customizer.reverseRootFieldName(field)
+	if f.nativeRoot == nativeName {
+		return true
+	}
+
+	alias := field.Alias
+	if alias == "" && nativeName != field.Name {
+		alias = field.Name
+	}
+
+	return alias != "" && f.nativeRoot == alias
+}
+
+func fieldResponseKey(field *ast.Field) string {
+	if field.Alias != "" {
+		return field.Alias
+	}
+
+	return field.Name
+}
+
 // reverseRootSelections lifts the children of each namespace field onto the
 // root when a namespace is configured; otherwise it reverses the selections in
 // place.

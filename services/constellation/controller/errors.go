@@ -87,6 +87,11 @@ func sanitizeConnectorError(
 // Hasura's validation-failed shape, so it passes through verbatim via AsMap
 // rather than being sanitised.
 //
+// A *arguments.DataExceptionError is an argument failure whose Hasura-compatible
+// envelope is the safe data-exception shape (currently negative offset). It is
+// constructed by the arguments package with a fixed message, so it also passes
+// through verbatim via AsMap.
+//
 // Any other error is treated as a raw connector/driver failure and routed
 // through sanitizeConnectorError so SQLSTATE codes, table/column names, and
 // offending values never reach an unauthenticated caller.
@@ -123,6 +128,10 @@ func classifyStructuredConnectorError(err error) ([]map[string]any, bool) {
 
 	if vErr, ok := errors.AsType[*arguments.QueryValidationError](err); ok {
 		return []map[string]any{vErr.AsMap()}, true
+	}
+
+	if dataErr, ok := errors.AsType[*arguments.DataExceptionError](err); ok {
+		return []map[string]any{dataErr.AsMap()}, true
 	}
 
 	return nil, false

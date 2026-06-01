@@ -43,10 +43,11 @@ type Connector interface {
 	// ValidateOperation runs the connector's pre-execution validation for the
 	// given operation without producing any result or side effect, returning a
 	// non-nil error when the operation is rejected. The controller calls it for
-	// every connector a multi-connector request fans out to before executing
-	// any of them, so a query-validation failure in one root field aborts the
-	// whole request the way Hasura does — no partial data, no mutation side
-	// effects from sibling connectors. It is the connector's own concern which
+	// every connector a multi-connector request fans out to, and for
+	// database-backed remote relationship queries, before executing any root
+	// connector, so a structured argument failure aborts the whole request the way
+	// Hasura does — no partial data, no mutation side effects from sibling
+	// connectors. It is the connector's own concern which
 	// failures it can detect before execution; connectors whose validation is
 	// inseparable from execution (remote schemas, the in-memory connector)
 	// return nil and report such failures from Execute instead.

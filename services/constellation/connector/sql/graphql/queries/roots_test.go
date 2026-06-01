@@ -42,7 +42,7 @@ func distinctOnOrderByMismatchError(t *testing.T) *arguments.QueryValidationErro
 		&ast.Argument{Name: "distinct_on", Value: &ast.Value{Kind: ast.EnumValue, Raw: "name"}},
 	}
 
-	clause, _, _, err := arguments.ParseQuery(tbl, args, nil, "user", nil)
+	clause, _, _, err := arguments.ParseQuery(tbl, args, nil, "user", nil, "")
 	if clause != nil {
 		t.Fatalf("ParseQuery: expected nil where clause on the error path, got %v", clause)
 	}

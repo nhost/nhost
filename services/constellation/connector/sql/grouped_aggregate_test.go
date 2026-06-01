@@ -125,6 +125,36 @@ func TestConnector_ExecuteGroupedAggregate_BuildError(t *testing.T) {
 	}
 }
 
+func TestConnector_ValidateGroupedAggregate_BuildOnly(t *testing.T) {
+	t.Parallel()
+
+	ctrl := gomock.NewController(t)
+	driver := mock.NewMockDriver(ctrl)
+
+	c := newUsersConnector(t, driver)
+
+	field, fragments := parseAggregateField(t)
+
+	// No ExecuteOperations expectation is registered: gomock fails the test if
+	// validation touches the driver instead of stopping after SQL construction.
+	if err := c.ValidateGroupedAggregate(
+		groupedaggregate.Request{
+			TableSchema:       "public",
+			TableName:         "users",
+			JoinColumnSQLName: "id",
+			JoinValues:        []any{"11111111-1111-1111-1111-111111111111"},
+			Field:             field,
+			ArgumentPath:      "users_aggregate",
+			Fragments:         fragments,
+			Variables:         nil,
+		},
+		"admin",
+		nil,
+	); err != nil {
+		t.Fatalf("ValidateGroupedAggregate() unexpected error: %v", err)
+	}
+}
+
 func TestConnector_ExecuteGroupedAggregate_DriverError(t *testing.T) {
 	t.Parallel()
 
