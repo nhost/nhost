@@ -705,6 +705,10 @@ func TestInsertBuildQuery(t *testing.T) { //nolint:paralleltest,maintidx
 						}
 					  ]) {
 						affected_rows
+						returning {
+						  id
+						  sets { parent_id parent_kind reps }
+						}
 					  }
 					}`,
 				Role: "admin",
@@ -1113,7 +1117,51 @@ func TestInsertBuildQuery(t *testing.T) { //nolint:paralleltest,maintidx
 						}
 					]) {
 						affected_rows
-						returning { id file_id description }
+						returning {
+							id
+							file_id
+							description
+							file { id bucketId }
+						}
+					}
+				}`,
+				Role: "admin",
+			},
+		},
+
+		// Mixed object-rel collection insert: one row points at a pre-existing
+		// storage.files row, while a sibling row nested-inserts its file. Returning
+		// must read the nested row from the CTE without losing the base-table row
+		// that is visible under PostgreSQL's statement snapshot.
+		{
+			name: "mixed object-rel returning combines nested CTEs with base-table rows",
+			query: query{
+				Query: `mutation {
+					insert_department_files(objects: [
+						{
+							id: "00000000-0000-0000-0000-00000000030a"
+							description: "object-rel-existing-file"
+							department_id: "2db9de0a-b9ba-416e-8619-783a399ae2b3"
+							file_id: "f1e9b8db-1111-439f-9d63-7f83de523fb1"
+						}
+						{
+							id: "00000000-0000-0000-0000-00000000030b"
+							description: "object-rel-nested-file"
+							department_id: "023d4410-715e-4675-96a5-a58fd50ef33c"
+							file: {
+								data: {
+									id: "00000000-0000-0000-0000-00000000030c"
+									bucketId: "default"
+								}
+							}
+						}
+					]) {
+						affected_rows
+						returning {
+							id
+							file_id
+							file { id bucketId }
+						}
 					}
 				}`,
 				Role: "admin",
@@ -1122,8 +1170,9 @@ func TestInsertBuildQuery(t *testing.T) { //nolint:paralleltest,maintidx
 
 		// Multi-parent object-rel nested insert where each nested department has
 		// its own nested employees array. Locks the nested CTE map recursion so
-		// affected_rows and force-ref tracking include nested_employees_0/1, not
-		// just the first-level nested_department_0/1 CTEs.
+		// affected_rows/force-ref tracking include nested_employees_0/1 and returning
+		// resolves department.employees from those descendant CTEs rather than the
+		// snapshot-hidden base table.
 		{
 			name: "multi-parent object-rel nested insert counts nested descendants",
 			query: query{
@@ -1165,7 +1214,16 @@ func TestInsertBuildQuery(t *testing.T) { //nolint:paralleltest,maintidx
 						}
 					]) {
 						affected_rows
-						returning { user_id department_id role }
+						returning {
+							user_id
+							department_id
+							role
+							department {
+								id
+								name
+								employees { user_id role }
+							}
+						}
 					}
 				}`,
 				Role: "admin",

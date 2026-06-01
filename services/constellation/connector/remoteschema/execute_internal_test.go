@@ -145,7 +145,7 @@ func TestApplyPresets(t *testing.T) {
 			},
 		}
 
-		result := applyPresets(op, nil, nil)
+		result := applyPresets(op, nil, nil, "Query")
 		// When no presets, should return the original operation
 		if result != op {
 			t.Error("expected same operation when no presets")
@@ -172,7 +172,7 @@ func TestApplyPresets(t *testing.T) {
 			"x-hasura-user-id": "user-789",
 		}
 
-		result := applyPresets(op, presets, sessionVars)
+		result := applyPresets(op, presets, sessionVars, "Query")
 
 		// Should be a clone, not the original
 		if result == op {
@@ -213,7 +213,7 @@ func TestApplyPresets(t *testing.T) {
 			},
 		}
 
-		_ = applyPresets(op, presets, nil)
+		_ = applyPresets(op, presets, nil, "Query")
 
 		// Original operation should not have the injected argument
 		origField, ok := op.SelectionSet[0].(*ast.Field)
@@ -356,7 +356,7 @@ func TestBuildQueryString(t *testing.T) {
 	})
 }
 
-func TestGetRootTypeName(t *testing.T) {
+func TestDefaultRootTypeName(t *testing.T) {
 	t.Parallel()
 
 	tests := []struct {
@@ -369,8 +369,8 @@ func TestGetRootTypeName(t *testing.T) {
 	}
 
 	for _, tt := range tests {
-		if got := getRootTypeName(tt.op); got != tt.want {
-			t.Errorf("getRootTypeName(%v) = %s, want %s", tt.op, got, tt.want)
+		if got := defaultRootTypeName(tt.op); got != tt.want {
+			t.Errorf("defaultRootTypeName(%v) = %s, want %s", tt.op, got, tt.want)
 		}
 	}
 }

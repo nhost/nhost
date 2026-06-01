@@ -15,6 +15,7 @@ import (
 var (
 	errContentTypeNotJSON  = errors.New("Content-Type must be application/json")
 	errInvalidRequestBody  = errors.New("invalid request body")
+	errRequestBodyTooLarge = errors.New("request body too large")
 	errInternalServerError = errors.New("internal server error")
 	errNoSchemaForRole     = errors.New("no schema available for role")
 	errMultipleOperations  = errors.New("multiple operations found, operationName is required")

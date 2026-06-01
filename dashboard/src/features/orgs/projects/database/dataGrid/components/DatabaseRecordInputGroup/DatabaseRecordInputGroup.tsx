@@ -9,8 +9,9 @@ import { InlineCode } from '@/components/ui/v3/inline-code';
 import { SelectItem } from '@/components/ui/v3/select';
 import type { DataBrowserColumnMetadata } from '@/features/orgs/projects/database/dataGrid/types/dataBrowser/dataBrowser';
 import { getInputType } from '@/features/orgs/projects/database/dataGrid/utils/inputHelpers';
-import { normalizeDefaultValue } from '@/features/orgs/projects/database/dataGrid/utils/normalizeDefaultValue';
+import { POSTGRESQL_FUNCTION_LABELS } from '@/features/orgs/projects/database/dataGrid/utils/postgresqlConstants';
 import { cn } from '@/lib/utils';
+import NullDefaultToggleField from './NullDefaultToggleField';
 
 export interface DatabaseRecordInputGroupProps {
   /**
@@ -56,37 +57,33 @@ function convertEmptyStringToNull(
   return event.target.value === '' ? null : event.target.value;
 }
 
-function getPlaceholder(
-  defaultValue?: string,
+function getDefaultPlaceholder(
+  defaultValue: string | null | undefined,
+  isDefaultValueCustom: boolean,
   isIdentity?: boolean,
-  isNullable?: boolean,
 ) {
   if (isIdentity) {
     return 'Automatically generated as identity';
   }
 
-  if (!defaultValue && isNullable) {
-    return 'NULL';
+  if (!defaultValue) {
+    return undefined;
   }
 
-  if (!defaultValue) {
-    return '';
+  if (POSTGRESQL_FUNCTION_LABELS[defaultValue]) {
+    return POSTGRESQL_FUNCTION_LABELS[defaultValue];
   }
 
   if (!Number.isNaN(parseInt(defaultValue, 10))) {
     return defaultValue;
   }
 
-  const { normalizedDefaultValue, custom } = normalizeDefaultValue(
-    defaultValue,
-    { removeArgs: true },
-  );
-
-  if (custom) {
-    return normalizedDefaultValue;
+  if (isDefaultValueCustom) {
+    return defaultValue;
   }
 
-  return `Automatically generated value: ${normalizedDefaultValue}`;
+  const display = defaultValue.replace(/\([^)]*\)/g, '()');
+  return `Automatically generated value: ${display}`;
 }
 
 export default function DatabaseRecordInputGroup({
@@ -126,11 +123,14 @@ export default function DatabaseRecordInputGroup({
             type,
             specificType,
             defaultValue,
+            isDefaultValueCustom,
             isPrimary,
             isNullable,
             isIdentity,
             comment,
           } = column;
+
+          const hasDefault = !!(defaultValue || isIdentity);
 
           const isMultiline =
             specificType === 'text' ||
@@ -138,12 +138,6 @@ export default function DatabaseRecordInputGroup({
             specificType?.includes('character varying') ||
             specificType === 'json' ||
             specificType === 'jsonb';
-
-          const placeholder = getPlaceholder(
-            defaultValue,
-            isIdentity,
-            isNullable,
-          );
 
           const inputLabel = (
             <span className="inline-grid grid-flow-col gap-1">
@@ -195,6 +189,34 @@ export default function DatabaseRecordInputGroup({
             );
           }
 
+          if (isNullable && hasDefault) {
+            return (
+              <NullDefaultToggleField
+                ref={getRef(index)}
+                key={columnId}
+                inline
+                name={columnId!}
+                control={control}
+                label={inputLabel}
+                placeholder={getDefaultPlaceholder(
+                  defaultValue,
+                  !!isDefaultValueCustom,
+                  isIdentity,
+                )}
+                helperText={comment}
+                multiline={isMultiline}
+                className={cn({ 'focus-visible:ring-0': isMultiline })}
+                type={getInputType({ type, specificType })}
+              />
+            );
+          }
+
+          const placeholder =
+            getDefaultPlaceholder(
+              defaultValue,
+              !!isDefaultValueCustom,
+              isIdentity,
+            ) ?? (isNullable ? 'NULL' : undefined);
           const InputComponent = isMultiline ? FormTextarea : FormInput;
           return (
             <InputComponent
