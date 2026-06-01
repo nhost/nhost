@@ -63,22 +63,16 @@ function InputGroupAddon({
 }: React.ComponentProps<'div'> & VariantProps<typeof inputGroupAddonVariants>) {
   return (
     <div
-      role="button"
+      role="group"
       data-slot="input-group-addon"
       data-align={align}
       className={cn(inputGroupAddonVariants({ align }), className)}
-      tabIndex={0}
-      onClick={(e) => {
+      onMouseDown={(e) => {
         if ((e.target as HTMLElement).closest('button')) {
           return;
         }
+        e.preventDefault();
         e.currentTarget.parentElement?.querySelector('input')?.focus();
-      }}
-      onKeyDown={(e) => {
-        if (e.key === 'Enter' || e.key === ' ') {
-          e.preventDefault();
-          (e.currentTarget as HTMLDivElement).click();
-        }
       }}
       {...props}
     />
@@ -152,10 +146,10 @@ const InputGroupInput = React.forwardRef<
 });
 InputGroupInput.displayName = 'InputGroupInput';
 
-function InputGroupTextarea({
-  className,
-  ...props
-}: React.ComponentProps<'textarea'>) {
+const InputGroupTextarea = React.forwardRef<
+  HTMLTextAreaElement,
+  React.ComponentProps<'textarea'>
+>(({ className, ...props }, ref) => {
   return (
     <Textarea
       data-slot="input-group-control"
@@ -163,10 +157,12 @@ function InputGroupTextarea({
         'flex-1 resize-none rounded-none border-0 bg-transparent py-3 shadow-none focus-visible:ring-0 dark:bg-transparent',
         className,
       )}
+      ref={ref}
       {...props}
     />
   );
-}
+});
+InputGroupTextarea.displayName = 'InputGroupTextarea';
 
 export {
   InputGroup,

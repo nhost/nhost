@@ -610,10 +610,9 @@ func TestInsertMutations(t *testing.T) { //nolint:paralleltest,maintidx
 		// parent_kind would carry a uuid value that trips the parent_kind =
 		// 'strength' CHECK (and the composite FK), so an INSERT error there would
 		// break parity with Hasura. Also exercises per-parent partitioning of the
-		// nested rows. The nested `sets` selection is intentionally omitted from
-		// `returning`: a separate, orthogonal bug serializes nested array-rels in
-		// mutation responses as a single object instead of a list, which would
-		// mask this SQL-write fix behind that gap.
+		// nested rows; the admin-role sibling below selects `sets` in returning to
+		// lock the read-back shape without coupling this user-role write/permission
+		// case to child select-permission traversal.
 		{
 			name: "permissions: multi-parent nested array insert through composite-FK relationship",
 			query: query{
@@ -640,6 +639,38 @@ func TestInsertMutations(t *testing.T) { //nolint:paralleltest,maintidx
 				SessionVariables: map[string]string{
 					"user-id": "550e8400-e29b-41d4-a716-446655440001",
 				},
+			},
+		},
+
+		{
+			name: "array-rel collection insert returning reads nested rows as a list (Hasura parity)",
+			query: query{
+				Query: `
+					mutation {
+					  insert_exercise_logs(objects: [
+						{
+						  id: "0199aaaa-0000-7000-8000-000000000201"
+						  kind: "strength"
+						  owner_id: "550e8400-e29b-41d4-a716-446655440001"
+						  sets: { data: [{ reps: 6 }, { reps: 8 }] }
+						}
+						{
+						  id: "0199aaaa-0000-7000-8000-000000000202"
+						  kind: "strength"
+						  owner_id: "550e8400-e29b-41d4-a716-446655440001"
+						  sets: { data: [{ reps: 3 }] }
+						}
+					  ]) {
+						affected_rows
+						returning {
+						  id
+						  kind
+						  sets { parent_id parent_kind reps }
+						}
+					  }
+					}`,
+				Variables: map[string]any{},
+				Role:      "admin",
 			},
 		},
 
@@ -957,9 +988,9 @@ func TestInsertMutations(t *testing.T) { //nolint:paralleltest,maintidx
 		// file was silently dropped and BOTH parents linked to file A.
 		// RunGraphQLTests diffs Constellation against the live Hasura, so the
 		// per-parent partitioning (nested_file_0 / nested_file_1) is asserted
-		// for both affected_rows and the per-parent file_id linkage.
-		// nested-rel resolution in mutation RETURNING is a separate pre-existing
-		// issue; assert per-parent FK via file_id only.
+		// for affected_rows, per-parent file_id linkage, and returning.file
+		// resolution from the nested CTEs rather than a snapshot-hidden base-table
+		// scan.
 		{
 			name: "object-rel collection insert: each parent row links to its own nested file (Hasura parity)",
 			query: query{
@@ -994,6 +1025,44 @@ func TestInsertMutations(t *testing.T) { //nolint:paralleltest,maintidx
 						  id
 						  description
 						  file_id
+						  file { id bucketId }
+						}
+					  }
+					}`,
+				Variables: map[string]any{},
+				Role:      "admin",
+			},
+		},
+
+		{
+			name: "mixed object-rel collection insert returning includes nested and existing files (Hasura parity)",
+			query: query{
+				Query: `
+					mutation {
+					  insert_department_files(objects: [
+						{
+						  id: "00000000-0000-0000-0000-00000000021a"
+						  description: "object-rel-existing-file"
+						  department_id: "2db9de0a-b9ba-416e-8619-783a399ae2b3"
+						  file_id: "f1e9b8db-1111-439f-9d63-7f83de523fb1"
+						}
+						{
+						  id: "00000000-0000-0000-0000-00000000021b"
+						  description: "object-rel-nested-file"
+						  department_id: "023d4410-715e-4675-96a5-a58fd50ef33c"
+						  file: {
+							data: {
+							  id: "00000000-0000-0000-0000-00000000021c"
+							  bucketId: "default"
+							}
+						  }
+						}
+					  ]) {
+						affected_rows
+						returning {
+						  id
+						  file_id
+						  file { id bucketId }
 						}
 					  }
 					}`,

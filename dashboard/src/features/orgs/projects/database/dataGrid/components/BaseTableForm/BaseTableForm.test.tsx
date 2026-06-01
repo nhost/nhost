@@ -115,7 +115,7 @@ async function fillColumnForm(
     const kind = defaultValueKind ?? 'literal';
     await pickAutocompleteOption(
       `columns.${index}.defaultValue`,
-      'Search functions...',
+      'Search...',
       kind === 'function' ? defaultValue : `Use '${defaultValue}' as a literal`,
       defaultValue,
       user,
@@ -634,6 +634,33 @@ describe('BaseTableForm', () => {
     expect(mocks.onSubmit.mock.calls[0][0].columns[0].defaultValue).toEqual({
       value: 'version()',
       custom: true,
+    });
+  });
+
+  it('should submit the cast literal when EMPTY STRING is picked for a text column', async () => {
+    render(<TestTableFormWrapper />);
+
+    const user = new TestUserEvent();
+
+    await user.type(screen.getByTestId('tableNameInput'), 'test_table');
+
+    await fillColumnForm(
+      {
+        columnName: 'note',
+        optionName: /^text.*text/,
+        typeValue: 'text',
+        defaultValue: 'EMPTY STRING',
+        defaultValueKind: 'function',
+      },
+      0,
+      user,
+    );
+
+    await TestUserEvent.fireClickEvent(screen.getByText('Save'));
+
+    expect(mocks.onSubmit.mock.calls[0][0].columns[0].defaultValue).toEqual({
+      value: "''::text",
+      custom: false,
     });
   });
 });

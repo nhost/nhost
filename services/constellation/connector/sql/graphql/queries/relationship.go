@@ -275,7 +275,7 @@ func (r *relationship) buildJoinConditionForSelection(parentAlias string) string
 // array, or object — by dispatching to the target table's build* methods with a
 // join-condition modifier. Returns errRemoteRelationship if the relationship is
 // remote; callers are expected to skip those upstream, this is a safety net.
-func (r *relationship) buildSelectionSQL( //nolint:funlen
+func (r *relationship) buildSelectionSQL(
 	b *strings.Builder,
 	field *ast.Field,
 	fragments ast.FragmentDefinitionList,
@@ -287,6 +287,46 @@ func (r *relationship) buildSelectionSQL( //nolint:funlen
 	paramIndex int,
 	parentTableAlias string,
 	relationshipAlias string,
+	parentArgumentPath string,
+) ([]any, int, error) {
+	if r.isRemote {
+		return nil, 0, errRemoteRelationship
+	}
+
+	return r.buildSelectionSQLFromSource(
+		b,
+		field,
+		fragments,
+		variables,
+		role,
+		sessionVariables,
+		roots,
+		params,
+		paramIndex,
+		parentTableAlias,
+		relationshipAlias,
+		r.table.tableFromClause(),
+		r.table.tableSourceRef(),
+		nil,
+		parentArgumentPath,
+	)
+}
+
+func (r *relationship) buildSelectionSQLFromSource( //nolint:funlen
+	b *strings.Builder,
+	field *ast.Field,
+	fragments ast.FragmentDefinitionList,
+	variables map[string]any,
+	role string,
+	sessionVariables map[string]any,
+	roots map[string]core.Operation,
+	params []any,
+	paramIndex int,
+	parentTableAlias string,
+	relationshipAlias string,
+	targetFromClause string,
+	targetSourceRef string,
+	nestedCTEs map[string]nestedReturningCTERef,
 	parentArgumentPath string,
 ) ([]any, int, error) {
 	if r.isRemote {
@@ -317,15 +357,15 @@ func (r *relationship) buildSelectionSQL( //nolint:funlen
 			params,
 			paramIndex,
 			outputName,
-			r.table.tableFromClause(),
-			r.table.tableSourceRef(),
+			targetFromClause,
+			targetSourceRef,
 			argumentPath,
 			func(whereClause where.Clause, modifiers []arguments.QueryModifier) (where.Clause, []arguments.QueryModifier) {
 				return append(whereClause, where.NewRawFilter(joinCondition)), modifiers
 			},
 		)
 	case r.isArray:
-		params, paramIndex, err = r.table.writeQueryCollectionSQL(
+		params, paramIndex, err = r.table.writeQueryCollectionSQLFromSource(
 			b,
 			field,
 			fragments,
@@ -337,13 +377,16 @@ func (r *relationship) buildSelectionSQL( //nolint:funlen
 			paramIndex,
 			relationshipAlias,
 			outputName,
+			targetFromClause,
+			targetSourceRef,
+			nestedCTEs,
 			argumentPath,
 			func(whereClause where.Clause, modifiers []arguments.QueryModifier) (where.Clause, []arguments.QueryModifier) {
 				return append(whereClause, where.NewRawFilter(joinCondition)), modifiers
 			},
 		)
 	default:
-		params, paramIndex, err = r.table.writeQueryByPkSQL(
+		params, paramIndex, err = r.table.writeQueryByPkSQLFromSource(
 			b,
 			field,
 			fragments,
@@ -355,6 +398,9 @@ func (r *relationship) buildSelectionSQL( //nolint:funlen
 			paramIndex,
 			relationshipAlias,
 			outputName,
+			targetFromClause,
+			targetSourceRef,
+			nestedCTEs,
 			argumentPath,
 			func(whereClause where.Clause, modifiers []arguments.QueryModifier) (where.Clause, []arguments.QueryModifier) {
 				return append(whereClause, where.NewRawFilter(joinCondition)), modifiers
