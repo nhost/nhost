@@ -36,6 +36,7 @@ func (t *table) buildQueryCollectionSQL(
 		1,
 		"_root",
 		"_root",
+		rootFieldName(field),
 	)
 	if err != nil {
 		putBuilder(b)
@@ -69,6 +70,7 @@ func (t *table) writeQueryCollectionSQL(
 	paramIndex int,
 	alias string,
 	relName string,
+	argumentPath string,
 	queryModifiers ...queryModifierFunc,
 ) ([]any, int, error) {
 	b.WriteString("SELECT ")
@@ -91,6 +93,7 @@ func (t *table) writeQueryCollectionSQL(
 		alias,
 		t.tableFromClause(),
 		t.tableSourceRef(),
+		argumentPath,
 		queryModifiers...,
 	)
 	if err != nil {

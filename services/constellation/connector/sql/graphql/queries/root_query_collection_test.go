@@ -3,6 +3,7 @@ package queries_test
 import (
 	"testing"
 
+	"github.com/nhost/nhost/services/constellation/connector/sql/graphql/queries/arguments"
 	"github.com/nhost/nhost/services/constellation/connector/sql/graphql/queries/permissions"
 )
 
@@ -350,6 +351,44 @@ func TestBuildSelectionSQL(t *testing.T) { //nolint:maintidx,paralleltest
 		},
 
 		{
+			// Hasura rejects a negative limit during query parsing; Constellation
+			// must do the same rather than forwarding "LIMIT -1" to Postgres
+			// (which raises an execution-time error).
+			name: "negative limit rejected",
+			query: query{
+				Query: `
+					query {
+						departments(limit: -1) {
+							id
+							name
+						}
+					}`,
+				Role:      "admin",
+				Variables: nil,
+			},
+			expectError: arguments.ErrInvalidArgument,
+		},
+
+		{
+			// Hasura surfaces a negative offset as a data-exception at path "$";
+			// Constellation builds that safe structured error before execution so
+			// SQLite cannot silently reinterpret OFFSET -1 as OFFSET 0.
+			name: "negative offset rejected",
+			query: query{
+				Query: `
+					query {
+						departments(offset: -1) {
+							id
+							name
+						}
+					}`,
+				Role:      "admin",
+				Variables: nil,
+			},
+			expectError: arguments.ErrInvalidArgument,
+		},
+
+		{
 			name: "distinct on with order by",
 			query: query{
 				Query: `
@@ -357,6 +396,45 @@ func TestBuildSelectionSQL(t *testing.T) { //nolint:maintidx,paralleltest
 						user_departments(distinct_on: department_id, order_by: {department_id: asc}) {
 							department_id
 							user_id
+						}
+					}`,
+				Role:      "admin",
+				Variables: nil,
+			},
+		},
+
+		{
+			// distinct_on column differs from the leading order_by column. Hasura
+			// rejects this at validation ("distinct_on" columns must match initial
+			// "order_by" columns) rather than reconciling, so Constellation does
+			// too — it does not silently reorder the user's order_by.
+			name: "distinct on with mismatched order by",
+			query: query{
+				Query: `
+					query {
+						departments(distinct_on: name, order_by: {budget: desc}) {
+							id
+							name
+							budget
+						}
+					}`,
+				Role:      "admin",
+				Variables: nil,
+			},
+			expectError: arguments.ErrInvalidArgument,
+		},
+
+		{
+			// distinct_on with no order_by must still emit a leading ORDER BY on
+			// the distinct columns so row selection is deterministic, matching
+			// Hasura.
+			name: "distinct on without order by",
+			query: query{
+				Query: `
+					query {
+						departments(distinct_on: name) {
+							id
+							name
 						}
 					}`,
 				Role:      "admin",

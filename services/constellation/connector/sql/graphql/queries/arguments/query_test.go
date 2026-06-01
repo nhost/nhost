@@ -2,6 +2,7 @@ package arguments_test
 
 import (
 	"errors"
+	"fmt"
 	"strings"
 	"testing"
 
@@ -63,6 +64,49 @@ func child(name string, v *ast.Value) *ast.ChildValue {
 	return &ast.ChildValue{Name: name, Value: v}
 }
 
+// wantDistinctOnOrderByMismatchMessage is the exact client-facing message
+// Hasura emits for a distinct_on/order_by mismatch. It is hardcoded here (not
+// read from an arguments symbol) so the assertion pins the byte-for-byte
+// Hasura-parity wire message independently of the package internals, mirroring
+// how the negative-limit validation test asserts its literal.
+const wantDistinctOnOrderByMismatchMessage = `"distinct_on" columns must match initial "order_by" columns`
+
+// distinctOnOrderByMismatchError builds a real *QueryValidationError by driving
+// the public ParseQuery with a distinct_on that does not match the leading
+// order_by, so tests exercise the production validation path instead of a
+// hand-minted error. The order_by references budget while distinct_on
+// references name, which ParseQuery rejects.
+func distinctOnOrderByMismatchError(t *testing.T) *arguments.QueryValidationError {
+	t.Helper()
+
+	ctrl := gomock.NewController(t)
+	tbl := mock.NewMockTable(ctrl)
+	tbl.EXPECT().ColumnFromGraphqlName("budget").
+		Return(newColumn("budget", "budget", "numeric"))
+	tbl.EXPECT().ColumnFromGraphqlName("name").
+		Return(newColumn("name", "name", "text"))
+
+	args := ast.ArgumentList{
+		&ast.Argument{
+			Name:  "order_by",
+			Value: objectValue(child("budget", enumValue("desc"))),
+		},
+		&ast.Argument{Name: "distinct_on", Value: enumValue("name")},
+	}
+
+	clause, _, _, err := arguments.ParseQuery(tbl, args, nil, "user", nil, "")
+	if clause != nil {
+		t.Fatalf("ParseQuery: expected nil where clause on the error path, got %v", clause)
+	}
+
+	var vErr *arguments.QueryValidationError
+	if !errors.As(err, &vErr) {
+		t.Fatalf("ParseQuery: expected a *QueryValidationError, got %T (%v)", err, err)
+	}
+
+	return vErr
+}
+
 func TestParseLimitOffset(t *testing.T) {
 	t.Parallel()
 
@@ -72,38 +116,82 @@ func TestParseLimitOffset(t *testing.T) {
 		variables map[string]any
 		want      *int
 		wantErr   bool
+		// wantErrIs, when non-nil, additionally asserts the returned error
+		// wraps this sentinel (used to pin the validation-error class).
+		wantErrIs error
 	}{
 		{
-			name:  "int",
-			value: intValue("10"),
-			want:  new(10),
+			name:      "int",
+			value:     intValue("10"),
+			want:      new(10),
+			wantErr:   false,
+			wantErrIs: nil,
 		},
 		{
-			name:  "float whole",
-			value: floatValue("5"),
-			want:  new(5),
+			name:      "zero",
+			value:     intValue("0"),
+			want:      new(0),
+			wantErr:   false,
+			wantErrIs: nil,
 		},
 		{
-			name:    "float fractional",
-			value:   floatValue("3.14"),
-			wantErr: true,
+			name:      "float whole",
+			value:     floatValue("5"),
+			want:      new(5),
+			wantErr:   false,
+			wantErrIs: nil,
 		},
 		{
-			name:    "string is not an integer",
-			value:   stringValue("nope"),
-			wantErr: true,
+			name:      "float fractional",
+			value:     floatValue("3.14"),
+			want:      nil,
+			wantErr:   true,
+			wantErrIs: arguments.ErrInvalidArgument,
+		},
+		{
+			name:      "string is not an integer",
+			value:     stringValue("nope"),
+			want:      nil,
+			wantErr:   true,
+			wantErrIs: arguments.ErrInvalidArgument,
+		},
+		{
+			name:      "negative int",
+			value:     intValue("-1"),
+			want:      new(-1),
+			wantErr:   false,
+			wantErrIs: nil,
+		},
+		{
+			name:      "negative float whole",
+			value:     floatValue("-1.0"),
+			want:      new(-1),
+			wantErr:   false,
+			wantErrIs: nil,
 		},
 		{
 			name:      "variable resolves to int",
 			value:     variableValue("v"),
 			variables: map[string]any{"v": 7},
 			want:      new(7),
+			wantErr:   false,
+			wantErrIs: nil,
+		},
+		{
+			name:      "variable resolves to negative int",
+			value:     variableValue("v"),
+			variables: map[string]any{"v": -5},
+			want:      new(-5),
+			wantErr:   false,
+			wantErrIs: nil,
 		},
 		{
 			name:      "variable missing",
 			value:     variableValue("v"),
 			variables: map[string]any{},
+			want:      nil,
 			wantErr:   true,
+			wantErrIs: nil,
 		},
 	}
 
@@ -115,6 +203,10 @@ func TestParseLimitOffset(t *testing.T) {
 			if tt.wantErr {
 				if err == nil {
 					t.Fatalf("expected error, got nil (got=%v)", got)
+				}
+
+				if tt.wantErrIs != nil && !errors.Is(err, tt.wantErrIs) {
+					t.Fatalf("expected error wrapping %v, got %v", tt.wantErrIs, err)
 				}
 
 				return
@@ -449,9 +541,11 @@ func TestParseQuery(t *testing.T) {
 		ctrl := gomock.NewController(t)
 		tbl := mock.NewMockTable(ctrl)
 
-		// Order-by + distinct-on lookups
-		tbl.EXPECT().ColumnFromGraphqlName("name").Return(newColumn("name", "name", "text"))
-		tbl.EXPECT().ColumnFromGraphqlName("id").Return(newColumn("id", "id", "uuid"))
+		// Order-by + distinct-on lookups. distinct_on must be the leading
+		// order_by column (Hasura's rule) or ParseQuery rejects, so both
+		// reference id here.
+		tbl.EXPECT().ColumnFromGraphqlName("id").
+			Return(newColumn("id", "id", "uuid")).Times(2)
 
 		// where parser is delegated; just have it return an empty clause.
 		tbl.EXPECT().ParseWhere(
@@ -463,7 +557,7 @@ func TestParseQuery(t *testing.T) {
 			&ast.Argument{Name: "where", Value: objectValue()},
 			&ast.Argument{
 				Name:  "order_by",
-				Value: objectValue(child("name", enumValue("asc"))),
+				Value: objectValue(child("id", enumValue("asc"))),
 			},
 			&ast.Argument{Name: "limit", Value: intValue("10")},
 			&ast.Argument{Name: "offset", Value: intValue("5")},
@@ -534,6 +628,568 @@ func TestParseQuery(t *testing.T) {
 			t.Fatalf("expected limit modifier, got %d mods", len(mods))
 		}
 	})
+}
+
+func parseNegativeQueryArgument(t *testing.T, argName string) error {
+	t.Helper()
+
+	ctrl := gomock.NewController(t)
+	tbl := mock.NewMockTable(ctrl)
+
+	args := ast.ArgumentList{
+		&ast.Argument{Name: argName, Value: intValue("-1")},
+	}
+
+	clause, modifiers, distinctOn, err := arguments.ParseQuery(tbl, args, nil, "user", nil, "")
+	if clause != nil {
+		t.Fatalf("expected nil where clause on the error path, got %v", clause)
+	}
+
+	if len(modifiers) != 0 {
+		t.Fatalf("expected no query modifiers on the error path, got %d", len(modifiers))
+	}
+
+	if distinctOn != nil {
+		t.Fatalf("expected nil distinct_on on the error path, got %v", distinctOn)
+	}
+
+	if !errors.Is(err, arguments.ErrInvalidArgument) {
+		t.Fatalf("expected ErrInvalidArgument, got %v", err)
+	}
+
+	return fmt.Errorf("parse negative %s: %w", argName, err)
+}
+
+func TestParseQueryNegativeLimitValidationError(t *testing.T) {
+	t.Parallel()
+
+	err := parseNegativeQueryArgument(t, "limit")
+
+	var dataErr *arguments.DataExceptionError
+	if errors.As(err, &dataErr) {
+		t.Fatalf("negative limit returned DataExceptionError: %v", dataErr)
+	}
+
+	var vErr *arguments.QueryValidationError
+	if !errors.As(err, &vErr) {
+		t.Fatalf("expected a *QueryValidationError, got %T", err)
+	}
+
+	vErr.StampArgumentPath("departments")
+
+	got := vErr.AsMap()
+
+	wantMessage := "expected a non-negative 32-bit integer for type 'Int', but found an integer"
+	if got["message"] != wantMessage {
+		t.Errorf("message: got %q, want %q", got["message"], wantMessage)
+	}
+
+	ext, ok := got["extensions"].(map[string]any)
+	if !ok {
+		t.Fatalf("extensions: got %T, want map[string]any", got["extensions"])
+	}
+
+	if ext["code"] != "validation-failed" {
+		t.Errorf("extensions.code: got %v, want validation-failed", ext["code"])
+	}
+
+	if ext["path"] != "$.selectionSet.departments.args.limit" {
+		t.Errorf("extensions.path: got %v, want negative-limit argument path", ext["path"])
+	}
+}
+
+func TestParseQueryNegativeLimitVariableValidationError(t *testing.T) {
+	t.Parallel()
+
+	args := ast.ArgumentList{
+		&ast.Argument{Name: "limit", Value: variableValue("limit")},
+	}
+
+	clause, modifiers, distinctOn, err := arguments.ParseQuery(
+		nil,
+		args,
+		map[string]any{"limit": -1.0},
+		"user",
+		nil,
+		"",
+	)
+	if clause != nil {
+		t.Fatalf("expected nil where clause on the error path, got %v", clause)
+	}
+
+	if len(modifiers) != 0 {
+		t.Fatalf("expected no query modifiers on the error path, got %d", len(modifiers))
+	}
+
+	if distinctOn != nil {
+		t.Fatalf("expected nil distinct_on on the error path, got %v", distinctOn)
+	}
+
+	if !errors.Is(err, arguments.ErrInvalidArgument) {
+		t.Fatalf("expected ErrInvalidArgument, got %v", err)
+	}
+
+	var vErr *arguments.QueryValidationError
+	if !errors.As(err, &vErr) {
+		t.Fatalf("expected a *QueryValidationError, got %T", err)
+	}
+
+	got := vErr.AsMap()
+
+	wantMessage := "expected a non-negative 32-bit integer for type 'Int', but found a number"
+	if got["message"] != wantMessage {
+		t.Errorf("message: got %q, want %q", got["message"], wantMessage)
+	}
+}
+
+func TestParseQueryNegativeOffsetDataExceptionError(t *testing.T) {
+	t.Parallel()
+
+	err := parseNegativeQueryArgument(t, "offset")
+
+	var vErr *arguments.QueryValidationError
+	if errors.As(err, &vErr) {
+		t.Fatalf("negative offset returned validation-failed error: %v", vErr.AsMap())
+	}
+
+	var dataErr *arguments.DataExceptionError
+	if !errors.As(err, &dataErr) {
+		t.Fatalf("expected a *DataExceptionError, got %T", err)
+	}
+
+	got := dataErr.AsMap()
+	if got["message"] != "OFFSET must not be negative" {
+		t.Errorf("message: got %q, want negative-offset Hasura message", got["message"])
+	}
+
+	ext, ok := got["extensions"].(map[string]any)
+	if !ok {
+		t.Fatalf("extensions: got %T, want map[string]any", got["extensions"])
+	}
+
+	if ext["code"] != "data-exception" {
+		t.Errorf("extensions.code: got %v, want data-exception", ext["code"])
+	}
+
+	if ext["path"] != "$" {
+		t.Errorf("extensions.path: got %v, want $", ext["path"])
+	}
+}
+
+// TestParseQueryDistinctOnOrderByValidation covers ParseQuery's validation of
+// the distinct_on / order_by combination so it matches Hasura exactly: inject a
+// leading ORDER BY when none was given, allow an order_by whose leading prefix
+// contains the distinct_on columns (in any order), and reject any other order_by
+// with the Hasura distinct_on/order_by mismatch message (wrapping
+// ErrInvalidArgument) instead of silently reconciling it.
+func TestParseQueryDistinctOnOrderByValidation(t *testing.T) {
+	t.Parallel()
+
+	t.Run("distinct_on with mismatched order_by is rejected", func(t *testing.T) {
+		t.Parallel()
+
+		ctrl := gomock.NewController(t)
+		tbl := mock.NewMockTable(ctrl)
+
+		// order_by references budget; distinct_on references name (different col).
+		tbl.EXPECT().ColumnFromGraphqlName("budget").
+			Return(newColumn("budget", "budget", "numeric"))
+		tbl.EXPECT().ColumnFromGraphqlName("name").
+			Return(newColumn("name", "name", "text"))
+
+		args := ast.ArgumentList{
+			&ast.Argument{
+				Name:  "order_by",
+				Value: objectValue(child("budget", enumValue("desc"))),
+			},
+			&ast.Argument{Name: "distinct_on", Value: enumValue("name")},
+		}
+
+		_, _, _, err := arguments.ParseQuery(tbl, args, nil, "user", nil, "")
+		if !errors.Is(err, arguments.ErrInvalidArgument) {
+			t.Fatalf("expected ErrInvalidArgument, got %v", err)
+		}
+
+		var vErr *arguments.QueryValidationError
+		if !errors.As(err, &vErr) {
+			t.Fatalf("expected a *QueryValidationError, got %T", err)
+		}
+
+		vErr.StampArgumentPath("departments")
+
+		if got := vErr.AsMap()["message"]; got != wantDistinctOnOrderByMismatchMessage {
+			t.Fatalf(
+				"message: got %q, want %q",
+				got,
+				wantDistinctOnOrderByMismatchMessage,
+			)
+		}
+	})
+
+	t.Run("multi-column distinct_on with non-matching order_by prefix is rejected",
+		func(t *testing.T) {
+			t.Parallel()
+
+			ctrl := gomock.NewController(t)
+			tbl := mock.NewMockTable(ctrl)
+
+			// order_by leads with created_at (a non-distinct column); distinct_on
+			// is [disabled, email_verified]. The distinct columns are not the
+			// leading order_by columns, so Hasura (and now ParseQuery) rejects.
+			tbl.EXPECT().ColumnFromGraphqlName("createdAt").
+				Return(newColumn("createdAt", "created_at", "timestamptz"))
+			tbl.EXPECT().ColumnFromGraphqlName("id").
+				Return(newColumn("id", "id", "uuid"))
+			tbl.EXPECT().ColumnFromGraphqlName("disabled").
+				Return(newColumn("disabled", "disabled", "boolean"))
+			tbl.EXPECT().ColumnFromGraphqlName("emailVerified").
+				Return(newColumn("emailVerified", "email_verified", "boolean"))
+
+			args := ast.ArgumentList{
+				&ast.Argument{
+					Name: "order_by",
+					Value: listValue(
+						child("", objectValue(child("createdAt", enumValue("desc")))),
+						child("", objectValue(child("id", enumValue("asc")))),
+					),
+				},
+				&ast.Argument{
+					Name: "distinct_on",
+					Value: listValue(
+						child("", enumValue("disabled")),
+						child("", enumValue("emailVerified")),
+					),
+				},
+			}
+
+			_, _, _, err := arguments.ParseQuery(tbl, args, nil, "user", nil, "")
+			if !errors.Is(err, arguments.ErrInvalidArgument) {
+				t.Fatalf("expected ErrInvalidArgument, got %v", err)
+			}
+
+			var vErr *arguments.QueryValidationError
+			if !errors.As(err, &vErr) {
+				t.Fatalf("expected a *QueryValidationError, got %T", err)
+			}
+
+			if got := vErr.AsMap()["message"]; got != wantDistinctOnOrderByMismatchMessage {
+				t.Fatalf(
+					"message: got %q, want %q",
+					got,
+					wantDistinctOnOrderByMismatchMessage,
+				)
+			}
+		})
+
+	t.Run("distinct_on without order_by synthesises leading order_by", func(t *testing.T) {
+		t.Parallel()
+
+		ctrl := gomock.NewController(t)
+		tbl := mock.NewMockTable(ctrl)
+
+		tbl.EXPECT().ColumnFromGraphqlName("locale").
+			Return(newColumn("locale", "locale", "text"))
+
+		args := ast.ArgumentList{
+			&ast.Argument{Name: "distinct_on", Value: enumValue("locale")},
+		}
+
+		_, mods, _, err := arguments.ParseQuery(tbl, args, nil, "user", nil, "")
+		if err != nil {
+			t.Fatalf("ParseQuery: %v", err)
+		}
+
+		ob := firstOrderBy(t, mods)
+		assertOrderByItems(t, ob.Items, []arguments.OrderByItem{
+			{Column: "locale", Direction: core.OrderAscNullsLast},
+		})
+	})
+
+	t.Run("distinct_on matching the leading order_by columns is allowed", func(t *testing.T) {
+		t.Parallel()
+
+		ctrl := gomock.NewController(t)
+		tbl := mock.NewMockTable(ctrl)
+
+		// order_by: [{name: asc}, {budget: desc}], distinct_on: [name, budget].
+		tbl.EXPECT().ColumnFromGraphqlName("name").
+			Return(newColumn("name", "name", "text")).Times(2)
+		tbl.EXPECT().ColumnFromGraphqlName("budget").
+			Return(newColumn("budget", "budget", "numeric")).Times(2)
+
+		args := ast.ArgumentList{
+			&ast.Argument{
+				Name: "order_by",
+				Value: listValue(
+					child("", objectValue(child("name", enumValue("asc")))),
+					child("", objectValue(child("budget", enumValue("desc")))),
+				),
+			},
+			&ast.Argument{
+				Name: "distinct_on",
+				Value: listValue(
+					child("", enumValue("name")),
+					child("", enumValue("budget")),
+				),
+			},
+		}
+
+		_, mods, _, err := arguments.ParseQuery(tbl, args, nil, "user", nil, "")
+		if err != nil {
+			t.Fatalf("ParseQuery: %v", err)
+		}
+
+		ob := firstOrderBy(t, mods)
+		// The distinct columns already lead the order_by, so the order_by is
+		// left untouched: the user's directions are preserved and nothing is
+		// duplicated or reordered.
+		assertOrderByItems(t, ob.Items, []arguments.OrderByItem{
+			{Column: "name", Direction: core.OrderAsc},
+			{Column: "budget", Direction: core.OrderDesc},
+		})
+	})
+
+	t.Run("distinct_on columns may appear in any order within the order_by prefix",
+		func(t *testing.T) {
+			t.Parallel()
+
+			ctrl := gomock.NewController(t)
+			tbl := mock.NewMockTable(ctrl)
+
+			// PostgreSQL/Hasura require the first N order_by columns to be the
+			// distinct_on columns, but those first N columns may be permuted.
+			tbl.EXPECT().ColumnFromGraphqlName("emailVerified").
+				Return(newColumn("emailVerified", "email_verified", "boolean")).Times(2)
+			tbl.EXPECT().ColumnFromGraphqlName("disabled").
+				Return(newColumn("disabled", "disabled", "boolean")).Times(2)
+			tbl.EXPECT().ColumnFromGraphqlName("id").
+				Return(newColumn("id", "id", "uuid"))
+
+			args := ast.ArgumentList{
+				&ast.Argument{
+					Name: "order_by",
+					Value: listValue(
+						child("", objectValue(child("emailVerified", enumValue("desc")))),
+						child("", objectValue(child("disabled", enumValue("asc")))),
+						child("", objectValue(child("id", enumValue("asc")))),
+					),
+				},
+				&ast.Argument{
+					Name: "distinct_on",
+					Value: listValue(
+						child("", enumValue("disabled")),
+						child("", enumValue("emailVerified")),
+					),
+				},
+			}
+
+			_, mods, _, err := arguments.ParseQuery(tbl, args, nil, "user", nil, "")
+			if err != nil {
+				t.Fatalf("ParseQuery: %v", err)
+			}
+
+			ob := firstOrderBy(t, mods)
+			assertOrderByItems(t, ob.Items, []arguments.OrderByItem{
+				{Column: "email_verified", Direction: core.OrderDesc},
+				{Column: "disabled", Direction: core.OrderAsc},
+				{Column: "id", Direction: core.OrderAsc},
+			})
+		})
+}
+
+func TestParseQueryDistinctOnEmptyOrderBySynthesizesOrderBy(t *testing.T) {
+	t.Parallel()
+
+	tests := []struct {
+		name    string
+		orderBy *ast.Value
+	}{
+		{
+			name:    "empty object",
+			orderBy: objectValue(),
+		},
+		{
+			name:    "empty list",
+			orderBy: listValue(),
+		},
+		{
+			name:    "list containing empty object",
+			orderBy: listValue(child("", objectValue())),
+		},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			t.Parallel()
+
+			ctrl := gomock.NewController(t)
+			tbl := mock.NewMockTable(ctrl)
+
+			tbl.EXPECT().ColumnFromGraphqlName("locale").
+				Return(newColumn("locale", "locale", "text"))
+
+			args := ast.ArgumentList{
+				&ast.Argument{Name: "order_by", Value: tt.orderBy},
+				&ast.Argument{Name: "distinct_on", Value: enumValue("locale")},
+			}
+
+			_, mods, _, err := arguments.ParseQuery(tbl, args, nil, "user", nil, "")
+			if err != nil {
+				t.Fatalf("ParseQuery: %v", err)
+			}
+
+			ob := firstOrderBy(t, mods)
+			assertOrderByItems(t, ob.Items, []arguments.OrderByItem{
+				{Column: "locale", Direction: core.OrderAscNullsLast},
+			})
+		})
+	}
+}
+
+// TestQueryValidationErrorAsMap locks the GraphQL error envelope a
+// *QueryValidationError renders to Hasura's exact shape: the verbatim message
+// plus an extensions block with code "validation-failed" and the
+// "$.selectionSet.<rootField>.args" path, and nothing else (no top-level path
+// or locations).
+func TestQueryValidationErrorAsMap(t *testing.T) {
+	t.Parallel()
+
+	vErr := distinctOnOrderByMismatchError(t)
+	vErr.StampArgumentPath("departments")
+
+	got := vErr.AsMap()
+
+	if got["message"] != wantDistinctOnOrderByMismatchMessage {
+		t.Errorf("message: got %q, want %q", got["message"], wantDistinctOnOrderByMismatchMessage)
+	}
+
+	if _, ok := got["path"]; ok {
+		t.Errorf("unexpected top-level path key: %v", got["path"])
+	}
+
+	if _, ok := got["locations"]; ok {
+		t.Errorf("unexpected locations key: %v", got["locations"])
+	}
+
+	ext, ok := got["extensions"].(map[string]any)
+	if !ok {
+		t.Fatalf("extensions: got %T, want map[string]any", got["extensions"])
+	}
+
+	if ext["code"] != "validation-failed" {
+		t.Errorf("extensions.code: got %v, want validation-failed", ext["code"])
+	}
+
+	if ext["path"] != "$.selectionSet.departments.args" {
+		t.Errorf("extensions.path: got %v, want $.selectionSet.departments.args", ext["path"])
+	}
+}
+
+func TestQueryValidationErrorRemapArgumentPath(t *testing.T) {
+	t.Parallel()
+
+	vErr := distinctOnOrderByMismatchError(t)
+	vErr.StampArgumentPath("teams")
+
+	vErr.RemapArgumentPath(func(path string) string {
+		if path != "teams" {
+			t.Fatalf("remapper saw path %q, want teams", path)
+		}
+
+		return "league.selectionSet.teams"
+	})
+
+	got := vErr.AsMap()
+
+	ext, ok := got["extensions"].(map[string]any)
+	if !ok {
+		t.Fatalf("extensions missing: %#v", got)
+	}
+
+	if got := ext["path"]; got != "$.selectionSet.league.selectionSet.teams.args" {
+		t.Fatalf("path = %v, want remapped client path", got)
+	}
+
+	vErr.RemapArgumentPath(func(string) string { return "" })
+
+	got = vErr.AsMap()
+
+	ext, ok = got["extensions"].(map[string]any)
+	if !ok {
+		t.Fatalf("extensions missing after empty remap: %#v", got)
+	}
+
+	if got := ext["path"]; got != "$.selectionSet.league.selectionSet.teams.args" {
+		t.Fatalf("empty remap path = %v, want previous path preserved", got)
+	}
+}
+
+func TestQueryValidationErrorZeroValueAsMapUsesSafeFallback(t *testing.T) {
+	t.Parallel()
+
+	vErr := new(arguments.QueryValidationError)
+	vErr.StampArgumentPath("departments")
+
+	if !errors.Is(vErr, arguments.ErrInvalidArgument) {
+		t.Fatalf("expected zero-value QueryValidationError to unwrap ErrInvalidArgument")
+	}
+
+	got := vErr.AsMap()
+	if got["message"] != arguments.ErrInvalidArgument.Error() {
+		t.Errorf(
+			"message: got %q, want %q",
+			got["message"],
+			arguments.ErrInvalidArgument.Error(),
+		)
+	}
+
+	ext, ok := got["extensions"].(map[string]any)
+	if !ok {
+		t.Fatalf("extensions: got %T, want map[string]any", got["extensions"])
+	}
+
+	if ext["path"] != "$.selectionSet.departments.args" {
+		t.Errorf("extensions.path: got %v, want $.selectionSet.departments.args", ext["path"])
+	}
+}
+
+// firstOrderBy returns the single *OrderBy modifier in mods, failing the test
+// if none (or more than one) is present.
+func firstOrderBy(t *testing.T, mods []arguments.QueryModifier) *arguments.OrderBy {
+	t.Helper()
+
+	var found *arguments.OrderBy
+
+	for _, m := range mods {
+		if ob, ok := m.(*arguments.OrderBy); ok {
+			if found != nil {
+				t.Fatalf("expected exactly one order_by modifier, found multiple")
+			}
+
+			found = ob
+		}
+	}
+
+	if found == nil {
+		t.Fatalf("expected an order_by modifier, got %#v", mods)
+	}
+
+	return found
+}
+
+func assertOrderByItems(t *testing.T, got, want []arguments.OrderByItem) {
+	t.Helper()
+
+	if len(got) != len(want) {
+		t.Fatalf("order_by length: got %d (%+v), want %d (%+v)",
+			len(got), got, len(want), want)
+	}
+
+	for i := range want {
+		if got[i] != want[i] {
+			t.Fatalf("order_by[%d]: got %+v, want %+v", i, got[i], want[i])
+		}
+	}
 }
 
 func deref(p *int) any {

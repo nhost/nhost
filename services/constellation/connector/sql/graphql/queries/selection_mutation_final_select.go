@@ -153,6 +153,7 @@ func (t *table) buildLateralJoins(
 	roots map[string]core.Operation,
 	params []any,
 	paramIndex int,
+	argumentPath string,
 ) ([]any, int, error) {
 	for _, relSel := range relationships {
 		// Skip relationships that were direct nested inserts.
@@ -178,6 +179,7 @@ func (t *table) buildLateralJoins(
 			paramIndex,
 			"mutation_result",
 			relAlias,
+			argumentPath,
 		)
 		if err != nil {
 			return nil, 0, fmt.Errorf("error building relationship %s: %w", relSel.alias, err)
@@ -206,6 +208,7 @@ func (t *table) buildFinalSelect( //nolint:funlen
 	roots map[string]core.Operation,
 	params []any,
 	paramIndex int,
+	argumentPath string,
 ) ([]any, error) {
 	// nestedForceRefNames lists every nested-insert CTE this top-level
 	// insert produced. Emitted as a no-op WHERE so the gated subset
@@ -248,7 +251,7 @@ func (t *table) buildFinalSelect( //nolint:funlen
 
 		params, _, err = t.buildLateralJoins(
 			b, relationships, nestedSelectionCTEs, fragments, variables,
-			role, sessionVariables, roots, params, paramIndex,
+			role, sessionVariables, roots, params, paramIndex, argumentPath,
 		)
 		if err != nil {
 			return nil, err
@@ -281,7 +284,7 @@ func (t *table) buildFinalSelect( //nolint:funlen
 
 				params, paramIndex, err = relSel.relationship.buildSelectionSQL(
 					b, relSel.field, fragments, variables, role, sessionVariables,
-					roots, params, paramIndex, "mutation_result", relAlias,
+					roots, params, paramIndex, "mutation_result", relAlias, argumentPath,
 				)
 				if err != nil {
 					return nil, fmt.Errorf("error building relationship %s: %w", relSel.alias, err)
@@ -303,12 +306,27 @@ func (t *table) buildFinalSelect( //nolint:funlen
 
 // buildDeleteFinalSelect builds the final SELECT for delete_by_pk mutations.
 // It returns columns normally but returns empty arrays for relationships
-// since the related data cannot be fetched after deletion.
+// since the related data cannot be fetched after deletion. The relationship
+// arguments are still validated first (the same parsing the SELECT path runs),
+// so an invalid argument rejects the whole mutation with no row deleted,
+// matching Hasura, rather than being silently dropped by the empty-array path.
 func (t *table) buildDeleteFinalSelect(
 	b *strings.Builder,
 	columns []columnSelection,
 	relationships []relationshipSelection,
-) {
+	fragments ast.FragmentDefinitionList,
+	variables map[string]any,
+	role string,
+	sessionVariables map[string]any,
+	roots map[string]core.Operation,
+	argumentPath string,
+) error {
+	if err := validateReturningRelationshipArgs(
+		relationships, fragments, variables, role, sessionVariables, roots, argumentPath,
+	); err != nil {
+		return err
+	}
+
 	b.WriteString("SELECT ")
 	t.dialect.WriteJSONRowPrefix(b)
 
@@ -342,4 +360,6 @@ func (t *table) buildDeleteFinalSelect(
 
 	t.dialect.WriteJSONRowSuffixNoAlias(b)
 	b.WriteString(" FROM mutation_result")
+
+	return nil
 }

@@ -51,6 +51,7 @@ func (t *table) buildMutationInsertOneSQL(
 		role,
 		sessionVariables,
 		roots,
+		rootFieldName(field),
 	)
 	if err != nil {
 		putBuilder(b)
@@ -81,6 +82,7 @@ func (t *table) buildInsertSQL(
 	role string,
 	sessionVariables map[string]any,
 	roots map[string]core.Operation,
+	argumentPath string,
 ) ([]any, error) {
 	params := make([]any, 0, 16) //nolint:mnd
 	paramIndex := 1
@@ -115,6 +117,7 @@ func (t *table) buildInsertSQL(
 		roots,
 		params,
 		paramIndex,
+		argumentPath,
 	)
 	if err != nil {
 		return nil, err

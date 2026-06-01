@@ -83,6 +83,10 @@ func TestExecuteAndStitchAggregate_HappyPath(t *testing.T) {
 				t.Errorf("JoinValues mismatch (-want +got):\n%s", diff)
 			}
 
+			if req.ArgumentPath != "teams.selectionSet.members_aggregate" {
+				t.Errorf("ArgumentPath mismatch: got %q", req.ArgumentPath)
+			}
+
 			return aggregateResult, nil
 		})
 

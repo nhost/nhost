@@ -33,6 +33,7 @@ This document traces a GraphQL request through Constellation, from HTTP arrival 
                                   ▼
 ┌──────────────────────────────────────────────────────────────────────┐
 │  Controller.runConnectorsAndStitch                                   │
+│  • validateConnectors pre-pass when fan-out >1 or remote queries     │
 │  • executeConnectors: connector.Execute per owning connector         │
 │  • resolveRemoteRelationships (only when plan has RemoteQueries)     │
 │  • RemovePhantomFieldsFromPlan                                       │
@@ -120,20 +121,30 @@ Mutations are not rejected here, but mutation pipelines never produce cross-conn
 
 `groupFieldsByConnector` (`controller/resolve.go:257`) walks the *original* operation (not the clean one) and partitions root selections by `state.fieldToConnector[field.Name]`. The mapping is built at schema composition time by `connector/composer`. Any root field whose owner is empty produces a structured error.
 
-## 8. Connector execution
+## 8. Pre-execution connector validation
 
-`executeConnectors` (`controller/resolve.go:278`) iterates each connector, calls `buildConnectorOperation` to obtain the per-connector operation, and invokes `Connector.Execute`:
+`runConnectorsAndStitch` runs `validateConnectors` before any root connector executes when either:
+
+- Root fields map to more than one connector. This prevents a structured argument failure in one connector from returning partial data or letting a sibling mutation commit first.
+- The plan has remote relationship work. The root connectors are validated up front, and database-backed remote relationship target operations / grouped aggregate requests are validated by `validateRemoteTargets` (`controller/remote_validation.go`) before the source connector executes.
+
+Plain single-connector requests skip the extra pass because the connector's `Execute` path already performs the same local build/validation before touching its backend. The pre-pass uses `buildConnectorOperation` to send each connector the same cleaned operation and fragments it would receive during execution. Only structured connector argument errors short-circuit here; unknown fields, internal build failures, and remote-schema endpoint validation retain the existing `Execute`/remote-resolution error paths and partial-data semantics.
+
+## 9. Connector execution
+
+`executeConnectors` (`controller/resolve.go:365`) iterates each connector, calls `buildConnectorOperation` to obtain the per-connector operation, and invokes `Connector.Execute`:
 
 ```go
 type Connector interface {
     GetSchema() (map[string]*graph.Schema, error)
     Execute(ctx, operation, fragments, variables, role, sessionVariables, logger) (map[string]any, error)
+    ValidateOperation(operation, fragments, variables, role, sessionVariables) error
     GetTypeName(identifier string) string
     Close()
 }
 ```
 
-`buildConnectorOperation` (`controller/resolve.go:334`) prefers the planner's `CleanOperation` + `CleanFragments` when they exist. Without a plan (programmatic embedding via `NewFromConnectors`, no relationships), it falls back to `BuildSubOperation` against the raw selections.
+`buildConnectorOperation` (`controller/resolve.go:415`) prefers the planner's `CleanOperation` + `CleanFragments` when they exist. Without a plan (programmatic embedding via `NewFromConnectors`, no relationships), it falls back to `BuildSubOperation` against the raw selections.
 
 `Execute` returns `map[string]any`. Results from all connectors are merged into a single map keyed by root field alias. Errors are accumulated rather than fatal:
 
@@ -164,7 +175,7 @@ Values returned from SQL drivers are usually `jsontext.Value` (raw JSON) so the 
 3. Sends the request over HTTP via `httpClient`. Forwarded headers, X-Forwarded-* rewrites, and `forward_client_headers` rules live in `connector/remoteschema/http.go`.
 4. Returns the response `data` map. Partial data is returned together with `*GraphQLError`.
 
-## 9. Remote relationship resolution
+## 10. Remote relationship resolution
 
 If the plan contains remote queries, `resolveRemoteRelationships` (`controller/resolve.go:353`) runs:
 
@@ -184,11 +195,11 @@ state.remoteRelationshipResolver.Resolve(ctx, results, pending, ...)
 
 See [remote-relationships.md](./remote-relationships.md) for the full mechanics.
 
-## 10. Phantom field cleanup
+## 11. Phantom field cleanup
 
 `resolver.RemovePhantomFieldsFromPlan` (`controller/resolver/remote_relationship_resolver.go:200`) sweeps the result map a final time, removing every phantom field recorded in `plan.AllPhantomFieldSpecs()`. This is the catch-all that ensures phantom columns from primary queries are gone even when no remote relationship ended up needing them (e.g. all parent rows had null join keys).
 
-## 11. Response assembly
+## 12. Response assembly
 
 `buildRawResponse` (`controller/resolve.go:459`) is the fast path: if every value in `results` is already a `jsontext.Value`, the function concatenates them into a pre-sized byte buffer wrapping them in `{"data":{...}}`. The HTTP handler writes those bytes directly, skipping `json.Marshal`. The fast path is the common case for pure-SQL queries; any post-resolution stitching or remote-schema participation forces the regular path through `json.Marshal`.
 
@@ -219,6 +230,7 @@ Subscriptions never go through HTTP `Resolve`. They arrive on the WebSocket endp
 | Schema lookup | Unknown role | `{"errors": [...], "data": null}` |
 | Parse / validate | gqlparser | `{"errors": [...with locations/path...], "data": null}` |
 | Planner | Internal failure | `{"errors": [...], "data": null}` |
+| Pre-execution connector validation | Structured argument validation | `{"errors": [...], "data": null}` |
 | Connector | One failed, others ok | `{"errors": [...], "data": {partial}}` |
 | Remote resolution | Resolver failure | `{"errors": [...], "data": null}` |
 
@@ -237,6 +249,7 @@ See [architecture.md](./architecture.md) for the full reload contract.
 | `controller/controller.go` | `Controller`, atomic state pointer, reload loop |
 | `controller/handlers.go` | HTTP handlers; wires Gin to `Resolve` |
 | `controller/resolve.go` | `Resolve`, parsing/validation, planning, execution orchestration |
+| `controller/remote_validation.go` | Pre-execution validation of database-backed remote relationship targets |
 | `controller/querycache.go` | Per-state LRU for parsed queries |
 | `controller/middleware/session.go` | Admin secret → JWT → public-role precedence |
 | `controller/introspection/introspection.go` | `__schema` / `__type` execution |
@@ -249,9 +262,9 @@ See [architecture.md](./architecture.md) for the full reload contract.
 | `controller/resolver/{database,schema,aggregate}_resolver.go` | Per-strategy resolution |
 | `connector/connector.go` | `Connector` interface, factory registry |
 | `connector/composer/` | Cross-connector schema merge, per-role validation |
-| `connector/sql/query.go` | `Connector.Execute` for SQL |
+| `connector/sql/query.go` | SQL `Connector.Execute` / `ValidateOperation` |
 | `connector/sql/graphql/queries/roots.go` | Root-field dispatch for SQL builders |
-| `connector/remoteschema/connector.go` | `Connector.Execute` for remote schemas |
+| `connector/remoteschema/connector.go` | Remote-schema `Connector.Execute` / `ValidateOperation` |
 | `connector/remoteschema/execute.go` | `@preset` application, query string rendering, HTTP request |
 
 ## See also

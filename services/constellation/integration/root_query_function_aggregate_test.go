@@ -272,6 +272,36 @@ func TestBuildQueryFunctionAggregateSQL(t *testing.T) { //nolint:paralleltest
 				Role: "admin",
 			},
 		},
+
+		// Hasura-parity lock for the function-aggregate argumentPath surface. The
+		// aggregate function root runs distinct_on/order_by through the same
+		// validation as the table aggregate root, so a distinct_on whose column
+		// set does not match the leading order_by column is rejected at query
+		// validation with a "validation-failed" envelope whose extensions.path is
+		// the function root field: "$.selectionSet.search_news_aggregate.args".
+		// RunGraphQLTests diffs the full response against live Hasura, pinning
+		// message, extensions.code, and extensions.path.
+		{
+			name: "distinct_on/order_by mismatch validation error",
+			query: query{
+				Query: `
+					query {
+						search_news_aggregate(
+							args: {search: "a"},
+							distinct_on: title,
+							order_by: {created_at: desc}
+						) {
+							aggregate {
+								count
+							}
+							nodes {
+								id
+							}
+						}
+					}`,
+				Role: "admin",
+			},
+		},
 	}
 
 	RunGraphQLTests(t, cases, TestConfig{

@@ -284,6 +284,33 @@ func TestBuildQueryFunctionCollectionSQL(t *testing.T) { //nolint:paralleltest
 				Variables: nil,
 			},
 		},
+
+		// Hasura-parity lock for the function-collection argumentPath surface.
+		// The set-returning function root accepts the same distinct_on/order_by
+		// arguments as a table collection root and runs them through the shared
+		// buildQueryCTE validation, so a distinct_on whose column set does not
+		// match the leading order_by column is rejected at query validation with
+		// a "validation-failed" envelope whose extensions.path is the function
+		// root field: "$.selectionSet.search_news.args". RunGraphQLTests diffs
+		// the full response against live Hasura, pinning message,
+		// extensions.code, and extensions.path.
+		{
+			name: "distinct_on/order_by mismatch validation error",
+			query: query{
+				Query: `
+					{
+					  search_news(
+						args: { search: "a" }
+						distinct_on: title
+						order_by: { created_at: desc }
+					  ) {
+						content
+					  }
+					}`,
+				Role:      "admin",
+				Variables: nil,
+			},
+		},
 	}
 
 	RunGraphQLTests(t, cases, TestConfig{

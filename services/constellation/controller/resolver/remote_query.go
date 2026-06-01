@@ -1,6 +1,8 @@
 package resolver
 
 import (
+	"strings"
+
 	"github.com/nhost/nhost/services/constellation/internal/jsonpath"
 	"github.com/vektah/gqlparser/v2/ast"
 )
@@ -168,4 +170,15 @@ func (rq *remoteQuery) getLocalPhantomFields() []string {
 // getParentPath returns the parent path used to locate parent rows for stitching.
 func (rq *remoteQuery) getParentPath() jsonpath.Path {
 	return rq.parentPath
+}
+
+// argumentPath returns the GraphQL argument-path suffix for rq.sourceField:
+// the parent result path plus the relationship output field, separated the way
+// Hasura reports nested GraphQL selection paths.
+func (rq *remoteQuery) argumentPath() string {
+	path := make([]string, 0, len(rq.parentPath)+1)
+	path = append(path, rq.parentPath...)
+	path = append(path, rq.alias)
+
+	return strings.Join(path, ".selectionSet.")
 }

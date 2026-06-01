@@ -43,19 +43,9 @@ func (c *Connector) ExecuteGroupedAggregate(
 	sessionVariables map[string]any,
 	logger *slog.Logger,
 ) (map[string]any, error) {
-	op, err := c.groupedAggOp.BuildGroupedAggregateSQL(groupedaggdispatch.BuildInput{
-		TableSchema:       req.TableSchema,
-		TableName:         req.TableName,
-		Field:             req.Field,
-		Fragments:         req.Fragments,
-		Variables:         req.Variables,
-		Role:              role,
-		SessionVariables:  sessionVariables,
-		JoinColumnSQLName: req.JoinColumnSQLName,
-		JoinValues:        req.JoinValues,
-	})
+	op, err := c.buildGroupedAggregateOperation(req, role, sessionVariables)
 	if err != nil {
-		return nil, fmt.Errorf("failed to build grouped aggregate SQL: %w", err)
+		return nil, err
 	}
 
 	results, err := c.driver.ExecuteOperations(ctx, []core.SQLOperation{op}, logger)
@@ -69,6 +59,44 @@ func (c *Connector) ExecuteGroupedAggregate(
 	}
 
 	return parseGroupedAggregateResult(raw)
+}
+
+// ValidateGroupedAggregate builds the SQL for a grouped aggregate request and
+// discards it, surfacing trusted argument failures without touching the
+// database. The controller uses this before root connector execution when a
+// mutation response selects a cross-database aggregate relationship.
+func (c *Connector) ValidateGroupedAggregate(
+	req groupedaggregate.Request,
+	role string,
+	sessionVariables map[string]any,
+) error {
+	_, err := c.buildGroupedAggregateOperation(req, role, sessionVariables)
+
+	return err
+}
+
+func (c *Connector) buildGroupedAggregateOperation(
+	req groupedaggregate.Request,
+	role string,
+	sessionVariables map[string]any,
+) (core.SQLOperation, error) {
+	op, err := c.groupedAggOp.BuildGroupedAggregateSQL(groupedaggdispatch.BuildInput{
+		TableSchema:       req.TableSchema,
+		TableName:         req.TableName,
+		Field:             req.Field,
+		ArgumentPath:      req.ArgumentPath,
+		Fragments:         req.Fragments,
+		Variables:         req.Variables,
+		Role:              role,
+		SessionVariables:  sessionVariables,
+		JoinColumnSQLName: req.JoinColumnSQLName,
+		JoinValues:        req.JoinValues,
+	})
+	if err != nil {
+		return core.SQLOperation{}, fmt.Errorf("failed to build grouped aggregate SQL: %w", err)
+	}
+
+	return op, nil
 }
 
 // parseGroupedAggregateResult unmarshals the single-row JSON array result of

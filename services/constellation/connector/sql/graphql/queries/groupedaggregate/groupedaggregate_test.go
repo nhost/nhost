@@ -20,6 +20,7 @@ func sampleInput() groupedaggregate.BuildInput {
 		TableSchema:       "public",
 		TableName:         "users",
 		Field:             &ast.Field{Name: "agg"},
+		ArgumentPath:      "users.selectionSet.agg",
 		Fragments:         nil,
 		Variables:         nil,
 		Role:              "admin",

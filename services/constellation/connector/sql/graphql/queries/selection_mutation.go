@@ -34,12 +34,29 @@ func (s mutationSelection) WriteSQL(
 	)
 }
 
-// WriteSQLForDelete writes SQL for delete mutations with empty arrays for relationships.
+// WriteSQLForDelete writes SQL for delete mutations with empty arrays for
+// relationships. The related rows are gone by the time the delete commits, so
+// returning relationships always serialise as empty arrays — but their
+// arguments (where / order_by / limit / offset / distinct_on) are still
+// validated first, so an invalid argument rejects the whole mutation with no
+// rows deleted, matching Hasura.
 func (s mutationSelection) WriteSQLForDelete(
 	b *strings.Builder,
+	fragments ast.FragmentDefinitionList,
+	variables map[string]any,
+	role string,
+	sessionVariables map[string]any,
+	roots map[string]core.Operation,
 	params []any,
 	paramIndex int,
 ) ([]any, int, error) {
+	if err := validateReturningRelationshipArgs(
+		s.returning.relationships, fragments, variables, role,
+		sessionVariables, roots, s.returning.argumentPath,
+	); err != nil {
+		return nil, 0, err
+	}
+
 	b.WriteString("SELECT ")
 	b.WriteString(s.dialect.JSONBuildObject())
 	b.WriteByte('(')
@@ -182,6 +199,7 @@ func (s selectionAffectedRows) WriteSQLWithCTE(cteName string, b *strings.Builde
 
 type selectionReturning struct {
 	alias         string
+	argumentPath  string
 	columns       []columnSelection
 	relationships []relationshipSelection
 	dialect       dialect.Dialect
@@ -422,7 +440,7 @@ func (s selectionReturning) writeReturningCorrelated( //nolint:funlen
 
 			params, paramIndex, err = relSel.relationship.buildSelectionSQL(
 				b, relSel.field, fragments, variables, role, sessionVariables,
-				roots, params, paramIndex, cteName, relAlias,
+				roots, params, paramIndex, cteName, relAlias, s.argumentPath,
 			)
 			if err != nil {
 				return nil, 0, fmt.Errorf("error building relationship %s: %w", relSel.alias, err)
@@ -441,6 +459,54 @@ func (s selectionReturning) writeReturningCorrelated( //nolint:funlen
 	writeNestedCTEForceRef(b, s.nestedCTENames)
 
 	return params, paramIndex, nil
+}
+
+// validateReturningRelationshipArgs runs the same argument parsing the SELECT
+// path performs over each nested relationship in a delete mutation's
+// `returning` selection, discarding the generated SQL and surfacing only the
+// error. Delete and delete_by_pk emit empty arrays for returning
+// relationships (the related rows are gone once the row is deleted), so they
+// never call buildSelectionSQL and would otherwise silently accept an invalid
+// where / order_by / limit / offset / distinct_on argument and still commit
+// the delete. Hasura rejects the whole mutation in that case with no rows
+// deleted; routing validation through buildSelectionSQL guarantees byte-for-byte
+// the same error semantics as the SELECT path (same arguments.ParseQuery, same
+// sentinel errors) without duplicating the validation logic.
+//
+// Remote relationships are skipped: they are stripped from the selection before
+// this point and buildSelectionSQL's remote branch is only a safety net.
+func validateReturningRelationshipArgs(
+	relationships []relationshipSelection,
+	fragments ast.FragmentDefinitionList,
+	variables map[string]any,
+	role string,
+	sessionVariables map[string]any,
+	roots map[string]core.Operation,
+	argumentPath string,
+) error {
+	for _, relSel := range relationships {
+		if relSel.relationship == nil || relSel.relationship.isRemote {
+			continue
+		}
+
+		b := getBuilder()
+		// The SQL is discarded; only the validation error matters. cteName and
+		// the relationship alias only feed the join-condition raw filter and the
+		// returned alias, neither of which affects user-argument validation, so a
+		// placeholder CTE name is fine here.
+		_, _, err := relSel.relationship.buildSelectionSQL(
+			b, relSel.field, fragments, variables, role, sessionVariables,
+			roots, nil, 1, "mutation_result", relSel.alias, argumentPath,
+		)
+
+		putBuilder(b)
+
+		if err != nil {
+			return fmt.Errorf("error building relationship %s: %w", relSel.alias, err)
+		}
+	}
+
+	return nil
 }
 
 // writeNestedCTEForceRef appends a WHERE predicate that scalar-references
@@ -505,6 +571,7 @@ func (s selectionReturning) writeLateralJoinsWithCTE(
 			paramIndex,
 			cteName,
 			relAlias,
+			s.argumentPath,
 		)
 		if err != nil {
 			return nil, 0, fmt.Errorf("error building relationship %s: %w", relSel.alias, err)
@@ -591,6 +658,7 @@ func (t *table) processMutationField(
 
 		result.returning = selectionReturning{
 			alias:          returningAlias,
+			argumentPath:   childArgumentPath(rootAlias, sel),
 			columns:        columns,
 			relationships:  relationships,
 			dialect:        t.dialect,
