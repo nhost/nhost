@@ -30,7 +30,6 @@ interface GitHubRepo {
   [key: string]: unknown;
 }
 
-// GitHub's max page size. Using the max keeps the number of requests low.
 const PER_PAGE = 100;
 
 function githubHeaders(accessToken: string) {

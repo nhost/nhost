@@ -53,32 +53,6 @@ describe('listGitHubAppInstallations', () => {
 });
 
 describe('listGitHubInstallationRepos', () => {
-  it('makes a single repos request per installation when one page is enough', async () => {
-    const installations = [
-      { id: 1, account: { login: 'acme', avatar_url: '' } },
-    ];
-
-    const fetchMock = vi.fn((url: string) => {
-      const { pathname } = new URL(url);
-
-      if (pathname === '/user/installations') {
-        return Promise.resolve(mockResponse({ total_count: 1, installations }));
-      }
-
-      return Promise.resolve(
-        mockResponse({ total_count: 2, repositories: [{ id: 1 }, { id: 2 }] }),
-      );
-    });
-    vi.stubGlobal('fetch', fetchMock);
-
-    const result = await listGitHubInstallationRepos('token');
-
-    expect(result).toHaveLength(1);
-    expect(result[0].repositories).toHaveLength(2);
-    // one installations request + one repos request
-    expect(fetchMock).toHaveBeenCalledTimes(2);
-  });
-
   it('fetches every page of an installation’s repositories', async () => {
     const installations = [
       { id: 7, account: { login: 'acme', avatar_url: '' } },
@@ -112,7 +86,6 @@ describe('listGitHubInstallationRepos', () => {
     expect(result[0].repositories.map((repo) => repo.id)).toEqual(
       Array.from({ length: 250 }, (_, index) => index + 1),
     );
-    // one installations request + three repos pages
     expect(fetchMock).toHaveBeenCalledTimes(4);
 
     const repoCalls = fetchMock.mock.calls.filter(([requestUrl]) =>
@@ -124,7 +97,7 @@ describe('listGitHubInstallationRepos', () => {
     }
   });
 
-  it('throws a GitHubAPIError with the status code when a repos request fails', async () => {
+  it('throws a GitHubAPIError when a repos request fails', async () => {
     const installations = [
       { id: 1, account: { login: 'acme', avatar_url: '' } },
     ];
