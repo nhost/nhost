@@ -1,0 +1,57 @@
+import { useFormContext, useWatch } from 'react-hook-form';
+import { FormInput } from '@/components/form/FormInput';
+import type { ForeignKeyRelation } from '@/features/orgs/projects/database/dataGrid/types/dataBrowser';
+import type { FieldArrayInputProps } from './ColumnEditorRow';
+import { GeneratedBadge } from './GeneratedBadge';
+
+export function NameInput({ index }: FieldArrayInputProps) {
+  const { control, clearErrors, setValue, getValues } = useFormContext();
+  const originalColumnName = getValues(`columns.${index}.name`);
+  const foreignKeyRelations = getValues(`foreignKeyRelations`);
+  const originalForeignKeyRelationIndex = foreignKeyRelations.findIndex(
+    (relation: ForeignKeyRelation) =>
+      relation.columnName === originalColumnName,
+  );
+
+  const primaryKeyIndices: string[] = useWatch({ name: 'primaryKeyIndices' });
+  const isGenerated = useWatch({ name: `columns.${index}.isGenerated` });
+  const generationExpression = useWatch({
+    name: `columns.${index}.generationExpression`,
+  });
+
+  return (
+    <FormInput
+      control={control}
+      name={`columns.${index}.name`}
+      aria-label="Name"
+      placeholder="Enter name"
+      autoComplete="off"
+      className="border-border"
+      data-testid={`columns.${index}.name`}
+      addonEnd={
+        isGenerated ? (
+          <GeneratedBadge generationExpression={generationExpression} />
+        ) : undefined
+      }
+      onChange={(event) => {
+        if (originalForeignKeyRelationIndex > -1) {
+          setValue(
+            `foreignKeyRelations.${originalForeignKeyRelationIndex}.columnName`,
+            event.target.value,
+          );
+        }
+      }}
+      onBlur={(event) => {
+        clearErrors('columns');
+        if (!event.target.value && primaryKeyIndices.includes(`${index}`)) {
+          setValue(
+            'primaryKeyIndices',
+            primaryKeyIndices.filter((pk) => pk !== `${index}`),
+          );
+        }
+      }}
+    />
+  );
+}
+
+export default NameInput;

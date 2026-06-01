@@ -203,6 +203,13 @@ type selectionReturning struct {
 	columns       []columnSelection
 	relationships []relationshipSelection
 	dialect       dialect.Dialect
+	// nestedCTEs maps direct nested relationship names to the CTEs that contain
+	// their inserted rows for collection-insert returning selections, with child
+	// maps for deeper relationship selections. It lets returning
+	// { <relationship> { ... } } read sibling data-modifying CTE output instead
+	// of scanning the target base table, which PostgreSQL cannot see under the
+	// WITH statement's shared snapshot.
+	nestedCTEs map[string]nestedReturningCTERef
 	// nestedCTENames lists every nested-insert CTE produced by this
 	// top-level insert (mirrors selectionAffectedRows.nestedCTENames).
 	// Populated by collection-insert callers; nil otherwise.
@@ -438,10 +445,18 @@ func (s selectionReturning) writeReturningCorrelated( //nolint:funlen
 
 			var err error
 
-			params, paramIndex, err = relSel.relationship.buildSelectionSQL(
-				b, relSel.field, fragments, variables, role, sessionVariables,
-				roots, params, paramIndex, cteName, relAlias, s.argumentPath,
-			)
+			if nestedCTERef, isNested := s.nestedReturningCTERef(relSel); isNested {
+				params, paramIndex, err = s.writeNestedReturningSelection(
+					cteName, relAlias, nestedCTERef, relSel, b, fragments, variables,
+					role, sessionVariables, roots, params, paramIndex,
+				)
+			} else {
+				params, paramIndex, err = relSel.relationship.buildSelectionSQL(
+					b, relSel.field, fragments, variables, role, sessionVariables,
+					roots, params, paramIndex, cteName, relAlias, s.argumentPath,
+				)
+			}
+
 			if err != nil {
 				return nil, 0, fmt.Errorf("error building relationship %s: %w", relSel.alias, err)
 			}
@@ -541,6 +556,217 @@ func writeNestedCTEForceRef(b *strings.Builder, names []string) {
 	}
 }
 
+func (s selectionReturning) nestedReturningCTERef(
+	relSel relationshipSelection,
+) (nestedReturningCTERef, bool) {
+	return nestedReturningCTERefForSelection(s.nestedCTEs, relSel)
+}
+
+func nestedReturningCTERefForSelection(
+	nestedCTEs map[string]nestedReturningCTERef,
+	relSel relationshipSelection,
+) (nestedReturningCTERef, bool) {
+	var empty nestedReturningCTERef
+	if len(nestedCTEs) == 0 {
+		return empty, false
+	}
+
+	key := relSel.alias
+	if relSel.field != nil {
+		key = relSel.field.Name
+	}
+
+	ref, ok := nestedCTEs[key]
+	if (!ok || len(ref.cteNames) == 0) &&
+		relSel.relationship != nil && key == relSel.relationship.aggregateName {
+		ref, ok = nestedCTEs[relSel.relationship.name]
+	}
+
+	if !ok || len(ref.cteNames) == 0 {
+		return empty, false
+	}
+
+	return ref, true
+}
+
+func nestedReturningSourceFromClause(
+	cteNames []string,
+	sourceAlias string,
+	rel *relationship,
+) (string, string) {
+	var b strings.Builder
+
+	b.WriteByte('(')
+	writeNestedReturningSourceUnion(&b, cteNames, rel.table.columns)
+	writeNestedReturningBaseFallback(&b, cteNames, sourceAlias, rel)
+	b.WriteString(") AS ")
+	core.WriteQuotedIdentifier(&b, sourceAlias)
+
+	return b.String(), core.QuoteIdentifier(sourceAlias)
+}
+
+func writeNestedReturningSourceUnion(
+	b *strings.Builder,
+	cteNames []string,
+	columns []*core.Column,
+) {
+	for i, cteName := range cteNames {
+		if i > 0 {
+			b.WriteString(" UNION ALL ")
+		}
+
+		b.WriteString("SELECT ")
+		writeNestedReturningSourceColumns(b, cteName, columns)
+		b.WriteString(" FROM ")
+		b.WriteString(cteName)
+	}
+}
+
+func writeNestedReturningBaseFallback(
+	b *strings.Builder,
+	cteNames []string,
+	sourceAlias string,
+	rel *relationship,
+) {
+	b.WriteString(" UNION ALL SELECT ")
+	writeNestedReturningSourceColumns(b, rel.table.tableSourceRef(), rel.table.columns)
+	b.WriteString(" FROM ")
+	b.WriteString(rel.table.tableFromClause())
+
+	keyColumns := nestedReturningDedupColumns(rel)
+	if len(keyColumns) == 0 {
+		return
+	}
+
+	nestedKeyAlias := sourceAlias + ".nested_keys"
+
+	b.WriteString(" WHERE NOT EXISTS (SELECT 1 FROM (")
+	writeNestedReturningSourceUnion(b, cteNames, keyColumns)
+	b.WriteString(") AS ")
+	core.WriteQuotedIdentifier(b, nestedKeyAlias)
+	b.WriteString(" WHERE ")
+	writeNestedReturningKeyEquality(
+		b,
+		core.QuoteIdentifier(nestedKeyAlias),
+		rel.table.tableSourceRef(),
+		keyColumns,
+	)
+	b.WriteByte(')')
+}
+
+func nestedReturningDedupColumns(rel *relationship) []*core.Column {
+	if rel == nil || rel.table == nil {
+		return nil
+	}
+
+	if len(rel.table.pkColumns) > 0 {
+		return rel.table.pkColumns
+	}
+
+	columns := make([]*core.Column, 0, len(rel.targetColumns))
+	for _, columnName := range rel.targetColumns {
+		column := rel.table.columnFromSQLName(columnName)
+		if column == nil {
+			return nil
+		}
+
+		columns = append(columns, column)
+	}
+
+	return columns
+}
+
+func writeNestedReturningKeyEquality(
+	b *strings.Builder,
+	leftSource string,
+	rightSource string,
+	columns []*core.Column,
+) {
+	for i, column := range columns {
+		if i > 0 {
+			b.WriteString(" AND ")
+		}
+
+		core.WriteQualifiedColumn(b, leftSource, column.SQLName)
+		b.WriteString(" = ")
+		core.WriteQualifiedColumn(b, rightSource, column.SQLName)
+	}
+}
+
+func writeNestedReturningSourceColumns(
+	b *strings.Builder,
+	sourceRef string,
+	columns []*core.Column,
+) {
+	for i, col := range columns {
+		if i > 0 {
+			b.WriteString(", ")
+		}
+
+		core.WriteQualifiedColumn(b, sourceRef, col.SQLName)
+		b.WriteString(" AS ")
+		core.WriteQuotedIdentifier(b, col.SQLName)
+	}
+}
+
+func (s selectionReturning) writeNestedReturningSelection(
+	cteName string,
+	relAlias string,
+	nestedCTERef nestedReturningCTERef,
+	relSel relationshipSelection,
+	b *strings.Builder,
+	fragments ast.FragmentDefinitionList,
+	variables map[string]any,
+	role string,
+	sessionVariables map[string]any,
+	roots map[string]core.Operation,
+	params []any,
+	paramIndex int,
+) ([]any, int, error) {
+	return writeNestedReturningSelection(
+		cteName, s.argumentPath, relAlias, nestedCTERef, relSel, b, fragments,
+		variables, role, sessionVariables, roots, params, paramIndex,
+	)
+}
+
+func writeNestedReturningSelection(
+	cteName string,
+	argumentPath string,
+	relAlias string,
+	nestedCTERef nestedReturningCTERef,
+	relSel relationshipSelection,
+	b *strings.Builder,
+	fragments ast.FragmentDefinitionList,
+	variables map[string]any,
+	role string,
+	sessionVariables map[string]any,
+	roots map[string]core.Operation,
+	params []any,
+	paramIndex int,
+) ([]any, int, error) {
+	fromClause, sourceRef := nestedReturningSourceFromClause(
+		nestedCTERef.cteNames, relAlias+".source", relSel.relationship,
+	)
+
+	return relSel.relationship.buildSelectionSQLFromSource(
+		b,
+		relSel.field,
+		fragments,
+		variables,
+		role,
+		sessionVariables,
+		roots,
+		params,
+		paramIndex,
+		cteName,
+		relAlias,
+		fromClause,
+		sourceRef,
+		nestedCTERef.children,
+		argumentPath,
+	)
+}
+
 func (s selectionReturning) writeLateralJoinsWithCTE(
 	cteName string,
 	b *strings.Builder,
@@ -559,20 +785,28 @@ func (s selectionReturning) writeLateralJoinsWithCTE(
 
 		var err error
 
-		params, paramIndex, err = relSel.relationship.buildSelectionSQL(
-			b,
-			relSel.field,
-			fragments,
-			variables,
-			role,
-			sessionVariables,
-			roots,
-			params,
-			paramIndex,
-			cteName,
-			relAlias,
-			s.argumentPath,
-		)
+		if nestedCTERef, isNested := s.nestedReturningCTERef(relSel); isNested {
+			params, paramIndex, err = s.writeNestedReturningSelection(
+				cteName, relAlias, nestedCTERef, relSel, b, fragments, variables,
+				role, sessionVariables, roots, params, paramIndex,
+			)
+		} else {
+			params, paramIndex, err = relSel.relationship.buildSelectionSQL(
+				b,
+				relSel.field,
+				fragments,
+				variables,
+				role,
+				sessionVariables,
+				roots,
+				params,
+				paramIndex,
+				cteName,
+				relAlias,
+				s.argumentPath,
+			)
+		}
+
 		if err != nil {
 			return nil, 0, fmt.Errorf("error building relationship %s: %w", relSel.alias, err)
 		}
@@ -662,6 +896,7 @@ func (t *table) processMutationField(
 			columns:        columns,
 			relationships:  relationships,
 			dialect:        t.dialect,
+			nestedCTEs:     nil,
 			nestedCTENames: nil,
 		}
 	case "affected_rows":

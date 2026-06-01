@@ -5,6 +5,7 @@ import {
   useEffect,
 } from 'react';
 import { Input } from '@/components/ui/v3/input';
+import { CellResetButtons } from '@/features/orgs/projects/storage/dataGrid/components/CellResetButtons';
 import type { UnknownDataGridRow } from '@/features/orgs/projects/storage/dataGrid/components/DataGrid';
 import type { CommonDataGridCellProps } from '@/features/orgs/projects/storage/dataGrid/components/DataGridCell';
 import { useDataGridCell } from '@/features/orgs/projects/storage/dataGrid/components/DataGridCell';
@@ -23,6 +24,8 @@ export default function DataGridNumericCell<TData extends UnknownDataGridRow>({
   const { inputRef, isEditing } = useDataGridCell<HTMLInputElement>();
 
   const dataType = column.columnDef.meta?.dataType;
+  const isNullable = column.columnDef.meta?.isNullable;
+  const hasDefault = column.columnDef.meta?.defaultValue != null;
 
   useEffect(() => {
     const controller = new AbortController();
@@ -48,6 +51,11 @@ export default function DataGridNumericCell<TData extends UnknownDataGridRow>({
     ) {
       event.stopPropagation();
     }
+    if (event.key === 'Tab' && !event.shiftKey && (isNullable || hasDefault)) {
+      event.stopPropagation();
+      return;
+    }
+
     if (isNotEmptyValue(onSave) && typeof temporaryValue !== 'undefined') {
       if (event.key === 'Tab') {
         await onSave?.(temporaryValue);
@@ -72,20 +80,31 @@ export default function DataGridNumericCell<TData extends UnknownDataGridRow>({
     const step = dataType === 'integer' ? 1 : 0.1;
 
     return (
-      <Input
-        type="number"
-        ref={inputRef as Ref<HTMLInputElement>}
-        value={
-          temporaryValue !== null && typeof temporaryValue !== 'undefined'
-            ? temporaryValue
-            : ''
-        }
-        onChange={handleChange}
-        onKeyDown={handleKeyDown}
-        wrapperClassName="absolute top-0 z-10 w-full top-0 left-0 h-full"
-        className="!text-xs h-full w-full resize-none rounded-none border-none px-2 py-1.5 outline-none [appearance:textfield] focus-within:rounded-none focus-within:border-transparent focus-within:bg-white focus-within:shadow-[inset_0_0_0_1.5px_rgba(0,82,205,1)] focus:outline-none focus:ring-0 dark:focus-within:bg-theme-grey-200 [&::-webkit-inner-spin-button]:appearance-none [&::-webkit-outer-spin-button]:appearance-none"
-        step={step}
-      />
+      <div className="absolute top-0 left-0 z-10 h-full w-full">
+        <Input
+          type="number"
+          ref={inputRef as Ref<HTMLInputElement>}
+          value={
+            temporaryValue !== null && typeof temporaryValue !== 'undefined'
+              ? temporaryValue
+              : ''
+          }
+          onChange={handleChange}
+          onKeyDown={handleKeyDown}
+          wrapperClassName="h-full w-full"
+          className="!text-xs h-full w-full resize-none rounded-none border-none px-2 py-1.5 outline-none [appearance:textfield] focus-within:rounded-none focus-within:border-transparent focus-within:bg-white focus-within:shadow-[inset_0_0_0_1.5px_rgba(0,82,205,1)] focus:outline-none focus:ring-0 dark:focus-within:bg-theme-grey-200 [&::-webkit-inner-spin-button]:appearance-none [&::-webkit-outer-spin-button]:appearance-none"
+          step={step}
+        />
+        {(isNullable || hasDefault) && (
+          <CellResetButtons
+            isNullable={isNullable}
+            hasDefault={hasDefault}
+            onSetNull={() => onSave?.(null, { reset: 'null' })}
+            onSetDefault={() => onSave?.(null, { reset: 'default' })}
+            className="absolute right-1 bottom-1"
+          />
+        )}
+      </div>
     );
   }
 

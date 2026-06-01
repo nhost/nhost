@@ -6,12 +6,20 @@
         {
           "id": "00000000-0000-0000-0000-00000000010a",
           "file_id": "00000000-0000-0000-0000-00000000010b",
-          "description": "object-rel-parent-a"
+          "description": "object-rel-parent-a",
+          "file": {
+            "id": "00000000-0000-0000-0000-00000000010b",
+            "bucketId": "default"
+          }
         },
         {
-          "id": "00000000-0000-0000-0000-00000000010c",
           "file_id": "00000000-0000-0000-0000-00000000010d",
-          "description": "object-rel-parent-b"
+          "description": "object-rel-parent-b",
+          "file": {
+            "id": "00000000-0000-0000-0000-00000000010d",
+            "bucketId": "default"
+          },
+          "id": "00000000-0000-0000-0000-00000000010c"
         }
       ]
     }

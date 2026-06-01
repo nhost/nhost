@@ -1639,6 +1639,16 @@ func nestedCTEMapKey(nestedCTEs map[string]string, relationshipName string) stri
 	}
 }
 
+type nestedReturningCTERef struct {
+	// cteNames contains the CTEs that can provide rows for one relationship at
+	// the current selection depth.
+	cteNames []string
+	// children maps nested relationship names below those rows to their own CTE
+	// groups so returning selections can keep resolving from CTE output at every
+	// depth instead of falling back to a snapshot-hidden base-table scan.
+	children map[string]nestedReturningCTERef
+}
+
 type nestedInsertCTERefs struct {
 	// direct maps top-level nested relationship names to their CTEs. It feeds
 	// insert_one relationship selection only; descendant CTEs must not appear
@@ -1647,12 +1657,20 @@ type nestedInsertCTERefs struct {
 	// allNames lists every nested-insert CTE emitted by the mutation. It feeds
 	// affected_rows and force-ref tracking where only CTE names matter.
 	allNames []string
+	// returning maps direct top-level nested relationship names to every CTE
+	// that can contain rows for that relationship in a collection insert, plus
+	// descendant relationship CTE groups below each direct relationship. Unlike
+	// direct, each value can hold multiple CTEs because multi-parent object-rel
+	// inserts emit one CTE per parent and array-rel inserts can split by
+	// incompatible on_conflict clauses.
+	returning map[string]nestedReturningCTERef
 }
 
 func newNestedInsertCTERefs() nestedInsertCTERefs {
 	return nestedInsertCTERefs{
-		direct:   make(map[string]string),
-		allNames: nil,
+		direct:    make(map[string]string),
+		allNames:  nil,
+		returning: make(map[string]nestedReturningCTERef),
 	}
 }
 
@@ -1665,65 +1683,115 @@ func (r *nestedInsertCTERefs) addAll(cteName string) {
 	r.allNames = append(r.allNames, cteName)
 }
 
+func mergeNestedReturningCTERef(
+	dst map[string]nestedReturningCTERef,
+	relationshipName string,
+	ref nestedReturningCTERef,
+) {
+	if len(ref.cteNames) == 0 && len(ref.children) == 0 {
+		return
+	}
+
+	merged := dst[relationshipName]
+	merged.cteNames = append(merged.cteNames, ref.cteNames...)
+
+	if len(ref.children) > 0 {
+		if merged.children == nil {
+			merged.children = make(map[string]nestedReturningCTERef, len(ref.children))
+		}
+
+		for childName, childRef := range ref.children {
+			mergeNestedReturningCTERef(merged.children, childName, childRef)
+		}
+	}
+
+	dst[relationshipName] = merged
+}
+
 func addNestedInsertCTERefs(
 	refs *nestedInsertCTERefs,
 	nested *arguments.NestedInsert,
 	cteName string,
 	childNamer nestedCTENamer,
-) {
+) nestedReturningCTERef {
 	refs.addAll(cteName)
 
+	ref := nestedReturningCTERef{
+		cteNames: []string{cteName},
+		children: nil,
+	}
+
 	if len(nested.NestedObjects) == 0 {
-		return
+		return ref
 	}
 
 	for i := range nested.NestedObjects[0].NestedInserts {
 		child := &nested.NestedObjects[0].NestedInserts[i]
-		addNestedInsertCTERefs(
+		childRef := addNestedInsertCTERefs(
 			refs,
 			child,
 			childNamer(child),
 			childNamer,
 		)
+
+		if ref.children == nil {
+			ref.children = make(map[string]nestedReturningCTERef)
+		}
+
+		mergeNestedReturningCTERef(ref.children, child.RelationshipName, childRef)
 	}
+
+	return ref
 }
 
 func addPartitionedArrayNestedCTERefs(
 	refs *nestedInsertCTERefs,
 	insertObjs []arguments.InsertObject,
 	ctePrefix string,
-) error {
+) (map[string]nestedReturningCTERef, error) {
 	groups, err := groupPartitionedArrayNestedInsertsWithParents(
 		insertObjs, partitionedParentCTENames(len(insertObjs)), ctePrefix,
 	)
 	if err != nil {
-		return err
+		return nil, err
 	}
+
+	result := make(map[string]nestedReturningCTERef, len(groups))
 
 	for _, g := range groups {
 		refs.addAll(g.cteName)
 
-		if !hasArrayNestedInserts(g.objs) {
-			continue
+		ref := nestedReturningCTERef{
+			cteNames: []string{g.cteName},
+			children: nil,
 		}
 
-		if err := addPartitionedArrayNestedCTERefs(
-			refs, g.objs, g.cteName+"_",
-		); err != nil {
-			return fmt.Errorf(
-				"failed to map nested CTEs for %s: %w", g.template.RelationshipName, err,
+		if hasArrayNestedInserts(g.objs) {
+			children, err := addPartitionedArrayNestedCTERefs(
+				refs, g.objs, g.cteName+"_",
 			)
+			if err != nil {
+				return nil, fmt.Errorf(
+					"failed to map nested CTEs for %s: %w", g.template.RelationshipName, err,
+				)
+			}
+
+			ref.children = children
 		}
+
+		mergeNestedReturningCTERef(result, g.template.RelationshipName, ref)
 	}
 
-	return nil
+	return result, nil
 }
 
-// buildNestedCTERefs builds the two nested-insert CTE views used by mutation
+// buildNestedCTERefs builds the nested-insert CTE views used by mutation
 // responses. refs.allNames mirrors every CTE the insert builder emits so
 // affected_rows and force-ref tracking include all descendants; refs.direct is
 // intentionally limited to direct top-level nested relationships for insert_one
-// returning selections.
+// returning selections; refs.returning groups direct collection-insert
+// returning relationships by all CTEs that can contain their inserted rows and
+// carries descendant groups for nested relationship selections below them.
 //
 // Emitted CTE names follow the insert builder:
 //
@@ -1766,7 +1834,8 @@ func addSingleParentNestedCTERefs(
 		cteName := bareNestedCTEName(nested.RelationshipName)
 
 		refs.addDirect(nested.RelationshipName, cteName)
-		addNestedInsertCTERefs(refs, nested, cteName, bareNestedCTENameForInsert)
+		ref := addNestedInsertCTERefs(refs, nested, cteName, bareNestedCTENameForInsert)
+		mergeNestedReturningCTERef(refs.returning, nested.RelationshipName, ref)
 	}
 }
 
@@ -1785,15 +1854,22 @@ func addMultiParentNestedCTERefs(
 				continue
 			}
 
-			addNestedInsertCTERefs(
-				refs, nested, objectNamer.topLevelName(nested), objectNamer.childName,
+			cteName := objectNamer.topLevelName(nested)
+			ref := addNestedInsertCTERefs(
+				refs, nested, cteName, objectNamer.childName,
 			)
+			mergeNestedReturningCTERef(refs.returning, nested.RelationshipName, ref)
 		}
 	}
 
 	if hasArrayNestedInserts(insertObjs) {
-		if err := addPartitionedArrayNestedCTERefs(refs, insertObjs, ""); err != nil {
+		arrayRefs, err := addPartitionedArrayNestedCTERefs(refs, insertObjs, "")
+		if err != nil {
 			return err
+		}
+
+		for relationshipName, ref := range arrayRefs {
+			mergeNestedReturningCTERef(refs.returning, relationshipName, ref)
 		}
 	}
 
