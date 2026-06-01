@@ -22,6 +22,8 @@ var (
 	ErrUnexpectedClaimsType = errors.New("unexpected claims type")
 	ErrPEMDecode            = errors.New("failed to decode PEM block")
 	ErrNotRSAPublicKey      = errors.New("key is not an RSA public key")
+
+	errMissingExpiration = errors.New("missing expiration claim")
 )
 
 // jwksProvider is the minimal contract this package needs from a JWKS-backed
@@ -128,18 +130,32 @@ func (sv *secretValidator) initStatic(secret jwtconfig.Secret, logger *slog.Logg
 	return nil
 }
 
-func (sv *secretValidator) parseAndValidate(tokenStr string) (map[string]any, error) {
+func (sv *secretValidator) parseAndValidate(tokenStr string) (map[string]any, time.Time, error) {
 	token, err := jwt.Parse(tokenStr, sv.keyFunc, sv.opts...)
 	if err != nil {
-		return nil, fmt.Errorf("jwt validation failed: %w", err)
+		return nil, time.Time{}, fmt.Errorf("jwt validation failed: %w", err)
 	}
 
 	claims, ok := token.Claims.(jwt.MapClaims)
 	if !ok {
-		return nil, ErrUnexpectedClaimsType
+		return nil, time.Time{}, ErrUnexpectedClaimsType
 	}
 
-	return claims, nil
+	expiresAt, err := claims.GetExpirationTime()
+	if err != nil {
+		return nil, time.Time{}, fmt.Errorf("jwt expiration claim: %w", err)
+	}
+
+	// Defense-in-depth: GetExpirationTime returns (nil, nil) for an absent or
+	// zero exp claim, so this guard prevents a nil dereference at expiresAt.Time
+	// below. It is normally unreachable because buildParserOptions pins
+	// jwt.WithExpirationRequired(), making jwt.Parse reject exp-less tokens first;
+	// it survives as a backstop should that parser option ever change.
+	if expiresAt == nil {
+		return nil, time.Time{}, errMissingExpiration
+	}
+
+	return claims, expiresAt.Time, nil
 }
 
 // close shuts down any background goroutines (e.g. JWKS refresh).
