@@ -31,8 +31,10 @@ type SQLOperation struct {
 	// matching Parameters by index.
 	SQL string
 	// Parameters is the positional argument list bound to SQL. For stream
-	// subscriptions it may contain CursorValue markers that multiplexed.Multiplex
-	// rewrites into result_vars references on subsequent polls.
+	// subscriptions it may contain CursorValue markers; for function
+	// session_argument placeholders in multiplexed subscription templates it may
+	// contain FunctionSessionArgument markers. multiplexed.Multiplex rewrites
+	// both marker types into result_vars references before execution.
 	Parameters []any
 	// StreamCursors is non-nil only for stream-subscription operations and
 	// records one entry per cursor column referenced by the operation.
@@ -170,6 +172,32 @@ type Column struct {
 	// (GENERATED ALWAYS / STORED / VIRTUAL); such columns are excluded from
 	// insert and update mutation input types.
 	IsGenerated bool
+	// IsIdentity is true when the column auto-populates from a database-managed
+	// source the insert payload cannot reliably precompute: PostgreSQL
+	// GENERATED ALWAYS / BY DEFAULT AS IDENTITY (pg_attribute.attidentity != '')
+	// and SQLite INTEGER PRIMARY KEY rowid aliases (with or without
+	// AUTOINCREMENT). These columns do not appear in pg_attrdef nor in
+	// PRAGMA table_xinfo's dflt_value, so HasDefault stays false; IsIdentity is
+	// the separate signal RequiresPostInsertCheck consults to force an
+	// insert-check predicate referencing such a column to run after the INSERT
+	// (against the row carrying the engine-assigned value) rather than against
+	// the payload (where the column would still be NULL).
+	IsIdentity bool
+	// HasDefault is true when the column has a database DEFAULT expression.
+	// When such a column is omitted from an insert, the row carries the
+	// default rather than NULL, so an insert-check that references it (directly
+	// or via a relationship join column) must be evaluated after the INSERT.
+	HasDefault bool
+	// DefaultExpr is the raw SQL default expression (e.g. "'public'::text",
+	// "now()", "gen_random_uuid()"), or "" when the column has no default. It
+	// is used by multi-row insert builders to emit the default expression
+	// inline for rows that omit a column whose siblings supply it: a
+	// UNION-ALL branch that wrote NULL for an absent NOT NULL DEFAULT column
+	// would raise a 23502 not-null-violation at INSERT time, where Hasura
+	// would let the DB default apply per row. Volatile defaults like now()
+	// and gen_random_uuid() evaluate per row in INSERT ... SELECT, so emitting
+	// the expression inline preserves the per-row semantics.
+	DefaultExpr string
 }
 
 // Operation is the function signature for the per-field SQL builders
@@ -188,6 +216,18 @@ type Operation func(
 	sessionVariables map[string]any,
 	roots map[string]Operation,
 ) (SQLOperation, error)
+
+// FunctionSessionArgument is a marker placed in SQLOperation.Parameters by
+// function-backed subscription builders when a SQL function's session_argument
+// should receive the per-subscriber session object. The multiplexed converter
+// rewrites the corresponding placeholder to _subs.result_vars->'session' and
+// casts it to SQLType (usually json or jsonb), keeping the parameter dynamic
+// across all subscribers in a cohort.
+type FunctionSessionArgument struct {
+	// SQLType is the database type of the function's session_argument. It is
+	// used as the cast on the rewritten result_vars expression.
+	SQLType string
+}
 
 // CursorValue is a marker placed in SQLOperation.Parameters by stream
 // subscription builders. The multiplexed converter (multiplexed.Multiplex)

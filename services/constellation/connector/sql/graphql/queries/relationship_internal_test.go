@@ -2,6 +2,7 @@ package queries
 
 import (
 	"errors"
+	"maps"
 	"strings"
 	"testing"
 
@@ -117,6 +118,45 @@ func TestBuildManualJoinCondition(t *testing.T) {
 
 			if got != wantJoin {
 				t.Errorf("writeJoinConditionAliased = %q, want %q", got, wantJoin)
+			}
+		})
+	}
+}
+
+func TestRelationshipFKSourceColumns(t *testing.T) {
+	t.Parallel()
+
+	tests := []struct {
+		name          string
+		rel           *relationship
+		wantFKSources map[string]string
+	}{
+		{
+			name: "object relationship sources parent FK from nested target column",
+			rel: &relationship{
+				isArray:       false,
+				parentColumns: []string{"parent_id", "parent_kind"},
+				targetColumns: []string{"id", "kind"},
+			},
+			wantFKSources: map[string]string{"parent_id": "id", "parent_kind": "kind"},
+		},
+		{
+			name: "array relationship sources child FK from parent column",
+			rel: &relationship{
+				isArray:       true,
+				parentColumns: []string{"id", "kind"},
+				targetColumns: []string{"parent_id", "parent_kind"},
+			},
+			wantFKSources: map[string]string{"parent_id": "id", "parent_kind": "kind"},
+		},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			t.Parallel()
+
+			if got := tt.rel.FKSourceColumns(); !maps.Equal(got, tt.wantFKSources) {
+				t.Errorf("FKSourceColumns() = %v, want %v", got, tt.wantFKSources)
 			}
 		})
 	}

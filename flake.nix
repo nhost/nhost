@@ -2,7 +2,7 @@
   nixConfig = {
     sandbox = "relaxed";
     extra-substituters = [
-      "s3://nhost-nix-cache?region=eu-central-1&profile=nhost-nix-cache"
+      "s3://nhost-nix-cache?endpoint=https://14bc02755b64adb7c8c62b5420d0a457.eu.r2.cloudflarestorage.com&region=auto&profile=nhost-nix-cache"
       "https://cache.nixos.org"
     ];
     extra-trusted-public-keys = [
@@ -18,6 +18,7 @@
     nix2container.inputs.nixpkgs.follows = "nixpkgs";
   };
 
+  # asdasdasd
   outputs =
     {
       self,
@@ -69,6 +70,14 @@
         };
 
         constellationf = import ./services/constellation/project.nix {
+          inherit
+            self
+            pkgs
+            nixops-lib
+            ;
+        };
+
+        ghactivityf = import ./tools/ghactivity/project.nix {
           inherit
             self
             pkgs
@@ -201,6 +210,7 @@
           cli = clif.check;
           codegen = codegenf.check;
           constellation = constellationf.check;
+          ghactivity = ghactivityf.check;
           govulncheck-wrapper = govulncheck-wrapperf.check;
           dashboard = dashboardf.check;
           demos = demosf.check;
@@ -233,7 +243,7 @@
               nhost-cli
 
               # dashboard
-              nodePackages.vercel
+              vercel
               playwright-driver
               lychee
 
@@ -258,6 +268,7 @@
               # others
               postgresql_18-client
               bun
+              pi-agent
 
               # docs
               vale
@@ -272,6 +283,7 @@
 
               # internal packages
               self.packages.${system}.codegen
+              self.packages.${system}.ghactivity
               self.packages.${system}.govulncheck-wrapper
             ];
 
@@ -323,7 +335,7 @@
             buildInputs = with pkgs; [
               pnpm
               nodejs
-              nodePackages.vercel
+              vercel
             ];
           };
 
@@ -331,6 +343,7 @@
           cli = clif.devShell;
           codegen = codegenf.devShell;
           constellation = constellationf.devShell;
+          ghactivity = ghactivityf.devShell;
           govulncheck-wrapper = govulncheck-wrapperf.devShell;
           dashboard = dashboardf.devShell;
           demos = demosf.devShell;
@@ -356,6 +369,7 @@
           codegen = codegenf.package;
           constellation = constellationf.package;
           constellation-docker-image = constellationf.dockerImage;
+          ghactivity = ghactivityf.package;
           govulncheck-wrapper = govulncheck-wrapperf.package;
           dashboard = dashboardf.package;
           dashboard-docker-image = dashboardf.dockerImage;
@@ -370,6 +384,7 @@
           mcp-docker-image = mcpf.dockerImage;
           nixops = nixopsf.package;
           nixops-docker-image = nixopsf.dockerImage;
+          pi-agent = pkgs.pi-agent;
           postgres-pg16 = postgresf.packages.pg16-package;
           postgres-pg16-docker-image = postgresf.packages.pg16-docker-image;
           postgres-pg16-as-dir = postgresf.packages.pg16-as-dir;

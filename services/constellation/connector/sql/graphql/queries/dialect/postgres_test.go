@@ -189,18 +189,44 @@ func TestPostgresDialect_Capabilities(t *testing.T) {
 	d := &dialect.PostgresDialect{}
 
 	tests := map[string]bool{
-		"SupportsLateral":    d.SupportsLateral(),
-		"SupportsRegex":      d.SupportsRegex(),
-		"SupportsDistinctOn": d.SupportsDistinctOn(),
-		"SupportsJSONB":      d.SupportsJSONB(),
-		"SupportsFunctions":  d.SupportsFunctions(),
-		"SupportsArrays":     d.SupportsArrays(),
+		"SupportsLateral":            d.SupportsLateral(),
+		"SupportsRegex":              d.SupportsRegex(),
+		"SupportsDistinctOn":         d.SupportsDistinctOn(),
+		"SupportsJSONB":              d.SupportsJSONB(),
+		"SupportsFunctions":          d.SupportsFunctions(),
+		"SupportsArrays":             d.SupportsArrays(),
+		"SupportsVarianceAggregates": d.SupportsVarianceAggregates(),
 	}
 
 	for name, got := range tests {
 		if !got {
 			t.Errorf("%s = false, want true (Postgres supports all)", name)
 		}
+	}
+}
+
+func TestPostgresDialect_BoolFuncs(t *testing.T) {
+	t.Parallel()
+
+	d := &dialect.PostgresDialect{}
+
+	tests := []struct {
+		name string
+		got  string
+		want string
+	}{
+		{"BoolAndFunc", d.BoolAndFunc(), "bool_and"},
+		{"BoolOrFunc", d.BoolOrFunc(), "bool_or"},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			t.Parallel()
+
+			if tt.got != tt.want {
+				t.Fatalf("got %q, want %q", tt.got, tt.want)
+			}
+		})
 	}
 }
 
@@ -267,6 +293,57 @@ func TestPostgresDialect_ArrayOps(t *testing.T) {
 
 	if got := b.String(); got != `"t"."tags" <@ $1::text[]` {
 		t.Fatalf("WriteArrayContainedIn = %q", got)
+	}
+}
+
+func TestPostgresDialect_CountAndAggregateOrderBy(t *testing.T) {
+	t.Parallel()
+
+	d := &dialect.PostgresDialect{}
+
+	countTests := []struct {
+		name        string
+		distinct    bool
+		expressions []string
+		want        string
+	}{
+		{name: "star", distinct: true, expressions: nil, want: `COUNT(*)`},
+		{
+			name:        "single",
+			distinct:    false,
+			expressions: []string{`"t"."id"`},
+			want:        `COUNT(("t"."id"))`,
+		},
+		{
+			name:        "multi distinct",
+			distinct:    true,
+			expressions: []string{`"t"."role"`, `"t"."active"`},
+			want:        `COUNT(DISTINCT ("t"."role", "t"."active"))`,
+		},
+	}
+
+	for _, tt := range countTests {
+		t.Run("count "+tt.name, func(t *testing.T) {
+			t.Parallel()
+
+			var b strings.Builder
+			d.WriteCountAggregate(&b, tt.distinct, tt.expressions)
+
+			if got := b.String(); got != tt.want {
+				t.Fatalf("WriteCountAggregate = %q, want %q", got, tt.want)
+			}
+		})
+	}
+
+	var b strings.Builder
+	d.WriteAggregateOrderByExpr(&b, "stddev_pop", `"t"."score"`)
+
+	if got := b.String(); got != `STDDEV_POP("t"."score")` {
+		t.Fatalf("WriteAggregateOrderByExpr = %q", got)
+	}
+
+	if !d.SupportsStableVarianceOrderBy() {
+		t.Fatal("SupportsStableVarianceOrderBy = false, want true for PostgreSQL")
 	}
 }
 

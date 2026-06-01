@@ -1,6 +1,8 @@
 package arguments_test
 
 import (
+	"errors"
+	"strings"
 	"testing"
 
 	"github.com/vektah/gqlparser/v2/ast"
@@ -164,16 +166,42 @@ func TestParseStream_Errors(t *testing.T) {
 	t.Run("non-positive batch_size", func(t *testing.T) {
 		t.Parallel()
 
-		ctrl := gomock.NewController(t)
-		tbl := mock.NewMockTable(ctrl)
-
-		args := ast.ArgumentList{
-			&ast.Argument{Name: "batch_size", Value: intValue("0")},
+		tests := []struct {
+			name string
+			raw  string
+		}{
+			{name: "zero", raw: "0"},
+			{name: "negative", raw: "-1"},
 		}
 
-		_, err := arguments.ParseStream(tbl, args, nil, "user", nil)
-		if err == nil {
-			t.Fatal("expected error")
+		for _, tt := range tests {
+			t.Run(tt.name, func(t *testing.T) {
+				t.Parallel()
+
+				ctrl := gomock.NewController(t)
+				tbl := mock.NewMockTable(ctrl)
+
+				args := ast.ArgumentList{
+					&ast.Argument{Name: "batch_size", Value: intValue(tt.raw)},
+				}
+
+				_, err := arguments.ParseStream(tbl, args, nil, "user", nil)
+				if err == nil {
+					t.Fatal("expected error")
+				}
+
+				if !errors.Is(err, arguments.ErrInvalidArgument) {
+					t.Fatalf("expected ErrInvalidArgument, got %v", err)
+				}
+
+				if !strings.Contains(err.Error(), "batch_size must be a positive integer") {
+					t.Fatalf("expected batch_size message, got %v", err)
+				}
+
+				if strings.Contains(err.Error(), "limit/offset") {
+					t.Fatalf("expected no limit/offset wording, got %v", err)
+				}
+			})
 		}
 	})
 

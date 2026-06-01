@@ -97,7 +97,8 @@ func newLocalRelationship(
 
 	if table == nil {
 		return nil, fmt.Errorf(
-			"%w: %s", errRelationshipTargetTableObjectNotFound, name)
+			"%w: %s", errRelationshipTargetTableObjectNotFound, name,
+		)
 	}
 
 	return &relationship{
@@ -286,6 +287,7 @@ func (r *relationship) buildSelectionSQL( //nolint:funlen
 	paramIndex int,
 	parentTableAlias string,
 	relationshipAlias string,
+	parentArgumentPath string,
 ) ([]any, int, error) {
 	if r.isRemote {
 		return nil, 0, errRemoteRelationship
@@ -297,6 +299,8 @@ func (r *relationship) buildSelectionSQL( //nolint:funlen
 	if idx := strings.LastIndex(relationshipAlias, "."); idx >= 0 {
 		outputName = relationshipAlias[idx+1:]
 	}
+
+	argumentPath := childArgumentPath(parentArgumentPath, field)
 
 	var err error
 
@@ -315,6 +319,7 @@ func (r *relationship) buildSelectionSQL( //nolint:funlen
 			outputName,
 			r.table.tableFromClause(),
 			r.table.tableSourceRef(),
+			argumentPath,
 			func(whereClause where.Clause, modifiers []arguments.QueryModifier) (where.Clause, []arguments.QueryModifier) {
 				return append(whereClause, where.NewRawFilter(joinCondition)), modifiers
 			},
@@ -332,6 +337,7 @@ func (r *relationship) buildSelectionSQL( //nolint:funlen
 			paramIndex,
 			relationshipAlias,
 			outputName,
+			argumentPath,
 			func(whereClause where.Clause, modifiers []arguments.QueryModifier) (where.Clause, []arguments.QueryModifier) {
 				return append(whereClause, where.NewRawFilter(joinCondition)), modifiers
 			},
@@ -349,6 +355,7 @@ func (r *relationship) buildSelectionSQL( //nolint:funlen
 			paramIndex,
 			relationshipAlias,
 			outputName,
+			argumentPath,
 			func(whereClause where.Clause, modifiers []arguments.QueryModifier) (where.Clause, []arguments.QueryModifier) {
 				return append(whereClause, where.NewRawFilter(joinCondition)), modifiers
 			},

@@ -93,6 +93,16 @@ type Column struct {
 	// IsGenerated is true if the column is computed by the database and
 	// therefore must be omitted from insert/update mutations.
 	IsGenerated bool
+	// IsIdentity is true if the column auto-populates from a database-managed
+	// source the insert payload cannot meaningfully precompute: PostgreSQL
+	// GENERATED ALWAYS / BY DEFAULT AS IDENTITY (pg_attribute.attidentity != '')
+	// and SQLite INTEGER PRIMARY KEY rowid aliases. The metadata for these
+	// columns lives outside pg_attrdef / PRAGMA dflt_value, so IsGenerated and
+	// the Default field stay zero — IsIdentity is the dedicated bit that lets
+	// the queries layer recognise them and force the insert-check predicate to
+	// run after the INSERT (against the inserted row) rather than against the
+	// payload.
+	IsIdentity bool
 	// IsArray is true if the column is a PostgreSQL array type (e.g. "_text").
 	// SQLite columns always set this to false.
 	IsArray bool

@@ -10,6 +10,12 @@ inputs:
   GITHUB_TOKEN:
     description: "GitHub token for Nix access"
     required: true
+  NIX_CACHE_ACCESS_KEY_ID:
+    description: "R2 access key id for reading the Nix cache"
+    required: true
+  NIX_CACHE_SECRET_ACCESS_KEY:
+    description: "R2 secret access key for reading the Nix cache"
+    required: true
 
 runs:
   using: "composite"
@@ -23,20 +29,25 @@ runs:
           experimental-features = nix-command flakes
           sandbox = false
           access-tokens = github.com=${{ inputs.GITHUB_TOKEN }}
-          substituters = https://cache.nixos.org/?priority=40 s3://nhost-nix-cache?region=eu-central-1&priority=50
+          substituters = https://cache.nixos.org/?priority=40 s3://nhost-nix-cache?endpoint=https://14bc02755b64adb7c8c62b5420d0a457.eu.r2.cloudflarestorage.com&region=auto&priority=50
           trusted-public-keys = cache.nixos.org-1:6NCHdD59X431o0gWypbMrAURkbJ16ZPMQFGspcDShjY= ${{ inputs.NIX_CACHE_PUB_KEY }}
           keep-env-derivations = true
           keep-outputs = true
           accept-flake-config = true
 
-    - name: "Forward AWS credentials to the Nix daemon"
+    - name: "Forward R2 credentials to the Nix daemon"
       # The Nix daemon runs as root and doesn't inherit AWS_* env vars
       # from the shell, so the S3 substituter fails with "Access Denied"
-      # and every job rebuilds paths that are already cached. Drop the
-      # short-lived OIDC credentials into root's ~/.aws/credentials so
-      # the AWS SDK picks them up via its standard provider chain, then
-      # bounce the daemon so any cached credential state is reset.
+      # and every job rebuilds paths that are already cached. Drop the R2
+      # credentials into root's ~/.aws/credentials so the AWS SDK picks
+      # them up via its standard provider chain, then bounce the daemon so
+      # any cached credential state is reset. The endpoint and region=auto
+      # come from the substituter URL above. R2 uses static keys, so there
+      # is no session token.
       shell: bash
+      env:
+        AWS_ACCESS_KEY_ID: ${{ inputs.NIX_CACHE_ACCESS_KEY_ID }}
+        AWS_SECRET_ACCESS_KEY: ${{ inputs.NIX_CACHE_SECRET_ACCESS_KEY }}
       run: |
         if [ "$RUNNER_OS" = "macOS" ]; then
           root_home=/var/root
@@ -48,8 +59,7 @@ runs:
         [default]
         aws_access_key_id = $AWS_ACCESS_KEY_ID
         aws_secret_access_key = $AWS_SECRET_ACCESS_KEY
-        aws_session_token = $AWS_SESSION_TOKEN
-        region = $AWS_REGION
+        region = auto
         EOF
         sudo chmod 600 "$root_home/.aws/credentials"
         if [ "$RUNNER_OS" = "macOS" ]; then

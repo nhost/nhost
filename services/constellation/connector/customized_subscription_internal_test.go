@@ -48,13 +48,15 @@ func (f *fakeSubHandler) Shutdown(_ context.Context) { f.shutdown = true }
 // names before calling through). typeName is returned verbatim by GetTypeName
 // and closed records a Close() call so delegation can be asserted.
 type fakeConnector struct {
-	schema   *graph.Schema
-	execData map[string]any
-	execErr  error
-	gotOp    *ast.OperationDefinition
-	gotFrags ast.FragmentDefinitionList
-	typeName string
-	closed   bool
+	schema      *graph.Schema
+	execData    map[string]any
+	execErr     error
+	validateErr error
+	gotOp       *ast.OperationDefinition
+	gotFrags    ast.FragmentDefinitionList
+	gotValOp    *ast.OperationDefinition
+	typeName    string
+	closed      bool
 }
 
 func (f *fakeConnector) GetSchema() (map[string]*graph.Schema, error) {
@@ -78,6 +80,18 @@ func (f *fakeConnector) Execute(
 	}
 
 	return f.execData, f.execErr
+}
+
+func (f *fakeConnector) ValidateOperation(
+	operation *ast.OperationDefinition,
+	_ ast.FragmentDefinitionList,
+	_ map[string]any,
+	_ string,
+	_ map[string]any,
+) error {
+	f.gotValOp = operation
+
+	return f.validateErr
 }
 
 func (f *fakeConnector) GetTypeName(string) string { return f.typeName }

@@ -53,6 +53,8 @@ Hybrid Go + TypeScript monorepo containing Nhost's open-source services, SDK, CL
 ### Tools (`tools/`)
 
 - `tools/codegen` - code generation utilities
+- `tools/ghactivity` - `gh` CLI extension (binary `gh-activity`, invoked as `gh activity ...`) that builds a markdown stand-up report of a user's GitHub PR/issue activity in an org over a time window
+- `tools/govulncheck-wrapper` - wrapper around `govulncheck` for the monorepo's vulnerability scanning workflow
 
 ## Development Environment
 

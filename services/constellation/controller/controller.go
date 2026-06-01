@@ -191,7 +191,8 @@ func logInconsistencySummary(
 		return
 	}
 
-	logger.WarnContext(ctx, "metadata loaded with inconsistencies",
+	logger.WarnContext(
+		ctx, "metadata loaded with inconsistencies",
 		slog.Int("count", len(inc)),
 	)
 }

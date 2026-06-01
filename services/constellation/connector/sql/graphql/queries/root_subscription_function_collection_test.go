@@ -1,4 +1,3 @@
-//nolint:dupl
 package queries_test
 
 import (

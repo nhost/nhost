@@ -98,3 +98,17 @@ func (mr *MockConnectorMockRecorder) GetTypeName(identifier any) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetTypeName", reflect.TypeOf((*MockConnector)(nil).GetTypeName), identifier)
 }
+
+// ValidateOperation mocks base method.
+func (m *MockConnector) ValidateOperation(operation *ast.OperationDefinition, fragments ast.FragmentDefinitionList, variables map[string]any, role string, sessionVariables map[string]any) error {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "ValidateOperation", operation, fragments, variables, role, sessionVariables)
+	ret0, _ := ret[0].(error)
+	return ret0
+}
+
+// ValidateOperation indicates an expected call of ValidateOperation.
+func (mr *MockConnectorMockRecorder) ValidateOperation(operation, fragments, variables, role, sessionVariables any) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "ValidateOperation", reflect.TypeOf((*MockConnector)(nil).ValidateOperation), operation, fragments, variables, role, sessionVariables)
+}

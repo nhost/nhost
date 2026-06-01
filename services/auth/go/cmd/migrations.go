@@ -39,7 +39,8 @@ func insertRoles(
 	}
 
 	if len(insertedRoles) > 0 {
-		logger.InfoContext(ctx, "inserted roles",
+		logger.InfoContext(
+			ctx, "inserted roles",
 			slog.Int("affected_rows", len(insertedRoles)),
 			slog.String("roles", strings.Join(insertedRoles, ", ")),
 		)
@@ -72,7 +73,8 @@ func applyMigrations(
 		logger,
 	); err != nil {
 		logger.ErrorContext(
-			ctx, "failed to apply hasura metadata", slog.String("error", err.Error()))
+			ctx, "failed to apply hasura metadata", slog.String("error", err.Error()),
+		)
 
 		return fmt.Errorf("failed to apply hasura metadata: %w", err)
 	}

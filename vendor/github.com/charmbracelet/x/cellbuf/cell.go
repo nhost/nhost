@@ -154,6 +154,11 @@ const (
 	ResetAttr AttrMask = 0
 )
 
+// Contains returns whether the attribute mask contains the attribute.
+func (a AttrMask) Contains(attr AttrMask) bool {
+	return a&attr == attr
+}
+
 // UnderlineStyle is the style of underline to use for text.
 type UnderlineStyle = ansi.UnderlineStyle
 

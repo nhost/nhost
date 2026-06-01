@@ -40,6 +40,24 @@ type Connector interface {
 		sessionVariables map[string]any,
 		logger *slog.Logger,
 	) (map[string]any, error)
+	// ValidateOperation runs the connector's pre-execution validation for the
+	// given operation without producing any result or side effect, returning a
+	// non-nil error when the operation is rejected. The controller calls it for
+	// every connector a multi-connector request fans out to, and for
+	// database-backed remote relationship queries, before executing any root
+	// connector, so a structured argument failure aborts the whole request the way
+	// Hasura does — no partial data, no mutation side effects from sibling
+	// connectors. It is the connector's own concern which
+	// failures it can detect before execution; connectors whose validation is
+	// inseparable from execution (remote schemas, the in-memory connector)
+	// return nil and report such failures from Execute instead.
+	ValidateOperation(
+		operation *ast.OperationDefinition,
+		fragments ast.FragmentDefinitionList,
+		variables map[string]any,
+		role string,
+		sessionVariables map[string]any,
+	) error
 	// GetTypeName returns the GraphQL type name for a given identifier
 	// (e.g., a query field name for remote schemas, a table name for SQL).
 	// Returns empty string if the identifier cannot be resolved.
@@ -324,7 +342,7 @@ func resolveDBURL(dbMeta *metadata.DatabaseMetadata) (string, error) {
 	return dbURL, nil
 }
 
-func newPostgresConnector( //nolint:ireturn
+func newPostgresConnector( //nolint:ireturn,nolintlint
 	ctx context.Context,
 	dbMeta *metadata.DatabaseMetadata,
 	inconsistencies *metadata.Inconsistencies,
@@ -345,7 +363,7 @@ func newPostgresConnector( //nolint:ireturn
 	return backend, nil
 }
 
-func newSQLiteConnector( //nolint:ireturn
+func newSQLiteConnector( //nolint:ireturn,nolintlint
 	ctx context.Context,
 	dbMeta *metadata.DatabaseMetadata,
 	inconsistencies *metadata.Inconsistencies,

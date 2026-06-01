@@ -589,6 +589,63 @@ func TestConnector_Execute(t *testing.T) {
 	}
 }
 
+func TestConnector_ValidateOperation(t *testing.T) {
+	t.Parallel()
+
+	// With empty roots (no metadata tables), BuildQuery fails for any
+	// non-empty selection because no operation matches; an empty selection set
+	// validates cleanly. In both cases ValidateOperation must never touch the
+	// driver — it is the build-only step the controller runs before any
+	// connector executes.
+	buildErrorOp := &ast.OperationDefinition{
+		Operation: ast.Query,
+		SelectionSet: ast.SelectionSet{
+			&ast.Field{Name: "nonexistent"},
+		},
+	}
+
+	emptyOp := &ast.OperationDefinition{
+		Operation:    ast.Query,
+		SelectionSet: ast.SelectionSet{},
+	}
+
+	tests := []struct {
+		name      string
+		operation *ast.OperationDefinition
+		wantErr   bool
+	}{
+		{name: "valid operation", operation: emptyOp, wantErr: false},
+		{name: "build error", operation: buildErrorOp, wantErr: true},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			t.Parallel()
+
+			ctrl := gomock.NewController(t)
+			driver := mock.NewMockDriver(ctrl)
+
+			// No ExecuteOperations expectation: gomock fails the test if
+			// ValidateOperation calls the driver, which is the property under
+			// test.
+			c := newTestConnector(t, driver)
+
+			err := c.ValidateOperation(tt.operation, nil, nil, "admin", nil)
+			if tt.wantErr {
+				if err == nil {
+					t.Fatal("expected error from ValidateOperation, got nil")
+				}
+
+				return
+			}
+
+			if err != nil {
+				t.Fatalf("unexpected error: %v", err)
+			}
+		})
+	}
+}
+
 func TestConnector_ExecuteMultiplexedQueries(t *testing.T) {
 	t.Parallel()
 

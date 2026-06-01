@@ -663,7 +663,11 @@ func TestNestedInsert_ApplyArrayFKColumn(t *testing.T) {
 			IsArrayRelationship: false,
 		}
 
-		fk := n.ApplyArrayFKColumn("parent_cte")
+		fk, err := n.ApplyArrayFKColumn("parent_cte")
+		if err != nil {
+			t.Fatalf("ApplyArrayFKColumn: %v", err)
+		}
+
 		if len(fk) != 0 {
 			t.Errorf("object rel must produce empty map, got %v", fk)
 		}
@@ -685,14 +689,19 @@ func TestNestedInsert_ApplyArrayFKColumn(t *testing.T) {
 				{Columns: nil, NestedInserts: nil},
 				{Columns: nil, NestedInserts: nil},
 			},
-			OnConflict:          nil,
-			ForeignKeyColumns:   []string{"fk"},
-			IsArrayRelationship: true,
+			OnConflict:              nil,
+			ForeignKeyColumns:       []string{"fk"},
+			ForeignKeySourceColumns: map[string]string{"fk": "id"},
+			IsArrayRelationship:     true,
 		}
 
-		fk := n.ApplyArrayFKColumn("parent_cte")
-		if got, ok := fk["fk"]; !ok || got != "parent_cte" {
-			t.Errorf("fk map = %v, want fk=parent_cte", fk)
+		fk, err := n.ApplyArrayFKColumn("parent_cte")
+		if err != nil {
+			t.Fatalf("ApplyArrayFKColumn: %v", err)
+		}
+
+		if got, ok := fk["fk"]; !ok || got.CTEName != "parent_cte" || got.ColumnName != "id" {
+			t.Errorf("fk map = %v, want fk=parent_cte.id", fk)
 		}
 
 		for i, row := range n.NestedObjects {
@@ -710,22 +719,46 @@ func TestNestedInsert_ApplyArrayFKColumn(t *testing.T) {
 		target.EXPECT().ColumnFromSQLName("fk").Return(nil)
 
 		n := arguments.NestedInsert{
-			RelationshipName:    "posts",
-			TargetTable:         target,
-			NestedObjects:       []arguments.InsertObject{{Columns: nil, NestedInserts: nil}},
-			OnConflict:          nil,
-			ForeignKeyColumns:   []string{"fk"},
-			IsArrayRelationship: true,
+			RelationshipName:        "posts",
+			TargetTable:             target,
+			NestedObjects:           []arguments.InsertObject{{Columns: nil, NestedInserts: nil}},
+			OnConflict:              nil,
+			ForeignKeyColumns:       []string{"fk"},
+			ForeignKeySourceColumns: map[string]string{"fk": "id"},
+			IsArrayRelationship:     true,
 		}
 
-		fk := n.ApplyArrayFKColumn("parent_cte")
+		fk, err := n.ApplyArrayFKColumn("parent_cte")
+		if err != nil {
+			t.Fatalf("ApplyArrayFKColumn: %v", err)
+		}
+
 		if len(n.NestedObjects[0].Columns) != 0 {
 			t.Errorf("expected no column appended; got %+v", n.NestedObjects[0].Columns)
 		}
 
 		// FK index entry is still added, regardless of column resolution.
-		if fk["fk"] != "parent_cte" {
-			t.Errorf("fk map = %v, expected fk=parent_cte entry", fk)
+		if fk["fk"].CTEName != "parent_cte" || fk["fk"].ColumnName != "id" {
+			t.Errorf("fk map = %v, expected fk=parent_cte.id entry", fk)
+		}
+	})
+
+	t.Run("array relationship: missing source column errors", func(t *testing.T) {
+		t.Parallel()
+
+		n := arguments.NestedInsert{
+			RelationshipName:        "posts",
+			TargetTable:             nil,
+			NestedObjects:           []arguments.InsertObject{{Columns: nil, NestedInserts: nil}},
+			OnConflict:              nil,
+			ForeignKeyColumns:       []string{"fk"},
+			ForeignKeySourceColumns: nil,
+			IsArrayRelationship:     true,
+		}
+
+		_, err := n.ApplyArrayFKColumn("parent_cte")
+		if err == nil {
+			t.Fatal("expected missing source column error")
 		}
 	})
 }
@@ -746,6 +779,7 @@ func TestParseInsert_NestedRelationship(t *testing.T) {
 	// Relationship metadata used to construct NestedInsert.
 	rel.EXPECT().TargetTable().Return(target)
 	rel.EXPECT().FKColumns().Return([]string{"author_id"})
+	rel.EXPECT().FKSourceColumns().Return(map[string]string{"author_id": "id"})
 	rel.EXPECT().IsArray().Return(true)
 
 	// Target table parses its own object as a normal insert.
@@ -773,6 +807,7 @@ func TestParseInsert_NestedRelationship(t *testing.T) {
 
 	if got := obj.NestedInserts[0]; got.RelationshipName != "posts" ||
 		len(got.ForeignKeyColumns) != 1 || got.ForeignKeyColumns[0] != "author_id" ||
+		got.ForeignKeySourceColumns["author_id"] != "id" ||
 		!got.IsArrayRelationship {
 		t.Errorf("unexpected nested insert: %+v", got)
 	}
@@ -792,6 +827,7 @@ func TestParseInsert_NestedArrayRelationshipDataIsList(t *testing.T) {
 
 	rel.EXPECT().TargetTable().Return(target)
 	rel.EXPECT().FKColumns().Return([]string{"author_id"})
+	rel.EXPECT().FKSourceColumns().Return(map[string]string{"author_id": "id"})
 	rel.EXPECT().IsArray().Return(true)
 
 	// Each element of the list is parsed independently.

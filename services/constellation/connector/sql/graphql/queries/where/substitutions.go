@@ -3,6 +3,8 @@ package where
 import (
 	"fmt"
 	"strings"
+
+	"github.com/nhost/nhost/services/constellation/connector/sql/graphql/queries/core"
 )
 
 // TableSubstitutions maps a relationship target's `TableFromClause()` value
@@ -196,6 +198,106 @@ func (r *relationshipFilter) writeConditionSubstituted(
 	}
 
 	b.WriteByte(')')
+
+	return params, paramIndex, nil
+}
+
+// writeConditionSubstituted on aggregateRelationshipFilter mirrors
+// relationshipFilter: it swaps the target's TableFromClause for the
+// substitution (if any) so the correlated aggregate subquery reads the parent's
+// in-flight CTE instead of the base table under Postgres' WITH snapshot
+// semantics, walks the nested filter with the same subs so deeper EXISTS
+// subqueries see the rewrites too, and skips the target's row-level permission
+// filter when the target was substituted (the substitute is the parent's
+// already-validated RETURNING, not a generic table SELECT).
+func (f *aggregateRelationshipFilter) writeConditionSubstituted(
+	b *strings.Builder, source string, params []any, paramIndex int, subs TableSubstitutions,
+) ([]any, int, error) {
+	targetAlias := fmt.Sprintf("%saggt%d", f.aliasPrefix, f.nestingLevel)
+	subAlias := fmt.Sprintf("%saggs%d", f.aliasPrefix, f.nestingLevel)
+	quotedTarget := core.QuoteIdentifier(targetAlias)
+	quotedSub := core.QuoteIdentifier(subAlias)
+
+	fromClause := f.target.TableFromClause()
+
+	substituted := false
+
+	if alt, ok := subs[fromClause]; ok {
+		fromClause = alt
+		substituted = true
+	}
+
+	b.WriteString("EXISTS (SELECT 1 FROM (SELECT ")
+	f.writeAggregateExpr(b, quotedTarget)
+	b.WriteString(" AS ")
+	core.WriteQuotedIdentifier(b, aggResultColumn)
+	b.WriteString(" FROM ")
+	b.WriteString(fromClause)
+	b.WriteByte(' ')
+	b.WriteString(quotedTarget)
+	b.WriteString(" WHERE ")
+
+	f.relationship.WriteJoinConditionAliased(b, source, quotedTarget)
+
+	var err error
+
+	if f.filter != nil {
+		b.WriteString(" AND ")
+
+		params, paramIndex, err = WriteConditionSubstituted(
+			f.filter, b, quotedTarget, params, paramIndex, subs,
+		)
+		if err != nil {
+			return nil, 0, fmt.Errorf("failed to write aggregate filter: %w", err)
+		}
+	}
+
+	if !substituted {
+		params, paramIndex, err = f.writeTargetRowLevelPermissions(
+			b, params, paramIndex, quotedTarget,
+		)
+		if err != nil {
+			return nil, 0, err
+		}
+	}
+
+	b.WriteString(") ")
+	b.WriteString(quotedSub)
+	b.WriteString(" WHERE ")
+
+	params, paramIndex, err = WriteConditionSubstituted(
+		f.predicate, b, quotedSub, params, paramIndex, subs,
+	)
+	if err != nil {
+		return nil, 0, fmt.Errorf("failed to write aggregate predicate: %w", err)
+	}
+
+	b.WriteByte(')')
+
+	return params, paramIndex, nil
+}
+
+// writeTargetRowLevelPermissions appends the target table's row-level permission
+// predicate (qualified with targetAlias) when the configured role has one,
+// AND-ed onto the inner subquery's WHERE. It is a no-op when role is empty or
+// the role carries no row-level filter. Callers that substituted the target FROM
+// clause must skip this: the substitute is the parent's already-validated
+// RETURNING, not a generic table SELECT.
+func (f *aggregateRelationshipFilter) writeTargetRowLevelPermissions(
+	b *strings.Builder, params []any, paramIndex int, targetAlias string,
+) ([]any, int, error) {
+	if f.role == "" || !f.target.HasRowLevelPermissions(f.role) {
+		return params, paramIndex, nil
+	}
+
+	b.WriteString(" AND ")
+
+	params, paramIndex, err := f.target.WriteRowLevelPermissions(
+		b, params, paramIndex, f.role, f.sessionVariables, targetAlias,
+	)
+	if err != nil {
+		return nil, 0, fmt.Errorf("failed to apply row-level permissions: %w", err)
+	}
 
 	return params, paramIndex, nil
 }

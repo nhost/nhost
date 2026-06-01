@@ -23,11 +23,16 @@
   in
   rec {
     nodejs-slim_24 = prev.nodejs-slim_24.overrideAttrs (oldAttrs: rec {
-      version = "24.13.0";
+      version = "24.16.0";
       src = prev.fetchurl {
         url = "https://nodejs.org/dist/v${version}/node-v${version}.tar.xz";
-        sha256 = "sha256-Mg/pCcuzR9z1FiAeSWTvF3uBON+af4ENDVSVBIGzFYs=";
+        sha256 = "sha256-L/hKbecLYWUpARGw/GVt7RrSB6eZgW/nIMx8MSMt8w8=";
       };
+      # The TLS test patch (dd25d8f2…) was upstreamed in Node 24.16.0, so the
+      # nixpkgs patch no longer applies. Drop it from the inherited patch set.
+      patches = builtins.filter (
+        p: !(prev.lib.hasInfix "dd25d8f29d3ddadcf5a5ebfdf98ece55f9df96c6" (toString p))
+      ) (oldAttrs.patches or [ ]);
     });
 
     nodejs = final.symlinkJoin {
@@ -52,13 +57,11 @@
       };
     };
 
-    nodePackages = prev.nodejs.pkgs // {
-      vercel =
-        (import ./vercel {
-          pkgs = final;
-          nodejs = final.nodejs;
-        })."vercel-53.3.2";
-    };
+    vercel =
+      (import ./vercel {
+        pkgs = final;
+        nodejs = final.nodejs;
+      })."vercel-53.3.2";
 
     buildNpmPackage = prev.buildNpmPackage.override {
       nodejs = prev.nodejs;

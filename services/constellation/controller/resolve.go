@@ -7,6 +7,7 @@ import (
 	"fmt"
 	"log/slog"
 	"maps"
+	"slices"
 	"sync"
 
 	"github.com/nhost/nhost/services/constellation/controller/introspection"
@@ -219,6 +220,24 @@ func (c *Controller) runConnectorsAndStitch(
 	sessionVariables map[string]any,
 	logger *slog.Logger,
 ) *GraphQLResponse {
+	// Requests that fan out to multiple root connectors, or that will resolve
+	// remote relationships after the root pass, run every side-effect-free
+	// connector validation step before executing any root connector. A structured
+	// argument failure (e.g. a distinct_on / order_by mismatch or negative
+	// offset) must reject the whole request the way Hasura does, with no partial
+	// data and — for mutations — no side effects from connectors that would
+	// otherwise run before the invalid
+	// relationship query is discovered. Plain single-connector requests skip this
+	// pre-pass because Execute already runs the same build/validation before
+	// touching the database.
+	if len(fieldsByConnector) > 1 || plan.HasRemoteQueries() {
+		if resp := c.validateConnectors(
+			state, plan, operation, fieldsByConnector, fragments, variables, role, sessionVariables,
+		); resp != nil {
+			return resp
+		}
+	}
+
 	results, allErrors := c.executeConnectors(
 		ctx, state, plan, operation, fieldsByConnector,
 		fragments, variables, role, sessionVariables, logger,
@@ -271,6 +290,74 @@ func groupFieldsByConnector(
 	}
 
 	return fieldsByConnector, nil
+}
+
+// validateConnectors runs each owning connector's pre-execution validation over
+// its root operation slice plus every planned database-backed remote
+// relationship query. It returns a structured GraphQL response (no data) when
+// any connector reports a trusted argument error, so the whole request is
+// rejected before any connector executes — matching Hasura. Root validations
+// and remote-target validations are each sorted by connector/path so the
+// envelope is deterministic even though
+// the input connector map is not.
+//
+// Only structured argument errors short-circuit the request here. Any other
+// error a connector surfaces from validation (an unknown field, an internal
+// build failure) is left for executeConnectors/resolveRemoteRelationships to
+// report, so non-validation failures keep their existing wire shape and
+// per-connector partial-data semantics unchanged.
+func (c *Controller) validateConnectors(
+	state *controllerState,
+	plan *planner.QueryPlan,
+	operation *ast.OperationDefinition,
+	fieldsByConnector map[string][]ast.Selection,
+	fragments ast.FragmentDefinitionList,
+	variables map[string]any,
+	role string,
+	sessionVariables map[string]any,
+) *GraphQLResponse {
+	var allStructuredErrs []map[string]any
+
+	for _, connName := range slices.Sorted(maps.Keys(fieldsByConnector)) {
+		selections := fieldsByConnector[connName]
+
+		conn := state.connectors[connName]
+		if conn == nil {
+			// A missing connector is reported by executeConnectors, which owns
+			// the no-connector error envelope; skip it here.
+			continue
+		}
+
+		execOp, execFragments := buildConnectorOperation(
+			plan, connName, operation, selections, fragments,
+		)
+
+		err := conn.ValidateOperation(
+			execOp, execFragments, variables, role, sessionVariables,
+		)
+		if err == nil {
+			continue
+		}
+
+		if structuredErrs, ok := classifyStructuredConnectorError(err); ok {
+			allStructuredErrs = append(allStructuredErrs, structuredErrs...)
+		}
+	}
+
+	allStructuredErrs = append(
+		allStructuredErrs,
+		c.validateRemoteTargets(state, plan, fragments, variables, role, sessionVariables)...,
+	)
+
+	if len(allStructuredErrs) > 0 {
+		return &GraphQLResponse{
+			Data:        nil,
+			Errors:      allStructuredErrs,
+			rawResponse: nil,
+		}
+	}
+
+	return nil
 }
 
 // executeConnectors runs the operation's fields against each owning connector and

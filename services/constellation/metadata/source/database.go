@@ -177,7 +177,8 @@ func (s *DatabaseMetadataSource) poll(ctx context.Context) *metadata.Update {
 		return nil
 	}
 
-	s.logger.InfoContext(ctx, "metadata version changed, reloading",
+	s.logger.InfoContext(
+		ctx, "metadata version changed, reloading",
 		slog.Int64("old_version", s.resourceVersion.Load()),
 		slog.Int64("new_version", version),
 	)

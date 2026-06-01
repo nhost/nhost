@@ -57,6 +57,9 @@ type stubRelationship struct {
 
 func (s *stubRelationship) Target() Table           { return s.target }
 func (s *stubRelationship) ParentColumns() []string { return s.parentCols }
+func (s *stubRelationship) Name() string            { return "rel" }
+func (s *stubRelationship) AggregateName() string   { return "rel_aggregate" }
+func (s *stubRelationship) IsArray() bool           { return true }
 func (s *stubRelationship) WriteJoinConditionAliased(b *strings.Builder, parent, target string) {
 	if s.joinWriter != nil {
 		s.joinWriter(b, parent, target)

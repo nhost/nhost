@@ -171,11 +171,8 @@ func buildFunctionArguments(
 
 	for i, argType := range argTypes {
 		var argName string
-		if i < len(argNames) && argNames[i] != "" {
+		if i < len(argNames) {
 			argName = argNames[i]
-		} else {
-			// Generate a name for unnamed arguments
-			argName = fmt.Sprintf("arg_%d", i+1)
 		}
 
 		// Clean up type name (remove any schema prefix if present)

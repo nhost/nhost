@@ -96,6 +96,7 @@ type columnScan struct {
 	typeName       string
 	isNullable     string
 	isGenerated    bool
+	isIdentity     bool
 	isArray        bool
 	supportsMinMax bool
 	supportsInc    bool
@@ -215,6 +216,33 @@ func TestIntrospect_ColumnScanning(t *testing.T) { //nolint:gocognit,cyclop
 
 				if tables["users"] == nil || tables["posts"] == nil {
 					t.Errorf("expected both users and posts, got %v", tables)
+				}
+			},
+		},
+		{
+			// Postgres GENERATED [ALWAYS|BY DEFAULT] AS IDENTITY surfaces via
+			// pg_attribute.attidentity, which the SELECT now exposes as the
+			// is_identity scan column. The mock row drives that path and the
+			// validator confirms the bit propagates to introspection.Column.
+			name: "identity column sets IsIdentity",
+			columns: []columnScan{{
+				tableName:   "users",
+				columnName:  "id",
+				typeName:    "int4",
+				isNullable:  "NO",
+				isIdentity:  true,
+				isGenerated: false,
+			}},
+			validate: func(t *testing.T, tables map[string]*introspection.Table) {
+				t.Helper()
+
+				c := tables["users"].Columns[0]
+				if !c.IsIdentity {
+					t.Error("expected IsIdentity=true for identity column")
+				}
+
+				if c.IsGenerated {
+					t.Error("expected IsGenerated=false: identity is not the same as generated")
 				}
 			},
 		},
@@ -378,8 +406,8 @@ func columnRowsMock(
 func fillColumnScan(t *testing.T, dest []any, row columnScan) {
 	t.Helper()
 
-	if len(dest) != 11 {
-		t.Fatalf("expected 11 scan destinations, got %d", len(dest))
+	if len(dest) != 12 {
+		t.Fatalf("expected 12 scan destinations, got %d", len(dest))
 	}
 
 	assignDest(t, dest[0], row.tableName)
@@ -387,12 +415,13 @@ func fillColumnScan(t *testing.T, dest []any, row columnScan) {
 	assignDest(t, dest[2], row.typeName)
 	assignDest(t, dest[3], row.isNullable)
 	assignDest(t, dest[4], row.isGenerated)
-	assignDest(t, dest[5], row.isArray)
-	assignDest(t, dest[6], row.supportsMinMax)
-	assignDest(t, dest[7], row.supportsInc)
-	assignDest(t, dest[8], row.supportsAgg)
-	assignDest(t, dest[9], row.columnDefault)
-	assignDest(t, dest[10], row.columnComment)
+	assignDest(t, dest[5], row.isIdentity)
+	assignDest(t, dest[6], row.isArray)
+	assignDest(t, dest[7], row.supportsMinMax)
+	assignDest(t, dest[8], row.supportsInc)
+	assignDest(t, dest[9], row.supportsAgg)
+	assignDest(t, dest[10], row.columnDefault)
+	assignDest(t, dest[11], row.columnComment)
 }
 
 func assignDest[T any](t *testing.T, dst any, v T) {

@@ -404,7 +404,8 @@ func TestBuildRoots_BrokenRelationshipIsSwallowed(t *testing.T) {
 			// relationship despite the per-relationship error, BuildQuery
 			// would proceed (potentially even succeed) and this assertion
 			// would fail, catching the drift.
-			op, _, _ := parseSingleField(t,
+			op, _, _ := parseSingleField(
+				t,
 				`query { `+tc.parentName+` { id `+tc.brokenRel+` { id } } }`,
 			)
 

@@ -107,12 +107,20 @@ func (t *table) Initialize(
 			sqlType = colObj.Type + "[]"
 		}
 
+		var defaultExpr string
+		if colObj.Default != nil {
+			defaultExpr = *colObj.Default
+		}
+
 		columns[i] = &core.Column{
 			SQLName:     colObj.Name,
 			GraphqlName: graphqlName,
 			SQLType:     sqlType,
 			IsArray:     colObj.IsArray,
 			IsGenerated: colObj.IsGenerated,
+			IsIdentity:  colObj.IsIdentity,
+			HasDefault:  colObj.Default != nil,
+			DefaultExpr: defaultExpr,
 		}
 
 		if slices.Contains(tableObj.PrimaryKeys, colObj.Name) {

@@ -12,6 +12,7 @@ import (
 	"github.com/vektah/gqlparser/v2/parser"
 
 	"github.com/nhost/nhost/services/constellation/connector/sql/graphql/queries"
+	"github.com/nhost/nhost/services/constellation/connector/sql/graphql/queries/arguments"
 	"github.com/nhost/nhost/services/constellation/connector/sql/graphql/queries/core"
 	"github.com/nhost/nhost/services/constellation/connector/sql/graphql/queries/dialect"
 	"github.com/nhost/nhost/services/constellation/connector/sql/sqlite"
@@ -84,6 +85,10 @@ func testBuildQuerySQLite( //nolint:gocognit
 				)
 				if !errors.Is(err, tc.expectError) {
 					t.Fatalf("expected error %v, got %v", tc.expectError, err)
+				}
+
+				if tc.expectError != nil {
+					return
 				}
 
 				goldenFileOp := filepath.Join("testdata", t.Name()+".json")
@@ -268,6 +273,24 @@ func TestBuildSelectionSQL_SQLite(t *testing.T) { //nolint:paralleltest
 		},
 
 		{
+			// Negative limit must be rejected at parse time on SQLite too, where
+			// otherwise a negative LIMIT silently means "unlimited" — diverging
+			// from both Hasura and the Postgres backend.
+			name: "negative limit rejected",
+			query: query{
+				Query: `
+					query {
+						departments(limit: -1) {
+							id
+							name
+						}
+					}`,
+				Role: "admin",
+			},
+			expectError: arguments.ErrInvalidArgument,
+		},
+
+		{
 			name: "combined where, order by, limit",
 			query: query{
 				Query: `
@@ -349,6 +372,123 @@ func TestBuildSelectionSQL_SQLite(t *testing.T) { //nolint:paralleltest
 				},
 			},
 		},
+		{
+			name: "aggregate filter: count predicate",
+			query: query{
+				Query: `
+					query {
+						departments(order_by: {name: asc}, where: {
+							employees_aggregate: {count: {predicate: {_gt: 7}}}
+						}) {
+							name
+						}
+					}`,
+				Role: "admin",
+			},
+		},
+		{
+			// Exercises SQLite's multi-column count tuple rendering inside aggregate
+			// bool_exp filters; row-value COUNT would fail with "row value misused".
+			name: "aggregate filter: count distinct multiple arguments",
+			query: query{
+				Query: `
+					query {
+						departments(order_by: {name: asc}, where: {
+							employees_aggregate: {count: {
+								arguments: [user_id, role]
+								distinct: true
+								predicate: {_gte: 1}
+							}}
+						}) {
+							name
+						}
+					}`,
+				Role: "admin",
+			},
+		},
+		{
+			// Exercises the SQLite bool_and rendering (min over 0/1 storage).
+			name: "aggregate filter: bool_and",
+			query: query{
+				Query: `
+					query {
+						departments(order_by: {name: asc}, where: {
+							employees_aggregate: {bool_and: {arguments: is_active, predicate: {_eq: true}}}
+						}) {
+							name
+						}
+					}`,
+				Role: "admin",
+			},
+		},
+		{
+			name: "order_by object relationship column",
+			query: query{
+				Query: `
+					query {
+						user_departments(order_by: {department: {name: asc}}, limit: 10) {
+							user_id
+							role
+						}
+					}`,
+				Role: "admin",
+			},
+		},
+		{
+			name: "order_by array relationship aggregate count",
+			query: query{
+				Query: `
+					query {
+						departments(order_by: {employees_aggregate: {count: desc}}) {
+							name
+						}
+					}`,
+				Role: "admin",
+			},
+		},
+		{
+			// avg/sum/min/max aggregate order_by render natively on SQLite.
+			name: "order_by array relationship aggregate avg",
+			query: query{
+				Query: `
+					query {
+						exercise_logs(order_by: {sets_aggregate: {avg: {reps: desc_nulls_last}}}) {
+							id
+						}
+					}`,
+				Role: "admin",
+			},
+		},
+		{
+			// SQLite has no native stddev/variance aggregate, and the one-pass
+			// identity that would emulate it is numerically unstable (it inverts
+			// the ordering for large, close values), so such orderings are
+			// rejected instead of returning a silently wrong order.
+			name: "order_by array relationship aggregate stddev rejected",
+			query: query{
+				Query: `
+					query {
+						exercise_logs(order_by: {sets_aggregate: {stddev: {reps: desc_nulls_last}}}) {
+							id
+						}
+					}`,
+				Role: "admin",
+			},
+			expectError: arguments.ErrUnsupportedAggregateOrderBy,
+		},
+		{
+			name: "order_by array relationship aggregate variance rejected",
+			query: query{
+				Query: `
+					query {
+						exercise_logs(order_by: {sets_aggregate: {variance: {reps: asc}}}) {
+							id
+						}
+					}`,
+				Role: "admin",
+			},
+			expectError: arguments.ErrUnsupportedAggregateOrderBy,
+		},
 	}
 
 	testBuildQuerySQLite(t, cases)
@@ -387,6 +527,84 @@ func TestAggregateBuildQuery_SQLite(t *testing.T) { //nolint:paralleltest
 			},
 		},
 		{
+			name: "count with column",
+			query: query{
+				Query: `
+					query {
+						departments_aggregate {
+							aggregate {
+								count(columns: [id])
+							}
+						}
+					}`,
+			},
+		},
+		{
+			name: "count distinct column",
+			query: query{
+				Query: `
+					query {
+						departments_aggregate {
+							aggregate {
+								count(columns: [budget], distinct: true)
+							}
+						}
+					}`,
+			},
+		},
+		{
+			name: "count distinct multiple columns",
+			query: query{
+				Query: `
+					query {
+						departments_aggregate {
+							aggregate {
+								count(columns: [name, budget], distinct: true)
+							}
+						}
+					}`,
+			},
+		},
+		{
+			// Aliased count variants under the SQLite dialect: the count writer
+			// is shared across dialects, so the alias must become the JSON key
+			// even though SQLite renders the count expression differently.
+			name: "count multiple variants",
+			query: query{
+				Query: `
+					query {
+						departments_aggregate {
+							aggregate {
+								total: count
+								distinct_budget: count(columns: [budget], distinct: true)
+							}
+						}
+					}`,
+			},
+		},
+		{
+			// SQLite shares the aggregate-root selection writer with PostgreSQL, so
+			// aliases for aggregate, nested aggregate columns, and nodes must affect
+			// JSON keys even though the emitted JSON functions differ.
+			name: "aggregate field aliases at every scope",
+			query: query{
+				Query: `
+					query {
+						depts: departments_aggregate(order_by: {name: asc}, limit: 3) {
+							summary: aggregate {
+								total: count
+								budget_total: sum {
+									amount: budget
+								}
+							}
+							rows: nodes {
+								dept_id: id
+							}
+						}
+					}`,
+			},
+		},
+		{
 			name: "sum aggregate",
 			query: query{
 				Query: `
@@ -402,7 +620,30 @@ func TestAggregateBuildQuery_SQLite(t *testing.T) { //nolint:paralleltest
 			},
 		},
 		{
-			name: "multiple aggregate functions",
+			// Aliased function aggregates under the SQLite dialect: the function
+			// aggregate writer is shared across dialects, so each alias must
+			// become the JSON key. Two "sum" selections distinguished only by
+			// alias must render two distinct keys, not a duplicate "sum".
+			name: "sum multiple variants",
+			query: query{
+				Query: `
+					query {
+						departments_aggregate {
+							aggregate {
+								a: sum {
+									budget
+								}
+								b: sum {
+									budget
+								}
+							}
+						}
+					}`,
+			},
+		},
+		{
+			// count/sum/avg/max/min are native on SQLite and render directly.
+			name: "native aggregate functions",
 			query: query{
 				Query: `
 					query {
@@ -421,28 +662,63 @@ func TestAggregateBuildQuery_SQLite(t *testing.T) { //nolint:paralleltest
 								min {
 									budget
 								}
+							}
+						}
+					}`,
+			},
+		},
+		{
+			// go-sqlite3 has no stddev/variance aggregate functions, so emitting
+			// STDDEV(...) etc. would fail at execution with an opaque "no such
+			// function" error. Schema generation omits these fields (see
+			// TestGenerateForRole_SQLite); the builder rejects them as a backstop
+			// for callers that bypass schema validation.
+			name: "stddev aggregate rejected",
+			query: query{
+				Query: `
+					query {
+						departments_aggregate {
+							aggregate {
 								stddev {
-									budget
-								}
-								stddev_pop {
-									budget
-								}
-								stddev_samp {
-									budget
-								}
-								variance {
-									budget
-								}
-								var_pop {
-									budget
-								}
-								var_samp {
 									budget
 								}
 							}
 						}
 					}`,
 			},
+			expectError: queries.ErrUnsupportedVarianceAggregate,
+		},
+		{
+			name: "variance aggregate rejected",
+			query: query{
+				Query: `
+					query {
+						departments_aggregate {
+							aggregate {
+								variance {
+									budget
+								}
+							}
+						}
+					}`,
+			},
+			expectError: queries.ErrUnsupportedVarianceAggregate,
+		},
+		{
+			name: "var_pop aggregate rejected",
+			query: query{
+				Query: `
+					query {
+						departments_aggregate {
+							aggregate {
+								var_pop {
+									budget
+								}
+							}
+						}
+					}`,
+			},
+			expectError: queries.ErrUnsupportedVarianceAggregate,
 		},
 		{
 			name: "aggregate with WHERE clause",

@@ -56,6 +56,7 @@ func (t *table) buildSubscriptionStreamSQL(
 		1,
 		"_root",
 		"_root",
+		rootFieldName(field),
 		streamArgs,
 	)
 	if err != nil {
@@ -103,6 +104,7 @@ func (t *table) buildQueryStreamSQL(
 	paramIndex int,
 	alias string,
 	relName string,
+	argumentPath string,
 	streamArgs arguments.Stream,
 ) ([]any, int, error) {
 	// Outer aggregation: SELECT coalesce(json_agg("alias"), '[]') AS "relName" FROM (
@@ -126,6 +128,7 @@ func (t *table) buildQueryStreamSQL(
 		alias,
 		t.tableFromClause(),
 		t.tableSourceRef(),
+		argumentPath,
 		streamArgs,
 	)
 	if err != nil {
@@ -155,6 +158,7 @@ func (t *table) buildStreamQuerySQL( //nolint:cyclop,funlen,gocognit,gocyclo,mai
 	outputAlias string,
 	fromClause string,
 	sourceRef string,
+	argumentPath string,
 	streamArgs arguments.Stream,
 ) ([]any, int, error) {
 	// Note: Remote relationships are not supported in subscriptions and are ignored
@@ -326,7 +330,7 @@ func (t *table) buildStreamQuerySQL( //nolint:cyclop,funlen,gocognit,gocyclo,mai
 
 			params, paramIndex, err = relSel.relationship.buildSelectionSQL(
 				b, relSel.field, fragments, variables, role, sessionVariables,
-				roots, params, paramIndex, baseAlias, relAlias,
+				roots, params, paramIndex, baseAlias, relAlias, argumentPath,
 			)
 			if err != nil {
 				return nil, 0, fmt.Errorf("error building relationship %s: %w", relSel.alias, err)
@@ -351,7 +355,7 @@ func (t *table) buildStreamQuerySQL( //nolint:cyclop,funlen,gocognit,gocyclo,mai
 
 			params, paramIndex, err = relSel.relationship.buildSelectionSQL(
 				b, relSel.field, fragments, variables, role, sessionVariables,
-				roots, params, paramIndex, baseAlias, relAlias,
+				roots, params, paramIndex, baseAlias, relAlias, argumentPath,
 			)
 			if err != nil {
 				return nil, 0, fmt.Errorf("error building relationship %s: %w", relSel.alias, err)

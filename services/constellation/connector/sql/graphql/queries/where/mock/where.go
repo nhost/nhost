@@ -197,6 +197,48 @@ func (m *MockRelationship) EXPECT() *MockRelationshipMockRecorder {
 	return m.recorder
 }
 
+// AggregateName mocks base method.
+func (m *MockRelationship) AggregateName() string {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "AggregateName")
+	ret0, _ := ret[0].(string)
+	return ret0
+}
+
+// AggregateName indicates an expected call of AggregateName.
+func (mr *MockRelationshipMockRecorder) AggregateName() *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "AggregateName", reflect.TypeOf((*MockRelationship)(nil).AggregateName))
+}
+
+// IsArray mocks base method.
+func (m *MockRelationship) IsArray() bool {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "IsArray")
+	ret0, _ := ret[0].(bool)
+	return ret0
+}
+
+// IsArray indicates an expected call of IsArray.
+func (mr *MockRelationshipMockRecorder) IsArray() *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "IsArray", reflect.TypeOf((*MockRelationship)(nil).IsArray))
+}
+
+// Name mocks base method.
+func (m *MockRelationship) Name() string {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "Name")
+	ret0, _ := ret[0].(string)
+	return ret0
+}
+
+// Name indicates an expected call of Name.
+func (mr *MockRelationshipMockRecorder) Name() *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "Name", reflect.TypeOf((*MockRelationship)(nil).Name))
+}
+
 // ParentColumns mocks base method.
 func (m *MockRelationship) ParentColumns() []string {
 	m.ctrl.T.Helper()

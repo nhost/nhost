@@ -72,6 +72,7 @@ func (r *RemoteRelationshipResolver) executeAndStitchAggregate(
 		JoinColumnSQLName: targetCol,
 		JoinValues:        joinValues,
 		Field:             rq.sourceField,
+		ArgumentPath:      rq.argumentPath(),
 		Fragments:         fragments,
 		Variables:         variables,
 	})
@@ -156,7 +157,8 @@ func stitchAggregateResults(
 }
 
 // aggregateSubFieldCount is the number of top-level sub-fields a grouped-
-// aggregate payload exposes: "aggregate" and "nodes".
+// aggregate payload commonly exposes: aggregate and nodes, each under its
+// GraphQL response name.
 const aggregateSubFieldCount = 2
 
 // emptyAggregateForSelection produces a default { aggregate: {...}, nodes: [] }
@@ -171,15 +173,25 @@ func emptyAggregateForSelection(field *ast.Field) map[string]any {
 			continue
 		}
 
+		responseName := aggregateResponseName(sub)
+
 		switch sub.Name {
 		case "aggregate":
-			out["aggregate"] = emptyAggregateBlock(sub)
+			out[responseName] = emptyAggregateBlock(sub)
 		case "nodes":
-			out["nodes"] = []any{}
+			out[responseName] = []any{}
 		}
 	}
 
 	return out
+}
+
+func aggregateResponseName(field *ast.Field) string {
+	if field.Alias != "" {
+		return field.Alias
+	}
+
+	return field.Name
 }
 
 // emptyAggregateBlock fills the requested aggregate sub-fields with zero values:
@@ -193,8 +205,9 @@ func emptyAggregateBlock(field *ast.Field) map[string]any {
 			continue
 		}
 
+		responseName := aggregateResponseName(sub)
 		if sub.Name == "count" {
-			out["count"] = 0
+			out[responseName] = 0
 
 			continue
 		}
@@ -202,11 +215,11 @@ func emptyAggregateBlock(field *ast.Field) map[string]any {
 		cols := make(map[string]any, len(sub.SelectionSet))
 		for _, colSel := range sub.SelectionSet {
 			if colField, isField := colSel.(*ast.Field); isField {
-				cols[colField.Name] = nil
+				cols[aggregateResponseName(colField)] = nil
 			}
 		}
 
-		out[sub.Name] = cols
+		out[responseName] = cols
 	}
 
 	return out

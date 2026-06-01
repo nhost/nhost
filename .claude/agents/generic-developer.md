@@ -30,6 +30,7 @@ You will most often be invoked for:
 - **GraphQL schemas** (`*.graphqls`) — usually generated artefacts; verify they were regenerated rather than hand-edited.
 - **Markdown docs** — `docs/`, `README*.md`, project documentation. Apply the project's documentation conventions.
 - **Astro pages** — `docs/` site. Follow the project's Astro conventions.
+- **Claude resources** — `.claude/agents/*.md`, `.claude/skills/**/SKILL.md`, `.claude/prompts/*.md`; keep YAML frontmatter valid (quote values containing colons) and validate agent/skill frontmatter with a YAML parser before relying on local agent or skill loading.
 
 ## How to apply rules
 

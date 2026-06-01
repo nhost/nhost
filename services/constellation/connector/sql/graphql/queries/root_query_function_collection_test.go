@@ -1,4 +1,3 @@
-//nolint:dupl
 package queries_test
 
 import (
@@ -142,6 +141,86 @@ func TestBuildQueryFunctionCollectionSQL(t *testing.T) { //nolint:paralleltest
 					  }
 					}`,
 				Role:      "user",
+				Variables: nil,
+			},
+		},
+
+		{
+			// Defaulted argument omitted: the FROM clause must call the
+			// function with only the required argument under named notation
+			// (`"search" := $1`) and must not emit the invalid DEFAULT keyword
+			// nor a "max_len" binding. PostgreSQL applies the declared default.
+			name: "defaulted arg omitted",
+			query: query{
+				Query: `
+					{
+					  search_news_default(
+						args: {search: "a"},
+					  ) {
+						content
+						is_public
+					  }
+					}`,
+				Role:      "admin",
+				Variables: nil,
+			},
+		},
+
+		{
+			// Defaulted argument supplied: both arguments bind under named
+			// notation (`"search" := $1, "max_len" := $2`).
+			name: "defaulted arg supplied",
+			query: query{
+				Query: `
+					{
+					  search_news_default(
+						args: {search: "a", max_len: 50},
+					  ) {
+						content
+						is_public
+					  }
+					}`,
+				Role:      "admin",
+				Variables: nil,
+			},
+		},
+
+		{
+			// Positional-only defaulted argument omitted: the function call must
+			// bind only arg_1 positionally (`$1`) so PostgreSQL applies arg_2's
+			// declared default.
+			name: "positional defaulted arg omitted",
+			query: query{
+				Query: `
+					{
+					  search_news_positional(
+						args: {arg_1: "a"},
+					  ) {
+						content
+						is_public
+					  }
+					}`,
+				Role:      "admin",
+				Variables: nil,
+			},
+		},
+
+		{
+			// Positional-only defaulted argument supplied: both arguments must bind
+			// positionally (`$1, $2`) because unnamed PostgreSQL arguments cannot be
+			// addressed with named-argument notation.
+			name: "positional defaulted arg supplied",
+			query: query{
+				Query: `
+					{
+					  search_news_positional(
+						args: {arg_1: "a", arg_2: 200},
+					  ) {
+						content
+						is_public
+					  }
+					}`,
+				Role:      "admin",
 				Variables: nil,
 			},
 		},

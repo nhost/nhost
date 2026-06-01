@@ -30,7 +30,7 @@ func interpolateEnv(s string, getenv func(string) string) string {
 
 			// Extract variable name
 			start := i
-			for i < len(s) && (isAlphaNumUnderscore(s[i])) {
+			for i < len(s) && isAlphaNumUnderscore(s[i]) {
 				i++
 			}
 
