@@ -1,8 +1,8 @@
 import { useFormContext, useWatch } from 'react-hook-form';
 import {
-  FormAutocomplete,
-  type FormAutocompleteOption,
-} from '@/components/form/FormAutocomplete';
+  FormFreeCombobox,
+  type FormFreeComboboxOption,
+} from '@/components/form/FormFreeCombobox';
 import { InlineCode } from '@/components/ui/v3/inline-code';
 import {
   identityTypes,
@@ -10,7 +10,7 @@ import {
 } from '@/features/orgs/projects/database/dataGrid/utils/postgresqlConstants';
 import type { FieldArrayInputProps } from './ColumnEditorRow';
 
-const typeOptions: FormAutocompleteOption[] = postgresTypeGroups.map(
+const typeOptions: FormFreeComboboxOption[] = postgresTypeGroups.map(
   ({ group, label, value }) => ({
     value,
     group,
@@ -42,7 +42,7 @@ export function TypeAutocomplete({ index }: FieldArrayInputProps) {
   }
 
   return (
-    <FormAutocomplete
+    <FormFreeCombobox
       control={control}
       name={`columns.${index}.type`}
       placeholder="Select type"
@@ -53,7 +53,6 @@ export function TypeAutocomplete({ index }: FieldArrayInputProps) {
         const haystack = [value, ...(keywords ?? [])].join(' ').toLowerCase();
         return haystack.includes(search.toLowerCase()) ? 1 : 0;
       }}
-      allowCustomValue
       customValueLabel={(input) => `Use type: "${input}"`}
       data-testid={`columns.${index}.type`}
       popoverContentClassName="w-80"

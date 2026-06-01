@@ -1,8 +1,7 @@
 import { Controller, useFormContext, useWatch } from 'react-hook-form';
-import {
-  FormAutocompleteCore,
-  type FormAutocompleteOption,
-} from '@/components/form/FormAutocomplete';
+import FreeCombobox, {
+  type ComboboxOption,
+} from '@/components/ui/v3/free-combobox';
 import { InlineCode } from '@/components/ui/v3/inline-code';
 import type { ColumnDefaultValue } from '@/features/orgs/projects/database/dataGrid/types/dataBrowser';
 import { getPostgresFunctionsKey } from '@/features/orgs/projects/database/dataGrid/utils/getPostgresFunctionsKey';
@@ -28,14 +27,14 @@ export default function DefaultValueAutocomplete({
   });
 
   const clearLabel = isNullable ? 'NULL' : 'NO DEFAULT VALUE';
-  const clearOption: FormAutocompleteOption = {
+  const clearOption: ComboboxOption = {
     value: CLEAR_DEFAULT_SENTINEL,
     label: clearLabel,
     render: <span className="text-muted-foreground">{clearLabel}</span>,
   };
 
   const functionKey = getPostgresFunctionsKey(type ?? undefined);
-  const functionOptions: FormAutocompleteOption[] = (
+  const functionOptions: ComboboxOption[] = (
     postgresFunctions[functionKey as keyof typeof postgresFunctions] ?? []
   ).map((functionName) => {
     const label = POSTGRESQL_FUNCTION_LABELS[functionName] ?? functionName;
@@ -79,17 +78,17 @@ export default function DefaultValueAutocomplete({
           )
         ) : undefined;
         return (
-          <FormAutocompleteCore
+          <FreeCombobox
             value={current?.value ?? null}
             triggerLabel={triggerLabel}
             onChange={(next, meta) => {
-              if (next === null || next === CLEAR_DEFAULT_SENTINEL) {
+              if (next === CLEAR_DEFAULT_SENTINEL) {
                 field.onChange(null);
                 return;
               }
               field.onChange({
                 value: next,
-                custom: meta?.source === 'custom',
+                custom: meta.source === 'custom',
               });
             }}
             onBlur={field.onBlur}
@@ -98,7 +97,6 @@ export default function DefaultValueAutocomplete({
             aria-label="Default Value"
             searchPlaceholder="Search..."
             emptyText="Enter a custom default value"
-            allowCustomValue
             customValueLabel={(input) => `Use '${input}' as a literal`}
             disabled={isIdentity}
             data-testid={`columns.${index}.defaultValue`}
