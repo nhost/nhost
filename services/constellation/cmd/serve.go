@@ -42,14 +42,18 @@ const (
 	flagDevMode                      = "dev-mode"
 	flagGraphQLRequestBodyLimitBytes = "graphql-request-body-limit-bytes"
 	flagHTTPReadTimeout              = "http-read-timeout"
-	flagHTTPWriteTimeout             = "http-write-timeout"
-	flagHTTPIdleTimeout              = "http-idle-timeout"
+	//nolint:gosec // CLI flag name contains "write" but is not a credential.
+	flagHTTPWriteTimeout = "http-write-timeout"
+	flagHTTPIdleTimeout  = "http-idle-timeout"
 
-	defaultHTTPReadTimeout  = 30 * time.Second
-	defaultHTTPWriteTimeout = 5 * time.Minute
-	defaultHTTPIdleTimeout  = 120 * time.Second
-	shutdownTimeout         = 30 * time.Second
+	defaultHTTPReadTimeout   = 30 * time.Second
+	defaultHTTPWriteTimeout  = 5 * time.Minute
+	defaultHTTPIdleTimeout   = 120 * time.Second
+	maxHTTPReadHeaderTimeout = 5 * time.Second
+	shutdownTimeout          = 30 * time.Second
 )
+
+var errFlagMustBeGreaterThanZero = errors.New("must be greater than 0")
 
 func generalFlags() []cli.Flag {
 	return []cli.Flag{
@@ -330,6 +334,7 @@ func getRouter(
 		return nil, err
 	}
 
+	//nolint:contextcheck // handler uses per-request contexts; startup ctx must not be captured.
 	postHandler := ctrl.HandlerPostWithMaxBodyBytes(maxBodyBytes)
 	router.POST("/v1/graphql", postHandler)
 	router.GET("/v1/graphql", ctrl.HandlerGet)
@@ -345,7 +350,9 @@ func getRouter(
 func getMaxGraphQLRequestBodyBytes(cmd *cli.Command) (int64, error) {
 	maxBodyBytes := cmd.Int64(flagGraphQLRequestBodyLimitBytes)
 	if maxBodyBytes <= 0 {
-		return 0, fmt.Errorf("%s must be greater than 0", flagGraphQLRequestBodyLimitBytes)
+		return 0, fmt.Errorf(
+			"%s: %w", flagGraphQLRequestBodyLimitBytes, errFlagMustBeGreaterThanZero,
+		)
 	}
 
 	return maxBodyBytes, nil
@@ -378,8 +385,10 @@ func initJWTAuth(
 	return jwtAuth, nil
 }
 
-func newMetadataSource( //nolint:ireturn,nolintlint
-	ctx context.Context, cmd *cli.Command, logger *slog.Logger,
+func newMetadataSource( //nolint:ireturn // selected sources share the metadata.Source boundary.
+	ctx context.Context,
+	cmd *cli.Command,
+	logger *slog.Logger,
 ) (metadata.Source, error) {
 	if metaDBURL := cmd.String(flagMetadataDatabaseURL); metaDBURL != "" {
 		source, err := source.NewDatabaseMetadataSource(
@@ -518,7 +527,7 @@ func newHTTPServer(cmd *cli.Command, handler http.Handler) (*http.Server, error)
 	return &http.Server{ //nolint:exhaustruct
 		Addr:              cmd.String(flagBindAddress),
 		Handler:           handler,
-		ReadHeaderTimeout: 5 * time.Second, //nolint:mnd
+		ReadHeaderTimeout: min(readTimeout, maxHTTPReadHeaderTimeout),
 		ReadTimeout:       readTimeout,
 		WriteTimeout:      writeTimeout,
 		IdleTimeout:       idleTimeout,
@@ -528,7 +537,7 @@ func newHTTPServer(cmd *cli.Command, handler http.Handler) (*http.Server, error)
 func positiveDurationFlag(cmd *cli.Command, name string) (time.Duration, error) {
 	value := cmd.Duration(name)
 	if value <= 0 {
-		return 0, fmt.Errorf("%s must be greater than 0", name)
+		return 0, fmt.Errorf("%s: %w", name, errFlagMustBeGreaterThanZero)
 	}
 
 	return value, nil
@@ -550,7 +559,7 @@ func startProfileServer(
 	profileServer := &http.Server{ //nolint:exhaustruct
 		Addr:              profileAddr,
 		Handler:           http.DefaultServeMux,
-		ReadHeaderTimeout: 5 * time.Second, //nolint:mnd
+		ReadHeaderTimeout: maxHTTPReadHeaderTimeout,
 	}
 
 	go func() {
