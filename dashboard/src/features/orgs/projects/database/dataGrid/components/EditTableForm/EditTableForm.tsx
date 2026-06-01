@@ -3,9 +3,9 @@ import { useRouter } from 'next/router';
 import { useEffect, useState } from 'react';
 import { FormProvider, useForm } from 'react-hook-form';
 import type * as Yup from 'yup';
-import { ActivityIndicator } from '@/components/ui/v2/ActivityIndicator';
-import { Alert } from '@/components/ui/v2/Alert';
-import { Button } from '@/components/ui/v2/Button';
+import { Alert } from '@/components/ui/v3/alert';
+import { Button } from '@/components/ui/v3/button';
+import { Spinner } from '@/components/ui/v3/spinner';
 import { useTableSchemaQuery } from '@/features/orgs/projects/database/common/hooks/useTableSchemaQuery';
 import type {
   BaseTableFormProps,
@@ -205,7 +205,13 @@ export default function EditTableForm({
   if (columnsStatus === 'loading') {
     return (
       <div className="px-6">
-        <ActivityIndicator label="Loading columns..." delay={1000} />
+        <Spinner
+          delay={1000}
+          wrapperClassName="flex-row text-[12px] leading-[1.66] font-normal gap-1"
+          className="h-4 w-4 justify-center"
+        >
+          Loading columns...
+        </Spinner>
       </div>
     );
   }
@@ -213,7 +219,13 @@ export default function EditTableForm({
   if (!formInitialized) {
     return (
       <div className="px-6">
-        <ActivityIndicator label="Loading..." delay={1000} />
+        <Spinner
+          delay={1000}
+          wrapperClassName="flex-row text-[12px] leading-[1.66] font-normal gap-1"
+          className="h-4 w-4 justify-center"
+        >
+          Loading...
+        </Spinner>
       </div>
     );
   }
@@ -221,7 +233,10 @@ export default function EditTableForm({
   if (columnsStatus === 'error') {
     return (
       <div className="-mt-3 px-6">
-        <Alert severity="error" className="text-left">
+        <Alert
+          variant="destructive"
+          className="border-none bg-destructive/20 px-4 py-3 text-left"
+        >
           <strong>Error:</strong>{' '}
           {columnsError && columnsError instanceof Error
             ? columnsError?.message
@@ -236,18 +251,18 @@ export default function EditTableForm({
       {error && error instanceof Error ? (
         <div className="-mt-3 mb-4 px-6">
           <Alert
-            severity="error"
-            className="grid grid-flow-col items-center justify-between px-4 py-3"
+            variant="destructive"
+            className="grid grid-flow-col items-center justify-between border-none bg-destructive/20 px-4 py-3"
           >
             <span className="text-left">
               <strong>Error:</strong> {error.message}
             </span>
 
             <Button
-              variant="borderless"
-              color="error"
-              size="small"
               onClick={resetError}
+              size="sm"
+              variant="destructive"
+              className="bg-transparent text-destructive hover:bg-destructive/10"
             >
               Clear
             </Button>
