@@ -145,7 +145,6 @@ func TestPostgresDialect_JSONHelpers(t *testing.T) {
 		{"JSONAggRawExpr raw", d.JSONAggRawExpr(`"t"."x"`), `json_agg("t"."x")`},
 		{"CoalesceJSONArray", d.CoalesceJSONArray("a"), `coalesce(json_agg("a"), '[]')`},
 		{"JSONBuildObject", d.JSONBuildObject(), "json_build_object"},
-		{"JSONBuildArray", d.JSONBuildArray(), "jsonb_build_array"},
 		{"ToJSON", d.ToJSON("x"), "to_jsonb(x)"},
 		{"EmptyJSONArray", d.EmptyJSONArray(), "'[]'::json"},
 	}

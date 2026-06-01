@@ -1228,6 +1228,137 @@ func TestInsertOneBuildQuery(t *testing.T) { //nolint:paralleltest,maintidx
 				},
 			},
 		},
+
+		// --- Non-admin upsert UPDATE-check enforcement, executed against
+		// PostgreSQL (finding C1). The `user` role on public.notes carries BOTH
+		// an UPDATE row-filter (author_id = X-Hasura-User-Id) and an UPDATE check
+		// (title != '__forbidden__'), so a non-admin on_conflict DO UPDATE drives
+		// the _upsert_conflicts / _upsert_updates / _update_post_check CTE chain.
+		// These cases EXECUTE the generated SQL (not just string-match it), so a
+		// semantic defect that silently defeats the permission enforcement fails
+		// the _data.json golden. The note 0199cccc-...0001 is seeded in
+		// pg_seeds.sql, owned by Sarah Martinez (550e8400-...0001).
+
+		// Detectable conflict (the conflict-target key `id` is supplied) whose
+		// resulting row PASSES the UPDATE check: the seeded note is genuinely
+		// updated and the new title is returned.
+		{
+			name: "upsert non-admin detectable conflict passes update check",
+			query: query{
+				Query: `mutation {
+					insert_notes_one(
+						object: {
+							id: "0199cccc-0000-7000-8000-000000000001"
+							author_id: "550e8400-e29b-41d4-a716-446655440001"
+							title: "Renamed Note"
+						}
+						on_conflict: {
+							constraint: notes_pkey
+							update_columns: [title]
+						}
+					) {
+						id
+						author_id
+						title
+					}
+				}`,
+				Role: "user",
+				SessionVariables: map[string]any{
+					"x-hasura-user-id": "550e8400-e29b-41d4-a716-446655440001",
+				},
+			},
+		},
+
+		// Detectable conflict whose resulting row FAILS the UPDATE check
+		// (title == '__forbidden__'): the _update_post_check CTE raises ZZ901 and
+		// the whole all-or-nothing mutation aborts, so the seeded row is NOT
+		// updated. Captured as the PgError map in the _data.json golden.
+		{
+			name: "upsert non-admin detectable conflict fails update check",
+			query: query{
+				Query: `mutation {
+					insert_notes_one(
+						object: {
+							id: "0199cccc-0000-7000-8000-000000000001"
+							author_id: "550e8400-e29b-41d4-a716-446655440001"
+							title: "__forbidden__"
+						}
+						on_conflict: {
+							constraint: notes_pkey
+							update_columns: [title]
+						}
+					) {
+						id
+						title
+					}
+				}`,
+				Role: "user",
+				SessionVariables: map[string]any{
+					"x-hasura-user-id": "550e8400-e29b-41d4-a716-446655440001",
+				},
+			},
+		},
+
+		// Undetectable conflict (the conflict-target key `id` is omitted, so the
+		// engine can't scope the conflict) whose row PASSES the all-rows
+		// fail-closed UPDATE check. The row is a fresh INSERT (gen_random_uuid id,
+		// not returned to keep the golden deterministic); the UPDATE check still
+		// runs against it and passes, so the insert succeeds.
+		{
+			name: "upsert non-admin undetectable conflict passes fail-closed check",
+			query: query{
+				Query: `mutation {
+					insert_notes_one(
+						object: {
+							author_id: "550e8400-e29b-41d4-a716-446655440001"
+							title: "Fresh Note"
+						}
+						on_conflict: {
+							constraint: notes_pkey
+							update_columns: [title]
+						}
+					) {
+						author_id
+						title
+					}
+				}`,
+				Role: "user",
+				SessionVariables: map[string]any{
+					"x-hasura-user-id": "550e8400-e29b-41d4-a716-446655440001",
+				},
+			},
+		},
+
+		// Undetectable conflict whose freshly-INSERTed row FAILS the UPDATE check
+		// (title == '__forbidden__'). This is the security-over-reliability
+		// fail-closed behaviour documented on writeUpsertUpdatedRowsCTE: the
+		// engine can't attribute the conflict, so it applies the UPDATE check to
+		// every RETURNING row — aborting a pure-insert that no update touched.
+		// Captured as the ZZ901 PgError map in the _data.json golden.
+		{
+			name: "upsert non-admin undetectable conflict fails fail-closed check",
+			query: query{
+				Query: `mutation {
+					insert_notes_one(
+						object: {
+							author_id: "550e8400-e29b-41d4-a716-446655440001"
+							title: "__forbidden__"
+						}
+						on_conflict: {
+							constraint: notes_pkey
+							update_columns: [title]
+						}
+					) {
+						author_id
+						title
+					}
+				}`,
+				Role: "user",
+				SessionVariables: map[string]any{
+					"x-hasura-user-id": "550e8400-e29b-41d4-a716-446655440001",
+				},
+			},
+		},
 	}
 
 	testBuildQuery(t, cases, true)

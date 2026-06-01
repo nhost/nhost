@@ -41,10 +41,10 @@ type Update struct {
 	Where where.Clause
 }
 
-// IsEmpty reports whether no update operator targets any column. WHERE-only
+// isEmpty reports whether no update operator targets any column. WHERE-only
 // update mutations are schema-valid, but they cannot produce a valid SQL SET
 // clause and must be rejected before execution.
-func (a Update) IsEmpty() bool {
+func (a Update) isEmpty() bool {
 	return len(a.Set) == 0 &&
 		len(a.Inc) == 0 &&
 		len(a.AppendJSONB) == 0 &&
@@ -288,7 +288,7 @@ func ParseUpdate( //nolint:cyclop,funlen,gocognit
 }
 
 func validateUpdateOperators(update Update) error {
-	if update.IsEmpty() {
+	if update.isEmpty() {
 		return newEmptyUpdateError()
 	}
 
@@ -305,7 +305,8 @@ func validateUpdateOperators(update Update) error {
 // targetColumns returns every SQL column targeted by an update operator, in the
 // same deterministic order WriteSQL emits assignments.
 func (a Update) targetColumns() []*core.Column {
-	columns := make([]*core.Column, 0,
+	columns := make(
+		[]*core.Column, 0,
 		len(a.Set)+len(a.Inc)+len(a.AppendJSONB)+len(a.PrependJSONB)+
 			len(a.DeleteKey)+len(a.DeleteElem)+len(a.DeleteAtPath),
 	)

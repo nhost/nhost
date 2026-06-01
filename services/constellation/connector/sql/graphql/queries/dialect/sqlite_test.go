@@ -150,7 +150,6 @@ func TestSQLiteDialect_JSONHelpers(t *testing.T) {
 			`coalesce(json_group_array(json("a")), '[]')`,
 		},
 		{"JSONBuildObject", d.JSONBuildObject(), "json_object"},
-		{"JSONBuildArray", d.JSONBuildArray(), "json_array"},
 		{"ToJSON", d.ToJSON("x"), "json(x)"},
 		{"EmptyJSONArray", d.EmptyJSONArray(), "'[]'"},
 	}

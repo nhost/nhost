@@ -168,10 +168,6 @@ func (d *SQLiteDialect) MaterializedCTE() string {
 	return "AS"
 }
 
-func (d *SQLiteDialect) JSONBuildArray() string {
-	return "json_array"
-}
-
 // WriteArrayContains is unreachable on SQLite: array operators are gated by
 // SupportsArrays() (which returns false here), so any caller hitting this
 // method has skipped the capability check. Failing loudly turns that
