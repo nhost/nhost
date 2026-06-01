@@ -13,6 +13,13 @@ import (
 	"github.com/nhost/nhost/services/constellation/internal/requestcontext"
 )
 
+const bytesPerMiB int64 = 1024 * 1024
+
+// DefaultMaxGraphQLRequestBodyBytes is the default JSON body cap for POST
+// GraphQL requests. Operators can override it on the serve command; direct
+// HandlerPost users get this safe default.
+const DefaultMaxGraphQLRequestBodyBytes int64 = 10 * bytesPerMiB
+
 // defaultSendBufferSize bounds the per-connection WebSocket outbound queue.
 // Frames are dropped when the buffer is full (see sendNext/sendError); the
 // sender goroutine is therefore decoupled from slow consumers without ever
@@ -25,6 +32,30 @@ var errMetadataReloaded = errors.New("metadata reloaded")
 // GraphQLRequest, dispatches it through Resolve, and writes the response —
 // taking the raw-bytes fast path when the connector returned pre-built JSON.
 func (c *Controller) HandlerPost(g *gin.Context) {
+	c.handlePost(g, DefaultMaxGraphQLRequestBodyBytes)
+}
+
+// HandlerPostWithMaxBodyBytes returns a Gin handler for POST /graphql that
+// rejects JSON request bodies larger than maxBodyBytes. Non-positive values use
+// DefaultMaxGraphQLRequestBodyBytes so direct callers cannot accidentally create
+// an unbounded handler.
+func (c *Controller) HandlerPostWithMaxBodyBytes(maxBodyBytes int64) gin.HandlerFunc {
+	return func(g *gin.Context) {
+		c.handlePost(g, maxBodyBytes)
+	}
+}
+
+func (c *Controller) handlePost(g *gin.Context, maxBodyBytes int64) {
+	maxBodyBytes = normalizeMaxGraphQLRequestBodyBytes(maxBodyBytes)
+	if g.Request.ContentLength > maxBodyBytes {
+		err := fmt.Errorf("%w: limit is %d bytes", errRequestBodyTooLarge, maxBodyBytes)
+		_ = g.Error(err)
+		g.JSON(http.StatusRequestEntityTooLarge, errorResponse(errRequestBodyTooLarge.Error()))
+
+		return
+	}
+
+	g.Request.Body = http.MaxBytesReader(g.Writer, g.Request.Body, maxBodyBytes)
 	// A missing Content-Type is treated as application/json. Otherwise the
 	// media type is parsed so that parameters such as "; charset=utf-8" and
 	// differing case are tolerated, matching what most GraphQL clients send.
@@ -40,6 +71,14 @@ func (c *Controller) HandlerPost(g *gin.Context) {
 
 	var reqBody GraphQLRequest
 	if err := json.UnmarshalRead(g.Request.Body, &reqBody); err != nil {
+		if requestBodyExceedsLimit(err) {
+			err = fmt.Errorf("%w: limit is %d bytes", errRequestBodyTooLarge, maxBodyBytes)
+			_ = g.Error(err)
+			g.JSON(http.StatusRequestEntityTooLarge, errorResponse(errRequestBodyTooLarge.Error()))
+
+			return
+		}
+
 		err = fmt.Errorf("%w: %w", errInvalidRequestBody, err)
 		_ = g.Error(err)
 		g.JSON(http.StatusBadRequest, errorResponse(err.Error()))
@@ -66,6 +105,20 @@ func (c *Controller) HandlerPost(g *gin.Context) {
 	}
 
 	g.JSON(http.StatusOK, resp)
+}
+
+func normalizeMaxGraphQLRequestBodyBytes(maxBodyBytes int64) int64 {
+	if maxBodyBytes <= 0 {
+		return DefaultMaxGraphQLRequestBodyBytes
+	}
+
+	return maxBodyBytes
+}
+
+func requestBodyExceedsLimit(err error) bool {
+	var maxBytesErr *http.MaxBytesError
+
+	return errors.As(err, &maxBytesErr)
 }
 
 // HandlerGet is the Gin handler for GET /graphql. It upgrades the connection

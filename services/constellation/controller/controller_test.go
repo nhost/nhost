@@ -6,6 +6,7 @@ import (
 	"encoding/json/jsontext"
 	json "encoding/json/v2"
 	"errors"
+	"io"
 	"log/slog"
 	"net/http"
 	"net/http/httptest"
@@ -90,6 +91,21 @@ func newTestRouter(t *testing.T, ctrl *controller.Controller) *gin.Engine {
 	router := gin.New()
 	router.Use(middleware.Session(testAdminSecret, middleware.NewNoOpJWTAuthenticator()))
 	router.POST("/graphql", ctrl.HandlerPost)
+	router.GET("/graphql", ctrl.HandlerGet)
+
+	return router
+}
+
+func newLimitedTestRouter(
+	t *testing.T, ctrl *controller.Controller, maxBodyBytes int64,
+) *gin.Engine {
+	t.Helper()
+
+	gin.SetMode(gin.TestMode)
+
+	router := gin.New()
+	router.Use(middleware.Session(testAdminSecret, middleware.NewNoOpJWTAuthenticator()))
+	router.POST("/graphql", ctrl.HandlerPostWithMaxBodyBytes(maxBodyBytes))
 	router.GET("/graphql", ctrl.HandlerGet)
 
 	return router
@@ -201,6 +217,55 @@ func TestHandlerPost_RejectsMalformedJSONBody(t *testing.T) {
 
 	if w.Code != http.StatusBadRequest {
 		t.Fatalf("expected 400, got %d: %s", w.Code, w.Body.String())
+	}
+}
+
+func TestHandlerPost_RejectsBodyLargerThanLimit(t *testing.T) {
+	t.Parallel()
+
+	const maxBodyBytes int64 = 16
+
+	body := []byte(`{"query":"{ users { id name } }"}`)
+
+	tests := []struct {
+		name          string
+		reader        io.Reader
+		contentLength int64
+	}{
+		{
+			name:          "known content length",
+			reader:        bytes.NewReader(body),
+			contentLength: int64(len(body)),
+		},
+		{
+			name:          "streaming body without content length",
+			reader:        io.NopCloser(bytes.NewReader(body)),
+			contentLength: -1,
+		},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			t.Parallel()
+
+			router := newLimitedTestRouter(t, newTestController(t), maxBodyBytes)
+
+			req := httptest.NewRequest(http.MethodPost, "/graphql", tt.reader)
+			req.ContentLength = tt.contentLength
+			req.Header.Set("Content-Type", "application/json")
+			req.Header.Set("X-Hasura-Admin-Secret", testAdminSecret)
+
+			w := httptest.NewRecorder()
+			router.ServeHTTP(w, req)
+
+			if w.Code != http.StatusRequestEntityTooLarge {
+				t.Fatalf("expected 413, got %d: %s", w.Code, w.Body.String())
+			}
+
+			if !strings.Contains(w.Body.String(), "request body too large") {
+				t.Errorf("response body does not explain limit failure: %s", w.Body.String())
+			}
+		})
 	}
 }
 
