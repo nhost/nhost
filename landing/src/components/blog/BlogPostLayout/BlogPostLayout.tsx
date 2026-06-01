@@ -16,6 +16,18 @@ import 'react-medium-image-zoom/dist/styles.css'
 // TODO: Break out the MDXProvider in its own MDX component
 const components = {
   img: (props: any) => <ImageWithLegend {...props} />,
+  a: ({ href, rel, target, ...props }: any) => {
+    const isExternal = /^https?:\/\//.test(href ?? '')
+
+    return (
+      <a
+        href={href}
+        rel={isExternal ? 'noopener noreferrer' : rel}
+        target={isExternal ? '_blank' : target}
+        {...props}
+      />
+    )
+  },
 }
 
 function Share({ title }: { title: string }) {
