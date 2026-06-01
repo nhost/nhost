@@ -13,9 +13,9 @@
   "dependencies": {
     "@expo/vector-icons": "^14.1.0",
     "@nhost/nhost-js": "workspace:^",
-    "@react-navigation/bottom-tabs": "^7.15.9",
-    "@react-navigation/elements": "^2.9.14",
-    "@react-navigation/native": "^7.2.2",
+    "@react-navigation/bottom-tabs": "^7.16.2",
+    "@react-navigation/elements": "^2.9.19",
+    "@react-navigation/native": "^7.2.5",
     "expo": "~53.0.27",
     "expo-blur": "~14.1.5",
     "expo-constants": "~17.1.8",
@@ -40,9 +40,9 @@
     "react-native-webview": "13.13.5"
   },
   "devDependencies": {
-    "@babel/core": "^7.28.4",
+    "@babel/core": "^7.29.7",
     "@types/react": "~19.0.14",
-    "eslint": "^9.35.0",
+    "eslint": "^9.39.4",
     "eslint-config-expo": "~9.2.0",
     "typescript": "~5.8.3"
   },
