@@ -224,6 +224,30 @@ func (c *Connector) GetTypeName(identifier string) string {
 	return ""
 }
 
+func (c *Connector) roleRootTypeName(role string, operation ast.Operation) string {
+	schema := c.schemas[role]
+	if schema == nil {
+		return defaultRootTypeName(operation)
+	}
+
+	switch operation {
+	case ast.Query:
+		if schema.QueryType != nil {
+			return *schema.QueryType
+		}
+	case ast.Mutation:
+		if schema.MutationType != nil {
+			return *schema.MutationType
+		}
+	case ast.Subscription:
+		if schema.SubscriptionType != nil {
+			return *schema.SubscriptionType
+		}
+	}
+
+	return defaultRootTypeName(operation)
+}
+
 // Close releases connector-owned resources. Currently a no-op because the
 // remote schema connector borrows its HTTP transport from the caller and
 // holds no other state requiring shutdown.
@@ -240,7 +264,12 @@ func (c *Connector) Execute(
 	sessionVariables map[string]any,
 	logger *slog.Logger,
 ) (map[string]any, error) {
-	modifiedOp := applyPresets(operation, c.presets[role], sessionVariables)
+	rootTypeName := ""
+	if operation != nil {
+		rootTypeName = c.roleRootTypeName(role, operation.Operation)
+	}
+
+	modifiedOp := applyPresets(operation, c.presets[role], sessionVariables, rootTypeName)
 	query := buildQueryString(modifiedOp, fragments)
 
 	var clientHeaders http.Header
