@@ -207,6 +207,26 @@ func parseRSAPublicKey(key string) (*rsa.PublicKey, error) {
 	return rsaPub, nil
 }
 
+// jwksAllowedMethods returns the signing-algorithm allowlist pinned at the
+// parser layer for JWKS-backed secrets. A JWKS secret has no configured
+// algorithm (Type is empty by construction — jwtconfig rejects Type/Key with
+// JWKURL), so the allowlist is derived from the
+// asymmetric families the static-key path already accepts (RS*). It
+// deliberately excludes every symmetric (HS*) algorithm and "none": a JWKS
+// endpoint only ever serves asymmetric public keys, so pinning the RSA family
+// eliminates reliance on the JWT library's type-assertion and
+// none-magic-constant guards regardless of what a remote JWKS serves. EC*/PS*
+// are intentionally omitted because the static-key path does not support them
+// either; add them here (and to the static path) only if a deployment is
+// expected to use them.
+func jwksAllowedMethods() []string {
+	return []string{
+		string(jwtconfig.AlgorithmRS256),
+		string(jwtconfig.AlgorithmRS384),
+		string(jwtconfig.AlgorithmRS512),
+	}
+}
+
 func buildParserOptions(secret jwtconfig.Secret) []jwt.ParserOption {
 	opts := []jwt.ParserOption{
 		jwt.WithExpirationRequired(),
@@ -214,6 +234,8 @@ func buildParserOptions(secret jwtconfig.Secret) []jwt.ParserOption {
 
 	if secret.JWKURL == "" {
 		opts = append(opts, jwt.WithValidMethods([]string{string(secret.Type)}))
+	} else {
+		opts = append(opts, jwt.WithValidMethods(jwksAllowedMethods()))
 	}
 
 	if secret.Issuer != "" {
