@@ -92,10 +92,6 @@ type Dialect interface { //nolint:interfacebloat
 	// MaterializedCTE returns "AS MATERIALIZED" or "AS" depending on support.
 	MaterializedCTE() string
 
-	// JSONBuildArray returns the function name for building JSON arrays.
-	// PostgreSQL: jsonb_build_array    SQLite: json_array
-	JSONBuildArray() string
-
 	// WriteArrayContains writes the "array contains" operator (column @> value).
 	// PostgreSQL: column @> $N::type[]
 	WriteArrayContains(b *strings.Builder, column, castPlaceholder string)

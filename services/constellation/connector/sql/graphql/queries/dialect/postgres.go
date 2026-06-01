@@ -128,10 +128,6 @@ func (d *PostgresDialect) MaterializedCTE() string {
 	return "AS MATERIALIZED"
 }
 
-func (d *PostgresDialect) JSONBuildArray() string {
-	return "jsonb_build_array"
-}
-
 func (d *PostgresDialect) WriteArrayContains(b *strings.Builder, column, castPlaceholder string) {
 	b.WriteString(column)
 	b.WriteString(" @> ")

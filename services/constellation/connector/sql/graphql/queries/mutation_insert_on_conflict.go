@@ -78,13 +78,18 @@ func (t *table) onConflictUpdateFilterWriter(
 			// builds the `<table>_update_column` enum from
 			// getUpdateAllowedColumns, which is empty for a non-admin role
 			// without update permission, so that enum carries only the
-			// `_PLACEHOLDER` sentinel. arguments.ParseOnConflict rejects
-			// `_PLACEHOLDER` (it is not a real column), leaving update_columns
-			// empty, which resolves to DO NOTHING — so such a role can never
-			// reach DO UPDATE. Emitting no filter is therefore intentional, not
-			// a missing check. If schema-gen ever stops gating the enum this
-			// way, this branch becomes a privilege-escalation path and must
-			// scope the filter instead.
+			// `_PLACEHOLDER` sentinel. The only update_columns value such a role
+			// can name is `_PLACEHOLDER`, and arguments.ParseOnConflict resolves
+			// each entry via ColumnFromGraphqlName: `_PLACEHOLDER` has no real
+			// column, so ParseOnConflict returns ErrInvalidArgument and the
+			// whole upsert is rejected before any SQL is built — DO UPDATE is
+			// unreachable. (The empty-update_columns -> DO NOTHING path in
+			// ToSQLWithWhere is the separate, legitimate "insert-or-ignore" case
+			// reached only when a caller passes an explicit empty list; it is
+			// not how this privilege boundary is enforced.) Emitting no filter
+			// is therefore intentional, not a missing check. If schema-gen ever
+			// stops gating the enum this way, this branch becomes a
+			// privilege-escalation path and must scope the filter instead.
 			return params, paramIndex, false, nil
 		}
 

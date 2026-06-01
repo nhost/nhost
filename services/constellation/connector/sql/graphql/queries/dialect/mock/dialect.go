@@ -138,20 +138,6 @@ func (mr *MockDialectMockRecorder) JSONAggRawExpr(expr any) *gomock.Call {
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "JSONAggRawExpr", reflect.TypeOf((*MockDialect)(nil).JSONAggRawExpr), expr)
 }
 
-// JSONBuildArray mocks base method.
-func (m *MockDialect) JSONBuildArray() string {
-	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "JSONBuildArray")
-	ret0, _ := ret[0].(string)
-	return ret0
-}
-
-// JSONBuildArray indicates an expected call of JSONBuildArray.
-func (mr *MockDialectMockRecorder) JSONBuildArray() *gomock.Call {
-	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "JSONBuildArray", reflect.TypeOf((*MockDialect)(nil).JSONBuildArray))
-}
-
 // JSONBuildObject mocks base method.
 func (m *MockDialect) JSONBuildObject() string {
 	m.ctrl.T.Helper()

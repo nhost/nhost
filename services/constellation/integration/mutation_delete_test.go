@@ -424,11 +424,15 @@ func TestDeleteMutations(t *testing.T) { //nolint:paralleltest,maintidx
 // relationship LATERAL join reads the pre-delete MVCC snapshot within the single
 // statement — whereas Hasura resolves the relationship post-cascade and returns
 // []. This is a documented known difference (KNOWN_DIFFERENCES.md,
-// "Relationships in delete returning"), so the two cascade cases below assert
+// "Relationships in delete returning"), so the cascade case below asserts
 // Constellation's behaviour via a fixed expected response instead of diffing
 // against Hasura; order_by + limit keep the asserted row deterministic. All array
 // relationships in this schema use ON DELETE CASCADE foreign keys, so a
 // non-cascade array relationship returning surviving rows is not expressible here.
+//
+// This case covers the collection delete path (selection.WriteSQL); the
+// equivalent delete_by_pk path (buildFinalSelect) is asserted by
+// TestDeleteByPkMutations' "delete_by_pk with nested relationships in selection".
 func TestDeleteReturningRelationships(t *testing.T) { //nolint:paralleltest
 	cases := []TestCase{
 		{
@@ -500,37 +504,6 @@ func TestDeleteReturningRelationships(t *testing.T) { //nolint:paralleltest
 										"role":    "manager",
 									},
 								},
-							},
-						},
-					},
-				},
-			},
-		},
-		{
-			// Same cascade DIVERGENCE via the delete_by_pk path (buildFinalSelect).
-			name: "delete_by_pk returning cascade array relationship returns pre-cascade rows",
-			query: query{
-				Query: `mutation {
-					delete_departments_by_pk(id: "2db9de0a-b9ba-416e-8619-783a399ae2b3") {
-						id
-						name
-						employees(order_by: { user_id: asc }, limit: 1) {
-							user_id
-							role
-						}
-					}
-				}`,
-				Role: "admin",
-			},
-			expected: map[string]any{
-				"data": map[string]any{
-					"delete_departments_by_pk": map[string]any{
-						"id":   "2db9de0a-b9ba-416e-8619-783a399ae2b3",
-						"name": "Human Resources",
-						"employees": []any{
-							map[string]any{
-								"user_id": "550e8400-e29b-41d4-a716-446655440001",
-								"role":    "manager",
 							},
 						},
 					},
