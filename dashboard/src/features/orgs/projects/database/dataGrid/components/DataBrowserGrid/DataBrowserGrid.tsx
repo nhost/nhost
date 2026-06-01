@@ -62,8 +62,7 @@ export function extractColumnMetadata(
   column: NormalizedQueryDataRow,
   isEditable: boolean = true,
 ): DataBrowserColumnMetadata {
-  const { normalizedDefaultValue, custom: isDefaultValueCustom } =
-    normalizeDefaultValue(column.column_default);
+  const normalizedDefault = normalizeDefaultValue(column.column_default);
 
   const isGenerated = isGeneratedColumn(column);
 
@@ -75,8 +74,8 @@ export function extractColumnMetadata(
     isIdentity: column.is_identity === 'YES',
     isGenerated,
     generationExpression: column.generation_expression ?? null,
-    defaultValue: normalizedDefaultValue,
-    isDefaultValueCustom,
+    defaultValue: normalizedDefault?.value ?? null,
+    isDefaultValueCustom: normalizedDefault?.custom ?? false,
     isUnique: column.is_unique,
     comment: column.column_comment,
     uniqueConstraints: column.unique_constraints,

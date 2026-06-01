@@ -5,6 +5,7 @@ import type {
 import { isGeneratedColumn } from '@/features/orgs/projects/database/dataGrid/utils/isGeneratedColumn';
 import { normalizeColumnType } from '@/features/orgs/projects/database/dataGrid/utils/normalizeColumnType';
 import { normalizeDefaultValue } from '@/features/orgs/projects/database/dataGrid/utils/normalizeDefaultValue';
+
 /**
  * Converts a raw database column to a normalized database column.
  *
@@ -14,10 +15,6 @@ import { normalizeDefaultValue } from '@/features/orgs/projects/database/dataGri
 export default function normalizeDatabaseColumn(
   rawColumn: NormalizedQueryDataRow,
 ): DatabaseColumn {
-  const { normalizedDefaultValue, custom } = normalizeDefaultValue(
-    rawColumn.column_default,
-  );
-
   return {
     id: rawColumn.column_name,
     name: rawColumn.column_name,
@@ -29,9 +26,7 @@ export default function normalizeDatabaseColumn(
     isNullable: rawColumn.is_nullable === 'YES',
     isUnique: rawColumn.is_unique,
     comment: rawColumn.column_comment || null,
-    defaultValue: rawColumn.column_default
-      ? { value: normalizedDefaultValue, custom }
-      : null,
+    defaultValue: normalizeDefaultValue(rawColumn.column_default),
     uniqueConstraints: rawColumn.unique_constraints,
     primaryConstraints: rawColumn.primary_constraints,
     foreignKeyRelation: rawColumn.foreign_key_relation,
