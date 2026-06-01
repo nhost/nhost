@@ -224,6 +224,7 @@ func TestHandlerPost_RejectsBodyLargerThanLimit(t *testing.T) {
 	t.Parallel()
 
 	const maxBodyBytes int64 = 16
+
 	body := []byte(`{"query":"{ users { id name } }"}`)
 
 	tests := []struct {
