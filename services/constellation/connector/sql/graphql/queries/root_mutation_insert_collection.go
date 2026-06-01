@@ -113,6 +113,7 @@ func (t *table) buildInsertCollectionSQL(
 		}
 
 		selection.returning.nestedCTENames = nestedNames
+		selection.returning.nestedCTEs = nestedCTERefs.returning
 	}
 
 	params, _, err = selection.WriteSQL(
