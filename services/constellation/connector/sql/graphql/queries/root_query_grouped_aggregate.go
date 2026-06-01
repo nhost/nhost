@@ -19,7 +19,7 @@ var _ groupedaggdispatch.Builder = (*table)(nil)
 
 const (
 	groupedAggregateKeysAlias       = "__cs_grp_keys"
-	groupedAggregateKeyCol          = "_join_key"
+	groupedAggregateKeyCol          = groupedaggdispatch.ResultJoinKeyField
 	groupedAggregateBaseAlias       = "_root.base"
 	groupedAggregateWindowedAlias   = "_root.windowed"
 	groupedAggregateWindowKeysAlias = "_root.keys"
@@ -51,6 +51,14 @@ var ErrGroupedAggregateRelationshipOrderBy = errors.New(
 // for cross-database aggregates.
 var errGroupedAggregateNestedRelationships = errors.New(
 	"nested relationships inside cross-database aggregate nodes are not supported",
+)
+
+// errGroupedAggregateReservedResponseName is returned when a grouped aggregate
+// selection uses the internal join-key transport field as a GraphQL response
+// name. The parser drops that field after keying the grouped result map, so the
+// builder must reserve it to avoid silently discarding user-selected data.
+var errGroupedAggregateReservedResponseName = errors.New(
+	"grouped aggregate response name is reserved",
 )
 
 // groupedLimitOffset carries the per-group limit/offset parsed from the
@@ -85,10 +93,10 @@ func (lo groupedLimitOffset) effectiveOffset() int {
 // many parent rows in a single round-trip.
 //
 // The returned SQL emits one JSON object per join key. Each object contains
-// "_join_key" plus the requested aggregate/nodes response names (aliases when
-// present, otherwise "aggregate" / "nodes"). One row is emitted for every value
-// in in.JoinValues, including those with no matching target rows (count is 0,
-// and nodes selections are []).
+// the reserved internal join key plus the requested aggregate/nodes response
+// names (aliases when present, otherwise "aggregate" / "nodes"). One row is
+// emitted for every value in in.JoinValues, including those with no matching
+// target rows (count is 0, and nodes selections are []).
 func (t *table) BuildGroupedAggregateSQL(
 	in groupedaggdispatch.BuildInput,
 ) (core.SQLOperation, error) {
@@ -112,6 +120,12 @@ func (t *table) BuildGroupedAggregateSQL(
 		in.Variables,
 	)
 	if err != nil {
+		return core.SQLOperation{}, err
+	}
+
+	if err := validateGroupedAggregateResponseNames(
+		outerTypenames, aggregateFields, nodesFields,
+	); err != nil {
 		return core.SQLOperation{}, err
 	}
 
@@ -154,6 +168,51 @@ type groupedAggregateSelection struct {
 	distinctOn      *arguments.DistinctOn
 	orderBy         *arguments.OrderBy
 	limitOffset     groupedLimitOffset
+}
+
+func validateGroupedAggregateResponseNames(
+	outerTypenames []typenameSelection,
+	aggregateFields []aggregateFieldSelection,
+	nodesFields []aggregateNodesSelection,
+) error {
+	for i := range outerTypenames {
+		if err := validateGroupedAggregateResponseName(
+			"__typename", outerTypenames[i].alias,
+		); err != nil {
+			return err
+		}
+	}
+
+	for i := range aggregateFields {
+		if err := validateGroupedAggregateResponseName(
+			"aggregate", aggregateFields[i].responseName,
+		); err != nil {
+			return err
+		}
+	}
+
+	for i := range nodesFields {
+		if err := validateGroupedAggregateResponseName(
+			"nodes", nodesFields[i].responseName,
+		); err != nil {
+			return err
+		}
+	}
+
+	return nil
+}
+
+func validateGroupedAggregateResponseName(fieldName string, responseName string) error {
+	if responseName != groupedaggdispatch.ResultJoinKeyField {
+		return nil
+	}
+
+	return fmt.Errorf(
+		"%w: %q is reserved for grouped aggregate join keys; alias %s differently",
+		errGroupedAggregateReservedResponseName,
+		responseName,
+		fieldName,
+	)
 }
 
 // writeGroupedAggregateStatement assembles the full grouped-aggregate SQL: the
@@ -555,8 +614,8 @@ func writeGroupedDistinctOrderBy(b *strings.Builder, orderBy *arguments.OrderBy)
 //
 // The single-row, single-column result preserves the existing one-row-per-
 // operation contract of Driver.ExecuteOperations: the value is a JSON array
-// of group objects, each shaped with "_join_key" plus the requested aggregate
-// and nodes response names.
+// of group objects, each shaped with the reserved internal join key plus the
+// requested GraphQL response names.
 func (t *table) writeGroupedAggregateOuter( //nolint:funlen
 	b *strings.Builder,
 	params []any, paramIndex int,

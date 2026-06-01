@@ -94,10 +94,11 @@ func NewRequest(req Request) (Request, error) {
 //
 // Result-map invariants. The returned map is keyed by the stringified join
 // value — specifically fmt.Sprintf("%v", v) of each entry in Request.JoinValues
-// — and each value is shaped { "aggregate": {...}, "nodes": [...] }, the same
-// shape as the same-database aggregate field. An entry is present for every
-// value in Request.JoinValues, including those with no matching target rows
-// (count: 0, nodes: []). Because keys are %v-stringified, distinct JoinValues
+// — and each value preserves the same GraphQL response fields as the same-
+// database aggregate field (aliases when present, otherwise "aggregate" /
+// "nodes"). An entry is present for every value in Request.JoinValues,
+// including those with no matching target rows (count: 0, nodes: []). Because
+// keys are %v-stringified, distinct JoinValues
 // entries that share the same %v representation (e.g. a []byte and its string
 // equivalent) will collide on the same key; callers must dedupe in a way that
 // matches that formatting. The resolver-side stitcher applies the same
