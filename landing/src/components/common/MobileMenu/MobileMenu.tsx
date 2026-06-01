@@ -103,6 +103,28 @@ function MobileMenu(
                   Functions
                 </Button>
               </li>
+              <li>
+                <Button
+                  size="sm"
+                  variant="borderless"
+                  href="/product/ai"
+                  className="w-full text-base text-opacity-65"
+                  onClick={onLinkClick}
+                >
+                  AI
+                </Button>
+              </li>
+              <li>
+                <Button
+                  size="sm"
+                  variant="borderless"
+                  href="/product/run"
+                  className="w-full text-base text-opacity-65"
+                  onClick={onLinkClick}
+                >
+                  Run
+                </Button>
+              </li>
             </ul>
           )}
           <li>

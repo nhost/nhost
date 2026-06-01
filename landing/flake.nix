@@ -1,6 +1,6 @@
 {
   inputs = {
-    nixops.url = "github:nhost/nixops";
+    nixops.url = "github:nhost/nhost";
     nixpkgs.follows = "nixops/nixpkgs";
     flake-utils.follows = "nixops/flake-utils";
     nix-filter.follows = "nixops/nix-filter";
@@ -22,12 +22,6 @@
             (nix-filter.lib.matchExt "nix")
           ];
         };
-
-        buildInputs = with pkgs; [
-        ];
-
-        nativeBuildInputs = with pkgs; [
-        ];
       in
       {
         checks = {
@@ -48,8 +42,8 @@
           default = pkgs.mkShell {
             buildInputs = with pkgs; [
               nodejs_22
-              nodePackages.pnpm
-            ] ++ buildInputs ++ nativeBuildInputs;
+              pnpm
+            ];
           };
         };
 
