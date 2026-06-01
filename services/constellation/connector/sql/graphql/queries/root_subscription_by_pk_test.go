@@ -1,3 +1,4 @@
+//nolint:dupl // by-pk query/subscription test files intentionally mirror operation-kind coverage.
 package queries_test
 
 import (

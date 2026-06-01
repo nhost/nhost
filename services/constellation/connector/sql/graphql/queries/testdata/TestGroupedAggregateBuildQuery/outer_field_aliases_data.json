@@ -1,0 +1,48 @@
+[
+  [
+    {
+      "_join_key": "00000000-0000-0000-0000-000000000099",
+      "stats": {
+        "total": 0,
+        "highest": {
+          "role_name": null
+        }
+      },
+      "rows": []
+    },
+    {
+      "_join_key": "550e8400-e29b-41d4-a716-446655440001",
+      "stats": {
+        "total": 2,
+        "highest": {
+          "role_name": "member"
+        }
+      },
+      "rows": [
+        {
+          "role_name": "manager"
+        },
+        {
+          "role_name": "member"
+        }
+      ]
+    },
+    {
+      "_join_key": "550e8400-e29b-41d4-a716-446655440002",
+      "stats": {
+        "total": 2,
+        "highest": {
+          "role_name": "member"
+        }
+      },
+      "rows": [
+        {
+          "role_name": "member"
+        },
+        {
+          "role_name": "member"
+        }
+      ]
+    }
+  ]
+]

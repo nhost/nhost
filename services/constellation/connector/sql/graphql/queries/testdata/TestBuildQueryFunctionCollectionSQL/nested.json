@@ -1,11 +1,11 @@
 [
   {
     "Name": "search_news",
-    "QueryType": "select",
-    "SQL": "SELECT coalesce(json_agg(\"_root\"), '[]') AS \"search_news\" FROM (WITH \"_root.base\" AS (SELECT * FROM \"public\".\"search_news\"($1) AS \"_fn_search_news\" WHERE EXISTS (SELECT 1 FROM \"auth\".\"users\" f WHERE \"_fn_search_news\".\"author_id\" = f.\"id\" AND f.\"display_name\" = $2::text) ORDER BY \"created_at\" DESC) SELECT row_to_json((SELECT \"_e\" FROM (SELECT \"_root.base\".\"id\" AS \"id\", \"_root.base\".\"content\" AS \"content\", \"_root.r.author\".\"author\" AS \"author\") AS \"_e\")) AS \"_root\" FROM \"_root.base\" LEFT OUTER JOIN LATERAL (WITH \"_root.r.author.base\" AS (SELECT * FROM \"auth\".\"users\" WHERE \"_root.base\".\"author_id\" = \"id\" LIMIT 1) SELECT row_to_json((SELECT \"_e\" FROM (SELECT \"_root.r.author.base\".\"display_name\" AS \"displayName\") AS \"_e\")) AS \"author\" FROM \"_root.r.author.base\") AS \"_root.r.author\" ON ('true')) AS \"_root\"",
+    "SQL": "SELECT coalesce(json_agg(\"_root\"), '[]') AS \"search_news\" FROM (WITH \"_root.base\" AS (SELECT * FROM \"public\".\"search_news\"(\"search\" := $1) AS \"_fn_search_news\" WHERE EXISTS (SELECT 1 FROM \"auth\".\"users\" f WHERE \"_fn_search_news\".\"author_id\" = f.\"id\" AND f.\"display_name\" = $2::text) ORDER BY \"created_at\" DESC) SELECT row_to_json((SELECT \"_e\" FROM (SELECT \"_root.base\".\"id\" AS \"id\", \"_root.base\".\"content\" AS \"content\", \"_root.r.author\".\"author\" AS \"author\") AS \"_e\")) AS \"_root\" FROM \"_root.base\" LEFT OUTER JOIN LATERAL (WITH \"_root.r.author.base\" AS (SELECT * FROM \"auth\".\"users\" WHERE \"_root.base\".\"author_id\" = \"id\" LIMIT 1) SELECT row_to_json((SELECT \"_e\" FROM (SELECT \"_root.r.author.base\".\"display_name\" AS \"displayName\") AS \"_e\")) AS \"author\" FROM \"_root.r.author.base\") AS \"_root.r.author\" ON ('true')) AS \"_root\"",
     "Parameters": [
       "a",
       "Sarah Martinez"
-    ]
+    ],
+    "StreamCursors": null
   }
 ]

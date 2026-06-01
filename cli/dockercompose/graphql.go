@@ -54,16 +54,17 @@ func graphql( //nolint:funlen
 	}
 
 	if !constellationEnabled {
-		labels = append(labels, Ingress{
-			Name: "graphql",
-			TLS:  useTLS,
-			Rule: traefikHostMatch("graphql") + "&& PathPrefix(`/v1`)",
-			Port: hasuraPort,
-			Rewrite: &Rewrite{
-				Regex:       "/v1(/|$$)(.*)",
-				Replacement: "/v1/graphql$$2",
+		labels = append(
+			labels, Ingress{
+				Name: "graphql",
+				TLS:  useTLS,
+				Rule: traefikHostMatch("graphql") + "&& PathPrefix(`/v1`)",
+				Port: hasuraPort,
+				Rewrite: &Rewrite{
+					Regex:       "/v1(/|$$)(.*)",
+					Replacement: "/v1/graphql$$2",
+				},
 			},
-		},
 		)
 	}
 

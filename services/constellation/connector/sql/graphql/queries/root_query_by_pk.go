@@ -49,6 +49,7 @@ func (t *table) buildQueryByPkSQL(
 		"_root",
 		t.tableFromClause(),
 		t.tableSourceRef(),
+		rootFieldName(field),
 		func(whereClause where.Clause, modifiers []arguments.QueryModifier) (where.Clause, []arguments.QueryModifier) {
 			return append(whereClause, where.NewAndFilter(pkConditions)), modifiers
 		},
@@ -73,10 +74,10 @@ func (t *table) buildQueryByPkSQL(
 	}, nil
 }
 
-// writeQueryByPkSQL emits the SQL for an object-relationship target — a
-// single-row query at the relationship level — into b. Forces LIMIT 1 onto
-// the query modifiers.
-func (t *table) writeQueryByPkSQL(
+// writeQueryByPkSQLFromSource emits the SQL for an object-relationship target — a
+// single-row query at the relationship level — into b. Forces LIMIT 1 onto the
+// query modifiers.
+func (t *table) writeQueryByPkSQLFromSource(
 	b *strings.Builder,
 	field *ast.Field,
 	fragments ast.FragmentDefinitionList,
@@ -88,6 +89,10 @@ func (t *table) writeQueryByPkSQL(
 	paramIndex int,
 	alias string,
 	relName string,
+	fromClause string,
+	sourceRef string,
+	nestedCTEs map[string]nestedReturningCTERef,
+	argumentPath string,
 	queryModifiers ...queryModifierFunc,
 ) ([]any, int, error) {
 	queryModifiers = append(
@@ -97,7 +102,7 @@ func (t *table) writeQueryByPkSQL(
 		},
 	)
 
-	return t.buildQuerySQL(
+	return t.buildQuerySQLWithNestedCTEs(
 		b,
 		field,
 		fragments,
@@ -109,9 +114,12 @@ func (t *table) writeQueryByPkSQL(
 		paramIndex,
 		alias,
 		relName,
-		t.tableFromClause(),
-		t.tableSourceRef(),
-		queryModifiers...)
+		fromClause,
+		sourceRef,
+		nestedCTEs,
+		argumentPath,
+		queryModifiers...,
+	)
 }
 
 // buildQuerySQL is the core SQL generation logic shared by both collection and by_pk queries.
@@ -131,6 +139,45 @@ func (t *table) buildQuerySQL(
 	outputAlias string,
 	fromClause string,
 	sourceRef string,
+	argumentPath string,
+	queryModifiers ...queryModifierFunc,
+) ([]any, int, error) {
+	return t.buildQuerySQLWithNestedCTEs(
+		b,
+		field,
+		fragments,
+		variables,
+		role,
+		sessionVariables,
+		roots,
+		params,
+		paramIndex,
+		alias,
+		outputAlias,
+		fromClause,
+		sourceRef,
+		nil,
+		argumentPath,
+		queryModifiers...,
+	)
+}
+
+func (t *table) buildQuerySQLWithNestedCTEs(
+	b *strings.Builder,
+	field *ast.Field,
+	fragments ast.FragmentDefinitionList,
+	variables map[string]any,
+	role string,
+	sessionVariables map[string]any,
+	roots map[string]core.Operation,
+	params []any,
+	paramIndex int,
+	alias string,
+	outputAlias string,
+	fromClause string,
+	sourceRef string,
+	nestedCTEs map[string]nestedReturningCTERef,
+	argumentPath string,
 	queryModifiers ...queryModifierFunc,
 ) ([]any, int, error) {
 	columns, relationships, err := t.astToQuerySelection(field, fragments)
@@ -142,7 +189,7 @@ func (t *table) buildQuerySQL(
 
 	params, paramIndex, err = t.buildQueryCTE(
 		b, field, variables, role, sessionVariables, params, paramIndex,
-		baseAlias, fromClause, sourceRef, queryModifiers...,
+		baseAlias, fromClause, sourceRef, argumentPath, queryModifiers...,
 	)
 	if err != nil {
 		return nil, 0, err
@@ -156,13 +203,15 @@ func (t *table) buildQuerySQL(
 	if t.dialect.SupportsLateral() {
 		return t.buildQueryRelationshipsLateral(
 			b, relationships, fragments, variables, role, sessionVariables,
-			roots, params, paramIndex, baseAlias, alias, outputAlias, hasColumns,
+			roots, params, paramIndex, baseAlias, alias, outputAlias, nestedCTEs,
+			argumentPath, hasColumns,
 		)
 	}
 
 	return t.buildQueryRelationshipsSubquery(
 		b, relationships, fragments, variables, role, sessionVariables,
-		roots, params, paramIndex, baseAlias, alias, outputAlias, hasColumns,
+		roots, params, paramIndex, baseAlias, alias, outputAlias, nestedCTEs,
+		argumentPath, hasColumns,
 	)
 }
 
@@ -178,12 +227,15 @@ func (t *table) buildQueryCTE(
 	baseAlias string,
 	fromClause string,
 	sourceRef string,
+	argumentPath string,
 	queryModifiers ...queryModifierFunc,
 ) ([]any, int, error) {
 	whereClause, modifiers, distinctOn, err := arguments.ParseQuery(
-		t, field.Arguments, variables, role, sessionVariables,
+		t, field.Arguments, variables, role, sessionVariables, sourceRef,
 	)
 	if err != nil {
+		err = annotateQueryValidationError(err, argumentPath)
+
 		return nil, 0, fmt.Errorf(
 			"parsing query arguments for %s.%s: %w", t.schemaName, t.tableName, err,
 		)
@@ -214,7 +266,11 @@ func (t *table) buildQueryCTE(
 
 	for _, m := range modifiers {
 		b.WriteString(" ")
-		m.WriteSQL(b)
+
+		params, paramIndex, err = m.WriteSQL(b, params, paramIndex)
+		if err != nil {
+			return nil, 0, fmt.Errorf("error building query modifier: %w", err)
+		}
 	}
 
 	b.WriteString(") ")
@@ -270,6 +326,37 @@ func (t *table) writeQuerywhereClause(
 	return params, paramIndex, nil
 }
 
+func buildRelationshipSelectionSQL(
+	b *strings.Builder,
+	relSel relationshipSelection,
+	nestedCTEs map[string]nestedReturningCTERef,
+	fragments ast.FragmentDefinitionList,
+	variables map[string]any,
+	role string,
+	sessionVariables map[string]any,
+	roots map[string]core.Operation,
+	params []any,
+	paramIndex int,
+	parentAlias string,
+	relAlias string,
+	argumentPath string,
+) ([]any, int, error) {
+	if nestedCTERef, isNested := nestedReturningCTERefForSelection(
+		nestedCTEs,
+		relSel,
+	); isNested {
+		return writeNestedReturningSelection(
+			parentAlias, argumentPath, relAlias, nestedCTERef, relSel, b, fragments,
+			variables, role, sessionVariables, roots, params, paramIndex,
+		)
+	}
+
+	return relSel.relationship.buildSelectionSQL(
+		b, relSel.field, fragments, variables, role, sessionVariables,
+		roots, params, paramIndex, parentAlias, relAlias, argumentPath,
+	)
+}
+
 // buildQueryRelationshipsLateral builds relationships using PostgreSQL LATERAL joins.
 func (t *table) buildQueryRelationshipsLateral(
 	b *strings.Builder,
@@ -284,6 +371,8 @@ func (t *table) buildQueryRelationshipsLateral(
 	baseAlias string,
 	alias string,
 	outputAlias string,
+	nestedCTEs map[string]nestedReturningCTERef,
+	argumentPath string,
 	hasColumns bool,
 ) ([]any, int, error) {
 	for _, relSel := range relationships {
@@ -311,9 +400,9 @@ func (t *table) buildQueryRelationshipsLateral(
 
 		var err error
 
-		params, paramIndex, err = relSel.relationship.buildSelectionSQL(
-			b, relSel.field, fragments, variables, role, sessionVariables,
-			roots, params, paramIndex, baseAlias, relAlias,
+		params, paramIndex, err = buildRelationshipSelectionSQL(
+			b, relSel, nestedCTEs, fragments, variables, role, sessionVariables,
+			roots, params, paramIndex, baseAlias, relAlias, argumentPath,
 		)
 		if err != nil {
 			return nil, 0, fmt.Errorf("error building relationship %s: %w", relSel.alias, err)
@@ -341,6 +430,8 @@ func (t *table) buildQueryRelationshipsSubquery(
 	baseAlias string,
 	alias string,
 	outputAlias string,
+	nestedCTEs map[string]nestedReturningCTERef,
+	argumentPath string,
 	hasColumns bool,
 ) ([]any, int, error) {
 	for _, relSel := range relationships {
@@ -356,9 +447,9 @@ func (t *table) buildQueryRelationshipsSubquery(
 
 		var err error
 
-		params, paramIndex, err = relSel.relationship.buildSelectionSQL(
-			b, relSel.field, fragments, variables, role, sessionVariables,
-			roots, params, paramIndex, baseAlias, relAlias,
+		params, paramIndex, err = buildRelationshipSelectionSQL(
+			b, relSel, nestedCTEs, fragments, variables, role, sessionVariables,
+			roots, params, paramIndex, baseAlias, relAlias, argumentPath,
 		)
 		if err != nil {
 			return nil, 0, fmt.Errorf("error building relationship %s: %w", relSel.alias, err)

@@ -1,4 +1,5 @@
 import debounce from 'lodash.debounce';
+import { PlusIcon, SearchIcon, UserIcon } from 'lucide-react';
 import { useRouter } from 'next/router';
 import type { ChangeEvent, ReactElement } from 'react';
 import { useEffect, useMemo, useRef, useState } from 'react';
@@ -10,9 +11,6 @@ import { ActivityIndicator } from '@/components/ui/v2/ActivityIndicator';
 import { Box } from '@/components/ui/v2/Box';
 import { Button } from '@/components/ui/v2/Button';
 import { Input } from '@/components/ui/v2/Input';
-import { PlusIcon } from '@/components/ui/v2/icons/PlusIcon';
-import { SearchIcon } from '@/components/ui/v2/icons/SearchIcon';
-import { UserIcon } from '@/components/ui/v2/icons/UserIcon';
 import { Text } from '@/components/ui/v2/Text';
 import { useRemoteApplicationGQLClient } from '@/features/orgs/hooks/useRemoteApplicationGQLClient';
 import { OrgLayout } from '@/features/orgs/layout/OrgLayout';
@@ -221,10 +219,7 @@ function UsersPageContent() {
             className="rounded-sm"
             placeholder="Search users"
             startAdornment={
-              <SearchIcon
-                className="-mr-1 ml-2 h-4 w-4 shrink-0"
-                sx={{ color: 'text.disabled' }}
-              />
+              <SearchIcon className="-mr-1 ml-2 h-4 w-4 shrink-0 text-disabled" />
             }
             onChange={handleSearchStringChange}
           />
@@ -269,10 +264,7 @@ function UsersPageContent() {
           className="rounded-sm"
           placeholder="Search users"
           startAdornment={
-            <SearchIcon
-              className="-mr-1 ml-2 h-4 w-4 shrink-0"
-              sx={{ color: 'text.disabled' }}
-            />
+            <SearchIcon className="-mr-1 ml-2 h-4 w-4 shrink-0 text-disabled" />
           }
           onChange={handleSearchStringChange}
         />
@@ -286,11 +278,7 @@ function UsersPageContent() {
       </div>
       {usersCount === 0 ? (
         <Box className="flex flex-col items-center justify-center space-y-5 rounded-lg border px-48 py-12 shadow-sm">
-          <UserIcon
-            strokeWidth={1}
-            className="h-10 w-10"
-            sx={{ color: 'text.disabled' }}
-          />
+          <UserIcon strokeWidth={1} className="h-10 w-10 text-disabled" />
           <div className="flex flex-col space-y-1">
             <Text className="text-center font-medium" variant="h3">
               There are no users yet
@@ -328,8 +316,7 @@ function UsersPageContent() {
                 <Box className="flex flex-col items-center justify-center space-y-5 border-x border-b px-48 py-12">
                   <UserIcon
                     strokeWidth={1}
-                    className="h-10 w-10"
-                    sx={{ color: 'text.disabled' }}
+                    className="h-10 w-10 text-disabled"
                   />
                   <div className="flex flex-col space-y-1">
                     <Text className="text-center font-medium" variant="h3">

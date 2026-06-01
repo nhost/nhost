@@ -657,19 +657,23 @@ func TestNestedInsert_ApplyArrayFKColumn(t *testing.T) {
 		n := arguments.NestedInsert{
 			RelationshipName:    "author",
 			TargetTable:         nil,
-			NestedObject:        arguments.InsertObject{Columns: nil, NestedInserts: nil},
+			NestedObjects:       []arguments.InsertObject{{Columns: nil, NestedInserts: nil}},
 			OnConflict:          nil,
-			ForeignKeyColumn:    "fk",
+			ForeignKeyColumns:   []string{"fk"},
 			IsArrayRelationship: false,
 		}
 
-		fk := n.ApplyArrayFKColumn("parent_cte")
+		fk, err := n.ApplyArrayFKColumn("parent_cte")
+		if err != nil {
+			t.Fatalf("ApplyArrayFKColumn: %v", err)
+		}
+
 		if len(fk) != 0 {
 			t.Errorf("object rel must produce empty map, got %v", fk)
 		}
 	})
 
-	t.Run("array relationship: appends FK column", func(t *testing.T) {
+	t.Run("array relationship: appends FK column to every row", func(t *testing.T) {
 		t.Parallel()
 
 		ctrl := gomock.NewController(t)
@@ -679,21 +683,31 @@ func TestNestedInsert_ApplyArrayFKColumn(t *testing.T) {
 		target.EXPECT().ColumnFromSQLName("fk").Return(fkCol)
 
 		n := arguments.NestedInsert{
-			RelationshipName:    "posts",
-			TargetTable:         target,
-			NestedObject:        arguments.InsertObject{Columns: nil, NestedInserts: nil},
-			OnConflict:          nil,
-			ForeignKeyColumn:    "fk",
-			IsArrayRelationship: true,
+			RelationshipName: "posts",
+			TargetTable:      target,
+			NestedObjects: []arguments.InsertObject{
+				{Columns: nil, NestedInserts: nil},
+				{Columns: nil, NestedInserts: nil},
+			},
+			OnConflict:              nil,
+			ForeignKeyColumns:       []string{"fk"},
+			ForeignKeySourceColumns: map[string]string{"fk": "id"},
+			IsArrayRelationship:     true,
 		}
 
-		fk := n.ApplyArrayFKColumn("parent_cte")
-		if got, ok := fk["fk"]; !ok || got != "parent_cte" {
-			t.Errorf("fk map = %v, want fk=parent_cte", fk)
+		fk, err := n.ApplyArrayFKColumn("parent_cte")
+		if err != nil {
+			t.Fatalf("ApplyArrayFKColumn: %v", err)
 		}
 
-		if len(n.NestedObject.Columns) != 1 || n.NestedObject.Columns[0].Column != fkCol {
-			t.Errorf("expected fk column appended; got %+v", n.NestedObject.Columns)
+		if got, ok := fk["fk"]; !ok || got.CTEName != "parent_cte" || got.ColumnName != "id" {
+			t.Errorf("fk map = %v, want fk=parent_cte.id", fk)
+		}
+
+		for i, row := range n.NestedObjects {
+			if len(row.Columns) != 1 || row.Columns[0].Column != fkCol {
+				t.Errorf("row %d: expected fk column appended; got %+v", i, row.Columns)
+			}
 		}
 	})
 
@@ -705,22 +719,46 @@ func TestNestedInsert_ApplyArrayFKColumn(t *testing.T) {
 		target.EXPECT().ColumnFromSQLName("fk").Return(nil)
 
 		n := arguments.NestedInsert{
-			RelationshipName:    "posts",
-			TargetTable:         target,
-			NestedObject:        arguments.InsertObject{Columns: nil, NestedInserts: nil},
-			OnConflict:          nil,
-			ForeignKeyColumn:    "fk",
-			IsArrayRelationship: true,
+			RelationshipName:        "posts",
+			TargetTable:             target,
+			NestedObjects:           []arguments.InsertObject{{Columns: nil, NestedInserts: nil}},
+			OnConflict:              nil,
+			ForeignKeyColumns:       []string{"fk"},
+			ForeignKeySourceColumns: map[string]string{"fk": "id"},
+			IsArrayRelationship:     true,
 		}
 
-		fk := n.ApplyArrayFKColumn("parent_cte")
-		if len(n.NestedObject.Columns) != 0 {
-			t.Errorf("expected no column appended; got %+v", n.NestedObject.Columns)
+		fk, err := n.ApplyArrayFKColumn("parent_cte")
+		if err != nil {
+			t.Fatalf("ApplyArrayFKColumn: %v", err)
+		}
+
+		if len(n.NestedObjects[0].Columns) != 0 {
+			t.Errorf("expected no column appended; got %+v", n.NestedObjects[0].Columns)
 		}
 
 		// FK index entry is still added, regardless of column resolution.
-		if fk["fk"] != "parent_cte" {
-			t.Errorf("fk map = %v, expected fk=parent_cte entry", fk)
+		if fk["fk"].CTEName != "parent_cte" || fk["fk"].ColumnName != "id" {
+			t.Errorf("fk map = %v, expected fk=parent_cte.id entry", fk)
+		}
+	})
+
+	t.Run("array relationship: missing source column errors", func(t *testing.T) {
+		t.Parallel()
+
+		n := arguments.NestedInsert{
+			RelationshipName:        "posts",
+			TargetTable:             nil,
+			NestedObjects:           []arguments.InsertObject{{Columns: nil, NestedInserts: nil}},
+			OnConflict:              nil,
+			ForeignKeyColumns:       []string{"fk"},
+			ForeignKeySourceColumns: nil,
+			IsArrayRelationship:     true,
+		}
+
+		_, err := n.ApplyArrayFKColumn("parent_cte")
+		if err == nil {
+			t.Fatal("expected missing source column error")
 		}
 	})
 }
@@ -740,7 +778,8 @@ func TestParseInsert_NestedRelationship(t *testing.T) {
 
 	// Relationship metadata used to construct NestedInsert.
 	rel.EXPECT().TargetTable().Return(target)
-	rel.EXPECT().FKColumn().Return("author_id")
+	rel.EXPECT().FKColumns().Return([]string{"author_id"})
+	rel.EXPECT().FKSourceColumns().Return(map[string]string{"author_id": "id"})
 	rel.EXPECT().IsArray().Return(true)
 
 	// Target table parses its own object as a normal insert.
@@ -767,8 +806,64 @@ func TestParseInsert_NestedRelationship(t *testing.T) {
 	}
 
 	if got := obj.NestedInserts[0]; got.RelationshipName != "posts" ||
-		got.ForeignKeyColumn != "author_id" || !got.IsArrayRelationship {
+		len(got.ForeignKeyColumns) != 1 || got.ForeignKeyColumns[0] != "author_id" ||
+		got.ForeignKeySourceColumns["author_id"] != "id" ||
+		!got.IsArrayRelationship {
 		t.Errorf("unexpected nested insert: %+v", got)
+	}
+}
+
+func TestParseInsert_NestedArrayRelationshipDataIsList(t *testing.T) {
+	t.Parallel()
+
+	ctrl := gomock.NewController(t)
+
+	parent := mock.NewMockTable(ctrl)
+	target := mock.NewMockTable(ctrl)
+	rel := mock.NewMockRelationship(ctrl)
+
+	parent.EXPECT().Relationship("posts").Return(rel)
+	parent.EXPECT().InsertPresets("user").Return(nil)
+
+	rel.EXPECT().TargetTable().Return(target)
+	rel.EXPECT().FKColumns().Return([]string{"author_id"})
+	rel.EXPECT().FKSourceColumns().Return(map[string]string{"author_id": "id"})
+	rel.EXPECT().IsArray().Return(true)
+
+	// Each element of the list is parsed independently.
+	target.EXPECT().Relationship("title").Return(nil).Times(2)
+	target.EXPECT().ColumnFromGraphqlName("title").
+		Return(newColumn("title", "title", "text")).Times(2)
+	target.EXPECT().InsertPresets("user").Return(nil).Times(2)
+
+	args := ast.ArgumentList{
+		&ast.Argument{
+			Name: "object",
+			Value: objectValue(child("posts", objectValue(
+				child("data", listValue(
+					child("", objectValue(child("title", stringValue("First")))),
+					child("", objectValue(child("title", stringValue("Second")))),
+				)),
+			))),
+		},
+	}
+
+	obj, _, err := arguments.ParseInsert(parent, args, nil, "user", nil)
+	if err != nil {
+		t.Fatalf("ParseInsert: %v", err)
+	}
+
+	if len(obj.NestedInserts) != 1 {
+		t.Fatalf("got %d nested inserts, want 1", len(obj.NestedInserts))
+	}
+
+	got := obj.NestedInserts[0]
+	if !got.IsArrayRelationship {
+		t.Fatalf("expected array relationship, got %+v", got)
+	}
+
+	if len(got.NestedObjects) != 2 {
+		t.Fatalf("got %d nested objects, want 2", len(got.NestedObjects))
 	}
 }
 
@@ -829,6 +924,7 @@ func TestParseInsert_NestedRelationshipFailures(t *testing.T) {
 
 		parent.EXPECT().Relationship("posts").Return(rel)
 		rel.EXPECT().TargetTable().Return(target)
+		rel.EXPECT().IsArray().Return(false)
 		target.EXPECT().Relationship("bogus").Return(nil)
 		target.EXPECT().ColumnFromGraphqlName("bogus").Return(nil)
 		target.EXPECT().TableName().Return("posts")

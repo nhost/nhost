@@ -44,14 +44,19 @@ Generate a structured PR description and publish it.
 
 Your section must contain, in order:
 
-1. **PR Type** — one of: `Enhancement`, `Bug fix`, `Refactoring`, `Tests`, `Documentation`, `Configuration`, `Other`.
-2. **Description** — bulleted list of high-level changes (one sentence per logical change; group related files).
-3. **Diagram Walkthrough** — a mermaid flowchart. Include only if the change spans multiple components/services or has non-trivial control flow.
-4. **File Walkthrough** — a collapsible `<details>` table of ALL changed files, grouped by category. For each file: filename, one-line `<code>` description, link to the diff using the pre-computed hash (`https://github.com/{REPO}/pull/{PR_NUMBER}/files#diff-{HASH}`), and the pre-computed `+N/-M` stats.
+1. **What this PR solves** — 1–3 sentences explaining the problem this change addresses and the outcome it produces. Focus on *why* the change exists, not *what* files moved. Infer from the diff, commit messages, and any linked issue context.
+2. **PR Type** — one of: `Enhancement`, `Bug fix`, `Refactoring`, `Tests`, `Documentation`, `Configuration`, `Other`.
+3. **Description** — bulleted list of high-level changes (one sentence per logical change; group related files).
+4. **Diagram Walkthrough** — a mermaid flowchart. Include only if the change spans multiple components/services or has non-trivial control flow.
+5. **File Walkthrough** — a collapsible `<details>` table of ALL changed files, grouped by category. For each file: filename, one-line `<code>` description, link to the diff using the pre-computed hash (`https://github.com/{REPO}/pull/{PR_NUMBER}/files#diff-{HASH}`), and the pre-computed `+N/-M` stats.
 
 Follow the format template in [template.md](template.md) exactly.
 
 Write the complete body (author content + your section) to `.review/PR_<PR_NUMBER>_DESCRIPTION.md` via the Write tool.
+
+### Proposed titles
+
+Separately, propose 3 candidate PR titles — short, imperative, ≤ 70 chars, conventional-commit style where appropriate (e.g. `fix(auth): …`, `feat(dashboard): …`). Write them as a bulleted list to `.review/PR_<PR_NUMBER>_TITLES.md`. Do **not** include the titles in the PR description body.
 
 ---
 
@@ -108,6 +113,14 @@ Add any new findings discovered here as additional comments.
 ---
 
 ## Phase 5 — Write findings + summary
+
+Before writing any findings for the current run, clear stale per-finding comments for this PR only:
+
+```bash
+rm -f .review/PR_<PR_NUMBER>_COMMENT_*.md
+```
+
+Do this even when there are no confirmed findings, so old comments from earlier runs cannot be published with the fresh summary. Do not remove `DESCRIPTION`, `TITLES`, or `REVIEW` files; they are overwritten separately. Then number the current run's confirmed findings from 1.
 
 For each confirmed finding, write `.review/PR_<PR_NUMBER>_COMMENT_<N>.md` at the repo root (N increments from 1), containing:
 

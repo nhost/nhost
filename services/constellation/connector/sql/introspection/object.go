@@ -93,6 +93,16 @@ type Column struct {
 	// IsGenerated is true if the column is computed by the database and
 	// therefore must be omitted from insert/update mutations.
 	IsGenerated bool
+	// IsIdentity is true if the column auto-populates from a database-managed
+	// source the insert payload cannot meaningfully precompute: PostgreSQL
+	// GENERATED ALWAYS / BY DEFAULT AS IDENTITY (pg_attribute.attidentity != '')
+	// and SQLite INTEGER PRIMARY KEY rowid aliases. The metadata for these
+	// columns lives outside pg_attrdef / PRAGMA dflt_value, so IsGenerated and
+	// the Default field stay zero — IsIdentity is the dedicated bit that lets
+	// the queries layer recognise them and force the insert-check predicate to
+	// run after the INSERT (against the inserted row) rather than against the
+	// payload.
+	IsIdentity bool
 	// IsArray is true if the column is a PostgreSQL array type (e.g. "_text").
 	// SQLite columns always set this to false.
 	IsArray bool
@@ -222,4 +232,43 @@ func (t *Table) EnumColumns() (string, string, error) {
 	}
 
 	return valueCol, descCol, nil
+}
+
+// LookupForwardFKTarget walks fkColumns against t.ForeignKeys and returns the
+// shared (ForeignSchema, ForeignTable) all listed columns reference. It returns
+// empty strings when any column has no matching foreign key or when the listed
+// columns disagree on the target — both indicate a metadata/introspection
+// mismatch that callers treat as a misconfigured relationship.
+func (t *Table) LookupForwardFKTarget(fkColumns []string) (string, string) {
+	var (
+		schema string
+		name   string
+	)
+
+	for _, col := range fkColumns {
+		matched := false
+
+		for _, fk := range t.ForeignKeys {
+			if fk.ColumnName != col {
+				continue
+			}
+
+			if schema == "" && name == "" {
+				schema = fk.ForeignSchema
+				name = fk.ForeignTable
+			} else if fk.ForeignSchema != schema || fk.ForeignTable != name {
+				return "", ""
+			}
+
+			matched = true
+
+			break
+		}
+
+		if !matched {
+			return "", ""
+		}
+	}
+
+	return schema, name
 }

@@ -119,7 +119,7 @@ Golden file tests live in `testdata/` directories. Update them with the `-update
 
 ## Key Interfaces
 
-- **`connector.Connector`** (4 methods): `GetSchema()`, `Execute()`, `GetTypeName()`, `Close()`. Implemented by `sql.Connector`, `remoteschema.Connector`, and the unexported `memconnector` type returned by `memconnector.New`.
+- **`connector.Connector`** (5 methods): `GetSchema()`, `Execute()`, `ValidateOperation()`, `GetTypeName()`, `Close()`. Implemented by `sql.Connector`, `remoteschema.Connector`, the unexported `customizedConnector` wrapper, and the unexported `memconnector` type returned by `memconnector.New`.
 - **`connector/sql.Driver`** (5 methods): `Introspect()`, `ExecuteOperations()`, `ExecuteMultiplexedOperation()`, `Dialect()`, `Close()`. Implemented by `postgres.Client`, `sqlite.Client`.
 - **`Dialect`** (29 methods): Abstracts all SQL syntax differences. Implementations: `PostgresDialect`, `SQLiteDialect`.
 - **`subscription.Handler`** (3 methods): `Start()`, `Stop()`, `Shutdown()`. Implemented by `sql/subscription.Handler`.

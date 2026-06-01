@@ -84,7 +84,8 @@ func commandPull(ctx context.Context, cmd *cli.Command) error {
 
 func verifyFile(ce *clienv.CliEnv, name string) error {
 	if clienv.PathExists(name) {
-		ce.PromptMessage("%s",
+		ce.PromptMessage(
+			"%s",
 			name+" already exists. Do you want to overwrite it? [y/N] ",
 		)
 

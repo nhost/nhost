@@ -3,4 +3,6 @@
 - "!include public_search_news.yaml"
 - "!include public_search_news_2.yaml"
 - "!include public_search_news_3.yaml"
+- "!include public_search_news_default.yaml"
+- "!include public_search_news_positional.yaml"
 - "!include public_set_department_manager.yaml"

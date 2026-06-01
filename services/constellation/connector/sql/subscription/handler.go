@@ -114,7 +114,8 @@ func (h *Handler) Start(
 	}
 
 	if isStream {
-		logger.DebugContext(ctx, "routing to stream cohort manager",
+		logger.DebugContext(
+			ctx, "routing to stream cohort manager",
 			slog.String("subscription_id", req.ID),
 			slog.Any("cursor_values", cursorValues),
 		)

@@ -12,10 +12,10 @@ import { Input } from '@/components/ui/v2/Input';
 import { Option } from '@/components/ui/v2/Option';
 import { Text } from '@/components/ui/v2/Text';
 import { Tooltip } from '@/components/ui/v2/Tooltip';
+import { useRemoteApplicationGQLClient } from '@/features/orgs/hooks/useRemoteApplicationGQLClient';
 import { GraphqlDataSourcesFormSection } from '@/features/orgs/projects/ai/AssistantForm/components/GraphqlDataSourcesFormSection';
 import { WebhooksDataSourcesFormSection } from '@/features/orgs/projects/ai/AssistantForm/components/WebhooksDataSourcesFormSection';
 import { useIsFileStoreSupported } from '@/features/orgs/projects/common/hooks/useIsFileStoreSupported';
-import { useAdminApolloClient } from '@/features/orgs/projects/hooks/useAdminApolloClient';
 import { execPromiseWithErrorToast } from '@/features/orgs/utils/execPromiseWithErrorToast';
 import type { GraphiteFileStore } from '@/pages/orgs/[orgSlug]/projects/[appSubdomain]/ai/file-stores';
 import type { DialogFormProps } from '@/types/common';
@@ -100,14 +100,14 @@ export default function AssistantForm({
 }: AssistantFormProps) {
   const { onDirtyStateChange } = useDialog();
 
-  const { adminClient } = useAdminApolloClient();
+  const remoteProjectGQLClient = useRemoteApplicationGQLClient();
 
   const [insertAssistantMutation] = useInsertAssistantMutation({
-    client: adminClient,
+    client: remoteProjectGQLClient,
   });
 
   const [updateAssistantMutation] = useUpdateAssistantMutation({
-    client: adminClient,
+    client: remoteProjectGQLClient,
   });
 
   const isFileStoreSupported = useIsFileStoreSupported();

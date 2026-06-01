@@ -58,6 +58,7 @@ func (t *table) buildQueryFunctionOneSQL(
 		"_root",
 		fnCall.fromClause,
 		fnCall.sourceRef,
+		rootFieldName(field),
 		func(whereClause where.Clause, modifiers []arguments.QueryModifier) (where.Clause, []arguments.QueryModifier) {
 			return whereClause, append(modifiers, &arguments.Limit{Value: 1})
 		},

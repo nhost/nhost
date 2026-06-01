@@ -1,8 +1,13 @@
 package queries
 
 import (
+	"errors"
+	"maps"
 	"strings"
 	"testing"
+
+	"github.com/nhost/nhost/services/constellation/connector/sql/introspection"
+	"github.com/nhost/nhost/services/constellation/metadata"
 )
 
 func TestBuildManualJoinCondition(t *testing.T) {
@@ -118,6 +123,45 @@ func TestBuildManualJoinCondition(t *testing.T) {
 	}
 }
 
+func TestRelationshipFKSourceColumns(t *testing.T) {
+	t.Parallel()
+
+	tests := []struct {
+		name          string
+		rel           *relationship
+		wantFKSources map[string]string
+	}{
+		{
+			name: "object relationship sources parent FK from nested target column",
+			rel: &relationship{
+				isArray:       false,
+				parentColumns: []string{"parent_id", "parent_kind"},
+				targetColumns: []string{"id", "kind"},
+			},
+			wantFKSources: map[string]string{"parent_id": "id", "parent_kind": "kind"},
+		},
+		{
+			name: "array relationship sources child FK from parent column",
+			rel: &relationship{
+				isArray:       true,
+				parentColumns: []string{"id", "kind"},
+				targetColumns: []string{"parent_id", "parent_kind"},
+			},
+			wantFKSources: map[string]string{"parent_id": "id", "parent_kind": "kind"},
+		},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			t.Parallel()
+
+			if got := tt.rel.FKSourceColumns(); !maps.Equal(got, tt.wantFKSources) {
+				t.Errorf("FKSourceColumns() = %v, want %v", got, tt.wantFKSources)
+			}
+		})
+	}
+}
+
 func TestBuildManualJoinConditionMultiColumn(t *testing.T) {
 	t.Parallel()
 
@@ -214,6 +258,141 @@ func TestWriteJoinConditionAliasedMultiColumnArray(t *testing.T) {
 	want := `t."oid" = p."org_id" AND t."uid" = p."user_id"`
 	if got != want {
 		t.Errorf("writeJoinConditionAliased = %q, want %q", got, want)
+	}
+}
+
+// TestBuildReverseJoinUnmatchedColumn covers the metadata/introspection
+// mismatch case: ForeignKeyConstraint.Columns names a column the introspected
+// target table has no foreign key for. Emitting an empty parent column would
+// render as `"alias".""` and fail at execution time; the helper now surfaces
+// errRelationshipReverseFKColumnUnmatched so reconcile can drop the
+// relationship instead.
+func TestBuildReverseJoinUnmatchedColumn(t *testing.T) {
+	t.Parallel()
+
+	objects := introspection.NewObjects()
+	objects.Schemas["public"] = &introspection.Schema{
+		Tables: map[string]*introspection.Table{
+			"orders": {
+				Schema:                   "public",
+				Name:                     "orders",
+				Comment:                  nil,
+				Columns:                  nil,
+				PrimaryKeys:              nil,
+				PrimaryKeyConstraintName: "",
+				// Note: no ForeignKey entry for "user_id".
+				ForeignKeys: []introspection.ForeignKey{
+					{
+						ColumnName:        "other_col",
+						ForeignSchema:     "public",
+						ForeignTable:      "users",
+						ForeignColumnName: "id",
+					},
+				},
+				UniqueConstraints: nil,
+				IsView:            false,
+				IsInsertable:      true,
+				IsUpdatable:       true,
+			},
+		},
+	}
+
+	using := metadata.RelationshipUsing{
+		ForeignKeyColumns: nil,
+		ForeignKeyConstraint: &metadata.ForeignKeyConstraint{
+			Columns: []string{"user_id"},
+			Table: metadata.TableSource{
+				Schema: "public",
+				Name:   "orders",
+			},
+		},
+		ManualConfiguration: nil,
+	}
+
+	fk, parentCols, targetCols, _, err := buildReverseJoin(
+		using, []string{"user_id"}, objects,
+	)
+	if err == nil {
+		t.Fatal("buildReverseJoin: expected error for unmatched column, got nil")
+	}
+
+	if !errors.Is(err, errRelationshipReverseFKColumnUnmatched) {
+		t.Errorf(
+			"buildReverseJoin: expected errRelationshipReverseFKColumnUnmatched, got %v",
+			err,
+		)
+	}
+
+	// On error, all column slices must be nil so callers never observe a
+	// partial result with an empty-string column identifier.
+	if fk != nil || parentCols != nil || targetCols != nil {
+		t.Errorf(
+			"buildReverseJoin: expected nil column slices on error, got fk=%v parent=%v target=%v",
+			fk, parentCols, targetCols,
+		)
+	}
+}
+
+// TestBuildReverseJoinMatchedColumn confirms the happy path still returns
+// the paired columns.
+func TestBuildReverseJoinMatchedColumn(t *testing.T) {
+	t.Parallel()
+
+	objects := introspection.NewObjects()
+	objects.Schemas["public"] = &introspection.Schema{
+		Tables: map[string]*introspection.Table{
+			"orders": {
+				Schema:                   "public",
+				Name:                     "orders",
+				Comment:                  nil,
+				Columns:                  nil,
+				PrimaryKeys:              nil,
+				PrimaryKeyConstraintName: "",
+				ForeignKeys: []introspection.ForeignKey{
+					{
+						ColumnName:        "user_id",
+						ForeignSchema:     "public",
+						ForeignTable:      "users",
+						ForeignColumnName: "id",
+					},
+				},
+				UniqueConstraints: nil,
+				IsView:            false,
+				IsInsertable:      true,
+				IsUpdatable:       true,
+			},
+		},
+	}
+
+	using := metadata.RelationshipUsing{
+		ForeignKeyColumns: nil,
+		ForeignKeyConstraint: &metadata.ForeignKeyConstraint{
+			Columns: []string{"user_id"},
+			Table: metadata.TableSource{
+				Schema: "public",
+				Name:   "orders",
+			},
+		},
+		ManualConfiguration: nil,
+	}
+
+	_, parentCols, targetCols, isReversed, err := buildReverseJoin(
+		using, []string{"user_id"}, objects,
+	)
+	if err != nil {
+		t.Fatalf("buildReverseJoin: unexpected error: %v", err)
+	}
+
+	if !isReversed {
+		t.Error("buildReverseJoin: expected isReversed=true")
+	}
+
+	if len(parentCols) != 1 || parentCols[0] != "id" {
+		t.Errorf("buildReverseJoin: parentCols = %v, want [id]", parentCols)
+	}
+
+	if len(targetCols) != 1 || targetCols[0] != "user_id" {
+		t.Errorf("buildReverseJoin: targetCols = %v, want [user_id]", targetCols)
 	}
 }
 

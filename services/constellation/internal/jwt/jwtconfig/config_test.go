@@ -35,6 +35,22 @@ func TestJWTSecretValidate(t *testing.T) {
 			wantErr: false,
 		},
 		{
+			name: "JWK URL with type",
+			secret: jwtconfig.Secret{
+				Type:   jwtconfig.AlgorithmRS256,
+				JWKURL: "https://example.com/.well-known/jwks.json",
+			},
+			wantErr: true,
+		},
+		{
+			name: "JWK URL with key",
+			secret: jwtconfig.Secret{
+				Key:    "key",
+				JWKURL: "https://example.com/.well-known/jwks.json",
+			},
+			wantErr: true,
+		},
+		{
 			name:    "missing type+key and jwk_url",
 			secret:  jwtconfig.Secret{},
 			wantErr: true,
@@ -240,6 +256,13 @@ func TestParseConfig(t *testing.T) {
 			raw:     []string{`{"jwk_url":"https://example.com/.well-known/jwks.json"}`},
 			want:    1,
 			wantErr: false,
+		},
+		{
+			name: "JWK URL secret with type",
+			raw: []string{
+				`{"type":"RS256","jwk_url":"https://example.com/.well-known/jwks.json"}`,
+			},
+			wantErr: true,
 		},
 	}
 

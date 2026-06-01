@@ -122,7 +122,8 @@ func (i *Inconsistencies) Record(
 	i.mu.Unlock()
 
 	if logger != nil {
-		logger.WarnContext(ctx, "metadata inconsistency recorded",
+		logger.WarnContext(
+			ctx, "metadata inconsistency recorded",
 			slog.String("kind", inc.Kind),
 			slog.String("source", inc.Source),
 			slog.String("name", inc.Name),

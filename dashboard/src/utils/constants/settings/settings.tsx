@@ -1,6 +1,5 @@
+import { CheckIcon, XIcon } from 'lucide-react';
 import type { DefaultToastOptions } from 'react-hot-toast';
-import { CheckIcon } from '@/components/ui/v2/icons/CheckIcon';
-import { XIcon } from '@/components/ui/v2/icons/XIcon';
 import { getDesignTokens } from '@/components/ui/v2/theme/getDesignTokens';
 import { COLOR_PREFERENCE_STORAGE_KEY } from '@/utils/constants/common';
 

@@ -79,6 +79,7 @@ import (
 	"errors"
 	"fmt"
 	"log/slog"
+	"strings"
 
 	"github.com/nhost/nhost/services/constellation/connector"
 	"github.com/nhost/nhost/services/constellation/connector/groupedaggregate"
@@ -90,6 +91,11 @@ import (
 // path and the grouped-aggregate path surface this error so callers can
 // errors.Is-discriminate.
 var errTargetConnectorNotFound = errors.New("target connector not found")
+
+type queryValidationArgumentPathRemapper interface {
+	error
+	RemapArgumentPath(remap func(argumentPath string) (mappedPath string))
+}
 
 // RemoteRelationshipResolver handles the complete lifecycle of remote relationship resolution.
 // It executes remote queries, stitches results, and cleans up phantom fields.
@@ -208,6 +214,8 @@ func (r *RemoteRelationshipResolver) executeAndStitch(
 		ctx, remoteOp, filteredFragments, variables, role, sessionVariables, logger,
 	)
 	if err != nil {
+		err = remapRemoteQueryValidationArgumentPath(err, rq, remoteOp)
+
 		return fmt.Errorf("failed to execute remote query: %w", err)
 	}
 
@@ -229,6 +237,61 @@ func (r *RemoteRelationshipResolver) executeAndStitch(
 	}
 
 	return nil
+}
+
+func remapRemoteQueryValidationArgumentPath(
+	err error,
+	rq *remoteQuery,
+	remoteOp *ast.OperationDefinition,
+) error {
+	if err == nil || rq == nil {
+		return err
+	}
+
+	clientPath := rq.argumentPath()
+	if clientPath == "" {
+		return err
+	}
+
+	var remapper queryValidationArgumentPathRemapper
+	if errors.As(err, &remapper) {
+		remoteRootPath := remoteOperationRootArgumentPath(remoteOp)
+		remapper.RemapArgumentPath(func(path string) string {
+			if remoteRootPath == "" || path == remoteRootPath {
+				return clientPath
+			}
+
+			suffix, ok := strings.CutPrefix(path, remoteRootPath+".selectionSet.")
+			if !ok {
+				return clientPath
+			}
+
+			return clientPath + ".selectionSet." + suffix
+		})
+	}
+
+	return err
+}
+
+func remoteOperationRootArgumentPath(operation *ast.OperationDefinition) string {
+	if operation == nil {
+		return ""
+	}
+
+	for _, selection := range operation.SelectionSet {
+		field, ok := selection.(*ast.Field)
+		if !ok {
+			continue
+		}
+
+		if field.Alias != "" {
+			return field.Alias
+		}
+
+		return field.Name
+	}
+
+	return ""
 }
 
 // removeAllLocalPhantomFields removes local phantom fields from all remote queries.

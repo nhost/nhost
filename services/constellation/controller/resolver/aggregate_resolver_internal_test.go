@@ -83,6 +83,10 @@ func TestExecuteAndStitchAggregate_HappyPath(t *testing.T) {
 				t.Errorf("JoinValues mismatch (-want +got):\n%s", diff)
 			}
 
+			if req.ArgumentPath != "teams.selectionSet.members_aggregate" {
+				t.Errorf("ArgumentPath mismatch: got %q", req.ArgumentPath)
+			}
+
 			return aggregateResult, nil
 		})
 
@@ -457,6 +461,44 @@ func TestEmptyAggregateForSelection_ShapesPayload(t *testing.T) {
 	}
 	if diff := cmp.Diff(want, got); diff != "" {
 		t.Errorf("emptyAggregateForSelection mismatch (-want +got):\n%s", diff)
+	}
+}
+
+func TestEmptyAggregateForSelection_UsesResponseNames(t *testing.T) {
+	t.Parallel()
+
+	field := &ast.Field{
+		Name: "members_aggregate",
+		SelectionSet: ast.SelectionSet{
+			&ast.Field{
+				Alias: "stats",
+				Name:  "aggregate",
+				SelectionSet: ast.SelectionSet{
+					&ast.Field{Alias: "total", Name: "count"},
+					&ast.Field{
+						Alias: "total_salary",
+						Name:  "sum",
+						SelectionSet: ast.SelectionSet{
+							&ast.Field{Alias: "amount", Name: "salary"},
+						},
+					},
+				},
+			},
+			&ast.Field{Alias: "rows", Name: "nodes"},
+		},
+	}
+
+	got := emptyAggregateForSelection(field)
+
+	want := map[string]any{
+		"stats": map[string]any{
+			"total":        0,
+			"total_salary": map[string]any{"amount": nil},
+		},
+		"rows": []any{},
+	}
+	if diff := cmp.Diff(want, got); diff != "" {
+		t.Errorf("emptyAggregateForSelection aliases mismatch (-want +got):\n%s", diff)
 	}
 }
 

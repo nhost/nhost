@@ -91,6 +91,27 @@ type Capabilities struct {
 	// SupportsArrays gates the emission of <scalar>_array_comparison_exp
 	// input types and array-typed column fields on bool_exp inputs.
 	SupportsArrays bool
+	// SupportsVarianceAggregates gates the emission of the stddev/variance
+	// aggregate family (stddev, stddev_pop, stddev_samp, var_pop, var_samp,
+	// variance) on <table>_aggregate_fields and their <table>_<fn>_fields object
+	// types. SQLite lacks these aggregate functions, so exposing the fields would
+	// produce an opaque runtime "no such function" error; omitting them yields a
+	// clean GraphQL validation error instead. avg/sum/min/max/count are native
+	// everywhere and are emitted regardless.
+	SupportsVarianceAggregates bool
+	// SupportsStableVarianceOrderBy gates the emission of the stddev/variance
+	// aggregate order_by family (the <table>_<fn>_order_by input types and the
+	// stddev/stddev_pop/stddev_samp/var_pop/var_samp/variance fields on
+	// <table>_aggregate_order_by). It is distinct from
+	// SupportsVarianceAggregates: ordering needs a result numerically faithful to
+	// PostgreSQL's, which SQLite cannot provide, so the aggregate-order_by builder
+	// rejects these functions when the backend lacks stable variance ordering
+	// (see queries/arguments.varianceOrderByFuncs). Advertising them in the
+	// schema while the runtime rejects them is schema/runtime drift; gating both
+	// on this flag keeps the advertised order_by surface equal to what the
+	// runtime accepts. avg/sum/min/max/count order_by are accepted everywhere and
+	// are emitted regardless.
+	SupportsStableVarianceOrderBy bool
 }
 
 // ErrUnknownDBKind reports that a string did not parse as a known DBKind.
@@ -126,12 +147,14 @@ func ParseDBKind(s string) (DBKind, error) {
 // mis-namespaced types.
 func NewCapabilities(kind DBKind, dial dialect.Dialect) Capabilities {
 	return Capabilities{
-		Kind:               kind,
-		SupportsRegex:      dial.SupportsRegex(),
-		SupportsJSONB:      dial.SupportsJSONB(),
-		SupportsDistinctOn: dial.SupportsDistinctOn(),
-		SupportsFunctions:  dial.SupportsFunctions(),
-		SupportsArrays:     dial.SupportsArrays(),
+		Kind:                          kind,
+		SupportsRegex:                 dial.SupportsRegex(),
+		SupportsJSONB:                 dial.SupportsJSONB(),
+		SupportsDistinctOn:            dial.SupportsDistinctOn(),
+		SupportsFunctions:             dial.SupportsFunctions(),
+		SupportsArrays:                dial.SupportsArrays(),
+		SupportsVarianceAggregates:    dial.SupportsVarianceAggregates(),
+		SupportsStableVarianceOrderBy: dial.SupportsStableVarianceOrderBy(),
 	}
 }
 

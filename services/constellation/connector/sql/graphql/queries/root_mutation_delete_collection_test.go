@@ -2,6 +2,8 @@ package queries_test
 
 import (
 	"testing"
+
+	"github.com/nhost/nhost/services/constellation/connector/sql/graphql/queries/arguments"
 )
 
 func TestBuildMutationDeleteSQL(t *testing.T) { //nolint:paralleltest,maintidx
@@ -358,6 +360,54 @@ func TestBuildMutationDeleteSQL(t *testing.T) { //nolint:paralleltest,maintidx
 				}`,
 				Role: "admin",
 			},
+		},
+
+		// Invalid arguments on a returning relationship must reject the whole
+		// mutation before the DELETE executes (no rows deleted), matching
+		// Hasura. The returning relationships serialise as empty arrays, but
+		// their arguments are still validated through the same parsing the
+		// SELECT path uses, so the empty-array shortcut cannot smuggle an
+		// invalid argument past validation.
+		{
+			name: "delete returning relationship with negative limit rejected",
+			query: query{
+				Query: `mutation {
+					delete_departments(
+						where: { name: { _eq: "ToDelete" } }
+					) {
+						affected_rows
+						returning {
+							id
+							employees(limit: -1) {
+								user_id
+							}
+						}
+					}
+				}`,
+				Role: "admin",
+			},
+			expectError: arguments.ErrInvalidArgument,
+		},
+
+		{
+			name: "delete returning relationship with distinct_on order_by mismatch rejected",
+			query: query{
+				Query: `mutation {
+					delete_departments(
+						where: { name: { _eq: "ToDelete" } }
+					) {
+						affected_rows
+						returning {
+							id
+							employees(distinct_on: user_id, order_by: {department_id: asc}) {
+								user_id
+							}
+						}
+					}
+				}`,
+				Role: "admin",
+			},
+			expectError: arguments.ErrInvalidArgument,
 		},
 
 		// Permission tests

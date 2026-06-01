@@ -122,7 +122,8 @@ func (ctrl *Controller) ensureProviderLinkAllowed(
 		return nil
 	}
 
-	logger.WarnContext(ctx,
+	logger.WarnContext(
+		ctx,
 		"refusing to link provider to existing account: email not verified by provider",
 		slog.String("provider", provider),
 	)

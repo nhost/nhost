@@ -50,8 +50,14 @@ func reconcileMetadata(
 	out := *dbMeta
 
 	out.Tables = reconcileTables(ctx, logger, inc, dbMeta.Name, dbMeta.Tables, objects)
+
+	survivingTables := make(map[string]struct{}, len(out.Tables))
+	for i := range out.Tables {
+		survivingTables[qualifyTable(out.Tables[i].Table.Schema, out.Tables[i].Table.Name)] = struct{}{}
+	}
+
 	out.Functions = reconcileFunctions(
-		ctx, logger, inc, dbMeta.Name, dbMeta.Functions, objects,
+		ctx, logger, inc, dbMeta.Name, dbMeta.Functions, objects, survivingTables,
 	)
 
 	return &out
@@ -119,6 +125,7 @@ func reconcileTables(
 		reconcileColumnConfig(ctx, logger, inc, dbName, t, cols)
 		reconcilePermissionColumns(ctx, logger, inc, dbName, t, cols)
 		reconcileRelationships(ctx, logger, inc, dbName, t, survivingNames)
+		reconcileRelationshipFKIntrospection(ctx, logger, inc, dbName, t, introspected, objects)
 	}
 
 	return surviving
@@ -434,6 +441,213 @@ func shouldDropRelationship(
 	return true
 }
 
+// reconcileRelationshipFKIntrospection drops object/array relationships whose
+// foreign-key shape cannot be resolved against the introspected schema, even
+// though their target table is tracked in metadata. The earlier
+// reconcileRelationships pass only checks that the target survives in
+// metadata; it cannot see two additional failure modes that would otherwise
+// abort the whole connector at BuildRoots time:
+//
+//   - **Forward `ForeignKeyColumns`** — the relationship resolves its target
+//     through introspection (`LookupForwardFKTarget`). When the parent
+//     table's introspected ForeignKeys contain no entry for the listed
+//     columns, or the listed columns disagree on the target table, the
+//     resolved target ends up empty and the queries package raises
+//     `errRelationshipTargetTableIntrospectionNotFound`.
+//   - **Reverse `ForeignKeyConstraint`** — the FK columns named in the
+//     constraint live on the target table. Each must have a matching
+//     introspected `ForeignKey` on that target; an unmatched column would
+//     otherwise render as `"alias".""` at execution time
+//     (`errRelationshipReverseFKColumnUnmatched`).
+//
+// Both shapes are per-relationship inconsistencies, so we record them as
+// `InconsistencyKindRelationship` and drop just the offending relationship.
+// Cross-source relationships (`ManualConfiguration.Source` pointing
+// elsewhere) and remote-schema relationships are skipped because they do not
+// rely on the local FK introspection.
+func reconcileRelationshipFKIntrospection(
+	ctx context.Context,
+	logger *slog.Logger,
+	inc *metadata.Inconsistencies,
+	dbName string,
+	t *metadata.TableMetadata,
+	parentIntrospected *introspection.Table,
+	objects *introspection.Objects,
+) {
+	if parentIntrospected == nil {
+		return
+	}
+
+	t.ObjectRelationships = slices.DeleteFunc(
+		t.ObjectRelationships,
+		func(rel metadata.ObjectRelationship) bool {
+			return shouldDropOnFKIntrospection(
+				ctx, logger, inc, dbName, t, rel.Name, rel.Using,
+				parentIntrospected, objects,
+			)
+		},
+	)
+
+	t.ArrayRelationships = slices.DeleteFunc(
+		t.ArrayRelationships,
+		func(rel metadata.ArrayRelationship) bool {
+			return shouldDropOnFKIntrospection(
+				ctx, logger, inc, dbName, t, rel.Name, rel.Using,
+				parentIntrospected, objects,
+			)
+		},
+	)
+}
+
+// shouldDropOnFKIntrospection returns true when a relationship's FK shape
+// cannot be paired against introspection — see reconcileRelationshipFKIntrospection
+// for the failure-mode catalogue. The Using shapes handled here mirror the
+// queries package's buildJoinCondition decision tree exactly so a drop here
+// guarantees buildJoinCondition would have failed.
+func shouldDropOnFKIntrospection(
+	ctx context.Context,
+	logger *slog.Logger,
+	inc *metadata.Inconsistencies,
+	dbName string,
+	t *metadata.TableMetadata,
+	relName string,
+	using metadata.RelationshipUsing,
+	parentIntrospected *introspection.Table,
+	objects *introspection.Objects,
+) bool {
+	// Remote-schema and cross-source relationships do not consume local FK
+	// introspection; the composer validates them separately.
+	if using.ManualConfiguration != nil &&
+		(using.ManualConfiguration.RemoteSchema != "" ||
+			(using.ManualConfiguration.Source != "" &&
+				using.ManualConfiguration.Source != dbName)) {
+		return false
+	}
+
+	switch {
+	case len(using.ForeignKeyColumns) > 0:
+		return dropIfForwardFKBroken(
+			ctx, logger, inc, dbName, t, relName,
+			using.ForeignKeyColumns, parentIntrospected, objects,
+		)
+	case using.ForeignKeyConstraint != nil:
+		return dropIfReverseFKBroken(
+			ctx, logger, inc, dbName, t, relName,
+			using.ForeignKeyConstraint, objects,
+		)
+	}
+
+	return false
+}
+
+// dropIfForwardFKBroken handles forward `ForeignKeyColumns` relationships:
+// the target table is discovered via the parent's introspected ForeignKeys.
+// If every listed column has a matching FK and all listed columns agree on
+// the same target, the relationship is kept. Otherwise the relationship is
+// dropped and recorded.
+func dropIfForwardFKBroken(
+	ctx context.Context,
+	logger *slog.Logger,
+	inc *metadata.Inconsistencies,
+	dbName string,
+	t *metadata.TableMetadata,
+	relName string,
+	fkColumns []string,
+	parentIntrospected *introspection.Table,
+	objects *introspection.Objects,
+) bool {
+	targetSchema, targetTable := parentIntrospected.LookupForwardFKTarget(fkColumns)
+	if targetSchema == "" || targetTable == "" {
+		inc.RecordRelationship(
+			ctx, logger,
+			dbName,
+			t.Table.Schema, t.Table.Name, relName,
+			fmt.Sprintf(
+				"relationship target unresolved: foreign_key_columns %v have no "+
+					"matching foreign key on %s",
+				fkColumns, qualifyTable(t.Table.Schema, t.Table.Name),
+			),
+		)
+
+		return true
+	}
+
+	if _, ok := objects.GetTable(targetSchema, targetTable); !ok {
+		inc.RecordRelationship(
+			ctx, logger,
+			dbName,
+			t.Table.Schema, t.Table.Name, relName,
+			fmt.Sprintf(
+				"relationship target %q not found in source introspection",
+				qualifyTable(targetSchema, targetTable),
+			),
+		)
+
+		return true
+	}
+
+	return false
+}
+
+// dropIfReverseFKBroken handles reverse `ForeignKeyConstraint` relationships:
+// the FK columns live on the target table and must each have a matching
+// introspected ForeignKey there. Missing target table or unmatched column
+// both abort the per-relationship build at queries time, so we drop and
+// record here.
+func dropIfReverseFKBroken(
+	ctx context.Context,
+	logger *slog.Logger,
+	inc *metadata.Inconsistencies,
+	dbName string,
+	t *metadata.TableMetadata,
+	relName string,
+	constraint *metadata.ForeignKeyConstraint,
+	objects *introspection.Objects,
+) bool {
+	targetTable, ok := objects.GetTable(constraint.Table.Schema, constraint.Table.Name)
+	if !ok {
+		inc.RecordRelationship(
+			ctx, logger,
+			dbName,
+			t.Table.Schema, t.Table.Name, relName,
+			fmt.Sprintf(
+				"relationship target %q not found in source introspection",
+				qualifyTable(constraint.Table.Schema, constraint.Table.Name),
+			),
+		)
+
+		return true
+	}
+
+	for _, col := range constraint.Columns {
+		matched := false
+
+		for _, fk := range targetTable.ForeignKeys {
+			if fk.ColumnName == col {
+				matched = true
+				break
+			}
+		}
+
+		if !matched {
+			inc.RecordRelationship(
+				ctx, logger,
+				dbName,
+				t.Table.Schema, t.Table.Name, relName,
+				fmt.Sprintf(
+					"reverse-FK column %q on %s has no matching foreign key in source",
+					col,
+					qualifyTable(constraint.Table.Schema, constraint.Table.Name),
+				),
+			)
+
+			return true
+		}
+	}
+
+	return false
+}
+
 // relationshipTarget extracts the target table reference from a Using clause.
 // Returns ok=false when the Using has no explicit SQL-table target:
 //   - foreign-key-column shorthand resolves through introspection elsewhere
@@ -459,7 +673,19 @@ func relationshipTarget(using metadata.RelationshipUsing) (metadata.TableSource,
 }
 
 // reconcileFunctions drops functions whose source schema.name does not exist
-// in the introspected objects.
+// in the introspected objects, whose return type is not a table type, or
+// whose declared return-table is not a surviving tracked table. The latter
+// two checks close BuildRoots-time gaps that would otherwise abort the whole
+// connector:
+//
+//   - A function whose return type is not a table type (scalar, RECORD, etc.)
+//     is rejected by the queries package with errFunctionDoesNotReturnTableType.
+//   - A function whose return type names a table that no longer survives
+//     (table missing from source, or never tracked) was formerly surfaced as
+//     errBaseTableForFunctionNotFound.
+//
+// Recording the failure here drops just the offending function and lets the
+// rest of the source keep serving.
 func reconcileFunctions(
 	ctx context.Context,
 	logger *slog.Logger,
@@ -467,6 +693,7 @@ func reconcileFunctions(
 	dbName string,
 	functions []metadata.FunctionMetadata,
 	objects *introspection.Objects,
+	survivingTables map[string]struct{},
 ) []metadata.FunctionMetadata {
 	if len(functions) == 0 {
 		return functions
@@ -476,18 +703,52 @@ func reconcileFunctions(
 
 	for i := range functions {
 		fn := functions[i]
-		if _, ok := objects.GetFunction(fn.Function.Schema, fn.Function.Name); ok {
-			out = append(out, fn)
+
+		fnInfo, ok := objects.GetFunction(fn.Function.Schema, fn.Function.Name)
+		if !ok {
+			inc.RecordFunction(
+				ctx, logger,
+				dbName,
+				fn.Function.Schema, fn.Function.Name,
+				"function not found in source",
+			)
 
 			continue
 		}
 
-		inc.RecordFunction(
-			ctx, logger,
-			dbName,
-			fn.Function.Schema, fn.Function.Name,
-			"function not found in source",
+		// Functions that don't return a table type cannot register a root
+		// field (the queries package raises
+		// errFunctionDoesNotReturnTableType). Drop here so the rest of the
+		// source keeps serving.
+		if !fnInfo.ReturnType.IsTableType() {
+			inc.RecordFunction(
+				ctx, logger,
+				dbName,
+				fn.Function.Schema, fn.Function.Name,
+				"function does not return a table type",
+			)
+
+			continue
+		}
+
+		baseKey := qualifyTable(
+			fnInfo.ReturnType.TableSchema, fnInfo.ReturnType.TableName,
 		)
+		if _, tracked := survivingTables[baseKey]; !tracked {
+			inc.RecordFunction(
+				ctx, logger,
+				dbName,
+				fn.Function.Schema, fn.Function.Name,
+				fmt.Sprintf(
+					"function base table %q is not tracked in source",
+					baseKey,
+				),
+			)
+
+			continue
+		}
+
+		out = append(out, fn)
 	}
 
 	if len(out) == 0 {

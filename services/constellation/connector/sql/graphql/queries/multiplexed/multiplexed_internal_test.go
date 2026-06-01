@@ -94,76 +94,103 @@ func TestRewriteSQLForMultiplexing(t *testing.T) {
 	t.Parallel()
 
 	tests := []struct {
-		name               string
-		sql                string
-		sessionVarIndices  map[int]string
-		cursorVarIndices   map[int]string
-		staticParamMapping map[int]int
-		expected           string
+		name                           string
+		sql                            string
+		sessionVarIndices              map[int]string
+		cursorVarIndices               map[int]string
+		functionSessionArgumentIndices map[int]string
+		staticParamMapping             map[int]int
+		expected                       string
 	}{
 		{
-			name:               "no replacements",
-			sql:                `SELECT "id", "name" FROM "users"`,
-			sessionVarIndices:  map[int]string{},
-			cursorVarIndices:   map[int]string{},
-			staticParamMapping: map[int]int{},
-			expected:           `SELECT "id", "name" FROM "users"`,
+			name:                           "no replacements",
+			sql:                            `SELECT "id", "name" FROM "users"`,
+			sessionVarIndices:              map[int]string{},
+			cursorVarIndices:               map[int]string{},
+			functionSessionArgumentIndices: map[int]string{},
+			staticParamMapping:             map[int]int{},
+			expected:                       `SELECT "id", "name" FROM "users"`,
 		},
 		{
-			name:               "session var with type cast",
-			sql:                `WHERE "id" = $1::uuid`,
-			sessionVarIndices:  map[int]string{1: "x-hasura-user-id"},
-			cursorVarIndices:   map[int]string{},
-			staticParamMapping: map[int]int{},
-			expected:           `WHERE "id" = (("_subs"."result_vars" #>> '{session,x-hasura-user-id}')::uuid)`,
+			name:                           "session var with type cast",
+			sql:                            `WHERE "id" = $1::uuid`,
+			sessionVarIndices:              map[int]string{1: "x-hasura-user-id"},
+			cursorVarIndices:               map[int]string{},
+			functionSessionArgumentIndices: map[int]string{},
+			staticParamMapping:             map[int]int{},
+			expected:                       `WHERE "id" = (("_subs"."result_vars" #>> '{session,x-hasura-user-id}')::uuid)`,
 		},
 		{
-			name:               "cursor var with type cast",
-			sql:                `WHERE "created_at" > $1::timestamptz`,
-			sessionVarIndices:  map[int]string{},
-			cursorVarIndices:   map[int]string{1: "created_at"},
-			staticParamMapping: map[int]int{},
-			expected:           `WHERE "created_at" > (("_subs"."result_vars" #>> '{cursor,created_at}')::timestamptz)`,
+			name:                           "cursor var with type cast",
+			sql:                            `WHERE "created_at" > $1::timestamptz`,
+			sessionVarIndices:              map[int]string{},
+			cursorVarIndices:               map[int]string{1: "created_at"},
+			functionSessionArgumentIndices: map[int]string{},
+			staticParamMapping:             map[int]int{},
+			expected:                       `WHERE "created_at" > (("_subs"."result_vars" #>> '{cursor,created_at}')::timestamptz)`,
 		},
 		{
-			name:               "static param renumbering with text type strips cast",
-			sql:                `WHERE "status" = $2::text`,
-			sessionVarIndices:  map[int]string{},
-			cursorVarIndices:   map[int]string{},
-			staticParamMapping: map[int]int{2: 3},
-			expected:           `WHERE "status" = $3`,
+			name:                           "function session argument uses whole session",
+			sql:                            `FROM "public"."session_echoes"($1)`,
+			sessionVarIndices:              map[int]string{},
+			cursorVarIndices:               map[int]string{},
+			functionSessionArgumentIndices: map[int]string{1: "jsonb"},
+			staticParamMapping:             map[int]int{},
+			expected:                       `FROM "public"."session_echoes"((("_subs"."result_vars" -> 'session')::jsonb))`,
 		},
 		{
-			name:               "static param renumbering with non-text type preserves cast",
-			sql:                `WHERE "id" = $2::uuid`,
-			sessionVarIndices:  map[int]string{},
-			cursorVarIndices:   map[int]string{},
-			staticParamMapping: map[int]int{2: 3},
-			expected:           `WHERE "id" = $3::uuid`,
+			name:                           "function session argument defaults to json without marker type",
+			sql:                            `FROM "public"."session_echoes"($1)`,
+			sessionVarIndices:              map[int]string{},
+			cursorVarIndices:               map[int]string{},
+			functionSessionArgumentIndices: map[int]string{1: ""},
+			staticParamMapping:             map[int]int{},
+			expected:                       `FROM "public"."session_echoes"((("_subs"."result_vars" -> 'session')::json))`,
 		},
 		{
-			name:               "static param renumbering without type",
-			sql:                `WHERE "status" = $2`,
-			sessionVarIndices:  map[int]string{},
-			cursorVarIndices:   map[int]string{},
-			staticParamMapping: map[int]int{2: 3},
-			expected:           `WHERE "status" = $3`,
+			name:                           "static param renumbering with text type strips cast",
+			sql:                            `WHERE "status" = $2::text`,
+			sessionVarIndices:              map[int]string{},
+			cursorVarIndices:               map[int]string{},
+			functionSessionArgumentIndices: map[int]string{},
+			staticParamMapping:             map[int]int{2: 3},
+			expected:                       `WHERE "status" = $3`,
 		},
 		{
-			name:               "param without type defaults to text",
-			sql:                `WHERE "id" = $1`,
-			sessionVarIndices:  map[int]string{1: "x-hasura-user-id"},
-			cursorVarIndices:   map[int]string{},
-			staticParamMapping: map[int]int{},
-			expected:           `WHERE "id" = (("_subs"."result_vars" #>> '{session,x-hasura-user-id}')::text)`,
+			name:                           "static param renumbering with non-text type preserves cast",
+			sql:                            `WHERE "id" = $2::uuid`,
+			sessionVarIndices:              map[int]string{},
+			cursorVarIndices:               map[int]string{},
+			functionSessionArgumentIndices: map[int]string{},
+			staticParamMapping:             map[int]int{2: 3},
+			expected:                       `WHERE "id" = $3::uuid`,
 		},
 		{
-			name:               "array type with brackets",
-			sql:                `WHERE "id" = ANY($1::uuid[])`,
-			sessionVarIndices:  map[int]string{1: "x-hasura-allowed-ids"},
-			cursorVarIndices:   map[int]string{},
-			staticParamMapping: map[int]int{},
-			expected:           `WHERE "id" = ANY((("_subs"."result_vars" #>> '{session,x-hasura-allowed-ids}')::uuid[]))`,
+			name:                           "static param renumbering without type",
+			sql:                            `WHERE "status" = $2`,
+			sessionVarIndices:              map[int]string{},
+			cursorVarIndices:               map[int]string{},
+			functionSessionArgumentIndices: map[int]string{},
+			staticParamMapping:             map[int]int{2: 3},
+			expected:                       `WHERE "status" = $3`,
+		},
+		{
+			name:                           "param without type defaults to text",
+			sql:                            `WHERE "id" = $1`,
+			sessionVarIndices:              map[int]string{1: "x-hasura-user-id"},
+			cursorVarIndices:               map[int]string{},
+			functionSessionArgumentIndices: map[int]string{},
+			staticParamMapping:             map[int]int{},
+			expected:                       `WHERE "id" = (("_subs"."result_vars" #>> '{session,x-hasura-user-id}')::text)`,
+		},
+		{
+			name:                           "array type with brackets",
+			sql:                            `WHERE "id" = ANY($1::uuid[])`,
+			sessionVarIndices:              map[int]string{1: "x-hasura-allowed-ids"},
+			cursorVarIndices:               map[int]string{},
+			functionSessionArgumentIndices: map[int]string{},
+			staticParamMapping:             map[int]int{},
+			expected:                       `WHERE "id" = ANY((("_subs"."result_vars" #>> '{session,x-hasura-allowed-ids}')::uuid[]))`,
 		},
 	}
 
@@ -175,6 +202,7 @@ func TestRewriteSQLForMultiplexing(t *testing.T) {
 				tc.sql,
 				tc.sessionVarIndices,
 				tc.cursorVarIndices,
+				tc.functionSessionArgumentIndices,
 				tc.staticParamMapping,
 			)
 

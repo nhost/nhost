@@ -8,6 +8,11 @@ import (
 	"github.com/nhost/nhost/services/constellation/metadata"
 )
 
+const (
+	scalarJSON  = "json"
+	scalarJSONB = "jsonb"
+)
+
 // generateForTable generates all GraphQL schema elements for a single table.
 func generateForTable( //nolint:funlen,cyclop
 	schema *graph.Schema,
@@ -87,11 +92,12 @@ func generateForTable( //nolint:funlen,cyclop
 		qualifiedName,
 		allowedColumns,
 		role,
+		md,
 		caps,
 	)
 
 	generateTableMutationFields(
-		mutationFields, tableMeta, tableInfo, customTableName, qualifiedName, role,
+		mutationFields, tableMeta, tableInfo, customTableName, qualifiedName, role, md,
 	)
 
 	generateTableSubscriptionFields(
@@ -102,12 +108,13 @@ func generateForTable( //nolint:funlen,cyclop
 		qualifiedName,
 		allowedColumns,
 		role,
+		md,
 		caps,
 	)
 
 	if allowAggregations(tableMeta, role) {
 		generateAggregateTypes(
-			schema, tableMeta, tableInfo, customTableName, qualifiedName, allowedColumns, md,
+			schema, tableMeta, tableInfo, customTableName, qualifiedName, allowedColumns, md, caps,
 		)
 	}
 
@@ -209,9 +216,10 @@ func generateObjectRelationshipFields(
 
 // isObjectRelationshipNullable determines whether an object relationship field should be nullable
 // in the GraphQL schema. A relationship is nullable when the related row may not exist:
-// - Reverse FK relationships (the remote table points back to this one) are always nullable.
-// - Forward FK relationships are nullable when the FK column allows NULL values.
-// - Manual configurations and unresolvable cases default to nullable.
+//   - Reverse FK relationships (the remote table points back to this one) are always nullable.
+//   - Forward FK relationships are nullable when ANY of the FK columns allows NULL values
+//     (a composite FK with even one nullable column may evaluate to NULL on the join).
+//   - Manual configurations and unresolvable cases default to nullable.
 func isObjectRelationshipNullable(
 	tableInfo *introspection.Table,
 	using metadata.RelationshipUsing,
@@ -220,15 +228,36 @@ func isObjectRelationshipNullable(
 		return true
 	}
 
-	if using.ForeignKeyColumn != "" {
+	if len(using.ForeignKeyColumns) == 0 {
+		return true
+	}
+
+	for _, fkName := range using.ForeignKeyColumns {
+		found := false
+
 		for _, col := range tableInfo.Columns {
-			if col.Name == using.ForeignKeyColumn {
-				return col.IsNullable
+			if col.Name != fkName {
+				continue
 			}
+
+			found = true
+
+			if col.IsNullable {
+				return true
+			}
+
+			break
+		}
+
+		// Column not present in introspection — treat as unresolvable and
+		// fall back to the nullable default rather than emitting a
+		// non-nullable field that may break at runtime.
+		if !found {
+			return true
 		}
 	}
 
-	return true
+	return false
 }
 
 // generateArrayRelationshipFields generates fields for array relationships (one-to-many).
@@ -261,7 +290,8 @@ func generateArrayRelationshipFields(
 		// type name below.
 		if targetTable != "" {
 			maybeGenerateAggregateOrderByForTargetTable(
-				schema, md, objects, targetSchema, targetTable, role, generatedAggregateOrderBy,
+				schema, md, objects, targetSchema, targetTable, role,
+				generatedAggregateOrderBy, caps,
 			)
 		}
 
@@ -313,7 +343,7 @@ func generateTableObjectType(
 
 		// jsonb/json columns expose a `path` argument so callers can drill
 		// into nested values without separate path-specific scalar types.
-		if col.Type == "jsonb" || col.Type == "json" {
+		if col.Type == scalarJSONB || col.Type == scalarJSON {
 			field.Arguments = []*graph.Argument{
 				{
 					Name:        "path",

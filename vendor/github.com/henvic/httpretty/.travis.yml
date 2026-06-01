@@ -1,0 +1,40 @@
+language: go
+
+go:
+  - "1.15.x" # when updating to a new major release, update scripts below too
+  - "1.14.x"
+  - "1.13.x"
+  - "tip"
+
+os:
+  - linux
+  - osx
+  - windows
+
+jobs:
+  allow_failures:
+    - go: tip
+    - os: windows
+
+env:
+  - GO111MODULE=on
+
+install:
+  - |
+    if [ "$TRAVIS_OS_NAME" == "linux" ] && [ "$TRAVIS_GO_VERSION" == "1.15.x" ]; then
+      ./scripts/install-ci.sh;
+    fi
+
+script:
+  - |
+    if [ "$TRAVIS_OS_NAME" == "linux" ] && [ "$TRAVIS_GO_VERSION" == "1.15.x" ]; then
+      ./scripts/test.sh;
+    else
+      go test ./... -race
+    fi
+
+after_success:
+  - |
+    if [ "$TRAVIS_OS_NAME" == "linux" ] && [ "$TRAVIS_GO_VERSION" == "1.15.x" ]; then
+      ./scripts/coverage.sh --coveralls;
+    fi

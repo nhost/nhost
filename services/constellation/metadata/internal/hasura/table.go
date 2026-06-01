@@ -4,13 +4,29 @@ import (
 	"context"
 	"encoding/json/jsontext"
 	json "encoding/json/v2"
+	"errors"
 	"fmt"
+)
+
+// errUnexpectedForeignKeyToken signals that foreign_key_constraint_on carried
+// a JSON token that is none of the four supported shapes (string, array of
+// strings, single-column object, composite-columns object).
+var errUnexpectedForeignKeyToken = errors.New(
+	"foreign_key_constraint_on: expected string, array, or object",
+)
+
+// errForeignKeyListEntryNotString signals that one of the entries inside the
+// array form of foreign_key_constraint_on was not a string. The YAML and JSON
+// paths both surface this — a permissive "drop non-strings" policy would mask
+// typos in real-world metadata.
+var errForeignKeyListEntryNotString = errors.New(
+	"foreign_key_constraint_on: list entry is not a string",
 )
 
 // TableMetadata is the Hasura representation of a tracked table.
 type TableMetadata struct {
 	Table               TableSource          `json:"table"                          yaml:"table"`
-	IsEnum              bool                 `json:"is_enum,omitempty"              yaml:"is_enum,omitempty"`
+	IsEnum              bool                 `json:"is_enum,omitzero"               yaml:"is_enum,omitempty"`
 	Configuration       TableConfiguration   `json:"configuration"                  yaml:"configuration,omitempty"`
 	ObjectRelationships []ObjectRelationship `json:"object_relationships,omitempty" yaml:"object_relationships,omitempty"`
 	ArrayRelationships  []ArrayRelationship  `json:"array_relationships,omitempty"  yaml:"array_relationships,omitempty"`
@@ -109,9 +125,9 @@ type DeletePermission struct {
 // SelectPermissionConfig captures the columns, row filter, and aggregation
 // access a select permission grants.
 type SelectPermissionConfig struct {
-	Columns           []string       `json:"columns,omitempty"            yaml:"columns,omitempty"`
-	Filter            map[string]any `json:"filter,omitempty"             yaml:"filter,omitempty"`
-	AllowAggregations bool           `json:"allow_aggregations,omitempty" yaml:"allow_aggregations,omitempty"`
+	Columns           []string       `json:"columns,omitempty"           yaml:"columns,omitempty"`
+	Filter            map[string]any `json:"filter,omitempty"            yaml:"filter,omitempty"`
+	AllowAggregations bool           `json:"allow_aggregations,omitzero" yaml:"allow_aggregations,omitempty"`
 }
 
 // InsertPermissionConfig captures the columns, row-level check, and presets an
@@ -148,26 +164,46 @@ type ArrayRelationship struct {
 	Using RelationshipUsing `json:"using" yaml:"using"`
 }
 
-// RelationshipUsing describes how a relationship is defined.
-// It handles both simple (column name string) and complex (full constraint object) cases.
+// RelationshipUsing describes how a relationship is defined. Hasura's
+// foreign_key_constraint_on accepts four shapes:
+//
+//  1. string                — single-column FK on the parent table.
+//  2. array of strings      — composite FK on the parent table.
+//  3. object with table+column  — single-column FK on the target table.
+//  4. object with table+columns — composite FK on the target table.
+//
+// ForeignKeyColumns covers (1) and (2); ForeignKeyConstraint covers (3) and (4).
+// Both are populated via custom unmarshaling rather than from JSON keys, so they
+// are tagged json:"-".
 type RelationshipUsing struct {
-	// ForeignKeyColumn is set when foreign_key_constraint_on is a plain column
-	// name; populated via custom unmarshaling, not from a JSON key.
-	ForeignKeyColumn string `json:"-"`
-	// ForeignKeyConstraint is set when foreign_key_constraint_on is a mapping
-	// (table + column); populated via custom unmarshaling, not from a JSON key.
+	ForeignKeyColumns    []string              `json:"-"`
 	ForeignKeyConstraint *ForeignKeyConstraint `json:"-"`
 	ManualConfiguration  *ManualConfiguration  `json:"manual_configuration,omitempty" yaml:"manual_configuration,omitempty"` //nolint:lll
 }
 
-func mapToForeignKeyConstraint(m map[string]any) *ForeignKeyConstraint {
+func mapToForeignKeyConstraint(m map[string]any) (*ForeignKeyConstraint, error) {
 	var (
-		column string
-		ts     TableSource
+		columns []string
+		ts      TableSource
 	)
 
-	if v, ok := m["column"].(string); ok {
-		column = v
+	// Hasura accepts either "columns" (composite) or "column" (single). Prefer
+	// the plural form when both are present.
+	if v, ok := m["columns"].([]any); ok {
+		columns = make([]string, 0, len(v))
+		for i, item := range v {
+			s, ok := item.(string)
+			if !ok {
+				return nil, fmt.Errorf(
+					"%w (index %d, type %T)",
+					errForeignKeyListEntryNotString, i, item,
+				)
+			}
+
+			columns = append(columns, s)
+		}
+	} else if v, ok := m["column"].(string); ok {
+		columns = []string{v}
 	}
 
 	if table, ok := m["table"].(map[string]any); ok {
@@ -180,11 +216,14 @@ func mapToForeignKeyConstraint(m map[string]any) *ForeignKeyConstraint {
 		}
 	}
 
-	return &ForeignKeyConstraint{Column: column, Table: ts}
+	return &ForeignKeyConstraint{Columns: columns, Table: ts}, nil
 }
 
-// UnmarshalYAML accepts foreign_key_constraint_on either as a bare column name
-// (string) or as a full constraint object (mapping).
+// UnmarshalYAML accepts foreign_key_constraint_on as any of:
+// a bare column name (string), a list of column names ([]string), or a full
+// constraint object (mapping) carrying either "column" or "columns". A list
+// containing a non-string entry is rejected so the YAML path matches the JSON
+// path (which fails the same input via its strict []string decode).
 func (r *RelationshipUsing) UnmarshalYAML(unmarshal func(any) error) error {
 	type rawUsing struct {
 		ForeignKeyConstraintOn any                  `yaml:"foreign_key_constraint_on,omitempty"`
@@ -198,17 +237,52 @@ func (r *RelationshipUsing) UnmarshalYAML(unmarshal func(any) error) error {
 
 	r.ManualConfiguration = raw.ManualConfiguration
 
+	if raw.ForeignKeyConstraintOn == nil {
+		return nil
+	}
+
 	switch v := raw.ForeignKeyConstraintOn.(type) {
 	case string:
-		r.ForeignKeyColumn = v
+		r.ForeignKeyColumns = []string{v}
+	case []any:
+		cols := make([]string, 0, len(v))
+		for i, item := range v {
+			s, ok := item.(string)
+			if !ok {
+				return fmt.Errorf(
+					"unmarshaling relationship using: %w (index %d, type %T)",
+					errForeignKeyListEntryNotString, i, item,
+				)
+			}
+
+			cols = append(cols, s)
+		}
+
+		r.ForeignKeyColumns = cols
 	case map[string]any:
-		r.ForeignKeyConstraint = mapToForeignKeyConstraint(v)
+		constraint, err := mapToForeignKeyConstraint(v)
+		if err != nil {
+			return fmt.Errorf("unmarshaling relationship using: %w", err)
+		}
+
+		r.ForeignKeyConstraint = constraint
+	default:
+		return fmt.Errorf(
+			"unmarshaling relationship using: %w (type %T)",
+			errUnexpectedForeignKeyToken, v,
+		)
 	}
 
 	return nil
 }
 
-// UnmarshalJSON implements custom JSON unmarshaling to handle both string and object forms.
+// UnmarshalJSON implements custom JSON unmarshaling to handle the string,
+// array-of-strings, and object forms of foreign_key_constraint_on. The shape
+// is selected by peeking the first non-whitespace byte of the raw value so the
+// decoder never has to swallow a parse error to fall through to the next case.
+// An omitted field decodes to a nil raw value and is treated as a no-op; an
+// explicit null is rejected via the default arm so malformed input fails
+// loudly instead of silently producing a zero RelationshipUsing.
 func (r *RelationshipUsing) UnmarshalJSON(data []byte) error {
 	var raw struct {
 		ForeignKeyConstraintOn jsontext.Value       `json:"foreign_key_constraint_on,omitempty"`
@@ -221,21 +295,79 @@ func (r *RelationshipUsing) UnmarshalJSON(data []byte) error {
 
 	r.ManualConfiguration = raw.ManualConfiguration
 
-	if raw.ForeignKeyConstraintOn != nil {
-		var column string
-		if err := json.Unmarshal(raw.ForeignKeyConstraintOn, &column); err == nil {
-			r.ForeignKeyColumn = column
-		} else {
-			var constraint ForeignKeyConstraint
-			if err := json.Unmarshal(raw.ForeignKeyConstraintOn, &constraint); err != nil {
-				return fmt.Errorf("unmarshaling foreign key constraint: %w", err)
-			}
+	if raw.ForeignKeyConstraintOn == nil {
+		return nil
+	}
 
-			r.ForeignKeyConstraint = &constraint
+	first := firstNonWhitespaceByte(raw.ForeignKeyConstraintOn)
+
+	switch first {
+	case '"':
+		var column string
+		if err := json.Unmarshal(raw.ForeignKeyConstraintOn, &column); err != nil {
+			return fmt.Errorf("unmarshaling foreign key constraint: %w", err)
 		}
+
+		r.ForeignKeyColumns = []string{column}
+	case '[':
+		var columns []string
+		if err := json.Unmarshal(raw.ForeignKeyConstraintOn, &columns); err != nil {
+			return fmt.Errorf("unmarshaling foreign key constraint: %w", err)
+		}
+
+		r.ForeignKeyColumns = columns
+	case '{':
+		constraint, err := unmarshalForeignKeyConstraintJSON(raw.ForeignKeyConstraintOn)
+		if err != nil {
+			return fmt.Errorf("unmarshaling foreign key constraint: %w", err)
+		}
+
+		r.ForeignKeyConstraint = constraint
+	default:
+		return fmt.Errorf(
+			"unmarshaling foreign key constraint: %w (token %q)",
+			errUnexpectedForeignKeyToken, first,
+		)
 	}
 
 	return nil
+}
+
+// firstNonWhitespaceByte returns the first non-whitespace byte of a JSON
+// fragment, or 0 if the fragment is entirely whitespace.
+func firstNonWhitespaceByte(b []byte) byte {
+	for _, c := range b {
+		switch c {
+		case ' ', '\t', '\n', '\r':
+			continue
+		default:
+			return c
+		}
+	}
+
+	return 0
+}
+
+// unmarshalForeignKeyConstraintJSON parses the object form of
+// foreign_key_constraint_on, accepting either "columns" (preferred, composite)
+// or "column" (single-column) under the same object.
+func unmarshalForeignKeyConstraintJSON(data []byte) (*ForeignKeyConstraint, error) {
+	var raw struct {
+		Columns []string    `json:"columns"`
+		Column  string      `json:"column"`
+		Table   TableSource `json:"table"`
+	}
+
+	if err := json.Unmarshal(data, &raw); err != nil {
+		return nil, fmt.Errorf("decoding foreign key constraint object: %w", err)
+	}
+
+	columns := raw.Columns
+	if len(columns) == 0 && raw.Column != "" {
+		columns = []string{raw.Column}
+	}
+
+	return &ForeignKeyConstraint{Columns: columns, Table: raw.Table}, nil
 }
 
 // ManualConfiguration describes a relationship that isn't backed by a database
@@ -253,11 +385,13 @@ type ManualConfiguration struct {
 	RemoteField map[string]RemoteFieldCall `json:"-" yaml:"-"`
 }
 
-// ForeignKeyConstraint identifies the column and table that anchor a
-// foreign-key-backed relationship.
+// ForeignKeyConstraint identifies the columns and table that anchor a
+// foreign-key-backed relationship. Columns is the ordered list of columns on
+// Table that point back at the parent table; a single-column FK is represented
+// as a one-element slice.
 type ForeignKeyConstraint struct {
-	Column string      `json:"column" yaml:"column"`
-	Table  TableSource `json:"table"  yaml:"table"`
+	Columns []string    `json:"columns" yaml:"columns"`
+	Table   TableSource `json:"table"   yaml:"table"`
 }
 
 // RemoteRelationship represents a cross-database relationship in Hasura format.
@@ -325,7 +459,7 @@ func (t *TableMetadata) convertRemoteRelationships() {
 func (t *TableMetadata) appendToSourceRelationship(remote RemoteRelationship) {
 	toSource := remote.Definition.ToSource
 	using := RelationshipUsing{
-		ForeignKeyColumn:     "",
+		ForeignKeyColumns:    nil,
 		ForeignKeyConstraint: nil,
 		ManualConfiguration: &ManualConfiguration{
 			RemoteTable: TableSource{
@@ -362,7 +496,7 @@ func (t *TableMetadata) appendToRemoteSchemaRelationship(remote RemoteRelationsh
 	t.ObjectRelationships = append(t.ObjectRelationships, ObjectRelationship{
 		Name: remote.Name,
 		Using: RelationshipUsing{
-			ForeignKeyColumn:     "",
+			ForeignKeyColumns:    nil,
 			ForeignKeyConstraint: nil,
 			ManualConfiguration: &ManualConfiguration{
 				RemoteTable:   TableSource{Name: "", Schema: ""},

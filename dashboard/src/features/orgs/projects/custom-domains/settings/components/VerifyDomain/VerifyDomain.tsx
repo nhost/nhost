@@ -1,8 +1,8 @@
+import { CopyIcon } from 'lucide-react';
 import { useEffect, useState } from 'react';
 import { Box } from '@/components/ui/v2/Box';
 import { Button } from '@/components/ui/v2/Button';
 import { IconButton } from '@/components/ui/v2/IconButton';
-import { CopyIcon } from '@/components/ui/v2/icons/CopyIcon';
 import { Text } from '@/components/ui/v2/Text';
 import { useIsPlatform } from '@/features/orgs/projects/common/hooks/useIsPlatform';
 import { execPromiseWithErrorToast } from '@/features/orgs/utils/execPromiseWithErrorToast';

@@ -150,23 +150,42 @@ func newAuthenticator(
 func (a *Authenticator) Authenticate(
 	headers http.Header, roleOverride string,
 ) (*SessionResult, error) {
+	var lastErr error
+
+	sawToken := false
+
 	for i, sv := range a.validators {
 		token := extractToken(headers, sv.headerCfg)
 		if token == "" {
 			continue
 		}
 
-		// Token found — must validate successfully or return error.
+		sawToken = true
+
+		// A token was extracted by this secret. Signature/claim-time
+		// validation failures fall through to the next configured secret:
+		// Hasura accepts a token if ANY configured secret verifies it (the
+		// HASURA_GRAPHQL_JWT_SECRETS multi-IdP / key-rotation contract), so a
+		// token signed for a later secret must not be rejected just because an
+		// earlier secret reads the same header location.
 		claims, err := sv.parseAndValidate(token)
 		if err != nil {
-			a.logger.Debug("jwt validation failed",
+			a.logger.Debug(
+				"jwt validation failed",
 				slog.Int("secret_index", i),
 				slog.String("error", err.Error()),
 			)
 
-			return nil, fmt.Errorf("jwt authentication failed: %w", err)
+			lastErr = err
+
+			continue
 		}
 
+		// The token verified against this secret. Claims-shape failures
+		// (missing namespace, malformed Hasura claims, role override not in
+		// allowed-roles, …) are hard failures for the verified token and are
+		// NOT retried against other secrets: a verified-but-malformed token is
+		// an authentication error, not a "try the next key" signal.
 		hasuraClaims, err := a.extractors[i].extractClaims(claims)
 		if err != nil {
 			return nil, fmt.Errorf("failed to extract hasura claims: %w", err)
@@ -181,6 +200,11 @@ func (a *Authenticator) Authenticate(
 			Role:      role,
 			Variables: variables,
 		}, nil
+	}
+
+	if sawToken {
+		// At least one secret extracted a token but none verified it.
+		return nil, fmt.Errorf("jwt authentication failed: %w", lastErr)
 	}
 
 	return nil, nil //nolint:nilnil // no token: caller falls through to anonymous, not an error

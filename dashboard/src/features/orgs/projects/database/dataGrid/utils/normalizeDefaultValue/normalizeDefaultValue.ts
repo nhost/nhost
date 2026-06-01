@@ -1,3 +1,5 @@
+import type { ColumnDefaultValue } from '@/features/orgs/projects/database/dataGrid/types/dataBrowser';
+
 export interface NormalizeDefaultValueOptions {
   /**
    * Determines whether or not arguments should be removed from default value
@@ -16,19 +18,19 @@ export interface NormalizeDefaultValueOptions {
  *
  * @param defaultValue - Default value to normalize
  * @param options - Options for normalizing default value
- * @returns Normalized default value and `true` if there was a match for custom
- * default value, `false` otherwise.
+ * @returns A `ColumnDefaultValue` (`{ value, custom }`) when a default is
+ * present, or `null` when there is none.
  */
 export default function normalizeDefaultValue(
   defaultValue?: string | null,
   { removeArgs }: NormalizeDefaultValueOptions = {},
-) {
+): ColumnDefaultValue | null {
   if (!defaultValue) {
-    return { normalizedDefaultValue: '', custom: false };
+    return null;
   }
 
   if (/^''::(\w|\s)+$/i.test(defaultValue)) {
-    return { normalizedDefaultValue: '', custom: true };
+    return { value: defaultValue, custom: false };
   }
 
   // Note: We are extracting the actual default value from the ambiguous
@@ -44,15 +46,13 @@ export default function normalizeDefaultValue(
 
   if (match) {
     return {
-      normalizedDefaultValue: removeArgs
-        ? match.replace(removeArgsRegExp, '()')
-        : match,
+      value: removeArgs ? match.replace(removeArgsRegExp, '()') : match,
       custom: true,
     };
   }
 
   return {
-    normalizedDefaultValue: removeArgs
+    value: removeArgs
       ? defaultValue.replace(removeArgsRegExp, '()')
       : defaultValue,
     custom: false,

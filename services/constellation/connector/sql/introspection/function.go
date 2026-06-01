@@ -1,5 +1,7 @@
 package introspection
 
+import "fmt"
+
 // Volatility represents PostgreSQL function volatility classification.
 type Volatility string
 
@@ -26,6 +28,17 @@ type FunctionArgument struct {
 	// HasDefault is true when the argument has a default value and may be
 	// omitted by callers.
 	HasDefault bool
+}
+
+// GraphQLName returns the GraphQL input-field name for the argument.
+// Named arguments use their SQL name, while positional-only arguments receive
+// Hasura-compatible names such as arg_1 based on their zero-based position.
+func (a FunctionArgument) GraphQLName(index int) string {
+	if a.Name != "" {
+		return a.Name
+	}
+
+	return fmt.Sprintf("arg_%d", index+1)
 }
 
 // FunctionReturnType represents what the function returns.

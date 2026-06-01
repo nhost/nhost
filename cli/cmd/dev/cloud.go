@@ -56,7 +56,7 @@ func CommandCloud() *cli.Command {
 			&cli.StringFlag{ //nolint:exhaustruct
 				Name:    flagDashboardVersion,
 				Usage:   "Dashboard version to use",
-				Value:   "nhost/dashboard:2.63.0",
+				Value:   "nhost/dashboard:2.63.1",
 				Sources: cli.EnvVars("NHOST_DASHBOARD_VERSION"),
 			},
 			&cli.StringFlag{ //nolint:exhaustruct
@@ -265,9 +265,11 @@ func printCloudInfo(
 	w := tabwriter.NewWriter(os.Stdout, 0, 0, 4, ' ', 0) //nolint:mnd
 	fmt.Fprintf(w, "URLs:\n")
 	fmt.Fprintf(w, "- Console:\t\t%s\n", dockercompose.URL(
-		subdomain, "hasura", httpPort, useTLS))
+		subdomain, "hasura", httpPort, useTLS,
+	))
 	fmt.Fprintf(w, "- Dashboard:\t\t%s\n", dockercompose.URL(
-		subdomain, "dashboard", httpPort, useTLS))
+		subdomain, "dashboard", httpPort, useTLS,
+	))
 
 	w.Flush()
 }

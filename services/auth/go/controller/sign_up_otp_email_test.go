@@ -45,25 +45,26 @@ func TestSignUpOTPEmail(t *testing.T) {
 
 				mock.EXPECT().InsertUser(
 					gomock.Any(),
-					cmpDBParams(sql.InsertUserParams{
-						ID:                uuid.UUID{},
-						Disabled:          false,
-						DisplayName:       "jane@acme.com",
-						AvatarUrl:         "",
-						Email:             sql.Text("jane@acme.com"),
-						PasswordHash:      pgtype.Text{},
-						Ticket:            sql.Text("xxx"),
-						TicketExpiresAt:   sql.TimestampTz(time.Now().Add(time.Hour)),
-						EmailVerified:     false,
-						Locale:            "en",
-						DefaultRole:       "user",
-						Metadata:          []byte("null"),
-						Roles:             []string{"user", "me"},
-						PhoneNumber:       pgtype.Text{},
-						Otp:               "",
-						OtpHashExpiresAt:  pgtype.Timestamptz{},
-						OtpMethodLastUsed: pgtype.Text{},
-					},
+					cmpDBParams(
+						sql.InsertUserParams{
+							ID:                uuid.UUID{},
+							Disabled:          false,
+							DisplayName:       "jane@acme.com",
+							AvatarUrl:         "",
+							Email:             sql.Text("jane@acme.com"),
+							PasswordHash:      pgtype.Text{},
+							Ticket:            sql.Text("xxx"),
+							TicketExpiresAt:   sql.TimestampTz(time.Now().Add(time.Hour)),
+							EmailVerified:     false,
+							Locale:            "en",
+							DefaultRole:       "user",
+							Metadata:          []byte("null"),
+							Roles:             []string{"user", "me"},
+							PhoneNumber:       pgtype.Text{},
+							Otp:               "",
+							OtpHashExpiresAt:  pgtype.Timestamptz{},
+							OtpMethodLastUsed: pgtype.Text{},
+						},
 						cmpopts.IgnoreFields(sql.InsertUserParams{}, "ID"),
 					),
 				).Return(sql.InsertUserRow{
@@ -104,10 +105,13 @@ func TestSignUpOTPEmail(t *testing.T) {
 								ClientURL:   "http://localhost:3000",
 							},
 							testhelpers.FilterPathLast(
-								[]string{".Ticket"}, cmp.Comparer(cmpTicket)),
+								[]string{".Ticket"}, cmp.Comparer(cmpTicket),
+							),
 							testhelpers.FilterPathLast(
-								[]string{".Link"}, cmp.Comparer(cmpLink)),
-						)).Return(nil)
+								[]string{".Link"}, cmp.Comparer(cmpLink),
+							),
+						),
+					).Return(nil)
 
 					return mock
 				}),

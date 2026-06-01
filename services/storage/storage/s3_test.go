@@ -26,7 +26,8 @@ import (
 func getS3() *storage.S3 {
 	logger := slog.New(slog.NewTextHandler(os.Stdout, nil))
 	ctx := context.Background()
-	config, err := config.LoadDefaultConfig(ctx,
+	config, err := config.LoadDefaultConfig(
+		ctx,
 		config.WithRegion("eu-central-1"),
 		config.WithCredentialsProvider(
 			credentials.NewStaticCredentialsProvider(

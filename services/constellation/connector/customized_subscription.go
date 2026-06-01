@@ -28,7 +28,7 @@ type subscriptionCapable interface {
 // reversed to native names and streamed updates are reshaped back into
 // customized form. It returns nil when the wrapped connector does not serve
 // subscriptions (e.g. remote schemas), which buildState treats as "no handler".
-func (c *customizedConnector) NewSubscriptionHandler( //nolint:ireturn
+func (c *customizedConnector) NewSubscriptionHandler( //nolint:ireturn,nolintlint
 	pollingInterval time.Duration,
 	logger *slog.Logger,
 ) subscription.Handler {

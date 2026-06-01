@@ -5,14 +5,21 @@ import {
 } from '@/components/form/FormAutocomplete';
 import { InlineCode } from '@/components/ui/v3/inline-code';
 import type { ColumnDefaultValue } from '@/features/orgs/projects/database/dataGrid/types/dataBrowser';
-import { postgresFunctions } from '@/features/orgs/projects/database/dataGrid/utils/postgresqlConstants';
+import { getPostgresFunctionsKey } from '@/features/orgs/projects/database/dataGrid/utils/getPostgresFunctionsKey';
+import {
+  POSTGRESQL_FUNCTION_LABELS,
+  postgresFunctions,
+} from '@/features/orgs/projects/database/dataGrid/utils/postgresqlConstants';
 import type { FieldArrayInputProps } from './ColumnEditorRow';
+
+const CLEAR_DEFAULT_SENTINEL = '__nhost_clear_default__';
 
 export default function DefaultValueAutocomplete({
   index,
 }: FieldArrayInputProps) {
   const { control } = useFormContext();
   const type: string | null = useWatch({ name: `columns.${index}.type` });
+  const isNullable = useWatch({ name: `columns.${index}.isNullable` });
   const identityColumnIndex = useWatch({ name: 'identityColumnIndex' });
   const isIdentity = identityColumnIndex === index;
   const isGenerated = useWatch({ name: `columns.${index}.isGenerated` });
@@ -20,17 +27,30 @@ export default function DefaultValueAutocomplete({
     name: `columns.${index}.generationExpression`,
   });
 
-  const availableFunctions: FormAutocompleteOption[] = (
-    postgresFunctions[type as keyof typeof postgresFunctions] ?? []
-  ).map((functionName) => ({
-    value: functionName,
-    label: functionName,
-    render: (
-      <InlineCode className="bg-transparent px-0 text-xs dark:bg-transparent">
-        {functionName}
-      </InlineCode>
-    ),
-  }));
+  const clearLabel = isNullable ? 'NULL' : 'NO DEFAULT VALUE';
+  const clearOption: FormAutocompleteOption = {
+    value: CLEAR_DEFAULT_SENTINEL,
+    label: clearLabel,
+    render: <span className="text-muted-foreground">{clearLabel}</span>,
+  };
+
+  const functionKey = getPostgresFunctionsKey(type ?? undefined);
+  const functionOptions: FormAutocompleteOption[] = (
+    postgresFunctions[functionKey as keyof typeof postgresFunctions] ?? []
+  ).map((functionName) => {
+    const label = POSTGRESQL_FUNCTION_LABELS[functionName] ?? functionName;
+    return {
+      value: functionName,
+      label,
+      render: (
+        <InlineCode className="bg-transparent px-0 text-xs dark:bg-transparent">
+          {label}
+        </InlineCode>
+      ),
+    };
+  });
+
+  const availableFunctions = [clearOption, ...functionOptions];
 
   if (isGenerated) {
     return (
@@ -54,7 +74,7 @@ export default function DefaultValueAutocomplete({
             <span className="italic">{`'${current.value}'`}</span>
           ) : (
             <InlineCode className="bg-transparent px-0 text-xs dark:bg-transparent">
-              {current.value}
+              {POSTGRESQL_FUNCTION_LABELS[current.value] ?? current.value}
             </InlineCode>
           )
         ) : undefined;
@@ -63,7 +83,7 @@ export default function DefaultValueAutocomplete({
             value={current?.value ?? null}
             triggerLabel={triggerLabel}
             onChange={(next, meta) => {
-              if (next === null) {
+              if (next === null || next === CLEAR_DEFAULT_SENTINEL) {
                 field.onChange(null);
                 return;
               }
@@ -74,9 +94,9 @@ export default function DefaultValueAutocomplete({
             }}
             onBlur={field.onBlur}
             options={availableFunctions}
-            placeholder="NULL"
+            placeholder={isNullable ? 'NULL' : 'NO DEFAULT VALUE'}
             aria-label="Default Value"
-            searchPlaceholder="Search functions..."
+            searchPlaceholder="Search..."
             emptyText="Enter a custom default value"
             allowCustomValue
             customValueLabel={(input) => `Use '${input}' as a literal`}

@@ -27,24 +27,30 @@ type graphQLResponse struct {
 }
 
 // applyPresets modifies an operation to inject preset argument values.
-// It clones the operation to avoid mutating the original.
+// rootTypeName must be the role schema's actual root type name, since preset
+// keys are extracted from the permission SDL's type names. It clones the
+// operation to avoid mutating the original.
 func applyPresets(
 	operation *ast.OperationDefinition,
 	presets map[string][]presetArg,
 	sessionVariables map[string]any,
+	rootTypeName string,
 ) *ast.OperationDefinition {
-	if len(presets) == 0 {
+	if operation == nil || len(presets) == 0 {
 		return operation
 	}
 
 	cloned := cloneOperation(operation)
-	rootTypeName := getRootTypeName(cloned.Operation)
+	if rootTypeName == "" {
+		rootTypeName = defaultRootTypeName(cloned.Operation)
+	}
+
 	applyPresetsToSelectionSet(cloned.SelectionSet, rootTypeName, presets, sessionVariables)
 
 	return cloned
 }
 
-func getRootTypeName(op ast.Operation) string {
+func defaultRootTypeName(op ast.Operation) string {
 	switch op {
 	case ast.Query:
 		return "Query" //nolint:goconst,nolintlint
@@ -335,7 +341,8 @@ func (c *Connector) executeRemoteQuery(
 	clientHeaders http.Header,
 	logger *slog.Logger,
 ) (map[string]any, error) {
-	logger.DebugContext(ctx, "executing remote query",
+	logger.DebugContext(
+		ctx, "executing remote query",
 		slog.String("query", query),
 	)
 
@@ -348,7 +355,8 @@ func (c *Connector) executeRemoteQuery(
 	}
 
 	var gqlResp graphQLResponse
-	if err := json.Unmarshal(body, &gqlResp,
+	if err := json.Unmarshal(
+		body, &gqlResp,
 		jsontext.AllowDuplicateNames(true),
 		jsontext.AllowInvalidUTF8(true),
 	); err != nil {
