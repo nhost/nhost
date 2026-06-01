@@ -102,7 +102,8 @@ func (t *table) buildUpdateByPkSQL(
 		b,
 		columns,
 		relationships,
-		nil, // no nested CTEs
+		nil, // no nested selection CTEs
+		nil, // no nested force-ref CTEs
 		fragments,
 		variables,
 		role,

@@ -471,6 +471,49 @@ func TestInsertOneBuildQuery(t *testing.T) { //nolint:paralleltest,maintidx
 			},
 		},
 
+		// The nested department inserts a descendant `employees` CTE, while the
+		// top-level returning selection aliases the normal `user` relationship to
+		// `employees`. This must still build/read the lateral user relationship;
+		// only direct nested relationships may be read from nested CTEs.
+		{
+			name: "nested descendant name does not shadow aliased top-level relationship",
+			query: query{
+				Query: `mutation {
+					  insert_user_departments_one(
+						object: {
+						  user_id: "550e8400-e29b-41d4-a716-446655440001"
+						  role: "manager"
+						  department: {
+							data: {
+							  id: "00000000-0000-0000-0000-00000000020c"
+							  name: "Alias Collision Department"
+							  description: "nested descendant name collision"
+							  budget: 123000
+							  employees: {
+								data: {
+								  user_id: "550e8400-e29b-41d4-a716-446655440002"
+								  role: "member"
+								}
+							  }
+							}
+						  }
+						}
+					  ) {
+						user_id
+						employees: user {
+						  id
+						  displayName
+						}
+						department {
+						  id
+						  name
+						}
+					  }
+					}`,
+				Role: "admin",
+			},
+		},
+
 		// Permission tests - simple
 		{
 			name: "permissions: simple insert",

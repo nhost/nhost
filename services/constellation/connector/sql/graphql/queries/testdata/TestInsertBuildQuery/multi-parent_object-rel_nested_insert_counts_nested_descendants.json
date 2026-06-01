@@ -1,0 +1,25 @@
+[
+  {
+    "Name": "insert_user_departments",
+    "SQL": "WITH check_nested_department_0 AS (SELECT * FROM (SELECT $1::uuid AS \"id\", $2::text AS \"name\", $3::text AS \"description\", $4::numeric AS \"budget\") AS data WHERE true), nested_department_0 AS (INSERT INTO \"public\".\"departments\" (\"id\", \"name\", \"description\", \"budget\") SELECT check_nested_department_0.\"id\", check_nested_department_0.\"name\", check_nested_department_0.\"description\", check_nested_department_0.\"budget\" FROM check_nested_department_0 RETURNING *), check_nested_employees_0 AS (SELECT * FROM (SELECT $5::uuid AS \"user_id\", $6::text AS \"role\") AS data WHERE true), nested_employees_0 AS (INSERT INTO \"public\".\"user_departments\" (\"user_id\", \"role\", \"department_id\") SELECT check_nested_employees_0.\"user_id\", check_nested_employees_0.\"role\", nested_department_0.\"id\" FROM check_nested_employees_0, nested_department_0 RETURNING *), check_nested_department_1 AS (SELECT * FROM (SELECT $7::uuid AS \"id\", $8::text AS \"name\", $9::text AS \"description\", $10::numeric AS \"budget\") AS data WHERE true), nested_department_1 AS (INSERT INTO \"public\".\"departments\" (\"id\", \"name\", \"description\", \"budget\") SELECT check_nested_department_1.\"id\", check_nested_department_1.\"name\", check_nested_department_1.\"description\", check_nested_department_1.\"budget\" FROM check_nested_department_1 RETURNING *), check_nested_employees_1 AS (SELECT * FROM (SELECT $11::uuid AS \"user_id\", $12::text AS \"role\") AS data WHERE true), nested_employees_1 AS (INSERT INTO \"public\".\"user_departments\" (\"user_id\", \"role\", \"department_id\") SELECT check_nested_employees_1.\"user_id\", check_nested_employees_1.\"role\", nested_department_1.\"id\" FROM check_nested_employees_1, nested_department_1 RETURNING *), check_mutation_result_0 AS (SELECT * FROM (SELECT $13::uuid AS \"user_id\", $14::text AS \"role\") AS data WHERE true), mutation_result_0 AS (INSERT INTO \"public\".\"user_departments\" (\"user_id\", \"role\", \"department_id\") SELECT check_mutation_result_0.\"user_id\", check_mutation_result_0.\"role\", nested_department_0.\"id\" FROM check_mutation_result_0, nested_department_0 RETURNING *), check_mutation_result_1 AS (SELECT * FROM (SELECT $15::uuid AS \"user_id\", $16::text AS \"role\") AS data WHERE true), mutation_result_1 AS (INSERT INTO \"public\".\"user_departments\" (\"user_id\", \"role\", \"department_id\") SELECT check_mutation_result_1.\"user_id\", check_mutation_result_1.\"role\", nested_department_1.\"id\" FROM check_mutation_result_1, nested_department_1 RETURNING *), mutation_result AS (SELECT mutation_result_0.\"user_id\", mutation_result_0.\"department_id\", mutation_result_0.\"role\", mutation_result_0.\"joined_at\", mutation_result_0.\"is_active\" FROM mutation_result_0 UNION ALL SELECT mutation_result_1.\"user_id\", mutation_result_1.\"department_id\", mutation_result_1.\"role\", mutation_result_1.\"joined_at\", mutation_result_1.\"is_active\" FROM mutation_result_1) SELECT json_build_object('affected_rows', ((SELECT COUNT(*) FROM mutation_result) + (SELECT COUNT(*) FROM nested_department_0) + (SELECT COUNT(*) FROM nested_department_1) + (SELECT COUNT(*) FROM nested_employees_0) + (SELECT COUNT(*) FROM nested_employees_1)), 'returning', (SELECT COALESCE(json_agg(row_to_json(\"_e\")), '[]'::json) FROM (SELECT mutation_result.\"user_id\" AS \"user_id\", mutation_result.\"department_id\" AS \"department_id\", mutation_result.\"role\" AS \"role\" FROM mutation_result WHERE (SELECT COUNT(*) FROM nested_department_0) IS NOT NULL AND (SELECT COUNT(*) FROM nested_department_1) IS NOT NULL AND (SELECT COUNT(*) FROM nested_employees_0) IS NOT NULL AND (SELECT COUNT(*) FROM nested_employees_1) IS NOT NULL) AS \"_e\"))",
+    "Parameters": [
+      "00000000-0000-0000-0000-00000000020a",
+      "Nested Department A",
+      "object rel descendant A",
+      100000,
+      "550e8400-e29b-41d4-a716-446655440002",
+      "member",
+      "00000000-0000-0000-0000-00000000020b",
+      "Nested Department B",
+      "object rel descendant B",
+      110000,
+      "550e8400-e29b-41d4-a716-446655440004",
+      "member",
+      "550e8400-e29b-41d4-a716-446655440001",
+      "manager",
+      "550e8400-e29b-41d4-a716-446655440003",
+      "manager"
+    ],
+    "StreamCursors": null
+  }
+]

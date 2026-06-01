@@ -722,6 +722,60 @@ func TestInsertMutations(t *testing.T) { //nolint:paralleltest,maintidx
 			},
 		},
 
+		// INCON_HIGH_4: multi-parent partitioned array-rel insert with a MIXED
+		// column set across parents. Parent one's reply OMITS the NOT NULL
+		// DEFAULT 'public' `visibility` column; parent two's reply SUPPLIES it.
+		// Both children merge into one partitioned UNION-ALL data CTE
+		// (buildPartitionedUnionAllSelect). Pre-fix the omitting branch emitted
+		// `NULL::text AS "visibility"`, which the INSERT ... SELECT wrote
+		// explicitly into the NOT NULL column and tripped Postgres 23502;
+		// Hasura lets the per-row default apply. The fix emits
+		// `('public'::text)::text` for the omitted branch. RunGraphQLTests
+		// diffs against live Hasura, so the absence of Postgres 23502, the
+		// affected_rows sum, and the parent titles must match Hasura; the exact
+		// default expression is locked by
+		// TestBuildPartitionedUnionAllSelectDefaultExprForMissing. Uses the `user`
+		// role so `visibility` is permission-referenced and the post-check path
+		// is the one exercised.
+		{
+			name: "multi-parent array-rel insert applies DB default for omitted NOT NULL column (Hasura parity)",
+			query: query{
+				Query: `
+					mutation {
+					  insert_notes(objects: [
+						{
+						  id: "0199bbbb-0000-7000-8000-000000000028"
+						  author_id: "550e8400-e29b-41d4-a716-446655440001"
+						  title: "Default-visibility parent"
+						  replies: {
+							data: [
+							  { body: "reply omits visibility" }
+							]
+						  }
+						}
+						{
+						  id: "0199bbbb-0000-7000-8000-000000000029"
+						  author_id: "550e8400-e29b-41d4-a716-446655440001"
+						  title: "Explicit-visibility parent"
+						  replies: {
+							data: [
+							  { body: "reply supplies visibility", visibility: "public" }
+							]
+						  }
+						}
+					  ]) {
+						affected_rows
+						returning { title }
+					  }
+					}`,
+				Variables: map[string]any{},
+				Role:      "user",
+				SessionVariables: map[string]string{
+					"user-id": "550e8400-e29b-41d4-a716-446655440001",
+				},
+			},
+		},
+
 		// Single-parent collection-insert with a nested array-rel child
 		// whose substituted post-check denies (visibility = "private" trips
 		// the `visibility _eq "public"` leaf). The selection set is
@@ -894,14 +948,59 @@ func TestInsertMutations(t *testing.T) { //nolint:paralleltest,maintidx
 			},
 		},
 
-		// The 2-row sibling (each row with its own nested file parent)
-		// would also be a useful Hasura-parity lock — Hasura reports
-		// affected_rows = 4 — but Constellation still only emits object-rel
-		// nested CTEs/FK mappings from insertObjs[0].NestedInserts. Later
-		// parent rows therefore cannot attach their own nested object-rel
-		// parent yet. Re-add when multi-parent object-rel nested inserts are
-		// implemented; the 1-row case above is sufficient to lock the
-		// affected_rows summing shape introduced by this PR.
+		// Multi-parent object-relationship nested insert (BUG_HIGH_1): each of
+		// the two parent rows carries its OWN nested storage.files parent.
+		// Hasura inserts both files and links department_files[0] -> file A,
+		// department_files[1] -> file B, reporting affected_rows = 4 (2 parents
+		// + 2 files). Pre-fix Constellation emitted only insertObjs[0]'s file
+		// CTE (nested_file) and cross-joined it onto every parent, so the second
+		// file was silently dropped and BOTH parents linked to file A.
+		// RunGraphQLTests diffs Constellation against the live Hasura, so the
+		// per-parent partitioning (nested_file_0 / nested_file_1) is asserted
+		// for both affected_rows and the per-parent file_id linkage.
+		// nested-rel resolution in mutation RETURNING is a separate pre-existing
+		// issue; assert per-parent FK via file_id only.
+		{
+			name: "object-rel collection insert: each parent row links to its own nested file (Hasura parity)",
+			query: query{
+				Query: `
+					mutation {
+					  insert_department_files(objects: [
+						{
+						  id: "00000000-0000-0000-0000-00000000020a"
+						  description: "object-rel-parent-A"
+						  department_id: "2db9de0a-b9ba-416e-8619-783a399ae2b3"
+						  file: {
+							data: {
+							  id: "00000000-0000-0000-0000-00000000020b"
+							  bucketId: "default"
+							}
+						  }
+						}
+						{
+						  id: "00000000-0000-0000-0000-00000000020c"
+						  description: "object-rel-parent-B"
+						  department_id: "2db9de0a-b9ba-416e-8619-783a399ae2b3"
+						  file: {
+							data: {
+							  id: "00000000-0000-0000-0000-00000000020d"
+							  bucketId: "default"
+							}
+						  }
+						}
+					  ]) {
+						affected_rows
+						returning {
+						  id
+						  description
+						  file_id
+						}
+					  }
+					}`,
+				Variables: map[string]any{},
+				Role:      "admin",
+			},
+		},
 	}
 
 	RunGraphQLTests(t, cases, TestConfig{
