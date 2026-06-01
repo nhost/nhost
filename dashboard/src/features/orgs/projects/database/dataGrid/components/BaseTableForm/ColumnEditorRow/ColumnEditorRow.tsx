@@ -197,7 +197,7 @@ export interface ColumnEditorRowProps extends FieldArrayInputProps {
 }
 
 const ColumnEditorRow = memo(({ index, remove }: ColumnEditorRowProps) => (
-  <div className="flex w-full gap-2">
+  <div className="flex w-full items-start gap-2">
     <div className="w-52 flex-none">
       <NameInput index={index} />
     </div>
@@ -210,11 +210,11 @@ const ColumnEditorRow = memo(({ index, remove }: ColumnEditorRowProps) => (
       <DefaultValueAutocomplete index={index} />
     </div>
 
-    <div className="flex w-8 flex-none items-center justify-center">
+    <div className="flex h-10 w-8 flex-none items-center justify-center">
       <ColumnComment index={index} />
     </div>
 
-    <div className="flex w-13 flex-none items-center justify-center">
+    <div className="flex h-10 w-13 flex-none items-center justify-center">
       <Checkbox
         name={`columns.${index}.isNullable`}
         aria-label="Nullable"
@@ -223,7 +223,7 @@ const ColumnEditorRow = memo(({ index, remove }: ColumnEditorRowProps) => (
       />
     </div>
 
-    <div className="flex w-13 flex-none items-center justify-center">
+    <div className="flex h-10 w-13 flex-none items-center justify-center">
       <Checkbox
         name={`columns.${index}.isUnique`}
         aria-label="Unique"
@@ -232,7 +232,7 @@ const ColumnEditorRow = memo(({ index, remove }: ColumnEditorRowProps) => (
       />
     </div>
 
-    <div className="flex w-9 flex-none items-center justify-center">
+    <div className="flex h-10 w-9 flex-none items-center justify-center">
       <RemoveButton
         index={index}
         onClick={() => {
