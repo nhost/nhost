@@ -217,6 +217,21 @@ func parseFieldOrRelationship( //nolint:ireturn,nolintlint
 	}
 
 	if relationship := t.RelationshipFromGraphqlName(fieldName); relationship != nil {
+		// `<rel>_aggregate` resolves to the same relationship as `<rel>` because
+		// the table lookup matches both name and aggregateName. Branch on the
+		// aggregate key BEFORE the plain relationship filter so an aggregate
+		// predicate is never silently parsed as a plain EXISTS join.
+		if fieldName != relationship.Name() && fieldName == relationship.AggregateName() {
+			af, err := parseAggregateRelationshipPredicate(
+				relationship, value, variables, role, sessionVariables, nestingLevel, aliases,
+			)
+			if err != nil {
+				return nil, fmt.Errorf("failed to parse aggregate filter %s: %w", fieldName, err)
+			}
+
+			return af, nil
+		}
+
 		rf, err := parseRelationshipField(
 			relationship, value, variables, role, sessionVariables, nestingLevel, aliases,
 		)

@@ -50,7 +50,9 @@ func TestOrderBy_WriteSQL(t *testing.T) {
 			ob := &arguments.OrderBy{Items: tt.items}
 
 			var b strings.Builder
-			ob.WriteSQL(&b)
+			if _, _, err := ob.WriteSQL(&b, nil, 1); err != nil {
+				t.Fatalf("WriteSQL: %v", err)
+			}
 
 			if got := b.String(); got != tt.want {
 				t.Errorf("WriteSQL = %q, want %q", got, tt.want)
@@ -79,7 +81,9 @@ func TestLimit_WriteSQL(t *testing.T) {
 			l := &arguments.Limit{Value: tt.value}
 
 			var b strings.Builder
-			l.WriteSQL(&b)
+			if _, _, err := l.WriteSQL(&b, nil, 1); err != nil {
+				t.Fatalf("WriteSQL: %v", err)
+			}
 
 			if got := b.String(); got != tt.want {
 				t.Errorf("WriteSQL = %q, want %q", got, tt.want)
@@ -107,7 +111,9 @@ func TestOffset_WriteSQL(t *testing.T) {
 			o := &arguments.Offset{Value: tt.value}
 
 			var b strings.Builder
-			o.WriteSQL(&b)
+			if _, _, err := o.WriteSQL(&b, nil, 1); err != nil {
+				t.Fatalf("WriteSQL: %v", err)
+			}
 
 			if got := b.String(); got != tt.want {
 				t.Errorf("WriteSQL = %q, want %q", got, tt.want)

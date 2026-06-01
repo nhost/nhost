@@ -478,46 +478,10 @@ type departments_avg_fields {
   budget: Float
 }
 """
-aggregate stddev on columns
-"""
-type departments_stddev_fields {
-  budget: Float
-}
-"""
-aggregate stddev_pop on columns
-"""
-type departments_stddev_pop_fields {
-  budget: Float
-}
-"""
-aggregate stddev_samp on columns
-"""
-type departments_stddev_samp_fields {
-  budget: Float
-}
-"""
 aggregate sum on columns
 """
 type departments_sum_fields {
   budget: numeric
-}
-"""
-aggregate var_pop on columns
-"""
-type departments_var_pop_fields {
-  budget: Float
-}
-"""
-aggregate var_samp on columns
-"""
-type departments_var_samp_fields {
-  budget: Float
-}
-"""
-aggregate variance on columns
-"""
-type departments_variance_fields {
-  budget: Float
 }
 """
 aggregate fields of "departments"
@@ -527,13 +491,7 @@ type departments_aggregate_fields {
   max: departments_max_fields
   min: departments_min_fields
   avg: departments_avg_fields
-  stddev: departments_stddev_fields
-  stddev_pop: departments_stddev_pop_fields
-  stddev_samp: departments_stddev_samp_fields
   sum: departments_sum_fields
-  var_pop: departments_var_pop_fields
-  var_samp: departments_var_samp_fields
-  variance: departments_variance_fields
 }
 """
 columns and relationships of "user_departments"

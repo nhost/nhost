@@ -141,7 +141,14 @@ func TestParseOrderBy(t *testing.T) {
 		tbl := mock.NewMockTable(ctrl)
 		tbl.EXPECT().ColumnFromGraphqlName("name").Return(newColumn("name", "name", "text"))
 
-		got, err := arguments.ParseOrderBy(tbl, objectValue(child("name", enumValue("asc"))), nil)
+		got, err := arguments.ParseOrderBy(
+			tbl,
+			objectValue(child("name", enumValue("asc"))),
+			nil,
+			"",
+			nil,
+			"",
+		)
 		if err != nil {
 			t.Fatalf("ParseOrderBy: %v", err)
 		}
@@ -169,7 +176,7 @@ func TestParseOrderBy(t *testing.T) {
 			child("", objectValue(child("f", enumValue("desc_nulls_last")))),
 		)
 
-		got, err := arguments.ParseOrderBy(tbl, input, nil)
+		got, err := arguments.ParseOrderBy(tbl, input, nil, "", nil, "")
 		if err != nil {
 			t.Fatalf("ParseOrderBy: %v", err)
 		}
@@ -200,9 +207,17 @@ func TestParseOrderBy(t *testing.T) {
 		ctrl := gomock.NewController(t)
 		tbl := mock.NewMockTable(ctrl)
 		tbl.EXPECT().ColumnFromGraphqlName("bogus").Return(nil)
+		tbl.EXPECT().Relationship("bogus").Return(nil)
 		tbl.EXPECT().TableName().Return("users")
 
-		_, err := arguments.ParseOrderBy(tbl, objectValue(child("bogus", enumValue("asc"))), nil)
+		_, err := arguments.ParseOrderBy(
+			tbl,
+			objectValue(child("bogus", enumValue("asc"))),
+			nil,
+			"",
+			nil,
+			"",
+		)
 		if err == nil {
 			t.Fatal("expected error for unknown column")
 		}
@@ -216,7 +231,7 @@ func TestParseOrderBy(t *testing.T) {
 		tbl.EXPECT().ColumnFromGraphqlName("name").Return(newColumn("name", "name", "text"))
 
 		_, err := arguments.ParseOrderBy(
-			tbl, objectValue(child("name", stringValue("asc"))), nil,
+			tbl, objectValue(child("name", stringValue("asc"))), nil, "", nil, "",
 		)
 		if err == nil {
 			t.Fatal("expected error: direction must be enum")
@@ -231,7 +246,7 @@ func TestParseOrderBy(t *testing.T) {
 		tbl.EXPECT().ColumnFromGraphqlName("name").Return(newColumn("name", "name", "text"))
 
 		_, err := arguments.ParseOrderBy(
-			tbl, objectValue(child("name", enumValue("sideways"))), nil,
+			tbl, objectValue(child("name", enumValue("sideways"))), nil, "", nil, "",
 		)
 		if err == nil {
 			t.Fatal("expected error: unknown direction")
@@ -244,7 +259,7 @@ func TestParseOrderBy(t *testing.T) {
 		ctrl := gomock.NewController(t)
 		tbl := mock.NewMockTable(ctrl)
 
-		_, err := arguments.ParseOrderBy(tbl, intValue("1"), nil)
+		_, err := arguments.ParseOrderBy(tbl, intValue("1"), nil, "", nil, "")
 		if err == nil {
 			t.Fatal("expected error: order_by must be list or object")
 		}
@@ -418,7 +433,7 @@ func TestParseQuery(t *testing.T) {
 		ctrl := gomock.NewController(t)
 		tbl := mock.NewMockTable(ctrl)
 
-		whereCl, mods, dOn, err := arguments.ParseQuery(tbl, nil, nil, "user", nil)
+		whereCl, mods, dOn, err := arguments.ParseQuery(tbl, nil, nil, "user", nil, "")
 		if err != nil {
 			t.Fatalf("ParseQuery: %v", err)
 		}
@@ -455,7 +470,7 @@ func TestParseQuery(t *testing.T) {
 			&ast.Argument{Name: "distinct_on", Value: enumValue("id")},
 		}
 
-		whereCl, mods, dOn, err := arguments.ParseQuery(tbl, args, nil, "user", nil)
+		whereCl, mods, dOn, err := arguments.ParseQuery(tbl, args, nil, "user", nil, "")
 		if err != nil {
 			t.Fatalf("ParseQuery: %v", err)
 		}
@@ -489,7 +504,7 @@ func TestParseQuery(t *testing.T) {
 			&ast.Argument{Name: "where", Value: objectValue()},
 		}
 
-		_, _, _, err := arguments.ParseQuery(tbl, args, nil, "user", nil)
+		_, _, _, err := arguments.ParseQuery(tbl, args, nil, "user", nil, "")
 		if err == nil || !errors.Is(err, sentinel) {
 			t.Fatalf("expected wrapped %v, got %v", sentinel, err)
 		}
@@ -510,7 +525,7 @@ func TestParseQuery(t *testing.T) {
 			&ast.Argument{Name: "limit", Value: intValue("0")},
 		}
 
-		_, mods, _, err := arguments.ParseQuery(tbl, args, nil, "user", nil)
+		_, mods, _, err := arguments.ParseQuery(tbl, args, nil, "user", nil, "")
 		if err != nil {
 			t.Fatalf("ParseQuery: %v", err)
 		}

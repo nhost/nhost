@@ -6,6 +6,7 @@ package middleware
 
 import (
 	"context"
+	"crypto/subtle"
 	"fmt"
 	"log/slog"
 	"net/http"
@@ -83,7 +84,15 @@ func ExtractSession(
 	jwtAuth JWTAuthenticator,
 	headers http.Header,
 ) (*SessionVariables, error) {
-	if adminSecret != "" && adminSecret == headers.Get(sessionHeaderAdminSecret) {
+	// Constant-time comparison avoids leaking how many leading bytes of the
+	// admin secret a caller guessed correctly. The explicit empty-secret guard
+	// is kept so an unset admin secret never authenticates an absent or empty
+	// header (ConstantTimeCompare("", "") would otherwise return 1).
+	if adminSecret != "" &&
+		subtle.ConstantTimeCompare(
+			[]byte(adminSecret),
+			[]byte(headers.Get(sessionHeaderAdminSecret)),
+		) == 1 {
 		return extractAdminSession(headers), nil
 	}
 

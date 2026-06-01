@@ -3482,46 +3482,10 @@ type authUserSecurityKeys_avg_fields {
   counter: Float
 }
 """
-aggregate stddev on columns
-"""
-type authUserSecurityKeys_stddev_fields {
-  counter: Float
-}
-"""
-aggregate stddev_pop on columns
-"""
-type authUserSecurityKeys_stddev_pop_fields {
-  counter: Float
-}
-"""
-aggregate stddev_samp on columns
-"""
-type authUserSecurityKeys_stddev_samp_fields {
-  counter: Float
-}
-"""
 aggregate sum on columns
 """
 type authUserSecurityKeys_sum_fields {
   counter: bigint
-}
-"""
-aggregate var_pop on columns
-"""
-type authUserSecurityKeys_var_pop_fields {
-  counter: Float
-}
-"""
-aggregate var_samp on columns
-"""
-type authUserSecurityKeys_var_samp_fields {
-  counter: Float
-}
-"""
-aggregate variance on columns
-"""
-type authUserSecurityKeys_variance_fields {
-  counter: Float
 }
 """
 aggregate fields of "user_security_keys"
@@ -3531,13 +3495,7 @@ type authUserSecurityKeys_aggregate_fields {
   max: authUserSecurityKeys_max_fields
   min: authUserSecurityKeys_min_fields
   avg: authUserSecurityKeys_avg_fields
-  stddev: authUserSecurityKeys_stddev_fields
-  stddev_pop: authUserSecurityKeys_stddev_pop_fields
-  stddev_samp: authUserSecurityKeys_stddev_samp_fields
   sum: authUserSecurityKeys_sum_fields
-  var_pop: authUserSecurityKeys_var_pop_fields
-  var_samp: authUserSecurityKeys_var_samp_fields
-  variance: authUserSecurityKeys_variance_fields
 }
 """
 response of any mutation on the table "user_security_keys"
@@ -4400,46 +4358,10 @@ type departments_avg_fields {
   budget: Float
 }
 """
-aggregate stddev on columns
-"""
-type departments_stddev_fields {
-  budget: Float
-}
-"""
-aggregate stddev_pop on columns
-"""
-type departments_stddev_pop_fields {
-  budget: Float
-}
-"""
-aggregate stddev_samp on columns
-"""
-type departments_stddev_samp_fields {
-  budget: Float
-}
-"""
 aggregate sum on columns
 """
 type departments_sum_fields {
   budget: numeric
-}
-"""
-aggregate var_pop on columns
-"""
-type departments_var_pop_fields {
-  budget: Float
-}
-"""
-aggregate var_samp on columns
-"""
-type departments_var_samp_fields {
-  budget: Float
-}
-"""
-aggregate variance on columns
-"""
-type departments_variance_fields {
-  budget: Float
 }
 """
 aggregate fields of "departments"
@@ -4449,13 +4371,7 @@ type departments_aggregate_fields {
   max: departments_max_fields
   min: departments_min_fields
   avg: departments_avg_fields
-  stddev: departments_stddev_fields
-  stddev_pop: departments_stddev_pop_fields
-  stddev_samp: departments_stddev_samp_fields
   sum: departments_sum_fields
-  var_pop: departments_var_pop_fields
-  var_samp: departments_var_samp_fields
-  variance: departments_variance_fields
 }
 """
 response of any mutation on the table "departments"
@@ -4515,46 +4431,10 @@ type exercise_log_sets_avg_fields {
   reps: Float
 }
 """
-aggregate stddev on columns
-"""
-type exercise_log_sets_stddev_fields {
-  reps: Float
-}
-"""
-aggregate stddev_pop on columns
-"""
-type exercise_log_sets_stddev_pop_fields {
-  reps: Float
-}
-"""
-aggregate stddev_samp on columns
-"""
-type exercise_log_sets_stddev_samp_fields {
-  reps: Float
-}
-"""
 aggregate sum on columns
 """
 type exercise_log_sets_sum_fields {
   reps: bigint
-}
-"""
-aggregate var_pop on columns
-"""
-type exercise_log_sets_var_pop_fields {
-  reps: Float
-}
-"""
-aggregate var_samp on columns
-"""
-type exercise_log_sets_var_samp_fields {
-  reps: Float
-}
-"""
-aggregate variance on columns
-"""
-type exercise_log_sets_variance_fields {
-  reps: Float
 }
 """
 aggregate fields of "exercise_log_sets"
@@ -4564,13 +4444,7 @@ type exercise_log_sets_aggregate_fields {
   max: exercise_log_sets_max_fields
   min: exercise_log_sets_min_fields
   avg: exercise_log_sets_avg_fields
-  stddev: exercise_log_sets_stddev_fields
-  stddev_pop: exercise_log_sets_stddev_pop_fields
-  stddev_samp: exercise_log_sets_stddev_samp_fields
   sum: exercise_log_sets_sum_fields
-  var_pop: exercise_log_sets_var_pop_fields
-  var_samp: exercise_log_sets_var_samp_fields
-  variance: exercise_log_sets_variance_fields
 }
 """
 response of any mutation on the table "exercise_log_sets"
@@ -4723,46 +4597,10 @@ type identity_check_logs_avg_fields {
   id: Float
 }
 """
-aggregate stddev on columns
-"""
-type identity_check_logs_stddev_fields {
-  id: Float
-}
-"""
-aggregate stddev_pop on columns
-"""
-type identity_check_logs_stddev_pop_fields {
-  id: Float
-}
-"""
-aggregate stddev_samp on columns
-"""
-type identity_check_logs_stddev_samp_fields {
-  id: Float
-}
-"""
 aggregate sum on columns
 """
 type identity_check_logs_sum_fields {
   id: bigint
-}
-"""
-aggregate var_pop on columns
-"""
-type identity_check_logs_var_pop_fields {
-  id: Float
-}
-"""
-aggregate var_samp on columns
-"""
-type identity_check_logs_var_samp_fields {
-  id: Float
-}
-"""
-aggregate variance on columns
-"""
-type identity_check_logs_variance_fields {
-  id: Float
 }
 """
 aggregate fields of "identity_check_logs"
@@ -4772,13 +4610,7 @@ type identity_check_logs_aggregate_fields {
   max: identity_check_logs_max_fields
   min: identity_check_logs_min_fields
   avg: identity_check_logs_avg_fields
-  stddev: identity_check_logs_stddev_fields
-  stddev_pop: identity_check_logs_stddev_pop_fields
-  stddev_samp: identity_check_logs_stddev_samp_fields
   sum: identity_check_logs_sum_fields
-  var_pop: identity_check_logs_var_pop_fields
-  var_samp: identity_check_logs_var_samp_fields
-  variance: identity_check_logs_variance_fields
 }
 """
 response of any mutation on the table "identity_check_logs"
@@ -5425,60 +5257,12 @@ type buckets_avg_fields {
   maxUploadFileSize: Float
 }
 """
-aggregate stddev on columns
-"""
-type buckets_stddev_fields {
-  downloadExpiration: Float
-  minUploadFileSize: Float
-  maxUploadFileSize: Float
-}
-"""
-aggregate stddev_pop on columns
-"""
-type buckets_stddev_pop_fields {
-  downloadExpiration: Float
-  minUploadFileSize: Float
-  maxUploadFileSize: Float
-}
-"""
-aggregate stddev_samp on columns
-"""
-type buckets_stddev_samp_fields {
-  downloadExpiration: Float
-  minUploadFileSize: Float
-  maxUploadFileSize: Float
-}
-"""
 aggregate sum on columns
 """
 type buckets_sum_fields {
   downloadExpiration: bigint
   minUploadFileSize: bigint
   maxUploadFileSize: bigint
-}
-"""
-aggregate var_pop on columns
-"""
-type buckets_var_pop_fields {
-  downloadExpiration: Float
-  minUploadFileSize: Float
-  maxUploadFileSize: Float
-}
-"""
-aggregate var_samp on columns
-"""
-type buckets_var_samp_fields {
-  downloadExpiration: Float
-  minUploadFileSize: Float
-  maxUploadFileSize: Float
-}
-"""
-aggregate variance on columns
-"""
-type buckets_variance_fields {
-  downloadExpiration: Float
-  minUploadFileSize: Float
-  maxUploadFileSize: Float
 }
 """
 aggregate fields of "buckets"
@@ -5488,13 +5272,7 @@ type buckets_aggregate_fields {
   max: buckets_max_fields
   min: buckets_min_fields
   avg: buckets_avg_fields
-  stddev: buckets_stddev_fields
-  stddev_pop: buckets_stddev_pop_fields
-  stddev_samp: buckets_stddev_samp_fields
   sum: buckets_sum_fields
-  var_pop: buckets_var_pop_fields
-  var_samp: buckets_var_samp_fields
-  variance: buckets_variance_fields
 }
 """
 response of any mutation on the table "buckets"
@@ -5580,46 +5358,10 @@ type files_avg_fields {
   size: Float
 }
 """
-aggregate stddev on columns
-"""
-type files_stddev_fields {
-  size: Float
-}
-"""
-aggregate stddev_pop on columns
-"""
-type files_stddev_pop_fields {
-  size: Float
-}
-"""
-aggregate stddev_samp on columns
-"""
-type files_stddev_samp_fields {
-  size: Float
-}
-"""
 aggregate sum on columns
 """
 type files_sum_fields {
   size: bigint
-}
-"""
-aggregate var_pop on columns
-"""
-type files_var_pop_fields {
-  size: Float
-}
-"""
-aggregate var_samp on columns
-"""
-type files_var_samp_fields {
-  size: Float
-}
-"""
-aggregate variance on columns
-"""
-type files_variance_fields {
-  size: Float
 }
 """
 aggregate fields of "files"
@@ -5629,13 +5371,7 @@ type files_aggregate_fields {
   max: files_max_fields
   min: files_min_fields
   avg: files_avg_fields
-  stddev: files_stddev_fields
-  stddev_pop: files_stddev_pop_fields
-  stddev_samp: files_stddev_samp_fields
   sum: files_sum_fields
-  var_pop: files_var_pop_fields
-  var_samp: files_var_samp_fields
-  variance: files_variance_fields
 }
 """
 response of any mutation on the table "files"
@@ -13259,45 +12995,9 @@ input authUserSecurityKeys_avg_order_by {
   counter: order_by
 }
 """
-order by stddev() on columns of table "user_security_keys"
-"""
-input authUserSecurityKeys_stddev_order_by {
-  counter: order_by
-}
-"""
-order by stddev_pop() on columns of table "user_security_keys"
-"""
-input authUserSecurityKeys_stddev_pop_order_by {
-  counter: order_by
-}
-"""
-order by stddev_samp() on columns of table "user_security_keys"
-"""
-input authUserSecurityKeys_stddev_samp_order_by {
-  counter: order_by
-}
-"""
 order by sum() on columns of table "user_security_keys"
 """
 input authUserSecurityKeys_sum_order_by {
-  counter: order_by
-}
-"""
-order by var_pop() on columns of table "user_security_keys"
-"""
-input authUserSecurityKeys_var_pop_order_by {
-  counter: order_by
-}
-"""
-order by var_samp() on columns of table "user_security_keys"
-"""
-input authUserSecurityKeys_var_samp_order_by {
-  counter: order_by
-}
-"""
-order by variance() on columns of table "user_security_keys"
-"""
-input authUserSecurityKeys_variance_order_by {
   counter: order_by
 }
 """
@@ -13308,13 +13008,7 @@ input authUserSecurityKeys_aggregate_order_by {
   max: authUserSecurityKeys_max_order_by
   min: authUserSecurityKeys_min_order_by
   avg: authUserSecurityKeys_avg_order_by
-  stddev: authUserSecurityKeys_stddev_order_by
-  stddev_pop: authUserSecurityKeys_stddev_pop_order_by
-  stddev_samp: authUserSecurityKeys_stddev_samp_order_by
   sum: authUserSecurityKeys_sum_order_by
-  var_pop: authUserSecurityKeys_var_pop_order_by
-  var_samp: authUserSecurityKeys_var_samp_order_by
-  variance: authUserSecurityKeys_variance_order_by
 }
 input user_departments_aggregate_bool_exp_bool_and {
   arguments: user_departments_select_column_user_departments_aggregate_bool_exp_bool_and_arguments_columns!
@@ -14179,45 +13873,9 @@ input exercise_log_sets_avg_order_by {
   reps: order_by
 }
 """
-order by stddev() on columns of table "exercise_log_sets"
-"""
-input exercise_log_sets_stddev_order_by {
-  reps: order_by
-}
-"""
-order by stddev_pop() on columns of table "exercise_log_sets"
-"""
-input exercise_log_sets_stddev_pop_order_by {
-  reps: order_by
-}
-"""
-order by stddev_samp() on columns of table "exercise_log_sets"
-"""
-input exercise_log_sets_stddev_samp_order_by {
-  reps: order_by
-}
-"""
 order by sum() on columns of table "exercise_log_sets"
 """
 input exercise_log_sets_sum_order_by {
-  reps: order_by
-}
-"""
-order by var_pop() on columns of table "exercise_log_sets"
-"""
-input exercise_log_sets_var_pop_order_by {
-  reps: order_by
-}
-"""
-order by var_samp() on columns of table "exercise_log_sets"
-"""
-input exercise_log_sets_var_samp_order_by {
-  reps: order_by
-}
-"""
-order by variance() on columns of table "exercise_log_sets"
-"""
-input exercise_log_sets_variance_order_by {
   reps: order_by
 }
 """
@@ -14228,13 +13886,7 @@ input exercise_log_sets_aggregate_order_by {
   max: exercise_log_sets_max_order_by
   min: exercise_log_sets_min_order_by
   avg: exercise_log_sets_avg_order_by
-  stddev: exercise_log_sets_stddev_order_by
-  stddev_pop: exercise_log_sets_stddev_pop_order_by
-  stddev_samp: exercise_log_sets_stddev_samp_order_by
   sum: exercise_log_sets_sum_order_by
-  var_pop: exercise_log_sets_var_pop_order_by
-  var_samp: exercise_log_sets_var_samp_order_by
-  variance: exercise_log_sets_variance_order_by
 }
 input exercise_log_sets_aggregate_bool_exp_count {
   arguments: [exercise_log_sets_select_column!]
@@ -15198,45 +14850,9 @@ input files_avg_order_by {
   size: order_by
 }
 """
-order by stddev() on columns of table "files"
-"""
-input files_stddev_order_by {
-  size: order_by
-}
-"""
-order by stddev_pop() on columns of table "files"
-"""
-input files_stddev_pop_order_by {
-  size: order_by
-}
-"""
-order by stddev_samp() on columns of table "files"
-"""
-input files_stddev_samp_order_by {
-  size: order_by
-}
-"""
 order by sum() on columns of table "files"
 """
 input files_sum_order_by {
-  size: order_by
-}
-"""
-order by var_pop() on columns of table "files"
-"""
-input files_var_pop_order_by {
-  size: order_by
-}
-"""
-order by var_samp() on columns of table "files"
-"""
-input files_var_samp_order_by {
-  size: order_by
-}
-"""
-order by variance() on columns of table "files"
-"""
-input files_variance_order_by {
   size: order_by
 }
 """
@@ -15247,13 +14863,7 @@ input files_aggregate_order_by {
   max: files_max_order_by
   min: files_min_order_by
   avg: files_avg_order_by
-  stddev: files_stddev_order_by
-  stddev_pop: files_stddev_pop_order_by
-  stddev_samp: files_stddev_samp_order_by
   sum: files_sum_order_by
-  var_pop: files_var_pop_order_by
-  var_samp: files_var_samp_order_by
-  variance: files_variance_order_by
 }
 input files_aggregate_bool_exp_bool_and {
   arguments: files_select_column_files_aggregate_bool_exp_bool_and_arguments_columns!

@@ -5,6 +5,7 @@ import (
 	"strings"
 	"testing"
 
+	"github.com/google/go-cmp/cmp"
 	"github.com/vektah/gqlparser/v2/ast"
 	"github.com/vektah/gqlparser/v2/parser"
 
@@ -223,7 +224,13 @@ func buildObjectsWithUsersAndOrders() *introspection.Objects {
 	return objs
 }
 
-func TestBuildGroupedAggregate_LimitRejected(t *testing.T) {
+// TestBuildGroupedAggregate_LimitApplied asserts that a per-group limit emits a
+// windowed CTE that numbers rows per parent join key and keeps only the first N,
+// with the limit bound as a parameter (never concatenated). The windowed rows
+// are LEFT JOINed back onto the distinct join-key set (window predicate in the
+// ON clause) so every requested group survives even when its window is empty,
+// while the same row set still feeds both the aggregate and the nodes.
+func TestBuildGroupedAggregate_LimitApplied(t *testing.T) {
 	t.Parallel()
 
 	objects := buildObjectsWithUsersTable()
@@ -235,12 +242,13 @@ func TestBuildGroupedAggregate_LimitRejected(t *testing.T) {
 	}
 
 	_, field, fragments := parseSingleField(t, `query {
-		_root(limit: 5) {
+		_root(limit: 5, order_by: { id: asc }) {
 			aggregate { count }
+			nodes { id }
 		}
 	}`)
 
-	_, err = groupedAgg.BuildGroupedAggregateSQL(groupedaggdispatch.BuildInput{
+	op, err := groupedAgg.BuildGroupedAggregateSQL(groupedaggdispatch.BuildInput{
 		TableSchema:       "public",
 		TableName:         "users",
 		Field:             field,
@@ -251,12 +259,61 @@ func TestBuildGroupedAggregate_LimitRejected(t *testing.T) {
 		JoinColumnSQLName: "id",
 		JoinValues:        []any{"11111111-1111-1111-1111-111111111111"},
 	})
-	if !errors.Is(err, queries.ErrGroupedAggregateLimitOffsetUnsupported) {
-		t.Fatalf("expected ErrGroupedAggregateLimitOffsetUnsupported, got %v", err)
+	if err != nil {
+		t.Fatalf("BuildGroupedAggregateSQL: %v", err)
+	}
+
+	// The window CTE partitions by the join key and orders by the user order_by.
+	wantWindow := `"_root.windowed" AS MATERIALIZED (SELECT "_root.base".` +
+		`*, row_number() OVER ` +
+		`(PARTITION BY "__cs_join_key" ORDER BY "_root.base"."id" ASC)`
+	if !strings.Contains(op.SQL, wantWindow) {
+		t.Errorf("SQL missing windowed CTE %q:\n%s", wantWindow, op.SQL)
+	}
+
+	// The distinct join-key set is derived from the windowed CTE (which never
+	// drops rows) and the windowed rows are LEFT JOINed back onto it, so a group
+	// whose window is empty is still emitted.
+	wantFrom := `FROM (SELECT DISTINCT "__cs_join_key" FROM "_root.windowed") AS "_root.keys" ` +
+		`LEFT JOIN "_root.windowed" ON "_root.keys"."__cs_join_key" = "_root.windowed"."__cs_join_key"`
+	if !strings.Contains(op.SQL, wantFrom) {
+		t.Errorf("SQL missing key-set LEFT JOIN %q:\n%s", wantFrom, op.SQL)
+	}
+
+	// limit-only => offset 0, upper bound offset+limit; both parameterised. The
+	// window predicate lives in the JOIN's ON clause (alongside the join-col
+	// not-null guard) rather than a row-removing WHERE, so out-of-window rows
+	// simply fail to join instead of dropping the group.
+	wantPredicate := `AND "_root.windowed"."id" IS NOT NULL AND "__cs_rn" > $2 AND "__cs_rn" <= $3`
+	if !strings.Contains(op.SQL, wantPredicate) {
+		t.Errorf("SQL missing window ON predicate %q:\n%s", wantPredicate, op.SQL)
+	}
+
+	// The group is keyed off the preserved key set, not the windowed rows.
+	if !strings.Contains(op.SQL, `GROUP BY "_root.keys"."__cs_join_key"`) {
+		t.Errorf("group must be keyed off the preserved key set:\n%s", op.SQL)
+	}
+
+	// The window predicate must never become a row-removing outer WHERE, which
+	// would drop groups whose window is empty (the bug this guards against).
+	if strings.Contains(op.SQL, `FROM "_root.windowed" WHERE`) {
+		t.Errorf("window must not be applied as a row-removing WHERE:\n%s", op.SQL)
+	}
+
+	wantParams := []any{
+		[]any{"11111111-1111-1111-1111-111111111111"},
+		0, // offset
+		5, // offset + limit
+	}
+	if diff := cmp.Diff(wantParams, op.Parameters); diff != "" {
+		t.Errorf("limit/offset params mismatch (-want +got):\n%s", diff)
 	}
 }
 
-func TestBuildGroupedAggregate_OffsetRejected(t *testing.T) {
+// TestBuildGroupedAggregate_OffsetApplied asserts that an offset-only request
+// emits the window predicate with no upper bound (skip first N, keep the rest)
+// and binds the offset as a parameter.
+func TestBuildGroupedAggregate_OffsetApplied(t *testing.T) {
 	t.Parallel()
 
 	objects := buildObjectsWithUsersTable()
@@ -268,7 +325,339 @@ func TestBuildGroupedAggregate_OffsetRejected(t *testing.T) {
 	}
 
 	_, field, fragments := parseSingleField(t, `query {
-		_root(offset: 10) {
+		_root(offset: 10, order_by: { id: asc }) {
+			aggregate { count }
+		}
+	}`)
+
+	op, err := groupedAgg.BuildGroupedAggregateSQL(groupedaggdispatch.BuildInput{
+		TableSchema:       "public",
+		TableName:         "users",
+		Field:             field,
+		Fragments:         fragments,
+		Variables:         nil,
+		Role:              "admin",
+		SessionVariables:  nil,
+		JoinColumnSQLName: "id",
+		JoinValues:        []any{"11111111-1111-1111-1111-111111111111"},
+	})
+	if err != nil {
+		t.Fatalf("BuildGroupedAggregateSQL: %v", err)
+	}
+
+	// offset-only => lower bound only, no upper bound. The predicate lives in the
+	// LEFT JOIN's ON clause so groups past the offset are still emitted (count 0,
+	// nodes []) rather than dropped.
+	wantPredicate := `AND "_root.windowed"."id" IS NOT NULL AND "__cs_rn" > $2`
+	if !strings.Contains(op.SQL, wantPredicate) {
+		t.Errorf("SQL missing offset-only window predicate %q:\n%s", wantPredicate, op.SQL)
+	}
+
+	if strings.Contains(op.SQL, `"__cs_rn" <=`) {
+		t.Errorf("offset-only must not emit an upper bound:\n%s", op.SQL)
+	}
+
+	// The group must be keyed off the preserved key set, never a row-removing
+	// WHERE over the windowed rows.
+	if !strings.Contains(op.SQL, `GROUP BY "_root.keys"."__cs_join_key"`) {
+		t.Errorf("group must be keyed off the preserved key set:\n%s", op.SQL)
+	}
+
+	if strings.Contains(op.SQL, `FROM "_root.windowed" WHERE`) {
+		t.Errorf("window must not be applied as a row-removing WHERE:\n%s", op.SQL)
+	}
+
+	wantParams := []any{
+		[]any{"11111111-1111-1111-1111-111111111111"},
+		10, // offset
+	}
+	if diff := cmp.Diff(wantParams, op.Parameters); diff != "" {
+		t.Errorf("offset params mismatch (-want +got):\n%s", diff)
+	}
+}
+
+// TestBuildGroupedAggregate_NoWindowWithoutLimitOffset asserts the common path
+// emits no windowed CTE and reads from the base CTE, so existing queries are
+// unaffected.
+func TestBuildGroupedAggregate_NoWindowWithoutLimitOffset(t *testing.T) {
+	t.Parallel()
+
+	objects := buildObjectsWithUsersTable()
+	md := &metadata.DatabaseMetadata{Tables: []metadata.TableMetadata{tableMetaFor("users")}}
+
+	_, groupedAgg, err := queries.BuildRoots(objects, md, &dialect.PostgresDialect{})
+	if err != nil {
+		t.Fatalf("BuildRoots: %v", err)
+	}
+
+	_, field, fragments := parseSingleField(t, `query {
+		_root {
+			aggregate { count }
+		}
+	}`)
+
+	op, err := groupedAgg.BuildGroupedAggregateSQL(groupedaggdispatch.BuildInput{
+		TableSchema:       "public",
+		TableName:         "users",
+		Field:             field,
+		Fragments:         fragments,
+		Variables:         nil,
+		Role:              "admin",
+		SessionVariables:  nil,
+		JoinColumnSQLName: "id",
+		JoinValues:        []any{"11111111-1111-1111-1111-111111111111"},
+	})
+	if err != nil {
+		t.Fatalf("BuildGroupedAggregateSQL: %v", err)
+	}
+
+	if strings.Contains(op.SQL, "_root.windowed") {
+		t.Errorf("no limit/offset must not emit a windowed CTE:\n%s", op.SQL)
+	}
+
+	if !strings.Contains(op.SQL, `FROM "_root.base" GROUP BY "__cs_join_key"`) {
+		t.Errorf("outer query must read from base CTE:\n%s", op.SQL)
+	}
+}
+
+func TestBuildGroupedAggregate_ReservedJoinKeyResponseNameRejected(t *testing.T) {
+	t.Parallel()
+
+	objects := buildObjectsWithUsersTable()
+	md := &metadata.DatabaseMetadata{Tables: []metadata.TableMetadata{tableMetaFor("users")}}
+
+	_, groupedAgg, err := queries.BuildRoots(objects, md, &dialect.PostgresDialect{})
+	if err != nil {
+		t.Fatalf("BuildRoots: %v", err)
+	}
+
+	tests := []struct {
+		name  string
+		query string
+	}{
+		{
+			name: "aggregate alias",
+			query: `query {
+				_root {
+					_join_key: aggregate { count }
+				}
+			}`,
+		},
+		{
+			name: "nodes alias",
+			query: `query {
+				_root {
+					_join_key: nodes { id }
+				}
+			}`,
+		},
+		{
+			name: "typename alias",
+			query: `query {
+				_root {
+					_join_key: __typename
+				}
+			}`,
+		},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			t.Parallel()
+
+			_, field, fragments := parseSingleField(t, tt.query)
+
+			_, err := groupedAgg.BuildGroupedAggregateSQL(groupedaggdispatch.BuildInput{
+				TableSchema:       "public",
+				TableName:         "users",
+				Field:             field,
+				Fragments:         fragments,
+				Variables:         nil,
+				Role:              "admin",
+				SessionVariables:  nil,
+				JoinColumnSQLName: "id",
+				JoinValues:        []any{"11111111-1111-1111-1111-111111111111"},
+			})
+			if err == nil {
+				t.Fatal("expected reserved response-name error, got nil")
+			}
+
+			if !strings.Contains(err.Error(), "grouped aggregate response name is reserved") {
+				t.Errorf("error should mention reserved response name; got: %v", err)
+			}
+
+			if !strings.Contains(err.Error(), groupedaggdispatch.ResultJoinKeyField) {
+				t.Errorf("error should name reserved field; got: %v", err)
+			}
+		})
+	}
+}
+
+// TestBuildGroupedAggregate_DistinctOnApplied asserts that distinct_on partitions
+// the DISTINCT ON by the parent join key so each group is deduplicated
+// independently, matching Hasura's per-parent-row distinct_on on a cross-database
+// aggregate relationship.
+func TestBuildGroupedAggregate_DistinctOnApplied(t *testing.T) {
+	t.Parallel()
+
+	objects := buildObjectsWithUsersTable()
+	md := &metadata.DatabaseMetadata{Tables: []metadata.TableMetadata{tableMetaFor("users")}}
+
+	_, groupedAgg, err := queries.BuildRoots(objects, md, &dialect.PostgresDialect{})
+	if err != nil {
+		t.Fatalf("BuildRoots: %v", err)
+	}
+
+	_, field, fragments := parseSingleField(t, `query {
+		_root(distinct_on: [id]) {
+			aggregate { count }
+			nodes { id }
+		}
+	}`)
+
+	op, err := groupedAgg.BuildGroupedAggregateSQL(groupedaggdispatch.BuildInput{
+		TableSchema:       "public",
+		TableName:         "users",
+		Field:             field,
+		Fragments:         fragments,
+		Variables:         nil,
+		Role:              "admin",
+		SessionVariables:  nil,
+		JoinColumnSQLName: "id",
+		JoinValues:        []any{"11111111-1111-1111-1111-111111111111"},
+	})
+	if err != nil {
+		t.Fatalf("BuildGroupedAggregateSQL: %v", err)
+	}
+
+	// DISTINCT ON must lead with the join key so the distinct is per group, and
+	// the CTE ORDER BY must lead with the join key to resolve the tiebreak.
+	wantDistinct := `DISTINCT ON ("__cs_join_key", "id")`
+	if !strings.Contains(op.SQL, wantDistinct) {
+		t.Errorf("SQL missing %q:\n%s", wantDistinct, op.SQL)
+	}
+
+	wantOrder := `ORDER BY "__cs_join_key"`
+	if !strings.Contains(op.SQL, wantOrder) {
+		t.Errorf("SQL missing CTE %q:\n%s", wantOrder, op.SQL)
+	}
+}
+
+// TestBuildGroupedAggregate_OrderByApplied asserts that order_by orders the
+// per-group nodes inside the json_agg (the GROUP BY discards the CTE row order)
+// without reshaping the aggregated row set, matching Hasura.
+func TestBuildGroupedAggregate_OrderByApplied(t *testing.T) {
+	t.Parallel()
+
+	objects := buildObjectsWithUsersTable()
+	md := &metadata.DatabaseMetadata{Tables: []metadata.TableMetadata{tableMetaFor("users")}}
+
+	_, groupedAgg, err := queries.BuildRoots(objects, md, &dialect.PostgresDialect{})
+	if err != nil {
+		t.Fatalf("BuildRoots: %v", err)
+	}
+
+	_, field, fragments := parseSingleField(t, `query {
+		_root(order_by: { id: desc }) {
+			aggregate { count }
+			nodes { id }
+		}
+	}`)
+
+	op, err := groupedAgg.BuildGroupedAggregateSQL(groupedaggdispatch.BuildInput{
+		TableSchema:       "public",
+		TableName:         "users",
+		Field:             field,
+		Fragments:         fragments,
+		Variables:         nil,
+		Role:              "admin",
+		SessionVariables:  nil,
+		JoinColumnSQLName: "id",
+		JoinValues:        []any{"11111111-1111-1111-1111-111111111111"},
+	})
+	if err != nil {
+		t.Fatalf("BuildGroupedAggregateSQL: %v", err)
+	}
+
+	// order_by-only does not touch the CTE: no DISTINCT ON, and the ordering is
+	// applied inside the nodes json_agg against the base CTE alias.
+	if strings.Contains(op.SQL, "DISTINCT ON") {
+		t.Errorf("order_by-only must not emit DISTINCT ON:\n%s", op.SQL)
+	}
+
+	wantNodesOrder := `ORDER BY "_root.base"."id" DESC`
+	if !strings.Contains(op.SQL, wantNodesOrder) {
+		t.Errorf("SQL missing nodes %q:\n%s", wantNodesOrder, op.SQL)
+	}
+}
+
+// TestBuildGroupedAggregate_RelationshipOrderByRejected asserts that ordering a
+// cross-database aggregate by a nested relationship is rejected: such terms
+// render correlated subqueries that cannot be threaded into the grouped build.
+func TestBuildGroupedAggregate_RelationshipOrderByRejected(t *testing.T) {
+	t.Parallel()
+
+	objects := buildObjectsWithUsersAndOrders()
+	md := &metadata.DatabaseMetadata{
+		Tables: []metadata.TableMetadata{
+			tableMetaFor("users"),
+			{
+				Table: metadata.TableSource{Schema: "public", Name: "orders"},
+				ObjectRelationships: []metadata.ObjectRelationship{
+					{
+						Name: "user",
+						Using: metadata.RelationshipUsing{
+							ForeignKeyColumns: []string{"user_id"},
+						},
+					},
+				},
+			},
+		},
+	}
+
+	_, groupedAgg, err := queries.BuildRoots(objects, md, &dialect.PostgresDialect{})
+	if err != nil {
+		t.Fatalf("BuildRoots: %v", err)
+	}
+
+	_, field, fragments := parseSingleField(t, `query {
+		_root(order_by: { user: { id: asc } }) {
+			aggregate { count }
+		}
+	}`)
+
+	_, err = groupedAgg.BuildGroupedAggregateSQL(groupedaggdispatch.BuildInput{
+		TableSchema:       "public",
+		TableName:         "orders",
+		Field:             field,
+		Fragments:         fragments,
+		Variables:         nil,
+		Role:              "admin",
+		SessionVariables:  nil,
+		JoinColumnSQLName: "user_id",
+		JoinValues:        []any{"11111111-1111-1111-1111-111111111111"},
+	})
+	if !errors.Is(err, queries.ErrGroupedAggregateRelationshipOrderBy) {
+		t.Fatalf("expected ErrGroupedAggregateRelationshipOrderBy, got %v", err)
+	}
+}
+
+// TestBuildGroupedAggregate_DistinctOnUnsupportedDialect asserts that distinct_on
+// is rejected on a dialect without DISTINCT ON (SQLite). The schema does not
+// advertise distinct_on there, so this is a defensive guard.
+func TestBuildGroupedAggregate_DistinctOnUnsupportedDialect(t *testing.T) {
+	t.Parallel()
+
+	objects := buildObjectsWithUsersTable()
+	md := &metadata.DatabaseMetadata{Tables: []metadata.TableMetadata{tableMetaFor("users")}}
+
+	_, groupedAgg, err := queries.BuildRoots(objects, md, &dialect.SQLiteDialect{})
+	if err != nil {
+		t.Fatalf("BuildRoots: %v", err)
+	}
+
+	_, field, fragments := parseSingleField(t, `query {
+		_root(distinct_on: [id]) {
 			aggregate { count }
 		}
 	}`)
@@ -284,8 +673,8 @@ func TestBuildGroupedAggregate_OffsetRejected(t *testing.T) {
 		JoinColumnSQLName: "id",
 		JoinValues:        []any{"11111111-1111-1111-1111-111111111111"},
 	})
-	if !errors.Is(err, queries.ErrGroupedAggregateLimitOffsetUnsupported) {
-		t.Fatalf("expected ErrGroupedAggregateLimitOffsetUnsupported, got %v", err)
+	if !errors.Is(err, queries.ErrGroupedAggregateDistinctOnUnsupported) {
+		t.Fatalf("expected ErrGroupedAggregateDistinctOnUnsupported, got %v", err)
 	}
 }
 

@@ -31,13 +31,11 @@ var (
 // results keyed by the stringified join value. Implements
 // connector.GroupedAggregateExecutor.
 //
-// The shape of each value is
-//
-//	{ "aggregate": {...}, "nodes": [...] }
-//
-// matching the same-database aggregate field's response. An entry is present
-// for every join value, including those with no matching target rows
-// (count: 0, nodes: []).
+// Each value preserves the same GraphQL response fields emitted by the grouped
+// aggregate SQL (aliases when present, otherwise "aggregate" / "nodes"), with
+// only the internal join-key transport field removed. An entry is present for
+// every join value, including those with no matching target rows (count: 0,
+// nodes: []).
 func (c *Connector) ExecuteGroupedAggregate(
 	ctx context.Context,
 	req groupedaggregate.Request,
@@ -95,18 +93,18 @@ func parseGroupedAggregateResult(raw any) (map[string]any, error) {
 	out := make(map[string]any, len(rows))
 
 	for _, row := range rows {
-		key, hasKey := row["_join_key"]
+		key, hasKey := row[groupedaggdispatch.ResultJoinKeyField]
 		if !hasKey {
 			return nil, fmt.Errorf("%w: %v", ErrGroupedAggregateMissingJoinKey, row)
 		}
 
-		entry := make(map[string]any, 2) //nolint:mnd
-		if agg, ok := row["aggregate"]; ok {
-			entry["aggregate"] = agg
-		}
+		entry := make(map[string]any, len(row)-1)
+		for name, value := range row {
+			if name == groupedaggdispatch.ResultJoinKeyField {
+				continue
+			}
 
-		if nodes, ok := row["nodes"]; ok {
-			entry["nodes"] = nodes
+			entry[name] = value
 		}
 
 		out[fmt.Sprintf("%v", key)] = entry

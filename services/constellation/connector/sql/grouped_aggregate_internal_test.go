@@ -4,6 +4,8 @@ import (
 	"encoding/json/jsontext"
 	"strings"
 	"testing"
+
+	"github.com/google/go-cmp/cmp"
 )
 
 // TestParseGroupedAggregateResult is white-box because parseGroupedAggregateResult
@@ -63,6 +65,27 @@ func TestParseGroupedAggregateResult(t *testing.T) {
 
 				if _, ok := entry["nodes"]; !ok {
 					t.Errorf("entry missing nodes")
+				}
+			},
+		},
+		{
+			name: "aliased aggregate and nodes are preserved",
+			raw: jsontext.Value(
+				`[{"_join_key":"abc","stats":{"total":2},"rows":[{"role_name":"admin"}],"__typename":"user_departments_aggregate"}]`,
+			),
+			wantKeys: []string{"abc"},
+			checkValues: func(t *testing.T, out map[string]any) {
+				t.Helper()
+
+				want := map[string]any{
+					"stats": map[string]any{"total": float64(2)},
+					"rows": []any{
+						map[string]any{"role_name": "admin"},
+					},
+					"__typename": "user_departments_aggregate",
+				}
+				if diff := cmp.Diff(want, out["abc"]); diff != "" {
+					t.Errorf("aliased entry mismatch (-want +got):\n%s", diff)
 				}
 			},
 		},
