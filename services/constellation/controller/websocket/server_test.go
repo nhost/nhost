@@ -455,7 +455,7 @@ func TestProtocol_ConnectionClosesAtHandlerExpiration(t *testing.T) {
 	t.Parallel()
 
 	handler := &expiringHandler{
-		expiresAfter: 0,
+		expiresAfter: 50 * time.Millisecond,
 		closeCh:      make(chan struct{}),
 	}
 

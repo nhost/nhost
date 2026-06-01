@@ -401,10 +401,23 @@ func (c *Connection) sendConnectionAck(ctx context.Context, logger *slog.Logger)
 
 	c.drainConnectionAckWriteNotifications()
 
+	if c.isExpired(time.Now()) {
+		return errConnectionExpired
+	}
+
+	expiresCh, stopExpirationTimer := c.connectionExpirationTimer()
+	defer stopExpirationTimer()
+
 	select {
 	case c.sendCh <- msg:
+	case <-expiresCh:
+		return errConnectionExpired
 	case <-ctx.Done():
 		return nil
+	}
+
+	if c.isExpired(time.Now()) {
+		return errConnectionExpired
 	}
 
 	select {
@@ -412,10 +425,31 @@ func (c *Connection) sendConnectionAck(ctx context.Context, logger *slog.Logger)
 		if err != nil {
 			return fmt.Errorf("writing connection_ack: %w", err)
 		}
+	case <-expiresCh:
+		return errConnectionExpired
 	case <-ctx.Done():
 	}
 
 	return nil
+}
+
+func (c *Connection) connectionExpirationTimer() (<-chan time.Time, func()) {
+	if c.expiresAt.IsZero() {
+		return nil, func() {}
+	}
+
+	timer := time.NewTimer(time.Until(c.expiresAt))
+
+	return timer.C, func() {
+		if timer.Stop() {
+			return
+		}
+
+		select {
+		case <-timer.C:
+		default:
+		}
+	}
 }
 
 func (c *Connection) drainConnectionAckWriteNotifications() {

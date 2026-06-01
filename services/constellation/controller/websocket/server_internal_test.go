@@ -302,6 +302,8 @@ func TestLoopWritesConnectionAckBeforeExpirationDeadline(t *testing.T) {
 	ackWritten := make(chan struct{})
 	postInitDeadlineSet := make(chan struct{})
 
+	var expiresAt time.Time
+
 	readCalls := 0
 	deadlineCalls := 0
 	fake := &fakeWSConn{
@@ -315,6 +317,14 @@ func TestLoopWritesConnectionAckBeforeExpirationDeadline(t *testing.T) {
 			case <-postInitDeadlineSet:
 			case <-time.After(2 * time.Second):
 				t.Fatal("post-init read deadline was not set")
+			}
+
+			if expiresAt.IsZero() {
+				t.Fatal("connection expiration was not captured")
+			}
+
+			if untilExpiry := time.Until(expiresAt); untilExpiry > 0 {
+				time.Sleep(untilExpiry + time.Millisecond)
 			}
 
 			return 0, nil, fakeTimeoutError{}
@@ -352,7 +362,11 @@ func TestLoopWritesConnectionAckBeforeExpirationDeadline(t *testing.T) {
 		conn: fake,
 		handler: &expiringNopHandler{
 			nopHandler: nopHandler{onInit: nil, onSub: nil, onComplete: nil, onClose: nil},
-			expiresAt:  time.Now,
+			expiresAt: func() time.Time {
+				expiresAt = time.Now().Add(100 * time.Millisecond)
+
+				return expiresAt
+			},
 		},
 		sendCh:               make(chan *Message, 1),
 		connectionAckWriteCh: make(chan error, 1),
@@ -367,6 +381,79 @@ func TestLoopWritesConnectionAckBeforeExpirationDeadline(t *testing.T) {
 
 	if deadlineCalls != 2 {
 		t.Fatalf("expected initial and post-init deadline calls, got %d", deadlineCalls)
+	}
+}
+
+func TestSendConnectionAckFullQueueReturnsExpired(t *testing.T) {
+	t.Parallel()
+
+	conn := &Connection{
+		conn:                 &fakeWSConn{},
+		handler:              &nopHandler{onInit: nil, onSub: nil, onComplete: nil, onClose: nil},
+		sendCh:               make(chan *Message, 1),
+		connectionAckWriteCh: make(chan error, 1),
+		initialized:          true,
+		expiresAt:            time.Time{},
+	}
+	conn.sendCh <- newPingMessage()
+
+	errCh := make(chan error, 1)
+	go func() {
+		conn.expiresAt = time.Now().Add(50 * time.Millisecond)
+		errCh <- conn.sendConnectionAck(t.Context(), slog.New(slog.DiscardHandler))
+	}()
+
+	select {
+	case err := <-errCh:
+		if !errors.Is(err, errConnectionExpired) {
+			t.Fatalf("expected errConnectionExpired, got %v", err)
+		}
+	case <-time.After(2 * time.Second):
+		t.Fatal("sendConnectionAck did not return after connection expiration")
+	}
+
+	msg := <-conn.sendCh
+	if msg.Type != messageTypePing {
+		t.Fatalf("expected queued ping to remain, got %q", msg.Type)
+	}
+}
+
+func TestSendConnectionAckBlockedWriteNotificationReturnsExpired(t *testing.T) {
+	t.Parallel()
+
+	conn := &Connection{
+		conn:                 &fakeWSConn{},
+		handler:              &nopHandler{onInit: nil, onSub: nil, onComplete: nil, onClose: nil},
+		sendCh:               make(chan *Message, 1),
+		connectionAckWriteCh: make(chan error, 1),
+		initialized:          true,
+		expiresAt:            time.Time{},
+	}
+
+	errCh := make(chan error, 1)
+	go func() {
+		conn.expiresAt = time.Now().Add(50 * time.Millisecond)
+		errCh <- conn.sendConnectionAck(t.Context(), slog.New(slog.DiscardHandler))
+	}()
+
+	select {
+	case msg := <-conn.sendCh:
+		if msg.Type != messageTypeConnectionAck {
+			t.Fatalf("expected connection_ack to be queued, got %q", msg.Type)
+		}
+	case err := <-errCh:
+		t.Fatalf("sendConnectionAck returned before queuing ack: %v", err)
+	case <-time.After(2 * time.Second):
+		t.Fatal("connection_ack was not queued")
+	}
+
+	select {
+	case err := <-errCh:
+		if !errors.Is(err, errConnectionExpired) {
+			t.Fatalf("expected errConnectionExpired, got %v", err)
+		}
+	case <-time.After(2 * time.Second):
+		t.Fatal("sendConnectionAck did not return after connection expiration")
 	}
 }
 
