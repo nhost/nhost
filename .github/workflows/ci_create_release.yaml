@@ -33,9 +33,9 @@ jobs:
 
     - name: "Extract project and version from PR title"
       id: extract
+      env:
+        TITLE: ${{ github.event.pull_request.title }}
       run: |
-        TITLE="${{ github.event.pull_request.title }}"
-
         PROJECT=$(echo "${TITLE}" | sed 's/release(\([^)]*\)).*/\1/')
         if [ -z "$PROJECT" ]; then
           echo "Error: Could not extract project name from PR title"
@@ -74,8 +74,10 @@ jobs:
 
     - name: "Get unreleased changelog content"
       id: changelog
+      env:
+        PROJECT: ${{ steps.extract.outputs.project }}
       run: |
-        cd ${{ steps.extract.outputs.project }}
+        cd "$PROJECT"
         CHANGELOG_CONTENT=$(nix develop .#cliff -c make changelog-get-unreleased)
         DELIMITER="EOF_$(openssl rand -hex 16)"
         echo "content<<$DELIMITER" >> $GITHUB_OUTPUT
