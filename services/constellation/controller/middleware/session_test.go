@@ -343,8 +343,8 @@ func TestExtractSessionWithMockJWT(t *testing.T) {
 		//nolint:err113 // test sentinel error used to verify error propagation
 		sentinel := errors.New("token signature invalid")
 		auth.EXPECT().
-			Authenticate(gomock.Any(), "").
-			Return(nil, sentinel)
+			AuthenticateWithExpiration(gomock.Any(), "").
+			Return(nil, nil, sentinel)
 
 		_, err := middleware.ExtractSession("", auth, http.Header{
 			"Authorization": {"Bearer something"},
@@ -369,15 +369,16 @@ func TestExtractSessionWithMockJWT(t *testing.T) {
 		ctrl := gomock.NewController(t)
 		auth := mock.NewMockJWTAuthenticator(ctrl)
 
+		expiresAt := time.Unix(1893456000, 0).UTC()
 		auth.EXPECT().
-			Authenticate(gomock.Any(), "editor").
+			AuthenticateWithExpiration(gomock.Any(), "editor").
 			Return(&jwt.SessionResult{
 				Role: "editor",
 				Variables: map[string]any{
 					"x-hasura-role":    "editor",
 					"x-hasura-user-id": "u-7",
 				},
-			}, nil)
+			}, &expiresAt, nil)
 
 		session, err := middleware.ExtractSession("", auth, http.Header{
 			"Authorization": {"Bearer signed"},
@@ -393,6 +394,7 @@ func TestExtractSessionWithMockJWT(t *testing.T) {
 				"x-hasura-role":    "editor",
 				"x-hasura-user-id": "u-7",
 			},
+			ExpiresAt: &expiresAt,
 		}
 		if diff := cmp.Diff(want, session); diff != "" {
 			t.Errorf("session mismatch (-want +got):\n%s", diff)
@@ -406,8 +408,8 @@ func TestExtractSessionWithMockJWT(t *testing.T) {
 		auth := mock.NewMockJWTAuthenticator(ctrl)
 
 		auth.EXPECT().
-			Authenticate(gomock.Any(), "").
-			Return(nil, nil)
+			AuthenticateWithExpiration(gomock.Any(), "").
+			Return(nil, nil, nil)
 
 		session, err := middleware.ExtractSession("", auth, http.Header{})
 		if err != nil {

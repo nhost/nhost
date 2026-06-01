@@ -226,7 +226,7 @@ func (a *Authenticator) authenticate(
 		return nil, nil, fmt.Errorf("jwt authentication failed: %w", lastErr)
 	}
 
-	return nil, nil, nil //nolint:nilnil // no token: caller falls through to anonymous, not an error
+	return nil, nil, nil
 }
 
 // Close shuts down each configured secret validator, stopping any JWKS

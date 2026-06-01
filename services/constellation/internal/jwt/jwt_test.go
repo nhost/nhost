@@ -1602,48 +1602,115 @@ func TestAuthenticatorAuthenticateWithExpiration(t *testing.T) {
 	const hmacKey = "expiry-test-key"
 
 	expiresAt := time.Unix(1893456000, 0).UTC()
-	token := signHS256Token(t, hmacKey, gojwt.MapClaims{
-		"sub": "user-123",
-		"exp": gojwt.NewNumericDate(expiresAt),
-		"https://hasura.io/jwt/claims": hasuraClaims(
-			[]string{"user"}, "user", map[string]any{"x-hasura-user-id": "123"},
-		),
-	})
 
-	auth, err := jwt.NewAuthenticator(context.Background(), jwtconfig.Config{
-		Secrets: []jwtconfig.Secret{
-			{Type: jwtconfig.AlgorithmHS256, Key: hmacKey},
+	validClaims := func(exp time.Time) gojwt.MapClaims {
+		return gojwt.MapClaims{
+			"sub": "user-123",
+			"exp": gojwt.NewNumericDate(exp),
+			"https://hasura.io/jwt/claims": hasuraClaims(
+				[]string{"user"}, "user", map[string]any{"x-hasura-user-id": "123"},
+			),
+		}
+	}
+
+	cases := []struct {
+		name string
+		// headersFn builds the request headers; it receives the HMAC signing
+		// key so cases that need a token can sign one inline.
+		headersFn func(t *testing.T, key string) http.Header
+		// wantSession is the expected session result; nil means none expected.
+		wantSession *jwt.SessionResult
+		// wantExpiration is the expected exp pointer target; nil means the
+		// returned expiration pointer must itself be nil.
+		wantExpiration *time.Time
+		wantErr        bool
+	}{
+		{
+			name: "valid token returns session and expiration",
+			headersFn: func(t *testing.T, key string) http.Header {
+				t.Helper()
+
+				return http.Header{
+					"Authorization": {"Bearer " + signHS256Token(t, key, validClaims(expiresAt))},
+				}
+			},
+			wantSession: &jwt.SessionResult{
+				Role: "user",
+				Variables: expectedVars(
+					"user", []string{"user"}, "user", map[string]any{"x-hasura-user-id": "123"},
+				),
+			},
+			wantExpiration: &expiresAt,
+			wantErr:        false,
 		},
-	}, slog.Default())
-	if err != nil {
-		t.Fatalf("NewAuthenticator() error = %v", err)
-	}
-	defer auth.Close()
+		{
+			name: "no token returns nil session, nil expiration, nil error",
+			headersFn: func(t *testing.T, _ string) http.Header {
+				t.Helper()
 
-	result, gotExpiresAt, err := auth.AuthenticateWithExpiration(
-		http.Header{"Authorization": {"Bearer " + token}},
-		"",
-	)
-	if err != nil {
-		t.Fatalf("AuthenticateWithExpiration() error = %v", err)
+				return http.Header{}
+			},
+			wantSession:    nil,
+			wantExpiration: nil,
+			wantErr:        false,
+		},
+		{
+			name: "expired token returns nil session, nil expiration, error",
+			headersFn: func(t *testing.T, key string) http.Header {
+				t.Helper()
+
+				expired := time.Unix(1000000000, 0).UTC()
+
+				return http.Header{
+					"Authorization": {"Bearer " + signHS256Token(t, key, validClaims(expired))},
+				}
+			},
+			wantSession:    nil,
+			wantExpiration: nil,
+			wantErr:        true,
+		},
 	}
 
-	want := &jwt.SessionResult{
-		Role: "user",
-		Variables: expectedVars(
-			"user", []string{"user"}, "user", map[string]any{"x-hasura-user-id": "123"},
-		),
-	}
-	if diff := cmp.Diff(want, result); diff != "" {
-		t.Fatalf("session mismatch (-want +got):\n%s", diff)
-	}
+	for _, tc := range cases {
+		t.Run(tc.name, func(t *testing.T) {
+			t.Parallel()
 
-	if gotExpiresAt == nil {
-		t.Fatal("expected expiration to be returned")
-	}
+			auth, err := jwt.NewAuthenticator(context.Background(), jwtconfig.Config{
+				Secrets: []jwtconfig.Secret{
+					{Type: jwtconfig.AlgorithmHS256, Key: hmacKey},
+				},
+			}, slog.Default())
+			if err != nil {
+				t.Fatalf("NewAuthenticator() error = %v", err)
+			}
+			defer auth.Close()
 
-	if !gotExpiresAt.Equal(expiresAt) {
-		t.Fatalf("expiration mismatch: want %s, got %s", expiresAt, *gotExpiresAt)
+			result, gotExpiresAt, err := auth.AuthenticateWithExpiration(
+				tc.headersFn(t, hmacKey),
+				"",
+			)
+
+			if tc.wantErr {
+				if err == nil {
+					t.Errorf("expected error, got nil (result=%+v)", result)
+				}
+			} else if err != nil {
+				t.Fatalf("AuthenticateWithExpiration() unexpected error = %v", err)
+			}
+
+			if diff := cmp.Diff(tc.wantSession, result); diff != "" {
+				t.Errorf("session mismatch (-want +got):\n%s", diff)
+			}
+
+			switch {
+			case tc.wantExpiration == nil && gotExpiresAt != nil:
+				t.Errorf("expected nil expiration, got %s", *gotExpiresAt)
+			case tc.wantExpiration != nil && gotExpiresAt == nil:
+				t.Error("expected expiration to be returned, got nil")
+			case tc.wantExpiration != nil && !gotExpiresAt.Equal(*tc.wantExpiration):
+				t.Errorf("expiration mismatch: want %s, got %s", *tc.wantExpiration, *gotExpiresAt)
+			}
+		})
 	}
 }
 

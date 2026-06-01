@@ -146,6 +146,11 @@ func (sv *secretValidator) parseAndValidate(tokenStr string) (map[string]any, ti
 		return nil, time.Time{}, fmt.Errorf("jwt expiration claim: %w", err)
 	}
 
+	// Defense-in-depth: GetExpirationTime returns (nil, nil) for an absent or
+	// zero exp claim, so this guard prevents a nil dereference at expiresAt.Time
+	// below. It is normally unreachable because buildParserOptions pins
+	// jwt.WithExpirationRequired(), making jwt.Parse reject exp-less tokens first;
+	// it survives as a backstop should that parser option ever change.
 	if expiresAt == nil {
 		return nil, time.Time{}, errMissingExpiration
 	}

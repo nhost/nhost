@@ -19,10 +19,17 @@ import (
 )
 
 // JWTAuthenticator abstracts JWT authentication so callers can mock it in tests.
+// AuthenticateWithExpiration is part of the contract (not an optional capability)
+// because the WebSocket layer relies on the returned expiry to close
+// JWT-authenticated sockets at token expiry; declaring it here makes that control
+// compile-time enforced for every implementer.
 //
 //go:generate mockgen -package mock -destination mock/jwt_authenticator.go . JWTAuthenticator
 type JWTAuthenticator interface {
 	Authenticate(headers http.Header, roleOverride string) (*jwt.SessionResult, error)
+	AuthenticateWithExpiration(
+		headers http.Header, roleOverride string,
+	) (*jwt.SessionResult, *time.Time, error)
 }
 
 // noOpJWTAuthenticator implements JWTAuthenticator by always returning
@@ -33,6 +40,12 @@ func (noOpJWTAuthenticator) Authenticate(http.Header, string) (*jwt.SessionResul
 	return nil, nil //nolint:nilnil // (nil, nil) is the documented "no token found" signal of JWTAuthenticator
 }
 
+func (noOpJWTAuthenticator) AuthenticateWithExpiration(
+	http.Header, string,
+) (*jwt.SessionResult, *time.Time, error) {
+	return nil, nil, nil
+}
+
 // NewNoOpJWTAuthenticator returns a JWTAuthenticator that never finds a token.
 // Use this when JWT authentication is disabled and callers should fall through
 // to the public role.
@@ -40,25 +53,6 @@ func (noOpJWTAuthenticator) Authenticate(http.Header, string) (*jwt.SessionResul
 // concrete type is unexported; callers consume only the interface.
 func NewNoOpJWTAuthenticator() JWTAuthenticator { //nolint:ireturn,nolintlint
 	return noOpJWTAuthenticator{}
-}
-
-func authenticateJWT(
-	jwtAuth JWTAuthenticator,
-	headers http.Header,
-	roleOverride string,
-) (*jwt.SessionResult, *time.Time, error) {
-	if jwtAuthWithExpiration, ok := jwtAuth.(interface {
-		AuthenticateWithExpiration(http.Header, string) (*jwt.SessionResult, *time.Time, error)
-	}); ok {
-		return jwtAuthWithExpiration.AuthenticateWithExpiration(headers, roleOverride)
-	}
-
-	result, err := jwtAuth.Authenticate(headers, roleOverride)
-	if err != nil {
-		return nil, nil, err
-	}
-
-	return result, nil, nil
 }
 
 type sessionCtxKey struct{}
@@ -120,7 +114,7 @@ func ExtractSession(
 
 	roleOverride := headers.Get(sessionHeaderRole)
 
-	result, expiresAt, err := authenticateJWT(jwtAuth, headers, roleOverride)
+	result, expiresAt, err := jwtAuth.AuthenticateWithExpiration(headers, roleOverride)
 	if err != nil {
 		return nil, fmt.Errorf("jwt authentication: %w", err)
 	}
@@ -136,6 +130,7 @@ func ExtractSession(
 	return &SessionVariables{
 		Role:      publicRole,
 		Variables: map[string]any{"x-hasura-role": publicRole},
+		ExpiresAt: nil,
 	}, nil
 }
 
@@ -162,6 +157,7 @@ func extractAdminSession(headers http.Header) *SessionVariables {
 	return &SessionVariables{
 		Role:      role,
 		Variables: variables,
+		ExpiresAt: nil,
 	}
 }
 
