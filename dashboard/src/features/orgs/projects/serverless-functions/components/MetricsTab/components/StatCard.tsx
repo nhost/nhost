@@ -26,8 +26,6 @@ export default function StatCard({
     >
       <div className="flex items-start gap-2 text-muted-foreground text-sm">
         {Icon ? (
-          // h-5 matches the text-sm line height so the icon stays centered on
-          // the first line, including when the label wraps to multiple lines.
           <span className="flex h-5 shrink-0 items-center">
             <Icon className="h-4 w-4" />
           </span>
