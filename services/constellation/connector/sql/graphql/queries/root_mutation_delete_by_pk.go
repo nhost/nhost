@@ -59,6 +59,7 @@ func (t *table) buildMutationDeleteByPkSQL(
 		SQL:           sql,
 		Parameters:    params,
 		StreamCursors: nil,
+		Sequential:    nil,
 	}, nil
 }
 
@@ -84,7 +85,7 @@ func (t *table) buildDeleteByPkSQL(
 
 	var err error
 
-	params, _, err = t.buildDeleteCTEBody(
+	params, paramIndex, err = t.buildDeleteCTEBody(
 		b,
 		"mutation_result",
 		whereClause,
@@ -99,10 +100,22 @@ func (t *table) buildDeleteByPkSQL(
 
 	b.WriteString(" ")
 
-	if err := t.buildDeleteFinalSelect(
-		b, columns, relationships, fragments, variables, role,
-		sessionVariables, roots, rootFieldName(field),
-	); err != nil {
+	params, err = t.buildFinalSelect(
+		b,
+		columns,
+		relationships,
+		nil,
+		nil,
+		fragments,
+		variables,
+		role,
+		sessionVariables,
+		roots,
+		params,
+		paramIndex,
+		rootFieldName(field),
+	)
+	if err != nil {
 		return nil, err
 	}
 

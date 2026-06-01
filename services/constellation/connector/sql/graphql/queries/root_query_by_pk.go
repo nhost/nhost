@@ -71,6 +71,7 @@ func (t *table) buildQueryByPkSQL(
 		SQL:           sql,
 		Parameters:    params,
 		StreamCursors: nil,
+		Sequential:    nil,
 	}, nil
 }
 

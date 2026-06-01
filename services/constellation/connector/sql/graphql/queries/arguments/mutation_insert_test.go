@@ -99,6 +99,7 @@ func TestOnConflict_ToSQL(t *testing.T) {
 			ConstraintName: "users_pkey",
 			UpdateColumns:  []string{"email"},
 			Where:          where.Clause{f},
+			TargetTableRef: `"public"."users"`,
 		}
 
 		var b strings.Builder
@@ -108,7 +109,7 @@ func TestOnConflict_ToSQL(t *testing.T) {
 			t.Fatalf("ToSQL: %v", err)
 		}
 
-		if !strings.Contains(b.String(), `EXCLUDED."is_active" = $1::bool`) {
+		if !strings.Contains(b.String(), `"public"."users"."is_active" = $1::bool`) {
 			t.Errorf("missing WHERE fragment: %q", b.String())
 		}
 
@@ -194,7 +195,7 @@ func TestOnConflict_ToSQLWithWhere(t *testing.T) {
 			name:       "writer predicate with non-empty oc.Where uses AND (...)",
 			ocWhere:    activeWhere(),
 			writer:     stubWhereWriter("name = $2", []any{"alice"}, true, nil),
-			wantSQL:    prefix + ` WHERE EXCLUDED."is_active" = $1::bool AND (name = $2)`,
+			wantSQL:    prefix + ` WHERE "public"."users"."is_active" = $1::bool AND (name = $2)`,
 			wantParams: []any{true, "alice"},
 			wantIdx:    3,
 			wantErr:    nil,
@@ -205,7 +206,7 @@ func TestOnConflict_ToSQLWithWhere(t *testing.T) {
 			name:       "writer hasCondition=false appends no extra clause",
 			ocWhere:    activeWhere(),
 			writer:     stubWhereWriter("name = $2", []any{"alice"}, false, nil),
-			wantSQL:    prefix + ` WHERE EXCLUDED."is_active" = $1::bool`,
+			wantSQL:    prefix + ` WHERE "public"."users"."is_active" = $1::bool`,
 			wantParams: []any{true},
 			wantIdx:    2,
 			wantErr:    nil,
@@ -229,6 +230,7 @@ func TestOnConflict_ToSQLWithWhere(t *testing.T) {
 				ConstraintName: "users_pkey",
 				UpdateColumns:  []string{"email"},
 				Where:          tt.ocWhere,
+				TargetTableRef: `"public"."users"`,
 			}
 
 			var b strings.Builder
@@ -341,6 +343,7 @@ func TestParseOnConflict(t *testing.T) {
 		tbl.EXPECT().ParseWhere(
 			gomock.Any(), gomock.Any(), "user", gomock.Any(), 0, where.QueryAliases,
 		).Return(where.Clause{}, nil)
+		tbl.EXPECT().TableFromClause().Return(`"public"."users"`)
 
 		input := objectValue(
 			child("constraint", enumValue("users_pkey")),
@@ -367,6 +370,10 @@ func TestParseOnConflict(t *testing.T) {
 
 		if got.Where == nil {
 			t.Error("expected non-nil where")
+		}
+
+		if got.TargetTableRef != `"public"."users"` {
+			t.Errorf("target table ref=%q", got.TargetTableRef)
 		}
 	})
 

@@ -80,5 +80,6 @@ func (t *table) buildQueryFunctionCollectionSQL( //nolint:funlen
 		SQL:           sql,
 		Parameters:    params,
 		StreamCursors: nil,
+		Sequential:    nil,
 	}, nil
 }

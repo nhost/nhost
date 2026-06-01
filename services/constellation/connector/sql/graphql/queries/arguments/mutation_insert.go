@@ -18,6 +18,10 @@ type OnConflict struct {
 	ConstraintName string
 	UpdateColumns  []string
 	Where          where.Clause
+	// TargetTableRef is the quoted table reference used to qualify
+	// on_conflict.where predicates. PostgreSQL evaluates that predicate against
+	// the existing conflict-target row, not the EXCLUDED/incoming row.
+	TargetTableRef string
 }
 
 // OnConflictWhereWriter appends an additional DO UPDATE WHERE predicate.
@@ -98,7 +102,12 @@ func (oc *OnConflict) writeWhere(
 
 		var err error
 
-		params, paramIndex, err = oc.Where.WriteCondition(b, "EXCLUDED", params, paramIndex)
+		whereSource := oc.TargetTableRef
+		if whereSource == "" {
+			whereSource = "EXCLUDED"
+		}
+
+		params, paramIndex, err = oc.Where.WriteCondition(b, whereSource, params, paramIndex)
 		if err != nil {
 			return nil, 0, fmt.Errorf("failed to write on_conflict where clause: %w", err)
 		}
@@ -170,6 +179,7 @@ func ParseOnConflict( //nolint:funlen
 		UpdateColumns:  []string{},
 		ConstraintName: "",
 		Where:          nil,
+		TargetTableRef: "",
 	}
 
 	for _, field := range onConflictValue.Children {
@@ -230,6 +240,8 @@ func ParseOnConflict( //nolint:funlen
 	if oc.ConstraintName == "" {
 		return nil, fmt.Errorf("%w: on_conflict.constraint is required", ErrInvalidArgument)
 	}
+
+	oc.TargetTableRef = t.TableFromClause()
 
 	return oc, nil
 }
