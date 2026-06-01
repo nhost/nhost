@@ -100,7 +100,8 @@ func TestChangeUserPassword(t *testing.T) { //nolint:maintidx
 					sql.Text("passwordReset:ticket"),
 				).Return(
 					sql.AuthUser{},
-					pgx.ErrNoRows)
+					pgx.ErrNoRows,
+				)
 
 				return mock
 			},
@@ -293,7 +294,8 @@ func TestChangeUserPassword(t *testing.T) { //nolint:maintidx
 				mock.EXPECT().GetUser(
 					gomock.Any(),
 					userID,
-				).Return(sql.AuthUser{},
+				).Return(
+					sql.AuthUser{},
 					pgx.ErrNoRows,
 				)
 

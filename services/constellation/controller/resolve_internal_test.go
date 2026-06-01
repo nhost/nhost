@@ -4,6 +4,7 @@ import (
 	"bytes"
 	"context"
 	"errors"
+	"fmt"
 	"log/slog"
 	"strings"
 	"testing"
@@ -11,9 +12,99 @@ import (
 	"github.com/google/go-cmp/cmp"
 	"github.com/vektah/gqlparser/v2/ast"
 	"github.com/vektah/gqlparser/v2/gqlerror"
+	"go.uber.org/mock/gomock"
 
+	"github.com/nhost/nhost/services/constellation/connector/sql/graphql/queries/arguments"
+	argmock "github.com/nhost/nhost/services/constellation/connector/sql/graphql/queries/arguments/mock"
+	"github.com/nhost/nhost/services/constellation/connector/sql/graphql/queries/core"
 	"github.com/nhost/nhost/services/constellation/internal/lib/oapi/tracing"
 )
+
+// distinctOnOrderByMismatchError builds a real *arguments.QueryValidationError
+// by driving the public arguments.ParseQuery with a distinct_on that does not
+// match the leading order_by, then stamps the given root-field argument path.
+// Using the production parser (instead of a hand-minted error through an
+// exported constructor) keeps the arguments trust boundary closed while still
+// exercising the controller's structured-error pass-through with a faithful
+// value. order_by references budget while distinct_on references name, which
+// ParseQuery rejects.
+func distinctOnOrderByMismatchError(
+	t *testing.T,
+	rootField string,
+) *arguments.QueryValidationError {
+	t.Helper()
+
+	ctrl := gomock.NewController(t)
+	tbl := argmock.NewMockTable(ctrl)
+	tbl.EXPECT().ColumnFromGraphqlName("budget").
+		Return(&core.Column{SQLName: "budget", GraphqlName: "budget", SQLType: "numeric"})
+	tbl.EXPECT().ColumnFromGraphqlName("name").
+		Return(&core.Column{SQLName: "name", GraphqlName: "name", SQLType: "text"})
+
+	args := ast.ArgumentList{
+		&ast.Argument{
+			Name: "order_by",
+			Value: &ast.Value{
+				Kind: ast.ObjectValue,
+				Children: []*ast.ChildValue{
+					{Name: "budget", Value: &ast.Value{Kind: ast.EnumValue, Raw: "desc"}},
+				},
+			},
+		},
+		&ast.Argument{Name: "distinct_on", Value: &ast.Value{Kind: ast.EnumValue, Raw: "name"}},
+	}
+
+	clause, _, _, err := arguments.ParseQuery(tbl, args, nil, "user", nil, "")
+	if clause != nil {
+		t.Fatalf("ParseQuery: expected nil where clause on the error path, got %v", clause)
+	}
+
+	var vErr *arguments.QueryValidationError
+	if !errors.As(err, &vErr) {
+		t.Fatalf("ParseQuery: expected a *QueryValidationError, got %T (%v)", err, err)
+	}
+
+	vErr.StampArgumentPath(rootField)
+
+	return vErr
+}
+
+func negativeOffsetDataExceptionError(t *testing.T) *arguments.DataExceptionError {
+	t.Helper()
+
+	ctrl := gomock.NewController(t)
+	tbl := argmock.NewMockTable(ctrl)
+
+	args := ast.ArgumentList{
+		&ast.Argument{
+			Name:  "offset",
+			Value: &ast.Value{Kind: ast.IntValue, Raw: "-1"},
+		},
+	}
+
+	clause, modifiers, distinctOn, err := arguments.ParseQuery(tbl, args, nil, "user", nil, "")
+	if clause != nil {
+		t.Fatalf("ParseQuery: expected nil where clause on the error path, got %v", clause)
+	}
+
+	if len(modifiers) != 0 {
+		t.Fatalf(
+			"ParseQuery: expected no query modifiers on the error path, got %d",
+			len(modifiers),
+		)
+	}
+
+	if distinctOn != nil {
+		t.Fatalf("ParseQuery: expected nil distinct_on on the error path, got %v", distinctOn)
+	}
+
+	var dataErr *arguments.DataExceptionError
+	if !errors.As(err, &dataErr) {
+		t.Fatalf("ParseQuery: expected a *DataExceptionError, got %T (%v)", err, err)
+	}
+
+	return dataErr
+}
 
 func TestFormatGQLErrors_MessageOnly(t *testing.T) {
 	t.Parallel()
@@ -398,5 +489,69 @@ func TestSanitizeConnectorError_UsesTraceFromContext(t *testing.T) {
 
 	if !strings.Contains(buf.String(), wantTraceID) {
 		t.Fatalf("server log %q did not carry the trace id from ctx", buf.String())
+	}
+}
+
+// TestClassifyConnectorError_QueryValidationError pins that a query-validation
+// failure passes through classifyConnectorError verbatim (via AsMap) instead of
+// being sanitised into a generic trace-id message, so the wire envelope matches
+// Hasura. It is wrapped with call-site context (as Connector.Execute and
+// BuildQuery do) to prove the errors.AsType lookup still finds it through the
+// wrap chain. devMode is false to prove the pass-through is independent of it.
+func TestClassifyConnectorError_QueryValidationError(t *testing.T) {
+	t.Parallel()
+
+	c := &Controller{devMode: false}
+
+	vErr := distinctOnOrderByMismatchError(t, "departments")
+
+	wrapped := fmt.Errorf(
+		"failed to execute operations: %w",
+		fmt.Errorf("failed to build query for field %q: %w", "departments", vErr),
+	)
+
+	got := c.classifyConnectorError(context.Background(), slog.Default(), wrapped)
+
+	want := []map[string]any{
+		{
+			"message": `"distinct_on" columns must match initial "order_by" columns`,
+			"extensions": map[string]any{
+				"code": "validation-failed",
+				"path": "$.selectionSet.departments.args",
+			},
+		},
+	}
+
+	if diff := cmp.Diff(want, got); diff != "" {
+		t.Errorf("classifyConnectorError (-want +got):\n%s", diff)
+	}
+}
+
+func TestClassifyConnectorError_DataExceptionError(t *testing.T) {
+	t.Parallel()
+
+	c := &Controller{devMode: false}
+
+	dataErr := negativeOffsetDataExceptionError(t)
+
+	wrapped := fmt.Errorf(
+		"failed to execute operations: %w",
+		fmt.Errorf("failed to build query for field %q: %w", "departments", dataErr),
+	)
+
+	got := c.classifyConnectorError(context.Background(), slog.Default(), wrapped)
+
+	want := []map[string]any{
+		{
+			"message": "OFFSET must not be negative",
+			"extensions": map[string]any{
+				"code": "data-exception",
+				"path": "$",
+			},
+		},
+	}
+
+	if diff := cmp.Diff(want, got); diff != "" {
+		t.Errorf("classifyConnectorError (-want +got):\n%s", diff)
 	}
 }

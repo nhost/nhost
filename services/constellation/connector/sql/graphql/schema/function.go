@@ -94,7 +94,6 @@ func generateForFunction( //nolint:funlen
 
 		if aggregationsAllowed {
 			aggregateField := buildFunctionAggregateField(
-				graphqlName,
 				aggregateName,
 				fnMeta,
 				fnInfo,
@@ -159,10 +158,14 @@ func generateFunctionArgsInputType(
 ) {
 	fields := make([]*graph.InputField, 0, len(fnInfo.Arguments))
 
-	for _, arg := range fnInfo.Arguments {
+	for i, arg := range fnInfo.Arguments {
+		graphqlName := arg.GraphQLName(i)
+
 		// The session argument is hidden from the GraphQL schema and
-		// injected at execution time from the role's session variables.
-		if sessionArgument != "" && arg.Name == sessionArgument {
+		// injected at execution time from the role's session variables. The
+		// match is keyed off the GraphQL name (mirroring the execution-side
+		// queries.function.isSessionArgument check).
+		if sessionArgument != "" && graphqlName == sessionArgument {
 			continue
 		}
 
@@ -178,7 +181,7 @@ func generateFunctionArgsInputType(
 		}
 
 		fields = append(fields, &graph.InputField{ //nolint:exhaustruct
-			Name: arg.Name,
+			Name: graphqlName,
 			Type: graphqlType,
 		})
 	}
@@ -258,7 +261,6 @@ func buildFunctionSelectOneField(
 
 // buildFunctionAggregateField creates the GraphQL field for a function's aggregate query.
 func buildFunctionAggregateField(
-	graphqlName string,
 	aggregateName string,
 	fnMeta *metadata.FunctionMetadata,
 	fnInfo *introspection.Function,
@@ -274,7 +276,7 @@ func buildFunctionAggregateField(
 	)
 
 	arguments := buildFunctionFieldArguments(
-		graphqlName, fnInfo, baseTableName, argsTypeName, sessionArgument, caps,
+		aggregateName, fnInfo, baseTableName, argsTypeName, sessionArgument, caps,
 	)
 
 	return &graph.Field{ //nolint:exhaustruct
@@ -287,8 +289,11 @@ func buildFunctionAggregateField(
 
 // buildFunctionFieldArguments creates the arguments for a function field.
 // This includes the args input object and the standard table query modifiers.
+// fieldName is the GraphQL name of the field these arguments belong to; it is
+// used only to render the `args` description, which Hasura keys off the field's
+// own name (so the aggregate field uses the aggregate name, not the base name).
 func buildFunctionFieldArguments(
-	graphqlName string,
+	fieldName string,
 	fnInfo *introspection.Function,
 	baseTableName string,
 	argsTypeName string,
@@ -300,7 +305,7 @@ func buildFunctionFieldArguments(
 	if hasVisibleArguments(fnInfo.Arguments, sessionArgument) {
 		arguments = append(arguments, &graph.Argument{ //nolint:exhaustruct
 			Name:        "args",
-			Description: fmt.Sprintf(`input parameters for function "%s"`, graphqlName),
+			Description: fmt.Sprintf(`input parameters for function "%s"`, fieldName),
 			Type:        graph.NewNonNullType(argsTypeName),
 		})
 	}
@@ -313,8 +318,9 @@ func buildFunctionFieldArguments(
 // hasVisibleArguments returns true if the function has arguments that should be visible
 // in the GraphQL schema (excluding the session argument).
 func hasVisibleArguments(args []introspection.FunctionArgument, sessionArgument string) bool {
-	for _, arg := range args {
-		if sessionArgument == "" || arg.Name != sessionArgument {
+	for i, arg := range args {
+		graphqlName := arg.GraphQLName(i)
+		if sessionArgument == "" || graphqlName != sessionArgument {
 			return true
 		}
 	}

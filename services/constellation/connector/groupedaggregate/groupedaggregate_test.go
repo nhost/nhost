@@ -27,6 +27,7 @@ func TestRequest_FieldsRoundTrip(t *testing.T) {
 	fragments := ast.FragmentDefinitionList{{Name: "UserFields"}}
 	variables := map[string]any{"limit": 10}
 	joinValues := []any{"u1", "u2", "u3"}
+	argumentPath := "teams.selectionSet.users_aggregate"
 
 	req := groupedaggregate.Request{
 		TableSchema:       "public",
@@ -34,6 +35,7 @@ func TestRequest_FieldsRoundTrip(t *testing.T) {
 		JoinColumnSQLName: "owner_id",
 		JoinValues:        joinValues,
 		Field:             field,
+		ArgumentPath:      argumentPath,
 		Fragments:         fragments,
 		Variables:         variables,
 	}
@@ -62,6 +64,10 @@ func TestRequest_FieldsRoundTrip(t *testing.T) {
 
 	if req.Field != field {
 		t.Errorf("Field: got %p, want %p", req.Field, field)
+	}
+
+	if req.ArgumentPath != argumentPath {
+		t.Errorf("ArgumentPath: got %q, want %q", req.ArgumentPath, argumentPath)
 	}
 
 	if len(req.Fragments) != 1 || req.Fragments[0].Name != "UserFields" {

@@ -181,6 +181,74 @@ func TestBuildQueryFunctionAggregateSQL(t *testing.T) { //nolint:paralleltest
 				Role: "admin",
 			},
 		},
+
+		{
+			// Defaulted argument omitted on the aggregate path: the function
+			// call binds only "search" under named notation; no DEFAULT
+			// keyword, no "max_len" binding.
+			name: "defaulted arg omitted",
+			query: query{
+				Query: `
+					query {
+						search_news_default_aggregate(args: {search: "a"}) {
+							aggregate {
+								count
+							}
+						}
+					}`,
+				Role: "admin",
+			},
+		},
+
+		{
+			// Defaulted argument supplied on the aggregate path.
+			name: "defaulted arg supplied",
+			query: query{
+				Query: `
+					query {
+						search_news_default_aggregate(args: {search: "a", max_len: 50}) {
+							aggregate {
+								count
+							}
+						}
+					}`,
+				Role: "admin",
+			},
+		},
+
+		{
+			// Positional-only defaulted argument omitted on the aggregate path:
+			// bind only arg_1 positionally so PostgreSQL applies arg_2's default.
+			name: "positional defaulted arg omitted",
+			query: query{
+				Query: `
+					query {
+						search_news_positional_aggregate(args: {arg_1: "a"}) {
+							aggregate {
+								count
+							}
+						}
+					}`,
+				Role: "admin",
+			},
+		},
+
+		{
+			// Positional-only defaulted argument supplied on the aggregate path:
+			// unnamed PostgreSQL arguments must render as `$1, $2`.
+			name: "positional defaulted arg supplied",
+			query: query{
+				Query: `
+					query {
+						search_news_positional_aggregate(args: {arg_1: "a", arg_2: 200}) {
+							aggregate {
+								count
+							}
+						}
+					}`,
+				Role: "admin",
+			},
+		},
 	}
 
 	testBuildQuery(t, cases, false)

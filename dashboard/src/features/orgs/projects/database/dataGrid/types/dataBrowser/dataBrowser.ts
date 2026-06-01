@@ -259,9 +259,10 @@ export interface ColumnUpdateOptions {
   // biome-ignore lint/suspicious/noExplicitAny: TODO
   value?: any;
   /**
-   * Whether to set the column to NULL.
+   * How to reset the column. `'null'` sets it to NULL;
+   * `'default'` sets it to its column DEFAULT.
    */
-  reset?: boolean;
+  reset?: 'null' | 'default';
 }
 
 /**
@@ -551,9 +552,9 @@ export interface DataBrowserColumnMetadata {
    */
   dataType: string;
   /**
-   * Default value of the column.
+   * Default value of the column. `null` when the column has no default.
    */
-  defaultValue?: string;
+  defaultValue?: string | null;
   /**
    * Determines whether or not the column is a primary key of the table.
    */

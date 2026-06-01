@@ -34,12 +34,29 @@ func (s mutationSelection) WriteSQL(
 	)
 }
 
-// WriteSQLForDelete writes SQL for delete mutations with empty arrays for relationships.
+// WriteSQLForDelete writes SQL for delete mutations with empty arrays for
+// relationships. The related rows are gone by the time the delete commits, so
+// returning relationships always serialise as empty arrays — but their
+// arguments (where / order_by / limit / offset / distinct_on) are still
+// validated first, so an invalid argument rejects the whole mutation with no
+// rows deleted, matching Hasura.
 func (s mutationSelection) WriteSQLForDelete(
 	b *strings.Builder,
+	fragments ast.FragmentDefinitionList,
+	variables map[string]any,
+	role string,
+	sessionVariables map[string]any,
+	roots map[string]core.Operation,
 	params []any,
 	paramIndex int,
 ) ([]any, int, error) {
+	if err := validateReturningRelationshipArgs(
+		s.returning.relationships, fragments, variables, role,
+		sessionVariables, roots, s.returning.argumentPath,
+	); err != nil {
+		return nil, 0, err
+	}
+
 	b.WriteString("SELECT ")
 	b.WriteString(s.dialect.JSONBuildObject())
 	b.WriteByte('(')
@@ -182,9 +199,17 @@ func (s selectionAffectedRows) WriteSQLWithCTE(cteName string, b *strings.Builde
 
 type selectionReturning struct {
 	alias         string
+	argumentPath  string
 	columns       []columnSelection
 	relationships []relationshipSelection
 	dialect       dialect.Dialect
+	// nestedCTEs maps direct nested relationship names to the CTEs that contain
+	// their inserted rows for collection-insert returning selections, with child
+	// maps for deeper relationship selections. It lets returning
+	// { <relationship> { ... } } read sibling data-modifying CTE output instead
+	// of scanning the target base table, which PostgreSQL cannot see under the
+	// WITH statement's shared snapshot.
+	nestedCTEs map[string]nestedReturningCTERef
 	// nestedCTENames lists every nested-insert CTE produced by this
 	// top-level insert (mirrors selectionAffectedRows.nestedCTENames).
 	// Populated by collection-insert callers; nil otherwise.
@@ -420,10 +445,18 @@ func (s selectionReturning) writeReturningCorrelated( //nolint:funlen
 
 			var err error
 
-			params, paramIndex, err = relSel.relationship.buildSelectionSQL(
-				b, relSel.field, fragments, variables, role, sessionVariables,
-				roots, params, paramIndex, cteName, relAlias,
-			)
+			if nestedCTERef, isNested := s.nestedReturningCTERef(relSel); isNested {
+				params, paramIndex, err = s.writeNestedReturningSelection(
+					cteName, relAlias, nestedCTERef, relSel, b, fragments, variables,
+					role, sessionVariables, roots, params, paramIndex,
+				)
+			} else {
+				params, paramIndex, err = relSel.relationship.buildSelectionSQL(
+					b, relSel.field, fragments, variables, role, sessionVariables,
+					roots, params, paramIndex, cteName, relAlias, s.argumentPath,
+				)
+			}
+
 			if err != nil {
 				return nil, 0, fmt.Errorf("error building relationship %s: %w", relSel.alias, err)
 			}
@@ -441,6 +474,54 @@ func (s selectionReturning) writeReturningCorrelated( //nolint:funlen
 	writeNestedCTEForceRef(b, s.nestedCTENames)
 
 	return params, paramIndex, nil
+}
+
+// validateReturningRelationshipArgs runs the same argument parsing the SELECT
+// path performs over each nested relationship in a delete mutation's
+// `returning` selection, discarding the generated SQL and surfacing only the
+// error. Delete and delete_by_pk emit empty arrays for returning
+// relationships (the related rows are gone once the row is deleted), so they
+// never call buildSelectionSQL and would otherwise silently accept an invalid
+// where / order_by / limit / offset / distinct_on argument and still commit
+// the delete. Hasura rejects the whole mutation in that case with no rows
+// deleted; routing validation through buildSelectionSQL guarantees byte-for-byte
+// the same error semantics as the SELECT path (same arguments.ParseQuery, same
+// sentinel errors) without duplicating the validation logic.
+//
+// Remote relationships are skipped: they are stripped from the selection before
+// this point and buildSelectionSQL's remote branch is only a safety net.
+func validateReturningRelationshipArgs(
+	relationships []relationshipSelection,
+	fragments ast.FragmentDefinitionList,
+	variables map[string]any,
+	role string,
+	sessionVariables map[string]any,
+	roots map[string]core.Operation,
+	argumentPath string,
+) error {
+	for _, relSel := range relationships {
+		if relSel.relationship == nil || relSel.relationship.isRemote {
+			continue
+		}
+
+		b := getBuilder()
+		// The SQL is discarded; only the validation error matters. cteName and
+		// the relationship alias only feed the join-condition raw filter and the
+		// returned alias, neither of which affects user-argument validation, so a
+		// placeholder CTE name is fine here.
+		_, _, err := relSel.relationship.buildSelectionSQL(
+			b, relSel.field, fragments, variables, role, sessionVariables,
+			roots, nil, 1, "mutation_result", relSel.alias, argumentPath,
+		)
+
+		putBuilder(b)
+
+		if err != nil {
+			return fmt.Errorf("error building relationship %s: %w", relSel.alias, err)
+		}
+	}
+
+	return nil
 }
 
 // writeNestedCTEForceRef appends a WHERE predicate that scalar-references
@@ -475,6 +556,217 @@ func writeNestedCTEForceRef(b *strings.Builder, names []string) {
 	}
 }
 
+func (s selectionReturning) nestedReturningCTERef(
+	relSel relationshipSelection,
+) (nestedReturningCTERef, bool) {
+	return nestedReturningCTERefForSelection(s.nestedCTEs, relSel)
+}
+
+func nestedReturningCTERefForSelection(
+	nestedCTEs map[string]nestedReturningCTERef,
+	relSel relationshipSelection,
+) (nestedReturningCTERef, bool) {
+	var empty nestedReturningCTERef
+	if len(nestedCTEs) == 0 {
+		return empty, false
+	}
+
+	key := relSel.alias
+	if relSel.field != nil {
+		key = relSel.field.Name
+	}
+
+	ref, ok := nestedCTEs[key]
+	if (!ok || len(ref.cteNames) == 0) &&
+		relSel.relationship != nil && key == relSel.relationship.aggregateName {
+		ref, ok = nestedCTEs[relSel.relationship.name]
+	}
+
+	if !ok || len(ref.cteNames) == 0 {
+		return empty, false
+	}
+
+	return ref, true
+}
+
+func nestedReturningSourceFromClause(
+	cteNames []string,
+	sourceAlias string,
+	rel *relationship,
+) (string, string) {
+	var b strings.Builder
+
+	b.WriteByte('(')
+	writeNestedReturningSourceUnion(&b, cteNames, rel.table.columns)
+	writeNestedReturningBaseFallback(&b, cteNames, sourceAlias, rel)
+	b.WriteString(") AS ")
+	core.WriteQuotedIdentifier(&b, sourceAlias)
+
+	return b.String(), core.QuoteIdentifier(sourceAlias)
+}
+
+func writeNestedReturningSourceUnion(
+	b *strings.Builder,
+	cteNames []string,
+	columns []*core.Column,
+) {
+	for i, cteName := range cteNames {
+		if i > 0 {
+			b.WriteString(" UNION ALL ")
+		}
+
+		b.WriteString("SELECT ")
+		writeNestedReturningSourceColumns(b, cteName, columns)
+		b.WriteString(" FROM ")
+		b.WriteString(cteName)
+	}
+}
+
+func writeNestedReturningBaseFallback(
+	b *strings.Builder,
+	cteNames []string,
+	sourceAlias string,
+	rel *relationship,
+) {
+	b.WriteString(" UNION ALL SELECT ")
+	writeNestedReturningSourceColumns(b, rel.table.tableSourceRef(), rel.table.columns)
+	b.WriteString(" FROM ")
+	b.WriteString(rel.table.tableFromClause())
+
+	keyColumns := nestedReturningDedupColumns(rel)
+	if len(keyColumns) == 0 {
+		return
+	}
+
+	nestedKeyAlias := sourceAlias + ".nested_keys"
+
+	b.WriteString(" WHERE NOT EXISTS (SELECT 1 FROM (")
+	writeNestedReturningSourceUnion(b, cteNames, keyColumns)
+	b.WriteString(") AS ")
+	core.WriteQuotedIdentifier(b, nestedKeyAlias)
+	b.WriteString(" WHERE ")
+	writeNestedReturningKeyEquality(
+		b,
+		core.QuoteIdentifier(nestedKeyAlias),
+		rel.table.tableSourceRef(),
+		keyColumns,
+	)
+	b.WriteByte(')')
+}
+
+func nestedReturningDedupColumns(rel *relationship) []*core.Column {
+	if rel == nil || rel.table == nil {
+		return nil
+	}
+
+	if len(rel.table.pkColumns) > 0 {
+		return rel.table.pkColumns
+	}
+
+	columns := make([]*core.Column, 0, len(rel.targetColumns))
+	for _, columnName := range rel.targetColumns {
+		column := rel.table.columnFromSQLName(columnName)
+		if column == nil {
+			return nil
+		}
+
+		columns = append(columns, column)
+	}
+
+	return columns
+}
+
+func writeNestedReturningKeyEquality(
+	b *strings.Builder,
+	leftSource string,
+	rightSource string,
+	columns []*core.Column,
+) {
+	for i, column := range columns {
+		if i > 0 {
+			b.WriteString(" AND ")
+		}
+
+		core.WriteQualifiedColumn(b, leftSource, column.SQLName)
+		b.WriteString(" = ")
+		core.WriteQualifiedColumn(b, rightSource, column.SQLName)
+	}
+}
+
+func writeNestedReturningSourceColumns(
+	b *strings.Builder,
+	sourceRef string,
+	columns []*core.Column,
+) {
+	for i, col := range columns {
+		if i > 0 {
+			b.WriteString(", ")
+		}
+
+		core.WriteQualifiedColumn(b, sourceRef, col.SQLName)
+		b.WriteString(" AS ")
+		core.WriteQuotedIdentifier(b, col.SQLName)
+	}
+}
+
+func (s selectionReturning) writeNestedReturningSelection(
+	cteName string,
+	relAlias string,
+	nestedCTERef nestedReturningCTERef,
+	relSel relationshipSelection,
+	b *strings.Builder,
+	fragments ast.FragmentDefinitionList,
+	variables map[string]any,
+	role string,
+	sessionVariables map[string]any,
+	roots map[string]core.Operation,
+	params []any,
+	paramIndex int,
+) ([]any, int, error) {
+	return writeNestedReturningSelection(
+		cteName, s.argumentPath, relAlias, nestedCTERef, relSel, b, fragments,
+		variables, role, sessionVariables, roots, params, paramIndex,
+	)
+}
+
+func writeNestedReturningSelection(
+	cteName string,
+	argumentPath string,
+	relAlias string,
+	nestedCTERef nestedReturningCTERef,
+	relSel relationshipSelection,
+	b *strings.Builder,
+	fragments ast.FragmentDefinitionList,
+	variables map[string]any,
+	role string,
+	sessionVariables map[string]any,
+	roots map[string]core.Operation,
+	params []any,
+	paramIndex int,
+) ([]any, int, error) {
+	fromClause, sourceRef := nestedReturningSourceFromClause(
+		nestedCTERef.cteNames, relAlias+".source", relSel.relationship,
+	)
+
+	return relSel.relationship.buildSelectionSQLFromSource(
+		b,
+		relSel.field,
+		fragments,
+		variables,
+		role,
+		sessionVariables,
+		roots,
+		params,
+		paramIndex,
+		cteName,
+		relAlias,
+		fromClause,
+		sourceRef,
+		nestedCTERef.children,
+		argumentPath,
+	)
+}
+
 func (s selectionReturning) writeLateralJoinsWithCTE(
 	cteName string,
 	b *strings.Builder,
@@ -493,19 +785,28 @@ func (s selectionReturning) writeLateralJoinsWithCTE(
 
 		var err error
 
-		params, paramIndex, err = relSel.relationship.buildSelectionSQL(
-			b,
-			relSel.field,
-			fragments,
-			variables,
-			role,
-			sessionVariables,
-			roots,
-			params,
-			paramIndex,
-			cteName,
-			relAlias,
-		)
+		if nestedCTERef, isNested := s.nestedReturningCTERef(relSel); isNested {
+			params, paramIndex, err = s.writeNestedReturningSelection(
+				cteName, relAlias, nestedCTERef, relSel, b, fragments, variables,
+				role, sessionVariables, roots, params, paramIndex,
+			)
+		} else {
+			params, paramIndex, err = relSel.relationship.buildSelectionSQL(
+				b,
+				relSel.field,
+				fragments,
+				variables,
+				role,
+				sessionVariables,
+				roots,
+				params,
+				paramIndex,
+				cteName,
+				relAlias,
+				s.argumentPath,
+			)
+		}
+
 		if err != nil {
 			return nil, 0, fmt.Errorf("error building relationship %s: %w", relSel.alias, err)
 		}
@@ -591,9 +892,11 @@ func (t *table) processMutationField(
 
 		result.returning = selectionReturning{
 			alias:          returningAlias,
+			argumentPath:   childArgumentPath(rootAlias, sel),
 			columns:        columns,
 			relationships:  relationships,
 			dialect:        t.dialect,
+			nestedCTEs:     nil,
 			nestedCTENames: nil,
 		}
 	case "affected_rows":

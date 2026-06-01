@@ -177,6 +177,10 @@ All flags are also available as environment variables. The most common:
 | `--jwt-secret` | `CONSTELLATION_JWT_SECRET` | *(required)* |
 | `--cors-allowed-origins` | `CONSTELLATION_CORS_ALLOWED_ORIGINS` | *(empty — denies all cross-origin requests)*; entries may use `*` as a wildcard (e.g. `https://my-app-*-org.vercel.app`); a bare `*` cannot be combined with credentials and is rejected at startup |
 | `--subscription-poll-interval` | `CONSTELLATION_SUBSCRIPTION_POLL_INTERVAL` | `1s` |
+| `--graphql-request-body-limit-bytes` | `CONSTELLATION_GRAPHQL_REQUEST_BODY_LIMIT_BYTES` | `10485760` (10 MiB) |
+| `--http-read-timeout` | `CONSTELLATION_HTTP_READ_TIMEOUT` | `30s` — caps request header/body read time |
+| `--http-write-timeout` | `CONSTELLATION_HTTP_WRITE_TIMEOUT` | `5m0s` |
+| `--http-idle-timeout` | `CONSTELLATION_HTTP_IDLE_TIMEOUT` | `2m0s` |
 | `--enable-playground` | `CONSTELLATION_ENABLE_PLAYGROUND` | `false` |
 | `--debug` | `CONSTELLATION_DEBUG` | `false` |
 | `--log-format-text` | `CONSTELLATION_LOG_FORMAT_TEXT` | `false` — JSON logs by default |

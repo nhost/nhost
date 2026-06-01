@@ -42,6 +42,7 @@ func (t *table) buildMutationUpdateByPkSQL(
 
 	params, err := t.buildUpdateByPkSQL(
 		b, update, columns, relationships, fragments, variables, role, sessionVariables, roots,
+		rootFieldName(field),
 	)
 	if err != nil {
 		putBuilder(b)
@@ -70,6 +71,7 @@ func (t *table) buildUpdateByPkSQL(
 	role string,
 	sessionVariables map[string]any,
 	roots map[string]core.Operation,
+	argumentPath string,
 ) ([]any, error) {
 	var (
 		params     = make([]any, 0, 8) //nolint:mnd
@@ -102,7 +104,8 @@ func (t *table) buildUpdateByPkSQL(
 		b,
 		columns,
 		relationships,
-		nil, // no nested CTEs
+		nil, // no nested selection CTEs
+		nil, // no nested force-ref CTEs
 		fragments,
 		variables,
 		role,
@@ -110,6 +113,7 @@ func (t *table) buildUpdateByPkSQL(
 		roots,
 		params,
 		paramIndex,
+		argumentPath,
 	)
 	if err != nil {
 		return nil, err

@@ -8,6 +8,11 @@ import (
 	"github.com/nhost/nhost/services/constellation/metadata"
 )
 
+const (
+	scalarJSON  = "json"
+	scalarJSONB = "jsonb"
+)
+
 // generateForTable generates all GraphQL schema elements for a single table.
 func generateForTable( //nolint:funlen,cyclop
 	schema *graph.Schema,
@@ -109,7 +114,7 @@ func generateForTable( //nolint:funlen,cyclop
 
 	if allowAggregations(tableMeta, role) {
 		generateAggregateTypes(
-			schema, tableMeta, tableInfo, customTableName, qualifiedName, allowedColumns, md,
+			schema, tableMeta, tableInfo, customTableName, qualifiedName, allowedColumns, md, caps,
 		)
 	}
 
@@ -285,7 +290,8 @@ func generateArrayRelationshipFields(
 		// type name below.
 		if targetTable != "" {
 			maybeGenerateAggregateOrderByForTargetTable(
-				schema, md, objects, targetSchema, targetTable, role, generatedAggregateOrderBy,
+				schema, md, objects, targetSchema, targetTable, role,
+				generatedAggregateOrderBy, caps,
 			)
 		}
 
@@ -337,7 +343,7 @@ func generateTableObjectType(
 
 		// jsonb/json columns expose a `path` argument so callers can drill
 		// into nested values without separate path-specific scalar types.
-		if col.Type == "jsonb" || col.Type == "json" {
+		if col.Type == scalarJSONB || col.Type == scalarJSON {
 			field.Arguments = []*graph.Argument{
 				{
 					Name:        "path",

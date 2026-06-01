@@ -178,7 +178,8 @@ func executeDirectiveFields(
 		case *ast.FragmentSpread:
 			if fragment := query.Fragments.ForName(sel.Name); fragment != nil {
 				fragmentResult := executeDirectiveFields(
-					directive, fragment.SelectionSet, query, schema)
+					directive, fragment.SelectionSet, query, schema,
+				)
 				maps.Copy(result, fragmentResult)
 			}
 		}

@@ -63,6 +63,15 @@ func TestOrderDirection_IsDescending(t *testing.T) {
 	}
 }
 
+func TestFunctionSessionArgumentCarriesSQLType(t *testing.T) {
+	t.Parallel()
+
+	marker := core.FunctionSessionArgument{SQLType: "jsonb"}
+	if marker.SQLType != "jsonb" {
+		t.Fatalf("SQLType = %q, want jsonb", marker.SQLType)
+	}
+}
+
 func TestQuoteIdentifier(t *testing.T) {
 	t.Parallel()
 

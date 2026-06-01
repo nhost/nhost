@@ -53,6 +53,16 @@ func (stubConnector) Execute(
 	return nil, nil //nolint:nilnil
 }
 
+func (stubConnector) ValidateOperation(
+	*ast.OperationDefinition,
+	ast.FragmentDefinitionList,
+	map[string]any,
+	string,
+	map[string]any,
+) error {
+	return nil
+}
+
 func (stubConnector) GetTypeName(string) string { return "" }
 func (stubConnector) Close()                    {}
 

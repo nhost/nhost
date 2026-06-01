@@ -1960,3 +1960,214 @@ func TestSelect(t *testing.T) { //nolint:maintidx,paralleltest
 		IsMutation: false,
 	})
 }
+
+func TestQueryRelationshipOrderBy(t *testing.T) { //nolint:paralleltest
+	ReinitializeTestData(t)
+
+	cases := []TestCase{
+		{
+			name: "order by object relationship column asc",
+			query: query{
+				Query: `query {
+					user_departments(
+						order_by: [
+							{department: {name: asc}}
+							{user_id: asc}
+							{department_id: asc}
+						]
+						limit: 20
+					) {
+						user_id
+						role
+					}
+				}`,
+				Role: "admin",
+			},
+		},
+		{
+			name: "order by object relationship multiple columns",
+			query: query{
+				Query: `query {
+					user_departments(
+						order_by: [{department: {name: asc}}, {role: asc}]
+						limit: 48
+					) {
+						role
+						department {
+							name
+						}
+					}
+				}`,
+				Role: "admin",
+			},
+		},
+		{
+			name: "order by array relationship aggregate count desc",
+			query: query{
+				Query: `query {
+					departments(order_by: [{employees_aggregate: {count: desc}}, {name: asc}]) {
+						name
+						employees_aggregate {
+							aggregate {
+								count
+							}
+						}
+					}
+				}`,
+				Role: "admin",
+			},
+		},
+		{
+			name: "order by array relationship aggregate count asc",
+			query: query{
+				Query: `query {
+					departments(order_by: [{employees_aggregate: {count: asc}}, {name: asc}]) {
+						name
+					}
+				}`,
+				Role: "admin",
+			},
+		},
+		{
+			name: "order by array relationship aggregate max column",
+			query: query{
+				Query: `query {
+					departments(
+						order_by: [
+							{employees_aggregate: {max: {joined_at: asc_nulls_first}}}
+							{name: asc}
+						]
+					) {
+						name
+					}
+				}`,
+				Role: "admin",
+			},
+		},
+		{
+			name: "order by relationship combined with where",
+			query: query{
+				Query: `query {
+					departments(
+						where: {budget: {_gt: 0}}
+						order_by: [{employees_aggregate: {count: desc}}, {name: asc}]
+					) {
+						name
+					}
+				}`,
+				Role: "admin",
+			},
+		},
+		{
+			// Non-admin role: relationship ordering applies the target table's
+			// row-level permissions inside the correlated subquery, matching Hasura.
+			name: "order by object relationship under restricted role",
+			query: query{
+				Query: `query {
+					user_departments(
+						order_by: [
+							{department: {name: asc}}
+							{user_id: asc}
+							{department_id: asc}
+						]
+					) {
+						user_id
+						role
+					}
+				}`,
+				Role: "user",
+				SessionVariables: map[string]string{
+					"user-id":     "550e8400-e29b-41d4-a716-446655440011",
+					"departments": "{023d4410-715e-4675-96a5-a58fd50ef33c,24e9b8db-acf8-439f-9d63-7f83de523fb3,fd1e6bba-c292-4b2f-872e-ae16146cdd82}",
+				},
+			},
+		},
+		{
+			// Nested object relationship ordering: order by a column reached
+			// through two object relationships (kb_entry -> uploader). Tie-broken
+			// by the junction primary key (id).
+			name: "order by nested object relationship column",
+			query: query{
+				Query: `query {
+					kb_entry_departments(
+						order_by: [
+							{kb_entry: {uploader: {displayName: asc}}}
+							{id: asc}
+						]
+						limit: 15
+					) {
+						id
+						kb_entry {
+							uploader {
+								displayName
+							}
+						}
+					}
+				}`,
+				Role: "admin",
+			},
+		},
+		{
+			// Array-relationship aggregate ordering nested inside an object
+			// relationship: order user_departments by an aggregate over the
+			// related department's employees. Tie-broken by the composite PK.
+			name: "order by aggregate nested in object relationship",
+			query: query{
+				Query: `query {
+					user_departments(
+						order_by: [
+							{department: {employees_aggregate: {count: desc}}}
+							{user_id: asc}
+							{department_id: asc}
+						]
+						limit: 48
+					) {
+						user_id
+						department_id
+						role
+					}
+				}`,
+				Role: "admin",
+			},
+		},
+		{
+			// Non-admin array-relationship aggregate ordering where the counted
+			// table's row-level filter is LOAD-BEARING. Order auth.users (visible
+			// to the user role with an empty filter) by an aggregate over the
+			// related user_departments rows. The user role's user_departments
+			// filter is department_id _in X-Hasura-departments, a NON-join column
+			// (the relationship joins on user_id), so the correlated aggregate
+			// subquery must drop department rows outside the visible set. Every
+			// user belongs to two departments, so admin counts 2 for all 24 users
+			// (ordering then pure tie-break) while the user role's counts split
+			// 2/1/0 across the three visible departments {Engineering, Finance,
+			// Operations}: {count 2: 5 users, count 1: 15 users, count 0: 4 users}.
+			// Omitting the subquery permission would compute 2 for everyone (the
+			// admin result) and reorder, so this case distinguishes a correct
+			// implementation from a permission-bypassing one. Tie-broken by the
+			// users PK (id) so the live cmp.Diff cannot flake on equal counts.
+			name: "order by array relationship aggregate under restricted role",
+			query: query{
+				Query: `query {
+					users(order_by: [{departments_aggregate: {count: desc}}, {id: asc}]) {
+						id
+						departments_aggregate {
+							aggregate {
+								count
+							}
+						}
+					}
+				}`,
+				Role: "user",
+				SessionVariables: map[string]string{
+					"user-id":     "550e8400-e29b-41d4-a716-446655440011",
+					"departments": "{023d4410-715e-4675-96a5-a58fd50ef33c,24e9b8db-acf8-439f-9d63-7f83de523fb3,fd1e6bba-c292-4b2f-872e-ae16146cdd82}",
+				},
+			},
+		},
+	}
+
+	RunGraphQLTests(t, cases, TestConfig{
+		IsMutation: false,
+	})
+}

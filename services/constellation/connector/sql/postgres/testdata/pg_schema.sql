@@ -255,6 +255,23 @@ CREATE FUNCTION public.search_news_3(search text)
     WHERE title ILIKE ('%' || search || '%') OR content ILIKE ('%' || search || '%')
   $$ LANGUAGE sql STABLE;
 
+CREATE FUNCTION public.search_news_default(search text, max_len int DEFAULT 220)
+  RETURNS SETOF public.news AS $$
+    SELECT * FROM public.news
+    WHERE (title ILIKE ('%' || search || '%') OR content ILIKE ('%' || search || '%'))
+      AND length(content) <= max_len
+  $$ LANGUAGE sql STABLE;
+
+-- Positional-only (unnamed) arguments: $1 required, $2 defaulted. Exercises the
+-- arg_1/arg_2 GraphQL contract for functions whose PostgreSQL arguments have no
+-- names. Mirrors integration migration 1766416161020_added_search_news_positional.
+CREATE FUNCTION public.search_news_positional(text, int DEFAULT 220)
+  RETURNS SETOF public.news AS $$
+    SELECT * FROM public.news
+    WHERE (title ILIKE ('%' || $1 || '%') OR content ILIKE ('%' || $1 || '%'))
+      AND length(content) <= $2
+  $$ LANGUAGE sql STABLE;
+
 CREATE OR REPLACE FUNCTION public.get_department_manager(department_id UUID)
   RETURNS public.user_departments
   LANGUAGE sql STABLE AS $$

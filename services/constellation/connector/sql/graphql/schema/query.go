@@ -83,7 +83,8 @@ func collectionArguments(customTableName string, caps Capabilities) []*graph.Arg
 		})
 	}
 
-	arguments = append(arguments,
+	arguments = append(
+		arguments,
 		&graph.Argument{ //nolint:exhaustruct
 			Name:        "limit",
 			Description: "limit the number of rows returned",

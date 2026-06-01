@@ -4,9 +4,12 @@ import (
 	"context"
 	"encoding/json/jsontext"
 	json "encoding/json/v2"
+	"errors"
 	"fmt"
 	"log/slog"
+	"net"
 	"net/http"
+	"sync"
 	"time"
 
 	"github.com/gorilla/websocket"
@@ -53,7 +56,14 @@ type MessageHandler interface {
 type wsConn interface {
 	ReadMessage() (int, []byte, error)
 	WriteMessage(messageType int, data []byte) error
+	SetReadDeadline(t time.Time) error
 	Close() error
+}
+
+// connectionExpirationProvider is an optional capability for handlers that can
+// provide an absolute authentication expiry for the WebSocket connection.
+type connectionExpirationProvider interface {
+	ConnectionExpiresAt() (time.Time, bool)
 }
 
 // Connection represents an upgraded WebSocket connection.
@@ -62,8 +72,13 @@ type Connection struct {
 	conn    wsConn
 	handler MessageHandler
 	sendCh  chan *Message
+	// connectionAckWriteCh lets the read pump wait until the write pump has
+	// flushed connection_ack before arming any post-init expiry deadline.
+	// White-box tests that drive readPump without writePump leave it nil.
+	connectionAckWriteCh chan error
 
 	initialized bool
+	expiresAt   time.Time
 }
 
 // NewConnection upgrades an HTTP connection to WebSocket.
@@ -94,10 +109,12 @@ func NewConnection(
 	}
 
 	return &Connection{
-		conn:        conn,
-		handler:     handler,
-		sendCh:      sendCh,
-		initialized: false,
+		conn:                 conn,
+		handler:              handler,
+		sendCh:               sendCh,
+		connectionAckWriteCh: make(chan error, 1),
+		initialized:          false,
+		expiresAt:            time.Time{},
 	}, nil
 }
 
@@ -106,10 +123,25 @@ func NewConnection(
 func (c *Connection) Loop(ctx context.Context, logger *slog.Logger) error {
 	rctx, cancel := context.WithCancel(ctx)
 
+	var closeOnce sync.Once
+
+	closeConn := func(message string) {
+		closeOnce.Do(func() {
+			if err := c.conn.Close(); err != nil {
+				logger.DebugContext(ctx, message, slog.String("error", err.Error()))
+			}
+		})
+	}
+
 	defer func() {
 		c.handler.OnClose(ctx)
-		c.conn.Close()
+		closeConn("websocket close failed")
 		cancel()
+	}()
+
+	go func() {
+		<-rctx.Done()
+		closeConn("websocket close after cancellation failed")
 	}()
 
 	errWriteCh := make(chan error, 1)
@@ -134,10 +166,22 @@ func (c *Connection) Loop(ctx context.Context, logger *slog.Logger) error {
 	return errWrite
 }
 
+type readMessageStatus uint8
+
+const (
+	readMessageStatusContinue readMessageStatus = iota
+	readMessageStatusDone
+	readMessageStatusInitialized
+)
+
 // readPump reads messages from the WebSocket connection.
 func (c *Connection) readPump(ctx context.Context, logger *slog.Logger) error {
 	initTimer := time.NewTimer(connectionInitTimeout)
 	defer initTimer.Stop()
+
+	if err := c.setReadDeadline(ctx, time.Now().Add(connectionInitTimeout)); err != nil {
+		return fmt.Errorf("setting initial read deadline: %w", err)
+	}
 
 	for {
 		select {
@@ -151,31 +195,113 @@ func (c *Connection) readPump(ctx context.Context, logger *slog.Logger) error {
 			// `default` is used so each loop iteration reaches ReadMessage even when
 			// ctx is not yet done and the init timer has not yet fired. Cancellation
 			// and the init timeout are observed by the next iteration's select once
-			// ReadMessage returns (typically via the read deadline or a close frame).
-			_, message, err := c.conn.ReadMessage()
-			switch {
-			case websocket.IsCloseError(
-				err, websocket.CloseNormalClosure, websocket.CloseGoingAway):
-				return nil
-			case err != nil:
-				return fmt.Errorf("%w: %w", errCouldNotReadMessage, err)
-			}
-
-			var msg Message
-			if err := json.Unmarshal(message, &msg); err != nil {
-				return fmt.Errorf("%w: %w", errInvalidMessageFormat, err)
-			}
-
-			if err := c.handleMessage(ctx, &msg, logger); err != nil {
+			// ReadMessage returns via a read deadline, close frame, or conn.Close.
+			status, err := c.readAndHandleMessage(ctx, logger)
+			if err != nil {
 				return err
 			}
 
-			// Stop the init timeout once the handshake completes.
-			if msg.Type == messageTypeConnectionInit && c.initialized {
+			if status == readMessageStatusDone {
+				return nil
+			}
+
+			// Stop the init timeout once the handshake completes, then replace the
+			// pre-init read deadline with the JWT expiry bound (or no deadline for
+			// non-JWT sessions).
+			if status == readMessageStatusInitialized {
 				initTimer.Stop()
+
+				if err := c.setPostInitReadDeadline(ctx); err != nil {
+					return fmt.Errorf("setting post-init read deadline: %w", err)
+				}
 			}
 		}
 	}
+}
+
+func (c *Connection) readAndHandleMessage(
+	ctx context.Context, logger *slog.Logger,
+) (readMessageStatus, error) {
+	_, message, err := c.conn.ReadMessage()
+	if err != nil {
+		return c.handleReadMessageError(ctx, err)
+	}
+
+	if contextDone(ctx) {
+		return readMessageStatusDone, nil
+	}
+
+	var msg Message
+	if err := json.Unmarshal(message, &msg); err != nil {
+		return readMessageStatusContinue, fmt.Errorf("%w: %w", errInvalidMessageFormat, err)
+	}
+
+	if err := c.handleMessage(ctx, &msg, logger); err != nil {
+		return readMessageStatusContinue, err
+	}
+
+	if msg.Type == messageTypeConnectionInit && c.initialized {
+		return readMessageStatusInitialized, nil
+	}
+
+	return readMessageStatusContinue, nil
+}
+
+func (c *Connection) handleReadMessageError(
+	ctx context.Context, readErr error,
+) (readMessageStatus, error) {
+	switch {
+	case contextDone(ctx):
+		return readMessageStatusDone, nil
+	case websocket.IsCloseError(readErr, websocket.CloseNormalClosure, websocket.CloseGoingAway):
+		return readMessageStatusDone, nil
+	case isReadTimeout(readErr) && !c.initialized:
+		return readMessageStatusContinue, errConnectionInitTimeout
+	case isReadTimeout(readErr) && c.isExpired(time.Now()):
+		return readMessageStatusContinue, errConnectionExpired
+	default:
+		return readMessageStatusContinue, fmt.Errorf("%w: %w", errCouldNotReadMessage, readErr)
+	}
+}
+
+func (c *Connection) setPostInitReadDeadline(ctx context.Context) error {
+	if c.expiresAt.IsZero() {
+		return c.setReadDeadline(ctx, time.Time{})
+	}
+
+	return c.setReadDeadline(ctx, c.expiresAt)
+}
+
+func (c *Connection) setReadDeadline(ctx context.Context, deadline time.Time) error {
+	if contextDone(ctx) {
+		return nil
+	}
+
+	if err := c.conn.SetReadDeadline(deadline); err != nil {
+		if contextDone(ctx) {
+			return nil
+		}
+
+		return fmt.Errorf("setting websocket read deadline: %w", err)
+	}
+
+	return nil
+}
+
+// contextDone reports that connection shutdown has started. Read/deadline
+// helpers treat transport errors after this point as graceful cancellation.
+func contextDone(ctx context.Context) bool {
+	return ctx.Err() != nil
+}
+
+func (c *Connection) isExpired(now time.Time) bool {
+	return !c.expiresAt.IsZero() && !now.Before(c.expiresAt)
+}
+
+func isReadTimeout(err error) bool {
+	var netErr net.Error
+
+	return errors.As(err, &netErr) && netErr.Timeout()
 }
 
 // writePump writes messages to the WebSocket connection.
@@ -190,12 +316,20 @@ func (c *Connection) writePump(ctx context.Context, logger *slog.Logger) error {
 		case msg := <-c.sendCh:
 			data, err := json.Marshal(msg)
 			if err != nil {
-				return fmt.Errorf("could not marshal message: %w", err)
+				writeErr := fmt.Errorf("could not marshal message: %w", err)
+				c.notifyConnectionAckWrite(msg, writeErr)
+
+				return writeErr
 			}
 
 			if err := c.conn.WriteMessage(websocket.TextMessage, data); err != nil {
-				return fmt.Errorf("could not write message: %w", err)
+				writeErr := fmt.Errorf("could not write message: %w", err)
+				c.notifyConnectionAckWrite(msg, writeErr)
+
+				return writeErr
 			}
+
+			c.notifyConnectionAckWrite(msg, nil)
 		case <-ticker.C:
 			c.sendMessage(ctx, newPingMessage(), logger)
 		}
@@ -227,8 +361,7 @@ func (c *Connection) handleConnectionInit(
 	ctx context.Context, msg *Message, logger *slog.Logger,
 ) error {
 	if c.initialized {
-		c.sendMessage(ctx, newConnectionAckMessage(), logger)
-		return nil
+		return c.sendConnectionAck(ctx, logger)
 	}
 
 	if err := c.handler.OnConnectionInit(ctx, msg.Payload); err != nil {
@@ -236,11 +369,97 @@ func (c *Connection) handleConnectionInit(
 	}
 
 	c.initialized = true
+	if provider, ok := c.handler.(connectionExpirationProvider); ok {
+		if expiresAt, ok := provider.ConnectionExpiresAt(); ok && !expiresAt.IsZero() {
+			c.expiresAt = expiresAt
+		}
+	}
 
 	logger.DebugContext(ctx, "connection initialized")
-	c.sendMessage(ctx, newConnectionAckMessage(), logger)
+
+	return c.sendConnectionAck(ctx, logger)
+}
+
+func (c *Connection) notifyConnectionAckWrite(msg *Message, err error) {
+	if c.connectionAckWriteCh == nil || msg == nil || msg.Type != messageTypeConnectionAck {
+		return
+	}
+
+	select {
+	case c.connectionAckWriteCh <- err:
+	default:
+	}
+}
+
+func (c *Connection) sendConnectionAck(ctx context.Context, logger *slog.Logger) error {
+	msg := newConnectionAckMessage()
+	if c.connectionAckWriteCh == nil {
+		c.sendMessage(ctx, msg, logger)
+
+		return nil
+	}
+
+	c.drainConnectionAckWriteNotifications()
+
+	if c.isExpired(time.Now()) {
+		return errConnectionExpired
+	}
+
+	expiresCh, stopExpirationTimer := c.connectionExpirationTimer()
+	defer stopExpirationTimer()
+
+	select {
+	case c.sendCh <- msg:
+	case <-expiresCh:
+		return errConnectionExpired
+	case <-ctx.Done():
+		return nil
+	}
+
+	if c.isExpired(time.Now()) {
+		return errConnectionExpired
+	}
+
+	select {
+	case err := <-c.connectionAckWriteCh:
+		if err != nil {
+			return fmt.Errorf("writing connection_ack: %w", err)
+		}
+	case <-expiresCh:
+		return errConnectionExpired
+	case <-ctx.Done():
+	}
 
 	return nil
+}
+
+func (c *Connection) connectionExpirationTimer() (<-chan time.Time, func()) {
+	if c.expiresAt.IsZero() {
+		return nil, func() {}
+	}
+
+	timer := time.NewTimer(time.Until(c.expiresAt))
+
+	return timer.C, func() {
+		if timer.Stop() {
+			return
+		}
+
+		select {
+		case <-timer.C:
+		default:
+		}
+	}
+}
+
+func (c *Connection) drainConnectionAckWriteNotifications() {
+	for {
+		select {
+		case <-c.connectionAckWriteCh:
+		default:
+			return
+		}
+	}
 }
 
 // handleSubscribe processes subscribe messages.

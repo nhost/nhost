@@ -224,6 +224,30 @@ func (c *Connector) GetTypeName(identifier string) string {
 	return ""
 }
 
+func (c *Connector) roleRootTypeName(role string, operation ast.Operation) string {
+	schema := c.schemas[role]
+	if schema == nil {
+		return defaultRootTypeName(operation)
+	}
+
+	switch operation {
+	case ast.Query:
+		if schema.QueryType != nil {
+			return *schema.QueryType
+		}
+	case ast.Mutation:
+		if schema.MutationType != nil {
+			return *schema.MutationType
+		}
+	case ast.Subscription:
+		if schema.SubscriptionType != nil {
+			return *schema.SubscriptionType
+		}
+	}
+
+	return defaultRootTypeName(operation)
+}
+
 // Close releases connector-owned resources. Currently a no-op because the
 // remote schema connector borrows its HTTP transport from the caller and
 // holds no other state requiring shutdown.
@@ -240,7 +264,12 @@ func (c *Connector) Execute(
 	sessionVariables map[string]any,
 	logger *slog.Logger,
 ) (map[string]any, error) {
-	modifiedOp := applyPresets(operation, c.presets[role], sessionVariables)
+	rootTypeName := ""
+	if operation != nil {
+		rootTypeName = c.roleRootTypeName(role, operation.Operation)
+	}
+
+	modifiedOp := applyPresets(operation, c.presets[role], sessionVariables, rootTypeName)
 	query := buildQueryString(modifiedOp, fragments)
 
 	var clientHeaders http.Header
@@ -261,4 +290,19 @@ func (c *Connector) Execute(
 	}
 
 	return result, nil
+}
+
+// ValidateOperation is a no-op for remote schemas: there is no client-side
+// argument validation that can be performed before forwarding, since the remote
+// endpoint owns validation and reports failures during Execute. It returns nil
+// to satisfy the connector.Connector pre-execution-validation contract without
+// claiming to detect anything.
+func (c *Connector) ValidateOperation(
+	_ *ast.OperationDefinition,
+	_ ast.FragmentDefinitionList,
+	_ map[string]any,
+	_ string,
+	_ map[string]any,
+) error {
+	return nil
 }

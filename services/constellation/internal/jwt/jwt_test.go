@@ -673,7 +673,7 @@ func TestAuthenticator(t *testing.T) { //nolint:maintidx
 			},
 		},
 		{
-			name: "multiple secrets same header - token found but first key fails returns error",
+			name: "multiple secrets same header - second key verifies after first fails (fall-through)",
 			config: jwtconfig.Config{
 				Secrets: []jwtconfig.Secret{
 					{Type: jwtconfig.AlgorithmHS256, Key: "key-1"},
@@ -686,9 +686,53 @@ func TestAuthenticator(t *testing.T) { //nolint:maintidx
 					[]string{"user"}, "user", nil,
 				),
 			}),
-			// Token is found by first secret (both use Authorization header),
-			// but fails validation with key-1 -> error, does not try key-2
+			// Both secrets read the Authorization header, so the first secret
+			// extracts the token but fails signature verification with key-1.
+			// Hasura's any-secret-validates contract requires falling through to
+			// the second secret, which verifies the token with key-2.
+			expectedSession: &jwt.SessionResult{
+				Role:      "user",
+				Variables: expectedVars("user", []string{"user"}, "user", nil),
+			},
+		},
+		{
+			name: "multiple secrets same header - all keys fail returns error",
+			config: jwtconfig.Config{
+				Secrets: []jwtconfig.Secret{
+					{Type: jwtconfig.AlgorithmHS256, Key: "key-1"},
+					{Type: jwtconfig.AlgorithmHS256, Key: "key-2"},
+				},
+			},
+			headersFn: bearerTokenFn("key-3", gojwt.SigningMethodHS256, gojwt.MapClaims{
+				"exp": gojwt.NewNumericDate(time.Now().Add(time.Hour)),
+				"https://hasura.io/jwt/claims": hasuraClaims(
+					[]string{"user"}, "user", nil,
+				),
+			}),
+			// Token is signed with an unconfigured key (key-3): every secret
+			// extracts it but none verifies it, so authentication fails 401.
 			wantErr: true,
+		},
+		{
+			name: "multiple secrets same header - verifying secret's extractor is used",
+			config: jwtconfig.Config{
+				Secrets: []jwtconfig.Secret{
+					{Type: jwtconfig.AlgorithmHS256, Key: "key-1", ClaimsNamespace: "ns-1"},
+					{Type: jwtconfig.AlgorithmHS256, Key: "key-2", ClaimsNamespace: "ns-2"},
+				},
+			},
+			headersFn: bearerTokenFn("key-2", gojwt.SigningMethodHS256, gojwt.MapClaims{
+				"exp": gojwt.NewNumericDate(time.Now().Add(time.Hour)),
+				// Claims live under the second secret's namespace. The first
+				// secret extracts the token but fails verification; the second
+				// secret verifies it AND its paired extractor (ns-2) must be the
+				// one used to resolve claims.
+				"ns-2": hasuraClaims([]string{"editor"}, "editor", nil),
+			}),
+			expectedSession: &jwt.SessionResult{
+				Role:      "editor",
+				Variables: expectedVars("editor", []string{"editor"}, "editor", nil),
+			},
 		},
 		{
 			name: "multiple secrets different headers - second matches via Authorization",
@@ -897,6 +941,41 @@ func TestAuthenticator(t *testing.T) { //nolint:maintidx
 				Variables: expectedVars("user", []string{"user"}, "user",
 					map[string]any{"x-hasura-user-id": "uid-7"}),
 			},
+		},
+		{
+			name: "numeric x-hasura session variable claim is rejected (matches Hasura)",
+			config: jwtconfig.Config{
+				Secrets: []jwtconfig.Secret{
+					{Type: jwtconfig.AlgorithmHS256, Key: "key"},
+				},
+			},
+			headersFn: bearerTokenFn("key", gojwt.SigningMethodHS256, gojwt.MapClaims{
+				"exp": gojwt.NewNumericDate(time.Now().Add(time.Hour)),
+				"https://hasura.io/jwt/claims": hasuraClaims(
+					[]string{"user"}, "user",
+					// A non-conforming issuer emits a JSON number; golang-jwt
+					// decodes it to float64. Hasura rejects this with
+					// "x-hasura-* claims: parsing Text failed, expected String".
+					map[string]any{"x-hasura-user-id": 42},
+				),
+			}),
+			wantErr: true,
+		},
+		{
+			name: "boolean x-hasura session variable claim is rejected (matches Hasura)",
+			config: jwtconfig.Config{
+				Secrets: []jwtconfig.Secret{
+					{Type: jwtconfig.AlgorithmHS256, Key: "key"},
+				},
+			},
+			headersFn: bearerTokenFn("key", gojwt.SigningMethodHS256, gojwt.MapClaims{
+				"exp": gojwt.NewNumericDate(time.Now().Add(time.Hour)),
+				"https://hasura.io/jwt/claims": hasuraClaims(
+					[]string{"user"}, "user",
+					map[string]any{"x-hasura-is-admin": true},
+				),
+			}),
+			wantErr: true,
 		},
 		{
 			name: "x-hasura claim with uppercase prefix is lowercased and kept",
@@ -1517,6 +1596,124 @@ func TestAuthenticator(t *testing.T) { //nolint:maintidx
 	}
 }
 
+func TestAuthenticatorAuthenticateWithExpiration(t *testing.T) {
+	t.Parallel()
+
+	const hmacKey = "expiry-test-key"
+
+	expiresAt := gojwt.NewNumericDate(time.Now().Add(time.Hour).UTC()).Time
+
+	validClaims := func(exp time.Time) gojwt.MapClaims {
+		return gojwt.MapClaims{
+			"sub": "user-123",
+			"exp": gojwt.NewNumericDate(exp),
+			"https://hasura.io/jwt/claims": hasuraClaims(
+				[]string{"user"}, "user", map[string]any{"x-hasura-user-id": "123"},
+			),
+		}
+	}
+
+	cases := []struct {
+		name string
+		// headersFn builds the request headers; it receives the HMAC signing
+		// key so cases that need a token can sign one inline.
+		headersFn func(t *testing.T, key string) http.Header
+		// wantSession is the expected session result; nil means none expected.
+		wantSession *jwt.SessionResult
+		// wantExpiration is the expected exp pointer target; nil means the
+		// returned expiration pointer must itself be nil.
+		wantExpiration *time.Time
+		wantErr        bool
+	}{
+		{
+			name: "valid token returns session and expiration",
+			headersFn: func(t *testing.T, key string) http.Header {
+				t.Helper()
+
+				return http.Header{
+					"Authorization": {"Bearer " + signHS256Token(t, key, validClaims(expiresAt))},
+				}
+			},
+			wantSession: &jwt.SessionResult{
+				Role: "user",
+				Variables: expectedVars(
+					"user", []string{"user"}, "user", map[string]any{"x-hasura-user-id": "123"},
+				),
+			},
+			wantExpiration: &expiresAt,
+			wantErr:        false,
+		},
+		{
+			name: "no token returns nil session, nil expiration, nil error",
+			headersFn: func(t *testing.T, _ string) http.Header {
+				t.Helper()
+
+				return http.Header{}
+			},
+			wantSession:    nil,
+			wantExpiration: nil,
+			wantErr:        false,
+		},
+		{
+			name: "expired token returns nil session, nil expiration, error",
+			headersFn: func(t *testing.T, key string) http.Header {
+				t.Helper()
+
+				expired := time.Unix(1000000000, 0).UTC()
+
+				return http.Header{
+					"Authorization": {"Bearer " + signHS256Token(t, key, validClaims(expired))},
+				}
+			},
+			wantSession:    nil,
+			wantExpiration: nil,
+			wantErr:        true,
+		},
+	}
+
+	for _, tc := range cases {
+		t.Run(tc.name, func(t *testing.T) {
+			t.Parallel()
+
+			auth, err := jwt.NewAuthenticator(context.Background(), jwtconfig.Config{
+				Secrets: []jwtconfig.Secret{
+					{Type: jwtconfig.AlgorithmHS256, Key: hmacKey},
+				},
+			}, slog.Default())
+			if err != nil {
+				t.Fatalf("NewAuthenticator() error = %v", err)
+			}
+			defer auth.Close()
+
+			result, gotExpiresAt, err := auth.AuthenticateWithExpiration(
+				tc.headersFn(t, hmacKey),
+				"",
+			)
+
+			if tc.wantErr {
+				if err == nil {
+					t.Errorf("expected error, got nil (result=%+v)", result)
+				}
+			} else if err != nil {
+				t.Fatalf("AuthenticateWithExpiration() unexpected error = %v", err)
+			}
+
+			if diff := cmp.Diff(tc.wantSession, result); diff != "" {
+				t.Errorf("session mismatch (-want +got):\n%s", diff)
+			}
+
+			switch {
+			case tc.wantExpiration == nil && gotExpiresAt != nil:
+				t.Errorf("expected nil expiration, got %s", *gotExpiresAt)
+			case tc.wantExpiration != nil && gotExpiresAt == nil:
+				t.Error("expected expiration to be returned, got nil")
+			case tc.wantExpiration != nil && !gotExpiresAt.Equal(*tc.wantExpiration):
+				t.Errorf("expiration mismatch: want %s, got %s", *tc.wantExpiration, *gotExpiresAt)
+			}
+		})
+	}
+}
+
 func TestNewAuthenticatorErrorForEmptyConfig(t *testing.T) {
 	t.Parallel()
 
@@ -1856,6 +2053,55 @@ func TestAuthenticatorJWKURLUnknownKid(t *testing.T) {
 	result, authErr := auth.Authenticate(http.Header{"Authorization": {"Bearer " + tokenStr}}, "")
 	if authErr == nil {
 		t.Error("expected error for unknown kid, got nil")
+	}
+
+	if result != nil {
+		t.Errorf("expected nil result, got %+v", result)
+	}
+}
+
+// TestAuthenticatorJWKURLRejectsHS256 asserts that a JWKS-backed secret pins an
+// asymmetric (RS*) algorithm allowlist at the parser layer, so a token signed
+// with a symmetric algorithm (HS256) — the classic algorithm-confusion attempt
+// where the attacker signs with the public key bytes as an HMAC secret — is
+// rejected before key resolution. This mirrors the allowlist the static-key
+// path already pins via WithValidMethods.
+func TestAuthenticatorJWKURLRejectsHS256(t *testing.T) {
+	t.Parallel()
+
+	rsaPrivKey, _ := generateRSAKeyPair(t)
+	kid := "hs-confusion-kid"
+	srv := startJWKSServer(t, &rsaPrivKey.PublicKey, kid)
+
+	auth, err := jwt.NewAuthenticator(context.Background(), jwtconfig.Config{
+		Secrets: []jwtconfig.Secret{{JWKURL: srv.URL}},
+	}, slog.Default())
+	if err != nil {
+		t.Fatalf("NewAuthenticator() error = %v", err)
+	}
+	defer auth.Close()
+
+	// Sign with HS256 (symmetric). Even with a kid header set, the parser-level
+	// algorithm allowlist must reject the token because HS256 is not in the
+	// JWKS allowlist.
+	token := gojwt.NewWithClaims(gojwt.SigningMethodHS256, gojwt.MapClaims{
+		"exp": gojwt.NewNumericDate(time.Now().Add(time.Hour)),
+		"https://hasura.io/jwt/claims": hasuraClaims(
+			[]string{"user"}, "user", nil,
+		),
+	})
+	token.Header["kid"] = kid
+
+	tokenStr, signErr := token.SignedString([]byte("attacker-hmac-secret"))
+	if signErr != nil {
+		t.Fatalf("failed to sign HS256 token: %v", signErr)
+	}
+
+	result, authErr := auth.Authenticate(
+		http.Header{"Authorization": {"Bearer " + tokenStr}}, "",
+	)
+	if authErr == nil {
+		t.Error("expected error for HS256 token against JWKS secret, got nil")
 	}
 
 	if result != nil {

@@ -11,13 +11,21 @@ import (
 )
 
 // ParseQuery parses the where/order_by/limit/offset/distinct_on arguments of a
-// collection or aggregate query.
+// collection or aggregate query. sourceRef is the qualified reference of the
+// base relation being filtered/ordered (the table ref, or a function-call
+// alias); relationship order_by correlates its subqueries against it. The
+// function is a flat sequence of one independent block per GraphQL argument;
+// that is clearer than threading shared variables/err state through
+// per-argument helpers.
+//
+//nolint:funlen // see godoc above for rationale
 func ParseQuery(
 	t Table,
 	arguments ast.ArgumentList,
 	variables map[string]any,
 	role string,
 	sessionVariables map[string]any,
+	sourceRef string,
 ) (where.Clause, []QueryModifier, *DistinctOn, error) {
 	var (
 		whereClause where.Clause
@@ -36,18 +44,18 @@ func ParseQuery(
 	}
 
 	if arg := arguments.ForName("order_by"); arg != nil {
-		items, err := ParseOrderBy(t, arg.Value, variables)
+		items, err := ParseOrderBy(t, arg.Value, variables, role, sessionVariables, sourceRef)
 		if err != nil {
 			return nil, nil, nil, fmt.Errorf("failed to parse order_by: %w", err)
 		}
 
-		modifiers = append(modifiers, &OrderBy{Items: items})
+		modifiers = appendOrderByModifier(modifiers, items)
 	}
 
 	if arg := arguments.ForName("limit"); arg != nil {
-		limitVal, err := ParseLimitOffset(arg.Value, variables)
+		limitVal, err := parseLimitOffsetArgument("limit", arg.Value, variables)
 		if err != nil {
-			return nil, nil, nil, fmt.Errorf("failed to parse limit: %w", err)
+			return nil, nil, nil, err
 		}
 
 		if limitVal != nil {
@@ -56,9 +64,9 @@ func ParseQuery(
 	}
 
 	if arg := arguments.ForName("offset"); arg != nil {
-		offsetVal, err := ParseLimitOffset(arg.Value, variables)
+		offsetVal, err := parseLimitOffsetArgument("offset", arg.Value, variables)
 		if err != nil {
-			return nil, nil, nil, fmt.Errorf("failed to parse offset: %w", err)
+			return nil, nil, nil, err
 		}
 
 		if offsetVal != nil {
@@ -77,12 +85,159 @@ func ParseQuery(
 		}
 	}
 
+	modifiers, err = validateDistinctOnOrderBy(dOn, modifiers)
+	if err != nil {
+		return nil, nil, nil, err
+	}
+
 	return whereClause, modifiers, dOn, nil
+}
+
+func appendOrderByModifier(modifiers []QueryModifier, items []OrderByItem) []QueryModifier {
+	if len(items) == 0 {
+		return modifiers
+	}
+
+	return append(modifiers, &OrderBy{Items: items})
+}
+
+// validateDistinctOnOrderBy enforces PostgreSQL's rule that the DISTINCT ON
+// expressions must be the leading ORDER BY expressions, matching Hasura's
+// behaviour exactly:
+//
+//   - distinct_on present, no order_by: synthesise a leading ORDER BY on the
+//     distinct columns (ASC NULLS LAST, the same default the aggregate
+//     json_agg ordering uses) so row selection is deterministic.
+//   - distinct_on present, order_by whose leading columns are exactly the
+//     distinct_on columns (same set of columns within the prefix; prefix order
+//     and direction are irrelevant): allowed, left untouched — the DISTINCT ON /
+//     ORDER BY already agree.
+//   - distinct_on present, order_by whose leading prefix does NOT contain the
+//     distinct_on columns: rejected with a *QueryValidationError wrapping
+//     ErrInvalidArgument and carrying Hasura's distinct_on/order_by mismatch
+//     message, mirroring Hasura's validation-failed error.
+//     Constellation does not silently reorder the ORDER BY, because that would
+//     return different rows than the user's order_by requested and diverge from
+//     Hasura.
+//
+// It is a no-op when there is no distinct_on (dOn == nil), so non-distinct
+// queries and dialects without DISTINCT ON support (SQLite) are unaffected.
+func validateDistinctOnOrderBy(
+	dOn *DistinctOn,
+	modifiers []QueryModifier,
+) ([]QueryModifier, error) {
+	if dOn == nil || len(dOn.Columns) == 0 {
+		return modifiers, nil
+	}
+
+	orderByIdx, userItems := findOrderBy(modifiers)
+
+	// No user order_by existed; synthesise a leading ORDER BY on the distinct
+	// columns so row selection is deterministic (matching Hasura).
+	if orderByIdx < 0 {
+		prefix := make([]OrderByItem, len(dOn.Columns))
+		for i, col := range dOn.Columns {
+			prefix[i] = OrderByItem{
+				Column:    col,
+				Direction: core.OrderAscNullsLast,
+				term:      nil,
+			}
+		}
+
+		return append([]QueryModifier{&OrderBy{Items: prefix}}, modifiers...), nil
+	}
+
+	// An order_by was supplied; its leading prefix must contain exactly the
+	// distinct_on columns. Prefix order and direction are irrelevant to the
+	// PostgreSQL constraint and to Hasura's check; a non-distinct column before
+	// the full distinct_on set is not allowed. Reject otherwise.
+	if !distinctOnMatchesOrderByPrefix(dOn.Columns, userItems) {
+		return nil, newDistinctOnOrderByMismatchError()
+	}
+
+	return modifiers, nil
+}
+
+// distinctOnMatchesOrderByPrefix reports whether the leading order_by prefix
+// contains exactly the distinct_on columns. PostgreSQL accepts the distinct_on
+// expressions in any order within the leftmost ORDER BY prefix, but no
+// non-distinct expression may appear before that prefix is complete.
+func distinctOnMatchesOrderByPrefix(columns []string, orderBy []OrderByItem) bool {
+	if len(orderBy) < len(columns) {
+		return false
+	}
+
+	remaining := make(map[string]int, len(columns))
+	for _, col := range columns {
+		remaining[col]++
+	}
+
+	for _, item := range orderBy[:len(columns)] {
+		if remaining[item.Column] == 0 {
+			return false
+		}
+
+		remaining[item.Column]--
+	}
+
+	return true
+}
+
+// findOrderBy returns the index of the *OrderBy modifier in modifiers and its
+// items, or (-1, nil) when no order_by was supplied.
+func findOrderBy(modifiers []QueryModifier) (int, []OrderByItem) {
+	for i, m := range modifiers {
+		if ob, ok := m.(*OrderBy); ok {
+			return i, ob.Items
+		}
+	}
+
+	return -1, nil
+}
+
+func parseLimitOffsetArgument(
+	argumentName string,
+	value *ast.Value,
+	variables map[string]any,
+) (*int, error) {
+	parsed, err := ParseLimitOffset(value, variables)
+	if err != nil {
+		return nil, fmt.Errorf("failed to parse %s: %w", argumentName, err)
+	}
+
+	// Hasura rejects a negative limit during query parsing with a
+	// validation-failed envelope, while a negative offset is surfaced as a safe
+	// data-exception at path "$". Emit those Hasura-compatible envelopes here so
+	// the shared parser still serves stream batch_size and SQLite cannot silently
+	// reinterpret negative LIMIT/OFFSET values.
+	if parsed != nil && *parsed < 0 {
+		return nil, newNegativeLimitOffsetError(
+			argumentName,
+			negativeLimitFoundType(value, variables),
+		)
+	}
+
+	return parsed, nil
+}
+
+func negativeLimitFoundType(value *ast.Value, variables map[string]any) string {
+	resolved, err := values.ResolveVariable(value, variables)
+	if err != nil {
+		return negativeLimitFoundInteger
+	}
+
+	if resolved.Kind == ast.FloatValue {
+		return negativeLimitFoundNumber
+	}
+
+	return negativeLimitFoundInteger
 }
 
 // ParseLimitOffset parses a limit or offset integer argument from GraphQL.
 // Accepts both IntValue and FloatValue because JSON numbers come in as floats
-// by default after variable resolution.
+// by default after variable resolution. Sign constraints are enforced by callers
+// because stream batch_size shares this parser but has a different validation
+// message.
 func ParseLimitOffset(value *ast.Value, variables map[string]any) (*int, error) {
 	value, err := values.ResolveVariable(value, variables)
 	if err != nil {
@@ -117,19 +272,27 @@ func ParseLimitOffset(value *ast.Value, variables map[string]any) (*int, error) 
 	return &intVal, nil
 }
 
-// ParseOrderBy parses an order_by argument from GraphQL.
+// ParseOrderBy parses an order_by argument from GraphQL. role and
+// sessionVariables are threaded so relationship/aggregate ordering can apply
+// the target table's row-level permissions inside its correlated subquery,
+// matching Hasura.
 func ParseOrderBy(
 	t Table,
 	value *ast.Value,
 	variables map[string]any,
+	role string,
+	sessionVariables map[string]any,
+	parentSource string,
 ) ([]OrderByItem, error) {
 	value, err := values.ResolveVariable(value, variables)
 	if err != nil {
 		return nil, fmt.Errorf("resolving order_by: %w", err)
 	}
 
+	gen := &orderByAliasGen{n: 0}
+
 	if value.Kind == ast.ObjectValue {
-		return appendOrderByObject(t, nil, value)
+		return appendOrderByObject(t, nil, value, parentSource, role, sessionVariables, gen)
 	}
 
 	if value.Kind != ast.ListValue {
@@ -137,12 +300,15 @@ func ParseOrderBy(
 	}
 
 	var orderBy []OrderByItem
+
 	for _, child := range value.Children {
 		if child.Value.Kind != ast.ObjectValue {
 			return nil, fmt.Errorf("%w: order_by items must be objects", ErrInvalidArgument)
 		}
 
-		orderBy, err = appendOrderByObject(t, orderBy, child.Value)
+		orderBy, err = appendOrderByObject(
+			t, orderBy, child.Value, parentSource, role, sessionVariables, gen,
+		)
 		if err != nil {
 			return nil, err
 		}
@@ -151,40 +317,60 @@ func ParseOrderBy(
 	return orderBy, nil
 }
 
-// appendOrderByObject parses one `{column: direction, ...}` object and appends
-// each entry to orderBy.
+// appendOrderByObject parses one order_by object and appends each entry to
+// orderBy. A field is dispatched as a scalar column, an object-relationship
+// ordering (`<rel>: <target>_order_by`), or an array-relationship aggregate
+// ordering (`<rel>_aggregate: <target>_aggregate_order_by`). The latter two
+// emit correlated-subquery ordering terms; everything else errors, matching the
+// schema, which only advertises those three shapes.
 func appendOrderByObject(
 	t Table,
 	orderBy []OrderByItem,
 	value *ast.Value,
+	parentSource string,
+	role string,
+	sessionVariables map[string]any,
+	gen *orderByAliasGen,
 ) ([]OrderByItem, error) {
 	for _, field := range value.Children {
-		column := t.ColumnFromGraphqlName(field.Name)
-		if column == nil {
-			return nil, fmt.Errorf(
-				"%w: column %s not found in table %s",
-				ErrInvalidArgument, field.Name, t.TableName(),
-			)
+		if column := t.ColumnFromGraphqlName(field.Name); column != nil {
+			direction, err := orderByDirection(field.Value)
+			if err != nil {
+				return nil, err
+			}
+
+			orderBy = append(orderBy, OrderByItem{
+				Column:    column.SQLName,
+				term:      nil,
+				Direction: direction,
+			})
+
+			continue
 		}
 
-		if field.Value.Kind != ast.EnumValue {
-			return nil, fmt.Errorf(
-				"%w: order_by direction must be an enum value", ErrInvalidArgument,
-			)
-		}
-
-		direction, err := convertOrderByDirection(field.Value.Raw)
+		items, err := appendRelationshipOrderBy(
+			t, field, parentSource, role, sessionVariables, gen,
+		)
 		if err != nil {
 			return nil, err
 		}
 
-		orderBy = append(orderBy, OrderByItem{
-			Column:    column.SQLName,
-			Direction: direction,
-		})
+		orderBy = append(orderBy, items...)
 	}
 
 	return orderBy, nil
+}
+
+// orderByDirection resolves an order_by leaf value to a typed direction. The
+// value must be an enum (asc, desc, asc_nulls_first, …).
+func orderByDirection(value *ast.Value) (core.OrderDirection, error) {
+	if value.Kind != ast.EnumValue {
+		return core.OrderAsc, fmt.Errorf(
+			"%w: order_by direction must be an enum value", ErrInvalidArgument,
+		)
+	}
+
+	return convertOrderByDirection(value.Raw)
 }
 
 // convertOrderByDirection converts a GraphQL order_by enum value to its typed

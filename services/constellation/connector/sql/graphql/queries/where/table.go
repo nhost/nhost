@@ -74,4 +74,18 @@ type Relationship interface {
 	// WriteJoinConditionAliased writes the join predicate qualifying parent
 	// columns with parentAlias and target columns with targetAlias.
 	WriteJoinConditionAliased(b *strings.Builder, parentAlias, targetAlias string)
+
+	// Name is the relationship's GraphQL field name (e.g. "posts"). Used to
+	// distinguish the plain relationship key from the aggregate key, which
+	// both resolve to the same relationship.
+	Name() string
+
+	// AggregateName is the aggregate bool_exp / order_by key for an array
+	// relationship (e.g. "posts_aggregate"). A where field matching this name
+	// (and not Name) is an aggregate predicate, not a plain relationship filter.
+	AggregateName() string
+
+	// IsArray reports whether this is an array relationship. Aggregate
+	// predicates are only valid on array relationships.
+	IsArray() bool
 }

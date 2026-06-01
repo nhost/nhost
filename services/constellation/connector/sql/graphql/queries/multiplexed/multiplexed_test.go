@@ -88,6 +88,62 @@ func TestMultiplex(t *testing.T) {
 			expectedNoParam: true,
 		},
 		{
+			name: "function session argument",
+			op: core.SQLOperation{
+				Name: "session_echoes_for_session",
+				SQL: `SELECT "id", "user_id" FROM "public"."session_echoes_for_session"(` +
+					`"session" := $1)`,
+				Parameters: []any{
+					core.FunctionSessionArgument{SQLType: "json"},
+				},
+				StreamCursors: nil,
+			},
+			expectedSQL: `SELECT "_subs"."result_id", "_fld_resp"."root" AS "result" FROM ` +
+				`UNNEST($1::text[], $2::json[]) AS "_subs"("result_id", "result_vars") ` +
+				`LEFT OUTER JOIN LATERAL (SELECT json_build_object('session_echoes_for_session', (` +
+				`SELECT "id", "user_id" FROM "public"."session_echoes_for_session"("session" := (("_subs"."result_vars" -> 'session')::json))` +
+				`)) AS "root") AS "_fld_resp" ON ('true')`,
+			expectedNoParam: true,
+		},
+		{
+			name: "function session argument with renumbered static param",
+			op: core.SQLOperation{
+				Name: "f",
+				SQL: `SELECT "id" FROM "public"."f"(` +
+					`"session" := $1, "limit_arg" := $2)`,
+				Parameters: []any{
+					core.FunctionSessionArgument{SQLType: "jsonb"},
+					int64(10),
+				},
+				StreamCursors: nil,
+			},
+			expectedSQL: `SELECT "_subs"."result_id", "_fld_resp"."root" AS "result" FROM ` +
+				`UNNEST($1::text[], $2::json[]) AS "_subs"("result_id", "result_vars") ` +
+				`LEFT OUTER JOIN LATERAL (SELECT json_build_object('f', (` +
+				`SELECT "id" FROM "public"."f"("session" := (("_subs"."result_vars" -> 'session')::jsonb), "limit_arg" := $3)` +
+				`)) AS "root") AS "_fld_resp" ON ('true')`,
+			expectedParams: []any{int64(10)},
+		},
+		{
+			name: "renumbered static param before function session argument",
+			op: core.SQLOperation{
+				Name: "f",
+				SQL: `SELECT "id" FROM "public"."f"(` +
+					`"limit_arg" := $1, "session" := $2)`,
+				Parameters: []any{
+					int64(10),
+					core.FunctionSessionArgument{SQLType: "jsonb"},
+				},
+				StreamCursors: nil,
+			},
+			expectedSQL: `SELECT "_subs"."result_id", "_fld_resp"."root" AS "result" FROM ` +
+				`UNNEST($1::text[], $2::json[]) AS "_subs"("result_id", "result_vars") ` +
+				`LEFT OUTER JOIN LATERAL (SELECT json_build_object('f', (` +
+				`SELECT "id" FROM "public"."f"("limit_arg" := $3, "session" := (("_subs"."result_vars" -> 'session')::jsonb))` +
+				`)) AS "root") AS "_fld_resp" ON ('true')`,
+			expectedParams: []any{int64(10)},
+		},
+		{
 			name: "static params only",
 			op: core.SQLOperation{
 				Name: "items",

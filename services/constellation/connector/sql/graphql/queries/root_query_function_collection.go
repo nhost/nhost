@@ -62,6 +62,7 @@ func (t *table) buildQueryFunctionCollectionSQL( //nolint:funlen
 		"_root",
 		fnCall.fromClause,
 		fnCall.sourceRef,
+		rootFieldName(field),
 	)
 	if err != nil {
 		putBuilder(b)
