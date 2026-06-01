@@ -5,9 +5,12 @@ import (
 	"context"
 	"errors"
 	"log/slog"
+	"net/http"
 	"strings"
 	"testing"
+	"time"
 
+	"github.com/nhost/nhost/services/constellation/controller"
 	oapicors "github.com/nhost/nhost/services/constellation/internal/lib/oapi/cors"
 	"github.com/urfave/cli/v3"
 )
@@ -147,6 +150,201 @@ func TestGetCorsOptionsAllowHeadersFunc(t *testing.T) {
 
 			if got := opts.AllowHeadersFunc(tc.header); got != tc.want {
 				t.Errorf("AllowHeadersFunc(%q) = %v; want %v", tc.header, got, tc.want)
+			}
+		})
+	}
+}
+
+func runGetMaxGraphQLRequestBodyBytes(t *testing.T, args []string) (int64, error) {
+	t.Helper()
+
+	var (
+		gotLimit int64
+		gotErr   error
+	)
+
+	cmd := &cli.Command{
+		Name:  "serve",
+		Flags: serverFlags(),
+		Action: func(_ context.Context, cmd *cli.Command) error {
+			gotLimit, gotErr = getMaxGraphQLRequestBodyBytes(cmd)
+
+			return nil
+		},
+	}
+
+	if err := cmd.Run(context.Background(), append([]string{"serve"}, args...)); err != nil {
+		t.Fatalf("running cli: %v", err)
+	}
+
+	return gotLimit, gotErr
+}
+
+func TestGetMaxGraphQLRequestBodyBytes(t *testing.T) {
+	t.Parallel()
+
+	tests := []struct {
+		name        string
+		args        []string
+		wantLimit   int64
+		wantErrText string
+	}{
+		{
+			name:      "default",
+			args:      nil,
+			wantLimit: controller.DefaultMaxGraphQLRequestBodyBytes,
+		},
+		{
+			name:      "explicit positive limit",
+			args:      []string{"--" + flagGraphQLRequestBodyLimitBytes, "1024"},
+			wantLimit: 1024,
+		},
+		{
+			name:        "zero rejected",
+			args:        []string{"--" + flagGraphQLRequestBodyLimitBytes, "0"},
+			wantErrText: flagGraphQLRequestBodyLimitBytes,
+		},
+		{
+			name:        "negative rejected",
+			args:        []string{"--" + flagGraphQLRequestBodyLimitBytes, "-1"},
+			wantErrText: flagGraphQLRequestBodyLimitBytes,
+		},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			t.Parallel()
+
+			gotLimit, err := runGetMaxGraphQLRequestBodyBytes(t, tt.args)
+			if tt.wantErrText != "" {
+				if err == nil {
+					t.Fatalf("expected error containing %q", tt.wantErrText)
+				}
+
+				if !strings.Contains(err.Error(), tt.wantErrText) {
+					t.Fatalf("error %q does not contain %q", err, tt.wantErrText)
+				}
+
+				return
+			}
+
+			if err != nil {
+				t.Fatalf("getMaxGraphQLRequestBodyBytes unexpected error: %v", err)
+			}
+
+			if gotLimit != tt.wantLimit {
+				t.Errorf("limit = %d; want %d", gotLimit, tt.wantLimit)
+			}
+		})
+	}
+}
+
+func runNewHTTPServer(t *testing.T, args []string) (*http.Server, error) {
+	t.Helper()
+
+	var (
+		gotServer *http.Server
+		gotErr    error
+	)
+
+	cmd := &cli.Command{
+		Name:  "serve",
+		Flags: serverFlags(),
+		Action: func(_ context.Context, cmd *cli.Command) error {
+			gotServer, gotErr = newHTTPServer(cmd, http.NewServeMux())
+
+			return nil
+		},
+	}
+
+	if err := cmd.Run(context.Background(), append([]string{"serve"}, args...)); err != nil {
+		t.Fatalf("running cli: %v", err)
+	}
+
+	return gotServer, gotErr
+}
+
+func TestNewHTTPServerConfig(t *testing.T) {
+	t.Parallel()
+
+	const customReadTimeout = 45 * time.Second
+	const customWriteTimeout = 2 * time.Minute
+	const customIdleTimeout = 3 * time.Minute
+
+	tests := []struct {
+		name        string
+		args        []string
+		wantRead    time.Duration
+		wantWrite   time.Duration
+		wantIdle    time.Duration
+		wantErrText string
+	}{
+		{
+			name:      "default timeouts",
+			args:      nil,
+			wantRead:  defaultHTTPReadTimeout,
+			wantWrite: defaultHTTPWriteTimeout,
+			wantIdle:  defaultHTTPIdleTimeout,
+		},
+		{
+			name: "explicit positive timeouts",
+			args: []string{
+				"--" + flagHTTPReadTimeout, customReadTimeout.String(),
+				"--" + flagHTTPWriteTimeout, customWriteTimeout.String(),
+				"--" + flagHTTPIdleTimeout, customIdleTimeout.String(),
+			},
+			wantRead:  customReadTimeout,
+			wantWrite: customWriteTimeout,
+			wantIdle:  customIdleTimeout,
+		},
+		{
+			name:        "zero read timeout rejected",
+			args:        []string{"--" + flagHTTPReadTimeout, "0s"},
+			wantErrText: flagHTTPReadTimeout,
+		},
+		{
+			name:        "zero write timeout rejected",
+			args:        []string{"--" + flagHTTPWriteTimeout, "0s"},
+			wantErrText: flagHTTPWriteTimeout,
+		},
+		{
+			name:        "zero idle timeout rejected",
+			args:        []string{"--" + flagHTTPIdleTimeout, "0s"},
+			wantErrText: flagHTTPIdleTimeout,
+		},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			t.Parallel()
+
+			server, err := runNewHTTPServer(t, tt.args)
+			if tt.wantErrText != "" {
+				if err == nil {
+					t.Fatalf("expected error containing %q", tt.wantErrText)
+				}
+
+				if !strings.Contains(err.Error(), tt.wantErrText) {
+					t.Fatalf("error %q does not contain %q", err, tt.wantErrText)
+				}
+
+				return
+			}
+
+			if err != nil {
+				t.Fatalf("newHTTPServer unexpected error: %v", err)
+			}
+
+			if server.ReadTimeout != tt.wantRead {
+				t.Errorf("ReadTimeout = %s; want %s", server.ReadTimeout, tt.wantRead)
+			}
+
+			if server.WriteTimeout != tt.wantWrite {
+				t.Errorf("WriteTimeout = %s; want %s", server.WriteTimeout, tt.wantWrite)
+			}
+
+			if server.IdleTimeout != tt.wantIdle {
+				t.Errorf("IdleTimeout = %s; want %s", server.IdleTimeout, tt.wantIdle)
 			}
 		})
 	}

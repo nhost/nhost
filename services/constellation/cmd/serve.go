@@ -28,20 +28,27 @@ import (
 )
 
 const (
-	flagDebug                    = "debug"
-	flagLogFormatTEXT            = "log-format-text"
-	flagBindAddress              = "bind-address"
-	flagEnablePlayground         = "enable-playground"
-	flagMetadataPath             = "metadata-path"
-	flagAdminSecret              = "admin-secret"
-	flagJWTSecret                = "jwt-secret"
-	flagSubscriptionPollInterval = "subscription-poll-interval"
-	flagMetadataDatabaseURL      = "metadata-database-url"
-	flagProfileAddress           = "profile-address"
-	flagCORSAllowedOrigins       = "cors-allowed-origins"
-	flagDevMode                  = "dev-mode"
+	flagDebug                        = "debug"
+	flagLogFormatTEXT                = "log-format-text"
+	flagBindAddress                  = "bind-address"
+	flagEnablePlayground             = "enable-playground"
+	flagMetadataPath                 = "metadata-path"
+	flagAdminSecret                  = "admin-secret"
+	flagJWTSecret                    = "jwt-secret"
+	flagSubscriptionPollInterval     = "subscription-poll-interval"
+	flagMetadataDatabaseURL          = "metadata-database-url"
+	flagProfileAddress               = "profile-address"
+	flagCORSAllowedOrigins           = "cors-allowed-origins"
+	flagDevMode                      = "dev-mode"
+	flagGraphQLRequestBodyLimitBytes = "graphql-request-body-limit-bytes"
+	flagHTTPReadTimeout              = "http-read-timeout"
+	flagHTTPWriteTimeout             = "http-write-timeout"
+	flagHTTPIdleTimeout              = "http-idle-timeout"
 
-	shutdownTimeout = 30 * time.Second
+	defaultHTTPReadTimeout  = 30 * time.Second
+	defaultHTTPWriteTimeout = 5 * time.Minute
+	defaultHTTPIdleTimeout  = 120 * time.Second
+	shutdownTimeout         = 30 * time.Second
 )
 
 func generalFlags() []cli.Flag {
@@ -106,6 +113,35 @@ func serverFlags() []cli.Flag {
 				"enable in production, as it leaks internal schema and data values",
 			Category: "server",
 			Sources:  cli.EnvVars("CONSTELLATION_DEV_MODE"),
+		},
+		&cli.Int64Flag{ //nolint:exhaustruct
+			Name: flagGraphQLRequestBodyLimitBytes,
+			Usage: "maximum JSON request body size accepted by POST /v1/graphql " +
+				"and POST /v1, in bytes",
+			Value:    controller.DefaultMaxGraphQLRequestBodyBytes,
+			Category: "server",
+			Sources:  cli.EnvVars("CONSTELLATION_GRAPHQL_REQUEST_BODY_LIMIT_BYTES"),
+		},
+		&cli.DurationFlag{ //nolint:exhaustruct
+			Name:     flagHTTPReadTimeout,
+			Usage:    "maximum time allowed to read an HTTP request, including the body",
+			Value:    defaultHTTPReadTimeout,
+			Category: "server",
+			Sources:  cli.EnvVars("CONSTELLATION_HTTP_READ_TIMEOUT"),
+		},
+		&cli.DurationFlag{ //nolint:exhaustruct
+			Name:     flagHTTPWriteTimeout,
+			Usage:    "maximum time allowed to write an HTTP response",
+			Value:    defaultHTTPWriteTimeout,
+			Category: "server",
+			Sources:  cli.EnvVars("CONSTELLATION_HTTP_WRITE_TIMEOUT"),
+		},
+		&cli.DurationFlag{ //nolint:exhaustruct
+			Name:     flagHTTPIdleTimeout,
+			Usage:    "maximum time to keep idle HTTP keep-alive connections open",
+			Value:    defaultHTTPIdleTimeout,
+			Category: "server",
+			Sources:  cli.EnvVars("CONSTELLATION_HTTP_IDLE_TIMEOUT"),
 		},
 	}
 }
@@ -289,15 +325,30 @@ func getRouter(
 		router.GET("/", playgroundHandler("/v1/graphql"))
 	}
 
-	router.POST("/v1/graphql", ctrl.HandlerPost)
+	maxBodyBytes, err := getMaxGraphQLRequestBodyBytes(cmd)
+	if err != nil {
+		return nil, err
+	}
+
+	postHandler := ctrl.HandlerPostWithMaxBodyBytes(maxBodyBytes)
+	router.POST("/v1/graphql", postHandler)
 	router.GET("/v1/graphql", ctrl.HandlerGet)
 
 	// legacy endpoints for backward compatibility with hasura deployment
 	// to be removed when we do the one binary thing
-	router.POST("/v1", ctrl.HandlerPost)
+	router.POST("/v1", postHandler)
 	router.GET("/v1", ctrl.HandlerGet)
 
 	return router, nil
+}
+
+func getMaxGraphQLRequestBodyBytes(cmd *cli.Command) (int64, error) {
+	maxBodyBytes := cmd.Int64(flagGraphQLRequestBodyLimitBytes)
+	if maxBodyBytes <= 0 {
+		return 0, fmt.Errorf("%s must be greater than 0", flagGraphQLRequestBodyLimitBytes)
+	}
+
+	return maxBodyBytes, nil
 }
 
 // initJWTAuth builds a JWT authenticator from the configured secrets. At least
@@ -394,10 +445,9 @@ func runServer(
 		return fmt.Errorf("building HTTP router: %w", err)
 	}
 
-	server := &http.Server{ //nolint:exhaustruct
-		Addr:              cmd.String(flagBindAddress),
-		Handler:           router,
-		ReadHeaderTimeout: 5 * time.Second, //nolint:mnd
+	server, err := newHTTPServer(cmd, router)
+	if err != nil {
+		return fmt.Errorf("configuring HTTP server: %w", err)
 	}
 
 	ctx, cancel := context.WithCancel(ctx)
@@ -447,6 +497,41 @@ func runServer(
 	}
 
 	return nil
+}
+
+func newHTTPServer(cmd *cli.Command, handler http.Handler) (*http.Server, error) {
+	readTimeout, err := positiveDurationFlag(cmd, flagHTTPReadTimeout)
+	if err != nil {
+		return nil, err
+	}
+
+	writeTimeout, err := positiveDurationFlag(cmd, flagHTTPWriteTimeout)
+	if err != nil {
+		return nil, err
+	}
+
+	idleTimeout, err := positiveDurationFlag(cmd, flagHTTPIdleTimeout)
+	if err != nil {
+		return nil, err
+	}
+
+	return &http.Server{ //nolint:exhaustruct
+		Addr:              cmd.String(flagBindAddress),
+		Handler:           handler,
+		ReadHeaderTimeout: 5 * time.Second, //nolint:mnd
+		ReadTimeout:       readTimeout,
+		WriteTimeout:      writeTimeout,
+		IdleTimeout:       idleTimeout,
+	}, nil
+}
+
+func positiveDurationFlag(cmd *cli.Command, name string) (time.Duration, error) {
+	value := cmd.Duration(name)
+	if value <= 0 {
+		return 0, fmt.Errorf("%s must be greater than 0", name)
+	}
+
+	return value, nil
 }
 
 // startProfileServer starts a pprof profiling server if profileAddr is non-empty.
