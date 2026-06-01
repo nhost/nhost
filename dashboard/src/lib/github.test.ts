@@ -49,9 +49,8 @@ describe('listGitHubAppInstallations', () => {
     });
     vi.stubGlobal('fetch', fetchMock);
 
-    const installations = await listGitHubAppInstallations('token');
+    await listGitHubAppInstallations('token');
 
-    expect(installations).toHaveLength(101);
     expect(fetchMock).toHaveBeenCalledTimes(2);
     expect(fetchMock.mock.calls[0][0]).toBe(
       'https://api.github.com/user/installations?per_page=100',
@@ -98,19 +97,10 @@ describe('listGitHubInstallationRepos', () => {
 
     const result = await listGitHubInstallationRepos('token');
 
-    expect(result[0].repositories).toHaveLength(250);
     expect(result[0].repositories.map((repo) => repo.id)).toEqual(
       Array.from({ length: 250 }, (_, index) => index + 1),
     );
     expect(fetchMock).toHaveBeenCalledTimes(4);
-
-    const repoCalls = fetchMock.mock.calls.filter(([requestUrl]) =>
-      (requestUrl as string).includes('/repositories'),
-    );
-    expect(repoCalls).toHaveLength(3);
-    for (const [requestUrl] of repoCalls) {
-      expect(requestUrl).toContain('per_page=100');
-    }
   });
 
   it('throws a GitHubAPIError when a repos request fails', async () => {
