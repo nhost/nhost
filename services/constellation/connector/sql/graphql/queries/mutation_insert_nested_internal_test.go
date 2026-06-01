@@ -303,6 +303,149 @@ func TestBuildNestedCTERefsMirrorEmittedCTEs(t *testing.T) {
 	}
 }
 
+func TestBuildNestedCTERefsReturningGroups(t *testing.T) {
+	t.Parallel()
+
+	tests := []struct {
+		name         string
+		insertObjs   []arguments.InsertObject
+		want         map[string][]string
+		wantChildren map[string]map[string][]string
+	}{
+		{
+			name: "groups direct relationship CTEs across parents and kinds",
+			insertObjs: []arguments.InsertObject{
+				{
+					NestedInserts: []arguments.NestedInsert{
+						{RelationshipName: "file", IsArrayRelationship: false},
+						{RelationshipName: "replies", IsArrayRelationship: true},
+					},
+				},
+				{
+					NestedInserts: []arguments.NestedInsert{
+						{RelationshipName: "file", IsArrayRelationship: false},
+					},
+				},
+			},
+			want: map[string][]string{
+				"file":    {"nested_file_0", "nested_file_1"},
+				"replies": {"nested_replies"},
+			},
+		},
+		{
+			name: "carries descendant refs under their direct returning relationship",
+			insertObjs: []arguments.InsertObject{
+				{
+					NestedInserts: []arguments.NestedInsert{
+						{
+							RelationshipName: "department",
+							NestedObjects: []arguments.InsertObject{
+								{
+									NestedInserts: []arguments.NestedInsert{
+										{RelationshipName: "employees", IsArrayRelationship: true},
+									},
+								},
+							},
+						},
+					},
+				},
+				{
+					NestedInserts: []arguments.NestedInsert{
+						{
+							RelationshipName: "department",
+							NestedObjects: []arguments.InsertObject{
+								{
+									NestedInserts: []arguments.NestedInsert{
+										{RelationshipName: "employees", IsArrayRelationship: true},
+									},
+								},
+							},
+						},
+					},
+				},
+			},
+			want: map[string][]string{
+				"department": {"nested_department_0", "nested_department_1"},
+			},
+			wantChildren: map[string]map[string][]string{
+				"department": {
+					"employees": {"nested_employees_0", "nested_employees_1"},
+				},
+			},
+		},
+		{
+			name: "groups split array relationship CTEs by on_conflict",
+			insertObjs: []arguments.InsertObject{
+				{
+					NestedInserts: []arguments.NestedInsert{
+						{
+							RelationshipName:    "replies",
+							IsArrayRelationship: true,
+							NestedObjects:       []arguments.InsertObject{{}},
+							OnConflict: &arguments.OnConflict{
+								ConstraintName: "note_replies_pkey",
+								UpdateColumns:  []string{"body"},
+							},
+						},
+					},
+				},
+				{
+					NestedInserts: []arguments.NestedInsert{
+						{
+							RelationshipName:    "replies",
+							IsArrayRelationship: true,
+							NestedObjects:       []arguments.InsertObject{{}},
+							OnConflict: &arguments.OnConflict{
+								ConstraintName: "note_replies_pkey",
+								UpdateColumns:  []string{"visibility"},
+							},
+						},
+					},
+				},
+			},
+			want: map[string][]string{"replies": {"nested_replies", "nested_replies_1"}},
+		},
+	}
+
+	tbl := &table{}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			t.Parallel()
+
+			got, err := tbl.buildNestedCTERefs(tt.insertObjs)
+			if err != nil {
+				t.Fatalf("buildNestedCTERefs(): %v", err)
+			}
+
+			gotReturning := make(map[string][]string, len(got.returning))
+			for name, ref := range got.returning {
+				gotReturning[name] = ref.cteNames
+			}
+
+			if !maps.EqualFunc(gotReturning, tt.want, slices.Equal) {
+				t.Fatalf("buildNestedCTERefs().returning = %#v, want %#v", gotReturning, tt.want)
+			}
+
+			for parentName, wantChildren := range tt.wantChildren {
+				gotChildren := make(map[string][]string, len(got.returning[parentName].children))
+				for childName, childRef := range got.returning[parentName].children {
+					gotChildren[childName] = childRef.cteNames
+				}
+
+				if !maps.EqualFunc(gotChildren, wantChildren, slices.Equal) {
+					t.Fatalf(
+						"buildNestedCTERefs().returning[%q].children = %#v, want %#v",
+						parentName,
+						gotChildren,
+						wantChildren,
+					)
+				}
+			}
+		})
+	}
+}
+
 // TestBuildNestedCTERefsAvoidsObjectDescendantCollision is the regression for a
 // duplicate-CTE-alias bug: a multi-parent object rel emits its whole subtree
 // under a parent-indexed namer, so an object rel `department` containing an

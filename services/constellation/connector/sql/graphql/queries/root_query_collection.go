@@ -73,13 +73,51 @@ func (t *table) writeQueryCollectionSQL(
 	argumentPath string,
 	queryModifiers ...queryModifierFunc,
 ) ([]any, int, error) {
+	return t.writeQueryCollectionSQLFromSource(
+		b,
+		field,
+		fragments,
+		variables,
+		role,
+		sessionVariables,
+		roots,
+		params,
+		paramIndex,
+		alias,
+		relName,
+		t.tableFromClause(),
+		t.tableSourceRef(),
+		nil,
+		argumentPath,
+		queryModifiers...,
+	)
+}
+
+func (t *table) writeQueryCollectionSQLFromSource(
+	b *strings.Builder,
+	field *ast.Field,
+	fragments ast.FragmentDefinitionList,
+	variables map[string]any,
+	role string,
+	sessionVariables map[string]any,
+	roots map[string]core.Operation,
+	params []any,
+	paramIndex int,
+	alias string,
+	relName string,
+	fromClause string,
+	sourceRef string,
+	nestedCTEs map[string]nestedReturningCTERef,
+	argumentPath string,
+	queryModifiers ...queryModifierFunc,
+) ([]any, int, error) {
 	b.WriteString("SELECT ")
 	b.WriteString(t.dialect.CoalesceJSONArray(alias))
 	b.WriteString(` AS "`)
 	b.WriteString(relName)
 	b.WriteString(`" FROM (`)
 
-	params, paramIndex, err := t.buildQuerySQL(
+	params, paramIndex, err := t.buildQuerySQLWithNestedCTEs(
 		b,
 		field,
 		fragments,
@@ -91,8 +129,9 @@ func (t *table) writeQueryCollectionSQL(
 		paramIndex,
 		alias,
 		alias,
-		t.tableFromClause(),
-		t.tableSourceRef(),
+		fromClause,
+		sourceRef,
+		nestedCTEs,
 		argumentPath,
 		queryModifiers...,
 	)

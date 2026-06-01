@@ -1,6 +1,28 @@
 [
   [
     {
+      "returning": [
+        {
+          "sets": [
+            {
+              "parent_id": "0199aaaa-0000-7000-8000-000000000101",
+              "parent_kind": "strength",
+              "reps": 6
+            }
+          ],
+          "id": "0199aaaa-0000-7000-8000-000000000101"
+        },
+        {
+          "id": "0199aaaa-0000-7000-8000-000000000102",
+          "sets": [
+            {
+              "parent_id": "0199aaaa-0000-7000-8000-000000000102",
+              "parent_kind": "strength",
+              "reps": 8
+            }
+          ]
+        }
+      ],
       "affected_rows": 4
     }
   ]
