@@ -1601,7 +1601,7 @@ func TestAuthenticatorAuthenticateWithExpiration(t *testing.T) {
 
 	const hmacKey = "expiry-test-key"
 
-	expiresAt := time.Unix(1893456000, 0).UTC()
+	expiresAt := gojwt.NewNumericDate(time.Now().Add(time.Hour).UTC()).Time
 
 	validClaims := func(exp time.Time) gojwt.MapClaims {
 		return gojwt.MapClaims{

@@ -183,8 +183,8 @@ func writeMessage(t *testing.T, client *gorillaWS.Conn, msg wsMessage) {
 }
 
 type expiringHandler struct {
-	expiresAt time.Time
-	closeCh   chan struct{}
+	expiresAfter time.Duration
+	closeCh      chan struct{}
 }
 
 func (h *expiringHandler) OnConnectionInit(context.Context, jsontext.Value) error {
@@ -204,7 +204,7 @@ func (h *expiringHandler) OnClose(context.Context) {
 }
 
 func (h *expiringHandler) ConnectionExpiresAt() (time.Time, bool) {
-	return h.expiresAt, true
+	return time.Now().Add(h.expiresAfter), true
 }
 
 // protocolStep describes a single client->server interaction in a
@@ -455,9 +455,10 @@ func TestProtocol_ConnectionClosesAtHandlerExpiration(t *testing.T) {
 	t.Parallel()
 
 	handler := &expiringHandler{
-		expiresAt: time.Now().Add(50 * time.Millisecond),
-		closeCh:   make(chan struct{}),
+		expiresAfter: 0,
+		closeCh:      make(chan struct{}),
 	}
+
 	tc := dialTestServerCapturingErr(t, handler)
 	defer tc.client.Close()
 
@@ -469,6 +470,7 @@ func TestProtocol_ConnectionClosesAtHandlerExpiration(t *testing.T) {
 	}
 
 	tc.client.SetReadDeadline(time.Now().Add(2 * time.Second)) //nolint:errcheck
+
 	_, _, err := tc.client.ReadMessage()
 	if err == nil {
 		t.Fatal("expected connection to close at expiration")

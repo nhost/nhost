@@ -294,7 +294,7 @@ func TestExtractSessionJWTExpiration(t *testing.T) {
 	t.Parallel()
 
 	jwtAuth := testAuthenticator(t)
-	expiresAt := time.Unix(1893456000, 0).UTC()
+	expiresAt := gojwt.NewNumericDate(time.Now().Add(time.Hour).UTC()).Time
 	claims := validJWTClaims()
 	claims["exp"] = gojwt.NewNumericDate(expiresAt)
 
