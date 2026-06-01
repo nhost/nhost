@@ -755,7 +755,7 @@ func TestResolve_RemoteRelationshipExecutionValidationErrorUsesClientPath(t *tes
 		t.Fatalf("expected exactly one error, got %+v", resp.Errors)
 	}
 
-	if got := getMessage(errs[0]); got != "unexpected negative value for limit" {
+	if got := getMessage(errs[0]); got != negativeLimitIntegerError {
 		t.Errorf("unexpected validation message: %q", got)
 	}
 
@@ -1202,7 +1202,7 @@ func TestResolve_RemoteRelationshipValidationErrorAbortsMutation(t *testing.T) {
 		t.Fatalf("expected exactly one error, got %+v", resp.Errors)
 	}
 
-	if got := getMessage(errs[0]); got != "unexpected negative value for limit" {
+	if got := getMessage(errs[0]); got != negativeLimitIntegerError {
 		t.Errorf("unexpected validation message: %q", got)
 	}
 

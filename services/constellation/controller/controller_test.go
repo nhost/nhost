@@ -30,7 +30,10 @@ import (
 	"github.com/vektah/gqlparser/v2/ast"
 )
 
-const testAdminSecret = "test-admin-secret" //nolint:gosec
+const (
+	testAdminSecret           = "test-admin-secret" //nolint:gosec
+	negativeLimitIntegerError = "expected a non-negative 32-bit integer for type 'Int', but found an integer"
+)
 
 var errSentinel = errors.New("test sentinel")
 
@@ -1158,7 +1161,7 @@ func TestHandlerPost_NegativeLimitOffsetReturnsHasuraErrors(t *testing.T) {
 		{
 			name:        "limit",
 			query:       `{"query":"{ staff: users(limit: -1) { id } }"}`,
-			wantMessage: "unexpected negative value for limit",
+			wantMessage: negativeLimitIntegerError,
 			wantCode:    "validation-failed",
 			wantPath:    "$.selectionSet.staff.args.limit",
 		},

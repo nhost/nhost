@@ -678,8 +678,10 @@ func TestParseQueryNegativeLimitValidationError(t *testing.T) {
 	vErr.StampArgumentPath("departments")
 
 	got := vErr.AsMap()
-	if got["message"] != "unexpected negative value for limit" {
-		t.Errorf("message: got %q, want negative-limit Hasura message", got["message"])
+
+	wantMessage := "expected a non-negative 32-bit integer for type 'Int', but found an integer"
+	if got["message"] != wantMessage {
+		t.Errorf("message: got %q, want %q", got["message"], wantMessage)
 	}
 
 	ext, ok := got["extensions"].(map[string]any)
@@ -693,6 +695,50 @@ func TestParseQueryNegativeLimitValidationError(t *testing.T) {
 
 	if ext["path"] != "$.selectionSet.departments.args.limit" {
 		t.Errorf("extensions.path: got %v, want negative-limit argument path", ext["path"])
+	}
+}
+
+func TestParseQueryNegativeLimitVariableValidationError(t *testing.T) {
+	t.Parallel()
+
+	args := ast.ArgumentList{
+		&ast.Argument{Name: "limit", Value: variableValue("limit")},
+	}
+
+	clause, modifiers, distinctOn, err := arguments.ParseQuery(
+		nil,
+		args,
+		map[string]any{"limit": -1.0},
+		"user",
+		nil,
+		"",
+	)
+	if clause != nil {
+		t.Fatalf("expected nil where clause on the error path, got %v", clause)
+	}
+
+	if len(modifiers) != 0 {
+		t.Fatalf("expected no query modifiers on the error path, got %d", len(modifiers))
+	}
+
+	if distinctOn != nil {
+		t.Fatalf("expected nil distinct_on on the error path, got %v", distinctOn)
+	}
+
+	if !errors.Is(err, arguments.ErrInvalidArgument) {
+		t.Fatalf("expected ErrInvalidArgument, got %v", err)
+	}
+
+	var vErr *arguments.QueryValidationError
+	if !errors.As(err, &vErr) {
+		t.Fatalf("expected a *QueryValidationError, got %T", err)
+	}
+
+	got := vErr.AsMap()
+
+	wantMessage := "expected a non-negative 32-bit integer for type 'Int', but found a number"
+	if got["message"] != wantMessage {
+		t.Errorf("message: got %q, want %q", got["message"], wantMessage)
 	}
 }
 

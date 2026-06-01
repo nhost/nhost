@@ -203,10 +203,26 @@ func parseLimitOffsetArgument(
 	// the shared parser still serves stream batch_size and SQLite cannot silently
 	// reinterpret negative LIMIT/OFFSET values.
 	if parsed != nil && *parsed < 0 {
-		return nil, newNegativeLimitOffsetError(argumentName)
+		return nil, newNegativeLimitOffsetError(
+			argumentName,
+			negativeLimitFoundType(value, variables),
+		)
 	}
 
 	return parsed, nil
+}
+
+func negativeLimitFoundType(value *ast.Value, variables map[string]any) string {
+	resolved, err := values.ResolveVariable(value, variables)
+	if err != nil {
+		return negativeLimitFoundInteger
+	}
+
+	if resolved.Kind == ast.FloatValue {
+		return negativeLimitFoundNumber
+	}
+
+	return negativeLimitFoundInteger
 }
 
 // ParseLimitOffset parses a limit or offset integer argument from GraphQL.

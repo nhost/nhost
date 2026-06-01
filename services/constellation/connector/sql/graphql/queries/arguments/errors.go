@@ -37,8 +37,10 @@ const (
 	// database data exceptions such as a negative OFFSET.
 	graphqlCodeDataException = "data-exception"
 
-	negativeLimitMessage  = "unexpected negative value for limit"
-	negativeOffsetMessage = "OFFSET must not be negative"
+	negativeLimitMessagePrefix = "expected a non-negative 32-bit integer for type 'Int', but found "
+	negativeLimitFoundInteger  = "an integer"
+	negativeLimitFoundNumber   = "a number"
+	negativeOffsetMessage      = "OFFSET must not be negative"
 )
 
 // QueryValidationError is a query-validation failure that must surface to the
@@ -72,12 +74,18 @@ func newDistinctOnOrderByMismatchError() *QueryValidationError {
 	)
 }
 
-func newNegativeLimitOffsetError(argumentName string) error {
+func newNegativeLimitOffsetError(argumentName string, found string) error {
 	switch argumentName {
 	case "limit":
+		if found == "" {
+			found = negativeLimitFoundInteger
+		}
+
+		message := negativeLimitMessagePrefix + found
+
 		return newQueryValidationError(
-			negativeLimitMessage,
-			fmt.Errorf("%w: limit must be non-negative", ErrInvalidArgument),
+			message,
+			fmt.Errorf("%w: %s", ErrInvalidArgument, message),
 			argumentName,
 		)
 	case "offset":
