@@ -2,6 +2,7 @@ package connector
 
 import (
 	"context"
+	"errors"
 	"fmt"
 	"log/slog"
 
@@ -42,11 +43,16 @@ type customizedConnector struct {
 	schemas    map[string]*graph.Schema
 }
 
+type queryValidationArgumentPathRemapper interface {
+	error
+	RemapArgumentPath(remap func(argumentPath string) (mappedPath string))
+}
+
 // applyCustomization wraps inner in a customizedConnector when cfg is
 // non-empty, returning inner unchanged otherwise. It is the single point where
 // schema customization is layered onto a connector, keeping the composer,
 // planner, and controller oblivious to it.
-func applyCustomization( //nolint:ireturn
+func applyCustomization( //nolint:ireturn,nolintlint
 	name string,
 	inner Connector,
 	cfg metadata.Customization,
@@ -133,10 +139,53 @@ func (c *customizedConnector) Execute(
 	// controller can still extract structured remote errors from it.
 	reshaped := c.customizer.ForwardResult(result, operation, fragments)
 	if err != nil {
+		err = c.remapQueryValidationArgumentPath(err, operation, fragments)
+
 		return reshaped, fmt.Errorf("executing customized connector %s: %w", c.name, err)
 	}
 
 	return reshaped, nil
+}
+
+// ValidateOperation reverses the customization on the operation before
+// delegating to the wrapped connector, mirroring Execute so validation runs
+// against the native field/argument names the inner connector understands. The
+// wrapped connector sees the same operation it would during Execute, so a
+// customized SQL source still rejects an invalid argument before the controller
+// executes any sibling connector.
+func (c *customizedConnector) ValidateOperation(
+	operation *ast.OperationDefinition,
+	fragments ast.FragmentDefinitionList,
+	variables map[string]any,
+	role string,
+	sessionVariables map[string]any,
+) error {
+	nativeOp, nativeFragments := c.customizer.ReverseOperation(operation, fragments)
+
+	if err := c.inner.ValidateOperation(
+		nativeOp, nativeFragments, variables, role, sessionVariables,
+	); err != nil {
+		err = c.remapQueryValidationArgumentPath(err, operation, fragments)
+
+		return fmt.Errorf("validating customized connector %s: %w", c.name, err)
+	}
+
+	return nil
+}
+
+func (c *customizedConnector) remapQueryValidationArgumentPath(
+	err error,
+	operation *ast.OperationDefinition,
+	fragments ast.FragmentDefinitionList,
+) error {
+	var remapper queryValidationArgumentPathRemapper
+	if errors.As(err, &remapper) {
+		remapper.RemapArgumentPath(func(path string) string {
+			return c.customizer.ForwardArgumentPath(path, operation, fragments)
+		})
+	}
+
+	return err
 }
 
 // GetTypeName delegates unchanged. The composer resolves database relationship

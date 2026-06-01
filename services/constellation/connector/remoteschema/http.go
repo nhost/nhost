@@ -138,7 +138,8 @@ func (h *httpClient) do(
 		// Never echo the upstream body into the client-facing error: it can
 		// carry internal hostnames, stack traces, or framework error pages.
 		// Retain the full detail server-side for debugging instead.
-		requestcontext.LoggerFromContext(ctx).ErrorContext(ctx,
+		requestcontext.LoggerFromContext(ctx).ErrorContext(
+			ctx,
 			"remote schema returned non-200 status",
 			slog.String("url", h.url),
 			slog.Int("status", resp.StatusCode),

@@ -1,6 +1,12 @@
-import { FileCode } from 'lucide-react';
+import { formatDistanceToNowStrict, parseISO } from 'date-fns';
+import { Clock, Code, FileCode, History } from 'lucide-react';
 import { useRouter } from 'next/router';
 import { Tabs, TabsList, TabsTrigger } from '@/components/ui/v3/tabs';
+import {
+  Tooltip,
+  TooltipContent,
+  TooltipTrigger,
+} from '@/components/ui/v3/tooltip';
 import { useIsPlatform } from '@/features/orgs/projects/common/hooks/useIsPlatform';
 import { useAppClient } from '@/features/orgs/projects/hooks/useAppClient';
 import { useLocalMimirClient } from '@/features/orgs/projects/hooks/useLocalMimirClient';
@@ -14,6 +20,14 @@ import {
   type NhostFunction,
 } from '@/features/orgs/projects/serverless-functions/types';
 import { useGetServerlessFunctionsSettingsQuery } from '@/generated/graphql';
+
+function formatTimeAgo(dateString: string): string {
+  return `${formatDistanceToNowStrict(parseISO(dateString))} ago`;
+}
+
+function isPlaceholderDate(date: string): boolean {
+  return date.startsWith('0001-01-01');
+}
 
 export interface FunctionDetailsPanelProps {
   fn: NhostFunction;
@@ -62,20 +76,60 @@ export default function FunctionDetailsPanel({
   return (
     <div className="flex h-full w-full flex-col overflow-hidden bg-background">
       <div className="border-b-1 bg-background px-6 pt-6 pb-0">
-        <div className="pb-6">
-          <h1 className="mb-1 font-semibold text-gray-900 text-xl dark:text-gray-100">
-            {fn.route}
-          </h1>
-          <p className="flex items-center gap-1.5 text-gray-600 text-sm dark:text-gray-400">
-            <FileCode className="h-3.5 w-3.5" />
-            {fn.path}
-          </p>
+        <div className="pb-4">
+          <div className="flex items-start gap-3">
+            <div className="flex size-12 shrink-0 items-center justify-center rounded-md bg-muted">
+              <Code className="h-6 w-6 text-foreground" />
+            </div>
+            <div className="min-w-0">
+              <h1 className="mb-1 font-semibold text-foreground text-xl">
+                {fn.route}
+              </h1>
+              <p className="flex items-center gap-1.5 text-muted-foreground text-sm">
+                <FileCode className="h-3.5 w-3.5" />
+                {fn.path}
+              </p>
+            </div>
+          </div>
+          {(!isPlaceholderDate(fn.createdAt) ||
+            !isPlaceholderDate(fn.updatedAt)) && (
+            <div className="mt-3 flex flex-wrap items-center gap-x-4 gap-y-1 text-muted-foreground text-sm">
+              {!isPlaceholderDate(fn.createdAt) && (
+                <Tooltip>
+                  <TooltipTrigger asChild>
+                    <span className="flex cursor-default items-center gap-1.5">
+                      <Clock className="h-3.5 w-3.5" />
+                      Created {formatTimeAgo(fn.createdAt)}
+                    </span>
+                  </TooltipTrigger>
+                  <TooltipContent>{fn.createdAt}</TooltipContent>
+                </Tooltip>
+              )}
+              {!isPlaceholderDate(fn.createdAt) &&
+                !isPlaceholderDate(fn.updatedAt) && (
+                  <span aria-hidden="true" className="text-muted-foreground/50">
+                    |
+                  </span>
+                )}
+              {!isPlaceholderDate(fn.updatedAt) && (
+                <Tooltip>
+                  <TooltipTrigger asChild>
+                    <span className="flex cursor-default items-center gap-1.5">
+                      <History className="h-3.5 w-3.5" />
+                      Last Updated {formatTimeAgo(fn.updatedAt)}
+                    </span>
+                  </TooltipTrigger>
+                  <TooltipContent>{fn.updatedAt}</TooltipContent>
+                </Tooltip>
+              )}
+            </div>
+          )}
         </div>
 
         <Tabs
           value={activeTab}
           onValueChange={(v) => handleTabChange(v as FunctionTab)}
-          className="my-4"
+          className="my-6"
         >
           <TabsList>
             <TabsTrigger value="overview">Overview</TabsTrigger>

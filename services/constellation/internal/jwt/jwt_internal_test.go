@@ -146,3 +146,53 @@ func TestDecodeHMACKeyNilLoggerDoesNotPanic(t *testing.T) {
 		t.Errorf("decodeHMACKey() = %q, want raw key bytes", got)
 	}
 }
+
+// TestBuildParserOptionsJWKSRejectsHS256BeforeKeyResolution pins the
+// algorithm-confusion defense for JWKS-backed secrets at the layer it actually
+// lives: buildParserOptions adds WithValidMethods(jwksAllowedMethods()), so the
+// parser must reject an HS256 token during method validation BEFORE the keyfunc
+// runs. The full-stack TestAuthenticatorJWKURLRejectsHS256 cannot pin this — its
+// RSA JWKS keyfunc returns an *rsa.PublicKey that an HMAC token fails against
+// anyway, so it stays green even if WithValidMethods is removed. This test fails
+// if the allowlist is dropped: the keyfunc would then be invoked and return an
+// HMAC secret the HS256 signature verifies against.
+func TestBuildParserOptionsJWKSRejectsHS256BeforeKeyResolution(t *testing.T) {
+	t.Parallel()
+
+	opts := buildParserOptions(
+		jwtconfig.Secret{JWKURL: "https://example.test/.well-known/jwks.json"},
+	)
+	parser := gojwt.NewParser(opts...)
+
+	const hmacKey = "attacker-hmac-key"
+
+	tokenStr, err := gojwt.NewWithClaims(gojwt.SigningMethodHS256, gojwt.MapClaims{
+		"exp": gojwt.NewNumericDate(time.Now().Add(time.Hour)),
+	}).SignedString([]byte(hmacKey))
+	if err != nil {
+		t.Fatalf("sign HS256 token: %v", err)
+	}
+
+	keyfuncCalled := false
+
+	_, parseErr := parser.Parse(tokenStr, func(*gojwt.Token) (any, error) {
+		// If the parser reaches key resolution, hand back the exact key the
+		// token was signed with so the HS256 signature would verify. With the
+		// allowlist in place this is never reached.
+		keyfuncCalled = true
+
+		return []byte(hmacKey), nil
+	})
+	if parseErr == nil {
+		t.Fatal(
+			"expected HS256 token to be rejected by the JWKS parser method allowlist, got nil error",
+		)
+	}
+
+	if keyfuncCalled {
+		t.Error(
+			"keyfunc was invoked: HS256 was not rejected at the method-validation " +
+				"layer before key resolution (WithValidMethods missing from the JWKS branch?)",
+		)
+	}
+}

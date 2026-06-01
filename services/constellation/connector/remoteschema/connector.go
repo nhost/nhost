@@ -262,3 +262,18 @@ func (c *Connector) Execute(
 
 	return result, nil
 }
+
+// ValidateOperation is a no-op for remote schemas: there is no client-side
+// argument validation that can be performed before forwarding, since the remote
+// endpoint owns validation and reports failures during Execute. It returns nil
+// to satisfy the connector.Connector pre-execution-validation contract without
+// claiming to detect anything.
+func (c *Connector) ValidateOperation(
+	_ *ast.OperationDefinition,
+	_ ast.FragmentDefinitionList,
+	_ map[string]any,
+	_ string,
+	_ map[string]any,
+) error {
+	return nil
+}

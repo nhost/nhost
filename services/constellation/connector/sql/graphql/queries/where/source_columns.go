@@ -38,6 +38,15 @@ func (f *jsonbHasKeyFilter) sourceColumn() string        { return f.column }
 func (f *jsonbHasKeysAllFilter) sourceColumn() string    { return f.column }
 func (f *jsonbHasKeysAnyFilter) sourceColumn() string    { return f.column }
 
+// sourceColumns on aggregateRelationshipFilter mirrors relationshipFilter: the
+// correlated subquery joins the target back to the parent on the relationship's
+// parent columns, so an insert-permission check referencing this filter must
+// project those parent columns in its data subquery, exactly as for a plain
+// relationship filter.
+func (f *aggregateRelationshipFilter) sourceColumns() []string {
+	return f.relationship.ParentColumns()
+}
+
 func (c Clause) children() []Statement     { return c }
 func (f *andFilter) children() []Statement { return f.conditions }
 func (f *orFilter) children() []Statement  { return f.conditions }

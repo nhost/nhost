@@ -20,7 +20,8 @@ func sendsEmail(path string, verifyEmailEnabled bool) bool {
 		"/user/password/reset",
 	}
 	if verifyEmailEnabled {
-		base = append(base,
+		base = append(
+			base,
 			"/user/email/send-verification-email",
 			"/signup/email-password",
 			"/user/deanonymize",

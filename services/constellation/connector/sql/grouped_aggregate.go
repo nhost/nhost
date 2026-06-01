@@ -31,13 +31,11 @@ var (
 // results keyed by the stringified join value. Implements
 // connector.GroupedAggregateExecutor.
 //
-// The shape of each value is
-//
-//	{ "aggregate": {...}, "nodes": [...] }
-//
-// matching the same-database aggregate field's response. An entry is present
-// for every join value, including those with no matching target rows
-// (count: 0, nodes: []).
+// Each value preserves the same GraphQL response fields emitted by the grouped
+// aggregate SQL (aliases when present, otherwise "aggregate" / "nodes"), with
+// only the internal join-key transport field removed. An entry is present for
+// every join value, including those with no matching target rows (count: 0,
+// nodes: []).
 func (c *Connector) ExecuteGroupedAggregate(
 	ctx context.Context,
 	req groupedaggregate.Request,
@@ -45,19 +43,9 @@ func (c *Connector) ExecuteGroupedAggregate(
 	sessionVariables map[string]any,
 	logger *slog.Logger,
 ) (map[string]any, error) {
-	op, err := c.groupedAggOp.BuildGroupedAggregateSQL(groupedaggdispatch.BuildInput{
-		TableSchema:       req.TableSchema,
-		TableName:         req.TableName,
-		Field:             req.Field,
-		Fragments:         req.Fragments,
-		Variables:         req.Variables,
-		Role:              role,
-		SessionVariables:  sessionVariables,
-		JoinColumnSQLName: req.JoinColumnSQLName,
-		JoinValues:        req.JoinValues,
-	})
+	op, err := c.buildGroupedAggregateOperation(req, role, sessionVariables)
 	if err != nil {
-		return nil, fmt.Errorf("failed to build grouped aggregate SQL: %w", err)
+		return nil, err
 	}
 
 	results, err := c.driver.ExecuteOperations(ctx, []core.SQLOperation{op}, logger)
@@ -71,6 +59,44 @@ func (c *Connector) ExecuteGroupedAggregate(
 	}
 
 	return parseGroupedAggregateResult(raw)
+}
+
+// ValidateGroupedAggregate builds the SQL for a grouped aggregate request and
+// discards it, surfacing trusted argument failures without touching the
+// database. The controller uses this before root connector execution when a
+// mutation response selects a cross-database aggregate relationship.
+func (c *Connector) ValidateGroupedAggregate(
+	req groupedaggregate.Request,
+	role string,
+	sessionVariables map[string]any,
+) error {
+	_, err := c.buildGroupedAggregateOperation(req, role, sessionVariables)
+
+	return err
+}
+
+func (c *Connector) buildGroupedAggregateOperation(
+	req groupedaggregate.Request,
+	role string,
+	sessionVariables map[string]any,
+) (core.SQLOperation, error) {
+	op, err := c.groupedAggOp.BuildGroupedAggregateSQL(groupedaggdispatch.BuildInput{
+		TableSchema:       req.TableSchema,
+		TableName:         req.TableName,
+		Field:             req.Field,
+		ArgumentPath:      req.ArgumentPath,
+		Fragments:         req.Fragments,
+		Variables:         req.Variables,
+		Role:              role,
+		SessionVariables:  sessionVariables,
+		JoinColumnSQLName: req.JoinColumnSQLName,
+		JoinValues:        req.JoinValues,
+	})
+	if err != nil {
+		return core.SQLOperation{}, fmt.Errorf("failed to build grouped aggregate SQL: %w", err)
+	}
+
+	return op, nil
 }
 
 // parseGroupedAggregateResult unmarshals the single-row JSON array result of
@@ -95,18 +121,18 @@ func parseGroupedAggregateResult(raw any) (map[string]any, error) {
 	out := make(map[string]any, len(rows))
 
 	for _, row := range rows {
-		key, hasKey := row["_join_key"]
+		key, hasKey := row[groupedaggdispatch.ResultJoinKeyField]
 		if !hasKey {
 			return nil, fmt.Errorf("%w: %v", ErrGroupedAggregateMissingJoinKey, row)
 		}
 
-		entry := make(map[string]any, 2) //nolint:mnd
-		if agg, ok := row["aggregate"]; ok {
-			entry["aggregate"] = agg
-		}
+		entry := make(map[string]any, len(row)-1)
+		for name, value := range row {
+			if name == groupedaggdispatch.ResultJoinKeyField {
+				continue
+			}
 
-		if nodes, ok := row["nodes"]; ok {
-			entry["nodes"] = nodes
+			entry[name] = value
 		}
 
 		out[fmt.Sprintf("%v", key)] = entry

@@ -102,7 +102,8 @@ func ApplyPostgresMigration(
 
 	if versionToMigrate > 0 {
 		logger.InfoContext(
-			ctx, "migrating migrations from node.js to go", "version", versionToMigrate)
+			ctx, "migrating migrations from node.js to go", "version", versionToMigrate,
+		)
 
 		if err := migration.Force(versionToMigrate); err != nil {
 			return fmt.Errorf("error forcing migration to version %d: %w", versionToMigrate, err)

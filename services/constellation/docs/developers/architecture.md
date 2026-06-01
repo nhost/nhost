@@ -124,10 +124,11 @@ When the fast path is off, the regular `json.Marshal` path runs over the merged 
 
 ## Connector contract surface
 
-`connector.Connector` (`connector/connector.go:24`) has four methods. The intentional smallness matters:
+`connector.Connector` (`connector/connector.go:24`) has five methods. The intentional smallness matters:
 
 - `GetSchema()` — used once at composition time, not per request.
 - `Execute(ctx, op, fragments, vars, role, sessionVars, logger)` — the request path. Operations arrive cleaned by the planner.
+- `ValidateOperation(op, fragments, vars, role, sessionVars)` — the side-effect-free pre-execution check. When a request fans out to multiple root connectors, or when the plan contains remote relationship work, the controller runs this pass before executing any root connector; for database-backed remote relationships it also validates the planned target operation or grouped-aggregate request. A structured argument-validation failure rejects the whole request with no partial data and no sibling mutation side effects. Plain single-connector requests skip the extra pass because `Execute` already performs the same local build/validation before touching the backend. Connectors without useful local preflight, such as remote schemas and the in-memory connector, return nil and report failures from `Execute` instead.
 - `GetTypeName(identifier)` — used by the composer and resolver for cross-connector type resolution.
 - `Close()` — called once when the controller state is retired.
 
@@ -146,7 +147,8 @@ The controller never returns Go errors for user-visible failures from `Resolve`.
 
 - A `*GraphQLResponse` is always produced, even for parse / validation / planner errors.
 - Go errors are reserved for unrecoverable internal failures that warrant a 500.
-- Connector errors are caught in `executeConnectors` and packed into the response's `Errors` field. Partial data from other connectors is preserved.
+- Structured argument errors reported by `ValidateOperation` in the pre-execution pass produce an `Errors` response with `Data: nil` before any connector executes.
+- Connector errors from `Execute` are caught in `executeConnectors` and packed into the response's `Errors` field. Partial data from other connectors is preserved.
 - Remote-schema errors with the `*remoteschema.GraphQLError` shape have their structured errors (`message`, `locations`, `path`, `extensions`) flattened into the response.
 
 The HTTP handler maps:

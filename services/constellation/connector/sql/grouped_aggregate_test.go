@@ -69,7 +69,14 @@ func newUsersConnector(t *testing.T, driver *mock.MockDriver) *csql.Connector {
 func parseAggregateField(t *testing.T) (*ast.Field, ast.FragmentDefinitionList) {
 	t.Helper()
 
-	const src = `query { _root { aggregate { count } } }`
+	return parseAggregateFieldSource(t, `query { _root { aggregate { count } } }`)
+}
+
+func parseAggregateFieldSource(
+	t *testing.T,
+	src string,
+) (*ast.Field, ast.FragmentDefinitionList) {
+	t.Helper()
 
 	doc, gqlErr := parser.ParseQuery(&ast.Source{Input: src})
 	if gqlErr != nil {
@@ -115,6 +122,36 @@ func TestConnector_ExecuteGroupedAggregate_BuildError(t *testing.T) {
 
 	if !strings.Contains(err.Error(), "failed to build grouped aggregate SQL") {
 		t.Errorf("expected build-error wrapping, got: %v", err)
+	}
+}
+
+func TestConnector_ValidateGroupedAggregate_BuildOnly(t *testing.T) {
+	t.Parallel()
+
+	ctrl := gomock.NewController(t)
+	driver := mock.NewMockDriver(ctrl)
+
+	c := newUsersConnector(t, driver)
+
+	field, fragments := parseAggregateField(t)
+
+	// No ExecuteOperations expectation is registered: gomock fails the test if
+	// validation touches the driver instead of stopping after SQL construction.
+	if err := c.ValidateGroupedAggregate(
+		groupedaggregate.Request{
+			TableSchema:       "public",
+			TableName:         "users",
+			JoinColumnSQLName: "id",
+			JoinValues:        []any{"11111111-1111-1111-1111-111111111111"},
+			Field:             field,
+			ArgumentPath:      "users_aggregate",
+			Fragments:         fragments,
+			Variables:         nil,
+		},
+		"admin",
+		nil,
+	); err != nil {
+		t.Fatalf("ValidateGroupedAggregate() unexpected error: %v", err)
 	}
 }
 
@@ -318,5 +355,76 @@ func TestConnector_ExecuteGroupedAggregate_Success(t *testing.T) {
 		if _, ok := out[k]; !ok {
 			t.Errorf("missing key %q", k)
 		}
+	}
+}
+
+func TestConnector_ExecuteGroupedAggregate_PreservesAliasedResultFields(t *testing.T) {
+	t.Parallel()
+
+	ctrl := gomock.NewController(t)
+	driver := mock.NewMockDriver(ctrl)
+
+	c := newUsersConnector(t, driver)
+
+	field, fragments := parseAggregateFieldSource(t, `query {
+		_root {
+			stats: aggregate { total: count }
+			rows: nodes { id }
+		}
+	}`)
+
+	payload := jsontext.Value(
+		`[{"_join_key":"k1","stats":{"total":2},"rows":[{"id":"u1"}]}]`,
+	)
+
+	driver.EXPECT().
+		ExecuteOperations(gomock.Any(), gomock.Any(), gomock.Any()).
+		DoAndReturn(func(
+			_ context.Context, ops []core.SQLOperation, _ *slog.Logger,
+		) (map[string]any, error) {
+			if len(ops) != 1 {
+				t.Fatalf("expected 1 op, got %d", len(ops))
+			}
+
+			return map[string]any{ops[0].Name: payload}, nil
+		})
+
+	out, err := c.ExecuteGroupedAggregate(
+		context.Background(),
+		groupedaggregate.Request{
+			TableSchema:       "public",
+			TableName:         "users",
+			JoinColumnSQLName: "id",
+			JoinValues:        []any{"k1"},
+			Field:             field,
+			Fragments:         fragments,
+		},
+		"admin",
+		nil,
+		slog.Default(),
+	)
+	if err != nil {
+		t.Fatalf("unexpected error: %v", err)
+	}
+
+	entry, ok := out["k1"].(map[string]any)
+	if !ok {
+		t.Fatalf("entry for k1 is not map[string]any: %T", out["k1"])
+	}
+
+	if _, ok := entry["stats"]; !ok {
+		t.Errorf("entry missing stats alias: %v", entry)
+	}
+
+	if _, ok := entry["rows"]; !ok {
+		t.Errorf("entry missing rows alias: %v", entry)
+	}
+
+	if _, ok := entry["aggregate"]; ok {
+		t.Errorf("entry should not synthesize unaliased aggregate: %v", entry)
+	}
+
+	if _, ok := entry["nodes"]; ok {
+		t.Errorf("entry should not synthesize unaliased nodes: %v", entry)
 	}
 }

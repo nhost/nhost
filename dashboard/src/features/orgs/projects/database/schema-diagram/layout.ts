@@ -12,18 +12,18 @@ export interface LayoutOptions {
 }
 
 export function computeNodeHeight(
-  columnCount: number,
+  rowCount: number,
   options?: Pick<LayoutOptions, 'headerHeight' | 'rowHeight'>,
 ): number {
   const headerHeight = options?.headerHeight ?? 44;
   const rowHeight = options?.rowHeight ?? 26;
-  return headerHeight + Math.max(1, columnCount) * rowHeight + 8;
+  return headerHeight + Math.max(1, rowCount) * rowHeight + 8;
 }
 
 export function layoutNodes<TNode extends Node, TEdge extends Edge>(
   nodes: TNode[],
   edges: TEdge[],
-  columnCountByNodeId: Map<string, number>,
+  rowCountByNodeId: Map<string, number>,
   options: LayoutOptions = {},
 ): TNode[] {
   const nodeWidth = options.nodeWidth ?? TABLE_NODE_WIDTH;
@@ -39,10 +39,10 @@ export function layoutNodes<TNode extends Node, TEdge extends Edge>(
   });
 
   for (const node of nodes) {
-    const columnCount = columnCountByNodeId.get(node.id) ?? 0;
+    const rowCount = rowCountByNodeId.get(node.id) ?? 0;
     g.setNode(node.id, {
       width: nodeWidth,
-      height: computeNodeHeight(columnCount, options),
+      height: computeNodeHeight(rowCount, options),
     });
   }
 
@@ -54,8 +54,8 @@ export function layoutNodes<TNode extends Node, TEdge extends Edge>(
 
   return nodes.map((node) => {
     const positioned = g.node(node.id);
-    const columnCount = columnCountByNodeId.get(node.id) ?? 0;
-    const height = computeNodeHeight(columnCount, options);
+    const rowCount = rowCountByNodeId.get(node.id) ?? 0;
+    const height = computeNodeHeight(rowCount, options);
 
     return {
       ...node,

@@ -7,6 +7,7 @@ import (
 	"testing"
 
 	"github.com/nhost/nhost/services/constellation/connector/customization"
+	"github.com/nhost/nhost/services/constellation/connector/sql/graphql/queries/arguments"
 	"github.com/nhost/nhost/services/constellation/metadata"
 	"github.com/vektah/gqlparser/v2/ast"
 )
@@ -21,6 +22,13 @@ var errCustomizedExecBoom = errors.New("boom")
 // calling the inner connector, then re-wrap the result under league and remap
 // __typename Team -> LeagueTeam.
 func namespacedQueryOp() *ast.OperationDefinition {
+	return namespacedQueryOpWithTeamsField("", nil)
+}
+
+func namespacedQueryOpWithTeamsField(
+	alias string,
+	args ast.ArgumentList,
+) *ast.OperationDefinition {
 	return &ast.OperationDefinition{
 		Operation: ast.Query,
 		SelectionSet: ast.SelectionSet{
@@ -28,7 +36,9 @@ func namespacedQueryOp() *ast.OperationDefinition {
 				Name: "league",
 				SelectionSet: ast.SelectionSet{
 					&ast.Field{
-						Name: "teams",
+						Alias:     alias,
+						Name:      "teams",
+						Arguments: args,
 						SelectionSet: ast.SelectionSet{
 							&ast.Field{Name: "__typename"},
 						},
@@ -36,6 +46,66 @@ func namespacedQueryOp() *ast.OperationDefinition {
 				},
 			},
 		},
+	}
+}
+
+func negativeLimitArguments() ast.ArgumentList {
+	return ast.ArgumentList{
+		&ast.Argument{
+			Name:  "limit",
+			Value: &ast.Value{Kind: ast.IntValue, Raw: "-1"},
+		},
+	}
+}
+
+func stampedNegativeLimitValidationError(
+	t *testing.T,
+	argumentPath string,
+) *arguments.QueryValidationError {
+	t.Helper()
+
+	whereClause, modifiers, distinctOn, err := arguments.ParseQuery(
+		nil,
+		negativeLimitArguments(),
+		nil,
+		metadata.RoleAdmin,
+		nil,
+		"",
+	)
+	if err == nil {
+		t.Fatalf(
+			"ParseQuery: expected a negative limit validation error, got where=%v modifiers=%v distinct_on=%v",
+			whereClause,
+			modifiers,
+			distinctOn,
+		)
+	}
+
+	var vErr *arguments.QueryValidationError
+	if !errors.As(err, &vErr) {
+		t.Fatalf("ParseQuery: expected *QueryValidationError, got %T (%v)", err, err)
+	}
+
+	vErr.StampArgumentPath(argumentPath)
+
+	return vErr
+}
+
+func assertQueryValidationErrorPath(t *testing.T, err error, want string) {
+	t.Helper()
+
+	var vErr *arguments.QueryValidationError
+	if !errors.As(err, &vErr) {
+		t.Fatalf("expected *QueryValidationError in error chain, got %T (%v)", err, err)
+	}
+
+	extensions, ok := vErr.AsMap()["extensions"].(map[string]any)
+	if !ok {
+		t.Fatalf("QueryValidationError extensions missing: %#v", vErr.AsMap())
+	}
+
+	if got := extensions["path"]; got != want {
+		t.Fatalf("extensions.path = %v, want %s", got, want)
 	}
 }
 
@@ -102,6 +172,132 @@ func assertWrappedError(t *testing.T, err, innerErr error) {
 	if !strings.Contains(err.Error(), "customized connector default") {
 		t.Errorf("error not annotated with connector name: %v", err)
 	}
+}
+
+func TestCustomizedConnectorValidateOperation(t *testing.T) {
+	t.Parallel()
+
+	t.Run("reverses operation and returns nil on success", func(t *testing.T) {
+		t.Parallel()
+
+		inner := &fakeConnector{schema: teamSchema()}
+
+		conn, err := newCustomizedConnector(
+			"default",
+			inner,
+			metadata.Customization{
+				RootFieldsNamespace: "league",
+				TypeNamesPrefix:     "League",
+			},
+			customization.FlavorDatabase,
+		)
+		if err != nil {
+			t.Fatalf("newCustomizedConnector: %v", err)
+		}
+
+		if err := conn.ValidateOperation(
+			namespacedQueryOp(), nil, nil, metadata.RoleAdmin, nil,
+		); err != nil {
+			t.Fatalf("unexpected error: %v", err)
+		}
+
+		// The inner connector must validate the same native operation it would
+		// execute, so a customized SQL source rejects an invalid argument before
+		// the controller executes any sibling connector.
+		assertReversedToNative(t, inner.gotValOp)
+	})
+
+	t.Run("wraps inner validation error with connector name", func(t *testing.T) {
+		t.Parallel()
+
+		inner := &fakeConnector{schema: teamSchema(), validateErr: errCustomizedExecBoom}
+
+		conn, err := newCustomizedConnector(
+			"default",
+			inner,
+			metadata.Customization{
+				RootFieldsNamespace: "league",
+				TypeNamesPrefix:     "League",
+			},
+			customization.FlavorDatabase,
+		)
+		if err != nil {
+			t.Fatalf("newCustomizedConnector: %v", err)
+		}
+
+		err = conn.ValidateOperation(namespacedQueryOp(), nil, nil, metadata.RoleAdmin, nil)
+		if err == nil {
+			t.Fatal("expected error, got nil")
+		}
+
+		if !errors.Is(err, errCustomizedExecBoom) {
+			t.Errorf("error chain does not wrap inner error: %v", err)
+		}
+
+		if !strings.Contains(err.Error(), "validating customized connector default") {
+			t.Errorf("error not annotated with connector name: %v", err)
+		}
+	})
+
+	t.Run("remaps query validation error paths to customized roots", func(t *testing.T) {
+		t.Parallel()
+
+		tests := []struct {
+			name       string
+			op         *ast.OperationDefinition
+			nativePath string
+			wantPath   string
+		}{
+			{
+				name:       "namespaced root",
+				op:         namespacedQueryOpWithTeamsField("", negativeLimitArguments()),
+				nativePath: "teams",
+				wantPath:   "$.selectionSet.league.selectionSet.teams.args.limit",
+			},
+			{
+				name:       "aliased root",
+				op:         namespacedQueryOpWithTeamsField("roster", negativeLimitArguments()),
+				nativePath: "roster",
+				wantPath:   "$.selectionSet.league.selectionSet.roster.args.limit",
+			},
+		}
+
+		for _, tt := range tests {
+			t.Run(tt.name, func(t *testing.T) {
+				t.Parallel()
+
+				inner := &fakeConnector{
+					schema:      teamSchema(),
+					validateErr: stampedNegativeLimitValidationError(t, tt.nativePath),
+				}
+
+				conn, err := newCustomizedConnector(
+					"default",
+					inner,
+					metadata.Customization{
+						RootFieldsNamespace: "league",
+						TypeNamesPrefix:     "League",
+					},
+					customization.FlavorDatabase,
+				)
+				if err != nil {
+					t.Fatalf("newCustomizedConnector: %v", err)
+				}
+
+				err = conn.ValidateOperation(tt.op, nil, nil, metadata.RoleAdmin, nil)
+				if err == nil {
+					t.Fatal("expected validation error, got nil")
+				}
+
+				assertReversedToNative(t, inner.gotValOp)
+				assertQueryValidationErrorPath(t, err, tt.wantPath)
+
+				if !strings.Contains(err.Error(), "validating customized connector default") {
+					t.Errorf("error not annotated with connector name: %v", err)
+				}
+			})
+		}
+	})
 }
 
 func TestCustomizedConnectorExecute(t *testing.T) {
@@ -201,6 +397,54 @@ func TestCustomizedConnectorExecute(t *testing.T) {
 				t.Errorf("expected nil data, got %#v", got)
 			}
 		})
+	}
+}
+
+func TestCustomizedConnectorExecuteRemapsQueryValidationErrorPath(t *testing.T) {
+	t.Parallel()
+
+	inner := &fakeConnector{
+		schema:  teamSchema(),
+		execErr: stampedNegativeLimitValidationError(t, "teams"),
+	}
+
+	conn, err := newCustomizedConnector(
+		"default",
+		inner,
+		metadata.Customization{
+			RootFieldsNamespace: "league",
+			TypeNamesPrefix:     "League",
+		},
+		customization.FlavorDatabase,
+	)
+	if err != nil {
+		t.Fatalf("newCustomizedConnector: %v", err)
+	}
+
+	_, err = conn.Execute(
+		t.Context(),
+		namespacedQueryOpWithTeamsField("", negativeLimitArguments()),
+		nil,
+		nil,
+		metadata.RoleAdmin,
+		nil,
+		slog.Default(),
+	)
+	if err == nil {
+		t.Fatal("expected validation error, got nil")
+	}
+
+	assertReversedToNative(t, inner.gotOp)
+	assertQueryValidationErrorPath(
+		t, err, "$.selectionSet.league.selectionSet.teams.args.limit",
+	)
+
+	if !errors.Is(err, arguments.ErrInvalidArgument) {
+		t.Errorf("error chain does not wrap ErrInvalidArgument: %v", err)
+	}
+
+	if !strings.Contains(err.Error(), "executing customized connector default") {
+		t.Errorf("error not annotated with connector name: %v", err)
 	}
 }
 

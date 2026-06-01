@@ -1,8 +1,10 @@
 import type { HasuraMetadataTable } from '@/features/orgs/projects/database/dataGrid/types/dataBrowser';
 import { renderHook } from '@/tests/testUtils';
+import { computeNodeHeight } from './layout';
 import type {
   SchemaDiagramColumn,
   SchemaDiagramForeignKey,
+  SchemaDiagramFunctionReturnType,
 } from './useAllTableColumns';
 import useSchemaGraph, {
   columnHandleId,
@@ -25,6 +27,7 @@ function buildColumn(
     isNullable: false,
     ordinalPosition: 1,
     isPrimary: true,
+    isGenerated: false,
     ...overrides,
   };
 }
@@ -56,6 +59,18 @@ function buildMetadataTable(
   };
 }
 
+function buildFunctionReturnType(
+  overrides: Partial<SchemaDiagramFunctionReturnType> = {},
+): SchemaDiagramFunctionReturnType {
+  return {
+    schema: 'public',
+    name: 'full_name',
+    returnType: 'text',
+    returnsSet: false,
+    ...overrides,
+  };
+}
+
 function dataOf(node: TableNode): TableNodeData {
   return node.data;
 }
@@ -79,11 +94,14 @@ describe('useSchemaGraph', () => {
     const { result } = renderHook(() =>
       useSchemaGraph({
         metadataTables,
+        tableLikeObjects: [],
         columns,
         foreignKeys: [],
         role: 'admin',
+        functionReturnTypes: [],
         visibleSchemas: new Set(['public']),
         hideTablesWithoutPermissions: false,
+        namingMode: 'graphql',
       }),
     );
 
@@ -102,11 +120,14 @@ describe('useSchemaGraph', () => {
     const { result } = renderHook(() =>
       useSchemaGraph({
         metadataTables: [],
+        tableLikeObjects: [],
         columns,
         foreignKeys: [],
         role: 'admin',
+        functionReturnTypes: [],
         visibleSchemas: new Set(['public']),
         hideTablesWithoutPermissions: false,
+        namingMode: 'graphql',
       }),
     );
 
@@ -120,11 +141,14 @@ describe('useSchemaGraph', () => {
     const { result } = renderHook(() =>
       useSchemaGraph({
         metadataTables: [buildMetadataTable('public', 'users')],
+        tableLikeObjects: [],
         columns,
         foreignKeys: [],
         role: 'admin',
+        functionReturnTypes: [],
         visibleSchemas: new Set(),
         hideTablesWithoutPermissions: false,
+        namingMode: 'graphql',
       }),
     );
 
@@ -142,11 +166,14 @@ describe('useSchemaGraph', () => {
     const { result } = renderHook(() =>
       useSchemaGraph({
         metadataTables: [],
+        tableLikeObjects: [],
         columns,
         foreignKeys: [],
         role: 'admin',
+        functionReturnTypes: [],
         visibleSchemas: new Set(['public']),
         hideTablesWithoutPermissions: false,
+        namingMode: 'graphql',
       }),
     );
 
@@ -172,11 +199,14 @@ describe('useSchemaGraph', () => {
     const { result } = renderHook(() =>
       useSchemaGraph({
         metadataTables,
+        tableLikeObjects: [],
         columns,
         foreignKeys: [],
         role: 'user',
+        functionReturnTypes: [],
         visibleSchemas: new Set(['public']),
         hideTablesWithoutPermissions: true,
+        namingMode: 'graphql',
       }),
     );
 
@@ -191,11 +221,14 @@ describe('useSchemaGraph', () => {
     const { result } = renderHook(() =>
       useSchemaGraph({
         metadataTables: [buildMetadataTable('public', 'posts')],
+        tableLikeObjects: [],
         columns,
         foreignKeys: [],
         role: 'user',
+        functionReturnTypes: [],
         visibleSchemas: new Set(['public']),
         hideTablesWithoutPermissions: false,
+        namingMode: 'graphql',
       }),
     );
 
@@ -226,11 +259,14 @@ describe('useSchemaGraph', () => {
     const { result } = renderHook(() =>
       useSchemaGraph({
         metadataTables: [],
+        tableLikeObjects: [],
         columns,
         foreignKeys,
         role: 'admin',
+        functionReturnTypes: [],
         visibleSchemas: new Set(['public']),
         hideTablesWithoutPermissions: false,
+        namingMode: 'graphql',
       }),
     );
 
@@ -253,11 +289,14 @@ describe('useSchemaGraph', () => {
     const { result } = renderHook(() =>
       useSchemaGraph({
         metadataTables: [],
+        tableLikeObjects: [],
         columns,
         foreignKeys: [fk],
         role: 'admin',
+        functionReturnTypes: [],
         visibleSchemas: new Set(['public']),
         hideTablesWithoutPermissions: false,
+        namingMode: 'postgres',
       }),
     );
 
@@ -321,11 +360,14 @@ describe('useSchemaGraph', () => {
     const { result } = renderHook(() =>
       useSchemaGraph({
         metadataTables: [],
+        tableLikeObjects: [],
         columns,
         foreignKeys,
         role: 'admin',
+        functionReturnTypes: [],
         visibleSchemas: new Set(['public']),
         hideTablesWithoutPermissions: false,
+        namingMode: 'postgres',
       }),
     );
 
@@ -374,11 +416,14 @@ describe('useSchemaGraph', () => {
     const { result } = renderHook(() =>
       useSchemaGraph({
         metadataTables: [],
+        tableLikeObjects: [],
         columns,
         foreignKeys: [buildForeignKey()],
         role: 'admin',
+        functionReturnTypes: [],
         visibleSchemas: new Set(['public']),
         hideTablesWithoutPermissions: false,
+        namingMode: 'graphql',
       }),
     );
 
@@ -400,11 +445,14 @@ describe('useSchemaGraph', () => {
     const { result } = renderHook(() =>
       useSchemaGraph({
         metadataTables: [],
+        tableLikeObjects: [],
         columns,
         foreignKeys: [],
         role: 'admin',
+        functionReturnTypes: [],
         visibleSchemas: new Set(['public']),
         hideTablesWithoutPermissions: false,
+        namingMode: 'graphql',
       }),
     );
 
@@ -431,11 +479,14 @@ describe('useSchemaGraph', () => {
     const { result } = renderHook(() =>
       useSchemaGraph({
         metadataTables: [],
+        tableLikeObjects: [],
         columns,
         foreignKeys: [],
         role: 'admin',
+        functionReturnTypes: [],
         visibleSchemas: new Set(['public']),
         hideTablesWithoutPermissions: false,
+        namingMode: 'graphql',
       }),
     );
 
@@ -464,15 +515,20 @@ describe('useSchemaGraph', () => {
     ];
     const fk = buildForeignKey();
 
+    // Postgres mode emits an FK edge regardless of relationship state, so the
+    // edge's data is the cleanest probe for relMatchesFk's classification.
     function getEdgeData(metadataTables: HasuraMetadataTable[]): FkEdgeData {
       const { result } = renderHook(() =>
         useSchemaGraph({
           metadataTables,
+          tableLikeObjects: [],
           columns: fkColumns,
           foreignKeys: [fk],
           role: 'admin',
+          functionReturnTypes: [],
           visibleSchemas: new Set(['public']),
           hideTablesWithoutPermissions: false,
+          namingMode: 'postgres',
         }),
       );
       return result.current.edges[0].data as FkEdgeData;
@@ -626,11 +682,14 @@ describe('useSchemaGraph', () => {
       const { result } = renderHook(() =>
         useSchemaGraph({
           metadataTables,
+          tableLikeObjects: [],
           columns: fkColumns,
           foreignKeys: [fk],
           role: 'admin',
+          functionReturnTypes: [],
           visibleSchemas: new Set(['public']),
           hideTablesWithoutPermissions: false,
+          namingMode: 'graphql',
         }),
       );
       const edge = result.current.edges[0];
@@ -653,11 +712,14 @@ describe('useSchemaGraph', () => {
       const { result } = renderHook(() =>
         useSchemaGraph({
           metadataTables,
+          tableLikeObjects: [],
           columns: fkColumns,
           foreignKeys: [fk],
           role: 'admin',
+          functionReturnTypes: [],
           visibleSchemas: new Set(['public']),
           hideTablesWithoutPermissions: false,
+          namingMode: 'graphql',
         }),
       );
       const edge = result.current.edges[0];
@@ -685,11 +747,14 @@ describe('useSchemaGraph', () => {
       const { result } = renderHook(() =>
         useSchemaGraph({
           metadataTables,
+          tableLikeObjects: [],
           columns: fkColumns,
           foreignKeys: [fk],
           role: 'admin',
+          functionReturnTypes: [],
           visibleSchemas: new Set(['public']),
           hideTablesWithoutPermissions: false,
+          namingMode: 'graphql',
         }),
       );
       const edge = result.current.edges[0];
@@ -697,15 +762,18 @@ describe('useSchemaGraph', () => {
       expect(edge.markerEnd).toBe(EDGE_MARKER_IDS.arrowFilled);
     });
 
-    it('uses hollow markers on both ends when no metadata exists', () => {
+    it('uses hollow markers on both ends when no metadata exists (postgres mode)', () => {
       const { result } = renderHook(() =>
         useSchemaGraph({
           metadataTables: [],
+          tableLikeObjects: [],
           columns: fkColumns,
           foreignKeys: [fk],
           role: 'admin',
+          functionReturnTypes: [],
           visibleSchemas: new Set(['public']),
           hideTablesWithoutPermissions: false,
+          namingMode: 'postgres',
         }),
       );
       const edge = result.current.edges[0];
@@ -732,6 +800,556 @@ describe('useSchemaGraph', () => {
       ]);
 
       expect(data.hasArrayRel).toBe(false);
+    });
+  });
+
+  describe('GraphQL-mode edges', () => {
+    const fkColumns: SchemaDiagramColumn[] = [
+      buildColumn({
+        schema: 'public',
+        table: 'posts',
+        columnName: 'author_id',
+        ordinalPosition: 1,
+        isPrimary: false,
+      }),
+      buildColumn({
+        schema: 'public',
+        table: 'users',
+        columnName: 'id',
+      }),
+    ];
+
+    function renderGraphqlGraph(
+      metadataTables: HasuraMetadataTable[],
+      foreignKeys: SchemaDiagramForeignKey[] = [buildForeignKey()],
+      extraColumns: SchemaDiagramColumn[] = [],
+    ) {
+      return renderHook(() =>
+        useSchemaGraph({
+          metadataTables,
+          tableLikeObjects: [],
+          columns: [...fkColumns, ...extraColumns],
+          foreignKeys,
+          role: 'admin',
+          functionReturnTypes: [],
+          visibleSchemas: new Set(['public']),
+          hideTablesWithoutPermissions: false,
+          namingMode: 'graphql',
+        }),
+      );
+    }
+
+    it('hides FK edges that have no tracked relationship', () => {
+      const { result } = renderGraphqlGraph([
+        buildMetadataTable('public', 'posts'),
+        buildMetadataTable('public', 'users'),
+      ]);
+
+      expect(result.current.edges).toEqual([]);
+    });
+
+    it('keeps FK edges that have at least one tracked relationship', () => {
+      const { result } = renderGraphqlGraph([
+        buildMetadataTable('public', 'posts', {
+          object_relationships: [
+            {
+              name: 'author',
+              using: { foreign_key_constraint_on: 'author_id' },
+            },
+          ],
+        }),
+        buildMetadataTable('public', 'users'),
+      ]);
+
+      expect(result.current.edges).toHaveLength(1);
+      const data = result.current.edges[0].data as FkEdgeData;
+      expect(data.hasObjectRel).toBe(true);
+      expect(data.hasArrayRel).toBe(false);
+    });
+
+    it('emits a synthetic edge for a manual object relationship not backed by an FK', () => {
+      const extraColumns: SchemaDiagramColumn[] = [
+        buildColumn({
+          schema: 'public',
+          table: 'comments',
+          columnName: 'commenter_email',
+          ordinalPosition: 1,
+          isPrimary: false,
+        }),
+        buildColumn({
+          schema: 'public',
+          table: 'users',
+          columnName: 'email',
+          ordinalPosition: 2,
+          isPrimary: false,
+        }),
+      ];
+      const { result } = renderGraphqlGraph(
+        [
+          buildMetadataTable('public', 'comments', {
+            object_relationships: [
+              {
+                name: 'commenter',
+                using: {
+                  manual_configuration: {
+                    remote_table: { schema: 'public', name: 'users' },
+                    column_mapping: { commenter_email: 'email' },
+                  },
+                },
+              },
+            ],
+          }),
+          buildMetadataTable('public', 'users'),
+        ],
+        [],
+        extraColumns,
+      );
+
+      const manualEdge = result.current.edges.find(
+        (e) => e.source === nodeIdFor('public', 'comments'),
+      );
+      expect(manualEdge).toBeDefined();
+      expect(manualEdge?.sourceHandle).toBe(
+        columnHandleId('source', 'commenter_email'),
+      );
+      expect(manualEdge?.targetHandle).toBe(columnHandleId('target', 'email'));
+      const data = manualEdge?.data as FkEdgeData;
+      expect(data.hasObjectRel).toBe(true);
+      expect(data.hasArrayRel).toBe(false);
+    });
+
+    it('emits a synthetic edge for a manual array relationship and maps direction from remote→local', () => {
+      const extraColumns: SchemaDiagramColumn[] = [
+        buildColumn({
+          schema: 'public',
+          table: 'sessions',
+          columnName: 'owner_email',
+          ordinalPosition: 1,
+          isPrimary: false,
+        }),
+        buildColumn({
+          schema: 'public',
+          table: 'users',
+          columnName: 'email',
+          ordinalPosition: 2,
+          isPrimary: false,
+        }),
+      ];
+      const { result } = renderGraphqlGraph(
+        [
+          buildMetadataTable('public', 'users', {
+            array_relationships: [
+              {
+                name: 'sessions',
+                using: {
+                  manual_configuration: {
+                    remote_table: { schema: 'public', name: 'sessions' },
+                    column_mapping: { email: 'owner_email' },
+                  },
+                },
+              },
+            ],
+          }),
+          buildMetadataTable('public', 'sessions'),
+        ],
+        [],
+        extraColumns,
+      );
+
+      const arrayEdge = result.current.edges.find(
+        (e) => e.source === nodeIdFor('public', 'sessions'),
+      );
+      expect(arrayEdge).toBeDefined();
+      expect(arrayEdge?.target).toBe(nodeIdFor('public', 'users'));
+      expect(arrayEdge?.sourceHandle).toBe(
+        columnHandleId('source', 'owner_email'),
+      );
+      expect(arrayEdge?.targetHandle).toBe(columnHandleId('target', 'email'));
+      const data = arrayEdge?.data as FkEdgeData;
+      expect(data.hasObjectRel).toBe(false);
+      expect(data.hasArrayRel).toBe(true);
+    });
+
+    it('does not duplicate when a manual rel matches an existing FK-tracked edge', () => {
+      const { result } = renderGraphqlGraph([
+        buildMetadataTable('public', 'posts', {
+          object_relationships: [
+            {
+              name: 'author',
+              using: { foreign_key_constraint_on: 'author_id' },
+            },
+          ],
+        }),
+        buildMetadataTable('public', 'users', {
+          array_relationships: [
+            {
+              name: 'posts_manual',
+              using: {
+                manual_configuration: {
+                  remote_table: { schema: 'public', name: 'posts' },
+                  column_mapping: { id: 'author_id' },
+                },
+              },
+            },
+          ],
+        }),
+      ]);
+
+      expect(result.current.edges).toHaveLength(1);
+      const data = result.current.edges[0].data as FkEdgeData;
+      expect(data.hasObjectRel).toBe(true);
+      expect(data.hasArrayRel).toBe(true);
+    });
+  });
+
+  describe('computed fields', () => {
+    it('maps metadataTable.computed_fields and resolves return types from functionReturnTypes', () => {
+      const columns = [buildColumn({ schema: 'public', table: 'users' })];
+      const metadataTables = [
+        buildMetadataTable('public', 'users', {
+          computed_fields: [
+            {
+              name: 'full_name',
+              definition: {
+                function: { schema: 'public', name: 'users_full_name' },
+              },
+            },
+          ],
+        }),
+      ];
+
+      const { result } = renderHook(() =>
+        useSchemaGraph({
+          metadataTables,
+          tableLikeObjects: [],
+          columns,
+          foreignKeys: [],
+          role: 'admin',
+          functionReturnTypes: [
+            buildFunctionReturnType({
+              schema: 'public',
+              name: 'users_full_name',
+              returnType: 'text',
+              returnsSet: false,
+            }),
+          ],
+          visibleSchemas: new Set(['public']),
+          hideTablesWithoutPermissions: false,
+          namingMode: 'graphql',
+        }),
+      );
+
+      const node = result.current.nodes.find((n) => n.id === 'public.users')!;
+      expect(node.data.computedFields).toEqual([
+        {
+          name: 'full_name',
+          returnType: 'text',
+          functionSchema: 'public',
+          functionName: 'users_full_name',
+        },
+      ]);
+    });
+
+    it('prefixes "setof " when the resolved function returns a set', () => {
+      const metadataTables = [
+        buildMetadataTable('public', 'users', {
+          computed_fields: [
+            {
+              name: 'posts',
+              definition: {
+                function: { schema: 'public', name: 'posts_for_user' },
+              },
+            },
+          ],
+        }),
+      ];
+
+      const { result } = renderHook(() =>
+        useSchemaGraph({
+          metadataTables,
+          tableLikeObjects: [],
+          columns: [buildColumn({ schema: 'public', table: 'users' })],
+          foreignKeys: [],
+          role: 'admin',
+          functionReturnTypes: [
+            buildFunctionReturnType({
+              schema: 'public',
+              name: 'posts_for_user',
+              returnType: 'public.posts',
+              returnsSet: true,
+            }),
+          ],
+          visibleSchemas: new Set(['public']),
+          hideTablesWithoutPermissions: false,
+          namingMode: 'graphql',
+        }),
+      );
+
+      const node = result.current.nodes.find((n) => n.id === 'public.users')!;
+      expect(node.data.computedFields[0].returnType).toBe('setof public.posts');
+    });
+
+    it('returns returnType: undefined when no matching functionReturnTypes entry exists', () => {
+      const metadataTables = [
+        buildMetadataTable('public', 'users', {
+          computed_fields: [
+            {
+              name: 'full_name',
+              definition: {
+                function: { schema: 'public', name: 'users_full_name' },
+              },
+            },
+          ],
+        }),
+      ];
+
+      const { result } = renderHook(() =>
+        useSchemaGraph({
+          metadataTables,
+          tableLikeObjects: [],
+          columns: [buildColumn({ schema: 'public', table: 'users' })],
+          foreignKeys: [],
+          role: 'admin',
+          functionReturnTypes: [],
+          visibleSchemas: new Set(['public']),
+          hideTablesWithoutPermissions: false,
+          namingMode: 'graphql',
+        }),
+      );
+
+      const node = result.current.nodes.find((n) => n.id === 'public.users')!;
+      expect(node.data.computedFields[0].returnType).toBeUndefined();
+    });
+
+    it('sizes node height by columns + computedFields', () => {
+      const columns = [
+        buildColumn({ schema: 'public', table: 'users', columnName: 'id' }),
+        buildColumn({
+          schema: 'public',
+          table: 'users',
+          columnName: 'email',
+          ordinalPosition: 2,
+          isPrimary: false,
+        }),
+      ];
+      const metadataTables = [
+        buildMetadataTable('public', 'users', {
+          computed_fields: [
+            {
+              name: 'full_name',
+              definition: {
+                function: { schema: 'public', name: 'users_full_name' },
+              },
+            },
+            {
+              name: 'posts_count',
+              definition: {
+                function: { schema: 'public', name: 'users_posts_count' },
+              },
+            },
+          ],
+        }),
+      ];
+
+      const { result } = renderHook(() =>
+        useSchemaGraph({
+          metadataTables,
+          tableLikeObjects: [],
+          columns,
+          foreignKeys: [],
+          role: 'admin',
+          functionReturnTypes: [],
+          visibleSchemas: new Set(['public']),
+          hideTablesWithoutPermissions: false,
+          namingMode: 'graphql',
+        }),
+      );
+
+      const node = result.current.nodes.find((n) => n.id === 'public.users')!;
+      expect(node.height).toBe(computeNodeHeight(4));
+    });
+
+    it('drops computed fields and sizes by columns only in postgres mode', () => {
+      const columns = [
+        buildColumn({ schema: 'public', table: 'users', columnName: 'id' }),
+      ];
+      const metadataTables = [
+        buildMetadataTable('public', 'users', {
+          computed_fields: [
+            {
+              name: 'full_name',
+              definition: {
+                function: { schema: 'public', name: 'users_full_name' },
+              },
+            },
+          ],
+        }),
+      ];
+
+      const { result } = renderHook(() =>
+        useSchemaGraph({
+          metadataTables,
+          tableLikeObjects: [],
+          columns,
+          foreignKeys: [],
+          role: 'admin',
+          functionReturnTypes: [],
+          visibleSchemas: new Set(['public']),
+          hideTablesWithoutPermissions: false,
+          namingMode: 'postgres',
+        }),
+      );
+
+      const node = result.current.nodes.find((n) => n.id === 'public.users')!;
+      expect(node.data.computedFields).toEqual([]);
+      expect(node.height).toBe(computeNodeHeight(1));
+    });
+  });
+
+  describe('graphql naming overrides', () => {
+    it('exposes table and column custom_name from configuration.column_config', () => {
+      const columns = [
+        buildColumn({
+          schema: 'public',
+          table: 'users',
+          columnName: 'email',
+          isPrimary: false,
+        }),
+      ];
+      const metadataTables = [
+        buildMetadataTable('public', 'users', {
+          configuration: {
+            custom_name: 'User',
+            column_config: { email: { custom_name: 'emailAddress' } },
+          },
+          // biome-ignore lint/suspicious/noExplicitAny: configuration uses loosely-typed Record in the metadata type
+        } as any),
+      ];
+
+      const { result } = renderHook(() =>
+        useSchemaGraph({
+          metadataTables,
+          tableLikeObjects: [],
+          columns,
+          foreignKeys: [],
+          role: 'admin',
+          functionReturnTypes: [],
+          visibleSchemas: new Set(['public']),
+          hideTablesWithoutPermissions: false,
+          namingMode: 'graphql',
+        }),
+      );
+
+      const node = result.current.nodes.find((n) => n.id === 'public.users')!;
+      expect(node.data.tableGraphqlName).toBe('User');
+      expect(node.data.columns[0].graphqlName).toBe('emailAddress');
+    });
+
+    it('falls back to deprecated custom_column_names', () => {
+      const columns = [
+        buildColumn({
+          schema: 'public',
+          table: 'users',
+          columnName: 'email',
+          isPrimary: false,
+        }),
+      ];
+      const metadataTables = [
+        buildMetadataTable('public', 'users', {
+          configuration: {
+            custom_column_names: { email: 'emailAddress' },
+          },
+          // biome-ignore lint/suspicious/noExplicitAny: configuration uses loosely-typed Record in the metadata type
+        } as any),
+      ];
+
+      const { result } = renderHook(() =>
+        useSchemaGraph({
+          metadataTables,
+          tableLikeObjects: [],
+          columns,
+          foreignKeys: [],
+          role: 'admin',
+          functionReturnTypes: [],
+          visibleSchemas: new Set(['public']),
+          hideTablesWithoutPermissions: false,
+          namingMode: 'graphql',
+        }),
+      );
+
+      const node = result.current.nodes.find((n) => n.id === 'public.users')!;
+      expect(node.data.columns[0].graphqlName).toBe('emailAddress');
+    });
+  });
+
+  describe('objectType', () => {
+    it('maps each table_type from tableLikeObjects onto its node', () => {
+      const columns = [
+        buildColumn({ schema: 'public', table: 'users' }),
+        buildColumn({ schema: 'public', table: 'active_users' }),
+        buildColumn({ schema: 'public', table: 'daily_metrics' }),
+      ];
+
+      const { result } = renderHook(() =>
+        useSchemaGraph({
+          metadataTables: [],
+          tableLikeObjects: [
+            {
+              table_schema: 'public',
+              table_name: 'users',
+              table_type: 'ORDINARY TABLE',
+              updatability: 1,
+            },
+            {
+              table_schema: 'public',
+              table_name: 'active_users',
+              table_type: 'VIEW',
+              updatability: 0,
+            },
+            {
+              table_schema: 'public',
+              table_name: 'daily_metrics',
+              table_type: 'MATERIALIZED VIEW',
+              updatability: 0,
+            },
+          ],
+          columns,
+          foreignKeys: [],
+          role: 'admin',
+          functionReturnTypes: [],
+          visibleSchemas: new Set(['public']),
+          hideTablesWithoutPermissions: false,
+          namingMode: 'graphql',
+        }),
+      );
+
+      const byId = Object.fromEntries(
+        result.current.nodes.map((n) => [n.id, n.data.objectType]),
+      );
+      expect(byId['public.users']).toBe('ORDINARY TABLE');
+      expect(byId['public.active_users']).toBe('VIEW');
+      expect(byId['public.daily_metrics']).toBe('MATERIALIZED VIEW');
+    });
+
+    it("defaults to 'ORDINARY TABLE' for nodes with no matching tableLikeObjects entry", () => {
+      const columns = [buildColumn({ schema: 'public', table: 'orphan' })];
+
+      const { result } = renderHook(() =>
+        useSchemaGraph({
+          metadataTables: [],
+          tableLikeObjects: [],
+          columns,
+          foreignKeys: [],
+          role: 'admin',
+          functionReturnTypes: [],
+          visibleSchemas: new Set(['public']),
+          hideTablesWithoutPermissions: false,
+          namingMode: 'graphql',
+        }),
+      );
+
+      const node = result.current.nodes.find((n) => n.id === 'public.orphan')!;
+      expect(node.data.objectType).toBe('ORDINARY TABLE');
     });
   });
 });

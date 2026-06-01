@@ -335,7 +335,8 @@ func (c *Connector) executeRemoteQuery(
 	clientHeaders http.Header,
 	logger *slog.Logger,
 ) (map[string]any, error) {
-	logger.DebugContext(ctx, "executing remote query",
+	logger.DebugContext(
+		ctx, "executing remote query",
 		slog.String("query", query),
 	)
 
@@ -348,7 +349,8 @@ func (c *Connector) executeRemoteQuery(
 	}
 
 	var gqlResp graphQLResponse
-	if err := json.Unmarshal(body, &gqlResp,
+	if err := json.Unmarshal(
+		body, &gqlResp,
 		jsontext.AllowDuplicateNames(true),
 		jsontext.AllowInvalidUTF8(true),
 	); err != nil {

@@ -55,11 +55,18 @@ let
       nhost-cli
       nixfmt
       nodejs
-      nodePackages.vercel
+      vercel
       oapi-codegen
       pkg-config
       playwright-driver
       pnpm
+      postgresql_14-client
+      postgresql_15
+      postgresql_15-client
+      postgresql_16
+      postgresql_16-client
+      postgresql_17
+      postgresql_17-client
       postgresql_18
       postgresql_18-client
       python312Packages.certbot-dns-route53

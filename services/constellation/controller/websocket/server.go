@@ -155,7 +155,8 @@ func (c *Connection) readPump(ctx context.Context, logger *slog.Logger) error {
 			_, message, err := c.conn.ReadMessage()
 			switch {
 			case websocket.IsCloseError(
-				err, websocket.CloseNormalClosure, websocket.CloseGoingAway):
+				err, websocket.CloseNormalClosure, websocket.CloseGoingAway,
+			):
 				return nil
 			case err != nil:
 				return fmt.Errorf("%w: %w", errCouldNotReadMessage, err)

@@ -32,10 +32,12 @@ var paramPattern = regexp.MustCompile(`\$(\d+)(?:::([a-zA-Z_][a-zA-Z0-9_]*(?:\[\
 // placeholders for session/cursor values, while static GraphQL variables remain
 // as numbered parameters ($3, $4, ...).
 //
-// Session variables (strings prefixed with "x-hasura-") and cursor values
-// (core.CursorValue markers) in op.Parameters are recognised and rewritten to
-// JSON path expressions accessing _subs.result_vars. Type casts are extracted
-// from the SQL pattern $N::type. The remaining entries form the static params
+// Session variables (strings prefixed with "x-hasura-"), cursor values
+// (core.CursorValue markers), and function session_argument placeholders
+// (core.FunctionSessionArgument markers) in op.Parameters are recognised and
+// rewritten to JSON path expressions accessing _subs.result_vars. Type casts
+// are extracted from the SQL pattern $N::type, with function session_arguments
+// using the marker's SQLType. The remaining entries form the static params
 // slice, renumbered starting at $3 (after $1=sub_ids, $2=result_vars). Callers
 // pass that slice as the tail of the parameter list — see PrepareParams.
 func Multiplex(op core.SQLOperation) (string, []any) {
@@ -45,9 +47,9 @@ func Multiplex(op core.SQLOperation) (string, []any) {
 }
 
 // rewriteMultiplexedSQL converts a regular core.SQLOperation into its inner
-// multiplexed form: the SQL with session and cursor parameter references
-// rewritten to JSON path expressions, and the residual static parameters
-// (renumbered to start at $3).
+// multiplexed form: the SQL with session, cursor, and function session_argument
+// parameter references rewritten to JSON path expressions, and the residual
+// static parameters (renumbered to start at $3).
 func rewriteMultiplexedSQL(op core.SQLOperation) (string, []any) {
 	if len(op.Parameters) == 0 {
 		return op.SQL, nil
@@ -55,6 +57,7 @@ func rewriteMultiplexedSQL(op core.SQLOperation) (string, []any) {
 
 	sessionVarIndices := make(map[int]string)
 	cursorVarIndices := make(map[int]string)
+	functionSessionArgumentIndices := make(map[int]string)
 	staticParamOldIndices := make([]int, 0)
 
 	for i, param := range op.Parameters {
@@ -64,6 +67,8 @@ func rewriteMultiplexedSQL(op core.SQLOperation) (string, []any) {
 			sessionVarIndices[paramIdx] = varName
 		} else if cursorVal, ok := param.(core.CursorValue); ok {
 			cursorVarIndices[paramIdx] = cursorVal.ColumnName
+		} else if sessionArg, ok := param.(core.FunctionSessionArgument); ok {
+			functionSessionArgumentIndices[paramIdx] = sessionArg.SQLType
 		} else {
 			staticParamOldIndices = append(staticParamOldIndices, paramIdx)
 		}
@@ -87,6 +92,7 @@ func rewriteMultiplexedSQL(op core.SQLOperation) (string, []any) {
 		op.SQL,
 		sessionVarIndices,
 		cursorVarIndices,
+		functionSessionArgumentIndices,
 		staticParamMapping,
 	)
 
@@ -125,13 +131,14 @@ func extractSessionVarName(param any) (string, bool) {
 	return "", false
 }
 
-// rewriteSQLForMultiplexing rewrites SQL to use JSON path extraction for session variables
-// and cursor variables, and renumbers the remaining parameters.
-// It extracts types from SQL patterns like $N::type.
+// rewriteSQLForMultiplexing rewrites SQL to use JSON path extraction for session variables,
+// cursor variables, and whole-session function arguments, then renumbers the
+// remaining parameters. It extracts types from SQL patterns like $N::type.
 func rewriteSQLForMultiplexing(
 	sql string,
 	sessionVarIndices map[int]string,
 	cursorVarIndices map[int]string,
+	functionSessionArgumentIndices map[int]string,
 	staticParamMapping map[int]int,
 ) string {
 	const (
@@ -160,6 +167,11 @@ func rewriteSQLForMultiplexing(
 			return `(("_subs"."result_vars" #>> '{cursor,` + colName + `}')::` + pgType + `)`
 		}
 
+		if sqlType, isFunctionSessionArgument := functionSessionArgumentIndices[paramIdx]; isFunctionSessionArgument {
+			return `(("_subs"."result_vars" -> 'session')::` +
+				functionSessionArgumentCast(sqlType, matches[typeGroup]) + `)`
+		}
+
 		if newIdx, exists := staticParamMapping[paramIdx]; exists {
 			if pgType != "text" {
 				return "$" + strconv.Itoa(newIdx) + "::" + pgType
@@ -170,6 +182,24 @@ func rewriteSQLForMultiplexing(
 
 		return match
 	})
+}
+
+// functionSessionArgumentCast picks the SQL type to cast the rewritten
+// _subs.result_vars->'session' expression to. The marker's sqlType (from
+// introspection) is authoritative and effectively always set; an inline
+// placeholderType (the ::type parsed from the $N placeholder) is a fallback,
+// and "json" is the last resort because a json value casts cleanly to
+// json/jsonb/text.
+func functionSessionArgumentCast(sqlType, placeholderType string) string {
+	if sqlType != "" {
+		return sqlType
+	}
+
+	if placeholderType != "" {
+		return placeholderType
+	}
+
+	return "json"
 }
 
 // buildMultiplexedSQL wraps innerSQL in the Hasura-style UNNEST-with-JSON

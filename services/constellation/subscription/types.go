@@ -30,9 +30,10 @@ import (
 // An Error returned this way may also carry ErrInvalidSubscription when a plan
 // failure is only detected after Start has returned (live-query connectors
 // build SQL lazily inside their polling goroutine and discover unplannable
-// queries on the first poll). Callers should classify with errors.Is on
-// Error and surface ErrInvalidSubscription-wrapped errors verbatim — only
-// unwrapped driver/runtime faults must be sanitized.
+// queries on the first poll). Callers should classify structured validation
+// errors first, then use errors.Is on Error to surface remaining
+// ErrInvalidSubscription-wrapped errors verbatim — only unwrapped
+// driver/runtime faults must be sanitized.
 //
 // Construct an Update via NewUpdateData or NewUpdateError so the one-of
 // invariant is established at the call site; the fields stay exported only so
@@ -97,9 +98,10 @@ var ErrInvalidRequest = errors.New("invalid subscription request")
 // shape of the client's subscription (the query cannot be planned or produces
 // no executable operation) rather than by a driver/runtime fault. Connectors
 // must wrap such errors with this sentinel (via fmt.Errorf("...: %w", ...)) so
-// the protocol layer can surface the actionable message to the client instead
-// of collapsing it into an opaque internal-error response. Genuine
-// driver/runtime failures must NOT be wrapped with it and stay sanitized.
+// the protocol layer can surface the actionable message (or a structured
+// validation-error envelope when the cause carries one) instead of collapsing
+// it into an opaque internal-error response. Genuine driver/runtime failures
+// must NOT be wrapped with it and stay sanitized.
 var ErrInvalidSubscription = errors.New("invalid subscription")
 
 // NewRequest validates that the fields required for any connector to execute
@@ -155,8 +157,9 @@ type Handler interface {
 	// A failure caused by the client's subscription shape (a query that
 	// cannot be planned or yields no executable operation) must be returned
 	// wrapped with ErrInvalidSubscription so the caller can surface the
-	// actionable message; driver/runtime faults must be returned unwrapped so
-	// the caller can sanitize them. Implementations that defer planning to a
+	// actionable message (or structured validation-error envelope);
+	// driver/runtime faults must be returned unwrapped so the caller can
+	// sanitize them. Implementations that defer planning to a
 	// background poll (e.g. SQL live-query cohorts) must wrap the same
 	// failures the same way when they reach Update.Error — see Update for
 	// the channel-side classification contract.
