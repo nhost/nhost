@@ -37,6 +37,109 @@ func TestAggregateBuildQuery(t *testing.T) { //nolint:paralleltest,maintidx
 			},
 		},
 		{
+			name: "count with column",
+			query: query{
+				Query: `
+					query {
+						departments_aggregate {
+							aggregate {
+								count(columns: [id])
+							}
+						}
+					}`,
+			},
+		},
+		{
+			name: "count with nullable column",
+			query: query{
+				Query: `
+					query {
+						departments_aggregate {
+							aggregate {
+								count(columns: [budget])
+							}
+						}
+					}`,
+			},
+		},
+		{
+			name: "count distinct single column",
+			query: query{
+				Query: `
+					query {
+						departments_aggregate {
+							aggregate {
+								count(columns: [budget], distinct: true)
+							}
+						}
+					}`,
+			},
+		},
+		{
+			name: "count distinct multiple columns",
+			query: query{
+				Query: `
+					query {
+						departments_aggregate {
+							aggregate {
+								count(columns: [name, budget], distinct: true)
+							}
+						}
+					}`,
+			},
+		},
+		{
+			name: "count columns via variable",
+			query: query{
+				Query: `
+					query Q($cols: [departments_select_column!], $d: Boolean) {
+						departments_aggregate {
+							aggregate {
+								count(columns: $cols, distinct: $d)
+							}
+						}
+					}`,
+				Variables: map[string]any{
+					"cols": []any{"budget"},
+					"d":    true,
+				},
+			},
+		},
+		{
+			// An aliased count must key the JSON object by the alias, not the
+			// field name. The data golden (executed against PG) proves the key
+			// is "total".
+			name: "count aliased",
+			query: query{
+				Query: `
+					query {
+						departments_aggregate {
+							aggregate {
+								total: count
+							}
+						}
+					}`,
+			},
+		},
+		{
+			// Multiple count variants in one aggregate block. Each needs its own
+			// JSON key (its alias); without per-selection response names the
+			// generated json_build_object would emit a duplicate "count" key and
+			// PostgreSQL would keep only the last value, dropping "total".
+			name: "count multiple variants",
+			query: query{
+				Query: `
+					query {
+						departments_aggregate {
+							aggregate {
+								total: count
+								distinct_budget: count(columns: [budget], distinct: true)
+							}
+						}
+					}`,
+			},
+		},
+		{
 			name: "sum aggregate",
 			query: query{
 				Query: `
@@ -44,6 +147,47 @@ func TestAggregateBuildQuery(t *testing.T) { //nolint:paralleltest,maintidx
 						departments_aggregate {
 							aggregate {
 								sum {
+									budget
+								}
+							}
+						}
+					}`,
+			},
+		},
+		{
+			// An aliased function aggregate must key the JSON object by the
+			// alias, not the function name. The data golden (executed against
+			// PG) proves the key is "total_budget", not "sum".
+			name: "sum aliased",
+			query: query{
+				Query: `
+					query {
+						departments_aggregate {
+							aggregate {
+								total_budget: sum {
+									budget
+								}
+							}
+						}
+					}`,
+			},
+		},
+		{
+			// Two of the same function aggregate in one block, distinguished
+			// only by alias. Each needs its own JSON key; without per-selection
+			// response names the generated json_build_object would emit a
+			// duplicate "sum" key and PostgreSQL would keep only the last value,
+			// dropping "a". The data golden proves both "a" and "b" survive.
+			name: "sum multiple variants",
+			query: query{
+				Query: `
+					query {
+						departments_aggregate {
+							aggregate {
+								a: sum {
+									budget
+								}
+								b: sum {
 									budget
 								}
 							}

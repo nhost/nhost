@@ -107,3 +107,9 @@ func (r *relationship) WriteJoinConditionAliased(
 ) {
 	r.writeJoinConditionAliased(b, parentAlias, targetAlias)
 }
+
+// AggregateName satisfies where.Relationship; it returns the relationship's
+// aggregate key (<name>_aggregate) so the where parser can tell an aggregate
+// predicate apart from a plain relationship filter. Name() and IsArray() are
+// defined on the permissions/arguments adapters and reused here.
+func (r *relationship) AggregateName() string { return r.aggregateName }

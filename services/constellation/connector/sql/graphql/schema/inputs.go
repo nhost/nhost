@@ -67,7 +67,7 @@ func getComparisonOperators(scalarType string, caps Capabilities) []string {
 			"_like", "_lt", "_lte", "_neq", "_nilike", "_nin", "_niregex",
 			"_nlike", "_nregex", "_nsimilar", "_regex", "_similar",
 		}
-	case "jsonb":
+	case "jsonb": //nolint:goconst,nolintlint // scalar name literal is clearer than a package-wide constant here.
 		if !caps.SupportsJSONB {
 			return []string{"_eq", "_gt", "_gte", "_in", "_is_null", "_lt", "_lte", "_neq", "_nin"}
 		}

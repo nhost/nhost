@@ -8,6 +8,7 @@ import (
 	"github.com/nhost/nhost/services/constellation/connector/sql/graphql/queries/arguments"
 	"github.com/nhost/nhost/services/constellation/connector/sql/graphql/queries/core"
 	"github.com/nhost/nhost/services/constellation/connector/sql/graphql/queries/dialect"
+	"github.com/nhost/nhost/services/constellation/connector/sql/graphql/queries/values"
 	"github.com/nhost/nhost/services/constellation/connector/sql/graphql/queries/where"
 )
 
@@ -905,6 +906,205 @@ func TestBuildSingleInsertCTEPostCheckPropagatesSubs(t *testing.T) {
 	}) {
 		t.Error(
 			"non-relationship predicate must render identically with or without irrelevant subs",
+		)
+	}
+}
+
+// newAggregateInsertCheckTable builds a "public"."departments" *table whose
+// role "user" insert check is the aggregate-relationship predicate
+//
+//	user_departments_aggregate: {bool_and: {arguments: is_active, predicate: {_eq: true}}}
+//
+// over an array relationship to "public"."user_departments". The relationship
+// join is reverse-FK (the FK department_id lives on the target), so the
+// parent-side join column is the departments primary key "id" — i.e. exactly the
+// column where.CollectSourceColumns must surface via
+// aggregateRelationshipFilter.sourceColumns() for the insert-permission data CTE
+// to project it.
+//
+// The clause is parsed through the same where.Parse entry point the production
+// permission pipeline uses (table.parseWhere with PermissionAliases), so this
+// exercises the real aggregateRelationshipFilter, not a stub. It is injected
+// directly into permissions.Insert — the documented white-box test seam — to
+// avoid standing up the full metadata Initialize pipeline.
+func newAggregateInsertCheckTable(t *testing.T) *table {
+	t.Helper()
+
+	idCol := col("id", "uuid", false)
+	nameCol := col("name", "text", false)
+
+	target := newTable("public", "user_departments", &dialect.PostgresDialect{})
+	target.columns = []*core.Column{
+		col("department_id", "uuid", false),
+		col("is_active", "boolean", false),
+	}
+
+	parent := newTestTable(t, []*core.Column{idCol, nameCol}, nil)
+	parent.relationships = []*relationship{{
+		name:           "user_departments",
+		aggregateName:  "user_departments_aggregate",
+		table:          target,
+		isArray:        true,
+		parentColumns:  []string{"id"},
+		targetColumns:  []string{"department_id"},
+		joinIsReversed: true,
+	}}
+
+	check := map[string]any{
+		"user_departments_aggregate": map[string]any{
+			"bool_and": map[string]any{
+				"arguments": "is_active",
+				"predicate": map[string]any{"_eq": true},
+			},
+		},
+	}
+
+	checkAST, err := values.GoValueToAST(check)
+	if err != nil {
+		t.Fatalf("GoValueToAST: %v", err)
+	}
+
+	clause, err := parent.parseWhere(checkAST, nil, "", nil, 0, where.PermissionAliases)
+	if err != nil {
+		t.Fatalf("parseWhere aggregate insert check: %v", err)
+	}
+
+	parent.permissions.Insert["user"] = clause
+
+	return parent
+}
+
+// TestBuildSingleInsertCTEPreCheckAggregateRelationshipCheck is the end-to-end
+// guard for finding C3: an aggregate-relationship predicate used as an insert
+// permission check, rendered through the real insert-permission pre-check CTE
+// builder (buildSingleInsertCTEPreCheck -> buildCheckConstraintCTE ->
+// permissions.WriteInsertCheckSubstituted -> where.WriteConditionSubstituted,
+// with the data-CTE column list drawn from MissingInsertColumns ->
+// where.CollectSourceColumns).
+//
+// It asserts the two security-sensitive C3 behaviours that the where-package
+// unit tests only cover in isolation:
+//
+//  1. With a substitution mapping the aggregate target table to the in-flight
+//     parent CTE, the correlated aggregate subquery reads that CTE, NOT the base
+//     "public"."user_departments" table — Postgres' WITH snapshot semantics mean
+//     the base table can't see the sibling INSERT's in-flight rows. A C3
+//     regression that dropped writeConditionSubstituted (falling back to
+//     WriteCondition) would read the base table here.
+//  2. The parent join column "id" is projected in the pre-insert data CTE even
+//     though it is absent from the insert payload. A C3 regression that dropped
+//     aggregateRelationshipFilter.sourceColumns() would omit it, leaving the
+//     join's data."id" reference unresolved.
+func TestBuildSingleInsertCTEPreCheckAggregateRelationshipCheck(t *testing.T) {
+	t.Parallel()
+
+	tbl := newAggregateInsertCheckTable(t)
+
+	// "id" is deliberately absent from the payload so its appearance in the
+	// data CTE can only come from CollectSourceColumns picking up the
+	// aggregate filter's parent join column.
+	obj := arguments.InsertObject{Columns: []arguments.InsertColumn{
+		insertCol(col("name", "text", false), "research"),
+	}}
+
+	subs := where.TableSubstitutions{`"public"."user_departments"`: "mutation_result"}
+
+	var b strings.Builder
+
+	_, _, err := tbl.buildSingleInsertCTEPreCheck(
+		&b, "mutation_result", obj, nil, nil, subs, nil, 1, "user", nil,
+	)
+	if err != nil {
+		t.Fatalf("buildSingleInsertCTEPreCheck: %v", err)
+	}
+
+	got := b.String()
+
+	dataSelect, _, ok := strings.Cut(got, ") AS data WHERE ")
+	if !ok {
+		t.Fatalf("could not locate data-CTE SELECT boundary in:\n%s", got)
+	}
+
+	// (2) Parent join column projected in the pre-insert data CTE. The aggregate
+	// filter never references "id" except through the relationship's parent
+	// columns, so this only holds if sourceColumns() surfaced it.
+	if !strings.Contains(dataSelect, `NULL::uuid AS "id"`) {
+		t.Errorf(
+			"data CTE must project the aggregate relationship's parent join column \"id\"; got:\n%s",
+			got,
+		)
+	}
+
+	// (1) The correlated aggregate subquery reads the substituted CTE.
+	if !strings.Contains(got, `FROM mutation_result "gaggt0"`) {
+		t.Errorf("aggregate subquery must read the substituted CTE; got:\n%s", got)
+	}
+
+	if strings.Contains(got, `FROM "public"."user_departments"`) {
+		t.Errorf(
+			"aggregate subquery must not read the base target table when substituted; got:\n%s",
+			got,
+		)
+	}
+
+	// The aggregate shape itself must be intact: bool_and over the target's
+	// boolean column, aliased __cs_agg, joined back to the parent on data."id",
+	// and compared in the outer WHERE.
+	wantFragments := []string{
+		`EXISTS (SELECT 1 FROM (SELECT bool_and("gaggt0"."is_active") AS "__cs_agg"`,
+		`WHERE "gaggt0"."department_id" = data."id"`,
+		`"gaggs0" WHERE "gaggs0"."__cs_agg" = `,
+	}
+	for _, frag := range wantFragments {
+		if !strings.Contains(got, frag) {
+			t.Errorf("missing aggregate-predicate fragment %q; got:\n%s", frag, got)
+		}
+	}
+}
+
+// TestBuildSingleInsertCTEPreCheckAggregateRelationshipNoSubs is the companion
+// negative control: with NO substitution, the same insert check must read the
+// base target table (Postgres' WITH semantics are correct for a top-level
+// insert, where there is no in-flight parent CTE). This proves the substituted
+// rendering in the test above is the substitution actually firing, not a render
+// that always emits the CTE name regardless of subs.
+func TestBuildSingleInsertCTEPreCheckAggregateRelationshipNoSubs(t *testing.T) {
+	t.Parallel()
+
+	tbl := newAggregateInsertCheckTable(t)
+
+	obj := arguments.InsertObject{Columns: []arguments.InsertColumn{
+		insertCol(col("name", "text", false), "research"),
+	}}
+
+	var b strings.Builder
+
+	_, _, err := tbl.buildSingleInsertCTEPreCheck(
+		&b, "mutation_result", obj, nil, nil, nil, nil, 1, "user", nil,
+	)
+	if err != nil {
+		t.Fatalf("buildSingleInsertCTEPreCheck: %v", err)
+	}
+
+	got := b.String()
+
+	if !strings.Contains(got, `FROM "public"."user_departments" "gaggt0"`) {
+		t.Errorf(
+			"without subs the aggregate subquery must read the base target table; got:\n%s",
+			got,
+		)
+	}
+
+	if strings.Contains(got, "mutation_result \"gaggt0\"") {
+		t.Errorf("without subs the aggregate subquery must not read a CTE; got:\n%s", got)
+	}
+
+	// The parent join column projection is independent of substitution: it comes
+	// from CollectSourceColumns, which runs the same way on both paths.
+	if !strings.Contains(got, `NULL::uuid AS "id"`) {
+		t.Errorf(
+			"data CTE must project parent join column \"id\" regardless of subs; got:\n%s",
+			got,
 		)
 	}
 }

@@ -1,0 +1,39 @@
+[
+  [
+    {
+      "_join_key": "00000000-0000-0000-0000-000000000099",
+      "aggregate": {
+        "count": 0
+      },
+      "nodes": []
+    },
+    {
+      "_join_key": "550e8400-e29b-41d4-a716-446655440001",
+      "aggregate": {
+        "count": 2
+      },
+      "nodes": [
+        {
+          "role": "manager",
+          "department_id": "2db9de0a-b9ba-416e-8619-783a399ae2b3"
+        },
+        {
+          "department_id": "fd1e6bba-c292-4b2f-872e-ae16146cdd82",
+          "role": "member"
+        }
+      ]
+    },
+    {
+      "_join_key": "550e8400-e29b-41d4-a716-446655440002",
+      "aggregate": {
+        "count": 1
+      },
+      "nodes": [
+        {
+          "department_id": "2db9de0a-b9ba-416e-8619-783a399ae2b3",
+          "role": "member"
+        }
+      ]
+    }
+  ]
+]

@@ -1389,46 +1389,10 @@ type departments_avg_fields {
   budget: Float
 }
 """
-aggregate stddev on columns
-"""
-type departments_stddev_fields {
-  budget: Float
-}
-"""
-aggregate stddev_pop on columns
-"""
-type departments_stddev_pop_fields {
-  budget: Float
-}
-"""
-aggregate stddev_samp on columns
-"""
-type departments_stddev_samp_fields {
-  budget: Float
-}
-"""
 aggregate sum on columns
 """
 type departments_sum_fields {
   budget: numeric
-}
-"""
-aggregate var_pop on columns
-"""
-type departments_var_pop_fields {
-  budget: Float
-}
-"""
-aggregate var_samp on columns
-"""
-type departments_var_samp_fields {
-  budget: Float
-}
-"""
-aggregate variance on columns
-"""
-type departments_variance_fields {
-  budget: Float
 }
 """
 aggregate fields of "departments"
@@ -1438,13 +1402,7 @@ type departments_aggregate_fields {
   max: departments_max_fields
   min: departments_min_fields
   avg: departments_avg_fields
-  stddev: departments_stddev_fields
-  stddev_pop: departments_stddev_pop_fields
-  stddev_samp: departments_stddev_samp_fields
   sum: departments_sum_fields
-  var_pop: departments_var_pop_fields
-  var_samp: departments_var_samp_fields
-  variance: departments_variance_fields
 }
 """
 response of any mutation on the table "departments"
@@ -4603,45 +4561,9 @@ input authUserSecurityKeys_avg_order_by {
   counter: order_by
 }
 """
-order by stddev() on columns of table "user_security_keys"
-"""
-input authUserSecurityKeys_stddev_order_by {
-  counter: order_by
-}
-"""
-order by stddev_pop() on columns of table "user_security_keys"
-"""
-input authUserSecurityKeys_stddev_pop_order_by {
-  counter: order_by
-}
-"""
-order by stddev_samp() on columns of table "user_security_keys"
-"""
-input authUserSecurityKeys_stddev_samp_order_by {
-  counter: order_by
-}
-"""
 order by sum() on columns of table "user_security_keys"
 """
 input authUserSecurityKeys_sum_order_by {
-  counter: order_by
-}
-"""
-order by var_pop() on columns of table "user_security_keys"
-"""
-input authUserSecurityKeys_var_pop_order_by {
-  counter: order_by
-}
-"""
-order by var_samp() on columns of table "user_security_keys"
-"""
-input authUserSecurityKeys_var_samp_order_by {
-  counter: order_by
-}
-"""
-order by variance() on columns of table "user_security_keys"
-"""
-input authUserSecurityKeys_variance_order_by {
   counter: order_by
 }
 """
@@ -4652,13 +4574,7 @@ input authUserSecurityKeys_aggregate_order_by {
   max: authUserSecurityKeys_max_order_by
   min: authUserSecurityKeys_min_order_by
   avg: authUserSecurityKeys_avg_order_by
-  stddev: authUserSecurityKeys_stddev_order_by
-  stddev_pop: authUserSecurityKeys_stddev_pop_order_by
-  stddev_samp: authUserSecurityKeys_stddev_samp_order_by
   sum: authUserSecurityKeys_sum_order_by
-  var_pop: authUserSecurityKeys_var_pop_order_by
-  var_samp: authUserSecurityKeys_var_samp_order_by
-  variance: authUserSecurityKeys_variance_order_by
 }
 input user_departments_aggregate_bool_exp_bool_and {
   arguments: user_departments_select_column_user_departments_aggregate_bool_exp_bool_and_arguments_columns!
@@ -5187,45 +5103,9 @@ input exercise_log_sets_avg_order_by {
   reps: order_by
 }
 """
-order by stddev() on columns of table "exercise_log_sets"
-"""
-input exercise_log_sets_stddev_order_by {
-  reps: order_by
-}
-"""
-order by stddev_pop() on columns of table "exercise_log_sets"
-"""
-input exercise_log_sets_stddev_pop_order_by {
-  reps: order_by
-}
-"""
-order by stddev_samp() on columns of table "exercise_log_sets"
-"""
-input exercise_log_sets_stddev_samp_order_by {
-  reps: order_by
-}
-"""
 order by sum() on columns of table "exercise_log_sets"
 """
 input exercise_log_sets_sum_order_by {
-  reps: order_by
-}
-"""
-order by var_pop() on columns of table "exercise_log_sets"
-"""
-input exercise_log_sets_var_pop_order_by {
-  reps: order_by
-}
-"""
-order by var_samp() on columns of table "exercise_log_sets"
-"""
-input exercise_log_sets_var_samp_order_by {
-  reps: order_by
-}
-"""
-order by variance() on columns of table "exercise_log_sets"
-"""
-input exercise_log_sets_variance_order_by {
   reps: order_by
 }
 """
@@ -5236,13 +5116,7 @@ input exercise_log_sets_aggregate_order_by {
   max: exercise_log_sets_max_order_by
   min: exercise_log_sets_min_order_by
   avg: exercise_log_sets_avg_order_by
-  stddev: exercise_log_sets_stddev_order_by
-  stddev_pop: exercise_log_sets_stddev_pop_order_by
-  stddev_samp: exercise_log_sets_stddev_samp_order_by
   sum: exercise_log_sets_sum_order_by
-  var_pop: exercise_log_sets_var_pop_order_by
-  var_samp: exercise_log_sets_var_samp_order_by
-  variance: exercise_log_sets_variance_order_by
 }
 """
 Boolean expression to filter rows from the table "exercise_logs". All fields are combined with a logical 'AND'.
