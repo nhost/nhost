@@ -1119,6 +1119,58 @@ func TestInsertBuildQuery(t *testing.T) { //nolint:paralleltest,maintidx
 				Role: "admin",
 			},
 		},
+
+		// Multi-parent object-rel nested insert where each nested department has
+		// its own nested employees array. Locks the nested CTE map recursion so
+		// affected_rows and force-ref tracking include nested_employees_0/1, not
+		// just the first-level nested_department_0/1 CTEs.
+		{
+			name: "multi-parent object-rel nested insert counts nested descendants",
+			query: query{
+				Query: `mutation {
+					insert_user_departments(objects: [
+						{
+							user_id: "550e8400-e29b-41d4-a716-446655440001"
+							role: "manager"
+							department: {
+								data: {
+									id: "00000000-0000-0000-0000-00000000020a"
+									name: "Nested Department A"
+									description: "object rel descendant A"
+									budget: 100000
+									employees: {
+										data: [
+											{ user_id: "550e8400-e29b-41d4-a716-446655440002", role: "member" }
+										]
+									}
+								}
+							}
+						}
+						{
+							user_id: "550e8400-e29b-41d4-a716-446655440003"
+							role: "manager"
+							department: {
+								data: {
+									id: "00000000-0000-0000-0000-00000000020b"
+									name: "Nested Department B"
+									description: "object rel descendant B"
+									budget: 110000
+									employees: {
+										data: [
+											{ user_id: "550e8400-e29b-41d4-a716-446655440004", role: "member" }
+										]
+									}
+								}
+							}
+						}
+					]) {
+						affected_rows
+						returning { user_id department_id role }
+					}
+				}`,
+				Role: "admin",
+			},
+		},
 	}
 
 	testBuildQuery(t, cases, true)

@@ -39,15 +39,19 @@ func extendSubsForArrayChild(
 	return childSubs
 }
 
-// nestedCTENamer maps a nested-insert relationship name to the CTE alias used
-// for its insert. The single-parent path uses bareNestedCTEName (`nested_<rel>`)
-// so existing goldens are unchanged; the multi-parent object-rel path passes a
-// parent-indexed namer so each parent's object-rel CTE (and its deeper nested
-// chain) stays distinct.
-type nestedCTENamer func(relationshipName string) string
+// nestedCTENamer maps a nested-insert node to the CTE alias used for its
+// insert. The single-parent path uses bareNestedCTENameForInsert
+// (`nested_<rel>`) so existing goldens are unchanged; the multi-parent
+// object-rel path passes a parent-indexed allocator so each parent's object-rel
+// CTE (and its deeper nested chain) stays distinct.
+type nestedCTENamer func(nested *arguments.NestedInsert) string
 
 func bareNestedCTEName(relationshipName string) string {
 	return "nested_" + relationshipName
+}
+
+func bareNestedCTENameForInsert(nested *arguments.NestedInsert) string {
+	return bareNestedCTEName(nested.RelationshipName)
 }
 
 // buildNestedInsertCTE renders the CTE for a single nested insert, recursing
@@ -63,7 +67,7 @@ func bareNestedCTEName(relationshipName string) string {
 //
 // cteName is the alias for this nested insert's CTE; childNamer derives the
 // alias for any deeper nested insert reached by the recursion. Callers that
-// want the historical `nested_<rel>` naming pass bareNestedCTEName for both.
+// want the historical `nested_<rel>` naming pass bareNestedCTENameForInsert.
 func buildNestedInsertCTE(
 	b *strings.Builder,
 	ni *arguments.NestedInsert,
@@ -125,7 +129,7 @@ func buildNestedInsertCTE(
 		nested := &ni.NestedObjects[0].NestedInserts[i]
 
 		params, paramIndex, err = buildNestedInsertCTE(
-			b, nested, childNamer(nested.RelationshipName), childNamer,
+			b, nested, childNamer(nested), childNamer,
 			cteName, target.tableFromClause(), childSubs,
 			params, paramIndex, role, sessionVariables,
 		)
@@ -366,10 +370,23 @@ func (t *table) buildNestedInsertCTEs(
 
 	var cteSQL strings.Builder
 
+	var objectNamers []*partitionedObjectCTENameAllocator
+	if multiParent {
+		objectNamers = newPartitionedObjectCTENameAllocators(insertObjs, "", nil)
+	}
+
 	// Single-parent inserts have exactly one element, so this loop emits parent
 	// 0's object rels only; multi-parent inserts emit each parent's own object
-	// rels under a parent-indexed CTE name.
+	// rels under a parent-indexed CTE name. The multi-parent allocator is shared
+	// across the mutation's object-rel forest so descendants that reuse a
+	// top-level/sibling relationship name get a deterministic suffix instead of
+	// duplicating a CTE alias.
 	for parentIdx := range insertObjs {
+		var objectNamer *partitionedObjectCTENameAllocator
+		if multiParent {
+			objectNamer = objectNamers[parentIdx]
+		}
+
 		for i := range insertObjs[parentIdx].NestedInserts {
 			nested := &insertObjs[parentIdx].NestedInserts[i]
 			if nested.IsArrayRelationship {
@@ -377,16 +394,13 @@ func (t *table) buildNestedInsertCTEs(
 			}
 
 			cteName := bareNestedCTEName(nested.RelationshipName)
-			childNamer := bareNestedCTEName
+			childNamer := nestedCTENamer(bareNestedCTENameForInsert)
 			parentCTEName := "mutation_result"
 
 			if multiParent {
-				idx := parentIdx
-				cteName = partitionedNestedObjectCTEName(nested.RelationshipName, idx)
-				childNamer = func(rel string) string {
-					return partitionedNestedObjectCTEName(rel, idx)
-				}
-				parentCTEName = partitionedParentCTEName(idx)
+				cteName = objectNamer.topLevelName(nested)
+				childNamer = objectNamer.childName
+				parentCTEName = partitionedParentCTEName(parentIdx)
 			}
 
 			var err error
@@ -458,7 +472,7 @@ func (t *table) buildArrayNestedInsertCTEs(
 		var err error
 
 		params, paramIndex, err = buildNestedInsertCTE(
-			&cteSQL, nested, bareNestedCTEName(nested.RelationshipName), bareNestedCTEName,
+			&cteSQL, nested, bareNestedCTEName(nested.RelationshipName), bareNestedCTENameForInsert,
 			"mutation_result", t.tableFromClause(), nil,
 			params, paramIndex, role, sessionVariables,
 		)
@@ -498,16 +512,92 @@ func hasObjectNestedInserts(insertObjs []arguments.InsertObject) bool {
 	return false
 }
 
-// partitionedNestedObjectCTEName is the per-parent CTE name for an
+// partitionedNestedObjectCTEName is the per-parent base CTE name for an
 // object-relationship nested insert in a multi-parent insert. The parent index
 // suffix keeps each parent's object-rel CTE distinct so parent N can source its
 // FK column from its own nested object (nested_<rel>_<parentIdx>) rather than
-// every parent cross-joining the single first-row CTE. The conflict-index
-// suffix used by array-rel split CTEs starts at 1 and the per-row suffix is
-// `_row_N`, so this `_<parentIdx>` scheme (relationship name is unique per
-// parent table) cannot collide with an array-rel CTE name.
+// every parent cross-joining the single first-row CTE. Descendants keep this
+// base when possible and add a deterministic suffix when the relationship name
+// would collide with another CTE in the same multi-parent object forest.
 func partitionedNestedObjectCTEName(relationshipName string, parentIdx int) string {
 	return "nested_" + relationshipName + "_" + strconv.Itoa(parentIdx)
+}
+
+type partitionedObjectCTENameAllocator struct {
+	ctePrefix string
+	parentIdx int
+	used      map[string]struct{}
+}
+
+// newPartitionedObjectCTENameAllocators reserves every top-level object-rel CTE
+// name for the whole multi-parent insert before descendants are allocated. That
+// preserves the parent FK contract (`nested_<rel>_<parentIdx>`) while allowing
+// descendants with the same relationship name to suffix themselves instead of
+// duplicating a top-level alias from any parent.
+func newPartitionedObjectCTENameAllocators(
+	insertObjs []arguments.InsertObject,
+	ctePrefix string,
+	used map[string]struct{},
+) []*partitionedObjectCTENameAllocator {
+	if used == nil {
+		used = make(map[string]struct{})
+	}
+
+	for parentIdx := range insertObjs {
+		for i := range insertObjs[parentIdx].NestedInserts {
+			nested := &insertObjs[parentIdx].NestedInserts[i]
+			if nested.IsArrayRelationship {
+				continue
+			}
+
+			used[ctePrefix+partitionedNestedObjectCTEName(nested.RelationshipName, parentIdx)] = struct{}{}
+		}
+	}
+
+	allocators := make([]*partitionedObjectCTENameAllocator, len(insertObjs))
+	for parentIdx := range insertObjs {
+		allocators[parentIdx] = &partitionedObjectCTENameAllocator{
+			ctePrefix: ctePrefix,
+			parentIdx: parentIdx,
+			used:      used,
+		}
+	}
+
+	return allocators
+}
+
+func (a *partitionedObjectCTENameAllocator) topLevelName(
+	nested *arguments.NestedInsert,
+) string {
+	name := a.baseName(nested.RelationshipName)
+	a.used[name] = struct{}{}
+
+	return name
+}
+
+func (a *partitionedObjectCTENameAllocator) childName(
+	nested *arguments.NestedInsert,
+) string {
+	return a.uniqueName(nested.RelationshipName)
+}
+
+func (a *partitionedObjectCTENameAllocator) baseName(relationshipName string) string {
+	return a.ctePrefix + partitionedNestedObjectCTEName(relationshipName, a.parentIdx)
+}
+
+func (a *partitionedObjectCTENameAllocator) uniqueName(relationshipName string) string {
+	base := a.baseName(relationshipName)
+	candidate := base
+
+	for suffix := 1; ; suffix++ {
+		if _, ok := a.used[candidate]; !ok {
+			a.used[candidate] = struct{}{}
+
+			return candidate
+		}
+
+		candidate = base + "_" + strconv.Itoa(suffix)
+	}
 }
 
 func partitionedParentCTEName(parentIdx int) string {
@@ -654,6 +744,68 @@ func reservedNestedCTENames(
 	return reserved
 }
 
+// reservePartitionedObjectCTENames seeds used with every CTE name that the
+// multi-parent object-relationship path emits, so the sibling array-rel
+// allocator (uniquePartitionedNestedCTEName) suffixes any colliding name
+// instead of duplicating an alias and producing an invalid WITH query.
+//
+// buildNestedInsertCTEs walks each parent's object rels with one allocator and
+// recurses into the whole subtree, so an object rel `department` containing an
+// array rel `employees` emits both `nested_department_<idx>` and
+// `nested_employees_<idx>`. If a descendant collides with a top-level or sibling
+// object rel, the allocator reserves the suffixed name it will actually emit.
+// We must therefore reserve the full allocated subtree, not just the immediate
+// object rels — a top-level array rel literally named `employees_<idx>` would
+// otherwise take the descendant alias and produce a duplicate CTE.
+func reservePartitionedObjectCTENames(
+	insertObjs []arguments.InsertObject,
+	ctePrefix string,
+	used map[string]struct{},
+) {
+	if len(insertObjs) <= 1 {
+		return
+	}
+
+	objectNamers := newPartitionedObjectCTENameAllocators(insertObjs, ctePrefix, used)
+
+	for parentIdx := range insertObjs {
+		objectNamer := objectNamers[parentIdx]
+
+		for i := range insertObjs[parentIdx].NestedInserts {
+			nested := &insertObjs[parentIdx].NestedInserts[i]
+			if nested.IsArrayRelationship {
+				continue
+			}
+
+			reservePartitionedObjectSubtreeCTENames(
+				nested, objectNamer.topLevelName(nested), objectNamer.childName, used,
+			)
+		}
+	}
+}
+
+// reservePartitionedObjectSubtreeCTENames reserves the CTE names emitted for a
+// single multi-parent object-rel subtree. It mirrors buildNestedInsertCTE's
+// emission: the relationship's own CTE plus every descendant reached by walking
+// the first nested object's NestedInserts, all under the same shared allocator.
+func reservePartitionedObjectSubtreeCTENames(
+	nested *arguments.NestedInsert,
+	cteName string,
+	childNamer nestedCTENamer,
+	used map[string]struct{},
+) {
+	used[cteName] = struct{}{}
+
+	if len(nested.NestedObjects) == 0 {
+		return
+	}
+
+	for i := range nested.NestedObjects[0].NestedInserts {
+		child := &nested.NestedObjects[0].NestedInserts[i]
+		reservePartitionedObjectSubtreeCTENames(child, childNamer(child), childNamer, used)
+	}
+}
+
 func uniquePartitionedNestedCTEName(
 	ctePrefix string,
 	relationshipName string,
@@ -736,6 +888,8 @@ func groupPartitionedArrayNestedInsertsWithParents(
 
 	byName := make(map[string][]*partitionedNestedGroup)
 	usedCTENames := make(map[string]struct{})
+	reservePartitionedObjectCTENames(insertObjs, ctePrefix, usedCTENames)
+
 	reservedCTENames := reservedNestedCTENames(insertObjs, ctePrefix)
 
 	for parentIdx := range insertObjs {
@@ -1485,8 +1639,57 @@ func nestedCTEMapKey(nestedCTEs map[string]string, relationshipName string) stri
 	}
 }
 
-func addPartitionedArrayNestedCTEsMap(
-	nestedCTEs map[string]string,
+type nestedInsertCTERefs struct {
+	// direct maps top-level nested relationship names to their CTEs. It feeds
+	// insert_one relationship selection only; descendant CTEs must not appear
+	// here or a returning relationship alias can be mistaken for a nested read.
+	direct map[string]string
+	// allNames lists every nested-insert CTE emitted by the mutation. It feeds
+	// affected_rows and force-ref tracking where only CTE names matter.
+	allNames []string
+}
+
+func newNestedInsertCTERefs() nestedInsertCTERefs {
+	return nestedInsertCTERefs{
+		direct:   make(map[string]string),
+		allNames: nil,
+	}
+}
+
+func (r *nestedInsertCTERefs) addDirect(relationshipName string, cteName string) {
+	key := nestedCTEMapKey(r.direct, relationshipName)
+	r.direct[key] = cteName
+}
+
+func (r *nestedInsertCTERefs) addAll(cteName string) {
+	r.allNames = append(r.allNames, cteName)
+}
+
+func addNestedInsertCTERefs(
+	refs *nestedInsertCTERefs,
+	nested *arguments.NestedInsert,
+	cteName string,
+	childNamer nestedCTENamer,
+) {
+	refs.addAll(cteName)
+
+	if len(nested.NestedObjects) == 0 {
+		return
+	}
+
+	for i := range nested.NestedObjects[0].NestedInserts {
+		child := &nested.NestedObjects[0].NestedInserts[i]
+		addNestedInsertCTERefs(
+			refs,
+			child,
+			childNamer(child),
+			childNamer,
+		)
+	}
+}
+
+func addPartitionedArrayNestedCTERefs(
+	refs *nestedInsertCTERefs,
 	insertObjs []arguments.InsertObject,
 	ctePrefix string,
 ) error {
@@ -1498,15 +1701,14 @@ func addPartitionedArrayNestedCTEsMap(
 	}
 
 	for _, g := range groups {
-		key := nestedCTEMapKey(nestedCTEs, g.template.RelationshipName)
-		nestedCTEs[key] = g.cteName
+		refs.addAll(g.cteName)
 
 		if !hasArrayNestedInserts(g.objs) {
 			continue
 		}
 
-		if err := addPartitionedArrayNestedCTEsMap(
-			nestedCTEs, g.objs, g.cteName+"_",
+		if err := addPartitionedArrayNestedCTERefs(
+			refs, g.objs, g.cteName+"_",
 		); err != nil {
 			return fmt.Errorf(
 				"failed to map nested CTEs for %s: %w", g.template.RelationshipName, err,
@@ -1517,57 +1719,83 @@ func addPartitionedArrayNestedCTEsMap(
 	return nil
 }
 
-// buildNestedCTEsMap builds a map of response relationship keys to CTE names.
-// It must mirror the CTEs the insert builder actually emits so affected_rows
-// and force-ref tracking include every emitted CTE:
+// buildNestedCTERefs builds the two nested-insert CTE views used by mutation
+// responses. refs.allNames mirrors every CTE the insert builder emits so
+// affected_rows and force-ref tracking include all descendants; refs.direct is
+// intentionally limited to direct top-level nested relationships for insert_one
+// returning selections.
+//
+// Emitted CTE names follow the insert builder:
 //
 //   - Single-parent inserts emit one CTE per nested rel named `nested_<rel>`.
 //   - Multi-parent inserts emit array-relationship children through the
-//     partitioned path (addPartitionedArrayNestedCTEsMap, which can split a rel
+//     partitioned path (addPartitionedArrayNestedCTERefs, which can split a rel
 //     into multiple CTEs for incompatible on_conflict clauses) and object-rel
-//     children one CTE per parent named `nested_<rel>_<parentIdx>`.
-//
-// Synthetic map keys (`<rel>#N`) are used when one relationship maps to more
-// than one emitted CTE so single-CTE relationship lookups keep their plain key.
-func (t *table) buildNestedCTEsMap(
+//     children one CTE per parent, based on `nested_<rel>_<parentIdx>` and
+//     suffixed only when a descendant would otherwise collide.
+//   - Nested inserts below object relationships recurse with the same child
+//     allocator as buildNestedInsertCTE, so object-rel descendants feed
+//     allNames without polluting direct relationship selection.
+func (t *table) buildNestedCTERefs(
 	insertObjs []arguments.InsertObject,
-) (map[string]string, error) {
-	nestedCTEs := make(map[string]string)
-	multiParent := len(insertObjs) > 1
+) (nestedInsertCTERefs, error) {
+	refs := newNestedInsertCTERefs()
+	if len(insertObjs) <= 1 {
+		addSingleParentNestedCTERefs(&refs, insertObjs)
+
+		return refs, nil
+	}
+
+	if err := addMultiParentNestedCTERefs(&refs, insertObjs); err != nil {
+		return nestedInsertCTERefs{}, err
+	}
+
+	return refs, nil
+}
+
+func addSingleParentNestedCTERefs(
+	refs *nestedInsertCTERefs,
+	insertObjs []arguments.InsertObject,
+) {
+	if len(insertObjs) == 0 {
+		return
+	}
+
+	for i := range insertObjs[0].NestedInserts {
+		nested := &insertObjs[0].NestedInserts[i]
+		cteName := bareNestedCTEName(nested.RelationshipName)
+
+		refs.addDirect(nested.RelationshipName, cteName)
+		addNestedInsertCTERefs(refs, nested, cteName, bareNestedCTENameForInsert)
+	}
+}
+
+func addMultiParentNestedCTERefs(
+	refs *nestedInsertCTERefs,
+	insertObjs []arguments.InsertObject,
+) error {
+	objectNamers := newPartitionedObjectCTENameAllocators(insertObjs, "", nil)
 
 	for parentIdx := range insertObjs {
+		objectNamer := objectNamers[parentIdx]
+
 		for i := range insertObjs[parentIdx].NestedInserts {
 			nested := &insertObjs[parentIdx].NestedInserts[i]
-
-			// Array-rel CTEs are mapped below by the partitioned helper when
-			// multi-parent; single-parent keeps them here.
-			if nested.IsArrayRelationship && multiParent {
+			if nested.IsArrayRelationship {
 				continue
 			}
 
-			// Object-rel CTEs are emitted per parent when multi-parent, so map
-			// every parent (each to its own nested_<rel>_<parentIdx>); when
-			// single-parent only the first parent's object rels are emitted.
-			if !nested.IsArrayRelationship && !multiParent && parentIdx > 0 {
-				continue
-			}
-
-			key := nestedCTEMapKey(nestedCTEs, nested.RelationshipName)
-			if !nested.IsArrayRelationship && multiParent {
-				nestedCTEs[key] = partitionedNestedObjectCTEName(
-					nested.RelationshipName, parentIdx,
-				)
-			} else {
-				nestedCTEs[key] = bareNestedCTEName(nested.RelationshipName)
-			}
+			addNestedInsertCTERefs(
+				refs, nested, objectNamer.topLevelName(nested), objectNamer.childName,
+			)
 		}
 	}
 
-	if multiParent && hasArrayNestedInserts(insertObjs) {
-		if err := addPartitionedArrayNestedCTEsMap(nestedCTEs, insertObjs, ""); err != nil {
-			return nil, err
+	if hasArrayNestedInserts(insertObjs) {
+		if err := addPartitionedArrayNestedCTERefs(refs, insertObjs, ""); err != nil {
+			return err
 		}
 	}
 
-	return nestedCTEs, nil
+	return nil
 }

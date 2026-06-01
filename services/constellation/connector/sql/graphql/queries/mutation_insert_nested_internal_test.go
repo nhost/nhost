@@ -12,13 +12,14 @@ import (
 	"github.com/nhost/nhost/services/constellation/connector/sql/graphql/queries/where"
 )
 
-func TestBuildNestedCTEsMapMirrorsEmittedCTEs(t *testing.T) {
+func TestBuildNestedCTERefsMirrorEmittedCTEs(t *testing.T) {
 	t.Parallel()
 
 	tests := []struct {
-		name       string
-		insertObjs []arguments.InsertObject
-		want       map[string]string
+		name         string
+		insertObjs   []arguments.InsertObject
+		wantAllNames []string
+		wantDirect   map[string]string
 	}{
 		{
 			// Multi-parent inserts emit one object-rel CTE per parent, so both
@@ -40,11 +41,11 @@ func TestBuildNestedCTEsMapMirrorsEmittedCTEs(t *testing.T) {
 					},
 				},
 			},
-			want: map[string]string{
-				"file":        "nested_file_0",
-				"avatar":      "nested_avatar_1",
-				"replies":     "nested_replies",
-				"attachments": "nested_attachments",
+			wantAllNames: []string{
+				"nested_file_0",
+				"nested_avatar_1",
+				"nested_replies",
+				"nested_attachments",
 			},
 		},
 		{
@@ -60,10 +61,82 @@ func TestBuildNestedCTEsMapMirrorsEmittedCTEs(t *testing.T) {
 					},
 				},
 			},
-			want: map[string]string{
-				"file":    "nested_file_1",
-				"replies": "nested_replies",
+			wantAllNames: []string{"nested_file_1", "nested_replies"},
+		},
+		{
+			name: "includes descendants below multi-parent object rels",
+			insertObjs: []arguments.InsertObject{
+				{
+					NestedInserts: []arguments.NestedInsert{
+						{
+							RelationshipName:    "department",
+							IsArrayRelationship: false,
+							NestedObjects: []arguments.InsertObject{
+								{
+									NestedInserts: []arguments.NestedInsert{
+										{
+											RelationshipName:    "employees",
+											IsArrayRelationship: true,
+											NestedObjects:       []arguments.InsertObject{{}},
+										},
+									},
+								},
+							},
+						},
+					},
+				},
+				{
+					NestedInserts: []arguments.NestedInsert{
+						{
+							RelationshipName:    "department",
+							IsArrayRelationship: false,
+							NestedObjects: []arguments.InsertObject{
+								{
+									NestedInserts: []arguments.NestedInsert{
+										{
+											RelationshipName:    "employees",
+											IsArrayRelationship: true,
+											NestedObjects:       []arguments.InsertObject{{}},
+										},
+									},
+								},
+							},
+						},
+					},
+				},
 			},
+			wantAllNames: []string{
+				"nested_department_0",
+				"nested_department_1",
+				"nested_employees_0",
+				"nested_employees_1",
+			},
+		},
+		{
+			name: "separates direct selection refs from descendant force refs",
+			insertObjs: []arguments.InsertObject{
+				{
+					NestedInserts: []arguments.NestedInsert{
+						{
+							RelationshipName:    "department",
+							IsArrayRelationship: false,
+							NestedObjects: []arguments.InsertObject{
+								{
+									NestedInserts: []arguments.NestedInsert{
+										{
+											RelationshipName:    "employees",
+											IsArrayRelationship: true,
+											NestedObjects:       []arguments.InsertObject{{}},
+										},
+									},
+								},
+							},
+						},
+					},
+				},
+			},
+			wantAllNames: []string{"nested_department", "nested_employees"},
+			wantDirect:   map[string]string{"department": "nested_department"},
 		},
 		{
 			name: "includes partitioned array grandchildren",
@@ -107,10 +180,7 @@ func TestBuildNestedCTEsMapMirrorsEmittedCTEs(t *testing.T) {
 					},
 				},
 			},
-			want: map[string]string{
-				"replies": "nested_replies",
-				"likes":   "nested_replies_nested_likes",
-			},
+			wantAllNames: []string{"nested_replies", "nested_replies_nested_likes"},
 		},
 		{
 			name: "splits same array rel by on_conflict",
@@ -142,10 +212,7 @@ func TestBuildNestedCTEsMapMirrorsEmittedCTEs(t *testing.T) {
 					},
 				},
 			},
-			want: map[string]string{
-				"replies":   "nested_replies",
-				"replies#1": "nested_replies_1",
-			},
+			wantAllNames: []string{"nested_replies", "nested_replies_1"},
 		},
 		{
 			// Object-rel-only multi-parent insert: each parent's object rel is
@@ -165,10 +232,33 @@ func TestBuildNestedCTEsMapMirrorsEmittedCTEs(t *testing.T) {
 					},
 				},
 			},
-			want: map[string]string{
-				"file":   "nested_file_0",
-				"file#1": "nested_file_1",
+			wantAllNames: []string{"nested_file_0", "nested_file_1"},
+		},
+		{
+			// Array-rel names are allocated after object-rel names. If an array
+			// rel's bare name would equal a per-parent object CTE (for example,
+			// relationship `file_1` vs parent[1]'s `file` object CTE), the array
+			// rel must take a suffixed name instead of emitting a duplicate CTE
+			// alias.
+			name: "array rel CTE name avoids per-parent object rel CTE collision",
+			insertObjs: []arguments.InsertObject{
+				{
+					NestedInserts: []arguments.NestedInsert{
+						{RelationshipName: "file", IsArrayRelationship: false},
+						{
+							RelationshipName:    "file_1",
+							IsArrayRelationship: true,
+							NestedObjects:       []arguments.InsertObject{{}},
+						},
+					},
+				},
+				{
+					NestedInserts: []arguments.NestedInsert{
+						{RelationshipName: "file", IsArrayRelationship: false},
+					},
+				},
 			},
+			wantAllNames: []string{"nested_file_0", "nested_file_1", "nested_file_1_1"},
 		},
 		{
 			name: "keeps single-parent object rel as bare nested name",
@@ -179,9 +269,8 @@ func TestBuildNestedCTEsMapMirrorsEmittedCTEs(t *testing.T) {
 					},
 				},
 			},
-			want: map[string]string{
-				"file": "nested_file",
-			},
+			wantAllNames: []string{"nested_file"},
+			wantDirect:   map[string]string{"file": "nested_file"},
 		},
 	}
 
@@ -191,15 +280,225 @@ func TestBuildNestedCTEsMapMirrorsEmittedCTEs(t *testing.T) {
 		t.Run(tt.name, func(t *testing.T) {
 			t.Parallel()
 
-			got, err := tbl.buildNestedCTEsMap(tt.insertObjs)
+			got, err := tbl.buildNestedCTERefs(tt.insertObjs)
 			if err != nil {
-				t.Fatalf("buildNestedCTEsMap(): %v", err)
+				t.Fatalf("buildNestedCTERefs(): %v", err)
 			}
 
-			if !maps.Equal(got, tt.want) {
-				t.Fatalf("buildNestedCTEsMap() = %#v, want %#v", got, tt.want)
+			gotAllNames := sortedNestedCTENames(got.allNames)
+
+			wantAllNames := sortedNestedCTENames(tt.wantAllNames)
+			if !slices.Equal(gotAllNames, wantAllNames) {
+				t.Fatalf(
+					"buildNestedCTERefs().allNames = %#v, want %#v",
+					gotAllNames,
+					wantAllNames,
+				)
+			}
+
+			if !maps.Equal(got.direct, tt.wantDirect) {
+				t.Fatalf("buildNestedCTERefs().direct = %#v, want %#v", got.direct, tt.wantDirect)
 			}
 		})
+	}
+}
+
+// TestBuildNestedCTERefsAvoidsObjectDescendantCollision is the regression for a
+// duplicate-CTE-alias bug: a multi-parent object rel emits its whole subtree
+// under a parent-indexed namer, so an object rel `department` containing an
+// array rel `employees` emits the descendant CTE nested_employees_0 (and _1). A
+// sibling top-level array rel literally named `employees_0` must not also take
+// the bare nested_employees_0 — that would duplicate the alias and produce an
+// invalid WITH query — so it must suffix to nested_employees_0_1. The
+// allocation seeds the full object subtree as used, not just the immediate
+// object rels, which is what this test pins.
+func TestBuildNestedCTERefsAvoidsObjectDescendantCollision(t *testing.T) {
+	t.Parallel()
+
+	departmentWithEmployees := arguments.NestedInsert{
+		RelationshipName:    "department",
+		IsArrayRelationship: false,
+		NestedObjects: []arguments.InsertObject{
+			{
+				NestedInserts: []arguments.NestedInsert{
+					{
+						RelationshipName:    "employees",
+						IsArrayRelationship: true,
+						NestedObjects:       []arguments.InsertObject{{}},
+					},
+				},
+			},
+		},
+	}
+
+	insertObjs := []arguments.InsertObject{
+		{
+			NestedInserts: []arguments.NestedInsert{
+				departmentWithEmployees,
+				{
+					RelationshipName:    "employees_0",
+					IsArrayRelationship: true,
+					NestedObjects:       []arguments.InsertObject{{}},
+				},
+			},
+		},
+		{NestedInserts: []arguments.NestedInsert{departmentWithEmployees}},
+	}
+
+	tbl := &table{}
+
+	got, err := tbl.buildNestedCTERefs(insertObjs)
+	if err != nil {
+		t.Fatalf("buildNestedCTERefs(): %v", err)
+	}
+
+	seen := make(map[string]int, len(got.allNames))
+	for _, name := range got.allNames {
+		seen[name]++
+		if seen[name] > 1 {
+			t.Errorf("duplicate CTE alias %q in allNames %#v", name, got.allNames)
+		}
+	}
+
+	wantAllNames := []string{
+		"nested_department_0",
+		"nested_department_1",
+		"nested_employees_0",
+		"nested_employees_1",
+		"nested_employees_0_1",
+	}
+
+	gotAllNames := sortedNestedCTENames(got.allNames)
+	if !slices.Equal(gotAllNames, sortedNestedCTENames(wantAllNames)) {
+		t.Fatalf("buildNestedCTERefs().allNames = %#v, want %#v", gotAllNames, wantAllNames)
+	}
+}
+
+func TestBuildNestedCTERefsAvoidsObjectRelationshipDescendantCollision(t *testing.T) {
+	t.Parallel()
+
+	profile := arguments.NestedInsert{
+		RelationshipName:    "profile",
+		IsArrayRelationship: false,
+		NestedObjects:       []arguments.InsertObject{{}},
+	}
+	ownerWithProfile := arguments.NestedInsert{
+		RelationshipName:    "owner",
+		IsArrayRelationship: false,
+		NestedObjects: []arguments.InsertObject{
+			{NestedInserts: []arguments.NestedInsert{profile}},
+		},
+	}
+
+	insertObjs := []arguments.InsertObject{
+		{
+			NestedInserts: []arguments.NestedInsert{
+				profile,
+				ownerWithProfile,
+				{
+					RelationshipName:    "profile_0_1",
+					IsArrayRelationship: true,
+					NestedObjects:       []arguments.InsertObject{{}},
+				},
+			},
+		},
+		{NestedInserts: []arguments.NestedInsert{profile, ownerWithProfile}},
+	}
+
+	tbl := &table{}
+
+	got, err := tbl.buildNestedCTERefs(insertObjs)
+	if err != nil {
+		t.Fatalf("buildNestedCTERefs(): %v", err)
+	}
+
+	seen := make(map[string]int, len(got.allNames))
+	for _, name := range got.allNames {
+		seen[name]++
+		if seen[name] > 1 {
+			t.Errorf("duplicate CTE alias %q in allNames %#v", name, got.allNames)
+		}
+	}
+
+	wantAllNames := []string{
+		"nested_owner_0",
+		"nested_owner_1",
+		"nested_profile_0",
+		"nested_profile_0_1",
+		"nested_profile_0_1_1",
+		"nested_profile_1",
+		"nested_profile_1_1",
+	}
+
+	gotAllNames := sortedNestedCTENames(got.allNames)
+	if !slices.Equal(gotAllNames, sortedNestedCTENames(wantAllNames)) {
+		t.Fatalf("buildNestedCTERefs().allNames = %#v, want %#v", gotAllNames, wantAllNames)
+	}
+}
+
+func TestBuildNestedInsertCTEsAvoidsObjectRelationshipDescendantCollision(t *testing.T) {
+	t.Parallel()
+
+	idCol := col("id", "uuid", false)
+	tbl := newTestTable(t, []*core.Column{idCol}, nil)
+
+	objectRel := func(
+		name string,
+		id string,
+		children ...arguments.NestedInsert,
+	) arguments.NestedInsert {
+		return arguments.NestedInsert{
+			RelationshipName:    name,
+			TargetTable:         tbl,
+			IsArrayRelationship: false,
+			NestedObjects: []arguments.InsertObject{
+				{
+					Columns:       []arguments.InsertColumn{insertCol(idCol, id)},
+					NestedInserts: children,
+				},
+			},
+		}
+	}
+
+	insertObjs := []arguments.InsertObject{
+		{
+			NestedInserts: []arguments.NestedInsert{
+				objectRel("profile", "profile-0"),
+				objectRel("owner", "owner-0", objectRel("profile", "owner-profile-0")),
+			},
+		},
+		{
+			NestedInserts: []arguments.NestedInsert{
+				objectRel("profile", "profile-1"),
+				objectRel("owner", "owner-1", objectRel("profile", "owner-profile-1")),
+			},
+		},
+	}
+
+	got, _, _, err := tbl.buildNestedInsertCTEs(insertObjs, "admin", nil, nil, 1)
+	if err != nil {
+		t.Fatalf("buildNestedInsertCTEs(): %v", err)
+	}
+
+	wantAliases := []string{
+		"nested_owner_0",
+		"nested_owner_1",
+		"nested_profile_0",
+		"nested_profile_0_1",
+		"nested_profile_1",
+		"nested_profile_1_1",
+	}
+	for _, alias := range wantAliases {
+		count := 0
+		if strings.HasPrefix(got, alias+" AS (") {
+			count++
+		}
+
+		count += strings.Count(got, ", "+alias+" AS (")
+
+		if count != 1 {
+			t.Fatalf("CTE alias %q appears %d times in SQL:\n%s", alias, count, got)
+		}
 	}
 }
 

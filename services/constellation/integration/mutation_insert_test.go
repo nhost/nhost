@@ -731,10 +731,12 @@ func TestInsertMutations(t *testing.T) { //nolint:paralleltest,maintidx
 		// explicitly into the NOT NULL column and tripped Postgres 23502;
 		// Hasura lets the per-row default apply. The fix emits
 		// `('public'::text)::text` for the omitted branch. RunGraphQLTests
-		// diffs against the live Hasura, so the inserted `visibility` value and
-		// affected_rows must match Hasura (no 23502). Uses the `user` role so
-		// `visibility` is permission-referenced and the post-check path is the
-		// one exercised.
+		// diffs against live Hasura, so the absence of Postgres 23502, the
+		// affected_rows sum, and the parent titles must match Hasura; the exact
+		// default expression is locked by
+		// TestBuildPartitionedUnionAllSelectDefaultExprForMissing. Uses the `user`
+		// role so `visibility` is permission-referenced and the post-check path
+		// is the one exercised.
 		{
 			name: "multi-parent array-rel insert applies DB default for omitted NOT NULL column (Hasura parity)",
 			query: query{
@@ -957,7 +959,7 @@ func TestInsertMutations(t *testing.T) { //nolint:paralleltest,maintidx
 		// per-parent partitioning (nested_file_0 / nested_file_1) is asserted
 		// for both affected_rows and the per-parent file_id linkage.
 		// nested-rel resolution in mutation RETURNING is a separate pre-existing
-		// bug; assert per-parent FK via file_id only.
+		// issue; assert per-parent FK via file_id only.
 		{
 			name: "object-rel collection insert: each parent row links to its own nested file (Hasura parity)",
 			query: query{
