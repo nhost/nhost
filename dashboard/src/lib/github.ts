@@ -40,31 +40,37 @@ function githubHeaders(accessToken: string) {
   };
 }
 
+// Matches the next page URL inside a GitHub `Link` header, e.g.
+// `<https://api.github.com/...?page=2>; rel="next"`.
+const NEXT_PAGE_PATTERN = /(?<=<)\S*(?=>; rel="next")/i;
+
+function getNextPageUrl(linkHeader: string | null): string | null {
+  if (!linkHeader?.includes('rel="next"')) {
+    return null;
+  }
+
+  return linkHeader.match(NEXT_PAGE_PATTERN)?.[0] ?? null;
+}
+
 /**
  * Fetches every page of a paginated GitHub list endpoint and returns the
- * concatenated items.
- *
- * Both endpoints we use (`/user/installations` and
- * `/user/installations/{id}/repositories`) return a `total_count`, so we fetch
- * page 1 to learn the count and then request the remaining pages in parallel
- * instead of walking them sequentially.
+ * concatenated items, following the `Link` response header until there is no
+ * `rel="next"` page left.
  */
 async function fetchAllPages<T>(
   accessToken: string,
-  baseUrl: string,
+  startUrl: string,
   dataKey: 'installations' | 'repositories',
   errorMessage: string,
 ): Promise<T[]> {
-  const fetchPage = async (
-    page: number,
-  ): Promise<{ totalCount: number; items: T[] }> => {
-    const response = await fetch(
-      `${baseUrl}?per_page=${PER_PAGE}&page=${page}`,
-      {
-        headers: githubHeaders(accessToken),
-        cache: 'no-cache',
-      },
-    );
+  const items: T[] = [];
+  let url: string | null = `${startUrl}?per_page=${PER_PAGE}`;
+
+  while (url) {
+    const response = await fetch(url, {
+      headers: githubHeaders(accessToken),
+      cache: 'no-cache',
+    });
 
     if (!response.ok) {
       throw new GitHubAPIError(
@@ -74,38 +80,18 @@ async function fetchAllPages<T>(
       );
     }
 
-    const data = (await response.json()) as {
-      total_count?: number;
-      [key: string]: unknown;
-    };
+    const data = (await response.json()) as Record<string, unknown>;
+    items.push(...((data[dataKey] as T[] | undefined) ?? []));
 
-    return {
-      totalCount: typeof data.total_count === 'number' ? data.total_count : 0,
-      items: (data[dataKey] as T[] | undefined) ?? [],
-    };
-  };
-
-  const firstPage = await fetchPage(1);
-  const totalPages = Math.max(1, Math.ceil(firstPage.totalCount / PER_PAGE));
-
-  if (totalPages <= 1) {
-    return firstPage.items;
+    url = getNextPageUrl(response.headers.get('link'));
   }
 
-  const remainingPages = Array.from(
-    { length: totalPages - 1 },
-    (_, index) => index + 2,
-  );
-  const restPages = await Promise.all(remainingPages.map(fetchPage));
-
-  return [firstPage, ...restPages].flatMap((page) => page.items);
+  return items;
 }
 
 /**
- * Lists all GitHub App installations accessible to the user, following
- * pagination so installations beyond the first page are included.
- * @param accessToken - The GitHub OAuth access token
- * @returns Array of app installations
+ * Lists all GitHub App installations accessible to the user, following the
+ * `Link` header so installations beyond the first page are included.
  */
 export async function listGitHubAppInstallations(
   accessToken: string,
@@ -120,9 +106,7 @@ export async function listGitHubAppInstallations(
 
 /**
  * Lists all repositories accessible through GitHub App installations, following
- * pagination so repositories beyond the first page are included.
- * @param accessToken - The GitHub OAuth access token
- * @returns Array of repositories grouped by installation
+ * the `Link` header so repositories beyond the first page are included.
  */
 export async function listGitHubInstallationRepos(accessToken: string) {
   const installations = await listGitHubAppInstallations(accessToken);
