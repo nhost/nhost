@@ -100,16 +100,30 @@ func (t *table) buildLateralJoinSelection(
 	*first = false
 }
 
+func nestedSelectionCTEName(
+	nestedSelectionCTEs map[string]string,
+	relSel relationshipSelection,
+) (string, bool) {
+	key := relSel.alias
+	if relSel.field != nil {
+		key = relSel.field.Name
+	}
+
+	cteName, ok := nestedSelectionCTEs[key]
+
+	return cteName, ok
+}
+
 // buildRelationshipSelectionsLateral builds relationship selections for LATERAL join mode.
 func (t *table) buildRelationshipSelectionsLateral(
 	b *strings.Builder,
 	relationships []relationshipSelection,
-	nestedCTEs map[string]string,
+	nestedSelectionCTEs map[string]string,
 	fragments ast.FragmentDefinitionList,
 	first *bool,
 ) error {
 	for _, relSel := range relationships {
-		if cteName, isNested := nestedCTEs[relSel.alias]; isNested {
+		if cteName, isNested := nestedSelectionCTEName(nestedSelectionCTEs, relSel); isNested {
 			if err := t.buildNestedInsertSelection(
 				b,
 				relSel,
@@ -131,7 +145,7 @@ func (t *table) buildRelationshipSelectionsLateral(
 func (t *table) buildLateralJoins(
 	b *strings.Builder,
 	relationships []relationshipSelection,
-	nestedCTEs map[string]string,
+	nestedSelectionCTEs map[string]string,
 	fragments ast.FragmentDefinitionList,
 	variables map[string]any,
 	role string,
@@ -141,8 +155,8 @@ func (t *table) buildLateralJoins(
 	paramIndex int,
 ) ([]any, int, error) {
 	for _, relSel := range relationships {
-		// Skip relationships that were nested inserts
-		if _, isNested := nestedCTEs[relSel.alias]; isNested {
+		// Skip relationships that were direct nested inserts.
+		if _, isNested := nestedSelectionCTEName(nestedSelectionCTEs, relSel); isNested {
 			continue
 		}
 
@@ -183,7 +197,8 @@ func (t *table) buildFinalSelect( //nolint:funlen
 	b *strings.Builder,
 	columns []columnSelection,
 	relationships []relationshipSelection,
-	nestedCTEs map[string]string,
+	nestedSelectionCTEs map[string]string,
+	nestedCTENames []string,
 	fragments ast.FragmentDefinitionList,
 	variables map[string]any,
 	role string,
@@ -197,7 +212,7 @@ func (t *table) buildFinalSelect( //nolint:funlen
 	// (array-rel children with a post-INSERT check) is not elided by
 	// Postgres. Non-gated CTEs are referenced redundantly but harmlessly
 	// — see writeNestedCTEForceRef.
-	nestedForceRefNames := sortedNestedCTEValues(nestedCTEs)
+	nestedForceRefNames := sortedNestedCTENames(nestedCTENames)
 
 	if len(columns) == 0 && len(relationships) == 0 {
 		// No fields selected, just return the mutated row
@@ -220,7 +235,7 @@ func (t *table) buildFinalSelect( //nolint:funlen
 	if t.dialect.SupportsLateral() { //nolint:nestif
 		// PostgreSQL: reference LATERAL aliases + nested CTE subqueries
 		if err := t.buildRelationshipSelectionsLateral(
-			b, relationships, nestedCTEs, fragments, &first,
+			b, relationships, nestedSelectionCTEs, fragments, &first,
 		); err != nil {
 			return nil, err
 		}
@@ -232,7 +247,7 @@ func (t *table) buildFinalSelect( //nolint:funlen
 		var err error
 
 		params, _, err = t.buildLateralJoins(
-			b, relationships, nestedCTEs, fragments, variables,
+			b, relationships, nestedSelectionCTEs, fragments, variables,
 			role, sessionVariables, roots, params, paramIndex,
 		)
 		if err != nil {
@@ -245,7 +260,7 @@ func (t *table) buildFinalSelect( //nolint:funlen
 	} else {
 		// SQLite: embed relationships as correlated subqueries or nested CTE subqueries
 		for _, relSel := range relationships {
-			if cteName, isNested := nestedCTEs[relSel.alias]; isNested {
+			if cteName, isNested := nestedSelectionCTEName(nestedSelectionCTEs, relSel); isNested {
 				if err := t.buildNestedInsertSelection(
 					b, relSel, cteName, fragments, &first,
 				); err != nil {

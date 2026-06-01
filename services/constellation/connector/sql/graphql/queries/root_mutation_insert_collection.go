@@ -83,7 +83,7 @@ func (t *table) buildInsertCollectionSQL(
 	params := make([]any, 0, len(insertObjs)*8) //nolint:mnd
 	paramIndex := 1
 
-	cteSQL, params, paramIndex, nestedCTEs, err := t.buildInsertMutationCTE(
+	cteSQL, params, paramIndex, nestedCTERefs, err := t.buildInsertMutationCTE(
 		insertObjs,
 		onConflict,
 		role,
@@ -106,8 +106,8 @@ func (t *table) buildInsertCollectionSQL(
 	// so the returning-side WHERE no-op is the only reference. When both are
 	// selected the references duplicate harmlessly. Removing either site
 	// silently regresses the shape it covers.
-	if len(nestedCTEs) > 0 {
-		nestedNames := sortedNestedCTEValues(nestedCTEs)
+	if len(nestedCTERefs.allNames) > 0 {
+		nestedNames := sortedNestedCTENames(nestedCTERefs.allNames)
 		if selection.affectedRows != nil {
 			selection.affectedRows.nestedCTENames = nestedNames
 		}
@@ -304,7 +304,7 @@ func (t *table) buildSingleInsertCTE(
 // buildInsertMutationCTE builds the complete WITH clause including all CTEs up to and including mutation_result.
 // This is shared by both insert_one and insert (multiple rows). Dispatches to
 // the pre-check or post-check path the same way buildSingleInsertCTE does.
-// Returns the CTE SQL, updated params, paramIndex, nestedCTEs map, and error.
+// Returns the CTE SQL, updated params, paramIndex, nested-insert CTE refs, and error.
 func (t *table) buildInsertMutationCTE(
 	insertObjs []arguments.InsertObject,
 	onConflict *arguments.OnConflict,
@@ -312,7 +312,7 @@ func (t *table) buildInsertMutationCTE(
 	sessionVariables map[string]any,
 	params []any,
 	paramIndex int,
-) (string, []any, int, map[string]string, error) {
+) (string, []any, int, nestedInsertCTERefs, error) {
 	var b strings.Builder
 
 	b.WriteString("WITH ")
@@ -321,7 +321,7 @@ func (t *table) buildInsertMutationCTE(
 		insertObjs, role, sessionVariables, params, paramIndex,
 	)
 	if err != nil {
-		return "", nil, 0, nil, err
+		return "", nil, 0, nestedInsertCTERefs{}, err
 	}
 
 	if nestedCTESQL != "" {
@@ -329,28 +329,11 @@ func (t *table) buildInsertMutationCTE(
 		b.WriteString(", ")
 	}
 
-	nestedFKIndex, err := t.buildNestedFKIndex(insertObjs)
+	params, paramIndex, err = t.buildParentInsertMutationCTEBody(
+		&b, insertObjs, onConflict, role, sessionVariables, params, paramIndex,
+	)
 	if err != nil {
-		return "", nil, 0, nil, err
-	}
-
-	nestedFKColumns := nestedFKColumnSet(nestedFKIndex)
-
-	if len(insertObjs) > 1 && hasArrayNestedInserts(insertObjs) {
-		params, paramIndex, err = t.buildPartitionedParentInsertMutationCTEBody(
-			&b, insertObjs, nestedFKIndex, onConflict, role, sessionVariables, params, paramIndex,
-		)
-	} else {
-		allColumns, columnToValue := t.collectAllColumns(insertObjs, nestedFKColumns)
-
-		params, paramIndex, err = t.buildInsertMutationCTEBody(
-			&b, insertObjs, allColumns, columnToValue,
-			nestedFKIndex, onConflict, role, sessionVariables, params, paramIndex,
-		)
-	}
-
-	if err != nil {
-		return "", nil, 0, nil, err
+		return "", nil, 0, nestedInsertCTERefs{}, err
 	}
 
 	// Array-relationship nested CTEs reference columns from mutation_result, so
@@ -359,7 +342,7 @@ func (t *table) buildInsertMutationCTE(
 		insertObjs, role, sessionVariables, params, paramIndex,
 	)
 	if err != nil {
-		return "", nil, 0, nil, err
+		return "", nil, 0, nestedInsertCTERefs{}, err
 	}
 
 	if arrayNestedSQL != "" {
@@ -367,29 +350,70 @@ func (t *table) buildInsertMutationCTE(
 		b.WriteString(arrayNestedSQL)
 	}
 
-	nestedCTEs, err := t.buildNestedCTEsMap(insertObjs)
+	nestedCTERefs, err := t.buildNestedCTERefs(insertObjs)
 	if err != nil {
-		return "", nil, 0, nil, err
+		return "", nil, 0, nestedInsertCTERefs{}, err
 	}
 
-	return b.String(), params, paramIndex, nestedCTEs, nil
+	return b.String(), params, paramIndex, nestedCTERefs, nil
 }
 
-// sortedNestedCTEValues extracts and sorts the CTE names from the nestedCTEs
-// map so the affected_rows projection's `+ (SELECT COUNT(*) FROM …)` order is
-// deterministic for golden-file diffs. Sorting on the CTE name keeps the
-// convention used by `nested_<rel>` so multi-relationship inserts produce
-// stable SQL, including split CTEs for incompatible nested on_conflict clauses.
-func sortedNestedCTEValues(nestedCTEs map[string]string) []string {
-	if len(nestedCTEs) == 0 {
+// buildParentInsertMutationCTEBody emits the parent INSERT CTE(s) up to and
+// including mutation_result.
+//
+// A multi-parent insert that carries any nested insert (array- or
+// object-relationship) takes the partitioned parent path: one parent CTE per
+// input row. Array-rel children source their FK from mutation_result_N and
+// object-rel parents source their FK from nested_<rel>_N — both need a
+// per-parent parent CTE rather than a single mutation_result cross-joined onto
+// every row. All other inserts use the shared single-body path.
+func (t *table) buildParentInsertMutationCTEBody(
+	b *strings.Builder,
+	insertObjs []arguments.InsertObject,
+	onConflict *arguments.OnConflict,
+	role string,
+	sessionVariables map[string]any,
+	params []any,
+	paramIndex int,
+) ([]any, int, error) {
+	if len(insertObjs) > 1 &&
+		(hasArrayNestedInserts(insertObjs) || hasObjectNestedInserts(insertObjs)) {
+		nestedFKIndexes, err := t.buildPartitionedNestedFKIndexes(insertObjs)
+		if err != nil {
+			return nil, 0, err
+		}
+
+		return t.buildPartitionedParentInsertMutationCTEBody(
+			b, insertObjs, nestedFKIndexes, onConflict, role, sessionVariables, params, paramIndex,
+		)
+	}
+
+	nestedFKIndex, err := t.buildNestedFKIndex(insertObjs)
+	if err != nil {
+		return nil, 0, err
+	}
+
+	nestedFKColumns := nestedFKColumnSet(nestedFKIndex)
+
+	allColumns, columnToValue := t.collectAllColumns(insertObjs, nestedFKColumns)
+
+	return t.buildInsertMutationCTEBody(
+		b, insertObjs, allColumns, columnToValue,
+		nestedFKIndex, onConflict, role, sessionVariables, params, paramIndex,
+	)
+}
+
+// sortedNestedCTENames sorts the CTE names so affected_rows and force-ref
+// projections are deterministic for golden-file diffs. Sorting on the CTE name
+// keeps the convention used by `nested_<rel>` so multi-relationship inserts
+// produce stable SQL, including split CTEs for incompatible nested on_conflict
+// clauses.
+func sortedNestedCTENames(names []string) []string {
+	if len(names) == 0 {
 		return nil
 	}
 
-	values := make([]string, 0, len(nestedCTEs))
-	for _, v := range nestedCTEs {
-		values = append(values, v)
-	}
-
+	values := append([]string(nil), names...)
 	sort.Strings(values)
 
 	return values
