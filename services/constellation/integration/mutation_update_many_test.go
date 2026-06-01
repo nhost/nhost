@@ -312,3 +312,41 @@ func TestUpdateManyMutations(t *testing.T) { //nolint:paralleltest
 		ReinitBetweenQueries: true,
 	})
 }
+
+// TestUpdateManyOverlappingSequential verifies that update_<table>_many applies
+// each update sequentially, so a later update observes the rows mutated by an
+// earlier one — matching Hasura. update[0] sets Marketing's budget to 510000;
+// update[1] then matches budget _eq 510000 (only Marketing, and only after
+// update[0] ran) and increments it to 511000. Under the old parallel sibling-CTE
+// behaviour update[1] evaluated its filter against the pre-statement snapshot
+// (Marketing still 500000), matched nothing, and left Marketing at 510000. No
+// other seeded department has budget 510000, so the overlap is unambiguous. See
+// INCON_MEDIUM_13.
+func TestUpdateManyOverlappingSequential(t *testing.T) { //nolint:paralleltest
+	cases := []TestCase{
+		{
+			name: "update_many overlapping rows are updated sequentially",
+			query: query{
+				Query: `mutation {
+					update_departments_many(updates: [
+						{ where: { name: { _eq: "Marketing" } }, _set: { budget: 510000 } }
+						{ where: { budget: { _eq: 510000 } }, _inc: { budget: 1000 } }
+					]) {
+						affected_rows
+						returning {
+							id
+							name
+							budget
+						}
+					}
+				}`,
+				Role: "admin",
+			},
+		},
+	}
+
+	RunGraphQLTests(t, cases, TestConfig{
+		IsMutation:           true,
+		ReinitBetweenQueries: true,
+	})
+}

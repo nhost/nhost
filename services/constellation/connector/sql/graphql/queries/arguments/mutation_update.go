@@ -289,10 +289,7 @@ func ParseUpdate( //nolint:cyclop,funlen,gocognit
 
 func validateUpdateOperators(update Update) error {
 	if update.IsEmpty() {
-		return fmt.Errorf(
-			"%w: at least one update operator must be provided",
-			ErrInvalidArgument,
-		)
+		return newEmptyUpdateError()
 	}
 
 	seen := make(map[string]struct{})
@@ -341,11 +338,7 @@ func checkDuplicateUpdateColumn(seen map[string]struct{}, col *core.Column) erro
 	}
 
 	if _, exists := seen[col.SQLName]; exists {
-		return fmt.Errorf(
-			"%w: column %q cannot be updated by more than one operator",
-			ErrInvalidArgument,
-			col.SQLName,
-		)
+		return newDuplicateUpdateColumnError(col.SQLName)
 	}
 
 	seen[col.SQLName] = struct{}{}
