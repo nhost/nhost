@@ -407,26 +407,26 @@ func (wf *Workflows) GetUserByTicket(
 	return user, nil
 }
 
-func (wf *Workflows) GetUserByEmailAndTicket(
+func (wf *Workflows) GetUserByEmailAndOTP(
 	ctx context.Context,
 	email string,
-	ticket string,
+	otp string,
 	logger *slog.Logger,
 ) (sql.AuthUser, *APIError) {
-	user, err := wf.db.GetUserByEmailAndTicket(
+	user, err := wf.db.GetUserByEmailAndOTP(
 		ctx,
-		sql.GetUserByEmailAndTicketParams{
-			Email:  sql.Text(email),
-			Ticket: sql.Text(ticket),
+		sql.GetUserByEmailAndOTPParams{
+			Email: sql.Text(email),
+			Otp:   sql.Text(otp),
 		},
 	)
 	if errors.Is(err, pgx.ErrNoRows) {
 		logger.WarnContext(ctx, "user not found")
-		return sql.AuthUser{}, ErrInvalidTicket
+		return sql.AuthUser{}, ErrInvalidOTP
 	}
 
 	if err != nil {
-		logger.ErrorContext(ctx, "could not get user by ticket", logError(err))
+		logger.ErrorContext(ctx, "could not get user by otp", logError(err))
 		return sql.AuthUser{}, ErrInternalServerError
 	}
 

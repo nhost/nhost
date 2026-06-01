@@ -168,19 +168,19 @@ func (mr *MockDBClientGetUserMockRecorder) GetUserByEmail(ctx, email any) *gomoc
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetUserByEmail", reflect.TypeOf((*MockDBClientGetUser)(nil).GetUserByEmail), ctx, email)
 }
 
-// GetUserByEmailAndTicket mocks base method.
-func (m *MockDBClientGetUser) GetUserByEmailAndTicket(ctx context.Context, arg sql.GetUserByEmailAndTicketParams) (sql.AuthUser, error) {
+// GetUserByEmailAndOTP mocks base method.
+func (m *MockDBClientGetUser) GetUserByEmailAndOTP(ctx context.Context, arg sql.GetUserByEmailAndOTPParams) (sql.AuthUser, error) {
 	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "GetUserByEmailAndTicket", ctx, arg)
+	ret := m.ctrl.Call(m, "GetUserByEmailAndOTP", ctx, arg)
 	ret0, _ := ret[0].(sql.AuthUser)
 	ret1, _ := ret[1].(error)
 	return ret0, ret1
 }
 
-// GetUserByEmailAndTicket indicates an expected call of GetUserByEmailAndTicket.
-func (mr *MockDBClientGetUserMockRecorder) GetUserByEmailAndTicket(ctx, arg any) *gomock.Call {
+// GetUserByEmailAndOTP indicates an expected call of GetUserByEmailAndOTP.
+func (mr *MockDBClientGetUserMockRecorder) GetUserByEmailAndOTP(ctx, arg any) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetUserByEmailAndTicket", reflect.TypeOf((*MockDBClientGetUser)(nil).GetUserByEmailAndTicket), ctx, arg)
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetUserByEmailAndOTP", reflect.TypeOf((*MockDBClientGetUser)(nil).GetUserByEmailAndOTP), ctx, arg)
 }
 
 // GetUserByPhoneNumber mocks base method.
@@ -970,19 +970,19 @@ func (mr *MockDBClientMockRecorder) GetUserByEmail(ctx, email any) *gomock.Call 
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetUserByEmail", reflect.TypeOf((*MockDBClient)(nil).GetUserByEmail), ctx, email)
 }
 
-// GetUserByEmailAndTicket mocks base method.
-func (m *MockDBClient) GetUserByEmailAndTicket(ctx context.Context, arg sql.GetUserByEmailAndTicketParams) (sql.AuthUser, error) {
+// GetUserByEmailAndOTP mocks base method.
+func (m *MockDBClient) GetUserByEmailAndOTP(ctx context.Context, arg sql.GetUserByEmailAndOTPParams) (sql.AuthUser, error) {
 	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "GetUserByEmailAndTicket", ctx, arg)
+	ret := m.ctrl.Call(m, "GetUserByEmailAndOTP", ctx, arg)
 	ret0, _ := ret[0].(sql.AuthUser)
 	ret1, _ := ret[1].(error)
 	return ret0, ret1
 }
 
-// GetUserByEmailAndTicket indicates an expected call of GetUserByEmailAndTicket.
-func (mr *MockDBClientMockRecorder) GetUserByEmailAndTicket(ctx, arg any) *gomock.Call {
+// GetUserByEmailAndOTP indicates an expected call of GetUserByEmailAndOTP.
+func (mr *MockDBClientMockRecorder) GetUserByEmailAndOTP(ctx, arg any) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetUserByEmailAndTicket", reflect.TypeOf((*MockDBClient)(nil).GetUserByEmailAndTicket), ctx, arg)
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetUserByEmailAndOTP", reflect.TypeOf((*MockDBClient)(nil).GetUserByEmailAndOTP), ctx, arg)
 }
 
 // GetUserByPhoneNumber mocks base method.

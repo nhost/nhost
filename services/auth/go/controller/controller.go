@@ -16,9 +16,10 @@ import (
 )
 
 const (
-	In30Days   = 720 * time.Hour
-	InAMonth   = 30 * 24 * time.Hour
-	In5Minutes = 5 * time.Minute
+	In30Days    = 720 * time.Hour
+	InAMonth    = 30 * 24 * time.Hour
+	In10Minutes = 10 * time.Minute
+	In5Minutes  = 5 * time.Minute
 )
 
 func deptr[T any](x *T) T { //nolint:ireturn
@@ -52,8 +53,8 @@ type DBClientGetUser interface {
 		ctx context.Context, arg sql.GetUserByRefreshTokenHashParams,
 	) (sql.AuthUser, error)
 	GetUserByTicket(ctx context.Context, ticket pgtype.Text) (sql.AuthUser, error)
-	GetUserByEmailAndTicket(
-		ctx context.Context, arg sql.GetUserByEmailAndTicketParams,
+	GetUserByEmailAndOTP(
+		ctx context.Context, arg sql.GetUserByEmailAndOTPParams,
 	) (sql.AuthUser, error)
 }
 

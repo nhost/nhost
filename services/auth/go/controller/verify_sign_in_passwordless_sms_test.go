@@ -175,8 +175,8 @@ func TestVerifySignInPasswordlessSms(t *testing.T) { //nolint:maintidx
 				},
 			},
 			expectedResponse: controller.ErrorResponse{
-				Error:   "invalid-request",
-				Message: "The request payload is incorrect",
+				Error:   "invalid-otp",
+				Message: "Invalid or expired OTP",
 				Status:  400,
 			},
 			expectedJWT: nil,
@@ -444,8 +444,8 @@ func TestVerifySignInPasswordlessSms(t *testing.T) { //nolint:maintidx
 				},
 			},
 			expectedResponse: controller.ErrorResponse{
-				Error:   "invalid-request",
-				Message: "The request payload is incorrect",
+				Error:   "invalid-otp",
+				Message: "Invalid or expired OTP",
 				Status:  400,
 			},
 			expectedJWT: nil,
@@ -479,8 +479,8 @@ func TestVerifySignInPasswordlessSms(t *testing.T) { //nolint:maintidx
 				},
 			},
 			expectedResponse: controller.ErrorResponse{
-				Error:   "invalid-request",
-				Message: "The request payload is incorrect",
+				Error:   "invalid-otp",
+				Message: "Invalid or expired OTP",
 				Status:  400,
 			},
 			expectedJWT: nil,
@@ -514,8 +514,8 @@ func TestVerifySignInPasswordlessSms(t *testing.T) { //nolint:maintidx
 				},
 			},
 			expectedResponse: controller.ErrorResponse{
-				Error:   "invalid-request",
-				Message: "The request payload is incorrect",
+				Error:   "invalid-otp",
+				Message: "Invalid or expired OTP",
 				Status:  400,
 			},
 			expectedJWT: nil,

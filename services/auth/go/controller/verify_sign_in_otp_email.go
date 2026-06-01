@@ -15,7 +15,7 @@ func (ctrl *Controller) VerifySignInOTPEmail( //nolint:ireturn
 	logger := oapimw.LoggerFromContext(ctx).
 		With(slog.String("email", string(request.Body.Email)))
 
-	user, apiErr := ctrl.wf.GetUserByEmailAndTicket(
+	user, apiErr := ctrl.wf.GetUserByEmailAndOTP(
 		ctx, string(request.Body.Email), request.Body.Otp, logger,
 	)
 	if apiErr != nil {

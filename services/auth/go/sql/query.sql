@@ -34,10 +34,29 @@ SET ticket = NULL, ticket_expires_at = now()
 WHERE id = (SELECT id FROM selected_user)
 RETURNING *;
 
--- name: GetUserByEmailAndTicket :one
+-- name: GetUserByEmailAndOTP :one
+-- A wrong guess increments otp_attempts and only invalidates the code once it
+-- reaches the 5-attempt cap, so a typo no longer burns the code on the first
+-- mistake while still bounding brute-force. A correct guess clears the counter.
+WITH burn AS (
+    UPDATE auth.users
+    SET otp_attempts = otp_attempts + 1,
+        otp_hash = CASE WHEN otp_attempts + 1 >= 5 THEN NULL ELSE otp_hash END,
+        otp_hash_expires_at =
+            CASE WHEN otp_attempts + 1 >= 5 THEN now() ELSE otp_hash_expires_at END
+    WHERE email = @email
+      AND otp_hash IS NOT NULL
+      AND otp_hash_expires_at > now()
+      AND otp_method_last_used = 'email'
+      AND otp_hash <> crypt(@otp, otp_hash)
+    RETURNING id
+)
 UPDATE auth.users
-SET ticket = NULL, ticket_expires_at = now(), email_verified = true
-WHERE email = $1 AND ticket = $2 AND ticket_expires_at > now()
+SET otp_hash = NULL, otp_hash_expires_at = now(), email_verified = true, otp_attempts = 0
+WHERE email = @email
+  AND otp_hash = crypt(@otp, otp_hash)
+  AND otp_hash_expires_at > now()
+  AND otp_method_last_used = 'email'
 RETURNING *;
 
 -- name: GetUserByPhoneNumberAndOTP :one
@@ -409,7 +428,8 @@ WHERE id = $1;
 UPDATE auth.users
 SET otp_hash = crypt(@otp, gen_salt('bf')),
     otp_hash_expires_at = $3,
-    otp_method_last_used = $4
+    otp_method_last_used = $4,
+    otp_attempts = 0
 WHERE id = $1
 RETURNING id;
 

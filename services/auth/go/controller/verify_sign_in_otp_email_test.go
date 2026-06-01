@@ -29,11 +29,11 @@ func TestVerifySignInOTPEmail(t *testing.T) {
 			db: func(ctrl *gomock.Controller) controller.DBClient {
 				mock := mock.NewMockDBClient(ctrl)
 
-				mock.EXPECT().GetUserByEmailAndTicket(
+				mock.EXPECT().GetUserByEmailAndOTP(
 					gomock.Any(),
-					sql.GetUserByEmailAndTicketParams{
-						Email:  sql.Text("jane@acme.com"),
-						Ticket: sql.Text("123456789"),
+					sql.GetUserByEmailAndOTPParams{
+						Email: sql.Text("jane@acme.com"),
+						Otp:   sql.Text("123456789"),
 					},
 				).Return(getSigninUser(userID), nil)
 
@@ -126,11 +126,11 @@ func TestVerifySignInOTPEmail(t *testing.T) {
 				user := getSigninUser(userID)
 				user.Disabled = true
 
-				mock.EXPECT().GetUserByEmailAndTicket(
+				mock.EXPECT().GetUserByEmailAndOTP(
 					gomock.Any(),
-					sql.GetUserByEmailAndTicketParams{
-						Email:  sql.Text("jane@acme.com"),
-						Ticket: sql.Text("123456789"),
+					sql.GetUserByEmailAndOTPParams{
+						Email: sql.Text("jane@acme.com"),
+						Otp:   sql.Text("123456789"),
 					},
 				).Return(user, nil)
 
@@ -158,11 +158,11 @@ func TestVerifySignInOTPEmail(t *testing.T) {
 			db: func(ctrl *gomock.Controller) controller.DBClient {
 				mock := mock.NewMockDBClient(ctrl)
 
-				mock.EXPECT().GetUserByEmailAndTicket(
+				mock.EXPECT().GetUserByEmailAndOTP(
 					gomock.Any(),
-					sql.GetUserByEmailAndTicketParams{
-						Email:  sql.Text("jane@acme.com"),
-						Ticket: sql.Text("123456789"),
+					sql.GetUserByEmailAndOTPParams{
+						Email: sql.Text("jane@acme.com"),
+						Otp:   sql.Text("123456789"),
 					},
 				).Return(sql.AuthUser{}, pgx.ErrNoRows)
 
@@ -175,9 +175,9 @@ func TestVerifySignInOTPEmail(t *testing.T) {
 				},
 			},
 			expectedResponse: controller.ErrorResponse{
-				Error:   "invalid-ticket",
-				Message: "Invalid ticket",
-				Status:  401,
+				Error:   "invalid-otp",
+				Message: "Invalid or expired OTP",
+				Status:  400,
 			},
 			expectedJWT:       nil,
 			jwtTokenFn:        nil,
