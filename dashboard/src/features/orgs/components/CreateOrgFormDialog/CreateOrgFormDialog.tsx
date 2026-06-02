@@ -6,7 +6,7 @@ import { useState } from 'react';
 import { useForm } from 'react-hook-form';
 import { z } from 'zod';
 import { ActivityIndicator } from '@/components/ui/v2/ActivityIndicator';
-import { Button } from '@/components/ui/v3/button';
+import { Button, ButtonWithLoading } from '@/components/ui/v3/button';
 import {
   Dialog,
   DialogContent,
@@ -247,13 +247,12 @@ function CreateOrgForm({
           >
             Cancel
           </Button>
-          <Button type="submit" disabled={form.formState.isSubmitting}>
-            {form.formState.isSubmitting ? (
-              <ActivityIndicator />
-            ) : (
-              'Create organization'
-            )}
-          </Button>
+          <ButtonWithLoading
+            type="submit"
+            loading={form.formState.isSubmitting}
+          >
+            Create organization
+          </ButtonWithLoading>
         </div>
       </form>
     </Form>

@@ -4,8 +4,7 @@ import { useRouter } from 'next/router';
 import { useEffect, useMemo, useState } from 'react';
 import { useForm } from 'react-hook-form';
 import { z } from 'zod';
-import { ActivityIndicator } from '@/components/ui/v2/ActivityIndicator';
-import { Button } from '@/components/ui/v3/button';
+import { Button, ButtonWithLoading } from '@/components/ui/v3/button';
 import {
   Dialog,
   DialogContent,
@@ -244,18 +243,15 @@ export default function SubscriptionPlan() {
               <span> for billing information</span>
             </div>
             <div className="flex w-full flex-row items-center justify-end gap-2">
-              <Button
+              <ButtonWithLoading
                 className="h-fit truncate"
                 variant="secondary"
                 onClick={handleUpdatePaymentDetails}
-                disabled={loading || isFreeOrg}
+                disabled={isFreeOrg}
+                loading={loading}
               >
-                {loading ? (
-                  <ActivityIndicator />
-                ) : (
-                  <span className="truncate">Stripe Customer Portal</span>
-                )}
-              </Button>
+                <span className="truncate">Stripe Customer Portal</span>
+              </ButtonWithLoading>
               <Button
                 disabled={loading}
                 className="h-fit"
@@ -336,16 +332,14 @@ export default function SubscriptionPlan() {
                   >
                     Cancel
                   </Button>
-                  <Button
+                  <ButtonWithLoading
                     data-testid="upgradeOrgSubmitButton"
                     type="submit"
-                    disabled={
-                      selectedPlan === org?.plan?.id ||
-                      form.formState.isSubmitting
-                    }
+                    disabled={selectedPlan === org?.plan?.id}
+                    loading={form.formState.isSubmitting}
                   >
-                    {form.formState.isSubmitting ? 'Upgrading...' : 'Upgrade'}
-                  </Button>
+                    Upgrade
+                  </ButtonWithLoading>
                 </DialogFooter>
               </form>
             </Form>
