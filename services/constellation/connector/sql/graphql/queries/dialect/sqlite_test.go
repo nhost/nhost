@@ -520,7 +520,11 @@ func TestSQLiteDialect_WriteGroupKeysFrom_Prepares(t *testing.T) {
 		t.Fatalf("open sqlite: %v", err)
 	}
 
-	t.Cleanup(func() { _ = db.Close() })
+	t.Cleanup(func() {
+		if err := db.Close(); err != nil {
+			t.Errorf("close sqlite: %v", err)
+		}
+	})
 
 	// go-sqlite3 gives each pooled connection its own private :memory: database,
 	// so pin the pool to a single connection; otherwise the CREATE TABLE and the
@@ -576,14 +580,22 @@ func TestSQLiteDialect_WriteGroupKeysFrom_Prepares(t *testing.T) {
 				)
 			}
 
-			t.Cleanup(func() { _ = stmt.Close() })
+			t.Cleanup(func() {
+				if err := stmt.Close(); err != nil {
+					t.Errorf("close statement: %v", err)
+				}
+			})
 
 			rows, err := stmt.QueryContext(t.Context(), params...)
 			if err != nil {
 				t.Fatalf("query failed:\n%s\nerror: %v", query, err)
 			}
 
-			t.Cleanup(func() { _ = rows.Close() })
+			t.Cleanup(func() {
+				if err := rows.Close(); err != nil {
+					t.Errorf("close rows: %v", err)
+				}
+			})
 
 			if err := rows.Err(); err != nil {
 				t.Fatalf("rows error: %v", err)
@@ -661,7 +673,11 @@ func TestSQLiteDialect_WriteOnConflictTarget_Prepares(t *testing.T) {
 		t.Fatalf("open sqlite: %v", err)
 	}
 
-	t.Cleanup(func() { _ = db.Close() })
+	t.Cleanup(func() {
+		if err := db.Close(); err != nil {
+			t.Errorf("close sqlite: %v", err)
+		}
+	})
 
 	db.SetMaxOpenConns(1)
 
@@ -696,5 +712,9 @@ func TestSQLiteDialect_WriteOnConflictTarget_Prepares(t *testing.T) {
 		)
 	}
 
-	t.Cleanup(func() { _ = stmt.Close() })
+	t.Cleanup(func() {
+		if err := stmt.Close(); err != nil {
+			t.Errorf("close statement: %v", err)
+		}
+	})
 }

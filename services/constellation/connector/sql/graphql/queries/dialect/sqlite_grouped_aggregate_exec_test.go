@@ -221,7 +221,11 @@ func TestSQLiteDialect_GroupedAggregateWindowed_Executes(t *testing.T) {
 		t.Fatalf("open sqlite: %v", err)
 	}
 
-	t.Cleanup(func() { _ = db.Close() })
+	t.Cleanup(func() {
+		if err := db.Close(); err != nil {
+			t.Errorf("close sqlite: %v", err)
+		}
+	})
 
 	// go-sqlite3 gives each pooled connection its own private :memory: database,
 	// so pin the pool to one connection; otherwise the seed and the later query
@@ -389,7 +393,11 @@ func runGroupedAggregateStmt(
 		)
 	}
 
-	t.Cleanup(func() { _ = stmt.Close() })
+	t.Cleanup(func() {
+		if err := stmt.Close(); err != nil {
+			t.Errorf("close statement: %v", err)
+		}
+	})
 
 	var raw string
 	if err := stmt.QueryRowContext(t.Context(), params...).Scan(&raw); err != nil {

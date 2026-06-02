@@ -326,8 +326,10 @@ internal `xmax` marker, so the selection is per-row even when the conflict key
 is database-generated or supplied by a default. See
 `connector/sql/graphql/queries/mutation_insert_check_ctes.go` (the post-mutation
 check path used by PostgreSQL upserts with an INSERT check). SQLite sources do
-not have executable insert/upsert support yet; see
-[SQLite source differences](sqlite.md) for the current limitation.
+not have executable write-mutation support yet — insert, upsert, update, and
+delete all fail at runtime because the data-modifying-CTE shape they share is a
+PostgreSQL extension SQLite rejects; see
+[SQLite source differences](sqlite.md) for the full list and root cause.
 
 ## Subscriptions
 
@@ -434,13 +436,15 @@ See [`remote-schema.md`](./remote-schema.md). Remote schemas are configured per 
 | `gen_random_uuid()` / sequence defaults | yes | partial |
 | `pg_enum` types | yes | no |
 | Views (read) | yes (track as table) | yes (track as table) |
-| Views (write) | only auto-updatable / `INSTEAD OF` | only via `INSTEAD OF` triggers |
+| Views (write) | only auto-updatable / `INSTEAD OF` | no — generated for `INSTEAD OF`-trigger views but fail at runtime (see [SQLite source differences](sqlite.md)) |
 | Materialized views (read) | yes (track as table) | n/a (SQLite has no matviews) |
 | Tracked SQL functions | yes | no |
 | Function volatility (IMMUTABLE / STABLE / VOLATILE) | yes | n/a |
 | `LATERAL` joins for nested relations | yes | correlated subqueries |
+| Write mutations (`insert` / `update` / `delete`, all variants) | yes | no — fields generated but fail at runtime (see [SQLite source differences](sqlite.md)) |
 | `ON CONFLICT` upserts | yes | no |
 | `RETURNING` | yes | no |
+| Data-modifying CTEs (`WITH ... AS (INSERT/UPDATE/DELETE ... RETURNING)`) | yes | no |
 | Stream subscriptions | yes | yes |
 | Aggregates (`avg`, `sum`, `stddev*`, `var*`, `variance`) | yes | partial |
 | Object / array / remote relationships | yes | yes |
