@@ -317,6 +317,17 @@ insert_users(
 
 Generated SQL: `ON CONFLICT ON CONSTRAINT "<name>" DO UPDATE SET col = EXCLUDED.col [WHERE ...]`. Implementation: `connector/sql/graphql/queries/arguments_mutation_insert.go`.
 
+For a non-admin role, the permission check applied to each row depends on the
+branch that row took, matching Hasura: a freshly inserted row must satisfy the
+role's INSERT `check`, while a row that took the `DO UPDATE` branch is governed
+by the role's UPDATE `filter` and UPDATE `check` instead — the INSERT check is
+not applied to it. PostgreSQL classifies each `RETURNING` row exactly using the
+internal `xmax` marker, so the selection is per-row even when the conflict key
+is database-generated or supplied by a default. See
+`connector/sql/graphql/queries/mutation_insert_check_ctes.go` (the post-mutation
+check path that every upsert with an INSERT check uses) and
+[SQLite source differences](sqlite.md) for the SQLite fallback.
+
 ## Subscriptions
 
 Subscriptions are polling-based for both Postgres and SQLite (no LISTEN/NOTIFY). The handler (`connector/sql/subscription/`) groups subscriptions with identical query shapes into cohorts of up to 100 and executes one multiplexed query per cohort per poll interval. Change detection uses xxhash on each subscriber's result; updates are pushed only when the hash changes.

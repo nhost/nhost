@@ -277,6 +277,35 @@ func (d *SQLiteDialect) WriteUpsertUpdateAction(_ *strings.Builder) {
 	)
 }
 
+// WriteOnConflictTarget lists the constraint's columns: SQLite has no
+// "ON CONFLICT ON CONSTRAINT <name>" form, so it identifies the conflict target
+// by its index columns ("ON CONFLICT (\"col1\", \"col2\")"). constraintName is
+// unused. When conflictColumns is empty (a constraint whose columns could not be
+// resolved) we emit a bare "ON CONFLICT" — SQLite reads that as "any conflict",
+// which still drives the following DO UPDATE/DO NOTHING rather than producing the
+// syntax error an empty "()" would.
+func (d *SQLiteDialect) WriteOnConflictTarget(
+	b *strings.Builder, _ string, conflictColumns []string,
+) {
+	b.WriteString(" ON CONFLICT")
+
+	if len(conflictColumns) == 0 {
+		return
+	}
+
+	b.WriteString(" (")
+
+	for i, column := range conflictColumns {
+		if i > 0 {
+			b.WriteString(", ")
+		}
+
+		core.WriteQuotedIdentifier(b, column)
+	}
+
+	b.WriteByte(')')
+}
+
 func writeQuotedExpressionList(b *strings.Builder, expressions []string) {
 	for i, expr := range expressions {
 		if i > 0 {

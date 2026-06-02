@@ -8,6 +8,7 @@ import (
 	"github.com/vektah/gqlparser/v2/ast"
 
 	"github.com/nhost/nhost/services/constellation/connector/sql/graphql/queries/core"
+	"github.com/nhost/nhost/services/constellation/connector/sql/graphql/queries/dialect"
 	"github.com/nhost/nhost/services/constellation/connector/sql/graphql/queries/permissions"
 	"github.com/nhost/nhost/services/constellation/connector/sql/graphql/queries/values"
 	"github.com/nhost/nhost/services/constellation/connector/sql/graphql/queries/where"
@@ -16,8 +17,14 @@ import (
 // OnConflict represents a parsed on_conflict argument.
 type OnConflict struct {
 	ConstraintName string
-	UpdateColumns  []string
-	Where          where.Clause
+	// ConflictColumns are the SQL column names backing ConstraintName, resolved
+	// at parse time from the table's introspected constraints. SQLite renders the
+	// conflict target as a column list ("ON CONFLICT (col, ...)") because it has
+	// no "ON CONSTRAINT <name>" form; PostgreSQL names the constraint and ignores
+	// these. Empty when the constraint has no resolvable columns.
+	ConflictColumns []string
+	UpdateColumns   []string
+	Where           where.Clause
 	// TargetTableRef is the quoted table reference used to qualify
 	// on_conflict.where predicates. PostgreSQL evaluates that predicate against
 	// the existing conflict-target row, not the EXCLUDED/incoming row.
@@ -33,25 +40,31 @@ type OnConflictWhereWriter func(
 ) ([]any, int, bool, error)
 
 // ToSQL generates the SQL ON CONFLICT clause with parameters.
-// For example:
+// For example (PostgreSQL):
 //
 //	ON CONFLICT ON CONSTRAINT users_pkey
 //	DO UPDATE SET email = EXCLUDED.email, name = EXCLUDED.name
 //	WHERE is_active = true
 //
+// The conflict target is rendered through the dialect, so SQLite emits
+// "ON CONFLICT (\"col\", ...)" instead of the constraint-name form.
 // Returns the SQL fragment, updated params slice, and updated param index.
 func (oc *OnConflict) ToSQL(
 	b *strings.Builder,
+	d dialect.Dialect,
 	params []any,
 	paramIndex int,
 ) ([]any, int, error) {
-	return oc.ToSQLWithWhere(b, params, paramIndex, nil)
+	return oc.ToSQLWithWhere(b, d, params, paramIndex, nil)
 }
 
 // ToSQLWithWhere generates the SQL ON CONFLICT clause and AND-combines an
-// optional server-side predicate into DO UPDATE WHERE.
+// optional server-side predicate into DO UPDATE WHERE. The conflict target is
+// rendered through the dialect (constraint name for PostgreSQL, column list for
+// SQLite).
 func (oc *OnConflict) ToSQLWithWhere(
 	b *strings.Builder,
+	d dialect.Dialect,
 	params []any,
 	paramIndex int,
 	extraWhere OnConflictWhereWriter,
@@ -60,8 +73,7 @@ func (oc *OnConflict) ToSQLWithWhere(
 		return params, paramIndex, nil
 	}
 
-	b.WriteString(" ON CONFLICT ON CONSTRAINT ")
-	core.WriteQuotedIdentifier(b, oc.ConstraintName)
+	d.WriteOnConflictTarget(b, oc.ConstraintName, oc.ConflictColumns)
 
 	if len(oc.UpdateColumns) == 0 {
 		b.WriteString(" DO NOTHING")
@@ -176,10 +188,11 @@ func ParseOnConflict(
 	}
 
 	oc := &OnConflict{
-		UpdateColumns:  []string{},
-		ConstraintName: "",
-		Where:          nil,
-		TargetTableRef: "",
+		UpdateColumns:   []string{},
+		ConstraintName:  "",
+		ConflictColumns: nil,
+		Where:           nil,
+		TargetTableRef:  "",
 	}
 
 	for _, field := range onConflictValue.Children {
@@ -216,6 +229,10 @@ func ParseOnConflict(
 		return nil, fmt.Errorf("%w: on_conflict.constraint is required", ErrInvalidArgument)
 	}
 
+	// SQLite identifies the conflict target by column list, so resolve the named
+	// constraint's columns now (while the table's introspected metadata is in
+	// scope). PostgreSQL ignores these and names the constraint directly.
+	oc.ConflictColumns = t.ConflictColumns(oc.ConstraintName)
 	oc.TargetTableRef = t.TableFromClause()
 
 	return oc, nil

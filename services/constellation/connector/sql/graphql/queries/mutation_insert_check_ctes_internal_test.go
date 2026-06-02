@@ -1590,7 +1590,7 @@ func TestBuildSingleInsertCTEPostCheckUpsertANDsUpdateAndInsertPostChecks(t *tes
 	}
 
 	presentCols := insertPresentColumns([]arguments.InsertObject{obj}, nil)
-	if !tbl.requiresPostInsertCheck("user", presentCols) {
+	if !tbl.requiresPostInsertCheck("user", presentCols, onConflict) {
 		t.Fatalf("fixture must take the post-check path (generated insert-check column)")
 	}
 
@@ -1857,7 +1857,7 @@ func TestRequiresPostInsertCheckBranching(t *testing.T) {
 		}}
 
 		presentCols := insertPresentColumns([]arguments.InsertObject{obj}, nil)
-		if tbl.requiresPostInsertCheck("user", presentCols) {
+		if tbl.requiresPostInsertCheck("user", presentCols, nil) {
 			var b strings.Builder
 
 			_, _, err := tbl.buildSingleInsertCTEPostCheck(
@@ -1906,6 +1906,94 @@ func TestRequiresPostInsertCheckBranching(t *testing.T) {
 	}
 }
 
+// TestRequiresPostInsertCheckUpsertBranch locks the upsert side of the pre/post
+// dispatch decision: an upsert whose DO UPDATE branch is reachable and whose
+// role has a *non-empty* insert check must take the post-mutation path, so the
+// insert check is scoped to inserted rows rather than enforced on every input
+// row via the all-or-nothing check_count gate. The insert-check column here is
+// a plain (non-generated, non-defaulted) column that is supplied in the
+// payload, so condition (1) of requiresPostInsertCheck is false and the upsert
+// condition (2) is the only thing that can force the post-check path.
+func TestRequiresPostInsertCheckUpsertBranch(t *testing.T) {
+	t.Parallel()
+
+	idCol := col("id", "uuid", false)
+	authorCol := col("author_id", "uuid", false)
+	titleCol := col("title", "text", false)
+
+	doUpdate := &arguments.OnConflict{
+		ConstraintName: "notes_pkey",
+		UpdateColumns:  []string{"title"},
+		Where:          nil,
+	}
+	doNothing := &arguments.OnConflict{
+		ConstraintName: "notes_pkey",
+		UpdateColumns:  nil,
+		Where:          nil,
+	}
+
+	tests := []struct {
+		name        string
+		insertCheck map[string]where.Clause
+		onConflict  *arguments.OnConflict
+		want        bool
+	}{
+		{
+			name:        "plain insert with non-empty check stays pre-check",
+			insertCheck: map[string]where.Clause{"user": equalsClause(authorCol, "v")},
+			onConflict:  nil,
+			want:        false,
+		},
+		{
+			name:        "upsert DO UPDATE with non-empty insert check forces post-check",
+			insertCheck: map[string]where.Clause{"user": equalsClause(authorCol, "v")},
+			onConflict:  doUpdate,
+			want:        true,
+		},
+		{
+			name:        "upsert DO UPDATE with empty insert check stays pre-check",
+			insertCheck: map[string]where.Clause{"user": {}},
+			onConflict:  doUpdate,
+			want:        false,
+		},
+		{
+			name:        "upsert DO UPDATE with no insert permission stays pre-check",
+			insertCheck: nil,
+			onConflict:  doUpdate,
+			want:        false,
+		},
+		{
+			name:        "upsert DO NOTHING with non-empty insert check stays pre-check",
+			insertCheck: map[string]where.Clause{"user": equalsClause(authorCol, "v")},
+			onConflict:  doNothing,
+			want:        false,
+		},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			t.Parallel()
+
+			tbl := newTestTable(t, []*core.Column{idCol, authorCol, titleCol}, tt.insertCheck)
+
+			obj := arguments.InsertObject{Columns: []arguments.InsertColumn{
+				insertCol(idCol, "u1"),
+				insertCol(authorCol, "a1"),
+				insertCol(titleCol, "t1"),
+			}}
+			presentCols := insertPresentColumns([]arguments.InsertObject{obj}, nil)
+
+			if got := tbl.requiresPostInsertCheck(
+				"user",
+				presentCols,
+				tt.onConflict,
+			); got != tt.want {
+				t.Errorf("requiresPostInsertCheck = %v, want %v", got, tt.want)
+			}
+		})
+	}
+}
+
 // TestRequiresPostInsertCheckDefaultedColumn covers the composite-FK /
 // defaulted-discriminator bug: an insert check that references a column with a
 // DEFAULT must run post-INSERT when that column is absent from the payload
@@ -1929,7 +2017,7 @@ func TestRequiresPostInsertCheckDefaultedColumn(t *testing.T) {
 	}}
 	if !tbl.requiresPostInsertCheck("user", insertPresentColumns(
 		[]arguments.InsertObject{absent}, nil,
-	)) {
+	), nil) {
 		t.Errorf("defaulted column absent from insert should require post-check")
 	}
 
@@ -1940,14 +2028,14 @@ func TestRequiresPostInsertCheckDefaultedColumn(t *testing.T) {
 	}}
 	if tbl.requiresPostInsertCheck("user", insertPresentColumns(
 		[]arguments.InsertObject{present}, nil,
-	)) {
+	), nil) {
 		t.Errorf("defaulted column supplied in insert should not require post-check")
 	}
 
 	// Multi-row: absent in any one row forces post-check (intersection rule).
 	if !tbl.requiresPostInsertCheck("user", insertPresentColumns(
 		[]arguments.InsertObject{present, absent}, nil,
-	)) {
+	), nil) {
 		t.Errorf("defaulted column missing from one row should require post-check")
 	}
 
@@ -1955,7 +2043,7 @@ func TestRequiresPostInsertCheckDefaultedColumn(t *testing.T) {
 	if tbl.requiresPostInsertCheck("user", insertPresentColumns(
 		[]arguments.InsertObject{absent},
 		arguments.NestedFKSources{"kind": {CTEName: "parent_cte", ColumnName: "kind"}},
-	)) {
+	), nil) {
 		t.Errorf("defaulted column sourced from parent CTE should not require post-check")
 	}
 }

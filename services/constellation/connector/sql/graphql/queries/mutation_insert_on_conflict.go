@@ -64,6 +64,7 @@ func (t *table) writeOnConflictSQL(
 
 	params, paramIndex, err := onConflict.ToSQLWithWhere(
 		b,
+		t.dialect,
 		params,
 		paramIndex,
 		t.onConflictUpdateFilterWriter(role, sessionVariables),

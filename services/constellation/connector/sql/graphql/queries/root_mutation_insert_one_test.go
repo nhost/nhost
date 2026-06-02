@@ -1355,6 +1355,47 @@ func TestInsertOneBuildQuery(t *testing.T) { //nolint:paralleltest,maintidx
 				},
 			},
 		},
+
+		// Conflicting row that takes the DO UPDATE branch and PASSES the UPDATE
+		// permission/check but would FAIL the INSERT check: the incoming
+		// author_id (11111111-...) does not match the session user, so the INSERT
+		// check (author_id = X-Hasura-User-Id) would reject it. Because the row
+		// conflicts on the seeded pkey and author_id is not in update_columns, it
+		// is governed by the UPDATE permission instead — the DO UPDATE WHERE
+		// filter and UPDATE check both run against the *existing* row (owned by
+		// the session user, title not forbidden), so the rename succeeds and the
+		// seeded note's title becomes "Renamed By Update". This locks the pre/post
+		// path consistency fix: the old pre-check path applied the INSERT check to
+		// every input row via check_count and would have aborted the whole
+		// mutation with ZZ901, diverging from Hasura's per-row branch semantics
+		// and from the post-check path. The _data.json golden captures the
+		// returned (updated) row.
+		{
+			name: "upsert non-admin conflicting row passes update check but fails insert check",
+			query: query{
+				Query: `mutation {
+					insert_notes_one(
+						object: {
+							id: "0199cccc-0000-7000-8000-000000000001"
+							author_id: "11111111-1111-1111-1111-111111111111"
+							title: "Renamed By Update"
+						}
+						on_conflict: {
+							constraint: notes_pkey
+							update_columns: [title]
+						}
+					) {
+						id
+						author_id
+						title
+					}
+				}`,
+				Role: "user",
+				SessionVariables: map[string]any{
+					"x-hasura-user-id": "550e8400-e29b-41d4-a716-446655440001",
+				},
+			},
+		},
 	}
 
 	testBuildQuery(t, cases, true)

@@ -297,7 +297,7 @@ func (t *table) buildSingleInsertCTE(
 	sessionVariables map[string]any,
 ) ([]any, int, error) {
 	presentCols := insertPresentColumns([]arguments.InsertObject{insertObj}, nestedFKIndex)
-	if t.requiresPostInsertCheck(role, presentCols) {
+	if t.requiresPostInsertCheck(role, presentCols, onConflict) {
 		return t.buildSingleInsertCTEPostCheck(
 			b, cteName, insertObj, onConflict, nestedFKIndex, tableSubs,
 			params, paramIndex, role, sessionVariables,
@@ -445,7 +445,7 @@ func (t *table) buildInsertMutationCTEBody(
 	paramIndex int,
 ) ([]any, int, error) {
 	presentCols := insertPresentColumns(insertObjs, nestedFKIndex)
-	if t.requiresPostInsertCheck(role, presentCols) {
+	if t.requiresPostInsertCheck(role, presentCols, onConflict) {
 		return t.buildInsertMutationCTEPostCheck(
 			b, insertObjs, allColumns, columnToValue,
 			nestedFKIndex, onConflict, role, sessionVariables, params, paramIndex,

@@ -10,6 +10,7 @@ import (
 
 	"github.com/nhost/nhost/services/constellation/connector/sql/graphql/queries/arguments"
 	"github.com/nhost/nhost/services/constellation/connector/sql/graphql/queries/core"
+	"github.com/nhost/nhost/services/constellation/connector/sql/graphql/queries/dialect"
 	"github.com/nhost/nhost/services/constellation/connector/sql/graphql/queries/where"
 )
 
@@ -192,7 +193,7 @@ func (t *table) buildMultiNestedInsertCTE(
 	allColumns, columnToValue := t.collectAllColumns(insertObjs, nestedFKColumns)
 
 	presentCols := insertPresentColumns(insertObjs, nestedFKIndex)
-	if t.requiresPostInsertCheck(role, presentCols) {
+	if t.requiresPostInsertCheck(role, presentCols, onConflict) {
 		return t.buildMultiNestedInsertCTEPostCheck(
 			b, cteName, insertObjs, allColumns, columnToValue,
 			nestedFKIndex, tableSubs, onConflict, role, sessionVariables,
@@ -748,10 +749,11 @@ type partitionedOnConflictKey struct {
 
 func newPartitionedOnConflictKey(
 	onConflict *arguments.OnConflict,
+	d dialect.Dialect,
 ) (partitionedOnConflictKey, error) {
 	var b strings.Builder
 
-	params, _, err := onConflict.ToSQL(&b, nil, 1)
+	params, _, err := onConflict.ToSQL(&b, d, nil, 1)
 	if err != nil {
 		return partitionedOnConflictKey{}, fmt.Errorf("failed to render on_conflict: %w", err)
 	}
@@ -900,9 +902,10 @@ func matchingPartitionedNestedGroup(
 // relationships and rows so the resulting SQL is deterministic.
 func groupPartitionedArrayNestedInserts(
 	insertObjs []arguments.InsertObject,
+	d dialect.Dialect,
 ) ([]*partitionedNestedGroup, error) {
 	return groupPartitionedArrayNestedInsertsWithParents(
-		insertObjs, partitionedParentCTENames(len(insertObjs)), "",
+		insertObjs, partitionedParentCTENames(len(insertObjs)), "", d,
 	)
 }
 
@@ -926,6 +929,7 @@ func groupPartitionedArrayNestedInsertsWithParents(
 	insertObjs []arguments.InsertObject,
 	parentCTENames []string,
 	ctePrefix string,
+	d dialect.Dialect,
 ) ([]*partitionedNestedGroup, error) {
 	if err := validateParentCTENameCount(insertObjs, parentCTENames); err != nil {
 		return nil, err
@@ -946,7 +950,7 @@ func groupPartitionedArrayNestedInsertsWithParents(
 				continue
 			}
 
-			onConflictKey, err := newPartitionedOnConflictKey(nested.OnConflict)
+			onConflictKey, err := newPartitionedOnConflictKey(nested.OnConflict, d)
 			if err != nil {
 				return nil, fmt.Errorf(
 					"failed to group nested insert %s: %w", nested.RelationshipName, err,
@@ -1032,7 +1036,7 @@ func (t *table) buildPartitionedArrayNestedInsertCTEsWithParents(
 	paramIndex int,
 ) ([]any, int, error) {
 	groups, err := groupPartitionedArrayNestedInsertsWithParents(
-		insertObjs, parentCTENames, ctePrefix,
+		insertObjs, parentCTENames, ctePrefix, t.dialect,
 	)
 	if err != nil {
 		return nil, 0, err
@@ -1264,7 +1268,7 @@ func (t *table) buildPartitionedNestedArrayCTE(
 	allColumns, columnToValue := t.collectAllColumns(insertObjs, nestedFKColumns)
 
 	presentCols := insertPresentColumns(insertObjs, nestedFKIndex)
-	if t.requiresPostInsertCheck(role, presentCols) {
+	if t.requiresPostInsertCheck(role, presentCols, onConflict) {
 		return t.buildPartitionedNestedArrayCTEPostCheck(
 			b, cteName, insertObjs, parentCTENames, allColumns, columnToValue,
 			nestedFKIndex, tableSubs, onConflict, role, sessionVariables,
@@ -1843,9 +1847,10 @@ func addPartitionedArrayNestedCTERefs(
 	refs *nestedInsertCTERefs,
 	insertObjs []arguments.InsertObject,
 	ctePrefix string,
+	d dialect.Dialect,
 ) (map[string]nestedReturningCTERef, error) {
 	groups, err := groupPartitionedArrayNestedInsertsWithParents(
-		insertObjs, partitionedParentCTENames(len(insertObjs)), ctePrefix,
+		insertObjs, partitionedParentCTENames(len(insertObjs)), ctePrefix, d,
 	)
 	if err != nil {
 		return nil, err
@@ -1863,7 +1868,7 @@ func addPartitionedArrayNestedCTERefs(
 
 		if hasArrayNestedInserts(g.objs) {
 			children, err := addPartitionedArrayNestedCTERefs(
-				refs, g.objs, g.cteName+"_",
+				refs, g.objs, g.cteName+"_", d,
 			)
 			if err != nil {
 				return nil, fmt.Errorf(
@@ -1909,7 +1914,7 @@ func (t *table) buildNestedCTERefs(
 		return refs, nil
 	}
 
-	if err := addMultiParentNestedCTERefs(&refs, insertObjs); err != nil {
+	if err := addMultiParentNestedCTERefs(&refs, insertObjs, t.dialect); err != nil {
 		return nestedInsertCTERefs{}, err
 	}
 
@@ -1937,6 +1942,7 @@ func addSingleParentNestedCTERefs(
 func addMultiParentNestedCTERefs(
 	refs *nestedInsertCTERefs,
 	insertObjs []arguments.InsertObject,
+	d dialect.Dialect,
 ) error {
 	objectNamers := newPartitionedObjectCTENameAllocators(insertObjs, "", nil)
 
@@ -1958,7 +1964,7 @@ func addMultiParentNestedCTERefs(
 	}
 
 	if hasArrayNestedInserts(insertObjs) {
-		arrayRefs, err := addPartitionedArrayNestedCTERefs(refs, insertObjs, "")
+		arrayRefs, err := addPartitionedArrayNestedCTERefs(refs, insertObjs, "", d)
 		if err != nil {
 			return err
 		}

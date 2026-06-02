@@ -37,7 +37,7 @@ func TestOnConflict_ToSQL(t *testing.T) {
 			params []any
 		)
 
-		gotParams, gotIdx, err := oc.ToSQL(&b, params, 1)
+		gotParams, gotIdx, err := oc.ToSQL(&b, pgDialect(), params, 1)
 		if err != nil {
 			t.Fatalf("ToSQL: %v", err)
 		}
@@ -57,7 +57,7 @@ func TestOnConflict_ToSQL(t *testing.T) {
 		}
 
 		var b strings.Builder
-		if _, _, err := oc.ToSQL(&b, nil, 1); err != nil {
+		if _, _, err := oc.ToSQL(&b, pgDialect(), nil, 1); err != nil {
 			t.Fatalf("ToSQL: %v", err)
 		}
 
@@ -77,7 +77,7 @@ func TestOnConflict_ToSQL(t *testing.T) {
 		}
 
 		var b strings.Builder
-		if _, _, err := oc.ToSQL(&b, nil, 1); err != nil {
+		if _, _, err := oc.ToSQL(&b, pgDialect(), nil, 1); err != nil {
 			t.Fatalf("ToSQL: %v", err)
 		}
 
@@ -104,7 +104,7 @@ func TestOnConflict_ToSQL(t *testing.T) {
 
 		var b strings.Builder
 
-		params, idx, err := oc.ToSQL(&b, nil, 1)
+		params, idx, err := oc.ToSQL(&b, pgDialect(), nil, 1)
 		if err != nil {
 			t.Fatalf("ToSQL: %v", err)
 		}
@@ -235,7 +235,7 @@ func TestOnConflict_ToSQLWithWhere(t *testing.T) {
 
 			var b strings.Builder
 
-			params, idx, err := oc.ToSQLWithWhere(&b, nil, 1, tt.writer)
+			params, idx, err := oc.ToSQLWithWhere(&b, pgDialect(), nil, 1, tt.writer)
 
 			if tt.wantErr != nil {
 				assertWriterError(t, tt.wantErr, params, idx, err)
@@ -300,7 +300,7 @@ func TestOnConflict_ToSQL_WhereWriteConditionError(t *testing.T) {
 
 	var b strings.Builder
 
-	_, _, err := oc.ToSQL(&b, nil, 1)
+	_, _, err := oc.ToSQL(&b, pgDialect(), nil, 1)
 	if err == nil {
 		t.Fatal("expected error from Where.WriteCondition failure")
 	}
@@ -343,6 +343,7 @@ func TestParseOnConflict(t *testing.T) {
 		tbl.EXPECT().ParseWhere(
 			gomock.Any(), gomock.Any(), "user", gomock.Any(), 0, where.QueryAliases,
 		).Return(where.Clause{}, nil)
+		tbl.EXPECT().ConflictColumns("users_pkey").Return([]string{"id"})
 		tbl.EXPECT().TableFromClause().Return(`"public"."users"`)
 
 		input := objectValue(
@@ -366,6 +367,10 @@ func TestParseOnConflict(t *testing.T) {
 
 		if len(got.UpdateColumns) != 1 || got.UpdateColumns[0] != "email_sql" {
 			t.Errorf("update columns=%v", got.UpdateColumns)
+		}
+
+		if !slices.Equal(got.ConflictColumns, []string{"id"}) {
+			t.Errorf("conflict columns=%v want=[id]", got.ConflictColumns)
 		}
 
 		if got.Where == nil {
@@ -468,6 +473,7 @@ func TestParseOnConflict_VariableFields(t *testing.T) {
 
 	tbl.EXPECT().ColumnFromGraphqlName("email").Return(newColumn("email", "email_sql", "text"))
 	tbl.EXPECT().ColumnFromGraphqlName("name").Return(newColumn("name", "name_sql", "text"))
+	tbl.EXPECT().ConflictColumns("users_pkey").Return([]string{"id"})
 	tbl.EXPECT().TableFromClause().Return(`"public"."users"`)
 
 	input := objectValue(

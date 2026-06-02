@@ -328,6 +328,31 @@ func TestSQLiteDialect_ArrayOps_Panic(t *testing.T) {
 	}
 }
 
+// TestSQLiteDialect_WriteUpsertUpdateAction_Panic pins the ungated contract:
+// SQLite has no xmax equivalent, so SupportsUpsertUpdateAction reports false and
+// any caller reaching WriteUpsertUpdateAction skipped that gate. The dialect
+// panics to surface that programming error loudly instead of emitting SQL that
+// cannot report which rows took the UPDATE branch.
+func TestSQLiteDialect_WriteUpsertUpdateAction_Panic(t *testing.T) {
+	t.Parallel()
+
+	d := &dialect.SQLiteDialect{}
+
+	if d.SupportsUpsertUpdateAction() {
+		t.Fatal("SupportsUpsertUpdateAction = true, want false for SQLite")
+	}
+
+	defer func() {
+		if r := recover(); r == nil {
+			t.Fatal("WriteUpsertUpdateAction: expected panic, got none")
+		}
+	}()
+
+	var b strings.Builder
+
+	d.WriteUpsertUpdateAction(&b)
+}
+
 func TestSQLiteDialect_CountAndAggregateOrderBy(t *testing.T) {
 	t.Parallel()
 
@@ -565,4 +590,90 @@ func TestSQLiteDialect_WriteGroupKeysFrom_Prepares(t *testing.T) {
 			}
 		})
 	}
+}
+
+// TestSQLiteDialect_WriteOnConflictTarget pins the column-list conflict target.
+// SQLite has no "ON CONFLICT ON CONSTRAINT <name>" form, so it ignores the
+// constraint name and lists the index columns. An empty column list degrades to
+// a bare "ON CONFLICT" (any conflict) rather than an illegal empty "()".
+func TestSQLiteDialect_WriteOnConflictTarget(t *testing.T) {
+	t.Parallel()
+
+	d := &dialect.SQLiteDialect{}
+
+	tests := []struct {
+		name    string
+		columns []string
+		want    string
+	}{
+		{name: "single column", columns: []string{"username"}, want: ` ON CONFLICT ("username")`},
+		{
+			name:    "composite columns",
+			columns: []string{"tenant", "email"},
+			want:    ` ON CONFLICT ("tenant", "email")`,
+		},
+		{name: "no columns degrades to bare", columns: nil, want: ` ON CONFLICT`},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			t.Parallel()
+
+			var b strings.Builder
+
+			d.WriteOnConflictTarget(&b, "ignored_constraint_name", tt.columns)
+
+			if got := b.String(); got != tt.want {
+				t.Fatalf("WriteOnConflictTarget:\n got  %q\n want %q", got, tt.want)
+			}
+		})
+	}
+}
+
+// TestSQLiteDialect_WriteOnConflictTarget_Prepares proves the rendered conflict
+// target is valid SQLite by preparing a real INSERT ... ON CONFLICT (...) DO
+// UPDATE against an in-memory database. This is the executable backstop for the
+// conflict-target rendering; it deliberately uses a plain INSERT, not the
+// data-modifying-CTE wrapper Constellation emits, because SQLite cannot parse
+// "WITH ... AS (INSERT ...)" at all (a separate, broader limitation).
+func TestSQLiteDialect_WriteOnConflictTarget_Prepares(t *testing.T) {
+	t.Parallel()
+
+	db, err := sql.Open("sqlite3", ":memory:")
+	if err != nil {
+		t.Fatalf("open sqlite: %v", err)
+	}
+
+	t.Cleanup(func() { _ = db.Close() })
+
+	db.SetMaxOpenConns(1)
+
+	if _, err := db.ExecContext(
+		t.Context(),
+		`CREATE TABLE "users" ("id" TEXT PRIMARY KEY, "username" TEXT);
+		 CREATE UNIQUE INDEX "users_username_key" ON "users"("username");`,
+	); err != nil {
+		t.Fatalf("create table: %v", err)
+	}
+
+	d := &dialect.SQLiteDialect{}
+
+	var b strings.Builder
+
+	b.WriteString(`INSERT INTO "users" ("id", "username") VALUES (?, ?)`)
+	d.WriteOnConflictTarget(&b, "users_username_key", []string{"username"})
+	b.WriteString(` DO UPDATE SET "id" = EXCLUDED."id"`)
+
+	query := b.String()
+
+	stmt, err := db.PrepareContext(t.Context(), query)
+	if err != nil {
+		t.Fatalf(
+			"prepare failed for SQLite-generated upsert conflict target:\n%s\nerror: %v",
+			query,
+			err,
+		)
+	}
+
+	t.Cleanup(func() { _ = stmt.Close() })
 }

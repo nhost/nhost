@@ -517,6 +517,18 @@ func (mr *MockDialectMockRecorder) WriteJSONRowSuffixNoAlias(b any) *gomock.Call
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "WriteJSONRowSuffixNoAlias", reflect.TypeOf((*MockDialect)(nil).WriteJSONRowSuffixNoAlias), b)
 }
 
+// WriteOnConflictTarget mocks base method.
+func (m *MockDialect) WriteOnConflictTarget(b *strings.Builder, constraintName string, conflictColumns []string) {
+	m.ctrl.T.Helper()
+	m.ctrl.Call(m, "WriteOnConflictTarget", b, constraintName, conflictColumns)
+}
+
+// WriteOnConflictTarget indicates an expected call of WriteOnConflictTarget.
+func (mr *MockDialectMockRecorder) WriteOnConflictTarget(b, constraintName, conflictColumns any) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "WriteOnConflictTarget", reflect.TypeOf((*MockDialect)(nil).WriteOnConflictTarget), b, constraintName, conflictColumns)
+}
+
 // WriteUpsertUpdateAction mocks base method.
 func (m *MockDialect) WriteUpsertUpdateAction(b *strings.Builder) {
 	m.ctrl.T.Helper()

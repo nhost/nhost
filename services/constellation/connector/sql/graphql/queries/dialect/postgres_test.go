@@ -398,3 +398,42 @@ func TestPostgresDialect_WriteGroupKeysFrom(t *testing.T) {
 		t.Fatalf("params len = %d, want 1 (single array bind)", len(params))
 	}
 }
+
+// TestPostgresDialect_WriteOnConflictTarget pins the constraint-name conflict
+// target: PostgreSQL names the constraint and ignores the supplied columns.
+func TestPostgresDialect_WriteOnConflictTarget(t *testing.T) {
+	t.Parallel()
+
+	d := &dialect.PostgresDialect{}
+
+	var b strings.Builder
+
+	d.WriteOnConflictTarget(&b, "users_pkey", []string{"id", "tenant"})
+
+	const want = ` ON CONFLICT ON CONSTRAINT "users_pkey"`
+	if got := b.String(); got != want {
+		t.Fatalf("WriteOnConflictTarget:\n got  %q\n want %q", got, want)
+	}
+}
+
+// TestPostgresDialect_WriteUpsertUpdateAction pins the RETURNING marker that
+// reports whether each row took the ON CONFLICT DO UPDATE branch. PostgreSQL
+// reads the xmax system column, which is non-zero for rows that were updated.
+func TestPostgresDialect_WriteUpsertUpdateAction(t *testing.T) {
+	t.Parallel()
+
+	d := &dialect.PostgresDialect{}
+
+	if !d.SupportsUpsertUpdateAction() {
+		t.Fatal("SupportsUpsertUpdateAction = false, want true for PostgreSQL")
+	}
+
+	var b strings.Builder
+
+	d.WriteUpsertUpdateAction(&b)
+
+	const want = `(xmax <> 0)`
+	if got := b.String(); got != want {
+		t.Fatalf("WriteUpsertUpdateAction:\n got  %q\n want %q", got, want)
+	}
+}

@@ -182,6 +182,19 @@ type Dialect interface { //nolint:interfacebloat
 	// SupportsUpsertUpdateAction.
 	WriteUpsertUpdateAction(b *strings.Builder)
 
+	// WriteOnConflictTarget writes the conflict-target clause of an INSERT ...
+	// ON CONFLICT statement, up to (but not including) the DO NOTHING / DO UPDATE
+	// action. The two backends diverge irreconcilably here:
+	//
+	//	PostgreSQL: " ON CONFLICT ON CONSTRAINT \"name\""  (names the constraint)
+	//	SQLite:     " ON CONFLICT (\"col1\", \"col2\")"     (lists the columns)
+	//
+	// SQLite has no "ON CONSTRAINT <name>" form, so callers must supply the
+	// constraint's columns; PostgreSQL ignores them and names the constraint.
+	// conflictColumns are already-resolved SQL column names; they are emitted as
+	// quoted identifiers, never raw user input.
+	WriteOnConflictTarget(b *strings.Builder, constraintName string, conflictColumns []string)
+
 	// WriteGroupKeysFrom writes a FROM-source expression that produces one row
 	// per join value, used to build grouped-aggregate queries that batch
 	// multiple parent keys in a single statement.

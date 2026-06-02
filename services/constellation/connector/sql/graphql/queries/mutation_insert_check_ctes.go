@@ -423,15 +423,48 @@ func (t *table) extendWithPermissionColumns(allColumns []string, role string) []
 }
 
 // requiresPostInsertCheck reports whether the insert-check for role must run
-// after the INSERT (against RETURNING *) instead of against the input data.
-// See permissions.Store.RequiresPostInsertCheck for the rationale; presentCols
-// is the set of columns that carry a concrete value for every row, computed by
-// insertPresentColumns.
+// after the INSERT (against RETURNING *) instead of against the input data,
+// for the given onConflict (nil for a plain insert).
+//
+// Two conditions force the post-mutation path:
+//
+//  1. A check-referenced column's final value is only known after the INSERT
+//     (generated/identity, or DB-defaulted and absent from the payload) — see
+//     permissions.Store.RequiresPostInsertCheck. presentCols is the set of
+//     columns carrying a concrete value for every row, computed by
+//     insertPresentColumns.
+//  2. The mutation is an upsert with a reachable DO UPDATE branch and a
+//     non-empty insert check. The pre-check path enforces the insert check on
+//     *every* input row via the all-or-nothing check_count gate, which would
+//     wrongly reject a conflicting row that takes the UPDATE branch (and is
+//     therefore governed by the UPDATE permission/check, not the INSERT check).
+//     The post-check path scopes the insert check to rows that actually insert,
+//     matching Hasura's per-row branch semantics. See upsertNeedsPostInsertCheck.
 func (t *table) requiresPostInsertCheck(
 	role string,
 	presentCols map[string]struct{},
+	onConflict *arguments.OnConflict,
 ) bool {
-	return t.permissions.RequiresPostInsertCheck(role, presentCols, t.columnFromSQLName)
+	if t.permissions.RequiresPostInsertCheck(role, presentCols, t.columnFromSQLName) {
+		return true
+	}
+
+	return t.upsertNeedsPostInsertCheck(onConflict, role)
+}
+
+// upsertNeedsPostInsertCheck reports whether onConflict describes an upsert
+// whose insert check must be scoped to inserted rows via the post-mutation
+// path. It is true only when the DO UPDATE branch is reachable
+// (len(UpdateColumns) > 0 — an empty list is DO NOTHING and never updates) and
+// role carries a non-empty insert check. Without an insert check the pre-check
+// path emits no check_count gate, so no asymmetry exists and the simpler
+// pre-check path stays in use.
+func (t *table) upsertNeedsPostInsertCheck(onConflict *arguments.OnConflict, role string) bool {
+	if onConflict == nil || len(onConflict.UpdateColumns) == 0 {
+		return false
+	}
+
+	return t.permissions.HasNonEmptyInsertCheck(role)
 }
 
 // insertPresentColumns returns the set of column SQL names that carry a
