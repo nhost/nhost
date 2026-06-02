@@ -315,7 +315,7 @@ insert_users(
 - `update_columns: []` becomes `ON CONFLICT ... DO NOTHING`.
 - `where` is optional and scopes the `DO UPDATE`.
 
-Generated SQL: `ON CONFLICT ON CONSTRAINT "<name>" DO UPDATE SET col = EXCLUDED.col [WHERE ...]`. Implementation: `connector/sql/graphql/queries/arguments_mutation_insert.go`.
+Generated SQL: `ON CONFLICT ON CONSTRAINT "<name>" DO UPDATE SET col = EXCLUDED.col [WHERE ...]`. Implementation: `connector/sql/graphql/queries/mutation_insert_on_conflict.go`.
 
 For a non-admin role, the permission check applied to each row depends on the
 branch that row took, matching Hasura: a freshly inserted row must satisfy the
@@ -458,7 +458,7 @@ See [`remote-schema.md`](./remote-schema.md). Remote schemas are configured per 
 | Comparison operators | `connector/sql/graphql/schema/inputs.go` |
 | Update operators | `connector/sql/graphql/schema/update.go` |
 | JSONB mutation operators | `connector/sql/graphql/schema/mutation.go` |
-| `ON CONFLICT` codegen | `connector/sql/graphql/queries/arguments_mutation_insert.go` |
+| `ON CONFLICT` codegen | `connector/sql/graphql/queries/mutation_insert_on_conflict.go` |
 | Aggregates | `connector/sql/graphql/schema/aggregate.go` |
 | Subscription cohorts | `connector/sql/subscription/` |
 | Metadata types | `metadata/` (`database.go`, `table.go`, `function.go`, `remote_schema.go`) |
