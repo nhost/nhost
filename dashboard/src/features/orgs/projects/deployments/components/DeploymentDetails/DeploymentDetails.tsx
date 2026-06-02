@@ -6,7 +6,6 @@ import { StatusCircle } from '@/components/presentational/StatusCircle';
 import { ActivityIndicator } from '@/components/ui/v2/ActivityIndicator';
 import { Avatar } from '@/components/ui/v2/Avatar';
 import { Box } from '@/components/ui/v2/Box';
-import { Link } from '@/components/ui/v2/Link';
 import { Text } from '@/components/ui/v2/Text';
 import {
   Accordion,
@@ -14,6 +13,7 @@ import {
   AccordionItem,
   AccordionTrigger,
 } from '@/components/ui/v3/accordion';
+import { TextLink } from '@/components/ui/v3/text-link';
 import {
   Tooltip,
   TooltipContent,
@@ -212,15 +212,14 @@ function PipelineRunDetails({
             Commit
           </Text>
           <div className="mt-0.5">
-            <Link
+            <TextLink
               className="font-medium font-mono text-sm"
               target="_blank"
-              rel="noreferrer"
+              rel="noopener noreferrer"
               href={`https://github.com/${project?.githubRepository?.fullName}/commit/${input?.commit_sha}`}
-              underline="hover"
             >
               {input?.commit_sha?.substring(0, 7)}
-            </Link>
+            </TextLink>
             <Tooltip>
               <TooltipTrigger asChild>
                 <Text
@@ -414,15 +413,14 @@ function LegacyDeploymentDetailsView({
           </div>
         </div>
         <div className="flex items-center">
-          <Link
+          <TextLink
             className="self-center font-medium font-mono"
             target="_blank"
-            rel="noreferrer"
+            rel="noopener noreferrer"
             href={`https://github.com/${project?.githubRepository?.fullName}/commit/${deployment?.commitSHA}`}
-            underline="hover"
           >
             {deployment.commitSHA.substring(0, 7)}
-          </Link>
+          </TextLink>
 
           <div className="w-20 text-right">
             <DeploymentDurationLabel
