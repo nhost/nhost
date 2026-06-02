@@ -2,7 +2,7 @@
 
 Constellation supports PostgreSQL as a database backend with a broad feature set inherited from the Hasura metadata model. This document maps each supported feature to the metadata that enables it, and notes which features are PostgreSQL-only versus shared with SQLite.
 
-The PostgreSQL driver is wired in `connector/connector.go` based on `kind: postgres` in database metadata. Feature gates are expressed through the `Capabilities` struct (`connector/sql/graphql/schema/schema.go`) and the `Dialect` interface (`connector/sql/graphql/queries/dialect.go`).
+The PostgreSQL driver is wired in `connector/connector.go` based on `kind: postgres` in database metadata. Feature gates are expressed through the `Capabilities` struct (`connector/sql/graphql/schema/schema.go`) and the `Dialect` interface (`connector/sql/graphql/queries/dialect/dialect.go`).
 
 ## Database configuration
 
@@ -27,7 +27,7 @@ A database is declared in `databases/databases.yaml`:
 
 ## PostgreSQL capabilities
 
-The Postgres dialect enables every capability flag (`connector/sql/graphql/queries/dialect_postgres.go`):
+The Postgres dialect enables every capability flag (`connector/sql/graphql/queries/dialect/postgres.go`):
 
 | Capability | Postgres | SQLite | Effect on schema |
 |---|---|---|---|
@@ -38,7 +38,7 @@ The Postgres dialect enables every capability flag (`connector/sql/graphql/queri
 | `SupportsArrays` | yes | no | Exposes array-typed columns and array comparison operators |
 | `SupportsLateral` | yes | no | Generates `LEFT OUTER JOIN LATERAL` for nested relationships (SQLite falls back to correlated subqueries) |
 
-When adding SQL generation, always go through the `Dialect` interface — never hardcode Postgres syntax. `JSONAgg(alias)` quotes the alias for use as a key name; `JSONAggExpr(expr)` takes a raw SQL expression.
+When adding SQL generation, always go through the `Dialect` interface — never hardcode Postgres syntax. `JSONAggQuotedAlias(alias)` quotes the alias for use as a key name; `JSONAggRawExpr(expr)` takes a raw SQL expression.
 
 ## Tables
 
@@ -452,7 +452,7 @@ See [`remote-schema.md`](./remote-schema.md). Remote schemas are configured per 
 | Topic | File |
 |---|---|
 | Capability gates | `connector/sql/graphql/schema/schema.go` |
-| Postgres dialect | `connector/sql/graphql/queries/dialect_postgres.go` |
+| Postgres dialect | `connector/sql/graphql/queries/dialect/postgres.go` |
 | Postgres driver | `connector/sql/postgres/postgres.go` |
 | Schema introspection | `connector/sql/postgres/introspect.go` |
 | Function introspection | `connector/sql/postgres/introspect_functions.go` |

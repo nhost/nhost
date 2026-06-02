@@ -408,7 +408,9 @@ func TestPostgresDialect_WriteOnConflictTarget(t *testing.T) {
 
 	var b strings.Builder
 
-	d.WriteOnConflictTarget(&b, "users_pkey", []string{"id", "tenant"})
+	if err := d.WriteOnConflictTarget(&b, "users_pkey", []string{"id", "tenant"}); err != nil {
+		t.Fatalf("WriteOnConflictTarget: %v", err)
+	}
 
 	const want = ` ON CONFLICT ON CONSTRAINT "users_pkey"`
 	if got := b.String(); got != want {

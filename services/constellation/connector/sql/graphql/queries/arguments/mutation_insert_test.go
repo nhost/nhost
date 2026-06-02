@@ -11,6 +11,7 @@ import (
 
 	"github.com/nhost/nhost/services/constellation/connector/sql/graphql/queries/arguments"
 	"github.com/nhost/nhost/services/constellation/connector/sql/graphql/queries/arguments/mock"
+	"github.com/nhost/nhost/services/constellation/connector/sql/graphql/queries/dialect"
 	"github.com/nhost/nhost/services/constellation/connector/sql/graphql/queries/where"
 )
 
@@ -121,6 +122,41 @@ func TestOnConflict_ToSQL(t *testing.T) {
 			t.Errorf("paramIndex=%d want=2", idx)
 		}
 	})
+}
+
+func TestOnConflict_ToSQL_SQLiteEmptyConflictColumnsError(t *testing.T) {
+	t.Parallel()
+
+	oc := &arguments.OnConflict{
+		ConstraintName:  "users_username_key",
+		ConflictColumns: nil,
+		UpdateColumns:   []string{"email"},
+		Where:           nil,
+		TargetTableRef:  "",
+	}
+
+	var b strings.Builder
+
+	params, idx, err := oc.ToSQL(&b, &dialect.SQLiteDialect{}, nil, 1)
+	if err == nil {
+		t.Fatal("expected error")
+	}
+
+	if !errors.Is(err, arguments.ErrInvalidArgument) {
+		t.Errorf("error %v does not wrap ErrInvalidArgument", err)
+	}
+
+	if params != nil {
+		t.Errorf("params=%v want=nil on error", params)
+	}
+
+	if idx != 0 {
+		t.Errorf("paramIndex=%d want=0", idx)
+	}
+
+	if b.Len() != 0 {
+		t.Errorf("SQL builder got %q, want empty on error", b.String())
+	}
 }
 
 // stubWhereWriter builds an arguments.OnConflictWhereWriter that writes the
@@ -463,6 +499,38 @@ func TestParseOnConflict(t *testing.T) {
 			t.Errorf("error %v does not wrap ErrInvalidArgument", err)
 		}
 	})
+}
+
+func TestParseOnConflict_SQLiteEmptyConflictColumnsRejected(t *testing.T) {
+	t.Parallel()
+
+	ctrl := gomock.NewController(t)
+	tbl := mock.NewMockTable(ctrl)
+
+	tbl.EXPECT().ConflictColumns("users_missing_key").Return(nil)
+	tbl.EXPECT().Dialect().Return(&dialect.SQLiteDialect{})
+
+	input := objectValue(
+		child("constraint", enumValue("users_missing_key")),
+		child("update_columns", listValue()),
+	)
+
+	_, err := arguments.ParseOnConflict(
+		tbl,
+		&ast.Argument{Name: "on_conflict", Value: input},
+		nil, "user", nil,
+	)
+	if err == nil {
+		t.Fatal("expected error")
+	}
+
+	if !errors.Is(err, arguments.ErrInvalidArgument) {
+		t.Errorf("error %v does not wrap ErrInvalidArgument", err)
+	}
+
+	if !strings.Contains(err.Error(), "does not resolve to any conflict columns") {
+		t.Errorf("error %q missing conflict-column context", err.Error())
+	}
 }
 
 func TestParseOnConflict_VariableFields(t *testing.T) {

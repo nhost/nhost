@@ -339,7 +339,12 @@ func checkDuplicateUpdateColumn(seen map[string]struct{}, col *core.Column) erro
 	}
 
 	if _, exists := seen[col.SQLName]; exists {
-		return newDuplicateUpdateColumnError(col.SQLName)
+		columnName := col.GraphqlName
+		if columnName == "" {
+			columnName = col.SQLName
+		}
+
+		return newDuplicateUpdateColumnError(columnName)
 	}
 
 	seen[col.SQLName] = struct{}{}

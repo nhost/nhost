@@ -594,8 +594,8 @@ func TestSQLiteDialect_WriteGroupKeysFrom_Prepares(t *testing.T) {
 
 // TestSQLiteDialect_WriteOnConflictTarget pins the column-list conflict target.
 // SQLite has no "ON CONFLICT ON CONSTRAINT <name>" form, so it ignores the
-// constraint name and lists the index columns. An empty column list degrades to
-// a bare "ON CONFLICT" (any conflict) rather than an illegal empty "()".
+// constraint name and lists the index columns. An empty column list is rejected
+// instead of degrading to bare "ON CONFLICT" (any unique conflict).
 func TestSQLiteDialect_WriteOnConflictTarget(t *testing.T) {
 	t.Parallel()
 
@@ -605,6 +605,7 @@ func TestSQLiteDialect_WriteOnConflictTarget(t *testing.T) {
 		name    string
 		columns []string
 		want    string
+		wantErr bool
 	}{
 		{name: "single column", columns: []string{"username"}, want: ` ON CONFLICT ("username")`},
 		{
@@ -612,7 +613,7 @@ func TestSQLiteDialect_WriteOnConflictTarget(t *testing.T) {
 			columns: []string{"tenant", "email"},
 			want:    ` ON CONFLICT ("tenant", "email")`,
 		},
-		{name: "no columns degrades to bare", columns: nil, want: ` ON CONFLICT`},
+		{name: "no columns errors", columns: nil, want: "", wantErr: true},
 	}
 
 	for _, tt := range tests {
@@ -621,7 +622,23 @@ func TestSQLiteDialect_WriteOnConflictTarget(t *testing.T) {
 
 			var b strings.Builder
 
-			d.WriteOnConflictTarget(&b, "ignored_constraint_name", tt.columns)
+			err := d.WriteOnConflictTarget(&b, "ignored_constraint_name", tt.columns)
+
+			if tt.wantErr {
+				if err == nil {
+					t.Fatal("expected error")
+				}
+
+				if b.Len() != 0 {
+					t.Fatalf("WriteOnConflictTarget wrote %q on error", b.String())
+				}
+
+				return
+			}
+
+			if err != nil {
+				t.Fatalf("WriteOnConflictTarget: %v", err)
+			}
 
 			if got := b.String(); got != tt.want {
 				t.Fatalf("WriteOnConflictTarget:\n got  %q\n want %q", got, tt.want)
@@ -661,7 +678,11 @@ func TestSQLiteDialect_WriteOnConflictTarget_Prepares(t *testing.T) {
 	var b strings.Builder
 
 	b.WriteString(`INSERT INTO "users" ("id", "username") VALUES (?, ?)`)
-	d.WriteOnConflictTarget(&b, "users_username_key", []string{"username"})
+
+	if err := d.WriteOnConflictTarget(&b, "users_username_key", []string{"username"}); err != nil {
+		t.Fatalf("WriteOnConflictTarget: %v", err)
+	}
+
 	b.WriteString(` DO UPDATE SET "id" = EXCLUDED."id"`)
 
 	query := b.String()

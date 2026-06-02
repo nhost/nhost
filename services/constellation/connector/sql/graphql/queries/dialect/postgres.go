@@ -203,15 +203,19 @@ func (d *PostgresDialect) WriteUpsertUpdateAction(b *strings.Builder) {
 	b.WriteString("(xmax <> 0)")
 }
 
+func (d *PostgresDialect) RequiresOnConflictTargetColumns() bool { return false }
+
 // WriteOnConflictTarget names the constraint directly: PostgreSQL supports the
 // "ON CONFLICT ON CONSTRAINT <name>" form, which targets a specific unique or
 // primary-key constraint by name. The conflictColumns argument is unused here —
 // the constraint name is sufficient and matches Hasura's emitted SQL.
 func (d *PostgresDialect) WriteOnConflictTarget(
 	b *strings.Builder, constraintName string, _ []string,
-) {
+) error {
 	b.WriteString(" ON CONFLICT ON CONSTRAINT ")
 	core.WriteQuotedIdentifier(b, constraintName)
+
+	return nil
 }
 
 // BoolAndFunc returns PostgreSQL's native bool_and aggregate.

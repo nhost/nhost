@@ -189,11 +189,20 @@ type Dialect interface { //nolint:interfacebloat
 	//	PostgreSQL: " ON CONFLICT ON CONSTRAINT \"name\""  (names the constraint)
 	//	SQLite:     " ON CONFLICT (\"col1\", \"col2\")"     (lists the columns)
 	//
+	// RequiresOnConflictTargetColumns reports whether WriteOnConflictTarget needs
+	// a non-empty conflictColumns slice to avoid broadening the target. SQLite
+	// identifies conflicts by column list, while PostgreSQL names the constraint.
+	RequiresOnConflictTargetColumns() bool
+
 	// SQLite has no "ON CONSTRAINT <name>" form, so callers must supply the
 	// constraint's columns; PostgreSQL ignores them and names the constraint.
 	// conflictColumns are already-resolved SQL column names; they are emitted as
-	// quoted identifiers, never raw user input.
-	WriteOnConflictTarget(b *strings.Builder, constraintName string, conflictColumns []string)
+	// quoted identifiers, never raw user input. Implementations return an error
+	// rather than rendering a conflict target that can match a different unique
+	// constraint.
+	WriteOnConflictTarget(
+		b *strings.Builder, constraintName string, conflictColumns []string,
+	) error
 
 	// WriteGroupKeysFrom writes a FROM-source expression that produces one row
 	// per join value, used to build grouped-aggregate queries that batch

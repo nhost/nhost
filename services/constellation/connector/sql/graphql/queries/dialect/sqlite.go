@@ -1,9 +1,15 @@
 package dialect
 
 import (
+	"errors"
+	"fmt"
 	"strings"
 
 	"github.com/nhost/nhost/services/constellation/connector/sql/graphql/queries/core"
+)
+
+var errSQLiteOnConflictTargetColumnsRequired = errors.New(
+	"sqlite ON CONFLICT target has no resolved columns",
 )
 
 // SQLiteDialect implements Dialect for SQLite.
@@ -277,23 +283,26 @@ func (d *SQLiteDialect) WriteUpsertUpdateAction(_ *strings.Builder) {
 	)
 }
 
+func (d *SQLiteDialect) RequiresOnConflictTargetColumns() bool { return true }
+
 // WriteOnConflictTarget lists the constraint's columns: SQLite has no
 // "ON CONFLICT ON CONSTRAINT <name>" form, so it identifies the conflict target
-// by its index columns ("ON CONFLICT (\"col1\", \"col2\")"). constraintName is
-// unused. When conflictColumns is empty (a constraint whose columns could not be
-// resolved) we emit a bare "ON CONFLICT" — SQLite reads that as "any conflict",
-// which still drives the following DO UPDATE/DO NOTHING rather than producing the
-// syntax error an empty "()" would.
+// by its index columns ("ON CONFLICT (\"col1\", \"col2\")"). When
+// conflictColumns is empty (a constraint whose columns could not be resolved),
+// the method fails before writing SQL instead of emitting bare "ON CONFLICT",
+// which SQLite would interpret as "any unique conflict".
 func (d *SQLiteDialect) WriteOnConflictTarget(
-	b *strings.Builder, _ string, conflictColumns []string,
-) {
-	b.WriteString(" ON CONFLICT")
-
+	b *strings.Builder, constraintName string, conflictColumns []string,
+) error {
 	if len(conflictColumns) == 0 {
-		return
+		return fmt.Errorf(
+			"%w for constraint %q",
+			errSQLiteOnConflictTargetColumnsRequired,
+			constraintName,
+		)
 	}
 
-	b.WriteString(" (")
+	b.WriteString(" ON CONFLICT (")
 
 	for i, column := range conflictColumns {
 		if i > 0 {
@@ -304,6 +313,8 @@ func (d *SQLiteDialect) WriteOnConflictTarget(
 	}
 
 	b.WriteByte(')')
+
+	return nil
 }
 
 func writeQuotedExpressionList(b *strings.Builder, expressions []string) {

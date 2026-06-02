@@ -305,6 +305,32 @@ func TestUpdateManyMutations(t *testing.T) { //nolint:paralleltest
 				Role: "admin",
 			},
 		},
+
+		// presets
+		{
+			name: "update_many with preset only from session variable",
+			query: query{
+				Query: `mutation {
+					update_files_many(
+						updates: [
+							{
+								where: { id: { _eq: "f1e9b8db-3333-439f-9d63-7f83de523fb3" } }
+							}
+						]
+					) {
+						affected_rows
+						returning {
+							id
+							uploadedByUserId
+						}
+					}
+				}`,
+				Role: "user",
+				SessionVariables: map[string]string{
+					"user-id": "550e8400-e29b-41d4-a716-446655440001",
+				},
+			},
+		},
 	}
 
 	RunGraphQLTests(t, cases, TestConfig{

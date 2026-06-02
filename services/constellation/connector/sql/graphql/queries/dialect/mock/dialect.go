@@ -194,6 +194,20 @@ func (mr *MockDialectMockRecorder) Placeholder(paramIndex any) *gomock.Call {
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "Placeholder", reflect.TypeOf((*MockDialect)(nil).Placeholder), paramIndex)
 }
 
+// RequiresOnConflictTargetColumns mocks base method.
+func (m *MockDialect) RequiresOnConflictTargetColumns() bool {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "RequiresOnConflictTargetColumns")
+	ret0, _ := ret[0].(bool)
+	return ret0
+}
+
+// RequiresOnConflictTargetColumns indicates an expected call of RequiresOnConflictTargetColumns.
+func (mr *MockDialectMockRecorder) RequiresOnConflictTargetColumns() *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "RequiresOnConflictTargetColumns", reflect.TypeOf((*MockDialect)(nil).RequiresOnConflictTargetColumns))
+}
+
 // SupportsArrays mocks base method.
 func (m *MockDialect) SupportsArrays() bool {
 	m.ctrl.T.Helper()
@@ -518,9 +532,11 @@ func (mr *MockDialectMockRecorder) WriteJSONRowSuffixNoAlias(b any) *gomock.Call
 }
 
 // WriteOnConflictTarget mocks base method.
-func (m *MockDialect) WriteOnConflictTarget(b *strings.Builder, constraintName string, conflictColumns []string) {
+func (m *MockDialect) WriteOnConflictTarget(b *strings.Builder, constraintName string, conflictColumns []string) error {
 	m.ctrl.T.Helper()
-	m.ctrl.Call(m, "WriteOnConflictTarget", b, constraintName, conflictColumns)
+	ret := m.ctrl.Call(m, "WriteOnConflictTarget", b, constraintName, conflictColumns)
+	ret0, _ := ret[0].(error)
+	return ret0
 }
 
 // WriteOnConflictTarget indicates an expected call of WriteOnConflictTarget.

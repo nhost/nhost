@@ -979,6 +979,45 @@ func TestInsertMutations(t *testing.T) { //nolint:paralleltest,maintidx
 			},
 		},
 
+		// Hasura-parity guard that conflicted upsert rows do not run INSERT checks.
+		// The seeded note is owned by the session user, but the incoming row carries
+		// another valid author_id that would fail the user INSERT check. Because the
+		// row takes the UPDATE branch, update_columns excludes author_id, and the new
+		// title passes the UPDATE check, the mutation must succeed.
+		{
+			name: "permissions: upsert updated row ignores insert check for incoming values",
+			query: query{
+				Query: `
+					mutation {
+					  insert_notes(
+						objects: [
+						  {
+							id: "0199bbbb-0000-7000-8000-000000000001"
+							author_id: "550e8400-e29b-41d4-a716-446655440002"
+							title: "Renamed by update branch"
+						  }
+						]
+						on_conflict: {
+						  constraint: notes_pkey
+						  update_columns: [title]
+						}
+					  ) {
+						affected_rows
+						returning {
+						  id
+						  author_id
+						  title
+						}
+					  }
+					}`,
+				Variables: map[string]any{},
+				Role:      "user",
+				SessionVariables: map[string]string{
+					"user-id": "550e8400-e29b-41d4-a716-446655440001",
+				},
+			},
+		},
+
 		// Companion negative guard for the conflicted-row UPDATE check. The success
 		// case above proves pure inserts stay scoped to INSERT permissions by using
 		// an update-forbidden title on the inserted row. This case keeps its

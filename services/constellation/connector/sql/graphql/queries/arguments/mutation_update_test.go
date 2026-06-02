@@ -295,6 +295,45 @@ func TestParseUpdate_RejectsEmptyAndDuplicateOperators(t *testing.T) {
 		}
 	})
 
+	t.Run("customized column duplicate reports GraphQL name", func(t *testing.T) {
+		t.Parallel()
+
+		ctrl := gomock.NewController(t)
+		tbl := mock.NewMockTable(ctrl)
+
+		creditLimitCol := newColumn("creditLimit", "credit_limit_cents", "numeric")
+		tbl.EXPECT().ColumnFromGraphqlName("creditLimit").Return(creditLimitCol).Times(2)
+		tbl.EXPECT().UpdatePresets("user").Return(nil)
+
+		args := ast.ArgumentList{
+			&ast.Argument{
+				Name:  "_set",
+				Value: objectValue(child("creditLimit", intValue("100"))),
+			},
+			&ast.Argument{
+				Name:  "_inc",
+				Value: objectValue(child("creditLimit", intValue("5"))),
+			},
+		}
+
+		_, err := arguments.ParseUpdate(tbl, args, nil, "user", nil)
+		if err == nil {
+			t.Fatal("expected error: duplicate customized update column")
+		}
+
+		if !errors.Is(err, arguments.ErrInvalidArgument) {
+			t.Fatalf("error %v does not wrap ErrInvalidArgument", err)
+		}
+
+		if !strings.Contains(err.Error(), "creditLimit") {
+			t.Errorf("error %q missing GraphQL column name", err.Error())
+		}
+
+		if strings.Contains(err.Error(), "credit_limit_cents") {
+			t.Errorf("error %q leaked SQL column name", err.Error())
+		}
+	})
+
 	t.Run("preset colliding with user update is rejected", func(t *testing.T) {
 		t.Parallel()
 

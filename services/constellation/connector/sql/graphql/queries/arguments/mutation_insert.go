@@ -73,7 +73,13 @@ func (oc *OnConflict) ToSQLWithWhere(
 		return params, paramIndex, nil
 	}
 
-	d.WriteOnConflictTarget(b, oc.ConstraintName, oc.ConflictColumns)
+	if err := d.WriteOnConflictTarget(b, oc.ConstraintName, oc.ConflictColumns); err != nil {
+		return nil, 0, fmt.Errorf(
+			"%w: failed to write on_conflict target: %w",
+			ErrInvalidArgument,
+			err,
+		)
+	}
 
 	if len(oc.UpdateColumns) == 0 {
 		b.WriteString(" DO NOTHING")
@@ -229,13 +235,29 @@ func ParseOnConflict(
 		return nil, fmt.Errorf("%w: on_conflict.constraint is required", ErrInvalidArgument)
 	}
 
+	if err := resolveOnConflictTarget(t, oc); err != nil {
+		return nil, err
+	}
+
+	return oc, nil
+}
+
+func resolveOnConflictTarget(t Table, oc *OnConflict) error {
 	// SQLite identifies the conflict target by column list, so resolve the named
 	// constraint's columns now (while the table's introspected metadata is in
 	// scope). PostgreSQL ignores these and names the constraint directly.
 	oc.ConflictColumns = t.ConflictColumns(oc.ConstraintName)
+	if len(oc.ConflictColumns) == 0 && t.Dialect().RequiresOnConflictTargetColumns() {
+		return fmt.Errorf(
+			"%w: on_conflict.constraint %q does not resolve to any conflict columns",
+			ErrInvalidArgument,
+			oc.ConstraintName,
+		)
+	}
+
 	oc.TargetTableRef = t.TableFromClause()
 
-	return oc, nil
+	return nil
 }
 
 func parseOnConflictConstraint(value *ast.Value, variables map[string]any) (string, error) {
