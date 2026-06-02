@@ -24,16 +24,21 @@ const upsertUpdatedColumn = "__nhost_upsert_updated"
 // UPDATE check when the insert payload carries all conflict-target columns. When
 // it cannot, the UPDATE check deliberately covers every RETURNING row: this can
 // reject a pure insert, but avoids letting an undetectable UPDATE bypass its
-// permission check.
+// permission check. Multi-row inputs also track duplicate source conflict keys
+// so a later row that updates a row inserted earlier in the same statement is
+// included in the UPDATE-check CTE.
 type upsertUpdateCheckPlan struct {
 	enabled                  bool
 	checkUpdatedRows         bool
 	useUpdateActionColumn    bool
+	updateActionColumn       string
 	canDetectConflicts       bool
+	detectSourceConflicts    bool
 	conflictColumns          []string
 	conflictNullsNotDistinct bool
 	sourceCTEName            string
 	conflictCTEName          string
+	sourceConflictCTEName    string
 	insertedRowsCTEName      string
 	updatedRowsCTEName       string
 	postCheckName            string
@@ -123,6 +128,7 @@ func (t *table) newUpsertUpdateCheckPlan(
 	sourceCTEName string,
 	onConflict *arguments.OnConflict,
 	sourceColumns []string,
+	sourceRowCount int,
 	presentColumns map[string]struct{},
 	role string,
 	checkInsertedRows bool,
@@ -144,16 +150,21 @@ func (t *table) newUpsertUpdateCheckPlan(
 		enabled:                  true,
 		checkUpdatedRows:         checkUpdatedRows,
 		useUpdateActionColumn:    t.dialect.SupportsUpsertUpdateAction(),
+		updateActionColumn:       "",
 		canDetectConflicts:       false,
+		detectSourceConflicts:    false,
 		conflictColumns:          nil,
 		conflictNullsNotDistinct: false,
 		sourceCTEName:            sourceCTEName,
 		conflictCTEName:          cteName + "_upsert_conflicts",
+		sourceConflictCTEName:    cteName + "_upsert_source_conflicts",
 		insertedRowsCTEName:      cteName + "_upsert_inserts",
 		updatedRowsCTEName:       cteName + "_upsert_updates",
 		postCheckName:            cteName + "_update_post_check",
 	}
 	if plan.useUpdateActionColumn {
+		plan.updateActionColumn = t.upsertUpdateActionColumnAlias()
+
 		return plan
 	}
 
@@ -161,6 +172,7 @@ func (t *table) newUpsertUpdateCheckPlan(
 		onConflict, sourceColumns, presentColumns,
 	)
 	plan.canDetectConflicts = canDetectConflicts
+	plan.detectSourceConflicts = canDetectConflicts && checkUpdatedRows && sourceRowCount > 1
 	plan.conflictColumns = conflictColumns
 	plan.conflictNullsNotDistinct = nullsNotDistinct
 
@@ -203,6 +215,7 @@ func (t *table) prepareUpsertUpdateCheckPlan(
 	sourceCTEName string,
 	onConflict *arguments.OnConflict,
 	sourceColumns []string,
+	sourceRowCount int,
 	presentColumns map[string]struct{},
 	role string,
 	checkInsertedRows bool,
@@ -212,6 +225,7 @@ func (t *table) prepareUpsertUpdateCheckPlan(
 		sourceCTEName,
 		onConflict,
 		sourceColumns,
+		sourceRowCount,
 		presentColumns,
 		role,
 		checkInsertedRows,
@@ -219,6 +233,11 @@ func (t *table) prepareUpsertUpdateCheckPlan(
 	if plan.enabled && !plan.useUpdateActionColumn && plan.canDetectConflicts {
 		t.writeUpsertConflictKeysCTE(b, plan)
 		b.WriteString(", ")
+
+		if plan.detectSourceConflicts {
+			writeUpsertSourceConflictKeysCTE(b, plan)
+			b.WriteString(", ")
+		}
 	}
 
 	return plan
@@ -242,7 +261,25 @@ func (t *table) writeInsertReturning(b *strings.Builder, plan upsertUpdateCheckP
 	b.WriteString(", ")
 	t.dialect.WriteUpsertUpdateAction(b)
 	b.WriteString(" AS ")
-	core.WriteQuotedIdentifier(b, upsertUpdatedColumn)
+	core.WriteQuotedIdentifier(b, plan.updateActionColumn)
+}
+
+func (t *table) upsertUpdateActionColumnAlias() string {
+	usedColumns := make(map[string]struct{}, len(t.columns))
+	for _, column := range t.columns {
+		usedColumns[column.SQLName] = struct{}{}
+	}
+
+	if _, found := usedColumns[upsertUpdatedColumn]; !found {
+		return upsertUpdatedColumn
+	}
+
+	for i := 1; ; i++ {
+		candidate := fmt.Sprintf("%s_%d", upsertUpdatedColumn, i)
+		if _, found := usedColumns[candidate]; !found {
+			return candidate
+		}
+	}
 }
 
 func appendUpsertInsertedRowsCTE(
@@ -260,19 +297,10 @@ func appendUpsertInsertedRowsCTE(
 	b.WriteString(" WHERE ")
 
 	if plan.useUpdateActionColumn {
-		writeUpsertUpdatedColumnPredicate(b, rawCTEName, false)
+		writeUpsertUpdatedColumnPredicate(b, rawCTEName, plan.updateActionColumn, false)
 	} else {
-		b.WriteString("NOT EXISTS (SELECT 1 FROM ")
-		b.WriteString(plan.conflictCTEName)
-		b.WriteString(" WHERE ")
-		writeConflictKeyMatch(
-			b,
-			plan.conflictCTEName,
-			rawCTEName,
-			plan.conflictColumns,
-			plan.conflictNullsNotDistinct,
-		)
-		b.WriteByte(')')
+		b.WriteString("NOT ")
+		writeConflictKeyExists(b, plan.conflictCTEName, rawCTEName, plan)
 	}
 
 	b.WriteString("), ")
@@ -293,15 +321,7 @@ func (t *table) writeUpsertConflictKeysCTE(
 	b.WriteString(plan.conflictCTEName)
 	b.WriteString(" AS (SELECT ")
 
-	for i, column := range plan.conflictColumns {
-		if i > 0 {
-			b.WriteString(", ")
-		}
-
-		core.WriteQualifiedColumn(b, targetAlias, column)
-		b.WriteString(" AS ")
-		core.WriteQuotedIdentifier(b, column)
-	}
+	writeConflictKeySelectList(b, targetAlias, plan.conflictColumns)
 
 	b.WriteString(" FROM ")
 	b.WriteString(t.tableFromClause())
@@ -318,6 +338,32 @@ func (t *table) writeUpsertConflictKeysCTE(
 		plan.conflictNullsNotDistinct,
 	)
 	b.WriteString("))")
+}
+
+func writeUpsertSourceConflictKeysCTE(
+	b *strings.Builder,
+	plan upsertUpdateCheckPlan,
+) {
+	if !plan.enabled || !plan.canDetectConflicts || !plan.detectSourceConflicts {
+		return
+	}
+
+	b.WriteString(plan.sourceConflictCTEName)
+	b.WriteString(" AS (SELECT ")
+
+	writeConflictKeySelectList(b, plan.sourceCTEName, plan.conflictColumns)
+
+	b.WriteString(" FROM ")
+	b.WriteString(plan.sourceCTEName)
+
+	if !plan.conflictNullsNotDistinct {
+		b.WriteString(" WHERE ")
+		writeConflictKeyNotNull(b, plan.sourceCTEName, plan.conflictColumns)
+	}
+
+	b.WriteString(" GROUP BY ")
+	writeConflictKeyColumnList(b, plan.sourceCTEName, plan.conflictColumns)
+	b.WriteString(" HAVING COUNT(*) > 1)")
 }
 
 func (t *table) appendUpsertUpdatePostCheckCTEs(
@@ -408,9 +454,11 @@ func hasStatusCheckNames(checkNames []string) bool {
 // to the rows the upsert actually updated. Dialects with a RETURNING action
 // marker (PostgreSQL uses xmax) filter on that marker, making the scope exact
 // even when conflict keys are defaulted or generated. SQLite falls back to
-// pre-selecting conflict keys when the insert payload carries the full target key.
-// If that is impossible, it deliberately leaves the CTE unfiltered so the UPDATE
-// check runs fail-closed against every RETURNING row.
+// pre-selecting conflict keys when the insert payload carries the full target
+// key, plus source duplicate keys for multi-row statements where a later row can
+// update a row inserted earlier in the same INSERT. If that is impossible, it
+// deliberately leaves the CTE unfiltered so the UPDATE check runs fail-closed
+// against every RETURNING row.
 func (t *table) writeUpsertUpdatedRowsCTE(
 	b *strings.Builder,
 	plan upsertUpdateCheckPlan,
@@ -422,19 +470,15 @@ func (t *table) writeUpsertUpdatedRowsCTE(
 
 	if plan.useUpdateActionColumn {
 		b.WriteString(" WHERE ")
-		writeUpsertUpdatedColumnPredicate(b, rawCTEName, true)
+		writeUpsertUpdatedColumnPredicate(b, rawCTEName, plan.updateActionColumn, true)
 	} else if plan.canDetectConflicts {
-		b.WriteString(" WHERE EXISTS (SELECT 1 FROM ")
-		b.WriteString(plan.conflictCTEName)
 		b.WriteString(" WHERE ")
-		writeConflictKeyMatch(
-			b,
-			plan.conflictCTEName,
-			rawCTEName,
-			plan.conflictColumns,
-			plan.conflictNullsNotDistinct,
-		)
-		b.WriteByte(')')
+		writeConflictKeyExists(b, plan.conflictCTEName, rawCTEName, plan)
+
+		if plan.detectSourceConflicts {
+			b.WriteString(" OR ")
+			writeConflictKeyExists(b, plan.sourceConflictCTEName, rawCTEName, plan)
+		}
 	}
 
 	b.WriteByte(')')
@@ -484,13 +528,14 @@ func writeCTESelectColumnsWithStatusChecks(
 func writeUpsertUpdatedColumnPredicate(
 	b *strings.Builder,
 	sourceCTEName string,
+	updateActionColumn string,
 	wantUpdated bool,
 ) {
 	if !wantUpdated {
 		b.WriteString("NOT ")
 	}
 
-	core.WriteQualifiedColumn(b, sourceCTEName, upsertUpdatedColumn)
+	core.WriteQualifiedColumn(b, sourceCTEName, updateActionColumn)
 }
 
 func writeStatusCheckWhere(b *strings.Builder, checkNames []string) {
@@ -512,6 +557,58 @@ func writeStatusCheckWhere(b *strings.Builder, checkNames []string) {
 		b.WriteString("(SELECT status FROM ")
 		b.WriteString(checkName)
 		b.WriteString(") = 1")
+	}
+}
+
+func writeConflictKeyExists(
+	b *strings.Builder,
+	conflictCTEName string,
+	rawCTEName string,
+	plan upsertUpdateCheckPlan,
+) {
+	b.WriteString("EXISTS (SELECT 1 FROM ")
+	b.WriteString(conflictCTEName)
+	b.WriteString(" WHERE ")
+	writeConflictKeyMatch(
+		b,
+		conflictCTEName,
+		rawCTEName,
+		plan.conflictColumns,
+		plan.conflictNullsNotDistinct,
+	)
+	b.WriteByte(')')
+}
+
+func writeConflictKeySelectList(b *strings.Builder, source string, columns []string) {
+	for i, column := range columns {
+		if i > 0 {
+			b.WriteString(", ")
+		}
+
+		core.WriteQualifiedColumn(b, source, column)
+		b.WriteString(" AS ")
+		core.WriteQuotedIdentifier(b, column)
+	}
+}
+
+func writeConflictKeyColumnList(b *strings.Builder, source string, columns []string) {
+	for i, column := range columns {
+		if i > 0 {
+			b.WriteString(", ")
+		}
+
+		core.WriteQualifiedColumn(b, source, column)
+	}
+}
+
+func writeConflictKeyNotNull(b *strings.Builder, source string, columns []string) {
+	for i, column := range columns {
+		if i > 0 {
+			b.WriteString(" AND ")
+		}
+
+		core.WriteQualifiedColumn(b, source, column)
+		b.WriteString(" IS NOT NULL")
 	}
 }
 
