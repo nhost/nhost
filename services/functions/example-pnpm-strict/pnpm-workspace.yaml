@@ -1,0 +1,21 @@
+# Regression fixture for ERR_PNPM_IGNORED_BUILDS.
+#
+# This project pins pnpm 11 and depends on esbuild -- a package with a
+# postinstall build script -- and deliberately does NOT approve that build
+# (no `allowBuilds`). pnpm 11 blocks unapproved dependency build scripts and,
+# with its default `strictDepBuilds: true`, aborts `pnpm install` entirely.
+# The functions runtime (start.sh) sets `strictDepBuilds: false` in pnpm's
+# global config so the install completes WITHOUT running the scripts -- which is
+# correct here because functions are esbuild-bundled and node_modules / native
+# build output is never shipped or used at runtime.
+#
+# `supportedArchitectures` keeps the linux arm64/x64 esbuild binaries in the
+# lockfile so the linux container can frozen-install regardless of the dev host.
+supportedArchitectures:
+  os:
+    - current
+    - linux
+  cpu:
+    - current
+    - arm64
+    - x64
