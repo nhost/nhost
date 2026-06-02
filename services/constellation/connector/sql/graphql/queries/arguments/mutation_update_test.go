@@ -324,6 +324,124 @@ func TestParseUpdate_RejectsEmptyAndDuplicateOperators(t *testing.T) {
 	})
 }
 
+func TestParseUpdate_NullOperatorsAreOmitted(t *testing.T) {
+	t.Parallel()
+
+	tests := []struct {
+		name      string
+		setupMock func(*mock.MockTable)
+		args      ast.ArgumentList
+		variables map[string]any
+		wantErr   string
+		wantSQL   string
+	}{
+		{
+			name: "_set null only uses empty-update validation",
+			setupMock: func(tbl *mock.MockTable) {
+				tbl.EXPECT().UpdatePresets("user").Return(nil)
+			},
+			args: ast.ArgumentList{
+				&ast.Argument{Name: "_set", Value: &ast.Value{Kind: ast.NullValue}},
+			},
+			variables: nil,
+			wantErr:   "at least one update operator",
+			wantSQL:   "",
+		},
+		{
+			name: "_delete_at_path variable null only uses empty-update validation",
+			setupMock: func(tbl *mock.MockTable) {
+				tbl.EXPECT().UpdatePresets("user").Return(nil)
+			},
+			args: ast.ArgumentList{
+				&ast.Argument{Name: "_delete_at_path", Value: variableValue("paths")},
+			},
+			variables: map[string]any{"paths": nil},
+			wantErr:   "at least one update operator",
+			wantSQL:   "",
+		},
+		{
+			name: "_set null is ignored when _inc is non-empty",
+			setupMock: func(tbl *mock.MockTable) {
+				tbl.EXPECT().ColumnFromGraphqlName("budget").Return(
+					newColumn("budget", "budget", "numeric"),
+				)
+				tbl.EXPECT().UpdatePresets("user").Return(nil)
+			},
+			args: ast.ArgumentList{
+				&ast.Argument{Name: "_set", Value: &ast.Value{Kind: ast.NullValue}},
+				&ast.Argument{
+					Name:  "_inc",
+					Value: objectValue(child("budget", intValue("5"))),
+				},
+			},
+			variables: nil,
+			wantErr:   "",
+			wantSQL:   `"budget" = "budget" + $1::numeric`,
+		},
+		{
+			name: "_delete_at_path null is ignored when _set is non-empty",
+			setupMock: func(tbl *mock.MockTable) {
+				tbl.EXPECT().ColumnFromGraphqlName("name").Return(
+					newColumn("name", "name", "text"),
+				)
+				tbl.EXPECT().UpdatePresets("user").Return(nil)
+			},
+			args: ast.ArgumentList{
+				&ast.Argument{Name: "_delete_at_path", Value: &ast.Value{Kind: ast.NullValue}},
+				&ast.Argument{
+					Name:  "_set",
+					Value: objectValue(child("name", stringValue("Alice"))),
+				},
+			},
+			variables: nil,
+			wantErr:   "",
+			wantSQL:   `"name" = $1::text`,
+		},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			t.Parallel()
+
+			ctrl := gomock.NewController(t)
+			tbl := mock.NewMockTable(ctrl)
+
+			if tt.setupMock != nil {
+				tt.setupMock(tbl)
+			}
+
+			got, err := arguments.ParseUpdate(tbl, tt.args, tt.variables, "user", nil)
+			if tt.wantErr != "" {
+				if err == nil {
+					t.Fatalf("expected error containing %q, got nil", tt.wantErr)
+				}
+
+				if !strings.Contains(err.Error(), tt.wantErr) {
+					t.Fatalf("error %q does not contain %q", err, tt.wantErr)
+				}
+
+				var validationErr *arguments.QueryValidationError
+				if !errors.As(err, &validationErr) {
+					t.Fatalf("expected QueryValidationError, got %T (%v)", err, err)
+				}
+
+				return
+			}
+
+			if err != nil {
+				t.Fatalf("ParseUpdate: %v", err)
+			}
+
+			var b strings.Builder
+			got.WriteSQL(&b, nil, 1, pgDialect())
+
+			if sql := b.String(); sql != tt.wantSQL {
+				t.Fatalf("SET SQL = %q, want %q", sql, tt.wantSQL)
+			}
+		})
+	}
+}
+
 func TestParseUpdate_OperatorRouting(t *testing.T) {
 	t.Parallel()
 
@@ -616,6 +734,83 @@ func TestParseUpdateMany(t *testing.T) {
 		// ParseUpdateMany via %w.
 		if !errors.Is(err, arguments.ErrInvalidArgument) {
 			t.Errorf("error %v does not wrap ErrInvalidArgument", err)
+		}
+	})
+}
+
+func TestParseUpdateMany_VariableElements(t *testing.T) {
+	t.Parallel()
+
+	t.Run("list element variable is resolved", func(t *testing.T) {
+		t.Parallel()
+
+		ctrl := gomock.NewController(t)
+		tbl := mock.NewMockTable(ctrl)
+
+		tbl.EXPECT().ColumnFromGraphqlName("name").
+			Return(newColumn("name", "name", "text"))
+		tbl.EXPECT().ParseWhere(
+			gomock.Any(), gomock.Any(), "user", gomock.Any(),
+			0, where.QueryAliases,
+		).Return(where.Clause{}, nil)
+		tbl.EXPECT().UpdatePresets("user").Return(nil)
+
+		args := ast.ArgumentList{
+			&ast.Argument{
+				Name: "updates",
+				Value: listValue(
+					child("", variableValue("u")),
+				),
+			},
+		}
+		variables := map[string]any{
+			"u": map[string]any{
+				"_set":  map[string]any{"name": "Variable Alice"},
+				"where": map[string]any{},
+			},
+		}
+
+		got, err := arguments.ParseUpdateMany(tbl, args, variables, "user", nil)
+		if err != nil {
+			t.Fatalf("ParseUpdateMany: %v", err)
+		}
+
+		if len(got) != 1 {
+			t.Fatalf("expected 1 update, got %d", len(got))
+		}
+
+		if len(got[0].Set) != 1 || got[0].Set[0].Value != "Variable Alice" {
+			t.Errorf("unexpected Set=%+v", got[0].Set)
+		}
+	})
+
+	t.Run("list element variable must resolve to object", func(t *testing.T) {
+		t.Parallel()
+
+		ctrl := gomock.NewController(t)
+		tbl := mock.NewMockTable(ctrl)
+
+		args := ast.ArgumentList{
+			&ast.Argument{
+				Name: "updates",
+				Value: listValue(
+					child("", variableValue("u")),
+				),
+			},
+		}
+		variables := map[string]any{"u": "not-an-object"}
+
+		_, err := arguments.ParseUpdateMany(tbl, args, variables, "user", nil)
+		if err == nil {
+			t.Fatal("expected error: update element must be an object")
+		}
+
+		if !errors.Is(err, arguments.ErrInvalidArgument) {
+			t.Errorf("error %v does not wrap ErrInvalidArgument", err)
+		}
+
+		if !strings.Contains(err.Error(), "index 0") {
+			t.Errorf("error %q missing 'index 0' context", err)
 		}
 	})
 }

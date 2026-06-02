@@ -460,6 +460,44 @@ func TestParseOnConflict(t *testing.T) {
 	})
 }
 
+func TestParseOnConflict_VariableFields(t *testing.T) {
+	t.Parallel()
+
+	ctrl := gomock.NewController(t)
+	tbl := mock.NewMockTable(ctrl)
+
+	tbl.EXPECT().ColumnFromGraphqlName("email").Return(newColumn("email", "email_sql", "text"))
+	tbl.EXPECT().ColumnFromGraphqlName("name").Return(newColumn("name", "name_sql", "text"))
+	tbl.EXPECT().TableFromClause().Return(`"public"."users"`)
+
+	input := objectValue(
+		child("constraint", variableValue("constraint")),
+		child("update_columns", variableValue("cols")),
+	)
+
+	got, err := arguments.ParseOnConflict(
+		tbl,
+		&ast.Argument{Name: "on_conflict", Value: input},
+		map[string]any{
+			"constraint": "users_pkey",
+			"cols":       []any{"email", "name"},
+		},
+		"user",
+		nil,
+	)
+	if err != nil {
+		t.Fatalf("ParseOnConflict: %v", err)
+	}
+
+	if got.ConstraintName != "users_pkey" {
+		t.Errorf("constraint=%q want=users_pkey", got.ConstraintName)
+	}
+
+	if !slices.Equal(got.UpdateColumns, []string{"email_sql", "name_sql"}) {
+		t.Errorf("update columns=%v", got.UpdateColumns)
+	}
+}
+
 // TestParseOnConflict_WhereParseError covers the branch where the inner
 // ParseWhere call fails — exercising the wrap at mutation_insert.go where
 // "failed to parse on_conflict.where" is added as context.

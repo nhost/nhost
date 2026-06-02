@@ -19,41 +19,56 @@ const (
 )
 
 // buildCheckConstraintSelectClause builds the SELECT clause for the check_constraint CTE.
-// It generates SELECT expressions with typed parameters for non-nested columns.
+// It generates SELECT expressions with typed parameters for payload columns and
+// parent-CTE expressions for nested FK columns.
 func (t *table) buildCheckConstraintSelectClause(
 	b *strings.Builder,
 	insertObj arguments.InsertObject,
-	nestedFKColumns map[string]struct{},
+	nestedFKIndex arguments.NestedFKSources,
 	paramIndex int,
-) int {
+) (int, []string) {
 	firstCol := true
+	seenCTEs := make(map[string]struct{}, len(nestedFKIndex))
+	fromCTEs := make([]string, 0, len(nestedFKIndex))
 
 	for _, col := range insertObj.Columns {
-		if _, isNested := nestedFKColumns[col.Column.SQLName]; isNested {
-			continue
-		}
-
 		if !firstCol {
 			b.WriteString(", ")
 		}
 
 		firstCol = false
 
+		colName := col.Column.SQLName
+		if source, isNested := nestedFKIndex[colName]; isNested {
+			writeFKSourceColumn(b, source.CTEName, source.ColumnName)
+			b.WriteString(" AS ")
+			core.WriteQuotedIdentifier(b, colName)
+
+			if source.CTEName != "" {
+				if _, ok := seenCTEs[source.CTEName]; !ok {
+					seenCTEs[source.CTEName] = struct{}{}
+					fromCTEs = append(fromCTEs, source.CTEName)
+				}
+			}
+
+			continue
+		}
+
 		ph := t.dialect.Placeholder(paramIndex)
 		if col.Column.SQLType != "" {
 			b.WriteString(t.dialect.TypeCast(ph, col.Column.SQLType))
 			b.WriteString(" AS ")
-			core.WriteQuotedIdentifier(b, col.Column.SQLName)
+			core.WriteQuotedIdentifier(b, colName)
 		} else {
 			b.WriteString(ph)
 			b.WriteString(" AS ")
-			core.WriteQuotedIdentifier(b, col.Column.SQLName)
+			core.WriteQuotedIdentifier(b, colName)
 		}
 
 		paramIndex++
 	}
 
-	return paramIndex
+	return paramIndex, fromCTEs
 }
 
 // buildCheckConstraintWhereClause builds the WHERE clause for the check_constraint CTE.
@@ -83,7 +98,6 @@ func (t *table) buildCheckConstraintCTE(
 	b *strings.Builder,
 	checkCTEName string,
 	insertObj arguments.InsertObject,
-	nestedFKColumns map[string]struct{},
 	nestedFKIndex arguments.NestedFKSources,
 	tableSubs where.TableSubstitutions,
 	role string,
@@ -94,14 +108,17 @@ func (t *table) buildCheckConstraintCTE(
 	b.WriteString(checkCTEName)
 	b.WriteString(" AS (SELECT * FROM (SELECT ") //nolint:unqueryvet
 
-	paramIndex = t.buildCheckConstraintSelectClause(b, insertObj, nestedFKColumns, paramIndex)
+	paramIndex, fromCTEs := t.buildCheckConstraintSelectClause(
+		b, insertObj, nestedFKIndex, paramIndex,
+	)
 
 	// Add NULL columns for any columns referenced by the permission check
 	// that aren't in the insert data, to prevent "column does not exist" errors.
 	// FK columns drawn from a sibling CTE pull from that CTE instead of NULL
 	// so the permission predicate sees the real id.
-	fromCTEs := t.appendMissingPermissionColumns(
-		b, insertObj, nestedFKColumns, nestedFKIndex, role,
+	fromCTEs = appendUniqueCTENames(
+		fromCTEs,
+		t.appendMissingPermissionColumns(b, insertObj, nestedFKIndex, role),
 	)
 
 	writeFromCTEs(b, fromCTEs)
@@ -173,11 +190,6 @@ func (t *table) buildSingleInsertCTEPreCheck( //nolint:funlen // Linear SQL CTE 
 	role string,
 	sessionVariables map[string]any,
 ) ([]any, int, error) {
-	nestedFKColumns := make(map[string]struct{})
-	for col := range nestedFKIndex {
-		nestedFKColumns[col] = struct{}{}
-	}
-
 	checkCTEName := "check_" + cteName
 
 	var (
@@ -189,7 +201,6 @@ func (t *table) buildSingleInsertCTEPreCheck( //nolint:funlen // Linear SQL CTE 
 		b,
 		checkCTEName,
 		insertObj,
-		nestedFKColumns,
 		nestedFKIndex,
 		tableSubs,
 		role,
@@ -211,7 +222,7 @@ func (t *table) buildSingleInsertCTEPreCheck( //nolint:funlen // Linear SQL CTE 
 		cteName,
 		checkCTEName,
 		onConflict,
-		sourceColumnsFromInsertObject(insertObj, nestedFKIndex),
+		sourceColumnsFromInsertObject(insertObj),
 		insertPresentColumns([]arguments.InsertObject{insertObj}, nestedFKIndex),
 		role,
 	)
@@ -266,17 +277,17 @@ func (t *table) buildSingleInsertCTEPostCheck( //nolint:funlen // Linear SQL CTE
 	role string,
 	sessionVariables map[string]any,
 ) ([]any, int, error) {
-	nestedFKColumns := make(map[string]struct{})
-	for col := range nestedFKIndex {
-		nestedFKColumns[col] = struct{}{}
-	}
-
 	dataCTEName := "check_" + cteName
 
 	b.WriteString(dataCTEName)
 	b.WriteString(" AS (SELECT * FROM (SELECT ") //nolint:unqueryvet
 
-	paramIndex = t.buildCheckConstraintSelectClause(b, insertObj, nestedFKColumns, paramIndex)
+	var fromCTEs []string
+
+	paramIndex, fromCTEs = t.buildCheckConstraintSelectClause(
+		b, insertObj, nestedFKIndex, paramIndex,
+	)
+	writeFromCTEs(b, fromCTEs)
 	b.WriteString(") AS data WHERE true), ")
 
 	plan := t.prepareUpsertUpdateCheckPlan(
@@ -284,7 +295,7 @@ func (t *table) buildSingleInsertCTEPostCheck( //nolint:funlen // Linear SQL CTE
 		cteName,
 		dataCTEName,
 		onConflict,
-		sourceColumnsFromInsertObject(insertObj, nestedFKIndex),
+		sourceColumnsFromInsertObject(insertObj),
 		insertPresentColumns([]arguments.InsertObject{insertObj}, nestedFKIndex),
 		role,
 	)
@@ -347,15 +358,12 @@ func (t *table) buildSingleInsertCTEPostCheck( //nolint:funlen // Linear SQL CTE
 func (t *table) appendMissingPermissionColumns(
 	b *strings.Builder,
 	insertObj arguments.InsertObject,
-	nestedFKColumns map[string]struct{},
 	nestedFKIndex arguments.NestedFKSources,
 	role string,
 ) []string {
 	present := make(map[string]struct{})
 	for _, col := range insertObj.Columns {
-		if _, isNested := nestedFKColumns[col.Column.SQLName]; !isNested {
-			present[col.Column.SQLName] = struct{}{}
-		}
+		present[col.Column.SQLName] = struct{}{}
 	}
 
 	missing := t.permissions.MissingInsertColumns(role, present, t.columnFromSQLName)
@@ -734,6 +742,28 @@ func writeFromCTEs(b *strings.Builder, ctes []string) {
 	}
 }
 
+func appendUniqueCTENames(ctes []string, additions []string) []string {
+	if len(additions) == 0 {
+		return ctes
+	}
+
+	seen := make(map[string]struct{}, len(ctes)+len(additions))
+	for _, cte := range ctes {
+		seen[cte] = struct{}{}
+	}
+
+	for _, cte := range additions {
+		if _, ok := seen[cte]; ok {
+			continue
+		}
+
+		seen[cte] = struct{}{}
+		ctes = append(ctes, cte)
+	}
+
+	return ctes
+}
+
 // collectFKSourceCTEs returns the unique source CTEs (in stable order of
 // first appearance) referenced by columns that are mapped in nestedFKIndex.
 // Stable ordering keeps the generated SQL deterministic.
@@ -872,9 +902,11 @@ func (t *table) buildInsertMutationCTEPreCheck( //nolint:funlen // Linear SQL CT
 	params []any,
 	paramIndex int,
 ) ([]any, int, error) {
+	finalColumns := insertColumnsWithNestedFK(allColumns, nestedFKIndex)
+
 	// Include columns referenced by permission checks but not in the insert data,
 	// preventing "column does not exist" errors (e.g., OR checking workspace_id).
-	dataColumns := t.extendWithPermissionColumns(allColumns, role)
+	dataColumns := t.extendWithPermissionColumns(finalColumns, role)
 
 	var (
 		hasCheckPermissions bool
@@ -898,7 +930,7 @@ func (t *table) buildInsertMutationCTEPreCheck( //nolint:funlen // Linear SQL CT
 		"mutation_result",
 		"check_mutation_result",
 		onConflict,
-		allColumns,
+		finalColumns,
 		insertPresentColumns(insertObjs, nestedFKIndex),
 		role,
 	)
@@ -954,10 +986,12 @@ func (t *table) buildInsertMutationCTEPostCheck( //nolint:funlen // Linear SQL C
 	params []any,
 	paramIndex int,
 ) ([]any, int, error) {
+	finalColumns := insertColumnsWithNestedFK(allColumns, nestedFKIndex)
+
 	b.WriteString("insert_data AS (SELECT * FROM (") //nolint:unqueryvet
 
 	params, paramIndex = t.buildUnionAllSelect(
-		b, insertObjs, allColumns, columnToValue, nestedFKIndex, params, paramIndex,
+		b, insertObjs, finalColumns, columnToValue, nestedFKIndex, params, paramIndex,
 	)
 
 	b.WriteString(") AS data), ")
@@ -967,12 +1001,10 @@ func (t *table) buildInsertMutationCTEPostCheck( //nolint:funlen // Linear SQL C
 		"mutation_result",
 		"insert_data",
 		onConflict,
-		allColumns,
+		finalColumns,
 		insertPresentColumns(insertObjs, nestedFKIndex),
 		role,
 	)
-
-	finalColumns := insertColumnsWithNestedFK(allColumns, nestedFKIndex)
 
 	b.WriteString("_mutation_result AS (INSERT INTO ")
 	b.WriteString(t.tableFromClause())

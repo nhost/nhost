@@ -439,9 +439,20 @@ func ParseUpdateMany(
 	updates := make([]Update, 0, len(children))
 
 	for i, child := range children {
+		updateValue, err := values.ResolveVariable(child.Value, variables)
+		if err != nil {
+			return nil, fmt.Errorf("failed to resolve update at index %d: %w", i, err)
+		}
+
+		if updateValue.Kind != ast.ObjectValue {
+			return nil, fmt.Errorf(
+				"%w: update at index %d must be an object", ErrInvalidArgument, i,
+			)
+		}
+
 		// Convert object children to ArgumentList
-		argList := make(ast.ArgumentList, 0, len(child.Value.Children))
-		for _, grandChild := range child.Value.Children {
+		argList := make(ast.ArgumentList, 0, len(updateValue.Children))
+		for _, grandChild := range updateValue.Children {
 			argList = append(argList, &ast.Argument{ //nolint:exhaustruct
 				Name:  grandChild.Name,
 				Value: grandChild.Value,
@@ -520,6 +531,10 @@ func parseupdateColumnList(
 		return nil, fmt.Errorf("resolving update argument: %w", err)
 	}
 
+	if setValue.Kind == ast.NullValue {
+		return nil, nil
+	}
+
 	if setValue.Kind != ast.ObjectValue {
 		return nil, fmt.Errorf("%w: argument must be an object", ErrInvalidArgument)
 	}
@@ -563,6 +578,10 @@ func parseDeleteAtPathArgumentValue(
 	setValue, err := values.ResolveVariable(setValue, variables)
 	if err != nil {
 		return nil, fmt.Errorf("resolving _delete_at_path argument: %w", err)
+	}
+
+	if setValue.Kind == ast.NullValue {
+		return nil, nil
 	}
 
 	if setValue.Kind != ast.ObjectValue {

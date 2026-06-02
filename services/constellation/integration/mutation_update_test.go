@@ -1290,7 +1290,7 @@ func TestUpdateMutations(t *testing.T) { //nolint:paralleltest,maintidx
 			query: query{
 				Query: `mutation {
 					updateFiles(
-						where: { id: { _eq: "f1e9b8db-1111-439f-9d63-7f83de523fb1" } }
+						where: { id: { _eq: "f1e9b8db-2222-439f-9d63-7f83de523fb2" } }
 					) {
 						affected_rows
 						returning {

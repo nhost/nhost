@@ -894,6 +894,96 @@ func TestBuildSingleInsertCTEPreCheckUpsertUndetectableConflictCoversAllRows(t *
 	}
 }
 
+func TestBuildSingleInsertCTEPreCheckUpsertDetectsParentSourcedFKConflict(t *testing.T) {
+	t.Parallel()
+
+	idCol := col("id", "uuid", false)
+	orgIDCol := col("organization_id", "uuid", false)
+	emailCol := col("email", "text", false)
+	roleCol := col("role", "text", false)
+	statusCol := col("status", "text", false)
+
+	tbl := newTestTable(
+		t,
+		[]*core.Column{idCol, orgIDCol, emailCol, roleCol, statusCol},
+		map[string]where.Clause{"user": {}},
+	)
+	tbl.conflictColumns["users_organization_email_key"] = []string{"organization_id", "email"}
+	tbl.permissions.Update["user"] = equalsClause(orgIDCol, "x-hasura-org-id")
+	tbl.permissions.UpdateCheck["user"] = equalsClause(statusCol, "active")
+
+	obj := arguments.InsertObject{Columns: []arguments.InsertColumn{
+		insertCol(idCol, "00000000-0000-0000-0000-000000000001"),
+		insertCol(orgIDCol, nil),
+		insertCol(emailCol, "alice@example.com"),
+		insertCol(roleCol, "member"),
+		insertCol(statusCol, "pending"),
+	}}
+	onConflict := &arguments.OnConflict{
+		ConstraintName: "users_organization_email_key",
+		UpdateColumns:  []string{"role", "status"},
+		Where:          nil,
+	}
+	nestedFKIndex := arguments.NestedFKSources{
+		"organization_id": {CTEName: "mutation_result", ColumnName: "id"},
+	}
+
+	var b strings.Builder
+
+	params, paramIndex, err := tbl.buildSingleInsertCTEPreCheck(
+		&b,
+		"nested_members",
+		obj,
+		onConflict,
+		nestedFKIndex,
+		nil,
+		nil,
+		1,
+		"user",
+		map[string]any{"x-hasura-org-id": "org-A"},
+	)
+	if err != nil {
+		t.Fatalf("buildSingleInsertCTEPreCheck: %v", err)
+	}
+
+	got := b.String()
+
+	wantFragments := []string{
+		`check_nested_members AS (SELECT * FROM (SELECT $1::uuid AS "id", mutation_result."id" AS "organization_id", $2::text AS "email", $3::text AS "role", $4::text AS "status" FROM mutation_result) AS data WHERE true), `,
+		`nested_members_upsert_conflicts AS (SELECT "nested_members_upsert_conflicts_target"."organization_id" AS "organization_id", "nested_members_upsert_conflicts_target"."email" AS "email" FROM "public"."users" AS "nested_members_upsert_conflicts_target" WHERE EXISTS (SELECT 1 FROM check_nested_members WHERE "nested_members_upsert_conflicts_target"."organization_id" = check_nested_members."organization_id" AND "nested_members_upsert_conflicts_target"."email" = check_nested_members."email"))`,
+		`nested_members_upsert_updates AS (SELECT * FROM _nested_members WHERE EXISTS (SELECT 1 FROM nested_members_upsert_conflicts WHERE nested_members_upsert_conflicts."organization_id" = _nested_members."organization_id" AND nested_members_upsert_conflicts."email" = _nested_members."email"))`,
+		`nested_members_update_post_check AS (SELECT CASE WHEN (SELECT COUNT(*) FROM nested_members_upsert_updates WHERE nested_members_upsert_updates."status" = $6::text) = (SELECT COUNT(*) FROM nested_members_upsert_updates)`,
+	}
+	for _, fragment := range wantFragments {
+		if !strings.Contains(got, fragment) {
+			t.Errorf("generated SQL missing %q; got: %s", fragment, got)
+		}
+	}
+
+	unscopedUpdatesCTE := `nested_members_upsert_updates AS (SELECT * FROM _nested_members)` //nolint:unqueryvet
+	if strings.Contains(got, unscopedUpdatesCTE) {
+		t.Errorf(
+			"parent-sourced FK conflict key should not fall back to all-row check; got: %s",
+			got,
+		)
+	}
+
+	wantParams := []any{"org-A", "active"}
+	if len(params) != len(wantParams) {
+		t.Fatalf("params length = %d, want %d (%v)", len(params), len(wantParams), params)
+	}
+
+	for i, want := range wantParams {
+		if params[i] != want {
+			t.Fatalf("params[%d] = %v, want %v (all params: %v)", i, params[i], want, params)
+		}
+	}
+
+	if paramIndex != 7 {
+		t.Fatalf("paramIndex = %d, want 7", paramIndex)
+	}
+}
+
 // TestBuildPartitionedNestedArrayCTEPreCheckUpsertAppliesUpdatePermissions
 // covers the multi-parent array-relationship upsert path the finding flags as
 // untested. It drives buildPartitionedNestedArrayCTE (the dispatcher), which —

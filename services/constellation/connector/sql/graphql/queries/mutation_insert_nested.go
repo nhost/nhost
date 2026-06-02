@@ -222,8 +222,9 @@ func (t *table) buildMultiNestedInsertCTEPreCheck( //nolint:funlen // Linear SQL
 	paramIndex int,
 ) ([]any, int, error) {
 	checkCTEName := "check_" + cteName
+	finalColumns := insertColumnsWithNestedFK(allColumns, nestedFKIndex)
 
-	dataColumns := t.extendWithPermissionColumns(allColumns, role)
+	dataColumns := t.extendWithPermissionColumns(finalColumns, role)
 
 	b.WriteString(checkCTEName)
 	b.WriteString(" AS (SELECT * FROM (") //nolint:unqueryvet
@@ -252,14 +253,12 @@ func (t *table) buildMultiNestedInsertCTEPreCheck( //nolint:funlen // Linear SQL
 		cteName,
 		checkCTEName,
 		onConflict,
-		allColumns,
+		finalColumns,
 		insertPresentColumns(insertObjs, nestedFKIndex),
 		role,
 	)
 
 	rawCTEName := rawCTENameForUpsertUpdateCheck(cteName, plan)
-
-	finalColumns := insertColumnsWithNestedFK(allColumns, nestedFKIndex)
 
 	b.WriteString(rawCTEName)
 	b.WriteString(" AS (INSERT INTO ")
@@ -315,11 +314,13 @@ func (t *table) buildMultiNestedInsertCTEPostCheck( //nolint:funlen // Linear SQ
 	rawCTEName := "_" + cteName
 	postCheckName := cteName + "_post_check"
 
+	finalColumns := insertColumnsWithNestedFK(allColumns, nestedFKIndex)
+
 	b.WriteString(dataCTEName)
 	b.WriteString(" AS (SELECT * FROM (") //nolint:unqueryvet
 
 	params, paramIndex = t.buildUnionAllSelect(
-		b, insertObjs, allColumns, columnToValue, nestedFKIndex, params, paramIndex,
+		b, insertObjs, finalColumns, columnToValue, nestedFKIndex, params, paramIndex,
 	)
 
 	b.WriteString(") AS data), ")
@@ -329,12 +330,10 @@ func (t *table) buildMultiNestedInsertCTEPostCheck( //nolint:funlen // Linear SQ
 		cteName,
 		dataCTEName,
 		onConflict,
-		allColumns,
+		finalColumns,
 		insertPresentColumns(insertObjs, nestedFKIndex),
 		role,
 	)
-
-	finalColumns := insertColumnsWithNestedFK(allColumns, nestedFKIndex)
 
 	b.WriteString(rawCTEName)
 	b.WriteString(" AS (INSERT INTO ")

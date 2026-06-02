@@ -155,7 +155,7 @@ func (oc *OnConflict) writeWhere(
 //	  update_columns: [column1, column2]
 //	  where: { column: { _eq: value } }
 //	}
-func ParseOnConflict( //nolint:funlen
+func ParseOnConflict(
 	t Table,
 	onConflictArg *ast.Argument,
 	variables map[string]any,
@@ -185,45 +185,20 @@ func ParseOnConflict( //nolint:funlen
 	for _, field := range onConflictValue.Children {
 		switch field.Name {
 		case "constraint":
-			if field.Value.Kind != ast.EnumValue {
-				return nil, fmt.Errorf(
-					"%w: constraint must be an enum value", ErrInvalidArgument,
-				)
+			constraintName, err := parseOnConflictConstraint(field.Value, variables)
+			if err != nil {
+				return nil, err
 			}
 
-			oc.ConstraintName = field.Value.Raw
+			oc.ConstraintName = constraintName
 
 		case "update_columns":
-			children, err := values.CoerceToChildValueList(field.Value, ast.EnumValue)
+			updateColumns, err := parseOnConflictUpdateColumns(t, field.Value, variables)
 			if err != nil {
-				return nil, fmt.Errorf(
-					"%w: update_columns must be a list or an enum value",
-					ErrInvalidArgument,
-				)
+				return nil, err
 			}
 
-			for _, col := range children {
-				if col.Value.Kind != ast.EnumValue {
-					return nil, fmt.Errorf(
-						"%w: update_columns must contain enum values",
-						ErrInvalidArgument,
-					)
-				}
-
-				colName := col.Value.Raw
-
-				column := t.ColumnFromGraphqlName(colName)
-				if column == nil {
-					return nil, fmt.Errorf(
-						"%w: column %s not found in table %s",
-						ErrInvalidArgument,
-						colName,
-						t.TableName(),
-					)
-				}
-
-				oc.UpdateColumns = append(oc.UpdateColumns, column.SQLName)
-			}
+			oc.UpdateColumns = append(oc.UpdateColumns, updateColumns...)
 
 		case argNameWhere:
 			whereClause, err := t.ParseWhere(
@@ -244,6 +219,71 @@ func ParseOnConflict( //nolint:funlen
 	oc.TargetTableRef = t.TableFromClause()
 
 	return oc, nil
+}
+
+func parseOnConflictConstraint(value *ast.Value, variables map[string]any) (string, error) {
+	constraintValue, err := values.ResolveVariable(value, variables)
+	if err != nil {
+		return "", fmt.Errorf("failed to resolve on_conflict.constraint: %w", err)
+	}
+
+	if constraintValue.Kind != ast.EnumValue {
+		return "", fmt.Errorf("%w: constraint must be an enum value", ErrInvalidArgument)
+	}
+
+	return constraintValue.Raw, nil
+}
+
+func parseOnConflictUpdateColumns(
+	t Table, value *ast.Value, variables map[string]any,
+) ([]string, error) {
+	updateColumnsValue, err := values.ResolveVariable(value, variables)
+	if err != nil {
+		return nil, fmt.Errorf("failed to resolve on_conflict.update_columns: %w", err)
+	}
+
+	children, err := values.CoerceToChildValueList(updateColumnsValue, ast.EnumValue)
+	if err != nil {
+		return nil, fmt.Errorf(
+			"%w: update_columns must be a list or an enum value",
+			ErrInvalidArgument,
+		)
+	}
+
+	updateColumns := make([]string, 0, len(children))
+	for _, col := range children {
+		columnName, err := parseOnConflictUpdateColumnName(col.Value, variables)
+		if err != nil {
+			return nil, err
+		}
+
+		column := t.ColumnFromGraphqlName(columnName)
+		if column == nil {
+			return nil, fmt.Errorf(
+				"%w: column %s not found in table %s",
+				ErrInvalidArgument,
+				columnName,
+				t.TableName(),
+			)
+		}
+
+		updateColumns = append(updateColumns, column.SQLName)
+	}
+
+	return updateColumns, nil
+}
+
+func parseOnConflictUpdateColumnName(value *ast.Value, variables map[string]any) (string, error) {
+	columnValue, err := values.ResolveVariable(value, variables)
+	if err != nil {
+		return "", fmt.Errorf("failed to resolve on_conflict.update_columns: %w", err)
+	}
+
+	if columnValue.Kind != ast.EnumValue {
+		return "", fmt.Errorf("%w: update_columns must contain enum values", ErrInvalidArgument)
+	}
+
+	return columnValue.Raw, nil
 }
 
 // NestedFKSource describes where a nested-insert FK column reads its value

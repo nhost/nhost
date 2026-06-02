@@ -11,6 +11,7 @@ import (
 )
 
 type mutationSelection struct {
+	typenames    []typenameSelection
 	affectedRows *selectionAffectedRows
 	returning    selectionReturning
 	dialect      dialect.Dialect
@@ -50,12 +51,31 @@ func (s mutationSelection) WriteSQLWithCTE(
 	b.WriteString(s.dialect.JSONBuildObject())
 	b.WriteByte('(')
 
-	if s.affectedRows != nil {
-		s.affectedRows.WriteSQLWithCTE(cteName, b)
+	hasReturning := s.hasReturningSelection()
+	hasFields := false
 
-		if len(s.returning.columns) > 0 || len(s.returning.relationships) > 0 {
+	for i := range s.typenames {
+		if hasFields {
 			b.WriteString(", ")
 		}
+
+		s.typenames[i].Write(b)
+
+		hasFields = true
+	}
+
+	if s.affectedRows != nil {
+		if hasFields {
+			b.WriteString(", ")
+		}
+
+		s.affectedRows.WriteSQLWithCTE(cteName, b)
+
+		hasFields = true
+	}
+
+	if hasReturning && hasFields {
+		b.WriteString(", ")
 	}
 
 	params, paramIndex, err := s.returning.writeSQLWithCTE(
@@ -65,13 +85,40 @@ func (s mutationSelection) WriteSQLWithCTE(
 		return nil, 0, err
 	}
 
-	if len(s.returning.relationships) > 0 || len(s.returning.columns) > 0 {
+	if hasReturning {
 		b.WriteString(") AS \"_e\"))")
 	} else {
 		b.WriteString(")")
 	}
 
+	if len(s.typenames) > 0 && !s.referencesMutationResult() {
+		s.writeMutationResultForceRef(b, cteName)
+	}
+
 	return params, paramIndex, nil
+}
+
+func (s mutationSelection) hasReturningSelection() bool {
+	return len(s.returning.columns) > 0 || len(s.returning.relationships) > 0
+}
+
+func (s mutationSelection) referencesMutationResult() bool {
+	return s.affectedRows != nil || s.hasReturningSelection()
+}
+
+// writeMutationResultForceRef keeps typename-only mutation selections tied to
+// the final mutation CTE. COUNT(*) is a logical no-op, but it forces PostgreSQL
+// to evaluate permission-gating SELECT CTEs that feed mutation_result.
+func (s mutationSelection) writeMutationResultForceRef(b *strings.Builder, cteName string) {
+	b.WriteString(" WHERE (SELECT COUNT(*) FROM ")
+	b.WriteString(cteName)
+	b.WriteString(") IS NOT NULL")
+
+	for _, nested := range s.returning.nestedCTENames {
+		b.WriteString(" AND (SELECT COUNT(*) FROM ")
+		b.WriteString(nested)
+		b.WriteString(") IS NOT NULL")
+	}
 }
 
 type selectionAffectedRows struct {
@@ -755,6 +802,12 @@ func (t *table) processMutationField(
 	result *mutationSelection,
 ) error {
 	switch sel.Name {
+	case typenameField:
+		result.typenames = appendTypename(
+			result.typenames,
+			sel,
+			t.graphqlTypeName+"_mutation_response",
+		)
 	case "returning":
 		columns, relationships, err := t.astToQuerySelectionWithPath(
 			sel, fragments, rootAlias,
