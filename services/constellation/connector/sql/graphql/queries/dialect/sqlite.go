@@ -269,6 +269,14 @@ func (d *SQLiteDialect) SupportsStableVarianceOrderBy() bool { return false }
 // them; avg/sum/min/max/count remain native and unaffected.
 func (d *SQLiteDialect) SupportsVarianceAggregates() bool { return false }
 
+func (d *SQLiteDialect) SupportsUpsertUpdateAction() bool { return false }
+
+func (d *SQLiteDialect) WriteUpsertUpdateAction(_ *strings.Builder) {
+	panic(
+		"dialect: WriteUpsertUpdateAction called on SQLiteDialect; gate with SupportsUpsertUpdateAction",
+	)
+}
+
 func writeQuotedExpressionList(b *strings.Builder, expressions []string) {
 	for i, expr := range expressions {
 		if i > 0 {

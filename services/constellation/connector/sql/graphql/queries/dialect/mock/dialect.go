@@ -292,6 +292,20 @@ func (mr *MockDialectMockRecorder) SupportsStableVarianceOrderBy() *gomock.Call 
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "SupportsStableVarianceOrderBy", reflect.TypeOf((*MockDialect)(nil).SupportsStableVarianceOrderBy))
 }
 
+// SupportsUpsertUpdateAction mocks base method.
+func (m *MockDialect) SupportsUpsertUpdateAction() bool {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "SupportsUpsertUpdateAction")
+	ret0, _ := ret[0].(bool)
+	return ret0
+}
+
+// SupportsUpsertUpdateAction indicates an expected call of SupportsUpsertUpdateAction.
+func (mr *MockDialectMockRecorder) SupportsUpsertUpdateAction() *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "SupportsUpsertUpdateAction", reflect.TypeOf((*MockDialect)(nil).SupportsUpsertUpdateAction))
+}
+
 // SupportsVarianceAggregates mocks base method.
 func (m *MockDialect) SupportsVarianceAggregates() bool {
 	m.ctrl.T.Helper()
@@ -501,4 +515,16 @@ func (m *MockDialect) WriteJSONRowSuffixNoAlias(b *strings.Builder) {
 func (mr *MockDialectMockRecorder) WriteJSONRowSuffixNoAlias(b any) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "WriteJSONRowSuffixNoAlias", reflect.TypeOf((*MockDialect)(nil).WriteJSONRowSuffixNoAlias), b)
+}
+
+// WriteUpsertUpdateAction mocks base method.
+func (m *MockDialect) WriteUpsertUpdateAction(b *strings.Builder) {
+	m.ctrl.T.Helper()
+	m.ctrl.Call(m, "WriteUpsertUpdateAction", b)
+}
+
+// WriteUpsertUpdateAction indicates an expected call of WriteUpsertUpdateAction.
+func (mr *MockDialectMockRecorder) WriteUpsertUpdateAction(b any) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "WriteUpsertUpdateAction", reflect.TypeOf((*MockDialect)(nil).WriteUpsertUpdateAction), b)
 }

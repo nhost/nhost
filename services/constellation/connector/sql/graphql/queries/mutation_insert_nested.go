@@ -256,6 +256,7 @@ func (t *table) buildMultiNestedInsertCTEPreCheck( //nolint:funlen // Linear SQL
 		finalColumns,
 		insertPresentColumns(insertObjs, nestedFKIndex),
 		role,
+		false,
 	)
 
 	rawCTEName := rawCTENameForUpsertUpdateCheck(cteName, plan)
@@ -278,7 +279,8 @@ func (t *table) buildMultiNestedInsertCTEPreCheck( //nolint:funlen // Linear SQL
 		}
 	}
 
-	b.WriteString(" RETURNING *)")
+	t.writeInsertReturning(b, plan)
+	b.WriteByte(')')
 
 	params, paramIndex, err = t.appendUpsertUpdateCheckAndFinalCTE(
 		b, cteName, rawCTEName, plan, role, sessionVariables, params, paramIndex,
@@ -333,6 +335,7 @@ func (t *table) buildMultiNestedInsertCTEPostCheck( //nolint:funlen // Linear SQ
 		finalColumns,
 		insertPresentColumns(insertObjs, nestedFKIndex),
 		role,
+		true,
 	)
 
 	b.WriteString(rawCTEName)
@@ -354,10 +357,20 @@ func (t *table) buildMultiNestedInsertCTEPostCheck( //nolint:funlen // Linear SQ
 		}
 	}
 
-	b.WriteString(" RETURNING *), ")
+	t.writeInsertReturning(b, plan)
+	b.WriteString("), ")
+
+	postCheckSourceCTEName := appendUpsertInsertedRowsCTE(b, plan, rawCTEName)
 
 	params, paramIndex, err := t.buildPostCheckCTEWithName(
-		b, postCheckName, rawCTEName, tableSubs, role, sessionVariables, params, paramIndex,
+		b,
+		postCheckName,
+		postCheckSourceCTEName,
+		tableSubs,
+		role,
+		sessionVariables,
+		params,
+		paramIndex,
 	)
 	if err != nil {
 		return nil, 0, err
@@ -1356,6 +1369,7 @@ func (t *table) buildPartitionedNestedArrayCTEPreCheck( //nolint:funlen // Linea
 		finalColumns,
 		insertPresentColumns(insertObjs, nestedFKIndex),
 		role,
+		false,
 	)
 
 	rawCTEName := rawCTENameForUpsertUpdateCheck(cteName, plan)
@@ -1378,7 +1392,8 @@ func (t *table) buildPartitionedNestedArrayCTEPreCheck( //nolint:funlen // Linea
 		}
 	}
 
-	b.WriteString(" RETURNING *)")
+	t.writeInsertReturning(b, plan)
+	b.WriteByte(')')
 
 	params, paramIndex, err = t.appendUpsertUpdateCheckAndFinalCTE(
 		b, cteName, rawCTEName, plan, role, sessionVariables, params, paramIndex,
@@ -1433,6 +1448,7 @@ func (t *table) buildPartitionedNestedArrayCTEPostCheck( //nolint:funlen // Line
 		finalColumns,
 		insertPresentColumns(insertObjs, nestedFKIndex),
 		role,
+		true,
 	)
 
 	b.WriteString(rawCTEName)
@@ -1454,10 +1470,20 @@ func (t *table) buildPartitionedNestedArrayCTEPostCheck( //nolint:funlen // Line
 		}
 	}
 
-	b.WriteString(" RETURNING *), ")
+	t.writeInsertReturning(b, plan)
+	b.WriteString("), ")
+
+	postCheckSourceCTEName := appendUpsertInsertedRowsCTE(b, plan, rawCTEName)
 
 	params, paramIndex, err := t.buildPostCheckCTEWithName(
-		b, postCheckName, rawCTEName, tableSubs, role, sessionVariables, params, paramIndex,
+		b,
+		postCheckName,
+		postCheckSourceCTEName,
+		tableSubs,
+		role,
+		sessionVariables,
+		params,
+		paramIndex,
 	)
 	if err != nil {
 		return nil, 0, err

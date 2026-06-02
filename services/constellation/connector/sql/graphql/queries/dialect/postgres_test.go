@@ -195,6 +195,7 @@ func TestPostgresDialect_Capabilities(t *testing.T) {
 		"SupportsFunctions":          d.SupportsFunctions(),
 		"SupportsArrays":             d.SupportsArrays(),
 		"SupportsVarianceAggregates": d.SupportsVarianceAggregates(),
+		"SupportsUpsertUpdateAction": d.SupportsUpsertUpdateAction(),
 	}
 
 	for name, got := range tests {

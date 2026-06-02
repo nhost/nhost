@@ -197,6 +197,12 @@ func (d *PostgresDialect) SupportsStableVarianceOrderBy() bool { return true }
 // exposed and computed.
 func (d *PostgresDialect) SupportsVarianceAggregates() bool { return true }
 
+func (d *PostgresDialect) SupportsUpsertUpdateAction() bool { return true }
+
+func (d *PostgresDialect) WriteUpsertUpdateAction(b *strings.Builder) {
+	b.WriteString("(xmax <> 0)")
+}
+
 // BoolAndFunc returns PostgreSQL's native bool_and aggregate.
 func (d *PostgresDialect) BoolAndFunc() string { return "bool_and" }
 

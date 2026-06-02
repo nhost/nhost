@@ -225,6 +225,7 @@ func (t *table) buildSingleInsertCTEPreCheck( //nolint:funlen // Linear SQL CTE 
 		sourceColumnsFromInsertObject(insertObj),
 		insertPresentColumns([]arguments.InsertObject{insertObj}, nestedFKIndex),
 		role,
+		false,
 	)
 
 	rawCTEName := rawCTENameForUpsertUpdateCheck(cteName, plan)
@@ -235,6 +236,7 @@ func (t *table) buildSingleInsertCTEPreCheck( //nolint:funlen // Linear SQL CTE 
 		cteName,
 		insertObj,
 		onConflict,
+		plan,
 		checkCTEName,
 		nestedFKIndex,
 		hasCheckPermissions,
@@ -298,6 +300,7 @@ func (t *table) buildSingleInsertCTEPostCheck( //nolint:funlen // Linear SQL CTE
 		sourceColumnsFromInsertObject(insertObj),
 		insertPresentColumns([]arguments.InsertObject{insertObj}, nestedFKIndex),
 		role,
+		true,
 	)
 
 	rawCTEName := "_" + cteName
@@ -322,14 +325,23 @@ func (t *table) buildSingleInsertCTEPostCheck( //nolint:funlen // Linear SQL CTE
 		}
 	}
 
-	b.WriteString(" RETURNING *), ")
+	t.writeInsertReturning(b, plan)
+	b.WriteString("), ")
 
+	postCheckSourceCTEName := appendUpsertInsertedRowsCTE(b, plan, rawCTEName)
 	postCheckName := cteName + "_post_check"
 
 	var err error
 
 	params, paramIndex, err = t.buildPostCheckCTEWithName(
-		b, postCheckName, rawCTEName, tableSubs, role, sessionVariables, params, paramIndex,
+		b,
+		postCheckName,
+		postCheckSourceCTEName,
+		tableSubs,
+		role,
+		sessionVariables,
+		params,
+		paramIndex,
 	)
 	if err != nil {
 		return nil, 0, err
@@ -848,6 +860,7 @@ func (t *table) buildMutationResultInsertCTE(
 	allColumns []string,
 	nestedFKIndex arguments.NestedFKSources,
 	onConflict *arguments.OnConflict,
+	plan upsertUpdateCheckPlan,
 	hasCheckPermissions bool,
 	role string,
 	sessionVariables map[string]any,
@@ -881,7 +894,8 @@ func (t *table) buildMutationResultInsertCTE(
 		}
 	}
 
-	b.WriteString(" RETURNING *)")
+	t.writeInsertReturning(b, plan)
+	b.WriteByte(')')
 
 	return params, paramIndex, nil
 }
@@ -933,6 +947,7 @@ func (t *table) buildInsertMutationCTEPreCheck( //nolint:funlen // Linear SQL CT
 		finalColumns,
 		insertPresentColumns(insertObjs, nestedFKIndex),
 		role,
+		false,
 	)
 
 	rawCTEName := rawCTENameForUpsertUpdateCheck("mutation_result", plan)
@@ -943,6 +958,7 @@ func (t *table) buildInsertMutationCTEPreCheck( //nolint:funlen // Linear SQL CT
 		allColumns,
 		nestedFKIndex,
 		onConflict,
+		plan,
 		hasCheckPermissions,
 		role,
 		sessionVariables,
@@ -971,9 +987,10 @@ func (t *table) buildInsertMutationCTEPreCheck( //nolint:funlen // Linear SQL CT
 // SQL structure:
 //
 //	insert_data AS (SELECT ... FROM (...) AS data),
-//	_mutation_result AS (INSERT INTO ... SELECT ... FROM insert_data RETURNING *),
-//	post_check AS (validate all rows pass permission filter against real data),
-//	mutation_result AS (SELECT * FROM _mutation_result WHERE post_check passes)
+//	_mutation_result AS (INSERT INTO ... SELECT ... FROM insert_data RETURNING *[, action marker]),
+//	[mutation_result_upsert_inserts AS (SELECT inserted rows from _mutation_result),]
+//	post_check AS (validate inserted rows pass permission filter against real data),
+//	mutation_result AS (SELECT visible columns FROM _mutation_result WHERE post_check passes)
 func (t *table) buildInsertMutationCTEPostCheck( //nolint:funlen // Linear SQL CTE template.
 	b *strings.Builder,
 	insertObjs []arguments.InsertObject,
@@ -1004,6 +1021,7 @@ func (t *table) buildInsertMutationCTEPostCheck( //nolint:funlen // Linear SQL C
 		finalColumns,
 		insertPresentColumns(insertObjs, nestedFKIndex),
 		role,
+		true,
 	)
 
 	b.WriteString("_mutation_result AS (INSERT INTO ")
@@ -1024,12 +1042,15 @@ func (t *table) buildInsertMutationCTEPostCheck( //nolint:funlen // Linear SQL C
 		}
 	}
 
-	b.WriteString(" RETURNING *), ")
+	t.writeInsertReturning(b, plan)
+	b.WriteString("), ")
+
+	postCheckSourceCTEName := appendUpsertInsertedRowsCTE(b, plan, "_mutation_result")
 
 	var err error
 
 	params, paramIndex, err = t.buildPostCheckCTE(
-		b, "_mutation_result", role, sessionVariables, params, paramIndex,
+		b, postCheckSourceCTEName, role, sessionVariables, params, paramIndex,
 	)
 	if err != nil {
 		return nil, 0, err

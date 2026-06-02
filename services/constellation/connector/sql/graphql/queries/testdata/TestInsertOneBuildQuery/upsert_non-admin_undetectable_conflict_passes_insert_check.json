@@ -1,0 +1,14 @@
+[
+  {
+    "Name": "insert_notes_one",
+    "SQL": "WITH check_mutation_result AS (SELECT * FROM (SELECT $1::uuid AS \"author_id\", $2::text AS \"title\") AS data WHERE data.\"author_id\" = $3::uuid), check_count AS (SELECT CASE WHEN (SELECT COUNT(*) FROM check_mutation_result) >= 1 THEN 1 ELSE (SELECT 0 FROM (SELECT constellation_throw_error('check constraint of an insert/update permission has failed', 'ZZ901')) x) END AS status), _mutation_result AS (INSERT INTO \"public\".\"notes\" (\"author_id\", \"title\") SELECT check_mutation_result.\"author_id\", check_mutation_result.\"title\" FROM check_mutation_result WHERE (SELECT status FROM check_count) = 1 ON CONFLICT ON CONSTRAINT \"notes_pkey\" DO UPDATE SET \"title\" = EXCLUDED.\"title\" WHERE (\"public\".\"notes\".\"author_id\" = $4::uuid) RETURNING *, (xmax <> 0) AS \"__nhost_upsert_updated\"), mutation_result_upsert_updates AS (SELECT * FROM _mutation_result WHERE _mutation_result.\"__nhost_upsert_updated\"), mutation_result_update_post_check AS (SELECT CASE WHEN (SELECT COUNT(*) FROM mutation_result_upsert_updates WHERE mutation_result_upsert_updates.\"title\" != $5::text) = (SELECT COUNT(*) FROM mutation_result_upsert_updates) THEN 1 ELSE (SELECT 0 FROM (SELECT constellation_throw_error('check constraint of an insert/update permission has failed', 'ZZ901')) x) END AS status), mutation_result AS (SELECT _mutation_result.\"id\", _mutation_result.\"author_id\", _mutation_result.\"title\" FROM _mutation_result WHERE (SELECT status FROM mutation_result_update_post_check) = 1) SELECT row_to_json((SELECT \"_e\" FROM (SELECT mutation_result.\"author_id\" AS \"author_id\", mutation_result.\"title\" AS \"title\") AS \"_e\")) FROM mutation_result",
+    "Parameters": [
+      "550e8400-e29b-41d4-a716-446655440001",
+      "Fresh Note",
+      "550e8400-e29b-41d4-a716-446655440001",
+      "550e8400-e29b-41d4-a716-446655440001",
+      "__forbidden__"
+    ],
+    "StreamCursors": null
+  }
+]

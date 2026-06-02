@@ -1233,7 +1233,7 @@ func TestInsertOneBuildQuery(t *testing.T) { //nolint:paralleltest,maintidx
 		// PostgreSQL (finding C1). The `user` role on public.notes carries BOTH
 		// an UPDATE row-filter (author_id = X-Hasura-User-Id) and an UPDATE check
 		// (title != '__forbidden__'), so a non-admin on_conflict DO UPDATE drives
-		// the _upsert_conflicts / _upsert_updates / _update_post_check CTE chain.
+		// the xmax action marker / _upsert_updates / _update_post_check CTE chain.
 		// These cases EXECUTE the generated SQL (not just string-match it), so a
 		// semantic defect that silently defeats the permission enforcement fails
 		// the _data.json golden. The note 0199cccc-...0001 is seeded in
@@ -1299,13 +1299,11 @@ func TestInsertOneBuildQuery(t *testing.T) { //nolint:paralleltest,maintidx
 			},
 		},
 
-		// Undetectable conflict (the conflict-target key `id` is omitted, so the
-		// engine can't scope the conflict) whose row PASSES the all-rows
-		// fail-closed UPDATE check. The row is a fresh INSERT (gen_random_uuid id,
-		// not returned to keep the golden deterministic); the UPDATE check still
-		// runs against it and passes, so the insert succeeds.
+		// Undetectable conflict key (`id` is omitted) whose row PASSES the INSERT
+		// check. PostgreSQL uses the internal xmax marker from RETURNING to tell
+		// this was a fresh INSERT, so the UPDATE check is not applied.
 		{
-			name: "upsert non-admin undetectable conflict passes fail-closed check",
+			name: "upsert non-admin undetectable conflict passes insert check",
 			query: query{
 				Query: `mutation {
 					insert_notes_one(
@@ -1329,14 +1327,12 @@ func TestInsertOneBuildQuery(t *testing.T) { //nolint:paralleltest,maintidx
 			},
 		},
 
-		// Undetectable conflict whose freshly-INSERTed row FAILS the UPDATE check
-		// (title == '__forbidden__'). This is the security-over-reliability
-		// fail-closed behaviour documented on writeUpsertUpdatedRowsCTE: the
-		// engine can't attribute the conflict, so it applies the UPDATE check to
-		// every RETURNING row — aborting a pure-insert that no update touched.
-		// Captured as the ZZ901 PgError map in the _data.json golden.
+		// Undetectable conflict key whose freshly INSERTed row would fail the UPDATE
+		// check (title == '__forbidden__') but passes the INSERT check. PostgreSQL
+		// classifies it as inserted from xmax, matching Hasura's per-row
+		// insert/update check selection.
 		{
-			name: "upsert non-admin undetectable conflict fails fail-closed check",
+			name: "upsert non-admin undetectable conflict ignores update check for insert",
 			query: query{
 				Query: `mutation {
 					insert_notes_one(

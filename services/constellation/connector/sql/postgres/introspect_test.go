@@ -287,6 +287,109 @@ func TestIntrospect_ColumnScanning(t *testing.T) { //nolint:gocognit,cyclop
 	}
 }
 
+func TestIntrospect_UniqueConstraintNullsNotDistinctCatalog(t *testing.T) {
+	t.Parallel()
+
+	pool := testdb.NewPostgres(t, `
+CREATE TABLE public.users (
+    id integer PRIMARY KEY,
+    username text,
+    email text
+);
+`)
+
+	var serverVersionNum int
+	if err := pool.QueryRow(
+		t.Context(),
+		"SELECT current_setting('server_version_num')::integer",
+	).Scan(&serverVersionNum); err != nil {
+		t.Fatalf("query server version: %v", err)
+	}
+
+	if serverVersionNum < 150000 {
+		t.Skipf(
+			"UNIQUE NULLS NOT DISTINCT requires PostgreSQL 15, got server_version_num %d",
+			serverVersionNum,
+		)
+	}
+
+	if _, err := pool.Exec(
+		t.Context(),
+		"ALTER TABLE public.users ADD CONSTRAINT users_email_key UNIQUE (email)",
+	); err != nil {
+		t.Fatalf("add regular unique constraint: %v", err)
+	}
+
+	if _, err := pool.Exec(
+		t.Context(),
+		"ALTER TABLE public.users ADD CONSTRAINT users_username_key UNIQUE NULLS NOT DISTINCT (username)",
+	); err != nil {
+		t.Fatalf("add nulls-not-distinct unique constraint: %v", err)
+	}
+
+	pgPool, err := postgres.Open(t.Context(), pool.Config().ConnConfig.ConnString())
+	if err != nil {
+		t.Fatalf("open pool: %v", err)
+	}
+
+	pg := postgres.NewClient(pgPool)
+	t.Cleanup(func() { pg.Close() })
+
+	objs, err := pg.Introspect(t.Context(), &metadata.DatabaseMetadata{
+		Name: "default",
+		Tables: []metadata.TableMetadata{
+			{Table: metadata.TableSource{Schema: "public", Name: "users"}},
+		},
+	})
+	if err != nil {
+		t.Fatalf("introspect: %v", err)
+	}
+
+	users, ok := objs.GetTable("public", "users")
+	if !ok {
+		t.Fatal("introspection did not return public.users")
+	}
+
+	if len(users.UniqueConstraints) != 2 {
+		t.Fatalf(
+			"expected 2 unique constraints, got %d: %+v",
+			len(users.UniqueConstraints), users.UniqueConstraints,
+		)
+	}
+
+	constraints := make(map[string]introspection.UniqueConstraint, len(users.UniqueConstraints))
+	for _, constraint := range users.UniqueConstraints {
+		constraints[constraint.Name] = constraint
+	}
+
+	wants := []struct {
+		name             string
+		column           string
+		nullsNotDistinct bool
+	}{
+		{name: "users_email_key", column: "email", nullsNotDistinct: false},
+		{name: "users_username_key", column: "username", nullsNotDistinct: true},
+	}
+
+	for _, want := range wants {
+		got, ok := constraints[want.name]
+		if !ok {
+			t.Fatalf("missing unique constraint %q in %+v", want.name, users.UniqueConstraints)
+		}
+
+		if len(got.Columns) != 1 || got.Columns[0] != want.column {
+			t.Fatalf("%s columns = %v, want [%s]", want.name, got.Columns, want.column)
+		}
+
+		if got.NullsNotDistinct != want.nullsNotDistinct {
+			t.Fatalf(
+				"%s NullsNotDistinct = %v, want %v",
+				want.name, got.NullsNotDistinct, want.nullsNotDistinct,
+			)
+		}
+	}
+}
+
 func TestIntrospect_UniqueConstraintNullsNotDistinct(t *testing.T) {
 	t.Parallel()
 

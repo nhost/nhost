@@ -941,6 +941,44 @@ func TestInsertMutations(t *testing.T) { //nolint:paralleltest,maintidx
 			},
 		},
 
+		// PostgreSQL/Hasura upsert classification over a mixed RETURNING set: the
+		// first row conflicts and passes the UPDATE check, while the second row is
+		// a pure INSERT with a defaulted id and a title that would fail the UPDATE
+		// check. The mutation must succeed because INSERT and UPDATE checks are
+		// applied to the rows that actually took each branch.
+		{
+			name: "permissions: upsert collection applies update check only to updated rows",
+			query: query{
+				Query: `
+					mutation {
+					  insert_notes(
+						objects: [
+						  {
+							id: "0199bbbb-0000-7000-8000-000000000001"
+							author_id: "550e8400-e29b-41d4-a716-446655440001"
+							title: "Renamed seeded note"
+						  }
+						  {
+							author_id: "550e8400-e29b-41d4-a716-446655440001"
+							title: "__forbidden__"
+						  }
+						]
+						on_conflict: {
+						  constraint: notes_pkey
+						  update_columns: [title]
+						}
+					  ) {
+						affected_rows
+					  }
+					}`,
+				Variables: map[string]any{},
+				Role:      "user",
+				SessionVariables: map[string]string{
+					"user-id": "550e8400-e29b-41d4-a716-446655440001",
+				},
+			},
+		},
+
 		// Hasura-parity lock for affected_rows over an object-relationship
 		// nested insert. Hasura counts every row inserted by the mutation —
 		// parent + every nested-rel row — so this 1-row collection insert

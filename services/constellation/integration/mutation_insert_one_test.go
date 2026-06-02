@@ -906,6 +906,37 @@ func TestInsertOneMutations(t *testing.T) { //nolint:paralleltest,maintidx
 			},
 		},
 
+		// PostgreSQL/Hasura upsert classification: `id` is omitted, so the
+		// conflict target is supplied by the database default. The inserted row's
+		// title would fail the role's UPDATE check, but it is a pure INSERT and
+		// must only be subject to the INSERT check.
+		{
+			name: "permissions: upsert insert_one with defaulted conflict key skips update check for insert",
+			query: query{
+				Query: `
+					mutation {
+					  insert_notes_one(
+						object: {
+						  author_id: "550e8400-e29b-41d4-a716-446655440001"
+						  title: "__forbidden__"
+						}
+						on_conflict: {
+						  constraint: notes_pkey
+						  update_columns: [title]
+						}
+					  ) {
+						author_id
+						title
+					  }
+					}`,
+				Variables: map[string]any{},
+				Role:      "user",
+				SessionVariables: map[string]string{
+					"user-id": "550e8400-e29b-41d4-a716-446655440001",
+				},
+			},
+		},
+
 		// on_conflict with where clause
 		{
 			name: "insert_one with on_conflict where clause - simple condition",

@@ -232,13 +232,14 @@ func (t *table) buildInsertWhereClause(
 	}
 }
 
-// buildInsertCTE builds the INSERT INTO ... RETURNING * CTE.
+// buildInsertCTE builds the INSERT INTO ... RETURNING CTE.
 func (t *table) buildInsertCTE(
 	b *strings.Builder,
 	cteName string,
 	checkCountBaseName string,
 	insertObj arguments.InsertObject,
 	onConflict *arguments.OnConflict,
+	plan upsertUpdateCheckPlan,
 	checkCTEName string,
 	nestedFKIndex arguments.NestedFKSources,
 	hasCheckPermissions bool,
@@ -269,7 +270,8 @@ func (t *table) buildInsertCTE(
 		}
 	}
 
-	b.WriteString(" RETURNING *)")
+	t.writeInsertReturning(b, plan)
+	b.WriteByte(')')
 
 	return params, paramIndex, nil
 }

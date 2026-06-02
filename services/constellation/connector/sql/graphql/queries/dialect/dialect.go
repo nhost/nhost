@@ -171,6 +171,17 @@ type Dialect interface { //nolint:interfacebloat
 	// SQLite: )
 	WriteJSONRowSuffixNoAlias(b *strings.Builder)
 
+	// SupportsUpsertUpdateAction reports whether INSERT ... ON CONFLICT DO UPDATE
+	// can expose, from RETURNING, whether each returned row took the UPDATE branch.
+	// PostgreSQL can use the xmax system column; SQLite has no equivalent marker.
+	SupportsUpsertUpdateAction() bool
+
+	// WriteUpsertUpdateAction writes a boolean SQL expression for INSERT ...
+	// ON CONFLICT DO UPDATE RETURNING that is true for rows that took the UPDATE
+	// branch and false for freshly inserted rows. Callers must gate it with
+	// SupportsUpsertUpdateAction.
+	WriteUpsertUpdateAction(b *strings.Builder)
+
 	// WriteGroupKeysFrom writes a FROM-source expression that produces one row
 	// per join value, used to build grouped-aggregate queries that batch
 	// multiple parent keys in a single statement.
