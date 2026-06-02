@@ -67,8 +67,9 @@ In practice:
 So `delete_departments(...) { returning { employees { ... } } }` returns the
 employees cascade-deleted along with the department in Constellation, and `[]` in
 Hasura. Matching Hasura would require resolving delete `returning` relationships
-in a second step after the delete commits; Constellation keeps the single
-statement and returns the rows it captured.
+in a second step after the DELETE statement completes, potentially within the
+same transaction; Constellation keeps the single statement and returns the rows
+it captured.
 
 # Functions
 

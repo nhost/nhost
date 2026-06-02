@@ -145,6 +145,9 @@ type UniqueConstraint struct {
 	// Columns is the ordered list of column names covered by the
 	// constraint.
 	Columns []string
+	// NullsNotDistinct is true for PostgreSQL UNIQUE NULLS NOT DISTINCT
+	// constraints, whose NULL key values conflict with one another.
+	NullsNotDistinct bool `json:",omitzero"`
 }
 
 // Table represents an introspected database table with its columns, keys, and constraints.

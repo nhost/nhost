@@ -21,13 +21,14 @@ import (
 // permission check, so the conservative behaviour is intentional. See
 // writeUpsertUpdatedRowsCTE.
 type upsertUpdateCheckPlan struct {
-	enabled            bool
-	canDetectConflicts bool
-	conflictColumns    []string
-	sourceCTEName      string
-	conflictCTEName    string
-	updatedRowsCTEName string
-	postCheckName      string
+	enabled                  bool
+	canDetectConflicts       bool
+	conflictColumns          []string
+	conflictNullsNotDistinct bool
+	sourceCTEName            string
+	conflictCTEName          string
+	updatedRowsCTEName       string
+	postCheckName            string
 }
 
 func (t *table) writeOnConflictSQL(
@@ -124,18 +125,19 @@ func (t *table) newUpsertUpdateCheckPlan(
 		return empty
 	}
 
-	conflictColumns, canDetectConflicts := t.upsertConflictDetectionColumns(
+	conflictColumns, nullsNotDistinct, canDetectConflicts := t.upsertConflictDetectionColumns(
 		onConflict, sourceColumns, presentColumns,
 	)
 
 	return upsertUpdateCheckPlan{
-		enabled:            true,
-		canDetectConflicts: canDetectConflicts,
-		conflictColumns:    conflictColumns,
-		sourceCTEName:      sourceCTEName,
-		conflictCTEName:    cteName + "_upsert_conflicts",
-		updatedRowsCTEName: cteName + "_upsert_updates",
-		postCheckName:      cteName + "_update_post_check",
+		enabled:                  true,
+		canDetectConflicts:       canDetectConflicts,
+		conflictColumns:          conflictColumns,
+		conflictNullsNotDistinct: nullsNotDistinct,
+		sourceCTEName:            sourceCTEName,
+		conflictCTEName:          cteName + "_upsert_conflicts",
+		updatedRowsCTEName:       cteName + "_upsert_updates",
+		postCheckName:            cteName + "_update_post_check",
 	}
 }
 
@@ -143,10 +145,10 @@ func (t *table) upsertConflictDetectionColumns(
 	onConflict *arguments.OnConflict,
 	sourceColumns []string,
 	presentColumns map[string]struct{},
-) ([]string, bool) {
+) ([]string, bool, bool) {
 	constraintColumns, found := t.conflictColumns[onConflict.ConstraintName]
 	if !found || len(constraintColumns) == 0 {
-		return nil, false
+		return nil, false, false
 	}
 
 	sourceColumnSet := make(map[string]struct{}, len(sourceColumns))
@@ -156,15 +158,17 @@ func (t *table) upsertConflictDetectionColumns(
 
 	for _, column := range constraintColumns {
 		if _, ok := sourceColumnSet[column]; !ok {
-			return nil, false
+			return nil, false, false
 		}
 
 		if _, ok := presentColumns[column]; !ok {
-			return nil, false
+			return nil, false, false
 		}
 	}
 
-	return append([]string(nil), constraintColumns...), true
+	return append([]string(nil), constraintColumns...),
+		t.conflictNullsNotDistinct[onConflict.ConstraintName],
+		true
 }
 
 func (t *table) prepareUpsertUpdateCheckPlan(
@@ -225,7 +229,13 @@ func (t *table) writeUpsertConflictKeysCTE(
 	b.WriteString(" WHERE EXISTS (SELECT 1 FROM ")
 	b.WriteString(plan.sourceCTEName)
 	b.WriteString(" WHERE ")
-	writeColumnEquality(b, targetAlias, plan.sourceCTEName, plan.conflictColumns)
+	writeConflictKeyMatch(
+		b,
+		targetAlias,
+		plan.sourceCTEName,
+		plan.conflictColumns,
+		plan.conflictNullsNotDistinct,
+	)
 	b.WriteString("))")
 }
 
@@ -329,7 +339,13 @@ func (t *table) writeUpsertUpdatedRowsCTE(
 		b.WriteString(" WHERE EXISTS (SELECT 1 FROM ")
 		b.WriteString(plan.conflictCTEName)
 		b.WriteString(" WHERE ")
-		writeColumnEquality(b, plan.conflictCTEName, rawCTEName, plan.conflictColumns)
+		writeConflictKeyMatch(
+			b,
+			plan.conflictCTEName,
+			rawCTEName,
+			plan.conflictColumns,
+			plan.conflictNullsNotDistinct,
+		)
 		b.WriteByte(')')
 	}
 
@@ -373,19 +389,25 @@ func writeStatusCheckWhere(b *strings.Builder, checkNames []string) {
 	}
 }
 
-func writeColumnEquality(
+func writeConflictKeyMatch(
 	b *strings.Builder,
 	leftSource string,
 	rightSource string,
 	columns []string,
+	nullsNotDistinct bool,
 ) {
+	operator := " = "
+	if nullsNotDistinct {
+		operator = " IS NOT DISTINCT FROM "
+	}
+
 	for i, column := range columns {
 		if i > 0 {
 			b.WriteString(" AND ")
 		}
 
 		core.WriteQualifiedColumn(b, leftSource, column)
-		b.WriteString(" = ")
+		b.WriteString(operator)
 		core.WriteQualifiedColumn(b, rightSource, column)
 	}
 }

@@ -33,11 +33,12 @@ type table struct {
 	mutationDeleteCollectionName string
 	mutationDeleteByPkName       string
 
-	pkColumns       []*core.Column
-	columns         []*core.Column
-	conflictColumns map[string][]string
-	relationships   []*relationship
-	functions       []*function
+	pkColumns                []*core.Column
+	columns                  []*core.Column
+	conflictColumns          map[string][]string
+	conflictNullsNotDistinct map[string]bool
+	relationships            []*relationship
+	functions                []*function
 
 	// allTables is retained so _exists permission predicates can resolve
 	// references to sibling tables within the same database.
@@ -71,6 +72,7 @@ func newTable(schemaName, tableName string, dialect dialect.Dialect) *table {
 		pkColumns:                    []*core.Column{},
 		columns:                      []*core.Column{},
 		conflictColumns:              map[string][]string{},
+		conflictNullsNotDistinct:     map[string]bool{},
 		relationships:                []*relationship{},
 		functions:                    []*function{},
 		allTables:                    nil,
@@ -131,7 +133,7 @@ func (t *table) Initialize(
 	}
 
 	t.columns = columns
-	t.conflictColumns = tableConflictColumns(tableObj)
+	t.conflictColumns, t.conflictNullsNotDistinct = tableConflictMetadata(tableObj)
 	t.allTables = tables
 
 	t.initializeRootNames(md)
@@ -143,8 +145,9 @@ func (t *table) Initialize(
 	return nil
 }
 
-func tableConflictColumns(tableObj *introspection.Table) map[string][]string {
+func tableConflictMetadata(tableObj *introspection.Table) (map[string][]string, map[string]bool) {
 	constraints := make(map[string][]string)
+	nullsNotDistinct := make(map[string]bool)
 
 	if len(tableObj.PrimaryKeys) > 0 {
 		pkeyName := tableObj.PrimaryKeyConstraintName
@@ -153,13 +156,15 @@ func tableConflictColumns(tableObj *introspection.Table) map[string][]string {
 		}
 
 		constraints[pkeyName] = append([]string(nil), tableObj.PrimaryKeys...)
+		nullsNotDistinct[pkeyName] = false
 	}
 
 	for _, constraint := range tableObj.UniqueConstraints {
 		constraints[constraint.Name] = append([]string(nil), constraint.Columns...)
+		nullsNotDistinct[constraint.Name] = constraint.NullsNotDistinct
 	}
 
-	return constraints
+	return constraints, nullsNotDistinct
 }
 
 func (t *table) initializeRootNames(md metadata.TableMetadata) {

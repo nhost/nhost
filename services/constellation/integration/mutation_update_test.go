@@ -1284,6 +1284,27 @@ func TestUpdateMutations(t *testing.T) { //nolint:paralleltest,maintidx
 				},
 			},
 		},
+
+		{
+			name: "update with preset only from session variable",
+			query: query{
+				Query: `mutation {
+					updateFiles(
+						where: { id: { _eq: "f1e9b8db-1111-439f-9d63-7f83de523fb1" } }
+					) {
+						affected_rows
+						returning {
+							id
+							uploadedByUserId
+						}
+					}
+				}`,
+				Role: "user",
+				SessionVariables: map[string]string{
+					"user-id": "550e8400-e29b-41d4-a716-446655440001",
+				},
+			},
+		},
 	}
 
 	RunGraphQLTests(t, cases, TestConfig{
@@ -1299,9 +1320,10 @@ func TestUpdateMutations(t *testing.T) { //nolint:paralleltest,maintidx
 //     at validation and the envelope matches Hasura byte-for-byte
 //     (validation-failed, path $.selectionSet.update_departments.args), so it is
 //     compared live against Hasura.
-//   - No operator supplied (update / update_by_pk / update_many): Constellation
-//     rejects all three with the same clean validation-failed envelope, whereas
-//     Hasura diverges — it silently no-ops the collection update (affected_rows
+//   - No operator supplied and no update preset available (update / update_by_pk
+//     / update_many): Constellation rejects all three with the same clean
+//     validation-failed envelope, whereas Hasura diverges — it silently no-ops
+//     the collection update (affected_rows
 //     0), returns {} for _by_pk, and emits a SET-less SQL syntax error for a
 //     _many element. That is an intentional, documented deviation
 //     (KNOWN_DIFFERENCES.md), so each no-operator case asserts Constellation's

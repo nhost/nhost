@@ -10,6 +10,7 @@ import (
 	"github.com/nhost/nhost/services/constellation/connector/sql/graphql/queries/dialect"
 	"github.com/nhost/nhost/services/constellation/connector/sql/graphql/queries/values"
 	"github.com/nhost/nhost/services/constellation/connector/sql/graphql/queries/where"
+	"github.com/nhost/nhost/services/constellation/connector/sql/introspection"
 )
 
 // newTestTable builds a public.users *table with the given columns and an
@@ -587,6 +588,98 @@ func TestBuildSingleInsertCTEPreCheckUpsertAppliesUpdatePermissions(t *testing.T
 
 	if paramIndex != 8 {
 		t.Fatalf("paramIndex = %d, want 8", paramIndex)
+	}
+}
+
+// TestBuildSingleInsertCTEPreCheckUpsertNullsNotDistinctConflictUsesNullSafeMatch
+// locks the PostgreSQL UNIQUE NULLS NOT DISTINCT path: nullable conflict keys
+// must use null-safe matching in both conflict-detection CTEs so UPDATE checks
+// still run when the conflicting key value is NULL.
+func TestBuildSingleInsertCTEPreCheckUpsertNullsNotDistinctConflictUsesNullSafeMatch(
+	t *testing.T,
+) {
+	t.Parallel()
+
+	idCol := col("id", "uuid", false)
+	userIDCol := col("user_id", "text", false)
+	usernameCol := col("username", "text", false)
+	bioCol := col("bio", "text", false)
+	statusCol := col("status", "text", false)
+
+	tbl := newTestTable(
+		t,
+		[]*core.Column{idCol, userIDCol, usernameCol, bioCol, statusCol},
+		map[string]where.Clause{"user": {}},
+	)
+	tbl.conflictColumns, tbl.conflictNullsNotDistinct = tableConflictMetadata(
+		&introspection.Table{
+			Name: "users",
+			UniqueConstraints: []introspection.UniqueConstraint{{
+				Name:             "users_username_key",
+				Columns:          []string{"username"},
+				NullsNotDistinct: true,
+			}},
+		},
+	)
+	tbl.permissions.Update["user"] = equalsClause(userIDCol, "x-hasura-user-id")
+	tbl.permissions.UpdateCheck["user"] = equalsClause(statusCol, "pending")
+
+	obj := arguments.InsertObject{Columns: []arguments.InsertColumn{
+		insertCol(idCol, "00000000-0000-0000-0000-000000000001"),
+		insertCol(userIDCol, "user-A"),
+		insertCol(usernameCol, nil),
+		insertCol(bioCol, "updated bio"),
+		insertCol(statusCol, "approved"),
+	}}
+	onConflict := &arguments.OnConflict{
+		ConstraintName: "users_username_key",
+		UpdateColumns:  []string{"bio", "status"},
+		Where:          nil,
+	}
+
+	var b strings.Builder
+
+	_, _, err := tbl.buildSingleInsertCTEPreCheck(
+		&b,
+		"mutation_result",
+		obj,
+		onConflict,
+		nil,
+		nil,
+		nil,
+		1,
+		"user",
+		map[string]any{"x-hasura-user-id": "user-A"},
+	)
+	if err != nil {
+		t.Fatalf("buildSingleInsertCTEPreCheck: %v", err)
+	}
+
+	got := b.String()
+
+	wantFragments := []string{
+		`mutation_result_upsert_conflicts AS (SELECT "mutation_result_upsert_conflicts_target"."username" AS "username" FROM "public"."users" AS "mutation_result_upsert_conflicts_target" WHERE EXISTS (SELECT 1 FROM check_mutation_result WHERE "mutation_result_upsert_conflicts_target"."username" IS NOT DISTINCT FROM check_mutation_result."username"))`,
+		`mutation_result_upsert_updates AS (SELECT * FROM _mutation_result WHERE EXISTS (SELECT 1 FROM mutation_result_upsert_conflicts WHERE mutation_result_upsert_conflicts."username" IS NOT DISTINCT FROM _mutation_result."username"))`,
+		`mutation_result_update_post_check AS (SELECT CASE WHEN`,
+	}
+	for _, fragment := range wantFragments {
+		if !strings.Contains(got, fragment) {
+			t.Errorf("generated SQL missing %q; got: %s", fragment, got)
+		}
+	}
+
+	wrongFragments := []string{
+		`"mutation_result_upsert_conflicts_target"."username" = check_mutation_result."username"`,
+		`mutation_result_upsert_conflicts."username" = _mutation_result."username"`,
+	}
+	for _, fragment := range wrongFragments {
+		if strings.Contains(got, fragment) {
+			t.Errorf(
+				"NULLS NOT DISTINCT conflict must not use nullable = match %q; got: %s",
+				fragment,
+				got,
+			)
+		}
 	}
 }
 

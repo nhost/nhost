@@ -664,8 +664,9 @@ func getUniqueConstraints(
 		}
 
 		constraints = append(constraints, introspection.UniqueConstraint{
-			Name:    name,
-			Columns: cols,
+			Name:             name,
+			Columns:          cols,
+			NullsNotDistinct: false,
 		})
 	}
 
