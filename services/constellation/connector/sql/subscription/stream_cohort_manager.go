@@ -513,7 +513,7 @@ func buildStreamTemplateVars(
 ) (map[string]any, map[string]any) {
 	templateSessionVars := make(map[string]any, len(sessionVarArrays))
 	for varName := range sessionVarArrays {
-		templateSessionVars[varName] = varName
+		templateSessionVars[varName] = core.SessionVarValue{Name: varName}
 	}
 
 	templateGraphQLVars := make(map[string]any, len(graphQLVarArrays))

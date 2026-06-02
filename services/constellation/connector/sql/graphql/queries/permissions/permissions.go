@@ -553,8 +553,9 @@ func normalizePresets(presets map[string]any) map[string]any {
 
 // SubstituteSessionVariable resolves a single permission-filter parameter:
 // "x-hasura-*" strings are replaced with the matching value from
-// sessionVariables; slice values recurse element-wise and substitute in
-// place. As a special case, a single-element slice whose lone element is a
+// sessionVariables; slice values recurse element-wise into a copied slice so
+// shared permission metadata is not mutated by one request/subscription build.
+// As a special case, a single-element slice whose lone element is a
 // session-variable marker that resolves to a non-slice value is flattened to
 // that scalar — this preserves the semantics of
 // `column _eq x-hasura-user-id` against a scalar variable. Multi-element
@@ -574,6 +575,11 @@ func SubstituteSessionVariable(v any, sessionVariables map[string]any) (any, err
 			return nil, fmt.Errorf("%w: %s", ErrSessionVariableNotFound, v)
 		}
 	case []any:
+		if v == nil {
+			return v, nil
+		}
+
+		out := make([]any, len(v))
 		for i, item := range v {
 			substituted, err := SubstituteSessionVariable(item, sessionVariables)
 			if err != nil {
@@ -595,21 +601,80 @@ func SubstituteSessionVariable(v any, sessionVariables map[string]any) (any, err
 				}
 			}
 
-			v[i] = substituted
+			out[i] = substituted
 		}
+
+		return out, nil
+	case []string:
+		return substituteStringArray(v, sessionVariables)
 	}
 
 	return v, nil
 }
 
-// substituteSessionVariables resolves all session-variable markers in params
-// in place. Returns the (now-mutated) params slice so callers can use a single
-// = assignment instead of a separate error check + reassignment.
+// substituteStringArray resolves session-variable references inside the
+// []string produced by the JSONB key operators (_has_keys_all / _has_keys_any).
+// A single whole-array session variable (e.g. `_has_keys_any: X-Hasura-Keys`)
+// flattens to the resolved value — a SessionVarValue marker on the subscription
+// template path, or the concrete session value on the direct path — mirroring
+// the []any (_in) handling. When any element is a session variable the slice
+// widens to []any so it can carry a marker alongside literal keys; a slice of
+// plain literals is returned unchanged so ordinary JSONB keys keep their type.
+// Only permission metadata is fed through here, so a user-supplied look-alike
+// literal such as ["x-hasura-foo"] is never reinterpreted as a session variable.
+func substituteStringArray(v []string, sessionVariables map[string]any) (any, error) {
+	hasSessionVar := false
+
+	for _, item := range v {
+		if strings.HasPrefix(strings.ToLower(item), "x-hasura-") {
+			hasSessionVar = true
+
+			break
+		}
+	}
+
+	if !hasSessionVar {
+		return v, nil
+	}
+
+	out := make([]any, len(v))
+
+	for i, item := range v {
+		substituted, err := SubstituteSessionVariable(item, sessionVariables)
+		if err != nil {
+			return nil, err
+		}
+
+		// Flatten a single whole-array session variable to its resolved value
+		// (marker or concrete value), matching the []any scalar flatten.
+		if len(v) == 1 {
+			if _, isSlice := substituted.([]any); !isSlice {
+				return substituted, nil
+			}
+		}
+
+		out[i] = substituted
+	}
+
+	return out, nil
+}
+
+// substituteSessionVariables resolves session-variable markers in params[start:]
+// in place, leaving params[:start] untouched. Callers pass start = len(params)
+// captured *before* the permission clause appended its own parameters, so only
+// the permission clause's values are substituted — never the user-supplied
+// where/_set/_in/by_pk literals that precede them in the slice. A user literal
+// that happens to begin with "x-hasura-" must stay verbatim (it is data, not a
+// session-variable reference), matching Hasura; only the permission metadata is
+// a legitimate source of session-variable markers.
+//
+// Returns the (now-mutated) params slice so callers can use a single =
+// assignment instead of a separate error check + reassignment.
 func substituteSessionVariables(
-	params []any, sessionVariables map[string]any,
+	params []any, sessionVariables map[string]any, start int,
 ) ([]any, error) {
-	for i, p := range params {
-		substituted, err := SubstituteSessionVariable(p, sessionVariables)
+	for i := start; i < len(params); i++ {
+		substituted, err := SubstituteSessionVariable(params[i], sessionVariables)
 		if err != nil {
 			return nil, err
 		}
@@ -674,12 +739,14 @@ func (s *Store) WriteRowLevel(
 		return params, paramIndex, nil
 	}
 
+	startLen := len(params)
+
 	params, paramIndex, err := clause.WriteCondition(b, sourceRef, params, paramIndex)
 	if err != nil {
 		return nil, 0, fmt.Errorf("writing row-level permission clause: %w", err)
 	}
 
-	params, err = substituteSessionVariables(params, sessionVariables)
+	params, err = substituteSessionVariables(params, sessionVariables, startLen)
 	if err != nil {
 		return nil, 0, err
 	}
@@ -720,6 +787,8 @@ func (s *Store) WriteInsertCheckSubstituted(
 		return params, paramIndex, false, nil
 	}
 
+	startLen := len(params)
+
 	params, paramIndex, err := where.WriteConditionSubstituted(
 		clause, b, sourceRef, params, paramIndex, subs,
 	)
@@ -727,7 +796,7 @@ func (s *Store) WriteInsertCheckSubstituted(
 		return nil, 0, false, fmt.Errorf("failed to apply insert permission check: %w", err)
 	}
 
-	params, err = substituteSessionVariables(params, sessionVariables)
+	params, err = substituteSessionVariables(params, sessionVariables, startLen)
 	if err != nil {
 		return nil, 0, false, err
 	}
@@ -752,12 +821,14 @@ func (s *Store) WriteUpdateFilter(
 		return params, paramIndex, false, nil
 	}
 
+	startLen := len(params)
+
 	params, paramIndex, err := clause.WriteCondition(b, sourceRef, params, paramIndex)
 	if err != nil {
 		return nil, 0, false, fmt.Errorf("writing update permission clause: %w", err)
 	}
 
-	params, err = substituteSessionVariables(params, sessionVariables)
+	params, err = substituteSessionVariables(params, sessionVariables, startLen)
 	if err != nil {
 		return nil, 0, false, err
 	}
@@ -788,12 +859,14 @@ func (s *Store) WriteUpdateCheck(
 		return params, paramIndex, false, nil
 	}
 
+	startLen := len(params)
+
 	params, paramIndex, err := clause.WriteCondition(b, sourceRef, params, paramIndex)
 	if err != nil {
 		return nil, 0, false, fmt.Errorf("failed to apply update permission check: %w", err)
 	}
 
-	params, err = substituteSessionVariables(params, sessionVariables)
+	params, err = substituteSessionVariables(params, sessionVariables, startLen)
 	if err != nil {
 		return nil, 0, false, err
 	}
@@ -816,12 +889,14 @@ func (s *Store) WriteDeleteFilter(
 		return params, paramIndex, false, nil
 	}
 
+	startLen := len(params)
+
 	params, paramIndex, err := clause.WriteCondition(b, sourceRef, params, paramIndex)
 	if err != nil {
 		return nil, 0, false, fmt.Errorf("writing delete permission clause: %w", err)
 	}
 
-	params, err = substituteSessionVariables(params, sessionVariables)
+	params, err = substituteSessionVariables(params, sessionVariables, startLen)
 	if err != nil {
 		return nil, 0, false, err
 	}
