@@ -173,4 +173,5 @@ in
 
   node22DockerImage = mkDockerImage { nodeRuntime = pkgs.nodejs_22; };
   node24DockerImage = mkDockerImage { nodeRuntime = pkgs.nodejs_24; };
+  node26DockerImage = mkDockerImage { nodeRuntime = pkgs.nodejs_26; };
 }

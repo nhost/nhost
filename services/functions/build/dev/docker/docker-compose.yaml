@@ -31,6 +31,22 @@ services:
       start_period: 30s
     restart: unless-stopped
 
+  functions-node26:
+    image: functions:26-0.0.0-dev
+    container_name: functions-node26
+    ports:
+      - "3005:3000"
+    volumes:
+      - ../../../example-pnpm:/opt/project
+      - node26_project_node_modules:/opt/project/node_modules
+    healthcheck:
+      test: ["CMD", "wget", "--spider", "-S", "http://localhost:3000/healthz"]
+      interval: 5s
+      timeout: 10s
+      retries: 20
+      start_period: 30s
+    restart: unless-stopped
+
   functions-npm:
     image: functions:24-0.0.0-dev
     container_name: functions-npm
@@ -66,5 +82,6 @@ services:
 volumes:
   node22_project_node_modules:
   node24_project_node_modules:
+  node26_project_node_modules:
   npm_project_node_modules:
   yarn_project_node_modules:
