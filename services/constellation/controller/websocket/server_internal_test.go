@@ -20,9 +20,10 @@ import (
 // tests can script behavior (scripted reads, controlled write errors, blocking
 // reads, etc.) without needing a separate type per scenario.
 type fakeWSConn struct {
-	readFn  func() (int, []byte, error)
-	writeFn func(messageType int, data []byte) error
-	closeFn func() error
+	readFn            func() (int, []byte, error)
+	writeFn           func(messageType int, data []byte) error
+	setReadDeadlineFn func(time.Time) error
+	closeFn           func() error
 
 	mu       sync.Mutex
 	writes   [][]byte
@@ -43,6 +44,14 @@ func (f *fakeWSConn) ReadMessage() (int, []byte, error) {
 // but a nil-safe default is friendlier than a panic if the test is reorganised.
 var errFakeWSReadUnused = errors.New("fakeWSConn: ReadMessage called without a configured readFn")
 
+type fakeTimeoutError struct{}
+
+func (fakeTimeoutError) Error() string { return "fake timeout" }
+
+func (fakeTimeoutError) Timeout() bool { return true }
+
+func (fakeTimeoutError) Temporary() bool { return true }
+
 func (f *fakeWSConn) WriteMessage(messageType int, data []byte) error {
 	f.mu.Lock()
 	// Snapshot the bytes — gorilla's contract is that the buffer is reusable
@@ -58,6 +67,14 @@ func (f *fakeWSConn) WriteMessage(messageType int, data []byte) error {
 	}
 
 	return f.writeFn(messageType, data)
+}
+
+func (f *fakeWSConn) SetReadDeadline(t time.Time) error {
+	if f.setReadDeadlineFn == nil {
+		return nil
+	}
+
+	return f.setReadDeadlineFn(t)
 }
 
 func (f *fakeWSConn) Close() error {
@@ -125,6 +142,16 @@ func (h *nopHandler) OnClose(ctx context.Context) {
 	h.onClose(ctx)
 }
 
+type expiringNopHandler struct {
+	nopHandler
+
+	expiresAt func() time.Time
+}
+
+func (h *expiringNopHandler) ConnectionExpiresAt() (time.Time, bool) {
+	return h.expiresAt(), true
+}
+
 // withTimingOverrides installs short timing knobs for the duration of the test
 // and restores them via t.Cleanup. Without this, tests for the init timeout
 // and ping ticker would have to wait 10s / 30s of real time.
@@ -141,6 +168,350 @@ func withTimingOverrides(t *testing.T, initTimeout, pingInterval time.Duration) 
 		connectionInitTimeout = origInit
 		defaultPingInterval = origPing
 	})
+}
+
+func TestSetReadDeadlineSuppressesCancellation(t *testing.T) {
+	t.Parallel()
+
+	tests := []struct {
+		name           string
+		cancelBefore   bool
+		cancelInSetter bool
+		wantCalled     bool
+		wantErr        bool
+	}{
+		{
+			name:           "canceled before call skips websocket deadline",
+			cancelBefore:   true,
+			cancelInSetter: false,
+			wantCalled:     false,
+			wantErr:        false,
+		},
+		{
+			name:           "canceled during setter suppresses deadline error",
+			cancelBefore:   false,
+			cancelInSetter: true,
+			wantCalled:     true,
+			wantErr:        false,
+		},
+		{
+			name:           "active context returns deadline error",
+			cancelBefore:   false,
+			cancelInSetter: false,
+			wantCalled:     true,
+			wantErr:        true,
+		},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			t.Parallel()
+
+			ctx, cancel := context.WithCancel(t.Context())
+			defer cancel()
+
+			if tt.cancelBefore {
+				cancel()
+			}
+
+			called := false
+			fake := &fakeWSConn{
+				setReadDeadlineFn: func(time.Time) error {
+					called = true
+
+					if tt.cancelInSetter {
+						cancel()
+					}
+
+					return context.Canceled
+				},
+			}
+			conn := &Connection{
+				conn:        fake,
+				handler:     &nopHandler{onInit: nil, onSub: nil, onComplete: nil, onClose: nil},
+				sendCh:      make(chan *Message, 1),
+				initialized: false,
+				expiresAt:   time.Time{},
+			}
+
+			err := conn.setReadDeadline(ctx, time.Now())
+
+			if called != tt.wantCalled {
+				t.Fatalf("expected SetReadDeadline called=%v, got %v", tt.wantCalled, called)
+			}
+
+			if tt.wantErr {
+				if !errors.Is(err, context.Canceled) {
+					t.Fatalf("expected context.Canceled error, got %v", err)
+				}
+
+				return
+			}
+
+			if err != nil {
+				t.Fatalf("expected nil error, got %v", err)
+			}
+		})
+	}
+}
+
+func TestReadPumpInitialDeadlineCancellationReturnsNil(t *testing.T) {
+	t.Parallel()
+
+	ctx, cancel := context.WithCancel(t.Context())
+	cancel()
+
+	deadlineCalled := false
+	fake := &fakeWSConn{
+		readFn: func() (int, []byte, error) {
+			t.Fatal("ReadMessage should not be called after context cancellation")
+
+			return 0, nil, nil
+		},
+		setReadDeadlineFn: func(time.Time) error {
+			deadlineCalled = true
+
+			return context.Canceled
+		},
+	}
+	conn := &Connection{
+		conn:        fake,
+		handler:     &nopHandler{onInit: nil, onSub: nil, onComplete: nil, onClose: nil},
+		sendCh:      make(chan *Message, 1),
+		initialized: false,
+		expiresAt:   time.Time{},
+	}
+
+	if err := conn.readPump(ctx, slog.New(slog.DiscardHandler)); err != nil {
+		t.Fatalf("expected nil error after context cancellation, got %v", err)
+	}
+
+	if deadlineCalled {
+		t.Fatal("SetReadDeadline should not be called after context cancellation")
+	}
+}
+
+func TestLoopWritesConnectionAckBeforeExpirationDeadline(t *testing.T) {
+	t.Parallel()
+
+	initBytes, err := json.Marshal(&Message{ID: "", Type: messageTypeConnectionInit, Payload: nil})
+	if err != nil {
+		t.Fatalf("could not marshal connection_init: %v", err)
+	}
+
+	ackWritten := make(chan struct{})
+	postInitDeadlineSet := make(chan struct{})
+
+	var expiresAt time.Time
+
+	readCalls := 0
+	deadlineCalls := 0
+	fake := &fakeWSConn{
+		readFn: func() (int, []byte, error) {
+			readCalls++
+			if readCalls == 1 {
+				return websocket.TextMessage, initBytes, nil
+			}
+
+			select {
+			case <-postInitDeadlineSet:
+			case <-time.After(2 * time.Second):
+				t.Fatal("post-init read deadline was not set")
+			}
+
+			if expiresAt.IsZero() {
+				t.Fatal("connection expiration was not captured")
+			}
+
+			if untilExpiry := time.Until(expiresAt); untilExpiry > 0 {
+				time.Sleep(untilExpiry + time.Millisecond)
+			}
+
+			return 0, nil, fakeTimeoutError{}
+		},
+		writeFn: func(_ int, data []byte) error {
+			var msg Message
+			if err := json.Unmarshal(data, &msg); err != nil {
+				t.Errorf("could not unmarshal written message: %v", err)
+			}
+
+			if msg.Type != messageTypeConnectionAck {
+				t.Errorf("expected connection_ack write, got %q", msg.Type)
+			}
+
+			close(ackWritten)
+
+			return nil
+		},
+		setReadDeadlineFn: func(time.Time) error {
+			deadlineCalls++
+			if deadlineCalls == 2 {
+				select {
+				case <-ackWritten:
+				default:
+					t.Fatal("post-init read deadline was set before connection_ack was written")
+				}
+
+				close(postInitDeadlineSet)
+			}
+
+			return nil
+		},
+	}
+	conn := &Connection{
+		conn: fake,
+		handler: &expiringNopHandler{
+			nopHandler: nopHandler{onInit: nil, onSub: nil, onComplete: nil, onClose: nil},
+			expiresAt: func() time.Time {
+				expiresAt = time.Now().Add(100 * time.Millisecond)
+
+				return expiresAt
+			},
+		},
+		sendCh:               make(chan *Message, 1),
+		connectionAckWriteCh: make(chan error, 1),
+		initialized:          false,
+		expiresAt:            time.Time{},
+	}
+
+	err = conn.Loop(t.Context(), slog.New(slog.DiscardHandler))
+	if !errors.Is(err, errConnectionExpired) {
+		t.Fatalf("expected errConnectionExpired, got %v", err)
+	}
+
+	if deadlineCalls != 2 {
+		t.Fatalf("expected initial and post-init deadline calls, got %d", deadlineCalls)
+	}
+}
+
+func TestSendConnectionAckFullQueueReturnsExpired(t *testing.T) {
+	t.Parallel()
+
+	conn := &Connection{
+		conn:                 &fakeWSConn{},
+		handler:              &nopHandler{onInit: nil, onSub: nil, onComplete: nil, onClose: nil},
+		sendCh:               make(chan *Message, 1),
+		connectionAckWriteCh: make(chan error, 1),
+		initialized:          true,
+		expiresAt:            time.Time{},
+	}
+	conn.sendCh <- newPingMessage()
+
+	errCh := make(chan error, 1)
+	go func() {
+		conn.expiresAt = time.Now().Add(50 * time.Millisecond)
+		errCh <- conn.sendConnectionAck(t.Context(), slog.New(slog.DiscardHandler))
+	}()
+
+	select {
+	case err := <-errCh:
+		if !errors.Is(err, errConnectionExpired) {
+			t.Fatalf("expected errConnectionExpired, got %v", err)
+		}
+	case <-time.After(2 * time.Second):
+		t.Fatal("sendConnectionAck did not return after connection expiration")
+	}
+
+	msg := <-conn.sendCh
+	if msg.Type != messageTypePing {
+		t.Fatalf("expected queued ping to remain, got %q", msg.Type)
+	}
+}
+
+func TestSendConnectionAckBlockedWriteNotificationReturnsExpired(t *testing.T) {
+	t.Parallel()
+
+	conn := &Connection{
+		conn:                 &fakeWSConn{},
+		handler:              &nopHandler{onInit: nil, onSub: nil, onComplete: nil, onClose: nil},
+		sendCh:               make(chan *Message, 1),
+		connectionAckWriteCh: make(chan error, 1),
+		initialized:          true,
+		expiresAt:            time.Time{},
+	}
+
+	errCh := make(chan error, 1)
+	go func() {
+		conn.expiresAt = time.Now().Add(50 * time.Millisecond)
+		errCh <- conn.sendConnectionAck(t.Context(), slog.New(slog.DiscardHandler))
+	}()
+
+	select {
+	case msg := <-conn.sendCh:
+		if msg.Type != messageTypeConnectionAck {
+			t.Fatalf("expected connection_ack to be queued, got %q", msg.Type)
+		}
+	case err := <-errCh:
+		t.Fatalf("sendConnectionAck returned before queuing ack: %v", err)
+	case <-time.After(2 * time.Second):
+		t.Fatal("connection_ack was not queued")
+	}
+
+	select {
+	case err := <-errCh:
+		if !errors.Is(err, errConnectionExpired) {
+			t.Fatalf("expected errConnectionExpired, got %v", err)
+		}
+	case <-time.After(2 * time.Second):
+		t.Fatal("sendConnectionAck did not return after connection expiration")
+	}
+}
+
+func TestReadPumpPostInitDeadlineCancellationReturnsNil(t *testing.T) {
+	t.Parallel()
+
+	initBytes, err := json.Marshal(&Message{ID: "", Type: messageTypeConnectionInit, Payload: nil})
+	if err != nil {
+		t.Fatalf("could not marshal connection_init: %v", err)
+	}
+
+	ctx, cancel := context.WithCancel(t.Context())
+	defer cancel()
+
+	readCalls := 0
+	deadlineCalls := 0
+	fake := &fakeWSConn{
+		readFn: func() (int, []byte, error) {
+			readCalls++
+			if readCalls > 1 {
+				t.Fatal("ReadMessage should not be called again after context cancellation")
+			}
+
+			return websocket.TextMessage, initBytes, nil
+		},
+		setReadDeadlineFn: func(time.Time) error {
+			deadlineCalls++
+			if deadlineCalls > 1 {
+				return context.Canceled
+			}
+
+			return nil
+		},
+	}
+	conn := &Connection{
+		conn: fake,
+		handler: &nopHandler{
+			onInit: func(_ context.Context, _ jsontext.Value) error {
+				cancel()
+
+				return nil
+			},
+			onSub:      nil,
+			onComplete: nil,
+			onClose:    nil,
+		},
+		sendCh:      make(chan *Message, 1),
+		initialized: false,
+		expiresAt:   time.Time{},
+	}
+
+	if err := conn.readPump(ctx, slog.New(slog.DiscardHandler)); err != nil {
+		t.Fatalf("expected nil error after context cancellation, got %v", err)
+	}
+
+	if deadlineCalls != 1 {
+		t.Fatalf("expected only the initial deadline call, got %d", deadlineCalls)
+	}
 }
 
 // TestLoop_ConnectionInitTimeout covers M5 sub-item (1): the readPump's
