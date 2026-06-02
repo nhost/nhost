@@ -134,6 +134,82 @@ func TestIntrospect(t *testing.T) {
 	testhelpers.GoldenJSON(t, goldenPath, got, *updateGolden)
 }
 
+func TestIntrospectSkipsPartialUniqueIndexes(t *testing.T) {
+	t.Parallel()
+
+	dbPath := filepath.Join(t.TempDir(), "partial_unique.db")
+
+	db, err := sql.Open("sqlite3", dbPath)
+	if err != nil {
+		t.Fatalf("failed to open database: %v", err)
+	}
+
+	if _, err := db.ExecContext(t.Context(), `
+CREATE TABLE users (
+    id INTEGER PRIMARY KEY,
+    email TEXT NOT NULL,
+    username TEXT NOT NULL,
+    deleted_at DATETIME
+);
+CREATE UNIQUE INDEX users_username_key ON users(username);
+CREATE UNIQUE INDEX users_active_email_key ON users(email) WHERE deleted_at IS NULL;
+`); err != nil {
+		t.Fatalf("failed to create schema: %v", err)
+	}
+
+	if err := db.Close(); err != nil {
+		t.Fatalf("failed to close setup database: %v", err)
+	}
+
+	sqlDB, err := sqlite.Open(t.Context(), dbPath)
+	if err != nil {
+		t.Fatalf("failed to open sqlite: %v", err)
+	}
+
+	client := sqlite.NewClient(sqlDB)
+	t.Cleanup(func() { client.Close() })
+
+	got, err := client.Introspect(t.Context(), &metadata.DatabaseMetadata{
+		Tables: []metadata.TableMetadata{
+			{Table: metadata.TableSource{Name: "users"}},
+		},
+	})
+	if err != nil {
+		t.Fatalf("failed to introspect: %v", err)
+	}
+
+	schemaObjs := got.Schemas[""]
+	if schemaObjs == nil {
+		t.Fatalf("expected default schema in introspection objects")
+	}
+
+	users, ok := schemaObjs.Tables["users"]
+	if !ok {
+		t.Fatalf("missing users table in introspection")
+	}
+
+	foundPlainUnique := false
+	for _, constraint := range users.UniqueConstraints {
+		switch constraint.Name {
+		case "users_username_key":
+			foundPlainUnique = true
+
+			if len(constraint.Columns) != 1 || constraint.Columns[0] != "username" {
+				t.Fatalf(
+					"users_username_key columns = %v, want [username]",
+					constraint.Columns,
+				)
+			}
+		case "users_active_email_key":
+			t.Fatalf("partial unique index %q was exposed as an upsert constraint", constraint.Name)
+		}
+	}
+
+	if !foundPlainUnique {
+		t.Fatalf("plain unique index was not exposed: %+v", users.UniqueConstraints)
+	}
+}
+
 // TestIntrospectViewMutability covers the INSTEAD OF trigger detection in
 // introspectTable. The default golden test above intentionally has no views,
 // so this test sets up the matrix of view shapes (no triggers, INSTEAD OF

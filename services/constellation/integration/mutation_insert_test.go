@@ -979,6 +979,53 @@ func TestInsertMutations(t *testing.T) { //nolint:paralleltest,maintidx
 			},
 		},
 
+		// Companion negative guard for the conflicted-row UPDATE check. The success
+		// case above proves pure inserts stay scoped to INSERT permissions by using
+		// an update-forbidden title on the inserted row. This case keeps its
+		// companion insert update-allowed so the expected error is attributable to
+		// the seeded note that conflicts and proposes the title forbidden by the
+		// role's update check. If conflicted rows skip UPDATE-check enforcement, the
+		// mutation succeeds.
+		{
+			name: "permissions: upsert collection rejects updated row failing update check",
+			query: query{
+				Query: `
+					mutation {
+					  insert_notes(
+						objects: [
+						  {
+							id: "0199bbbb-0000-7000-8000-000000000001"
+							author_id: "550e8400-e29b-41d4-a716-446655440001"
+							title: "__forbidden__"
+						  }
+						  {
+							author_id: "550e8400-e29b-41d4-a716-446655440001"
+							title: "Inserted companion note"
+						  }
+						]
+						on_conflict: {
+						  constraint: notes_pkey
+						  update_columns: [title]
+						}
+					  ) {
+						affected_rows
+					  }
+					}`,
+				Variables: map[string]any{},
+				Role:      "user",
+				SessionVariables: map[string]string{
+					"user-id": "550e8400-e29b-41d4-a716-446655440001",
+				},
+			},
+			expected: map[string]any{
+				"errors": []any{
+					map[string]any{
+						"message": `failed to execute operations: failed to execute operation insert_notes: failed to scan result row: ERROR: check constraint of an insert/update permission has failed (SQLSTATE ZZ901)`,
+					},
+				},
+			},
+		},
+
 		// Hasura-parity lock for affected_rows over an object-relationship
 		// nested insert. Hasura counts every row inserted by the mutation —
 		// parent + every nested-rel row — so this 1-row collection insert

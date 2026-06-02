@@ -325,8 +325,9 @@ not applied to it. PostgreSQL classifies each `RETURNING` row exactly using the
 internal `xmax` marker, so the selection is per-row even when the conflict key
 is database-generated or supplied by a default. See
 `connector/sql/graphql/queries/mutation_insert_check_ctes.go` (the post-mutation
-check path that every upsert with an INSERT check uses) and
-[SQLite source differences](sqlite.md) for the SQLite fallback.
+check path used by PostgreSQL upserts with an INSERT check). SQLite sources do
+not have executable insert/upsert support yet; see
+[SQLite source differences](sqlite.md) for the current limitation.
 
 ## Subscriptions
 

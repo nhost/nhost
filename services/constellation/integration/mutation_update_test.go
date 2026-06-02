@@ -1423,6 +1423,38 @@ func TestUpdateOperatorValidationErrors(t *testing.T) { //nolint:paralleltest
 				},
 			},
 		},
+		{
+			name: "update_many with mixed valid and empty update elements (validation error)",
+			query: query{
+				Query: `mutation {
+					update_departments_many(
+						updates: [
+							{
+								where: { name: { _eq: "Marketing" } }
+								_set: { budget: 100 }
+							},
+							{
+								where: { name: { _eq: "Sales" } }
+							}
+						]
+					) {
+						affected_rows
+					}
+				}`,
+				Role: "admin",
+			},
+			expected: map[string]any{
+				"errors": []any{
+					map[string]any{
+						"message": "at least one update operator must be provided",
+						"extensions": map[string]any{
+							"code": "validation-failed",
+							"path": "$.selectionSet.update_departments_many.args",
+						},
+					},
+				},
+			},
+		},
 	}
 
 	RunGraphQLTests(t, cases, TestConfig{

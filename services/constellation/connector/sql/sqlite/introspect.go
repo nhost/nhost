@@ -616,10 +616,13 @@ func getForeignKeys(
 
 // getUniqueConstraints returns the unique-constraint metadata for tableName.
 // It walks PRAGMA index_list (rows of seq, name, unique, origin, partial),
-// keeps only indexes flagged unique=1, and then calls [getIndexColumns] for
-// each one. The origin column (pk/u/c) is unused: any unique index counts,
-// regardless of whether it was created implicitly for a UNIQUE column, a
-// PRIMARY KEY, or an explicit CREATE UNIQUE INDEX.
+// keeps only indexes flagged unique=1 and partial=0, and then calls
+// [getIndexColumns] for each one. SQLite ON CONFLICT targets for partial unique
+// indexes must repeat the index predicate, which this metadata model cannot
+// represent, so partial indexes are deliberately not exposed as upsert
+// constraints. The origin column (pk/u/c) is unused: any non-partial unique
+// index counts, regardless of whether it was created implicitly for a UNIQUE
+// column, a PRIMARY KEY, or an explicit CREATE UNIQUE INDEX.
 func getUniqueConstraints(
 	ctx context.Context, q Querier, tableName string,
 ) ([]introspection.UniqueConstraint, error) {
@@ -646,7 +649,7 @@ func getUniqueConstraints(
 			return nil, fmt.Errorf("failed to scan index entry: %w", err)
 		}
 
-		if unique {
+		if unique && !partial {
 			indexNames = append(indexNames, name)
 		}
 	}
