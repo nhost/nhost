@@ -494,8 +494,8 @@ export default function useSchemaGraph({
         id,
         type: 'tableNode',
         position: { x: 0, y: 0 },
-        width: TABLE_NODE_WIDTH,
-        height: computeNodeHeight(
+        initialWidth: TABLE_NODE_WIDTH,
+        initialHeight: computeNodeHeight(
           data.columns.length + data.computedFields.length,
         ),
         data,
