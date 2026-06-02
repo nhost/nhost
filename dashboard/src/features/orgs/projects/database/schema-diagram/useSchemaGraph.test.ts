@@ -1166,7 +1166,7 @@ describe('useSchemaGraph', () => {
       );
 
       const node = result.current.nodes.find((n) => n.id === 'public.users')!;
-      expect(node.height).toBe(computeNodeHeight(4));
+      expect(node.initialHeight).toBe(computeNodeHeight(4));
     });
 
     it('drops computed fields and sizes by columns only in postgres mode', () => {
@@ -1202,7 +1202,7 @@ describe('useSchemaGraph', () => {
 
       const node = result.current.nodes.find((n) => n.id === 'public.users')!;
       expect(node.data.computedFields).toEqual([]);
-      expect(node.height).toBe(computeNodeHeight(1));
+      expect(node.initialHeight).toBe(computeNodeHeight(1));
     });
   });
 
