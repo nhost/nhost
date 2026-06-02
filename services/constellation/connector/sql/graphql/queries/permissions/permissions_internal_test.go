@@ -190,6 +190,111 @@ func TestSubstituteSessionVariable(t *testing.T) {
 	}
 }
 
+func TestSubstituteSessionVariable_DoesNotMutateSharedSlice(t *testing.T) {
+	t.Parallel()
+
+	metadataValues := []any{"x-hasura-user-id", "alice"}
+
+	s := NewStore()
+	s.Select["user"] = where.Clause{appendParamStatement("user_id", metadataValues)}
+
+	marker := core.SessionVarValue{Name: "x-hasura-user-id"}
+
+	params, _, err := s.WriteRowLevel(
+		&strings.Builder{}, nil, 1, "user",
+		map[string]any{"x-hasura-user-id": marker},
+		"t",
+	)
+	if err != nil {
+		t.Fatalf("template substitution failed: %v", err)
+	}
+
+	if diff := cmp.Diff([]any{[]any{marker, "alice"}}, params); diff != "" {
+		t.Fatalf("template params mismatch (-want +got):\n%s", diff)
+	}
+
+	// The subscription/template build above must not poison the permission
+	// clause's stored []any value with SessionVarValue. The same Store is reused
+	// across requests, so a later direct query must still substitute the original
+	// string marker to the concrete requester value rather than trying to bind the
+	// template marker as a SQL argument.
+	params, _, err = s.WriteRowLevel(
+		&strings.Builder{}, nil, 1, "user",
+		map[string]any{"x-hasura-user-id": "42"},
+		"t",
+	)
+	if err != nil {
+		t.Fatalf("direct substitution failed: %v", err)
+	}
+
+	if diff := cmp.Diff([]any{[]any{"42", "alice"}}, params); diff != "" {
+		t.Errorf("direct params mismatch (-want +got):\n%s", diff)
+	}
+
+	if diff := cmp.Diff([]any{"x-hasura-user-id", "alice"}, metadataValues); diff != "" {
+		t.Errorf("metadata values were mutated (-want +got):\n%s", diff)
+	}
+}
+
+// TestSubstituteSessionVariable_StringArray covers the []string shape produced
+// by the JSONB key operators (_has_keys_all / _has_keys_any). A session variable
+// there must be carried structurally like an _in session variable: flattened to
+// its resolved value on the direct path and to a SessionVarValue marker on the
+// subscription template path, while ordinary literal keys stay a plain []string
+// so a user-supplied look-alike is never reinterpreted.
+func TestSubstituteSessionVariable_StringArray(t *testing.T) {
+	t.Parallel()
+
+	marker := core.SessionVarValue{Name: "x-hasura-keys"}
+
+	tests := []struct {
+		name        string
+		in          []string
+		sessionVars map[string]any
+		want        any
+	}{
+		{
+			name:        "single whole-array session var flattens to concrete value (direct path)",
+			in:          []string{"x-hasura-keys"},
+			sessionVars: map[string]any{"x-hasura-keys": "{a,b}"},
+			want:        "{a,b}",
+		},
+		{
+			name:        "single whole-array session var flattens to marker (template path)",
+			in:          []string{"x-hasura-keys"},
+			sessionVars: map[string]any{"x-hasura-keys": marker},
+			want:        marker,
+		},
+		{
+			name:        "plain literal keys stay a []string",
+			in:          []string{"alpha", "beta"},
+			sessionVars: map[string]any{},
+			want:        []string{"alpha", "beta"},
+		},
+		{
+			name:        "multi-element mix widens to []any carrying the marker",
+			in:          []string{"x-hasura-keys", "literal"},
+			sessionVars: map[string]any{"x-hasura-keys": marker},
+			want:        []any{marker, "literal"},
+		},
+	}
+
+	for _, tc := range tests {
+		t.Run(tc.name, func(t *testing.T) {
+			t.Parallel()
+
+			got, err := SubstituteSessionVariable(tc.in, tc.sessionVars)
+			if err != nil {
+				t.Fatalf("unexpected error: %v", err)
+			}
+
+			if diff := cmp.Diff(tc.want, got); diff != "" {
+				t.Errorf("SubstituteSessionVariable mismatch (-want +got):\n%s", diff)
+			}
+		})
+	}
+}
+
 func TestNormalizePresets(t *testing.T) {
 	t.Parallel()
 
@@ -1480,6 +1585,105 @@ func TestStoreWriteRowLevel_WithPermission(t *testing.T) {
 
 	if diff := cmp.Diff([]any{"42"}, params); diff != "" {
 		t.Errorf("params mismatch (-want +got):\n%s", diff)
+	}
+}
+
+// TestStoreWritePermission_PreservesUserParams is the regression guard for the
+// session-variable misclassification bug (BUG_MEDIUM_10): each Write* helper
+// substitutes only the parameters its own permission clause appended, never the
+// user-supplied values already in the slice. A user value that happens to equal
+// a session-variable name ("x-hasura-user-id") must survive verbatim while the
+// permission-appended marker is resolved to the requester's session value —
+// matching Hasura, which never reinterprets user argument values as session
+// variables. Before the boundary fix the whole slice was substituted, rewriting
+// the user value (or hard-failing with ErrSessionVariableNotFound).
+func TestStoreWritePermission_PreservesUserParams(t *testing.T) {
+	t.Parallel()
+
+	sessionVars := map[string]any{"x-hasura-user-id": "42"}
+
+	permClause := func() where.Clause {
+		return where.Clause{appendParamStatement("user_id", "x-hasura-user-id")}
+	}
+
+	tests := []struct {
+		name string
+		run  func(s *Store, params []any) ([]any, error)
+	}{
+		{
+			name: "WriteRowLevel",
+			run: func(s *Store, params []any) ([]any, error) {
+				s.Select["user"] = permClause()
+				p, _, err := s.WriteRowLevel(
+					&strings.Builder{}, params, 2, "user", sessionVars, "t",
+				)
+
+				return p, err
+			},
+		},
+		{
+			name: "WriteUpdateFilter",
+			run: func(s *Store, params []any) ([]any, error) {
+				s.Update["user"] = permClause()
+				p, _, _, err := s.WriteUpdateFilter(
+					&strings.Builder{}, params, 2, "user", sessionVars, "t",
+				)
+
+				return p, err
+			},
+		},
+		{
+			name: "WriteDeleteFilter",
+			run: func(s *Store, params []any) ([]any, error) {
+				s.Delete["user"] = permClause()
+				p, _, _, err := s.WriteDeleteFilter(
+					&strings.Builder{}, params, 2, "user", sessionVars, "t",
+				)
+
+				return p, err
+			},
+		},
+		{
+			name: "WriteUpdateCheck",
+			run: func(s *Store, params []any) ([]any, error) {
+				s.UpdateCheck["user"] = permClause()
+				p, _, _, err := s.WriteUpdateCheck(
+					&strings.Builder{}, "user", sessionVars, params, 2, "_mutation_result",
+				)
+
+				return p, err
+			},
+		},
+		{
+			name: "WriteInsertCheckSubstituted",
+			run: func(s *Store, params []any) ([]any, error) {
+				s.Insert["user"] = permClause()
+				p, _, _, err := s.WriteInsertCheckSubstituted(
+					&strings.Builder{}, "user", sessionVars, params, 2, "data", nil,
+				)
+
+				return p, err
+			},
+		},
+	}
+
+	for _, tc := range tests {
+		t.Run(tc.name, func(t *testing.T) {
+			t.Parallel()
+
+			// Index 0 is a user-supplied literal that collides with a
+			// session-variable name; the permission clause appends its marker
+			// after it.
+			got, err := tc.run(NewStore(), []any{"x-hasura-user-id"})
+			if err != nil {
+				t.Fatalf("unexpected error: %v", err)
+			}
+
+			want := []any{"x-hasura-user-id", "42"}
+			if diff := cmp.Diff(want, got); diff != "" {
+				t.Errorf("params mismatch (-want +got):\n%s", diff)
+			}
+		})
 	}
 }
 
