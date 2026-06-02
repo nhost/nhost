@@ -76,10 +76,10 @@ function FunctionNodeView({ data }: NodeProps<FunctionNode>) {
       />
 
       <div className="flex items-center justify-between gap-2 border-border border-b bg-muted/60 px-3 py-2">
-        <div className="flex min-w-0 items-center gap-2">
+        <div className="flex min-w-0 items-start gap-2">
           <SquareFunction
             aria-label="Function"
-            className="h-4 w-4 shrink-0 text-[rgb(var(--schema-color))]"
+            className="h-4 w-4 shrink-0 translate-y-px text-[rgb(var(--schema-color))]"
           />
           <div className="min-w-0">
             <div
