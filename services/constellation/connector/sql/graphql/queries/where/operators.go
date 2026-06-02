@@ -126,12 +126,33 @@ func buildRegex(negated, caseInsensitive bool) operatorParser {
 	}
 }
 
-// parseIsNull handles _is_null: the value is read as a raw boolean, no
-// variable resolution is needed.
+// parseIsNull handles _is_null. The value must be resolved first: a client may
+// parameterize it as `_is_null: $v` (the schema types it as a nullable Boolean),
+// in which case the AST is an ast.Variable whose .Raw is the variable name, not
+// the boolean — so reading .Raw directly would ignore $v entirely. A literal or
+// variable-resolved true yields IS NULL, false yields IS NOT NULL. An explicit
+// null (literal or variable) is rejected, matching Hasura, which fails such a
+// query with "expected a boolean for type 'Boolean', but found null" rather
+// than treating it as a filter.
 func parseIsNull( //nolint:ireturn,nolintlint
-	column *core.Column, value *ast.Value, _ map[string]any, _ dialect.Dialect,
+	column *core.Column, value *ast.Value, variables map[string]any, _ dialect.Dialect,
 ) (Statement, error) {
-	return &isNullFilter{column: column.SQLName, isNull: value.Raw == "true"}, nil
+	resolved, err := values.ResolveVariable(value, variables)
+	if err != nil {
+		return nil, fmt.Errorf("resolving _is_null value: %w", err)
+	}
+
+	v, err := values.ExtractGoValue(resolved)
+	if err != nil {
+		return nil, fmt.Errorf("extracting _is_null value: %w", err)
+	}
+
+	isNull, ok := v.(bool)
+	if !ok {
+		return nil, fmt.Errorf("%w: got %T", errIsNullMustBeBoolean, v)
+	}
+
+	return &isNullFilter{column: column.SQLName, isNull: isNull}, nil
 }
 
 // containmentParser handles _contains / _contained_in, which dispatch on
