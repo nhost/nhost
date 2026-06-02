@@ -1,8 +1,44 @@
 package integration_test
 
 import (
+	"net/http"
 	"testing"
+
+	"github.com/google/go-cmp/cmp"
 )
+
+func assertRejectedUpdateManyLeavesMarketingBudgetUnchanged(t *testing.T, headers http.Header) {
+	t.Helper()
+
+	resp, err := makeHTTPQuery(t.Context(), constellationURL, query{
+		Query: `
+			query {
+			  departments(where: {name: {_eq: "Marketing"}}) {
+				name
+				budget
+			  }
+			}`,
+		Role: "admin",
+	}, headers)
+	if err != nil {
+		t.Fatalf("constellation departments state query failed: %v", err)
+	}
+
+	want := map[string]any{
+		"data": map[string]any{
+			"departments": []any{
+				map[string]any{
+					"name":   "Marketing",
+					"budget": float64(500000),
+				},
+			},
+		},
+	}
+
+	if diff := cmp.Diff(want, resp); diff != "" {
+		t.Fatalf("unexpected departments state after rejected update_many (-want +got):\n%s", diff)
+	}
+}
 
 func TestUpdateMutations(t *testing.T) { //nolint:paralleltest,maintidx
 	cases := []TestCase{
@@ -1454,6 +1490,7 @@ func TestUpdateOperatorValidationErrors(t *testing.T) { //nolint:paralleltest
 					},
 				},
 			},
+			assertConstellationState: assertRejectedUpdateManyLeavesMarketingBudgetUnchanged,
 		},
 	}
 

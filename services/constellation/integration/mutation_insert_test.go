@@ -1,8 +1,52 @@
 package integration_test
 
 import (
+	"net/http"
 	"testing"
+
+	"github.com/google/go-cmp/cmp"
 )
+
+func assertRejectedNotesUpsertLeavesNotesUnchanged(t *testing.T, headers http.Header) {
+	t.Helper()
+
+	resp, err := makeHTTPQuery(t.Context(), constellationURL, query{
+		Query: `
+			query {
+			  notes(
+				where: {
+				  _or: [
+					{id: {_eq: "0199bbbb-0000-7000-8000-000000000001"}}
+					{title: {_eq: "Inserted companion note"}}
+				  ]
+				}
+				order_by: {title: asc}
+			  ) {
+				id
+				title
+			  }
+			}`,
+		Role: "user",
+	}, headers)
+	if err != nil {
+		t.Fatalf("constellation notes state query failed: %v", err)
+	}
+
+	want := map[string]any{
+		"data": map[string]any{
+			"notes": []any{
+				map[string]any{
+					"id":    "0199bbbb-0000-7000-8000-000000000001",
+					"title": "Seeded parent note",
+				},
+			},
+		},
+	}
+
+	if diff := cmp.Diff(want, resp); diff != "" {
+		t.Fatalf("unexpected notes state after rejected upsert (-want +got):\n%s", diff)
+	}
+}
 
 func TestInsertMutations(t *testing.T) { //nolint:paralleltest,maintidx
 	cases := []TestCase{
@@ -1063,6 +1107,7 @@ func TestInsertMutations(t *testing.T) { //nolint:paralleltest,maintidx
 					},
 				},
 			},
+			assertConstellationState: assertRejectedNotesUpsertLeavesNotesUnchanged,
 		},
 
 		// Hasura-parity lock for affected_rows over an object-relationship
