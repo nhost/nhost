@@ -102,6 +102,17 @@ func (h *webSocketHandler) OnConnectionInit(
 	return nil
 }
 
+// ConnectionExpiresAt returns the JWT expiry bound for this WebSocket session.
+// The protocol layer uses it to close JWT-authenticated sockets when the access
+// token expires. Admin-secret and public-role sessions have no JWT expiry bound.
+func (h *webSocketHandler) ConnectionExpiresAt() (time.Time, bool) {
+	if h.session == nil || h.session.ExpiresAt == nil {
+		return time.Time{}, false
+	}
+
+	return *h.session.ExpiresAt, true
+}
+
 // OnSubscribe is called when client sends subscribe. It parses and validates
 // the subscription query, selects the owning subscription handler, registers
 // per-subscription state, and spawns a goroutine that forwards updates back

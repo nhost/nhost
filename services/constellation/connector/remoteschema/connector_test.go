@@ -1135,6 +1135,151 @@ func TestExecute_AppliesPresets(t *testing.T) {
 	}
 }
 
+// TestExecute_AppliesPresetsWithNonDefaultRootType exercises the dashboard-style
+// permission SDL shape `schema { query: query_root }` (and the mutation/
+// subscription equivalents). Presets are stored under the SDL root type name, so
+// Execute must look them up with that real root name rather than the
+// operation-kind default ("Query"/"Mutation"/"Subscription"). The mutation and
+// subscription cases are the only coverage of the corresponding
+// schema.MutationType / schema.SubscriptionType branches of roleRootTypeName.
+func TestExecute_AppliesPresetsWithNonDefaultRootType(t *testing.T) {
+	t.Parallel()
+
+	tests := []struct {
+		name      string
+		sdl       string
+		operation ast.Operation
+		field     string
+		// response is the remote endpoint's reply for the operation call; its
+		// top-level data key must match field so Execute returns it intact.
+		response string
+	}{
+		{
+			name: "query",
+			sdl: `
+				schema { query: query_root }
+				type query_root {
+					qthings(tenantId: String @preset(value: "x-hasura-tenant-id")): [Thing!]!
+				}
+				type Thing {
+					id: String
+					tenantId: String
+				}
+			`,
+			operation: ast.Query,
+			field:     "qthings",
+			response:  `{"data":{"qthings":[{"id":"thing-1","tenantId":"tenant-A"}]}}`,
+		},
+		{
+			name: "mutation",
+			sdl: `
+				schema { mutation: mutation_root }
+				type mutation_root {
+					createThing(tenantId: String @preset(value: "x-hasura-tenant-id")): Thing
+				}
+				type Thing {
+					id: String
+					tenantId: String
+				}
+			`,
+			operation: ast.Mutation,
+			field:     "createThing",
+			response:  `{"data":{"createThing":{"id":"thing-1","tenantId":"tenant-A"}}}`,
+		},
+		{
+			name: "subscription",
+			sdl: `
+				schema { subscription: subscription_root }
+				type subscription_root {
+					watchThing(tenantId: String @preset(value: "x-hasura-tenant-id")): Thing
+				}
+				type Thing {
+					id: String
+					tenantId: String
+				}
+			`,
+			operation: ast.Subscription,
+			field:     "watchThing",
+			response:  `{"data":{"watchThing":{"id":"thing-1","tenantId":"tenant-A"}}}`,
+		},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			t.Parallel()
+
+			ctrl := gomock.NewController(t)
+			mockDoer := mock.NewMockHTTPDoer(ctrl)
+
+			introspectionCall := mockDoer.EXPECT().Do(gomock.Any()).Return(&http.Response{
+				StatusCode: http.StatusOK,
+				Body:       io.NopCloser(strings.NewReader(testIntrospectionResponse)),
+			}, nil)
+
+			var capturedBody string
+
+			executeCall := mockDoer.EXPECT().Do(gomock.Any()).DoAndReturn(
+				func(req *http.Request) (*http.Response, error) {
+					capturedBody = string(readAllOrFail(t, req.Body))
+
+					return &http.Response{
+						StatusCode: http.StatusOK,
+						Body:       io.NopCloser(strings.NewReader(tt.response)),
+					}, nil
+				},
+			)
+
+			gomock.InOrder(introspectionCall, executeCall)
+
+			meta := newTestMetadata("http://example.com", []metadata.RemoteSchemaPermission{
+				{
+					Role: "user",
+					Definition: metadata.RemoteSchemaPermissionDef{
+						Schema: tt.sdl,
+					},
+				},
+			})
+
+			connector, err := remoteschema.New(context.Background(), meta, mockDoer)
+			if err != nil {
+				t.Fatalf("New() error: %v", err)
+			}
+
+			op := &ast.OperationDefinition{
+				Operation: tt.operation,
+				SelectionSet: ast.SelectionSet{
+					&ast.Field{
+						Name: tt.field,
+						SelectionSet: ast.SelectionSet{
+							&ast.Field{Name: "id"},
+							&ast.Field{Name: "tenantId"},
+						},
+					},
+				},
+			}
+
+			sessionVars := map[string]any{
+				"x-hasura-tenant-id": "tenant-A",
+			}
+
+			_, err = connector.Execute(
+				context.Background(), op, nil, nil, "user", sessionVars, slog.Default(),
+			)
+			if err != nil {
+				t.Fatalf("Execute error: %v", err)
+			}
+
+			if !strings.Contains(capturedBody, `tenantId:\"tenant-A\"`) &&
+				!strings.Contains(capturedBody, `tenantId: \"tenant-A\"`) {
+				t.Errorf(
+					"expected preset-injected tenantId argument in outgoing %s, got: %s",
+					tt.name, capturedBody,
+				)
+			}
+		})
+	}
+}
+
 // TestExecute_AppliesPresetsInInlineFragment exercises the inline-fragment
 // branch of applyPresetsToSelectionSet: the operation wraps the preset-bearing
 // field in `... on Query`, so the walker must descend into the fragment using

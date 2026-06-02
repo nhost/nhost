@@ -67,10 +67,32 @@ func (t *table) buildSubscriptionStreamSQL(
 	sql := b.String()
 	putBuilder(b)
 
-	// Build cursor metadata for the subscription manager
-	streamCursors := make([]core.StreamCursorInfo, len(streamArgs.Cursors))
-	for i, cursor := range streamArgs.Cursors {
-		streamCursors[i] = core.StreamCursorInfo{
+	op := core.SQLOperation{
+		Name:          alias,
+		SQL:           sql,
+		Parameters:    params,
+		StreamCursors: streamCursorInfos(streamArgs.Cursors),
+	}
+
+	// Convert to multiplexed and build final SQL
+	op.SQL, op.Parameters, err = multiplexed.Multiplex(op)
+	if err != nil {
+		return core.SQLOperation{}, fmt.Errorf(
+			"failed to multiplex stream subscription SQL: %w",
+			err,
+		)
+	}
+
+	return op, nil
+}
+
+// streamCursorInfos converts parsed stream cursors into the StreamCursorInfo
+// metadata the subscription manager uses to seed and advance result_vars
+// between polls.
+func streamCursorInfos(cursors []arguments.StreamCursor) []core.StreamCursorInfo {
+	infos := make([]core.StreamCursorInfo, len(cursors))
+	for i, cursor := range cursors {
+		infos[i] = core.StreamCursorInfo{
 			ColumnName:   cursor.Column.SQLName,
 			GraphQLName:  cursor.Column.GraphqlName,
 			InitialValue: cursor.Value,
@@ -78,17 +100,7 @@ func (t *table) buildSubscriptionStreamSQL(
 		}
 	}
 
-	op := core.SQLOperation{
-		Name:          alias,
-		SQL:           sql,
-		Parameters:    params,
-		StreamCursors: streamCursors,
-	}
-
-	// Convert to multiplexed and build final SQL
-	op.SQL, op.Parameters = multiplexed.Multiplex(op)
-
-	return op, nil
+	return infos
 }
 
 // buildQueryStreamSQL builds the inner SQL for a stream query.

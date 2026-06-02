@@ -153,6 +153,7 @@ The controller never returns Go errors for user-visible failures from `Resolve`.
 
 The HTTP handler maps:
 
+- Request body over the configured cap → 413.
 - Parsing failure on the request body → 400.
 - Internal `Resolve` error → 500.
 - Everything else → 200 with `{data, errors}` shape.
