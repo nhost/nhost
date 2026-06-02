@@ -51,6 +51,7 @@ let
       ./server.js
       ./local-wrapper.js
       ./start.sh
+      ./nhost-install-deps.sh
       ./tsconfig.json
       ./package.json
       ./pnpm-lock.yaml
@@ -69,6 +70,7 @@ let
         ./server.js
         ./local-wrapper.js
         ./start.sh
+        ./nhost-install-deps.sh
         ./tsconfig.json
       ];
     };
@@ -78,7 +80,7 @@ let
     installPhase = ''
       mkdir -p $out/opt/server
       cp server.js local-wrapper.js tsconfig.json $out/opt/server/
-      cp start.sh $out/opt/server/
+      cp start.sh nhost-install-deps.sh $out/opt/server/
       chmod +x $out/opt/server/start.sh
     '';
   };
@@ -119,7 +121,7 @@ let
               "TMPDIR=/tmp"
               "SSL_CERT_FILE=${pkgs.cacert}/etc/ssl/certs/ca-bundle.crt"
               "NODE_PATH=${node_modules_runtime}/${submodule}/node_modules"
-              "PATH=/tmp/corepack-shims:${node_modules_runtime}/${submodule}/node_modules/.bin:${nodeRuntime}/bin:${pkgs.gitMinimal}/bin:${pkgs.openssh}/bin:/bin:/usr/bin"
+              "PATH=${node_modules_runtime}/${submodule}/node_modules/.bin:${nodeRuntime}/bin:${pkgs.gitMinimal}/bin:${pkgs.openssh}/bin:/bin:/usr/bin"
               "SERVER_PATH=/opt/server"
               "NHOST_PROJECT_PATH=/opt/project"
               "PACKAGE_MANAGER=pnpm"
