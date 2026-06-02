@@ -1352,4 +1352,124 @@ describe('useSchemaGraph', () => {
       expect(node.data.objectType).toBe('ORDINARY TABLE');
     });
   });
+
+  describe('layout stability across naming modes', () => {
+    it('positions tables identically in postgres and graphql modes so the GraphQL-view toggle never moves them', () => {
+      const columns: SchemaDiagramColumn[] = [
+        buildColumn({ schema: 'public', table: 'users', columnName: 'id' }),
+        buildColumn({
+          schema: 'public',
+          table: 'users',
+          columnName: 'email',
+          ordinalPosition: 2,
+          isPrimary: false,
+        }),
+        buildColumn({ schema: 'public', table: 'posts', columnName: 'id' }),
+        buildColumn({
+          schema: 'public',
+          table: 'posts',
+          columnName: 'author_id',
+          ordinalPosition: 2,
+          isPrimary: false,
+        }),
+        buildColumn({ schema: 'public', table: 'comments', columnName: 'id' }),
+        buildColumn({
+          schema: 'public',
+          table: 'comments',
+          columnName: 'post_id',
+          ordinalPosition: 2,
+          isPrimary: false,
+        }),
+      ];
+      const foreignKeys: SchemaDiagramForeignKey[] = [
+        buildForeignKey({
+          fromTable: 'posts',
+          fromColumn: 'author_id',
+          toTable: 'users',
+          toColumn: 'id',
+          constraintName: 'posts_author_id_fkey',
+        }),
+        // An FK with no tracked relationship: it's in the postgres edge set but
+        // not the GraphQL one, so per-mode layout would rank these differently.
+        buildForeignKey({
+          fromTable: 'comments',
+          fromColumn: 'post_id',
+          toTable: 'posts',
+          toColumn: 'id',
+          constraintName: 'comments_post_id_fkey',
+        }),
+      ];
+      const metadataTables: HasuraMetadataTable[] = [
+        buildMetadataTable('public', 'users', {
+          // Computed fields add rows in GraphQL mode; reserving their height in
+          // both modes is what keeps the vertical positions aligned.
+          computed_fields: [
+            {
+              name: 'full_name',
+              definition: {
+                function: { schema: 'public', name: 'users_full_name' },
+              },
+            },
+          ],
+          array_relationships: [
+            {
+              name: 'posts',
+              using: {
+                foreign_key_constraint_on: {
+                  column: 'author_id',
+                  table: { schema: 'public', name: 'posts' },
+                },
+              },
+            },
+          ],
+        }),
+        buildMetadataTable('public', 'posts', {
+          object_relationships: [
+            {
+              name: 'author',
+              using: { foreign_key_constraint_on: 'author_id' },
+            },
+          ],
+        }),
+        // comments has no relationship → its FK is invisible in GraphQL mode.
+        buildMetadataTable('public', 'comments'),
+      ];
+
+      const baseInput = {
+        metadataTables,
+        tableLikeObjects: [],
+        columns,
+        foreignKeys,
+        role: 'admin',
+        functionReturnTypes: [
+          buildFunctionReturnType({
+            schema: 'public',
+            name: 'users_full_name',
+            returnType: 'text',
+          }),
+        ],
+        visibleSchemas: new Set(['public']),
+        hideTablesWithoutPermissions: false,
+      };
+
+      const graphql = renderHook(() =>
+        useSchemaGraph({ ...baseInput, namingMode: 'graphql' }),
+      );
+      const postgres = renderHook(() =>
+        useSchemaGraph({ ...baseInput, namingMode: 'postgres' }),
+      );
+
+      const positionsByMode = (r: typeof graphql) =>
+        Object.fromEntries(
+          r.result.current.nodes.map((n) => [n.id, n.position]),
+        );
+
+      expect(positionsByMode(graphql)).toEqual(positionsByMode(postgres));
+      // Sanity: the two modes really do draw different edge sets, so the equal
+      // positions above are a genuine invariant, not a trivially-empty graph.
+      expect(graphql.result.current.edges.length).not.toBe(
+        postgres.result.current.edges.length,
+      );
+    });
+  });
 });

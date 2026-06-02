@@ -503,6 +503,18 @@ export default function useSchemaGraph({
       visibleNodeIds.add(id);
     }
 
+    // The raw foreign-key edge set. Lay out from this naming-mode-independent
+    // view so toggling the GraphQL view never repositions tables: layout always
+    // ranks by the foreign-key graph (and always reserves vertical space for the
+    // GraphQL computed-field rows below — even in postgres mode, where they're
+    // hidden — so node heights, and therefore positions, match in both modes).
+    const layoutEdges = buildPostgresEdges(
+      foreignKeys,
+      metadataByTableId,
+      visibleNodeIds,
+    );
+
+    // Edges drawn for the current view: GraphQL relationships vs. the raw FKs.
     const edges: Edge[] =
       namingMode === 'graphql'
         ? buildGraphqlEdges(
@@ -511,17 +523,23 @@ export default function useSchemaGraph({
             metadataByTableId,
             visibleNodeIds,
           )
-        : buildPostgresEdges(foreignKeys, metadataByTableId, visibleNodeIds);
+        : layoutEdges;
 
-    const rowCountByNodeId = new Map<string, number>();
+    const layoutRowCountByNodeId = new Map<string, number>();
     for (const node of nodes) {
-      rowCountByNodeId.set(
+      const reservedComputedFields =
+        metadataByTableId.get(node.id)?.computed_fields?.length ?? 0;
+      layoutRowCountByNodeId.set(
         node.id,
-        node.data.columns.length + node.data.computedFields.length,
+        node.data.columns.length + reservedComputedFields,
       );
     }
 
-    const positionedNodes = layoutNodes(nodes, edges, rowCountByNodeId);
+    const positionedNodes = layoutNodes(
+      nodes,
+      layoutEdges,
+      layoutRowCountByNodeId,
+    );
 
     return {
       nodes: positionedNodes,

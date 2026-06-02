@@ -1,6 +1,5 @@
 import '@xyflow/react/dist/style.css';
 
-import { SmartStepEdge } from '@tisoap/react-flow-smart-edge';
 import {
   Background,
   Controls,
@@ -30,6 +29,7 @@ import { ADMIN_ROLE, PUBLIC_ROLE } from './permissionState';
 import SchemaDiagramToolbar from './SchemaDiagramToolbar';
 import { getSchemaColor } from './schemaColor';
 import { TableActionsProvider } from './TableActionsContext';
+import TableEdge from './TableEdge';
 import TableNode from './TableNode';
 import useAllTableColumns from './useAllTableColumns';
 import useSchemaGraph, {
@@ -39,7 +39,7 @@ import useSchemaGraph, {
 } from './useSchemaGraph';
 
 const nodeTypes = { tableNode: TableNode } as const;
-const edgeTypes = { smart: SmartStepEdge } as const;
+const edgeTypes = { smart: TableEdge } as const;
 
 const EDGE_COLOR_DEFAULT = 'hsl(var(--muted-foreground))';
 const EDGE_COLOR_HIGHLIGHT = 'hsl(var(--primary))';
@@ -206,7 +206,7 @@ function SchemaDiagramContent() {
     () => new Set(),
   );
   const [hideEmpty, setHideEmpty] = useState(false);
-  const [namingMode, setNamingMode] = useState<NamingMode>('graphql');
+  const [namingMode, setNamingMode] = useState<NamingMode>('postgres');
   const [selectedNodeIds, setSelectedNodeIds] = useState<Set<string>>(
     () => new Set(),
   );
