@@ -16,6 +16,7 @@ import type {
 } from '@/features/orgs/projects/database/dataGrid/types/dataBrowser';
 import { isSchemaLocked } from '@/features/orgs/projects/database/dataGrid/utils/schemaHelpers';
 import { cn } from '@/lib/utils';
+import { GRAPHQL_NAME_CLASS, resolveDisplayName } from './displayName';
 import { getOperationNamesForAction } from './operationNames';
 import PermissionDot from './PermissionDot';
 import {
@@ -32,32 +33,15 @@ import {
 import { useTableActionsContext } from './TableActionsContext';
 import {
   columnHandleId,
-  type NamingMode,
+  TABLE_ROW_HANDLE_ID,
   type TableNode,
   type TableNodeComputedField,
 } from './useSchemaGraph';
-
-const GRAPHQL_NAME_CLASS = 'text-purple-600 dark:text-purple-400';
 
 const VIEW_OBJECT_TYPES: ReadonlySet<TableLikeObjectType> = new Set([
   'VIEW',
   'MATERIALIZED VIEW',
 ]);
-
-function resolveDisplayName(
-  postgresName: string,
-  graphqlName: string | undefined,
-  namingMode: NamingMode,
-): { name: string; isCustomGraphql: boolean } {
-  if (
-    namingMode === 'graphql' &&
-    graphqlName !== undefined &&
-    graphqlName !== postgresName
-  ) {
-    return { name: graphqlName, isCustomGraphql: true };
-  }
-  return { name: postgresName, isCustomGraphql: false };
-}
 
 const COLUMN_ACTIONS: readonly DatabaseAction[] = [
   'select',
@@ -272,6 +256,15 @@ function TableNodeView({ data }: NodeProps<TableNode>) {
       )}
       title={isUntracked ? 'Untracked in GraphQL' : undefined}
     >
+      {/* Anchor for incoming set-returning-function edges. Kept invisible —
+          the dashed edge conveys the link without a stray handle dot. */}
+      <Handle
+        type="target"
+        position={Position.Left}
+        id={TABLE_ROW_HANDLE_ID}
+        className="!h-2 !w-2 !border-0 !bg-transparent !opacity-0"
+        style={{ top: 18 }}
+      />
       <div className="flex items-center justify-between gap-2 border-border border-b bg-muted/60 px-3 py-2">
         <div className="min-w-0">
           <div
