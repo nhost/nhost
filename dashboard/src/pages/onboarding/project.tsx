@@ -8,7 +8,6 @@ import slugify from 'slugify';
 import { z } from 'zod';
 import { AuthenticatedLayout } from '@/components/layout/AuthenticatedLayout';
 import { Container } from '@/components/layout/Container';
-import { Spinner } from '@/components/ui/v3/spinner';
 import { Box } from '@/components/ui/v2/Box';
 import { Text } from '@/components/ui/v2/Text';
 import { ButtonWithLoading } from '@/components/ui/v3/button';
@@ -28,6 +27,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from '@/components/ui/v3/select';
+import { Spinner } from '@/components/ui/v3/spinner';
 import { useOrgs } from '@/features/orgs/projects/hooks/useOrgs';
 import { execPromiseWithErrorToast } from '@/features/orgs/utils/execPromiseWithErrorToast';
 import { useUserData } from '@/hooks/useUserData';

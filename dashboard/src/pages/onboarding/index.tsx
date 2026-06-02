@@ -7,7 +7,6 @@ import { useForm } from 'react-hook-form';
 import { z } from 'zod';
 import { AuthenticatedLayout } from '@/components/layout/AuthenticatedLayout';
 import { Container } from '@/components/layout/Container';
-import { Spinner } from '@/components/ui/v3/spinner';
 import { Alert } from '@/components/ui/v2/Alert';
 import { Box } from '@/components/ui/v2/Box';
 import { Text } from '@/components/ui/v2/Text';
@@ -30,6 +29,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from '@/components/ui/v3/select';
+import { Spinner } from '@/components/ui/v3/spinner';
 import { StripeEmbeddedForm } from '@/features/orgs/components/StripeEmbeddedForm';
 import { planDescriptions } from '@/features/orgs/projects/common/utils/planDescriptions';
 import { useOrgs } from '@/features/orgs/projects/hooks/useOrgs';
