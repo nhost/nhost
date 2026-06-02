@@ -8,6 +8,22 @@ import (
 	"github.com/nhost/nhost/services/constellation/connector/sql/graphql/queries/dialect"
 )
 
+type sourceColumnIsNotNullStatement struct {
+	column string
+}
+
+func (s sourceColumnIsNotNullStatement) WriteCondition(
+	b *strings.Builder,
+	source string,
+	params []any,
+	paramIndex int,
+) ([]any, int, error) {
+	core.WriteQualifiedColumn(b, source, s.column)
+	b.WriteString(" IS NOT NULL")
+
+	return params, paramIndex, nil
+}
+
 // TestWriteNodeColumnSelectionsQuotesEmbeddedQuote guards the second-order
 // SQL-injection invariant: a database column whose SQLName contains an embedded
 // double quote (e.g. created via CREATE TABLE t ("a""b" int), giving SQLName
@@ -112,5 +128,40 @@ func TestBuildColumnSelectionsQuotesEmbeddedQuote(t *testing.T) {
 	// The raw, unescaped form must not appear (it would break out of quoting).
 	if strings.Contains(sql, `mutation_result."a"b"`) {
 		t.Errorf("unescaped quote leaked into SQL; got %q", sql)
+	}
+}
+
+func TestOnConflictUpdateFilterWriterQuotesTargetTableSource(t *testing.T) {
+	t.Parallel()
+
+	tbl := newTable("custom schema", "Order Items", dialect.NewPostgresDialect())
+	tbl.permissions.Update["user"] = append(
+		tbl.permissions.Update["user"],
+		sourceColumnIsNotNullStatement{column: "owner id"},
+	)
+
+	var b strings.Builder
+
+	params, paramIndex, hasFilter, err := tbl.onConflictUpdateFilterWriter("user", nil)(
+		&b, nil, 1,
+	)
+	if err != nil {
+		t.Fatalf("onConflictUpdateFilterWriter: %v", err)
+	}
+
+	if !hasFilter {
+		t.Fatal("expected update permission filter to be written")
+	}
+
+	if len(params) != 0 {
+		t.Errorf("params = %v, want none", params)
+	}
+
+	if paramIndex != 1 {
+		t.Errorf("paramIndex = %d, want 1", paramIndex)
+	}
+
+	if got, want := b.String(), `"custom schema"."Order Items"."owner id" IS NOT NULL`; got != want {
+		t.Errorf("update filter SQL = %q, want %q", got, want)
 	}
 }

@@ -274,7 +274,7 @@ func TestBuildNestedCTERefsMirrorEmittedCTEs(t *testing.T) {
 		},
 	}
 
-	tbl := &table{}
+	tbl := &table{dialect: dialect.NewPostgresDialect()}
 
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
@@ -407,7 +407,7 @@ func TestBuildNestedCTERefsReturningGroups(t *testing.T) {
 		},
 	}
 
-	tbl := &table{}
+	tbl := &table{dialect: dialect.NewPostgresDialect()}
 
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
@@ -488,7 +488,7 @@ func TestBuildNestedCTERefsAvoidsObjectDescendantCollision(t *testing.T) {
 		{NestedInserts: []arguments.NestedInsert{departmentWithEmployees}},
 	}
 
-	tbl := &table{}
+	tbl := &table{dialect: dialect.NewPostgresDialect()}
 
 	got, err := tbl.buildNestedCTERefs(insertObjs)
 	if err != nil {
@@ -548,7 +548,7 @@ func TestBuildNestedCTERefsAvoidsObjectRelationshipDescendantCollision(t *testin
 		{NestedInserts: []arguments.NestedInsert{profile, ownerWithProfile}},
 	}
 
-	tbl := &table{}
+	tbl := &table{dialect: dialect.NewPostgresDialect()}
 
 	got, err := tbl.buildNestedCTERefs(insertObjs)
 	if err != nil {
@@ -800,7 +800,7 @@ func TestGroupPartitionedArrayNestedInsertsOnConflictCompatibility(t *testing.T)
 						},
 					},
 				},
-			})
+			}, dialect.NewPostgresDialect())
 			if err != nil {
 				t.Fatalf("groupPartitionedArrayNestedInserts(): %v", err)
 			}

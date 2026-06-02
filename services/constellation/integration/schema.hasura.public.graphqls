@@ -541,6 +541,74 @@ type query_root {
     where: news_bool_exp
   ): [news!]!
   """
+  execute function "search_news_default" which returns "news"
+  """
+  search_news_default(
+    """
+    input parameters for function "search_news_default"
+    """
+    args: search_news_default_args!
+
+    """
+    distinct select on columns
+    """
+    distinct_on: [news_select_column!]
+
+    """
+    limit the number of rows returned
+    """
+    limit: Int
+
+    """
+    skip the first n rows. Use only with order_by
+    """
+    offset: Int
+
+    """
+    sort the rows by one or more columns
+    """
+    order_by: [news_order_by!]
+
+    """
+    filter the rows returned
+    """
+    where: news_bool_exp
+  ): [news!]!
+  """
+  execute function "search_news_positional" which returns "news"
+  """
+  search_news_positional(
+    """
+    input parameters for function "search_news_positional"
+    """
+    args: search_news_positional_args!
+
+    """
+    distinct select on columns
+    """
+    distinct_on: [news_select_column!]
+
+    """
+    limit the number of rows returned
+    """
+    limit: Int
+
+    """
+    skip the first n rows. Use only with order_by
+    """
+    offset: Int
+
+    """
+    sort the rows by one or more columns
+    """
+    order_by: [news_order_by!]
+
+    """
+    filter the rows returned
+    """
+    where: news_bool_exp
+  ): [news!]!
+  """
   fetch data from the table: "auth.users"
   """
   users(
@@ -837,6 +905,74 @@ type subscription_root {
     input parameters for function "search_news"
     """
     args: search_news_args!
+
+    """
+    distinct select on columns
+    """
+    distinct_on: [news_select_column!]
+
+    """
+    limit the number of rows returned
+    """
+    limit: Int
+
+    """
+    skip the first n rows. Use only with order_by
+    """
+    offset: Int
+
+    """
+    sort the rows by one or more columns
+    """
+    order_by: [news_order_by!]
+
+    """
+    filter the rows returned
+    """
+    where: news_bool_exp
+  ): [news!]!
+  """
+  execute function "search_news_default" which returns "news"
+  """
+  search_news_default(
+    """
+    input parameters for function "search_news_default"
+    """
+    args: search_news_default_args!
+
+    """
+    distinct select on columns
+    """
+    distinct_on: [news_select_column!]
+
+    """
+    limit the number of rows returned
+    """
+    limit: Int
+
+    """
+    skip the first n rows. Use only with order_by
+    """
+    offset: Int
+
+    """
+    sort the rows by one or more columns
+    """
+    order_by: [news_order_by!]
+
+    """
+    filter the rows returned
+    """
+    where: news_bool_exp
+  ): [news!]!
+  """
+  execute function "search_news_positional" which returns "news"
+  """
+  search_news_positional(
+    """
+    input parameters for function "search_news_positional"
+    """
+    args: search_news_positional_args!
 
     """
     distinct select on columns
@@ -1252,6 +1388,14 @@ input publishedNews_stream_cursor_value_input {
 }
 input search_news_args {
   search: String
+}
+input search_news_default_args {
+  max_len: Int
+  search: String
+}
+input search_news_positional_args {
+  arg_1: String
+  arg_2: Int
 }
 """
 Boolean expression to compare columns of type "timestamptz". All fields are combined with logical 'AND'.

@@ -1,0 +1,26 @@
+[
+  [
+    [
+      {
+        "affected_rows": 1,
+        "returning": [
+          {
+            "id": "dcd52518-58d0-4834-9683-ba6dee33833f",
+            "name": "Marketing",
+            "budget": 510000
+          }
+        ]
+      },
+      {
+        "affected_rows": 1,
+        "returning": [
+          {
+            "id": "dcd52518-58d0-4834-9683-ba6dee33833f",
+            "name": "Marketing",
+            "budget": 511000
+          }
+        ]
+      }
+    ]
+  ]
+]

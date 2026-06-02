@@ -550,6 +550,32 @@ func populateForeignKeys( //nolint:funlen
 	return nil
 }
 
+// uniqueConstraintsQuery reads indnullsnotdistinct through to_jsonb(idx) so
+// the same query still runs against PostgreSQL versions before 15, where the
+// pg_index column does not exist and the JSON key simply resolves to NULL.
+const uniqueConstraintsQuery = `
+	SELECT
+		cls.relname AS table_name,
+		r.conname AS constraint_name,
+		array_agg(a.attname ORDER BY k.ord) AS columns,
+		COALESCE(
+			bool_or((to_jsonb(idx)->>'indnullsnotdistinct')::boolean),
+			false
+		) AS nulls_not_distinct
+	FROM pg_catalog.pg_constraint r
+	JOIN pg_catalog.pg_class cls ON cls.oid = r.conrelid
+	JOIN pg_catalog.pg_namespace ns ON ns.oid = cls.relnamespace
+	JOIN pg_catalog.pg_index idx ON idx.indexrelid = r.conindid
+	JOIN LATERAL unnest(r.conkey) WITH ORDINALITY AS k(col_id, ord) ON true
+	JOIN pg_catalog.pg_attribute a
+		ON a.attrelid = r.conrelid AND a.attnum = k.col_id
+	WHERE r.contype = 'u'
+		AND ns.nspname = $1
+		AND cls.relname = ANY($2)
+	GROUP BY cls.relname, r.conname
+	ORDER BY cls.relname, r.conname
+`
+
 // populateUniqueConstraints queries and populates unique constraint information for tables in a schema.
 // Uses pg_catalog directly (see populateForeignKeys for rationale).
 func populateUniqueConstraints(
@@ -559,25 +585,7 @@ func populateUniqueConstraints(
 	tableNames []string,
 	tableMap map[string]*introspection.Table,
 ) error {
-	query := `
-		SELECT
-			cls.relname AS table_name,
-			r.conname AS constraint_name,
-			array_agg(a.attname ORDER BY k.ord) AS columns
-		FROM pg_catalog.pg_constraint r
-		JOIN pg_catalog.pg_class cls ON cls.oid = r.conrelid
-		JOIN pg_catalog.pg_namespace ns ON ns.oid = cls.relnamespace
-		JOIN LATERAL unnest(r.conkey) WITH ORDINALITY AS k(col_id, ord) ON true
-		JOIN pg_catalog.pg_attribute a
-			ON a.attrelid = r.conrelid AND a.attnum = k.col_id
-		WHERE r.contype = 'u'
-			AND ns.nspname = $1
-			AND cls.relname = ANY($2)
-		GROUP BY cls.relname, r.conname
-		ORDER BY cls.relname, r.conname
-	`
-
-	rows, err := q.Query(ctx, query, schemaName, tableNames)
+	rows, err := q.Query(ctx, uniqueConstraintsQuery, schemaName, tableNames)
 	if err != nil {
 		return fmt.Errorf("failed to query unique constraints: %w", err)
 	}
@@ -585,12 +593,15 @@ func populateUniqueConstraints(
 
 	for rows.Next() {
 		var (
-			tableName      string
-			constraintName string
-			columns        []string
+			tableName        string
+			constraintName   string
+			columns          []string
+			nullsNotDistinct bool
 		)
 
-		if err := rows.Scan(&tableName, &constraintName, &columns); err != nil {
+		if err := rows.Scan(
+			&tableName, &constraintName, &columns, &nullsNotDistinct,
+		); err != nil {
 			return fmt.Errorf("failed to scan unique constraint row: %w", err)
 		}
 
@@ -598,8 +609,9 @@ func populateUniqueConstraints(
 			table.UniqueConstraints = append(
 				table.UniqueConstraints,
 				introspection.UniqueConstraint{
-					Name:    constraintName,
-					Columns: columns,
+					Name:             constraintName,
+					Columns:          columns,
+					NullsNotDistinct: nullsNotDistinct,
 				},
 			)
 		}

@@ -107,9 +107,9 @@ func (c *countSelection) columnExpressions(source string) []string {
 }
 
 // typenameSelection emits a JSON key/value pair where the value is a literal
-// GraphQL type name. Used to support __typename inside aggregate selections,
-// where each scope (aggregate root, aggregate_fields, *_fields) has its own
-// type name. The customization layer remaps the literal at result-walk time.
+// GraphQL type name. Used to support __typename in SQL-built selection scopes
+// whose type name is known while building the query. The customization layer
+// remaps the literal at result-walk time.
 type typenameSelection struct {
 	alias    string
 	typeName string

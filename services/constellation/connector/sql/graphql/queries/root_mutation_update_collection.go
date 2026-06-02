@@ -63,6 +63,7 @@ func (t *table) buildMutationUpdateSQL( //nolint:dupl
 		SQL:           sql,
 		Parameters:    params,
 		StreamCursors: nil,
+		Sequential:    nil,
 	}, nil
 }
 

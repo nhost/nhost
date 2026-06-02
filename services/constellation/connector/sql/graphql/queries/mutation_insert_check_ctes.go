@@ -19,41 +19,56 @@ const (
 )
 
 // buildCheckConstraintSelectClause builds the SELECT clause for the check_constraint CTE.
-// It generates SELECT expressions with typed parameters for non-nested columns.
+// It generates SELECT expressions with typed parameters for payload columns and
+// parent-CTE expressions for nested FK columns.
 func (t *table) buildCheckConstraintSelectClause(
 	b *strings.Builder,
 	insertObj arguments.InsertObject,
-	nestedFKColumns map[string]struct{},
+	nestedFKIndex arguments.NestedFKSources,
 	paramIndex int,
-) int {
+) (int, []string) {
 	firstCol := true
+	seenCTEs := make(map[string]struct{}, len(nestedFKIndex))
+	fromCTEs := make([]string, 0, len(nestedFKIndex))
 
 	for _, col := range insertObj.Columns {
-		if _, isNested := nestedFKColumns[col.Column.SQLName]; isNested {
-			continue
-		}
-
 		if !firstCol {
 			b.WriteString(", ")
 		}
 
 		firstCol = false
 
+		colName := col.Column.SQLName
+		if source, isNested := nestedFKIndex[colName]; isNested {
+			writeFKSourceColumn(b, source.CTEName, source.ColumnName)
+			b.WriteString(" AS ")
+			core.WriteQuotedIdentifier(b, colName)
+
+			if source.CTEName != "" {
+				if _, ok := seenCTEs[source.CTEName]; !ok {
+					seenCTEs[source.CTEName] = struct{}{}
+					fromCTEs = append(fromCTEs, source.CTEName)
+				}
+			}
+
+			continue
+		}
+
 		ph := t.dialect.Placeholder(paramIndex)
 		if col.Column.SQLType != "" {
 			b.WriteString(t.dialect.TypeCast(ph, col.Column.SQLType))
 			b.WriteString(" AS ")
-			core.WriteQuotedIdentifier(b, col.Column.SQLName)
+			core.WriteQuotedIdentifier(b, colName)
 		} else {
 			b.WriteString(ph)
 			b.WriteString(" AS ")
-			core.WriteQuotedIdentifier(b, col.Column.SQLName)
+			core.WriteQuotedIdentifier(b, colName)
 		}
 
 		paramIndex++
 	}
 
-	return paramIndex
+	return paramIndex, fromCTEs
 }
 
 // buildCheckConstraintWhereClause builds the WHERE clause for the check_constraint CTE.
@@ -83,7 +98,6 @@ func (t *table) buildCheckConstraintCTE(
 	b *strings.Builder,
 	checkCTEName string,
 	insertObj arguments.InsertObject,
-	nestedFKColumns map[string]struct{},
 	nestedFKIndex arguments.NestedFKSources,
 	tableSubs where.TableSubstitutions,
 	role string,
@@ -94,14 +108,17 @@ func (t *table) buildCheckConstraintCTE(
 	b.WriteString(checkCTEName)
 	b.WriteString(" AS (SELECT * FROM (SELECT ") //nolint:unqueryvet
 
-	paramIndex = t.buildCheckConstraintSelectClause(b, insertObj, nestedFKColumns, paramIndex)
+	paramIndex, fromCTEs := t.buildCheckConstraintSelectClause(
+		b, insertObj, nestedFKIndex, paramIndex,
+	)
 
 	// Add NULL columns for any columns referenced by the permission check
 	// that aren't in the insert data, to prevent "column does not exist" errors.
 	// FK columns drawn from a sibling CTE pull from that CTE instead of NULL
 	// so the permission predicate sees the real id.
-	fromCTEs := t.appendMissingPermissionColumns(
-		b, insertObj, nestedFKColumns, nestedFKIndex, role,
+	fromCTEs = appendUniqueCTENames(
+		fromCTEs,
+		t.appendMissingPermissionColumns(b, insertObj, nestedFKIndex, role),
 	)
 
 	writeFromCTEs(b, fromCTEs)
@@ -161,7 +178,7 @@ func (t *table) buildCheckCountCTE(
 }
 
 // buildSingleInsertCTEPreCheck builds a single-row insert using the pre-mutation permission check.
-func (t *table) buildSingleInsertCTEPreCheck(
+func (t *table) buildSingleInsertCTEPreCheck( //nolint:funlen // Linear SQL CTE template.
 	b *strings.Builder,
 	cteName string,
 	insertObj arguments.InsertObject,
@@ -173,11 +190,6 @@ func (t *table) buildSingleInsertCTEPreCheck(
 	role string,
 	sessionVariables map[string]any,
 ) ([]any, int, error) {
-	nestedFKColumns := make(map[string]struct{})
-	for col := range nestedFKIndex {
-		nestedFKColumns[col] = struct{}{}
-	}
-
 	checkCTEName := "check_" + cteName
 
 	var (
@@ -189,7 +201,6 @@ func (t *table) buildSingleInsertCTEPreCheck(
 		b,
 		checkCTEName,
 		insertObj,
-		nestedFKColumns,
 		nestedFKIndex,
 		tableSubs,
 		role,
@@ -206,16 +217,41 @@ func (t *table) buildSingleInsertCTEPreCheck(
 		t.buildCheckCountCTE(b, cteName, checkCTEName, 1)
 	}
 
+	plan := t.prepareUpsertUpdateCheckPlan(
+		b,
+		cteName,
+		checkCTEName,
+		onConflict,
+		sourceColumnsFromInsertObject(insertObj),
+		1,
+		insertPresentColumns([]arguments.InsertObject{insertObj}, nestedFKIndex),
+		role,
+		false,
+	)
+
+	rawCTEName := rawCTENameForUpsertUpdateCheck(cteName, plan)
+
 	params, paramIndex, err = t.buildInsertCTE(
 		b,
+		rawCTEName,
 		cteName,
 		insertObj,
 		onConflict,
+		plan,
 		checkCTEName,
 		nestedFKIndex,
 		hasCheckPermissions,
+		role,
+		sessionVariables,
 		params,
 		paramIndex,
+	)
+	if err != nil {
+		return nil, 0, err
+	}
+
+	params, paramIndex, err = t.appendUpsertUpdateCheckAndFinalCTE(
+		b, cteName, rawCTEName, plan, role, sessionVariables, params, paramIndex,
 	)
 	if err != nil {
 		return nil, 0, err
@@ -232,7 +268,7 @@ func (t *table) buildSingleInsertCTEPreCheck(
 // redirects the EXISTS subquery from the underlying table to the CTE so it
 // sees the just-inserted rows. nil/empty for top-level inserts; populated for
 // nested-insert children that key off a parent CTE.
-func (t *table) buildSingleInsertCTEPostCheck(
+func (t *table) buildSingleInsertCTEPostCheck( //nolint:funlen // Linear SQL CTE template.
 	b *strings.Builder,
 	cteName string,
 	insertObj arguments.InsertObject,
@@ -244,18 +280,30 @@ func (t *table) buildSingleInsertCTEPostCheck(
 	role string,
 	sessionVariables map[string]any,
 ) ([]any, int, error) {
-	nestedFKColumns := make(map[string]struct{})
-	for col := range nestedFKIndex {
-		nestedFKColumns[col] = struct{}{}
-	}
-
 	dataCTEName := "check_" + cteName
 
 	b.WriteString(dataCTEName)
 	b.WriteString(" AS (SELECT * FROM (SELECT ") //nolint:unqueryvet
 
-	paramIndex = t.buildCheckConstraintSelectClause(b, insertObj, nestedFKColumns, paramIndex)
+	var fromCTEs []string
+
+	paramIndex, fromCTEs = t.buildCheckConstraintSelectClause(
+		b, insertObj, nestedFKIndex, paramIndex,
+	)
+	writeFromCTEs(b, fromCTEs)
 	b.WriteString(") AS data WHERE true), ")
+
+	plan := t.prepareUpsertUpdateCheckPlan(
+		b,
+		cteName,
+		dataCTEName,
+		onConflict,
+		sourceColumnsFromInsertObject(insertObj),
+		1,
+		insertPresentColumns([]arguments.InsertObject{insertObj}, nestedFKIndex),
+		role,
+		true,
+	)
 
 	rawCTEName := "_" + cteName
 	columnNames := insertObj.ColumnNames()
@@ -271,31 +319,42 @@ func (t *table) buildSingleInsertCTEPostCheck(
 	if onConflict != nil {
 		var err error
 
-		params, paramIndex, err = onConflict.ToSQL(b, params, paramIndex)
+		params, paramIndex, err = t.writeOnConflictSQL(
+			b, onConflict, role, sessionVariables, params, paramIndex,
+		)
 		if err != nil {
-			return nil, 0, err //nolint:wrapcheck
+			return nil, 0, err
 		}
 	}
 
-	b.WriteString(" RETURNING *), ")
+	t.writeInsertReturning(b, plan)
+	b.WriteString("), ")
 
+	postCheckSourceCTEName := appendUpsertInsertedRowsCTE(b, plan, rawCTEName)
 	postCheckName := cteName + "_post_check"
 
 	var err error
 
 	params, paramIndex, err = t.buildPostCheckCTEWithName(
-		b, postCheckName, rawCTEName, tableSubs, role, sessionVariables, params, paramIndex,
+		b,
+		postCheckName,
+		postCheckSourceCTEName,
+		tableSubs,
+		role,
+		sessionVariables,
+		params,
+		paramIndex,
 	)
 	if err != nil {
 		return nil, 0, err
 	}
 
-	b.WriteString(cteName)
-	b.WriteString(" AS (SELECT * FROM ") //nolint:unqueryvet
-	b.WriteString(rawCTEName)
-	b.WriteString(" WHERE (SELECT status FROM ")
-	b.WriteString(postCheckName)
-	b.WriteString(") = 1)")
+	params, paramIndex, err = t.appendUpsertUpdateCheckAndFinalCTE(
+		b, cteName, rawCTEName, plan, role, sessionVariables, params, paramIndex, postCheckName,
+	)
+	if err != nil {
+		return nil, 0, err
+	}
 
 	return params, paramIndex, nil
 }
@@ -313,15 +372,12 @@ func (t *table) buildSingleInsertCTEPostCheck(
 func (t *table) appendMissingPermissionColumns(
 	b *strings.Builder,
 	insertObj arguments.InsertObject,
-	nestedFKColumns map[string]struct{},
 	nestedFKIndex arguments.NestedFKSources,
 	role string,
 ) []string {
 	present := make(map[string]struct{})
 	for _, col := range insertObj.Columns {
-		if _, isNested := nestedFKColumns[col.Column.SQLName]; !isNested {
-			present[col.Column.SQLName] = struct{}{}
-		}
+		present[col.Column.SQLName] = struct{}{}
 	}
 
 	missing := t.permissions.MissingInsertColumns(role, present, t.columnFromSQLName)
@@ -367,15 +423,48 @@ func (t *table) extendWithPermissionColumns(allColumns []string, role string) []
 }
 
 // requiresPostInsertCheck reports whether the insert-check for role must run
-// after the INSERT (against RETURNING *) instead of against the input data.
-// See permissions.Store.RequiresPostInsertCheck for the rationale; presentCols
-// is the set of columns that carry a concrete value for every row, computed by
-// insertPresentColumns.
+// after the INSERT (against RETURNING *) instead of against the input data,
+// for the given onConflict (nil for a plain insert).
+//
+// Two conditions force the post-mutation path:
+//
+//  1. A check-referenced column's final value is only known after the INSERT
+//     (generated/identity, or DB-defaulted and absent from the payload) — see
+//     permissions.Store.RequiresPostInsertCheck. presentCols is the set of
+//     columns carrying a concrete value for every row, computed by
+//     insertPresentColumns.
+//  2. The mutation is an upsert with a reachable DO UPDATE branch and a
+//     non-empty insert check. The pre-check path enforces the insert check on
+//     *every* input row via the all-or-nothing check_count gate, which would
+//     wrongly reject a conflicting row that takes the UPDATE branch (and is
+//     therefore governed by the UPDATE permission/check, not the INSERT check).
+//     The post-check path scopes the insert check to rows that actually insert,
+//     matching Hasura's per-row branch semantics. See upsertNeedsPostInsertCheck.
 func (t *table) requiresPostInsertCheck(
 	role string,
 	presentCols map[string]struct{},
+	onConflict *arguments.OnConflict,
 ) bool {
-	return t.permissions.RequiresPostInsertCheck(role, presentCols, t.columnFromSQLName)
+	if t.permissions.RequiresPostInsertCheck(role, presentCols, t.columnFromSQLName) {
+		return true
+	}
+
+	return t.upsertNeedsPostInsertCheck(onConflict, role)
+}
+
+// upsertNeedsPostInsertCheck reports whether onConflict describes an upsert
+// whose insert check must be scoped to inserted rows via the post-mutation
+// path. It is true only when the DO UPDATE branch is reachable
+// (len(UpdateColumns) > 0 — an empty list is DO NOTHING and never updates) and
+// role carries a non-empty insert check. Without an insert check the pre-check
+// path emits no check_count gate, so no asymmetry exists and the simpler
+// pre-check path stays in use.
+func (t *table) upsertNeedsPostInsertCheck(onConflict *arguments.OnConflict, role string) bool {
+	if onConflict == nil || len(onConflict.UpdateColumns) == 0 {
+		return false
+	}
+
+	return t.permissions.HasNonEmptyInsertCheck(role)
 }
 
 // insertPresentColumns returns the set of column SQL names that carry a
@@ -463,7 +552,7 @@ func (t *table) buildPostCheckCTEWithName(
 	b.WriteString(rawCTEName)
 	b.WriteString(") THEN 1 ELSE (SELECT 0 FROM (SELECT ")
 	b.WriteString(t.dialect.ThrowError(errMsgInsertPermissionFailed, errCodePermissionDenied))
-	b.WriteString(") x) END AS status), ")
+	b.WriteString(") x) END AS status)")
 
 	return params, paramIndex, nil
 }
@@ -700,6 +789,28 @@ func writeFromCTEs(b *strings.Builder, ctes []string) {
 	}
 }
 
+func appendUniqueCTENames(ctes []string, additions []string) []string {
+	if len(additions) == 0 {
+		return ctes
+	}
+
+	seen := make(map[string]struct{}, len(ctes)+len(additions))
+	for _, cte := range ctes {
+		seen[cte] = struct{}{}
+	}
+
+	for _, cte := range additions {
+		if _, ok := seen[cte]; ok {
+			continue
+		}
+
+		seen[cte] = struct{}{}
+		ctes = append(ctes, cte)
+	}
+
+	return ctes
+}
+
 // collectFKSourceCTEs returns the unique source CTEs (in stable order of
 // first appearance) referenced by columns that are mapped in nestedFKIndex.
 // Stable ordering keeps the generated SQL deterministic.
@@ -780,10 +891,14 @@ func (t *table) buildCheckMutationResultCTE(
 // buildMutationResultInsertCTE builds the final mutation_result INSERT CTE.
 func (t *table) buildMutationResultInsertCTE(
 	b *strings.Builder,
+	cteName string,
 	allColumns []string,
 	nestedFKIndex arguments.NestedFKSources,
 	onConflict *arguments.OnConflict,
+	plan upsertUpdateCheckPlan,
 	hasCheckPermissions bool,
+	role string,
+	sessionVariables map[string]any,
 	params []any,
 	paramIndex int,
 ) ([]any, int, error) {
@@ -791,7 +906,8 @@ func (t *table) buildMutationResultInsertCTE(
 
 	finalColumns := insertColumnsWithNestedFK(allColumns, nestedFKIndex)
 
-	b.WriteString("mutation_result AS (INSERT INTO ")
+	b.WriteString(cteName)
+	b.WriteString(" AS (INSERT INTO ")
 	b.WriteString(t.tableFromClause())
 
 	t.buildInsertColumnsClause(b, finalColumns)
@@ -805,13 +921,16 @@ func (t *table) buildMutationResultInsertCTE(
 	if onConflict != nil {
 		var err error
 
-		params, paramIndex, err = onConflict.ToSQL(b, params, paramIndex)
+		params, paramIndex, err = t.writeOnConflictSQL(
+			b, onConflict, role, sessionVariables, params, paramIndex,
+		)
 		if err != nil {
-			return nil, 0, err //nolint:wrapcheck
+			return nil, 0, err
 		}
 	}
 
-	b.WriteString(" RETURNING *)")
+	t.writeInsertReturning(b, plan)
+	b.WriteByte(')')
 
 	return params, paramIndex, nil
 }
@@ -820,7 +939,7 @@ func (t *table) buildMutationResultInsertCTE(
 // pattern. This is the default path when no check-referenced column requires
 // post-INSERT evaluation (see requiresPostInsertCheck): the check predicate is
 // validated against the input data subquery before the INSERT runs.
-func (t *table) buildInsertMutationCTEPreCheck(
+func (t *table) buildInsertMutationCTEPreCheck( //nolint:funlen // Linear SQL CTE template.
 	b *strings.Builder,
 	insertObjs []arguments.InsertObject,
 	allColumns []string,
@@ -832,9 +951,11 @@ func (t *table) buildInsertMutationCTEPreCheck(
 	params []any,
 	paramIndex int,
 ) ([]any, int, error) {
+	finalColumns := insertColumnsWithNestedFK(allColumns, nestedFKIndex)
+
 	// Include columns referenced by permission checks but not in the insert data,
 	// preventing "column does not exist" errors (e.g., OR checking workspace_id).
-	dataColumns := t.extendWithPermissionColumns(allColumns, role)
+	dataColumns := t.extendWithPermissionColumns(finalColumns, role)
 
 	var (
 		hasCheckPermissions bool
@@ -853,8 +974,39 @@ func (t *table) buildInsertMutationCTEPreCheck(
 		t.buildCheckCountCTE(b, "", "check_mutation_result", len(insertObjs))
 	}
 
+	plan := t.prepareUpsertUpdateCheckPlan(
+		b,
+		"mutation_result",
+		"check_mutation_result",
+		onConflict,
+		finalColumns,
+		len(insertObjs),
+		insertPresentColumns(insertObjs, nestedFKIndex),
+		role,
+		false,
+	)
+
+	rawCTEName := rawCTENameForUpsertUpdateCheck("mutation_result", plan)
+
 	params, paramIndex, err = t.buildMutationResultInsertCTE(
-		b, allColumns, nestedFKIndex, onConflict, hasCheckPermissions, params, paramIndex,
+		b,
+		rawCTEName,
+		allColumns,
+		nestedFKIndex,
+		onConflict,
+		plan,
+		hasCheckPermissions,
+		role,
+		sessionVariables,
+		params,
+		paramIndex,
+	)
+	if err != nil {
+		return nil, 0, err
+	}
+
+	params, paramIndex, err = t.appendUpsertUpdateCheckAndFinalCTE(
+		b, "mutation_result", rawCTEName, plan, role, sessionVariables, params, paramIndex,
 	)
 	if err != nil {
 		return nil, 0, err
@@ -871,10 +1023,11 @@ func (t *table) buildInsertMutationCTEPreCheck(
 // SQL structure:
 //
 //	insert_data AS (SELECT ... FROM (...) AS data),
-//	_mutation_result AS (INSERT INTO ... SELECT ... FROM insert_data RETURNING *),
-//	post_check AS (validate all rows pass permission filter against real data),
-//	mutation_result AS (SELECT * FROM _mutation_result WHERE post_check passes)
-func (t *table) buildInsertMutationCTEPostCheck(
+//	_mutation_result AS (INSERT INTO ... SELECT ... FROM insert_data RETURNING *[, action marker]),
+//	[mutation_result_upsert_inserts AS (SELECT inserted rows from _mutation_result),]
+//	post_check AS (validate inserted rows pass permission filter against real data),
+//	mutation_result AS (SELECT visible columns FROM _mutation_result WHERE post_check passes)
+func (t *table) buildInsertMutationCTEPostCheck( //nolint:funlen // Linear SQL CTE template.
 	b *strings.Builder,
 	insertObjs []arguments.InsertObject,
 	allColumns []string,
@@ -886,15 +1039,27 @@ func (t *table) buildInsertMutationCTEPostCheck(
 	params []any,
 	paramIndex int,
 ) ([]any, int, error) {
+	finalColumns := insertColumnsWithNestedFK(allColumns, nestedFKIndex)
+
 	b.WriteString("insert_data AS (SELECT * FROM (") //nolint:unqueryvet
 
 	params, paramIndex = t.buildUnionAllSelect(
-		b, insertObjs, allColumns, columnToValue, nestedFKIndex, params, paramIndex,
+		b, insertObjs, finalColumns, columnToValue, nestedFKIndex, params, paramIndex,
 	)
 
 	b.WriteString(") AS data), ")
 
-	finalColumns := insertColumnsWithNestedFK(allColumns, nestedFKIndex)
+	plan := t.prepareUpsertUpdateCheckPlan(
+		b,
+		"mutation_result",
+		"insert_data",
+		onConflict,
+		finalColumns,
+		len(insertObjs),
+		insertPresentColumns(insertObjs, nestedFKIndex),
+		role,
+		true,
+	)
 
 	b.WriteString("_mutation_result AS (INSERT INTO ")
 	b.WriteString(t.tableFromClause())
@@ -906,25 +1071,42 @@ func (t *table) buildInsertMutationCTEPostCheck(
 	if onConflict != nil {
 		var err error
 
-		params, paramIndex, err = onConflict.ToSQL(b, params, paramIndex)
+		params, paramIndex, err = t.writeOnConflictSQL(
+			b, onConflict, role, sessionVariables, params, paramIndex,
+		)
 		if err != nil {
-			return nil, 0, err //nolint:wrapcheck
+			return nil, 0, err
 		}
 	}
 
-	b.WriteString(" RETURNING *), ")
+	t.writeInsertReturning(b, plan)
+	b.WriteString("), ")
+
+	postCheckSourceCTEName := appendUpsertInsertedRowsCTE(b, plan, "_mutation_result")
 
 	var err error
 
 	params, paramIndex, err = t.buildPostCheckCTE(
-		b, "_mutation_result", role, sessionVariables, params, paramIndex,
+		b, postCheckSourceCTEName, role, sessionVariables, params, paramIndex,
 	)
 	if err != nil {
 		return nil, 0, err
 	}
 
-	b.WriteString("mutation_result AS (SELECT * FROM _mutation_result") //nolint:unqueryvet
-	b.WriteString(" WHERE (SELECT status FROM post_check) = 1)")
+	params, paramIndex, err = t.appendUpsertUpdateCheckAndFinalCTE(
+		b,
+		"mutation_result",
+		"_mutation_result",
+		plan,
+		role,
+		sessionVariables,
+		params,
+		paramIndex,
+		"post_check",
+	)
+	if err != nil {
+		return nil, 0, err
+	}
 
 	return params, paramIndex, nil
 }
