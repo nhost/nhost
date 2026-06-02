@@ -44,63 +44,90 @@ const edgeTypes = { smart: SmartStepEdge } as const;
 const EDGE_COLOR_DEFAULT = 'hsl(var(--muted-foreground))';
 const EDGE_COLOR_HIGHLIGHT = 'hsl(var(--primary))';
 
+const EDGE_MARKER_HIGHLIGHT_SUFFIX = '-highlight';
+
+function highlightMarkerId(baseId: string) {
+  return `${baseId}${EDGE_MARKER_HIGHLIGHT_SUFFIX}`;
+}
+
+// Safari does not resolve the `context-stroke` paint keyword, so markers that
+// relied on it fell back to their SVG initial paint (black fill / no stroke).
+// Bake the two edge colors into their own markers instead — gray for default
+// edges, primary for highlighted ones — so arrowheads match the edge in every
+// browser. Highlighted edges reference the `-highlight` variant via
+// `highlightMarkerId`.
+const MARKER_VARIANTS = [
+  { idSuffix: '', color: EDGE_COLOR_DEFAULT },
+  { idSuffix: EDGE_MARKER_HIGHLIGHT_SUFFIX, color: EDGE_COLOR_HIGHLIGHT },
+] as const;
+
+function EdgeMarkers({ idSuffix, color }: { idSuffix: string; color: string }) {
+  return (
+    <>
+      <marker
+        id={`${EDGE_MARKER_IDS.arrowFilled}${idSuffix}`}
+        viewBox="0 0 12 12"
+        refX="10"
+        refY="6"
+        markerWidth="8"
+        markerHeight="8"
+        orient="auto-start-reverse"
+        markerUnits="userSpaceOnUse"
+      >
+        <path d="M0,0 L12,6 L0,12 z" fill={color} stroke={color} />
+      </marker>
+      <marker
+        id={`${EDGE_MARKER_IDS.arrowHollow}${idSuffix}`}
+        viewBox="0 0 12 12"
+        refX="10"
+        refY="6"
+        markerWidth="9"
+        markerHeight="9"
+        orient="auto-start-reverse"
+        markerUnits="userSpaceOnUse"
+      >
+        <path
+          d="M1,1 L11,6 L1,11 z"
+          className="fill-background"
+          stroke={color}
+          strokeWidth={1.5}
+          strokeLinejoin="round"
+        />
+      </marker>
+      <marker
+        id={`${EDGE_MARKER_IDS.circleHollow}${idSuffix}`}
+        viewBox="0 0 12 12"
+        refX="2"
+        refY="6"
+        markerWidth="9"
+        markerHeight="9"
+        orient="auto"
+        markerUnits="userSpaceOnUse"
+      >
+        <circle
+          cx="6"
+          cy="6"
+          r="4"
+          className="fill-background"
+          stroke={color}
+          strokeWidth={1.5}
+        />
+      </marker>
+    </>
+  );
+}
+
 function EdgeMarkerDefs() {
   return (
     <svg aria-hidden="true" className="pointer-events-none absolute h-0 w-0">
       <defs>
-        <marker
-          id={EDGE_MARKER_IDS.arrowFilled}
-          viewBox="0 0 12 12"
-          refX="10"
-          refY="6"
-          markerWidth="8"
-          markerHeight="8"
-          orient="auto-start-reverse"
-          markerUnits="userSpaceOnUse"
-        >
-          <path
-            d="M0,0 L12,6 L0,12 z"
-            fill="context-stroke"
-            stroke="context-stroke"
+        {MARKER_VARIANTS.map((variant) => (
+          <EdgeMarkers
+            key={variant.idSuffix || 'default'}
+            idSuffix={variant.idSuffix}
+            color={variant.color}
           />
-        </marker>
-        <marker
-          id={EDGE_MARKER_IDS.arrowHollow}
-          viewBox="0 0 12 12"
-          refX="10"
-          refY="6"
-          markerWidth="9"
-          markerHeight="9"
-          orient="auto-start-reverse"
-          markerUnits="userSpaceOnUse"
-        >
-          <path
-            d="M1,1 L11,6 L1,11 z"
-            className="fill-background"
-            stroke="context-stroke"
-            strokeWidth={1.5}
-            strokeLinejoin="round"
-          />
-        </marker>
-        <marker
-          id={EDGE_MARKER_IDS.circleHollow}
-          viewBox="0 0 12 12"
-          refX="2"
-          refY="6"
-          markerWidth="9"
-          markerHeight="9"
-          orient="auto"
-          markerUnits="userSpaceOnUse"
-        >
-          <circle
-            cx="6"
-            cy="6"
-            r="4"
-            className="fill-background"
-            stroke="context-stroke"
-            strokeWidth={1.5}
-          />
-        </marker>
+        ))}
       </defs>
     </svg>
   );
@@ -292,6 +319,14 @@ function SchemaDiagramContent() {
         ...edge,
         animated: isHighlighted,
         zIndex: isHighlighted ? 1000 : 0,
+        markerStart:
+          isHighlighted && typeof edge.markerStart === 'string'
+            ? highlightMarkerId(edge.markerStart)
+            : edge.markerStart,
+        markerEnd:
+          isHighlighted && typeof edge.markerEnd === 'string'
+            ? highlightMarkerId(edge.markerEnd)
+            : edge.markerEnd,
         style: {
           stroke: color,
           strokeWidth: isHighlighted ? 2 : 1.25,
