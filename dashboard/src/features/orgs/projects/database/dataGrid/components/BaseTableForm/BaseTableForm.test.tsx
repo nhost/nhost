@@ -577,6 +577,39 @@ describe('BaseTableForm', () => {
     ).not.toBeInTheDocument();
   });
 
+  it('should show an error when the table name exceeds 63 characters', async () => {
+    render(<TestTableFormWrapper />);
+    const user = new TestUserEvent();
+
+    await user.type(screen.getByTestId('tableNameInput'), 'a'.repeat(64));
+
+    await TestUserEvent.fireClickEvent(
+      screen.getByRole('button', { name: 'Save' }),
+    );
+
+    expect(
+      await screen.findByText('Table name must be at most 63 characters.'),
+    ).toBeInTheDocument();
+    expect(mocks.onSubmit).not.toHaveBeenCalled();
+  });
+
+  it('should show an error when a column name exceeds 63 characters', async () => {
+    render(<TestTableFormWrapper />);
+    const user = new TestUserEvent();
+
+    await user.type(screen.getByTestId('tableNameInput'), 'valid_table');
+    await user.type(screen.getByTestId('columns.0.name'), 'a'.repeat(64));
+
+    await TestUserEvent.fireClickEvent(
+      screen.getByRole('button', { name: 'Save' }),
+    );
+
+    expect(
+      await screen.findByText('Column name must be at most 63 characters.'),
+    ).toBeInTheDocument();
+    expect(mocks.onSubmit).not.toHaveBeenCalled();
+  });
+
   it('should submit a colliding default as a literal when the user picks the create item', async () => {
     render(<TestTableFormWrapper />);
 
