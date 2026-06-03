@@ -6,13 +6,15 @@ argument-hint: [base-ref]
 
 # Nhost Review — Native Pi Workflow
 
-You are `nhost-review`, the orchestrator for reviewing changes in this monorepo. Your job is **routing and synthesis**. Delegate language-specific checking to the native Pi project agents in `.pi/agents/` through the `subagent` tool:
+You are `nhost-review`, the orchestrator for reviewing changes in this monorepo. Your job is **routing and synthesis**. Delegate language-specific checking to the reviewer agents in `.pi/agents/` through the `subagent` tool:
 
-- `go-developer` for Go.
-- `javascript-developer` for JS/TS.
-- `generic-developer` for everything else and cross-cutting issues.
+- `go-reviewer` for Go.
+- `javascript-reviewer` for JS/TS.
+- `generic-reviewer` for everything else and cross-cutting issues.
 
-If the `subagent` tool is unavailable, perform the same review inline after reading the matching agent prompt(s) from `.pi/agents/` and the relevant rules documents.
+These reviewers never edit code; they only produce findings. The matching implementers (`go-implementer`, `javascript-implementer`, `generic-implementer`) are for the `address-review` skill, not this one.
+
+If the `subagent` tool is unavailable, perform the same review inline after reading the matching reviewer prompt(s) from `.pi/agents/` and the relevant rules documents.
 
 ## Inputs
 
@@ -60,16 +62,16 @@ Language assignment:
 
 | File type | Agent |
 | --- | --- |
-| `*.go` | `go-developer` |
-| `*.ts`, `*.tsx`, `*.js`, `*.jsx`, `*.mjs`, `*.cjs` | `javascript-developer` |
-| everything else | `generic-developer` |
+| `*.go` | `go-reviewer` |
+| `*.ts`, `*.tsx`, `*.js`, `*.jsx`, `*.mjs`, `*.cjs` | `javascript-reviewer` |
+| everything else | `generic-reviewer` |
 
 Project grouping:
 
 - **Go:** group by immediate Go package/directory. Do not merge unrelated packages.
 - **JS/TS:** group by workspace root: `dashboard/`, `packages/nhost-js/`, `services/functions/`, `docs/`, `examples/<name>/`.
 - **Generic:** group by top-level project or cross-cutting concern.
-- Cross-language contract changes, env var renames, auth claims, metadata/schema drift, or workflow changes that must be traced end-to-end go to `generic-developer`.
+- Cross-language contract changes, env var renames, auth claims, metadata/schema drift, or workflow changes that must be traced end-to-end go to `generic-reviewer`.
 
 For each bucket, call the `subagent` tool with `agentScope: "project"`. Use parallel mode for independent review buckets; use a single call for a small PR or a single bucket.
 
@@ -77,7 +79,7 @@ Each delegated task must include:
 
 1. The full bucket file list and relevant diff hunks.
 2. The pre-fetched PR context: PR number, repo, base ref, changed-file stats.
-3. This exact instruction: **"You are in review mode. Do not edit any files. Validate every finding before reporting it. Return a JSON array of confirmed findings."**
+3. This exact instruction: **"Use output shape B (fresh-diff findings) from your reviewer prompt. Do not edit any files. Validate every finding before reporting it. Return a JSON array of confirmed findings."**
 4. The expected return shape:
 
    ```json
@@ -88,7 +90,7 @@ For Go findings, `question` must be one of `placement`, `package-invariant`, or 
 
 ## Phase 3 — Validate and merge findings
 
-Developer agents must discard unconfirmed findings. Still, validate anything that looks borderline or unclear before writing it:
+Reviewer agents must discard unconfirmed findings. Still, validate anything that looks borderline or unclear before writing it:
 
 - Re-read the cited code.
 - Grep for callers or implementations when needed.
