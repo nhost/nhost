@@ -4,9 +4,23 @@ import { Mail } from 'lucide-react';
 import { type ReactElement, useEffect } from 'react';
 import { FormProvider, useForm } from 'react-hook-form';
 import * as Yup from 'yup';
-import { ControlledAutocomplete } from '@/components/form/ControlledAutocomplete';
 import { ControlledSelect } from '@/components/form/ControlledSelect';
 import { Form } from '@/components/form/Form';
+import {
+  FormControl,
+  FormField,
+  FormItem,
+  FormLabel,
+  FormMessage,
+} from '@/components/ui/v3/form';
+import {
+  MultiSelect,
+  MultiSelectContent,
+  MultiSelectGroup,
+  MultiSelectItem,
+  MultiSelectTrigger,
+  MultiSelectValue,
+} from '@/components/ui/v3/multi-select';
 import { AuthenticatedLayout } from '@/components/layout/AuthenticatedLayout';
 import { Box } from '@/components/ui/v2/Box';
 import { Button } from '@/components/ui/v2/Button';
@@ -228,26 +242,59 @@ function TicketPage() {
 
                   <Text className="mt-4 font-bold">Impact</Text>
 
-                  <ControlledAutocomplete
-                    id="services"
+                  <FormField
+                    control={form.control}
                     name="services"
-                    label="Services"
-                    fullWidth
-                    multiple
-                    aria-label="Services"
-                    options={[
-                      'Dashboard',
-                      'Database',
-                      'Authentication',
-                      'Storage',
-                      'Hasura/APIs',
-                      'Functions',
-                      'Run',
-                      'Graphite',
-                      'Other',
-                    ].map((s) => ({ label: s, value: s }))}
-                    error={!!errors?.services?.message}
-                    helperText={errors?.services?.message}
+                    render={({ field }) => (
+                      <FormItem className="flex flex-col gap-2">
+                        <FormLabel className="font-bold">Services</FormLabel>
+                        <MultiSelect
+                          values={(field.value || []).map((v: any) => v.value)}
+                          onValuesChange={(nextValues) =>
+                            field.onChange(
+                              nextValues.map((v) => ({ label: v, value: v })),
+                            )
+                          }
+                        >
+                          <FormControl>
+                            <MultiSelectTrigger className="w-full rounded-sm hover:bg-accent-background dark:border-[#2f363d] dark:bg-[#171d26] dark:hover:bg-[#1b2534]">
+                              <MultiSelectValue
+                                placeholder="Select Services"
+                                placeHolderClassName="text-[#9ca7b7]"
+                              />
+                            </MultiSelectTrigger>
+                          </FormControl>
+                          <MultiSelectContent className="w-80">
+                            <MultiSelectGroup>
+                              {[
+                                'Dashboard',
+                                'Database',
+                                'Authentication',
+                                'Storage',
+                                'Hasura/APIs',
+                                'Functions',
+                                'Run',
+                                'Graphite',
+                                'Other',
+                              ].map((s) => (
+                                <MultiSelectItem
+                                  key={s}
+                                  value={s}
+                                  className="data-[selected='true']:bg-accent data-[selected='true']:dark:bg-[#1b2534]"
+                                >
+                                  {s}
+                                </MultiSelectItem>
+                              ))}
+                            </MultiSelectGroup>
+                          </MultiSelectContent>
+                        </MultiSelect>
+                        {!!errors?.services?.message && (
+                          <FormMessage>
+                            {errors?.services?.message}
+                          </FormMessage>
+                        )}
+                      </FormItem>
+                    )}
                   />
 
                   <ControlledSelect

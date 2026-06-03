@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react';
-import type { AutocompleteOption } from '@/components/ui/v2/Autocomplete';
+import type { ComboboxOption as AutocompleteOption } from '@/components/ui/v3/combobox';
 import type { FetchTableSchemaReturnType } from '@/features/orgs/projects/database/common/hooks/useTableSchemaQuery';
 import type { FetchMetadataReturnType } from '@/features/orgs/projects/database/dataGrid/hooks/useMetadataQuery';
 import type { HasuraMetadataTable } from '@/features/orgs/projects/database/dataGrid/types/dataBrowser';

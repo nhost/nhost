@@ -4,10 +4,7 @@ import { FormProvider, useForm } from 'react-hook-form';
 import * as Yup from 'yup';
 import { ApplyLocalSettingsDialog } from '@/components/common/ApplyLocalSettingsDialog';
 import { useDialog } from '@/components/common/DialogProvider';
-import {
-  ControlledAutocomplete,
-  defaultFilterOptions,
-} from '@/components/form/ControlledAutocomplete';
+import { FormFreeCombobox } from '@/components/form/FormFreeCombobox';
 import { Form } from '@/components/form/Form';
 import { SettingsContainer } from '@/components/layout/SettingsContainer';
 import { ActivityIndicator } from '@/components/ui/v2/ActivityIndicator';
@@ -24,12 +21,7 @@ import {
 import { isNotEmptyValue } from '@/lib/utils';
 
 const validationSchema = Yup.object({
-  version: Yup.object({
-    label: Yup.string().required(),
-    value: Yup.string().required(),
-  })
-    .label('Hasura Version')
-    .required(),
+  version: Yup.string().required().label('Hasura Version'),
 });
 
 export type HasuraServiceVersionFormValues = Yup.InferType<
@@ -76,21 +68,16 @@ export default function HasuraServiceVersionSettings() {
       }));
   }, [version, hasuraVersionsData?.softwareVersions]);
 
-  // TODO make sure the network request is made in the parent component
-  // also this request should be made against cache only and the data should be available right away
   const form = useForm<HasuraServiceVersionFormValues>({
     reValidateMode: 'onSubmit',
-    defaultValues: { version: { label: '', value: '' } },
+    defaultValues: { version: '' },
     resolver: yupResolver(validationSchema),
   });
 
   useEffect(() => {
     if (!loading && version) {
       form.reset({
-        version: {
-          label: version,
-          value: version,
-        },
+        version,
       });
     }
   }, [loading, version, form]);
@@ -117,7 +104,7 @@ export default function HasuraServiceVersionSettings() {
         appId: project?.id,
         config: {
           hasura: {
-            version: formValues.version.value,
+            version: formValues.version,
           },
         },
       },
@@ -166,28 +153,13 @@ export default function HasuraServiceVersionSettings() {
           docsTitle="the latest releases"
           className="grid grid-flow-row gap-x-4 gap-y-2 px-4 lg:grid-cols-5"
         >
-          <ControlledAutocomplete
-            id="version"
+          <FormFreeCombobox
             name="version"
-            freeSolo
-            getOptionLabel={(option) => {
-              if (typeof option === 'string') {
-                return option || '';
-              }
-
-              return option.value;
-            }}
-            autoHighlight
-            isOptionEqualToValue={() => false}
-            filterOptions={defaultFilterOptions}
-            fullWidth
             className="lg:col-span-2"
-            aria-label="Hasura Service Version"
             options={availableVersions}
-            error={!!formState.errors?.version?.message}
-            helperText={formState.errors?.version?.message}
-            showCustomOption="auto"
-            customOptionLabel={(value) => `Use custom value: "${value}"`}
+            control={form.control}
+            placeholder="Select Hasura Version"
+            customValueLabel={(val) => `Use custom value: "${val}"`}
           />
         </SettingsContainer>
       </Form>
