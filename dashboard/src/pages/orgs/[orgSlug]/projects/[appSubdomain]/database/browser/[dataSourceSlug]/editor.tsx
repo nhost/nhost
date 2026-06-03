@@ -11,15 +11,13 @@ import { useProject } from '@/features/orgs/projects/hooks/useProject';
 export default function Editor() {
   const isPlatform = useIsPlatform();
   const { project } = useProject();
-  const { query, isReady } = useRouter();
+  const { isReady } = useRouter();
 
   if ((isPlatform && !project?.config?.hasura.adminSecret) || !isReady) {
     return <LoadingScreen />;
   }
 
-  const sqlParam = Array.isArray(query.sql) ? query.sql[0] : query.sql;
-
-  return <SQLEditor initialSQL={sqlParam} />;
+  return <SQLEditor />;
 }
 
 Editor.getLayout = function getLayout(page: ReactElement) {

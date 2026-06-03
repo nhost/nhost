@@ -40,6 +40,15 @@ vi.mock('@uiw/react-codemirror', () => ({
   ),
 }));
 
+vi.mock(
+  '@/features/orgs/projects/database/dataGrid/components/SQLEditor',
+  () => ({
+    SQLEditor: ({ initialSQL }: { initialSQL?: string }) => (
+      <pre data-testid="inline-sql-editor">{initialSQL}</pre>
+    ),
+  }),
+);
+
 afterEach(() => {
   vi.restoreAllMocks();
 });
@@ -191,24 +200,42 @@ describe('ComputedFieldFormFields', () => {
     );
   });
 
-  it('clears the function name when the user selects a schema that does not contain it', async () => {
+  it('clears the function name whenever the schema changes, even if the new schema has a same-named function', async () => {
     const formRef: TestWrapperProps['formRef'] = { current: null };
     const user = new TestUserEvent();
 
+    const sharedNameFunctions: PostgresFunction[] = [
+      {
+        function_schema: 'public',
+        function_name: 'shared_fn',
+        function_arguments: 'row public.users',
+        function_definition:
+          'CREATE OR REPLACE FUNCTION public.shared_fn(row public.users) RETURNS text LANGUAGE sql STABLE AS $$ SELECT row.first_name $$;',
+        input_arg_types: [usersRowArg],
+      },
+      {
+        function_schema: 'analytics',
+        function_name: 'shared_fn',
+        function_arguments: 'row public.users',
+        function_definition:
+          'CREATE OR REPLACE FUNCTION analytics.shared_fn(row public.users) RETURNS text LANGUAGE sql STABLE AS $$ SELECT row.first_name $$;',
+        input_arg_types: [usersRowArg],
+      },
+    ];
+
     render(
       <TestWrapper
+        functions={sharedNameFunctions}
         defaultValues={{
           name: 'full_name',
           functionSchema: 'public',
-          functionName: 'compute_full_name',
+          functionName: 'shared_fn',
         }}
         formRef={formRef}
       />,
     );
 
-    expect(formRef.current?.getValues('functionName')).toBe(
-      'compute_full_name',
-    );
+    expect(formRef.current?.getValues('functionName')).toBe('shared_fn');
 
     await user.click(screen.getByRole('combobox', { name: 'Function Schema' }));
     await user.click(await screen.findByRole('option', { name: 'analytics' }));
@@ -265,10 +292,7 @@ describe('ComputedFieldFormFields', () => {
     );
   });
 
-  it('opens the SQL editor with the typed function name and commits it to the form when Create Function is clicked', async () => {
-    const openSpy = vi
-      .spyOn(window, 'open')
-      .mockImplementation(() => null as unknown as Window);
+  it('opens the inline SQL editor with the typed function name and commits it to the form when Create Function is clicked', async () => {
     const formRef: TestWrapperProps['formRef'] = { current: null };
     const user = new TestUserEvent();
 
@@ -288,21 +312,11 @@ describe('ComputedFieldFormFields', () => {
       await screen.findByTestId('computed-field-new-function-action'),
     );
 
-    expect(openSpy).toHaveBeenCalledTimes(1);
-    const [calledUrl, target, features] = openSpy.mock.calls[0];
-    expect(target).toBe('_blank');
-    expect(features).toBe('noopener,noreferrer');
-    expect(String(calledUrl)).toMatch(
-      /^\/orgs\/test-org\/projects\/test-project\/database\/browser\/default\/editor\?sql=/,
-    );
-
-    const decodedSql = decodeURIComponent(
-      String(calledUrl).split('?sql=')[1] ?? '',
-    );
-    expect(decodedSql).toContain(
+    const editor = await screen.findByTestId('inline-sql-editor');
+    expect(editor.textContent).toContain(
       'CREATE OR REPLACE FUNCTION public.compute_my_thing(user_row public.users)',
     );
-    expect(decodedSql).toContain(
+    expect(editor.textContent).toContain(
       'The first argument "user_row" must accept a row of "public.users".',
     );
 
@@ -310,9 +324,6 @@ describe('ComputedFieldFormFields', () => {
   });
 
   it('uses the table schema in the SQL template when the function schema differs', async () => {
-    const openSpy = vi
-      .spyOn(window, 'open')
-      .mockImplementation(() => null as unknown as Window);
     const user = new TestUserEvent();
 
     render(
@@ -331,22 +342,19 @@ describe('ComputedFieldFormFields', () => {
       await screen.findByTestId('computed-field-new-function-action'),
     );
 
-    const calledUrl = String(openSpy.mock.calls[0][0]);
-    const decodedSql = decodeURIComponent(calledUrl.split('?sql=')[1] ?? '');
-    expect(decodedSql).toContain(
+    const editor = await screen.findByTestId('inline-sql-editor');
+    expect(editor.textContent).toContain(
       'CREATE OR REPLACE FUNCTION analytics.lifetime_payments(user_row public.users)',
     );
   });
 
-  it('does not show the function definition preview until a function is selected', () => {
+  it('does not show the SQL editor until a function is selected', () => {
     render(<TestWrapper defaultValues={{ functionSchema: 'public' }} />);
 
-    expect(
-      screen.queryByTestId('function-definition-preview-toggle'),
-    ).not.toBeInTheDocument();
+    expect(screen.queryByTestId('inline-sql-editor')).not.toBeInTheDocument();
   });
 
-  it('shows the function definition preview, expanded by default, with the schema-qualified name', () => {
+  it("shows the selected function's definition in the always-editable SQL editor", () => {
     render(
       <TestWrapper
         defaultValues={{
@@ -357,72 +365,11 @@ describe('ComputedFieldFormFields', () => {
       />,
     );
 
-    const toggle = screen.getByTestId('function-definition-preview-toggle');
-    expect(toggle).toBeInTheDocument();
-    expect(toggle).toHaveAttribute('aria-expanded', 'true');
-    expect(toggle).toHaveTextContent('Function definition');
-    expect(toggle).toHaveTextContent('public.compute_full_name');
-    expect(
-      screen.getByTestId('function-definition-preview-code'),
-    ).toBeInTheDocument();
-  });
-
-  it('collapses the preview when the toggle is clicked', async () => {
-    const user = new TestUserEvent();
-
-    render(
-      <TestWrapper
-        defaultValues={{
-          name: 'full_name',
-          functionSchema: 'public',
-          functionName: 'compute_full_name',
-        }}
-      />,
-    );
-
-    const toggle = screen.getByTestId('function-definition-preview-toggle');
-    expect(
-      screen.getByTestId('function-definition-preview-code'),
-    ).toBeInTheDocument();
-
-    await user.click(toggle);
-
-    expect(toggle).toHaveAttribute('aria-expanded', 'false');
-    expect(
-      screen.queryByTestId('function-definition-preview-code'),
-    ).not.toBeInTheDocument();
-  });
-
-  it('opens the SQL editor in a new tab with the function definition when Edit in SQL Editor is clicked', async () => {
-    const openSpy = vi
-      .spyOn(window, 'open')
-      .mockImplementation(() => null as unknown as Window);
-    const user = new TestUserEvent();
-
-    render(
-      <TestWrapper
-        defaultValues={{
-          name: 'full_name',
-          functionSchema: 'public',
-          functionName: 'compute_full_name',
-        }}
-      />,
-    );
-
-    await user.click(screen.getByTestId('function-definition-preview-edit'));
-
-    expect(openSpy).toHaveBeenCalledTimes(1);
-    const [calledUrl, target, features] = openSpy.mock.calls[0];
-    expect(target).toBe('_blank');
-    expect(features).toBe('noopener,noreferrer');
-
-    const decodedSql = decodeURIComponent(
-      String(calledUrl).split('?sql=')[1] ?? '',
-    );
-    expect(decodedSql).toContain(
+    const editor = screen.getByTestId('inline-sql-editor');
+    expect(editor.textContent).toContain(
       'CREATE OR REPLACE FUNCTION public.compute_full_name(row public.users)',
     );
-    expect(decodedSql).toContain(
+    expect(editor.textContent).toContain(
       'SELECT row.first_name || $$ $$ || row.last_name',
     );
   });

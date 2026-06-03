@@ -1,6 +1,5 @@
 import { PlusIcon, Sigma } from 'lucide-react';
-import { useCallback, useEffect, useState } from 'react';
-import { useDialog } from '@/components/common/DialogProvider';
+import { useState } from 'react';
 import { Alert, AlertDescription, AlertTitle } from '@/components/ui/v3/alert';
 import { Button } from '@/components/ui/v3/button';
 import { useDatabaseQuery } from '@/features/orgs/projects/database/dataGrid/hooks/useDatabaseQuery';
@@ -12,7 +11,6 @@ import ComputedFieldsSectionShell from './ComputedFieldsSectionShell';
 import ComputedFieldsSectionSkeleton from './ComputedFieldsSectionSkeleton';
 
 const DEFAULT_SOURCE = 'default';
-const DIRTY_SOURCE_ID = 'edit-gql-computed-fields';
 
 export interface ComputedFieldsSectionProps {
   disabled?: boolean;
@@ -27,7 +25,6 @@ export default function ComputedFieldsSection({
   schema,
   tableName,
 }: ComputedFieldsSectionProps) {
-  const { setDirtySource } = useDialog();
   const table = { name: tableName, schema };
 
   const {
@@ -64,20 +61,6 @@ export default function ComputedFieldsSection({
 
   const [expandedRowName, setExpandedRowName] = useState<string | null>(null);
   const [isAddingNew, setIsAddingNew] = useState(false);
-
-  const [dirtyChildCount, setDirtyChildCount] = useState(0);
-  const isAnyChildDirty = dirtyChildCount > 0;
-
-  const reportChildDirty = useCallback((dirty: boolean) => {
-    setDirtyChildCount((prev) => prev + (dirty ? 1 : -1));
-  }, []);
-
-  useEffect(() => {
-    setDirtySource(DIRTY_SOURCE_ID, isAnyChildDirty);
-    return () => {
-      setDirtySource(DIRTY_SOURCE_ID, false);
-    };
-  }, [isAnyChildDirty, setDirtySource]);
 
   const handleRowOpenChange = (name: string) => (open: boolean) => {
     if (open) {
@@ -178,7 +161,6 @@ export default function ComputedFieldsSection({
               isSchemasLoading={isLoadingSchemas}
               disabled={disabled}
               onClose={closeAddPanel}
-              onDirtyChange={reportChildDirty}
             />
           )}
 
@@ -226,7 +208,6 @@ export default function ComputedFieldsSection({
                   disabled={disabled}
                   isExpanded={expandedRowName === field.name}
                   onOpenChange={handleRowOpenChange(field.name)}
-                  onDirtyChange={reportChildDirty}
                 />
               ))}
             </>

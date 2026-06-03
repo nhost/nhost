@@ -39,7 +39,19 @@ vi.mock('@uiw/react-codemirror', () => ({
   ),
 }));
 
+vi.mock(
+  '@/features/orgs/projects/database/dataGrid/components/SQLEditor',
+  () => ({
+    SQLEditor: ({ initialSQL }: { initialSQL?: string }) => (
+      <pre data-testid="inline-sql-editor">{initialSQL}</pre>
+    ),
+  }),
+);
+
 const HASURA_URL = 'https://local.hasura.local.nhost.run';
+
+const DIRTY_MESSAGE =
+  'You have unsaved local changes. Are you sure you want to discard them?';
 
 interface ExportMetadataHandlerOptions {
   computedFields?: ComputedFieldItem[];
@@ -271,7 +283,7 @@ describe('ComputedFieldsSection', () => {
     expect(screen.getByTestId('delete-computed-field-age')).toBeInTheDocument();
 
     expect(
-      screen.getByTestId('add-computed-field-trigger'),
+      screen.getByRole('button', { name: 'New field' }),
     ).toBeInTheDocument();
     expect(
       screen.queryByTestId('add-computed-field-empty-cta'),
@@ -410,6 +422,101 @@ describe('ComputedFieldsSection', () => {
           },
         },
       ],
+    });
+  });
+
+  it('mounts the editor form only when a row is expanded and unmounts it on collapse', async () => {
+    const user = new TestUserEvent();
+    server.use(exportMetadataHandler({ computedFields: sampleComputedFields }));
+
+    render(<ComputedFieldsSection schema="public" tableName="users" />);
+
+    await screen.findByText('full_name');
+    expect(
+      screen.queryByLabelText('Computed Field Name'),
+    ).not.toBeInTheDocument();
+
+    await user.click(screen.getByTestId('edit-computed-field-full_name'));
+
+    expect(await screen.findByLabelText('Computed Field Name')).toHaveValue(
+      'full_name',
+    );
+    expect(screen.getByRole('button', { name: 'Save' })).toBeInTheDocument();
+
+    await user.click(screen.getByTestId('edit-computed-field-full_name'));
+
+    await waitFor(() => {
+      expect(
+        screen.queryByLabelText('Computed Field Name'),
+      ).not.toBeInTheDocument();
+    });
+    expect(screen.queryByText(DIRTY_MESSAGE)).not.toBeInTheDocument();
+  });
+
+  it('prompts to discard unsaved edits when collapsing a dirty row via the chevron', async () => {
+    const user = new TestUserEvent();
+    server.use(exportMetadataHandler({ computedFields: sampleComputedFields }));
+
+    render(<ComputedFieldsSection schema="public" tableName="users" />);
+
+    await user.click(
+      await screen.findByTestId('edit-computed-field-full_name'),
+    );
+    await user.type(await screen.findByLabelText('Computed Field Name'), '_v2');
+
+    await user.click(screen.getByTestId('edit-computed-field-full_name'));
+
+    expect(await screen.findByText(DIRTY_MESSAGE)).toBeInTheDocument();
+    expect(screen.getByLabelText('Computed Field Name')).toBeInTheDocument();
+
+    await user.click(screen.getByRole('button', { name: 'Discard' }));
+
+    await waitFor(() => {
+      expect(
+        screen.queryByLabelText('Computed Field Name'),
+      ).not.toBeInTheDocument();
+    });
+  });
+
+  it('prompts to discard unsaved edits when the row Cancel button is clicked', async () => {
+    const user = new TestUserEvent();
+    server.use(exportMetadataHandler({ computedFields: sampleComputedFields }));
+
+    render(<ComputedFieldsSection schema="public" tableName="users" />);
+
+    await user.click(
+      await screen.findByTestId('edit-computed-field-full_name'),
+    );
+    await user.type(await screen.findByLabelText('Computed Field Name'), '_v2');
+
+    await user.click(screen.getByRole('button', { name: 'Cancel' }));
+
+    expect(await screen.findByText(DIRTY_MESSAGE)).toBeInTheDocument();
+  });
+
+  it('prompts to discard unsaved edits when the Add panel Cancel button is clicked', async () => {
+    const user = new TestUserEvent();
+    server.use(exportMetadataHandler({ computedFields: [] }));
+
+    render(<ComputedFieldsSection schema="public" tableName="users" />);
+
+    await user.click(await screen.findByTestId('add-computed-field-empty-cta'));
+    expect(
+      await screen.findByTestId('add-computed-field-panel'),
+    ).toBeInTheDocument();
+
+    await user.type(screen.getByLabelText('Computed Field Name'), 'full_name');
+
+    await user.click(screen.getByRole('button', { name: 'Cancel' }));
+
+    expect(await screen.findByText(DIRTY_MESSAGE)).toBeInTheDocument();
+
+    await user.click(screen.getByRole('button', { name: 'Discard' }));
+
+    await waitFor(() => {
+      expect(
+        screen.queryByTestId('add-computed-field-panel'),
+      ).not.toBeInTheDocument();
     });
   });
 });

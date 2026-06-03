@@ -1,32 +1,23 @@
-import { zodResolver } from '@hookform/resolvers/zod';
-import { ChevronDown, PencilIcon, TriangleAlert } from 'lucide-react';
-import { useEffect } from 'react';
-import { useForm } from 'react-hook-form';
-import { Button, ButtonWithLoading } from '@/components/ui/v3/button';
+import { ChevronDown, PencilIcon } from 'lucide-react';
+import { useCallback, useEffect, useState } from 'react';
+import { useDialog } from '@/components/common/DialogProvider';
+import { Button } from '@/components/ui/v3/button';
 import {
   Collapsible,
   CollapsibleContent,
   CollapsibleTrigger,
 } from '@/components/ui/v3/collapsible';
-import { Form } from '@/components/ui/v3/form';
 import { TextWithTooltip } from '@/features/orgs/projects/common/components/TextWithTooltip';
-import { useComputedFieldDependents } from '@/features/orgs/projects/database/dataGrid/hooks/useComputedFieldDependents';
-import { useComputedFieldMetadataMutation } from '@/features/orgs/projects/database/dataGrid/hooks/useComputedFieldMetadataMutation';
 import type { PostgresFunction } from '@/features/orgs/projects/database/dataGrid/hooks/usePostgresFunctionsQuery';
-import { execPromiseWithErrorToast } from '@/features/orgs/utils/execPromiseWithErrorToast';
 import { cn } from '@/lib/utils';
 import type {
   ComputedFieldItem,
   QualifiedTable,
 } from '@/utils/hasura-api/generated/schemas';
-import ComputedFieldFormFields from './ComputedFieldFormFields';
-import {
-  type ComputedFieldFormValues,
-  computedFieldItemToFormValues,
-  computedFieldValidationSchema,
-  formValuesToAddComputedFieldArgs,
-} from './computedFieldFormTypes';
+import ComputedFieldRowForm from './ComputedFieldRowForm';
 import DeleteComputedFieldAlertDialog from './DeleteComputedFieldAlertDialog';
+
+const DIRTY_SOURCE_PREFIX = 'edit-gql-computed-fields:row';
 
 export interface ComputedFieldRowProps {
   field: ComputedFieldItem;
@@ -39,7 +30,6 @@ export interface ComputedFieldRowProps {
   disabled?: boolean;
   isExpanded: boolean;
   onOpenChange: (open: boolean) => void;
-  onDirtyChange?: (dirty: boolean) => void;
 }
 
 export default function ComputedFieldRow({
@@ -53,66 +43,40 @@ export default function ComputedFieldRow({
   disabled,
   isExpanded,
   onOpenChange,
-  onDirtyChange,
 }: ComputedFieldRowProps) {
-  const { mutateAsync: editComputedField } = useComputedFieldMetadataMutation({
-    type: 'edit',
-  });
+  const { setDirtySource, openDirtyConfirmation } = useDialog();
 
-  const { data: dependentRoles = [] } = useComputedFieldDependents({
-    table,
-    dataSource: source,
-    computedFieldName: field.name,
-  });
+  const [isFormDirty, setIsFormDirty] = useState(false);
+  const handleFormDirtyChange = useCallback(
+    (dirty: boolean) => setIsFormDirty(dirty),
+    [],
+  );
 
-  const form = useForm<ComputedFieldFormValues>({
-    defaultValues: computedFieldItemToFormValues(field),
-    resolver: zodResolver(computedFieldValidationSchema),
-  });
-
-  const { isSubmitting, isDirty } = form.formState;
-  const isReportingDirty = isDirty && isExpanded;
+  const dirtySourceId = `${DIRTY_SOURCE_PREFIX}:${field.name}`;
 
   useEffect(() => {
-    if (!isReportingDirty) {
-      return undefined;
-    }
-    onDirtyChange?.(true);
-    return () => onDirtyChange?.(false);
-  }, [isReportingDirty, onDirtyChange]);
+    setDirtySource(dirtySourceId, isFormDirty);
+    return () => {
+      setDirtySource(dirtySourceId, false);
+    };
+  }, [dirtySourceId, isFormDirty, setDirtySource]);
 
-  useEffect(() => {
-    if (isExpanded) {
-      form.reset(computedFieldItemToFormValues(field));
+  const requestClose = () => {
+    if (isFormDirty) {
+      openDirtyConfirmation({
+        props: { onPrimaryAction: () => onOpenChange(false) },
+      });
+      return;
     }
-  }, [isExpanded, field, form]);
-
-  const handleCancel = () => {
-    form.reset(computedFieldItemToFormValues(field));
     onOpenChange(false);
   };
-
-  const handleSubmit = form.handleSubmit(async (values) => {
-    const args = formValuesToAddComputedFieldArgs(values, table, source);
-
-    await execPromiseWithErrorToast(
-      () => editComputedField({ args, original: field }),
-      {
-        loadingMessage: 'Updating computed field...',
-        successMessage: 'Computed field updated successfully.',
-        errorMessage: 'Failed to update computed field.',
-      },
-    );
-
-    onOpenChange(false);
-  });
 
   const functionLabel = `${field.definition.function.schema}.${field.definition.function.name}`;
 
   return (
     <Collapsible
       open={isExpanded}
-      onOpenChange={onOpenChange}
+      onOpenChange={(open) => (open ? onOpenChange(true) : requestClose())}
       disabled={disabled}
       className="overflow-hidden rounded-md"
     >
@@ -163,52 +127,19 @@ export default function ComputedFieldRow({
         </div>
       </div>
       <CollapsibleContent>
-        <Form {...form}>
-          <form
-            onSubmit={handleSubmit}
-            className={cn('grid grid-cols-1 gap-6 bg-muted/30 px-6 py-6')}
-          >
-            <ComputedFieldFormFields
-              functions={functions}
-              schemas={schemas}
-              table={table}
-              isFunctionsLoading={isFunctionsLoading}
-              isSchemasLoading={isSchemasLoading}
-              disabled={disabled || isSubmitting}
-            />
-            <div className="flex items-center justify-between gap-3">
-              <Button
-                type="button"
-                variant="outline"
-                onClick={handleCancel}
-                disabled={isSubmitting}
-              >
-                Cancel
-              </Button>
-              <div className="flex min-w-0 items-center gap-3">
-                {dependentRoles.length > 0 && (
-                  <div className="flex min-w-0 items-center gap-2">
-                    <TriangleAlert className="size-4 shrink-0 text-amber-500" />
-                    <p className="text-pretty text-muted-foreground text-sm">
-                      Saving will remove select permissions for:{' '}
-                      <span className="font-medium text-foreground">
-                        {dependentRoles.join(', ')}
-                      </span>
-                    </p>
-                  </div>
-                )}
-                <ButtonWithLoading
-                  type="submit"
-                  loading={isSubmitting}
-                  disabled={disabled}
-                  className="text-white"
-                >
-                  Save
-                </ButtonWithLoading>
-              </div>
-            </div>
-          </form>
-        </Form>
+        <ComputedFieldRowForm
+          field={field}
+          table={table}
+          source={source}
+          functions={functions}
+          schemas={schemas}
+          isFunctionsLoading={isFunctionsLoading}
+          isSchemasLoading={isSchemasLoading}
+          disabled={disabled}
+          onClose={() => onOpenChange(false)}
+          onCancel={requestClose}
+          onDirtyChange={handleFormDirtyChange}
+        />
       </CollapsibleContent>
     </Collapsible>
   );

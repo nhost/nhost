@@ -1,6 +1,7 @@
 import { zodResolver } from '@hookform/resolvers/zod';
 import { useEffect } from 'react';
 import { useForm } from 'react-hook-form';
+import { useDialog } from '@/components/common/DialogProvider';
 import { Button, ButtonWithLoading } from '@/components/ui/v3/button';
 import { Form } from '@/components/ui/v3/form';
 import { useComputedFieldMetadataMutation } from '@/features/orgs/projects/database/dataGrid/hooks/useComputedFieldMetadataMutation';
@@ -15,6 +16,8 @@ import {
   formValuesToAddComputedFieldArgs,
 } from './computedFieldFormTypes';
 
+const DIRTY_SOURCE_ID = 'edit-gql-computed-fields:add';
+
 export interface AddComputedFieldPanelProps {
   table: QualifiedTable;
   source: string;
@@ -24,7 +27,6 @@ export interface AddComputedFieldPanelProps {
   isSchemasLoading?: boolean;
   disabled?: boolean;
   onClose: () => void;
-  onDirtyChange?: (dirty: boolean) => void;
 }
 
 export default function AddComputedFieldPanel({
@@ -36,8 +38,9 @@ export default function AddComputedFieldPanel({
   isSchemasLoading,
   disabled,
   onClose,
-  onDirtyChange,
 }: AddComputedFieldPanelProps) {
+  const { setDirtySource, openDirtyConfirmation } = useDialog();
+
   const { mutateAsync: createComputedField } = useComputedFieldMetadataMutation(
     { type: 'add' },
   );
@@ -50,12 +53,21 @@ export default function AddComputedFieldPanel({
   const { isSubmitting, isDirty } = form.formState;
 
   useEffect(() => {
-    if (!isDirty) {
-      return undefined;
+    setDirtySource(DIRTY_SOURCE_ID, isDirty);
+    return () => {
+      setDirtySource(DIRTY_SOURCE_ID, false);
+    };
+  }, [isDirty, setDirtySource]);
+
+  const handleCancel = () => {
+    if (isDirty) {
+      openDirtyConfirmation({
+        props: { onPrimaryAction: onClose },
+      });
+      return;
     }
-    onDirtyChange?.(true);
-    return () => onDirtyChange?.(false);
-  }, [isDirty, onDirtyChange]);
+    onClose();
+  };
 
   const handleSubmit = form.handleSubmit(async (values) => {
     const args = formValuesToAddComputedFieldArgs(values, table, source);
@@ -94,7 +106,7 @@ export default function AddComputedFieldPanel({
             <Button
               type="button"
               variant="outline"
-              onClick={onClose}
+              onClick={handleCancel}
               disabled={isSubmitting}
             >
               Cancel
