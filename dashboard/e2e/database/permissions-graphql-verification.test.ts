@@ -4,6 +4,7 @@ import { TEST_ORGANIZATION_SLUG, TEST_PROJECT_SUBDOMAIN } from '@/e2e/env';
 import { expect, test } from '@/e2e/fixtures/auth-hook';
 import {
   clickPermissionButton,
+  getGraphQLResult,
   navigateToGraphQLPlayground,
   navigateToSQLEditor,
   prepareTable,
@@ -72,11 +73,14 @@ test.describe
         query: `query { ${tableName} { id title genre status } }`,
       });
 
-      const resultWindow = page.getByLabel('Result Window');
-      await expect(resultWindow).toContainText(
-        /error|not found in type|not exist|permission/i,
-        { timeout: 15000 },
-      );
+      const result = await getGraphQLResult({ page });
+
+      const hasError =
+        result.includes('error') ||
+        result.includes('not found in type') ||
+        result.includes('not exist') ||
+        result.includes('permission');
+      expect(hasError).toBe(true);
     });
 
     test('public role should only see books matching custom check', async ({
@@ -143,11 +147,10 @@ test.describe
         query: `query { ${tableName} { id title genre status } }`,
       });
 
-      const resultWindow = page.getByLabel('Result Window');
-      await expect(resultWindow).toContainText('The Great Gatsby', {
-        timeout: 15000,
-      });
-      await expect(resultWindow).not.toContainText('A Brief History of Time');
-      await expect(resultWindow).not.toContainText('Draft Novel');
+      const result = await getGraphQLResult({ page });
+
+      expect(result).toContain('The Great Gatsby');
+      expect(result).not.toContain('A Brief History of Time');
+      expect(result).not.toContain('Draft Novel');
     });
   });
