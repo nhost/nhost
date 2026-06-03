@@ -58,6 +58,22 @@ func runCORS(
 	return rec, called
 }
 
+func assertVaryContainsOnce(t *testing.T, rec *httptest.ResponseRecorder, want string) {
+	t.Helper()
+
+	if want == "" {
+		return
+	}
+
+	if got := rec.Header().Get("Vary"); !strings.Contains(got, want) {
+		t.Errorf("Vary missing %q: got %q", want, got)
+	}
+
+	if got := rec.Header().Values("Vary"); len(got) != 1 {
+		t.Errorf("Vary values = %v, want exactly one", got)
+	}
+}
+
 func TestCORS(t *testing.T) {
 	t.Parallel()
 
@@ -137,7 +153,7 @@ func TestCORS(t *testing.T) {
 				"Access-Control-Allow-Origin",
 				"Access-Control-Allow-Methods",
 			},
-			wantVaryContains: "",
+			wantVaryContains: "Origin",
 		},
 		{
 			name: "wildcard_origin",
@@ -177,7 +193,7 @@ func TestCORS(t *testing.T) {
 			wantHeadersEmpty: []string{
 				"Access-Control-Allow-Origin",
 			},
-			wantVaryContains: "",
+			wantVaryContains: "Origin",
 		},
 		{
 			name: "preflight_without_origin_gets_no_cors_headers",
@@ -197,7 +213,7 @@ func TestCORS(t *testing.T) {
 			wantHeadersEmpty: []string{
 				"Access-Control-Allow-Origin",
 			},
-			wantVaryContains: "",
+			wantVaryContains: "Origin",
 		},
 		{
 			// Allow-all config (AllowedOrigins nil) reflects any origin, so
@@ -228,7 +244,7 @@ func TestCORS(t *testing.T) {
 				"Access-Control-Allow-Methods",
 				"Access-Control-Allow-Credentials",
 			},
-			wantVaryContains: "",
+			wantVaryContains: "Origin",
 		},
 	}
 
@@ -258,11 +274,7 @@ func TestCORS(t *testing.T) {
 				}
 			}
 
-			if tc.wantVaryContains != "" {
-				if got := rec.Header().Get("Vary"); !strings.Contains(got, tc.wantVaryContains) {
-					t.Errorf("Vary missing %q: got %q", tc.wantVaryContains, got)
-				}
-			}
+			assertVaryContainsOnce(t, rec, tc.wantVaryContains)
 		})
 	}
 }

@@ -123,6 +123,20 @@ func schemaTypes(t *testing.T, got map[string]any) []map[string]any {
 	return asMapSlice(t, asMap(t, got["__schema"])["types"])
 }
 
+func findMapByName(t *testing.T, values []map[string]any, name string) map[string]any {
+	t.Helper()
+
+	for _, value := range values {
+		if value["name"] == name {
+			return value
+		}
+	}
+
+	t.Fatalf("map with name %q not found in %v", name, values)
+
+	return nil
+}
+
 func TestExecute(t *testing.T) { //nolint:gocognit,gocyclo,cyclop,maintidx
 	t.Parallel()
 
@@ -149,6 +163,213 @@ func TestExecute(t *testing.T) { //nolint:gocognit,gocyclo,cyclop,maintidx
 
 				if queryType["name"] != "Query" {
 					t.Errorf("queryType.name = %v, want Query", queryType["name"])
+				}
+			},
+		},
+		{
+			name: "SchemaFragmentsAndAliases",
+			query: `
+				query Q {
+					schemaAlias: __schema {
+						...SchemaRootFields
+						... on __Schema {
+							missingMutation: mutationType { ignoredName: name }
+							aliasedTypes: types { typeName: name }
+						}
+					}
+				}
+
+				fragment SchemaRootFields on __Schema {
+					rootQuery: queryType {
+						...RootName
+						... on __Type { rootKind: kind }
+					}
+				}
+
+				fragment RootName on __Type { queryName: name }
+			`,
+			check: func(t *testing.T, got map[string]any) {
+				t.Helper()
+
+				schemaResult := asMap(t, got["schemaAlias"])
+
+				rootQuery := asMap(t, schemaResult["rootQuery"])
+
+				wantRootQuery := map[string]any{
+					"queryName": "Query",
+					"rootKind":  "OBJECT",
+				}
+				if diff := cmp.Diff(wantRootQuery, rootQuery); diff != "" {
+					t.Errorf("rootQuery mismatch (-want +got):\n%s", diff)
+				}
+
+				if mutationType, ok := schemaResult["missingMutation"]; !ok || mutationType != nil {
+					t.Errorf(
+						"missingMutation = %v (present=%v), want nil and present",
+						mutationType, ok,
+					)
+				}
+
+				if _, ok := schemaResult["types"]; ok {
+					t.Errorf("unexpected unaliased types key in schema result: %v", schemaResult)
+				}
+
+				types := asMapSlice(t, schemaResult["aliasedTypes"])
+				for _, typ := range types {
+					if typ["typeName"] != "User" {
+						continue
+					}
+
+					if _, ok := typ["name"]; ok {
+						t.Errorf("unexpected unaliased name key in User type result: %v", typ)
+					}
+
+					return
+				}
+
+				t.Fatal("User type not found through aliased types selection")
+			},
+		},
+		{
+			name: "RootTypenameAndInlineFragment",
+			query: `
+				query Q {
+					... on Query {
+						rootType: __typename
+						schemaAlias: __schema { queryType { name } }
+					}
+				}
+			`,
+			check: func(t *testing.T, got map[string]any) {
+				t.Helper()
+
+				if got["rootType"] != "Query" {
+					t.Errorf("rootType = %v, want Query", got["rootType"])
+				}
+
+				queryType := asMap(t, asMap(t, got["schemaAlias"])["queryType"])
+				if queryType["name"] != "Query" {
+					t.Errorf("schemaAlias.queryType.name = %v, want Query", queryType["name"])
+				}
+			},
+		},
+		{
+			name:  "TypenameOnSchemaAndTypeRef",
+			query: `{ __schema { __typename queryType { __typename name } } }`,
+			check: func(t *testing.T, got map[string]any) {
+				t.Helper()
+
+				schemaResult := asMap(t, got["__schema"])
+				if schemaResult["__typename"] != "__Schema" {
+					t.Errorf("__schema.__typename = %v, want __Schema", schemaResult["__typename"])
+				}
+
+				queryType := asMap(t, schemaResult["queryType"])
+				if queryType["__typename"] != "__Type" {
+					t.Errorf(
+						"__schema.queryType.__typename = %v, want __Type",
+						queryType["__typename"],
+					)
+				}
+
+				if queryType["name"] != "Query" {
+					t.Errorf("__schema.queryType.name = %v, want Query", queryType["name"])
+				}
+			},
+		},
+		{
+			name:  "TypeTypenameAliasAndInlineFragment",
+			query: `{ __type(name: "User") { tn: __typename ... on __Type { name kind } } }`,
+			check: func(t *testing.T, got map[string]any) {
+				t.Helper()
+
+				typ := asMap(t, got["__type"])
+
+				want := map[string]any{
+					"tn":   "__Type",
+					"name": "User",
+					"kind": "OBJECT",
+				}
+				if diff := cmp.Diff(want, typ); diff != "" {
+					t.Errorf("__type mismatch (-want +got):\n%s", diff)
+				}
+			},
+		},
+		{
+			name: "TypenameOnIntrospectionChildren",
+			query: `{
+				userType: __type(name: "User") {
+					fields {
+						name
+						__typename
+						args { name __typename type { __typename kind name } }
+						type { __typename kind ofType { __typename kind name } }
+					}
+				}
+				inputType: __type(name: "UserInput") {
+					inputFields { name __typename type { __typename kind ofType { __typename kind name } } }
+				}
+				statusType: __type(name: "Status") {
+					enumValues { name __typename }
+				}
+				__schema {
+					directives { name __typename args { name __typename } }
+				}
+			}`,
+			check: func(t *testing.T, got map[string]any) {
+				t.Helper()
+
+				friends := findMapByName(
+					t,
+					asMapSlice(t, asMap(t, got["userType"])["fields"]),
+					"friends",
+				)
+				if friends["__typename"] != "__Field" {
+					t.Errorf("friends.__typename = %v, want __Field", friends["__typename"])
+				}
+
+				fieldType := asMap(t, friends["type"])
+				if fieldType["__typename"] != "__Type" {
+					t.Errorf("friends.type.__typename = %v, want __Type", fieldType["__typename"])
+				}
+
+				afterArg := findMapByName(t, asMapSlice(t, friends["args"]), "after")
+				if afterArg["__typename"] != "__InputValue" {
+					t.Errorf("after.__typename = %v, want __InputValue", afterArg["__typename"])
+				}
+
+				argType := asMap(t, afterArg["type"])
+				if argType["__typename"] != "__Type" {
+					t.Errorf("after.type.__typename = %v, want __Type", argType["__typename"])
+				}
+
+				score := findMapByName(
+					t, asMapSlice(t, asMap(t, got["inputType"])["inputFields"]), "score",
+				)
+				if score["__typename"] != "__InputValue" {
+					t.Errorf("score.__typename = %v, want __InputValue", score["__typename"])
+				}
+
+				active := findMapByName(
+					t, asMapSlice(t, asMap(t, got["statusType"])["enumValues"]), "ACTIVE",
+				)
+				if active["__typename"] != "__EnumValue" {
+					t.Errorf("ACTIVE.__typename = %v, want __EnumValue", active["__typename"])
+				}
+
+				deprecated := findMapByName(
+					t, asMapSlice(t, asMap(t, got["__schema"])["directives"]), "deprecated",
+				)
+				if deprecated["__typename"] != "__Directive" {
+					t.Errorf(
+						"deprecated.__typename = %v, want __Directive",
+						deprecated["__typename"],
+					)
+				}
+
+				reason := findMapByName(t, asMapSlice(t, deprecated["args"]), "reason")
+				if reason["__typename"] != "__InputValue" {
+					t.Errorf("reason.__typename = %v, want __InputValue", reason["__typename"])
 				}
 			},
 		},

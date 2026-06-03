@@ -20,8 +20,8 @@ func TestNormalizePostgresTypeToGraphQL(t *testing.T) {
 		{"integer", "Int"},
 		{"int", "Int"},
 		{"int4", "Int"},
-		{"int2", "smallint"},
-		{"smallint", "smallint"},
+		{"int2", "Int"},
+		{"smallint", "Int"},
 		{"int8", "bigint"},
 		{"boolean", "Boolean"},
 		{"bool", "Boolean"},
@@ -73,7 +73,6 @@ func TestIsCustomScalar(t *testing.T) {
 		{"jsonb", true},
 		{"citext", true},
 		{"bigint", true},
-		{"smallint", true},
 		{"numeric", true},
 	}
 
@@ -149,6 +148,57 @@ func TestGetColumnDescription(t *testing.T) {
 			got := getColumnDescription(&tt.col)
 			if got != tt.expected {
 				t.Errorf("getColumnDescription() = %q, want %q", got, tt.expected)
+			}
+		})
+	}
+}
+
+func TestGetCustomColumnName(t *testing.T) {
+	t.Parallel()
+
+	tests := []struct {
+		name       string
+		columnName string
+		config     map[string]metadata.ColumnConfig
+		expected   string
+	}{
+		{
+			name:       "no entry",
+			columnName: "email",
+			config:     nil,
+			expected:   "email",
+		},
+		{
+			name:       "comment-only entry falls back to real name",
+			columnName: "email",
+			config: map[string]metadata.ColumnConfig{
+				"email": {CustomName: ""},
+			},
+			expected: "email",
+		},
+		{
+			name:       "custom name set",
+			columnName: "email",
+			config: map[string]metadata.ColumnConfig{
+				"email": {CustomName: "emailAddress"},
+			},
+			expected: "emailAddress",
+		},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			t.Parallel()
+
+			tableMeta := &metadata.TableMetadata{
+				Configuration: metadata.TableConfiguration{
+					ColumnConfig: tt.config,
+				},
+			}
+
+			got := getCustomColumnName(tableMeta, tt.columnName)
+			if got != tt.expected {
+				t.Errorf("getCustomColumnName() = %q, want %q", got, tt.expected)
 			}
 		})
 	}

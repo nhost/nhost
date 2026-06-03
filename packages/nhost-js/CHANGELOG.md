@@ -1,3 +1,22 @@
+## [@nhost/nhost-js@4.7.2] - 2026-06-03
+
+### 🐛 Bug Fixes
+
+- *(deps)* Update brace-expansion due to CVE (#4306)
+- *(deps)* Fix ws advisory (GHSA-58qx-3vcg-4xpx) (#4307)
+- *(nhost-js)* Merge GraphQL request headers (#4437)
+
+
+### ⚙️ Miscellaneous Tasks
+
+- *(nixops)* Drop nix-filter input in favor of pkgs.lib.fileset (#4377)
+- *(nixops)* Migrate cache to r2 (#4393)
+
+
+### Chore
+
+- *(deps)* Update various packages due to CVEs (#4328)
+
 ## [@nhost/nhost-js@4.7.1] - 2026-05-18
 
 ### 🐛 Bug Fixes

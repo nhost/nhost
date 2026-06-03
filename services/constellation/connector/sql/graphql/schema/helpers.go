@@ -105,7 +105,8 @@ func getColumnDescription(col *introspection.Column) string {
 
 // getCustomColumnName returns the custom column name if configured, or realName otherwise.
 func getCustomColumnName(tableMeta *metadata.TableMetadata, realName string) string {
-	if colConfig, ok := tableMeta.Configuration.ColumnConfig[realName]; ok {
+	if colConfig, ok := tableMeta.Configuration.ColumnConfig[realName]; ok &&
+		colConfig.CustomName != "" {
 		return colConfig.CustomName
 	}
 
@@ -273,10 +274,8 @@ func normalizePostgresTypeToGraphQL(pgType string) string {
 	// Only map to built-in GraphQL types
 	//nolint:goconst,nolintlint
 	switch pgType {
-	case "integer", "int", "int4":
+	case "integer", "int", "int4", "int2", "smallint":
 		return "Int"
-	case "int2", "smallint":
-		return "smallint"
 	case "int8":
 		return "bigint"
 	case "boolean", "bool":
