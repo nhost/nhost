@@ -514,7 +514,6 @@ export default function useSchemaGraph({
       visibleNodeIds,
     );
 
-    // Edges drawn for the current view: GraphQL relationships vs. the raw FKs.
     const edges: Edge[] =
       namingMode === 'graphql'
         ? buildGraphqlEdges(

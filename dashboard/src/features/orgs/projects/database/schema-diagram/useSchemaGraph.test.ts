@@ -1389,8 +1389,6 @@ describe('useSchemaGraph', () => {
           toColumn: 'id',
           constraintName: 'posts_author_id_fkey',
         }),
-        // An FK with no tracked relationship: it's in the postgres edge set but
-        // not the GraphQL one, so per-mode layout would rank these differently.
         buildForeignKey({
           fromTable: 'comments',
           fromColumn: 'post_id',
@@ -1401,8 +1399,6 @@ describe('useSchemaGraph', () => {
       ];
       const metadataTables: HasuraMetadataTable[] = [
         buildMetadataTable('public', 'users', {
-          // Computed fields add rows in GraphQL mode; reserving their height in
-          // both modes is what keeps the vertical positions aligned.
           computed_fields: [
             {
               name: 'full_name',
@@ -1431,7 +1427,6 @@ describe('useSchemaGraph', () => {
             },
           ],
         }),
-        // comments has no relationship → its FK is invisible in GraphQL mode.
         buildMetadataTable('public', 'comments'),
       ];
 
@@ -1465,8 +1460,6 @@ describe('useSchemaGraph', () => {
         );
 
       expect(positionsByMode(graphql)).toEqual(positionsByMode(postgres));
-      // Sanity: the two modes really do draw different edge sets, so the equal
-      // positions above are a genuine invariant, not a trivially-empty graph.
       expect(graphql.result.current.edges.length).not.toBe(
         postgres.result.current.edges.length,
       );

@@ -12,8 +12,6 @@ import {
   type Node,
   useNodes,
 } from '@xyflow/react';
-import { computeNodeHeight, TABLE_NODE_WIDTH } from './layout';
-import type { TableNodeData } from './useSchemaGraph';
 
 // The library's `SmartStepEdge` renders the orthogonal, node-avoiding route —
 // but when its pathfinding can't find a way through, it silently falls back to
@@ -48,22 +46,21 @@ const DIAGONAL: GetSmartEdgeOptions = {
 // Flow's measured dimensions back through `onNodesChange`, so every node the
 // pathfinder sees has `measured === undefined` — which the library floors to a
 // 1×1px obstacle, leaving the routing grid effectively empty (edges then cut
-// straight through cards). Rebuild each obstacle box from the card's row count,
-// using the same height the dagre layout reserves, so the pathfinder actually
-// sees the cards. `Math.max` keeps any real measurement if React Flow ever does
-// provide one.
+// straight through cards). Restore each obstacle box from the card's own
+// `initialWidth`/`initialHeight` — the rendered size `useSchemaGraph` stamps
+// from its visible rows (columns, plus computed fields only in GraphQL mode).
+// That deliberately differs from the height the dagre layout reserves, which
+// always counts the GraphQL computed-field rows (even in postgres mode, where
+// they're hidden) to keep positions stable across the naming toggle. `Math.max`
+// keeps any real measurement if React Flow ever does provide one.
 function withObstacleSizes(nodes: Node[]): Node[] {
-  return nodes.map((node) => {
-    const data = node.data as TableNodeData;
-    const rows = data.columns.length + data.computedFields.length;
-    return {
-      ...node,
-      measured: {
-        width: Math.max(node.measured?.width ?? 0, TABLE_NODE_WIDTH),
-        height: Math.max(node.measured?.height ?? 0, computeNodeHeight(rows)),
-      },
-    };
-  });
+  return nodes.map((node) => ({
+    ...node,
+    measured: {
+      width: Math.max(node.measured?.width ?? 0, node.initialWidth ?? 0),
+      height: Math.max(node.measured?.height ?? 0, node.initialHeight ?? 0),
+    },
+  }));
 }
 
 function smartPath(params: Parameters<typeof getSmartEdge>[0]): string | null {
