@@ -23,6 +23,17 @@ const (
 	ImageTypeHEIC
 )
 
+const (
+	// maxImageDimension bounds the width and height an image may be resized
+	// to. libvips allocates the full output buffer up front, so an unbounded
+	// dimension lets a single (potentially unauthenticated) request exhaust
+	// process memory.
+	maxImageDimension = 8000
+	// maxBlurSigma bounds the Gaussian blur sigma; the convolution kernel
+	// grows with sigma, so an unbounded value exhausts CPU and memory.
+	maxBlurSigma = 250
+)
+
 type Options struct {
 	Height         int
 	Width          int
@@ -150,26 +161,40 @@ func export(image *vips.Image, opts Options) ([]byte, error) {
 	}
 }
 
+// resolveDimensions resolves the requested output dimensions against the
+// source image size, deriving a missing dimension from the aspect ratio. Both
+// the requested and the derived values are clamped to maxImageDimension:
+// libvips allocates the full output buffer up front, so an unbounded value
+// (e.g. w=50000) lets a single request exhaust process memory. Aspect-ratio
+// derivation can amplify a single bounded dimension, hence the final clamp.
+func resolveDimensions(reqWidth, reqHeight, srcWidth, srcHeight int) (int, int) {
+	width := min(reqWidth, maxImageDimension)
+	height := min(reqHeight, maxImageDimension)
+
+	if width == 0 && srcHeight != 0 {
+		width = int((float64(height) / float64(srcHeight)) * float64(srcWidth))
+	}
+
+	if height == 0 && srcWidth != 0 {
+		height = int((float64(width) / float64(srcWidth)) * float64(srcHeight))
+	}
+
+	return min(width, maxImageDimension), min(height, maxImageDimension)
+}
+
 func imageResize(image *vips.Image, opts Options) error {
-	if opts.Width > 0 || opts.Height > 0 {
-		width := opts.Width
-		height := opts.Height
+	if opts.Width <= 0 && opts.Height <= 0 {
+		return nil
+	}
 
-		if width == 0 {
-			width = int((float64(height) / float64(image.Height())) * float64(image.Width()))
-		}
+	width, height := resolveDimensions(opts.Width, opts.Height, image.Width(), image.Height())
 
-		if height == 0 {
-			height = int((float64(width) / float64(image.Width())) * float64(image.Height()))
-		}
+	thumbnailOpts := vips.DefaultThumbnailImageOptions()
+	thumbnailOpts.Crop = vips.InterestingCentre
+	thumbnailOpts.Height = height
 
-		thumbnailOpts := vips.DefaultThumbnailImageOptions()
-		thumbnailOpts.Crop = vips.InterestingCentre
-		thumbnailOpts.Height = height
-
-		if err := image.ThumbnailImage(width, thumbnailOpts); err != nil {
-			return fmt.Errorf("failed to thumbnail: %w", err)
-		}
+	if err := image.ThumbnailImage(width, thumbnailOpts); err != nil {
+		return fmt.Errorf("failed to thumbnail: %w", err)
 	}
 
 	return nil
@@ -187,7 +212,10 @@ func imagePipeline(image *vips.Image, opts Options) error {
 	}
 
 	if opts.Blur > 0 {
-		if err := image.Gaussblur(float64(opts.Blur), nil); err != nil {
+		// Clamp the blur sigma: the Gaussian kernel grows with sigma, so an
+		// unbounded value (e.g. b=1000000) exhausts CPU and memory.
+		sigma := min(float64(opts.Blur), maxBlurSigma)
+		if err := image.Gaussblur(sigma, nil); err != nil {
 			return fmt.Errorf("failed to blur: %w", err)
 		}
 	}
