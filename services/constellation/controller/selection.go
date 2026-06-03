@@ -272,6 +272,176 @@ func pruneFragments(
 	return out
 }
 
+// pruneConnectorDocument trims the already-normalized connector operation into
+// a standalone executable GraphQL document. Root fragment expansion and
+// directive pruning can leave definitions that no remaining selection uses;
+// remote schemas validate the forwarded document and reject those leftovers as
+// unused variables/fragments, so drop them before connector execution.
+func pruneConnectorDocument(
+	operation *ast.OperationDefinition,
+	fragments ast.FragmentDefinitionList,
+) (*ast.OperationDefinition, ast.FragmentDefinitionList) {
+	if operation == nil {
+		return nil, nil
+	}
+
+	execFragments := referencedFragmentsForOperation(operation, fragments)
+	usedVariables := variableReferencesInOperation(operation, execFragments)
+
+	return pruneOperationVariableDefinitions(operation, usedVariables), execFragments
+}
+
+func referencedFragmentsForOperation(
+	operation *ast.OperationDefinition,
+	fragments ast.FragmentDefinitionList,
+) ast.FragmentDefinitionList {
+	if operation == nil || len(fragments) == 0 {
+		return nil
+	}
+
+	seen := make(map[string]struct{})
+	collectReferencedFragmentNames(operation.SelectionSet, fragments, seen)
+
+	if len(seen) == 0 {
+		return nil
+	}
+
+	out := make(ast.FragmentDefinitionList, 0, len(seen))
+	for _, frag := range fragments {
+		if _, ok := seen[frag.Name]; ok {
+			out = append(out, frag)
+		}
+	}
+
+	return out
+}
+
+func collectReferencedFragmentNames(
+	selections ast.SelectionSet,
+	fragments ast.FragmentDefinitionList,
+	seen map[string]struct{},
+) {
+	for _, sel := range selections {
+		switch s := sel.(type) {
+		case *ast.Field:
+			collectReferencedFragmentNames(s.SelectionSet, fragments, seen)
+		case *ast.InlineFragment:
+			collectReferencedFragmentNames(s.SelectionSet, fragments, seen)
+		case *ast.FragmentSpread:
+			if _, ok := seen[s.Name]; ok {
+				continue
+			}
+
+			frag := fragments.ForName(s.Name)
+			if frag == nil {
+				continue
+			}
+
+			seen[s.Name] = struct{}{}
+			collectReferencedFragmentNames(frag.SelectionSet, fragments, seen)
+		}
+	}
+}
+
+func variableReferencesInOperation(
+	operation *ast.OperationDefinition,
+	fragments ast.FragmentDefinitionList,
+) map[string]struct{} {
+	used := make(map[string]struct{})
+
+	collectVariablesFromDirectives(operation.Directives, used)
+	collectVariablesFromSelectionSet(operation.SelectionSet, used)
+
+	for _, frag := range fragments {
+		collectVariablesFromDirectives(frag.Directives, used)
+		collectVariablesFromSelectionSet(frag.SelectionSet, used)
+	}
+
+	return used
+}
+
+func collectVariablesFromSelectionSet(
+	selections ast.SelectionSet,
+	used map[string]struct{},
+) {
+	for _, sel := range selections {
+		switch s := sel.(type) {
+		case *ast.Field:
+			collectVariablesFromArguments(s.Arguments, used)
+			collectVariablesFromDirectives(s.Directives, used)
+			collectVariablesFromSelectionSet(s.SelectionSet, used)
+		case *ast.InlineFragment:
+			collectVariablesFromDirectives(s.Directives, used)
+			collectVariablesFromSelectionSet(s.SelectionSet, used)
+		case *ast.FragmentSpread:
+			collectVariablesFromDirectives(s.Directives, used)
+		}
+	}
+}
+
+func collectVariablesFromDirectives(
+	directives ast.DirectiveList,
+	used map[string]struct{},
+) {
+	for _, directive := range directives {
+		collectVariablesFromArguments(directive.Arguments, used)
+	}
+}
+
+func collectVariablesFromArguments(
+	arguments ast.ArgumentList,
+	used map[string]struct{},
+) {
+	for _, arg := range arguments {
+		collectVariablesFromValue(arg.Value, used)
+	}
+}
+
+func collectVariablesFromValue(value *ast.Value, used map[string]struct{}) {
+	if value == nil {
+		return
+	}
+
+	if value.Kind == ast.Variable {
+		used[value.Raw] = struct{}{}
+
+		return
+	}
+
+	for _, child := range value.Children {
+		collectVariablesFromValue(child.Value, used)
+	}
+}
+
+func pruneOperationVariableDefinitions(
+	operation *ast.OperationDefinition,
+	used map[string]struct{},
+) *ast.OperationDefinition {
+	if operation == nil || len(operation.VariableDefinitions) == 0 {
+		return operation
+	}
+
+	kept := make(ast.VariableDefinitionList, 0, len(operation.VariableDefinitions))
+	for _, def := range operation.VariableDefinitions {
+		if _, ok := used[def.Variable]; ok {
+			kept = append(kept, def)
+		}
+	}
+
+	if len(kept) == len(operation.VariableDefinitions) {
+		return operation
+	}
+
+	clone := *operation
+	if len(kept) == 0 {
+		clone.VariableDefinitions = nil
+	} else {
+		clone.VariableDefinitions = kept
+	}
+
+	return &clone
+}
+
 // isMetaField reports whether name is a GraphQL introspection meta-field that
 // the controller resolves locally rather than routing to a connector.
 func isMetaField(name string) bool {

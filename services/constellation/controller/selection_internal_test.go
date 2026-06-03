@@ -94,7 +94,7 @@ const wsTestSchemaSDL = `
 type query_root { users: [User!]! posts: [Post!]! }
 type User { id: ID! name: String }
 type Post { id: ID! title: String }
-schema { query: query_root }
+schema { query: query_root subscription: query_root }
 `
 
 func wsTestSchemas(t *testing.T) map[string]*ast.Schema {

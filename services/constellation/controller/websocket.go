@@ -17,7 +17,6 @@ import (
 	"github.com/nhost/nhost/services/constellation/subscription"
 	"github.com/vektah/gqlparser/v2/ast"
 	"github.com/vektah/gqlparser/v2/gqlerror"
-	"github.com/vektah/gqlparser/v2/validator"
 )
 
 // defaultPollingInterval is the default interval for polling subscriptions.
@@ -338,25 +337,15 @@ func parseAndValidateQuery(
 		return nil, nil, nil, errOperationNotFound
 	}
 
-	// Validate and coerce variables
-	var validatedVariables map[string]any
-	if len(variables) > 0 {
-		var varErr error
-
-		validatedVariables, varErr = validator.VariableValues(
-			validatedSchema,
-			operation,
-			variables,
-		)
-		if varErr != nil {
-			if gqlErrs, ok := errors.AsType[gqlerror.List](varErr); ok {
-				return nil, nil, nil, formatGQLErrorsAsError(gqlErrs)
-			}
-
-			return nil, nil, nil, fmt.Errorf("variable validation error: %w", varErr)
+	// Validate and coerce variables, including required/defaulted variables when
+	// the request omitted the variables object.
+	validatedVariables, varErr := coerceVariables(validatedSchema, operation, variables)
+	if varErr != nil {
+		if gqlErrs, ok := errors.AsType[gqlerror.List](varErr); ok {
+			return nil, nil, nil, formatGQLErrorsAsError(gqlErrs)
 		}
-	} else {
-		validatedVariables = variables
+
+		return nil, nil, nil, fmt.Errorf("variable validation error: %w", varErr)
 	}
 
 	// Normalize the root selection set the same way the HTTP path does:

@@ -153,6 +153,70 @@ func TestExecute(t *testing.T) { //nolint:gocognit,gocyclo,cyclop,maintidx
 			},
 		},
 		{
+			name: "SchemaFragmentsAndAliases",
+			query: `
+				query Q {
+					schemaAlias: __schema {
+						...SchemaRootFields
+						... on __Schema {
+							missingMutation: mutationType { ignoredName: name }
+							aliasedTypes: types { typeName: name }
+						}
+					}
+				}
+
+				fragment SchemaRootFields on __Schema {
+					rootQuery: queryType {
+						...RootName
+						... on __Type { rootKind: kind }
+					}
+				}
+
+				fragment RootName on __Type { queryName: name }
+			`,
+			check: func(t *testing.T, got map[string]any) {
+				t.Helper()
+
+				schemaResult := asMap(t, got["schemaAlias"])
+
+				rootQuery := asMap(t, schemaResult["rootQuery"])
+
+				wantRootQuery := map[string]any{
+					"queryName": "Query",
+					"rootKind":  "OBJECT",
+				}
+				if diff := cmp.Diff(wantRootQuery, rootQuery); diff != "" {
+					t.Errorf("rootQuery mismatch (-want +got):\n%s", diff)
+				}
+
+				if mutationType, ok := schemaResult["missingMutation"]; !ok || mutationType != nil {
+					t.Errorf(
+						"missingMutation = %v (present=%v), want nil and present",
+						mutationType, ok,
+					)
+				}
+
+				if _, ok := schemaResult["types"]; ok {
+					t.Errorf("unexpected unaliased types key in schema result: %v", schemaResult)
+				}
+
+				types := asMapSlice(t, schemaResult["aliasedTypes"])
+				for _, typ := range types {
+					if typ["typeName"] != "User" {
+						continue
+					}
+
+					if _, ok := typ["name"]; ok {
+						t.Errorf("unexpected unaliased name key in User type result: %v", typ)
+					}
+
+					return
+				}
+
+				t.Fatal("User type not found through aliased types selection")
+			},
+		},
+		{
 			name: "TypeByName_ReturnsType",
 			query: `{
 				__type(name: "User") {

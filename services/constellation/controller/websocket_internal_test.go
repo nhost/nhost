@@ -46,6 +46,112 @@ func TestWebSocketHandlerConnectionExpiresAt(t *testing.T) {
 	}
 }
 
+func TestWebSocketHandlerOnSubscribeRejectsMissingRequiredDirectiveVariable(t *testing.T) {
+	t.Parallel()
+
+	sendCh := make(chan *websocket.Message, 1)
+
+	h := &webSocketHandler{
+		state: &controllerState{
+			validatedSchemas: wsTestSchemas(t),
+			queryCache:       newQueryCache(),
+		},
+		adminSecret:     "",
+		jwtAuth:         nil,
+		pollingInterval: defaultPollingInterval,
+		devMode:         false,
+		logger:          slog.New(slog.DiscardHandler),
+		session:         &middleware.SessionVariables{Role: "admin", Variables: nil},
+		sendCh:          sendCh,
+		subs:            syncmap.New[string, *subscriptionState](),
+	}
+
+	h.OnSubscribe(context.Background(), "sub-1", websocket.SubscribePayload{
+		OperationName: "Q",
+		Query:         `subscription Q($includeUsers: Boolean!) { users @include(if: $includeUsers) { id } }`,
+		Variables:     nil,
+		Extensions:    nil,
+	})
+
+	got := firstErrorMessage(t, sendCh)
+	if !strings.Contains(got, "must be defined") {
+		t.Fatalf("expected missing-variable validation error, got %q", got)
+	}
+
+	if _, exists := h.subs.Load("sub-1"); exists {
+		t.Fatal("subscription must not be registered after variable validation fails")
+	}
+}
+
+func TestWebSocketHandlerOnSubscribeCoercesDefaultedDirectiveVariable(t *testing.T) {
+	t.Parallel()
+
+	ctrl := gomock.NewController(t)
+	mockHandler := subscriptionmock.NewMockHandler(ctrl)
+
+	updates := make(chan subscription.Update)
+	close(updates)
+
+	mockHandler.EXPECT().
+		Start(gomock.Any(), gomock.Any(), gomock.Any()).
+		DoAndReturn(func(
+			_ context.Context,
+			req subscription.Request,
+			_ *slog.Logger,
+		) (<-chan subscription.Update, error) {
+			gotDefault, ok := req.Variables["includeUsers"].(bool)
+			if !ok || !gotDefault {
+				t.Fatalf("expected defaulted includeUsers=true, got %v", req.Variables)
+			}
+
+			if len(req.Operation.SelectionSet) != 1 {
+				t.Fatalf(
+					"expected one selected root field, got %d",
+					len(req.Operation.SelectionSet),
+				)
+			}
+
+			field, ok := req.Operation.SelectionSet[0].(*ast.Field)
+			if !ok || field.Name != "users" {
+				t.Fatalf("expected selected users field, got %#v", req.Operation.SelectionSet[0])
+			}
+
+			return updates, nil
+		})
+
+	sendCh := make(chan *websocket.Message, 1)
+
+	h := &webSocketHandler{
+		state: &controllerState{
+			validatedSchemas: wsTestSchemas(t),
+			fieldToConnector: map[string]string{"users": "db"},
+			subHandlers:      map[string]subscription.Handler{"db": mockHandler},
+			queryCache:       newQueryCache(),
+		},
+		adminSecret:     "",
+		jwtAuth:         nil,
+		pollingInterval: defaultPollingInterval,
+		devMode:         false,
+		logger:          slog.New(slog.DiscardHandler),
+		session:         &middleware.SessionVariables{Role: "admin", Variables: nil},
+		sendCh:          sendCh,
+		subs:            syncmap.New[string, *subscriptionState](),
+	}
+
+	h.OnSubscribe(context.Background(), "sub-1", websocket.SubscribePayload{
+		OperationName: "Q",
+		Query:         `subscription Q($includeUsers: Boolean = true) { users @include(if: $includeUsers) { id } }`,
+		Variables:     nil,
+		Extensions:    nil,
+	})
+
+	select {
+	case msg := <-sendCh:
+		t.Fatalf("unexpected websocket message: %+v", msg)
+	default:
+	}
+}
+
 func TestGetConnectorForOperation(t *testing.T) {
 	t.Parallel()
 

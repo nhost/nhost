@@ -133,19 +133,15 @@ func selectOperation(
 
 // validateVariables coerces request variables against the operation's typed
 // variable definitions. Returns the coerced map on success, or a
-// GraphQLResponse wrapping the validation errors. When the operation is nil
-// or no variables were supplied, the original variables map is returned
-// untouched.
+// GraphQLResponse wrapping the validation errors. Missing required variables
+// and declared defaults are handled even when the request omitted the variables
+// object.
 func validateVariables(
 	schema *ast.Schema,
 	operation *ast.OperationDefinition,
 	variables map[string]any,
 ) (map[string]any, *GraphQLResponse) {
-	if operation == nil || len(variables) == 0 {
-		return variables, nil
-	}
-
-	validated, err := validator.VariableValues(schema, operation, variables)
+	validated, err := coerceVariables(schema, operation, variables)
 	if err != nil {
 		if gqlErrs, ok := errors.AsType[gqlerror.List](err); ok {
 			return nil, &GraphQLResponse{
@@ -156,6 +152,23 @@ func validateVariables(
 		}
 
 		return nil, errorResponse(err.Error())
+	}
+
+	return validated, nil
+}
+
+func coerceVariables(
+	schema *ast.Schema,
+	operation *ast.OperationDefinition,
+	variables map[string]any,
+) (map[string]any, error) {
+	if operation == nil || (len(variables) == 0 && len(operation.VariableDefinitions) == 0) {
+		return variables, nil
+	}
+
+	validated, err := validator.VariableValues(schema, operation, variables)
+	if err != nil {
+		return nil, fmt.Errorf("coercing variables: %w", err)
 	}
 
 	return validated, nil
@@ -554,9 +567,12 @@ func (c *Controller) executeConnectors(
 	return results, allErrors
 }
 
-// buildConnectorOperation returns the operation and fragments to send to a connector.
-// If the planner produced a clean operation (with relationship fields stripped),
-// that is preferred. Otherwise a sub-operation is built from the raw selections.
+// buildConnectorOperation returns the executable operation and fragments to
+// send to a connector. If the planner produced a clean operation (with
+// relationship fields stripped), that is preferred. Otherwise a sub-operation is
+// built from the raw selections. In both cases unused fragments and variable
+// definitions are pruned so remote schemas receive a self-contained document
+// that still validates after root-fragment expansion and directive pruning.
 func buildConnectorOperation(
 	plan *planner.QueryPlan,
 	connName string,
@@ -566,11 +582,11 @@ func buildConnectorOperation(
 ) (*ast.OperationDefinition, ast.FragmentDefinitionList) {
 	if plan != nil {
 		if pq := plan.GetPrimaryQueryForConnector(connName); pq != nil && pq.CleanOperation != nil {
-			return pq.CleanOperation, pq.CleanFragments
+			return pruneConnectorDocument(pq.CleanOperation, pq.CleanFragments)
 		}
 	}
 
-	return transform.BuildSubOperation(operation, selections), fragments
+	return pruneConnectorDocument(transform.BuildSubOperation(operation, selections), fragments)
 }
 
 // resolveRemoteRelationships handles cross-connector relationship resolution.
