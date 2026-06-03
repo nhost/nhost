@@ -41,9 +41,33 @@ type ChildResult = {
   step?: number;
 };
 
+type AgentActivity = {
+  toolName: string;
+  summary: string;
+  status: 'running' | 'done' | 'error';
+};
+
+type AgentProgress = {
+  agent: string;
+  agentSource: 'user' | 'project' | 'unknown';
+  model?: string;
+  step?: number;
+  status: 'starting' | 'running' | 'completed' | 'failed';
+  activities: AgentActivity[];
+  toolCount: number;
+  latestText: string;
+  exitCode?: number;
+};
+
+type ProgressCallback = (progress: AgentProgress) => void;
+
 const MAX_PARALLEL_TASKS = 8;
 const MAX_CONCURRENCY = 4;
 const PER_TASK_OUTPUT_CAP_BYTES = 50 * 1024;
+const MAX_RECENT_ACTIVITIES = 5;
+const MAX_ACTIVITY_SUMMARY_CHARS = 100;
+const MAX_LATEST_TEXT_CHARS = 240;
+const PROGRESS_THROTTLE_MS = 150;
 
 const taskItemSchema = Type.Object({
   agent: Type.String({ description: 'Name of the agent to invoke' }),
@@ -231,6 +255,118 @@ function truncateOutput(output: string): string {
   return `${truncated}\n\n[Output truncated: ${bytes - Buffer.byteLength(truncated, 'utf8')} bytes omitted.]`;
 }
 
+function collapseWhitespace(value: string): string {
+  return value.replace(/\s+/g, ' ').trim();
+}
+
+function truncateInline(value: string, max: number): string {
+  const collapsed = collapseWhitespace(value);
+  if (collapsed.length <= max) return collapsed;
+  return `${collapsed.slice(0, Math.max(0, max - 1))}\u2026`;
+}
+
+function summarizeToolArgs(toolName: string, args: unknown): string {
+  const record = asRecord(args);
+  if (!record) return '';
+
+  const pickString = (...keys: string[]): string => {
+    for (const key of keys) {
+      const value = record[key];
+      if (typeof value === 'string' && value.trim()) return value;
+    }
+    return '';
+  };
+
+  switch (toolName) {
+    case 'bash':
+      return truncateInline(
+        pickString('command', 'description'),
+        MAX_ACTIVITY_SUMMARY_CHARS,
+      );
+    case 'read':
+    case 'write':
+    case 'edit':
+    case 'ls':
+      return truncateInline(
+        pickString('path', 'filePath', 'file'),
+        MAX_ACTIVITY_SUMMARY_CHARS,
+      );
+    case 'grep':
+    case 'find':
+      return truncateInline(
+        pickString('pattern', 'query', 'path'),
+        MAX_ACTIVITY_SUMMARY_CHARS,
+      );
+    case 'subagent':
+      return truncateInline(
+        pickString('agent', 'task'),
+        MAX_ACTIVITY_SUMMARY_CHARS,
+      );
+    default: {
+      const preview = pickString(
+        'task',
+        'query',
+        'pattern',
+        'command',
+        'path',
+        'filePath',
+        'url',
+        'name',
+      );
+      return preview ? truncateInline(preview, MAX_ACTIVITY_SUMMARY_CHARS) : '';
+    }
+  }
+}
+
+function formatActivity(activity: AgentActivity): string {
+  const marker =
+    activity.status === 'done'
+      ? '\u2713'
+      : activity.status === 'error'
+        ? '\u2717'
+        : '\u2026';
+  const body = activity.summary
+    ? `${activity.toolName}: ${activity.summary}`
+    : activity.toolName;
+  return `  ${marker} ${body}`;
+}
+
+function formatProgress(progress: AgentProgress): string {
+  const lines: string[] = [];
+  const stepLabel = progress.step ? `[step ${progress.step}] ` : '';
+  const modelLabel = progress.model ? ` \u2022 ${progress.model}` : '';
+  const sourceLabel =
+    progress.agentSource !== 'unknown' ? ` (${progress.agentSource})` : '';
+  const statusLabel =
+    progress.status === 'completed'
+      ? 'completed'
+      : progress.status === 'failed'
+        ? `failed${progress.exitCode != null ? ` (exit ${progress.exitCode})` : ''}`
+        : progress.status === 'starting'
+          ? 'starting'
+          : 'running';
+
+  lines.push(
+    `### ${stepLabel}${progress.agent}${sourceLabel}${modelLabel} \u2014 ${statusLabel}`,
+  );
+
+  if (progress.toolCount > 0) {
+    lines.push(`Tool calls: ${progress.toolCount}`);
+  }
+
+  if (progress.activities.length > 0) {
+    lines.push('');
+    for (const activity of progress.activities) lines.push(formatActivity(activity));
+  }
+
+  if (progress.latestText) {
+    lines.push('');
+    lines.push(`> ${truncateInline(progress.latestText, MAX_LATEST_TEXT_CHARS)}`);
+  }
+
+  return lines.join('\n');
+}
+
 function getPiInvocation(args: string[]): { command: string; args: string[] } {
   const currentScript = process.argv[1];
   const isBunVirtualScript =
@@ -279,6 +415,7 @@ async function runAgent(params: {
   cwd?: string;
   step?: number;
   signal?: AbortSignal;
+  onProgress?: ProgressCallback;
 }): Promise<ChildResult> {
   const agent = params.agents.find(
     (candidate) => candidate.name === params.agentName,
@@ -286,6 +423,16 @@ async function runAgent(params: {
   if (!agent) {
     const available =
       params.agents.map((candidate) => candidate.name).join(', ') || 'none';
+    params.onProgress?.({
+      agent: params.agentName,
+      agentSource: 'unknown',
+      step: params.step,
+      status: 'failed',
+      activities: [],
+      toolCount: 0,
+      latestText: `Unknown agent "${params.agentName}".`,
+      exitCode: 1,
+    });
     return {
       agent: params.agentName,
       agentSource: 'unknown',
@@ -325,6 +472,27 @@ async function runAgent(params: {
     step: params.step,
   };
 
+  const progress: AgentProgress = {
+    agent: agent.name,
+    agentSource: agent.source,
+    model: agent.model,
+    step: params.step,
+    status: 'starting',
+    activities: [],
+    toolCount: 0,
+    latestText: '',
+  };
+  const activeByToolCallId = new Map<string, AgentActivity>();
+
+  const emitProgress = (): void => {
+    params.onProgress?.({
+      ...progress,
+      activities: [...progress.activities],
+    });
+  };
+
+  emitProgress();
+
   try {
     const exitCode = await new Promise<number>((resolve) => {
       const invocation = getPiInvocation(args);
@@ -339,6 +507,76 @@ async function runAgent(params: {
       let childClosed = false;
       let forceKillTimer: ReturnType<typeof setTimeout> | undefined;
       let abortHandler: VoidFunction | undefined;
+      let progressDirty = false;
+      let progressTimer: ReturnType<typeof setTimeout> | undefined;
+      let lastProgressAt = 0;
+
+      const flushProgress = (): void => {
+        if (!progressDirty) return;
+        progressDirty = false;
+        lastProgressAt = Date.now();
+        emitProgress();
+      };
+
+      const scheduleProgress = (): void => {
+        if (!params.onProgress) return;
+        progressDirty = true;
+        const delay = PROGRESS_THROTTLE_MS - (Date.now() - lastProgressAt);
+        if (delay <= 0) {
+          if (progressTimer) {
+            clearTimeout(progressTimer);
+            progressTimer = undefined;
+          }
+          flushProgress();
+          return;
+        }
+        progressTimer ??= setTimeout(() => {
+          progressTimer = undefined;
+          flushProgress();
+        }, delay);
+      };
+
+      const trimRecentActivities = (): void => {
+        if (progress.activities.length <= MAX_RECENT_ACTIVITIES) return;
+        progress.activities.splice(
+          0,
+          progress.activities.length - MAX_RECENT_ACTIVITIES,
+        );
+      };
+
+      const handleToolStart = (
+        toolCallId: string,
+        toolName: string,
+        toolArgs: unknown,
+      ): void => {
+        progress.status = 'running';
+        progress.toolCount += 1;
+        const activity: AgentActivity = {
+          toolName,
+          summary: summarizeToolArgs(toolName, toolArgs),
+          status: 'running',
+        };
+        progress.activities.push(activity);
+        trimRecentActivities();
+        if (toolCallId) activeByToolCallId.set(toolCallId, activity);
+        scheduleProgress();
+      };
+
+      const handleToolEnd = (toolCallId: string, isError: boolean): void => {
+        const activity = activeByToolCallId.get(toolCallId);
+        if (activity) {
+          activity.status = isError ? 'error' : 'done';
+          activeByToolCallId.delete(toolCallId);
+        }
+        scheduleProgress();
+      };
+
+      const handleAssistantMessage = (message: unknown): void => {
+        const text = extractAssistantText(message);
+        if (text) progress.latestText = text;
+        const model = getStringField(message, 'model');
+        if (model) progress.model = model;
+      };
 
       const processLine = (line: string): void => {
         if (!line.trim()) return;
@@ -351,19 +589,63 @@ async function runAgent(params: {
         }
 
         const eventRecord = asRecord(event);
-        if (!eventRecord || eventRecord.type !== 'message_end') return;
+        if (!eventRecord) return;
 
-        const text = extractAssistantText(eventRecord.message);
-        if (text) result.output = text;
+        switch (eventRecord.type) {
+          case 'message_start': {
+            progress.status = 'running';
+            const model = getStringField(eventRecord.message, 'model');
+            if (model) progress.model = model;
+            scheduleProgress();
+            return;
+          }
+          case 'message_update': {
+            handleAssistantMessage(eventRecord.message);
+            scheduleProgress();
+            return;
+          }
+          case 'tool_execution_start': {
+            const toolCallId =
+              typeof eventRecord.toolCallId === 'string'
+                ? eventRecord.toolCallId
+                : '';
+            const toolName =
+              typeof eventRecord.toolName === 'string'
+                ? eventRecord.toolName
+                : 'tool';
+            handleToolStart(toolCallId, toolName, eventRecord.args);
+            return;
+          }
+          case 'tool_execution_end': {
+            const toolCallId =
+              typeof eventRecord.toolCallId === 'string'
+                ? eventRecord.toolCallId
+                : '';
+            handleToolEnd(toolCallId, Boolean(eventRecord.isError));
+            return;
+          }
+          case 'message_end': {
+            const text = extractAssistantText(eventRecord.message);
+            if (text) {
+              result.output = text;
+              progress.latestText = text;
+            }
 
-        result.stopReason =
-          getStringField(eventRecord.message, 'stopReason') ??
-          result.stopReason;
-        result.errorMessage =
-          getStringField(eventRecord.message, 'errorMessage') ??
-          result.errorMessage;
-        result.model =
-          getStringField(eventRecord.message, 'model') ?? result.model;
+            result.stopReason =
+              getStringField(eventRecord.message, 'stopReason') ??
+              result.stopReason;
+            result.errorMessage =
+              getStringField(eventRecord.message, 'errorMessage') ??
+              result.errorMessage;
+            result.model =
+              getStringField(eventRecord.message, 'model') ?? result.model;
+            if (result.model) progress.model = result.model;
+            scheduleProgress();
+            return;
+          }
+          default:
+            return;
+        }
       };
 
       child.stdout.on('data', (data: Buffer) => {
@@ -380,6 +662,10 @@ async function runAgent(params: {
       child.on('error', (error) => {
         childClosed = true;
         if (forceKillTimer) clearTimeout(forceKillTimer);
+        if (progressTimer) {
+          clearTimeout(progressTimer);
+          progressTimer = undefined;
+        }
         if (abortHandler && params.signal)
           params.signal.removeEventListener('abort', abortHandler);
         result.stderr += error.message;
@@ -389,9 +675,14 @@ async function runAgent(params: {
       child.on('close', (code) => {
         childClosed = true;
         if (forceKillTimer) clearTimeout(forceKillTimer);
+        if (progressTimer) {
+          clearTimeout(progressTimer);
+          progressTimer = undefined;
+        }
         if (stdoutBuffer.trim()) processLine(stdoutBuffer);
         if (abortHandler && params.signal)
           params.signal.removeEventListener('abort', abortHandler);
+        flushProgress();
         resolve(aborted ? 130 : (code ?? 0));
       });
 
@@ -421,6 +712,9 @@ async function runAgent(params: {
       (result.stopReason === 'error' || result.stopReason === 'aborted')
         ? 1
         : exitCode;
+    progress.status = result.exitCode === 0 ? 'completed' : 'failed';
+    progress.exitCode = result.exitCode;
+    emitProgress();
     return result;
   } finally {
     await removeTempFile(tempPrompt);
@@ -484,7 +778,7 @@ export default function nhostSubagentExtension(pi: ExtensionAPI): void {
     ],
     parameters: subagentParamsSchema,
 
-    async execute(_toolCallId, params, signal, _onUpdate, ctx) {
+    async execute(_toolCallId, params, signal, onUpdate, ctx) {
       const agentScope: AgentScope = params.agentScope ?? 'user';
       const discovery = discoverAgents(ctx.cwd, agentScope);
       const agents = discovery.agents;
@@ -542,6 +836,14 @@ export default function nhostSubagentExtension(pi: ExtensionAPI): void {
         }
       }
 
+      const emitUpdate = (text: string): void => {
+        if (!onUpdate) return;
+        onUpdate({
+          content: [{ type: 'text' as const, text }],
+          details: undefined,
+        });
+      };
+
       if (hasSingle && params.agent && params.task) {
         const result = await runAgent({
           defaultCwd: ctx.cwd,
@@ -550,6 +852,9 @@ export default function nhostSubagentExtension(pi: ExtensionAPI): void {
           task: params.task,
           cwd: params.cwd,
           signal,
+          onProgress: (progress) => {
+            emitUpdate(formatProgress(progress));
+          },
         });
 
         return {
@@ -570,6 +875,20 @@ export default function nhostSubagentExtension(pi: ExtensionAPI): void {
       if (hasChain && params.chain) {
         const results: ChildResult[] = [];
         let previous = '';
+        const stepProgress: (AgentProgress | undefined)[] = new Array(
+          params.chain.length,
+        ).fill(undefined);
+
+        const renderChain = (): string =>
+          stepProgress
+            .map((entry, index) => {
+              if (entry) return formatProgress(entry);
+              const item = params.chain?.[index];
+              if (!item) return '';
+              return `### [step ${index + 1}] ${item.agent} \u2014 pending`;
+            })
+            .filter(Boolean)
+            .join('\n\n---\n\n');
 
         for (const [index, item] of params.chain.entries()) {
           const task = item.task.replaceAll('{previous}', previous);
@@ -581,6 +900,10 @@ export default function nhostSubagentExtension(pi: ExtensionAPI): void {
             cwd: item.cwd,
             step: index + 1,
             signal,
+            onProgress: (progress) => {
+              stepProgress[index] = progress;
+              emitUpdate(renderChain());
+            },
           });
           results.push(result);
 
@@ -623,10 +946,25 @@ export default function nhostSubagentExtension(pi: ExtensionAPI): void {
           };
         }
 
+        const parallelProgress: (AgentProgress | undefined)[] = new Array(
+          params.tasks.length,
+        ).fill(undefined);
+
+        const renderParallel = (): string =>
+          parallelProgress
+            .map((entry, index) => {
+              if (entry) return formatProgress(entry);
+              const item = params.tasks?.[index];
+              if (!item) return '';
+              return `### ${item.agent} \u2014 pending`;
+            })
+            .filter(Boolean)
+            .join('\n\n---\n\n');
+
         const results = await mapWithConcurrencyLimit(
           params.tasks,
           MAX_CONCURRENCY,
-          (item) =>
+          (item, index) =>
             runAgent({
               defaultCwd: ctx.cwd,
               agents,
@@ -634,6 +972,10 @@ export default function nhostSubagentExtension(pi: ExtensionAPI): void {
               task: item.task,
               cwd: item.cwd,
               signal,
+              onProgress: (progress) => {
+                parallelProgress[index] = progress;
+                emitUpdate(renderParallel());
+              },
             }),
         );
 
