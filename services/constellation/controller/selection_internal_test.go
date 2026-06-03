@@ -197,3 +197,44 @@ func TestParseAndValidateQuery_NormalizesRootSelections(t *testing.T) {
 		}
 	})
 }
+
+func TestParseAndValidateQuery_MergesRootFragmentFieldsByResponseName(t *testing.T) {
+	t.Parallel()
+
+	schemas := wsTestSchemas(t)
+	query := `query {
+		...UserIDs
+		...UserNames
+	}
+	fragment UserIDs on query_root { users { id } }
+	fragment UserNames on query_root { users { name } }`
+
+	op, _, _, err := parseAndValidateQuery(schemas, newQueryCache(), query, "", nil, "admin")
+	if err != nil {
+		t.Fatalf("unexpected error: %v", err)
+	}
+
+	if len(op.SelectionSet) != 1 {
+		t.Fatalf("expected 1 merged root field, got %d", len(op.SelectionSet))
+	}
+
+	field, ok := op.SelectionSet[0].(*ast.Field)
+	if !ok || field.Name != "users" {
+		t.Fatalf("expected merged root *ast.Field 'users', got %#v", op.SelectionSet[0])
+	}
+
+	gotSubfields := make([]string, 0, len(field.SelectionSet))
+	for _, selection := range field.SelectionSet {
+		subfield, ok := selection.(*ast.Field)
+		if !ok {
+			t.Fatalf("expected merged sub-selection to be *ast.Field, got %#v", selection)
+		}
+
+		gotSubfields = append(gotSubfields, responseFieldName(subfield))
+	}
+
+	wantSubfields := []string{"id", "name"}
+	if strings.Join(gotSubfields, ",") != strings.Join(wantSubfields, ",") {
+		t.Fatalf("merged subfields = %v, want %v", gotSubfields, wantSubfields)
+	}
+}

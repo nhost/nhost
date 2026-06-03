@@ -38,7 +38,8 @@ func postQuery(t *testing.T, ctrl *controller.Controller, body string) (map[stri
 func TestHandlerPost_RootFragmentSpreadResolvesData(t *testing.T) {
 	t.Parallel()
 
-	body, code := postQuery(t, newTestController(t),
+	body, code := postQuery(
+		t, newTestController(t),
 		`{"query":"query { ...Roots } fragment Roots on query_root { users { id name } }"}`,
 	)
 	if code != http.StatusOK {
@@ -62,7 +63,8 @@ func TestHandlerPost_RootFragmentSpreadResolvesData(t *testing.T) {
 func TestHandlerPost_RootInlineFragmentResolvesData(t *testing.T) {
 	t.Parallel()
 
-	body, code := postQuery(t, newTestController(t),
+	body, code := postQuery(
+		t, newTestController(t),
 		`{"query":"{ ... on query_root { users { id name } } }"}`,
 	)
 	if code != http.StatusOK {
@@ -303,7 +305,8 @@ func TestResolve_SkipVariableDriven(t *testing.T) {
 func TestHandlerPost_UnmatchedOperationNameReturnsNotFound(t *testing.T) {
 	t.Parallel()
 
-	body, _ := postQuery(t, newTestController(t),
+	body, _ := postQuery(
+		t, newTestController(t),
 		`{"query":"query A { users { id } } query B { users { name } }","operationName":"C"}`,
 	)
 
@@ -328,7 +331,8 @@ func TestHandlerPost_UnmatchedOperationNameReturnsNotFound(t *testing.T) {
 func TestHandlerPost_NoNameMultipleOperationsStillReportsAmbiguity(t *testing.T) {
 	t.Parallel()
 
-	body, _ := postQuery(t, newTestController(t),
+	body, _ := postQuery(
+		t, newTestController(t),
 		`{"query":"query A { users { id } } query B { users { name } }"}`,
 	)
 

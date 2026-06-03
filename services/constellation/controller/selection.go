@@ -46,10 +46,12 @@ func directiveCondition(d *ast.Directive, vars map[string]any) bool {
 
 // normalizeRootSelections returns the operation's root selection set with
 // @skip/@include evaluated and root-level fragment spreads / inline fragments
-// expanded into their constituent field selections. After normalization every
-// root selection is a plain *ast.Field, so the connector-routing logic only has
-// to reason about fields. Nested selection sets are pruned of skipped fields but
-// keep their fragment structure (connectors expand those via the fragment list).
+// expanded into their constituent field selections. Duplicate root fields are
+// merged by response name, matching GraphQL field collection before connector
+// routing. After normalization every root selection is a plain *ast.Field, so
+// the connector-routing logic only has to reason about fields. Nested selection
+// sets are pruned of skipped fields but keep their fragment structure
+// (connectors expand those via the fragment list).
 //
 // The cached query document is never mutated: every returned node is freshly
 // allocated when its children change. frags is consulted to resolve named
@@ -90,6 +92,88 @@ func normalizeRootSelections(
 			out = append(out, normalizeRootSelections(frag.SelectionSet, frags, vars)...)
 		}
 	}
+
+	return mergeFieldsByResponseName(out)
+}
+
+// mergeFieldsByResponseName performs the GraphQL field-collection merge for an
+// already validated selection set. The validator has rejected incompatible
+// fields with the same response name, so merging can keep the first field's
+// identity and combine compatible sub-selection sets while preserving first
+// occurrence order.
+func mergeFieldsByResponseName(selections ast.SelectionSet) ast.SelectionSet {
+	if len(selections) <= 1 {
+		return selections
+	}
+
+	out := make(ast.SelectionSet, 0, len(selections))
+	fieldByResponseName := make(map[string]fieldCollectionEntry, len(selections))
+
+	for _, selection := range selections {
+		field, ok := selection.(*ast.Field)
+		if !ok {
+			out = append(out, selection)
+
+			continue
+		}
+
+		name := responseFieldName(field)
+		if entry, exists := fieldByResponseName[name]; exists {
+			merged := mergeCompatibleFields(entry.field, field)
+			out[entry.index] = merged
+			fieldByResponseName[name] = fieldCollectionEntry{
+				index: entry.index,
+				field: merged,
+			}
+
+			continue
+		}
+
+		fieldByResponseName[name] = fieldCollectionEntry{
+			index: len(out),
+			field: field,
+		}
+		out = append(out, field)
+	}
+
+	return out
+}
+
+type fieldCollectionEntry struct {
+	index int
+	field *ast.Field
+}
+
+func mergeCompatibleFields(left, right *ast.Field) *ast.Field {
+	if len(left.SelectionSet) == 0 {
+		if len(right.SelectionSet) == 0 {
+			return left
+		}
+
+		return cloneFieldWithSelectionSet(left, right.SelectionSet)
+	}
+
+	if len(right.SelectionSet) == 0 {
+		return left
+	}
+
+	return cloneFieldWithSelectionSet(
+		left,
+		mergeFieldsByResponseName(appendSelectionSets(left.SelectionSet, right.SelectionSet)),
+	)
+}
+
+func cloneFieldWithSelectionSet(field *ast.Field, selectionSet ast.SelectionSet) *ast.Field {
+	clone := *field
+	clone.SelectionSet = selectionSet
+
+	return &clone
+}
+
+func appendSelectionSets(left, right ast.SelectionSet) ast.SelectionSet {
+	out := make(ast.SelectionSet, 0, len(left)+len(right))
+	out = append(out, left...)
+	out = append(out, right...)
 
 	return out
 }

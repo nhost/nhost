@@ -235,7 +235,9 @@ func (c *Controller) executeWithMeta(
 	logger *slog.Logger,
 ) *GraphQLResponse {
 	metaOp := transform.BuildSubOperation(operation, metaSelections)
-	results := introspection.Execute(schema, metaOp, query)
+	metaQuery := *query
+	metaQuery.Fragments = fragments
+	results := introspection.Execute(schema, metaOp, &metaQuery)
 
 	if len(dataByConnector) == 0 {
 		return &GraphQLResponse{Data: results, Errors: nil, rawResponse: nil}
@@ -243,7 +245,7 @@ func (c *Controller) executeWithMeta(
 
 	dataResults, errs, fatal := c.resolveData(
 		ctx, state, operation, dataByConnector,
-		fragments, variables, role, sessionVariables, logger,
+		fragments, variables, role, sessionVariables, logger, true,
 	)
 	if fatal != nil {
 		return fatal
@@ -282,6 +284,7 @@ func (c *Controller) executeDataOnly(
 		role,
 		sessionVariables,
 		logger,
+		false,
 	)
 	if fatal != nil {
 		return fatal
@@ -314,6 +317,11 @@ func (c *Controller) executeDataOnly(
 // remote-relationship failure) or errs (per-connector partial errors, with
 // phantom join columns already stripped from results so they never leak — even
 // on the partial-error path).
+//
+// requirePrevalidation forces root connector validation even for a single
+// connector. Mixed meta+data operations use it so structured argument errors
+// can reject the whole request before any locally-resolved meta data is
+// returned.
 func (c *Controller) resolveData(
 	ctx context.Context,
 	state *controllerState,
@@ -324,6 +332,7 @@ func (c *Controller) resolveData(
 	role string,
 	sessionVariables map[string]any,
 	logger *slog.Logger,
+	requirePrevalidation bool,
 ) (map[string]any, []map[string]any, *GraphQLResponse) {
 	plan, err := state.queryPlanner.Plan(operation, fragments, role)
 	if err != nil {
@@ -343,9 +352,9 @@ func (c *Controller) resolveData(
 	// offset) must reject the whole request the way Hasura does, with no partial
 	// data and — for mutations — no side effects from connectors that would
 	// otherwise run before the invalid relationship query is discovered. Plain
-	// single-connector requests skip this pre-pass because Execute already runs
-	// the same build/validation before touching the database.
-	if len(dataByConnector) > 1 || plan.HasRemoteQueries() {
+	// single-connector data-only requests skip this pre-pass because Execute
+	// already runs the same build/validation before touching the database.
+	if requirePrevalidation || len(dataByConnector) > 1 || plan.HasRemoteQueries() {
 		if resp := c.validateConnectors(
 			state, plan, operation, dataByConnector, fragments, variables, role, sessionVariables,
 		); resp != nil {
