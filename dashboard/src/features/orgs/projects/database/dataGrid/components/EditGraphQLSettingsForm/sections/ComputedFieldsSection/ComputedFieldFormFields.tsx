@@ -219,7 +219,7 @@ export default function ComputedFieldFormFields({
           />
         </div>
         {functionEditorSQL !== null && (
-          <div className="flex h-[520px] flex-col overflow-hidden rounded-md border">
+          <div className="flex h-[420px] flex-col overflow-hidden rounded-md border">
             <SQLEditor
               key={`${selectedSchema}:${selectedFunctionName}`}
               initialSQL={functionEditorSQL}
