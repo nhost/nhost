@@ -16,6 +16,18 @@ import 'react-medium-image-zoom/dist/styles.css'
 // TODO: Break out the MDXProvider in its own MDX component
 const components = {
   img: (props: any) => <ImageWithLegend {...props} />,
+  a: ({ href, rel, target, ...props }: any) => {
+    const isExternal = /^https?:\/\//.test(href ?? '')
+
+    return (
+      <a
+        href={href}
+        rel={isExternal ? 'noopener noreferrer' : rel}
+        target={isExternal ? '_blank' : target}
+        {...props}
+      />
+    )
+  },
 }
 
 function Share({ title }: { title: string }) {
@@ -90,7 +102,7 @@ export default function BlogPostLayout({
           openGraph: {
             images: [
               {
-                url: `${baseUrl()}/${article.image}`,
+                url: `${baseUrl()}${article.image}`,
                 alt: `Cover image for ${article.title}`,
                 width: 1920,
                 height: 1080,
@@ -178,10 +190,10 @@ export default function BlogPostLayout({
         </div>
 
         <div className="relative z-0 mt-16 min-h-[300px] overflow-hidden rounded-xl border border-divider px-12 pt-12">
-          <div className="bg-glow-gradient backface-hidden absolute top-0 left-0 right-0 bottom-0 h-full w-full blur-[80px]" />
-          <div className="bg-black-to-transparent absolute top-0 left-0 right-0 z-10 h-full w-full" />
+          <div className="bg-glow-gradient backface-hidden absolute bottom-0 left-0 right-0 top-0 h-full w-full blur-[80px]" />
+          <div className="bg-black-to-transparent absolute left-0 right-0 top-0 z-10 h-full w-full" />
           <LineGrid
-            className="left-0 right-0 bottom-0 top-0 z-10 md:scale-150"
+            className="bottom-0 left-0 right-0 top-0 z-10 md:scale-150"
             slotProps={{
               image: {
                 priority: true,
