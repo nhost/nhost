@@ -5,6 +5,10 @@ on:
     branches:
       - main
 
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}-${{ startsWith(github.event.head_commit.message, 'release(') && github.sha || 'non-release' }}
+  cancel-in-progress: false
+
 jobs:
   update-changelog:
     if: ${{ !startsWith(github.event.head_commit.message, 'release(') }}
