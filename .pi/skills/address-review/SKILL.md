@@ -111,20 +111,29 @@ Reject implementer or reviewer output that omits the model signature and re-run 
 
 ## Model integrity check
 
-After each pass, before moving on, compare the agent's self-reported model against the expected model from its frontmatter:
+After each pass, before moving on, compare the agent's actual model against the expected model from its frontmatter. Prefer the subagent runtime model reported in the tool result/details when it is available; fall back to the agent's textual `Model:` signature only when runtime metadata is unavailable.
 
 | Agent | Expected model (`model:` frontmatter) |
 | --- | --- |
 | `go-implementer` / `javascript-implementer` / `generic-implementer` | `gpt-5.5` |
 | `go-reviewer` / `javascript-reviewer` / `generic-reviewer` | `claude-opus-4-7` |
 
-If the reported model differs from the expected model (different family, different version, or `unknown-<family>`), stop the work unit and append a **model-mismatch note** at the very top of the affected review file:
+Apply exactly one of these outcomes:
 
-```markdown
-> _Model mismatch:_ expected `<expected>`, agent self-reported `<reported>`. Investigate before trusting this pass.
-```
+1. **Exact match:** the observed model exactly equals the expected model. Proceed with no model note.
+2. **Same-family version drift:** the observed model is a concrete model in the same family as the expected model, but the version differs (for example, `claude-opus-4` vs `claude-opus-4-7`). Append a non-blocking warning at the top of the affected review file and proceed:
 
-Report the mismatch to the user and do not advance the retry counter — mismatch is a configuration / dispatch bug, not a quality bug, and re-running through the same channel will reproduce it. Approximate matches inside the same family (e.g. agent reports `claude-opus-4` when expected `claude-opus-4-7`) are warnings, not blockers; record them in the note but proceed.
+   ```markdown
+   > _Model warning:_ expected `<expected>`, observed `<observed>` from `<runtime metadata|textual signature>`. Same-family version drift; proceeding.
+   ```
+
+3. **Blocking mismatch:** the observed model is a different family from the expected model, or the observed model is `unknown-<family>` (including when the family appears related to the expected model). Stop the work unit and append a **model-mismatch note** at the very top of the affected review file:
+
+   ```markdown
+   > _Model mismatch:_ expected `<expected>`, observed `<observed>` from `<runtime metadata|textual signature>`. Investigate before trusting this pass.
+   ```
+
+Report any blocking mismatch to the user and do not advance the retry counter — mismatch is a configuration / dispatch bug, not a quality bug, and re-running through the same channel will reproduce it.
 
 For every `ADDRESSED`, include the trait/confidence clause on the title line. Sweep with `grep "ADDRESSED" <file> | grep -v "traits improved"` before declaring done.
 

@@ -54,21 +54,23 @@ Return one of `verdict: ACCEPT`, `ACCEPT_WITH_CONCERNS`, or `REJECT` along with 
 
 ### B. Fresh-diff findings (used by `nhost-review`)
 
-Return a JSON-shaped array. Every finding must be confirmed before reporting, and every finding must include a `model` field set to your self-identified model:
+Return a JSON-shaped object envelope, not a bare array. The top-level `model` field must be set to your self-identified model even when there are no findings; `findings` contains only confirmed findings:
 
 ```json
-[
-  {
-    "file": "path/to/file.go",
-    "line": "123-130",
-    "question": "placement | package-invariant | local-correctness",
-    "severity": "blocking | warning | suggestion",
-    "description": "What is wrong and why it matters.",
-    "plan": "Concrete fix.",
-    "model": "<your-model>",
-    "confirmed": true
-  }
-]
+{
+  "model": "<your-model>",
+  "findings": [
+    {
+      "file": "path/to/file.go",
+      "line": "123-130",
+      "question": "placement | package-invariant | local-correctness",
+      "severity": "blocking | warning | suggestion",
+      "description": "What is wrong and why it matters.",
+      "plan": "Concrete fix.",
+      "confirmed": true
+    }
+  ]
+}
 ```
 
-Discard unconfirmed candidates silently. Reviews are punch lists of actionable problems; do not pad with praise or restate rules that are already satisfied.
+If there are no confirmed findings, return `{"model":"<your-model>","findings":[]}`. Discard unconfirmed candidates silently. Reviews are punch lists of actionable problems; do not pad with praise or restate rules that are already satisfied.

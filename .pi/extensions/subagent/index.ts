@@ -192,6 +192,7 @@ function uniqueAvailableModels(models: AvailableModel[]): AvailableModel[] {
 function resolveAgentModel(
   requestedModel: string | undefined,
   availableModels: AvailableModel[],
+  availableModelsError?: string,
 ): ModelResolution {
   if (!requestedModel) return {};
   if (requestedModel.includes('/')) {
@@ -206,13 +207,7 @@ function resolveAgentModel(
   );
 
   if (matches.length === 1) {
-    const match = matches[0];
-    if (!match) {
-      return {
-        error: `No available configured model matches "${requestedModel}". Use /login to add a provider or provider-qualify the agent model.`,
-      };
-    }
-
+    const [match] = matches as [AvailableModel];
     const cliModel = `${match.provider}/${match.id}${thinkingSuffix}`;
 
     return {
@@ -225,6 +220,12 @@ function resolveAgentModel(
   }
 
   if (matches.length === 0) {
+    if (availableModelsError) {
+      return {
+        error: `Could not resolve unqualified model "${requestedModel}" because available model lookup failed: ${availableModelsError}. Provider-qualify the agent model or retry after the registry recovers.`,
+      };
+    }
+
     return {
       error: `No available configured model matches "${requestedModel}". Use /login to add a provider or provider-qualify the agent model.`,
     };
@@ -235,6 +236,13 @@ function resolveAgentModel(
       .map(formatAvailableModel)
       .join(', ')}. Provider-qualify the agent model.`,
   };
+}
+
+function getErrorMessage(error: unknown): string {
+  if (error instanceof Error && error.message.trim()) return error.message;
+  if (typeof error === 'string' && error.trim()) return error;
+
+  return 'unknown error';
 }
 
 function loadAgentsFromDir(
@@ -520,6 +528,7 @@ async function runAgent(params: {
   defaultCwd: string;
   agents: AgentConfig[];
   availableModels: AvailableModel[];
+  availableModelsError?: string;
   agentName: string;
   task: string;
   cwd?: string;
@@ -557,6 +566,7 @@ async function runAgent(params: {
   const modelResolution = resolveAgentModel(
     agent.model,
     params.availableModels,
+    params.availableModelsError,
   );
   if (modelResolution.error) {
     params.onProgress?.({
@@ -651,6 +661,10 @@ async function runAgent(params: {
       let lastProgressAt = 0;
 
       const flushProgress = (): void => {
+        if (progressTimer) {
+          clearTimeout(progressTimer);
+          progressTimer = undefined;
+        }
         if (!progressDirty) return;
         progressDirty = false;
         lastProgressAt = Date.now();
@@ -987,17 +1001,22 @@ export default function nhostSubagentExtension(pi: ExtensionAPI): void {
       };
 
       let availableModels: AvailableModel[] = [];
+      let availableModelsError: string | undefined;
       if (
         requestedAgents.some((agent) =>
           Boolean(agent.model && !agent.model.includes('/')),
         )
       ) {
-        const models = await ctx.modelRegistry.getAvailable();
-        availableModels = models.map((model) => ({
-          provider: model.provider,
-          id: model.id,
-          name: model.name,
-        }));
+        try {
+          const models = await ctx.modelRegistry.getAvailable();
+          availableModels = models.map((model) => ({
+            provider: model.provider,
+            id: model.id,
+            name: model.name,
+          }));
+        } catch (error: unknown) {
+          availableModelsError = getErrorMessage(error);
+        }
       }
 
       if (hasSingle && params.agent && params.task) {
@@ -1005,6 +1024,7 @@ export default function nhostSubagentExtension(pi: ExtensionAPI): void {
           defaultCwd: ctx.cwd,
           agents,
           availableModels,
+          availableModelsError,
           agentName: params.agent,
           task: params.task,
           cwd: params.cwd,
@@ -1053,6 +1073,7 @@ export default function nhostSubagentExtension(pi: ExtensionAPI): void {
             defaultCwd: ctx.cwd,
             agents,
             availableModels,
+            availableModelsError,
             agentName: item.agent,
             task,
             cwd: item.cwd,
@@ -1127,6 +1148,7 @@ export default function nhostSubagentExtension(pi: ExtensionAPI): void {
               defaultCwd: ctx.cwd,
               agents,
               availableModels,
+              availableModelsError,
               agentName: item.agent,
               task: item.task,
               cwd: item.cwd,

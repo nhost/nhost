@@ -79,24 +79,31 @@ Each delegated task must include:
 
 1. The full bucket file list and relevant diff hunks.
 2. The pre-fetched PR context: PR number, repo, base ref, changed-file stats.
-3. This exact instruction: **"Use output shape B (fresh-diff findings) from your reviewer prompt. Do not edit any files. Validate every finding before reporting it. Self-identify your model in the `model` field on every finding — do not copy any model name from this prompt. Return a JSON array of confirmed findings."**
-4. The expected return shape. The `model` value is whatever the agent self-reported, **not** something the orchestrator fills in:
+3. This exact instruction: **"Use output shape B (fresh-diff findings) from your reviewer prompt. Do not edit any files. Validate every finding before reporting it. Self-identify your model in the top-level `model` field of the response envelope — do not copy any model name from this prompt. Return a JSON object envelope with that `model` and a `findings` array of confirmed findings, even when the array is empty."**
+4. The expected return shape. The top-level `model` value is whatever the agent self-reported, **not** something the orchestrator fills in:
 
    ```json
-   [{ "file": "...", "line": "...", "question": "...", "severity": "...", "description": "...", "plan": "...", "model": "<reported>", "confirmed": true }]
+   {
+     "model": "<reported>",
+     "findings": [
+       { "file": "...", "line": "...", "question": "...", "severity": "...", "description": "...", "plan": "...", "confirmed": true }
+     ]
+   }
    ```
 
-For Go findings, `question` must be one of `placement`, `package-invariant`, or `local-correctness`. For non-Go findings, omit it unless useful. Drop any finding that comes back without a `model` field and re-prompt the reviewer.
+When there are no confirmed findings, the reviewer must still return `{"model":"<reported>","findings":[]}`; a bare `[]` is not valid. For Go findings, `question` must be one of `placement`, `package-invariant`, or `local-correctness`. For non-Go findings, omit it unless useful.
 
 ### Model integrity check
 
-All three reviewer agents expect `claude-opus-4-7` per their frontmatter. After the bucket returns, compare the reported `model` on each finding against this expected value:
+All three reviewer agents expect `claude-opus-4-7` per their frontmatter. After the bucket returns, validate the response envelope before trusting any findings:
 
-- **Exact match**: proceed.
-- **Same family, different version** (e.g. `claude-opus-4`): record a warning in the final review summary but keep the findings.
-- **Different family** (e.g. `gpt-5.5`) or `unknown-<family>`: discard the bucket's findings, surface a **model mismatch** entry in the final review summary naming the agent, the expected model, and the reported model, and tell the user to investigate dispatch/config before trusting this PR's review.
+1. Parse the response as a JSON object with a top-level string `model` and a `findings` array. A bare array, missing `model`, missing/non-array `findings`, or unparseable response is a bucket-level **model mismatch**. Discard any findings from that bucket, record the reported model as `missing` or `unparseable` as appropriate, and surface the mismatch in the final review summary.
+2. Compare the envelope `model` against the expected value:
+   - **Exact match**: proceed and carry the envelope model forward as each finding's reported model.
+   - **Same family, different version** (e.g. `claude-opus-4`): record a warning in the final review summary but keep the findings.
+   - **Different family** (e.g. `gpt-5.5`) or `unknown-<family>`: discard the bucket's findings, surface a **model mismatch** entry in the final review summary naming the agent, the expected model, and the reported model, and tell the user to investigate dispatch/config before trusting this PR's review.
 
-A cross-family mismatch is a configuration bug, not a content bug — re-running through the same channel will reproduce it. Do not silently retry.
+A bucket with `"findings": []` is valid only when the envelope model passes this check; otherwise an empty result cannot contribute to an approve decision. A cross-family mismatch is a configuration bug, not a content bug — re-running through the same channel will reproduce it. Do not silently retry.
 
 ## Phase 3 — Validate and merge findings
 
@@ -146,13 +153,14 @@ Then write `.review/PR_<PR_NUMBER>_REVIEW.md` starting with:
 **Decision:** approve | request-changes | comment
 ```
 
-Include counts by severity, any high-impact blocking findings by name, and a 2-3 sentence overall assessment naming the biggest risk and recommended first action.
+Include counts by severity, any model integrity warnings or mismatches from Phase 2 (including missing or unparseable envelopes), any high-impact blocking findings by name, and a 2-3 sentence overall assessment naming the biggest risk and recommended first action.
 
 Decision guidance:
 
 - `request-changes` if any blocking finding exists.
 - `comment` if warnings/suggestions exist but no blocker.
-- `approve` only if there are no confirmed findings.
+- `comment` if any model integrity mismatch exists, even when there are no confirmed findings, because review coverage is incomplete.
+- `approve` only if there are no confirmed findings and no model integrity mismatches.
 
 ## Severity reference
 
