@@ -11,6 +11,7 @@ import (
 )
 
 type mutationSelection struct {
+	typenames    []typenameSelection
 	affectedRows *selectionAffectedRows
 	returning    selectionReturning
 	dialect      dialect.Dialect
@@ -34,57 +35,6 @@ func (s mutationSelection) WriteSQL(
 	)
 }
 
-// WriteSQLForDelete writes SQL for delete mutations with empty arrays for
-// relationships. The related rows are gone by the time the delete commits, so
-// returning relationships always serialise as empty arrays — but their
-// arguments (where / order_by / limit / offset / distinct_on) are still
-// validated first, so an invalid argument rejects the whole mutation with no
-// rows deleted, matching Hasura.
-func (s mutationSelection) WriteSQLForDelete(
-	b *strings.Builder,
-	fragments ast.FragmentDefinitionList,
-	variables map[string]any,
-	role string,
-	sessionVariables map[string]any,
-	roots map[string]core.Operation,
-	params []any,
-	paramIndex int,
-) ([]any, int, error) {
-	if err := validateReturningRelationshipArgs(
-		s.returning.relationships, fragments, variables, role,
-		sessionVariables, roots, s.returning.argumentPath,
-	); err != nil {
-		return nil, 0, err
-	}
-
-	b.WriteString("SELECT ")
-	b.WriteString(s.dialect.JSONBuildObject())
-	b.WriteByte('(')
-
-	if s.affectedRows != nil {
-		s.affectedRows.WriteSQLWithCTE("mutation_result", b)
-
-		if len(s.returning.columns) > 0 || len(s.returning.relationships) > 0 {
-			b.WriteString(", ")
-		}
-	}
-
-	params, paramIndex, err := s.returning.writeSQLWithCTE(
-		"mutation_result", b, nil, nil, "", nil, nil, params, paramIndex, true,
-	)
-	if err != nil {
-		return nil, 0, err
-	}
-
-	if len(s.returning.relationships) > 0 || len(s.returning.columns) > 0 {
-		b.WriteString(") AS \"_e\"))")
-	} else {
-		b.WriteString(")")
-	}
-
-	return params, paramIndex, nil
-}
-
 // WriteSQLWithCTE writes the SELECT for mutation results using a custom CTE name.
 func (s mutationSelection) WriteSQLWithCTE(
 	b *strings.Builder,
@@ -101,28 +51,74 @@ func (s mutationSelection) WriteSQLWithCTE(
 	b.WriteString(s.dialect.JSONBuildObject())
 	b.WriteByte('(')
 
-	if s.affectedRows != nil {
-		s.affectedRows.WriteSQLWithCTE(cteName, b)
+	hasReturning := s.hasReturningSelection()
+	hasFields := false
 
-		if len(s.returning.columns) > 0 || len(s.returning.relationships) > 0 {
+	for i := range s.typenames {
+		if hasFields {
 			b.WriteString(", ")
 		}
+
+		s.typenames[i].Write(b)
+
+		hasFields = true
+	}
+
+	if s.affectedRows != nil {
+		if hasFields {
+			b.WriteString(", ")
+		}
+
+		s.affectedRows.WriteSQLWithCTE(cteName, b)
+
+		hasFields = true
+	}
+
+	if hasReturning && hasFields {
+		b.WriteString(", ")
 	}
 
 	params, paramIndex, err := s.returning.writeSQLWithCTE(
-		cteName, b, fragments, variables, role, sessionVariables, roots, params, paramIndex, false,
+		cteName, b, fragments, variables, role, sessionVariables, roots, params, paramIndex,
 	)
 	if err != nil {
 		return nil, 0, err
 	}
 
-	if len(s.returning.relationships) > 0 || len(s.returning.columns) > 0 {
+	if hasReturning {
 		b.WriteString(") AS \"_e\"))")
 	} else {
 		b.WriteString(")")
 	}
 
+	if len(s.typenames) > 0 && !s.referencesMutationResult() {
+		s.writeMutationResultForceRef(b, cteName)
+	}
+
 	return params, paramIndex, nil
+}
+
+func (s mutationSelection) hasReturningSelection() bool {
+	return len(s.returning.columns) > 0 || len(s.returning.relationships) > 0
+}
+
+func (s mutationSelection) referencesMutationResult() bool {
+	return s.affectedRows != nil || s.hasReturningSelection()
+}
+
+// writeMutationResultForceRef keeps typename-only mutation selections tied to
+// the final mutation CTE. COUNT(*) is a logical no-op, but it forces PostgreSQL
+// to evaluate permission-gating SELECT CTEs that feed mutation_result.
+func (s mutationSelection) writeMutationResultForceRef(b *strings.Builder, cteName string) {
+	b.WriteString(" WHERE (SELECT COUNT(*) FROM ")
+	b.WriteString(cteName)
+	b.WriteString(") IS NOT NULL")
+
+	for _, nested := range s.returning.nestedCTENames {
+		b.WriteString(" AND (SELECT COUNT(*) FROM ")
+		b.WriteString(nested)
+		b.WriteString(") IS NOT NULL")
+	}
 }
 
 type selectionAffectedRows struct {
@@ -251,7 +247,7 @@ func (s selectionReturning) WriteSQL(
 ) ([]any, int, error) {
 	return s.writeSQLWithCTE(
 		"mutation_result",
-		b, fragments, variables, role, sessionVariables, roots, params, paramIndex, false,
+		b, fragments, variables, role, sessionVariables, roots, params, paramIndex,
 	)
 }
 
@@ -265,7 +261,6 @@ func (s selectionReturning) writeSQLWithCTE(
 	roots map[string]core.Operation,
 	params []any,
 	paramIndex int,
-	emptyRelationships bool,
 ) ([]any, int, error) {
 	if len(s.columns) == 0 && len(s.relationships) == 0 {
 		return params, paramIndex, nil
@@ -279,13 +274,13 @@ func (s selectionReturning) writeSQLWithCTE(
 	if s.dialect.SupportsLateral() {
 		return s.writeReturningLateral(
 			cteName, alias, b, fragments, variables, role,
-			sessionVariables, roots, params, paramIndex, emptyRelationships,
+			sessionVariables, roots, params, paramIndex,
 		)
 	}
 
 	return s.writeReturningCorrelated(
 		cteName, alias, b, fragments, variables, role,
-		sessionVariables, roots, params, paramIndex, emptyRelationships,
+		sessionVariables, roots, params, paramIndex,
 	)
 }
 
@@ -300,7 +295,6 @@ func (s selectionReturning) writeReturningLateral( //nolint:funlen
 	roots map[string]core.Operation,
 	params []any,
 	paramIndex int,
-	emptyRelationships bool,
 ) ([]any, int, error) {
 	// PostgreSQL: json_agg(row_to_json("_e")) over subquery + LATERAL JOINs
 	b.WriteByte('\'')
@@ -340,32 +334,19 @@ func (s selectionReturning) writeReturningLateral( //nolint:funlen
 			b.WriteString(", ")
 		}
 
-		if emptyRelationships {
-			b.WriteString(s.dialect.EmptyJSONArray())
-			b.WriteString(` AS "`)
-			b.WriteString(relSel.alias)
-			b.WriteByte('"')
-		} else {
-			relAlias := cteName + ".r." + relSel.alias
+		relAlias := cteName + ".r." + relSel.alias
 
-			b.WriteByte('"')
-			b.WriteString(relAlias)
-			b.WriteString(`"."`)
-			b.WriteString(relSel.alias)
-			b.WriteString(`" AS "`)
-			b.WriteString(relSel.alias)
-			b.WriteByte('"')
-		}
+		b.WriteByte('"')
+		b.WriteString(relAlias)
+		b.WriteString(`"."`)
+		b.WriteString(relSel.alias)
+		b.WriteString(`" AS "`)
+		b.WriteString(relSel.alias)
+		b.WriteByte('"')
 	}
 
 	b.WriteString(" FROM ")
 	b.WriteString(cteName)
-
-	if emptyRelationships {
-		writeNestedCTEForceRef(b, s.nestedCTENames)
-
-		return params, paramIndex, nil
-	}
 
 	params, paramIndex, err := s.writeLateralJoinsWithCTE(
 		cteName, b, fragments, variables, role, sessionVariables, roots, params, paramIndex,
@@ -392,7 +373,6 @@ func (s selectionReturning) writeReturningCorrelated( //nolint:funlen
 	roots map[string]core.Operation,
 	params []any,
 	paramIndex int,
-	emptyRelationships bool,
 ) ([]any, int, error) {
 	// SQLite: 'returning', (SELECT COALESCE(
 	//   json_group_array(json_object('col1', cte."col1", ..., 'rel', (subquery))),
@@ -431,38 +411,31 @@ func (s selectionReturning) writeReturningCorrelated( //nolint:funlen
 			b.WriteString(", ")
 		}
 
-		if emptyRelationships {
-			b.WriteByte('\'')
-			b.WriteString(relSel.alias)
-			b.WriteString("', ")
-			b.WriteString(s.dialect.EmptyJSONArray())
+		relAlias := cteName + ".r." + relSel.alias
+
+		b.WriteByte('\'')
+		b.WriteString(relSel.alias)
+		b.WriteString("', (")
+
+		var err error
+
+		if nestedCTERef, isNested := s.nestedReturningCTERef(relSel); isNested {
+			params, paramIndex, err = s.writeNestedReturningSelection(
+				cteName, relAlias, nestedCTERef, relSel, b, fragments, variables,
+				role, sessionVariables, roots, params, paramIndex,
+			)
 		} else {
-			relAlias := cteName + ".r." + relSel.alias
-
-			b.WriteByte('\'')
-			b.WriteString(relSel.alias)
-			b.WriteString("', (")
-
-			var err error
-
-			if nestedCTERef, isNested := s.nestedReturningCTERef(relSel); isNested {
-				params, paramIndex, err = s.writeNestedReturningSelection(
-					cteName, relAlias, nestedCTERef, relSel, b, fragments, variables,
-					role, sessionVariables, roots, params, paramIndex,
-				)
-			} else {
-				params, paramIndex, err = relSel.relationship.buildSelectionSQL(
-					b, relSel.field, fragments, variables, role, sessionVariables,
-					roots, params, paramIndex, cteName, relAlias, s.argumentPath,
-				)
-			}
-
-			if err != nil {
-				return nil, 0, fmt.Errorf("error building relationship %s: %w", relSel.alias, err)
-			}
-
-			b.WriteString(")")
+			params, paramIndex, err = relSel.relationship.buildSelectionSQL(
+				b, relSel.field, fragments, variables, role, sessionVariables,
+				roots, params, paramIndex, cteName, relAlias, s.argumentPath,
+			)
 		}
+
+		if err != nil {
+			return nil, 0, fmt.Errorf("error building relationship %s: %w", relSel.alias, err)
+		}
+
+		b.WriteString(")")
 
 		first = false
 	}
@@ -474,54 +447,6 @@ func (s selectionReturning) writeReturningCorrelated( //nolint:funlen
 	writeNestedCTEForceRef(b, s.nestedCTENames)
 
 	return params, paramIndex, nil
-}
-
-// validateReturningRelationshipArgs runs the same argument parsing the SELECT
-// path performs over each nested relationship in a delete mutation's
-// `returning` selection, discarding the generated SQL and surfacing only the
-// error. Delete and delete_by_pk emit empty arrays for returning
-// relationships (the related rows are gone once the row is deleted), so they
-// never call buildSelectionSQL and would otherwise silently accept an invalid
-// where / order_by / limit / offset / distinct_on argument and still commit
-// the delete. Hasura rejects the whole mutation in that case with no rows
-// deleted; routing validation through buildSelectionSQL guarantees byte-for-byte
-// the same error semantics as the SELECT path (same arguments.ParseQuery, same
-// sentinel errors) without duplicating the validation logic.
-//
-// Remote relationships are skipped: they are stripped from the selection before
-// this point and buildSelectionSQL's remote branch is only a safety net.
-func validateReturningRelationshipArgs(
-	relationships []relationshipSelection,
-	fragments ast.FragmentDefinitionList,
-	variables map[string]any,
-	role string,
-	sessionVariables map[string]any,
-	roots map[string]core.Operation,
-	argumentPath string,
-) error {
-	for _, relSel := range relationships {
-		if relSel.relationship == nil || relSel.relationship.isRemote {
-			continue
-		}
-
-		b := getBuilder()
-		// The SQL is discarded; only the validation error matters. cteName and
-		// the relationship alias only feed the join-condition raw filter and the
-		// returned alias, neither of which affects user-argument validation, so a
-		// placeholder CTE name is fine here.
-		_, _, err := relSel.relationship.buildSelectionSQL(
-			b, relSel.field, fragments, variables, role, sessionVariables,
-			roots, nil, 1, "mutation_result", relSel.alias, argumentPath,
-		)
-
-		putBuilder(b)
-
-		if err != nil {
-			return fmt.Errorf("error building relationship %s: %w", relSel.alias, err)
-		}
-	}
-
-	return nil
 }
 
 // writeNestedCTEForceRef appends a WHERE predicate that scalar-references
@@ -877,6 +802,12 @@ func (t *table) processMutationField(
 	result *mutationSelection,
 ) error {
 	switch sel.Name {
+	case typenameField:
+		result.typenames = appendTypename(
+			result.typenames,
+			sel,
+			t.graphqlTypeName+"_mutation_response",
+		)
 	case "returning":
 		columns, relationships, err := t.astToQuerySelectionWithPath(
 			sel, fragments, rootAlias,

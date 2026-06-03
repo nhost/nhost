@@ -1,14 +1,14 @@
 [
   {
     "Name": "insert_departments_one",
-    "QueryType": "insert_one",
-    "SQL": "WITH check_mutation_result AS (SELECT * FROM (SELECT $1::uuid AS \"id\", $2::text AS \"name\", $3::text AS \"description\") AS data WHERE true), mutation_result AS (INSERT INTO \"public\".\"departments\" (\"id\", \"name\", \"description\") SELECT check_mutation_result.\"id\", check_mutation_result.\"name\", check_mutation_result.\"description\" FROM check_mutation_result ON CONFLICT ON CONSTRAINT \"departments_pkey\" DO UPDATE SET \"name\" = EXCLUDED.\"name\", \"description\" = EXCLUDED.\"description\" WHERE (EXCLUDED.\"name\" = $4::text OR EXCLUDED.\"name\" LIKE $5) RETURNING *) SELECT row_to_json((SELECT \"_e\" FROM (SELECT mutation_result.\"id\" AS \"id\", mutation_result.\"name\" AS \"name\", mutation_result.\"description\" AS \"description\") AS \"_e\")) FROM mutation_result",
+    "SQL": "WITH check_mutation_result AS (SELECT * FROM (SELECT $1::uuid AS \"id\", $2::text AS \"name\", $3::text AS \"description\") AS data WHERE true), mutation_result AS (INSERT INTO \"public\".\"departments\" (\"id\", \"name\", \"description\") SELECT check_mutation_result.\"id\", check_mutation_result.\"name\", check_mutation_result.\"description\" FROM check_mutation_result ON CONFLICT ON CONSTRAINT \"departments_pkey\" DO UPDATE SET \"name\" = EXCLUDED.\"name\", \"description\" = EXCLUDED.\"description\" WHERE (\"public\".\"departments\".\"name\" = $4::text OR \"public\".\"departments\".\"name\" LIKE $5) RETURNING *) SELECT row_to_json((SELECT \"_e\" FROM (SELECT mutation_result.\"id\" AS \"id\", mutation_result.\"name\" AS \"name\", mutation_result.\"description\" AS \"description\") AS \"_e\")) FROM mutation_result",
     "Parameters": [
       "2db9de0a-b9ba-416e-8619-783a399ae2b3",
       "HR via OR",
       "Updated via OR condition",
       "NonExistent",
       "H%"
-    ]
+    ],
+    "StreamCursors": null
   }
 ]

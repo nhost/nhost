@@ -28,6 +28,19 @@ func (t *table) ColumnFromSQLName(name string) *core.Column {
 	return t.columnFromSQLName(name)
 }
 
+// ConflictColumns satisfies arguments.Table, exposing the introspected
+// constraint -> columns mapping the argument parser needs to render the SQLite
+// ON CONFLICT column-list target. The returned slice is a copy so callers cannot
+// mutate the table's cached metadata.
+func (t *table) ConflictColumns(constraintName string) []string {
+	columns := t.conflictColumns[constraintName]
+	if len(columns) == 0 {
+		return nil
+	}
+
+	return append([]string(nil), columns...)
+}
+
 // Relationship satisfies arguments.Table. Returns a nil interface (not a
 // typed-nil) when no relationship matches, so callers can compare against nil.
 func (t *table) Relationship(name string) arguments.Relationship { //nolint:ireturn,nolintlint

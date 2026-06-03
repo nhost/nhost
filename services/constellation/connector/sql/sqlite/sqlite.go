@@ -25,6 +25,7 @@
 package sqlite
 
 import (
+	"bytes"
 	"context"
 	"database/sql"
 	"encoding/json/jsontext"
@@ -39,6 +40,8 @@ import (
 	"github.com/nhost/nhost/services/constellation/connector/sql/graphql/queries/dialect"
 	"github.com/nhost/nhost/services/constellation/metadata"
 )
+
+var errSequentialNonJSONResult = errors.New("sequential operation returned non-JSON result")
 
 // Querier abstracts SQLite query execution. Both DB and Tx satisfy this
 // interface, which lets unexported helpers run against either a connection
@@ -317,6 +320,10 @@ func (c *Client) ExecuteOperations(
 
 // executeOperation executes a single SQL operation and returns the JSON result.
 func executeOperation(ctx context.Context, q Querier, op core.SQLOperation) (any, error) {
+	if len(op.Sequential) > 0 {
+		return executeSequentialOperation(ctx, q, op.Sequential)
+	}
+
 	row := q.QueryRowContext(ctx, op.SQL, op.Parameters...)
 
 	var rawJSON string
@@ -330,6 +337,46 @@ func executeOperation(ctx context.Context, q Querier, op core.SQLOperation) (any
 	}
 
 	return jsontext.Value(rawJSON), nil
+}
+
+func executeSequentialOperation(
+	ctx context.Context,
+	q Querier,
+	operations []core.SQLOperation,
+) (jsontext.Value, error) {
+	var b bytes.Buffer
+
+	b.WriteByte('[')
+
+	for i, op := range operations {
+		if i > 0 {
+			b.WriteByte(',')
+		}
+
+		result, err := executeOperation(ctx, q, op)
+		if err != nil {
+			return nil, fmt.Errorf("failed to execute sequential operation %s: %w", op.Name, err)
+		}
+
+		if result == nil {
+			b.WriteString("null")
+
+			continue
+		}
+
+		value, ok := result.(jsontext.Value)
+		if !ok {
+			return nil, fmt.Errorf(
+				"%w: %s returned %T", errSequentialNonJSONResult, op.Name, result,
+			)
+		}
+
+		b.Write(value)
+	}
+
+	b.WriteByte(']')
+
+	return jsontext.Value(b.Bytes()), nil
 }
 
 // ExecuteMultiplexedOperation executes a multiplexed subscription query and

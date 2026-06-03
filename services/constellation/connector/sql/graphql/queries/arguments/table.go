@@ -39,6 +39,12 @@ type Table interface {
 	// preset application and nested-insert FK resolution.
 	ColumnFromSQLName(name string) *core.Column
 
+	// ConflictColumns returns the SQL column names backing the named unique or
+	// primary-key constraint, in declaration order. Used to render the SQLite
+	// ON CONFLICT column-list target. Returns an empty slice when the constraint
+	// is unknown.
+	ConflictColumns(constraintName string) []string
+
 	// TableFromClause returns the FROM-clause source for this table (the
 	// qualified table reference). Used as the parent correlation qualifier and
 	// the target FROM clause when rendering relationship order_by subqueries.

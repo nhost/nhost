@@ -586,13 +586,13 @@ enum notes_constraint {
   notes_pkey
 }
 """
-placeholder for update columns of table "notes" (current role has no relevant permissions)
+update columns of table "notes"
 """
 enum notes_update_column {
   """
-  placeholder (do not use)
+  column name
   """
-  _PLACEHOLDER
+  title
 }
 """
 select columns of table "notes"
@@ -1412,6 +1412,12 @@ type departments_avg_fields {
   budget: Float
 }
 """
+aggregate sum on columns
+"""
+type departments_sum_fields {
+  budget: numeric
+}
+"""
 aggregate stddev on columns
 """
 type departments_stddev_fields {
@@ -1428,12 +1434,6 @@ aggregate stddev_samp on columns
 """
 type departments_stddev_samp_fields {
   budget: Float
-}
-"""
-aggregate sum on columns
-"""
-type departments_sum_fields {
-  budget: numeric
 }
 """
 aggregate var_pop on columns
@@ -3774,6 +3774,38 @@ type mutation_root {
     """
     on_conflict: notes_on_conflict
   ): notes_mutation_response
+  """
+  update single row of the table: "notes"
+  """
+  update_notes_by_pk(
+    """
+    sets the columns of the filtered rows to the given values
+    """
+    _set: notes_set_input
+  pk_columns: notes_pk_columns_input!): notes
+  """
+  update data of the table: "notes"
+  """
+  update_notes(
+    """
+    sets the columns of the filtered rows to the given values
+    """
+    _set: notes_set_input
+
+    """
+    filter the rows which have to be updated
+    """
+    where: notes_bool_exp!
+  ): notes_mutation_response
+  """
+  update multiples rows of table: "notes"
+  """
+  update_notes_many(
+    """
+    updates to execute, in order
+    """
+    updates: [notes_updates!]!
+  ): [notes_mutation_response]
   """
   delete single row from the table: "user_departments"
   """
@@ -6997,6 +7029,28 @@ input notes_on_conflict {
   constraint: notes_constraint!
   update_columns: [notes_update_column!]! = []
   where: notes_bool_exp
+}
+"""
+primary key columns input for table: notes
+"""
+input notes_pk_columns_input {
+  id: uuid!
+}
+"""
+input type for updating data in table "notes"
+"""
+input notes_set_input {
+  title: String
+}
+input notes_updates {
+  """
+  sets the columns of the filtered rows to the given values
+  """
+  _set: notes_set_input
+  """
+  filter the rows which have to be updated
+  """
+  where: notes_bool_exp!
 }
 """
 input type for inserting object relation for remote table "notes"

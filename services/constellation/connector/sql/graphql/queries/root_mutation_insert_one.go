@@ -67,6 +67,7 @@ func (t *table) buildMutationInsertOneSQL(
 		SQL:           sql,
 		Parameters:    params,
 		StreamCursors: nil,
+		Sequential:    nil,
 	}, nil
 }
 

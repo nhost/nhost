@@ -58,6 +58,34 @@ func TestBuildMutationUpdateManySQL(t *testing.T) { //nolint:paralleltest,mainti
 		},
 
 		{
+			name: "update_many with overlapping sequential updates",
+			query: query{
+				Query: `mutation {
+					update_departments_many(
+						updates: [
+							{
+								where: { name: { _eq: "Marketing" } }
+								_set: { budget: 510000 }
+							},
+							{
+								where: { budget: { _eq: 510000 } }
+								_inc: { budget: 1000 }
+							}
+						]
+					) {
+						affected_rows
+						returning {
+							id
+							name
+							budget
+						}
+					}
+				}`,
+				Role: "admin",
+			},
+		},
+
+		{
 			name: "update_many with two updates (one matching no rows)",
 			query: query{
 				Query: `mutation {

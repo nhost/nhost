@@ -92,10 +92,6 @@ type Dialect interface { //nolint:interfacebloat
 	// MaterializedCTE returns "AS MATERIALIZED" or "AS" depending on support.
 	MaterializedCTE() string
 
-	// JSONBuildArray returns the function name for building JSON arrays.
-	// PostgreSQL: jsonb_build_array    SQLite: json_array
-	JSONBuildArray() string
-
 	// WriteArrayContains writes the "array contains" operator (column @> value).
 	// PostgreSQL: column @> $N::type[]
 	WriteArrayContains(b *strings.Builder, column, castPlaceholder string)
@@ -174,6 +170,39 @@ type Dialect interface { //nolint:interfacebloat
 	// PostgreSQL: ) AS "_e"))
 	// SQLite: )
 	WriteJSONRowSuffixNoAlias(b *strings.Builder)
+
+	// SupportsUpsertUpdateAction reports whether INSERT ... ON CONFLICT DO UPDATE
+	// can expose, from RETURNING, whether each returned row took the UPDATE branch.
+	// PostgreSQL can use the xmax system column; SQLite has no equivalent marker.
+	SupportsUpsertUpdateAction() bool
+
+	// WriteUpsertUpdateAction writes a boolean SQL expression for INSERT ...
+	// ON CONFLICT DO UPDATE RETURNING that is true for rows that took the UPDATE
+	// branch and false for freshly inserted rows. Callers must gate it with
+	// SupportsUpsertUpdateAction.
+	WriteUpsertUpdateAction(b *strings.Builder)
+
+	// WriteOnConflictTarget writes the conflict-target clause of an INSERT ...
+	// ON CONFLICT statement, up to (but not including) the DO NOTHING / DO UPDATE
+	// action. The two backends diverge irreconcilably here:
+	//
+	//	PostgreSQL: " ON CONFLICT ON CONSTRAINT \"name\""  (names the constraint)
+	//	SQLite:     " ON CONFLICT (\"col1\", \"col2\")"     (lists the columns)
+	//
+	// RequiresOnConflictTargetColumns reports whether WriteOnConflictTarget needs
+	// a non-empty conflictColumns slice to avoid broadening the target. SQLite
+	// identifies conflicts by column list, while PostgreSQL names the constraint.
+	RequiresOnConflictTargetColumns() bool
+
+	// SQLite has no "ON CONSTRAINT <name>" form, so callers must supply the
+	// constraint's columns; PostgreSQL ignores them and names the constraint.
+	// conflictColumns are already-resolved SQL column names; they are emitted as
+	// quoted identifiers, never raw user input. Implementations return an error
+	// rather than rendering a conflict target that can match a different unique
+	// constraint.
+	WriteOnConflictTarget(
+		b *strings.Builder, constraintName string, conflictColumns []string,
+	) error
 
 	// WriteGroupKeysFrom writes a FROM-source expression that produces one row
 	// per join value, used to build grouped-aggregate queries that batch
