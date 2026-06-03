@@ -24,7 +24,7 @@ The skill arguments are an optional base ref and an optional reviewer model over
 [base-ref] [--reviewer-model MODEL]
 ```
 
-If the user did not provide a base ref, use `origin/main`. If `--reviewer-model MODEL` is present, pass `modelOverride: MODEL` to every reviewer `subagent` task and treat `MODEL` as the effective expected model for model-integrity checks in this run. Prefer an unqualified self-reportable model id such as `gpt-5.5`; if the override must be provider-qualified or include a thinking suffix for Pi routing, keep the full value for `modelOverride` and accept the full value, suffix-stripped value, or provider-stripped model id in the reviewer envelope.
+If the user did not provide a base ref, use `origin/main`. If `--reviewer-model MODEL` is present, pass `modelOverride: MODEL` to every reviewer `subagent` task and treat `MODEL` as the expected model for warning annotations in this run. Prefer an unqualified self-reportable model id such as `gpt-5.5`; if the override must be provider-qualified or include a thinking suffix for Pi routing, keep the full value for `modelOverride` and accept the full value, suffix-stripped value, or provider-stripped model id in the reviewer envelope.
 
 ## Phase 0 — Gather context
 
@@ -104,22 +104,22 @@ Each delegated task must include:
 
 When there are no confirmed findings, the reviewer must still return `{"model":"<reported>","findings":[]}`; a bare `[]` is not valid. For Go findings, `question` must be one of `placement`, `package-invariant`, or `local-correctness`. For non-Go findings, omit it unless useful.
 
-### Model integrity check
+### Model warning handling
 
-All three reviewer agents declare `claude-opus-4-7` in their frontmatter. For each bucket, compute the effective expected model before validating the response:
+All three reviewer agents declare `claude-opus-4-7` in their frontmatter. For each bucket, compute the effective expected model only for warning annotations:
 
 - Without `--reviewer-model`: expected self-report is the agent frontmatter model (`claude-opus-4-7`).
 - With `--reviewer-model MODEL`: expected self-report is `MODEL`. If `MODEL` includes a Pi provider prefix or thinking suffix, also accept the provider-stripped / suffix-stripped model id as an exact match (for example, `openai/gpt-5.5:high` accepts `openai/gpt-5.5:high`, `openai/gpt-5.5`, and `gpt-5.5`).
 
-After the bucket returns, validate the response envelope and record any integrity warnings while preserving parseable findings:
+After the bucket returns, validate the response envelope and record any model warnings while preserving parseable findings:
 
-1. Parse the response as a JSON object with a top-level string `model` and a `findings` array. A bare array, missing `model`, missing/non-array `findings`, or unparseable response is a bucket-level **model integrity warning**. Warn about the malformed envelope in the final review summary, recording the reported model as `missing` or `unparseable` as appropriate. If no `findings` array can be parsed, there are no parseable findings to merge from that bucket.
+1. Parse the response as a JSON object with a top-level string `model` and a `findings` array. A bare array, missing `model`, missing/non-array `findings`, or unparseable response is a bucket-level **model warning**. Warn about the malformed envelope in the final review summary, recording the reported model as `missing` or `unparseable` as appropriate. If no `findings` array can be parsed, there are no parseable findings to merge from that bucket.
 2. Compare the envelope `model` against the effective expected value for that bucket:
    - **Exact match** to any accepted expected value: proceed and carry the envelope model forward as each finding's reported model.
    - **Same family, different version** (e.g. expected `claude-opus-4-7`, reported `claude-opus-4`): warn about the version mismatch in the final review summary and keep the findings.
-   - **Different family** (e.g. expected `claude-opus-4-7`, reported `gpt-5.5`) or `unknown-<family>`: warn about the model mismatch in the final review summary naming the agent, the frontmatter model, any override, the effective expected model, and the reported model; keep and validate the bucket's parseable findings.
+   - **Different family** (e.g. expected `claude-opus-4-7`, reported `gpt-5.5`) or `unknown-<family>`: record a model warning in the final review summary naming the agent, the frontmatter model, any override, the effective expected model, and the reported model; keep and validate the bucket's parseable findings.
 
-A bucket with `"findings": []` is still a valid empty result when the envelope parses; any model mismatch is recorded as a warning in the final summary. A cross-family mismatch is a configuration warning, not a content bug — re-running through the same channel will reproduce it. Do not silently retry.
+A bucket with `"findings": []` is still a valid empty result when the envelope parses; any model difference is recorded as a warning in the final summary. Model warnings are informational only: they never cause findings to be discarded, never trigger retries, and never affect the review decision.
 
 ## Phase 3 — Validate and merge findings
 
@@ -161,7 +161,7 @@ For each confirmed finding, write `.review/PR_<PR_NUMBER>_COMMENT_<N>.md` with:
 - `**Question:**` for Go only (`placement`, `package-invariant`, `local-correctness`).
 - `**Severity:**` `blocking`, `warning`, or `suggestion`, plus one-sentence reason.
 - `**Plan:**` concrete fix.
-- `**Reviewer:**` the reviewer agent name, the frontmatter model, any override, the effective expected model, and the model it self-reported, e.g. `go-reviewer (frontmatter claude-opus-4-7, expected claude-opus-4-7, reported claude-opus-4-7)` or `go-reviewer (frontmatter claude-opus-4-7, override gpt-5.5, expected gpt-5.5, reported gpt-5.5)`. When expected and reported differ, that mismatch belongs in the line so it travels with the comment.
+- `**Reviewer:**` the reviewer agent name, the frontmatter model, any override, the effective expected model, and the model it self-reported, e.g. `go-reviewer (frontmatter claude-opus-4-7, expected claude-opus-4-7, reported claude-opus-4-7)` or `go-reviewer (frontmatter claude-opus-4-7, override gpt-5.5, expected gpt-5.5, reported gpt-5.5)`. When expected and reported differ, that warning context belongs in the line so it travels with the comment.
 
 Then write `.review/PR_<PR_NUMBER>_REVIEW.md` starting with:
 
@@ -169,14 +169,14 @@ Then write `.review/PR_<PR_NUMBER>_REVIEW.md` starting with:
 **Decision:** approve | request-changes | comment
 ```
 
-Include counts by severity, any model integrity warnings from Phase 2 (including missing or unparseable envelopes), any high-impact blocking findings by name, and a 2-3 sentence overall assessment naming the biggest risk and recommended first action.
+Include counts by severity, any model warnings from Phase 2 (including missing or unparseable envelopes), any high-impact blocking findings by name, and a 2-3 sentence overall assessment naming the biggest risk and recommended first action.
 
 Decision guidance:
 
 - `request-changes` if any blocking finding exists.
 - `comment` if warnings/suggestions exist but no blocker.
-- `comment` if any model integrity warning exists, even when there are no confirmed findings.
-- `approve` only if there are no confirmed findings and no model integrity warnings.
+- Model warnings do not affect the decision.
+- `approve` if there are no confirmed findings, even when model warnings were recorded.
 
 ## Severity reference
 
