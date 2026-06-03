@@ -20,23 +20,19 @@ export default defineConfig({
   maxFailures: process.env.CI ? 3 : 1,
   timeout: 120 * 1000,
   expect: {
-    // Higher than the default to absorb cold Vercel-preview / staging latency
-    // on web-first assertions, matching the raised actionTimeout below.
-    timeout: 15000,
+    timeout: 10000,
   },
   fullyParallel: false,
   forbidOnly: !!process.env.CI,
-  retries: process.env.CI ? 3 : 0,
+  retries: process.env.CI ? 2 : 0,
   workers: process.env.CI ? 2 : 1,
   reporter: 'html',
   use: {
-    actionTimeout: 30000,
+    actionTimeout: 15000,
     trace: 'retain-on-failure',
     baseURL: process.env.NHOST_TEST_DASHBOARD_URL,
     launchOptions: {
-      // slowMo is a debugging aid only; it adds latency to every action, so
-      // disable it in CI where it just slows the suite down.
-      slowMo: process.env.CI ? 0 : 100,
+      slowMo: 100,
     },
   },
   projects: [
