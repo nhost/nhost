@@ -1,3 +1,16 @@
+## [@nhost/dashboard@2.65.0] - 2026-06-03
+
+### 🚀 Features
+
+- *(dashboard)* Migrate onboarding pages to v3/spinner (#4391)
+
+
+### 🐛 Bug Fixes
+
+- *(dashboard)* Align schema diagram node selection border with card height (#4425)
+- *(dashboard)* Migrate permission form to v3 (#4368)
+- *(dashboard)* Use next/link instead of Linkv2 (#4369)
+
 ## [@nhost/dashboard@2.64.0] - 2026-06-02
 
 ### 🚀 Features
