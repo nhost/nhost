@@ -223,8 +223,8 @@ importers:
         specifier: ^3.5.0
         version: 3.5.0(react-dom@19.2.3(react@19.2.3))(react@19.2.3)
       '@tisoap/react-flow-smart-edge':
-        specifier: ^4.0.1
-        version: 4.0.1(@xyflow/react@12.10.2(@types/react@19.2.8)(react-dom@19.2.3(react@19.2.3))(react@19.2.3))(react-dom@19.2.3(react@19.2.3))(react@19.2.3)(typescript@5.8.3)
+        specifier: ^4.3.0
+        version: 4.3.0(@xyflow/react@12.10.2(@types/react@19.2.8)(react-dom@19.2.3(react@19.2.3))(react@19.2.3))(react-dom@19.2.3(react@19.2.3))(react@19.2.3)(typescript@5.8.3)
       '@uidotdev/usehooks':
         specifier: ^2.4.1
         version: 2.4.1(react-dom@19.2.3(react@19.2.3))(react@19.2.3)
@@ -3463,8 +3463,8 @@ packages:
     peerDependencies:
       graphql: ^16.0.0
 
-  '@tisoap/react-flow-smart-edge@4.0.1':
-    resolution: {integrity: sha512-tqyQyaQFDc4QIL3Kw9UL9QVWId4cSuVNqKsDRzdPH1Mf8YMrwB8/dq/BMFEbuGaln9B3wlgeyhQx3vn6E9lpJA==}
+  '@tisoap/react-flow-smart-edge@4.3.0':
+    resolution: {integrity: sha512-BaqVHeaBY/MLPtZyK71a7w2EczKBipkNoZKmBsECDBrxvj+lHR6Acmyvf0+w6wshEG6T2KgBGXEtb8f+mViCKQ==}
     peerDependencies:
       '@xyflow/react': '>=12'
       react: '>=18'
@@ -9903,7 +9903,7 @@ snapshots:
     transitivePeerDependencies:
       - supports-color
 
-  '@tisoap/react-flow-smart-edge@4.0.1(@xyflow/react@12.10.2(@types/react@19.2.8)(react-dom@19.2.3(react@19.2.3))(react@19.2.3))(react-dom@19.2.3(react@19.2.3))(react@19.2.3)(typescript@5.8.3)':
+  '@tisoap/react-flow-smart-edge@4.3.0(@xyflow/react@12.10.2(@types/react@19.2.8)(react-dom@19.2.3(react@19.2.3))(react@19.2.3))(react-dom@19.2.3(react@19.2.3))(react@19.2.3)(typescript@5.8.3)':
     dependencies:
       '@xyflow/react': 12.10.2(@types/react@19.2.8)(react-dom@19.2.3(react@19.2.3))(react@19.2.3)
       react: 19.2.3
