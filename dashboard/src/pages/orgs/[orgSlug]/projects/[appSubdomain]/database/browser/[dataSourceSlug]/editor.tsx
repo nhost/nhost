@@ -1,3 +1,4 @@
+import { useRouter } from 'next/router';
 import type { ReactElement } from 'react';
 import { LoadingScreen } from '@/components/presentational/LoadingScreen';
 import { RetryableErrorBoundary } from '@/components/presentational/RetryableErrorBoundary';
@@ -10,12 +11,15 @@ import { useProject } from '@/features/orgs/projects/hooks/useProject';
 export default function Editor() {
   const isPlatform = useIsPlatform();
   const { project } = useProject();
+  const { query, isReady } = useRouter();
 
-  if (isPlatform && !project?.config?.hasura.adminSecret) {
+  if ((isPlatform && !project?.config?.hasura.adminSecret) || !isReady) {
     return <LoadingScreen />;
   }
 
-  return <SQLEditor />;
+  const sqlParam = Array.isArray(query.sql) ? query.sql[0] : query.sql;
+
+  return <SQLEditor initialSQL={sqlParam} />;
 }
 
 Editor.getLayout = function getLayout(page: ReactElement) {
