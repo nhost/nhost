@@ -79,14 +79,24 @@ Each delegated task must include:
 
 1. The full bucket file list and relevant diff hunks.
 2. The pre-fetched PR context: PR number, repo, base ref, changed-file stats.
-3. This exact instruction: **"Use output shape B (fresh-diff findings) from your reviewer prompt. Do not edit any files. Validate every finding before reporting it. Return a JSON array of confirmed findings."**
-4. The expected return shape:
+3. This exact instruction: **"Use output shape B (fresh-diff findings) from your reviewer prompt. Do not edit any files. Validate every finding before reporting it. Self-identify your model in the `model` field on every finding — do not copy any model name from this prompt. Return a JSON array of confirmed findings."**
+4. The expected return shape. The `model` value is whatever the agent self-reported, **not** something the orchestrator fills in:
 
    ```json
-   [{ "file": "...", "line": "...", "question": "...", "severity": "...", "description": "...", "plan": "...", "confirmed": true }]
+   [{ "file": "...", "line": "...", "question": "...", "severity": "...", "description": "...", "plan": "...", "model": "<reported>", "confirmed": true }]
    ```
 
-For Go findings, `question` must be one of `placement`, `package-invariant`, or `local-correctness`. For non-Go findings, omit it unless useful.
+For Go findings, `question` must be one of `placement`, `package-invariant`, or `local-correctness`. For non-Go findings, omit it unless useful. Drop any finding that comes back without a `model` field and re-prompt the reviewer.
+
+### Model integrity check
+
+All three reviewer agents expect `claude-opus-4-7` per their frontmatter. After the bucket returns, compare the reported `model` on each finding against this expected value:
+
+- **Exact match**: proceed.
+- **Same family, different version** (e.g. `claude-opus-4`): record a warning in the final review summary but keep the findings.
+- **Different family** (e.g. `gpt-5.5`) or `unknown-<family>`: discard the bucket's findings, surface a **model mismatch** entry in the final review summary naming the agent, the expected model, and the reported model, and tell the user to investigate dispatch/config before trusting this PR's review.
+
+A cross-family mismatch is a configuration bug, not a content bug — re-running through the same channel will reproduce it. Do not silently retry.
 
 ## Phase 3 — Validate and merge findings
 
@@ -128,6 +138,7 @@ For each confirmed finding, write `.review/PR_<PR_NUMBER>_COMMENT_<N>.md` with:
 - `**Question:**` for Go only (`placement`, `package-invariant`, `local-correctness`).
 - `**Severity:**` `blocking`, `warning`, or `suggestion`, plus one-sentence reason.
 - `**Plan:**` concrete fix.
+- `**Reviewer:**` the reviewer agent name, the expected model from its frontmatter, and the model it self-reported, e.g. `go-reviewer (expected claude-opus-4-7, reported claude-opus-4-7)`. When expected and reported differ, that mismatch belongs in the line so it travels with the comment.
 
 Then write `.review/PR_<PR_NUMBER>_REVIEW.md` starting with:
 

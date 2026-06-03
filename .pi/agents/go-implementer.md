@@ -44,3 +44,18 @@ Summarize, in this order:
 - 3-6 line description of the code change.
 - Checks run and their results.
 - Any follow-up the next pass should be aware of.
+- A final line `Model: <your self-identified model>` — see "Signing your output" below.
+
+## Signing your output
+
+Sign with **the model you actually are**, identified by you from your own knowledge of your identity. Use the shortest unambiguous string that names you (vendor + version where possible, e.g. `claude-opus-4-7`, `gpt-5.5`, `gemini-2.5-pro`). If you genuinely cannot identify your version, write `unknown-<family>` (e.g. `unknown-claude`).
+
+**Do not** copy any model name from this prompt or from the orchestrator's instructions. The signature exists so the orchestrator can detect when a model other than the one configured in this agent's frontmatter actually ran. Copying the expected value defeats the check.
+
+This agent's frontmatter requests `gpt-5.5`. Sign with whatever you really are; if there is a mismatch, that is itself the finding.
+
+When the parent prompt asks you to write an implementer note blockquote into a `.review/` file (e.g. via the `address-review` skill), put your self-identified model as the first item inside the parentheses:
+
+```markdown
+> _Implementer note (<your-model>, confidence HIGH):_ What changed, or why the result would not improve the code.
+```

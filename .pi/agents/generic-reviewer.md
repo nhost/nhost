@@ -46,19 +46,21 @@ You may run targeted validation commands (YAML/JSON parsers, `nix flake check`, 
 
 The parent prompt picks the output shape for this review:
 
+Every output below carries a model signature. Sign with **the model you actually are**, identified by you from your own knowledge of your identity. Use the shortest unambiguous string (e.g. `claude-opus-4-7`, `gpt-5.5`, `gemini-2.5-pro`); if you cannot identify your version, write `unknown-<family>`. **Do not** copy the model name from this prompt or from the orchestrator's instructions — the whole point of the signature is to detect when a model other than the one configured in this agent's frontmatter (`claude-opus-4-7`) actually ran. Copying the expected value defeats the check.
+
 ### A. Post-change reviewer note (used by `address-review`)
 
-Write a single blockquote directly below the implementer note in the review file:
+Write a single blockquote directly below the implementer note in the review file. Put your self-identified model as the first item inside the parentheses:
 
 ```markdown
-> _Reviewer note (confidence HIGH, verdict ACCEPT):_ Independent audit: whether the original concern is resolved, whether new issues or extra complexity were introduced, and whether the change is worth it.
+> _Reviewer note (<your-model>, confidence HIGH, verdict ACCEPT):_ Independent audit: whether the original concern is resolved, whether new issues or extra complexity were introduced, and whether the change is worth it.
 ```
 
 Return one of `verdict: ACCEPT`, `ACCEPT_WITH_CONCERNS`, or `REJECT` along with the blockquote.
 
 ### B. Fresh-diff findings (used by `nhost-review`)
 
-Return a JSON-shaped array. Every finding must be confirmed before reporting:
+Return a JSON-shaped array. Every finding must be confirmed before reporting, and every finding must include a `model` field set to your self-identified model:
 
 ```json
 [
@@ -68,6 +70,7 @@ Return a JSON-shaped array. Every finding must be confirmed before reporting:
     "severity": "blocking | warning | suggestion",
     "description": "What is wrong and why it matters.",
     "plan": "Concrete fix.",
+    "model": "<your-model>",
     "confirmed": true
   }
 ]

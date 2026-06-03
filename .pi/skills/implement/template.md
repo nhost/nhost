@@ -3,7 +3,7 @@
 **Status:** draft
 **Created:** <YYYY-MM-DD>
 **Working title argument:** <as passed to /implement, or "n/a">
-**Architects consulted:** `architect-a` (`gpt-5.5`), `architect-b` (`claude-opus-4-7`)
+**Architects consulted:** `architect-a` (expected `gpt-5.5`, reported `<reported>`), `architect-b` (expected `claude-opus-4-7`, reported `<reported>`)
 **Orchestrator:** `implement` skill
 
 ---
@@ -54,17 +54,19 @@ Only present if requirements still have unresolved ambiguities. Each item must s
 
 Headline takeaways from each architect. The full plans are in the appendix.
 
-### 2.1 `architect-a` (`gpt-5.5`)
+### 2.1 `architect-a` (expected `gpt-5.5`, reported `<reported>`)
 
 - **Headline approach:** <2-3 sentences>
 - **Notable choices:** <bullets>
 - **Notable concerns / risks raised:** <bullets>
+- **Model integrity:** `match` | `same-family-different-version` | `cross-family-mismatch (...)` — if not `match`, explain.
 
-### 2.2 `architect-b` (`claude-opus-4-7`)
+### 2.2 `architect-b` (expected `claude-opus-4-7`, reported `<reported>`)
 
 - **Headline approach:** <2-3 sentences>
 - **Notable choices:** <bullets>
 - **Notable concerns / risks raised:** <bullets>
+- **Model integrity:** `match` | `same-family-different-version` | `cross-family-mismatch (...)` — if not `match`, explain.
 
 ### 2.3 Where they agreed
 
@@ -118,8 +120,8 @@ Deferred items the user agreed to handle separately.
 
 ## Appendix A — `architect-a` full plan (verbatim)
 
-<paste the raw architect-a response here>
+<paste the raw architect-a response here, including its sign-off trailer `_Plan authored by `architect-a` (model: `<reported>`)._`>
 
 ## Appendix B — `architect-b` full plan (verbatim)
 
-<paste the raw architect-b response here>
+<paste the raw architect-b response here, including its sign-off trailer `_Plan authored by `architect-b` (model: `<reported>`)._`>

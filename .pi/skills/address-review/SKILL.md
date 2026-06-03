@@ -99,13 +99,32 @@ Disposition tokens:
 - `SKIPPED — <result-quality rationale>`
 - `PARTIAL — *traits improved: <traits>; confidence HIGH|MEDIUM|LOW*` only when sub-items have mixed dispositions.
 
-Blockquote shapes:
+Blockquote shapes. The first item in each parenthetical is the **model the agent self-identified as** when it ran. The agent reports this; the orchestrator does not fill it in:
 
 ```markdown
-> _Implementer note (confidence HIGH):_ What changed, or why the result would not improve the code.
+> _Implementer note (<reported-model>, confidence HIGH):_ What changed, or why the result would not improve the code.
 >
-> _Reviewer note (confidence HIGH, verdict ACCEPT):_ Independent audit: whether the original concern is resolved, whether new issues or extra complexity were introduced, and whether the change is worth it.
+> _Reviewer note (<reported-model>, confidence HIGH, verdict ACCEPT):_ Independent audit: whether the original concern is resolved, whether new issues or extra complexity were introduced, and whether the change is worth it.
 ```
+
+Reject implementer or reviewer output that omits the model signature and re-run the agent with a reminder.
+
+## Model integrity check
+
+After each pass, before moving on, compare the agent's self-reported model against the expected model from its frontmatter:
+
+| Agent | Expected model (`model:` frontmatter) |
+| --- | --- |
+| `go-implementer` / `javascript-implementer` / `generic-implementer` | `gpt-5.5` |
+| `go-reviewer` / `javascript-reviewer` / `generic-reviewer` | `claude-opus-4-7` |
+
+If the reported model differs from the expected model (different family, different version, or `unknown-<family>`), stop the work unit and append a **model-mismatch note** at the very top of the affected review file:
+
+```markdown
+> _Model mismatch:_ expected `<expected>`, agent self-reported `<reported>`. Investigate before trusting this pass.
+```
+
+Report the mismatch to the user and do not advance the retry counter — mismatch is a configuration / dispatch bug, not a quality bug, and re-running through the same channel will reproduce it. Approximate matches inside the same family (e.g. agent reports `claude-opus-4` when expected `claude-opus-4-7`) are warnings, not blockers; record them in the note but proceed.
 
 For every `ADDRESSED`, include the trait/confidence clause on the title line. Sweep with `grep "ADDRESSED" <file> | grep -v "traits improved"` before declaring done.
 
