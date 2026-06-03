@@ -95,6 +95,12 @@ const taskItemSchema = Type.Object({
   cwd: Type.Optional(
     Type.String({ description: 'Working directory for this child agent' }),
   ),
+  modelOverride: Type.Optional(
+    Type.String({
+      description:
+        "Override this task's agent model. Takes precedence over top-level modelOverride and agent frontmatter.",
+    }),
+  ),
 });
 
 const subagentParamsSchema = Type.Object({
@@ -105,6 +111,12 @@ const subagentParamsSchema = Type.Object({
   ),
   task: Type.Optional(
     Type.String({ description: 'Task to delegate for single-agent mode' }),
+  ),
+  modelOverride: Type.Optional(
+    Type.String({
+      description:
+        'Override the model for this subagent invocation. Per-task modelOverride takes precedence in tasks/chain.',
+    }),
   ),
   tasks: Type.Optional(
     Type.Array(taskItemSchema, {
@@ -156,6 +168,17 @@ function formatAvailableModel(model: AvailableModel): string {
   if (!model.name || model.name === model.id) return label;
 
   return `${label} (${model.name})`;
+}
+
+function normalizeOptionalString(
+  value: string | undefined,
+): string | undefined {
+  const trimmed = value?.trim();
+  return trimmed ? trimmed : undefined;
+}
+
+function modelRequiresRegistryLookup(model: string | undefined): boolean {
+  return Boolean(model && !model.includes('/'));
 }
 
 function splitThinkingLevel(model: string): {
@@ -532,6 +555,7 @@ async function runAgent(params: {
   agentName: string;
   task: string;
   cwd?: string;
+  modelOverride?: string;
   step?: number;
   signal?: AbortSignal;
   onProgress?: ProgressCallback;
@@ -563,8 +587,10 @@ async function runAgent(params: {
     };
   }
 
+  const requestedModel =
+    normalizeOptionalString(params.modelOverride) ?? agent.model;
   const modelResolution = resolveAgentModel(
-    agent.model,
+    requestedModel,
     params.availableModels,
     params.availableModelsError,
   );
@@ -572,7 +598,7 @@ async function runAgent(params: {
     params.onProgress?.({
       agent: agent.name,
       agentSource: agent.source,
-      model: agent.model,
+      model: requestedModel,
       step: params.step,
       status: 'failed',
       activities: [],
@@ -588,7 +614,7 @@ async function runAgent(params: {
       exitCode: 1,
       output: '',
       stderr: modelResolution.error,
-      model: agent.model,
+      model: requestedModel,
       step: params.step,
     };
   }
@@ -617,7 +643,7 @@ async function runAgent(params: {
     exitCode: 0,
     output: '',
     stderr: '',
-    model: modelResolution.cliModel,
+    model: modelResolution.cliModel ?? requestedModel,
     step: params.step,
   };
 
@@ -921,6 +947,7 @@ export default function nhostSubagentExtension(pi: ExtensionAPI): void {
       'Delegate tasks to specialized Pi agents in isolated pi subprocesses.',
       'Supports single mode (agent + task), parallel mode (tasks array), and chain mode (chain array with {previous}).',
       'Project agents live in .pi/agents and require agentScope "project" or "both".',
+      'Use modelOverride to run an agent with a model other than its frontmatter default.',
     ].join(' '),
     promptSnippet:
       'Delegate work to project or user Pi agents with isolated context windows',
@@ -933,6 +960,9 @@ export default function nhostSubagentExtension(pi: ExtensionAPI): void {
 
     async execute(_toolCallId, params, signal, onUpdate, ctx) {
       const agentScope: AgentScope = params.agentScope ?? 'user';
+      const topLevelModelOverride = normalizeOptionalString(
+        params.modelOverride,
+      );
       const discovery = discoverAgents(ctx.cwd, agentScope);
       const agents = discovery.agents;
 
@@ -962,6 +992,20 @@ export default function nhostSubagentExtension(pi: ExtensionAPI): void {
       const requestedAgents = Array.from(requestedNames)
         .map((name) => agents.find((agent) => agent.name === name))
         .filter((agent): agent is AgentConfig => Boolean(agent));
+      const getEffectiveModel = (
+        agentName: string,
+        taskModelOverride?: string,
+      ): string | undefined => {
+        const taskOverride = normalizeOptionalString(taskModelOverride);
+        if (taskOverride) return taskOverride;
+        if (topLevelModelOverride) return topLevelModelOverride;
+
+        return agents.find((agent) => agent.name === agentName)?.model;
+      };
+      const getModelOverrideForTask = (
+        taskModelOverride?: string,
+      ): string | undefined =>
+        normalizeOptionalString(taskModelOverride) ?? topLevelModelOverride;
       const projectAgentsRequested = requestedAgents.filter(
         (agent) => agent.source === 'project',
       );
@@ -1002,11 +1046,21 @@ export default function nhostSubagentExtension(pi: ExtensionAPI): void {
 
       let availableModels: AvailableModel[] = [];
       let availableModelsError: string | undefined;
-      if (
-        requestedAgents.some((agent) =>
-          Boolean(agent.model && !agent.model.includes('/')),
-        )
-      ) {
+      const effectiveModels: string[] = [];
+      if (params.agent) {
+        const model = getEffectiveModel(params.agent);
+        if (model) effectiveModels.push(model);
+      }
+      for (const task of params.tasks ?? []) {
+        const model = getEffectiveModel(task.agent, task.modelOverride);
+        if (model) effectiveModels.push(model);
+      }
+      for (const task of params.chain ?? []) {
+        const model = getEffectiveModel(task.agent, task.modelOverride);
+        if (model) effectiveModels.push(model);
+      }
+
+      if (effectiveModels.some(modelRequiresRegistryLookup)) {
         try {
           const models = await ctx.modelRegistry.getAvailable();
           availableModels = models.map((model) => ({
@@ -1028,6 +1082,7 @@ export default function nhostSubagentExtension(pi: ExtensionAPI): void {
           agentName: params.agent,
           task: params.task,
           cwd: params.cwd,
+          modelOverride: topLevelModelOverride,
           signal,
           onProgress: (progress) => {
             emitUpdate(formatProgress(progress));
@@ -1077,6 +1132,7 @@ export default function nhostSubagentExtension(pi: ExtensionAPI): void {
             agentName: item.agent,
             task,
             cwd: item.cwd,
+            modelOverride: getModelOverrideForTask(item.modelOverride),
             step: index + 1,
             signal,
             onProgress: (progress) => {
@@ -1152,6 +1208,7 @@ export default function nhostSubagentExtension(pi: ExtensionAPI): void {
               agentName: item.agent,
               task: item.task,
               cwd: item.cwd,
+              modelOverride: getModelOverrideForTask(item.modelOverride),
               signal,
               onProgress: (progress) => {
                 parallelProgress[index] = progress;
