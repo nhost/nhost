@@ -999,6 +999,40 @@ func (d validationTestDriver) Dialect() dialect.Dialect {
 
 func (d validationTestDriver) Close() {}
 
+func newValidationSQLController(t *testing.T) *controller.Controller {
+	t.Helper()
+
+	dbMeta := &metadata.DatabaseMetadata{
+		Kind: "postgres",
+		Tables: []metadata.TableMetadata{
+			{Table: metadata.TableSource{Schema: "public", Name: "users"}},
+		},
+	}
+
+	sqlConn, err := sqlconnector.NewConnector(
+		t.Context(),
+		validationTestDriver{},
+		dbMeta,
+		nil,
+		slog.New(slog.DiscardHandler),
+	)
+	if err != nil {
+		t.Fatalf("NewConnector: %v", err)
+	}
+
+	ctrl, err := controller.NewFromConnectors(
+		testAdminSecret,
+		map[string]connector.Connector{"sql": sqlConn},
+		nil,
+		slog.New(slog.DiscardHandler),
+	)
+	if err != nil {
+		t.Fatalf("NewFromConnectors: %v", err)
+	}
+
+	return ctrl
+}
+
 func TestHandlerPost_MultiConnectorMergesResults(t *testing.T) {
 	t.Parallel()
 
@@ -1186,35 +1220,7 @@ func TestHandlerPost_ConnectorErrorSurfacedAsGraphQLError(t *testing.T) {
 func TestHandlerPost_NegativeLimitOffsetReturnsHasuraErrors(t *testing.T) {
 	t.Parallel()
 
-	dbMeta := &metadata.DatabaseMetadata{
-		Kind: "postgres",
-		Tables: []metadata.TableMetadata{
-			{Table: metadata.TableSource{Schema: "public", Name: "users"}},
-		},
-	}
-
-	sqlConn, err := sqlconnector.NewConnector(
-		t.Context(),
-		validationTestDriver{},
-		dbMeta,
-		nil,
-		slog.New(slog.DiscardHandler),
-	)
-	if err != nil {
-		t.Fatalf("NewConnector: %v", err)
-	}
-
-	ctrl, err := controller.NewFromConnectors(
-		testAdminSecret,
-		map[string]connector.Connector{"sql": sqlConn},
-		nil,
-		slog.New(slog.DiscardHandler),
-	)
-	if err != nil {
-		t.Fatalf("NewFromConnectors: %v", err)
-	}
-
-	router := newTestRouter(t, ctrl)
+	router := newTestRouter(t, newValidationSQLController(t))
 
 	tests := []struct {
 		name        string
@@ -1287,6 +1293,47 @@ func TestHandlerPost_NegativeLimitOffsetReturnsHasuraErrors(t *testing.T) {
 				t.Errorf("extensions.path: got %v, want %s", ext["path"], tt.wantPath)
 			}
 		})
+	}
+}
+
+func TestResolve_MixedIntrospectionAndDataValidationErrorReturnsNoData(t *testing.T) {
+	t.Parallel()
+
+	ctrl := newValidationSQLController(t)
+
+	resp, err := ctrl.Resolve(adminSessionContext(t), controller.GraphQLRequest{
+		OperationName: "",
+		Query:         `{ __schema { queryType { name } } staff: users(limit: -1) { id } }`,
+		Variables:     nil,
+	})
+	if err != nil {
+		t.Fatalf("unexpected error: %v", err)
+	}
+
+	if resp.Data != nil {
+		t.Fatalf("validation failure must return no data, got %+v", resp.Data)
+	}
+
+	errs, ok := resp.Errors.([]map[string]any)
+	if !ok || len(errs) != 1 {
+		t.Fatalf("expected exactly one error, got %+v", resp.Errors)
+	}
+
+	if got := getMessage(errs[0]); got != negativeLimitIntegerError {
+		t.Fatalf("unexpected validation message: %q", got)
+	}
+
+	ext, ok := errs[0]["extensions"].(map[string]any)
+	if !ok {
+		t.Fatalf("error missing extensions: %+v", errs[0])
+	}
+
+	if ext["code"] != "validation-failed" {
+		t.Errorf("expected validation-failed code, got %v", ext["code"])
+	}
+
+	if ext["path"] != "$.selectionSet.staff.args.limit" {
+		t.Errorf("unexpected argument path: %v", ext["path"])
 	}
 }
 

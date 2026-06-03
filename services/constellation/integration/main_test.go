@@ -131,6 +131,7 @@ func applySeedFiles(ctx context.Context, conn *pgx.Conn) error {
 
 type query struct {
 	Query            string         `json:"query"`
+	OperationName    string         `json:"operationName,omitempty"`
 	Variables        map[string]any `json:"variables,omitempty"`
 	Role             string
 	SessionVariables map[string]string
