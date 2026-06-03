@@ -1,8 +1,11 @@
 package image_test
 
 import (
+	"bytes"
 	"crypto/sha256"
 	"encoding/hex"
+	stdimage "image"
+	_ "image/jpeg" // register the JPEG decoder for image.DecodeConfig
 	"io"
 	"os"
 	"testing"
@@ -138,6 +141,57 @@ func TestManipulate(t *testing.T) {
 				t.Error(cmp.Diff(got, tc.sum))
 			}
 		})
+	}
+}
+
+func TestManipulateClampsOversizedDimensions(t *testing.T) {
+	t.Parallel()
+
+	// libvips allocates the full output buffer up front, so honouring an
+	// oversized request verbatim (e.g. 50000x50000) attempts a multi-GB
+	// allocation and can OOM-kill the process (memory-exhaustion DoS). The
+	// transformer must cap the output dimensions instead.
+	const (
+		requested     = 50000
+		maxDimension  = 8000 // keep in sync with image.maxImageDimension
+		nhostJPGBytes = 33399
+	)
+
+	transformer := image.NewTransformer(1)
+
+	orig, err := os.Open("testdata/nhost.jpg")
+	if err != nil {
+		t.Fatal(err)
+	}
+	defer orig.Close()
+
+	var out bytes.Buffer
+	if err := transformer.Run(
+		orig,
+		nhostJPGBytes,
+		&out,
+		image.Options{Width: requested, Height: requested, Format: image.ImageTypeJPEG},
+	); err != nil {
+		t.Fatal(err)
+	}
+
+	cfg, _, err := stdimage.DecodeConfig(bytes.NewReader(out.Bytes()))
+	if err != nil {
+		t.Fatalf("failed to decode transformed image: %v", err)
+	}
+
+	if cfg.Width > maxDimension || cfg.Height > maxDimension {
+		t.Errorf(
+			"output dimensions %dx%d exceed the cap of %d: clamp not applied",
+			cfg.Width, cfg.Height, maxDimension,
+		)
+	}
+
+	if cfg.Width == requested || cfg.Height == requested {
+		t.Errorf(
+			"output honoured the unclamped request: %dx%d",
+			cfg.Width, cfg.Height,
+		)
 	}
 }
 
