@@ -3,10 +3,17 @@ import { singular } from 'pluralize';
 import { useMemo } from 'react';
 import { useFormContext } from 'react-hook-form';
 import {
-  FormAutocomplete,
-  type FormAutocompleteOption,
-} from '@/components/form/FormAutocomplete';
+  FormFreeCombobox,
+  type FormFreeComboboxOption,
+} from '@/components/form/FormFreeCombobox';
 import { FormInput } from '@/components/form/FormInput';
+import Combobox, { type ComboboxOption } from '@/components/ui/v3/combobox';
+import {
+  FormField,
+  FormItem,
+  FormLabel,
+  FormMessage,
+} from '@/components/ui/v3/form';
 import { InfoTooltip } from '@/features/orgs/projects/common/components/InfoTooltip';
 import { SQLEditor } from '@/features/orgs/projects/database/dataGrid/components/SQLEditor';
 import type { PostgresFunction } from '@/features/orgs/projects/database/dataGrid/hooks/usePostgresFunctionsQuery';
@@ -61,7 +68,7 @@ export default function ComputedFieldFormFields({
   const selectedSchema = watch('functionSchema');
   const selectedFunctionName = watch('functionName');
 
-  const schemaOptions: FormAutocompleteOption[] = useMemo(
+  const schemaOptions: ComboboxOption[] = useMemo(
     () =>
       [...schemas].sort().map((schema) => ({ value: schema, label: schema })),
     [schemas],
@@ -77,7 +84,7 @@ export default function ComputedFieldFormFields({
     [functions, selectedSchema, table],
   );
 
-  const functionOptions: FormAutocompleteOption[] = useMemo(
+  const functionOptions: FormFreeComboboxOption[] = useMemo(
     () =>
       functionsInSelectedSchema.map((fn) => ({
         value: fn.function_name,
@@ -93,10 +100,6 @@ export default function ComputedFieldFormFields({
       })),
     [functionsInSelectedSchema],
   );
-
-  const handleSchemaChange = () => {
-    setValue('functionName', '', { shouldDirty: true });
-  };
 
   const selectedFunction = useMemo(
     () =>
@@ -153,21 +156,39 @@ export default function ComputedFieldFormFields({
       </div>
       <div className="flex flex-col gap-3">
         <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
-          <FormAutocomplete
+          <FormField
             control={control}
             name="functionSchema"
-            label="Function Schema"
-            aria-label="Function Schema"
-            placeholder="Select a schema"
-            searchPlaceholder="Search schemas..."
-            emptyText={
-              isSchemasLoading ? 'Loading schemas...' : 'No schemas available.'
-            }
-            options={schemaOptions}
-            disabled={fieldsDisabled || isSchemasLoading}
-            onChange={handleSchemaChange}
+            render={({ field, fieldState }) => (
+              <FormItem>
+                <FormLabel>Function Schema</FormLabel>
+                <Combobox
+                  ref={field.ref}
+                  value={field.value ?? null}
+                  onChange={(next) => {
+                    field.onChange(next);
+                    if (next !== field.value) {
+                      setValue('functionName', '', { shouldDirty: true });
+                    }
+                  }}
+                  onBlur={field.onBlur}
+                  options={schemaOptions}
+                  placeholder="Select a schema"
+                  searchPlaceholder="Search schemas..."
+                  emptyText={
+                    isSchemasLoading
+                      ? 'Loading schemas...'
+                      : 'No schemas available.'
+                  }
+                  disabled={fieldsDisabled || isSchemasLoading}
+                  aria-label="Function Schema"
+                  aria-invalid={!!fieldState.error}
+                />
+                <FormMessage />
+              </FormItem>
+            )}
           />
-          <FormAutocomplete
+          <FormFreeCombobox
             control={control}
             name="functionName"
             label="Function Name"
@@ -183,7 +204,6 @@ export default function ComputedFieldFormFields({
             }
             options={functionOptions}
             disabled={fieldsDisabled || isFunctionsLoading || !selectedSchema}
-            allowCustomValue
             customValueLabel={(input) => (
               <span
                 className="flex w-full min-w-0 items-center"
