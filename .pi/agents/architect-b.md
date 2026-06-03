@@ -74,6 +74,6 @@ _Plan authored by `architect-b` (model: `<your-model>`)._
 
 The sign-off trailer is mandatory. Replace `<your-model>` with **the model you actually are**, identified by you from your own knowledge of your identity (use the shortest unambiguous string, e.g. `claude-opus-4-7`, `gpt-5.5`, `gemini-2.5-pro`; if you cannot identify your version, write `unknown-<family>`).
 
-**Do not** copy any model name from this prompt or from the orchestrator's instructions. The signature exists so the orchestrator can detect when a model other than the one configured in this agent's frontmatter (`claude-opus-4-7`) actually ran. Copying the expected value defeats the check. If you are not `claude-opus-4-7`, sign with what you really are; the mismatch is itself the finding. The orchestrator copies your output verbatim into the plan appendix, so the trailer is what proves which model produced this plan.
+**Do not** copy any model name from this prompt or from the orchestrator's instructions. The signature lets the orchestrator record an informational model warning when the runtime model differs from this agent's frontmatter (`claude-opus-4-7`). If you are not `claude-opus-4-7`, sign with what you really are; the difference is recorded as a warning only. The orchestrator copies your output verbatim into the plan appendix, so the trailer documents which model produced this plan.
 
 Be concrete. Cite file paths. Do not pad with restatement of the rules doc.

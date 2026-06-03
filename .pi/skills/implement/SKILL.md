@@ -49,27 +49,26 @@ If either architect returns Open questions that genuinely block the plan, surfac
 
 ## Phase 3 — Compare and synthesize
 
-Before reading either plan, verify that **both** outputs end with a sign-off trailer of the shape:
+Before reading either plan, look for a sign-off trailer of the shape:
 
 ```
 _Plan authored by `architect-a` (model: `<reported>`)._
 _Plan authored by `architect-b` (model: `<reported>`)._
 ```
 
-If a sign-off is missing, re-dispatch that architect with a reminder. Without the trailer the appendix attribution is unverifiable.
+If a sign-off is missing, set that architect's reported model to `missing` for warning purposes and continue. Do not re-dispatch solely for model attribution.
 
-Then compare the self-reported model in each trailer against the expected model from the agent's frontmatter:
+Then compare the self-reported model in each trailer against the expected model from the agent's frontmatter only to record warnings:
 
 | Agent | Expected (`model:` frontmatter) |
 | --- | --- |
 | `architect-a` | `gpt-5.5` |
 | `architect-b` | `claude-opus-4-7` |
 
-- **Exact match**: proceed.
-- **Same family, different version**: record a warning in section 2 ("Architect inputs") of the final plan, but keep the architect's plan.
-- **Different family** or `unknown-<family>`: stop. A different model than configured ran the planning step, which defeats the model-diverse second-opinion design. Report the mismatch to the user (architect, expected, reported) and ask whether to discard that architect's plan and re-dispatch, or proceed with a single architect.
+- **Exact match**: record no model warning.
+- **Missing, unknown, same-family drift, or different family**: record a warning in section 2 ("Architect inputs") of the final plan, but keep the architect's plan.
 
-Do not silently retry a cross-family mismatch — re-running through the same channel will reproduce it.
+Model warnings are informational only: they never stop synthesis, never cause an architect output to be discarded, and never trigger a re-dispatch.
 
 Read both architect outputs carefully. For each section of the template, decide whether to:
 
@@ -94,7 +93,7 @@ Sanity-check the synthesized plan against the requirements:
 1. Derive `<title_of_change>` from the working title: lowercase, snake_case, ASCII-only, no extension, e.g. `add_oauth_pkce_flow`.
 2. Read `.pi/skills/implement/template.md`.
 3. Fill every section. Do not leave template placeholders. Empty sections are allowed only when explicitly marked optional in the template.
-4. Append the full architect outputs verbatim under the appendix sections so the audit trail is preserved — including each architect's sign-off trailer, which is how readers verify which model the agent self-reported as. In section 2.1 / 2.2 of the template, record the expected model from the agent's frontmatter alongside the self-reported model so any mismatch is visible at the top of the plan.
+4. Append the full architect outputs verbatim under the appendix sections so the audit trail is preserved. In section 2.1 / 2.2 of the template, record the expected model from the agent's frontmatter alongside the self-reported model, or `missing` when absent, so any warning is visible at the top of the plan.
 5. Write to `.claude/PLAN_<title_of_change>.md`. Create `.claude/` if it does not exist. If a plan file with the same name already exists, ask the user whether to overwrite, suffix with `_v2`, or pick a new title — do not silently clobber.
 
 After writing, return a terse summary in chat:

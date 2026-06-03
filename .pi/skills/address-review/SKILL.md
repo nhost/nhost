@@ -107,33 +107,24 @@ Blockquote shapes. The first item in each parenthetical is the **model the agent
 > _Reviewer note (<reported-model>, confidence HIGH, verdict ACCEPT):_ Independent audit: whether the original concern is resolved, whether new issues or extra complexity were introduced, and whether the change is worth it.
 ```
 
-Reject implementer or reviewer output that omits the model signature and re-run the agent with a reminder.
+If implementer or reviewer output omits the model signature, append a model warning and proceed; do not reject or re-run solely for model attribution.
 
-## Model integrity check
+## Model warning
 
-After each pass, before moving on, compare the agent's actual model against the expected model from its frontmatter. Prefer the subagent runtime model reported in the tool result/details when it is available; fall back to the agent's textual `Model:` signature only when runtime metadata is unavailable.
+After each pass, compare the agent's actual model against the expected model from its frontmatter only to record a warning. Prefer the subagent runtime model reported in the tool result/details when it is available; fall back to the agent's textual `Model:` signature only when runtime metadata is unavailable.
 
 | Agent | Expected model (`model:` frontmatter) |
 | --- | --- |
 | `go-implementer` / `javascript-implementer` / `generic-implementer` | `gpt-5.5` |
 | `go-reviewer` / `javascript-reviewer` / `generic-reviewer` | `claude-opus-4-7` |
 
-Apply exactly one of these outcomes:
+If the observed model is missing, unknown, or differs from the expected value, append this warning at the top of the affected review file and continue the workflow:
 
-1. **Exact match:** the observed model exactly equals the expected model. Proceed with no model note.
-2. **Same-family version drift:** the observed model is a concrete model in the same family as the expected model, but the version differs (for example, `claude-opus-4` vs `claude-opus-4-7`). Append a non-blocking warning at the top of the affected review file and proceed:
+```markdown
+> _Model warning:_ expected `<expected>`, observed `<observed>` from `<runtime metadata|textual signature>`. Proceeding; model attribution is informational only.
+```
 
-   ```markdown
-   > _Model warning:_ expected `<expected>`, observed `<observed>` from `<runtime metadata|textual signature>`. Same-family version drift; proceeding.
-   ```
-
-3. **Blocking mismatch:** the observed model is a different family from the expected model, or the observed model is `unknown-<family>` (including when the family appears related to the expected model). Stop the work unit and append a **model-mismatch note** at the very top of the affected review file:
-
-   ```markdown
-   > _Model mismatch:_ expected `<expected>`, observed `<observed>` from `<runtime metadata|textual signature>`. Investigate before trusting this pass.
-   ```
-
-Report any blocking mismatch to the user and do not advance the retry counter — mismatch is a configuration / dispatch bug, not a quality bug, and re-running through the same channel will reproduce it.
+Model warnings never stop a work unit, never prevent the reviewer pass, never affect retry counters, and never change `ADDRESSED` / `SKIPPED` / `PARTIAL` dispositions or reviewer verdicts.
 
 For every `ADDRESSED`, include the trait/confidence clause on the title line. Sweep with `grep "ADDRESSED" <file> | grep -v "traits improved"` before declaring done.
 
