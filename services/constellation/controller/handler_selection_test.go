@@ -134,28 +134,64 @@ func TestHandlerPost_SkipIncludeRootField(t *testing.T) {
 	}
 }
 
+func assertVariableValidationError(
+	t *testing.T,
+	body map[string]any,
+	wantMessage string,
+	wantPath ...string,
+) {
+	t.Helper()
+
+	errs, ok := body["errors"].([]any)
+	if !ok || len(errs) == 0 {
+		t.Fatalf("expected a variable validation error, got %v", body)
+	}
+
+	errObj, _ := errs[0].(map[string]any)
+
+	msg, _ := errObj["message"].(string)
+	if msg != wantMessage {
+		t.Fatalf("expected error %q, got %q", wantMessage, msg)
+	}
+
+	path, ok := errObj["path"].([]any)
+	if !ok || len(path) != len(wantPath) {
+		t.Fatalf("expected variable path %v, got %v", wantPath, errObj["path"])
+	}
+
+	for i, want := range wantPath {
+		if path[i] != want {
+			t.Fatalf("expected variable path %v, got %v", wantPath, path)
+		}
+	}
+
+	if data, hasData := body["data"]; hasData && data != nil {
+		t.Fatalf("expected no data on validation error, got %v", data)
+	}
+}
+
 func TestHandlerPost_DirectiveVariablesCoercedWhenRequestVariablesEmpty(t *testing.T) {
 	t.Parallel()
 
 	tests := []struct {
-		name            string
-		body            string
-		wantErrContains string
-		wantUsers       bool
+		name           string
+		body           string
+		wantErrMessage string
+		wantUsers      bool
 	}{
 		{
 			name: "missing required directive variable returns validation error",
 			body: `{"query":"query Q($includeUsers: Boolean!) { users @include(if: $includeUsers) { id } }",` +
 				`"operationName":"Q"}`,
-			wantErrContains: "must be defined",
-			wantUsers:       false,
+			wantErrMessage: "must be defined",
+			wantUsers:      false,
 		},
 		{
 			name: "defaulted directive variable is applied",
 			body: `{"query":"query Q($includeUsers: Boolean = true) { users @include(if: $includeUsers) { id } }",` +
 				`"operationName":"Q"}`,
-			wantErrContains: "",
-			wantUsers:       true,
+			wantErrMessage: "",
+			wantUsers:      true,
 		},
 	}
 
@@ -168,22 +204,14 @@ func TestHandlerPost_DirectiveVariablesCoercedWhenRequestVariablesEmpty(t *testi
 				t.Fatalf("expected 200, got %d", code)
 			}
 
-			if tt.wantErrContains != "" {
-				errs, ok := body["errors"].([]any)
-				if !ok || len(errs) == 0 {
-					t.Fatalf("expected a variable validation error, got %v", body)
-				}
-
-				errObj, _ := errs[0].(map[string]any)
-
-				msg, _ := errObj["message"].(string)
-				if !strings.Contains(msg, tt.wantErrContains) {
-					t.Fatalf("expected error containing %q, got %q", tt.wantErrContains, msg)
-				}
-
-				if data, hasData := body["data"]; hasData && data != nil {
-					t.Fatalf("expected no data on validation error, got %v", data)
-				}
+			if tt.wantErrMessage != "" {
+				assertVariableValidationError(
+					t,
+					body,
+					tt.wantErrMessage,
+					"variable",
+					"includeUsers",
+				)
 
 				return
 			}

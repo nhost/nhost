@@ -63,6 +63,8 @@ func responseName(field *ast.Field) string {
 	return field.Name
 }
 
+// forEachSelectedField assumes query was checked with gqlparser's default
+// validation rules; NoFragmentCycles bounds recursion through fragment spreads.
 func forEachSelectedField(
 	selectionSet ast.SelectionSet,
 	query *ast.QueryDocument,

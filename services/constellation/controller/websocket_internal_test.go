@@ -73,9 +73,16 @@ func TestWebSocketHandlerOnSubscribeRejectsMissingRequiredDirectiveVariable(t *t
 		Extensions:    nil,
 	})
 
-	got := firstErrorMessage(t, sendCh)
-	if !strings.Contains(got, "must be defined") {
+	errs := firstErrorPayload(t, sendCh)
+
+	got, _ := errs[0]["message"].(string)
+	if got != "must be defined" {
 		t.Fatalf("expected missing-variable validation error, got %q", got)
+	}
+
+	path, ok := errs[0]["path"].([]any)
+	if !ok || len(path) != 2 || path[0] != "variable" || path[1] != "includeUsers" {
+		t.Fatalf("expected variable path, got %v", errs[0]["path"])
 	}
 
 	if _, exists := h.subs.Load("sub-1"); exists {

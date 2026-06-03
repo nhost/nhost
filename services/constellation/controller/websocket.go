@@ -341,7 +341,7 @@ func parseAndValidateQuery(
 	// the request omitted the variables object.
 	validatedVariables, varErr := coerceVariables(validatedSchema, operation, variables)
 	if varErr != nil {
-		if gqlErrs, ok := errors.AsType[gqlerror.List](varErr); ok {
+		if gqlErrs, ok := gqlValidationErrors(varErr); ok {
 			return nil, nil, nil, formatGQLErrorsAsError(gqlErrs)
 		}
 

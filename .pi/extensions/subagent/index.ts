@@ -41,6 +41,18 @@ type ChildResult = {
   step?: number;
 };
 
+type AvailableModel = {
+  provider: string;
+  id: string;
+  name: string | undefined;
+};
+
+type ModelResolution = {
+  cliModel?: string;
+  displayModel?: string;
+  error?: string;
+};
+
 type AgentActivity = {
   toolName: string;
   summary: string;
@@ -68,6 +80,14 @@ const MAX_RECENT_ACTIVITIES = 5;
 const MAX_ACTIVITY_SUMMARY_CHARS = 100;
 const MAX_LATEST_TEXT_CHARS = 240;
 const PROGRESS_THROTTLE_MS = 150;
+const THINKING_LEVELS = new Set<string>([
+  'off',
+  'minimal',
+  'low',
+  'medium',
+  'high',
+  'xhigh',
+]);
 
 const taskItemSchema = Type.Object({
   agent: Type.String({ description: 'Name of the agent to invoke' }),
@@ -129,6 +149,92 @@ function parseTools(value: unknown): string[] | undefined {
   }
 
   return undefined;
+}
+
+function formatAvailableModel(model: AvailableModel): string {
+  const label = `${model.provider}/${model.id}`;
+  if (!model.name || model.name === model.id) return label;
+
+  return `${label} (${model.name})`;
+}
+
+function splitThinkingLevel(model: string): {
+  model: string;
+  thinkingSuffix: string;
+} {
+  const separator = model.lastIndexOf(':');
+  if (separator === -1) return { model, thinkingSuffix: '' };
+
+  const suffix = model.slice(separator + 1);
+  if (!THINKING_LEVELS.has(suffix)) return { model, thinkingSuffix: '' };
+
+  return {
+    model: model.slice(0, separator),
+    thinkingSuffix: `:${suffix}`,
+  };
+}
+
+function uniqueAvailableModels(models: AvailableModel[]): AvailableModel[] {
+  const seen = new Set<string>();
+  const unique: AvailableModel[] = [];
+
+  for (const model of models) {
+    const key = `${model.provider}/${model.id}`;
+    if (seen.has(key)) continue;
+
+    seen.add(key);
+    unique.push(model);
+  }
+
+  return unique;
+}
+
+function resolveAgentModel(
+  requestedModel: string | undefined,
+  availableModels: AvailableModel[],
+): ModelResolution {
+  if (!requestedModel) return {};
+  if (requestedModel.includes('/')) {
+    return { cliModel: requestedModel, displayModel: requestedModel };
+  }
+
+  const { model, thinkingSuffix } = splitThinkingLevel(requestedModel);
+  const matches = uniqueAvailableModels(
+    availableModels.filter(
+      (available) => available.id === model || available.name === model,
+    ),
+  );
+
+  if (matches.length === 1) {
+    const match = matches[0];
+    if (!match) {
+      return {
+        error: `No available configured model matches "${requestedModel}". Use /login to add a provider or provider-qualify the agent model.`,
+      };
+    }
+
+    const cliModel = `${match.provider}/${match.id}${thinkingSuffix}`;
+
+    return {
+      cliModel,
+      displayModel:
+        cliModel === requestedModel
+          ? cliModel
+          : `${requestedModel} -> ${cliModel}`,
+    };
+  }
+
+  if (matches.length === 0) {
+    return {
+      error: `No available configured model matches "${requestedModel}". Use /login to add a provider or provider-qualify the agent model.`,
+    };
+  }
+
+  return {
+    error: `Ambiguous model "${requestedModel}" matched ${matches
+      .map(formatAvailableModel)
+      .join(', ')}. Provider-qualify the agent model.`,
+  };
 }
 
 function loadAgentsFromDir(
@@ -356,12 +462,15 @@ function formatProgress(progress: AgentProgress): string {
 
   if (progress.activities.length > 0) {
     lines.push('');
-    for (const activity of progress.activities) lines.push(formatActivity(activity));
+    for (const activity of progress.activities)
+      lines.push(formatActivity(activity));
   }
 
   if (progress.latestText) {
     lines.push('');
-    lines.push(`> ${truncateInline(progress.latestText, MAX_LATEST_TEXT_CHARS)}`);
+    lines.push(
+      `> ${truncateInline(progress.latestText, MAX_LATEST_TEXT_CHARS)}`,
+    );
   }
 
   return lines.join('\n');
@@ -410,6 +519,7 @@ async function removeTempFile(tempFile: TempFile | null): Promise<void> {
 async function runAgent(params: {
   defaultCwd: string;
   agents: AgentConfig[];
+  availableModels: AvailableModel[];
   agentName: string;
   task: string;
   cwd?: string;
@@ -444,8 +554,37 @@ async function runAgent(params: {
     };
   }
 
+  const modelResolution = resolveAgentModel(
+    agent.model,
+    params.availableModels,
+  );
+  if (modelResolution.error) {
+    params.onProgress?.({
+      agent: agent.name,
+      agentSource: agent.source,
+      model: agent.model,
+      step: params.step,
+      status: 'failed',
+      activities: [],
+      toolCount: 0,
+      latestText: modelResolution.error,
+      exitCode: 1,
+    });
+
+    return {
+      agent: agent.name,
+      agentSource: agent.source,
+      task: params.task,
+      exitCode: 1,
+      output: '',
+      stderr: modelResolution.error,
+      model: agent.model,
+      step: params.step,
+    };
+  }
+
   const args = ['--mode', 'json', '-p', '--no-session'];
-  if (agent.model) args.push('--model', agent.model);
+  if (modelResolution.cliModel) args.push('--model', modelResolution.cliModel);
   if (agent.tools && agent.tools.length > 0)
     args.push('--tools', agent.tools.join(','));
 
@@ -468,14 +607,14 @@ async function runAgent(params: {
     exitCode: 0,
     output: '',
     stderr: '',
-    model: agent.model,
+    model: modelResolution.cliModel,
     step: params.step,
   };
 
   const progress: AgentProgress = {
     agent: agent.name,
     agentSource: agent.source,
-    model: agent.model,
+    model: modelResolution.displayModel,
     step: params.step,
     status: 'starting',
     activities: [],
@@ -806,9 +945,12 @@ export default function nhostSubagentExtension(pi: ExtensionAPI): void {
       for (const task of params.tasks ?? []) requestedNames.add(task.agent);
       for (const task of params.chain ?? []) requestedNames.add(task.agent);
 
-      const projectAgentsRequested = Array.from(requestedNames)
+      const requestedAgents = Array.from(requestedNames)
         .map((name) => agents.find((agent) => agent.name === name))
-        .filter((agent): agent is AgentConfig => agent?.source === 'project');
+        .filter((agent): agent is AgentConfig => Boolean(agent));
+      const projectAgentsRequested = requestedAgents.filter(
+        (agent) => agent.source === 'project',
+      );
 
       if (
         (params.confirmProjectAgents ?? true) &&
@@ -844,10 +986,25 @@ export default function nhostSubagentExtension(pi: ExtensionAPI): void {
         });
       };
 
+      let availableModels: AvailableModel[] = [];
+      if (
+        requestedAgents.some((agent) =>
+          Boolean(agent.model && !agent.model.includes('/')),
+        )
+      ) {
+        const models = await ctx.modelRegistry.getAvailable();
+        availableModels = models.map((model) => ({
+          provider: model.provider,
+          id: model.id,
+          name: model.name,
+        }));
+      }
+
       if (hasSingle && params.agent && params.task) {
         const result = await runAgent({
           defaultCwd: ctx.cwd,
           agents,
+          availableModels,
           agentName: params.agent,
           task: params.task,
           cwd: params.cwd,
@@ -895,6 +1052,7 @@ export default function nhostSubagentExtension(pi: ExtensionAPI): void {
           const result = await runAgent({
             defaultCwd: ctx.cwd,
             agents,
+            availableModels,
             agentName: item.agent,
             task,
             cwd: item.cwd,
@@ -968,6 +1126,7 @@ export default function nhostSubagentExtension(pi: ExtensionAPI): void {
             runAgent({
               defaultCwd: ctx.cwd,
               agents,
+              availableModels,
               agentName: item.agent,
               task: item.task,
               cwd: item.cwd,

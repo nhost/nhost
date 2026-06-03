@@ -143,7 +143,7 @@ func validateVariables(
 ) (map[string]any, *GraphQLResponse) {
 	validated, err := coerceVariables(schema, operation, variables)
 	if err != nil {
-		if gqlErrs, ok := errors.AsType[gqlerror.List](err); ok {
+		if gqlErrs, ok := gqlValidationErrors(err); ok {
 			return nil, &GraphQLResponse{
 				Data:        nil,
 				Errors:      formatGQLErrors(gqlErrs),
@@ -155,6 +155,18 @@ func validateVariables(
 	}
 
 	return validated, nil
+}
+
+func gqlValidationErrors(err error) (gqlerror.List, bool) {
+	if gqlErrs, ok := errors.AsType[gqlerror.List](err); ok {
+		return gqlErrs, true
+	}
+
+	if gqlErr, ok := errors.AsType[*gqlerror.Error](err); ok {
+		return gqlerror.List{gqlErr}, true
+	}
+
+	return nil, false
 }
 
 func coerceVariables(
