@@ -3,9 +3,11 @@ package controller
 import (
 	"context"
 	"errors"
+	"fmt"
 	"log/slog"
 
 	"github.com/google/uuid"
+	"github.com/vektah/gqlparser/v2/gqlerror"
 
 	"github.com/nhost/nhost/services/constellation/connector/remoteschema"
 	"github.com/nhost/nhost/services/constellation/connector/sql/graphql/queries/arguments"
@@ -18,9 +20,59 @@ var (
 	errRequestBodyTooLarge = errors.New("request body too large")
 	errInternalServerError = errors.New("internal server error")
 	errNoSchemaForRole     = errors.New("no schema available for role")
-	errMultipleOperations  = errors.New("multiple operations found, operationName is required")
 	errOperationNotFound   = errors.New("operation not found")
 )
+
+// operationSelectionMessage returns the Hasura-matching message for an operation
+// that could not be uniquely selected: a supplied operationName that matched no
+// operation, or an omitted name when several operations are present. The strings
+// mirror Hasura graphql-engine verbatim (captured from the live engine). Returns
+// "" when neither case applies, which is unreachable for a validated document.
+func operationSelectionMessage(operationName string, numOperations int) string {
+	switch {
+	case operationName != "":
+		return fmt.Sprintf("no such operation found in the document: %q", operationName)
+	case numOperations > 1:
+		return "exactly one operation has to be present in the document " +
+			"when operationName is not specified"
+	default:
+		return ""
+	}
+}
+
+// newHasuraValidationError wraps a request-level validation message in the
+// gqlValidationError envelope Hasura uses (the "validation-failed" code and the
+// "$" document path inside extensions), so the HTTP and WebSocket paths surface
+// operation-selection failures with an identical wire shape.
+func newHasuraValidationError(msg string) *gqlValidationError {
+	return &gqlValidationError{
+		errs: gqlerror.List{
+			{
+				Message: msg,
+				Extensions: map[string]any{
+					"code": "validation-failed",
+					"path": "$",
+				},
+			},
+		},
+	}
+}
+
+// operationSelectionResponse builds the HTTP GraphQLResponse for a failed
+// operation selection, matching Hasura's wording and extensions. It falls back
+// to the generic operation-not-found envelope for the unreachable residual case.
+func operationSelectionResponse(operationName string, numOperations int) *GraphQLResponse {
+	msg := operationSelectionMessage(operationName, numOperations)
+	if msg == "" {
+		return errResponseOperationNotFound
+	}
+
+	return &GraphQLResponse{
+		Data:        nil,
+		Errors:      formatGQLErrors(newHasuraValidationError(msg).errs),
+		rawResponse: nil,
+	}
+}
 
 // sanitizeConnectorError converts a raw connector/database execution error into
 // a client-safe message. Raw driver errors (pgx/SQLite) carry SQLSTATE codes,
@@ -153,13 +205,6 @@ var (
 	errResponseOperationNotFound = &GraphQLResponse{
 		Data:        nil,
 		Errors:      []map[string]any{{"message": "operation not found"}},
-		rawResponse: nil,
-	}
-	errResponseMultipleOperations = &GraphQLResponse{
-		Data: nil,
-		Errors: []map[string]any{
-			{"message": "operation name is required when multiple operations are present"},
-		},
 		rawResponse: nil,
 	}
 	errResponseNoConnector = &GraphQLResponse{

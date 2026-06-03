@@ -91,8 +91,11 @@ func (c *Controller) Resolve(
 	}
 
 	operation := selectOperation(query, req.OperationName)
-	if operation == nil && len(query.Operations) > 1 {
-		return errResponseMultipleOperations, nil
+	if operation == nil {
+		// Distinguish the two failure modes Hasura reports separately: a
+		// supplied operationName that matched nothing (not-found) versus an
+		// omitted name when several operations are present (ambiguous).
+		return operationSelectionResponse(req.OperationName, len(query.Operations)), nil
 	}
 
 	validatedVariables, varResp := validateVariables(validatedSchema, operation, req.Variables)
@@ -130,21 +133,17 @@ func selectOperation(
 
 // validateVariables coerces request variables against the operation's typed
 // variable definitions. Returns the coerced map on success, or a
-// GraphQLResponse wrapping the validation errors. When the operation is nil
-// or no variables were supplied, the original variables map is returned
-// untouched.
+// GraphQLResponse wrapping the validation errors. Missing required variables
+// and declared defaults are handled even when the request omitted the variables
+// object.
 func validateVariables(
 	schema *ast.Schema,
 	operation *ast.OperationDefinition,
 	variables map[string]any,
 ) (map[string]any, *GraphQLResponse) {
-	if operation == nil || len(variables) == 0 {
-		return variables, nil
-	}
-
-	validated, err := validator.VariableValues(schema, operation, variables)
+	validated, err := coerceVariables(schema, operation, variables)
 	if err != nil {
-		if gqlErrs, ok := errors.AsType[gqlerror.List](err); ok {
+		if gqlErrs, ok := gqlValidationErrors(err); ok {
 			return nil, &GraphQLResponse{
 				Data:        nil,
 				Errors:      formatGQLErrors(gqlErrs),
@@ -153,6 +152,35 @@ func validateVariables(
 		}
 
 		return nil, errorResponse(err.Error())
+	}
+
+	return validated, nil
+}
+
+func gqlValidationErrors(err error) (gqlerror.List, bool) {
+	if gqlErrs, ok := errors.AsType[gqlerror.List](err); ok {
+		return gqlErrs, true
+	}
+
+	if gqlErr, ok := errors.AsType[*gqlerror.Error](err); ok {
+		return gqlerror.List{gqlErr}, true
+	}
+
+	return nil, false
+}
+
+func coerceVariables(
+	schema *ast.Schema,
+	operation *ast.OperationDefinition,
+	variables map[string]any,
+) (map[string]any, error) {
+	if operation == nil || (len(variables) == 0 && len(operation.VariableDefinitions) == 0) {
+		return variables, nil
+	}
+
+	validated, err := validator.VariableValues(schema, operation, variables)
+	if err != nil {
+		return nil, fmt.Errorf("coercing variables: %w", err)
 	}
 
 	return validated, nil
@@ -174,87 +202,122 @@ func (c *Controller) execute(
 		return errResponseOperationNotFound
 	}
 
-	if isIntrospectionQuery(operation) {
-		return &GraphQLResponse{
-			Data:        introspection.Execute(schema, operation, query),
-			Errors:      nil,
-			rawResponse: nil,
-		}
-	}
+	// Normalize the root selection set once, up front: evaluate @skip/@include
+	// and expand root-level fragment spreads / inline fragments into plain
+	// fields. Every downstream walk (routing, planning, connector execution)
+	// then sees the same field-only, directive-resolved view, so directives and
+	// root fragments are handled in exactly one place. The cached query document
+	// is never mutated — normalization returns fresh nodes.
+	operation = transform.BuildSubOperation(
+		operation, normalizeRootSelections(operation.SelectionSet, fragments, variables),
+	)
+	fragments = pruneFragments(fragments, variables)
 
-	plan, err := state.queryPlanner.Plan(operation, fragments, role)
-	if err != nil {
-		// validatedSchemas is checked upstream; Plan only errs on internal
-		// failures and ErrSchemaForRoleNotFound (which is unreachable here).
-		return errorResponse(fmt.Errorf("planning query: %w", err).Error())
-	}
-
-	if plan.HasRemoteQueries() && operation.Operation == ast.Subscription {
-		return errorResponse("remote relationships are not supported in subscriptions")
-	}
-
-	fieldsByConnector, resp := groupFieldsByConnector(state, operation)
+	// Partition the normalized root fields into introspection meta-fields
+	// (__schema/__type/__typename), resolved locally, and connector-backed data
+	// fields, routed to their owning connector.
+	dataByConnector, metaSelections, resp := groupFieldsByConnector(state, operation)
 	if resp != nil {
 		return resp
 	}
 
-	return c.runConnectorsAndStitch(
-		ctx, state, plan, operation, fieldsByConnector,
+	if len(metaSelections) > 0 {
+		return c.executeWithMeta(
+			ctx, state, schema, query, operation, metaSelections,
+			dataByConnector, fragments, variables, role, sessionVariables, logger,
+		)
+	}
+
+	if len(dataByConnector) == 0 {
+		// Every root field was excluded by @skip/@include. Hasura returns an
+		// empty data object for this case.
+		return &GraphQLResponse{Data: map[string]any{}, Errors: nil, rawResponse: nil}
+	}
+
+	return c.executeDataOnly(
+		ctx, state, operation, dataByConnector,
 		fragments, variables, role, sessionVariables, logger,
 	)
 }
 
-// runConnectorsAndStitch fans the planned operation out to the owning
-// connectors, merges their results, resolves any cross-connector
-// relationships, and produces the final GraphQLResponse — selecting the
-// raw-bytes fast path when every result is already serialised JSON.
-func (c *Controller) runConnectorsAndStitch(
+// executeWithMeta resolves introspection meta-fields locally and, for mixed
+// operations, merges the connector-backed data into the same payload.
+// Introspection produces Go maps, so the response is always marshalled (no raw
+// fast path); raw jsontext.Value data values still marshal correctly inside the
+// merged map.
+func (c *Controller) executeWithMeta(
 	ctx context.Context,
 	state *controllerState,
-	plan *planner.QueryPlan,
+	schema *ast.Schema,
+	query *ast.QueryDocument,
 	operation *ast.OperationDefinition,
-	fieldsByConnector map[string][]ast.Selection,
+	metaSelections []ast.Selection,
+	dataByConnector map[string][]ast.Selection,
 	fragments ast.FragmentDefinitionList,
 	variables map[string]any,
 	role string,
 	sessionVariables map[string]any,
 	logger *slog.Logger,
 ) *GraphQLResponse {
-	// Requests that fan out to multiple root connectors, or that will resolve
-	// remote relationships after the root pass, run every side-effect-free
-	// connector validation step before executing any root connector. A structured
-	// argument failure (e.g. a distinct_on / order_by mismatch or negative
-	// offset) must reject the whole request the way Hasura does, with no partial
-	// data and — for mutations — no side effects from connectors that would
-	// otherwise run before the invalid
-	// relationship query is discovered. Plain single-connector requests skip this
-	// pre-pass because Execute already runs the same build/validation before
-	// touching the database.
-	if len(fieldsByConnector) > 1 || plan.HasRemoteQueries() {
-		if resp := c.validateConnectors(
-			state, plan, operation, fieldsByConnector, fragments, variables, role, sessionVariables,
-		); resp != nil {
-			return resp
-		}
+	metaOp := transform.BuildSubOperation(operation, metaSelections)
+	metaQuery := *query
+	metaQuery.Fragments = fragments
+	results := introspection.Execute(schema, metaOp, &metaQuery)
+
+	if len(dataByConnector) == 0 {
+		return &GraphQLResponse{Data: results, Errors: nil, rawResponse: nil}
 	}
 
-	results, allErrors := c.executeConnectors(
-		ctx, state, plan, operation, fieldsByConnector,
-		fragments, variables, role, sessionVariables, logger,
+	dataResults, errs, fatal := c.resolveData(
+		ctx, state, operation, dataByConnector,
+		fragments, variables, role, sessionVariables, logger, true,
 	)
-
-	if len(allErrors) > 0 {
-		return errorsResponse(results, allErrors)
+	if fatal != nil {
+		return fatal
 	}
 
-	if resp := c.resolveRemoteRelationships(
-		ctx, state, results, plan,
-		fragments, variables, role, sessionVariables, logger,
-	); resp != nil {
-		return resp
+	maps.Copy(results, dataResults)
+
+	if len(errs) > 0 {
+		return &GraphQLResponse{Data: results, Errors: errs, rawResponse: nil}
 	}
 
-	removePhantomFieldsFromPlan(results, plan)
+	return &GraphQLResponse{Data: results, Errors: nil, rawResponse: nil}
+}
+
+// executeDataOnly plans and runs the connector-backed root fields and builds the
+// final response, selecting the raw-bytes fast path when every result is already
+// serialised JSON. It is the pure-data path (no introspection meta-fields).
+func (c *Controller) executeDataOnly(
+	ctx context.Context,
+	state *controllerState,
+	operation *ast.OperationDefinition,
+	dataByConnector map[string][]ast.Selection,
+	fragments ast.FragmentDefinitionList,
+	variables map[string]any,
+	role string,
+	sessionVariables map[string]any,
+	logger *slog.Logger,
+) *GraphQLResponse {
+	results, errs, fatal := c.resolveData(
+		ctx,
+		state,
+		operation,
+		dataByConnector,
+		fragments,
+		variables,
+		role,
+		sessionVariables,
+		logger,
+		false,
+	)
+	if fatal != nil {
+		return fatal
+	}
+
+	if len(errs) > 0 {
+		return errorsResponse(results, errs)
+	}
 
 	// Fast path: if all results are raw JSON, bypass json.Marshal entirely.
 	if raw := buildRawResponse(results); raw != nil {
@@ -272,24 +335,131 @@ func (c *Controller) runConnectorsAndStitch(
 	}
 }
 
-// groupFieldsByConnector maps each root field in the operation to its owning connector.
-func groupFieldsByConnector(
+// resolveData fans the connector-backed root fields out to their owning
+// connectors, merges results, and resolves cross-connector relationships. It
+// returns the merged results map plus either fatal (a response that must be
+// returned as-is: planning failure, structured argument error, or
+// remote-relationship failure) or errs (per-connector partial errors, with
+// phantom join columns already stripped from results so they never leak — even
+// on the partial-error path).
+//
+// requirePrevalidation forces root connector validation even for a single
+// connector. Mixed meta+data operations use it so structured argument errors
+// can reject the whole request before any locally-resolved meta data is
+// returned.
+func (c *Controller) resolveData(
+	ctx context.Context,
 	state *controllerState,
 	operation *ast.OperationDefinition,
-) (map[string][]ast.Selection, *GraphQLResponse) {
-	fieldsByConnector := make(map[string][]ast.Selection)
-	for _, selection := range operation.SelectionSet {
-		if field, ok := selection.(*ast.Field); ok {
-			connName := state.fieldToConnector[field.Name]
-			if connName == "" {
-				return nil, errResponseNoConnector
-			}
+	dataByConnector map[string][]ast.Selection,
+	fragments ast.FragmentDefinitionList,
+	variables map[string]any,
+	role string,
+	sessionVariables map[string]any,
+	logger *slog.Logger,
+	requirePrevalidation bool,
+) (map[string]any, []map[string]any, *GraphQLResponse) {
+	plan, err := state.queryPlanner.Plan(operation, fragments, role)
+	if err != nil {
+		// validatedSchemas is checked upstream; Plan only errs on internal
+		// failures and ErrSchemaForRoleNotFound (which is unreachable here).
+		return nil, nil, errorResponse(fmt.Errorf("planning query: %w", err).Error())
+	}
 
-			fieldsByConnector[connName] = append(fieldsByConnector[connName], selection)
+	if plan.HasRemoteQueries() && operation.Operation == ast.Subscription {
+		return nil, nil, errorResponse("remote relationships are not supported in subscriptions")
+	}
+
+	// Requests that fan out to multiple root connectors, or that will resolve
+	// remote relationships after the root pass, run every side-effect-free
+	// connector validation step before executing any root connector. A structured
+	// argument failure (e.g. a distinct_on / order_by mismatch or negative
+	// offset) must reject the whole request the way Hasura does, with no partial
+	// data and — for mutations — no side effects from connectors that would
+	// otherwise run before the invalid relationship query is discovered. Plain
+	// single-connector data-only requests skip this pre-pass because Execute
+	// already runs the same build/validation before touching the database.
+	if requirePrevalidation || len(dataByConnector) > 1 || plan.HasRemoteQueries() {
+		if resp := c.validateConnectors(
+			state, plan, operation, dataByConnector, fragments, variables, role, sessionVariables,
+		); resp != nil {
+			return nil, nil, resp
 		}
 	}
 
-	return fieldsByConnector, nil
+	results, allErrors := c.executeConnectors(
+		ctx, state, plan, operation, dataByConnector,
+		fragments, variables, role, sessionVariables, logger,
+	)
+
+	if len(allErrors) > 0 {
+		// Strip phantom join columns even on the partial-error path so the
+		// internal join keys the planner injected never reach the client. The
+		// error branch skips resolveRemoteRelationships, so SQL results are still
+		// raw jsontext.Value; unmarshal them first because Path.Delete only
+		// traverses parsed maps/slices. Failure to unmarshal must not fail the
+		// already-degraded response — log and continue.
+		if plan.HasRemoteQueries() {
+			if err := unmarshalRawResults(results); err != nil {
+				logger.WarnContext(
+					ctx, "could not unmarshal partial results for phantom cleanup",
+					slog.String("error", err.Error()),
+				)
+			}
+
+			removePhantomFieldsFromPlan(results, plan)
+		}
+
+		return results, allErrors, nil
+	}
+
+	if resp := c.resolveRemoteRelationships(
+		ctx, state, results, plan,
+		fragments, variables, role, sessionVariables, logger,
+	); resp != nil {
+		return nil, nil, resp
+	}
+
+	removePhantomFieldsFromPlan(results, plan)
+
+	return results, nil, nil
+}
+
+// groupFieldsByConnector partitions the normalized root selection set into
+// introspection meta-fields (resolved locally) and per-connector data fields.
+// It assumes normalizeRootSelections already expanded root fragments, so every
+// selection is a plain *ast.Field. Meta-fields (__schema/__type/__typename) are
+// returned separately; every other field is routed to its owning connector.
+// Returns an error response when a data field has no connector.
+func groupFieldsByConnector(
+	state *controllerState,
+	operation *ast.OperationDefinition,
+) (map[string][]ast.Selection, []ast.Selection, *GraphQLResponse) {
+	fieldsByConnector := make(map[string][]ast.Selection)
+
+	var metaSelections []ast.Selection
+
+	for _, selection := range operation.SelectionSet {
+		field, ok := selection.(*ast.Field)
+		if !ok {
+			continue
+		}
+
+		if isMetaField(field.Name) {
+			metaSelections = append(metaSelections, selection)
+
+			continue
+		}
+
+		connName := state.fieldToConnector[field.Name]
+		if connName == "" {
+			return nil, nil, errResponseNoConnector
+		}
+
+		fieldsByConnector[connName] = append(fieldsByConnector[connName], selection)
+	}
+
+	return fieldsByConnector, metaSelections, nil
 }
 
 // validateConnectors runs each owning connector's pre-execution validation over
@@ -409,9 +579,12 @@ func (c *Controller) executeConnectors(
 	return results, allErrors
 }
 
-// buildConnectorOperation returns the operation and fragments to send to a connector.
-// If the planner produced a clean operation (with relationship fields stripped),
-// that is preferred. Otherwise a sub-operation is built from the raw selections.
+// buildConnectorOperation returns the executable operation and fragments to
+// send to a connector. If the planner produced a clean operation (with
+// relationship fields stripped), that is preferred. Otherwise a sub-operation is
+// built from the raw selections. In both cases unused fragments and variable
+// definitions are pruned so remote schemas receive a self-contained document
+// that still validates after root-fragment expansion and directive pruning.
 func buildConnectorOperation(
 	plan *planner.QueryPlan,
 	connName string,
@@ -421,11 +594,11 @@ func buildConnectorOperation(
 ) (*ast.OperationDefinition, ast.FragmentDefinitionList) {
 	if plan != nil {
 		if pq := plan.GetPrimaryQueryForConnector(connName); pq != nil && pq.CleanOperation != nil {
-			return pq.CleanOperation, pq.CleanFragments
+			return pruneConnectorDocument(pq.CleanOperation, pq.CleanFragments)
 		}
 	}
 
-	return transform.BuildSubOperation(operation, selections), fragments
+	return pruneConnectorDocument(transform.BuildSubOperation(operation, selections), fragments)
 }
 
 // resolveRemoteRelationships handles cross-connector relationship resolution.
@@ -503,18 +676,6 @@ func errorsResponse(results map[string]any, errs []map[string]any) *GraphQLRespo
 		Errors:      errs,
 		rawResponse: nil,
 	}
-}
-
-func isIntrospectionQuery(operation *ast.OperationDefinition) bool {
-	for _, selection := range operation.SelectionSet {
-		if field, ok := selection.(*ast.Field); ok {
-			if field.Name == "__schema" || field.Name == "__type" {
-				return true
-			}
-		}
-	}
-
-	return false
 }
 
 // loadQuery parses and validates a GraphQL query, using the LRU cache to

@@ -6,21 +6,25 @@ argument-hint: <glob> (for example PR_4327_COMMENT_*.md)
 
 # Address Review — Native Pi Workflow
 
-You are the orchestrator for addressing review findings under `.review/`. Use the native Pi project agents in `.pi/agents/` through the `subagent` tool:
+You are the orchestrator for addressing review findings under `.review/`. Each language has a paired implementer/reviewer in `.pi/agents/`:
 
-- `go-developer` for Go files.
-- `javascript-developer` for JS/TS files.
-- `generic-developer` for everything else and mixed-language findings.
+| Language | Implementer | Reviewer |
+| --- | --- | --- |
+| Go | `go-implementer` | `go-reviewer` |
+| JS/TS | `javascript-implementer` | `javascript-reviewer` |
+| Everything else / mixed | `generic-implementer` | `generic-reviewer` |
 
-If the `subagent` tool is unavailable, perform the same sequential implementer/reviewer workflow inline after reading the relevant `.pi/agents/*.md` prompt and rules documents.
+Dispatch them through the `subagent` tool with `agentScope: "project"`. The implementer edits code; the reviewer validates the change without editing.
+
+If the `subagent` tool is unavailable, perform the same sequential implementer/reviewer workflow inline after reading the relevant `.pi/agents/*.md` prompts and rules documents.
 
 ## Core rule
 
 Process findings **one work unit at a time**. Never run implementer agents in parallel. For each work unit:
 
-1. Spawn one implementer subagent in development mode.
+1. Spawn the implementer subagent (`go-implementer` / `javascript-implementer` / `generic-implementer`).
 2. Wait for it to finish.
-3. Spawn one fresh reviewer subagent of the same type in review mode.
+3. Spawn a fresh reviewer subagent of the matching language (`go-reviewer` / `javascript-reviewer` / `generic-reviewer`).
 4. Wait for it to finish.
 5. Only then move to the next work unit.
 
@@ -36,14 +40,14 @@ ls .review/<glob>
 
 Read each file. Enumerate findings in order. Default to one finding per work unit. Group findings only when they are genuinely intertwined (same function, SQL builder, fixture, or symbol rename), and justify the grouping.
 
-Route each work unit by the `**File:**` headers in the finding:
+Route each work unit by the `**File:**` headers in the finding. Use the implementer for step 1 and the matching reviewer for step 3:
 
-| Files in finding | Agent |
-| --- | --- |
-| all `*.go` | `go-developer` |
-| all JS/TS extensions | `javascript-developer` |
-| all other single-language files | `generic-developer` |
-| mixed languages | `generic-developer` |
+| Files in finding | Implementer (step 1) | Reviewer (step 3) |
+| --- | --- | --- |
+| all `*.go` | `go-implementer` | `go-reviewer` |
+| all JS/TS extensions | `javascript-implementer` | `javascript-reviewer` |
+| all other single-language files | `generic-implementer` | `generic-reviewer` |
+| mixed languages | `generic-implementer` | `generic-reviewer` |
 
 ## The five target traits
 
@@ -95,19 +99,47 @@ Disposition tokens:
 - `SKIPPED — <result-quality rationale>`
 - `PARTIAL — *traits improved: <traits>; confidence HIGH|MEDIUM|LOW*` only when sub-items have mixed dispositions.
 
-Blockquote shapes:
+Blockquote shapes. The first item in each parenthetical is the **model the agent self-identified as** when it ran. The agent reports this; the orchestrator does not fill it in:
 
 ```markdown
-> _Implementer note (confidence HIGH):_ What changed, or why the result would not improve the code.
+> _Implementer note (<reported-model>, confidence HIGH):_ What changed, or why the result would not improve the code.
 >
-> _Reviewer note (confidence HIGH, verdict ACCEPT):_ Independent audit: whether the original concern is resolved, whether new issues or extra complexity were introduced, and whether the change is worth it.
+> _Reviewer note (<reported-model>, confidence HIGH, verdict ACCEPT):_ Independent audit: whether the original concern is resolved, whether new issues or extra complexity were introduced, and whether the change is worth it.
 ```
+
+Reject implementer or reviewer output that omits the model signature and re-run the agent with a reminder.
+
+## Model integrity check
+
+After each pass, before moving on, compare the agent's actual model against the expected model from its frontmatter. Prefer the subagent runtime model reported in the tool result/details when it is available; fall back to the agent's textual `Model:` signature only when runtime metadata is unavailable.
+
+| Agent | Expected model (`model:` frontmatter) |
+| --- | --- |
+| `go-implementer` / `javascript-implementer` / `generic-implementer` | `gpt-5.5` |
+| `go-reviewer` / `javascript-reviewer` / `generic-reviewer` | `claude-opus-4-7` |
+
+Apply exactly one of these outcomes:
+
+1. **Exact match:** the observed model exactly equals the expected model. Proceed with no model note.
+2. **Same-family version drift:** the observed model is a concrete model in the same family as the expected model, but the version differs (for example, `claude-opus-4` vs `claude-opus-4-7`). Append a non-blocking warning at the top of the affected review file and proceed:
+
+   ```markdown
+   > _Model warning:_ expected `<expected>`, observed `<observed>` from `<runtime metadata|textual signature>`. Same-family version drift; proceeding.
+   ```
+
+3. **Blocking mismatch:** the observed model is a different family from the expected model, or the observed model is `unknown-<family>` (including when the family appears related to the expected model). Stop the work unit and append a **model-mismatch note** at the very top of the affected review file:
+
+   ```markdown
+   > _Model mismatch:_ expected `<expected>`, observed `<observed>` from `<runtime metadata|textual signature>`. Investigate before trusting this pass.
+   ```
+
+Report any blocking mismatch to the user and do not advance the retry counter — mismatch is a configuration / dispatch bug, not a quality bug, and re-running through the same channel will reproduce it.
 
 For every `ADDRESSED`, include the trait/confidence clause on the title line. Sweep with `grep "ADDRESSED" <file> | grep -v "traits improved"` before declaring done.
 
 ## Implementer subagent prompt requirements
 
-For each work unit, call `subagent` in single mode with `agentScope: "project"` and the routed agent. The implementer prompt must include:
+For each work unit, call `subagent` in single mode with `agentScope: "project"` and the routed implementer (`go-implementer` / `javascript-implementer` / `generic-implementer`). The implementer prompt must include:
 
 - Review file absolute path.
 - Exact finding ID(s) it owns; explicitly forbid touching other findings.
@@ -115,7 +147,7 @@ For each work unit, call `subagent` in single mode with `agentScope: "project"` 
 - The disposition and annotation format.
 - This exact instruction:
 
-  **"You are in development mode. Skipping because the work is large, tedious, or touches many files will not be tolerated. Every SKIP rationale must describe what is wrong with the resulting code, not the work to get there. If you cannot articulate a result-quality SKIP, address the finding."**
+  **"Skipping because the work is large, tedious, or touches many files will not be tolerated. Every SKIP rationale must describe what is wrong with the resulting code, not the work to get there. If you cannot articulate a result-quality SKIP, address the finding."**
 
 - Reminder that the agent's startup protocol is mandatory before edits.
 - Expected return:
@@ -128,23 +160,24 @@ For each work unit, call `subagent` in single mode with `agentScope: "project"` 
 
 ## Reviewer subagent prompt requirements
 
-After the implementer returns, call a fresh subagent of the same type in review mode. The reviewer prompt must include:
+After the implementer returns, call a fresh subagent in the matching reviewer (`go-reviewer` for `go-implementer`, `javascript-reviewer` for `javascript-implementer`, `generic-reviewer` for `generic-implementer`). The reviewer prompt must include:
 
 - Review file absolute path.
 - Finding ID(s).
 - Implementer's summary and touched files.
 - The five target traits and skip rules.
-- The annotation format.
+- The annotation format (output shape **A** from the reviewer agent prompt: a single blockquote below the implementer note).
 - This exact instruction:
 
-  **"You are in review mode. Do not edit code files. Read the original finding, the implementer note, and the actual diff. Write a reviewer note directly below the implementer note. Return `verdict: ACCEPT`, `ACCEPT_WITH_CONCERNS`, or `REJECT`."**
+  **"Read the original finding, the implementer note, and the actual diff. Validate that the change was actually needed and that it adheres to the repo's code rules and conventions. Write a reviewer note directly below the implementer note. Return `verdict: ACCEPT`, `ACCEPT_WITH_CONCERNS`, or `REJECT`."**
 
 Reviewer checklist:
 
-1. Does the change resolve the original finding? For `SKIPPED`, is the rationale result-quality based and not effort-based?
-2. Does the change introduce new issues? Run targeted lint/tests when appropriate.
-3. Does the change add complexity that outweighs the benefit?
-4. Is the change worth it on balance?
+1. Was the change actually needed? Is the original concern real and resolved by the diff? For `SKIPPED`, is the rationale result-quality based and not effort-based?
+2. Does the change adhere to the language rules doc and project `CLAUDE.md` conventions?
+3. Does the change introduce new issues? Run targeted lint/tests when appropriate.
+4. Does the change add complexity that outweighs the benefit?
+5. Is the change worth it on balance?
 
 If the reviewer returns `REJECT`, run a new implementer pass with the reviewer feedback, then a fresh reviewer pass. Cap at two retries per work unit; if still rejected, stop and report the finding to the user.
 

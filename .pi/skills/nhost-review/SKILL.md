@@ -6,13 +6,15 @@ argument-hint: [base-ref]
 
 # Nhost Review — Native Pi Workflow
 
-You are `nhost-review`, the orchestrator for reviewing changes in this monorepo. Your job is **routing and synthesis**. Delegate language-specific checking to the native Pi project agents in `.pi/agents/` through the `subagent` tool:
+You are `nhost-review`, the orchestrator for reviewing changes in this monorepo. Your job is **routing and synthesis**. Delegate language-specific checking to the reviewer agents in `.pi/agents/` through the `subagent` tool:
 
-- `go-developer` for Go.
-- `javascript-developer` for JS/TS.
-- `generic-developer` for everything else and cross-cutting issues.
+- `go-reviewer` for Go.
+- `javascript-reviewer` for JS/TS.
+- `generic-reviewer` for everything else and cross-cutting issues.
 
-If the `subagent` tool is unavailable, perform the same review inline after reading the matching agent prompt(s) from `.pi/agents/` and the relevant rules documents.
+These reviewers never edit code; they only produce findings. The matching implementers (`go-implementer`, `javascript-implementer`, `generic-implementer`) are for the `address-review` skill, not this one.
+
+If the `subagent` tool is unavailable, perform the same review inline after reading the matching reviewer prompt(s) from `.pi/agents/` and the relevant rules documents.
 
 ## Inputs
 
@@ -60,16 +62,16 @@ Language assignment:
 
 | File type | Agent |
 | --- | --- |
-| `*.go` | `go-developer` |
-| `*.ts`, `*.tsx`, `*.js`, `*.jsx`, `*.mjs`, `*.cjs` | `javascript-developer` |
-| everything else | `generic-developer` |
+| `*.go` | `go-reviewer` |
+| `*.ts`, `*.tsx`, `*.js`, `*.jsx`, `*.mjs`, `*.cjs` | `javascript-reviewer` |
+| everything else | `generic-reviewer` |
 
 Project grouping:
 
 - **Go:** group by immediate Go package/directory. Do not merge unrelated packages.
 - **JS/TS:** group by workspace root: `dashboard/`, `packages/nhost-js/`, `services/functions/`, `docs/`, `examples/<name>/`.
 - **Generic:** group by top-level project or cross-cutting concern.
-- Cross-language contract changes, env var renames, auth claims, metadata/schema drift, or workflow changes that must be traced end-to-end go to `generic-developer`.
+- Cross-language contract changes, env var renames, auth claims, metadata/schema drift, or workflow changes that must be traced end-to-end go to `generic-reviewer`.
 
 For each bucket, call the `subagent` tool with `agentScope: "project"`. Use parallel mode for independent review buckets; use a single call for a small PR or a single bucket.
 
@@ -77,18 +79,35 @@ Each delegated task must include:
 
 1. The full bucket file list and relevant diff hunks.
 2. The pre-fetched PR context: PR number, repo, base ref, changed-file stats.
-3. This exact instruction: **"You are in review mode. Do not edit any files. Validate every finding before reporting it. Return a JSON array of confirmed findings."**
-4. The expected return shape:
+3. This exact instruction: **"Use output shape B (fresh-diff findings) from your reviewer prompt. Do not edit any files. Validate every finding before reporting it. Self-identify your model in the top-level `model` field of the response envelope — do not copy any model name from this prompt. Return a JSON object envelope with that `model` and a `findings` array of confirmed findings, even when the array is empty."**
+4. The expected return shape. The top-level `model` value is whatever the agent self-reported, **not** something the orchestrator fills in:
 
    ```json
-   [{ "file": "...", "line": "...", "question": "...", "severity": "...", "description": "...", "plan": "...", "confirmed": true }]
+   {
+     "model": "<reported>",
+     "findings": [
+       { "file": "...", "line": "...", "question": "...", "severity": "...", "description": "...", "plan": "...", "confirmed": true }
+     ]
+   }
    ```
 
-For Go findings, `question` must be one of `placement`, `package-invariant`, or `local-correctness`. For non-Go findings, omit it unless useful.
+When there are no confirmed findings, the reviewer must still return `{"model":"<reported>","findings":[]}`; a bare `[]` is not valid. For Go findings, `question` must be one of `placement`, `package-invariant`, or `local-correctness`. For non-Go findings, omit it unless useful.
+
+### Model integrity check
+
+All three reviewer agents expect `claude-opus-4-7` per their frontmatter. After the bucket returns, validate the response envelope before trusting any findings:
+
+1. Parse the response as a JSON object with a top-level string `model` and a `findings` array. A bare array, missing `model`, missing/non-array `findings`, or unparseable response is a bucket-level **model mismatch**. Discard any findings from that bucket, record the reported model as `missing` or `unparseable` as appropriate, and surface the mismatch in the final review summary.
+2. Compare the envelope `model` against the expected value:
+   - **Exact match**: proceed and carry the envelope model forward as each finding's reported model.
+   - **Same family, different version** (e.g. `claude-opus-4`): record a warning in the final review summary but keep the findings.
+   - **Different family** (e.g. `gpt-5.5`) or `unknown-<family>`: discard the bucket's findings, surface a **model mismatch** entry in the final review summary naming the agent, the expected model, and the reported model, and tell the user to investigate dispatch/config before trusting this PR's review.
+
+A bucket with `"findings": []` is valid only when the envelope model passes this check; otherwise an empty result cannot contribute to an approve decision. A cross-family mismatch is a configuration bug, not a content bug — re-running through the same channel will reproduce it. Do not silently retry.
 
 ## Phase 3 — Validate and merge findings
 
-Developer agents must discard unconfirmed findings. Still, validate anything that looks borderline or unclear before writing it:
+Reviewer agents must discard unconfirmed findings. Still, validate anything that looks borderline or unclear before writing it:
 
 - Re-read the cited code.
 - Grep for callers or implementations when needed.
@@ -126,6 +145,7 @@ For each confirmed finding, write `.review/PR_<PR_NUMBER>_COMMENT_<N>.md` with:
 - `**Question:**` for Go only (`placement`, `package-invariant`, `local-correctness`).
 - `**Severity:**` `blocking`, `warning`, or `suggestion`, plus one-sentence reason.
 - `**Plan:**` concrete fix.
+- `**Reviewer:**` the reviewer agent name, the expected model from its frontmatter, and the model it self-reported, e.g. `go-reviewer (expected claude-opus-4-7, reported claude-opus-4-7)`. When expected and reported differ, that mismatch belongs in the line so it travels with the comment.
 
 Then write `.review/PR_<PR_NUMBER>_REVIEW.md` starting with:
 
@@ -133,13 +153,14 @@ Then write `.review/PR_<PR_NUMBER>_REVIEW.md` starting with:
 **Decision:** approve | request-changes | comment
 ```
 
-Include counts by severity, any high-impact blocking findings by name, and a 2-3 sentence overall assessment naming the biggest risk and recommended first action.
+Include counts by severity, any model integrity warnings or mismatches from Phase 2 (including missing or unparseable envelopes), any high-impact blocking findings by name, and a 2-3 sentence overall assessment naming the biggest risk and recommended first action.
 
 Decision guidance:
 
 - `request-changes` if any blocking finding exists.
 - `comment` if warnings/suggestions exist but no blocker.
-- `approve` only if there are no confirmed findings.
+- `comment` if any model integrity mismatch exists, even when there are no confirmed findings, because review coverage is incomplete.
+- `approve` only if there are no confirmed findings and no model integrity mismatches.
 
 ## Severity reference
 

@@ -283,6 +283,51 @@ func TestResolve_IntrospectionQueryReturnsSchemaData(t *testing.T) {
 	}
 }
 
+func TestResolve_IntrospectionFragmentSkipDirectiveUsesPrunedFragments(t *testing.T) {
+	t.Parallel()
+
+	ctrl := newTestController(t)
+
+	resp, err := ctrl.Resolve(adminSessionContext(t), controller.GraphQLRequest{
+		OperationName: "",
+		Query: `query {
+			__type(name: "User") {
+				...TypeFields
+			}
+		}
+		fragment TypeFields on __Type {
+			name
+			description @skip(if: true)
+		}`,
+		Variables: nil,
+	})
+	if err != nil {
+		t.Fatalf("unexpected error: %v", err)
+	}
+
+	if resp.Errors != nil {
+		t.Fatalf("expected no errors, got %+v", resp.Errors)
+	}
+
+	data, ok := resp.Data.(map[string]any)
+	if !ok {
+		t.Fatalf("expected map data, got %T", resp.Data)
+	}
+
+	typ, ok := data["__type"].(map[string]any)
+	if !ok {
+		t.Fatalf("expected __type map, got %T", data["__type"])
+	}
+
+	if typ["name"] != "User" {
+		t.Fatalf("expected __type.name User, got %v", typ["name"])
+	}
+
+	if _, hasDescription := typ["description"]; hasDescription {
+		t.Fatalf("@skip(if: true) fragment field leaked into introspection: %v", typ)
+	}
+}
+
 func TestResolve_RemoteRelationshipSuccess(t *testing.T) {
 	t.Parallel()
 
