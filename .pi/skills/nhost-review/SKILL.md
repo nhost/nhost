@@ -111,15 +111,15 @@ All three reviewer agents declare `claude-opus-4-7` in their frontmatter. For ea
 - Without `--reviewer-model`: expected self-report is the agent frontmatter model (`claude-opus-4-7`).
 - With `--reviewer-model MODEL`: expected self-report is `MODEL`. If `MODEL` includes a Pi provider prefix or thinking suffix, also accept the provider-stripped / suffix-stripped model id as an exact match (for example, `openai/gpt-5.5:high` accepts `openai/gpt-5.5:high`, `openai/gpt-5.5`, and `gpt-5.5`).
 
-After the bucket returns, validate the response envelope before trusting any findings:
+After the bucket returns, validate the response envelope and record any integrity warnings while preserving parseable findings:
 
-1. Parse the response as a JSON object with a top-level string `model` and a `findings` array. A bare array, missing `model`, missing/non-array `findings`, or unparseable response is a bucket-level **model mismatch**. Discard any findings from that bucket, record the reported model as `missing` or `unparseable` as appropriate, and surface the mismatch in the final review summary.
+1. Parse the response as a JSON object with a top-level string `model` and a `findings` array. A bare array, missing `model`, missing/non-array `findings`, or unparseable response is a bucket-level **model integrity warning**. Warn about the malformed envelope in the final review summary, recording the reported model as `missing` or `unparseable` as appropriate. If no `findings` array can be parsed, there are no parseable findings to merge from that bucket.
 2. Compare the envelope `model` against the effective expected value for that bucket:
    - **Exact match** to any accepted expected value: proceed and carry the envelope model forward as each finding's reported model.
-   - **Same family, different version** (e.g. expected `claude-opus-4-7`, reported `claude-opus-4`): record a warning in the final review summary but keep the findings.
-   - **Different family** (e.g. expected `claude-opus-4-7`, reported `gpt-5.5`) or `unknown-<family>`: discard the bucket's findings, surface a **model mismatch** entry in the final review summary naming the agent, the frontmatter model, any override, the effective expected model, and the reported model, and tell the user to investigate dispatch/config before trusting this PR's review.
+   - **Same family, different version** (e.g. expected `claude-opus-4-7`, reported `claude-opus-4`): warn about the version mismatch in the final review summary and keep the findings.
+   - **Different family** (e.g. expected `claude-opus-4-7`, reported `gpt-5.5`) or `unknown-<family>`: warn about the model mismatch in the final review summary naming the agent, the frontmatter model, any override, the effective expected model, and the reported model; keep and validate the bucket's parseable findings.
 
-A bucket with `"findings": []` is valid only when the envelope model passes this check; otherwise an empty result cannot contribute to an approve decision. A cross-family mismatch is a configuration bug, not a content bug — re-running through the same channel will reproduce it. Do not silently retry.
+A bucket with `"findings": []` is still a valid empty result when the envelope parses; any model mismatch is recorded as a warning in the final summary. A cross-family mismatch is a configuration warning, not a content bug — re-running through the same channel will reproduce it. Do not silently retry.
 
 ## Phase 3 — Validate and merge findings
 
@@ -169,14 +169,14 @@ Then write `.review/PR_<PR_NUMBER>_REVIEW.md` starting with:
 **Decision:** approve | request-changes | comment
 ```
 
-Include counts by severity, any model integrity warnings or mismatches from Phase 2 (including missing or unparseable envelopes), any high-impact blocking findings by name, and a 2-3 sentence overall assessment naming the biggest risk and recommended first action.
+Include counts by severity, any model integrity warnings from Phase 2 (including missing or unparseable envelopes), any high-impact blocking findings by name, and a 2-3 sentence overall assessment naming the biggest risk and recommended first action.
 
 Decision guidance:
 
 - `request-changes` if any blocking finding exists.
 - `comment` if warnings/suggestions exist but no blocker.
-- `comment` if any model integrity mismatch exists, even when there are no confirmed findings, because review coverage is incomplete.
-- `approve` only if there are no confirmed findings and no model integrity mismatches.
+- `comment` if any model integrity warning exists, even when there are no confirmed findings.
+- `approve` only if there are no confirmed findings and no model integrity warnings.
 
 ## Severity reference
 

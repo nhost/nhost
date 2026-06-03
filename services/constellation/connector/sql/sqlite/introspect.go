@@ -749,8 +749,10 @@ func getIndexColumns(
 // [getEnumTable]. Returns a map keyed by "schema.table" — schema is always
 // empty on SQLite since there is no schema namespace. Per-table failures
 // (missing table, invalid enum shape, query error, empty value set) are
-// silently elided; the outer reconcile pass records an inconsistency and
-// clears the is_enum flag so the table still serves as a regular table.
+// silently elided; the outer reconcile pass records an enum_values
+// inconsistency and drops the table from the source entirely, matching Hasura.
+// Demoting it to a regular table would silently widen the input contract for
+// every FK column pointing at it.
 func introspectEnumValues(
 	ctx context.Context,
 	q Querier,
