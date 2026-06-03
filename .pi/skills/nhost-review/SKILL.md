@@ -1,7 +1,7 @@
 ---
 name: nhost-review
 description: Review the current branch's diff in the Nhost monorepo using native Pi project agents. Generates `.review/` PR description, title suggestions, findings, and summary. Use automatically when the user asks to review, audit, critique, or check a branch, diff, PR, or code changes in this repo.
-argument-hint: [base-ref] [--reviewer-model MODEL]
+argument-hint: "[base-ref] [--reviewer-model MODEL]"
 ---
 
 # Nhost Review — Native Pi Workflow
