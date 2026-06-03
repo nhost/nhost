@@ -1,11 +1,10 @@
-import { ExternalLink as ArrowSquareOutIcon } from 'lucide-react';
 import type { ReactElement } from 'react';
 import { UpgradeToProBanner } from '@/components/common/UpgradeToProBanner';
 import { Container } from '@/components/layout/Container';
 import { ActivityIndicator } from '@/components/ui/v2/ActivityIndicator';
 import { Box } from '@/components/ui/v2/Box';
-import { Link } from '@/components/ui/v2/Link';
 import { Text } from '@/components/ui/v2/Text';
+import { TextLink } from '@/components/ui/v3/text-link';
 import { OrgLayout } from '@/features/orgs/layout/OrgLayout';
 import { SettingsLayout } from '@/features/orgs/layout/SettingsLayout';
 import { AuthDomain } from '@/features/orgs/projects/custom-domains/settings/components/AuthDomain';
@@ -48,16 +47,13 @@ export default function CustomDomains() {
           <Text color="secondary">
             Add a custom domain to Auth, Hasura, PostgreSQL, and your Run
             services for only a $10 flat fee 🚀 <br /> Learn more about
-            <Link
+            <TextLink
               href="https://docs.nhost.io/platform/cloud/custom-domains"
-              target="_blank"
-              rel="noopener noreferrer"
-              underline="hover"
+              external
               className="ml-1 font-medium"
             >
               Custom Domains
-              <ArrowSquareOutIcon className="ml-1 h-4 w-4" />
-            </Link>
+            </TextLink>
           </Text>
         </div>
       </Box>

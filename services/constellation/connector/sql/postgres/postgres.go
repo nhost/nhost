@@ -5,6 +5,7 @@
 package postgres
 
 import (
+	"bytes"
 	"context"
 	"encoding/json/jsontext"
 	"errors"
@@ -20,6 +21,8 @@ import (
 	"github.com/nhost/nhost/services/constellation/connector/sql/graphql/queries/dialect"
 	"github.com/nhost/nhost/services/constellation/metadata"
 )
+
+var errSequentialNonJSONResult = errors.New("sequential operation returned non-JSON result")
 
 // Querier abstracts database query execution. Both Pool and Tx satisfy this
 // interface, which lets unexported helpers run against either a pool or a
@@ -352,6 +355,10 @@ func (c *Client) executeOperation(
 	q Querier,
 	op core.SQLOperation,
 ) (any, error) {
+	if len(op.Sequential) > 0 {
+		return c.executeSequentialOperation(ctx, q, op.Sequential)
+	}
+
 	row := q.QueryRow(ctx, op.SQL, op.Parameters...)
 
 	var rawJSON []byte
@@ -366,6 +373,46 @@ func (c *Client) executeOperation(
 	}
 
 	return jsontext.Value(rawJSON), nil
+}
+
+func (c *Client) executeSequentialOperation(
+	ctx context.Context,
+	q Querier,
+	operations []core.SQLOperation,
+) (jsontext.Value, error) {
+	var b bytes.Buffer
+
+	b.WriteByte('[')
+
+	for i, op := range operations {
+		if i > 0 {
+			b.WriteByte(',')
+		}
+
+		result, err := c.executeOperation(ctx, q, op)
+		if err != nil {
+			return nil, fmt.Errorf("failed to execute sequential operation %s: %w", op.Name, err)
+		}
+
+		if result == nil {
+			b.WriteString("null")
+
+			continue
+		}
+
+		value, ok := result.(jsontext.Value)
+		if !ok {
+			return nil, fmt.Errorf(
+				"%w: %s returned %T", errSequentialNonJSONResult, op.Name, result,
+			)
+		}
+
+		b.Write(value)
+	}
+
+	b.WriteByte(']')
+
+	return jsontext.Value(b.Bytes()), nil
 }
 
 // ExecuteMultiplexedOperation executes a multiplexed SQL query and returns

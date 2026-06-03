@@ -10,6 +10,7 @@ import (
 
 	"github.com/nhost/nhost/services/constellation/connector/sql/graphql/queries/arguments"
 	"github.com/nhost/nhost/services/constellation/connector/sql/graphql/queries/core"
+	"github.com/nhost/nhost/services/constellation/connector/sql/graphql/queries/dialect"
 	"github.com/nhost/nhost/services/constellation/connector/sql/graphql/queries/where"
 )
 
@@ -192,7 +193,7 @@ func (t *table) buildMultiNestedInsertCTE(
 	allColumns, columnToValue := t.collectAllColumns(insertObjs, nestedFKColumns)
 
 	presentCols := insertPresentColumns(insertObjs, nestedFKIndex)
-	if t.requiresPostInsertCheck(role, presentCols) {
+	if t.requiresPostInsertCheck(role, presentCols, onConflict) {
 		return t.buildMultiNestedInsertCTEPostCheck(
 			b, cteName, insertObjs, allColumns, columnToValue,
 			nestedFKIndex, tableSubs, onConflict, role, sessionVariables,
@@ -207,7 +208,7 @@ func (t *table) buildMultiNestedInsertCTE(
 	)
 }
 
-func (t *table) buildMultiNestedInsertCTEPreCheck(
+func (t *table) buildMultiNestedInsertCTEPreCheck( //nolint:funlen // Linear SQL CTE template.
 	b *strings.Builder,
 	cteName string,
 	insertObjs []arguments.InsertObject,
@@ -222,8 +223,9 @@ func (t *table) buildMultiNestedInsertCTEPreCheck(
 	paramIndex int,
 ) ([]any, int, error) {
 	checkCTEName := "check_" + cteName
+	finalColumns := insertColumnsWithNestedFK(allColumns, nestedFKIndex)
 
-	dataColumns := t.extendWithPermissionColumns(allColumns, role)
+	dataColumns := t.extendWithPermissionColumns(finalColumns, role)
 
 	b.WriteString(checkCTEName)
 	b.WriteString(" AS (SELECT * FROM (") //nolint:unqueryvet
@@ -247,9 +249,21 @@ func (t *table) buildMultiNestedInsertCTEPreCheck(
 		t.buildCheckCountCTE(b, cteName, checkCTEName, len(insertObjs))
 	}
 
-	finalColumns := insertColumnsWithNestedFK(allColumns, nestedFKIndex)
+	plan := t.prepareUpsertUpdateCheckPlan(
+		b,
+		cteName,
+		checkCTEName,
+		onConflict,
+		finalColumns,
+		len(insertObjs),
+		insertPresentColumns(insertObjs, nestedFKIndex),
+		role,
+		false,
+	)
 
-	b.WriteString(cteName)
+	rawCTEName := rawCTENameForUpsertUpdateCheck(cteName, plan)
+
+	b.WriteString(rawCTEName)
 	b.WriteString(" AS (INSERT INTO ")
 	b.WriteString(t.tableFromClause())
 
@@ -259,13 +273,23 @@ func (t *table) buildMultiNestedInsertCTEPreCheck(
 	t.buildInsertWhereClause(b, cteName, hasCheckPermissions)
 
 	if onConflict != nil {
-		params, paramIndex, err = onConflict.ToSQL(b, params, paramIndex)
+		params, paramIndex, err = t.writeOnConflictSQL(
+			b, onConflict, role, sessionVariables, params, paramIndex,
+		)
 		if err != nil {
-			return nil, 0, err //nolint:wrapcheck
+			return nil, 0, err
 		}
 	}
 
-	b.WriteString(" RETURNING *)")
+	t.writeInsertReturning(b, plan)
+	b.WriteByte(')')
+
+	params, paramIndex, err = t.appendUpsertUpdateCheckAndFinalCTE(
+		b, cteName, rawCTEName, plan, role, sessionVariables, params, paramIndex,
+	)
+	if err != nil {
+		return nil, 0, err
+	}
 
 	return params, paramIndex, nil
 }
@@ -276,7 +300,7 @@ func (t *table) buildMultiNestedInsertCTEPreCheck(
 // the pre-check sibling: it redirects relationship-EXISTS subqueries that
 // target a sibling in-flight CTE (typically the parent's mutation_result) so
 // they read the just-inserted rows instead of the underlying empty table.
-func (t *table) buildMultiNestedInsertCTEPostCheck(
+func (t *table) buildMultiNestedInsertCTEPostCheck( //nolint:funlen // Linear SQL CTE template.
 	b *strings.Builder,
 	cteName string,
 	insertObjs []arguments.InsertObject,
@@ -294,16 +318,28 @@ func (t *table) buildMultiNestedInsertCTEPostCheck(
 	rawCTEName := "_" + cteName
 	postCheckName := cteName + "_post_check"
 
+	finalColumns := insertColumnsWithNestedFK(allColumns, nestedFKIndex)
+
 	b.WriteString(dataCTEName)
 	b.WriteString(" AS (SELECT * FROM (") //nolint:unqueryvet
 
 	params, paramIndex = t.buildUnionAllSelect(
-		b, insertObjs, allColumns, columnToValue, nestedFKIndex, params, paramIndex,
+		b, insertObjs, finalColumns, columnToValue, nestedFKIndex, params, paramIndex,
 	)
 
 	b.WriteString(") AS data), ")
 
-	finalColumns := insertColumnsWithNestedFK(allColumns, nestedFKIndex)
+	plan := t.prepareUpsertUpdateCheckPlan(
+		b,
+		cteName,
+		dataCTEName,
+		onConflict,
+		finalColumns,
+		len(insertObjs),
+		insertPresentColumns(insertObjs, nestedFKIndex),
+		role,
+		true,
+	)
 
 	b.WriteString(rawCTEName)
 	b.WriteString(" AS (INSERT INTO ")
@@ -316,27 +352,39 @@ func (t *table) buildMultiNestedInsertCTEPostCheck(
 	if onConflict != nil {
 		var err error
 
-		params, paramIndex, err = onConflict.ToSQL(b, params, paramIndex)
+		params, paramIndex, err = t.writeOnConflictSQL(
+			b, onConflict, role, sessionVariables, params, paramIndex,
+		)
 		if err != nil {
-			return nil, 0, err //nolint:wrapcheck
+			return nil, 0, err
 		}
 	}
 
-	b.WriteString(" RETURNING *), ")
+	t.writeInsertReturning(b, plan)
+	b.WriteString("), ")
+
+	postCheckSourceCTEName := appendUpsertInsertedRowsCTE(b, plan, rawCTEName)
 
 	params, paramIndex, err := t.buildPostCheckCTEWithName(
-		b, postCheckName, rawCTEName, tableSubs, role, sessionVariables, params, paramIndex,
+		b,
+		postCheckName,
+		postCheckSourceCTEName,
+		tableSubs,
+		role,
+		sessionVariables,
+		params,
+		paramIndex,
 	)
 	if err != nil {
 		return nil, 0, err
 	}
 
-	b.WriteString(cteName)
-	b.WriteString(" AS (SELECT * FROM ") //nolint:unqueryvet
-	b.WriteString(rawCTEName)
-	b.WriteString(" WHERE (SELECT status FROM ")
-	b.WriteString(postCheckName)
-	b.WriteString(") = 1)")
+	params, paramIndex, err = t.appendUpsertUpdateCheckAndFinalCTE(
+		b, cteName, rawCTEName, plan, role, sessionVariables, params, paramIndex, postCheckName,
+	)
+	if err != nil {
+		return nil, 0, err
+	}
 
 	return params, paramIndex, nil
 }
@@ -701,10 +749,11 @@ type partitionedOnConflictKey struct {
 
 func newPartitionedOnConflictKey(
 	onConflict *arguments.OnConflict,
+	d dialect.Dialect,
 ) (partitionedOnConflictKey, error) {
 	var b strings.Builder
 
-	params, _, err := onConflict.ToSQL(&b, nil, 1)
+	params, _, err := onConflict.ToSQL(&b, d, nil, 1)
 	if err != nil {
 		return partitionedOnConflictKey{}, fmt.Errorf("failed to render on_conflict: %w", err)
 	}
@@ -853,9 +902,10 @@ func matchingPartitionedNestedGroup(
 // relationships and rows so the resulting SQL is deterministic.
 func groupPartitionedArrayNestedInserts(
 	insertObjs []arguments.InsertObject,
+	d dialect.Dialect,
 ) ([]*partitionedNestedGroup, error) {
 	return groupPartitionedArrayNestedInsertsWithParents(
-		insertObjs, partitionedParentCTENames(len(insertObjs)), "",
+		insertObjs, partitionedParentCTENames(len(insertObjs)), "", d,
 	)
 }
 
@@ -879,6 +929,7 @@ func groupPartitionedArrayNestedInsertsWithParents(
 	insertObjs []arguments.InsertObject,
 	parentCTENames []string,
 	ctePrefix string,
+	d dialect.Dialect,
 ) ([]*partitionedNestedGroup, error) {
 	if err := validateParentCTENameCount(insertObjs, parentCTENames); err != nil {
 		return nil, err
@@ -899,7 +950,7 @@ func groupPartitionedArrayNestedInsertsWithParents(
 				continue
 			}
 
-			onConflictKey, err := newPartitionedOnConflictKey(nested.OnConflict)
+			onConflictKey, err := newPartitionedOnConflictKey(nested.OnConflict, d)
 			if err != nil {
 				return nil, fmt.Errorf(
 					"failed to group nested insert %s: %w", nested.RelationshipName, err,
@@ -985,7 +1036,7 @@ func (t *table) buildPartitionedArrayNestedInsertCTEsWithParents(
 	paramIndex int,
 ) ([]any, int, error) {
 	groups, err := groupPartitionedArrayNestedInsertsWithParents(
-		insertObjs, parentCTENames, ctePrefix,
+		insertObjs, parentCTENames, ctePrefix, t.dialect,
 	)
 	if err != nil {
 		return nil, 0, err
@@ -1217,7 +1268,7 @@ func (t *table) buildPartitionedNestedArrayCTE(
 	allColumns, columnToValue := t.collectAllColumns(insertObjs, nestedFKColumns)
 
 	presentCols := insertPresentColumns(insertObjs, nestedFKIndex)
-	if t.requiresPostInsertCheck(role, presentCols) {
+	if t.requiresPostInsertCheck(role, presentCols, onConflict) {
 		return t.buildPartitionedNestedArrayCTEPostCheck(
 			b, cteName, insertObjs, parentCTENames, allColumns, columnToValue,
 			nestedFKIndex, tableSubs, onConflict, role, sessionVariables,
@@ -1273,7 +1324,7 @@ func insertColumnsWithNestedFK(
 // multi-parent array-rel CTE. Shape mirrors buildMultiNestedInsertCTEPreCheck
 // but each UNION branch sources FK columns from its matching parent CTE
 // instead of cross-joining the whole mutation_result CTE.
-func (t *table) buildPartitionedNestedArrayCTEPreCheck(
+func (t *table) buildPartitionedNestedArrayCTEPreCheck( //nolint:funlen // Linear SQL CTE template.
 	b *strings.Builder,
 	cteName string,
 	insertObjs []arguments.InsertObject,
@@ -1316,7 +1367,21 @@ func (t *table) buildPartitionedNestedArrayCTEPreCheck(
 		t.buildCheckCountCTE(b, cteName, checkCTEName, len(insertObjs))
 	}
 
-	b.WriteString(cteName)
+	plan := t.prepareUpsertUpdateCheckPlan(
+		b,
+		cteName,
+		checkCTEName,
+		onConflict,
+		finalColumns,
+		len(insertObjs),
+		insertPresentColumns(insertObjs, nestedFKIndex),
+		role,
+		false,
+	)
+
+	rawCTEName := rawCTENameForUpsertUpdateCheck(cteName, plan)
+
+	b.WriteString(rawCTEName)
 	b.WriteString(" AS (INSERT INTO ")
 	b.WriteString(t.tableFromClause())
 
@@ -1326,13 +1391,23 @@ func (t *table) buildPartitionedNestedArrayCTEPreCheck(
 	t.buildInsertWhereClause(b, cteName, hasCheckPermissions)
 
 	if onConflict != nil {
-		params, paramIndex, err = onConflict.ToSQL(b, params, paramIndex)
+		params, paramIndex, err = t.writeOnConflictSQL(
+			b, onConflict, role, sessionVariables, params, paramIndex,
+		)
 		if err != nil {
-			return nil, 0, err //nolint:wrapcheck
+			return nil, 0, err
 		}
 	}
 
-	b.WriteString(" RETURNING *)")
+	t.writeInsertReturning(b, plan)
+	b.WriteByte(')')
+
+	params, paramIndex, err = t.appendUpsertUpdateCheckAndFinalCTE(
+		b, cteName, rawCTEName, plan, role, sessionVariables, params, paramIndex,
+	)
+	if err != nil {
+		return nil, 0, err
+	}
 
 	return params, paramIndex, nil
 }
@@ -1341,7 +1416,7 @@ func (t *table) buildPartitionedNestedArrayCTEPreCheck(
 // multi-parent array-rel CTE. Shape mirrors
 // buildMultiNestedInsertCTEPostCheck but with the same partitioning treatment
 // as the pre-check sibling.
-func (t *table) buildPartitionedNestedArrayCTEPostCheck(
+func (t *table) buildPartitionedNestedArrayCTEPostCheck( //nolint:funlen // Linear SQL CTE template.
 	b *strings.Builder,
 	cteName string,
 	insertObjs []arguments.InsertObject,
@@ -1372,6 +1447,18 @@ func (t *table) buildPartitionedNestedArrayCTEPostCheck(
 
 	b.WriteString(") AS data), ")
 
+	plan := t.prepareUpsertUpdateCheckPlan(
+		b,
+		cteName,
+		dataCTEName,
+		onConflict,
+		finalColumns,
+		len(insertObjs),
+		insertPresentColumns(insertObjs, nestedFKIndex),
+		role,
+		true,
+	)
+
 	b.WriteString(rawCTEName)
 	b.WriteString(" AS (INSERT INTO ")
 	b.WriteString(t.tableFromClause())
@@ -1383,27 +1470,39 @@ func (t *table) buildPartitionedNestedArrayCTEPostCheck(
 	if onConflict != nil {
 		var err error
 
-		params, paramIndex, err = onConflict.ToSQL(b, params, paramIndex)
+		params, paramIndex, err = t.writeOnConflictSQL(
+			b, onConflict, role, sessionVariables, params, paramIndex,
+		)
 		if err != nil {
-			return nil, 0, err //nolint:wrapcheck
+			return nil, 0, err
 		}
 	}
 
-	b.WriteString(" RETURNING *), ")
+	t.writeInsertReturning(b, plan)
+	b.WriteString("), ")
+
+	postCheckSourceCTEName := appendUpsertInsertedRowsCTE(b, plan, rawCTEName)
 
 	params, paramIndex, err := t.buildPostCheckCTEWithName(
-		b, postCheckName, rawCTEName, tableSubs, role, sessionVariables, params, paramIndex,
+		b,
+		postCheckName,
+		postCheckSourceCTEName,
+		tableSubs,
+		role,
+		sessionVariables,
+		params,
+		paramIndex,
 	)
 	if err != nil {
 		return nil, 0, err
 	}
 
-	b.WriteString(cteName)
-	b.WriteString(" AS (SELECT * FROM ") //nolint:unqueryvet
-	b.WriteString(rawCTEName)
-	b.WriteString(" WHERE (SELECT status FROM ")
-	b.WriteString(postCheckName)
-	b.WriteString(") = 1)")
+	params, paramIndex, err = t.appendUpsertUpdateCheckAndFinalCTE(
+		b, cteName, rawCTEName, plan, role, sessionVariables, params, paramIndex, postCheckName,
+	)
+	if err != nil {
+		return nil, 0, err
+	}
 
 	return params, paramIndex, nil
 }
@@ -1748,9 +1847,10 @@ func addPartitionedArrayNestedCTERefs(
 	refs *nestedInsertCTERefs,
 	insertObjs []arguments.InsertObject,
 	ctePrefix string,
+	d dialect.Dialect,
 ) (map[string]nestedReturningCTERef, error) {
 	groups, err := groupPartitionedArrayNestedInsertsWithParents(
-		insertObjs, partitionedParentCTENames(len(insertObjs)), ctePrefix,
+		insertObjs, partitionedParentCTENames(len(insertObjs)), ctePrefix, d,
 	)
 	if err != nil {
 		return nil, err
@@ -1768,7 +1868,7 @@ func addPartitionedArrayNestedCTERefs(
 
 		if hasArrayNestedInserts(g.objs) {
 			children, err := addPartitionedArrayNestedCTERefs(
-				refs, g.objs, g.cteName+"_",
+				refs, g.objs, g.cteName+"_", d,
 			)
 			if err != nil {
 				return nil, fmt.Errorf(
@@ -1814,7 +1914,7 @@ func (t *table) buildNestedCTERefs(
 		return refs, nil
 	}
 
-	if err := addMultiParentNestedCTERefs(&refs, insertObjs); err != nil {
+	if err := addMultiParentNestedCTERefs(&refs, insertObjs, t.dialect); err != nil {
 		return nestedInsertCTERefs{}, err
 	}
 
@@ -1842,6 +1942,7 @@ func addSingleParentNestedCTERefs(
 func addMultiParentNestedCTERefs(
 	refs *nestedInsertCTERefs,
 	insertObjs []arguments.InsertObject,
+	d dialect.Dialect,
 ) error {
 	objectNamers := newPartitionedObjectCTENameAllocators(insertObjs, "", nil)
 
@@ -1863,7 +1964,7 @@ func addMultiParentNestedCTERefs(
 	}
 
 	if hasArrayNestedInserts(insertObjs) {
-		arrayRefs, err := addPartitionedArrayNestedCTERefs(refs, insertObjs, "")
+		arrayRefs, err := addPartitionedArrayNestedCTERefs(refs, insertObjs, "", d)
 		if err != nil {
 			return err
 		}

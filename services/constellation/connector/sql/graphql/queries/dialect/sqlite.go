@@ -1,9 +1,15 @@
 package dialect
 
 import (
+	"errors"
+	"fmt"
 	"strings"
 
 	"github.com/nhost/nhost/services/constellation/connector/sql/graphql/queries/core"
+)
+
+var errSQLiteOnConflictTargetColumnsRequired = errors.New(
+	"sqlite ON CONFLICT target has no resolved columns",
 )
 
 // SQLiteDialect implements Dialect for SQLite.
@@ -168,10 +174,6 @@ func (d *SQLiteDialect) MaterializedCTE() string {
 	return "AS"
 }
 
-func (d *SQLiteDialect) JSONBuildArray() string {
-	return "json_array"
-}
-
 // WriteArrayContains is unreachable on SQLite: array operators are gated by
 // SupportsArrays() (which returns false here), so any caller hitting this
 // method has skipped the capability check. Failing loudly turns that
@@ -272,6 +274,48 @@ func (d *SQLiteDialect) SupportsStableVarianceOrderBy() bool { return false }
 // stddev/variance aggregate fields for SQLite and the selection builder rejects
 // them; avg/sum/min/max/count remain native and unaffected.
 func (d *SQLiteDialect) SupportsVarianceAggregates() bool { return false }
+
+func (d *SQLiteDialect) SupportsUpsertUpdateAction() bool { return false }
+
+func (d *SQLiteDialect) WriteUpsertUpdateAction(_ *strings.Builder) {
+	panic(
+		"dialect: WriteUpsertUpdateAction called on SQLiteDialect; gate with SupportsUpsertUpdateAction",
+	)
+}
+
+func (d *SQLiteDialect) RequiresOnConflictTargetColumns() bool { return true }
+
+// WriteOnConflictTarget lists the constraint's columns: SQLite has no
+// "ON CONFLICT ON CONSTRAINT <name>" form, so it identifies the conflict target
+// by its index columns ("ON CONFLICT (\"col1\", \"col2\")"). When
+// conflictColumns is empty (a constraint whose columns could not be resolved),
+// the method fails before writing SQL instead of emitting bare "ON CONFLICT",
+// which SQLite would interpret as "any unique conflict".
+func (d *SQLiteDialect) WriteOnConflictTarget(
+	b *strings.Builder, constraintName string, conflictColumns []string,
+) error {
+	if len(conflictColumns) == 0 {
+		return fmt.Errorf(
+			"%w for constraint %q",
+			errSQLiteOnConflictTargetColumnsRequired,
+			constraintName,
+		)
+	}
+
+	b.WriteString(" ON CONFLICT (")
+
+	for i, column := range conflictColumns {
+		if i > 0 {
+			b.WriteString(", ")
+		}
+
+		core.WriteQuotedIdentifier(b, column)
+	}
+
+	b.WriteByte(')')
+
+	return nil
+}
 
 func writeQuotedExpressionList(b *strings.Builder, expressions []string) {
 	for i, expr := range expressions {

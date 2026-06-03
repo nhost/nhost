@@ -3343,3 +3343,12 @@ INSERT INTO public.news (id, created_at, updated_at, is_public, title, content, 
 -- relationship and check parent.owner_id = X-Hasura-User-Id.
 INSERT INTO public.exercise_logs (id, kind, owner_id) VALUES
     ('0199aaaa-0000-7000-8000-000000000001', 'strength', '550e8400-e29b-41d4-a716-446655440001');
+
+-- Seed for the non-admin upsert UPDATE-check regression. The `user`
+-- role has both an UPDATE row-filter (author_id = X-Hasura-User-Id) and an UPDATE
+-- check (title != '__forbidden__') on public.notes, so a non-admin
+-- on_conflict DO UPDATE that conflicts on this pre-existing pkey exercises the
+-- _upsert_conflicts / _upsert_updates / _update_post_check CTE chain against
+-- PostgreSQL. owner is Sarah Martinez (550e8400-...0001).
+INSERT INTO public.notes (id, author_id, title) VALUES
+    ('0199cccc-0000-7000-8000-000000000001', '550e8400-e29b-41d4-a716-446655440001', 'Seeded Note');

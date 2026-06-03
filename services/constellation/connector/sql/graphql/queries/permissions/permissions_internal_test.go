@@ -2118,14 +2118,15 @@ func TestStoreHasAccessors(t *testing.T) {
 	t.Parallel()
 
 	tests := []struct {
-		name             string
-		setup            func(*Store)
-		role             string
-		wantRowLevel     bool
-		wantInsertCheck  bool
-		wantUpdateFilter bool
-		wantUpdateCheck  bool
-		wantDeleteFilter bool
+		name                    string
+		setup                   func(*Store)
+		role                    string
+		wantRowLevel            bool
+		wantInsertCheck         bool
+		wantNonEmptyInsertCheck bool
+		wantUpdateFilter        bool
+		wantUpdateCheck         bool
+		wantDeleteFilter        bool
 	}{
 		{
 			name:  "empty store, missing role",
@@ -2151,12 +2152,24 @@ func TestStoreHasAccessors(t *testing.T) {
 			wantRowLevel: false,
 		},
 		{
-			name: "insert role present",
+			name: "insert role present with empty clause counts as no non-empty check",
 			setup: func(s *Store) {
 				s.Insert["user"] = where.Clause{}
 			},
-			role:            "user",
-			wantInsertCheck: true,
+			role:                    "user",
+			wantInsertCheck:         true,
+			wantNonEmptyInsertCheck: false,
+		},
+		{
+			name: "insert check with non-empty clause",
+			setup: func(s *Store) {
+				s.Insert["user"] = where.Clause{
+					where.NewEqualsFilter(&core.Column{SQLName: "author_id"}, nil, nil),
+				}
+			},
+			role:                    "user",
+			wantInsertCheck:         true,
+			wantNonEmptyInsertCheck: true,
 		},
 		{
 			name: "update role present",
@@ -2222,6 +2235,13 @@ func TestStoreHasAccessors(t *testing.T) {
 
 			if got := s.HasInsertCheck(tc.role); got != tc.wantInsertCheck {
 				t.Errorf("HasInsertCheck(%q) = %v, want %v", tc.role, got, tc.wantInsertCheck)
+			}
+
+			if got := s.HasNonEmptyInsertCheck(tc.role); got != tc.wantNonEmptyInsertCheck {
+				t.Errorf(
+					"HasNonEmptyInsertCheck(%q) = %v, want %v",
+					tc.role, got, tc.wantNonEmptyInsertCheck,
+				)
 			}
 
 			if got := s.HasUpdateFilter(tc.role); got != tc.wantUpdateFilter {

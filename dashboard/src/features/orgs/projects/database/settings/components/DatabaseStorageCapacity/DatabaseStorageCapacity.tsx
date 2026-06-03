@@ -1,4 +1,5 @@
 import { yupResolver } from '@hookform/resolvers/yup';
+import Link from 'next/link';
 import { useEffect, useMemo } from 'react';
 import { FormProvider, useForm } from 'react-hook-form';
 import * as Yup from 'yup';
@@ -9,7 +10,6 @@ import { Alert } from '@/components/ui/v2/Alert';
 import { Box } from '@/components/ui/v2/Box';
 import { Input } from '@/components/ui/v2/Input';
 import { InputAdornment } from '@/components/ui/v2/InputAdornment';
-import { Link } from '@/components/ui/v2/Link';
 import { Text } from '@/components/ui/v2/Text';
 import { useAppState } from '@/features/orgs/projects/common/hooks/useAppState';
 import { useIsPlatform } from '@/features/orgs/projects/common/hooks/useIsPlatform';
@@ -216,7 +216,7 @@ export default function DatabaseStorageCapacity() {
                   pause & unpause it in{' '}
                   <Link
                     href={`/orgs/${org?.slug}/projects/${project?.subdomain}/settings`}
-                    underline="hover"
+                    className="text-primary hover:underline"
                   >
                     General Settings
                   </Link>

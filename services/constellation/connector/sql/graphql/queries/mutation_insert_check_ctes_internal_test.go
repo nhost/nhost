@@ -10,6 +10,7 @@ import (
 	"github.com/nhost/nhost/services/constellation/connector/sql/graphql/queries/dialect"
 	"github.com/nhost/nhost/services/constellation/connector/sql/graphql/queries/values"
 	"github.com/nhost/nhost/services/constellation/connector/sql/graphql/queries/where"
+	"github.com/nhost/nhost/services/constellation/connector/sql/introspection"
 )
 
 // newTestTable builds a public.users *table with the given columns and an
@@ -24,12 +25,33 @@ func newTestTable(
 ) *table {
 	t.Helper()
 
-	tbl := newTable("public", "users", &dialect.PostgresDialect{})
+	return newTestTableWithDialect(t, columns, insertChecks, &dialect.PostgresDialect{})
+}
+
+func newTestTableWithDialect(
+	t *testing.T,
+	columns []*core.Column,
+	insertChecks map[string]where.Clause,
+	sqlDialect dialect.Dialect,
+) *table {
+	t.Helper()
+
+	tbl := newTable("public", "users", sqlDialect)
 	tbl.columns = columns
 
 	maps.Copy(tbl.permissions.Insert, insertChecks)
 
 	return tbl
+}
+
+type postgresConflictDetectionDialect struct {
+	dialect.PostgresDialect
+}
+
+func (d *postgresConflictDetectionDialect) SupportsUpsertUpdateAction() bool { return false }
+
+func (d *postgresConflictDetectionDialect) WriteUpsertUpdateAction(_ *strings.Builder) {
+	panic("test dialect does not support upsert update action markers")
 }
 
 func col(sqlName, sqlType string, generated bool) *core.Column {
@@ -506,6 +528,849 @@ func equalsClause(c *core.Column, v any) where.Clause {
 	return where.Clause{where.NewEqualsFilter(c, v, &dialect.PostgresDialect{})}
 }
 
+func TestBuildSingleInsertCTEPreCheckUpsertAppliesUpdatePermissions(t *testing.T) {
+	t.Parallel()
+
+	idCol := col("id", "uuid", false)
+	userIDCol := col("user_id", "text", false)
+	usernameCol := col("username", "text", false)
+	bioCol := col("bio", "text", false)
+	statusCol := col("status", "text", false)
+
+	tbl := newTestTable(
+		t,
+		[]*core.Column{idCol, userIDCol, usernameCol, bioCol, statusCol},
+		map[string]where.Clause{"user": {}},
+	)
+	tbl.conflictColumns["users_username_key"] = []string{"username"}
+	tbl.permissions.Update["user"] = equalsClause(userIDCol, "x-hasura-user-id")
+	tbl.permissions.UpdateCheck["user"] = equalsClause(statusCol, "pending")
+
+	obj := arguments.InsertObject{Columns: []arguments.InsertColumn{
+		insertCol(idCol, "00000000-0000-0000-0000-000000000001"),
+		insertCol(userIDCol, "user-A"),
+		insertCol(usernameCol, "alice"),
+		insertCol(bioCol, "updated bio"),
+		insertCol(statusCol, "approved"),
+	}}
+	onConflict := &arguments.OnConflict{
+		ConstraintName: "users_username_key",
+		UpdateColumns:  []string{"bio", "status"},
+		Where:          nil,
+	}
+
+	var b strings.Builder
+
+	params, paramIndex, err := tbl.buildSingleInsertCTEPreCheck(
+		&b,
+		"mutation_result",
+		obj,
+		onConflict,
+		nil,
+		nil,
+		nil,
+		1,
+		"user",
+		map[string]any{"x-hasura-user-id": "user-A"},
+	)
+	if err != nil {
+		t.Fatalf("buildSingleInsertCTEPreCheck: %v", err)
+	}
+
+	got := b.String()
+
+	wantFragments := []string{
+		`_mutation_result AS (INSERT INTO "public"."users"`,
+		`ON CONFLICT ON CONSTRAINT "users_username_key" DO UPDATE SET "bio" = EXCLUDED."bio", "status" = EXCLUDED."status" WHERE ("public"."users"."user_id" = $6::text) RETURNING *, (xmax <> 0) AS "__nhost_upsert_updated"`,
+		`mutation_result_upsert_updates AS (SELECT * FROM _mutation_result WHERE _mutation_result."__nhost_upsert_updated")`,
+		`mutation_result_update_post_check AS (SELECT CASE WHEN (SELECT COUNT(*) FROM mutation_result_upsert_updates WHERE mutation_result_upsert_updates."status" = $7::text) = (SELECT COUNT(*) FROM mutation_result_upsert_updates)`,
+		`mutation_result AS (SELECT _mutation_result."id", _mutation_result."user_id", _mutation_result."username", _mutation_result."bio", _mutation_result."status" FROM _mutation_result WHERE (SELECT status FROM mutation_result_update_post_check) = 1)`,
+	}
+	for _, fragment := range wantFragments {
+		if !strings.Contains(got, fragment) {
+			t.Errorf("generated SQL missing %q; got: %s", fragment, got)
+		}
+	}
+
+	wantParams := []any{
+		"user-A",
+		"pending",
+	}
+	if len(params) != len(wantParams) {
+		t.Fatalf("params length = %d, want %d (%v)", len(params), len(wantParams), params)
+	}
+
+	for i, want := range wantParams {
+		if params[i] != want {
+			t.Fatalf("params[%d] = %v, want %v (all params: %v)", i, params[i], want, params)
+		}
+	}
+
+	if paramIndex != 8 {
+		t.Fatalf("paramIndex = %d, want 8", paramIndex)
+	}
+}
+
+func TestBuildSingleInsertCTEPreCheckUpsertUpdateActionColumnAvoidsTableColumnCollision(
+	t *testing.T,
+) {
+	t.Parallel()
+
+	got, _, err := buildUpsertMarkerCollisionSQL(t, "approved")
+	if err != nil {
+		t.Fatalf("buildUpsertMarkerCollisionSQL: %v", err)
+	}
+
+	wantFragments := []string{
+		`RETURNING *, (xmax <> 0) AS "__nhost_upsert_updated_2"`,
+		`mutation_result_upsert_updates AS (SELECT * FROM _mutation_result WHERE _mutation_result."__nhost_upsert_updated_2")`,
+		`mutation_result AS (SELECT _mutation_result."id", _mutation_result."user_id", _mutation_result."username", _mutation_result."bio", _mutation_result."status", _mutation_result."__nhost_upsert_updated", _mutation_result."__nhost_upsert_updated_1" FROM _mutation_result WHERE (SELECT status FROM mutation_result_update_post_check) = 1)`,
+	}
+	for _, fragment := range wantFragments {
+		if !strings.Contains(got, fragment) {
+			t.Errorf("generated SQL missing %q; got: %s", fragment, got)
+		}
+	}
+
+	for _, forbidden := range []string{
+		`AS "__nhost_upsert_updated"`,
+		`WHERE _mutation_result."__nhost_upsert_updated")`,
+		`WHERE _mutation_result."__nhost_upsert_updated_1")`,
+	} {
+		if strings.Contains(got, forbidden) {
+			t.Errorf("generated SQL used colliding upsert marker %q; got: %s", forbidden, got)
+		}
+	}
+}
+
+func buildUpsertMarkerCollisionSQL(
+	t *testing.T, status string,
+) (string, []any, error) {
+	t.Helper()
+
+	idCol := col("id", "uuid", false)
+	userIDCol := col("user_id", "text", false)
+	usernameCol := col("username", "text", false)
+	bioCol := col("bio", "text", false)
+	statusCol := col("status", "text", false)
+	upsertMarkerCol := col(upsertUpdatedColumn, "boolean", false)
+	upsertMarkerSuffixCol := col(upsertUpdatedColumn+"_1", "boolean", false)
+
+	tbl := newTestTable(
+		t,
+		[]*core.Column{
+			idCol,
+			userIDCol,
+			usernameCol,
+			bioCol,
+			statusCol,
+			upsertMarkerCol,
+			upsertMarkerSuffixCol,
+		},
+		map[string]where.Clause{"user": {}},
+	)
+	tbl.conflictColumns["users_username_key"] = []string{"username"}
+	tbl.permissions.Update["user"] = equalsClause(userIDCol, "x-hasura-user-id")
+	tbl.permissions.UpdateCheck["user"] = equalsClause(statusCol, "pending")
+
+	obj := arguments.InsertObject{Columns: []arguments.InsertColumn{
+		insertCol(idCol, "00000000-0000-0000-0000-000000000001"),
+		insertCol(userIDCol, "user-A"),
+		insertCol(usernameCol, "alice"),
+		insertCol(bioCol, "updated bio"),
+		insertCol(statusCol, status),
+	}}
+	onConflict := &arguments.OnConflict{
+		ConstraintName: "users_username_key",
+		UpdateColumns:  []string{"bio", "status"},
+		Where:          nil,
+	}
+
+	var b strings.Builder
+
+	params, _, err := tbl.buildSingleInsertCTEPreCheck(
+		&b,
+		"mutation_result",
+		obj,
+		onConflict,
+		nil,
+		nil,
+		nil,
+		1,
+		"user",
+		map[string]any{"x-hasura-user-id": "user-A"},
+	)
+	if err != nil {
+		return "", nil, err
+	}
+
+	return b.String(), params, nil
+}
+
+// TestBuildSingleInsertCTEPreCheckUpsertNullsNotDistinctConflictUsesNullSafeMatch
+// locks the no-action-marker conflict detection fallback: nullable conflict keys
+// marked NULLS NOT DISTINCT must use null-safe matching in both
+// conflict-detection CTEs so UPDATE checks still run when the conflicting key
+// value is NULL.
+func TestBuildSingleInsertCTEPreCheckUpsertNullsNotDistinctConflictUsesNullSafeMatch(
+	t *testing.T,
+) {
+	t.Parallel()
+
+	idCol := col("id", "uuid", false)
+	userIDCol := col("user_id", "text", false)
+	usernameCol := col("username", "text", false)
+	bioCol := col("bio", "text", false)
+	statusCol := col("status", "text", false)
+
+	tbl := newTestTableWithDialect(
+		t,
+		[]*core.Column{idCol, userIDCol, usernameCol, bioCol, statusCol},
+		map[string]where.Clause{"user": {}},
+		&postgresConflictDetectionDialect{},
+	)
+	tbl.conflictColumns, tbl.conflictNullsNotDistinct = tableConflictMetadata(
+		&introspection.Table{
+			Name: "users",
+			UniqueConstraints: []introspection.UniqueConstraint{{
+				Name:             "users_username_key",
+				Columns:          []string{"username"},
+				NullsNotDistinct: true,
+			}},
+		},
+	)
+	tbl.permissions.Update["user"] = equalsClause(userIDCol, "x-hasura-user-id")
+	tbl.permissions.UpdateCheck["user"] = equalsClause(statusCol, "pending")
+
+	obj := arguments.InsertObject{Columns: []arguments.InsertColumn{
+		insertCol(idCol, "00000000-0000-0000-0000-000000000001"),
+		insertCol(userIDCol, "user-A"),
+		insertCol(usernameCol, nil),
+		insertCol(bioCol, "updated bio"),
+		insertCol(statusCol, "approved"),
+	}}
+	onConflict := &arguments.OnConflict{
+		ConstraintName: "users_username_key",
+		UpdateColumns:  []string{"bio", "status"},
+		Where:          nil,
+	}
+
+	var b strings.Builder
+
+	_, _, err := tbl.buildSingleInsertCTEPreCheck(
+		&b,
+		"mutation_result",
+		obj,
+		onConflict,
+		nil,
+		nil,
+		nil,
+		1,
+		"user",
+		map[string]any{"x-hasura-user-id": "user-A"},
+	)
+	if err != nil {
+		t.Fatalf("buildSingleInsertCTEPreCheck: %v", err)
+	}
+
+	got := b.String()
+
+	wantFragments := []string{
+		`mutation_result_upsert_conflicts AS (SELECT "mutation_result_upsert_conflicts_target"."username" AS "username" FROM "public"."users" AS "mutation_result_upsert_conflicts_target" WHERE EXISTS (SELECT 1 FROM check_mutation_result WHERE "mutation_result_upsert_conflicts_target"."username" IS NOT DISTINCT FROM check_mutation_result."username"))`,
+		`mutation_result_upsert_updates AS (SELECT * FROM _mutation_result WHERE EXISTS (SELECT 1 FROM mutation_result_upsert_conflicts WHERE mutation_result_upsert_conflicts."username" IS NOT DISTINCT FROM _mutation_result."username"))`,
+		`mutation_result_update_post_check AS (SELECT CASE WHEN`,
+	}
+	for _, fragment := range wantFragments {
+		if !strings.Contains(got, fragment) {
+			t.Errorf("generated SQL missing %q; got: %s", fragment, got)
+		}
+	}
+
+	wrongFragments := []string{
+		`"mutation_result_upsert_conflicts_target"."username" = check_mutation_result."username"`,
+		`mutation_result_upsert_conflicts."username" = _mutation_result."username"`,
+	}
+	for _, fragment := range wrongFragments {
+		if strings.Contains(got, fragment) {
+			t.Errorf(
+				"NULLS NOT DISTINCT conflict must not use nullable = match %q; got: %s",
+				fragment,
+				got,
+			)
+		}
+	}
+}
+
+// TestBuildInsertMutationCTEPreCheckUpsertAppliesUpdatePermissions is the
+// multi-row companion to
+// TestBuildSingleInsertCTEPreCheckUpsertAppliesUpdatePermissions: it locks the
+// upsert UPDATE-check threading on the buildInsertMutationCTEPreCheck path,
+// which uses a UNION-ALL data CTE instead of a single SELECT. Two rows both
+// supply the conflict-target key "username". PostgreSQL still scopes the check
+// by the RETURNING action marker rather than by pre-detecting conflicts. The
+// role has no insert check (so no check_count CTE), an UPDATE row filter, and an
+// UPDATE check — exactly the shape that exercises prepareUpsertUpdateCheckPlan /
+// appendUpsertUpdateCheckAndFinalCTE on the multi-row branch.
+//
+// It asserts that the INSERT is renamed _mutation_result with the DO UPDATE
+// WHERE filter and xmax marker applied, that the updates CTE is scoped to the
+// marker, that the final wrapper gates on the update post-check status, and —
+// the cross-path invariant the finding calls
+// out — the full params slice ORDER: the 10 UNION-ALL row values first, then
+// the DO UPDATE WHERE filter value, then the update-check value.
+func TestBuildInsertMutationCTEPreCheckUpsertAppliesUpdatePermissions(t *testing.T) {
+	t.Parallel()
+
+	idCol := col("id", "uuid", false)
+	userIDCol := col("user_id", "text", false)
+	usernameCol := col("username", "text", false)
+	bioCol := col("bio", "text", false)
+	statusCol := col("status", "text", false)
+
+	tbl := newTestTable(
+		t,
+		[]*core.Column{idCol, userIDCol, usernameCol, bioCol, statusCol},
+		map[string]where.Clause{"user": {}},
+	)
+	tbl.conflictColumns["users_username_key"] = []string{"username"}
+	tbl.permissions.Update["user"] = equalsClause(userIDCol, "x-hasura-user-id")
+	tbl.permissions.UpdateCheck["user"] = equalsClause(statusCol, "pending")
+
+	objs := []arguments.InsertObject{
+		{Columns: []arguments.InsertColumn{
+			insertCol(idCol, "id-0"),
+			insertCol(userIDCol, "user-A"),
+			insertCol(usernameCol, "alice"),
+			insertCol(bioCol, "bio-0"),
+			insertCol(statusCol, "approved"),
+		}},
+		{Columns: []arguments.InsertColumn{
+			insertCol(idCol, "id-1"),
+			insertCol(userIDCol, "user-A"),
+			insertCol(usernameCol, "bob"),
+			insertCol(bioCol, "bio-1"),
+			insertCol(statusCol, "approved"),
+		}},
+	}
+	onConflict := &arguments.OnConflict{
+		ConstraintName: "users_username_key",
+		UpdateColumns:  []string{"bio", "status"},
+		Where:          nil,
+	}
+
+	nestedFKColumns := map[string]struct{}(nil)
+	allColumns, columnToValue := tbl.collectAllColumns(objs, nestedFKColumns)
+
+	var b strings.Builder
+
+	params, paramIndex, err := tbl.buildInsertMutationCTEPreCheck(
+		&b,
+		objs,
+		allColumns,
+		columnToValue,
+		nil,
+		onConflict,
+		"user",
+		map[string]any{"x-hasura-user-id": "user-A"},
+		nil,
+		1,
+	)
+	if err != nil {
+		t.Fatalf("buildInsertMutationCTEPreCheck: %v", err)
+	}
+
+	got := b.String()
+
+	wantFragments := []string{
+		// No insert check -> data CTE ends with WHERE true and no check_count CTE.
+		`) AS data WHERE true), `,
+		// INSERT CTE is renamed _mutation_result and carries the DO UPDATE WHERE filter plus marker.
+		`_mutation_result AS (INSERT INTO "public"."users"`,
+		`ON CONFLICT ON CONSTRAINT "users_username_key" DO UPDATE SET "bio" = EXCLUDED."bio", "status" = EXCLUDED."status" WHERE ("public"."users"."user_id" = $11::text) RETURNING *, (xmax <> 0) AS "__nhost_upsert_updated"`,
+		// Updates CTE scoped to rows that took the UPDATE branch.
+		`mutation_result_upsert_updates AS (SELECT * FROM _mutation_result WHERE _mutation_result."__nhost_upsert_updated")`,
+		// Update post-check runs against the scoped updates CTE.
+		`mutation_result_update_post_check AS (SELECT CASE WHEN (SELECT COUNT(*) FROM mutation_result_upsert_updates WHERE mutation_result_upsert_updates."status" = $12::text) = (SELECT COUNT(*) FROM mutation_result_upsert_updates)`,
+		// Final wrapper gates on the update post-check status and strips the internal marker.
+		`mutation_result AS (SELECT _mutation_result."id", _mutation_result."user_id", _mutation_result."username", _mutation_result."bio", _mutation_result."status" FROM _mutation_result WHERE (SELECT status FROM mutation_result_update_post_check) = 1)`,
+	}
+	for _, fragment := range wantFragments {
+		if !strings.Contains(got, fragment) {
+			t.Errorf("generated SQL missing %q; got: %s", fragment, got)
+		}
+	}
+
+	// No insert-check permission means no check_count gate anywhere.
+	if strings.Contains(got, "check_count") {
+		t.Errorf("multi-row upsert with empty insert check must not emit check_count; got: %s", got)
+	}
+
+	// Cross-path param-ordering invariant: 10 UNION-ALL row values, then the DO
+	// UPDATE WHERE filter value, then the update-check value.
+	wantParams := []any{
+		"id-0", "user-A", "alice", "bio-0", "approved",
+		"id-1", "user-A", "bob", "bio-1", "approved",
+		"user-A",
+		"pending",
+	}
+	if len(params) != len(wantParams) {
+		t.Fatalf("params length = %d, want %d (%v)", len(params), len(wantParams), params)
+	}
+
+	for i, want := range wantParams {
+		if params[i] != want {
+			t.Fatalf("params[%d] = %v, want %v (all params: %v)", i, params[i], want, params)
+		}
+	}
+
+	if paramIndex != 13 {
+		t.Fatalf("paramIndex = %d, want 13", paramIndex)
+	}
+}
+
+func TestBuildInsertMutationCTEPreCheckUpsertNoMarkerDetectsSourceDuplicates(t *testing.T) {
+	t.Parallel()
+
+	idCol := col("id", "uuid", false)
+	userIDCol := col("user_id", "text", false)
+	usernameCol := col("username", "text", false)
+	bioCol := col("bio", "text", false)
+	statusCol := col("status", "text", false)
+
+	tbl := newTestTableWithDialect(
+		t,
+		[]*core.Column{idCol, userIDCol, usernameCol, bioCol, statusCol},
+		map[string]where.Clause{"user": {}},
+		&postgresConflictDetectionDialect{},
+	)
+	tbl.conflictColumns["users_username_key"] = []string{"username"}
+	tbl.permissions.Update["user"] = equalsClause(userIDCol, "x-hasura-user-id")
+	tbl.permissions.UpdateCheck["user"] = equalsClause(statusCol, "pending")
+
+	objs := []arguments.InsertObject{
+		{Columns: []arguments.InsertColumn{
+			insertCol(idCol, "id-0"),
+			insertCol(userIDCol, "user-A"),
+			insertCol(usernameCol, "alice"),
+			insertCol(bioCol, "bio-0"),
+			insertCol(statusCol, "approved"),
+		}},
+		{Columns: []arguments.InsertColumn{
+			insertCol(idCol, "id-1"),
+			insertCol(userIDCol, "user-A"),
+			insertCol(usernameCol, "alice"),
+			insertCol(bioCol, "bio-1"),
+			insertCol(statusCol, "approved"),
+		}},
+	}
+	onConflict := &arguments.OnConflict{
+		ConstraintName: "users_username_key",
+		UpdateColumns:  []string{"bio", "status"},
+		Where:          nil,
+	}
+
+	allColumns, columnToValue := tbl.collectAllColumns(objs, nil)
+
+	var b strings.Builder
+
+	_, _, err := tbl.buildInsertMutationCTEPreCheck(
+		&b,
+		objs,
+		allColumns,
+		columnToValue,
+		nil,
+		onConflict,
+		"user",
+		map[string]any{"x-hasura-user-id": "user-A"},
+		nil,
+		1,
+	)
+	if err != nil {
+		t.Fatalf("buildInsertMutationCTEPreCheck: %v", err)
+	}
+
+	got := b.String()
+
+	wantFragments := []string{
+		`mutation_result_upsert_conflicts AS (SELECT "mutation_result_upsert_conflicts_target"."username" AS "username" FROM "public"."users" AS "mutation_result_upsert_conflicts_target" WHERE EXISTS (SELECT 1 FROM check_mutation_result WHERE "mutation_result_upsert_conflicts_target"."username" = check_mutation_result."username"))`,
+		`mutation_result_upsert_source_conflicts AS (SELECT check_mutation_result."username" AS "username" FROM check_mutation_result WHERE check_mutation_result."username" IS NOT NULL GROUP BY check_mutation_result."username" HAVING COUNT(*) > 1)`,
+		`mutation_result_upsert_updates AS (SELECT * FROM _mutation_result WHERE EXISTS (SELECT 1 FROM mutation_result_upsert_conflicts WHERE mutation_result_upsert_conflicts."username" = _mutation_result."username") OR EXISTS (SELECT 1 FROM mutation_result_upsert_source_conflicts WHERE mutation_result_upsert_source_conflicts."username" = _mutation_result."username"))`,
+		`mutation_result_update_post_check AS (SELECT CASE WHEN (SELECT COUNT(*) FROM mutation_result_upsert_updates WHERE mutation_result_upsert_updates."status" = $12::text) = (SELECT COUNT(*) FROM mutation_result_upsert_updates)`,
+	}
+	for _, fragment := range wantFragments {
+		if !strings.Contains(got, fragment) {
+			t.Errorf("generated SQL missing %q; got: %s", fragment, got)
+		}
+	}
+}
+
+// TestBuildSingleInsertCTEPreCheckUpsertUndetectableConflictCoversAllRows locks
+// the fail-closed fallback for dialects without a RETURNING action marker: when
+// the conflict-target key cannot be scoped from the insert payload (here the
+// unique key "username" is omitted, so upsertConflictDetectionColumns returns
+// canDetectConflicts=false), the builder must NOT emit a conflict-keys CTE and
+// the _upsert_updates CTE must select every RETURNING row with no scoping WHERE.
+// The UPDATE check therefore covers freshly INSERTed rows too — a deliberate
+// conservative choice for SQLite-like dialects where an undetectable-conflict
+// UPDATE could otherwise bypass it.
+func TestBuildSingleInsertCTEPreCheckUpsertUndetectableConflictCoversAllRows(t *testing.T) {
+	t.Parallel()
+
+	idCol := col("id", "uuid", false)
+	userIDCol := col("user_id", "text", false)
+	usernameCol := col("username", "text", false)
+	bioCol := col("bio", "text", false)
+	statusCol := col("status", "text", false)
+
+	tbl := newTestTableWithDialect(
+		t,
+		[]*core.Column{idCol, userIDCol, usernameCol, bioCol, statusCol},
+		map[string]where.Clause{"user": {}},
+		&postgresConflictDetectionDialect{},
+	)
+	tbl.conflictColumns["users_username_key"] = []string{"username"}
+	tbl.permissions.Update["user"] = equalsClause(userIDCol, "x-hasura-user-id")
+	tbl.permissions.UpdateCheck["user"] = equalsClause(statusCol, "pending")
+
+	// "username" — the conflict-target key — is deliberately omitted from the
+	// payload, so the engine cannot scope the conflict and falls back to the
+	// all-rows UPDATE check.
+	obj := arguments.InsertObject{Columns: []arguments.InsertColumn{
+		insertCol(idCol, "00000000-0000-0000-0000-000000000001"),
+		insertCol(userIDCol, "user-A"),
+		insertCol(bioCol, "updated bio"),
+		insertCol(statusCol, "approved"),
+	}}
+	onConflict := &arguments.OnConflict{
+		ConstraintName: "users_username_key",
+		UpdateColumns:  []string{"bio", "status"},
+		Where:          nil,
+	}
+
+	var b strings.Builder
+
+	_, _, err := tbl.buildSingleInsertCTEPreCheck(
+		&b,
+		"mutation_result",
+		obj,
+		onConflict,
+		nil,
+		nil,
+		nil,
+		1,
+		"user",
+		map[string]any{"x-hasura-user-id": "user-A"},
+	)
+	if err != nil {
+		t.Fatalf("buildSingleInsertCTEPreCheck: %v", err)
+	}
+
+	got := b.String()
+
+	// No conflict-keys CTE is emitted when the conflict can't be detected.
+	if strings.Contains(got, "mutation_result_upsert_conflicts") {
+		t.Errorf("undetectable conflict must not emit a conflict-keys CTE; got: %s", got)
+	}
+
+	// The _upsert_updates CTE selects every RETURNING row with no scoping WHERE,
+	// so the post-check covers freshly INSERTed rows too (fail-closed).
+	wantUpdatesCTE := `mutation_result_upsert_updates AS (SELECT * FROM _mutation_result)` //nolint:unqueryvet
+	if !strings.Contains(got, wantUpdatesCTE) {
+		t.Errorf("expected unscoped updates CTE %q; got: %s", wantUpdatesCTE, got)
+	}
+
+	// The post-check still runs against the (all-rows) updates CTE.
+	if !strings.Contains(got, "mutation_result_update_post_check AS (SELECT CASE WHEN") {
+		t.Errorf("update post-check CTE must still be emitted; got: %s", got)
+	}
+}
+
+func TestBuildSingleInsertCTEPreCheckUpsertDetectsParentSourcedFKConflict(t *testing.T) {
+	t.Parallel()
+
+	idCol := col("id", "uuid", false)
+	orgIDCol := col("organization_id", "uuid", false)
+	emailCol := col("email", "text", false)
+	roleCol := col("role", "text", false)
+	statusCol := col("status", "text", false)
+
+	tbl := newTestTableWithDialect(
+		t,
+		[]*core.Column{idCol, orgIDCol, emailCol, roleCol, statusCol},
+		map[string]where.Clause{"user": {}},
+		&postgresConflictDetectionDialect{},
+	)
+	tbl.conflictColumns["users_organization_email_key"] = []string{"organization_id", "email"}
+	tbl.permissions.Update["user"] = equalsClause(orgIDCol, "x-hasura-org-id")
+	tbl.permissions.UpdateCheck["user"] = equalsClause(statusCol, "active")
+
+	obj := arguments.InsertObject{Columns: []arguments.InsertColumn{
+		insertCol(idCol, "00000000-0000-0000-0000-000000000001"),
+		insertCol(orgIDCol, nil),
+		insertCol(emailCol, "alice@example.com"),
+		insertCol(roleCol, "member"),
+		insertCol(statusCol, "pending"),
+	}}
+	onConflict := &arguments.OnConflict{
+		ConstraintName: "users_organization_email_key",
+		UpdateColumns:  []string{"role", "status"},
+		Where:          nil,
+	}
+	nestedFKIndex := arguments.NestedFKSources{
+		"organization_id": {CTEName: "mutation_result", ColumnName: "id"},
+	}
+
+	var b strings.Builder
+
+	params, paramIndex, err := tbl.buildSingleInsertCTEPreCheck(
+		&b,
+		"nested_members",
+		obj,
+		onConflict,
+		nestedFKIndex,
+		nil,
+		nil,
+		1,
+		"user",
+		map[string]any{"x-hasura-org-id": "org-A"},
+	)
+	if err != nil {
+		t.Fatalf("buildSingleInsertCTEPreCheck: %v", err)
+	}
+
+	got := b.String()
+
+	wantFragments := []string{
+		`check_nested_members AS (SELECT * FROM (SELECT $1::uuid AS "id", mutation_result."id" AS "organization_id", $2::text AS "email", $3::text AS "role", $4::text AS "status" FROM mutation_result) AS data WHERE true), `,
+		`nested_members_upsert_conflicts AS (SELECT "nested_members_upsert_conflicts_target"."organization_id" AS "organization_id", "nested_members_upsert_conflicts_target"."email" AS "email" FROM "public"."users" AS "nested_members_upsert_conflicts_target" WHERE EXISTS (SELECT 1 FROM check_nested_members WHERE "nested_members_upsert_conflicts_target"."organization_id" = check_nested_members."organization_id" AND "nested_members_upsert_conflicts_target"."email" = check_nested_members."email"))`,
+		`nested_members_upsert_updates AS (SELECT * FROM _nested_members WHERE EXISTS (SELECT 1 FROM nested_members_upsert_conflicts WHERE nested_members_upsert_conflicts."organization_id" = _nested_members."organization_id" AND nested_members_upsert_conflicts."email" = _nested_members."email"))`,
+		`nested_members_update_post_check AS (SELECT CASE WHEN (SELECT COUNT(*) FROM nested_members_upsert_updates WHERE nested_members_upsert_updates."status" = $6::text) = (SELECT COUNT(*) FROM nested_members_upsert_updates)`,
+	}
+	for _, fragment := range wantFragments {
+		if !strings.Contains(got, fragment) {
+			t.Errorf("generated SQL missing %q; got: %s", fragment, got)
+		}
+	}
+
+	unscopedUpdatesCTE := `nested_members_upsert_updates AS (SELECT * FROM _nested_members)` //nolint:unqueryvet
+	if strings.Contains(got, unscopedUpdatesCTE) {
+		t.Errorf(
+			"parent-sourced FK conflict key should not fall back to all-row check; got: %s",
+			got,
+		)
+	}
+
+	wantParams := []any{"org-A", "active"}
+	if len(params) != len(wantParams) {
+		t.Fatalf("params length = %d, want %d (%v)", len(params), len(wantParams), params)
+	}
+
+	for i, want := range wantParams {
+		if params[i] != want {
+			t.Fatalf("params[%d] = %v, want %v (all params: %v)", i, params[i], want, params)
+		}
+	}
+
+	if paramIndex != 7 {
+		t.Fatalf("paramIndex = %d, want 7", paramIndex)
+	}
+}
+
+// TestBuildPartitionedNestedArrayCTEPreCheckUpsertAppliesUpdatePermissions
+// covers the multi-parent array-relationship upsert path the finding flags as
+// untested. It drives buildPartitionedNestedArrayCTE (the dispatcher), which —
+// with no generated/defaulted-absent insert-check column — routes to
+// buildPartitionedNestedArrayCTEPreCheck. Two parent rows each carry one child
+// reply; the FK column "note_id" is sourced per-row from its parent CTE
+// (mutation_result_0 / mutation_result_1), and the supplied "id" is the
+// conflict-target key. PostgreSQL scopes the UPDATE check by the RETURNING
+// action marker.
+//
+// It locks the partitioned-path CTE names (prefixed by the nested cteName),
+// that the partitioned UNION-ALL still sources FK columns from the matching
+// parent CTE, the marker-scoped updates CTE, the update post-check gate in the
+// final wrapper, and the param ORDER: six per-row data values (FK columns add
+// none), then the DO UPDATE WHERE filter value, then the update-check value.
+func TestBuildPartitionedNestedArrayCTEPreCheckUpsertAppliesUpdatePermissions(t *testing.T) {
+	t.Parallel()
+
+	idCol := col("id", "uuid", false)
+	bodyCol := col("body", "text", false)
+	statusCol := col("status", "text", false)
+	noteIDCol := col("note_id", "uuid", false) // array FK, sourced from parent CTE
+
+	tbl := newTable("public", "note_replies", &dialect.PostgresDialect{})
+	tbl.columns = []*core.Column{idCol, bodyCol, statusCol, noteIDCol}
+	tbl.permissions.Insert["user"] = where.Clause{}
+	tbl.conflictColumns["note_replies_id_key"] = []string{"id"}
+	tbl.permissions.Update["user"] = equalsClause(statusCol, "x-hasura-status")
+	tbl.permissions.UpdateCheck["user"] = equalsClause(bodyCol, "ok")
+
+	objs := []arguments.InsertObject{
+		{Columns: []arguments.InsertColumn{
+			insertCol(idCol, "r0-id"),
+			insertCol(bodyCol, "r0-body"),
+			insertCol(statusCol, "r0-status"),
+		}},
+		{Columns: []arguments.InsertColumn{
+			insertCol(idCol, "r1-id"),
+			insertCol(bodyCol, "r1-body"),
+			insertCol(statusCol, "r1-status"),
+		}},
+	}
+	onConflict := &arguments.OnConflict{
+		ConstraintName: "note_replies_id_key",
+		UpdateColumns:  []string{"body", "status"},
+		Where:          nil,
+	}
+
+	parentCTENames := partitionedParentCTENames(2)
+	nestedFKIndex := arguments.NestedFKSources{"note_id": {ColumnName: "id"}}
+
+	var b strings.Builder
+
+	params, paramIndex, err := tbl.buildPartitionedNestedArrayCTE(
+		&b,
+		"nested_replies",
+		objs,
+		parentCTENames,
+		onConflict,
+		nestedFKIndex,
+		nil,
+		"user",
+		map[string]any{"x-hasura-status": "on"},
+		nil,
+		1,
+	)
+	if err != nil {
+		t.Fatalf("buildPartitionedNestedArrayCTE: %v", err)
+	}
+
+	got := b.String()
+
+	wantFragments := []string{
+		// Partitioned UNION-ALL still sources the FK from each row's parent CTE.
+		`mutation_result_0."id" AS "note_id" FROM mutation_result_0`,
+		`mutation_result_1."id" AS "note_id" FROM mutation_result_1`,
+		// Empty insert check -> data CTE ends with WHERE true and no check_count.
+		`) AS data WHERE true), `,
+		// INSERT CTE renamed _nested_replies with the DO UPDATE WHERE filter and marker.
+		`_nested_replies AS (INSERT INTO "public"."note_replies"`,
+		`ON CONFLICT ON CONSTRAINT "note_replies_id_key" DO UPDATE SET "body" = EXCLUDED."body", "status" = EXCLUDED."status" WHERE ("public"."note_replies"."status" = $7::text) RETURNING *, (xmax <> 0) AS "__nhost_upsert_updated"`,
+		// Updates CTE scoped to the UPDATE action marker.
+		`nested_replies_upsert_updates AS (SELECT * FROM _nested_replies WHERE _nested_replies."__nhost_upsert_updated")`,
+		// Update post-check against the scoped updates CTE.
+		`nested_replies_update_post_check AS (SELECT CASE WHEN (SELECT COUNT(*) FROM nested_replies_upsert_updates WHERE nested_replies_upsert_updates."body" = $8::text) = (SELECT COUNT(*) FROM nested_replies_upsert_updates)`,
+		// Final wrapper gates on the update post-check status and strips the marker.
+		`nested_replies AS (SELECT _nested_replies."id", _nested_replies."body", _nested_replies."status", _nested_replies."note_id" FROM _nested_replies WHERE (SELECT status FROM nested_replies_update_post_check) = 1)`,
+	}
+	for _, fragment := range wantFragments {
+		if !strings.Contains(got, fragment) {
+			t.Errorf("generated SQL missing %q; got: %s", fragment, got)
+		}
+	}
+
+	// Empty insert check -> no check_count gate anywhere on the partitioned path.
+	if strings.Contains(got, "check_count") {
+		t.Errorf(
+			"partitioned upsert with empty insert check must not emit check_count; got: %s",
+			got,
+		)
+	}
+
+	// Param ORDER: six per-row data values (FK columns add none), then the DO
+	// UPDATE WHERE filter value (session var resolved), then the update-check.
+	wantParams := []any{
+		"r0-id", "r0-body", "r0-status",
+		"r1-id", "r1-body", "r1-status",
+		"on", // DO UPDATE WHERE filter (status = x-hasura-status)
+		"ok", // update post-check (body = "ok")
+	}
+	if len(params) != len(wantParams) {
+		t.Fatalf("params length = %d, want %d (%v)", len(params), len(wantParams), params)
+	}
+
+	for i, want := range wantParams {
+		if params[i] != want {
+			t.Fatalf("params[%d] = %v, want %v (all params: %v)", i, params[i], want, params)
+		}
+	}
+
+	if paramIndex != 9 {
+		t.Fatalf("paramIndex = %d, want 9", paramIndex)
+	}
+}
+
+func TestBuildPartitionedNestedArrayCTEPreCheckUpsertNoMarkerDetectsSourceDuplicates(
+	t *testing.T,
+) {
+	t.Parallel()
+
+	idCol := col("id", "uuid", false)
+	bodyCol := col("body", "text", false)
+	statusCol := col("status", "text", false)
+	noteIDCol := col("note_id", "uuid", false)
+
+	tbl := newTable("public", "note_replies", &postgresConflictDetectionDialect{})
+	tbl.columns = []*core.Column{idCol, bodyCol, statusCol, noteIDCol}
+	tbl.permissions.Insert["user"] = where.Clause{}
+	tbl.conflictColumns["note_replies_id_key"] = []string{"id"}
+	tbl.permissions.Update["user"] = equalsClause(statusCol, "x-hasura-status")
+	tbl.permissions.UpdateCheck["user"] = equalsClause(bodyCol, "ok")
+
+	objs := []arguments.InsertObject{
+		{Columns: []arguments.InsertColumn{
+			insertCol(idCol, "shared-id"),
+			insertCol(bodyCol, "r0-body"),
+			insertCol(statusCol, "r0-status"),
+		}},
+		{Columns: []arguments.InsertColumn{
+			insertCol(idCol, "shared-id"),
+			insertCol(bodyCol, "r1-body"),
+			insertCol(statusCol, "r1-status"),
+		}},
+	}
+	onConflict := &arguments.OnConflict{
+		ConstraintName: "note_replies_id_key",
+		UpdateColumns:  []string{"body", "status"},
+		Where:          nil,
+	}
+	nestedFKIndex := arguments.NestedFKSources{"note_id": {ColumnName: "id"}}
+
+	var b strings.Builder
+
+	_, _, err := tbl.buildPartitionedNestedArrayCTE(
+		&b,
+		"nested_replies",
+		objs,
+		partitionedParentCTENames(2),
+		onConflict,
+		nestedFKIndex,
+		nil,
+		"user",
+		map[string]any{"x-hasura-status": "on"},
+		nil,
+		1,
+	)
+	if err != nil {
+		t.Fatalf("buildPartitionedNestedArrayCTE: %v", err)
+	}
+
+	got := b.String()
+
+	wantFragments := []string{
+		`nested_replies_upsert_source_conflicts AS (SELECT check_nested_replies."id" AS "id" FROM check_nested_replies WHERE check_nested_replies."id" IS NOT NULL GROUP BY check_nested_replies."id" HAVING COUNT(*) > 1)`,
+		`nested_replies_upsert_updates AS (SELECT * FROM _nested_replies WHERE EXISTS (SELECT 1 FROM nested_replies_upsert_conflicts WHERE nested_replies_upsert_conflicts."id" = _nested_replies."id") OR EXISTS (SELECT 1 FROM nested_replies_upsert_source_conflicts WHERE nested_replies_upsert_source_conflicts."id" = _nested_replies."id"))`,
+		`nested_replies_update_post_check AS (SELECT CASE WHEN (SELECT COUNT(*) FROM nested_replies_upsert_updates WHERE nested_replies_upsert_updates."body" = $8::text) = (SELECT COUNT(*) FROM nested_replies_upsert_updates)`,
+		`nested_replies AS (SELECT * FROM _nested_replies WHERE (SELECT status FROM nested_replies_update_post_check) = 1)`,
+	}
+	for _, fragment := range wantFragments {
+		if !strings.Contains(got, fragment) {
+			t.Errorf("generated SQL missing %q; got: %s", fragment, got)
+		}
+	}
+}
+
 func TestBuildSingleInsertCTEPreCheckNoPermissions(t *testing.T) {
 	t.Parallel()
 
@@ -675,6 +1540,299 @@ func TestBuildSingleInsertCTEPostCheckShape(t *testing.T) {
 	}
 }
 
+// TestBuildSingleInsertCTEPostCheckUpsertANDsUpdateAndInsertPostChecks locks the
+// post-check upsert path the finding flags as untested: an upsert whose insert
+// check references a generated column (forcing requiresPostInsertCheck via
+// buildSingleInsertCTEPostCheck) under a role that also carries an UPDATE
+// filter + UPDATE check. PostgreSQL uses the RETURNING action marker to split
+// inserted rows from updated rows, so the generated-column INSERT check runs
+// only against inserted rows and the UPDATE check runs only against genuine
+// updates.
+//
+// The load-bearing invariant here is the final wrapper: it must AND *both* the
+// insert post_check status and the update post_check status, since both the
+// generated-column insert check and the upsert UPDATE check must hold. It also
+// locks the cross-path param ORDER for this branch: the DO UPDATE WHERE filter
+// value, then the insert post-check value (emitted before the update CTEs), then
+// the update-check value.
+func TestBuildSingleInsertCTEPostCheckUpsertANDsUpdateAndInsertPostChecks(t *testing.T) {
+	t.Parallel()
+
+	idCol := col("id", "uuid", false)
+	userIDCol := col("user_id", "text", false)
+	usernameCol := col("username", "text", false)
+	bioCol := col("bio", "text", false)
+	statusCol := col("status", "text", false)
+	createdByCol := col("created_by", "uuid", true) // generated -> post-check path
+
+	tbl := newTestTable(
+		t,
+		[]*core.Column{idCol, userIDCol, usernameCol, bioCol, statusCol, createdByCol},
+		map[string]where.Clause{"user": equalsClause(createdByCol, "x-hasura-user-id")},
+	)
+	tbl.conflictColumns["users_username_key"] = []string{"username"}
+	tbl.permissions.Update["user"] = equalsClause(userIDCol, "x-hasura-user-id")
+	tbl.permissions.UpdateCheck["user"] = equalsClause(statusCol, "pending")
+
+	// "username" (the conflict key) is supplied so the conflict is detectable;
+	// "created_by" is generated and absent, which forces the post-check path.
+	obj := arguments.InsertObject{Columns: []arguments.InsertColumn{
+		insertCol(idCol, "id-0"),
+		insertCol(userIDCol, "user-A"),
+		insertCol(usernameCol, "alice"),
+		insertCol(bioCol, "bio-0"),
+		insertCol(statusCol, "approved"),
+	}}
+	onConflict := &arguments.OnConflict{
+		ConstraintName: "users_username_key",
+		UpdateColumns:  []string{"bio", "status"},
+		Where:          nil,
+	}
+
+	presentCols := insertPresentColumns([]arguments.InsertObject{obj}, nil)
+	if !tbl.requiresPostInsertCheck("user", presentCols, onConflict) {
+		t.Fatalf("fixture must take the post-check path (generated insert-check column)")
+	}
+
+	var b strings.Builder
+
+	params, paramIndex, err := tbl.buildSingleInsertCTEPostCheck(
+		&b,
+		"mutation_result",
+		obj,
+		onConflict,
+		nil,
+		nil,
+		nil,
+		1,
+		"user",
+		map[string]any{"x-hasura-user-id": "user-A", "created_by": "ignored"},
+	)
+	if err != nil {
+		t.Fatalf("buildSingleInsertCTEPostCheck: %v", err)
+	}
+
+	got := b.String()
+
+	wantFragments := []string{
+		// INSERT CTE renamed _mutation_result with the DO UPDATE WHERE filter and marker.
+		`_mutation_result AS (INSERT INTO "public"."users"`,
+		`ON CONFLICT ON CONSTRAINT "users_username_key" DO UPDATE SET "bio" = EXCLUDED."bio", "status" = EXCLUDED."status" WHERE ("public"."users"."user_id" = $6::text) RETURNING *, (xmax <> 0) AS "__nhost_upsert_updated"`,
+		// Insert post-check (generated column) runs only against rows marked as inserted.
+		`mutation_result_upsert_inserts AS (SELECT * FROM _mutation_result WHERE NOT _mutation_result."__nhost_upsert_updated")`,
+		`mutation_result_post_check AS (SELECT CASE WHEN (SELECT COUNT(*) FROM mutation_result_upsert_inserts WHERE mutation_result_upsert_inserts."created_by" = $7::uuid)`,
+		// Updates CTE scoped to rows that took the UPDATE branch.
+		`mutation_result_upsert_updates AS (SELECT * FROM _mutation_result WHERE _mutation_result."__nhost_upsert_updated")`,
+		// Update post-check against the scoped updates CTE.
+		`mutation_result_update_post_check AS (SELECT CASE WHEN (SELECT COUNT(*) FROM mutation_result_upsert_updates WHERE mutation_result_upsert_updates."status" = $8::text) = (SELECT COUNT(*) FROM mutation_result_upsert_updates)`,
+		// THE invariant: the final wrapper ANDs BOTH status checks and strips the marker.
+		`mutation_result AS (SELECT _mutation_result."id", _mutation_result."user_id", _mutation_result."username", _mutation_result."bio", _mutation_result."status", _mutation_result."created_by" FROM _mutation_result WHERE (SELECT status FROM mutation_result_post_check) = 1 AND (SELECT status FROM mutation_result_update_post_check) = 1)`,
+	}
+	for _, fragment := range wantFragments {
+		if !strings.Contains(got, fragment) {
+			t.Errorf("generated SQL missing %q; got: %s", fragment, got)
+		}
+	}
+
+	// Post-check path must never emit the pre-check check_count gate.
+	if strings.Contains(got, "check_count") {
+		t.Errorf("post-check path should not emit check_count CTE; got: %s", got)
+	}
+
+	// Cross-path param ORDER for the post-check branch: DO UPDATE WHERE filter,
+	// then the insert post-check value (emitted before the update CTEs), then the
+	// update-check value. The data-CTE column values are appended by the caller,
+	// not by this builder, so they are absent here (params starts nil).
+	wantParams := []any{
+		"user-A",  // DO UPDATE WHERE filter (user_id = x-hasura-user-id)
+		"user-A",  // insert post_check (created_by = x-hasura-user-id)
+		"pending", // update post_check (status = "pending")
+	}
+	if len(params) != len(wantParams) {
+		t.Fatalf("params length = %d, want %d (%v)", len(params), len(wantParams), params)
+	}
+
+	for i, want := range wantParams {
+		if params[i] != want {
+			t.Fatalf("params[%d] = %v, want %v (all params: %v)", i, params[i], want, params)
+		}
+	}
+
+	if paramIndex != 9 {
+		t.Fatalf("paramIndex = %d, want 9", paramIndex)
+	}
+}
+
+func TestBuildSingleInsertCTEPostCheckUpsertScopesInsertCheckWithoutUpdateCheck(t *testing.T) {
+	t.Parallel()
+
+	idCol := col("id", "uuid", false)
+	userIDCol := col("user_id", "text", false)
+	usernameCol := col("username", "text", false)
+	bioCol := col("bio", "text", false)
+	createdByCol := col("created_by", "uuid", true) // generated -> post-check path
+
+	tbl := newTestTable(
+		t,
+		[]*core.Column{idCol, userIDCol, usernameCol, bioCol, createdByCol},
+		map[string]where.Clause{"user": equalsClause(createdByCol, "x-hasura-user-id")},
+	)
+	tbl.conflictColumns["users_username_key"] = []string{"username"}
+	tbl.permissions.Update["user"] = equalsClause(userIDCol, "x-hasura-user-id")
+
+	obj := arguments.InsertObject{Columns: []arguments.InsertColumn{
+		insertCol(idCol, "00000000-0000-0000-0000-000000000001"),
+		insertCol(userIDCol, "user-A"),
+		insertCol(usernameCol, "alice"),
+		insertCol(bioCol, "bio-0"),
+	}}
+	onConflict := &arguments.OnConflict{
+		ConstraintName: "users_username_key",
+		UpdateColumns:  []string{"bio"},
+		Where:          nil,
+	}
+
+	var b strings.Builder
+
+	params, paramIndex, err := tbl.buildSingleInsertCTEPostCheck(
+		&b,
+		"mutation_result",
+		obj,
+		onConflict,
+		nil,
+		nil,
+		nil,
+		1,
+		"user",
+		map[string]any{"x-hasura-user-id": "user-A"},
+	)
+	if err != nil {
+		t.Fatalf("buildSingleInsertCTEPostCheck: %v", err)
+	}
+
+	got := b.String()
+
+	wantFragments := []string{
+		`RETURNING *, (xmax <> 0) AS "__nhost_upsert_updated"`,
+		`mutation_result_upsert_inserts AS (SELECT * FROM _mutation_result WHERE NOT _mutation_result."__nhost_upsert_updated")`,
+		`mutation_result_post_check AS (SELECT CASE WHEN (SELECT COUNT(*) FROM mutation_result_upsert_inserts WHERE mutation_result_upsert_inserts."created_by" = $6::uuid)`,
+		`mutation_result AS (SELECT _mutation_result."id", _mutation_result."user_id", _mutation_result."username", _mutation_result."bio", _mutation_result."created_by" FROM _mutation_result WHERE (SELECT status FROM mutation_result_post_check) = 1)`,
+	}
+	for _, fragment := range wantFragments {
+		if !strings.Contains(got, fragment) {
+			t.Errorf("generated SQL missing %q; got: %s", fragment, got)
+		}
+	}
+
+	for _, forbidden := range []string{"mutation_result_upsert_updates", "mutation_result_update_post_check"} {
+		if strings.Contains(got, forbidden) {
+			t.Errorf("upsert without UPDATE check must not emit %s; got: %s", forbidden, got)
+		}
+	}
+
+	wantParams := []any{"user-A", "user-A"}
+	if len(params) != len(wantParams) {
+		t.Fatalf("params length = %d, want %d (%v)", len(params), len(wantParams), params)
+	}
+
+	for i, want := range wantParams {
+		if params[i] != want {
+			t.Fatalf("params[%d] = %v, want %v (all params: %v)", i, params[i], want, params)
+		}
+	}
+
+	if paramIndex != 7 {
+		t.Fatalf("paramIndex = %d, want 7", paramIndex)
+	}
+}
+
+func TestBuildInsertMutationCTEPostCheckUpsertNoMarkerChecksSourceDuplicates(t *testing.T) {
+	t.Parallel()
+
+	idCol := col("id", "uuid", false)
+	userIDCol := col("user_id", "text", false)
+	usernameCol := col("username", "text", false)
+	bioCol := col("bio", "text", false)
+	statusCol := col("status", "text", false)
+	createdByCol := col("created_by", "uuid", true) // generated -> post-check path
+
+	tbl := newTestTableWithDialect(
+		t,
+		[]*core.Column{idCol, userIDCol, usernameCol, bioCol, statusCol, createdByCol},
+		map[string]where.Clause{"user": equalsClause(createdByCol, "x-hasura-user-id")},
+		&postgresConflictDetectionDialect{},
+	)
+	tbl.conflictColumns["users_username_key"] = []string{"username"}
+	tbl.permissions.Update["user"] = equalsClause(userIDCol, "x-hasura-user-id")
+	tbl.permissions.UpdateCheck["user"] = equalsClause(statusCol, "pending")
+
+	objs := []arguments.InsertObject{
+		{Columns: []arguments.InsertColumn{
+			insertCol(idCol, "id-0"),
+			insertCol(userIDCol, "user-A"),
+			insertCol(usernameCol, "alice"),
+			insertCol(bioCol, "bio-0"),
+			insertCol(statusCol, "approved"),
+		}},
+		{Columns: []arguments.InsertColumn{
+			insertCol(idCol, "id-1"),
+			insertCol(userIDCol, "user-A"),
+			insertCol(usernameCol, "alice"),
+			insertCol(bioCol, "bio-1"),
+			insertCol(statusCol, "approved"),
+		}},
+	}
+	onConflict := &arguments.OnConflict{
+		ConstraintName: "users_username_key",
+		UpdateColumns:  []string{"bio", "status"},
+		Where:          nil,
+	}
+
+	allColumns, columnToValue := tbl.collectAllColumns(objs, nil)
+
+	var b strings.Builder
+
+	_, _, err := tbl.buildInsertMutationCTEPostCheck(
+		&b,
+		objs,
+		allColumns,
+		columnToValue,
+		nil,
+		onConflict,
+		"user",
+		map[string]any{"x-hasura-user-id": "user-A"},
+		nil,
+		1,
+	)
+	if err != nil {
+		t.Fatalf("buildInsertMutationCTEPostCheck: %v", err)
+	}
+
+	got := b.String()
+
+	wantFragments := []string{
+		`mutation_result_upsert_source_conflicts AS (SELECT insert_data."username" AS "username" FROM insert_data WHERE insert_data."username" IS NOT NULL GROUP BY insert_data."username" HAVING COUNT(*) > 1)`,
+		`mutation_result_upsert_inserts AS (SELECT * FROM _mutation_result WHERE NOT EXISTS (SELECT 1 FROM mutation_result_upsert_conflicts WHERE mutation_result_upsert_conflicts."username" = _mutation_result."username"))`,
+		`post_check AS (SELECT CASE WHEN (SELECT COUNT(*) FROM mutation_result_upsert_inserts WHERE mutation_result_upsert_inserts."created_by" = $12::uuid)`,
+		`mutation_result_upsert_updates AS (SELECT * FROM _mutation_result WHERE EXISTS (SELECT 1 FROM mutation_result_upsert_conflicts WHERE mutation_result_upsert_conflicts."username" = _mutation_result."username") OR EXISTS (SELECT 1 FROM mutation_result_upsert_source_conflicts WHERE mutation_result_upsert_source_conflicts."username" = _mutation_result."username"))`,
+		`mutation_result_update_post_check AS (SELECT CASE WHEN (SELECT COUNT(*) FROM mutation_result_upsert_updates WHERE mutation_result_upsert_updates."status" = $13::text) = (SELECT COUNT(*) FROM mutation_result_upsert_updates)`,
+		`mutation_result AS (SELECT * FROM _mutation_result WHERE (SELECT status FROM post_check) = 1 AND (SELECT status FROM mutation_result_update_post_check) = 1)`,
+	}
+	for _, fragment := range wantFragments {
+		if !strings.Contains(got, fragment) {
+			t.Errorf("generated SQL missing %q; got: %s", fragment, got)
+		}
+	}
+
+	forbidden := `mutation_result_upsert_inserts AS (SELECT * FROM _mutation_result WHERE NOT EXISTS (SELECT 1 FROM mutation_result_upsert_source_conflicts` //nolint:unqueryvet
+	if strings.Contains(got, forbidden) {
+		t.Errorf(
+			"source-duplicate conflicts must not be subtracted from insert post-check; got: %s",
+			got,
+		)
+	}
+}
+
 func TestRequiresPostInsertCheckBranching(t *testing.T) {
 	t.Parallel()
 
@@ -699,7 +1857,7 @@ func TestRequiresPostInsertCheckBranching(t *testing.T) {
 		}}
 
 		presentCols := insertPresentColumns([]arguments.InsertObject{obj}, nil)
-		if tbl.requiresPostInsertCheck("user", presentCols) {
+		if tbl.requiresPostInsertCheck("user", presentCols, nil) {
 			var b strings.Builder
 
 			_, _, err := tbl.buildSingleInsertCTEPostCheck(
@@ -748,6 +1906,94 @@ func TestRequiresPostInsertCheckBranching(t *testing.T) {
 	}
 }
 
+// TestRequiresPostInsertCheckUpsertBranch locks the upsert side of the pre/post
+// dispatch decision: an upsert whose DO UPDATE branch is reachable and whose
+// role has a *non-empty* insert check must take the post-mutation path, so the
+// insert check is scoped to inserted rows rather than enforced on every input
+// row via the all-or-nothing check_count gate. The insert-check column here is
+// a plain (non-generated, non-defaulted) column that is supplied in the
+// payload, so condition (1) of requiresPostInsertCheck is false and the upsert
+// condition (2) is the only thing that can force the post-check path.
+func TestRequiresPostInsertCheckUpsertBranch(t *testing.T) {
+	t.Parallel()
+
+	idCol := col("id", "uuid", false)
+	authorCol := col("author_id", "uuid", false)
+	titleCol := col("title", "text", false)
+
+	doUpdate := &arguments.OnConflict{
+		ConstraintName: "notes_pkey",
+		UpdateColumns:  []string{"title"},
+		Where:          nil,
+	}
+	doNothing := &arguments.OnConflict{
+		ConstraintName: "notes_pkey",
+		UpdateColumns:  nil,
+		Where:          nil,
+	}
+
+	tests := []struct {
+		name        string
+		insertCheck map[string]where.Clause
+		onConflict  *arguments.OnConflict
+		want        bool
+	}{
+		{
+			name:        "plain insert with non-empty check stays pre-check",
+			insertCheck: map[string]where.Clause{"user": equalsClause(authorCol, "v")},
+			onConflict:  nil,
+			want:        false,
+		},
+		{
+			name:        "upsert DO UPDATE with non-empty insert check forces post-check",
+			insertCheck: map[string]where.Clause{"user": equalsClause(authorCol, "v")},
+			onConflict:  doUpdate,
+			want:        true,
+		},
+		{
+			name:        "upsert DO UPDATE with empty insert check stays pre-check",
+			insertCheck: map[string]where.Clause{"user": {}},
+			onConflict:  doUpdate,
+			want:        false,
+		},
+		{
+			name:        "upsert DO UPDATE with no insert permission stays pre-check",
+			insertCheck: nil,
+			onConflict:  doUpdate,
+			want:        false,
+		},
+		{
+			name:        "upsert DO NOTHING with non-empty insert check stays pre-check",
+			insertCheck: map[string]where.Clause{"user": equalsClause(authorCol, "v")},
+			onConflict:  doNothing,
+			want:        false,
+		},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			t.Parallel()
+
+			tbl := newTestTable(t, []*core.Column{idCol, authorCol, titleCol}, tt.insertCheck)
+
+			obj := arguments.InsertObject{Columns: []arguments.InsertColumn{
+				insertCol(idCol, "u1"),
+				insertCol(authorCol, "a1"),
+				insertCol(titleCol, "t1"),
+			}}
+			presentCols := insertPresentColumns([]arguments.InsertObject{obj}, nil)
+
+			if got := tbl.requiresPostInsertCheck(
+				"user",
+				presentCols,
+				tt.onConflict,
+			); got != tt.want {
+				t.Errorf("requiresPostInsertCheck = %v, want %v", got, tt.want)
+			}
+		})
+	}
+}
+
 // TestRequiresPostInsertCheckDefaultedColumn covers the composite-FK /
 // defaulted-discriminator bug: an insert check that references a column with a
 // DEFAULT must run post-INSERT when that column is absent from the payload
@@ -771,7 +2017,7 @@ func TestRequiresPostInsertCheckDefaultedColumn(t *testing.T) {
 	}}
 	if !tbl.requiresPostInsertCheck("user", insertPresentColumns(
 		[]arguments.InsertObject{absent}, nil,
-	)) {
+	), nil) {
 		t.Errorf("defaulted column absent from insert should require post-check")
 	}
 
@@ -782,14 +2028,14 @@ func TestRequiresPostInsertCheckDefaultedColumn(t *testing.T) {
 	}}
 	if tbl.requiresPostInsertCheck("user", insertPresentColumns(
 		[]arguments.InsertObject{present}, nil,
-	)) {
+	), nil) {
 		t.Errorf("defaulted column supplied in insert should not require post-check")
 	}
 
 	// Multi-row: absent in any one row forces post-check (intersection rule).
 	if !tbl.requiresPostInsertCheck("user", insertPresentColumns(
 		[]arguments.InsertObject{present, absent}, nil,
-	)) {
+	), nil) {
 		t.Errorf("defaulted column missing from one row should require post-check")
 	}
 
@@ -797,7 +2043,7 @@ func TestRequiresPostInsertCheckDefaultedColumn(t *testing.T) {
 	if tbl.requiresPostInsertCheck("user", insertPresentColumns(
 		[]arguments.InsertObject{absent},
 		arguments.NestedFKSources{"kind": {CTEName: "parent_cte", ColumnName: "kind"}},
-	)) {
+	), nil) {
 		t.Errorf("defaulted column sourced from parent CTE should not require post-check")
 	}
 }

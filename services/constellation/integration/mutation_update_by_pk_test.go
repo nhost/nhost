@@ -342,6 +342,24 @@ func TestUpdateByPkMutations(t *testing.T) { //nolint:paralleltest
 				},
 			},
 		},
+
+		{
+			name: "update_by_pk with preset only from session variable",
+			query: query{
+				Query: `mutation {
+					updateFile(
+						pk_columns: { id: "f1e9b8db-2222-439f-9d63-7f83de523fb2" }
+					) {
+						id
+						uploadedByUserId
+					}
+				}`,
+				Role: "user",
+				SessionVariables: map[string]string{
+					"user-id": "550e8400-e29b-41d4-a716-446655440001",
+				},
+			},
+		},
 	}
 
 	RunGraphQLTests(t, cases, TestConfig{

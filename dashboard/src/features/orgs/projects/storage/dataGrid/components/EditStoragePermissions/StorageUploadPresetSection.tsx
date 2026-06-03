@@ -1,5 +1,5 @@
 import { useFormContext } from 'react-hook-form';
-import { PermissionSettingsSectionV3 as PermissionSettingsSection } from '@/components/common/PermissionSettingsSection';
+import { PermissionSettingsSection } from '@/components/common/PermissionSettingsSection';
 import { FormSwitch } from '@/components/form/FormSwitch';
 import { InlineCode } from '@/components/ui/v3/inline-code';
 import type { StoragePermissionEditorFormValues } from './types';

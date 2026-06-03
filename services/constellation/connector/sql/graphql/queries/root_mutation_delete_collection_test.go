@@ -362,12 +362,39 @@ func TestBuildMutationDeleteSQL(t *testing.T) { //nolint:paralleltest,maintidx
 			},
 		},
 
+		{
+			name: "delete returning object relationship",
+			query: query{
+				Query: `mutation {
+					delete_user_departments(
+						where: {
+							user_id: { _eq: "550e8400-e29b-41d4-a716-446655440001" }
+							department_id: { _eq: "2db9de0a-b9ba-416e-8619-783a399ae2b3" }
+						}
+					) {
+						affected_rows
+						returning {
+							role
+							department {
+								id
+								name
+							}
+							user {
+								id
+								email
+							}
+						}
+					}
+				}`,
+				Role: "admin",
+			},
+		},
+
 		// Invalid arguments on a returning relationship must reject the whole
 		// mutation before the DELETE executes (no rows deleted), matching
-		// Hasura. The returning relationships serialise as empty arrays, but
-		// their arguments are still validated through the same parsing the
-		// SELECT path uses, so the empty-array shortcut cannot smuggle an
-		// invalid argument past validation.
+		// Hasura. Delete returning now builds the same relationship subqueries as
+		// insert/update returning, so invalid arguments are rejected by the shared
+		// SELECT-path parser before execution.
 		{
 			name: "delete returning relationship with negative limit rejected",
 			query: query{

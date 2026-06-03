@@ -13,6 +13,64 @@
 
 Update mutations are not generated for tables where the role has no update column permissions (i.e. the `_update_column` enum only contains `_PLACEHOLDER`). Hasura generates these mutations but they cannot actually update any columns, making them no-ops.
 
+# Update mutations with no operators
+
+Every update operator (`_set`, `_inc`, `_append`, `_prepend`, `_delete_key`,
+`_delete_elem`, `_delete_at_path`) is nullable in the generated schema, so an
+update mutation that supplies only `where`/`pk_columns` and no operator is valid
+GraphQL. Constellation rejects such a request up front with a `validation-failed`
+GraphQL error (`"at least one update operator must be provided"`, path
+`$.selectionSet.<field>.args`), before any SQL runs. This applies to
+`update_<table>`, `update_<table>_by_pk`, and every element of
+`update_<table>_many`. (A preset-only update, where the role's update presets
+supply the columns, is not empty and still succeeds.)
+
+Hasura handles the same input inconsistently:
+
+- `update_<table>` returns `{ "affected_rows": 0, "returning": [] }` (a silent no-op).
+- `update_<table>_by_pk` returns an empty object `{}`, regardless of the selected fields.
+- `update_<table>_many` returns `[]` for a single empty element, but raises a
+  Postgres `syntax error at or near "WHERE"` when an empty element is combined
+  with a non-empty one (it emits a malformed `UPDATE ... SET  WHERE ...`).
+
+A single explicit validation error is more consistent than Hasura's mix of silent
+no-op, empty object, and leaked SQL syntax error, so Constellation does not
+reproduce those behaviors. This is the one deliberate divergence: Constellation
+rejects where Hasura no-ops.
+
+Requesting the **same column in more than one operator** (e.g. `_set` and `_inc`
+on the same column) is rejected by both engines, and Constellation matches
+Hasura's envelope byte-for-byte: message `Column found in multiple operators:
+['<col>'].` with `extensions.code = "validation-failed"` and `extensions.path =
+"$.selectionSet.<field>.args"`.
+
+# Relationships in delete `returning`
+
+A delete mutation's `returning` selection may include relationships. Constellation
+resolves them within the same SQL statement that performs the delete, against the
+deleted rows captured by `DELETE ... RETURNING *`. PostgreSQL evaluates a single
+statement against one MVCC snapshot taken at statement start, so a relationship
+sub-select sees the related rows as they were *before* the statement's own
+effects — including rows removed by an `ON DELETE CASCADE` that the same delete
+triggers.
+
+In practice:
+
+- **Object relationships** (e.g. deleting a `user_departments` row and selecting
+  its `department`/`user`) point at rows that are not deleted, so they resolve to
+  the correct single object — matching Hasura. This is the common case.
+- **Relationships whose rows the delete itself removes** (e.g. deleting a
+  `department` and selecting its cascade-deleted `employees`) resolve to those
+  about-to-be-removed rows in Constellation, whereas Hasura evaluates the
+  relationship against the post-delete state and returns `[]`.
+
+So `delete_departments(...) { returning { employees { ... } } }` returns the
+employees cascade-deleted along with the department in Constellation, and `[]` in
+Hasura. Matching Hasura would require resolving delete `returning` relationships
+in a second step after the DELETE statement completes, potentially within the
+same transaction; Constellation keeps the single statement and returns the rows
+it captured.
+
 # Functions
 
 Functions can return either SETOF <table> (0-many rows) or just <table> (exactly one row). Hasura allows filtering, ordering and limitting on functions that return <table>, which feels wrong since the function is only supposed to return one row. Hence, constellation does not expose where, limit, order_by, etc for functions that return a single row.

@@ -5,11 +5,11 @@ in
 rec {
   go = prev.go_1_26.overrideAttrs (
     finalAttrs: previousAttrs: rec {
-      version = "1.26.3";
+      version = "1.26.4";
 
       src = final.fetchurl {
         url = "https://go.dev/dl/go${version}.src.tar.gz";
-        sha256 = "sha256-HGRoddCqh5kTMYTtV895/yS97+jIggRwYCqdPW2Rkrg=";
+        sha256 = "sha256-T2aKMvv8ETLmqIH7lowvHa2mMUkqM5IRc1+7JVpCYC0=";
       };
 
     }

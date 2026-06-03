@@ -2,7 +2,7 @@
 
 Constellation supports PostgreSQL as a database backend with a broad feature set inherited from the Hasura metadata model. This document maps each supported feature to the metadata that enables it, and notes which features are PostgreSQL-only versus shared with SQLite.
 
-The PostgreSQL driver is wired in `connector/connector.go` based on `kind: postgres` in database metadata. Feature gates are expressed through the `Capabilities` struct (`connector/sql/graphql/schema/schema.go`) and the `Dialect` interface (`connector/sql/graphql/queries/dialect.go`).
+The PostgreSQL driver is wired in `connector/connector.go` based on `kind: postgres` in database metadata. Feature gates are expressed through the `Capabilities` struct (`connector/sql/graphql/schema/schema.go`) and the `Dialect` interface (`connector/sql/graphql/queries/dialect/dialect.go`).
 
 ## Database configuration
 
@@ -27,7 +27,7 @@ A database is declared in `databases/databases.yaml`:
 
 ## PostgreSQL capabilities
 
-The Postgres dialect enables every capability flag (`connector/sql/graphql/queries/dialect_postgres.go`):
+The Postgres dialect enables every capability flag (`connector/sql/graphql/queries/dialect/postgres.go`):
 
 | Capability | Postgres | SQLite | Effect on schema |
 |---|---|---|---|
@@ -38,7 +38,7 @@ The Postgres dialect enables every capability flag (`connector/sql/graphql/queri
 | `SupportsArrays` | yes | no | Exposes array-typed columns and array comparison operators |
 | `SupportsLateral` | yes | no | Generates `LEFT OUTER JOIN LATERAL` for nested relationships (SQLite falls back to correlated subqueries) |
 
-When adding SQL generation, always go through the `Dialect` interface — never hardcode Postgres syntax. `JSONAgg(alias)` quotes the alias for use as a key name; `JSONAggExpr(expr)` takes a raw SQL expression.
+When adding SQL generation, always go through the `Dialect` interface — never hardcode Postgres syntax. `JSONAggQuotedAlias(alias)` quotes the alias for use as a key name; `JSONAggRawExpr(expr)` takes a raw SQL expression.
 
 ## Tables
 
@@ -315,7 +315,21 @@ insert_users(
 - `update_columns: []` becomes `ON CONFLICT ... DO NOTHING`.
 - `where` is optional and scopes the `DO UPDATE`.
 
-Generated SQL: `ON CONFLICT ON CONSTRAINT "<name>" DO UPDATE SET col = EXCLUDED.col [WHERE ...]`. Implementation: `connector/sql/graphql/queries/arguments_mutation_insert.go`.
+Generated SQL: `ON CONFLICT ON CONSTRAINT "<name>" DO UPDATE SET col = EXCLUDED.col [WHERE ...]`. Implementation: `connector/sql/graphql/queries/mutation_insert_on_conflict.go`.
+
+For a non-admin role, the permission check applied to each row depends on the
+branch that row took, matching Hasura: a freshly inserted row must satisfy the
+role's INSERT `check`, while a row that took the `DO UPDATE` branch is governed
+by the role's UPDATE `filter` and UPDATE `check` instead — the INSERT check is
+not applied to it. PostgreSQL classifies each `RETURNING` row exactly using the
+internal `xmax` marker, so the selection is per-row even when the conflict key
+is database-generated or supplied by a default. See
+`connector/sql/graphql/queries/mutation_insert_check_ctes.go` (the post-mutation
+check path used by PostgreSQL upserts with an INSERT check). SQLite sources do
+not have executable write-mutation support yet — insert, upsert, update, and
+delete all fail at runtime because the data-modifying-CTE shape they share is a
+PostgreSQL extension SQLite rejects; see
+[SQLite source differences](sqlite.md) for the full list and root cause.
 
 ## Subscriptions
 
@@ -422,13 +436,15 @@ See [`remote-schema.md`](./remote-schema.md). Remote schemas are configured per 
 | `gen_random_uuid()` / sequence defaults | yes | partial |
 | `pg_enum` types | yes | no |
 | Views (read) | yes (track as table) | yes (track as table) |
-| Views (write) | only auto-updatable / `INSTEAD OF` | only via `INSTEAD OF` triggers |
+| Views (write) | only auto-updatable / `INSTEAD OF` | no — generated for `INSTEAD OF`-trigger views but fail at runtime (see [SQLite source differences](sqlite.md)) |
 | Materialized views (read) | yes (track as table) | n/a (SQLite has no matviews) |
 | Tracked SQL functions | yes | no |
 | Function volatility (IMMUTABLE / STABLE / VOLATILE) | yes | n/a |
 | `LATERAL` joins for nested relations | yes | correlated subqueries |
+| Write mutations (`insert` / `update` / `delete`, all variants) | yes | no — fields generated but fail at runtime (see [SQLite source differences](sqlite.md)) |
 | `ON CONFLICT` upserts | yes | no |
 | `RETURNING` | yes | no |
+| Data-modifying CTEs (`WITH ... AS (INSERT/UPDATE/DELETE ... RETURNING)`) | yes | no |
 | Stream subscriptions | yes | yes |
 | Aggregates (`avg`, `sum`, `stddev*`, `var*`, `variance`) | yes | partial |
 | Object / array / remote relationships | yes | yes |
@@ -440,14 +456,14 @@ See [`remote-schema.md`](./remote-schema.md). Remote schemas are configured per 
 | Topic | File |
 |---|---|
 | Capability gates | `connector/sql/graphql/schema/schema.go` |
-| Postgres dialect | `connector/sql/graphql/queries/dialect_postgres.go` |
+| Postgres dialect | `connector/sql/graphql/queries/dialect/postgres.go` |
 | Postgres driver | `connector/sql/postgres/postgres.go` |
 | Schema introspection | `connector/sql/postgres/introspect.go` |
 | Function introspection | `connector/sql/postgres/introspect_functions.go` |
 | Comparison operators | `connector/sql/graphql/schema/inputs.go` |
 | Update operators | `connector/sql/graphql/schema/update.go` |
 | JSONB mutation operators | `connector/sql/graphql/schema/mutation.go` |
-| `ON CONFLICT` codegen | `connector/sql/graphql/queries/arguments_mutation_insert.go` |
+| `ON CONFLICT` codegen | `connector/sql/graphql/queries/mutation_insert_on_conflict.go` |
 | Aggregates | `connector/sql/graphql/schema/aggregate.go` |
 | Subscription cohorts | `connector/sql/subscription/` |
 | Metadata types | `metadata/` (`database.go`, `table.go`, `function.go`, `remote_schema.go`) |

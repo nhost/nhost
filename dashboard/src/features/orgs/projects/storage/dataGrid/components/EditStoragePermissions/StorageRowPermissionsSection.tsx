@@ -1,6 +1,6 @@
 import { useFormContext, useWatch } from 'react-hook-form';
 import { v4 as uuidv4 } from 'uuid';
-import { PermissionSettingsSectionV3 as PermissionSettingsSection } from '@/components/common/PermissionSettingsSection';
+import { PermissionSettingsSection } from '@/components/common/PermissionSettingsSection';
 import { InlineCode } from '@/components/ui/v3/inline-code';
 import { Label } from '@/components/ui/v3/label';
 import { RadioGroup, RadioGroupItem } from '@/components/ui/v3/radio-group';
@@ -83,14 +83,28 @@ export default function StorageRowPermissionsSection({
             }
           >
             <div className="flex items-center gap-2">
-              <RadioGroupItem value="none" id="row-check-none" />
-              <Label htmlFor="row-check-none" className="text-sm+">
+              <RadioGroupItem
+                value="none"
+                id="row-check-none"
+                className="cursor-pointer"
+              />
+              <Label
+                htmlFor="row-check-none"
+                className="cursor-pointer text-sm+"
+              >
                 Without any checks
               </Label>
             </div>
             <div className="flex items-center gap-2">
-              <RadioGroupItem value="custom" id="row-check-custom" />
-              <Label htmlFor="row-check-custom" className="text-sm+">
+              <RadioGroupItem
+                value="custom"
+                id="row-check-custom"
+                className="cursor-pointer"
+              />
+              <Label
+                htmlFor="row-check-custom"
+                className="cursor-pointer text-sm+"
+              >
                 With custom check
               </Label>
             </div>
