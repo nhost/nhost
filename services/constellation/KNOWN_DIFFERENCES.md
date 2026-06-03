@@ -9,6 +9,31 @@
 
 3. If all columns of a table are non-aggregatable (e.g. only jsonb columns), the `max`/`min` fields are omitted from the `_aggregate_fields` type entirely rather than exposing empty types.
 
+# `smallint` / `int2` columns expose as `Int`
+
+PostgreSQL `smallint` (and its `int2` alias) columns are mapped to the built-in
+GraphQL `Int` scalar everywhere they appear in the generated schema — object
+fields, `_bool_exp`, `_set_input`, `_insert_input`, `_inc_input`,
+`_pk_columns_input`, `_by_pk` arguments, `_max_fields`, `_min_fields`,
+`_sum_fields`, `_stream_cursor_value_input`, and array element types
+(`smallint[]` becomes `[Int!]`). The `smallint` scalar and the
+`smallint_comparison_exp` input are not emitted at all.
+
+Hasura instead exposes a dedicated `smallint` custom scalar (plus
+`smallint_comparison_exp`), so the same column appears as `isoNumber: smallint`
+in Hasura and `isoNumber: Int` in Constellation, and `where: { isoNumber:
+{ _eq: 1 } }` is typed against `Int_comparison_exp` rather than
+`smallint_comparison_exp`.
+
+PostgreSQL `smallint` is a signed 16-bit integer, which fits losslessly inside
+GraphQL's signed 32-bit `Int`, so the value range and wire format are unchanged
+— the divergence is purely in the type name. Clients generated against the
+Hasura schema (typed GraphQL codegen, hand-written queries that name the
+`smallint` scalar, etc.) will need to be regenerated or updated to reference
+`Int` / `Int_comparison_exp` instead. Other narrower or wider integer types are
+unaffected: `int4`/`integer` still map to `Int` and `int8`/`bigint` still map
+to the custom `bigint` scalar, exactly as in Hasura.
+
 # Mutations with no update permissions
 
 Update mutations are not generated for tables where the role has no update column permissions (i.e. the `_update_column` enum only contains `_PLACEHOLDER`). Hasura generates these mutations but they cannot actually update any columns, making them no-ops.
