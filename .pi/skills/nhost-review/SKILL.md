@@ -1,7 +1,7 @@
 ---
 name: nhost-review
 description: Review the current branch's diff in the Nhost monorepo using native Pi project agents. Generates `.review/` PR description, title suggestions, findings, and summary. Use automatically when the user asks to review, audit, critique, or check a branch, diff, PR, or code changes in this repo.
-argument-hint: [base-ref]
+argument-hint: "[base-ref] [--reviewer-model MODEL]"
 ---
 
 # Nhost Review — Native Pi Workflow
@@ -18,18 +18,28 @@ If the `subagent` tool is unavailable, perform the same review inline after read
 
 ## Inputs
 
-The skill argument is an optional base ref. If the user did not provide one, use `origin/main`.
+The skill arguments are an optional base ref and an optional reviewer model override:
+
+```text
+[base-ref] [--reviewer-model MODEL]
+```
+
+If the user did not provide a base ref, use `origin/main`. If `--reviewer-model MODEL` is present, pass `modelOverride: MODEL` to every reviewer `subagent` task and treat `MODEL` as the effective expected model for model-integrity checks in this run. Prefer an unqualified self-reportable model id such as `gpt-5.5`; if the override must be provider-qualified or include a thinking suffix for Pi routing, keep the full value for `modelOverride` and accept the full value, suffix-stripped value, or provider-stripped model id in the reviewer envelope.
 
 ## Phase 0 — Gather context
 
-1. Run this from the repo root, replacing `<base-ref>` with the provided argument or `origin/main`:
+1. Parse the arguments before gathering context:
+   - Walk tokens left-to-right; when you see `--reviewer-model`, consume the following token as `<reviewer-model-override>`; also accept `--reviewer-model=MODEL`.
+   - The first remaining non-flag token, if present, is `<base-ref>`.
+   - Ignore the model override and its value when choosing the base ref.
+2. Run this from the repo root, replacing `<base-ref>` with the parsed base ref or `origin/main`:
 
    ```bash
    bash .pi/skills/nhost-review/scripts/gather-context.sh <base-ref>
    ```
 
-2. Treat the output as pre-fetched review context. Do not re-fetch it unless it is incomplete or stale.
-3. Create `.review/` if it does not exist.
+3. Treat the output as pre-fetched review context. Do not re-fetch it unless it is incomplete or stale.
+4. Create `.review/` if it does not exist.
 
 The context contains PR number, repo, changed-file stats with GitHub diff hashes, and the diff excluding generated/vendor files.
 
@@ -73,14 +83,15 @@ Project grouping:
 - **Generic:** group by top-level project or cross-cutting concern.
 - Cross-language contract changes, env var renames, auth claims, metadata/schema drift, or workflow changes that must be traced end-to-end go to `generic-reviewer`.
 
-For each bucket, call the `subagent` tool with `agentScope: "project"`. Use parallel mode for independent review buckets; use a single call for a small PR or a single bucket.
+For each bucket, call the `subagent` tool with `agentScope: "project"`. Use parallel mode for independent review buckets; use a single call for a small PR or a single bucket. When `<reviewer-model-override>` is set, include `modelOverride: "<reviewer-model-override>"` on the top-level `subagent` call, or on each task item if different buckets intentionally use different overrides.
 
 Each delegated task must include:
 
 1. The full bucket file list and relevant diff hunks.
 2. The pre-fetched PR context: PR number, repo, base ref, changed-file stats.
-3. This exact instruction: **"Use output shape B (fresh-diff findings) from your reviewer prompt. Do not edit any files. Validate every finding before reporting it. Self-identify your model in the top-level `model` field of the response envelope — do not copy any model name from this prompt. Return a JSON object envelope with that `model` and a `findings` array of confirmed findings, even when the array is empty."**
-4. The expected return shape. The top-level `model` value is whatever the agent self-reported, **not** something the orchestrator fills in:
+3. The model context for this bucket: reviewer agent name, reviewer frontmatter model, optional reviewer model override, and effective expected self-report model for this run.
+4. This exact instruction: **"Use output shape B (fresh-diff findings) from your reviewer prompt. Do not edit any files. Validate every finding before reporting it. Self-identify your model in the top-level `model` field of the response envelope — do not copy any model name from this prompt. Return a JSON object envelope with that `model` and a `findings` array of confirmed findings, even when the array is empty."**
+5. The expected return shape. The top-level `model` value is whatever the agent self-reported, **not** something the orchestrator fills in:
 
    ```json
    {
@@ -95,13 +106,18 @@ When there are no confirmed findings, the reviewer must still return `{"model":"
 
 ### Model integrity check
 
-All three reviewer agents expect `claude-opus-4-7` per their frontmatter. After the bucket returns, validate the response envelope before trusting any findings:
+All three reviewer agents declare `claude-opus-4-7` in their frontmatter. For each bucket, compute the effective expected model before validating the response:
+
+- Without `--reviewer-model`: expected self-report is the agent frontmatter model (`claude-opus-4-7`).
+- With `--reviewer-model MODEL`: expected self-report is `MODEL`. If `MODEL` includes a Pi provider prefix or thinking suffix, also accept the provider-stripped / suffix-stripped model id as an exact match (for example, `openai/gpt-5.5:high` accepts `openai/gpt-5.5:high`, `openai/gpt-5.5`, and `gpt-5.5`).
+
+After the bucket returns, validate the response envelope before trusting any findings:
 
 1. Parse the response as a JSON object with a top-level string `model` and a `findings` array. A bare array, missing `model`, missing/non-array `findings`, or unparseable response is a bucket-level **model mismatch**. Discard any findings from that bucket, record the reported model as `missing` or `unparseable` as appropriate, and surface the mismatch in the final review summary.
-2. Compare the envelope `model` against the expected value:
-   - **Exact match**: proceed and carry the envelope model forward as each finding's reported model.
-   - **Same family, different version** (e.g. `claude-opus-4`): record a warning in the final review summary but keep the findings.
-   - **Different family** (e.g. `gpt-5.5`) or `unknown-<family>`: discard the bucket's findings, surface a **model mismatch** entry in the final review summary naming the agent, the expected model, and the reported model, and tell the user to investigate dispatch/config before trusting this PR's review.
+2. Compare the envelope `model` against the effective expected value for that bucket:
+   - **Exact match** to any accepted expected value: proceed and carry the envelope model forward as each finding's reported model.
+   - **Same family, different version** (e.g. expected `claude-opus-4-7`, reported `claude-opus-4`): record a warning in the final review summary but keep the findings.
+   - **Different family** (e.g. expected `claude-opus-4-7`, reported `gpt-5.5`) or `unknown-<family>`: discard the bucket's findings, surface a **model mismatch** entry in the final review summary naming the agent, the frontmatter model, any override, the effective expected model, and the reported model, and tell the user to investigate dispatch/config before trusting this PR's review.
 
 A bucket with `"findings": []` is valid only when the envelope model passes this check; otherwise an empty result cannot contribute to an approve decision. A cross-family mismatch is a configuration bug, not a content bug — re-running through the same channel will reproduce it. Do not silently retry.
 
@@ -145,7 +161,7 @@ For each confirmed finding, write `.review/PR_<PR_NUMBER>_COMMENT_<N>.md` with:
 - `**Question:**` for Go only (`placement`, `package-invariant`, `local-correctness`).
 - `**Severity:**` `blocking`, `warning`, or `suggestion`, plus one-sentence reason.
 - `**Plan:**` concrete fix.
-- `**Reviewer:**` the reviewer agent name, the expected model from its frontmatter, and the model it self-reported, e.g. `go-reviewer (expected claude-opus-4-7, reported claude-opus-4-7)`. When expected and reported differ, that mismatch belongs in the line so it travels with the comment.
+- `**Reviewer:**` the reviewer agent name, the frontmatter model, any override, the effective expected model, and the model it self-reported, e.g. `go-reviewer (frontmatter claude-opus-4-7, expected claude-opus-4-7, reported claude-opus-4-7)` or `go-reviewer (frontmatter claude-opus-4-7, override gpt-5.5, expected gpt-5.5, reported gpt-5.5)`. When expected and reported differ, that mismatch belongs in the line so it travels with the comment.
 
 Then write `.review/PR_<PR_NUMBER>_REVIEW.md` starting with:
 
