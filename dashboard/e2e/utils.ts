@@ -609,16 +609,6 @@ export async function runGraphQLQuery({
   await page.getByRole('button', { name: 'Execute GraphQL query' }).click();
 }
 
-export async function getGraphQLResult({
-  page,
-}: {
-  page: Page;
-}): Promise<string> {
-  const resultWindow = page.getByLabel('Result Window');
-  await expect(resultWindow).not.toBeEmpty({ timeout: 5000 });
-  return resultWindow.innerText();
-}
-
 export async function deleteRelationship({
   page,
   relationshipName,

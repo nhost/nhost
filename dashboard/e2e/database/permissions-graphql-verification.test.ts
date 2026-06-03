@@ -4,7 +4,6 @@ import { TEST_ORGANIZATION_SLUG, TEST_PROJECT_SUBDOMAIN } from '@/e2e/env';
 import { expect, test } from '@/e2e/fixtures/auth-hook';
 import {
   clickPermissionButton,
-  getGraphQLResult,
   navigateToGraphQLPlayground,
   navigateToSQLEditor,
   prepareTable,
@@ -73,14 +72,11 @@ test.describe
         query: `query { ${tableName} { id title genre status } }`,
       });
 
-      const result = await getGraphQLResult({ page });
-
-      const hasError =
-        result.includes('error') ||
-        result.includes('not found in type') ||
-        result.includes('not exist') ||
-        result.includes('permission');
-      expect(hasError).toBe(true);
+      const resultWindow = page.getByLabel('Result Window');
+      await expect(resultWindow).toContainText(
+        /error|not found in type|not exist|permission/i,
+        { timeout: 15000 },
+      );
     });
 
     test('public role should only see books matching custom check', async ({
@@ -105,20 +101,27 @@ test.describe
 
       await page.getByLabel('With custom check').click();
 
+      const columnSearch = page.locator(
+        'input[role="combobox"][placeholder="Search..."]',
+      );
+      const variableSearch = page.locator(
+        'input[role="combobox"][placeholder="Choose variable..."]',
+      );
+
       await page.getByText('Add check').click();
-      await page.locator('input[role="combobox"]').fill('genre');
-      await page.locator('input[role="combobox"]').press('Enter');
+      await columnSearch.fill('genre');
+      await columnSearch.press('Enter');
 
       await page.getByText('Select variable...').click();
-      await page.locator('input[role="combobox"]').fill('fiction');
+      await variableSearch.fill('fiction');
       await page.getByRole('option', { name: /fiction/i }).click();
 
-      await page.getByRole('button', { name: /add/i }).click();
-      await page.locator('input[role="combobox"]').fill('status');
-      await page.locator('input[role="combobox"]').press('Enter');
+      await page.getByRole('button', { name: /^add$/i }).click();
+      await columnSearch.fill('status');
+      await columnSearch.press('Enter');
 
       await page.getByText('Select variable...').click();
-      await page.locator('input[role="combobox"]').fill('published');
+      await variableSearch.fill('published');
       await page.getByRole('option', { name: /published/i }).click();
 
       await page.getByRole('button', { name: /select all/i }).click();
@@ -140,10 +143,11 @@ test.describe
         query: `query { ${tableName} { id title genre status } }`,
       });
 
-      const result = await getGraphQLResult({ page });
-
-      expect(result).toContain('The Great Gatsby');
-      expect(result).not.toContain('A Brief History of Time');
-      expect(result).not.toContain('Draft Novel');
+      const resultWindow = page.getByLabel('Result Window');
+      await expect(resultWindow).toContainText('The Great Gatsby', {
+        timeout: 15000,
+      });
+      await expect(resultWindow).not.toContainText('A Brief History of Time');
+      await expect(resultWindow).not.toContainText('Draft Novel');
     });
   });
