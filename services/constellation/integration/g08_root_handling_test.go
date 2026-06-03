@@ -147,6 +147,88 @@ func TestG08_RootOperationHandling(t *testing.T) { //nolint:paralleltest
 				Role:      "admin",
 			},
 		},
+		// INCON_MEDIUM_1: every selected sub-field of a collection is skipped, so
+		// the object selection set is empty. Both engines must return empty
+		// objects ([{},{},...]) rather than erroring on degenerate SQL.
+		{
+			name: "collection selection emptied by skip",
+			query: query{
+				Query:     `{ users { id @skip(if: true) } }`,
+				Variables: nil,
+				Role:      "admin",
+			},
+		},
+		// INCON_MEDIUM_1: an object (single-row) relationship whose only selected
+		// field is skipped — the row_to_json/json_build_object object path with an
+		// empty projection. Must yield "profile": {} on both engines.
+		{
+			name: "object relationship selection emptied by skip",
+			query: query{
+				Query:     `{ users(limit: 1) { id profile { id @skip(if: true) } } }`,
+				Variables: nil,
+				Role:      "admin",
+			},
+		},
+		// INCON_MEDIUM_1: @skip(if:true) on a cross-database REMOTE relationship
+		// (userProfiles.user, 'other' → 'default'). The directive must prevent the
+		// relationship from being planned, phantom-injected, and resolved — the
+		// response must match Hasura, which omits `user`.
+		{
+			name: "skip remote relationship literal true",
+			query: query{
+				Query: `query {
+					userProfiles {
+						id
+						user @skip(if: true) { id displayName }
+					}
+				}`,
+				Variables: nil,
+				Role:      "admin",
+			},
+		},
+		// INCON_MEDIUM_1: variable-driven @skip(if:true) on the remote relationship.
+		{
+			name: "skip remote relationship variable true",
+			query: query{
+				Query: `query Q($s: Boolean!) {
+					userProfiles {
+						id
+						user @skip(if: $s) { id displayName }
+					}
+				}`,
+				Variables: map[string]any{"s": true},
+				Role:      "admin",
+			},
+		},
+		// INCON_MEDIUM_1: @skip(if:false) keeps the remote relationship, proving it
+		// is still planned and resolved when not excluded.
+		{
+			name: "skip remote relationship variable false keeps it",
+			query: query{
+				Query: `query Q($s: Boolean!) {
+					userProfiles {
+						id
+						user @skip(if: $s) { id displayName }
+					}
+				}`,
+				Variables: map[string]any{"s": false},
+				Role:      "admin",
+			},
+		},
+		// INCON_MEDIUM_1: @include(if:false) on the remote relationship.
+		{
+			name: "include remote relationship false",
+			query: query{
+				Query: `query {
+					userProfiles {
+						id
+						user @include(if: false) { id displayName }
+					}
+				}`,
+				Variables: nil,
+				Role:      "admin",
+			},
+		},
 		// INCON_LOW_10: operationName that matches nothing in a multi-op document.
 		{
 			name: "unmatched operation name",
