@@ -43,10 +43,52 @@ func Execute(
 			} else {
 				result["__type"] = nil
 			}
+		case "__typename":
+			// A root-level __typename resolves to the operation root type name
+			// (query_root / mutation_root / subscription_root), keyed by the
+			// response alias when one is given.
+			alias := field.Alias
+			if alias == "" {
+				alias = field.Name
+			}
+
+			result[alias] = rootTypeName(schema, operation.Operation)
 		}
 	}
 
 	return result
+}
+
+// rootTypeName returns the name of the schema's root type for the given
+// operation, falling back to the canonical Hasura name when the schema does not
+// declare one (which should not happen for a validated operation).
+func rootTypeName(schema *ast.Schema, op ast.Operation) string {
+	switch op {
+	case ast.Mutation:
+		if schema.Mutation != nil {
+			return schema.Mutation.Name
+		}
+
+		return "mutation_root"
+	case ast.Subscription:
+		if schema.Subscription != nil {
+			return schema.Subscription.Name
+		}
+
+		return "subscription_root"
+	case ast.Query:
+		if schema.Query != nil {
+			return schema.Query.Name
+		}
+
+		return "query_root"
+	default:
+		if schema.Query != nil {
+			return schema.Query.Name
+		}
+
+		return "query_root"
+	}
 }
 
 // executeTypeField resolves the top-level `__type(name: "X")` introspection
@@ -78,11 +120,10 @@ func executeSchemaField(
 	field *ast.Field,
 	query *ast.QueryDocument,
 ) map[string]any {
-	result := map[string]any{
-		"queryType":        nil,
-		"mutationType":     nil,
-		"subscriptionType": nil,
-	}
+	// Only emit the __schema sub-fields the client actually requested, matching
+	// Hasura (and the GraphQL execution model). A requested root-operation field
+	// whose schema has no such root resolves to null.
+	result := make(map[string]any)
 
 	for _, selection := range field.SelectionSet {
 		subField, ok := selection.(*ast.Field)
@@ -92,19 +133,11 @@ func executeSchemaField(
 
 		switch subField.Name {
 		case "queryType":
-			if schema.Query != nil {
-				result["queryType"] = executeTypeRefField(schema.Query.Name, subField)
-			}
+			result["queryType"] = rootTypeRef(schema.Query, subField)
 		case "mutationType":
-			if schema.Mutation != nil {
-				result["mutationType"] = executeTypeRefField(schema.Mutation.Name, subField)
-			}
+			result["mutationType"] = rootTypeRef(schema.Mutation, subField)
 		case "subscriptionType":
-			if schema.Subscription != nil {
-				result["subscriptionType"] = executeTypeRefField(
-					schema.Subscription.Name, subField,
-				)
-			}
+			result["subscriptionType"] = rootTypeRef(schema.Subscription, subField)
 		case "types":
 			result["types"] = executeTypesField(schema, subField, query)
 		case "directives":
@@ -113,6 +146,17 @@ func executeSchemaField(
 	}
 
 	return result
+}
+
+// rootTypeRef resolves a __schema root-operation type reference
+// (queryType/mutationType/subscriptionType), returning nil when the schema does
+// not declare that root — Hasura emits null for a requested-but-absent root.
+func rootTypeRef(def *ast.Definition, field *ast.Field) any {
+	if def == nil {
+		return nil
+	}
+
+	return executeTypeRefField(def.Name, field)
 }
 
 func executeTypeRefField(typeName string, field *ast.Field) map[string]any {

@@ -11,6 +11,7 @@ import (
 	"time"
 
 	"github.com/nhost/nhost/services/constellation/controller/middleware"
+	"github.com/nhost/nhost/services/constellation/controller/planner/transform"
 	"github.com/nhost/nhost/services/constellation/controller/websocket"
 	"github.com/nhost/nhost/services/constellation/internal/lib/syncmap"
 	"github.com/nhost/nhost/services/constellation/subscription"
@@ -324,8 +325,14 @@ func parseAndValidateQuery(
 	}
 
 	if operation == nil {
-		if len(parsedQuery.Operations) > 1 {
-			return nil, nil, nil, errMultipleOperations
+		// Distinguish a supplied-but-unmatched operationName (not-found) from an
+		// omitted name with several operations (ambiguous), matching Hasura's
+		// wording on both transports. The residual case is unreachable for a
+		// validated document but falls back to the generic not-found error.
+		if msg := operationSelectionMessage(
+			operationName, len(parsedQuery.Operations),
+		); msg != "" {
+			return nil, nil, nil, newHasuraValidationError(msg)
 		}
 
 		return nil, nil, nil, errOperationNotFound
@@ -352,7 +359,18 @@ func parseAndValidateQuery(
 		validatedVariables = variables
 	}
 
-	return operation, parsedQuery.Fragments, validatedVariables, nil
+	// Normalize the root selection set the same way the HTTP path does:
+	// evaluate @skip/@include and expand root-level fragment spreads / inline
+	// fragments into plain fields. This keeps subscription routing and SQL
+	// generation consistent with queries/mutations. The cached document is not
+	// mutated — normalization returns fresh nodes.
+	fragments := pruneFragments(parsedQuery.Fragments, validatedVariables)
+	operation = transform.BuildSubOperation(
+		operation,
+		normalizeRootSelections(operation.SelectionSet, parsedQuery.Fragments, validatedVariables),
+	)
+
+	return operation, fragments, validatedVariables, nil
 }
 
 // gqlValidationError wraps a gqlerror.List so structured error data
