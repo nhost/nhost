@@ -6,7 +6,7 @@ on:
       - main
 
 concurrency:
-  group: ${{ github.workflow }}-${{ github.ref }}
+  group: ${{ github.workflow }}-${{ github.ref }}-${{ startsWith(github.event.head_commit.message, 'release(') && github.sha || 'non-release' }}
   cancel-in-progress: false
 
 jobs:
