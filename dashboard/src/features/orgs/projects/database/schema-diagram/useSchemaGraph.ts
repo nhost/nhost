@@ -490,14 +490,20 @@ export default function useSchemaGraph({
         namingMode,
       };
 
+      const renderedHeight = computeNodeHeight(
+        data.columns.length + data.computedFields.length,
+      );
       nodes.push({
         id,
         type: 'tableNode',
         position: { x: 0, y: 0 },
         initialWidth: TABLE_NODE_WIDTH,
-        initialHeight: computeNodeHeight(
-          data.columns.length + data.computedFields.length,
-        ),
+        initialHeight: renderedHeight,
+        // The smart-edge router reads obstacle sizes from `node.measured`, which
+        // React Flow leaves undefined for these controlled nodes (floored to a
+        // 1×1px box, so edges cut straight through cards). Stamp the rendered
+        // card size so edges route around them.
+        measured: { width: TABLE_NODE_WIDTH, height: renderedHeight },
         data,
       });
       visibleNodeIds.add(id);
