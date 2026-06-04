@@ -1,7 +1,12 @@
-import type { ComboboxOption as AutocompleteOption } from '@/components/ui/v3/combobox';
+import type { ComboboxOption } from '@/components/ui/v3/combobox';
 import type { FetchTableSchemaReturnType } from '@/features/orgs/projects/database/common/hooks/useTableSchemaQuery';
 import type { FetchMetadataReturnType } from '@/features/orgs/projects/database/dataGrid/hooks/useMetadataQuery';
 import { isNotEmptyValue } from '@/lib/utils';
+
+export interface AutocompleteOption extends ComboboxOption {
+  metadata?: any;
+}
+
 
 export interface UseColumnGroupsOptions {
   /**

@@ -22,7 +22,7 @@ interface FormComboboxProps<
 > {
   control: Control<TFieldValues>;
   name: TName;
-  label: ReactNode;
+  label?: ReactNode;
   placeholder?: string;
   className?: string;
   containerClassName?: string;
@@ -66,14 +66,16 @@ export default function FormCombobox<
             containerClassName,
           )}
         >
-          <FormLabel
-            className={cn({
-              'w-52 max-w-52 flex-shrink-0': inline,
-              'mt-2 self-start': inline && !!helperText,
-            })}
-          >
-            {label}
-          </FormLabel>
+          {!!label && (
+            <FormLabel
+              className={cn({
+                'w-52 max-w-52 flex-shrink-0': inline,
+                'mt-2 self-start': inline && !!helperText,
+              })}
+            >
+              {label}
+            </FormLabel>
+          )}
           <div
             className={cn({
               'flex w-[calc(100%-13.5rem)] max-w-[calc(100%-13.5rem)] flex-col gap-2':
