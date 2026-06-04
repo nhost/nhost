@@ -84,6 +84,19 @@ func TestSessionValueForTarget(t *testing.T) {
 				{raw: "2", kind: ast.IntValue},
 			},
 		},
+		{
+			name: "coerces scalar session value into single int list",
+			key:  "x-hasura-id",
+			sessionVars: map[string]any{
+				"x-hasura-id": "7",
+			},
+			targetType: ast.NonNullListType(ast.NonNullNamedType("Int", nil), nil),
+			targetKind: ast.Scalar,
+			wantKind:   ast.ListValue,
+			wantChild: []wantChild{
+				{raw: "7", kind: ast.IntValue},
+			},
+		},
 	}
 
 	for _, tt := range tests {

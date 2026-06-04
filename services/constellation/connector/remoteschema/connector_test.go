@@ -1487,6 +1487,97 @@ func TestExecute_AppliesAllowedRolesListPreset(t *testing.T) {
 	}
 }
 
+func TestExecute_AppliesScalarSessionListPreset(t *testing.T) {
+	t.Parallel()
+
+	const userSDL = `
+		type Query {
+			games(levels: [Int!]! @preset(value: "x-hasura-game-level")): [Game!]!
+		}
+		type Game {
+			id: ID!
+		}
+	`
+
+	ctrl := gomock.NewController(t)
+	mockDoer := mock.NewMockHTTPDoer(ctrl)
+
+	introspectionCall := mockDoer.EXPECT().Do(gomock.Any()).Return(&http.Response{
+		StatusCode: http.StatusOK,
+		Body:       io.NopCloser(strings.NewReader(testIntrospectionResponse)),
+	}, nil)
+
+	var capturedQuery string
+
+	executeCall := mockDoer.EXPECT().Do(gomock.Any()).DoAndReturn(
+		func(req *http.Request) (*http.Response, error) {
+			body := readAllOrFail(t, req.Body)
+
+			var gqlReq struct {
+				Query string `json:"query"`
+			}
+			if err := json.Unmarshal(body, &gqlReq); err != nil {
+				t.Fatalf("unmarshalling GraphQL request: %v", err)
+			}
+
+			capturedQuery = gqlReq.Query
+
+			return &http.Response{
+				StatusCode: http.StatusOK,
+				Body:       io.NopCloser(strings.NewReader(`{"data":{"games":[]}}`)),
+			}, nil
+		},
+	)
+
+	gomock.InOrder(introspectionCall, executeCall)
+
+	meta := newTestMetadata("http://example.com", []metadata.RemoteSchemaPermission{
+		{
+			Role: "user",
+			Definition: metadata.RemoteSchemaPermissionDef{
+				Schema: userSDL,
+			},
+		},
+	})
+
+	connector, err := remoteschema.New(context.Background(), meta, mockDoer)
+	if err != nil {
+		t.Fatalf("New() error: %v", err)
+	}
+
+	op := &ast.OperationDefinition{
+		Operation: ast.Query,
+		SelectionSet: ast.SelectionSet{
+			&ast.Field{
+				Name: "games",
+				SelectionSet: ast.SelectionSet{
+					&ast.Field{Name: "id"},
+				},
+			},
+		},
+	}
+
+	sessionVars := map[string]any{
+		"x-hasura-game-level": "7",
+	}
+
+	_, err = connector.Execute(
+		context.Background(), op, nil, nil, "user", sessionVars, slog.Default(),
+	)
+	if err != nil {
+		t.Fatalf("Execute error: %v", err)
+	}
+
+	normalizedQuery := strings.NewReplacer(" ", "", "\n", "", "\t", "").Replace(capturedQuery)
+	if !strings.Contains(normalizedQuery, `levels:[7]`) {
+		t.Fatalf("expected unquoted int list in outgoing query, got: %s", capturedQuery)
+	}
+
+	if strings.Contains(normalizedQuery, `levels:"7"`) {
+		t.Fatalf("expected scalar list preset to be wrapped and unquoted, got: %s", capturedQuery)
+	}
+}
+
 // TestExecute_AppliesPresetsWithNonDefaultRootType exercises the dashboard-style
 // permission SDL shape `schema { query: query_root }` (and the mutation/
 // subscription equivalents). Presets are stored under the SDL root type name, so

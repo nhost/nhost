@@ -79,7 +79,7 @@ Session values enter as Go values (`string`, `[]string`, `[]any`, `*ast.Value`, 
 
 ## Query rendering
 
-After preset application, `buildQueryString` (`execute.go:314`) renders the operation + fragments to a GraphQL string using `gqlparser/formatter`. There's no clever rewriting here: whatever the planner stripped from the operation is already gone, whatever phantom fields the planner injected are already in, and presets have been applied. The connector just serialises and sends.
+After preset application, `buildQueryString` (in `connector/remoteschema/execute.go`) renders the operation + fragments to a GraphQL string using `gqlparser/formatter`. There's no clever rewriting here: whatever the planner stripped from the operation is already gone, whatever phantom fields the planner injected are already in, and presets have been applied. The connector just serialises and sends.
 
 ## HTTP request
 
@@ -106,10 +106,10 @@ So statically configured values win over session, session wins over forwarded cl
 
 ## Response handling
 
-`executeRemoteQuery` (`execute.go:334`) decodes the JSON body into `graphQLResponse{Data, Errors}`. Two paths:
+`executeRemoteQuery` (in `connector/remoteschema/execute.go`) decodes the JSON body into `graphQLResponse{Data, Errors}`. Two paths:
 
 1. **No errors** — return `data` and `nil`. Common path.
-2. **Errors present** — return `data` (which may have partial fields) *and* a `*GraphQLError` wrapping `gqlResp.Errors`. The controller's `executeConnectors` (`controller/resolve.go:308`) type-asserts this error and merges the structured remote errors into the response.
+2. **Errors present** — return `data` (which may have partial fields) *and* a `*GraphQLError` wrapping `gqlResp.Errors`. The controller's `executeConnectors` (in `controller/resolve.go`) type-asserts this error and merges the structured remote errors into the response.
 
 Partial responses matter: a GraphQL server is allowed to return `{"data": {...partial...}, "errors": [...]}`, and the controller must preserve both.
 
@@ -126,7 +126,7 @@ The connector participates in remote relationships in two roles:
 
 ## SDL conversion details
 
-`convertToGraphSchema` (`schema.go:47`) lowers gqlparser's `*ast.Schema` to `graph.Schema` — the same intermediate representation the SQL schema generator targets. This is what lets `connector/composer` and `connector/schemamerge` merge remote and local schemas uniformly.
+`convertToGraphSchema` (in `connector/remoteschema/schema.go`) lowers gqlparser's `*ast.Schema` to `graph.Schema` — the same intermediate representation the SQL schema generator targets. This is what lets `connector/composer` and `connector/schemamerge` merge remote and local schemas uniformly.
 
 Builtin types (`String`, `Int`, `Float`, `Boolean`, `ID`, and the `__*` introspection types — list in `prune.go:builtinTypes`) are skipped. Fields whose name starts with `__` are also filtered (`convertFields`); the schema-merge stage adds the standard introspection wiring back later.
 

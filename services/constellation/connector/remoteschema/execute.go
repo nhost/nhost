@@ -325,8 +325,17 @@ func coercePresetListValue(
 	targetKind ast.DefinitionKind,
 ) *ast.Value {
 	listValue := coercePresetValue(value, ast.ListValue)
-	if listValue.Kind != ast.ListValue {
+	if listValue.Kind == ast.NullValue {
 		return listValue
+	}
+
+	if listValue.Kind != ast.ListValue {
+		return &ast.Value{ //nolint:exhaustruct
+			Kind: ast.ListValue,
+			Children: ast.ChildValueList{
+				{Value: presetValueForTarget(value, targetType.Elem, targetKind)},
+			},
+		}
 	}
 
 	children := make(ast.ChildValueList, len(listValue.Children))
