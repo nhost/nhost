@@ -17,7 +17,7 @@ const LogsRegexFilter = forwardRef<HTMLInputElement, LogsRegexFilterProps>(
     <Input
       {...props}
       ref={ref}
-      placeholder="Filter logs with a regular expression"
+      placeholder="Search logs with a regular expression"
       hideEmptyHelperText
       autoComplete="off"
       fullWidth
