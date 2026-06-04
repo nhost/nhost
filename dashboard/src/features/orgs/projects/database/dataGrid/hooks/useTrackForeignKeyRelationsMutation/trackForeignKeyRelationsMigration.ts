@@ -42,7 +42,7 @@ export default async function trackForeignKeyRelationsMigration({
   trackedForeignKeyRelations,
 }: TrackForeignKeyRelationsMigrationOptions &
   TrackForeignKeyRelationsMigrationVariables) {
-  const creatableRelationships = prepareTrackForeignKeyRelationsMetadata({
+  const creatableRelationships = await prepareTrackForeignKeyRelationsMetadata({
     dataSource,
     schema,
     table,
