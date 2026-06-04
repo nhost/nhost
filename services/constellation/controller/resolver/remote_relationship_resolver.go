@@ -214,6 +214,9 @@ func (r *RemoteRelationshipResolver) executeAndStitch(
 		ctx, remoteOp, filteredFragments, variables, role, sessionVariables, logger,
 	)
 	if err != nil {
+		// Root-field execution can merge partial connector data field-by-field, but
+		// remote relationships need a complete lookup set before stitching into
+		// parent rows. Do not stitch partial relationship data on error.
 		err = remapRemoteQueryValidationArgumentPath(err, rq, remoteOp)
 
 		return fmt.Errorf("failed to execute remote query: %w", err)
