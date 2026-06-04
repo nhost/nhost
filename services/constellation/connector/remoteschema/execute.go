@@ -26,28 +26,41 @@ type graphQLResponse struct {
 	Errors []RemoteError  `json:"errors,omitempty"`
 }
 
-// applyPresets modifies an operation to inject preset argument values.
-// rootTypeName must be the role schema's actual root type name, since preset
-// keys are extracted from the permission SDL's type names. It clones the
-// operation to avoid mutating the original.
-func applyPresets(
+// applyPresetsToDocument clones an operation and its named fragments, then
+// injects preset argument values into the operation selection tree and any
+// referenced fragment definitions. rootTypeName must be the role schema's
+// actual root type name, since preset keys are extracted from the permission
+// SDL's type names.
+func applyPresetsToDocument(
 	operation *ast.OperationDefinition,
+	fragments ast.FragmentDefinitionList,
 	presets map[string][]presetArg,
 	sessionVariables map[string]any,
 	rootTypeName string,
-) *ast.OperationDefinition {
+) (*ast.OperationDefinition, ast.FragmentDefinitionList) {
 	if operation == nil || len(presets) == 0 {
-		return operation
+		return operation, fragments
 	}
 
-	cloned := cloneOperation(operation)
+	clonedOperation := cloneOperation(operation)
+	clonedFragments := cloneFragmentDefinitionList(fragments)
+
 	if rootTypeName == "" {
-		rootTypeName = defaultRootTypeName(cloned.Operation)
+		rootTypeName = defaultRootTypeName(clonedOperation.Operation)
 	}
 
-	applyPresetsToSelectionSet(cloned.SelectionSet, rootTypeName, presets, sessionVariables)
+	fragmentsByName := fragmentDefinitionMap(clonedFragments)
+	visitedFragments := make(map[string]struct{}, len(fragmentsByName))
+	applyPresetsToSelectionSet(
+		clonedOperation.SelectionSet,
+		rootTypeName,
+		presets,
+		sessionVariables,
+		fragmentsByName,
+		visitedFragments,
+	)
 
-	return cloned
+	return clonedOperation, clonedFragments
 }
 
 func defaultRootTypeName(op ast.Operation) string {
@@ -72,6 +85,8 @@ func applyPresetsToSelectionSet(
 	typeName string,
 	presets map[string][]presetArg,
 	sessionVariables map[string]any,
+	fragments map[string]*ast.FragmentDefinition,
+	visitedFragments map[string]struct{},
 ) {
 	for _, selection := range selectionSet {
 		switch sel := selection.(type) {
@@ -88,6 +103,8 @@ func applyPresetsToSelectionSet(
 					nestedTypeName,
 					presets,
 					sessionVariables,
+					fragments,
+					visitedFragments,
 				)
 			}
 
@@ -102,12 +119,59 @@ func applyPresetsToSelectionSet(
 				fragmentTypeName,
 				presets,
 				sessionVariables,
+				fragments,
+				visitedFragments,
 			)
 
 		case *ast.FragmentSpread:
-			continue
+			applyPresetsToFragmentSpread(
+				sel,
+				typeName,
+				presets,
+				sessionVariables,
+				fragments,
+				visitedFragments,
+			)
 		}
 	}
+}
+
+func applyPresetsToFragmentSpread(
+	spread *ast.FragmentSpread,
+	typeName string,
+	presets map[string][]presetArg,
+	sessionVariables map[string]any,
+	fragments map[string]*ast.FragmentDefinition,
+	visitedFragments map[string]struct{},
+) {
+	fragment := fragments[spread.Name]
+	if fragment == nil {
+		return
+	}
+
+	if visitedFragments == nil {
+		visitedFragments = make(map[string]struct{})
+	}
+
+	if _, ok := visitedFragments[fragment.Name]; ok {
+		return
+	}
+
+	visitedFragments[fragment.Name] = struct{}{}
+
+	fragmentTypeName := fragment.TypeCondition
+	if fragmentTypeName == "" {
+		fragmentTypeName = typeName
+	}
+
+	applyPresetsToSelectionSet(
+		fragment.SelectionSet,
+		fragmentTypeName,
+		presets,
+		sessionVariables,
+		fragments,
+		visitedFragments,
+	)
 }
 
 func getBaseTypeName(t *ast.Type) string {
@@ -292,10 +356,6 @@ func coercePresetValue(value *ast.Value, kind ast.ValueKind) *ast.Value {
 		return cloneValue(value)
 	}
 
-	if value.Raw == "" {
-		return createNullValue()
-	}
-
 	parsed := parsePresetValue(value.Raw)
 	if parsed == nil {
 		return createStringValue(value.Raw)
@@ -400,6 +460,53 @@ func cloneVariableDefinitions(defs ast.VariableDefinitionList) ast.VariableDefin
 			DefaultValue: cloneValue(def.DefaultValue),
 			Directives:   cloneDirectives(def.Directives),
 		}
+	}
+
+	return result
+}
+
+func cloneFragmentDefinitionList(
+	fragments ast.FragmentDefinitionList,
+) ast.FragmentDefinitionList {
+	if fragments == nil {
+		return nil
+	}
+
+	result := make(ast.FragmentDefinitionList, len(fragments))
+
+	for i, fragment := range fragments {
+		if fragment == nil {
+			continue
+		}
+
+		result[i] = &ast.FragmentDefinition{ //nolint:exhaustruct
+			Name:               fragment.Name,
+			VariableDefinition: cloneVariableDefinitions(fragment.VariableDefinition),
+			TypeCondition:      fragment.TypeCondition,
+			Directives:         cloneDirectives(fragment.Directives),
+			SelectionSet:       cloneSelectionSet(fragment.SelectionSet),
+			Definition:         fragment.Definition,
+		}
+	}
+
+	return result
+}
+
+func fragmentDefinitionMap(
+	fragments ast.FragmentDefinitionList,
+) map[string]*ast.FragmentDefinition {
+	if len(fragments) == 0 {
+		return nil
+	}
+
+	result := make(map[string]*ast.FragmentDefinition, len(fragments))
+
+	for _, fragment := range fragments {
+		if fragment == nil {
+			continue
+		}
+
+		result[fragment.Name] = fragment
 	}
 
 	return result

@@ -288,19 +288,57 @@ func TestApplyFieldPresets(t *testing.T) {
 			wantKind:  ast.IntValue,
 		},
 		{
-			name: "missing non-string session variable becomes null",
+			name: "empty string int literal stays quoted for upstream validation",
 			field: &ast.Field{
 				Name:      "topGames",
 				Arguments: nil,
 			},
 			presets: []presetArg{
-				sessionPresetArg("limit", "x-hasura-limit", ast.NonNullNamedType("Int", nil)),
+				literalPresetArg(
+					"limit",
+					astStringValue(""),
+					ast.NamedType("Int", nil),
+					ast.Scalar,
+				),
+			},
+			wantArgs:  1,
+			wantName:  "limit",
+			wantValue: "",
+			wantKind:  ast.StringValue,
+		},
+		{
+			name: "empty block int literal stays quoted for upstream validation",
+			field: &ast.Field{
+				Name:      "topGames",
+				Arguments: nil,
+			},
+			presets: []presetArg{
+				literalPresetArg(
+					"limit",
+					&ast.Value{Raw: "", Kind: ast.BlockValue},
+					ast.NamedType("Int", nil),
+					ast.Scalar,
+				),
+			},
+			wantArgs:  1,
+			wantName:  "limit",
+			wantValue: "",
+			wantKind:  ast.StringValue,
+		},
+		{
+			name: "missing non-string session variable stays quoted for upstream validation",
+			field: &ast.Field{
+				Name:      "topGames",
+				Arguments: nil,
+			},
+			presets: []presetArg{
+				sessionPresetArg("limit", "x-hasura-limit", ast.NamedType("Int", nil)),
 			},
 			sessionVars: nil,
 			wantArgs:    1,
 			wantName:    "limit",
-			wantValue:   "null",
-			wantKind:    ast.NullValue,
+			wantValue:   "",
+			wantKind:    ast.StringValue,
 		},
 		{
 			name: "invalid string int literal stays quoted for upstream validation",
@@ -431,8 +469,8 @@ func TestApplyFieldPresets(t *testing.T) {
 				t.Errorf("expected kind %v, got %v", tt.wantKind, arg.Value.Kind)
 			}
 
-			if tt.wantValue != "" && arg.Value.Raw != tt.wantValue {
-				t.Errorf("expected %s, got %s", tt.wantValue, arg.Value.Raw)
+			if arg.Value.Raw != tt.wantValue {
+				t.Errorf("expected %q, got %q", tt.wantValue, arg.Value.Raw)
 			}
 
 			if tt.wantKind == ast.ListValue && len(arg.Value.Children) != 2 {
@@ -446,7 +484,7 @@ func TestApplyFieldPresets(t *testing.T) {
 	}
 }
 
-func TestApplyPresets(t *testing.T) {
+func TestApplyPresetsToDocument(t *testing.T) {
 	t.Parallel()
 
 	t.Run("no presets returns original operation", func(t *testing.T) {
@@ -459,7 +497,7 @@ func TestApplyPresets(t *testing.T) {
 			},
 		}
 
-		result := applyPresets(op, nil, nil, "Query")
+		result, _ := applyPresetsToDocument(op, nil, nil, nil, "Query")
 		// When no presets, should return the original operation
 		if result != op {
 			t.Error("expected same operation when no presets")
@@ -486,7 +524,7 @@ func TestApplyPresets(t *testing.T) {
 			"x-hasura-user-id": "user-789",
 		}
 
-		result := applyPresets(op, presets, sessionVars, "Query")
+		result, _ := applyPresetsToDocument(op, nil, presets, sessionVars, "Query")
 
 		// Should be a clone, not the original
 		if result == op {
@@ -532,7 +570,10 @@ func TestApplyPresets(t *testing.T) {
 			},
 		}
 
-		_ = applyPresets(op, presets, nil, "Query")
+		result, _ := applyPresetsToDocument(op, nil, presets, nil, "Query")
+		if result == op {
+			t.Error("expected cloned operation, got same pointer")
+		}
 
 		// Original operation should not have the injected argument
 		origField, ok := op.SelectionSet[0].(*ast.Field)
@@ -572,7 +613,9 @@ func TestApplyPresets_TypedRoundTripsThroughBuildQueryString(t *testing.T) {
 		},
 	}
 
-	query := buildQueryString(applyPresets(op, presets, nil, "Query"), nil)
+	modifiedOp, modifiedFragments := applyPresetsToDocument(op, nil, presets, nil, "Query")
+
+	query := buildQueryString(modifiedOp, modifiedFragments)
 	if !strings.Contains(query, "limit: 10") && !strings.Contains(query, "limit:10") {
 		t.Fatalf("expected unquoted int preset in query, got %s", query)
 	}

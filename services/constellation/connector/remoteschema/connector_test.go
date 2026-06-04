@@ -1726,6 +1726,124 @@ func TestExecute_AppliesPresetsInInlineFragment(t *testing.T) {
 	}
 }
 
+// TestExecute_AppliesPresetsInNamedFragment exercises the named-fragment
+// branch of preset injection: Execute formats fragment definitions separately
+// from the operation tree, so the fragment list must be cloned and mutated
+// before the query is sent upstream.
+func TestExecute_AppliesPresetsInNamedFragment(t *testing.T) {
+	t.Parallel()
+
+	const userSDL = `
+		type Query {
+			getUser(userId: String @preset(value: "x-hasura-user-id")): User
+		}
+		type User {
+			id: String
+		}
+	`
+
+	ctrl := gomock.NewController(t)
+	mockDoer := mock.NewMockHTTPDoer(ctrl)
+
+	introspectionCall := mockDoer.EXPECT().Do(gomock.Any()).Return(&http.Response{
+		StatusCode: http.StatusOK,
+		Body:       io.NopCloser(strings.NewReader(testIntrospectionResponse)),
+	}, nil)
+
+	var capturedQuery string
+
+	executeCall := mockDoer.EXPECT().Do(gomock.Any()).DoAndReturn(
+		func(req *http.Request) (*http.Response, error) {
+			body := readAllOrFail(t, req.Body)
+
+			var gqlReq struct {
+				Query string `json:"query"`
+			}
+			if err := json.Unmarshal(body, &gqlReq); err != nil {
+				t.Fatalf("unmarshalling GraphQL request: %v", err)
+			}
+
+			capturedQuery = gqlReq.Query
+
+			return &http.Response{
+				StatusCode: http.StatusOK,
+				Body: io.NopCloser(strings.NewReader(
+					`{"data":{"getUser":{"id":"user-abc"}}}`,
+				)),
+			}, nil
+		},
+	)
+
+	gomock.InOrder(introspectionCall, executeCall)
+
+	meta := newTestMetadata("http://example.com", []metadata.RemoteSchemaPermission{
+		{
+			Role: "user",
+			Definition: metadata.RemoteSchemaPermissionDef{
+				Schema: userSDL,
+			},
+		},
+	})
+
+	connector, err := remoteschema.New(context.Background(), meta, mockDoer)
+	if err != nil {
+		t.Fatalf("New() error: %v", err)
+	}
+
+	op := &ast.OperationDefinition{
+		Operation: ast.Query,
+		SelectionSet: ast.SelectionSet{
+			&ast.FragmentSpread{Name: "UserLookup"},
+		},
+	}
+	fragments := ast.FragmentDefinitionList{
+		{
+			Name:          "UserLookup",
+			TypeCondition: "Query",
+			SelectionSet: ast.SelectionSet{
+				&ast.Field{
+					Name: "getUser",
+					SelectionSet: ast.SelectionSet{
+						&ast.Field{Name: "id"},
+					},
+				},
+			},
+		},
+	}
+
+	sessionVars := map[string]any{
+		"x-hasura-user-id": "user-abc",
+	}
+
+	_, err = connector.Execute(
+		context.Background(), op, fragments, nil, "user", sessionVars, slog.Default(),
+	)
+	if err != nil {
+		t.Fatalf("Execute error: %v", err)
+	}
+
+	normalizedQuery := strings.NewReplacer(" ", "", "\n", "", "\t", "").Replace(capturedQuery)
+	if !strings.Contains(normalizedQuery, `fragmentUserLookuponQuery`) {
+		t.Fatalf("expected named fragment in outgoing query, got: %s", capturedQuery)
+	}
+
+	if !strings.Contains(normalizedQuery, `getUser(userId:"user-abc")`) {
+		t.Fatalf("expected preset-injected userId in named fragment, got: %s", capturedQuery)
+	}
+
+	fragmentField, ok := fragments[0].SelectionSet[0].(*ast.Field)
+	if !ok {
+		t.Fatal("expected original fragment field")
+	}
+
+	if len(fragmentField.Arguments) != 0 {
+		t.Fatalf(
+			"expected original fragment to remain unmodified, got %#v",
+			fragmentField.Arguments,
+		)
+	}
+}
+
 // TestExecute_AppliesPresetsMissingSessionVar drives the
 // resolvePresetValue-misses-session-var branch end-to-end. The preset
 // references `x-hasura-user-id` but the session has no such key; the resolver

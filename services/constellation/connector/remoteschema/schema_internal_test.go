@@ -407,8 +407,9 @@ func TestParseSDL(t *testing.T) { //nolint:gocognit,cyclop,gocyclo,maintidx
 			},
 		}
 
-		result := applyPresets(
+		result, _ := applyPresetsToDocument(
 			op,
+			nil,
 			presets,
 			map[string]any{"x-hasura-user-id": "session-user-123"},
 			"Query",

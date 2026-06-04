@@ -269,8 +269,14 @@ func (c *Connector) Execute(
 		rootTypeName = c.roleRootTypeName(role, operation.Operation)
 	}
 
-	modifiedOp := applyPresets(operation, c.presets[role], sessionVariables, rootTypeName)
-	query := buildQueryString(modifiedOp, fragments)
+	modifiedOp, modifiedFragments := applyPresetsToDocument(
+		operation,
+		fragments,
+		c.presets[role],
+		sessionVariables,
+		rootTypeName,
+	)
+	query := buildQueryString(modifiedOp, modifiedFragments)
 
 	var clientHeaders http.Header
 	if c.forwardClientHeaders {

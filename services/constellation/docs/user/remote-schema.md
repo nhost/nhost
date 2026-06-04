@@ -188,7 +188,7 @@ schema: |
   }
 ```
 
-If the request session contains `x-hasura-page-limit: 25`, Constellation forwards `limit: 25` to the remote schema. For non-string targets, make sure the session value can be parsed as the target GraphQL input type; otherwise the remote GraphQL server may reject the forwarded operation during validation.
+If the request session contains `x-hasura-page-limit: 25`, Constellation forwards `limit: 25` to the remote schema. Preset coercion is best-effort: Constellation does not raise a local validation error when a session variable is missing, empty, or cannot be parsed as the hidden argument type. A missing or empty session variable is injected as an empty string; this is forwarded as `""` for `String`/`ID` arguments, and for non-string targets it is forwarded as an empty-string literal when it cannot be parsed as the target type, so the remote GraphQL server may reject the forwarded operation during validation. Ensure any session variables used by presets are present and non-empty, especially for non-null or security-sensitive arguments.
 
 **Complete example with multiple presets:**
 ```yaml
