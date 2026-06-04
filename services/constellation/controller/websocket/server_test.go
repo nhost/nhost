@@ -311,27 +311,6 @@ func TestProtocol(t *testing.T) {
 			},
 		},
 		{
-			name: "subscribe without init returns error",
-			setupHandler: func(_ *testing.T, _ *wsmock.MockMessageHandler) map[string]<-chan struct{} {
-				// OnSubscribe must NOT be called: no expectation set, gomock
-				// will fail the test if it is.
-				return nil
-			},
-			steps: func(_ map[string]<-chan struct{}) []protocolStep {
-				return []protocolStep{
-					{
-						send: wsMessage{
-							ID:      "sub-1",
-							Type:    "subscribe",
-							Payload: websocket.SubscribePayload{Query: "{ users { id } }"},
-						},
-						expectOutbound: "error",
-						expectID:       "sub-1",
-					},
-				}
-			},
-		},
-		{
 			name: "complete after init invokes OnComplete",
 			setupHandler: func(_ *testing.T, h *wsmock.MockMessageHandler) map[string]<-chan struct{} {
 				done := make(chan struct{})
@@ -351,20 +330,6 @@ func TestProtocol(t *testing.T) {
 						send:         wsMessage{ID: "sub-1", Type: "complete"},
 						awaitHandler: chans["sub-1"],
 					},
-				}
-			},
-		},
-		{
-			name: "second connection_init still produces ack but handler called once",
-			setupHandler: func(_ *testing.T, h *wsmock.MockMessageHandler) map[string]<-chan struct{} {
-				// OnConnectionInit should only fire on the first init.
-				h.EXPECT().OnConnectionInit(gomock.Any(), gomock.Any()).Return(nil).Times(1)
-				return nil
-			},
-			steps: func(_ map[string]<-chan struct{}) []protocolStep {
-				return []protocolStep{
-					{send: wsMessage{Type: "connection_init"}, expectOutbound: "connection_ack"},
-					{send: wsMessage{Type: "connection_init"}, expectOutbound: "connection_ack"},
 				}
 			},
 		},
@@ -415,6 +380,76 @@ func TestProtocol(t *testing.T) {
 
 			tc.close(t)
 		})
+	}
+}
+
+func TestProtocol_SubscribeBeforeInitCloses4401(t *testing.T) {
+	t.Parallel()
+
+	ctrl := gomock.NewController(t)
+	handler := wsmock.NewMockMessageHandler(ctrl)
+	handler.EXPECT().OnClose(gomock.Any())
+
+	tc := dialTestServerCapturingErr(t, handler)
+	defer tc.client.Close()
+
+	writeMessage(t, tc.client, wsMessage{
+		ID:      "sub-1",
+		Type:    "subscribe",
+		Payload: websocket.SubscribePayload{Query: "{ users { id } }"},
+	})
+
+	tc.client.SetReadDeadline(time.Now().Add(2 * time.Second)) //nolint:errcheck
+
+	_, _, err := tc.client.ReadMessage()
+	if !gorillaWS.IsCloseError(err, 4401) {
+		t.Fatalf("expected close code 4401, got %v", err)
+	}
+
+	select {
+	case loopErr := <-tc.loopErr:
+		if loopErr == nil {
+			t.Fatal("expected subscribe-before-init loop error, got nil")
+		}
+	case <-time.After(2 * time.Second):
+		t.Fatal("timed out waiting for server loop to exit")
+	}
+}
+
+func TestProtocol_DuplicateConnectionInitCloses4429(t *testing.T) {
+	t.Parallel()
+
+	ctrl := gomock.NewController(t)
+	handler := wsmock.NewMockMessageHandler(ctrl)
+	handler.EXPECT().OnConnectionInit(gomock.Any(), gomock.Any()).Return(nil).Times(1)
+	handler.EXPECT().OnClose(gomock.Any())
+
+	tc := dialTestServerCapturingErr(t, handler)
+	defer tc.client.Close()
+
+	writeMessage(t, tc.client, wsMessage{Type: "connection_init"})
+
+	ack := readMessage(t, tc.client)
+	if ack.Type != "connection_ack" {
+		t.Fatalf("expected connection_ack, got %s", ack.Type)
+	}
+
+	writeMessage(t, tc.client, wsMessage{Type: "connection_init"})
+
+	tc.client.SetReadDeadline(time.Now().Add(2 * time.Second)) //nolint:errcheck
+
+	_, _, err := tc.client.ReadMessage()
+	if !gorillaWS.IsCloseError(err, 4429) {
+		t.Fatalf("expected close code 4429, got %v", err)
+	}
+
+	select {
+	case loopErr := <-tc.loopErr:
+		if loopErr == nil {
+			t.Fatal("expected duplicate-init loop error, got nil")
+		}
+	case <-time.After(2 * time.Second):
+		t.Fatal("timed out waiting for server loop to exit")
 	}
 }
 

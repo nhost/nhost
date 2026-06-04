@@ -57,7 +57,7 @@ func TestSubscriptionBadAdminSecret(t *testing.T) { //nolint:paralleltest
 }
 
 // TestSubscriptionSubscribeBeforeInit verifies that subscribing before sending
-// connection_init returns an error but keeps the connection open.
+// connection_init closes the connection.
 func TestSubscriptionSubscribeBeforeInit(t *testing.T) { //nolint:paralleltest
 	c, err := subtest.NewClient(t, wsURL)
 	if err != nil {
@@ -72,9 +72,28 @@ func TestSubscriptionSubscribeBeforeInit(t *testing.T) { //nolint:paralleltest
 				title
 			}
 		}`),
+	}).ExpectClosed()
+}
+
+// TestSubscriptionDuplicateConnectionInitClosesConnection verifies that a
+// second connection_init closes the connection after the first ack.
+func TestSubscriptionDuplicateConnectionInitClosesConnection(t *testing.T) { //nolint:paralleltest
+	c, err := subtest.NewClient(t, wsURL)
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	c.Send(subtest.Message{
+		Type:    subtest.ConnectionInit,
+		Payload: initWithAdmin(),
 	}).Expect(func(msg subtest.Message) {
-		expectError(t, msg, "1", "connection not initialized")
-	}).Close()
+		if msg.Type != subtest.ConnectionAck {
+			t.Fatalf("expected connection_ack, got %s", msg.Type)
+		}
+	}).Send(subtest.Message{
+		Type:    subtest.ConnectionInit,
+		Payload: initWithAdmin(),
+	}).ExpectClosed()
 }
 
 // TestSubscriptionDuplicateID verifies that subscribing with an already-active
