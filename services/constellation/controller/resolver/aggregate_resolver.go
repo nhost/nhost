@@ -101,7 +101,7 @@ func (r *RemoteRelationshipResolver) executeAndStitchAggregate(
 // aggregate execution.
 func uniqueJoinValues(joinArgs []*remoteJoinArgument, sourceCol string) []any {
 	joinValues := make([]any, 0, len(joinArgs))
-	seen := make(map[any]struct{}, len(joinArgs))
+	seen := make(map[string]struct{}, len(joinArgs))
 
 	for _, arg := range joinArgs {
 		v := arg.values[sourceCol]
@@ -109,11 +109,12 @@ func uniqueJoinValues(joinArgs []*remoteJoinArgument, sourceCol string) []any {
 			continue
 		}
 
-		if _, ok := seen[v]; ok {
+		key := joinValueDedupKey(v)
+		if _, ok := seen[key]; ok {
 			continue
 		}
 
-		seen[v] = struct{}{}
+		seen[key] = struct{}{}
 
 		joinValues = append(joinValues, v)
 	}

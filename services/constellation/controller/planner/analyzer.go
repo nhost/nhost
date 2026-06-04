@@ -1,10 +1,15 @@
 package planner
 
 import (
+	"fmt"
+	"strings"
+
 	"github.com/nhost/nhost/services/constellation/controller/planner/transform"
 	"github.com/nhost/nhost/services/constellation/internal/jsonpath"
 	"github.com/vektah/gqlparser/v2/ast"
 )
+
+const phantomAliasPrefix = "_constellation_phantom_"
 
 // analyzer walks a GraphQL AST and detects remote relationships.
 type analyzer struct {
@@ -261,14 +266,22 @@ func (a *analyzer) processPhantomFields(
 		return
 	}
 
-	// Check which fields are already selected
-	selectedFields := a.collectSelectedFields(field)
+	// Check which fields are already available under their own response key.
+	selectedFields := a.collectOwnResponseKeyFields(field)
+	responseKeys := a.collectResponseKeys(field)
 
 	// Determine which phantom fields need to be added
 	var phantomFields []string
+
+	phantomAliases := make(map[string]string)
 	for col := range neededPhantoms {
-		if _, ok := selectedFields[col]; !ok {
-			phantomFields = append(phantomFields, col)
+		if _, ok := selectedFields[col]; ok {
+			continue
+		}
+
+		phantomFields = append(phantomFields, col)
+		if _, collides := responseKeys[col]; collides {
+			phantomAliases[col] = makePhantomAlias(col, responseKeys)
 		}
 	}
 
@@ -276,10 +289,15 @@ func (a *analyzer) processPhantomFields(
 		return
 	}
 
+	if len(phantomAliases) == 0 {
+		phantomAliases = nil
+	}
+
 	// Record phantom field spec
 	pfs := &PhantomFieldSpec{
 		Path:            path,
 		Fields:          phantomFields,
+		Aliases:         phantomAliases,
 		ForRelationship: phantomForRel,
 	}
 	result.PhantomFields = append(result.PhantomFields, pfs)
@@ -325,6 +343,89 @@ func (a *analyzer) collectSelectedFieldsFromSelections(
 			a.collectSelectedFieldsFromSelections(s.SelectionSet, selectedFields)
 		}
 	}
+}
+
+// collectOwnResponseKeyFields returns fields selected with the same response
+// key as their underlying field name. Only these fields make a join column
+// available at parentRow[column] without an injected phantom.
+func (a *analyzer) collectOwnResponseKeyFields(field *ast.Field) map[string]struct{} {
+	selectedFields := make(map[string]struct{})
+	a.collectOwnResponseKeyFieldsFromSelections(field.SelectionSet, selectedFields)
+
+	return selectedFields
+}
+
+func (a *analyzer) collectOwnResponseKeyFieldsFromSelections(
+	selections ast.SelectionSet,
+	selectedFields map[string]struct{},
+) {
+	for _, sel := range selections {
+		switch s := sel.(type) {
+		case *ast.Field:
+			if s.Alias == "" || s.Alias == s.Name {
+				selectedFields[s.Name] = struct{}{}
+			}
+		case *ast.FragmentSpread:
+			if frag := a.fragments.ForName(s.Name); frag != nil {
+				a.collectOwnResponseKeyFieldsFromSelections(frag.SelectionSet, selectedFields)
+			}
+		case *ast.InlineFragment:
+			a.collectOwnResponseKeyFieldsFromSelections(s.SelectionSet, selectedFields)
+		}
+	}
+}
+
+// collectResponseKeys returns every response key in the field's selection set.
+func (a *analyzer) collectResponseKeys(field *ast.Field) map[string]struct{} {
+	responseKeys := make(map[string]struct{})
+	a.collectResponseKeysFromSelections(field.SelectionSet, responseKeys)
+
+	return responseKeys
+}
+
+func (a *analyzer) collectResponseKeysFromSelections(
+	selections ast.SelectionSet,
+	responseKeys map[string]struct{},
+) {
+	for _, sel := range selections {
+		switch s := sel.(type) {
+		case *ast.Field:
+			responseKeys[fieldResponseKey(s)] = struct{}{}
+		case *ast.FragmentSpread:
+			if frag := a.fragments.ForName(s.Name); frag != nil {
+				a.collectResponseKeysFromSelections(frag.SelectionSet, responseKeys)
+			}
+		case *ast.InlineFragment:
+			a.collectResponseKeysFromSelections(s.SelectionSet, responseKeys)
+		}
+	}
+}
+
+func makePhantomAlias(fieldName string, responseKeys map[string]struct{}) string {
+	base := phantomAliasPrefix + sanitizePhantomAliasPart(fieldName)
+	alias := base
+
+	for i := 1; ; i++ {
+		if _, exists := responseKeys[alias]; !exists {
+			responseKeys[alias] = struct{}{}
+
+			return alias
+		}
+
+		alias = fmt.Sprintf("%s_%d", base, i)
+	}
+}
+
+func sanitizePhantomAliasPart(fieldName string) string {
+	return strings.NewReplacer(".", "_", "-", "_").Replace(fieldName)
+}
+
+func fieldResponseKey(field *ast.Field) string {
+	if field.Alias != "" {
+		return field.Alias
+	}
+
+	return field.Name
 }
 
 // recurseIntoNestedFields recursively analyzes non-relationship fields.

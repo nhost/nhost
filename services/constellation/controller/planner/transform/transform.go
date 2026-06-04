@@ -37,6 +37,10 @@ type PhantomSpec struct {
 
 	// Fields are the field names to add (e.g. ["user_id", "department_id"]).
 	Fields []string
+
+	// Aliases maps field names to the internal response key to use when
+	// injecting a phantom field. An absent entry means no alias is needed.
+	Aliases map[string]string
 }
 
 // Transformer transforms GraphQL operations to strip relationship fields
@@ -413,13 +417,18 @@ func InjectPhantomFields(operation *ast.OperationDefinition, specs []PhantomSpec
 	}
 
 	for _, spec := range specs {
-		injectFieldsAtPath(operation.SelectionSet, []string(spec.Path), spec.Fields)
+		injectFieldsAtPath(operation.SelectionSet, []string(spec.Path), spec.Fields, spec.Aliases)
 	}
 }
 
 // injectFieldsAtPath injects fields at the given path in the selection set.
 // Path is like ["users", "profile"] meaning inject into users -> profile's selection.
-func injectFieldsAtPath(ss ast.SelectionSet, path []string, fields []string) {
+func injectFieldsAtPath(
+	ss ast.SelectionSet,
+	path []string,
+	fields []string,
+	aliases map[string]string,
+) {
 	if len(path) == 0 || len(fields) == 0 {
 		return
 	}
@@ -440,13 +449,13 @@ func injectFieldsAtPath(ss ast.SelectionSet, path []string, fields []string) {
 		}
 
 		if len(path) == 1 {
-			injectFieldsIntoSelectionSet(field, fields)
+			injectFieldsIntoSelectionSet(field, fields, aliases)
 
 			return
 		}
 
 		if field.SelectionSet != nil {
-			injectFieldsAtPath(field.SelectionSet, path[1:], fields)
+			injectFieldsAtPath(field.SelectionSet, path[1:], fields, aliases)
 		}
 
 		return
@@ -454,7 +463,11 @@ func injectFieldsAtPath(ss ast.SelectionSet, path []string, fields []string) {
 }
 
 // injectFieldsIntoSelectionSet adds fields to a field's selection set if not already present.
-func injectFieldsIntoSelectionSet(field *ast.Field, fieldNames []string) {
+func injectFieldsIntoSelectionSet(
+	field *ast.Field,
+	fieldNames []string,
+	aliases map[string]string,
+) {
 	if field.SelectionSet == nil {
 		field.SelectionSet = make(ast.SelectionSet, 0)
 	}
@@ -462,12 +475,7 @@ func injectFieldsIntoSelectionSet(field *ast.Field, fieldNames []string) {
 	existing := make(map[string]struct{})
 	for _, sel := range field.SelectionSet {
 		if f, ok := sel.(*ast.Field); ok {
-			name := f.Name
-			if f.Alias != "" {
-				name = f.Alias
-			}
-
-			existing[name] = struct{}{}
+			existing[f.Name] = struct{}{}
 		}
 	}
 
@@ -477,7 +485,8 @@ func injectFieldsIntoSelectionSet(field *ast.Field, fieldNames []string) {
 		}
 
 		field.SelectionSet = append(field.SelectionSet, &ast.Field{ //nolint:exhaustruct
-			Name: name,
+			Alias: aliases[name],
+			Name:  name,
 		})
 	}
 }

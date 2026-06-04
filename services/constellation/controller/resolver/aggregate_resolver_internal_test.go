@@ -417,6 +417,27 @@ func TestUniqueJoinValues_DedupesAndSkipsNil(t *testing.T) {
 // TestUniqueJoinValues_EmptyInput returns an empty slice (not nil) for empty
 // join arguments, satisfying the early-return contract in
 // executeAndStitchAggregate.
+func TestUniqueJoinValues_HandlesNonComparable(t *testing.T) {
+	t.Parallel()
+
+	sliceValue := []any{"a", "b"}
+	mapValue := map[string]any{"k": "v"}
+	joinArgs := []*remoteJoinArgument{
+		newRemoteJoinArgument(map[string]any{"deptId": sliceValue}),
+		newRemoteJoinArgument(map[string]any{"deptId": []any{"a", "b"}}),
+		newRemoteJoinArgument(map[string]any{"deptId": mapValue}),
+		newRemoteJoinArgument(map[string]any{"deptId": map[string]any{"k": "v"}}),
+		newRemoteJoinArgument(map[string]any{"deptId": "d1"}),
+	}
+
+	got := uniqueJoinValues(joinArgs, "deptId")
+
+	want := []any{sliceValue, mapValue, "d1"}
+	if diff := cmp.Diff(want, got); diff != "" {
+		t.Errorf("uniqueJoinValues mismatch (-want +got):\n%s", diff)
+	}
+}
+
 func TestUniqueJoinValues_EmptyInput(t *testing.T) {
 	t.Parallel()
 
