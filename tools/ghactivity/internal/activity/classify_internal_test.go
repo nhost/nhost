@@ -88,6 +88,7 @@ func onlyItem(t *testing.T, r *Report) (string, Item) {
 		"ReadyForReview": r.ReadyForReview,
 		"Blocked":        r.Blocked,
 		"ClosedOrMerged": r.ClosedOrMerged,
+		"Reviewed":       r.Reviewed,
 		"Uncategorized":  r.Uncategorized,
 	}
 
@@ -118,6 +119,7 @@ func bucketCounts(r *Report) map[string]int {
 		"ReadyForReview": len(r.ReadyForReview),
 		"Blocked":        len(r.Blocked),
 		"ClosedOrMerged": len(r.ClosedOrMerged),
+		"Reviewed":       len(r.Reviewed),
 		"Uncategorized":  len(r.Uncategorized),
 	}
 }
@@ -132,8 +134,8 @@ func TestClassifyPR_BucketPriority(t *testing.T) {
 
 	// Build a PR that satisfies every bucket's signal. Priority order
 	// (top wins): ClosedOrMerged > Blocked > ReadyForReview > InProgress >
-	// Uncategorized. We then peel signals off the top and check the next bucket
-	// fires.
+	// Reviewed > Uncategorized. We then peel signals off the top and check the
+	// next bucket fires.
 
 	full := authoredPR()
 	full.MergedAt = in
@@ -207,7 +209,7 @@ func TestClassifyPR_BucketPriority(t *testing.T) {
 			want: "InProgress",
 		},
 		{
-			name: "Uncategorized when only a timeline comment by the user remains",
+			name: "Reviewed when only a timeline comment by the user remains",
 			mut: func(n *searchNode) {
 				n.MergedAt = ""
 				n.ClosedAt = ""
@@ -217,7 +219,7 @@ func TestClassifyPR_BucketPriority(t *testing.T) {
 					{Typename: "IssueComment", CreatedAt: in, Author: &actor{Login: testUser}},
 				}
 			},
-			want: "Uncategorized",
+			want: "Reviewed",
 		},
 	}
 
@@ -259,7 +261,7 @@ func TestClassifyPR_NonAuthorRequiresInWindowSignal(t *testing.T) {
 		wantCount map[string]int
 	}{
 		{
-			name: "non-authored PR with no in-window user activity is NOT Uncategorized",
+			name: "non-authored PR with no in-window user activity is not bucketed",
 			node: func() searchNode {
 				n := nonAuthoredPR()
 				// Some third-party update bumped `updated`, but the user did
@@ -273,11 +275,11 @@ func TestClassifyPR_NonAuthorRequiresInWindowSignal(t *testing.T) {
 			},
 			wantCount: map[string]int{
 				"InProgress": 0, "ReadyForReview": 0, "Blocked": 0,
-				"ClosedOrMerged": 0, "Uncategorized": 0,
+				"ClosedOrMerged": 0, "Reviewed": 0, "Uncategorized": 0,
 			},
 		},
 		{
-			name: "non-authored PR with an in-window user review IS Uncategorized",
+			name: "non-authored PR with an in-window user review is Reviewed",
 			node: func() searchNode {
 				n := nonAuthoredPR()
 				n.TimelineItems.Nodes = []timelineItem{
@@ -293,7 +295,44 @@ func TestClassifyPR_NonAuthorRequiresInWindowSignal(t *testing.T) {
 			},
 			wantCount: map[string]int{
 				"InProgress": 0, "ReadyForReview": 0, "Blocked": 0,
-				"ClosedOrMerged": 0, "Uncategorized": 1,
+				"ClosedOrMerged": 0, "Reviewed": 1, "Uncategorized": 0,
+			},
+		},
+		{
+			name: "non-authored PR merged in window with no user activity is not bucketed",
+			node: func() searchNode {
+				n := nonAuthoredPR()
+				n.MergedAt = in
+				n.TimelineItems.Nodes = []timelineItem{
+					{Typename: "IssueComment", CreatedAt: in, Author: &actor{Login: "carol"}},
+				}
+
+				return n
+			},
+			wantCount: map[string]int{
+				"InProgress": 0, "ReadyForReview": 0, "Blocked": 0,
+				"ClosedOrMerged": 0, "Reviewed": 0, "Uncategorized": 0,
+			},
+		},
+		{
+			name: "non-authored PR merged in window with user review is Reviewed",
+			node: func() searchNode {
+				n := nonAuthoredPR()
+				n.MergedAt = in
+				n.TimelineItems.Nodes = []timelineItem{
+					{
+						Typename:    "PullRequestReview",
+						SubmittedAt: in,
+						State:       "APPROVED",
+						Author:      &actor{Login: testUser},
+					},
+				}
+
+				return n
+			},
+			wantCount: map[string]int{
+				"InProgress": 0, "ReadyForReview": 0, "Blocked": 0,
+				"ClosedOrMerged": 0, "Reviewed": 1, "Uncategorized": 0,
 			},
 		},
 		{
@@ -301,7 +340,7 @@ func TestClassifyPR_NonAuthorRequiresInWindowSignal(t *testing.T) {
 			node: authoredPR,
 			wantCount: map[string]int{
 				"InProgress": 0, "ReadyForReview": 0, "Blocked": 0,
-				"ClosedOrMerged": 0, "Uncategorized": 0,
+				"ClosedOrMerged": 0, "Reviewed": 0, "Uncategorized": 0,
 			},
 		},
 	}
@@ -360,7 +399,8 @@ func TestClassifyPR_EmptyProjectAndTimelineDoNotPanic(t *testing.T) {
 	classifyPR(authoredPR(), p, r)
 
 	if got := bucketCounts(r); got["InProgress"]+got["ReadyForReview"]+
-		got["Blocked"]+got["ClosedOrMerged"]+got["Uncategorized"] != 0 {
+		got["Blocked"]+got["ClosedOrMerged"]+got["Reviewed"]+
+		got["Uncategorized"] != 0 {
 		t.Fatalf("expected no buckets to fire for empty PR, got %v", got)
 	}
 }
@@ -608,6 +648,18 @@ func TestBuild_DedupesAndClassifies(t *testing.T) {
 
 	if len(got.ClosedOrMerged) != 1 {
 		t.Fatalf("expected one ClosedOrMerged item after dedupe, got %+v", got.ClosedOrMerged)
+	}
+
+	if got.User != p.User || !got.Since.Equal(p.Since) || !got.Until.Equal(p.Until) {
+		t.Fatalf(
+			"report metadata = user %q since %s until %s, want user %q since %s until %s",
+			got.User,
+			got.Since,
+			got.Until,
+			p.User,
+			p.Since,
+			p.Until,
+		)
 	}
 }
 
