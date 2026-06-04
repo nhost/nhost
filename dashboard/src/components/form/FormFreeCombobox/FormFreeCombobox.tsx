@@ -7,14 +7,16 @@ import {
   FormLabel,
   FormMessage,
 } from '@/components/ui/v3/form';
+import {
+  type ComboboxOption,
+  FreeCombobox,
+  type FreeComboboxChangeMeta,
+} from '@/components/ui/v3/free-combobox';
 import { cn } from '@/lib/utils';
-import FormAutocompleteCore, {
-  type FormAutocompleteOption,
-} from './FormAutocompleteCore';
 
-export type { FormAutocompleteOption };
+export type { ComboboxOption as FormFreeComboboxOption };
 
-interface FormAutocompleteProps<
+interface FormFreeComboboxProps<
   TFieldValues extends FieldValues = FieldValues,
   TName extends FieldPath<TFieldValues> = FieldPath<TFieldValues>,
 > {
@@ -29,17 +31,20 @@ interface FormAutocompleteProps<
   inline?: boolean;
   helperText?: ReactNode | null;
   disabled?: boolean;
-  options: FormAutocompleteOption[];
+  options: ComboboxOption[];
   filter?: (value: string, search: string, keywords?: string[]) => number;
-  allowCustomValue?: boolean;
   customValueLabel?: (input: string) => ReactNode;
-  onChange?: (value: string | null) => void;
+  /**
+   * Fired after the field is updated. `meta.source` tells whether the value
+   * was picked from the option list or typed as a custom value.
+   */
+  onChange?: (value: string, meta: FreeComboboxChangeMeta) => void;
   popoverContentClassName?: string;
   'data-testid'?: string;
   'aria-label'?: string;
 }
 
-export default function FormAutocomplete<
+export default function FormFreeCombobox<
   TFieldValues extends FieldValues = FieldValues,
   TName extends FieldPath<TFieldValues> = FieldPath<TFieldValues>,
 >({
@@ -50,8 +55,8 @@ export default function FormAutocomplete<
   inline,
   helperText,
   onChange: onChangeProp,
-  ...coreProps
-}: FormAutocompleteProps<TFieldValues, TName>) {
+  ...comboboxProps
+}: FormFreeComboboxProps<TFieldValues, TName>) {
   return (
     <FormField
       control={control}
@@ -79,12 +84,13 @@ export default function FormAutocomplete<
                 inline,
             })}
           >
-            <FormAutocompleteCore
-              {...coreProps}
+            <FreeCombobox
+              {...comboboxProps}
+              ref={field.ref}
               value={field.value ?? null}
-              onChange={(next) => {
+              onChange={(next, meta) => {
                 field.onChange(next);
-                onChangeProp?.(next);
+                onChangeProp?.(next, meta);
               }}
               onBlur={field.onBlur}
               aria-invalid={!!fieldState.error}
