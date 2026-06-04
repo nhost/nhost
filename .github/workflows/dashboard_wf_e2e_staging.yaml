@@ -44,6 +44,8 @@ on:
         required: true
       NIX_CACHE_SECRET_ACCESS_KEY:
         required: true
+      NIX_CACHE_PRIV_KEY:
+        required: true
       DASHBOARD_VERCEL_DEPLOY_TOKEN:
         required: true
       DASHBOARD_VERCEL_TEAM_ID:
@@ -148,10 +150,9 @@ jobs:
         run: |
           set -euo pipefail
 
-          env_dir="$(mktemp -d /tmp/dashboard-e2e-${{ matrix.suite }}.XXXXXX)"
-          env_file="${env_dir}/env"
+          env_file="/tmp/nhost-dashboard-e2e-${{ matrix.suite }}.env"
           log_file="${RUNNER_TEMP}/dashboard-e2e-${{ matrix.suite }}.log"
-          trap 'rm -rf "$env_dir"' EXIT
+          trap 'rm -f "$env_file"' EXIT
 
           write_env() {
             local name="$1"
@@ -180,11 +181,9 @@ jobs:
               write_env "$name"
             done
           } > "$env_file"
-          if getent group nixbld > /dev/null && sudo chgrp nixbld "$env_dir" "$env_file"; then
-            chmod 750 "$env_dir"
+          if getent group nixbld > /dev/null && sudo chgrp nixbld "$env_file"; then
             chmod 640 "$env_file"
           else
-            chmod 755 "$env_dir"
             chmod 644 "$env_file"
           fi
 
@@ -212,6 +211,13 @@ jobs:
           fi
 
           exit "$status"
+
+      - name: Store Nix cache
+        uses: ./.github/actions/cache-nix
+        with:
+          NIX_CACHE_PRIV_KEY: ${{ secrets.NIX_CACHE_PRIV_KEY }}
+          NIX_CACHE_ACCESS_KEY_ID: ${{ secrets.NIX_CACHE_ACCESS_KEY_ID }}
+          NIX_CACHE_SECRET_ACCESS_KEY: ${{ secrets.NIX_CACHE_SECRET_ACCESS_KEY }}
 
       - name: Encrypt Playwright report
         if: failure()

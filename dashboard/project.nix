@@ -109,9 +109,7 @@ let
       {
         __noChroot = true;
         nativeBuildInputs = checkDeps ++ buildInputs ++ nativeBuildInputs;
-        NHOST_DASHBOARD_E2E_ENV_FILE = builtins.getEnv "NHOST_DASHBOARD_E2E_ENV_FILE";
-        DASHBOARD_E2E_RUN_ID = builtins.getEnv "GITHUB_RUN_ID";
-        DASHBOARD_E2E_RUN_ATTEMPT = builtins.getEnv "GITHUB_RUN_ATTEMPT";
+        NHOST_DASHBOARD_E2E_ENV_FILE = "/tmp/nhost-dashboard-e2e-${suite}.env";
       }
       ''
         if [ -z "$NHOST_DASHBOARD_E2E_ENV_FILE" ]; then
