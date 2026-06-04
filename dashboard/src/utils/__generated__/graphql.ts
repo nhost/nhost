@@ -33,7 +33,6 @@ export type Scalars = {
   jsonb: any;
   labels: any;
   map: any;
-  smallint: any;
   timestamptz: any;
   uuid: any;
 };
@@ -12073,7 +12072,7 @@ export type Countries = {
   /** Three-letter country code (ISO 3166-1 alpha-3) */
   iso3?: Maybe<Scalars['bpchar']>;
   /** Three-letter country code (ISO 3166-1 numeric) */
-  isoNumber?: Maybe<Scalars['smallint']>;
+  isoNumber?: Maybe<Scalars['Int']>;
   /** An array relationship */
   locations: Array<Regions>;
   /** An aggregate relationship */
@@ -12217,7 +12216,7 @@ export type Countries_Bool_Exp = {
   /** Three-letter country code (ISO 3166-1 alpha-3) */
   iso3?: InputMaybe<Bpchar_Comparison_Exp>;
   /** Three-letter country code (ISO 3166-1 numeric) */
-  isoNumber?: InputMaybe<Smallint_Comparison_Exp>;
+  isoNumber?: InputMaybe<Int_Comparison_Exp>;
   locations?: InputMaybe<Regions_Bool_Exp>;
   locations_aggregate?: InputMaybe<Regions_Aggregate_Bool_Exp>;
   /** English country name */
@@ -12235,7 +12234,7 @@ export enum Countries_Constraint {
 /** input type for incrementing numeric columns in table "countries" */
 export type Countries_Inc_Input = {
   /** Three-letter country code (ISO 3166-1 numeric) */
-  isoNumber?: InputMaybe<Scalars['smallint']>;
+  isoNumber?: InputMaybe<Scalars['Int']>;
 };
 
 /** input type for inserting data into table "countries" */
@@ -12250,7 +12249,7 @@ export type Countries_Insert_Input = {
   /** Three-letter country code (ISO 3166-1 alpha-3) */
   iso3?: InputMaybe<Scalars['bpchar']>;
   /** Three-letter country code (ISO 3166-1 numeric) */
-  isoNumber?: InputMaybe<Scalars['smallint']>;
+  isoNumber?: InputMaybe<Scalars['Int']>;
   locations?: InputMaybe<Regions_Arr_Rel_Insert_Input>;
   /** English country name */
   name?: InputMaybe<Scalars['String']>;
@@ -12269,7 +12268,7 @@ export type Countries_Max_Fields = {
   /** Three-letter country code (ISO 3166-1 alpha-3) */
   iso3?: Maybe<Scalars['bpchar']>;
   /** Three-letter country code (ISO 3166-1 numeric) */
-  isoNumber?: Maybe<Scalars['smallint']>;
+  isoNumber?: Maybe<Scalars['Int']>;
   /** English country name */
   name?: Maybe<Scalars['String']>;
 };
@@ -12302,7 +12301,7 @@ export type Countries_Min_Fields = {
   /** Three-letter country code (ISO 3166-1 alpha-3) */
   iso3?: Maybe<Scalars['bpchar']>;
   /** Three-letter country code (ISO 3166-1 numeric) */
-  isoNumber?: Maybe<Scalars['smallint']>;
+  isoNumber?: Maybe<Scalars['Int']>;
   /** English country name */
   name?: Maybe<Scalars['String']>;
 };
@@ -12400,7 +12399,7 @@ export type Countries_Set_Input = {
   /** Three-letter country code (ISO 3166-1 alpha-3) */
   iso3?: InputMaybe<Scalars['bpchar']>;
   /** Three-letter country code (ISO 3166-1 numeric) */
-  isoNumber?: InputMaybe<Scalars['smallint']>;
+  isoNumber?: InputMaybe<Scalars['Int']>;
   /** English country name */
   name?: InputMaybe<Scalars['String']>;
 };
@@ -12463,7 +12462,7 @@ export type Countries_Stream_Cursor_Value_Input = {
   /** Three-letter country code (ISO 3166-1 alpha-3) */
   iso3?: InputMaybe<Scalars['bpchar']>;
   /** Three-letter country code (ISO 3166-1 numeric) */
-  isoNumber?: InputMaybe<Scalars['smallint']>;
+  isoNumber?: InputMaybe<Scalars['Int']>;
   /** English country name */
   name?: InputMaybe<Scalars['String']>;
 };
@@ -12472,7 +12471,7 @@ export type Countries_Stream_Cursor_Value_Input = {
 export type Countries_Sum_Fields = {
   __typename?: 'countries_sum_fields';
   /** Three-letter country code (ISO 3166-1 numeric) */
-  isoNumber?: Maybe<Scalars['smallint']>;
+  isoNumber?: Maybe<Scalars['Int']>;
 };
 
 /** order by sum() on columns of table "countries" */
@@ -22415,11 +22414,11 @@ export type Query_Root = {
    *
    * `intervalMs`, `maxDataPoints` and `minInterval` override how Grafana
    * resolves `$__interval` / `$__rate_interval` (step ≈ range/maxDataPoints,
-   * floored to `minInterval`). When omitted, the defaults match Grafana's
-   * graph defaults (maxDataPoints=1000, intervalMs derived from the range,
-   * no minInterval floor). `minInterval` is a Prometheus duration string
-   * (e.g. `"2m"`) and must match the dashboard panel to render an identical
-   * series.
+   * floored to `minInterval`). When omitted, the defaults are
+   * `maxDataPoints=600` (clamped to `[200, 2000]`), `intervalMs` derived
+   * from the range, and no `minInterval` floor. `minInterval` is a
+   * Prometheus duration string (e.g. `"2m"`) and must match the dashboard
+   * panel to render an identical series.
    */
   getFunctionsHistogramMetric: Array<FunctionsMetricSeries>;
   /**
@@ -22448,11 +22447,11 @@ export type Query_Root = {
    *
    * `intervalMs`, `maxDataPoints` and `minInterval` override how Grafana
    * resolves `$__interval` / `$__rate_interval` (step ≈ range/maxDataPoints,
-   * floored to `minInterval`). When omitted, the defaults match Grafana's
-   * graph defaults (maxDataPoints=1000, intervalMs derived from the range,
-   * no minInterval floor). `minInterval` is a Prometheus duration string
-   * (e.g. `"2m"`) and must match the dashboard panel to render an identical
-   * series.
+   * floored to `minInterval`). When omitted, the defaults are
+   * `maxDataPoints=600` (clamped to `[200, 2000]`), `intervalMs` derived
+   * from the range, and no `minInterval` floor. `minInterval` is a
+   * Prometheus duration string (e.g. `"2m"`) and must match the dashboard
+   * panel to render an identical series.
    */
   getFunctionsRangeMetric: Array<FunctionsMetricSeries>;
   getLogsVolume: Metrics;
@@ -25804,19 +25803,6 @@ export type Sla_Level_Updates = {
   _set?: InputMaybe<Sla_Level_Set_Input>;
   /** filter the rows which have to be updated */
   where: Sla_Level_Bool_Exp;
-};
-
-/** Boolean expression to compare columns of type "smallint". All fields are combined with logical 'AND'. */
-export type Smallint_Comparison_Exp = {
-  _eq?: InputMaybe<Scalars['smallint']>;
-  _gt?: InputMaybe<Scalars['smallint']>;
-  _gte?: InputMaybe<Scalars['smallint']>;
-  _in?: InputMaybe<Array<Scalars['smallint']>>;
-  _is_null?: InputMaybe<Scalars['Boolean']>;
-  _lt?: InputMaybe<Scalars['smallint']>;
-  _lte?: InputMaybe<Scalars['smallint']>;
-  _neq?: InputMaybe<Scalars['smallint']>;
-  _nin?: InputMaybe<Array<Scalars['smallint']>>;
 };
 
 /** Software type: hasura, postgres, hasura-auth ... */
