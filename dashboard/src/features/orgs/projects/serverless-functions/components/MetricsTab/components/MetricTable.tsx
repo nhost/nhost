@@ -12,7 +12,6 @@ import { cn } from '@/lib/utils';
 export interface MetricTableColumn<Row> {
   key: string;
   label: string;
-  widthClass?: string;
   alignRight?: boolean;
   render: (row: Row) => ReactNode;
 }
@@ -22,7 +21,6 @@ export interface MetricTableProps<Row> {
   rows: Row[];
   rowKey: (row: Row, index: number) => string;
   emptyLabel?: string;
-  maxRows?: number;
   className?: string;
 }
 
@@ -31,14 +29,11 @@ export default function MetricTable<Row>({
   rows,
   rowKey,
   emptyLabel = 'No data available.',
-  maxRows,
   className,
 }: MetricTableProps<Row>) {
-  const visibleRows = maxRows != null ? rows.slice(0, maxRows) : rows;
-
   return (
     <div className={cn('flex flex-1 flex-col gap-2', className)}>
-      {visibleRows.length === 0 ? (
+      {rows.length === 0 ? (
         <div className="flex min-h-[260px] flex-1 items-center justify-center">
           <p className="text-muted-foreground text-sm">{emptyLabel}</p>
         </div>
@@ -50,10 +45,7 @@ export default function MetricTable<Row>({
                 {columns.map((col) => (
                   <TableHead
                     key={col.key}
-                    className={cn(
-                      col.widthClass,
-                      col.alignRight && 'text-right',
-                    )}
+                    className={cn(col.alignRight && 'text-right')}
                   >
                     {col.label}
                   </TableHead>
@@ -61,7 +53,7 @@ export default function MetricTable<Row>({
               </TableRow>
             </TableHeader>
             <TableBody>
-              {visibleRows.map((row, rowIndex) => (
+              {rows.map((row, rowIndex) => (
                 <TableRow key={rowKey(row, rowIndex)}>
                   {columns.map((col) => (
                     <TableCell

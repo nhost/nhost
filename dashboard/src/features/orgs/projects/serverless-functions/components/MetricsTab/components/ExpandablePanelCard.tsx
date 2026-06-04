@@ -1,8 +1,7 @@
 import { Eye } from 'lucide-react';
 import type { ReactNode } from 'react';
 import { Button } from '@/components/ui/v3/button';
-import type { MetricPanelSlug } from '@/features/orgs/projects/serverless-functions/components/MetricsTab/types';
-import { cn } from '@/lib/utils';
+import type { MetricPanelSlug } from '@/features/orgs/projects/serverless-functions/components/MetricsTab/panels';
 
 export interface ExpandablePanelCardProps {
   title: string;
@@ -10,7 +9,6 @@ export interface ExpandablePanelCardProps {
   slug?: MetricPanelSlug;
   expandable?: boolean;
   onExpand?: (slug: MetricPanelSlug) => void;
-  className?: string;
   children: ReactNode;
 }
 
@@ -20,17 +18,11 @@ export default function ExpandablePanelCard({
   slug,
   expandable = true,
   onExpand,
-  className,
   children,
 }: ExpandablePanelCardProps) {
   const canExpand = expandable && !!slug && !!onExpand;
   return (
-    <div
-      className={cn(
-        'flex flex-col gap-2 rounded-lg border bg-card p-4 shadow-sm',
-        className,
-      )}
-    >
+    <div className="flex flex-col gap-2 rounded-lg border bg-card p-4 shadow-sm">
       <div className="flex items-start justify-between gap-2">
         <div className="min-h-10 space-y-1">
           <h3 className="font-medium text-foreground text-sm">{title}</h3>

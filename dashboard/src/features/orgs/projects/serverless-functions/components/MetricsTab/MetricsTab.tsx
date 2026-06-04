@@ -1,5 +1,6 @@
+import { useMeasure } from '@uidotdev/usehooks';
 import { AlertCircle, RefreshCw } from 'lucide-react';
-import { useCallback, useEffect, useRef, useState } from 'react';
+import { useCallback } from 'react';
 import { CodeBlock } from '@/components/presentational/CodeBlock';
 import {
   Accordion,
@@ -63,21 +64,8 @@ export default function MetricsTab({ fn }: MetricsTabProps) {
   const { openPanel, hiddenKeys, open, close, setHiddenKeys } =
     useMetricsPanelUrlState();
 
-  const chartCellRef = useRef<HTMLDivElement | null>(null);
-  const [chartWidth, setChartWidth] = useState(0);
-
-  useEffect(() => {
-    const el = chartCellRef.current;
-    if (!el) {
-      return undefined;
-    }
-    const observer = new ResizeObserver((entries) => {
-      const next = entries[0]?.contentRect.width ?? 0;
-      setChartWidth(Math.round(next));
-    });
-    observer.observe(el);
-    return () => observer.disconnect();
-  }, []);
+  const [chartCellRef, { width }] = useMeasure<HTMLDivElement>();
+  const chartWidth = Math.floor(width ?? 0);
 
   const { data, loading, error, refetch, xDomain } = useFunctionMetrics({
     route: fn.route,
@@ -117,8 +105,6 @@ export default function MetricsTab({ fn }: MetricsTabProps) {
     });
   }, [range, setRange]);
 
-  const isExpanded = !!openPanel && !!data && !error;
-
   return (
     <div className="relative flex h-full flex-col bg-accent-background">
       <div
@@ -147,7 +133,7 @@ export default function MetricsTab({ fn }: MetricsTabProps) {
         </Tooltip>
       </div>
 
-      {isExpanded && openPanel && data ? (
+      {openPanel && data && !error ? (
         <ExpandedMetricPanel
           openPanel={openPanel}
           hiddenKeys={hiddenKeys}
@@ -214,10 +200,7 @@ export default function MetricsTab({ fn }: MetricsTabProps) {
                 <AccordionTrigger>General</AccordionTrigger>
                 <AccordionContent>
                   <GeneralSection
-                    invocationsByMethod={data.general.invocationsByMethod}
-                    responseStatus={data.general.responseStatus}
-                    averageResponseSize={data.general.averageResponseSize}
-                    totalRequests={data.general.totalRequests}
+                    metrics={data}
                     xDomain={xDomain}
                     onExpand={open}
                     onZoomRange={handleZoomRange}
@@ -230,10 +213,7 @@ export default function MetricsTab({ fn }: MetricsTabProps) {
                 <AccordionTrigger>Response Times</AccordionTrigger>
                 <AccordionContent>
                   <ResponseTimesSection
-                    max={data.responseTimes.max}
-                    p95={data.responseTimes.p95}
-                    p75={data.responseTimes.p75}
-                    avg={data.responseTimes.avg}
+                    metrics={data}
                     xDomain={xDomain}
                     onExpand={open}
                     onZoomRange={handleZoomRange}
@@ -246,8 +226,7 @@ export default function MetricsTab({ fn }: MetricsTabProps) {
                 <AccordionTrigger>Errors</AccordionTrigger>
                 <AccordionContent>
                   <ErrorsSection
-                    errorRate={data.errors.errorRate}
-                    totalErrors={data.errors.totalErrors}
+                    metrics={data}
                     xDomain={xDomain}
                     onExpand={open}
                     onZoomRange={handleZoomRange}

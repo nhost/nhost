@@ -52,33 +52,21 @@ export function roundIntervalMs(intervalMs: number): number {
   return NICE_BUCKETS.find(([lt]) => intervalMs < lt)?.[1] ?? YEAR;
 }
 
-// Fallback when the panel hasn't been measured yet (first render, before the
-// ResizeObserver fires). Close enough to a typical xl:grid-cols-2 chart cell
-// that the post-measurement query usually deep-equals and doesn't re-fire.
 export const DEFAULT_MAX_DATA_POINTS = 600;
 
-// Prometheus duration string that floors the computed step on the server.
+// Lower bound on the step, as a duration string — resolution never goes finer.
 export const DEFAULT_MIN_INTERVAL = '2m';
 
-// Used when the range is degenerate (from === to). The backend's minInterval
-// floors the effective step server-side; we still need to send a positive Int.
+// Used when the range is degenerate (from === to). The exact value barely
+// matters since DEFAULT_MIN_INTERVAL floors the step; it just needs to be a
+// positive integer.
 const FALLBACK_INTERVAL_MS = 15_000;
-
-const MAX_DATA_POINTS_CAP = 2000;
-const MAX_DATA_POINTS_FLOOR = 200;
-// Round chartWidth to this so trivial pixel shifts don't re-fire the query.
-const MAX_DATA_POINTS_STEP = 50;
 
 export function resolveMaxDataPoints(chartWidth: number): number {
   if (!Number.isFinite(chartWidth) || chartWidth <= 0) {
     return DEFAULT_MAX_DATA_POINTS;
   }
-  const stepped =
-    Math.round(chartWidth / MAX_DATA_POINTS_STEP) * MAX_DATA_POINTS_STEP;
-  return Math.max(
-    MAX_DATA_POINTS_FLOOR,
-    Math.min(MAX_DATA_POINTS_CAP, stepped),
-  );
+  return Math.floor(chartWidth);
 }
 
 interface QueryStep {

@@ -11,12 +11,9 @@ export default function transformFunctionMetrics(
 ): FunctionMetricsResponse {
   const toIso = to.toISOString();
 
-  // The total per method is an instant `increase(...[$__range])` (one value per
-  // method), mirroring Grafana's table panel. Summing the range-series
-  // datapoints instead would overcount: each `[$__rate_interval]` window
-  // overlaps its neighbours, inflating the total by ~rate_interval/step.
-  // `Math.ceil` matches Grafana's `ceil()` wrapper — `increase()` extrapolation
-  // can return a fractional count.
+  // Use the dedicated per-method total (one value per method) rather than
+  // summing the chart's time series, which would overcount. `Math.ceil`
+  // because the total can come back fractional.
   const totalRequests: RequestsTableRow[] = data.totalRequestsByMethod
     .map((v) => ({
       timestamp: toIso,

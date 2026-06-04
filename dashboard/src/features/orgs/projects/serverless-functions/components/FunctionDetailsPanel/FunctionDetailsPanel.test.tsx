@@ -23,6 +23,7 @@ const mocks = vi.hoisted(() => ({
   useProject: vi.fn(),
   useAppClient: vi.fn(),
   useLocalMimirClient: vi.fn(),
+  useCurrentOrg: vi.fn(),
 }));
 
 vi.mock('next/router', () => ({
@@ -45,6 +46,25 @@ vi.mock('@/features/orgs/projects/hooks/useLocalMimirClient', () => ({
   useLocalMimirClient: mocks.useLocalMimirClient,
 }));
 
+vi.mock('@/features/orgs/projects/hooks/useCurrentOrg', () => ({
+  useCurrentOrg: mocks.useCurrentOrg,
+}));
+
+// jsdom has no layout engine, so the ResizeObserver-backed useMeasure never
+// reports a size: `width` stays null and MetricsTab floors it to chartWidth = 0.
+// That leaves useFunctionMetrics gated on `committedWidth > 0`, so the metrics
+// query never fires — without this mock the "metrics tab" test below hangs on
+// "No data available." and fails. Report a real width so the query runs.
+vi.mock('@uidotdev/usehooks', async (importOriginal) => {
+  const actual = await importOriginal<typeof import('@uidotdev/usehooks')>();
+  const measureRef = () => {};
+  const measured = { width: 800, height: 400 };
+  return {
+    ...actual,
+    useMeasure: () => [measureRef, measured],
+  };
+});
+
 const fn = {
   path: 'functions/hello.ts',
   route: '/hello',
@@ -52,6 +72,41 @@ const fn = {
   functionName: 'hello',
   createdAt: '2026-04-01T00:00:00Z',
   updatedAt: '2026-04-02T00:00:00Z',
+};
+
+const PAYWALL_TITLE =
+  'To unlock Function Metrics, transfer this project to a Pro or Team organization.';
+
+// All metrics series empty → MetricsTab reaches its data branch and every
+// chart/table shows "No data available." without mounting Recharts.
+const EMPTY_METRICS = {
+  totalInvocations: [],
+  totalBytesSent: [],
+  totalDuration: [],
+  totalErrors: [],
+  totalRequestsByMethod: [],
+  invocations: [],
+  responseStatus: [],
+  averageResponseSize: [],
+  averageResponseTime: [],
+  errorRate: [],
+  durationP75: [],
+  durationP95: [],
+  durationMax: [],
+};
+
+const metricsRouter = {
+  pathname: '/orgs/[orgSlug]/projects/[appSubdomain]/functions/[functionSlug]',
+  asPath: '/orgs/org-1/projects/app-1/functions/hello?tab=metrics',
+  query: {
+    orgSlug: 'org-1',
+    appSubdomain: 'app-1',
+    functionSlug: 'hello',
+    tab: 'metrics',
+  },
+  isReady: true,
+  replace: vi.fn(),
+  push: vi.fn(),
 };
 
 const settingsHandler = (data: Record<string, unknown>) =>
@@ -87,6 +142,12 @@ beforeEach(() => {
     functions: { baseURL: 'https://app.example.com/v1' },
   });
   mocks.useLocalMimirClient.mockReturnValue(null);
+  mocks.useCurrentOrg.mockReturnValue({
+    org: undefined,
+    loading: false,
+    error: null,
+    refetch: vi.fn(),
+  });
 });
 
 describe('FunctionDetailsPanel', () => {
@@ -202,5 +263,62 @@ describe('FunctionDetailsPanel', () => {
     await waitFor(() => {
       expectFullTextRendered(expectedUrl);
     });
+  });
+
+  it('disables the Metrics tab and redirects to /404 on a non-platform project', async () => {
+    const push = vi.fn();
+    mocks.useIsPlatform.mockReturnValue(false);
+    mocks.useRouter.mockReturnValue({ ...metricsRouter, push });
+
+    render(<FunctionDetailsPanel fn={fn} />);
+
+    expect(screen.getByRole('tab', { name: 'Metrics' })).toBeDisabled();
+    await waitFor(() => {
+      expect(push).toHaveBeenCalledWith('/404');
+    });
+    expect(
+      screen.queryByTestId('metricsTimeRangeTrigger'),
+    ).not.toBeInTheDocument();
+  });
+
+  it('shows the upgrade paywall instead of metrics for a free organization', async () => {
+    mocks.useRouter.mockReturnValue(metricsRouter);
+    mocks.useCurrentOrg.mockReturnValue({
+      org: { plan: { isFree: true } },
+      loading: false,
+      error: null,
+      refetch: vi.fn(),
+    });
+
+    render(<FunctionDetailsPanel fn={fn} />);
+
+    expect(await screen.findByText(PAYWALL_TITLE)).toBeInTheDocument();
+    expect(
+      screen.queryByTestId('metricsTimeRangeTrigger'),
+    ).not.toBeInTheDocument();
+  });
+
+  it('renders the metrics tab for a paid organization on a platform project', async () => {
+    server.use(
+      nhostGraphQLLink.query('getFunctionsMetricsDashboard', () =>
+        HttpResponse.json({ data: EMPTY_METRICS }),
+      ),
+    );
+    mocks.useRouter.mockReturnValue(metricsRouter);
+    mocks.useCurrentOrg.mockReturnValue({
+      org: { plan: { isFree: false } },
+      loading: false,
+      error: null,
+      refetch: vi.fn(),
+    });
+
+    render(<FunctionDetailsPanel fn={fn} />);
+
+    expect(
+      await screen.findByTestId('metricsTimeRangeTrigger'),
+    ).toBeInTheDocument();
+    // Wait for the query to resolve into the data branch before asserting.
+    await screen.findAllByText('No data available.');
+    expect(screen.queryByText(PAYWALL_TITLE)).not.toBeInTheDocument();
   });
 });

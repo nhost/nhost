@@ -13,12 +13,15 @@ import type { FunctionMetricsResponse } from '@/features/orgs/projects/serverles
 import { transformFunctionMetrics } from '@/features/orgs/projects/serverless-functions/utils/transformFunctionMetrics';
 import { useGetFunctionsMetricsDashboardQuery } from '@/utils/__generated__/graphql';
 
+// Escapes regex metacharacters in a function route so it matches literally.
+const ROUTE_REGEX_METACHARACTERS = /[.*+?^${}()|[\]\\]/g;
+
 interface UseFunctionMetricsOptions {
   route: string;
   range: MetricsTimeRange;
-  // Measured panel width in pixels. Drives maxDataPoints (and therefore step):
-  // panel-pixel-width → datasource. 0 / undefined falls back to
-  // DEFAULT_MAX_DATA_POINTS until the ResizeObserver lands.
+  // Measured panel width in pixels. Drives maxDataPoints (and therefore the
+  // step). 0 / undefined falls back to DEFAULT_MAX_DATA_POINTS until the
+  // ResizeObserver lands.
   chartWidth: number;
 }
 
@@ -39,12 +42,19 @@ export default function useFunctionMetrics({
   const [now, setNow] = useState(() => new Date());
   const [prevRange, setPrevRange] = useState(range);
 
+  const [committedWidth, setCommittedWidth] = useState(chartWidth);
+
+  if (committedWidth <= 0 && chartWidth > 0) {
+    setCommittedWidth(chartWidth);
+  }
+
   // Re-anchor "now" when range changes, so a freshly-picked preset is evaluated
   // at the current time, not page-load time. Derive-during-render (vs useEffect)
   // avoids a double-fetch — React retries the render with the new state.
   if (prevRange !== range) {
     setPrevRange(range);
     setNow(new Date());
+    setCommittedWidth(chartWidth);
   }
 
   const { from, to } = useMemo(
@@ -53,12 +63,12 @@ export default function useFunctionMetrics({
   );
 
   const { intervalMs, maxDataPoints } = useMemo(
-    () => computeQueryStep(from, to, resolveMaxDataPoints(chartWidth)),
-    [from, to, chartWidth],
+    () => computeQueryStep(from, to, resolveMaxDataPoints(committedWidth)),
+    [from, to, committedWidth],
   );
 
   // Function paths like `/api/users.ts` contain regex metacharacters, so escape them for literal match.
-  const escapedRoute = route.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+  const escapedRoute = route.replace(ROUTE_REGEX_METACHARACTERS, '\\$&');
 
   const {
     data: queryData,
@@ -78,7 +88,7 @@ export default function useFunctionMetrics({
     },
     fetchPolicy: 'cache-and-network',
     notifyOnNetworkStatusChange: true,
-    skip: !project?.id,
+    skip: !project?.id || committedWidth <= 0,
   });
 
   // Apollo's equivalent of TanStack's `placeholderData: keepPreviousData`: when
@@ -94,13 +104,14 @@ export default function useFunctionMetrics({
 
   const refetch = useCallback(() => {
     if (range.kind === 'preset') {
-      // Re-anchor "now"; Apollo refetches automatically on the variable change.
+      setCommittedWidth(chartWidth);
       setNow(new Date());
+    } else if (chartWidth !== committedWidth) {
+      setCommittedWidth(chartWidth);
     } else {
-      // Absolute range — variables unchanged, so force a network request.
       apolloRefetch();
     }
-  }, [range.kind, apolloRefetch]);
+  }, [range.kind, chartWidth, committedWidth, apolloRefetch]);
 
   const xDomain = useMemo<[number, number]>(
     () => [from.getTime(), to.getTime()],
@@ -109,7 +120,8 @@ export default function useFunctionMetrics({
 
   return {
     data,
-    loading: loadingProject || loadingQuery,
+    loading:
+      loadingProject || loadingQuery || (!!project?.id && committedWidth <= 0),
     error,
     refetch,
     xDomain,

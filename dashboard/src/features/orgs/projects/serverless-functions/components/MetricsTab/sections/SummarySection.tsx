@@ -1,7 +1,7 @@
 import { Activity, Clock, HardDrive } from 'lucide-react';
 import StatCard from '@/features/orgs/projects/serverless-functions/components/MetricsTab/components/StatCard';
 import {
-  formatBytes,
+  formatBytesSI,
   formatDurationSeconds,
   formatInteger,
 } from '@/features/orgs/projects/serverless-functions/components/MetricsTab/utils/formatters';
@@ -22,7 +22,7 @@ export default function SummarySection({ summary }: SummarySectionProps) {
       <StatCard
         icon={HardDrive}
         label="Total Bytes Sent"
-        value={formatBytes(summary.totalBytesSent)}
+        value={formatBytesSI(summary.totalBytesSent)}
       />
       <StatCard
         icon={Clock}

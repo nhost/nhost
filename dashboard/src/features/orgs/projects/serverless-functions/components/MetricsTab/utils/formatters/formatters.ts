@@ -1,5 +1,10 @@
 import { format } from 'date-fns';
 
+// The value scales a metric panel can render. Owned by the formatting layer (not
+// the panel registry) so formatters stay reusable independently of the
+// functions-specific panel config.
+export type ValueFormatterKind = 'integer' | 'bytes' | 'ms' | 'percent-unit';
+
 export function formatInteger(v: number): string {
   if (!Number.isFinite(v)) {
     return '—';
@@ -11,23 +16,40 @@ export function formatInteger(v: number): string {
   return v.toLocaleString('en-US', { maximumFractionDigits: 2 });
 }
 
-export function formatBytes(bytes: number): string {
+// Scales a byte count into the largest unit whose magnitude is >= 1, with
+// adaptive precision (0 dp >= 100, 1 dp >= 10, else 2 dp). `base` is 1024 for
+// IEC units or 1000 for SI.
+function formatScaledBytes(
+  bytes: number,
+  base: number,
+  units: readonly string[],
+): string {
   if (!Number.isFinite(bytes)) {
     return '—';
   }
-  const abs = Math.abs(bytes);
-  if (abs < 1000) {
+  if (Math.abs(bytes) < base) {
     return `${Math.round(bytes)} B`;
   }
-  const units = ['kB', 'MB', 'GB', 'TB', 'PB'];
-  let value = bytes / 1000;
+  let value = bytes / base;
   let unitIndex = 0;
-  while (Math.abs(value) >= 1000 && unitIndex < units.length - 1) {
-    value /= 1000;
+  while (Math.abs(value) >= base && unitIndex < units.length - 1) {
+    value /= base;
     unitIndex += 1;
   }
   const precision = Math.abs(value) >= 100 ? 0 : Math.abs(value) >= 10 ? 1 : 2;
   return `${value.toFixed(precision)} ${units[unitIndex]}`;
+}
+
+// IEC / binary bytes (1024-based: B, KiB, MiB, …). Used for per-request sizes
+// like Average Response Size.
+export function formatBytesIEC(bytes: number): string {
+  return formatScaledBytes(bytes, 1024, ['KiB', 'MiB', 'GiB', 'TiB', 'PiB']);
+}
+
+// SI / decimal bytes (1000-based: B, kB, MB, …). Used for aggregate totals like
+// Total Bytes Sent.
+export function formatBytesSI(bytes: number): string {
+  return formatScaledBytes(bytes, 1000, ['kB', 'MB', 'GB', 'TB', 'PB']);
 }
 
 export function formatDurationSeconds(seconds: number): string {
@@ -82,7 +104,22 @@ export function formatPercentUnit(ratio: number): string {
   return `${pct.toFixed(1)}%`;
 }
 
-export function formatTimestampTick(ts: unknown): string {
+export function formatterForKind(
+  kind: ValueFormatterKind,
+): (v: number) => string {
+  switch (kind) {
+    case 'bytes':
+      return formatBytesIEC;
+    case 'ms':
+      return formatMs;
+    case 'percent-unit':
+      return formatPercentUnit;
+    default:
+      return formatInteger;
+  }
+}
+
+function formatTimestampWith(ts: unknown, pattern: string): string {
   const n = typeof ts === 'number' ? ts : Number(ts);
   if (!Number.isFinite(n)) {
     return '';
@@ -91,41 +128,21 @@ export function formatTimestampTick(ts: unknown): string {
   if (Number.isNaN(d.getTime())) {
     return '';
   }
-  return format(d, 'HH:mm');
+  return format(d, pattern);
+}
+
+export function formatTimestampTick(ts: unknown): string {
+  return formatTimestampWith(ts, 'HH:mm');
 }
 
 export function formatTimestampSecondsTick(ts: unknown): string {
-  const n = typeof ts === 'number' ? ts : Number(ts);
-  if (!Number.isFinite(n)) {
-    return '';
-  }
-  const d = new Date(n);
-  if (Number.isNaN(d.getTime())) {
-    return '';
-  }
-  return format(d, 'HH:mm:ss');
+  return formatTimestampWith(ts, 'HH:mm:ss');
 }
 
 export function formatTimestampDateTick(ts: unknown): string {
-  const n = typeof ts === 'number' ? ts : Number(ts);
-  if (!Number.isFinite(n)) {
-    return '';
-  }
-  const d = new Date(n);
-  if (Number.isNaN(d.getTime())) {
-    return '';
-  }
-  return format(d, 'MM-dd HH:mm');
+  return formatTimestampWith(ts, 'MM-dd HH:mm');
 }
 
 export function formatTimestampFull(ts: unknown): string {
-  const n = typeof ts === 'number' ? ts : Number(ts);
-  if (!Number.isFinite(n)) {
-    return '';
-  }
-  const d = new Date(n);
-  if (Number.isNaN(d.getTime())) {
-    return '';
-  }
-  return format(d, 'MMM d, HH:mm:ss');
+  return formatTimestampWith(ts, 'MMM d, HH:mm:ss');
 }

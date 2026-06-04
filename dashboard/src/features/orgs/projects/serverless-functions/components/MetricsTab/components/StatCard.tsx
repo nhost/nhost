@@ -5,7 +5,6 @@ import { cn } from '@/lib/utils';
 export interface StatCardProps {
   label: string;
   value: ReactNode;
-  hint?: ReactNode;
   icon?: LucideIcon;
   className?: string;
 }
@@ -13,7 +12,6 @@ export interface StatCardProps {
 export default function StatCard({
   label,
   value,
-  hint,
   icon: Icon,
   className,
 }: StatCardProps) {
@@ -35,9 +33,6 @@ export default function StatCard({
       <div className="font-semibold text-3xl text-foreground tabular-nums">
         {value}
       </div>
-      {hint ? (
-        <div className="text-muted-foreground text-xs">{hint}</div>
-      ) : null}
     </div>
   );
 }

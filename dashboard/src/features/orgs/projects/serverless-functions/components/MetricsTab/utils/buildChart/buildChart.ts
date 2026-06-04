@@ -1,11 +1,8 @@
+import type { ChartConfig } from '@/components/ui/v3/chart';
+import type { SeriesAccessors } from '@/features/orgs/projects/serverless-functions/components/MetricsTab/seriesAccessors';
+import { resolveSeriesKeys } from '@/features/orgs/projects/serverless-functions/components/MetricsTab/utils/resolveSeriesKeys';
+import type { Row } from '@/features/orgs/projects/serverless-functions/components/MetricsTab/utils/seriesGeometry';
 import type { MetricSeries } from '@/features/orgs/projects/serverless-functions/types';
-
-interface MergedSeries {
-  keys: string[];
-  rows: Array<Record<string, number | null> & { timestamp: number }>;
-}
-
-type Row = Record<string, number | null> & { timestamp: number };
 
 // When two adjacent samples are farther apart than 1.5× the typical bucket
 // step, insert a synthetic null row between them so Recharts (with
@@ -13,30 +10,36 @@ type Row = Record<string, number | null> & { timestamp: number };
 // across the gap.
 const GAP_THRESHOLD_FACTOR = 1.5;
 
-export function mergeSeries(
+export interface ChartModel {
+  // Unique, collision-suffixed key per series, index-aligned with the input.
+  keys: string[];
+  // Merged rows: one timestamp per row, one value (or null) per key.
+  rows: Row[];
+  // shadcn/Recharts config: label + color per key.
+  config: ChartConfig;
+}
+
+// Everything MetricChart needs from a set of series. resolveSeriesKeys runs
+// once, and both the rows and the color config are keyed from that single
+// result, so the two can never drift apart.
+export function buildChart(
   series: MetricSeries[],
-  keyFor: (labels: Record<string, string>) => string,
-): MergedSeries {
+  accessors: SeriesAccessors,
+): ChartModel {
+  const keys = resolveSeriesKeys(series, accessors.keyFor);
+  return {
+    keys,
+    rows: mergeRows(series, keys),
+    config: buildConfig(series, keys, accessors),
+  };
+}
+
+function mergeRows(series: MetricSeries[], keys: string[]): Row[] {
   if (!series.length) {
-    return { keys: [], rows: [] };
+    return [];
   }
 
-  const keys: string[] = [];
-  const seen = new Set<string>();
-  const maps: Array<Map<number, number>> = [];
-
-  series.forEach((s) => {
-    let key = keyFor(s.labels);
-    if (seen.has(key)) {
-      let i = 1;
-      while (seen.has(`${key}_${i}`)) {
-        i += 1;
-      }
-      key = `${key}_${i}`;
-    }
-    seen.add(key);
-    keys.push(key);
-
+  const maps = series.map((s) => {
     const map = new Map<number, number>();
     const len = Math.min(s.timestamps.length, s.datapoints.length);
     for (let i = 0; i < len; i += 1) {
@@ -46,7 +49,7 @@ export function mergeSeries(
         map.set(ts, value);
       }
     }
-    maps.push(map);
+    return map;
   });
 
   const timestampSet = new Set<number>();
@@ -66,7 +69,23 @@ export function mergeSeries(
     return row;
   });
 
-  return { keys, rows: insertGapBreaks(rows, keys) };
+  return insertGapBreaks(rows, keys);
+}
+
+function buildConfig(
+  series: MetricSeries[],
+  keys: string[],
+  { labelFor, colorFor }: SeriesAccessors,
+): ChartConfig {
+  const config: ChartConfig = {};
+  series.forEach((s, i) => {
+    const key = keys[i];
+    config[key] = {
+      label: labelFor(key, s.labels),
+      color: colorFor(key, s.labels, i),
+    };
+  });
+  return config;
 }
 
 function insertGapBreaks(rows: Row[], keys: string[]): Row[] {

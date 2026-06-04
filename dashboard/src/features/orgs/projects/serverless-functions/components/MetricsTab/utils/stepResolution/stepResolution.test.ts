@@ -54,17 +54,15 @@ describe('roundIntervalMs', () => {
 });
 
 describe('resolveMaxDataPoints', () => {
-  it('rounds to the nearest 50px step', () => {
-    expect(resolveMaxDataPoints(617)).toBe(600);
-    expect(resolveMaxDataPoints(625)).toBe(650);
+  it('maps width to maxDataPoints one-to-one (no clamp)', () => {
+    expect(resolveMaxDataPoints(617)).toBe(617);
+    expect(resolveMaxDataPoints(1_234)).toBe(1_234);
+    expect(resolveMaxDataPoints(50)).toBe(50);
+    expect(resolveMaxDataPoints(5_000)).toBe(5_000);
   });
 
-  it('floors at the minimum threshold', () => {
-    expect(resolveMaxDataPoints(50)).toBe(200);
-  });
-
-  it('caps at the maximum threshold', () => {
-    expect(resolveMaxDataPoints(5_000)).toBe(2_000);
+  it('floors fractional widths', () => {
+    expect(resolveMaxDataPoints(617.9)).toBe(617);
   });
 
   it('falls back to the default for non-positive or non-finite inputs', () => {

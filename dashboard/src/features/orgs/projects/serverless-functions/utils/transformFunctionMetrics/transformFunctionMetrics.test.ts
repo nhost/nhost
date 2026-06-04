@@ -136,7 +136,7 @@ const FIXTURE: GetFunctionsMetricsDashboardQuery = {
 };
 
 describe('transformFunctionMetrics', () => {
-  it('maps the backend response to FunctionMetricsResponse', () => {
+  it('maps the raw response to FunctionMetricsResponse', () => {
     const result = transformFunctionMetrics(FIXTURE, TO);
 
     const expected: FunctionMetricsResponse = {

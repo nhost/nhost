@@ -3,7 +3,7 @@ import { useCallback, useMemo } from 'react';
 import {
   isMetricPanelSlug,
   type MetricPanelSlug,
-} from '@/features/orgs/projects/serverless-functions/components/MetricsTab/types';
+} from '@/features/orgs/projects/serverless-functions/components/MetricsTab/panels';
 
 const HIDDEN_KEYS_PARAM = 'metricHidden';
 

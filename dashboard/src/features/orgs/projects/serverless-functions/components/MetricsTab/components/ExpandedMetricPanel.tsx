@@ -11,17 +11,11 @@ import toast from 'react-hot-toast';
 import { Button } from '@/components/ui/v3/button';
 import MetricChart from '@/features/orgs/projects/serverless-functions/components/MetricsTab/components/MetricChart';
 import {
-  colorForMethod,
-  colorForStatus,
-} from '@/features/orgs/projects/serverless-functions/components/MetricsTab/constants';
-import { METRIC_PANELS } from '@/features/orgs/projects/serverless-functions/components/MetricsTab/panels';
-import type { MetricPanelSlug } from '@/features/orgs/projects/serverless-functions/components/MetricsTab/types';
-import {
-  formatBytes,
-  formatInteger,
-  formatMs,
-  formatPercentUnit,
-} from '@/features/orgs/projects/serverless-functions/components/MetricsTab/utils/formatters';
+  METRIC_PANELS,
+  type MetricPanelSlug,
+} from '@/features/orgs/projects/serverless-functions/components/MetricsTab/panels';
+import { accessorsForPanel } from '@/features/orgs/projects/serverless-functions/components/MetricsTab/seriesAccessors';
+import { formatterForKind } from '@/features/orgs/projects/serverless-functions/components/MetricsTab/utils/formatters';
 import type {
   FunctionMetricsResponse,
   MetricSeries,
@@ -52,33 +46,12 @@ export default function ExpandedMetricPanel({
 }: ExpandedMetricPanelProps) {
   const config = METRIC_PANELS[openPanel];
   const sourceData = useMemo<MetricSeries[]>(
-    () => seriesForSlug(openPanel, metrics),
-    [openPanel, metrics],
+    () => config.select(metrics),
+    [config, metrics],
   );
 
-  const valueFormatter = useMemo(() => {
-    switch (config.valueFormatterKind) {
-      case 'integer':
-        return formatInteger;
-      case 'bytes':
-        return formatBytes;
-      case 'ms':
-        return formatMs;
-      case 'percent-unit':
-        return formatPercentUnit;
-      default:
-        return undefined;
-    }
-  }, [config]);
-
-  const keyKind = useMemo<'method' | 'status'>(
-    () =>
-      config.labelDimensions.includes('status') &&
-      !config.labelDimensions.includes('method')
-        ? 'status'
-        : 'method',
-    [config],
-  );
+  const valueFormatter = formatterForKind(config.valueFormatterKind);
+  const accessors = accessorsForPanel(config.labelDimensions);
 
   const chartHostRef = useRef<HTMLDivElement | null>(null);
   const [chartHeight, setChartHeight] = useState(MIN_CHART_HEIGHT);
@@ -168,21 +141,7 @@ export default function ExpandedMetricPanel({
           <MetricChart
             data={sourceData}
             height={chartHeight}
-            seriesKeyFor={
-              keyKind === 'status'
-                ? (labels) => `s${labels.status ?? 'unknown'}`
-                : (labels) => (labels.method ?? 'all-methods').toLowerCase()
-            }
-            seriesLabelFor={
-              keyKind === 'status'
-                ? (_k, labels) => labels.status ?? 'unknown'
-                : (_k, labels) => labels.method ?? 'All methods'
-            }
-            colorFor={
-              keyKind === 'status'
-                ? (_k, labels) => colorForStatus(labels.status ?? '')
-                : (_k, labels, i) => colorForMethod(labels.method ?? '', i)
-            }
+            accessors={accessors}
             valueFormatter={valueFormatter}
             xDomain={xDomain}
             onZoomRange={onZoomRange}
@@ -194,30 +153,4 @@ export default function ExpandedMetricPanel({
       </div>
     </div>
   );
-}
-
-function seriesForSlug(
-  slug: MetricPanelSlug,
-  metrics: FunctionMetricsResponse,
-): MetricSeries[] {
-  switch (slug) {
-    case 'invocations':
-      return metrics.general.invocationsByMethod;
-    case 'response-status':
-      return metrics.general.responseStatus;
-    case 'avg-response-size':
-      return metrics.general.averageResponseSize;
-    case 'response-time-max':
-      return metrics.responseTimes.max;
-    case 'response-time-p95':
-      return metrics.responseTimes.p95;
-    case 'response-time-p75':
-      return metrics.responseTimes.p75;
-    case 'response-time-avg':
-      return metrics.responseTimes.avg;
-    case 'error-rate':
-      return metrics.errors.errorRate;
-    default:
-      return [];
-  }
 }
