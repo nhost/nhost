@@ -9,7 +9,6 @@ import { InlineCode } from '@/components/ui/v3/inline-code';
 import { SelectItem } from '@/components/ui/v3/select';
 import type { DataBrowserColumnMetadata } from '@/features/orgs/projects/database/dataGrid/types/dataBrowser/dataBrowser';
 import { getInputType } from '@/features/orgs/projects/database/dataGrid/utils/inputHelpers';
-import { POSTGRESQL_FUNCTION_LABELS } from '@/features/orgs/projects/database/dataGrid/utils/postgresqlConstants';
 import { cn } from '@/lib/utils';
 import NullDefaultToggleField from './NullDefaultToggleField';
 
@@ -59,7 +58,6 @@ function convertEmptyStringToNull(
 
 function getDefaultPlaceholder(
   defaultValue: string | null | undefined,
-  isDefaultValueCustom: boolean,
   isIdentity?: boolean,
 ) {
   if (isIdentity) {
@@ -70,15 +68,7 @@ function getDefaultPlaceholder(
     return undefined;
   }
 
-  if (POSTGRESQL_FUNCTION_LABELS[defaultValue]) {
-    return POSTGRESQL_FUNCTION_LABELS[defaultValue];
-  }
-
   if (!Number.isNaN(parseInt(defaultValue, 10))) {
-    return defaultValue;
-  }
-
-  if (isDefaultValueCustom) {
     return defaultValue;
   }
 
@@ -123,7 +113,6 @@ export default function DatabaseRecordInputGroup({
             type,
             specificType,
             defaultValue,
-            isDefaultValueCustom,
             isPrimary,
             isNullable,
             isIdentity,
@@ -198,11 +187,7 @@ export default function DatabaseRecordInputGroup({
                 name={columnId!}
                 control={control}
                 label={inputLabel}
-                placeholder={getDefaultPlaceholder(
-                  defaultValue,
-                  !!isDefaultValueCustom,
-                  isIdentity,
-                )}
+                placeholder={getDefaultPlaceholder(defaultValue, isIdentity)}
                 helperText={comment}
                 multiline={isMultiline}
                 className={cn({ 'focus-visible:ring-0': isMultiline })}
@@ -212,11 +197,8 @@ export default function DatabaseRecordInputGroup({
           }
 
           const placeholder =
-            getDefaultPlaceholder(
-              defaultValue,
-              !!isDefaultValueCustom,
-              isIdentity,
-            ) ?? (isNullable ? 'NULL' : undefined);
+            getDefaultPlaceholder(defaultValue, isIdentity) ??
+            (isNullable ? 'NULL' : undefined);
           const InputComponent = isMultiline ? FormTextarea : FormInput;
           return (
             <InputComponent
