@@ -180,6 +180,83 @@ func TestPruneUnreachableTypes_InterfaceImplementors(t *testing.T) {
 	}
 }
 
+func TestPruneUnreachableTypes_ObjectInterfaceEdgeDoesNotReachSiblingImplementors(t *testing.T) {
+	t.Parallel()
+
+	queryType := "Query"
+	schema := &graph.Schema{
+		Types: []*graph.ObjectType{
+			{
+				Name: "Query",
+				Fields: []*graph.Field{
+					{
+						Name: "user",
+						Type: graph.NewNamedType("User"),
+					},
+				},
+			},
+			{
+				Name: "User",
+				Fields: []*graph.Field{
+					{
+						Name: "id",
+						Type: graph.NewNonNullType("ID"),
+					},
+				},
+				Interfaces: []string{"Node"},
+			},
+			{
+				Name: "Post",
+				Fields: []*graph.Field{
+					{
+						Name: "id",
+						Type: graph.NewNonNullType("ID"),
+					},
+				},
+				Interfaces: []string{"Node"},
+			},
+		},
+		Interfaces: []*graph.InterfaceType{
+			{
+				Name: "Node",
+				Fields: []*graph.Field{
+					{
+						Name: "id",
+						Type: graph.NewNonNullType("ID"),
+					},
+				},
+			},
+		},
+		QueryType: &queryType,
+	}
+
+	pruneUnreachableTypes(schema)
+
+	typeNames := make(map[string]struct{}, len(schema.Types))
+	for _, typ := range schema.Types {
+		typeNames[typ.Name] = struct{}{}
+	}
+
+	for _, name := range []string{"Query", "User"} {
+		if _, ok := typeNames[name]; !ok {
+			t.Errorf("expected %s to survive pruning", name)
+		}
+	}
+
+	if _, ok := typeNames["Post"]; ok {
+		t.Error("expected Post to be pruned")
+	}
+
+	interfaceNames := make(map[string]struct{}, len(schema.Interfaces))
+	for _, iface := range schema.Interfaces {
+		interfaceNames[iface.Name] = struct{}{}
+	}
+
+	if _, ok := interfaceNames["Node"]; !ok {
+		t.Error("expected Node interface to survive pruning")
+	}
+}
+
 func TestParseSDL(t *testing.T) { //nolint:gocognit,cyclop,gocyclo,maintidx
 	t.Parallel()
 
@@ -288,6 +365,72 @@ func TestParseSDL(t *testing.T) { //nolint:gocognit,cyclop,gocyclo,maintidx
 		}
 	})
 
+	t.Run("extracts block string session variable presets", func(t *testing.T) {
+		t.Parallel()
+
+		sdl := `
+			type Query {
+				user(id: ID! @preset(value: """x-hasura-user-id""")): User
+			}
+			type User {
+				id: ID!
+			}
+		`
+
+		_, presets, err := parseSDL(sdl)
+		if err != nil {
+			t.Fatalf("parseSDL error: %v", err)
+		}
+
+		queryUserPresets, ok := presets["Query.user"]
+		if !ok {
+			t.Fatal("expected preset for Query.user")
+		}
+
+		if len(queryUserPresets) != 1 {
+			t.Fatalf("expected 1 preset, got %d", len(queryUserPresets))
+		}
+
+		preset := queryUserPresets[0]
+		if preset.Value.Kind != ast.BlockValue {
+			t.Errorf("expected block value, got %v", preset.Value.Kind)
+		}
+
+		if preset.SessionVariable != "x-hasura-user-id" {
+			t.Errorf("expected session variable, got %q", preset.SessionVariable)
+		}
+
+		op := &ast.OperationDefinition{
+			Operation: ast.Query,
+			SelectionSet: ast.SelectionSet{
+				&ast.Field{Name: "user"},
+			},
+		}
+
+		result := applyPresets(
+			op,
+			presets,
+			map[string]any{"x-hasura-user-id": "session-user-123"},
+			"Query",
+		)
+
+		field, ok := result.SelectionSet[0].(*ast.Field)
+		if !ok {
+			t.Fatal("expected *ast.Field")
+		}
+
+		if len(field.Arguments) != 1 {
+			t.Fatalf("expected 1 argument, got %d", len(field.Arguments))
+		}
+
+		if field.Arguments[0].Value.Raw != "session-user-123" {
+			t.Errorf(
+				"expected session value to be injected, got %q",
+				field.Arguments[0].Value.Raw,
+			)
+		}
+	})
+
 	t.Run("extracts typed presets", func(t *testing.T) {
 		t.Parallel()
 
@@ -320,7 +463,7 @@ func TestParseSDL(t *testing.T) { //nolint:gocognit,cyclop,gocyclo,maintidx
 		}
 
 		for _, scalar := range schema.Scalars {
-			if scalar.Name == presetValueScalarName {
+			if scalar.Name == presetValueScalarNamePrefix {
 				t.Fatalf("internal preset scalar leaked into schema: %+v", schema.Scalars)
 			}
 		}
@@ -617,6 +760,55 @@ func TestParseSDL(t *testing.T) { //nolint:gocognit,cyclop,gocyclo,maintidx
 
 		if !foundScalar {
 			t.Error("expected DateTime scalar")
+		}
+	})
+
+	t.Run("allows user scalars that collide with preset helper candidates", func(t *testing.T) {
+		t.Parallel()
+
+		sdl := `
+			scalar NhostPresetValue
+			scalar NhostPresetValue1
+			type Query {
+				preset: NhostPresetValue!
+				presetWithSuffix: NhostPresetValue1!
+			}
+		`
+
+		schema, presets, err := parseSDL(sdl)
+		if err != nil {
+			t.Fatalf("parseSDL error: %v", err)
+		}
+
+		if len(presets) != 0 {
+			t.Errorf("expected no presets, got %d", len(presets))
+		}
+
+		expectedScalars := map[string]struct{}{
+			presetValueScalarNamePrefix:       {},
+			presetValueScalarNamePrefix + "1": {},
+		}
+		for _, scalar := range schema.Scalars {
+			delete(expectedScalars, scalar.Name)
+		}
+
+		for scalarName := range expectedScalars {
+			t.Errorf("expected scalar %s", scalarName)
+		}
+	})
+
+	t.Run("does not satisfy user type references with preset helper scalar", func(t *testing.T) {
+		t.Parallel()
+
+		sdl := `
+			type Query {
+				preset: NhostPresetValue
+			}
+		`
+
+		_, _, err := parseSDL(sdl)
+		if err == nil {
+			t.Fatal("expected undefined NhostPresetValue reference to fail")
 		}
 	})
 

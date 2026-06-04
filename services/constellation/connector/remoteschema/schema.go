@@ -7,11 +7,12 @@ import (
 	"github.com/nhost/nhost/services/constellation/graph"
 	"github.com/vektah/gqlparser/v2"
 	"github.com/vektah/gqlparser/v2/ast"
+	"github.com/vektah/gqlparser/v2/parser"
 )
 
 const (
-	presetDirectiveName   = "preset"
-	presetValueScalarName = "NhostPresetValue"
+	presetDirectiveName         = "preset"
+	presetValueScalarNamePrefix = "NhostPresetValue"
 )
 
 // presetArg represents a preset argument that should be injected during execution.
@@ -23,21 +24,27 @@ type presetArg struct {
 	SessionVariable string
 }
 
-// presetDirectiveSDL defines the @preset directive used in remote schema permissions.
-const presetDirectiveSDL = `
-scalar NhostPresetValue
-directive @preset(value: NhostPresetValue!) on ARGUMENT_DEFINITION
+// presetDirectiveSDLTemplate defines the @preset directive used in remote schema permissions.
+const presetDirectiveSDLTemplate = `
+scalar %[1]s
+directive @preset(value: %[1]s!) on ARGUMENT_DEFINITION
 `
 
 // parseSDL parses a GraphQL SDL string into an intermediate schema representation.
 // It extracts @preset directives from arguments and returns them separately.
 // Arguments with @preset are hidden from the exposed schema (for non-admin roles).
 func parseSDL(sdl string) (*graph.Schema, map[string][]presetArg, error) {
-	fullSDL := presetDirectiveSDL + sdl
+	presetValueScalarName, err := presetValueScalarNameForSDL(sdl)
+	if err != nil {
+		return nil, nil, fmt.Errorf("failed to parse SDL: %w", err)
+	}
 
-	source := &ast.Source{ //nolint:exhaustruct
-		Name:  "remote_schema",
-		Input: fullSDL,
+	fullSDL := fmt.Sprintf(presetDirectiveSDLTemplate, presetValueScalarName) + sdl
+
+	source := &ast.Source{
+		Name:    "remote_schema",
+		Input:   fullSDL,
+		BuiltIn: false,
 	}
 
 	doc, parseErr := gqlparser.LoadSchema(source)
@@ -45,16 +52,108 @@ func parseSDL(sdl string) (*graph.Schema, map[string][]presetArg, error) {
 		return nil, nil, fmt.Errorf("failed to parse SDL: %w", parseErr)
 	}
 
-	schema, presets := convertToGraphSchema(doc)
+	schema, presets := convertToGraphSchema(doc, presetValueScalarName)
 
 	pruneUnreachableTypes(schema)
 
 	return schema, presets, nil
 }
 
+func presetValueScalarNameForSDL(sdl string) (string, error) {
+	source := &ast.Source{
+		Name:    "remote_schema",
+		Input:   sdl,
+		BuiltIn: false,
+	}
+
+	doc, err := parser.ParseSchema(source)
+	if err != nil {
+		return "", fmt.Errorf("parsing schema document: %w", err)
+	}
+
+	usedTypeNames := schemaDocumentTypeNames(doc)
+
+	if _, ok := usedTypeNames[presetValueScalarNamePrefix]; !ok {
+		return presetValueScalarNamePrefix, nil
+	}
+
+	for suffix := 1; ; suffix++ {
+		name := fmt.Sprintf("%s%d", presetValueScalarNamePrefix, suffix)
+		if _, ok := usedTypeNames[name]; !ok {
+			return name, nil
+		}
+	}
+}
+
+func schemaDocumentTypeNames(doc *ast.SchemaDocument) map[string]struct{} {
+	usedTypeNames := make(map[string]struct{}, len(doc.Definitions)+len(doc.Extensions))
+	for _, def := range doc.Definitions {
+		collectDefinitionTypeNames(usedTypeNames, def)
+	}
+
+	for _, ext := range doc.Extensions {
+		collectDefinitionTypeNames(usedTypeNames, ext)
+	}
+
+	for _, schema := range doc.Schema {
+		collectSchemaOperationTypeNames(usedTypeNames, schema)
+	}
+
+	for _, schema := range doc.SchemaExtension {
+		collectSchemaOperationTypeNames(usedTypeNames, schema)
+	}
+
+	for _, directive := range doc.Directives {
+		for _, arg := range directive.Arguments {
+			collectTypeName(usedTypeNames, arg.Type)
+		}
+	}
+
+	return usedTypeNames
+}
+
+func collectDefinitionTypeNames(usedTypeNames map[string]struct{}, def *ast.Definition) {
+	usedTypeNames[def.Name] = struct{}{}
+
+	for _, iface := range def.Interfaces {
+		usedTypeNames[iface] = struct{}{}
+	}
+
+	for _, typ := range def.Types {
+		usedTypeNames[typ] = struct{}{}
+	}
+
+	for _, field := range def.Fields {
+		collectTypeName(usedTypeNames, field.Type)
+
+		for _, arg := range field.Arguments {
+			collectTypeName(usedTypeNames, arg.Type)
+		}
+	}
+}
+
+func collectSchemaOperationTypeNames(
+	usedTypeNames map[string]struct{},
+	schema *ast.SchemaDefinition,
+) {
+	for _, operationType := range schema.OperationTypes {
+		usedTypeNames[operationType.Type] = struct{}{}
+	}
+}
+
+func collectTypeName(usedTypeNames map[string]struct{}, typ *ast.Type) {
+	name := getBaseTypeName(typ)
+	if name != "" {
+		usedTypeNames[name] = struct{}{}
+	}
+}
+
 // convertToGraphSchema converts a gqlparser Schema to graph.Schema,
 // extracting @preset directives along the way.
-func convertToGraphSchema(doc *ast.Schema) (*graph.Schema, map[string][]presetArg) {
+func convertToGraphSchema(
+	doc *ast.Schema,
+	presetValueScalarName string,
+) (*graph.Schema, map[string][]presetArg) {
 	schema := &graph.Schema{
 		Types:            nil,
 		Scalars:          nil,
@@ -340,7 +439,7 @@ func extractPreset(
 			SessionVariable: "",
 		}
 
-		if value != nil && value.Kind == ast.StringValue {
+		if value != nil && (value.Kind == ast.StringValue || value.Kind == ast.BlockValue) {
 			key := strings.ToLower(value.Raw)
 			if strings.HasPrefix(key, "x-hasura-") {
 				preset.SessionVariable = key
