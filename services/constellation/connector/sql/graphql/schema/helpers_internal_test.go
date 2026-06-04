@@ -154,6 +154,57 @@ func TestGetColumnDescription(t *testing.T) {
 	}
 }
 
+func TestGetCustomColumnName(t *testing.T) {
+	t.Parallel()
+
+	tests := []struct {
+		name       string
+		columnName string
+		config     map[string]metadata.ColumnConfig
+		expected   string
+	}{
+		{
+			name:       "no entry",
+			columnName: "email",
+			config:     nil,
+			expected:   "email",
+		},
+		{
+			name:       "comment-only entry falls back to real name",
+			columnName: "email",
+			config: map[string]metadata.ColumnConfig{
+				"email": {CustomName: ""},
+			},
+			expected: "email",
+		},
+		{
+			name:       "custom name set",
+			columnName: "email",
+			config: map[string]metadata.ColumnConfig{
+				"email": {CustomName: "emailAddress"},
+			},
+			expected: "emailAddress",
+		},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			t.Parallel()
+
+			tableMeta := &metadata.TableMetadata{
+				Configuration: metadata.TableConfiguration{
+					ColumnConfig: tt.config,
+				},
+			}
+
+			got := getCustomColumnName(tableMeta, tt.columnName)
+			if got != tt.expected {
+				t.Errorf("getCustomColumnName() = %q, want %q", got, tt.expected)
+			}
+		})
+	}
+}
+
 func TestAllPKColumnsAllowed(t *testing.T) {
 	t.Parallel()
 

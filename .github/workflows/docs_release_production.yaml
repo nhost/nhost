@@ -19,6 +19,10 @@ on:
       - "turbo.json"
       - "docs/**"
 
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
 jobs:
   deploy-vercel:
     uses: ./.github/workflows/wf_deploy_vercel.yaml

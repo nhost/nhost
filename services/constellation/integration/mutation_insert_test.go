@@ -1,8 +1,52 @@
 package integration_test
 
 import (
+	"net/http"
 	"testing"
+
+	"github.com/google/go-cmp/cmp"
 )
+
+func assertRejectedNotesUpsertLeavesNotesUnchanged(t *testing.T, headers http.Header) {
+	t.Helper()
+
+	resp, err := makeHTTPQuery(t.Context(), constellationURL, query{
+		Query: `
+			query {
+			  notes(
+				where: {
+				  _or: [
+					{id: {_eq: "0199bbbb-0000-7000-8000-000000000001"}}
+					{title: {_eq: "Inserted companion note"}}
+				  ]
+				}
+				order_by: {title: asc}
+			  ) {
+				id
+				title
+			  }
+			}`,
+		Role: "user",
+	}, headers)
+	if err != nil {
+		t.Fatalf("constellation notes state query failed: %v", err)
+	}
+
+	want := map[string]any{
+		"data": map[string]any{
+			"notes": []any{
+				map[string]any{
+					"id":    "0199bbbb-0000-7000-8000-000000000001",
+					"title": "Seeded parent note",
+				},
+			},
+		},
+	}
+
+	if diff := cmp.Diff(want, resp); diff != "" {
+		t.Fatalf("unexpected notes state after rejected upsert (-want +got):\n%s", diff)
+	}
+}
 
 func TestInsertMutations(t *testing.T) { //nolint:paralleltest,maintidx
 	cases := []TestCase{
@@ -939,6 +983,131 @@ func TestInsertMutations(t *testing.T) { //nolint:paralleltest,maintidx
 					},
 				},
 			},
+		},
+
+		// PostgreSQL/Hasura upsert classification over a mixed RETURNING set: the
+		// first row conflicts and passes the UPDATE check, while the second row is
+		// a pure INSERT with a defaulted id and a title that would fail the UPDATE
+		// check. The mutation must succeed because INSERT and UPDATE checks are
+		// applied to the rows that actually took each branch.
+		{
+			name: "permissions: upsert collection applies update check only to updated rows",
+			query: query{
+				Query: `
+					mutation {
+					  insert_notes(
+						objects: [
+						  {
+							id: "0199bbbb-0000-7000-8000-000000000001"
+							author_id: "550e8400-e29b-41d4-a716-446655440001"
+							title: "Renamed seeded note"
+						  }
+						  {
+							author_id: "550e8400-e29b-41d4-a716-446655440001"
+							title: "__forbidden__"
+						  }
+						]
+						on_conflict: {
+						  constraint: notes_pkey
+						  update_columns: [title]
+						}
+					  ) {
+						affected_rows
+					  }
+					}`,
+				Variables: map[string]any{},
+				Role:      "user",
+				SessionVariables: map[string]string{
+					"user-id": "550e8400-e29b-41d4-a716-446655440001",
+				},
+			},
+		},
+
+		// Hasura-parity guard that conflicted upsert rows do not run INSERT checks.
+		// The seeded note is owned by the session user, but the incoming row carries
+		// another valid author_id that would fail the user INSERT check. Because the
+		// row takes the UPDATE branch, update_columns excludes author_id, and the new
+		// title passes the UPDATE check, the mutation must succeed.
+		{
+			name: "permissions: upsert updated row ignores insert check for incoming values",
+			query: query{
+				Query: `
+					mutation {
+					  insert_notes(
+						objects: [
+						  {
+							id: "0199bbbb-0000-7000-8000-000000000001"
+							author_id: "550e8400-e29b-41d4-a716-446655440002"
+							title: "Renamed by update branch"
+						  }
+						]
+						on_conflict: {
+						  constraint: notes_pkey
+						  update_columns: [title]
+						}
+					  ) {
+						affected_rows
+						returning {
+						  id
+						  author_id
+						  title
+						}
+					  }
+					}`,
+				Variables: map[string]any{},
+				Role:      "user",
+				SessionVariables: map[string]string{
+					"user-id": "550e8400-e29b-41d4-a716-446655440001",
+				},
+			},
+		},
+
+		// Companion negative guard for the conflicted-row UPDATE check. The success
+		// case above proves pure inserts stay scoped to INSERT permissions by using
+		// an update-forbidden title on the inserted row. This case keeps its
+		// companion insert update-allowed so the expected error is attributable to
+		// the seeded note that conflicts and proposes the title forbidden by the
+		// role's update check. If conflicted rows skip UPDATE-check enforcement, the
+		// mutation succeeds.
+		{
+			name: "permissions: upsert collection rejects updated row failing update check",
+			query: query{
+				Query: `
+					mutation {
+					  insert_notes(
+						objects: [
+						  {
+							id: "0199bbbb-0000-7000-8000-000000000001"
+							author_id: "550e8400-e29b-41d4-a716-446655440001"
+							title: "__forbidden__"
+						  }
+						  {
+							author_id: "550e8400-e29b-41d4-a716-446655440001"
+							title: "Inserted companion note"
+						  }
+						]
+						on_conflict: {
+						  constraint: notes_pkey
+						  update_columns: [title]
+						}
+					  ) {
+						affected_rows
+					  }
+					}`,
+				Variables: map[string]any{},
+				Role:      "user",
+				SessionVariables: map[string]string{
+					"user-id": "550e8400-e29b-41d4-a716-446655440001",
+				},
+			},
+			expected: map[string]any{
+				"errors": []any{
+					map[string]any{
+						"message": `failed to execute operations: failed to execute operation insert_notes: failed to scan result row: ERROR: check constraint of an insert/update permission has failed (SQLSTATE ZZ901)`,
+					},
+				},
+			},
+			assertConstellationState: assertRejectedNotesUpsertLeavesNotesUnchanged,
 		},
 
 		// Hasura-parity lock for affected_rows over an object-relationship

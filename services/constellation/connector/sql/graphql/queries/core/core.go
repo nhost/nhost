@@ -39,6 +39,12 @@ type SQLOperation struct {
 	// StreamCursors is non-nil only for stream-subscription operations and
 	// records one entry per cursor column referenced by the operation.
 	StreamCursors []StreamCursorInfo
+	// Sequential is non-empty for a logical operation that must be executed as
+	// multiple SQL statements within the surrounding transaction. Drivers execute
+	// the child operations in order and return a JSON array of their individual
+	// JSON results under this operation's Name. This is used by update_many so
+	// later updates observe earlier ones, matching Hasura's sequential semantics.
+	Sequential []SQLOperation `json:",omitempty"`
 }
 
 // StreamCursorInfo carries metadata for a single cursor column on a stream
@@ -240,6 +246,38 @@ type CursorValue struct {
 	// Value is the initial cursor value supplied by the client; it seeds
 	// result_vars for the first poll before being replaced from results.
 	Value any
+}
+
+// SessionVarValue marks a parameter that is a permission session-variable
+// reference (e.g. "x-hasura-user-id"), as distinct from ordinary user-supplied
+// data that merely happens to begin with "x-hasura-". The multiplexed converter
+// (multiplexed.Multiplex) recognises the marker by type and rewrites the
+// corresponding placeholder into a "_subs"."result_vars" JSON-path lookup so
+// each cohort member reads its own session value.
+//
+// The marker is born only in the subscription cohort managers, which seed their
+// template session-variable maps with SessionVarValue entries; the permission
+// layer's SubstituteSessionVariable then resolves a genuine permission marker to
+// it. Non-subscription queries resolve session variables to their concrete
+// values instead, so a SessionVarValue never reaches direct (non-multiplexed)
+// execution. Classifying by this type — rather than by string-sniffing a
+// finalised parameter value — keeps user where/_set/_in literals that begin with
+// "x-hasura-" as ordinary data, matching Hasura.
+type SessionVarValue struct {
+	// Name is the lowercased session-variable name (e.g. "x-hasura-user-id"),
+	// used as the result_vars JSON key the multiplexed converter emits.
+	Name string
+}
+
+// MarshalJSON renders the marker as its bare Name string. A SQL function's
+// session argument is built by JSON-marshalling the (template) session-variable
+// map (see queries.function), where the value for each key is this marker;
+// emitting the struct form would change that embedded JSON, so we serialise the
+// name — the same placeholder the map held before this type existed. Mirrors
+// OrderDirection.MarshalJSON's strconv.Quote approach; session-variable names
+// are controlled, lowercased x-hasura-* keys.
+func (s SessionVarValue) MarshalJSON() ([]byte, error) {
+	return []byte(strconv.Quote(s.Name)), nil
 }
 
 // MultiplexedResult is a single per-subscriber row produced by a SQL driver's

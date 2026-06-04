@@ -2,6 +2,7 @@ package sqlite
 
 import (
 	"context"
+	"database/sql"
 	"fmt"
 	"strings"
 
@@ -616,8 +617,13 @@ func getForeignKeys(
 
 // getUniqueConstraints returns the unique-constraint metadata for tableName.
 // It walks PRAGMA index_list (rows of seq, name, unique, origin, partial),
-// keeps only indexes flagged unique=1, and then calls [getIndexColumns] for
-// each one. The origin column (pk/u/c) is unused: any unique index counts,
+// keeps only indexes flagged unique=1 and partial=0, and then calls
+// [getIndexColumns] for each one. SQLite ON CONFLICT targets for partial unique
+// indexes must repeat the index predicate, which this metadata model cannot
+// represent, so partial indexes are deliberately not exposed as upsert
+// constraints. Expression and rowid unique indexes are also skipped because the
+// GraphQL upsert metadata can only render column-list conflict targets. The
+// origin column (pk/u/c) is unused: any non-partial unique index counts,
 // regardless of whether it was created implicitly for a UNIQUE column, a
 // PRIMARY KEY, or an explicit CREATE UNIQUE INDEX.
 func getUniqueConstraints(
@@ -646,7 +652,7 @@ func getUniqueConstraints(
 			return nil, fmt.Errorf("failed to scan index entry: %w", err)
 		}
 
-		if unique {
+		if unique && !partial {
 			indexNames = append(indexNames, name)
 		}
 	}
@@ -658,14 +664,19 @@ func getUniqueConstraints(
 	var constraints []introspection.UniqueConstraint
 
 	for _, name := range indexNames {
-		cols, err := getIndexColumns(ctx, q, name)
+		cols, ok, err := getIndexColumns(ctx, q, name)
 		if err != nil {
 			return nil, fmt.Errorf("reading columns for index %s: %w", name, err)
 		}
 
+		if !ok {
+			continue
+		}
+
 		constraints = append(constraints, introspection.UniqueConstraint{
-			Name:    name,
-			Columns: cols,
+			Name:             name,
+			Columns:          cols,
+			NullsNotDistinct: false,
 		})
 	}
 
@@ -673,38 +684,62 @@ func getUniqueConstraints(
 }
 
 // getIndexColumns returns the column names belonging to indexName, in index
-// order. PRAGMA index_info returns rows of (seqno, cid, name); the Scan call
-// below tracks that order, and only the name is retained.
-func getIndexColumns(ctx context.Context, q Querier, indexName string) ([]string, error) {
-	query := "PRAGMA index_info(" + core.QuoteIdentifier(indexName) + ")"
+// order, plus whether the index can be represented as a column-list conflict
+// target. PRAGMA index_xinfo returns rows of (seqno, cid, name, desc, coll,
+// key); only rows with key=1 are the declared index key. Expression terms and
+// rowid terms have negative cids and expression terms have NULL names, so any
+// such key row makes the index unusable as GraphQL upsert metadata.
+func getIndexColumns(
+	ctx context.Context, q Querier, indexName string,
+) ([]string, bool, error) {
+	query := "PRAGMA index_xinfo(" + core.QuoteIdentifier(indexName) + ")"
 
 	rows, err := q.QueryContext(ctx, query)
 	if err != nil {
-		return nil, fmt.Errorf("failed to query index_info: %w", err)
+		return nil, false, fmt.Errorf("failed to query index_xinfo: %w", err)
 	}
 	defer rows.Close()
 
-	var cols []string
+	var (
+		cols      []string
+		canTarget = true
+	)
 
 	for rows.Next() {
 		var (
 			seqno int
 			cid   int
-			name  string
+			name  sql.NullString
+			desc  bool
+			coll  sql.NullString
+			key   bool
 		)
 
-		if err := rows.Scan(&seqno, &cid, &name); err != nil {
-			return nil, fmt.Errorf("failed to scan index column: %w", err)
+		if err := rows.Scan(&seqno, &cid, &name, &desc, &coll, &key); err != nil {
+			return nil, false, fmt.Errorf("failed to scan index column: %w", err)
 		}
 
-		cols = append(cols, name)
+		if !key {
+			continue
+		}
+
+		if cid < 0 || !name.Valid {
+			canTarget = false
+			continue
+		}
+
+		cols = append(cols, name.String)
 	}
 
 	if err := rows.Err(); err != nil {
-		return nil, fmt.Errorf("error iterating index columns: %w", err)
+		return nil, false, fmt.Errorf("error iterating index columns: %w", err)
 	}
 
-	return cols, nil
+	if !canTarget || len(cols) == 0 {
+		return nil, false, nil
+	}
+
+	return cols, true, nil
 }
 
 // introspectEnumValues reads the value+description rows from every table that
@@ -712,10 +747,13 @@ func getIndexColumns(ctx context.Context, q Querier, indexName string) ([]string
 // uses [introspection.Table.EnumColumns] to find the value column (the single
 // PK column) and the optional description column, then delegates to
 // [getEnumTable]. Returns a map keyed by "schema.table" — schema is always
-// empty on SQLite since there is no schema namespace. Per-table failures
-// (missing table, invalid enum shape, query error, empty value set) are
-// silently elided; the outer reconcile pass records an inconsistency and
-// clears the is_enum flag so the table still serves as a regular table.
+// empty on SQLite since there is no schema namespace. Missing enum tables are
+// silently elided here so the outer reconcile pass records the table-level
+// inconsistency first. Present enum tables with invalid shape, query errors,
+// or empty value sets are also elided; reconcile records enum_values for those
+// and drops the table from the source entirely, matching Hasura. Demoting it
+// to a regular table would silently widen the input contract for every FK
+// column pointing at it.
 func introspectEnumValues(
 	ctx context.Context,
 	q Querier,

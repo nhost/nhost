@@ -5,6 +5,7 @@ import {
   ExternalLink as ArrowSquareOutIcon,
   CirclePlus as PlusCircleIcon,
 } from 'lucide-react';
+import Link from 'next/link';
 import type { ChangeEvent } from 'react';
 import { Fragment, useEffect, useMemo, useState } from 'react';
 import toast from 'react-hot-toast';
@@ -15,7 +16,6 @@ import { Avatar } from '@/components/ui/v2/Avatar';
 import { Box } from '@/components/ui/v2/Box';
 import { Button } from '@/components/ui/v2/Button';
 import { Input } from '@/components/ui/v2/Input';
-import { Link } from '@/components/ui/v2/Link';
 import { List } from '@/components/ui/v2/List';
 import { ListItem } from '@/components/ui/v2/ListItem';
 import { Text } from '@/components/ui/v2/Text';
@@ -416,8 +416,7 @@ export default function ConnectGitHubModal({ close }: ConnectGitHubModalProps) {
               <Link
                 href={`${process.env.NEXT_PUBLIC_GITHUB_APP_INSTALL_URL}?state=install-github-app:${org.slug}:${project!.subdomain}`}
                 rel="noreferrer noopener"
-                underline="hover"
-                className="grid grid-flow-col items-center justify-start gap-1"
+                className="grid grid-flow-col items-center justify-start gap-1 text-primary hover:underline"
               >
                 <PlusCircleIcon className="h-4 w-4" />
                 Configure the Nhost application on GitHub.
@@ -505,8 +504,7 @@ export default function ConnectGitHubModal({ close }: ConnectGitHubModalProps) {
               <Link
                 href={`${process.env.NEXT_PUBLIC_GITHUB_APP_INSTALL_URL}?state=install-github-app:${org.slug}:${project!.subdomain}`}
                 rel="noreferrer noopener"
-                className="font-medium text-xs"
-                underline="hover"
+                className="font-medium text-primary text-xs hover:underline"
               >
                 Manage your GitHub configuration
               </Link>

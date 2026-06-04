@@ -20,7 +20,7 @@ import (
 // fields actually requested in the selection set appear in the result.
 //
 // query is consulted to resolve named fragment spreads encountered in nested
-// selection sets.
+// selection sets; inline fragments are walked directly.
 func Execute(
 	schema *ast.Schema,
 	operation *ast.OperationDefinition,
@@ -28,25 +28,98 @@ func Execute(
 ) map[string]any {
 	result := make(map[string]any)
 
-	for _, selection := range operation.SelectionSet {
-		field, ok := selection.(*ast.Field)
-		if !ok {
-			continue
-		}
-
+	forEachSelectedField(operation.SelectionSet, query, func(field *ast.Field) {
 		switch field.Name {
 		case "__schema":
-			result["__schema"] = executeSchemaField(schema, field, query)
+			result[responseName(field)] = executeSchemaField(schema, field, query)
 		case "__type":
+			key := responseName(field)
 			if typ := executeTypeField(schema, field, query); typ != nil {
-				result["__type"] = typ
+				result[key] = typ
 			} else {
-				result["__type"] = nil
+				result[key] = nil
 			}
+		case kindTypename:
+			// A root-level __typename resolves to the operation root type name
+			// (query_root / mutation_root / subscription_root), keyed by the
+			// response alias when one is given.
+			result[responseName(field)] = rootTypeName(schema, operation.Operation)
 		}
-	}
+	})
 
 	return result
+}
+
+func responseName(field *ast.Field) string {
+	if field.Alias != "" {
+		return field.Alias
+	}
+
+	return field.Name
+}
+
+// forEachSelectedField assumes query was checked with gqlparser's default
+// validation rules; NoFragmentCycles bounds recursion through fragment spreads.
+func forEachSelectedField(
+	selectionSet ast.SelectionSet,
+	query *ast.QueryDocument,
+	visit func(*ast.Field),
+) {
+	for _, selection := range selectionSet {
+		switch sel := selection.(type) {
+		case *ast.Field:
+			visit(sel)
+		case *ast.FragmentSpread:
+			if fragment := fragmentByName(query, sel.Name); fragment != nil {
+				forEachSelectedField(fragment.SelectionSet, query, visit)
+			}
+		case *ast.InlineFragment:
+			forEachSelectedField(sel.SelectionSet, query, visit)
+		}
+	}
+}
+
+func fragmentByName(
+	query *ast.QueryDocument,
+	name string,
+) *ast.FragmentDefinition {
+	if query == nil {
+		return nil
+	}
+
+	return query.Fragments.ForName(name)
+}
+
+// rootTypeName returns the name of the schema's root type for the given
+// operation, falling back to the canonical Hasura name when the schema does not
+// declare one (which should not happen for a validated operation).
+func rootTypeName(schema *ast.Schema, op ast.Operation) string {
+	switch op {
+	case ast.Mutation:
+		if schema.Mutation != nil {
+			return schema.Mutation.Name
+		}
+
+		return "mutation_root"
+	case ast.Subscription:
+		if schema.Subscription != nil {
+			return schema.Subscription.Name
+		}
+
+		return "subscription_root"
+	case ast.Query:
+		if schema.Query != nil {
+			return schema.Query.Name
+		}
+
+		return "query_root"
+	default:
+		if schema.Query != nil {
+			return schema.Query.Name
+		}
+
+		return "query_root"
+	}
 }
 
 // executeTypeField resolves the top-level `__type(name: "X")` introspection
@@ -78,55 +151,47 @@ func executeSchemaField(
 	field *ast.Field,
 	query *ast.QueryDocument,
 ) map[string]any {
-	result := map[string]any{
-		"queryType":        nil,
-		"mutationType":     nil,
-		"subscriptionType": nil,
-	}
+	// Only emit the __schema sub-fields the client actually requested, matching
+	// Hasura (and the GraphQL execution model). A requested root-operation field
+	// whose schema has no such root resolves to null.
+	result := make(map[string]any)
 
-	for _, selection := range field.SelectionSet {
-		subField, ok := selection.(*ast.Field)
-		if !ok {
-			continue
-		}
+	forEachSelectedField(field.SelectionSet, query, func(subField *ast.Field) {
+		key := responseName(subField)
 
 		switch subField.Name {
+		case kindTypename:
+			result[key] = metaSchema
 		case "queryType":
-			if schema.Query != nil {
-				result["queryType"] = executeTypeRefField(schema.Query.Name, subField)
-			}
+			result[key] = rootTypeRef(schema.Query, subField, query, schema)
 		case "mutationType":
-			if schema.Mutation != nil {
-				result["mutationType"] = executeTypeRefField(schema.Mutation.Name, subField)
-			}
+			result[key] = rootTypeRef(schema.Mutation, subField, query, schema)
 		case "subscriptionType":
-			if schema.Subscription != nil {
-				result["subscriptionType"] = executeTypeRefField(
-					schema.Subscription.Name, subField,
-				)
-			}
+			result[key] = rootTypeRef(schema.Subscription, subField, query, schema)
 		case "types":
-			result["types"] = executeTypesField(schema, subField, query)
+			result[key] = executeTypesField(schema, subField, query)
 		case "directives":
-			result["directives"] = executeDirectivesField(schema, subField, query)
+			result[key] = executeDirectivesField(schema, subField, query)
 		}
-	}
+	})
 
 	return result
 }
 
-func executeTypeRefField(typeName string, field *ast.Field) map[string]any {
-	result := make(map[string]any)
-
-	for _, selection := range field.SelectionSet {
-		if subField, ok := selection.(*ast.Field); ok {
-			if subField.Name == "name" {
-				result["name"] = typeName
-			}
-		}
+// rootTypeRef resolves a __schema root-operation type reference
+// (queryType/mutationType/subscriptionType), returning nil when the schema does
+// not declare that root — Hasura emits null for a requested-but-absent root.
+func rootTypeRef(
+	def *ast.Definition,
+	field *ast.Field,
+	query *ast.QueryDocument,
+	schema *ast.Schema,
+) any {
+	if def == nil {
+		return nil
 	}
 
-	return result
+	return executeFullTypeFragment(def, field.SelectionSet, query, schema)
 }
 
 func executeTypesField(
@@ -154,6 +219,10 @@ func executeDirectivesField(
 	directives := make([]map[string]any, 0, len(names))
 
 	for _, name := range names {
+		if !shouldAdvertiseDirective(name) {
+			continue
+		}
+
 		directiveInfo := executeDirectiveFields(
 			schema.Directives[name], field.SelectionSet, query, schema,
 		)
@@ -161,6 +230,17 @@ func executeDirectivesField(
 	}
 
 	return directives
+}
+
+// shouldAdvertiseDirective filters gqlparser prelude directives Constellation
+// does not support at execution time from __schema.directives output.
+func shouldAdvertiseDirective(name string) bool {
+	switch name {
+	case "defer", "oneOf":
+		return false
+	default:
+		return true
+	}
 }
 
 func executeDirectiveFields(
@@ -171,19 +251,9 @@ func executeDirectiveFields(
 ) map[string]any {
 	result := make(map[string]any)
 
-	for _, selection := range selectionSet {
-		switch sel := selection.(type) {
-		case *ast.Field:
-			fillDirectiveField(result, directive, sel, query, schema)
-		case *ast.FragmentSpread:
-			if fragment := query.Fragments.ForName(sel.Name); fragment != nil {
-				fragmentResult := executeDirectiveFields(
-					directive, fragment.SelectionSet, query, schema,
-				)
-				maps.Copy(result, fragmentResult)
-			}
-		}
-	}
+	forEachSelectedField(selectionSet, query, func(sel *ast.Field) {
+		fillDirectiveField(result, directive, sel, query, schema)
+	})
 
 	return result
 }
@@ -195,18 +265,24 @@ func fillDirectiveField(
 	query *ast.QueryDocument,
 	schema *ast.Schema,
 ) {
+	key := responseName(sel)
+
 	switch sel.Name {
+	case kindTypename:
+		result[key] = metaDirective
 	case kindName:
-		result[kindName] = directive.Name
+		result[key] = directive.Name
 	case kindDescription:
-		result[kindDescription] = stringOrNil(directive.Description)
+		result[key] = stringOrNil(directive.Description)
+	case "isRepeatable":
+		result[key] = directive.IsRepeatable
 	case "locations":
 		locations := make([]string, 0, len(directive.Locations))
 		for _, location := range directive.Locations {
 			locations = append(locations, string(location))
 		}
 
-		result["locations"] = locations
+		result[key] = locations
 	case "args":
 		args := make([]map[string]any, 0, len(directive.Arguments))
 		for _, arg := range directive.Arguments {
@@ -214,7 +290,7 @@ func fillDirectiveField(
 			args = append(args, argInfo)
 		}
 
-		result["args"] = args
+		result[key] = args
 	}
 }
 
@@ -224,10 +300,18 @@ func fillDirectiveField(
 const (
 	kindName        = "name"
 	kindDescription = "description"
+	kindTypename    = "__typename"
 
 	kindKindEnum    = "kind"
 	kindFieldsEnum  = "fields"
 	kindOfTypeField = "ofType"
+
+	metaSchema     = "__Schema"
+	metaType       = "__Type"
+	metaField      = "__Field"
+	metaInputValue = "__InputValue"
+	metaEnumValue  = "__EnumValue"
+	metaDirective  = "__Directive"
 )
 
 func executeFullTypeFragment(
@@ -238,19 +322,9 @@ func executeFullTypeFragment(
 ) map[string]any {
 	result := make(map[string]any)
 
-	for _, selection := range selectionSet {
-		switch sel := selection.(type) {
-		case *ast.Field:
-			fillFullTypeField(result, typeDef, sel, query, schema)
-		case *ast.FragmentSpread:
-			if fragment := query.Fragments.ForName(sel.Name); fragment != nil {
-				fragmentResult := executeFullTypeFragment(
-					typeDef, fragment.SelectionSet, query, schema,
-				)
-				maps.Copy(result, fragmentResult)
-			}
-		}
-	}
+	forEachSelectedField(selectionSet, query, func(sel *ast.Field) {
+		fillFullTypeField(result, typeDef, sel, query, schema)
+	})
 
 	return result
 }
@@ -262,32 +336,36 @@ func fillFullTypeField( //nolint:cyclop
 	query *ast.QueryDocument,
 	schema *ast.Schema,
 ) {
+	key := responseName(sel)
+
 	switch sel.Name {
+	case kindTypename:
+		result[key] = metaType
 	case kindKindEnum:
-		result[kindKindEnum] = string(typeDef.Kind)
+		result[key] = string(typeDef.Kind)
 	case kindName:
-		result[kindName] = typeDef.Name
+		result[key] = typeDef.Name
 	case kindDescription:
-		result[kindDescription] = stringOrNil(typeDef.Description)
+		result[key] = stringOrNil(typeDef.Description)
 	case kindFieldsEnum:
 		if typeDef.Kind == ast.Object || typeDef.Kind == ast.Interface {
-			result[kindFieldsEnum] = collectFields(typeDef, sel, query, schema)
+			result[key] = collectFields(typeDef, sel, query, schema)
 		}
 	case "inputFields":
 		if typeDef.Kind == ast.InputObject {
-			result["inputFields"] = collectInputFields(typeDef, sel, query, schema)
+			result[key] = collectInputFields(typeDef, sel, query, schema)
 		}
 	case "interfaces":
 		if typeDef.Kind == ast.Object {
-			result["interfaces"] = collectInterfaces(typeDef, sel, query, schema)
+			result[key] = collectInterfaces(typeDef, sel, query, schema)
 		}
 	case "enumValues":
 		if typeDef.Kind == ast.Enum {
-			result["enumValues"] = collectEnumValues(typeDef, sel)
+			result[key] = collectEnumValues(typeDef, sel, query)
 		}
 	case "possibleTypes":
 		if typeDef.Kind == ast.Union || typeDef.Kind == ast.Interface {
-			result["possibleTypes"] = collectPossibleTypes(typeDef, sel, query, schema)
+			result[key] = collectPossibleTypes(typeDef, sel, query, schema)
 		}
 	}
 }
@@ -344,10 +422,16 @@ func collectInterfaces(
 	return interfaces
 }
 
-func collectEnumValues(typeDef *ast.Definition, sel *ast.Field) []map[string]any {
+func collectEnumValues(
+	typeDef *ast.Definition,
+	sel *ast.Field,
+	query *ast.QueryDocument,
+) []map[string]any {
 	enumValues := make([]map[string]any, 0, len(typeDef.EnumValues))
 	for _, enumValue := range typeDef.EnumValues {
-		enumValues = append(enumValues, executeEnumValueInfo(enumValue, sel.SelectionSet))
+		enumValues = append(enumValues, executeEnumValueInfo(
+			enumValue, sel.SelectionSet, query,
+		))
 	}
 
 	return enumValues
@@ -377,17 +461,16 @@ func executeFieldInfo(
 ) map[string]any {
 	result := make(map[string]any)
 
-	for _, selection := range selectionSet {
-		sel, ok := selection.(*ast.Field)
-		if !ok {
-			continue
-		}
+	forEachSelectedField(selectionSet, query, func(sel *ast.Field) {
+		key := responseName(sel)
 
 		switch sel.Name {
+		case kindTypename:
+			result[key] = metaField
 		case kindName:
-			result[kindName] = field.Name
+			result[key] = field.Name
 		case kindDescription:
-			result[kindDescription] = stringOrNil(field.Description)
+			result[key] = stringOrNil(field.Description)
 		case "args":
 			args := make([]map[string]any, 0, len(field.Arguments))
 			for _, arg := range field.Arguments {
@@ -396,17 +479,17 @@ func executeFieldInfo(
 				))
 			}
 
-			result["args"] = args
+			result[key] = args
 		case "type": //nolint:goconst
-			result["type"] = executeTypeRefFragment(
+			result[key] = executeTypeRefFragment(
 				field.Type, "", sel.SelectionSet, query, schema,
 			)
 		case "isDeprecated":
-			result["isDeprecated"] = field.Directives.ForName("deprecated") != nil
+			result[key] = field.Directives.ForName("deprecated") != nil
 		case "deprecationReason":
-			result["deprecationReason"] = getDeprecationReason(field.Directives)
+			result[key] = getDeprecationReason(field.Directives)
 		}
-	}
+	})
 
 	return result
 }
@@ -419,30 +502,24 @@ func executeInputValueFragment(
 ) map[string]any {
 	result := make(map[string]any)
 
-	for _, selection := range selectionSet {
-		switch sel := selection.(type) {
-		case *ast.Field:
-			switch sel.Name {
-			case kindName:
-				result[kindName] = arg.Name
-			case kindDescription:
-				result[kindDescription] = stringOrNil(arg.Description)
-			case "type":
-				result["type"] = executeTypeRefFragment(
-					arg.Type, "", sel.SelectionSet, query, schema,
-				)
-			case "defaultValue":
-				result["defaultValue"] = defaultValueOrNil(arg.DefaultValue)
-			}
-		case *ast.FragmentSpread:
-			if fragment := query.Fragments.ForName(sel.Name); fragment != nil {
-				fragmentResult := executeInputValueFragment(
-					arg, fragment.SelectionSet, query, schema,
-				)
-				maps.Copy(result, fragmentResult)
-			}
+	forEachSelectedField(selectionSet, query, func(sel *ast.Field) {
+		key := responseName(sel)
+
+		switch sel.Name {
+		case kindTypename:
+			result[key] = metaInputValue
+		case kindName:
+			result[key] = arg.Name
+		case kindDescription:
+			result[key] = stringOrNil(arg.Description)
+		case "type":
+			result[key] = executeTypeRefFragment(
+				arg.Type, "", sel.SelectionSet, query, schema,
+			)
+		case "defaultValue":
+			result[key] = defaultValueOrNil(arg.DefaultValue)
 		}
-	}
+	})
 
 	return result
 }
@@ -455,30 +532,24 @@ func executeInputValueFragmentFromField(
 ) map[string]any {
 	result := make(map[string]any)
 
-	for _, selection := range selectionSet {
-		switch sel := selection.(type) {
-		case *ast.Field:
-			switch sel.Name {
-			case kindName:
-				result[kindName] = field.Name
-			case kindDescription:
-				result[kindDescription] = stringOrNil(field.Description)
-			case "type":
-				result["type"] = executeTypeRefFragment(
-					field.Type, "", sel.SelectionSet, query, schema,
-				)
-			case "defaultValue":
-				result["defaultValue"] = defaultValueOrNil(field.DefaultValue)
-			}
-		case *ast.FragmentSpread:
-			if fragment := query.Fragments.ForName(sel.Name); fragment != nil {
-				fragmentResult := executeInputValueFragmentFromField(
-					field, fragment.SelectionSet, query, schema,
-				)
-				maps.Copy(result, fragmentResult)
-			}
+	forEachSelectedField(selectionSet, query, func(sel *ast.Field) {
+		key := responseName(sel)
+
+		switch sel.Name {
+		case kindTypename:
+			result[key] = metaInputValue
+		case kindName:
+			result[key] = field.Name
+		case kindDescription:
+			result[key] = stringOrNil(field.Description)
+		case "type":
+			result[key] = executeTypeRefFragment(
+				field.Type, "", sel.SelectionSet, query, schema,
+			)
+		case "defaultValue":
+			result[key] = defaultValueOrNil(field.DefaultValue)
 		}
-	}
+	})
 
 	return result
 }
@@ -486,26 +557,26 @@ func executeInputValueFragmentFromField(
 func executeEnumValueInfo(
 	enumValue *ast.EnumValueDefinition,
 	selectionSet ast.SelectionSet,
+	query *ast.QueryDocument,
 ) map[string]any {
 	result := make(map[string]any)
 
-	for _, selection := range selectionSet {
-		sel, ok := selection.(*ast.Field)
-		if !ok {
-			continue
-		}
+	forEachSelectedField(selectionSet, query, func(sel *ast.Field) {
+		key := responseName(sel)
 
 		switch sel.Name {
+		case kindTypename:
+			result[key] = metaEnumValue
 		case kindName:
-			result[kindName] = enumValue.Name
+			result[key] = enumValue.Name
 		case kindDescription:
-			result[kindDescription] = stringOrNil(enumValue.Description)
+			result[key] = stringOrNil(enumValue.Description)
 		case "isDeprecated":
-			result["isDeprecated"] = enumValue.Directives.ForName("deprecated") != nil
+			result[key] = enumValue.Directives.ForName("deprecated") != nil
 		case "deprecationReason":
-			result["deprecationReason"] = getDeprecationReason(enumValue.Directives)
+			result[key] = getDeprecationReason(enumValue.Directives)
 		}
-	}
+	})
 
 	return result
 }
@@ -519,19 +590,9 @@ func executeTypeRefFragment(
 ) map[string]any {
 	result := make(map[string]any)
 
-	for _, selection := range selectionSet {
-		switch sel := selection.(type) {
-		case *ast.Field:
-			fillTypeRefField(result, sel, typeRef, typeName, query, schema)
-		case *ast.FragmentSpread:
-			if fragment := query.Fragments.ForName(sel.Name); fragment != nil {
-				fragmentResult := executeTypeRefFragment(
-					typeRef, typeName, fragment.SelectionSet, query, schema,
-				)
-				maps.Copy(result, fragmentResult)
-			}
-		}
-	}
+	forEachSelectedField(selectionSet, query, func(sel *ast.Field) {
+		fillTypeRefField(result, sel, typeRef, typeName, query, schema)
+	})
 
 	return result
 }
@@ -544,14 +605,18 @@ func fillTypeRefField(
 	query *ast.QueryDocument,
 	schema *ast.Schema,
 ) {
+	key := responseName(sel)
+
 	switch sel.Name {
+	case kindTypename:
+		result[key] = metaType
 	case kindKindEnum:
-		result[kindKindEnum] = typeRefKind(typeRef, schema)
+		result[key] = typeRefKind(typeRef, schema)
 	case kindName:
-		result[kindName] = typeRefName(typeRef, typeName)
+		result[key] = typeRefName(typeRef, typeName)
 	case kindOfTypeField:
 		if of := typeRefOfType(typeRef, sel, query, schema); of != nil {
-			result[kindOfTypeField] = of
+			result[key] = of
 		}
 	}
 }

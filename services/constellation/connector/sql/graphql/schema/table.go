@@ -14,7 +14,7 @@ const (
 )
 
 // generateForTable generates all GraphQL schema elements for a single table.
-func generateForTable( //nolint:funlen,cyclop
+func generateForTable( //nolint:funlen
 	schema *graph.Schema,
 	tableMeta *metadata.TableMetadata,
 	tableInfo *introspection.Table,
@@ -38,46 +38,19 @@ func generateForTable( //nolint:funlen,cyclop
 	qualifiedName := getQualifiedName(tableMeta.Table.Schema, tableMeta.Table.Name)
 	allowedColumns := getAllowedColumns(tableMeta, tableInfo, role)
 
-	for _, col := range tableInfo.Columns {
-		if _, ok := allowedColumns[col.Name]; ok {
-			scalarType := getGraphQLScalarType(col.Type)
-			usedScalars[scalarType] = struct{}{}
-			selectUsedScalars[scalarType] = struct{}{}
-
-			if col.IsArray && caps.SupportsArrays {
-				selectUsedArrayElementTypes[scalarType] = struct{}{}
-			}
-
-			if is, enumKey := isEnumColumn(&col, tableInfo, md); is {
-				neededEnums[enumKey] = struct{}{}
-			}
-		}
-	}
-
-	// Also collect scalars from insert/update-allowed columns.
-	// These may not overlap with select-allowed columns, but their types
-	// are referenced in mutation input types (_insert_input, _set_input, etc.)
-	if role == roleAdmin ||
-		getInsertPermission(tableMeta, role) != nil ||
-		getUpdatePermission(tableMeta, role) != nil ||
-		getDeletePermission(tableMeta, role) != nil {
-		insertCols := getInsertAllowedColumns(tableMeta, tableInfo, role)
-		updateCols := getUpdateAllowedColumns(tableMeta, tableInfo, role)
-
-		for _, col := range tableInfo.Columns {
-			if _, ok := allowedColumns[col.Name]; ok {
-				continue // already tracked above
-			}
-
-			_, inInsert := insertCols[col.Name]
-			_, inUpdate := updateCols[col.Name]
-
-			if inInsert || inUpdate {
-				scalarType := getGraphQLScalarType(col.Type)
-				usedScalars[scalarType] = struct{}{}
-			}
-		}
-	}
+	collectSelectColumnTypeUses(
+		tableInfo,
+		allowedColumns,
+		md,
+		usedScalars,
+		selectUsedScalars,
+		selectUsedArrayElementTypes,
+		neededEnums,
+		caps,
+	)
+	collectMutationColumnTypeUses(
+		tableMeta, tableInfo, allowedColumns, role, md, usedScalars, neededEnums,
+	)
 
 	generateTableObjectType(
 		schema, tableMeta, tableInfo, customTableName, allowedColumns, role, md,
@@ -151,6 +124,135 @@ func generateForTable( //nolint:funlen,cyclop
 		qualifiedName,
 		allowedColumns,
 	)
+}
+
+func collectSelectColumnTypeUses(
+	tableInfo *introspection.Table,
+	allowedColumns map[string]struct{},
+	md *metadata.DatabaseMetadata,
+	usedScalars map[string]struct{},
+	selectUsedScalars map[string]struct{},
+	selectUsedArrayElementTypes map[string]struct{},
+	neededEnums map[string]struct{},
+	caps Capabilities,
+) {
+	for i := range tableInfo.Columns {
+		col := &tableInfo.Columns[i]
+		if _, ok := allowedColumns[col.Name]; !ok {
+			continue
+		}
+
+		scalarType := registerColumnTypeUse(col, tableInfo, md, usedScalars, neededEnums)
+		selectUsedScalars[scalarType] = struct{}{}
+
+		if col.IsArray && caps.SupportsArrays {
+			selectUsedArrayElementTypes[scalarType] = struct{}{}
+		}
+	}
+}
+
+func collectMutationColumnTypeUses(
+	tableMeta *metadata.TableMetadata,
+	tableInfo *introspection.Table,
+	allowedColumns map[string]struct{},
+	role string,
+	md *metadata.DatabaseMetadata,
+	usedScalars map[string]struct{},
+	neededEnums map[string]struct{},
+) {
+	insertPermission := hasInsertPermissionForRole(tableMeta, role)
+	updatePermission := hasUpdatePermissionForRole(tableMeta, role)
+	deletePermission := hasDeletePermissionForRole(tableMeta, role)
+
+	insertCols := getInsertAllowedColumns(tableMeta, tableInfo, role)
+	updateCols := getUpdateAllowedColumns(tableMeta, tableInfo, role)
+	pkColumns := primaryKeyColumns(tableInfo.PrimaryKeys)
+
+	setInputGenerated := tableInfo.IsUpdatable && updatePermission && len(updateCols) > 0
+	pkColumnsInputGenerated := setInputGenerated && len(tableInfo.PrimaryKeys) > 0
+	deleteByPKGenerated := tableInfo.IsUpdatable && deletePermission &&
+		len(tableInfo.PrimaryKeys) > 0
+
+	for i := range tableInfo.Columns {
+		col := &tableInfo.Columns[i]
+		if _, ok := allowedColumns[col.Name]; ok {
+			continue // already tracked by collectSelectColumnTypeUses
+		}
+
+		if mutationReferencesColumnType(
+			col,
+			tableInfo,
+			insertCols,
+			updateCols,
+			pkColumns,
+			insertPermission,
+			setInputGenerated,
+			pkColumnsInputGenerated || deleteByPKGenerated,
+		) {
+			registerColumnTypeUse(col, tableInfo, md, usedScalars, neededEnums)
+		}
+	}
+}
+
+func hasInsertPermissionForRole(tableMeta *metadata.TableMetadata, role string) bool {
+	return role == roleAdmin || getInsertPermission(tableMeta, role) != nil
+}
+
+func hasUpdatePermissionForRole(tableMeta *metadata.TableMetadata, role string) bool {
+	return role == roleAdmin || getUpdatePermission(tableMeta, role) != nil
+}
+
+func hasDeletePermissionForRole(tableMeta *metadata.TableMetadata, role string) bool {
+	return role == roleAdmin || getDeletePermission(tableMeta, role) != nil
+}
+
+func registerColumnTypeUse(
+	col *introspection.Column,
+	tableInfo *introspection.Table,
+	md *metadata.DatabaseMetadata,
+	usedScalars map[string]struct{},
+	neededEnums map[string]struct{},
+) string {
+	scalarType := getGraphQLScalarType(col.Type)
+	usedScalars[scalarType] = struct{}{}
+
+	if is, enumKey := isEnumColumn(col, tableInfo, md); is {
+		neededEnums[enumKey] = struct{}{}
+	}
+
+	return scalarType
+}
+
+func primaryKeyColumns(primaryKeys []string) map[string]struct{} {
+	columns := make(map[string]struct{}, len(primaryKeys))
+	for _, pkColName := range primaryKeys {
+		columns[pkColName] = struct{}{}
+	}
+
+	return columns
+}
+
+func mutationReferencesColumnType(
+	col *introspection.Column,
+	tableInfo *introspection.Table,
+	insertCols map[string]struct{},
+	updateCols map[string]struct{},
+	pkColumns map[string]struct{},
+	insertPermission bool,
+	setInputGenerated bool,
+	pkArgumentGenerated bool,
+) bool {
+	if _, inInsert := insertCols[col.Name]; tableInfo.IsInsertable && insertPermission && inInsert {
+		return true
+	}
+
+	if _, inUpdate := updateCols[col.Name]; setInputGenerated && inUpdate {
+		return true
+	}
+
+	_, isPK := pkColumns[col.Name]
+
+	return isPK && pkArgumentGenerated
 }
 
 // addGlobalEnums adds enums that are used globally across all tables.

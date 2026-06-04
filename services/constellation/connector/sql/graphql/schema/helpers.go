@@ -105,7 +105,8 @@ func getColumnDescription(col *introspection.Column) string {
 
 // getCustomColumnName returns the custom column name if configured, or realName otherwise.
 func getCustomColumnName(tableMeta *metadata.TableMetadata, realName string) string {
-	if colConfig, ok := tableMeta.Configuration.ColumnConfig[realName]; ok {
+	if colConfig, ok := tableMeta.Configuration.ColumnConfig[realName]; ok &&
+		colConfig.CustomName != "" {
 		return colConfig.CustomName
 	}
 

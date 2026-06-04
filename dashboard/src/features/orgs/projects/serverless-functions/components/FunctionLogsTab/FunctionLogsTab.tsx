@@ -85,6 +85,7 @@ export default function FunctionLogsTab({ fn }: { fn: NhostFunction }) {
       </div>
       <div className="min-h-0 flex-1 p-6">
         <LogsBody
+          filters={filters}
           logsData={logsData}
           loading={loading}
           error={error}

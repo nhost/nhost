@@ -27,6 +27,10 @@ const (
 var (
 	connectionInitTimeout = 10 * time.Second
 	defaultPingInterval   = 30 * time.Second
+	// pongWait is a separate test-overridable knob. Tests that override the
+	// ping interval and depend on liveness timing should override pongWait too.
+	pongWait  = defaultPingInterval + 15*time.Second
+	writeWait = 10 * time.Second
 )
 
 // MessageHandler handles graphql-transport-ws protocol events.
@@ -57,6 +61,9 @@ type wsConn interface {
 	ReadMessage() (int, []byte, error)
 	WriteMessage(messageType int, data []byte) error
 	SetReadDeadline(t time.Time) error
+	SetWriteDeadline(t time.Time) error
+	SetPongHandler(h func(string) error)
+	WriteControl(messageType int, data []byte, deadline time.Time) error
 	Close() error
 }
 
@@ -183,6 +190,20 @@ func (c *Connection) readPump(ctx context.Context, logger *slog.Logger) error {
 		return fmt.Errorf("setting initial read deadline: %w", err)
 	}
 
+	// Gorilla invokes pong handlers from the read side while ReadMessage runs,
+	// so this closure observes initialized state on the readPump goroutine.
+	c.conn.SetPongHandler(func(string) error {
+		if !c.initialized {
+			return nil
+		}
+
+		if err := c.setPostInitReadDeadline(ctx); err != nil {
+			return fmt.Errorf("setting post-init read deadline from control pong: %w", err)
+		}
+
+		return nil
+	})
+
 	for {
 		select {
 		case <-ctx.Done():
@@ -205,12 +226,14 @@ func (c *Connection) readPump(ctx context.Context, logger *slog.Logger) error {
 				return nil
 			}
 
-			// Stop the init timeout once the handshake completes, then replace the
-			// pre-init read deadline with the JWT expiry bound (or no deadline for
-			// non-JWT sessions).
+			// Stop the init timeout once the handshake completes. Every successful
+			// initialized read then refreshes the post-init liveness deadline, capped
+			// by JWT expiry when present.
 			if status == readMessageStatusInitialized {
 				initTimer.Stop()
+			}
 
+			if c.initialized {
 				if err := c.setPostInitReadDeadline(ctx); err != nil {
 					return fmt.Errorf("setting post-init read deadline: %w", err)
 				}
@@ -259,17 +282,24 @@ func (c *Connection) handleReadMessageError(
 		return readMessageStatusContinue, errConnectionInitTimeout
 	case isReadTimeout(readErr) && c.isExpired(time.Now()):
 		return readMessageStatusContinue, errConnectionExpired
+	case isReadTimeout(readErr):
+		return readMessageStatusContinue, errConnectionLivenessTimeout
 	default:
 		return readMessageStatusContinue, fmt.Errorf("%w: %w", errCouldNotReadMessage, readErr)
 	}
 }
 
 func (c *Connection) setPostInitReadDeadline(ctx context.Context) error {
-	if c.expiresAt.IsZero() {
-		return c.setReadDeadline(ctx, time.Time{})
+	return c.setReadDeadline(ctx, c.nextReadDeadline(time.Now()))
+}
+
+func (c *Connection) nextReadDeadline(now time.Time) time.Time {
+	deadline := now.Add(pongWait)
+	if !c.expiresAt.IsZero() && c.expiresAt.Before(deadline) {
+		return c.expiresAt
 	}
 
-	return c.setReadDeadline(ctx, c.expiresAt)
+	return deadline
 }
 
 func (c *Connection) setReadDeadline(ctx context.Context, deadline time.Time) error {
@@ -283,6 +313,22 @@ func (c *Connection) setReadDeadline(ctx context.Context, deadline time.Time) er
 		}
 
 		return fmt.Errorf("setting websocket read deadline: %w", err)
+	}
+
+	return nil
+}
+
+func (c *Connection) setWriteDeadline(ctx context.Context, deadline time.Time) error {
+	if contextDone(ctx) {
+		return nil
+	}
+
+	if err := c.conn.SetWriteDeadline(deadline); err != nil {
+		if contextDone(ctx) {
+			return nil
+		}
+
+		return fmt.Errorf("setting websocket write deadline: %w", err)
 	}
 
 	return nil
@@ -322,6 +368,17 @@ func (c *Connection) writePump(ctx context.Context, logger *slog.Logger) error {
 				return writeErr
 			}
 
+			if err := c.setWriteDeadline(ctx, time.Now().Add(writeWait)); err != nil {
+				writeErr := fmt.Errorf("setting write deadline: %w", err)
+				c.notifyConnectionAckWrite(msg, writeErr)
+
+				return writeErr
+			}
+
+			if contextDone(ctx) {
+				return nil
+			}
+
 			if err := c.conn.WriteMessage(websocket.TextMessage, data); err != nil {
 				writeErr := fmt.Errorf("could not write message: %w", err)
 				c.notifyConnectionAckWrite(msg, writeErr)
@@ -346,7 +403,7 @@ func (c *Connection) handleMessage(ctx context.Context, msg *Message, logger *sl
 	case messageTypePong:
 		// Pongs acknowledge our pings; no further action required.
 	case messageTypeSubscribe:
-		c.handleSubscribe(ctx, msg, logger)
+		return c.handleSubscribe(ctx, msg, logger)
 	case messageTypeComplete:
 		c.handler.OnComplete(ctx, msg.ID)
 	default:
@@ -361,7 +418,14 @@ func (c *Connection) handleConnectionInit(
 	ctx context.Context, msg *Message, logger *slog.Logger,
 ) error {
 	if c.initialized {
-		return c.sendConnectionAck(ctx, logger)
+		if err := c.closeWithCode(
+			closeCodeTooManyInitialisationRequests,
+			closeReasonTooManyInitialisationRequests,
+		); err != nil {
+			return fmt.Errorf("%w: %w", errDuplicateConnectionInit, err)
+		}
+
+		return errDuplicateConnectionInit
 	}
 
 	if err := c.handler.OnConnectionInit(ctx, msg.Payload); err != nil {
@@ -462,20 +526,36 @@ func (c *Connection) drainConnectionAckWriteNotifications() {
 	}
 }
 
+func (c *Connection) closeWithCode(code int, reason string) error {
+	if err := c.conn.WriteControl(
+		websocket.CloseMessage,
+		websocket.FormatCloseMessage(code, reason),
+		time.Now().Add(writeWait),
+	); err != nil {
+		return fmt.Errorf("writing websocket close frame: %w", err)
+	}
+
+	return nil
+}
+
 // handleSubscribe processes subscribe messages.
-func (c *Connection) handleSubscribe(ctx context.Context, msg *Message, logger *slog.Logger) {
+func (c *Connection) handleSubscribe(ctx context.Context, msg *Message, logger *slog.Logger) error {
 	if !c.initialized {
-		c.sendError(ctx, msg.ID, "connection not initialized", logger)
-		return
+		if err := c.closeWithCode(closeCodeUnauthorized, closeReasonUnauthorized); err != nil {
+			return fmt.Errorf("%w: %w", errSubscribeBeforeInit, err)
+		}
+
+		return errSubscribeBeforeInit
 	}
 
 	var payload SubscribePayload
 	if err := json.Unmarshal(msg.Payload, &payload); err != nil {
 		c.sendError(ctx, msg.ID, "invalid subscribe payload: "+err.Error(), logger)
-		return
+	} else {
+		c.handler.OnSubscribe(ctx, msg.ID, payload)
 	}
 
-	c.handler.OnSubscribe(ctx, msg.ID, payload)
+	return nil
 }
 
 // sendMessage sends a message to the WebSocket connection.

@@ -490,18 +490,35 @@ export default function useSchemaGraph({
         namingMode,
       };
 
+      const renderedHeight = computeNodeHeight(
+        data.columns.length + data.computedFields.length,
+      );
       nodes.push({
         id,
         type: 'tableNode',
         position: { x: 0, y: 0 },
-        width: TABLE_NODE_WIDTH,
-        height: computeNodeHeight(
-          data.columns.length + data.computedFields.length,
-        ),
+        initialWidth: TABLE_NODE_WIDTH,
+        initialHeight: renderedHeight,
+        // The smart-edge router reads obstacle sizes from `node.measured`, which
+        // React Flow leaves undefined for these controlled nodes (floored to a
+        // 1×1px box, so edges cut straight through cards). Stamp the rendered
+        // card size so edges route around them.
+        measured: { width: TABLE_NODE_WIDTH, height: renderedHeight },
         data,
       });
       visibleNodeIds.add(id);
     }
+
+    // The raw foreign-key edge set. Lay out from this naming-mode-independent
+    // view so toggling the GraphQL view never repositions tables: layout always
+    // ranks by the foreign-key graph (and always reserves vertical space for the
+    // GraphQL computed-field rows below — even in postgres mode, where they're
+    // hidden — so node heights, and therefore positions, match in both modes).
+    const layoutEdges = buildPostgresEdges(
+      foreignKeys,
+      metadataByTableId,
+      visibleNodeIds,
+    );
 
     const edges: Edge[] =
       namingMode === 'graphql'
@@ -511,17 +528,23 @@ export default function useSchemaGraph({
             metadataByTableId,
             visibleNodeIds,
           )
-        : buildPostgresEdges(foreignKeys, metadataByTableId, visibleNodeIds);
+        : layoutEdges;
 
-    const rowCountByNodeId = new Map<string, number>();
+    const layoutRowCountByNodeId = new Map<string, number>();
     for (const node of nodes) {
-      rowCountByNodeId.set(
+      const reservedComputedFields =
+        metadataByTableId.get(node.id)?.computed_fields?.length ?? 0;
+      layoutRowCountByNodeId.set(
         node.id,
-        node.data.columns.length + node.data.computedFields.length,
+        node.data.columns.length + reservedComputedFields,
       );
     }
 
-    const positionedNodes = layoutNodes(nodes, edges, rowCountByNodeId);
+    const positionedNodes = layoutNodes(
+      nodes,
+      layoutEdges,
+      layoutRowCountByNodeId,
+    );
 
     return {
       nodes: positionedNodes,

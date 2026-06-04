@@ -3,9 +3,9 @@ import { useFormContext } from 'react-hook-form';
 import { useDialog } from '@/components/common/DialogProvider';
 import { RetryableErrorBoundary } from '@/components/presentational/RetryableErrorBoundary';
 import { Button } from '@/components/ui/v2/Button';
-import { Link } from '@/components/ui/v2/Link';
 import { Text } from '@/components/ui/v2/Text';
 import { Switch } from '@/components/ui/v3/switch';
+import { TextLink } from '@/components/ui/v3/text-link';
 import { EditRepositoryAndBranchSettings } from '@/features/orgs/projects/git/common/components/EditRepositoryAndBranchSettings';
 import type { EditRepositorySettingsFormData } from '@/features/orgs/projects/git/common/components/EditRepositorySettings';
 import { useProject } from '@/features/orgs/projects/hooks/useProject';
@@ -110,15 +110,14 @@ export default function EditRepositorySettingsModal({
         </Text>
         <Text className="text-center text-xs">
           Connect your GitHub repository to enable deployments.{' '}
-          <Link
+          <TextLink
             href="https://docs.nhost.io/platform/cloud/deployments"
-            rel="noopener noreferrer"
             target="_blank"
+            rel="noopener noreferrer"
             className="text-xs"
-            underline="hover"
           >
             Learn more
-          </Link>
+          </TextLink>
         </Text>
         <div>
           <RetryableErrorBoundary>

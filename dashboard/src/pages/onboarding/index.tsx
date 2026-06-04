@@ -7,11 +7,10 @@ import { useForm } from 'react-hook-form';
 import { z } from 'zod';
 import { AuthenticatedLayout } from '@/components/layout/AuthenticatedLayout';
 import { Container } from '@/components/layout/Container';
-import { ActivityIndicator } from '@/components/ui/v2/ActivityIndicator';
 import { Alert } from '@/components/ui/v2/Alert';
 import { Box } from '@/components/ui/v2/Box';
 import { Text } from '@/components/ui/v2/Text';
-import { Button } from '@/components/ui/v3/button';
+import { Button, ButtonWithLoading } from '@/components/ui/v3/button';
 import {
   Form,
   FormControl,
@@ -30,6 +29,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from '@/components/ui/v3/select';
+import { Spinner } from '@/components/ui/v3/spinner';
 import { StripeEmbeddedForm } from '@/features/orgs/components/StripeEmbeddedForm';
 import { planDescriptions } from '@/features/orgs/projects/common/utils/planDescriptions';
 import { useOrgs } from '@/features/orgs/projects/hooks/useOrgs';
@@ -166,7 +166,7 @@ export default function OnboardingPage() {
   if (loadingOrgs || loadingPlans || loadingInvites) {
     return (
       <div className="flex h-screen items-center justify-center">
-        <ActivityIndicator />
+        <Spinner />
       </div>
     );
   }
@@ -411,20 +411,15 @@ export default function OnboardingPage() {
                   </Button>
                 )}
 
-                <Button
+                <ButtonWithLoading
                   type="submit"
-                  disabled={form.formState.isSubmitting}
+                  loading={form.formState.isSubmitting}
                   className="w-full sm:w-auto"
                 >
-                  {form.formState.isSubmitting ? (
-                    <>
-                      <ActivityIndicator className="mr-2 h-4 w-4" />
-                      Creating Organization...
-                    </>
-                  ) : (
-                    'Create Organization'
-                  )}
-                </Button>
+                  {form.formState.isSubmitting
+                    ? 'Creating Organization...'
+                    : 'Create Organization'}
+                </ButtonWithLoading>
               </div>
 
               {invites && invites.length > 0 && (

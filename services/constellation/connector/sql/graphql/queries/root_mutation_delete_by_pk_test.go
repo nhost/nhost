@@ -102,9 +102,9 @@ func TestBuildMutationDeleteByPkSQL(t *testing.T) { //nolint:paralleltest
 
 		// Invalid arguments on a nested relationship must reject the whole
 		// delete_by_pk before the DELETE executes (no row deleted), matching
-		// Hasura. delete_by_pk emits empty arrays for relationships, but their
-		// arguments are still validated through the same parsing the SELECT path
-		// uses.
+		// Hasura. delete_by_pk builds the same relationship subqueries as
+		// insert/update returning, so invalid arguments are rejected by the shared
+		// SELECT-path parser before execution.
 		{
 			name: "delete_by_pk relationship with negative limit rejected",
 			query: query{

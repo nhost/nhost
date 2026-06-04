@@ -80,7 +80,7 @@ describe('LogsHeader', () => {
       'run-service',
     );
     const regexInput = screen.getByPlaceholderText(
-      'Filter logs with a regular expression',
+      'Search logs with a regular expression',
     );
     expect(regexInput).toBeInTheDocument();
 

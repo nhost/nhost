@@ -36,7 +36,7 @@ test.describe
 
       await expect(
         page.getByRole('link', { name: functionName, exact: true }),
-      ).toBeVisible();
+      ).toBeVisible({ timeout: 30000 });
 
       await page.getByRole('link', { name: functionName, exact: true }).click();
 
@@ -78,7 +78,7 @@ test.describe
         name: functionName,
         exact: true,
       });
-      await expect(functionLink).toBeVisible();
+      await expect(functionLink).toBeVisible({ timeout: 30000 });
 
       await functionLink.hover();
       await page

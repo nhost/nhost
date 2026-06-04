@@ -146,6 +146,7 @@ function InnerFormInput<
             )}
             <div
               className={cn({
+                'space-y-2': !!helperText,
                 'sm:flex sm:w-[calc(100%-13.5rem)] sm:max-w-[calc(100%-13.5rem)] sm:flex-col sm:gap-2':
                   inline,
               })}
