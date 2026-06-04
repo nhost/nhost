@@ -20,8 +20,8 @@ func TestNormalizePostgresTypeToGraphQL(t *testing.T) {
 		{"integer", "Int"},
 		{"int", "Int"},
 		{"int4", "Int"},
-		{"int2", "Int"},
-		{"smallint", "Int"},
+		{"int2", "smallint"},
+		{"smallint", "smallint"},
 		{"int8", "bigint"},
 		{"boolean", "Boolean"},
 		{"bool", "Boolean"},
@@ -73,6 +73,7 @@ func TestIsCustomScalar(t *testing.T) {
 		{"jsonb", true},
 		{"citext", true},
 		{"bigint", true},
+		{"smallint", true},
 		{"numeric", true},
 	}
 

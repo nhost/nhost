@@ -7,7 +7,7 @@ import {
   type FormFreeComboboxOption,
 } from '@/components/form/FormFreeCombobox';
 import { FormInput } from '@/components/form/FormInput';
-import Combobox, { type ComboboxOption } from '@/components/ui/v3/combobox';
+import { Combobox, type ComboboxOption } from '@/components/ui/v3/combobox';
 import {
   FormField,
   FormItem,

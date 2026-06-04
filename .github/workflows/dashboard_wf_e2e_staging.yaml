@@ -40,8 +40,6 @@ on:
         required: true
       NIX_CACHE_PUB_KEY:
         required: true
-      NIX_CACHE_PRIV_KEY:
-        required: true
       NIX_CACHE_ACCESS_KEY_ID:
         required: true
       NIX_CACHE_SECRET_ACCESS_KEY:
@@ -167,10 +165,3 @@ jobs:
         path: dashboard/playwright-report.tar.gz.enc
         retention-days: 1
 
-    - name: "Store Nix cache"
-      uses: ./.github/actions/cache-nix
-      with:
-        NIX_CACHE_PRIV_KEY: ${{ secrets.NIX_CACHE_PRIV_KEY }}
-        NIX_CACHE_ACCESS_KEY_ID: ${{ secrets.NIX_CACHE_ACCESS_KEY_ID }}
-        NIX_CACHE_SECRET_ACCESS_KEY: ${{ secrets.NIX_CACHE_SECRET_ACCESS_KEY }}
-      if: always()

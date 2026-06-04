@@ -31,6 +31,10 @@ on:
       # nhost-js
       - packages/nhost-js/**
 
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
 jobs:
   deploy-vercel:
     uses: ./.github/workflows/wf_deploy_vercel.yaml

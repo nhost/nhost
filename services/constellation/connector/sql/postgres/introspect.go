@@ -68,10 +68,13 @@ func trackedSchemaTables(dbMeta *metadata.DatabaseMetadata) map[string][]string 
 }
 
 // introspectEnumValues populates enum values for all tables marked as enums
-// in metadata. Per-table failures (missing table in source, invalid enum
-// shape, query error, empty value set) are silently elided from the result
-// map; the outer reconcile pass turns each absence into an inconsistency and
-// clears the is_enum flag so the table is still served as a regular table.
+// in metadata. Missing enum tables are silently elided here so the outer
+// reconcile pass can record the table-level inconsistency first. Present enum
+// tables with invalid shape, query errors, or empty value sets are also elided
+// from the result map; reconcile records enum_values for those and drops the
+// table from the source entirely, matching Hasura. Demoting it to a regular
+// table would silently widen the input contract for every FK column pointing at
+// it.
 func (c *Client) introspectEnumValues(
 	ctx context.Context,
 	dbMeta *metadata.DatabaseMetadata,

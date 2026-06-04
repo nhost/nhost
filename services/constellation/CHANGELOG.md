@@ -1,3 +1,41 @@
+## [constellation@0.5.0] - 2026-06-03
+
+### 🚀 Features
+
+- *(constellation)* Support aggregate relationship order_by (#4403)
+- *(constellation)* Reject bad distinct_on & negative limit/offset (#4405)
+- *(constellation)* Cap GraphQL request bodies (#4418)
+- *(constellation)* Expire JWT WebSocket sessions (#4416)
+
+
+### 🐛 Bug Fixes
+
+- *(constellation)* Treat null top-level `where` as no filter, matching Hasura (#4382)
+- *(constellation)* Run insert-check after INSERT when payload omits referenced cols (#4384)
+- *(constellation)* Partition multi-parent nested array inserts per parent CTE (#4389)
+- *(constellation)* Apply defaults in mixed multi-row inserts (#4388)
+- *(constellation)* Partition multi-parent object-rel nested inserts per parent (#4392)
+- *(constellation)* Resolve where variables (#4398)
+- *(constellation)* Preserve x-hasura literals in subscriptions (#4399)
+- *(constellation)* Harden JWT and admin-secret authentication (#4400)
+- *(constellation)* Honor field aliases at every aggregate scope (#4407)
+- *(constellation)* Support function default args (#4404)
+- *(constellation)* Partition object-rel nested inserts per parent (#4401)
+- *(constellation)* Resolve nested returning relationships from insert CTEs (#4414)
+- *(constellation)* Apply remote-schema presets under non-default root types (#4415)
+- *(constellation)* Preserve x-hasura literals in subscriptions (#4422)
+- *(constellation)* Resolve where variables (#4423)
+- *(constellation)* Enforce upsert update permissions (#4419)
+- *(constellation)* Honor @skip/@include and root fragments/__typename (#4434)
+- *(constellation)* Emit enum types for mutation-only inputs (#4438)
+- *(constellation)* Harden stream cursors and introspection responses (#4439)
+
+
+### ⚙️ Miscellaneous Tasks
+
+- *(nixops)* Drop nix-filter input in favor of pkgs.lib.fileset (#4377)
+- *(nixops)* Fix repo after bumping nixpkgs (#4394)
+
 ## [constellation@0.4.0] - 2026-05-27
 
 ### 🚀 Features

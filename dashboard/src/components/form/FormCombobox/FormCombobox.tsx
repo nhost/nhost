@@ -1,7 +1,8 @@
 import type { ReactNode } from 'react';
 import type { Control, FieldPath, FieldValues } from 'react-hook-form';
-import Combobox, { type ComboboxOption } from '@/components/ui/v3/combobox';
+import { Combobox, type ComboboxOption } from '@/components/ui/v3/combobox';
 import {
+  FormControl,
   FormDescription,
   FormField,
   FormItem,
@@ -58,7 +59,7 @@ export default function FormCombobox<
     <FormField
       control={control}
       name={name}
-      render={({ field, fieldState }) => (
+      render={({ field }) => (
         <FormItem
           className={cn(
             { 'flex w-full items-center gap-4 py-3': inline },
@@ -79,21 +80,22 @@ export default function FormCombobox<
                 inline,
             })}
           >
-            <Combobox
-              ref={field.ref}
-              value={field.value ?? null}
-              onChange={field.onChange}
-              onBlur={field.onBlur}
-              options={options}
-              filter={filter}
-              placeholder={placeholder}
-              searchPlaceholder={searchPlaceholder}
-              emptyText={emptyText}
-              disabled={disabled}
-              className={cn(comboboxTriggerClasses, className)}
-              aria-invalid={!!fieldState.error}
-              data-testid={dataTestId}
-            />
+            <FormControl>
+              <Combobox
+                ref={field.ref}
+                value={field.value ?? null}
+                onChange={field.onChange}
+                onBlur={field.onBlur}
+                options={options}
+                filter={filter}
+                placeholder={placeholder}
+                searchPlaceholder={searchPlaceholder}
+                emptyText={emptyText}
+                disabled={disabled}
+                className={cn(comboboxTriggerClasses, className)}
+                data-testid={dataTestId}
+              />
+            </FormControl>
             {!!helperText && (
               <FormDescription className="break-all px-[1px]">
                 {helperText}

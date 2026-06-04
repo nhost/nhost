@@ -20,7 +20,7 @@
     "graphql": "^16.11.0",
     "react": "^19.2.3",
     "react-dom": "^19.2.3",
-    "react-router-dom": "^7.9.4",
+    "react-router-dom": "^7.16.0",
     "urql": "^5.0.1"
   },
   "devDependencies": {

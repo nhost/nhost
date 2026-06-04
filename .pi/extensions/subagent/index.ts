@@ -5,9 +5,14 @@ import * as os from 'node:os';
 import * as path from 'node:path';
 import { StringEnum } from '@earendil-works/pi-ai';
 import {
+  DEFAULT_MAX_BYTES,
+  DEFAULT_MAX_LINES,
   type ExtensionAPI,
+  formatSize,
   getAgentDir,
   parseFrontmatter,
+  type ToolExecutionMode,
+  truncateHead,
 } from '@earendil-works/pi-coding-agent';
 import { Type } from 'typebox';
 
@@ -75,7 +80,8 @@ type ProgressCallback = (progress: AgentProgress) => void;
 
 const MAX_PARALLEL_TASKS = 8;
 const MAX_CONCURRENCY = 4;
-const PER_TASK_OUTPUT_CAP_BYTES = 50 * 1024;
+const MODEL_VISIBLE_OUTPUT_CAP_BYTES = DEFAULT_MAX_BYTES;
+const MODEL_VISIBLE_OUTPUT_CAP_LINES = DEFAULT_MAX_LINES;
 const MAX_RECENT_ACTIVITIES = 5;
 const MAX_ACTIVITY_SUMMARY_CHARS = 100;
 const MAX_LATEST_TEXT_CHARS = 240;
@@ -381,15 +387,53 @@ function getStringField(value: unknown, field: string): string | undefined {
   return typeof fieldValue === 'string' ? fieldValue : undefined;
 }
 
-function truncateOutput(output: string): string {
-  const bytes = Buffer.byteLength(output, 'utf8');
-  if (bytes <= PER_TASK_OUTPUT_CAP_BYTES) return output;
+type TruncateOutputOptions = {
+  fullOutputInDetails?: boolean;
+};
 
-  let truncated = output.slice(0, PER_TASK_OUTPUT_CAP_BYTES);
-  while (Buffer.byteLength(truncated, 'utf8') > PER_TASK_OUTPUT_CAP_BYTES)
-    truncated = truncated.slice(0, -1);
+function truncateOutput(
+  output: string,
+  options: TruncateOutputOptions = {},
+): string {
+  const truncation = truncateHead(output, {
+    maxBytes: MODEL_VISIBLE_OUTPUT_CAP_BYTES,
+    maxLines: MODEL_VISIBLE_OUTPUT_CAP_LINES,
+  });
+  if (!truncation.truncated) return output;
 
-  return `${truncated}\n\n[Output truncated: ${bytes - Buffer.byteLength(truncated, 'utf8')} bytes omitted.]`;
+  const omittedBytes = truncation.totalBytes - truncation.outputBytes;
+  const omittedLines = truncation.totalLines - truncation.outputLines;
+  const shownSize = formatSize(truncation.outputBytes);
+  const totalSize = formatSize(truncation.totalBytes);
+  const omittedSize = formatSize(omittedBytes);
+  const noticeParts = [
+    `Output truncated: showing ${truncation.outputLines} of ${truncation.totalLines} lines (${shownSize} of ${totalSize}).`,
+    `${omittedLines} lines (${omittedSize}) omitted.`,
+  ];
+
+  if (truncation.firstLineExceedsLimit)
+    noticeParts.push('First line exceeds the byte limit.');
+  if (options.fullOutputInDetails !== false)
+    noticeParts.push('Full output preserved in tool details.');
+
+  const notice = `[${noticeParts.join(' ')}]`;
+  return truncation.content ? `${truncation.content}\n\n${notice}` : notice;
+}
+
+type TextToolResult<TDetails> = {
+  content: [{ type: 'text'; text: string }];
+  details: TDetails;
+};
+
+function textResult<TDetails>(
+  text: string,
+  details: TDetails,
+  options?: TruncateOutputOptions,
+): TextToolResult<TDetails> {
+  return {
+    content: [{ type: 'text', text: truncateOutput(text, options) }],
+    details,
+  };
 }
 
 function collapseWhitespace(value: string): string {
@@ -948,6 +992,7 @@ export default function nhostSubagentExtension(pi: ExtensionAPI): void {
       'Supports single mode (agent + task), parallel mode (tasks array), and chain mode (chain array with {previous}).',
       'Project agents live in .pi/agents and require agentScope "project" or "both".',
       'Use modelOverride to run an agent with a model other than its frontmatter default.',
+      'Model-visible subagent output is capped; full child output is preserved in tool details.',
     ].join(' '),
     promptSnippet:
       'Delegate work to project or user Pi agents with isolated context windows',
@@ -957,6 +1002,7 @@ export default function nhostSubagentExtension(pi: ExtensionAPI): void {
       'Do not run subagent implementers in parallel when they may edit files; use sequential single calls or chain mode instead.',
     ],
     parameters: subagentParamsSchema,
+    executionMode: 'sequential' as ToolExecutionMode,
 
     async execute(_toolCallId, params, signal, onUpdate, ctx) {
       const agentScope: AgentScope = params.agentScope ?? 'user';
@@ -973,15 +1019,11 @@ export default function nhostSubagentExtension(pi: ExtensionAPI): void {
         Number(hasSingle) + Number(hasParallel) + Number(hasChain);
 
       if (modeCount !== 1) {
-        return {
-          content: [
-            {
-              type: 'text' as const,
-              text: `Invalid subagent request. Provide exactly one mode.\n\nAvailable agents:\n${formatAvailableAgents(agents)}`,
-            },
-          ],
-          details: { results: [] },
-        };
+        return textResult(
+          `Invalid subagent request. Provide exactly one mode.\n\nAvailable agents:\n${formatAvailableAgents(agents)}`,
+          { results: [] },
+          { fullOutputInDetails: false },
+        );
       }
 
       const requestedNames = new Set<string>();
@@ -1024,15 +1066,11 @@ export default function nhostSubagentExtension(pi: ExtensionAPI): void {
         );
 
         if (!ok) {
-          return {
-            content: [
-              {
-                type: 'text' as const,
-                text: 'Canceled: project-local agents were not approved.',
-              },
-            ],
-            details: { results: [] },
-          };
+          return textResult(
+            'Canceled: project-local agents were not approved.',
+            { results: [] },
+            { fullOutputInDetails: false },
+          );
         }
       }
 
@@ -1089,19 +1127,10 @@ export default function nhostSubagentExtension(pi: ExtensionAPI): void {
           },
         });
 
-        return {
-          content: [
-            {
-              type: 'text' as const,
-              text:
-                result.output ||
-                result.errorMessage ||
-                result.stderr ||
-                '(no output)',
-            },
-          ],
-          details: { results: [result] },
-        };
+        return textResult(
+          result.output || result.errorMessage || result.stderr || '(no output)',
+          { results: [result] },
+        );
       }
 
       if (hasChain && params.chain) {
@@ -1143,42 +1172,28 @@ export default function nhostSubagentExtension(pi: ExtensionAPI): void {
           results.push(result);
 
           if (result.exitCode !== 0) {
-            return {
-              content: [
-                {
-                  type: 'text' as const,
-                  text: `Chain stopped at step ${index + 1}.\n\n${summarizeResult(result)}`,
-                },
-              ],
-              details: { results },
-            };
+            return textResult(
+              `Chain stopped at step ${index + 1}.\n\n${summarizeResult(result)}`,
+              { results },
+            );
           }
 
           previous = result.output;
         }
 
-        return {
-          content: [
-            {
-              type: 'text' as const,
-              text: results.map(summarizeResult).join('\n\n---\n\n'),
-            },
-          ],
-          details: { results },
-        };
+        return textResult(
+          results.map(summarizeResult).join('\n\n---\n\n'),
+          { results },
+        );
       }
 
       if (hasParallel && params.tasks) {
         if (params.tasks.length > MAX_PARALLEL_TASKS) {
-          return {
-            content: [
-              {
-                type: 'text' as const,
-                text: `Too many parallel tasks (${params.tasks.length}). Max is ${MAX_PARALLEL_TASKS}.`,
-              },
-            ],
-            details: { results: [] },
-          };
+          return textResult(
+            `Too many parallel tasks (${params.tasks.length}). Max is ${MAX_PARALLEL_TASKS}.`,
+            { results: [] },
+            { fullOutputInDetails: false },
+          );
         }
 
         const parallelProgress: (AgentProgress | undefined)[] = new Array(
@@ -1220,26 +1235,17 @@ export default function nhostSubagentExtension(pi: ExtensionAPI): void {
         const succeeded = results.filter(
           (result) => result.exitCode === 0,
         ).length;
-        return {
-          content: [
-            {
-              type: 'text' as const,
-              text: `Parallel subagents: ${succeeded}/${results.length} succeeded\n\n${results.map(summarizeResult).join('\n\n---\n\n')}`,
-            },
-          ],
-          details: { results },
-        };
+        return textResult(
+          `Parallel subagents: ${succeeded}/${results.length} succeeded\n\n${results.map(summarizeResult).join('\n\n---\n\n')}`,
+          { results },
+        );
       }
 
-      return {
-        content: [
-          {
-            type: 'text' as const,
-            text: `Invalid subagent request.\n\nAvailable agents:\n${formatAvailableAgents(agents)}`,
-          },
-        ],
-        details: { results: [] },
-      };
+      return textResult(
+        `Invalid subagent request.\n\nAvailable agents:\n${formatAvailableAgents(agents)}`,
+        { results: [] },
+        { fullOutputInDetails: false },
+      );
     },
   });
 }

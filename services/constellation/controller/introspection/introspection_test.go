@@ -11,6 +11,8 @@ import (
 )
 
 const sampleSchema = `
+directive @repeatableCustom repeatable on FIELD_DEFINITION
+
 "User account."
 type User {
 	id: ID!
@@ -123,6 +125,20 @@ func schemaTypes(t *testing.T, got map[string]any) []map[string]any {
 	return asMapSlice(t, asMap(t, got["__schema"])["types"])
 }
 
+func findMapByName(t *testing.T, values []map[string]any, name string) map[string]any {
+	t.Helper()
+
+	for _, value := range values {
+		if value["name"] == name {
+			return value
+		}
+	}
+
+	t.Fatalf("map with name %q not found in %v", name, values)
+
+	return nil
+}
+
 func TestExecute(t *testing.T) { //nolint:gocognit,gocyclo,cyclop,maintidx
 	t.Parallel()
 
@@ -214,6 +230,149 @@ func TestExecute(t *testing.T) { //nolint:gocognit,gocyclo,cyclop,maintidx
 				}
 
 				t.Fatal("User type not found through aliased types selection")
+			},
+		},
+		{
+			name: "RootTypenameAndInlineFragment",
+			query: `
+				query Q {
+					... on Query {
+						rootType: __typename
+						schemaAlias: __schema { queryType { name } }
+					}
+				}
+			`,
+			check: func(t *testing.T, got map[string]any) {
+				t.Helper()
+
+				if got["rootType"] != "Query" {
+					t.Errorf("rootType = %v, want Query", got["rootType"])
+				}
+
+				queryType := asMap(t, asMap(t, got["schemaAlias"])["queryType"])
+				if queryType["name"] != "Query" {
+					t.Errorf("schemaAlias.queryType.name = %v, want Query", queryType["name"])
+				}
+			},
+		},
+		{
+			name:  "TypenameOnSchemaAndTypeRef",
+			query: `{ __schema { __typename queryType { __typename name } } }`,
+			check: func(t *testing.T, got map[string]any) {
+				t.Helper()
+
+				schemaResult := asMap(t, got["__schema"])
+				if schemaResult["__typename"] != "__Schema" {
+					t.Errorf("__schema.__typename = %v, want __Schema", schemaResult["__typename"])
+				}
+
+				queryType := asMap(t, schemaResult["queryType"])
+				if queryType["__typename"] != "__Type" {
+					t.Errorf(
+						"__schema.queryType.__typename = %v, want __Type",
+						queryType["__typename"],
+					)
+				}
+
+				if queryType["name"] != "Query" {
+					t.Errorf("__schema.queryType.name = %v, want Query", queryType["name"])
+				}
+			},
+		},
+		{
+			name:  "TypeTypenameAliasAndInlineFragment",
+			query: `{ __type(name: "User") { tn: __typename ... on __Type { name kind } } }`,
+			check: func(t *testing.T, got map[string]any) {
+				t.Helper()
+
+				typ := asMap(t, got["__type"])
+
+				want := map[string]any{
+					"tn":   "__Type",
+					"name": "User",
+					"kind": "OBJECT",
+				}
+				if diff := cmp.Diff(want, typ); diff != "" {
+					t.Errorf("__type mismatch (-want +got):\n%s", diff)
+				}
+			},
+		},
+		{
+			name: "TypenameOnIntrospectionChildren",
+			query: `{
+				userType: __type(name: "User") {
+					fields {
+						name
+						__typename
+						args { name __typename type { __typename kind name } }
+						type { __typename kind ofType { __typename kind name } }
+					}
+				}
+				inputType: __type(name: "UserInput") {
+					inputFields { name __typename type { __typename kind ofType { __typename kind name } } }
+				}
+				statusType: __type(name: "Status") {
+					enumValues { name __typename }
+				}
+				__schema {
+					directives { name __typename args { name __typename } }
+				}
+			}`,
+			check: func(t *testing.T, got map[string]any) {
+				t.Helper()
+
+				friends := findMapByName(
+					t,
+					asMapSlice(t, asMap(t, got["userType"])["fields"]),
+					"friends",
+				)
+				if friends["__typename"] != "__Field" {
+					t.Errorf("friends.__typename = %v, want __Field", friends["__typename"])
+				}
+
+				fieldType := asMap(t, friends["type"])
+				if fieldType["__typename"] != "__Type" {
+					t.Errorf("friends.type.__typename = %v, want __Type", fieldType["__typename"])
+				}
+
+				afterArg := findMapByName(t, asMapSlice(t, friends["args"]), "after")
+				if afterArg["__typename"] != "__InputValue" {
+					t.Errorf("after.__typename = %v, want __InputValue", afterArg["__typename"])
+				}
+
+				argType := asMap(t, afterArg["type"])
+				if argType["__typename"] != "__Type" {
+					t.Errorf("after.type.__typename = %v, want __Type", argType["__typename"])
+				}
+
+				score := findMapByName(
+					t, asMapSlice(t, asMap(t, got["inputType"])["inputFields"]), "score",
+				)
+				if score["__typename"] != "__InputValue" {
+					t.Errorf("score.__typename = %v, want __InputValue", score["__typename"])
+				}
+
+				active := findMapByName(
+					t, asMapSlice(t, asMap(t, got["statusType"])["enumValues"]), "ACTIVE",
+				)
+				if active["__typename"] != "__EnumValue" {
+					t.Errorf("ACTIVE.__typename = %v, want __EnumValue", active["__typename"])
+				}
+
+				deprecated := findMapByName(
+					t, asMapSlice(t, asMap(t, got["__schema"])["directives"]), "deprecated",
+				)
+				if deprecated["__typename"] != "__Directive" {
+					t.Errorf(
+						"deprecated.__typename = %v, want __Directive",
+						deprecated["__typename"],
+					)
+				}
+
+				reason := findMapByName(t, asMapSlice(t, deprecated["args"]), "reason")
+				if reason["__typename"] != "__InputValue" {
+					t.Errorf("reason.__typename = %v, want __InputValue", reason["__typename"])
+				}
 			},
 		},
 		{
@@ -611,6 +770,7 @@ func TestExecute(t *testing.T) { //nolint:gocognit,gocyclo,cyclop,maintidx
 				__schema {
 					directives {
 						name
+						isRepeatable
 						locations
 						args { name }
 					}
@@ -624,18 +784,18 @@ func TestExecute(t *testing.T) { //nolint:gocognit,gocyclo,cyclop,maintidx
 					t.Fatal("expected at least one directive")
 				}
 
-				// The "deprecated" built-in directive must be in the list with a
-				// "reason" argument and at least one location.
-				var deprecated map[string]any
-				for _, d := range dirs {
-					if d["name"] == "deprecated" {
-						deprecated = d
-						break
-					}
+				deprecated := findMapByName(t, dirs, "deprecated")
+
+				repeatable, ok := deprecated["isRepeatable"].(bool)
+				if !ok {
+					t.Fatalf(
+						"expected @deprecated.isRepeatable bool, got %T",
+						deprecated["isRepeatable"],
+					)
 				}
 
-				if deprecated == nil {
-					t.Fatal("expected built-in @deprecated directive in output")
+				if repeatable {
+					t.Errorf("@deprecated.isRepeatable = true, want false")
 				}
 
 				args, _ := deprecated["args"].([]map[string]any)
@@ -650,6 +810,49 @@ func TestExecute(t *testing.T) { //nolint:gocognit,gocyclo,cyclop,maintidx
 				locs := asStringSlice(t, deprecated["locations"])
 				if len(locs) == 0 {
 					t.Errorf("@deprecated locations empty")
+				}
+
+				custom := findMapByName(t, dirs, "repeatableCustom")
+				if repeatable, ok := custom["isRepeatable"].(bool); !ok || !repeatable {
+					t.Errorf(
+						"@repeatableCustom.isRepeatable = %v (ok=%v), want true",
+						custom["isRepeatable"], ok,
+					)
+				}
+			},
+		},
+		{
+			name:  "DirectiveListFilteredAndComplete",
+			query: `{ __schema { directives { name } } }`,
+			check: func(t *testing.T, got map[string]any) {
+				t.Helper()
+
+				dirs := asMapSlice(t, asMap(t, got["__schema"])["directives"])
+
+				names := make(map[string]bool, len(dirs))
+				for _, directive := range dirs {
+					name, ok := directive["name"].(string)
+					if !ok {
+						t.Fatalf("expected directive name string, got %T", directive["name"])
+					}
+
+					names[name] = true
+				}
+
+				for _, want := range []string{"include", "skip", "deprecated", "specifiedBy"} {
+					if !names[want] {
+						t.Errorf("expected built-in directive %q in output, got %v", want, names)
+					}
+				}
+
+				for _, banned := range []string{"defer", "oneOf"} {
+					if names[banned] {
+						t.Errorf(
+							"unexpected unsupported directive %q advertised: %v",
+							banned,
+							names,
+						)
+					}
 				}
 			},
 		},

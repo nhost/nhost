@@ -7,8 +7,9 @@ import {
   FormLabel,
   FormMessage,
 } from '@/components/ui/v3/form';
-import FreeCombobox, {
+import {
   type ComboboxOption,
+  FreeCombobox,
   type FreeComboboxChangeMeta,
 } from '@/components/ui/v3/free-combobox';
 import { cn } from '@/lib/utils';

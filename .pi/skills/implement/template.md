@@ -59,14 +59,14 @@ Headline takeaways from each architect. The full plans are in the appendix.
 - **Headline approach:** <2-3 sentences>
 - **Notable choices:** <bullets>
 - **Notable concerns / risks raised:** <bullets>
-- **Model integrity:** `match` | `same-family-different-version` | `cross-family-mismatch (...)` — if not `match`, explain.
+- **Model warning:** `none` | `missing-signature` | `same-family-different-version (...)` | `different-family (...)` | `unknown-model (...)` — warnings are informational only.
 
 ### 2.2 `architect-b` (expected `claude-opus-4-7`, reported `<reported>`)
 
 - **Headline approach:** <2-3 sentences>
 - **Notable choices:** <bullets>
 - **Notable concerns / risks raised:** <bullets>
-- **Model integrity:** `match` | `same-family-different-version` | `cross-family-mismatch (...)` — if not `match`, explain.
+- **Model warning:** `none` | `missing-signature` | `same-family-different-version (...)` | `different-family (...)` | `unknown-model (...)` — warnings are informational only.
 
 ### 2.3 Where they agreed
 

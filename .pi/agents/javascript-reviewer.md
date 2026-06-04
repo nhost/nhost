@@ -39,7 +39,7 @@ You may run targeted lint/typecheck/test commands (preferably through Turbo with
 
 The parent prompt picks the output shape for this review:
 
-Every output below carries a model signature. Sign with **the model you actually are**, identified by you from your own knowledge of your identity. Use the shortest unambiguous string (e.g. `claude-opus-4-7`, `gpt-5.5`, `gemini-2.5-pro`); if you cannot identify your version, write `unknown-<family>`. **Do not** copy the model name from this prompt or from the orchestrator's instructions — the whole point of the signature is to detect when a model other than the one configured in this agent's frontmatter (`claude-opus-4-7`) actually ran. Copying the expected value defeats the check.
+Every output below carries a model signature. Sign with **the model you actually are**, identified by you from your own knowledge of your identity. Use the shortest unambiguous string (e.g. `claude-opus-4-7`, `gpt-5.5`, `gemini-2.5-pro`); if you cannot identify your version, write `unknown-<family>`. **Do not** copy the model name from this prompt or from the orchestrator's instructions — the signature lets the parent workflow record an informational model warning when the runtime model differs from this agent's frontmatter (`claude-opus-4-7`). It must not block or discard findings.
 
 ### A. Post-change reviewer note (used by `address-review`)
 

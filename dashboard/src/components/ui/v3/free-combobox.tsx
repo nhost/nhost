@@ -1,5 +1,5 @@
 import { forwardRef, type ReactNode, useState } from 'react';
-import Combobox, { type ComboboxOption } from '@/components/ui/v3/combobox';
+import { Combobox, type ComboboxOption } from '@/components/ui/v3/combobox';
 import { CommandCreateItem } from '@/components/ui/v3/command';
 
 export type { ComboboxOption };
@@ -73,4 +73,4 @@ const FreeCombobox = forwardRef<HTMLButtonElement, FreeComboboxProps>(
   },
 );
 
-export default FreeCombobox;
+export { FreeCombobox };

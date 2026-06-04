@@ -8,7 +8,7 @@ import (
 	"github.com/nhost/nhost/services/constellation/metadata"
 )
 
-func TestGenerateForRole_SmallintColumnsUseInt(t *testing.T) {
+func TestGenerateForRole_SmallintColumnsUseCustomScalar(t *testing.T) {
 	t.Parallel()
 
 	md := &metadata.DatabaseMetadata{
@@ -29,8 +29,14 @@ func TestGenerateForRole_SmallintColumnsUseInt(t *testing.T) {
 				IsUpdatable:  true,
 				PrimaryKeys:  []string{"id"},
 				Columns: []introspection.Column{
-					{Name: "id", Type: "int2"},
-					{Name: "rating", Type: "smallint"},
+					{Name: "id", Type: "int2", SupportsMinMax: true},
+					{
+						Name:           "rating",
+						Type:           "smallint",
+						SupportsMinMax: true,
+						SupportsInc:    true,
+						SupportsAgg:    true,
+					},
 				},
 			},
 		},
@@ -44,12 +50,20 @@ func TestGenerateForRole_SmallintColumnsUseInt(t *testing.T) {
 	}
 
 	assertSchemaValid(t, sch, roleAdmin)
-	assertObjectFieldNamedType(t, sch, "metrics", "id", "Int")
-	assertObjectFieldNamedType(t, sch, "metrics", "rating", "Int")
-	assertInputFieldNamedType(t, sch, "metrics_bool_exp", "id", "Int_comparison_exp")
-	assertInputFieldNamedType(t, sch, "metrics_bool_exp", "rating", "Int_comparison_exp")
-	assertScalarMissing(t, sch, "smallint")
-	assertInputMissing(t, sch, "smallint_comparison_exp")
+	assertObjectFieldNamedType(t, sch, "metrics", "id", "smallint")
+	assertObjectFieldNamedType(t, sch, "metrics", "rating", "smallint")
+	assertInputFieldNamedType(t, sch, "metrics_bool_exp", "id", "smallint_comparison_exp")
+	assertInputFieldNamedType(t, sch, "metrics_bool_exp", "rating", "smallint_comparison_exp")
+	assertInputFieldNamedType(t, sch, "metrics_set_input", "rating", "smallint")
+	assertInputFieldNamedType(t, sch, "metrics_insert_input", "rating", "smallint")
+	assertInputFieldNamedType(t, sch, "metrics_inc_input", "rating", "smallint")
+	assertInputFieldNamedType(t, sch, "metrics_pk_columns_input", "id", "smallint")
+	assertInputFieldNamedType(
+		t, sch, "metrics_stream_cursor_value_input", "rating", "smallint",
+	)
+	assertObjectFieldNamedType(t, sch, "metrics_max_fields", "rating", "smallint")
+	assertScalarPresent(t, sch, "smallint")
+	assertInputExists(t, sch, "smallint_comparison_exp")
 }
 
 func assertObjectFieldNamedType(
@@ -119,24 +133,16 @@ func assertInputFieldNamedType(
 	t.Fatalf("schema has no input type %q", inputName)
 }
 
-func assertScalarMissing(t *testing.T, sch *graph.Schema, scalarName string) {
+func assertScalarPresent(t *testing.T, sch *graph.Schema, scalarName string) {
 	t.Helper()
 
 	for _, scalarType := range sch.Scalars {
 		if scalarType.Name == scalarName {
-			t.Fatalf("schema unexpectedly has scalar %q", scalarName)
+			return
 		}
 	}
-}
 
-func assertInputMissing(t *testing.T, sch *graph.Schema, inputName string) {
-	t.Helper()
-
-	for _, inputType := range sch.Inputs {
-		if inputType.Name == inputName {
-			t.Fatalf("schema unexpectedly has input type %q", inputName)
-		}
-	}
+	t.Fatalf("schema is missing expected scalar %q", scalarName)
 }
 
 func baseNamedTypeName(typ *graph.Type) string {

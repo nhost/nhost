@@ -1,6 +1,7 @@
 import { Controller, useFormContext, useWatch } from 'react-hook-form';
-import FreeCombobox, {
+import {
   type ComboboxOption,
+  FreeCombobox,
 } from '@/components/ui/v3/free-combobox';
 import { InlineCode } from '@/components/ui/v3/inline-code';
 import type { ColumnDefaultValue } from '@/features/orgs/projects/database/dataGrid/types/dataBrowser';

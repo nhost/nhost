@@ -23,6 +23,13 @@ const (
 	messageTypeError         = "error"
 )
 
+const (
+	closeCodeUnauthorized                    = 4401
+	closeCodeTooManyInitialisationRequests   = 4429
+	closeReasonUnauthorized                  = "Unauthorized"
+	closeReasonTooManyInitialisationRequests = "Too many initialisation requests"
+)
+
 // Message represents a graphql-ws protocol message.
 type Message struct {
 	ID      string         `json:"id,omitempty"`

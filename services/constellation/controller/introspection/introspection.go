@@ -28,12 +28,7 @@ func Execute(
 ) map[string]any {
 	result := make(map[string]any)
 
-	for _, selection := range operation.SelectionSet {
-		field, ok := selection.(*ast.Field)
-		if !ok {
-			continue
-		}
-
+	forEachSelectedField(operation.SelectionSet, query, func(field *ast.Field) {
 		switch field.Name {
 		case "__schema":
 			result[responseName(field)] = executeSchemaField(schema, field, query)
@@ -44,13 +39,13 @@ func Execute(
 			} else {
 				result[key] = nil
 			}
-		case "__typename":
+		case kindTypename:
 			// A root-level __typename resolves to the operation root type name
 			// (query_root / mutation_root / subscription_root), keyed by the
 			// response alias when one is given.
 			result[responseName(field)] = rootTypeName(schema, operation.Operation)
 		}
-	}
+	})
 
 	return result
 }
@@ -165,6 +160,8 @@ func executeSchemaField(
 		key := responseName(subField)
 
 		switch subField.Name {
+		case kindTypename:
+			result[key] = metaSchema
 		case "queryType":
 			result[key] = rootTypeRef(schema.Query, subField, query, schema)
 		case "mutationType":
@@ -222,6 +219,10 @@ func executeDirectivesField(
 	directives := make([]map[string]any, 0, len(names))
 
 	for _, name := range names {
+		if !shouldAdvertiseDirective(name) {
+			continue
+		}
+
 		directiveInfo := executeDirectiveFields(
 			schema.Directives[name], field.SelectionSet, query, schema,
 		)
@@ -229,6 +230,17 @@ func executeDirectivesField(
 	}
 
 	return directives
+}
+
+// shouldAdvertiseDirective filters gqlparser prelude directives Constellation
+// does not support at execution time from __schema.directives output.
+func shouldAdvertiseDirective(name string) bool {
+	switch name {
+	case "defer", "oneOf":
+		return false
+	default:
+		return true
+	}
 }
 
 func executeDirectiveFields(
@@ -256,10 +268,14 @@ func fillDirectiveField(
 	key := responseName(sel)
 
 	switch sel.Name {
+	case kindTypename:
+		result[key] = metaDirective
 	case kindName:
 		result[key] = directive.Name
 	case kindDescription:
 		result[key] = stringOrNil(directive.Description)
+	case "isRepeatable":
+		result[key] = directive.IsRepeatable
 	case "locations":
 		locations := make([]string, 0, len(directive.Locations))
 		for _, location := range directive.Locations {
@@ -284,10 +300,18 @@ func fillDirectiveField(
 const (
 	kindName        = "name"
 	kindDescription = "description"
+	kindTypename    = "__typename"
 
 	kindKindEnum    = "kind"
 	kindFieldsEnum  = "fields"
 	kindOfTypeField = "ofType"
+
+	metaSchema     = "__Schema"
+	metaType       = "__Type"
+	metaField      = "__Field"
+	metaInputValue = "__InputValue"
+	metaEnumValue  = "__EnumValue"
+	metaDirective  = "__Directive"
 )
 
 func executeFullTypeFragment(
@@ -315,6 +339,8 @@ func fillFullTypeField( //nolint:cyclop
 	key := responseName(sel)
 
 	switch sel.Name {
+	case kindTypename:
+		result[key] = metaType
 	case kindKindEnum:
 		result[key] = string(typeDef.Kind)
 	case kindName:
@@ -439,6 +465,8 @@ func executeFieldInfo(
 		key := responseName(sel)
 
 		switch sel.Name {
+		case kindTypename:
+			result[key] = metaField
 		case kindName:
 			result[key] = field.Name
 		case kindDescription:
@@ -478,6 +506,8 @@ func executeInputValueFragment(
 		key := responseName(sel)
 
 		switch sel.Name {
+		case kindTypename:
+			result[key] = metaInputValue
 		case kindName:
 			result[key] = arg.Name
 		case kindDescription:
@@ -506,6 +536,8 @@ func executeInputValueFragmentFromField(
 		key := responseName(sel)
 
 		switch sel.Name {
+		case kindTypename:
+			result[key] = metaInputValue
 		case kindName:
 			result[key] = field.Name
 		case kindDescription:
@@ -533,6 +565,8 @@ func executeEnumValueInfo(
 		key := responseName(sel)
 
 		switch sel.Name {
+		case kindTypename:
+			result[key] = metaEnumValue
 		case kindName:
 			result[key] = enumValue.Name
 		case kindDescription:
@@ -574,6 +608,8 @@ func fillTypeRefField(
 	key := responseName(sel)
 
 	switch sel.Name {
+	case kindTypename:
+		result[key] = metaType
 	case kindKindEnum:
 		result[key] = typeRefKind(typeRef, schema)
 	case kindName:

@@ -69,8 +69,10 @@ export interface ComboboxProps {
   open?: boolean;
   onOpenChange?: (open: boolean) => void;
   popoverContentClassName?: string;
+  id?: string;
   'data-testid'?: string;
   'aria-label'?: string;
+  'aria-describedby'?: string;
   'aria-invalid'?: boolean;
 }
 
@@ -92,8 +94,10 @@ const Combobox = forwardRef<HTMLButtonElement, ComboboxProps>(
       open,
       onOpenChange,
       popoverContentClassName,
+      id,
       'data-testid': dataTestId,
       'aria-label': ariaLabel,
+      'aria-describedby': ariaDescribedBy,
       'aria-invalid': ariaInvalid,
     },
     ref,
@@ -133,12 +137,14 @@ const Combobox = forwardRef<HTMLButtonElement, ComboboxProps>(
         <PopoverTrigger asChild>
           <Button
             ref={ref}
+            id={id}
             type="button"
             variant="outline"
             role="combobox"
             disabled={disabled}
             data-testid={dataTestId}
             aria-label={ariaLabel}
+            aria-describedby={ariaDescribedBy}
             aria-invalid={ariaInvalid}
             className={cn(
               'w-full justify-between font-normal',
@@ -201,4 +207,4 @@ const Combobox = forwardRef<HTMLButtonElement, ComboboxProps>(
   },
 );
 
-export default Combobox;
+export { Combobox };

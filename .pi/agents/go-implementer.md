@@ -50,9 +50,9 @@ Summarize, in this order:
 
 Sign with **the model you actually are**, identified by you from your own knowledge of your identity. Use the shortest unambiguous string that names you (vendor + version where possible, e.g. `claude-opus-4-7`, `gpt-5.5`, `gemini-2.5-pro`). If you genuinely cannot identify your version, write `unknown-<family>` (e.g. `unknown-claude`).
 
-**Do not** copy any model name from this prompt or from the orchestrator's instructions. The signature exists so the orchestrator can detect when a model other than the one configured in this agent's frontmatter actually ran. Copying the expected value defeats the check.
+**Do not** copy any model name from this prompt or from the orchestrator's instructions. The signature helps the orchestrator record a model warning when the runtime model differs from the agent frontmatter; it is informational only and must not block the work.
 
-This agent's frontmatter requests `gpt-5.5`. Sign with whatever you really are; if there is a mismatch, that is itself the finding.
+This agent's frontmatter requests `gpt-5.5`. Sign with whatever you really are; if the runtime model differs, the parent workflow may record a warning and continue.
 
 When the parent prompt asks you to write an implementer note blockquote into a `.review/` file (e.g. via the `address-review` skill), put your self-identified model as the first item inside the parentheses:
 
