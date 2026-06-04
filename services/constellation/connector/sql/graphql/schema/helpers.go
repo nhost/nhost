@@ -274,8 +274,10 @@ func normalizePostgresTypeToGraphQL(pgType string) string {
 	// Only map to built-in GraphQL types
 	//nolint:goconst,nolintlint
 	switch pgType {
-	case "integer", "int", "int4", "int2", "smallint":
+	case "integer", "int", "int4":
 		return "Int"
+	case "int2", "smallint":
+		return "smallint"
 	case "int8":
 		return "bigint"
 	case "boolean", "bool":
