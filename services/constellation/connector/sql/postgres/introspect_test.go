@@ -96,12 +96,20 @@ type columnScan struct {
 	typeName       string
 	isNullable     string
 	isGenerated    bool
+	isIdentity     bool
 	isArray        bool
 	supportsMinMax bool
 	supportsInc    bool
 	supportsAgg    bool
 	columnDefault  *string
 	columnComment  *string
+}
+
+type uniqueConstraintScan struct {
+	tableName        string
+	constraintName   string
+	columns          []string
+	nullsNotDistinct bool
 }
 
 func TestIntrospect_ColumnScanning(t *testing.T) { //nolint:gocognit,cyclop
@@ -218,6 +226,33 @@ func TestIntrospect_ColumnScanning(t *testing.T) { //nolint:gocognit,cyclop
 				}
 			},
 		},
+		{
+			// Postgres GENERATED [ALWAYS|BY DEFAULT] AS IDENTITY surfaces via
+			// pg_attribute.attidentity, which the SELECT now exposes as the
+			// is_identity scan column. The mock row drives that path and the
+			// validator confirms the bit propagates to introspection.Column.
+			name: "identity column sets IsIdentity",
+			columns: []columnScan{{
+				tableName:   "users",
+				columnName:  "id",
+				typeName:    "int4",
+				isNullable:  "NO",
+				isIdentity:  true,
+				isGenerated: false,
+			}},
+			validate: func(t *testing.T, tables map[string]*introspection.Table) {
+				t.Helper()
+
+				c := tables["users"].Columns[0]
+				if !c.IsIdentity {
+					t.Error("expected IsIdentity=true for identity column")
+				}
+
+				if c.IsGenerated {
+					t.Error("expected IsGenerated=false: identity is not the same as generated")
+				}
+			},
+		},
 	}
 
 	for _, tt := range tests {
@@ -249,6 +284,176 @@ func TestIntrospect_ColumnScanning(t *testing.T) { //nolint:gocognit,cyclop
 
 			tt.validate(t, schema.Tables)
 		})
+	}
+}
+
+func TestIntrospect_UniqueConstraintNullsNotDistinctCatalog(t *testing.T) {
+	t.Parallel()
+
+	pool := testdb.NewPostgres(t, `
+CREATE TABLE public.users (
+    id integer PRIMARY KEY,
+    username text,
+    email text
+);
+`)
+
+	var serverVersionNum int
+	if err := pool.QueryRow(
+		t.Context(),
+		"SELECT current_setting('server_version_num')::integer",
+	).Scan(&serverVersionNum); err != nil {
+		t.Fatalf("query server version: %v", err)
+	}
+
+	if serverVersionNum < 150000 {
+		t.Skipf(
+			"UNIQUE NULLS NOT DISTINCT requires PostgreSQL 15, got server_version_num %d",
+			serverVersionNum,
+		)
+	}
+
+	if _, err := pool.Exec(
+		t.Context(),
+		"ALTER TABLE public.users ADD CONSTRAINT users_email_key UNIQUE (email)",
+	); err != nil {
+		t.Fatalf("add regular unique constraint: %v", err)
+	}
+
+	if _, err := pool.Exec(
+		t.Context(),
+		"ALTER TABLE public.users ADD CONSTRAINT users_username_key UNIQUE NULLS NOT DISTINCT (username)",
+	); err != nil {
+		t.Fatalf("add nulls-not-distinct unique constraint: %v", err)
+	}
+
+	pgPool, err := postgres.Open(t.Context(), pool.Config().ConnConfig.ConnString())
+	if err != nil {
+		t.Fatalf("open pool: %v", err)
+	}
+
+	pg := postgres.NewClient(pgPool)
+	t.Cleanup(func() { pg.Close() })
+
+	objs, err := pg.Introspect(t.Context(), &metadata.DatabaseMetadata{
+		Name: "default",
+		Tables: []metadata.TableMetadata{
+			{Table: metadata.TableSource{Schema: "public", Name: "users"}},
+		},
+	})
+	if err != nil {
+		t.Fatalf("introspect: %v", err)
+	}
+
+	users, ok := objs.GetTable("public", "users")
+	if !ok {
+		t.Fatal("introspection did not return public.users")
+	}
+
+	if len(users.UniqueConstraints) != 2 {
+		t.Fatalf(
+			"expected 2 unique constraints, got %d: %+v",
+			len(users.UniqueConstraints), users.UniqueConstraints,
+		)
+	}
+
+	constraints := make(map[string]introspection.UniqueConstraint, len(users.UniqueConstraints))
+	for _, constraint := range users.UniqueConstraints {
+		constraints[constraint.Name] = constraint
+	}
+
+	wants := []struct {
+		name             string
+		column           string
+		nullsNotDistinct bool
+	}{
+		{name: "users_email_key", column: "email", nullsNotDistinct: false},
+		{name: "users_username_key", column: "username", nullsNotDistinct: true},
+	}
+
+	for _, want := range wants {
+		got, ok := constraints[want.name]
+		if !ok {
+			t.Fatalf("missing unique constraint %q in %+v", want.name, users.UniqueConstraints)
+		}
+
+		if len(got.Columns) != 1 || got.Columns[0] != want.column {
+			t.Fatalf("%s columns = %v, want [%s]", want.name, got.Columns, want.column)
+		}
+
+		if got.NullsNotDistinct != want.nullsNotDistinct {
+			t.Fatalf(
+				"%s NullsNotDistinct = %v, want %v",
+				want.name, got.NullsNotDistinct, want.nullsNotDistinct,
+			)
+		}
+	}
+}
+
+func TestIntrospect_UniqueConstraintNullsNotDistinct(t *testing.T) {
+	t.Parallel()
+
+	ctrl := gomock.NewController(t)
+	pool := mock.NewMockPool(ctrl)
+
+	columns := []columnScan{{
+		tableName:  "users",
+		columnName: "username",
+		typeName:   "text",
+	}}
+	uniqueConstraints := []uniqueConstraintScan{{
+		tableName:        "users",
+		constraintName:   "users_username_key",
+		columns:          []string{"username"},
+		nullsNotDistinct: true,
+	}}
+
+	pool.EXPECT().
+		Query(gomock.Any(), gomock.Any(), gomock.Any(), gomock.Any()).
+		DoAndReturn(func(_ context.Context, sql string, _ ...any) (postgres.Rows, error) {
+			switch {
+			case strings.Contains(sql, "type_aggregates"):
+				return columnRowsMock(t, ctrl, columns), nil
+			case strings.Contains(sql, "r.contype = 'u'"):
+				return uniqueConstraintRowsMock(t, ctrl, uniqueConstraints), nil
+			default:
+				return emptyRows(ctrl), nil
+			}
+		}).
+		AnyTimes()
+
+	pool.EXPECT().
+		QueryRow(gomock.Any(), gomock.Any(), gomock.Any(), gomock.Any()).
+		Return(nullRow(ctrl)).
+		Times(1)
+
+	client := postgres.NewClient(pool)
+
+	objs, err := client.Introspect(
+		t.Context(),
+		&metadata.DatabaseMetadata{
+			Name: "default",
+			Tables: []metadata.TableMetadata{{
+				Table: metadata.TableSource{Schema: "public", Name: "users"},
+			}},
+		},
+	)
+	if err != nil {
+		t.Fatalf("unexpected error: %v", err)
+	}
+
+	users := objs.Schemas["public"].Tables["users"]
+	if len(users.UniqueConstraints) != 1 {
+		t.Fatalf("expected 1 unique constraint, got %d", len(users.UniqueConstraints))
+	}
+
+	constraint := users.UniqueConstraints[0]
+	if constraint.Name != "users_username_key" || !constraint.NullsNotDistinct {
+		t.Fatalf("unexpected unique constraint metadata: %+v", constraint)
+	}
+
+	if len(constraint.Columns) != 1 || constraint.Columns[0] != "username" {
+		t.Fatalf("constraint columns = %v, want [username]", constraint.Columns)
 	}
 }
 
@@ -375,11 +580,52 @@ func columnRowsMock(
 	return rows
 }
 
+func uniqueConstraintRowsMock(
+	t *testing.T,
+	ctrl *gomock.Controller,
+	constraints []uniqueConstraintScan,
+) *mock.MockRows {
+	t.Helper()
+
+	rows := mock.NewMockRows(ctrl)
+	call := 0
+
+	rows.EXPECT().Next().DoAndReturn(func() bool {
+		call++
+		return call <= len(constraints)
+	}).Times(len(constraints) + 1)
+
+	rows.EXPECT().Scan(gomock.Any()).DoAndReturn(func(dest ...any) error {
+		row := constraints[call-1]
+		fillUniqueConstraintScan(t, dest, row)
+
+		return nil
+	}).Times(len(constraints))
+
+	rows.EXPECT().Err().Return(nil)
+	rows.EXPECT().Close()
+
+	return rows
+}
+
+func fillUniqueConstraintScan(t *testing.T, dest []any, row uniqueConstraintScan) {
+	t.Helper()
+
+	if len(dest) != 4 {
+		t.Fatalf("expected 4 scan destinations, got %d", len(dest))
+	}
+
+	assignDest(t, dest[0], row.tableName)
+	assignDest(t, dest[1], row.constraintName)
+	assignDest(t, dest[2], row.columns)
+	assignDest(t, dest[3], row.nullsNotDistinct)
+}
+
 func fillColumnScan(t *testing.T, dest []any, row columnScan) {
 	t.Helper()
 
-	if len(dest) != 11 {
-		t.Fatalf("expected 11 scan destinations, got %d", len(dest))
+	if len(dest) != 12 {
+		t.Fatalf("expected 12 scan destinations, got %d", len(dest))
 	}
 
 	assignDest(t, dest[0], row.tableName)
@@ -387,12 +633,13 @@ func fillColumnScan(t *testing.T, dest []any, row columnScan) {
 	assignDest(t, dest[2], row.typeName)
 	assignDest(t, dest[3], row.isNullable)
 	assignDest(t, dest[4], row.isGenerated)
-	assignDest(t, dest[5], row.isArray)
-	assignDest(t, dest[6], row.supportsMinMax)
-	assignDest(t, dest[7], row.supportsInc)
-	assignDest(t, dest[8], row.supportsAgg)
-	assignDest(t, dest[9], row.columnDefault)
-	assignDest(t, dest[10], row.columnComment)
+	assignDest(t, dest[5], row.isIdentity)
+	assignDest(t, dest[6], row.isArray)
+	assignDest(t, dest[7], row.supportsMinMax)
+	assignDest(t, dest[8], row.supportsInc)
+	assignDest(t, dest[9], row.supportsAgg)
+	assignDest(t, dest[10], row.columnDefault)
+	assignDest(t, dest[11], row.columnComment)
 }
 
 func assignDest[T any](t *testing.T, dst any, v T) {
@@ -832,7 +1079,9 @@ func wireEnumIntrospect(
 			switch {
 			case strings.Contains(sql, "type_aggregates"):
 				return columnRowsMock(t, ctrl, columns), nil
-			case strings.Contains(sql, "pg_index"):
+			case strings.Contains(sql, "r.contype = 'u'"):
+				return emptyRows(ctrl), nil
+			case strings.Contains(sql, "c.contype = 'p'"):
 				return primaryKeyRows(t, ctrl, columns[0].columnName), nil
 			default:
 				return emptyRows(ctrl), nil

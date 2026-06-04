@@ -6,6 +6,7 @@ import (
 	"encoding/json/jsontext"
 	json "encoding/json/v2"
 	"errors"
+	"io"
 	"log/slog"
 	"net/http"
 	"net/http/httptest"
@@ -18,6 +19,10 @@ import (
 	"github.com/nhost/nhost/services/constellation/connector"
 	"github.com/nhost/nhost/services/constellation/connector/memconnector"
 	"github.com/nhost/nhost/services/constellation/connector/remoteschema"
+	sqlconnector "github.com/nhost/nhost/services/constellation/connector/sql"
+	"github.com/nhost/nhost/services/constellation/connector/sql/graphql/queries/core"
+	"github.com/nhost/nhost/services/constellation/connector/sql/graphql/queries/dialect"
+	"github.com/nhost/nhost/services/constellation/connector/sql/introspection"
 	"github.com/nhost/nhost/services/constellation/controller"
 	"github.com/nhost/nhost/services/constellation/controller/middleware"
 	plannerpkg "github.com/nhost/nhost/services/constellation/controller/planner"
@@ -26,7 +31,10 @@ import (
 	"github.com/vektah/gqlparser/v2/ast"
 )
 
-const testAdminSecret = "test-admin-secret" //nolint:gosec
+const (
+	testAdminSecret           = "test-admin-secret" //nolint:gosec
+	negativeLimitIntegerError = "expected a non-negative 32-bit integer for type 'Int', but found an integer"
+)
 
 var errSentinel = errors.New("test sentinel")
 
@@ -42,13 +50,15 @@ func newTestController(t *testing.T) *controller.Controller {
 
 	conn, err := memconnector.New(
 		[]*graph.ObjectType{
-			memconnector.Object("User",
+			memconnector.Object(
+				"User",
 				memconnector.ID("id"),
 				memconnector.String("name"),
 			),
 		},
 		[]memconnector.QueryDef{
-			memconnector.Query("users",
+			memconnector.Query(
+				"users",
 				graph.NewNonNullListType(graph.NewNonNullType("User")),
 				usersResponse,
 			),
@@ -86,6 +96,21 @@ func newTestRouter(t *testing.T, ctrl *controller.Controller) *gin.Engine {
 	return router
 }
 
+func newLimitedTestRouter(
+	t *testing.T, ctrl *controller.Controller, maxBodyBytes int64,
+) *gin.Engine {
+	t.Helper()
+
+	gin.SetMode(gin.TestMode)
+
+	router := gin.New()
+	router.Use(middleware.Session(testAdminSecret, middleware.NewNoOpJWTAuthenticator()))
+	router.POST("/graphql", ctrl.HandlerPostWithMaxBodyBytes(maxBodyBytes))
+	router.GET("/graphql", ctrl.HandlerGet)
+
+	return router
+}
+
 // readJSONBody decodes the response body as JSON; fails the test if the body
 // isn't valid JSON.
 func readJSONBody(t *testing.T, w *httptest.ResponseRecorder) map[string]any {
@@ -104,22 +129,73 @@ func readJSONBody(t *testing.T, w *httptest.ResponseRecorder) map[string]any {
 func TestHandlerPost_RejectsNonJSONContentType(t *testing.T) {
 	t.Parallel()
 
-	router := newTestRouter(t, newTestController(t))
+	for _, contentType := range []string{
+		"text/plain",
+		"application/graphql",
+		"multipart/form-data; boundary=x",
+		"not a media type",
+	} {
+		t.Run(contentType, func(t *testing.T) {
+			t.Parallel()
 
-	req := httptest.NewRequest(http.MethodPost, "/graphql", strings.NewReader("{}"))
-	req.Header.Set("Content-Type", "text/plain")
-	req.Header.Set("X-Hasura-Admin-Secret", testAdminSecret)
+			router := newTestRouter(t, newTestController(t))
 
-	w := httptest.NewRecorder()
-	router.ServeHTTP(w, req)
+			req := httptest.NewRequest(http.MethodPost, "/graphql", strings.NewReader("{}"))
+			req.Header.Set("Content-Type", contentType)
+			req.Header.Set("X-Hasura-Admin-Secret", testAdminSecret)
 
-	if w.Code != http.StatusBadRequest {
-		t.Fatalf("expected 400, got %d: %s", w.Code, w.Body.String())
+			w := httptest.NewRecorder()
+			router.ServeHTTP(w, req)
+
+			if w.Code != http.StatusBadRequest {
+				t.Fatalf("expected 400, got %d: %s", w.Code, w.Body.String())
+			}
+
+			body := readJSONBody(t, w)
+			if _, ok := body["errors"]; !ok {
+				t.Errorf("expected 'errors' in response, got %v", body)
+			}
+		})
 	}
+}
 
-	body := readJSONBody(t, w)
-	if _, ok := body["errors"]; !ok {
-		t.Errorf("expected 'errors' in response, got %v", body)
+// TestHandlerPost_AcceptsJSONContentTypeVariants covers Content-Type values
+// that must be treated as JSON: a charset parameter, mixed case, and an absent
+// header (assumed to be application/json for Hasura-client compatibility).
+func TestHandlerPost_AcceptsJSONContentTypeVariants(t *testing.T) {
+	t.Parallel()
+
+	for name, contentType := range map[string]string{
+		"charset":   "application/json; charset=utf-8",
+		"mixedCase": "Application/JSON",
+		"absent":    "",
+	} {
+		t.Run(name, func(t *testing.T) {
+			t.Parallel()
+
+			router := newTestRouter(t, newTestController(t))
+
+			body := []byte(`{"query":"{ users { id name } }"}`)
+
+			req := httptest.NewRequest(http.MethodPost, "/graphql", bytes.NewReader(body))
+			if contentType != "" {
+				req.Header.Set("Content-Type", contentType)
+			}
+
+			req.Header.Set("X-Hasura-Admin-Secret", testAdminSecret)
+
+			w := httptest.NewRecorder()
+			router.ServeHTTP(w, req)
+
+			if w.Code != http.StatusOK {
+				t.Fatalf("expected 200, got %d: %s", w.Code, w.Body.String())
+			}
+
+			const wantPrefix = `{"data":{"users":[`
+			if got := w.Body.String(); !strings.HasPrefix(got, wantPrefix) {
+				t.Errorf("expected body to start with %q, got %q", wantPrefix, got)
+			}
+		})
 	}
 }
 
@@ -141,6 +217,55 @@ func TestHandlerPost_RejectsMalformedJSONBody(t *testing.T) {
 
 	if w.Code != http.StatusBadRequest {
 		t.Fatalf("expected 400, got %d: %s", w.Code, w.Body.String())
+	}
+}
+
+func TestHandlerPost_RejectsBodyLargerThanLimit(t *testing.T) {
+	t.Parallel()
+
+	const maxBodyBytes int64 = 16
+
+	body := []byte(`{"query":"{ users { id name } }"}`)
+
+	tests := []struct {
+		name          string
+		reader        io.Reader
+		contentLength int64
+	}{
+		{
+			name:          "known content length",
+			reader:        bytes.NewReader(body),
+			contentLength: int64(len(body)),
+		},
+		{
+			name:          "streaming body without content length",
+			reader:        io.NopCloser(bytes.NewReader(body)),
+			contentLength: -1,
+		},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			t.Parallel()
+
+			router := newLimitedTestRouter(t, newTestController(t), maxBodyBytes)
+
+			req := httptest.NewRequest(http.MethodPost, "/graphql", tt.reader)
+			req.ContentLength = tt.contentLength
+			req.Header.Set("Content-Type", "application/json")
+			req.Header.Set("X-Hasura-Admin-Secret", testAdminSecret)
+
+			w := httptest.NewRecorder()
+			router.ServeHTTP(w, req)
+
+			if w.Code != http.StatusRequestEntityTooLarge {
+				t.Fatalf("expected 413, got %d: %s", w.Code, w.Body.String())
+			}
+
+			if !strings.Contains(w.Body.String(), "request body too large") {
+				t.Errorf("response body does not explain limit failure: %s", w.Body.String())
+			}
+		})
 	}
 }
 
@@ -826,6 +951,88 @@ func (e *errorConnector) Execute(
 	return e.Connector.Execute(ctx, op, frags, vars, role, sessionVars, logger) //nolint:wrapcheck
 }
 
+type validationTestDriver struct{}
+
+func (d validationTestDriver) Introspect(
+	context.Context,
+	*metadata.DatabaseMetadata,
+) (*introspection.Objects, error) {
+	objs := introspection.NewObjects()
+	objs.Schemas["public"] = &introspection.Schema{
+		Tables: map[string]*introspection.Table{
+			"users": {
+				Schema:      "public",
+				Name:        "users",
+				Columns:     []introspection.Column{{Name: "id", Type: "uuid"}},
+				PrimaryKeys: []string{"id"},
+			},
+		},
+	}
+
+	return objs, nil
+}
+
+func (d validationTestDriver) ExecuteOperations(
+	context.Context,
+	[]core.SQLOperation,
+	*slog.Logger,
+) (map[string]any, error) {
+	return nil, errors.New( //nolint:err113 // test-only guard if validation unexpectedly reaches execution.
+		"ExecuteOperations should not run for a structured argument failure",
+	)
+}
+
+func (d validationTestDriver) ExecuteMultiplexedOperation(
+	context.Context,
+	string,
+	[]any,
+	*slog.Logger,
+) ([]core.MultiplexedResult, error) {
+	return nil, errors.New( //nolint:err113 // test-only guard if HTTP query unexpectedly multiplexes.
+		"ExecuteMultiplexedOperation should not run in HTTP query tests",
+	)
+}
+
+func (d validationTestDriver) Dialect() dialect.Dialect {
+	return dialect.NewPostgresDialect()
+}
+
+func (d validationTestDriver) Close() {}
+
+func newValidationSQLController(t *testing.T) *controller.Controller {
+	t.Helper()
+
+	dbMeta := &metadata.DatabaseMetadata{
+		Kind: "postgres",
+		Tables: []metadata.TableMetadata{
+			{Table: metadata.TableSource{Schema: "public", Name: "users"}},
+		},
+	}
+
+	sqlConn, err := sqlconnector.NewConnector(
+		t.Context(),
+		validationTestDriver{},
+		dbMeta,
+		nil,
+		slog.New(slog.DiscardHandler),
+	)
+	if err != nil {
+		t.Fatalf("NewConnector: %v", err)
+	}
+
+	ctrl, err := controller.NewFromConnectors(
+		testAdminSecret,
+		map[string]connector.Connector{"sql": sqlConn},
+		nil,
+		slog.New(slog.DiscardHandler),
+	)
+	if err != nil {
+		t.Fatalf("NewFromConnectors: %v", err)
+	}
+
+	return ctrl
+}
+
 func TestHandlerPost_MultiConnectorMergesResults(t *testing.T) {
 	t.Parallel()
 
@@ -833,13 +1040,15 @@ func TestHandlerPost_MultiConnectorMergesResults(t *testing.T) {
 	// should route each field to its owning connector and merge results.
 	connA, err := memconnector.New(
 		[]*graph.ObjectType{
-			memconnector.Object("User",
+			memconnector.Object(
+				"User",
 				memconnector.ID("id"),
 				memconnector.String("name"),
 			),
 		},
 		[]memconnector.QueryDef{
-			memconnector.Query("users",
+			memconnector.Query(
+				"users",
 				graph.NewNonNullListType(graph.NewNonNullType("User")),
 				jsontext.Value(`[{"id":"1","name":"Alice"}]`),
 			),
@@ -851,13 +1060,15 @@ func TestHandlerPost_MultiConnectorMergesResults(t *testing.T) {
 
 	connB, err := memconnector.New(
 		[]*graph.ObjectType{
-			memconnector.Object("Order",
+			memconnector.Object(
+				"Order",
 				memconnector.ID("id"),
 				memconnector.String("product"),
 			),
 		},
 		[]memconnector.QueryDef{
-			memconnector.Query("orders",
+			memconnector.Query(
+				"orders",
 				graph.NewNonNullListType(graph.NewNonNullType("Order")),
 				jsontext.Value(`[{"id":"o1","product":"Widget"}]`),
 			),
@@ -913,13 +1124,15 @@ func TestHandlerPost_ConnectorErrorSurfacedAsGraphQLError(t *testing.T) {
 	// detail) while preserving connA's data (partial-merge behaviour).
 	connA, err := memconnector.New(
 		[]*graph.ObjectType{
-			memconnector.Object("User",
+			memconnector.Object(
+				"User",
 				memconnector.ID("id"),
 				memconnector.String("name"),
 			),
 		},
 		[]memconnector.QueryDef{
-			memconnector.Query("users",
+			memconnector.Query(
+				"users",
 				graph.NewNonNullListType(graph.NewNonNullType("User")),
 				jsontext.Value(`[{"id":"1","name":"Alice"}]`),
 			),
@@ -931,12 +1144,14 @@ func TestHandlerPost_ConnectorErrorSurfacedAsGraphQLError(t *testing.T) {
 
 	baseB, err := memconnector.New(
 		[]*graph.ObjectType{
-			memconnector.Object("Order",
+			memconnector.Object(
+				"Order",
 				memconnector.ID("id"),
 			),
 		},
 		[]memconnector.QueryDef{
-			memconnector.Query("orders",
+			memconnector.Query(
+				"orders",
 				graph.NewNonNullListType(graph.NewNonNullType("Order")),
 				jsontext.Value(`[]`),
 			),
@@ -1002,6 +1217,126 @@ func TestHandlerPost_ConnectorErrorSurfacedAsGraphQLError(t *testing.T) {
 	}
 }
 
+func TestHandlerPost_NegativeLimitOffsetReturnsHasuraErrors(t *testing.T) {
+	t.Parallel()
+
+	router := newTestRouter(t, newValidationSQLController(t))
+
+	tests := []struct {
+		name        string
+		query       string
+		wantMessage string
+		wantCode    string
+		wantPath    string
+	}{
+		{
+			name:        "limit",
+			query:       `{"query":"{ staff: users(limit: -1) { id } }"}`,
+			wantMessage: negativeLimitIntegerError,
+			wantCode:    "validation-failed",
+			wantPath:    "$.selectionSet.staff.args.limit",
+		},
+		{
+			name:        "offset",
+			query:       `{"query":"{ staff: users(offset: -1) { id } }"}`,
+			wantMessage: "OFFSET must not be negative",
+			wantCode:    "data-exception",
+			wantPath:    "$",
+		},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			t.Parallel()
+
+			req := httptest.NewRequest(
+				http.MethodPost,
+				"/graphql",
+				strings.NewReader(tt.query),
+			)
+			req.Header.Set("Content-Type", "application/json")
+			req.Header.Set("X-Hasura-Admin-Secret", testAdminSecret)
+
+			w := httptest.NewRecorder()
+			router.ServeHTTP(w, req)
+
+			if w.Code != http.StatusOK {
+				t.Fatalf("expected 200, got %d: %s", w.Code, w.Body.String())
+			}
+
+			body := readJSONBody(t, w)
+
+			errs, ok := body["errors"].([]any)
+			if !ok || len(errs) != 1 {
+				t.Fatalf("expected one error in response, got %v", body)
+			}
+
+			errObj, ok := errs[0].(map[string]any)
+			if !ok {
+				t.Fatalf("error: got %T, want map[string]any", errs[0])
+			}
+
+			if errObj["message"] != tt.wantMessage {
+				t.Fatalf("message: got %q, want %q", errObj["message"], tt.wantMessage)
+			}
+
+			ext, ok := errObj["extensions"].(map[string]any)
+			if !ok {
+				t.Fatalf("extensions: got %T, want map[string]any", errObj["extensions"])
+			}
+
+			if ext["code"] != tt.wantCode {
+				t.Errorf("extensions.code: got %v, want %s", ext["code"], tt.wantCode)
+			}
+
+			if ext["path"] != tt.wantPath {
+				t.Errorf("extensions.path: got %v, want %s", ext["path"], tt.wantPath)
+			}
+		})
+	}
+}
+
+func TestResolve_MixedIntrospectionAndDataValidationErrorReturnsNoData(t *testing.T) {
+	t.Parallel()
+
+	ctrl := newValidationSQLController(t)
+
+	resp, err := ctrl.Resolve(adminSessionContext(t), controller.GraphQLRequest{
+		OperationName: "",
+		Query:         `{ __schema { queryType { name } } staff: users(limit: -1) { id } }`,
+		Variables:     nil,
+	})
+	if err != nil {
+		t.Fatalf("unexpected error: %v", err)
+	}
+
+	if resp.Data != nil {
+		t.Fatalf("validation failure must return no data, got %+v", resp.Data)
+	}
+
+	errs, ok := resp.Errors.([]map[string]any)
+	if !ok || len(errs) != 1 {
+		t.Fatalf("expected exactly one error, got %+v", resp.Errors)
+	}
+
+	if got := getMessage(errs[0]); got != negativeLimitIntegerError {
+		t.Fatalf("unexpected validation message: %q", got)
+	}
+
+	ext, ok := errs[0]["extensions"].(map[string]any)
+	if !ok {
+		t.Fatalf("error missing extensions: %+v", errs[0])
+	}
+
+	if ext["code"] != "validation-failed" {
+		t.Errorf("expected validation-failed code, got %v", ext["code"])
+	}
+
+	if ext["path"] != "$.selectionSet.staff.args.limit" {
+		t.Errorf("unexpected argument path: %v", ext["path"])
+	}
+}
+
 func TestHandlerPost_GraphQLErrorTypePathIsExercised(t *testing.T) {
 	t.Parallel()
 
@@ -1011,12 +1346,14 @@ func TestHandlerPost_GraphQLErrorTypePathIsExercised(t *testing.T) {
 	// empty slice; a populated case is covered separately further down.
 	connA, err := memconnector.New(
 		[]*graph.ObjectType{
-			memconnector.Object("User",
+			memconnector.Object(
+				"User",
 				memconnector.ID("id"),
 			),
 		},
 		[]memconnector.QueryDef{
-			memconnector.Query("users",
+			memconnector.Query(
+				"users",
 				graph.NewNonNullListType(graph.NewNonNullType("User")),
 				jsontext.Value(`[]`),
 			),
@@ -1077,7 +1414,8 @@ func TestHandlerPost_RemoteRelationshipsResolvedEndToEnd(t *testing.T) {
 
 	connA, err := memconnector.New(
 		[]*graph.ObjectType{
-			memconnector.Object("User",
+			memconnector.Object(
+				"User",
 				memconnector.ID("id"),
 				memconnector.String("name"),
 				memconnector.Field("orders",
@@ -1085,7 +1423,8 @@ func TestHandlerPost_RemoteRelationshipsResolvedEndToEnd(t *testing.T) {
 			),
 		},
 		[]memconnector.QueryDef{
-			memconnector.Query("users",
+			memconnector.Query(
+				"users",
 				graph.NewNonNullListType(graph.NewNonNullType("User")),
 				usersResponse,
 			),
@@ -1102,14 +1441,16 @@ func TestHandlerPost_RemoteRelationshipsResolvedEndToEnd(t *testing.T) {
 
 	connB, err := memconnector.New(
 		[]*graph.ObjectType{
-			memconnector.Object("Order",
+			memconnector.Object(
+				"Order",
 				memconnector.ID("id"),
 				memconnector.String("userId"),
 				memconnector.String("product"),
 			),
 		},
 		[]memconnector.QueryDef{
-			memconnector.Query("orders",
+			memconnector.Query(
+				"orders",
 				graph.NewNonNullListType(graph.NewNonNullType("Order")),
 				ordersResponse,
 			),

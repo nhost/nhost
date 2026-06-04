@@ -17,6 +17,7 @@ func generateTableQueryFields(
 	qualifiedName string,
 	allowedColumns map[string]struct{},
 	role string,
+	md *metadata.DatabaseMetadata,
 	caps Capabilities,
 ) {
 	*queryFields = append(
@@ -30,7 +31,7 @@ func generateTableQueryFields(
 		allPKColumnsAllowed(tableInfo.PrimaryKeys, allowedColumns) {
 		*queryFields = append(
 			*queryFields,
-			generateByPkField(tableMeta, tableInfo, customTableName, qualifiedName),
+			generateByPkField(tableMeta, tableInfo, customTableName, qualifiedName, md),
 		)
 	}
 
@@ -82,7 +83,8 @@ func collectionArguments(customTableName string, caps Capabilities) []*graph.Arg
 		})
 	}
 
-	arguments = append(arguments,
+	arguments = append(
+		arguments,
 		&graph.Argument{ //nolint:exhaustruct
 			Name:        "limit",
 			Description: "limit the number of rows returned",
@@ -116,6 +118,7 @@ func generateByPkField(
 	tableInfo *introspection.Table,
 	customTableName string,
 	qualifiedName string,
+	md *metadata.DatabaseMetadata,
 ) *graph.Field {
 	byPkName := customTableName + "_by_pk"
 	if tableMeta.Configuration.CustomRootFields.SelectByPk != "" {
@@ -131,8 +134,7 @@ func generateByPkField(
 
 		for i := range tableInfo.Columns {
 			if tableInfo.Columns[i].Name == pkColName {
-				// PK arguments are non-null.
-				colType = postgresTypeToGraphQL(tableInfo.Columns[i].Type, false)
+				colType = getColumnGraphQLTypePKArg(&tableInfo.Columns[i], tableInfo, md)
 				description = getColumnDescription(&tableInfo.Columns[i])
 
 				break

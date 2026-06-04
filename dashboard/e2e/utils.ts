@@ -165,14 +165,15 @@ export async function prepareTable({
     page.getByRole('option', { name: columns[0].name, exact: true }),
   ).toBeVisible();
   for (const primaryKey of primaryKeys) {
-    await page.waitForTimeout(1000);
+    await expect(
+      page.getByRole('option', { name: primaryKey, exact: true }),
+    ).toBeVisible();
     await page.getByRole('option', { name: primaryKey, exact: true }).click();
     await page
       .locator(`div[data-testid="${primaryKey}"]`)
       .waitFor({ timeout: 1000 });
   }
   await page.getByText('Create a New Table').click();
-  await page.waitForTimeout(1000);
   await expect(
     page.getByRole('option', { name: columns[0].name, exact: true }),
   ).not.toBeVisible();
@@ -508,7 +509,9 @@ export async function createRelationship({
   await page.getByTestId('toReferenceTableCombobox').click();
   await page.getByRole('option', { name: referenceTable, exact: true }).click();
 
-  await page.waitForTimeout(1000);
+  await expect(
+    page.getByRole('button', { name: /add new mapping/i }),
+  ).toBeVisible();
 
   await page.getByRole('button', { name: /add new mapping/i }).click();
 
@@ -612,7 +615,7 @@ export async function getGraphQLResult({
   page: Page;
 }): Promise<string> {
   const resultWindow = page.getByLabel('Result Window');
-  await expect(resultWindow).not.toBeEmpty({ timeout: 5000 });
+  await expect(resultWindow).not.toBeEmpty({ timeout: 15000 });
   return resultWindow.innerText();
 }
 
@@ -634,8 +637,6 @@ export async function deleteRelationship({
   await page.waitForSelector(
     'div:has-text("Relationship deleted successfully.")',
   );
-
-  await page.waitForTimeout(1000);
 
   await expect(
     page.getByText(relationshipName, { exact: true }),

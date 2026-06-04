@@ -391,12 +391,12 @@ func TestApplyFixes(t *testing.T) {
 			wantErr:        false,
 		},
 		{
-			name:           "happy path runs go get per pair then tidy then vendor",
+			name:           "happy path edits each require then tidy then vendor",
 			pairs:          []string{"example.com/a@v1.0.0", "example.com/b@v2.0.0"},
 			toolchainPairs: nil,
 			wantCalls: []string{
-				"go get example.com/a@v1.0.0",
-				"go get example.com/b@v2.0.0",
+				"go mod edit -require=example.com/a@v1.0.0",
+				"go mod edit -require=example.com/b@v2.0.0",
 				"go mod tidy",
 				"go mod vendor",
 			},
@@ -407,18 +407,18 @@ func TestApplyFixes(t *testing.T) {
 			pairs:          []string{"example.com/a@v1.0.0"},
 			toolchainPairs: []string{"stdlib@v1.23.5", "toolchain@v1.23.4"},
 			wantCalls: []string{
-				"go get example.com/a@v1.0.0",
+				"go mod edit -require=example.com/a@v1.0.0",
 				"go mod tidy",
 				"go mod vendor",
 			},
 			wantErr: false,
 		},
 		{
-			name:           "first failing go get aborts before tidy/vendor",
+			name:           "first failing edit aborts before tidy/vendor",
 			pairs:          []string{"example.com/a@v1.0.0", "example.com/b@v2.0.0"},
 			toolchainPairs: nil,
-			failOn:         "go get example.com/a@v1.0.0",
-			wantCalls:      []string{"go get example.com/a@v1.0.0"},
+			failOn:         "go mod edit -require=example.com/a@v1.0.0",
+			wantCalls:      []string{"go mod edit -require=example.com/a@v1.0.0"},
 			wantErr:        true,
 		},
 		{
@@ -427,7 +427,7 @@ func TestApplyFixes(t *testing.T) {
 			toolchainPairs: nil,
 			failOn:         "go mod tidy",
 			wantCalls: []string{
-				"go get example.com/a@v1.0.0",
+				"go mod edit -require=example.com/a@v1.0.0",
 				"go mod tidy",
 			},
 			wantErr: true,
@@ -438,7 +438,7 @@ func TestApplyFixes(t *testing.T) {
 			toolchainPairs: nil,
 			failOn:         "go mod vendor",
 			wantCalls: []string{
-				"go get example.com/a@v1.0.0",
+				"go mod edit -require=example.com/a@v1.0.0",
 				"go mod tidy",
 				"go mod vendor",
 			},

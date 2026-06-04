@@ -147,7 +147,8 @@ func introspectViaHTTP(ctx context.Context, client *httpClient) (*graph.Schema, 
 		} `json:"errors"`
 	}
 
-	if err := json.Unmarshal(body, &result,
+	if err := json.Unmarshal(
+		body, &result,
 		jsontext.AllowDuplicateNames(true),
 		jsontext.AllowInvalidUTF8(true),
 	); err != nil {

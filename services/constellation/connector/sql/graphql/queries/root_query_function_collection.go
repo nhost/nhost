@@ -62,6 +62,7 @@ func (t *table) buildQueryFunctionCollectionSQL( //nolint:funlen
 		"_root",
 		fnCall.fromClause,
 		fnCall.sourceRef,
+		rootFieldName(field),
 	)
 	if err != nil {
 		putBuilder(b)
@@ -79,5 +80,6 @@ func (t *table) buildQueryFunctionCollectionSQL( //nolint:funlen
 		SQL:           sql,
 		Parameters:    params,
 		StreamCursors: nil,
+		Sequential:    nil,
 	}, nil
 }

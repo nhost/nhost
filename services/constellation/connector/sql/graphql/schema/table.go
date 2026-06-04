@@ -8,8 +8,13 @@ import (
 	"github.com/nhost/nhost/services/constellation/metadata"
 )
 
+const (
+	scalarJSON  = "json"
+	scalarJSONB = "jsonb"
+)
+
 // generateForTable generates all GraphQL schema elements for a single table.
-func generateForTable( //nolint:funlen,cyclop
+func generateForTable( //nolint:funlen
 	schema *graph.Schema,
 	tableMeta *metadata.TableMetadata,
 	tableInfo *introspection.Table,
@@ -33,46 +38,19 @@ func generateForTable( //nolint:funlen,cyclop
 	qualifiedName := getQualifiedName(tableMeta.Table.Schema, tableMeta.Table.Name)
 	allowedColumns := getAllowedColumns(tableMeta, tableInfo, role)
 
-	for _, col := range tableInfo.Columns {
-		if _, ok := allowedColumns[col.Name]; ok {
-			scalarType := getGraphQLScalarType(col.Type)
-			usedScalars[scalarType] = struct{}{}
-			selectUsedScalars[scalarType] = struct{}{}
-
-			if col.IsArray && caps.SupportsArrays {
-				selectUsedArrayElementTypes[scalarType] = struct{}{}
-			}
-
-			if is, enumKey := isEnumColumn(&col, tableInfo, md); is {
-				neededEnums[enumKey] = struct{}{}
-			}
-		}
-	}
-
-	// Also collect scalars from insert/update-allowed columns.
-	// These may not overlap with select-allowed columns, but their types
-	// are referenced in mutation input types (_insert_input, _set_input, etc.)
-	if role == roleAdmin ||
-		getInsertPermission(tableMeta, role) != nil ||
-		getUpdatePermission(tableMeta, role) != nil ||
-		getDeletePermission(tableMeta, role) != nil {
-		insertCols := getInsertAllowedColumns(tableMeta, tableInfo, role)
-		updateCols := getUpdateAllowedColumns(tableMeta, tableInfo, role)
-
-		for _, col := range tableInfo.Columns {
-			if _, ok := allowedColumns[col.Name]; ok {
-				continue // already tracked above
-			}
-
-			_, inInsert := insertCols[col.Name]
-			_, inUpdate := updateCols[col.Name]
-
-			if inInsert || inUpdate {
-				scalarType := getGraphQLScalarType(col.Type)
-				usedScalars[scalarType] = struct{}{}
-			}
-		}
-	}
+	collectSelectColumnTypeUses(
+		tableInfo,
+		allowedColumns,
+		md,
+		usedScalars,
+		selectUsedScalars,
+		selectUsedArrayElementTypes,
+		neededEnums,
+		caps,
+	)
+	collectMutationColumnTypeUses(
+		tableMeta, tableInfo, allowedColumns, role, md, usedScalars, neededEnums,
+	)
 
 	generateTableObjectType(
 		schema, tableMeta, tableInfo, customTableName, allowedColumns, role, md,
@@ -87,11 +65,12 @@ func generateForTable( //nolint:funlen,cyclop
 		qualifiedName,
 		allowedColumns,
 		role,
+		md,
 		caps,
 	)
 
 	generateTableMutationFields(
-		mutationFields, tableMeta, tableInfo, customTableName, qualifiedName, role,
+		mutationFields, tableMeta, tableInfo, customTableName, qualifiedName, role, md,
 	)
 
 	generateTableSubscriptionFields(
@@ -102,12 +81,13 @@ func generateForTable( //nolint:funlen,cyclop
 		qualifiedName,
 		allowedColumns,
 		role,
+		md,
 		caps,
 	)
 
 	if allowAggregations(tableMeta, role) {
 		generateAggregateTypes(
-			schema, tableMeta, tableInfo, customTableName, qualifiedName, allowedColumns, md,
+			schema, tableMeta, tableInfo, customTableName, qualifiedName, allowedColumns, md, caps,
 		)
 	}
 
@@ -144,6 +124,135 @@ func generateForTable( //nolint:funlen,cyclop
 		qualifiedName,
 		allowedColumns,
 	)
+}
+
+func collectSelectColumnTypeUses(
+	tableInfo *introspection.Table,
+	allowedColumns map[string]struct{},
+	md *metadata.DatabaseMetadata,
+	usedScalars map[string]struct{},
+	selectUsedScalars map[string]struct{},
+	selectUsedArrayElementTypes map[string]struct{},
+	neededEnums map[string]struct{},
+	caps Capabilities,
+) {
+	for i := range tableInfo.Columns {
+		col := &tableInfo.Columns[i]
+		if _, ok := allowedColumns[col.Name]; !ok {
+			continue
+		}
+
+		scalarType := registerColumnTypeUse(col, tableInfo, md, usedScalars, neededEnums)
+		selectUsedScalars[scalarType] = struct{}{}
+
+		if col.IsArray && caps.SupportsArrays {
+			selectUsedArrayElementTypes[scalarType] = struct{}{}
+		}
+	}
+}
+
+func collectMutationColumnTypeUses(
+	tableMeta *metadata.TableMetadata,
+	tableInfo *introspection.Table,
+	allowedColumns map[string]struct{},
+	role string,
+	md *metadata.DatabaseMetadata,
+	usedScalars map[string]struct{},
+	neededEnums map[string]struct{},
+) {
+	insertPermission := hasInsertPermissionForRole(tableMeta, role)
+	updatePermission := hasUpdatePermissionForRole(tableMeta, role)
+	deletePermission := hasDeletePermissionForRole(tableMeta, role)
+
+	insertCols := getInsertAllowedColumns(tableMeta, tableInfo, role)
+	updateCols := getUpdateAllowedColumns(tableMeta, tableInfo, role)
+	pkColumns := primaryKeyColumns(tableInfo.PrimaryKeys)
+
+	setInputGenerated := tableInfo.IsUpdatable && updatePermission && len(updateCols) > 0
+	pkColumnsInputGenerated := setInputGenerated && len(tableInfo.PrimaryKeys) > 0
+	deleteByPKGenerated := tableInfo.IsUpdatable && deletePermission &&
+		len(tableInfo.PrimaryKeys) > 0
+
+	for i := range tableInfo.Columns {
+		col := &tableInfo.Columns[i]
+		if _, ok := allowedColumns[col.Name]; ok {
+			continue // already tracked by collectSelectColumnTypeUses
+		}
+
+		if mutationReferencesColumnType(
+			col,
+			tableInfo,
+			insertCols,
+			updateCols,
+			pkColumns,
+			insertPermission,
+			setInputGenerated,
+			pkColumnsInputGenerated || deleteByPKGenerated,
+		) {
+			registerColumnTypeUse(col, tableInfo, md, usedScalars, neededEnums)
+		}
+	}
+}
+
+func hasInsertPermissionForRole(tableMeta *metadata.TableMetadata, role string) bool {
+	return role == roleAdmin || getInsertPermission(tableMeta, role) != nil
+}
+
+func hasUpdatePermissionForRole(tableMeta *metadata.TableMetadata, role string) bool {
+	return role == roleAdmin || getUpdatePermission(tableMeta, role) != nil
+}
+
+func hasDeletePermissionForRole(tableMeta *metadata.TableMetadata, role string) bool {
+	return role == roleAdmin || getDeletePermission(tableMeta, role) != nil
+}
+
+func registerColumnTypeUse(
+	col *introspection.Column,
+	tableInfo *introspection.Table,
+	md *metadata.DatabaseMetadata,
+	usedScalars map[string]struct{},
+	neededEnums map[string]struct{},
+) string {
+	scalarType := getGraphQLScalarType(col.Type)
+	usedScalars[scalarType] = struct{}{}
+
+	if is, enumKey := isEnumColumn(col, tableInfo, md); is {
+		neededEnums[enumKey] = struct{}{}
+	}
+
+	return scalarType
+}
+
+func primaryKeyColumns(primaryKeys []string) map[string]struct{} {
+	columns := make(map[string]struct{}, len(primaryKeys))
+	for _, pkColName := range primaryKeys {
+		columns[pkColName] = struct{}{}
+	}
+
+	return columns
+}
+
+func mutationReferencesColumnType(
+	col *introspection.Column,
+	tableInfo *introspection.Table,
+	insertCols map[string]struct{},
+	updateCols map[string]struct{},
+	pkColumns map[string]struct{},
+	insertPermission bool,
+	setInputGenerated bool,
+	pkArgumentGenerated bool,
+) bool {
+	if _, inInsert := insertCols[col.Name]; tableInfo.IsInsertable && insertPermission && inInsert {
+		return true
+	}
+
+	if _, inUpdate := updateCols[col.Name]; setInputGenerated && inUpdate {
+		return true
+	}
+
+	_, isPK := pkColumns[col.Name]
+
+	return isPK && pkArgumentGenerated
 }
 
 // addGlobalEnums adds enums that are used globally across all tables.
@@ -209,9 +318,10 @@ func generateObjectRelationshipFields(
 
 // isObjectRelationshipNullable determines whether an object relationship field should be nullable
 // in the GraphQL schema. A relationship is nullable when the related row may not exist:
-// - Reverse FK relationships (the remote table points back to this one) are always nullable.
-// - Forward FK relationships are nullable when the FK column allows NULL values.
-// - Manual configurations and unresolvable cases default to nullable.
+//   - Reverse FK relationships (the remote table points back to this one) are always nullable.
+//   - Forward FK relationships are nullable when ANY of the FK columns allows NULL values
+//     (a composite FK with even one nullable column may evaluate to NULL on the join).
+//   - Manual configurations and unresolvable cases default to nullable.
 func isObjectRelationshipNullable(
 	tableInfo *introspection.Table,
 	using metadata.RelationshipUsing,
@@ -220,15 +330,36 @@ func isObjectRelationshipNullable(
 		return true
 	}
 
-	if using.ForeignKeyColumn != "" {
+	if len(using.ForeignKeyColumns) == 0 {
+		return true
+	}
+
+	for _, fkName := range using.ForeignKeyColumns {
+		found := false
+
 		for _, col := range tableInfo.Columns {
-			if col.Name == using.ForeignKeyColumn {
-				return col.IsNullable
+			if col.Name != fkName {
+				continue
 			}
+
+			found = true
+
+			if col.IsNullable {
+				return true
+			}
+
+			break
+		}
+
+		// Column not present in introspection — treat as unresolvable and
+		// fall back to the nullable default rather than emitting a
+		// non-nullable field that may break at runtime.
+		if !found {
+			return true
 		}
 	}
 
-	return true
+	return false
 }
 
 // generateArrayRelationshipFields generates fields for array relationships (one-to-many).
@@ -261,7 +392,8 @@ func generateArrayRelationshipFields(
 		// type name below.
 		if targetTable != "" {
 			maybeGenerateAggregateOrderByForTargetTable(
-				schema, md, objects, targetSchema, targetTable, role, generatedAggregateOrderBy,
+				schema, md, objects, targetSchema, targetTable, role,
+				generatedAggregateOrderBy, caps,
 			)
 		}
 
@@ -313,7 +445,7 @@ func generateTableObjectType(
 
 		// jsonb/json columns expose a `path` argument so callers can drill
 		// into nested values without separate path-specific scalar types.
-		if col.Type == "jsonb" || col.Type == "json" {
+		if col.Type == scalarJSONB || col.Type == scalarJSON {
 			field.Arguments = []*graph.Argument{
 				{
 					Name:        "path",

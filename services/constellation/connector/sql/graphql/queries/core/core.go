@@ -31,12 +31,20 @@ type SQLOperation struct {
 	// matching Parameters by index.
 	SQL string
 	// Parameters is the positional argument list bound to SQL. For stream
-	// subscriptions it may contain CursorValue markers that multiplexed.Multiplex
-	// rewrites into result_vars references on subsequent polls.
+	// subscriptions it may contain CursorValue markers; for function
+	// session_argument placeholders in multiplexed subscription templates it may
+	// contain FunctionSessionArgument markers. multiplexed.Multiplex rewrites
+	// both marker types into result_vars references before execution.
 	Parameters []any
 	// StreamCursors is non-nil only for stream-subscription operations and
 	// records one entry per cursor column referenced by the operation.
 	StreamCursors []StreamCursorInfo
+	// Sequential is non-empty for a logical operation that must be executed as
+	// multiple SQL statements within the surrounding transaction. Drivers execute
+	// the child operations in order and return a JSON array of their individual
+	// JSON results under this operation's Name. This is used by update_many so
+	// later updates observe earlier ones, matching Hasura's sequential semantics.
+	Sequential []SQLOperation `json:",omitempty"`
 }
 
 // StreamCursorInfo carries metadata for a single cursor column on a stream
@@ -170,6 +178,32 @@ type Column struct {
 	// (GENERATED ALWAYS / STORED / VIRTUAL); such columns are excluded from
 	// insert and update mutation input types.
 	IsGenerated bool
+	// IsIdentity is true when the column auto-populates from a database-managed
+	// source the insert payload cannot reliably precompute: PostgreSQL
+	// GENERATED ALWAYS / BY DEFAULT AS IDENTITY (pg_attribute.attidentity != '')
+	// and SQLite INTEGER PRIMARY KEY rowid aliases (with or without
+	// AUTOINCREMENT). These columns do not appear in pg_attrdef nor in
+	// PRAGMA table_xinfo's dflt_value, so HasDefault stays false; IsIdentity is
+	// the separate signal RequiresPostInsertCheck consults to force an
+	// insert-check predicate referencing such a column to run after the INSERT
+	// (against the row carrying the engine-assigned value) rather than against
+	// the payload (where the column would still be NULL).
+	IsIdentity bool
+	// HasDefault is true when the column has a database DEFAULT expression.
+	// When such a column is omitted from an insert, the row carries the
+	// default rather than NULL, so an insert-check that references it (directly
+	// or via a relationship join column) must be evaluated after the INSERT.
+	HasDefault bool
+	// DefaultExpr is the raw SQL default expression (e.g. "'public'::text",
+	// "now()", "gen_random_uuid()"), or "" when the column has no default. It
+	// is used by multi-row insert builders to emit the default expression
+	// inline for rows that omit a column whose siblings supply it: a
+	// UNION-ALL branch that wrote NULL for an absent NOT NULL DEFAULT column
+	// would raise a 23502 not-null-violation at INSERT time, where Hasura
+	// would let the DB default apply per row. Volatile defaults like now()
+	// and gen_random_uuid() evaluate per row in INSERT ... SELECT, so emitting
+	// the expression inline preserves the per-row semantics.
+	DefaultExpr string
 }
 
 // Operation is the function signature for the per-field SQL builders
@@ -189,6 +223,18 @@ type Operation func(
 	roots map[string]Operation,
 ) (SQLOperation, error)
 
+// FunctionSessionArgument is a marker placed in SQLOperation.Parameters by
+// function-backed subscription builders when a SQL function's session_argument
+// should receive the per-subscriber session object. The multiplexed converter
+// rewrites the corresponding placeholder to _subs.result_vars->'session' and
+// casts it to SQLType (usually json or jsonb), keeping the parameter dynamic
+// across all subscribers in a cohort.
+type FunctionSessionArgument struct {
+	// SQLType is the database type of the function's session_argument. It is
+	// used as the cast on the rewritten result_vars expression.
+	SQLType string
+}
+
 // CursorValue is a marker placed in SQLOperation.Parameters by stream
 // subscription builders. The multiplexed converter (multiplexed.Multiplex)
 // recognises the marker and rewrites the corresponding placeholder into a
@@ -200,6 +246,38 @@ type CursorValue struct {
 	// Value is the initial cursor value supplied by the client; it seeds
 	// result_vars for the first poll before being replaced from results.
 	Value any
+}
+
+// SessionVarValue marks a parameter that is a permission session-variable
+// reference (e.g. "x-hasura-user-id"), as distinct from ordinary user-supplied
+// data that merely happens to begin with "x-hasura-". The multiplexed converter
+// (multiplexed.Multiplex) recognises the marker by type and rewrites the
+// corresponding placeholder into a "_subs"."result_vars" JSON-path lookup so
+// each cohort member reads its own session value.
+//
+// The marker is born only in the subscription cohort managers, which seed their
+// template session-variable maps with SessionVarValue entries; the permission
+// layer's SubstituteSessionVariable then resolves a genuine permission marker to
+// it. Non-subscription queries resolve session variables to their concrete
+// values instead, so a SessionVarValue never reaches direct (non-multiplexed)
+// execution. Classifying by this type — rather than by string-sniffing a
+// finalised parameter value — keeps user where/_set/_in literals that begin with
+// "x-hasura-" as ordinary data, matching Hasura.
+type SessionVarValue struct {
+	// Name is the lowercased session-variable name (e.g. "x-hasura-user-id"),
+	// used as the result_vars JSON key the multiplexed converter emits.
+	Name string
+}
+
+// MarshalJSON renders the marker as its bare Name string. A SQL function's
+// session argument is built by JSON-marshalling the (template) session-variable
+// map (see queries.function), where the value for each key is this marker;
+// emitting the struct form would change that embedded JSON, so we serialise the
+// name — the same placeholder the map held before this type existed. Mirrors
+// OrderDirection.MarshalJSON's strconv.Quote approach; session-variable names
+// are controlled, lowercased x-hasura-* keys.
+func (s SessionVarValue) MarshalJSON() ([]byte, error) {
+	return []byte(strconv.Quote(s.Name)), nil
 }
 
 // MultiplexedResult is a single per-subscriber row produced by a SQL driver's

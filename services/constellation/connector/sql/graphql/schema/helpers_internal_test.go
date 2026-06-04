@@ -154,6 +154,57 @@ func TestGetColumnDescription(t *testing.T) {
 	}
 }
 
+func TestGetCustomColumnName(t *testing.T) {
+	t.Parallel()
+
+	tests := []struct {
+		name       string
+		columnName string
+		config     map[string]metadata.ColumnConfig
+		expected   string
+	}{
+		{
+			name:       "no entry",
+			columnName: "email",
+			config:     nil,
+			expected:   "email",
+		},
+		{
+			name:       "comment-only entry falls back to real name",
+			columnName: "email",
+			config: map[string]metadata.ColumnConfig{
+				"email": {CustomName: ""},
+			},
+			expected: "email",
+		},
+		{
+			name:       "custom name set",
+			columnName: "email",
+			config: map[string]metadata.ColumnConfig{
+				"email": {CustomName: "emailAddress"},
+			},
+			expected: "emailAddress",
+		},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			t.Parallel()
+
+			tableMeta := &metadata.TableMetadata{
+				Configuration: metadata.TableConfiguration{
+					ColumnConfig: tt.config,
+				},
+			}
+
+			got := getCustomColumnName(tableMeta, tt.columnName)
+			if got != tt.expected {
+				t.Errorf("getCustomColumnName() = %q, want %q", got, tt.expected)
+			}
+		})
+	}
+}
+
 func TestAllPKColumnsAllowed(t *testing.T) {
 	t.Parallel()
 
@@ -447,8 +498,8 @@ func TestIsObjectRelationshipNullable(t *testing.T) {
 			name: "reverse FK is always nullable",
 			using: metadata.RelationshipUsing{
 				ForeignKeyConstraint: &metadata.ForeignKeyConstraint{
-					Table:  metadata.TableSource{Schema: "public", Name: "posts"},
-					Column: "",
+					Table:   metadata.TableSource{Schema: "public", Name: "posts"},
+					Columns: nil,
 				},
 			},
 			tableInfo: &introspection.Table{},
@@ -457,7 +508,7 @@ func TestIsObjectRelationshipNullable(t *testing.T) {
 		{
 			name: "forward FK nullable column",
 			using: metadata.RelationshipUsing{
-				ForeignKeyColumn: "org_id",
+				ForeignKeyColumns: []string{"org_id"},
 			},
 			tableInfo: &introspection.Table{
 				Columns: []introspection.Column{
@@ -469,7 +520,7 @@ func TestIsObjectRelationshipNullable(t *testing.T) {
 		{
 			name: "forward FK non-nullable column",
 			using: metadata.RelationshipUsing{
-				ForeignKeyColumn: "org_id",
+				ForeignKeyColumns: []string{"org_id"},
 			},
 			tableInfo: &introspection.Table{
 				Columns: []introspection.Column{
@@ -477,6 +528,44 @@ func TestIsObjectRelationshipNullable(t *testing.T) {
 				},
 			},
 			want: false,
+		},
+		{
+			name: "composite FK with one nullable column",
+			using: metadata.RelationshipUsing{
+				ForeignKeyColumns: []string{"a", "b"},
+			},
+			tableInfo: &introspection.Table{
+				Columns: []introspection.Column{
+					{Name: "a", IsNullable: false},
+					{Name: "b", IsNullable: true},
+				},
+			},
+			want: true,
+		},
+		{
+			name: "composite FK with all non-nullable columns",
+			using: metadata.RelationshipUsing{
+				ForeignKeyColumns: []string{"a", "b"},
+			},
+			tableInfo: &introspection.Table{
+				Columns: []introspection.Column{
+					{Name: "a", IsNullable: false},
+					{Name: "b", IsNullable: false},
+				},
+			},
+			want: false,
+		},
+		{
+			name: "composite FK with missing column falls back to nullable",
+			using: metadata.RelationshipUsing{
+				ForeignKeyColumns: []string{"a", "b"},
+			},
+			tableInfo: &introspection.Table{
+				Columns: []introspection.Column{
+					{Name: "a", IsNullable: false},
+				},
+			},
+			want: true,
 		},
 	}
 

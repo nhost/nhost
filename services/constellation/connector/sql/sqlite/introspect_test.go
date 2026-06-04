@@ -9,6 +9,7 @@ import (
 
 	_ "github.com/mattn/go-sqlite3"
 
+	"github.com/nhost/nhost/services/constellation/connector/sql/introspection"
 	"github.com/nhost/nhost/services/constellation/connector/sql/sqlite"
 	"github.com/nhost/nhost/services/constellation/internal/lib/testhelpers"
 	"github.com/nhost/nhost/services/constellation/metadata"
@@ -132,6 +133,123 @@ func TestIntrospect(t *testing.T) {
 	}
 
 	testhelpers.GoldenJSON(t, goldenPath, got, *updateGolden)
+}
+
+func TestIntrospectSkipsPartialUniqueIndexes(t *testing.T) {
+	t.Parallel()
+
+	users := introspectUsersTable(t, "partial_unique.db", `
+CREATE TABLE users (
+    id INTEGER PRIMARY KEY,
+    email TEXT NOT NULL,
+    username TEXT NOT NULL,
+    deleted_at DATETIME
+);
+CREATE UNIQUE INDEX users_username_key ON users(username);
+CREATE UNIQUE INDEX users_active_email_key ON users(email) WHERE deleted_at IS NULL;
+`)
+
+	assertPlainUniqueAndSkippedIndex(t, users, "users_active_email_key", "partial")
+}
+
+func TestIntrospectSkipsExpressionUniqueIndexes(t *testing.T) {
+	t.Parallel()
+
+	users := introspectUsersTable(t, "expression_unique.db", `
+CREATE TABLE users (
+    id INTEGER PRIMARY KEY,
+    email TEXT NOT NULL,
+    username TEXT NOT NULL
+);
+CREATE UNIQUE INDEX users_username_key ON users(username);
+CREATE UNIQUE INDEX users_lower_email_key ON users(lower(email));
+`)
+
+	assertPlainUniqueAndSkippedIndex(t, users, "users_lower_email_key", "expression")
+}
+
+func introspectUsersTable(
+	t *testing.T, dbFileName string, schema string,
+) *introspection.Table {
+	t.Helper()
+
+	dbPath := filepath.Join(t.TempDir(), dbFileName)
+
+	db, err := sql.Open("sqlite3", dbPath)
+	if err != nil {
+		t.Fatalf("failed to open database: %v", err)
+	}
+
+	if _, err := db.ExecContext(t.Context(), schema); err != nil {
+		t.Fatalf("failed to create schema: %v", err)
+	}
+
+	if err := db.Close(); err != nil {
+		t.Fatalf("failed to close setup database: %v", err)
+	}
+
+	sqlDB, err := sqlite.Open(t.Context(), dbPath)
+	if err != nil {
+		t.Fatalf("failed to open sqlite: %v", err)
+	}
+
+	client := sqlite.NewClient(sqlDB)
+	t.Cleanup(func() { client.Close() })
+
+	got, err := client.Introspect(t.Context(), &metadata.DatabaseMetadata{
+		Tables: []metadata.TableMetadata{
+			{Table: metadata.TableSource{Name: "users"}},
+		},
+	})
+	if err != nil {
+		t.Fatalf("failed to introspect: %v", err)
+	}
+
+	schemaObjs := got.Schemas[""]
+	if schemaObjs == nil {
+		t.Fatalf("expected default schema in introspection objects")
+	}
+
+	users, ok := schemaObjs.Tables["users"]
+	if !ok {
+		t.Fatalf("missing users table in introspection")
+	}
+
+	return users
+}
+
+func assertPlainUniqueAndSkippedIndex(
+	t *testing.T,
+	users *introspection.Table,
+	skippedIndexName string,
+	skippedIndexKind string,
+) {
+	t.Helper()
+
+	foundPlainUnique := false
+	for _, constraint := range users.UniqueConstraints {
+		switch constraint.Name {
+		case "users_username_key":
+			foundPlainUnique = true
+
+			if len(constraint.Columns) != 1 || constraint.Columns[0] != "username" {
+				t.Fatalf(
+					"users_username_key columns = %v, want [username]",
+					constraint.Columns,
+				)
+			}
+		case skippedIndexName:
+			t.Fatalf(
+				"%s unique index %q was exposed as an upsert constraint",
+				skippedIndexKind,
+				constraint.Name,
+			)
+		}
+	}
+
+	if !foundPlainUnique {
+		t.Fatalf("plain unique index was not exposed: %+v", users.UniqueConstraints)
+	}
 }
 
 // TestIntrospectViewMutability covers the INSTEAD OF trigger detection in
@@ -284,6 +402,154 @@ BEGIN UPDATE base SET name = NEW.name WHERE id = OLD.id; END;
 
 			if tbl.IsUpdatable != tc.wantUpdatable {
 				t.Errorf("IsUpdatable = %v, want %v", tbl.IsUpdatable, tc.wantUpdatable)
+			}
+		})
+	}
+}
+
+// TestIntrospectRowidAliasIdentity locks the SQLite rowid-alias detection
+// against a representative matrix of CREATE TABLE shapes. The rowid alias
+// fires only for a single-column primary key whose declared type is exactly
+// "INTEGER" (case-insensitive, no precision suffix) and the table is not
+// disqualified by an explicit `pk`-origin index (WITHOUT ROWID,
+// INTEGER PRIMARY KEY DESC). AUTOINCREMENT is orthogonal — it adds
+// monotonicity guarantees but does not change alias status.
+func TestIntrospectRowidAliasIdentity(t *testing.T) {
+	t.Parallel()
+
+	dbPath := filepath.Join(t.TempDir(), "identity.db")
+
+	db, err := sql.Open("sqlite3", dbPath)
+	if err != nil {
+		t.Fatalf("failed to open database: %v", err)
+	}
+
+	schema := `
+-- Plain INTEGER PRIMARY KEY: classic rowid alias, IsIdentity must be true.
+CREATE TABLE rowid_alias (id INTEGER PRIMARY KEY, name TEXT);
+
+-- AUTOINCREMENT does not change alias status, only monotonicity. Still identity.
+CREATE TABLE rowid_alias_autoinc (id INTEGER PRIMARY KEY AUTOINCREMENT, name TEXT);
+
+-- Explicit ASC is a no-op for the rowid alias — still identity.
+CREATE TABLE rowid_alias_asc (id INTEGER PRIMARY KEY ASC, name TEXT);
+
+-- A CHECK constraint whose literal contains the phrase "WITHOUT ROWID"
+-- previously tripped a CREATE TABLE substring scan and disabled the alias.
+-- The PRAGMA-based detector must see that no explicit pk-origin index
+-- exists and keep IsIdentity=true.
+CREATE TABLE rowid_alias_check_literal (
+    id INTEGER PRIMARY KEY,
+    label TEXT CHECK (label <> 'WITHOUT ROWID')
+);
+
+-- BIGINT shares integer affinity but is NOT the magic "INTEGER" spelling;
+-- SQLite does not treat it as a rowid alias, so IsIdentity must be false.
+CREATE TABLE bigint_pk (id BIGINT PRIMARY KEY, name TEXT);
+
+-- Composite primary key including an INTEGER column: rowid-alias rule does
+-- not apply (it requires the PK to be a single INTEGER column).
+CREATE TABLE composite_int_pk (
+    id INTEGER NOT NULL,
+    tenant TEXT NOT NULL,
+    PRIMARY KEY (id, tenant)
+);
+
+-- WITHOUT ROWID disables the rowid alias even for INTEGER PRIMARY KEY.
+CREATE TABLE without_rowid_int_pk (
+    id INTEGER PRIMARY KEY,
+    name TEXT
+) WITHOUT ROWID;
+
+-- INTEGER PRIMARY KEY DESC is documented as NOT a rowid alias: SQLite does
+-- not auto-populate it on insert. Marking it identity would route inserts
+-- through the post-check path and evaluate against NULL.
+CREATE TABLE rowid_alias_desc (id INTEGER PRIMARY KEY DESC, name TEXT);
+
+-- TEXT primary key is never an alias.
+CREATE TABLE text_pk (id TEXT PRIMARY KEY, name TEXT);
+`
+
+	if _, err := db.ExecContext(t.Context(), schema); err != nil {
+		t.Fatalf("failed to create schema: %v", err)
+	}
+
+	db.Close()
+
+	sqlDB, err := sqlite.Open(t.Context(), dbPath)
+	if err != nil {
+		t.Fatalf("failed to open sqlite: %v", err)
+	}
+
+	client := sqlite.NewClient(sqlDB)
+	t.Cleanup(func() { client.Close() })
+
+	got, err := client.Introspect(t.Context(), &metadata.DatabaseMetadata{
+		Tables: []metadata.TableMetadata{
+			{Table: metadata.TableSource{Name: "rowid_alias"}},
+			{Table: metadata.TableSource{Name: "rowid_alias_autoinc"}},
+			{Table: metadata.TableSource{Name: "rowid_alias_asc"}},
+			{Table: metadata.TableSource{Name: "rowid_alias_check_literal"}},
+			{Table: metadata.TableSource{Name: "bigint_pk"}},
+			{Table: metadata.TableSource{Name: "composite_int_pk"}},
+			{Table: metadata.TableSource{Name: "without_rowid_int_pk"}},
+			{Table: metadata.TableSource{Name: "rowid_alias_desc"}},
+			{Table: metadata.TableSource{Name: "text_pk"}},
+		},
+	})
+	if err != nil {
+		t.Fatalf("failed to introspect: %v", err)
+	}
+
+	schemaObjs := got.Schemas[""]
+	if schemaObjs == nil {
+		t.Fatalf("expected default schema in introspection objects")
+	}
+
+	cases := []struct {
+		table          string
+		column         string
+		wantIsIdentity bool
+	}{
+		{"rowid_alias", "id", true},
+		{"rowid_alias_autoinc", "id", true},
+		{"rowid_alias_asc", "id", true},
+		{"rowid_alias_check_literal", "id", true},
+		{"bigint_pk", "id", false},
+		{"composite_int_pk", "id", false},
+		{"without_rowid_int_pk", "id", false},
+		{"rowid_alias_desc", "id", false},
+		{"text_pk", "id", false},
+	}
+
+	for _, tc := range cases {
+		t.Run(tc.table, func(t *testing.T) {
+			t.Parallel()
+
+			tbl, ok := schemaObjs.Tables[tc.table]
+			if !ok {
+				t.Fatalf("missing table %q in introspection", tc.table)
+			}
+
+			var found bool
+
+			for _, col := range tbl.Columns {
+				if col.Name != tc.column {
+					continue
+				}
+
+				found = true
+
+				if col.IsIdentity != tc.wantIsIdentity {
+					t.Errorf(
+						"%s.%s IsIdentity = %v, want %v",
+						tc.table, tc.column, col.IsIdentity, tc.wantIsIdentity,
+					)
+				}
+			}
+
+			if !found {
+				t.Fatalf("column %q not found in %q", tc.column, tc.table)
 			}
 		})
 	}

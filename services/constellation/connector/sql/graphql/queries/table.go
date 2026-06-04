@@ -1,6 +1,7 @@
 package queries
 
 import (
+	"errors"
 	"fmt"
 	"slices"
 
@@ -32,10 +33,12 @@ type table struct {
 	mutationDeleteCollectionName string
 	mutationDeleteByPkName       string
 
-	pkColumns     []*core.Column
-	columns       []*core.Column
-	relationships []*relationship
-	functions     []*function
+	pkColumns                []*core.Column
+	columns                  []*core.Column
+	conflictColumns          map[string][]string
+	conflictNullsNotDistinct map[string]bool
+	relationships            []*relationship
+	functions                []*function
 
 	// allTables is retained so _exists permission predicates can resolve
 	// references to sibling tables within the same database.
@@ -68,6 +71,8 @@ func newTable(schemaName, tableName string, dialect dialect.Dialect) *table {
 		mutationDeleteByPkName:       "",
 		pkColumns:                    []*core.Column{},
 		columns:                      []*core.Column{},
+		conflictColumns:              map[string][]string{},
+		conflictNullsNotDistinct:     map[string]bool{},
 		relationships:                []*relationship{},
 		functions:                    []*function{},
 		allTables:                    nil,
@@ -106,12 +111,20 @@ func (t *table) Initialize(
 			sqlType = colObj.Type + "[]"
 		}
 
+		var defaultExpr string
+		if colObj.Default != nil {
+			defaultExpr = *colObj.Default
+		}
+
 		columns[i] = &core.Column{
 			SQLName:     colObj.Name,
 			GraphqlName: graphqlName,
 			SQLType:     sqlType,
 			IsArray:     colObj.IsArray,
 			IsGenerated: colObj.IsGenerated,
+			IsIdentity:  colObj.IsIdentity,
+			HasDefault:  colObj.Default != nil,
+			DefaultExpr: defaultExpr,
 		}
 
 		if slices.Contains(tableObj.PrimaryKeys, colObj.Name) {
@@ -120,6 +133,7 @@ func (t *table) Initialize(
 	}
 
 	t.columns = columns
+	t.conflictColumns, t.conflictNullsNotDistinct = tableConflictMetadata(tableObj)
 	t.allTables = tables
 
 	t.initializeRootNames(md)
@@ -129,6 +143,28 @@ func (t *table) Initialize(
 	}
 
 	return nil
+}
+
+func tableConflictMetadata(tableObj *introspection.Table) (map[string][]string, map[string]bool) {
+	constraints := make(map[string][]string)
+	nullsNotDistinct := make(map[string]bool)
+
+	if len(tableObj.PrimaryKeys) > 0 {
+		pkeyName := tableObj.PrimaryKeyConstraintName
+		if pkeyName == "" {
+			pkeyName = tableObj.Name + "_pkey"
+		}
+
+		constraints[pkeyName] = append([]string(nil), tableObj.PrimaryKeys...)
+		nullsNotDistinct[pkeyName] = false
+	}
+
+	for _, constraint := range tableObj.UniqueConstraints {
+		constraints[constraint.Name] = append([]string(nil), constraint.Columns...)
+		nullsNotDistinct[constraint.Name] = constraint.NullsNotDistinct
+	}
+
+	return constraints, nullsNotDistinct
 }
 
 func (t *table) initializeRootNames(md metadata.TableMetadata) {
@@ -202,6 +238,15 @@ func (t *table) initializeRelationships(
 			tables,
 		)
 		if err != nil {
+			if isInconsistencyTolerantRelationshipError(err) {
+				// Reconcile is expected to have dropped this relationship
+				// from the effective metadata already; skipping here keeps
+				// the rest of the table alive against a reconcile gap for
+				// the specific sentinels listed on
+				// isInconsistencyTolerantRelationshipError.
+				continue
+			}
+
 			return fmt.Errorf("error initializing array relationship %s: %w", relMeta.Name, err)
 		}
 
@@ -218,6 +263,10 @@ func (t *table) initializeRelationships(
 			tables,
 		)
 		if err != nil {
+			if isInconsistencyTolerantRelationshipError(err) {
+				continue
+			}
+
 			return fmt.Errorf("error initializing object relationship %s: %w", relMeta.Name, err)
 		}
 
@@ -225,6 +274,31 @@ func (t *table) initializeRelationships(
 	}
 
 	return nil
+}
+
+// isInconsistencyTolerantRelationshipError reports whether err names one of
+// the per-relationship build failures that reconcile is expected to have
+// already dropped:
+//
+//   - errRelationshipTargetTableIntrospectionNotFound — forward FK whose
+//     parent.ForeignKeys entry points at a table missing from introspection,
+//     or reverse FK whose ForeignKeyConstraint.Table is missing.
+//   - errRelationshipReverseFKColumnUnmatched — reverse FK whose
+//     ForeignKeyConstraint.Columns names a column the target table has no
+//     introspected ForeignKey for.
+//   - errRelationshipTargetTableNotFound — forward FK whose
+//     ForeignKeyColumns resolve to an empty target via
+//     LookupForwardFKTarget (no matching FK on the parent, or listed
+//     columns disagree on the target table); reconcile's
+//     dropIfForwardFKBroken catches the same shape.
+//
+// Treating these as drop-and-continue at the queries layer matches the
+// package contract that a single malformed relationship must never take
+// down the whole source.
+func isInconsistencyTolerantRelationshipError(err error) bool {
+	return errors.Is(err, errRelationshipTargetTableIntrospectionNotFound) ||
+		errors.Is(err, errRelationshipReverseFKColumnUnmatched) ||
+		errors.Is(err, errRelationshipTargetTableNotFound)
 }
 
 func (t *table) columnFromGraphqlName(name string) *core.Column {

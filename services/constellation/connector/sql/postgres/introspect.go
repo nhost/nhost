@@ -68,10 +68,13 @@ func trackedSchemaTables(dbMeta *metadata.DatabaseMetadata) map[string][]string 
 }
 
 // introspectEnumValues populates enum values for all tables marked as enums
-// in metadata. Per-table failures (missing table in source, invalid enum
-// shape, query error, empty value set) are silently elided from the result
-// map; the outer reconcile pass turns each absence into an inconsistency and
-// clears the is_enum flag so the table is still served as a regular table.
+// in metadata. Missing enum tables are silently elided here so the outer
+// reconcile pass can record the table-level inconsistency first. Present enum
+// tables with invalid shape, query errors, or empty value sets are also elided
+// from the result map; reconcile records enum_values for those and drops the
+// table from the source entirely, matching Hasura. Demoting it to a regular
+// table would silently widen the input contract for every FK column pointing at
+// it.
 func (c *Client) introspectEnumValues(
 	ctx context.Context,
 	dbMeta *metadata.DatabaseMetadata,
@@ -363,6 +366,7 @@ func populateTableColumns( //nolint:funlen
 			END as typname,
 			CASE WHEN a.attnotnull THEN 'NO' ELSE 'YES' END as is_nullable,
 			a.attgenerated != '' as is_generated,
+			a.attidentity != '' as is_identity,
 			t.typcategory = 'A' as is_array,
 			COALESCE(ta.supports_min_max, false) as supports_min_max,
 			COALESCE(ta.supports_inc, false) as supports_inc,
@@ -406,6 +410,7 @@ func populateTableColumns( //nolint:funlen
 			typeName       string
 			isNullable     string
 			isGenerated    bool
+			isIdentity     bool
 			isArray        bool
 			supportsMinMax bool
 			supportsInc    bool
@@ -415,7 +420,7 @@ func populateTableColumns( //nolint:funlen
 		)
 
 		if err := rows.Scan(
-			&tableName, &columnName, &typeName, &isNullable, &isGenerated,
+			&tableName, &columnName, &typeName, &isNullable, &isGenerated, &isIdentity,
 			&isArray,
 			&supportsMinMax, &supportsInc, &supportsAgg,
 			&columnDefault, &columnComment,
@@ -453,6 +458,7 @@ func populateTableColumns( //nolint:funlen
 			Type:           typeName,
 			IsNullable:     isNullable == "YES",
 			IsGenerated:    isGenerated,
+			IsIdentity:     isIdentity,
 			IsArray:        isArray,
 			Default:        columnDefault,
 			Comment:        columnComment,
@@ -547,6 +553,32 @@ func populateForeignKeys( //nolint:funlen
 	return nil
 }
 
+// uniqueConstraintsQuery reads indnullsnotdistinct through to_jsonb(idx) so
+// the same query still runs against PostgreSQL versions before 15, where the
+// pg_index column does not exist and the JSON key simply resolves to NULL.
+const uniqueConstraintsQuery = `
+	SELECT
+		cls.relname AS table_name,
+		r.conname AS constraint_name,
+		array_agg(a.attname ORDER BY k.ord) AS columns,
+		COALESCE(
+			bool_or((to_jsonb(idx)->>'indnullsnotdistinct')::boolean),
+			false
+		) AS nulls_not_distinct
+	FROM pg_catalog.pg_constraint r
+	JOIN pg_catalog.pg_class cls ON cls.oid = r.conrelid
+	JOIN pg_catalog.pg_namespace ns ON ns.oid = cls.relnamespace
+	JOIN pg_catalog.pg_index idx ON idx.indexrelid = r.conindid
+	JOIN LATERAL unnest(r.conkey) WITH ORDINALITY AS k(col_id, ord) ON true
+	JOIN pg_catalog.pg_attribute a
+		ON a.attrelid = r.conrelid AND a.attnum = k.col_id
+	WHERE r.contype = 'u'
+		AND ns.nspname = $1
+		AND cls.relname = ANY($2)
+	GROUP BY cls.relname, r.conname
+	ORDER BY cls.relname, r.conname
+`
+
 // populateUniqueConstraints queries and populates unique constraint information for tables in a schema.
 // Uses pg_catalog directly (see populateForeignKeys for rationale).
 func populateUniqueConstraints(
@@ -556,25 +588,7 @@ func populateUniqueConstraints(
 	tableNames []string,
 	tableMap map[string]*introspection.Table,
 ) error {
-	query := `
-		SELECT
-			cls.relname AS table_name,
-			r.conname AS constraint_name,
-			array_agg(a.attname ORDER BY k.ord) AS columns
-		FROM pg_catalog.pg_constraint r
-		JOIN pg_catalog.pg_class cls ON cls.oid = r.conrelid
-		JOIN pg_catalog.pg_namespace ns ON ns.oid = cls.relnamespace
-		JOIN LATERAL unnest(r.conkey) WITH ORDINALITY AS k(col_id, ord) ON true
-		JOIN pg_catalog.pg_attribute a
-			ON a.attrelid = r.conrelid AND a.attnum = k.col_id
-		WHERE r.contype = 'u'
-			AND ns.nspname = $1
-			AND cls.relname = ANY($2)
-		GROUP BY cls.relname, r.conname
-		ORDER BY cls.relname, r.conname
-	`
-
-	rows, err := q.Query(ctx, query, schemaName, tableNames)
+	rows, err := q.Query(ctx, uniqueConstraintsQuery, schemaName, tableNames)
 	if err != nil {
 		return fmt.Errorf("failed to query unique constraints: %w", err)
 	}
@@ -582,12 +596,15 @@ func populateUniqueConstraints(
 
 	for rows.Next() {
 		var (
-			tableName      string
-			constraintName string
-			columns        []string
+			tableName        string
+			constraintName   string
+			columns          []string
+			nullsNotDistinct bool
 		)
 
-		if err := rows.Scan(&tableName, &constraintName, &columns); err != nil {
+		if err := rows.Scan(
+			&tableName, &constraintName, &columns, &nullsNotDistinct,
+		); err != nil {
 			return fmt.Errorf("failed to scan unique constraint row: %w", err)
 		}
 
@@ -595,8 +612,9 @@ func populateUniqueConstraints(
 			table.UniqueConstraints = append(
 				table.UniqueConstraints,
 				introspection.UniqueConstraint{
-					Name:    constraintName,
-					Columns: columns,
+					Name:             constraintName,
+					Columns:          columns,
+					NullsNotDistinct: nullsNotDistinct,
 				},
 			)
 		}

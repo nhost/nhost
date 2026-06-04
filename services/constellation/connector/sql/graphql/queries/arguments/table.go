@@ -1,6 +1,8 @@
 package arguments
 
 import (
+	"strings"
+
 	"github.com/vektah/gqlparser/v2/ast"
 
 	"github.com/nhost/nhost/services/constellation/connector/sql/graphql/queries/core"
@@ -12,8 +14,11 @@ import (
 
 // Table is the contract the argument parser needs from a parent-package table.
 // It exposes column/relationship lookup, dialect access, primary-key access,
-// permission-preset lookups, and a delegate back to the where-clause parser so
-// the arguments package does not have to know about where.Aliases or nesting.
+// permission-preset lookups, row-level-permission emission (for relationship
+// order_by subqueries), and a delegate back to the where-clause parser so the
+// arguments package does not have to know about where.Aliases or nesting.
+//
+//nolint:interfacebloat // a single *table satisfies the parser's full contract.
 type Table interface {
 	// Dialect returns the SQL dialect used for placeholder rendering and type
 	// casts in argument-derived SQL fragments (e.g. (*Update).WriteSQL).
@@ -33,6 +38,31 @@ type Table interface {
 	// ColumnFromSQLName resolves an SQL column name to its column. Used by
 	// preset application and nested-insert FK resolution.
 	ColumnFromSQLName(name string) *core.Column
+
+	// ConflictColumns returns the SQL column names backing the named unique or
+	// primary-key constraint, in declaration order. Used to render the SQLite
+	// ON CONFLICT column-list target. Returns an empty slice when the constraint
+	// is unknown.
+	ConflictColumns(constraintName string) []string
+
+	// TableFromClause returns the FROM-clause source for this table (the
+	// qualified table reference). Used as the parent correlation qualifier and
+	// the target FROM clause when rendering relationship order_by subqueries.
+	TableFromClause() string
+
+	// HasRowLevelPermissions reports whether the given role has a row-level
+	// filter on this table. Used to gate permission injection in relationship
+	// order_by subqueries.
+	HasRowLevelPermissions(role string) bool
+
+	// WriteRowLevelPermissions emits the row-level permission predicate for the
+	// role, qualifying columns with sourceRef. Relationship order_by subqueries
+	// apply the target table's permissions so a restricted role orders only by
+	// rows it is allowed to see, matching Hasura.
+	WriteRowLevelPermissions(
+		b *strings.Builder, params []any, paramIndex int,
+		role string, sessionVariables map[string]any, sourceRef string,
+	) ([]any, int, error)
 
 	// Relationship resolves a GraphQL field name to its relationship.
 	// Returns a nil interface (not a typed-nil) when none matches.
@@ -75,11 +105,31 @@ type Relationship interface {
 	// target.
 	TargetTable() Table
 
-	// FKColumn returns the foreign-key column SQL name for the relationship.
-	FKColumn() string
+	// FKColumns returns the foreign-key column SQL names for the relationship,
+	// in the order the metadata declared them. A single-column FK is returned
+	// as a one-element slice.
+	FKColumns() []string
+
+	// FKSourceColumns maps each FK column populated by a nested insert to the
+	// column read from the source CTE. For array relationships the source CTE is
+	// the parent row; for object relationships it is the nested target row.
+	FKSourceColumns() map[string]string
 
 	// IsArray reports whether this is an array relationship (vs an object
 	// relationship). Array relationships place the FK on the child row;
 	// object relationships place it on the parent.
 	IsArray() bool
+
+	// Name is the relationship's GraphQL field name. Used by order_by to tell
+	// an object/array relationship key from its `<name>_aggregate` key.
+	Name() string
+
+	// AggregateName is the array relationship's aggregate key
+	// (`<name>_aggregate`), used by order_by to dispatch aggregate ordering.
+	AggregateName() string
+
+	// WriteJoinConditionAliased writes the relationship join predicate,
+	// qualifying parent columns with parentAlias and target columns with
+	// targetAlias. Used to correlate an order_by subquery with the outer row.
+	WriteJoinConditionAliased(b *strings.Builder, parentAlias, targetAlias string)
 }

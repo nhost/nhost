@@ -36,6 +36,7 @@ func (t *table) buildQueryCollectionSQL(
 		1,
 		"_root",
 		"_root",
+		rootFieldName(field),
 	)
 	if err != nil {
 		putBuilder(b)
@@ -51,6 +52,7 @@ func (t *table) buildQueryCollectionSQL(
 		SQL:           sql,
 		Parameters:    params,
 		StreamCursors: nil,
+		Sequential:    nil,
 	}, nil
 }
 
@@ -69,6 +71,45 @@ func (t *table) writeQueryCollectionSQL(
 	paramIndex int,
 	alias string,
 	relName string,
+	argumentPath string,
+	queryModifiers ...queryModifierFunc,
+) ([]any, int, error) {
+	return t.writeQueryCollectionSQLFromSource(
+		b,
+		field,
+		fragments,
+		variables,
+		role,
+		sessionVariables,
+		roots,
+		params,
+		paramIndex,
+		alias,
+		relName,
+		t.tableFromClause(),
+		t.tableSourceRef(),
+		nil,
+		argumentPath,
+		queryModifiers...,
+	)
+}
+
+func (t *table) writeQueryCollectionSQLFromSource(
+	b *strings.Builder,
+	field *ast.Field,
+	fragments ast.FragmentDefinitionList,
+	variables map[string]any,
+	role string,
+	sessionVariables map[string]any,
+	roots map[string]core.Operation,
+	params []any,
+	paramIndex int,
+	alias string,
+	relName string,
+	fromClause string,
+	sourceRef string,
+	nestedCTEs map[string]nestedReturningCTERef,
+	argumentPath string,
 	queryModifiers ...queryModifierFunc,
 ) ([]any, int, error) {
 	b.WriteString("SELECT ")
@@ -77,7 +118,7 @@ func (t *table) writeQueryCollectionSQL(
 	b.WriteString(relName)
 	b.WriteString(`" FROM (`)
 
-	params, paramIndex, err := t.buildQuerySQL(
+	params, paramIndex, err := t.buildQuerySQLWithNestedCTEs(
 		b,
 		field,
 		fragments,
@@ -89,9 +130,12 @@ func (t *table) writeQueryCollectionSQL(
 		paramIndex,
 		alias,
 		alias,
-		t.tableFromClause(),
-		t.tableSourceRef(),
-		queryModifiers...)
+		fromClause,
+		sourceRef,
+		nestedCTEs,
+		argumentPath,
+		queryModifiers...,
+	)
 	if err != nil {
 		return nil, 0, err
 	}

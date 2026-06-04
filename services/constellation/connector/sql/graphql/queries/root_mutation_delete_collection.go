@@ -11,13 +11,20 @@ import (
 	"github.com/nhost/nhost/services/constellation/connector/sql/graphql/queries/where"
 )
 
+// buildMutationDeleteCollectionSQL is intentionally parallel to
+// buildMutationUpdateSQL — both are CTE-mutation dispatchers that parse
+// arguments, build the selection, emit the SQL, and wrap the builder pool. The
+// shared structure is clearer kept side by side than abstracted, so dupl is
+// suppressed here exactly as it is on the update twin.
+//
+//nolint:dupl
 func (t *table) buildMutationDeleteCollectionSQL(
 	field *ast.Field,
 	fragments ast.FragmentDefinitionList,
 	variables map[string]any,
 	role string,
 	sessionVariables map[string]any,
-	_ map[string]core.Operation,
+	roots map[string]core.Operation,
 ) (core.SQLOperation, error) {
 	alias := field.Alias
 	if alias == "" {
@@ -42,8 +49,11 @@ func (t *table) buildMutationDeleteCollectionSQL(
 		b,
 		whereClause,
 		selection,
+		fragments,
+		variables,
 		role,
 		sessionVariables,
+		roots,
 	)
 	if err != nil {
 		putBuilder(b)
@@ -59,6 +69,7 @@ func (t *table) buildMutationDeleteCollectionSQL(
 		SQL:           sql,
 		Parameters:    params,
 		StreamCursors: nil,
+		Sequential:    nil,
 	}, nil
 }
 
@@ -116,8 +127,11 @@ func (t *table) buildDeleteCollectionSQL(
 	b *strings.Builder,
 	whereClause where.Clause,
 	selection mutationSelection,
+	fragments ast.FragmentDefinitionList,
+	variables map[string]any,
 	role string,
 	sessionVariables map[string]any,
+	roots map[string]core.Operation,
 ) ([]any, error) {
 	var (
 		params     = make([]any, 0, 8) //nolint:mnd
@@ -141,7 +155,9 @@ func (t *table) buildDeleteCollectionSQL(
 
 	b.WriteString(" ")
 
-	params, _, err = selection.WriteSQLForDelete(b, params, paramIndex)
+	params, _, err = selection.WriteSQL(
+		b, fragments, variables, role, sessionVariables, roots, params, paramIndex,
+	)
 	if err != nil {
 		return nil, err
 	}

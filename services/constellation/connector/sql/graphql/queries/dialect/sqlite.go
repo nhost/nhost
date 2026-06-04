@@ -1,9 +1,15 @@
 package dialect
 
 import (
+	"errors"
+	"fmt"
 	"strings"
 
 	"github.com/nhost/nhost/services/constellation/connector/sql/graphql/queries/core"
+)
+
+var errSQLiteOnConflictTargetColumnsRequired = errors.New(
+	"sqlite ON CONFLICT target has no resolved columns",
 )
 
 // SQLiteDialect implements Dialect for SQLite.
@@ -168,10 +174,6 @@ func (d *SQLiteDialect) MaterializedCTE() string {
 	return "AS"
 }
 
-func (d *SQLiteDialect) JSONBuildArray() string {
-	return "json_array"
-}
-
 // WriteArrayContains is unreachable on SQLite: array operators are gated by
 // SupportsArrays() (which returns false here), so any caller hitting this
 // method has skipped the capability check. Failing loudly turns that
@@ -200,6 +202,149 @@ func (d *SQLiteDialect) SupportsArrays() bool {
 	return false
 }
 
+// WriteCountAggregate renders multi-column counts through a stable JSON tuple
+// key. SQLite rejects COUNT((c1, c2)) as "row value misused"; wrapping each
+// value in quote() keeps NULLs and BLOBs representable while producing a
+// non-null tuple value, matching PostgreSQL row-constructor count semantics.
+func (d *SQLiteDialect) WriteCountAggregate(
+	b *strings.Builder, distinct bool, expressions []string,
+) {
+	b.WriteString("COUNT(")
+
+	if len(expressions) == 0 {
+		b.WriteByte('*')
+		b.WriteByte(')')
+
+		return
+	}
+
+	if distinct {
+		b.WriteString("DISTINCT ")
+	}
+
+	if len(expressions) == 1 {
+		b.WriteByte('(')
+		b.WriteString(expressions[0])
+		b.WriteString("))")
+
+		return
+	}
+
+	b.WriteString("json_array(")
+	writeQuotedExpressionList(b, expressions)
+	b.WriteString("))")
+}
+
+// WriteAggregateOrderByExpr writes SQLite-supported aggregate expressions for
+// array-relationship aggregate order_by. SQLite has no stddev/variance aggregate
+// functions; the stddev/variance family is rejected upstream (gated by
+// SupportsStableVarianceOrderBy) because the one-pass identity that would
+// emulate them is numerically unstable and inverts the ordering for large,
+// close values. Only avg/sum/min/max reach this method.
+func (d *SQLiteDialect) WriteAggregateOrderByExpr(
+	b *strings.Builder, function string, expression string,
+) {
+	switch function {
+	case "avg":
+		writeSQLiteUnaryAggregate(b, "AVG", expression)
+	case "max":
+		writeSQLiteUnaryAggregate(b, "MAX", expression)
+	case "min":
+		writeSQLiteUnaryAggregate(b, "MIN", expression)
+	case "sum":
+		writeSQLiteUnaryAggregate(b, "SUM", expression)
+	default:
+		// The caller validates the function name and rejects unsupported ones
+		// before reaching the dialect; keep the fallback syntactically obvious if
+		// a new schema field is added without extending this switch.
+		writeSQLiteUnaryAggregate(b, strings.ToUpper(function), expression)
+	}
+}
+
+// SupportsStableVarianceOrderBy returns false: SQLite has no native
+// stddev/variance aggregate, and the one-pass sum-of-squares identity that would
+// emulate them loses all precision (and can go negative) for large, close
+// values, so the row ordering would diverge from PostgreSQL/Hasura. The caller
+// rejects such orderings instead of returning a silently wrong order.
+func (d *SQLiteDialect) SupportsStableVarianceOrderBy() bool { return false }
+
+// SupportsVarianceAggregates returns false: go-sqlite3 has no stddev/variance
+// aggregate functions, so STDDEV(...)/VARIANCE(...) etc. would fail at execution
+// with an opaque "no such function" error. Schema generation therefore omits the
+// stddev/variance aggregate fields for SQLite and the selection builder rejects
+// them; avg/sum/min/max/count remain native and unaffected.
+func (d *SQLiteDialect) SupportsVarianceAggregates() bool { return false }
+
+func (d *SQLiteDialect) SupportsUpsertUpdateAction() bool { return false }
+
+func (d *SQLiteDialect) WriteUpsertUpdateAction(_ *strings.Builder) {
+	panic(
+		"dialect: WriteUpsertUpdateAction called on SQLiteDialect; gate with SupportsUpsertUpdateAction",
+	)
+}
+
+func (d *SQLiteDialect) RequiresOnConflictTargetColumns() bool { return true }
+
+// WriteOnConflictTarget lists the constraint's columns: SQLite has no
+// "ON CONFLICT ON CONSTRAINT <name>" form, so it identifies the conflict target
+// by its index columns ("ON CONFLICT (\"col1\", \"col2\")"). When
+// conflictColumns is empty (a constraint whose columns could not be resolved),
+// the method fails before writing SQL instead of emitting bare "ON CONFLICT",
+// which SQLite would interpret as "any unique conflict".
+func (d *SQLiteDialect) WriteOnConflictTarget(
+	b *strings.Builder, constraintName string, conflictColumns []string,
+) error {
+	if len(conflictColumns) == 0 {
+		return fmt.Errorf(
+			"%w for constraint %q",
+			errSQLiteOnConflictTargetColumnsRequired,
+			constraintName,
+		)
+	}
+
+	b.WriteString(" ON CONFLICT (")
+
+	for i, column := range conflictColumns {
+		if i > 0 {
+			b.WriteString(", ")
+		}
+
+		core.WriteQuotedIdentifier(b, column)
+	}
+
+	b.WriteByte(')')
+
+	return nil
+}
+
+func writeQuotedExpressionList(b *strings.Builder, expressions []string) {
+	for i, expr := range expressions {
+		if i > 0 {
+			b.WriteString(", ")
+		}
+
+		b.WriteString("quote(")
+		b.WriteString(expr)
+		b.WriteByte(')')
+	}
+}
+
+func writeSQLiteUnaryAggregate(b *strings.Builder, function string, expression string) {
+	b.WriteString(function)
+	b.WriteByte('(')
+	b.WriteString(expression)
+	b.WriteByte(')')
+}
+
+// BoolAndFunc returns min: SQLite has no bool_and, but over its 0/1 boolean
+// storage min() is true (1) iff every value is true, matching bool_and —
+// including NULL over an empty set.
+func (d *SQLiteDialect) BoolAndFunc() string { return "min" }
+
+// BoolOrFunc returns max: over SQLite's 0/1 boolean storage max() is true (1)
+// iff any value is true, matching bool_or.
+func (d *SQLiteDialect) BoolOrFunc() string { return "max" }
+
 func (d *SQLiteDialect) WriteJSONRowPrefix(b *strings.Builder) {
 	b.WriteString("json_object(")
 }
@@ -220,19 +365,43 @@ func (d *SQLiteDialect) WriteJSONRowSuffixNoAlias(b *strings.Builder) {
 	b.WriteString(")")
 }
 
+// WriteGroupKeysFrom renders the grouped-key derived table as a chain of
+// single-row SELECTs unioned together: the first SELECT names the column via
+// "AS", subsequent rows reuse it positionally, and the whole subquery is given
+// the derived-table alias. SQLite does NOT support the PostgreSQL
+// "(VALUES ...) AS alias(column)" table-alias column-list clause — it rejects it
+// with a prepare-time syntax error — so a VALUES list cannot name its column
+// here. Each value is bound through a placeholder, never concatenated.
+//
+//	(SELECT ? AS "_join_key" UNION ALL SELECT ? UNION ALL ...) AS "__cs_grp_keys"
+//
+// The empty case (no parent keys) cannot occur in production — the resolver
+// returns before building when there are no join values — but a zero-row,
+// correctly-named derived table is emitted defensively so the surrounding
+// statement stays valid regardless of the caller.
 func (d *SQLiteDialect) WriteGroupKeysFrom(
 	b *strings.Builder,
 	keysAlias, colAlias, _ string,
 	values []any, params []any, paramIndex int,
 ) ([]any, int) {
-	b.WriteString("(VALUES ")
+	b.WriteString("(SELECT ")
+
+	if len(values) == 0 {
+		b.WriteString("NULL AS ")
+		core.WriteQuotedIdentifier(b, colAlias)
+		b.WriteString(" WHERE 0) AS ")
+		core.WriteQuotedIdentifier(b, keysAlias)
+
+		return params, paramIndex
+	}
 
 	for i, v := range values {
 		if i > 0 {
-			b.WriteString(", ")
+			b.WriteString(" UNION ALL SELECT ?")
+		} else {
+			b.WriteString("? AS ")
+			core.WriteQuotedIdentifier(b, colAlias)
 		}
-
-		b.WriteString("(?)")
 
 		params = append(params, v)
 		paramIndex++
@@ -240,9 +409,6 @@ func (d *SQLiteDialect) WriteGroupKeysFrom(
 
 	b.WriteString(") AS ")
 	core.WriteQuotedIdentifier(b, keysAlias)
-	b.WriteByte('(')
-	core.WriteQuotedIdentifier(b, colAlias)
-	b.WriteByte(')')
 
 	return params, paramIndex
 }

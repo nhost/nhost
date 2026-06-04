@@ -157,7 +157,8 @@ func (c *Composer) composeRole(
 			return
 		}
 
-		logger.InfoContext(ctx, "merged schema for role",
+		logger.InfoContext(
+			ctx, "merged schema for role",
 			slog.String("role", role),
 			slog.String("connector", connName),
 		)

@@ -121,7 +121,8 @@ func (s *S3) PutFile(
 		)
 	}
 
-	object, err := s.client.PutObject(ctx,
+	object, err := s.client.PutObject(
+		ctx,
 		&s3.PutObjectInput{ //nolint:exhaustruct
 			Body:        content,
 			Bucket:      s.bucket,
@@ -146,7 +147,8 @@ func (s *S3) GetFile(
 		return nil, controller.InternalServerError(fmt.Errorf("problem joining path: %w", err))
 	}
 
-	object, err := s.client.GetObject(ctx,
+	object, err := s.client.GetObject(
+		ctx,
 		&s3.GetObjectInput{ //nolint:exhaustruct
 			Bucket: s.bucket,
 			Key:    aws.String(key),
@@ -192,7 +194,8 @@ func (s *S3) CreatePresignedURL(
 		return "", controller.InternalServerError(fmt.Errorf("problem joining path: %w", err))
 	}
 
-	request, err := s.presignClient.PresignGetObject(ctx,
+	request, err := s.presignClient.PresignGetObject(
+		ctx,
 		&s3.GetObjectInput{ //nolint:exhaustruct
 			Bucket: s.bucket,
 			Key:    aws.String(key),

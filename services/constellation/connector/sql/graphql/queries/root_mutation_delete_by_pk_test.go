@@ -3,6 +3,7 @@ package queries_test
 import (
 	"testing"
 
+	"github.com/nhost/nhost/services/constellation/connector/sql/graphql/queries/arguments"
 	"github.com/nhost/nhost/services/constellation/connector/sql/graphql/queries/values"
 )
 
@@ -97,6 +98,43 @@ func TestBuildMutationDeleteByPkSQL(t *testing.T) { //nolint:paralleltest
 				}`,
 				Role: "admin",
 			},
+		},
+
+		// Invalid arguments on a nested relationship must reject the whole
+		// delete_by_pk before the DELETE executes (no row deleted), matching
+		// Hasura. delete_by_pk builds the same relationship subqueries as
+		// insert/update returning, so invalid arguments are rejected by the shared
+		// SELECT-path parser before execution.
+		{
+			name: "delete_by_pk relationship with negative limit rejected",
+			query: query{
+				Query: `mutation {
+					delete_departments_by_pk(id: "2db9de0a-b9ba-416e-8619-783a399ae2b3") {
+						id
+						employees(limit: -1) {
+							user_id
+						}
+					}
+				}`,
+				Role: "admin",
+			},
+			expectError: arguments.ErrInvalidArgument,
+		},
+
+		{
+			name: "delete_by_pk relationship with distinct_on order_by mismatch rejected",
+			query: query{
+				Query: `mutation {
+					delete_departments_by_pk(id: "2db9de0a-b9ba-416e-8619-783a399ae2b3") {
+						id
+						employees(distinct_on: user_id, order_by: {department_id: asc}) {
+							user_id
+						}
+					}
+				}`,
+				Role: "admin",
+			},
+			expectError: arguments.ErrInvalidArgument,
 		},
 
 		// Permission tests

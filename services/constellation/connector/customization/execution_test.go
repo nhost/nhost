@@ -404,6 +404,79 @@ func TestReverseOperationRootFieldNameRoundTrip(t *testing.T) {
 	}
 }
 
+func TestForwardArgumentPathRestoresNamespace(t *testing.T) {
+	t.Parallel()
+
+	namespacedOp := func(namespaceAlias, rootAlias, rootName string) *ast.OperationDefinition {
+		return &ast.OperationDefinition{
+			Operation: ast.Query,
+			SelectionSet: ast.SelectionSet{
+				&ast.Field{
+					Alias: namespaceAlias,
+					Name:  "league",
+					SelectionSet: ast.SelectionSet{
+						&ast.Field{Alias: rootAlias, Name: rootName},
+					},
+				},
+			},
+		}
+	}
+
+	tests := []struct {
+		name       string
+		cfg        metadata.Customization
+		op         *ast.OperationDefinition
+		nativePath string
+		want       string
+	}{
+		{
+			name:       "namespace is prepended to root path",
+			cfg:        metadata.Customization{RootFieldsNamespace: "league"},
+			op:         namespacedOp("", "", "teams"),
+			nativePath: "teams",
+			want:       "league.selectionSet.teams",
+		},
+		{
+			name:       "namespace and root aliases are preserved",
+			cfg:        metadata.Customization{RootFieldsNamespace: "league"},
+			op:         namespacedOp("lg", "roster", "teams"),
+			nativePath: "roster.selectionSet.players",
+			want:       "lg.selectionSet.roster.selectionSet.players",
+		},
+		{
+			name: "native root name maps back to prefixed client root",
+			cfg: metadata.Customization{
+				RootFieldsNamespace: "league",
+				RootFieldsPrefix:    "db_",
+			},
+			op:         namespacedOp("", "", "db_teams"),
+			nativePath: "teams.selectionSet.players",
+			want:       "league.selectionSet.db_teams.selectionSet.players",
+		},
+		{
+			name:       "non-namespaced customization leaves path unchanged",
+			cfg:        metadata.Customization{RootFieldsPrefix: "db_"},
+			op:         &ast.OperationDefinition{Operation: ast.Query},
+			nativePath: "db_teams",
+			want:       "db_teams",
+		},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			t.Parallel()
+
+			c := customization.New(tt.cfg, customization.FlavorRemoteSchema)
+			c.Apply(newTestSchema())
+
+			got := c.ForwardArgumentPath(tt.nativePath, tt.op, nil)
+			if got != tt.want {
+				t.Errorf("ForwardArgumentPath(%q) = %q, want %q", tt.nativePath, got, tt.want)
+			}
+		})
+	}
+}
+
 // TestReverseOperationLeavesNestedAffixCollisionsIntact proves that the
 // root-field prefix/suffix is reversed only on genuine root fields, not on
 // nested fields whose names happen to collide with the affix. A database source

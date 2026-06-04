@@ -2,6 +2,7 @@ package multiplexed_test
 
 import (
 	"encoding/json"
+	"errors"
 	"testing"
 
 	"github.com/google/go-cmp/cmp"
@@ -18,6 +19,7 @@ func TestMultiplex(t *testing.T) {
 		expectedSQL     string
 		expectedParams  []any
 		expectedNoParam bool
+		expectErr       error
 	}{
 		{
 			name: "no parameters",
@@ -40,7 +42,7 @@ func TestMultiplex(t *testing.T) {
 				Name: "users",
 				SQL:  `SELECT "id", "name" FROM "users" WHERE "user_id" = $1::uuid`,
 				Parameters: []any{
-					"x-hasura-user-id",
+					core.SessionVarValue{Name: "x-hasura-user-id"},
 				},
 				StreamCursors: nil,
 			},
@@ -57,7 +59,7 @@ func TestMultiplex(t *testing.T) {
 				Name: "users",
 				SQL:  `SELECT "id", "name" FROM "users" WHERE "org_id" = $1::uuid AND "status" = $2`,
 				Parameters: []any{
-					"x-hasura-org-id",
+					core.SessionVarValue{Name: "x-hasura-org-id"},
 					"active",
 				},
 				StreamCursors: nil,
@@ -70,13 +72,35 @@ func TestMultiplex(t *testing.T) {
 			expectedParams: []any{"active"},
 		},
 		{
+			// Regression for the session-variable misclassification bug: a
+			// user-supplied where literal that begins with "x-hasura-" is data,
+			// so it must stay a renumbered static parameter ($3), while only the
+			// genuine permission marker becomes a result_vars JSON path.
+			name: "user literal beginning with x-hasura stays a static param",
+			op: core.SQLOperation{
+				Name: "users",
+				SQL:  `SELECT "id" FROM "users" WHERE "tag" = $1 AND "org_id" = $2::uuid`,
+				Parameters: []any{
+					"x-hasura-legacy",
+					core.SessionVarValue{Name: "x-hasura-org-id"},
+				},
+				StreamCursors: nil,
+			},
+			expectedSQL: `SELECT "_subs"."result_id", "_fld_resp"."root" AS "result" FROM ` +
+				`UNNEST($1::text[], $2::json[]) AS "_subs"("result_id", "result_vars") ` +
+				`LEFT OUTER JOIN LATERAL (SELECT json_build_object('users', (` +
+				`SELECT "id" FROM "users" WHERE "tag" = $3 AND "org_id" = (("_subs"."result_vars" #>> '{session,x-hasura-org-id}')::uuid)` +
+				`)) AS "root") AS "_fld_resp" ON ('true')`,
+			expectedParams: []any{"x-hasura-legacy"},
+		},
+		{
 			name: "cursor values",
 			op: core.SQLOperation{
 				Name: "users_stream",
 				SQL:  `SELECT "id", "name" FROM "users" WHERE "id" > $1::uuid AND "org_id" = $2::uuid`,
 				Parameters: []any{
 					core.CursorValue{ColumnName: "id", Value: "initial-id"},
-					"x-hasura-org-id",
+					core.SessionVarValue{Name: "x-hasura-org-id"},
 				},
 				StreamCursors: nil,
 			},
@@ -86,6 +110,62 @@ func TestMultiplex(t *testing.T) {
 				`SELECT "id", "name" FROM "users" WHERE "id" > (("_subs"."result_vars" #>> '{cursor,id}')::uuid) AND "org_id" = (("_subs"."result_vars" #>> '{session,x-hasura-org-id}')::uuid)` +
 				`)) AS "root") AS "_fld_resp" ON ('true')`,
 			expectedNoParam: true,
+		},
+		{
+			name: "function session argument",
+			op: core.SQLOperation{
+				Name: "session_echoes_for_session",
+				SQL: `SELECT "id", "user_id" FROM "public"."session_echoes_for_session"(` +
+					`"session" := $1)`,
+				Parameters: []any{
+					core.FunctionSessionArgument{SQLType: "json"},
+				},
+				StreamCursors: nil,
+			},
+			expectedSQL: `SELECT "_subs"."result_id", "_fld_resp"."root" AS "result" FROM ` +
+				`UNNEST($1::text[], $2::json[]) AS "_subs"("result_id", "result_vars") ` +
+				`LEFT OUTER JOIN LATERAL (SELECT json_build_object('session_echoes_for_session', (` +
+				`SELECT "id", "user_id" FROM "public"."session_echoes_for_session"("session" := (("_subs"."result_vars" -> 'session')::json))` +
+				`)) AS "root") AS "_fld_resp" ON ('true')`,
+			expectedNoParam: true,
+		},
+		{
+			name: "function session argument with renumbered static param",
+			op: core.SQLOperation{
+				Name: "f",
+				SQL: `SELECT "id" FROM "public"."f"(` +
+					`"session" := $1, "limit_arg" := $2)`,
+				Parameters: []any{
+					core.FunctionSessionArgument{SQLType: "jsonb"},
+					int64(10),
+				},
+				StreamCursors: nil,
+			},
+			expectedSQL: `SELECT "_subs"."result_id", "_fld_resp"."root" AS "result" FROM ` +
+				`UNNEST($1::text[], $2::json[]) AS "_subs"("result_id", "result_vars") ` +
+				`LEFT OUTER JOIN LATERAL (SELECT json_build_object('f', (` +
+				`SELECT "id" FROM "public"."f"("session" := (("_subs"."result_vars" -> 'session')::jsonb), "limit_arg" := $3)` +
+				`)) AS "root") AS "_fld_resp" ON ('true')`,
+			expectedParams: []any{int64(10)},
+		},
+		{
+			name: "renumbered static param before function session argument",
+			op: core.SQLOperation{
+				Name: "f",
+				SQL: `SELECT "id" FROM "public"."f"(` +
+					`"limit_arg" := $1, "session" := $2)`,
+				Parameters: []any{
+					int64(10),
+					core.FunctionSessionArgument{SQLType: "jsonb"},
+				},
+				StreamCursors: nil,
+			},
+			expectedSQL: `SELECT "_subs"."result_id", "_fld_resp"."root" AS "result" FROM ` +
+				`UNNEST($1::text[], $2::json[]) AS "_subs"("result_id", "result_vars") ` +
+				`LEFT OUTER JOIN LATERAL (SELECT json_build_object('f', (` +
+				`SELECT "id" FROM "public"."f"("limit_arg" := $3, "session" := (("_subs"."result_vars" -> 'session')::jsonb))` +
+				`)) AS "root") AS "_fld_resp" ON ('true')`,
+			expectedParams: []any{int64(10)},
 		},
 		{
 			name: "static params only",
@@ -105,13 +185,43 @@ func TestMultiplex(t *testing.T) {
 				`)) AS "root") AS "_fld_resp" ON ('true')`,
 			expectedParams: []any{"electronics", 99.99},
 		},
+		{
+			// A permission _in mixing a session variable with a literal leaves
+			// the marker trapped in a multi-element array that cannot reduce to a
+			// single result_vars path. Rather than silently bind the variable's
+			// literal name (which would evaluate the row-level permission against
+			// "x-hasura-…" instead of the subscriber's value), Multiplex rejects
+			// the subscription with a clear error.
+			name: "multi-element in with marker is rejected",
+			op: core.SQLOperation{
+				Name: "users",
+				SQL:  `SELECT "id" FROM "users" WHERE "tenant_id" = ANY($1::uuid[])`,
+				Parameters: []any{
+					[]any{core.SessionVarValue{Name: "x-hasura-tenant-id"}, "default"},
+				},
+				StreamCursors: nil,
+			},
+			expectErr: multiplexed.ErrSessionVarInMultiElementArray,
+		},
 	}
 
 	for _, tc := range tests {
 		t.Run(tc.name, func(t *testing.T) {
 			t.Parallel()
 
-			gotSQL, gotParams := multiplexed.Multiplex(tc.op)
+			gotSQL, gotParams, err := multiplexed.Multiplex(tc.op)
+
+			if tc.expectErr != nil {
+				if !errors.Is(err, tc.expectErr) {
+					t.Fatalf("Multiplex error = %v, want errors.Is %v", err, tc.expectErr)
+				}
+
+				return
+			}
+
+			if err != nil {
+				t.Fatalf("unexpected error: %v", err)
+			}
 
 			if gotSQL != tc.expectedSQL {
 				t.Errorf("sql:\ngot:  %s\nwant: %s", gotSQL, tc.expectedSQL)

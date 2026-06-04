@@ -1,4 +1,5 @@
 import { PlusIcon } from 'lucide-react';
+import Link from 'next/link';
 import { type ReactElement, useMemo } from 'react';
 import { useDialog } from '@/components/common/DialogProvider';
 import { UpgradeToProBanner } from '@/components/common/UpgradeToProBanner';
@@ -8,8 +9,8 @@ import { ActivityIndicator } from '@/components/ui/v2/ActivityIndicator';
 import { Alert } from '@/components/ui/v2/Alert';
 import { Box } from '@/components/ui/v2/Box';
 import { Button } from '@/components/ui/v2/Button';
-import { Link } from '@/components/ui/v2/Link';
 import { Text } from '@/components/ui/v2/Text';
+import { useRemoteApplicationGQLClient } from '@/features/orgs/hooks/useRemoteApplicationGQLClient';
 import { AISidebar } from '@/features/orgs/layout/AISidebar';
 import { OrgLayout } from '@/features/orgs/layout/OrgLayout';
 import { AssistantForm } from '@/features/orgs/projects/ai/AssistantForm';
@@ -17,7 +18,6 @@ import { AssistantsList } from '@/features/orgs/projects/ai/AssistantsList';
 import { useIsFileStoreSupported } from '@/features/orgs/projects/common/hooks/useIsFileStoreSupported';
 import { useIsGraphiteEnabled } from '@/features/orgs/projects/common/hooks/useIsGraphiteEnabled';
 import { useIsPlatform } from '@/features/orgs/projects/common/hooks/useIsPlatform';
-import { useAdminApolloClient } from '@/features/orgs/projects/hooks/useAdminApolloClient';
 import { useCurrentOrg } from '@/features/orgs/projects/hooks/useCurrentOrg';
 import { useProject } from '@/features/orgs/projects/hooks/useProject';
 import {
@@ -38,7 +38,7 @@ export default function AssistantsPage() {
   const { org, loading: loadingOrg } = useCurrentOrg();
   const { project, loading: loadingProject } = useProject();
 
-  const { adminClient } = useAdminApolloClient();
+  const remoteProjectGQLClient = useRemoteApplicationGQLClient();
   const { isGraphiteEnabled, loading: loadingGraphite } =
     useIsGraphiteEnabled();
 
@@ -51,7 +51,7 @@ export default function AssistantsPage() {
     error: assistantsError,
     refetch: assistantsRefetch,
   } = useGetAssistantsQuery({
-    client: adminClient,
+    client: remoteProjectGQLClient,
     variables: {
       isFileStoresSupported: isFileStoreSupported ?? false,
     },
@@ -59,7 +59,7 @@ export default function AssistantsPage() {
   });
   const { data: fileStoresData, error: fileStoresError } =
     useGetGraphiteFileStoresQuery({
-      client: adminClient,
+      client: remoteProjectGQLClient,
     });
 
   const assistants = useMemo(
@@ -126,7 +126,7 @@ export default function AssistantsPage() {
               <Link
                 href={`/orgs/${slug}/projects/${project?.subdomain}/settings/ai`}
                 rel="noopener noreferrer"
-                underline="hover"
+                className="text-primary hover:underline"
               >
                 AI Settings
               </Link>

@@ -1,3 +1,83 @@
+## [constellation@0.5.0] - 2026-06-03
+
+### 🚀 Features
+
+- *(constellation)* Support aggregate relationship order_by (#4403)
+- *(constellation)* Reject bad distinct_on & negative limit/offset (#4405)
+- *(constellation)* Cap GraphQL request bodies (#4418)
+- *(constellation)* Expire JWT WebSocket sessions (#4416)
+
+
+### 🐛 Bug Fixes
+
+- *(constellation)* Treat null top-level `where` as no filter, matching Hasura (#4382)
+- *(constellation)* Run insert-check after INSERT when payload omits referenced cols (#4384)
+- *(constellation)* Partition multi-parent nested array inserts per parent CTE (#4389)
+- *(constellation)* Apply defaults in mixed multi-row inserts (#4388)
+- *(constellation)* Partition multi-parent object-rel nested inserts per parent (#4392)
+- *(constellation)* Resolve where variables (#4398)
+- *(constellation)* Preserve x-hasura literals in subscriptions (#4399)
+- *(constellation)* Harden JWT and admin-secret authentication (#4400)
+- *(constellation)* Honor field aliases at every aggregate scope (#4407)
+- *(constellation)* Support function default args (#4404)
+- *(constellation)* Partition object-rel nested inserts per parent (#4401)
+- *(constellation)* Resolve nested returning relationships from insert CTEs (#4414)
+- *(constellation)* Apply remote-schema presets under non-default root types (#4415)
+- *(constellation)* Preserve x-hasura literals in subscriptions (#4422)
+- *(constellation)* Resolve where variables (#4423)
+- *(constellation)* Enforce upsert update permissions (#4419)
+- *(constellation)* Honor @skip/@include and root fragments/__typename (#4434)
+- *(constellation)* Emit enum types for mutation-only inputs (#4438)
+- *(constellation)* Harden stream cursors and introspection responses (#4439)
+
+
+### ⚙️ Miscellaneous Tasks
+
+- *(nixops)* Drop nix-filter input in favor of pkgs.lib.fileset (#4377)
+- *(nixops)* Fix repo after bumping nixpkgs (#4394)
+
+## [constellation@0.4.0] - 2026-05-27
+
+### 🚀 Features
+
+- *(constellation)* Support wildcard origins in CORS allow-list (#4373)
+
+
+### 🐛 Bug Fixes
+
+- *(constellation)* Accept Content-Type variants on POST /graphql and default to application/json (#4374)
+
+## [constellation@0.3.1] - 2026-05-26
+
+### 🐛 Bug Fixes
+
+- *(constellation)* Nested array inserts with parent-referencing perms (#4370)
+
+## [constellation@0.3.0] - 2026-05-26
+
+### 🚀 Features
+
+- *(constellation)* Support multi-row nested array-relationship inserts (#4362)
+
+
+### ⚙️ Miscellaneous Tasks
+
+- *(constellation)* Update README.md instructions (#4363)
+
+## [constellation@0.2.0] - 2026-05-26
+
+### 🚀 Features
+
+- *(cli)* Port schema tooling to the CLI from constellation (#4348)
+
+
+### 🐛 Bug Fixes
+
+- *(constellation)* Only introspect what's needed to avoid permission errors (#4349)
+- *(constellation)* Resolve __typename correctly on aggregate queries (#4354)
+- *(constellation)* Support composite keys on relationships (#4355)
+- *(constellation)* Emit enum type for PK args referencing enum tables (#4357)
+
 ## [constellation@0.1.0] - 2026-05-25
 
 ### 🚀 Features

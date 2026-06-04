@@ -18,6 +18,9 @@ type fakeRelationshipForTest struct {
 
 func (f *fakeRelationshipForTest) Target() Table           { return nil }
 func (f *fakeRelationshipForTest) ParentColumns() []string { return f.parentColumns }
+func (f *fakeRelationshipForTest) Name() string            { return "rel" }
+func (f *fakeRelationshipForTest) AggregateName() string   { return "rel_aggregate" }
+func (f *fakeRelationshipForTest) IsArray() bool           { return true }
 func (f *fakeRelationshipForTest) WriteJoinConditionAliased(
 	_ *strings.Builder, _, _ string,
 ) {

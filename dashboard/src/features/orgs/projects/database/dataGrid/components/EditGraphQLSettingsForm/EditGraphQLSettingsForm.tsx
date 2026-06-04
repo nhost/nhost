@@ -3,6 +3,11 @@ import { Button } from '@/components/ui/v3/button';
 import { useGetMetadataResourceVersion } from '@/features/orgs/projects/common/hooks/useGetMetadataResourceVersion';
 import { useIsTrackedTable } from '@/features/orgs/projects/database/dataGrid/hooks/useIsTrackedTable';
 import { useSetTableTrackingMutation } from '@/features/orgs/projects/database/dataGrid/hooks/useSetTableTrackingMutation';
+import type { TableLikeObjectType } from '@/features/orgs/projects/database/dataGrid/types/dataBrowser';
+import {
+  getCapitalizedTableLikeObjectTypeLabel,
+  getTableLikeObjectTypeLabel,
+} from '@/features/orgs/projects/database/dataGrid/utils/getTableLikeObjectTypeLabel/getTableLikeObjectTypeLabel';
 import { execPromiseWithErrorToast } from '@/features/orgs/utils/execPromiseWithErrorToast';
 import { ColumnsNameCustomizationSection } from './sections/ColumnsNameCustomizationSection';
 import { CustomGraphQLRootFieldsSection } from './sections/CustomGraphQLRootFieldsSection';
@@ -22,10 +27,15 @@ export interface EditGraphQLSettingsFormProps {
    * Table's name that is being edited/viewed.
    */
   tableName: string;
+  /**
+   * Type of database object that is being tracked/untracked.
+   */
+  objectType?: TableLikeObjectType;
 }
 
 export default function EditGraphQLSettingsForm({
   onCancel,
+  objectType,
   schema,
   tableName,
 }: EditGraphQLSettingsFormProps) {
@@ -46,6 +56,9 @@ export default function EditGraphQLSettingsForm({
   async function handleTrackToggle() {
     const tracked = !isTracked;
     const action = tracked ? 'track' : 'untrack';
+    const objectLabel = getTableLikeObjectTypeLabel(objectType);
+    const capitalizedObjectLabel =
+      getCapitalizedTableLikeObjectTypeLabel(objectType);
 
     await execPromiseWithErrorToast(
       async () => {
@@ -59,9 +72,11 @@ export default function EditGraphQLSettingsForm({
         });
       },
       {
-        loadingMessage: `${tracked ? 'Tracking' : 'Untracking'} table...`,
-        successMessage: `Table ${action}ed successfully.`,
-        errorMessage: `Failed to ${action} table.`,
+        loadingMessage: `${
+          tracked ? 'Tracking' : 'Untracking'
+        } ${objectLabel}...`,
+        successMessage: `${capitalizedObjectLabel} ${action}ed successfully.`,
+        errorMessage: `Failed to ${action} ${objectLabel}.`,
       },
     );
   }

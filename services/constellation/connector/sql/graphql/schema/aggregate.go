@@ -42,6 +42,7 @@ func generateAggregateTypes(
 	qualifiedName string,
 	allowedColumns map[string]struct{},
 	md *metadata.DatabaseMetadata,
+	caps Capabilities,
 ) {
 	generateMainAggregateType(schema, customTableName, qualifiedName)
 
@@ -53,7 +54,7 @@ func generateAggregateTypes(
 	hasNumeric := hasNumericColumns(tableInfo, allowedColumns)
 	if hasNumeric {
 		generateNumericAggregateFieldsTypes(
-			schema, tableMeta, tableInfo, customTableName, allowedColumns,
+			schema, tableMeta, tableInfo, customTableName, allowedColumns, caps,
 		)
 	}
 
@@ -64,6 +65,7 @@ func generateAggregateTypes(
 		hasMaxFields,
 		hasMinFields,
 		hasNumeric,
+		caps,
 	)
 }
 
@@ -93,13 +95,14 @@ func generateMainAggregateType(
 }
 
 // generateAggregateFieldsType generates the aggregate_fields type (e.g., users_aggregate_fields).
-func generateAggregateFieldsType( //nolint:funlen
+func generateAggregateFieldsType(
 	schema *graph.Schema,
 	customTableName string,
 	qualifiedName string,
 	hasMaxFields bool,
 	hasMinFields bool,
 	hasNumericColumns bool,
+	caps Capabilities,
 ) {
 	aggregateFieldsFields := []*graph.Field{
 		{
@@ -135,11 +138,45 @@ func generateAggregateFieldsType( //nolint:funlen
 	}
 
 	if hasNumericColumns {
-		aggregateFieldsFields = append(aggregateFieldsFields,
-			&graph.Field{ //nolint:exhaustruct
-				Name: "avg",
-				Type: graph.NewNamedType(customTableName + "_avg_fields"),
-			},
+		aggregateFieldsFields = appendNumericAggregateFields(
+			aggregateFieldsFields, customTableName, caps,
+		)
+	}
+
+	schema.Types = append(schema.Types, &graph.ObjectType{ //nolint:exhaustruct
+		Name:        customTableName + "_aggregate_fields",
+		Description: fmt.Sprintf("aggregate fields of \"%s\"", qualifiedName),
+		Fields:      aggregateFieldsFields,
+	})
+}
+
+// appendNumericAggregateFields appends the numeric aggregate fields to
+// aggregate_fields in Hasura's canonical order. avg and sum are native on every
+// backend and always emitted; the stddev/variance family is gated by
+// caps.SupportsVarianceAggregates, since exposing it on SQLite — which lacks
+// those aggregate functions — would surface an opaque runtime "no such function"
+// error rather than a clean GraphQL validation error.
+//
+// This deliberately mirrors appendNumericAggregateOrderByFields: the same
+// avg/[stddev]/sum/[var] gating shape over a different field type (graph.Field
+// vs graph.InputField) and *_fields vs *_order_by type suffixes. Unifying the
+// two behind a generic helper would be less readable than the explicit
+// functions, hence the dupl suppression below.
+//
+//nolint:dupl // intentional mirror of appendNumericAggregateOrderByFields, see above.
+func appendNumericAggregateFields(
+	fields []*graph.Field,
+	customTableName string,
+	caps Capabilities,
+) []*graph.Field {
+	fields = append(fields, &graph.Field{ //nolint:exhaustruct
+		Name: "avg",
+		Type: graph.NewNamedType(customTableName + "_avg_fields"),
+	})
+
+	if caps.SupportsVarianceAggregates {
+		fields = append(
+			fields,
 			&graph.Field{ //nolint:exhaustruct
 				Name: "stddev",
 				Type: graph.NewNamedType(customTableName + "_stddev_fields"),
@@ -152,10 +189,17 @@ func generateAggregateFieldsType( //nolint:funlen
 				Name: "stddev_samp",
 				Type: graph.NewNamedType(customTableName + "_stddev_samp_fields"),
 			},
-			&graph.Field{ //nolint:exhaustruct
-				Name: "sum",
-				Type: graph.NewNamedType(customTableName + "_sum_fields"),
-			},
+		)
+	}
+
+	fields = append(fields, &graph.Field{ //nolint:exhaustruct
+		Name: "sum",
+		Type: graph.NewNamedType(customTableName + "_sum_fields"),
+	})
+
+	if caps.SupportsVarianceAggregates {
+		fields = append(
+			fields,
 			&graph.Field{ //nolint:exhaustruct
 				Name: "var_pop",
 				Type: graph.NewNamedType(customTableName + "_var_pop_fields"),
@@ -171,11 +215,7 @@ func generateAggregateFieldsType( //nolint:funlen
 		)
 	}
 
-	schema.Types = append(schema.Types, &graph.ObjectType{ //nolint:exhaustruct
-		Name:        customTableName + "_aggregate_fields",
-		Description: fmt.Sprintf("aggregate fields of \"%s\"", qualifiedName),
-		Fields:      aggregateFieldsFields,
-	})
+	return fields
 }
 
 // generateMinMaxFieldsTypes generates min and max fields types for aggregates.
@@ -289,13 +329,18 @@ func generateNumericAggregateFieldType(
 	}
 }
 
-// generateNumericAggregateFieldsTypes generates all numeric aggregate field types.
+// generateNumericAggregateFieldsTypes generates all numeric aggregate field
+// types. avg and sum are emitted on every backend; the stddev/variance family
+// is gated by caps.SupportsVarianceAggregates so SQLite (which lacks those
+// aggregate functions) does not emit orphan *_stddev_fields/*_variance_fields
+// object types whose corresponding aggregate_fields entries were suppressed.
 func generateNumericAggregateFieldsTypes(
 	schema *graph.Schema,
 	tableMeta *metadata.TableMetadata,
 	tableInfo *introspection.Table,
 	customTableName string,
 	allowedColumns map[string]struct{},
+	caps Capabilities,
 ) {
 	floatType := func(_ string) *graph.Type { return graph.NewNamedType("Float") }
 
@@ -303,6 +348,17 @@ func generateNumericAggregateFieldsTypes(
 		schema, tableMeta, tableInfo, customTableName, allowedColumns,
 		"avg", "aggregate avg on columns", floatType,
 	)
+
+	// sum() preserves the column type rather than promoting to Float.
+	generateNumericAggregateFieldType(
+		schema, tableMeta, tableInfo, customTableName, allowedColumns,
+		"sum", "aggregate sum on columns",
+		func(pgType string) *graph.Type { return postgresTypeToGraphQL(pgType, true) },
+	)
+
+	if !caps.SupportsVarianceAggregates {
+		return
+	}
 
 	generateNumericAggregateFieldType(
 		schema, tableMeta, tableInfo, customTableName, allowedColumns,
@@ -317,13 +373,6 @@ func generateNumericAggregateFieldsTypes(
 	generateNumericAggregateFieldType(
 		schema, tableMeta, tableInfo, customTableName, allowedColumns,
 		"stddev_samp", "aggregate stddev_samp on columns", floatType,
-	)
-
-	// sum() preserves the column type rather than promoting to Float.
-	generateNumericAggregateFieldType(
-		schema, tableMeta, tableInfo, customTableName, allowedColumns,
-		"sum", "aggregate sum on columns",
-		func(pgType string) *graph.Type { return postgresTypeToGraphQL(pgType, true) },
 	)
 
 	generateNumericAggregateFieldType(
@@ -352,6 +401,7 @@ func generateAggregateOrderByTypes( //nolint:funlen
 	qualifiedName string,
 	allowedColumns map[string]struct{},
 	md *metadata.DatabaseMetadata,
+	caps Capabilities,
 ) {
 	maxOrderByFields := []*graph.InputField{}
 	for _, col := range tableInfo.Columns {
@@ -415,7 +465,7 @@ func generateAggregateOrderByTypes( //nolint:funlen
 	hasNumeric := hasNumericColumns(tableInfo, allowedColumns)
 	if hasNumeric {
 		generateNumericAggregateOrderByInputTypes(
-			schema, tableMeta, tableInfo, customTableName, qualifiedName, allowedColumns,
+			schema, tableMeta, tableInfo, customTableName, qualifiedName, allowedColumns, caps,
 		)
 	}
 
@@ -448,7 +498,7 @@ func generateAggregateOrderByTypes( //nolint:funlen
 
 	if hasNumeric {
 		aggregateOrderByFields = appendNumericAggregateOrderByFields(
-			aggregateOrderByFields, customTableName,
+			aggregateOrderByFields, customTableName, caps,
 		)
 	}
 
@@ -462,45 +512,74 @@ func generateAggregateOrderByTypes( //nolint:funlen
 	})
 }
 
-// appendNumericAggregateOrderByFields appends numeric aggregate order_by fields to the provided slice.
+// appendNumericAggregateOrderByFields appends the numeric aggregate order_by
+// fields to <table>_aggregate_order_by in Hasura's canonical order. avg and sum
+// are accepted on every backend and always emitted; the stddev/variance family
+// is gated by caps.SupportsStableVarianceOrderBy so the advertised order_by
+// surface matches what the aggregate-order_by builder accepts at runtime —
+// backends without stable variance ordering (SQLite) reject these functions, so
+// emitting the fields here would surface an opaque rejection instead of a clean
+// GraphQL validation error.
+//
+// This deliberately mirrors appendNumericAggregateFields: the same
+// avg/[stddev]/sum/[var] gating shape over a different field type
+// (graph.InputField vs graph.Field) and *_order_by vs *_fields type suffixes.
+// Unifying the two behind a generic helper would be less readable than the
+// explicit functions, hence the dupl suppression below.
+//
+//nolint:dupl // intentional mirror of appendNumericAggregateFields, see above.
 func appendNumericAggregateOrderByFields(
 	fields []*graph.InputField,
 	customTableName string,
+	caps Capabilities,
 ) []*graph.InputField {
-	return append(fields,
-		&graph.InputField{ //nolint:exhaustruct
-			Name: "avg",
-			Type: graph.NewNamedType(customTableName + "_avg_order_by"),
-		},
-		&graph.InputField{ //nolint:exhaustruct
-			Name: "stddev",
-			Type: graph.NewNamedType(customTableName + "_stddev_order_by"),
-		},
-		&graph.InputField{ //nolint:exhaustruct
-			Name: "stddev_pop",
-			Type: graph.NewNamedType(customTableName + "_stddev_pop_order_by"),
-		},
-		&graph.InputField{ //nolint:exhaustruct
-			Name: "stddev_samp",
-			Type: graph.NewNamedType(customTableName + "_stddev_samp_order_by"),
-		},
-		&graph.InputField{ //nolint:exhaustruct
-			Name: "sum",
-			Type: graph.NewNamedType(customTableName + "_sum_order_by"),
-		},
-		&graph.InputField{ //nolint:exhaustruct
-			Name: "var_pop",
-			Type: graph.NewNamedType(customTableName + "_var_pop_order_by"),
-		},
-		&graph.InputField{ //nolint:exhaustruct
-			Name: "var_samp",
-			Type: graph.NewNamedType(customTableName + "_var_samp_order_by"),
-		},
-		&graph.InputField{ //nolint:exhaustruct
-			Name: "variance",
-			Type: graph.NewNamedType(customTableName + "_variance_order_by"),
-		},
-	)
+	fields = append(fields, &graph.InputField{ //nolint:exhaustruct
+		Name: "avg",
+		Type: graph.NewNamedType(customTableName + "_avg_order_by"),
+	})
+
+	if caps.SupportsStableVarianceOrderBy {
+		fields = append(
+			fields,
+			&graph.InputField{ //nolint:exhaustruct
+				Name: "stddev",
+				Type: graph.NewNamedType(customTableName + "_stddev_order_by"),
+			},
+			&graph.InputField{ //nolint:exhaustruct
+				Name: "stddev_pop",
+				Type: graph.NewNamedType(customTableName + "_stddev_pop_order_by"),
+			},
+			&graph.InputField{ //nolint:exhaustruct
+				Name: "stddev_samp",
+				Type: graph.NewNamedType(customTableName + "_stddev_samp_order_by"),
+			},
+		)
+	}
+
+	fields = append(fields, &graph.InputField{ //nolint:exhaustruct
+		Name: "sum",
+		Type: graph.NewNamedType(customTableName + "_sum_order_by"),
+	})
+
+	if caps.SupportsStableVarianceOrderBy {
+		fields = append(
+			fields,
+			&graph.InputField{ //nolint:exhaustruct
+				Name: "var_pop",
+				Type: graph.NewNamedType(customTableName + "_var_pop_order_by"),
+			},
+			&graph.InputField{ //nolint:exhaustruct
+				Name: "var_samp",
+				Type: graph.NewNamedType(customTableName + "_var_samp_order_by"),
+			},
+			&graph.InputField{ //nolint:exhaustruct
+				Name: "variance",
+				Type: graph.NewNamedType(customTableName + "_variance_order_by"),
+			},
+		)
+	}
+
+	return fields
 }
 
 // generateNumericAggregateOrderByInputType generates a single numeric aggregate order_by input type.
@@ -541,7 +620,13 @@ func generateNumericAggregateOrderByInputType(
 	}
 }
 
-// generateNumericAggregateOrderByInputTypes generates all numeric aggregate order_by input types.
+// generateNumericAggregateOrderByInputTypes generates all numeric aggregate
+// order_by input types in Hasura's canonical order. avg and sum are emitted on
+// every backend; the stddev/variance family is gated by
+// caps.SupportsStableVarianceOrderBy so SQLite (which rejects ordering by those
+// functions at runtime) does not emit orphan *_stddev_order_by/*_variance_order_by
+// input types whose corresponding aggregate_order_by entries were suppressed.
+// The order_by entries this gating mirrors live in appendNumericAggregateOrderByFields.
 func generateNumericAggregateOrderByInputTypes(
 	schema *graph.Schema,
 	tableMeta *metadata.TableMetadata,
@@ -549,46 +634,51 @@ func generateNumericAggregateOrderByInputTypes(
 	customTableName string,
 	qualifiedName string,
 	allowedColumns map[string]struct{},
+	caps Capabilities,
 ) {
 	generateNumericAggregateOrderByInputType(
 		schema, tableMeta, tableInfo, customTableName, qualifiedName, allowedColumns,
 		"avg", "order by avg() on columns of table \"%s\"",
 	)
 
-	generateNumericAggregateOrderByInputType(
-		schema, tableMeta, tableInfo, customTableName, qualifiedName, allowedColumns,
-		"stddev", "order by stddev() on columns of table \"%s\"",
-	)
+	if caps.SupportsStableVarianceOrderBy {
+		generateNumericAggregateOrderByInputType(
+			schema, tableMeta, tableInfo, customTableName, qualifiedName, allowedColumns,
+			"stddev", "order by stddev() on columns of table \"%s\"",
+		)
 
-	generateNumericAggregateOrderByInputType(
-		schema, tableMeta, tableInfo, customTableName, qualifiedName, allowedColumns,
-		"stddev_pop", "order by stddev_pop() on columns of table \"%s\"",
-	)
+		generateNumericAggregateOrderByInputType(
+			schema, tableMeta, tableInfo, customTableName, qualifiedName, allowedColumns,
+			"stddev_pop", "order by stddev_pop() on columns of table \"%s\"",
+		)
 
-	generateNumericAggregateOrderByInputType(
-		schema, tableMeta, tableInfo, customTableName, qualifiedName, allowedColumns,
-		"stddev_samp", "order by stddev_samp() on columns of table \"%s\"",
-	)
+		generateNumericAggregateOrderByInputType(
+			schema, tableMeta, tableInfo, customTableName, qualifiedName, allowedColumns,
+			"stddev_samp", "order by stddev_samp() on columns of table \"%s\"",
+		)
+	}
 
 	generateNumericAggregateOrderByInputType(
 		schema, tableMeta, tableInfo, customTableName, qualifiedName, allowedColumns,
 		"sum", "order by sum() on columns of table \"%s\"",
 	)
 
-	generateNumericAggregateOrderByInputType(
-		schema, tableMeta, tableInfo, customTableName, qualifiedName, allowedColumns,
-		"var_pop", "order by var_pop() on columns of table \"%s\"",
-	)
+	if caps.SupportsStableVarianceOrderBy {
+		generateNumericAggregateOrderByInputType(
+			schema, tableMeta, tableInfo, customTableName, qualifiedName, allowedColumns,
+			"var_pop", "order by var_pop() on columns of table \"%s\"",
+		)
 
-	generateNumericAggregateOrderByInputType(
-		schema, tableMeta, tableInfo, customTableName, qualifiedName, allowedColumns,
-		"var_samp", "order by var_samp() on columns of table \"%s\"",
-	)
+		generateNumericAggregateOrderByInputType(
+			schema, tableMeta, tableInfo, customTableName, qualifiedName, allowedColumns,
+			"var_samp", "order by var_samp() on columns of table \"%s\"",
+		)
 
-	generateNumericAggregateOrderByInputType(
-		schema, tableMeta, tableInfo, customTableName, qualifiedName, allowedColumns,
-		"variance", "order by variance() on columns of table \"%s\"",
-	)
+		generateNumericAggregateOrderByInputType(
+			schema, tableMeta, tableInfo, customTableName, qualifiedName, allowedColumns,
+			"variance", "order by variance() on columns of table \"%s\"",
+		)
+	}
 }
 
 // hasNumericColumns returns true if the table has any numeric columns that support aggregation.
@@ -655,7 +745,8 @@ func generateAggregateBoolExpTypes( //nolint:funlen
 	}
 
 	if len(booleanColumns) > 0 {
-		aggregateBoolExpFields = append(aggregateBoolExpFields,
+		aggregateBoolExpFields = append(
+			aggregateBoolExpFields,
 			&graph.InputField{ //nolint:exhaustruct
 				Name: "bool_and",
 				Type: graph.NewNamedType(customTableName + "_aggregate_bool_exp_bool_and"),
@@ -859,6 +950,7 @@ func maybeGenerateAggregateOrderByForTargetTable(
 	targetTable string,
 	role string,
 	generatedAggregateOrderBy map[string]struct{},
+	caps Capabilities,
 ) {
 	tableKey := targetSchema + "." + targetTable
 
@@ -895,6 +987,7 @@ func maybeGenerateAggregateOrderByForTargetTable(
 		qualifiedName,
 		allowedColumns,
 		md,
+		caps,
 	)
 
 	generatedAggregateOrderBy[tableKey] = struct{}{}

@@ -16,8 +16,8 @@ import (
 // arguments.Table.Relationship has a different name from
 // where.Table.RelationshipFromGraphqlName specifically so a single *table can
 // satisfy both interfaces (Go does not allow covariant return types).
-// arguments.Relationship's methods (Name, TargetTable, FKColumn, IsArray)
-// don't collide with where.Relationship (Target, ParentColumns,
+// arguments.Relationship's methods (Name, TargetTable, FKColumns,
+// FKSourceColumns, IsArray) don't collide with where.Relationship (Target, ParentColumns,
 // WriteJoinConditionAliased), so *relationship satisfies both directly.
 
 func (t *table) TableName() string { return t.tableName }
@@ -26,6 +26,19 @@ func (t *table) PKColumns() []*core.Column { return t.pkColumns }
 
 func (t *table) ColumnFromSQLName(name string) *core.Column {
 	return t.columnFromSQLName(name)
+}
+
+// ConflictColumns satisfies arguments.Table, exposing the introspected
+// constraint -> columns mapping the argument parser needs to render the SQLite
+// ON CONFLICT column-list target. The returned slice is a copy so callers cannot
+// mutate the table's cached metadata.
+func (t *table) ConflictColumns(constraintName string) []string {
+	columns := t.conflictColumns[constraintName]
+	if len(columns) == 0 {
+		return nil
+	}
+
+	return append([]string(nil), columns...)
 }
 
 // Relationship satisfies arguments.Table. Returns a nil interface (not a
@@ -77,6 +90,32 @@ func (r *relationship) TargetTable() arguments.Table { //nolint:ireturn,nolintli
 	return r.table
 }
 
-func (r *relationship) FKColumn() string { return r.fkColumn }
+func (r *relationship) FKColumns() []string { return r.fkColumns }
+
+func (r *relationship) FKSourceColumns() map[string]string {
+	fkSources := make(map[string]string, len(r.parentColumns))
+
+	if r.isArray {
+		for i, parentColumn := range r.parentColumns {
+			if i >= len(r.targetColumns) {
+				break
+			}
+
+			fkSources[r.targetColumns[i]] = parentColumn
+		}
+
+		return fkSources
+	}
+
+	for i, parentColumn := range r.parentColumns {
+		if i >= len(r.targetColumns) {
+			break
+		}
+
+		fkSources[parentColumn] = r.targetColumns[i]
+	}
+
+	return fkSources
+}
 
 func (r *relationship) IsArray() bool { return r.isArray }

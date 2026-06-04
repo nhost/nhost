@@ -1,7 +1,6 @@
 {
   self,
   pkgs,
-  nix-filter,
   nixops-lib,
 }:
 let
@@ -11,39 +10,43 @@ let
   created = "1970-01-01T00:00:00Z";
   submodule = "services/${name}";
 
-  src = nix-filter.lib.filter {
+  fs = pkgs.lib.fileset;
+
+  src = fs.toSource {
     root = ../..;
-    include = with nix-filter.lib; [
-      "go.mod"
-      "go.sum"
-      (inDirectory "vendor")
-      ".golangci.yaml"
-      "govulncheck.yaml"
-      isDirectory
-      (and (inDirectory submodule) (matchExt "go"))
-      "${submodule}/gqlgenc.yaml"
-      "${submodule}/controller/openapi.yaml"
-      "${submodule}/api/types.cfg.yaml"
-      "${submodule}/api/server.cfg.yaml"
-      "${submodule}/metadata/metadata.graphql"
+    fileset =
+      fs.difference
+        (fs.unions [
+          ../../go.mod
+          ../../go.sum
+          ../../vendor
+          ../../.golangci.yaml
+          ../../govulncheck.yaml
+          (fs.fileFilter (f: f.hasExt "go") ./.)
+          ./gqlgenc.yaml
+          ./controller/openapi.yaml
+          ./api/types.cfg.yaml
+          ./api/server.cfg.yaml
+          ./metadata/metadata.graphql
 
-      "${submodule}/controller/openapi.yaml"
-      "${submodule}/vacuum.yaml"
-      "${submodule}/vacuum-ignore.yaml"
+          ./controller/openapi.yaml
+          ./vacuum.yaml
+          ./vacuum-ignore.yaml
 
-      (inDirectory "${submodule}/migrations/postgres")
-      (inDirectory "${submodule}/clamd/testdata")
-      (inDirectory "${submodule}/client/testdata")
-      (inDirectory "${submodule}/image/testdata")
-      (inDirectory "${submodule}/storage/testdata")
+          ./migrations/postgres
+          ./clamd/testdata
+          ./client/testdata
+          ./image/testdata
+          ./storage/testdata
 
-      (inDirectory ../../internal/lib/oapi)
-      (inDirectory ../../internal/lib/hasura/metadata)
-    ];
-
-    exclude = with nix-filter.lib; [
-      (inDirectory "${submodule}/build/dev/jwt-gen")
-    ];
+          ../../internal/lib/oapi
+          ../../internal/lib/hasura/metadata
+        ])
+        (
+          fs.unions [
+            ./build/dev/jwt-gen
+          ]
+        );
   };
 
   tags = [ ];

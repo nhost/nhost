@@ -30,8 +30,10 @@ import {
 } from '@/components/ui/v3/select';
 import type { DatabaseAction } from '@/features/orgs/projects/database/dataGrid/types/dataBrowser';
 import HideEmptyTablesSwitch from './HideEmptyTablesSwitch';
+import NamingModeSwitch from './NamingModeSwitch';
 import PermissionDot from './PermissionDot';
 import { ADMIN_ROLE } from './permissionState';
+import type { NamingMode } from './useSchemaGraph';
 
 export interface SchemaDiagramToolbarProps {
   roles: string[];
@@ -42,6 +44,8 @@ export interface SchemaDiagramToolbarProps {
   onSelectedSchemasChange: (schemas: string[]) => void;
   hideEmpty: boolean;
   onHideEmptyChange: (value: boolean) => void;
+  namingMode: NamingMode;
+  onNamingModeChange: (mode: NamingMode) => void;
   onNewTable: () => void;
   canCreateTable: boolean;
   targetSchema: string;
@@ -65,6 +69,8 @@ export default function SchemaDiagramToolbar({
   onSelectedSchemasChange,
   hideEmpty,
   onHideEmptyChange,
+  namingMode,
+  onNamingModeChange,
   onNewTable,
   canCreateTable,
   targetSchema,
@@ -124,6 +130,11 @@ export default function SchemaDiagramToolbar({
         selectedRole={selectedRole}
         hideEmpty={hideEmpty}
         onHideEmptyChange={onHideEmptyChange}
+      />
+
+      <NamingModeSwitch
+        namingMode={namingMode}
+        onNamingModeChange={onNamingModeChange}
       />
 
       <div className="ml-auto flex items-center gap-3">

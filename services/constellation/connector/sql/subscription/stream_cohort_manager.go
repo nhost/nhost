@@ -92,7 +92,8 @@ func (m *streamCohortManager) addSubscription(
 		// cohort members.
 		go m.pollCohort(context.Background(), c) //nolint:contextcheck
 
-		logger.DebugContext(ctx, "created new stream cohort",
+		logger.DebugContext(
+			ctx, "created new stream cohort",
 			slog.String("cohort_key", keyStr),
 			slog.Any("cursor_values", cursorValues),
 		)
@@ -112,7 +113,8 @@ func (m *streamCohortManager) addSubscription(
 
 	m.mu.Unlock()
 
-	logger.DebugContext(ctx, "added stream subscription to cohort",
+	logger.DebugContext(
+		ctx, "added stream subscription to cohort",
 		slog.String("subscription_id", req.ID),
 		slog.String("cohort_key", keyStr),
 		slog.Int("cohort_size", c.size()),
@@ -156,7 +158,8 @@ func (m *streamCohortManager) removeSubscription(ctx context.Context, subID stri
 	isEmpty := c.removeSubscription(subID)
 	delete(m.subscriptionIndex, subID)
 
-	logger.DebugContext(ctx, "removed subscription from stream cohort",
+	logger.DebugContext(
+		ctx, "removed subscription from stream cohort",
 		slog.String("subscription_id", subID),
 		slog.String("cohort_key", keyStr),
 	)
@@ -166,7 +169,8 @@ func (m *streamCohortManager) removeSubscription(ctx context.Context, subID stri
 		c.stop()
 		delete(m.cohorts, keyStr)
 
-		logger.DebugContext(ctx, "removed empty stream cohort",
+		logger.DebugContext(
+			ctx, "removed empty stream cohort",
 			slog.String("cohort_key", keyStr),
 		)
 	}
@@ -179,7 +183,8 @@ func (m *streamCohortManager) pollCohort(ctx context.Context, c *streamCohort) {
 	ticker := time.NewTicker(m.pollingInterval)
 	defer ticker.Stop()
 
-	logger.DebugContext(ctx, "started polling stream cohort",
+	logger.DebugContext(
+		ctx, "started polling stream cohort",
 		slog.String("cohort_key", c.key.String()),
 	)
 
@@ -192,7 +197,8 @@ func (m *streamCohortManager) pollCohort(ctx context.Context, c *streamCohort) {
 	for {
 		select {
 		case <-c.stopChannel():
-			logger.DebugContext(ctx, "stream cohort polling stopped",
+			logger.DebugContext(
+				ctx, "stream cohort polling stopped",
 				slog.String("cohort_key", c.key.String()),
 			)
 
@@ -206,7 +212,8 @@ func (m *streamCohortManager) pollCohort(ctx context.Context, c *streamCohort) {
 				delete(m.cohorts, c.key.String())
 				m.mu.Unlock()
 
-				logger.DebugContext(ctx, "stream cohort is empty, stopping",
+				logger.DebugContext(
+					ctx, "stream cohort is empty, stopping",
 					slog.String("cohort_key", c.key.String()),
 				)
 
@@ -233,7 +240,8 @@ func (m *streamCohortManager) executeAndRebuild(
 
 	subscriptions := c.getSubscriptionsCopy()
 
-	logger.DebugContext(ctx, "executing stream poll",
+	logger.DebugContext(
+		ctx, "executing stream poll",
 		slog.String("cohort_key", c.key.String()),
 		slog.Int("subscriptions", len(subscriptions)),
 		slog.Int("new_subscriptions", len(c.getNewSubscriptionsCopy())),
@@ -258,7 +266,8 @@ func (m *streamCohortManager) executeAndRebuild(
 	if err != nil {
 		wrapped := fmt.Errorf("executing stream subscription poll: %w", err)
 
-		logger.ErrorContext(ctx, "failed to execute stream query",
+		logger.ErrorContext(
+			ctx, "failed to execute stream query",
 			slog.String("cohort_key", c.key.String()),
 			slog.String("error", wrapped.Error()),
 		)
@@ -335,7 +344,8 @@ func sendParseError(
 	parseErr error,
 	logger *slog.Logger,
 ) {
-	logger.ErrorContext(ctx, "failed to parse stream result payload",
+	logger.ErrorContext(
+		ctx, "failed to parse stream result payload",
 		slog.String("cohort_key", cohortKey),
 		slog.String("subscription_id", s.id),
 		slog.String("error", parseErr.Error()),
@@ -393,7 +403,8 @@ func (m *streamCohortManager) sendStreamResults(
 		}
 	}
 
-	logger.DebugContext(ctx, "stream poll results sent",
+	logger.DebugContext(
+		ctx, "stream poll results sent",
 		slog.String("cohort_key", c.key.String()),
 		slog.Int("sent", sentCount),
 		slog.Int("skipped_unchanged", skippedUnchanged),
@@ -485,7 +496,8 @@ func (m *streamCohortManager) getOrBuildSQL(
 	op := operations[0]
 	c.cachedOp = &op
 
-	logger.Debug("built and cached stream subscription SQL",
+	logger.Debug(
+		"built and cached stream subscription SQL",
 		slog.String("cohort_key", c.key.String()),
 	)
 
@@ -501,7 +513,7 @@ func buildStreamTemplateVars(
 ) (map[string]any, map[string]any) {
 	templateSessionVars := make(map[string]any, len(sessionVarArrays))
 	for varName := range sessionVarArrays {
-		templateSessionVars[varName] = varName
+		templateSessionVars[varName] = core.SessionVarValue{Name: varName}
 	}
 
 	templateGraphQLVars := make(map[string]any, len(graphQLVarArrays))
@@ -661,7 +673,8 @@ func (m *streamCohortManager) rebuildCohortMap(
 		return
 	}
 
-	logger.DebugContext(ctx, "stream cohort cursor advanced",
+	logger.DebugContext(
+		ctx, "stream cohort cursor advanced",
 		slog.String("old_key", oldKeyStr),
 		slog.String("new_key", newKeyStr),
 		slog.Any("new_cursor", newCursorValues),
@@ -691,7 +704,8 @@ func (m *streamCohortManager) mergeStreamCohort(
 		subIDs = append(subIDs, id)
 	}
 
-	logger.DebugContext(ctx, "merging stream cohorts",
+	logger.DebugContext(
+		ctx, "merging stream cohorts",
 		slog.String("from_cohort", oldKeyStr),
 		slog.String("to_cohort", newKeyStr),
 		slog.Int("moving_subscriptions", len(subscriptions)),
@@ -707,13 +721,15 @@ func (m *streamCohortManager) mergeStreamCohort(
 
 	src.clearSubscriptions()
 
-	logger.DebugContext(ctx, "stopping merged cohort",
+	logger.DebugContext(
+		ctx, "stopping merged cohort",
 		slog.String("cohort_key", oldKeyStr),
 	)
 	src.stop()
 	delete(m.cohorts, oldKeyStr)
 
-	logger.DebugContext(ctx, "merge complete",
+	logger.DebugContext(
+		ctx, "merge complete",
 		slog.String("merged_into", newKeyStr),
 		slog.Int("new_cohort_size", dst.size()),
 	)
@@ -742,7 +758,8 @@ func (m *streamCohortManager) reseatStreamCohort(
 		m.subscriptionIndex[id] = newKeyStr
 	}
 
-	logger.DebugContext(ctx, "cohort key updated",
+	logger.DebugContext(
+		ctx, "cohort key updated",
 		slog.String("old_key", oldKeyStr),
 		slog.String("new_key", newKeyStr),
 		slog.Int("subscriptions", len(subscriptions)),
@@ -768,7 +785,8 @@ func (m *streamCohortManager) processNewSubscribers(
 		subIDs = append(subIDs, id)
 	}
 
-	logger.DebugContext(ctx, "processing new subscribers that arrived during poll",
+	logger.DebugContext(
+		ctx, "processing new subscribers that arrived during poll",
 		slog.String("cohort_key", c.key.String()),
 		slog.Int("count", len(newSubs)),
 		slog.Any("subscription_ids", subIDs),
@@ -832,7 +850,8 @@ func (m *streamCohortManager) attachOrCreateCohortForCursor(
 			m.subscriptionIndex[s.id] = keyStr
 		}
 
-		logger.DebugContext(ctx, "added new subscribers to existing stream cohort",
+		logger.DebugContext(
+			ctx, "added new subscribers to existing stream cohort",
 			slog.String("cohort_key", keyStr),
 			slog.Int("count", len(subs)),
 		)
@@ -862,7 +881,8 @@ func (m *streamCohortManager) attachOrCreateCohortForCursor(
 	// rationale.
 	go m.pollCohort(context.Background(), nc) //nolint:contextcheck
 
-	logger.DebugContext(ctx, "created new stream cohort for new subscribers",
+	logger.DebugContext(
+		ctx, "created new stream cohort for new subscribers",
 		slog.String("cohort_key", keyStr),
 		slog.String("cursor_hash", cursorHash),
 		slog.Int("count", len(subs)),
@@ -876,7 +896,8 @@ func (m *streamCohortManager) shutdown(ctx context.Context) {
 	m.mu.Lock()
 	defer m.mu.Unlock()
 
-	logger.InfoContext(ctx, "shutting down stream cohort manager",
+	logger.InfoContext(
+		ctx, "shutting down stream cohort manager",
 		slog.Int("cohorts", len(m.cohorts)),
 	)
 

@@ -37,9 +37,14 @@ type Request struct {
 	// nils or collapse duplicates, and a nil entry will be stringified to "<nil>"
 	// when keying the result map (see Executor godoc).
 	JoinValues []any
-	// Field is the user's aggregate selection at the GraphQL root, used by the
-	// executor to drive sub-field selection (aggregate / nodes).
+	// Field is the user's aggregate selection, used by the executor to drive
+	// sub-field selection (aggregate / nodes).
 	Field *ast.Field
+	// ArgumentPath is the GraphQL selection path from the operation root to
+	// Field, using response field names joined by ".selectionSet.". Connectors
+	// use it to render validation errors for nested aggregate relationships.
+	// Empty falls back to Field's alias/name for direct executor callers.
+	ArgumentPath string
 	// Fragments is the operation's fragment definition list, forwarded to the
 	// SQL builder so fragment spreads inside Field can be resolved.
 	Fragments ast.FragmentDefinitionList
@@ -94,10 +99,11 @@ func NewRequest(req Request) (Request, error) {
 //
 // Result-map invariants. The returned map is keyed by the stringified join
 // value — specifically fmt.Sprintf("%v", v) of each entry in Request.JoinValues
-// — and each value is shaped { "aggregate": {...}, "nodes": [...] }, the same
-// shape as the same-database aggregate field. An entry is present for every
-// value in Request.JoinValues, including those with no matching target rows
-// (count: 0, nodes: []). Because keys are %v-stringified, distinct JoinValues
+// — and each value preserves the same GraphQL response fields as the same-
+// database aggregate field (aliases when present, otherwise "aggregate" /
+// "nodes"). An entry is present for every value in Request.JoinValues,
+// including those with no matching target rows (count: 0, nodes: []). Because
+// keys are %v-stringified, distinct JoinValues
 // entries that share the same %v representation (e.g. a []byte and its string
 // equivalent) will collide on the same key; callers must dedupe in a way that
 // matches that formatting. The resolver-side stitcher applies the same

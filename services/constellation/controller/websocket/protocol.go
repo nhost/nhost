@@ -23,6 +23,13 @@ const (
 	messageTypeError         = "error"
 )
 
+const (
+	closeCodeUnauthorized                    = 4401
+	closeCodeTooManyInitialisationRequests   = 4429
+	closeReasonUnauthorized                  = "Unauthorized"
+	closeReasonTooManyInitialisationRequests = "Too many initialisation requests"
+)
+
 // Message represents a graphql-ws protocol message.
 type Message struct {
 	ID      string         `json:"id,omitempty"`
@@ -79,7 +86,8 @@ func NewErrorMessage(id string, errs []map[string]any) *Message {
 func newErrorMessage(id string, msg string) *Message {
 	payload, err := json.Marshal([]map[string]any{{"message": msg}})
 	if err != nil {
-		slog.Error("failed to marshal fallback error payload",
+		slog.Error(
+			"failed to marshal fallback error payload",
 			slog.String("error", err.Error()),
 			slog.String("message", msg),
 		)

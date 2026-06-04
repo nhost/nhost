@@ -11,7 +11,7 @@ A customization is one config (`metadata.Customization`) that has to be applied 
 | Direction | Method | When | What it does |
 |---|---|---|---|
 | **Forward (schema)** | `Customizer.Apply` | build time | Rewrites the connector's schema: rename types, rename root fields, wrap root fields under a namespace field. |
-| **Inverse (operation)** | `Customizer.ReverseOperation` | request time, before `Execute` | Rewrites the incoming operation from customized names back to the connector's native names. |
+| **Inverse (operation)** | `Customizer.ReverseOperation` | request time, before `ValidateOperation` and `Execute` | Rewrites the incoming operation from customized names back to the connector's native names. |
 | **Forward (result)** | `Customizer.ForwardResult` | request time, after `Execute` | Reshapes the native response back into customized shape: re-nest the namespace, re-map `__typename`. |
 
 The forward and inverse transforms must stay in lockstep, which is why `Apply` records the native↔customized type maps that the reverse direction reads — and why **one `Customizer` instance must drive all three** (`customization.go:217-241`). `newCustomizedConnector` constructs exactly one and reuses it.
@@ -36,10 +36,20 @@ customizedConnector{ inner, customizer, schemas }   implements connector.Connect
         │
         ▼  merged into each role schema by connector/composer — oblivious to customization
 
+Request time (pre-execution validation, when the controller runs it)
+────────────────────────────────────────────────────────────────────
+client operation (customized names)
+        │  customizedConnector.ValidateOperation                  (customized_connector.go:156)
+        ▼  customizer.ReverseOperation(op, fragments)             ← inverse (operation)
+inner.ValidateOperation(nativeOp, nativeFragments, …)
+        │  query-validation argument paths are native at this point
+        ▼  customizer.ForwardArgumentPath via remapQueryValidationArgumentPath
+client-facing validation error path (on error) → controller
+
 Request time (query / mutation)
 ───────────────────────────────
 client operation (customized names)
-        │  customizedConnector.Execute                            (customized_connector.go:116)
+        │  customizedConnector.Execute                            (customized_connector.go:122)
         ▼  customizer.ReverseOperation(op, fragments)             ← inverse (operation)
 inner.Execute(nativeOp, nativeFragments, …) → native result
         │  (result is keyed by the customized response keys — ReverseOperation aliases them)
@@ -47,7 +57,7 @@ inner.Execute(nativeOp, nativeFragments, …) → native result
 map[string]any in customized shape → controller
 ```
 
-`applyCustomization` is the single seam where customization is layered on. The composer, planner, controller, and resolver never reference the `customization` package — they see a `connector.Connector` whose schema and results are already customized.
+`applyCustomization` is the single seam where customization is layered on. The composer, planner, controller, and resolver never reference the `customization` package — they see a `connector.Connector` whose schema, pre-execution validation behavior, and results are already customized.
 
 ## Metadata normalization
 
@@ -99,8 +109,9 @@ To preserve the client's response keys, `reverseSelection` aliases a renamed roo
 `customizedConnector` (`customized_connector.go:38`) holds the inner connector, the single `Customizer`, and the pre-customized per-role `schemas` (computed once at construction). The `connector.Connector` methods:
 
 - `GetSchema` — returns the cached customized schemas.
-- `Execute` (`:116`) — `ReverseOperation` → `inner.Execute` → `ForwardResult`. It reshapes any returned data **even on error** (a GraphQL error can carry partial data), then re-wraps the error so the controller can still extract structured remote errors.
-- `GetTypeName` (`:145`) — **delegates unchanged** to the inner connector. This is deliberate and is the seam behind the customization × remote-relationships limitation below.
+- `Execute` (`:122`) — `ReverseOperation` → `inner.Execute` → `ForwardResult`. It reshapes any returned data **even on error** (a GraphQL error can carry partial data), then re-wraps the error so the controller can still extract structured remote errors.
+- `ValidateOperation` (`:156`) — `ReverseOperation` → `inner.ValidateOperation`. It delegates validation to the wrapped connector using native field/argument names, then remaps query-validation argument paths with `ForwardArgumentPath` before wrapping the error, so clients see paths in the customized operation they submitted.
+- `GetTypeName` (`:194`) — **delegates unchanged** to the inner connector. This is deliberate and is the seam behind the customization × remote-relationships limitation below.
 - `Close` — delegates.
 
 ## Subscriptions: `customizedSubscriptionHandler`
@@ -134,6 +145,7 @@ These are deliberate, documented carve-outs — not bugs:
 |---|---|---|
 | `field_names` configured | `newCustomizedConnector` | error → `BuildConnectorsFromMetadata` fails reload |
 | Inner `GetSchema` fails at construction | `newCustomizedConnector` | wrapped error → reload fails |
+| Inner `ValidateOperation` returns a query-validation error | `customizedConnector.ValidateOperation` | native argument path remapped to the customized operation path and wrapped |
 | Inner `Execute` returns an error with partial data | `customizedConnector.Execute` | data reshaped and returned alongside the wrapped error |
 | Subscription update fails to reshape | `customizedSubscriptionHandler.forward` | converted to a `subscription.Update` error, stream continues |
 | Inner connector is not subscription-capable | `NewSubscriptionHandler` | returns nil → `buildState` skips it |
@@ -143,7 +155,7 @@ These are deliberate, documented carve-outs — not bugs:
 | File | Purpose |
 |---|---|
 | `connector/customization/customization.go` | `Customizer`, `New`, `Apply`, the `renamer`, `Flavor`, shared-type rules |
-| `connector/customization/operation.go` | `ReverseOperation` — namespace lift, type/field-name reversal, fragments |
+| `connector/customization/operation.go` | `ReverseOperation` and `ForwardArgumentPath` — namespace lift/remap, type/field-name reversal, fragments |
 | `connector/customization/result.go` | `ForwardResult` — namespace re-nest, `__typename` re-map, raw-JSON fast path |
 | `connector/customization/wrappername.go` | Hasura-parity wrapper type naming per flavor |
 | `connector/customization/clone.go` | Deep copy of `graph.Schema` so `Apply` can mutate safely |

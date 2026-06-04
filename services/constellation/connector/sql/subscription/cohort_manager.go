@@ -87,7 +87,8 @@ func (m *cohortManager) addSubscription(
 
 	m.mu.Unlock()
 
-	logger.DebugContext(ctx, "added subscription to cohort",
+	logger.DebugContext(
+		ctx, "added subscription to cohort",
 		slog.String("subscription_id", req.ID),
 		slog.String("cohort_key", c.key.String()),
 		slog.Int("cohort_size", c.size()),
@@ -123,11 +124,13 @@ func (m *cohortManager) findOrCreateCohort(
 			go m.pollCohort(context.Background(), c) //nolint:contextcheck
 
 			if suffix == 0 {
-				logger.DebugContext(ctx, "created new cohort",
+				logger.DebugContext(
+					ctx, "created new cohort",
 					slog.String("cohort_key", keyStr),
 				)
 			} else {
-				logger.DebugContext(ctx, "created overflow cohort",
+				logger.DebugContext(
+					ctx, "created overflow cohort",
 					slog.String("cohort_key", keyStr),
 				)
 			}
@@ -163,7 +166,8 @@ func (m *cohortManager) removeSubscription(ctx context.Context, subID string) {
 
 	isEmpty := c.removeSubscription(subID)
 
-	logger.DebugContext(ctx, "removed subscription from cohort",
+	logger.DebugContext(
+		ctx, "removed subscription from cohort",
 		slog.String("subscription_id", subID),
 		slog.String("cohort_key", keyStr),
 	)
@@ -172,7 +176,8 @@ func (m *cohortManager) removeSubscription(ctx context.Context, subID string) {
 		c.stop()
 		delete(m.cohorts, keyStr)
 
-		logger.DebugContext(ctx, "removed empty cohort",
+		logger.DebugContext(
+			ctx, "removed empty cohort",
 			slog.String("cohort_key", keyStr),
 		)
 	}
@@ -195,7 +200,8 @@ func (m *cohortManager) pollCohort(ctx context.Context, c *cohort) {
 	ticker := time.NewTicker(m.pollingInterval)
 	defer ticker.Stop()
 
-	logger.DebugContext(ctx, "started polling cohort",
+	logger.DebugContext(
+		ctx, "started polling cohort",
 		slog.String("cohort_key", c.key.String()),
 	)
 
@@ -208,7 +214,8 @@ func (m *cohortManager) pollCohort(ctx context.Context, c *cohort) {
 	for {
 		select {
 		case <-c.stopChannel():
-			logger.DebugContext(ctx, "cohort polling stopped",
+			logger.DebugContext(
+				ctx, "cohort polling stopped",
 				slog.String("cohort_key", c.key.String()),
 			)
 
@@ -249,7 +256,8 @@ func (m *cohortManager) executeAndNotifyCohort(
 
 	op, err := m.getOrBuildSQL(c, sessionVarArrays, subscriptions, logger)
 	if err != nil {
-		logger.ErrorContext(ctx, "failed to build subscription SQL",
+		logger.ErrorContext(
+			ctx, "failed to build subscription SQL",
 			slog.String("cohort_key", c.key.String()),
 			slog.String("error", err.Error()),
 		)
@@ -262,7 +270,8 @@ func (m *cohortManager) executeAndNotifyCohort(
 	if err != nil {
 		wrapped := fmt.Errorf("executing subscription poll: %w", err)
 
-		logger.ErrorContext(ctx, "failed to execute multiplexed query",
+		logger.ErrorContext(
+			ctx, "failed to execute multiplexed query",
 			slog.String("cohort_key", c.key.String()),
 			slog.String("error", wrapped.Error()),
 		)
@@ -343,10 +352,14 @@ func (m *cohortManager) getOrBuildSQL(
 		return *c.cachedOp, nil
 	}
 
-	// Build template session vars (names only — values don't affect SQL shape).
+	// Build template session vars: each resolves to a SessionVarValue marker
+	// (names only — values don't affect SQL shape). The marker lets the
+	// multiplexed converter recognise genuine permission session variables by
+	// type and rewrite them into per-subscriber result_vars lookups, while
+	// user-supplied literals beginning with "x-hasura-" stay ordinary data.
 	templateSessionVars := make(map[string]any, len(sessionVarArrays))
 	for varName := range sessionVarArrays {
-		templateSessionVars[varName] = varName
+		templateSessionVars[varName] = core.SessionVarValue{Name: varName}
 	}
 
 	// Use any subscriber's GraphQL variables — they're identical within a cohort.
@@ -388,7 +401,8 @@ func (m *cohortManager) getOrBuildSQL(
 	op := operations[0]
 	c.cachedOp = &op
 
-	logger.Debug("built and cached subscription SQL",
+	logger.Debug(
+		"built and cached subscription SQL",
 		slog.String("cohort_key", c.key.String()),
 	)
 
@@ -402,7 +416,8 @@ func (m *cohortManager) shutdown(ctx context.Context) {
 	m.mu.Lock()
 	defer m.mu.Unlock()
 
-	logger.InfoContext(ctx, "shutting down cohort manager",
+	logger.InfoContext(
+		ctx, "shutting down cohort manager",
 		slog.Int("cohorts", len(m.cohorts)),
 	)
 

@@ -268,6 +268,20 @@ func (c *connector) Execute(
 	return result, nil
 }
 
+// ValidateOperation is a no-op: the in-memory connector serves fixed
+// query/response mappings and has no pre-execution argument validation, so it
+// returns nil and reports any unknown-field failure from Execute. It exists to
+// satisfy the connector.Connector pre-execution-validation contract.
+func (c *connector) ValidateOperation(
+	_ *ast.OperationDefinition,
+	_ ast.FragmentDefinitionList,
+	_ map[string]any,
+	_ string,
+	_ map[string]any,
+) error {
+	return nil
+}
+
 func (c *connector) GetTypeName(identifier string) string {
 	return identifier
 }

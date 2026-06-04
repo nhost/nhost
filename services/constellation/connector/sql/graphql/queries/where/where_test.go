@@ -28,13 +28,31 @@ func (s *stubTableForFieldComparison) ColumnFromGraphqlName(string) *core.Column
 	return nil
 }
 
-func (s *stubTableForFieldComparison) RelationshipFromGraphqlName(string) where.Relationship {
+func (s *stubTableForFieldComparison) RelationshipFromGraphqlName(
+	string,
+) where.Relationship {
 	return nil
 }
-func (s *stubTableForFieldComparison) TableBySchemaName(_, _ string) where.Table { return nil }
-func (s *stubTableForFieldComparison) HasRowLevelPermissions(string) bool        { return false }
+
+func (s *stubTableForFieldComparison) TableBySchemaName(
+	_, _ string,
+) where.Table {
+	return nil
+}
+
+func (s *stubTableForFieldComparison) HasRowLevelPermissions(
+	string,
+) bool {
+	return false
+}
+
 func (s *stubTableForFieldComparison) WriteRowLevelPermissions(
-	_ *strings.Builder, params []any, paramIndex int, _ string, _ map[string]any, _ string,
+	_ *strings.Builder,
+	params []any,
+	paramIndex int,
+	_ string,
+	_ map[string]any,
+	_ string,
 ) ([]any, int, error) {
 	return params, paramIndex, nil
 }
@@ -190,13 +208,137 @@ func TestParseFieldComparison_IsNotNull(t *testing.T) {
 		},
 	}
 
-	sql, _, err := runParseFieldComparison(t, &stubTableForFieldComparison{d: d}, col, value, nil)
+	sql, _, err := runParseFieldComparison(
+		t,
+		&stubTableForFieldComparison{d: d},
+		col,
+		value,
+		nil,
+	)
 	if err != nil {
 		t.Fatalf("unexpected error: %v", err)
 	}
 
 	if !strings.Contains(sql, "IS NOT NULL") {
 		t.Errorf("SQL should contain IS NOT NULL, got: %s", sql)
+	}
+}
+
+// TestParseFieldComparison_IsNull_Variable pins that `_is_null: $v` resolves the
+// GraphQL variable: $v=true yields IS NULL, $v=false yields IS NOT NULL. Before
+// the fix the parser read value.Raw (the variable *name*) == "true", which is
+// always false, so any variable produced IS NOT NULL regardless of $v.
+func TestParseFieldComparison_IsNull_Variable(t *testing.T) {
+	t.Parallel()
+
+	col := &core.Column{
+		SQLName:     "deleted_at",
+		GraphqlName: "deleted_at",
+		SQLType:     "timestamptz",
+		IsArray:     false,
+	}
+
+	value := &ast.Value{
+		Kind: ast.ObjectValue,
+		Children: []*ast.ChildValue{
+			{Name: "_is_null", Value: &ast.Value{Kind: ast.Variable, Raw: "v"}},
+		},
+	}
+
+	tests := []struct {
+		name     string
+		varValue any
+		want     string
+	}{
+		{name: "variable true yields IS NULL", varValue: true, want: "IS NULL"},
+		{name: "variable false yields IS NOT NULL", varValue: false, want: "IS NOT NULL"},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			t.Parallel()
+
+			ctrl := gomock.NewController(t)
+			d := dialectmock.NewMockDialect(ctrl)
+
+			sql, params, err := runParseFieldComparison(
+				t,
+				&stubTableForFieldComparison{d: d},
+				col,
+				value,
+				map[string]any{"v": tt.varValue},
+			)
+			if err != nil {
+				t.Fatalf("unexpected error: %v", err)
+			}
+
+			if !strings.Contains(sql, tt.want) {
+				t.Errorf("SQL should contain %q, got: %s", tt.want, sql)
+			}
+
+			if len(params) != 0 {
+				t.Errorf("params should be empty for IS [NOT] NULL, got: %v", params)
+			}
+		})
+	}
+}
+
+// TestParseFieldComparison_IsNull_NullRejected pins that an explicit null for
+// _is_null is rejected, matching Hasura ("expected a boolean for type 'Boolean',
+// but found null"). It must hold for a literal null and for a variable that
+// resolves to null; both reach the parser because the schema types _is_null as a
+// nullable Boolean, so GraphQL validation lets the null through.
+func TestParseFieldComparison_IsNull_NullRejected(t *testing.T) {
+	t.Parallel()
+
+	col := &core.Column{
+		SQLName:     "deleted_at",
+		GraphqlName: "deleted_at",
+		SQLType:     "timestamptz",
+		IsArray:     false,
+	}
+
+	tests := []struct {
+		name      string
+		value     *ast.Value
+		variables map[string]any
+	}{
+		{
+			name:  "literal null",
+			value: &ast.Value{Kind: ast.NullValue},
+		},
+		{
+			name:      "variable resolving to null",
+			value:     &ast.Value{Kind: ast.Variable, Raw: "v"},
+			variables: map[string]any{"v": nil},
+		},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			t.Parallel()
+
+			ctrl := gomock.NewController(t)
+			d := dialectmock.NewMockDialect(ctrl)
+
+			value := &ast.Value{
+				Kind: ast.ObjectValue,
+				Children: []*ast.ChildValue{
+					{Name: "_is_null", Value: tt.value},
+				},
+			}
+
+			_, _, err := runParseFieldComparison(
+				t,
+				&stubTableForFieldComparison{d: d},
+				col,
+				value,
+				tt.variables,
+			)
+			if err == nil {
+				t.Fatal("expected error for null _is_null, got nil")
+			}
+		})
 	}
 }
 
@@ -208,9 +350,12 @@ func TestParseFieldComparison_MultipleOperators(t *testing.T) {
 	d.EXPECT().Placeholder(gomock.Any()).DoAndReturn(func(idx int) string {
 		return "$" + string(rune('0'+idx))
 	}).AnyTimes()
-	d.EXPECT().TypeCast(gomock.Any(), gomock.Any()).DoAndReturn(func(ph, sqlType string) string {
-		return ph + "::" + sqlType
-	}).AnyTimes()
+	d.EXPECT().
+		TypeCast(gomock.Any(), gomock.Any()).
+		DoAndReturn(func(ph, sqlType string) string {
+			return ph + "::" + sqlType
+		}).
+		AnyTimes()
 
 	col := &core.Column{
 		SQLName:     "age",
@@ -276,7 +421,13 @@ func TestParseFieldComparison_UnknownOperator(t *testing.T) {
 		},
 	}
 
-	_, _, err := runParseFieldComparison(t, &stubTableForFieldComparison{d: d}, col, value, nil)
+	_, _, err := runParseFieldComparison(
+		t,
+		&stubTableForFieldComparison{d: d},
+		col,
+		value,
+		nil,
+	)
 	if err == nil {
 		t.Error("expected error for unknown operator, got nil")
 	}
@@ -342,7 +493,13 @@ func TestParseFieldComparison_NonObjectValue(t *testing.T) {
 		Raw:  "not-an-object",
 	}
 
-	_, _, err := runParseFieldComparison(t, &stubTableForFieldComparison{d: d}, col, value, nil)
+	_, _, err := runParseFieldComparison(
+		t,
+		&stubTableForFieldComparison{d: d},
+		col,
+		value,
+		nil,
+	)
 	if err == nil {
 		t.Error("expected error for non-object value, got nil")
 	}
@@ -914,7 +1071,10 @@ func TestNewRawFilter_WritesLiteralCondition(t *testing.T) {
 	}
 
 	if paramIndex != 5 {
-		t.Errorf("rawFilter must not consume a placeholder, paramIndex = %d, want 5", paramIndex)
+		t.Errorf(
+			"rawFilter must not consume a placeholder, paramIndex = %d, want 5",
+			paramIndex,
+		)
 	}
 }
 
@@ -1116,15 +1276,21 @@ func (p *parseTestTable) ParseFieldComparison(
 
 // parseTestRelationship is a controllable Relationship double for Parse tests.
 type parseTestRelationship struct {
-	target     where.Table
-	parentCols []string
-	joinWriter func(b *strings.Builder, parent, target string)
+	target        where.Table
+	parentCols    []string
+	name          string
+	aggregateName string
+	isArray       bool
+	joinWriter    func(b *strings.Builder, parent, target string)
 }
 
 func (r *parseTestRelationship) Target() where.Table { return r.target }
 func (r *parseTestRelationship) ParentColumns() []string {
 	return r.parentCols
 }
+func (r *parseTestRelationship) Name() string          { return r.name }
+func (r *parseTestRelationship) AggregateName() string { return r.aggregateName }
+func (r *parseTestRelationship) IsArray() bool         { return r.isArray }
 
 func (r *parseTestRelationship) WriteJoinConditionAliased(
 	b *strings.Builder, parent, target string,
@@ -1364,7 +1530,10 @@ func TestParse_LogicalAnd_ObjectForm(t *testing.T) {
 						{Name: "a", Value: &ast.Value{
 							Kind: ast.ObjectValue,
 							Children: []*ast.ChildValue{
-								{Name: "_eq", Value: &ast.Value{Kind: ast.StringValue, Raw: "x"}},
+								{
+									Name:  "_eq",
+									Value: &ast.Value{Kind: ast.StringValue, Raw: "x"},
+								},
 							},
 						}},
 					},
@@ -1427,7 +1596,10 @@ func TestParse_LogicalOr_ObjectForm(t *testing.T) {
 						{Name: "a", Value: &ast.Value{
 							Kind: ast.ObjectValue,
 							Children: []*ast.ChildValue{
-								{Name: "_eq", Value: &ast.Value{Kind: ast.StringValue, Raw: "x"}},
+								{
+									Name:  "_eq",
+									Value: &ast.Value{Kind: ast.StringValue, Raw: "x"},
+								},
 							},
 						}},
 					},
@@ -1469,6 +1641,101 @@ func TestParse_LogicalOr_InvalidValueKind(t *testing.T) {
 	}
 }
 
+// TestParse_LogicalAnd_WholeListVariable pins that `_and: $conds`, where the
+// whole list is supplied as a single variable (typed [<table>_bool_exp!]),
+// resolves and AND-joins. Before the fix value.Kind was ast.Variable, matching
+// neither the ObjectValue nor ListValue branch, so it errored even though the
+// same query succeeds on Hasura.
+func TestParse_LogicalAnd_WholeListVariable(t *testing.T) {
+	t.Parallel()
+
+	ctrl := gomock.NewController(t)
+	d := dialectmock.NewMockDialect(ctrl)
+	d.EXPECT().Placeholder(1).Return("$1")
+	d.EXPECT().TypeCast("$1", "text").Return("$1::text")
+
+	col := &core.Column{SQLName: "a", GraphqlName: "a", SQLType: "text"}
+	tbl := &parseTestTable{
+		d:       d,
+		columns: map[string]*core.Column{"a": col},
+	}
+
+	value := &ast.Value{
+		Kind: ast.ObjectValue,
+		Children: []*ast.ChildValue{
+			{Name: "_and", Value: &ast.Value{Kind: ast.Variable, Raw: "conds"}},
+		},
+	}
+
+	variables := map[string]any{
+		"conds": []any{
+			map[string]any{"a": map[string]any{"_eq": "x"}},
+		},
+	}
+
+	clause, err := where.Parse(tbl, value, variables, "", nil, 0, where.QueryAliases)
+	if err != nil {
+		t.Fatalf("Parse: %v", err)
+	}
+
+	sql, params := renderClause(t, clause)
+	if !strings.Contains(sql, `"t"."a" = $1::text`) {
+		t.Errorf("expected equals predicate from list-variable _and, got: %s", sql)
+	}
+
+	if len(params) != 1 || params[0] != "x" {
+		t.Errorf("params = %v, want [x]", params)
+	}
+}
+
+// TestParse_LogicalOr_WholeListVariable is the _or counterpart: a whole-list
+// variable resolves and the disjunction is parenthesised, matching Hasura.
+func TestParse_LogicalOr_WholeListVariable(t *testing.T) {
+	t.Parallel()
+
+	ctrl := gomock.NewController(t)
+	d := dialectmock.NewMockDialect(ctrl)
+	d.EXPECT().Placeholder(1).Return("$1")
+	d.EXPECT().TypeCast("$1", "text").Return("$1::text")
+
+	col := &core.Column{SQLName: "a", GraphqlName: "a", SQLType: "text"}
+	tbl := &parseTestTable{
+		d:       d,
+		columns: map[string]*core.Column{"a": col},
+	}
+
+	value := &ast.Value{
+		Kind: ast.ObjectValue,
+		Children: []*ast.ChildValue{
+			{Name: "_or", Value: &ast.Value{Kind: ast.Variable, Raw: "conds"}},
+		},
+	}
+
+	variables := map[string]any{
+		"conds": []any{
+			map[string]any{"a": map[string]any{"_eq": "x"}},
+		},
+	}
+
+	clause, err := where.Parse(tbl, value, variables, "", nil, 0, where.QueryAliases)
+	if err != nil {
+		t.Fatalf("Parse: %v", err)
+	}
+
+	sql, params := renderClause(t, clause)
+	if !strings.HasPrefix(sql, "(") || !strings.HasSuffix(sql, ")") {
+		t.Errorf("_or list variable should wrap in parens, got: %s", sql)
+	}
+
+	if !strings.Contains(sql, `"t"."a" = $1::text`) {
+		t.Errorf("expected nested predicate, got: %s", sql)
+	}
+
+	if len(params) != 1 || params[0] != "x" {
+		t.Errorf("params = %v, want [x]", params)
+	}
+}
+
 func TestParse_LogicalNot(t *testing.T) {
 	t.Parallel()
 
@@ -1494,7 +1761,10 @@ func TestParse_LogicalNot(t *testing.T) {
 						{Name: "a", Value: &ast.Value{
 							Kind: ast.ObjectValue,
 							Children: []*ast.ChildValue{
-								{Name: "_eq", Value: &ast.Value{Kind: ast.StringValue, Raw: "x"}},
+								{
+									Name:  "_eq",
+									Value: &ast.Value{Kind: ast.StringValue, Raw: "x"},
+								},
 							},
 						}},
 					},
@@ -1802,7 +2072,10 @@ func TestParse_RelationshipTraversal(t *testing.T) {
 
 	sql, params := renderClause(t, clause)
 	if !strings.Contains(sql, `EXISTS (SELECT 1 FROM "public"."authors" f`) {
-		t.Errorf("expected EXISTS for relationship using QueryAliases.Relationship, got: %s", sql)
+		t.Errorf(
+			"expected EXISTS for relationship using QueryAliases.Relationship, got: %s",
+			sql,
+		)
 	}
 
 	if !strings.Contains(sql, `"t".author_id = f.id`) {
@@ -1832,8 +2105,8 @@ func TestParse_TopLevelVariable(t *testing.T) {
 		columns: map[string]*core.Column{"name": col},
 	}
 
-	// A top-level Variable value gets resolved into the captured Go map via
-	// parseWhereResolveVariable, then traversed like a literal object.
+	// A top-level Variable value gets resolved into the captured Go map by
+	// Parse via values.ResolveVariable, then traversed like a literal object.
 	value := &ast.Value{Kind: ast.Variable, Raw: "filter"}
 
 	variables := map[string]any{
@@ -1865,11 +2138,359 @@ func TestParse_VariableNotObject(t *testing.T) {
 	value := &ast.Value{Kind: ast.Variable, Raw: "filter"}
 
 	_, err := where.Parse(
-		tbl, value, map[string]any{"filter": "not-an-object"}, "", nil, 0, where.QueryAliases,
+		tbl,
+		value,
+		map[string]any{"filter": "not-an-object"},
+		"",
+		nil,
+		0,
+		where.QueryAliases,
 	)
 	if err == nil {
 		t.Fatal("expected error when resolved variable is not an object, got nil")
 	}
+}
+
+// TestParse_NullArg covers a literal `where: null`. An explicit null filter is
+// equivalent to omitting the argument: it must yield a nil clause, not an
+// "expected object value" error.
+func TestParse_NullArg(t *testing.T) {
+	t.Parallel()
+
+	tbl := &parseTestTable{}
+
+	value := &ast.Value{Kind: ast.NullValue}
+
+	clause, err := where.Parse(tbl, value, nil, "", nil, 0, where.QueryAliases)
+	if err != nil {
+		t.Fatalf("unexpected error: %v", err)
+	}
+
+	if clause != nil {
+		t.Errorf("Parse(null) = %v, want nil clause", clause)
+	}
+}
+
+// TestParse_NullVariable covers `where: $where` with $where = null, an
+// explicitly-null bool_exp variable present in the variables map. It must be
+// treated as no filter rather than rejected.
+func TestParse_NullVariable(t *testing.T) {
+	t.Parallel()
+
+	tbl := &parseTestTable{}
+
+	value := &ast.Value{Kind: ast.Variable, Raw: "where"}
+
+	clause, err := where.Parse(
+		tbl, value, map[string]any{"where": nil}, "", nil, 0, where.QueryAliases,
+	)
+	if err != nil {
+		t.Fatalf("unexpected error: %v", err)
+	}
+
+	if clause != nil {
+		t.Errorf("Parse(null variable) = %v, want nil clause", clause)
+	}
+}
+
+// newRelationshipTable builds a table exposing a single "author" relationship
+// whose join renders `<parent>.author_id = <target>.id`, shared by the nested
+// relationship tests below.
+func newRelationshipTable() *parseTestTable {
+	target := &parseTestTable{
+		fromClause: `"public"."authors"`,
+	}
+
+	rel := &parseTestRelationship{
+		target: target,
+		joinWriter: func(b *strings.Builder, parent, target string) {
+			b.WriteString(parent)
+			b.WriteString(".author_id = ")
+			b.WriteString(target)
+			b.WriteString(".id")
+		},
+	}
+
+	return &parseTestTable{
+		relationship: map[string]where.Relationship{"author": rel},
+	}
+}
+
+// TestParse_NullNestedRelationship covers `where: {<relationship>: null}`. Only
+// the top-level where argument is nullable; a null nested under a relationship
+// is rejected, matching Hasura ("expected an object ... but found null").
+func TestParse_NullNestedRelationship(t *testing.T) {
+	t.Parallel()
+
+	tbl := newRelationshipTable()
+
+	value := &ast.Value{
+		Kind: ast.ObjectValue,
+		Children: []*ast.ChildValue{
+			{Name: "author", Value: &ast.Value{Kind: ast.NullValue}},
+		},
+	}
+
+	_, err := where.Parse(tbl, value, nil, "", nil, 0, where.QueryAliases)
+	if err == nil {
+		t.Fatal("expected error for null nested relationship, got nil")
+	}
+
+	if !strings.Contains(err.Error(), "expected object value") {
+		t.Errorf("error = %v, want 'expected object value'", err)
+	}
+}
+
+// TestParse_EmptyNestedRelationship covers `where: {<relationship>: {}}`. An
+// empty nested bool_exp is the always-true filter, so the relationship renders
+// its EXISTS join with no inner predicate and no params -- Hasura's "any
+// related row exists".
+func TestParse_EmptyNestedRelationship(t *testing.T) {
+	t.Parallel()
+
+	tbl := newRelationshipTable()
+
+	value := &ast.Value{
+		Kind: ast.ObjectValue,
+		Children: []*ast.ChildValue{
+			{Name: "author", Value: &ast.Value{Kind: ast.ObjectValue}},
+		},
+	}
+
+	clause, err := where.Parse(tbl, value, nil, "", nil, 0, where.QueryAliases)
+	if err != nil {
+		t.Fatalf("unexpected error: %v", err)
+	}
+
+	sql, params := renderClause(t, clause)
+	if !strings.Contains(
+		sql,
+		`EXISTS (SELECT 1 FROM "public"."authors" f WHERE "t".author_id = f.id)`,
+	) {
+		t.Errorf("expected EXISTS with join only and no inner predicate, got: %s", sql)
+	}
+
+	if strings.Contains(sql, " AND ") {
+		t.Errorf("expected no inner predicate for empty relationship, got: %s", sql)
+	}
+
+	if len(params) != 0 {
+		t.Errorf("params = %v, want none", params)
+	}
+}
+
+// TestParse_NullNot covers `where: {_not: null}`. `_not` is a nested bool_exp
+// position, so an explicit null is rejected, matching Hasura, which returns a
+// validation error rather than treating it as a no-op.
+func TestParse_NullNot(t *testing.T) {
+	t.Parallel()
+
+	tbl := &parseTestTable{}
+
+	value := &ast.Value{
+		Kind: ast.ObjectValue,
+		Children: []*ast.ChildValue{
+			{Name: "_not", Value: &ast.Value{Kind: ast.NullValue}},
+		},
+	}
+
+	_, err := where.Parse(tbl, value, nil, "", nil, 0, where.QueryAliases)
+	if err == nil {
+		t.Fatal("expected error for null _not, got nil")
+	}
+
+	if !strings.Contains(err.Error(), "expected object value") {
+		t.Errorf("error = %v, want 'expected object value'", err)
+	}
+}
+
+// TestParse_EmptyNot covers `where: {_not: {}}`. The empty inner bool_exp is
+// always true, so `_not: {}` is always false. It must render the `false`
+// constant (Hasura returns no rows) -- never the invalid `NOT ()` fragment.
+func TestParse_EmptyNot(t *testing.T) {
+	t.Parallel()
+
+	tbl := &parseTestTable{}
+
+	value := &ast.Value{
+		Kind: ast.ObjectValue,
+		Children: []*ast.ChildValue{
+			{Name: "_not", Value: &ast.Value{Kind: ast.ObjectValue}},
+		},
+	}
+
+	clause, err := where.Parse(tbl, value, nil, "", nil, 0, where.QueryAliases)
+	if err != nil {
+		t.Fatalf("unexpected error: %v", err)
+	}
+
+	sql, params := renderClause(t, clause)
+	if sql != "false" {
+		t.Errorf("Parse(_not: {}) rendered %q, want \"false\"", sql)
+	}
+
+	if len(params) != 0 {
+		t.Errorf("params = %v, want none", params)
+	}
+}
+
+// TestParse_EmptyOr covers `where: {_or: []}`. An empty disjunction is false,
+// matching Hasura (no rows); it must render the `false` constant, not the
+// invalid empty `()` fragment.
+func TestParse_EmptyOr(t *testing.T) {
+	t.Parallel()
+
+	tbl := &parseTestTable{}
+
+	value := &ast.Value{
+		Kind: ast.ObjectValue,
+		Children: []*ast.ChildValue{
+			{Name: "_or", Value: &ast.Value{Kind: ast.ListValue}},
+		},
+	}
+
+	clause, err := where.Parse(tbl, value, nil, "", nil, 0, where.QueryAliases)
+	if err != nil {
+		t.Fatalf("unexpected error: %v", err)
+	}
+
+	sql, params := renderClause(t, clause)
+	if sql != "false" {
+		t.Errorf("Parse(_or: []) rendered %q, want \"false\"", sql)
+	}
+
+	if len(params) != 0 {
+		t.Errorf("params = %v, want none", params)
+	}
+}
+
+// TestParse_OrWithEmptyElement covers `where: {_or: [{}]}`. An empty bool_exp
+// element is always true, so the disjunction is true; it must render `(true)`,
+// matching Hasura (all rows), rather than an invalid empty `()` element.
+func TestParse_OrWithEmptyElement(t *testing.T) {
+	t.Parallel()
+
+	tbl := &parseTestTable{}
+
+	value := &ast.Value{
+		Kind: ast.ObjectValue,
+		Children: []*ast.ChildValue{
+			{Name: "_or", Value: &ast.Value{
+				Kind:     ast.ListValue,
+				Children: []*ast.ChildValue{{Value: &ast.Value{Kind: ast.ObjectValue}}},
+			}},
+		},
+	}
+
+	clause, err := where.Parse(tbl, value, nil, "", nil, 0, where.QueryAliases)
+	if err != nil {
+		t.Fatalf("unexpected error: %v", err)
+	}
+
+	sql, params := renderClause(t, clause)
+	if sql != "(true)" {
+		t.Errorf("Parse(_or: [{}]) rendered %q, want \"(true)\"", sql)
+	}
+
+	if len(params) != 0 {
+		t.Errorf("params = %v, want none", params)
+	}
+}
+
+// TestParse_NotOfEmptyOr covers `where: {_not: {_or: []}}`. The inner `_or: []`
+// is false, so its negation is true; it must render `NOT (false)`, matching
+// Hasura (all rows).
+func TestParse_NotOfEmptyOr(t *testing.T) {
+	t.Parallel()
+
+	tbl := &parseTestTable{}
+
+	value := &ast.Value{
+		Kind: ast.ObjectValue,
+		Children: []*ast.ChildValue{
+			{Name: "_not", Value: &ast.Value{
+				Kind: ast.ObjectValue,
+				Children: []*ast.ChildValue{
+					{Name: "_or", Value: &ast.Value{Kind: ast.ListValue}},
+				},
+			}},
+		},
+	}
+
+	clause, err := where.Parse(tbl, value, nil, "", nil, 0, where.QueryAliases)
+	if err != nil {
+		t.Fatalf("unexpected error: %v", err)
+	}
+
+	sql, params := renderClause(t, clause)
+	if sql != "NOT (false)" {
+		t.Errorf("Parse(_not: {_or: []}) rendered %q, want \"NOT (false)\"", sql)
+	}
+
+	if len(params) != 0 {
+		t.Errorf("params = %v, want none", params)
+	}
+}
+
+func assertNullLogicalCombinatorRejected(t *testing.T, fieldName string) {
+	t.Helper()
+
+	tbl := &parseTestTable{}
+
+	tests := []struct {
+		name      string
+		child     *ast.Value
+		variables map[string]any
+	}{
+		{
+			name:  "literal null",
+			child: &ast.Value{Kind: ast.NullValue},
+		},
+		{
+			name:      "variable resolving to null",
+			child:     &ast.Value{Kind: ast.Variable, Raw: "conds"},
+			variables: map[string]any{"conds": nil},
+		},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			t.Parallel()
+
+			value := &ast.Value{
+				Kind: ast.ObjectValue,
+				Children: []*ast.ChildValue{
+					{Name: fieldName, Value: tt.child},
+				},
+			}
+
+			_, err := where.Parse(tbl, value, tt.variables, "", nil, 0, where.QueryAliases)
+			if err == nil {
+				t.Fatalf("expected error for null %s, got nil", fieldName)
+			}
+		})
+	}
+}
+
+// TestParse_NullAnd covers `where: {_and: null}` and `_and: $conds` with a
+// null variable. Unlike top-level where, `_and` does not treat null as an
+// omitted filter: parseLogicalAnd resolves the child value and then rejects
+// NullValue because it is neither a list nor an object. This pins the behavior
+// preserved by whole-list variable resolution.
+func TestParse_NullAnd(t *testing.T) {
+	t.Parallel()
+
+	assertNullLogicalCombinatorRejected(t, "_and")
+}
+
+// TestParse_NullOr covers `where: {_or: null}` and `_or: $conds` with a null
+// variable. Like `_and`, parseLogicalOr resolves the child value and then
+// rejects NullValue because it is neither a list nor an object, matching
+// Hasura's "expected a list, but found null".
+func TestParse_NullOr(t *testing.T) {
+	t.Parallel()
+
+	assertNullLogicalCombinatorRejected(t, "_or")
 }
 
 // TestParseFieldComparison_Regex_Supported exercises the SupportsRegex=true

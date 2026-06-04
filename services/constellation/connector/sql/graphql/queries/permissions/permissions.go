@@ -8,7 +8,8 @@
 //     substitution;
 //   - helping insert-mutation CTE builders locate permission-referenced
 //     columns that aren't in the user's insert payload, and detecting when an
-//     insert check references generated columns (post-mutation check required).
+//     insert check requires post-mutation evaluation (generated columns, or
+//     DB-defaulted columns absent from the payload).
 //
 // The package depends on queries/where for filter parsing and queries/core
 // for the Column type. It does not emit any insert/update/delete-specific
@@ -552,8 +553,9 @@ func normalizePresets(presets map[string]any) map[string]any {
 
 // SubstituteSessionVariable resolves a single permission-filter parameter:
 // "x-hasura-*" strings are replaced with the matching value from
-// sessionVariables; slice values recurse element-wise and substitute in
-// place. As a special case, a single-element slice whose lone element is a
+// sessionVariables; slice values recurse element-wise into a copied slice so
+// shared permission metadata is not mutated by one request/subscription build.
+// As a special case, a single-element slice whose lone element is a
 // session-variable marker that resolves to a non-slice value is flattened to
 // that scalar — this preserves the semantics of
 // `column _eq x-hasura-user-id` against a scalar variable. Multi-element
@@ -573,6 +575,11 @@ func SubstituteSessionVariable(v any, sessionVariables map[string]any) (any, err
 			return nil, fmt.Errorf("%w: %s", ErrSessionVariableNotFound, v)
 		}
 	case []any:
+		if v == nil {
+			return v, nil
+		}
+
+		out := make([]any, len(v))
 		for i, item := range v {
 			substituted, err := SubstituteSessionVariable(item, sessionVariables)
 			if err != nil {
@@ -594,21 +601,80 @@ func SubstituteSessionVariable(v any, sessionVariables map[string]any) (any, err
 				}
 			}
 
-			v[i] = substituted
+			out[i] = substituted
 		}
+
+		return out, nil
+	case []string:
+		return substituteStringArray(v, sessionVariables)
 	}
 
 	return v, nil
 }
 
-// substituteSessionVariables resolves all session-variable markers in params
-// in place. Returns the (now-mutated) params slice so callers can use a single
-// = assignment instead of a separate error check + reassignment.
+// substituteStringArray resolves session-variable references inside the
+// []string produced by the JSONB key operators (_has_keys_all / _has_keys_any).
+// A single whole-array session variable (e.g. `_has_keys_any: X-Hasura-Keys`)
+// flattens to the resolved value — a SessionVarValue marker on the subscription
+// template path, or the concrete session value on the direct path — mirroring
+// the []any (_in) handling. When any element is a session variable the slice
+// widens to []any so it can carry a marker alongside literal keys; a slice of
+// plain literals is returned unchanged so ordinary JSONB keys keep their type.
+// Only permission metadata is fed through here, so a user-supplied look-alike
+// literal such as ["x-hasura-foo"] is never reinterpreted as a session variable.
+func substituteStringArray(v []string, sessionVariables map[string]any) (any, error) {
+	hasSessionVar := false
+
+	for _, item := range v {
+		if strings.HasPrefix(strings.ToLower(item), "x-hasura-") {
+			hasSessionVar = true
+
+			break
+		}
+	}
+
+	if !hasSessionVar {
+		return v, nil
+	}
+
+	out := make([]any, len(v))
+
+	for i, item := range v {
+		substituted, err := SubstituteSessionVariable(item, sessionVariables)
+		if err != nil {
+			return nil, err
+		}
+
+		// Flatten a single whole-array session variable to its resolved value
+		// (marker or concrete value), matching the []any scalar flatten.
+		if len(v) == 1 {
+			if _, isSlice := substituted.([]any); !isSlice {
+				return substituted, nil
+			}
+		}
+
+		out[i] = substituted
+	}
+
+	return out, nil
+}
+
+// substituteSessionVariables resolves session-variable markers in params[start:]
+// in place, leaving params[:start] untouched. Callers pass start = len(params)
+// captured *before* the permission clause appended its own parameters, so only
+// the permission clause's values are substituted — never the user-supplied
+// where/_set/_in/by_pk literals that precede them in the slice. A user literal
+// that happens to begin with "x-hasura-" must stay verbatim (it is data, not a
+// session-variable reference), matching Hasura; only the permission metadata is
+// a legitimate source of session-variable markers.
+//
+// Returns the (now-mutated) params slice so callers can use a single =
+// assignment instead of a separate error check + reassignment.
 func substituteSessionVariables(
-	params []any, sessionVariables map[string]any,
+	params []any, sessionVariables map[string]any, start int,
 ) ([]any, error) {
-	for i, p := range params {
-		substituted, err := SubstituteSessionVariable(p, sessionVariables)
+	for i := start; i < len(params); i++ {
+		substituted, err := SubstituteSessionVariable(params[i], sessionVariables)
 		if err != nil {
 			return nil, err
 		}
@@ -633,6 +699,18 @@ func (s *Store) HasRowLevel(role string) bool {
 func (s *Store) HasInsertCheck(role string) bool {
 	_, found := s.Insert[role]
 	return found
+}
+
+// HasNonEmptyInsertCheck reports whether role has a non-empty insert-check
+// predicate. An empty clause (Hasura's `check: {}` / `check: null`) is treated
+// as "no insert constraint" because WriteInsertCheckSubstituted writes "true"
+// and reports hasCheck=false for it, so no all-or-nothing CTE is emitted.
+// Callers use this to decide whether an upsert must route through the
+// post-mutation check path so the insert check is scoped to inserted rows;
+// mirrors HasUpdateCheck.
+func (s *Store) HasNonEmptyInsertCheck(role string) bool {
+	clause, found := s.Insert[role]
+	return found && len(clause) > 0
 }
 
 // HasUpdateFilter reports whether role has any update permission entry.
@@ -673,12 +751,14 @@ func (s *Store) WriteRowLevel(
 		return params, paramIndex, nil
 	}
 
+	startLen := len(params)
+
 	params, paramIndex, err := clause.WriteCondition(b, sourceRef, params, paramIndex)
 	if err != nil {
 		return nil, 0, fmt.Errorf("writing row-level permission clause: %w", err)
 	}
 
-	params, err = substituteSessionVariables(params, sessionVariables)
+	params, err = substituteSessionVariables(params, sessionVariables, startLen)
 	if err != nil {
 		return nil, 0, err
 	}
@@ -686,34 +766,49 @@ func (s *Store) WriteRowLevel(
 	return params, paramIndex, nil
 }
 
-// WriteInsertCheck emits the insert-check permission predicate for role.
-// hasCheck reports whether any predicate was written: when role has no insert
-// permission, WriteInsertCheck writes "true" and returns hasCheck=false so
-// callers can elide downstream all-or-nothing CTEs.
+// WriteInsertCheckSubstituted emits the insert-check permission predicate for
+// role. hasCheck reports whether any predicate was written: when role has no
+// insert permission, WriteInsertCheckSubstituted writes "true" and returns
+// hasCheck=false so callers can elide downstream all-or-nothing CTEs.
 //
 // sourceRef is the alias for the data subquery the predicate runs against
 // (typically the "data" CTE alias for pre-mutation checks, or the
-// "_mutation_result" CTE for post-mutation checks).
-func (s *Store) WriteInsertCheck(
+// "_mutation_result" / "_<nested_cte>" CTE for post-mutation checks).
+//
+// subs redirects relationship-EXISTS subqueries that target a sibling table
+// currently being inserted into in the same CTE chain to its in-flight CTE.
+// This is required by Postgres' WITH snapshot semantics: a sibling CTE
+// doesn't see in-flight INSERTs in the same statement, so an EXISTS against
+// the underlying table reads stale state. Passing TableSubstitutions like
+// {`"public"."workout_sessions"`: `mutation_result`} redirects those EXISTS
+// subqueries to the parent CTE that holds the freshly inserted rows. With a
+// nil or empty map, behaviour is identical to a non-substituted render —
+// top-level callers pass nil.
+func (s *Store) WriteInsertCheckSubstituted(
 	b *strings.Builder,
 	role string,
 	sessionVariables map[string]any,
 	params []any,
 	paramIndex int,
 	sourceRef string,
+	subs where.TableSubstitutions,
 ) ([]any, int, bool, error) {
 	clause, found := s.Insert[role]
-	if !found {
+	if !found || len(clause) == 0 {
 		b.WriteString("true")
 		return params, paramIndex, false, nil
 	}
 
-	params, paramIndex, err := clause.WriteCondition(b, sourceRef, params, paramIndex)
+	startLen := len(params)
+
+	params, paramIndex, err := where.WriteConditionSubstituted(
+		clause, b, sourceRef, params, paramIndex, subs,
+	)
 	if err != nil {
 		return nil, 0, false, fmt.Errorf("failed to apply insert permission check: %w", err)
 	}
 
-	params, err = substituteSessionVariables(params, sessionVariables)
+	params, err = substituteSessionVariables(params, sessionVariables, startLen)
 	if err != nil {
 		return nil, 0, false, err
 	}
@@ -738,12 +833,14 @@ func (s *Store) WriteUpdateFilter(
 		return params, paramIndex, false, nil
 	}
 
+	startLen := len(params)
+
 	params, paramIndex, err := clause.WriteCondition(b, sourceRef, params, paramIndex)
 	if err != nil {
 		return nil, 0, false, fmt.Errorf("writing update permission clause: %w", err)
 	}
 
-	params, err = substituteSessionVariables(params, sessionVariables)
+	params, err = substituteSessionVariables(params, sessionVariables, startLen)
 	if err != nil {
 		return nil, 0, false, err
 	}
@@ -753,13 +850,13 @@ func (s *Store) WriteUpdateFilter(
 
 // WriteUpdateCheck emits the post-update check predicate for role against
 // sourceRef (the CTE holding the UPDATE's RETURNING * rows). It is the update
-// analogue of WriteInsertCheck's post-mutation path: the predicate is rendered
-// so the caller can assert every updated row satisfies it.
+// analogue of WriteInsertCheckSubstituted's post-mutation path: the predicate
+// is rendered so the caller can assert every updated row satisfies it.
 //
 // hasCheck reports whether a predicate was written. When role has no check, or
 // only an empty clause, WriteUpdateCheck writes "true" and returns
 // hasCheck=false so callers can elide the all-or-nothing CTE. Mirrors
-// WriteInsertCheck so both mutation paths share the same shape.
+// WriteInsertCheckSubstituted so both mutation paths share the same shape.
 func (s *Store) WriteUpdateCheck(
 	b *strings.Builder,
 	role string,
@@ -774,12 +871,14 @@ func (s *Store) WriteUpdateCheck(
 		return params, paramIndex, false, nil
 	}
 
+	startLen := len(params)
+
 	params, paramIndex, err := clause.WriteCondition(b, sourceRef, params, paramIndex)
 	if err != nil {
 		return nil, 0, false, fmt.Errorf("failed to apply update permission check: %w", err)
 	}
 
-	params, err = substituteSessionVariables(params, sessionVariables)
+	params, err = substituteSessionVariables(params, sessionVariables, startLen)
 	if err != nil {
 		return nil, 0, false, err
 	}
@@ -802,12 +901,14 @@ func (s *Store) WriteDeleteFilter(
 		return params, paramIndex, false, nil
 	}
 
+	startLen := len(params)
+
 	params, paramIndex, err := clause.WriteCondition(b, sourceRef, params, paramIndex)
 	if err != nil {
 		return nil, 0, false, fmt.Errorf("writing delete permission clause: %w", err)
 	}
 
-	params, err = substituteSessionVariables(params, sessionVariables)
+	params, err = substituteSessionVariables(params, sessionVariables, startLen)
 	if err != nil {
 		return nil, 0, false, err
 	}
@@ -820,11 +921,34 @@ func (s *Store) WriteDeleteFilter(
 // and we only need a one-shot lookup when inspecting insert-check filters.
 type columnLookup func(sqlName string) *core.Column
 
-// ReferencesGeneratedColumns reports whether the insert-check filter for role
-// references any generated column. When it does, the pre-mutation check CTE
-// can't validate that column (it would be NULL in the data subquery), so the
-// caller must use a post-mutation check against RETURNING * instead.
-func (s *Store) ReferencesGeneratedColumns(role string, lookup columnLookup) bool {
+// RequiresPostInsertCheck reports whether the insert-check for role must be
+// evaluated after the INSERT (against RETURNING *) rather than against the
+// input data. The pre-mutation check builds its data subquery from the insert
+// payload, filling any referenced-but-absent column with NULL. That diverges
+// from the inserted row whenever a check-referenced column takes a database
+// value the payload doesn't carry:
+//
+//   - generated columns (value computed by the DB);
+//   - identity columns (Postgres GENERATED [ALWAYS|BY DEFAULT] AS IDENTITY,
+//     SQLite INTEGER PRIMARY KEY rowid aliases) — the engine populates the
+//     value at INSERT time and the pre-check would compare against the NULL
+//     placeholder regardless of whether the payload could ever carry it; or
+//   - columns with a DEFAULT that are absent from the insert payload — the
+//     pre-check sees NULL, but the inserted row carries the default.
+//
+// The divergence is silent and dangerous for relationship checks: a composite
+// FK join column (e.g. a pinned `parent_kind` discriminator) defaulted by the
+// DB would join on NULL and fail the check even though the row is valid.
+//
+// presentColumns is the set of column SQL names that carry a concrete value
+// for every row being inserted (the intersection across rows, plus FK columns
+// sourced from a parent CTE); a column outside it may fall back to its default
+// for at least one row.
+func (s *Store) RequiresPostInsertCheck(
+	role string,
+	presentColumns map[string]struct{},
+	lookup columnLookup,
+) bool {
 	clause, ok := s.Insert[role]
 	if !ok {
 		return false
@@ -832,8 +956,18 @@ func (s *Store) ReferencesGeneratedColumns(role string, lookup columnLookup) boo
 
 	for _, colName := range where.CollectSourceColumns(clause) {
 		col := lookup(colName)
-		if col != nil && col.IsGenerated {
+		if col == nil {
+			continue
+		}
+
+		if col.IsGenerated || col.IsIdentity {
 			return true
+		}
+
+		if col.HasDefault {
+			if _, present := presentColumns[colName]; !present {
+				return true
+			}
 		}
 	}
 
@@ -841,9 +975,12 @@ func (s *Store) ReferencesGeneratedColumns(role string, lookup columnLookup) boo
 }
 
 // MissingInsertColumns lists the columns the insert-check filter for role
-// references that aren't in present and aren't generated. Generated columns
-// are skipped — they require a post-mutation check (see
-// ReferencesGeneratedColumns).
+// references that aren't in present and aren't generated or identity. Both
+// generated and identity columns are skipped — they require a post-mutation
+// check (see RequiresPostInsertCheck) and a NULL placeholder for them in the
+// pre-mutation data CTE would either be unused (post-check is taken) or
+// outright wrong (NULL against a NOT NULL identity column would mask the real
+// engine-assigned value).
 //
 // Returned in source-walk order, deduplicated. Useful for emitting NULL
 // placeholders in the pre-mutation check data subquery so the WHERE doesn't
@@ -877,7 +1014,7 @@ func (s *Store) MissingInsertColumns(
 		}
 
 		col := lookup(colName)
-		if col == nil || col.IsGenerated {
+		if col == nil || col.IsGenerated || col.IsIdentity {
 			continue
 		}
 
@@ -889,10 +1026,15 @@ func (s *Store) MissingInsertColumns(
 	return missing
 }
 
-// ExtendInsertColumns returns allColumns with any non-generated columns the
-// insert-check filter for role references appended. The returned slice does
-// not share backing storage with allColumns (callers can keep using the
-// original safely).
+// ExtendInsertColumns returns allColumns with any non-generated, non-identity
+// columns the insert-check filter for role references appended. Generated and
+// identity columns are excluded for the same reason MissingInsertColumns
+// skips them: the post-check path is taken in those cases, so extending the
+// pre-check column list would be wasted work or, worse, would lead the
+// pre-check subquery to project a NULL placeholder under the identity column
+// name and shadow the engine-assigned value. The returned slice does not
+// share backing storage with allColumns (callers can keep using the original
+// safely).
 func (s *Store) ExtendInsertColumns(
 	allColumns []string,
 	role string,
@@ -921,7 +1063,7 @@ func (s *Store) ExtendInsertColumns(
 		}
 
 		colObj := lookup(col)
-		if colObj != nil && !colObj.IsGenerated {
+		if colObj != nil && !colObj.IsGenerated && !colObj.IsIdentity {
 			existing[col] = struct{}{}
 			extended = append(extended, col)
 		}

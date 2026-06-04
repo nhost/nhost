@@ -3,22 +3,76 @@ package controller
 import (
 	"context"
 	"errors"
+	"fmt"
 	"log/slog"
 
 	"github.com/google/uuid"
+	"github.com/vektah/gqlparser/v2/gqlerror"
 
 	"github.com/nhost/nhost/services/constellation/connector/remoteschema"
+	"github.com/nhost/nhost/services/constellation/connector/sql/graphql/queries/arguments"
 	"github.com/nhost/nhost/services/constellation/internal/lib/oapi/tracing"
 )
 
 var (
 	errContentTypeNotJSON  = errors.New("Content-Type must be application/json")
 	errInvalidRequestBody  = errors.New("invalid request body")
+	errRequestBodyTooLarge = errors.New("request body too large")
 	errInternalServerError = errors.New("internal server error")
 	errNoSchemaForRole     = errors.New("no schema available for role")
-	errMultipleOperations  = errors.New("multiple operations found, operationName is required")
 	errOperationNotFound   = errors.New("operation not found")
 )
+
+// operationSelectionMessage returns the Hasura-matching message for an operation
+// that could not be uniquely selected: a supplied operationName that matched no
+// operation, or an omitted name when several operations are present. The strings
+// mirror Hasura graphql-engine verbatim (captured from the live engine). Returns
+// "" when neither case applies, which is unreachable for a validated document.
+func operationSelectionMessage(operationName string, numOperations int) string {
+	switch {
+	case operationName != "":
+		return fmt.Sprintf("no such operation found in the document: %q", operationName)
+	case numOperations > 1:
+		return "exactly one operation has to be present in the document " +
+			"when operationName is not specified"
+	default:
+		return ""
+	}
+}
+
+// newHasuraValidationError wraps a request-level validation message in the
+// gqlValidationError envelope Hasura uses (the "validation-failed" code and the
+// "$" document path inside extensions), so the HTTP and WebSocket paths surface
+// operation-selection failures with an identical wire shape.
+func newHasuraValidationError(msg string) *gqlValidationError {
+	return &gqlValidationError{
+		errs: gqlerror.List{
+			{
+				Message: msg,
+				Extensions: map[string]any{
+					"code": "validation-failed",
+					"path": "$",
+				},
+			},
+		},
+	}
+}
+
+// operationSelectionResponse builds the HTTP GraphQLResponse for a failed
+// operation selection, matching Hasura's wording and extensions. It falls back
+// to the generic operation-not-found envelope for the unreachable residual case.
+func operationSelectionResponse(operationName string, numOperations int) *GraphQLResponse {
+	msg := operationSelectionMessage(operationName, numOperations)
+	if msg == "" {
+		return errResponseOperationNotFound
+	}
+
+	return &GraphQLResponse{
+		Data:        nil,
+		Errors:      formatGQLErrors(newHasuraValidationError(msg).errs),
+		rawResponse: nil,
+	}
+}
 
 // sanitizeConnectorError converts a raw connector/database execution error into
 // a client-safe message. Raw driver errors (pgx/SQLite) carry SQLSTATE codes,
@@ -47,7 +101,8 @@ func sanitizeConnectorError(
 ) string {
 	if devMode {
 		if logger != nil {
-			logger.ErrorContext(ctx, "connector execution error",
+			logger.ErrorContext(
+				ctx, "connector execution error",
 				slog.String("error", err.Error()),
 			)
 		}
@@ -61,7 +116,8 @@ func sanitizeConnectorError(
 	}
 
 	if logger != nil {
-		logger.ErrorContext(ctx, "connector execution error",
+		logger.ErrorContext(
+			ctx, "connector execution error",
 			slog.String("trace_id", traceID),
 			slog.String("error", err.Error()),
 		)
@@ -78,6 +134,17 @@ func sanitizeConnectorError(
 // remote schema that has already shaped its own GraphQL errors (path,
 // locations, extensions). They pass through verbatim via RemoteError.AsMap.
 //
+// A *arguments.QueryValidationError is a query-validation failure (e.g. a
+// distinct_on that does not match the leading order_by) that Constellation
+// detects while building SQL. It carries no PII and its envelope must match
+// Hasura's validation-failed shape, so it passes through verbatim via AsMap
+// rather than being sanitised.
+//
+// A *arguments.DataExceptionError is an argument failure whose Hasura-compatible
+// envelope is the safe data-exception shape (currently negative offset). It is
+// constructed by the arguments package with a fixed message, so it also passes
+// through verbatim via AsMap.
+//
 // Any other error is treated as a raw connector/driver failure and routed
 // through sanitizeConnectorError so SQLSTATE codes, table/column names, and
 // offending values never reach an unauthenticated caller.
@@ -89,18 +156,38 @@ func sanitizeConnectorError(
 func (c *Controller) classifyConnectorError(
 	ctx context.Context, logger *slog.Logger, err error,
 ) []map[string]any {
+	if structuredErrs, ok := classifyStructuredConnectorError(err); ok {
+		return structuredErrs
+	}
+
+	return []map[string]any{{
+		"message": sanitizeConnectorError(ctx, logger, c.devMode, err),
+	}}
+}
+
+// classifyStructuredConnectorError extracts trusted, already-shaped GraphQL
+// errors from a connector error without applying the raw driver-error
+// sanitizer. It is shared by HTTP execution and WebSocket subscription paths so
+// validation failures keep the same wire envelope across transports.
+func classifyStructuredConnectorError(err error) ([]map[string]any, bool) {
 	if gqlErrs, ok := errors.AsType[*remoteschema.GraphQLError](err); ok {
 		out := make([]map[string]any, len(gqlErrs.Errors))
 		for i, re := range gqlErrs.Errors {
 			out[i] = re.AsMap()
 		}
 
-		return out
+		return out, true
 	}
 
-	return []map[string]any{{
-		"message": sanitizeConnectorError(ctx, logger, c.devMode, err),
-	}}
+	if vErr, ok := errors.AsType[*arguments.QueryValidationError](err); ok {
+		return []map[string]any{vErr.AsMap()}, true
+	}
+
+	if dataErr, ok := errors.AsType[*arguments.DataExceptionError](err); ok {
+		return []map[string]any{dataErr.AsMap()}, true
+	}
+
+	return nil, false
 }
 
 // Pre-allocated error responses for common cases. Treating them as package
@@ -118,13 +205,6 @@ var (
 	errResponseOperationNotFound = &GraphQLResponse{
 		Data:        nil,
 		Errors:      []map[string]any{{"message": "operation not found"}},
-		rawResponse: nil,
-	}
-	errResponseMultipleOperations = &GraphQLResponse{
-		Data: nil,
-		Errors: []map[string]any{
-			{"message": "operation name is required when multiple operations are present"},
-		},
 		rawResponse: nil,
 	}
 	errResponseNoConnector = &GraphQLResponse{

@@ -3337,3 +3337,18 @@ INSERT INTO public.news (id, created_at, updated_at, is_public, title, content, 
 ('d4e5f6a7-b8c9-0123-defa-456789012345', '2025-11-09 16:45:00+00', '2025-11-09 16:45:00+00', true, 'Sustainability Initiative Milestone Reached', 'Our organization has successfully achieved carbon neutrality across all operations, marking a significant milestone in our environmental commitment. This achievement positions us as a leader in sustainable business practices.', 'fd1e6bba-c292-4b2f-872e-ae16146cdd82', '550e8400-e29b-41d4-a716-446655440051'),
 
 ('e5f6a7b8-c9d0-1234-efab-567890123456', '2025-11-12 11:00:00+00', '2025-11-12 11:00:00+00', false, 'Career Ladder Program Expansion', 'We are expanding our career ladder program to include new development tracks and mentorship opportunities. This initiative aims to support employee growth and prepare our workforce for future leadership roles within the company.', '2db9de0a-b9ba-416e-8619-783a399ae2b3', '550e8400-e29b-41d4-a716-446655440001');
+
+-- Seed for the composite-FK / defaulted-discriminator insert-check regression.
+-- exercise_log_sets inserts in tests join through its `parent` composite-FK
+-- relationship and check parent.owner_id = X-Hasura-User-Id.
+INSERT INTO public.exercise_logs (id, kind, owner_id) VALUES
+    ('0199aaaa-0000-7000-8000-000000000001', 'strength', '550e8400-e29b-41d4-a716-446655440001');
+
+-- Seed for the non-admin upsert UPDATE-check regression. The `user`
+-- role has both an UPDATE row-filter (author_id = X-Hasura-User-Id) and an UPDATE
+-- check (title != '__forbidden__') on public.notes, so a non-admin
+-- on_conflict DO UPDATE that conflicts on this pre-existing pkey exercises the
+-- _upsert_conflicts / _upsert_updates / _update_post_check CTE chain against
+-- PostgreSQL. owner is Sarah Martinez (550e8400-...0001).
+INSERT INTO public.notes (id, author_id, title) VALUES
+    ('0199cccc-0000-7000-8000-000000000001', '550e8400-e29b-41d4-a716-446655440001', 'Seeded Note');

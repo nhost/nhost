@@ -56,6 +56,7 @@ func (t *table) buildSubscriptionStreamSQL(
 		1,
 		"_root",
 		"_root",
+		rootFieldName(field),
 		streamArgs,
 	)
 	if err != nil {
@@ -66,10 +67,33 @@ func (t *table) buildSubscriptionStreamSQL(
 	sql := b.String()
 	putBuilder(b)
 
-	// Build cursor metadata for the subscription manager
-	streamCursors := make([]core.StreamCursorInfo, len(streamArgs.Cursors))
-	for i, cursor := range streamArgs.Cursors {
-		streamCursors[i] = core.StreamCursorInfo{
+	op := core.SQLOperation{
+		Name:          alias,
+		SQL:           sql,
+		Parameters:    params,
+		StreamCursors: streamCursorInfos(streamArgs.Cursors),
+		Sequential:    nil,
+	}
+
+	// Convert to multiplexed and build final SQL
+	op.SQL, op.Parameters, err = multiplexed.Multiplex(op)
+	if err != nil {
+		return core.SQLOperation{}, fmt.Errorf(
+			"failed to multiplex stream subscription SQL: %w",
+			err,
+		)
+	}
+
+	return op, nil
+}
+
+// streamCursorInfos converts parsed stream cursors into the StreamCursorInfo
+// metadata the subscription manager uses to seed and advance result_vars
+// between polls.
+func streamCursorInfos(cursors []arguments.StreamCursor) []core.StreamCursorInfo {
+	infos := make([]core.StreamCursorInfo, len(cursors))
+	for i, cursor := range cursors {
+		infos[i] = core.StreamCursorInfo{
 			ColumnName:   cursor.Column.SQLName,
 			GraphQLName:  cursor.Column.GraphqlName,
 			InitialValue: cursor.Value,
@@ -77,17 +101,7 @@ func (t *table) buildSubscriptionStreamSQL(
 		}
 	}
 
-	op := core.SQLOperation{
-		Name:          alias,
-		SQL:           sql,
-		Parameters:    params,
-		StreamCursors: streamCursors,
-	}
-
-	// Convert to multiplexed and build final SQL
-	op.SQL, op.Parameters = multiplexed.Multiplex(op)
-
-	return op, nil
+	return infos
 }
 
 // buildQueryStreamSQL builds the inner SQL for a stream query.
@@ -103,6 +117,7 @@ func (t *table) buildQueryStreamSQL(
 	paramIndex int,
 	alias string,
 	relName string,
+	argumentPath string,
 	streamArgs arguments.Stream,
 ) ([]any, int, error) {
 	// Outer aggregation: SELECT coalesce(json_agg("alias"), '[]') AS "relName" FROM (
@@ -126,6 +141,7 @@ func (t *table) buildQueryStreamSQL(
 		alias,
 		t.tableFromClause(),
 		t.tableSourceRef(),
+		argumentPath,
 		streamArgs,
 	)
 	if err != nil {
@@ -155,6 +171,7 @@ func (t *table) buildStreamQuerySQL( //nolint:cyclop,funlen,gocognit,gocyclo,mai
 	outputAlias string,
 	fromClause string,
 	sourceRef string,
+	argumentPath string,
 	streamArgs arguments.Stream,
 ) ([]any, int, error) {
 	// Note: Remote relationships are not supported in subscriptions and are ignored
@@ -326,7 +343,7 @@ func (t *table) buildStreamQuerySQL( //nolint:cyclop,funlen,gocognit,gocyclo,mai
 
 			params, paramIndex, err = relSel.relationship.buildSelectionSQL(
 				b, relSel.field, fragments, variables, role, sessionVariables,
-				roots, params, paramIndex, baseAlias, relAlias,
+				roots, params, paramIndex, baseAlias, relAlias, argumentPath,
 			)
 			if err != nil {
 				return nil, 0, fmt.Errorf("error building relationship %s: %w", relSel.alias, err)
@@ -351,7 +368,7 @@ func (t *table) buildStreamQuerySQL( //nolint:cyclop,funlen,gocognit,gocyclo,mai
 
 			params, paramIndex, err = relSel.relationship.buildSelectionSQL(
 				b, relSel.field, fragments, variables, role, sessionVariables,
-				roots, params, paramIndex, baseAlias, relAlias,
+				roots, params, paramIndex, baseAlias, relAlias, argumentPath,
 			)
 			if err != nil {
 				return nil, 0, fmt.Errorf("error building relationship %s: %w", relSel.alias, err)

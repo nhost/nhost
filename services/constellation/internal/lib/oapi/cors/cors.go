@@ -30,8 +30,11 @@ var ErrWildcardWithCredentials = errors.New(
 // The middleware supports several strategies for gating Access-Control-Allow-Origin:
 //   - AllowOriginFunc non-nil: the function decides; AllowedOrigins is ignored.
 //   - AllowedOrigins nil: all origins allowed.
-//   - AllowedOrigins contains "*": all origins allowed.
-//   - AllowedOrigins non-empty: only listed origins allowed.
+//   - AllowedOrigins contains an allow-all entry ("*", "**", …): all origins allowed.
+//   - AllowedOrigins non-empty: only entries matching the request Origin are
+//     allowed. An entry is matched either literally or, when it contains "*",
+//     as a glob where each "*" matches any (possibly empty) run of characters
+//     (e.g. "https://dashboard-staging-*-nhost.vercel.app").
 //   - AllowedOrigins empty slice: all origins denied.
 //
 // And four strategies for handling Access-Control-Allow-Headers:
@@ -56,8 +59,21 @@ type Options struct {
 	// Validate. Never blanket-allow origins when AllowCredentials is true.
 	AllowOriginFunc func(origin string) bool
 
-	// AllowedOrigins is a list of origins permitted to make cross-origin requests.
-	// Use "*" or nil slice to allow all origins. Ignored when AllowOriginFunc is set.
+	// AllowedOrigins is a list of origins permitted to make cross-origin
+	// requests. Use "*" or a nil slice to allow all origins. Entries containing
+	// "*" are matched as globs, where each "*" stands for any (possibly empty)
+	// run of characters; for example "https://dashboard-staging-*-nhost.vercel.app"
+	// matches "https://dashboard-staging-pr42-nhost.vercel.app". All other
+	// entries are matched literally. Ignored when AllowOriginFunc is set.
+	//
+	// A glob entry is anchored at both ends against the whole Origin and "*"
+	// never spans a "/", so its literal portions stay bound to the authority
+	// and an attacker cannot satisfy it by appending or path-smuggling a host
+	// they control (e.g. "*.acme.com" does not admit "www.acme.com.evil.com").
+	// Combining such an anchored pattern with AllowCredentials is allowed. An
+	// entry made up solely of "*" characters reflects an arbitrary Origin and
+	// is therefore rejected by Validate when AllowCredentials is set, exactly
+	// like the bare "*".
 	AllowedOrigins []string
 
 	// AllowedMethods is a list of HTTP methods the client is permitted to use.
@@ -98,16 +114,73 @@ type Options struct {
 }
 
 // Validate reports whether the options form a safe CORS configuration. It
-// returns ErrWildcardWithCredentials when a wildcard origin is paired with
+// returns ErrWildcardWithCredentials when an allow-all origin is paired with
 // AllowCredentials, which is the dangerous combination browsers honor (a
-// reflected concrete origin plus credentials). All other combinations are
-// considered valid.
+// reflected concrete origin plus credentials). Anchored glob entries (those
+// with literal portions, e.g. "https://*.example.com") are not allow-all and
+// remain valid with credentials. All other combinations are considered valid.
 func (o Options) Validate() error {
-	if o.AllowCredentials && slices.Contains(o.AllowedOrigins, "*") {
+	if o.AllowCredentials && slices.ContainsFunc(o.AllowedOrigins, isAllowAllOrigin) {
 		return ErrWildcardWithCredentials
 	}
 
 	return nil
+}
+
+// isAllowAllOrigin reports whether an allow-list entry matches every possible
+// Origin: the bare "*" or any string composed solely of "*" characters ("**",
+// "***", …). Such an entry has no literal portion to bound it, so it reflects
+// an arbitrary request Origin and is the one that cannot be combined with
+// AllowCredentials.
+func isAllowAllOrigin(origin string) bool {
+	return origin != "" && strings.Trim(origin, "*") == ""
+}
+
+// matchWildcardOrigin reports whether origin matches pattern, where each "*"
+// in pattern stands for any (possibly empty) run of characters and every other
+// byte must match literally. The pattern is anchored at both ends. It is a
+// two-pointer glob with single-saved-star backtracking — worst case
+// O(len(pattern)·len(origin)), and no regular-expression compilation. It stays
+// effectively linear in len(origin) here because the configured patterns are
+// short, fixed operator-supplied strings and browsers cap the Origin header
+// length.
+//
+// A "*" never matches "/". A serialized Origin is scheme://host[:port] with no
+// path, so refusing to span a "/" stops a pattern like "https://*.acme.com"
+// from being satisfied by a path-smuggled value such as
+// "https://evil.com/https://www.acme.com" — the literal portions stay bound to
+// the authority, not to anything an attacker can append after it.
+func matchWildcardOrigin(pattern, origin string) bool {
+	var px, ox int
+
+	// starPx/starOx remember the most recent "*" so a failed literal match can
+	// backtrack: let that "*" consume one more byte of origin and retry.
+	starPx, starOx := -1, -1
+
+	for ox < len(origin) {
+		switch {
+		case px < len(pattern) && pattern[px] == '*':
+			starPx, starOx = px, ox
+			px++
+		case px < len(pattern) && pattern[px] == origin[ox]:
+			px++
+			ox++
+		case starPx != -1 && origin[starOx] != '/':
+			// Let the most recent "*" absorb one more byte, unless that byte is
+			// the "/" authority/path boundary.
+			px = starPx + 1
+			starOx++
+			ox = starOx
+		default:
+			return false
+		}
+	}
+
+	for px < len(pattern) && pattern[px] == '*' {
+		px++
+	}
+
+	return px == len(pattern)
 }
 
 // headerStrategy selects how Access-Control-Allow-Headers is computed at
@@ -245,8 +318,6 @@ func (cfg corsConfig) applyHeaders(c *gin.Context, origin string) {
 	if cfg.maxAge != "" {
 		c.Header("Access-Control-Max-Age", cfg.maxAge)
 	}
-
-	c.Writer.Header().Add("Vary", "Origin, Access-Control-Request-Method")
 }
 
 // CORS returns a Gin middleware handler that implements Cross-Origin Resource Sharing (CORS).
@@ -289,40 +360,63 @@ func CORS(opts Options) (gin.HandlerFunc, error) {
 
 	return func(c *gin.Context) {
 		origin := c.Request.Header.Get("Origin")
+		c.Writer.Header().Add("Vary", "Origin, Access-Control-Request-Method")
+
+		if origin != "" && cfg.originAllowed(origin) {
+			cfg.applyHeaders(c, origin)
+		}
 
 		if c.Request.Method == http.MethodOptions {
-			if cfg.originAllowed(origin) {
-				cfg.applyHeaders(c, origin)
-			}
-
 			c.Header("Content-Length", "0")
 			c.AbortWithStatus(http.StatusNoContent)
 
 			return
 		}
 
-		if origin != "" && cfg.originAllowed(origin) {
-			cfg.applyHeaders(c, origin)
-		}
-
 		c.Next()
 	}, nil
 }
 
-// allowOriginFunc picks an origin-check strategy once at construction time
-// and returns a closure that the per-request path can call without re-doing
-// the strategy switch (or scanning AllowedOrigins for "*") on every request.
+// allowOriginFunc picks an origin-check strategy once at construction time and
+// returns a closure the per-request path can call without re-doing the strategy
+// switch. Exact entries are partitioned into a set for O(1) lookup; glob
+// entries (those containing "*") are kept as a list scanned only on a miss, so
+// the common exact-match case stays cheap.
 func allowOriginFunc(opts Options) func(origin string) bool {
-	switch {
-	case opts.AllowOriginFunc != nil:
+	if opts.AllowOriginFunc != nil {
 		return opts.AllowOriginFunc
-	case opts.AllowedOrigins == nil, slices.Contains(opts.AllowedOrigins, "*"):
-		return func(string) bool { return true }
-	default:
-		allowed := opts.AllowedOrigins
+	}
 
-		return func(origin string) bool {
-			return slices.Contains(allowed, origin)
+	if opts.AllowedOrigins == nil {
+		return func(string) bool { return true }
+	}
+
+	exact := make(map[string]struct{}, len(opts.AllowedOrigins))
+
+	var patterns []string
+
+	for _, origin := range opts.AllowedOrigins {
+		switch {
+		case isAllowAllOrigin(origin):
+			return func(string) bool { return true }
+		case strings.Contains(origin, "*"):
+			patterns = append(patterns, origin)
+		default:
+			exact[origin] = struct{}{}
 		}
+	}
+
+	return func(origin string) bool {
+		if _, ok := exact[origin]; ok {
+			return true
+		}
+
+		for _, pattern := range patterns {
+			if matchWildcardOrigin(pattern, origin) {
+				return true
+			}
+		}
+
+		return false
 	}
 }

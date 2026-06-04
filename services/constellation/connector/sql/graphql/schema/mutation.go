@@ -14,11 +14,19 @@ import (
 // Views participate in the schema as read-or-write relations depending on
 // what the database itself allows. Postgres exposes that decision via
 // information_schema.views.is_insertable_into / is_updatable; SQLite views
-// are read-only unless an INSTEAD OF trigger exists (we conservatively treat
-// every SQLite view as read-only). The IsInsertable / IsUpdatable flags on
-// tableInfo capture those decisions and gate the corresponding mutations —
-// even for admin, since admin's "unconditional CRUD" is itself conditional
-// on the database accepting the write.
+// are read-only unless an INSTEAD OF trigger exists, in which case the
+// introspector detects the trigger and reports the view as writable (see
+// getViewMutability in connector/sql/sqlite/introspect.go). The IsInsertable
+// / IsUpdatable flags on tableInfo capture those decisions for both backends
+// and gate the corresponding mutations — even for admin, since admin's
+// "unconditional CRUD" is itself conditional on the database accepting the
+// write.
+//
+// Note: a writable SQLite view does get mutation fields here, but those
+// generated writes currently fail at execution time because the SQL pipeline
+// wraps DML in PostgreSQL-only data-modifying CTEs ("WITH ... AS (<DML> ...
+// RETURNING *)") that SQLite cannot parse. That is a runtime-execution gap,
+// separate from the field-generation gating this function performs.
 func generateTableMutationFields(
 	mutationFields *[]*graph.Field,
 	tableMeta *metadata.TableMetadata,
@@ -26,6 +34,7 @@ func generateTableMutationFields(
 	customTableName string,
 	qualifiedName string,
 	role string,
+	md *metadata.DatabaseMetadata,
 ) {
 	// DELETE is intentionally gated on IsUpdatable. Postgres exposes
 	// is_trigger_deletable independently of is_updatable, so an INSTEAD OF
@@ -35,7 +44,7 @@ func generateTableMutationFields(
 	// it correctly covers ordinary tables and simple (non-trigger) views.
 	if tableInfo.IsUpdatable &&
 		(role == roleAdmin || getDeletePermission(tableMeta, role) != nil) {
-		appendDeleteFields(mutationFields, tableMeta, tableInfo, customTableName, qualifiedName)
+		appendDeleteFields(mutationFields, tableMeta, tableInfo, customTableName, qualifiedName, md)
 	}
 
 	if tableInfo.IsInsertable &&
@@ -62,11 +71,12 @@ func appendDeleteFields(
 	tableInfo *introspection.Table,
 	customTableName string,
 	qualifiedName string,
+	md *metadata.DatabaseMetadata,
 ) {
 	if len(tableInfo.PrimaryKeys) > 0 {
 		*mutationFields = append(
 			*mutationFields,
-			generateDeleteByPkField(tableMeta, tableInfo, customTableName, qualifiedName),
+			generateDeleteByPkField(tableMeta, tableInfo, customTableName, qualifiedName, md),
 		)
 	}
 
@@ -205,7 +215,7 @@ func generateTableMutationInputTypes( //nolint:funlen,cyclop
 		hasIncrement := hasIncrementColumns(tableInfo, updateAllowedColumns)
 
 		if len(tableInfo.PrimaryKeys) > 0 {
-			generatePkColumnsInput(schema, tableMeta, tableInfo, customTableName, qualifiedName)
+			generatePkColumnsInput(schema, tableMeta, tableInfo, customTableName, qualifiedName, md)
 		}
 
 		generateSetInput(
@@ -334,18 +344,18 @@ func generatePkColumnsInput(
 	tableInfo *introspection.Table,
 	customTableName string,
 	qualifiedName string,
+	md *metadata.DatabaseMetadata,
 ) {
 	fields := []*graph.InputField{}
 
 	for _, pkColName := range tableInfo.PrimaryKeys {
-		for _, col := range tableInfo.Columns {
-			if col.Name == pkColName {
-				// PK columns are non-null.
-				colType := postgresTypeToGraphQL(col.Type, false)
+		for i := range tableInfo.Columns {
+			if tableInfo.Columns[i].Name == pkColName {
+				colType := getColumnGraphQLTypePKArg(&tableInfo.Columns[i], tableInfo, md)
 
 				fields = append(fields, &graph.InputField{ //nolint:exhaustruct
 					Name:        getCustomColumnName(tableMeta, pkColName),
-					Description: getColumnDescription(&col),
+					Description: getColumnDescription(&tableInfo.Columns[i]),
 					Type:        colType,
 				})
 

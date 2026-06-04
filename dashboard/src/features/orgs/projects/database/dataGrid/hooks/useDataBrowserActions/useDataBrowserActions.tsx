@@ -340,7 +340,7 @@ export function useDataBrowserActions({
       ),
       props: {
         PaperProps: {
-          className: 'lg:w-[65%] lg:max-w-7xl',
+          className: 'overflow-hidden lg:w-[65%] lg:max-w-7xl',
         },
       },
     });
@@ -404,7 +404,11 @@ export function useDataBrowserActions({
             functionOID={oid}
           />
         ) : (
-          <EditGraphQLSettingsForm schema={schema} tableName={name} />
+          <EditGraphQLSettingsForm
+            objectType={objectType}
+            schema={schema}
+            tableName={name}
+          />
         ),
       props: {
         PaperProps: {

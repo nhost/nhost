@@ -1,28 +1,35 @@
 {
   nixConfig = {
     sandbox = "relaxed";
+    extra-substituters = [
+      "s3://nhost-nix-cache?endpoint=https://14bc02755b64adb7c8c62b5420d0a457.eu.r2.cloudflarestorage.com&region=auto&profile=nhost-nix-cache"
+      "https://cache.nixos.org"
+    ];
+    extra-trusted-public-keys = [
+      "nhost-nix-cache:6bHlSIHLl5ubPXXS0EGgrvEQTyQnc+L05/6vShe/B6g="
+      "cache.nixos.org-1:6NCHdD59X431o0gWypbMrAURkbJ16ZPMQFGspcDShjY="
+    ];
   };
 
   inputs = {
     nixpkgs.url = "github:NixOS/nixpkgs/nixpkgs-unstable";
     flake-utils.url = "github:numtide/flake-utils";
-    nix-filter.url = "github:numtide/nix-filter";
     nix2container.url = "github:nlewo/nix2container";
     nix2container.inputs.nixpkgs.follows = "nixpkgs";
   };
 
+  # asdasdasd
   outputs =
     {
       self,
       nixpkgs,
       flake-utils,
-      nix-filter,
       nix2container,
     }:
     {
       #nixops
       lib = import ./nixops/lib/lib.nix;
-      overlays.default = import ./nixops/overlays/default.nix { inherit self nix-filter; };
+      overlays.default = import ./nixops/overlays/default.nix;
     }
     // flake-utils.lib.eachDefaultSystem (
       system:
@@ -31,7 +38,7 @@
           inherit system;
           config.allowUnfree = true;
           overlays = [
-            (import ./nixops/overlays/default.nix { inherit self nix-filter; })
+            (import ./nixops/overlays/default.nix)
           ];
         };
 
@@ -42,7 +49,6 @@
           inherit
             self
             pkgs
-            nix-filter
             nixops-lib
             ;
         };
@@ -51,7 +57,6 @@
           inherit
             self
             pkgs
-            nix-filter
             nixops-lib
             ;
         };
@@ -60,7 +65,6 @@
           inherit
             self
             pkgs
-            nix-filter
             nixops-lib
             ;
         };
@@ -69,7 +73,14 @@
           inherit
             self
             pkgs
-            nix-filter
+            nixops-lib
+            ;
+        };
+
+        ghactivityf = import ./tools/ghactivity/project.nix {
+          inherit
+            self
+            pkgs
             nixops-lib
             ;
         };
@@ -78,7 +89,6 @@
           inherit
             self
             pkgs
-            nix-filter
             nixops-lib
             ;
         };
@@ -87,7 +97,6 @@
           inherit
             self
             pkgs
-            nix-filter
             nixops-lib
             nix2containerPkgs
             ;
@@ -97,7 +106,6 @@
           inherit
             self
             pkgs
-            nix-filter
             nixops-lib
             nix2containerPkgs
             ;
@@ -108,7 +116,6 @@
             self
             pkgs
             nix2containerPkgs
-            nix-filter
             nixops-lib
             ;
         };
@@ -117,7 +124,6 @@
           inherit
             self
             pkgs
-            nix-filter
             nixops-lib
             ;
         };
@@ -126,7 +132,6 @@
           inherit
             self
             pkgs
-            nix-filter
             nixops-lib
             nix2containerPkgs
             ;
@@ -136,7 +141,6 @@
           inherit
             self
             pkgs
-            nix-filter
             nixops-lib
             ;
         };
@@ -145,7 +149,6 @@
           inherit
             self
             pkgs
-            nix-filter
             nixops-lib
             ;
         };
@@ -154,17 +157,14 @@
           inherit
             self
             pkgs
-            nix-filter
             nixops-lib
             ;
         };
 
         nixopsf = import ./nixops/project.nix {
           inherit
-            self
             pkgs
             nix2containerPkgs
-            nix-filter
             nixops-lib
             ;
         };
@@ -173,7 +173,6 @@
           inherit
             self
             pkgs
-            nix-filter
             nixops-lib
             nix2containerPkgs
             ;
@@ -183,7 +182,6 @@
           inherit
             self
             pkgs
-            nix-filter
             nixops-lib
             ;
         };
@@ -192,7 +190,6 @@
           inherit
             self
             pkgs
-            nix-filter
             nixops-lib
             ;
         };
@@ -201,7 +198,6 @@
           inherit
             self
             pkgs
-            nix-filter
             nixops-lib
             nix2containerPkgs
             ;
@@ -214,6 +210,7 @@
           cli = clif.check;
           codegen = codegenf.check;
           constellation = constellationf.check;
+          ghactivity = ghactivityf.check;
           govulncheck-wrapper = govulncheck-wrapperf.check;
           dashboard = dashboardf.check;
           demos = demosf.check;
@@ -246,7 +243,7 @@
               nhost-cli
 
               # dashboard
-              nodePackages.vercel
+              vercel
               playwright-driver
               lychee
 
@@ -271,6 +268,7 @@
               # others
               postgresql_18-client
               bun
+              pi-agent
 
               # docs
               vale
@@ -285,6 +283,7 @@
 
               # internal packages
               self.packages.${system}.codegen
+              self.packages.${system}.ghactivity
               self.packages.${system}.govulncheck-wrapper
             ];
 
@@ -336,7 +335,7 @@
             buildInputs = with pkgs; [
               pnpm
               nodejs
-              nodePackages.vercel
+              vercel
             ];
           };
 
@@ -344,6 +343,7 @@
           cli = clif.devShell;
           codegen = codegenf.devShell;
           constellation = constellationf.devShell;
+          ghactivity = ghactivityf.devShell;
           govulncheck-wrapper = govulncheck-wrapperf.devShell;
           dashboard = dashboardf.devShell;
           demos = demosf.devShell;
@@ -369,6 +369,7 @@
           codegen = codegenf.package;
           constellation = constellationf.package;
           constellation-docker-image = constellationf.dockerImage;
+          ghactivity = ghactivityf.package;
           govulncheck-wrapper = govulncheck-wrapperf.package;
           dashboard = dashboardf.package;
           dashboard-docker-image = dashboardf.dockerImage;
@@ -383,6 +384,7 @@
           mcp-docker-image = mcpf.dockerImage;
           nixops = nixopsf.package;
           nixops-docker-image = nixopsf.dockerImage;
+          pi-agent = pkgs.pi-agent;
           postgres-pg16 = postgresf.packages.pg16-package;
           postgres-pg16-docker-image = postgresf.packages.pg16-docker-image;
           postgres-pg16-as-dir = postgresf.packages.pg16-as-dir;
@@ -394,6 +396,7 @@
           postgres-pg18-as-dir = postgresf.packages.pg18-as-dir;
           storage = storagef.package;
           storage-docker-image = storagef.dockerImage;
+          storage-vips = storagef.vips;
           clamav-docker-image = storagef.clamav-docker-image;
           tutorials = tutorialsf.package;
         };

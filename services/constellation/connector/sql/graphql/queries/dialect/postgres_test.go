@@ -145,7 +145,6 @@ func TestPostgresDialect_JSONHelpers(t *testing.T) {
 		{"JSONAggRawExpr raw", d.JSONAggRawExpr(`"t"."x"`), `json_agg("t"."x")`},
 		{"CoalesceJSONArray", d.CoalesceJSONArray("a"), `coalesce(json_agg("a"), '[]')`},
 		{"JSONBuildObject", d.JSONBuildObject(), "json_build_object"},
-		{"JSONBuildArray", d.JSONBuildArray(), "jsonb_build_array"},
 		{"ToJSON", d.ToJSON("x"), "to_jsonb(x)"},
 		{"EmptyJSONArray", d.EmptyJSONArray(), "'[]'::json"},
 	}
@@ -189,18 +188,45 @@ func TestPostgresDialect_Capabilities(t *testing.T) {
 	d := &dialect.PostgresDialect{}
 
 	tests := map[string]bool{
-		"SupportsLateral":    d.SupportsLateral(),
-		"SupportsRegex":      d.SupportsRegex(),
-		"SupportsDistinctOn": d.SupportsDistinctOn(),
-		"SupportsJSONB":      d.SupportsJSONB(),
-		"SupportsFunctions":  d.SupportsFunctions(),
-		"SupportsArrays":     d.SupportsArrays(),
+		"SupportsLateral":            d.SupportsLateral(),
+		"SupportsRegex":              d.SupportsRegex(),
+		"SupportsDistinctOn":         d.SupportsDistinctOn(),
+		"SupportsJSONB":              d.SupportsJSONB(),
+		"SupportsFunctions":          d.SupportsFunctions(),
+		"SupportsArrays":             d.SupportsArrays(),
+		"SupportsVarianceAggregates": d.SupportsVarianceAggregates(),
+		"SupportsUpsertUpdateAction": d.SupportsUpsertUpdateAction(),
 	}
 
 	for name, got := range tests {
 		if !got {
 			t.Errorf("%s = false, want true (Postgres supports all)", name)
 		}
+	}
+}
+
+func TestPostgresDialect_BoolFuncs(t *testing.T) {
+	t.Parallel()
+
+	d := &dialect.PostgresDialect{}
+
+	tests := []struct {
+		name string
+		got  string
+		want string
+	}{
+		{"BoolAndFunc", d.BoolAndFunc(), "bool_and"},
+		{"BoolOrFunc", d.BoolOrFunc(), "bool_or"},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			t.Parallel()
+
+			if tt.got != tt.want {
+				t.Fatalf("got %q, want %q", tt.got, tt.want)
+			}
+		})
 	}
 }
 
@@ -270,6 +296,57 @@ func TestPostgresDialect_ArrayOps(t *testing.T) {
 	}
 }
 
+func TestPostgresDialect_CountAndAggregateOrderBy(t *testing.T) {
+	t.Parallel()
+
+	d := &dialect.PostgresDialect{}
+
+	countTests := []struct {
+		name        string
+		distinct    bool
+		expressions []string
+		want        string
+	}{
+		{name: "star", distinct: true, expressions: nil, want: `COUNT(*)`},
+		{
+			name:        "single",
+			distinct:    false,
+			expressions: []string{`"t"."id"`},
+			want:        `COUNT(("t"."id"))`,
+		},
+		{
+			name:        "multi distinct",
+			distinct:    true,
+			expressions: []string{`"t"."role"`, `"t"."active"`},
+			want:        `COUNT(DISTINCT ("t"."role", "t"."active"))`,
+		},
+	}
+
+	for _, tt := range countTests {
+		t.Run("count "+tt.name, func(t *testing.T) {
+			t.Parallel()
+
+			var b strings.Builder
+			d.WriteCountAggregate(&b, tt.distinct, tt.expressions)
+
+			if got := b.String(); got != tt.want {
+				t.Fatalf("WriteCountAggregate = %q, want %q", got, tt.want)
+			}
+		})
+	}
+
+	var b strings.Builder
+	d.WriteAggregateOrderByExpr(&b, "stddev_pop", `"t"."score"`)
+
+	if got := b.String(); got != `STDDEV_POP("t"."score")` {
+		t.Fatalf("WriteAggregateOrderByExpr = %q", got)
+	}
+
+	if !d.SupportsStableVarianceOrderBy() {
+		t.Fatal("SupportsStableVarianceOrderBy = false, want true for PostgreSQL")
+	}
+}
+
 func TestPostgresDialect_JSONRow(t *testing.T) {
 	t.Parallel()
 
@@ -319,5 +396,46 @@ func TestPostgresDialect_WriteGroupKeysFrom(t *testing.T) {
 
 	if len(params) != 1 {
 		t.Fatalf("params len = %d, want 1 (single array bind)", len(params))
+	}
+}
+
+// TestPostgresDialect_WriteOnConflictTarget pins the constraint-name conflict
+// target: PostgreSQL names the constraint and ignores the supplied columns.
+func TestPostgresDialect_WriteOnConflictTarget(t *testing.T) {
+	t.Parallel()
+
+	d := &dialect.PostgresDialect{}
+
+	var b strings.Builder
+
+	if err := d.WriteOnConflictTarget(&b, "users_pkey", []string{"id", "tenant"}); err != nil {
+		t.Fatalf("WriteOnConflictTarget: %v", err)
+	}
+
+	const want = ` ON CONFLICT ON CONSTRAINT "users_pkey"`
+	if got := b.String(); got != want {
+		t.Fatalf("WriteOnConflictTarget:\n got  %q\n want %q", got, want)
+	}
+}
+
+// TestPostgresDialect_WriteUpsertUpdateAction pins the RETURNING marker that
+// reports whether each row took the ON CONFLICT DO UPDATE branch. PostgreSQL
+// reads the xmax system column, which is non-zero for rows that were updated.
+func TestPostgresDialect_WriteUpsertUpdateAction(t *testing.T) {
+	t.Parallel()
+
+	d := &dialect.PostgresDialect{}
+
+	if !d.SupportsUpsertUpdateAction() {
+		t.Fatal("SupportsUpsertUpdateAction = false, want true for PostgreSQL")
+	}
+
+	var b strings.Builder
+
+	d.WriteUpsertUpdateAction(&b)
+
+	const want = `(xmax <> 0)`
+	if got := b.String(); got != want {
+		t.Fatalf("WriteUpsertUpdateAction:\n got  %q\n want %q", got, want)
 	}
 }

@@ -38,7 +38,7 @@ func makeRelationshipDB(schema string) metadata.DatabaseMetadata {
 						Name: "files",
 						Using: metadata.RelationshipUsing{
 							ForeignKeyConstraint: &metadata.ForeignKeyConstraint{
-								Column: "user_id",
+								Columns: []string{"user_id"},
 								Table: metadata.TableSource{
 									Name:   "files",
 									Schema: schema,
@@ -143,7 +143,7 @@ func makeEndToEndDB(schema string) metadata.DatabaseMetadata {
 						Name: "profile",
 						Using: metadata.RelationshipUsing{
 							ForeignKeyConstraint: &metadata.ForeignKeyConstraint{
-								Column: "profile_id",
+								Columns: []string{"profile_id"},
 								Table: metadata.TableSource{
 									Name:   "profiles",
 									Schema: schema,

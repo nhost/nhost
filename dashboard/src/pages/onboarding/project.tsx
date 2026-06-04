@@ -8,10 +8,9 @@ import slugify from 'slugify';
 import { z } from 'zod';
 import { AuthenticatedLayout } from '@/components/layout/AuthenticatedLayout';
 import { Container } from '@/components/layout/Container';
-import { ActivityIndicator } from '@/components/ui/v2/ActivityIndicator';
 import { Box } from '@/components/ui/v2/Box';
 import { Text } from '@/components/ui/v2/Text';
-import { Button } from '@/components/ui/v3/button';
+import { ButtonWithLoading } from '@/components/ui/v3/button';
 import {
   Form,
   FormControl,
@@ -28,6 +27,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from '@/components/ui/v3/select';
+import { Spinner } from '@/components/ui/v3/spinner';
 import { useOrgs } from '@/features/orgs/projects/hooks/useOrgs';
 import { execPromiseWithErrorToast } from '@/features/orgs/utils/execPromiseWithErrorToast';
 import { useUserData } from '@/hooks/useUserData';
@@ -158,7 +158,7 @@ export default function OnboardingProjectPage() {
     return (
       <Container>
         <div className="flex h-screen items-center justify-center">
-          <ActivityIndicator />
+          <Spinner />
         </div>
       </Container>
     );
@@ -303,20 +303,15 @@ export default function OnboardingProjectPage() {
                 />
 
                 <div className="flex justify-end">
-                  <Button
+                  <ButtonWithLoading
                     type="submit"
-                    disabled={form.formState.isSubmitting}
+                    loading={form.formState.isSubmitting}
                     className="w-full sm:w-auto"
                   >
-                    {form.formState.isSubmitting ? (
-                      <>
-                        <ActivityIndicator className="mr-2 h-4 w-4" />
-                        Creating Project...
-                      </>
-                    ) : (
-                      'Create Project'
-                    )}
-                  </Button>
+                    {form.formState.isSubmitting
+                      ? 'Creating Project...'
+                      : 'Create Project'}
+                  </ButtonWithLoading>
                 </div>
               </form>
             </Form>

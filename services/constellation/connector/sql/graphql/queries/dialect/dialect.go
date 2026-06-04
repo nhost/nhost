@@ -92,10 +92,6 @@ type Dialect interface { //nolint:interfacebloat
 	// MaterializedCTE returns "AS MATERIALIZED" or "AS" depending on support.
 	MaterializedCTE() string
 
-	// JSONBuildArray returns the function name for building JSON arrays.
-	// PostgreSQL: jsonb_build_array    SQLite: json_array
-	JSONBuildArray() string
-
 	// WriteArrayContains writes the "array contains" operator (column @> value).
 	// PostgreSQL: column @> $N::type[]
 	WriteArrayContains(b *strings.Builder, column, castPlaceholder string)
@@ -112,6 +108,48 @@ type Dialect interface { //nolint:interfacebloat
 
 	// SupportsArrays returns whether array column types are available.
 	SupportsArrays() bool
+
+	// WriteCountAggregate writes a COUNT aggregate over zero or more already-safe
+	// SQL expressions. Backends differ for multi-expression counts: PostgreSQL
+	// uses row constructors; SQLite uses a JSON/quote tuple key because row
+	// values are not legal COUNT arguments.
+	WriteCountAggregate(b *strings.Builder, distinct bool, expressions []string)
+
+	// WriteAggregateOrderByExpr writes an aggregate expression used by
+	// array-relationship aggregate order_by. Callers must only pass functions the
+	// dialect can render: avg/sum/min/max are always available, but the
+	// stddev/variance family is gated by SupportsStableVarianceOrderBy.
+	WriteAggregateOrderByExpr(b *strings.Builder, function string, expression string)
+
+	// SupportsStableVarianceOrderBy reports whether the backend can order an
+	// array-relationship aggregate by a stddev/variance function with a result
+	// numerically faithful to PostgreSQL's, so the row ordering matches. SQLite
+	// has no native stddev/variance aggregate and the one-pass identity that
+	// would emulate them suffers catastrophic cancellation for large, close
+	// values (it can even go negative), inverting the ordering versus
+	// PostgreSQL/Hasura. When this returns false the caller rejects such
+	// orderings rather than returning a silently wrong order.
+	SupportsStableVarianceOrderBy() bool
+
+	// SupportsVarianceAggregates reports whether the backend has native
+	// stddev/variance aggregate functions (stddev, stddev_pop, stddev_samp,
+	// var_pop, var_samp, variance) usable in an aggregate selection. PostgreSQL
+	// does; SQLite (go-sqlite3) does not, so emitting STDDEV(...) etc. fails at
+	// execution with an opaque "no such function" error. Schema generation gates
+	// the corresponding aggregate fields on this, and the aggregate-selection
+	// builder rejects them as a defensive backstop for callers that bypass schema
+	// validation. avg and sum are native everywhere and are never gated here.
+	SupportsVarianceAggregates() bool
+
+	// BoolAndFunc returns the name of the aggregate that is true iff every
+	// non-null input is true, used by aggregate bool_exp filters and ordering.
+	// PostgreSQL has bool_and; SQLite has no boolean aggregate, but min() over
+	// its 0/1 boolean storage is equivalent — including NULL over an empty set.
+	BoolAndFunc() string
+
+	// BoolOrFunc returns the name of the aggregate that is true iff any non-null
+	// input is true. PostgreSQL has bool_or; SQLite uses max() over 0/1 storage.
+	BoolOrFunc() string
 
 	// WriteJSONRowPrefix writes the start of a row-to-JSON expression.
 	// PostgreSQL: row_to_json((SELECT "_e" FROM (SELECT
@@ -133,12 +171,45 @@ type Dialect interface { //nolint:interfacebloat
 	// SQLite: )
 	WriteJSONRowSuffixNoAlias(b *strings.Builder)
 
+	// SupportsUpsertUpdateAction reports whether INSERT ... ON CONFLICT DO UPDATE
+	// can expose, from RETURNING, whether each returned row took the UPDATE branch.
+	// PostgreSQL can use the xmax system column; SQLite has no equivalent marker.
+	SupportsUpsertUpdateAction() bool
+
+	// WriteUpsertUpdateAction writes a boolean SQL expression for INSERT ...
+	// ON CONFLICT DO UPDATE RETURNING that is true for rows that took the UPDATE
+	// branch and false for freshly inserted rows. Callers must gate it with
+	// SupportsUpsertUpdateAction.
+	WriteUpsertUpdateAction(b *strings.Builder)
+
+	// WriteOnConflictTarget writes the conflict-target clause of an INSERT ...
+	// ON CONFLICT statement, up to (but not including) the DO NOTHING / DO UPDATE
+	// action. The two backends diverge irreconcilably here:
+	//
+	//	PostgreSQL: " ON CONFLICT ON CONSTRAINT \"name\""  (names the constraint)
+	//	SQLite:     " ON CONFLICT (\"col1\", \"col2\")"     (lists the columns)
+	//
+	// RequiresOnConflictTargetColumns reports whether WriteOnConflictTarget needs
+	// a non-empty conflictColumns slice to avoid broadening the target. SQLite
+	// identifies conflicts by column list, while PostgreSQL names the constraint.
+	RequiresOnConflictTargetColumns() bool
+
+	// SQLite has no "ON CONSTRAINT <name>" form, so callers must supply the
+	// constraint's columns; PostgreSQL ignores them and names the constraint.
+	// conflictColumns are already-resolved SQL column names; they are emitted as
+	// quoted identifiers, never raw user input. Implementations return an error
+	// rather than rendering a conflict target that can match a different unique
+	// constraint.
+	WriteOnConflictTarget(
+		b *strings.Builder, constraintName string, conflictColumns []string,
+	) error
+
 	// WriteGroupKeysFrom writes a FROM-source expression that produces one row
 	// per join value, used to build grouped-aggregate queries that batch
 	// multiple parent keys in a single statement.
 	//
 	// PostgreSQL: unnest($N::T[]) AS "keysAlias"("colAlias")
-	// SQLite:     (VALUES (?), (?), ...) AS "keysAlias"("colAlias")
+	// SQLite:     (SELECT ? AS "colAlias" UNION ALL SELECT ? ...) AS "keysAlias"
 	//
 	// keysAlias names the derived table; colAlias names the single column it
 	// exposes. sqlType is the SQL type of the column being grouped on (used
@@ -148,4 +219,14 @@ type Dialect interface { //nolint:interfacebloat
 		keysAlias, colAlias, sqlType string,
 		values []any, params []any, paramIndex int,
 	) ([]any, int)
+}
+
+func writeExpressionList(b *strings.Builder, expressions []string) {
+	for i, expr := range expressions {
+		if i > 0 {
+			b.WriteString(", ")
+		}
+
+		b.WriteString(expr)
+	}
 }

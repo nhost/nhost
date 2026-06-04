@@ -128,10 +128,6 @@ func (d *PostgresDialect) MaterializedCTE() string {
 	return "AS MATERIALIZED"
 }
 
-func (d *PostgresDialect) JSONBuildArray() string {
-	return "jsonb_build_array"
-}
-
 func (d *PostgresDialect) WriteArrayContains(b *strings.Builder, column, castPlaceholder string) {
 	b.WriteString(column)
 	b.WriteString(" @> ")
@@ -158,6 +154,75 @@ func (d *PostgresDialect) SupportsFunctions() bool {
 func (d *PostgresDialect) SupportsArrays() bool {
 	return true
 }
+
+// WriteCountAggregate uses PostgreSQL's row-constructor form for multi-column
+// counts: COUNT((c1, c2)) / COUNT(DISTINCT (c1, c2)).
+func (d *PostgresDialect) WriteCountAggregate(
+	b *strings.Builder, distinct bool, expressions []string,
+) {
+	b.WriteString("COUNT(")
+
+	if len(expressions) == 0 {
+		b.WriteByte('*')
+		b.WriteByte(')')
+
+		return
+	}
+
+	if distinct {
+		b.WriteString("DISTINCT ")
+	}
+
+	b.WriteByte('(')
+	writeExpressionList(b, expressions)
+	b.WriteString("))")
+}
+
+// WriteAggregateOrderByExpr writes PostgreSQL's native aggregate function call.
+func (d *PostgresDialect) WriteAggregateOrderByExpr(
+	b *strings.Builder, function string, expression string,
+) {
+	b.WriteString(strings.ToUpper(function))
+	b.WriteByte('(')
+	b.WriteString(expression)
+	b.WriteByte(')')
+}
+
+// SupportsStableVarianceOrderBy returns true: PostgreSQL has native, numerically
+// stable stddev/variance aggregates, so ordering by them is well-defined.
+func (d *PostgresDialect) SupportsStableVarianceOrderBy() bool { return true }
+
+// SupportsVarianceAggregates returns true: PostgreSQL has native stddev/variance
+// aggregate functions, so the corresponding aggregate selection fields are
+// exposed and computed.
+func (d *PostgresDialect) SupportsVarianceAggregates() bool { return true }
+
+func (d *PostgresDialect) SupportsUpsertUpdateAction() bool { return true }
+
+func (d *PostgresDialect) WriteUpsertUpdateAction(b *strings.Builder) {
+	b.WriteString("(xmax <> 0)")
+}
+
+func (d *PostgresDialect) RequiresOnConflictTargetColumns() bool { return false }
+
+// WriteOnConflictTarget names the constraint directly: PostgreSQL supports the
+// "ON CONFLICT ON CONSTRAINT <name>" form, which targets a specific unique or
+// primary-key constraint by name. The conflictColumns argument is unused here —
+// the constraint name is sufficient and matches Hasura's emitted SQL.
+func (d *PostgresDialect) WriteOnConflictTarget(
+	b *strings.Builder, constraintName string, _ []string,
+) error {
+	b.WriteString(" ON CONFLICT ON CONSTRAINT ")
+	core.WriteQuotedIdentifier(b, constraintName)
+
+	return nil
+}
+
+// BoolAndFunc returns PostgreSQL's native bool_and aggregate.
+func (d *PostgresDialect) BoolAndFunc() string { return "bool_and" }
+
+// BoolOrFunc returns PostgreSQL's native bool_or aggregate.
+func (d *PostgresDialect) BoolOrFunc() string { return "bool_or" }
 
 func (d *PostgresDialect) WriteJSONRowPrefix(b *strings.Builder) {
 	b.WriteString(`row_to_json((SELECT "_e" FROM (SELECT `)

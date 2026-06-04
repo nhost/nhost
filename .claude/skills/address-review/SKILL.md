@@ -183,7 +183,7 @@ The token goes **inline on the heading or bullet line**, after the
 finding's title, separated by ` — ` or ` · `. Below the original prose,
 the implementer appends an `> _Implementer note:_` blockquote describing
 what changed (or, for SKIPPED, why the result wouldn't be better).
-Immediately under that, the reviewer appends an `> _Reviewer note:_`
+Immediately under that, the reviewer appends an `> _Reviewer note (confidence HIGH|MEDIUM|LOW, verdict ACCEPT|ACCEPT_WITH_CONCERNS|REJECT):_`
 blockquote with their independent assessment.
 
 ```
@@ -196,8 +196,8 @@ blockquote with their independent assessment.
   > `doc.go` summarising the package's area of concern and listing
   > the four exported entry points. No behavioural change.
   >
-  > _Reviewer note (confidence HIGH):_ verified — godoc is accurate
-  > and matches actual exports. No new issues; complexity unchanged.
+  > _Reviewer note (confidence HIGH, verdict ACCEPT):_ verified — godoc
+  > is accurate and matches actual exports. No new issues; complexity unchanged.
   > Change is clearly worth it: future readers get the orientation
   > the package was missing.
 ```
@@ -442,8 +442,8 @@ type in review mode** (same `subagent_type`, new context). Pass it:
    reviewer at the file and the finding ID — it should read the
    original prose itself).
 5. The annotation format including the `> _Reviewer note (confidence
-   ...)_:` blockquote shape it must write *directly below* the
-   implementer's note.
+   ..., verdict ACCEPT|ACCEPT_WITH_CONCERNS|REJECT):_` blockquote shape it
+   must write *directly below* the implementer's note.
 6. The full text of "The five target traits" and "When to SKIP" so the
    reviewer is grounded in the same criteria.
 7. The reviewer's job description (below) and the explicit instruction
@@ -463,7 +463,7 @@ against the original concern. It must:
   public surface grown, indirection that hurts readability.
 - Decide whether the change is **worth it**. A change that resolves the
   finding but introduces equal-or-worse problems should be flagged.
-- Write a `> _Reviewer note (confidence HIGH|MEDIUM|LOW):_` blockquote
+- Write a `> _Reviewer note (confidence HIGH|MEDIUM|LOW, verdict ACCEPT|ACCEPT_WITH_CONCERNS|REJECT):_` blockquote
   *directly below* the implementer's note, covering all four points
   above in 2-5 sentences.
 - **Veto power:** if the change clearly introduces new issues or is
@@ -474,8 +474,8 @@ against the original concern. It must:
 The reviewer **must not edit code**. It may read code, run grep, and
 run the language's test/lint commands on the touched packages to
 confirm the implementer's claims, but it does not produce new diffs.
-Its only output is the `> _Reviewer note:_` blockquote in the review
-file and the verdict it returns to the orchestrator.
+Its only output is the verdict-bearing `> _Reviewer note:_` blockquote
+in the review file and the verdict it returns to the orchestrator.
 
 Reviewer prompt template:
 
@@ -520,7 +520,7 @@ Audit checklist:
    premature abstraction.
 4. Is the change worth it on balance?
 
-Write a `> _Reviewer note (confidence HIGH|MEDIUM|LOW):_` blockquote
+Write a `> _Reviewer note (confidence HIGH|MEDIUM|LOW, verdict ACCEPT|ACCEPT_WITH_CONCERNS|REJECT):_` blockquote
 DIRECTLY BELOW the implementer's note in the review file. 2-5
 sentences covering all four points above.
 

@@ -114,7 +114,8 @@ func (h *Handler) Start(
 	}
 
 	if isStream {
-		logger.DebugContext(ctx, "routing to stream cohort manager",
+		logger.DebugContext(
+			ctx, "routing to stream cohort manager",
 			slog.String("subscription_id", req.ID),
 			slog.Any("cursor_values", cursorValues),
 		)
@@ -159,7 +160,7 @@ func (h *Handler) detectStreamSubscription(
 
 	templateSessionVars := make(map[string]any)
 	for varName := range req.SessionVariables {
-		templateSessionVars[varName] = varName
+		templateSessionVars[varName] = core.SessionVarValue{Name: varName}
 	}
 
 	operations, err := h.roots.BuildQuery(

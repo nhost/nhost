@@ -51,6 +51,7 @@ func (t *table) buildMutationInsertOneSQL(
 		role,
 		sessionVariables,
 		roots,
+		rootFieldName(field),
 	)
 	if err != nil {
 		putBuilder(b)
@@ -66,6 +67,7 @@ func (t *table) buildMutationInsertOneSQL(
 		SQL:           sql,
 		Parameters:    params,
 		StreamCursors: nil,
+		Sequential:    nil,
 	}, nil
 }
 
@@ -81,12 +83,13 @@ func (t *table) buildInsertSQL(
 	role string,
 	sessionVariables map[string]any,
 	roots map[string]core.Operation,
+	argumentPath string,
 ) ([]any, error) {
 	params := make([]any, 0, 16) //nolint:mnd
 	paramIndex := 1
 
 	// Build the mutation CTEs
-	cteSQL, params, paramIndex, nestedCTEs, err := t.buildInsertMutationCTE(
+	cteSQL, params, paramIndex, nestedCTERefs, err := t.buildInsertMutationCTE(
 		[]arguments.InsertObject{insertObj},
 		onConflict,
 		role,
@@ -101,12 +104,13 @@ func (t *table) buildInsertSQL(
 	b.WriteString(cteSQL)
 	b.WriteString(" ")
 
-	// Build the final SELECT with field selection (using nestedCTEs from buildInsertMutationCTE)
+	// Build the final SELECT with field selection.
 	params, err = t.buildFinalSelect(
 		b,
 		columns,
 		relationships,
-		nestedCTEs,
+		nestedCTERefs.direct,
+		nestedCTERefs.allNames,
 		fragments,
 		variables,
 		role,
@@ -114,6 +118,7 @@ func (t *table) buildInsertSQL(
 		roots,
 		params,
 		paramIndex,
+		argumentPath,
 	)
 	if err != nil {
 		return nil, err
