@@ -1,12 +1,12 @@
-import ExpandablePanelCard from '@/features/orgs/projects/serverless-functions/components/MetricsTab/components/ExpandablePanelCard';
-import MetricChartPanel from '@/features/orgs/projects/serverless-functions/components/MetricsTab/components/MetricChartPanel';
-import MetricTable from '@/features/orgs/projects/serverless-functions/components/MetricsTab/components/MetricTable';
-import { colorForStatus } from '@/features/orgs/projects/serverless-functions/components/MetricsTab/constants';
-import type { MetricPanelSlug } from '@/features/orgs/projects/serverless-functions/components/MetricsTab/panels';
+import MetricTable from '@/features/orgs/projects/common/metrics/components/MetricTable';
 import {
   formatInteger,
   formatTimestampFull,
-} from '@/features/orgs/projects/serverless-functions/components/MetricsTab/utils/formatters';
+} from '@/features/orgs/projects/common/metrics/utils/formatters';
+import ExpandablePanelCard from '@/features/orgs/projects/serverless-functions/components/MetricsTab/components/ExpandablePanelCard';
+import MetricChartPanel from '@/features/orgs/projects/serverless-functions/components/MetricsTab/components/MetricChartPanel';
+import { colorForStatus } from '@/features/orgs/projects/serverless-functions/components/MetricsTab/constants';
+import type { MetricPanelSlug } from '@/features/orgs/projects/serverless-functions/components/MetricsTab/panels';
 import type { FunctionMetricsResponse } from '@/features/orgs/projects/serverless-functions/types';
 
 export interface ErrorsSectionProps {

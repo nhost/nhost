@@ -1,18 +1,8 @@
+import type { SeriesAccessors } from '@/features/orgs/projects/common/metrics/types';
 import {
   colorForMethod,
   colorForStatus,
 } from '@/features/orgs/projects/serverless-functions/components/MetricsTab/constants';
-
-// How a chart derives a series' key, legend label, and color from its labels.
-export interface SeriesAccessors {
-  keyFor: (labels: Record<string, string>) => string;
-  labelFor: (key: string, labels: Record<string, string>) => string;
-  colorFor: (
-    key: string,
-    labels: Record<string, string>,
-    index: number,
-  ) => string;
-}
 
 // Every metric we query with `groupBy: [METHOD]` comes back as one series per
 // method with a `method` label — the range metrics and the response-time

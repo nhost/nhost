@@ -25,20 +25,14 @@ import {
   ChartLegend,
   ChartTooltip,
 } from '@/components/ui/v3/chart';
-import type { SeriesAccessors } from '@/features/orgs/projects/serverless-functions/components/MetricsTab/seriesAccessors';
-import { buildChart } from '@/features/orgs/projects/serverless-functions/components/MetricsTab/utils/buildChart';
-import {
-  buildTimeTicks,
-  computeTickStep,
-} from '@/features/orgs/projects/serverless-functions/components/MetricsTab/utils/buildTimeTicks';
-import {
-  formatTimestampDateTick,
-  formatTimestampFull,
-  formatTimestampSecondsTick,
-  formatTimestampTick,
-} from '@/features/orgs/projects/serverless-functions/components/MetricsTab/utils/formatters';
-import { distanceSqToSeries } from '@/features/orgs/projects/serverless-functions/components/MetricsTab/utils/seriesGeometry';
-import type { MetricSeries } from '@/features/orgs/projects/serverless-functions/types';
+import useTimeAxis from '@/features/orgs/projects/common/metrics/hooks/useTimeAxis';
+import type {
+  MetricSeries,
+  SeriesAccessors,
+} from '@/features/orgs/projects/common/metrics/types';
+import { buildChart } from '@/features/orgs/projects/common/metrics/utils/buildChart';
+import { formatTimestampFull } from '@/features/orgs/projects/common/metrics/utils/formatters';
+import { distanceSqToSeries } from '@/features/orgs/projects/common/metrics/utils/seriesGeometry';
 import { cn } from '@/lib/utils';
 
 export interface MetricChartProps {
@@ -84,8 +78,6 @@ interface PinnedPayloadEntry {
 // zooms from a near-zero drag distance.
 const MIN_ZOOM_RANGE_MS = 10_000;
 
-const DAY_MS = 24 * 60 * 60_000;
-
 export default function MetricChart({
   data,
   accessors,
@@ -102,22 +94,7 @@ export default function MetricChart({
     [data, accessors],
   );
 
-  const ticks = useMemo(
-    () => (xDomain ? buildTimeTicks(xDomain) : undefined),
-    [xDomain],
-  );
-
-  const tickFormatter = useMemo(() => {
-    if (!xDomain) {
-      return formatTimestampTick;
-    }
-    if (xDomain[1] - xDomain[0] > DAY_MS) {
-      return formatTimestampDateTick;
-    }
-    return computeTickStep(xDomain) < 60_000
-      ? formatTimestampSecondsTick
-      : formatTimestampTick;
-  }, [xDomain]);
+  const { ticks, tickFormatter } = useTimeAxis(xDomain);
 
   const [internalHidden, setInternalHidden] = useState<string[]>([]);
   const hidden = hiddenKeys ?? internalHidden;

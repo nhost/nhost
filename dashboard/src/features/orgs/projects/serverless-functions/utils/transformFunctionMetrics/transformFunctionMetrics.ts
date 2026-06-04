@@ -27,7 +27,7 @@ export default function transformFunctionMetrics(
       timestamp: toIso,
       method: v.labels.method,
       status: v.labels.status,
-      value: v.value,
+      value: Math.ceil(v.value),
     }))
     .sort((a, b) => b.value - a.value);
 

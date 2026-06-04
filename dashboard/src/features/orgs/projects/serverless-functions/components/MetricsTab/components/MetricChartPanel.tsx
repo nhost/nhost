@@ -1,11 +1,11 @@
+import MetricChart from '@/features/orgs/projects/common/metrics/components/MetricChart';
+import { formatterForKind } from '@/features/orgs/projects/common/metrics/utils/formatters';
 import ExpandablePanelCard from '@/features/orgs/projects/serverless-functions/components/MetricsTab/components/ExpandablePanelCard';
-import MetricChart from '@/features/orgs/projects/serverless-functions/components/MetricsTab/components/MetricChart';
 import {
   METRIC_PANELS,
   type MetricPanelSlug,
 } from '@/features/orgs/projects/serverless-functions/components/MetricsTab/panels';
 import { accessorsForPanel } from '@/features/orgs/projects/serverless-functions/components/MetricsTab/seriesAccessors';
-import { formatterForKind } from '@/features/orgs/projects/serverless-functions/components/MetricsTab/utils/formatters';
 import type { FunctionMetricsResponse } from '@/features/orgs/projects/serverless-functions/types';
 
 export interface MetricChartPanelProps {

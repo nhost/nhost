@@ -1,7 +1,7 @@
 import {
   buildTimeTicks,
   computeTickStep,
-} from '@/features/orgs/projects/serverless-functions/components/MetricsTab/utils/buildTimeTicks';
+} from '@/features/orgs/projects/common/metrics/utils/buildTimeTicks';
 
 const ts = (iso: string) => new Date(iso).getTime();
 

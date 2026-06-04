@@ -3,17 +3,15 @@ import { Link2, X } from 'lucide-react';
 import { type MouseEvent as ReactMouseEvent, useEffect, useMemo } from 'react';
 import toast from 'react-hot-toast';
 import { Button } from '@/components/ui/v3/button';
-import MetricChart from '@/features/orgs/projects/serverless-functions/components/MetricsTab/components/MetricChart';
+import MetricChart from '@/features/orgs/projects/common/metrics/components/MetricChart';
+import type { MetricSeries } from '@/features/orgs/projects/common/metrics/types';
+import { formatterForKind } from '@/features/orgs/projects/common/metrics/utils/formatters';
 import {
   METRIC_PANELS,
   type MetricPanelSlug,
 } from '@/features/orgs/projects/serverless-functions/components/MetricsTab/panels';
 import { accessorsForPanel } from '@/features/orgs/projects/serverless-functions/components/MetricsTab/seriesAccessors';
-import { formatterForKind } from '@/features/orgs/projects/serverless-functions/components/MetricsTab/utils/formatters';
-import type {
-  FunctionMetricsResponse,
-  MetricSeries,
-} from '@/features/orgs/projects/serverless-functions/types';
+import type { FunctionMetricsResponse } from '@/features/orgs/projects/serverless-functions/types';
 
 export interface ExpandedMetricPanelProps {
   openPanel: MetricPanelSlug;

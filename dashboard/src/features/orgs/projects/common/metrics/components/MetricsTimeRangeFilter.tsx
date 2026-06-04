@@ -22,7 +22,7 @@ import {
   type MetricsTimeRange,
   PRESET_LABELS,
   resolveTimeRange,
-} from '@/features/orgs/projects/serverless-functions/components/MetricsTab/timeRange';
+} from '@/features/orgs/projects/common/metrics/utils/timeRange';
 
 const TRIGGER_FORMAT = 'MMM d, HH:mm:ss';
 

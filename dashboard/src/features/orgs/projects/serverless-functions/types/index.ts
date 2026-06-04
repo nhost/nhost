@@ -1,3 +1,5 @@
+import type { MetricSeries } from '@/features/orgs/projects/common/metrics/types';
+
 export interface NhostFunction {
   path: string;
   route: string;
@@ -87,12 +89,6 @@ export function isFunctionTab(value: unknown): value is FunctionTab {
     typeof value === 'string' &&
     (FUNCTION_TABS as readonly string[]).includes(value)
   );
-}
-
-export interface MetricSeries {
-  labels: Record<string, string>;
-  timestamps: string[];
-  datapoints: number[];
 }
 
 export interface RequestsTableRow {

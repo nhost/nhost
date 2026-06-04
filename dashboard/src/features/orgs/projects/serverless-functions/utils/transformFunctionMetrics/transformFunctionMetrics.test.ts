@@ -16,12 +16,9 @@ const FIXTURE: GetFunctionsMetricsDashboardQuery = {
   totalBytesSent: [{ labels: {}, value: 23445667800 }],
   totalDuration: [{ labels: {}, value: 12834.5 }],
   totalErrors: [
-    { labels: { method: 'POST', status: '500' }, value: 142 },
+    { labels: { method: 'POST', status: '500' }, value: 141.7 },
     { labels: { method: 'GET', status: '404' }, value: 38 },
   ],
-  // Instant per-method totals — deliberately unrelated to the `invocations`
-  // range datapoints below, so the test proves the table reads this field (not
-  // the summed series) and applies `Math.ceil`.
   totalRequestsByMethod: [
     { labels: { method: 'GET' }, value: 10.2 },
     { labels: { method: 'POST' }, value: 3 },

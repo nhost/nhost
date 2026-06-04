@@ -1,4 +1,4 @@
-import type { MetricSeries } from '@/features/orgs/projects/serverless-functions/types';
+import type { MetricSeries } from '@/features/orgs/projects/common/metrics/types';
 
 // Resolve a unique chart key for each series, suffixing collisions (`key_1`,
 // `key_2`, …) so two series that map to the same label stay distinct. The

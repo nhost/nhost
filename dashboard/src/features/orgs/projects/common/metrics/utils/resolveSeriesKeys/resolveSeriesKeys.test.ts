@@ -1,5 +1,5 @@
-import { resolveSeriesKeys } from '@/features/orgs/projects/serverless-functions/components/MetricsTab/utils/resolveSeriesKeys';
-import type { MetricSeries } from '@/features/orgs/projects/serverless-functions/types';
+import type { MetricSeries } from '@/features/orgs/projects/common/metrics/types';
+import { resolveSeriesKeys } from '@/features/orgs/projects/common/metrics/utils/resolveSeriesKeys';
 
 // resolveSeriesKeys only reads `labels`; timestamps/datapoints are irrelevant.
 const series = (labels: Record<string, string>): MetricSeries => ({

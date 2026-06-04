@@ -16,15 +16,15 @@ import {
   TooltipContent,
   TooltipTrigger,
 } from '@/components/ui/v3/tooltip';
+import MetricsTimeRangeFilter from '@/features/orgs/projects/common/metrics/components/MetricsTimeRangeFilter';
+import useMetricsTimeRangeUrlState from '@/features/orgs/projects/common/metrics/hooks/useMetricsTimeRangeUrlState';
+import { resolveTimeRange } from '@/features/orgs/projects/common/metrics/utils/timeRange';
 import ExpandedMetricPanel from '@/features/orgs/projects/serverless-functions/components/MetricsTab/components/ExpandedMetricPanel';
-import MetricsTimeRangeFilter from '@/features/orgs/projects/serverless-functions/components/MetricsTab/components/MetricsTimeRangeFilter';
 import useMetricsPanelUrlState from '@/features/orgs/projects/serverless-functions/components/MetricsTab/hooks/useMetricsPanelUrlState';
-import useMetricsTimeRangeUrlState from '@/features/orgs/projects/serverless-functions/components/MetricsTab/hooks/useMetricsTimeRangeUrlState';
 import ErrorsSection from '@/features/orgs/projects/serverless-functions/components/MetricsTab/sections/ErrorsSection';
 import GeneralSection from '@/features/orgs/projects/serverless-functions/components/MetricsTab/sections/GeneralSection';
 import ResponseTimesSection from '@/features/orgs/projects/serverless-functions/components/MetricsTab/sections/ResponseTimesSection';
 import SummarySection from '@/features/orgs/projects/serverless-functions/components/MetricsTab/sections/SummarySection';
-import { resolveTimeRange } from '@/features/orgs/projects/serverless-functions/components/MetricsTab/timeRange';
 import { useFunctionMetrics } from '@/features/orgs/projects/serverless-functions/hooks/useFunctionMetrics';
 import type { NhostFunction } from '@/features/orgs/projects/serverless-functions/types';
 import { cn } from '@/lib/utils';

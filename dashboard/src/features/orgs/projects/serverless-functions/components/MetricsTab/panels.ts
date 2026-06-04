@@ -1,8 +1,6 @@
-import type { ValueFormatterKind } from '@/features/orgs/projects/serverless-functions/components/MetricsTab/utils/formatters';
-import type {
-  FunctionMetricsResponse,
-  MetricSeries,
-} from '@/features/orgs/projects/serverless-functions/types';
+import type { MetricSeries } from '@/features/orgs/projects/common/metrics/types';
+import type { ValueFormatterKind } from '@/features/orgs/projects/common/metrics/utils/formatters';
+import type { FunctionMetricsResponse } from '@/features/orgs/projects/serverless-functions/types';
 
 export interface MetricPanelConfig {
   title: string;

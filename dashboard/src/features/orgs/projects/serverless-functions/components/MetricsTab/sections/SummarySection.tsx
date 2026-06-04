@@ -1,10 +1,10 @@
 import { Activity, Clock, HardDrive } from 'lucide-react';
-import StatCard from '@/features/orgs/projects/serverless-functions/components/MetricsTab/components/StatCard';
+import StatCard from '@/features/orgs/projects/common/metrics/components/StatCard';
 import {
   formatBytesSI,
   formatDurationSeconds,
   formatInteger,
-} from '@/features/orgs/projects/serverless-functions/components/MetricsTab/utils/formatters';
+} from '@/features/orgs/projects/common/metrics/utils/formatters';
 import type { FunctionMetricsSummary } from '@/features/orgs/projects/serverless-functions/types';
 
 export interface SummarySectionProps {

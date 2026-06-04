@@ -8,7 +8,7 @@ import {
   formatTimestampFull,
   formatTimestampTick,
   formatterForKind,
-} from '@/features/orgs/projects/serverless-functions/components/MetricsTab/utils/formatters';
+} from '@/features/orgs/projects/common/metrics/utils/formatters';
 
 describe('formatterForKind', () => {
   it('maps each value-formatter kind to its formatter', () => {

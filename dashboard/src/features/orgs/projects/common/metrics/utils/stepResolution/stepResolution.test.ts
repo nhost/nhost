@@ -3,7 +3,7 @@ import {
   DEFAULT_MAX_DATA_POINTS,
   resolveMaxDataPoints,
   roundIntervalMs,
-} from '@/features/orgs/projects/serverless-functions/components/MetricsTab/utils/stepResolution';
+} from '@/features/orgs/projects/common/metrics/utils/stepResolution';
 
 const minutesAgo = (now: Date, minutes: number) =>
   new Date(now.getTime() - minutes * 60_000);

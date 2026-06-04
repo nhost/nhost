@@ -1,14 +1,14 @@
 import { useCallback, useMemo, useState } from 'react';
-import { useProject } from '@/features/orgs/projects/hooks/useProject';
-import {
-  type MetricsTimeRange,
-  resolveTimeRange,
-} from '@/features/orgs/projects/serverless-functions/components/MetricsTab/timeRange';
 import {
   computeQueryStep,
   DEFAULT_MIN_INTERVAL,
   resolveMaxDataPoints,
-} from '@/features/orgs/projects/serverless-functions/components/MetricsTab/utils/stepResolution';
+} from '@/features/orgs/projects/common/metrics/utils/stepResolution';
+import {
+  type MetricsTimeRange,
+  resolveTimeRange,
+} from '@/features/orgs/projects/common/metrics/utils/timeRange';
+import { useProject } from '@/features/orgs/projects/hooks/useProject';
 import type { FunctionMetricsResponse } from '@/features/orgs/projects/serverless-functions/types';
 import { transformFunctionMetrics } from '@/features/orgs/projects/serverless-functions/utils/transformFunctionMetrics';
 import { useGetFunctionsMetricsDashboardQuery } from '@/utils/__generated__/graphql';
@@ -71,9 +71,10 @@ export default function useFunctionMetrics({
     [range, now],
   );
 
-  const { intervalMs, maxDataPoints } = useMemo(
-    () => computeQueryStep(from, to, resolveMaxDataPoints(committedWidth)),
-    [from, to, committedWidth],
+  const { intervalMs, maxDataPoints } = computeQueryStep(
+    from,
+    to,
+    resolveMaxDataPoints(committedWidth),
   );
 
   const escapedRoute = route.replace(ROUTE_REGEX_METACHARACTERS, '\\$&');

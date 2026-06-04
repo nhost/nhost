@@ -1,6 +1,8 @@
-import type { SeriesAccessors } from '@/features/orgs/projects/serverless-functions/components/MetricsTab/seriesAccessors';
-import { buildChart } from '@/features/orgs/projects/serverless-functions/components/MetricsTab/utils/buildChart';
-import type { MetricSeries } from '@/features/orgs/projects/serverless-functions/types';
+import type {
+  MetricSeries,
+  SeriesAccessors,
+} from '@/features/orgs/projects/common/metrics/types';
+import { buildChart } from '@/features/orgs/projects/common/metrics/utils/buildChart';
 
 const accessors: SeriesAccessors = {
   keyFor: (labels) => labels.method,

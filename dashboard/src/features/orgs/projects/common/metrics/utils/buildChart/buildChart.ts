@@ -1,8 +1,10 @@
 import type { ChartConfig } from '@/components/ui/v3/chart';
-import type { SeriesAccessors } from '@/features/orgs/projects/serverless-functions/components/MetricsTab/seriesAccessors';
-import { resolveSeriesKeys } from '@/features/orgs/projects/serverless-functions/components/MetricsTab/utils/resolveSeriesKeys';
-import type { Row } from '@/features/orgs/projects/serverless-functions/components/MetricsTab/utils/seriesGeometry';
-import type { MetricSeries } from '@/features/orgs/projects/serverless-functions/types';
+import type {
+  MetricSeries,
+  SeriesAccessors,
+} from '@/features/orgs/projects/common/metrics/types';
+import { resolveSeriesKeys } from '@/features/orgs/projects/common/metrics/utils/resolveSeriesKeys';
+import type { Row } from '@/features/orgs/projects/common/metrics/utils/seriesGeometry';
 
 // When two adjacent samples are farther apart than 1.5× the typical bucket
 // step, insert a synthetic null row between them so Recharts (with

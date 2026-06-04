@@ -4,7 +4,7 @@ import {
   distanceSqToSeries,
   pixelAt,
   type Row,
-} from '@/features/orgs/projects/serverless-functions/components/MetricsTab/utils/seriesGeometry';
+} from '@/features/orgs/projects/common/metrics/utils/seriesGeometry';
 
 // jsdom has no chart, so stub the recharts scales with simple pixel mappings.
 const identityScale = ((v: number) => v) as unknown as ScaleFunction;

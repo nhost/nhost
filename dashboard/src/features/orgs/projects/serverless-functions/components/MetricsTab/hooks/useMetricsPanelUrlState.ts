@@ -18,11 +18,9 @@ export interface MetricsPanelUrlState {
 export default function useMetricsPanelUrlState(): MetricsPanelUrlState {
   const router = useRouter();
 
-  const openPanel = useMemo(() => {
-    const raw = router.query.metricPanel;
-    const value = Array.isArray(raw) ? raw[0] : raw;
-    return isMetricPanelSlug(value) ? value : null;
-  }, [router.query.metricPanel]);
+  const rawPanel = router.query.metricPanel;
+  const panelParam = Array.isArray(rawPanel) ? rawPanel[0] : rawPanel;
+  const openPanel = isMetricPanelSlug(panelParam) ? panelParam : null;
 
   const hiddenKeys = useMemo<string[]>(() => {
     if (!openPanel) {

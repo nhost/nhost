@@ -4,7 +4,7 @@ import {
   DEFAULT_METRICS_TIME_RANGE,
   isMetricsRangePreset,
   type MetricsTimeRange,
-} from '@/features/orgs/projects/serverless-functions/components/MetricsTab/timeRange';
+} from '@/features/orgs/projects/common/metrics/utils/timeRange';
 
 const RANGE_KEY = 'metricRange';
 const FROM_KEY = 'metricFrom';

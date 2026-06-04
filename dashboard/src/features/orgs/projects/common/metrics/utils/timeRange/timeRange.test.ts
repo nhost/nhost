@@ -4,7 +4,7 @@ import {
   METRICS_RANGE_PRESETS,
   type MetricsRangePreset,
   resolveTimeRange,
-} from '@/features/orgs/projects/serverless-functions/components/MetricsTab/timeRange';
+} from '@/features/orgs/projects/common/metrics/utils/timeRange';
 
 // Second source of truth for the preset → minutes contract: a typo in the
 // production PRESET_MINUTES table (which silently shifts every query window)
