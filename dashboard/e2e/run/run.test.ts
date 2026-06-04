@@ -33,6 +33,10 @@ test('should create and delete a run service', async ({
 
   await page.getByRole('button', { name: /confirm/i }).click();
 
+  await expect(
+    page.getByText('The service has been configured successfully.'),
+  ).toBeVisible({ timeout: 30000 });
+
   await expect(page.getByRole('heading', { name: serviceName })).toBeVisible();
 
   await page.getByLabel(/more options/i).click();
