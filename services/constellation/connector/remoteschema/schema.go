@@ -2,21 +2,31 @@ package remoteschema
 
 import (
 	"fmt"
+	"strings"
 
 	"github.com/nhost/nhost/services/constellation/graph"
 	"github.com/vektah/gqlparser/v2"
 	"github.com/vektah/gqlparser/v2/ast"
 )
 
+const (
+	presetDirectiveName   = "preset"
+	presetValueScalarName = "NhostPresetValue"
+)
+
 // presetArg represents a preset argument that should be injected during execution.
 type presetArg struct {
-	ArgumentName string
-	Value        string // Literal value or session variable (x-hasura-*)
+	ArgumentName    string
+	Value           *ast.Value // Literal value or session variable token (x-hasura-*).
+	Type            *ast.Type
+	TargetKind      ast.DefinitionKind
+	SessionVariable string
 }
 
 // presetDirectiveSDL defines the @preset directive used in remote schema permissions.
 const presetDirectiveSDL = `
-directive @preset(value: String!) on ARGUMENT_DEFINITION
+scalar NhostPresetValue
+directive @preset(value: NhostPresetValue!) on ARGUMENT_DEFINITION
 `
 
 // parseSDL parses a GraphQL SDL string into an intermediate schema representation.
@@ -71,8 +81,13 @@ func convertToGraphSchema(doc *ast.Schema) (*graph.Schema, map[string][]presetAr
 		schema.SubscriptionType = &doc.Subscription.Name
 	}
 
+	typeKinds := make(map[string]ast.DefinitionKind, len(doc.Types))
 	for _, typ := range doc.Types {
-		if isBuiltinType(typ.Name) {
+		typeKinds[typ.Name] = typ.Kind
+	}
+
+	for _, typ := range doc.Types {
+		if isBuiltinType(typ.Name) || typ.Name == presetValueScalarName {
 			continue
 		}
 
@@ -88,7 +103,7 @@ func convertToGraphSchema(doc *ast.Schema) (*graph.Schema, map[string][]presetAr
 		case ast.InputObject:
 			schema.Inputs = append(schema.Inputs, convertSDLInput(typ))
 		case ast.Object:
-			schema.Types = append(schema.Types, convertSDLObject(typ, presets))
+			schema.Types = append(schema.Types, convertSDLObject(typ, presets, typeKinds))
 		}
 	}
 
@@ -125,7 +140,7 @@ func convertSDLInterface(typ *ast.Definition) *graph.InterfaceType {
 	return &graph.InterfaceType{
 		Name:        typ.Name,
 		Description: typ.Description,
-		Fields:      convertFields(typ.Fields, nil),
+		Fields:      convertFields(typ.Fields, nil, nil),
 		Interfaces:  typ.Interfaces,
 		Directives:  nil,
 	}
@@ -149,9 +164,13 @@ func convertSDLInput(typ *ast.Definition) *graph.InputObjectType {
 	}
 }
 
-func convertSDLObject(typ *ast.Definition, presets map[string][]presetArg) *graph.ObjectType {
+func convertSDLObject(
+	typ *ast.Definition,
+	presets map[string][]presetArg,
+	typeKinds map[string]ast.DefinitionKind,
+) *graph.ObjectType {
 	fieldPresets := make(map[string][]presetArg)
-	fields := convertFields(typ.Fields, fieldPresets)
+	fields := convertFields(typ.Fields, fieldPresets, typeKinds)
 
 	for fieldName, args := range fieldPresets {
 		key := typ.Name + "." + fieldName
@@ -173,6 +192,7 @@ func convertSDLObject(typ *ast.Definition, presets map[string][]presetArg) *grap
 func convertFields(
 	fields ast.FieldList,
 	presets map[string][]presetArg,
+	typeKinds map[string]ast.DefinitionKind,
 ) []*graph.Field {
 	result := make([]*graph.Field, 0, len(fields))
 
@@ -186,12 +206,8 @@ func convertFields(
 		args := make([]*graph.Argument, 0, len(f.Arguments))
 
 		for _, arg := range f.Arguments {
-			presetValue := extractPresetValue(arg.Directives)
-			if presetValue != "" {
-				fieldPresets = append(fieldPresets, presetArg{
-					ArgumentName: arg.Name,
-					Value:        presetValue,
-				})
+			if preset, ok := extractPreset(arg, typeKinds); ok {
+				fieldPresets = append(fieldPresets, preset)
 
 				continue
 			}
@@ -300,19 +316,64 @@ func convertDirectives(directives ast.DirectiveList) []*graph.Directive {
 	return result
 }
 
-// extractPresetValue extracts the value from a @preset directive if present.
-func extractPresetValue(directives ast.DirectiveList) string {
-	for _, d := range directives {
-		if d.Name == "preset" {
-			for _, arg := range d.Arguments {
-				if arg.Name == "value" {
-					return arg.Value.Raw
-				}
+// extractPreset extracts the value from a @preset directive if present.
+func extractPreset(
+	arg *ast.ArgumentDefinition,
+	typeKinds map[string]ast.DefinitionKind,
+) (presetArg, bool) {
+	for _, d := range arg.Directives {
+		if d.Name != presetDirectiveName {
+			continue
+		}
+
+		valueArg := d.Arguments.ForName("value")
+		if valueArg == nil {
+			return emptyPresetArg(), false
+		}
+
+		value := cloneValue(valueArg.Value)
+		preset := presetArg{
+			ArgumentName:    arg.Name,
+			Value:           value,
+			Type:            cloneType(arg.Type),
+			TargetKind:      typeKinds[getBaseTypeName(arg.Type)],
+			SessionVariable: "",
+		}
+
+		if value != nil && value.Kind == ast.StringValue {
+			key := strings.ToLower(value.Raw)
+			if strings.HasPrefix(key, "x-hasura-") {
+				preset.SessionVariable = key
 			}
 		}
+
+		return preset, true
 	}
 
-	return ""
+	return emptyPresetArg(), false
+}
+
+func emptyPresetArg() presetArg {
+	return presetArg{
+		ArgumentName:    "",
+		Value:           nil,
+		Type:            nil,
+		TargetKind:      "",
+		SessionVariable: "",
+	}
+}
+
+func cloneType(t *ast.Type) *ast.Type {
+	if t == nil {
+		return nil
+	}
+
+	return &ast.Type{
+		NamedType: t.NamedType,
+		Elem:      cloneType(t.Elem),
+		NonNull:   t.NonNull,
+		Position:  t.Position,
+	}
 }
 
 // filterPresetDirective removes @preset directives from the list.
@@ -320,7 +381,7 @@ func filterPresetDirective(directives ast.DirectiveList) ast.DirectiveList {
 	result := make(ast.DirectiveList, 0, len(directives))
 
 	for _, d := range directives {
-		if d.Name != "preset" {
+		if d.Name != presetDirectiveName {
 			result = append(result, d)
 		}
 	}

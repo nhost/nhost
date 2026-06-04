@@ -56,20 +56,22 @@ func pruneUnreachableTypes(schema *graph.Schema) {
 
 // reachabilityWalker holds type lookup maps and walks type references transitively.
 type reachabilityWalker struct {
-	objects    map[string]*graph.ObjectType
-	inputs     map[string]*graph.InputObjectType
-	interfaces map[string]*graph.InterfaceType
-	unions     map[string]*graph.UnionType
-	reachable  map[string]struct{}
+	objects      map[string]*graph.ObjectType
+	inputs       map[string]*graph.InputObjectType
+	interfaces   map[string]*graph.InterfaceType
+	unions       map[string]*graph.UnionType
+	implementors map[string][]string
+	reachable    map[string]struct{}
 }
 
 func newReachabilityWalker(schema *graph.Schema) *reachabilityWalker {
 	w := &reachabilityWalker{
-		objects:    make(map[string]*graph.ObjectType, len(schema.Types)),
-		inputs:     make(map[string]*graph.InputObjectType, len(schema.Inputs)),
-		interfaces: make(map[string]*graph.InterfaceType, len(schema.Interfaces)),
-		unions:     make(map[string]*graph.UnionType, len(schema.Unions)),
-		reachable:  make(map[string]struct{}),
+		objects:      make(map[string]*graph.ObjectType, len(schema.Types)),
+		inputs:       make(map[string]*graph.InputObjectType, len(schema.Inputs)),
+		interfaces:   make(map[string]*graph.InterfaceType, len(schema.Interfaces)),
+		unions:       make(map[string]*graph.UnionType, len(schema.Unions)),
+		implementors: make(map[string][]string),
+		reachable:    make(map[string]struct{}),
 	}
 
 	for _, t := range schema.Types {
@@ -88,7 +90,37 @@ func newReachabilityWalker(schema *graph.Schema) *reachabilityWalker {
 		w.unions[t.Name] = t
 	}
 
+	for _, obj := range schema.Types {
+		seen := make(map[string]struct{}, len(obj.Interfaces))
+		for _, iface := range obj.Interfaces {
+			w.addImplementor(iface, obj.Name, seen)
+		}
+	}
+
 	return w
+}
+
+func (w *reachabilityWalker) addImplementor(
+	interfaceName string,
+	objectName string,
+	seen map[string]struct{},
+) {
+	if interfaceName == "" {
+		return
+	}
+
+	if _, ok := seen[interfaceName]; ok {
+		return
+	}
+
+	seen[interfaceName] = struct{}{}
+	w.implementors[interfaceName] = append(w.implementors[interfaceName], objectName)
+
+	if iface, ok := w.interfaces[interfaceName]; ok {
+		for _, parent := range iface.Interfaces {
+			w.addImplementor(parent, objectName, seen)
+		}
+	}
 }
 
 func (w *reachabilityWalker) visit(name string) {
@@ -121,6 +153,10 @@ func (w *reachabilityWalker) visit(name string) {
 
 		for _, parent := range iface.Interfaces {
 			w.visit(parent)
+		}
+
+		for _, impl := range w.implementors[name] {
+			w.visit(impl)
 		}
 	}
 

@@ -5,6 +5,7 @@ import (
 	"testing"
 
 	"github.com/nhost/nhost/services/constellation/graph"
+	"github.com/vektah/gqlparser/v2/ast"
 )
 
 func TestPruneUnreachableTypes_DirectiveArgumentTypes(t *testing.T) {
@@ -74,6 +75,108 @@ func TestPruneUnreachableTypes_DirectiveArgumentTypes(t *testing.T) {
 
 	if foundUnused {
 		t.Error("UnusedEnum should have been pruned")
+	}
+}
+
+func TestPruneUnreachableTypes_InterfaceImplementors(t *testing.T) {
+	t.Parallel()
+
+	queryType := "Query"
+	schema := &graph.Schema{
+		Types: []*graph.ObjectType{
+			{
+				Name: "Query",
+				Fields: []*graph.Field{
+					{
+						Name: "node",
+						Type: graph.NewNamedType("Node"),
+					},
+				},
+				Interfaces: nil,
+				Directives: nil,
+			},
+			{
+				Name: "User",
+				Fields: []*graph.Field{
+					{
+						Name: "id",
+						Type: graph.NewNonNullType("ID"),
+					},
+				},
+				Interfaces: []string{"Node"},
+				Directives: nil,
+			},
+			{
+				Name: "Post",
+				Fields: []*graph.Field{
+					{
+						Name: "id",
+						Type: graph.NewNonNullType("ID"),
+					},
+				},
+				Interfaces: []string{"Node"},
+				Directives: nil,
+			},
+			{
+				Name: "Comment",
+				Fields: []*graph.Field{
+					{
+						Name: "id",
+						Type: graph.NewNonNullType("ID"),
+					},
+				},
+				Interfaces: []string{"Resource"},
+				Directives: nil,
+			},
+			{
+				Name:       "Orphan",
+				Fields:     []*graph.Field{{Name: "id", Type: graph.NewNonNullType("ID")}},
+				Interfaces: nil,
+				Directives: nil,
+			},
+		},
+		Interfaces: []*graph.InterfaceType{
+			{
+				Name: "Node",
+				Fields: []*graph.Field{
+					{
+						Name: "id",
+						Type: graph.NewNonNullType("ID"),
+					},
+				},
+				Interfaces: nil,
+				Directives: nil,
+			},
+			{
+				Name: "Resource",
+				Fields: []*graph.Field{
+					{
+						Name: "id",
+						Type: graph.NewNonNullType("ID"),
+					},
+				},
+				Interfaces: []string{"Node"},
+				Directives: nil,
+			},
+		},
+		QueryType: &queryType,
+	}
+
+	pruneUnreachableTypes(schema)
+
+	typeNames := make(map[string]struct{}, len(schema.Types))
+	for _, typ := range schema.Types {
+		typeNames[typ.Name] = struct{}{}
+	}
+
+	for _, name := range []string{"Query", "User", "Post", "Comment"} {
+		if _, ok := typeNames[name]; !ok {
+			t.Errorf("expected %s to survive pruning", name)
+		}
+	}
+
+	if _, ok := typeNames["Orphan"]; ok {
+		t.Error("expected Orphan to be pruned")
 	}
 }
 
@@ -157,8 +260,15 @@ func TestParseSDL(t *testing.T) { //nolint:gocognit,cyclop,gocyclo,maintidx
 			t.Errorf("expected argument name 'id', got %s", queryUserPresets[0].ArgumentName)
 		}
 
-		if queryUserPresets[0].Value != "x-hasura-user-id" {
-			t.Errorf("expected value 'x-hasura-user-id', got %s", queryUserPresets[0].Value)
+		if queryUserPresets[0].Value.Raw != "x-hasura-user-id" {
+			t.Errorf("expected value 'x-hasura-user-id', got %s", queryUserPresets[0].Value.Raw)
+		}
+
+		if queryUserPresets[0].SessionVariable != "x-hasura-user-id" {
+			t.Errorf(
+				"expected session variable 'x-hasura-user-id', got %s",
+				queryUserPresets[0].SessionVariable,
+			)
 		}
 
 		// Preset argument should be hidden from the schema
@@ -175,6 +285,101 @@ func TestParseSDL(t *testing.T) { //nolint:gocognit,cyclop,gocyclo,maintidx
 					}
 				}
 			}
+		}
+	})
+
+	t.Run("extracts typed presets", func(t *testing.T) {
+		t.Parallel()
+
+		sdl := `
+			type Query {
+				games(
+					limit: Int! @preset(value: 5)
+					rating: Float! @preset(value: 4.5)
+					isHome: Boolean! @preset(value: true)
+					region: Region! @preset(value: AMERICAS)
+					ids: [Int!]! @preset(value: [1, 2])
+					filter: GameFilter @preset(value: {active: true})
+				): [Game!]!
+			}
+			type Game {
+				id: ID!
+			}
+			enum Region {
+				AMERICAS
+				EMEA
+			}
+			input GameFilter {
+				active: Boolean
+			}
+		`
+
+		schema, presets, err := parseSDL(sdl)
+		if err != nil {
+			t.Fatalf("parseSDL error: %v", err)
+		}
+
+		for _, scalar := range schema.Scalars {
+			if scalar.Name == presetValueScalarName {
+				t.Fatalf("internal preset scalar leaked into schema: %+v", schema.Scalars)
+			}
+		}
+
+		gamesPresets := presets["Query.games"]
+		if len(gamesPresets) != 6 {
+			t.Fatalf("expected 6 presets for Query.games, got %d", len(gamesPresets))
+		}
+
+		byName := make(map[string]presetArg, len(gamesPresets))
+		for _, preset := range gamesPresets {
+			byName[preset.ArgumentName] = preset
+		}
+
+		tests := []struct {
+			name       string
+			valueKind  ast.ValueKind
+			targetKind ast.DefinitionKind
+		}{
+			{name: "limit", valueKind: ast.IntValue, targetKind: ast.Scalar},
+			{name: "rating", valueKind: ast.FloatValue, targetKind: ast.Scalar},
+			{name: "isHome", valueKind: ast.BooleanValue, targetKind: ast.Scalar},
+			{name: "region", valueKind: ast.EnumValue, targetKind: ast.Enum},
+			{name: "ids", valueKind: ast.ListValue, targetKind: ast.Scalar},
+			{name: "filter", valueKind: ast.ObjectValue, targetKind: ast.InputObject},
+		}
+
+		for _, tt := range tests {
+			preset, ok := byName[tt.name]
+			if !ok {
+				t.Fatalf("missing preset for %s", tt.name)
+			}
+
+			if preset.Value.Kind != tt.valueKind {
+				t.Errorf("%s kind: got %v, want %v", tt.name, preset.Value.Kind, tt.valueKind)
+			}
+
+			if preset.TargetKind != tt.targetKind {
+				t.Errorf(
+					"%s target kind: got %v, want %v",
+					tt.name,
+					preset.TargetKind,
+					tt.targetKind,
+				)
+			}
+		}
+
+		if len(byName["ids"].Value.Children) != 2 {
+			t.Errorf(
+				"expected list children to be preserved, got %d",
+				len(byName["ids"].Value.Children),
+			)
+		}
+
+		if len(byName["filter"].Value.Children) != 1 {
+			t.Errorf(
+				"expected object children to be preserved, got %d",
+				len(byName["filter"].Value.Children),
+			)
 		}
 	})
 
@@ -341,6 +546,50 @@ func TestParseSDL(t *testing.T) { //nolint:gocognit,cyclop,gocyclo,maintidx
 
 		if !foundUnion {
 			t.Error("expected SearchResult union")
+		}
+	})
+
+	t.Run("keeps implementors reachable only through interface", func(t *testing.T) {
+		t.Parallel()
+
+		sdl := `
+			type Query {
+				node(id: ID!): Node
+			}
+			interface Node {
+				id: ID!
+			}
+			type User implements Node {
+				id: ID!
+				name: String!
+			}
+			type Post implements Node {
+				id: ID!
+				title: String!
+			}
+			type Orphan {
+				id: ID!
+			}
+		`
+
+		schema, _, err := parseSDL(sdl)
+		if err != nil {
+			t.Fatalf("parseSDL error: %v", err)
+		}
+
+		typeNames := make(map[string]struct{}, len(schema.Types))
+		for _, typ := range schema.Types {
+			typeNames[typ.Name] = struct{}{}
+		}
+
+		for _, name := range []string{"Query", "User", "Post"} {
+			if _, ok := typeNames[name]; !ok {
+				t.Errorf("expected %s to survive pruning", name)
+			}
+		}
+
+		if _, ok := typeNames["Orphan"]; ok {
+			t.Error("expected Orphan to be pruned")
 		}
 	})
 

@@ -286,7 +286,7 @@ func (c *Connector) Execute(
 		logger,
 	)
 	if err != nil {
-		return nil, fmt.Errorf("executing remote query for %s: %w", c.name, err)
+		return result, fmt.Errorf("executing remote query for %s: %w", c.name, err)
 	}
 
 	return result, nil

@@ -8,10 +8,10 @@ import (
 	"fmt"
 	"log/slog"
 	"net/http"
-	"strings"
 
 	"github.com/vektah/gqlparser/v2/ast"
 	"github.com/vektah/gqlparser/v2/formatter"
+	"github.com/vektah/gqlparser/v2/parser"
 )
 
 // graphQLRequest represents a GraphQL request to send to the remote server.
@@ -129,13 +129,12 @@ func applyFieldPresets(
 	sessionVariables map[string]any,
 ) {
 	for _, preset := range presets {
-		resolvedValue := resolvePresetValue(preset.Value, sessionVariables)
-
+		value := resolvePresetArgumentValue(preset, sessionVariables)
 		found := false
 
 		for _, arg := range field.Arguments {
 			if arg.Name == preset.ArgumentName {
-				arg.Value = createStringValue(resolvedValue)
+				arg.Value = value
 				found = true
 
 				break
@@ -145,31 +144,160 @@ func applyFieldPresets(
 		if !found {
 			field.Arguments = append(field.Arguments, &ast.Argument{ //nolint:exhaustruct
 				Name:  preset.ArgumentName,
-				Value: createStringValue(resolvedValue),
+				Value: value,
 			})
 		}
 	}
 }
 
-// resolvePresetValue resolves a preset value, substituting session variables if needed.
-func resolvePresetValue(value string, sessionVariables map[string]any) string {
-	if strings.HasPrefix(strings.ToLower(value), "x-hasura-") {
-		varName := strings.ToLower(value)
+func resolvePresetArgumentValue(
+	preset presetArg,
+	sessionVariables map[string]any,
+) *ast.Value {
+	if preset.SessionVariable != "" {
+		return presetValueForTarget(
+			createStringValue(resolveSessionVariable(preset.SessionVariable, sessionVariables)),
+			preset.Type,
+			preset.TargetKind,
+		)
+	}
 
-		if val, found := sessionVariables[varName]; found {
-			return fmt.Sprintf("%v", val)
+	return presetValueForTarget(preset.Value, preset.Type, preset.TargetKind)
+}
+
+func resolveSessionVariable(name string, sessionVariables map[string]any) string {
+	if val, found := sessionVariables[name]; found {
+		return fmt.Sprintf("%v", val)
+	}
+
+	return ""
+}
+
+func presetValueForTarget(
+	value *ast.Value,
+	targetType *ast.Type,
+	targetKind ast.DefinitionKind,
+) *ast.Value {
+	if value == nil {
+		return createNullValue()
+	}
+
+	if isListType(targetType) {
+		return coercePresetValue(value, ast.ListValue)
+	}
+
+	switch getBaseTypeName(targetType) {
+	case "String", "ID":
+		return createStringValue(valueString(value))
+	case "Int":
+		return coercePresetValue(value, ast.IntValue)
+	case "Float":
+		return coercePresetValue(value, ast.FloatValue)
+	case "Boolean":
+		return coercePresetValue(value, ast.BooleanValue)
+	}
+
+	switch targetKind {
+	case ast.Enum:
+		return coercePresetValue(value, ast.EnumValue)
+	case ast.InputObject:
+		return coercePresetValue(value, ast.ObjectValue)
+	case ast.Scalar:
+		if value.Kind == ast.StringValue || value.Kind == ast.BlockValue {
+			return createStringValue(value.Raw)
 		}
+	case ast.Object, ast.Interface, ast.Union:
+		return cloneValue(value)
+	}
 
+	return cloneValue(value)
+}
+
+func coercePresetValue(value *ast.Value, kind ast.ValueKind) *ast.Value {
+	if value.Kind == ast.NullValue {
+		return cloneValue(value)
+	}
+
+	// GraphQL input coercion allows an Int literal where a Float is expected.
+	if value.Kind == kind || (kind == ast.FloatValue && value.Kind == ast.IntValue) {
+		return cloneValue(value)
+	}
+
+	if value.Kind != ast.StringValue && value.Kind != ast.BlockValue {
+		return cloneValue(value)
+	}
+
+	if value.Raw == "" {
+		return createNullValue()
+	}
+
+	parsed := parsePresetValue(value.Raw)
+	if parsed == nil {
+		return createStringValue(value.Raw)
+	}
+
+	// GraphQL input coercion allows an Int literal where a Float is expected.
+	if parsed.Kind == kind || (kind == ast.FloatValue && parsed.Kind == ast.IntValue) {
+		return parsed
+	}
+
+	return createStringValue(value.Raw)
+}
+
+func parsePresetValue(raw string) *ast.Value {
+	doc, err := parser.ParseQuery(&ast.Source{ //nolint:exhaustruct
+		Name:  "preset_value",
+		Input: "query { preset(value: " + raw + ") }",
+	})
+	if err != nil || len(doc.Operations) != 1 {
+		return nil
+	}
+
+	if len(doc.Operations[0].SelectionSet) != 1 {
+		return nil
+	}
+
+	field, ok := doc.Operations[0].SelectionSet[0].(*ast.Field)
+	if !ok || field.Name != presetDirectiveName || len(field.Arguments) != 1 ||
+		len(field.Directives) != 0 || len(field.SelectionSet) != 0 {
+		return nil
+	}
+
+	arg := field.Arguments.ForName("value")
+	if arg == nil {
+		return nil
+	}
+
+	return cloneValue(arg.Value)
+}
+
+func isListType(t *ast.Type) bool {
+	return t != nil && t.Elem != nil
+}
+
+func valueString(value *ast.Value) string {
+	if value == nil {
 		return ""
 	}
 
-	return value
+	if value.Kind == ast.StringValue || value.Kind == ast.BlockValue {
+		return value.Raw
+	}
+
+	return value.String()
 }
 
 func createStringValue(s string) *ast.Value {
 	return &ast.Value{ //nolint:exhaustruct
 		Raw:  s,
 		Kind: ast.StringValue,
+	}
+}
+
+func createNullValue() *ast.Value {
+	return &ast.Value{ //nolint:exhaustruct
+		Raw:  "null",
+		Kind: ast.NullValue,
 	}
 }
 
@@ -237,40 +365,36 @@ func cloneSelectionSet(ss ast.SelectionSet) ast.SelectionSet {
 	result := make(ast.SelectionSet, len(ss))
 
 	for i, sel := range ss {
-		result[i] = cloneSelection(sel)
+		switch s := sel.(type) {
+		case *ast.Field:
+			result[i] = &ast.Field{ //nolint:exhaustruct
+				Alias:            s.Alias,
+				Name:             s.Name,
+				Arguments:        cloneArguments(s.Arguments),
+				Directives:       cloneDirectives(s.Directives),
+				SelectionSet:     cloneSelectionSet(s.SelectionSet),
+				Definition:       s.Definition,
+				ObjectDefinition: s.ObjectDefinition,
+			}
+		case *ast.InlineFragment:
+			result[i] = &ast.InlineFragment{ //nolint:exhaustruct
+				TypeCondition:    s.TypeCondition,
+				Directives:       cloneDirectives(s.Directives),
+				SelectionSet:     cloneSelectionSet(s.SelectionSet),
+				ObjectDefinition: s.ObjectDefinition,
+			}
+		case *ast.FragmentSpread:
+			result[i] = &ast.FragmentSpread{ //nolint:exhaustruct
+				Name:       s.Name,
+				Directives: cloneDirectives(s.Directives),
+				Definition: s.Definition,
+			}
+		default:
+			result[i] = sel
+		}
 	}
 
 	return result
-}
-
-func cloneSelection(sel ast.Selection) ast.Selection { //nolint:ireturn,nolintlint
-	switch s := sel.(type) {
-	case *ast.Field:
-		return &ast.Field{ //nolint:exhaustruct
-			Alias:            s.Alias,
-			Name:             s.Name,
-			Arguments:        cloneArguments(s.Arguments),
-			Directives:       cloneDirectives(s.Directives),
-			SelectionSet:     cloneSelectionSet(s.SelectionSet),
-			Definition:       s.Definition,
-			ObjectDefinition: s.ObjectDefinition,
-		}
-	case *ast.InlineFragment:
-		return &ast.InlineFragment{ //nolint:exhaustruct
-			TypeCondition:    s.TypeCondition,
-			Directives:       cloneDirectives(s.Directives),
-			SelectionSet:     cloneSelectionSet(s.SelectionSet),
-			ObjectDefinition: s.ObjectDefinition,
-		}
-	case *ast.FragmentSpread:
-		return &ast.FragmentSpread{ //nolint:exhaustruct
-			Name:       s.Name,
-			Directives: cloneDirectives(s.Directives),
-			Definition: s.Definition,
-		}
-	default:
-		return sel
-	}
 }
 
 func cloneArguments(args ast.ArgumentList) ast.ArgumentList {
