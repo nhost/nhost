@@ -155,8 +155,9 @@ func resolvePresetArgumentValue(
 	sessionVariables map[string]any,
 ) *ast.Value {
 	if preset.SessionVariable != "" {
-		return presetValueForTarget(
-			createStringValue(resolveSessionVariable(preset.SessionVariable, sessionVariables)),
+		return sessionValueForTarget(
+			preset.SessionVariable,
+			sessionVariables,
 			preset.Type,
 			preset.TargetKind,
 		)
@@ -165,12 +166,52 @@ func resolvePresetArgumentValue(
 	return presetValueForTarget(preset.Value, preset.Type, preset.TargetKind)
 }
 
-func resolveSessionVariable(name string, sessionVariables map[string]any) string {
-	if val, found := sessionVariables[name]; found {
-		return fmt.Sprintf("%v", val)
+func sessionValueForTarget(
+	name string,
+	sessionVariables map[string]any,
+	targetType *ast.Type,
+	targetKind ast.DefinitionKind,
+) *ast.Value {
+	value, found := sessionVariables[name]
+	if !found {
+		return presetValueForTarget(createStringValue(""), targetType, targetKind)
 	}
 
-	return ""
+	return presetValueForTarget(sessionValueToAST(value), targetType, targetKind)
+}
+
+func sessionValueToAST(value any) *ast.Value {
+	switch v := value.(type) {
+	case nil:
+		return createNullValue()
+	case *ast.Value:
+		return cloneValue(v)
+	case []any:
+		return sessionListValueToAST(v)
+	case []string:
+		values := make([]any, len(v))
+		for i, item := range v {
+			values[i] = item
+		}
+
+		return sessionListValueToAST(values)
+	default:
+		return createStringValue(fmt.Sprintf("%v", v))
+	}
+}
+
+func sessionListValueToAST(values []any) *ast.Value {
+	children := make(ast.ChildValueList, len(values))
+	for i, value := range values {
+		children[i] = &ast.ChildValue{ //nolint:exhaustruct
+			Value: sessionValueToAST(value),
+		}
+	}
+
+	return &ast.Value{ //nolint:exhaustruct
+		Kind:     ast.ListValue,
+		Children: children,
+	}
 }
 
 func presetValueForTarget(
@@ -183,7 +224,7 @@ func presetValueForTarget(
 	}
 
 	if isListType(targetType) {
-		return coercePresetValue(value, ast.ListValue)
+		return coercePresetListValue(value, targetType, targetKind)
 	}
 
 	switch getBaseTypeName(targetType) {
@@ -211,6 +252,30 @@ func presetValueForTarget(
 	}
 
 	return cloneValue(value)
+}
+
+func coercePresetListValue(
+	value *ast.Value,
+	targetType *ast.Type,
+	targetKind ast.DefinitionKind,
+) *ast.Value {
+	listValue := coercePresetValue(value, ast.ListValue)
+	if listValue.Kind != ast.ListValue {
+		return listValue
+	}
+
+	children := make(ast.ChildValueList, len(listValue.Children))
+	for i, child := range listValue.Children {
+		children[i] = &ast.ChildValue{ //nolint:exhaustruct
+			Name:  child.Name,
+			Value: presetValueForTarget(child.Value, targetType.Elem, targetKind),
+		}
+	}
+
+	return &ast.Value{ //nolint:exhaustruct
+		Kind:     ast.ListValue,
+		Children: children,
+	}
 }
 
 func coercePresetValue(value *ast.Value, kind ast.ValueKind) *ast.Value {

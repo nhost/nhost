@@ -7,14 +7,23 @@ import (
 	"github.com/vektah/gqlparser/v2/ast"
 )
 
-func TestResolveSessionVariable(t *testing.T) {
+func TestSessionValueForTarget(t *testing.T) {
 	t.Parallel()
+
+	type wantChild struct {
+		raw  string
+		kind ast.ValueKind
+	}
 
 	tests := []struct {
 		name        string
 		key         string
 		sessionVars map[string]any
-		want        string
+		targetType  *ast.Type
+		targetKind  ast.DefinitionKind
+		wantRaw     string
+		wantKind    ast.ValueKind
+		wantChild   []wantChild
 	}{
 		{
 			name: "session variable found",
@@ -22,13 +31,19 @@ func TestResolveSessionVariable(t *testing.T) {
 			sessionVars: map[string]any{
 				"x-hasura-user-id": "user-123",
 			},
-			want: "user-123",
+			targetType: ast.NamedType("String", nil),
+			targetKind: ast.Scalar,
+			wantRaw:    "user-123",
+			wantKind:   ast.StringValue,
 		},
 		{
 			name:        "session variable not found",
 			key:         "x-hasura-missing",
 			sessionVars: map[string]any{},
-			want:        "",
+			targetType:  ast.NamedType("String", nil),
+			targetKind:  ast.Scalar,
+			wantRaw:     "",
+			wantKind:    ast.StringValue,
 		},
 		{
 			name: "formats non-string session values",
@@ -36,7 +51,38 @@ func TestResolveSessionVariable(t *testing.T) {
 			sessionVars: map[string]any{
 				"x-hasura-is-home": true,
 			},
-			want: "true",
+			targetType: ast.NonNullNamedType("Boolean", nil),
+			targetKind: ast.Scalar,
+			wantRaw:    "true",
+			wantKind:   ast.BooleanValue,
+		},
+		{
+			name: "preserves allowed roles as string list",
+			key:  "x-hasura-allowed-roles",
+			sessionVars: map[string]any{
+				"x-hasura-allowed-roles": []any{"user", "editor"},
+			},
+			targetType: ast.ListType(ast.NonNullNamedType("String", nil), nil),
+			targetKind: ast.Scalar,
+			wantKind:   ast.ListValue,
+			wantChild: []wantChild{
+				{raw: "user", kind: ast.StringValue},
+				{raw: "editor", kind: ast.StringValue},
+			},
+		},
+		{
+			name: "coerces string list children by target element type",
+			key:  "x-hasura-ids",
+			sessionVars: map[string]any{
+				"x-hasura-ids": []string{"1", "2"},
+			},
+			targetType: ast.ListType(ast.NonNullNamedType("Int", nil), nil),
+			targetKind: ast.Scalar,
+			wantKind:   ast.ListValue,
+			wantChild: []wantChild{
+				{raw: "1", kind: ast.IntValue},
+				{raw: "2", kind: ast.IntValue},
+			},
 		},
 	}
 
@@ -44,8 +90,34 @@ func TestResolveSessionVariable(t *testing.T) {
 		t.Run(tt.name, func(t *testing.T) {
 			t.Parallel()
 
-			if got := resolveSessionVariable(tt.key, tt.sessionVars); got != tt.want {
-				t.Errorf("expected %s, got %s", tt.want, got)
+			got := sessionValueForTarget(
+				tt.key,
+				tt.sessionVars,
+				tt.targetType,
+				tt.targetKind,
+			)
+
+			if got.Kind != tt.wantKind {
+				t.Fatalf("expected kind %v, got %v", tt.wantKind, got.Kind)
+			}
+
+			if got.Raw != tt.wantRaw {
+				t.Errorf("expected raw %q, got %q", tt.wantRaw, got.Raw)
+			}
+
+			if len(got.Children) != len(tt.wantChild) {
+				t.Fatalf("expected %d children, got %d", len(tt.wantChild), len(got.Children))
+			}
+
+			for i, want := range tt.wantChild {
+				child := got.Children[i].Value
+				if child.Kind != want.kind {
+					t.Errorf("child %d kind: got %v, want %v", i, child.Kind, want.kind)
+				}
+
+				if child.Raw != want.raw {
+					t.Errorf("child %d raw: got %q, want %q", i, child.Raw, want.raw)
+				}
 			}
 		})
 	}
