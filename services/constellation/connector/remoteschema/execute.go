@@ -8,6 +8,7 @@ import (
 	"fmt"
 	"log/slog"
 	"net/http"
+	"unicode/utf8"
 
 	"github.com/vektah/gqlparser/v2/ast"
 	"github.com/vektah/gqlparser/v2/formatter"
@@ -370,30 +371,52 @@ func coercePresetValue(value *ast.Value, kind ast.ValueKind) *ast.Value {
 }
 
 func parsePresetValue(raw string) *ast.Value {
+	const (
+		prefix          = "query { preset(value: "
+		sentinelPrefix  = ", "
+		sentinelArgName = "__nhost_preset_value_sentinel"
+		suffix          = ") }"
+	)
+
+	// The sentinel must be parsed from the suffix after raw. If raw closes the
+	// wrapper or appends document tokens, the parsed document shape changes or
+	// the sentinel's source position no longer matches this boundary.
+	sentinelStart := utf8.RuneCountInString(prefix) + utf8.RuneCountInString(raw) +
+		utf8.RuneCountInString(sentinelPrefix)
+
 	doc, err := parser.ParseQuery(&ast.Source{ //nolint:exhaustruct
-		Name:  "preset_value",
-		Input: "query { preset(value: " + raw + ") }",
+		Name: "preset_value",
+		Input: prefix + raw + sentinelPrefix + sentinelArgName + ": true" +
+			suffix,
 	})
-	if err != nil || len(doc.Operations) != 1 {
+	if err != nil || len(doc.Operations) != 1 || len(doc.Fragments) != 0 {
 		return nil
 	}
 
-	if len(doc.Operations[0].SelectionSet) != 1 {
+	operation := doc.Operations[0]
+	if len(operation.SelectionSet) != 1 {
 		return nil
 	}
 
-	field, ok := doc.Operations[0].SelectionSet[0].(*ast.Field)
-	if !ok || field.Name != presetDirectiveName || len(field.Arguments) != 1 ||
+	field, ok := operation.SelectionSet[0].(*ast.Field)
+	if !ok || field.Name != presetDirectiveName || len(field.Arguments) != 2 ||
 		len(field.Directives) != 0 || len(field.SelectionSet) != 0 {
 		return nil
 	}
 
 	arg := field.Arguments.ForName("value")
-	if arg == nil {
+
+	sentinel := field.Arguments.ForName(sentinelArgName)
+	if arg == nil || !isPresetValueSentinel(sentinel, sentinelStart) {
 		return nil
 	}
 
 	return cloneValue(arg.Value)
+}
+
+func isPresetValueSentinel(arg *ast.Argument, position int) bool {
+	return arg != nil && arg.Position != nil && arg.Position.Start == position &&
+		arg.Value != nil && arg.Value.Kind == ast.BooleanValue && arg.Value.Raw == "true"
 }
 
 func isListType(t *ast.Type) bool {

@@ -360,6 +360,63 @@ func TestApplyFieldPresets(t *testing.T) {
 			wantKind:  ast.StringValue,
 		},
 		{
+			name: "malformed string int literal with commented wrapper close stays quoted",
+			field: &ast.Field{
+				Name:      "topGames",
+				Arguments: nil,
+			},
+			presets: []presetArg{
+				literalPresetArg(
+					"limit",
+					astStringValue("1) } #"),
+					ast.NonNullNamedType("Int", nil),
+					ast.Scalar,
+				),
+			},
+			wantArgs:  1,
+			wantName:  "limit",
+			wantValue: "1) } #",
+			wantKind:  ast.StringValue,
+		},
+		{
+			name: "malformed string int literal with extra fragment stays quoted",
+			field: &ast.Field{
+				Name:      "topGames",
+				Arguments: nil,
+			},
+			presets: []presetArg{
+				literalPresetArg(
+					"limit",
+					astStringValue("1) } fragment X on Y { z } #"),
+					ast.NonNullNamedType("Int", nil),
+					ast.Scalar,
+				),
+			},
+			wantArgs:  1,
+			wantName:  "limit",
+			wantValue: "1) } fragment X on Y { z } #",
+			wantKind:  ast.StringValue,
+		},
+		{
+			name: "malformed string int literal with spoofed parser sentinel stays quoted",
+			field: &ast.Field{
+				Name:      "topGames",
+				Arguments: nil,
+			},
+			presets: []presetArg{
+				literalPresetArg(
+					"limit",
+					astStringValue("1, __nhost_preset_value_sentinel: true) } #"),
+					ast.NonNullNamedType("Int", nil),
+					ast.Scalar,
+				),
+			},
+			wantArgs:  1,
+			wantName:  "limit",
+			wantValue: "1, __nhost_preset_value_sentinel: true) } #",
+			wantKind:  ast.StringValue,
+		},
+		{
 			name: "coerces boolean session variable by target type",
 			field: &ast.Field{
 				Name:      "recordGame",

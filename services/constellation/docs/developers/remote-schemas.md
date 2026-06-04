@@ -21,8 +21,8 @@ remoteschema.New (connector.go)
         │
         ▼ at request time
 Connector.Execute
-  • applyPresets (clone op, inject argument values)
-  • buildQueryString (formatter)
+  • applyPresetsToDocument (clone op + named fragments, inject argument values)
+  • buildQueryString (formatter over operation + fragments)
   • httpClient.do (URL + header precedence)
   • parse {data, errors}
         │
@@ -61,19 +61,21 @@ The user never writes the `directive @preset(...)` declaration themselves.
 
 ### Execute-time resolution
 
-At execute time, `applyPresets` clones the operation and walks every selection. For each `(typeName, fieldName)` with recorded presets it calls `applyFieldPresets`, which:
+At execute time, `applyPresetsToDocument` clones the operation and the named fragment definitions, then walks the operation selection tree and any referenced fragment definitions. For each `(typeName, fieldName)` with recorded presets it calls `applyFieldPresets`, which:
 
 1. Calls `resolvePresetArgumentValue`. Session-variable presets are read from `sessionVariables` via `sessionValueForTarget`; literal presets use the cloned AST value from SDL.
 2. Coerces the value with `presetValueForTarget` using the hidden argument's target type/kind. `String`/`ID` targets become string values, `Int`/`Float`/`Boolean` targets parse scalar literals, enum targets parse enum values, list targets recurse into element coercion, and input-object targets parse object literals.
 3. If the argument already exists in the operation, overwrite its `Value`. Otherwise append a new `*ast.Argument`.
 
+Named fragment spreads are followed through the cloned fragment map; presets inside those fragment definitions are applied to the clone, with a visited-fragment guard to avoid cycles or repeated work. Inline fragments are handled in-place using the fragment type condition when present.
+
 Session values enter as Go values (`string`, `[]string`, `[]any`, `*ast.Value`, or another value stringified with `fmt.Sprintf`) and then go through the same target-type coercion. For backwards-compatible string presets such as `@preset(value: "5")` on an `Int` argument, `coercePresetValue` calls `parsePresetValue`, which reuses gqlparser by wrapping the raw string as `query { preset(value: <raw>) }`; if parsing fails or the parsed kind does not match the target type, the value falls back to a GraphQL string and the remote endpoint's validation decides whether to reject it.
 
-`applyPresets` clones the operation deeply (`cloneOperation`) so the controller's shared AST is never mutated.
+`applyPresetsToDocument` clones the operation deeply (`cloneOperation`) and clones the named fragments (`cloneFragmentDefinitionList`) so the controller's shared AST is never mutated.
 
 ### Why nested-field presets need a validated operation
 
-`applyPresetsToSelectionSet` resolves the nested type for a field via `sel.Definition.Type`. `sel.Definition` is populated by gqlparser only after validation. The non-admin operations going through `Connector.Execute` come from `Controller.execute` after `gqlparser.LoadQueryWithRules` validation, so this is fine in practice — but be aware if you ever invoke `applyPresets` outside the normal request path.
+`applyPresetsToSelectionSet` resolves the nested type for a field via `sel.Definition.Type`. `sel.Definition` is populated by gqlparser only after validation. The non-admin operations going through `Connector.Execute` come from `Controller.execute` after `gqlparser.LoadQueryWithRules` validation, so this is fine in practice — but be aware if you ever invoke `applyPresetsToDocument` outside the normal request path.
 
 ## Query rendering
 
@@ -146,7 +148,7 @@ Builtin types (`String`, `Int`, `Float`, `Boolean`, `ID`, and the `__*` introspe
 | `connector/remoteschema/introspect.go` | Live introspection query, conversion to `graph.Schema` |
 | `connector/remoteschema/schema.go` | SDL parsing, `@preset` extraction, conversion to `graph.Schema` |
 | `connector/remoteschema/prune.go` | Unreachable-type pruning, builtin filter |
-| `connector/remoteschema/execute.go` | `applyPresets`, operation cloning, query rendering, HTTP request |
+| `connector/remoteschema/execute.go` | `applyPresetsToDocument`, operation and fragment cloning, query rendering, HTTP request |
 | `connector/remoteschema/http.go` | `httpClient`, header precedence, client-header forwarding, `HTTPDoer` |
 | `connector/remoteschema/errors.go` | `GraphQLError` for partial responses with errors |
 | `controller/controller.go:buildRSRelationships` | Lower rs→db metadata to planner shape |

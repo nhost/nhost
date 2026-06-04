@@ -155,6 +155,10 @@ schema: |
     tags: [String!]
   }
 
+  type Game {
+    id: ID!
+  }
+
   type Query {
     topGames(
       limit: Int! @preset(value: 10)
@@ -183,6 +187,10 @@ The `source` argument is hidden from the client and always set to `"web-app"`.
 **Session-variable coercion example:**
 ```yaml
 schema: |
+  type Game {
+    id: ID!
+  }
+
   type Query {
     topGames(limit: Int! @preset(value: "x-hasura-page-limit")): [Game!]!
   }
