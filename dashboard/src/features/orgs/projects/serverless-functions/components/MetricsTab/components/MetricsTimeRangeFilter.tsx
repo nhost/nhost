@@ -134,9 +134,16 @@ export default function MetricsTimeRangeFilter({
             <span className="px-1 pb-1 font-medium text-muted-foreground text-xs">
               Absolute time range
             </span>
+            {/*
+              DateTimePicker seeds its internal date from `dateTime` once
+              (uncontrolled). Keying it on the resolved value remounts it when a
+              preset/Apply changes the range, so the From/To fields reflect the
+              new range — without making the shared component prop-controlled.
+            */}
             <div className="flex flex-col gap-1.5">
               <Label className="text-muted-foreground text-xs">From</Label>
               <DateTimePicker
+                key={resolved.from.toISOString()}
                 dateTime={resolved.from.toISOString()}
                 onDateTimeChange={handleFromChange}
                 withTimezone
@@ -146,6 +153,7 @@ export default function MetricsTimeRangeFilter({
             <div className="flex flex-col gap-1.5">
               <Label className="text-muted-foreground text-xs">To</Label>
               <DateTimePicker
+                key={resolved.to.toISOString()}
                 dateTime={resolved.to.toISOString()}
                 onDateTimeChange={handleToChange}
                 withTimezone
