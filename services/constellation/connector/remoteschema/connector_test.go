@@ -1310,6 +1310,97 @@ func TestExecute_AppliesPresets(t *testing.T) {
 	}
 }
 
+func TestExecute_AppliesNilSessionPresetAsNullLiteral(t *testing.T) {
+	t.Parallel()
+
+	const userSDL = `
+		type Query {
+			getUser(userId: ID @preset(value: "x-hasura-user-id")): User
+		}
+		type User {
+			id: ID
+		}
+	`
+
+	ctrl := gomock.NewController(t)
+	mockDoer := mock.NewMockHTTPDoer(ctrl)
+
+	introspectionCall := mockDoer.EXPECT().Do(gomock.Any()).Return(&http.Response{
+		StatusCode: http.StatusOK,
+		Body:       io.NopCloser(strings.NewReader(testIntrospectionResponse)),
+	}, nil)
+
+	var capturedQuery string
+
+	executeCall := mockDoer.EXPECT().Do(gomock.Any()).DoAndReturn(
+		func(req *http.Request) (*http.Response, error) {
+			body := readAllOrFail(t, req.Body)
+
+			var gqlReq struct {
+				Query string `json:"query"`
+			}
+			if err := json.Unmarshal(body, &gqlReq); err != nil {
+				t.Fatalf("unmarshalling GraphQL request: %v", err)
+			}
+
+			capturedQuery = gqlReq.Query
+
+			return &http.Response{
+				StatusCode: http.StatusOK,
+				Body:       io.NopCloser(strings.NewReader(`{"data":{"getUser":{"id":null}}}`)),
+			}, nil
+		},
+	)
+
+	gomock.InOrder(introspectionCall, executeCall)
+
+	meta := newTestMetadata("http://example.com", []metadata.RemoteSchemaPermission{
+		{
+			Role: "user",
+			Definition: metadata.RemoteSchemaPermissionDef{
+				Schema: userSDL,
+			},
+		},
+	})
+
+	connector, err := remoteschema.New(context.Background(), meta, mockDoer)
+	if err != nil {
+		t.Fatalf("New() error: %v", err)
+	}
+
+	op := &ast.OperationDefinition{
+		Operation: ast.Query,
+		SelectionSet: ast.SelectionSet{
+			&ast.Field{
+				Name: "getUser",
+				SelectionSet: ast.SelectionSet{
+					&ast.Field{Name: "id"},
+				},
+			},
+		},
+	}
+
+	sessionVars := map[string]any{
+		"x-hasura-user-id": nil,
+	}
+
+	_, err = connector.Execute(
+		context.Background(), op, nil, nil, "user", sessionVars, slog.Default(),
+	)
+	if err != nil {
+		t.Fatalf("Execute error: %v", err)
+	}
+
+	normalizedQuery := strings.NewReplacer(" ", "", "\n", "", "\t", "").Replace(capturedQuery)
+	if !strings.Contains(normalizedQuery, `userId:null`) {
+		t.Fatalf("expected null userId preset in outgoing query, got: %s", capturedQuery)
+	}
+
+	if strings.Contains(normalizedQuery, `userId:"null"`) {
+		t.Fatalf("expected null literal to remain unquoted, got: %s", capturedQuery)
+	}
+}
+
 func TestExecute_AppliesTypedPresets(t *testing.T) {
 	t.Parallel()
 

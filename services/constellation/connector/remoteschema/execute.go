@@ -288,6 +288,10 @@ func presetValueForTarget(
 		return createNullValue()
 	}
 
+	if value.Kind == ast.NullValue {
+		return cloneValue(value)
+	}
+
 	if isListType(targetType) {
 		return coercePresetListValue(value, targetType, targetKind)
 	}
