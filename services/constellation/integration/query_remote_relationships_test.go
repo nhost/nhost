@@ -126,6 +126,23 @@ func TestQueryRemoteRelationships(t *testing.T) { //nolint:paralleltest,maintidx
 			},
 		},
 
+		{
+			name: "db to db array remote relationship resolves when join column is user-aliased",
+			query: query{
+				Query: `query {
+					userProfiles(order_by: { id: asc }) {
+						id
+						uid: user_id
+						departments(order_by: [{ department_id: asc }]) {
+							department_id
+							role
+						}
+					}
+				}`,
+				Role: "admin",
+			},
+		},
+
 		// Query only from remote source without crossing databases
 		{
 			name: "query from other database only",

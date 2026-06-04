@@ -661,9 +661,11 @@ func TestAnalyzeField_AliasedUnrelatedFieldDoesNotSuppressPhantom(t *testing.T) 
 	}
 }
 
-// ---------- analyzer.collectSelectedFields ----------
+// ---------- analyzer.collectOwnResponseKeyFields / collectResponseKeys ----------
 
-func TestAnalyzer_CollectSelectedFields_ExpandsFragments(t *testing.T) {
+func TestAnalyzer_CollectOwnResponseKeyFields_ExpandsFragmentsAndIgnoresRenamedFields(
+	t *testing.T,
+) {
 	t.Parallel()
 
 	frag := &ast.FragmentDefinition{
@@ -671,6 +673,7 @@ func TestAnalyzer_CollectSelectedFields_ExpandsFragments(t *testing.T) {
 		TypeCondition: "users",
 		SelectionSet: ast.SelectionSet{
 			&ast.Field{Name: "email", Alias: "user_email"},
+			&ast.Field{Name: "created_at", Alias: "created_at"},
 		},
 	}
 
@@ -696,11 +699,27 @@ func TestAnalyzer_CollectSelectedFields_ExpandsFragments(t *testing.T) {
 		},
 	}
 
-	got := a.collectSelectedFields(field)
+	ownResponseKeys := a.collectOwnResponseKeyFields(field)
+	for _, want := range []string{"id", "created_at", "name"} {
+		if _, ok := ownResponseKeys[want]; !ok {
+			t.Errorf("expected %q in own-response-key fields, got %v", want, ownResponseKeys)
+		}
+	}
 
-	for _, want := range []string{"id", "user_email", "name"} {
-		if _, ok := got[want]; !ok {
-			t.Errorf("expected %q in selected fields, got %v", want, got)
+	for _, unwanted := range []string{"email", "user_email"} {
+		if _, ok := ownResponseKeys[unwanted]; ok {
+			t.Errorf(
+				"did not expect %q in own-response-key fields, got %v",
+				unwanted,
+				ownResponseKeys,
+			)
+		}
+	}
+
+	responseKeys := a.collectResponseKeys(field)
+	for _, want := range []string{"id", "user_email", "created_at", "name"} {
+		if _, ok := responseKeys[want]; !ok {
+			t.Errorf("expected %q in response keys, got %v", want, responseKeys)
 		}
 	}
 }

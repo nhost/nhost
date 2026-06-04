@@ -176,6 +176,63 @@ func TestExecuteAndStitchAggregate_HappyPath(t *testing.T) {
 	}
 }
 
+func TestStitchAggregateResults_UsesLocalJoinAlias(t *testing.T) {
+	t.Parallel()
+
+	aggregateResult := map[string]any{
+		"d1": map[string]any{
+			"aggregate": map[string]any{"count": 3},
+			"nodes":     []any{map[string]any{"id": "m1"}},
+		},
+	}
+
+	results := map[string]any{
+		"teams": []any{
+			map[string]any{
+				"name":                           "Engineering",
+				"dept_id":                        "shadow-value",
+				"_constellation_phantom_dept_id": "d1",
+			},
+		},
+	}
+
+	rq := &remoteQuery{
+		alias:      "members_aggregate",
+		parentPath: jsonpath.Parse("teams"),
+		localJoinAliases: map[string]string{
+			"dept_id": "_constellation_phantom_dept_id",
+		},
+		sourceField: &ast.Field{
+			Name: "members_aggregate",
+			SelectionSet: ast.SelectionSet{
+				&ast.Field{
+					Name: "aggregate",
+					SelectionSet: ast.SelectionSet{
+						&ast.Field{Name: "count"},
+					},
+				},
+				&ast.Field{Name: "nodes"},
+			},
+		},
+	}
+
+	stitchAggregateResults(rq, results, aggregateResult, "dept_id")
+
+	teams, ok := results["teams"].([]any)
+	if !ok {
+		t.Fatal("teams missing or wrong type")
+	}
+
+	team0, ok := teams[0].(map[string]any)
+	if !ok {
+		t.Fatal("teams[0] wrong type")
+	}
+
+	if diff := cmp.Diff(aggregateResult["d1"], team0["members_aggregate"]); diff != "" {
+		t.Errorf("team[0] aliased aggregate mismatch (-want +got):\n%s", diff)
+	}
+}
+
 // TestExecuteAndStitchAggregate_NilSourceColumnEmits stitches a nil result for
 // parent rows whose join column is itself nil. This guards the
 // stitchAggregateResults early-return for v == nil.

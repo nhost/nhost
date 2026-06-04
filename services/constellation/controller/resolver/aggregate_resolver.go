@@ -138,8 +138,13 @@ func stitchAggregateResults(
 
 	outputName := rq.alias
 
+	lookupKey := sourceCol
+	if alias, ok := rq.localJoinAliases[sourceCol]; ok {
+		lookupKey = alias
+	}
+
 	parentPath.ForEach(results, func(parentRow map[string]any) {
-		v := parentRow[sourceCol]
+		v := parentRow[lookupKey]
 		if v == nil {
 			parentRow[outputName] = nil
 

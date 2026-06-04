@@ -798,6 +798,49 @@ func TestInjectPhantomFields_DeduplicatesExistingFields(t *testing.T) {
 	}
 }
 
+func TestInjectPhantomFields_InjectsUnaliasedPhantomWhenExistingFieldUsesDifferentAlias(
+	t *testing.T,
+) {
+	t.Parallel()
+
+	op := &ast.OperationDefinition{
+		Operation: ast.Query,
+		Name:      "GetUsers",
+		SelectionSet: ast.SelectionSet{
+			&ast.Field{
+				Name: "users",
+				SelectionSet: ast.SelectionSet{
+					&ast.Field{Name: "id"},
+					&ast.Field{Name: "department_id", Alias: "dep_id"},
+				},
+			},
+		},
+	}
+
+	specs := []transform.PhantomSpec{
+		{
+			Path:   jsonpath.Parse("users"),
+			Fields: []string{"department_id"},
+		},
+	}
+
+	transform.InjectPhantomFields(op, specs)
+
+	usersField, ok := op.SelectionSet[0].(*ast.Field)
+	if !ok {
+		t.Fatal("expected root selection to be *ast.Field")
+	}
+
+	responseKeys := fieldNames(usersField.SelectionSet)
+	if !containsString(responseKeys, "dep_id") {
+		t.Fatalf("expected original aliased field to remain, got %v", responseKeys)
+	}
+
+	if !containsString(responseKeys, "department_id") {
+		t.Fatalf("expected unaliased phantom field to be injected, got %v", responseKeys)
+	}
+}
+
 func TestInjectPhantomFields_AliasCollisionUsesPhantomAlias(t *testing.T) {
 	t.Parallel()
 

@@ -311,40 +311,6 @@ func (a *analyzer) processPhantomFields(
 	}
 }
 
-// collectSelectedFields returns a set of field names already selected in the field's selection set.
-// It expands fragment spreads and inline fragments to detect fields selected through fragments.
-func (a *analyzer) collectSelectedFields(field *ast.Field) map[string]struct{} {
-	selectedFields := make(map[string]struct{})
-	a.collectSelectedFieldsFromSelections(field.SelectionSet, selectedFields)
-
-	return selectedFields
-}
-
-// collectSelectedFieldsFromSelections recursively collects field names from a selection set,
-// expanding fragment spreads and inline fragments.
-func (a *analyzer) collectSelectedFieldsFromSelections(
-	selections ast.SelectionSet,
-	selectedFields map[string]struct{},
-) {
-	for _, sel := range selections {
-		switch s := sel.(type) {
-		case *ast.Field:
-			name := s.Name
-			if s.Alias != "" {
-				name = s.Alias
-			}
-
-			selectedFields[name] = struct{}{}
-		case *ast.FragmentSpread:
-			if frag := a.fragments.ForName(s.Name); frag != nil {
-				a.collectSelectedFieldsFromSelections(frag.SelectionSet, selectedFields)
-			}
-		case *ast.InlineFragment:
-			a.collectSelectedFieldsFromSelections(s.SelectionSet, selectedFields)
-		}
-	}
-}
-
 // collectOwnResponseKeyFields returns fields selected with the same response
 // key as their underlying field name. Only these fields make a join column
 // available at parentRow[column] without an injected phantom.

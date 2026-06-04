@@ -475,12 +475,13 @@ func injectFieldsIntoSelectionSet(
 	existing := make(map[string]struct{})
 	for _, sel := range field.SelectionSet {
 		if f, ok := sel.(*ast.Field); ok {
-			existing[f.Name] = struct{}{}
+			existing[fieldResponseKey(f)] = struct{}{}
 		}
 	}
 
 	for _, name := range fieldNames {
-		if _, ok := existing[name]; ok {
+		responseKey := phantomResponseKey(name, aliases)
+		if _, ok := existing[responseKey]; ok {
 			continue
 		}
 
@@ -488,5 +489,22 @@ func injectFieldsIntoSelectionSet(
 			Alias: aliases[name],
 			Name:  name,
 		})
+		existing[responseKey] = struct{}{}
 	}
+}
+
+func fieldResponseKey(field *ast.Field) string {
+	if field.Alias != "" {
+		return field.Alias
+	}
+
+	return field.Name
+}
+
+func phantomResponseKey(fieldName string, aliases map[string]string) string {
+	if alias := aliases[fieldName]; alias != "" {
+		return alias
+	}
+
+	return fieldName
 }
