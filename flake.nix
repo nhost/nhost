@@ -373,6 +373,9 @@
           govulncheck-wrapper = govulncheck-wrapperf.package;
           dashboard = dashboardf.package;
           dashboard-docker-image = dashboardf.dockerImage;
+          dashboard-e2e-staging-main = dashboardf.check-staging-main;
+          dashboard-e2e-staging-onboarding = dashboardf.check-staging-onboarding;
+          dashboard-e2e-staging-local = dashboardf.check-staging-local;
           demos = demosf.package;
           functions = functionsf.package;
           functions-node22-docker-image = functionsf.node22DockerImage;
