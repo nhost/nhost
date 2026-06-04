@@ -12,6 +12,10 @@ import (
 
 // Markdown writes the report to w in the team's stand-up format.
 func Markdown(w io.Writer, r *activity.Report) error {
+	if err := writeHeader(w, r); err != nil {
+		return err
+	}
+
 	sections := []struct {
 		heading string
 		items   []activity.Item
@@ -20,6 +24,7 @@ func Markdown(w io.Writer, r *activity.Report) error {
 		{"### 👀 Moved to waiting for review", r.ReadyForReview},
 		{"### ⏸️ Blocked / waiting on something else", r.Blocked},
 		{"### ✅ Closed / merged", r.ClosedOrMerged},
+		{"### 🔍 Reviewed / commented", r.Reviewed},
 	}
 
 	for i, s := range sections {
@@ -59,6 +64,41 @@ Anything not tracked on GitHub, FYIs, heads-ups
 	}
 
 	return writeItems(w, r.Uncategorized)
+}
+
+func writeHeader(w io.Writer, r *activity.Report) error {
+	date := reportDate(r)
+	if date == "" && r.User == "" {
+		return nil
+	}
+
+	title := date
+	if r.User != "" {
+		if title != "" {
+			title += " - "
+		}
+
+		title += r.User
+	}
+
+	if _, err := fmt.Fprintf(w, "## %s\n\n", title); err != nil {
+		return wrap(err)
+	}
+
+	return nil
+}
+
+func reportDate(r *activity.Report) string {
+	if r.Since.IsZero() {
+		return ""
+	}
+
+	since := r.Since.Format("2006-01-02")
+	if r.Until.IsZero() || since == r.Until.Format("2006-01-02") {
+		return since
+	}
+
+	return since + " to " + r.Until.Format("2006-01-02")
 }
 
 func writeItems(w io.Writer, items []activity.Item) error {

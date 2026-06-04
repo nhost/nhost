@@ -2,6 +2,7 @@ package remoteschema_test
 
 import (
 	"context"
+	json "encoding/json/v2"
 	"errors"
 	"io"
 	"log/slog"
@@ -233,6 +234,120 @@ const testIntrospectionResponse = `{
   }
 }`
 
+const interfaceOnlyIntrospectionResponse = `{
+  "data": {
+    "__schema": {
+      "queryType": {"name": "Query"},
+      "mutationType": null,
+      "subscriptionType": null,
+      "types": [
+        {
+          "kind": "OBJECT",
+          "name": "Query",
+          "description": "",
+          "fields": [
+            {
+              "name": "node",
+              "description": "",
+              "args": [],
+              "type": {"kind": "INTERFACE", "name": "Node", "ofType": null},
+              "isDeprecated": false,
+              "deprecationReason": null
+            }
+          ],
+          "inputFields": null,
+          "interfaces": [],
+          "enumValues": null,
+          "possibleTypes": null
+        },
+        {
+          "kind": "INTERFACE",
+          "name": "Node",
+          "description": "",
+          "fields": [
+            {
+              "name": "id",
+              "description": "",
+              "args": [],
+              "type": {"kind": "NON_NULL", "name": null, "ofType": {"kind": "SCALAR", "name": "ID", "ofType": null}},
+              "isDeprecated": false,
+              "deprecationReason": null
+            }
+          ],
+          "inputFields": null,
+          "interfaces": [],
+          "enumValues": null,
+          "possibleTypes": [
+            {"kind": "OBJECT", "name": "User", "ofType": null},
+            {"kind": "OBJECT", "name": "Post", "ofType": null}
+          ]
+        },
+        {
+          "kind": "OBJECT",
+          "name": "User",
+          "description": "",
+          "fields": [
+            {
+              "name": "id",
+              "description": "",
+              "args": [],
+              "type": {"kind": "NON_NULL", "name": null, "ofType": {"kind": "SCALAR", "name": "ID", "ofType": null}},
+              "isDeprecated": false,
+              "deprecationReason": null
+            }
+          ],
+          "inputFields": null,
+          "interfaces": [
+            {"kind": "INTERFACE", "name": "Node", "ofType": null}
+          ],
+          "enumValues": null,
+          "possibleTypes": null
+        },
+        {
+          "kind": "OBJECT",
+          "name": "Post",
+          "description": "",
+          "fields": [
+            {
+              "name": "id",
+              "description": "",
+              "args": [],
+              "type": {"kind": "NON_NULL", "name": null, "ofType": {"kind": "SCALAR", "name": "ID", "ofType": null}},
+              "isDeprecated": false,
+              "deprecationReason": null
+            }
+          ],
+          "inputFields": null,
+          "interfaces": [
+            {"kind": "INTERFACE", "name": "Node", "ofType": null}
+          ],
+          "enumValues": null,
+          "possibleTypes": null
+        },
+        {
+          "kind": "OBJECT",
+          "name": "Orphan",
+          "description": "",
+          "fields": [
+            {
+              "name": "id",
+              "description": "",
+              "args": [],
+              "type": {"kind": "NON_NULL", "name": null, "ofType": {"kind": "SCALAR", "name": "ID", "ofType": null}},
+              "isDeprecated": false,
+              "deprecationReason": null
+            }
+          ],
+          "inputFields": null,
+          "interfaces": [],
+          "enumValues": null,
+          "possibleTypes": null
+        }
+      ]
+    }
+  }
+}`
+
 func newTestServer(t *testing.T) *httptest.Server {
 	t.Helper()
 
@@ -352,6 +467,48 @@ func TestNew(t *testing.T) { //nolint:gocognit,cyclop,gocyclo,maintidx
 
 		if !gotRegionEnum {
 			t.Error("expected Region enum (2 values) in admin schema")
+		}
+	})
+
+	t.Run("keeps interface-only implementors in admin schema", func(t *testing.T) {
+		t.Parallel()
+
+		server := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, _ *http.Request) {
+			w.Header().Set("Content-Type", "application/json")
+			writeOrFail(t, w, []byte(interfaceOnlyIntrospectionResponse))
+		}))
+		defer server.Close()
+
+		connector, err := remoteschema.New(
+			context.Background(), newTestMetadata(server.URL, nil), nil,
+		)
+		if err != nil {
+			t.Fatalf("New() error: %v", err)
+		}
+
+		schemas, err := connector.GetSchema()
+		if err != nil {
+			t.Fatalf("GetSchema() error: %v", err)
+		}
+
+		adminSchema := schemas[metadata.RoleAdmin]
+		if adminSchema == nil {
+			t.Fatal("expected admin schema")
+		}
+
+		typeNames := make(map[string]struct{}, len(adminSchema.Types))
+		for _, typ := range adminSchema.Types {
+			typeNames[typ.Name] = struct{}{}
+		}
+
+		for _, name := range []string{"Query", "User", "Post"} {
+			if _, ok := typeNames[name]; !ok {
+				t.Errorf("expected %s to survive pruning", name)
+			}
+		}
+
+		if _, ok := typeNames["Orphan"]; ok {
+			t.Error("expected Orphan to be pruned")
 		}
 	})
 
@@ -783,7 +940,7 @@ func TestExecute_BlackBox(t *testing.T) { //nolint:gocognit,cyclop,maintidx
 
 			w.Header().Set("Content-Type", "application/json")
 			writeOrFail(t, w, []byte(
-				`{"data":null,"errors":[{"message":"field not found"}]}`,
+				`{"data":{"countries":[{"code":"US","name":"USA"}]},"errors":[{"message":"field not found","path":["countries",0,"name"]}]}`,
 			))
 		})
 
@@ -800,7 +957,7 @@ func TestExecute_BlackBox(t *testing.T) { //nolint:gocognit,cyclop,maintidx
 		op := &ast.OperationDefinition{
 			Operation: ast.Query,
 			SelectionSet: ast.SelectionSet{
-				&ast.Field{Name: "missing"},
+				&ast.Field{Name: "countries"},
 			},
 		}
 
@@ -821,8 +978,10 @@ func TestExecute_BlackBox(t *testing.T) { //nolint:gocognit,cyclop,maintidx
 			t.Errorf("expected 'field not found', got %v", gqlErrs.Errors[0].Message)
 		}
 
-		// Data should still be returned (nil in this case, but the map is present)
-		_ = result
+		countries, ok := result["countries"].([]any)
+		if !ok || len(countries) != 1 {
+			t.Fatalf("expected partial countries data, got %#v", result)
+		}
 	})
 
 	t.Run("wraps error with connector name", func(t *testing.T) {
@@ -924,11 +1083,15 @@ func TestExecute_MockHTTP(t *testing.T) {
 			},
 		}
 
-		_, err := connector.Execute(
+		result, err := connector.Execute(
 			context.Background(), op, nil, nil, "admin", nil, slog.Default(),
 		)
 		if err == nil {
 			t.Fatal("expected error")
+		}
+
+		if result != nil {
+			t.Fatalf("expected nil result on transport error, got %#v", result)
 		}
 
 		if !strings.Contains(err.Error(), "test-remote") {
@@ -958,11 +1121,15 @@ func TestExecute_MockHTTP(t *testing.T) {
 			},
 		}
 
-		_, err := connector.Execute(
+		result, err := connector.Execute(
 			context.Background(), op, nil, nil, "admin", nil, slog.Default(),
 		)
 		if err == nil {
 			t.Fatal("expected error from read failure")
+		}
+
+		if result != nil {
+			t.Fatalf("expected nil result on read failure, got %#v", result)
 		}
 	})
 
@@ -988,11 +1155,15 @@ func TestExecute_MockHTTP(t *testing.T) {
 			},
 		}
 
-		_, err := connector.Execute(
+		result, err := connector.Execute(
 			context.Background(), op, nil, nil, "admin", nil, slog.Default(),
 		)
 		if err == nil {
 			t.Fatal("expected error from malformed JSON")
+		}
+
+		if result != nil {
+			t.Fatalf("expected nil result on malformed JSON, got %#v", result)
 		}
 	})
 
@@ -1018,11 +1189,15 @@ func TestExecute_MockHTTP(t *testing.T) {
 			},
 		}
 
-		_, err := connector.Execute(
+		result, err := connector.Execute(
 			context.Background(), op, nil, nil, "admin", nil, slog.Default(),
 		)
 		if err == nil {
 			t.Fatal("expected error from non-200 status")
+		}
+
+		if result != nil {
+			t.Fatalf("expected nil result on non-200 status, got %#v", result)
 		}
 
 		if !strings.Contains(err.Error(), "502") {
@@ -1132,6 +1307,365 @@ func TestExecute_AppliesPresets(t *testing.T) {
 
 	if user["id"] != "user-abc" {
 		t.Errorf("expected id=user-abc, got %v", user["id"])
+	}
+}
+
+func TestExecute_AppliesNilSessionPresetAsNullLiteral(t *testing.T) {
+	t.Parallel()
+
+	const userSDL = `
+		type Query {
+			getUser(userId: ID @preset(value: "x-hasura-user-id")): User
+		}
+		type User {
+			id: ID
+		}
+	`
+
+	ctrl := gomock.NewController(t)
+	mockDoer := mock.NewMockHTTPDoer(ctrl)
+
+	introspectionCall := mockDoer.EXPECT().Do(gomock.Any()).Return(&http.Response{
+		StatusCode: http.StatusOK,
+		Body:       io.NopCloser(strings.NewReader(testIntrospectionResponse)),
+	}, nil)
+
+	var capturedQuery string
+
+	executeCall := mockDoer.EXPECT().Do(gomock.Any()).DoAndReturn(
+		func(req *http.Request) (*http.Response, error) {
+			body := readAllOrFail(t, req.Body)
+
+			var gqlReq struct {
+				Query string `json:"query"`
+			}
+			if err := json.Unmarshal(body, &gqlReq); err != nil {
+				t.Fatalf("unmarshalling GraphQL request: %v", err)
+			}
+
+			capturedQuery = gqlReq.Query
+
+			return &http.Response{
+				StatusCode: http.StatusOK,
+				Body:       io.NopCloser(strings.NewReader(`{"data":{"getUser":{"id":null}}}`)),
+			}, nil
+		},
+	)
+
+	gomock.InOrder(introspectionCall, executeCall)
+
+	meta := newTestMetadata("http://example.com", []metadata.RemoteSchemaPermission{
+		{
+			Role: "user",
+			Definition: metadata.RemoteSchemaPermissionDef{
+				Schema: userSDL,
+			},
+		},
+	})
+
+	connector, err := remoteschema.New(context.Background(), meta, mockDoer)
+	if err != nil {
+		t.Fatalf("New() error: %v", err)
+	}
+
+	op := &ast.OperationDefinition{
+		Operation: ast.Query,
+		SelectionSet: ast.SelectionSet{
+			&ast.Field{
+				Name: "getUser",
+				SelectionSet: ast.SelectionSet{
+					&ast.Field{Name: "id"},
+				},
+			},
+		},
+	}
+
+	sessionVars := map[string]any{
+		"x-hasura-user-id": nil,
+	}
+
+	_, err = connector.Execute(
+		context.Background(), op, nil, nil, "user", sessionVars, slog.Default(),
+	)
+	if err != nil {
+		t.Fatalf("Execute error: %v", err)
+	}
+
+	normalizedQuery := strings.NewReplacer(" ", "", "\n", "", "\t", "").Replace(capturedQuery)
+	if !strings.Contains(normalizedQuery, `userId:null`) {
+		t.Fatalf("expected null userId preset in outgoing query, got: %s", capturedQuery)
+	}
+
+	if strings.Contains(normalizedQuery, `userId:"null"`) {
+		t.Fatalf("expected null literal to remain unquoted, got: %s", capturedQuery)
+	}
+}
+
+func TestExecute_AppliesTypedPresets(t *testing.T) {
+	t.Parallel()
+
+	const userSDL = `
+		type Query {
+			topGames(
+				limit: Int! @preset(value: 3)
+				includeStats: Boolean! @preset(value: true)
+				source: Source! @preset(value: OFFICIAL)
+			): [Game!]!
+		}
+		type Game {
+			id: ID!
+		}
+		enum Source {
+			OFFICIAL
+			USER_REPORTED
+		}
+	`
+
+	ctrl := gomock.NewController(t)
+	mockDoer := mock.NewMockHTTPDoer(ctrl)
+
+	introspectionCall := mockDoer.EXPECT().Do(gomock.Any()).Return(&http.Response{
+		StatusCode: http.StatusOK,
+		Body:       io.NopCloser(strings.NewReader(testIntrospectionResponse)),
+	}, nil)
+
+	var capturedBody string
+
+	executeCall := mockDoer.EXPECT().Do(gomock.Any()).DoAndReturn(
+		func(req *http.Request) (*http.Response, error) {
+			capturedBody = string(readAllOrFail(t, req.Body))
+
+			return &http.Response{
+				StatusCode: http.StatusOK,
+				Body:       io.NopCloser(strings.NewReader(`{"data":{"topGames":[]}}`)),
+			}, nil
+		},
+	)
+
+	gomock.InOrder(introspectionCall, executeCall)
+
+	meta := newTestMetadata("http://example.com", []metadata.RemoteSchemaPermission{
+		{
+			Role: "user",
+			Definition: metadata.RemoteSchemaPermissionDef{
+				Schema: userSDL,
+			},
+		},
+	})
+
+	connector, err := remoteschema.New(context.Background(), meta, mockDoer)
+	if err != nil {
+		t.Fatalf("New() error: %v", err)
+	}
+
+	op := &ast.OperationDefinition{
+		Operation: ast.Query,
+		SelectionSet: ast.SelectionSet{
+			&ast.Field{
+				Name: "topGames",
+				SelectionSet: ast.SelectionSet{
+					&ast.Field{Name: "id"},
+				},
+			},
+		},
+	}
+
+	_, err = connector.Execute(
+		context.Background(), op, nil, nil, "user", nil, slog.Default(),
+	)
+	if err != nil {
+		t.Fatalf("Execute error: %v", err)
+	}
+
+	for _, want := range []string{"limit:3", "includeStats:true", "source:OFFICIAL"} {
+		if !strings.Contains(capturedBody, want) &&
+			!strings.Contains(capturedBody, strings.ReplaceAll(want, ":", ": ")) {
+			t.Errorf("expected %s in outgoing query, got: %s", want, capturedBody)
+		}
+	}
+
+	for _, unwanted := range []string{`limit:\"3\"`, `includeStats:\"true\"`, `source:\"OFFICIAL\"`} {
+		if strings.Contains(capturedBody, unwanted) {
+			t.Errorf("expected typed preset to be unquoted; found %s in %s", unwanted, capturedBody)
+		}
+	}
+}
+
+func TestExecute_AppliesAllowedRolesListPreset(t *testing.T) {
+	t.Parallel()
+
+	const userSDL = `
+		type Query {
+			games(roles: [String!]! @preset(value: "x-hasura-allowed-roles")): [Game!]!
+		}
+		type Game {
+			id: ID!
+		}
+	`
+
+	ctrl := gomock.NewController(t)
+	mockDoer := mock.NewMockHTTPDoer(ctrl)
+
+	introspectionCall := mockDoer.EXPECT().Do(gomock.Any()).Return(&http.Response{
+		StatusCode: http.StatusOK,
+		Body:       io.NopCloser(strings.NewReader(testIntrospectionResponse)),
+	}, nil)
+
+	var capturedQuery string
+
+	executeCall := mockDoer.EXPECT().Do(gomock.Any()).DoAndReturn(
+		func(req *http.Request) (*http.Response, error) {
+			body := readAllOrFail(t, req.Body)
+
+			var gqlReq struct {
+				Query string `json:"query"`
+			}
+			if err := json.Unmarshal(body, &gqlReq); err != nil {
+				t.Fatalf("unmarshalling GraphQL request: %v", err)
+			}
+
+			capturedQuery = gqlReq.Query
+
+			return &http.Response{
+				StatusCode: http.StatusOK,
+				Body:       io.NopCloser(strings.NewReader(`{"data":{"games":[]}}`)),
+			}, nil
+		},
+	)
+
+	gomock.InOrder(introspectionCall, executeCall)
+
+	meta := newTestMetadata("http://example.com", []metadata.RemoteSchemaPermission{
+		{
+			Role: "user",
+			Definition: metadata.RemoteSchemaPermissionDef{
+				Schema: userSDL,
+			},
+		},
+	})
+
+	connector, err := remoteschema.New(context.Background(), meta, mockDoer)
+	if err != nil {
+		t.Fatalf("New() error: %v", err)
+	}
+
+	op := &ast.OperationDefinition{
+		Operation: ast.Query,
+		SelectionSet: ast.SelectionSet{
+			&ast.Field{
+				Name: "games",
+				SelectionSet: ast.SelectionSet{
+					&ast.Field{Name: "id"},
+				},
+			},
+		},
+	}
+
+	sessionVars := map[string]any{
+		"x-hasura-allowed-roles": []any{"user", "editor"},
+	}
+
+	_, err = connector.Execute(
+		context.Background(), op, nil, nil, "user", sessionVars, slog.Default(),
+	)
+	if err != nil {
+		t.Fatalf("Execute error: %v", err)
+	}
+
+	normalizedQuery := strings.NewReplacer(" ", "", "\n", "", "\t", "").Replace(capturedQuery)
+	if !strings.Contains(normalizedQuery, `roles:["user","editor"]`) {
+		t.Fatalf("expected quoted allowed roles list in outgoing query, got: %s", capturedQuery)
+	}
+}
+
+func TestExecute_AppliesScalarSessionListPreset(t *testing.T) {
+	t.Parallel()
+
+	const userSDL = `
+		type Query {
+			games(levels: [Int!]! @preset(value: "x-hasura-game-level")): [Game!]!
+		}
+		type Game {
+			id: ID!
+		}
+	`
+
+	ctrl := gomock.NewController(t)
+	mockDoer := mock.NewMockHTTPDoer(ctrl)
+
+	introspectionCall := mockDoer.EXPECT().Do(gomock.Any()).Return(&http.Response{
+		StatusCode: http.StatusOK,
+		Body:       io.NopCloser(strings.NewReader(testIntrospectionResponse)),
+	}, nil)
+
+	var capturedQuery string
+
+	executeCall := mockDoer.EXPECT().Do(gomock.Any()).DoAndReturn(
+		func(req *http.Request) (*http.Response, error) {
+			body := readAllOrFail(t, req.Body)
+
+			var gqlReq struct {
+				Query string `json:"query"`
+			}
+			if err := json.Unmarshal(body, &gqlReq); err != nil {
+				t.Fatalf("unmarshalling GraphQL request: %v", err)
+			}
+
+			capturedQuery = gqlReq.Query
+
+			return &http.Response{
+				StatusCode: http.StatusOK,
+				Body:       io.NopCloser(strings.NewReader(`{"data":{"games":[]}}`)),
+			}, nil
+		},
+	)
+
+	gomock.InOrder(introspectionCall, executeCall)
+
+	meta := newTestMetadata("http://example.com", []metadata.RemoteSchemaPermission{
+		{
+			Role: "user",
+			Definition: metadata.RemoteSchemaPermissionDef{
+				Schema: userSDL,
+			},
+		},
+	})
+
+	connector, err := remoteschema.New(context.Background(), meta, mockDoer)
+	if err != nil {
+		t.Fatalf("New() error: %v", err)
+	}
+
+	op := &ast.OperationDefinition{
+		Operation: ast.Query,
+		SelectionSet: ast.SelectionSet{
+			&ast.Field{
+				Name: "games",
+				SelectionSet: ast.SelectionSet{
+					&ast.Field{Name: "id"},
+				},
+			},
+		},
+	}
+
+	sessionVars := map[string]any{
+		"x-hasura-game-level": "7",
+	}
+
+	_, err = connector.Execute(
+		context.Background(), op, nil, nil, "user", sessionVars, slog.Default(),
+	)
+	if err != nil {
+		t.Fatalf("Execute error: %v", err)
+	}
+
+	normalizedQuery := strings.NewReplacer(" ", "", "\n", "", "\t", "").Replace(capturedQuery)
+	if !strings.Contains(normalizedQuery, `levels:[7]`) {
+		t.Fatalf("expected unquoted int list in outgoing query, got: %s", capturedQuery)
+	}
+
+	if strings.Contains(normalizedQuery, `levels:"7"`) {
+		t.Fatalf("expected scalar list preset to be wrapped and unquoted, got: %s", capturedQuery)
 	}
 }
 
@@ -1370,6 +1904,124 @@ func TestExecute_AppliesPresetsInInlineFragment(t *testing.T) {
 		t.Errorf(
 			"expected preset-injected userId argument in outgoing query, got: %s",
 			capturedBody,
+		)
+	}
+}
+
+// TestExecute_AppliesPresetsInNamedFragment exercises the named-fragment
+// branch of preset injection: Execute formats fragment definitions separately
+// from the operation tree, so the fragment list must be cloned and mutated
+// before the query is sent upstream.
+func TestExecute_AppliesPresetsInNamedFragment(t *testing.T) {
+	t.Parallel()
+
+	const userSDL = `
+		type Query {
+			getUser(userId: String @preset(value: "x-hasura-user-id")): User
+		}
+		type User {
+			id: String
+		}
+	`
+
+	ctrl := gomock.NewController(t)
+	mockDoer := mock.NewMockHTTPDoer(ctrl)
+
+	introspectionCall := mockDoer.EXPECT().Do(gomock.Any()).Return(&http.Response{
+		StatusCode: http.StatusOK,
+		Body:       io.NopCloser(strings.NewReader(testIntrospectionResponse)),
+	}, nil)
+
+	var capturedQuery string
+
+	executeCall := mockDoer.EXPECT().Do(gomock.Any()).DoAndReturn(
+		func(req *http.Request) (*http.Response, error) {
+			body := readAllOrFail(t, req.Body)
+
+			var gqlReq struct {
+				Query string `json:"query"`
+			}
+			if err := json.Unmarshal(body, &gqlReq); err != nil {
+				t.Fatalf("unmarshalling GraphQL request: %v", err)
+			}
+
+			capturedQuery = gqlReq.Query
+
+			return &http.Response{
+				StatusCode: http.StatusOK,
+				Body: io.NopCloser(strings.NewReader(
+					`{"data":{"getUser":{"id":"user-abc"}}}`,
+				)),
+			}, nil
+		},
+	)
+
+	gomock.InOrder(introspectionCall, executeCall)
+
+	meta := newTestMetadata("http://example.com", []metadata.RemoteSchemaPermission{
+		{
+			Role: "user",
+			Definition: metadata.RemoteSchemaPermissionDef{
+				Schema: userSDL,
+			},
+		},
+	})
+
+	connector, err := remoteschema.New(context.Background(), meta, mockDoer)
+	if err != nil {
+		t.Fatalf("New() error: %v", err)
+	}
+
+	op := &ast.OperationDefinition{
+		Operation: ast.Query,
+		SelectionSet: ast.SelectionSet{
+			&ast.FragmentSpread{Name: "UserLookup"},
+		},
+	}
+	fragments := ast.FragmentDefinitionList{
+		{
+			Name:          "UserLookup",
+			TypeCondition: "Query",
+			SelectionSet: ast.SelectionSet{
+				&ast.Field{
+					Name: "getUser",
+					SelectionSet: ast.SelectionSet{
+						&ast.Field{Name: "id"},
+					},
+				},
+			},
+		},
+	}
+
+	sessionVars := map[string]any{
+		"x-hasura-user-id": "user-abc",
+	}
+
+	_, err = connector.Execute(
+		context.Background(), op, fragments, nil, "user", sessionVars, slog.Default(),
+	)
+	if err != nil {
+		t.Fatalf("Execute error: %v", err)
+	}
+
+	normalizedQuery := strings.NewReplacer(" ", "", "\n", "", "\t", "").Replace(capturedQuery)
+	if !strings.Contains(normalizedQuery, `fragmentUserLookuponQuery`) {
+		t.Fatalf("expected named fragment in outgoing query, got: %s", capturedQuery)
+	}
+
+	if !strings.Contains(normalizedQuery, `getUser(userId:"user-abc")`) {
+		t.Fatalf("expected preset-injected userId in named fragment, got: %s", capturedQuery)
+	}
+
+	fragmentField, ok := fragments[0].SelectionSet[0].(*ast.Field)
+	if !ok {
+		t.Fatal("expected original fragment field")
+	}
+
+	if len(fragmentField.Arguments) != 0 {
+		t.Fatalf(
+			"expected original fragment to remain unmodified, got %#v",
+			fragmentField.Arguments,
 		)
 	}
 }
