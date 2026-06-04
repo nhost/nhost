@@ -11,6 +11,8 @@ import (
 )
 
 const sampleSchema = `
+directive @repeatableCustom repeatable on FIELD_DEFINITION
+
 "User account."
 type User {
 	id: ID!
@@ -768,6 +770,7 @@ func TestExecute(t *testing.T) { //nolint:gocognit,gocyclo,cyclop,maintidx
 				__schema {
 					directives {
 						name
+						isRepeatable
 						locations
 						args { name }
 					}
@@ -781,18 +784,18 @@ func TestExecute(t *testing.T) { //nolint:gocognit,gocyclo,cyclop,maintidx
 					t.Fatal("expected at least one directive")
 				}
 
-				// The "deprecated" built-in directive must be in the list with a
-				// "reason" argument and at least one location.
-				var deprecated map[string]any
-				for _, d := range dirs {
-					if d["name"] == "deprecated" {
-						deprecated = d
-						break
-					}
+				deprecated := findMapByName(t, dirs, "deprecated")
+
+				repeatable, ok := deprecated["isRepeatable"].(bool)
+				if !ok {
+					t.Fatalf(
+						"expected @deprecated.isRepeatable bool, got %T",
+						deprecated["isRepeatable"],
+					)
 				}
 
-				if deprecated == nil {
-					t.Fatal("expected built-in @deprecated directive in output")
+				if repeatable {
+					t.Errorf("@deprecated.isRepeatable = true, want false")
 				}
 
 				args, _ := deprecated["args"].([]map[string]any)
@@ -807,6 +810,49 @@ func TestExecute(t *testing.T) { //nolint:gocognit,gocyclo,cyclop,maintidx
 				locs := asStringSlice(t, deprecated["locations"])
 				if len(locs) == 0 {
 					t.Errorf("@deprecated locations empty")
+				}
+
+				custom := findMapByName(t, dirs, "repeatableCustom")
+				if repeatable, ok := custom["isRepeatable"].(bool); !ok || !repeatable {
+					t.Errorf(
+						"@repeatableCustom.isRepeatable = %v (ok=%v), want true",
+						custom["isRepeatable"], ok,
+					)
+				}
+			},
+		},
+		{
+			name:  "DirectiveListFilteredAndComplete",
+			query: `{ __schema { directives { name } } }`,
+			check: func(t *testing.T, got map[string]any) {
+				t.Helper()
+
+				dirs := asMapSlice(t, asMap(t, got["__schema"])["directives"])
+
+				names := make(map[string]bool, len(dirs))
+				for _, directive := range dirs {
+					name, ok := directive["name"].(string)
+					if !ok {
+						t.Fatalf("expected directive name string, got %T", directive["name"])
+					}
+
+					names[name] = true
+				}
+
+				for _, want := range []string{"include", "skip", "deprecated", "specifiedBy"} {
+					if !names[want] {
+						t.Errorf("expected built-in directive %q in output, got %v", want, names)
+					}
+				}
+
+				for _, banned := range []string{"defer", "oneOf"} {
+					if names[banned] {
+						t.Errorf(
+							"unexpected unsupported directive %q advertised: %v",
+							banned,
+							names,
+						)
+					}
 				}
 			},
 		},
