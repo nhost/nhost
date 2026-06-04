@@ -1,6 +1,5 @@
 ---
 on:
-  push:
   workflow_call:
     inputs:
       NAME:
