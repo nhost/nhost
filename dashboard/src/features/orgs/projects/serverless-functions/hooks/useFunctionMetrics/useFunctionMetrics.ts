@@ -39,8 +39,17 @@ export default function useFunctionMetrics({
   chartWidth,
 }: UseFunctionMetricsOptions): UseFunctionMetricsResult {
   const { project, loading: loadingProject } = useProject();
+
+  // A value-key for `range` so the re-anchor below keys off the semantic range,
+  // not the object's identity. This lets useMetricsTimeRangeUrlState hand us a
+  // fresh `range` object on unrelated URL changes without misfiring a re-anchor.
+  const rangeKey =
+    range.kind === 'preset'
+      ? `preset:${range.preset}`
+      : `abs:${range.from}:${range.to}`;
+
   const [now, setNow] = useState(() => new Date());
-  const [prevRange, setPrevRange] = useState(range);
+  const [prevRangeKey, setPrevRangeKey] = useState(rangeKey);
 
   const [committedWidth, setCommittedWidth] = useState(chartWidth);
 
@@ -51,8 +60,8 @@ export default function useFunctionMetrics({
   // Re-anchor "now" when range changes, so a freshly-picked preset is evaluated
   // at the current time, not page-load time. Derive-during-render (vs useEffect)
   // avoids a double-fetch — React retries the render with the new state.
-  if (prevRange !== range) {
-    setPrevRange(range);
+  if (prevRangeKey !== rangeKey) {
+    setPrevRangeKey(rangeKey);
     setNow(new Date());
     setCommittedWidth(chartWidth);
   }
@@ -67,7 +76,6 @@ export default function useFunctionMetrics({
     [from, to, committedWidth],
   );
 
-  // Function paths like `/api/users.ts` contain regex metacharacters, so escape them for literal match.
   const escapedRoute = route.replace(ROUTE_REGEX_METACHARACTERS, '\\$&');
 
   const {

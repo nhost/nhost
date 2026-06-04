@@ -13,9 +13,7 @@ const GAP_THRESHOLD_FACTOR = 1.5;
 export interface ChartModel {
   // Unique, collision-suffixed key per series, index-aligned with the input.
   keys: string[];
-  // Merged rows: one timestamp per row, one value (or null) per key.
   rows: Row[];
-  // shadcn/Recharts config: label + color per key.
   config: ChartConfig;
 }
 

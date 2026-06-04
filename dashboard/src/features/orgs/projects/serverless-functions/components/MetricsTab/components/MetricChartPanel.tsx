@@ -17,9 +17,6 @@ export interface MetricChartPanelProps {
   onZoomOut?: () => void;
 }
 
-// A single chart panel in a section grid. Everything it renders — title,
-// description, series, accessors, value formatter — is derived from
-// METRIC_PANELS[slug], the single source of truth shared with the expanded view.
 export default function MetricChartPanel({
   slug,
   metrics,

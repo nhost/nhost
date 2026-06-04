@@ -1,12 +1,6 @@
+import { useMeasure } from '@uidotdev/usehooks';
 import { Link2, X } from 'lucide-react';
-import {
-  type MouseEvent as ReactMouseEvent,
-  useEffect,
-  useLayoutEffect,
-  useMemo,
-  useRef,
-  useState,
-} from 'react';
+import { type MouseEvent as ReactMouseEvent, useEffect, useMemo } from 'react';
 import toast from 'react-hot-toast';
 import { Button } from '@/components/ui/v3/button';
 import MetricChart from '@/features/orgs/projects/serverless-functions/components/MetricsTab/components/MetricChart';
@@ -53,22 +47,8 @@ export default function ExpandedMetricPanel({
   const valueFormatter = formatterForKind(config.valueFormatterKind);
   const accessors = accessorsForPanel(config.labelDimensions);
 
-  const chartHostRef = useRef<HTMLDivElement | null>(null);
-  const [chartHeight, setChartHeight] = useState(MIN_CHART_HEIGHT);
-
-  useLayoutEffect(() => {
-    const el = chartHostRef.current;
-    if (!el) {
-      return undefined;
-    }
-    const update = () => {
-      setChartHeight(Math.max(MIN_CHART_HEIGHT, Math.round(el.clientHeight)));
-    };
-    update();
-    const observer = new ResizeObserver(update);
-    observer.observe(el);
-    return () => observer.disconnect();
-  }, []);
+  const [chartHostRef, { height }] = useMeasure<HTMLDivElement>();
+  const chartHeight = Math.max(MIN_CHART_HEIGHT, Math.round(height ?? 0));
 
   useEffect(() => {
     const onKey = (e: KeyboardEvent) => {
@@ -138,17 +118,22 @@ export default function ExpandedMetricPanel({
         </div>
 
         <div ref={chartHostRef} className="min-h-0 flex-1">
-          <MetricChart
-            data={sourceData}
-            height={chartHeight}
-            accessors={accessors}
-            valueFormatter={valueFormatter}
-            xDomain={xDomain}
-            onZoomRange={onZoomRange}
-            onZoomOut={onZoomOut}
-            hiddenKeys={hiddenKeys}
-            onHiddenKeysChange={onHiddenKeysChange}
-          />
+          {/* Mount the chart only after the first real measurement. Otherwise
+              it paints once at MIN_CHART_HEIGHT and visibly jumps to full height
+              when useMeasure reports the host's actual height. */}
+          {height != null ? (
+            <MetricChart
+              data={sourceData}
+              height={chartHeight}
+              accessors={accessors}
+              valueFormatter={valueFormatter}
+              xDomain={xDomain}
+              onZoomRange={onZoomRange}
+              onZoomOut={onZoomOut}
+              hiddenKeys={hiddenKeys}
+              onHiddenKeysChange={onHiddenKeysChange}
+            />
+          ) : null}
         </div>
       </div>
     </div>

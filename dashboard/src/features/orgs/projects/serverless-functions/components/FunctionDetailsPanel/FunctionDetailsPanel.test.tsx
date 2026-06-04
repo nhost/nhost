@@ -317,7 +317,6 @@ describe('FunctionDetailsPanel', () => {
     expect(
       await screen.findByTestId('metricsTimeRangeTrigger'),
     ).toBeInTheDocument();
-    // Wait for the query to resolve into the data branch before asserting.
     await screen.findAllByText('No data available.');
     expect(screen.queryByText(PAYWALL_TITLE)).not.toBeInTheDocument();
   });

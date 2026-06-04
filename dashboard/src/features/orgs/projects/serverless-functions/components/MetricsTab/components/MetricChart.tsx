@@ -43,8 +43,6 @@ import { cn } from '@/lib/utils';
 
 export interface MetricChartProps {
   data: MetricSeries[];
-  // How to derive each series' key, legend label, and color. Pass a shared
-  // constant from seriesAccessors.ts so the identity is stable across renders.
   accessors: SeriesAccessors;
   valueFormatter?: (v: number) => string;
   height?: number;
@@ -234,8 +232,8 @@ export default function MetricChart({
   const isEmpty = rows.length === 0 || keys.length === 0;
 
   const handleMouseDown = (e: ChartMouseEvent) => {
-    const v = toNumber(e?.activeLabel);
-    if (v === null) {
+    const v = Number(e?.activeLabel);
+    if (Number.isNaN(v)) {
       return;
     }
     setRefAreaLeft(v);
@@ -248,8 +246,8 @@ export default function MetricChart({
     if (refAreaLeft === '') {
       return;
     }
-    const v = toNumber(e?.activeLabel);
-    if (v === null) {
+    const v = Number(e?.activeLabel);
+    if (Number.isNaN(v)) {
       return;
     }
     if (v !== refAreaLeft) {
@@ -283,11 +281,10 @@ export default function MetricChart({
       justDraggedRef.current = false;
       return;
     }
-    const label = toNumber(e?.activeLabel);
-    const row =
-      label !== null ? rows.find((r) => r.timestamp === label) : undefined;
+    const label = Number(e?.activeLabel);
+    const row = rows.find((r) => r.timestamp === label);
 
-    if (e?.activeTooltipIndex == null || label === null || !row) {
+    if (e?.activeTooltipIndex == null || !row) {
       setPinned(null);
       return;
     }
@@ -617,14 +614,6 @@ function resolveTooltipPosition(
     x: fallbackX != null ? fallbackX + 10 : null,
     y: fallbackY != null ? fallbackY + 10 : null,
   };
-}
-
-function toNumber(input: unknown): number | null {
-  if (input == null) {
-    return null;
-  }
-  const n = typeof input === 'number' ? input : Number(input);
-  return Number.isFinite(n) ? n : null;
 }
 
 interface LegendPayloadItem {

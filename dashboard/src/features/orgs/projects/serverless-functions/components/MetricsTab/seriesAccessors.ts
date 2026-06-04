@@ -4,8 +4,6 @@ import {
 } from '@/features/orgs/projects/serverless-functions/components/MetricsTab/constants';
 
 // How a chart derives a series' key, legend label, and color from its labels.
-// The three are always supplied together, so MetricChart and buildChart both
-// take them as a single `accessors` object.
 export interface SeriesAccessors {
   keyFor: (labels: Record<string, string>) => string;
   labelFor: (key: string, labels: Record<string, string>) => string;

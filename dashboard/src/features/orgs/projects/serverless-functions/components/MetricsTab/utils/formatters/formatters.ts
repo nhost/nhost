@@ -1,8 +1,5 @@
 import { format } from 'date-fns';
 
-// The value scales a metric panel can render. Owned by the formatting layer (not
-// the panel registry) so formatters stay reusable independently of the
-// functions-specific panel config.
 export type ValueFormatterKind = 'integer' | 'bytes' | 'ms' | 'percent-unit';
 
 export function formatInteger(v: number): string {

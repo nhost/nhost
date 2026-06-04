@@ -4,10 +4,6 @@ import type {
   MetricSeries,
 } from '@/features/orgs/projects/serverless-functions/types';
 
-// A chart panel, fully described in one place: how to label/format it, which
-// label dimension splits its series, and how to pull its series out of the
-// metrics response. Both the section grids and the expanded overlay derive
-// everything they render from this — there is no second source of truth.
 export interface MetricPanelConfig {
   title: string;
   description?: string;
