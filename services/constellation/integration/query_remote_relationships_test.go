@@ -88,6 +88,61 @@ func TestQueryRemoteRelationships(t *testing.T) { //nolint:paralleltest,maintidx
 			},
 		},
 
+		{
+			name: "db to db array remote relationship honors user where",
+			query: query{
+				Query: `query {
+					userProfiles(order_by: { id: asc }) {
+						id
+						user_id
+						departments(
+							where: { role: { _eq: manager } }
+							order_by: [{ department_id: asc }]
+						) {
+							user_id
+							department_id
+							role
+						}
+					}
+				}`,
+				Role: "admin",
+			},
+		},
+
+		{
+			name: "db to db array remote relationship ignores unrelated alias collision with join column",
+			query: query{
+				Query: `query {
+					userProfiles(order_by: { id: asc }) {
+						user_id: id
+						departments(order_by: [{ department_id: asc }]) {
+							user_id
+							department_id
+							role
+						}
+					}
+				}`,
+				Role: "admin",
+			},
+		},
+
+		{
+			name: "db to db array remote relationship resolves when join column is user-aliased",
+			query: query{
+				Query: `query {
+					userProfiles(order_by: { id: asc }) {
+						id
+						uid: user_id
+						departments(order_by: [{ department_id: asc }]) {
+							department_id
+							role
+						}
+					}
+				}`,
+				Role: "admin",
+			},
+		},
+
 		// Query only from remote source without crossing databases
 		{
 			name: "query from other database only",

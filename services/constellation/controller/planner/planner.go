@@ -157,8 +157,9 @@ func toPhantomSpecs(specs []*PhantomFieldSpec) []transform.PhantomSpec {
 	out := make([]transform.PhantomSpec, 0, len(specs))
 	for _, s := range specs {
 		out = append(out, transform.PhantomSpec{
-			Path:   s.Path,
-			Fields: s.Fields,
+			Path:    s.Path,
+			Fields:  s.Fields,
+			Aliases: s.Aliases,
 		})
 	}
 

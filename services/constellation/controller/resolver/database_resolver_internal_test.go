@@ -9,7 +9,7 @@ import (
 	"github.com/vektah/gqlparser/v2/ast"
 )
 
-func TestDatabaseResolverBuildOperation(t *testing.T) {
+func TestDatabaseResolverBuildOperation(t *testing.T) { //nolint:gocognit,cyclop,maintidx
 	t.Parallel()
 
 	joinCols := map[string]string{"id": "userId"}
@@ -105,7 +105,7 @@ func TestDatabaseResolverBuildOperation(t *testing.T) {
 			},
 		},
 		{
-			name: "forwards user arguments but discards user where",
+			name: "forwards user arguments and merges user where",
 			joinArgs: []*remoteJoinArgument{
 				newRemoteJoinArgument(map[string]any{"id": "u1"}),
 			},
@@ -113,8 +113,12 @@ func TestDatabaseResolverBuildOperation(t *testing.T) {
 				Name: "orders",
 				Arguments: ast.ArgumentList{
 					{Name: "limit", Value: &ast.Value{Kind: ast.IntValue, Raw: "10"}},
-					// User-supplied "where" must be discarded — databaseResolver builds its own.
-					{Name: "where", Value: &ast.Value{Kind: ast.ObjectValue}},
+					{
+						Name: "where",
+						Value: &ast.Value{Kind: ast.ObjectValue, Children: ast.ChildValueList{
+							{Name: "status", Value: &ast.Value{Kind: ast.ObjectValue}},
+						}},
+					},
 				},
 				SelectionSet: ast.SelectionSet{&ast.Field{Name: "id"}},
 			},
@@ -126,15 +130,71 @@ func TestDatabaseResolverBuildOperation(t *testing.T) {
 				}
 
 				field, _ := op.SelectionSet[0].(*ast.Field)
-
 				argNames := argumentNames(field.Arguments)
 
 				if countOccurrences(argNames, "where") != 1 {
-					t.Errorf("expected exactly one 'where' (the generated one), got %v", argNames)
+					t.Errorf("expected exactly one merged 'where', got %v", argNames)
+				}
+
+				whereArg := findWhereArgument(field.Arguments)
+
+				andChild := whereArg.Value.Children.ForName("_and")
+				if andChild == nil || andChild.Kind != ast.ListValue {
+					t.Fatalf("expected _and list in merged where, got %+v", whereArg.Value)
+				}
+
+				if got := len(andChild.Children); got != 2 {
+					t.Fatalf("expected generated and user where under _and, got %d", got)
 				}
 
 				if !slices.Contains(argNames, "limit") {
 					t.Errorf("expected user 'limit' argument forwarded, got %v", argNames)
+				}
+			},
+		},
+		{
+			name: "dedupes slice join values without panic",
+			joinArgs: []*remoteJoinArgument{
+				newRemoteJoinArgument(map[string]any{"id": []any{"a", "b"}}),
+				newRemoteJoinArgument(map[string]any{"id": []any{"a", "b"}}),
+				newRemoteJoinArgument(map[string]any{"id": []any{"c"}}),
+			},
+			sourceField: &ast.Field{
+				Name:         "orders",
+				SelectionSet: ast.SelectionSet{&ast.Field{Name: "id"}},
+			},
+			check: func(t *testing.T, op *ast.OperationDefinition, _ *remoteQuery) {
+				t.Helper()
+
+				field, _ := op.SelectionSet[0].(*ast.Field)
+				whereArg := findWhereArgument(field.Arguments)
+
+				inList := whereArg.Value.Children.ForName("userId").Children.ForName("_in")
+				if got := len(inList.Children); got != 2 {
+					t.Errorf("expected 2 deduped values, got %d", got)
+				}
+			},
+		},
+		{
+			name: "dedupes map join values without panic",
+			joinArgs: []*remoteJoinArgument{
+				newRemoteJoinArgument(map[string]any{"id": map[string]any{"k": "v"}}),
+				newRemoteJoinArgument(map[string]any{"id": map[string]any{"k": "v"}}),
+				newRemoteJoinArgument(map[string]any{"id": map[string]any{"k": "w"}}),
+			},
+			sourceField: &ast.Field{
+				Name:         "orders",
+				SelectionSet: ast.SelectionSet{&ast.Field{Name: "id"}},
+			},
+			check: func(t *testing.T, op *ast.OperationDefinition, _ *remoteQuery) {
+				t.Helper()
+
+				field, _ := op.SelectionSet[0].(*ast.Field)
+				whereArg := findWhereArgument(field.Arguments)
+
+				inList := whereArg.Value.Children.ForName("userId").Children.ForName("_in")
+				if got := len(inList.Children); got != 2 {
+					t.Errorf("expected 2 deduped values, got %d", got)
 				}
 			},
 		},
@@ -311,6 +371,65 @@ func TestDatabaseResolverBuildResultLookupAndJoinKey(t *testing.T) {
 			)
 		}
 	})
+
+	t.Run("parent join key uses local phantom alias", func(t *testing.T) {
+		t.Parallel()
+
+		rqAliased := &remoteQuery{
+			resolver:         dr,
+			localJoinAliases: map[string]string{"id": "_constellation_phantom_id"},
+		}
+
+		key := dr.GetJoinKeyFromParent(rqAliased, map[string]any{
+			"id":                        "wrong-user-alias-value",
+			"_constellation_phantom_id": "u1",
+		})
+		if key != "u1" {
+			t.Errorf("expected key from phantom alias 'u1', got %q", key)
+		}
+	})
+
+	t.Run("remote phantom alias is honoured when building lookup", func(t *testing.T) {
+		t.Parallel()
+
+		rqAliased := &remoteQuery{
+			resolver:          dr,
+			remoteJoinAliases: map[string]string{"userId": "_constellation_remote_phantom_userId"},
+			sourceField: &ast.Field{
+				SelectionSet: ast.SelectionSet{&ast.Field{Name: "product", Alias: "userId"}},
+			},
+		}
+
+		results := []any{
+			map[string]any{
+				"userId":                               "wrong-product-alias-value",
+				"_constellation_remote_phantom_userId": "u1",
+			},
+		}
+
+		got := dr.BuildResultLookup(rqAliased, results)
+		if len(got["u1"]) != 1 {
+			t.Errorf("expected 1 result under remote phantom alias key, got %v", got)
+		}
+	})
+}
+
+func TestRemoteQueryGetLocalPhantomFields_UsesEffectiveResponseKeys(t *testing.T) {
+	t.Parallel()
+
+	rq := &remoteQuery{
+		localPhantomFields: []string{"department_id", "org_id"},
+		localJoinAliases: map[string]string{
+			"department_id": "_constellation_phantom_department_id",
+		},
+	}
+
+	got := rq.getLocalPhantomFields()
+
+	want := []string{"_constellation_phantom_department_id", "org_id"}
+	if diff := cmp.Diff(want, got); diff != "" {
+		t.Errorf("local phantom fields mismatch (-want +got):\n%s", diff)
+	}
 }
 
 func TestSchemaResolverExtractResults(t *testing.T) {

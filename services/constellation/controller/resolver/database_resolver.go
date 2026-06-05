@@ -31,23 +31,41 @@ func (r *databaseResolver) BuildOperation(rq *remoteQuery) *ast.OperationDefinit
 	}
 
 	whereArg := r.buildWhereArgument(rq)
+	if userWhere := findWhereArgument(rq.sourceField.Arguments); rq.isArray && userWhere != nil {
+		whereArg.Value = andMergeWhereValues(whereArg.Value, userWhere.Value)
+	}
 
 	// We need the remote join columns in the result to match against parent rows.
 	selectionSet := make(ast.SelectionSet, 0, len(rq.sourceField.SelectionSet)+len(r.joinColumns))
 	selectionSet = append(selectionSet, rq.sourceField.SelectionSet...)
 
-	// Add remote join columns if not already in selection and track which ones we inject
+	// Add remote join columns if not already in selection and track which ones we inject.
+	responseKeys := collectSelectionResponseKeys(rq.sourceField.SelectionSet, rq.fragments)
 	for _, remoteCol := range r.joinColumns {
-		// Check if field is already selected (including within fragments)
-		found := selectionContainsField(rq.sourceField.SelectionSet, rq.fragments, remoteCol)
-
-		if !found {
-			selectionSet = append(selectionSet, &ast.Field{ //nolint:exhaustruct
-				Name: remoteCol,
-			})
-			// Mark as phantom field to remove later since user didn't request it
-			rq.remotePhantomFields = append(rq.remotePhantomFields, remoteCol)
+		if selectionContainsField(rq.sourceField.SelectionSet, rq.fragments, remoteCol) {
+			continue
 		}
+
+		alias := ""
+
+		phantomResponseKey := remoteCol
+		if _, collides := responseKeys[remoteCol]; collides {
+			alias = makeRemotePhantomAlias(remoteCol, responseKeys)
+			phantomResponseKey = alias
+
+			if rq.remoteJoinAliases == nil {
+				rq.remoteJoinAliases = make(map[string]string)
+			}
+
+			rq.remoteJoinAliases[remoteCol] = alias
+		}
+
+		selectionSet = append(selectionSet, &ast.Field{ //nolint:exhaustruct
+			Alias: alias,
+			Name:  remoteCol,
+		})
+		// Mark as phantom response key to remove later since user didn't request it.
+		rq.remotePhantomFields = append(rq.remotePhantomFields, phantomResponseKey)
 	}
 
 	// Create a new field for the remote query
@@ -78,7 +96,7 @@ func (r *databaseResolver) buildWhereArgument(rq *remoteQuery) *ast.Argument {
 	for localCol, remoteCol := range r.joinColumns {
 		// Collect unique values for this column
 		values := make([]any, 0, len(rq.joinArguments))
-		seen := make(map[any]struct{})
+		seen := make(map[string]struct{})
 
 		for _, arg := range rq.joinArguments {
 			val := arg.values[localCol]
@@ -86,11 +104,13 @@ func (r *databaseResolver) buildWhereArgument(rq *remoteQuery) *ast.Argument {
 				continue
 			}
 
-			if _, ok := seen[val]; ok {
+			key := joinValueDedupKey(val)
+			if _, ok := seen[key]; ok {
 				continue
 			}
 
-			seen[val] = struct{}{}
+			seen[key] = struct{}{}
+
 			values = append(values, val)
 		}
 
@@ -186,9 +206,11 @@ func (r *databaseResolver) BuildResultLookup(rq *remoteQuery, results []any) map
 
 		for _, localCol := range localCols {
 			remoteCol := r.joinColumns[localCol]
-			// Try the alias first, then fall back to the column name
+			// Try an injected phantom alias first, then a user alias, then the column name.
 			lookupKey := remoteCol
-			if alias, hasAlias := colToAlias[remoteCol]; hasAlias {
+			if alias, hasAlias := rq.remoteJoinAliases[remoteCol]; hasAlias {
+				lookupKey = alias
+			} else if alias, hasAlias := colToAlias[remoteCol]; hasAlias {
 				lookupKey = alias
 			}
 
@@ -204,7 +226,7 @@ func (r *databaseResolver) BuildResultLookup(rq *remoteQuery, results []any) map
 }
 
 // GetJoinKeyFromParent extracts join key from a parent row for stitching.
-func (r *databaseResolver) GetJoinKeyFromParent(_ *remoteQuery, parentRow map[string]any) string {
+func (r *databaseResolver) GetJoinKeyFromParent(rq *remoteQuery, parentRow map[string]any) string {
 	// Sort local columns for consistent key building (must match BuildResultLookup)
 	localCols := make([]string, 0, len(r.joinColumns))
 	for localCol := range r.joinColumns {
@@ -217,7 +239,12 @@ func (r *databaseResolver) GetJoinKeyFromParent(_ *remoteQuery, parentRow map[st
 	keyParts := make([]string, 0, len(localCols))
 
 	for _, localCol := range localCols {
-		val := parentRow[localCol]
+		lookupKey := localCol
+		if alias, ok := rq.localJoinAliases[localCol]; ok {
+			lookupKey = alias
+		}
+
+		val := parentRow[lookupKey]
 		keyParts = append(keyParts, fmt.Sprintf("%v", val))
 	}
 
@@ -266,6 +293,38 @@ func buildColumnAliasMapRecursive(
 	}
 }
 
+func findWhereArgument(args ast.ArgumentList) *ast.Argument {
+	for _, arg := range args {
+		if arg.Name == "where" {
+			return arg
+		}
+	}
+
+	return nil
+}
+
+func andMergeWhereValues(generated, user *ast.Value) *ast.Value {
+	if user == nil || user.Kind == ast.NullValue {
+		return generated
+	}
+
+	return &ast.Value{ //nolint:exhaustruct
+		Kind: ast.ObjectValue,
+		Children: ast.ChildValueList{
+			{
+				Name: "_and",
+				Value: &ast.Value{ //nolint:exhaustruct
+					Kind: ast.ListValue,
+					Children: ast.ChildValueList{
+						{Value: generated},
+						{Value: user},
+					},
+				},
+			},
+		},
+	}
+}
+
 // selectionContainsField checks if the selection set contains a field with the given name,
 // including fields within fragment spreads and inline fragments.
 func selectionContainsField(
@@ -276,12 +335,10 @@ func selectionContainsField(
 	for _, sel := range selectionSet {
 		switch s := sel.(type) {
 		case *ast.Field:
-			// Check if this field matches (by name or alias)
-			if s.Name == fieldName || s.Alias == fieldName {
+			if s.Name == fieldName {
 				return true
 			}
 		case *ast.FragmentSpread:
-			// Find and check the fragment definition
 			for _, frag := range fragments {
 				if frag.Name == s.Name {
 					if selectionContainsField(frag.SelectionSet, fragments, fieldName) {
@@ -292,7 +349,6 @@ func selectionContainsField(
 				}
 			}
 		case *ast.InlineFragment:
-			// Check the inline fragment's selection set
 			if selectionContainsField(s.SelectionSet, fragments, fieldName) {
 				return true
 			}
@@ -300,6 +356,70 @@ func selectionContainsField(
 	}
 
 	return false
+}
+
+func collectSelectionResponseKeys(
+	selectionSet ast.SelectionSet,
+	fragments ast.FragmentDefinitionList,
+) map[string]struct{} {
+	responseKeys := make(map[string]struct{})
+	collectSelectionResponseKeysRecursive(selectionSet, fragments, responseKeys)
+
+	return responseKeys
+}
+
+func collectSelectionResponseKeysRecursive(
+	selectionSet ast.SelectionSet,
+	fragments ast.FragmentDefinitionList,
+	responseKeys map[string]struct{},
+) {
+	for _, sel := range selectionSet {
+		switch s := sel.(type) {
+		case *ast.Field:
+			responseKeys[responseKey(s)] = struct{}{}
+		case *ast.FragmentSpread:
+			for _, frag := range fragments {
+				if frag.Name == s.Name {
+					collectSelectionResponseKeysRecursive(
+						frag.SelectionSet,
+						fragments,
+						responseKeys,
+					)
+
+					break
+				}
+			}
+		case *ast.InlineFragment:
+			collectSelectionResponseKeysRecursive(s.SelectionSet, fragments, responseKeys)
+		}
+	}
+}
+
+func makeRemotePhantomAlias(fieldName string, responseKeys map[string]struct{}) string {
+	base := "_constellation_remote_phantom_" + fieldName
+	alias := base
+
+	for i := 1; ; i++ {
+		if _, exists := responseKeys[alias]; !exists {
+			responseKeys[alias] = struct{}{}
+
+			return alias
+		}
+
+		alias = fmt.Sprintf("%s_%d", base, i)
+	}
+}
+
+func responseKey(field *ast.Field) string {
+	if field.Alias != "" {
+		return field.Alias
+	}
+
+	return field.Name
+}
+
+func joinValueDedupKey(v any) string {
+	return fmt.Sprintf("%#v", v)
 }
 
 // valueKindForType returns the appropriate AST value kind for a Go value.
