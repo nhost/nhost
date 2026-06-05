@@ -135,7 +135,137 @@ let
 
         mkdir $out
       '';
+
+  mkVercel =
+    {
+      name,
+      src,
+      node_modules,
+      environment,
+      prepare ? "",
+      buildInputs ? [ ],
+      nativeBuildInputs ? [ ],
+    }:
+    let
+      envFile = "/tmp/nhost-vercel-${name}-${environment}.env";
+      projectHashes = {
+        VERCEL_ORG_ID_HASH = builtins.hashString "sha256" (builtins.getEnv "VERCEL_ORG_ID");
+        VERCEL_PROJECT_ID_HASH = builtins.hashString "sha256" (builtins.getEnv "VERCEL_PROJECT_ID");
+      };
+      vercelBuildInputs =
+        jsCheckDeps
+        ++ (with pkgs; [
+          jq
+          vercel
+        ])
+        ++ buildInputs
+        ++ nativeBuildInputs;
+      setupVercel = ''
+        if [ -z "$VERCEL_ENV_FILE" ]; then
+          echo "ERROR: VERCEL_ENV_FILE environment variable is not set"
+          exit 1
+        fi
+
+        if [ ! -f "$VERCEL_ENV_FILE" ]; then
+          echo "ERROR: VERCEL_ENV_FILE does not point to a file"
+          exit 1
+        fi
+
+        set -a
+        . "$VERCEL_ENV_FILE"
+        set +a
+
+        for env_var in VERCEL_ORG_ID VERCEL_PROJECT_ID VERCEL_DEPLOY_TOKEN; do
+          if [ -z "''${!env_var:-}" ]; then
+            echo "ERROR: $env_var environment variable is not set"
+            exit 1
+          fi
+        done
+
+        export HOME=$(mktemp -d)
+        export SSL_CERT_FILE=${pkgs.cacert}/etc/ssl/certs/ca-bundle.crt
+        export NIX_SSL_CERT_FILE=$SSL_CERT_FILE
+        export NEXT_TELEMETRY_DISABLED="''${NEXT_TELEMETRY_DISABLED:-1}"
+        export VERCEL_TELEMETRY_DISABLED=1
+        export TURBO_TEAM="''${TURBO_TEAM:-nhost}"
+
+        mkdir -p .vercel
+        jq -n \
+          --arg orgId "$VERCEL_ORG_ID" \
+          --arg projectId "$VERCEL_PROJECT_ID" \
+          '{ orgId: $orgId, projectId: $projectId }' > .vercel/project.json
+      '';
+      build =
+        pkgs.runCommand "${name}-vercel-build-${environment}"
+          (
+            {
+              __noChroot = true;
+              nativeBuildInputs = vercelBuildInputs;
+              VERCEL_ENV_FILE = envFile;
+            }
+            // projectHashes
+          )
+          ''
+            cp -r ${src}/. .
+            chmod +w -R .
+
+            ${prepare}
+            ${setupVercel}
+
+            echo "➜ Pulling Vercel ${environment} environment for ${name}"
+            vercel pull --yes --environment=${environment} --token "$VERCEL_DEPLOY_TOKEN"
+
+            echo "➜ Building Vercel ${environment} output for ${name}"
+            vercel build --yes --target=${environment} --token "$VERCEL_DEPLOY_TOKEN"
+
+            mkdir -p $out/.vercel
+            cp -r .vercel/output $out/.vercel/output
+          '';
+      deploy =
+        pkgs.runCommand "${name}-vercel-deploy-${environment}"
+          (
+            {
+              __noChroot = true;
+              nativeBuildInputs = vercelBuildInputs;
+              VERCEL_ENV_FILE = envFile;
+            }
+            // projectHashes
+          )
+          ''
+            ${setupVercel}
+
+            cp -r ${build}/.vercel/output .vercel/output
+            chmod +w -R .vercel
+
+            echo "➜ Deploying prebuilt Vercel ${environment} output for ${name}"
+            vercel deploy \
+              --yes \
+              --target=${environment} \
+              --prebuilt \
+              --token "$VERCEL_DEPLOY_TOKEN" \
+              | tee $TMPDIR/vercel-output
+
+            preview_url=$(grep -Eo 'https://[^[:space:]]+' $TMPDIR/vercel-output | tail -n 1 || true)
+            if [ -z "$preview_url" ]; then
+              echo "ERROR: Vercel deploy did not print a deployment URL"
+              cat $TMPDIR/vercel-output
+              exit 1
+            fi
+
+            mkdir -p $out
+            printf '%s\n' "$preview_url" > $out/preview-url
+            cp $TMPDIR/vercel-output $out/vercel-output
+          '';
+    in
+    {
+      inherit build deploy;
+    };
 in
 {
-  inherit mkNodeModules devShell check;
+  inherit
+    mkNodeModules
+    devShell
+    check
+    mkVercel
+    ;
 }

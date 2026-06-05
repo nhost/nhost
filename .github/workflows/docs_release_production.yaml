@@ -5,6 +5,10 @@ on:
       - main
     paths:
       - '.github/workflows/docs_release_production.yaml'
+      - '.github/workflows/wf_deploy_vercel.yaml'
+      - '.github/actions/cache-nix/**'
+      - '.github/actions/vercel-build-nix/**'
+      - '.github/actions/vercel-deploy-nix/**'
       - 'flake.nix'
       - 'flake.lock'
       - 'nixops/**'

@@ -5,7 +5,12 @@ on:
     paths:
       - ".github/workflows/wf_build_artifacts.yaml"
       - ".github/workflows/wf_check.yaml"
+      - ".github/workflows/wf_deploy_vercel.yaml"
+      - ".github/workflows/dashboard_wf_e2e_staging.yaml"
       - ".github/workflows/dashboard_checks.yaml"
+      - ".github/actions/cache-nix/**"
+      - ".github/actions/vercel-build-nix/**"
+      - ".github/actions/vercel-deploy-nix/**"
 
       # common build
       - "flake.nix"
@@ -41,7 +46,12 @@ jobs:
       patterns: |
         .github/workflows/wf_build_artifacts.yaml
         .github/workflows/wf_check.yaml
+        .github/workflows/wf_deploy_vercel.yaml
+        .github/workflows/dashboard_wf_e2e_staging.yaml
         .github/workflows/dashboard_checks.yaml
+        .github/actions/cache-nix/**
+        .github/actions/vercel-build-nix/**
+        .github/actions/vercel-deploy-nix/**
         flake.nix
         flake.lock
         nixops/**

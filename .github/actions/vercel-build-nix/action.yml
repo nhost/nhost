@@ -1,0 +1,78 @@
+name: "Build Vercel output with Nix"
+description: "Build a Vercel Build Output API artifact through a cacheable Nix derivation"
+inputs:
+  NAME:
+    description: "Project name / flake package prefix"
+    required: true
+  ENVIRONMENT:
+    description: "Vercel target environment"
+    required: true
+  VERCEL_TEAM_ID:
+    description: "Vercel team/org ID"
+    required: true
+  VERCEL_PROJECT_ID:
+    description: "Vercel project ID"
+    required: true
+  VERCEL_DEPLOY_TOKEN:
+    description: "Vercel token used to pull env and build settings"
+    required: true
+  TURBO_TOKEN:
+    description: "Turbo remote cache token"
+    required: false
+    default: ""
+outputs:
+  out-path:
+    description: "Nix store path containing the Vercel build output"
+    value: ${{ steps.build.outputs.out-path }}
+runs:
+  using: "composite"
+  steps:
+    - id: build
+      shell: bash
+      env:
+        INPUT_NAME: ${{ inputs.NAME }}
+        INPUT_ENVIRONMENT: ${{ inputs.ENVIRONMENT }}
+        INPUT_VERCEL_TEAM_ID: ${{ inputs.VERCEL_TEAM_ID }}
+        INPUT_VERCEL_PROJECT_ID: ${{ inputs.VERCEL_PROJECT_ID }}
+        INPUT_VERCEL_DEPLOY_TOKEN: ${{ inputs.VERCEL_DEPLOY_TOKEN }}
+        INPUT_TURBO_TOKEN: ${{ inputs.TURBO_TOKEN }}
+      run: |
+        set -euo pipefail
+
+        env_file="/tmp/nhost-vercel-${INPUT_NAME}-${INPUT_ENVIRONMENT}.env"
+        result_link="${RUNNER_TEMP}/nhost-vercel-build-${INPUT_NAME}-${INPUT_ENVIRONMENT}"
+        trap 'rm -f "$env_file"' EXIT
+
+        write_env() {
+          local name="$1"
+          local value="$2"
+          printf 'export %s=%q\n' "$name" "$value"
+        }
+
+        {
+          write_env VERCEL_ORG_ID "$INPUT_VERCEL_TEAM_ID"
+          write_env VERCEL_PROJECT_ID "$INPUT_VERCEL_PROJECT_ID"
+          write_env VERCEL_DEPLOY_TOKEN "$INPUT_VERCEL_DEPLOY_TOKEN"
+          write_env TURBO_TOKEN "$INPUT_TURBO_TOKEN"
+          write_env TURBO_TEAM nhost
+          write_env CI "${CI:-true}"
+          write_env NEXT_TELEMETRY_DISABLED "${NEXT_TELEMETRY_DISABLED:-1}"
+        } > "$env_file"
+
+        if getent group nixbld > /dev/null && sudo chgrp nixbld "$env_file"; then
+          chmod 640 "$env_file"
+        else
+          chmod 644 "$env_file"
+        fi
+
+        rm -f "$result_link"
+        VERCEL_ORG_ID="$INPUT_VERCEL_TEAM_ID" \
+          VERCEL_PROJECT_ID="$INPUT_VERCEL_PROJECT_ID" \
+          nix build \
+            --impure \
+            --print-build-logs \
+            --out-link "$result_link" \
+            ".#${INPUT_NAME}-vercel-build-${INPUT_ENVIRONMENT}"
+
+        out_path="$(readlink -f "$result_link")"
+        echo "out-path=$out_path" >> "$GITHUB_OUTPUT"
