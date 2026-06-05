@@ -237,6 +237,7 @@ let
             cp -r ${src}/. .
             chmod +w -R .
 
+            ${prepare}
             ${setupVercel}
 
             cp -r ${build}/.vercel/output .vercel/output
