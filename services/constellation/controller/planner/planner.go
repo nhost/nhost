@@ -23,8 +23,8 @@ type QueryPlanner struct {
 	// fieldToConnector maps schemamerge.FieldKey(op, fieldName) -> connector name
 	fieldToConnector map[string]string
 
-	// typeToConnector maps type name -> connector name
-	typeToConnector map[string]string
+	// typeToConnectors maps type name -> connector names
+	typeToConnectors map[string][]string
 
 	// relationshipsByConnector maps connector -> relationships
 	relationshipsByConnector map[string][]*RelationshipMetadata
@@ -34,13 +34,13 @@ type QueryPlanner struct {
 func New(
 	schemas map[string]*ast.Schema,
 	fieldToConnector map[string]string,
-	typeToConnector map[string]string,
+	typeToConnectors map[string][]string,
 	connectorRelationships map[string][]*RelationshipMetadata,
 ) *QueryPlanner {
 	return &QueryPlanner{
 		schemas:                  schemas,
 		fieldToConnector:         fieldToConnector,
-		typeToConnector:          typeToConnector,
+		typeToConnectors:         typeToConnectors,
 		relationshipsByConnector: connectorRelationships,
 	}
 }
@@ -87,7 +87,7 @@ func (p *QueryPlanner) Plan(
 			schema,
 			toRemoteRelationships(relationships),
 			connectorName,
-			p.typeToConnector,
+			p.typeToConnectors,
 		)
 		transformResult := transformer.Transform(subOp, fragments)
 

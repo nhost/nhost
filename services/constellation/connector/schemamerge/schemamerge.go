@@ -14,6 +14,7 @@ package schemamerge
 import (
 	"fmt"
 	"reflect"
+	"slices"
 	"sync"
 
 	"github.com/nhost/nhost/services/constellation/graph"
@@ -88,7 +89,7 @@ func defaultRoots(schema, combinedSchema *graph.Schema) []rootEntry {
 // source-root naming will silently fail because the first call already mutated
 // the root type name.
 //
-// fieldToConnector and typeToConnector are populated with ownership information
+// fieldToConnector and typeToConnectors are populated with ownership information
 // for the merged fields and types. fieldToConnector is keyed by [FieldKey], so
 // same-name fields under different operation kinds route independently. Returns
 // an error if named schema element merging fails.
@@ -97,7 +98,7 @@ func MergeConnectorSchema(
 	combinedSchema *graph.Schema,
 	connectorName string,
 	fieldToConnector map[string]string,
-	typeToConnector map[string]string,
+	typeToConnectors map[string][]string,
 ) error {
 	roots := defaultRoots(schema, combinedSchema)
 
@@ -106,7 +107,7 @@ func MergeConnectorSchema(
 		roots,
 		combinedSchema,
 		connectorName,
-		typeToConnector,
+		typeToConnectors,
 	)
 	if err != nil {
 		return err
@@ -142,7 +143,7 @@ func separateRootTypes(
 	roots []rootEntry,
 	combinedSchema *graph.Schema,
 	connectorName string,
-	typeToConnector map[string]string,
+	typeToConnectors map[string][]string,
 ) ([]*graph.ObjectType, error) {
 	rootTypeNames := make(map[string]int, len(roots))
 	for i, r := range roots {
@@ -187,18 +188,30 @@ func separateRootTypes(
 				return nil, fmt.Errorf("%w: %q", ErrConflictingObject, typ.Name)
 			}
 
+			addTypeOwner(typeToConnectors, typ.Name, connectorName)
+
 			continue
 		}
 
 		combinedSchema.Types = append(combinedSchema.Types, typ)
 		seen[typ.Name] = typ
-
-		if typeToConnector != nil {
-			typeToConnector[typ.Name] = connectorName
-		}
+		addTypeOwner(typeToConnectors, typ.Name, connectorName)
 	}
 
 	return rootTypes, nil
+}
+
+func addTypeOwner(typeToConnectors map[string][]string, typeName, connectorName string) {
+	if typeToConnectors == nil {
+		return
+	}
+
+	owners := typeToConnectors[typeName]
+	if slices.Contains(owners, connectorName) {
+		return
+	}
+
+	typeToConnectors[typeName] = append(owners, connectorName)
 }
 
 // mergeSchemaElements merges scalars, enums, inputs, interfaces, unions, and

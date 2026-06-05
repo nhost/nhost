@@ -70,9 +70,9 @@ type Result struct {
 	// the connector that owns that root field; used by the controller to route
 	// operations.
 	FieldToConnector map[string]string
-	// TypeToConnector maps each GraphQL type name to the name of the connector
-	// that owns it; used by the controller to route operations.
-	TypeToConnector map[string]string
+	// TypeToConnectors maps each GraphQL type name to the names of the
+	// connectors that own it; used by the controller to route operations.
+	TypeToConnectors map[string][]string
 }
 
 // Compose collects schemas from all providers, adds remote relationship
@@ -92,7 +92,7 @@ func (c *Composer) Compose(
 		SchemaDocs:       make(map[string]*ast.SchemaDocument),
 		ValidatedSchemas: make(map[string]*ast.Schema),
 		FieldToConnector: make(map[string]string),
-		TypeToConnector:  make(map[string]string),
+		TypeToConnectors: make(map[string][]string),
 	}
 
 	connectorNames := make([]string, 0, len(roleSchemas))
@@ -131,7 +131,7 @@ func (c *Composer) composeRole(
 	var (
 		combinedSchema   graph.Schema
 		fieldToConnector = make(map[string]string)
-		typeToConnector  = make(map[string]string)
+		typeToConnectors = make(map[string][]string)
 	)
 
 	for _, connName := range connectorNames {
@@ -143,7 +143,7 @@ func (c *Composer) composeRole(
 		}
 
 		if err := schemamerge.MergeConnectorSchema(
-			schema, &combinedSchema, connName, fieldToConnector, typeToConnector,
+			schema, &combinedSchema, connName, fieldToConnector, typeToConnectors,
 		); err != nil {
 			c.inconsistencies.RecordRole(
 				ctx, logger,
@@ -179,7 +179,7 @@ func (c *Composer) composeRole(
 	result.ValidatedSchemas[role] = validatedSchema
 
 	maps.Copy(result.FieldToConnector, fieldToConnector)
-	maps.Copy(result.TypeToConnector, typeToConnector)
+	maps.Copy(result.TypeToConnectors, typeToConnectors)
 
 	logger.InfoContext(ctx, "validated schema for role", slog.String("role", role))
 }

@@ -35,6 +35,15 @@ func makeSchema(
 	}
 }
 
+func typeOwners(owners map[string]string) map[string][]string {
+	out := make(map[string][]string, len(owners))
+	for typeName, connectorName := range owners {
+		out[typeName] = []string{connectorName}
+	}
+
+	return out
+}
+
 // usersWithDepartmentSchema returns a schema with users -> department (object
 // relationship) and a separate departments type. Shared by tests that
 // exercise the basic remote relationship code paths.
@@ -173,7 +182,8 @@ func departmentRelationship() *planner.RelationshipMetadata {
 // "db1" connector.
 func makeAdminPlanner(
 	schema *ast.Schema,
-	fieldToConnector, typeToConnector map[string]string,
+	fieldToConnector map[string]string,
+	typeToConnector map[string][]string,
 	relationships []*planner.RelationshipMetadata,
 ) *planner.QueryPlanner {
 	return planner.New(
@@ -192,7 +202,7 @@ type planTestCase struct {
 	name             string
 	schema           *ast.Schema
 	fieldToConnector map[string]string
-	typeToConnector  map[string]string
+	typeToConnector  map[string][]string
 	relationships    []*planner.RelationshipMetadata
 	role             string
 	op               *ast.OperationDefinition
@@ -228,7 +238,7 @@ func TestPlan(t *testing.T) {
 				},
 			),
 			fieldToConnector: map[string]string{schemamerge.FieldKey(ast.Query, "users"): "db1"},
-			typeToConnector:  map[string]string{"users": "db1"},
+			typeToConnector:  typeOwners(map[string]string{"users": "db1"}),
 			relationships:    nil,
 			role:             "user",
 			op: &ast.OperationDefinition{
@@ -294,7 +304,7 @@ func TestPlan(t *testing.T) {
 				schemamerge.FieldKey(ast.Query, "users"):    "db1",
 				schemamerge.FieldKey(ast.Query, "products"): "db2",
 			},
-			typeToConnector: map[string]string{"users": "db1", "products": "db2"},
+			typeToConnector: typeOwners(map[string]string{"users": "db1", "products": "db2"}),
 			relationships:   nil,
 			role:            "admin",
 			op: &ast.OperationDefinition{
@@ -335,7 +345,7 @@ func TestPlan(t *testing.T) {
 			name:             "remote relationship detection",
 			schema:           usersWithDepartmentSchema(),
 			fieldToConnector: map[string]string{schemamerge.FieldKey(ast.Query, "users"): "db1"},
-			typeToConnector:  map[string]string{"users": "db1", "departments": "db2"},
+			typeToConnector:  typeOwners(map[string]string{"users": "db1", "departments": "db2"}),
 			relationships:    []*planner.RelationshipMetadata{departmentRelationship()},
 			role:             "admin",
 			op: &ast.OperationDefinition{
@@ -391,7 +401,7 @@ func TestPlan(t *testing.T) {
 			name:             "phantom field injection",
 			schema:           usersWithDepartmentSchema(),
 			fieldToConnector: map[string]string{schemamerge.FieldKey(ast.Query, "users"): "db1"},
-			typeToConnector:  map[string]string{"users": "db1", "departments": "db2"},
+			typeToConnector:  typeOwners(map[string]string{"users": "db1", "departments": "db2"}),
 			relationships:    []*planner.RelationshipMetadata{departmentRelationship()},
 			role:             "admin",
 			op: &ast.OperationDefinition{
@@ -474,7 +484,7 @@ func TestPlan(t *testing.T) {
 				},
 			),
 			fieldToConnector: map[string]string{schemamerge.FieldKey(ast.Query, "users"): "db1"},
-			typeToConnector:  map[string]string{"users": "db1", "Team": "rs1"},
+			typeToConnector:  typeOwners(map[string]string{"users": "db1", "Team": "rs1"}),
 			relationships: []*planner.RelationshipMetadata{
 				{
 					Name:              "team",
@@ -571,7 +581,9 @@ func TestPlan(t *testing.T) {
 				},
 			),
 			fieldToConnector: map[string]string{schemamerge.FieldKey(ast.Query, "users"): "db1"},
-			typeToConnector:  map[string]string{"users": "db1", "orders_aggregate": "db2"},
+			typeToConnector: typeOwners(
+				map[string]string{"users": "db1", "orders_aggregate": "db2"},
+			),
 			relationships: []*planner.RelationshipMetadata{
 				{
 					Name:              "orders_aggregate",
@@ -630,7 +642,7 @@ func TestPlan(t *testing.T) {
 			name:             "remote relationship inside fragment spread",
 			schema:           usersWithDepartmentSchema(),
 			fieldToConnector: map[string]string{schemamerge.FieldKey(ast.Query, "users"): "db1"},
-			typeToConnector:  map[string]string{"users": "db1", "departments": "db2"},
+			typeToConnector:  typeOwners(map[string]string{"users": "db1", "departments": "db2"}),
 			relationships:    []*planner.RelationshipMetadata{departmentRelationship()},
 			role:             "admin",
 			op: &ast.OperationDefinition{
@@ -702,7 +714,7 @@ func TestPlan(t *testing.T) {
 			fieldToConnector: map[string]string{
 				schemamerge.FieldKey(ast.Subscription, "users"): "db1",
 			},
-			typeToConnector: map[string]string{"users": "db1", "departments": "db2"},
+			typeToConnector: typeOwners(map[string]string{"users": "db1", "departments": "db2"}),
 			relationships:   []*planner.RelationshipMetadata{departmentRelationship()},
 			role:            "admin",
 			op: &ast.OperationDefinition{
@@ -781,11 +793,11 @@ func TestPlan(t *testing.T) {
 			fieldToConnector: map[string]string{
 				schemamerge.FieldKey(ast.Mutation, "insert_users"): "db1",
 			},
-			typeToConnector: map[string]string{
+			typeToConnector: typeOwners(map[string]string{
 				"users":                   "db1",
 				"users_mutation_response": "db1",
 				"departments":             "db2",
-			},
+			}),
 			relationships: []*planner.RelationshipMetadata{departmentRelationship()},
 			role:          "admin",
 			op: &ast.OperationDefinition{
@@ -901,7 +913,7 @@ func TestPlan(t *testing.T) {
 			name:             "remote relationship inside inline fragment",
 			schema:           usersWithDepartmentSchema(),
 			fieldToConnector: map[string]string{schemamerge.FieldKey(ast.Query, "users"): "db1"},
-			typeToConnector:  map[string]string{"users": "db1", "departments": "db2"},
+			typeToConnector:  typeOwners(map[string]string{"users": "db1", "departments": "db2"}),
 			relationships:    []*planner.RelationshipMetadata{departmentRelationship()},
 			role:             "admin",
 			op: &ast.OperationDefinition{
@@ -978,6 +990,111 @@ func TestPlan(t *testing.T) {
 	}
 }
 
+func TestPlan_PreservesFragmentOnSharedTypeOwnedByCurrentConnector(t *testing.T) {
+	t.Parallel()
+
+	userType := &ast.Definition{
+		Kind: ast.Object,
+		Name: "User",
+		Fields: ast.FieldList{
+			{Name: "id", Type: ast.NamedType("ID", nil)},
+			{Name: "name", Type: ast.NamedType("String", nil)},
+			{Name: "friend", Type: ast.NamedType("User", nil)},
+		},
+	}
+	queryRoot := &ast.Definition{
+		Kind: ast.Object,
+		Name: "query_root",
+		Fields: ast.FieldList{
+			{Name: "a", Type: ast.NamedType("User", nil)},
+			{Name: "b", Type: ast.NamedType("User", nil)},
+		},
+	}
+	schema := &ast.Schema{
+		Types: map[string]*ast.Definition{
+			"query_root": queryRoot,
+			"User":       userType,
+		},
+		Query: queryRoot,
+	}
+	p := planner.New(
+		map[string]*ast.Schema{"admin": schema},
+		map[string]string{
+			schemamerge.FieldKey(ast.Query, "a"): "db1",
+			schemamerge.FieldKey(ast.Query, "b"): "db2",
+		},
+		map[string][]string{"User": {"db1", "db2"}},
+		map[string][]*planner.RelationshipMetadata{
+			"db2": {
+				{
+					Name:              "friend",
+					SourceType:        "User",
+					TargetConnector:   "db1",
+					TargetTable:       "users",
+					TargetTableSchema: "public",
+					JoinMapping:       map[string]string{"id": "id"},
+					IsArray:           false,
+					IsArrayAggregate:  false,
+					IsRemote:          true,
+					LHSFields:         nil,
+					RemoteFieldPath:   nil,
+				},
+			},
+		},
+	)
+
+	plan, err := p.Plan(
+		&ast.OperationDefinition{
+			Operation: ast.Query,
+			Name:      "SharedTypeFragment",
+			SelectionSet: ast.SelectionSet{
+				&ast.Field{
+					Name: "b",
+					SelectionSet: ast.SelectionSet{
+						&ast.FragmentSpread{Name: "UserFields"},
+						&ast.Field{
+							Name: "friend",
+							SelectionSet: ast.SelectionSet{
+								&ast.Field{Name: "id"},
+							},
+						},
+					},
+				},
+			},
+		},
+		ast.FragmentDefinitionList{
+			{
+				Name:          "UserFields",
+				TypeCondition: "User",
+				SelectionSet: ast.SelectionSet{
+					&ast.Field{Name: "id"},
+					&ast.Field{Name: "name"},
+				},
+			},
+		},
+		"admin",
+	)
+	if err != nil {
+		t.Fatalf("unexpected error: %v", err)
+	}
+
+	primary := plan.GetPrimaryQueryForConnector("db2")
+	if primary == nil {
+		t.Fatal("expected db2 primary query")
+	}
+
+	found := false
+	for _, fragment := range primary.CleanFragments {
+		if fragment.Name == "UserFields" {
+			found = true
+		}
+	}
+
+	if !found {
+		t.Fatal("expected shared User fragment preserved for db2")
+	}
+}
+
 func TestPlan_OperationQualifiedRouting(t *testing.T) {
 	t.Parallel()
 
@@ -1009,7 +1126,7 @@ func TestPlan_OperationQualifiedRouting(t *testing.T) {
 			schemamerge.FieldKey(ast.Query, "foo"):    "db",
 			schemamerge.FieldKey(ast.Mutation, "foo"): "rs",
 		},
-		map[string]string{},
+		map[string][]string{},
 		map[string][]*planner.RelationshipMetadata{},
 	)
 
@@ -1049,7 +1166,7 @@ func TestPlan_UnknownRoleReturnsSentinelError(t *testing.T) {
 	p := planner.New(
 		map[string]*ast.Schema{},
 		map[string]string{schemamerge.FieldKey(ast.Query, "users"): "db1"},
-		map[string]string{"users": "db1"},
+		typeOwners(map[string]string{"users": "db1"}),
 		map[string][]*planner.RelationshipMetadata{},
 	)
 

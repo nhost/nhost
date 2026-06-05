@@ -2,6 +2,7 @@ package schemamerge
 
 import (
 	"errors"
+	"slices"
 	"strings"
 	"testing"
 
@@ -603,25 +604,38 @@ func TestMergeRootType_OperationQualifiedOwnership(t *testing.T) {
 	}
 }
 
+func assertInternalTypeOwners(
+	t *testing.T,
+	owners map[string][]string,
+	typeName string,
+	want []string,
+) {
+	t.Helper()
+
+	if got := owners[typeName]; !slices.Equal(got, want) {
+		t.Errorf("expected type %q owned by %v, got %v", typeName, want, got)
+	}
+}
+
 func TestSeparateRootTypes(t *testing.T) {
 	t.Parallel()
 
 	tests := []struct {
 		name   string
-		setup  func() (schema, combinedSchema *graph.Schema, typeToConnector map[string]string)
-		assert func(t *testing.T, rootTypes []*graph.ObjectType, combinedSchema *graph.Schema, typeToConnector map[string]string)
+		setup  func() (schema, combinedSchema *graph.Schema, typeToConnectors map[string][]string)
+		assert func(t *testing.T, rootTypes []*graph.ObjectType, combinedSchema *graph.Schema, typeToConnectors map[string][]string)
 	}{
 		{
 			name: "root name collides with regular type → treated as root",
-			setup: func() (*graph.Schema, *graph.Schema, map[string]string) {
+			setup: func() (*graph.Schema, *graph.Schema, map[string][]string) {
 				queryRoot := &graph.ObjectType{Name: "Query", Fields: []*graph.Field{{Name: "x"}}}
 				regular := &graph.ObjectType{Name: "User"}
 
 				return &graph.Schema{Types: []*graph.ObjectType{queryRoot, regular}},
 					&graph.Schema{},
-					map[string]string{}
+					map[string][]string{}
 			},
-			assert: func(t *testing.T, rootTypes []*graph.ObjectType, combinedSchema *graph.Schema, typeToConnector map[string]string) {
+			assert: func(t *testing.T, rootTypes []*graph.ObjectType, combinedSchema *graph.Schema, typeToConnectors map[string][]string) {
 				t.Helper()
 
 				if rootTypes[0] == nil || rootTypes[0].Name != "Query" {
@@ -635,23 +649,21 @@ func TestSeparateRootTypes(t *testing.T) {
 					)
 				}
 
-				if _, ok := typeToConnector["Query"]; ok {
-					t.Errorf("expected root type %q not tracked in typeToConnector", "Query")
+				if _, ok := typeToConnectors["Query"]; ok {
+					t.Errorf("expected root type %q not tracked in typeToConnectors", "Query")
 				}
 
-				if got := typeToConnector["User"]; got != "db" {
-					t.Errorf("expected regular type ownership tracked, got %q", got)
-				}
+				assertInternalTypeOwners(t, typeToConnectors, "User", []string{"db"})
 			},
 		},
 		{
-			name: "nil typeToConnector must not panic",
-			setup: func() (*graph.Schema, *graph.Schema, map[string]string) {
+			name: "nil typeToConnectors must not panic",
+			setup: func() (*graph.Schema, *graph.Schema, map[string][]string) {
 				return &graph.Schema{Types: []*graph.ObjectType{{Name: "User"}}},
 					&graph.Schema{},
 					nil
 			},
-			assert: func(t *testing.T, rootTypes []*graph.ObjectType, combinedSchema *graph.Schema, _ map[string]string) {
+			assert: func(t *testing.T, rootTypes []*graph.ObjectType, combinedSchema *graph.Schema, _ map[string][]string) {
 				t.Helper()
 
 				if len(rootTypes) != 3 {
@@ -668,7 +680,7 @@ func TestSeparateRootTypes(t *testing.T) {
 		},
 		{
 			name: "custom QueryType name identifies the root",
-			setup: func() (*graph.Schema, *graph.Schema, map[string]string) {
+			setup: func() (*graph.Schema, *graph.Schema, map[string][]string) {
 				customName := "query_root"
 				queryRoot := &graph.ObjectType{Name: customName}
 				regularQuery := &graph.ObjectType{Name: "Query"}
@@ -678,9 +690,9 @@ func TestSeparateRootTypes(t *testing.T) {
 						Types:     []*graph.ObjectType{queryRoot, regularQuery},
 					},
 					&graph.Schema{},
-					map[string]string{}
+					map[string][]string{}
 			},
-			assert: func(t *testing.T, rootTypes []*graph.ObjectType, combinedSchema *graph.Schema, _ map[string]string) {
+			assert: func(t *testing.T, rootTypes []*graph.ObjectType, combinedSchema *graph.Schema, _ map[string][]string) {
 				t.Helper()
 
 				if rootTypes[0] == nil || rootTypes[0].Name != "query_root" {
@@ -701,7 +713,7 @@ func TestSeparateRootTypes(t *testing.T) {
 		t.Run(tc.name, func(t *testing.T) {
 			t.Parallel()
 
-			schema, combinedSchema, typeToConnector := tc.setup()
+			schema, combinedSchema, typeToConnectors := tc.setup()
 			roots := defaultRoots(schema, combinedSchema)
 
 			rootTypes, err := separateRootTypes(
@@ -709,13 +721,13 @@ func TestSeparateRootTypes(t *testing.T) {
 				roots,
 				combinedSchema,
 				"db",
-				typeToConnector,
+				typeToConnectors,
 			)
 			if err != nil {
 				t.Fatalf("separateRootTypes returned error: %v", err)
 			}
 
-			tc.assert(t, rootTypes, combinedSchema, typeToConnector)
+			tc.assert(t, rootTypes, combinedSchema, typeToConnectors)
 		})
 	}
 }
@@ -733,7 +745,7 @@ func TestSeparateRootTypes_ObjectDedupOrConflict(t *testing.T) {
 			},
 		},
 	}
-	typeToConnector := map[string]string{"User": "db1"}
+	typeToConnectors := map[string][]string{"User": {"db1"}}
 
 	identical := &graph.Schema{
 		Types: []*graph.ObjectType{
@@ -746,7 +758,7 @@ func TestSeparateRootTypes_ObjectDedupOrConflict(t *testing.T) {
 		defaultRoots(identical, combined),
 		combined,
 		"db2",
-		typeToConnector,
+		typeToConnectors,
 	)
 	if err != nil {
 		t.Fatalf("identical object should deduplicate: %v", err)
@@ -760,9 +772,7 @@ func TestSeparateRootTypes_ObjectDedupOrConflict(t *testing.T) {
 		t.Fatalf("expected identical object deduped, got %d types", len(combined.Types))
 	}
 
-	if got := typeToConnector["User"]; got != "db1" {
-		t.Fatalf("expected first-writer type owner preserved, got %q", got)
-	}
+	assertInternalTypeOwners(t, typeToConnectors, "User", []string{"db1", "db2"})
 
 	conflicting := &graph.Schema{
 		Types: []*graph.ObjectType{
@@ -778,7 +788,7 @@ func TestSeparateRootTypes_ObjectDedupOrConflict(t *testing.T) {
 		defaultRoots(conflicting, combined),
 		combined,
 		"db2",
-		typeToConnector,
+		typeToConnectors,
 	)
 	if !errors.Is(err, ErrConflictingObject) {
 		t.Fatalf("expected ErrConflictingObject, got %v", err)

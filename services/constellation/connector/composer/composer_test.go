@@ -3,6 +3,7 @@ package composer_test
 import (
 	"errors"
 	"log/slog"
+	"slices"
 	"strings"
 	"testing"
 
@@ -372,12 +373,12 @@ func TestComposer_Compose(t *testing.T) {
 					t.Error("expected 'posts' field in merged schema")
 				}
 
-				if got := result.TypeToConnector["User"]; got != "db1" {
-					t.Errorf("expected User owned by db1, got %q", got)
+				if got := result.TypeToConnectors["User"]; !slices.Equal(got, []string{"db1"}) {
+					t.Errorf("expected User owned by db1, got %v", got)
 				}
 
-				if got := result.TypeToConnector["Post"]; got != "db2" {
-					t.Errorf("expected Post owned by db2, got %q", got)
+				if got := result.TypeToConnectors["Post"]; !slices.Equal(got, []string{"db2"}) {
+					t.Errorf("expected Post owned by db2, got %v", got)
 				}
 			},
 		},
