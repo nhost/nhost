@@ -10,7 +10,9 @@ import (
 	"github.com/nhost/nhost/tools/ghactivity/internal/activity"
 )
 
-// Markdown writes the report to w in the team's stand-up format.
+// Markdown writes the report to w in the team's stand-up format. Link URLs
+// are wrapped in angle brackets so that renderers like Slack and GitHub do
+// not expand them into rich previews.
 func Markdown(w io.Writer, r *activity.Report) error {
 	if err := writeHeader(w, r); err != nil {
 		return err
@@ -118,7 +120,7 @@ func writeItems(w io.Writer, items []activity.Item) error {
 
 	for _, it := range sorted {
 		if _, err := fmt.Fprintf(
-			w, "- [%s #%d](%s) %s\n", it.Kind, it.Number, it.URL, it.Title,
+			w, "- [%s #%d](<%s>) %s\n", it.Kind, it.Number, it.URL, it.Title,
 		); err != nil {
 			return wrap(err)
 		}
