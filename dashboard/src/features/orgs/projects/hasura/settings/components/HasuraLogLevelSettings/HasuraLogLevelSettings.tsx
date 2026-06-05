@@ -4,11 +4,12 @@ import { FormProvider, useForm } from 'react-hook-form';
 import * as Yup from 'yup';
 import { ApplyLocalSettingsDialog } from '@/components/common/ApplyLocalSettingsDialog';
 import { useDialog } from '@/components/common/DialogProvider';
-import { FormCombobox } from '@/components/form/FormCombobox';
 import { Form } from '@/components/form/Form';
+import { FormSelect } from '@/components/form/FormSelect';
 import { SettingsContainer } from '@/components/layout/SettingsContainer';
 import { HighlightedText } from '@/components/presentational/HighlightedText';
 import { ActivityIndicator } from '@/components/ui/v2/ActivityIndicator';
+import { SelectItem } from '@/components/ui/v3/select';
 import { useIsPlatform } from '@/features/orgs/projects/common/hooks/useIsPlatform';
 import { useLocalMimirClient } from '@/features/orgs/projects/hooks/useLocalMimirClient';
 import { useProject } from '@/features/orgs/projects/hooks/useProject';
@@ -76,11 +77,6 @@ export default function HasuraLogLevelSettings() {
   const { formState } = form;
   const isDirty = Object.keys(formState.dirtyFields).length > 0;
 
-  const availableLogLevels = AVAILABLE_HASURA_LOG_LEVELS.map((api) => ({
-    label: api,
-    value: api,
-  }));
-
   async function handleSubmit(formValues: HasuraLogLevelFormValues) {
     const updateConfigPromise = updateConfig({
       variables: {
@@ -145,13 +141,18 @@ export default function HasuraLogLevelSettings() {
           }}
           className="grid grid-flow-row gap-x-4 gap-y-2 px-4 lg:grid-cols-5"
         >
-          <FormCombobox
+          <FormSelect
             name="logLevel"
             className="lg:col-span-2"
-            options={availableLogLevels}
             control={form.control}
             placeholder="Select Log Level"
-          />
+          >
+            {AVAILABLE_HASURA_LOG_LEVELS.map((l) => (
+              <SelectItem key={l} value={l}>
+                {l}
+              </SelectItem>
+            ))}
+          </FormSelect>
         </SettingsContainer>
       </Form>
     </FormProvider>

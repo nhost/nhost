@@ -162,7 +162,7 @@ const Combobox = forwardRef<HTMLButtonElement, ComboboxProps>(
         <PopoverContent
           align="start"
           className={cn(
-            'max-h-[var(--radix-popover-content-available-height)] w-[var(--radix-popover-trigger-width)] p-0',
+            'max-h-[var(--radix-popover-content-available-height)] w-auto min-w-[var(--radix-popover-trigger-width)] p-0',
             popoverContentClassName,
           )}
         >

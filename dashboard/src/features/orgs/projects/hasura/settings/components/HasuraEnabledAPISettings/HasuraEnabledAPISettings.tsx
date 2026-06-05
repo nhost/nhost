@@ -160,7 +160,10 @@ export default function HasuraEnabledAPISettings() {
             render={({ field }) => (
               <FormItem className="lg:col-span-3">
                 <MultiSelect
-                  values={(field.value || []).map((v: any) => v.value)}
+                  values={(field.value || []).map(
+                    // biome-ignore lint/suspicious/noExplicitAny: Will be fixed later.
+                    (v: any) => v.value,
+                  )}
                   onValuesChange={(nextValues) =>
                     field.onChange(
                       nextValues.map((v) => ({ label: v, value: v })),
@@ -175,7 +178,7 @@ export default function HasuraEnabledAPISettings() {
                       />
                     </MultiSelectTrigger>
                   </FormControl>
-                  <MultiSelectContent className="w-80">
+                  <MultiSelectContent>
                     <MultiSelectGroup>
                       {availableAPIs.map((opt) => (
                         <MultiSelectItem

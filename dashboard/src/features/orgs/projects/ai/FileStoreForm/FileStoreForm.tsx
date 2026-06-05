@@ -204,7 +204,10 @@ export default function FileStoreForm({
                   </Box>
                 </FormLabel>
                 <MultiSelect
-                  values={(field.value || []).map((v: any) => v.value)}
+                  values={(field.value || []).map(
+                    // biome-ignore lint/suspicious/noExplicitAny: Will be fixed later.
+                    (v: any) => v.value,
+                  )}
                   onValuesChange={(nextValues) =>
                     field.onChange(
                       nextValues.map((v) => ({ label: v, value: v })),
@@ -219,7 +222,7 @@ export default function FileStoreForm({
                       />
                     </MultiSelectTrigger>
                   </FormControl>
-                  <MultiSelectContent className="w-80">
+                  <MultiSelectContent>
                     <MultiSelectGroup>
                       {bucketOptions.map((opt) => (
                         <MultiSelectItem

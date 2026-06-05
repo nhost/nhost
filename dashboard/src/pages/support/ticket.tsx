@@ -6,6 +6,13 @@ import { FormProvider, useForm } from 'react-hook-form';
 import * as Yup from 'yup';
 import { ControlledSelect } from '@/components/form/ControlledSelect';
 import { Form } from '@/components/form/Form';
+import { AuthenticatedLayout } from '@/components/layout/AuthenticatedLayout';
+import { Box } from '@/components/ui/v2/Box';
+import { Button } from '@/components/ui/v2/Button';
+import { Divider } from '@/components/ui/v2/Divider';
+import { Input, inputClasses } from '@/components/ui/v2/Input';
+import { Option } from '@/components/ui/v2/Option';
+import { Text } from '@/components/ui/v2/Text';
 import {
   FormControl,
   FormField,
@@ -21,13 +28,6 @@ import {
   MultiSelectTrigger,
   MultiSelectValue,
 } from '@/components/ui/v3/multi-select';
-import { AuthenticatedLayout } from '@/components/layout/AuthenticatedLayout';
-import { Box } from '@/components/ui/v2/Box';
-import { Button } from '@/components/ui/v2/Button';
-import { Divider } from '@/components/ui/v2/Divider';
-import { Input, inputClasses } from '@/components/ui/v2/Input';
-import { Option } from '@/components/ui/v2/Option';
-import { Text } from '@/components/ui/v2/Text';
 import { execPromiseWithErrorToast } from '@/features/orgs/utils/execPromiseWithErrorToast';
 import { useAccessToken } from '@/hooks/useAccessToken';
 import { useUserData } from '@/hooks/useUserData';
@@ -249,7 +249,10 @@ function TicketPage() {
                       <FormItem className="flex flex-col gap-2">
                         <FormLabel className="font-bold">Services</FormLabel>
                         <MultiSelect
-                          values={(field.value || []).map((v: any) => v.value)}
+                          values={(field.value || []).map(
+                            // biome-ignore lint/suspicious/noExplicitAny: Will be fixed later.
+                            (v: any) => v.value,
+                          )}
                           onValuesChange={(nextValues) =>
                             field.onChange(
                               nextValues.map((v) => ({ label: v, value: v })),
@@ -264,7 +267,7 @@ function TicketPage() {
                               />
                             </MultiSelectTrigger>
                           </FormControl>
-                          <MultiSelectContent className="w-80">
+                          <MultiSelectContent>
                             <MultiSelectGroup>
                               {[
                                 'Dashboard',
@@ -289,9 +292,7 @@ function TicketPage() {
                           </MultiSelectContent>
                         </MultiSelect>
                         {!!errors?.services?.message && (
-                          <FormMessage>
-                            {errors?.services?.message}
-                          </FormMessage>
+                          <FormMessage>{errors?.services?.message}</FormMessage>
                         )}
                       </FormItem>
                     )}

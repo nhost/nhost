@@ -4,8 +4,8 @@ import { FormProvider, useForm } from 'react-hook-form';
 import * as Yup from 'yup';
 import { ApplyLocalSettingsDialog } from '@/components/common/ApplyLocalSettingsDialog';
 import { useDialog } from '@/components/common/DialogProvider';
-import { FormFreeCombobox } from '@/components/form/FormFreeCombobox';
 import { Form } from '@/components/form/Form';
+import { FormFreeCombobox } from '@/components/form/FormFreeCombobox';
 import { SettingsContainer } from '@/components/layout/SettingsContainer';
 import { ActivityIndicator } from '@/components/ui/v2/ActivityIndicator';
 import { useIsPlatform } from '@/features/orgs/projects/common/hooks/useIsPlatform';
@@ -158,7 +158,7 @@ export default function AuthServiceVersionSettings() {
         >
           <FormFreeCombobox
             name="version"
-            className="lg:col-span-2"
+            className="lg:col-span-3"
             options={availableVersions}
             control={form.control}
             placeholder="Select Auth Version"

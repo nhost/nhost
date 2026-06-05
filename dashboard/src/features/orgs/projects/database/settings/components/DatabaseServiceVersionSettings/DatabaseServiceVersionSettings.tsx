@@ -5,8 +5,8 @@ import { FormProvider, useForm } from 'react-hook-form';
 import * as Yup from 'yup';
 import { ApplyLocalSettingsDialog } from '@/components/common/ApplyLocalSettingsDialog';
 import { useDialog } from '@/components/common/DialogProvider';
-import { FormFreeCombobox } from '@/components/form/FormFreeCombobox';
 import { Form } from '@/components/form/Form';
+import { FormFreeCombobox } from '@/components/form/FormFreeCombobox';
 import { SettingsContainer } from '@/components/layout/SettingsContainer';
 import { ActivityIndicator } from '@/components/ui/v2/ActivityIndicator';
 import { Box } from '@/components/ui/v2/Box';
@@ -323,7 +323,7 @@ export default function DatabaseServiceVersionSettings() {
           <Box className="grid grid-flow-row gap-x-4 gap-y-2 lg:grid-cols-5">
             <FormFreeCombobox
               name="majorVersion"
-              className="lg:col-span-1"
+              className="lg:col-span-2"
               label="MAJOR"
               options={availableMajorVersions}
               control={form.control}
@@ -355,7 +355,7 @@ export default function DatabaseServiceVersionSettings() {
             />
             <FormFreeCombobox
               name="minorVersion"
-              className="lg:col-span-2"
+              className="lg:col-span-3"
               label="MINOR"
               options={availableMinorVersions}
               control={form.control}
