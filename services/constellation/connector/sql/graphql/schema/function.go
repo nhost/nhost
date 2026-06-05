@@ -36,7 +36,7 @@ func generateForFunction( //nolint:funlen
 	}
 
 	// custom_name takes precedence over the introspected function name.
-	baseName := getDefaultTypeName(fnMeta.Function.Schema, fnMeta.Function.Name)
+	baseName := DefaultTypeName(fnMeta.Function.Schema, fnMeta.Function.Name)
 	if fnMeta.Configuration.CustomName != "" {
 		baseName = fnMeta.Configuration.CustomName
 	}

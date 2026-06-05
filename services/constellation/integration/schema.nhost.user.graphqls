@@ -407,6 +407,23 @@ enum files_update_column {
   metadata
 }
 """
+select columns of table "identity.artists"
+"""
+enum identity_artists_select_column {
+  """
+  column name
+  """
+  id
+  """
+  column name
+  """
+  stage_name
+  """
+  column name
+  """
+  created_by
+}
+"""
 unique or primary key constraints on table "identity_check_logs"
 """
 enum identity_check_logs_constraint {
@@ -1646,6 +1663,45 @@ type files_mutation_response {
   data from the rows affected by the mutation
   """
   returning: [files!]!
+}
+"""
+columns and relationships of "identity.artists"
+"""
+type identity_artists {
+  id: uuid!
+  stage_name: String!
+  created_by: uuid!
+}
+"""
+aggregated selection of "identity.artists"
+"""
+type identity_artists_aggregate {
+  aggregate: identity_artists_aggregate_fields
+  nodes: [identity_artists!]!
+}
+"""
+aggregate fields of "identity.artists"
+"""
+type identity_artists_aggregate_fields {
+  count(columns: [identity_artists_select_column!], distinct: Boolean): Int!
+  max: identity_artists_max_fields
+  min: identity_artists_min_fields
+}
+"""
+aggregate max on columns
+"""
+type identity_artists_max_fields {
+  id: uuid
+  stage_name: String
+  created_by: uuid
+}
+"""
+aggregate min on columns
+"""
+type identity_artists_min_fields {
+  id: uuid
+  stage_name: String
+  created_by: uuid
 }
 """
 columns and relationships of "identity_check_logs"
@@ -2995,6 +3051,68 @@ type query_root {
   """
   user(id: uuid!): users
   """
+  fetch data from the table: "identity.artists"
+  """
+  identity_artists(
+    """
+    distinct select on columns
+    """
+    distinct_on: [identity_artists_select_column!]
+
+    """
+    limit the number of rows returned
+    """
+    limit: Int
+
+    """
+    skip the first n rows. Use only with order_by
+    """
+    offset: Int
+
+    """
+    sort the rows by one or more columns
+    """
+    order_by: [identity_artists_order_by!]
+
+    """
+    filter the rows returned
+    """
+    where: identity_artists_bool_exp
+  ): [identity_artists!]!
+  """
+  fetch data from the table: "identity.artists" using primary key columns
+  """
+  identity_artists_by_pk(id: uuid!): identity_artists
+  """
+  fetch aggregated fields from the table: "identity.artists"
+  """
+  identity_artists_aggregate(
+    """
+    distinct select on columns
+    """
+    distinct_on: [identity_artists_select_column!]
+
+    """
+    limit the number of rows returned
+    """
+    limit: Int
+
+    """
+    skip the first n rows. Use only with order_by
+    """
+    offset: Int
+
+    """
+    sort the rows by one or more columns
+    """
+    order_by: [identity_artists_order_by!]
+
+    """
+    filter the rows returned
+    """
+    where: identity_artists_bool_exp
+  ): identity_artists_aggregate!
+  """
   fetch data from the table: "content_feed"
   """
   contentFeed(
@@ -4231,6 +4349,87 @@ type subscription_root {
     """
     where: users_bool_exp
   ): [users!]!
+  """
+  fetch data from the table: "identity.artists"
+  """
+  identity_artists(
+    """
+    distinct select on columns
+    """
+    distinct_on: [identity_artists_select_column!]
+
+    """
+    limit the number of rows returned
+    """
+    limit: Int
+
+    """
+    skip the first n rows. Use only with order_by
+    """
+    offset: Int
+
+    """
+    sort the rows by one or more columns
+    """
+    order_by: [identity_artists_order_by!]
+
+    """
+    filter the rows returned
+    """
+    where: identity_artists_bool_exp
+  ): [identity_artists!]!
+  """
+  fetch data from the table: "identity.artists" using primary key columns
+  """
+  identity_artists_by_pk(id: uuid!): identity_artists
+  """
+  fetch aggregated fields from the table: "identity.artists"
+  """
+  identity_artists_aggregate(
+    """
+    distinct select on columns
+    """
+    distinct_on: [identity_artists_select_column!]
+
+    """
+    limit the number of rows returned
+    """
+    limit: Int
+
+    """
+    skip the first n rows. Use only with order_by
+    """
+    offset: Int
+
+    """
+    sort the rows by one or more columns
+    """
+    order_by: [identity_artists_order_by!]
+
+    """
+    filter the rows returned
+    """
+    where: identity_artists_bool_exp
+  ): identity_artists_aggregate!
+  """
+  fetch data from the table in a streaming manner: "identity.artists"
+  """
+  identity_artists_stream(
+    """
+    maximum number of rows returned in a single batch
+    """
+    batch_size: Int!
+
+    """
+    cursor to stream the results returned by the query
+    """
+    cursor: [identity_artists_stream_cursor_input]!
+
+    """
+    filter the rows returned
+    """
+    where: identity_artists_bool_exp
+  ): [identity_artists!]!
   """
   fetch data from the table: "content_feed"
   """
@@ -6987,6 +7186,46 @@ input files_updates {
 }
 input get_department_manager_args {
   department_id: uuid!
+}
+"""
+Boolean expression to filter rows from the table "identity.artists". All fields are combined with a logical 'AND'.
+"""
+input identity_artists_bool_exp {
+  _and: [identity_artists_bool_exp!]
+  _not: identity_artists_bool_exp
+  _or: [identity_artists_bool_exp!]
+  id: uuid_comparison_exp
+  stage_name: String_comparison_exp
+  created_by: uuid_comparison_exp
+}
+"""
+Ordering options when selecting data from "identity.artists".
+"""
+input identity_artists_order_by {
+  id: order_by
+  stage_name: order_by
+  created_by: order_by
+}
+"""
+Streaming cursor of the table "identity_artists"
+"""
+input identity_artists_stream_cursor_input {
+  """
+  Stream column input with initial value
+  """
+  initial_value: identity_artists_stream_cursor_value_input!
+  """
+  cursor ordering
+  """
+  ordering: cursor_ordering
+}
+"""
+Initial value of the column from where the streaming should start
+"""
+input identity_artists_stream_cursor_value_input {
+  id: uuid
+  stage_name: String
+  created_by: uuid
 }
 """
 Boolean expression to filter rows from the table "identity_check_logs". All fields are combined with a logical 'AND'.
