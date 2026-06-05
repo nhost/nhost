@@ -12,36 +12,6 @@ import (
 // These tests exercise pure merge primitives directly. The exported entry points
 // are covered in the black-box schemamerge_test.go.
 
-func TestFieldKey(t *testing.T) {
-	t.Parallel()
-
-	tests := []struct {
-		name      string
-		operation ast.Operation
-		fieldName string
-		want      string
-	}{
-		{name: "query", operation: ast.Query, fieldName: "foo", want: "query.foo"},
-		{name: "mutation", operation: ast.Mutation, fieldName: "foo", want: "mutation.foo"},
-		{
-			name:      "subscription",
-			operation: ast.Subscription,
-			fieldName: "foo",
-			want:      "subscription.foo",
-		},
-	}
-
-	for _, tc := range tests {
-		t.Run(tc.name, func(t *testing.T) {
-			t.Parallel()
-
-			if got := FieldKey(tc.operation, tc.fieldName); got != tc.want {
-				t.Errorf("FieldKey() = %q, want %q", got, tc.want)
-			}
-		})
-	}
-}
-
 func TestTypeToString(t *testing.T) {
 	t.Parallel()
 
