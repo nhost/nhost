@@ -60,6 +60,9 @@ const baseData: FunctionNodeData = {
   returnTablePostgres: 'users',
   returnTableGraphql: undefined,
   returnTableMetadata: undefined,
+  inferFunctionPermissions: true,
+  isMutationFunction: false,
+  hasFunctionPermission: false,
   isUntracked: false,
   role: 'admin',
   namingMode: 'graphql',
@@ -148,6 +151,80 @@ describe('FunctionNode', () => {
     expect(
       screen.getByLabelText('Select: allowed (no row filter)'),
     ).toBeInTheDocument();
+  });
+
+  it('shows a "not allowed" dot when infer is off and the role has no function permission, even with select (regression)', () => {
+    renderNode({
+      ...baseData,
+      role: 'user',
+      inferFunctionPermissions: false,
+      hasFunctionPermission: false,
+      returnTableMetadata: {
+        table: { schema: 'public', name: 'users' },
+        configuration: {},
+        select_permissions: [
+          { role: 'user', permission: { columns: ['id'], filter: {} } },
+        ],
+      } as HasuraMetadataTable,
+    });
+
+    expect(screen.getByLabelText('Select: not allowed')).toBeInTheDocument();
+  });
+
+  it('shows a filled dot when infer is off and the role has an explicit function permission and select', () => {
+    renderNode({
+      ...baseData,
+      role: 'user',
+      inferFunctionPermissions: false,
+      hasFunctionPermission: true,
+      returnTableMetadata: {
+        table: { schema: 'public', name: 'users' },
+        configuration: {},
+        select_permissions: [
+          { role: 'user', permission: { columns: ['id'], filter: {} } },
+        ],
+      } as HasuraMetadataTable,
+    });
+
+    expect(
+      screen.getByLabelText('Select: allowed (no row filter)'),
+    ).toBeInTheDocument();
+  });
+
+  it('shows a hollow dot when the role has a function permission but no select on the return table', () => {
+    renderNode({
+      ...baseData,
+      role: 'user',
+      inferFunctionPermissions: false,
+      hasFunctionPermission: true,
+      returnTableMetadata: {
+        table: { schema: 'public', name: 'users' },
+        configuration: {},
+      } as HasuraMetadataTable,
+    });
+
+    expect(
+      screen.getByLabelText('Select: allowed with row filter / check'),
+    ).toBeInTheDocument();
+  });
+
+  it('shows a "not allowed" dot for a mutation function with no explicit permission, even with infer on and select', () => {
+    renderNode({
+      ...baseData,
+      role: 'user',
+      inferFunctionPermissions: true,
+      isMutationFunction: true,
+      hasFunctionPermission: false,
+      returnTableMetadata: {
+        table: { schema: 'public', name: 'users' },
+        configuration: {},
+        select_permissions: [
+          { role: 'user', permission: { columns: ['id'], filter: {} } },
+        ],
+      } as HasuraMetadataTable,
+    });
+
+    expect(screen.getByLabelText('Select: not allowed')).toBeInTheDocument();
   });
 
   it('does not render the actions menu when no TableActionsContext is provided', () => {

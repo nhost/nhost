@@ -7,27 +7,87 @@ import {
   TooltipTrigger,
 } from '@/components/ui/v3/tooltip';
 import DatabaseObjectActions from '@/features/orgs/projects/database/dataGrid/components/DataBrowserSidebar/DatabaseObjectActions';
+import type { PermissionState } from '@/features/orgs/projects/database/dataGrid/utils/getFunctionPermissionState';
 import { isSchemaLocked } from '@/features/orgs/projects/database/dataGrid/utils/schemaHelpers';
 import { cn } from '@/lib/utils';
 import { GRAPHQL_NAME_CLASS, resolveDisplayName } from './displayName';
 import PermissionDot from './PermissionDot';
 import {
   ADMIN_ROLE,
+  getFunctionPermissionDotState,
   getTablePermissionState,
-  type PermissionDotState,
 } from './permissionState';
 import { useTableActionsContext } from './TableActionsContext';
 import { FUNCTION_SOURCE_HANDLE_ID, type FunctionNode } from './useSchemaGraph';
 
-function describeState(state: PermissionDotState): string {
+function describeState(state: PermissionState): string {
   switch (state) {
-    case 'filled':
+    case 'allowed':
       return 'allowed';
-    case 'hollow':
-      return 'allowed with row rule';
+    case 'partial':
+      return 'partially allowed';
     default:
       return 'not allowed';
   }
+}
+
+/** Tooltip body explaining why the function has its current access for a role. */
+function AccessDescription({
+  role,
+  state,
+  inferFunctionPermissions,
+  isMutationFunction,
+  returnTable,
+}: {
+  role: string;
+  state: PermissionState;
+  inferFunctionPermissions: boolean;
+  isMutationFunction: boolean;
+  returnTable: string;
+}) {
+  const table = <span className="font-mono">{returnTable}</span>;
+  const roleName = <span className="font-mono">{role}</span>;
+
+  if (role === ADMIN_ROLE) {
+    return <>Admin has full access.</>;
+  }
+
+  // Inferred path: a query function with inference on follows the return table's
+  // select permission (this is the only path that can't reach 'partial').
+  if (inferFunctionPermissions && !isMutationFunction) {
+    return (
+      <>
+        Access is inferred from {table}&apos;s select permission for {roleName}
+        {state === 'allowed' ? '.' : ' — none granted.'}
+      </>
+    );
+  }
+
+  if (state === 'allowed') {
+    return (
+      <>
+        {roleName} has an explicit function permission and can select {table}.
+      </>
+    );
+  }
+
+  if (state === 'partial') {
+    return (
+      <>
+        {roleName} has a function permission, but no select permission on{' '}
+        {table} — no rows are returned.
+      </>
+    );
+  }
+
+  return (
+    <>
+      {roleName} needs an explicit function permission
+      {isMutationFunction && inferFunctionPermissions
+        ? ' (mutation functions are never inferred).'
+        : '.'}
+    </>
+  );
 }
 
 function FunctionNodeView({ data }: NodeProps<FunctionNode>) {
@@ -39,6 +99,9 @@ function FunctionNodeView({ data }: NodeProps<FunctionNode>) {
     returnTablePostgres,
     returnTableGraphql,
     returnTableMetadata,
+    inferFunctionPermissions,
+    isMutationFunction,
+    hasFunctionPermission,
     isUntracked,
     role,
     namingMode,
@@ -54,11 +117,15 @@ function FunctionNodeView({ data }: NodeProps<FunctionNode>) {
     namingMode === 'graphql' && returnTableGraphql
       ? returnTableGraphql
       : returnTablePostgres;
-  const selectState = getTablePermissionState(
-    returnTableMetadata,
+  const hasSelectPermission =
+    getTablePermissionState(returnTableMetadata, role, 'select') !== 'none';
+  const { state: permState, dot: selectState } = getFunctionPermissionDotState({
     role,
-    'select',
-  );
+    inferFunctionPermissions,
+    isMutationFunction,
+    hasSelectPermission,
+    hasFunctionPermission,
+  });
 
   return (
     <div
@@ -111,19 +178,16 @@ function FunctionNodeView({ data }: NodeProps<FunctionNode>) {
             <TooltipContent side="top" className="max-w-[400px] text-xs">
               <div className="space-y-1">
                 <div className="font-semibold">
-                  Select — {describeState(selectState)}
+                  Access — {describeState(permState)}
                 </div>
                 <div className="text-muted-foreground">
-                  Returns rows of{' '}
-                  <span className="font-mono">{returnTablePostgres}</span>.
-                  Access follows its select permission
-                  {role !== ADMIN_ROLE ? (
-                    <>
-                      {' '}
-                      for <span className="font-mono">{role}</span>
-                    </>
-                  ) : null}
-                  .
+                  <AccessDescription
+                    role={role}
+                    state={permState}
+                    inferFunctionPermissions={inferFunctionPermissions}
+                    isMutationFunction={isMutationFunction}
+                    returnTable={returnTablePostgres}
+                  />
                 </div>
               </div>
             </TooltipContent>

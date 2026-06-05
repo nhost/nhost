@@ -61,6 +61,12 @@ export interface FunctionNodeData extends Record<string, unknown> {
   returnTableGraphql: string | undefined;
   /** Metadata of the returned table, used to derive the select permission dot. */
   returnTableMetadata: HasuraMetadataTable | undefined;
+  /** Whether Hasura's `infer_function_permissions` is enabled (global setting). */
+  inferFunctionPermissions: boolean;
+  /** Whether the function is exposed as a mutation (`exposed_as: mutation`, or volatile by default). */
+  isMutationFunction: boolean;
+  /** Whether the selected role has an explicit function permission. */
+  hasFunctionPermission: boolean;
   isUntracked: boolean;
   role: string;
   namingMode: NamingMode;
@@ -77,6 +83,8 @@ export interface UseSchemaGraphInput {
   foreignKeys: SchemaDiagramForeignKey[];
   functionReturnTypes: SchemaDiagramFunctionReturnType[];
   functionsMetadata: ExportMetadataResponseMetadataSourcesItemFunctionsItem[];
+  /** Hasura's `infer_function_permissions` setting; defaults to off. */
+  inferFunctionPermissions?: boolean;
   role: string;
   visibleSchemas: Set<string>;
   hideTablesWithoutPermissions: boolean;
@@ -426,6 +434,7 @@ export default function useSchemaGraph({
   foreignKeys,
   functionReturnTypes,
   functionsMetadata,
+  inferFunctionPermissions = false,
   role,
   visibleSchemas,
   hideTablesWithoutPermissions,
@@ -620,6 +629,15 @@ export default function useSchemaGraph({
       const fnMeta = functionMetaById.get(nodeIdFor(fn.schema, fn.name));
       const config = fnMeta?.configuration;
       const returnTableMetadata = metadataByTableId.get(returnNodeId);
+      // Hasura exposes a function as a mutation when `exposed_as` says so, or —
+      // when unset — when the function is volatile. Mutations always need an
+      // explicit permission, even with `infer_function_permissions` on.
+      const exposedAs = config?.exposed_as;
+      const isMutationFunction =
+        exposedAs === 'mutation' || (exposedAs == null && fn.isVolatile);
+      const hasFunctionPermission = (fnMeta?.permissions ?? []).some(
+        (perm) => perm.role === role,
+      );
       const data: FunctionNodeData = {
         schema: fn.schema,
         name: fn.name,
@@ -629,6 +647,9 @@ export default function useSchemaGraph({
         returnTablePostgres: fn.returnTable,
         returnTableGraphql: readTableGraphqlName(returnTableMetadata),
         returnTableMetadata,
+        inferFunctionPermissions,
+        isMutationFunction,
+        hasFunctionPermission,
         isUntracked: !fnMeta,
         role,
         namingMode,
@@ -685,6 +706,7 @@ export default function useSchemaGraph({
     foreignKeys,
     functionReturnTypes,
     functionsMetadata,
+    inferFunctionPermissions,
     role,
     visibleSchemas,
     hideTablesWithoutPermissions,

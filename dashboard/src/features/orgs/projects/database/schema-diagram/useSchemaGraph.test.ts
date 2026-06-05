@@ -73,6 +73,7 @@ function buildFunctionReturnType(
     name: 'full_name',
     returnType: 'text',
     returnsSet: false,
+    isVolatile: false,
     ...overrides,
   };
 }
@@ -1401,8 +1402,9 @@ describe('useSchemaGraph', () => {
       schema: string,
       name: string,
       configuration?: ExportMetadataResponseMetadataSourcesItemFunctionsItem['configuration'],
+      permissions?: ExportMetadataResponseMetadataSourcesItemFunctionsItem['permissions'],
     ): ExportMetadataResponseMetadataSourcesItemFunctionsItem {
-      return { function: { schema, name }, configuration };
+      return { function: { schema, name }, configuration, permissions };
     }
 
     function renderWithFunction(
@@ -1412,6 +1414,8 @@ describe('useSchemaGraph', () => {
         metadataTables?: HasuraMetadataTable[];
         visibleSchemas?: Set<string>;
         namingMode?: NamingMode;
+        inferFunctionPermissions?: boolean;
+        role?: string;
       } = {},
     ) {
       return renderHook(() =>
@@ -1432,7 +1436,8 @@ describe('useSchemaGraph', () => {
             }),
           ],
           functionsMetadata: overrides.functionsMetadata ?? [],
-          role: 'admin',
+          inferFunctionPermissions: overrides.inferFunctionPermissions,
+          role: overrides.role ?? 'admin',
           visibleSchemas: overrides.visibleSchemas ?? new Set(['public']),
           hideTablesWithoutPermissions: false,
           namingMode: overrides.namingMode ?? 'graphql',
@@ -1582,6 +1587,94 @@ describe('useSchemaGraph', () => {
       const fnNode = findFunctionNode(result.current.nodes);
       expect(fnNode.initialHeight).toBe(computeNodeHeight(1));
       expect(fnNode.initialWidth).toBe(TABLE_NODE_WIDTH);
+    });
+
+    describe('function permission inputs', () => {
+      it('passes inferFunctionPermissions through to the node data', () => {
+        const { result } = renderWithFunction({
+          inferFunctionPermissions: true,
+        });
+
+        expect(
+          functionDataOf(findFunctionNode(result.current.nodes))
+            .inferFunctionPermissions,
+        ).toBe(true);
+      });
+
+      it('marks isMutationFunction when exposed_as is "mutation"', () => {
+        const { result } = renderWithFunction({
+          functionsMetadata: [
+            buildFunctionMetadata('public', 'find_users', {
+              exposed_as: 'mutation',
+            }),
+          ],
+        });
+
+        expect(
+          functionDataOf(findFunctionNode(result.current.nodes))
+            .isMutationFunction,
+        ).toBe(true);
+      });
+
+      it('infers isMutationFunction from volatility when exposed_as is unset', () => {
+        const { result } = renderWithFunction({
+          fn: { isVolatile: true },
+          functionsMetadata: [buildFunctionMetadata('public', 'find_users')],
+        });
+
+        expect(
+          functionDataOf(findFunctionNode(result.current.nodes))
+            .isMutationFunction,
+        ).toBe(true);
+      });
+
+      it('does not treat a volatile function as a mutation when exposed_as is "query"', () => {
+        const { result } = renderWithFunction({
+          fn: { isVolatile: true },
+          functionsMetadata: [
+            buildFunctionMetadata('public', 'find_users', {
+              exposed_as: 'query',
+            }),
+          ],
+        });
+
+        expect(
+          functionDataOf(findFunctionNode(result.current.nodes))
+            .isMutationFunction,
+        ).toBe(false);
+      });
+
+      it('reflects whether the selected role has an explicit function permission', () => {
+        const { result } = renderWithFunction({
+          role: 'user',
+          functionsMetadata: [
+            buildFunctionMetadata('public', 'find_users', undefined, [
+              { role: 'user' },
+            ]),
+          ],
+        });
+
+        expect(
+          functionDataOf(findFunctionNode(result.current.nodes))
+            .hasFunctionPermission,
+        ).toBe(true);
+      });
+
+      it('reports no function permission when the role is absent from the list', () => {
+        const { result } = renderWithFunction({
+          role: 'manager',
+          functionsMetadata: [
+            buildFunctionMetadata('public', 'find_users', undefined, [
+              { role: 'user' },
+            ]),
+          ],
+        });
+
+        expect(
+          functionDataOf(findFunctionNode(result.current.nodes))
+            .hasFunctionPermission,
+        ).toBe(false);
+      });
     });
   });
 

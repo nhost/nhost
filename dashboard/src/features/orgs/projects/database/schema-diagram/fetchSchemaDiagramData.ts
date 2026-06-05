@@ -35,6 +35,12 @@ export interface SchemaDiagramFunctionReturnType {
   returnType: string;
   returnsSet: boolean;
   /**
+   * `true` when the function is `VOLATILE`. Hasura exposes volatile functions as
+   * mutations by default, which always require an explicit function permission
+   * (inference never applies to them).
+   */
+  isVolatile: boolean;
+  /**
    * Schema of the table-like relation the function returns rows of. Only set
    * when the return type is backed by a real relation (table/view/matview/
    * foreign table); `undefined` for scalar, `record` and composite-type returns.
@@ -142,6 +148,7 @@ const FUNCTION_RETURN_TYPE_QUERY = `
       p.oid::int AS oid,
       pg_catalog.format_type(p.prorettype, NULL) AS return_type,
       p.proretset AS returns_set,
+      p.provolatile AS provolatile,
       ret_n.nspname AS return_schema,
       ret_c.relname AS return_table
     FROM pg_proc p
@@ -185,6 +192,7 @@ interface RawFunctionReturnType {
   oid: number;
   return_type: string;
   returns_set: boolean;
+  provolatile: string;
   return_schema: string | null;
   return_table: string | null;
 }
@@ -271,6 +279,7 @@ export default async function fetchSchemaDiagramData({
         oid: row.oid != null ? String(row.oid) : undefined,
         returnType: row.return_type,
         returnsSet: row.returns_set,
+        isVolatile: row.provolatile === 'v',
         returnSchema: row.return_schema ?? undefined,
         returnTable: row.return_table ?? undefined,
       };

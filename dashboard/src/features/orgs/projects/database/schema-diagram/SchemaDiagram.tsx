@@ -15,6 +15,7 @@ import { Alert, AlertDescription } from '@/components/ui/v3/alert';
 import { Spinner } from '@/components/ui/v3/spinner';
 import { useRemoteApplicationGQLClient } from '@/features/orgs/hooks/useRemoteApplicationGQLClient';
 import { useExportMetadata } from '@/features/orgs/projects/common/hooks/useExportMetadata';
+import { useIsPlatform } from '@/features/orgs/projects/common/hooks/useIsPlatform';
 import { useDataBrowserActions } from '@/features/orgs/projects/database/dataGrid/hooks/useDataBrowserActions';
 import { useDatabaseQuery } from '@/features/orgs/projects/database/dataGrid/hooks/useDatabaseQuery';
 import { useGetTrackedTablesSet } from '@/features/orgs/projects/database/dataGrid/hooks/useGetTrackedTablesSet';
@@ -23,8 +24,13 @@ import type {
   HasuraMetadataTable,
 } from '@/features/orgs/projects/database/dataGrid/types/dataBrowser';
 import { sortDatabaseObjects } from '@/features/orgs/projects/database/dataGrid/utils/sortDatabaseObjects';
+import { useLocalMimirClient } from '@/features/orgs/projects/hooks/useLocalMimirClient';
+import { useProject } from '@/features/orgs/projects/hooks/useProject';
 import { cn } from '@/lib/utils';
-import { useGetRemoteAppRolesQuery } from '@/utils/__generated__/graphql';
+import {
+  useGetHasuraSettingsQuery,
+  useGetRemoteAppRolesQuery,
+} from '@/utils/__generated__/graphql';
 import FunctionNode from './FunctionNode';
 import { ADMIN_ROLE, PUBLIC_ROLE } from './permissionState';
 import SchemaDiagramToolbar, {
@@ -190,6 +196,24 @@ function SchemaDiagramContent() {
     error: rolesError,
   } = useGetRemoteAppRolesQuery({ client: gqlClient });
 
+  // Same source as the Edit Function Permissions form, so the diagram's function
+  // permission dots and the form never disagree. Not added to the loading gate:
+  // the role defaults to admin (always allowed), so this only affects non-admin
+  // dots, by which time the small/cached settings query has resolved.
+  const { project } = useProject();
+  const isPlatform = useIsPlatform();
+  const localMimirClient = useLocalMimirClient();
+
+  const { data: hasuraSettingsData } = useGetHasuraSettingsQuery({
+    variables: { appId: project?.id },
+    ...(!isPlatform ? { client: localMimirClient } : {}),
+    skip: !project?.id,
+  });
+
+  const inferFunctionPermissions = Boolean(
+    hasuraSettingsData?.config?.hasura.settings?.inferFunctionPermissions,
+  );
+
   const { data: trackedTablesSet } = useGetTrackedTablesSet({
     dataSource,
   });
@@ -327,6 +351,7 @@ function SchemaDiagramContent() {
     foreignKeys: schemaData?.foreignKeys ?? [],
     functionReturnTypes: schemaData?.functionReturnTypes ?? [],
     functionsMetadata: functionsMetadata ?? [],
+    inferFunctionPermissions,
     role: selectedRole,
     visibleSchemas,
     hideTablesWithoutPermissions: hideEmpty,
