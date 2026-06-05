@@ -9,7 +9,7 @@
     "Routine": "_bt_check_unique",
     "Severity": "ERROR",
     "File": "nbtinsert.c",
-    "Line": 673,
+    "Line": 666,
     "SeverityUnlocalized": "ERROR",
     "Message": "duplicate key value violates unique constraint \"departments_pkey\"",
     "Hint": "",

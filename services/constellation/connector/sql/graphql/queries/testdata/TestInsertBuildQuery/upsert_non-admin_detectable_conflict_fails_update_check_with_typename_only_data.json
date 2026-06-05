@@ -4,7 +4,7 @@
     "InternalPosition": 0,
     "Where": "PL/pgSQL function constellation_throw_error(text,text) line 3 at RAISE",
     "File": "pl_exec.c",
-    "Line": 3923,
+    "Line": 3909,
     "Severity": "ERROR",
     "Position": 0,
     "Detail": "",

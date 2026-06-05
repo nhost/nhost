@@ -12,7 +12,7 @@
     "File": "nbtinsert.c",
     "InternalPosition": 0,
     "Where": "",
-    "Line": 673,
+    "Line": 666,
     "SeverityUnlocalized": "ERROR",
     "Message": "duplicate key value violates unique constraint \"departments_pkey\"",
     "Detail": "Key (id)=(00000000-0000-0000-0000-000000000001) already exists.",
