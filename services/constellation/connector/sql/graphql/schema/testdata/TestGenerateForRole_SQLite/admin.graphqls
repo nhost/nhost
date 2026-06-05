@@ -1190,10 +1190,6 @@ enum artists_constraint {
   unique or primary key constraint on columns "id"
   """
   artists_pkey
-  """
-  unique or primary key constraint on columns "id"
-  """
-  sqlite_autoindex_artists_1
 }
 """
 update columns of table "artists"
