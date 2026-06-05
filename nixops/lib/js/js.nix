@@ -220,8 +220,24 @@ let
             echo "➜ Building Vercel ${environment} output for ${name}"
             vercel build --yes --target=${environment} --token "$VERCEL_DEPLOY_TOKEN"
 
+            for next_package in $(find . -path '*/.next/package.json' -type f); do
+              project_dir="''${next_package%/.next/package.json}"
+              project_dir="''${project_dir#./}"
+              find .vercel/output/functions \
+                -path "*/$project_dir/.next" \
+                -type d \
+                -exec cp "$next_package" '{}/package.json' \;
+            done
+
             mkdir -p $out/.vercel
             cp -r .vercel/output $out/.vercel/output
+
+            for next_dir in $(find . -path './.vercel' -prune -o -path '*/.next' -type d -print); do
+              project_dir="''${next_dir%/.next}"
+              project_dir="''${project_dir#./}"
+              mkdir -p "$out/$project_dir"
+              cp -r "$next_dir" "$out/$project_dir/.next"
+            done
           '';
       deploy =
         pkgs.runCommand "${name}-vercel-deploy-${environment}"
@@ -242,6 +258,15 @@ let
 
             cp -r ${build}/.vercel/output .vercel/output
             chmod +w -R .vercel
+
+            for next_dir in ${build}/*/.next; do
+              if [ -d "$next_dir" ]; then
+                project_dir="$(basename "$(dirname "$next_dir")")"
+                rm -rf "$project_dir/.next"
+                cp -r "$next_dir" "$project_dir/.next"
+                chmod +w -R "$project_dir/.next"
+              fi
+            done
 
             echo "➜ Deploying prebuilt Vercel ${environment} output for ${name}"
             vercel deploy \
