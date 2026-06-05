@@ -234,6 +234,9 @@ let
             // projectHashes
           )
           ''
+            cp -r ${src}/. .
+            chmod +w -R .
+
             ${setupVercel}
 
             cp -r ${build}/.vercel/output .vercel/output
