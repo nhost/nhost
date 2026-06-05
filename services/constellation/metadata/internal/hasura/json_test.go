@@ -1,6 +1,7 @@
 package hasura_test
 
 import (
+	stdjson "encoding/json"
 	"encoding/json/jsontext"
 	json "encoding/json/v2"
 	"os"
@@ -218,6 +219,58 @@ func assertRemoteSchemas(t *testing.T, meta *hasura.Metadata) {
 			"expected header from_env 'REMOTE_API_KEY', got %q",
 			rs.Definition.Headers[1].Value.FromEnv,
 		)
+	}
+}
+
+func TestSelectPermissionConfig_UnmarshalJSONPreservesLargeInteger(t *testing.T) {
+	t.Parallel()
+
+	input := []byte(`{
+		"columns": ["id"],
+		"filter": {"id": {"_eq": 9007199254740993}}
+	}`)
+
+	var plain map[string]any
+	if err := json.Unmarshal(input, &plain); err != nil {
+		t.Fatalf("plain unmarshal failed: %v", err)
+	}
+
+	plainFilter, ok := plain["filter"].(map[string]any)
+	if !ok {
+		t.Fatalf("plain filter type = %T, want map[string]any", plain["filter"])
+	}
+
+	plainIDFilter, ok := plainFilter["id"].(map[string]any)
+	if !ok {
+		t.Fatalf("plain id filter type = %T, want map[string]any", plainFilter["id"])
+	}
+
+	if _, ok := plainIDFilter["_eq"].(float64); !ok {
+		t.Fatalf("plain _eq type = %T, want float64", plainIDFilter["_eq"])
+	}
+
+	var config hasura.SelectPermissionConfig
+	if err := json.Unmarshal(input, &config); err != nil {
+		t.Fatalf("unexpected error: %v", err)
+	}
+
+	idFilter, ok := config.Filter["id"].(map[string]any)
+	if !ok {
+		t.Fatalf("permission id filter type = %T, want map[string]any", config.Filter["id"])
+	}
+
+	value := idFilter["_eq"]
+	if _, ok := value.(float64); ok {
+		t.Fatal("permission _eq type = float64, want json.Number")
+	}
+
+	number, ok := value.(stdjson.Number)
+	if !ok {
+		t.Fatalf("permission _eq type = %T, want json.Number", value)
+	}
+
+	if number.String() != "9007199254740993" {
+		t.Fatalf("permission _eq = %q, want 9007199254740993", number.String())
 	}
 }
 

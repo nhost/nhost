@@ -369,6 +369,10 @@ func rsRelationshipSpec(
 	}
 
 	toSource := rel.Definition.ToSource
+	if toSource.RelationshipType != metadata.RelationshipTypeObject &&
+		toSource.RelationshipType != metadata.RelationshipTypeArray {
+		return relationships.RelationshipSpec{}, false //nolint:exhaustruct
+	}
 
 	return relationships.RelationshipSpec{
 		SourceConnector:   rsName,
