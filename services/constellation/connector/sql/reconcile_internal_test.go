@@ -227,6 +227,44 @@ func TestReconcileMetadata_DropsMissingColumns(t *testing.T) {
 	}
 }
 
+func TestReconcileMetadata_ExpandsSelectPermissionAllColumnsShorthand(t *testing.T) {
+	t.Parallel()
+
+	dbMeta := &metadata.DatabaseMetadata{ //nolint:exhaustruct
+		Name: "default",
+		Tables: []metadata.TableMetadata{ //nolint:exhaustruct
+			{
+				Table: metadata.TableSource{Schema: "public", Name: "users"},
+				SelectPermissions: []metadata.SelectPermission{
+					{
+						Role: "user",
+						Permission: metadata.SelectPermissionConfig{ //nolint:exhaustruct
+							Columns: []string{selectPermissionAllColumns},
+						},
+					},
+				},
+			},
+		},
+	}
+
+	inc := metadata.NewInconsistencies()
+	out := reconcileMetadata(t.Context(), nil, inc, dbMeta, makeObjects())
+
+	got := out.Tables[0].SelectPermissions[0].Permission.Columns
+	if !slices.Equal(got, []string{"id", "name"}) {
+		t.Fatalf("select_permission.columns = %v, want [id name]", got)
+	}
+
+	if inc.Len() != 0 {
+		t.Fatalf("expected no inconsistencies, got %+v", inc.Snapshot())
+	}
+
+	inputColumns := dbMeta.Tables[0].SelectPermissions[0].Permission.Columns
+	if !slices.Equal(inputColumns, []string{selectPermissionAllColumns}) {
+		t.Fatalf("input columns mutated to %v", inputColumns)
+	}
+}
+
 // TestReconcileMetadata_DoesNotMutateInput verifies that reconcileMetadata
 // keeps its godoc contract — "returns a filtered copy" — even when filtering
 // rewrites permission column lists / set maps. The slice headers we receive

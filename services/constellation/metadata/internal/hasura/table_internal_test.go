@@ -8,6 +8,145 @@ import (
 	"github.com/goccy/go-yaml"
 )
 
+func TestSelectPermissionConfig_UnmarshalYAML(t *testing.T) {
+	t.Parallel()
+
+	tests := []struct {
+		name            string
+		input           string
+		wantColumns     []string
+		wantErr         bool
+		wantWrapContext string
+	}{
+		{
+			name:            "explicit columns",
+			input:           "columns: [id, name]\nfilter: {}\nallow_aggregations: true",
+			wantColumns:     []string{"id", "name"},
+			wantErr:         false,
+			wantWrapContext: "",
+		},
+		{
+			name:            "all columns shorthand",
+			input:           "columns: '*'\nfilter: {}",
+			wantColumns:     []string{selectPermissionAllColumns},
+			wantErr:         false,
+			wantWrapContext: "",
+		},
+		{
+			name:            "non wildcard string rejected",
+			input:           "columns: id",
+			wantColumns:     nil,
+			wantErr:         true,
+			wantWrapContext: "must be '*'",
+		},
+		{
+			name:            "list with non-string entry rejected",
+			input:           "columns: [id, 42]",
+			wantColumns:     nil,
+			wantErr:         true,
+			wantWrapContext: "list entry is not a string",
+		},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			t.Parallel()
+
+			var got SelectPermissionConfig
+
+			err := yaml.Unmarshal([]byte(tt.input), &got)
+			if (err != nil) != tt.wantErr {
+				t.Fatalf("unmarshal err = %v, wantErr=%v", err, tt.wantErr)
+			}
+
+			if tt.wantErr {
+				if err != nil && !strings.Contains(err.Error(), tt.wantWrapContext) {
+					t.Errorf("expected wrap context %q, got %v", tt.wantWrapContext, err)
+				}
+
+				return
+			}
+
+			if !equalStringSlices(got.Columns, tt.wantColumns) {
+				t.Errorf("Columns = %v, want %v", got.Columns, tt.wantColumns)
+			}
+		})
+	}
+}
+
+func TestSelectPermissionConfig_UnmarshalJSON(t *testing.T) {
+	t.Parallel()
+
+	tests := []struct {
+		name            string
+		input           string
+		wantColumns     []string
+		wantErr         bool
+		wantWrapContext string
+	}{
+		{
+			name:            "explicit columns",
+			input:           `{"columns":["id","name"],"filter":{},"allow_aggregations":true}`,
+			wantColumns:     []string{"id", "name"},
+			wantErr:         false,
+			wantWrapContext: "",
+		},
+		{
+			name:            "all columns shorthand",
+			input:           `{"columns":"*","filter":{}}`,
+			wantColumns:     []string{selectPermissionAllColumns},
+			wantErr:         false,
+			wantWrapContext: "",
+		},
+		{
+			name:            "null columns",
+			input:           `{"columns":null,"filter":{}}`,
+			wantColumns:     nil,
+			wantErr:         false,
+			wantWrapContext: "",
+		},
+		{
+			name:            "non wildcard string rejected",
+			input:           `{"columns":"id"}`,
+			wantColumns:     nil,
+			wantErr:         true,
+			wantWrapContext: "must be '*'",
+		},
+		{
+			name:            "list with non-string entry rejected",
+			input:           `{"columns":["id",42]}`,
+			wantColumns:     nil,
+			wantErr:         true,
+			wantWrapContext: "decoding columns list",
+		},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			t.Parallel()
+
+			var got SelectPermissionConfig
+
+			err := json.Unmarshal([]byte(tt.input), &got)
+			if (err != nil) != tt.wantErr {
+				t.Fatalf("unmarshal err = %v, wantErr=%v", err, tt.wantErr)
+			}
+
+			if tt.wantErr {
+				if err != nil && !strings.Contains(err.Error(), tt.wantWrapContext) {
+					t.Errorf("expected wrap context %q, got %v", tt.wantWrapContext, err)
+				}
+
+				return
+			}
+
+			if !equalStringSlices(got.Columns, tt.wantColumns) {
+				t.Errorf("Columns = %v, want %v", got.Columns, tt.wantColumns)
+			}
+		})
+	}
+}
+
 // relationshipUsingCase is one input/output expectation pair used by both the
 // YAML and JSON test tables for RelationshipUsing.
 type relationshipUsingCase struct {

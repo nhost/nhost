@@ -3,6 +3,7 @@ package metadata_test
 import (
 	"os"
 	"path/filepath"
+	"strings"
 	"testing"
 
 	"github.com/google/go-cmp/cmp"
@@ -68,6 +69,17 @@ func TestFromHasuraJSON(t *testing.T) {
 			check:   assertHappyPathJSON,
 		},
 		{
+			name: "select permission all-columns shorthand",
+			data: []byte(strings.Replace(
+				validHasuraJSON,
+				`"columns": ["id"]`,
+				`"columns": "*"`,
+				1,
+			)),
+			wantErr: false,
+			check:   assertAllColumnsShorthandJSON,
+		},
+		{
 			name:    "malformed JSON",
 			data:    []byte(`{not valid json`),
 			wantErr: true,
@@ -94,6 +106,24 @@ func TestFromHasuraJSON(t *testing.T) {
 			m, err := metadata.FromHasuraJSON(tt.data)
 			checkLoaderResult(t, m, err, tt.wantErr, tt.check)
 		})
+	}
+}
+
+func assertAllColumnsShorthandJSON(t *testing.T, m *metadata.Metadata) {
+	t.Helper()
+
+	if len(m.Databases) != 1 || len(m.Databases[0].Tables) != 1 {
+		t.Fatalf("unexpected metadata shape: %+v", m)
+	}
+
+	perms := m.Databases[0].Tables[0].SelectPermissions
+	if len(perms) != 1 {
+		t.Fatalf("expected one select permission, got %+v", perms)
+	}
+
+	got := perms[0].Permission.Columns
+	if !cmp.Equal(got, []string{"*"}) {
+		t.Fatalf("select permission columns mismatch:\n%s", cmp.Diff([]string{"*"}, got))
 	}
 }
 

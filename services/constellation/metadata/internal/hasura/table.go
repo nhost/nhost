@@ -23,6 +23,20 @@ var errForeignKeyListEntryNotString = errors.New(
 	"foreign_key_constraint_on: list entry is not a string",
 )
 
+const selectPermissionAllColumns = "*"
+
+var (
+	errSelectColumnsStringNotWildcard = errors.New(
+		"select permission columns string must be '*'",
+	)
+	errSelectColumnsListEntryNotString = errors.New(
+		"select permission columns list entry is not a string",
+	)
+	errUnexpectedSelectColumnsToken = errors.New(
+		"select permission columns: expected '*', array, or null",
+	)
+)
+
 // TableMetadata is the Hasura representation of a tracked table.
 type TableMetadata struct {
 	Table               TableSource          `json:"table"                          yaml:"table"`
@@ -128,6 +142,132 @@ type SelectPermissionConfig struct {
 	Columns           []string       `json:"columns,omitempty"           yaml:"columns,omitempty"`
 	Filter            map[string]any `json:"filter,omitempty"            yaml:"filter,omitempty"`
 	AllowAggregations bool           `json:"allow_aggregations,omitzero" yaml:"allow_aggregations,omitempty"`
+}
+
+// UnmarshalYAML accepts Hasura's select-permission `columns: '*'` shorthand
+// in addition to the explicit list of column names. The shorthand is kept as
+// a one-element slice and expanded after database introspection, when the full
+// column list is known.
+func (p *SelectPermissionConfig) UnmarshalYAML(unmarshal func(any) error) error {
+	type rawConfig struct {
+		Columns           any            `yaml:"columns,omitempty"`
+		Filter            map[string]any `yaml:"filter,omitempty"`
+		AllowAggregations bool           `yaml:"allow_aggregations,omitempty"`
+	}
+
+	var raw rawConfig
+	if err := unmarshal(&raw); err != nil {
+		return fmt.Errorf("unmarshaling select permission: %w", err)
+	}
+
+	columns, err := parseSelectPermissionColumnsYAML(raw.Columns)
+	if err != nil {
+		return fmt.Errorf("unmarshaling select permission columns: %w", err)
+	}
+
+	p.Columns = columns
+	p.Filter = raw.Filter
+	p.AllowAggregations = raw.AllowAggregations
+
+	return nil
+}
+
+func parseSelectPermissionColumnsYAML(value any) ([]string, error) {
+	switch v := value.(type) {
+	case nil:
+		return nil, nil
+	case string:
+		if v != selectPermissionAllColumns {
+			return nil, errSelectColumnsStringNotWildcard
+		}
+
+		return []string{selectPermissionAllColumns}, nil
+	case []string:
+		return append([]string(nil), v...), nil
+	case []any:
+		columns := make([]string, 0, len(v))
+		for i, item := range v {
+			column, ok := item.(string)
+			if !ok {
+				return nil, fmt.Errorf(
+					"%w (index %d, type %T)",
+					errSelectColumnsListEntryNotString, i, item,
+				)
+			}
+
+			columns = append(columns, column)
+		}
+
+		return columns, nil
+	default:
+		return nil, fmt.Errorf("%w (type %T)", errUnexpectedSelectColumnsToken, value)
+	}
+}
+
+// UnmarshalJSON accepts Hasura's select-permission `columns: "*"` shorthand
+// in addition to the explicit list of column names. The shorthand is kept as
+// a one-element slice and expanded after database introspection, when the full
+// column list is known.
+func (p *SelectPermissionConfig) UnmarshalJSON(data []byte) error {
+	var raw struct {
+		Columns           jsontext.Value `json:"columns,omitempty"`
+		Filter            map[string]any `json:"filter,omitempty"`
+		AllowAggregations bool           `json:"allow_aggregations,omitzero"`
+	}
+
+	if err := json.Unmarshal(data, &raw); err != nil {
+		return fmt.Errorf("unmarshaling select permission: %w", err)
+	}
+
+	columns, err := parseSelectPermissionColumnsJSON(raw.Columns)
+	if err != nil {
+		return fmt.Errorf("unmarshaling select permission columns: %w", err)
+	}
+
+	p.Columns = columns
+	p.Filter = raw.Filter
+	p.AllowAggregations = raw.AllowAggregations
+
+	return nil
+}
+
+func parseSelectPermissionColumnsJSON(value jsontext.Value) ([]string, error) {
+	if value == nil {
+		return nil, nil
+	}
+
+	switch firstNonWhitespaceByte(value) {
+	case 'n':
+		var columns []string
+		if err := json.Unmarshal(value, &columns); err != nil {
+			return nil, fmt.Errorf("decoding columns null: %w", err)
+		}
+
+		return columns, nil
+	case '"':
+		var shorthand string
+		if err := json.Unmarshal(value, &shorthand); err != nil {
+			return nil, fmt.Errorf("decoding columns shorthand: %w", err)
+		}
+
+		if shorthand != selectPermissionAllColumns {
+			return nil, errSelectColumnsStringNotWildcard
+		}
+
+		return []string{selectPermissionAllColumns}, nil
+	case '[':
+		var columns []string
+		if err := json.Unmarshal(value, &columns); err != nil {
+			return nil, fmt.Errorf("decoding columns list: %w", err)
+		}
+
+		return columns, nil
+	default:
+		return nil, fmt.Errorf(
+			"%w (token %q)", errUnexpectedSelectColumnsToken,
+			firstNonWhitespaceByte(value),
+		)
+	}
 }
 
 // InsertPermissionConfig captures the columns, row-level check, and presets an

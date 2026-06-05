@@ -148,7 +148,7 @@ parameterized SQL values.
 
 | Field | Status | Notes |
 |---|---|---|
-| `columns` | ✅ | Gates column visibility. |
+| `columns` | ✅ | Gates column visibility. Accepts Hasura's `columns: '*'` all-columns shorthand and explicit column lists. |
 | `filter` | ✅ | Row filter; AND-ed into every `WHERE`. Full Hasura boolean-expression syntax. |
 | `allow_aggregations` | ✅ | Gates the `_aggregate` root field for the role. |
 | `limit` | ⚪ | **Not enforced.** A per-role row `limit` is parsed away and has no effect — enforce row caps another way. |
