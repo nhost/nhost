@@ -148,22 +148,17 @@ let
     }:
     let
       envFile = "/tmp/nhost-vercel-${name}-${environment}.env";
-      requiredImpureEnv =
+      # Keep package enumeration pure; setupVercel fails during the build if
+      # these impure cache-key hashes are missing or stale.
+      impureCacheKeyHash =
         envVar:
         let
           value = builtins.getEnv envVar;
         in
-        if value == "" then
-          throw ''
-            ${envVar} is required for ${name} Vercel derivations.
-            Export ${envVar} and evaluate with --impure so Vercel cache keys include the project ID.
-          ''
-        else
-          value;
-      projectHashes = {
-        VERCEL_ORG_ID_HASH = builtins.hashString "sha256" (requiredImpureEnv "VERCEL_ORG_ID");
-        VERCEL_PROJECT_ID_HASH = builtins.hashString "sha256" (requiredImpureEnv "VERCEL_PROJECT_ID");
-      };
+        pkgs.lib.optionalAttrs (value != "") {
+          "${envVar}_HASH" = builtins.hashString "sha256" value;
+        };
+      cacheKeyHashes = impureCacheKeyHash "VERCEL_ORG_ID" // impureCacheKeyHash "VERCEL_PROJECT_ID";
       vercelBuildInputs =
         jsCheckDeps
         ++ (with pkgs; [
@@ -195,6 +190,28 @@ let
           fi
         done
 
+        require_impure_hash() {
+          env_var="$1"
+          hash_var="''${env_var}_HASH"
+
+          if [ -z "''${!hash_var:-}" ]; then
+            echo "ERROR: $hash_var derivation attribute is not set"
+            echo "Export $env_var and evaluate with --impure so Vercel cache keys include the current project/config state."
+            exit 1
+          fi
+
+          actual_hash=$(printf '%s' "''${!env_var}" | sha256sum | cut -d ' ' -f 1)
+          if [ "''${!hash_var}" != "$actual_hash" ]; then
+            echo "ERROR: $hash_var does not match $env_var from $VERCEL_ENV_FILE"
+            echo "Export the same $env_var value from $VERCEL_ENV_FILE and evaluate with --impure."
+            exit 1
+          fi
+        }
+
+        for env_var in VERCEL_ORG_ID VERCEL_PROJECT_ID; do
+          require_impure_hash "$env_var"
+        done
+
         export HOME=$(mktemp -d)
         export SSL_CERT_FILE=${pkgs.cacert}/etc/ssl/certs/ca-bundle.crt
         export NIX_SSL_CERT_FILE=$SSL_CERT_FILE
@@ -217,7 +234,7 @@ let
               nativeBuildInputs = vercelBuildInputs;
               VERCEL_ENV_FILE = envFile;
             }
-            // projectHashes
+            // cacheKeyHashes
           )
           ''
             cp -r ${src}/. .
@@ -259,7 +276,7 @@ let
               nativeBuildInputs = vercelBuildInputs;
               VERCEL_ENV_FILE = envFile;
             }
-            // projectHashes
+            // cacheKeyHashes
           )
           ''
             cp -r ${src}/. .
