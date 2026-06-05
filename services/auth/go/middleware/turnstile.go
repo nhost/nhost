@@ -32,11 +32,19 @@ func makeTurnstileRequest(
 	secret string,
 	tokenResponse string,
 ) (*TurnstileResponse, error) {
+	body, err := json.Marshal(map[string]string{
+		"secret":   secret,
+		"response": tokenResponse,
+	})
+	if err != nil {
+		return nil, fmt.Errorf("failed to marshal turnstile request: %w", err)
+	}
+
 	request, err := http.NewRequestWithContext(
 		ctx,
 		http.MethodPost,
 		tunrstileURL,
-		bytes.NewBufferString(`{"secret": "`+secret+`","response":"`+tokenResponse+`"}`),
+		bytes.NewReader(body),
 	)
 	if err != nil {
 		return nil, fmt.Errorf("failed to create turnstile request: %w", err)
