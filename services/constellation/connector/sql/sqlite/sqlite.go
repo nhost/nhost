@@ -62,7 +62,7 @@ func registerSQLiteDriver() {
 						"PRAGMA case_sensitive_like=ON",
 						"PRAGMA journal_mode=WAL",
 					} {
-						if _, err := conn.Exec(pragma, nil); err != nil {
+						if err := execConnectionPragma(conn, pragma); err != nil {
 							return fmt.Errorf(
 								"running sqlite connection pragma %q: %w",
 								pragma,
