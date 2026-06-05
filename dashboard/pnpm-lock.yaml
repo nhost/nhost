@@ -145,9 +145,6 @@ importers:
       '@mui/system':
         specifier: ^5.15.15
         version: 5.15.15(@emotion/react@11.11.4(@types/react@19.2.8)(react@19.2.3))(@emotion/styled@11.11.5(@emotion/react@11.11.4(@types/react@19.2.8)(react@19.2.3))(@types/react@19.2.8)(react@19.2.3))(@types/react@19.2.8)(react@19.2.3)
-      '@mui/x-date-pickers':
-        specifier: ^5.0.20
-        version: 5.0.20(@emotion/react@11.11.4(@types/react@19.2.8)(react@19.2.3))(@emotion/styled@11.11.5(@emotion/react@11.11.4(@types/react@19.2.8)(react@19.2.3))(@types/react@19.2.8)(react@19.2.3))(@mui/material@5.15.19(@emotion/react@11.11.4(@types/react@19.2.8)(react@19.2.3))(@emotion/styled@11.11.5(@emotion/react@11.11.4(@types/react@19.2.8)(react@19.2.3))(@types/react@19.2.8)(react@19.2.3))(@types/react@19.2.8)(react-dom@19.2.3(react@19.2.3))(react@19.2.3))(@mui/system@5.15.15(@emotion/react@11.11.4(@types/react@19.2.8)(react@19.2.3))(@emotion/styled@11.11.5(@emotion/react@11.11.4(@types/react@19.2.8)(react@19.2.3))(@types/react@19.2.8)(react@19.2.3))(@types/react@19.2.8)(react@19.2.3))(@types/react@19.2.8)(date-fns@2.30.0)(react-dom@19.2.3(react@19.2.3))(react@19.2.3)
       '@nhost/nhost-js':
         specifier: workspace:^
         version: link:../packages/nhost-js
@@ -908,41 +905,6 @@ packages:
 
   '@date-fns/tz@1.2.0':
     resolution: {integrity: sha512-LBrd7MiJZ9McsOgxqWX7AaxrDjcFVjWH/tIKJd7pnR7McaslGYOP1QmmiBXdJH/H/yLCT+rcQ7FaPBUxRGUtrg==}
-
-  '@date-io/core@2.17.0':
-    resolution: {integrity: sha512-+EQE8xZhRM/hsY0CDTVyayMDDY5ihc4MqXCrPxooKw19yAzUIC6uUqsZeaOFNL9YKTNxYKrJP5DFgE8o5xRCOw==}
-
-  '@date-io/date-fns@2.17.0':
-    resolution: {integrity: sha512-L0hWZ/mTpy3Gx/xXJ5tq5CzHo0L7ry6KEO9/w/JWiFWFLZgiNVo3ex92gOl3zmzjHqY/3Ev+5sehAr8UnGLEng==}
-    peerDependencies:
-      date-fns: ^2.0.0
-    peerDependenciesMeta:
-      date-fns:
-        optional: true
-
-  '@date-io/dayjs@2.17.0':
-    resolution: {integrity: sha512-Iq1wjY5XzBh0lheFA0it6Dsyv94e8mTiNR8vuTai+KopxDkreL3YjwTmZHxkgB7/vd0RMIACStzVgWvPATnDCA==}
-    peerDependencies:
-      dayjs: ^1.8.17
-    peerDependenciesMeta:
-      dayjs:
-        optional: true
-
-  '@date-io/luxon@2.17.0':
-    resolution: {integrity: sha512-l712Vdm/uTddD2XWt9TlQloZUiTiRQtY5TCOG45MQ/8u0tu8M17BD6QYHar/3OrnkGybALAMPzCy1r5D7+0HBg==}
-    peerDependencies:
-      luxon: ^1.21.3 || ^2.x || ^3.x
-    peerDependenciesMeta:
-      luxon:
-        optional: true
-
-  '@date-io/moment@2.17.0':
-    resolution: {integrity: sha512-e4nb4CDZU4k0WRVhz1Wvl7d+hFsedObSauDHKtZwU9kt7gdYEAzKgnrSCTHsEaXrDumdrkCYTeZ0Tmyk7uV4tw==}
-    peerDependencies:
-      moment: ^2.24.0
-    peerDependenciesMeta:
-      moment:
-        optional: true
 
   '@emnapi/core@1.10.0':
     resolution: {integrity: sha512-yq6OkJ4p82CAfPl0u9mQebQHKPJkY7WrIuk205cTYnYe+k2Z8YBh11FrbRG/H6ihirqcacOgl2BIO8oyMQLeXw==}
@@ -2047,34 +2009,6 @@ packages:
       react: ^17.0.0 || ^18.0.0
     peerDependenciesMeta:
       '@types/react':
-        optional: true
-
-  '@mui/x-date-pickers@5.0.20':
-    resolution: {integrity: sha512-ERukSeHIoNLbI1C2XRhF9wRhqfsr+Q4B1SAw2ZlU7CWgcG8UBOxgqRKDEOVAIoSWL+DWT6GRuQjOKvj6UXZceA==}
-    engines: {node: '>=12.0.0'}
-    peerDependencies:
-      '@emotion/react': ^11.9.0
-      '@emotion/styled': ^11.8.1
-      '@mui/material': ^5.4.1
-      '@mui/system': ^5.4.1
-      date-fns: ^2.25.0
-      dayjs: ^1.10.7
-      luxon: ^1.28.0 || ^2.0.0 || ^3.0.0
-      moment: ^2.29.1
-      react: ^17.0.2 || ^18.0.0
-      react-dom: ^17.0.2 || ^18.0.0
-    peerDependenciesMeta:
-      '@emotion/react':
-        optional: true
-      '@emotion/styled':
-        optional: true
-      date-fns:
-        optional: true
-      dayjs:
-        optional: true
-      luxon:
-        optional: true
-      moment:
         optional: true
 
   '@n1ru4l/push-pull-async-iterable-iterator@3.2.0':
@@ -5876,11 +5810,6 @@ packages:
   rfdc@1.4.1:
     resolution: {integrity: sha512-q1b3N5QkRUWUl7iyylaaj3kOpIT0N2i9MqIEQXP73GVsN9cw3fdx8X63cEmWhJGi2PPCF23Ijp7ktmd39rawIA==}
 
-  rifm@0.12.1:
-    resolution: {integrity: sha512-OGA1Bitg/dSJtI/c4dh90svzaUPt228kzFsUkJbtA2c964IqEAwWXeL9ZJi86xWv3j5SMqRvGULl7bA6cK0Bvg==}
-    peerDependencies:
-      react: '>=16.8'
-
   rolldown@1.0.3:
     resolution: {integrity: sha512-i00lAJ2ks1BYr7rjNjKC7BcqAS7nVfiT3QX1SI5aY+AFHblCmaUf9OE9dbdzDvW6dJxbi2ZCZiy9v3CcwOiX3g==}
     engines: {node: ^20.19.0 || >=22.12.0}
@@ -7204,26 +7133,6 @@ snapshots:
 
   '@date-fns/tz@1.2.0': {}
 
-  '@date-io/core@2.17.0': {}
-
-  '@date-io/date-fns@2.17.0(date-fns@2.30.0)':
-    dependencies:
-      '@date-io/core': 2.17.0
-    optionalDependencies:
-      date-fns: 2.30.0
-
-  '@date-io/dayjs@2.17.0':
-    dependencies:
-      '@date-io/core': 2.17.0
-
-  '@date-io/luxon@2.17.0':
-    dependencies:
-      '@date-io/core': 2.17.0
-
-  '@date-io/moment@2.17.0':
-    dependencies:
-      '@date-io/core': 2.17.0
-
   '@emnapi/core@1.10.0':
     dependencies:
       '@emnapi/wasi-threads': 1.2.1
@@ -8529,31 +8438,6 @@ snapshots:
       react-is: 18.2.0
     optionalDependencies:
       '@types/react': 19.2.8
-
-  '@mui/x-date-pickers@5.0.20(@emotion/react@11.11.4(@types/react@19.2.8)(react@19.2.3))(@emotion/styled@11.11.5(@emotion/react@11.11.4(@types/react@19.2.8)(react@19.2.3))(@types/react@19.2.8)(react@19.2.3))(@mui/material@5.15.19(@emotion/react@11.11.4(@types/react@19.2.8)(react@19.2.3))(@emotion/styled@11.11.5(@emotion/react@11.11.4(@types/react@19.2.8)(react@19.2.3))(@types/react@19.2.8)(react@19.2.3))(@types/react@19.2.8)(react-dom@19.2.3(react@19.2.3))(react@19.2.3))(@mui/system@5.15.15(@emotion/react@11.11.4(@types/react@19.2.8)(react@19.2.3))(@emotion/styled@11.11.5(@emotion/react@11.11.4(@types/react@19.2.8)(react@19.2.3))(@types/react@19.2.8)(react@19.2.3))(@types/react@19.2.8)(react@19.2.3))(@types/react@19.2.8)(date-fns@2.30.0)(react-dom@19.2.3(react@19.2.3))(react@19.2.3)':
-    dependencies:
-      '@babel/runtime': 7.28.6
-      '@date-io/core': 2.17.0
-      '@date-io/date-fns': 2.17.0(date-fns@2.30.0)
-      '@date-io/dayjs': 2.17.0
-      '@date-io/luxon': 2.17.0
-      '@date-io/moment': 2.17.0
-      '@mui/material': 5.15.19(@emotion/react@11.11.4(@types/react@19.2.8)(react@19.2.3))(@emotion/styled@11.11.5(@emotion/react@11.11.4(@types/react@19.2.8)(react@19.2.3))(@types/react@19.2.8)(react@19.2.3))(@types/react@19.2.8)(react-dom@19.2.3(react@19.2.3))(react@19.2.3)
-      '@mui/system': 5.15.15(@emotion/react@11.11.4(@types/react@19.2.8)(react@19.2.3))(@emotion/styled@11.11.5(@emotion/react@11.11.4(@types/react@19.2.8)(react@19.2.3))(@types/react@19.2.8)(react@19.2.3))(@types/react@19.2.8)(react@19.2.3)
-      '@mui/utils': 5.15.14(@types/react@19.2.8)(react@19.2.3)
-      '@types/react-transition-group': 4.4.10
-      clsx: 1.2.1
-      prop-types: 15.8.1
-      react: 19.2.3
-      react-dom: 19.2.3(react@19.2.3)
-      react-transition-group: 4.4.5(react-dom@19.2.3(react@19.2.3))(react@19.2.3)
-      rifm: 0.12.1(react@19.2.3)
-    optionalDependencies:
-      '@emotion/react': 11.11.4(@types/react@19.2.8)(react@19.2.3)
-      '@emotion/styled': 11.11.5(@emotion/react@11.11.4(@types/react@19.2.8)(react@19.2.3))(@types/react@19.2.8)(react@19.2.3)
-      date-fns: 2.30.0
-    transitivePeerDependencies:
-      - '@types/react'
 
   '@n1ru4l/push-pull-async-iterable-iterator@3.2.0': {}
 
@@ -12374,10 +12258,6 @@ snapshots:
   reusify@1.0.4: {}
 
   rfdc@1.4.1: {}
-
-  rifm@0.12.1(react@19.2.3):
-    dependencies:
-      react: 19.2.3
 
   rolldown@1.0.3:
     dependencies:

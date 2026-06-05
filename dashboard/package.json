@@ -50,7 +50,6 @@
     "@mui/base": "5.0.0-beta.31",
     "@mui/material": "^5.15.19",
     "@mui/system": "^5.15.15",
-    "@mui/x-date-pickers": "^5.0.20",
     "@nhost/nhost-js": "workspace:^",
     "@radix-ui/react-accordion": "^1.2.2",
     "@radix-ui/react-alert-dialog": "^1.1.3",

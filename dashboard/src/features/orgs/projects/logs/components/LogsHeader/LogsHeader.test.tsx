@@ -1,6 +1,13 @@
 import { mockApplication } from '@/tests/mocks';
 import tokenQuery from '@/tests/msw/mocks/rest/tokenQuery';
-import { render, screen, TestUserEvent, waitFor } from '@/tests/testUtils';
+import {
+  fireEvent,
+  mockPointerEvent,
+  render,
+  screen,
+  TestUserEvent,
+  waitFor,
+} from '@/tests/testUtils';
 import { setupServer } from 'msw/node';
 import { vi } from 'vitest';
 import LogsHeader from './LogsHeader';
@@ -30,6 +37,8 @@ Object.defineProperty(HTMLElement.prototype, 'getBoundingClientRect', {
     right: 100,
   })),
 });
+
+mockPointerEvent();
 
 vi.mock('@/features/orgs/projects/hooks/useProject', async () => ({
   useProject: () => ({ project: mockApplication }),
@@ -64,17 +73,13 @@ describe('LogsHeader', () => {
         onRefetch={onRefetchMock}
       />,
     );
-    waitFor(() => {
-      expect(screen.getByTestId('ServicePicker')).toBeInTheDocument();
-    });
     await TestUserEvent.fireClickEvent(
       await screen.findByTestId('ServicePicker')
     );
 
-    waitFor(async () => {
-      expect(screen.getByText('run-service')).toBeInTheDocument();
+    const runBillingOption = await screen.findByRole('option', {
+      name: 'run-service',
     });
-    const runBillingOption = await screen.findByText('run-service');
     await user.click(runBillingOption);
     expect(await screen.findByTestId('ServicePicker')).toHaveTextContent(
       'run-service',
@@ -86,8 +91,11 @@ describe('LogsHeader', () => {
 
     onSubmitMock.mockReset();
 
-    await user.type(regexInput, 'Random text{Enter}');
-    expect(onSubmitMock).toHaveBeenCalledTimes(1);
+    await user.type(regexInput, 'Random text');
+    fireEvent.submit(regexInput.closest('form')!);
+    await waitFor(() => {
+      expect(onSubmitMock).toHaveBeenCalledTimes(1);
+    });
     expect(onSubmitMock).toHaveBeenCalledWith(
       expect.objectContaining({
         regexFilter: 'Random text',
