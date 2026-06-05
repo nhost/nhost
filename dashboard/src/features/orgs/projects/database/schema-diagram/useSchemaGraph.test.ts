@@ -1448,7 +1448,7 @@ describe('useSchemaGraph', () => {
       return node;
     }
 
-    it('renders a function node and a dashed edge to the table it returns SETOF', () => {
+    it('renders a function node and an edge to the table it returns SETOF', () => {
       const { result } = renderWithFunction();
 
       const fnNode = findFunctionNode(result.current.nodes);
@@ -1461,8 +1461,10 @@ describe('useSchemaGraph', () => {
       expect(fnEdge?.target).toBe(nodeIdFor('public', 'users'));
       expect(fnEdge?.sourceHandle).toBe(FUNCTION_SOURCE_HANDLE_ID);
       expect(fnEdge?.targetHandle).toBe(TABLE_ROW_HANDLE_ID);
-      expect(fnEdge?.markerEnd).toBe(EDGE_MARKER_IDS.arrowFilled);
-      expect(fnEdge?.style?.strokeDasharray).toBeDefined();
+      // Distinct double-chevron marker, and a solid line (no dash) so it is not
+      // confused with a selected/animated edge.
+      expect(fnEdge?.markerEnd).toBe(EDGE_MARKER_IDS.functionArrow);
+      expect(fnEdge?.style?.strokeDasharray).toBeUndefined();
     });
 
     it('does not add a node for functions that do not return a set', () => {

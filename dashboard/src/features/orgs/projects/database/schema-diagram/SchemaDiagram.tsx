@@ -117,6 +117,25 @@ function EdgeMarkers({ idSuffix, color }: { idSuffix: string; color: string }) {
           strokeWidth={1.5}
         />
       </marker>
+      <marker
+        id={`${EDGE_MARKER_IDS.functionArrow}${idSuffix}`}
+        viewBox="0 0 14 12"
+        refX="11"
+        refY="6"
+        markerWidth="12"
+        markerHeight="10"
+        orient="auto-start-reverse"
+        markerUnits="userSpaceOnUse"
+      >
+        <path
+          d="M1,1 L6,6 L1,11 M6,1 L11,6 L6,11"
+          fill="none"
+          stroke={color}
+          strokeWidth={1.6}
+          strokeLinejoin="round"
+          strokeLinecap="round"
+        />
+      </marker>
     </>
   );
 }

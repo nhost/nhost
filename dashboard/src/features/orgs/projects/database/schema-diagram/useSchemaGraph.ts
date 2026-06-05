@@ -125,6 +125,7 @@ export const EDGE_MARKER_IDS = {
   arrowFilled: 'schema-diagram-arrow-filled',
   arrowHollow: 'schema-diagram-arrow-hollow',
   circleHollow: 'schema-diagram-circle-hollow',
+  functionArrow: 'schema-diagram-function-arrow',
 } as const;
 
 function edgeKey(
@@ -171,9 +172,10 @@ function specToEdge(spec: EdgeSpec): Edge {
 }
 
 /**
- * Builds the dashed edge linking a set-returning function node to the table it
- * returns rows of. A filled arrow head mirrors an array relationship (the
- * function yields many rows of the table).
+ * Builds the edge linking a set-returning function node to the table it returns
+ * rows of. A distinct double-chevron arrow head sets it apart from foreign-key
+ * relationship edges (single filled/hollow arrows). It stays a solid line so it
+ * never reads as a selected edge — selection animates edges into dashes.
  */
 function functionEdge(fnNodeId: string, returnNodeId: string): Edge {
   const data: FunctionEdgeData = { isFunctionEdge: true };
@@ -185,8 +187,7 @@ function functionEdge(fnNodeId: string, returnNodeId: string): Edge {
     targetHandle: TABLE_ROW_HANDLE_ID,
     type: 'smart',
     data,
-    markerEnd: EDGE_MARKER_IDS.arrowFilled,
-    style: { strokeDasharray: '5 4' },
+    markerEnd: EDGE_MARKER_IDS.functionArrow,
   };
 }
 

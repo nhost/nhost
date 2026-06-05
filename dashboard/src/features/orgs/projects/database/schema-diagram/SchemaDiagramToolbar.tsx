@@ -374,19 +374,22 @@ export default function SchemaDiagramToolbar({
                       <line
                         x1="2"
                         y1="8"
-                        x2="44"
+                        x2="42"
                         y2="8"
                         stroke="rgb(148, 163, 184)"
                         strokeWidth="1.5"
-                        strokeDasharray="5 4"
                       />
                       <path
-                        d="M44,3 L54,8 L44,13 z"
-                        fill="rgb(148, 163, 184)"
+                        d="M42,3 L47,8 L42,13 M47,3 L52,8 L47,13"
+                        fill="none"
+                        stroke="rgb(148, 163, 184)"
+                        strokeWidth="1.5"
+                        strokeLinejoin="round"
+                        strokeLinecap="round"
                       />
                     </svg>
                     <span>
-                      <span className="text-foreground">Dashed arrow</span> —
+                      <span className="text-foreground">Double arrow</span> —
                       points to the table the function returns rows of
                     </span>
                   </li>
