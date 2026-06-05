@@ -33,6 +33,8 @@ on:
         required: true
       DISCORD_WEBHOOK:
         required: false
+      TURBO_TOKEN:
+        required: false
       DOCKER_USERNAME:
         required: true
       DOCKER_PASSWORD:
