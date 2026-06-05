@@ -294,6 +294,11 @@ func dbRelationshipSpec(
 ) (relationships.RelationshipSpec, bool) {
 	if rel.Definition.ToSource != nil {
 		toSource := rel.Definition.ToSource
+		if toSource.RelationshipType != metadata.RelationshipTypeObject &&
+			toSource.RelationshipType != metadata.RelationshipTypeArray {
+			return relationships.RelationshipSpec{}, false //nolint:exhaustruct
+		}
+
 		isArray := toSource.RelationshipType == metadata.RelationshipTypeArray
 
 		return relationships.RelationshipSpec{
@@ -364,6 +369,10 @@ func rsRelationshipSpec(
 	}
 
 	toSource := rel.Definition.ToSource
+	if toSource.RelationshipType != metadata.RelationshipTypeObject &&
+		toSource.RelationshipType != metadata.RelationshipTypeArray {
+		return relationships.RelationshipSpec{}, false //nolint:exhaustruct
+	}
 
 	return relationships.RelationshipSpec{
 		SourceConnector:   rsName,

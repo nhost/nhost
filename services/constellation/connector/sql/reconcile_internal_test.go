@@ -512,6 +512,63 @@ func TestReconcileMetadata_DropsRelationshipsWithMissingTarget(t *testing.T) {
 		"public.users.ghost_orders", "not tracked")
 }
 
+func TestReconcileMetadata_DropsInvalidRemoteRelationshipType(t *testing.T) {
+	t.Parallel()
+
+	dbMeta := &metadata.DatabaseMetadata{ //nolint:exhaustruct
+		Name: "default",
+		Tables: []metadata.TableMetadata{ //nolint:exhaustruct
+			{
+				Table: metadata.TableSource{Schema: "public", Name: "users"},
+				RemoteRelationships: []metadata.RemoteRelationship{
+					{
+						Name: "bad_remote",
+						Definition: metadata.RemoteRelationshipDef{ //nolint:exhaustruct
+							ToSource: &metadata.ToSourceRelationship{
+								FieldMapping:     map[string]string{"id": "id"},
+								RelationshipType: "typo",
+								Source:           "other",
+								Table: metadata.TableSource{
+									Schema: "public",
+									Name:   "users",
+								},
+							},
+						},
+					},
+					{
+						Name: "good_remote",
+						Definition: metadata.RemoteRelationshipDef{ //nolint:exhaustruct
+							ToSource: &metadata.ToSourceRelationship{
+								FieldMapping:     map[string]string{"id": "id"},
+								RelationshipType: metadata.RelationshipTypeArray,
+								Source:           "other",
+								Table: metadata.TableSource{
+									Schema: "public",
+									Name:   "users",
+								},
+							},
+						},
+					},
+				},
+			},
+		},
+	}
+
+	inc := metadata.NewInconsistencies()
+	out := reconcileMetadata(t.Context(), nil, inc, dbMeta, makeObjects())
+
+	if got := len(out.Tables[0].RemoteRelationships); got != 1 {
+		t.Fatalf("surviving remote relationships = %d, want 1", got)
+	}
+
+	if got := out.Tables[0].RemoteRelationships[0].Name; got != "good_remote" {
+		t.Fatalf("surviving remote relationship = %q, want good_remote", got)
+	}
+
+	mustHaveInconsistency(t, inc, metadata.InconsistencyKindRelationship,
+		"public.users.bad_remote", "invalid to_source relationship_type")
+}
+
 // TestReconcileMetadata_KeepsCrossSourceRelationships verifies cross-source
 // relationships (ManualConfiguration.Source pointing elsewhere) are not
 // dropped: the composer handles those independently.
