@@ -1235,6 +1235,53 @@ enum users_select_column {
   currentChallenge
 }
 """
+unique or primary key constraints on table "artists"
+"""
+enum artists_constraint {
+  """
+  unique or primary key constraint on columns "id"
+  """
+  artists_pkey
+  """
+  unique or primary key constraint on columns "id"
+  """
+  sqlite_autoindex_artists_1
+}
+"""
+update columns of table "artists"
+"""
+enum artists_update_column {
+  """
+  column name
+  """
+  id
+  """
+  column name
+  """
+  stage_name
+  """
+  column name
+  """
+  created_by
+}
+"""
+select columns of table "artists"
+"""
+enum artists_select_column {
+  """
+  column name
+  """
+  id
+  """
+  column name
+  """
+  stage_name
+  """
+  column name
+  """
+  created_by
+}
+"""
 select columns of table "content_feed"
 """
 enum contentFeed_select_column {
@@ -4012,6 +4059,58 @@ type users_mutation_response {
   returning: [users!]!
 }
 """
+columns and relationships of "artists"
+"""
+type artists {
+  id: uuid!
+  stage_name: String!
+  created_by: uuid!
+}
+"""
+aggregated selection of "artists"
+"""
+type artists_aggregate {
+  aggregate: artists_aggregate_fields
+  nodes: [artists!]!
+}
+"""
+aggregate max on columns
+"""
+type artists_max_fields {
+  id: uuid
+  stage_name: String
+  created_by: uuid
+}
+"""
+aggregate min on columns
+"""
+type artists_min_fields {
+  id: uuid
+  stage_name: String
+  created_by: uuid
+}
+"""
+aggregate fields of "artists"
+"""
+type artists_aggregate_fields {
+  count(columns: [artists_select_column!], distinct: Boolean): Int!
+  max: artists_max_fields
+  min: artists_min_fields
+}
+"""
+response of any mutation on the table "artists"
+"""
+type artists_mutation_response {
+  """
+  number of rows affected by the mutation
+  """
+  affected_rows: Int!
+  """
+  data from the rows affected by the mutation
+  """
+  returning: [artists!]!
+}
+"""
 columns and relationships of "content_feed"
 """
 type contentFeed {
@@ -6135,6 +6234,58 @@ type query_root {
     where: users_bool_exp
   ): users_aggregate!
   """
+  fetch data from the table: "artists"
+  """
+  artists(
+    """
+    limit the number of rows returned
+    """
+    limit: Int
+
+    """
+    skip the first n rows. Use only with order_by
+    """
+    offset: Int
+
+    """
+    sort the rows by one or more columns
+    """
+    order_by: [artists_order_by!]
+
+    """
+    filter the rows returned
+    """
+    where: artists_bool_exp
+  ): [artists!]!
+  """
+  fetch data from the table: "artists" using primary key columns
+  """
+  artists_by_pk(id: uuid!): artists
+  """
+  fetch aggregated fields from the table: "artists"
+  """
+  artists_aggregate(
+    """
+    limit the number of rows returned
+    """
+    limit: Int
+
+    """
+    skip the first n rows. Use only with order_by
+    """
+    offset: Int
+
+    """
+    sort the rows by one or more columns
+    """
+    order_by: [artists_order_by!]
+
+    """
+    filter the rows returned
+    """
+    where: artists_bool_exp
+  ): artists_aggregate!
+  """
   fetch data from the table: "content_feed"
   """
   contentFeed(
@@ -7974,6 +8125,79 @@ type mutation_root {
     """
     updates: [users_updates!]!
   ): [users_mutation_response]
+  """
+  delete single row from the table: "artists"
+  """
+  delete_artists_by_pk(id: uuid!): artists
+  """
+  delete data from the table: "artists"
+  """
+  delete_artists(
+    """
+    filter the rows which have to be deleted
+    """
+    where: artists_bool_exp!
+  ): artists_mutation_response
+  """
+  insert a single row into the table: "artists"
+  """
+  insert_artists_one(
+    """
+    the row to be inserted
+    """
+    object: artists_insert_input!
+
+    """
+    upsert condition
+    """
+    on_conflict: artists_on_conflict
+  ): artists
+  """
+  insert data into the table: "artists"
+  """
+  insert_artists(
+    """
+    the rows to be inserted
+    """
+    objects: [artists_insert_input!]!
+
+    """
+    upsert condition
+    """
+    on_conflict: artists_on_conflict
+  ): artists_mutation_response
+  """
+  update single row of the table: "artists"
+  """
+  update_artists_by_pk(
+    """
+    sets the columns of the filtered rows to the given values
+    """
+    _set: artists_set_input
+  pk_columns: artists_pk_columns_input!): artists
+  """
+  update data of the table: "artists"
+  """
+  update_artists(
+    """
+    sets the columns of the filtered rows to the given values
+    """
+    _set: artists_set_input
+
+    """
+    filter the rows which have to be updated
+    """
+    where: artists_bool_exp!
+  ): artists_mutation_response
+  """
+  update multiples rows of table: "artists"
+  """
+  update_artists_many(
+    """
+    updates to execute, in order
+    """
+    updates: [artists_updates!]!
+  ): [artists_mutation_response]
   """
   delete single row from the table: "department_files"
   """
@@ -10044,6 +10268,77 @@ type subscription_root {
     """
     where: users_bool_exp
   ): [users!]!
+  """
+  fetch data from the table: "artists"
+  """
+  artists(
+    """
+    limit the number of rows returned
+    """
+    limit: Int
+
+    """
+    skip the first n rows. Use only with order_by
+    """
+    offset: Int
+
+    """
+    sort the rows by one or more columns
+    """
+    order_by: [artists_order_by!]
+
+    """
+    filter the rows returned
+    """
+    where: artists_bool_exp
+  ): [artists!]!
+  """
+  fetch data from the table: "artists" using primary key columns
+  """
+  artists_by_pk(id: uuid!): artists
+  """
+  fetch aggregated fields from the table: "artists"
+  """
+  artists_aggregate(
+    """
+    limit the number of rows returned
+    """
+    limit: Int
+
+    """
+    skip the first n rows. Use only with order_by
+    """
+    offset: Int
+
+    """
+    sort the rows by one or more columns
+    """
+    order_by: [artists_order_by!]
+
+    """
+    filter the rows returned
+    """
+    where: artists_bool_exp
+  ): artists_aggregate!
+  """
+  fetch data from the table in a streaming manner: "artists"
+  """
+  artists_stream(
+    """
+    maximum number of rows returned in a single batch
+    """
+    batch_size: Int!
+
+    """
+    cursor to stream the results returned by the query
+    """
+    cursor: [artists_stream_cursor_input]!
+
+    """
+    filter the rows returned
+    """
+    where: artists_bool_exp
+  ): [artists!]!
   """
   fetch data from the table: "content_feed"
   """
@@ -13309,6 +13604,86 @@ input users_arr_rel_insert_input {
   upsert condition
   """
   on_conflict: users_on_conflict
+}
+"""
+Boolean expression to filter rows from the table "artists". All fields are combined with a logical 'AND'.
+"""
+input artists_bool_exp {
+  _and: [artists_bool_exp!]
+  _not: artists_bool_exp
+  _or: [artists_bool_exp!]
+  id: uuid_sqlite_comparison_exp
+  stage_name: String_sqlite_comparison_exp
+  created_by: uuid_sqlite_comparison_exp
+}
+"""
+Ordering options when selecting data from "artists".
+"""
+input artists_order_by {
+  id: order_by
+  stage_name: order_by
+  created_by: order_by
+}
+"""
+Initial value of the column from where the streaming should start
+"""
+input artists_stream_cursor_value_input {
+  id: uuid
+  stage_name: String
+  created_by: uuid
+}
+"""
+Streaming cursor of the table "artists"
+"""
+input artists_stream_cursor_input {
+  """
+  Stream column input with initial value
+  """
+  initial_value: artists_stream_cursor_value_input!
+  """
+  cursor ordering
+  """
+  ordering: cursor_ordering
+}
+"""
+input type for inserting data into table "artists"
+"""
+input artists_insert_input {
+  id: uuid
+  stage_name: String
+  created_by: uuid
+}
+"""
+on_conflict condition type for table "artists"
+"""
+input artists_on_conflict {
+  constraint: artists_constraint!
+  update_columns: [artists_update_column!]! = []
+  where: artists_bool_exp
+}
+"""
+primary key columns input for table: artists
+"""
+input artists_pk_columns_input {
+  id: uuid!
+}
+"""
+input type for updating data in table "artists"
+"""
+input artists_set_input {
+  id: uuid
+  stage_name: String
+  created_by: uuid
+}
+input artists_updates {
+  """
+  sets the columns of the filtered rows to the given values
+  """
+  _set: artists_set_input
+  """
+  filter the rows which have to be updated
+  """
+  where: artists_bool_exp!
 }
 """
 Boolean expression to filter rows from the table "content_feed". All fields are combined with a logical 'AND'.

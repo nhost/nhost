@@ -176,7 +176,10 @@ func (t *table) initializeRootNames(md metadata.TableMetadata) {
 		return b
 	}
 
-	customTableName := orFn(md.Configuration.CustomName, md.Table.Name)
+	customTableName := orFn(
+		md.Configuration.CustomName,
+		defaultGraphQLTableName(md.Table.Schema, md.Table.Name),
+	)
 
 	t.graphqlTypeName = customTableName
 	t.queryCollectionName = orFn(md.Configuration.CustomRootFields.Select, customTableName)
@@ -214,6 +217,14 @@ func (t *table) initializeRootNames(md metadata.TableMetadata) {
 		md.Configuration.CustomRootFields.DeleteByPk,
 		"delete_"+customTableName+"_by_pk",
 	)
+}
+
+func defaultGraphQLTableName(schemaName, tableName string) string {
+	if schemaName == "" || schemaName == "public" {
+		return tableName
+	}
+
+	return schemaName + "_" + tableName
 }
 
 func (t *table) initializeRelationships(
