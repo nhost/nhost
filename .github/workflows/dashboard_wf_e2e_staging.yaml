@@ -140,12 +140,36 @@ jobs:
           NIX_CACHE_SECRET_ACCESS_KEY: ${{ secrets.NIX_CACHE_SECRET_ACCESS_KEY }}
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
+      - name: "Verify if we need to run e2e ${{ matrix.suite }} tests"
+        id: verify-e2e
+        shell: bash
+        run: |
+          set -euo pipefail
+
+          stderr_log="$(mktemp)"
+          if ! nix build --dry-run ".#${{ matrix.nix-attr }}" 2>"$stderr_log"; then
+            cat "$stderr_log" >&2
+            rm -f "$stderr_log"
+            exit 1
+          fi
+
+          if grep -q "will be built" "$stderr_log"; then
+            build_needed=yes
+          else
+            build_needed=no
+          fi
+          rm -f "$stderr_log"
+
+          echo "BUILD_NEEDED=$build_needed" >> "$GITHUB_OUTPUT"
+          echo "E2E build needed: $build_needed"
+
       - name: Start CLI
-        if: matrix.needs-cli
+        if: ${{ matrix.needs-cli && steps.verify-e2e.outputs.BUILD_NEEDED == 'yes' }}
         run: |
           nix develop .\#dashboard -c make dev-env-cli-up
 
       - name: Run e2e ${{ matrix.suite }} tests
+        if: ${{ steps.verify-e2e.outputs.BUILD_NEEDED == 'yes' }}
         shell: bash
         run: |
           set -euo pipefail
@@ -219,6 +243,7 @@ jobs:
 
       - name: Store Nix cache
         uses: ./.github/actions/cache-nix
+        if: ${{ always() && steps.verify-e2e.outputs.BUILD_NEEDED == 'yes' }}
         with:
           NIX_CACHE_PRIV_KEY: ${{ secrets.NIX_CACHE_PRIV_KEY }}
           NIX_CACHE_ACCESS_KEY_ID: ${{ secrets.NIX_CACHE_ACCESS_KEY_ID }}
