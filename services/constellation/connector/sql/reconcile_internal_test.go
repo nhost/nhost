@@ -227,6 +227,98 @@ func TestReconcileMetadata_DropsMissingColumns(t *testing.T) {
 	}
 }
 
+func TestReconcileMetadata_ExpandsPermissionAllColumnsShorthand(t *testing.T) {
+	t.Parallel()
+
+	dbMeta := &metadata.DatabaseMetadata{ //nolint:exhaustruct
+		Name: "default",
+		Tables: []metadata.TableMetadata{ //nolint:exhaustruct
+			{
+				Table: metadata.TableSource{Schema: "public", Name: "users"},
+				SelectPermissions: []metadata.SelectPermission{
+					{
+						Role: "user",
+						Permission: metadata.SelectPermissionConfig{ //nolint:exhaustruct
+							Columns: []string{permissionAllColumns},
+						},
+					},
+				},
+				InsertPermissions: []metadata.InsertPermission{
+					{
+						Role: "user",
+						Permission: metadata.InsertPermissionConfig{ //nolint:exhaustruct
+							Columns: []string{permissionAllColumns},
+						},
+					},
+				},
+				UpdatePermissions: []metadata.UpdatePermission{
+					{
+						Role: "user",
+						Permission: metadata.UpdatePermissionConfig{ //nolint:exhaustruct
+							Columns: []string{permissionAllColumns},
+						},
+					},
+				},
+			},
+		},
+	}
+
+	inc := metadata.NewInconsistencies()
+	out := reconcileMetadata(t.Context(), nil, inc, dbMeta, makeObjects())
+
+	permissions := []struct {
+		name string
+		got  []string
+	}{
+		{
+			name: "select_permission.columns",
+			got:  out.Tables[0].SelectPermissions[0].Permission.Columns,
+		},
+		{
+			name: "insert_permission.columns",
+			got:  out.Tables[0].InsertPermissions[0].Permission.Columns,
+		},
+		{
+			name: "update_permission.columns",
+			got:  out.Tables[0].UpdatePermissions[0].Permission.Columns,
+		},
+	}
+
+	for _, p := range permissions {
+		if !slices.Equal(p.got, []string{"id", "name"}) {
+			t.Fatalf("%s = %v, want [id name]", p.name, p.got)
+		}
+	}
+
+	if inc.Len() != 0 {
+		t.Fatalf("expected no inconsistencies, got %+v", inc.Snapshot())
+	}
+
+	inputColumns := []struct {
+		name string
+		got  []string
+	}{
+		{
+			name: "select_permission.columns",
+			got:  dbMeta.Tables[0].SelectPermissions[0].Permission.Columns,
+		},
+		{
+			name: "insert_permission.columns",
+			got:  dbMeta.Tables[0].InsertPermissions[0].Permission.Columns,
+		},
+		{
+			name: "update_permission.columns",
+			got:  dbMeta.Tables[0].UpdatePermissions[0].Permission.Columns,
+		},
+	}
+
+	for _, p := range inputColumns {
+		if !slices.Equal(p.got, []string{permissionAllColumns}) {
+			t.Fatalf("%s input columns mutated to %v", p.name, p.got)
+		}
+	}
+}
+
 // TestReconcileMetadata_DoesNotMutateInput verifies that reconcileMetadata
 // keeps its godoc contract — "returns a filtered copy" — even when filtering
 // rewrites permission column lists / set maps. The slice headers we receive

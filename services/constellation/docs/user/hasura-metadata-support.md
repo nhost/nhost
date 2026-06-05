@@ -148,7 +148,7 @@ parameterized SQL values.
 
 | Field | Status | Notes |
 |---|---|---|
-| `columns` | ✅ | Gates column visibility. |
+| `columns` | ✅ | Gates column visibility. Accepts Hasura's `columns: '*'` all-columns shorthand and explicit column lists. |
 | `filter` | ✅ | Row filter; AND-ed into every `WHERE`. Full Hasura boolean-expression syntax. |
 | `allow_aggregations` | ✅ | Gates the `_aggregate` root field for the role. |
 | `limit` | ⚪ | **Not enforced.** A per-role row `limit` is parsed away and has no effect — enforce row caps another way. |
@@ -160,7 +160,7 @@ parameterized SQL values.
 
 | Field | Status | Notes |
 |---|---|---|
-| `columns` | ✅ | Gates which columns the role may set. |
+| `columns` | ✅ | Gates which columns the role may set. Accepts Hasura's `columns: '*'` all-columns shorthand and explicit column lists. |
 | `check` | ✅ | Per-row boolean check; rows failing it are rejected (all-or-nothing). Evaluated against the input payload by default and switched to a post-INSERT check (against `RETURNING *`) when the predicate references a column whose final value is only known after the row exists — generated columns, identity columns (Postgres `GENERATED AS IDENTITY`, SQLite `INTEGER PRIMARY KEY` rowid alias), or a DB-defaulted column the payload omits. Enforced on Postgres via `RETURNING` + `constellation_throw_error`. |
 | `set` | ✅ | Column presets (incl. session variables) forcibly written on every insert. |
 | `backend_only` | ⚪ | Not honored — the mutation is exposed regardless. |
@@ -170,7 +170,7 @@ parameterized SQL values.
 
 | Field | Status | Notes |
 |---|---|---|
-| `columns` | ✅ | Gates which columns the role may modify. If a role has **no** updatable columns, the update mutations are omitted (see [`KNOWN_DIFFERENCES.md`](../../KNOWN_DIFFERENCES.md)). |
+| `columns` | ✅ | Gates which columns the role may modify. Accepts Hasura's `columns: '*'` all-columns shorthand and explicit column lists. If a role has **no** updatable columns, the update mutations are omitted (see [`KNOWN_DIFFERENCES.md`](../../KNOWN_DIFFERENCES.md)). |
 | `filter` | ✅ | Pre-condition: which rows are visible to update. |
 | `check` | ✅ | Post-condition on the updated row; violations rejected. |
 | `set` | ✅ | Column presets forcibly written on every update. |
