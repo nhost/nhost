@@ -158,7 +158,18 @@ let
         pkgs.lib.optionalAttrs (value != "") {
           "${envVar}_HASH" = builtins.hashString "sha256" value;
         };
-      cacheKeyHashes = impureCacheKeyHash "VERCEL_ORG_ID" // impureCacheKeyHash "VERCEL_PROJECT_ID";
+      impureCacheKeyValue =
+        envVar:
+        let
+          value = builtins.getEnv envVar;
+        in
+        pkgs.lib.optionalAttrs (value != "") {
+          "${envVar}" = value;
+        };
+      cacheKeyHashes =
+        impureCacheKeyHash "VERCEL_ORG_ID"
+        // impureCacheKeyHash "VERCEL_PROJECT_ID"
+        // impureCacheKeyValue "VERCEL_ENVIRONMENT_HASH";
       vercelBuildInputs =
         jsCheckDeps
         ++ (with pkgs; [
@@ -212,6 +223,12 @@ let
           require_impure_hash "$env_var"
         done
 
+        if [ -z "''${VERCEL_ENVIRONMENT_HASH:-}" ]; then
+          echo "ERROR: VERCEL_ENVIRONMENT_HASH derivation attribute is not set"
+          echo "Pull the Vercel environment, hash the resulting .vercel files, and export VERCEL_ENVIRONMENT_HASH before evaluating with --impure."
+          exit 1
+        fi
+
         export HOME=$(mktemp -d)
         export SSL_CERT_FILE=${pkgs.cacert}/etc/ssl/certs/ca-bundle.crt
         export NIX_SSL_CERT_FILE=$SSL_CERT_FILE
@@ -245,6 +262,13 @@ let
 
             echo "➜ Pulling Vercel ${environment} environment for ${name}"
             vercel pull --yes --environment=${environment} --token "$VERCEL_DEPLOY_TOKEN"
+
+            actual_environment_hash=$(find .vercel -type f -print0 | LC_ALL=C sort -z | xargs -0 sha256sum | sha256sum | cut -d ' ' -f 1)
+            if [ "$VERCEL_ENVIRONMENT_HASH" != "$actual_environment_hash" ]; then
+              echo "ERROR: VERCEL_ENVIRONMENT_HASH does not match the pulled Vercel ${environment} environment"
+              echo "Export the hash of the same Vercel environment used by the build derivation."
+              exit 1
+            fi
 
             echo "➜ Building Vercel ${environment} output for ${name}"
             vercel build --yes --target=${environment} --token "$VERCEL_DEPLOY_TOKEN"

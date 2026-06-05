@@ -69,10 +69,29 @@ runs:
           exit 1
         fi
         chmod 640 "$env_file"
+        vercel_environment_hash="$(
+          VERCEL_ORG_ID="$INPUT_VERCEL_TEAM_ID" \
+            VERCEL_PROJECT_ID="$INPUT_VERCEL_PROJECT_ID" \
+            VERCEL_DEPLOY_TOKEN="$INPUT_VERCEL_DEPLOY_TOKEN" \
+            INPUT_ENVIRONMENT="$INPUT_ENVIRONMENT" \
+            nix develop .#vercel -c bash -c '
+              set -euo pipefail
+              tmp_dir="$(mktemp -d)"
+              trap "rm -rf \"$tmp_dir\"" EXIT
+              export HOME="$tmp_dir/home"
+              work_dir="$tmp_dir/work"
+              mkdir -p "$HOME" "$work_dir/.vercel"
+              cd "$work_dir"
+              node -e "const fs = require(\"fs\"); fs.writeFileSync(\".vercel/project.json\", JSON.stringify({ orgId: process.env.VERCEL_ORG_ID, projectId: process.env.VERCEL_PROJECT_ID }, null, 2) + \"\\n\");"
+              vercel pull --yes --environment="$INPUT_ENVIRONMENT" --token "$VERCEL_DEPLOY_TOKEN" >/dev/null
+              find .vercel -type f -print0 | LC_ALL=C sort -z | xargs -0 sha256sum | sha256sum | cut -d " " -f 1
+            '
+        )"
 
         rm -f "$result_link"
         VERCEL_ORG_ID="$INPUT_VERCEL_TEAM_ID" \
           VERCEL_PROJECT_ID="$INPUT_VERCEL_PROJECT_ID" \
+          VERCEL_ENVIRONMENT_HASH="$vercel_environment_hash" \
           nix build \
             --impure \
             --print-build-logs \
