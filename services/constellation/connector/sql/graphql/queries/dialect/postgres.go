@@ -98,12 +98,28 @@ func (d *PostgresDialect) SupportsLateral() bool {
 	return true
 }
 
-func (d *PostgresDialect) ILike() string {
-	return "ILIKE"
+func (d *PostgresDialect) Like() string {
+	return "LIKE"
 }
 
-func (d *PostgresDialect) NotILike() string {
-	return "NOT ILIKE"
+func (d *PostgresDialect) NotLike() string {
+	return "NOT LIKE"
+}
+
+func (d *PostgresDialect) WriteILikeCondition(
+	b *strings.Builder, source, column, placeholder string,
+) {
+	core.WriteQualifiedColumn(b, source, column)
+	b.WriteString(" ILIKE ")
+	b.WriteString(placeholder)
+}
+
+func (d *PostgresDialect) WriteNotILikeCondition(
+	b *strings.Builder, source, column, placeholder string,
+) {
+	core.WriteQualifiedColumn(b, source, column)
+	b.WriteString(" NOT ILIKE ")
+	b.WriteString(placeholder)
 }
 
 func (d *PostgresDialect) SupportsRegex() bool {
