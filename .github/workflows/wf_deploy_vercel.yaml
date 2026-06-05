@@ -40,57 +40,9 @@ on:
         value: ${{ jobs.deploy-vercel.outputs.preview-url }}
 
 jobs:
-  build-vercel:
-    name: Build Vercel output
-    runs-on: blacksmith-2vcpu-ubuntu-2404
-    permissions:
-      id-token: write
-      contents: read
-      actions: read
-
-    steps:
-      - name: Checkout repository
-        uses: actions/checkout@v6
-        with:
-          ref: ${{ inputs.GIT_REF }}
-
-      - name: Configure aws
-        uses: aws-actions/configure-aws-credentials@v6
-        with:
-          role-to-assume: arn:aws:iam::${{ secrets.AWS_ACCOUNT_ID }}:role/github-actions-nhost-${{ github.event.repository.name }}
-          aws-region: eu-central-1
-
-      - name: Setup Nix with Cache
-        uses: ./.github/actions/setup-nix
-        with:
-          NAME: ${{ inputs.NAME }}
-          NIX_CACHE_PUB_KEY: ${{ secrets.NIX_CACHE_PUB_KEY }}
-          NIX_CACHE_ACCESS_KEY_ID: ${{ secrets.NIX_CACHE_ACCESS_KEY_ID }}
-          NIX_CACHE_SECRET_ACCESS_KEY: ${{ secrets.NIX_CACHE_SECRET_ACCESS_KEY }}
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-
-      - name: Build Vercel output
-        uses: ./.github/actions/vercel-build-nix
-        with:
-          NAME: ${{ inputs.NAME }}
-          ENVIRONMENT: ${{ inputs.ENVIRONMENT }}
-          VERCEL_TEAM_ID: ${{ secrets.VERCEL_TEAM_ID }}
-          VERCEL_PROJECT_ID: ${{ secrets.VERCEL_PROJECT_ID }}
-          VERCEL_DEPLOY_TOKEN: ${{ secrets.VERCEL_DEPLOY_TOKEN }}
-          TURBO_TOKEN: ${{ secrets.TURBO_TOKEN }}
-
-      - name: Store Nix cache
-        uses: ./.github/actions/cache-nix
-        with:
-          NIX_CACHE_PRIV_KEY: ${{ secrets.NIX_CACHE_PRIV_KEY }}
-          NIX_CACHE_ACCESS_KEY_ID: ${{ secrets.NIX_CACHE_ACCESS_KEY_ID }}
-          NIX_CACHE_SECRET_ACCESS_KEY: ${{ secrets.NIX_CACHE_SECRET_ACCESS_KEY }}
-
   deploy-vercel:
-    name: Deploy Vercel output
+    name: Build and deploy Vercel output
     runs-on: blacksmith-2vcpu-ubuntu-2404
-    needs:
-      - build-vercel
     outputs:
       preview-url: ${{ steps.deploy.outputs.preview-url }}
     permissions:
@@ -120,7 +72,7 @@ jobs:
           NIX_CACHE_SECRET_ACCESS_KEY: ${{ secrets.NIX_CACHE_SECRET_ACCESS_KEY }}
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
-      - name: Deploy Vercel output
+      - name: Build and deploy Vercel output
         id: deploy
         uses: ./.github/actions/vercel-deploy-nix
         with:

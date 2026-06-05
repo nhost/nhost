@@ -148,8 +148,9 @@ let
     }:
     let
       envFile = "/tmp/nhost-vercel-${name}-${environment}.env";
+      vercelEnvironmentDir = "/tmp/nhost-vercel-${name}-${environment}.vercel";
       # Keep package enumeration pure; setupVercel fails during the build if
-      # these impure cache-key hashes are missing or stale.
+      # required impure cache-key inputs are missing or stale.
       impureCacheKeyHash =
         envVar:
         let
@@ -174,7 +175,6 @@ let
         jsCheckDeps
         ++ (with pkgs; [
           corepack
-          jq
           vercel
         ])
         ++ buildInputs
@@ -223,6 +223,16 @@ let
           require_impure_hash "$env_var"
         done
 
+        if [ -z "''${VERCEL_ENVIRONMENT_DIR:-}" ]; then
+          echo "ERROR: VERCEL_ENVIRONMENT_DIR environment variable is not set"
+          exit 1
+        fi
+
+        if [ ! -d "$VERCEL_ENVIRONMENT_DIR" ]; then
+          echo "ERROR: VERCEL_ENVIRONMENT_DIR does not point to a directory"
+          exit 1
+        fi
+
         if [ -z "''${VERCEL_ENVIRONMENT_HASH:-}" ]; then
           echo "ERROR: VERCEL_ENVIRONMENT_HASH derivation attribute is not set"
           echo "Pull the Vercel environment, hash the resulting .vercel files, and export VERCEL_ENVIRONMENT_HASH before evaluating with --impure."
@@ -237,11 +247,19 @@ let
         export VERCEL_TELEMETRY_DISABLED=1
         export TURBO_TEAM="''${TURBO_TEAM:-nhost}"
 
+        rm -rf .vercel
         mkdir -p .vercel
-        jq -n \
-          --arg orgId "$VERCEL_ORG_ID" \
-          --arg projectId "$VERCEL_PROJECT_ID" \
-          '{ orgId: $orgId, projectId: $projectId }' > .vercel/project.json
+        cp -r "$VERCEL_ENVIRONMENT_DIR"/. .vercel/
+
+        actual_environment_hash=$(
+          cd .vercel
+          find . -type f -print0 | LC_ALL=C sort -z | xargs -0 sha256sum | sha256sum | cut -d ' ' -f 1
+        )
+        if [ "$VERCEL_ENVIRONMENT_HASH" != "$actual_environment_hash" ]; then
+          echo "ERROR: VERCEL_ENVIRONMENT_HASH does not match $VERCEL_ENVIRONMENT_DIR"
+          echo "Export the hash of the same Vercel environment directory used by the build derivation."
+          exit 1
+        fi
       '';
       build =
         pkgs.runCommand "${name}-vercel-build-${environment}"
@@ -250,6 +268,7 @@ let
               __noChroot = true;
               nativeBuildInputs = vercelBuildInputs;
               VERCEL_ENV_FILE = envFile;
+              VERCEL_ENVIRONMENT_DIR = vercelEnvironmentDir;
             }
             // cacheKeyHashes
           )
@@ -259,16 +278,6 @@ let
 
             ${prepare}
             ${setupVercel}
-
-            echo "➜ Pulling Vercel ${environment} environment for ${name}"
-            vercel pull --yes --environment=${environment} --token "$VERCEL_DEPLOY_TOKEN"
-
-            actual_environment_hash=$(find .vercel -type f -print0 | LC_ALL=C sort -z | xargs -0 sha256sum | sha256sum | cut -d ' ' -f 1)
-            if [ "$VERCEL_ENVIRONMENT_HASH" != "$actual_environment_hash" ]; then
-              echo "ERROR: VERCEL_ENVIRONMENT_HASH does not match the pulled Vercel ${environment} environment"
-              echo "Export the hash of the same Vercel environment used by the build derivation."
-              exit 1
-            fi
 
             echo "➜ Building Vercel ${environment} output for ${name}"
             vercel build --yes --target=${environment} --token "$VERCEL_DEPLOY_TOKEN"
@@ -299,6 +308,7 @@ let
               __noChroot = true;
               nativeBuildInputs = vercelBuildInputs;
               VERCEL_ENV_FILE = envFile;
+              VERCEL_ENVIRONMENT_DIR = vercelEnvironmentDir;
             }
             // cacheKeyHashes
           )

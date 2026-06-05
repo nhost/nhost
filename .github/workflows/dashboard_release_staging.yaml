@@ -10,7 +10,6 @@ on:
       - '.github/workflows/wf_deploy_vercel.yaml'
       - '.github/workflows/dashboard_checks.yaml'
       - '.github/actions/cache-nix/**'
-      - '.github/actions/vercel-build-nix/**'
       - '.github/actions/vercel-deploy-nix/**'
 
       # common build

@@ -1,5 +1,5 @@
-name: "Deploy Vercel output with Nix"
-description: "Deploy a prebuilt Vercel output through a cacheable Nix derivation and expose the deployment URL"
+name: "Build and deploy Vercel output with Nix"
+description: "Build and deploy a Vercel output through cacheable Nix derivations and expose the deployment URL"
 inputs:
   NAME:
     description: "Project name / flake package prefix"
@@ -43,8 +43,9 @@ runs:
         set -euo pipefail
 
         env_file="/tmp/nhost-vercel-${INPUT_NAME}-${INPUT_ENVIRONMENT}.env"
+        vercel_environment_dir="/tmp/nhost-vercel-${INPUT_NAME}-${INPUT_ENVIRONMENT}.vercel"
         result_link="${RUNNER_TEMP}/nhost-vercel-deploy-${INPUT_NAME}-${INPUT_ENVIRONMENT}"
-        trap 'rm -f "$env_file"' EXIT
+        trap 'rm -f "$env_file"; rm -rf "$vercel_environment_dir"' EXIT
 
         write_env() {
           local name="$1"
@@ -72,24 +73,38 @@ runs:
           exit 1
         fi
         chmod 640 "$env_file"
+
+        rm -rf "$vercel_environment_dir"
         vercel_environment_hash="$(
           VERCEL_ORG_ID="$INPUT_VERCEL_TEAM_ID" \
             VERCEL_PROJECT_ID="$INPUT_VERCEL_PROJECT_ID" \
             VERCEL_DEPLOY_TOKEN="$INPUT_VERCEL_DEPLOY_TOKEN" \
+            VERCEL_ENVIRONMENT_DIR="$vercel_environment_dir" \
             INPUT_ENVIRONMENT="$INPUT_ENVIRONMENT" \
             nix develop .#vercel -c bash -c '
               set -euo pipefail
               tmp_dir="$(mktemp -d)"
               trap "rm -rf \"$tmp_dir\"" EXIT
               export HOME="$tmp_dir/home"
+              export NO_UPDATE_NOTIFIER=1
+              export VERCEL_TELEMETRY_DISABLED=1
               work_dir="$tmp_dir/work"
-              mkdir -p "$HOME" "$work_dir/.vercel"
+              mkdir -p "$HOME/.cache/com.vercel.cli/package-updates" "$work_dir/.vercel"
               cd "$work_dir"
               node -e "const fs = require(\"fs\"); fs.writeFileSync(\".vercel/project.json\", JSON.stringify({ orgId: process.env.VERCEL_ORG_ID, projectId: process.env.VERCEL_PROJECT_ID }, null, 2) + \"\\n\");"
               vercel pull --yes --environment="$INPUT_ENVIRONMENT" --token "$VERCEL_DEPLOY_TOKEN" >/dev/null
-              find .vercel -type f -print0 | LC_ALL=C sort -z | xargs -0 sha256sum | sha256sum | cut -d " " -f 1
+              mkdir -p "$VERCEL_ENVIRONMENT_DIR"
+              cp -r .vercel/. "$VERCEL_ENVIRONMENT_DIR"/
+              cd "$VERCEL_ENVIRONMENT_DIR"
+              find . -type f -print0 | LC_ALL=C sort -z | xargs -0 sha256sum | sha256sum | cut -d " " -f 1
             '
         )"
+        if ! sudo chgrp -R nixbld "$vercel_environment_dir"; then
+          echo "::error::failed to grant nixbld group access to the Vercel environment directory"
+          exit 1
+        fi
+        find "$vercel_environment_dir" -type d -exec chmod 750 {} +
+        find "$vercel_environment_dir" -type f -exec chmod 640 {} +
 
         rm -f "$result_link"
         VERCEL_ORG_ID="$INPUT_VERCEL_TEAM_ID" \

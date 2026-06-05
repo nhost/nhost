@@ -7,7 +7,6 @@ on:
       - ".github/workflows/wf_deploy_vercel.yaml"
       - ".github/workflows/docs_checks.yaml"
       - ".github/actions/cache-nix/**"
-      - ".github/actions/vercel-build-nix/**"
       - ".github/actions/vercel-deploy-nix/**"
 
       # common build
@@ -53,7 +52,6 @@ jobs:
         .github/workflows/wf_deploy_vercel.yaml
         .github/workflows/docs_checks.yaml
         .github/actions/cache-nix/**
-        .github/actions/vercel-build-nix/**
         .github/actions/vercel-deploy-nix/**
         flake.nix
         flake.lock
