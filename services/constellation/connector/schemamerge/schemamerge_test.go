@@ -6,7 +6,38 @@ import (
 
 	"github.com/nhost/nhost/services/constellation/connector/schemamerge"
 	"github.com/nhost/nhost/services/constellation/graph"
+	"github.com/vektah/gqlparser/v2/ast"
 )
+
+func TestFieldKey(t *testing.T) {
+	t.Parallel()
+
+	tests := []struct {
+		name      string
+		operation ast.Operation
+		fieldName string
+		want      string
+	}{
+		{name: "query", operation: ast.Query, fieldName: "foo", want: "query.foo"},
+		{name: "mutation", operation: ast.Mutation, fieldName: "foo", want: "mutation.foo"},
+		{
+			name:      "subscription",
+			operation: ast.Subscription,
+			fieldName: "foo",
+			want:      "subscription.foo",
+		},
+	}
+
+	for _, tc := range tests {
+		t.Run(tc.name, func(t *testing.T) {
+			t.Parallel()
+
+			if got := schemamerge.FieldKey(tc.operation, tc.fieldName); got != tc.want {
+				t.Errorf("FieldKey() = %q, want %q", got, tc.want)
+			}
+		})
+	}
+}
 
 // minimalSchema returns a graph.Schema with one query field and a minimal object
 // type. The query type is named via QueryType so callers can exercise both the
@@ -69,7 +100,7 @@ func TestMergeConnectorSchema_RenamesRootTypeToCombinedName(t *testing.T) {
 		t.Fatalf("expected renamed root type 'query_root' in combined.Types")
 	}
 
-	if got := fieldToConnector["users"]; got != "db" {
+	if got := fieldToConnector[schemamerge.FieldKey(ast.Query, "users")]; got != "db" {
 		t.Errorf("expected field 'users' owned by 'db', got %q", got)
 	}
 
@@ -132,12 +163,80 @@ func TestMergeConnectorSchema_MergesIntoExistingRoot(t *testing.T) {
 		t.Fatalf("expected both connectors' fields merged onto root, got %d", len(root.Fields))
 	}
 
-	if got := fieldToConnector["users"]; got != "db1" {
+	if got := fieldToConnector[schemamerge.FieldKey(ast.Query, "users")]; got != "db1" {
 		t.Errorf("expected 'users' owned by db1, got %q", got)
 	}
 
-	if got := fieldToConnector["posts"]; got != "db2" {
+	if got := fieldToConnector[schemamerge.FieldKey(ast.Query, "posts")]; got != "db2" {
 		t.Errorf("expected 'posts' owned by db2, got %q", got)
+	}
+}
+
+func TestMergeConnectorSchema_CrossKindRouting(t *testing.T) {
+	t.Parallel()
+
+	queryType := "Query"
+	mutationType := "Mutation"
+	subscriptionType := "Subscription"
+	combined := &graph.Schema{}
+	fieldToConnector := map[string]string{}
+	typeToConnector := map[string]string{}
+
+	dbSchema := &graph.Schema{
+		QueryType:        &queryType,
+		SubscriptionType: &subscriptionType,
+		Types: []*graph.ObjectType{
+			{
+				Name:   "Query",
+				Fields: []*graph.Field{{Name: "foo", Type: graph.NewNamedType("String")}},
+			},
+			{
+				Name: "Subscription",
+				Fields: []*graph.Field{
+					{Name: "foo", Type: graph.NewNamedType("String")},
+				},
+			},
+		},
+	}
+	rsSchema := &graph.Schema{
+		MutationType: &mutationType,
+		Types: []*graph.ObjectType{
+			{
+				Name:   "Mutation",
+				Fields: []*graph.Field{{Name: "foo", Type: graph.NewNamedType("String")}},
+			},
+		},
+	}
+
+	if err := schemamerge.MergeConnectorSchema(
+		dbSchema,
+		combined,
+		"db",
+		fieldToConnector,
+		typeToConnector,
+	); err != nil {
+		t.Fatalf("db merge failed: %v", err)
+	}
+
+	if err := schemamerge.MergeConnectorSchema(
+		rsSchema,
+		combined,
+		"rs",
+		fieldToConnector,
+		typeToConnector,
+	); err != nil {
+		t.Fatalf("rs merge failed: %v", err)
+	}
+
+	want := map[string]string{
+		schemamerge.FieldKey(ast.Query, "foo"):        "db",
+		schemamerge.FieldKey(ast.Mutation, "foo"):     "rs",
+		schemamerge.FieldKey(ast.Subscription, "foo"): "db",
+	}
+	for key, connector := range want {
+		if got := fieldToConnector[key]; got != connector {
+			t.Errorf("expected %q owned by %q, got %q", key, connector, got)
+		}
 	}
 }
 

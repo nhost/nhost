@@ -1,14 +1,46 @@
 package schemamerge
 
 import (
+	"errors"
 	"strings"
 	"testing"
 
 	"github.com/nhost/nhost/services/constellation/graph"
+	"github.com/vektah/gqlparser/v2/ast"
 )
 
 // These tests exercise pure merge primitives directly. The exported entry points
 // are covered in the black-box schemamerge_test.go.
+
+func TestFieldKey(t *testing.T) {
+	t.Parallel()
+
+	tests := []struct {
+		name      string
+		operation ast.Operation
+		fieldName string
+		want      string
+	}{
+		{name: "query", operation: ast.Query, fieldName: "foo", want: "query.foo"},
+		{name: "mutation", operation: ast.Mutation, fieldName: "foo", want: "mutation.foo"},
+		{
+			name:      "subscription",
+			operation: ast.Subscription,
+			fieldName: "foo",
+			want:      "subscription.foo",
+		},
+	}
+
+	for _, tc := range tests {
+		t.Run(tc.name, func(t *testing.T) {
+			t.Parallel()
+
+			if got := FieldKey(tc.operation, tc.fieldName); got != tc.want {
+				t.Errorf("FieldKey() = %q, want %q", got, tc.want)
+			}
+		})
+	}
+}
 
 func TestTypeToString(t *testing.T) {
 	t.Parallel()
@@ -139,6 +171,109 @@ func TestInputsEqual(t *testing.T) {
 
 			if got := inputsEqual(tc.a, tc.b); got != tc.want {
 				t.Errorf("inputsEqual = %v, want %v", got, tc.want)
+			}
+		})
+	}
+}
+
+func TestNamedElementStructuralEquality(t *testing.T) {
+	t.Parallel()
+
+	arg := func(name, typ string) *graph.Argument {
+		return &graph.Argument{Name: name, Type: graph.NewNamedType(typ)}
+	}
+	field := func(name, typ string, args ...*graph.Argument) *graph.Field {
+		return &graph.Field{Name: name, Type: graph.NewNamedType(typ), Arguments: args}
+	}
+
+	tests := []struct {
+		name string
+		got  bool
+		want bool
+	}{
+		{
+			name: "objects equal with reordered fields and interfaces",
+			got: objectsEqual(
+				&graph.ObjectType{
+					Name:       "User",
+					Fields:     []*graph.Field{field("id", "ID"), field("name", "String")},
+					Interfaces: []string{"Node", "Named"},
+				},
+				&graph.ObjectType{
+					Name:       "User",
+					Fields:     []*graph.Field{field("name", "String"), field("id", "ID")},
+					Interfaces: []string{"Named", "Node"},
+				},
+			),
+			want: true,
+		},
+		{
+			name: "objects differ on field argument type",
+			got: objectsEqual(
+				&graph.ObjectType{Fields: []*graph.Field{field("find", "User", arg("id", "ID"))}},
+				&graph.ObjectType{
+					Fields: []*graph.Field{field("find", "User", arg("id", "String"))},
+				},
+			),
+			want: false,
+		},
+		{
+			name: "interfaces differ on implemented interface set",
+			got: interfacesEqual(
+				&graph.InterfaceType{
+					Fields:     []*graph.Field{field("id", "ID")},
+					Interfaces: []string{"Node"},
+				},
+				&graph.InterfaceType{Fields: []*graph.Field{field("id", "ID")}},
+			),
+			want: false,
+		},
+		{
+			name: "unions equal with reordered members",
+			got: unionsEqual(
+				&graph.UnionType{Types: []string{"User", "Team"}},
+				&graph.UnionType{Types: []string{"Team", "User"}},
+			),
+			want: true,
+		},
+		{
+			name: "directives equal with reordered locations and args",
+			got: directivesEqual(
+				&graph.DirectiveDefinition{
+					Arguments: []*graph.Argument{arg("ttl", "Int"), arg("scope", "String")},
+					Locations: []graph.DirectiveLocation{
+						graph.LocationFieldDefinition,
+						graph.LocationObject,
+					},
+					Repeatable: true,
+				},
+				&graph.DirectiveDefinition{
+					Arguments: []*graph.Argument{arg("scope", "String"), arg("ttl", "Int")},
+					Locations: []graph.DirectiveLocation{
+						graph.LocationObject,
+						graph.LocationFieldDefinition,
+					},
+					Repeatable: true,
+				},
+			),
+			want: true,
+		},
+		{
+			name: "directives differ on repeatable",
+			got: directivesEqual(
+				&graph.DirectiveDefinition{Repeatable: true},
+				&graph.DirectiveDefinition{Repeatable: false},
+			),
+			want: false,
+		},
+	}
+
+	for _, tc := range tests {
+		t.Run(tc.name, func(t *testing.T) {
+			t.Parallel()
+
+			if tc.got != tc.want {
+				t.Errorf("got %v, want %v", tc.got, tc.want)
 			}
 		})
 	}
@@ -366,7 +501,7 @@ func TestMergeRootType(t *testing.T) {
 					)
 				}
 
-				if got := fieldToConnector["users"]; got != "db" {
+				if got := fieldToConnector[FieldKey(ast.Query, "users")]; got != "db" {
 					t.Errorf("expected field ownership tracked, got %q", got)
 				}
 
@@ -410,7 +545,7 @@ func TestMergeRootType(t *testing.T) {
 					t.Errorf("expected description carry-forward, got %q", existing.Description)
 				}
 
-				if got := fieldToConnector["second"]; got != "db" {
+				if got := fieldToConnector[FieldKey(ast.Query, "second")]; got != "db" {
 					t.Errorf("expected field ownership tracked, got %q", got)
 				}
 			},
@@ -452,12 +587,49 @@ func TestMergeRootType(t *testing.T) {
 				rootType,
 				tc.typeName,
 				combinedTypeName,
+				ast.Query,
 				combinedSchema,
 				"db",
 				fieldToConnector,
 			)
 			tc.assert(t, rootType, combinedSchema, fieldToConnector)
 		})
+	}
+}
+
+func TestMergeRootType_OperationQualifiedOwnership(t *testing.T) {
+	t.Parallel()
+
+	queryRootName := "query_root"
+	mutationRootName := "mutation_root"
+	combined := &graph.Schema{}
+	fieldToConnector := map[string]string{}
+
+	mergeRootType(
+		&graph.ObjectType{Name: "Query", Fields: []*graph.Field{{Name: "foo"}}},
+		"Query",
+		&queryRootName,
+		ast.Query,
+		combined,
+		"db",
+		fieldToConnector,
+	)
+	mergeRootType(
+		&graph.ObjectType{Name: "Mutation", Fields: []*graph.Field{{Name: "foo"}}},
+		"Mutation",
+		&mutationRootName,
+		ast.Mutation,
+		combined,
+		"rs",
+		fieldToConnector,
+	)
+
+	if got := fieldToConnector[FieldKey(ast.Query, "foo")]; got != "db" {
+		t.Errorf("expected query foo owned by db, got %q", got)
+	}
+
+	if got := fieldToConnector[FieldKey(ast.Mutation, "foo")]; got != "rs" {
+		t.Errorf("expected mutation foo owned by rs, got %q", got)
 	}
 }
 
@@ -561,9 +733,85 @@ func TestSeparateRootTypes(t *testing.T) {
 
 			schema, combinedSchema, typeToConnector := tc.setup()
 			roots := defaultRoots(schema, combinedSchema)
-			rootTypes := separateRootTypes(schema, roots, combinedSchema, "db", typeToConnector)
+
+			rootTypes, err := separateRootTypes(
+				schema,
+				roots,
+				combinedSchema,
+				"db",
+				typeToConnector,
+			)
+			if err != nil {
+				t.Fatalf("separateRootTypes returned error: %v", err)
+			}
+
 			tc.assert(t, rootTypes, combinedSchema, typeToConnector)
 		})
+	}
+}
+
+func TestSeparateRootTypes_ObjectDedupOrConflict(t *testing.T) {
+	t.Parallel()
+
+	queryRoot := "query_root"
+	combined := &graph.Schema{
+		QueryType: &queryRoot,
+		Types: []*graph.ObjectType{
+			{
+				Name:   "User",
+				Fields: []*graph.Field{{Name: "id", Type: graph.NewNamedType("ID")}},
+			},
+		},
+	}
+	typeToConnector := map[string]string{"User": "db1"}
+
+	identical := &graph.Schema{
+		Types: []*graph.ObjectType{
+			{Name: "User", Fields: []*graph.Field{{Name: "id", Type: graph.NewNamedType("ID")}}},
+		},
+	}
+
+	roots, err := separateRootTypes(
+		identical,
+		defaultRoots(identical, combined),
+		combined,
+		"db2",
+		typeToConnector,
+	)
+	if err != nil {
+		t.Fatalf("identical object should deduplicate: %v", err)
+	}
+
+	if len(roots) != 3 {
+		t.Fatalf("expected 3 root slots, got %d", len(roots))
+	}
+
+	if len(combined.Types) != 1 {
+		t.Fatalf("expected identical object deduped, got %d types", len(combined.Types))
+	}
+
+	if got := typeToConnector["User"]; got != "db1" {
+		t.Fatalf("expected first-writer type owner preserved, got %q", got)
+	}
+
+	conflicting := &graph.Schema{
+		Types: []*graph.ObjectType{
+			{
+				Name:   "User",
+				Fields: []*graph.Field{{Name: "name", Type: graph.NewNamedType("String")}},
+			},
+		},
+	}
+
+	_, err = separateRootTypes(
+		conflicting,
+		defaultRoots(conflicting, combined),
+		combined,
+		"db2",
+		typeToConnector,
+	)
+	if !errors.Is(err, ErrConflictingObject) {
+		t.Fatalf("expected ErrConflictingObject, got %v", err)
 	}
 }
 
@@ -634,6 +882,92 @@ func TestMergeSchemaElements(t *testing.T) {
 					)
 				}
 			},
+		},
+		{
+			name: "deduplicates identical interfaces, unions, and directives",
+			combined: &graph.Schema{
+				Interfaces: []*graph.InterfaceType{
+					{
+						Name:   "Node",
+						Fields: []*graph.Field{{Name: "id", Type: graph.NewNamedType("ID")}},
+					},
+				},
+				Unions: []*graph.UnionType{{Name: "Result", Types: []string{"User", "Team"}}},
+				Directives: []*graph.DirectiveDefinition{
+					{
+						Name: "cached",
+						Arguments: []*graph.Argument{
+							{Name: "ttl", Type: graph.NewNamedType("Int")},
+						},
+					},
+				},
+			},
+			other: &graph.Schema{
+				Interfaces: []*graph.InterfaceType{
+					{
+						Name:   "Node",
+						Fields: []*graph.Field{{Name: "id", Type: graph.NewNamedType("ID")}},
+					},
+				},
+				Unions: []*graph.UnionType{{Name: "Result", Types: []string{"Team", "User"}}},
+				Directives: []*graph.DirectiveDefinition{
+					{
+						Name: "cached",
+						Arguments: []*graph.Argument{
+							{Name: "ttl", Type: graph.NewNamedType("Int")},
+						},
+					},
+				},
+			},
+			assert: func(t *testing.T, combined *graph.Schema) {
+				t.Helper()
+
+				if len(combined.Interfaces) != 1 || len(combined.Unions) != 1 ||
+					len(combined.Directives) != 1 {
+					t.Errorf(
+						"expected deduped interface/union/directive counts, got %d/%d/%d",
+						len(combined.Interfaces),
+						len(combined.Unions),
+						len(combined.Directives),
+					)
+				}
+			},
+		},
+		{
+			name: "propagates interface conflict",
+			combined: &graph.Schema{Interfaces: []*graph.InterfaceType{
+				{
+					Name:   "Node",
+					Fields: []*graph.Field{{Name: "id", Type: graph.NewNamedType("ID")}},
+				},
+			}},
+			other: &graph.Schema{Interfaces: []*graph.InterfaceType{
+				{
+					Name:   "Node",
+					Fields: []*graph.Field{{Name: "name", Type: graph.NewNamedType("String")}},
+				},
+			}},
+			wantErr: ErrConflictingInterface.Error(),
+		},
+		{
+			name: "propagates union conflict",
+			combined: &graph.Schema{Unions: []*graph.UnionType{
+				{Name: "Result", Types: []string{"User"}},
+			}},
+			other: &graph.Schema{Unions: []*graph.UnionType{
+				{Name: "Result", Types: []string{"Team"}},
+			}},
+			wantErr: ErrConflictingUnion.Error(),
+		},
+		{
+			name: "propagates directive conflict",
+			combined: &graph.Schema{Directives: []*graph.DirectiveDefinition{
+				{Name: "cached", Repeatable: true},
+			}},
+			other: &graph.Schema{Directives: []*graph.DirectiveDefinition{
+				{Name: "cached", Repeatable: false},
+			}},
+			wantErr: ErrConflictingDirective.Error(),
 		},
 	}
 

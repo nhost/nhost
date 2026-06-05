@@ -10,6 +10,7 @@ import (
 	"testing"
 
 	"github.com/google/go-cmp/cmp"
+	"github.com/nhost/nhost/services/constellation/connector/schemamerge"
 	"github.com/vektah/gqlparser/v2/ast"
 	"github.com/vektah/gqlparser/v2/gqlerror"
 	"go.uber.org/mock/gomock"
@@ -19,6 +20,54 @@ import (
 	"github.com/nhost/nhost/services/constellation/connector/sql/graphql/queries/core"
 	"github.com/nhost/nhost/services/constellation/internal/lib/oapi/tracing"
 )
+
+func TestGroupFieldsByConnectorUsesOperationQualifiedKeys(t *testing.T) {
+	t.Parallel()
+
+	state := &controllerState{
+		fieldToConnector: map[string]string{
+			schemamerge.FieldKey(ast.Query, "foo"):    "db",
+			schemamerge.FieldKey(ast.Mutation, "foo"): "rs",
+		},
+	}
+	selectionSet := ast.SelectionSet{&ast.Field{Name: "foo"}}
+
+	queryFields, _, resp := groupFieldsByConnector(
+		state,
+		&ast.OperationDefinition{Operation: ast.Query, SelectionSet: selectionSet},
+	)
+	if resp != nil {
+		t.Fatalf("query routing failed: %+v", resp)
+	}
+
+	if got := len(queryFields["db"]); got != 1 {
+		t.Fatalf("expected query foo routed to db, got %d fields", got)
+	}
+
+	mutationFields, _, resp := groupFieldsByConnector(
+		state,
+		&ast.OperationDefinition{Operation: ast.Mutation, SelectionSet: selectionSet},
+	)
+	if resp != nil {
+		t.Fatalf("mutation routing failed: %+v", resp)
+	}
+
+	if got := len(mutationFields["rs"]); got != 1 {
+		t.Fatalf("expected mutation foo routed to rs, got %d fields", got)
+	}
+
+	_, _, resp = groupFieldsByConnector(
+		&controllerState{
+			fieldToConnector: map[string]string{
+				schemamerge.FieldKey(ast.Query, "foo"): "db",
+			},
+		},
+		&ast.OperationDefinition{Operation: ast.Mutation, SelectionSet: selectionSet},
+	)
+	if resp == nil {
+		t.Fatal("expected mutation foo without a mutation owner to fail")
+	}
+}
 
 // distinctOnOrderByMismatchError builds a real *arguments.QueryValidationError
 // by driving the public arguments.ParseQuery with a distinct_on that does not

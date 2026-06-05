@@ -3,6 +3,7 @@ package planner
 import (
 	"errors"
 
+	"github.com/nhost/nhost/services/constellation/connector/schemamerge"
 	"github.com/nhost/nhost/services/constellation/controller/planner/transform"
 	"github.com/vektah/gqlparser/v2/ast"
 )
@@ -19,7 +20,7 @@ type QueryPlanner struct {
 	// schemas maps role -> validated schema
 	schemas map[string]*ast.Schema
 
-	// fieldToConnector maps root field name -> connector name
+	// fieldToConnector maps schemamerge.FieldKey(op, fieldName) -> connector name
 	fieldToConnector map[string]string
 
 	// typeToConnector maps type name -> connector name
@@ -122,7 +123,7 @@ func (p *QueryPlanner) groupFieldsByConnector(
 			continue
 		}
 
-		connName := p.fieldToConnector[field.Name]
+		connName := p.fieldToConnector[schemamerge.FieldKey(op.Operation, field.Name)]
 		if connName == "" {
 			continue
 		}

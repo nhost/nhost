@@ -66,8 +66,8 @@ type Result struct {
 	SchemaDocs map[string]*ast.SchemaDocument
 	// ValidatedSchemas is keyed by role name.
 	ValidatedSchemas map[string]*ast.Schema
-	// FieldToConnector maps each root field (query, mutation, subscription) to
-	// the name of the connector that owns it; used by the controller to route
+	// FieldToConnector maps schemamerge.FieldKey(op, fieldName) to the name of
+	// the connector that owns that root field; used by the controller to route
 	// operations.
 	FieldToConnector map[string]string
 	// TypeToConnector maps each GraphQL type name to the name of the connector
@@ -100,11 +100,11 @@ func (c *Composer) Compose(
 		connectorNames = append(connectorNames, connName)
 	}
 
-	// Merge in lexicographic connector-name order: when two connectors expose a
-	// type with the same name, the alphabetically-first connector's definition
-	// is the one [schemamerge.MergeConnectorSchema] keeps. Renaming a connector
-	// can therefore silently change which schema wins a duplicate-type
-	// collision, so the sort here is load-bearing and must stay stable.
+	// Merge in lexicographic connector-name order so scalar first-wins dedup and
+	// merge-conflict attribution are deterministic. For enums, inputs, object
+	// types, interfaces, unions, and directives, schemamerge keeps structurally
+	// identical duplicates and rejects differing duplicates with the incoming
+	// connector named by composeRole's wrapper.
 	slices.Sort(connectorNames)
 
 	for role := range allRoles {
