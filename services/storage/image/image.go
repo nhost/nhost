@@ -24,14 +24,16 @@ const (
 )
 
 const (
-	// maxImageDimension bounds the width and height an image may be resized
-	// to. libvips allocates the full output buffer up front, so an unbounded
-	// dimension lets a single (potentially unauthenticated) request exhaust
-	// process memory.
-	maxImageDimension = 8000
-	// maxBlurSigma bounds the Gaussian blur sigma; the convolution kernel
-	// grows with sigma, so an unbounded value exhausts CPU and memory.
-	maxBlurSigma = 250
+	// DefaultMaxImageDimension is the default upper bound for the width and
+	// height an image may be resized to. libvips allocates the full output
+	// buffer up front, so an unbounded dimension lets a single (potentially
+	// unauthenticated) request exhaust process memory. Operators can override
+	// it through NewTransformer.
+	DefaultMaxImageDimension = 8000
+	// DefaultMaxBlurSigma is the default upper bound for the Gaussian blur
+	// sigma; the convolution kernel grows with sigma, so an unbounded value
+	// exhausts CPU and memory. Operators can override it through NewTransformer.
+	DefaultMaxBlurSigma = 250
 )
 
 type Options struct {
@@ -87,13 +89,26 @@ func (o Options) FileExtension() string {
 }
 
 type Transformer struct {
-	workers chan struct{}
-	pool    sync.Pool
+	workers      chan struct{}
+	pool         sync.Pool
+	maxDimension int
+	maxBlurSigma float64
 }
 
-func NewTransformer(maxWorkers int) *Transformer {
+// NewTransformer builds a Transformer. maxDimension and maxBlurSigma bound the
+// output size and blur sigma to keep a single request from exhausting memory;
+// any value <= 0 falls back to DefaultMaxImageDimension / DefaultMaxBlurSigma.
+func NewTransformer(maxWorkers, maxDimension int, maxBlurSigma float64) *Transformer {
 	if maxWorkers <= 0 {
 		maxWorkers = 2 * runtime.GOMAXPROCS(0) //nolint:mnd
+	}
+
+	if maxDimension <= 0 {
+		maxDimension = DefaultMaxImageDimension
+	}
+
+	if maxBlurSigma <= 0 {
+		maxBlurSigma = DefaultMaxBlurSigma
 	}
 
 	if atomic.CompareAndSwapInt32(&initialized, 0, 1) {
@@ -118,6 +133,8 @@ func NewTransformer(maxWorkers int) *Transformer {
 				return new(bytes.Buffer)
 			},
 		},
+		maxDimension: maxDimension,
+		maxBlurSigma: maxBlurSigma,
 	}
 }
 
@@ -163,13 +180,13 @@ func export(image *vips.Image, opts Options) ([]byte, error) {
 
 // resolveDimensions resolves the requested output dimensions against the
 // source image size, deriving a missing dimension from the aspect ratio. Both
-// the requested and the derived values are clamped to maxImageDimension:
-// libvips allocates the full output buffer up front, so an unbounded value
-// (e.g. w=50000) lets a single request exhaust process memory. Aspect-ratio
+// the requested and the derived values are clamped to maxDimension: libvips
+// allocates the full output buffer up front, so an unbounded value (e.g.
+// w=50000) lets a single request exhaust process memory. Aspect-ratio
 // derivation can amplify a single bounded dimension, hence the final clamp.
-func resolveDimensions(reqWidth, reqHeight, srcWidth, srcHeight int) (int, int) {
-	width := min(reqWidth, maxImageDimension)
-	height := min(reqHeight, maxImageDimension)
+func resolveDimensions(reqWidth, reqHeight, srcWidth, srcHeight, maxDimension int) (int, int) {
+	width := min(reqWidth, maxDimension)
+	height := min(reqHeight, maxDimension)
 
 	if width == 0 && srcHeight != 0 {
 		width = int((float64(height) / float64(srcHeight)) * float64(srcWidth))
@@ -179,15 +196,17 @@ func resolveDimensions(reqWidth, reqHeight, srcWidth, srcHeight int) (int, int) 
 		height = int((float64(width) / float64(srcWidth)) * float64(srcHeight))
 	}
 
-	return min(width, maxImageDimension), min(height, maxImageDimension)
+	return min(width, maxDimension), min(height, maxDimension)
 }
 
-func imageResize(image *vips.Image, opts Options) error {
+func (t *Transformer) imageResize(image *vips.Image, opts Options) error {
 	if opts.Width <= 0 && opts.Height <= 0 {
 		return nil
 	}
 
-	width, height := resolveDimensions(opts.Width, opts.Height, image.Width(), image.Height())
+	width, height := resolveDimensions(
+		opts.Width, opts.Height, image.Width(), image.Height(), t.maxDimension,
+	)
 
 	thumbnailOpts := vips.DefaultThumbnailImageOptions()
 	thumbnailOpts.Crop = vips.InterestingCentre
@@ -200,8 +219,8 @@ func imageResize(image *vips.Image, opts Options) error {
 	return nil
 }
 
-func imagePipeline(image *vips.Image, opts Options) error {
-	if err := imageResize(image, opts); err != nil {
+func (t *Transformer) imagePipeline(image *vips.Image, opts Options) error {
+	if err := t.imageResize(image, opts); err != nil {
 		return err
 	}
 
@@ -214,7 +233,7 @@ func imagePipeline(image *vips.Image, opts Options) error {
 	if opts.Blur > 0 {
 		// Clamp the blur sigma: the Gaussian kernel grows with sigma, so an
 		// unbounded value (e.g. b=1000000) exhausts CPU and memory.
-		sigma := min(float64(opts.Blur), maxBlurSigma)
+		sigma := min(float64(opts.Blur), t.maxBlurSigma)
 		if err := image.Gaussblur(sigma, nil); err != nil {
 			return fmt.Errorf("failed to blur: %w", err)
 		}
@@ -251,7 +270,7 @@ func (t *Transformer) Run(
 
 	defer image.Close()
 
-	if err := imagePipeline(image, opts); err != nil {
+	if err := t.imagePipeline(image, opts); err != nil {
 		return err
 	}
 

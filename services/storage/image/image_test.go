@@ -114,7 +114,7 @@ func TestManipulate(t *testing.T) {
 		},
 	}
 
-	transformer := image.NewTransformer(0)
+	transformer := image.NewTransformer(0, 0, 0)
 
 	for _, tc := range cases {
 		t.Run(tc.name, func(t *testing.T) {
@@ -148,16 +148,17 @@ func TestManipulateClampsOversizedDimensions(t *testing.T) {
 	t.Parallel()
 
 	// libvips allocates the full output buffer up front, so honouring an
-	// oversized request verbatim (e.g. 50000x50000) attempts a multi-GB
+	// oversized request verbatim (e.g. 50000x50000) attempts a huge
 	// allocation and can OOM-kill the process (memory-exhaustion DoS). The
-	// transformer must cap the output dimensions instead.
+	// transformer must cap the output to its configured maximum. A small cap
+	// keeps the test cheap while still exercising the clamp.
 	const (
 		requested     = 50000
-		maxDimension  = 8000 // keep in sync with image.maxImageDimension
+		maxDimension  = 200
 		nhostJPGBytes = 33399
 	)
 
-	transformer := image.NewTransformer(1)
+	transformer := image.NewTransformer(1, maxDimension, 0)
 
 	orig, err := os.Open("testdata/nhost.jpg")
 	if err != nil {
@@ -182,7 +183,7 @@ func TestManipulateClampsOversizedDimensions(t *testing.T) {
 
 	if cfg.Width > maxDimension || cfg.Height > maxDimension {
 		t.Errorf(
-			"output dimensions %dx%d exceed the cap of %d: clamp not applied",
+			"output dimensions %dx%d exceed the configured cap of %d: clamp not applied",
 			cfg.Width, cfg.Height, maxDimension,
 		)
 	}
@@ -196,7 +197,7 @@ func TestManipulateClampsOversizedDimensions(t *testing.T) {
 }
 
 func BenchmarkManipulate(b *testing.B) {
-	transformer := image.NewTransformer(0)
+	transformer := image.NewTransformer(0, 0, 0)
 
 	orig, err := os.Open("testdata/nhost.jpg")
 	if err != nil {
