@@ -6,6 +6,7 @@
 -- =============================================================================
 
 CREATE SCHEMA IF NOT EXISTS auth;
+CREATE SCHEMA IF NOT EXISTS identity;
 CREATE SCHEMA IF NOT EXISTS storage;
 CREATE EXTENSION IF NOT EXISTS citext WITH SCHEMA public;
 CREATE EXTENSION IF NOT EXISTS pgcrypto WITH SCHEMA public;
@@ -97,6 +98,14 @@ CREATE TABLE auth.user_security_keys (
   counter               BIGINT NOT NULL DEFAULT 0,
   transports            TEXT NOT NULL DEFAULT '',
   nickname              TEXT
+);
+
+-- ── Identity Schema ─────────────────────────────────────────────────────────
+
+CREATE TABLE identity.artists (
+  id         UUID DEFAULT gen_random_uuid() NOT NULL PRIMARY KEY,
+  stage_name TEXT NOT NULL,
+  created_by UUID NOT NULL REFERENCES auth.users(id) ON UPDATE CASCADE ON DELETE CASCADE
 );
 
 -- ── Storage Schema ──────────────────────────────────────────────────────────

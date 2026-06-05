@@ -1,0 +1,12 @@
+table:
+  name: artists
+  schema: identity
+select_permissions:
+  - role: user
+    permission:
+      columns:
+        - id
+        - stage_name
+        - created_by
+      filter: {}
+      allow_aggregations: true
