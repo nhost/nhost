@@ -227,7 +227,7 @@ func TestReconcileMetadata_DropsMissingColumns(t *testing.T) {
 	}
 }
 
-func TestReconcileMetadata_ExpandsSelectPermissionAllColumnsShorthand(t *testing.T) {
+func TestReconcileMetadata_ExpandsPermissionAllColumnsShorthand(t *testing.T) {
 	t.Parallel()
 
 	dbMeta := &metadata.DatabaseMetadata{ //nolint:exhaustruct
@@ -239,7 +239,23 @@ func TestReconcileMetadata_ExpandsSelectPermissionAllColumnsShorthand(t *testing
 					{
 						Role: "user",
 						Permission: metadata.SelectPermissionConfig{ //nolint:exhaustruct
-							Columns: []string{selectPermissionAllColumns},
+							Columns: []string{permissionAllColumns},
+						},
+					},
+				},
+				InsertPermissions: []metadata.InsertPermission{
+					{
+						Role: "user",
+						Permission: metadata.InsertPermissionConfig{ //nolint:exhaustruct
+							Columns: []string{permissionAllColumns},
+						},
+					},
+				},
+				UpdatePermissions: []metadata.UpdatePermission{
+					{
+						Role: "user",
+						Permission: metadata.UpdatePermissionConfig{ //nolint:exhaustruct
+							Columns: []string{permissionAllColumns},
 						},
 					},
 				},
@@ -250,18 +266,56 @@ func TestReconcileMetadata_ExpandsSelectPermissionAllColumnsShorthand(t *testing
 	inc := metadata.NewInconsistencies()
 	out := reconcileMetadata(t.Context(), nil, inc, dbMeta, makeObjects())
 
-	got := out.Tables[0].SelectPermissions[0].Permission.Columns
-	if !slices.Equal(got, []string{"id", "name"}) {
-		t.Fatalf("select_permission.columns = %v, want [id name]", got)
+	permissions := []struct {
+		name string
+		got  []string
+	}{
+		{
+			name: "select_permission.columns",
+			got:  out.Tables[0].SelectPermissions[0].Permission.Columns,
+		},
+		{
+			name: "insert_permission.columns",
+			got:  out.Tables[0].InsertPermissions[0].Permission.Columns,
+		},
+		{
+			name: "update_permission.columns",
+			got:  out.Tables[0].UpdatePermissions[0].Permission.Columns,
+		},
+	}
+
+	for _, p := range permissions {
+		if !slices.Equal(p.got, []string{"id", "name"}) {
+			t.Fatalf("%s = %v, want [id name]", p.name, p.got)
+		}
 	}
 
 	if inc.Len() != 0 {
 		t.Fatalf("expected no inconsistencies, got %+v", inc.Snapshot())
 	}
 
-	inputColumns := dbMeta.Tables[0].SelectPermissions[0].Permission.Columns
-	if !slices.Equal(inputColumns, []string{selectPermissionAllColumns}) {
-		t.Fatalf("input columns mutated to %v", inputColumns)
+	inputColumns := []struct {
+		name string
+		got  []string
+	}{
+		{
+			name: "select_permission.columns",
+			got:  dbMeta.Tables[0].SelectPermissions[0].Permission.Columns,
+		},
+		{
+			name: "insert_permission.columns",
+			got:  dbMeta.Tables[0].InsertPermissions[0].Permission.Columns,
+		},
+		{
+			name: "update_permission.columns",
+			got:  dbMeta.Tables[0].UpdatePermissions[0].Permission.Columns,
+		},
+	}
+
+	for _, p := range inputColumns {
+		if !slices.Equal(p.got, []string{permissionAllColumns}) {
+			t.Fatalf("%s input columns mutated to %v", p.name, p.got)
+		}
 	}
 }
 

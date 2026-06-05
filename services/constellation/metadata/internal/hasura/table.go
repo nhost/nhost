@@ -23,17 +23,17 @@ var errForeignKeyListEntryNotString = errors.New(
 	"foreign_key_constraint_on: list entry is not a string",
 )
 
-const selectPermissionAllColumns = "*"
+const permissionAllColumns = "*"
 
 var (
-	errSelectColumnsStringNotWildcard = errors.New(
-		"select permission columns string must be '*'",
+	errPermissionColumnsStringNotWildcard = errors.New(
+		"permission columns string must be '*'",
 	)
-	errSelectColumnsListEntryNotString = errors.New(
-		"select permission columns list entry is not a string",
+	errPermissionColumnsListEntryNotString = errors.New(
+		"permission columns list entry is not a string",
 	)
-	errUnexpectedSelectColumnsToken = errors.New(
-		"select permission columns: expected '*', array, or null",
+	errUnexpectedPermissionColumnsToken = errors.New(
+		"permission columns: expected '*', array, or null",
 	)
 )
 
@@ -160,7 +160,7 @@ func (p *SelectPermissionConfig) UnmarshalYAML(unmarshal func(any) error) error 
 		return fmt.Errorf("unmarshaling select permission: %w", err)
 	}
 
-	columns, err := parseSelectPermissionColumnsYAML(raw.Columns)
+	columns, err := parsePermissionColumnsYAML(raw.Columns)
 	if err != nil {
 		return fmt.Errorf("unmarshaling select permission columns: %w", err)
 	}
@@ -172,16 +172,16 @@ func (p *SelectPermissionConfig) UnmarshalYAML(unmarshal func(any) error) error 
 	return nil
 }
 
-func parseSelectPermissionColumnsYAML(value any) ([]string, error) {
+func parsePermissionColumnsYAML(value any) ([]string, error) {
 	switch v := value.(type) {
 	case nil:
 		return nil, nil
 	case string:
-		if v != selectPermissionAllColumns {
-			return nil, errSelectColumnsStringNotWildcard
+		if v != permissionAllColumns {
+			return nil, errPermissionColumnsStringNotWildcard
 		}
 
-		return []string{selectPermissionAllColumns}, nil
+		return []string{permissionAllColumns}, nil
 	case []string:
 		return append([]string(nil), v...), nil
 	case []any:
@@ -191,7 +191,7 @@ func parseSelectPermissionColumnsYAML(value any) ([]string, error) {
 			if !ok {
 				return nil, fmt.Errorf(
 					"%w (index %d, type %T)",
-					errSelectColumnsListEntryNotString, i, item,
+					errPermissionColumnsListEntryNotString, i, item,
 				)
 			}
 
@@ -200,7 +200,7 @@ func parseSelectPermissionColumnsYAML(value any) ([]string, error) {
 
 		return columns, nil
 	default:
-		return nil, fmt.Errorf("%w (type %T)", errUnexpectedSelectColumnsToken, value)
+		return nil, fmt.Errorf("%w (type %T)", errUnexpectedPermissionColumnsToken, value)
 	}
 }
 
@@ -219,7 +219,7 @@ func (p *SelectPermissionConfig) UnmarshalJSON(data []byte) error {
 		return fmt.Errorf("unmarshaling select permission: %w", err)
 	}
 
-	columns, err := parseSelectPermissionColumnsJSON(raw.Columns)
+	columns, err := parsePermissionColumnsJSON(raw.Columns)
 	if err != nil {
 		return fmt.Errorf("unmarshaling select permission columns: %w", err)
 	}
@@ -231,7 +231,7 @@ func (p *SelectPermissionConfig) UnmarshalJSON(data []byte) error {
 	return nil
 }
 
-func parseSelectPermissionColumnsJSON(value jsontext.Value) ([]string, error) {
+func parsePermissionColumnsJSON(value jsontext.Value) ([]string, error) {
 	if value == nil {
 		return nil, nil
 	}
@@ -250,11 +250,11 @@ func parseSelectPermissionColumnsJSON(value jsontext.Value) ([]string, error) {
 			return nil, fmt.Errorf("decoding columns shorthand: %w", err)
 		}
 
-		if shorthand != selectPermissionAllColumns {
-			return nil, errSelectColumnsStringNotWildcard
+		if shorthand != permissionAllColumns {
+			return nil, errPermissionColumnsStringNotWildcard
 		}
 
-		return []string{selectPermissionAllColumns}, nil
+		return []string{permissionAllColumns}, nil
 	case '[':
 		var columns []string
 		if err := json.Unmarshal(value, &columns); err != nil {
@@ -264,7 +264,7 @@ func parseSelectPermissionColumnsJSON(value jsontext.Value) ([]string, error) {
 		return columns, nil
 	default:
 		return nil, fmt.Errorf(
-			"%w (token %q)", errUnexpectedSelectColumnsToken,
+			"%w (token %q)", errUnexpectedPermissionColumnsToken,
 			firstNonWhitespaceByte(value),
 		)
 	}
@@ -278,6 +278,61 @@ type InsertPermissionConfig struct {
 	Set     map[string]any `json:"set,omitempty"     yaml:"set,omitempty"`
 }
 
+// UnmarshalYAML accepts Hasura's insert-permission `columns: '*'` shorthand
+// in addition to the explicit list of column names. The shorthand is kept as
+// a one-element slice and expanded after database introspection, when the full
+// column list is known.
+func (p *InsertPermissionConfig) UnmarshalYAML(unmarshal func(any) error) error {
+	type rawConfig struct {
+		Columns any            `yaml:"columns,omitempty"`
+		Check   map[string]any `yaml:"check,omitempty"`
+		Set     map[string]any `yaml:"set,omitempty"`
+	}
+
+	var raw rawConfig
+	if err := unmarshal(&raw); err != nil {
+		return fmt.Errorf("unmarshaling insert permission: %w", err)
+	}
+
+	columns, err := parsePermissionColumnsYAML(raw.Columns)
+	if err != nil {
+		return fmt.Errorf("unmarshaling insert permission columns: %w", err)
+	}
+
+	p.Columns = columns
+	p.Check = raw.Check
+	p.Set = raw.Set
+
+	return nil
+}
+
+// UnmarshalJSON accepts Hasura's insert-permission `columns: "*"` shorthand
+// in addition to the explicit list of column names. The shorthand is kept as
+// a one-element slice and expanded after database introspection, when the full
+// column list is known.
+func (p *InsertPermissionConfig) UnmarshalJSON(data []byte) error {
+	var raw struct {
+		Columns jsontext.Value `json:"columns,omitempty"`
+		Check   map[string]any `json:"check,omitempty"`
+		Set     map[string]any `json:"set,omitempty"`
+	}
+
+	if err := json.Unmarshal(data, &raw); err != nil {
+		return fmt.Errorf("unmarshaling insert permission: %w", err)
+	}
+
+	columns, err := parsePermissionColumnsJSON(raw.Columns)
+	if err != nil {
+		return fmt.Errorf("unmarshaling insert permission columns: %w", err)
+	}
+
+	p.Columns = columns
+	p.Check = raw.Check
+	p.Set = raw.Set
+
+	return nil
+}
+
 // UpdatePermissionConfig captures the columns, row filter, post-update check,
 // and presets an update permission grants.
 type UpdatePermissionConfig struct {
@@ -285,6 +340,65 @@ type UpdatePermissionConfig struct {
 	Filter  map[string]any `json:"filter,omitempty"  yaml:"filter,omitempty"`
 	Check   map[string]any `json:"check,omitempty"   yaml:"check,omitempty"`
 	Set     map[string]any `json:"set,omitempty"     yaml:"set,omitempty"`
+}
+
+// UnmarshalYAML accepts Hasura's update-permission `columns: '*'` shorthand
+// in addition to the explicit list of column names. The shorthand is kept as
+// a one-element slice and expanded after database introspection, when the full
+// column list is known.
+func (p *UpdatePermissionConfig) UnmarshalYAML(unmarshal func(any) error) error {
+	type rawConfig struct {
+		Columns any            `yaml:"columns,omitempty"`
+		Filter  map[string]any `yaml:"filter,omitempty"`
+		Check   map[string]any `yaml:"check,omitempty"`
+		Set     map[string]any `yaml:"set,omitempty"`
+	}
+
+	var raw rawConfig
+	if err := unmarshal(&raw); err != nil {
+		return fmt.Errorf("unmarshaling update permission: %w", err)
+	}
+
+	columns, err := parsePermissionColumnsYAML(raw.Columns)
+	if err != nil {
+		return fmt.Errorf("unmarshaling update permission columns: %w", err)
+	}
+
+	p.Columns = columns
+	p.Filter = raw.Filter
+	p.Check = raw.Check
+	p.Set = raw.Set
+
+	return nil
+}
+
+// UnmarshalJSON accepts Hasura's update-permission `columns: "*"` shorthand
+// in addition to the explicit list of column names. The shorthand is kept as
+// a one-element slice and expanded after database introspection, when the full
+// column list is known.
+func (p *UpdatePermissionConfig) UnmarshalJSON(data []byte) error {
+	var raw struct {
+		Columns jsontext.Value `json:"columns,omitempty"`
+		Filter  map[string]any `json:"filter,omitempty"`
+		Check   map[string]any `json:"check,omitempty"`
+		Set     map[string]any `json:"set,omitempty"`
+	}
+
+	if err := json.Unmarshal(data, &raw); err != nil {
+		return fmt.Errorf("unmarshaling update permission: %w", err)
+	}
+
+	columns, err := parsePermissionColumnsJSON(raw.Columns)
+	if err != nil {
+		return fmt.Errorf("unmarshaling update permission columns: %w", err)
+	}
+
+	p.Columns = columns
+	p.Filter = raw.Filter
+	p.Check = raw.Check
+	p.Set = raw.Set
+
+	return nil
 }
 
 // DeletePermissionConfig captures the row filter a delete permission applies.

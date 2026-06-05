@@ -11,7 +11,7 @@ import (
 	"github.com/nhost/nhost/services/constellation/metadata"
 )
 
-const selectPermissionAllColumns = "*"
+const permissionAllColumns = "*"
 
 // reconcileMetadata walks dbMeta against the introspected objects and returns
 // a filtered copy in which every entity that does not exist in the source has
@@ -247,7 +247,7 @@ func reconcilePermissionColumns(
 		p := &t.SelectPermissions[i]
 		p.Permission.Columns = filterColumnList(
 			ctx, logger, inc, dbName, t, p.Role, "select_permission.columns",
-			expandSelectPermissionColumns(p.Permission.Columns, allColumns), cols,
+			expandPermissionColumns(p.Permission.Columns, allColumns), cols,
 		)
 	}
 
@@ -256,7 +256,7 @@ func reconcilePermissionColumns(
 		p := &t.InsertPermissions[i]
 		p.Permission.Columns = filterColumnList(
 			ctx, logger, inc, dbName, t, p.Role, "insert_permission.columns",
-			p.Permission.Columns, cols,
+			expandPermissionColumns(p.Permission.Columns, allColumns), cols,
 		)
 		p.Permission.Set = filterColumnKeyMap(
 			ctx, logger, inc, dbName, t, p.Role, "insert_permission.set",
@@ -269,7 +269,7 @@ func reconcilePermissionColumns(
 		p := &t.UpdatePermissions[i]
 		p.Permission.Columns = filterColumnList(
 			ctx, logger, inc, dbName, t, p.Role, "update_permission.columns",
-			p.Permission.Columns, cols,
+			expandPermissionColumns(p.Permission.Columns, allColumns), cols,
 		)
 		p.Permission.Set = filterColumnKeyMap(
 			ctx, logger, inc, dbName, t, p.Role, "update_permission.set",
@@ -278,8 +278,8 @@ func reconcilePermissionColumns(
 	}
 }
 
-func expandSelectPermissionColumns(list, allColumns []string) []string {
-	if len(list) == 1 && list[0] == selectPermissionAllColumns {
+func expandPermissionColumns(list, allColumns []string) []string {
+	if len(list) == 1 && list[0] == permissionAllColumns {
 		return slices.Clone(allColumns)
 	}
 

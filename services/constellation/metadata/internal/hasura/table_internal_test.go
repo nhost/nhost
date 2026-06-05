@@ -2,6 +2,7 @@ package hasura
 
 import (
 	json "encoding/json/v2"
+	"fmt"
 	"strings"
 	"testing"
 
@@ -28,7 +29,7 @@ func TestSelectPermissionConfig_UnmarshalYAML(t *testing.T) {
 		{
 			name:            "all columns shorthand",
 			input:           "columns: '*'\nfilter: {}",
-			wantColumns:     []string{selectPermissionAllColumns},
+			wantColumns:     []string{permissionAllColumns},
 			wantErr:         false,
 			wantWrapContext: "",
 		},
@@ -94,7 +95,7 @@ func TestSelectPermissionConfig_UnmarshalJSON(t *testing.T) {
 		{
 			name:            "all columns shorthand",
 			input:           `{"columns":"*","filter":{}}`,
-			wantColumns:     []string{selectPermissionAllColumns},
+			wantColumns:     []string{permissionAllColumns},
 			wantErr:         false,
 			wantWrapContext: "",
 		},
@@ -142,6 +143,84 @@ func TestSelectPermissionConfig_UnmarshalJSON(t *testing.T) {
 
 			if !equalStringSlices(got.Columns, tt.wantColumns) {
 				t.Errorf("Columns = %v, want %v", got.Columns, tt.wantColumns)
+			}
+		})
+	}
+}
+
+func TestInsertAndUpdatePermissionConfig_UnmarshalColumnsShorthand(t *testing.T) {
+	t.Parallel()
+
+	tests := []struct {
+		name      string
+		input     []byte
+		unmarshal func([]byte) ([]string, error)
+	}{
+		{
+			name:  "insert yaml",
+			input: []byte("columns: '*'\ncheck: {}\nset: {id: X-Hasura-User-Id}"),
+			unmarshal: func(data []byte) ([]string, error) {
+				var got InsertPermissionConfig
+				if err := yaml.Unmarshal(data, &got); err != nil {
+					return nil, fmt.Errorf("unmarshaling insert permission yaml: %w", err)
+				}
+
+				return got.Columns, nil
+			},
+		},
+		{
+			name:  "insert json",
+			input: []byte(`{"columns":"*","check":{},"set":{"id":"X-Hasura-User-Id"}}`),
+			unmarshal: func(data []byte) ([]string, error) {
+				var got InsertPermissionConfig
+				if err := json.Unmarshal(data, &got); err != nil {
+					return nil, fmt.Errorf("unmarshaling insert permission json: %w", err)
+				}
+
+				return got.Columns, nil
+			},
+		},
+		{
+			name: "update yaml",
+			input: []byte(
+				"columns: '*'\nfilter: {}\ncheck: {}\nset: {updated_by: X-Hasura-User-Id}",
+			),
+			unmarshal: func(data []byte) ([]string, error) {
+				var got UpdatePermissionConfig
+				if err := yaml.Unmarshal(data, &got); err != nil {
+					return nil, fmt.Errorf("unmarshaling update permission yaml: %w", err)
+				}
+
+				return got.Columns, nil
+			},
+		},
+		{
+			name: "update json",
+			input: []byte(
+				`{"columns":"*","filter":{},"check":{},"set":{"updated_by":"X-Hasura-User-Id"}}`,
+			),
+			unmarshal: func(data []byte) ([]string, error) {
+				var got UpdatePermissionConfig
+				if err := json.Unmarshal(data, &got); err != nil {
+					return nil, fmt.Errorf("unmarshaling update permission json: %w", err)
+				}
+
+				return got.Columns, nil
+			},
+		},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			t.Parallel()
+
+			got, err := tt.unmarshal(tt.input)
+			if err != nil {
+				t.Fatalf("unmarshal failed: %v", err)
+			}
+
+			if !equalStringSlices(got, []string{permissionAllColumns}) {
+				t.Errorf("Columns = %v, want [%q]", got, permissionAllColumns)
 			}
 		})
 	}
