@@ -159,18 +159,10 @@ let
         pkgs.lib.optionalAttrs (value != "") {
           "${envVar}_HASH" = builtins.hashString "sha256" value;
         };
-      impureCacheKeyValue =
-        envVar:
-        let
-          value = builtins.getEnv envVar;
-        in
-        pkgs.lib.optionalAttrs (value != "") {
-          "${envVar}" = value;
-        };
       cacheKeyHashes =
         impureCacheKeyHash "VERCEL_ORG_ID"
         // impureCacheKeyHash "VERCEL_PROJECT_ID"
-        // impureCacheKeyValue "VERCEL_ENVIRONMENT_HASH";
+        // impureCacheKeyHash "VERCEL_CACHE_BUSTER";
       vercelBuildInputs =
         jsCheckDeps
         ++ (with pkgs; [
@@ -230,12 +222,6 @@ let
 
         if [ ! -d "$VERCEL_ENVIRONMENT_DIR" ]; then
           echo "ERROR: VERCEL_ENVIRONMENT_DIR does not point to a directory"
-          exit 1
-        fi
-
-        if [ -z "''${VERCEL_ENVIRONMENT_HASH:-}" ]; then
-          echo "ERROR: VERCEL_ENVIRONMENT_HASH derivation attribute is not set"
-          echo "Pull the Vercel environment, hash the resulting .vercel files, and export VERCEL_ENVIRONMENT_HASH before evaluating with --impure."
           exit 1
         fi
 

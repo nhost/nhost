@@ -82,6 +82,7 @@ jobs:
           VERCEL_PROJECT_ID: ${{ secrets.VERCEL_PROJECT_ID }}
           VERCEL_DEPLOY_TOKEN: ${{ secrets.VERCEL_DEPLOY_TOKEN }}
           TURBO_TOKEN: ${{ secrets.TURBO_TOKEN }}
+          VERCEL_CACHE_BUSTER: ${{ vars.VERCEL_CACHE_BUSTER }}
 
       - name: Store Nix cache
         uses: ./.github/actions/cache-nix

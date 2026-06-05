@@ -20,6 +20,10 @@ inputs:
     description: "Turbo remote cache token"
     required: false
     default: ""
+  VERCEL_CACHE_BUSTER:
+    description: "Optional manual cache-buster value for the Nix Vercel build/deploy derivations"
+    required: false
+    default: ""
 outputs:
   out-path:
     description: "Nix store path containing the deploy result"
@@ -39,6 +43,7 @@ runs:
         INPUT_VERCEL_PROJECT_ID: ${{ inputs.VERCEL_PROJECT_ID }}
         INPUT_VERCEL_DEPLOY_TOKEN: ${{ inputs.VERCEL_DEPLOY_TOKEN }}
         INPUT_TURBO_TOKEN: ${{ inputs.TURBO_TOKEN }}
+        INPUT_VERCEL_CACHE_BUSTER: ${{ inputs.VERCEL_CACHE_BUSTER }}
       run: |
         set -euo pipefail
 
@@ -75,84 +80,27 @@ runs:
         chmod 640 "$env_file"
 
         rm -rf "$vercel_environment_dir"
-        vercel_environment_hash="$(
-          VERCEL_ORG_ID="$INPUT_VERCEL_TEAM_ID" \
-            VERCEL_PROJECT_ID="$INPUT_VERCEL_PROJECT_ID" \
-            VERCEL_DEPLOY_TOKEN="$INPUT_VERCEL_DEPLOY_TOKEN" \
-            VERCEL_ENVIRONMENT_DIR="$vercel_environment_dir" \
-            INPUT_ENVIRONMENT="$INPUT_ENVIRONMENT" \
-            nix develop .#vercel -c bash -s <<'BASH'
-              set -euo pipefail
+        VERCEL_ORG_ID="$INPUT_VERCEL_TEAM_ID" \
+          VERCEL_PROJECT_ID="$INPUT_VERCEL_PROJECT_ID" \
+          VERCEL_DEPLOY_TOKEN="$INPUT_VERCEL_DEPLOY_TOKEN" \
+          VERCEL_ENVIRONMENT_DIR="$vercel_environment_dir" \
+          INPUT_ENVIRONMENT="$INPUT_ENVIRONMENT" \
+          nix develop .#vercel -c bash -s <<'BASH'
+            set -euo pipefail
 
-              canonical_vercel_environment_hash() {
-                node <<'NODE'
-        const crypto = require('crypto');
-        const fs = require('fs');
-        const path = require('path');
-
-        const vercelDir = process.env.VERCEL_ENVIRONMENT_DIR;
-        const environment = process.env.INPUT_ENVIRONMENT;
-
-        function sortKeys(value) {
-          if (Array.isArray(value)) {
-            return value.map(sortKeys);
-          }
-          if (value && typeof value === 'object') {
-            return Object.fromEntries(
-              Object.keys(value)
-                .sort()
-                .map((key) => [key, sortKeys(value[key])]),
-            );
-          }
-          return value;
-        }
-
-        const parts = [];
-        const projectPath = path.join(vercelDir, 'project.json');
-        if (fs.existsSync(projectPath)) {
-          parts.push([
-            'project.json',
-            `${JSON.stringify(sortKeys(JSON.parse(fs.readFileSync(projectPath, 'utf8'))))}\n`,
-          ]);
-        }
-
-        const envPath = path.join(vercelDir, `.env.${environment}.local`);
-        if (fs.existsSync(envPath)) {
-          const lines = fs
-            .readFileSync(envPath, 'utf8')
-            .split(/\r?\n/)
-            .map((line) => line.trim())
-            .filter((line) => line !== '' && !line.startsWith('#'))
-            .sort();
-          parts.push([path.basename(envPath), `${lines.join('\n')}\n`]);
-        }
-
-        const hash = crypto.createHash('sha256');
-        for (const [name, body] of parts) {
-          hash.update(name);
-          hash.update('\0');
-          hash.update(body);
-          hash.update('\0');
-        }
-        console.log(hash.digest('hex'));
-        NODE
-              }
-
-              tmp_dir="$(mktemp -d)"
-              trap "rm -rf \"$tmp_dir\"" EXIT
-              export HOME="$tmp_dir/home"
-              export NO_UPDATE_NOTIFIER=1
-              export VERCEL_TELEMETRY_DISABLED=1
-              work_dir="$tmp_dir/work"
-              mkdir -p "$HOME/.cache/com.vercel.cli/package-updates" "$work_dir/.vercel"
-              cd "$work_dir"
-              node -e "const fs = require('fs'); fs.writeFileSync('.vercel/project.json', JSON.stringify({ orgId: process.env.VERCEL_ORG_ID, projectId: process.env.VERCEL_PROJECT_ID }, null, 2) + '\n');"
-              vercel pull --yes --environment="$INPUT_ENVIRONMENT" --token "$VERCEL_DEPLOY_TOKEN" >/dev/null
-              mkdir -p "$VERCEL_ENVIRONMENT_DIR"
-              cp -r .vercel/. "$VERCEL_ENVIRONMENT_DIR"/
-              canonical_vercel_environment_hash
+            tmp_dir="$(mktemp -d)"
+            trap "rm -rf \"$tmp_dir\"" EXIT
+            export HOME="$tmp_dir/home"
+            export NO_UPDATE_NOTIFIER=1
+            export VERCEL_TELEMETRY_DISABLED=1
+            work_dir="$tmp_dir/work"
+            mkdir -p "$HOME/.cache/com.vercel.cli/package-updates" "$work_dir/.vercel"
+            cd "$work_dir"
+            node -e "const fs = require('fs'); fs.writeFileSync('.vercel/project.json', JSON.stringify({ orgId: process.env.VERCEL_ORG_ID, projectId: process.env.VERCEL_PROJECT_ID }, null, 2) + '\n');"
+            vercel pull --yes --environment="$INPUT_ENVIRONMENT" --token "$VERCEL_DEPLOY_TOKEN" >/dev/null
+            mkdir -p "$VERCEL_ENVIRONMENT_DIR"
+            cp -r .vercel/. "$VERCEL_ENVIRONMENT_DIR"/
         BASH
-        )"
         if ! sudo chgrp -R nixbld "$vercel_environment_dir"; then
           echo "::error::failed to grant nixbld group access to the Vercel environment directory"
           exit 1
@@ -163,7 +111,7 @@ runs:
         rm -f "$result_link"
         VERCEL_ORG_ID="$INPUT_VERCEL_TEAM_ID" \
           VERCEL_PROJECT_ID="$INPUT_VERCEL_PROJECT_ID" \
-          VERCEL_ENVIRONMENT_HASH="$vercel_environment_hash" \
+          VERCEL_CACHE_BUSTER="$INPUT_VERCEL_CACHE_BUSTER" \
           nix build \
             --impure \
             --print-build-logs \
