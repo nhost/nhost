@@ -1,1 +1,1 @@
-export { default, type TimeAxis } from './useTimeAxis';
+export { default as useTimeAxis } from './useTimeAxis';

@@ -10,7 +10,7 @@ const RANGE_KEY = 'metricRange';
 const FROM_KEY = 'metricFrom';
 const TO_KEY = 'metricTo';
 
-export interface MetricsTimeRangeUrlState {
+interface MetricsTimeRangeUrlState {
   range: MetricsTimeRange;
   setRange: (next: MetricsTimeRange) => void;
 }

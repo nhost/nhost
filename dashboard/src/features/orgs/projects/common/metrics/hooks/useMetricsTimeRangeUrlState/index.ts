@@ -1,4 +1,1 @@
-export {
-  default,
-  type MetricsTimeRangeUrlState,
-} from './useMetricsTimeRangeUrlState';
+export { default as useMetricsTimeRangeUrlState } from './useMetricsTimeRangeUrlState';

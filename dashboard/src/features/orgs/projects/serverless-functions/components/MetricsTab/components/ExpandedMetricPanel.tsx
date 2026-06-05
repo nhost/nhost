@@ -1,6 +1,6 @@
 import { useMeasure } from '@uidotdev/usehooks';
 import { Link2, X } from 'lucide-react';
-import { type MouseEvent as ReactMouseEvent, useEffect, useMemo } from 'react';
+import { useEffect, useMemo } from 'react';
 import toast from 'react-hot-toast';
 import { Button } from '@/components/ui/v3/button';
 import MetricChart from '@/features/orgs/projects/common/metrics/components/MetricChart';
@@ -12,6 +12,7 @@ import {
 } from '@/features/orgs/projects/serverless-functions/components/MetricsTab/panels';
 import { accessorsForPanel } from '@/features/orgs/projects/serverless-functions/components/MetricsTab/seriesAccessors';
 import type { FunctionMetricsResponse } from '@/features/orgs/projects/serverless-functions/types';
+import { getToastStyleProps } from '@/utils/constants/settings';
 
 export interface ExpandedMetricPanelProps {
   openPanel: MetricPanelSlug;
@@ -58,29 +59,35 @@ export default function ExpandedMetricPanel({
     return () => window.removeEventListener('keydown', onKey);
   }, [onClose]);
 
-  const handleBackdropClick = (e: ReactMouseEvent<HTMLDivElement>) => {
-    if (e.target === e.currentTarget) {
-      onClose();
-    }
-  };
-
   const handleCopyLink = async () => {
+    const toastStyle = getToastStyleProps();
     try {
       await navigator.clipboard.writeText(window.location.href);
-      toast.success('Link copied');
+      toast.success('Link copied', {
+        style: toastStyle.style,
+        ...toastStyle.success,
+      });
     } catch {
-      toast.error('Could not copy link');
+      toast.error('Could not copy link', {
+        style: toastStyle.style,
+        ...toastStyle.error,
+      });
     }
   };
 
   return (
-    // biome-ignore lint/a11y/noStaticElementInteractions: backdrop close; keyboard alternative (Esc) and explicit close button are provided
-    // biome-ignore lint/a11y/useKeyWithClickEvents: Esc key is handled at the window level (useEffect below)
-    <div
-      className="flex min-h-0 flex-1 flex-col p-6"
-      onClick={handleBackdropClick}
-    >
-      <div className="flex min-h-0 flex-1 flex-col gap-4 rounded-lg border bg-card p-4 shadow-sm">
+    <div className="relative flex min-h-0 flex-1 flex-col p-6">
+      {/* Click the area around the card to close. A real <button> (not onClick
+          on a div) keeps this accessible; tabIndex={-1} keeps it mouse-only
+          since Esc and the explicit Close button already cover keyboard users. */}
+      <button
+        type="button"
+        aria-label="Close expanded panel"
+        tabIndex={-1}
+        onClick={onClose}
+        className="absolute inset-0 cursor-default"
+      />
+      <div className="relative flex min-h-0 flex-1 flex-col gap-4 rounded-lg border bg-card p-4 shadow-sm">
         <div className="flex items-start justify-between gap-4">
           <div className="space-y-1">
             <h2 className="font-semibold text-foreground text-lg">

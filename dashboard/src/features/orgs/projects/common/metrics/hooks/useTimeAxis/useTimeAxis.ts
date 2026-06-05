@@ -11,7 +11,7 @@ import {
 
 const DAY_MS = 24 * 60 * 60_000;
 
-export interface TimeAxis {
+interface TimeAxis {
   // XAxis tick positions, or undefined when there is no explicit domain (Recharts
   // then auto-derives them).
   ticks: number[] | undefined;

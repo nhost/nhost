@@ -1,39 +1,34 @@
-import {
-  type CSSProperties,
-  type ReactNode,
-  type RefObject,
-  useCallback,
-  useEffect,
-  useMemo,
-  useRef,
-  useState,
-} from 'react';
+import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import {
   CartesianGrid,
   Line,
   LineChart,
   ReferenceArea,
   type ScaleFunction,
-  useXAxisScale,
-  useYAxisScale,
   XAxis,
   YAxis,
 } from 'recharts';
 import {
-  type ChartConfig,
   ChartContainer,
   ChartLegend,
   ChartTooltip,
 } from '@/components/ui/v3/chart';
-import useTimeAxis from '@/features/orgs/projects/common/metrics/hooks/useTimeAxis';
+import InteractiveChartLegend from '@/features/orgs/projects/common/metrics/components/InteractiveChartLegend';
+import {
+  HoverTooltipContent,
+  type PinnedPayloadEntry,
+  type PinnedState,
+  PinnedTooltip,
+  resolveTooltipPosition,
+} from '@/features/orgs/projects/common/metrics/components/MetricChartTooltip';
+import ScaleCapture from '@/features/orgs/projects/common/metrics/components/ScaleCapture';
+import { useTimeAxis } from '@/features/orgs/projects/common/metrics/hooks/useTimeAxis';
 import type {
   MetricSeries,
   SeriesAccessors,
 } from '@/features/orgs/projects/common/metrics/types';
 import { buildChart } from '@/features/orgs/projects/common/metrics/utils/buildChart';
-import { formatTimestampFull } from '@/features/orgs/projects/common/metrics/utils/formatters';
 import { distanceSqToSeries } from '@/features/orgs/projects/common/metrics/utils/seriesGeometry';
-import { cn } from '@/lib/utils';
 
 export interface MetricChartProps {
   data: MetricSeries[];
@@ -50,28 +45,12 @@ export interface MetricChartProps {
   onHiddenKeysChange?: (next: string[]) => void;
 }
 
-interface PinnedState {
-  x: number;
-  y: number;
-  label: number;
-  payload: PinnedPayloadEntry[];
-}
-
 interface ChartMouseEvent {
   activeLabel?: string | number;
   activeTooltipIndex?: number | string | null;
   activeCoordinate?: { x?: number; y?: number };
   chartX?: number;
   chartY?: number;
-}
-
-interface PinnedPayloadEntry {
-  dataKey?: string | number;
-  name?: string | number;
-  value?: number | string;
-  color?: string | undefined;
-  payload?: { fill?: string };
-  type?: string;
 }
 
 // Ignore drag selections shorter than this — prevents accidental hairline
@@ -399,281 +378,4 @@ export default function MetricChart({
       )}
     </div>
   );
-}
-
-interface TooltipEntry {
-  key: string;
-  label: ReactNode;
-  value: number | string | undefined;
-  color: string;
-}
-
-function toEntries(
-  payload: PinnedPayloadEntry[],
-  config: ChartConfig,
-): TooltipEntry[] {
-  return payload
-    .filter((p) => p.type !== 'none' && p.value != null)
-    .map((p) => {
-      const key = String(p.dataKey ?? p.name ?? 'value');
-      return {
-        key,
-        label: config[key]?.label ?? p.name ?? key,
-        value: p.value,
-        color: p.color ?? p.payload?.fill ?? 'hsl(var(--muted-foreground))',
-      };
-    });
-}
-
-interface TooltipCardProps {
-  label: number | string | undefined;
-  entries: TooltipEntry[];
-  valueFormatter?: (v: number) => string;
-  onClose?: VoidFunction;
-  className?: string;
-  style?: CSSProperties;
-  interactive?: boolean;
-  testId?: string;
-  ariaLabel?: string;
-}
-
-function TooltipCard({
-  label,
-  entries,
-  valueFormatter,
-  onClose,
-  className,
-  style,
-  interactive = false,
-  testId,
-  ariaLabel,
-}: TooltipCardProps) {
-  return (
-    <div
-      className={cn(
-        'grid min-w-[8rem] items-start gap-1.5 rounded-lg border border-border/50 bg-background px-2.5 py-1.5 text-foreground text-xs shadow-xl',
-        interactive && 'pointer-events-auto select-text',
-        className,
-      )}
-      style={style}
-      data-testid={testId}
-      {...(onClose ? { role: 'dialog', 'aria-label': ariaLabel } : {})}
-    >
-      <div className="flex items-start justify-between gap-3">
-        <div className="font-medium">{formatTimestampFull(label)}</div>
-        <button
-          type="button"
-          onClick={onClose}
-          className={cn(
-            'shrink-0 text-muted-foreground hover:text-foreground',
-            !onClose && 'pointer-events-none invisible',
-          )}
-          aria-label="Close pinned tooltip"
-          aria-hidden={!onClose}
-          tabIndex={onClose ? 0 : -1}
-        >
-          ×
-        </button>
-      </div>
-      <div className="grid gap-1.5">
-        {entries.map((entry) => {
-          const display =
-            typeof entry.value === 'number'
-              ? (valueFormatter?.(entry.value) ?? entry.value.toLocaleString())
-              : String(entry.value ?? '');
-          return (
-            <div key={entry.key} className="flex w-full items-center gap-2">
-              <div
-                className="h-2.5 w-2.5 shrink-0 rounded-[2px]"
-                style={{ backgroundColor: entry.color }}
-              />
-              <div className="flex flex-1 items-center justify-between gap-4 leading-none">
-                <span className="text-muted-foreground">{entry.label}</span>
-                <span className="font-medium font-mono text-foreground tabular-nums">
-                  {display}
-                </span>
-              </div>
-            </div>
-          );
-        })}
-      </div>
-    </div>
-  );
-}
-
-interface HoverTooltipContentProps {
-  config: ChartConfig;
-  valueFormatter?: (v: number) => string;
-  active?: boolean;
-  payload?: PinnedPayloadEntry[];
-  label?: number | string;
-}
-
-function HoverTooltipContent({
-  config,
-  valueFormatter,
-  active,
-  payload,
-  label,
-}: HoverTooltipContentProps) {
-  if (!active || !payload || payload.length === 0) {
-    return null;
-  }
-  const entries = toEntries(payload, config);
-  if (entries.length === 0) {
-    return null;
-  }
-  return (
-    <TooltipCard
-      label={label}
-      entries={entries}
-      valueFormatter={valueFormatter}
-    />
-  );
-}
-
-interface PinnedTooltipProps {
-  pinned: PinnedState;
-  config: ChartConfig;
-  valueFormatter?: (v: number) => string;
-  onClose: VoidFunction;
-}
-
-function PinnedTooltip({
-  pinned,
-  config,
-  valueFormatter,
-  onClose,
-}: PinnedTooltipProps) {
-  return (
-    <TooltipCard
-      label={pinned.label}
-      entries={toEntries(pinned.payload, config)}
-      valueFormatter={valueFormatter}
-      onClose={onClose}
-      interactive
-      className="absolute z-10"
-      style={{
-        left: pinned.x,
-        top: pinned.y,
-      }}
-      testId="pinned-tooltip"
-      ariaLabel="Pinned data point"
-    />
-  );
-}
-
-// Mirror the hover tooltip's placement (including recharts' edge-flipping) by
-// reading the live transform recharts set on its tooltip wrapper. Falls back
-// to activeCoordinate + default offset if the wrapper hasn't been positioned
-// yet (e.g., click without a prior hover).
-function resolveTooltipPosition(
-  wrapperEl: HTMLDivElement | null,
-  e: ChartMouseEvent,
-): { x: number | null; y: number | null } {
-  const tooltipEl = wrapperEl?.querySelector(
-    '.recharts-tooltip-wrapper',
-  ) as HTMLElement | null;
-  if (tooltipEl && tooltipEl.style.visibility !== 'hidden') {
-    const match = tooltipEl.style.transform.match(
-      /translate\(\s*(-?[\d.]+)px\s*,\s*(-?[\d.]+)px\s*\)/,
-    );
-    if (match) {
-      return {
-        x: Number.parseFloat(match[1]),
-        y: Number.parseFloat(match[2]),
-      };
-    }
-  }
-  const fallbackX = e.activeCoordinate?.x ?? e.chartX;
-  const fallbackY = e.activeCoordinate?.y ?? e.chartY;
-  return {
-    x: fallbackX != null ? fallbackX + 10 : null,
-    y: fallbackY != null ? fallbackY + 10 : null,
-  };
-}
-
-interface LegendPayloadItem {
-  dataKey?: string | number;
-  color?: string;
-  type?: string;
-}
-
-interface InteractiveChartLegendProps {
-  config: ChartConfig;
-  hiddenSet: Set<string>;
-  onItemClick: (
-    key: string,
-    opts: { metaKey: boolean; ctrlKey: boolean; shiftKey: boolean },
-  ) => void;
-  onItemHover?: (key: string | null) => void;
-  payload?: LegendPayloadItem[];
-}
-
-function InteractiveChartLegend({
-  config,
-  hiddenSet,
-  onItemClick,
-  onItemHover,
-  payload,
-}: InteractiveChartLegendProps) {
-  if (!payload?.length) {
-    return null;
-  }
-  return (
-    <div className="flex flex-wrap items-center justify-center gap-3 pt-3">
-      {payload
-        .filter((item) => item.type !== 'none')
-        .map((item) => {
-          const key = String(item.dataKey ?? '');
-          const isHidden = hiddenSet.has(key);
-          const label = config[key]?.label ?? key;
-          return (
-            <button
-              key={key}
-              type="button"
-              onClick={(e) =>
-                onItemClick(key, {
-                  metaKey: e.metaKey,
-                  ctrlKey: e.ctrlKey,
-                  shiftKey: e.shiftKey,
-                })
-              }
-              onDoubleClick={(e) => e.stopPropagation()}
-              onMouseEnter={() => onItemHover?.(key)}
-              onMouseLeave={() => onItemHover?.(null)}
-              className={cn(
-                'flex cursor-pointer items-center gap-1.5 text-xs leading-none transition-colors hover:text-foreground',
-                isHidden ? 'text-muted-foreground/60' : 'text-foreground',
-              )}
-              aria-pressed={!isHidden}
-              title="Click to isolate, click again to restore. Hold ⌘/Ctrl/Shift to toggle individually."
-            >
-              <div
-                className={cn(
-                  'h-2 w-2 shrink-0 rounded-[2px] transition-opacity',
-                  isHidden && 'opacity-40',
-                )}
-                style={{ backgroundColor: item.color }}
-              />
-              <span>{label}</span>
-            </button>
-          );
-        })}
-    </div>
-  );
-}
-
-function ScaleCapture({
-  xScaleRef,
-  yScaleRef,
-}: {
-  xScaleRef: RefObject<ScaleFunction | null>;
-  yScaleRef: RefObject<ScaleFunction | null>;
-}) {
-  const xScale = useXAxisScale();
-  const yScale = useYAxisScale();
-  xScaleRef.current = xScale ?? null;
-  yScaleRef.current = yScale ?? null;
-  return null;
 }
