@@ -213,17 +213,12 @@ func (s *DatabaseMetadataSource) poll(ctx context.Context) *metadata.Update {
 
 	meta, raw, resourceVersion, err := loadMetadataFromStore(ctx, s.store)
 	if err != nil {
-		return &metadata.Update{Metadata: nil, HasuraJSON: nil, ResourceVersion: 0, Err: err}
+		return &metadata.Update{Metadata: nil, Err: err}
 	}
 
 	s.snapshot.Store(&snapshot{raw: raw, version: resourceVersion})
 
-	return &metadata.Update{
-		Metadata:        meta,
-		HasuraJSON:      raw,
-		ResourceVersion: resourceVersion,
-		Err:             nil,
-	}
+	return &metadata.Update{Metadata: meta, Err: nil}
 }
 
 // newMetadataPool creates a small persistent connection pool for polling

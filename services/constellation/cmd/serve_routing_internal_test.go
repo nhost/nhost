@@ -11,7 +11,6 @@ import (
 
 	"github.com/gin-gonic/gin"
 	"github.com/nhost/nhost/services/constellation/api"
-	metadataapi "github.com/nhost/nhost/services/constellation/api/metadata"
 )
 
 // supportedServeRoutes is the canonical list of (method, path) pairs the
@@ -39,6 +38,35 @@ func supportedServeRoutes() []struct{ Method, Path string } {
 // it here AND extend supportedServeRoutes. The self-consistency test
 // (TestServeRouter_HarnessSelfConsistent) only checks the mirror against the
 // table — it does not compare the mirror against getRouter.
+// routingTestStub satisfies api.StrictServerInterface for routing-only tests.
+// The tests in this file exercise which paths are served natively vs.
+// proxied; handler bodies don't matter. All operations return 200/empty.
+type routingTestStub struct{}
+
+func (routingTestStub) HealthzGet(
+	context.Context, api.HealthzGetRequestObject,
+) (api.HealthzGetResponseObject, error) {
+	return api.HealthzGet200TextResponse("ok"), nil
+}
+
+func (routingTestStub) HealthzHead(
+	context.Context, api.HealthzHeadRequestObject,
+) (api.HealthzHeadResponseObject, error) {
+	return api.HealthzHead200Response{}, nil
+}
+
+func (routingTestStub) GetVersion(
+	context.Context, api.GetVersionRequestObject,
+) (api.GetVersionResponseObject, error) {
+	return api.GetVersion200JSONResponse{Version: "test"}, nil
+}
+
+func (routingTestStub) MetadataRequest(
+	context.Context, api.MetadataRequestRequestObject,
+) (api.MetadataRequestResponseObject, error) {
+	return api.MetadataRequest200JSONResponse{}, nil
+}
+
 func buildServeRouter(t *testing.T, proxy http.Handler) *gin.Engine {
 	t.Helper()
 	gin.SetMode(gin.TestMode)
@@ -48,20 +76,10 @@ func buildServeRouter(t *testing.T, proxy http.Handler) *gin.Engine {
 
 	handled := func(c *gin.Context) { c.Status(http.StatusOK) }
 
-	apiH := api.NewStrictHandler(&apiServer{version: "test"}, nil)
-	api.RegisterHandlersWithOptions(router, apiH, api.GinServerOptions{
+	handler := api.NewStrictHandler(&routingTestStub{}, nil)
+	api.RegisterHandlersWithOptions(router, handler, api.GinServerOptions{
 		BaseURL:      "",
 		Middlewares:  nil,
-		ErrorHandler: nil,
-	})
-
-	metaH := metadataapi.NewStrictHandler(
-		&metadataServer{adminSecret: "x", proxy: nil, source: nil},
-		nil,
-	)
-	metadataapi.RegisterHandlersWithOptions(router, metaH, metadataapi.GinServerOptions{
-		BaseURL:      "",
-		Middlewares:  []metadataapi.MiddlewareFunc{captureRawBody},
 		ErrorHandler: nil,
 	})
 

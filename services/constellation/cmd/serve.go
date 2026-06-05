@@ -301,8 +301,8 @@ func getRouter(
 	ctx context.Context,
 	cmd *cli.Command,
 	ctrl *controller.Controller,
-	metadataSrc metadata.Source,
 	jwtAuth middleware.JWTAuthenticator,
+	hasuraProxy *httputil.ReverseProxy,
 	logger *slog.Logger,
 ) (*gin.Engine, error) {
 	corsOpts, err := getCorsOptions(ctx, cmd, logger)
@@ -343,40 +343,29 @@ func getRouter(
 		middleware.Session(cmd.String(flagAdminSecret), jwtAuth),
 	)
 
-	apiHandler := api.NewStrictHandler(&apiServer{version: cmd.Root().Version}, nil)
-	api.RegisterHandlersWithOptions(router, apiHandler, api.GinServerOptions{
-		BaseURL:      "",
-		Middlewares:  nil,
-		ErrorHandler: nil,
-	})
-
-	// Hasura upstream proxy. Used both as the NoRoute fallback (any path
-	// Constellation does not serve natively) and as the per-op fallback
-	// inside the /v1/metadata dispatcher (any metadata op not yet migrated).
-	// Nil when --hasura-upstream-url is unset — unimplemented routes return
-	// 404 and unknown metadata ops return `not-supported`.
-	var hasuraProxy *httputil.ReverseProxy
-
-	if upstream := cmd.String(flagHasuraUpstreamURL); upstream != "" {
-		proxy, err := newHasuraProxy(upstream, logger)
-		if err != nil {
-			return nil, err
-		}
-
-		hasuraProxy = proxy
+	spec, err := api.GetSwagger()
+	if err != nil {
+		return nil, fmt.Errorf("loading embedded OpenAPI spec: %w", err)
 	}
 
-	metadataHandler := metadataapi.NewStrictHandler(
-		&metadataServer{
-			adminSecret: cmd.String(flagAdminSecret),
-			proxy:       hasuraProxy,
-			source:      metadataSrc,
+	// Spec-driven validation: validates request body/params/headers AND
+	// drives the per-operation `security:` block via NewAuthFunc.
+	// Mounted via RegisterHandlersWithOptions so it only runs on routes
+	// declared in the spec; /v1/graphql and proxy fallbacks pass through.
+	// validator runs per-request; startup ctx must not be propagated
+	//nolint:contextcheck
+	validatorMW := sharedoapi.NewRequestValidator(spec, controller.NewAuthFunc())
+
+	handler := api.NewStrictHandler(ctrl, nil)
+	api.RegisterHandlersWithOptions(router, handler, api.GinServerOptions{
+		BaseURL: "",
+		// Order matters: CaptureRawBody runs first so an oversized body is
+		// rejected on the ContentLength fast-path before request validation
+		// burns cycles parsing it.
+		Middlewares: []api.MiddlewareFunc{
+			controller.CaptureRawBody,
+			api.MiddlewareFunc(validatorMW),
 		},
-		nil,
-	)
-	metadataapi.RegisterHandlersWithOptions(router, metadataHandler, metadataapi.GinServerOptions{
-		BaseURL:      "",
-		Middlewares:  []metadataapi.MiddlewareFunc{captureRawBody},
 		ErrorHandler: nil,
 	})
 
@@ -514,6 +503,22 @@ func serve(ctx context.Context, cmd *cli.Command) error {
 
 	defer jwtAuth.Close()
 
+	// Hasura upstream proxy. Used both as the NoRoute fallback (any path
+	// Constellation does not serve natively) and as the per-op fallback
+	// inside the /v1/metadata dispatcher (any metadata op not yet migrated).
+	// Nil when --hasura-upstream-url is unset — unimplemented routes return
+	// 404 and unknown metadata ops return `not-supported`.
+	var hasuraProxy *httputil.ReverseProxy
+
+	if upstream := cmd.String(flagHasuraUpstreamURL); upstream != "" {
+		proxy, err := newHasuraProxy(upstream, logger)
+		if err != nil {
+			return err
+		}
+
+		hasuraProxy = proxy
+	}
+
 	ctrl, err := controller.New(
 		ctx,
 		cmd.Duration(flagSubscriptionPollInterval),
@@ -522,23 +527,25 @@ func serve(ctx context.Context, cmd *cli.Command) error {
 		jwtAuth,
 		source,
 		logger,
+		cmd.Root().Version,
+		hasuraProxy,
 	)
 	if err != nil {
 		return fmt.Errorf("failed to create controller: %w", err)
 	}
 
-	return runServer(ctx, cmd, ctrl, source, jwtAuth, logger)
+	return runServer(ctx, cmd, ctrl, jwtAuth, hasuraProxy, logger)
 }
 
 func runServer(
 	ctx context.Context,
 	cmd *cli.Command,
 	ctrl *controller.Controller,
-	metadataSrc metadata.Source,
 	jwtAuth middleware.JWTAuthenticator,
+	hasuraProxy *httputil.ReverseProxy,
 	logger *slog.Logger,
 ) error {
-	router, err := getRouter(ctx, cmd, ctrl, metadataSrc, jwtAuth, logger)
+	router, err := getRouter(ctx, cmd, ctrl, jwtAuth, hasuraProxy, logger)
 	if err != nil {
 		return fmt.Errorf("building HTTP router: %w", err)
 	}

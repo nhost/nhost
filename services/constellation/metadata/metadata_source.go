@@ -3,15 +3,9 @@ package metadata
 import "context"
 
 // Update carries either successfully loaded metadata or an error.
-// HasuraJSON and ResourceVersion are populated alongside Metadata when the
-// underlying source loaded the data in Hasura form (database source or YAML
-// directory layout). For TOML-sourced metadata HasuraJSON is nil and
-// ResourceVersion is 0.
 type Update struct {
-	Metadata        *Metadata
-	HasuraJSON      []byte
-	ResourceVersion int64
-	Err             error
+	Metadata *Metadata
+	Err      error
 }
 
 //go:generate mockgen -package mock -destination mock/source.go . Source

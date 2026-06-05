@@ -1,22 +1,34 @@
-package cmd
+package controller
 
 import (
 	"bytes"
 	"context"
 	"encoding/json"
 	"io"
-	"log/slog"
 	"net/http"
 	"net/http/httptest"
 	"net/http/httputil"
+	"net/url"
 	"strings"
 	"testing"
 
 	"github.com/gin-gonic/gin"
-	metadataapi "github.com/nhost/nhost/services/constellation/api/metadata"
-	"github.com/nhost/nhost/services/constellation/internal/requestcontext"
+	sharedoapi "github.com/nhost/nhost/internal/lib/oapi"
+	"github.com/nhost/nhost/services/constellation/api"
+	"github.com/nhost/nhost/services/constellation/controller/middleware"
 	"github.com/nhost/nhost/services/constellation/metadata"
 )
+
+func testReverseProxy(t *testing.T, upstream string) *httputil.ReverseProxy {
+	t.Helper()
+
+	target, err := url.Parse(upstream)
+	if err != nil {
+		t.Fatalf("parsing upstream URL: %v", err)
+	}
+
+	return httputil.NewSingleHostReverseProxy(target)
+}
 
 // stubMetadataSource is a minimal metadata.Source for the metadata handler
 // tests. Only HasuraSnapshotJSON is exercised; the rest panic so a misuse is
@@ -45,10 +57,10 @@ const testAdminSecret = "test-admin-secret" //nolint:gosec // test-only constant
 // buildMetadataRouter mirrors the production wiring for the metadata endpoint
 // in a test harness: gin engine + ClientHeadersToContext middleware (so the
 // handler can read X-Hasura-Admin-Secret out of the request context) + the
-// registered strict handler. Nothing else — no Session middleware, since the
-// metadata handler is intentionally independent of it. A nil proxy means the
-// "no upstream configured" branch is exercised (unknown ops return
-// not-supported instead of proxying).
+// registered strict handler, with middleware.Session in front so that the
+// security middleware (which consumes SessionFromContext) has a resolved
+// session to inspect. A nil proxy means the "no upstream configured" branch
+// is exercised (unknown ops return not-supported instead of proxying).
 func buildMetadataRouter(
 	t *testing.T,
 	proxy *httputil.ReverseProxy,
@@ -69,20 +81,31 @@ func buildMetadataRouterWithSource(
 	router := gin.New()
 	router.ContextWithFallback = true
 
-	router.Use(func(c *gin.Context) {
-		ctx := requestcontext.ClientHeadersToContext(c.Request.Context(), c.Request.Header.Clone())
-		c.Request = c.Request.WithContext(ctx)
-		c.Next()
-	})
+	router.Use(
+		middleware.Session(testAdminSecret, middleware.NewNoOpJWTAuthenticator()),
+	)
 
-	handler := metadataapi.NewStrictHandler(&metadataServer{
+	ctrl := &Controller{
 		adminSecret: testAdminSecret,
-		proxy:       proxy,
+		hasuraProxy: proxy,
 		source:      source,
-	}, nil)
-	metadataapi.RegisterHandlersWithOptions(router, handler, metadataapi.GinServerOptions{
-		BaseURL:      "",
-		Middlewares:  []metadataapi.MiddlewareFunc{captureRawBody},
+		version:     "test",
+	}
+
+	spec, err := api.GetSwagger()
+	if err != nil {
+		t.Fatalf("loading embedded spec: %v", err)
+	}
+
+	validatorMW := sharedoapi.NewRequestValidator(spec, NewAuthFunc())
+
+	handler := api.NewStrictHandler(ctrl, nil)
+	api.RegisterHandlersWithOptions(router, handler, api.GinServerOptions{
+		BaseURL: "",
+		Middlewares: []api.MiddlewareFunc{
+			CaptureRawBody,
+			api.MiddlewareFunc(validatorMW),
+		},
 		ErrorHandler: nil,
 	})
 
@@ -91,7 +114,7 @@ func buildMetadataRouterWithSource(
 
 func postMetadata(
 	t *testing.T, router http.Handler, adminSecret, body string,
-) (int, metadataapi.MetadataError) {
+) (int, api.MetadataError) {
 	t.Helper()
 
 	req := httptest.NewRequest(http.MethodPost, "/v1/metadata", strings.NewReader(body))
@@ -106,28 +129,28 @@ func postMetadata(
 
 	raw, _ := io.ReadAll(rec.Body)
 
-	var err metadataapi.MetadataError
+	var err api.MetadataError
 
 	_ = json.Unmarshal(raw, &err)
 
 	return rec.Code, err
 }
 
+// Auth-rejection tests assert status only. The response body shape is owned
+// by the security middleware (spec-wide) and is not part of MetadataError;
+// per-op error shapes only apply to errors the handler itself produces.
+
 func TestMetadataRejectsMissingAdminSecret(t *testing.T) {
 	t.Parallel()
 
 	router := buildMetadataRouter(t, nil)
 
-	status, errBody := postMetadata(
+	status, _ := postMetadata(
 		t, router, "", `{"type":"export_metadata","args":{}}`,
 	)
 
 	if status != http.StatusUnauthorized {
 		t.Errorf("status = %d; want %d", status, http.StatusUnauthorized)
-	}
-
-	if errBody.Code != "access-denied" {
-		t.Errorf("code = %q; want %q", errBody.Code, "access-denied")
 	}
 }
 
@@ -136,16 +159,12 @@ func TestMetadataRejectsWrongAdminSecret(t *testing.T) {
 
 	router := buildMetadataRouter(t, nil)
 
-	status, errBody := postMetadata(
+	status, _ := postMetadata(
 		t, router, "wrong-secret", `{"type":"export_metadata","args":{}}`,
 	)
 
 	if status != http.StatusUnauthorized {
 		t.Errorf("status = %d; want %d", status, http.StatusUnauthorized)
-	}
-
-	if errBody.Code != "access-denied" {
-		t.Errorf("code = %q; want %q", errBody.Code, "access-denied")
 	}
 }
 
@@ -219,10 +238,7 @@ func TestMetadataProxiesUnknownOpWhenUpstreamConfigured(t *testing.T) {
 	))
 	defer upstream.Close()
 
-	proxy, err := newHasuraProxy(upstream.URL, slog.New(slog.DiscardHandler))
-	if err != nil {
-		t.Fatalf("newHasuraProxy: %v", err)
-	}
+	proxy := testReverseProxy(t, upstream.URL)
 
 	router := buildMetadataRouter(t, proxy)
 
@@ -295,10 +311,7 @@ func TestMetadataProxyPreservesUnknownFieldsAndQueryString(t *testing.T) {
 	))
 	defer upstream.Close()
 
-	proxy, err := newHasuraProxy(upstream.URL, slog.New(slog.DiscardHandler))
-	if err != nil {
-		t.Fatalf("newHasuraProxy: %v", err)
-	}
+	proxy := testReverseProxy(t, upstream.URL)
 
 	router := buildMetadataRouter(t, proxy)
 
@@ -417,16 +430,12 @@ func TestMetadataExportRejectsBadAuth(t *testing.T) {
 		version: 1,
 	})
 
-	status, errBody := postMetadata(
+	status, _ := postMetadata(
 		t, router, "", `{"type":"export_metadata","args":{}}`,
 	)
 
 	if status != http.StatusUnauthorized {
 		t.Errorf("status = %d; want %d", status, http.StatusUnauthorized)
-	}
-
-	if errBody.Code != "access-denied" {
-		t.Errorf("code = %q; want %q", errBody.Code, "access-denied")
 	}
 }
 
@@ -435,7 +444,7 @@ func TestMetadataRejectsOversizedBodyBeforeAuth(t *testing.T) {
 
 	router := buildMetadataRouter(t, nil)
 
-	// Build a body just over the cap. captureRawBody must reject it before
+	// Build a body just over the cap. CaptureRawBody must reject it before
 	// the admin-secret check runs — verify by sending no secret and confirming
 	// the response is 413 (the cap), not 401 (the auth check).
 	oversized := bytes.Repeat([]byte("a"), int(metadataMaxBodyBytes)+1)
@@ -469,19 +478,5 @@ func TestMetadataRejectsOversizedChunkedBody(t *testing.T) {
 
 	if rec.Code != http.StatusRequestEntityTooLarge {
 		t.Errorf("status = %d; want %d", rec.Code, http.StatusRequestEntityTooLarge)
-	}
-}
-
-func TestMetadataIsAdminEmptyServerSecret(t *testing.T) {
-	t.Parallel()
-
-	s := &metadataServer{adminSecret: ""}
-	ctx := requestcontext.ClientHeadersToContext(
-		context.Background(),
-		http.Header{"X-Hasura-Admin-Secret": {""}},
-	)
-
-	if s.isAdmin(ctx) {
-		t.Error("isAdmin returned true with empty configured secret; want false")
 	}
 }

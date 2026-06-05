@@ -1,4 +1,0 @@
-package: metadata
-generate:
-  models: true
-output: api/metadata/types.gen.go

@@ -28,6 +28,9 @@ type ServerInterface interface {
 	// Health check (HEAD)
 	// (HEAD /healthz)
 	HealthzHead(c *gin.Context)
+	// Hasura-compatible metadata API
+	// (POST /v1/metadata)
+	MetadataRequest(c *gin.Context)
 	// Get service version
 	// (GET /v1/version)
 	GetVersion(c *gin.Context)
@@ -66,6 +69,21 @@ func (siw *ServerInterfaceWrapper) HealthzHead(c *gin.Context) {
 	}
 
 	siw.Handler.HealthzHead(c)
+}
+
+// MetadataRequest operation middleware
+func (siw *ServerInterfaceWrapper) MetadataRequest(c *gin.Context) {
+
+	c.Set(AdminSecretScopes, []string{})
+
+	for _, middleware := range siw.HandlerMiddlewares {
+		middleware(c)
+		if c.IsAborted() {
+			return
+		}
+	}
+
+	siw.Handler.MetadataRequest(c)
 }
 
 // GetVersion operation middleware
@@ -110,6 +128,7 @@ func RegisterHandlersWithOptions(router gin.IRouter, si ServerInterface, options
 
 	router.GET(options.BaseURL+"/healthz", wrapper.HealthzGet)
 	router.HEAD(options.BaseURL+"/healthz", wrapper.HealthzHead)
+	router.POST(options.BaseURL+"/v1/metadata", wrapper.MetadataRequest)
 	router.GET(options.BaseURL+"/v1/version", wrapper.GetVersion)
 }
 
@@ -145,6 +164,41 @@ func (response HealthzHead200Response) VisitHealthzHeadResponse(w http.ResponseW
 	return nil
 }
 
+type MetadataRequestRequestObject struct {
+	Body *MetadataRequestJSONRequestBody
+}
+
+type MetadataRequestResponseObject interface {
+	VisitMetadataRequestResponse(w http.ResponseWriter) error
+}
+
+type MetadataRequest200JSONResponse map[string]interface{}
+
+func (response MetadataRequest200JSONResponse) VisitMetadataRequestResponse(w http.ResponseWriter) error {
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(200)
+
+	return json.NewEncoder(w).Encode(response)
+}
+
+type MetadataRequest400JSONResponse MetadataError
+
+func (response MetadataRequest400JSONResponse) VisitMetadataRequestResponse(w http.ResponseWriter) error {
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(400)
+
+	return json.NewEncoder(w).Encode(response)
+}
+
+type MetadataRequest401JSONResponse MetadataError
+
+func (response MetadataRequest401JSONResponse) VisitMetadataRequestResponse(w http.ResponseWriter) error {
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(401)
+
+	return json.NewEncoder(w).Encode(response)
+}
+
 type GetVersionRequestObject struct {
 }
 
@@ -172,6 +226,9 @@ type StrictServerInterface interface {
 	// Health check (HEAD)
 	// (HEAD /healthz)
 	HealthzHead(ctx context.Context, request HealthzHeadRequestObject) (HealthzHeadResponseObject, error)
+	// Hasura-compatible metadata API
+	// (POST /v1/metadata)
+	MetadataRequest(ctx context.Context, request MetadataRequestRequestObject) (MetadataRequestResponseObject, error)
 	// Get service version
 	// (GET /v1/version)
 	GetVersion(ctx context.Context, request GetVersionRequestObject) (GetVersionResponseObject, error)
@@ -239,6 +296,39 @@ func (sh *strictHandler) HealthzHead(ctx *gin.Context) {
 	}
 }
 
+// MetadataRequest operation middleware
+func (sh *strictHandler) MetadataRequest(ctx *gin.Context) {
+	var request MetadataRequestRequestObject
+
+	var body MetadataRequestJSONRequestBody
+	if err := ctx.ShouldBindJSON(&body); err != nil {
+		ctx.Status(http.StatusBadRequest)
+		ctx.Error(err)
+		return
+	}
+	request.Body = &body
+
+	handler := func(ctx *gin.Context, request interface{}) (interface{}, error) {
+		return sh.ssi.MetadataRequest(ctx, request.(MetadataRequestRequestObject))
+	}
+	for _, middleware := range sh.middlewares {
+		handler = middleware(handler, "MetadataRequest")
+	}
+
+	response, err := handler(ctx, request)
+
+	if err != nil {
+		ctx.Error(err)
+		ctx.Status(http.StatusInternalServerError)
+	} else if validResponse, ok := response.(MetadataRequestResponseObject); ok {
+		if err := validResponse.VisitMetadataRequestResponse(ctx.Writer); err != nil {
+			ctx.Error(err)
+		}
+	} else if response != nil {
+		ctx.Error(fmt.Errorf("unexpected response type: %T", response))
+	}
+}
+
 // GetVersion operation middleware
 func (sh *strictHandler) GetVersion(ctx *gin.Context) {
 	var request GetVersionRequestObject
@@ -267,19 +357,37 @@ func (sh *strictHandler) GetVersion(ctx *gin.Context) {
 // Base64 encoded, gzipped, json marshaled Swagger object
 var swaggerSpec = []string{
 
-	"H4sIAAAAAAAC/6xUTW/jNhD9K4M5JYVWSrI33RZtYAfYLdKukUuRAyOOLe5KJMMZGVED//diJPnbRQ7t",
-	"jR5x+N6b9zzv6PwyYPmOVfBiKtGjNy1hib/XgQW+dzGGJJhhlxossRaJXBaF16+5C7jJ0BJXyUVxwWtf",
-	"8J9mycT6j68wXywegbu0NBUBU1qThZcefg2ehZrGaEsOi5pg20HexuC8wFWxvi1WWn1trsExtKHzQha8",
-	"EbempgfjrdadF/L6kGmaHnwQGPm8kIWaEuVwP73JILWRY3SwgXjo6knAtbGhlrzsUa4oX+WgZFoSY42Y",
-	"DIr1XfHaUeozKEx0XPxyDSYRJFpTYvoUU3hzZEECzA13yQxc9YaxdqxL7Rg4UgVGaVE/fG7dKhkhm2OG",
-	"javIMx048u1hAV+n6qkfIZLn0KWK8pBWxdTMxbeHhVokTpq9qccT+PL4gBkq89HA2/wmv9EmfdNEhyV+",
-	"HkoZRiM1K6OiJtNI/beeVzTE5jgFT5Tcsge3VHGD9a4itStESma0Czp2fgWz+wW0JHWwOGCOnx8sljgf",
-	"UWakAUzEMagoRbu7udnGlvyAL/QmRWyM8/qLq5paoyd6M+oqlhh+YobSRz2zJOdXuNmc5ff7nusockza",
-	"AW/UJu7a1qR+RxKqmqqfcDW7X1wrjFkxln8h9yzU4vMmw5qM/U+Dmt9/+e2DSc0V4/Ko/leVSuWizE2G",
-	"+l/Zpelf4vEnSXK0Jpgugu6h1I6BNC+hk8NxnKmdkTxNCB/mwsTYuGroLX5wOEmHsdaNeh+TYojTd5am",
-	"YcowHpTe8UDTsRjdX1sdYXlCfB+/2/wu/3whgargtXOJrE5yi/K8uxheflAll6L6dGF43FUVMS873YZp",
-	"GrM9MXNGsovaejfIczO1Sbd20vqp7OMtMt7b7aUCN8+7F8/CNwDsw8blFMIxXjxE8ZzftAYnepvnzT8B",
-	"AAD//6+aZ56/BgAA",
+	"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",
 }
 
 // GetSwagger returns the content of the embedded swagger specification file

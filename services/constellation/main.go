@@ -2,9 +2,6 @@ package main
 
 //go:generate oapi-codegen -config api/server.cfg.yaml api/openapi.yaml
 //go:generate oapi-codegen -config api/types.cfg.yaml api/openapi.yaml
-//go:generate oapi-codegen -config api/hasura/types.cfg.yaml api/hasura/metadata.openapi.json
-//go:generate oapi-codegen -config api/metadata/server.cfg.yaml api/metadata/openapi.yaml
-//go:generate oapi-codegen -config api/metadata/types.cfg.yaml api/metadata/openapi.yaml
 
 import (
 	"context"

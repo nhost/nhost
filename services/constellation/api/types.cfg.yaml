@@ -2,3 +2,6 @@ package: api
 generate:
   models: true
 output: api/types.gen.go
+output-options:
+  exclude-tags:
+    - graphql
