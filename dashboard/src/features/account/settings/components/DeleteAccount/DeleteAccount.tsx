@@ -4,8 +4,9 @@ import { useDialog } from '@/components/common/DialogProvider';
 import { SettingsContainer } from '@/components/layout/SettingsContainer';
 import { Box } from '@/components/ui/v2/Box';
 import { Button } from '@/components/ui/v2/Button';
-import { Checkbox } from '@/components/ui/v2/Checkbox';
 import { Text } from '@/components/ui/v2/Text';
+import { Checkbox } from '@/components/ui/v3/checkbox';
+import { Label } from '@/components/ui/v3/label';
 import { execPromiseWithErrorToast } from '@/features/orgs/utils/execPromiseWithErrorToast';
 import { useUserData } from '@/hooks/useUserData';
 import { useAuth } from '@/providers/Auth';
@@ -53,14 +54,17 @@ function ConfirmDeleteAccountModal({
         </Text>
 
         <Box className="my-4">
-          <Checkbox
-            id="accept-1"
-            label={`I'm sure I want to delete my account`}
-            className="py-2"
-            checked={remove}
-            onChange={(_event, checked) => setRemove(checked)}
-            aria-label="Confirm Delete Project #1"
-          />
+          <div className="flex items-center gap-2 py-2">
+            <Checkbox
+              id="accept-1"
+              checked={remove}
+              onCheckedChange={(checked) => setRemove(checked === true)}
+              aria-label="Confirm Delete Project #1"
+            />
+            <Label htmlFor="accept-1" className="cursor-pointer font-normal">
+              {`I'm sure I want to delete my account`}
+            </Label>
+          </div>
         </Box>
 
         <div className="grid grid-flow-row gap-2">

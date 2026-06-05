@@ -2,8 +2,9 @@ import { format, parseISO } from 'date-fns';
 import { useState } from 'react';
 import { Box } from '@/components/ui/v2/Box';
 import { Button } from '@/components/ui/v2/Button';
-import { Checkbox } from '@/components/ui/v2/Checkbox';
 import { Text } from '@/components/ui/v2/Text';
+import { Checkbox } from '@/components/ui/v3/checkbox';
+import { Label } from '@/components/ui/v3/label';
 import { useProject } from '@/features/orgs/projects/hooks/useProject';
 import type { Backup } from '@/types/application';
 import { useRestoreApplicationDatabaseMutation } from '@/utils/__generated__/graphql';
@@ -72,11 +73,19 @@ export default function RestoreBackupModal({
       </Text>
 
       <Box className="pt-1 pb-2.5">
-        <Checkbox
-          checked={isSure}
-          onChange={(_event, checked) => setIsSure(checked)}
-          label="I'm sure I want to restore this backup"
-        />
+        <div className="flex items-center gap-2">
+          <Checkbox
+            id="restore-confirm"
+            checked={isSure}
+            onCheckedChange={(checked) => setIsSure(checked === true)}
+          />
+          <Label
+            htmlFor="restore-confirm"
+            className="cursor-pointer font-normal"
+          >
+            I'm sure I want to restore this backup
+          </Label>
+        </div>
       </Box>
 
       <Button onClick={handleSubmit} disabled={!isSure} loading={loading}>
