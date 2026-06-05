@@ -148,9 +148,21 @@ let
     }:
     let
       envFile = "/tmp/nhost-vercel-${name}-${environment}.env";
+      requiredImpureEnv =
+        envVar:
+        let
+          value = builtins.getEnv envVar;
+        in
+        if value == "" then
+          throw ''
+            ${envVar} is required for ${name} Vercel derivations.
+            Export ${envVar} and evaluate with --impure so Vercel cache keys include the project ID.
+          ''
+        else
+          value;
       projectHashes = {
-        VERCEL_ORG_ID_HASH = builtins.hashString "sha256" (builtins.getEnv "VERCEL_ORG_ID");
-        VERCEL_PROJECT_ID_HASH = builtins.hashString "sha256" (builtins.getEnv "VERCEL_PROJECT_ID");
+        VERCEL_ORG_ID_HASH = builtins.hashString "sha256" (requiredImpureEnv "VERCEL_ORG_ID");
+        VERCEL_PROJECT_ID_HASH = builtins.hashString "sha256" (requiredImpureEnv "VERCEL_PROJECT_ID");
       };
       vercelBuildInputs =
         jsCheckDeps
@@ -259,14 +271,14 @@ let
             cp -r ${build}/.vercel/output .vercel/output
             chmod +w -R .vercel
 
-            for next_dir in ${build}/*/.next; do
-              if [ -d "$next_dir" ]; then
-                project_dir="$(basename "$(dirname "$next_dir")")"
+            find ${build} -path ${build}/.vercel -prune -o -path '*/.next' -type d -print0 |
+              while IFS= read -r -d "" next_dir; do
+                project_dir=$(realpath --relative-to="${build}" "''${next_dir%/.next}")
+                mkdir -p "$project_dir"
                 rm -rf "$project_dir/.next"
                 cp -r "$next_dir" "$project_dir/.next"
                 chmod +w -R "$project_dir/.next"
-              fi
-            done
+              done
 
             echo "➜ Deploying prebuilt Vercel ${environment} output for ${name}"
             vercel deploy \

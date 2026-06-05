@@ -49,6 +49,7 @@ runs:
           printf 'export %s=%q\n' "$name" "$value"
         }
 
+        install -m 600 /dev/null "$env_file"
         {
           write_env VERCEL_ORG_ID "$INPUT_VERCEL_TEAM_ID"
           write_env VERCEL_PROJECT_ID "$INPUT_VERCEL_PROJECT_ID"
@@ -59,11 +60,15 @@ runs:
           write_env NEXT_TELEMETRY_DISABLED "${NEXT_TELEMETRY_DISABLED:-1}"
         } > "$env_file"
 
-        if getent group nixbld > /dev/null && sudo chgrp nixbld "$env_file"; then
-          chmod 640 "$env_file"
-        else
-          chmod 644 "$env_file"
+        if ! getent group nixbld > /dev/null; then
+          echo "::error::nixbld group is missing; refusing to make the secret env file world-readable"
+          exit 1
         fi
+        if ! sudo chgrp nixbld "$env_file"; then
+          echo "::error::failed to grant nixbld group access to the secret env file"
+          exit 1
+        fi
+        chmod 640 "$env_file"
 
         rm -f "$result_link"
         VERCEL_ORG_ID="$INPUT_VERCEL_TEAM_ID" \
