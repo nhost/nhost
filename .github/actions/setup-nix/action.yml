@@ -27,13 +27,12 @@ runs:
         extra_nix_config: |
           download-buffer-size = 500000000
           experimental-features = nix-command flakes
-          sandbox = false
+          sandbox = relaxed
           access-tokens = github.com=${{ inputs.GITHUB_TOKEN }}
           substituters = https://cache.nixos.org/?priority=40 s3://nhost-nix-cache?endpoint=https://14bc02755b64adb7c8c62b5420d0a457.eu.r2.cloudflarestorage.com&region=auto&priority=50
           trusted-public-keys = cache.nixos.org-1:6NCHdD59X431o0gWypbMrAURkbJ16ZPMQFGspcDShjY= ${{ inputs.NIX_CACHE_PUB_KEY }}
           keep-env-derivations = true
           keep-outputs = true
-          accept-flake-config = true
 
     - name: "Forward R2 credentials to the Nix daemon"
       # The Nix daemon runs as root and doesn't inherit AWS_* env vars

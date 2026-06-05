@@ -4,12 +4,11 @@ import { FormProvider, useForm } from 'react-hook-form';
 import * as Yup from 'yup';
 import { ApplyLocalSettingsDialog } from '@/components/common/ApplyLocalSettingsDialog';
 import { useDialog } from '@/components/common/DialogProvider';
-import { ControlledCheckbox } from '@/components/form/ControlledCheckbox';
 import { Form } from '@/components/form/Form';
+import { FormCheckbox } from '@/components/form/FormCheckbox';
 import { SettingsContainer } from '@/components/layout/SettingsContainer';
 import { ActivityIndicator } from '@/components/ui/v2/ActivityIndicator';
 import { Input } from '@/components/ui/v2/Input';
-import { Text } from '@/components/ui/v2/Text';
 import { useIsPlatform } from '@/features/orgs/projects/common/hooks/useIsPlatform';
 import { useLocalMimirClient } from '@/features/orgs/projects/hooks/useLocalMimirClient';
 import { useProject } from '@/features/orgs/projects/hooks/useProject';
@@ -164,30 +163,18 @@ export default function EmailAndPasswordSettings() {
             slotProps={{ inputRoot: { min: 3 } }}
           />
 
-          <ControlledCheckbox
+          <FormCheckbox
+            control={form.control}
             name="emailVerificationRequired"
-            id="emailVerificationRequired"
-            label={
-              <span className="inline-grid grid-flow-row gap-y-0.5 text-sm+">
-                <Text component="span">Require Verified Emails</Text>
-                <Text component="span" color="secondary">
-                  Users must verify their email to be able to sign in.
-                </Text>
-              </span>
-            }
+            label="Require Verified Emails"
+            helperText="Users must verify their email to be able to sign in."
           />
 
-          <ControlledCheckbox
+          <FormCheckbox
+            control={form.control}
             name="hibpEnabled"
-            id="hibpEnabled"
-            label={
-              <span className="inline-grid grid-flow-row gap-y-0.5 text-sm+">
-                <Text component="span">Password Protection</Text>
-                <Text component="span" color="secondary">
-                  Passwords must pass haveibeenpwned.com during sign-up.
-                </Text>
-              </span>
-            }
+            label="Password Protection"
+            helperText="Passwords must pass haveibeenpwned.com during sign-up."
           />
         </SettingsContainer>
       </Form>

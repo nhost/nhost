@@ -1,15 +1,12 @@
 import { useRouter } from 'next/router';
 import { useEffect } from 'react';
-import { useFormState } from 'react-hook-form';
+import { useFormContext, useFormState } from 'react-hook-form';
 import * as Yup from 'yup';
 import { useDialog } from '@/components/common/DialogProvider';
-import { ControlledSelect } from '@/components/form/ControlledSelect';
 import { Form } from '@/components/form/Form';
-import { Box } from '@/components/ui/v2/Box';
-import { Button } from '@/components/ui/v2/Button';
-import { Divider } from '@/components/ui/v2/Divider';
-import { Option } from '@/components/ui/v2/Option';
-import { Text } from '@/components/ui/v2/Text';
+import { FormSelect } from '@/components/form/FormSelect';
+import { Button, ButtonWithLoading } from '@/components/ui/v3/button';
+import { SelectItem } from '@/components/ui/v3/select';
 import { useDatabaseQuery } from '@/features/orgs/projects/database/dataGrid/hooks/useDatabaseQuery';
 import type {
   DatabaseColumn,
@@ -83,7 +80,9 @@ export default function BaseForeignKeyForm({
     query: { dataSourceSlug },
   } = router;
 
-  const { dirtyFields, errors, isSubmitting } =
+  const form = useFormContext<BaseForeignKeySchemaValues>();
+  const { control } = form;
+  const { dirtyFields, isSubmitting } =
     useFormState<BaseForeignKeySchemaValues>();
 
   const { data } = useDatabaseQuery([dataSourceSlug]);
@@ -96,8 +95,18 @@ export default function BaseForeignKeyForm({
   const isDirty = Object.keys(dirtyFields).length > 0;
 
   useEffect(() => {
-    onDirtyStateChange(isDirty, location);
-  }, [isDirty, location, onDirtyStateChange]);
+    const unsubscribe = form.subscribe({
+      formState: { dirtyFields: true },
+      callback: ({ dirtyFields: subscribedDirtyFields }) => {
+        onDirtyStateChange(
+          Object.keys(subscribedDirtyFields ?? {}).length > 0,
+          location,
+        );
+      },
+    });
+
+    return () => unsubscribe();
+  }, [form, onDirtyStateChange, location]);
 
   return (
     <Form
@@ -113,34 +122,35 @@ export default function BaseForeignKeyForm({
       }}
       className="flex flex-auto flex-col content-between overflow-hidden pb-4"
     >
-      <Box className="grid flex-auto grid-flow-row gap-4 overflow-y-auto border-t-1 py-4">
-        <Box component="section" className="grid grid-flow-row gap-4 px-6">
-          <Text variant="h3">From</Text>
+      <div className="grid flex-auto grid-flow-row gap-4 overflow-y-auto border-t-1 py-4">
+        <section className="grid grid-flow-row gap-4 px-6">
+          <h3 className="font-semibold text-foreground text-lg leading-6">
+            From
+          </h3>
 
-          <ControlledSelect
-            id="columnName"
+          <FormSelect
+            control={control}
             name="columnName"
             label="Column"
-            fullWidth
             placeholder="Select a column"
-            hideEmptyHelperText
-            error={Boolean(errors.columnName)}
-            helperText={errors.columnName?.message}
             autoFocus={!disableOriginColumn}
             disabled={disableOriginColumn}
+            contentClassName="z-[1400]"
           >
             {availableColumns?.map(({ name }) => (
-              <Option value={name} key={name}>
+              <SelectItem value={name} key={name}>
                 {name}
-              </Option>
+              </SelectItem>
             ))}
-          </ControlledSelect>
-        </Box>
+          </FormSelect>
+        </section>
 
-        <Divider />
+        <hr className="border-t-1" />
 
-        <Box component="section" className="grid grid-flow-row gap-4 px-6">
-          <Text variant="h3">To</Text>
+        <section className="grid grid-flow-row gap-4 px-6">
+          <h3 className="font-semibold text-foreground text-lg leading-6">
+            To
+          </h3>
 
           <ReferencedSchemaSelect
             options={schemas}
@@ -148,66 +158,60 @@ export default function BaseForeignKeyForm({
           />
           <ReferencedTableSelect options={tables} />
           <ReferencedColumnSelect />
-        </Box>
+        </section>
 
-        <Divider />
+        <hr className="border-t-1" />
 
-        <Box component="section" className="grid grid-cols-2 gap-4 px-6">
-          <ControlledSelect
-            id="updateAction"
+        <section className="grid grid-cols-2 gap-4 px-6">
+          <FormSelect
+            control={control}
             name="updateAction"
             label="On Update"
-            fullWidth
-            hideEmptyHelperText
-            error={Boolean(errors.updateAction)}
-            helperText={errors.updateAction?.message}
-            className="col-span-1"
+            containerClassName="col-span-1"
+            contentClassName="z-[1400]"
           >
-            <Option value="RESTRICT">RESTRICT</Option>
-            <Option value="CASCADE">CASCADE</Option>
-            <Option value="SET NULL">SET NULL</Option>
-            <Option value="SET DEFAULT">SET DEFAULT</Option>
-            <Option value="NO ACTION">NO ACTION</Option>
-          </ControlledSelect>
+            <SelectItem value="RESTRICT">RESTRICT</SelectItem>
+            <SelectItem value="CASCADE">CASCADE</SelectItem>
+            <SelectItem value="SET NULL">SET NULL</SelectItem>
+            <SelectItem value="SET DEFAULT">SET DEFAULT</SelectItem>
+            <SelectItem value="NO ACTION">NO ACTION</SelectItem>
+          </FormSelect>
 
-          <ControlledSelect
-            id="deleteAction"
+          <FormSelect
+            control={control}
             name="deleteAction"
             label="On Delete"
-            fullWidth
-            hideEmptyHelperText
-            error={Boolean(errors.deleteAction)}
-            helperText={errors.deleteAction?.message}
-            className="col-span-1"
+            containerClassName="col-span-1"
+            contentClassName="z-[1400]"
           >
-            <Option value="RESTRICT">RESTRICT</Option>
-            <Option value="CASCADE">CASCADE</Option>
-            <Option value="SET NULL">SET NULL</Option>
-            <Option value="SET DEFAULT">SET DEFAULT</Option>
-            <Option value="NO ACTION">NO ACTION</Option>
-          </ControlledSelect>
-        </Box>
-      </Box>
+            <SelectItem value="RESTRICT">RESTRICT</SelectItem>
+            <SelectItem value="CASCADE">CASCADE</SelectItem>
+            <SelectItem value="SET NULL">SET NULL</SelectItem>
+            <SelectItem value="SET DEFAULT">SET DEFAULT</SelectItem>
+            <SelectItem value="NO ACTION">NO ACTION</SelectItem>
+          </FormSelect>
+        </section>
+      </div>
 
-      <Box className="grid flex-shrink-0 grid-flow-row gap-2 border-t-1 px-6 pt-4">
-        <Button
+      <div className="grid flex-shrink-0 grid-flow-row gap-2 border-t-1 px-6 pt-4">
+        <ButtonWithLoading
           loading={isSubmitting}
           disabled={isSubmitting}
           type="submit"
           data-testid="foreignKeyFormSubmitButton"
         >
           {submitButtonText}
-        </Button>
+        </ButtonWithLoading>
 
         <Button
-          variant="outlined"
-          color="secondary"
+          type="button"
+          variant="outline"
           onClick={onCancel}
           tabIndex={isDirty ? -1 : 0}
         >
           Cancel
         </Button>
-      </Box>
+      </div>
     </Form>
   );
 }

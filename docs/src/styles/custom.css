@@ -455,10 +455,8 @@ html:not([class~="dark"]) .welcome-get-started {
 /* Hero background - full width with colored background */
 .hero {
   background: linear-gradient(to bottom, #0d1a2d 0%, #0a1420 100%);
-  margin-left: calc(-50vw + 50%);
-  margin-right: calc(-50vw + 50%);
   margin-top: -1.5rem;
-  padding: 6rem calc(50vw - 50%);
+  padding: 6rem 1.5rem;
   margin-bottom: 6rem;
   /* Override desktop grid to stay centered */
   grid-template-columns: 1fr !important;
@@ -827,6 +825,15 @@ html[data-has-hero]:not([data-has-sidebar]) .page {
 /* Remove left padding on splash pages so hero extends to edge */
 html[data-has-hero]:not([data-has-sidebar]) .main-pane {
   padding-inline-start: 0 !important;
+}
+
+/* Let the splash hero fill the viewport width */
+html[data-has-hero]:not([data-has-sidebar]) .content-panel {
+  padding-inline: 0 !important;
+}
+
+html[data-has-hero]:not([data-has-sidebar]) .content-panel > .sl-container {
+  max-width: none !important;
 }
 
 /* Allow scrolling on splash pages only when content overflows */

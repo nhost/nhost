@@ -126,9 +126,11 @@ The `@preset` directive allows you to inject values into arguments automatically
 - Enforcing row-level security by injecting user/tenant IDs
 - Setting default values that clients cannot override
 
+Do not declare the directive yourself in the permission SDL. Constellation adds an internal helper scalar while parsing the SDL so `@preset(value: ...)` can accept normal GraphQL input literals, then removes the helper directive and hidden arguments from the schema exposed to clients.
+
 **How preset values are resolved:**
-- If the value starts with `x-hasura-`, it is interpolated from the corresponding session variable
-- Otherwise, the value is treated as a literal string
+- A quoted string or block string whose value starts with `x-hasura-` is treated as a session-variable name, looked up from the request session, and coerced to the hidden argument's GraphQL type before forwarding.
+- Other values are treated as literal GraphQL input values. Use the syntax that matches the hidden argument type: quoted strings for `String`/`ID`, numbers for `Int`/`Float`, `true`/`false` for `Boolean`, unquoted enum values for enums, lists for list arguments, and input-object literals for input objects.
 
 **Preset from session variable:**
 ```yaml
@@ -138,9 +140,38 @@ schema: |
   }
 ```
 
-The `teamId` argument is hidden from the client schema. When a user queries `myTeam`, the value is automatically taken from their `x-hasura-team-id` session variable.
+The `teamId` argument is hidden from the client schema. When a user queries `myTeam`, the value is automatically taken from their `x-hasura-team-id` session variable and coerced as an `ID`.
 
-**Preset with literal value:**
+**Preset with typed literal values:**
+```yaml
+schema: |
+  enum Source {
+    OFFICIAL
+    USER_REPORTED
+  }
+
+  input GameFilter {
+    active: Boolean
+    tags: [String!]
+  }
+
+  type Game {
+    id: ID!
+  }
+
+  type Query {
+    topGames(
+      limit: Int! @preset(value: 10)
+      includeStats: Boolean! @preset(value: true)
+      source: Source! @preset(value: OFFICIAL)
+      filter: GameFilter @preset(value: {active: true, tags: ["ranked"]})
+    ): [Game!]!
+  }
+```
+
+The hidden arguments are forwarded as typed GraphQL values (`10`, `true`, `OFFICIAL`, and the input object), not as strings.
+
+**Preset with a literal string value:**
 ```yaml
 schema: |
   type Mutation {
@@ -152,6 +183,20 @@ schema: |
 ```
 
 The `source` argument is hidden from the client and always set to `"web-app"`.
+
+**Session-variable coercion example:**
+```yaml
+schema: |
+  type Game {
+    id: ID!
+  }
+
+  type Query {
+    topGames(limit: Int! @preset(value: "x-hasura-page-limit")): [Game!]!
+  }
+```
+
+If the request session contains `x-hasura-page-limit: 25`, Constellation forwards `limit: 25` to the remote schema. Preset coercion is best-effort: Constellation does not raise a local validation error when a session variable is missing, empty, or cannot be parsed as the hidden argument type. A missing or empty session variable is injected as an empty string; this is forwarded as `""` for `String`/`ID` arguments, and for non-string targets it is forwarded as an empty-string literal when it cannot be parsed as the target type, so the remote GraphQL server may reject the forwarded operation during validation. Ensure any session variables used by presets are present and non-empty, especially for non-null or security-sensitive arguments.
 
 **Complete example with multiple presets:**
 ```yaml
@@ -168,17 +213,20 @@ permissions:
           myTeam(teamId: ID! @preset(value: "x-hasura-team-id")): Team
           teamGames(teamId: ID! @preset(value: "x-hasura-team-id")): [Game!]!
 
-          # These queries have no presets - user provides arguments
+          # This query has no presets - user provides arguments
           team(id: ID!): Team
-          leaderboard: [Team!]!
+
+          # limit is a typed literal preset
+          leaderboard(limit: Int! @preset(value: 10)): [Team!]!
         }
         type Mutation {
-          # teamId comes from session, source is hardcoded
+          # teamId comes from session; source and isHome are hardcoded
           reportGame(
             homeTeamId: ID! @preset(value: "x-hasura-team-id")
             awayTeamId: ID!
             homeScore: Int!
             awayScore: Int!
+            isHome: Boolean! @preset(value: true)
             source: String! @preset(value: "user-reported")
           ): Game
         }
@@ -195,7 +243,8 @@ permissions:
 
 With this configuration:
 - `myTeam` query: client calls `{ myTeam { name } }`, `teamId` is injected from session
-- `reportGame` mutation: client provides `awayTeamId`, `homeScore`, `awayScore`; `homeTeamId` comes from session, `source` is always `"user-reported"`
+- `leaderboard` query: client calls `{ leaderboard { name } }`, `limit` is injected as the integer literal `10`
+- `reportGame` mutation: client provides `awayTeamId`, `homeScore`, `awayScore`; `homeTeamId` comes from session, `isHome` is always `true`, and `source` is always `"user-reported"`
 
 ## Admin Role
 

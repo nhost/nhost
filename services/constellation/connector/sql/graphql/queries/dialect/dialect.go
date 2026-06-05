@@ -59,8 +59,8 @@ type Dialect interface { //nolint:interfacebloat
 	// PostgreSQL: to_jsonb(expr)    SQLite: json(expr)
 	ToJSON(expr string) string
 
-	// EmptyJSONArray returns an empty JSON array literal.
-	// PostgreSQL: '[]'::json    SQLite: '[]'
+	// EmptyJSONArray returns an empty JSON array expression.
+	// PostgreSQL: '[]'::json    SQLite: json_array()
 	EmptyJSONArray() string
 
 	// TableRef returns a schema-qualified table reference.
@@ -70,13 +70,21 @@ type Dialect interface { //nolint:interfacebloat
 	// SupportsLateral returns whether LEFT JOIN LATERAL is available.
 	SupportsLateral() bool
 
-	// ILike returns the case-insensitive LIKE operator.
-	// PostgreSQL: ILIKE    SQLite: LIKE
-	ILike() string
+	// Like returns the case-sensitive LIKE operator.
+	// PostgreSQL: LIKE    SQLite: LIKE (with PRAGMA case_sensitive_like=ON)
+	Like() string
 
-	// NotILike returns the negated case-insensitive LIKE operator.
-	// PostgreSQL: NOT ILIKE    SQLite: NOT LIKE
-	NotILike() string
+	// NotLike returns the negated case-sensitive LIKE operator.
+	// PostgreSQL: NOT LIKE    SQLite: NOT LIKE (with PRAGMA case_sensitive_like=ON)
+	NotLike() string
+
+	// WriteILikeCondition writes a case-insensitive LIKE predicate.
+	// PostgreSQL: source.column ILIKE $N    SQLite: LOWER(source.column) LIKE LOWER(?)
+	WriteILikeCondition(b *strings.Builder, source, column, placeholder string)
+
+	// WriteNotILikeCondition writes a negated case-insensitive LIKE predicate.
+	// PostgreSQL: source.column NOT ILIKE $N    SQLite: LOWER(source.column) NOT LIKE LOWER(?)
+	WriteNotILikeCondition(b *strings.Builder, source, column, placeholder string)
 
 	// SupportsRegex returns whether regex operators are available.
 	SupportsRegex() bool

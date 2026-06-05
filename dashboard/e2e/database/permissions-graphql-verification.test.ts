@@ -105,20 +105,27 @@ test.describe
 
       await page.getByLabel('With custom check').click();
 
+      const columnSearch = page.locator(
+        'input[role="combobox"][placeholder="Search..."]',
+      );
+      const variableSearch = page.locator(
+        'input[role="combobox"][placeholder="Choose variable..."]',
+      );
+
       await page.getByText('Add check').click();
-      await page.locator('input[role="combobox"]').fill('genre');
-      await page.locator('input[role="combobox"]').press('Enter');
+      await columnSearch.fill('genre');
+      await columnSearch.press('Enter');
 
       await page.getByText('Select variable...').click();
-      await page.locator('input[role="combobox"]').fill('fiction');
+      await variableSearch.fill('fiction');
       await page.getByRole('option', { name: /fiction/i }).click();
 
-      await page.getByRole('button', { name: /add/i }).click();
-      await page.locator('input[role="combobox"]').fill('status');
-      await page.locator('input[role="combobox"]').press('Enter');
+      await page.getByRole('button', { name: /^add$/i }).click();
+      await columnSearch.fill('status');
+      await columnSearch.press('Enter');
 
       await page.getByText('Select variable...').click();
-      await page.locator('input[role="combobox"]').fill('published');
+      await variableSearch.fill('published');
       await page.getByRole('option', { name: /published/i }).click();
 
       await page.getByRole('button', { name: /select all/i }).click();
