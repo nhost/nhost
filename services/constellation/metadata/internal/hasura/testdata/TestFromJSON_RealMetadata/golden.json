@@ -2891,7 +2891,7 @@
         "headers": [
           {
             "name": "x-nhost-webhook-secret",
-            "value": "{{NHOST_WEBHOOK_SECRET}}"
+            "value_from_env": "NHOST_WEBHOOK_SECRET"
           }
         ],
         "forward_client_headers": true

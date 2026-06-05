@@ -31,6 +31,8 @@ const permissionAllColumns = "*"
 //   - Functions: dropped when absent from objects.Functions (kind=function).
 //   - Object/Array relationships: dropped when the target table (only when
 //     it lives in the same source) does not exist (kind=relationship).
+//   - Raw to_source remote relationships: dropped when relationship_type is
+//     missing or not one of object/array (kind=relationship).
 //
 // Reconciliation is intentionally scoped: Hasura-expression Filter/Check
 // trees inside permissions are not walked because they reference columns
@@ -127,6 +129,7 @@ func reconcileTables(
 
 		reconcileColumnConfig(ctx, logger, inc, dbName, t, cols)
 		reconcilePermissionColumns(ctx, logger, inc, dbName, t, columnNames, cols)
+		reconcileRemoteRelationshipTypes(ctx, logger, inc, dbName, t)
 		reconcileRelationships(ctx, logger, inc, dbName, t, survivingNames)
 		reconcileRelationshipFKIntrospection(ctx, logger, inc, dbName, t, introspected, objects)
 	}
@@ -394,6 +397,44 @@ func filterColumnKeyMap(
 	}
 
 	return out
+}
+
+// reconcileRemoteRelationshipTypes drops raw to_source remote relationships
+// whose relationship_type discriminator is missing or invalid. Valid raw
+// relationships are retained for cross-connector composition.
+func reconcileRemoteRelationshipTypes(
+	ctx context.Context,
+	logger *slog.Logger,
+	inc *metadata.Inconsistencies,
+	dbName string,
+	t *metadata.TableMetadata,
+) {
+	t.RemoteRelationships = slices.DeleteFunc(
+		slices.Clone(t.RemoteRelationships),
+		func(rel metadata.RemoteRelationship) bool {
+			toSource := rel.Definition.ToSource
+			if toSource == nil {
+				return false
+			}
+
+			if toSource.RelationshipType == metadata.RelationshipTypeObject ||
+				toSource.RelationshipType == metadata.RelationshipTypeArray {
+				return false
+			}
+
+			inc.RecordRelationship(
+				ctx, logger,
+				dbName,
+				t.Table.Schema, t.Table.Name, rel.Name,
+				fmt.Sprintf(
+					"invalid to_source relationship_type %q; expected object or array",
+					toSource.RelationshipType,
+				),
+			)
+
+			return true
+		},
+	)
 }
 
 // reconcileRelationships drops local object/array relationships whose target
