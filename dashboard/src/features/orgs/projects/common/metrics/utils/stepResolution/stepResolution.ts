@@ -54,7 +54,6 @@ export function roundIntervalMs(intervalMs: number): number {
 
 export const DEFAULT_MAX_DATA_POINTS = 600;
 
-// Lower bound on the step, as a duration string — resolution never goes finer.
 export const DEFAULT_MIN_INTERVAL = '2m';
 
 // Used when the range is degenerate (from === to). The exact value barely

@@ -1,6 +1,5 @@
 import type { ScaleFunction } from 'recharts';
 
-// A merged chart row: a timestamp plus one numeric (or null) value per series key.
 export type Row = Record<string, number | null> & { timestamp: number };
 
 // Squared distance from the point (cx,cy) to the segment (ax,ay)-(bx,by).

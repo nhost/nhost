@@ -12,7 +12,6 @@ import {
 
 describe('formatterForKind', () => {
   it('maps each value-formatter kind to its formatter', () => {
-    // The 'bytes' kind formats as IEC / KiB.
     expect(formatterForKind('bytes')).toBe(formatBytesIEC);
     expect(formatterForKind('ms')).toBe(formatMs);
     expect(formatterForKind('percent-unit')).toBe(formatPercentUnit);

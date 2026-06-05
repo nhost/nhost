@@ -32,8 +32,6 @@ function selectTickFormatter(
     : formatTimestampTick;
 }
 
-// Derives the XAxis tick positions and label formatter for a metrics chart from
-// its [fromMs, toMs] domain.
 export default function useTimeAxis(
   xDomain: [number, number] | undefined,
 ): TimeAxis {
