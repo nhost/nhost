@@ -130,17 +130,18 @@ The analyzer expands `*ast.FragmentSpread` and `*ast.InlineFragment` so relation
 
 ### Phantom field specification
 
-After detecting relationships, the analyzer subtracts fields the user already selected (`collectSelectedFields`) from `neededPhantoms` and records the remainder as a `PhantomFieldSpec`:
+After detecting relationships, the analyzer compares `neededPhantoms` against fields already selected with their own response key (`collectOwnResponseKeyFields`). Aliased user fields still occupy response keys, so `collectResponseKeys` is used to choose an internal alias when an injected phantom would collide with the user's response shape. The remaining fields are recorded as a `PhantomFieldSpec`:
 
 ```go
 type PhantomFieldSpec struct {
     Path            jsonpath.Path     // e.g. ["users", "profile"]
     Fields          []string          // e.g. ["department_id"]
+    Aliases         map[string]string // optional internal response keys for colliding phantoms
     ForRelationship string
 }
 ```
 
-The spec is referenced from every `RemoteQueryPlan` that shares the same source path, so the resolver can later look up which phantom fields belong to which relationship.
+The spec is referenced from every `RemoteQueryPlan` that shares the same source path, so the resolver can later look up which phantom fields belong to which relationship and which internal response key to read for aliased phantoms.
 
 ### AST transformer
 
