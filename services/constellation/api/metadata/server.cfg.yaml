@@ -1,6 +1,0 @@
-package: metadata
-generate:
-  gin-server: true
-  embedded-spec: true
-  strict-server: true
-output: api/metadata/server.gen.go

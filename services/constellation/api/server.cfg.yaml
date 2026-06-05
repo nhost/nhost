@@ -4,3 +4,10 @@ generate:
   embedded-spec: true
   strict-server: true
 output: api/server.gen.go
+output-options:
+  # GraphQL endpoints are documented in the spec but mounted directly via
+  # gin (streaming responses, custom headers, body-size limit). Skipping
+  # codegen for the `graphql` tag keeps the StrictServerInterface small
+  # while preserving the spec as the source of truth for clients/docs.
+  exclude-tags:
+    - graphql
