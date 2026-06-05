@@ -287,7 +287,8 @@ func HasuraEnv( //nolint:funlen,maintidx
 	}
 
 	if config.GetHasura().GetAuthHook() != nil {
-		env = append(env,
+		env = append(
+			env,
 			EnvVar{
 				Name:       "HASURA_GRAPHQL_AUTH_HOOK",
 				Value:      config.GetHasura().GetAuthHook().GetUrl(),
@@ -308,7 +309,8 @@ func HasuraEnv( //nolint:funlen,maintidx
 			},
 		)
 	} else {
-		env = append(env,
+		env = append(
+			env,
 			EnvVar{
 				Name:       "HASURA_GRAPHQL_UNAUTHORIZED_ROLE",
 				Value:      "public",
