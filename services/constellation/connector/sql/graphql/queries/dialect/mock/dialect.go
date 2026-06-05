@@ -96,20 +96,6 @@ func (mr *MockDialectMockRecorder) EmptyJSONArray() *gomock.Call {
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "EmptyJSONArray", reflect.TypeOf((*MockDialect)(nil).EmptyJSONArray))
 }
 
-// ILike mocks base method.
-func (m *MockDialect) ILike() string {
-	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "ILike")
-	ret0, _ := ret[0].(string)
-	return ret0
-}
-
-// ILike indicates an expected call of ILike.
-func (mr *MockDialectMockRecorder) ILike() *gomock.Call {
-	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "ILike", reflect.TypeOf((*MockDialect)(nil).ILike))
-}
-
 // JSONAggQuotedAlias mocks base method.
 func (m *MockDialect) JSONAggQuotedAlias(alias string) string {
 	m.ctrl.T.Helper()
@@ -152,6 +138,20 @@ func (mr *MockDialectMockRecorder) JSONBuildObject() *gomock.Call {
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "JSONBuildObject", reflect.TypeOf((*MockDialect)(nil).JSONBuildObject))
 }
 
+// Like mocks base method.
+func (m *MockDialect) Like() string {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "Like")
+	ret0, _ := ret[0].(string)
+	return ret0
+}
+
+// Like indicates an expected call of Like.
+func (mr *MockDialectMockRecorder) Like() *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "Like", reflect.TypeOf((*MockDialect)(nil).Like))
+}
+
 // MaterializedCTE mocks base method.
 func (m *MockDialect) MaterializedCTE() string {
 	m.ctrl.T.Helper()
@@ -166,18 +166,18 @@ func (mr *MockDialectMockRecorder) MaterializedCTE() *gomock.Call {
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "MaterializedCTE", reflect.TypeOf((*MockDialect)(nil).MaterializedCTE))
 }
 
-// NotILike mocks base method.
-func (m *MockDialect) NotILike() string {
+// NotLike mocks base method.
+func (m *MockDialect) NotLike() string {
 	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "NotILike")
+	ret := m.ctrl.Call(m, "NotLike")
 	ret0, _ := ret[0].(string)
 	return ret0
 }
 
-// NotILike indicates an expected call of NotILike.
-func (mr *MockDialectMockRecorder) NotILike() *gomock.Call {
+// NotLike indicates an expected call of NotLike.
+func (mr *MockDialectMockRecorder) NotLike() *gomock.Call {
 	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "NotILike", reflect.TypeOf((*MockDialect)(nil).NotILike))
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "NotLike", reflect.TypeOf((*MockDialect)(nil).NotLike))
 }
 
 // Placeholder mocks base method.
@@ -483,6 +483,18 @@ func (mr *MockDialectMockRecorder) WriteGroupKeysFrom(b, keysAlias, colAlias, sq
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "WriteGroupKeysFrom", reflect.TypeOf((*MockDialect)(nil).WriteGroupKeysFrom), b, keysAlias, colAlias, sqlType, values, params, paramIndex)
 }
 
+// WriteILikeCondition mocks base method.
+func (m *MockDialect) WriteILikeCondition(b *strings.Builder, source, column, placeholder string) {
+	m.ctrl.T.Helper()
+	m.ctrl.Call(m, "WriteILikeCondition", b, source, column, placeholder)
+}
+
+// WriteILikeCondition indicates an expected call of WriteILikeCondition.
+func (mr *MockDialectMockRecorder) WriteILikeCondition(b, source, column, placeholder any) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "WriteILikeCondition", reflect.TypeOf((*MockDialect)(nil).WriteILikeCondition), b, source, column, placeholder)
+}
+
 // WriteJSONRowColumn mocks base method.
 func (m *MockDialect) WriteJSONRowColumn(b *strings.Builder, alias, expr string) {
 	m.ctrl.T.Helper()
@@ -529,6 +541,18 @@ func (m *MockDialect) WriteJSONRowSuffixNoAlias(b *strings.Builder) {
 func (mr *MockDialectMockRecorder) WriteJSONRowSuffixNoAlias(b any) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "WriteJSONRowSuffixNoAlias", reflect.TypeOf((*MockDialect)(nil).WriteJSONRowSuffixNoAlias), b)
+}
+
+// WriteNotILikeCondition mocks base method.
+func (m *MockDialect) WriteNotILikeCondition(b *strings.Builder, source, column, placeholder string) {
+	m.ctrl.T.Helper()
+	m.ctrl.Call(m, "WriteNotILikeCondition", b, source, column, placeholder)
+}
+
+// WriteNotILikeCondition indicates an expected call of WriteNotILikeCondition.
+func (mr *MockDialectMockRecorder) WriteNotILikeCondition(b, source, column, placeholder any) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "WriteNotILikeCondition", reflect.TypeOf((*MockDialect)(nil).WriteNotILikeCondition), b, source, column, placeholder)
 }
 
 // WriteOnConflictTarget mocks base method.

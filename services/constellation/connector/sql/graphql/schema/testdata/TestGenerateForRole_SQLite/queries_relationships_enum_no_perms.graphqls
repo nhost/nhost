@@ -56,10 +56,6 @@ enum authRefreshTokens_constraint {
   unique or primary key constraint on columns "id"
   """
   refresh_tokens_pkey
-  """
-  unique or primary key constraint on columns "id"
-  """
-  sqlite_autoindex_refresh_tokens_1
 }
 """
 update columns of table "refresh_tokens"
@@ -143,10 +139,6 @@ enum users_constraint {
   unique or primary key constraint on columns "email"
   """
   users_email_key
-  """
-  unique or primary key constraint on columns "id"
-  """
-  sqlite_autoindex_users_1
 }
 """
 update columns of table "users"

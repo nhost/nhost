@@ -205,10 +205,6 @@ enum department_files_constraint {
   unique or primary key constraint on columns "id"
   """
   department_files_pkey
-  """
-  unique or primary key constraint on columns "id"
-  """
-  sqlite_autoindex_department_files_1
 }
 """
 placeholder for update columns of table "department_files" (current role has no relevant permissions)
@@ -282,10 +278,6 @@ enum exercise_log_sets_constraint {
   unique or primary key constraint on columns "id"
   """
   exercise_log_sets_pkey
-  """
-  unique or primary key constraint on columns "id"
-  """
-  sqlite_autoindex_exercise_log_sets_1
 }
 """
 placeholder for update columns of table "exercise_log_sets" (current role has no relevant permissions)
@@ -325,10 +317,6 @@ enum exercise_logs_constraint {
   unique or primary key constraint on columns "id", "kind"
   """
   sqlite_autoindex_exercise_logs_2
-  """
-  unique or primary key constraint on columns "id"
-  """
-  sqlite_autoindex_exercise_logs_1
 }
 """
 placeholder for update columns of table "exercise_logs" (current role has no relevant permissions)
@@ -399,10 +387,6 @@ enum kb_entries_constraint {
   unique or primary key constraint on columns "id"
   """
   kb_entries_pkey
-  """
-  unique or primary key constraint on columns "id"
-  """
-  sqlite_autoindex_kb_entries_1
 }
 """
 update columns of table "kb_entries"
@@ -466,10 +450,6 @@ enum kb_entry_departments_constraint {
   unique or primary key constraint on columns "kb_entry_id", "department_id"
   """
   kb_entry_departments_kb_entry_id_department_id_key
-  """
-  unique or primary key constraint on columns "id"
-  """
-  sqlite_autoindex_kb_entry_departments_1
 }
 """
 placeholder for update columns of table "kb_entry_departments" (current role has no relevant permissions)
@@ -509,10 +489,6 @@ enum news_constraint {
   unique or primary key constraint on columns "title"
   """
   news_title_key
-  """
-  unique or primary key constraint on columns "id"
-  """
-  sqlite_autoindex_news_1
 }
 """
 update columns of table "news"
@@ -568,10 +544,6 @@ enum note_replies_constraint {
   unique or primary key constraint on columns "id"
   """
   note_replies_pkey
-  """
-  unique or primary key constraint on columns "id"
-  """
-  sqlite_autoindex_note_replies_1
 }
 """
 placeholder for update columns of table "note_replies" (current role has no relevant permissions)
@@ -611,10 +583,6 @@ enum notes_constraint {
   unique or primary key constraint on columns "id"
   """
   notes_pkey
-  """
-  unique or primary key constraint on columns "id"
-  """
-  sqlite_autoindex_notes_1
 }
 """
 update columns of table "notes"
@@ -683,10 +651,6 @@ enum user_departments_constraint {
   unique or primary key constraint on columns "user_id", "department_id"
   """
   user_departments_pkey
-  """
-  unique or primary key constraint on columns "user_id", "department_id"
-  """
-  sqlite_autoindex_user_departments_1
 }
 """
 update columns of table "user_departments"
@@ -734,10 +698,6 @@ enum files_constraint {
   unique or primary key constraint on columns "id"
   """
   files_pkey
-  """
-  unique or primary key constraint on columns "id"
-  """
-  sqlite_autoindex_files_1
 }
 """
 update columns of table "files"

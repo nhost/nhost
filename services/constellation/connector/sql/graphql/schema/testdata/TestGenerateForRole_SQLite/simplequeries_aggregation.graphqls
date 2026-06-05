@@ -64,10 +64,6 @@ enum users_constraint {
   unique or primary key constraint on columns "email"
   """
   users_email_key
-  """
-  unique or primary key constraint on columns "id"
-  """
-  sqlite_autoindex_users_1
 }
 """
 update columns of table "users"
