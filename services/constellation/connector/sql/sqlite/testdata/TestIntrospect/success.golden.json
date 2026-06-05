@@ -97,12 +97,6 @@
               "Columns": [
                 "email"
               ]
-            },
-            {
-              "Name": "sqlite_autoindex_users_1",
-              "Columns": [
-                "id"
-              ]
             }
           ],
           "IsView": false,
@@ -146,14 +140,7 @@
           ],
           "PrimaryKeyConstraintName": "",
           "ForeignKeys": null,
-          "UniqueConstraints": [
-            {
-              "Name": "sqlite_autoindex_department_roles_1",
-              "Columns": [
-                "type"
-              ]
-            }
-          ],
+          "UniqueConstraints": null,
           "IsView": false,
           "IsInsertable": true,
           "IsUpdatable": true
@@ -317,12 +304,6 @@
               "Name": "departments_name_key",
               "Columns": [
                 "name"
-              ]
-            },
-            {
-              "Name": "sqlite_autoindex_departments_1",
-              "Columns": [
-                "id"
               ]
             }
           ],
@@ -507,15 +488,7 @@
               "ForeignColumnName": "id"
             }
           ],
-          "UniqueConstraints": [
-            {
-              "Name": "sqlite_autoindex_user_departments_1",
-              "Columns": [
-                "user_id",
-                "department_id"
-              ]
-            }
-          ],
+          "UniqueConstraints": null,
           "IsView": false,
           "IsInsertable": true,
           "IsUpdatable": true

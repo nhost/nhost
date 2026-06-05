@@ -1,6 +1,7 @@
 const path = require('node:path');
 const fs = require('node:fs');
 const { execSync } = require('node:child_process');
+const { AsyncLocalStorage } = require('node:async_hooks');
 const express = require('express');
 const glob = require('glob');
 const esbuild = require('esbuild');
@@ -19,6 +20,43 @@ function logJSON(obj) {
 function serverLog(level, route, ...args) {
   logJSON({ log: util.format(...args), path: route, level });
 }
+
+// Per-request async context, shared across every bundle. Bundles read it via
+// global.__nhost_als__ instead of creating their own. A per-bundle instance
+// was pinned across reloads through the console wrappers below — each new
+// bundle wrapped the previous wrapper, building a closure chain that retained
+// every prior bundle's entire module graph (express, user code, all deps).
+const requestAsyncLocalStorage = new AsyncLocalStorage();
+global.__nhost_als__ = requestAsyncLocalStorage;
+
+// Patch console once in the parent so user code's console.log/info/warn/error
+// emits structured JSON tagged with the current request. Outside a request
+// context (server startup, dep watcher, ...) we fall back to the original.
+const originalConsole = {
+  log: console.log,
+  info: console.info,
+  warn: console.warn,
+  error: console.error,
+};
+function wrapConsoleMethod(original, level) {
+  return (...args) => {
+    const store = requestAsyncLocalStorage.getStore();
+    if (store) {
+      logJSON({
+        log: util.format(...args),
+        path: store.path,
+        invocationId: store.invocationId,
+        level,
+      });
+    } else {
+      original.apply(console, args);
+    }
+  };
+}
+console.log = wrapConsoleMethod(originalConsole.log, 'INFO');
+console.info = wrapConsoleMethod(originalConsole.info, 'INFO');
+console.warn = wrapConsoleMethod(originalConsole.warn, 'WARN');
+console.error = wrapConsoleMethod(originalConsole.error, 'ERROR');
 
 // Map of route -> Express app (loaded from esbuild bundles)
 const functionHandlers = new Map();
@@ -110,6 +148,13 @@ function disposeFunctionEntry(file) {
   const entry = functionEntries.get(file);
   if (!entry) return;
 
+  // Evict from require.cache before unlink — once the file is gone,
+  // require.resolve throws and we'd lose the cache key, leaving the prior
+  // module pinned in the V8 heap with no way to reach it.
+  try {
+    delete require.cache[require.resolve(entry.outfile)];
+  } catch {}
+
   try {
     fs.unlinkSync(entry.wrapperPath);
   } catch {}
@@ -124,19 +169,41 @@ function disposeFunctionEntry(file) {
 }
 
 function loadBundle(route, bundlePath) {
-  // Clear require cache so re-requiring gets fresh code
   const resolved = require.resolve(bundlePath);
   delete require.cache[resolved];
 
   try {
     const bundled = require(bundlePath);
-    // The bundle exports an Express app (or app.default)
     const app = bundled.default || bundled;
     functionHandlers.set(route, app);
   } catch (err) {
     serverLog('ERROR', route, `Failed to load bundle:`, err);
     functionHandlers.delete(route);
   }
+}
+
+// Install a one-shot lazy handler so the bundle is loaded on the first request
+// that hits the route rather than immediately after a build. This keeps all N
+// bundles out of the V8 heap until they are actually needed — only bundles that
+// receive traffic are ever resident in memory at the same time.
+function deferBundleLoad(route, bundlePath) {
+  // Evict any previously cached version eagerly so the prior module graph
+  // becomes GC-eligible at rebuild time rather than waiting for traffic to
+  // re-run loadBundle (which would otherwise keep the old bundle pinned via
+  // require.cache for any route that doesn't receive a request).
+  try {
+    delete require.cache[require.resolve(bundlePath)];
+  } catch {}
+
+  functionHandlers.set(route, function lazyLoad(req, res, next) {
+    loadBundle(route, bundlePath);
+    const handler = functionHandlers.get(route);
+    if (handler) {
+      handler(req, res, next);
+    } else {
+      next(new Error('Function failed to load'));
+    }
+  });
 }
 
 async function rebuildContext(functionsPath) {
@@ -185,7 +252,7 @@ async function rebuildContext(functionsPath) {
             for (const [file, entry] of functionEntries) {
               if (!fs.existsSync(path.join(functionsPath, file))) continue;
               if (!fs.existsSync(entry.outfile)) continue;
-              loadBundle(entry.route, entry.outfile);
+              deferBundleLoad(entry.route, entry.outfile);
               serverLog('INFO', entry.route, `Rebuilt from ${file}`);
             }
           });

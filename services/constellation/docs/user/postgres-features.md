@@ -430,7 +430,7 @@ See [`remote-schema.md`](./remote-schema.md). Remote schemas are configured per 
 | JSONB comparison operators | yes | no |
 | JSONB mutation operators (`_append`, etc.) | yes | no |
 | Array columns and `_contains` / `_contained_in` | yes | no |
-| `ILIKE` | yes | LIKE fallback |
+| `ILIKE` | yes | yes (ASCII case-folding via `LOWER(...) LIKE LOWER(...)`) |
 | Generated columns | yes | no |
 | Identity columns | yes (`GENERATED AS IDENTITY`) | yes (`INTEGER PRIMARY KEY` rowid alias) |
 | `gen_random_uuid()` / sequence defaults | yes | partial |
@@ -446,7 +446,7 @@ See [`remote-schema.md`](./remote-schema.md). Remote schemas are configured per 
 | `RETURNING` | yes | no |
 | Data-modifying CTEs (`WITH ... AS (INSERT/UPDATE/DELETE ... RETURNING)`) | yes | no |
 | Stream subscriptions | yes | yes |
-| Aggregates (`avg`, `sum`, `stddev*`, `var*`, `variance`) | yes | partial |
+| Aggregates | yes (`count`, `min`, `max`, `avg`, `sum`, `stddev*`, `var*`, `variance`) | partial (`count`, `min`, `max`, `avg`, `sum`; no `stddev*` / `var*` / `variance`) |
 | Object / array / remote relationships | yes | yes |
 | Per-role permissions with session variables | yes | yes |
 | Enum-mapping tables (`is_enum`) | yes | yes |

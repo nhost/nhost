@@ -1,6 +1,7 @@
 package metadata
 
 import (
+	stdjson "encoding/json"
 	"testing"
 
 	"github.com/google/go-cmp/cmp"
@@ -40,28 +41,38 @@ func TestConvertDatabaseURL(t *testing.T) {
 	}
 }
 
-func TestConvertEnvValue(t *testing.T) {
+func TestConvertHeaderValue(t *testing.T) {
 	t.Parallel()
 
 	tests := []struct {
-		name string
-		in   hasura.EnvValue
-		want EnvString
+		name             string
+		in               hasura.EnvValue
+		wantValue        string
+		wantValueFromEnv string
 	}{
 		{
-			name: "from env",
-			in:   hasura.EnvValue{FromEnv: "API_KEY"},
-			want: "{{API_KEY}}",
+			name:             "from env",
+			in:               hasura.EnvValue{FromEnv: "API_KEY"},
+			wantValue:        "",
+			wantValueFromEnv: "API_KEY",
 		},
 		{
-			name: "direct value",
-			in:   hasura.EnvValue{Value: "secret123"},
-			want: "secret123",
+			name:             "direct value",
+			in:               hasura.EnvValue{Value: "secret123"},
+			wantValue:        "secret123",
+			wantValueFromEnv: "",
 		},
 		{
-			name: "empty",
-			in:   hasura.EnvValue{},
-			want: "",
+			name:             "literal braces stay literal",
+			in:               hasura.EnvValue{Value: "{{API_KEY}}"},
+			wantValue:        "{{API_KEY}}",
+			wantValueFromEnv: "",
+		},
+		{
+			name:             "empty",
+			in:               hasura.EnvValue{},
+			wantValue:        "",
+			wantValueFromEnv: "",
 		},
 	}
 
@@ -69,9 +80,73 @@ func TestConvertEnvValue(t *testing.T) {
 		t.Run(tt.name, func(t *testing.T) {
 			t.Parallel()
 
-			got := convertEnvValue(tt.in)
-			if got != tt.want {
-				t.Errorf("convertEnvValue = %q, want %q", got, tt.want)
+			gotValue, gotValueFromEnv := convertHeaderValue(tt.in)
+			if gotValue != tt.wantValue || gotValueFromEnv != tt.wantValueFromEnv {
+				t.Errorf(
+					"convertHeaderValue = (%q, %q), want (%q, %q)",
+					gotValue,
+					gotValueFromEnv,
+					tt.wantValue,
+					tt.wantValueFromEnv,
+				)
+			}
+		})
+	}
+}
+
+func TestNormalizePermissionMap(t *testing.T) {
+	t.Parallel()
+
+	tests := []struct {
+		name string
+		in   map[string]any
+		want map[string]any
+	}{
+		{
+			name: "json number large integer",
+			in: map[string]any{
+				"id": map[string]any{"_eq": stdjson.Number("9007199254740993")},
+			},
+			want: map[string]any{
+				"id": map[string]any{"_eq": int64(9007199254740993)},
+			},
+		},
+		{
+			name: "yaml uint64 integer",
+			in: map[string]any{
+				"id": map[string]any{"_eq": uint64(9007199254740993)},
+			},
+			want: map[string]any{
+				"id": map[string]any{"_eq": int64(9007199254740993)},
+			},
+		},
+		{
+			name: "genuine float remains float",
+			in: map[string]any{
+				"score": map[string]any{"_eq": 1.5},
+			},
+			want: map[string]any{
+				"score": map[string]any{"_eq": 1.5},
+			},
+		},
+		{
+			name: "arrays are deep cloned",
+			in: map[string]any{
+				"_and": []any{map[string]any{"id": map[string]any{"_eq": uint(7)}}},
+			},
+			want: map[string]any{
+				"_and": []any{map[string]any{"id": map[string]any{"_eq": int64(7)}}},
+			},
+		},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			t.Parallel()
+
+			got := normalizePermissionMap(tt.in)
+			if diff := cmp.Diff(tt.want, got); diff != "" {
+				t.Errorf("normalizePermissionMap mismatch (-want +got):\n%s", diff)
 			}
 		})
 	}
@@ -829,7 +904,7 @@ func TestConvertRemoteSchema(t *testing.T) {
 				},
 			},
 			Headers: []RemoteSchemaHeader{
-				{Name: "x-api-key", Value: "{{PAYMENTS_KEY}}"},
+				{Name: "x-api-key", ValueFromEnv: "PAYMENTS_KEY"},
 			},
 		},
 		Permissions: []RemoteSchemaPermission{

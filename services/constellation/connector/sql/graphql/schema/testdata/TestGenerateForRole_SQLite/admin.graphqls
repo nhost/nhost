@@ -59,10 +59,6 @@ enum authOauth2AuthRequests_constraint {
   unique or primary key constraint on columns "id"
   """
   oauth2_auth_requests_pkey
-  """
-  unique or primary key constraint on columns "id"
-  """
-  sqlite_autoindex_oauth2_auth_requests_1
 }
 """
 update columns of table "oauth2_auth_requests"
@@ -206,10 +202,6 @@ enum authOauth2AuthorizationCodes_constraint {
   unique or primary key constraint on columns "code_hash"
   """
   oauth2_authorization_codes_code_hash_key
-  """
-  unique or primary key constraint on columns "id"
-  """
-  sqlite_autoindex_oauth2_authorization_codes_1
 }
 """
 update columns of table "oauth2_authorization_codes"
@@ -287,10 +279,6 @@ enum authOauth2Clients_constraint {
   unique or primary key constraint on columns "client_id"
   """
   oauth2_clients_pkey
-  """
-  unique or primary key constraint on columns "client_id"
-  """
-  sqlite_autoindex_oauth2_clients_1
 }
 """
 update columns of table "oauth2_clients"
@@ -394,10 +382,6 @@ enum authOauth2RefreshTokens_constraint {
   unique or primary key constraint on columns "token_hash"
   """
   oauth2_refresh_tokens_token_hash_key
-  """
-  unique or primary key constraint on columns "id"
-  """
-  sqlite_autoindex_oauth2_refresh_tokens_1
 }
 """
 update columns of table "oauth2_refresh_tokens"
@@ -481,10 +465,6 @@ enum authProviderRequests_constraint {
   unique or primary key constraint on columns "id"
   """
   provider_requests_pkey
-  """
-  unique or primary key constraint on columns "id"
-  """
-  sqlite_autoindex_provider_requests_1
 }
 """
 update columns of table "provider_requests"
@@ -520,10 +500,6 @@ enum authProviders_constraint {
   unique or primary key constraint on columns "id"
   """
   providers_pkey
-  """
-  unique or primary key constraint on columns "id"
-  """
-  sqlite_autoindex_providers_1
 }
 """
 update columns of table "providers"
@@ -551,10 +527,6 @@ enum authRefreshTokenTypes_constraint {
   unique or primary key constraint on columns "value"
   """
   refresh_token_types_pkey
-  """
-  unique or primary key constraint on columns "value"
-  """
-  sqlite_autoindex_refresh_token_types_1
 }
 """
 update columns of table "refresh_token_types"
@@ -590,10 +562,6 @@ enum authRefreshTokens_constraint {
   unique or primary key constraint on columns "id"
   """
   refresh_tokens_pkey
-  """
-  unique or primary key constraint on columns "id"
-  """
-  sqlite_autoindex_refresh_tokens_1
 }
 """
 update columns of table "refresh_tokens"
@@ -711,10 +679,6 @@ enum authRoles_constraint {
   unique or primary key constraint on columns "role"
   """
   roles_pkey
-  """
-  unique or primary key constraint on columns "role"
-  """
-  sqlite_autoindex_roles_1
 }
 """
 update columns of table "roles"
@@ -746,10 +710,6 @@ enum authUserProviders_constraint {
   unique or primary key constraint on columns "provider_id", "provider_user_id"
   """
   user_providers_provider_id_provider_user_id_key
-  """
-  unique or primary key constraint on columns "id"
-  """
-  sqlite_autoindex_user_providers_1
 }
 """
 update columns of table "user_providers"
@@ -837,10 +797,6 @@ enum authUserRoles_constraint {
   unique or primary key constraint on columns "user_id", "role"
   """
   user_roles_user_id_role_key
-  """
-  unique or primary key constraint on columns "id"
-  """
-  sqlite_autoindex_user_roles_1
 }
 """
 update columns of table "user_roles"
@@ -896,10 +852,6 @@ enum authUserSecurityKeys_constraint {
   unique or primary key constraint on columns "credential_id"
   """
   user_security_key_credential_id_key
-  """
-  unique or primary key constraint on columns "id"
-  """
-  sqlite_autoindex_user_security_keys_1
 }
 """
 update columns of table "user_security_keys"
@@ -1019,10 +971,6 @@ enum users_constraint {
   unique or primary key constraint on columns "email"
   """
   users_email_key
-  """
-  unique or primary key constraint on columns "id"
-  """
-  sqlite_autoindex_users_1
 }
 """
 update columns of table "users"
@@ -1314,10 +1262,6 @@ enum department_files_constraint {
   unique or primary key constraint on columns "id"
   """
   department_files_pkey
-  """
-  unique or primary key constraint on columns "id"
-  """
-  sqlite_autoindex_department_files_1
 }
 """
 update columns of table "department_files"
@@ -1369,10 +1313,6 @@ enum department_roles_constraint {
   unique or primary key constraint on columns "value"
   """
   department_roles_pkey
-  """
-  unique or primary key constraint on columns "value"
-  """
-  sqlite_autoindex_department_roles_1
 }
 """
 update columns of table "department_roles"
@@ -1412,10 +1352,6 @@ enum departments_constraint {
   unique or primary key constraint on columns "name"
   """
   departments_name_key
-  """
-  unique or primary key constraint on columns "id"
-  """
-  sqlite_autoindex_departments_1
 }
 """
 update columns of table "departments"
@@ -1487,10 +1423,6 @@ enum exercise_log_sets_constraint {
   unique or primary key constraint on columns "id"
   """
   exercise_log_sets_pkey
-  """
-  unique or primary key constraint on columns "id"
-  """
-  sqlite_autoindex_exercise_log_sets_1
 }
 """
 update columns of table "exercise_log_sets"
@@ -1546,10 +1478,6 @@ enum exercise_logs_constraint {
   unique or primary key constraint on columns "id", "kind"
   """
   sqlite_autoindex_exercise_logs_2
-  """
-  unique or primary key constraint on columns "id"
-  """
-  sqlite_autoindex_exercise_logs_1
 }
 """
 update columns of table "exercise_logs"
@@ -1636,10 +1564,6 @@ enum kb_entries_constraint {
   unique or primary key constraint on columns "id"
   """
   kb_entries_pkey
-  """
-  unique or primary key constraint on columns "id"
-  """
-  sqlite_autoindex_kb_entries_1
 }
 """
 update columns of table "kb_entries"
@@ -1735,10 +1659,6 @@ enum kb_entry_departments_constraint {
   unique or primary key constraint on columns "kb_entry_id", "department_id"
   """
   kb_entry_departments_kb_entry_id_department_id_key
-  """
-  unique or primary key constraint on columns "id"
-  """
-  sqlite_autoindex_kb_entry_departments_1
 }
 """
 update columns of table "kb_entry_departments"
@@ -1786,10 +1706,6 @@ enum news_constraint {
   unique or primary key constraint on columns "title"
   """
   news_title_key
-  """
-  unique or primary key constraint on columns "id"
-  """
-  sqlite_autoindex_news_1
 }
 """
 update columns of table "news"
@@ -1873,10 +1789,6 @@ enum note_replies_constraint {
   unique or primary key constraint on columns "id"
   """
   note_replies_pkey
-  """
-  unique or primary key constraint on columns "id"
-  """
-  sqlite_autoindex_note_replies_1
 }
 """
 update columns of table "note_replies"
@@ -1928,10 +1840,6 @@ enum notes_constraint {
   unique or primary key constraint on columns "id"
   """
   notes_pkey
-  """
-  unique or primary key constraint on columns "id"
-  """
-  sqlite_autoindex_notes_1
 }
 """
 update columns of table "notes"
@@ -2008,10 +1916,6 @@ enum user_departments_constraint {
   unique or primary key constraint on columns "user_id", "department_id"
   """
   user_departments_pkey
-  """
-  unique or primary key constraint on columns "user_id", "department_id"
-  """
-  sqlite_autoindex_user_departments_1
 }
 """
 update columns of table "user_departments"
@@ -2089,10 +1993,6 @@ enum buckets_constraint {
   unique or primary key constraint on columns "id"
   """
   buckets_pkey
-  """
-  unique or primary key constraint on columns "id"
-  """
-  sqlite_autoindex_buckets_1
 }
 """
 update columns of table "buckets"
@@ -2176,10 +2076,6 @@ enum files_constraint {
   unique or primary key constraint on columns "id"
   """
   files_pkey
-  """
-  unique or primary key constraint on columns "id"
-  """
-  sqlite_autoindex_files_1
 }
 """
 update columns of table "files"
@@ -2287,10 +2183,6 @@ enum virus_constraint {
   unique or primary key constraint on columns "id"
   """
   virus_pkey
-  """
-  unique or primary key constraint on columns "id"
-  """
-  sqlite_autoindex_virus_1
 }
 """
 update columns of table "virus"

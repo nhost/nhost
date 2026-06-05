@@ -18,7 +18,8 @@ import (
 	"github.com/nhost/nhost/services/storage/controller"
 )
 
-func deptr[T any](p *T) T { //nolint:ireturn
+//nolint:ireturn // generic helper returns the caller-selected type parameter.
+func deptr[T any](p *T) T {
 	if p == nil {
 		return *new(T)
 	}
