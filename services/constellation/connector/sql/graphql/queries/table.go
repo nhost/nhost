@@ -10,6 +10,7 @@ import (
 	"github.com/nhost/nhost/services/constellation/connector/sql/graphql/queries/core"
 	"github.com/nhost/nhost/services/constellation/connector/sql/graphql/queries/dialect"
 	"github.com/nhost/nhost/services/constellation/connector/sql/graphql/queries/permissions"
+	graphqlschema "github.com/nhost/nhost/services/constellation/connector/sql/graphql/schema"
 	"github.com/nhost/nhost/services/constellation/connector/sql/introspection"
 	"github.com/nhost/nhost/services/constellation/metadata"
 )
@@ -178,7 +179,7 @@ func (t *table) initializeRootNames(md metadata.TableMetadata) {
 
 	customTableName := orFn(
 		md.Configuration.CustomName,
-		defaultGraphQLTableName(md.Table.Schema, md.Table.Name),
+		graphqlschema.DefaultTypeName(md.Table.Schema, md.Table.Name),
 	)
 
 	t.graphqlTypeName = customTableName
@@ -217,14 +218,6 @@ func (t *table) initializeRootNames(md metadata.TableMetadata) {
 		md.Configuration.CustomRootFields.DeleteByPk,
 		"delete_"+customTableName+"_by_pk",
 	)
-}
-
-func defaultGraphQLTableName(schemaName, tableName string) string {
-	if schemaName == "" || schemaName == "public" {
-		return tableName
-	}
-
-	return schemaName + "_" + tableName
 }
 
 func (t *table) initializeRelationships(
