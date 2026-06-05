@@ -63,8 +63,21 @@ let
     pnpm
     cacert
   ];
+
+  vercelPrepare = ''
+    cp -r ${node_modules}/node_modules/ node_modules
+    cp -r ${node_modules}/docs/node_modules/ docs/node_modules
+    chmod +w -R node_modules docs/node_modules
+
+    mkdir -p packages/nhost-js
+    cp -r ${self.packages.${pkgs.stdenv.hostPlatform.system}.nhost-js}/dist packages/nhost-js/dist
+    cp -r ${
+      self.packages.${pkgs.stdenv.hostPlatform.system}.nhost-js
+    }/node_modules packages/nhost-js/node_modules
+    chmod +w -R packages
+  '';
 in
-{
+rec {
   devShell = nixops-lib.js.devShell {
     inherit node_modules;
 
@@ -93,4 +106,33 @@ in
       }/node_modules packages/nhost-js/node_modules
     '';
   };
+
+  vercelPreview = nixops-lib.js.mkVercel {
+    inherit
+      src
+      node_modules
+      buildInputs
+      nativeBuildInputs
+      ;
+    name = "docs";
+    environment = "preview";
+    prepare = vercelPrepare;
+  };
+
+  vercelProduction = nixops-lib.js.mkVercel {
+    inherit
+      src
+      node_modules
+      buildInputs
+      nativeBuildInputs
+      ;
+    name = "docs";
+    environment = "production";
+    prepare = vercelPrepare;
+  };
+
+  vercelBuildPreview = vercelPreview.build;
+  vercelDeployPreview = vercelPreview.deploy;
+  vercelBuildProduction = vercelProduction.build;
+  vercelDeployProduction = vercelProduction.deploy;
 }

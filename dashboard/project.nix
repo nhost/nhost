@@ -85,6 +85,91 @@ let
     pnpm
     cacert
   ];
+
+  e2eEnvVars = [
+    "NHOST_TEST_DASHBOARD_URL"
+    "NHOST_TEST_PROJECT_NAME"
+    "NHOST_TEST_ORGANIZATION_NAME"
+    "NHOST_TEST_ORGANIZATION_SLUG"
+    "NHOST_TEST_PERSONAL_ORG_SLUG"
+    "NHOST_TEST_PROJECT_SUBDOMAIN"
+    "NHOST_TEST_PROJECT_REMOTE_SCHEMA_NAME"
+    "NHOST_PRO_TEST_PROJECT_NAME"
+    "NHOST_TEST_USER_EMAIL"
+    "NHOST_TEST_USER_PASSWORD"
+    "NHOST_TEST_ONBOARDING_USER"
+    "NHOST_TEST_PROJECT_ADMIN_SECRET"
+    "NHOST_TEST_STAGING_SUBDOMAIN"
+    "NHOST_TEST_STAGING_REGION"
+  ];
+
+  mkDashboardE2ECheck =
+    { suite, script }:
+    pkgs.runCommand "dashboard-e2e-staging-${suite}"
+      {
+        __noChroot = true;
+        nativeBuildInputs = checkDeps ++ buildInputs ++ nativeBuildInputs;
+        NHOST_DASHBOARD_E2E_ENV_FILE = "/tmp/nhost-dashboard-e2e-${suite}.env";
+      }
+      ''
+        if [ -z "$NHOST_DASHBOARD_E2E_ENV_FILE" ]; then
+          echo "ERROR: NHOST_DASHBOARD_E2E_ENV_FILE environment variable is not set"
+          exit 1
+        fi
+
+        if [ ! -f "$NHOST_DASHBOARD_E2E_ENV_FILE" ]; then
+          echo "ERROR: NHOST_DASHBOARD_E2E_ENV_FILE does not point to a file"
+          exit 1
+        fi
+
+        set -a
+        . "$NHOST_DASHBOARD_E2E_ENV_FILE"
+        set +a
+
+        for env_var in ${pkgs.lib.escapeShellArgs e2eEnvVars}; do
+          if [ -z "''${!env_var:-}" ]; then
+            echo "ERROR: $env_var environment variable is not set"
+            exit 1
+          fi
+        done
+
+        export CI="''${CI:-true}"
+        export NEXT_PUBLIC_ENV="''${NEXT_PUBLIC_ENV:-dev}"
+        export NEXT_TELEMETRY_DISABLED="''${NEXT_TELEMETRY_DISABLED:-1}"
+        export HOME=$TMPDIR
+        export SSL_CERT_FILE=${pkgs.cacert}/etc/ssl/certs/ca-bundle.crt
+        export NIX_SSL_CERT_FILE=$SSL_CERT_FILE
+        export PLAYWRIGHT_BROWSERS_PATH=${pkgs.playwright-driver.browsers}
+        export PLAYWRIGHT_SKIP_VALIDATE_HOST_REQUIREMENTS=true
+
+        cp -r ${src}/. .
+        chmod +w -R .
+
+        ln -s ${node_modules}/node_modules node_modules
+        ln -s ${node_modules}/dashboard/node_modules dashboard/node_modules
+
+        mkdir -p packages
+        rm -rf packages/nhost-js
+        cp -r ${self.packages.${pkgs.system}.nhost-js} packages/nhost-js
+
+        cd dashboard
+
+        echo "➜ Running dashboard staging e2e tests (${suite})"
+        ${script}
+
+        mkdir -p $out
+      '';
+
+  vercelPrepare = ''
+    cp -r ${node_modules}/node_modules/ node_modules
+    cp -r ${node_modules}/dashboard/node_modules/ dashboard/node_modules
+    chmod +w -R node_modules dashboard/node_modules
+
+    mkdir -p packages
+    rm -rf packages/nhost-js
+    cp -r ${self.packages.${pkgs.stdenv.hostPlatform.system}.nhost-js} packages/nhost-js
+    chmod +w -R packages
+  '';
 in
 rec {
   devShell = nixops-lib.js.devShell {
@@ -125,37 +210,49 @@ rec {
     '';
   };
 
-  check-staging =
-    pkgs.runCommand "check"
-      {
-        nativeBuildInputs = checkDeps ++ buildInputs ++ nativeBuildInputs;
-      }
-      ''
-        cp -r ${src}/* .
-        chmod +w -R .
+  check-staging-main = mkDashboardE2ECheck {
+    suite = "main";
+    script = "pnpm e2e";
+  };
 
-        cp -r ${node_modules}/node_modules/ node_modules
-        cp -r ${node_modules}/dashboard/node_modules/ dashboard/node_modules
+  check-staging-onboarding = mkDashboardE2ECheck {
+    suite = "onboarding";
+    script = "pnpm e2e:onboarding";
+  };
 
-        mkdir -p packages
-        rm -rf packages/nhost-js
-        cp -r ${self.packages.${pkgs.system}.nhost-js} packages/nhost-js
+  check-staging-local = mkDashboardE2ECheck {
+    suite = "local";
+    script = "pnpm e2e:local";
+  };
 
-        export HOME=$TMPDIR
+  vercelPreview = nixops-lib.js.mkVercel {
+    inherit
+      src
+      node_modules
+      buildInputs
+      nativeBuildInputs
+      ;
+    name = "dashboard";
+    environment = "preview";
+    prepare = vercelPrepare;
+  };
 
-        cd dashboard
+  vercelProduction = nixops-lib.js.mkVercel {
+    inherit
+      src
+      node_modules
+      buildInputs
+      nativeBuildInputs
+      ;
+    name = "dashboard";
+    environment = "production";
+    prepare = vercelPrepare;
+  };
 
-        echo "➜ Running e2e tests"
-        pnpm e2e
-
-        echo "➜ Running e2e tests (onboarding)"
-        pnpm e2e:onboarding
-
-        echo "➜ Running e2e tests against local Nhost instance"
-        pnpm e2e:local
-
-        mkdir -p $out
-      '';
+  vercelBuildPreview = vercelPreview.build;
+  vercelDeployPreview = vercelPreview.deploy;
+  vercelBuildProduction = vercelProduction.build;
+  vercelDeployProduction = vercelProduction.deploy;
 
   package = pkgs.stdenv.mkDerivation {
     inherit name version src;
