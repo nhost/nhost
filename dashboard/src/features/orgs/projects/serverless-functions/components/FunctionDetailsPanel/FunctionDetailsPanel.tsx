@@ -47,8 +47,6 @@ export default function FunctionDetailsPanel({
     ? router.query.tab
     : 'overview';
 
-  // Metrics is platform-only; a shared ?tab=metrics link on a self-hosted
-  // project would otherwise mount <MetricsTab> and hit missing resolvers.
   // biome-ignore lint/correctness/useExhaustiveDependencies: router is stable
   useEffect(() => {
     if (activeTab === 'metrics' && !isPlatform) {
