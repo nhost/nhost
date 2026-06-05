@@ -169,6 +169,80 @@ func TestOpen(t *testing.T) {
 	})
 }
 
+func TestOpenEnablesCaseSensitiveLikeOnEveryConnection(t *testing.T) {
+	t.Parallel()
+
+	dbPath := filepath.Join(t.TempDir(), "case-sensitive-like.db")
+
+	db, err := sqlite.Open(t.Context(), dbPath)
+	if err != nil {
+		t.Fatalf("failed to open sqlite: %v", err)
+	}
+
+	t.Cleanup(func() {
+		if err := db.Close(); err != nil {
+			t.Errorf("failed to close database: %v", err)
+		}
+	})
+
+	pool, ok := db.(interface{ SetMaxOpenConns(n int) })
+	if !ok {
+		t.Fatalf("expected sqlite.Open DB to allow configuring max open conns, got %T", db)
+	}
+
+	pool.SetMaxOpenConns(2)
+
+	tx1, err := db.BeginTx(t.Context())
+	if err != nil {
+		t.Fatalf("failed to begin first transaction: %v", err)
+	}
+
+	t.Cleanup(func() {
+		if err := tx1.Rollback(); err != nil && !errors.Is(err, sql.ErrTxDone) {
+			t.Errorf("first transaction rollback during cleanup: %v", err)
+		}
+	})
+
+	tx2, err := db.BeginTx(t.Context())
+	if err != nil {
+		t.Fatalf("failed to begin second transaction: %v", err)
+	}
+
+	t.Cleanup(func() {
+		if err := tx2.Rollback(); err != nil && !errors.Is(err, sql.ErrTxDone) {
+			t.Errorf("second transaction rollback during cleanup: %v", err)
+		}
+	})
+
+	assertLikeSemantics := func(t *testing.T, tx sqlite.Tx) {
+		t.Helper()
+
+		var caseSensitive, lowerRewrite int
+		if err := tx.QueryRowContext(
+			t.Context(),
+			"SELECT 'Foo' LIKE 'foo%', LOWER('Foo') LIKE LOWER('foo%')",
+		).Scan(&caseSensitive, &lowerRewrite); err != nil {
+			t.Fatalf("failed to query LIKE semantics: %v", err)
+		}
+
+		if caseSensitive != 0 {
+			t.Fatalf("case-sensitive LIKE matched different case: got %d, want 0", caseSensitive)
+		}
+
+		if lowerRewrite != 1 {
+			t.Fatalf("LOWER rewrite did not match case-insensitively: got %d, want 1", lowerRewrite)
+		}
+	}
+
+	assertLikeSemantics(t, tx2)
+
+	if err := tx2.Rollback(); err != nil && !errors.Is(err, sql.ErrTxDone) {
+		t.Fatalf("failed to roll back second transaction: %v", err)
+	}
+
+	assertLikeSemantics(t, tx1)
+}
+
 func TestOpenEnforcesForeignKeysOnEveryConnection(t *testing.T) {
 	t.Parallel()
 
