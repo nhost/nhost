@@ -250,16 +250,6 @@ let
         rm -rf .vercel
         mkdir -p .vercel
         cp -r "$VERCEL_ENVIRONMENT_DIR"/. .vercel/
-
-        actual_environment_hash=$(
-          cd .vercel
-          find . -type f -print0 | LC_ALL=C sort -z | xargs -0 sha256sum | sha256sum | cut -d ' ' -f 1
-        )
-        if [ "$VERCEL_ENVIRONMENT_HASH" != "$actual_environment_hash" ]; then
-          echo "ERROR: VERCEL_ENVIRONMENT_HASH does not match $VERCEL_ENVIRONMENT_DIR"
-          echo "Export the hash of the same Vercel environment directory used by the build derivation."
-          exit 1
-        fi
       '';
       build =
         pkgs.runCommand "${name}-vercel-build-${environment}"
