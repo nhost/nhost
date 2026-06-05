@@ -190,17 +190,17 @@ func (f *likeFilter) WriteCondition(
 	params []any,
 	paramIndex int,
 ) ([]any, int, error) {
-	core.WriteQualifiedColumn(b, source, f.column)
+	placeholder := f.dialect.Placeholder(paramIndex)
 
 	if f.caseSensitive {
-		b.WriteString(" LIKE ")
+		core.WriteQualifiedColumn(b, source, f.column)
+		b.WriteByte(' ')
+		b.WriteString(f.dialect.Like())
+		b.WriteByte(' ')
+		b.WriteString(placeholder)
 	} else {
-		b.WriteByte(' ')
-		b.WriteString(f.dialect.ILike())
-		b.WriteByte(' ')
+		f.dialect.WriteILikeCondition(b, source, f.column, placeholder)
 	}
-
-	b.WriteString(f.dialect.Placeholder(paramIndex))
 
 	params = append(params, f.pattern)
 
@@ -220,17 +220,17 @@ func (f *notLikeFilter) WriteCondition(
 	params []any,
 	paramIndex int,
 ) ([]any, int, error) {
-	core.WriteQualifiedColumn(b, source, f.column)
+	placeholder := f.dialect.Placeholder(paramIndex)
 
 	if f.caseSensitive {
-		b.WriteString(" NOT LIKE ")
+		core.WriteQualifiedColumn(b, source, f.column)
+		b.WriteByte(' ')
+		b.WriteString(f.dialect.NotLike())
+		b.WriteByte(' ')
+		b.WriteString(placeholder)
 	} else {
-		b.WriteByte(' ')
-		b.WriteString(f.dialect.NotILike())
-		b.WriteByte(' ')
+		f.dialect.WriteNotILikeCondition(b, source, f.column, placeholder)
 	}
-
-	b.WriteString(f.dialect.Placeholder(paramIndex))
 
 	params = append(params, f.pattern)
 

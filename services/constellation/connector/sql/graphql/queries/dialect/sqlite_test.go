@@ -151,7 +151,7 @@ func TestSQLiteDialect_JSONHelpers(t *testing.T) {
 		},
 		{"JSONBuildObject", d.JSONBuildObject(), "json_object"},
 		{"ToJSON", d.ToJSON("x"), "json(x)"},
-		{"EmptyJSONArray", d.EmptyJSONArray(), "'[]'"},
+		{"EmptyJSONArray", d.EmptyJSONArray(), "json_array()"},
 	}
 
 	for _, tt := range tests {
@@ -179,13 +179,26 @@ func TestSQLiteDialect_LikeOps(t *testing.T) {
 	t.Parallel()
 
 	d := &dialect.SQLiteDialect{}
-	// SQLite LIKE is already case-insensitive for ASCII.
-	if d.ILike() != "LIKE" {
-		t.Fatalf("ILike = %q, want LIKE", d.ILike())
+	if d.Like() != "LIKE" {
+		t.Fatalf("Like = %q, want LIKE", d.Like())
 	}
 
-	if d.NotILike() != "NOT LIKE" {
-		t.Fatalf("NotILike = %q, want NOT LIKE", d.NotILike())
+	if d.NotLike() != "NOT LIKE" {
+		t.Fatalf("NotLike = %q, want NOT LIKE", d.NotLike())
+	}
+
+	var b strings.Builder
+	d.WriteILikeCondition(&b, `"t"`, "name", "?")
+
+	if got := b.String(); got != `LOWER("t"."name") LIKE LOWER(?)` {
+		t.Fatalf("WriteILikeCondition = %q, want LOWER LIKE", got)
+	}
+
+	b.Reset()
+	d.WriteNotILikeCondition(&b, `"t"`, "name", "?")
+
+	if got := b.String(); got != `LOWER("t"."name") NOT LIKE LOWER(?)` {
+		t.Fatalf("WriteNotILikeCondition = %q, want LOWER NOT LIKE", got)
 	}
 }
 

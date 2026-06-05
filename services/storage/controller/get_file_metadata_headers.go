@@ -147,7 +147,8 @@ func (ctrl *Controller) getFileMetadataHeadersResponseObject( //nolint:ireturn
 }
 
 func (ctrl *Controller) getFileMetadataHeaders( //nolint:ireturn
-	ctx context.Context, request api.GetFileMetadataHeadersRequestObject,
+	ctx context.Context,
+	request api.GetFileMetadataHeadersRequestObject,
 ) (api.GetFileMetadataHeadersResponseObject, *APIError) {
 	sessionHeaders := middleware.SessionHeadersFromContext(ctx)
 	acceptHeader := middleware.AcceptHeaderFromContext(ctx)
@@ -195,7 +196,8 @@ func (ctrl *Controller) getFileMetadataHeaders( //nolint:ireturn
 }
 
 func (ctrl *Controller) GetFileMetadataHeaders( //nolint:ireturn
-	ctx context.Context, request api.GetFileMetadataHeadersRequestObject,
+	ctx context.Context,
+	request api.GetFileMetadataHeadersRequestObject,
 ) (api.GetFileMetadataHeadersResponseObject, error) {
 	response, apiErr := ctrl.getFileMetadataHeaders(ctx, request)
 	if apiErr != nil {

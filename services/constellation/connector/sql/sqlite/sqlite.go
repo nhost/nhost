@@ -11,10 +11,11 @@
 // # Client lifecycle
 //
 // A *Client owns its underlying DB exclusively: [Client.Close] is one-shot and
-// the receiver must not be reused after closing. [Open] enables WAL journal
-// mode and foreign-key enforcement on the connection; both PRAGMAs are
-// idempotent so reopening a database returned by an earlier [Client.Close] is
-// safe.
+// the receiver must not be reused after closing. [Open] uses this package's
+// private go-sqlite3 driver registration, whose per-connection hook enables WAL
+// journal mode, foreign-key enforcement, and case-sensitive LIKE for every new
+// physical database/sql connection. The PRAGMAs are idempotent, so reopening a
+// database returned by an earlier [Client.Close] is safe.
 //
 // # Scope
 //
@@ -32,8 +33,9 @@ import (
 	"errors"
 	"fmt"
 	"log/slog"
+	"sync"
 
-	_ "github.com/mattn/go-sqlite3" // database/sql driver registration
+	sqlite3 "github.com/mattn/go-sqlite3"
 
 	csql "github.com/nhost/nhost/services/constellation/connector/sql"
 	"github.com/nhost/nhost/services/constellation/connector/sql/graphql/queries/core"
@@ -41,7 +43,40 @@ import (
 	"github.com/nhost/nhost/services/constellation/metadata"
 )
 
-var errSequentialNonJSONResult = errors.New("sequential operation returned non-JSON result")
+const sqliteDriverName = "sqlite3_constellation"
+
+var (
+	errSequentialNonJSONResult = errors.New("sequential operation returned non-JSON result")
+	// registerSQLiteDriverOnce guards database/sql's process-wide driver registry.
+	registerSQLiteDriverOnce sync.Once //nolint:gochecknoglobals
+)
+
+func registerSQLiteDriver() {
+	registerSQLiteDriverOnce.Do(func() {
+		sql.Register(
+			sqliteDriverName,
+			&sqlite3.SQLiteDriver{ //nolint:exhaustruct // optional external driver fields stay zero.
+				ConnectHook: func(conn *sqlite3.SQLiteConn) error {
+					for _, pragma := range []string{
+						"PRAGMA foreign_keys=ON",
+						"PRAGMA case_sensitive_like=ON",
+						"PRAGMA journal_mode=WAL",
+					} {
+						if _, err := conn.Exec(pragma, nil); err != nil {
+							return fmt.Errorf(
+								"running sqlite connection pragma %q: %w",
+								pragma,
+								err,
+							)
+						}
+					}
+
+					return nil
+				},
+			},
+		)
+	})
+}
 
 // Querier abstracts SQLite query execution. Both DB and Tx satisfy this
 // interface, which lets unexported helpers run against either a connection
@@ -136,6 +171,10 @@ func (a *dbAdapter) Close() error {
 	return a.db.Close() //nolint:wrapcheck
 }
 
+func (a *dbAdapter) SetMaxOpenConns(n int) {
+	a.db.SetMaxOpenConns(n)
+}
+
 // txAdapter wraps *sql.Tx so it satisfies the local Tx interface.
 type txAdapter struct {
 	tx *sql.Tx
@@ -182,36 +221,34 @@ func NewClient(db DB) *Client {
 	return &Client{db: db}
 }
 
-// Open opens a SQLite database against connStr and enables WAL journal mode
-// plus foreign-key enforcement on the connection. The returned DB is ready to
-// pass to [NewClient].
+// Open opens a SQLite database against connStr with the package's private
+// go-sqlite3 driver registration. Every physical database/sql connection opened
+// through the returned pool has WAL journal mode, foreign-key enforcement, and
+// case-sensitive LIKE enabled before use. The returned DB is ready to pass to
+// [NewClient].
 //
 // Production code goes through [New]; Open is exported so [internal/lib/testdb]
 // and integration-style tests in sibling packages can build the DB and Client
 // in two steps.
 //
-// Failure handling: if either PRAGMA fails the underlying *sql.DB is closed
-// before returning, and the close error (if any) is joined onto the returned
-// error via [errors.Join]. Callers therefore must not Close the returned DB on
-// error — it is already closed. On success, the caller owns [DB.Close].
+// Failure handling: if the initial connection or per-connection PRAGMA hook
+// fails, the underlying *sql.DB is closed before returning, and the close error
+// (if any) is joined onto the returned error via [errors.Join]. Callers
+// therefore must not Close the returned DB on error — it is already closed. On
+// success, the caller owns [DB.Close].
 //
 // see package-level interface seam note.
 func Open(ctx context.Context, connStr string) (DB, error) { //nolint:ireturn,nolintlint
-	rawDB, err := sql.Open("sqlite3", connStr)
+	registerSQLiteDriver()
+
+	rawDB, err := sql.Open(sqliteDriverName, connStr)
 	if err != nil {
 		return nil, fmt.Errorf("opening sqlite database: %w", err)
 	}
 
-	if _, execErr := rawDB.ExecContext(ctx, "PRAGMA journal_mode=WAL"); execErr != nil {
+	if err := rawDB.PingContext(ctx); err != nil {
 		return nil, errors.Join(
-			fmt.Errorf("enabling WAL mode: %w", execErr),
-			rawDB.Close(),
-		)
-	}
-
-	if _, execErr := rawDB.ExecContext(ctx, "PRAGMA foreign_keys=ON"); execErr != nil {
-		return nil, errors.Join(
-			fmt.Errorf("enabling foreign keys: %w", execErr),
+			fmt.Errorf("opening sqlite connection: %w", err),
 			rawDB.Close(),
 		)
 	}

@@ -169,6 +169,88 @@ func TestOpen(t *testing.T) {
 	})
 }
 
+func TestOpenEnforcesForeignKeysOnEveryConnection(t *testing.T) {
+	t.Parallel()
+
+	dbPath := filepath.Join(t.TempDir(), "foreign-keys.db")
+
+	db, err := sqlite.Open(t.Context(), dbPath)
+	if err != nil {
+		t.Fatalf("failed to open sqlite: %v", err)
+	}
+
+	t.Cleanup(func() {
+		if err := db.Close(); err != nil {
+			t.Errorf("failed to close database: %v", err)
+		}
+	})
+
+	pool, ok := db.(interface{ SetMaxOpenConns(n int) })
+	if !ok {
+		t.Fatalf("expected sqlite.Open DB to allow configuring max open conns, got %T", db)
+	}
+
+	pool.SetMaxOpenConns(2)
+
+	if err := db.ExecContext(t.Context(), `
+		CREATE TABLE parents (id INTEGER PRIMARY KEY);
+		CREATE TABLE children (
+			id INTEGER PRIMARY KEY,
+			parent_id INTEGER NOT NULL REFERENCES parents(id)
+		);
+	`); err != nil {
+		t.Fatalf("failed to create schema: %v", err)
+	}
+
+	tx1, err := db.BeginTx(t.Context())
+	if err != nil {
+		t.Fatalf("failed to begin first transaction: %v", err)
+	}
+
+	t.Cleanup(func() {
+		if err := tx1.Rollback(); err != nil && !errors.Is(err, sql.ErrTxDone) {
+			t.Errorf("first transaction rollback during cleanup: %v", err)
+		}
+	})
+
+	tx2, err := db.BeginTx(t.Context())
+	if err != nil {
+		t.Fatalf("failed to begin second transaction: %v", err)
+	}
+
+	t.Cleanup(func() {
+		if err := tx2.Rollback(); err != nil && !errors.Is(err, sql.ErrTxDone) {
+			t.Errorf("second transaction rollback during cleanup: %v", err)
+		}
+	})
+
+	assertForeignKeyViolation := func(t *testing.T, tx sqlite.Tx, childID int) {
+		t.Helper()
+
+		err := tx.ExecContext(
+			t.Context(),
+			"INSERT INTO children (id, parent_id) VALUES (?, ?)",
+			childID,
+			999,
+		)
+		if err == nil {
+			t.Fatal("expected foreign-key violation")
+		}
+
+		if !strings.Contains(err.Error(), "FOREIGN KEY constraint failed") {
+			t.Fatalf("expected foreign-key violation, got %v", err)
+		}
+	}
+
+	assertForeignKeyViolation(t, tx2, 2)
+
+	if err := tx2.Rollback(); err != nil && !errors.Is(err, sql.ErrTxDone) {
+		t.Fatalf("failed to roll back second transaction: %v", err)
+	}
+
+	assertForeignKeyViolation(t, tx1, 1)
+}
+
 func TestDialect(t *testing.T) {
 	t.Parallel()
 

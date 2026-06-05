@@ -11,6 +11,11 @@ import (
 	"github.com/nhost/nhost/services/constellation/metadata"
 )
 
+const (
+	sqliteTypeInt4 = "int4"
+	sqliteTypeInt2 = "int2"
+)
+
 // Introspect returns the database objects (tables, columns, primary keys,
 // foreign keys, unique constraints) for the relations listed in dbMeta.
 // Introspection is metadata-scoped: untracked tables and views in
@@ -622,10 +627,11 @@ func getForeignKeys(
 // indexes must repeat the index predicate, which this metadata model cannot
 // represent, so partial indexes are deliberately not exposed as upsert
 // constraints. Expression and rowid unique indexes are also skipped because the
-// GraphQL upsert metadata can only render column-list conflict targets. The
-// origin column (pk/u/c) is unused: any non-partial unique index counts,
-// regardless of whether it was created implicitly for a UNIQUE column, a
-// PRIMARY KEY, or an explicit CREATE UNIQUE INDEX.
+// GraphQL upsert metadata can only render column-list conflict targets. Indexes
+// with origin=pk are deliberately excluded: the primary-key constraint is
+// already represented separately, and exposing SQLite's PK-backed autoindex as a
+// unique constraint would add a duplicate upsert target that PostgreSQL
+// introspection does not produce.
 func getUniqueConstraints(
 	ctx context.Context, q Querier, tableName string,
 ) ([]introspection.UniqueConstraint, error) {
@@ -652,7 +658,7 @@ func getUniqueConstraints(
 			return nil, fmt.Errorf("failed to scan index entry: %w", err)
 		}
 
-		if unique && !partial {
+		if unique && !partial && origin != "pk" {
 			indexNames = append(indexNames, name)
 		}
 	}
@@ -871,9 +877,12 @@ func mapSQLiteType(sqliteType string) string { //nolint:gocyclo,cyclop
 	upper := strings.ToUpper(strings.TrimSpace(sqliteType))
 
 	switch {
-	case upper == "INTEGER" || upper == "INT" || upper == "BIGINT" ||
-		upper == "SMALLINT" || upper == "TINYINT" || upper == "MEDIUMINT":
+	case upper == "INTEGER" || upper == "BIGINT":
 		return "int8" //nolint:goconst // matches sibling type cases that also nolint goconst
+	case upper == "INT" || upper == "MEDIUMINT":
+		return sqliteTypeInt4
+	case upper == "SMALLINT" || upper == "TINYINT":
+		return sqliteTypeInt2
 	case upper == "REAL" || upper == "FLOAT" || upper == "DOUBLE" ||
 		strings.HasPrefix(upper, "DOUBLE "):
 		return "float8" //nolint:goconst
@@ -906,7 +915,15 @@ func mapSQLiteType(sqliteType string) string { //nolint:gocyclo,cyclop
 // typeSupportsMinMax returns whether a mapped type supports min/max aggregation.
 func typeSupportsMinMax(mappedType string) bool {
 	switch mappedType {
-	case "int8", "float8", "numeric", "text", "date", "timestamptz", "uuid":
+	case "int8",
+		sqliteTypeInt4,
+		sqliteTypeInt2,
+		"float8",
+		"numeric",
+		"text",
+		"date",
+		"timestamptz",
+		"uuid":
 		return true
 	default:
 		return false
@@ -916,7 +933,7 @@ func typeSupportsMinMax(mappedType string) bool {
 // typeSupportsInc returns whether a mapped type supports increment (+) operations.
 func typeSupportsInc(mappedType string) bool {
 	switch mappedType {
-	case "int8", "float8", "numeric":
+	case "int8", sqliteTypeInt4, sqliteTypeInt2, "float8", "numeric":
 		return true
 	default:
 		return false
@@ -926,7 +943,7 @@ func typeSupportsInc(mappedType string) bool {
 // typeSupportsAgg returns whether a mapped type supports numeric aggregation (sum, avg, etc.).
 func typeSupportsAgg(mappedType string) bool {
 	switch mappedType {
-	case "int8", "float8", "numeric":
+	case "int8", sqliteTypeInt4, sqliteTypeInt2, "float8", "numeric":
 		return true
 	default:
 		return false

@@ -173,12 +173,26 @@ func TestPostgresDialect_LikeOps(t *testing.T) {
 	t.Parallel()
 
 	d := &dialect.PostgresDialect{}
-	if d.ILike() != "ILIKE" {
-		t.Fatalf("ILike = %q, want ILIKE", d.ILike())
+	if d.Like() != "LIKE" {
+		t.Fatalf("Like = %q, want LIKE", d.Like())
 	}
 
-	if d.NotILike() != "NOT ILIKE" {
-		t.Fatalf("NotILike = %q, want NOT ILIKE", d.NotILike())
+	if d.NotLike() != "NOT LIKE" {
+		t.Fatalf("NotLike = %q, want NOT LIKE", d.NotLike())
+	}
+
+	var b strings.Builder
+	d.WriteILikeCondition(&b, `"t"`, "name", "$1")
+
+	if got := b.String(); got != `"t"."name" ILIKE $1` {
+		t.Fatalf("WriteILikeCondition = %q, want qualified ILIKE", got)
+	}
+
+	b.Reset()
+	d.WriteNotILikeCondition(&b, `"t"`, "name", "$1")
+
+	if got := b.String(); got != `"t"."name" NOT ILIKE $1` {
+		t.Fatalf("WriteNotILikeCondition = %q, want qualified NOT ILIKE", got)
 	}
 }
 

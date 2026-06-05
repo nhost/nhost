@@ -81,7 +81,7 @@ func getAmazonSignature(request api.GetFileWithPresignedURLRequestObject) string
 	)
 }
 
-func (ctrl *Controller) getFileWithPresignedURLResponseObject( //nolint: ireturn,dupl,funlen
+func (ctrl *Controller) getFileWithPresignedURLResponseObject( //nolint:dupl,funlen,ireturn
 	ctx context.Context,
 	file *processedFile,
 	logger *slog.Logger,
@@ -154,7 +154,7 @@ func (ctrl *Controller) getFileWithPresignedURLResponseObject( //nolint: ireturn
 	}
 }
 
-func (ctrl *Controller) GetFileWithPresignedURL( //nolint: ireturn
+func (ctrl *Controller) GetFileWithPresignedURL( //nolint:ireturn
 	ctx context.Context,
 	request api.GetFileWithPresignedURLRequestObject,
 ) (api.GetFileWithPresignedURLResponseObject, error) {
