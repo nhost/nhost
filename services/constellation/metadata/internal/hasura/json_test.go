@@ -352,6 +352,61 @@ func TestFromJSON_ConvertRemoteRelationships(t *testing.T) {
 	}
 }
 
+func TestFromJSON_InvalidToSourceRelationshipTypeIsNotLowered(t *testing.T) {
+	t.Parallel()
+
+	input := []byte(`{
+		"version": 3,
+		"sources": [{
+			"name": "default",
+			"kind": "postgres",
+			"configuration": {"connection_info": {"database_url": "postgres://localhost/db"}},
+			"tables": [{
+				"table": {"name": "orders", "schema": "public"},
+				"remote_relationships": [{
+					"name": "customer",
+					"definition": {
+						"to_source": {
+							"field_mapping": {"customer_id": "id"},
+							"relationship_type": "typo",
+							"source": "customers_db",
+							"table": {"name": "customers", "schema": "public"}
+						}
+					}
+				}]
+			}]
+		}]
+	}`)
+
+	meta, err := hasura.FromJSON(input)
+	if err != nil {
+		t.Fatalf("FromJSON failed: %v", err)
+	}
+
+	table := meta.Databases[0].Tables[0]
+	if len(table.ObjectRelationships) != 0 {
+		t.Fatalf(
+			"invalid relationship_type produced object relationships: %+v",
+			table.ObjectRelationships,
+		)
+	}
+
+	if len(table.ArrayRelationships) != 0 {
+		t.Fatalf(
+			"invalid relationship_type produced array relationships: %+v",
+			table.ArrayRelationships,
+		)
+	}
+
+	if got := len(table.RemoteRelationships); got != 1 {
+		t.Fatalf("raw remote relationships = %d, want 1", got)
+	}
+
+	if got := table.RemoteRelationships[0].Definition.ToSource.RelationshipType; got != "typo" {
+		t.Fatalf("raw relationship_type = %q, want typo", got)
+	}
+}
+
 func TestConvertRemoteRelationships_RemoteSchemaCustomColumnNames(t *testing.T) {
 	t.Parallel()
 

@@ -2,7 +2,9 @@ package metadata
 
 import (
 	"context"
+	stdjson "encoding/json"
 	"fmt"
+	"math"
 	"os"
 	"path/filepath"
 	"strings"
@@ -95,12 +97,12 @@ func convertDatabaseURL(h hasura.DatabaseURL) EnvString {
 	return EnvString(h.URL)
 }
 
-func convertEnvValue(h hasura.EnvValue) EnvString {
+func convertHeaderValue(h hasura.EnvValue) (string, string) {
 	if h.FromEnv != "" {
-		return EnvString("{{" + h.FromEnv + "}}")
+		return "", h.FromEnv
 	}
 
-	return EnvString(h.Value)
+	return h.Value, ""
 }
 
 func convertDatabase(h hasura.DatabaseMetadata) DatabaseMetadata {
@@ -248,7 +250,7 @@ func convertSelectPermissions(perms []hasura.SelectPermission) []SelectPermissio
 			Role: p.Role,
 			Permission: SelectPermissionConfig{
 				Columns:           p.Permission.Columns,
-				Filter:            p.Permission.Filter,
+				Filter:            normalizePermissionMap(p.Permission.Filter),
 				AllowAggregations: p.Permission.AllowAggregations,
 			},
 		}
@@ -264,8 +266,8 @@ func convertInsertPermissions(perms []hasura.InsertPermission) []InsertPermissio
 			Role: p.Role,
 			Permission: InsertPermissionConfig{
 				Columns: p.Permission.Columns,
-				Check:   p.Permission.Check,
-				Set:     p.Permission.Set,
+				Check:   normalizePermissionMap(p.Permission.Check),
+				Set:     normalizePermissionMap(p.Permission.Set),
 			},
 		}
 	}
@@ -280,9 +282,9 @@ func convertUpdatePermissions(perms []hasura.UpdatePermission) []UpdatePermissio
 			Role: p.Role,
 			Permission: UpdatePermissionConfig{
 				Columns: p.Permission.Columns,
-				Filter:  p.Permission.Filter,
-				Check:   p.Permission.Check,
-				Set:     p.Permission.Set,
+				Filter:  normalizePermissionMap(p.Permission.Filter),
+				Check:   normalizePermissionMap(p.Permission.Check),
+				Set:     normalizePermissionMap(p.Permission.Set),
 			},
 		}
 	}
@@ -296,12 +298,120 @@ func convertDeletePermissions(perms []hasura.DeletePermission) []DeletePermissio
 		result[i] = DeletePermission{
 			Role: p.Role,
 			Permission: DeletePermissionConfig{
-				Filter: p.Permission.Filter,
+				Filter: normalizePermissionMap(p.Permission.Filter),
 			},
 		}
 	}
 
 	return result
+}
+
+func normalizePermissionMap[M ~map[string]any](m M) map[string]any {
+	if m == nil {
+		return nil
+	}
+
+	normalized, _ := normalizePermissionValue(map[string]any(m)).(map[string]any)
+
+	return normalized
+}
+
+func normalizePermissionValue(v any) any {
+	switch value := v.(type) {
+	case map[string]any:
+		out := make(map[string]any, len(value))
+		for k, child := range value {
+			out[k] = normalizePermissionValue(child)
+		}
+
+		return out
+	case []any:
+		out := make([]any, len(value))
+		for i, child := range value {
+			out[i] = normalizePermissionValue(child)
+		}
+
+		return out
+	case stdjson.Number:
+		return normalizeJSONNumber(value)
+	case float64:
+		return normalizeFloat(value)
+	case float32:
+		return normalizeFloat(float64(value))
+	case int, int8, int16, int32, int64:
+		return normalizeSigned(value)
+	case uint, uint8, uint16, uint32, uint64:
+		return normalizeUnsigned(value)
+	default:
+		return value
+	}
+}
+
+func normalizeSigned(v any) int64 {
+	switch value := v.(type) {
+	case int:
+		return int64(value)
+	case int8:
+		return int64(value)
+	case int16:
+		return int64(value)
+	case int32:
+		return int64(value)
+	case int64:
+		return value
+	default:
+		return 0
+	}
+}
+
+func normalizeUnsigned(v any) any {
+	switch value := v.(type) {
+	case uint:
+		return normalizeUint(uint64(value))
+	case uint8:
+		return int64(value)
+	case uint16:
+		return int64(value)
+	case uint32:
+		return int64(value)
+	case uint64:
+		return normalizeUint(value)
+	default:
+		return v
+	}
+}
+
+func normalizeJSONNumber(n stdjson.Number) any {
+	if i, err := n.Int64(); err == nil {
+		return i
+	}
+
+	f, err := n.Float64()
+	if err != nil {
+		return n
+	}
+
+	return normalizeFloat(f)
+}
+
+func normalizeFloat(f float64) any {
+	if math.IsNaN(f) || math.IsInf(f, 0) || math.Trunc(f) != f {
+		return f
+	}
+
+	if f < float64(math.MinInt64) || f >= float64(math.MaxInt64) {
+		return f
+	}
+
+	return int64(f)
+}
+
+func normalizeUint(u uint64) any {
+	if u > math.MaxInt64 {
+		return u
+	}
+
+	return int64(u)
 }
 
 func convertTableSource(h hasura.TableSource) TableSource {
@@ -454,9 +564,11 @@ func convertRemoteSchemaURL(h hasura.RemoteSchemaDefinition) EnvString {
 func convertRemoteSchemaHeaders(headers []hasura.RemoteSchemaHeader) []RemoteSchemaHeader {
 	result := make([]RemoteSchemaHeader, len(headers))
 	for i, h := range headers {
+		value, valueFromEnv := convertHeaderValue(h.Value)
 		result[i] = RemoteSchemaHeader{
-			Name:  h.Name,
-			Value: convertEnvValue(h.Value),
+			Name:         h.Name,
+			Value:        value,
+			ValueFromEnv: valueFromEnv,
 		}
 	}
 

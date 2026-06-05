@@ -167,6 +167,57 @@ func assertHappyPathJSON(t *testing.T, m *metadata.Metadata) {
 	}
 }
 
+func TestFromHasuraJSONPermissionNumbers(t *testing.T) {
+	t.Parallel()
+
+	input := []byte(`{
+		"version": 3,
+		"sources": [{
+			"name": "default",
+			"kind": "postgres",
+			"configuration": {"connection_info": {"database_url": "postgres://localhost/db"}},
+			"tables": [{
+				"table": {"name": "users", "schema": "public"},
+				"select_permissions": [{
+					"role": "user",
+					"permission": {
+						"columns": ["id"],
+						"filter": {
+							"id": {"_eq": 9007199254740993},
+							"score": {"_eq": 1.5}
+						}
+					}
+				}]
+			}]
+		}]
+	}`)
+
+	m, err := metadata.FromHasuraJSON(input)
+	if err != nil {
+		t.Fatalf("FromHasuraJSON failed: %v", err)
+	}
+
+	filter := m.Databases[0].Tables[0].SelectPermissions[0].Permission.Filter
+
+	idFilter, ok := filter["id"].(map[string]any)
+	if !ok {
+		t.Fatalf("id filter = %#v, want map[string]any", filter["id"])
+	}
+
+	if got, want := idFilter["_eq"], int64(9007199254740993); got != want {
+		t.Errorf("large integer filter value = %#v (%T), want %#v", got, got, want)
+	}
+
+	scoreFilter, ok := filter["score"].(map[string]any)
+	if !ok {
+		t.Fatalf("score filter = %#v, want map[string]any", filter["score"])
+	}
+
+	if got, want := scoreFilter["_eq"], 1.5; got != want {
+		t.Errorf("float filter value = %#v (%T), want %#v", got, got, want)
+	}
+}
+
 func TestFromDetect_HasuraYAMLBranch(t *testing.T) {
 	t.Parallel()
 

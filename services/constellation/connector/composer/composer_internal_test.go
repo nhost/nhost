@@ -154,6 +154,24 @@ func TestDBRelationshipSpec(t *testing.T) {
 			wantDsc: "An object relationship",
 		},
 		{
+			name: "db_to_db_invalid_relationship_type",
+			rel: metadata.RemoteRelationship{
+				Name: "broken",
+				Definition: metadata.RemoteRelationshipDef{
+					ToSource: &metadata.ToSourceRelationship{
+						RelationshipType: "typo",
+						Source:           "default",
+						Table: metadata.TableSource{
+							Schema: "public", Name: "users",
+						},
+						FieldMapping: nil,
+					},
+					ToRemoteSchema: nil,
+				},
+			},
+			wantOK: false,
+		},
+		{
 			name: "db_to_rs",
 			rel: metadata.RemoteRelationship{
 				Name: "country",
