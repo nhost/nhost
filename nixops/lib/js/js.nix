@@ -155,6 +155,7 @@ let
       vercelBuildInputs =
         jsCheckDeps
         ++ (with pkgs; [
+          corepack
           jq
           vercel
         ])
@@ -186,6 +187,7 @@ let
         export SSL_CERT_FILE=${pkgs.cacert}/etc/ssl/certs/ca-bundle.crt
         export NIX_SSL_CERT_FILE=$SSL_CERT_FILE
         export NEXT_TELEMETRY_DISABLED="''${NEXT_TELEMETRY_DISABLED:-1}"
+        export COREPACK_ENABLE_DOWNLOAD_PROMPT=0
         export VERCEL_TELEMETRY_DISABLED=1
         export TURBO_TEAM="''${TURBO_TEAM:-nhost}"
 
