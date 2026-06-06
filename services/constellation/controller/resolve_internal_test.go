@@ -24,48 +24,80 @@ import (
 func TestGroupFieldsByConnectorUsesOperationQualifiedKeys(t *testing.T) {
 	t.Parallel()
 
-	state := &controllerState{
-		fieldToConnector: map[string]string{
-			schemamerge.FieldKey(ast.Query, "foo"):    "db",
-			schemamerge.FieldKey(ast.Mutation, "foo"): "rs",
-		},
-	}
 	selectionSet := ast.SelectionSet{&ast.Field{Name: "foo"}}
-
-	queryFields, _, resp := groupFieldsByConnector(
-		state,
-		&ast.OperationDefinition{Operation: ast.Query, SelectionSet: selectionSet},
-	)
-	if resp != nil {
-		t.Fatalf("query routing failed: %+v", resp)
-	}
-
-	if got := len(queryFields["db"]); got != 1 {
-		t.Fatalf("expected query foo routed to db, got %d fields", got)
-	}
-
-	mutationFields, _, resp := groupFieldsByConnector(
-		state,
-		&ast.OperationDefinition{Operation: ast.Mutation, SelectionSet: selectionSet},
-	)
-	if resp != nil {
-		t.Fatalf("mutation routing failed: %+v", resp)
-	}
-
-	if got := len(mutationFields["rs"]); got != 1 {
-		t.Fatalf("expected mutation foo routed to rs, got %d fields", got)
-	}
-
-	_, _, resp = groupFieldsByConnector(
-		&controllerState{
+	tests := []struct {
+		name             string
+		operation        ast.Operation
+		fieldToConnector map[string]string
+		wantFieldCounts  map[string]int
+		wantResponse     bool
+	}{
+		{
+			name:      "query routes to database connector",
+			operation: ast.Query,
+			fieldToConnector: map[string]string{
+				schemamerge.FieldKey(ast.Query, "foo"):    "db",
+				schemamerge.FieldKey(ast.Mutation, "foo"): "rs",
+			},
+			wantFieldCounts: map[string]int{"db": 1},
+			wantResponse:    false,
+		},
+		{
+			name:      "mutation routes to remote schema connector",
+			operation: ast.Mutation,
+			fieldToConnector: map[string]string{
+				schemamerge.FieldKey(ast.Query, "foo"):    "db",
+				schemamerge.FieldKey(ast.Mutation, "foo"): "rs",
+			},
+			wantFieldCounts: map[string]int{"rs": 1},
+			wantResponse:    false,
+		},
+		{
+			name:      "mutation without mutation owner fails",
+			operation: ast.Mutation,
 			fieldToConnector: map[string]string{
 				schemamerge.FieldKey(ast.Query, "foo"): "db",
 			},
+			wantFieldCounts: nil,
+			wantResponse:    true,
 		},
-		&ast.OperationDefinition{Operation: ast.Mutation, SelectionSet: selectionSet},
-	)
-	if resp == nil {
-		t.Fatal("expected mutation foo without a mutation owner to fail")
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			t.Parallel()
+
+			fieldsByConnector, _, resp := groupFieldsByConnector(
+				&controllerState{fieldToConnector: tt.fieldToConnector},
+				&ast.OperationDefinition{Operation: tt.operation, SelectionSet: selectionSet},
+			)
+			if tt.wantResponse {
+				if resp == nil {
+					t.Fatalf(
+						"expected %s foo without a %s owner to fail",
+						tt.operation,
+						tt.operation,
+					)
+				}
+
+				return
+			}
+
+			if resp != nil {
+				t.Fatalf("%s routing failed: %+v", tt.operation, resp)
+			}
+
+			for connectorName, want := range tt.wantFieldCounts {
+				if got := len(fieldsByConnector[connectorName]); got != want {
+					t.Fatalf(
+						"expected %s foo routed to %s, got %d fields",
+						tt.operation,
+						connectorName,
+						got,
+					)
+				}
+			}
+		})
 	}
 }
 

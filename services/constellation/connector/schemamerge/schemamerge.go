@@ -92,7 +92,8 @@ func defaultRoots(schema, combinedSchema *graph.Schema) []rootEntry {
 // fieldToConnector and typeToConnectors are populated with ownership information
 // for the merged fields and types. fieldToConnector is keyed by [FieldKey], so
 // same-name fields under different operation kinds route independently. Returns
-// an error if named schema element merging fails.
+// an error if named schema element merging fails; the error is returned without
+// connectorName context, so caller-facing code should add attribution when needed.
 func MergeConnectorSchema(
 	schema *graph.Schema,
 	combinedSchema *graph.Schema,
@@ -216,10 +217,9 @@ func addTypeOwner(typeToConnectors map[string][]string, typeName, connectorName 
 
 // mergeSchemaElements merges scalars, enums, inputs, interfaces, unions, and
 // directives from schema into combinedSchema. Scalars deduplicate by first-wins;
-// the other named elements deduplicate only when structurally identical. The caller
-// (MergeConnectorSchema) wraps the returned error with the incoming
-// connector's name so operators can identify the clashing party from the
-// chain without re-instrumenting.
+// the other named elements deduplicate only when structurally identical.
+// MergeConnectorSchema returns conflict errors unchanged; the composer layer adds
+// incoming-connector context when recording role inconsistencies.
 func mergeSchemaElements(combinedSchema, schema *graph.Schema) error {
 	combinedSchema.Scalars = mergeScalars(combinedSchema.Scalars, schema.Scalars)
 
@@ -361,9 +361,9 @@ func mergeScalars(existing, other []*graph.ScalarType) []*graph.ScalarType {
 }
 
 // mergeEnums merges two enum slices, deduplicating identical enums by name.
-// Returns an error if two enums have the same name but different values; the
-// caller (MergeConnectorSchema) wraps the error with the incoming
-// connector's name so operators can find the offending side.
+// Returns an error if two enums have the same name but different values;
+// MergeConnectorSchema returns that conflict unchanged, and callers that surface
+// it directly should add connector context.
 func mergeEnums(
 	existing, other []*graph.EnumType,
 ) ([]*graph.EnumType, error) {
@@ -415,9 +415,8 @@ func enumsEqual(a, b *graph.EnumType) bool {
 // mergeInputs merges two input slices. Identical duplicates (by structural equality
 // via inputsEqual) are deduplicated; differing duplicates return an error so
 // the caller gets a clear failure here instead of a downstream gqlparser
-// validation error with less context. The caller (MergeConnectorSchema)
-// wraps the error with the incoming connector's name so the chain is
-// self-attributing.
+// validation error with less context. MergeConnectorSchema returns that conflict
+// unchanged, and callers that surface it directly should add connector context.
 func mergeInputs(
 	existing, other []*graph.InputObjectType,
 ) ([]*graph.InputObjectType, error) {
