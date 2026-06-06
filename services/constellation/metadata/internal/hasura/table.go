@@ -767,6 +767,11 @@ func (t *TableMetadata) appendToSourceRelationship(remote RemoteRelationship) {
 			Name:  remote.Name,
 			Using: using,
 		})
+	default:
+		// Keep invalid entries in RemoteRelationships only. The native conversion
+		// preserves that raw entry so SQL-source reconciliation can record a
+		// relationship inconsistency once a collector is available.
+		return
 	}
 }
 
