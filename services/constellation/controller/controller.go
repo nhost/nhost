@@ -239,7 +239,7 @@ func buildState(
 	queryPlanner := planner.New(
 		built.ValidatedSchemas,
 		built.FieldToConnector,
-		built.TypeToConnector,
+		built.TypeToConnectors,
 		connectorRelationships,
 	)
 
@@ -337,7 +337,7 @@ func NewFromConnectors(
 	queryPlanner := planner.New(
 		composed.ValidatedSchemas,
 		composed.FieldToConnector,
-		composed.TypeToConnector,
+		composed.TypeToConnectors,
 		relationships,
 	)
 

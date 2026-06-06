@@ -12,6 +12,8 @@
 package transform
 
 import (
+	"slices"
+
 	"github.com/nhost/nhost/services/constellation/internal/jsonpath"
 	"github.com/vektah/gqlparser/v2/ast"
 )
@@ -56,8 +58,8 @@ type Transformer struct {
 	// connectorName is the name of the connector this transformer is for.
 	connectorName string
 
-	// typeToConnector maps type name -> connector name.
-	typeToConnector map[string]string
+	// typeToConnectors maps type name -> connector names.
+	typeToConnectors map[string][]string
 
 	// emptyFragments tracks fragments that became empty after processing.
 	emptyFragments map[string]struct{}
@@ -71,7 +73,7 @@ func NewTransformer(
 	schema *ast.Schema,
 	remotes []RemoteRelationship,
 	connectorName string,
-	typeToConnector map[string]string,
+	typeToConnectors map[string][]string,
 ) *Transformer {
 	lookup := make(map[string]struct{}, len(remotes))
 	for _, rel := range remotes {
@@ -83,7 +85,7 @@ func NewTransformer(
 		relationshipLookup: lookup,
 		schema:             schema,
 		connectorName:      connectorName,
-		typeToConnector:    typeToConnector,
+		typeToConnectors:   typeToConnectors,
 		emptyFragments:     make(map[string]struct{}),
 	}
 }
@@ -379,9 +381,9 @@ func (t *Transformer) typeExistsInSchema(typeName string) bool {
 		return false
 	}
 
-	if len(t.typeToConnector) > 0 && t.connectorName != "" {
-		owningConnector, hasOwner := t.typeToConnector[typeName]
-		if hasOwner && owningConnector != t.connectorName {
+	if len(t.typeToConnectors) > 0 && t.connectorName != "" {
+		owningConnectors, hasOwner := t.typeToConnectors[typeName]
+		if hasOwner && !slices.Contains(owningConnectors, t.connectorName) {
 			return false
 		}
 	}
