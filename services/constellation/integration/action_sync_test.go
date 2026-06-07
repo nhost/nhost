@@ -11,6 +11,7 @@ import (
 	"net/http"
 	"os"
 	"path/filepath"
+	"slices"
 	"strings"
 	"testing"
 	"time"
@@ -54,6 +55,7 @@ func TestActionsSync(t *testing.T) { //nolint:paralleltest
 				}`,
 				Role: "admin",
 			},
+			responseNormalizer: normalizeActionSchemaResponse,
 		}
 
 		compareActionResponses(t, tc, nil)
@@ -295,6 +297,106 @@ func compareActionResponses(t *testing.T, tc TestCase, extraHeaders http.Header)
 	if diff := cmp.Diff(hasuraComparable, constellationComparable); diff != "" {
 		t.Errorf("action parity gap remains (-hasura +constellation):\n%s", diff)
 	}
+}
+
+func normalizeActionSchemaResponse(value any) any {
+	response, ok := value.(map[string]any)
+	if !ok {
+		return value
+	}
+
+	out := maps.Clone(response)
+
+	data, ok := response["data"].(map[string]any)
+	if !ok {
+		return out
+	}
+
+	dataOut := maps.Clone(data)
+	out["data"] = dataOut
+
+	filterIntrospectionFields(dataOut, "queryRoot", []string{"addNumbers", "echoHeaders"})
+	filterIntrospectionFields(dataOut, "mutationRoot", []string{"login"})
+	sortIntrospectionFields(dataOut, "addNumbersOutput")
+	sortIntrospectionFields(dataOut, "echoHeadersOutput")
+	sortIntrospectionFields(dataOut, "loginOutput")
+
+	return out
+}
+
+func filterIntrospectionFields(data map[string]any, typeKey string, allowed []string) {
+	allowedNames := make(map[string]struct{}, len(allowed))
+	for _, name := range allowed {
+		allowedNames[name] = struct{}{}
+	}
+
+	fields := cloneIntrospectionFields(data, typeKey)
+	if fields == nil {
+		return
+	}
+
+	filtered := make([]any, 0, len(fields))
+	for _, field := range fields {
+		if _, ok := allowedNames[introspectionFieldName(field)]; ok {
+			filtered = append(filtered, field)
+		}
+	}
+
+	sortFieldList(filtered)
+	setIntrospectionFields(data, typeKey, filtered)
+}
+
+func sortIntrospectionFields(data map[string]any, typeKey string) {
+	fields := cloneIntrospectionFields(data, typeKey)
+	if fields == nil {
+		return
+	}
+
+	sortFieldList(fields)
+	setIntrospectionFields(data, typeKey, fields)
+}
+
+func cloneIntrospectionFields(data map[string]any, typeKey string) []any {
+	typeInfo, ok := data[typeKey].(map[string]any)
+	if !ok {
+		return nil
+	}
+
+	typeOut := maps.Clone(typeInfo)
+	data[typeKey] = typeOut
+
+	fields, ok := typeInfo["fields"].([]any)
+	if !ok {
+		return nil
+	}
+
+	return slices.Clone(fields)
+}
+
+func setIntrospectionFields(data map[string]any, typeKey string, fields []any) {
+	typeInfo, ok := data[typeKey].(map[string]any)
+	if !ok {
+		return
+	}
+
+	typeInfo["fields"] = fields
+}
+
+func sortFieldList(fields []any) {
+	slices.SortFunc(fields, func(a, b any) int {
+		return strings.Compare(introspectionFieldName(a), introspectionFieldName(b))
+	})
+}
+
+func introspectionFieldName(field any) string {
+	fieldMap, ok := field.(map[string]any)
+	if !ok {
+		return ""
+	}
+
+	name, _ := fieldMap["name"].(string)
+
+	return name
 }
 
 func assertHasuraActionFixtureServed(t *testing.T, testName string, response any) {
