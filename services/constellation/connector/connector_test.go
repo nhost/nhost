@@ -501,6 +501,122 @@ func TestBuildConnectorsFromMetadata_InjectedFactories(t *testing.T) {
 // TestBuildConnectorsFromMetadata_FactoryInconsistencies verifies that
 // factory failures from both paths are recorded as inconsistencies and skipped
 // rather than aborting the build.
+func TestBuildConnectorsFromMetadata_ActionInconsistencies(t *testing.T) {
+	t.Parallel()
+
+	meta := &metadata.Metadata{
+		Databases:     nil,
+		RemoteSchemas: nil,
+		Actions: []metadata.ActionMetadata{
+			{
+				Name: "ping",
+				Definition: metadata.ActionDefinition{
+					Kind:                 metadata.ActionKindSynchronous,
+					Handler:              "{{ACTIONS_URL}}/ping",
+					ForwardClientHeaders: false,
+					Headers:              nil,
+					Timeout:              0,
+					Type:                 metadata.ActionOperationQuery,
+					Arguments:            nil,
+					OutputType:           "String",
+					RequestTransform:     nil,
+					ResponseTransform:    nil,
+				},
+				Permissions: nil,
+				Comment:     "",
+			},
+		},
+		CustomTypes: metadata.CustomTypes{
+			InputObjects: nil,
+			Objects: []metadata.CustomObjectType{
+				{
+					Name:          "PingOutput",
+					Description:   "",
+					Fields:        nil,
+					Relationships: nil,
+				},
+			},
+			Scalars: nil,
+			Enums:   nil,
+		},
+		LoadDiagnostics: []metadata.LoadDiagnostic{
+			{
+				Kind:   metadata.InconsistencyKindAction,
+				Source: "",
+				Name:   "actions.yaml",
+				Reason: "failed to unmarshal actions.yaml",
+			},
+		},
+	}
+
+	built, err := connector.BuildConnectorsFromMetadata(t.Context(), meta, slog.Default())
+	if err != nil {
+		t.Fatalf("BuildConnectorsFromMetadata: %v", err)
+	}
+
+	if len(built.Connectors) != 0 {
+		t.Fatalf("Connectors = %v, want none", built.Connectors)
+	}
+
+	if len(built.Inconsistencies) != 3 {
+		t.Fatalf("Inconsistencies = %+v, want 3 entries", built.Inconsistencies)
+	}
+
+	assertInconsistency(
+		t,
+		built.Inconsistencies,
+		metadata.InconsistencyKindAction,
+		"actions.yaml",
+		"failed to unmarshal actions.yaml",
+	)
+	assertInconsistency(
+		t,
+		built.Inconsistencies,
+		metadata.InconsistencyKindAction,
+		"ping",
+		"action runtime support is not enabled",
+	)
+	assertInconsistency(
+		t,
+		built.Inconsistencies,
+		metadata.InconsistencyKindCustomType,
+		"PingOutput",
+		"action schema support is not enabled",
+	)
+}
+
+func assertInconsistency(
+	t *testing.T,
+	items []metadata.Inconsistency,
+	wantKind, wantName, wantReasonSubstr string,
+) {
+	t.Helper()
+
+	for _, item := range items {
+		if item.Kind != wantKind || item.Name != wantName {
+			continue
+		}
+
+		if !strings.Contains(item.Reason, wantReasonSubstr) {
+			t.Fatalf(
+				"inconsistency %s/%s reason = %q, want substring %q",
+				wantKind,
+				wantName,
+				item.Reason,
+				wantReasonSubstr,
+			)
+		}
+
+		if item.At.IsZero() {
+			t.Fatalf("inconsistency %s/%s has zero timestamp", wantKind, wantName)
+		}
+
+		return
+	}
+
+	t.Fatalf("missing inconsistency %s/%s in %+v", wantKind, wantName, items)
+}
+
 func TestBuildConnectorsFromMetadata_FactoryInconsistencies(t *testing.T) {
 	t.Parallel()
 

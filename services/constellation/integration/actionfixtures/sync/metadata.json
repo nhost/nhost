@@ -27,7 +27,7 @@
             "type": "Int!"
           }
         ],
-        "output_type": "AddNumbersOutput"
+        "output_type": "AddNumbersOutput!"
       },
       "permissions": [
         {
@@ -59,7 +59,7 @@
             "type": "String!"
           }
         ],
-        "output_type": "EchoHeadersOutput"
+        "output_type": "EchoHeadersOutput!"
       },
       "permissions": [
         {
@@ -92,7 +92,7 @@
             "type": "String!"
           }
         ],
-        "output_type": "LoginOutput"
+        "output_type": "LoginOutput!"
       },
       "permissions": [
         {

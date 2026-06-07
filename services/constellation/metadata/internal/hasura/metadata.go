@@ -15,11 +15,14 @@ import (
 	"github.com/goccy/go-yaml"
 )
 
-// Metadata is the Hasura v3 top-level envelope: a list of database sources and
-// a list of remote GraphQL schemas.
+// Metadata is the Hasura v3 top-level envelope: database sources, remote
+// GraphQL schemas, and optional action/custom-type metadata.
 type Metadata struct {
-	Databases     []DatabaseMetadata     `json:"databases"                yaml:"databases"`
-	RemoteSchemas []RemoteSchemaMetadata `json:"remote_schemas,omitempty" yaml:"remote_schemas,omitempty"`
+	Databases       []DatabaseMetadata     `json:"databases"                yaml:"databases"`
+	RemoteSchemas   []RemoteSchemaMetadata `json:"remote_schemas,omitempty" yaml:"remote_schemas,omitempty"`
+	Actions         []ActionMetadata       `json:"actions,omitempty"        yaml:"actions,omitempty"`
+	CustomTypes     CustomTypes            `json:"custom_types,omitzero"    yaml:"custom_types,omitempty"`
+	LoadDiagnostics []LoadDiagnostic       `json:"-"                        yaml:"-"`
 }
 
 // baseDirKey is the unexported key used to thread the current !include base
@@ -106,10 +109,10 @@ func FromYAML(ctx context.Context, metadataPath string) (*Metadata, error) {
 		return nil, fmt.Errorf("failed to read file %s: %w", databasesPath, err)
 	}
 
-	ctx = withBaseDir(ctx, filepath.Join(baseDir, "databases"))
+	databaseCtx := withBaseDir(ctx, filepath.Join(baseDir, "databases"))
 
 	var databases []DatabaseMetadata
-	if err := yaml.UnmarshalContext(ctx, b, &databases); err != nil {
+	if err := yaml.UnmarshalContext(databaseCtx, b, &databases); err != nil {
 		return nil, fmt.Errorf("failed to unmarshal yaml: %w", err)
 	}
 
@@ -118,10 +121,11 @@ func FromYAML(ctx context.Context, metadataPath string) (*Metadata, error) {
 	remoteSchemasPath := filepath.Join(baseDir, "remote_schemas.yaml")
 
 	data, err := readFile(remoteSchemasPath)
+	rootCtx := withBaseDir(ctx, baseDir)
 
 	switch {
 	case err == nil:
-		if err := yaml.UnmarshalContext(ctx, data, &remoteSchemas); err != nil {
+		if err := yaml.UnmarshalContext(rootCtx, data, &remoteSchemas); err != nil {
 			return nil, fmt.Errorf("failed to unmarshal remote schemas: %w", err)
 		}
 	case errors.Is(err, fs.ErrNotExist):
@@ -130,9 +134,14 @@ func FromYAML(ctx context.Context, metadataPath string) (*Metadata, error) {
 		return nil, fmt.Errorf("failed to read file %s: %w", remoteSchemasPath, err)
 	}
 
+	actions, customTypes, diagnostics := loadActionMetadataYAML(rootCtx, baseDir)
+
 	return &Metadata{
-		Databases:     databases,
-		RemoteSchemas: remoteSchemas,
+		Databases:       databases,
+		RemoteSchemas:   remoteSchemas,
+		Actions:         actions,
+		CustomTypes:     customTypes,
+		LoadDiagnostics: diagnostics,
 	}, nil
 }
 

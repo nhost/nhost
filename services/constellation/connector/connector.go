@@ -202,6 +202,9 @@ func BuildConnectorsFromMetadata(
 		cfg.inconsistencies = metadata.NewInconsistencies()
 	}
 
+	cfg.recordLoadDiagnostics(ctx, meta, logger)
+	cfg.recordUnsupportedActionMetadata(ctx, meta, logger)
+
 	connectors := make(map[string]Connector)
 
 	cfg.buildRemoteSchemaConnectors(ctx, meta, connectors, logger)
@@ -219,6 +222,59 @@ func BuildConnectorsFromMetadata(
 		Connectors:      connectors,
 		Inconsistencies: cfg.inconsistencies.Snapshot(),
 	}, nil
+}
+
+func (cfg *buildConfig) recordLoadDiagnostics(
+	ctx context.Context,
+	meta *metadata.Metadata,
+	logger *slog.Logger,
+) {
+	for _, diagnostic := range meta.LoadDiagnostics {
+		cfg.inconsistencies.RecordLoadDiagnostic(ctx, logger, diagnostic)
+	}
+}
+
+func (cfg *buildConfig) recordUnsupportedActionMetadata(
+	ctx context.Context,
+	meta *metadata.Metadata,
+	logger *slog.Logger,
+) {
+	const (
+		actionReason     = "action metadata parsed but action runtime support is not enabled"
+		customTypeReason = "action custom type metadata parsed but action schema support is not enabled"
+	)
+
+	for _, action := range meta.Actions {
+		cfg.inconsistencies.RecordAction(ctx, logger, action.Name, actionReason)
+	}
+
+	for _, customTypeName := range customTypeNames(meta.CustomTypes) {
+		cfg.inconsistencies.RecordCustomType(ctx, logger, customTypeName, customTypeReason)
+	}
+}
+
+func customTypeNames(customTypes metadata.CustomTypes) []string {
+	count := len(customTypes.InputObjects) + len(customTypes.Objects) +
+		len(customTypes.Scalars) + len(customTypes.Enums)
+	names := make([]string, 0, count)
+
+	for _, input := range customTypes.InputObjects {
+		names = append(names, input.Name)
+	}
+
+	for _, object := range customTypes.Objects {
+		names = append(names, object.Name)
+	}
+
+	for _, scalar := range customTypes.Scalars {
+		names = append(names, scalar.Name)
+	}
+
+	for _, enum := range customTypes.Enums {
+		names = append(names, enum.Name)
+	}
+
+	return names
 }
 
 // buildRemoteSchemaConnectors instantiates every remote-schema connector,

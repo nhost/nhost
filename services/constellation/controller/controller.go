@@ -332,6 +332,14 @@ func NewFromConnectors(
 	composed := composer.New(providers, &metadata.Metadata{
 		Databases:     nil,
 		RemoteSchemas: nil,
+		Actions:       nil,
+		CustomTypes: metadata.CustomTypes{
+			InputObjects: nil,
+			Objects:      nil,
+			Scalars:      nil,
+			Enums:        nil,
+		},
+		LoadDiagnostics: nil,
 	}, nil).Compose(context.Background(), logger)
 
 	queryPlanner := planner.New(
@@ -345,7 +353,18 @@ func NewFromConnectors(
 		composed.ValidatedSchemas,
 		connectors,
 		composed.FieldToConnector,
-		&metadata.Metadata{Databases: nil, RemoteSchemas: nil},
+		&metadata.Metadata{
+			Databases:     nil,
+			RemoteSchemas: nil,
+			Actions:       nil,
+			CustomTypes: metadata.CustomTypes{
+				InputObjects: nil,
+				Objects:      nil,
+				Scalars:      nil,
+				Enums:        nil,
+			},
+			LoadDiagnostics: nil,
+		},
 		queryPlanner,
 		nil,
 		nil,

@@ -26,6 +26,7 @@ inconsistency and the server keeps running with whatever did load.
 | Parsing metadata bytes into types | **Yes on initial load, No on reload** | Same paths as above. |
 | Building a source connector (factory error, customization rejection) | No | Whole source dropped, recorded as `database` or `remote_schema`. |
 | Reconciling metadata against introspected source objects | No | Per-entity drops, recorded as `table` / `column` / `function` / `relationship` / `enum_values`. |
+| Parsing optional action metadata sections | No | Malformed `actions.yaml`, `actions.graphql`, JSON `actions`, or JSON `custom_types` drops action/custom-type support and records `action` / `custom_type`. Required database and remote-schema metadata remains fatal as above. |
 | Composing per-role schemas | No | Whole role dropped on validation/merge failure, recorded as `role`. |
 
 ## Inconsistency kinds
@@ -58,6 +59,31 @@ Triggers:
 
 **Effect:** the entire remote schema is omitted. Other sources serve as
 normal.
+
+### `action`
+
+Recorded when Hasura Action metadata is present but cannot be used by the
+current build. Triggers:
+
+* An optional action metadata file/section (`actions.yaml`, `actions.graphql`,
+  or JSON `actions`) is malformed or incomplete.
+* Action metadata parsed successfully, but action runtime/schema support is not
+  enabled yet.
+
+**Effect:** the action is omitted from the GraphQL schema and no webhook is
+called. Databases, remote schemas, and unrelated metadata continue serving.
+
+### `custom_type`
+
+Recorded when action custom-type metadata is present but cannot be used by the
+current build. Triggers:
+
+* The optional JSON `custom_types` section is malformed.
+* Custom type metadata parsed successfully, but action schema support is not
+  enabled yet.
+
+**Effect:** the custom type is omitted along with the action schema surface.
+Databases, remote schemas, and unrelated metadata continue serving.
 
 ### `table` (PostgreSQL / SQLite source)
 
@@ -191,13 +217,15 @@ surface is planned and will hand back the same data.
 The table below summarizes which inconsistency kinds each source type can
 produce.
 
-| Kind | PostgreSQL | SQLite | Remote schema |
-|---|---|---|---|
-| `database` | ✅ | ✅ | — |
-| `remote_schema` | — | — | ✅ |
-| `table` | ✅ | ✅ | — |
-| `column` | ✅ | ✅ | — |
-| `function` | ✅ | — | — |
-| `relationship` | ✅ | ✅ | — |
-| `enum_values` | ✅ | ✅ | — |
-| `role` | ✅ | ✅ | ✅ |
+| Kind | PostgreSQL | SQLite | Remote schema | Actions |
+|---|---|---|---|---|
+| `database` | ✅ | ✅ | — | — |
+| `remote_schema` | — | — | ✅ | — |
+| `action` | — | — | — | ✅ |
+| `custom_type` | — | — | — | ✅ |
+| `table` | ✅ | ✅ | — | — |
+| `column` | ✅ | ✅ | — | — |
+| `function` | ✅ | — | — | — |
+| `relationship` | ✅ | ✅ | — | — |
+| `enum_values` | ✅ | ✅ | — | — |
+| `role` | ✅ | ✅ | ✅ | ✅ |

@@ -257,6 +257,38 @@ func TestInconsistencies_PerKindHelpers(t *testing.T) {
 			wantName:   "rs",
 		},
 		{
+			name: "action",
+			record: func(i *metadata.Inconsistencies) {
+				i.RecordAction(ctx, logger, "login", "runtime unavailable")
+			},
+			wantKind:   metadata.InconsistencyKindAction,
+			wantSource: "",
+			wantName:   "login",
+		},
+		{
+			name: "custom_type",
+			record: func(i *metadata.Inconsistencies) {
+				i.RecordCustomType(ctx, logger, "LoginOutput", "schema unavailable")
+			},
+			wantKind:   metadata.InconsistencyKindCustomType,
+			wantSource: "",
+			wantName:   "LoginOutput",
+		},
+		{
+			name: "load_diagnostic",
+			record: func(i *metadata.Inconsistencies) {
+				i.RecordLoadDiagnostic(ctx, logger, metadata.LoadDiagnostic{
+					Kind:   metadata.InconsistencyKindAction,
+					Source: "",
+					Name:   "actions.yaml",
+					Reason: "parse failed",
+				})
+			},
+			wantKind:   metadata.InconsistencyKindAction,
+			wantSource: "",
+			wantName:   "actions.yaml",
+		},
+		{
 			name: "role",
 			record: func(i *metadata.Inconsistencies) {
 				i.RecordRole(ctx, logger, "user", "merge conflict")

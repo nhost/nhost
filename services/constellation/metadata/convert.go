@@ -83,9 +83,22 @@ func fromHasura(h *hasura.Metadata) *Metadata {
 		remoteSchemas[i] = convertRemoteSchema(rs)
 	}
 
+	actions := make([]ActionMetadata, len(h.Actions))
+	for i, action := range h.Actions {
+		actions[i] = convertAction(action)
+	}
+
+	loadDiagnostics := make([]LoadDiagnostic, len(h.LoadDiagnostics))
+	for i, diagnostic := range h.LoadDiagnostics {
+		loadDiagnostics[i] = convertLoadDiagnostic(diagnostic)
+	}
+
 	return &Metadata{
-		Databases:     databases,
-		RemoteSchemas: remoteSchemas,
+		Databases:       databases,
+		RemoteSchemas:   remoteSchemas,
+		Actions:         actions,
+		CustomTypes:     convertCustomTypes(h.CustomTypes),
+		LoadDiagnostics: loadDiagnostics,
 	}
 }
 
@@ -103,6 +116,15 @@ func convertHeaderValue(h hasura.EnvValue) (string, string) {
 	}
 
 	return h.Value, ""
+}
+
+func convertLoadDiagnostic(h hasura.LoadDiagnostic) LoadDiagnostic {
+	return LoadDiagnostic{
+		Kind:   h.Kind,
+		Source: h.Source,
+		Name:   h.Name,
+		Reason: h.Reason,
+	}
 }
 
 func convertDatabase(h hasura.DatabaseMetadata) DatabaseMetadata {

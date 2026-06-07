@@ -20,6 +20,14 @@ const (
 	// InconsistencyKindRemoteSchema reports that a remote-schema source
 	// failed to build. The source is dropped entirely.
 	InconsistencyKindRemoteSchema = "remote_schema"
+	// InconsistencyKindAction reports that action metadata was parsed but
+	// cannot be exposed/executed in the current build, or that an optional
+	// action metadata section failed to parse. The action is dropped.
+	InconsistencyKindAction = "action"
+	// InconsistencyKindCustomType reports that action custom-type metadata was
+	// parsed but cannot be exposed in the current build, or that an optional
+	// custom type metadata section failed to parse. The custom type is dropped.
+	InconsistencyKindCustomType = "custom_type"
 	// InconsistencyKindRole reports that schema composition failed for a
 	// role (merge conflict, validation failure). The role is dropped.
 	InconsistencyKindRole = "role"
@@ -163,6 +171,38 @@ func (i *Inconsistencies) RecordRemoteSchema(
 	name, reason string,
 ) {
 	i.Record(ctx, logger, InconsistencyKindRemoteSchema, "", name, reason)
+}
+
+// RecordAction records an action-level inconsistency. Use this when an action
+// cannot be exposed or executed: the action is dropped while unrelated sources
+// keep serving. name is the action name or optional action metadata file/section.
+func (i *Inconsistencies) RecordAction(
+	ctx context.Context,
+	logger *slog.Logger,
+	name, reason string,
+) {
+	i.Record(ctx, logger, InconsistencyKindAction, "", name, reason)
+}
+
+// RecordCustomType records a custom-type inconsistency. Use this when an
+// action custom type cannot be exposed: the type is dropped while unrelated
+// sources keep serving. name is the custom type name or metadata section.
+func (i *Inconsistencies) RecordCustomType(
+	ctx context.Context,
+	logger *slog.Logger,
+	name, reason string,
+) {
+	i.Record(ctx, logger, InconsistencyKindCustomType, "", name, reason)
+}
+
+// RecordLoadDiagnostic records a parser diagnostic from an optional metadata
+// section as a fresh runtime inconsistency.
+func (i *Inconsistencies) RecordLoadDiagnostic(
+	ctx context.Context,
+	logger *slog.Logger,
+	diagnostic LoadDiagnostic,
+) {
+	i.Record(ctx, logger, diagnostic.Kind, diagnostic.Source, diagnostic.Name, diagnostic.Reason)
 }
 
 // RecordRole records a role-level inconsistency. Use this when schema

@@ -43,7 +43,94 @@ func TestMarshalTOML_RoundTripsThroughFromDetect(t *testing.T) {
 			},
 		},
 		RemoteSchemas: nil,
+		Actions: []metadata.ActionMetadata{
+			{
+				Name: "ping",
+				Definition: metadata.ActionDefinition{
+					Kind:                 metadata.ActionKindSynchronous,
+					Handler:              "{{ACTIONS_URL}}/ping",
+					ForwardClientHeaders: true,
+					Headers: []metadata.ActionHeader{
+						{Name: "x-secret", ValueFromEnv: "ACTION_SECRET"},
+					},
+					Timeout: 30,
+					Type:    metadata.ActionOperationQuery,
+					Arguments: []metadata.ActionArgument{
+						{Name: "input", Type: "PingInput!", Description: "Input payload"},
+					},
+					OutputType: "PingOutput!",
+					RequestTransform: map[string]any{
+						"template_engine": "Kriti",
+					},
+					ResponseTransform: map[string]any{
+						"template_engine": "Kriti",
+					},
+				},
+				Permissions: []metadata.ActionPermission{{Role: "user"}},
+				Comment:     "Ping action",
+			},
+		},
+		CustomTypes: metadata.CustomTypes{
+			InputObjects: []metadata.CustomInputObjectType{
+				{
+					Name:        "PingInput",
+					Description: "Input type",
+					Fields: []metadata.CustomTypeField{
+						{Name: "message", Type: "String!", Description: "Message"},
+					},
+				},
+			},
+			Objects: []metadata.CustomObjectType{
+				{
+					Name:        "PingOutput",
+					Description: "Output type",
+					Fields: []metadata.CustomTypeField{
+						{Name: "message", Type: "String!", Description: "Message"},
+					},
+					Relationships: []metadata.CustomObjectRelationship{
+						{
+							Name:         "user",
+							Type:         metadata.RelationshipTypeObject,
+							RemoteTable:  metadata.TableSource{Name: "users", Schema: "auth"},
+							FieldMapping: map[string]string{"user_id": "id"},
+							Source:       "default",
+						},
+					},
+				},
+			},
+			Scalars: []metadata.CustomScalarType{{Name: "UUID", Description: "UUID scalar"}},
+			Enums: []metadata.CustomEnumType{
+				{
+					Name:        "PingKind",
+					Description: "Kind enum",
+					Values: []metadata.CustomEnumValue{
+						{
+							Value:             "OLD",
+							Description:       "Old value",
+							IsDeprecated:      true,
+							DeprecationReason: "Use NEW",
+						},
+						{
+							Value:             "NEW",
+							Description:       "New value",
+							IsDeprecated:      false,
+							DeprecationReason: "",
+						},
+					},
+				},
+			},
+		},
+		LoadDiagnostics: []metadata.LoadDiagnostic{
+			{
+				Kind:   metadata.InconsistencyKindAction,
+				Source: "",
+				Name:   "actions.yaml",
+				Reason: "not serialized",
+			},
+		},
 	}
+	expected := *original
+	expected.LoadDiagnostics = nil
 
 	data, err := metadata.MarshalTOML(original)
 	if err != nil {
@@ -61,7 +148,7 @@ func TestMarshalTOML_RoundTripsThroughFromDetect(t *testing.T) {
 		t.Fatalf("FromDetect: %v", err)
 	}
 
-	if diff := cmp.Diff(original, got, cmpopts.EquateEmpty()); diff != "" {
+	if diff := cmp.Diff(&expected, got, cmpopts.EquateEmpty()); diff != "" {
 		t.Errorf("public round-trip mismatch (-want +got):\n%s", diff)
 	}
 }
