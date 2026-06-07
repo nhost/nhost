@@ -173,7 +173,7 @@ func probeActionGraphQLEndpoint(t *testing.T, endpoint string) error {
 		return fmt.Errorf("marshaling probe request: %w", err)
 	}
 
-	ctx, cancel := context.WithTimeout(t.Context(), 2*time.Second)
+	ctx, cancel := context.WithTimeout(t.Context(), 10*time.Second)
 	defer cancel()
 
 	req, err := http.NewRequestWithContext(ctx, http.MethodPost, endpoint, bytes.NewReader(body))
@@ -409,8 +409,11 @@ func requestHasuraMetadata(t *testing.T, operation string, args map[string]any) 
 		t.Fatalf("marshal Hasura metadata %s request: %v", operation, err)
 	}
 
+	ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
+	defer cancel()
+
 	req, err := http.NewRequestWithContext(
-		t.Context(),
+		ctx,
 		http.MethodPost,
 		strings.TrimSuffix(hasuraURL, "/v1/graphql")+"/v1/metadata",
 		bytes.NewReader(body),
