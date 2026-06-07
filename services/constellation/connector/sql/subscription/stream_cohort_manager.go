@@ -298,28 +298,27 @@ func (m *streamCohortManager) executeAndRebuild(
 func buildStreamSubscriberInputs(
 	subscriptions map[string]*streamCohortSubscription,
 ) ([]string, map[string][]any, map[string][]any) {
-	subIDs := make([]string, 0, len(subscriptions))
+	subscriberCount := len(subscriptions)
+	subIDs := make([]string, 0, subscriberCount)
 	sessionVarArrays := make(map[string][]any)
 	graphQLVarArrays := make(map[string][]any)
 
 	for _, s := range subscriptions {
+		subscriberIndex := len(subIDs)
 		subIDs = append(subIDs, s.id)
 
-		for varName, varValue := range s.sessionVariables {
-			if _, exists := sessionVarArrays[varName]; !exists {
-				sessionVarArrays[varName] = make([]any, 0, len(subscriptions))
-			}
-
-			sessionVarArrays[varName] = append(sessionVarArrays[varName], varValue)
-		}
-
-		for varName, varValue := range s.graphQLVariables {
-			if _, exists := graphQLVarArrays[varName]; !exists {
-				graphQLVarArrays[varName] = make([]any, 0, len(subscriptions))
-			}
-
-			graphQLVarArrays[varName] = append(graphQLVarArrays[varName], varValue)
-		}
+		assignAlignedVars(
+			sessionVarArrays,
+			s.sessionVariables,
+			subscriberIndex,
+			subscriberCount,
+		)
+		assignAlignedVars(
+			graphQLVarArrays,
+			s.graphQLVariables,
+			subscriberIndex,
+			subscriberCount,
+		)
 	}
 
 	return subIDs, sessionVarArrays, graphQLVarArrays
@@ -518,8 +517,17 @@ func buildStreamTemplateVars(
 
 	templateGraphQLVars := make(map[string]any, len(graphQLVarArrays))
 	for varName, values := range graphQLVarArrays {
-		if len(values) > 0 {
-			templateGraphQLVars[varName] = values[0]
+		if len(values) == 0 {
+			continue
+		}
+
+		templateGraphQLVars[varName] = nil
+		for _, value := range values {
+			if value != nil {
+				templateGraphQLVars[varName] = value
+
+				break
+			}
 		}
 	}
 

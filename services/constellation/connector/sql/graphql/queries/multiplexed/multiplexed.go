@@ -378,6 +378,11 @@ func writeSessionVarsJSON(
 		}
 
 		val := arr[subscriberIndex]
+		if val == nil {
+			sb.WriteString("null")
+
+			continue
+		}
 
 		valStr := fmt.Sprintf("%v", val)
 
