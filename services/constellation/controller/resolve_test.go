@@ -10,10 +10,13 @@ import (
 	"net/http/httptest"
 	"slices"
 	"strings"
+	"sync"
 	"testing"
 
 	"github.com/gin-gonic/gin"
+	"github.com/google/go-cmp/cmp"
 	"github.com/nhost/nhost/services/constellation/connector"
+	"github.com/nhost/nhost/services/constellation/connector/action"
 	"github.com/nhost/nhost/services/constellation/connector/memconnector"
 	"github.com/nhost/nhost/services/constellation/connector/remoteschema"
 	"github.com/nhost/nhost/services/constellation/connector/sql/graphql/queries/arguments"
@@ -24,6 +27,7 @@ import (
 	plannerpkg "github.com/nhost/nhost/services/constellation/controller/planner"
 	"github.com/nhost/nhost/services/constellation/graph"
 	"github.com/nhost/nhost/services/constellation/internal/requestcontext"
+	"github.com/nhost/nhost/services/constellation/metadata"
 	"github.com/vektah/gqlparser/v2/ast"
 	"go.uber.org/mock/gomock"
 )
@@ -1598,6 +1602,142 @@ func TestResolve_MutationExecutesConnectorGroupsInRequestOrder(t *testing.T) {
 	}
 }
 
+func TestResolve_MutationPreservesActionAndDatabaseOrder(t *testing.T) {
+	t.Parallel()
+
+	var (
+		executionMu    sync.Mutex
+		executionOrder []string
+	)
+
+	recordOrder := func(entry string) {
+		executionMu.Lock()
+		defer executionMu.Unlock()
+
+		executionOrder = append(executionOrder, entry)
+	}
+
+	actionServer := httptest.NewServer(
+		http.HandlerFunc(func(w http.ResponseWriter, _ *http.Request) {
+			recordOrder("action:act")
+			w.Header().Set("Content-Type", "application/json")
+			fmt.Fprint(w, `{"ok":"action"}`)
+		}),
+	)
+	t.Cleanup(actionServer.Close)
+
+	actionConn := action.New(
+		t.Context(),
+		&metadata.Metadata{
+			Databases:     nil,
+			RemoteSchemas: nil,
+			Actions: []metadata.ActionMetadata{
+				{
+					Name: "act",
+					Definition: metadata.ActionDefinition{
+						Kind:                 metadata.ActionKindSynchronous,
+						Handler:              metadata.EnvString(actionServer.URL),
+						ForwardClientHeaders: false,
+						Headers:              nil,
+						Timeout:              0,
+						Type:                 metadata.ActionOperationMutation,
+						Arguments:            nil,
+						OutputType:           "ActionOutput!",
+						RequestTransform:     nil,
+						ResponseTransform:    nil,
+					},
+					Permissions: nil,
+					Comment:     "",
+				},
+			},
+			CustomTypes: metadata.CustomTypes{
+				InputObjects: nil,
+				Objects: []metadata.CustomObjectType{
+					{
+						Name:        "ActionOutput",
+						Description: "",
+						Fields: []metadata.CustomTypeField{
+							{Name: "ok", Type: "String!", Description: ""},
+						},
+						Relationships: nil,
+					},
+				},
+				Scalars: nil,
+				Enums:   nil,
+			},
+			LoadDiagnostics: nil,
+		},
+		metadata.NewInconsistencies(),
+		slog.New(slog.DiscardHandler),
+		nil,
+		nil,
+		nil,
+	)
+
+	recordDB := func(operation *ast.OperationDefinition) (map[string]any, error) {
+		recordOrder("db:" + strings.Join(rootSelectionNames(operation.SelectionSet), ","))
+
+		return rootFieldResults("db", operation), nil
+	}
+
+	ctrl, err := controller.NewFromConnectors(
+		testAdminSecret,
+		map[string]connector.Connector{
+			"db": newRootRecordingConnector(
+				[]string{"db_query"},
+				[]string{"db1", "db2"},
+				recordDB,
+				nil,
+			),
+			"__constellation_internal_actions": actionConn,
+		},
+		nil,
+		slog.New(slog.DiscardHandler),
+	)
+	if err != nil {
+		t.Fatalf("NewFromConnectors: %v", err)
+	}
+
+	resp, err := ctrl.Resolve(adminSessionContext(t), controller.GraphQLRequest{
+		OperationName: "",
+		Query:         `mutation { db1 act { ok } db2 }`,
+		Variables:     nil,
+	})
+	if err != nil {
+		t.Fatalf("Resolve: %v", err)
+	}
+
+	if resp.Errors != nil {
+		t.Fatalf("expected no errors, got %+v", resp.Errors)
+	}
+
+	wantOrder := "db:db1|action:act|db:db2"
+
+	executionMu.Lock()
+	gotOrder := strings.Join(executionOrder, "|")
+	executionMu.Unlock()
+
+	if got := gotOrder; got != wantOrder {
+		t.Fatalf("execution order = %s, want %s", got, wantOrder)
+	}
+
+	data, ok := resp.Data.(map[string]any)
+	if !ok {
+		t.Fatalf("expected data map, got %+v", resp.Data)
+	}
+
+	if diff := cmp.Diff(
+		map[string]any{
+			"db1": "db.db1",
+			"act": map[string]any{"ok": "action"},
+			"db2": "db.db2",
+		},
+		data,
+	); diff != "" {
+		t.Fatalf("response data mismatch (-want +got):\n%s", diff)
+	}
+}
+
 func TestResolve_QueryKeepsPerConnectorFanOut(t *testing.T) {
 	t.Parallel()
 
@@ -1670,6 +1810,131 @@ func TestResolve_QueryKeepsPerConnectorFanOut(t *testing.T) {
 
 	if callsByConnector["beta"] != "b1" {
 		t.Fatalf("beta query fields = %q, want b1", callsByConnector["beta"])
+	}
+}
+
+func TestResolve_ActionQueryContinuesAfterHardFieldError(t *testing.T) {
+	t.Parallel()
+
+	hardServer := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, _ *http.Request) {
+		http.Error(w, "raw upstream failure", http.StatusInternalServerError)
+	}))
+	t.Cleanup(hardServer.Close)
+
+	goodServer := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, _ *http.Request) {
+		w.Header().Set("Content-Type", "application/json")
+		fmt.Fprint(w, `{"ok":"good"}`)
+	}))
+	t.Cleanup(goodServer.Close)
+
+	actionConn := action.New(
+		t.Context(),
+		&metadata.Metadata{
+			Databases:     nil,
+			RemoteSchemas: nil,
+			Actions: []metadata.ActionMetadata{
+				{
+					Name: "hardFail",
+					Definition: metadata.ActionDefinition{
+						Kind:                 metadata.ActionKindSynchronous,
+						Handler:              metadata.EnvString(hardServer.URL),
+						ForwardClientHeaders: false,
+						Headers:              nil,
+						Timeout:              0,
+						Type:                 metadata.ActionOperationQuery,
+						Arguments:            nil,
+						OutputType:           "ActionOutput!",
+						RequestTransform:     nil,
+						ResponseTransform:    nil,
+					},
+					Permissions: nil,
+					Comment:     "",
+				},
+				{
+					Name: "goodAction",
+					Definition: metadata.ActionDefinition{
+						Kind:                 metadata.ActionKindSynchronous,
+						Handler:              metadata.EnvString(goodServer.URL),
+						ForwardClientHeaders: false,
+						Headers:              nil,
+						Timeout:              0,
+						Type:                 metadata.ActionOperationQuery,
+						Arguments:            nil,
+						OutputType:           "ActionOutput!",
+						RequestTransform:     nil,
+						ResponseTransform:    nil,
+					},
+					Permissions: nil,
+					Comment:     "",
+				},
+			},
+			CustomTypes: metadata.CustomTypes{
+				InputObjects: nil,
+				Objects: []metadata.CustomObjectType{
+					{
+						Name:        "ActionOutput",
+						Description: "",
+						Fields: []metadata.CustomTypeField{
+							{Name: "ok", Type: "String!", Description: ""},
+						},
+						Relationships: nil,
+					},
+				},
+				Scalars: nil,
+				Enums:   nil,
+			},
+			LoadDiagnostics: nil,
+		},
+		metadata.NewInconsistencies(),
+		slog.New(slog.DiscardHandler),
+		nil,
+		nil,
+		nil,
+	)
+
+	ctrl, err := controller.NewFromConnectors(
+		testAdminSecret,
+		map[string]connector.Connector{
+			"__constellation_internal_actions": actionConn,
+		},
+		nil,
+		slog.New(slog.DiscardHandler),
+	)
+	if err != nil {
+		t.Fatalf("NewFromConnectors: %v", err)
+	}
+
+	resp, err := ctrl.Resolve(adminSessionContext(t), controller.GraphQLRequest{
+		OperationName: "",
+		Query:         `{ hardFail { ok } goodAction { ok } }`,
+		Variables:     nil,
+	})
+	if err != nil {
+		t.Fatalf("Resolve: %v", err)
+	}
+
+	errs, ok := resp.Errors.([]map[string]any)
+	if !ok || len(errs) != 1 {
+		t.Fatalf("expected one sanitized error, got %+v", resp.Errors)
+	}
+
+	if msg := getMessage(errs[0]); !strings.HasPrefix(msg, "internal server error (trace id:") {
+		t.Fatalf("error message = %q, want sanitized internal error", msg)
+	}
+
+	data, ok := resp.Data.(map[string]any)
+	if !ok {
+		t.Fatalf("expected partial data map, got %+v", resp.Data)
+	}
+
+	want := map[string]any{
+		"hardFail": nil,
+		"goodAction": map[string]any{
+			"ok": "good",
+		},
+	}
+	if diff := cmp.Diff(want, data); diff != "" {
+		t.Fatalf("response data mismatch (-want +got):\n%s", diff)
 	}
 }
 

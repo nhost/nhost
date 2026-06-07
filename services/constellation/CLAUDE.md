@@ -107,7 +107,11 @@ CGO_ENABLED=1 go test ./connector/sql/sqlite/...
 
 # Integration tests (requires dev-env-integration-up)
 go test ./integration/...
+```
 
+When a targeted integration test (for example `go test ./integration -run TestActionsSync -count=1`) reports no runnable tests in the Pi harness, confirm with `go test -json`; an all-skipped run because Hasura/Constellation endpoints are unavailable can be summarized as "No tests found" by the wrapper.
+
+```bash
 # Update golden files
 go test ./connector/sql/graphql/queries/... -update
 go test ./connector/sql/graphql/schema/... -update

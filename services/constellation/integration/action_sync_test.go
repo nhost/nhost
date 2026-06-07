@@ -26,10 +26,10 @@ const (
 
 var errUnexpectedActionHTTPStatus = errors.New("unexpected HTTP status")
 
-func TestActionsSyncFileMetadataGaps(t *testing.T) { //nolint:paralleltest
-	skipUnlessActionRedTests(t)
+func TestActionsSync(t *testing.T) { //nolint:paralleltest
 	skipUnlessActionGraphQLEndpoints(t)
 	withHasuraSyncActionMetadata(t)
+	waitForConstellationSyncActionSchema(t)
 
 	t.Run("schema", func(t *testing.T) { //nolint:paralleltest
 		tc := TestCase{
@@ -155,12 +155,75 @@ func skipUnlessActionGraphQLEndpoints(t *testing.T) {
 	} {
 		if err := probeActionGraphQLEndpoint(t, endpoint); err != nil {
 			t.Skipf(
-				"%s GraphQL endpoint unavailable for action schema/execution red test: %v",
+				"%s GraphQL endpoint unavailable for action schema/execution parity test: %v",
 				name,
 				err,
 			)
 		}
 	}
+}
+
+func waitForConstellationSyncActionSchema(t *testing.T) {
+	t.Helper()
+
+	probe := query{
+		Query: `query ActionSchemaReady {
+			queryRoot: __type(name: "query_root") { fields { name } }
+		}`,
+		Role: metadata.RoleAdmin,
+	}
+
+	deadline := time.Now().Add(10 * time.Second)
+
+	var last any
+	for time.Now().Before(deadline) {
+		resp, err := makeHTTPQuery(
+			t.Context(),
+			constellationURL,
+			probe,
+			http.Header{"x-hasura-admin-secret": []string{adminSecret}},
+		)
+		if err == nil && responseHasIntrospectionField(resp, "queryRoot", "addNumbers") {
+			return
+		}
+
+		last = resp
+
+		time.Sleep(200 * time.Millisecond)
+	}
+
+	t.Fatalf("constellation did not expose sync action schema after metadata reload: %#v", last)
+}
+
+func responseHasIntrospectionField(response any, typeKey, field string) bool {
+	m, ok := response.(map[string]any)
+	if !ok {
+		return false
+	}
+
+	data, ok := m["data"].(map[string]any)
+	if !ok {
+		return false
+	}
+
+	typeInfo, ok := data[typeKey].(map[string]any)
+	if !ok {
+		return false
+	}
+
+	fields, ok := typeInfo["fields"].([]any)
+	if !ok {
+		return false
+	}
+
+	for _, rawField := range fields {
+		fieldInfo, ok := rawField.(map[string]any)
+		if ok && fieldInfo["name"] == field {
+			return true
+		}
+	}
+
+	return false
 }
 
 func probeActionGraphQLEndpoint(t *testing.T, endpoint string) error {

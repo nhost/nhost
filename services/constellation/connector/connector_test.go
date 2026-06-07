@@ -6,6 +6,7 @@ import (
 	json "encoding/json/v2"
 	"errors"
 	"flag"
+	"io"
 	"log/slog"
 	"net/http"
 	"net/http/httptest"
@@ -19,8 +20,11 @@ import (
 	"github.com/nhost/nhost/services/constellation/internal/lib/testdb"
 	"github.com/nhost/nhost/services/constellation/internal/lib/testhelpers"
 	"github.com/nhost/nhost/services/constellation/metadata"
+	"github.com/vektah/gqlparser/v2"
 	"github.com/vektah/gqlparser/v2/ast"
 	"github.com/vektah/gqlparser/v2/formatter"
+	"github.com/vektah/gqlparser/v2/validator"
+	"github.com/vektah/gqlparser/v2/validator/rules"
 	"go.uber.org/mock/gomock"
 )
 
@@ -574,15 +578,229 @@ func TestBuildConnectorsFromMetadata_ActionInconsistencies(t *testing.T) {
 		built.Inconsistencies,
 		metadata.InconsistencyKindAction,
 		"ping",
-		"action runtime support is not enabled",
+		"resolving handler URL",
 	)
 	assertInconsistency(
 		t,
 		built.Inconsistencies,
 		metadata.InconsistencyKindCustomType,
 		"PingOutput",
-		"action schema support is not enabled",
+		"custom type must define at least one field",
 	)
+}
+
+func TestBuildConnectorsFromMetadata_ActionConnectorRegistration(t *testing.T) {
+	t.Parallel()
+
+	meta := validActionMetadata("ping", "PingOutput!")
+
+	built, err := connector.BuildConnectorsFromMetadata(t.Context(), meta, slog.Default())
+	if err != nil {
+		t.Fatalf("BuildConnectorsFromMetadata: %v", err)
+	}
+
+	if _, ok := built.Connectors["__constellation_internal_actions"]; !ok {
+		t.Fatalf("action connector was not registered: %v", built.Connectors)
+	}
+
+	if len(built.Inconsistencies) != 0 {
+		t.Fatalf("Inconsistencies = %+v, want none", built.Inconsistencies)
+	}
+
+	if _, ok := built.ValidatedSchemas[metadata.RoleAdmin]; !ok {
+		t.Fatalf("admin schema not built for action connector")
+	}
+}
+
+func TestBuildConnectorsFromMetadata_ActionHTTPDoerOption(t *testing.T) {
+	t.Parallel()
+
+	doer := &connectorActionDoer{}
+
+	built, err := connector.BuildConnectorsFromMetadata(
+		t.Context(),
+		validActionMetadata("ping", "PingOutput!"),
+		slog.Default(),
+		connector.WithActionHTTPDoer(doer),
+	)
+	if err != nil {
+		t.Fatalf("BuildConnectorsFromMetadata: %v", err)
+	}
+
+	conn := built.Connectors["__constellation_internal_actions"]
+	if conn == nil {
+		t.Fatal("action connector was not registered")
+	}
+
+	operation, fragments, variables := actionOperationFromBuiltSchema(
+		t,
+		built,
+		`query { ping { message } }`,
+	)
+
+	result, err := conn.Execute(
+		t.Context(),
+		operation,
+		fragments,
+		variables,
+		metadata.RoleAdmin,
+		map[string]any{"x-hasura-role": metadata.RoleAdmin},
+		slog.Default(),
+	)
+	if err != nil {
+		t.Fatalf("Execute: %v", err)
+	}
+
+	ping, ok := result["ping"].(map[string]any)
+	if !ok {
+		t.Fatalf("ping result has type %T, want map[string]any", result["ping"])
+	}
+
+	if got := ping["message"]; got != "pong" {
+		t.Fatalf("ping.message = %v, want pong", got)
+	}
+
+	if !doer.called {
+		t.Fatal("injected action HTTP doer was not called")
+	}
+}
+
+type connectorActionDoer struct {
+	called bool
+}
+
+func (d *connectorActionDoer) Do(*http.Request) (*http.Response, error) {
+	d.called = true
+
+	return &http.Response{
+		StatusCode: http.StatusOK,
+		Body:       io.NopCloser(strings.NewReader(`{"message":"pong"}`)),
+		Header:     make(http.Header),
+	}, nil
+}
+
+func actionOperationFromBuiltSchema(
+	t *testing.T,
+	built *connector.BuildResult,
+	query string,
+) (*ast.OperationDefinition, ast.FragmentDefinitionList, map[string]any) {
+	t.Helper()
+
+	schema := built.ValidatedSchemas[metadata.RoleAdmin]
+	if schema == nil {
+		t.Fatal("admin schema was not built")
+	}
+
+	doc, gqlErrs := gqlparser.LoadQueryWithRules(schema, query, rules.NewDefaultRules())
+	if gqlErrs != nil {
+		t.Fatalf("LoadQueryWithRules: %v", gqlErrs)
+	}
+
+	operation := doc.Operations[0]
+
+	variables, err := validator.VariableValues(schema, operation, nil)
+	if err != nil {
+		t.Fatalf("VariableValues: %v", err)
+	}
+
+	return operation, doc.Fragments, variables
+}
+
+func TestBuildConnectorsFromMetadata_ActionConnectorNameCollision(t *testing.T) {
+	t.Parallel()
+
+	meta := validActionMetadata("ping", "PingOutput!")
+	meta.Databases = []metadata.DatabaseMetadata{
+		{
+			Name:          "__constellation_internal_actions",
+			Kind:          "postgres",
+			Configuration: metadata.DatabaseConfiguration{},
+			Tables:        nil,
+			Functions:     nil,
+		},
+	}
+
+	factory := func(
+		context.Context,
+		*metadata.DatabaseMetadata,
+		*metadata.Inconsistencies,
+		*slog.Logger,
+	) (connector.Connector, error) {
+		return stubConnector{}, nil
+	}
+
+	built, err := connector.BuildConnectorsFromMetadata(
+		t.Context(),
+		meta,
+		slog.Default(),
+		connector.WithDBFactories(map[string]connector.DBFactory{"postgres": factory}),
+	)
+	if err != nil {
+		t.Fatalf("BuildConnectorsFromMetadata: %v", err)
+	}
+
+	if len(built.Connectors) != 1 {
+		t.Fatalf("Connectors = %v, want only colliding database connector", built.Connectors)
+	}
+
+	assertInconsistency(
+		t,
+		built.Inconsistencies,
+		metadata.InconsistencyKindAction,
+		"ping",
+		"conflicts with a database or remote schema",
+	)
+	assertInconsistency(
+		t,
+		built.Inconsistencies,
+		metadata.InconsistencyKindCustomType,
+		"PingOutput",
+		"conflicts with a database or remote schema",
+	)
+}
+
+func validActionMetadata(name, outputType string) *metadata.Metadata {
+	return &metadata.Metadata{
+		Databases:     nil,
+		RemoteSchemas: nil,
+		Actions: []metadata.ActionMetadata{
+			{
+				Name: name,
+				Definition: metadata.ActionDefinition{
+					Kind: metadata.ActionKindSynchronous,
+					Handler: metadata.EnvString(
+						"https://actions.example.test/" + name,
+					),
+					ForwardClientHeaders: false,
+					Headers:              nil,
+					Timeout:              0,
+					Type:                 metadata.ActionOperationQuery,
+					Arguments:            nil,
+					OutputType:           outputType,
+					RequestTransform:     nil,
+					ResponseTransform:    nil,
+				},
+				Permissions: nil,
+				Comment:     "",
+			},
+		},
+		CustomTypes: metadata.CustomTypes{
+			InputObjects: nil,
+			Objects: []metadata.CustomObjectType{
+				{
+					Name:        "PingOutput",
+					Description: "",
+					Fields: []metadata.CustomTypeField{
+						{Name: "message", Type: "String!", Description: ""},
+					},
+					Relationships: nil,
+				},
+			},
+			Scalars: nil,
+			Enums:   nil,
+		},
+		LoadDiagnostics: nil,
+	}
 }
 
 func assertInconsistency(

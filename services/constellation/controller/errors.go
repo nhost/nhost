@@ -130,6 +130,10 @@ func sanitizeConnectorError(
 // during primary execution or during remote-relationship resolution) into the
 // slice of GraphQL error maps that should be reported to the client.
 //
+// Connector errors exposing GraphQLErrors() (including action webhook 4xx
+// payloads and action response-shaping failures) are already sanitized and
+// shaped by the connector and pass through verbatim.
+//
 // Structured *remoteschema.GraphQLError values originate inside a trusted
 // remote schema that has already shaped its own GraphQL errors (path,
 // locations, extensions). They pass through verbatim via RemoteError.AsMap.
@@ -147,7 +151,10 @@ func sanitizeConnectorError(
 //
 // Any other error is treated as a raw connector/driver failure and routed
 // through sanitizeConnectorError so SQLSTATE codes, table/column names, and
-// offending values never reach an unauthenticated caller.
+// offending values never reach an unauthenticated caller. Joined errors are
+// split first, letting a connector report safe per-field GraphQL errors and
+// raw per-field failures in one partial-response pass without bypassing the
+// raw-error sanitizer.
 //
 // Centralising the trust-boundary decision here keeps the primary-path and
 // remote-relationship branches from drifting if the rule evolves (e.g. a
@@ -156,7 +163,14 @@ func sanitizeConnectorError(
 func (c *Controller) classifyConnectorError(
 	ctx context.Context, logger *slog.Logger, err error,
 ) []map[string]any {
-	if structuredErrs, ok := classifyStructuredConnectorError(err); ok {
+	structuredErrs, rawErr := splitConnectorError(err)
+	if rawErr != nil {
+		structuredErrs = append(structuredErrs, map[string]any{
+			"message": sanitizeConnectorError(ctx, logger, c.devMode, rawErr),
+		})
+	}
+
+	if len(structuredErrs) > 0 {
 		return structuredErrs
 	}
 
@@ -165,11 +179,55 @@ func (c *Controller) classifyConnectorError(
 	}}
 }
 
+func splitConnectorError(err error) ([]map[string]any, error) {
+	var (
+		structuredErrs []map[string]any
+		rawErrs        []error
+	)
+
+	collectConnectorErrorParts(err, &structuredErrs, &rawErrs)
+
+	return structuredErrs, errors.Join(rawErrs...)
+}
+
+func collectConnectorErrorParts(
+	err error,
+	structuredErrs *[]map[string]any,
+	rawErrs *[]error,
+) {
+	if err == nil {
+		return
+	}
+
+	if joinedErr, ok := err.(interface{ Unwrap() []error }); ok {
+		for _, child := range joinedErr.Unwrap() {
+			collectConnectorErrorParts(child, structuredErrs, rawErrs)
+		}
+
+		return
+	}
+
+	if structured, ok := classifyStructuredConnectorError(err); ok {
+		*structuredErrs = append(*structuredErrs, structured...)
+
+		return
+	}
+
+	*rawErrs = append(*rawErrs, err)
+}
+
 // classifyStructuredConnectorError extracts trusted, already-shaped GraphQL
 // errors from a connector error without applying the raw driver-error
 // sanitizer. It is shared by HTTP execution and WebSocket subscription paths so
 // validation failures keep the same wire envelope across transports.
 func classifyStructuredConnectorError(err error) ([]map[string]any, bool) {
+	if connectorErr, ok := errors.AsType[interface {
+		error
+		GraphQLErrors() []map[string]any
+	}](err); ok {
+		return connectorErr.GraphQLErrors(), true
+	}
+
 	if gqlErrs, ok := errors.AsType[*remoteschema.GraphQLError](err); ok {
 		out := make([]map[string]any, len(gqlErrs.Errors))
 		for i, re := range gqlErrs.Errors {

@@ -10,9 +10,11 @@ import (
 	"fmt"
 	"log/slog"
 
+	"github.com/nhost/nhost/services/constellation/connector/action"
 	"github.com/nhost/nhost/services/constellation/connector/composer"
 	"github.com/nhost/nhost/services/constellation/connector/customization"
 	"github.com/nhost/nhost/services/constellation/connector/remoteschema"
+	"github.com/nhost/nhost/services/constellation/connector/schemamerge"
 	"github.com/nhost/nhost/services/constellation/connector/sql/postgres"
 	"github.com/nhost/nhost/services/constellation/connector/sql/sqlite"
 	"github.com/nhost/nhost/services/constellation/graph"
@@ -105,6 +107,8 @@ type RemoteSchemaFactory func(
 	rsMeta *metadata.RemoteSchemaMetadata,
 ) (Connector, error)
 
+const actionConnectorName = "__constellation_internal_actions"
+
 // defaultDBFactories returns the production registry of database factories
 // keyed by dbMeta.Kind.
 func defaultDBFactories() map[string]DBFactory {
@@ -129,6 +133,7 @@ type buildConfig struct {
 	dbFactories         map[string]DBFactory
 	remoteSchemaFactory RemoteSchemaFactory
 	httpDoer            remoteschema.HTTPDoer
+	actionHTTPDoer      action.HTTPDoer
 	inconsistencies     *metadata.Inconsistencies
 }
 
@@ -162,6 +167,15 @@ func WithHTTPDoer(doer remoteschema.HTTPDoer) Option {
 	}
 }
 
+// WithActionHTTPDoer sets the HTTPDoer used by the action connector for
+// synchronous action webhook calls. Passing nil preserves the production
+// default hardened HTTP client.
+func WithActionHTTPDoer(doer action.HTTPDoer) Option {
+	return func(c *buildConfig) {
+		c.actionHTTPDoer = doer
+	}
+}
+
 // WithInconsistencies routes per-source / per-role build failures into the
 // supplied collector instead of an internally-allocated one. The collector
 // itself stays with the caller; BuildResult.Inconsistencies always exposes
@@ -188,6 +202,7 @@ func BuildConnectorsFromMetadata(
 		dbFactories:         defaultDBFactories(),
 		remoteSchemaFactory: nil,
 		httpDoer:            nil,
+		actionHTTPDoer:      nil,
 		inconsistencies:     nil,
 	}
 	for _, opt := range opts {
@@ -203,12 +218,12 @@ func BuildConnectorsFromMetadata(
 	}
 
 	cfg.recordLoadDiagnostics(ctx, meta, logger)
-	cfg.recordUnsupportedActionMetadata(ctx, meta, logger)
 
 	connectors := make(map[string]Connector)
 
 	cfg.buildRemoteSchemaConnectors(ctx, meta, connectors, logger)
 	cfg.buildDatabaseConnectors(ctx, meta, connectors, logger)
+	cfg.buildActionConnector(ctx, meta, connectors, logger)
 
 	providers := make(map[string]composer.SchemaProvider, len(connectors))
 	for name, c := range connectors {
@@ -234,22 +249,209 @@ func (cfg *buildConfig) recordLoadDiagnostics(
 	}
 }
 
-func (cfg *buildConfig) recordUnsupportedActionMetadata(
+func (cfg *buildConfig) buildActionConnector(
+	ctx context.Context,
+	meta *metadata.Metadata,
+	connectors map[string]Connector,
+	logger *slog.Logger,
+) {
+	if !hasActionMetadata(meta) {
+		return
+	}
+
+	if actionConnectorNameCollides(meta, connectors) {
+		cfg.recordActionConnectorCollision(ctx, meta, logger)
+
+		return
+	}
+
+	occupiedRootFields, occupiedTypeNames := occupiedActionNames(connectors)
+	backend := action.New(
+		ctx,
+		meta,
+		cfg.inconsistencies,
+		logger,
+		cfg.actionHTTPDoer,
+		occupiedRootFields,
+		occupiedTypeNames,
+	)
+
+	schemas, err := backend.GetSchema()
+	if err != nil {
+		cfg.inconsistencies.RecordAction(
+			ctx,
+			logger,
+			actionConnectorName,
+			fmt.Sprintf("failed to get schema from action connector: %v", err),
+		)
+
+		return
+	}
+
+	if len(schemas) == 0 {
+		return
+	}
+
+	connectors[actionConnectorName] = backend
+}
+
+func hasActionMetadata(meta *metadata.Metadata) bool {
+	return len(meta.Actions) > 0 || !meta.CustomTypes.IsZero()
+}
+
+func actionConnectorNameCollides(
+	meta *metadata.Metadata,
+	connectors map[string]Connector,
+) bool {
+	if _, exists := connectors[actionConnectorName]; exists {
+		return true
+	}
+
+	for _, db := range meta.Databases {
+		if db.Name == actionConnectorName {
+			return true
+		}
+	}
+
+	for _, rs := range meta.RemoteSchemas {
+		if rs.Name == actionConnectorName {
+			return true
+		}
+	}
+
+	return false
+}
+
+func (cfg *buildConfig) recordActionConnectorCollision(
 	ctx context.Context,
 	meta *metadata.Metadata,
 	logger *slog.Logger,
 ) {
-	const (
-		actionReason     = "action metadata parsed but action runtime support is not enabled"
-		customTypeReason = "action custom type metadata parsed but action schema support is not enabled"
+	reason := fmt.Sprintf(
+		"action connector name %q conflicts with a database or remote schema",
+		actionConnectorName,
 	)
 
-	for _, action := range meta.Actions {
-		cfg.inconsistencies.RecordAction(ctx, logger, action.Name, actionReason)
+	for _, actionMeta := range meta.Actions {
+		cfg.inconsistencies.RecordAction(ctx, logger, actionMeta.Name, reason)
 	}
 
 	for _, customTypeName := range customTypeNames(meta.CustomTypes) {
-		cfg.inconsistencies.RecordCustomType(ctx, logger, customTypeName, customTypeReason)
+		cfg.inconsistencies.RecordCustomType(ctx, logger, customTypeName, reason)
+	}
+}
+
+func occupiedActionNames(
+	connectors map[string]Connector,
+) (map[string]map[string]struct{}, map[string]map[string]struct{}) {
+	occupiedRootFields := make(map[string]map[string]struct{})
+	occupiedTypeNames := make(map[string]map[string]struct{})
+
+	for _, conn := range connectors {
+		schemas, err := conn.GetSchema()
+		if err != nil {
+			continue
+		}
+
+		for role, schema := range schemas {
+			collectOccupiedRootFields(occupiedRootFields, role, schema)
+			collectOccupiedTypeNames(occupiedTypeNames, role, schema)
+		}
+	}
+
+	return occupiedRootFields, occupiedTypeNames
+}
+
+func collectOccupiedRootFields(
+	out map[string]map[string]struct{},
+	role string,
+	schema *graph.Schema,
+) {
+	if schema == nil {
+		return
+	}
+
+	collectOccupiedRootOperation(out, role, schema, ast.Query, schema.QueryType, "Query")
+	collectOccupiedRootOperation(out, role, schema, ast.Mutation, schema.MutationType, "Mutation")
+	collectOccupiedRootOperation(
+		out,
+		role,
+		schema,
+		ast.Subscription,
+		schema.SubscriptionType,
+		"Subscription",
+	)
+}
+
+func collectOccupiedRootOperation(
+	out map[string]map[string]struct{},
+	role string,
+	schema *graph.Schema,
+	operation ast.Operation,
+	configuredRoot *string,
+	defaultRoot string,
+) {
+	rootName := defaultRoot
+	if configuredRoot != nil {
+		rootName = *configuredRoot
+	}
+
+	for _, typ := range schema.Types {
+		if typ.Name != rootName {
+			continue
+		}
+
+		roleFields := out[role]
+		if roleFields == nil {
+			roleFields = make(map[string]struct{})
+			out[role] = roleFields
+		}
+
+		for _, field := range typ.Fields {
+			roleFields[schemamerge.FieldKey(operation, field.Name)] = struct{}{}
+		}
+
+		return
+	}
+}
+
+func collectOccupiedTypeNames(
+	out map[string]map[string]struct{},
+	role string,
+	schema *graph.Schema,
+) {
+	if schema == nil {
+		return
+	}
+
+	roleTypes := out[role]
+	if roleTypes == nil {
+		roleTypes = make(map[string]struct{})
+		out[role] = roleTypes
+	}
+
+	for _, typ := range schema.Types {
+		roleTypes[typ.Name] = struct{}{}
+	}
+
+	for _, scalar := range schema.Scalars {
+		roleTypes[scalar.Name] = struct{}{}
+	}
+
+	for _, enum := range schema.Enums {
+		roleTypes[enum.Name] = struct{}{}
+	}
+
+	for _, input := range schema.Inputs {
+		roleTypes[input.Name] = struct{}{}
+	}
+
+	for _, iface := range schema.Interfaces {
+		roleTypes[iface.Name] = struct{}{}
+	}
+
+	for _, union := range schema.Unions {
+		roleTypes[union.Name] = struct{}{}
 	}
 }
 

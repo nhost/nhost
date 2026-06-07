@@ -108,7 +108,10 @@ func TestGetSchemaRoleConflictFiltering(t *testing.T) {
 	)
 }
 
-func TestSchemaConflictFiltering(t *testing.T) {
+//nolint:maintidx // broad table covers fine-grained filtering matrix.
+func TestSchemaConflictFiltering(
+	t *testing.T,
+) {
 	t.Parallel()
 
 	tests := []struct {
@@ -213,7 +216,45 @@ func TestSchemaConflictFiltering(t *testing.T) {
 			},
 		},
 		{
-			name: "custom type cycle",
+			name: "input custom type cycle",
+			meta: testMetadata(
+				[]metadata.ActionMetadata{
+					actionMeta("ok", metadata.ActionOperationQuery, "OkOutput!", nil, nil),
+					actionMeta(
+						"cyclic",
+						metadata.ActionOperationQuery,
+						"OkOutput!",
+						nil,
+						[]metadata.ActionArgument{actionArg("input", "NodeInput", "")},
+					),
+				},
+				customTypes(
+					withInputs(metadata.CustomInputObjectType{
+						Name:        "NodeInput",
+						Description: "",
+						Fields: []metadata.CustomTypeField{
+							customField("child", "NodeInput", ""),
+						},
+					}),
+					withObjects(objectType("OkOutput", nil, objectField("ok", "String!"))),
+				),
+			),
+			wantFields: []string{"ok"},
+			wantInc: []wantInconsistency{
+				{
+					kind: metadata.InconsistencyKindCustomType,
+					name: "NodeInput",
+					sub:  "custom type cycle detected",
+				},
+				{
+					kind: metadata.InconsistencyKindAction,
+					name: "cyclic",
+					sub:  "references invalid custom type \"NodeInput\"",
+				},
+			},
+		},
+		{
+			name: "nullable output custom type cycle",
 			meta: testMetadata(
 				[]metadata.ActionMetadata{
 					actionMeta("ok", metadata.ActionOperationQuery, "OkOutput!", nil, nil),
@@ -226,17 +267,74 @@ func TestSchemaConflictFiltering(t *testing.T) {
 					),
 				),
 			),
+			wantFields: []string{"cyclic", "ok"},
+			wantInc:    nil,
+		},
+		{
+			name: "invalid runtime metadata",
+			meta: testMetadata(
+				[]metadata.ActionMetadata{
+					actionMeta("ok", metadata.ActionOperationQuery, "OkOutput!", nil, nil),
+					actionMeta(
+						"badURL",
+						metadata.ActionOperationQuery,
+						"OkOutput!",
+						nil,
+						nil,
+						withActionHandler("ftp://actions.example.test/bad"),
+					),
+					actionMeta(
+						"missingHandlerEnv",
+						metadata.ActionOperationQuery,
+						"OkOutput!",
+						nil,
+						nil,
+						withActionHandler("{{__NHOST_ACTION_TEST_MISSING_HANDLER__}}/bad"),
+					),
+					actionMeta(
+						"missingHeaderEnv",
+						metadata.ActionOperationQuery,
+						"OkOutput!",
+						nil,
+						nil,
+						withActionHeaders(metadata.ActionHeader{
+							Name:         "x-test-secret",
+							Value:        "",
+							ValueFromEnv: "__NHOST_ACTION_TEST_MISSING_HEADER__",
+						}),
+					),
+					actionMeta(
+						"badTimeout",
+						metadata.ActionOperationQuery,
+						"OkOutput!",
+						nil,
+						nil,
+						withActionTimeout(-1),
+					),
+				},
+				customTypes(withObjects(objectType("OkOutput", nil, objectField("ok", "String!")))),
+			),
 			wantFields: []string{"ok"},
 			wantInc: []wantInconsistency{
 				{
-					kind: metadata.InconsistencyKindCustomType,
-					name: "Node",
-					sub:  "custom type cycle detected",
+					kind: metadata.InconsistencyKindAction,
+					name: "badURL",
+					sub:  "invalid handler URL",
 				},
 				{
 					kind: metadata.InconsistencyKindAction,
-					name: "cyclic",
-					sub:  "references invalid custom type \"Node\"",
+					name: "missingHandlerEnv",
+					sub:  "resolving handler URL",
+				},
+				{
+					kind: metadata.InconsistencyKindAction,
+					name: "missingHeaderEnv",
+					sub:  "building headers",
+				},
+				{
+					kind: metadata.InconsistencyKindAction,
+					name: "badTimeout",
+					sub:  "invalid timeout -1",
 				},
 			},
 		},
@@ -558,7 +656,7 @@ func actionMeta(
 		Name: name,
 		Definition: metadata.ActionDefinition{
 			Kind:                 metadata.ActionKindSynchronous,
-			Handler:              metadata.EnvString("{{ACTIONS_URL}}/" + name),
+			Handler:              metadata.EnvString("https://actions.example.test/" + name),
 			ForwardClientHeaders: false,
 			Headers:              nil,
 			Timeout:              30,
@@ -588,6 +686,18 @@ func withActionKind(kind string) actionOption {
 func withActionComment(comment string) actionOption {
 	return func(action *metadata.ActionMetadata) {
 		action.Comment = comment
+	}
+}
+
+func withActionHandler(handler metadata.EnvString) actionOption {
+	return func(action *metadata.ActionMetadata) {
+		action.Definition.Handler = handler
+	}
+}
+
+func withActionTimeout(timeout int) actionOption {
+	return func(action *metadata.ActionMetadata) {
+		action.Definition.Timeout = timeout
 	}
 }
 

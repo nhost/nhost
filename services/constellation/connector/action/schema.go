@@ -2,11 +2,11 @@ package action
 
 import (
 	"context"
-	"errors"
 	"fmt"
 	"log/slog"
 	"slices"
 	"strings"
+	"time"
 
 	"github.com/nhost/nhost/services/constellation/connector/schemamerge"
 	"github.com/nhost/nhost/services/constellation/graph"
@@ -21,20 +21,23 @@ const (
 	deprecatedReason     = "No longer supported"
 )
 
-var (
-	errExecutionNotEnabled     = errors.New("action execution is not enabled")
-	errEmptyTypeReference      = errors.New("empty type reference")
-	errInvalidTypeReference    = errors.New("invalid GraphQL type reference")
-	errInvalidBaseType         = errors.New("invalid GraphQL base type")
-	errInvalidCustomTypeRef    = errors.New("references invalid custom type")
-	errUnknownTypeRef          = errors.New("unknown type")
-	errObjectTypeUsedAsInput   = errors.New("object type cannot be used as input")
-	errInputObjectUsedAsOutput = errors.New("input object type cannot be used as output")
-)
-
-type connector struct {
+// Connector exposes and executes valid synchronous Hasura Actions.
+type Connector struct {
 	schemas            map[string]*graph.Schema
 	outputTypeByAction map[string]string
+	actions            map[string]runtimeAction
+	typeKinds          map[string]customTypeKind
+	enumValues         map[string]map[string]struct{}
+	httpClient         *httpClient
+}
+
+type runtimeAction struct {
+	name                 string
+	operation            ast.Operation
+	url                  string
+	headers              map[string]string
+	timeout              time.Duration
+	forwardClientHeaders bool
 }
 
 type schemaOptions struct {
@@ -56,13 +59,53 @@ func withOccupiedTypeNames(names map[string]map[string]struct{}) schemaOption {
 	}
 }
 
+// New creates the action connector from parsed metadata. occupiedRootFields and
+// occupiedTypeNames describe fields/types already owned by database or remote
+// schema connectors, keyed by role, so action conflicts can be filtered before
+// composition drops a whole role. Passing nil doer uses the hardened default
+// HTTP client.
+func New(
+	ctx context.Context,
+	meta *metadata.Metadata,
+	inconsistencies *metadata.Inconsistencies,
+	logger *slog.Logger,
+	doer HTTPDoer,
+	occupiedRootFields map[string]map[string]struct{},
+	occupiedTypeNames map[string]map[string]struct{},
+) *Connector {
+	return newConnectorWithDoer(
+		ctx,
+		meta,
+		inconsistencies,
+		logger,
+		doer,
+		withOccupiedRootFields(occupiedRootFields),
+		withOccupiedTypeNames(occupiedTypeNames),
+	)
+}
+
 func newConnector(
 	ctx context.Context,
 	meta *metadata.Metadata,
 	inconsistencies *metadata.Inconsistencies,
 	logger *slog.Logger,
 	opts ...schemaOption,
-) *connector {
+) *Connector {
+	return newConnectorWithDoer(ctx, meta, inconsistencies, logger, nil, opts...)
+}
+
+func newConnectorWithDoer(
+	ctx context.Context,
+	meta *metadata.Metadata,
+	inconsistencies *metadata.Inconsistencies,
+	logger *slog.Logger,
+	doer HTTPDoer,
+	opts ...schemaOption,
+) *Connector {
+	if inconsistencies == nil {
+		inconsistencies = metadata.NewInconsistencies()
+	}
+
 	options := schemaOptions{
 		occupiedRootFields: nil,
 		occupiedTypeNames:  nil,
@@ -82,31 +125,24 @@ func newConnector(
 		reportedCustomTypes: make(map[string]map[string]struct{}),
 	}
 
-	schemas, outputTypeByAction := builder.build(ctx)
+	schemas, outputTypeByAction, actions := builder.build(ctx)
+	typeKinds, enumValues := builder.runtimeTypeInfo()
 
-	return &connector{
+	return &Connector{
 		schemas:            schemas,
 		outputTypeByAction: outputTypeByAction,
+		actions:            runtimeActionsByName(actions),
+		typeKinds:          typeKinds,
+		enumValues:         enumValues,
+		httpClient:         newHTTPClient(doer),
 	}
 }
 
-func (c *connector) GetSchema() (map[string]*graph.Schema, error) {
+func (c *Connector) GetSchema() (map[string]*graph.Schema, error) {
 	return c.schemas, nil
 }
 
-func (c *connector) Execute(
-	context.Context,
-	*ast.OperationDefinition,
-	ast.FragmentDefinitionList,
-	map[string]any,
-	string,
-	map[string]any,
-	*slog.Logger,
-) (map[string]any, error) {
-	return nil, errExecutionNotEnabled
-}
-
-func (c *connector) ValidateOperation(
+func (c *Connector) ValidateOperation(
 	*ast.OperationDefinition,
 	ast.FragmentDefinitionList,
 	map[string]any,
@@ -116,11 +152,11 @@ func (c *connector) ValidateOperation(
 	return nil
 }
 
-func (c *connector) GetTypeName(identifier string) string {
+func (c *Connector) GetTypeName(identifier string) string {
 	return c.outputTypeByAction[identifier]
 }
 
-func (c *connector) Close() {}
+func (c *Connector) Close() {}
 
 type customTypeKind string
 
@@ -169,6 +205,9 @@ type actionDefinition struct {
 	outputType     *graph.Type
 	outputBase     string
 	reachableTypes map[string]struct{}
+	url            string
+	headers        map[string]string
+	timeout        time.Duration
 }
 
 type schemaBuilder struct {
@@ -182,9 +221,11 @@ type schemaBuilder struct {
 	reportedCustomTypes map[string]map[string]struct{}
 }
 
-func (b *schemaBuilder) build(ctx context.Context) (map[string]*graph.Schema, map[string]string) {
+func (b *schemaBuilder) build(
+	ctx context.Context,
+) (map[string]*graph.Schema, map[string]string, []actionDefinition) {
 	if b.meta == nil {
-		return map[string]*graph.Schema{}, map[string]string{}
+		return map[string]*graph.Schema{}, map[string]string{}, nil
 	}
 
 	b.collectCustomTypes(ctx)
@@ -205,7 +246,51 @@ func (b *schemaBuilder) build(ctx context.Context) (map[string]*graph.Schema, ma
 		}
 	}
 
-	return schemas, outputTypeByAction
+	return schemas, outputTypeByAction, actions
+}
+
+func (b *schemaBuilder) runtimeTypeInfo() (
+	map[string]customTypeKind,
+	map[string]map[string]struct{},
+) {
+	typeKinds := make(map[string]customTypeKind, len(b.typeDefs))
+	enumValues := make(map[string]map[string]struct{})
+
+	for name, def := range b.typeDefs {
+		if def.invalid {
+			continue
+		}
+
+		typeKinds[name] = def.kind
+		if def.kind != customTypeKindEnum {
+			continue
+		}
+
+		values := make(map[string]struct{}, len(def.enum.Values))
+		for _, value := range def.enum.Values {
+			values[value.Value] = struct{}{}
+		}
+
+		enumValues[name] = values
+	}
+
+	return typeKinds, enumValues
+}
+
+func runtimeActionsByName(actions []actionDefinition) map[string]runtimeAction {
+	byName := make(map[string]runtimeAction, len(actions))
+	for _, action := range actions {
+		byName[action.meta.Name] = runtimeAction{
+			name:                 action.meta.Name,
+			operation:            action.operation,
+			url:                  action.url,
+			headers:              action.headers,
+			timeout:              action.timeout,
+			forwardClientHeaders: action.meta.Definition.ForwardClientHeaders,
+		}
+	}
+
+	return byName
 }
 
 func (b *schemaBuilder) collectCustomTypes(ctx context.Context) {
@@ -247,7 +332,6 @@ func (b *schemaBuilder) collectCustomTypes(ctx context.Context) {
 
 	b.validateTypeDefinitions(ctx)
 	b.invalidateCustomTypeCycles(ctx, customTypeKindInput)
-	b.invalidateCustomTypeCycles(ctx, customTypeKindObject)
 	b.propagateInvalidTypeReferences(ctx)
 }
 
@@ -710,6 +794,21 @@ func (b *schemaBuilder) validateAction(
 		return emptyActionDefinition(), false
 	}
 
+	handlerURL, ok := b.validateActionHandler(ctx, action)
+	if !ok {
+		return emptyActionDefinition(), false
+	}
+
+	headers, ok := b.validateActionHeaders(ctx, action)
+	if !ok {
+		return emptyActionDefinition(), false
+	}
+
+	timeout, ok := b.validateActionTimeout(ctx, action)
+	if !ok {
+		return emptyActionDefinition(), false
+	}
+
 	arguments, ok := b.validateActionArguments(ctx, action)
 	if !ok {
 		return emptyActionDefinition(), false
@@ -734,7 +833,62 @@ func (b *schemaBuilder) validateAction(
 		outputType:     outputType,
 		outputBase:     outputBase,
 		reachableTypes: reachableTypes,
+		url:            handlerURL,
+		headers:        headers,
+		timeout:        timeout,
 	}, true
+}
+
+func (b *schemaBuilder) validateActionHandler(
+	ctx context.Context,
+	action metadata.ActionMetadata,
+) (string, bool) {
+	handlerURL, err := action.Definition.Handler.Resolve()
+	if err != nil {
+		b.recordAction(ctx, action.Name, fmt.Sprintf("resolving handler URL: %v", err))
+
+		return "", false
+	}
+
+	if err := validateActionURL(handlerURL); err != nil {
+		b.recordAction(ctx, action.Name, fmt.Sprintf("invalid handler URL: %v", err))
+
+		return "", false
+	}
+
+	return handlerURL, true
+}
+
+func (b *schemaBuilder) validateActionHeaders(
+	ctx context.Context,
+	action metadata.ActionMetadata,
+) (map[string]string, bool) {
+	headers, err := buildActionHeaders(action)
+	if err != nil {
+		b.recordAction(ctx, action.Name, fmt.Sprintf("building headers: %v", err))
+
+		return nil, false
+	}
+
+	return headers, true
+}
+
+func (b *schemaBuilder) validateActionTimeout(
+	ctx context.Context,
+	action metadata.ActionMetadata,
+) (time.Duration, bool) {
+	timeout := action.Definition.Timeout
+	if timeout < 0 {
+		b.recordAction(ctx, action.Name, fmt.Sprintf("invalid timeout %d", timeout))
+
+		return 0, false
+	}
+
+	if timeout == 0 {
+		timeout = defaultTimeoutSeconds
+	}
+
+	return time.Duration(timeout) * time.Second, true
 }
 
 func (b *schemaBuilder) validateActionOperation(
@@ -817,6 +971,9 @@ func emptyActionDefinition() actionDefinition {
 		outputType:     nil,
 		outputBase:     "",
 		reachableTypes: nil,
+		url:            "",
+		headers:        nil,
+		timeout:        0,
 	}
 }
 
