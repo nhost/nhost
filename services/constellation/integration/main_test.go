@@ -9,6 +9,7 @@ import (
 	"os"
 	"path/filepath"
 	"sort"
+	"strings"
 	"sync/atomic"
 	"testing"
 	"time"
@@ -138,12 +139,15 @@ type query struct {
 	SessionVariables map[string]string
 }
 
+type responseNormalizer func(any) any
+
 // TestCase represents a single test case for GraphQL queries/mutations.
 type TestCase struct {
 	name                     string
 	query                    query
 	expected                 any
 	assertConstellationState func(t *testing.T, headers http.Header)
+	responseNormalizer       responseNormalizer
 }
 
 func runConstellationStateAssertion(t *testing.T, tc TestCase, headers http.Header) {
@@ -152,6 +156,116 @@ func runConstellationStateAssertion(t *testing.T, tc TestCase, headers http.Head
 	if tc.assertConstellationState != nil {
 		tc.assertConstellationState(t, headers)
 	}
+}
+
+func normalizeResponse(value any, normalizer responseNormalizer) any {
+	if normalizer == nil {
+		return value
+	}
+
+	return normalizer(value)
+}
+
+func redactActionVolatiles(value any) any {
+	return redactResponseValue(value, nil, func(path []string, candidate any) (any, bool) {
+		if len(path) == 0 {
+			return nil, false
+		}
+
+		key := strings.ToLower(path[len(path)-1])
+		if isVolatileHeaderKey(key) {
+			return "<redacted>", true
+		}
+
+		s, ok := candidate.(string)
+		if !ok {
+			return nil, false
+		}
+
+		switch {
+		case isUUIDLike(s):
+			return "<uuid>", true
+		case isTimestampLike(s):
+			return "<timestamp>", true
+		default:
+			return nil, false
+		}
+	})
+}
+
+type responseRedactor func(path []string, value any) (any, bool)
+
+func redactResponseValue(value any, path []string, redactor responseRedactor) any {
+	if replacement, ok := redactor(path, value); ok {
+		return replacement
+	}
+
+	switch typed := value.(type) {
+	case map[string]any:
+		redacted := make(map[string]any, len(typed))
+		for k, v := range typed {
+			childPath := make([]string, len(path)+1)
+			copy(childPath, path)
+			childPath[len(path)] = k
+
+			redacted[k] = redactResponseValue(v, childPath, redactor)
+		}
+
+		return redacted
+	case []any:
+		redacted := make([]any, len(typed))
+		for i, v := range typed {
+			redacted[i] = redactResponseValue(v, path, redactor)
+		}
+
+		return redacted
+	default:
+		return value
+	}
+}
+
+func isVolatileHeaderKey(key string) bool {
+	switch key {
+	case "date", "request-id", "x-amzn-trace-id", "x-request-id", "x-varnish":
+		return true
+	default:
+		return false
+	}
+}
+
+func isUUIDLike(s string) bool {
+	if len(s) != 36 {
+		return false
+	}
+
+	for i, r := range s {
+		switch i {
+		case 8, 13, 18, 23:
+			if r != '-' {
+				return false
+			}
+		default:
+			if !isLowerHex(r) && !isUpperHex(r) {
+				return false
+			}
+		}
+	}
+
+	return true
+}
+
+func isLowerHex(r rune) bool {
+	return r >= '0' && r <= '9' || r >= 'a' && r <= 'f'
+}
+
+func isUpperHex(r rune) bool {
+	return r >= 'A' && r <= 'F'
+}
+
+func isTimestampLike(s string) bool {
+	_, err := time.Parse(time.RFC3339Nano, s)
+
+	return err == nil
 }
 
 // TestConfig configures how the test runner should execute tests.
@@ -322,7 +436,10 @@ func RunGraphQLTests(t *testing.T, cases []TestCase, config TestConfig) {
 			}
 
 			// Compare responses
-			if diff := cmp.Diff(hasuraResp, constellationResp); diff != "" {
+			hasuraComparable := normalizeResponse(hasuraResp, tc.responseNormalizer)
+
+			constellationComparable := normalizeResponse(constellationResp, tc.responseNormalizer)
+			if diff := cmp.Diff(hasuraComparable, constellationComparable); diff != "" {
 				t.Errorf("responses differ (-hasura +constellation):\n%s", diff)
 			}
 

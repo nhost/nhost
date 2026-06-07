@@ -1,0 +1,163 @@
+{
+  "version": 3,
+  "sources": [],
+  "remote_schemas": [],
+  "actions": [
+    {
+      "name": "addNumbers",
+      "definition": {
+        "kind": "synchronous",
+        "handler": "{{NHOST_FUNCTIONS_URL}}/actions",
+        "forward_client_headers": true,
+        "headers": [
+          {
+            "name": "x-nhost-webhook-secret",
+            "value_from_env": "NHOST_WEBHOOK_SECRET"
+          }
+        ],
+        "timeout": 30,
+        "type": "query",
+        "arguments": [
+          {
+            "name": "a",
+            "type": "Int!"
+          },
+          {
+            "name": "b",
+            "type": "Int!"
+          }
+        ],
+        "output_type": "AddNumbersOutput"
+      },
+      "permissions": [
+        {
+          "role": "public"
+        },
+        {
+          "role": "user"
+        }
+      ],
+      "comment": "Adds two integers through a synchronous Hasura Action."
+    },
+    {
+      "name": "echoHeaders",
+      "definition": {
+        "kind": "synchronous",
+        "handler": "{{NHOST_FUNCTIONS_URL}}/actions",
+        "forward_client_headers": true,
+        "headers": [
+          {
+            "name": "x-nhost-webhook-secret",
+            "value_from_env": "NHOST_WEBHOOK_SECRET"
+          }
+        ],
+        "timeout": 30,
+        "type": "query",
+        "arguments": [
+          {
+            "name": "message",
+            "type": "String!"
+          }
+        ],
+        "output_type": "EchoHeadersOutput"
+      },
+      "permissions": [
+        {
+          "role": "user"
+        }
+      ],
+      "comment": "Echoes selected action input, session variables, and headers."
+    },
+    {
+      "name": "login",
+      "definition": {
+        "kind": "synchronous",
+        "handler": "{{NHOST_FUNCTIONS_URL}}/actions",
+        "forward_client_headers": false,
+        "headers": [
+          {
+            "name": "x-nhost-webhook-secret",
+            "value_from_env": "NHOST_WEBHOOK_SECRET"
+          }
+        ],
+        "timeout": 30,
+        "type": "mutation",
+        "arguments": [
+          {
+            "name": "email",
+            "type": "String!"
+          },
+          {
+            "name": "password",
+            "type": "String!"
+          }
+        ],
+        "output_type": "LoginOutput"
+      },
+      "permissions": [
+        {
+          "role": "public"
+        }
+      ],
+      "comment": "Deterministic login action used for parity tests."
+    }
+  ],
+  "custom_types": {
+    "enums": [],
+    "input_objects": [],
+    "objects": [
+      {
+        "name": "AddNumbersOutput",
+        "fields": [
+          {
+            "name": "sum",
+            "type": "Int!"
+          }
+        ]
+      },
+      {
+        "name": "EchoHeadersOutput",
+        "fields": [
+          {
+            "name": "message",
+            "type": "String!"
+          },
+          {
+            "name": "role",
+            "type": "String!"
+          },
+          {
+            "name": "userId",
+            "type": "String"
+          },
+          {
+            "name": "forwardedHeader",
+            "type": "String"
+          },
+          {
+            "name": "webhookSecretPresent",
+            "type": "Boolean!"
+          }
+        ]
+      },
+      {
+        "name": "LoginOutput",
+        "fields": [
+          {
+            "name": "accessToken",
+            "type": "String!"
+          },
+          {
+            "name": "userId",
+            "type": "String!"
+          },
+          {
+            "name": "role",
+            "type": "String!"
+          }
+        ]
+      }
+    ],
+    "scalars": []
+  }
+}

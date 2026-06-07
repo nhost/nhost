@@ -1,0 +1,26 @@
+type Query {
+  addNumbers(a: Int!, b: Int!): AddNumbersOutput!
+  echoHeaders(message: String!): EchoHeadersOutput!
+}
+
+type Mutation {
+  login(email: String!, password: String!): LoginOutput!
+}
+
+type AddNumbersOutput {
+  sum: Int!
+}
+
+type EchoHeadersOutput {
+  message: String!
+  role: String!
+  userId: String
+  forwardedHeader: String
+  webhookSecretPresent: Boolean!
+}
+
+type LoginOutput {
+  accessToken: String!
+  userId: String!
+  role: String!
+}
