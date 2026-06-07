@@ -53,7 +53,7 @@ type subscriptionCapableConnector interface {
 type controllerState struct {
 	validatedSchemas           map[string]*ast.Schema
 	connectors                 map[string]connector.Connector
-	fieldToConnector           map[string]string
+	fieldToConnector           map[string]map[string]string
 	metadata                   *metadata.Metadata
 	remoteRelationshipResolver *resolver.RemoteRelationshipResolver
 	queryPlanner               *planner.QueryPlanner
@@ -75,7 +75,7 @@ type controllerState struct {
 func newControllerState(
 	validatedSchemas map[string]*ast.Schema,
 	connectors map[string]connector.Connector,
-	fieldToConnector map[string]string,
+	fieldToConnector map[string]map[string]string,
 	meta *metadata.Metadata,
 	queryPlanner *planner.QueryPlanner,
 	subHandlers map[string]subscription.Handler,

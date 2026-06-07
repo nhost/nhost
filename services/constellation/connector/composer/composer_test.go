@@ -337,7 +337,7 @@ func TestComposer_Compose(t *testing.T) {
 					t.Fatal("expected validated schema for admin role")
 				}
 
-				if got := result.FieldToConnector[schemamerge.FieldKey(ast.Query, "users")]; got != "db" {
+				if got := result.FieldToConnector["admin"][schemamerge.FieldKey(ast.Query, "users")]; got != "db" {
 					t.Fatalf("expected field 'users' owned by 'db', got %q", got)
 				}
 			},
@@ -373,11 +373,17 @@ func TestComposer_Compose(t *testing.T) {
 					t.Error("expected 'posts' field in merged schema")
 				}
 
-				if got := result.TypeToConnectors["User"]; !slices.Equal(got, []string{"db1"}) {
+				if got := result.TypeToConnectors["admin"]["User"]; !slices.Equal(
+					got,
+					[]string{"db1"},
+				) {
 					t.Errorf("expected User owned by db1, got %v", got)
 				}
 
-				if got := result.TypeToConnectors["Post"]; !slices.Equal(got, []string{"db2"}) {
+				if got := result.TypeToConnectors["admin"]["Post"]; !slices.Equal(
+					got,
+					[]string{"db2"},
+				) {
 					t.Errorf("expected Post owned by db2, got %v", got)
 				}
 			},
@@ -442,6 +448,43 @@ func TestComposer_Compose(t *testing.T) {
 			},
 		},
 		{
+			name: "same_root_field_and_type_can_have_different_role_owners",
+			providers: map[string]providerSpec{
+				"db1": {schemas: map[string]*graph.Schema{
+					"admin": newMinimalSchema("shared", "Shared"),
+				}},
+				"db2": {schemas: map[string]*graph.Schema{
+					"user": newMinimalSchema("shared", "Shared"),
+				}},
+			},
+			verify: func(t *testing.T, result composer.Result) {
+				t.Helper()
+
+				key := schemamerge.FieldKey(ast.Query, "shared")
+				if got := result.FieldToConnector["admin"][key]; got != "db1" {
+					t.Errorf("expected admin shared field owned by db1, got %q", got)
+				}
+
+				if got := result.FieldToConnector["user"][key]; got != "db2" {
+					t.Errorf("expected user shared field owned by db2, got %q", got)
+				}
+
+				if got := result.TypeToConnectors["admin"]["Shared"]; !slices.Equal(
+					got,
+					[]string{"db1"},
+				) {
+					t.Errorf("expected admin Shared type owned by db1, got %v", got)
+				}
+
+				if got := result.TypeToConnectors["user"]["Shared"]; !slices.Equal(
+					got,
+					[]string{"db2"},
+				) {
+					t.Errorf("expected user Shared type owned by db2, got %v", got)
+				}
+			},
+		},
+		{
 			name: "mutation_and_subscription",
 			providers: map[string]providerSpec{
 				"db": {schemas: map[string]*graph.Schema{
@@ -475,7 +518,7 @@ func TestComposer_Compose(t *testing.T) {
 					"insert_user": ast.Mutation,
 					"user_stream": ast.Subscription,
 				} {
-					if got := result.FieldToConnector[schemamerge.FieldKey(operation, field)]; got != "db" {
+					if got := result.FieldToConnector["admin"][schemamerge.FieldKey(operation, field)]; got != "db" {
 						t.Errorf("expected field %q owned by 'db', got %q", field, got)
 					}
 				}
@@ -500,7 +543,7 @@ func TestComposer_Compose(t *testing.T) {
 					schemamerge.FieldKey(ast.Subscription, "foo"): "db",
 				}
 				for key, connector := range want {
-					if got := result.FieldToConnector[key]; got != connector {
+					if got := result.FieldToConnector["admin"][key]; got != connector {
 						t.Errorf("expected %q owned by %q, got %q", key, connector, got)
 					}
 				}

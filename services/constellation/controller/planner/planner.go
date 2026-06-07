@@ -20,11 +20,11 @@ type QueryPlanner struct {
 	// schemas maps role -> validated schema
 	schemas map[string]*ast.Schema
 
-	// fieldToConnector maps schemamerge.FieldKey(op, fieldName) -> connector name
-	fieldToConnector map[string]string
+	// fieldToConnector maps role -> schemamerge.FieldKey(op, fieldName) -> connector name.
+	fieldToConnector map[string]map[string]string
 
-	// typeToConnectors maps type name -> connector names
-	typeToConnectors map[string][]string
+	// typeToConnectors maps role -> type name -> connector names.
+	typeToConnectors map[string]map[string][]string
 
 	// relationshipsByConnector maps connector -> relationships
 	relationshipsByConnector map[string][]*RelationshipMetadata
@@ -33,8 +33,8 @@ type QueryPlanner struct {
 // New creates a new QueryPlanner.
 func New(
 	schemas map[string]*ast.Schema,
-	fieldToConnector map[string]string,
-	typeToConnectors map[string][]string,
+	fieldToConnector map[string]map[string]string,
+	typeToConnectors map[string]map[string][]string,
 	connectorRelationships map[string][]*RelationshipMetadata,
 ) *QueryPlanner {
 	return &QueryPlanner{
@@ -67,7 +67,7 @@ func (p *QueryPlanner) Plan(
 		RemoteQueries:  make([]*RemoteQueryPlan, 0, initialQueryCap),
 	}
 
-	fieldsByConnector := p.groupFieldsByConnector(operation)
+	fieldsByConnector := p.groupFieldsByConnector(operation, role)
 
 	for connectorName, fields := range fieldsByConnector {
 		relationships := p.relationshipsByConnector[connectorName]
@@ -87,7 +87,7 @@ func (p *QueryPlanner) Plan(
 			schema,
 			toRemoteRelationships(relationships),
 			connectorName,
-			p.typeToConnectors,
+			p.typeToConnectors[role],
 		)
 		transformResult := transformer.Transform(subOp, fragments)
 
@@ -114,8 +114,10 @@ func (p *QueryPlanner) Plan(
 // groupFieldsByConnector groups root-level selections by their owning connector.
 func (p *QueryPlanner) groupFieldsByConnector(
 	op *ast.OperationDefinition,
+	role string,
 ) map[string][]ast.Selection {
 	result := make(map[string][]ast.Selection)
+	fieldToConnector := p.fieldToConnector[role]
 
 	for _, sel := range op.SelectionSet {
 		field, ok := sel.(*ast.Field)
@@ -123,7 +125,7 @@ func (p *QueryPlanner) groupFieldsByConnector(
 			continue
 		}
 
-		connName := p.fieldToConnector[schemamerge.FieldKey(op.Operation, field.Name)]
+		connName := fieldToConnector[schemamerge.FieldKey(op.Operation, field.Name)]
 		if connName == "" {
 			continue
 		}

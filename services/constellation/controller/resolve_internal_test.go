@@ -68,7 +68,10 @@ func TestGroupFieldsByConnectorUsesOperationQualifiedKeys(t *testing.T) {
 			t.Parallel()
 
 			fieldsByConnector, _, resp := groupFieldsByConnector(
-				&controllerState{fieldToConnector: tt.fieldToConnector},
+				&controllerState{fieldToConnector: map[string]map[string]string{
+					"admin": tt.fieldToConnector,
+				}},
+				"admin",
 				&ast.OperationDefinition{Operation: tt.operation, SelectionSet: selectionSet},
 			)
 			if tt.wantResponse {
@@ -96,6 +99,46 @@ func TestGroupFieldsByConnectorUsesOperationQualifiedKeys(t *testing.T) {
 						got,
 					)
 				}
+			}
+		})
+	}
+}
+
+func TestGroupFieldsByConnectorUsesRoleSpecificRouting(t *testing.T) {
+	t.Parallel()
+
+	state := &controllerState{
+		fieldToConnector: map[string]map[string]string{
+			"admin": {
+				schemamerge.FieldKey(ast.Query, "shared"): "db1",
+			},
+			"user": {
+				schemamerge.FieldKey(ast.Query, "shared"): "db2",
+			},
+		},
+	}
+	operation := &ast.OperationDefinition{
+		Operation:    ast.Query,
+		SelectionSet: ast.SelectionSet{&ast.Field{Name: "shared"}},
+	}
+
+	for _, tt := range []struct {
+		role string
+		want string
+	}{
+		{role: "admin", want: "db1"},
+		{role: "user", want: "db2"},
+	} {
+		t.Run(tt.role, func(t *testing.T) {
+			t.Parallel()
+
+			fieldsByConnector, _, resp := groupFieldsByConnector(state, tt.role, operation)
+			if resp != nil {
+				t.Fatalf("routing failed: %+v", resp)
+			}
+
+			if got := len(fieldsByConnector[tt.want]); got != 1 {
+				t.Fatalf("expected shared field routed to %s, got %d", tt.want, got)
 			}
 		})
 	}

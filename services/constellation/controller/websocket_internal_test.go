@@ -16,6 +16,7 @@ import (
 	"github.com/nhost/nhost/services/constellation/controller/middleware"
 	"github.com/nhost/nhost/services/constellation/controller/websocket"
 	"github.com/nhost/nhost/services/constellation/internal/lib/syncmap"
+	"github.com/nhost/nhost/services/constellation/internal/requestcontext"
 	"github.com/nhost/nhost/services/constellation/subscription"
 	subscriptionmock "github.com/nhost/nhost/services/constellation/subscription/mock"
 	"github.com/vektah/gqlparser/v2/ast"
@@ -100,13 +101,19 @@ func TestWebSocketHandlerOnSubscribeCoercesDefaultedDirectiveVariable(t *testing
 	updates := make(chan subscription.Update)
 	close(updates)
 
+	query := `subscription Q($includeUsers: Boolean = true) { users @include(if: $includeUsers) { id } }`
+
 	mockHandler.EXPECT().
 		Start(gomock.Any(), gomock.Any(), gomock.Any()).
 		DoAndReturn(func(
-			_ context.Context,
+			ctx context.Context,
 			req subscription.Request,
 			_ *slog.Logger,
 		) (<-chan subscription.Update, error) {
+			if got := requestcontext.GraphQLQueryFromContext(ctx); got != query {
+				t.Fatalf("GraphQLQueryFromContext = %q, want %q", got, query)
+			}
+
 			gotDefault, ok := req.Variables["includeUsers"].(bool)
 			if !ok || !gotDefault {
 				t.Fatalf("expected defaulted includeUsers=true, got %v", req.Variables)
@@ -132,8 +139,10 @@ func TestWebSocketHandlerOnSubscribeCoercesDefaultedDirectiveVariable(t *testing
 	h := &webSocketHandler{
 		state: &controllerState{
 			validatedSchemas: wsTestSchemas(t),
-			fieldToConnector: map[string]string{
-				schemamerge.FieldKey(ast.Subscription, "users"): "db",
+			fieldToConnector: map[string]map[string]string{
+				"admin": {
+					schemamerge.FieldKey(ast.Subscription, "users"): "db",
+				},
 			},
 			subHandlers: map[string]subscription.Handler{"db": mockHandler},
 			queryCache:  newQueryCache(),
@@ -150,7 +159,7 @@ func TestWebSocketHandlerOnSubscribeCoercesDefaultedDirectiveVariable(t *testing
 
 	h.OnSubscribe(context.Background(), "sub-1", websocket.SubscribePayload{
 		OperationName: "Q",
-		Query:         `subscription Q($includeUsers: Boolean = true) { users @include(if: $includeUsers) { id } }`,
+		Query:         query,
 		Variables:     nil,
 		Extensions:    nil,
 	})
@@ -171,39 +180,58 @@ func TestGetConnectorForOperation(t *testing.T) {
 
 	cases := []struct {
 		name             string
-		fieldToConnector map[string]string
+		role             string
+		fieldToConnector map[string]map[string]string
 		subHandlers      map[string]subscription.Handler
 		selectionFields  []string
 		want             string
 	}{
 		{
 			name: "routes to known connector",
-			fieldToConnector: map[string]string{
-				schemamerge.FieldKey(ast.Subscription, "users"): "db1",
-				schemamerge.FieldKey(ast.Subscription, "posts"): "db2",
+			fieldToConnector: map[string]map[string]string{
+				"admin": {
+					schemamerge.FieldKey(ast.Subscription, "users"): "db1",
+					schemamerge.FieldKey(ast.Subscription, "posts"): "db2",
+				},
 			},
 			selectionFields: []string{"users"},
 			want:            "db1",
 		},
 		{
 			name: "routes using subscription key when names overlap",
-			fieldToConnector: map[string]string{
-				schemamerge.FieldKey(ast.Query, "foo"):        "dbQ",
-				schemamerge.FieldKey(ast.Subscription, "foo"): "dbS",
+			fieldToConnector: map[string]map[string]string{
+				"admin": {
+					schemamerge.FieldKey(ast.Query, "foo"):        "dbQ",
+					schemamerge.FieldKey(ast.Subscription, "foo"): "dbS",
+				},
 			},
 			selectionFields: []string{"foo"},
 			want:            "dbS",
 		},
 		{
+			name: "same field can route to a different connector by role",
+			role: "user",
+			fieldToConnector: map[string]map[string]string{
+				"admin": {
+					schemamerge.FieldKey(ast.Subscription, "shared"): "db1",
+				},
+				"user": {
+					schemamerge.FieldKey(ast.Subscription, "shared"): "db2",
+				},
+			},
+			selectionFields: []string{"shared"},
+			want:            "db2",
+		},
+		{
 			name:             "unknown field falls through to default handler",
-			fieldToConnector: map[string]string{},
+			fieldToConnector: map[string]map[string]string{},
 			subHandlers:      map[string]subscription.Handler{"fallback": mockHandler},
 			selectionFields:  []string{"unknown"},
 			want:             "fallback",
 		},
 		{
 			name:             "no handlers returns empty string",
-			fieldToConnector: map[string]string{},
+			fieldToConnector: map[string]map[string]string{},
 			subHandlers:      map[string]subscription.Handler{},
 			selectionFields:  []string{"unknown"},
 			want:             "",
@@ -229,7 +257,12 @@ func TestGetConnectorForOperation(t *testing.T) {
 				SelectionSet: selections,
 			}
 
-			got := getConnectorForOperation(state, op)
+			role := tc.role
+			if role == "" {
+				role = "admin"
+			}
+
+			got := getConnectorForOperation(state, role, op)
 			if got != tc.want {
 				t.Errorf("got %q, want %q", got, tc.want)
 			}

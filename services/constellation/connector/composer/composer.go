@@ -7,7 +7,6 @@ import (
 	"context"
 	"fmt"
 	"log/slog"
-	"maps"
 	"slices"
 
 	"github.com/nhost/nhost/services/constellation/connector/relationships"
@@ -66,13 +65,15 @@ type Result struct {
 	SchemaDocs map[string]*ast.SchemaDocument
 	// ValidatedSchemas is keyed by role name.
 	ValidatedSchemas map[string]*ast.Schema
-	// FieldToConnector maps schemamerge.FieldKey(op, fieldName) to the name of
-	// the connector that owns that root field; used by the controller to route
+	// FieldToConnector is keyed by role name, then by
+	// schemamerge.FieldKey(op, fieldName), and stores the name of the connector
+	// that owns that root field for that role; used by the controller to route
 	// operations.
-	FieldToConnector map[string]string
-	// TypeToConnectors maps each GraphQL type name to the names of the
-	// connectors that own it; used by the controller to route operations.
-	TypeToConnectors map[string][]string
+	FieldToConnector map[string]map[string]string
+	// TypeToConnectors is keyed by role name, then by GraphQL type name, and
+	// stores the connectors that own the type for that role; used by the
+	// controller to route operations.
+	TypeToConnectors map[string]map[string][]string
 }
 
 // Compose collects schemas from all providers, adds remote relationship
@@ -91,8 +92,8 @@ func (c *Composer) Compose(
 	result := Result{
 		SchemaDocs:       make(map[string]*ast.SchemaDocument),
 		ValidatedSchemas: make(map[string]*ast.Schema),
-		FieldToConnector: make(map[string]string),
-		TypeToConnectors: make(map[string][]string),
+		FieldToConnector: make(map[string]map[string]string),
+		TypeToConnectors: make(map[string]map[string][]string),
 	}
 
 	connectorNames := make([]string, 0, len(roleSchemas))
@@ -177,9 +178,8 @@ func (c *Composer) composeRole(
 
 	result.SchemaDocs[role] = schemaDoc
 	result.ValidatedSchemas[role] = validatedSchema
-
-	maps.Copy(result.FieldToConnector, fieldToConnector)
-	maps.Copy(result.TypeToConnectors, typeToConnectors)
+	result.FieldToConnector[role] = fieldToConnector
+	result.TypeToConnectors[role] = typeToConnectors
 
 	logger.InfoContext(ctx, "validated schema for role", slog.String("role", role))
 }

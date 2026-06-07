@@ -22,6 +22,7 @@ import (
 	"github.com/nhost/nhost/services/constellation/controller/middleware"
 	plannerpkg "github.com/nhost/nhost/services/constellation/controller/planner"
 	"github.com/nhost/nhost/services/constellation/graph"
+	"github.com/nhost/nhost/services/constellation/internal/requestcontext"
 	"github.com/vektah/gqlparser/v2/ast"
 	"go.uber.org/mock/gomock"
 )
@@ -828,10 +829,11 @@ func getMessage(m map[string]any) string {
 }
 
 type staticConnector struct {
-	schemas  map[string]*graph.Schema
-	types    map[string]string
-	execute  func() (map[string]any, error)
-	validate func() error
+	schemas        map[string]*graph.Schema
+	types          map[string]string
+	execute        func() (map[string]any, error)
+	executeContext func(context.Context) (map[string]any, error)
+	validate       func() error
 }
 
 func (c staticConnector) GetSchema() (map[string]*graph.Schema, error) {
@@ -839,14 +841,18 @@ func (c staticConnector) GetSchema() (map[string]*graph.Schema, error) {
 }
 
 func (c staticConnector) Execute(
-	context.Context,
-	*ast.OperationDefinition,
-	ast.FragmentDefinitionList,
-	map[string]any,
-	string,
-	map[string]any,
-	*slog.Logger,
+	ctx context.Context,
+	_ *ast.OperationDefinition,
+	_ ast.FragmentDefinitionList,
+	_ map[string]any,
+	_ string,
+	_ map[string]any,
+	_ *slog.Logger,
 ) (map[string]any, error) {
+	if c.executeContext != nil {
+		return c.executeContext(ctx)
+	}
+
 	if c.execute == nil {
 		return map[string]any{}, nil
 	}
@@ -855,11 +861,11 @@ func (c staticConnector) Execute(
 }
 
 func (c staticConnector) ValidateOperation(
-	*ast.OperationDefinition,
-	ast.FragmentDefinitionList,
-	map[string]any,
-	string,
-	map[string]any,
+	_ *ast.OperationDefinition,
+	_ ast.FragmentDefinitionList,
+	_ map[string]any,
+	_ string,
+	_ map[string]any,
 ) error {
 	if c.validate == nil {
 		return nil
@@ -1537,6 +1543,65 @@ func TestNewFromConnectors_PlannerWiredWithRelationships(t *testing.T) {
 
 	if _, hasOrders := user["orders"]; !hasOrders {
 		t.Errorf("expected stitched 'orders' field on user, got %v", user)
+	}
+}
+
+func TestResolve_StoresOriginalGraphQLQueryInContext(t *testing.T) {
+	t.Parallel()
+
+	queryRoot := "query_root"
+	query := `{ ping }`
+
+	conn := staticConnector{
+		schemas: map[string]*graph.Schema{
+			"admin": {
+				QueryType:        &queryRoot,
+				MutationType:     nil,
+				SubscriptionType: nil,
+				Types: []*graph.ObjectType{
+					graphTestObject(
+						queryRoot,
+						graphTestField("ping", graph.NewNamedType("String")),
+					),
+				},
+				Scalars:    nil,
+				Enums:      nil,
+				Interfaces: nil,
+				Unions:     nil,
+				Inputs:     nil,
+				Directives: nil,
+			},
+		},
+		executeContext: func(ctx context.Context) (map[string]any, error) {
+			if got := requestcontext.GraphQLQueryFromContext(ctx); got != query {
+				t.Fatalf("GraphQLQueryFromContext = %q, want %q", got, query)
+			}
+
+			return map[string]any{"ping": "pong"}, nil
+		},
+	}
+
+	ctrl, err := controller.NewFromConnectors(
+		testAdminSecret,
+		map[string]connector.Connector{"test": conn},
+		nil,
+		slog.New(slog.DiscardHandler),
+	)
+	if err != nil {
+		t.Fatalf("NewFromConnectors: %v", err)
+	}
+
+	resp, err := ctrl.Resolve(adminSessionContext(t), controller.GraphQLRequest{
+		OperationName: "",
+		Query:         query,
+		Variables:     nil,
+	})
+	if err != nil {
+		t.Fatalf("unexpected error: %v", err)
+	}
+
+	if resp.Errors != nil {
+		t.Fatalf("expected no errors, got %+v", resp.Errors)
 	}
 }
 

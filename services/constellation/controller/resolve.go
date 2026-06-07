@@ -66,6 +66,7 @@ type GraphQLResponse struct {
 func (c *Controller) Resolve(
 	ctx context.Context, req GraphQLRequest,
 ) (*GraphQLResponse, error) {
+	ctx = requestcontext.GraphQLQueryToContext(ctx, req.Query)
 	logger := requestcontext.LoggerFromContext(ctx)
 
 	state := c.state.Load()
@@ -217,7 +218,7 @@ func (c *Controller) execute(
 	// Partition the normalized root fields into introspection meta-fields
 	// (__schema/__type/__typename), resolved locally, and connector-backed data
 	// fields, routed to their owning connector.
-	dataByConnector, metaSelections, resp := groupFieldsByConnector(state, operation)
+	dataByConnector, metaSelections, resp := groupFieldsByConnector(state, role, operation)
 	if resp != nil {
 		return resp
 	}
@@ -434,9 +435,11 @@ func (c *Controller) resolveData(
 // Returns an error response when a data field has no connector.
 func groupFieldsByConnector(
 	state *controllerState,
+	role string,
 	operation *ast.OperationDefinition,
 ) (map[string][]ast.Selection, []ast.Selection, *GraphQLResponse) {
 	fieldsByConnector := make(map[string][]ast.Selection)
+	fieldToConnector := state.fieldToConnector[role]
 
 	var metaSelections []ast.Selection
 
@@ -452,7 +455,7 @@ func groupFieldsByConnector(
 			continue
 		}
 
-		connName := state.fieldToConnector[schemamerge.FieldKey(operation.Operation, field.Name)]
+		connName := fieldToConnector[schemamerge.FieldKey(operation.Operation, field.Name)]
 		if connName == "" {
 			return nil, nil, errResponseNoConnector
 		}

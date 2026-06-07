@@ -15,6 +15,7 @@ import (
 	"github.com/nhost/nhost/services/constellation/controller/planner/transform"
 	"github.com/nhost/nhost/services/constellation/controller/websocket"
 	"github.com/nhost/nhost/services/constellation/internal/lib/syncmap"
+	"github.com/nhost/nhost/services/constellation/internal/requestcontext"
 	"github.com/nhost/nhost/services/constellation/subscription"
 	"github.com/vektah/gqlparser/v2/ast"
 	"github.com/vektah/gqlparser/v2/gqlerror"
@@ -142,7 +143,7 @@ func (h *webSocketHandler) OnSubscribe(
 		return
 	}
 
-	dbName := getConnectorForOperation(h.state, operation)
+	dbName := getConnectorForOperation(h.state, h.session.Role, operation)
 
 	subHandler := h.state.subHandlers[dbName]
 	if subHandler == nil {
@@ -211,6 +212,8 @@ func (h *webSocketHandler) startSubscription(
 	validatedVariables map[string]any,
 	logger *slog.Logger,
 ) {
+	ctx = requestcontext.GraphQLQueryToContext(ctx, payload.Query)
+
 	// Keep a reference to the handler so OnComplete/OnClose stop the
 	// subscription on the correct (possibly old) handler.
 	sub := &subscriptionState{
@@ -267,12 +270,14 @@ func (h *webSocketHandler) startSubscription(
 // getConnectorForOperation determines which database connector should handle the operation.
 func getConnectorForOperation(
 	state *controllerState,
+	role string,
 	operation *ast.OperationDefinition,
 ) string {
+	fieldToConnector := state.fieldToConnector[role]
 	for _, selection := range operation.SelectionSet {
 		if field, ok := selection.(*ast.Field); ok {
 			key := schemamerge.FieldKey(operation.Operation, field.Name)
-			if dbName, exists := state.fieldToConnector[key]; exists {
+			if dbName, exists := fieldToConnector[key]; exists {
 				return dbName
 			}
 		}

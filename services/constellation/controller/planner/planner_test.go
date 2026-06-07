@@ -44,6 +44,14 @@ func typeOwners(owners map[string]string) map[string][]string {
 	return out
 }
 
+func fieldOwnersForRole(role string, owners map[string]string) map[string]map[string]string {
+	return map[string]map[string]string{role: owners}
+}
+
+func typeOwnersForRole(role string, owners map[string][]string) map[string]map[string][]string {
+	return map[string]map[string][]string{role: owners}
+}
+
 // usersWithDepartmentSchema returns a schema with users -> department (object
 // relationship) and a separate departments type. Shared by tests that
 // exercise the basic remote relationship code paths.
@@ -188,8 +196,8 @@ func makeAdminPlanner(
 ) *planner.QueryPlanner {
 	return planner.New(
 		map[string]*ast.Schema{"admin": schema},
-		fieldToConnector,
-		typeToConnector,
+		fieldOwnersForRole("admin", fieldToConnector),
+		typeOwnersForRole("admin", typeToConnector),
 		map[string][]*planner.RelationshipMetadata{"db1": relationships},
 	)
 }
@@ -970,8 +978,8 @@ func TestPlan(t *testing.T) {
 			if tt.role != "admin" {
 				p = planner.New(
 					map[string]*ast.Schema{tt.role: tt.schema},
-					tt.fieldToConnector,
-					tt.typeToConnector,
+					fieldOwnersForRole(tt.role, tt.fieldToConnector),
+					typeOwnersForRole(tt.role, tt.typeToConnector),
 					map[string][]*planner.RelationshipMetadata{"db1": tt.relationships},
 				)
 			}
@@ -1019,11 +1027,11 @@ func TestPlan_PreservesFragmentOnSharedTypeOwnedByCurrentConnector(t *testing.T)
 	}
 	p := planner.New(
 		map[string]*ast.Schema{"admin": schema},
-		map[string]string{
+		fieldOwnersForRole("admin", map[string]string{
 			schemamerge.FieldKey(ast.Query, "a"): "db1",
 			schemamerge.FieldKey(ast.Query, "b"): "db2",
-		},
-		map[string][]string{"User": {"db1", "db2"}},
+		}),
+		typeOwnersForRole("admin", map[string][]string{"User": {"db1", "db2"}}),
 		map[string][]*planner.RelationshipMetadata{
 			"db2": {
 				{
@@ -1095,6 +1103,121 @@ func TestPlan_PreservesFragmentOnSharedTypeOwnedByCurrentConnector(t *testing.T)
 	}
 }
 
+func TestPlan_UsesRoleSpecificFieldAndTypeOwnership(t *testing.T) {
+	t.Parallel()
+
+	itemType := &ast.Definition{
+		Kind: ast.Object,
+		Name: "Item",
+		Fields: ast.FieldList{
+			{Name: "id", Type: ast.NamedType("ID", nil)},
+			{Name: "name", Type: ast.NamedType("String", nil)},
+			{Name: "owner", Type: ast.NamedType("Owner", nil)},
+		},
+	}
+	ownerType := &ast.Definition{
+		Kind: ast.Object,
+		Name: "Owner",
+		Fields: ast.FieldList{
+			{Name: "id", Type: ast.NamedType("ID", nil)},
+		},
+	}
+	queryRoot := &ast.Definition{
+		Kind: ast.Object,
+		Name: "query_root",
+		Fields: ast.FieldList{
+			{Name: "items", Type: ast.ListType(ast.NamedType("Item", nil), nil)},
+		},
+	}
+	schema := &ast.Schema{
+		Types: map[string]*ast.Definition{
+			"query_root": queryRoot,
+			"Item":       itemType,
+			"Owner":      ownerType,
+		},
+		Query: queryRoot,
+	}
+
+	p := planner.New(
+		map[string]*ast.Schema{"admin": schema, "user": schema},
+		map[string]map[string]string{
+			"admin": {schemamerge.FieldKey(ast.Query, "items"): "db1"},
+			"user":  {schemamerge.FieldKey(ast.Query, "items"): "db2"},
+		},
+		map[string]map[string][]string{
+			"admin": {
+				"Item":  {"db1"},
+				"Owner": {"owners"},
+			},
+			"user": {
+				"Item":  {"db2"},
+				"Owner": {"owners"},
+			},
+		},
+		map[string][]*planner.RelationshipMetadata{
+			"db2": {
+				{
+					Name:              "owner",
+					SourceType:        "Item",
+					TargetConnector:   "owners",
+					TargetTable:       "owners",
+					TargetTableSchema: "public",
+					JoinMapping:       map[string]string{"id": "id"},
+					IsArray:           false,
+					IsArrayAggregate:  false,
+					IsRemote:          true,
+					LHSFields:         nil,
+					RemoteFieldPath:   nil,
+				},
+			},
+		},
+	)
+
+	plan, err := p.Plan(
+		&ast.OperationDefinition{
+			Operation: ast.Query,
+			Name:      "RoleSpecificItems",
+			SelectionSet: ast.SelectionSet{
+				&ast.Field{
+					Name: "items",
+					SelectionSet: ast.SelectionSet{
+						&ast.FragmentSpread{Name: "ItemFields"},
+						&ast.Field{
+							Name:         "owner",
+							SelectionSet: ast.SelectionSet{&ast.Field{Name: "id"}},
+						},
+					},
+				},
+			},
+		},
+		ast.FragmentDefinitionList{
+			{
+				Name:          "ItemFields",
+				TypeCondition: "Item",
+				SelectionSet: ast.SelectionSet{
+					&ast.Field{Name: "name"},
+				},
+			},
+		},
+		"user",
+	)
+	if err != nil {
+		t.Fatalf("unexpected error: %v", err)
+	}
+
+	primary := plan.GetPrimaryQueryForConnector("db2")
+	if primary == nil {
+		t.Fatal("expected user role to route items to db2")
+	}
+
+	if len(primary.CleanFragments) != 1 || primary.CleanFragments[0].Name != "ItemFields" {
+		t.Fatalf(
+			"expected user role to preserve db2-owned Item fragment, got %+v",
+			primary.CleanFragments,
+		)
+	}
+}
+
 func TestPlan_OperationQualifiedRouting(t *testing.T) {
 	t.Parallel()
 
@@ -1122,11 +1245,11 @@ func TestPlan_OperationQualifiedRouting(t *testing.T) {
 	}
 	p := planner.New(
 		map[string]*ast.Schema{"admin": schema},
-		map[string]string{
+		fieldOwnersForRole("admin", map[string]string{
 			schemamerge.FieldKey(ast.Query, "foo"):    "db",
 			schemamerge.FieldKey(ast.Mutation, "foo"): "rs",
-		},
-		map[string][]string{},
+		}),
+		typeOwnersForRole("admin", map[string][]string{}),
 		map[string][]*planner.RelationshipMetadata{},
 	)
 
@@ -1165,8 +1288,10 @@ func TestPlan_UnknownRoleReturnsSentinelError(t *testing.T) {
 
 	p := planner.New(
 		map[string]*ast.Schema{},
-		map[string]string{schemamerge.FieldKey(ast.Query, "users"): "db1"},
-		typeOwners(map[string]string{"users": "db1"}),
+		fieldOwnersForRole("admin", map[string]string{
+			schemamerge.FieldKey(ast.Query, "users"): "db1",
+		}),
+		typeOwnersForRole("admin", typeOwners(map[string]string{"users": "db1"})),
 		map[string][]*planner.RelationshipMetadata{},
 	)
 

@@ -97,6 +97,60 @@ func TestClientHeadersFromContext(t *testing.T) {
 	}
 }
 
+func TestGraphQLQueryFromContext(t *testing.T) {
+	t.Parallel()
+
+	const query = `query GetUsers { users { id } }`
+
+	ginQuery := `mutation InsertUser { insert_users { affected_rows } }`
+
+	tests := []struct {
+		name       string
+		ctxBuilder func(t *testing.T) context.Context
+		want       string
+	}{
+		{
+			name: "round trip",
+			ctxBuilder: func(t *testing.T) context.Context {
+				t.Helper()
+				return requestcontext.GraphQLQueryToContext(t.Context(), query)
+			},
+			want: query,
+		},
+		{
+			name: "missing returns empty",
+			ctxBuilder: func(t *testing.T) context.Context {
+				t.Helper()
+				return t.Context()
+			},
+			want: "",
+		},
+		{
+			name: "gin context unwrap",
+			ctxBuilder: func(t *testing.T) context.Context {
+				t.Helper()
+
+				return ginContextWith(
+					requestcontext.GraphQLQueryToContext(t.Context(), ginQuery),
+					t,
+				)
+			},
+			want: ginQuery,
+		},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			t.Parallel()
+
+			got := requestcontext.GraphQLQueryFromContext(tt.ctxBuilder(t))
+			if got != tt.want {
+				t.Fatalf("got %q, want %q", got, tt.want)
+			}
+		})
+	}
+}
+
 func TestLoggerFromContext(t *testing.T) {
 	t.Parallel()
 
@@ -161,5 +215,6 @@ func TestLoggerFromContext(t *testing.T) {
 // context.Context (rather than only *gin.Context or vice versa).
 var (
 	_ func(context.Context) http.Header  = requestcontext.ClientHeadersFromContext
+	_ func(context.Context) string       = requestcontext.GraphQLQueryFromContext
 	_ func(context.Context) *slog.Logger = requestcontext.LoggerFromContext
 )

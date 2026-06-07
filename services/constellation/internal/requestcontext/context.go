@@ -1,6 +1,7 @@
-// Package requestcontext stores request-scoped HTTP client headers and the
-// slog logger in a [context.Context], with awareness of [*gin.Context] so
-// values stashed on the underlying [*http.Request] context are still
+// Package requestcontext stores request-scoped HTTP client headers, the
+// original GraphQL document string, and the slog logger in a [context.Context],
+// with awareness of [*gin.Context] so values stashed on the underlying
+// [*http.Request] context are still
 // retrievable when callers pass the gin context directly. Context keys are
 // unexported, so external callers cannot install a wrong-typed value under
 // these keys; a failed type assertion therefore means "not present" and is
@@ -39,6 +40,32 @@ func ClientHeadersFromContext(
 // ClientHeadersToContext stores the client HTTP headers in the context.
 func ClientHeadersToContext(ctx context.Context, headers http.Header) context.Context {
 	return context.WithValue(ctx, clientHeadersCtxKey{}, headers)
+}
+
+// graphQLQueryCtxKey keys the original GraphQL document string stashed by
+// [GraphQLQueryToContext] and read back by [GraphQLQueryFromContext].
+type graphQLQueryCtxKey struct{}
+
+// GraphQLQueryToContext stores the original client GraphQL document string in the context.
+func GraphQLQueryToContext(ctx context.Context, query string) context.Context {
+	return context.WithValue(ctx, graphQLQueryCtxKey{}, query)
+}
+
+// GraphQLQueryFromContext retrieves the original client GraphQL document string from context.
+func GraphQLQueryFromContext(
+	ctx context.Context, //nolint:contextcheck // gin.Context unwrap to request ctx is intentional; see package doc
+) string {
+	ginCtx, ok := ctx.(*gin.Context)
+	if ok {
+		ctx = ginCtx.Request.Context()
+	}
+
+	query, ok := ctx.Value(graphQLQueryCtxKey{}).(string)
+	if !ok {
+		return ""
+	}
+
+	return query
 }
 
 // loggerCtxKey keys the [*slog.Logger] stashed by [LoggerToContext]
