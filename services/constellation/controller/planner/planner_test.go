@@ -1283,6 +1283,121 @@ func TestPlan_OperationQualifiedRouting(t *testing.T) {
 	}
 }
 
+func TestPlan_MutationPrimaryQueriesPreserveRootFieldOrder(t *testing.T) {
+	t.Parallel()
+
+	queryRoot := &ast.Definition{
+		Kind: ast.Object,
+		Name: "query_root",
+		Fields: ast.FieldList{
+			{Name: "noop", Type: ast.NamedType("String", nil)},
+		},
+	}
+	mutationRoot := &ast.Definition{
+		Kind: ast.Object,
+		Name: "mutation_root",
+		Fields: ast.FieldList{
+			{Name: "a1", Type: ast.NamedType("String", nil)},
+			{Name: "a2", Type: ast.NamedType("String", nil)},
+			{Name: "b1", Type: ast.NamedType("String", nil)},
+			{Name: "a3", Type: ast.NamedType("String", nil)},
+		},
+	}
+	schema := &ast.Schema{
+		Types: map[string]*ast.Definition{
+			"query_root":    queryRoot,
+			"mutation_root": mutationRoot,
+		},
+		Query:    queryRoot,
+		Mutation: mutationRoot,
+	}
+
+	p := planner.New(
+		map[string]*ast.Schema{"admin": schema},
+		fieldOwnersForRole("admin", map[string]string{
+			schemamerge.FieldKey(ast.Mutation, "a1"): "db1",
+			schemamerge.FieldKey(ast.Mutation, "a2"): "db1",
+			schemamerge.FieldKey(ast.Mutation, "b1"): "db2",
+			schemamerge.FieldKey(ast.Mutation, "a3"): "db1",
+		}),
+		typeOwnersForRole("admin", map[string][]string{}),
+		map[string][]*planner.RelationshipMetadata{},
+	)
+
+	plan, err := p.Plan(
+		&ast.OperationDefinition{
+			Operation: ast.Mutation,
+			SelectionSet: ast.SelectionSet{
+				&ast.Field{Name: "a1"},
+				&ast.Field{Name: "a2"},
+				&ast.Field{Name: "b1"},
+				&ast.Field{Name: "a3"},
+			},
+		},
+		nil,
+		"admin",
+	)
+	if err != nil {
+		t.Fatalf("unexpected error: %v", err)
+	}
+
+	if len(plan.PrimaryQueries) != 3 {
+		t.Fatalf("expected 3 ordered primary queries, got %+v", plan.PrimaryQueries)
+	}
+
+	want := []struct {
+		connector string
+		fields    []string
+	}{
+		{connector: "db1", fields: []string{"a1", "a2"}},
+		{connector: "db2", fields: []string{"b1"}},
+		{connector: "db1", fields: []string{"a3"}},
+	}
+
+	for i, wantQuery := range want {
+		primary := plan.PrimaryQueries[i]
+		if primary.Connector != wantQuery.connector {
+			t.Fatalf(
+				"primary query %d connector = %s, want %s",
+				i,
+				primary.Connector,
+				wantQuery.connector,
+			)
+		}
+
+		if len(primary.CleanOperation.SelectionSet) != len(wantQuery.fields) {
+			t.Fatalf(
+				"primary query %d fields = %+v, want %v",
+				i,
+				primary.CleanOperation.SelectionSet,
+				wantQuery.fields,
+			)
+		}
+
+		for j, wantField := range wantQuery.fields {
+			field, ok := primary.CleanOperation.SelectionSet[j].(*ast.Field)
+			if !ok {
+				t.Fatalf(
+					"primary query %d selection %d = %T, want *ast.Field",
+					i,
+					j,
+					primary.CleanOperation.SelectionSet[j],
+				)
+			}
+
+			if field.Name != wantField {
+				t.Fatalf(
+					"primary query %d field %d = %s, want %s",
+					i,
+					j,
+					field.Name,
+					wantField,
+				)
+			}
+		}
+	}
+}
+
 func TestPlan_UnknownRoleReturnsSentinelError(t *testing.T) {
 	t.Parallel()
 

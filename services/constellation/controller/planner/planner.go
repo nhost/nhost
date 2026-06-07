@@ -60,16 +60,16 @@ func (p *QueryPlanner) Plan(
 		return nil, ErrSchemaForRoleNotFound
 	}
 
-	const initialQueryCap = 2
+	rootGroups := p.rootFieldGroups(operation, role)
 
 	plan := &QueryPlan{
-		PrimaryQueries: make([]*PrimaryQuery, 0, initialQueryCap),
-		RemoteQueries:  make([]*RemoteQueryPlan, 0, initialQueryCap),
+		PrimaryQueries: make([]*PrimaryQuery, 0, len(rootGroups)),
+		RemoteQueries:  make([]*RemoteQueryPlan, 0, len(rootGroups)),
 	}
 
-	fieldsByConnector := p.groupFieldsByConnector(operation, role)
-
-	for connectorName, fields := range fieldsByConnector {
+	for _, rootGroup := range rootGroups {
+		connectorName := rootGroup.connector
+		fields := rootGroup.selections
 		relationships := p.relationshipsByConnector[connectorName]
 
 		analyzer := newAnalyzer(
@@ -109,6 +109,82 @@ func (p *QueryPlanner) Plan(
 	}
 
 	return plan, nil
+}
+
+type rootFieldGroup struct {
+	connector  string
+	selections []ast.Selection
+}
+
+// rootFieldGroups returns the primary connector groups for an operation. Query
+// and subscription planning keep the existing per-connector fan-out shape;
+// mutation planning preserves request-order connector runs so the controller can
+// execute side effects left-to-right across connector boundaries.
+func (p *QueryPlanner) rootFieldGroups(
+	op *ast.OperationDefinition,
+	role string,
+) []rootFieldGroup {
+	if op.Operation == ast.Mutation {
+		return p.orderedMutationRootFieldGroups(op, role)
+	}
+
+	return p.unorderedRootFieldGroups(op, role)
+}
+
+// unorderedRootFieldGroups groups root-level selections by their owning
+// connector using the existing map iteration shape used for query/subscription
+// fan-out.
+func (p *QueryPlanner) unorderedRootFieldGroups(
+	op *ast.OperationDefinition,
+	role string,
+) []rootFieldGroup {
+	fieldsByConnector := p.groupFieldsByConnector(op, role)
+	result := make([]rootFieldGroup, 0, len(fieldsByConnector))
+
+	for connectorName, fields := range fieldsByConnector {
+		result = append(result, rootFieldGroup{connector: connectorName, selections: fields})
+	}
+
+	return result
+}
+
+// orderedMutationRootFieldGroups preserves the normalized mutation root field
+// order while coalescing only contiguous fields owned by the same connector.
+// Repeated connector runs separated by another connector intentionally stay as
+// separate groups, preserving side-effect order for interleavings such as
+// db1 -> db2 -> db1.
+func (p *QueryPlanner) orderedMutationRootFieldGroups(
+	op *ast.OperationDefinition,
+	role string,
+) []rootFieldGroup {
+	fieldToConnector := p.fieldToConnector[role]
+	result := make([]rootFieldGroup, 0, len(op.SelectionSet))
+
+	for _, sel := range op.SelectionSet {
+		field, ok := sel.(*ast.Field)
+		if !ok {
+			continue
+		}
+
+		connName := fieldToConnector[schemamerge.FieldKey(op.Operation, field.Name)]
+		if connName == "" {
+			continue
+		}
+
+		last := len(result) - 1
+		if last >= 0 && result[last].connector == connName {
+			result[last].selections = append(result[last].selections, sel)
+
+			continue
+		}
+
+		result = append(result, rootFieldGroup{
+			connector:  connName,
+			selections: []ast.Selection{sel},
+		})
+	}
+
+	return result
 }
 
 // groupFieldsByConnector groups root-level selections by their owning connector.

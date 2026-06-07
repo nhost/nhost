@@ -8,6 +8,7 @@ import (
 	"log/slog"
 	"net/http"
 	"net/http/httptest"
+	"slices"
 	"strings"
 	"testing"
 
@@ -829,11 +830,13 @@ func getMessage(m map[string]any) string {
 }
 
 type staticConnector struct {
-	schemas        map[string]*graph.Schema
-	types          map[string]string
-	execute        func() (map[string]any, error)
-	executeContext func(context.Context) (map[string]any, error)
-	validate       func() error
+	schemas           map[string]*graph.Schema
+	types             map[string]string
+	execute           func() (map[string]any, error)
+	executeContext    func(context.Context) (map[string]any, error)
+	executeOperation  func(*ast.OperationDefinition) (map[string]any, error)
+	validate          func() error
+	validateOperation func(*ast.OperationDefinition) error
 }
 
 func (c staticConnector) GetSchema() (map[string]*graph.Schema, error) {
@@ -842,13 +845,17 @@ func (c staticConnector) GetSchema() (map[string]*graph.Schema, error) {
 
 func (c staticConnector) Execute(
 	ctx context.Context,
-	_ *ast.OperationDefinition,
+	operation *ast.OperationDefinition,
 	_ ast.FragmentDefinitionList,
 	_ map[string]any,
 	_ string,
 	_ map[string]any,
 	_ *slog.Logger,
 ) (map[string]any, error) {
+	if c.executeOperation != nil {
+		return c.executeOperation(operation)
+	}
+
 	if c.executeContext != nil {
 		return c.executeContext(ctx)
 	}
@@ -861,12 +868,16 @@ func (c staticConnector) Execute(
 }
 
 func (c staticConnector) ValidateOperation(
-	_ *ast.OperationDefinition,
+	operation *ast.OperationDefinition,
 	_ ast.FragmentDefinitionList,
 	_ map[string]any,
 	_ string,
 	_ map[string]any,
 ) error {
+	if c.validateOperation != nil {
+		return c.validateOperation(operation)
+	}
+
 	if c.validate == nil {
 		return nil
 	}
@@ -908,6 +919,98 @@ func graphTestLimitArgument() *graph.Argument {
 		DefaultValue: nil,
 		Directives:   nil,
 	}
+}
+
+func graphTestRootSchema(queryFields, mutationFields []string) *graph.Schema {
+	queryRoot := "query_root"
+	types := []*graph.ObjectType{
+		graphTestObject(queryRoot, graphTestStringFields(queryFields)...),
+	}
+
+	var mutationType *string
+	if len(mutationFields) > 0 {
+		mutationRoot := "mutation_root"
+		mutationType = &mutationRoot
+		types = append(
+			types,
+			graphTestObject(mutationRoot, graphTestStringFields(mutationFields)...),
+		)
+	}
+
+	return &graph.Schema{
+		Types:            types,
+		Scalars:          nil,
+		Enums:            nil,
+		Interfaces:       nil,
+		Unions:           nil,
+		Inputs:           nil,
+		Directives:       nil,
+		QueryType:        &queryRoot,
+		MutationType:     mutationType,
+		SubscriptionType: nil,
+	}
+}
+
+func graphTestStringFields(names []string) []*graph.Field {
+	fields := make([]*graph.Field, 0, len(names))
+	for _, name := range names {
+		fields = append(fields, graphTestField(name, graph.NewNamedType("String")))
+	}
+
+	return fields
+}
+
+func newRootRecordingConnector(
+	queryFields []string,
+	mutationFields []string,
+	executeOperation func(*ast.OperationDefinition) (map[string]any, error),
+	validateOperation func(*ast.OperationDefinition) error,
+) staticConnector {
+	return staticConnector{
+		schemas: map[string]*graph.Schema{
+			"admin": graphTestRootSchema(queryFields, mutationFields),
+		},
+		types:             nil,
+		execute:           nil,
+		executeContext:    nil,
+		executeOperation:  executeOperation,
+		validate:          nil,
+		validateOperation: validateOperation,
+	}
+}
+
+func rootSelectionNames(selectionSet ast.SelectionSet) []string {
+	names := make([]string, 0, len(selectionSet))
+	for _, selection := range selectionSet {
+		field, ok := selection.(*ast.Field)
+		if ok {
+			names = append(names, field.Name)
+		}
+	}
+
+	return names
+}
+
+func rootFieldResults(connectorName string, operation *ast.OperationDefinition) map[string]any {
+	results := make(map[string]any, len(operation.SelectionSet))
+	for _, selection := range operation.SelectionSet {
+		field, ok := selection.(*ast.Field)
+		if !ok {
+			continue
+		}
+
+		results[rootResponseName(field)] = connectorName + "." + field.Name
+	}
+
+	return results
+}
+
+func rootResponseName(field *ast.Field) string {
+	if field.Alias != "" {
+		return field.Alias
+	}
+
+	return field.Name
 }
 
 // validateErrConnector wraps a real connector but overrides ValidateOperation
@@ -1423,6 +1526,336 @@ func TestResolve_SingleConnectorSkipsPreExecutionValidation(t *testing.T) {
 			"single-connector request ran redundant pre-execution validation %d time(s)",
 			validateCalls,
 		)
+	}
+}
+
+func TestResolve_MutationExecutesConnectorGroupsInRequestOrder(t *testing.T) {
+	t.Parallel()
+
+	var executionOrder []string
+
+	recordExecution := func(connectorName string) func(*ast.OperationDefinition) (map[string]any, error) {
+		return func(operation *ast.OperationDefinition) (map[string]any, error) {
+			executionOrder = append(
+				executionOrder,
+				connectorName+":"+strings.Join(rootSelectionNames(operation.SelectionSet), ","),
+			)
+
+			return rootFieldResults(connectorName, operation), nil
+		}
+	}
+
+	ctrl, err := controller.NewFromConnectors(
+		testAdminSecret,
+		map[string]connector.Connector{
+			"alpha": newRootRecordingConnector(
+				[]string{"alpha_query"},
+				[]string{"a1", "a2", "a3"},
+				recordExecution("alpha"),
+				nil,
+			),
+			"beta": newRootRecordingConnector(
+				[]string{"beta_query"},
+				[]string{"b1"},
+				recordExecution("beta"),
+				nil,
+			),
+		},
+		nil,
+		slog.New(slog.DiscardHandler),
+	)
+	if err != nil {
+		t.Fatalf("NewFromConnectors: %v", err)
+	}
+
+	resp, err := ctrl.Resolve(adminSessionContext(t), controller.GraphQLRequest{
+		OperationName: "",
+		Query:         `mutation { a1 a2 b1 a3 }`,
+		Variables:     nil,
+	})
+	if err != nil {
+		t.Fatalf("unexpected error: %v", err)
+	}
+
+	if resp.Errors != nil {
+		t.Fatalf("expected no errors, got %+v", resp.Errors)
+	}
+
+	wantOrder := "alpha:a1,a2|beta:b1|alpha:a3"
+	if got := strings.Join(executionOrder, "|"); got != wantOrder {
+		t.Fatalf("execution order = %s, want %s", got, wantOrder)
+	}
+
+	data, ok := resp.Data.(map[string]any)
+	if !ok {
+		t.Fatalf("expected data map, got %+v", resp.Data)
+	}
+
+	for _, field := range []string{"a1", "a2", "b1", "a3"} {
+		if _, ok := data[field]; !ok {
+			t.Fatalf("response missing field %q: %+v", field, data)
+		}
+	}
+}
+
+func TestResolve_QueryKeepsPerConnectorFanOut(t *testing.T) {
+	t.Parallel()
+
+	var calls []string
+
+	recordExecution := func(connectorName string) func(*ast.OperationDefinition) (map[string]any, error) {
+		return func(operation *ast.OperationDefinition) (map[string]any, error) {
+			calls = append(
+				calls,
+				connectorName+":"+strings.Join(rootSelectionNames(operation.SelectionSet), ","),
+			)
+
+			return rootFieldResults(connectorName, operation), nil
+		}
+	}
+
+	ctrl, err := controller.NewFromConnectors(
+		testAdminSecret,
+		map[string]connector.Connector{
+			"alpha": newRootRecordingConnector(
+				[]string{"a1", "a2"},
+				nil,
+				recordExecution("alpha"),
+				nil,
+			),
+			"beta": newRootRecordingConnector(
+				[]string{"b1"},
+				nil,
+				recordExecution("beta"),
+				nil,
+			),
+		},
+		nil,
+		slog.New(slog.DiscardHandler),
+	)
+	if err != nil {
+		t.Fatalf("NewFromConnectors: %v", err)
+	}
+
+	resp, err := ctrl.Resolve(adminSessionContext(t), controller.GraphQLRequest{
+		OperationName: "",
+		Query:         `{ a1 b1 a2 }`,
+		Variables:     nil,
+	})
+	if err != nil {
+		t.Fatalf("unexpected error: %v", err)
+	}
+
+	if resp.Errors != nil {
+		t.Fatalf("expected no errors, got %+v", resp.Errors)
+	}
+
+	callsByConnector := make(map[string]string, len(calls))
+	for _, call := range calls {
+		parts := strings.SplitN(call, ":", 2)
+		if len(parts) != 2 {
+			t.Fatalf("malformed call record %q", call)
+		}
+
+		callsByConnector[parts[0]] = parts[1]
+	}
+
+	if len(callsByConnector) != 2 {
+		t.Fatalf("expected one query call per connector, got %v", calls)
+	}
+
+	if callsByConnector["alpha"] != "a1,a2" {
+		t.Fatalf("alpha query fields = %q, want a1,a2", callsByConnector["alpha"])
+	}
+
+	if callsByConnector["beta"] != "b1" {
+		t.Fatalf("beta query fields = %q, want b1", callsByConnector["beta"])
+	}
+}
+
+func TestResolve_MutationPrevalidatesOrderedGroupsBeforeExecution(t *testing.T) {
+	t.Parallel()
+
+	validationErr := distinctOnOrderByMismatchError(t, "a2")
+
+	var (
+		validationOrder []string
+		executionOrder  []string
+	)
+
+	recordValidation := func(connectorName string) func(*ast.OperationDefinition) error {
+		return func(operation *ast.OperationDefinition) error {
+			fieldNames := rootSelectionNames(operation.SelectionSet)
+			validationOrder = append(
+				validationOrder,
+				connectorName+":"+strings.Join(fieldNames, ","),
+			)
+
+			if slices.Contains(fieldNames, "a2") {
+				return validationErr
+			}
+
+			return nil
+		}
+	}
+
+	recordExecution := func(connectorName string) func(*ast.OperationDefinition) (map[string]any, error) {
+		return func(operation *ast.OperationDefinition) (map[string]any, error) {
+			executionOrder = append(
+				executionOrder,
+				connectorName+":"+strings.Join(rootSelectionNames(operation.SelectionSet), ","),
+			)
+
+			return rootFieldResults(connectorName, operation), nil
+		}
+	}
+
+	ctrl, err := controller.NewFromConnectors(
+		testAdminSecret,
+		map[string]connector.Connector{
+			"alpha": newRootRecordingConnector(
+				[]string{"alpha_query"},
+				[]string{"a1", "a2"},
+				recordExecution("alpha"),
+				recordValidation("alpha"),
+			),
+			"beta": newRootRecordingConnector(
+				[]string{"beta_query"},
+				[]string{"b1"},
+				recordExecution("beta"),
+				recordValidation("beta"),
+			),
+		},
+		nil,
+		slog.New(slog.DiscardHandler),
+	)
+	if err != nil {
+		t.Fatalf("NewFromConnectors: %v", err)
+	}
+
+	resp, err := ctrl.Resolve(adminSessionContext(t), controller.GraphQLRequest{
+		OperationName: "",
+		Query:         `mutation { a1 b1 a2 }`,
+		Variables:     nil,
+	})
+	if err != nil {
+		t.Fatalf("unexpected error: %v", err)
+	}
+
+	wantValidationOrder := "alpha:a1|beta:b1|alpha:a2"
+	if got := strings.Join(validationOrder, "|"); got != wantValidationOrder {
+		t.Fatalf("validation order = %s, want %s", got, wantValidationOrder)
+	}
+
+	if len(executionOrder) != 0 {
+		t.Fatalf("executed mutation groups despite validation failure: %v", executionOrder)
+	}
+
+	if resp.Data != nil {
+		t.Fatalf("validation failure must return no data, got %+v", resp.Data)
+	}
+
+	errs, ok := resp.Errors.([]map[string]any)
+	if !ok || len(errs) != 1 {
+		t.Fatalf("expected exactly one structured error, got %+v", resp.Errors)
+	}
+
+	ext, ok := errs[0]["extensions"].(map[string]any)
+	if !ok {
+		t.Fatalf("error missing extensions: %+v", errs[0])
+	}
+
+	if ext["path"] != "$.selectionSet.a2.args" {
+		t.Fatalf("validation path = %v, want $.selectionSet.a2.args", ext["path"])
+	}
+}
+
+func TestResolve_MutationRuntimeErrorStopsLaterGroups(t *testing.T) {
+	t.Parallel()
+
+	var executionOrder []string
+
+	alphaExecution := func(operation *ast.OperationDefinition) (map[string]any, error) {
+		executionOrder = append(
+			executionOrder,
+			"alpha:"+strings.Join(rootSelectionNames(operation.SelectionSet), ","),
+		)
+
+		return rootFieldResults("alpha", operation), nil
+	}
+	betaExecution := func(operation *ast.OperationDefinition) (map[string]any, error) {
+		executionOrder = append(
+			executionOrder,
+			"beta:"+strings.Join(rootSelectionNames(operation.SelectionSet), ","),
+		)
+
+		return nil, remoteschema.NewGraphQLError([]remoteschema.RemoteError{
+			{
+				Message:    "beta mutation failed",
+				Path:       []any{"b1"},
+				Locations:  nil,
+				Extensions: map[string]any{"code": "BAD_USER_INPUT"},
+			},
+		})
+	}
+
+	ctrl, err := controller.NewFromConnectors(
+		testAdminSecret,
+		map[string]connector.Connector{
+			"alpha": newRootRecordingConnector(
+				[]string{"alpha_query"},
+				[]string{"a1", "a2"},
+				alphaExecution,
+				nil,
+			),
+			"beta": newRootRecordingConnector(
+				[]string{"beta_query"},
+				[]string{"b1"},
+				betaExecution,
+				nil,
+			),
+		},
+		nil,
+		slog.New(slog.DiscardHandler),
+	)
+	if err != nil {
+		t.Fatalf("NewFromConnectors: %v", err)
+	}
+
+	resp, err := ctrl.Resolve(adminSessionContext(t), controller.GraphQLRequest{
+		OperationName: "",
+		Query:         `mutation { a1 b1 a2 }`,
+		Variables:     nil,
+	})
+	if err != nil {
+		t.Fatalf("unexpected error: %v", err)
+	}
+
+	wantExecutionOrder := "alpha:a1|beta:b1"
+	if got := strings.Join(executionOrder, "|"); got != wantExecutionOrder {
+		t.Fatalf("execution order = %s, want %s", got, wantExecutionOrder)
+	}
+
+	errs, ok := resp.Errors.([]map[string]any)
+	if !ok || len(errs) != 1 {
+		t.Fatalf("expected exactly one structured error, got %+v", resp.Errors)
+	}
+
+	if getMessage(errs[0]) != "beta mutation failed" {
+		t.Fatalf("runtime error message = %q, want beta mutation failed", getMessage(errs[0]))
+	}
+
+	data, ok := resp.Data.(map[string]any)
+	if !ok {
+		t.Fatalf("expected prior mutation data, got %+v", resp.Data)
+	}
+
+	if _, ok := data["a1"]; !ok {
+		t.Fatalf("expected data from mutation group before the error, got %+v", data)
+	}
+
+	if _, ok := data["a2"]; ok {
+		t.Fatalf("mutation group after runtime error executed unexpectedly: %+v", data)
 	}
 }
 

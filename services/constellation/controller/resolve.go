@@ -372,45 +372,32 @@ func (c *Controller) resolveData(
 		return nil, nil, errorResponse("remote relationships are not supported in subscriptions")
 	}
 
-	// Requests that fan out to multiple root connectors, or that will resolve
-	// remote relationships after the root pass, run every side-effect-free
-	// connector validation step before executing any root connector. A structured
-	// argument failure (e.g. a distinct_on / order_by mismatch or negative
-	// offset) must reject the whole request the way Hasura does, with no partial
-	// data and — for mutations — no side effects from connectors that would
-	// otherwise run before the invalid relationship query is discovered. Plain
-	// single-connector data-only requests skip this pre-pass because Execute
-	// already runs the same build/validation before touching the database.
-	if requirePrevalidation || len(dataByConnector) > 1 || plan.HasRemoteQueries() {
-		if resp := c.validateConnectors(
-			state, plan, operation, dataByConnector, fragments, variables, role, sessionVariables,
-		); resp != nil {
-			return nil, nil, resp
-		}
+	executionGroups := connectorSelectionGroupsForExecution(
+		state, role, operation, dataByConnector,
+	)
+
+	if resp := c.prevalidateConnectors(
+		state,
+		plan,
+		operation,
+		dataByConnector,
+		executionGroups,
+		fragments,
+		variables,
+		role,
+		sessionVariables,
+		requirePrevalidation,
+	); resp != nil {
+		return nil, nil, resp
 	}
 
 	results, allErrors := c.executeConnectors(
-		ctx, state, plan, operation, dataByConnector,
+		ctx, state, plan, operation, executionGroups,
 		fragments, variables, role, sessionVariables, logger,
 	)
 
 	if len(allErrors) > 0 {
-		// Strip phantom join columns even on the partial-error path so the
-		// internal join keys the planner injected never reach the client. The
-		// error branch skips resolveRemoteRelationships, so SQL results are still
-		// raw jsontext.Value; unmarshal them first because Path.Delete only
-		// traverses parsed maps/slices. Failure to unmarshal must not fail the
-		// already-degraded response — log and continue.
-		if plan.HasRemoteQueries() {
-			if err := unmarshalRawResults(results); err != nil {
-				logger.WarnContext(
-					ctx, "could not unmarshal partial results for phantom cleanup",
-					slog.String("error", err.Error()),
-				)
-			}
-
-			removePhantomFieldsFromPlan(results, plan)
-		}
+		cleanupPartialErrorResults(ctx, results, plan, logger)
 
 		return results, allErrors, nil
 	}
@@ -425,6 +412,33 @@ func (c *Controller) resolveData(
 	removePhantomFieldsFromPlan(results, plan)
 
 	return results, nil, nil
+}
+
+func cleanupPartialErrorResults(
+	ctx context.Context,
+	results map[string]any,
+	plan *planner.QueryPlan,
+	logger *slog.Logger,
+) {
+	// Strip phantom join columns even on the partial-error path so the internal
+	// join keys the planner injected never reach the client. The error branch
+	// skips resolveRemoteRelationships, so SQL results are still raw
+	// jsontext.Value; unmarshal them first because Path.Delete only traverses
+	// parsed maps/slices. Failure to unmarshal must not fail the already-degraded
+	// response — log and continue.
+	if !plan.HasRemoteQueries() {
+		return
+	}
+
+	if err := unmarshalRawResults(results); err != nil {
+		logger.WarnContext(
+			ctx,
+			"could not unmarshal partial results for phantom cleanup",
+			slog.String("error", err.Error()),
+		)
+	}
+
+	removePhantomFieldsFromPlan(results, plan)
 }
 
 // groupFieldsByConnector partitions the normalized root selection set into
@@ -466,14 +480,146 @@ func groupFieldsByConnector(
 	return fieldsByConnector, metaSelections, nil
 }
 
+type connectorSelectionGroup struct {
+	connector  string
+	selections []ast.Selection
+}
+
+func connectorSelectionGroupsForExecution(
+	state *controllerState,
+	role string,
+	operation *ast.OperationDefinition,
+	fieldsByConnector map[string][]ast.Selection,
+) []connectorSelectionGroup {
+	if operation.Operation == ast.Mutation {
+		return orderedMutationSelectionGroups(state, role, operation)
+	}
+
+	return unorderedConnectorSelectionGroups(fieldsByConnector)
+}
+
+func unorderedConnectorSelectionGroups(
+	fieldsByConnector map[string][]ast.Selection,
+) []connectorSelectionGroup {
+	groups := make([]connectorSelectionGroup, 0, len(fieldsByConnector))
+
+	for connName, selections := range fieldsByConnector {
+		groups = append(groups, connectorSelectionGroup{
+			connector:  connName,
+			selections: selections,
+		})
+	}
+
+	return groups
+}
+
+func orderedMutationSelectionGroups(
+	state *controllerState,
+	role string,
+	operation *ast.OperationDefinition,
+) []connectorSelectionGroup {
+	fieldToConnector := state.fieldToConnector[role]
+	groups := make([]connectorSelectionGroup, 0, len(operation.SelectionSet))
+
+	for _, selection := range operation.SelectionSet {
+		field, ok := selection.(*ast.Field)
+		if !ok || isMetaField(field.Name) {
+			continue
+		}
+
+		connName := fieldToConnector[schemamerge.FieldKey(operation.Operation, field.Name)]
+		if connName == "" {
+			continue
+		}
+
+		last := len(groups) - 1
+		if last >= 0 && groups[last].connector == connName {
+			groups[last].selections = append(groups[last].selections, selection)
+
+			continue
+		}
+
+		groups = append(groups, connectorSelectionGroup{
+			connector:  connName,
+			selections: []ast.Selection{selection},
+		})
+	}
+
+	return groups
+}
+
+func connectorValidationGroups(
+	operation *ast.OperationDefinition,
+	fieldsByConnector map[string][]ast.Selection,
+	executionGroups []connectorSelectionGroup,
+) []connectorSelectionGroup {
+	if operation.Operation == ast.Mutation {
+		return executionGroups
+	}
+
+	groups := make([]connectorSelectionGroup, 0, len(fieldsByConnector))
+	for _, connName := range slices.Sorted(maps.Keys(fieldsByConnector)) {
+		groups = append(groups, connectorSelectionGroup{
+			connector:  connName,
+			selections: fieldsByConnector[connName],
+		})
+	}
+
+	return groups
+}
+
+func (c *Controller) prevalidateConnectors(
+	state *controllerState,
+	plan *planner.QueryPlan,
+	operation *ast.OperationDefinition,
+	dataByConnector map[string][]ast.Selection,
+	executionGroups []connectorSelectionGroup,
+	fragments ast.FragmentDefinitionList,
+	variables map[string]any,
+	role string,
+	sessionVariables map[string]any,
+	requirePrevalidation bool,
+) *GraphQLResponse {
+	if !shouldPrevalidateConnectors(requirePrevalidation, dataByConnector, plan) {
+		return nil
+	}
+
+	return c.validateConnectors(
+		state,
+		plan,
+		operation,
+		connectorValidationGroups(operation, dataByConnector, executionGroups),
+		fragments,
+		variables,
+		role,
+		sessionVariables,
+	)
+}
+
+// Requests that fan out to multiple root connectors, or that will resolve
+// remote relationships after the root pass, run every side-effect-free connector
+// validation step before executing any root connector. A structured argument
+// failure must reject the whole request the way Hasura does, with no partial
+// data and — for mutations — no side effects from connectors that would
+// otherwise run before the invalid relationship query is discovered. Plain
+// single-connector data-only requests skip this pre-pass because Execute already
+// runs the same build/validation before touching the database.
+func shouldPrevalidateConnectors(
+	requirePrevalidation bool,
+	dataByConnector map[string][]ast.Selection,
+	plan *planner.QueryPlan,
+) bool {
+	return requirePrevalidation || len(dataByConnector) > 1 || plan.HasRemoteQueries()
+}
+
 // validateConnectors runs each owning connector's pre-execution validation over
 // its root operation slice plus every planned database-backed remote
 // relationship query. It returns a structured GraphQL response (no data) when
 // any connector reports a trusted argument error, so the whole request is
-// rejected before any connector executes — matching Hasura. Root validations
-// and remote-target validations are each sorted by connector/path so the
-// envelope is deterministic even though
-// the input connector map is not.
+// rejected before any connector executes — matching Hasura. Query/subscription
+// root validations and remote-target validations are sorted by connector/path
+// for deterministic envelopes; mutation root validations follow request-order
+// connector groups to match the execution order being prevalidated.
 //
 // Only structured argument errors short-circuit the request here. Any other
 // error a connector surfaces from validation (an unknown field, an internal
@@ -484,7 +630,7 @@ func (c *Controller) validateConnectors(
 	state *controllerState,
 	plan *planner.QueryPlan,
 	operation *ast.OperationDefinition,
-	fieldsByConnector map[string][]ast.Selection,
+	groups []connectorSelectionGroup,
 	fragments ast.FragmentDefinitionList,
 	variables map[string]any,
 	role string,
@@ -492,8 +638,10 @@ func (c *Controller) validateConnectors(
 ) *GraphQLResponse {
 	var allStructuredErrs []map[string]any
 
-	for _, connName := range slices.Sorted(maps.Keys(fieldsByConnector)) {
-		selections := fieldsByConnector[connName]
+	primaryQueries := newPrimaryQueryCursor(plan)
+
+	for _, group := range groups {
+		connName := group.connector
 
 		conn := state.connectors[connName]
 		if conn == nil {
@@ -503,7 +651,7 @@ func (c *Controller) validateConnectors(
 		}
 
 		execOp, execFragments := buildConnectorOperation(
-			plan, connName, operation, selections, fragments,
+			primaryQueries, connName, operation, group.selections, fragments,
 		)
 
 		err := conn.ValidateOperation(
@@ -534,14 +682,16 @@ func (c *Controller) validateConnectors(
 	return nil
 }
 
-// executeConnectors runs the operation's fields against each owning connector and
-// merges results. Errors from individual connectors are collected, not fatal.
+// executeConnectors runs the operation's fields against each owning connector
+// group and merges results. Query/subscription errors are collected across all
+// groups; mutations stop after the first runtime error to preserve Hasura's
+// serial top-level mutation semantics.
 func (c *Controller) executeConnectors(
 	ctx context.Context,
 	state *controllerState,
 	plan *planner.QueryPlan,
 	operation *ast.OperationDefinition,
-	fieldsByConnector map[string][]ast.Selection,
+	groups []connectorSelectionGroup,
 	fragments ast.FragmentDefinitionList,
 	variables map[string]any,
 	role string,
@@ -552,14 +702,18 @@ func (c *Controller) executeConnectors(
 
 	var allErrors []map[string]any
 
-	for connName, selections := range fieldsByConnector {
+	primaryQueries := newPrimaryQueryCursor(plan)
+
+	for _, group := range groups {
+		connName := group.connector
+
 		connector := state.connectors[connName]
 		if connector == nil {
 			return nil, []map[string]any{{"message": "no connector found"}}
 		}
 
 		execOp, execFragments := buildConnectorOperation(
-			plan, connName, operation, selections, fragments,
+			primaryQueries, connName, operation, group.selections, fragments,
 		)
 
 		execResult, err := connector.Execute(
@@ -572,6 +726,13 @@ func (c *Controller) executeConnectors(
 			// schema returned data + errors for a partial response).
 			if execResult != nil {
 				maps.Copy(results, execResult)
+			}
+
+			// Hasura executes top-level mutation fields serially and aborts the
+			// remaining root fields after the first runtime error. Query and
+			// subscription fan-out keeps the existing collect-all behavior.
+			if operation.Operation == ast.Mutation {
+				break
 			}
 
 			continue
@@ -589,17 +750,53 @@ func (c *Controller) executeConnectors(
 // built from the raw selections. In both cases unused fragments and variable
 // definitions are pruned so remote schemas receive a self-contained document
 // that still validates after root-fragment expansion and directive pruning.
+type primaryQueryCursor struct {
+	queriesByConnector map[string][]*planner.PrimaryQuery
+	nextByConnector    map[string]int
+}
+
+func newPrimaryQueryCursor(plan *planner.QueryPlan) *primaryQueryCursor {
+	if plan == nil {
+		return nil
+	}
+
+	queriesByConnector := make(map[string][]*planner.PrimaryQuery)
+	for _, query := range plan.PrimaryQueries {
+		queriesByConnector[query.Connector] = append(queriesByConnector[query.Connector], query)
+	}
+
+	return &primaryQueryCursor{
+		queriesByConnector: queriesByConnector,
+		nextByConnector:    make(map[string]int, len(queriesByConnector)),
+	}
+}
+
+func (c *primaryQueryCursor) next(connector string) *planner.PrimaryQuery {
+	if c == nil {
+		return nil
+	}
+
+	queries := c.queriesByConnector[connector]
+
+	idx := c.nextByConnector[connector]
+	if idx >= len(queries) {
+		return nil
+	}
+
+	c.nextByConnector[connector] = idx + 1
+
+	return queries[idx]
+}
+
 func buildConnectorOperation(
-	plan *planner.QueryPlan,
+	primaryQueries *primaryQueryCursor,
 	connName string,
 	operation *ast.OperationDefinition,
 	selections []ast.Selection,
 	fragments ast.FragmentDefinitionList,
 ) (*ast.OperationDefinition, ast.FragmentDefinitionList) {
-	if plan != nil {
-		if pq := plan.GetPrimaryQueryForConnector(connName); pq != nil && pq.CleanOperation != nil {
-			return pruneConnectorDocument(pq.CleanOperation, pq.CleanFragments)
-		}
+	if pq := primaryQueries.next(connName); pq != nil && pq.CleanOperation != nil {
+		return pruneConnectorDocument(pq.CleanOperation, pq.CleanFragments)
 	}
 
 	return pruneConnectorDocument(transform.BuildSubOperation(operation, selections), fragments)
