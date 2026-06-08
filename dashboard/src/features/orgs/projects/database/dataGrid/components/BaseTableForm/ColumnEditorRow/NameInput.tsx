@@ -7,11 +7,8 @@ import { GeneratedBadge } from './GeneratedBadge';
 export function NameInput({ index }: FieldArrayInputProps) {
   const { control, clearErrors, setValue, getValues } = useFormContext();
   const originalColumnName = getValues(`columns.${index}.name`);
-  const foreignKeyRelations = getValues(`foreignKeyRelations`);
-  const originalForeignKeyRelationIndex = foreignKeyRelations.findIndex(
-    (relation: ForeignKeyRelation) =>
-      relation.columnName === originalColumnName,
-  );
+  const foreignKeyRelations: ForeignKeyRelation[] =
+    getValues(`foreignKeyRelations`);
 
   const primaryKeyIndices: string[] = useWatch({ name: 'primaryKeyIndices' });
   const isGenerated = useWatch({ name: `columns.${index}.isGenerated` });
@@ -34,12 +31,18 @@ export function NameInput({ index }: FieldArrayInputProps) {
         ) : undefined
       }
       onChange={(event) => {
-        if (originalForeignKeyRelationIndex > -1) {
-          setValue(
-            `foreignKeyRelations.${originalForeignKeyRelationIndex}.columnName`,
-            event.target.value,
-          );
-        }
+        const newColumnName = event.target.value;
+
+        foreignKeyRelations.forEach((relation, relationIndex) => {
+          if (relation.columns.includes(originalColumnName)) {
+            setValue(
+              `foreignKeyRelations.${relationIndex}.columns`,
+              relation.columns.map((column) =>
+                column === originalColumnName ? newColumnName : column,
+              ),
+            );
+          }
+        });
       }}
       onBlur={(event) => {
         clearErrors('columns');

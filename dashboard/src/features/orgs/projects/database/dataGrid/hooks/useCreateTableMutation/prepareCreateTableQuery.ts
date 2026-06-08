@@ -69,10 +69,10 @@ export default function prepareCreateTableQuery({
         .map((foreignKeyRelation) =>
           format(
             'FOREIGN KEY (%I) REFERENCES %I.%I (%I) ON UPDATE %s ON DELETE %s',
-            foreignKeyRelation.columnName,
+            foreignKeyRelation.columns,
             foreignKeyRelation.referencedSchema || schema,
             foreignKeyRelation.referencedTable,
-            foreignKeyRelation.referencedColumn,
+            foreignKeyRelation.referencedColumns,
             foreignKeyRelation.updateAction,
             foreignKeyRelation.deleteAction,
           ),

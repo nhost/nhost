@@ -1,4 +1,5 @@
 import type { ForeignKeyRelation } from '@/features/orgs/projects/database/dataGrid/types/dataBrowser';
+import { getForeignKeyPairSignature } from '@/features/orgs/projects/database/dataGrid/utils/getForeignKeyPairSignature';
 import { isEmptyValue, isNotEmptyValue } from '@/lib/utils';
 
 function hasForeignKeyRelationChanged(
@@ -6,10 +7,10 @@ function hasForeignKeyRelationChanged(
   fk2: ForeignKeyRelation,
 ): boolean {
   return !(
-    fk1.columnName === fk2.columnName &&
+    getForeignKeyPairSignature(fk1.columns, fk1.referencedColumns) ===
+      getForeignKeyPairSignature(fk2.columns, fk2.referencedColumns) &&
     fk1.referencedSchema === fk2.referencedSchema &&
     fk1.referencedTable === fk2.referencedTable &&
-    fk1.referencedColumn === fk2.referencedColumn &&
     fk1.updateAction === fk2.updateAction &&
     fk1.deleteAction === fk2.deleteAction &&
     fk1.oneToOne === fk2.oneToOne
@@ -31,11 +32,11 @@ function getUntrackedForeignKeyRelations(
   const updatedForeignKeyRelations = updated as ForeignKeyRelation[];
   let untrackedForeignKeyRelataions: ForeignKeyRelation[] = [];
   const originalMap = new Map(
-    originalForeignKeyRelations.map((fk) => [fk.columnName, fk]),
+    originalForeignKeyRelations.map((fk) => [fk.columns.join(','), fk]),
   );
 
   updatedForeignKeyRelations.forEach((updatedFk) => {
-    const originalFk = originalMap.get(updatedFk.columnName);
+    const originalFk = originalMap.get(updatedFk.columns.join(','));
 
     if (
       (isNotEmptyValue(originalFk) &&

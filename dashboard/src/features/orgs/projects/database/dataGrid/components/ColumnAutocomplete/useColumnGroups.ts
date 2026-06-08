@@ -36,11 +36,16 @@ export default function useColumnGroups({
   const { columns, foreignKeyRelations } = tableData || {};
 
   const columnTargetMap = foreignKeyRelations?.reduce(
-    (map, currentRelation) =>
-      map.set(currentRelation.columnName, {
-        schema: currentRelation.referencedSchema || 'public',
-        table: currentRelation.referencedTable,
-      }),
+    (map, currentRelation) => {
+      currentRelation.columns.forEach((column) => {
+        map.set(column, {
+          schema: currentRelation.referencedSchema || 'public',
+          table: currentRelation.referencedTable,
+        });
+      });
+
+      return map;
+    },
     new Map<string, { schema: string; table: string }>(),
   );
 
@@ -103,14 +108,18 @@ export default function useColumnGroups({
         }
         if (
           isNotEmptyValue(foreign_key_constraint_on) &&
-          typeof foreign_key_constraint_on !== 'string'
+          typeof foreign_key_constraint_on !== 'string' &&
+          !Array.isArray(foreign_key_constraint_on)
         ) {
           return [
             ...relationships,
             {
               schema: foreign_key_constraint_on.table.schema,
               table: foreign_key_constraint_on.table.name,
-              column: foreign_key_constraint_on.column,
+              column:
+                'column' in foreign_key_constraint_on
+                  ? foreign_key_constraint_on.column
+                  : (foreign_key_constraint_on.columns[0] ?? ''),
               name: currentRelationship.name,
             },
           ];

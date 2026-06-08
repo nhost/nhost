@@ -199,7 +199,11 @@ export default function useAsyncValue({
     }
 
     // In some cases the metadata already contains the schema and table name
-    if (metadataConstraint && typeof metadataConstraint !== 'string') {
+    if (
+      metadataConstraint &&
+      typeof metadataConstraint !== 'string' &&
+      !Array.isArray(metadataConstraint)
+    ) {
       setAsyncTablePath(
         `${metadataConstraint.table.schema || 'public'}.${
           metadataConstraint.table.name
@@ -221,8 +225,10 @@ export default function useAsyncValue({
     }
 
     const foreignKeyRelation = tableData?.foreignKeyRelations?.find(
-      ({ columnName }) => {
-        const normalizedColumnName = columnName.replace(/"/g, '');
+      ({ columns }) => {
+        const normalizedColumns = columns.map((column) =>
+          column.replace(/"/g, ''),
+        );
         const { foreign_key_constraint_on, manual_configuration } =
           currentRelationship.using || {};
 
@@ -231,16 +237,29 @@ export default function useAsyncValue({
         }
 
         if (manual_configuration) {
-          return Object.keys(manual_configuration.column_mapping).includes(
-            normalizedColumnName,
+          return Object.keys(manual_configuration.column_mapping).some((key) =>
+            normalizedColumns.includes(key),
           );
         }
 
         if (typeof foreign_key_constraint_on === 'string') {
-          return foreign_key_constraint_on === normalizedColumnName;
+          return normalizedColumns.includes(foreign_key_constraint_on);
         }
 
-        return foreign_key_constraint_on?.column === normalizedColumnName;
+        if (Array.isArray(foreign_key_constraint_on)) {
+          return foreign_key_constraint_on.every((column) =>
+            normalizedColumns.includes(column),
+          );
+        }
+
+        if (
+          foreign_key_constraint_on &&
+          'column' in foreign_key_constraint_on
+        ) {
+          return normalizedColumns.includes(foreign_key_constraint_on.column);
+        }
+
+        return false;
       },
     );
 

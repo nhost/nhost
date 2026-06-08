@@ -6,10 +6,10 @@ describe('getUntrackedForeignKeyRelations', () => {
   const createForeignKey = (
     overrides: Partial<ForeignKeyRelation> = {},
   ): ForeignKeyRelation => ({
-    columnName: 'user_id',
+    columns: ['user_id'],
     referencedSchema: 'public',
     referencedTable: 'users',
-    referencedColumn: 'id',
+    referencedColumns: ['id'],
     // biome-ignore lint/suspicious/noExplicitAny: test file
     updateAction: 'CASCADE' as any,
     // biome-ignore lint/suspicious/noExplicitAny: test file
@@ -20,8 +20,8 @@ describe('getUntrackedForeignKeyRelations', () => {
 
   it('should return all updated relations when original is undefined', () => {
     const updated: ForeignKeyRelation[] = [
-      createForeignKey({ columnName: 'user_id' }),
-      createForeignKey({ columnName: 'post_id', referencedTable: 'posts' }),
+      createForeignKey({ columns: ['user_id'] }),
+      createForeignKey({ columns: ['post_id'], referencedTable: 'posts' }),
     ];
 
     const result = getUntrackedForeignKeyRelations(undefined, updated);
@@ -32,7 +32,7 @@ describe('getUntrackedForeignKeyRelations', () => {
 
   it('should return all updated relations when original is empty array', () => {
     const updated: ForeignKeyRelation[] = [
-      createForeignKey({ columnName: 'user_id' }),
+      createForeignKey({ columns: ['user_id'] }),
     ];
 
     const result = getUntrackedForeignKeyRelations([], updated);
@@ -42,7 +42,7 @@ describe('getUntrackedForeignKeyRelations', () => {
 
   it('should return empty array when updated is undefined', () => {
     const original: ForeignKeyRelation[] = [
-      createForeignKey({ columnName: 'user_id' }),
+      createForeignKey({ columns: ['user_id'] }),
     ];
 
     const result = getUntrackedForeignKeyRelations(original, undefined);
@@ -52,7 +52,7 @@ describe('getUntrackedForeignKeyRelations', () => {
 
   it('should return empty array when updated is empty array', () => {
     const original: ForeignKeyRelation[] = [
-      createForeignKey({ columnName: 'user_id' }),
+      createForeignKey({ columns: ['user_id'] }),
     ];
 
     const result = getUntrackedForeignKeyRelations(original, []);
@@ -61,7 +61,7 @@ describe('getUntrackedForeignKeyRelations', () => {
   });
 
   it('should return empty array when relations are identical', () => {
-    const fk = createForeignKey({ columnName: 'user_id' });
+    const fk = createForeignKey({ columns: ['user_id'] });
     const original: ForeignKeyRelation[] = [fk];
     const updated: ForeignKeyRelation[] = [{ ...fk }];
 
@@ -72,10 +72,10 @@ describe('getUntrackedForeignKeyRelations', () => {
 
   it('should detect change in referencedSchema', () => {
     const original: ForeignKeyRelation[] = [
-      createForeignKey({ columnName: 'user_id', referencedSchema: 'public' }),
+      createForeignKey({ columns: ['user_id'], referencedSchema: 'public' }),
     ];
     const updated: ForeignKeyRelation[] = [
-      createForeignKey({ columnName: 'user_id', referencedSchema: 'private' }),
+      createForeignKey({ columns: ['user_id'], referencedSchema: 'private' }),
     ];
 
     const result = getUntrackedForeignKeyRelations(original, updated);
@@ -86,10 +86,10 @@ describe('getUntrackedForeignKeyRelations', () => {
 
   it('should detect change in referencedTable', () => {
     const original: ForeignKeyRelation[] = [
-      createForeignKey({ columnName: 'user_id', referencedTable: 'users' }),
+      createForeignKey({ columns: ['user_id'], referencedTable: 'users' }),
     ];
     const updated: ForeignKeyRelation[] = [
-      createForeignKey({ columnName: 'user_id', referencedTable: 'accounts' }),
+      createForeignKey({ columns: ['user_id'], referencedTable: 'accounts' }),
     ];
 
     const result = getUntrackedForeignKeyRelations(original, updated);
@@ -98,31 +98,31 @@ describe('getUntrackedForeignKeyRelations', () => {
     expect(result[0].referencedTable).toBe('accounts');
   });
 
-  it('should detect change in referencedColumn', () => {
+  it('should detect change in referencedColumns', () => {
     const original: ForeignKeyRelation[] = [
-      createForeignKey({ columnName: 'user_id', referencedColumn: 'id' }),
+      createForeignKey({ columns: ['user_id'], referencedColumns: ['id'] }),
     ];
     const updated: ForeignKeyRelation[] = [
-      createForeignKey({ columnName: 'user_id', referencedColumn: 'uuid' }),
+      createForeignKey({ columns: ['user_id'], referencedColumns: ['uuid'] }),
     ];
 
     const result = getUntrackedForeignKeyRelations(original, updated);
 
     expect(result).toHaveLength(1);
-    expect(result[0].referencedColumn).toBe('uuid');
+    expect(result[0].referencedColumns).toEqual(['uuid']);
   });
 
   it('should detect change in updateAction', () => {
     const original: ForeignKeyRelation[] = [
       createForeignKey({
-        columnName: 'user_id',
+        columns: ['user_id'],
         // biome-ignore lint/suspicious/noExplicitAny: test file
         updateAction: 'CASCADE' as any,
       }),
     ];
     const updated: ForeignKeyRelation[] = [
       createForeignKey({
-        columnName: 'user_id',
+        columns: ['user_id'],
         // biome-ignore lint/suspicious/noExplicitAny: test file
         updateAction: 'RESTRICT' as any,
       }),
@@ -137,14 +137,14 @@ describe('getUntrackedForeignKeyRelations', () => {
   it('should detect change in deleteAction', () => {
     const original: ForeignKeyRelation[] = [
       createForeignKey({
-        columnName: 'user_id',
+        columns: ['user_id'],
         // biome-ignore lint/suspicious/noExplicitAny: test file
         deleteAction: 'CASCADE' as any,
       }),
     ];
     const updated: ForeignKeyRelation[] = [
       createForeignKey({
-        columnName: 'user_id',
+        columns: ['user_id'],
         // biome-ignore lint/suspicious/noExplicitAny: test file
         deleteAction: 'SET NULL' as any,
       }),
@@ -158,10 +158,10 @@ describe('getUntrackedForeignKeyRelations', () => {
 
   it('should detect change in oneToOne', () => {
     const original: ForeignKeyRelation[] = [
-      createForeignKey({ columnName: 'user_id', oneToOne: false }),
+      createForeignKey({ columns: ['user_id'], oneToOne: false }),
     ];
     const updated: ForeignKeyRelation[] = [
-      createForeignKey({ columnName: 'user_id', oneToOne: true }),
+      createForeignKey({ columns: ['user_id'], oneToOne: true }),
     ];
 
     const result = getUntrackedForeignKeyRelations(original, updated);
@@ -171,27 +171,27 @@ describe('getUntrackedForeignKeyRelations', () => {
   });
   it('should return new relations that do not exist in original', () => {
     const original: ForeignKeyRelation[] = [
-      createForeignKey({ columnName: 'user_id' }),
+      createForeignKey({ columns: ['user_id'] }),
     ];
     const updated: ForeignKeyRelation[] = [
-      createForeignKey({ columnName: 'user_id' }),
-      createForeignKey({ columnName: 'post_id', referencedTable: 'posts' }),
+      createForeignKey({ columns: ['user_id'] }),
+      createForeignKey({ columns: ['post_id'], referencedTable: 'posts' }),
     ];
 
     const result = getUntrackedForeignKeyRelations(original, updated);
 
     expect(result).toHaveLength(1);
-    expect(result[0].columnName).toBe('post_id');
+    expect(result[0].columns).toEqual(['post_id']);
   });
 
   it('should return all new relations when original has different columns', () => {
     const original: ForeignKeyRelation[] = [
-      createForeignKey({ columnName: 'user_id' }),
+      createForeignKey({ columns: ['user_id'] }),
     ];
     const updated: ForeignKeyRelation[] = [
-      createForeignKey({ columnName: 'post_id', referencedTable: 'posts' }),
+      createForeignKey({ columns: ['post_id'], referencedTable: 'posts' }),
       createForeignKey({
-        columnName: 'comment_id',
+        columns: ['comment_id'],
         referencedTable: 'comments',
       }),
     ];
@@ -199,21 +199,21 @@ describe('getUntrackedForeignKeyRelations', () => {
     const result = getUntrackedForeignKeyRelations(original, updated);
 
     expect(result).toHaveLength(2);
-    expect(result.map((fk) => fk.columnName)).toEqual([
-      'post_id',
-      'comment_id',
+    expect(result.map((fk) => fk.columns)).toEqual([
+      ['post_id'],
+      ['comment_id'],
     ]);
   });
   it('should return both changed and new relations', () => {
     const original: ForeignKeyRelation[] = [
-      createForeignKey({ columnName: 'user_id', referencedTable: 'users' }),
-      createForeignKey({ columnName: 'post_id', referencedTable: 'posts' }),
+      createForeignKey({ columns: ['user_id'], referencedTable: 'users' }),
+      createForeignKey({ columns: ['post_id'], referencedTable: 'posts' }),
     ];
     const updated: ForeignKeyRelation[] = [
-      createForeignKey({ columnName: 'user_id', referencedTable: 'accounts' }), // changed
-      createForeignKey({ columnName: 'post_id', referencedTable: 'posts' }), // unchanged
+      createForeignKey({ columns: ['user_id'], referencedTable: 'accounts' }), // changed
+      createForeignKey({ columns: ['post_id'], referencedTable: 'posts' }), // unchanged
       createForeignKey({
-        columnName: 'comment_id',
+        columns: ['comment_id'],
         referencedTable: 'comments',
       }), // new
     ];
@@ -221,16 +221,81 @@ describe('getUntrackedForeignKeyRelations', () => {
     const result = getUntrackedForeignKeyRelations(original, updated);
 
     expect(result).toHaveLength(2);
-    expect(result.map((fk) => fk.columnName).sort()).toEqual([
+    expect(result.map((fk) => fk.columns.join(',')).sort()).toEqual([
       'comment_id',
       'user_id',
     ]);
   });
 
+  it('should detect a change for a composite foreign key', () => {
+    const original: ForeignKeyRelation[] = [
+      createForeignKey({
+        columns: ['a', 'b'],
+        referencedTable: 'parent',
+        referencedColumns: ['x', 'y'],
+      }),
+    ];
+    const updated: ForeignKeyRelation[] = [
+      createForeignKey({
+        columns: ['a', 'b'],
+        referencedTable: 'parent',
+        referencedColumns: ['x', 'z'],
+      }),
+    ];
+
+    const result = getUntrackedForeignKeyRelations(original, updated);
+
+    expect(result).toHaveLength(1);
+    expect(result[0].referencedColumns).toEqual(['x', 'z']);
+  });
+
+  it('should not treat an identical composite foreign key as changed', () => {
+    const original: ForeignKeyRelation[] = [
+      createForeignKey({
+        columns: ['a', 'b'],
+        referencedTable: 'parent',
+        referencedColumns: ['x', 'y'],
+      }),
+    ];
+    const updated: ForeignKeyRelation[] = [
+      createForeignKey({
+        columns: ['a', 'b'],
+        referencedTable: 'parent',
+        referencedColumns: ['x', 'y'],
+      }),
+    ];
+
+    const result = getUntrackedForeignKeyRelations(original, updated);
+
+    expect(result).toEqual([]);
+  });
+
+  it('should treat a re-pairing of the same composite columns as a change', () => {
+    const original: ForeignKeyRelation[] = [
+      createForeignKey({
+        columns: ['a', 'b'],
+        referencedTable: 'parent',
+        referencedColumns: ['x', 'y'],
+      }),
+    ];
+    const updated: ForeignKeyRelation[] = [
+      createForeignKey({
+        columns: ['a', 'b'],
+        referencedTable: 'parent',
+        referencedColumns: ['y', 'x'],
+      }),
+    ];
+
+    const result = getUntrackedForeignKeyRelations(original, updated);
+
+    expect(result).toHaveLength(1);
+    expect(result[0].referencedColumns).toEqual(['y', 'x']);
+  });
+
   it('should handle multiple changes to the same column', () => {
     const original: ForeignKeyRelation[] = [
       createForeignKey({
-        columnName: 'user_id',
+        columns: ['user_id'],
         referencedTable: 'users',
         // biome-ignore lint/suspicious/noExplicitAny: test file
         updateAction: 'CASCADE' as any,
@@ -240,7 +305,7 @@ describe('getUntrackedForeignKeyRelations', () => {
     ];
     const updated: ForeignKeyRelation[] = [
       createForeignKey({
-        columnName: 'user_id',
+        columns: ['user_id'],
         referencedTable: 'accounts',
         // biome-ignore lint/suspicious/noExplicitAny: test file
         updateAction: 'RESTRICT' as any,
@@ -262,14 +327,14 @@ describe('getUntrackedForeignKeyRelations', () => {
       createForeignKey({
         id: '1',
         name: 'fk_user',
-        columnName: 'user_id',
+        columns: ['user_id'],
       }),
     ];
     const updated: ForeignKeyRelation[] = [
       createForeignKey({
         id: '1',
         name: 'fk_user',
-        columnName: 'user_id',
+        columns: ['user_id'],
       }),
     ];
 
@@ -280,10 +345,10 @@ describe('getUntrackedForeignKeyRelations', () => {
 
   it('should handle null referencedSchema', () => {
     const original: ForeignKeyRelation[] = [
-      createForeignKey({ columnName: 'user_id', referencedSchema: null }),
+      createForeignKey({ columns: ['user_id'], referencedSchema: null }),
     ];
     const updated: ForeignKeyRelation[] = [
-      createForeignKey({ columnName: 'user_id', referencedSchema: null }),
+      createForeignKey({ columns: ['user_id'], referencedSchema: null }),
     ];
 
     const result = getUntrackedForeignKeyRelations(original, updated);
@@ -304,17 +369,17 @@ describe('getUntrackedForeignKeyRelations', () => {
 
   it('should preserve order of updated relations', () => {
     const updated: ForeignKeyRelation[] = [
-      createForeignKey({ columnName: 'z_column', referencedTable: 'z_table' }),
-      createForeignKey({ columnName: 'a_column', referencedTable: 'a_table' }),
-      createForeignKey({ columnName: 'm_column', referencedTable: 'm_table' }),
+      createForeignKey({ columns: ['z_column'], referencedTable: 'z_table' }),
+      createForeignKey({ columns: ['a_column'], referencedTable: 'a_table' }),
+      createForeignKey({ columns: ['m_column'], referencedTable: 'm_table' }),
     ];
 
     const result = getUntrackedForeignKeyRelations([], updated);
 
-    expect(result.map((fk) => fk.columnName)).toEqual([
-      'z_column',
-      'a_column',
-      'm_column',
+    expect(result.map((fk) => fk.columns)).toEqual([
+      ['z_column'],
+      ['a_column'],
+      ['m_column'],
     ]);
   });
 });
