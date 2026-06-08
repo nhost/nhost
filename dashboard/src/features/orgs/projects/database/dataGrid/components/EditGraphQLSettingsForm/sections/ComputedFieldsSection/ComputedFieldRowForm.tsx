@@ -2,6 +2,7 @@ import { zodResolver } from '@hookform/resolvers/zod';
 import { TriangleAlert } from 'lucide-react';
 import { useEffect } from 'react';
 import { useForm } from 'react-hook-form';
+import { useDialog } from '@/components/common/DialogProvider';
 import { Button, ButtonWithLoading } from '@/components/ui/v3/button';
 import { Form } from '@/components/ui/v3/form';
 import { useComputedFieldDependents } from '@/features/orgs/projects/database/dataGrid/hooks/useComputedFieldDependents';
@@ -15,6 +16,7 @@ import type {
 } from '@/utils/hasura-api/generated/schemas';
 import ComputedFieldFormFields from './ComputedFieldFormFields';
 import {
+  COMPUTED_FIELDS_DIRTY_SOURCE_ID,
   type ComputedFieldFormValues,
   computedFieldItemToFormValues,
   computedFieldValidationSchema,
@@ -41,8 +43,9 @@ export interface ComputedFieldRowFormProps {
    */
   onCancel: () => void;
   /**
-   * Report this form's dirty state to the owning row, which registers it with
-   * the drawer and guards the chevron-collapse.
+   * Report this form's dirty state to the owning row so it can guard the
+   * Cancel button and chevron-collapse. Drawer-level dirty registration is
+   * handled by this form directly via `setDirtySource`.
    */
   onDirtyChange: (dirty: boolean) => void;
 }
@@ -60,6 +63,8 @@ export default function ComputedFieldRowForm({
   onCancel,
   onDirtyChange,
 }: ComputedFieldRowFormProps) {
+  const { setDirtySource } = useDialog();
+
   const { mutateAsync: editComputedField } = useComputedFieldMetadataMutation({
     type: 'edit',
   });
@@ -81,14 +86,17 @@ export default function ComputedFieldRowForm({
     const unsubscribe = form.subscribe({
       formState: { isDirty: true },
       callback: ({ isDirty }) => {
-        onDirtyChange(Boolean(isDirty));
+        const dirty = Boolean(isDirty);
+        setDirtySource(COMPUTED_FIELDS_DIRTY_SOURCE_ID, dirty);
+        onDirtyChange(dirty);
       },
     });
     return () => {
       unsubscribe();
+      setDirtySource(COMPUTED_FIELDS_DIRTY_SOURCE_ID, false);
       onDirtyChange(false);
     };
-  }, [form, onDirtyChange]);
+  }, [form, setDirtySource, onDirtyChange]);
 
   const handleSubmit = form.handleSubmit(async (values) => {
     const args = formValuesToAddComputedFieldArgs(values, table, source);

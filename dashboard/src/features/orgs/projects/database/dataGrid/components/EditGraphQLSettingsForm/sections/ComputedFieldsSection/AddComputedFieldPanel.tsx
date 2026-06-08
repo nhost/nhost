@@ -1,5 +1,5 @@
 import { zodResolver } from '@hookform/resolvers/zod';
-import { useEffect } from 'react';
+import { useEffect, useRef } from 'react';
 import { useForm } from 'react-hook-form';
 import { useDialog } from '@/components/common/DialogProvider';
 import { Button, ButtonWithLoading } from '@/components/ui/v3/button';
@@ -10,13 +10,12 @@ import { execPromiseWithErrorToast } from '@/features/orgs/utils/execPromiseWith
 import type { QualifiedTable } from '@/utils/hasura-api/generated/schemas';
 import ComputedFieldFormFields from './ComputedFieldFormFields';
 import {
+  COMPUTED_FIELDS_DIRTY_SOURCE_ID,
   type ComputedFieldFormValues,
   computedFieldValidationSchema,
   defaultComputedFieldValues,
   formValuesToAddComputedFieldArgs,
 } from './computedFieldFormTypes';
-
-const DIRTY_SOURCE_ID = 'edit-gql-computed-fields:add';
 
 export interface AddComputedFieldPanelProps {
   table: QualifiedTable;
@@ -50,17 +49,27 @@ export default function AddComputedFieldPanel({
     resolver: zodResolver(computedFieldValidationSchema),
   });
 
-  const { isSubmitting, isDirty } = form.formState;
+  const { isSubmitting } = form.formState;
+
+  const isDirtyRef = useRef(false);
 
   useEffect(() => {
-    setDirtySource(DIRTY_SOURCE_ID, isDirty);
+    const unsubscribe = form.subscribe({
+      formState: { isDirty: true },
+      callback: ({ isDirty }) => {
+        const dirty = Boolean(isDirty);
+        isDirtyRef.current = dirty;
+        setDirtySource(COMPUTED_FIELDS_DIRTY_SOURCE_ID, dirty);
+      },
+    });
     return () => {
-      setDirtySource(DIRTY_SOURCE_ID, false);
+      unsubscribe();
+      setDirtySource(COMPUTED_FIELDS_DIRTY_SOURCE_ID, false);
     };
-  }, [isDirty, setDirtySource]);
+  }, [form, setDirtySource]);
 
   const handleCancel = () => {
-    if (isDirty) {
+    if (isDirtyRef.current) {
       openDirtyConfirmation({
         props: { onPrimaryAction: onClose },
       });

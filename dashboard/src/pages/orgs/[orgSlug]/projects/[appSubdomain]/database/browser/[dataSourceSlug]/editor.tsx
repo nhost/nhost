@@ -1,19 +1,15 @@
-import { useRouter } from 'next/router';
 import type { ReactElement } from 'react';
 import { LoadingScreen } from '@/components/presentational/LoadingScreen';
 import { RetryableErrorBoundary } from '@/components/presentational/RetryableErrorBoundary';
 import { OrgLayout } from '@/features/orgs/layout/OrgLayout';
-import { useIsPlatform } from '@/features/orgs/projects/common/hooks/useIsPlatform';
 import { DataBrowserSidebar } from '@/features/orgs/projects/database/dataGrid/components/DataBrowserSidebar';
 import { SQLEditor } from '@/features/orgs/projects/database/dataGrid/components/SQLEditor';
 import { useProject } from '@/features/orgs/projects/hooks/useProject';
 
 export default function Editor() {
-  const isPlatform = useIsPlatform();
   const { project } = useProject();
-  const { isReady } = useRouter();
 
-  if ((isPlatform && !project?.config?.hasura.adminSecret) || !isReady) {
+  if (!project?.config?.hasura.adminSecret) {
     return <LoadingScreen />;
   }
 

@@ -1,5 +1,5 @@
 import { ChevronDown, PencilIcon } from 'lucide-react';
-import { useCallback, useEffect, useState } from 'react';
+import { useCallback, useRef } from 'react';
 import { useDialog } from '@/components/common/DialogProvider';
 import { Button } from '@/components/ui/v3/button';
 import {
@@ -16,8 +16,6 @@ import type {
 } from '@/utils/hasura-api/generated/schemas';
 import ComputedFieldRowForm from './ComputedFieldRowForm';
 import DeleteComputedFieldAlertDialog from './DeleteComputedFieldAlertDialog';
-
-const DIRTY_SOURCE_PREFIX = 'edit-gql-computed-fields:row';
 
 export interface ComputedFieldRowProps {
   field: ComputedFieldItem;
@@ -44,25 +42,16 @@ export default function ComputedFieldRow({
   isExpanded,
   onOpenChange,
 }: ComputedFieldRowProps) {
-  const { setDirtySource, openDirtyConfirmation } = useDialog();
+  const { openDirtyConfirmation } = useDialog();
 
-  const [isFormDirty, setIsFormDirty] = useState(false);
-  const handleFormDirtyChange = useCallback(
-    (dirty: boolean) => setIsFormDirty(dirty),
-    [],
-  );
+  const isFormDirtyRef = useRef(false);
 
-  const dirtySourceId = `${DIRTY_SOURCE_PREFIX}:${field.name}`;
-
-  useEffect(() => {
-    setDirtySource(dirtySourceId, isFormDirty);
-    return () => {
-      setDirtySource(dirtySourceId, false);
-    };
-  }, [dirtySourceId, isFormDirty, setDirtySource]);
+  const handleFormDirtyChange = useCallback((dirty: boolean) => {
+    isFormDirtyRef.current = dirty;
+  }, []);
 
   const requestClose = () => {
-    if (isFormDirty) {
+    if (isFormDirtyRef.current) {
       openDirtyConfirmation({
         props: { onPrimaryAction: () => onOpenChange(false) },
       });

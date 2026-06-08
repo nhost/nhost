@@ -2,18 +2,13 @@ import { Plus } from 'lucide-react';
 import { singular } from 'pluralize';
 import { useMemo } from 'react';
 import { useFormContext } from 'react-hook-form';
+import { FormCombobox } from '@/components/form/FormCombobox';
 import {
   FormFreeCombobox,
   type FormFreeComboboxOption,
 } from '@/components/form/FormFreeCombobox';
 import { FormInput } from '@/components/form/FormInput';
-import { Combobox, type ComboboxOption } from '@/components/ui/v3/combobox';
-import {
-  FormField,
-  FormItem,
-  FormLabel,
-  FormMessage,
-} from '@/components/ui/v3/form';
+import type { ComboboxOption } from '@/components/ui/v3/combobox';
 import { InfoTooltip } from '@/features/orgs/projects/common/components/InfoTooltip';
 import { SQLEditor } from '@/features/orgs/projects/database/dataGrid/components/SQLEditor';
 import type { PostgresFunction } from '@/features/orgs/projects/database/dataGrid/hooks/usePostgresFunctionsQuery';
@@ -156,37 +151,22 @@ export default function ComputedFieldFormFields({
       </div>
       <div className="flex flex-col gap-3">
         <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
-          <FormField
+          <FormCombobox
             control={control}
             name="functionSchema"
-            render={({ field, fieldState }) => (
-              <FormItem>
-                <FormLabel>Function Schema</FormLabel>
-                <Combobox
-                  ref={field.ref}
-                  value={field.value ?? null}
-                  onChange={(next) => {
-                    field.onChange(next);
-                    if (next !== field.value) {
-                      setValue('functionName', '', { shouldDirty: true });
-                    }
-                  }}
-                  onBlur={field.onBlur}
-                  options={schemaOptions}
-                  placeholder="Select a schema"
-                  searchPlaceholder="Search schemas..."
-                  emptyText={
-                    isSchemasLoading
-                      ? 'Loading schemas...'
-                      : 'No schemas available.'
-                  }
-                  disabled={fieldsDisabled || isSchemasLoading}
-                  aria-label="Function Schema"
-                  aria-invalid={!!fieldState.error}
-                />
-                <FormMessage />
-              </FormItem>
-            )}
+            label="Function Schema"
+            options={schemaOptions}
+            placeholder="Select a schema"
+            searchPlaceholder="Search schemas..."
+            emptyText={
+              isSchemasLoading ? 'Loading schemas...' : 'No schemas available.'
+            }
+            disabled={fieldsDisabled || isSchemasLoading}
+            onChange={(next) => {
+              if (next !== selectedSchema) {
+                setValue('functionName', '', { shouldDirty: true });
+              }
+            }}
           />
           <FormFreeCombobox
             control={control}

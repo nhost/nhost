@@ -4,7 +4,7 @@ import { PostgreSQL, sql } from '@codemirror/lang-sql';
 import { useTheme } from '@mui/material';
 import { githubDark, githubLight } from '@uiw/codemirror-theme-github';
 import CodeMirror from '@uiw/react-codemirror';
-import { InfoIcon, PlayIcon } from 'lucide-react';
+import { InfoIcon, PlayIcon, XIcon } from 'lucide-react';
 import { useCallback, useState } from 'react';
 import { useResizable } from 'react-resizable-layout';
 import { Pagination } from '@/components/common/Pagination';
@@ -12,6 +12,7 @@ import { ActivityIndicator } from '@/components/ui/v2/ActivityIndicator';
 import { Alert } from '@/components/ui/v2/Alert';
 import { Box } from '@/components/ui/v2/Box';
 import { Button } from '@/components/ui/v2/Button';
+import { IconButton } from '@/components/ui/v2/IconButton';
 import { Input } from '@/components/ui/v2/Input';
 import { Option } from '@/components/ui/v2/Option';
 import { Select } from '@/components/ui/v2/Select';
@@ -54,16 +55,8 @@ export default function SQLEditor({
   const [isMigration, setIsMigration] = useState(false);
   const [migrationName, setMigrationName] = useState('');
 
-  const onChange = useCallback((value: string) => setSQLCode(value), []);
-
-  const { runSQL, loading, errorMessage, commandOk, rows, columns } = useRunSQL(
-    sqlCode,
-    track,
-    cascade,
-    readOnly,
-    isMigration,
-    migrationName,
-  );
+  const { runSQL, reset, loading, errorMessage, commandOk, rows, columns } =
+    useRunSQL(sqlCode, track, cascade, readOnly, isMigration, migrationName);
 
   const { position, separatorProps } = useResizable({
     axis: 'y',
@@ -86,6 +79,21 @@ export default function SQLEditor({
   const hasResult =
     loading || Boolean(errorMessage) || commandOk || columns.length > 0;
   const showResults = !hideEmptyResults || hasResult;
+
+  const canDismissResults =
+    hideEmptyResults &&
+    !loading &&
+    (Boolean(errorMessage) || commandOk || columns.length > 0);
+
+  const onChange = useCallback(
+    (value: string) => {
+      setSQLCode(value);
+      if (canDismissResults) {
+        reset();
+      }
+    },
+    [canDismissResults, reset],
+  );
 
   return (
     <Box className="flex flex-1 flex-col justify-center overflow-hidden">
@@ -206,6 +214,22 @@ export default function SQLEditor({
             className="flex flex-col overflow-auto"
             style={{ height: position }}
           >
+            {canDismissResults && (
+              <Box className="flex shrink-0 items-center justify-between border-b px-4 py-1">
+                <Text variant="subtitle2" className="text-xs" color="secondary">
+                  Result
+                </Text>
+                <IconButton
+                  variant="borderless"
+                  color="secondary"
+                  aria-label="Close results"
+                  onClick={reset}
+                >
+                  <XIcon className="h-4 w-4" />
+                </IconButton>
+              </Box>
+            )}
+
             {loading && (
               <Box className="flex flex-1 items-center justify-center p-4">
                 <ActivityIndicator

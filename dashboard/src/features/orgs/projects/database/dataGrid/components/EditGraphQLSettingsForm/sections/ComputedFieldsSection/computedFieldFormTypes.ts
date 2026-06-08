@@ -5,6 +5,8 @@ import type {
   QualifiedTable,
 } from '@/utils/hasura-api/generated/schemas';
 
+export const COMPUTED_FIELDS_DIRTY_SOURCE_ID = 'edit-gql-computed-fields';
+
 const identifierPattern = /^[A-Za-z_][A-Za-z0-9_]*$/;
 
 const optionalIdentifier = z
