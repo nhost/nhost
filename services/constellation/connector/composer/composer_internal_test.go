@@ -3,6 +3,7 @@ package composer
 import (
 	"testing"
 
+	"github.com/nhost/nhost/services/constellation/connector/action"
 	"github.com/nhost/nhost/services/constellation/graph"
 	"github.com/nhost/nhost/services/constellation/metadata"
 )
@@ -365,10 +366,156 @@ func TestRSRelationshipSpec(t *testing.T) {
 	}
 }
 
+func TestActionRelationshipSpec(t *testing.T) {
+	t.Parallel()
+
+	tests := []struct {
+		name    string
+		rel     metadata.CustomObjectRelationship
+		wantOK  bool
+		wantArr bool
+	}{
+		{
+			name: "action_to_db_object",
+			rel: metadata.CustomObjectRelationship{
+				Name: "user",
+				Type: metadata.RelationshipTypeObject,
+				RemoteTable: metadata.TableSource{
+					Schema: "auth",
+					Name:   "users",
+				},
+				FieldMapping: map[string]string{"userId": "id"},
+				Source:       "default",
+			},
+			wantOK:  true,
+			wantArr: false,
+		},
+		{
+			name: "action_to_db_array",
+			rel: metadata.CustomObjectRelationship{
+				Name: "departments",
+				Type: metadata.RelationshipTypeArray,
+				RemoteTable: metadata.TableSource{
+					Schema: "public",
+					Name:   "user_departments",
+				},
+				FieldMapping: map[string]string{"userId": "user_id"},
+				Source:       "default",
+			},
+			wantOK:  true,
+			wantArr: true,
+		},
+		{
+			name: "invalid_type",
+			rel: metadata.CustomObjectRelationship{
+				Name:         "broken",
+				Type:         "typo",
+				RemoteTable:  metadata.TableSource{Schema: "public", Name: "users"},
+				FieldMapping: map[string]string{"userId": "id"},
+				Source:       "default",
+			},
+			wantOK: false,
+		},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			t.Parallel()
+
+			spec, ok := actionRelationshipSpec("ActionProfile", tt.rel)
+			if ok != tt.wantOK {
+				t.Fatalf("actionRelationshipSpec ok = %v, want %v", ok, tt.wantOK)
+			}
+
+			if !ok {
+				return
+			}
+
+			if spec.SourceConnector != action.ConnectorName {
+				t.Errorf(
+					"SourceConnector = %q, want %q",
+					spec.SourceConnector,
+					action.ConnectorName,
+				)
+			}
+
+			if spec.SourceType != "ActionProfile" {
+				t.Errorf("SourceType = %q, want ActionProfile", spec.SourceType)
+			}
+
+			if spec.IsArray != tt.wantArr {
+				t.Errorf("IsArray = %v, want %v", spec.IsArray, tt.wantArr)
+			}
+
+			if spec.WithSQLArgs {
+				t.Error("action relationship should reuse rs→db path without SQL args")
+			}
+		})
+	}
+}
+
 // TestRelationshipSpecs_SkipsEnumAndMissingConnector verifies the two
 // composer-level guards that the M3 refactor moved out of relationships.go:
 // IsEnum tables are skipped, and tables whose database has no provider in the
 // resolver map are skipped without erroring.
+func TestRelationshipSpecs_IncludesActionCustomObjectRelationships(t *testing.T) {
+	t.Parallel()
+
+	md := &metadata.Metadata{
+		Databases:     nil,
+		RemoteSchemas: nil,
+		Actions:       nil,
+		CustomTypes: metadata.CustomTypes{
+			InputObjects: nil,
+			Objects: []metadata.CustomObjectType{
+				{
+					Name:        "ActionProfile",
+					Description: "",
+					Fields:      nil,
+					Relationships: []metadata.CustomObjectRelationship{
+						{
+							Name: "user",
+							Type: metadata.RelationshipTypeObject,
+							RemoteTable: metadata.TableSource{
+								Schema: "auth",
+								Name:   "users",
+							},
+							FieldMapping: map[string]string{"userId": "id"},
+							Source:       "default",
+						},
+					},
+				},
+			},
+			Scalars: nil,
+			Enums:   nil,
+		},
+		LoadDiagnostics: nil,
+	}
+
+	c := &Composer{
+		providers: map[string]SchemaProvider{
+			action.ConnectorName: stubSchemaProvider{typeName: "action"},
+			"default":            stubSchemaProvider{typeName: "default"},
+		},
+		meta:            md,
+		inconsistencies: metadata.NewInconsistencies(),
+	}
+
+	specs := c.relationshipSpecs()
+	if len(specs) != 1 {
+		t.Fatalf("expected 1 spec, got %d: %+v", len(specs), specs)
+	}
+
+	spec := specs[0]
+	if spec.SourceConnector != action.ConnectorName || spec.SourceType != "ActionProfile" {
+		t.Fatalf("unexpected action relationship source: %+v", spec)
+	}
+
+	if spec.TargetConnector != "default" || spec.TargetIdentifier != "auth.users" {
+		t.Fatalf("unexpected action relationship target: %+v", spec)
+	}
+}
+
 func TestRelationshipSpecs_SkipsEnumAndMissingConnector(t *testing.T) {
 	t.Parallel()
 

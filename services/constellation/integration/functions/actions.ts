@@ -131,6 +131,20 @@ export default function handler(req: Request, res: Response): void {
         return;
       }
 
+      case 'actionProfiles': {
+        res.status(200).json([
+          {
+            label: 'engineering-manager',
+            userId: '550e8400-e29b-41d4-a716-446655440011',
+          },
+          {
+            label: 'hr-manager',
+            userId: '550e8400-e29b-41d4-a716-446655440001',
+          },
+        ]);
+        return;
+      }
+
       default:
         sendActionError(
           res,

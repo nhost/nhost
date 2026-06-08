@@ -168,35 +168,7 @@ func (c *Connector) shapeObject(
 	for _, child := range fields {
 		responseKey := responseFieldName(child)
 		childPath := appendPath(path, responseKey)
-
-		if child.Name == "__typename" {
-			out[responseKey] = typeName
-
-			continue
-		}
-
-		if child.Definition == nil || child.Definition.Type == nil {
-			errs = append(
-				errs,
-				newShapeError(
-					fmt.Sprintf("field %q is missing GraphQL type information", child.Name),
-					childPath,
-				),
-			)
-			out[responseKey] = nil
-
-			continue
-		}
-
-		childValue := object[child.Name]
-		result := c.shapeValue(
-			childValue,
-			child.Definition.Type,
-			child.SelectionSet,
-			fragments,
-			astBaseTypeName(child.Definition.Type),
-			childPath,
-		)
+		result := c.shapeObjectField(object, child, fragments, typeName, childPath)
 
 		errs = append(errs, result.errs...)
 		if result.bubble {
@@ -207,6 +179,59 @@ func (c *Connector) shapeObject(
 	}
 
 	return shapeResult{value: out, null: false, bubble: false, errs: errs}
+}
+
+func (c *Connector) shapeObjectField(
+	object map[string]any,
+	field *ast.Field,
+	fragments ast.FragmentDefinitionList,
+	typeName string,
+	path []any,
+) shapeResult {
+	if field.Name == "__typename" {
+		return shapeResult{value: typeName, null: false, bubble: false, errs: nil}
+	}
+
+	fieldType := c.objectFieldType(typeName, field)
+	if fieldType == nil {
+		return shapeResult{
+			value:  nil,
+			null:   true,
+			bubble: false,
+			errs: []map[string]any{
+				newShapeError(
+					fmt.Sprintf("field %q is missing GraphQL type information", field.Name),
+					path,
+				),
+			},
+		}
+	}
+
+	return c.shapeValue(
+		object[field.Name],
+		fieldType,
+		field.SelectionSet,
+		fragments,
+		astBaseTypeName(fieldType),
+		path,
+	)
+}
+
+func (c *Connector) objectFieldType(typeName string, field *ast.Field) *ast.Type {
+	if field == nil {
+		return nil
+	}
+
+	if field.Definition != nil && field.Definition.Type != nil {
+		return field.Definition.Type
+	}
+
+	fields := c.objectFieldTypes[typeName]
+	if len(fields) == 0 {
+		return nil
+	}
+
+	return fields[field.Name]
 }
 
 func (c *Connector) shapeLeaf(value any, typeName string, path []any) shapeResult {

@@ -22,7 +22,7 @@ func TestGetSchemaRoleReachability(t *testing.T) {
 	t.Parallel()
 
 	collector := metadata.NewInconsistencies()
-	conn := newConnector(t.Context(), roleReachabilityMetadata(), collector, nil)
+	conn := newConnector(t.Context(), roleReachabilityMetadata(), collector)
 
 	schemas, err := conn.GetSchema()
 	if err != nil {
@@ -69,7 +69,6 @@ func TestGetSchemaRoleConflictFiltering(t *testing.T) {
 		t.Context(),
 		conflictFilteringMetadata(),
 		collector,
-		nil,
 		withOccupiedRootFields(map[string]map[string]struct{}{
 			"user": {schemamerge.FieldKey(ast.Query, "taken"): {}},
 		}),
@@ -106,6 +105,48 @@ func TestGetSchemaRoleConflictFiltering(t *testing.T) {
 		t, snapshot, metadata.InconsistencyKindAction,
 		"typeConflict", "custom type \"ExistingOutput\" conflicts for role \"public\"",
 	)
+}
+
+func TestGetSchemaAllowsValidCustomObjectRelationships(t *testing.T) {
+	t.Parallel()
+
+	collector := metadata.NewInconsistencies()
+	conn := newConnector(
+		t.Context(),
+		testMetadata(
+			[]metadata.ActionMetadata{
+				actionMeta(
+					"relationshipAction",
+					metadata.ActionOperationQuery,
+					"RelOutput!",
+					nil,
+					nil,
+				),
+			},
+			customTypes(withObjects(objectType(
+				"RelOutput",
+				[]metadata.CustomObjectRelationship{objectRelationship("owner")},
+				objectField("ownerID", "ID!"),
+			))),
+		),
+		collector,
+		withRelationshipTargets(
+			relationshipTargets("default", "public", "users", map[string][]string{
+				metadata.RoleAdmin: {"id", "displayName"},
+			}),
+		),
+	)
+
+	schemas, err := conn.GetSchema()
+	if err != nil {
+		t.Fatalf("GetSchema: %v", err)
+	}
+
+	assertRootFields(t, schemas[metadata.RoleAdmin], []string{"relationshipAction"})
+
+	if snapshot := collector.Snapshot(); len(snapshot) != 0 {
+		t.Fatalf("unexpected inconsistencies: %+v", snapshot)
+	}
 }
 
 //nolint:maintidx // broad table covers fine-grained filtering matrix.
@@ -393,7 +434,7 @@ func TestSchemaConflictFiltering(
 				{
 					kind: metadata.InconsistencyKindCustomType,
 					name: "RelOutput",
-					sub:  "custom object relationships are not supported yet",
+					sub:  "relationship \"owner\" target source/table \"public\".\"users\" not found",
 				},
 				{
 					kind: metadata.InconsistencyKindAction,
@@ -409,7 +450,7 @@ func TestSchemaConflictFiltering(
 			t.Parallel()
 
 			collector := metadata.NewInconsistencies()
-			conn := newConnector(t.Context(), tt.meta, collector, nil)
+			conn := newConnector(t.Context(), tt.meta, collector)
 
 			schemas, err := conn.GetSchema()
 			if err != nil {
@@ -791,5 +832,30 @@ func objectRelationship(name string) metadata.CustomObjectRelationship {
 		},
 		FieldMapping: map[string]string{"ownerID": "id"},
 		Source:       "default",
+	}
+}
+
+func relationshipTargets(
+	source string,
+	schema string,
+	table string,
+	roleFields map[string][]string,
+) RelationshipTargets {
+	roles := make(map[string]RelationshipTargetRole, len(roleFields))
+	for role, fields := range roleFields {
+		fieldSet := make(map[string]struct{}, len(fields))
+		for _, field := range fields {
+			fieldSet[field] = struct{}{}
+		}
+
+		roles[role] = RelationshipTargetRole{Fields: fieldSet}
+	}
+
+	return RelationshipTargets{
+		{
+			Source: source,
+			Schema: schema,
+			Table:  table,
+		}: {Roles: roles},
 	}
 }

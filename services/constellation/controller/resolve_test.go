@@ -1672,6 +1672,7 @@ func TestResolve_MutationPreservesActionAndDatabaseOrder(t *testing.T) {
 		nil,
 		nil,
 		nil,
+		nil,
 	)
 
 	recordDB := func(operation *ast.OperationDefinition) (map[string]any, error) {
@@ -1887,6 +1888,7 @@ func TestResolve_ActionQueryContinuesAfterHardFieldError(t *testing.T) {
 		},
 		metadata.NewInconsistencies(),
 		slog.New(slog.DiscardHandler),
+		nil,
 		nil,
 		nil,
 		nil,

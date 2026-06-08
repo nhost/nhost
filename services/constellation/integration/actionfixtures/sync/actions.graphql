@@ -1,6 +1,7 @@
 type Query {
   addNumbers(a: Int!, b: Int!): AddNumbersOutput!
   echoHeaders(message: String!): EchoHeadersOutput!
+  actionProfiles: [ActionProfile!]!
 }
 
 type Mutation {
@@ -23,4 +24,9 @@ type LoginOutput {
   accessToken: String!
   userId: String!
   role: String!
+}
+
+type ActionProfile {
+  label: String!
+  userId: ID!
 }

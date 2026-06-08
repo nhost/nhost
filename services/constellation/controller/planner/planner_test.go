@@ -5,6 +5,7 @@ import (
 	"maps"
 	"testing"
 
+	"github.com/nhost/nhost/services/constellation/connector/action"
 	"github.com/nhost/nhost/services/constellation/connector/schemamerge"
 	"github.com/nhost/nhost/services/constellation/controller/planner"
 	"github.com/nhost/nhost/services/constellation/internal/jsonpath"
@@ -1215,6 +1216,124 @@ func TestPlan_UsesRoleSpecificFieldAndTypeOwnership(t *testing.T) {
 			"expected user role to preserve db2-owned Item fragment, got %+v",
 			primary.CleanFragments,
 		)
+	}
+}
+
+func TestPlan_ActionCustomObjectRelationship(t *testing.T) {
+	t.Parallel()
+
+	actionProfile := &ast.Definition{
+		Kind: ast.Object,
+		Name: "ActionProfile",
+		Fields: ast.FieldList{
+			{Name: "label", Type: ast.NamedType("String", nil)},
+			{Name: "userId", Type: ast.NamedType("ID", nil)},
+			{Name: "user", Type: ast.NamedType("users", nil)},
+		},
+	}
+	usersType := &ast.Definition{
+		Kind: ast.Object,
+		Name: "users",
+		Fields: ast.FieldList{
+			{Name: "id", Type: ast.NamedType("ID", nil)},
+			{Name: "displayName", Type: ast.NamedType("String", nil)},
+		},
+	}
+	queryRoot := &ast.Definition{
+		Kind: ast.Object,
+		Name: "query_root",
+		Fields: ast.FieldList{
+			{
+				Name: "actionProfiles",
+				Type: ast.ListType(ast.NamedType("ActionProfile", nil), nil),
+			},
+		},
+	}
+	schema := &ast.Schema{
+		Types: map[string]*ast.Definition{
+			"query_root":    queryRoot,
+			"ActionProfile": actionProfile,
+			"users":         usersType,
+		},
+		Query: queryRoot,
+	}
+
+	p := planner.New(
+		map[string]*ast.Schema{"admin": schema},
+		fieldOwnersForRole("admin", map[string]string{
+			schemamerge.FieldKey(ast.Query, "actionProfiles"): action.ConnectorName,
+		}),
+		typeOwnersForRole("admin", map[string][]string{
+			"ActionProfile": {action.ConnectorName},
+			"users":         {"default"},
+		}),
+		map[string][]*planner.RelationshipMetadata{
+			action.ConnectorName: {
+				{
+					Name:              "user",
+					SourceType:        "ActionProfile",
+					TargetConnector:   "default",
+					TargetTable:       "users",
+					TargetTableSchema: "auth",
+					JoinMapping:       map[string]string{"userId": "id"},
+					IsArray:           false,
+					IsArrayAggregate:  false,
+					IsRemote:          true,
+					LHSFields:         nil,
+					RemoteFieldPath:   nil,
+				},
+			},
+		},
+	)
+
+	plan, err := p.Plan(
+		&ast.OperationDefinition{
+			Operation: ast.Query,
+			Name:      "ActionProfiles",
+			SelectionSet: ast.SelectionSet{
+				&ast.Field{
+					Name: "actionProfiles",
+					SelectionSet: ast.SelectionSet{
+						&ast.Field{Name: "label"},
+						&ast.Field{
+							Name: "user",
+							SelectionSet: ast.SelectionSet{
+								&ast.Field{Name: "displayName"},
+							},
+						},
+					},
+				},
+			},
+		},
+		nil,
+		"admin",
+	)
+	if err != nil {
+		t.Fatalf("unexpected error: %v", err)
+	}
+
+	primary := plan.GetPrimaryQueryForConnector(action.ConnectorName)
+	if primary == nil {
+		t.Fatal("expected action primary query")
+	}
+
+	if !plan.HasRemoteQueries() || len(plan.RemoteQueries) != 1 {
+		t.Fatalf("expected one remote query, got %+v", plan.RemoteQueries)
+	}
+
+	rq := plan.RemoteQueries[0]
+	if rq.SourceConnector != action.ConnectorName || rq.SourcePath.String() != "actionProfiles" {
+		t.Fatalf("unexpected remote query source: %+v", rq)
+	}
+
+	if rq.TargetConnector != "default" || rq.TargetTableSchema != "auth" ||
+		rq.TargetTable != "users" {
+		t.Fatalf("unexpected remote query target: %+v", rq)
+	}
+
+	phantoms := plan.AllPhantomFieldSpecs()
+	if len(phantoms) != 1 || len(phantoms[0].Fields) != 1 || phantoms[0].Fields[0] != "userId" {
+		t.Fatalf("expected userId phantom field, got %+v", phantoms)
 	}
 }
 

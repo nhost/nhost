@@ -48,10 +48,10 @@ type TypeNameResolver interface {
 // BoundArguments lists which of that field's arguments are bound by the
 // relationship (and therefore hidden from the user-facing field).
 //
-// For a db→db or rs→db relationship, TargetIdentifier is the source-local
-// table identifier (e.g., "public.users") that the target connector resolves
-// to a GraphQL type name via GetTypeName; RemoteFieldName and BoundArguments
-// are zero-valued.
+// For a db→db, rs→db, or action→db relationship, TargetIdentifier is the
+// source-local table identifier (e.g., "public.users") that the target
+// connector resolves to a GraphQL type name via GetTypeName; RemoteFieldName
+// and BoundArguments are zero-valued.
 type RelationshipSpec struct {
 	// SourceConnector is the name of the connector that owns the source type.
 	SourceConnector string
@@ -70,6 +70,11 @@ type RelationshipSpec struct {
 	// IsArray is true for one-to-many / many-to-many relationships and false
 	// for object (one-to-one / many-to-one) relationships.
 	IsArray bool
+	// JoinMapping maps source fields to target fields. It is used to keep
+	// relationship fields role-safe: the source join fields must exist on the
+	// source type and, for database targets, target join fields must exist on the
+	// target type for the same role before the relationship is exposed.
+	JoinMapping map[string]string
 	// WithSQLArgs requests the SQL filtering arguments (distinct_on, limit,
 	// offset, order_by, where) on the injected field. Only meaningful for
 	// db→db relationships where the source connector can enforce SQL filters
@@ -159,6 +164,13 @@ func addRelFieldToSchemas(
 
 		objectType := findObjectType(schema, spec.SourceType)
 		if objectType == nil {
+			continue
+		}
+
+		if !sourceJoinFieldsExist(objectType, spec.JoinMapping) ||
+			!targetJoinFieldsExistInSchemas(
+				roleSchemas, spec.TargetConnector, targetType, role, spec.JoinMapping,
+			) {
 			continue
 		}
 
@@ -273,6 +285,10 @@ func addRemoteSchemaRelFieldToSchemas(
 
 		objectType := findObjectType(schema, spec.SourceType)
 		if objectType == nil {
+			continue
+		}
+
+		if !sourceJoinFieldsExist(objectType, spec.JoinMapping) {
 			continue
 		}
 
@@ -411,6 +427,10 @@ func targetTypeExistsInSchemas(
 }
 
 func findObjectType(schema *graph.Schema, name string) *graph.ObjectType {
+	if schema == nil {
+		return nil
+	}
+
 	for _, t := range schema.Types {
 		if t.Name == name {
 			return t
@@ -418,6 +438,52 @@ func findObjectType(schema *graph.Schema, name string) *graph.ObjectType {
 	}
 
 	return nil
+}
+
+func sourceJoinFieldsExist(
+	objectType *graph.ObjectType,
+	joinMapping map[string]string,
+) bool {
+	for sourceField := range joinMapping {
+		if !fieldExists(objectType, sourceField) {
+			return false
+		}
+	}
+
+	return true
+}
+
+func targetJoinFieldsExistInSchemas(
+	roleSchemas map[string]map[string]*graph.Schema,
+	connectorName, typeName, role string,
+	joinMapping map[string]string,
+) bool {
+	if len(joinMapping) == 0 {
+		return true
+	}
+
+	schemas, ok := roleSchemas[connectorName]
+	if !ok {
+		return false
+	}
+
+	schema, ok := schemas[role]
+	if !ok {
+		return false
+	}
+
+	objectType := findObjectType(schema, typeName)
+	if objectType == nil {
+		return false
+	}
+
+	for _, targetField := range joinMapping {
+		if !fieldExists(objectType, targetField) {
+			return false
+		}
+	}
+
+	return true
 }
 
 // addArrayRelField adds an array relationship field to an ObjectType.

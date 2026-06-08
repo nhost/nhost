@@ -79,6 +79,7 @@ func dbArraySpec(
 		TargetConnector:   targetConnector,
 		TargetIdentifier:  targetIdentifier,
 		IsArray:           true,
+		JoinMapping:       nil,
 		WithSQLArgs:       true,
 		RemoteFieldName:   "",
 		BoundArguments:    nil,
@@ -99,6 +100,7 @@ func dbObjectSpec(
 		TargetConnector:   targetConnector,
 		TargetIdentifier:  targetIdentifier,
 		IsArray:           false,
+		JoinMapping:       nil,
 		WithSQLArgs:       true,
 		RemoteFieldName:   "",
 		BoundArguments:    nil,
@@ -119,6 +121,7 @@ func dbToRemoteSchemaSpec(boundArguments map[string]string) relationships.Relati
 		TargetConnector:   "rs",
 		TargetIdentifier:  "userConfig",
 		IsArray:           false,
+		JoinMapping:       nil,
 		WithSQLArgs:       false,
 		RemoteFieldName:   "userConfig",
 		BoundArguments:    boundArguments,
@@ -356,6 +359,151 @@ func TestInject_DBToRemoteSchema_DescriptionFallsBackToBaseType(t *testing.T) {
 
 	if field.Description != "main entrypoint to the configuration" {
 		t.Errorf("description = %q, want base-type description", field.Description)
+	}
+}
+
+func TestInject_ActionToDBRelationships(t *testing.T) {
+	t.Parallel()
+
+	sourceObj := &graph.ObjectType{
+		Name:        "ActionProfile",
+		Description: "",
+		Fields: []*graph.Field{
+			{Name: "userId", Type: graph.NewNonNullType("ID")},
+		},
+		Interfaces: nil,
+		Directives: nil,
+	}
+	dbTargetObj := &graph.ObjectType{
+		Name:        "users",
+		Description: "",
+		Fields: []*graph.Field{
+			{Name: "id", Type: graph.NewNonNullType("uuid")},
+		},
+		Interfaces: nil,
+		Directives: nil,
+	}
+	dbArrayTargetObj := &graph.ObjectType{
+		Name:        "user_departments",
+		Description: "",
+		Fields: []*graph.Field{
+			{Name: "user_id", Type: graph.NewNonNullType("uuid")},
+		},
+		Interfaces: nil,
+		Directives: nil,
+	}
+
+	roleSchemas := map[string]map[string]*graph.Schema{
+		"__constellation_internal_actions": {"admin": newSchema(sourceObj)},
+		"default":                          {"admin": newSchema(dbTargetObj, dbArrayTargetObj)},
+	}
+
+	resolver := newResolver(t, map[string]string{
+		"auth.users":              "users",
+		"public.user_departments": "user_departments",
+	})
+
+	specs := []relationships.RelationshipSpec{
+		{
+			SourceConnector:   "__constellation_internal_actions",
+			SourceType:        "ActionProfile",
+			Name:              "user",
+			TargetConnector:   "default",
+			TargetIdentifier:  "auth.users",
+			IsArray:           false,
+			JoinMapping:       map[string]string{"userId": "id"},
+			WithSQLArgs:       false,
+			RemoteFieldName:   "",
+			BoundArguments:    nil,
+			ObjectDescription: "",
+		},
+		{
+			SourceConnector:   "__constellation_internal_actions",
+			SourceType:        "ActionProfile",
+			Name:              "departments",
+			TargetConnector:   "default",
+			TargetIdentifier:  "public.user_departments",
+			IsArray:           true,
+			JoinMapping:       map[string]string{"userId": "user_id"},
+			WithSQLArgs:       false,
+			RemoteFieldName:   "",
+			BoundArguments:    nil,
+			ObjectDescription: "",
+		},
+	}
+
+	relationships.Inject(
+		roleSchemas,
+		specs,
+		map[string]relationships.TypeNameResolver{"default": resolver},
+	)
+
+	userField := findField(sourceObj, "user")
+	if userField == nil {
+		t.Fatal("expected action object relationship field 'user'")
+	}
+
+	if userField.Type.NamedType != "users" {
+		t.Errorf("user field type = %#v, want users", userField.Type)
+	}
+
+	departmentsField := findField(sourceObj, "departments")
+	if departmentsField == nil {
+		t.Fatal("expected action array relationship field 'departments'")
+	}
+
+	if departmentsField.Type.Elem == nil ||
+		departmentsField.Type.Elem.NamedType != "user_departments" {
+		t.Errorf("departments field type = %#v, want [user_departments!]!", departmentsField.Type)
+	}
+
+	if departmentsField.Arguments != nil {
+		t.Errorf(
+			"action array relationship should not expose SQL args, got %v",
+			departmentsField.Arguments,
+		)
+	}
+}
+
+func TestInject_ActionRelationshipSkippedWhenJoinFieldHiddenForRole(t *testing.T) {
+	t.Parallel()
+
+	sourceObj := emptyObject("ActionProfile")
+	targetObj := &graph.ObjectType{
+		Name:   "users",
+		Fields: []*graph.Field{{Name: "id", Type: graph.NewNonNullType("uuid")}},
+	}
+
+	roleSchemas := map[string]map[string]*graph.Schema{
+		"__constellation_internal_actions": {"user": newSchema(sourceObj)},
+		"default":                          {"user": newSchema(targetObj)},
+	}
+
+	resolver := newResolver(t, map[string]string{"auth.users": "users"})
+	specs := []relationships.RelationshipSpec{
+		{
+			SourceConnector:   "__constellation_internal_actions",
+			SourceType:        "ActionProfile",
+			Name:              "user",
+			TargetConnector:   "default",
+			TargetIdentifier:  "auth.users",
+			IsArray:           false,
+			JoinMapping:       map[string]string{"userId": "id"},
+			WithSQLArgs:       false,
+			RemoteFieldName:   "",
+			BoundArguments:    nil,
+			ObjectDescription: "",
+		},
+	}
+
+	relationships.Inject(
+		roleSchemas,
+		specs,
+		map[string]relationships.TypeNameResolver{"default": resolver},
+	)
+
+	if findField(sourceObj, "user") != nil {
+		t.Fatal("expected relationship to be skipped when source join field is hidden")
 	}
 }
 

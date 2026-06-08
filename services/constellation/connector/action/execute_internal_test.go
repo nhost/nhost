@@ -270,6 +270,82 @@ func TestExecuteShapesNestedAliasesFragmentsAndScalars(t *testing.T) {
 	}
 }
 
+func TestExecutePreservesInjectedPhantomFields(t *testing.T) {
+	t.Parallel()
+
+	const queryText = `query ProfileAction { actionProfile { label } }`
+
+	doer := &stubDoer{t: t}
+	doer.handle = func(*http.Request) (*http.Response, error) {
+		return jsonHTTPResponse(t, http.StatusOK, map[string]any{
+			"label":  "primary profile",
+			"userId": "550e8400-e29b-41d4-a716-446655440001",
+		}), nil
+	}
+
+	conn := newConnectorWithDoer(
+		t.Context(),
+		executionMetadata(
+			[]metadata.ActionMetadata{
+				actionMeta(
+					"actionProfile",
+					metadata.ActionOperationQuery,
+					"ActionProfile!",
+					nil,
+					nil,
+				),
+			},
+			customTypes(withObjects(objectType(
+				"ActionProfile",
+				nil,
+				objectField("label", "String!"),
+				objectField("userId", "ID!"),
+			))),
+		),
+		metadata.NewInconsistencies(),
+		slog.Default(),
+		doer,
+	)
+
+	operation, fragments, variables := validatedOperation(
+		t,
+		conn,
+		metadata.RoleAdmin,
+		queryText,
+		nil,
+	)
+
+	root, ok := operation.SelectionSet[0].(*ast.Field)
+	if !ok {
+		t.Fatalf("root selection = %T, want *ast.Field", operation.SelectionSet[0])
+	}
+
+	root.SelectionSet = append(root.SelectionSet, &ast.Field{Name: "userId"})
+
+	result, err := conn.Execute(
+		requestcontext.GraphQLQueryToContext(t.Context(), queryText),
+		operation,
+		fragments,
+		variables,
+		metadata.RoleAdmin,
+		map[string]any{"x-hasura-role": "admin"},
+		slog.Default(),
+	)
+	if err != nil {
+		t.Fatalf("Execute: %v", err)
+	}
+
+	want := map[string]any{
+		"actionProfile": map[string]any{
+			"label":  "primary profile",
+			"userId": "550e8400-e29b-41d4-a716-446655440001",
+		},
+	}
+	if diff := cmp.Diff(want, result); diff != "" {
+		t.Fatalf("result mismatch (-want +got):\n%s", diff)
+	}
+}
+
 func TestExecuteMapsActionErrorsAndNullability(t *testing.T) {
 	t.Parallel()
 

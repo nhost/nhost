@@ -9,6 +9,7 @@ import (
 	"log/slog"
 	"slices"
 
+	"github.com/nhost/nhost/services/constellation/connector/action"
 	"github.com/nhost/nhost/services/constellation/connector/relationships"
 	"github.com/nhost/nhost/services/constellation/connector/schemamerge"
 	"github.com/nhost/nhost/services/constellation/graph"
@@ -247,6 +248,14 @@ func (c *Composer) typeNameResolvers() map[string]relationships.TypeNameResolver
 // not registered as a provider, or whose source table is an enum, are
 // dropped here so Inject never sees them.
 func (c *Composer) relationshipSpecs() []relationships.RelationshipSpec {
+	specs := c.databaseRelationshipSpecs()
+	specs = append(specs, c.remoteSchemaRelationshipSpecs()...)
+	specs = append(specs, c.actionRelationshipSpecs()...)
+
+	return specs
+}
+
+func (c *Composer) databaseRelationshipSpecs() []relationships.RelationshipSpec {
 	var specs []relationships.RelationshipSpec
 
 	for _, db := range c.meta.Databases {
@@ -256,28 +265,71 @@ func (c *Composer) relationshipSpecs() []relationships.RelationshipSpec {
 		}
 
 		for _, table := range db.Tables {
-			if table.IsEnum {
-				continue
-			}
-
-			sourceType := dbConn.GetTypeName(
-				table.Table.Schema + "." + table.Table.Name,
-			)
-
-			for _, rel := range table.RemoteRelationships {
-				if spec, ok := dbRelationshipSpec(db.Name, sourceType, rel); ok {
-					specs = append(specs, spec)
-				}
-			}
+			specs = append(specs, tableRelationshipSpecs(db.Name, dbConn, table)...)
 		}
 	}
 
+	return specs
+}
+
+func tableRelationshipSpecs(
+	dbName string,
+	dbConn SchemaProvider,
+	table metadata.TableMetadata,
+) []relationships.RelationshipSpec {
+	if table.IsEnum {
+		return nil
+	}
+
+	sourceType := dbConn.GetTypeName(table.Table.Schema + "." + table.Table.Name)
+	specs := make([]relationships.RelationshipSpec, 0, len(table.RemoteRelationships))
+
+	for _, rel := range table.RemoteRelationships {
+		if spec, ok := dbRelationshipSpec(dbName, sourceType, rel); ok {
+			specs = append(specs, spec)
+		}
+	}
+
+	return specs
+}
+
+func (c *Composer) remoteSchemaRelationshipSpecs() []relationships.RelationshipSpec {
+	var specs []relationships.RelationshipSpec
+
 	for _, rs := range c.meta.RemoteSchemas {
 		for _, typeRel := range rs.RemoteRelationships {
-			for _, rel := range typeRel.Relationships {
-				if spec, ok := rsRelationshipSpec(rs.Name, typeRel.TypeName, rel); ok {
-					specs = append(specs, spec)
-				}
+			specs = append(specs, typeRemoteSchemaRelationshipSpecs(rs.Name, typeRel)...)
+		}
+	}
+
+	return specs
+}
+
+func typeRemoteSchemaRelationshipSpecs(
+	rsName string,
+	typeRel metadata.RemoteSchemaTypeRemoteRelationship,
+) []relationships.RelationshipSpec {
+	specs := make([]relationships.RelationshipSpec, 0, len(typeRel.Relationships))
+
+	for _, rel := range typeRel.Relationships {
+		if spec, ok := rsRelationshipSpec(rsName, typeRel.TypeName, rel); ok {
+			specs = append(specs, spec)
+		}
+	}
+
+	return specs
+}
+
+func (c *Composer) actionRelationshipSpecs() []relationships.RelationshipSpec {
+	if _, ok := c.providers[action.ConnectorName]; !ok {
+		return nil
+	}
+
+	var specs []relationships.RelationshipSpec
+	for _, object := range c.meta.CustomTypes.Objects {
+		for _, rel := range object.Relationships {
+			if spec, ok := actionRelationshipSpec(object.Name, rel); ok {
+				specs = append(specs, spec)
 			}
 		}
 	}
@@ -308,6 +360,7 @@ func dbRelationshipSpec(
 			TargetConnector:   toSource.Source,
 			TargetIdentifier:  toSource.Table.Schema + "." + toSource.Table.Name,
 			IsArray:           isArray,
+			JoinMapping:       toSource.FieldMapping,
 			WithSQLArgs:       true,
 			RemoteFieldName:   "",
 			BoundArguments:    nil,
@@ -330,6 +383,7 @@ func dbRelationshipSpec(
 			TargetConnector:   toRS.RemoteSchema,
 			TargetIdentifier:  path[0].FieldName,
 			IsArray:           false,
+			JoinMapping:       lhsFieldsJoinMapping(toRS.LHSFields),
 			WithSQLArgs:       false,
 			RemoteFieldName:   path[0].FieldName,
 			BoundArguments:    path[0].Arguments,
@@ -338,6 +392,47 @@ func dbRelationshipSpec(
 	}
 
 	return relationships.RelationshipSpec{}, false //nolint:exhaustruct
+}
+
+// actionRelationshipSpec translates a metadata CustomObjectRelationship
+// (rooted in an action output object type) into a single RelationshipSpec.
+// Action output types behave like remote-schema source types: the relationship
+// is resolved after action execution, and the target database connector owns
+// any target-side SQL capabilities.
+func actionRelationshipSpec(
+	sourceType string,
+	rel metadata.CustomObjectRelationship,
+) (relationships.RelationshipSpec, bool) {
+	if rel.Type != metadata.RelationshipTypeObject && rel.Type != metadata.RelationshipTypeArray {
+		return relationships.RelationshipSpec{}, false //nolint:exhaustruct
+	}
+
+	return relationships.RelationshipSpec{
+		SourceConnector:   action.ConnectorName,
+		SourceType:        sourceType,
+		Name:              rel.Name,
+		TargetConnector:   rel.Source,
+		TargetIdentifier:  rel.RemoteTable.Schema + "." + rel.RemoteTable.Name,
+		IsArray:           rel.Type == metadata.RelationshipTypeArray,
+		JoinMapping:       rel.FieldMapping,
+		WithSQLArgs:       false,
+		RemoteFieldName:   "",
+		BoundArguments:    nil,
+		ObjectDescription: "",
+	}, true
+}
+
+func lhsFieldsJoinMapping(fields []string) map[string]string {
+	if len(fields) == 0 {
+		return nil
+	}
+
+	mapping := make(map[string]string, len(fields))
+	for _, field := range fields {
+		mapping[field] = ""
+	}
+
+	return mapping
 }
 
 // dbToDBObjectDescription returns the description text Hasura emits for a
@@ -381,6 +476,7 @@ func rsRelationshipSpec(
 		TargetConnector:   toSource.Source,
 		TargetIdentifier:  toSource.Table.Schema + "." + toSource.Table.Name,
 		IsArray:           toSource.RelationshipType == metadata.RelationshipTypeArray,
+		JoinMapping:       toSource.FieldMapping,
 		WithSQLArgs:       false,
 		RemoteFieldName:   "",
 		BoundArguments:    nil,

@@ -5,6 +5,7 @@ import (
 
 	"github.com/google/go-cmp/cmp"
 	"github.com/nhost/nhost/services/constellation/connector"
+	"github.com/nhost/nhost/services/constellation/connector/action"
 	connectormock "github.com/nhost/nhost/services/constellation/connector/mock"
 	"github.com/nhost/nhost/services/constellation/controller/planner"
 	"github.com/nhost/nhost/services/constellation/controller/relationships"
@@ -356,6 +357,89 @@ func TestFromMetadata_RemoteSchemaToSourceRelationship(t *testing.T) {
 
 	if rels[1].Name != "orders_aggregate" || !rels[1].IsArrayAggregate {
 		t.Errorf("aggregate entry wrong: %+v", rels[1])
+	}
+}
+
+func TestFromMetadata_ActionCustomObjectRelationships(t *testing.T) {
+	t.Parallel()
+
+	ctrl := gomock.NewController(t)
+	actionConn := connectormock.NewMockConnector(ctrl)
+
+	meta := &metadata.Metadata{
+		Databases:     nil,
+		RemoteSchemas: nil,
+		Actions:       nil,
+		CustomTypes: metadata.CustomTypes{
+			InputObjects: nil,
+			Objects: []metadata.CustomObjectType{
+				{
+					Name:        "ActionProfile",
+					Description: "",
+					Fields:      nil,
+					Relationships: []metadata.CustomObjectRelationship{
+						{
+							Name: "user",
+							Type: metadata.RelationshipTypeObject,
+							RemoteTable: metadata.TableSource{
+								Schema: "auth",
+								Name:   "users",
+							},
+							FieldMapping: map[string]string{"userId": "id"},
+							Source:       "default",
+						},
+						{
+							Name: "departments",
+							Type: metadata.RelationshipTypeArray,
+							RemoteTable: metadata.TableSource{
+								Schema: "public",
+								Name:   "user_departments",
+							},
+							FieldMapping: map[string]string{"userId": "user_id"},
+							Source:       "default",
+						},
+					},
+				},
+			},
+			Scalars: nil,
+			Enums:   nil,
+		},
+		LoadDiagnostics: nil,
+	}
+
+	got := relationships.FromMetadata(
+		meta,
+		map[string]connector.Connector{action.ConnectorName: actionConn},
+	)
+
+	rels := got[action.ConnectorName]
+	if len(rels) != 3 {
+		t.Fatalf("expected 3 relationships (object + array + aggregate), got %d", len(rels))
+	}
+
+	want := &planner.RelationshipMetadata{
+		Name:              "user",
+		SourceType:        "ActionProfile",
+		TargetConnector:   "default",
+		TargetTable:       "users",
+		TargetTableSchema: "auth",
+		JoinMapping:       map[string]string{"userId": "id"},
+		IsArray:           false,
+		IsArrayAggregate:  false,
+		IsRemote:          true,
+		LHSFields:         nil,
+		RemoteFieldPath:   nil,
+	}
+	if diff := cmp.Diff(want, rels[0]); diff != "" {
+		t.Errorf("object relationship mismatch (-want +got):\n%s", diff)
+	}
+
+	if !rels[1].IsArray || rels[1].IsArrayAggregate || rels[1].Name != "departments" {
+		t.Fatalf("plain array relationship mismatch: %+v", rels[1])
+	}
+
+	if !rels[2].IsArrayAggregate || rels[2].Name != "departments_aggregate" {
+		t.Fatalf("aggregate relationship mismatch: %+v", rels[2])
 	}
 }
 

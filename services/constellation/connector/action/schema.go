@@ -16,6 +16,8 @@ import (
 )
 
 const (
+	// ConnectorName is the reserved internal source name used for the action connector.
+	ConnectorName        = "__constellation_internal_actions"
 	queryRootTypeName    = "Query"
 	mutationRootTypeName = "Mutation"
 	deprecatedReason     = "No longer supported"
@@ -28,6 +30,7 @@ type Connector struct {
 	actions            map[string]runtimeAction
 	typeKinds          map[string]customTypeKind
 	enumValues         map[string]map[string]struct{}
+	objectFieldTypes   map[string]map[string]*ast.Type
 	httpClient         *httpClient
 }
 
@@ -40,9 +43,32 @@ type runtimeAction struct {
 	forwardClientHeaders bool
 }
 
+// RelationshipTargetKey identifies a database table that action custom object
+// relationships may target.
+type RelationshipTargetKey struct {
+	Source string
+	Schema string
+	Table  string
+}
+
+// RelationshipTarget describes a relationship target table as exposed per role.
+type RelationshipTarget struct {
+	Roles map[string]RelationshipTargetRole
+}
+
+// RelationshipTargetRole describes the target fields visible to one role.
+type RelationshipTargetRole struct {
+	Fields map[string]struct{}
+}
+
+// RelationshipTargets is the set of database tables available to action
+// custom object relationships, keyed by source/schema/table.
+type RelationshipTargets map[RelationshipTargetKey]RelationshipTarget
+
 type schemaOptions struct {
-	occupiedRootFields map[string]map[string]struct{}
-	occupiedTypeNames  map[string]map[string]struct{}
+	occupiedRootFields  map[string]map[string]struct{}
+	occupiedTypeNames   map[string]map[string]struct{}
+	relationshipTargets RelationshipTargets
 }
 
 type schemaOption func(*schemaOptions)
@@ -59,17 +85,25 @@ func withOccupiedTypeNames(names map[string]map[string]struct{}) schemaOption {
 	}
 }
 
-// New creates the action connector from parsed metadata. occupiedRootFields and
-// occupiedTypeNames describe fields/types already owned by database or remote
-// schema connectors, keyed by role, so action conflicts can be filtered before
-// composition drops a whole role. Passing nil doer uses the hardened default
-// HTTP client.
+func withRelationshipTargets(targets RelationshipTargets) schemaOption {
+	return func(opts *schemaOptions) {
+		opts.relationshipTargets = targets
+	}
+}
+
+// New creates the action connector from parsed metadata. relationshipTargets
+// describes database tables that custom object relationships may target.
+// occupiedRootFields and occupiedTypeNames describe fields/types already owned
+// by database or remote schema connectors, keyed by role, so action conflicts
+// can be filtered before composition drops a whole role. Passing nil doer uses
+// the hardened default HTTP client.
 func New(
 	ctx context.Context,
 	meta *metadata.Metadata,
 	inconsistencies *metadata.Inconsistencies,
 	logger *slog.Logger,
 	doer HTTPDoer,
+	relationshipTargets RelationshipTargets,
 	occupiedRootFields map[string]map[string]struct{},
 	occupiedTypeNames map[string]map[string]struct{},
 ) *Connector {
@@ -79,6 +113,7 @@ func New(
 		inconsistencies,
 		logger,
 		doer,
+		withRelationshipTargets(relationshipTargets),
 		withOccupiedRootFields(occupiedRootFields),
 		withOccupiedTypeNames(occupiedTypeNames),
 	)
@@ -88,10 +123,9 @@ func newConnector(
 	ctx context.Context,
 	meta *metadata.Metadata,
 	inconsistencies *metadata.Inconsistencies,
-	logger *slog.Logger,
 	opts ...schemaOption,
 ) *Connector {
-	return newConnectorWithDoer(ctx, meta, inconsistencies, logger, nil, opts...)
+	return newConnectorWithDoer(ctx, meta, inconsistencies, nil, nil, opts...)
 }
 
 func newConnectorWithDoer(
@@ -107,8 +141,9 @@ func newConnectorWithDoer(
 	}
 
 	options := schemaOptions{
-		occupiedRootFields: nil,
-		occupiedTypeNames:  nil,
+		occupiedRootFields:  nil,
+		occupiedTypeNames:   nil,
+		relationshipTargets: nil,
 	}
 	for _, opt := range opts {
 		opt(&options)
@@ -126,7 +161,7 @@ func newConnectorWithDoer(
 	}
 
 	schemas, outputTypeByAction, actions := builder.build(ctx)
-	typeKinds, enumValues := builder.runtimeTypeInfo()
+	typeKinds, enumValues, objectFieldTypes := builder.runtimeTypeInfo()
 
 	return &Connector{
 		schemas:            schemas,
@@ -134,6 +169,7 @@ func newConnectorWithDoer(
 		actions:            runtimeActionsByName(actions),
 		typeKinds:          typeKinds,
 		enumValues:         enumValues,
+		objectFieldTypes:   objectFieldTypes,
 		httpClient:         newHTTPClient(doer),
 	}
 }
@@ -252,9 +288,11 @@ func (b *schemaBuilder) build(
 func (b *schemaBuilder) runtimeTypeInfo() (
 	map[string]customTypeKind,
 	map[string]map[string]struct{},
+	map[string]map[string]*ast.Type,
 ) {
 	typeKinds := make(map[string]customTypeKind, len(b.typeDefs))
 	enumValues := make(map[string]map[string]struct{})
+	objectFieldTypes := make(map[string]map[string]*ast.Type)
 
 	for name, def := range b.typeDefs {
 		if def.invalid {
@@ -262,19 +300,27 @@ func (b *schemaBuilder) runtimeTypeInfo() (
 		}
 
 		typeKinds[name] = def.kind
-		if def.kind != customTypeKindEnum {
+		switch def.kind {
+		case customTypeKindEnum:
+			values := make(map[string]struct{}, len(def.enum.Values))
+			for _, value := range def.enum.Values {
+				values[value.Value] = struct{}{}
+			}
+
+			enumValues[name] = values
+		case customTypeKindObject:
+			fields := make(map[string]*ast.Type, len(def.fields))
+			for _, field := range def.fields {
+				fields[field.name] = astTypeFromGraph(field.typeRef)
+			}
+
+			objectFieldTypes[name] = fields
+		case customTypeKindScalar, customTypeKindInput:
 			continue
 		}
-
-		values := make(map[string]struct{}, len(def.enum.Values))
-		for _, value := range def.enum.Values {
-			values[value.Value] = struct{}{}
-		}
-
-		enumValues[name] = values
 	}
 
-	return typeKinds, enumValues
+	return typeKinds, enumValues, objectFieldTypes
 }
 
 func runtimeActionsByName(actions []actionDefinition) map[string]runtimeAction {
@@ -502,13 +548,11 @@ func (b *schemaBuilder) validateTypeDefinitions(ctx context.Context) {
 		case customTypeKindInput:
 			b.validateCustomFields(ctx, def, def.input.Fields, typePositionInput)
 		case customTypeKindObject:
-			if len(def.object.Relationships) > 0 {
-				b.invalidateType(ctx, def.name, "custom object relationships are not supported yet")
-
-				continue
-			}
-
 			b.validateCustomFields(ctx, def, def.object.Fields, typePositionOutput)
+
+			if !def.invalid {
+				b.validateCustomObjectRelationships(ctx, def)
+			}
 		}
 	}
 }
@@ -574,6 +618,155 @@ func (b *schemaBuilder) validateCustomFields(
 
 	def.fields = parsedFields
 	def.refs = refs
+}
+
+func (b *schemaBuilder) validateCustomObjectRelationships(
+	ctx context.Context,
+	def *typeDefinition,
+) {
+	if len(def.object.Relationships) == 0 {
+		return
+	}
+
+	fieldNames := make(map[string]struct{}, len(def.fields))
+	for _, field := range def.fields {
+		fieldNames[field.name] = struct{}{}
+	}
+
+	seen := make(map[string]struct{}, len(def.object.Relationships))
+	for _, rel := range def.object.Relationships {
+		if reason, ok := b.validateCustomObjectRelationship(def, rel, fieldNames, seen); !ok {
+			b.invalidateType(ctx, def.name, reason)
+
+			return
+		}
+	}
+}
+
+func (b *schemaBuilder) validateCustomObjectRelationship(
+	def *typeDefinition,
+	rel metadata.CustomObjectRelationship,
+	fieldNames map[string]struct{},
+	seen map[string]struct{},
+) (string, bool) {
+	if reason, ok := validateCustomObjectRelationshipName(rel, fieldNames, seen); !ok {
+		return reason, false
+	}
+
+	if rel.Type != metadata.RelationshipTypeObject && rel.Type != metadata.RelationshipTypeArray {
+		return fmt.Sprintf("relationship %q has invalid type %q", rel.Name, rel.Type), false
+	}
+
+	target, reason, ok := b.customObjectRelationshipTarget(rel)
+	if !ok {
+		return reason, false
+	}
+
+	return validateCustomObjectRelationshipMapping(def, rel, fieldNames, target)
+}
+
+func validateCustomObjectRelationshipName(
+	rel metadata.CustomObjectRelationship,
+	fieldNames map[string]struct{},
+	seen map[string]struct{},
+) (string, bool) {
+	if !isGraphQLName(rel.Name) {
+		return fmt.Sprintf("relationship %q is not a valid GraphQL name", rel.Name), false
+	}
+
+	if _, duplicate := seen[rel.Name]; duplicate {
+		return fmt.Sprintf("duplicate relationship %q", rel.Name), false
+	}
+
+	seen[rel.Name] = struct{}{}
+
+	if _, conflicts := fieldNames[rel.Name]; conflicts {
+		return fmt.Sprintf("relationship %q conflicts with a custom field", rel.Name), false
+	}
+
+	return "", true
+}
+
+func (b *schemaBuilder) customObjectRelationshipTarget(
+	rel metadata.CustomObjectRelationship,
+) (RelationshipTarget, string, bool) {
+	if rel.Source == "" {
+		return RelationshipTarget{Roles: nil},
+			fmt.Sprintf("relationship %q is missing source", rel.Name),
+			false
+	}
+
+	if rel.RemoteTable.Name == "" || rel.RemoteTable.Schema == "" {
+		return RelationshipTarget{Roles: nil},
+			fmt.Sprintf("relationship %q is missing remote_table", rel.Name),
+			false
+	}
+
+	target, ok := b.options.relationshipTargets[RelationshipTargetKey{
+		Source: rel.Source,
+		Schema: rel.RemoteTable.Schema,
+		Table:  rel.RemoteTable.Name,
+	}]
+	if !ok || len(target.Roles) == 0 {
+		return RelationshipTarget{Roles: nil},
+			fmt.Sprintf(
+				"relationship %q target source/table %q.%q not found",
+				rel.Name,
+				rel.RemoteTable.Schema,
+				rel.RemoteTable.Name,
+			),
+			false
+	}
+
+	return target, "", true
+}
+
+func validateCustomObjectRelationshipMapping(
+	def *typeDefinition,
+	rel metadata.CustomObjectRelationship,
+	fieldNames map[string]struct{},
+	target RelationshipTarget,
+) (string, bool) {
+	if len(rel.FieldMapping) == 0 {
+		return fmt.Sprintf("relationship %q is missing field_mapping", rel.Name), false
+	}
+
+	for sourceField, targetField := range rel.FieldMapping {
+		if _, exists := fieldNames[sourceField]; !exists {
+			return fmt.Sprintf(
+				"relationship %q source field %q not found on custom type %q",
+				rel.Name,
+				sourceField,
+				def.name,
+			), false
+		}
+
+		if targetField == "" {
+			return fmt.Sprintf("relationship %q maps to an empty target field", rel.Name), false
+		}
+
+		if !relationshipTargetFieldVisible(target, targetField) {
+			return fmt.Sprintf(
+				"relationship %q target field %q not found on source/table %q.%q",
+				rel.Name,
+				targetField,
+				rel.RemoteTable.Schema,
+				rel.RemoteTable.Name,
+			), false
+		}
+	}
+
+	return "", true
+}
+
+func relationshipTargetFieldVisible(target RelationshipTarget, fieldName string) bool {
+	for _, role := range target.Roles {
+		if _, ok := role.Fields[fieldName]; ok {
+			return true
+		}
+	}
+
+	return false
 }
 
 func (b *schemaBuilder) parseCustomField(
@@ -1506,6 +1699,26 @@ func graphTypeFromAST(typeRef *ast.Type) *graph.Type {
 	}
 
 	return graph.NewNamedType(typeRef.NamedType)
+}
+
+func astTypeFromGraph(typeRef *graph.Type) *ast.Type {
+	if typeRef == nil {
+		return nil
+	}
+
+	if typeRef.Elem != nil {
+		if typeRef.NonNull {
+			return ast.NonNullListType(astTypeFromGraph(typeRef.Elem), nil)
+		}
+
+		return ast.ListType(astTypeFromGraph(typeRef.Elem), nil)
+	}
+
+	if typeRef.NonNull {
+		return ast.NonNullNamedType(typeRef.NamedType, nil)
+	}
+
+	return ast.NamedType(typeRef.NamedType, nil)
 }
 
 func graphBaseTypeName(typeRef *graph.Type) string {

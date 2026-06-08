@@ -12,6 +12,7 @@ package relationships
 
 import (
 	"github.com/nhost/nhost/services/constellation/connector"
+	"github.com/nhost/nhost/services/constellation/connector/action"
 	"github.com/nhost/nhost/services/constellation/controller/planner"
 	"github.com/nhost/nhost/services/constellation/metadata"
 )
@@ -43,6 +44,12 @@ func FromMetadata(
 
 	for _, rs := range meta.RemoteSchemas {
 		result[rs.Name] = append(result[rs.Name], forRemoteSchema(rs)...)
+	}
+
+	if _, ok := connectors[action.ConnectorName]; ok {
+		result[action.ConnectorName] = append(
+			result[action.ConnectorName], forActionCustomTypes(meta.CustomTypes)...,
+		)
 	}
 
 	return result
@@ -124,6 +131,53 @@ func forRemoteSchema(rs metadata.RemoteSchemaMetadata) []*planner.RelationshipMe
 	}
 
 	return out
+}
+
+// forActionCustomTypes builds action→db relationship metadata for custom
+// object relationships declared on action output types.
+func forActionCustomTypes(
+	customTypes metadata.CustomTypes,
+) []*planner.RelationshipMetadata {
+	var out []*planner.RelationshipMetadata
+
+	for _, object := range customTypes.Objects {
+		for _, rel := range object.Relationships {
+			rm := forActionCustomObjectRelationship(object.Name, rel)
+			if rm == nil {
+				continue
+			}
+
+			out = append(out, rm)
+			if agg := aggregateRelationship(rm); agg != nil {
+				out = append(out, agg)
+			}
+		}
+	}
+
+	return out
+}
+
+func forActionCustomObjectRelationship(
+	sourceType string,
+	rel metadata.CustomObjectRelationship,
+) *planner.RelationshipMetadata {
+	if rel.Type != metadata.RelationshipTypeObject && rel.Type != metadata.RelationshipTypeArray {
+		return nil
+	}
+
+	return &planner.RelationshipMetadata{
+		Name:              rel.Name,
+		SourceType:        sourceType,
+		TargetConnector:   rel.Source,
+		TargetTable:       rel.RemoteTable.Name,
+		TargetTableSchema: rel.RemoteTable.Schema,
+		JoinMapping:       rel.FieldMapping,
+		IsArray:           rel.Type == metadata.RelationshipTypeArray,
+		IsArrayAggregate:  false,
+		IsRemote:          true,
+		LHSFields:         nil,
+		RemoteFieldPath:   nil,
+	}
 }
 
 // aggregateRelationship produces the "<rel>_aggregate" sibling relationship

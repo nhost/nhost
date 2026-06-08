@@ -107,7 +107,7 @@ type RemoteSchemaFactory func(
 	rsMeta *metadata.RemoteSchemaMetadata,
 ) (Connector, error)
 
-const actionConnectorName = "__constellation_internal_actions"
+const actionConnectorName = action.ConnectorName
 
 // defaultDBFactories returns the production registry of database factories
 // keyed by dbMeta.Kind.
@@ -272,6 +272,7 @@ func (cfg *buildConfig) buildActionConnector(
 		cfg.inconsistencies,
 		logger,
 		cfg.actionHTTPDoer,
+		actionRelationshipTargets(meta, connectors),
 		occupiedRootFields,
 		occupiedTypeNames,
 	)
@@ -339,6 +340,92 @@ func (cfg *buildConfig) recordActionConnectorCollision(
 	for _, customTypeName := range customTypeNames(meta.CustomTypes) {
 		cfg.inconsistencies.RecordCustomType(ctx, logger, customTypeName, reason)
 	}
+}
+
+func actionRelationshipTargets(
+	meta *metadata.Metadata,
+	connectors map[string]Connector,
+) action.RelationshipTargets {
+	targets := make(action.RelationshipTargets)
+	if meta == nil {
+		return targets
+	}
+
+	for _, object := range meta.CustomTypes.Objects {
+		for _, rel := range object.Relationships {
+			key := action.RelationshipTargetKey{
+				Source: rel.Source,
+				Schema: rel.RemoteTable.Schema,
+				Table:  rel.RemoteTable.Name,
+			}
+			if _, exists := targets[key]; exists {
+				continue
+			}
+
+			if target, ok := actionRelationshipTarget(key, connectors); ok {
+				targets[key] = target
+			}
+		}
+	}
+
+	return targets
+}
+
+func actionRelationshipTarget(
+	key action.RelationshipTargetKey,
+	connectors map[string]Connector,
+) (action.RelationshipTarget, bool) {
+	conn := connectors[key.Source]
+	if conn == nil || key.Source == "" || key.Schema == "" || key.Table == "" {
+		return action.RelationshipTarget{Roles: nil}, false
+	}
+
+	typeName := conn.GetTypeName(key.Schema + "." + key.Table)
+	if typeName == "" {
+		return action.RelationshipTarget{Roles: nil}, false
+	}
+
+	schemas, err := conn.GetSchema()
+	if err != nil {
+		return action.RelationshipTarget{Roles: nil}, false
+	}
+
+	roles := make(map[string]action.RelationshipTargetRole, len(schemas))
+	for role, schema := range schemas {
+		fields := objectFieldNames(schema, typeName)
+		if len(fields) == 0 {
+			continue
+		}
+
+		roles[role] = action.RelationshipTargetRole{Fields: fields}
+	}
+
+	if len(roles) == 0 {
+		return action.RelationshipTarget{Roles: nil}, false
+	}
+
+	return action.RelationshipTarget{Roles: roles}, true
+}
+
+func objectFieldNames(schema *graph.Schema, typeName string) map[string]struct{} {
+	if schema == nil {
+		return nil
+	}
+
+	for _, typ := range schema.Types {
+		if typ.Name != typeName {
+			continue
+		}
+
+		fields := make(map[string]struct{}, len(typ.Fields))
+		for _, field := range typ.Fields {
+			fields[field.Name] = struct{}{}
+		}
+
+		return fields
+	}
+
+	return nil
 }
 
 func occupiedActionNames(

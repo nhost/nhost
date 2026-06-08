@@ -36,8 +36,36 @@ actions:
     permissions:
       - role: public
     comment: Deterministic login action used for parity tests.
+  - name: actionProfiles
+    definition:
+      kind: synchronous
+      handler: '{{NHOST_FUNCTIONS_URL}}/actions'
+      forward_client_headers: false
+      headers:
+        - name: x-nhost-webhook-secret
+          value_from_env: NHOST_WEBHOOK_SECRET
+      timeout: 30
+    comment: Returns deterministic profile records for action relationship parity tests.
 custom_types:
   enums: []
   input_objects: []
-  objects: []
+  objects:
+    - name: ActionProfile
+      relationships:
+        - name: user
+          type: object
+          source: default
+          remote_table:
+            schema: auth
+            name: users
+          field_mapping:
+            userId: id
+        - name: departments
+          type: array
+          source: default
+          remote_table:
+            schema: public
+            name: user_departments
+          field_mapping:
+            userId: user_id
   scalars: []
