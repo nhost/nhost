@@ -72,6 +72,8 @@ result
 
 **/.claude/settings.local.json
 .claude/PLAN_*
+.pi/PLAN_*
+.pi/JUDGEMENT*
 .review/
 
 letsencrypt/*
