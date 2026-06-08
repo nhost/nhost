@@ -12,6 +12,7 @@ import (
 	"time"
 
 	"github.com/jackc/pgx/v5"
+	"github.com/jackc/pgx/v5/pgconn"
 	"github.com/jackc/pgx/v5/pgxpool"
 	"github.com/nhost/nhost/services/constellation/metadata"
 )
@@ -46,6 +47,19 @@ func (s pgxPoolStore) QueryRow( //nolint:ireturn,nolintlint
 	args ...any,
 ) pgx.Row {
 	return s.pool.QueryRow(ctx, sql, args...)
+}
+
+func (s pgxPoolStore) Exec(
+	ctx context.Context,
+	sql string,
+	args ...any,
+) (pgconn.CommandTag, error) {
+	tag, err := s.pool.Exec(ctx, sql, args...)
+	if err != nil {
+		return pgconn.CommandTag{}, fmt.Errorf("executing metadata statement: %w", err)
+	}
+
+	return tag, nil
 }
 
 func (s pgxPoolStore) Close() {
