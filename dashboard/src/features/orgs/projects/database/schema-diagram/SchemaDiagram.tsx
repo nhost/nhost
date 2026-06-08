@@ -18,6 +18,7 @@ import { useExportMetadata } from '@/features/orgs/projects/common/hooks/useExpo
 import { useIsPlatform } from '@/features/orgs/projects/common/hooks/useIsPlatform';
 import { useDataBrowserActions } from '@/features/orgs/projects/database/dataGrid/hooks/useDataBrowserActions';
 import { useDatabaseQuery } from '@/features/orgs/projects/database/dataGrid/hooks/useDatabaseQuery';
+import { useGetEnumsSet } from '@/features/orgs/projects/database/dataGrid/hooks/useGetEnumsSet';
 import { useGetTrackedTablesSet } from '@/features/orgs/projects/database/dataGrid/hooks/useGetTrackedTablesSet';
 import type {
   DatabaseObjectViewModel,
@@ -215,6 +216,10 @@ function SchemaDiagramContent() {
   );
 
   const { data: trackedTablesSet } = useGetTrackedTablesSet({
+    dataSource,
+  });
+
+  const { data: enumTablesSet } = useGetEnumsSet({
     dataSource,
   });
 
@@ -563,7 +568,7 @@ function SchemaDiagramContent() {
 
   return (
     <TableActionsProvider
-      value={{ actions: dataBrowserActions, trackedTablesSet }}
+      value={{ actions: dataBrowserActions, trackedTablesSet, enumTablesSet }}
     >
       <div className="flex h-full flex-col">
         <SchemaDiagramToolbar

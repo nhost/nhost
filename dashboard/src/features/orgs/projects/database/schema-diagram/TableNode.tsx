@@ -14,6 +14,7 @@ import type {
   HasuraMetadataTable,
   TableLikeObjectType,
 } from '@/features/orgs/projects/database/dataGrid/types/dataBrowser';
+import { getDatabaseObjectIcon } from '@/features/orgs/projects/database/dataGrid/utils/getDatabaseObjectIcon';
 import { isSchemaLocked } from '@/features/orgs/projects/database/dataGrid/utils/schemaHelpers';
 import { cn } from '@/lib/utils';
 import { GRAPHQL_NAME_CLASS, resolveDisplayName } from './displayName';
@@ -42,6 +43,14 @@ const VIEW_OBJECT_TYPES: ReadonlySet<TableLikeObjectType> = new Set([
   'VIEW',
   'MATERIALIZED VIEW',
 ]);
+
+/** Accessible label for the object-type icon in the node header. */
+const OBJECT_TYPE_LABELS: Record<TableLikeObjectType, string> = {
+  'ORDINARY TABLE': 'Table',
+  VIEW: 'View',
+  'MATERIALIZED VIEW': 'Materialized View',
+  'FOREIGN TABLE': 'Foreign Table',
+};
 
 const COLUMN_ACTIONS: readonly DatabaseAction[] = [
   'select',
@@ -242,10 +251,13 @@ function TableNodeView({ data }: NodeProps<TableNode>) {
   const objectKey = `${objectType}.${schema}.${table}`;
   const tablePath = `${schema}.${table}`;
   const isUntracked = !tableActions?.trackedTablesSet?.has(tablePath);
+  const isEnum = Boolean(tableActions?.enumTablesSet?.has(tablePath));
   const isLocked = isSchemaLocked(schema);
   const isMenuOpen = tableActions?.actions.sidebarMenuObject === objectKey;
   const isRemoving = tableActions?.actions.removableObject === objectKey;
   const isView = VIEW_OBJECT_TYPES.has(objectType);
+  const ObjectIcon = getDatabaseObjectIcon(objectType, isEnum);
+  const objectLabel = isEnum ? 'Enum' : OBJECT_TYPE_LABELS[objectType];
 
   const displayTable = resolveDisplayName(table, tableGraphqlName, namingMode);
 
@@ -266,21 +278,27 @@ function TableNodeView({ data }: NodeProps<TableNode>) {
         style={{ top: 18 }}
       />
       <div className="flex items-center justify-between gap-2 border-border border-b bg-muted/60 px-3 py-2">
-        <div className="min-w-0">
-          <div
-            className="truncate text-[rgb(var(--schema-color))] text-xs"
-            title={schema}
-          >
-            {schema}
-          </div>
-          <div
-            className={cn(
-              'truncate font-semibold text-sm',
-              displayTable.isCustomGraphql && GRAPHQL_NAME_CLASS,
-            )}
-            title={displayTable.name}
-          >
-            {displayTable.name}
+        <div className="flex min-w-0 items-start gap-2">
+          <ObjectIcon
+            aria-label={objectLabel}
+            className="h-4 w-4 shrink-0 translate-y-px text-[rgb(var(--schema-color))]"
+          />
+          <div className="min-w-0">
+            <div
+              className="truncate text-[rgb(var(--schema-color))] text-xs"
+              title={schema}
+            >
+              {schema}
+            </div>
+            <div
+              className={cn(
+                'truncate font-semibold text-sm',
+                displayTable.isCustomGraphql && GRAPHQL_NAME_CLASS,
+              )}
+              title={displayTable.name}
+            >
+              {displayTable.name}
+            </div>
           </div>
         </div>
         <div className="flex shrink-0 items-center gap-1.5">

@@ -1,5 +1,5 @@
 import { Handle, type NodeProps, Position } from '@xyflow/react';
-import { Settings, SquareFunction } from 'lucide-react';
+import { Settings } from 'lucide-react';
 import { memo } from 'react';
 import {
   Tooltip,
@@ -7,6 +7,7 @@ import {
   TooltipTrigger,
 } from '@/components/ui/v3/tooltip';
 import DatabaseObjectActions from '@/features/orgs/projects/database/dataGrid/components/DataBrowserSidebar/DatabaseObjectActions';
+import { getDatabaseObjectIcon } from '@/features/orgs/projects/database/dataGrid/utils/getDatabaseObjectIcon';
 import type { PermissionState } from '@/features/orgs/projects/database/dataGrid/utils/getFunctionPermissionState';
 import { isSchemaLocked } from '@/features/orgs/projects/database/dataGrid/utils/schemaHelpers';
 import { cn } from '@/lib/utils';
@@ -19,6 +20,8 @@ import {
 } from './permissionState';
 import { useTableActionsContext } from './TableActionsContext';
 import { FUNCTION_SOURCE_HANDLE_ID, type FunctionNode } from './useSchemaGraph';
+
+const FunctionIcon = getDatabaseObjectIcon('FUNCTION', false);
 
 function describeState(state: PermissionState): string {
   switch (state) {
@@ -145,7 +148,7 @@ function FunctionNodeView({ data }: NodeProps<FunctionNode>) {
 
       <div className="flex items-center justify-between gap-2 border-border border-b bg-muted/60 px-3 py-2">
         <div className="flex min-w-0 items-start gap-2">
-          <SquareFunction
+          <FunctionIcon
             aria-label="Function"
             className="h-4 w-4 shrink-0 translate-y-px text-[rgb(var(--schema-color))]"
           />

@@ -242,6 +242,7 @@ describe('FunctionNode', () => {
         handleDeleteDatabaseObject,
       }),
       trackedTablesSet: new Set(),
+      enumTablesSet: new Set(),
     });
 
     const user = new TestUserEvent();
@@ -276,6 +277,7 @@ describe('FunctionNode', () => {
           sidebarMenuObject: 'FUNCTION.public.12345',
         }),
         trackedTablesSet: new Set(),
+        enumTablesSet: new Set(),
       },
     );
 
