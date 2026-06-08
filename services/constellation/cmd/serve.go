@@ -43,9 +43,15 @@ const (
 	flagGraphQLRequestBodyLimitBytes = "graphql-request-body-limit-bytes"
 	flagHTTPReadTimeout              = "http-read-timeout"
 	//nolint:gosec // CLI flag name contains "write" but is not a credential.
-	flagHTTPWriteTimeout  = "http-write-timeout"
-	flagHTTPIdleTimeout   = "http-idle-timeout"
-	flagHasuraUpstreamURL = "hasura-upstream-url"
+	flagHTTPWriteTimeout                 = "http-write-timeout"
+	flagHTTPIdleTimeout                  = "http-idle-timeout"
+	flagHasuraUpstreamURL                = "hasura-upstream-url"
+	flagHasuraProxyRequestBodyLimitBytes = "hasura-proxy-request-body-limit-bytes"
+
+	// defaultHasuraProxyRequestBodyLimitBytes bounds bodies forwarded to the
+	// Hasura upstream via the NoRoute fallback. Generous (100 MiB) so large
+	// migrations / bulk run_sql still pass, but not unbounded.
+	defaultHasuraProxyRequestBodyLimitBytes int64 = 100 * 1024 * 1024
 
 	defaultHTTPReadTimeout   = 30 * time.Second
 	defaultHTTPWriteTimeout  = 5 * time.Minute
@@ -157,6 +163,17 @@ func serverFlags() []cli.Flag { //nolint:funlen // long flag list; splitting har
 			Value:    "http://hasura-service:8080/",
 			Category: "server",
 			Sources:  cli.EnvVars("CONSTELLATION_HASURA_UPSTREAM_URL"),
+		},
+		&cli.Int64Flag{ //nolint:exhaustruct
+			Name: flagHasuraProxyRequestBodyLimitBytes,
+			Usage: "maximum request body size, in bytes, forwarded to the Hasura " +
+				"upstream by the proxy fallback for routes Constellation does not " +
+				"serve natively. 0 disables the limit",
+			Value:    defaultHasuraProxyRequestBodyLimitBytes,
+			Category: "server",
+			Sources: cli.EnvVars(
+				"CONSTELLATION_HASURA_PROXY_REQUEST_BODY_LIMIT_BYTES",
+			),
 		},
 	}
 }
@@ -327,19 +344,7 @@ func getRouter(
 		oapimw.Tracing(),
 		oapimw.Logger(logger), //nolint:contextcheck // middleware uses each request's context.
 		corsHandler,
-		//nolint:contextcheck // middleware runs per-request with the request's
-		// own context; the startup ctx must not be propagated here.
-		// Session runs globally, including for the Hasura proxy fallback
-		// (NoRoute) below: a proxied request carrying an invalid/expired JWT
-		// and no admin secret is aborted with 401 before it reaches Hasura,
-		// so the proxy is not a fully transparent passthrough on that path.
-		// Acceptable today — the proxied endpoints (/v1/metadata, /v2/query,
-		// /apis/*) all require admin-secret auth, which Session passes
-		// through, and Hasura would reject the same invalid JWT itself.
-		// Headers are not stripped or rewritten by Session, so header
-		// fidelity to Hasura is intact. If transparency for endpoints with
-		// independent auth is needed later, scope Session to the native
-		// GraphQL routes via a route group instead of router.Use.
+		//nolint:contextcheck
 		middleware.Session(cmd.String(flagAdminSecret), jwtAuth),
 	)
 
@@ -389,7 +394,21 @@ func getRouter(
 	router.GET("/v1", ctrl.HandlerGet)
 
 	if hasuraProxy != nil {
+		proxyBodyLimit := cmd.Int64(flagHasuraProxyRequestBodyLimitBytes)
+
 		router.NoRoute(func(c *gin.Context) {
+			// Unhandled paths (/v2/query, /apis/*) are streamed to the Hasura
+			// upstream and are reachable anonymously (Session does not abort the
+			// public role), so bound the body to avoid forwarding an unbounded
+			// payload. MaxBytesReader caps both the ContentLength fast-path and a
+			// chunked stream; on overflow the proxy's read fails and ErrorHandler
+			// returns 502. 0 disables the cap.
+			if proxyBodyLimit > 0 {
+				c.Request.Body = http.MaxBytesReader(
+					c.Writer, c.Request.Body, proxyBodyLimit,
+				)
+			}
+
 			hasuraProxy.ServeHTTP(c.Writer, c.Request)
 		})
 	}
