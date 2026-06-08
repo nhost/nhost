@@ -353,10 +353,12 @@ export default function SchemaDiagramToolbar({
                 </div>
                 <ul className="space-y-1.5">
                   <li className="flex items-center gap-2">
-                    <SquareFunction
-                      aria-hidden="true"
-                      className="h-4 w-4 shrink-0 text-muted-foreground"
-                    />
+                    <span className="flex w-14 shrink-0 justify-center">
+                      <SquareFunction
+                        aria-hidden="true"
+                        className="h-4 w-4 text-muted-foreground"
+                      />
+                    </span>
                     <span>
                       <span className="text-foreground">Function node</span> — a
                       function that returns{' '}
