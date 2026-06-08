@@ -6,7 +6,6 @@ import (
 	json "encoding/json/v2"
 	"errors"
 	"fmt"
-	"io"
 	"maps"
 	"net/http"
 	"os"
@@ -20,16 +19,12 @@ import (
 	"github.com/nhost/nhost/services/constellation/metadata"
 )
 
-const (
-	actionRedTestsEnv    = "CONSTELLATION_ACTIONS_RED_TESTS"
-	syncActionFixtureDir = "actionfixtures/sync"
-)
+const actionFixtureDir = "actionfixtures/default"
 
 var errUnexpectedActionHTTPStatus = errors.New("unexpected HTTP status")
 
 func TestActionsSync(t *testing.T) { //nolint:paralleltest
 	skipUnlessActionGraphQLEndpoints(t)
-	withHasuraSyncActionMetadata(t)
 	waitForConstellationSyncActionSchema(t)
 
 	t.Run("schema", func(t *testing.T) { //nolint:paralleltest
@@ -112,22 +107,21 @@ func TestActionsSync(t *testing.T) { //nolint:paralleltest
 	})
 }
 
-func TestActionFileMetadataParsingGaps(t *testing.T) {
-	skipUnlessActionRedTests(t)
+func TestActionFileMetadataParsing(t *testing.T) {
 	t.Parallel()
 
-	metadataDir := copyDefaultMetadataWithActionOverlay(t)
-
-	md, err := metadata.FromDetect(t.Context(), filepath.Join(metadataDir, "metadata.yaml"))
+	md, err := metadata.FromDetect(
+		t.Context(),
+		filepath.Join("nhost", "metadata", "metadata.yaml"),
+	)
 	if err != nil {
-		t.Fatalf("loading action fixture through file metadata path: %v", err)
+		t.Fatalf("loading default action metadata through file metadata path: %v", err)
 	}
 
 	assertNativeMetadataContainsActions(t, md, "file metadata")
 }
 
-func TestActionDBJSONMetadataGaps(t *testing.T) {
-	skipUnlessActionRedTests(t)
+func TestActionDBJSONMetadataParsing(t *testing.T) {
 	t.Parallel()
 
 	data := readSyncActionFixture(t, "metadata.json")
@@ -138,14 +132,6 @@ func TestActionDBJSONMetadataGaps(t *testing.T) {
 	}
 
 	assertNativeMetadataContainsActions(t, md, "DB JSON metadata")
-}
-
-func skipUnlessActionRedTests(t *testing.T) {
-	t.Helper()
-
-	if os.Getenv(actionRedTestsEnv) != "1" {
-		t.Skipf("set %s=1 to run opt-in Hasura Action characterization tests", actionRedTestsEnv)
-	}
 }
 
 func skipUnlessActionGraphQLEndpoints(t *testing.T) {
@@ -523,190 +509,15 @@ func assertNativeMetadataContainsActions(t *testing.T, md *metadata.Metadata, so
 	}
 }
 
-func withHasuraSyncActionMetadata(t *testing.T) {
-	t.Helper()
-
-	original := exportHasuraMetadata(t)
-	patched := cloneJSONObject(original)
-	fixture := readSyncActionMetadataFixture(t)
-	patched["actions"] = fixture["actions"]
-	patched["custom_types"] = fixture["custom_types"]
-
-	replaceHasuraMetadata(t, patched)
-	t.Cleanup(func() {
-		replaceHasuraMetadata(t, original)
-	})
-}
-
-func exportHasuraMetadata(t *testing.T) map[string]any {
-	t.Helper()
-
-	result := requestHasuraMetadata(t, "export_metadata", map[string]any{})
-
-	metadataDoc, ok := result.(map[string]any)
-	if !ok {
-		t.Fatalf("export_metadata returned %T, want JSON object", result)
-	}
-
-	return metadataDoc
-}
-
-func replaceHasuraMetadata(t *testing.T, metadataDoc map[string]any) {
-	t.Helper()
-
-	args := map[string]any{
-		"metadata":                    metadataDoc,
-		"allow_inconsistent_metadata": true,
-	}
-	requestHasuraMetadata(t, "replace_metadata", args)
-}
-
-func requestHasuraMetadata(t *testing.T, operation string, args map[string]any) any {
-	t.Helper()
-
-	payload := map[string]any{
-		"type": operation,
-		"args": args,
-	}
-
-	body, err := json.Marshal(payload)
-	if err != nil {
-		t.Fatalf("marshal Hasura metadata %s request: %v", operation, err)
-	}
-
-	ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
-	defer cancel()
-
-	req, err := http.NewRequestWithContext(
-		ctx,
-		http.MethodPost,
-		strings.TrimSuffix(hasuraURL, "/v1/graphql")+"/v1/metadata",
-		bytes.NewReader(body),
-	)
-	if err != nil {
-		t.Fatalf("create Hasura metadata %s request: %v", operation, err)
-	}
-
-	req.Header.Set("Content-Type", "application/json")
-	req.Header.Set("x-hasura-admin-secret", adminSecret)
-
-	resp, err := http.DefaultClient.Do(req)
-	if err != nil {
-		t.Fatalf("perform Hasura metadata %s request: %v", operation, err)
-	}
-	defer resp.Body.Close()
-
-	if resp.StatusCode < http.StatusOK || resp.StatusCode >= http.StatusMultipleChoices {
-		data, readErr := io.ReadAll(resp.Body)
-		if readErr != nil {
-			t.Fatalf(
-				"read Hasura metadata %s error response after HTTP %d: %v",
-				operation,
-				resp.StatusCode,
-				readErr,
-			)
-		}
-
-		t.Fatalf(
-			"Hasura metadata %s returned HTTP %d: %s",
-			operation,
-			resp.StatusCode,
-			data,
-		)
-	}
-
-	var result any
-	if err := json.UnmarshalRead(resp.Body, &result); err != nil {
-		t.Fatalf("decode Hasura metadata %s response: %v", operation, err)
-	}
-
-	if m, ok := result.(map[string]any); ok {
-		if _, hasError := m["error"]; hasError {
-			t.Fatalf("Hasura metadata %s failed: %#v", operation, m)
-		}
-	}
-
-	return result
-}
-
-func readSyncActionMetadataFixture(t *testing.T) map[string]any {
-	t.Helper()
-
-	var fixture map[string]any
-	if err := json.Unmarshal(readSyncActionFixture(t, "metadata.json"), &fixture); err != nil {
-		t.Fatalf("unmarshaling sync action metadata fixture: %v", err)
-	}
-
-	return fixture
-}
-
 func readSyncActionFixture(t *testing.T, name string) []byte {
 	t.Helper()
 
-	data, err := os.ReadFile(filepath.Join(syncActionFixtureDir, name))
+	data, err := os.ReadFile(filepath.Join(actionFixtureDir, name))
 	if err != nil {
 		t.Fatalf("reading sync action fixture %s: %v", name, err)
 	}
 
 	return data
-}
-
-func cloneJSONObject(in map[string]any) map[string]any {
-	return maps.Clone(in)
-}
-
-func copyDefaultMetadataWithActionOverlay(t *testing.T) string {
-	t.Helper()
-
-	dst := t.TempDir()
-	copyDir(t, "nhost/metadata", dst)
-
-	for _, name := range []string{"actions.yaml", "actions.graphql"} {
-		data := readSyncActionFixture(t, name)
-		if err := os.WriteFile(filepath.Join(dst, name), data, 0o600); err != nil {
-			t.Fatalf("writing action overlay %s: %v", name, err)
-		}
-	}
-
-	return dst
-}
-
-func copyDir(t *testing.T, src string, dst string) {
-	t.Helper()
-
-	if err := filepath.WalkDir(src, func(path string, d os.DirEntry, err error) error {
-		if err != nil {
-			return fmt.Errorf("walking metadata fixture %s: %w", path, err)
-		}
-
-		rel, err := filepath.Rel(src, path)
-		if err != nil {
-			return fmt.Errorf("relativizing metadata fixture %s: %w", path, err)
-		}
-
-		target := filepath.Join(dst, rel)
-
-		if d.IsDir() {
-			if err := os.MkdirAll(target, 0o700); err != nil {
-				return fmt.Errorf("creating metadata fixture directory %s: %w", target, err)
-			}
-
-			return nil
-		}
-
-		data, err := os.ReadFile(path)
-		if err != nil {
-			return fmt.Errorf("reading metadata fixture file %s: %w", path, err)
-		}
-
-		if err := os.WriteFile(target, data, 0o600); err != nil {
-			return fmt.Errorf("writing metadata fixture file %s: %w", target, err)
-		}
-
-		return nil
-	}); err != nil {
-		t.Fatalf("copying default metadata fixture: %v", err)
-	}
 }
 
 func actionLoginVariables() map[string]any {

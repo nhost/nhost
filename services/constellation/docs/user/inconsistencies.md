@@ -215,9 +215,8 @@ metadata loaded with inconsistencies  count=N
 ```
 
 Programmatic access: `(*controller.Controller).Inconsistencies()` returns a
-snapshot of the current build's recorded entries. The gated `/v1/metadata` API
-currently covers action/custom-type writes plus minimal export/reload behavior;
-it does not yet expose a Hasura-style inconsistencies endpoint.
+snapshot of the current build's recorded entries. Constellation does not expose
+a Hasura-style metadata HTTP API or inconsistencies endpoint.
 
 ## Source-type matrix
 

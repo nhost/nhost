@@ -10,7 +10,6 @@ import (
 
 func TestActionTransforms(t *testing.T) { //nolint:paralleltest
 	skipUnlessActionGraphQLEndpoints(t)
-	withHasuraSyncActionMetadata(t)
 	waitForConstellationActionTransformSchema(t)
 
 	tc := TestCase{

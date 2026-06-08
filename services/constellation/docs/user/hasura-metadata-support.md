@@ -340,13 +340,13 @@ from `hdb_catalog.hdb_metadata`.
 |---|---|---|
 | Action signatures (`type`, `arguments`, `output_type`) | ✅ | File mode merges SDL from `actions.graphql`; DB JSON can carry structured signatures directly. |
 | `definition.kind: synchronous` | ✅ | Executes the webhook during the GraphQL request. Sync action payload includes `action.name`, `input`, lower-case `session_variables`, and original `request_query`. |
-| `definition.kind: asynchronous` | 🟡 | Exposes async mutation UUID/result shapes and a polling subscription handler when an action-log store is configured. Workers require explicit exclusive ownership of the configured log table. Live Hasura-vs-Constellation async parity tests are still gated. |
+| `definition.kind: asynchronous` | 🟡 | Exposes async mutation UUID/result shapes and a polling subscription handler when an action-log store is configured. Workers require explicit exclusive ownership of the configured log table. The default integration setup includes an async action fixture and action-log store configuration. |
 | `handler`, `headers`, `forward_client_headers`, `timeout` | ✅ | Handler URLs are validated after env/transform resolution; redirects are blocked; request/response bodies are capped. Raw forwarded `x-hasura-*` headers cannot override resolved session variables. |
 | Action permissions | ✅ | `admin` sees all actions. Other roles see only actions with explicit permissions. |
 | Request/response transforms | ✅ | Supports the Hasura v2 Kriti action transform surface used by request method/url/query/header/content-type/body transforms, form-urlencoded bodies, and response body transforms. Unsupported transform documents are recorded as action inconsistencies. |
 | Custom scalars, enums, inputs, objects | ✅ | Used for action argument/output schema generation, including enum deprecation metadata. |
 | Custom object relationships to sources | ✅ | Object and array relationships from action output object types to database tables are resolved by the same planner/resolver path as remote relationships. Array relationships expose `<rel>_aggregate` when the target source exposes aggregate types. |
-| Metadata API action operations | 🟡 | `POST /v1/metadata` is disabled by default. When `--metadata-api-enabled` and `--metadata-api-sole-writer` are set, admin-secret requests may use `bulk`, `export_metadata`, `reload_metadata`, `create_action`, `update_action`, `drop_action`, `create_action_permission`, `drop_action_permission`, and `set_custom_types`. Non-action metadata operations remain out of scope. `drop_action.clear_data` does not yet purge async log rows. |
+| Metadata API action operations | ❌ | Constellation does not implement `POST /v1/metadata`. Manage action and custom-type metadata through the backing Hasura metadata source, then let Constellation consume the updated file or catalog metadata. |
 | Action codegen/OpenAPI import/Console UI | ❌ | Out of scope. |
 
 
@@ -354,13 +354,13 @@ from `hdb_catalog.hdb_metadata`.
 
 These Hasura metadata sections have **no representation** in Constellation. When
 present in a Hasura metadata file or `hdb_metadata` blob they are dropped on load
-(no error); when configured through Hasura's Metadata API they have no effect on
-what Constellation serves.
+(no error). Constellation does not expose Hasura's Metadata API, so metadata
+HTTP write operations have no direct Constellation endpoint.
 
 | Hasura feature | Metadata operations | Status |
 |---|---|---|
-| **Actions** | `create_action`, `create_action_permission`, … | 🟡 — supported only by the gated action/custom-type Metadata API subset described above. |
-| **Custom types** | `set_custom_types` | 🟡 — supported only by the gated action/custom-type Metadata API subset described above. |
+| **Actions** | `create_action`, `create_action_permission`, … | ❌ as HTTP operations. Action metadata loaded from files or `hdb_catalog` is supported as described above. |
+| **Custom types** | `set_custom_types` | ❌ as an HTTP operation. Custom types loaded from files or `hdb_catalog` are supported as described above. |
 | **Event triggers** | `*_create_event_trigger`, … | ❌ |
 | **Cron / scheduled triggers** | `create_cron_trigger`, `create_scheduled_event` | ❌ |
 | **Query collections** | `create_query_collection`, `add_query_to_collection` | ❌ |
@@ -376,7 +376,7 @@ what Constellation serves.
 | **Logical models** | `*_track_logical_model` | ❌ |
 | **Native queries** | `*_track_native_query` | ❌ |
 | **Stored procedures** (MSSQL) | `mssql_track_stored_procedure` | ❌ (no MSSQL backend) |
-| **Metadata Management HTTP API** | `POST /v1/metadata` (`export_metadata`, `reload_metadata`, action/custom-type writes) | 🟡 — disabled by default; only the action/custom-type subset is implemented in explicit sole-writer mode. `replace_metadata` and non-action write operations remain unsupported. |
+| **Metadata Management HTTP API** | `POST /v1/metadata` (`export_metadata`, `reload_metadata`, writes) | ❌ — Constellation consumes metadata but does not serve Hasura's metadata HTTP API. |
 
 ---
 

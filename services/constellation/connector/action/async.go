@@ -21,7 +21,7 @@ import (
 const (
 	asyncScalarUUID        = "uuid"
 	asyncScalarTimestamptz = "timestamptz"
-	asyncScalarJSONB       = "jsonb"
+	asyncScalarJSONB       = "json"
 
 	defaultAsyncPollInterval     = time.Second
 	defaultAsyncBatchSize        = 10
@@ -203,14 +203,14 @@ func (w *asyncWorker) claimAndDispatch(ctx context.Context) {
 		return
 	}
 
-	for _, entry := range entries {
+	for i, entry := range entries {
 		select {
 		case <-ctx.Done():
-			w.requeue(ctx, []uuid.UUID{entry.ID})
+			w.requeue(ctx, actionLogIDs(entries[i:]))
 
 			return
 		case <-w.stop:
-			w.requeue(ctx, []uuid.UUID{entry.ID})
+			w.requeue(ctx, actionLogIDs(entries[i:]))
 
 			return
 		case w.sem <- struct{}{}:
@@ -219,6 +219,15 @@ func (w *asyncWorker) claimAndDispatch(ctx context.Context) {
 			go w.process(ctx, entry)
 		}
 	}
+}
+
+func actionLogIDs(entries []ActionLogEntry) []uuid.UUID {
+	ids := make([]uuid.UUID, 0, len(entries))
+	for _, entry := range entries {
+		ids = append(ids, entry.ID)
+	}
+
+	return ids
 }
 
 func (w *asyncWorker) process( //nolint:funlen // Keeps async lifecycle/error persistence ordering explicit.
@@ -403,7 +412,7 @@ func (c *Connector) asyncMutationResult(
 	ctx context.Context,
 	runtime runtimeAction,
 	field *ast.Field,
-	fragments ast.FragmentDefinitionList,
+	_ ast.FragmentDefinitionList,
 	variables map[string]any,
 	sessionVariables map[string]any,
 	clientHeaders http.Header,
@@ -433,7 +442,7 @@ func (c *Connector) asyncMutationResult(
 		)
 	}
 
-	return c.shapeAsyncEntry(responseKey, field, fragments, entry)
+	return responseKey, entry.ID.String(), nil, nil
 }
 
 func (c *Connector) asyncStoredResult(

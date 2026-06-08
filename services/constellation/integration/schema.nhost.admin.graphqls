@@ -6,6 +6,7 @@ schema {
 scalar bigint
 scalar bytea
 scalar citext
+scalar json
 scalar jsonb
 scalar numeric
 scalar timestamptz
@@ -2419,6 +2420,76 @@ enum virus_update_column {
   """
   userSession
 }
+type ActionProfile {
+  label: String!
+  userId: ID!
+  user: users
+  """
+  An array relationship
+  """
+  departments(
+    """
+    distinct select on columns
+    """
+    distinct_on: [user_departments_select_column!]
+
+    """
+    limit the number of rows returned
+    """
+    limit: Int
+
+    """
+    skip the first n rows. Use only with order_by
+    """
+    offset: Int
+
+    """
+    sort the rows by one or more columns
+    """
+    order_by: [user_departments_order_by!]
+
+    """
+    filter the rows returned
+    """
+    where: user_departments_bool_exp
+  ): [user_departments!]!
+  """
+  An aggregate over an array relationship
+  """
+  departments_aggregate(
+    """
+    distinct select on columns
+    """
+    distinct_on: [user_departments_select_column!]
+
+    """
+    limit the number of rows returned
+    """
+    limit: Int
+
+    """
+    skip the first n rows. Use only with order_by
+    """
+    offset: Int
+
+    """
+    sort the rows by one or more columns
+    """
+    order_by: [user_departments_order_by!]
+
+    """
+    filter the rows returned
+    """
+    where: user_departments_bool_exp
+  ): user_departments_aggregate!
+}
+type AddNumbersOutput {
+  sum: Int!
+}
+type AsyncEchoOutput {
+  message: String!
+  role: String!
+}
 type Catalogcatalog_mutation_frontend {
   """
   delete single row from the table: "departments"
@@ -2771,6 +2842,13 @@ aggregate variance on columns
 type Catalogdepartments_variance_fields {
   budget: Float
 }
+type EchoHeadersOutput {
+  message: String!
+  role: String!
+  userId: String
+  forwardedHeader: String
+  webhookSecretPresent: Boolean!
+}
 type Game {
   id: ID!
   homeTeam: Team!
@@ -2803,6 +2881,11 @@ type LeagueTeam {
   goalDifference: Int!
   points: Int!
 }
+type LoginOutput {
+  accessToken: String!
+  userId: String!
+  role: String!
+}
 type Team {
   id: ID!
   name: String!
@@ -2817,6 +2900,17 @@ type Team {
   goalDifference: Int!
   points: Int!
   department: departments
+}
+type TransformEchoOutput {
+  message: String!
+  role: String!
+  contentType: String
+}
+type asyncEcho {
+  id: uuid!
+  created_at: timestamptz!
+  errors: json
+  output: AsyncEchoOutput!
 }
 """
 In-flight OAuth2 authorization requests.
@@ -5542,6 +5636,14 @@ type leagueQuery {
 mutation root
 """
 type mutation_root {
+  """
+  Exercises asynchronous action mutation/result parity.
+  """
+  asyncEcho(message: String!): uuid!
+  """
+  Deterministic login action used for parity tests.
+  """
+  login(email: String!, password: String!): LoginOutput!
   catalog: Catalogcatalog_mutation_frontend
   """
   delete single row from the table: "auth.oauth2_auth_requests"
@@ -8519,6 +8621,26 @@ type publishedNews_mutation_response {
   returning: [publishedNews!]!
 }
 type query_root {
+  """
+  Returns deterministic profile records for action relationship parity tests.
+  """
+  actionProfiles: [ActionProfile!]!
+  """
+  Adds two integers through a synchronous Hasura Action.
+  """
+  addNumbers(a: Int!, b: Int!): AddNumbersOutput!
+  """
+  Exercises asynchronous action mutation/result parity.
+  """
+  asyncEcho(id: uuid!): asyncEcho
+  """
+  Echoes selected action input, session variables, and headers.
+  """
+  echoHeaders(message: String!): EchoHeadersOutput!
+  """
+  Exercises request and response transforms for synchronous actions.
+  """
+  transformEcho(message: String!): TransformEchoOutput!
   catalog: Catalogcatalog_query
   """
   fetch data from the table: "auth.oauth2_auth_requests"
@@ -10871,6 +10993,10 @@ type query_root {
   league: leagueQuery
 }
 type subscription_root {
+  """
+  Exercises asynchronous action mutation/result parity.
+  """
+  asyncEcho(id: uuid!): asyncEcho
   catalog: Catalogcatalog_subscription
   """
   fetch data from the table: "auth.oauth2_auth_requests"

@@ -38,8 +38,6 @@ const (
 	flagJWTSecret                    = "jwt-secret"
 	flagSubscriptionPollInterval     = "subscription-poll-interval"
 	flagMetadataDatabaseURL          = "metadata-database-url"
-	flagMetadataAPIEnabled           = "metadata-api-enabled"
-	flagMetadataAPISoleWriter        = "metadata-api-sole-writer"
 	flagActionLogDatabaseURL         = "action-log-database-url"
 	flagActionLogSchema              = "action-log-schema"
 	flagActionLogTable               = "action-log-table"
@@ -62,10 +60,7 @@ const (
 	shutdownTimeout          = 30 * time.Second
 )
 
-var (
-	errFlagMustBeGreaterThanZero = errors.New("must be greater than 0")
-	errMetadataAPISoleWriter     = errors.New("metadata API writes require sole-writer mode")
-)
+var errFlagMustBeGreaterThanZero = errors.New("must be greater than 0")
 
 func generalFlags() []cli.Flag {
 	return []cli.Flag{
@@ -176,19 +171,6 @@ func dataFlags() []cli.Flag {
 			Usage:    "PostgreSQL URL for reading Hasura metadata from hdb_catalog.hdb_metadata",
 			Category: "metadata",
 			Sources:  cli.EnvVars("CONSTELLATION_METADATA_DATABASE_URL"),
-		},
-		&cli.BoolFlag{ //nolint:exhaustruct
-			Name:     flagMetadataAPIEnabled,
-			Usage:    "enable the admin-only /v1/metadata action/custom-type write API",
-			Category: "metadata",
-			Sources:  cli.EnvVars("CONSTELLATION_METADATA_API_ENABLED"),
-		},
-		&cli.BoolFlag{ //nolint:exhaustruct
-			Name: flagMetadataAPISoleWriter,
-			Usage: "assert this Constellation process is the sole writer for the " +
-				"configured metadata file/catalog while /v1/metadata writes are enabled",
-			Category: "metadata",
-			Sources:  cli.EnvVars("CONSTELLATION_METADATA_API_SOLE_WRITER"),
 		},
 	}
 }
@@ -354,7 +336,7 @@ func playgroundHandler(path string) gin.HandlerFunc {
 	}
 }
 
-func getRouter( //nolint:funlen // Route wiring is clearer kept with adjacent endpoint registration.
+func getRouter(
 	ctx context.Context,
 	cmd *cli.Command,
 	ctrl *controller.Controller,
@@ -407,21 +389,6 @@ func getRouter( //nolint:funlen // Route wiring is clearer kept with adjacent en
 	postHandler := ctrl.HandlerPostWithMaxBodyBytes(maxBodyBytes)
 	router.POST("/v1/graphql", postHandler)
 	router.GET("/v1/graphql", ctrl.HandlerGet)
-
-	if cmd.Bool(flagMetadataAPIEnabled) {
-		if !cmd.Bool(flagMetadataAPISoleWriter) {
-			return nil, fmt.Errorf(
-				"%s requires %s=true: %w",
-				flagMetadataAPIEnabled,
-				flagMetadataAPISoleWriter,
-				errMetadataAPISoleWriter,
-			)
-		}
-
-		router.POST("/v1/metadata", gin.WrapF(
-			ctrl.HandlerMetadataAPI(cmd.String(flagAdminSecret)),
-		))
-	}
 
 	// legacy endpoints for backward compatibility with hasura deployment
 	// to be removed when we do the one binary thing

@@ -189,7 +189,7 @@ func TestAsyncActionMutationQueryAndAuthorization(t *testing.T) {
 
 	ctx := requestcontext.GraphQLQueryToContext(
 		t.Context(),
-		`mutation { asyncEcho(message: "hello") { id created_at errors output { message } } }`,
+		`mutation { asyncEcho(message: "hello") }`,
 	)
 
 	mutationResult, err := executeActionQuery(
@@ -197,7 +197,7 @@ func TestAsyncActionMutationQueryAndAuthorization(t *testing.T) {
 		t,
 		conn,
 		"user",
-		`mutation { asyncEcho(message: "hello") { id created_at errors output { message } } }`,
+		`mutation { asyncEcho(message: "hello") }`,
 		nil,
 		map[string]any{
 			"x-hasura-role":    "user",
@@ -208,22 +208,9 @@ func TestAsyncActionMutationQueryAndAuthorization(t *testing.T) {
 		t.Fatalf("async mutation Execute: %v", err)
 	}
 
-	mutationPayload := actionResultMap(t, mutationResult, "asyncEcho")
-
-	id, ok := mutationPayload["id"].(string)
-	if !ok || id == "" {
-		t.Fatalf("async mutation id = %#v, want non-empty string", mutationPayload["id"])
-	}
-
-	if mutationPayload["errors"] != nil {
-		t.Fatalf("async mutation errors = %#v, want nil", mutationPayload["errors"])
-	}
-
-	if mutationPayload["output"] != nil {
-		t.Fatalf(
-			"async mutation output = %#v, want nil before worker completes",
-			mutationPayload["output"],
-		)
+	id := actionResultString(t, mutationResult, "asyncEcho")
+	if id == "" {
+		t.Fatal("async mutation id is empty")
 	}
 
 	query := `query AsyncResult($id: uuid!) {
@@ -345,7 +332,7 @@ func TestAsyncWorkerPersistsDeadlineErrorsWithFreshStoreContext(t *testing.T) {
 		t,
 		conn,
 		"user",
-		`mutation { asyncEcho(message: "hello") { id } }`,
+		`mutation { asyncEcho(message: "hello") }`,
 		nil,
 		map[string]any{
 			"x-hasura-role":    "user",
@@ -363,6 +350,62 @@ func TestAsyncWorkerPersistsDeadlineErrorsWithFreshStoreContext(t *testing.T) {
 		}
 	case <-time.After(2 * time.Second):
 		t.Fatal("async worker did not persist deadline failure")
+	}
+}
+
+func TestAsyncWorkerCloseRequeuesUnstartedBatchEntries(t *testing.T) {
+	t.Parallel()
+
+	logStore := store.NewMemory()
+	for range 2 {
+		if _, err := logStore.Insert(t.Context(), action.ActionLogInsert{
+			ActionName:     "asyncEcho",
+			InputPayload:   map[string]any{"message": "hello"},
+			RequestHeaders: http.Header{},
+			SessionVariables: map[string]any{
+				"x-hasura-role":    "user",
+				"x-hasura-user-id": "user-1",
+			},
+		}); err != nil {
+			t.Fatalf("Insert pending async action: %v", err)
+		}
+	}
+
+	started := make(chan struct{})
+	conn := action.New(
+		t.Context(),
+		asyncMetadata(),
+		metadata.NewInconsistencies(),
+		slog.Default(),
+		blockingDoer{started: started},
+		nil,
+		nil,
+		nil,
+		action.WithAsyncConfig(action.AsyncConfig{
+			Store:           logStore,
+			WorkerEnabled:   true,
+			PollInterval:    time.Hour,
+			BatchSize:       2,
+			MaxConcurrency:  1,
+			ShutdownTimeout: time.Millisecond,
+		}),
+	)
+
+	select {
+	case <-started:
+	case <-time.After(time.Second):
+		t.Fatal("async worker did not start processing action")
+	}
+
+	conn.Close()
+
+	claimed, err := logStore.ClaimPending(t.Context(), 2)
+	if err != nil {
+		t.Fatalf("ClaimPending after Close: %v", err)
+	}
+
+	if len(claimed) != 2 {
+		t.Fatalf("claimed after Close = %+v, want in-flight and unstarted actions", claimed)
 	}
 }
 
@@ -395,7 +438,7 @@ func TestAsyncWorkerCloseRequeuesInFlightAction(t *testing.T) {
 		t,
 		conn,
 		"user",
-		`mutation { asyncEcho(message: "hello") { id } }`,
+		`mutation { asyncEcho(message: "hello") }`,
 		nil,
 		map[string]any{
 			"x-hasura-role":    "user",
@@ -406,9 +449,9 @@ func TestAsyncWorkerCloseRequeuesInFlightAction(t *testing.T) {
 		t.Fatalf("async mutation Execute: %v", err)
 	}
 
-	payload := actionResultMap(t, mutationResult, "asyncEcho")
-	if payload["id"] == "" {
-		t.Fatalf("async mutation id = %#v, want non-empty", payload["id"])
+	id := actionResultString(t, mutationResult, "asyncEcho")
+	if id == "" {
+		t.Fatal("async mutation id is empty")
 	}
 
 	select {
@@ -438,6 +481,17 @@ func actionResultMap(t *testing.T, result map[string]any, field string) map[stri
 	}
 
 	return payload
+}
+
+func actionResultString(t *testing.T, result map[string]any, field string) string {
+	t.Helper()
+
+	value, ok := result[field].(string)
+	if !ok {
+		t.Fatalf("%s = %#v, want string", field, result[field])
+	}
+
+	return value
 }
 
 func asyncMetadata() *metadata.Metadata {

@@ -396,9 +396,9 @@ func dbRelationshipSpec(
 
 // actionRelationshipSpec translates a metadata CustomObjectRelationship
 // (rooted in an action output object type) into a single RelationshipSpec.
-// Action output types behave like remote-schema source types: the relationship
-// is resolved after action execution, and the target database connector owns
-// any target-side SQL capabilities.
+// Action output relationships are resolved after action execution, and array
+// relationships expose the target database connector's SQL filtering arguments
+// to match Hasura's custom-object relationship schema.
 func actionRelationshipSpec(
 	sourceType string,
 	rel metadata.CustomObjectRelationship,
@@ -415,7 +415,7 @@ func actionRelationshipSpec(
 		TargetIdentifier:  rel.RemoteTable.Schema + "." + rel.RemoteTable.Name,
 		IsArray:           rel.Type == metadata.RelationshipTypeArray,
 		JoinMapping:       rel.FieldMapping,
-		WithSQLArgs:       false,
+		WithSQLArgs:       rel.Type == metadata.RelationshipTypeArray,
 		RemoteFieldName:   "",
 		BoundArguments:    nil,
 		ObjectDescription: "",

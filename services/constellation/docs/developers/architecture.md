@@ -194,7 +194,7 @@ The hot path is therefore lock-free for steady-state reads (atomic pointer load)
 - [remote-schemas.md](./remote-schemas.md) — header forwarding, SDL parsing, preset application.
 - [customization.md](./customization.md) — schema customization decorator (namespacing, type/field renaming) and how it's reversed on the execution path.
 
-## Action connector and metadata API
+## Action connector
 
 Actions are implemented by the reserved internal connector
 `__constellation_internal_actions` (`connector/action`). It is built only through
@@ -219,10 +219,7 @@ that log table. On metadata reload, old workers stop claiming new jobs, drain
 bounded in-flight work, and requeue cancelled processing rows before the retired
 connector closes.
 
-The `/v1/metadata` action/custom-type write API is deliberately gated by
-`--metadata-api-enabled` plus `--metadata-api-sole-writer`. The handler takes a
-controller-level mutex around clone → mutate → persist → reload so concurrent
-admin writes do not lose updates. File metadata writes atomically replace
-`actions.yaml`/`actions.graphql` (or the full TOML file). DB metadata writes patch
-only `actions` and `custom_types` in `hdb_catalog.hdb_metadata` and advance
-`resource_version`, letting the poller dedupe self-generated changes.
+Constellation consumes action metadata from the configured file or
+`hdb_catalog.hdb_metadata` source. It does not expose Hasura's
+`POST /v1/metadata` write API; metadata management remains the responsibility of
+the backing Hasura metadata source or deployment tooling.

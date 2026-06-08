@@ -6,6 +6,7 @@ schema {
 scalar bigint
 scalar bytea
 scalar citext
+scalar json
 scalar jsonb
 scalar numeric
 scalar timestamptz
@@ -2419,6 +2420,76 @@ enum virus_update_column {
   """
   virus
 }
+type ActionProfile {
+  """
+  An array relationship
+  """
+  departments(
+    """
+    distinct select on columns
+    """
+    distinct_on: [user_departments_select_column!]
+
+    """
+    limit the number of rows returned
+    """
+    limit: Int
+
+    """
+    skip the first n rows. Use only with order_by
+    """
+    offset: Int
+
+    """
+    sort the rows by one or more columns
+    """
+    order_by: [user_departments_order_by!]
+
+    """
+    filter the rows returned
+    """
+    where: user_departments_bool_exp
+  ): [user_departments!]!
+  """
+  An aggregate relationship
+  """
+  departments_aggregate(
+    """
+    distinct select on columns
+    """
+    distinct_on: [user_departments_select_column!]
+
+    """
+    limit the number of rows returned
+    """
+    limit: Int
+
+    """
+    skip the first n rows. Use only with order_by
+    """
+    offset: Int
+
+    """
+    sort the rows by one or more columns
+    """
+    order_by: [user_departments_order_by!]
+
+    """
+    filter the rows returned
+    """
+    where: user_departments_bool_exp
+  ): user_departments_aggregate!
+  label: String!
+  user: users
+  userId: ID!
+}
+type AddNumbersOutput {
+  sum: Int!
+}
+type AsyncEchoOutput {
+  message: String!
+  role: String!
+}
 type Catalogcatalog_mutation_frontend {
   """
   delete data from the table: "departments"
@@ -2769,6 +2840,13 @@ aggregate variance on columns
 type Catalogdepartments_variance_fields {
   budget: Float
 }
+type EchoHeadersOutput {
+  forwardedHeader: String
+  message: String!
+  role: String!
+  userId: String
+  webhookSecretPresent: Boolean!
+}
 type Game {
   awayScore: Int!
   awayTeam: Team!
@@ -2801,6 +2879,11 @@ type LeagueTeam {
   points: Int!
   wins: Int!
 }
+type LoginOutput {
+  accessToken: String!
+  role: String!
+  userId: String!
+}
 type Team {
   department: departments
   departmentId: ID!
@@ -2815,6 +2898,32 @@ type Team {
   name: String!
   points: Int!
   wins: Int!
+}
+type TransformEchoOutput {
+  contentType: String
+  message: String!
+  role: String!
+}
+"""
+fields of action: "asyncEcho"
+"""
+type asyncEcho {
+  """
+  the time at which this action was created
+  """
+  created_at: timestamptz!
+  """
+  errors related to the invocation
+  """
+  errors: json
+  """
+  the unique id of an action
+  """
+  id: uuid!
+  """
+  the output fields of this action
+  """
+  output: AsyncEchoOutput!
 }
 """
 In-flight OAuth2 authorization requests.
@@ -5522,6 +5631,10 @@ type leagueQuery {
 mutation root
 """
 type mutation_root {
+  """
+  Exercises asynchronous action mutation/result parity.
+  """
+  asyncEcho(message: String!): uuid!
   catalog: Catalogcatalog_mutation_frontend
   """
   execute VOLATILE function "deactivate_department" which returns "user_departments"
@@ -6815,6 +6928,10 @@ type mutation_root {
     on_conflict: user_departments_on_conflict
   ): user_departments
   league: leagueMutation
+  """
+  Deterministic login action used for parity tests.
+  """
+  login(email: String!, password: String!): LoginOutput!
   recordGame(input: RecordGameInput!): Game!
   """
   Record a game for the user's team.
@@ -8523,6 +8640,23 @@ type publishedNews_mutation_response {
 }
 type query_root {
   """
+  Returns deterministic profile records for action relationship parity tests.
+  """
+  actionProfiles: [ActionProfile!]!
+  """
+  Adds two integers through a synchronous Hasura Action.
+  """
+  addNumbers(a: Int!, b: Int!): AddNumbersOutput!
+  """
+  Exercises asynchronous action mutation/result parity.
+  """
+  asyncEcho(
+    """
+    the unique id of an action
+    """
+    id: uuid!
+  ): asyncEcho
+  """
   fetch data from the table: "auth.oauth2_auth_requests" using primary key columns
   """
   authOauth2AuthRequest(id: uuid!): authOauth2AuthRequests
@@ -9573,6 +9707,10 @@ type query_root {
   fetch data from the table: "departments" using primary key columns
   """
   departments_by_pk(id: uuid!): departments
+  """
+  Echoes selected action input, session variables, and headers.
+  """
+  echoHeaders(message: String!): EchoHeadersOutput!
   """
   fetch data from the table: "exercise_log_sets"
   """
@@ -10684,6 +10822,10 @@ type query_root {
   teamGames(teamId: ID!): [Game!]!
   teams: [Team!]!
   """
+  Exercises request and response transforms for synchronous actions.
+  """
+  transformEcho(message: String!): TransformEchoOutput!
+  """
   fetch data from the table: "auth.users" using primary key columns
   """
   user(id: uuid!): users
@@ -10933,6 +11075,15 @@ type query_root {
   ): virus_aggregate!
 }
 type subscription_root {
+  """
+  Exercises asynchronous action mutation/result parity.
+  """
+  asyncEcho(
+    """
+    the unique id of an action
+    """
+    id: uuid!
+  ): asyncEcho
   """
   fetch data from the table: "auth.oauth2_auth_requests" using primary key columns
   """

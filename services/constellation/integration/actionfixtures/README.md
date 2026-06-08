@@ -1,14 +1,18 @@
 # Action fixtures
 
-These fixtures are opt-in characterization data for Hasura Action parity tests.
-They are intentionally not included from `integration/nhost/metadata`, so the
-default schema dumps stay unchanged until action runtime support is implemented.
+The default integration metadata in `integration/nhost/metadata` includes the
+same action surface used by the live action parity tests. This directory keeps
+copyable JSON/file-layout fixtures for parser tests and for regenerating action
+metadata examples.
 
-`sync/` contains synchronous `addNumbers`, `echoHeaders`, `login`, and
-`actionProfiles` actions. `actionProfiles` carries object and array
-custom-type relationships for relationship parity tests. The file-layout
-fixtures mirror Hasura metadata directory exports: operational
+`default/` contains `addNumbers`, `echoHeaders`, `login`, `actionProfiles`,
+`transformEcho`, and `asyncEcho`. `actionProfiles` carries object and array
+custom-type relationships for relationship parity tests. `transformEcho`
+exercises request/response transforms. `asyncEcho` exercises asynchronous action
+mutation/result parity when the default Constellation runner is configured with
+an action-log store.
+
+The file-layout fixtures mirror Hasura metadata directory exports: operational
 settings live in `actions.yaml`, while action signatures and custom object fields
 live in `actions.graphql`. `metadata.json` is the equivalent version-3 DB JSON
-shape used by the opt-in parser characterization test and by test helpers that
-apply the action metadata to a live Hasura instance.
+shape used by the DB JSON parser test.

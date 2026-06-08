@@ -34,6 +34,7 @@ type Connector struct {
 	typeKinds          map[string]customTypeKind
 	enumValues         map[string]map[string]struct{}
 	objectFieldTypes   map[string]map[string]*ast.Type
+	asyncResultTypes   map[string]struct{}
 	httpClient         *httpClient
 	asyncStore         ActionLogStore
 	asyncStoreOwned    bool
@@ -157,7 +158,7 @@ func newConnector(
 	return newConnectorWithDoer(ctx, meta, inconsistencies, nil, nil, opts...)
 }
 
-func newConnectorWithDoer(
+func newConnectorWithDoer( //nolint:funlen // Constructor wiring keeps schema/async runtime fields adjacent.
 	ctx context.Context,
 	meta *metadata.Metadata,
 	inconsistencies *metadata.Inconsistencies,
@@ -210,6 +211,7 @@ func newConnectorWithDoer(
 		typeKinds:          typeKinds,
 		enumValues:         enumValues,
 		objectFieldTypes:   objectFieldTypes,
+		asyncResultTypes:   asyncResultTypes(actions),
 		httpClient:         newHTTPClient(doer),
 		asyncStore:         asyncConfig.Store,
 		asyncStoreOwned:    asyncConfig.CloseStore,
@@ -402,7 +404,7 @@ func (b *schemaBuilder) runtimeTypeInfo(actions []actionDefinition) (
 			"id":         ast.NonNullNamedType(asyncScalarUUID, nil),
 			"created_at": ast.NonNullNamedType(asyncScalarTimestamptz, nil),
 			"errors":     ast.NamedType(asyncScalarJSONB, nil),
-			"output":     astTypeFromGraph(nullableGraphType(action.outputType)),
+			"output":     astTypeFromGraph(action.outputType),
 		}
 	}
 
@@ -1646,7 +1648,7 @@ func asyncMutationField(action actionDefinition) *graph.Field {
 	return &graph.Field{
 		Name:        action.meta.Name,
 		Description: action.meta.Comment,
-		Type:        graph.NewNonNullType(action.responseTypeName),
+		Type:        graph.NewNonNullType(asyncScalarUUID),
 		Arguments:   action.arguments,
 		Directives:  nil,
 	}
@@ -1668,6 +1670,17 @@ func asyncResultField(action actionDefinition) *graph.Field {
 		},
 		Directives: nil,
 	}
+}
+
+func asyncResultTypes(actions []actionDefinition) map[string]struct{} {
+	out := make(map[string]struct{})
+	for _, action := range actions {
+		if action.async {
+			out[action.responseTypeName] = struct{}{}
+		}
+	}
+
+	return out
 }
 
 func appendAsyncTypes(schema *graph.Schema, actions []actionDefinition) {
@@ -1720,7 +1733,7 @@ func asyncResponseType(action actionDefinition) *graph.ObjectType {
 			{
 				Name:        "output",
 				Description: "",
-				Type:        nullableGraphType(action.outputType),
+				Type:        action.outputType,
 				Arguments:   nil,
 				Directives:  nil,
 			},
@@ -1730,23 +1743,8 @@ func asyncResponseType(action actionDefinition) *graph.ObjectType {
 	}
 }
 
-func nullableGraphType(typeRef *graph.Type) *graph.Type {
-	if typeRef == nil {
-		return nil
-	}
-
-	clone := *typeRef
-
-	clone.NonNull = false
-	if typeRef.Elem != nil {
-		clone.Elem = nullableGraphType(typeRef.Elem)
-	}
-
-	return &clone
-}
-
 func asyncResponseTypeName(actionName string) string {
-	return actionName + "_response"
+	return actionName
 }
 
 func compareFields(a, b *graph.Field) int {

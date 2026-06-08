@@ -192,6 +192,10 @@ func (c *Connector) shapeObjectField(
 		return shapeResult{value: typeName, null: false, bubble: false, errs: nil}
 	}
 
+	if field.Name == "output" && object[field.Name] == nil && c.isAsyncResultType(typeName) {
+		return shapeResult{value: nil, null: false, bubble: false, errs: nil}
+	}
+
 	fieldType := c.objectFieldType(typeName, field)
 	if fieldType == nil {
 		return shapeResult{
@@ -215,6 +219,12 @@ func (c *Connector) shapeObjectField(
 		astBaseTypeName(fieldType),
 		path,
 	)
+}
+
+func (c *Connector) isAsyncResultType(typeName string) bool {
+	_, ok := c.asyncResultTypes[typeName]
+
+	return ok
 }
 
 func (c *Connector) objectFieldType(typeName string, field *ast.Field) *ast.Type {

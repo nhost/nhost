@@ -120,21 +120,14 @@ END;
 $$;
 ```
 
-# Actions and action metadata API
+# Actions
 
 Constellation implements Hasura Actions on the GraphQL request path, but a few
 edges intentionally remain narrower than Hasura CE:
 
-- The action Metadata API is disabled by default and only available when
-  `--metadata-api-enabled` and `--metadata-api-sole-writer` are both set. Only
-  action/custom-type operations plus minimal `bulk`, `export_metadata`, and
-  `reload_metadata` are implemented; non-action metadata writes and
-  `replace_metadata` remain out of scope.
-- `drop_action.clear_data` removes the action metadata but does not yet purge
-  asynchronous action-log rows.
-- `export_metadata` returns Constellation's parsed metadata shape rather than
-  Hasura's exact resource-version envelope.
+- Constellation does not implement Hasura's `POST /v1/metadata` API. It
+  consumes action/custom-type metadata from the configured file or
+  `hdb_catalog.hdb_metadata` source.
 - Asynchronous actions require an explicitly configured action-log store and
-  exclusive worker ownership. Live Hasura-vs-Constellation async parity tests are
-  gated until the comparison harness can isolate action-log tables for both
-  engines.
+  exclusive worker ownership. The default integration runner configures the
+  action-log store and includes an async action fixture.

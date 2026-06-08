@@ -2136,135 +2136,18 @@ enum userProfiles_select_column {
   """
   address
 }
-"""
-columns and relationships of "departments"
-"""
-type Catalogdepartments {
-  id: uuid!
-  name: String!
-  description: String
-  budget: numeric
-  has_high_budget: Boolean
-  created_at: timestamptz!
-  updated_at: timestamptz!
-}
-"""
-aggregated selection of "departments"
-"""
-type Catalogdepartments_aggregate {
-  aggregate: Catalogdepartments_aggregate_fields
-  nodes: [Catalogdepartments!]!
-}
-"""
-aggregate max on columns
-"""
-type Catalogdepartments_max_fields {
-  id: uuid
-  name: String
-  description: String
-  budget: numeric
-  has_high_budget: Boolean
-  created_at: timestamptz
-  updated_at: timestamptz
-}
-"""
-aggregate min on columns
-"""
-type Catalogdepartments_min_fields {
-  id: uuid
-  name: String
-  description: String
-  budget: numeric
-  has_high_budget: Boolean
-  created_at: timestamptz
-  updated_at: timestamptz
-}
-"""
-aggregate avg on columns
-"""
-type Catalogdepartments_avg_fields {
-  budget: Float
-}
-"""
-aggregate stddev on columns
-"""
-type Catalogdepartments_stddev_fields {
-  budget: Float
-}
-"""
-aggregate stddev_pop on columns
-"""
-type Catalogdepartments_stddev_pop_fields {
-  budget: Float
-}
-"""
-aggregate stddev_samp on columns
-"""
-type Catalogdepartments_stddev_samp_fields {
-  budget: Float
-}
-"""
-aggregate sum on columns
-"""
-type Catalogdepartments_sum_fields {
-  budget: numeric
-}
-"""
-aggregate var_pop on columns
-"""
-type Catalogdepartments_var_pop_fields {
-  budget: Float
-}
-"""
-aggregate var_samp on columns
-"""
-type Catalogdepartments_var_samp_fields {
-  budget: Float
-}
-"""
-aggregate variance on columns
-"""
-type Catalogdepartments_variance_fields {
-  budget: Float
-}
-"""
-aggregate fields of "departments"
-"""
-type Catalogdepartments_aggregate_fields {
-  count(columns: [Catalogdepartments_select_column!], distinct: Boolean): Int!
-  max: Catalogdepartments_max_fields
-  min: Catalogdepartments_min_fields
-  avg: Catalogdepartments_avg_fields
-  stddev: Catalogdepartments_stddev_fields
-  stddev_pop: Catalogdepartments_stddev_pop_fields
-  stddev_samp: Catalogdepartments_stddev_samp_fields
-  sum: Catalogdepartments_sum_fields
-  var_pop: Catalogdepartments_var_pop_fields
-  var_samp: Catalogdepartments_var_samp_fields
-  variance: Catalogdepartments_variance_fields
-}
-"""
-response of any mutation on the table "departments"
-"""
-type Catalogdepartments_mutation_response {
+type ActionProfile {
+  label: String!
+  userId: ID!
+  user: users
   """
-  number of rows affected by the mutation
-  """
-  affected_rows: Int!
-  """
-  data from the rows affected by the mutation
-  """
-  returning: [Catalogdepartments!]!
-}
-type Catalogcatalog_query {
-  """
-  fetch data from the table: "departments"
+  An array relationship
   """
   departments(
     """
     distinct select on columns
     """
-    distinct_on: [Catalogdepartments_select_column!]
+    distinct_on: [user_departments_select_column!]
 
     """
     limit the number of rows returned
@@ -2279,25 +2162,21 @@ type Catalogcatalog_query {
     """
     sort the rows by one or more columns
     """
-    order_by: [Catalogdepartments_order_by!]
+    order_by: [user_departments_order_by!]
 
     """
     filter the rows returned
     """
-    where: Catalogdepartments_bool_exp
-  ): [Catalogdepartments!]!
+    where: user_departments_bool_exp
+  ): [user_departments!]!
   """
-  fetch data from the table: "departments" using primary key columns
-  """
-  departments_by_pk(id: uuid!): Catalogdepartments
-  """
-  fetch aggregated fields from the table: "departments"
+  An aggregate over an array relationship
   """
   departments_aggregate(
     """
     distinct select on columns
     """
-    distinct_on: [Catalogdepartments_select_column!]
+    distinct_on: [user_departments_select_column!]
 
     """
     limit the number of rows returned
@@ -2312,183 +2191,51 @@ type Catalogcatalog_query {
     """
     sort the rows by one or more columns
     """
-    order_by: [Catalogdepartments_order_by!]
+    order_by: [user_departments_order_by!]
 
     """
     filter the rows returned
     """
-    where: Catalogdepartments_bool_exp
-  ): Catalogdepartments_aggregate!
+    where: user_departments_bool_exp
+  ): user_departments_aggregate!
 }
-type Catalogcatalog_mutation_frontend {
-  """
-  delete single row from the table: "departments"
-  """
-  delete_departments_by_pk(id: uuid!): Catalogdepartments
-  """
-  delete data from the table: "departments"
-  """
-  delete_departments(
-    """
-    filter the rows which have to be deleted
-    """
-    where: Catalogdepartments_bool_exp!
-  ): Catalogdepartments_mutation_response
-  """
-  insert a single row into the table: "departments"
-  """
-  insert_departments_one(
-    """
-    the row to be inserted
-    """
-    object: Catalogdepartments_insert_input!
-
-    """
-    upsert condition
-    """
-    on_conflict: Catalogdepartments_on_conflict
-  ): Catalogdepartments
-  """
-  insert data into the table: "departments"
-  """
-  insert_departments(
-    """
-    the rows to be inserted
-    """
-    objects: [Catalogdepartments_insert_input!]!
-
-    """
-    upsert condition
-    """
-    on_conflict: Catalogdepartments_on_conflict
-  ): Catalogdepartments_mutation_response
-  """
-  update single row of the table: "departments"
-  """
-  update_departments_by_pk(
-    """
-    increments the numeric columns with given value of the filtered values
-    """
-    _inc: Catalogdepartments_inc_input
-
-    """
-    sets the columns of the filtered rows to the given values
-    """
-    _set: Catalogdepartments_set_input
-  pk_columns: Catalogdepartments_pk_columns_input!): Catalogdepartments
-  """
-  update data of the table: "departments"
-  """
-  update_departments(
-    """
-    increments the numeric columns with given value of the filtered values
-    """
-    _inc: Catalogdepartments_inc_input
-
-    """
-    sets the columns of the filtered rows to the given values
-    """
-    _set: Catalogdepartments_set_input
-
-    """
-    filter the rows which have to be updated
-    """
-    where: Catalogdepartments_bool_exp!
-  ): Catalogdepartments_mutation_response
-  """
-  update multiples rows of table: "departments"
-  """
-  update_departments_many(
-    """
-    updates to execute, in order
-    """
-    updates: [Catalogdepartments_updates!]!
-  ): [Catalogdepartments_mutation_response]
+type AddNumbersOutput {
+  sum: Int!
 }
-type Catalogcatalog_subscription {
-  """
-  fetch data from the table: "departments"
-  """
-  departments(
-    """
-    distinct select on columns
-    """
-    distinct_on: [Catalogdepartments_select_column!]
-
-    """
-    limit the number of rows returned
-    """
-    limit: Int
-
-    """
-    skip the first n rows. Use only with order_by
-    """
-    offset: Int
-
-    """
-    sort the rows by one or more columns
-    """
-    order_by: [Catalogdepartments_order_by!]
-
-    """
-    filter the rows returned
-    """
-    where: Catalogdepartments_bool_exp
-  ): [Catalogdepartments!]!
-  """
-  fetch data from the table: "departments" using primary key columns
-  """
-  departments_by_pk(id: uuid!): Catalogdepartments
-  """
-  fetch aggregated fields from the table: "departments"
-  """
-  departments_aggregate(
-    """
-    distinct select on columns
-    """
-    distinct_on: [Catalogdepartments_select_column!]
-
-    """
-    limit the number of rows returned
-    """
-    limit: Int
-
-    """
-    skip the first n rows. Use only with order_by
-    """
-    offset: Int
-
-    """
-    sort the rows by one or more columns
-    """
-    order_by: [Catalogdepartments_order_by!]
-
-    """
-    filter the rows returned
-    """
-    where: Catalogdepartments_bool_exp
-  ): Catalogdepartments_aggregate!
-  """
-  fetch data from the table in a streaming manner: "departments"
-  """
-  departments_stream(
-    """
-    maximum number of rows returned in a single batch
-    """
-    batch_size: Int!
-
-    """
-    cursor to stream the results returned by the query
-    """
-    cursor: [Catalogdepartments_stream_cursor_input]!
-
-    """
-    filter the rows returned
-    """
-    where: Catalogdepartments_bool_exp
-  ): [Catalogdepartments!]!
+type EchoHeadersOutput {
+  message: String!
+  role: String!
+  userId: String
+  forwardedHeader: String
+  webhookSecretPresent: Boolean!
+}
+type LoginOutput {
+  accessToken: String!
+  userId: String!
+  role: String!
+}
+type TransformEchoOutput {
+  message: String!
+  role: String!
+  contentType: String
 }
 type query_root {
+  """
+  Returns deterministic profile records for action relationship parity tests.
+  """
+  actionProfiles: [ActionProfile!]!
+  """
+  Adds two integers through a synchronous Hasura Action.
+  """
+  addNumbers(a: Int!, b: Int!): AddNumbersOutput!
+  """
+  Echoes selected action input, session variables, and headers.
+  """
+  echoHeaders(message: String!): EchoHeadersOutput!
+  """
+  Exercises request and response transforms for synchronous actions.
+  """
+  transformEcho(message: String!): TransformEchoOutput!
   catalog: Catalogcatalog_query
   """
   fetch data from the table: "auth.oauth2_auth_requests"
@@ -4465,6 +4212,10 @@ type query_root {
 mutation root
 """
 type mutation_root {
+  """
+  Deterministic login action used for parity tests.
+  """
+  login(email: String!, password: String!): LoginOutput!
   catalog: Catalogcatalog_mutation_frontend
   """
   delete single row from the table: "auth.oauth2_auth_requests"
@@ -6666,6 +6417,358 @@ type mutation_root {
   reportGame(homeTeamId: ID!, awayTeamId: ID!, homeScore: Int!, awayScore: Int!, source: String!): Game!
   resetLeague: Boolean
   league: leagueMutation
+}
+"""
+columns and relationships of "departments"
+"""
+type Catalogdepartments {
+  id: uuid!
+  name: String!
+  description: String
+  budget: numeric
+  has_high_budget: Boolean
+  created_at: timestamptz!
+  updated_at: timestamptz!
+}
+"""
+aggregated selection of "departments"
+"""
+type Catalogdepartments_aggregate {
+  aggregate: Catalogdepartments_aggregate_fields
+  nodes: [Catalogdepartments!]!
+}
+"""
+aggregate max on columns
+"""
+type Catalogdepartments_max_fields {
+  id: uuid
+  name: String
+  description: String
+  budget: numeric
+  has_high_budget: Boolean
+  created_at: timestamptz
+  updated_at: timestamptz
+}
+"""
+aggregate min on columns
+"""
+type Catalogdepartments_min_fields {
+  id: uuid
+  name: String
+  description: String
+  budget: numeric
+  has_high_budget: Boolean
+  created_at: timestamptz
+  updated_at: timestamptz
+}
+"""
+aggregate avg on columns
+"""
+type Catalogdepartments_avg_fields {
+  budget: Float
+}
+"""
+aggregate sum on columns
+"""
+type Catalogdepartments_sum_fields {
+  budget: numeric
+}
+"""
+aggregate stddev on columns
+"""
+type Catalogdepartments_stddev_fields {
+  budget: Float
+}
+"""
+aggregate stddev_pop on columns
+"""
+type Catalogdepartments_stddev_pop_fields {
+  budget: Float
+}
+"""
+aggregate stddev_samp on columns
+"""
+type Catalogdepartments_stddev_samp_fields {
+  budget: Float
+}
+"""
+aggregate var_pop on columns
+"""
+type Catalogdepartments_var_pop_fields {
+  budget: Float
+}
+"""
+aggregate var_samp on columns
+"""
+type Catalogdepartments_var_samp_fields {
+  budget: Float
+}
+"""
+aggregate variance on columns
+"""
+type Catalogdepartments_variance_fields {
+  budget: Float
+}
+"""
+aggregate fields of "departments"
+"""
+type Catalogdepartments_aggregate_fields {
+  count(columns: [Catalogdepartments_select_column!], distinct: Boolean): Int!
+  max: Catalogdepartments_max_fields
+  min: Catalogdepartments_min_fields
+  avg: Catalogdepartments_avg_fields
+  stddev: Catalogdepartments_stddev_fields
+  stddev_pop: Catalogdepartments_stddev_pop_fields
+  stddev_samp: Catalogdepartments_stddev_samp_fields
+  sum: Catalogdepartments_sum_fields
+  var_pop: Catalogdepartments_var_pop_fields
+  var_samp: Catalogdepartments_var_samp_fields
+  variance: Catalogdepartments_variance_fields
+}
+"""
+response of any mutation on the table "departments"
+"""
+type Catalogdepartments_mutation_response {
+  """
+  number of rows affected by the mutation
+  """
+  affected_rows: Int!
+  """
+  data from the rows affected by the mutation
+  """
+  returning: [Catalogdepartments!]!
+}
+type Catalogcatalog_query {
+  """
+  fetch data from the table: "departments"
+  """
+  departments(
+    """
+    distinct select on columns
+    """
+    distinct_on: [Catalogdepartments_select_column!]
+
+    """
+    limit the number of rows returned
+    """
+    limit: Int
+
+    """
+    skip the first n rows. Use only with order_by
+    """
+    offset: Int
+
+    """
+    sort the rows by one or more columns
+    """
+    order_by: [Catalogdepartments_order_by!]
+
+    """
+    filter the rows returned
+    """
+    where: Catalogdepartments_bool_exp
+  ): [Catalogdepartments!]!
+  """
+  fetch data from the table: "departments" using primary key columns
+  """
+  departments_by_pk(id: uuid!): Catalogdepartments
+  """
+  fetch aggregated fields from the table: "departments"
+  """
+  departments_aggregate(
+    """
+    distinct select on columns
+    """
+    distinct_on: [Catalogdepartments_select_column!]
+
+    """
+    limit the number of rows returned
+    """
+    limit: Int
+
+    """
+    skip the first n rows. Use only with order_by
+    """
+    offset: Int
+
+    """
+    sort the rows by one or more columns
+    """
+    order_by: [Catalogdepartments_order_by!]
+
+    """
+    filter the rows returned
+    """
+    where: Catalogdepartments_bool_exp
+  ): Catalogdepartments_aggregate!
+}
+type Catalogcatalog_mutation_frontend {
+  """
+  delete single row from the table: "departments"
+  """
+  delete_departments_by_pk(id: uuid!): Catalogdepartments
+  """
+  delete data from the table: "departments"
+  """
+  delete_departments(
+    """
+    filter the rows which have to be deleted
+    """
+    where: Catalogdepartments_bool_exp!
+  ): Catalogdepartments_mutation_response
+  """
+  insert a single row into the table: "departments"
+  """
+  insert_departments_one(
+    """
+    the row to be inserted
+    """
+    object: Catalogdepartments_insert_input!
+
+    """
+    upsert condition
+    """
+    on_conflict: Catalogdepartments_on_conflict
+  ): Catalogdepartments
+  """
+  insert data into the table: "departments"
+  """
+  insert_departments(
+    """
+    the rows to be inserted
+    """
+    objects: [Catalogdepartments_insert_input!]!
+
+    """
+    upsert condition
+    """
+    on_conflict: Catalogdepartments_on_conflict
+  ): Catalogdepartments_mutation_response
+  """
+  update single row of the table: "departments"
+  """
+  update_departments_by_pk(
+    """
+    increments the numeric columns with given value of the filtered values
+    """
+    _inc: Catalogdepartments_inc_input
+
+    """
+    sets the columns of the filtered rows to the given values
+    """
+    _set: Catalogdepartments_set_input
+  pk_columns: Catalogdepartments_pk_columns_input!): Catalogdepartments
+  """
+  update data of the table: "departments"
+  """
+  update_departments(
+    """
+    increments the numeric columns with given value of the filtered values
+    """
+    _inc: Catalogdepartments_inc_input
+
+    """
+    sets the columns of the filtered rows to the given values
+    """
+    _set: Catalogdepartments_set_input
+
+    """
+    filter the rows which have to be updated
+    """
+    where: Catalogdepartments_bool_exp!
+  ): Catalogdepartments_mutation_response
+  """
+  update multiples rows of table: "departments"
+  """
+  update_departments_many(
+    """
+    updates to execute, in order
+    """
+    updates: [Catalogdepartments_updates!]!
+  ): [Catalogdepartments_mutation_response]
+}
+type Catalogcatalog_subscription {
+  """
+  fetch data from the table: "departments"
+  """
+  departments(
+    """
+    distinct select on columns
+    """
+    distinct_on: [Catalogdepartments_select_column!]
+
+    """
+    limit the number of rows returned
+    """
+    limit: Int
+
+    """
+    skip the first n rows. Use only with order_by
+    """
+    offset: Int
+
+    """
+    sort the rows by one or more columns
+    """
+    order_by: [Catalogdepartments_order_by!]
+
+    """
+    filter the rows returned
+    """
+    where: Catalogdepartments_bool_exp
+  ): [Catalogdepartments!]!
+  """
+  fetch data from the table: "departments" using primary key columns
+  """
+  departments_by_pk(id: uuid!): Catalogdepartments
+  """
+  fetch aggregated fields from the table: "departments"
+  """
+  departments_aggregate(
+    """
+    distinct select on columns
+    """
+    distinct_on: [Catalogdepartments_select_column!]
+
+    """
+    limit the number of rows returned
+    """
+    limit: Int
+
+    """
+    skip the first n rows. Use only with order_by
+    """
+    offset: Int
+
+    """
+    sort the rows by one or more columns
+    """
+    order_by: [Catalogdepartments_order_by!]
+
+    """
+    filter the rows returned
+    """
+    where: Catalogdepartments_bool_exp
+  ): Catalogdepartments_aggregate!
+  """
+  fetch data from the table in a streaming manner: "departments"
+  """
+  departments_stream(
+    """
+    maximum number of rows returned in a single batch
+    """
+    batch_size: Int!
+
+    """
+    cursor to stream the results returned by the query
+    """
+    cursor: [Catalogdepartments_stream_cursor_input]!
+
+    """
+    filter the rows returned
+    """
+    where: Catalogdepartments_bool_exp
+  ): [Catalogdepartments!]!
 }
 type subscription_root {
   catalog: Catalogcatalog_subscription
@@ -10350,6 +10453,12 @@ type authUserSecurityKeys_avg_fields {
   counter: Float
 }
 """
+aggregate sum on columns
+"""
+type authUserSecurityKeys_sum_fields {
+  counter: bigint
+}
+"""
 aggregate stddev on columns
 """
 type authUserSecurityKeys_stddev_fields {
@@ -10366,12 +10475,6 @@ aggregate stddev_samp on columns
 """
 type authUserSecurityKeys_stddev_samp_fields {
   counter: Float
-}
-"""
-aggregate sum on columns
-"""
-type authUserSecurityKeys_sum_fields {
-  counter: bigint
 }
 """
 aggregate var_pop on columns
@@ -11397,6 +11500,12 @@ type departments_avg_fields {
   budget: Float
 }
 """
+aggregate sum on columns
+"""
+type departments_sum_fields {
+  budget: numeric
+}
+"""
 aggregate stddev on columns
 """
 type departments_stddev_fields {
@@ -11413,12 +11522,6 @@ aggregate stddev_samp on columns
 """
 type departments_stddev_samp_fields {
   budget: Float
-}
-"""
-aggregate sum on columns
-"""
-type departments_sum_fields {
-  budget: numeric
 }
 """
 aggregate var_pop on columns
@@ -11980,6 +12083,14 @@ type buckets_avg_fields {
   maxUploadFileSize: Float
 }
 """
+aggregate sum on columns
+"""
+type buckets_sum_fields {
+  downloadExpiration: Int
+  minUploadFileSize: Int
+  maxUploadFileSize: Int
+}
+"""
 aggregate stddev on columns
 """
 type buckets_stddev_fields {
@@ -12002,14 +12113,6 @@ type buckets_stddev_samp_fields {
   downloadExpiration: Float
   minUploadFileSize: Float
   maxUploadFileSize: Float
-}
-"""
-aggregate sum on columns
-"""
-type buckets_sum_fields {
-  downloadExpiration: Int
-  minUploadFileSize: Int
-  maxUploadFileSize: Int
 }
 """
 aggregate var_pop on columns
@@ -12139,6 +12242,12 @@ type files_avg_fields {
   size: Float
 }
 """
+aggregate sum on columns
+"""
+type files_sum_fields {
+  size: Int
+}
+"""
 aggregate stddev on columns
 """
 type files_stddev_fields {
@@ -12155,12 +12264,6 @@ aggregate stddev_samp on columns
 """
 type files_stddev_samp_fields {
   size: Float
-}
-"""
-aggregate sum on columns
-"""
-type files_sum_fields {
-  size: Int
 }
 """
 aggregate var_pop on columns

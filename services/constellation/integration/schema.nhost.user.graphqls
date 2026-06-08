@@ -6,6 +6,7 @@ schema {
 scalar bigint
 scalar bytea
 scalar citext
+scalar json
 scalar jsonb
 scalar numeric
 scalar timestamptz
@@ -857,6 +858,13 @@ enum users_select_column {
   """
   metadata
 }
+type AddNumbersOutput {
+  sum: Int!
+}
+type AsyncEchoOutput {
+  message: String!
+  role: String!
+}
 type Catalogcatalog_query {
   """
   fetch data from the table: "departments"
@@ -1040,6 +1048,13 @@ type Catalogdepartments_min_fields {
   id: uuid
   name: String
 }
+type EchoHeadersOutput {
+  message: String!
+  role: String!
+  userId: String
+  forwardedHeader: String
+  webhookSecretPresent: Boolean!
+}
 type Game {
   awayScore: Int!
   awayTeam: Team!
@@ -1086,6 +1101,17 @@ type Team {
   points: Int!
   wins: Int!
   department: departments
+}
+type TransformEchoOutput {
+  message: String!
+  role: String!
+  contentType: String
+}
+type asyncEcho {
+  id: uuid!
+  created_at: timestamptz!
+  errors: json
+  output: AsyncEchoOutput!
 }
 """
 User refresh tokens. Hasura auth uses them to rotate new access tokens as long as the refresh token is not expired. Don't modify its structure as Hasura Auth relies on it to function properly.
@@ -1929,6 +1955,10 @@ type leagueQuery {
 mutation root
 """
 type mutation_root {
+  """
+  Exercises asynchronous action mutation/result parity.
+  """
+  asyncEcho(message: String!): uuid!
   """
   delete single row from the table: "auth.refresh_tokens"
   """
@@ -2950,6 +2980,22 @@ type publishedNews_min_fields {
   author_id: uuid
 }
 type query_root {
+  """
+  Adds two integers through a synchronous Hasura Action.
+  """
+  addNumbers(a: Int!, b: Int!): AddNumbersOutput!
+  """
+  Exercises asynchronous action mutation/result parity.
+  """
+  asyncEcho(id: uuid!): asyncEcho
+  """
+  Echoes selected action input, session variables, and headers.
+  """
+  echoHeaders(message: String!): EchoHeadersOutput!
+  """
+  Exercises request and response transforms for synchronous actions.
+  """
+  transformEcho(message: String!): TransformEchoOutput!
   catalog: Catalogcatalog_query
   """
   fetch data from the table: "auth.refresh_tokens"
@@ -4192,6 +4238,10 @@ type query_root {
   league: leagueQuery
 }
 type subscription_root {
+  """
+  Exercises asynchronous action mutation/result parity.
+  """
+  asyncEcho(id: uuid!): asyncEcho
   catalog: Catalogcatalog_subscription
   """
   fetch data from the table: "auth.refresh_tokens"

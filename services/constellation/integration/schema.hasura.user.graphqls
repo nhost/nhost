@@ -6,6 +6,7 @@ schema {
 scalar bigint
 scalar bytea
 scalar citext
+scalar json
 scalar jsonb
 scalar numeric
 scalar timestamptz
@@ -857,6 +858,13 @@ enum users_select_column {
   """
   updatedAt
 }
+type AddNumbersOutput {
+  sum: Int!
+}
+type AsyncEchoOutput {
+  message: String!
+  role: String!
+}
 type Catalogcatalog_query {
   """
   fetch data from the table: "departments"
@@ -1040,6 +1048,13 @@ type Catalogdepartments_min_fields {
   id: uuid
   name: String
 }
+type EchoHeadersOutput {
+  forwardedHeader: String
+  message: String!
+  role: String!
+  userId: String
+  webhookSecretPresent: Boolean!
+}
 type Game {
   awayScore: Int!
   awayTeam: Team!
@@ -1086,6 +1101,32 @@ type Team {
   name: String!
   points: Int!
   wins: Int!
+}
+type TransformEchoOutput {
+  contentType: String
+  message: String!
+  role: String!
+}
+"""
+fields of action: "asyncEcho"
+"""
+type asyncEcho {
+  """
+  the time at which this action was created
+  """
+  created_at: timestamptz!
+  """
+  errors related to the invocation
+  """
+  errors: json
+  """
+  the unique id of an action
+  """
+  id: uuid!
+  """
+  the output fields of this action
+  """
+  output: AsyncEchoOutput!
 }
 """
 User refresh tokens. Hasura auth uses them to rotate new access tokens as long as the refresh token is not expired. Don't modify its structure as Hasura Auth relies on it to function properly.
@@ -1953,6 +1994,10 @@ type leagueQuery {
 mutation root
 """
 type mutation_root {
+  """
+  Exercises asynchronous action mutation/result parity.
+  """
+  asyncEcho(message: String!): uuid!
   """
   execute VOLATILE function "deactivate_department" which returns "user_departments"
   """
@@ -3008,6 +3053,19 @@ type publishedNews_min_fields {
 }
 type query_root {
   """
+  Adds two integers through a synchronous Hasura Action.
+  """
+  addNumbers(a: Int!, b: Int!): AddNumbersOutput!
+  """
+  Exercises asynchronous action mutation/result parity.
+  """
+  asyncEcho(
+    """
+    the unique id of an action
+    """
+    id: uuid!
+  ): asyncEcho
+  """
   fetch data from the table: "auth.refresh_tokens" using primary key columns
   """
   authRefreshToken(id: uuid!): authRefreshTokens
@@ -3289,6 +3347,10 @@ type query_root {
   fetch data from the table: "departments" using primary key columns
   """
   departments_by_pk(id: uuid!): departments
+  """
+  Echoes selected action input, session variables, and headers.
+  """
+  echoHeaders(message: String!): EchoHeadersOutput!
   """
   fetch data from the table: "exercise_log_sets"
   """
@@ -4226,6 +4288,10 @@ type query_root {
   teamGames: [Game!]!
   teams: [Team!]!
   """
+  Exercises request and response transforms for synchronous actions.
+  """
+  transformEcho(message: String!): TransformEchoOutput!
+  """
   fetch data from the table: "auth.users" using primary key columns
   """
   user(id: uuid!): users
@@ -4322,6 +4388,15 @@ type query_root {
   ): [users!]!
 }
 type subscription_root {
+  """
+  Exercises asynchronous action mutation/result parity.
+  """
+  asyncEcho(
+    """
+    the unique id of an action
+    """
+    id: uuid!
+  ): asyncEcho
   """
   fetch data from the table: "auth.refresh_tokens" using primary key columns
   """

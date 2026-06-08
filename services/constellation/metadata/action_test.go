@@ -14,7 +14,7 @@ import (
 func TestHasuraActionsYAMLAndJSONEquivalent(t *testing.T) {
 	t.Parallel()
 
-	fixtureDir := filepath.Join("..", "integration", "actionfixtures", "sync")
+	fixtureDir := filepath.Join("..", "integration", "actionfixtures", "default")
 	yamlPath := writeActionFixtureMetadata(t, fixtureDir, true)
 
 	fromYAML, err := metadata.FromDetect(t.Context(), yamlPath)
@@ -108,7 +108,7 @@ func TestHasuraActionsYAMLAndJSONEquivalentPreservesListOutputModifiers(t *testi
 func TestHasuraActionsYAMLRequiresSDLForSignatures(t *testing.T) {
 	t.Parallel()
 
-	fixtureDir := filepath.Join("..", "integration", "actionfixtures", "sync")
+	fixtureDir := filepath.Join("..", "integration", "actionfixtures", "default")
 	yamlPath := writeActionFixtureMetadata(t, fixtureDir, false)
 
 	m, err := metadata.FromDetect(t.Context(), yamlPath)

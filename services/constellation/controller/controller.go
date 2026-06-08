@@ -19,7 +19,6 @@ import (
 	"context"
 	"fmt"
 	"log/slog"
-	"sync"
 	"sync/atomic"
 	"time"
 
@@ -120,7 +119,6 @@ func (s *controllerState) closeConnectors() {
 // is behind an atomic pointer.
 type Controller struct {
 	state            atomic.Pointer[controllerState]
-	metadataAPIMu    sync.Mutex
 	adminSecret      string
 	jwtAuth          middleware.JWTAuthenticator
 	pollingInterval  time.Duration
@@ -187,7 +185,6 @@ func New(
 
 	ctrl := &Controller{
 		state:            atomic.Pointer[controllerState]{},
-		metadataAPIMu:    sync.Mutex{},
 		adminSecret:      adminSecret,
 		jwtAuth:          jwtAuth,
 		pollingInterval:  subscriptionPollInterval,
@@ -410,7 +407,6 @@ func NewFromConnectors(
 	)
 
 	ctrl := &Controller{
-		metadataAPIMu:    sync.Mutex{},
 		adminSecret:      adminSecret,
 		jwtAuth:          middleware.NewNoOpJWTAuthenticator(),
 		pollingInterval:  0,

@@ -657,190 +657,34 @@ enum department_roles_enum {
   """
   member
 }
-"""
-columns and relationships of "departments"
-"""
-type Catalogdepartments {
-  id: uuid!
-  name: String!
+type AddNumbersOutput {
+  sum: Int!
 }
-"""
-aggregated selection of "departments"
-"""
-type Catalogdepartments_aggregate {
-  aggregate: Catalogdepartments_aggregate_fields
-  nodes: [Catalogdepartments!]!
+type EchoHeadersOutput {
+  message: String!
+  role: String!
+  userId: String
+  forwardedHeader: String
+  webhookSecretPresent: Boolean!
 }
-"""
-aggregate max on columns
-"""
-type Catalogdepartments_max_fields {
-  id: uuid
-  name: String
-}
-"""
-aggregate min on columns
-"""
-type Catalogdepartments_min_fields {
-  id: uuid
-  name: String
-}
-"""
-aggregate fields of "departments"
-"""
-type Catalogdepartments_aggregate_fields {
-  count(columns: [Catalogdepartments_select_column!], distinct: Boolean): Int!
-  max: Catalogdepartments_max_fields
-  min: Catalogdepartments_min_fields
-}
-type Catalogcatalog_query {
-  """
-  fetch data from the table: "departments"
-  """
-  departments(
-    """
-    distinct select on columns
-    """
-    distinct_on: [Catalogdepartments_select_column!]
-
-    """
-    limit the number of rows returned
-    """
-    limit: Int
-
-    """
-    skip the first n rows. Use only with order_by
-    """
-    offset: Int
-
-    """
-    sort the rows by one or more columns
-    """
-    order_by: [Catalogdepartments_order_by!]
-
-    """
-    filter the rows returned
-    """
-    where: Catalogdepartments_bool_exp
-  ): [Catalogdepartments!]!
-  """
-  fetch data from the table: "departments" using primary key columns
-  """
-  departments_by_pk(id: uuid!): Catalogdepartments
-  """
-  fetch aggregated fields from the table: "departments"
-  """
-  departments_aggregate(
-    """
-    distinct select on columns
-    """
-    distinct_on: [Catalogdepartments_select_column!]
-
-    """
-    limit the number of rows returned
-    """
-    limit: Int
-
-    """
-    skip the first n rows. Use only with order_by
-    """
-    offset: Int
-
-    """
-    sort the rows by one or more columns
-    """
-    order_by: [Catalogdepartments_order_by!]
-
-    """
-    filter the rows returned
-    """
-    where: Catalogdepartments_bool_exp
-  ): Catalogdepartments_aggregate!
-}
-type Catalogcatalog_subscription {
-  """
-  fetch data from the table: "departments"
-  """
-  departments(
-    """
-    distinct select on columns
-    """
-    distinct_on: [Catalogdepartments_select_column!]
-
-    """
-    limit the number of rows returned
-    """
-    limit: Int
-
-    """
-    skip the first n rows. Use only with order_by
-    """
-    offset: Int
-
-    """
-    sort the rows by one or more columns
-    """
-    order_by: [Catalogdepartments_order_by!]
-
-    """
-    filter the rows returned
-    """
-    where: Catalogdepartments_bool_exp
-  ): [Catalogdepartments!]!
-  """
-  fetch data from the table: "departments" using primary key columns
-  """
-  departments_by_pk(id: uuid!): Catalogdepartments
-  """
-  fetch aggregated fields from the table: "departments"
-  """
-  departments_aggregate(
-    """
-    distinct select on columns
-    """
-    distinct_on: [Catalogdepartments_select_column!]
-
-    """
-    limit the number of rows returned
-    """
-    limit: Int
-
-    """
-    skip the first n rows. Use only with order_by
-    """
-    offset: Int
-
-    """
-    sort the rows by one or more columns
-    """
-    order_by: [Catalogdepartments_order_by!]
-
-    """
-    filter the rows returned
-    """
-    where: Catalogdepartments_bool_exp
-  ): Catalogdepartments_aggregate!
-  """
-  fetch data from the table in a streaming manner: "departments"
-  """
-  departments_stream(
-    """
-    maximum number of rows returned in a single batch
-    """
-    batch_size: Int!
-
-    """
-    cursor to stream the results returned by the query
-    """
-    cursor: [Catalogdepartments_stream_cursor_input]!
-
-    """
-    filter the rows returned
-    """
-    where: Catalogdepartments_bool_exp
-  ): [Catalogdepartments!]!
+type TransformEchoOutput {
+  message: String!
+  role: String!
+  contentType: String
 }
 type query_root {
+  """
+  Adds two integers through a synchronous Hasura Action.
+  """
+  addNumbers(a: Int!, b: Int!): AddNumbersOutput!
+  """
+  Echoes selected action input, session variables, and headers.
+  """
+  echoHeaders(message: String!): EchoHeadersOutput!
+  """
+  Exercises request and response transforms for synchronous actions.
+  """
+  transformEcho(message: String!): TransformEchoOutput!
   catalog: Catalogcatalog_query
   """
   fetch data from the table: "auth.refresh_tokens"
@@ -1854,6 +1698,189 @@ type query_root {
   teamGames: [Game!]!
   teams: [Team!]!
   league: leagueQuery
+}
+"""
+columns and relationships of "departments"
+"""
+type Catalogdepartments {
+  id: uuid!
+  name: String!
+}
+"""
+aggregated selection of "departments"
+"""
+type Catalogdepartments_aggregate {
+  aggregate: Catalogdepartments_aggregate_fields
+  nodes: [Catalogdepartments!]!
+}
+"""
+aggregate max on columns
+"""
+type Catalogdepartments_max_fields {
+  id: uuid
+  name: String
+}
+"""
+aggregate min on columns
+"""
+type Catalogdepartments_min_fields {
+  id: uuid
+  name: String
+}
+"""
+aggregate fields of "departments"
+"""
+type Catalogdepartments_aggregate_fields {
+  count(columns: [Catalogdepartments_select_column!], distinct: Boolean): Int!
+  max: Catalogdepartments_max_fields
+  min: Catalogdepartments_min_fields
+}
+type Catalogcatalog_query {
+  """
+  fetch data from the table: "departments"
+  """
+  departments(
+    """
+    distinct select on columns
+    """
+    distinct_on: [Catalogdepartments_select_column!]
+
+    """
+    limit the number of rows returned
+    """
+    limit: Int
+
+    """
+    skip the first n rows. Use only with order_by
+    """
+    offset: Int
+
+    """
+    sort the rows by one or more columns
+    """
+    order_by: [Catalogdepartments_order_by!]
+
+    """
+    filter the rows returned
+    """
+    where: Catalogdepartments_bool_exp
+  ): [Catalogdepartments!]!
+  """
+  fetch data from the table: "departments" using primary key columns
+  """
+  departments_by_pk(id: uuid!): Catalogdepartments
+  """
+  fetch aggregated fields from the table: "departments"
+  """
+  departments_aggregate(
+    """
+    distinct select on columns
+    """
+    distinct_on: [Catalogdepartments_select_column!]
+
+    """
+    limit the number of rows returned
+    """
+    limit: Int
+
+    """
+    skip the first n rows. Use only with order_by
+    """
+    offset: Int
+
+    """
+    sort the rows by one or more columns
+    """
+    order_by: [Catalogdepartments_order_by!]
+
+    """
+    filter the rows returned
+    """
+    where: Catalogdepartments_bool_exp
+  ): Catalogdepartments_aggregate!
+}
+type Catalogcatalog_subscription {
+  """
+  fetch data from the table: "departments"
+  """
+  departments(
+    """
+    distinct select on columns
+    """
+    distinct_on: [Catalogdepartments_select_column!]
+
+    """
+    limit the number of rows returned
+    """
+    limit: Int
+
+    """
+    skip the first n rows. Use only with order_by
+    """
+    offset: Int
+
+    """
+    sort the rows by one or more columns
+    """
+    order_by: [Catalogdepartments_order_by!]
+
+    """
+    filter the rows returned
+    """
+    where: Catalogdepartments_bool_exp
+  ): [Catalogdepartments!]!
+  """
+  fetch data from the table: "departments" using primary key columns
+  """
+  departments_by_pk(id: uuid!): Catalogdepartments
+  """
+  fetch aggregated fields from the table: "departments"
+  """
+  departments_aggregate(
+    """
+    distinct select on columns
+    """
+    distinct_on: [Catalogdepartments_select_column!]
+
+    """
+    limit the number of rows returned
+    """
+    limit: Int
+
+    """
+    skip the first n rows. Use only with order_by
+    """
+    offset: Int
+
+    """
+    sort the rows by one or more columns
+    """
+    order_by: [Catalogdepartments_order_by!]
+
+    """
+    filter the rows returned
+    """
+    where: Catalogdepartments_bool_exp
+  ): Catalogdepartments_aggregate!
+  """
+  fetch data from the table in a streaming manner: "departments"
+  """
+  departments_stream(
+    """
+    maximum number of rows returned in a single batch
+    """
+    batch_size: Int!
+
+    """
+    cursor to stream the results returned by the query
+    """
+    cursor: [Catalogdepartments_stream_cursor_input]!
+
+    """
+    filter the rows returned
+    """
+    where: Catalogdepartments_bool_exp
+  ): [Catalogdepartments!]!
 }
 type subscription_root {
   catalog: Catalogcatalog_subscription
@@ -3706,6 +3733,12 @@ type departments_avg_fields {
   budget: Float
 }
 """
+aggregate sum on columns
+"""
+type departments_sum_fields {
+  budget: numeric
+}
+"""
 aggregate stddev on columns
 """
 type departments_stddev_fields {
@@ -3722,12 +3755,6 @@ aggregate stddev_samp on columns
 """
 type departments_stddev_samp_fields {
   budget: Float
-}
-"""
-aggregate sum on columns
-"""
-type departments_sum_fields {
-  budget: numeric
 }
 """
 aggregate var_pop on columns
@@ -4840,6 +4867,15 @@ type mutation_root {
   reportGame(awayTeamId: ID!, homeScore: Int!, awayScore: Int!): Game!
   league: leagueMutation
 }
+type Game {
+  awayScore: Int!
+  awayTeam: Team!
+  homeScore: Int!
+  homeTeam: Team!
+  id: ID!
+  playedAt: String!
+  source: String!
+}
 type Team {
   departmentId: ID!
   departmentName: String!
@@ -4854,15 +4890,6 @@ type Team {
   points: Int!
   wins: Int!
   department: departments
-}
-type Game {
-  awayScore: Int!
-  awayTeam: Team!
-  homeScore: Int!
-  homeTeam: Team!
-  id: ID!
-  playedAt: String!
-  source: String!
 }
 type LeagueGame {
   awayScore: Int!

@@ -7,6 +7,7 @@ type Query {
 
 type Mutation {
   login(email: String!, password: String!): LoginOutput!
+  asyncEcho(message: String!): AsyncEchoOutput!
 }
 
 type AddNumbersOutput {
@@ -36,4 +37,9 @@ type TransformEchoOutput {
   message: String!
   role: String!
   contentType: String
+}
+
+type AsyncEchoOutput {
+  message: String!
+  role: String!
 }

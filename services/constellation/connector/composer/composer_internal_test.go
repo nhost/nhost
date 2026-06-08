@@ -370,10 +370,11 @@ func TestActionRelationshipSpec(t *testing.T) {
 	t.Parallel()
 
 	tests := []struct {
-		name    string
-		rel     metadata.CustomObjectRelationship
-		wantOK  bool
-		wantArr bool
+		name        string
+		rel         metadata.CustomObjectRelationship
+		wantOK      bool
+		wantArr     bool
+		wantSQLArgs bool
 	}{
 		{
 			name: "action_to_db_object",
@@ -387,8 +388,9 @@ func TestActionRelationshipSpec(t *testing.T) {
 				FieldMapping: map[string]string{"userId": "id"},
 				Source:       "default",
 			},
-			wantOK:  true,
-			wantArr: false,
+			wantOK:      true,
+			wantArr:     false,
+			wantSQLArgs: false,
 		},
 		{
 			name: "action_to_db_array",
@@ -402,8 +404,9 @@ func TestActionRelationshipSpec(t *testing.T) {
 				FieldMapping: map[string]string{"userId": "user_id"},
 				Source:       "default",
 			},
-			wantOK:  true,
-			wantArr: true,
+			wantOK:      true,
+			wantArr:     true,
+			wantSQLArgs: true,
 		},
 		{
 			name: "invalid_type",
@@ -447,8 +450,8 @@ func TestActionRelationshipSpec(t *testing.T) {
 				t.Errorf("IsArray = %v, want %v", spec.IsArray, tt.wantArr)
 			}
 
-			if spec.WithSQLArgs {
-				t.Error("action relationship should reuse rs→db path without SQL args")
+			if spec.WithSQLArgs != tt.wantSQLArgs {
+				t.Errorf("WithSQLArgs = %v, want %v", spec.WithSQLArgs, tt.wantSQLArgs)
 			}
 		})
 	}

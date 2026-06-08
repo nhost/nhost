@@ -36,6 +36,18 @@ actions:
     permissions:
       - role: public
     comment: Deterministic login action used for parity tests.
+  - name: asyncEcho
+    definition:
+      kind: asynchronous
+      handler: '{{NHOST_FUNCTIONS_URL}}/actions'
+      forward_client_headers: false
+      headers:
+        - name: x-nhost-webhook-secret
+          value_from_env: NHOST_WEBHOOK_SECRET
+      timeout: 30
+    permissions:
+      - role: user
+    comment: Exercises asynchronous action mutation/result parity.
   - name: actionProfiles
     definition:
       kind: synchronous

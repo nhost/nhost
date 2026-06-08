@@ -12,7 +12,6 @@ import (
 
 func TestActionRelationships(t *testing.T) { //nolint:paralleltest
 	skipUnlessActionGraphQLEndpoints(t)
-	withHasuraSyncActionMetadata(t)
 	waitForConstellationActionRelationshipSchema(t)
 
 	tc := TestCase{

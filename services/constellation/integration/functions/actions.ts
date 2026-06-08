@@ -161,6 +161,14 @@ export default function handler(req: Request, res: Response): void {
         return;
       }
 
+      case 'asyncEcho': {
+        res.status(200).json({
+          message: getString(input, 'message'),
+          role: sessionValue(sessionVariables, 'x-hasura-role') ?? 'unknown',
+        });
+        return;
+      }
+
       case 'actionProfiles': {
         res.status(200).json([
           {

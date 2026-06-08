@@ -1,5 +1,6 @@
 schema {
   query: query_root
+  mutation: mutation_root
   subscription: subscription_root
 }
 scalar jsonb
@@ -188,6 +189,14 @@ enum users_select_column {
   """
   displayName
 }
+type AddNumbersOutput {
+  sum: Int!
+}
+type LoginOutput {
+  accessToken: String!
+  userId: String!
+  role: String!
+}
 """
 columns and relationships of "content_feed"
 """
@@ -253,6 +262,12 @@ type files {
     """
     path: String
   ): jsonb
+}
+type mutation_root {
+  """
+  Deterministic login action used for parity tests.
+  """
+  login(email: String!, password: String!): LoginOutput!
 }
 """
 columns and relationships of "news"
@@ -324,6 +339,10 @@ type publishedNews_min_fields {
   author_id: uuid
 }
 type query_root {
+  """
+  Adds two integers through a synchronous Hasura Action.
+  """
+  addNumbers(a: Int!, b: Int!): AddNumbersOutput!
   """
   fetch data from the table: "auth.users"
   """

@@ -18,7 +18,6 @@ type FileMetadataSource struct {
 	loader    metadataLoader
 	ch        chan metadata.Update
 	closeOnce sync.Once
-	writeMu   sync.Mutex
 }
 
 // NewFileMetadataSource creates a source that loads metadata from a file.
@@ -35,7 +34,6 @@ func newFileMetadataSource(path string, loader metadataLoader) *FileMetadataSour
 		loader:    loader,
 		ch:        make(chan metadata.Update),
 		closeOnce: sync.Once{},
-		writeMu:   sync.Mutex{},
 	}
 }
 
