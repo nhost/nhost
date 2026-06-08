@@ -369,6 +369,40 @@ func assertSessionVarString(t *testing.T, params []any, key, want string) {
 	}
 }
 
+func assertNilPaddedSessionVars(t *testing.T, params []any) {
+	t.Helper()
+
+	subA := parseResultVarsJSON(t, params, 0)
+
+	sessionA, ok := subA["session"].(map[string]any)
+	if !ok {
+		t.Fatal("sub-a missing session key in result vars")
+	}
+
+	if got := sessionA["x-hasura-user-id"]; got != "user-a" {
+		t.Errorf("sub-a user ID = %v, want user-a", got)
+	}
+
+	if got, exists := sessionA["x-hasura-org-id"]; !exists || got != nil {
+		t.Errorf("sub-a org ID = %v (exists %v), want explicit nil", got, exists)
+	}
+
+	subB := parseResultVarsJSON(t, params, 1)
+
+	sessionB, ok := subB["session"].(map[string]any)
+	if !ok {
+		t.Fatal("sub-b missing session key in result vars")
+	}
+
+	if got := sessionB["x-hasura-user-id"]; got != "user-b" {
+		t.Errorf("sub-b user ID = %v, want user-b", got)
+	}
+
+	if got := sessionB["x-hasura-org-id"]; got != "org-b" {
+		t.Errorf("sub-b org ID = %v, want org-b", got)
+	}
+}
+
 func TestPrepareParams(t *testing.T) {
 	t.Parallel()
 
@@ -430,6 +464,16 @@ func TestPrepareParams(t *testing.T) {
 				t.Helper()
 				assertSessionVarString(t, params, "x-hasura-user-id", `user "with" quotes`)
 			},
+		},
+		{
+			name:            "nil-padded session vars stay aligned",
+			subscriptionIDs: []string{"sub-a", "sub-b"},
+			sessionVarArrays: map[string][]any{
+				"x-hasura-user-id": {"user-a", "user-b"},
+				"x-hasura-org-id":  {nil, "org-b"},
+			},
+			cursorValues: nil,
+			assert:       assertNilPaddedSessionVars,
 		},
 	}
 
