@@ -75,7 +75,7 @@ function fnRow(
   overrides: Partial<{
     schema: string;
     name: string;
-    oid: number;
+    oid: string;
     return_type: string;
     returns_set: boolean;
     provolatile: string;
@@ -86,7 +86,7 @@ function fnRow(
   return JSON.stringify({
     schema: 'public',
     name: 'full_name',
-    oid: 100,
+    oid: '100',
     return_type: 'text',
     returns_set: false,
     provolatile: 's',
@@ -225,7 +225,7 @@ describe('fetchSchemaDiagramData', () => {
           fnRow({
             schema: 'public',
             name: 'posts_for_user',
-            oid: 200,
+            oid: '200',
             return_type: 'public.posts',
             returns_set: true,
             provolatile: 'v',

@@ -257,7 +257,7 @@ function TableNodeView({ data }: NodeProps<TableNode>) {
       title={isUntracked ? 'Untracked in GraphQL' : undefined}
     >
       {/* Anchor for incoming set-returning-function edges. Kept invisible —
-          the dashed edge conveys the link without a stray handle dot. */}
+          the solid double-chevron edge conveys the link without a stray handle dot. */}
       <Handle
         type="target"
         position={Position.Left}

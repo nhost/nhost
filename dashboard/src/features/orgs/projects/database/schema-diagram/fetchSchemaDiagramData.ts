@@ -145,7 +145,7 @@ const FUNCTION_RETURN_TYPE_QUERY = `
     SELECT DISTINCT ON (n.nspname, p.proname)
       n.nspname AS schema,
       p.proname AS name,
-      p.oid::int AS oid,
+      p.oid AS oid,
       pg_catalog.format_type(p.prorettype, NULL) AS return_type,
       p.proretset AS returns_set,
       p.provolatile AS provolatile,
@@ -189,7 +189,11 @@ interface RawForeignKey {
 interface RawFunctionReturnType {
   schema: string;
   name: string;
-  oid: number;
+  // Postgres `oid` is unsigned 32-bit; `row_to_json` serializes it as a string
+  // (matching `FunctionObject.function_oid`). Selecting it uncast avoids the
+  // `integer out of range` an `::int` cast would raise once the cluster OID
+  // counter passes 2^31-1 — which would fail the whole bulk schema query.
+  oid: string;
   return_type: string;
   returns_set: boolean;
   provolatile: string;

@@ -173,7 +173,7 @@ export default function SchemaDiagramToolbar({
                       return (
                         <CommandItem
                           key={`${object.kind}:${object.schema}.${object.name}`}
-                          value={`${object.schema}.${object.name}`}
+                          value={`${object.kind}:${object.schema}.${object.name}`}
                           onSelect={() => {
                             onSelectObject(object);
                             setSearchOpen(false);

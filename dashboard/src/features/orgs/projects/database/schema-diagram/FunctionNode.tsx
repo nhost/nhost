@@ -107,7 +107,7 @@ function FunctionNodeView({ data }: NodeProps<FunctionNode>) {
     namingMode,
   } = data;
   const tableActions = useTableActionsContext();
-  const objectKey = `FUNCTION.${schema}.${name}`;
+  const objectKey = `FUNCTION.${schema}.${oid}`;
   const isLocked = isSchemaLocked(schema);
   const isMenuOpen = tableActions?.actions.sidebarMenuObject === objectKey;
   const isRemoving = tableActions?.actions.removableObject === objectKey;
@@ -133,7 +133,8 @@ function FunctionNodeView({ data }: NodeProps<FunctionNode>) {
       title={isUntracked ? 'Untracked in GraphQL' : undefined}
     >
       {/* Edge anchor only; kept invisible so the function node has no stray
-          handle dot (the dashed edge already shows the link to the table). */}
+          handle dot (the solid double-chevron edge already shows the link to
+          the table). */}
       <Handle
         type="source"
         position={Position.Right}
@@ -172,7 +173,12 @@ function FunctionNodeView({ data }: NodeProps<FunctionNode>) {
           <Tooltip delayDuration={150}>
             <TooltipTrigger asChild>
               <span className="inline-flex cursor-help">
-                <PermissionDot action="select" size={11} state={selectState} />
+                <PermissionDot
+                  action="select"
+                  size={11}
+                  state={selectState}
+                  label={`Select: ${describeState(permState)}`}
+                />
               </span>
             </TooltipTrigger>
             <TooltipContent side="top" className="max-w-[400px] text-xs">

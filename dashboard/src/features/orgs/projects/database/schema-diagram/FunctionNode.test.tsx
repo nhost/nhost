@@ -117,9 +117,7 @@ describe('FunctionNode', () => {
   it('shows a filled select dot for the admin role', () => {
     renderNode(baseData);
 
-    expect(
-      screen.getByLabelText('Select: allowed (no row filter)'),
-    ).toBeInTheDocument();
+    expect(screen.getByLabelText('Select: allowed')).toBeInTheDocument();
   });
 
   it('shows a "not allowed" select dot when the role lacks select on the returned table', () => {
@@ -148,9 +146,7 @@ describe('FunctionNode', () => {
       } as HasuraMetadataTable,
     });
 
-    expect(
-      screen.getByLabelText('Select: allowed (no row filter)'),
-    ).toBeInTheDocument();
+    expect(screen.getByLabelText('Select: allowed')).toBeInTheDocument();
   });
 
   it('shows a "not allowed" dot when infer is off and the role has no function permission, even with select (regression)', () => {
@@ -186,9 +182,7 @@ describe('FunctionNode', () => {
       } as HasuraMetadataTable,
     });
 
-    expect(
-      screen.getByLabelText('Select: allowed (no row filter)'),
-    ).toBeInTheDocument();
+    expect(screen.getByLabelText('Select: allowed')).toBeInTheDocument();
   });
 
   it('shows a hollow dot when the role has a function permission but no select on the return table', () => {
@@ -204,7 +198,7 @@ describe('FunctionNode', () => {
     });
 
     expect(
-      screen.getByLabelText('Select: allowed with row filter / check'),
+      screen.getByLabelText('Select: partially allowed'),
     ).toBeInTheDocument();
   });
 
@@ -243,7 +237,7 @@ describe('FunctionNode', () => {
 
     renderNode(baseData, {
       actions: makeActions({
-        sidebarMenuObject: 'FUNCTION.public.find_users',
+        sidebarMenuObject: 'FUNCTION.public.12345',
         openEditFunctionDrawer,
         handleDeleteDatabaseObject,
       }),
@@ -279,7 +273,7 @@ describe('FunctionNode', () => {
       { ...baseData, isUntracked: true },
       {
         actions: makeActions({
-          sidebarMenuObject: 'FUNCTION.public.find_users',
+          sidebarMenuObject: 'FUNCTION.public.12345',
         }),
         trackedTablesSet: new Set(),
       },

@@ -27,6 +27,12 @@ export interface PermissionDotProps {
   state: PermissionDotState;
   size?: number;
   className?: string;
+  /**
+   * Overrides the accessible label and tooltip. Use when the dot's state has a
+   * context-specific meaning (e.g. a function's `hollow` dot does not mean "row
+   * filter"). Falls back to the action/state-derived label when omitted.
+   */
+  label?: string;
 }
 
 export default function PermissionDot({
@@ -34,9 +40,10 @@ export default function PermissionDot({
   state,
   size = 10,
   className,
+  label,
 }: PermissionDotProps) {
   const { bg, border } = actionClasses[action];
-  const title = `${actionLabels[action]}: ${stateLabels[state]}`;
+  const title = label ?? `${actionLabels[action]}: ${stateLabels[state]}`;
 
   return (
     <span
