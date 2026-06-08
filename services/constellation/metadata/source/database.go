@@ -36,12 +36,10 @@ type pgxPoolStore struct {
 	pool *pgxpool.Pool
 }
 
-// QueryRow returns pgx.Row to satisfy the metadataStore interface; the
-// ireturn suppressor is required because the interface dictates the return
-// type, and nolintlint is paired with it to silence the meta-linter on the
-// same line — both directives share the single goal of accepting the
-// boundary interface return.
-func (s pgxPoolStore) QueryRow( //nolint:ireturn,nolintlint
+// QueryRow returns pgx.Row to satisfy the metadataStore interface.
+//
+//nolint:ireturn // The boundary interface dictates the pgx.Row return type.
+func (s pgxPoolStore) QueryRow(
 	ctx context.Context,
 	sql string,
 	args ...any,

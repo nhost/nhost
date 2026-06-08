@@ -469,7 +469,8 @@ func initJWTAuth(
 	return jwtAuth, nil
 }
 
-func newMetadataSource( //nolint:ireturn,nolintlint // selected sources share metadata.Source.
+//nolint:ireturn // Selected concrete sources intentionally share metadata.Source.
+func newMetadataSource(
 	ctx context.Context,
 	cmd *cli.Command,
 	logger *slog.Logger,

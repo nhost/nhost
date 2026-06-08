@@ -67,11 +67,15 @@ current build. Triggers:
 
 * An optional action metadata file/section (`actions.yaml`, `actions.graphql`,
   or JSON `actions`) is malformed or incomplete.
-* Action metadata parsed successfully, but action runtime/schema support is not
-  enabled yet.
+* A handler URL or header/env reference is invalid or unresolved.
+* The action references invalid input/output/custom types, transform documents,
+  relationship metadata, or conflicting root/type names.
+* An asynchronous action is configured but no action-log store is available, or
+  the worker is enabled without explicit exclusive log-table ownership.
 
 **Effect:** the action is omitted from the GraphQL schema and no webhook is
-called. Databases, remote schemas, and unrelated metadata continue serving.
+called. Valid sibling actions, databases, remote schemas, and unrelated metadata
+continue serving.
 
 ### `custom_type`
 
@@ -79,11 +83,13 @@ Recorded when action custom-type metadata is present but cannot be used by the
 current build. Triggers:
 
 * The optional JSON `custom_types` section is malformed.
-* Custom type metadata parsed successfully, but action schema support is not
-  enabled yet.
+* The custom type is malformed, conflicts with another role-visible type, has
+  invalid field/type references, contains a cycle, or declares an invalid action
+  output relationship.
 
-**Effect:** the custom type is omitted along with the action schema surface.
-Databases, remote schemas, and unrelated metadata continue serving.
+**Effect:** the custom type and affected actions are omitted from the action
+schema surface. Valid sibling actions, databases, remote schemas, and unrelated
+metadata continue serving.
 
 ### `table` (PostgreSQL / SQLite source)
 
@@ -209,8 +215,9 @@ metadata loaded with inconsistencies  count=N
 ```
 
 Programmatic access: `(*controller.Controller).Inconsistencies()` returns a
-snapshot of the current build's recorded entries. A `/v1/metadata/...` HTTP
-surface is planned and will hand back the same data.
+snapshot of the current build's recorded entries. The gated `/v1/metadata` API
+currently covers action/custom-type writes plus minimal export/reload behavior;
+it does not yet expose a Hasura-style inconsistencies endpoint.
 
 ## Source-type matrix
 

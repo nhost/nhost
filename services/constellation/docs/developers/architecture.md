@@ -193,3 +193,36 @@ The hot path is therefore lock-free for steady-state reads (atomic pointer load)
 - [remote-relationships.md](./remote-relationships.md) — planner/resolver responsibility split.
 - [remote-schemas.md](./remote-schemas.md) — header forwarding, SDL parsing, preset application.
 - [customization.md](./customization.md) — schema customization decorator (namespacing, type/field renaming) and how it's reversed on the execution path.
+
+## Action connector and metadata API
+
+Actions are implemented by the reserved internal connector
+`__constellation_internal_actions` (`connector/action`). It is built only through
+`connector.BuildConnectorsFromMetadata`, so action runtime state follows the same
+metadata-reload invariant as databases and remote schemas. The connector owns
+role-scoped action schemas, synchronous webhook dispatch, request/response
+transforms, async action-log workers, and action result subscriptions.
+
+Action output relationships are not special-cased in the executor. The composer
+projects custom-object relationship metadata into the same relationship spec
+shape used by database/remote-schema relationships, then the controller planner
+injects phantom join fields and the resolver stitches database rows after the
+action webhook returns. The action response shaper preserves those phantom fields
+long enough for stitching; the existing planner cleanup removes them from the
+client-visible result.
+
+Asynchronous actions require an `ActionLogStore`. Production can use the
+PostgreSQL store in `connector/action/store`, which validates an existing
+Hasura-compatible log table or creates it only when explicitly configured. The
+worker is disabled unless Constellation is configured as the exclusive owner of
+that log table. On metadata reload, old workers stop claiming new jobs, drain
+bounded in-flight work, and requeue cancelled processing rows before the retired
+connector closes.
+
+The `/v1/metadata` action/custom-type write API is deliberately gated by
+`--metadata-api-enabled` plus `--metadata-api-sole-writer`. The handler takes a
+controller-level mutex around clone → mutate → persist → reload so concurrent
+admin writes do not lose updates. File metadata writes atomically replace
+`actions.yaml`/`actions.graphql` (or the full TOML file). DB metadata writes patch
+only `actions` and `custom_types` in `hdb_catalog.hdb_metadata` and advance
+`resource_version`, letting the poller dedupe self-generated changes.

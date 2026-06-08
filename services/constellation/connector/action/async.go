@@ -221,7 +221,10 @@ func (w *asyncWorker) claimAndDispatch(ctx context.Context) {
 	}
 }
 
-func (w *asyncWorker) process(parent context.Context, entry ActionLogEntry) {
+func (w *asyncWorker) process( //nolint:funlen // Keeps async lifecycle/error persistence ordering explicit.
+	parent context.Context,
+	entry ActionLogEntry,
+) {
 	defer func() {
 		<-w.sem
 		w.inFlightWG.Done()
@@ -285,7 +288,11 @@ func (w *asyncWorker) process(parent context.Context, entry ActionLogEntry) {
 
 		w.persistGraphQLErrors(storeCtx, entry.ID, []map[string]any{actionErr})
 	default:
-		w.persistWorkerError(storeCtx, entry.ID, "asynchronous action handler returned an error status")
+		w.persistWorkerError(
+			storeCtx,
+			entry.ID,
+			"asynchronous action handler returned an error status",
+		)
 	}
 }
 

@@ -65,7 +65,11 @@ func (c *Controller) HandlerMetadataAPI(adminSecret string) http.HandlerFunc {
 		}
 
 		if _, ok := c.source.(writableMetadataSource); !ok {
-			writeMetadataAPIError(w, http.StatusServiceUnavailable, errMetadataAPIUnavailable.Error())
+			writeMetadataAPIError(
+				w,
+				http.StatusServiceUnavailable,
+				errMetadataAPIUnavailable.Error(),
+			)
 
 			return
 		}
@@ -150,7 +154,10 @@ func (c *Controller) applyMetadataAPIBulk(
 	dirty := false
 	for _, item := range items {
 		if item.Type == "bulk" {
-			return nil, fmt.Errorf("%w: nested bulk is not supported", errMetadataAPIInvalidArgument)
+			return nil, fmt.Errorf(
+				"%w: nested bulk is not supported",
+				errMetadataAPIInvalidArgument,
+			)
 		}
 
 		if isMetadataAPIWriteOperation(item.Type) {

@@ -353,10 +353,13 @@ func customObjectsYAML(objects []metadata.CustomObjectType) []customObjectYAML {
 		relationships := make([]customObjectRelationshipYAML, 0, len(object.Relationships))
 		for _, rel := range object.Relationships {
 			relationships = append(relationships, customObjectRelationshipYAML{
-				Name:         rel.Name,
-				Type:         rel.Type,
-				Source:       rel.Source,
-				RemoteTable:  tableSourceYAML{Schema: rel.RemoteTable.Schema, Name: rel.RemoteTable.Name},
+				Name:   rel.Name,
+				Type:   rel.Type,
+				Source: rel.Source,
+				RemoteTable: tableSourceYAML{
+					Schema: rel.RemoteTable.Schema,
+					Name:   rel.RemoteTable.Name,
+				},
 				FieldMapping: rel.FieldMapping,
 			})
 		}

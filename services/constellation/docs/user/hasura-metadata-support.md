@@ -22,11 +22,11 @@ code that actually consumes each field (`connector/sql/graphql/schema`,
 
 > **The important caveat about ⚪ and ❌:** Constellation does **not** reject
 > unknown metadata. There is no strict/`disallow_unknown_fields` mode. A real
-> Hasura `metadata.json` containing actions, event triggers, cron triggers,
-> allowlists, etc. will **load without error** — those features simply will not
-> exist in the served API. The same is true field-by-field: a `limit` on a select
-> permission, or a `pool_settings` block, is accepted and thrown away. Treat
-> ⚪/❌ rows as *silently inert*, not *rejected*.
+> Hasura `metadata.json` containing event triggers, cron triggers, allowlists,
+> etc. will **load without error** — those features simply will not exist in the
+> served API. The same is true field-by-field: a `limit` on a select permission,
+> or a `pool_settings` block, is accepted and thrown away. Treat ⚪/❌ rows as
+> *silently inert*, not *rejected*.
 
 ## How Constellation reads Hasura metadata
 
@@ -35,7 +35,7 @@ same converter in `metadata/convert.go`):
 
 | Mode | Source | Notes |
 |---|---|---|
-| **File (Hasura v3 directory)** | `--metadata-path` pointing at a Hasura metadata dir | Reads **only** `<root>/databases/databases.yaml` and the optional `<root>/remote_schemas.yaml`. `!include` directives are followed. **No other file is opened** — `actions.yaml`, `cron_triggers.yaml`, `query_collections.yaml`, `allow_list.yaml`, `rest_endpoints.yaml`, `inherited_roles.yaml`, etc. are never read. |
+| **File (Hasura v3 directory)** | `--metadata-path` pointing at a Hasura metadata dir | Reads `<root>/databases/databases.yaml`, optional `<root>/remote_schemas.yaml`, optional `<root>/actions.yaml`, and optional `<root>/actions.graphql`. `!include` directives are followed for database/remote-schema files. Cron triggers, query collections, allow lists, REST endpoints, inherited roles, etc. are still not read. |
 | **Database (polled)** | `--metadata-database-url` → `hdb_catalog.hdb_metadata` | Parses the JSON blob Hasura stores. Must be `version: 3`. The blob keys its source list as `sources` (handled). Unknown top-level keys are dropped. |
 | **Native TOML** | `--metadata-path` ending in `.toml` | Constellation's own format. Same shape as the tables below; no Hasura-only keys exist to drop. |
 
@@ -50,8 +50,8 @@ Constellation's top-level envelope has exactly two keys.
 | `sources` / `databases` | ✅ | The database list. JSON/DB mode uses `sources`; the YAML directory layout uses `databases`. |
 | `remote_schemas` | ✅ | See [Remote schemas](#remote-schemas). |
 | `version` | ✅ | Must be `3` in JSON/DB mode. |
-| `actions` | ❌ | Hasura Actions are not implemented. |
-| `custom_types` | ❌ | Only meaningful with actions; not modeled. |
+| `actions` | 🟡 | Parsed from file metadata and DB JSON. Synchronous actions, output relationships, transforms, and async action result fields are implemented; see [Actions and custom types](#actions-and-custom-types). |
+| `custom_types` | 🟡 | Parsed and used by actions for custom scalars/enums/input/object types and action output relationships. |
 | `query_collections` | ❌ | No query collections. |
 | `allowlist` | ❌ | No allowlist enforcement. |
 | `rest_endpoints` | ❌ | No RESTified endpoints. |
@@ -328,6 +328,28 @@ Full details: [`docs/user/remote-schema.md`](./remote-schema.md) and
 
 ---
 
+## Actions and custom types
+
+Constellation implements the Hasura CE action surface needed on the GraphQL
+request path. In file mode, `actions.yaml` owns operational metadata and
+`actions.graphql` owns action signatures/custom type fields, matching Hasura's
+metadata layout. In DB metadata mode, `actions` and `custom_types` are parsed
+from `hdb_catalog.hdb_metadata`.
+
+| Field / behavior | Status | Notes |
+|---|---|---|
+| Action signatures (`type`, `arguments`, `output_type`) | ✅ | File mode merges SDL from `actions.graphql`; DB JSON can carry structured signatures directly. |
+| `definition.kind: synchronous` | ✅ | Executes the webhook during the GraphQL request. Sync action payload includes `action.name`, `input`, lower-case `session_variables`, and original `request_query`. |
+| `definition.kind: asynchronous` | 🟡 | Exposes async mutation UUID/result shapes and a polling subscription handler when an action-log store is configured. Workers require explicit exclusive ownership of the configured log table. Live Hasura-vs-Constellation async parity tests are still gated. |
+| `handler`, `headers`, `forward_client_headers`, `timeout` | ✅ | Handler URLs are validated after env/transform resolution; redirects are blocked; request/response bodies are capped. Raw forwarded `x-hasura-*` headers cannot override resolved session variables. |
+| Action permissions | ✅ | `admin` sees all actions. Other roles see only actions with explicit permissions. |
+| Request/response transforms | ✅ | Supports the Hasura v2 Kriti action transform surface used by request method/url/query/header/content-type/body transforms, form-urlencoded bodies, and response body transforms. Unsupported transform documents are recorded as action inconsistencies. |
+| Custom scalars, enums, inputs, objects | ✅ | Used for action argument/output schema generation, including enum deprecation metadata. |
+| Custom object relationships to sources | ✅ | Object and array relationships from action output object types to database tables are resolved by the same planner/resolver path as remote relationships. Array relationships expose `<rel>_aggregate` when the target source exposes aggregate types. |
+| Metadata API action operations | 🟡 | `POST /v1/metadata` is disabled by default. When `--metadata-api-enabled` and `--metadata-api-sole-writer` are set, admin-secret requests may use `bulk`, `export_metadata`, `reload_metadata`, `create_action`, `update_action`, `drop_action`, `create_action_permission`, `drop_action_permission`, and `set_custom_types`. Non-action metadata operations remain out of scope. `drop_action.clear_data` does not yet purge async log rows. |
+| Action codegen/OpenAPI import/Console UI | ❌ | Out of scope. |
+
+
 ## Entirely unsupported feature areas
 
 These Hasura metadata sections have **no representation** in Constellation. When
@@ -337,8 +359,8 @@ what Constellation serves.
 
 | Hasura feature | Metadata operations | Status |
 |---|---|---|
-| **Actions** | `create_action`, `create_action_permission`, … | ❌ |
-| **Custom types** | `set_custom_types` | ❌ |
+| **Actions** | `create_action`, `create_action_permission`, … | 🟡 — supported only by the gated action/custom-type Metadata API subset described above. |
+| **Custom types** | `set_custom_types` | 🟡 — supported only by the gated action/custom-type Metadata API subset described above. |
 | **Event triggers** | `*_create_event_trigger`, … | ❌ |
 | **Cron / scheduled triggers** | `create_cron_trigger`, `create_scheduled_event` | ❌ |
 | **Query collections** | `create_query_collection`, `add_query_to_collection` | ❌ |
@@ -354,15 +376,17 @@ what Constellation serves.
 | **Logical models** | `*_track_logical_model` | ❌ |
 | **Native queries** | `*_track_native_query` | ❌ |
 | **Stored procedures** (MSSQL) | `mssql_track_stored_procedure` | ❌ (no MSSQL backend) |
-| **Metadata Management HTTP API** | `POST /v1/metadata` (`export_metadata`, `replace_metadata`, `reload_metadata`, …) | ❌ — Constellation consumes metadata, it does not author it. Run Hasura alongside for metadata management, or hand-write the file. |
+| **Metadata Management HTTP API** | `POST /v1/metadata` (`export_metadata`, `reload_metadata`, action/custom-type writes) | 🟡 — disabled by default; only the action/custom-type subset is implemented in explicit sole-writer mode. `replace_metadata` and non-action write operations remain unsupported. |
 
 ---
 
 ## Sharp edges, in one place
 
-- **Nothing is rejected.** Unsupported sections and ignored fields load silently.
-  If a permission `limit`, a `pool_settings` block, or an `actions` list seems to
-  have "no effect," that is expected — Constellation never read it.
+- **Unsupported sections are not rejected.** Unsupported sections and ignored
+  fields load silently. If a permission `limit` or a `pool_settings` block seems
+  to have "no effect," that is expected — Constellation parsed it but does not
+  act on it. Actions are the exception: supported action metadata is parsed and
+  executed; invalid action/custom-type pieces become inconsistencies.
 - **`limit` on select permissions does nothing.** Enforce row caps another way.
 - **Pool tuning goes in the connection URL,** not `pool_settings`.
 - **Composite foreign keys** need `manual_configuration` with a multi-entry
