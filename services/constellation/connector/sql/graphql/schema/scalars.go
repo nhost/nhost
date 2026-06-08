@@ -34,6 +34,15 @@ func generateScalars(
 		usedScalars["String"] = struct{}{}
 	}
 
+	_, hasGeography := selectUsedScalars["geography"]
+	_, hasGeometry := selectUsedScalars["geometry"]
+	if hasGeography || hasGeometry {
+		selectUsedScalars["geography"] = struct{}{}
+		selectUsedScalars["geometry"] = struct{}{}
+		usedScalars["geography"] = struct{}{}
+		usedScalars["geometry"] = struct{}{}
+	}
+
 	// Generate comparison input types for each select-visible scalar
 	for _, scalarType := range sortedKeys(selectUsedScalars) {
 		schema.Inputs = append(schema.Inputs, generateComparisonExp(scalarType, caps))
@@ -54,6 +63,65 @@ func generateScalars(
 				{
 					Name: "String",
 					Type: graph.NewNamedType(caps.comparisonExpName("String")),
+				},
+			},
+		})
+	}
+
+	if hasGeography || hasGeometry {
+		// Generate st_d_within_geography_input
+		schema.Inputs = append(schema.Inputs, &graph.InputObjectType{ //nolint:exhaustruct
+			Name: caps.namespaceTypeName("st_d_within", "geography_input"),
+			Fields: []*graph.InputField{
+				{
+					Name: "distance",
+					Type: graph.NewNonNullType("Float"),
+				},
+				{
+					Name: "from",
+					Type: graph.NewNonNullType("geography"),
+				},
+				{
+					Name:         "use_spheroid",
+					Type:         graph.NewNamedType("Boolean"),
+					DefaultValue: stringPtr("true"),
+				},
+			},
+		})
+
+		// Generate st_d_within_input
+		schema.Inputs = append(schema.Inputs, &graph.InputObjectType{ //nolint:exhaustruct
+			Name: caps.namespaceTypeName("st_d_within", "input"),
+			Fields: []*graph.InputField{
+				{
+					Name: "distance",
+					Type: graph.NewNonNullType("Float"),
+				},
+				{
+					Name: "from",
+					Type: graph.NewNonNullType("geometry"),
+				},
+			},
+		})
+
+		// Generate geography_cast_exp
+		schema.Inputs = append(schema.Inputs, &graph.InputObjectType{ //nolint:exhaustruct
+			Name: caps.castExpName("geography"),
+			Fields: []*graph.InputField{
+				{
+					Name: "geometry",
+					Type: graph.NewNamedType(caps.comparisonExpName("geometry")),
+				},
+			},
+		})
+
+		// Generate geometry_cast_exp
+		schema.Inputs = append(schema.Inputs, &graph.InputObjectType{ //nolint:exhaustruct
+			Name: caps.castExpName("geometry"),
+			Fields: []*graph.InputField{
+				{
+					Name: "geography",
+					Type: graph.NewNamedType(caps.comparisonExpName("geography")),
 				},
 			},
 		})
@@ -83,3 +151,8 @@ func isCustomScalar(typeName string) bool {
 	// as well as any user-defined types
 	return true
 }
+
+func stringPtr(s string) *string {
+	return &s
+}
+

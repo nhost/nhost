@@ -27,6 +27,14 @@ func generateComparisonExp(scalarType string, caps Capabilities) *graph.InputObj
 			fieldType = graph.NewNamedType(caps.castExpName(scalarType))
 		case "_contains", "_contained_in":
 			fieldType = graph.NewNamedType(scalarType)
+		case "_st_d_within":
+			if scalarType == "geography" {
+				fieldType = graph.NewNamedType(caps.namespaceTypeName("st_d_within", "geography_input"))
+			} else {
+				fieldType = graph.NewNamedType(caps.namespaceTypeName("st_d_within", "input"))
+			}
+		case "_st_3d_d_within":
+			fieldType = graph.NewNamedType(caps.namespaceTypeName("st_d_within", "input"))
 		default:
 			fieldType = graph.NewNamedType(scalarType)
 		}
@@ -76,6 +84,17 @@ func getComparisonOperators(scalarType string, caps Capabilities) []string {
 			"_cast", "_contained_in", "_contains", "_eq", "_gt", "_gte",
 			"_has_key", "_has_keys_all", "_has_keys_any", "_in", "_is_null",
 			"_lt", "_lte", "_neq", "_nin",
+		}
+	case "geography":
+		return []string{
+			"_cast", "_eq", "_gt", "_gte", "_in", "_is_null", "_lt", "_lte", "_neq", "_nin",
+			"_st_d_within", "_st_intersects",
+		}
+	case "geometry":
+		return []string{
+			"_cast", "_eq", "_gt", "_gte", "_in", "_is_null", "_lt", "_lte", "_neq", "_nin",
+			"_st_3d_d_within", "_st_3d_intersects", "_st_contains", "_st_crosses",
+			"_st_d_within", "_st_equals", "_st_intersects", "_st_overlaps", "_st_touches", "_st_within",
 		}
 	default:
 		return []string{"_eq", "_gt", "_gte", "_in", "_is_null", "_lt", "_lte", "_neq", "_nin"}

@@ -13,6 +13,7 @@ import (
 // operatorParser parses one operator inside a field-comparison object
 // (the {_eq: x, _in: [...], ...} value) into a single Statement.
 type operatorParser func(
+	t Table,
 	column *core.Column,
 	value *ast.Value,
 	variables map[string]any,
@@ -25,7 +26,7 @@ func scalarParser(
 	build func(*core.Column, any, dialect.Dialect) Statement,
 ) operatorParser {
 	return func(
-		c *core.Column, v *ast.Value, vars map[string]any, d dialect.Dialect,
+		t Table, c *core.Column, v *ast.Value, vars map[string]any, d dialect.Dialect,
 	) (Statement, error) {
 		val, err := resolveScalarValue(v, vars)
 		if err != nil {
@@ -42,7 +43,7 @@ func arrayParser(
 	build func(*core.Column, []any, dialect.Dialect) Statement,
 ) operatorParser {
 	return func(
-		c *core.Column, v *ast.Value, vars map[string]any, d dialect.Dialect,
+		t Table, c *core.Column, v *ast.Value, vars map[string]any, d dialect.Dialect,
 	) (Statement, error) {
 		vals, err := resolveArrayValue(v, vars)
 		if err != nil {
@@ -59,7 +60,7 @@ func stringArrayParser(
 	build func(*core.Column, []string, dialect.Dialect) Statement,
 ) operatorParser {
 	return func(
-		c *core.Column, v *ast.Value, vars map[string]any, d dialect.Dialect,
+		t Table, c *core.Column, v *ast.Value, vars map[string]any, d dialect.Dialect,
 	) (Statement, error) {
 		keys, err := resolveStringArrayValue(v, vars)
 		if err != nil {
@@ -100,7 +101,7 @@ func buildLike(
 // at SQL generation rather than at execution time.
 func buildRegex(negated, caseInsensitive bool) operatorParser {
 	return func(
-		c *core.Column, v *ast.Value, vars map[string]any, d dialect.Dialect,
+		t Table, c *core.Column, v *ast.Value, vars map[string]any, d dialect.Dialect,
 	) (Statement, error) {
 		if !d.SupportsRegex() {
 			return nil, errRegexUnsupportedByDialect
@@ -135,7 +136,7 @@ func buildRegex(negated, caseInsensitive bool) operatorParser {
 // query with "expected a boolean for type 'Boolean', but found null" rather
 // than treating it as a filter.
 func parseIsNull( //nolint:ireturn,nolintlint
-	column *core.Column, value *ast.Value, variables map[string]any, _ dialect.Dialect,
+	t Table, column *core.Column, value *ast.Value, variables map[string]any, _ dialect.Dialect,
 ) (Statement, error) {
 	resolved, err := values.ResolveVariable(value, variables)
 	if err != nil {
@@ -162,7 +163,7 @@ func containmentParser(
 	buildJSONB func(*core.Column, any, dialect.Dialect) Statement,
 ) operatorParser {
 	return func(
-		c *core.Column, v *ast.Value, vars map[string]any, d dialect.Dialect,
+		t Table, c *core.Column, v *ast.Value, vars map[string]any, d dialect.Dialect,
 	) (Statement, error) {
 		resolved, err := values.ResolveVariable(v, vars)
 		if err != nil {
@@ -187,75 +188,211 @@ func containmentParser(
 	}
 }
 
+func parseDWithin(is3D bool) operatorParser {
+	return func(
+		t Table, c *core.Column, v *ast.Value, vars map[string]any, d dialect.Dialect,
+	) (Statement, error) {
+		resolved, err := values.ResolveVariable(v, vars)
+		if err != nil {
+			return nil, fmt.Errorf("resolving d_within variable: %w", err)
+		}
+
+		if resolved.Kind != ast.ObjectValue {
+			return nil, fmt.Errorf("expected object for d_within, got %v", resolved.Kind)
+		}
+
+		var from any
+		var distance any
+		var spheroid any
+
+		for _, child := range resolved.Children {
+			switch child.Name {
+			case "from":
+				var err error
+				from, err = resolveScalarValue(child.Value, vars)
+				if err != nil {
+					return nil, fmt.Errorf("resolving d_within 'from': %w", err)
+				}
+			case "distance":
+				var err error
+				distance, err = resolveScalarValue(child.Value, vars)
+				if err != nil {
+					return nil, fmt.Errorf("resolving d_within 'distance': %w", err)
+				}
+			case "use_spheroid":
+				var err error
+				spheroid, err = resolveScalarValue(child.Value, vars)
+				if err != nil {
+					return nil, fmt.Errorf("resolving d_within 'use_spheroid': %w", err)
+				}
+			}
+		}
+
+		if from == nil {
+			return nil, fmt.Errorf("missing 'from' in d_within filter")
+		}
+		if distance == nil {
+			return nil, fmt.Errorf("missing 'distance' in d_within filter")
+		}
+
+		return &dWithinFilter{
+			column:   c,
+			is3D:     is3D,
+			from:     from,
+			distance: distance,
+			spheroid: spheroid,
+			dialect:  d,
+		}, nil
+	}
+}
+
+func parseCast(
+	t Table, c *core.Column, v *ast.Value, vars map[string]any, d dialect.Dialect,
+) (Statement, error) {
+	resolved, err := values.ResolveVariable(v, vars)
+	if err != nil {
+		return nil, fmt.Errorf("resolving _cast variable: %w", err)
+	}
+
+	if resolved.Kind != ast.ObjectValue {
+		return nil, fmt.Errorf("expected object for _cast, got %v", resolved.Kind)
+	}
+
+	var conditions []Statement
+
+	for _, child := range resolved.Children {
+		targetType := child.Name
+
+		castedColumn := &core.Column{
+			SQLName:     c.SQLName + "::" + targetType,
+			GraphqlName: c.GraphqlName,
+			SQLType:     targetType,
+			IsArray:     c.IsArray,
+			IsGenerated: c.IsGenerated,
+			IsIdentity:  c.IsIdentity,
+			HasDefault:  c.HasDefault,
+			DefaultExpr: c.DefaultExpr,
+		}
+
+		cond, err := ParseFieldComparison(t, castedColumn, child.Value, vars)
+		if err != nil {
+			return nil, err
+		}
+		if cond != nil {
+			conditions = append(conditions, cond)
+		}
+	}
+
+	switch {
+	case len(conditions) == 0:
+		return nil, nil //nolint:nilnil
+	case len(conditions) == 1:
+		return conditions[0], nil
+	default:
+		return &andFilter{conditions: conditions}, nil
+	}
+}
+
 // operatorParsers is the dispatch table consulted by ParseFieldComparison.
 // Adding a new operator means adding one entry here.
 //
 //nolint:gochecknoglobals // dispatch table is conceptually constant.
-var operatorParsers = map[string]operatorParser{
-	"_eq": scalarParser(func(c *core.Column, v any, d dialect.Dialect) Statement {
-		return &equalsFilter{column: c, value: v, dialect: d}
-	}),
-	"_neq": scalarParser(func(c *core.Column, v any, d dialect.Dialect) Statement {
-		return &notEqualsFilter{column: c, value: v, dialect: d}
-	}),
-	"_gt": scalarParser(func(c *core.Column, v any, d dialect.Dialect) Statement {
-		return &greaterThanFilter{column: c, value: v, dialect: d}
-	}),
-	"_gte": scalarParser(func(c *core.Column, v any, d dialect.Dialect) Statement {
-		return &greaterThanOrEqualFilter{column: c, value: v, dialect: d}
-	}),
-	"_lt": scalarParser(func(c *core.Column, v any, d dialect.Dialect) Statement {
-		return &lessThanFilter{column: c, value: v, dialect: d}
-	}),
-	"_lte": scalarParser(func(c *core.Column, v any, d dialect.Dialect) Statement {
-		return &lessThanOrEqualFilter{column: c, value: v, dialect: d}
-	}),
-	"_in": arrayParser(func(c *core.Column, vs []any, d dialect.Dialect) Statement {
-		return &inFilter{column: c, values: vs, dialect: d}
-	}),
-	"_nin": arrayParser(func(c *core.Column, vs []any, d dialect.Dialect) Statement {
-		return &notInFilter{column: c, values: vs, dialect: d}
-	}),
-	"_like":    scalarParser(buildLike(false, false)),
-	"_nlike":   scalarParser(buildLike(true, false)),
-	"_ilike":   scalarParser(buildLike(false, true)),
-	"_nilike":  scalarParser(buildLike(true, true)),
-	"_regex":   buildRegex(false, false),
-	"_nregex":  buildRegex(true, false),
-	"_iregex":  buildRegex(false, true),
-	"_niregex": buildRegex(true, true),
-	"_is_null": parseIsNull,
-	"_contains": containmentParser(
-		func(c *core.Column, vs []any, d dialect.Dialect) Statement {
-			return &arrayContainsFilter{
-				column: c.SQLName, sqlType: c.SQLType, value: vs, dialect: d,
-			}
-		},
-		func(c *core.Column, v any, d dialect.Dialect) Statement {
-			return &jsonbContainsFilter{column: c.SQLName, value: v, dialect: d}
-		},
-	),
-	"_contained_in": containmentParser(
-		func(c *core.Column, vs []any, d dialect.Dialect) Statement {
-			return &arrayContainedInFilter{
-				column: c.SQLName, sqlType: c.SQLType, value: vs, dialect: d,
-			}
-		},
-		func(c *core.Column, v any, d dialect.Dialect) Statement {
-			return &jsonbContainedInFilter{column: c.SQLName, value: v, dialect: d}
-		},
-	),
-	"_has_key": scalarParser(func(c *core.Column, v any, d dialect.Dialect) Statement {
-		return &jsonbHasKeyFilter{column: c.SQLName, key: values.AnyToString(v), dialect: d}
-	}),
-	"_has_keys_all": stringArrayParser(
-		func(c *core.Column, keys []string, d dialect.Dialect) Statement {
-			return &jsonbHasKeysAllFilter{column: c.SQLName, keys: keys, dialect: d}
-		},
-	),
-	"_has_keys_any": stringArrayParser(
-		func(c *core.Column, keys []string, d dialect.Dialect) Statement {
-			return &jsonbHasKeysAnyFilter{column: c.SQLName, keys: keys, dialect: d}
-		},
-	),
+var operatorParsers map[string]operatorParser
+
+func init() {
+	operatorParsers = map[string]operatorParser{
+		"_eq": scalarParser(func(c *core.Column, v any, d dialect.Dialect) Statement {
+			return &equalsFilter{column: c, value: v, dialect: d}
+		}),
+		"_neq": scalarParser(func(c *core.Column, v any, d dialect.Dialect) Statement {
+			return &notEqualsFilter{column: c, value: v, dialect: d}
+		}),
+		"_gt": scalarParser(func(c *core.Column, v any, d dialect.Dialect) Statement {
+			return &greaterThanFilter{column: c, value: v, dialect: d}
+		}),
+		"_gte": scalarParser(func(c *core.Column, v any, d dialect.Dialect) Statement {
+			return &greaterThanOrEqualFilter{column: c, value: v, dialect: d}
+		}),
+		"_lt": scalarParser(func(c *core.Column, v any, d dialect.Dialect) Statement {
+			return &lessThanFilter{column: c, value: v, dialect: d}
+		}),
+		"_lte": scalarParser(func(c *core.Column, v any, d dialect.Dialect) Statement {
+			return &lessThanOrEqualFilter{column: c, value: v, dialect: d}
+		}),
+		"_in": arrayParser(func(c *core.Column, vs []any, d dialect.Dialect) Statement {
+			return &inFilter{column: c, values: vs, dialect: d}
+		}),
+		"_nin": arrayParser(func(c *core.Column, vs []any, d dialect.Dialect) Statement {
+			return &notInFilter{column: c, values: vs, dialect: d}
+		}),
+		"_like":    scalarParser(buildLike(false, false)),
+		"_nlike":   scalarParser(buildLike(true, false)),
+		"_ilike":   scalarParser(buildLike(false, true)),
+		"_nilike":  scalarParser(buildLike(true, true)),
+		"_regex":   buildRegex(false, false),
+		"_nregex":  buildRegex(true, false),
+		"_iregex":  buildRegex(false, true),
+		"_niregex": buildRegex(true, true),
+		"_is_null": parseIsNull,
+		"_contains": containmentParser(
+			func(c *core.Column, vs []any, d dialect.Dialect) Statement {
+				return &arrayContainsFilter{
+					column: c.SQLName, sqlType: c.SQLType, value: vs, dialect: d,
+				}
+			},
+			func(c *core.Column, v any, d dialect.Dialect) Statement {
+				return &jsonbContainsFilter{column: c.SQLName, value: v, dialect: d}
+			},
+		),
+		"_contained_in": containmentParser(
+			func(c *core.Column, vs []any, d dialect.Dialect) Statement {
+				return &arrayContainedInFilter{
+					column: c.SQLName, sqlType: c.SQLType, value: vs, dialect: d,
+				}
+			},
+			func(c *core.Column, v any, d dialect.Dialect) Statement {
+				return &jsonbContainedInFilter{column: c.SQLName, value: v, dialect: d}
+			},
+		),
+		"_has_key": scalarParser(func(c *core.Column, v any, d dialect.Dialect) Statement {
+			return &jsonbHasKeyFilter{column: c.SQLName, key: values.AnyToString(v), dialect: d}
+		}),
+		"_has_keys_all": stringArrayParser(
+			func(c *core.Column, keys []string, d dialect.Dialect) Statement {
+				return &jsonbHasKeysAllFilter{column: c.SQLName, keys: keys, dialect: d}
+			},
+		),
+		"_has_keys_any": stringArrayParser(
+			func(c *core.Column, keys []string, d dialect.Dialect) Statement {
+				return &jsonbHasKeysAnyFilter{column: c.SQLName, keys: keys, dialect: d}
+			},
+		),
+		"_st_intersects": scalarParser(func(c *core.Column, v any, d dialect.Dialect) Statement {
+			return &spatialFilter{column: c, operator: "ST_Intersects", value: v, dialect: d}
+		}),
+		"_st_3d_intersects": scalarParser(func(c *core.Column, v any, d dialect.Dialect) Statement {
+			return &spatialFilter{column: c, operator: "ST_3DIntersects", value: v, dialect: d}
+		}),
+		"_st_contains": scalarParser(func(c *core.Column, v any, d dialect.Dialect) Statement {
+			return &spatialFilter{column: c, operator: "ST_Contains", value: v, dialect: d}
+		}),
+		"_st_crosses": scalarParser(func(c *core.Column, v any, d dialect.Dialect) Statement {
+			return &spatialFilter{column: c, operator: "ST_Crosses", value: v, dialect: d}
+		}),
+		"_st_equals": scalarParser(func(c *core.Column, v any, d dialect.Dialect) Statement {
+			return &spatialFilter{column: c, operator: "ST_Equals", value: v, dialect: d}
+		}),
+		"_st_overlaps": scalarParser(func(c *core.Column, v any, d dialect.Dialect) Statement {
+			return &spatialFilter{column: c, operator: "ST_Overlaps", value: v, dialect: d}
+		}),
+		"_st_touches": scalarParser(func(c *core.Column, v any, d dialect.Dialect) Statement {
+			return &spatialFilter{column: c, operator: "ST_Touches", value: v, dialect: d}
+		}),
+		"_st_within": scalarParser(func(c *core.Column, v any, d dialect.Dialect) Statement {
+			return &spatialFilter{column: c, operator: "ST_Within", value: v, dialect: d}
+		}),
+		"_st_d_within":    parseDWithin(false),
+		"_st_3d_d_within": parseDWithin(true),
+		"_cast":           parseCast,
+	}
 }

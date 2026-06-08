@@ -331,6 +331,24 @@ func WriteQuotedIdentifier(b *strings.Builder, name string) {
 // source writes just the quoted column. The column name is quoted via
 // WriteQuotedIdentifier, so an embedded `"` is escaped.
 func WriteQualifiedColumn(b *strings.Builder, source, column string) {
+	if strings.Contains(column, "::") {
+		parts := strings.SplitN(column, "::", 2)
+		colName := parts[0]
+		castType := parts[1]
+
+		b.WriteByte('(')
+		if source == "" {
+			WriteQuotedIdentifier(b, colName)
+		} else {
+			b.WriteString(source)
+			b.WriteByte('.')
+			WriteQuotedIdentifier(b, colName)
+		}
+		b.WriteString(")::")
+		b.WriteString(castType)
+		return
+	}
+
 	if source == "" {
 		WriteQuotedIdentifier(b, column)
 

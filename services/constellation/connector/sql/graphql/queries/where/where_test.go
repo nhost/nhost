@@ -2574,3 +2574,175 @@ func TestParseFieldComparison_Regex_Unsupported(t *testing.T) {
 		t.Errorf("error %q should explain the SupportsRegex gate", err)
 	}
 }
+
+func TestParseFieldComparison_STIntersects(t *testing.T) {
+	t.Parallel()
+
+	ctrl := gomock.NewController(t)
+	d := dialectmock.NewMockDialect(ctrl)
+	d.EXPECT().Placeholder(1).Return("$1")
+	d.EXPECT().TypeCast("$1", "geometry").Return("$1::geometry")
+
+	col := &core.Column{
+		SQLName:     "geom",
+		GraphqlName: "geom",
+		SQLType:     "geometry",
+		IsArray:     false,
+	}
+
+	value := &ast.Value{
+		Kind: ast.ObjectValue,
+		Children: []*ast.ChildValue{
+			{
+				Name:  "_st_intersects",
+				Value: &ast.Value{Kind: ast.StringValue, Raw: "POINT(1 1)"},
+			},
+		},
+	}
+
+	sql, params, err := runParseFieldComparison(
+		t,
+		&stubTableForFieldComparison{d: d},
+		col,
+		value,
+		nil,
+	)
+	if err != nil {
+		t.Fatalf("unexpected error: %v", err)
+	}
+
+	if !strings.Contains(sql, `ST_Intersects("t"."geom", $1::geometry)`) {
+		t.Errorf("SQL should contain ST_Intersects, got: %s", sql)
+	}
+
+	if len(params) != 1 || params[0] != "POINT(1 1)" {
+		t.Errorf("params = %v, want [POINT(1 1)]", params)
+	}
+}
+
+func TestParseFieldComparison_STDWithin(t *testing.T) {
+	t.Parallel()
+
+	ctrl := gomock.NewController(t)
+	d := dialectmock.NewMockDialect(ctrl)
+	d.EXPECT().Placeholder(1).Return("$1")
+	d.EXPECT().TypeCast("$1", "geography").Return("$1::geography")
+	d.EXPECT().Placeholder(2).Return("$2")
+	d.EXPECT().TypeCast("$2", "float8").Return("$2::float8")
+	d.EXPECT().Placeholder(3).Return("$3")
+	d.EXPECT().TypeCast("$3", "boolean").Return("$3::boolean")
+
+	col := &core.Column{
+		SQLName:     "geog",
+		GraphqlName: "geog",
+		SQLType:     "geography",
+		IsArray:     false,
+	}
+
+	value := &ast.Value{
+		Kind: ast.ObjectValue,
+		Children: []*ast.ChildValue{
+			{
+				Name: "_st_d_within",
+				Value: &ast.Value{
+					Kind: ast.ObjectValue,
+					Children: []*ast.ChildValue{
+						{
+							Name:  "from",
+							Value: &ast.Value{Kind: ast.StringValue, Raw: "POINT(2 2)"},
+						},
+						{
+							Name:  "distance",
+							Value: &ast.Value{Kind: ast.FloatValue, Raw: "1000"},
+						},
+						{
+							Name:  "use_spheroid",
+							Value: &ast.Value{Kind: ast.BooleanValue, Raw: "false"},
+						},
+					},
+				},
+			},
+		},
+	}
+
+	sql, params, err := runParseFieldComparison(
+		t,
+		&stubTableForFieldComparison{d: d},
+		col,
+		value,
+		nil,
+	)
+	if err != nil {
+		t.Fatalf("unexpected error: %v", err)
+	}
+
+	if !strings.Contains(sql, `ST_DWithin("t"."geog", $1::geography, $2::float8, $3::boolean)`) {
+		t.Errorf("SQL should contain ST_DWithin, got: %s", sql)
+	}
+
+	if len(params) != 3 || params[0] != "POINT(2 2)" || params[1] != 1000.0 || params[2] != false {
+		t.Errorf("params = %v", params)
+	}
+}
+
+func TestParseFieldComparison_Cast(t *testing.T) {
+	t.Parallel()
+
+	ctrl := gomock.NewController(t)
+	d := dialectmock.NewMockDialect(ctrl)
+	d.EXPECT().Placeholder(1).Return("$1")
+	d.EXPECT().TypeCast("$1", "geometry").Return("$1::geometry")
+
+	col := &core.Column{
+		SQLName:     "geog",
+		GraphqlName: "geog",
+		SQLType:     "geography",
+		IsArray:     false,
+	}
+
+	value := &ast.Value{
+		Kind: ast.ObjectValue,
+		Children: []*ast.ChildValue{
+			{
+				Name: "_cast",
+				Value: &ast.Value{
+					Kind: ast.ObjectValue,
+					Children: []*ast.ChildValue{
+						{
+							Name: "geometry",
+							Value: &ast.Value{
+								Kind: ast.ObjectValue,
+								Children: []*ast.ChildValue{
+									{
+										Name:  "_st_intersects",
+										Value: &ast.Value{Kind: ast.StringValue, Raw: "POINT(1 1)"},
+									},
+								},
+							},
+						},
+					},
+				},
+			},
+		},
+	}
+
+	sql, params, err := runParseFieldComparison(
+		t,
+		&stubTableForFieldComparison{d: d},
+		col,
+		value,
+		nil,
+	)
+	if err != nil {
+		t.Fatalf("unexpected error: %v", err)
+	}
+
+	if !strings.Contains(sql, `ST_Intersects(("t"."geog")::geometry, $1::geometry)`) {
+		t.Errorf("SQL should contain cast expression, got: %s", sql)
+	}
+
+	if len(params) != 1 || params[0] != "POINT(1 1)" {
+		t.Errorf("params = %v", params)
+	}
+}
+

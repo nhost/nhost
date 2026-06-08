@@ -362,3 +362,74 @@ func NewAndFilter( //nolint:ireturn,nolintlint
 ) Statement {
 	return &andFilter{conditions: conditions}
 }
+
+type spatialFilter struct {
+	column   *core.Column
+	operator string
+	value    any
+	dialect  dialect.Dialect
+}
+
+func (f *spatialFilter) WriteCondition(
+	b *strings.Builder,
+	source string,
+	params []any,
+	paramIndex int,
+) ([]any, int, error) {
+	b.WriteString(f.operator)
+	b.WriteByte('(')
+	core.WriteQualifiedColumn(b, source, f.column.SQLName)
+	b.WriteString(`, `)
+	b.WriteString(f.dialect.TypeCast(f.dialect.Placeholder(paramIndex), f.column.SQLType))
+	b.WriteByte(')')
+
+	params = append(params, f.value)
+
+	return params, paramIndex + 1, nil
+}
+
+type dWithinFilter struct {
+	column   *core.Column
+	is3D     bool
+	from     any
+	distance any
+	spheroid any
+	dialect  dialect.Dialect
+}
+
+func (f *dWithinFilter) WriteCondition(
+	b *strings.Builder,
+	source string,
+	params []any,
+	paramIndex int,
+) ([]any, int, error) {
+	if f.is3D {
+		b.WriteString(`ST_3DDWithin(`)
+	} else {
+		b.WriteString(`ST_DWithin(`)
+	}
+	core.WriteQualifiedColumn(b, source, f.column.SQLName)
+	b.WriteString(`, `)
+
+	b.WriteString(f.dialect.TypeCast(f.dialect.Placeholder(paramIndex), f.column.SQLType))
+	params = append(params, f.from)
+	paramIndex++
+
+	b.WriteString(`, `)
+
+	b.WriteString(f.dialect.TypeCast(f.dialect.Placeholder(paramIndex), "float8"))
+	params = append(params, f.distance)
+	paramIndex++
+
+	if f.spheroid != nil {
+		b.WriteString(`, `)
+		b.WriteString(f.dialect.TypeCast(f.dialect.Placeholder(paramIndex), "boolean"))
+		params = append(params, f.spheroid)
+		paramIndex++
+	}
+
+	b.WriteByte(')')
+
+	return params, paramIndex, nil
+}
+

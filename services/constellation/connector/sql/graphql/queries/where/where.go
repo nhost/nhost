@@ -506,7 +506,7 @@ func ParseFieldComparison( //nolint:ireturn,nolintlint
 			return nil, fmt.Errorf("%w: %s", errUnknownWhereOperator, child.Name)
 		}
 
-		cond, err := parser(column, child.Value, variables, d)
+		cond, err := parser(t, column, child.Value, variables, d)
 		if err != nil {
 			return nil, err
 		}
