@@ -401,6 +401,14 @@ func TestSchemaConflictFiltering(
 						withRequestTransform(map[string]any{"body": "{{$body}}"}),
 					),
 					actionMeta(
+						"invalidTransform",
+						metadata.ActionOperationQuery,
+						"OkOutput!",
+						nil,
+						nil,
+						withRequestTransform(map[string]any{"template_engine": "GoTemplate"}),
+					),
+					actionMeta(
 						"relationshipAction",
 						metadata.ActionOperationQuery,
 						"RelOutput!",
@@ -419,7 +427,7 @@ func TestSchemaConflictFiltering(
 					),
 				),
 			),
-			wantFields: []string{"ok"},
+			wantFields: []string{"ok", "transformAction"},
 			wantInc: []wantInconsistency{
 				{
 					kind: metadata.InconsistencyKindAction,
@@ -428,8 +436,8 @@ func TestSchemaConflictFiltering(
 				},
 				{
 					kind: metadata.InconsistencyKindAction,
-					name: "transformAction",
-					sub:  "action transforms are not supported yet",
+					name: "invalidTransform",
+					sub:  "invalid request transform",
 				},
 				{
 					kind: metadata.InconsistencyKindCustomType,
@@ -745,6 +753,12 @@ func withActionTimeout(timeout int) actionOption {
 func withRequestTransform(transform map[string]any) actionOption {
 	return func(action *metadata.ActionMetadata) {
 		action.Definition.RequestTransform = transform
+	}
+}
+
+func withResponseTransform(transform map[string]any) actionOption {
+	return func(action *metadata.ActionMetadata) {
+		action.Definition.ResponseTransform = transform
 	}
 }
 

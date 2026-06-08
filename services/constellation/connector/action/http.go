@@ -11,6 +11,7 @@ import (
 	"os"
 	"strings"
 
+	"github.com/nhost/nhost/services/constellation/connector/action/transform"
 	"github.com/nhost/nhost/services/constellation/metadata"
 	"golang.org/x/net/http/httpguts"
 )
@@ -123,17 +124,17 @@ func buildActionHeaders(action metadata.ActionMetadata) (map[string]string, erro
 	return headers, nil
 }
 
-func applyClientHeaders(req *http.Request, clientHeaders http.Header) {
+func applyClientHeaders(headers http.Header, clientHeaders http.Header) {
 	if host := clientHeaders.Get("Host"); host != "" {
-		req.Header.Set("X-Forwarded-Host", host)
+		headers.Set("X-Forwarded-Host", host)
 	}
 
 	if userAgent := clientHeaders.Get("User-Agent"); userAgent != "" {
-		req.Header.Set("X-Forwarded-User-Agent", userAgent)
+		headers.Set("X-Forwarded-User-Agent", userAgent)
 	}
 
 	if origin := clientHeaders.Get("Origin"); origin != "" {
-		req.Header.Set("X-Forwarded-Origin", origin)
+		headers.Set("X-Forwarded-Origin", origin)
 	}
 
 	for name, values := range clientHeaders {
@@ -146,9 +147,56 @@ func applyClientHeaders(req *http.Request, clientHeaders http.Header) {
 		}
 
 		for _, value := range values {
-			req.Header.Add(name, value)
+			headers.Add(name, value)
 		}
 	}
+}
+
+func (h *httpClient) buildRequestModel(
+	action runtimeAction,
+	payload actionPayload,
+	clientHeaders http.Header,
+) (transform.OutgoingRequest, error) {
+	jsonBody, err := json.Marshal(payload)
+	if err != nil {
+		return transform.OutgoingRequest{}, fmt.Errorf("marshaling action request: %w", err)
+	}
+
+	requestModel := transform.OutgoingRequest{
+		Method: http.MethodPost,
+		URL:    action.url,
+		Header: make(http.Header),
+		Body:   jsonBody,
+	}
+
+	if action.forwardClientHeaders && clientHeaders != nil {
+		applyClientHeaders(requestModel.Header, clientHeaders)
+	}
+
+	requestModel.Header.Set("Content-Type", "application/json")
+
+	for name, value := range action.headers {
+		requestModel.Header.Set(name, value)
+	}
+
+	if action.requestTransform != nil {
+		if err := action.requestTransform.Apply(
+			transform.RequestContext{
+				Body:             payload,
+				BaseURL:          action.url,
+				SessionVariables: payload.SessionVariables,
+			},
+			&requestModel,
+		); err != nil {
+			return transform.OutgoingRequest{}, fmt.Errorf("applying request transform: %w", err)
+		}
+	}
+
+	if err := validateActionURL(requestModel.URL); err != nil {
+		return transform.OutgoingRequest{}, fmt.Errorf("invalid transformed action URL: %w", err)
+	}
+
+	return requestModel, nil
 }
 
 func (h *httpClient) do(
@@ -157,37 +205,34 @@ func (h *httpClient) do(
 	payload actionPayload,
 	clientHeaders http.Header,
 ) ([]byte, int, error) {
-	jsonBody, err := json.Marshal(payload)
+	requestModel, err := h.buildRequestModel(action, payload, clientHeaders)
 	if err != nil {
-		return nil, 0, fmt.Errorf("marshaling action request: %w", err)
+		return nil, 0, err
 	}
 
-	if int64(len(jsonBody)) > h.maxRequestBodyBytes {
+	if int64(len(requestModel.Body)) > h.maxRequestBodyBytes {
 		return nil, 0, errActionRequestBodyTooLarge
 	}
 
 	ctx, cancel := context.WithTimeout(ctx, action.timeout)
 	defer cancel()
 
+	var bodyReader io.Reader
+	if requestModel.Body != nil {
+		bodyReader = bytes.NewReader(requestModel.Body)
+	}
+
 	req, err := http.NewRequestWithContext(
 		ctx,
-		http.MethodPost,
-		action.url,
-		bytes.NewReader(jsonBody),
+		requestModel.Method,
+		requestModel.URL,
+		bodyReader,
 	)
 	if err != nil {
 		return nil, 0, fmt.Errorf("creating action request: %w", err)
 	}
 
-	if action.forwardClientHeaders && clientHeaders != nil {
-		applyClientHeaders(req, clientHeaders)
-	}
-
-	req.Header.Set("Content-Type", "application/json")
-
-	for name, value := range action.headers {
-		req.Header.Set(name, value)
-	}
+	req.Header = requestModel.Header.Clone()
 
 	resp, err := h.doer.Do(req)
 	if err != nil {
@@ -198,6 +243,25 @@ func (h *httpClient) do(
 	body, err := readLimited(resp.Body, h.maxResponseBodyBytes)
 	if err != nil {
 		return nil, resp.StatusCode, err
+	}
+
+	if action.responseTransform != nil {
+		body, err = action.responseTransform.Apply(
+			transform.ResponseContext{
+				BaseURL:          action.url,
+				SessionVariables: payload.SessionVariables,
+				Status:           resp.StatusCode,
+				Headers:          resp.Header,
+			},
+			body,
+		)
+		if err != nil {
+			return nil, resp.StatusCode, fmt.Errorf("applying response transform: %w", err)
+		}
+
+		if int64(len(body)) > h.maxResponseBodyBytes {
+			return nil, resp.StatusCode, errActionResponseTooLarge
+		}
 	}
 
 	return body, resp.StatusCode, nil

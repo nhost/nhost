@@ -8,6 +8,7 @@ import (
 	"strings"
 	"time"
 
+	"github.com/nhost/nhost/services/constellation/connector/action/transform"
 	"github.com/nhost/nhost/services/constellation/connector/schemamerge"
 	"github.com/nhost/nhost/services/constellation/graph"
 	"github.com/nhost/nhost/services/constellation/metadata"
@@ -41,6 +42,8 @@ type runtimeAction struct {
 	headers              map[string]string
 	timeout              time.Duration
 	forwardClientHeaders bool
+	requestTransform     *transform.Request
+	responseTransform    *transform.Response
 }
 
 // RelationshipTargetKey identifies a database table that action custom object
@@ -235,15 +238,17 @@ type typeDefinition struct {
 }
 
 type actionDefinition struct {
-	meta           metadata.ActionMetadata
-	operation      ast.Operation
-	arguments      []*graph.Argument
-	outputType     *graph.Type
-	outputBase     string
-	reachableTypes map[string]struct{}
-	url            string
-	headers        map[string]string
-	timeout        time.Duration
+	meta              metadata.ActionMetadata
+	operation         ast.Operation
+	arguments         []*graph.Argument
+	outputType        *graph.Type
+	outputBase        string
+	reachableTypes    map[string]struct{}
+	url               string
+	headers           map[string]string
+	timeout           time.Duration
+	requestTransform  *transform.Request
+	responseTransform *transform.Response
 }
 
 type schemaBuilder struct {
@@ -333,6 +338,8 @@ func runtimeActionsByName(actions []actionDefinition) map[string]runtimeAction {
 			headers:              action.headers,
 			timeout:              action.timeout,
 			forwardClientHeaders: action.meta.Definition.ForwardClientHeaders,
+			requestTransform:     action.requestTransform,
+			responseTransform:    action.responseTransform,
 		}
 	}
 
@@ -983,7 +990,12 @@ func (b *schemaBuilder) validateAction(
 	}
 
 	operation, ok := b.validateActionOperation(ctx, action)
-	if !ok || !b.validateActionKind(ctx, action) || !b.validateActionTransforms(ctx, action) {
+	if !ok || !b.validateActionKind(ctx, action) {
+		return emptyActionDefinition(), false
+	}
+
+	requestTransform, responseTransform, ok := b.validateActionTransforms(ctx, action)
+	if !ok {
 		return emptyActionDefinition(), false
 	}
 
@@ -1020,15 +1032,17 @@ func (b *schemaBuilder) validateAction(
 	b.collectReachableTypes(outputType, reachableTypes)
 
 	return actionDefinition{
-		meta:           action,
-		operation:      operation,
-		arguments:      arguments,
-		outputType:     outputType,
-		outputBase:     outputBase,
-		reachableTypes: reachableTypes,
-		url:            handlerURL,
-		headers:        headers,
-		timeout:        timeout,
+		meta:              action,
+		operation:         operation,
+		arguments:         arguments,
+		outputType:        outputType,
+		outputBase:        outputBase,
+		reachableTypes:    reachableTypes,
+		url:               handlerURL,
+		headers:           headers,
+		timeout:           timeout,
+		requestTransform:  requestTransform,
+		responseTransform: responseTransform,
 	}, true
 }
 
@@ -1125,15 +1139,22 @@ func (b *schemaBuilder) validateActionKind(
 func (b *schemaBuilder) validateActionTransforms(
 	ctx context.Context,
 	action metadata.ActionMetadata,
-) bool {
-	if len(action.Definition.RequestTransform) == 0 &&
-		len(action.Definition.ResponseTransform) == 0 {
-		return true
+) (*transform.Request, *transform.Response, bool) {
+	requestTransform, err := transform.CompileRequest(action.Definition.RequestTransform)
+	if err != nil {
+		b.recordAction(ctx, action.Name, fmt.Sprintf("invalid request transform: %v", err))
+
+		return nil, nil, false
 	}
 
-	b.recordAction(ctx, action.Name, "action transforms are not supported yet")
+	responseTransform, err := transform.CompileResponse(action.Definition.ResponseTransform)
+	if err != nil {
+		b.recordAction(ctx, action.Name, fmt.Sprintf("invalid response transform: %v", err))
 
-	return false
+		return nil, nil, false
+	}
+
+	return requestTransform, responseTransform, true
 }
 
 func (b *schemaBuilder) validateActionOutput(
@@ -1158,15 +1179,17 @@ func (b *schemaBuilder) validateActionOutput(
 
 func emptyActionDefinition() actionDefinition {
 	return actionDefinition{
-		meta:           emptyActionMetadata(),
-		operation:      ast.Query,
-		arguments:      nil,
-		outputType:     nil,
-		outputBase:     "",
-		reachableTypes: nil,
-		url:            "",
-		headers:        nil,
-		timeout:        0,
+		meta:              emptyActionMetadata(),
+		operation:         ast.Query,
+		arguments:         nil,
+		outputType:        nil,
+		outputBase:        "",
+		reachableTypes:    nil,
+		url:               "",
+		headers:           nil,
+		timeout:           0,
+		requestTransform:  nil,
+		responseTransform: nil,
 	}
 }
 

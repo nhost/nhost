@@ -9,6 +9,7 @@ import (
 	"log/slog"
 	"net/http"
 	"reflect"
+	"strings"
 	"testing"
 	"time"
 
@@ -179,6 +180,246 @@ func TestExecuteBuildsPayloadAndSecureHeaders(t *testing.T) {
 	}
 	if diff := cmp.Diff(want, result); diff != "" {
 		t.Fatalf("result mismatch (-want +got):\n%s", diff)
+	}
+}
+
+func TestExecuteAppliesRequestAndResponseTransforms(t *testing.T) {
+	t.Parallel()
+
+	const queryText = `query TransformAction($message: String!) {
+		transformEcho(message: $message) {
+			message
+			role
+			trace
+		}
+	}`
+
+	doer := &stubDoer{t: t}
+	doer.handle = func(req *http.Request) (*http.Response, error) {
+		if req.Method != http.MethodPatch {
+			t.Fatalf("method = %s, want PATCH", req.Method)
+		}
+
+		if want := "https://actions.example.test/transformEcho/transformed?user=action-user-123"; req.URL.String() != want {
+			t.Fatalf("url = %s, want %s", req.URL.String(), want)
+		}
+
+		assertHeader(t, req, "Content-Type", "application/x-www-form-urlencoded")
+		assertHeader(t, req, "X-Transformed", "user")
+		assertNoHeader(t, req, "X-Remove")
+
+		body, err := io.ReadAll(req.Body)
+		if err != nil {
+			t.Fatalf("reading transformed request body: %v", err)
+		}
+
+		if want := "message=hello+transforms&role=user"; string(body) != want {
+			t.Fatalf("transformed request body = %s, want %s", body, want)
+		}
+
+		resp := jsonHTTPResponse(t, http.StatusAccepted, map[string]any{
+			"data": map[string]any{
+				"text": "hello transforms",
+				"role": "user",
+			},
+		})
+		resp.Header.Set("X-Trace-Id", "trace-123")
+
+		return resp, nil
+	}
+
+	conn := newConnectorWithDoer(
+		t.Context(),
+		executionMetadata(
+			[]metadata.ActionMetadata{
+				actionMeta(
+					"transformEcho",
+					metadata.ActionOperationQuery,
+					"TransformEchoOutput!",
+					[]string{"user"},
+					[]metadata.ActionArgument{actionArg("message", "String!", "")},
+					withActionHeaders(metadata.ActionHeader{
+						Name:         "x-remove",
+						Value:        "remove-me",
+						ValueFromEnv: "",
+					}),
+					withRequestTransform(map[string]any{
+						"version":      2,
+						"method":       "PATCH",
+						"url":          "{{$base_url}}/transformed",
+						"content_type": "application/x-www-form-urlencoded",
+						"query_params": map[string]any{
+							"user": "{{$session_variables['x-hasura-user-id']}}",
+						},
+						"request_headers": map[string]any{
+							"remove_headers": []any{"x-remove"},
+							"add_headers": map[string]any{
+								"x-transformed": "{{getSessionVariable('x-hasura-role')}}",
+							},
+						},
+						"body": map[string]any{
+							"action": "x_www_form_urlencoded",
+							"form_template": map[string]any{
+								"message": "{{$body.input.message}}",
+								"role":    "{{getSessionVariable('x-hasura-role')}}",
+							},
+						},
+					}),
+					withResponseTransform(map[string]any{
+						"version": "2",
+						"body": map[string]any{
+							"action": "transform",
+							"template": `{
+								"message": {{$body.data.text}},
+								"role": {{$body.data.role}},
+								"trace": {{$response.headers['x-trace-id']}}
+							}`,
+						},
+					}),
+				),
+			},
+			customTypes(withObjects(objectType(
+				"TransformEchoOutput",
+				nil,
+				objectField("message", "String!"),
+				objectField("role", "String!"),
+				objectField("trace", "String!"),
+			))),
+		),
+		metadata.NewInconsistencies(),
+		slog.Default(),
+		doer,
+	)
+
+	result, err := executeQuery(
+		requestcontext.GraphQLQueryToContext(t.Context(), queryText),
+		t,
+		conn,
+		"user",
+		queryText,
+		map[string]any{"message": "hello transforms"},
+		map[string]any{
+			"x-hasura-role":    "user",
+			"x-hasura-user-id": "action-user-123",
+		},
+	)
+	if err != nil {
+		t.Fatalf("Execute: %v", err)
+	}
+
+	want := map[string]any{
+		"transformEcho": map[string]any{
+			"message": "hello transforms",
+			"role":    "user",
+			"trace":   "trace-123",
+		},
+	}
+	if diff := cmp.Diff(want, result); diff != "" {
+		t.Fatalf("result mismatch (-want +got):\n%s", diff)
+	}
+}
+
+func TestExecuteSurfacesTransformRuntimeErrors(t *testing.T) {
+	t.Parallel()
+
+	tests := []struct {
+		name           string
+		actionName     string
+		actionOption   actionOption
+		handle         func(*testing.T, *http.Request) (*http.Response, error)
+		wantResult     map[string]any
+		wantErrMessage string
+	}{
+		{
+			name:       "request transform invalid JSON",
+			actionName: "brokenRequest",
+			actionOption: withRequestTransform(map[string]any{
+				"body": `{"message": {{$body.input.message}}`,
+			}),
+			handle: func(t *testing.T, _ *http.Request) (*http.Response, error) {
+				t.Helper()
+				t.Error("request transform error should stop before HTTP dispatch")
+
+				return rawHTTPResponse(http.StatusInternalServerError, nil), nil
+			},
+			wantResult: map[string]any{"brokenRequest": nil},
+			wantErrMessage: "executing action \"brokenRequest\": applying request transform: " +
+				"rendering request body: rendered template is not valid JSON",
+		},
+		{
+			name:       "response transform non JSON source",
+			actionName: "brokenResponse",
+			actionOption: withResponseTransform(map[string]any{
+				"body": "not-json",
+			}),
+			handle: func(t *testing.T, _ *http.Request) (*http.Response, error) {
+				t.Helper()
+
+				return jsonHTTPResponse(t, http.StatusOK, map[string]any{"value": "ok"}), nil
+			},
+			wantResult: map[string]any{"brokenResponse": nil},
+			wantErrMessage: "executing action \"brokenResponse\": applying response transform: " +
+				"rendering response body: rendered template is not valid JSON",
+		},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			t.Parallel()
+
+			doer := &stubDoer{t: t}
+			doer.handle = func(req *http.Request) (*http.Response, error) {
+				t.Helper()
+
+				return tt.handle(t, req)
+			}
+			conn := newConnectorWithDoer(
+				t.Context(),
+				executionMetadata(
+					[]metadata.ActionMetadata{
+						actionMeta(
+							tt.actionName,
+							metadata.ActionOperationQuery,
+							"TransformErrorOutput",
+							[]string{"user"},
+							[]metadata.ActionArgument{actionArg("message", "String!", "")},
+							tt.actionOption,
+						),
+					},
+					customTypes(withObjects(objectType(
+						"TransformErrorOutput",
+						nil,
+						objectField("value", "String"),
+					))),
+				),
+				metadata.NewInconsistencies(),
+				slog.Default(),
+				doer,
+			)
+
+			queryText := "query TransformError($message: String!) { " + tt.actionName + "(message: $message) { value } }"
+
+			result, err := executeQuery(
+				requestcontext.GraphQLQueryToContext(t.Context(), queryText),
+				t,
+				conn,
+				"user",
+				queryText,
+				map[string]any{"message": "hello"},
+				map[string]any{"x-hasura-role": "user"},
+			)
+			if err == nil {
+				t.Fatal("Execute error = nil, want transform runtime error")
+			}
+
+			if diff := cmp.Diff(tt.wantResult, result); diff != "" {
+				t.Fatalf("result mismatch (-want +got):\n%s", diff)
+			}
+
+			if got := err.Error(); !strings.Contains(got, tt.wantErrMessage) {
+				t.Fatalf("error = %q, want to contain %q", got, tt.wantErrMessage)
+			}
+		})
 	}
 }
 
@@ -479,6 +720,8 @@ func TestHTTPClientHardening(t *testing.T) {
 				headers:              nil,
 				timeout:              time.Second,
 				forwardClientHeaders: false,
+				requestTransform:     nil,
+				responseTransform:    nil,
 			},
 			actionPayload{
 				Action:           actionPayloadName{Name: "small"},

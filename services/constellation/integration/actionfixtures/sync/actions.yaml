@@ -46,6 +46,59 @@ actions:
           value_from_env: NHOST_WEBHOOK_SECRET
       timeout: 30
     comment: Returns deterministic profile records for action relationship parity tests.
+  - name: transformEcho
+    definition:
+      kind: synchronous
+      handler: '{{NHOST_FUNCTIONS_URL}}/actions'
+      forward_client_headers: false
+      headers:
+        - name: x-nhost-webhook-secret
+          value_from_env: NHOST_WEBHOOK_SECRET
+      timeout: 30
+      request_transform:
+        template_engine: Kriti
+        version: 2
+        method: PATCH
+        url: '{{$base_url}}'
+        query_params:
+          role: '{{getSessionVariable("x-hasura-role")}}'
+          optional: "{{$session_variables?['x-hasura-missing']}}"
+        content_type: application/x-www-form-urlencoded
+        request_headers:
+          remove_headers:
+            - content-type
+          add_headers:
+            content-type: application/x-www-form-urlencoded
+            x-action-name: transformEcho
+            x-session-role: '{{getSessionVariable("x-hasura-role")}}'
+        body:
+          action: x_www_form_urlencoded
+          form_template:
+            message: '{{$body.input.message}}'
+            role: '{{getSessionVariable("x-hasura-role")}}'
+            nested: '{{concat(["nested-", $body.input.message])}}'
+      response_transform:
+        template_engine: Kriti
+        version: 2
+        body:
+          action: transform
+          template: |
+            {{ if $response.status == 202 }}
+            {
+              "message": {{$body.data.text}},
+              "role": {{$body.data.role}},
+              "contentType": {{$body.data.contentType}}
+            }
+            {{ else }}
+            {
+              "message": "unexpected status",
+              "role": "unknown",
+              "contentType": null
+            }
+            {{ end }}
+    permissions:
+      - role: user
+    comment: Exercises request and response transforms for synchronous actions.
 custom_types:
   enums: []
   input_objects: []

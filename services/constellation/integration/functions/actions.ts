@@ -4,10 +4,13 @@ type Request = {
   get(name: string): string | undefined;
 };
 
+type ResponseSender = {
+  set(name: string, value: string): ResponseSender;
+  json(payload: unknown): void;
+};
+
 type Response = {
-  status(code: number): {
-    json(payload: unknown): void;
-  };
+  status(code: number): ResponseSender;
 };
 
 declare const process: {
@@ -29,12 +32,16 @@ type ActionPayload = {
 const WEBHOOK_SECRET_HEADER = 'x-nhost-webhook-secret';
 const ACTION_ECHO_HEADER = 'x-action-echo';
 
-function getPayload(req: Request): ActionPayload {
+function getObjectBody(req: Request): Record<string, unknown> {
   if (typeof req.body !== 'object' || req.body === null) {
     return {};
   }
 
-  return req.body as ActionPayload;
+  return req.body as Record<string, unknown>;
+}
+
+function getPayload(req: Request): ActionPayload {
+  return getObjectBody(req) as ActionPayload;
 }
 
 function getNumber(input: Record<string, unknown>, key: string): number {
@@ -82,7 +89,11 @@ function sendActionError(res: Response, status: number, message: string): void {
 }
 
 export default function handler(req: Request, res: Response): void {
-  if (req.method !== 'POST') {
+  const transformedAction = req.get('x-action-name') === 'transformEcho';
+  if (
+    (!transformedAction && req.method !== 'POST') ||
+    (transformedAction && req.method !== 'PATCH')
+  ) {
     sendActionError(res, 405, 'method not allowed');
     return;
   }
@@ -92,6 +103,25 @@ export default function handler(req: Request, res: Response): void {
   } catch (error) {
     const message = error instanceof Error ? error.message : 'unauthorized';
     sendActionError(res, 401, message);
+    return;
+  }
+
+  if (transformedAction) {
+    const body = getObjectBody(req);
+    const message = getString(body, 'message');
+    const role = getString(body, 'role');
+    const nested = getString(body, 'nested');
+
+    res
+      .status(202)
+      .set('x-transform-response', 'transform-response')
+      .json({
+        data: {
+          text: `${message}:${nested}`,
+          role,
+          contentType: req.get('content-type') ?? null,
+        },
+      });
     return;
   }
 
