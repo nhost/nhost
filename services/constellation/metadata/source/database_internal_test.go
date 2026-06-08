@@ -12,8 +12,6 @@ import (
 	"sync/atomic"
 	"testing"
 	"time"
-
-	"github.com/nhost/nhost/services/constellation/metadata"
 )
 
 const validV3JSON = `{"version":3,"sources":[]}`
@@ -106,8 +104,9 @@ func TestDatabaseMetadataSource_InitialLoad(t *testing.T) {
 }
 
 // TestDatabaseMetadataSource_HasuraSnapshotJSON_AfterInitialLoad verifies
-// that HasuraSnapshotJSON returns the MarshalHasura form of the metadata
-// just loaded, paired with the scanned resource_version.
+// that HasuraSnapshotJSON returns the original hdb_catalog.hdb_metadata bytes
+// verbatim (export_metadata must echo what Hasura stored, not a re-marshaled
+// form), paired with the scanned resource_version.
 func TestDatabaseMetadataSource_HasuraSnapshotJSON_AfterInitialLoad(t *testing.T) {
 	t.Parallel()
 
@@ -124,22 +123,10 @@ func TestDatabaseMetadataSource_HasuraSnapshotJSON_AfterInitialLoad(t *testing.T
 		t.Fatalf("InitialLoad: %v", err)
 	}
 
-	// Recompute the expected snapshot by parsing the same input the source
-	// loaded, then re-marshaling through MarshalHasura — mirroring what the
-	// source does internally so the assertion is byte-for-byte exact.
-	_, h, err := metadata.FromHasuraJSONWithHasura([]byte(validV3JSON))
-	if err != nil {
-		t.Fatalf("FromHasuraJSONWithHasura: %v", err)
-	}
-
-	want, err := metadata.MarshalHasura(h)
-	if err != nil {
-		t.Fatalf("MarshalHasura: %v", err)
-	}
-
+	// The snapshot must be the source blob byte-for-byte, untouched by parsing.
 	gotRaw, gotVersion := src.HasuraSnapshotJSON()
-	if !bytes.Equal(gotRaw, want) {
-		t.Errorf("HasuraSnapshotJSON bytes = %q; want %q", gotRaw, want)
+	if !bytes.Equal(gotRaw, []byte(validV3JSON)) {
+		t.Errorf("HasuraSnapshotJSON bytes = %q; want %q", gotRaw, validV3JSON)
 	}
 
 	if gotVersion != 42 {

@@ -185,8 +185,11 @@ func (p *PermissionExpression) UnmarshalJSON(data []byte) error {
 // SelectPermissionConfig captures the columns, row filter, and aggregation
 // access a select permission grants.
 type SelectPermissionConfig struct {
-	Columns           []string             `json:"columns,omitempty"           yaml:"columns,omitempty"`
-	Filter            PermissionExpression `json:"filter,omitempty"            yaml:"filter,omitempty"`
+	Columns []string `json:"columns,omitempty" yaml:"columns,omitempty"`
+	// omitzero (not omitempty) so a present-but-empty `filter: {}` — Hasura's
+	// "allow all rows" form, and a required field — survives export, while a
+	// truly absent (nil) filter is still omitted.
+	Filter            PermissionExpression `json:"filter,omitzero"             yaml:"filter,omitempty"`
 	AllowAggregations bool                 `json:"allow_aggregations,omitzero" yaml:"allow_aggregations,omitempty"`
 
 	Unknown jsontext.Value `json:",unknown" yaml:"-"`
@@ -261,6 +264,10 @@ func (p *SelectPermissionConfig) UnmarshalJSON(data []byte) error {
 		Columns           jsontext.Value       `json:"columns,omitempty"`
 		Filter            PermissionExpression `json:"filter,omitempty"`
 		AllowAggregations bool                 `json:"allow_aggregations,omitzero"`
+		// Capture unmodeled Hasura permission keys (limit, query_root_fields,
+		// backend_only, …). The custom UnmarshalJSON bypasses the struct's own
+		// `,unknown` field, so the sink must live on this raw struct.
+		Unknown jsontext.Value `json:",unknown"`
 	}
 
 	if err := json.Unmarshal(data, &raw); err != nil {
@@ -275,6 +282,7 @@ func (p *SelectPermissionConfig) UnmarshalJSON(data []byte) error {
 	p.Columns = columns
 	p.Filter = raw.Filter
 	p.AllowAggregations = raw.AllowAggregations
+	p.Unknown = raw.Unknown
 
 	return nil
 }
@@ -321,9 +329,11 @@ func parsePermissionColumnsJSON(value jsontext.Value) ([]string, error) {
 // InsertPermissionConfig captures the columns, row-level check, and presets an
 // insert permission grants.
 type InsertPermissionConfig struct {
-	Columns []string             `json:"columns,omitempty" yaml:"columns,omitempty"`
-	Check   PermissionExpression `json:"check,omitempty"   yaml:"check,omitempty"`
-	Set     PermissionExpression `json:"set,omitempty"     yaml:"set,omitempty"`
+	Columns []string `json:"columns,omitempty" yaml:"columns,omitempty"`
+	// omitzero so a present-but-empty `check: {}` (required by Hasura) survives
+	// export; a nil check/set is still omitted.
+	Check PermissionExpression `json:"check,omitzero" yaml:"check,omitempty"`
+	Set   PermissionExpression `json:"set,omitzero"   yaml:"set,omitempty"`
 
 	Unknown jsontext.Value `json:",unknown" yaml:"-"`
 }
@@ -365,6 +375,8 @@ func (p *InsertPermissionConfig) UnmarshalJSON(data []byte) error {
 		Columns jsontext.Value       `json:"columns,omitempty"`
 		Check   PermissionExpression `json:"check,omitempty"`
 		Set     PermissionExpression `json:"set,omitempty"`
+		// Capture unmodeled Hasura permission keys; see SelectPermissionConfig.
+		Unknown jsontext.Value `json:",unknown"`
 	}
 
 	if err := json.Unmarshal(data, &raw); err != nil {
@@ -379,6 +391,7 @@ func (p *InsertPermissionConfig) UnmarshalJSON(data []byte) error {
 	p.Columns = columns
 	p.Check = raw.Check
 	p.Set = raw.Set
+	p.Unknown = raw.Unknown
 
 	return nil
 }
@@ -386,10 +399,12 @@ func (p *InsertPermissionConfig) UnmarshalJSON(data []byte) error {
 // UpdatePermissionConfig captures the columns, row filter, post-update check,
 // and presets an update permission grants.
 type UpdatePermissionConfig struct {
-	Columns []string             `json:"columns,omitempty" yaml:"columns,omitempty"`
-	Filter  PermissionExpression `json:"filter,omitempty"  yaml:"filter,omitempty"`
-	Check   PermissionExpression `json:"check,omitempty"   yaml:"check,omitempty"`
-	Set     PermissionExpression `json:"set,omitempty"     yaml:"set,omitempty"`
+	Columns []string `json:"columns,omitempty" yaml:"columns,omitempty"`
+	// omitzero so present-but-empty `filter: {}` / `check: {}` survive export;
+	// nil values are still omitted.
+	Filter PermissionExpression `json:"filter,omitzero" yaml:"filter,omitempty"`
+	Check  PermissionExpression `json:"check,omitzero"  yaml:"check,omitempty"`
+	Set    PermissionExpression `json:"set,omitzero"    yaml:"set,omitempty"`
 
 	Unknown jsontext.Value `json:",unknown" yaml:"-"`
 }
@@ -434,6 +449,8 @@ func (p *UpdatePermissionConfig) UnmarshalJSON(data []byte) error {
 		Filter  PermissionExpression `json:"filter,omitempty"`
 		Check   PermissionExpression `json:"check,omitempty"`
 		Set     PermissionExpression `json:"set,omitempty"`
+		// Capture unmodeled Hasura permission keys; see SelectPermissionConfig.
+		Unknown jsontext.Value `json:",unknown"`
 	}
 
 	if err := json.Unmarshal(data, &raw); err != nil {
@@ -449,13 +466,16 @@ func (p *UpdatePermissionConfig) UnmarshalJSON(data []byte) error {
 	p.Filter = raw.Filter
 	p.Check = raw.Check
 	p.Set = raw.Set
+	p.Unknown = raw.Unknown
 
 	return nil
 }
 
 // DeletePermissionConfig captures the row filter a delete permission applies.
 type DeletePermissionConfig struct {
-	Filter PermissionExpression `json:"filter,omitempty" yaml:"filter,omitempty"`
+	// omitzero so a present-but-empty `filter: {}` (required by Hasura on delete
+	// permissions) survives export; a nil filter is still omitted.
+	Filter PermissionExpression `json:"filter,omitzero" yaml:"filter,omitempty"`
 
 	Unknown jsontext.Value `json:",unknown" yaml:"-"`
 }
