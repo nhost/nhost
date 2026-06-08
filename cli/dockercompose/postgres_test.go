@@ -51,8 +51,12 @@ func expectedPostgres(tmpdir string) *Service {
 		},
 		Labels:   nil,
 		Networks: networkAliases("postgres-service"),
-		Ports:    []Port{{Mode: "ingress", Target: 5432, Published: "5432", Protocol: "tcp"}},
-		Restart:  "always",
+		Ports: []Port{
+			{Mode: "ingress", Target: 5432, Published: "5432", Protocol: "tcp"},
+		},
+		Restart:         "always",
+		StopGracePeriod: "60s",
+		StopSignal:      "SIGTERM",
 		Volumes: []Volume{
 			{
 				Type:     "volume",
