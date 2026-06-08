@@ -109,8 +109,8 @@ export default function UserSelect({
   ];
 
   return (
-    <div className={cn('flex flex-col gap-2 w-full', className)}>
-      <span className="text-xs font-semibold text-muted-foreground uppercase tracking-wider">
+    <div className={cn('flex w-full flex-col gap-2', className)}>
+      <span className="font-semibold text-muted-foreground text-xs uppercase tracking-wider">
         Make request as
       </span>
       <Combobox

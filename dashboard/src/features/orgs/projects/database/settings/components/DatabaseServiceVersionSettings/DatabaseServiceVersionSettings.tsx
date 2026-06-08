@@ -323,7 +323,7 @@ export default function DatabaseServiceVersionSettings() {
           <Box className="grid grid-flow-row gap-x-4 gap-y-2 lg:grid-cols-5">
             <FormFreeCombobox
               name="majorVersion"
-              className="lg:col-span-2"
+              containerClassName="lg:col-span-2"
               label="MAJOR"
               options={availableMajorVersions}
               control={form.control}
@@ -355,7 +355,7 @@ export default function DatabaseServiceVersionSettings() {
             />
             <FormFreeCombobox
               name="minorVersion"
-              className="lg:col-span-3"
+              containerClassName="lg:col-span-3"
               label="MINOR"
               options={availableMinorVersions}
               control={form.control}

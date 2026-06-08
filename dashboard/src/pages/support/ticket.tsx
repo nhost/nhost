@@ -264,6 +264,7 @@ function TicketPage() {
                               <MultiSelectValue
                                 placeholder="Select Services"
                                 placeHolderClassName="text-[#9ca7b7]"
+                                overflowBehavior="wrap"
                               />
                             </MultiSelectTrigger>
                           </FormControl>
