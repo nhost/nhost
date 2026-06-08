@@ -45,7 +45,8 @@ func (ctrl *Controller) listOrphans(ctx context.Context) ([]string, *APIError) {
 }
 
 func (ctrl *Controller) ListOrphanedFiles( //nolint:ireturn
-	ctx context.Context, _ api.ListOrphanedFilesRequestObject,
+	ctx context.Context,
+	_ api.ListOrphanedFilesRequestObject,
 ) (api.ListOrphanedFilesResponseObject, error) {
 	logger := oapimw.LoggerFromContext(ctx)
 

@@ -3,6 +3,7 @@ package planner
 import (
 	"errors"
 
+	"github.com/nhost/nhost/services/constellation/connector/schemamerge"
 	"github.com/nhost/nhost/services/constellation/controller/planner/transform"
 	"github.com/vektah/gqlparser/v2/ast"
 )
@@ -19,11 +20,11 @@ type QueryPlanner struct {
 	// schemas maps role -> validated schema
 	schemas map[string]*ast.Schema
 
-	// fieldToConnector maps root field name -> connector name
+	// fieldToConnector maps schemamerge.FieldKey(op, fieldName) -> connector name
 	fieldToConnector map[string]string
 
-	// typeToConnector maps type name -> connector name
-	typeToConnector map[string]string
+	// typeToConnectors maps type name -> connector names
+	typeToConnectors map[string][]string
 
 	// relationshipsByConnector maps connector -> relationships
 	relationshipsByConnector map[string][]*RelationshipMetadata
@@ -33,13 +34,13 @@ type QueryPlanner struct {
 func New(
 	schemas map[string]*ast.Schema,
 	fieldToConnector map[string]string,
-	typeToConnector map[string]string,
+	typeToConnectors map[string][]string,
 	connectorRelationships map[string][]*RelationshipMetadata,
 ) *QueryPlanner {
 	return &QueryPlanner{
 		schemas:                  schemas,
 		fieldToConnector:         fieldToConnector,
-		typeToConnector:          typeToConnector,
+		typeToConnectors:         typeToConnectors,
 		relationshipsByConnector: connectorRelationships,
 	}
 }
@@ -86,7 +87,7 @@ func (p *QueryPlanner) Plan(
 			schema,
 			toRemoteRelationships(relationships),
 			connectorName,
-			p.typeToConnector,
+			p.typeToConnectors,
 		)
 		transformResult := transformer.Transform(subOp, fragments)
 
@@ -122,7 +123,7 @@ func (p *QueryPlanner) groupFieldsByConnector(
 			continue
 		}
 
-		connName := p.fieldToConnector[field.Name]
+		connName := p.fieldToConnector[schemamerge.FieldKey(op.Operation, field.Name)]
 		if connName == "" {
 			continue
 		}
@@ -157,8 +158,9 @@ func toPhantomSpecs(specs []*PhantomFieldSpec) []transform.PhantomSpec {
 	out := make([]transform.PhantomSpec, 0, len(specs))
 	for _, s := range specs {
 		out = append(out, transform.PhantomSpec{
-			Path:   s.Path,
-			Fields: s.Fields,
+			Path:    s.Path,
+			Fields:  s.Fields,
+			Aliases: s.Aliases,
 		})
 	}
 

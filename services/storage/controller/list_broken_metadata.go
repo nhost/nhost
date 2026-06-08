@@ -69,7 +69,8 @@ func fileListSummary(files []FileSummary) *[]api.FileSummary {
 }
 
 func (ctrl *Controller) ListBrokenMetadata( //nolint:ireturn
-	ctx context.Context, _ api.ListBrokenMetadataRequestObject,
+	ctx context.Context,
+	_ api.ListBrokenMetadataRequestObject,
 ) (api.ListBrokenMetadataResponseObject, error) {
 	logger := oapimw.LoggerFromContext(ctx)
 

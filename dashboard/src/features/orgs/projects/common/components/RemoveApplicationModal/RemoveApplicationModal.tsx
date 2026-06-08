@@ -3,9 +3,9 @@ import { useState } from 'react';
 import { twMerge } from 'tailwind-merge';
 import { Box } from '@/components/ui/v2/Box';
 import { Button } from '@/components/ui/v2/Button';
-import { Checkbox } from '@/components/ui/v2/Checkbox';
-import { Divider } from '@/components/ui/v2/Divider';
 import { Text } from '@/components/ui/v2/Text';
+import { Checkbox } from '@/components/ui/v3/checkbox';
+import { Label } from '@/components/ui/v3/label';
 import { useOrgs } from '@/features/orgs/projects/hooks/useOrgs';
 import { useProject } from '@/features/orgs/projects/hooks/useProject';
 import { useUserData } from '@/hooks/useUserData';
@@ -113,36 +113,56 @@ export default function RemoveApplicationModal({
           This cannot be undone.
         </Text>
 
-        <Box className="my-4 border-y">
-          <Checkbox
-            id="accept-1"
-            label={`I'm sure I want to delete ${appName}`}
-            className="py-2"
-            checked={remove}
-            onChange={(_event, checked) => setRemove(checked)}
-            aria-label="Confirm Delete Project #1"
-          />
+        <Box className="my-4 flex flex-col divide-y border-y">
+          <div className="flex items-start gap-2 py-3">
+            <Checkbox
+              id="accept-1"
+              checked={remove}
+              onCheckedChange={(checked) => setRemove(checked === true)}
+              aria-label="Confirm Delete Project #1"
+              className="mt-0.5"
+            />
+            <Label
+              htmlFor="accept-1"
+              className="cursor-pointer font-normal leading-5"
+            >
+              {`I'm sure I want to delete ${appName}`}
+            </Label>
+          </div>
 
-          <Divider />
-
-          <Checkbox
-            id="accept-2"
-            label="I understand this action cannot be undone"
-            className="py-2"
-            checked={remove2}
-            onChange={(_event, checked) => setRemove2(checked)}
-            aria-label="Confirm Delete Project #2"
-          />
+          <div className="flex items-start gap-2 py-3">
+            <Checkbox
+              id="accept-2"
+              checked={remove2}
+              onCheckedChange={(checked) => setRemove2(checked === true)}
+              aria-label="Confirm Delete Project #2"
+              className="mt-0.5"
+            />
+            <Label
+              htmlFor="accept-2"
+              className="cursor-pointer font-normal leading-5"
+            >
+              I understand this action cannot be undone
+            </Label>
+          </div>
 
           {isPaidPlan && (
-            <Checkbox
-              id="accept-3"
-              label="I understand I need to delete the organization if I want to cancel the subscription"
-              className="py-2"
-              checked={remove3}
-              onChange={(_event, checked) => setRemove3(checked)}
-              aria-label="Confirm Delete Project #3"
-            />
+            <div className="flex items-start gap-2 py-3">
+              <Checkbox
+                id="accept-3"
+                checked={remove3}
+                onCheckedChange={(checked) => setRemove3(checked === true)}
+                aria-label="Confirm Delete Project #3"
+                className="mt-0.5"
+              />
+              <Label
+                htmlFor="accept-3"
+                className="cursor-pointer font-normal leading-5"
+              >
+                I understand I need to delete the organization if I want to
+                cancel the subscription
+              </Label>
+            </div>
           )}
         </Box>
 

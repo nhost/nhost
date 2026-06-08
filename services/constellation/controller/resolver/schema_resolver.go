@@ -227,7 +227,7 @@ func mergeSourceFieldArguments(remoteField *ast.Field, sourceArgs ast.ArgumentLi
 }
 
 // GetJoinKeyFromParent extracts join key from a parent row for stitching.
-func (r *schemaResolver) GetJoinKeyFromParent(_ *remoteQuery, parentRow map[string]any) string {
+func (r *schemaResolver) GetJoinKeyFromParent(rq *remoteQuery, parentRow map[string]any) string {
 	// Sort LHS fields for consistent key building
 	lhsFields := make([]string, len(r.lhsFields))
 	copy(lhsFields, r.lhsFields)
@@ -237,7 +237,12 @@ func (r *schemaResolver) GetJoinKeyFromParent(_ *remoteQuery, parentRow map[stri
 	keyParts := make([]string, 0, len(lhsFields))
 
 	for _, field := range lhsFields {
-		val := parentRow[field]
+		lookupKey := field
+		if alias, ok := rq.localJoinAliases[field]; ok {
+			lookupKey = alias
+		}
+
+		val := parentRow[lookupKey]
 		keyParts = append(keyParts, fmt.Sprintf("%v", val))
 	}
 

@@ -3,7 +3,10 @@ on:
   pull_request_target:
     paths:
       - ".github/workflows/wf_check.yaml"
+      - ".github/workflows/wf_deploy_vercel.yaml"
       - ".github/workflows/docs_checks.yaml"
+      - ".github/actions/cache-nix/**"
+      - ".github/actions/vercel-deploy-nix/**"
 
       # common build
       - "flake.nix"
@@ -45,7 +48,10 @@ jobs:
     with:
       patterns: |
         .github/workflows/wf_check.yaml
+        .github/workflows/wf_deploy_vercel.yaml
         .github/workflows/docs_checks.yaml
+        .github/actions/cache-nix/**
+        .github/actions/vercel-deploy-nix/**
         flake.nix
         flake.lock
         nixops/**
@@ -97,7 +103,7 @@ jobs:
     if: needs.detect-changes.outputs.should_run == 'true'
     with:
       NAME: docs
-      GIT_REF: ${{ github.event.pull_request.head.sha }}
+      GIT_REF: ${{ github.event_name == 'pull_request_target' && github.event.pull_request.head.sha || github.sha }}
       ENVIRONMENT: preview
     secrets:
       AWS_ACCOUNT_ID: ${{ secrets.AWS_PRODUCTION_CORE_ACCOUNT_ID }}

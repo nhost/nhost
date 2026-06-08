@@ -1,6 +1,7 @@
 package hasura_test
 
 import (
+	stdjson "encoding/json"
 	"encoding/json/jsontext"
 	json "encoding/json/v2"
 	"os"
@@ -221,6 +222,58 @@ func assertRemoteSchemas(t *testing.T, meta *hasura.Metadata) {
 	}
 }
 
+func TestSelectPermissionConfig_UnmarshalJSONPreservesLargeInteger(t *testing.T) {
+	t.Parallel()
+
+	input := []byte(`{
+		"columns": ["id"],
+		"filter": {"id": {"_eq": 9007199254740993}}
+	}`)
+
+	var plain map[string]any
+	if err := json.Unmarshal(input, &plain); err != nil {
+		t.Fatalf("plain unmarshal failed: %v", err)
+	}
+
+	plainFilter, ok := plain["filter"].(map[string]any)
+	if !ok {
+		t.Fatalf("plain filter type = %T, want map[string]any", plain["filter"])
+	}
+
+	plainIDFilter, ok := plainFilter["id"].(map[string]any)
+	if !ok {
+		t.Fatalf("plain id filter type = %T, want map[string]any", plainFilter["id"])
+	}
+
+	if _, ok := plainIDFilter["_eq"].(float64); !ok {
+		t.Fatalf("plain _eq type = %T, want float64", plainIDFilter["_eq"])
+	}
+
+	var config hasura.SelectPermissionConfig
+	if err := json.Unmarshal(input, &config); err != nil {
+		t.Fatalf("unexpected error: %v", err)
+	}
+
+	idFilter, ok := config.Filter["id"].(map[string]any)
+	if !ok {
+		t.Fatalf("permission id filter type = %T, want map[string]any", config.Filter["id"])
+	}
+
+	value := idFilter["_eq"]
+	if _, ok := value.(float64); ok {
+		t.Fatal("permission _eq type = float64, want json.Number")
+	}
+
+	number, ok := value.(stdjson.Number)
+	if !ok {
+		t.Fatalf("permission _eq type = %T, want json.Number", value)
+	}
+
+	if number.String() != "9007199254740993" {
+		t.Fatalf("permission _eq = %q, want 9007199254740993", number.String())
+	}
+}
+
 func TestFromJSON_DatabaseURLFromEnv(t *testing.T) {
 	t.Parallel()
 
@@ -349,6 +402,61 @@ func TestFromJSON_ConvertRemoteRelationships(t *testing.T) {
 
 	if arrRel.Using.ManualConfiguration.Source != "items_db" {
 		t.Errorf("expected source 'items_db', got %q", arrRel.Using.ManualConfiguration.Source)
+	}
+}
+
+func TestFromJSON_InvalidToSourceRelationshipTypeIsNotLowered(t *testing.T) {
+	t.Parallel()
+
+	input := []byte(`{
+		"version": 3,
+		"sources": [{
+			"name": "default",
+			"kind": "postgres",
+			"configuration": {"connection_info": {"database_url": "postgres://localhost/db"}},
+			"tables": [{
+				"table": {"name": "orders", "schema": "public"},
+				"remote_relationships": [{
+					"name": "customer",
+					"definition": {
+						"to_source": {
+							"field_mapping": {"customer_id": "id"},
+							"relationship_type": "typo",
+							"source": "customers_db",
+							"table": {"name": "customers", "schema": "public"}
+						}
+					}
+				}]
+			}]
+		}]
+	}`)
+
+	meta, err := hasura.FromJSON(input)
+	if err != nil {
+		t.Fatalf("FromJSON failed: %v", err)
+	}
+
+	table := meta.Databases[0].Tables[0]
+	if len(table.ObjectRelationships) != 0 {
+		t.Fatalf(
+			"invalid relationship_type produced object relationships: %+v",
+			table.ObjectRelationships,
+		)
+	}
+
+	if len(table.ArrayRelationships) != 0 {
+		t.Fatalf(
+			"invalid relationship_type produced array relationships: %+v",
+			table.ArrayRelationships,
+		)
+	}
+
+	if got := len(table.RemoteRelationships); got != 1 {
+		t.Fatalf("raw remote relationships = %d, want 1", got)
+	}
+
+	if got := table.RemoteRelationships[0].Definition.ToSource.RelationshipType; got != "typo" {
+		t.Fatalf("raw relationship_type = %q, want typo", got)
 	}
 }
 

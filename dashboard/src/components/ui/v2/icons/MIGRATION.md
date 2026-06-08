@@ -97,7 +97,6 @@ For filled MUI icons replaced by outline-only lucide ones (e.g. `ExclamationFill
 | `LinkIcon` | lucide | `Link` | `lucide-react` | Lucide export is `Link`; alias on import if `Link` collides with a router import: `import { Link as LinkIcon } from 'lucide-react'`. |
 | `LockIcon` | lucide | `Lock` | `lucide-react` | |
 | `MenuIcon` | lucide | `Menu` | `lucide-react` | |
-| `MinusIcon` | lucide | `Minus` | `lucide-react` | |
 | `NoPermissionIcon` | already-v3 | `NoPermissionIcon` | `@/components/ui/v3/icons/NoPermissionIcon` | |
 | `PartialPermissionIcon` | already-v3 | `PartialPermissionIcon` | `@/components/ui/v3/icons/PartialPermissionIcon` | |
 | `PencilIcon` | lucide | `SquarePen` | `lucide-react` | |

@@ -3,13 +3,16 @@ package composer_test
 import (
 	"errors"
 	"log/slog"
+	"slices"
 	"strings"
 	"testing"
 
 	"github.com/nhost/nhost/services/constellation/connector/composer"
 	"github.com/nhost/nhost/services/constellation/connector/composer/mock"
+	"github.com/nhost/nhost/services/constellation/connector/schemamerge"
 	"github.com/nhost/nhost/services/constellation/graph"
 	"github.com/nhost/nhost/services/constellation/metadata"
+	"github.com/vektah/gqlparser/v2/ast"
 	"go.uber.org/mock/gomock"
 )
 
@@ -188,6 +191,85 @@ func mutationSubscriptionSchema() *graph.Schema {
 	}
 }
 
+// crossKindSchema builds a schema containing any combination of root operation
+// fields with the same field name.
+func crossKindSchema(includeQuery, includeMutation, includeSubscription bool) *graph.Schema {
+	queryRoot := "query_root"
+	mutationRoot := "mutation_root"
+	subscriptionRoot := "subscription_root"
+	schema := &graph.Schema{
+		QueryType:        nil,
+		MutationType:     nil,
+		SubscriptionType: nil,
+		Types:            nil,
+		Scalars:          nil,
+		Enums:            nil,
+		Interfaces:       nil,
+		Unions:           nil,
+		Inputs:           nil,
+		Directives:       nil,
+	}
+
+	if includeQuery {
+		schema.QueryType = &queryRoot
+		schema.Types = append(schema.Types, &graph.ObjectType{
+			Name:        queryRoot,
+			Description: "",
+			Fields: []*graph.Field{
+				{
+					Name:        "foo",
+					Description: "",
+					Type:        graph.NewNamedType("String"),
+					Arguments:   nil,
+					Directives:  nil,
+				},
+			},
+			Interfaces: nil,
+			Directives: nil,
+		})
+	}
+
+	if includeMutation {
+		schema.MutationType = &mutationRoot
+		schema.Types = append(schema.Types, &graph.ObjectType{
+			Name:        mutationRoot,
+			Description: "",
+			Fields: []*graph.Field{
+				{
+					Name:        "foo",
+					Description: "",
+					Type:        graph.NewNamedType("String"),
+					Arguments:   nil,
+					Directives:  nil,
+				},
+			},
+			Interfaces: nil,
+			Directives: nil,
+		})
+	}
+
+	if includeSubscription {
+		schema.SubscriptionType = &subscriptionRoot
+		schema.Types = append(schema.Types, &graph.ObjectType{
+			Name:        subscriptionRoot,
+			Description: "",
+			Fields: []*graph.Field{
+				{
+					Name:        "foo",
+					Description: "",
+					Type:        graph.NewNamedType("String"),
+					Arguments:   nil,
+					Directives:  nil,
+				},
+			},
+			Interfaces: nil,
+			Directives: nil,
+		})
+	}
+
+	return schema
+}
+
 // providerSpec describes how to wire a single mock provider into a Compose
 // test case. The mock is constructed by the test runner so the gomock
 // controller lifetime stays inside the subtest.
@@ -255,7 +337,7 @@ func TestComposer_Compose(t *testing.T) {
 					t.Fatal("expected validated schema for admin role")
 				}
 
-				if got := result.FieldToConnector["users"]; got != "db" {
+				if got := result.FieldToConnector[schemamerge.FieldKey(ast.Query, "users")]; got != "db" {
 					t.Fatalf("expected field 'users' owned by 'db', got %q", got)
 				}
 			},
@@ -291,12 +373,12 @@ func TestComposer_Compose(t *testing.T) {
 					t.Error("expected 'posts' field in merged schema")
 				}
 
-				if got := result.TypeToConnector["User"]; got != "db1" {
-					t.Errorf("expected User owned by db1, got %q", got)
+				if got := result.TypeToConnectors["User"]; !slices.Equal(got, []string{"db1"}) {
+					t.Errorf("expected User owned by db1, got %v", got)
 				}
 
-				if got := result.TypeToConnector["Post"]; got != "db2" {
-					t.Errorf("expected Post owned by db2, got %q", got)
+				if got := result.TypeToConnectors["Post"]; !slices.Equal(got, []string{"db2"}) {
+					t.Errorf("expected Post owned by db2, got %v", got)
 				}
 			},
 		},
@@ -388,10 +470,71 @@ func TestComposer_Compose(t *testing.T) {
 					t.Error("expected 'user_stream' subscription field")
 				}
 
-				for _, field := range []string{"users", "insert_user", "user_stream"} {
-					if got := result.FieldToConnector[field]; got != "db" {
+				for field, operation := range map[string]ast.Operation{
+					"users":       ast.Query,
+					"insert_user": ast.Mutation,
+					"user_stream": ast.Subscription,
+				} {
+					if got := result.FieldToConnector[schemamerge.FieldKey(operation, field)]; got != "db" {
 						t.Errorf("expected field %q owned by 'db', got %q", field, got)
 					}
+				}
+			},
+		},
+		{
+			name: "cross_kind_no_overwrite",
+			providers: map[string]providerSpec{
+				"db": {schemas: map[string]*graph.Schema{
+					"admin": crossKindSchema(true, false, true),
+				}},
+				"rs": {schemas: map[string]*graph.Schema{
+					"admin": crossKindSchema(false, true, false),
+				}},
+			},
+			verify: func(t *testing.T, result composer.Result) {
+				t.Helper()
+
+				want := map[string]string{
+					schemamerge.FieldKey(ast.Query, "foo"):        "db",
+					schemamerge.FieldKey(ast.Mutation, "foo"):     "rs",
+					schemamerge.FieldKey(ast.Subscription, "foo"): "db",
+				}
+				for key, connector := range want {
+					if got := result.FieldToConnector[key]; got != connector {
+						t.Errorf("expected %q owned by %q, got %q", key, connector, got)
+					}
+				}
+			},
+		},
+		{
+			name: "conflicting_object_type",
+			providers: func() map[string]providerSpec {
+				schema1 := newMinimalSchema("users", "User")
+				schema2 := newMinimalSchema("posts", "User")
+				schema2.Types[1].Fields = []*graph.Field{
+					{
+						Name:        "name",
+						Description: "",
+						Type:        graph.NewNonNullType("String"),
+						Arguments:   nil,
+						Directives:  nil,
+					},
+				}
+
+				return map[string]providerSpec{
+					"db1": {schemas: map[string]*graph.Schema{"admin": schema1}},
+					"db2": {schemas: map[string]*graph.Schema{"admin": schema2}},
+				}
+			}(),
+			wantInconsistencyKind: metadata.InconsistencyKindRole,
+			wantInconsistencyName: "admin",
+			wantInconsistencyReasonSubstr: "incoming connector \"db2\"): " +
+				"object type has conflicting definitions",
+			verify: func(t *testing.T, result composer.Result) {
+				t.Helper()
+
+				if _, ok := result.ValidatedSchemas["admin"]; ok {
+					t.Fatal("expected admin schema to be dropped on object conflict")
 				}
 			},
 		},

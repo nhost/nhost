@@ -35,6 +35,8 @@ func TestTokenExchange(t *testing.T) {
 	codeVerifier := "dBjftJeZ4CVP-mB92K27uhbUJU1p1r_wW1gFWFOEjXk-43chars"
 	codeChallenge := s256Challenge(codeVerifier)
 
+	wrongCodeVerifier := "wrong-code-verifier-that-is-at-least-43-chars-long-to-pass-length-check"
+
 	authorizationCode := "test-authorization-code-value"
 	codeHash := pkce.HashCode(authorizationCode)
 
@@ -47,7 +49,10 @@ func TestTokenExchange(t *testing.T) {
 
 				mock.EXPECT().ConsumePKCEAuthorizationCode(
 					gomock.Any(),
-					codeHash,
+					sql.ConsumePKCEAuthorizationCodeParams{
+						CodeHash:      codeHash,
+						CodeChallenge: codeChallenge,
+					},
 				).Return(sql.AuthPkceAuthorizationCode{
 					ID:            uuid.New(),
 					UserID:        userID,
@@ -177,26 +182,18 @@ func TestTokenExchange(t *testing.T) {
 
 				mock.EXPECT().ConsumePKCEAuthorizationCode(
 					gomock.Any(),
-					codeHash,
-				).Return(sql.AuthPkceAuthorizationCode{
-					ID:            uuid.New(),
-					UserID:        userID,
-					CodeHash:      codeHash,
-					CodeChallenge: codeChallenge,
-					RedirectTo:    sql.Text("http://localhost:3000"),
-					ExpiresAt:     sql.TimestampTz(time.Now().Add(5 * time.Minute)),
-					CreatedAt: pgtype.Timestamptz{
-						Time:  time.Now(),
-						Valid: true,
+					sql.ConsumePKCEAuthorizationCodeParams{
+						CodeHash:      codeHash,
+						CodeChallenge: s256Challenge(wrongCodeVerifier),
 					},
-				}, nil)
+				).Return(sql.AuthPkceAuthorizationCode{}, pgx.ErrNoRows)
 
 				return mock
 			},
 			request: api.TokenExchangeRequestObject{
 				Body: &api.TokenExchangeRequest{
 					Code:         authorizationCode,
-					CodeVerifier: "wrong-code-verifier-that-is-at-least-43-chars-long-to-pass-length-check",
+					CodeVerifier: wrongCodeVerifier,
 				},
 			},
 			expectedResponse: controller.ErrorResponse{
@@ -216,7 +213,10 @@ func TestTokenExchange(t *testing.T) {
 
 				mock.EXPECT().ConsumePKCEAuthorizationCode(
 					gomock.Any(),
-					codeHash,
+					sql.ConsumePKCEAuthorizationCodeParams{
+						CodeHash:      codeHash,
+						CodeChallenge: codeChallenge,
+					},
 				).Return(sql.AuthPkceAuthorizationCode{
 					ID:            uuid.New(),
 					UserID:        userID,

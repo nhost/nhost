@@ -57,6 +57,13 @@ func ValidateS256(codeChallenge, codeVerifier string) error {
 	return validateS256Hash(codeChallenge, codeVerifier)
 }
 
+// ComputeS256Challenge returns the S256 code_challenge for codeVerifier.
+func ComputeS256Challenge(codeVerifier string) string {
+	h := sha256.Sum256([]byte(codeVerifier))
+
+	return base64.RawURLEncoding.EncodeToString(h[:])
+}
+
 // ValidateS256NoLengthCheck validates that codeVerifier matches codeChallenge
 // using the S256 method without enforcing length requirements.
 func ValidateS256NoLengthCheck(codeChallenge, codeVerifier string) error {

@@ -131,8 +131,10 @@ func (d *SQLiteDialect) ToJSON(expr string) string {
 	return "json(" + expr + ")"
 }
 
+// EmptyJSONArray returns json_array() instead of a string literal, so SQLite
+// treats the value as JSON when it is nested into json_object/json_array calls.
 func (d *SQLiteDialect) EmptyJSONArray() string {
-	return "'[]'"
+	return "json_array()"
 }
 
 // TableRef drops the schema argument: SQLite has a single per-database
@@ -146,12 +148,32 @@ func (d *SQLiteDialect) SupportsLateral() bool {
 	return false
 }
 
-func (d *SQLiteDialect) ILike() string {
+func (d *SQLiteDialect) Like() string {
 	return "LIKE"
 }
 
-func (d *SQLiteDialect) NotILike() string {
+func (d *SQLiteDialect) NotLike() string {
 	return "NOT LIKE"
+}
+
+func (d *SQLiteDialect) WriteILikeCondition(
+	b *strings.Builder, source, column, placeholder string,
+) {
+	b.WriteString("LOWER(")
+	core.WriteQualifiedColumn(b, source, column)
+	b.WriteString(") LIKE LOWER(")
+	b.WriteString(placeholder)
+	b.WriteByte(')')
+}
+
+func (d *SQLiteDialect) WriteNotILikeCondition(
+	b *strings.Builder, source, column, placeholder string,
+) {
+	b.WriteString("LOWER(")
+	core.WriteQualifiedColumn(b, source, column)
+	b.WriteString(") NOT LIKE LOWER(")
+	b.WriteString(placeholder)
+	b.WriteByte(')')
 }
 
 func (d *SQLiteDialect) SupportsRegex() bool {

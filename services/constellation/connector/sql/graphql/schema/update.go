@@ -87,7 +87,7 @@ func generateUpdateManyBatchField(
 	case tableMeta.Configuration.CustomName != "":
 		updateName = "update_" + customTableName + "_many"
 	default:
-		updateName = "update_" + getDefaultTypeName(
+		updateName = "update_" + DefaultTypeName(
 			tableMeta.Table.Schema, tableMeta.Table.Name,
 		) + "_many"
 	}

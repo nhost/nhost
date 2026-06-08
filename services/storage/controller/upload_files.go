@@ -252,7 +252,8 @@ func parseUploadRequest(form *multipart.Form) (uploadFileRequest, *APIError) {
 }
 
 func (ctrl *Controller) UploadFiles( //nolint:ireturn
-	ctx context.Context, request api.UploadFilesRequestObject,
+	ctx context.Context,
+	request api.UploadFilesRequestObject,
 ) (api.UploadFilesResponseObject, error) {
 	logger := oapimw.LoggerFromContext(ctx)
 	sessionHeaders := middleware.SessionHeadersFromContext(ctx)

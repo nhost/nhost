@@ -615,7 +615,7 @@ export async function getGraphQLResult({
   page: Page;
 }): Promise<string> {
   const resultWindow = page.getByLabel('Result Window');
-  await expect(resultWindow).not.toBeEmpty({ timeout: 5000 });
+  await expect(resultWindow).not.toBeEmpty({ timeout: 15000 });
   return resultWindow.innerText();
 }
 

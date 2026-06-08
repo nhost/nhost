@@ -135,7 +135,207 @@ let
 
         mkdir $out
       '';
+
+  mkVercel =
+    {
+      name,
+      src,
+      node_modules,
+      environment,
+      prepare ? "",
+      buildInputs ? [ ],
+      nativeBuildInputs ? [ ],
+    }:
+    let
+      envFile = "/tmp/nhost-vercel-${name}-${environment}.env";
+      vercelEnvironmentDir = "/tmp/nhost-vercel-${name}-${environment}.vercel";
+      # Keep package enumeration pure; setupVercel fails during the build if
+      # required impure cache-key inputs are missing or stale.
+      impureCacheKeyHash =
+        envVar:
+        let
+          value = builtins.getEnv envVar;
+        in
+        pkgs.lib.optionalAttrs (value != "") {
+          "${envVar}_HASH" = builtins.hashString "sha256" value;
+        };
+      cacheKeyHashes =
+        impureCacheKeyHash "VERCEL_ORG_ID"
+        // impureCacheKeyHash "VERCEL_PROJECT_ID"
+        // impureCacheKeyHash "VERCEL_CACHE_BUSTER";
+      vercelBuildInputs =
+        jsCheckDeps
+        ++ (with pkgs; [
+          corepack
+          vercel
+        ])
+        ++ buildInputs
+        ++ nativeBuildInputs;
+      setupVercel = ''
+        if [ -z "$VERCEL_ENV_FILE" ]; then
+          echo "ERROR: VERCEL_ENV_FILE environment variable is not set"
+          exit 1
+        fi
+
+        if [ ! -f "$VERCEL_ENV_FILE" ]; then
+          echo "ERROR: VERCEL_ENV_FILE does not point to a file"
+          exit 1
+        fi
+
+        set -a
+        . "$VERCEL_ENV_FILE"
+        set +a
+
+        for env_var in VERCEL_ORG_ID VERCEL_PROJECT_ID VERCEL_DEPLOY_TOKEN; do
+          if [ -z "''${!env_var:-}" ]; then
+            echo "ERROR: $env_var environment variable is not set"
+            exit 1
+          fi
+        done
+
+        require_impure_hash() {
+          env_var="$1"
+          hash_var="''${env_var}_HASH"
+
+          if [ -z "''${!hash_var:-}" ]; then
+            echo "ERROR: $hash_var derivation attribute is not set"
+            echo "Export $env_var and evaluate with --impure so Vercel cache keys include the current project/config state."
+            exit 1
+          fi
+
+          actual_hash=$(printf '%s' "''${!env_var}" | sha256sum | cut -d ' ' -f 1)
+          if [ "''${!hash_var}" != "$actual_hash" ]; then
+            echo "ERROR: $hash_var does not match $env_var from $VERCEL_ENV_FILE"
+            echo "Export the same $env_var value from $VERCEL_ENV_FILE and evaluate with --impure."
+            exit 1
+          fi
+        }
+
+        for env_var in VERCEL_ORG_ID VERCEL_PROJECT_ID; do
+          require_impure_hash "$env_var"
+        done
+
+        if [ -z "''${VERCEL_ENVIRONMENT_DIR:-}" ]; then
+          echo "ERROR: VERCEL_ENVIRONMENT_DIR environment variable is not set"
+          exit 1
+        fi
+
+        if [ ! -d "$VERCEL_ENVIRONMENT_DIR" ]; then
+          echo "ERROR: VERCEL_ENVIRONMENT_DIR does not point to a directory"
+          exit 1
+        fi
+
+        export HOME=$(mktemp -d)
+        export SSL_CERT_FILE=${pkgs.cacert}/etc/ssl/certs/ca-bundle.crt
+        export NIX_SSL_CERT_FILE=$SSL_CERT_FILE
+        export NEXT_TELEMETRY_DISABLED="''${NEXT_TELEMETRY_DISABLED:-1}"
+        export COREPACK_ENABLE_DOWNLOAD_PROMPT=0
+        export VERCEL_TELEMETRY_DISABLED=1
+        export TURBO_TEAM="''${TURBO_TEAM:-nhost}"
+
+        rm -rf .vercel
+        mkdir -p .vercel
+        cp -r "$VERCEL_ENVIRONMENT_DIR"/. .vercel/
+      '';
+      build =
+        pkgs.runCommand "${name}-vercel-build-${environment}"
+          (
+            {
+              __noChroot = true;
+              nativeBuildInputs = vercelBuildInputs;
+              VERCEL_ENV_FILE = envFile;
+              VERCEL_ENVIRONMENT_DIR = vercelEnvironmentDir;
+            }
+            // cacheKeyHashes
+          )
+          ''
+            cp -r ${src}/. .
+            chmod +w -R .
+
+            ${prepare}
+            ${setupVercel}
+
+            echo "➜ Building Vercel ${environment} output for ${name}"
+            vercel build --yes --target=${environment} --token "$VERCEL_DEPLOY_TOKEN"
+
+            for next_package in $(find . -path '*/.next/package.json' -type f); do
+              project_dir="''${next_package%/.next/package.json}"
+              project_dir="''${project_dir#./}"
+              find .vercel/output/functions \
+                -path "*/$project_dir/.next" \
+                -type d \
+                -exec cp "$next_package" '{}/package.json' \;
+            done
+
+            mkdir -p $out/.vercel
+            cp -r .vercel/output $out/.vercel/output
+
+            for next_dir in $(find . -path './.vercel' -prune -o -path '*/.next' -type d -print); do
+              project_dir="''${next_dir%/.next}"
+              project_dir="''${project_dir#./}"
+              mkdir -p "$out/$project_dir"
+              cp -r "$next_dir" "$out/$project_dir/.next"
+            done
+          '';
+      deploy =
+        pkgs.runCommand "${name}-vercel-deploy-${environment}"
+          (
+            {
+              __noChroot = true;
+              nativeBuildInputs = vercelBuildInputs;
+              VERCEL_ENV_FILE = envFile;
+              VERCEL_ENVIRONMENT_DIR = vercelEnvironmentDir;
+            }
+            // cacheKeyHashes
+          )
+          ''
+            cp -r ${src}/. .
+            chmod +w -R .
+
+            ${prepare}
+            ${setupVercel}
+
+            cp -r ${build}/.vercel/output .vercel/output
+            chmod +w -R .vercel
+
+            find ${build} -path ${build}/.vercel -prune -o -path '*/.next' -type d -print0 |
+              while IFS= read -r -d "" next_dir; do
+                project_dir=$(realpath --relative-to="${build}" "''${next_dir%/.next}")
+                mkdir -p "$project_dir"
+                rm -rf "$project_dir/.next"
+                cp -r "$next_dir" "$project_dir/.next"
+                chmod +w -R "$project_dir/.next"
+              done
+
+            echo "➜ Deploying prebuilt Vercel ${environment} output for ${name}"
+            vercel deploy \
+              --yes \
+              --target=${environment} \
+              --prebuilt \
+              --token "$VERCEL_DEPLOY_TOKEN" \
+              | tee $TMPDIR/vercel-output
+
+            preview_url=$(grep -Eo 'https://[^[:space:]]+' $TMPDIR/vercel-output | tail -n 1 || true)
+            if [ -z "$preview_url" ]; then
+              echo "ERROR: Vercel deploy did not print a deployment URL"
+              cat $TMPDIR/vercel-output
+              exit 1
+            fi
+
+            mkdir -p $out
+            printf '%s\n' "$preview_url" > $out/preview-url
+            cp $TMPDIR/vercel-output $out/vercel-output
+          '';
+    in
+    {
+      inherit build deploy;
+    };
 in
 {
-  inherit mkNodeModules devShell check;
+  inherit
+    mkNodeModules
+    devShell
+    check
+    mkVercel
+    ;
 }

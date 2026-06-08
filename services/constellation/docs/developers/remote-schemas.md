@@ -21,8 +21,8 @@ remoteschema.New (connector.go)
         │
         ▼ at request time
 Connector.Execute
-  • applyPresets (clone op, inject argument values)
-  • buildQueryString (formatter)
+  • applyPresetsToDocument (clone op + named fragments, inject argument values)
+  • buildQueryString (formatter over operation + fragments)
   • httpClient.do (URL + header precedence)
   • parse {data, errors}
         │
@@ -45,28 +45,41 @@ Both paths funnel into `pruneUnreachableTypes` (`prune.go:46`). This walks reach
 
 ## @preset directive
 
-Non-admin roles use `@preset(value: "...")` on argument definitions to inject literal values or session variables, hiding the argument from the client. `parseSDL` extracts these:
+Non-admin roles use `@preset(value: ...)` on argument definitions to inject literal GraphQL values or session variables, hiding the argument from the client. Values can be strings, numbers, booleans, enums, lists, or input-object literals; quoted/block-string values that start with `x-hasura-` are interpreted as session-variable tokens.
 
-- `extractPresetValue` walks each argument's directive list for `@preset` and captures the `value` argument.
+### Parse-time extraction
+
+`parseSDL` extracts presets while converting the role SDL into `graph.Schema`:
+
+- `presetValueScalarNameForSDL` first parses the user's SDL and chooses an unused helper scalar name (`NhostPresetValue`, or a suffixed variant if the SDL already uses that name).
+- `parseSDL` prepends `presetDirectiveSDLTemplate`, which declares that helper scalar and `directive @preset(value: <helper-scalar>!) on ARGUMENT_DEFINITION`, before calling `gqlparser.LoadSchema`. Using an internal custom scalar lets gqlparser accept typed GraphQL literals in the directive argument instead of restricting `value` to strings. The helper scalar itself is skipped during `convertToGraphSchema` and never reaches the exposed role schema.
+- `extractPreset` walks each argument's directive list, clones the typed `value` AST node, records the hidden argument's target type/kind for later coercion, and marks `SessionVariable` when the cloned value is a string or block string beginning with `x-hasura-`.
 - Arguments with `@preset` are *not* added to the exposed schema (`convertFields` drops them and records them under `presets["TypeName.fieldName"]`).
 - The directive itself is also stripped from anything that *does* stay in the schema via `filterPresetDirective` — `@preset` is server-side policy and should not leak to introspection.
 
-The directive declaration is parsed by prepending `presetDirectiveSDL` to the user's SDL before calling `gqlparser.LoadSchema`. The user never writes the `directive @preset(...)` declaration themselves.
+The user never writes the `directive @preset(...)` declaration themselves.
 
-At execute time, `applyPresets` (`execute.go:31`) clones the operation and walks every selection. For each `(typeName, fieldName)` with recorded presets it calls `applyFieldPresets`, which:
+### Execute-time resolution
 
-1. Calls `resolvePresetValue`: if the preset value starts with `x-hasura-`, look it up in `sessionVariables` (case-insensitive); otherwise treat as a literal string.
-2. If the argument already exists in the operation, overwrite its `Value`. Otherwise append a new `*ast.Argument`.
+At execute time, `applyPresetsToDocument` clones the operation and the named fragment definitions, then walks the operation selection tree and any referenced fragment definitions. For each `(typeName, fieldName)` with recorded presets it calls `applyFieldPresets`, which:
 
-`applyPresets` clones the operation deeply (`cloneOperation`) so the controller's shared AST is never mutated.
+1. Calls `resolvePresetArgumentValue`. Session-variable presets are read from `sessionVariables` via `sessionValueForTarget`; literal presets use the cloned AST value from SDL.
+2. Coerces the value with `presetValueForTarget` using the hidden argument's target type/kind. `String`/`ID` targets become string values, `Int`/`Float`/`Boolean` targets parse scalar literals, enum targets parse enum values, list targets recurse into element coercion, and input-object targets parse object literals.
+3. If the argument already exists in the operation, overwrite its `Value`. Otherwise append a new `*ast.Argument`.
+
+Named fragment spreads are followed through the cloned fragment map; presets inside those fragment definitions are applied to the clone, with a visited-fragment guard to avoid cycles or repeated work. Inline fragments are handled in-place using the fragment type condition when present.
+
+Session values enter as Go values (`string`, `[]string`, `[]any`, `*ast.Value`, or another value stringified with `fmt.Sprintf`) and then go through the same target-type coercion. For backwards-compatible string presets such as `@preset(value: "5")` on an `Int` argument, `coercePresetValue` calls `parsePresetValue`, which reuses gqlparser by wrapping the raw string as `query { preset(value: <raw>) }`; if parsing fails or the parsed kind does not match the target type, the value falls back to a GraphQL string and the remote endpoint's validation decides whether to reject it.
+
+`applyPresetsToDocument` clones the operation deeply (`cloneOperation`) and clones the named fragments (`cloneFragmentDefinitionList`) so the controller's shared AST is never mutated.
 
 ### Why nested-field presets need a validated operation
 
-`applyPresetsToSelectionSet` resolves the nested type for a field via `sel.Definition.Type`. `sel.Definition` is populated by gqlparser only after validation. The non-admin operations going through `Connector.Execute` come from `Controller.execute` after `gqlparser.LoadQueryWithRules` validation, so this is fine in practice — but be aware if you ever invoke `applyPresets` outside the normal request path.
+`applyPresetsToSelectionSet` resolves the nested type for a field via `sel.Definition.Type`. `sel.Definition` is populated by gqlparser only after validation. The non-admin operations going through `Connector.Execute` come from `Controller.execute` after `gqlparser.LoadQueryWithRules` validation, so this is fine in practice — but be aware if you ever invoke `applyPresetsToDocument` outside the normal request path.
 
 ## Query rendering
 
-After preset application, `buildQueryString` (`execute.go:314`) renders the operation + fragments to a GraphQL string using `gqlparser/formatter`. There's no clever rewriting here: whatever the planner stripped from the operation is already gone, whatever phantom fields the planner injected are already in, and presets have been applied. The connector just serialises and sends.
+After preset application, `buildQueryString` (in `connector/remoteschema/execute.go`) renders the operation + fragments to a GraphQL string using `gqlparser/formatter`. There's no clever rewriting here: whatever the planner stripped from the operation is already gone, whatever phantom fields the planner injected are already in, and presets have been applied. The connector just serialises and sends.
 
 ## HTTP request
 
@@ -93,10 +106,10 @@ So statically configured values win over session, session wins over forwarded cl
 
 ## Response handling
 
-`executeRemoteQuery` (`execute.go:334`) decodes the JSON body into `graphQLResponse{Data, Errors}`. Two paths:
+`executeRemoteQuery` (in `connector/remoteschema/execute.go`) decodes the JSON body into `graphQLResponse{Data, Errors}`. Two paths:
 
 1. **No errors** — return `data` and `nil`. Common path.
-2. **Errors present** — return `data` (which may have partial fields) *and* a `*GraphQLError` wrapping `gqlResp.Errors`. The controller's `executeConnectors` (`controller/resolve.go:308`) type-asserts this error and merges the structured remote errors into the response.
+2. **Errors present** — return `data` (which may have partial fields) *and* a `*GraphQLError` wrapping `gqlResp.Errors`. The controller's `executeConnectors` (in `controller/resolve.go`) type-asserts this error and merges the structured remote errors into the response.
 
 Partial responses matter: a GraphQL server is allowed to return `{"data": {...partial...}, "errors": [...]}`, and the controller must preserve both.
 
@@ -109,11 +122,13 @@ The connector participates in remote relationships in two roles:
 - **As source** (rs→db). Detected at planning time by `controller.buildRSRelationships` in `controller/controller.go` from the metadata's `remote_schemas[].remote_relationships[]`. The planner strips the relationship fields from the operation before the connector ever sees it (via the AST transformer with `relationshipLookup` populated from `IsRemote=true` rs→db entries). The connector executes the clean operation; the resolver then issues a follow-up DB query and stitches.
 - **As target** (db→rs). The schema resolver (`controller/resolver/schema_resolver.go`) issues aliased fields against the connector. These come into `Execute` as a regular GraphQL operation — the connector does not need to know it was generated by the resolver.
 
+Response handling has one important relationship-specific exception: root-field execution goes through `executeConnectors`, which can merge partial connector data with structured GraphQL errors field-by-field. Relationship lookups go through `RemoteRelationshipResolver.executeAndStitch`; when the target connector returns an error, it intentionally discards any returned lookup data instead of stitching it, because parent-row stitching requires a complete lookup set.
+
 `Connector.GetTypeName(identifier)` is called by the composer/resolver to resolve a remote root-field name (e.g. `countries`) to its base return type name (e.g. `Country`). The lookup goes through the admin schema, which is always populated from live introspection.
 
 ## SDL conversion details
 
-`convertToGraphSchema` (`schema.go:47`) lowers gqlparser's `*ast.Schema` to `graph.Schema` — the same intermediate representation the SQL schema generator targets. This is what lets `connector/composer` and `connector/schemamerge` merge remote and local schemas uniformly.
+`convertToGraphSchema` (in `connector/remoteschema/schema.go`) lowers gqlparser's `*ast.Schema` to `graph.Schema` — the same intermediate representation the SQL schema generator targets. This is what lets `connector/composer` and `connector/schemamerge` merge remote and local schemas uniformly.
 
 Builtin types (`String`, `Int`, `Float`, `Boolean`, `ID`, and the `__*` introspection types — list in `prune.go:builtinTypes`) are skipped. Fields whose name starts with `__` are also filtered (`convertFields`); the schema-merge stage adds the standard introspection wiring back later.
 
@@ -135,7 +150,7 @@ Builtin types (`String`, `Int`, `Float`, `Boolean`, `ID`, and the `__*` introspe
 | `connector/remoteschema/introspect.go` | Live introspection query, conversion to `graph.Schema` |
 | `connector/remoteschema/schema.go` | SDL parsing, `@preset` extraction, conversion to `graph.Schema` |
 | `connector/remoteschema/prune.go` | Unreachable-type pruning, builtin filter |
-| `connector/remoteschema/execute.go` | `applyPresets`, operation cloning, query rendering, HTTP request |
+| `connector/remoteschema/execute.go` | `applyPresetsToDocument`, operation and fragment cloning, query rendering, HTTP request |
 | `connector/remoteschema/http.go` | `httpClient`, header precedence, client-header forwarding, `HTTPDoer` |
 | `connector/remoteschema/errors.go` | `GraphQLError` for partial responses with errors |
 | `controller/controller.go:buildRSRelationships` | Lower rs→db metadata to planner shape |
