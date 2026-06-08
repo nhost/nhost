@@ -3,8 +3,8 @@ package jwt
 import (
 	"bytes"
 	"context"
-	"encoding/base64"
 	"log/slog"
+	"strconv"
 	"strings"
 	"sync/atomic"
 	"testing"
@@ -72,36 +72,27 @@ func TestAuthenticatorCloseCancelsJWKSContext(t *testing.T) {
 	}
 }
 
-// TestDecodeHMACKeyLogsInterpretation guards the M8 observability contract:
-// decodeHMACKey must record at DEBUG which interpretation it chose (base64 vs
-// raw bytes) with the documented attribute names, and must never log key
-// material. A future refactor that renames the messages/attributes or drops
-// the logging would break operators relying on it, so the shape is pinned here.
-func TestDecodeHMACKeyLogsInterpretation(t *testing.T) {
+// TestStaticHMACKeyUsesRawBytesAndLogsSafely guards the Hasura-compatible
+// HMAC key contract: the configured key string is used as raw UTF-8 bytes even
+// when it also happens to be valid base64. The startup DEBUG log records only
+// safe metadata and must never include key material.
+func TestStaticHMACKeyUsesRawBytesAndLogsSafely(t *testing.T) {
 	t.Parallel()
 
-	base64Key := base64.StdEncoding.EncodeToString([]byte("supersecret"))
-
 	tests := []struct {
-		name     string
-		key      string
-		want     []byte
-		wantMsg  string
-		wantAttr []string
+		name string
+		alg  jwtconfig.Algorithm
+		key  string
 	}{
 		{
-			name:     "valid base64 decodes and logs base64 interpretation",
-			key:      base64Key,
-			want:     []byte("supersecret"),
-			wantMsg:  "jwt hmac key interpreted as base64",
-			wantAttr: []string{"encoded_len=16", "decoded_len=11"},
+			name: "hs256 valid-base64-looking key stays raw",
+			alg:  jwtconfig.AlgorithmHS256,
+			key:  "dGVzdA==",
 		},
 		{
-			name:     "non-base64 falls back to raw bytes and logs raw interpretation",
-			key:      "my-hmac-signing-secret",
-			want:     []byte("my-hmac-signing-secret"),
-			wantMsg:  "jwt hmac key interpreted as raw bytes",
-			wantAttr: []string{"key_len=22"},
+			name: "hs512 hex key stays raw",
+			alg:  jwtconfig.AlgorithmHS512,
+			key:  "0f987876650b4a085e64594fae9219e7781b17506bec02489ad061fba8cb22db",
 		},
 	}
 
@@ -115,20 +106,36 @@ func TestDecodeHMACKeyLogsInterpretation(t *testing.T) {
 				Level: slog.LevelDebug,
 			}))
 
-			got := decodeHMACKey(tt.key, logger)
-			if !bytes.Equal(got, tt.want) {
-				t.Errorf("decodeHMACKey() = %q, want %q", got, tt.want)
+			sv := &secretValidator{}
+			if err := sv.initStatic(
+				jwtconfig.Secret{Type: tt.alg, Key: tt.key},
+				logger,
+			); err != nil {
+				t.Fatalf("initStatic() error = %v", err)
+			}
+
+			gotKey, err := sv.keyFunc(&gojwt.Token{})
+			if err != nil {
+				t.Fatalf("keyFunc() error = %v", err)
+			}
+
+			got, ok := gotKey.([]byte)
+			if !ok {
+				t.Fatalf("keyFunc() key type = %T, want []byte", gotKey)
+			}
+
+			if !bytes.Equal(got, []byte(tt.key)) {
+				t.Errorf("keyFunc() key = %q, want raw key bytes %q", got, []byte(tt.key))
 			}
 
 			out := buf.String()
-			if !strings.Contains(out, tt.wantMsg) {
-				t.Errorf("log output %q does not contain message %q", out, tt.wantMsg)
+			if !strings.Contains(out, "jwt hmac key used as raw bytes") {
+				t.Errorf("log output %q does not contain raw-bytes message", out)
 			}
 
-			for _, attr := range tt.wantAttr {
-				if !strings.Contains(out, attr) {
-					t.Errorf("log output %q does not contain attribute %q", out, attr)
-				}
+			wantAttr := "key_len=" + strconv.Itoa(len(tt.key))
+			if !strings.Contains(out, wantAttr) {
+				t.Errorf("log output %q does not contain attribute %q", out, wantAttr)
 			}
 
 			if strings.Contains(out, tt.key) {
@@ -138,12 +145,31 @@ func TestDecodeHMACKeyLogsInterpretation(t *testing.T) {
 	}
 }
 
-func TestDecodeHMACKeyNilLoggerDoesNotPanic(t *testing.T) {
+func TestStaticHMACKeyNilLoggerDoesNotPanic(t *testing.T) {
 	t.Parallel()
 
-	got := decodeHMACKey("my-hmac-signing-secret", nil)
-	if !bytes.Equal(got, []byte("my-hmac-signing-secret")) {
-		t.Errorf("decodeHMACKey() = %q, want raw key bytes", got)
+	const key = "my-hmac-signing-secret"
+
+	sv := &secretValidator{}
+	if err := sv.initStatic(
+		jwtconfig.Secret{Type: jwtconfig.AlgorithmHS256, Key: key},
+		nil,
+	); err != nil {
+		t.Fatalf("initStatic() error = %v", err)
+	}
+
+	gotKey, err := sv.keyFunc(&gojwt.Token{})
+	if err != nil {
+		t.Fatalf("keyFunc() error = %v", err)
+	}
+
+	got, ok := gotKey.([]byte)
+	if !ok {
+		t.Fatalf("keyFunc() key type = %T, want []byte", gotKey)
+	}
+
+	if !bytes.Equal(got, []byte(key)) {
+		t.Errorf("keyFunc() key = %q, want raw key bytes", got)
 	}
 }
 

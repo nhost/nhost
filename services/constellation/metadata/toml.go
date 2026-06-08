@@ -30,7 +30,56 @@ func unmarshalTOML(data []byte) (*Metadata, error) {
 		return nil, fmt.Errorf("parsing TOML metadata: %w", err)
 	}
 
+	normalizeMetadataPermissionNumbers(&tm)
+
 	return &tm, nil
+}
+
+func normalizeMetadataPermissionNumbers(m *Metadata) {
+	if m == nil {
+		return
+	}
+
+	for i := range m.Databases {
+		for j := range m.Databases[i].Tables {
+			normalizeTablePermissionNumbers(&m.Databases[i].Tables[j])
+		}
+	}
+}
+
+func normalizeTablePermissionNumbers(t *TableMetadata) {
+	for i := range t.SelectPermissions {
+		t.SelectPermissions[i].Permission.Filter = normalizePermissionMap(
+			t.SelectPermissions[i].Permission.Filter,
+		)
+	}
+
+	for i := range t.InsertPermissions {
+		t.InsertPermissions[i].Permission.Check = normalizePermissionMap(
+			t.InsertPermissions[i].Permission.Check,
+		)
+		t.InsertPermissions[i].Permission.Set = normalizePermissionMap(
+			t.InsertPermissions[i].Permission.Set,
+		)
+	}
+
+	for i := range t.UpdatePermissions {
+		t.UpdatePermissions[i].Permission.Filter = normalizePermissionMap(
+			t.UpdatePermissions[i].Permission.Filter,
+		)
+		t.UpdatePermissions[i].Permission.Check = normalizePermissionMap(
+			t.UpdatePermissions[i].Permission.Check,
+		)
+		t.UpdatePermissions[i].Permission.Set = normalizePermissionMap(
+			t.UpdatePermissions[i].Permission.Set,
+		)
+	}
+
+	for i := range t.DeletePermissions {
+		t.DeletePermissions[i].Permission.Filter = normalizePermissionMap(
+			t.DeletePermissions[i].Permission.Filter,
+		)
+	}
 }
 
 // stripEmptyTableHeaders removes TOML table headers (e.g. [a.b]) that contain

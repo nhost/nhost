@@ -154,6 +154,24 @@ func TestDBRelationshipSpec(t *testing.T) {
 			wantDsc: "An object relationship",
 		},
 		{
+			name: "db_to_db_invalid_relationship_type",
+			rel: metadata.RemoteRelationship{
+				Name: "broken",
+				Definition: metadata.RemoteRelationshipDef{
+					ToSource: &metadata.ToSourceRelationship{
+						RelationshipType: "typo",
+						Source:           "default",
+						Table: metadata.TableSource{
+							Schema: "public", Name: "users",
+						},
+						FieldMapping: nil,
+					},
+					ToRemoteSchema: nil,
+				},
+			},
+			wantOK: false,
+		},
+		{
 			name: "db_to_rs",
 			rel: metadata.RemoteRelationship{
 				Name: "country",
@@ -242,8 +260,9 @@ func TestDBRelationshipSpec(t *testing.T) {
 	}
 }
 
-// TestRSRelationshipSpec covers the rs→db happy path and the nil-ToSource
-// skip (rs→rs is not supported and is currently the only other shape).
+// TestRSRelationshipSpec covers the rs→db happy path, the invalid-type skip,
+// and the nil-ToSource skip (rs→rs is not supported and is currently the only
+// other shape).
 func TestRSRelationshipSpec(t *testing.T) {
 	t.Parallel()
 
@@ -288,6 +307,23 @@ func TestRSRelationshipSpec(t *testing.T) {
 			},
 			wantOK:  true,
 			wantArr: false,
+		},
+		{
+			name: "rs_to_db_invalid_relationship_type",
+			rel: metadata.RemoteSchemaRelationshipDef{
+				Name: "broken",
+				Definition: metadata.RemoteSchemaRelationshipDefinition{
+					ToSource: &metadata.RemoteSchemaToSourceRelationship{
+						RelationshipType: "typo",
+						Source:           "default",
+						Table: metadata.RemoteSchemaTableRef{
+							Schema: "public", Name: "users",
+						},
+						FieldMapping: nil,
+					},
+				},
+			},
+			wantOK: false,
 		},
 		{
 			name: "nil_to_source_skipped",

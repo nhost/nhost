@@ -10,6 +10,7 @@ import (
 	"slices"
 	"sync"
 
+	"github.com/nhost/nhost/services/constellation/connector/schemamerge"
 	"github.com/nhost/nhost/services/constellation/controller/introspection"
 	"github.com/nhost/nhost/services/constellation/controller/middleware"
 	"github.com/nhost/nhost/services/constellation/controller/planner"
@@ -451,7 +452,7 @@ func groupFieldsByConnector(
 			continue
 		}
 
-		connName := state.fieldToConnector[field.Name]
+		connName := state.fieldToConnector[schemamerge.FieldKey(operation.Operation, field.Name)]
 		if connName == "" {
 			return nil, nil, errResponseNoConnector
 		}

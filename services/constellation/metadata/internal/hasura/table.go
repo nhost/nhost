@@ -1,7 +1,9 @@
 package hasura
 
 import (
+	"bytes"
 	"context"
+	stdjson "encoding/json"
 	"encoding/json/jsontext"
 	json "encoding/json/v2"
 	"errors"
@@ -136,12 +138,38 @@ type DeletePermission struct {
 	Permission DeletePermissionConfig `json:"permission" yaml:"permission"`
 }
 
+// PermissionExpression is a Hasura boolean expression or preset map. Its JSON
+// unmarshaler preserves number tokens as json.Number instead of float64 so
+// large integer metadata literals are not rounded before native conversion.
+type PermissionExpression map[string]any
+
+// UnmarshalJSON decodes permission expressions with exact JSON number tokens.
+func (p *PermissionExpression) UnmarshalJSON(data []byte) error {
+	if bytes.Equal(data, []byte("null")) {
+		*p = nil
+
+		return nil
+	}
+
+	dec := stdjson.NewDecoder(bytes.NewReader(data))
+	dec.UseNumber()
+
+	var out map[string]any
+	if err := dec.Decode(&out); err != nil {
+		return fmt.Errorf("unmarshaling permission expression: %w", err)
+	}
+
+	*p = out
+
+	return nil
+}
+
 // SelectPermissionConfig captures the columns, row filter, and aggregation
 // access a select permission grants.
 type SelectPermissionConfig struct {
-	Columns           []string       `json:"columns,omitempty"           yaml:"columns,omitempty"`
-	Filter            map[string]any `json:"filter,omitempty"            yaml:"filter,omitempty"`
-	AllowAggregations bool           `json:"allow_aggregations,omitzero" yaml:"allow_aggregations,omitempty"`
+	Columns           []string             `json:"columns,omitempty"           yaml:"columns,omitempty"`
+	Filter            PermissionExpression `json:"filter,omitempty"            yaml:"filter,omitempty"`
+	AllowAggregations bool                 `json:"allow_aggregations,omitzero" yaml:"allow_aggregations,omitempty"`
 }
 
 // UnmarshalYAML accepts Hasura's select-permission `columns: '*'` shorthand
@@ -210,9 +238,9 @@ func parsePermissionColumnsYAML(value any) ([]string, error) {
 // column list is known.
 func (p *SelectPermissionConfig) UnmarshalJSON(data []byte) error {
 	var raw struct {
-		Columns           jsontext.Value `json:"columns,omitempty"`
-		Filter            map[string]any `json:"filter,omitempty"`
-		AllowAggregations bool           `json:"allow_aggregations,omitzero"`
+		Columns           jsontext.Value       `json:"columns,omitempty"`
+		Filter            PermissionExpression `json:"filter,omitempty"`
+		AllowAggregations bool                 `json:"allow_aggregations,omitzero"`
 	}
 
 	if err := json.Unmarshal(data, &raw); err != nil {
@@ -273,9 +301,9 @@ func parsePermissionColumnsJSON(value jsontext.Value) ([]string, error) {
 // InsertPermissionConfig captures the columns, row-level check, and presets an
 // insert permission grants.
 type InsertPermissionConfig struct {
-	Columns []string       `json:"columns,omitempty" yaml:"columns,omitempty"`
-	Check   map[string]any `json:"check,omitempty"   yaml:"check,omitempty"`
-	Set     map[string]any `json:"set,omitempty"     yaml:"set,omitempty"`
+	Columns []string             `json:"columns,omitempty" yaml:"columns,omitempty"`
+	Check   PermissionExpression `json:"check,omitempty"   yaml:"check,omitempty"`
+	Set     PermissionExpression `json:"set,omitempty"     yaml:"set,omitempty"`
 }
 
 // UnmarshalYAML accepts Hasura's insert-permission `columns: '*'` shorthand
@@ -312,9 +340,9 @@ func (p *InsertPermissionConfig) UnmarshalYAML(unmarshal func(any) error) error 
 // column list is known.
 func (p *InsertPermissionConfig) UnmarshalJSON(data []byte) error {
 	var raw struct {
-		Columns jsontext.Value `json:"columns,omitempty"`
-		Check   map[string]any `json:"check,omitempty"`
-		Set     map[string]any `json:"set,omitempty"`
+		Columns jsontext.Value       `json:"columns,omitempty"`
+		Check   PermissionExpression `json:"check,omitempty"`
+		Set     PermissionExpression `json:"set,omitempty"`
 	}
 
 	if err := json.Unmarshal(data, &raw); err != nil {
@@ -336,10 +364,10 @@ func (p *InsertPermissionConfig) UnmarshalJSON(data []byte) error {
 // UpdatePermissionConfig captures the columns, row filter, post-update check,
 // and presets an update permission grants.
 type UpdatePermissionConfig struct {
-	Columns []string       `json:"columns,omitempty" yaml:"columns,omitempty"`
-	Filter  map[string]any `json:"filter,omitempty"  yaml:"filter,omitempty"`
-	Check   map[string]any `json:"check,omitempty"   yaml:"check,omitempty"`
-	Set     map[string]any `json:"set,omitempty"     yaml:"set,omitempty"`
+	Columns []string             `json:"columns,omitempty" yaml:"columns,omitempty"`
+	Filter  PermissionExpression `json:"filter,omitempty"  yaml:"filter,omitempty"`
+	Check   PermissionExpression `json:"check,omitempty"   yaml:"check,omitempty"`
+	Set     PermissionExpression `json:"set,omitempty"     yaml:"set,omitempty"`
 }
 
 // UnmarshalYAML accepts Hasura's update-permission `columns: '*'` shorthand
@@ -378,10 +406,10 @@ func (p *UpdatePermissionConfig) UnmarshalYAML(unmarshal func(any) error) error 
 // column list is known.
 func (p *UpdatePermissionConfig) UnmarshalJSON(data []byte) error {
 	var raw struct {
-		Columns jsontext.Value `json:"columns,omitempty"`
-		Filter  map[string]any `json:"filter,omitempty"`
-		Check   map[string]any `json:"check,omitempty"`
-		Set     map[string]any `json:"set,omitempty"`
+		Columns jsontext.Value       `json:"columns,omitempty"`
+		Filter  PermissionExpression `json:"filter,omitempty"`
+		Check   PermissionExpression `json:"check,omitempty"`
+		Set     PermissionExpression `json:"set,omitempty"`
 	}
 
 	if err := json.Unmarshal(data, &raw); err != nil {
@@ -403,7 +431,7 @@ func (p *UpdatePermissionConfig) UnmarshalJSON(data []byte) error {
 
 // DeletePermissionConfig captures the row filter a delete permission applies.
 type DeletePermissionConfig struct {
-	Filter map[string]any `json:"filter,omitempty" yaml:"filter,omitempty"`
+	Filter PermissionExpression `json:"filter,omitempty" yaml:"filter,omitempty"`
 }
 
 // ObjectRelationship is a many-to-one relationship from this table to another.
@@ -739,6 +767,11 @@ func (t *TableMetadata) appendToSourceRelationship(remote RemoteRelationship) {
 			Name:  remote.Name,
 			Using: using,
 		})
+	default:
+		// Keep invalid entries in RemoteRelationships only. The native conversion
+		// preserves that raw entry so SQL-source reconciliation can record a
+		// relationship inconsistency once a collector is available.
+		return
 	}
 }
 
