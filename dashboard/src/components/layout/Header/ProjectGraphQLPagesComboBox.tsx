@@ -1,27 +1,6 @@
-import { Check, ChevronsUpDown } from 'lucide-react';
 import { useRouter } from 'next/router';
-import { useMemo, useState } from 'react';
-import { Button } from '@/components/ui/v3/button';
-import {
-  Command,
-  CommandEmpty,
-  CommandGroup,
-  CommandInput,
-  CommandItem,
-  CommandList,
-} from '@/components/ui/v3/command';
-import {
-  Popover,
-  PopoverContent,
-  PopoverTrigger,
-} from '@/components/ui/v3/popover';
-import { cn } from '@/lib/utils';
-
-type Option = {
-  value: string;
-  label: string;
-  route: string;
-};
+import { useMemo } from 'react';
+import { Combobox } from '@/components/ui/v3/combobox';
 
 const projectGraphQLPages = [
   {
@@ -62,64 +41,26 @@ export default function ProjectGraphQLPagesComboBox() {
     (item) => item.value === graphQLPageFromUrl,
   );
 
-  const options: Option[] = projectGraphQLPages.map((page) => ({
+  const options = projectGraphQLPages.map((page) => ({
     label: page.label,
     value: page.value,
-    route: page.route,
   }));
 
-  const [open, setOpen] = useState(false);
-
   return (
-    <Popover open={open} onOpenChange={setOpen}>
-      <PopoverTrigger asChild>
-        <Button
-          variant="ghost"
-          size="sm"
-          className="justify-start gap-2 bg-background text-foreground hover:bg-accent dark:hover:bg-muted"
-        >
-          {selectedGraphQLPage ? (
-            <div>{selectedGraphQLPage.label}</div>
-          ) : (
-            <>Select a page</>
-          )}
-          <ChevronsUpDown className="h-5 w-5 text-muted-foreground" />
-        </Button>
-      </PopoverTrigger>
-      <PopoverContent className="p-0" side="bottom" align="start">
-        <Command>
-          <CommandInput placeholder="Select a page..." />
-          <CommandList>
-            <CommandEmpty>No results found.</CommandEmpty>
-            <CommandGroup>
-              {options.map((option) => (
-                <CommandItem
-                  key={option.value}
-                  value={option.label}
-                  onSelect={() => {
-                    setOpen(false);
-                    push(
-                      `/orgs/${orgSlug}/projects/${appSubdomain}/graphql/${option.route}/`,
-                    );
-                  }}
-                >
-                  <Check
-                    className={cn(
-                      'mr-2 h-4 w-4',
-                      selectedGraphQLPage?.value === option.value
-                        ? 'opacity-100'
-                        : 'opacity-0',
-                    )}
-                  />
-                  <div className="flex flex-row items-center gap-2">
-                    <span className="max-w-52 truncate">{option.label}</span>
-                  </div>
-                </CommandItem>
-              ))}
-            </CommandGroup>
-          </CommandList>
-        </Command>
-      </PopoverContent>
-    </Popover>
+    <Combobox
+      options={options}
+      value={selectedGraphQLPage?.value ?? null}
+      placeholder="Select a page"
+      searchPlaceholder="Select a page..."
+      className="justify-start gap-2 bg-background text-foreground hover:bg-accent dark:hover:bg-muted"
+      onChange={(value) => {
+        const option = projectGraphQLPages.find((page) => page.value === value);
+        if (option) {
+          push(
+            `/orgs/${orgSlug}/projects/${appSubdomain}/graphql/${option.route}/`,
+          );
+        }
+      }}
+    />
   );
 }

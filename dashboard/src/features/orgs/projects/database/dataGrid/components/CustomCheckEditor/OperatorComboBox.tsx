@@ -1,21 +1,6 @@
-import { Check, ChevronsUpDown } from 'lucide-react';
-import { useMemo, useState } from 'react';
+import { useMemo } from 'react';
 import { useFormContext, useWatch } from 'react-hook-form';
-import { Button } from '@/components/ui/v3/button';
-import {
-  Command,
-  CommandEmpty,
-  CommandGroup,
-  CommandInput,
-  CommandItem,
-  CommandList,
-} from '@/components/ui/v3/command';
-import {
-  Popover,
-  PopoverContent,
-  PopoverTrigger,
-} from '@/components/ui/v3/popover';
-import { cn } from '@/lib/utils';
+import { Combobox } from '@/components/ui/v3/combobox';
 import { getAvailableOperators } from './getAvailableOperators';
 
 interface OperatorComboBoxProps {
@@ -27,7 +12,6 @@ export default function OperatorComboBox({
   name,
   selectedColumnType,
 }: OperatorComboBoxProps) {
-  const [open, setOpen] = useState(false);
   const { setValue, clearErrors } = useFormContext();
 
   const operator = useWatch({ name: `${name}.operator` });
@@ -44,59 +28,38 @@ export default function OperatorComboBox({
     setValue(`${name}.value`, newValue, { shouldDirty: true });
     setValue(`${name}.operator`, value, { shouldDirty: true });
     clearErrors();
-    setOpen(false);
   };
 
+  const options = useMemo(
+    () =>
+      availableOperators.map((op) => ({
+        value: op.value,
+        label: op.value,
+        keywords: [op.helperText, op.value],
+        render: (
+          <div className="flex flex-row gap-2">
+            <span
+              className="shrink-0"
+              style={{ minWidth: `${maxOperatorLength}ch` }}
+            >
+              {op.value}
+            </span>
+            <span className="text-muted-foreground">{op.helperText}</span>
+          </div>
+        ),
+      })),
+    [availableOperators, maxOperatorLength],
+  );
+
   return (
-    <Popover open={open} onOpenChange={setOpen}>
-      <PopoverTrigger asChild>
-        <Button
-          variant="outline"
-          role="combobox"
-          aria-expanded={open}
-          className="justify-between"
-        >
-          {operator ?? 'Select operator...'}
-          <ChevronsUpDown className="h-5 w-5 opacity-50" />
-        </Button>
-      </PopoverTrigger>
-      <PopoverContent side="bottom" align="start" className="w-80 p-0">
-        <Command>
-          <CommandInput placeholder="Search operator..." />
-          <CommandList>
-            <CommandEmpty>No operator found.</CommandEmpty>
-            <CommandGroup>
-              {availableOperators.map((op) => (
-                <CommandItem
-                  key={op.value}
-                  keywords={[op.helperText]}
-                  value={op.value}
-                  onSelect={handleSelect}
-                  className="flex flex-row justify-between"
-                >
-                  <div className="flex flex-row gap-2">
-                    <span
-                      className="shrink-0"
-                      style={{ minWidth: `${maxOperatorLength}ch` }}
-                    >
-                      {op.value}
-                    </span>
-                    <span className="text-muted-foreground">
-                      {op.helperText}
-                    </span>
-                  </div>
-                  <Check
-                    className={cn(
-                      'ml-auto',
-                      op.value === operator ? 'opacity-100' : 'opacity-0',
-                    )}
-                  />
-                </CommandItem>
-              ))}
-            </CommandGroup>
-          </CommandList>
-        </Command>
-      </PopoverContent>
-    </Popover>
+    <Combobox
+      options={options}
+      value={operator || null}
+      onChange={handleSelect}
+      placeholder="Select operator..."
+      searchPlaceholder="Search operator..."
+      emptyText="No operator found."
+      popoverContentClassName="w-80"
+    />
   );
 }

@@ -1,31 +1,10 @@
-import { Check, ChevronsUpDown } from 'lucide-react';
 import { useRouter } from 'next/router';
-import { useState } from 'react';
 import { Badge } from '@/components/ui/v3/badge';
-import { Button } from '@/components/ui/v3/button';
-import {
-  Command,
-  CommandEmpty,
-  CommandGroup,
-  CommandInput,
-  CommandItem,
-  CommandList,
-} from '@/components/ui/v3/command';
-import {
-  Popover,
-  PopoverContent,
-  PopoverTrigger,
-} from '@/components/ui/v3/popover';
+import { Combobox } from '@/components/ui/v3/combobox';
 import { useIsPlatform } from '@/features/orgs/projects/common/hooks/useIsPlatform';
 import { useOrgs } from '@/features/orgs/projects/hooks/useOrgs';
 import { useSSRLocalStorage } from '@/hooks/useSSRLocalStorage';
 import { cn } from '@/lib/utils';
-
-type Option = {
-  value: string;
-  label: string;
-  plan: string;
-};
 
 export default function OrgsComboBox() {
   const { orgs } = useOrgs();
@@ -37,25 +16,9 @@ export default function OrgsComboBox() {
     push,
   } = useRouter();
 
-  const selectedOrgFromUrl = orgSlug
+  const selectedOrg = orgSlug
     ? orgs.find((item) => item.slug === orgSlug)
     : undefined;
-
-  const selectedItem: Option | null = selectedOrgFromUrl
-    ? {
-        label: selectedOrgFromUrl.name,
-        value: selectedOrgFromUrl.slug,
-        plan: selectedOrgFromUrl.plan?.name ?? 'Legacy',
-      }
-    : null;
-
-  const orgsOptions: Option[] = orgs.map((org) => ({
-    label: org.name,
-    value: org.slug,
-    plan: org.plan.name,
-  }));
-
-  const [open, setOpen] = useState(false);
 
   const renderBadge = (plan: string) => {
     if (!isPlatform) {
@@ -78,62 +41,36 @@ export default function OrgsComboBox() {
     );
   };
 
+  const options = orgs.map((org) => ({
+    value: org.slug,
+    label: org.name,
+    render: (
+      <div className="flex w-full items-center justify-between">
+        <span className="truncate">{org.name}</span>
+        {renderBadge(org.plan?.name ?? 'Legacy')}
+      </div>
+    ),
+  }));
+
+  const triggerLabel = selectedOrg ? (
+    <div className="flex flex-row items-center justify-center">
+      {selectedOrg.name}
+      {renderBadge(selectedOrg.plan?.name ?? 'Legacy')}
+    </div>
+  ) : null;
+
   return (
-    <Popover open={open} onOpenChange={setOpen}>
-      <PopoverTrigger asChild>
-        <Button
-          size="sm"
-          variant="ghost"
-          className="w-full justify-between gap-2 bg-background text-foreground hover:bg-accent dark:hover:bg-muted"
-        >
-          {selectedItem ? (
-            <div className="flex flex-row items-center justify-center">
-              {selectedItem.label}
-              {renderBadge(selectedItem.plan)}
-            </div>
-          ) : (
-            'Select organization'
-          )}
-          <ChevronsUpDown className="h-5 w-5 text-muted-foreground" />
-        </Button>
-      </PopoverTrigger>
-      <PopoverContent className="p-0" side="bottom" align="start">
-        <Command>
-          <CommandInput placeholder="Select organization..." />
-          <CommandList>
-            <CommandEmpty>No results found.</CommandEmpty>
-            <CommandGroup heading="Organizations">
-              {orgsOptions.map((option) => (
-                <CommandItem
-                  keywords={[option.label]}
-                  key={option.value}
-                  value={option.value}
-                  className="flex items-center text-foreground dark:hover:bg-muted"
-                  onSelect={() => {
-                    setOpen(false);
-
-                    // persist last slug in local storage
-                    setLastSlug(option.value);
-
-                    push(`/orgs/${option.value}/projects`);
-                  }}
-                >
-                  <Check
-                    className={cn(
-                      'mr-2 h-4 w-4',
-                      selectedItem?.value === option.value
-                        ? 'opacity-100'
-                        : 'opacity-0',
-                    )}
-                  />
-                  <span className="w-full truncate">{option.label}</span>
-                  {renderBadge(option.plan)}
-                </CommandItem>
-              ))}
-            </CommandGroup>
-          </CommandList>
-        </Command>
-      </PopoverContent>
-    </Popover>
+    <Combobox
+      options={options}
+      value={selectedOrg?.slug ?? null}
+      triggerLabel={triggerLabel}
+      placeholder="Select organization"
+      searchPlaceholder="Select organization..."
+      className="w-full justify-between gap-2 bg-background text-foreground hover:bg-accent dark:hover:bg-muted"
+      onChange={(slug) => {
+        setLastSlug(slug);
+        push(`/orgs/${slug}/projects`);
+      }}
+    />
   );
 }
