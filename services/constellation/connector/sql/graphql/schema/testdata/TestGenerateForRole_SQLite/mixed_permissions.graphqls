@@ -152,10 +152,6 @@ enum user_departments_constraint {
   unique or primary key constraint on columns "user_id", "department_id"
   """
   user_departments_pkey
-  """
-  unique or primary key constraint on columns "user_id", "department_id"
-  """
-  sqlite_autoindex_user_departments_1
 }
 """
 update columns of table "user_departments"

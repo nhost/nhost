@@ -932,7 +932,8 @@ func TestRun_ReloadReplacesInconsistencies(t *testing.T) {
 type errorConnector struct {
 	connector.Connector
 
-	execErr error
+	execResult map[string]any
+	execErr    error
 }
 
 func (e *errorConnector) Execute(
@@ -945,7 +946,7 @@ func (e *errorConnector) Execute(
 	logger *slog.Logger,
 ) (map[string]any, error) {
 	if e.execErr != nil {
-		return nil, e.execErr
+		return e.execResult, e.execErr
 	}
 
 	return e.Connector.Execute(ctx, op, frags, vars, role, sessionVars, logger) //nolint:wrapcheck
@@ -998,6 +999,40 @@ func (d validationTestDriver) Dialect() dialect.Dialect {
 }
 
 func (d validationTestDriver) Close() {}
+
+func newValidationSQLController(t *testing.T) *controller.Controller {
+	t.Helper()
+
+	dbMeta := &metadata.DatabaseMetadata{
+		Kind: "postgres",
+		Tables: []metadata.TableMetadata{
+			{Table: metadata.TableSource{Schema: "public", Name: "users"}},
+		},
+	}
+
+	sqlConn, err := sqlconnector.NewConnector(
+		t.Context(),
+		validationTestDriver{},
+		dbMeta,
+		nil,
+		slog.New(slog.DiscardHandler),
+	)
+	if err != nil {
+		t.Fatalf("NewConnector: %v", err)
+	}
+
+	ctrl, err := controller.NewFromConnectors(
+		testAdminSecret,
+		map[string]connector.Connector{"sql": sqlConn},
+		nil,
+		slog.New(slog.DiscardHandler),
+	)
+	if err != nil {
+		t.Fatalf("NewFromConnectors: %v", err)
+	}
+
+	return ctrl
+}
 
 func TestHandlerPost_MultiConnectorMergesResults(t *testing.T) {
 	t.Parallel()
@@ -1127,7 +1162,11 @@ func TestHandlerPost_ConnectorErrorSurfacedAsGraphQLError(t *testing.T) {
 		t.Fatalf("memconnector.New(baseB): %v", err)
 	}
 
-	connB := &errorConnector{Connector: baseB, execErr: errSentinel}
+	connB := &errorConnector{
+		Connector:  baseB,
+		execResult: nil,
+		execErr:    errSentinel,
+	}
 
 	logger := slog.New(slog.DiscardHandler)
 
@@ -1183,38 +1222,98 @@ func TestHandlerPost_ConnectorErrorSurfacedAsGraphQLError(t *testing.T) {
 	}
 }
 
-func TestHandlerPost_NegativeLimitOffsetReturnsHasuraErrors(t *testing.T) {
+func TestHandlerPost_RemoteGraphQLErrorPreservesConnectorPartialData(t *testing.T) {
 	t.Parallel()
 
-	dbMeta := &metadata.DatabaseMetadata{
-		Kind: "postgres",
-		Tables: []metadata.TableMetadata{
-			{Table: metadata.TableSource{Schema: "public", Name: "users"}},
+	baseConn, err := memconnector.New(
+		[]*graph.ObjectType{
+			memconnector.Object(
+				"User",
+				memconnector.ID("id"),
+			),
 		},
-	}
-
-	sqlConn, err := sqlconnector.NewConnector(
-		t.Context(),
-		validationTestDriver{},
-		dbMeta,
-		nil,
-		slog.New(slog.DiscardHandler),
+		[]memconnector.QueryDef{
+			memconnector.Query(
+				"users",
+				graph.NewNonNullListType(graph.NewNonNullType("User")),
+				jsontext.Value(`[]`),
+			),
+		},
 	)
 	if err != nil {
-		t.Fatalf("NewConnector: %v", err)
+		t.Fatalf("memconnector.New: %v", err)
 	}
+
+	conn := &errorConnector{
+		Connector: baseConn,
+		execResult: map[string]any{
+			"users": []any{map[string]any{"id": "1"}},
+		},
+		execErr: remoteschema.NewGraphQLError([]remoteschema.RemoteError{
+			{
+				Message: "remote field failed",
+				Path:    []any{"users", 0, "name"},
+			},
+		}),
+	}
+
+	logger := slog.New(slog.DiscardHandler)
 
 	ctrl, err := controller.NewFromConnectors(
 		testAdminSecret,
-		map[string]connector.Connector{"sql": sqlConn},
+		map[string]connector.Connector{"remote": conn},
 		nil,
-		slog.New(slog.DiscardHandler),
+		logger,
 	)
 	if err != nil {
 		t.Fatalf("NewFromConnectors: %v", err)
 	}
 
 	router := newTestRouter(t, ctrl)
+	body := []byte(`{"query":"{ users { id } }"}`)
+
+	req := httptest.NewRequest(http.MethodPost, "/graphql", bytes.NewReader(body))
+	req.Header.Set("Content-Type", "application/json")
+	req.Header.Set("X-Hasura-Admin-Secret", testAdminSecret)
+
+	w := httptest.NewRecorder()
+	router.ServeHTTP(w, req)
+
+	if w.Code != http.StatusOK {
+		t.Fatalf("expected 200, got %d: %s", w.Code, w.Body.String())
+	}
+
+	bodyMap := readJSONBody(t, w)
+
+	data, ok := bodyMap["data"].(map[string]any)
+	if !ok {
+		t.Fatalf("expected data object, got %v", bodyMap)
+	}
+
+	users, ok := data["users"].([]any)
+	if !ok || len(users) != 1 {
+		t.Fatalf("expected partial users data, got %v", bodyMap)
+	}
+
+	errs, ok := bodyMap["errors"].([]any)
+	if !ok || len(errs) != 1 {
+		t.Fatalf("expected one remote error, got %v", bodyMap)
+	}
+
+	errObj, ok := errs[0].(map[string]any)
+	if !ok {
+		t.Fatalf("error: got %T, want map[string]any", errs[0])
+	}
+
+	if errObj["message"] != "remote field failed" {
+		t.Fatalf("unexpected remote error message: %v", errObj["message"])
+	}
+}
+
+func TestHandlerPost_NegativeLimitOffsetReturnsHasuraErrors(t *testing.T) {
+	t.Parallel()
+
+	router := newTestRouter(t, newValidationSQLController(t))
 
 	tests := []struct {
 		name        string
@@ -1290,6 +1389,47 @@ func TestHandlerPost_NegativeLimitOffsetReturnsHasuraErrors(t *testing.T) {
 	}
 }
 
+func TestResolve_MixedIntrospectionAndDataValidationErrorReturnsNoData(t *testing.T) {
+	t.Parallel()
+
+	ctrl := newValidationSQLController(t)
+
+	resp, err := ctrl.Resolve(adminSessionContext(t), controller.GraphQLRequest{
+		OperationName: "",
+		Query:         `{ __schema { queryType { name } } staff: users(limit: -1) { id } }`,
+		Variables:     nil,
+	})
+	if err != nil {
+		t.Fatalf("unexpected error: %v", err)
+	}
+
+	if resp.Data != nil {
+		t.Fatalf("validation failure must return no data, got %+v", resp.Data)
+	}
+
+	errs, ok := resp.Errors.([]map[string]any)
+	if !ok || len(errs) != 1 {
+		t.Fatalf("expected exactly one error, got %+v", resp.Errors)
+	}
+
+	if got := getMessage(errs[0]); got != negativeLimitIntegerError {
+		t.Fatalf("unexpected validation message: %q", got)
+	}
+
+	ext, ok := errs[0]["extensions"].(map[string]any)
+	if !ok {
+		t.Fatalf("error missing extensions: %+v", errs[0])
+	}
+
+	if ext["code"] != "validation-failed" {
+		t.Errorf("expected validation-failed code, got %v", ext["code"])
+	}
+
+	if ext["path"] != "$.selectionSet.staff.args.limit" {
+		t.Errorf("unexpected argument path: %v", ext["path"])
+	}
+}
+
 func TestHandlerPost_GraphQLErrorTypePathIsExercised(t *testing.T) {
 	t.Parallel()
 
@@ -1317,8 +1457,9 @@ func TestHandlerPost_GraphQLErrorTypePathIsExercised(t *testing.T) {
 	}
 
 	connB := &errorConnector{
-		Connector: connA,
-		execErr:   &remoteschema.GraphQLError{Errors: nil},
+		Connector:  connA,
+		execResult: nil,
+		execErr:    &remoteschema.GraphQLError{Errors: nil},
 	}
 
 	logger := slog.New(slog.DiscardHandler)

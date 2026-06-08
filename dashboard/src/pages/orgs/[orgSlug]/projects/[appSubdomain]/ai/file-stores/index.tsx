@@ -1,4 +1,5 @@
 import { PlusIcon } from 'lucide-react';
+import Link from 'next/link';
 import { type ReactElement, useMemo } from 'react';
 import { useDialog } from '@/components/common/DialogProvider';
 import { UpgradeToProBanner } from '@/components/common/UpgradeToProBanner';
@@ -7,7 +8,6 @@ import { ActivityIndicator } from '@/components/ui/v2/ActivityIndicator';
 import { Alert } from '@/components/ui/v2/Alert';
 import { Box } from '@/components/ui/v2/Box';
 import { Button } from '@/components/ui/v2/Button';
-import { Link } from '@/components/ui/v2/Link';
 import { Text } from '@/components/ui/v2/Text';
 import { FileStoresIcon } from '@/components/ui/v3/icons/FileStoresIcon';
 import { useRemoteApplicationGQLClient } from '@/features/orgs/hooks/useRemoteApplicationGQLClient';
@@ -100,7 +100,7 @@ export default function FileStoresPage() {
               <Link
                 href={`/orgs/${slug}/projects/${project?.subdomain}/settings/ai`}
                 rel="noopener noreferrer"
-                underline="hover"
+                className="text-primary hover:underline"
               >
                 AI Settings
               </Link>

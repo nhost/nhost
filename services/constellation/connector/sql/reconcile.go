@@ -11,6 +11,8 @@ import (
 	"github.com/nhost/nhost/services/constellation/metadata"
 )
 
+const permissionAllColumns = "*"
+
 // reconcileMetadata walks dbMeta against the introspected objects and returns
 // a filtered copy in which every entity that does not exist in the source has
 // been removed. Each removal is recorded on inc (pass nil to discard).
@@ -29,6 +31,8 @@ import (
 //   - Functions: dropped when absent from objects.Functions (kind=function).
 //   - Object/Array relationships: dropped when the target table (only when
 //     it lives in the same source) does not exist (kind=relationship).
+//   - Raw to_source remote relationships: dropped when relationship_type is
+//     missing or not one of object/array (kind=relationship).
 //
 // Reconciliation is intentionally scoped: Hasura-expression Filter/Check
 // trees inside permissions are not walked because they reference columns
@@ -120,10 +124,12 @@ func reconcileTables(
 		t := &surviving[i]
 
 		introspected, _ := objects.GetTable(t.Table.Schema, t.Table.Name)
-		cols := columnNameSet(introspected)
+		columnNames := tableColumnNames(introspected)
+		cols := columnNameSet(columnNames)
 
 		reconcileColumnConfig(ctx, logger, inc, dbName, t, cols)
-		reconcilePermissionColumns(ctx, logger, inc, dbName, t, cols)
+		reconcilePermissionColumns(ctx, logger, inc, dbName, t, columnNames, cols)
+		reconcileRemoteRelationshipTypes(ctx, logger, inc, dbName, t)
 		reconcileRelationships(ctx, logger, inc, dbName, t, survivingNames)
 		reconcileRelationshipFKIntrospection(ctx, logger, inc, dbName, t, introspected, objects)
 	}
@@ -131,16 +137,26 @@ func reconcileTables(
 	return surviving
 }
 
-// columnNameSet returns the set of column names exposed by t. The empty case
-// (nil t) is handled defensively so callers do not have to.
-func columnNameSet(t *introspection.Table) map[string]struct{} {
+// tableColumnNames returns the column names exposed by t in introspection
+// order. The empty case (nil t) is handled defensively so callers do not have
+// to.
+func tableColumnNames(t *introspection.Table) []string {
 	if t == nil {
 		return nil
 	}
 
-	out := make(map[string]struct{}, len(t.Columns))
+	out := make([]string, 0, len(t.Columns))
 	for _, col := range t.Columns {
-		out[col.Name] = struct{}{}
+		out = append(out, col.Name)
+	}
+
+	return out
+}
+
+func columnNameSet(columns []string) map[string]struct{} {
+	out := make(map[string]struct{}, len(columns))
+	for _, col := range columns {
+		out[col] = struct{}{}
 	}
 
 	return out
@@ -222,6 +238,7 @@ func reconcilePermissionColumns(
 	inc *metadata.Inconsistencies,
 	dbName string,
 	t *metadata.TableMetadata,
+	allColumns []string,
 	cols map[string]struct{},
 ) {
 	// The slice headers we received were value-copied from the caller's
@@ -233,7 +250,7 @@ func reconcilePermissionColumns(
 		p := &t.SelectPermissions[i]
 		p.Permission.Columns = filterColumnList(
 			ctx, logger, inc, dbName, t, p.Role, "select_permission.columns",
-			p.Permission.Columns, cols,
+			expandPermissionColumns(p.Permission.Columns, allColumns), cols,
 		)
 	}
 
@@ -242,7 +259,7 @@ func reconcilePermissionColumns(
 		p := &t.InsertPermissions[i]
 		p.Permission.Columns = filterColumnList(
 			ctx, logger, inc, dbName, t, p.Role, "insert_permission.columns",
-			p.Permission.Columns, cols,
+			expandPermissionColumns(p.Permission.Columns, allColumns), cols,
 		)
 		p.Permission.Set = filterColumnKeyMap(
 			ctx, logger, inc, dbName, t, p.Role, "insert_permission.set",
@@ -255,13 +272,21 @@ func reconcilePermissionColumns(
 		p := &t.UpdatePermissions[i]
 		p.Permission.Columns = filterColumnList(
 			ctx, logger, inc, dbName, t, p.Role, "update_permission.columns",
-			p.Permission.Columns, cols,
+			expandPermissionColumns(p.Permission.Columns, allColumns), cols,
 		)
 		p.Permission.Set = filterColumnKeyMap(
 			ctx, logger, inc, dbName, t, p.Role, "update_permission.set",
 			p.Permission.Set, cols,
 		)
 	}
+}
+
+func expandPermissionColumns(list, allColumns []string) []string {
+	if len(list) == 1 && list[0] == permissionAllColumns {
+		return slices.Clone(allColumns)
+	}
+
+	return list
 }
 
 func filterColumnList(
@@ -372,6 +397,44 @@ func filterColumnKeyMap(
 	}
 
 	return out
+}
+
+// reconcileRemoteRelationshipTypes drops raw to_source remote relationships
+// whose relationship_type discriminator is missing or invalid. Valid raw
+// relationships are retained for cross-connector composition.
+func reconcileRemoteRelationshipTypes(
+	ctx context.Context,
+	logger *slog.Logger,
+	inc *metadata.Inconsistencies,
+	dbName string,
+	t *metadata.TableMetadata,
+) {
+	t.RemoteRelationships = slices.DeleteFunc(
+		slices.Clone(t.RemoteRelationships),
+		func(rel metadata.RemoteRelationship) bool {
+			toSource := rel.Definition.ToSource
+			if toSource == nil {
+				return false
+			}
+
+			if toSource.RelationshipType == metadata.RelationshipTypeObject ||
+				toSource.RelationshipType == metadata.RelationshipTypeArray {
+				return false
+			}
+
+			inc.RecordRelationship(
+				ctx, logger,
+				dbName,
+				t.Table.Schema, t.Table.Name, rel.Name,
+				fmt.Sprintf(
+					"invalid to_source relationship_type %q; expected object or array",
+					toSource.RelationshipType,
+				),
+			)
+
+			return true
+		},
+	)
 }
 
 // reconcileRelationships drops local object/array relationships whose target

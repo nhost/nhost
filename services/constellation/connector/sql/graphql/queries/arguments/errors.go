@@ -74,6 +74,39 @@ func newDistinctOnOrderByMismatchError() *QueryValidationError {
 	)
 }
 
+// emptyUpdateMessage is the validation message emitted when an update mutation
+// supplies no update operator (_set, _inc, _append, _prepend, _delete_key,
+// _delete_elem, _delete_at_path). Live Hasura is inconsistent here (a silent
+// no-op for the collection field, an empty object for _by_pk, and a SET-less SQL
+// syntax error for _many); Constellation rejects all three uniformly with this
+// validation-failed error. See KNOWN_DIFFERENCES.md.
+const emptyUpdateMessage = "at least one update operator must be provided"
+
+// newEmptyUpdateError returns the validation failure emitted when an update
+// mutation targets no column. Surfacing it as a QueryValidationError gives the
+// client a clean validation-failed envelope in production instead of a sanitized
+// "internal server error".
+func newEmptyUpdateError() *QueryValidationError {
+	return newQueryValidationError(
+		emptyUpdateMessage,
+		fmt.Errorf("%w: %s", ErrInvalidArgument, emptyUpdateMessage),
+		"",
+	)
+}
+
+// newDuplicateUpdateColumnError mirrors Hasura's "Column found in multiple
+// operators: ['<col>']." validation failure, byte for byte, for a column
+// targeted by more than one update operator (e.g. _set and _inc on the column).
+func newDuplicateUpdateColumnError(column string) *QueryValidationError {
+	message := fmt.Sprintf("Column found in multiple operators: ['%s'].", column)
+
+	return newQueryValidationError(
+		message,
+		fmt.Errorf("%w: %s", ErrInvalidArgument, message),
+		"",
+	)
+}
+
 func newNegativeLimitOffsetError(argumentName string, found string) error {
 	switch argumentName {
 	case "limit":

@@ -2,9 +2,11 @@ package sqlite_test
 
 import (
 	"database/sql"
+	"encoding/json/jsontext"
 	"errors"
 	"log/slog"
 	"path/filepath"
+	"strings"
 	"testing"
 
 	_ "github.com/mattn/go-sqlite3"
@@ -127,6 +129,24 @@ func expectExecuteErr(
 	}
 }
 
+func expectJSONTextResult(t *testing.T, result map[string]any, operationName string, want string) {
+	t.Helper()
+
+	v, ok := result[operationName]
+	if !ok {
+		t.Fatalf("expected %s in results", operationName)
+	}
+
+	jv, ok := v.(jsontext.Value)
+	if !ok {
+		t.Fatalf("expected jsontext.Value, got %T", v)
+	}
+
+	if got := string(jv); got != want {
+		t.Errorf("unexpected result: %s", got)
+	}
+}
+
 func TestOpen(t *testing.T) {
 	t.Parallel()
 
@@ -147,6 +167,162 @@ func TestOpen(t *testing.T) {
 			t.Fatal("expected error for invalid path")
 		}
 	})
+}
+
+func TestOpenEnablesCaseSensitiveLikeOnEveryConnection(t *testing.T) {
+	t.Parallel()
+
+	dbPath := filepath.Join(t.TempDir(), "case-sensitive-like.db")
+
+	db, err := sqlite.Open(t.Context(), dbPath)
+	if err != nil {
+		t.Fatalf("failed to open sqlite: %v", err)
+	}
+
+	t.Cleanup(func() {
+		if err := db.Close(); err != nil {
+			t.Errorf("failed to close database: %v", err)
+		}
+	})
+
+	pool, ok := db.(interface{ SetMaxOpenConns(n int) })
+	if !ok {
+		t.Fatalf("expected sqlite.Open DB to allow configuring max open conns, got %T", db)
+	}
+
+	pool.SetMaxOpenConns(2)
+
+	tx1, err := db.BeginTx(t.Context())
+	if err != nil {
+		t.Fatalf("failed to begin first transaction: %v", err)
+	}
+
+	t.Cleanup(func() {
+		if err := tx1.Rollback(); err != nil && !errors.Is(err, sql.ErrTxDone) {
+			t.Errorf("first transaction rollback during cleanup: %v", err)
+		}
+	})
+
+	tx2, err := db.BeginTx(t.Context())
+	if err != nil {
+		t.Fatalf("failed to begin second transaction: %v", err)
+	}
+
+	t.Cleanup(func() {
+		if err := tx2.Rollback(); err != nil && !errors.Is(err, sql.ErrTxDone) {
+			t.Errorf("second transaction rollback during cleanup: %v", err)
+		}
+	})
+
+	assertLikeSemantics := func(t *testing.T, tx sqlite.Tx) {
+		t.Helper()
+
+		var caseSensitive, lowerRewrite int
+		if err := tx.QueryRowContext(
+			t.Context(),
+			"SELECT 'Foo' LIKE 'foo%', LOWER('Foo') LIKE LOWER('foo%')",
+		).Scan(&caseSensitive, &lowerRewrite); err != nil {
+			t.Fatalf("failed to query LIKE semantics: %v", err)
+		}
+
+		if caseSensitive != 0 {
+			t.Fatalf("case-sensitive LIKE matched different case: got %d, want 0", caseSensitive)
+		}
+
+		if lowerRewrite != 1 {
+			t.Fatalf("LOWER rewrite did not match case-insensitively: got %d, want 1", lowerRewrite)
+		}
+	}
+
+	assertLikeSemantics(t, tx2)
+
+	if err := tx2.Rollback(); err != nil && !errors.Is(err, sql.ErrTxDone) {
+		t.Fatalf("failed to roll back second transaction: %v", err)
+	}
+
+	assertLikeSemantics(t, tx1)
+}
+
+func TestOpenEnforcesForeignKeysOnEveryConnection(t *testing.T) {
+	t.Parallel()
+
+	dbPath := filepath.Join(t.TempDir(), "foreign-keys.db")
+
+	db, err := sqlite.Open(t.Context(), dbPath)
+	if err != nil {
+		t.Fatalf("failed to open sqlite: %v", err)
+	}
+
+	t.Cleanup(func() {
+		if err := db.Close(); err != nil {
+			t.Errorf("failed to close database: %v", err)
+		}
+	})
+
+	pool, ok := db.(interface{ SetMaxOpenConns(n int) })
+	if !ok {
+		t.Fatalf("expected sqlite.Open DB to allow configuring max open conns, got %T", db)
+	}
+
+	pool.SetMaxOpenConns(2)
+
+	if err := db.ExecContext(t.Context(), `
+		CREATE TABLE parents (id INTEGER PRIMARY KEY);
+		CREATE TABLE children (
+			id INTEGER PRIMARY KEY,
+			parent_id INTEGER NOT NULL REFERENCES parents(id)
+		);
+	`); err != nil {
+		t.Fatalf("failed to create schema: %v", err)
+	}
+
+	tx1, err := db.BeginTx(t.Context())
+	if err != nil {
+		t.Fatalf("failed to begin first transaction: %v", err)
+	}
+
+	t.Cleanup(func() {
+		if err := tx1.Rollback(); err != nil && !errors.Is(err, sql.ErrTxDone) {
+			t.Errorf("first transaction rollback during cleanup: %v", err)
+		}
+	})
+
+	tx2, err := db.BeginTx(t.Context())
+	if err != nil {
+		t.Fatalf("failed to begin second transaction: %v", err)
+	}
+
+	t.Cleanup(func() {
+		if err := tx2.Rollback(); err != nil && !errors.Is(err, sql.ErrTxDone) {
+			t.Errorf("second transaction rollback during cleanup: %v", err)
+		}
+	})
+
+	assertForeignKeyViolation := func(t *testing.T, tx sqlite.Tx, childID int) {
+		t.Helper()
+
+		err := tx.ExecContext(
+			t.Context(),
+			"INSERT INTO children (id, parent_id) VALUES (?, ?)",
+			childID,
+			999,
+		)
+		if err == nil {
+			t.Fatal("expected foreign-key violation")
+		}
+
+		if !strings.Contains(err.Error(), "FOREIGN KEY constraint failed") {
+			t.Fatalf("expected foreign-key violation, got %v", err)
+		}
+	}
+
+	assertForeignKeyViolation(t, tx2, 2)
+
+	if err := tx2.Rollback(); err != nil && !errors.Is(err, sql.ErrTxDone) {
+		t.Fatalf("failed to roll back second transaction: %v", err)
+	}
+
+	assertForeignKeyViolation(t, tx1, 1)
 }
 
 func TestDialect(t *testing.T) {
@@ -306,6 +482,174 @@ func TestExecuteOperations(t *testing.T) { //nolint:paralleltest
 			t.Fatal("expected rolled-back insert to not be visible")
 		}
 	})
+}
+
+func TestExecuteOperationsSequential(t *testing.T) {
+	t.Parallel()
+
+	schema := `
+		CREATE TABLE kv (
+			key TEXT NOT NULL PRIMARY KEY,
+			value TEXT NOT NULL
+		);
+	`
+
+	tests := []struct {
+		name       string
+		operations []core.SQLOperation
+		assert     func(*testing.T, *sqlite.Client, *slog.Logger, map[string]any, error)
+	}{
+		{
+			name: "success assembles JSON array",
+			operations: []core.SQLOperation{
+				{
+					Name: "sequential_success",
+					Sequential: []core.SQLOperation{
+						{
+							Name:       "child_first",
+							SQL:        `SELECT json_object('key', ?, 'value', ?)`,
+							Parameters: []any{"seq-a", "1"},
+						},
+						{
+							Name:       "child_second",
+							SQL:        `SELECT json_object('key', ?, 'value', ?)`,
+							Parameters: []any{"seq-b", "2"},
+						},
+					},
+				},
+			},
+			assert: assertSequentialSuccess,
+		},
+		{
+			name: "child failure rolls back prior child",
+			operations: []core.SQLOperation{
+				{
+					Name: "sequential_failure",
+					Sequential: []core.SQLOperation{
+						{
+							Name:       "child_insert",
+							SQL:        `INSERT INTO kv (key, value) VALUES (?, ?) RETURNING json_object('key', key)`,
+							Parameters: []any{"seq_rollback_test", "3"},
+						},
+						{
+							Name: "child_bad",
+							SQL:  `SELECT 1 FROM nonexistent_table`,
+						},
+					},
+				},
+			},
+			assert: assertSequentialRollback,
+		},
+		{
+			name: "no rows and null children assemble nulls",
+			operations: []core.SQLOperation{
+				{
+					Name: "sequential_nulls",
+					Sequential: []core.SQLOperation{
+						{
+							Name:       "child_missing",
+							SQL:        `SELECT json_object('key', key) FROM kv WHERE key = ?`,
+							Parameters: []any{"missing_sequential_child"},
+						},
+						{
+							Name: "child_null",
+							SQL:  `SELECT 'null'`,
+						},
+					},
+				},
+			},
+			assert: assertSequentialNulls,
+		},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			t.Parallel()
+
+			client := newTestClientWithSchema(t, schema)
+			logger := discardLogger()
+
+			result, err := client.ExecuteOperations(t.Context(), tt.operations, logger)
+			tt.assert(t, client, logger, result, err)
+		})
+	}
+}
+
+func assertSequentialSuccess(
+	t *testing.T,
+	_ *sqlite.Client,
+	_ *slog.Logger,
+	result map[string]any,
+	err error,
+) {
+	t.Helper()
+
+	if err != nil {
+		t.Fatalf("sequential operations failed: %v", err)
+	}
+
+	expectJSONTextResult(
+		t,
+		result,
+		"sequential_success",
+		`[{"key":"seq-a","value":"1"},{"key":"seq-b","value":"2"}]`,
+	)
+}
+
+func assertSequentialRollback(
+	t *testing.T,
+	client *sqlite.Client,
+	logger *slog.Logger,
+	_ map[string]any,
+	err error,
+) {
+	t.Helper()
+
+	if err == nil {
+		t.Fatal("expected sequential child error")
+	}
+
+	for _, want := range []string{
+		"failed to execute operation sequential_failure",
+		"failed to execute sequential operation child_bad",
+	} {
+		if !strings.Contains(err.Error(), want) {
+			t.Fatalf("expected error to contain %q, got %v", want, err)
+		}
+	}
+
+	verifyOps := []core.SQLOperation{
+		{
+			Name:       "verify",
+			SQL:        `SELECT json_object('key', key) FROM kv WHERE key = ?`,
+			Parameters: []any{"seq_rollback_test"},
+		},
+	}
+
+	results, err := client.ExecuteOperations(t.Context(), verifyOps, logger)
+	if err != nil {
+		t.Fatalf("verify failed: %v", err)
+	}
+
+	if results["verify"] != nil {
+		t.Fatal("expected rolled-back sequential child insert to not be visible")
+	}
+}
+
+func assertSequentialNulls(
+	t *testing.T,
+	_ *sqlite.Client,
+	_ *slog.Logger,
+	result map[string]any,
+	err error,
+) {
+	t.Helper()
+
+	if err != nil {
+		t.Fatalf("sequential null operations failed: %v", err)
+	}
+
+	expectJSONTextResult(t, result, "sequential_nulls", `[null,null]`)
 }
 
 func TestExecuteMultiplexedOperation(t *testing.T) { //nolint:paralleltest
@@ -492,8 +836,22 @@ func TestNew(t *testing.T) {
 func TestExecuteOperationsMocked(t *testing.T) {
 	t.Parallel()
 
+	defaultOperations := []core.SQLOperation{
+		{Name: "op1", SQL: "SELECT 1", Parameters: nil, StreamCursors: nil},
+	}
+	sequentialOperations := []core.SQLOperation{
+		{
+			Name: "op1",
+			Sequential: []core.SQLOperation{
+				{Name: "child1", SQL: "SELECT child 1", Parameters: []any{"first"}},
+				{Name: "child2", SQL: "SELECT child 2", Parameters: []any{"second"}},
+			},
+		},
+	}
+
 	tests := []struct {
 		name             string
+		operations       []core.SQLOperation
 		setupMocks       func(t *testing.T, db *mock.MockDB, tx *mock.MockTx, row *mock.MockRow)
 		wantErrSubstring string
 		wantErrIs        error
@@ -509,6 +867,78 @@ func TestExecuteOperationsMocked(t *testing.T) {
 			wantErrSubstring: "failed to begin transaction: connection refused",
 			wantErrIs:        nil,
 			wantResult:       nil,
+		},
+		{
+			name:       "sequential success assembles JSON array",
+			operations: sequentialOperations,
+			setupMocks: func(t *testing.T, db *mock.MockDB, tx *mock.MockTx, row *mock.MockRow) {
+				t.Helper()
+				gomock.InOrder(
+					db.EXPECT().BeginTx(gomock.Any()).Return(tx, nil),
+					tx.EXPECT().
+						QueryRowContext(gomock.Any(), "SELECT child 1", "first").
+						Return(row),
+					row.EXPECT().Scan(gomock.Any()).DoAndReturn(scanStringInto(t, `{"id":1}`)),
+					tx.EXPECT().
+						QueryRowContext(gomock.Any(), "SELECT child 2", "second").
+						Return(row),
+					row.EXPECT().Scan(gomock.Any()).DoAndReturn(scanStringInto(t, `{"id":2}`)),
+					tx.EXPECT().Commit().Return(nil),
+				)
+			},
+			wantErrSubstring: "",
+			wantErrIs:        nil,
+			wantResult: func(t *testing.T, result map[string]any) {
+				t.Helper()
+				expectJSONTextResult(t, result, "op1", `[{"id":1},{"id":2}]`)
+			},
+		},
+		{
+			name:       "sequential child scan error rolls back",
+			operations: sequentialOperations,
+			setupMocks: func(t *testing.T, db *mock.MockDB, tx *mock.MockTx, row *mock.MockRow) {
+				t.Helper()
+				gomock.InOrder(
+					db.EXPECT().BeginTx(gomock.Any()).Return(tx, nil),
+					tx.EXPECT().
+						QueryRowContext(gomock.Any(), "SELECT child 1", "first").
+						Return(row),
+					row.EXPECT().Scan(gomock.Any()).DoAndReturn(scanStringInto(t, `{"id":1}`)),
+					tx.EXPECT().
+						QueryRowContext(gomock.Any(), "SELECT child 2", "second").
+						Return(row),
+					row.EXPECT().Scan(gomock.Any()).Return(errScanFailed),
+					tx.EXPECT().Rollback().Return(nil),
+				)
+			},
+			wantErrSubstring: "",
+			wantErrIs:        errScanFailed,
+			wantResult:       nil,
+		},
+		{
+			name:       "sequential no rows and null children assemble nulls",
+			operations: sequentialOperations,
+			setupMocks: func(t *testing.T, db *mock.MockDB, tx *mock.MockTx, row *mock.MockRow) {
+				t.Helper()
+				gomock.InOrder(
+					db.EXPECT().BeginTx(gomock.Any()).Return(tx, nil),
+					tx.EXPECT().
+						QueryRowContext(gomock.Any(), "SELECT child 1", "first").
+						Return(row),
+					row.EXPECT().Scan(gomock.Any()).Return(sql.ErrNoRows),
+					tx.EXPECT().
+						QueryRowContext(gomock.Any(), "SELECT child 2", "second").
+						Return(row),
+					row.EXPECT().Scan(gomock.Any()).DoAndReturn(scanStringInto(t, "null")),
+					tx.EXPECT().Commit().Return(nil),
+				)
+			},
+			wantErrSubstring: "",
+			wantErrIs:        nil,
+			wantResult: func(t *testing.T, result map[string]any) {
+				t.Helper()
+				expectJSONTextResult(t, result, "op1", `[null,null]`)
+			},
 		},
 		{
 			name: "scan error rolls back",
@@ -579,13 +1009,16 @@ func TestExecuteOperationsMocked(t *testing.T) {
 
 			tt.setupMocks(t, db, tx, row)
 
+			operations := tt.operations
+			if operations == nil {
+				operations = defaultOperations
+			}
+
 			client := sqlite.NewClient(db)
 
 			result, err := client.ExecuteOperations(
 				t.Context(),
-				[]core.SQLOperation{
-					{Name: "op1", SQL: "SELECT 1", Parameters: nil, StreamCursors: nil},
-				},
+				operations,
 				discardLogger(),
 			)
 

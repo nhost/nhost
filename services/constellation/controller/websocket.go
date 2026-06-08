@@ -10,13 +10,14 @@ import (
 	"net/http"
 	"time"
 
+	"github.com/nhost/nhost/services/constellation/connector/schemamerge"
 	"github.com/nhost/nhost/services/constellation/controller/middleware"
+	"github.com/nhost/nhost/services/constellation/controller/planner/transform"
 	"github.com/nhost/nhost/services/constellation/controller/websocket"
 	"github.com/nhost/nhost/services/constellation/internal/lib/syncmap"
 	"github.com/nhost/nhost/services/constellation/subscription"
 	"github.com/vektah/gqlparser/v2/ast"
 	"github.com/vektah/gqlparser/v2/gqlerror"
-	"github.com/vektah/gqlparser/v2/validator"
 )
 
 // defaultPollingInterval is the default interval for polling subscriptions.
@@ -102,6 +103,17 @@ func (h *webSocketHandler) OnConnectionInit(
 	return nil
 }
 
+// ConnectionExpiresAt returns the JWT expiry bound for this WebSocket session.
+// The protocol layer uses it to close JWT-authenticated sockets when the access
+// token expires. Admin-secret and public-role sessions have no JWT expiry bound.
+func (h *webSocketHandler) ConnectionExpiresAt() (time.Time, bool) {
+	if h.session == nil || h.session.ExpiresAt == nil {
+		return time.Time{}, false
+	}
+
+	return *h.session.ExpiresAt, true
+}
+
 // OnSubscribe is called when client sends subscribe. It parses and validates
 // the subscription query, selects the owning subscription handler, registers
 // per-subscription state, and spawns a goroutine that forwards updates back
@@ -110,11 +122,6 @@ func (h *webSocketHandler) OnConnectionInit(
 func (h *webSocketHandler) OnSubscribe(
 	ctx context.Context, id string, payload websocket.SubscribePayload,
 ) {
-	if h.session == nil {
-		h.sendError(id, "session not available")
-		return
-	}
-
 	if _, exists := h.subs.Load(id); exists {
 		h.sendError(id, "subscription with ID already exists")
 		return
@@ -264,7 +271,8 @@ func getConnectorForOperation(
 ) string {
 	for _, selection := range operation.SelectionSet {
 		if field, ok := selection.(*ast.Field); ok {
-			if dbName, exists := state.fieldToConnector[field.Name]; exists {
+			key := schemamerge.FieldKey(operation.Operation, field.Name)
+			if dbName, exists := state.fieldToConnector[key]; exists {
 				return dbName
 			}
 		}
@@ -313,35 +321,42 @@ func parseAndValidateQuery(
 	}
 
 	if operation == nil {
-		if len(parsedQuery.Operations) > 1 {
-			return nil, nil, nil, errMultipleOperations
+		// Distinguish a supplied-but-unmatched operationName (not-found) from an
+		// omitted name with several operations (ambiguous), matching Hasura's
+		// wording on both transports. The residual case is unreachable for a
+		// validated document but falls back to the generic not-found error.
+		if msg := operationSelectionMessage(
+			operationName, len(parsedQuery.Operations),
+		); msg != "" {
+			return nil, nil, nil, newHasuraValidationError(msg)
 		}
 
 		return nil, nil, nil, errOperationNotFound
 	}
 
-	// Validate and coerce variables
-	var validatedVariables map[string]any
-	if len(variables) > 0 {
-		var varErr error
-
-		validatedVariables, varErr = validator.VariableValues(
-			validatedSchema,
-			operation,
-			variables,
-		)
-		if varErr != nil {
-			if gqlErrs, ok := errors.AsType[gqlerror.List](varErr); ok {
-				return nil, nil, nil, formatGQLErrorsAsError(gqlErrs)
-			}
-
-			return nil, nil, nil, fmt.Errorf("variable validation error: %w", varErr)
+	// Validate and coerce variables, including required/defaulted variables when
+	// the request omitted the variables object.
+	validatedVariables, varErr := coerceVariables(validatedSchema, operation, variables)
+	if varErr != nil {
+		if gqlErrs, ok := gqlValidationErrors(varErr); ok {
+			return nil, nil, nil, formatGQLErrorsAsError(gqlErrs)
 		}
-	} else {
-		validatedVariables = variables
+
+		return nil, nil, nil, fmt.Errorf("variable validation error: %w", varErr)
 	}
 
-	return operation, parsedQuery.Fragments, validatedVariables, nil
+	// Normalize the root selection set the same way the HTTP path does:
+	// evaluate @skip/@include and expand root-level fragment spreads / inline
+	// fragments into plain fields. This keeps subscription routing and SQL
+	// generation consistent with queries/mutations. The cached document is not
+	// mutated — normalization returns fresh nodes.
+	fragments := pruneFragments(parsedQuery.Fragments, validatedVariables)
+	operation = transform.BuildSubOperation(
+		operation,
+		normalizeRootSelections(operation.SelectionSet, parsedQuery.Fragments, validatedVariables),
+	)
+
+	return operation, fragments, validatedVariables, nil
 }
 
 // gqlValidationError wraps a gqlerror.List so structured error data

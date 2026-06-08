@@ -12,6 +12,7 @@ package mock
 import (
 	http "net/http"
 	reflect "reflect"
+	time "time"
 
 	jwt "github.com/nhost/nhost/services/constellation/internal/jwt"
 	gomock "go.uber.org/mock/gomock"
@@ -54,4 +55,20 @@ func (m *MockJWTAuthenticator) Authenticate(headers http.Header, roleOverride st
 func (mr *MockJWTAuthenticatorMockRecorder) Authenticate(headers, roleOverride any) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "Authenticate", reflect.TypeOf((*MockJWTAuthenticator)(nil).Authenticate), headers, roleOverride)
+}
+
+// AuthenticateWithExpiration mocks base method.
+func (m *MockJWTAuthenticator) AuthenticateWithExpiration(headers http.Header, roleOverride string) (*jwt.SessionResult, *time.Time, error) {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "AuthenticateWithExpiration", headers, roleOverride)
+	ret0, _ := ret[0].(*jwt.SessionResult)
+	ret1, _ := ret[1].(*time.Time)
+	ret2, _ := ret[2].(error)
+	return ret0, ret1, ret2
+}
+
+// AuthenticateWithExpiration indicates an expected call of AuthenticateWithExpiration.
+func (mr *MockJWTAuthenticatorMockRecorder) AuthenticateWithExpiration(headers, roleOverride any) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "AuthenticateWithExpiration", reflect.TypeOf((*MockJWTAuthenticator)(nil).AuthenticateWithExpiration), headers, roleOverride)
 }

@@ -103,7 +103,8 @@ func HasuraStorageEnv( //nolint:funlen
 	}
 
 	if s3AccessKey != "" {
-		env = append(env,
+		env = append(
+			env,
 			EnvVar{
 				Name:       "S3_ACCESS_KEY",
 				Value:      s3AccessKey,

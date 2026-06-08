@@ -58,6 +58,7 @@ func (t *table) buildMutationUpdateByPkSQL(
 		SQL:           sql,
 		Parameters:    params,
 		StreamCursors: nil,
+		Sequential:    nil,
 	}, nil
 }
 

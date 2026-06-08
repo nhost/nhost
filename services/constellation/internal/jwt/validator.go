@@ -4,7 +4,6 @@ import (
 	"context"
 	"crypto/rsa"
 	"crypto/x509"
-	"encoding/base64"
 	"encoding/pem"
 	"errors"
 	"fmt"
@@ -22,6 +21,8 @@ var (
 	ErrUnexpectedClaimsType = errors.New("unexpected claims type")
 	ErrPEMDecode            = errors.New("failed to decode PEM block")
 	ErrNotRSAPublicKey      = errors.New("key is not an RSA public key")
+
+	errMissingExpiration = errors.New("missing expiration claim")
 )
 
 // jwksProvider is the minimal contract this package needs from a JWKS-backed
@@ -95,7 +96,14 @@ func (sv *secretValidator) initJWKS(
 func (sv *secretValidator) initStatic(secret jwtconfig.Secret, logger *slog.Logger) error {
 	switch secret.Type {
 	case jwtconfig.AlgorithmHS256, jwtconfig.AlgorithmHS384, jwtconfig.AlgorithmHS512:
-		key := decodeHMACKey(secret.Key, logger)
+		key := []byte(secret.Key)
+		if logger != nil {
+			logger.Debug(
+				"jwt hmac key used as raw bytes",
+				slog.Int("key_len", len(secret.Key)),
+			)
+		}
+
 		sv.keyFunc = func(_ *jwt.Token) (any, error) {
 			return key, nil
 		}
@@ -128,18 +136,32 @@ func (sv *secretValidator) initStatic(secret jwtconfig.Secret, logger *slog.Logg
 	return nil
 }
 
-func (sv *secretValidator) parseAndValidate(tokenStr string) (map[string]any, error) {
+func (sv *secretValidator) parseAndValidate(tokenStr string) (map[string]any, time.Time, error) {
 	token, err := jwt.Parse(tokenStr, sv.keyFunc, sv.opts...)
 	if err != nil {
-		return nil, fmt.Errorf("jwt validation failed: %w", err)
+		return nil, time.Time{}, fmt.Errorf("jwt validation failed: %w", err)
 	}
 
 	claims, ok := token.Claims.(jwt.MapClaims)
 	if !ok {
-		return nil, ErrUnexpectedClaimsType
+		return nil, time.Time{}, ErrUnexpectedClaimsType
 	}
 
-	return claims, nil
+	expiresAt, err := claims.GetExpirationTime()
+	if err != nil {
+		return nil, time.Time{}, fmt.Errorf("jwt expiration claim: %w", err)
+	}
+
+	// Defense-in-depth: GetExpirationTime returns (nil, nil) for an absent or
+	// zero exp claim, so this guard prevents a nil dereference at expiresAt.Time
+	// below. It is normally unreachable because buildParserOptions pins
+	// jwt.WithExpirationRequired(), making jwt.Parse reject exp-less tokens first;
+	// it survives as a backstop should that parser option ever change.
+	if expiresAt == nil {
+		return nil, time.Time{}, errMissingExpiration
+	}
+
+	return claims, expiresAt.Time, nil
 }
 
 // close shuts down any background goroutines (e.g. JWKS refresh).
@@ -147,37 +169,6 @@ func (sv *secretValidator) close() {
 	if sv.jwksCancel != nil {
 		sv.jwksCancel()
 	}
-}
-
-// decodeHMACKey tries base64 decoding first, falls back to raw bytes.
-// The base64 error is intentionally swallowed: this implements the documented
-// "key is base64 OR raw bytes" contract. The opposite failure mode — a raw
-// secret that happens to look like base64 being silently decoded — is
-// observable at DEBUG: operators chasing an inscrutable "signature invalid"
-// error can confirm which interpretation was used at startup. Only key lengths
-// are logged, never key material.
-func decodeHMACKey(key string, logger *slog.Logger) []byte {
-	decoded, err := base64.StdEncoding.DecodeString(key)
-	if err == nil {
-		if logger != nil {
-			logger.Debug(
-				"jwt hmac key interpreted as base64",
-				slog.Int("encoded_len", len(key)),
-				slog.Int("decoded_len", len(decoded)),
-			)
-		}
-
-		return decoded
-	}
-
-	if logger != nil {
-		logger.Debug(
-			"jwt hmac key interpreted as raw bytes",
-			slog.Int("key_len", len(key)),
-		)
-	}
-
-	return []byte(key)
 }
 
 // parseRSAPublicKey parses a PEM-encoded RSA public key.

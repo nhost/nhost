@@ -4,7 +4,7 @@ import { useEffect } from 'react';
 import { FormProvider, useForm } from 'react-hook-form';
 
 import { useDialog } from '@/components/common/DialogProvider';
-import { PermissionSettingsSectionV3 as PermissionSettingsSection } from '@/components/common/PermissionSettingsSection';
+import { PermissionSettingsSection } from '@/components/common/PermissionSettingsSection';
 import { RoleActionSwitcher } from '@/components/common/RoleActionSwitcher';
 import { Form } from '@/components/form/Form';
 import { Alert } from '@/components/ui/v3/alert';
@@ -284,6 +284,7 @@ export default function StorageRolePermissionEditorForm({
         <div className="grid flex-shrink-0 gap-2 border-t-1 p-2 sm:grid-flow-col sm:justify-between">
           <Button
             variant="ghost"
+            size="sm"
             type="button"
             onClick={handleCancelClick}
             tabIndex={isDirty ? -1 : 0}
@@ -295,6 +296,7 @@ export default function StorageRolePermissionEditorForm({
             {showDeleteButton && (
               <Button
                 variant="outline"
+                size="sm"
                 type="button"
                 className="border-destructive/30 text-destructive hover:bg-destructive/10 hover:text-destructive"
                 onClick={handleDeleteClick}
@@ -307,6 +309,7 @@ export default function StorageRolePermissionEditorForm({
             <Button
               loading={isSubmitting}
               disabled={isSubmitting}
+              size="sm"
               type="submit"
               className="justify-self-end"
             >

@@ -1,8 +1,7 @@
 [
   {
     "Name": "insert_departments",
-    "QueryType": "insert",
-    "SQL": "WITH check_mutation_result AS (SELECT * FROM (SELECT $1::uuid AS \"id\", $2::text AS \"name\", $3::text AS \"description\", $4::numeric AS \"budget\" UNION ALL SELECT $5::uuid AS \"id\", $6::text AS \"name\", $7::text AS \"description\", $8::numeric AS \"budget\") AS data WHERE true), mutation_result AS (INSERT INTO \"public\".\"departments\" (\"id\", \"name\", \"description\", \"budget\") SELECT check_mutation_result.\"id\", check_mutation_result.\"name\", check_mutation_result.\"description\", check_mutation_result.\"budget\" FROM check_mutation_result ON CONFLICT ON CONSTRAINT \"departments_pkey\" DO UPDATE SET \"name\" = EXCLUDED.\"name\", \"description\" = EXCLUDED.\"description\" WHERE EXCLUDED.\"budget\" > $9::numeric RETURNING *) SELECT json_build_object('affected_rows', (SELECT COUNT(*) FROM mutation_result), 'returning', (SELECT COALESCE(json_agg(row_to_json(\"_e\")), '[]'::json) FROM (SELECT mutation_result.\"id\" AS \"id\", mutation_result.\"name\" AS \"name\", mutation_result.\"budget\" AS \"budget\" FROM mutation_result) AS \"_e\"))",
+    "SQL": "WITH check_mutation_result AS (SELECT * FROM (SELECT $1::uuid AS \"id\", $2::text AS \"name\", $3::text AS \"description\", $4::numeric AS \"budget\" UNION ALL SELECT $5::uuid AS \"id\", $6::text AS \"name\", $7::text AS \"description\", $8::numeric AS \"budget\") AS data WHERE true), mutation_result AS (INSERT INTO \"public\".\"departments\" (\"id\", \"name\", \"description\", \"budget\") SELECT check_mutation_result.\"id\", check_mutation_result.\"name\", check_mutation_result.\"description\", check_mutation_result.\"budget\" FROM check_mutation_result ON CONFLICT ON CONSTRAINT \"departments_pkey\" DO UPDATE SET \"name\" = EXCLUDED.\"name\", \"description\" = EXCLUDED.\"description\" WHERE \"public\".\"departments\".\"budget\" > $9::numeric RETURNING *) SELECT json_build_object('affected_rows', (SELECT COUNT(*) FROM mutation_result), 'returning', (SELECT COALESCE(json_agg(row_to_json(\"_e\")), '[]'::json) FROM (SELECT mutation_result.\"id\" AS \"id\", mutation_result.\"name\" AS \"name\", mutation_result.\"budget\" AS \"budget\" FROM mutation_result) AS \"_e\"))",
     "Parameters": [
       "00000000-0000-0000-0000-000000000025",
       "Conditional Dept 1",
@@ -13,6 +12,7 @@
       "Second conditional department",
       200000,
       50000
-    ]
+    ],
+    "StreamCursors": null
   }
 ]

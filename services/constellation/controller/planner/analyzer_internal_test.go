@@ -619,9 +619,53 @@ func TestAnalyzeField_SkipsPhantomWhenColumnAlreadySelected(t *testing.T) {
 	}
 }
 
-// ---------- analyzer.collectSelectedFields ----------
+func TestAnalyzeField_AliasedUnrelatedFieldDoesNotSuppressPhantom(t *testing.T) {
+	t.Parallel()
 
-func TestAnalyzer_CollectSelectedFields_ExpandsFragments(t *testing.T) {
+	rel := analyzerTestRelationship()
+	a := newAnalyzer("db1", analyzerTestSchema(), []*RelationshipMetadata{rel}, ast.Query, nil)
+
+	field := &ast.Field{
+		Name: "users",
+		SelectionSet: ast.SelectionSet{
+			&ast.Field{Name: "id", Alias: "department_id"},
+			&ast.Field{
+				Name:         "department",
+				SelectionSet: ast.SelectionSet{&ast.Field{Name: "name"}},
+			},
+		},
+	}
+
+	result := &analysisResult{
+		PhantomFields: []*PhantomFieldSpec{},
+		RemoteQueries: []*RemoteQueryPlan{},
+	}
+
+	a.analyzeField(field, "users", jsonpath.Parse("users"), result)
+
+	if len(result.PhantomFields) != 1 {
+		t.Fatalf("expected one phantom field spec, got %+v", result.PhantomFields)
+	}
+
+	spec := result.PhantomFields[0]
+	if len(spec.Fields) != 1 || spec.Fields[0] != "department_id" {
+		t.Fatalf("expected department_id phantom, got %+v", spec.Fields)
+	}
+
+	if got := spec.Aliases["department_id"]; got != "_constellation_phantom_department_id" {
+		t.Fatalf("expected internal alias for colliding phantom, got %q", got)
+	}
+
+	if result.RemoteQueries[0].SourcePhantomFields != spec {
+		t.Fatalf("expected remote query to reference source phantom spec")
+	}
+}
+
+// ---------- analyzer.collectOwnResponseKeyFields / collectResponseKeys ----------
+
+func TestAnalyzer_CollectOwnResponseKeyFields_ExpandsFragmentsAndIgnoresRenamedFields(
+	t *testing.T,
+) {
 	t.Parallel()
 
 	frag := &ast.FragmentDefinition{
@@ -629,6 +673,7 @@ func TestAnalyzer_CollectSelectedFields_ExpandsFragments(t *testing.T) {
 		TypeCondition: "users",
 		SelectionSet: ast.SelectionSet{
 			&ast.Field{Name: "email", Alias: "user_email"},
+			&ast.Field{Name: "created_at", Alias: "created_at"},
 		},
 	}
 
@@ -654,11 +699,27 @@ func TestAnalyzer_CollectSelectedFields_ExpandsFragments(t *testing.T) {
 		},
 	}
 
-	got := a.collectSelectedFields(field)
+	ownResponseKeys := a.collectOwnResponseKeyFields(field)
+	for _, want := range []string{"id", "created_at", "name"} {
+		if _, ok := ownResponseKeys[want]; !ok {
+			t.Errorf("expected %q in own-response-key fields, got %v", want, ownResponseKeys)
+		}
+	}
 
-	for _, want := range []string{"id", "user_email", "name"} {
-		if _, ok := got[want]; !ok {
-			t.Errorf("expected %q in selected fields, got %v", want, got)
+	for _, unwanted := range []string{"email", "user_email"} {
+		if _, ok := ownResponseKeys[unwanted]; ok {
+			t.Errorf(
+				"did not expect %q in own-response-key fields, got %v",
+				unwanted,
+				ownResponseKeys,
+			)
+		}
+	}
+
+	responseKeys := a.collectResponseKeys(field)
+	for _, want := range []string{"id", "user_email", "created_at", "name"} {
+		if _, ok := responseKeys[want]; !ok {
+			t.Errorf("expected %q in response keys, got %v", want, responseKeys)
 		}
 	}
 }

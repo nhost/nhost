@@ -605,44 +605,60 @@ func HasuraAuthEnv( //nolint:funlen,cyclop,maintidx
 		}...)
 	}
 
-	env = append(env, getOauthSettings(
-		config.GetAuth().GetMethod().GetOauth().GetGithub(),
-		"GITHUB")...,
+	env = append(
+		env, getOauthSettings(
+			config.GetAuth().GetMethod().GetOauth().GetGithub(),
+			"GITHUB",
+		)...,
 	)
 
-	env = append(env, getOauthSettings(
-		config.GetAuth().GetMethod().GetOauth().GetGoogle(),
-		"GOOGLE")...,
+	env = append(
+		env, getOauthSettings(
+			config.GetAuth().GetMethod().GetOauth().GetGoogle(),
+			"GOOGLE",
+		)...,
 	)
 
-	env = append(env, getOauthSettings(
-		config.GetAuth().GetMethod().GetOauth().GetFacebook(),
-		"FACEBOOK")...,
+	env = append(
+		env, getOauthSettings(
+			config.GetAuth().GetMethod().GetOauth().GetFacebook(),
+			"FACEBOOK",
+		)...,
 	)
 
-	env = append(env, getOauthSettings(
-		config.GetAuth().GetMethod().GetOauth().GetSpotify(),
-		"SPOTIFY")...,
+	env = append(
+		env, getOauthSettings(
+			config.GetAuth().GetMethod().GetOauth().GetSpotify(),
+			"SPOTIFY",
+		)...,
 	)
 
-	env = append(env, getOauthSettings(
-		config.GetAuth().GetMethod().GetOauth().GetLinkedin(),
-		"LINKEDIN")...,
+	env = append(
+		env, getOauthSettings(
+			config.GetAuth().GetMethod().GetOauth().GetLinkedin(),
+			"LINKEDIN",
+		)...,
 	)
 
-	env = append(env, getOauthSettings(
-		config.GetAuth().GetMethod().GetOauth().GetDiscord(),
-		"DISCORD")...,
+	env = append(
+		env, getOauthSettings(
+			config.GetAuth().GetMethod().GetOauth().GetDiscord(),
+			"DISCORD",
+		)...,
 	)
 
-	env = append(env, getOauthSettings(
-		config.GetAuth().GetMethod().GetOauth().GetTwitch(),
-		"TWITCH")...,
+	env = append(
+		env, getOauthSettings(
+			config.GetAuth().GetMethod().GetOauth().GetTwitch(),
+			"TWITCH",
+		)...,
 	)
 
-	env = append(env, getOauthSettings(
-		config.GetAuth().GetMethod().GetOauth().GetWindowslive(),
-		"WINDOWS_LIVE")...,
+	env = append(
+		env, getOauthSettings(
+			config.GetAuth().GetMethod().GetOauth().GetWindowslive(),
+			"WINDOWS_LIVE",
+		)...,
 	)
 
 	if unptr(
@@ -951,14 +967,18 @@ func HasuraAuthEnv( //nolint:funlen,cyclop,maintidx
 		}...)
 	}
 
-	env = append(env, getOauthSettings(
-		config.GetAuth().GetMethod().GetOauth().GetGitlab(),
-		"GITLAB")...,
+	env = append(
+		env, getOauthSettings(
+			config.GetAuth().GetMethod().GetOauth().GetGitlab(),
+			"GITLAB",
+		)...,
 	)
 
-	env = append(env, getOauthSettings(
-		config.GetAuth().GetMethod().GetOauth().GetStrava(),
-		"STRAVA")...,
+	env = append(
+		env, getOauthSettings(
+			config.GetAuth().GetMethod().GetOauth().GetStrava(),
+			"STRAVA",
+		)...,
 	)
 
 	if unptr(

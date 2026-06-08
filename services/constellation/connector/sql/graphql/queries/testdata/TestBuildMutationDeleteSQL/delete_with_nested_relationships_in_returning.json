@@ -1,10 +1,10 @@
 [
   {
     "Name": "delete_departments",
-    "QueryType": "delete",
-    "SQL": "WITH mutation_result AS (DELETE FROM \"public\".\"departments\" WHERE departments.\"name\" = $1::text RETURNING *) SELECT json_build_object('affected_rows', (SELECT COUNT(*) FROM mutation_result), 'returning', (SELECT COALESCE(json_agg(row_to_json(\"_e\")), '[]'::json) FROM (SELECT mutation_result.\"id\" AS \"id\", mutation_result.\"name\" AS \"name\", '[]'::json AS \"employees\" FROM mutation_result) AS \"_e\"))",
+    "SQL": "WITH mutation_result AS (DELETE FROM \"public\".\"departments\" WHERE departments.\"name\" = $1::text RETURNING *) SELECT json_build_object('affected_rows', (SELECT COUNT(*) FROM mutation_result), 'returning', (SELECT COALESCE(json_agg(row_to_json(\"_e\")), '[]'::json) FROM (SELECT mutation_result.\"id\" AS \"id\", mutation_result.\"name\" AS \"name\", \"mutation_result.r.employees\".\"employees\" AS \"employees\" FROM mutation_result LEFT OUTER JOIN LATERAL (SELECT coalesce(json_agg(\"mutation_result.r.employees\"), '[]') AS \"employees\" FROM (WITH \"mutation_result.r.employees.base\" AS (SELECT * FROM \"public\".\"user_departments\" WHERE \"department_id\" = \"mutation_result\".\"id\") SELECT row_to_json((SELECT \"_e\" FROM (SELECT \"mutation_result.r.employees.base\".\"user_id\" AS \"user_id\", \"mutation_result.r.employees.base\".\"role\" AS \"role\") AS \"_e\")) AS \"mutation_result.r.employees\" FROM \"mutation_result.r.employees.base\") AS \"mutation_result.r.employees\") AS \"mutation_result.r.employees\" ON ('true')) AS \"_e\"))",
     "Parameters": [
       "ToDelete"
-    ]
+    ],
+    "StreamCursors": null
   }
 ]

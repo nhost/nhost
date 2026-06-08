@@ -4,7 +4,7 @@ import {
   PermissionsGrid,
 } from '@/components/common/PermissionsGrid';
 import { PermissionsGridLayout } from '@/components/common/PermissionsGridLayout';
-import { ActivityIndicator } from '@/components/ui/v2/ActivityIndicator';
+import { Spinner } from '@/components/ui/v3/spinner';
 import { useRemoteApplicationGQLClient } from '@/features/orgs/hooks/useRemoteApplicationGQLClient';
 import { useTableSchemaQuery } from '@/features/orgs/projects/database/common/hooks/useTableSchemaQuery';
 import { useMetadataQuery } from '@/features/orgs/projects/database/dataGrid/hooks/useMetadataQuery';
@@ -86,7 +86,7 @@ export default function EditPermissionsForm({
   if (tableStatus === 'loading') {
     return (
       <div className="p-6">
-        <ActivityIndicator label="Loading table..." />
+        <Spinner>Loading table...</Spinner>
       </div>
     );
   }
@@ -98,7 +98,7 @@ export default function EditPermissionsForm({
   if (metadataStatus === 'loading') {
     return (
       <div className="p-6">
-        <ActivityIndicator label="Loading table metadata..." />
+        <Spinner>Loading table metadata...</Spinner>
       </div>
     );
   }
@@ -110,7 +110,7 @@ export default function EditPermissionsForm({
   if (rolesLoading) {
     return (
       <div className="p-6">
-        <ActivityIndicator label="Loading available roles..." />
+        <Spinner>Loading available roles...</Spinner>
       </div>
     );
   }

@@ -22,6 +22,7 @@ import type {
   DatabaseTable,
   ForeignKeyRelation,
 } from '@/features/orgs/projects/database/dataGrid/types/dataBrowser';
+import { POSTGRESQL_MAX_IDENTIFIER_LENGTH } from '@/features/orgs/projects/database/dataGrid/utils/postgresqlConstants/postgresqlConstants';
 import type { DialogFormProps } from '@/types/common';
 import ColumnEditorTable from './ColumnEditorTable';
 import ForeignKeyEditorSection from './ForeignKeyEditorSection';
@@ -91,6 +92,10 @@ export const baseColumnValidationSchema = Yup.object().shape({
     .matches(
       /^\w+$/i,
       'Column name must contain only letters, numbers, or underscores.',
+    )
+    .max(
+      POSTGRESQL_MAX_IDENTIFIER_LENGTH,
+      `Column name must be at most ${POSTGRESQL_MAX_IDENTIFIER_LENGTH} characters.`,
     ),
   type: Yup.string().required('This field is required.').nullable(),
 });
@@ -105,6 +110,10 @@ export const baseTableValidationSchema = Yup.object({
     .matches(
       /^\w+$/i,
       'Table name must contain only letters, numbers, or underscores.',
+    )
+    .max(
+      POSTGRESQL_MAX_IDENTIFIER_LENGTH,
+      `Table name must be at most ${POSTGRESQL_MAX_IDENTIFIER_LENGTH} characters.`,
     ),
   columns: Yup.array()
     .of(baseColumnValidationSchema)

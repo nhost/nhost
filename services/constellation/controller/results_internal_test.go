@@ -159,6 +159,55 @@ func TestRemovePhantomFieldsFromPlan(t *testing.T) {
 		}
 	})
 
+	t.Run(
+		"removes aliased phantom response keys without deleting user aliases",
+		func(t *testing.T) {
+			t.Parallel()
+
+			results := map[string]any{
+				"users": []any{
+					map[string]any{
+						"user_id":                        "user-visible-alias",
+						"_constellation_phantom_user_id": "real-user-id",
+						"name":                           "Alice",
+					},
+				},
+			}
+
+			plan := &planner.QueryPlan{
+				PrimaryQueries: []*planner.PrimaryQuery{
+					{
+						Connector:      "db1",
+						CleanOperation: nil,
+						CleanFragments: nil,
+						PhantomFields: []*planner.PhantomFieldSpec{
+							{
+								Path:   jsonpath.Parse("users"),
+								Fields: []string{"user_id"},
+								Aliases: map[string]string{
+									"user_id": "_constellation_phantom_user_id",
+								},
+								ForRelationship: "departments",
+							},
+						},
+					},
+				},
+				RemoteQueries: nil,
+			}
+
+			removePhantomFieldsFromPlan(results, plan)
+
+			want := map[string]any{
+				"users": []any{
+					map[string]any{"user_id": "user-visible-alias", "name": "Alice"},
+				},
+			}
+			if diff := cmp.Diff(want, results); diff != "" {
+				t.Errorf("results mismatch (-want +got):\n%s", diff)
+			}
+		},
+	)
+
 	t.Run("de-duplicates phantom paths", func(t *testing.T) {
 		t.Parallel()
 

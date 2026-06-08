@@ -5,9 +5,14 @@ import * as os from 'node:os';
 import * as path from 'node:path';
 import { StringEnum } from '@earendil-works/pi-ai';
 import {
+  DEFAULT_MAX_BYTES,
+  DEFAULT_MAX_LINES,
   type ExtensionAPI,
+  formatSize,
   getAgentDir,
   parseFrontmatter,
+  type ToolExecutionMode,
+  truncateHead,
 } from '@earendil-works/pi-coding-agent';
 import { Type } from 'typebox';
 
@@ -41,15 +46,66 @@ type ChildResult = {
   step?: number;
 };
 
+type AvailableModel = {
+  provider: string;
+  id: string;
+  name: string | undefined;
+};
+
+type ModelResolution = {
+  cliModel?: string;
+  displayModel?: string;
+  error?: string;
+};
+
+type AgentActivity = {
+  toolName: string;
+  summary: string;
+  status: 'running' | 'done' | 'error';
+};
+
+type AgentProgress = {
+  agent: string;
+  agentSource: 'user' | 'project' | 'unknown';
+  model?: string;
+  step?: number;
+  status: 'starting' | 'running' | 'completed' | 'failed';
+  activities: AgentActivity[];
+  toolCount: number;
+  latestText: string;
+  exitCode?: number;
+};
+
+type ProgressCallback = (progress: AgentProgress) => void;
+
 const MAX_PARALLEL_TASKS = 8;
 const MAX_CONCURRENCY = 4;
-const PER_TASK_OUTPUT_CAP_BYTES = 50 * 1024;
+const MODEL_VISIBLE_OUTPUT_CAP_BYTES = DEFAULT_MAX_BYTES;
+const MODEL_VISIBLE_OUTPUT_CAP_LINES = DEFAULT_MAX_LINES;
+const MAX_RECENT_ACTIVITIES = 5;
+const MAX_ACTIVITY_SUMMARY_CHARS = 100;
+const MAX_LATEST_TEXT_CHARS = 240;
+const PROGRESS_THROTTLE_MS = 150;
+const THINKING_LEVELS = new Set<string>([
+  'off',
+  'minimal',
+  'low',
+  'medium',
+  'high',
+  'xhigh',
+]);
 
 const taskItemSchema = Type.Object({
   agent: Type.String({ description: 'Name of the agent to invoke' }),
   task: Type.String({ description: 'Task to delegate to the agent' }),
   cwd: Type.Optional(
     Type.String({ description: 'Working directory for this child agent' }),
+  ),
+  modelOverride: Type.Optional(
+    Type.String({
+      description:
+        "Override this task's agent model. Takes precedence over top-level modelOverride and agent frontmatter.",
+    }),
   ),
 });
 
@@ -61,6 +117,12 @@ const subagentParamsSchema = Type.Object({
   ),
   task: Type.Optional(
     Type.String({ description: 'Task to delegate for single-agent mode' }),
+  ),
+  modelOverride: Type.Optional(
+    Type.String({
+      description:
+        'Override the model for this subagent invocation. Per-task modelOverride takes precedence in tasks/chain.',
+    }),
   ),
   tasks: Type.Optional(
     Type.Array(taskItemSchema, {
@@ -82,8 +144,8 @@ const subagentParamsSchema = Type.Object({
   ),
   confirmProjectAgents: Type.Optional(
     Type.Boolean({
-      description: 'Prompt before running project-local agents. Default: true.',
-      default: true,
+      description: 'Prompt before running project-local agents. Default: false.',
+      default: false,
     }),
   ),
   cwd: Type.Optional(
@@ -105,6 +167,111 @@ function parseTools(value: unknown): string[] | undefined {
   }
 
   return undefined;
+}
+
+function formatAvailableModel(model: AvailableModel): string {
+  const label = `${model.provider}/${model.id}`;
+  if (!model.name || model.name === model.id) return label;
+
+  return `${label} (${model.name})`;
+}
+
+function normalizeOptionalString(
+  value: string | undefined,
+): string | undefined {
+  const trimmed = value?.trim();
+  return trimmed ? trimmed : undefined;
+}
+
+function modelRequiresRegistryLookup(model: string | undefined): boolean {
+  return Boolean(model && !model.includes('/'));
+}
+
+function splitThinkingLevel(model: string): {
+  model: string;
+  thinkingSuffix: string;
+} {
+  const separator = model.lastIndexOf(':');
+  if (separator === -1) return { model, thinkingSuffix: '' };
+
+  const suffix = model.slice(separator + 1);
+  if (!THINKING_LEVELS.has(suffix)) return { model, thinkingSuffix: '' };
+
+  return {
+    model: model.slice(0, separator),
+    thinkingSuffix: `:${suffix}`,
+  };
+}
+
+function uniqueAvailableModels(models: AvailableModel[]): AvailableModel[] {
+  const seen = new Set<string>();
+  const unique: AvailableModel[] = [];
+
+  for (const model of models) {
+    const key = `${model.provider}/${model.id}`;
+    if (seen.has(key)) continue;
+
+    seen.add(key);
+    unique.push(model);
+  }
+
+  return unique;
+}
+
+function resolveAgentModel(
+  requestedModel: string | undefined,
+  availableModels: AvailableModel[],
+  availableModelsError?: string,
+): ModelResolution {
+  if (!requestedModel) return {};
+  if (requestedModel.includes('/')) {
+    return { cliModel: requestedModel, displayModel: requestedModel };
+  }
+
+  const { model, thinkingSuffix } = splitThinkingLevel(requestedModel);
+  const matches = uniqueAvailableModels(
+    availableModels.filter(
+      (available) => available.id === model || available.name === model,
+    ),
+  );
+
+  if (matches.length === 1) {
+    const [match] = matches as [AvailableModel];
+    const cliModel = `${match.provider}/${match.id}${thinkingSuffix}`;
+
+    return {
+      cliModel,
+      displayModel:
+        cliModel === requestedModel
+          ? cliModel
+          : `${requestedModel} -> ${cliModel}`,
+    };
+  }
+
+  if (matches.length === 0) {
+    if (availableModelsError) {
+      return {
+        error: `Could not resolve unqualified model "${requestedModel}" because available model lookup failed: ${availableModelsError}. Provider-qualify the agent model or retry after the registry recovers.`,
+      };
+    }
+
+    return {
+      error: `No available configured model matches "${requestedModel}". Use /login to add a provider or provider-qualify the agent model.`,
+    };
+  }
+
+  return {
+    error: `Ambiguous model "${requestedModel}" matched ${matches
+      .map(formatAvailableModel)
+      .join(', ')}. Provider-qualify the agent model.`,
+  };
+}
+
+function getErrorMessage(error: unknown): string {
+  if (error instanceof Error && error.message.trim()) return error.message;
+  if (typeof error === 'string' && error.trim()) return error;
+
+  return 'unknown error';
 }
 
 function loadAgentsFromDir(
@@ -220,15 +387,168 @@ function getStringField(value: unknown, field: string): string | undefined {
   return typeof fieldValue === 'string' ? fieldValue : undefined;
 }
 
-function truncateOutput(output: string): string {
-  const bytes = Buffer.byteLength(output, 'utf8');
-  if (bytes <= PER_TASK_OUTPUT_CAP_BYTES) return output;
+type TruncateOutputOptions = {
+  fullOutputInDetails?: boolean;
+};
 
-  let truncated = output.slice(0, PER_TASK_OUTPUT_CAP_BYTES);
-  while (Buffer.byteLength(truncated, 'utf8') > PER_TASK_OUTPUT_CAP_BYTES)
-    truncated = truncated.slice(0, -1);
+function truncateOutput(
+  output: string,
+  options: TruncateOutputOptions = {},
+): string {
+  const truncation = truncateHead(output, {
+    maxBytes: MODEL_VISIBLE_OUTPUT_CAP_BYTES,
+    maxLines: MODEL_VISIBLE_OUTPUT_CAP_LINES,
+  });
+  if (!truncation.truncated) return output;
 
-  return `${truncated}\n\n[Output truncated: ${bytes - Buffer.byteLength(truncated, 'utf8')} bytes omitted.]`;
+  const omittedBytes = truncation.totalBytes - truncation.outputBytes;
+  const omittedLines = truncation.totalLines - truncation.outputLines;
+  const shownSize = formatSize(truncation.outputBytes);
+  const totalSize = formatSize(truncation.totalBytes);
+  const omittedSize = formatSize(omittedBytes);
+  const noticeParts = [
+    `Output truncated: showing ${truncation.outputLines} of ${truncation.totalLines} lines (${shownSize} of ${totalSize}).`,
+    `${omittedLines} lines (${omittedSize}) omitted.`,
+  ];
+
+  if (truncation.firstLineExceedsLimit)
+    noticeParts.push('First line exceeds the byte limit.');
+  if (options.fullOutputInDetails !== false)
+    noticeParts.push('Full output preserved in tool details.');
+
+  const notice = `[${noticeParts.join(' ')}]`;
+  return truncation.content ? `${truncation.content}\n\n${notice}` : notice;
+}
+
+type TextToolResult<TDetails> = {
+  content: [{ type: 'text'; text: string }];
+  details: TDetails;
+};
+
+function textResult<TDetails>(
+  text: string,
+  details: TDetails,
+  options?: TruncateOutputOptions,
+): TextToolResult<TDetails> {
+  return {
+    content: [{ type: 'text', text: truncateOutput(text, options) }],
+    details,
+  };
+}
+
+function collapseWhitespace(value: string): string {
+  return value.replace(/\s+/g, ' ').trim();
+}
+
+function truncateInline(value: string, max: number): string {
+  const collapsed = collapseWhitespace(value);
+  if (collapsed.length <= max) return collapsed;
+  return `${collapsed.slice(0, Math.max(0, max - 1))}\u2026`;
+}
+
+function summarizeToolArgs(toolName: string, args: unknown): string {
+  const record = asRecord(args);
+  if (!record) return '';
+
+  const pickString = (...keys: string[]): string => {
+    for (const key of keys) {
+      const value = record[key];
+      if (typeof value === 'string' && value.trim()) return value;
+    }
+    return '';
+  };
+
+  switch (toolName) {
+    case 'bash':
+      return truncateInline(
+        pickString('command', 'description'),
+        MAX_ACTIVITY_SUMMARY_CHARS,
+      );
+    case 'read':
+    case 'write':
+    case 'edit':
+    case 'ls':
+      return truncateInline(
+        pickString('path', 'filePath', 'file'),
+        MAX_ACTIVITY_SUMMARY_CHARS,
+      );
+    case 'grep':
+    case 'find':
+      return truncateInline(
+        pickString('pattern', 'query', 'path'),
+        MAX_ACTIVITY_SUMMARY_CHARS,
+      );
+    case 'subagent':
+      return truncateInline(
+        pickString('agent', 'task'),
+        MAX_ACTIVITY_SUMMARY_CHARS,
+      );
+    default: {
+      const preview = pickString(
+        'task',
+        'query',
+        'pattern',
+        'command',
+        'path',
+        'filePath',
+        'url',
+        'name',
+      );
+      return preview ? truncateInline(preview, MAX_ACTIVITY_SUMMARY_CHARS) : '';
+    }
+  }
+}
+
+function formatActivity(activity: AgentActivity): string {
+  const marker =
+    activity.status === 'done'
+      ? '\u2713'
+      : activity.status === 'error'
+        ? '\u2717'
+        : '\u2026';
+  const body = activity.summary
+    ? `${activity.toolName}: ${activity.summary}`
+    : activity.toolName;
+  return `  ${marker} ${body}`;
+}
+
+function formatProgress(progress: AgentProgress): string {
+  const lines: string[] = [];
+  const stepLabel = progress.step ? `[step ${progress.step}] ` : '';
+  const modelLabel = progress.model ? ` \u2022 ${progress.model}` : '';
+  const sourceLabel =
+    progress.agentSource !== 'unknown' ? ` (${progress.agentSource})` : '';
+  const statusLabel =
+    progress.status === 'completed'
+      ? 'completed'
+      : progress.status === 'failed'
+        ? `failed${progress.exitCode != null ? ` (exit ${progress.exitCode})` : ''}`
+        : progress.status === 'starting'
+          ? 'starting'
+          : 'running';
+
+  lines.push(
+    `### ${stepLabel}${progress.agent}${sourceLabel}${modelLabel} \u2014 ${statusLabel}`,
+  );
+
+  if (progress.toolCount > 0) {
+    lines.push(`Tool calls: ${progress.toolCount}`);
+  }
+
+  if (progress.activities.length > 0) {
+    lines.push('');
+    for (const activity of progress.activities)
+      lines.push(formatActivity(activity));
+  }
+
+  if (progress.latestText) {
+    lines.push('');
+    lines.push(
+      `> ${truncateInline(progress.latestText, MAX_LATEST_TEXT_CHARS)}`,
+    );
+  }
+
+  return lines.join('\n');
 }
 
 function getPiInvocation(args: string[]): { command: string; args: string[] } {
@@ -274,11 +594,15 @@ async function removeTempFile(tempFile: TempFile | null): Promise<void> {
 async function runAgent(params: {
   defaultCwd: string;
   agents: AgentConfig[];
+  availableModels: AvailableModel[];
+  availableModelsError?: string;
   agentName: string;
   task: string;
   cwd?: string;
+  modelOverride?: string;
   step?: number;
   signal?: AbortSignal;
+  onProgress?: ProgressCallback;
 }): Promise<ChildResult> {
   const agent = params.agents.find(
     (candidate) => candidate.name === params.agentName,
@@ -286,6 +610,16 @@ async function runAgent(params: {
   if (!agent) {
     const available =
       params.agents.map((candidate) => candidate.name).join(', ') || 'none';
+    params.onProgress?.({
+      agent: params.agentName,
+      agentSource: 'unknown',
+      step: params.step,
+      status: 'failed',
+      activities: [],
+      toolCount: 0,
+      latestText: `Unknown agent "${params.agentName}".`,
+      exitCode: 1,
+    });
     return {
       agent: params.agentName,
       agentSource: 'unknown',
@@ -297,8 +631,40 @@ async function runAgent(params: {
     };
   }
 
+  const requestedModel =
+    normalizeOptionalString(params.modelOverride) ?? agent.model;
+  const modelResolution = resolveAgentModel(
+    requestedModel,
+    params.availableModels,
+    params.availableModelsError,
+  );
+  if (modelResolution.error) {
+    params.onProgress?.({
+      agent: agent.name,
+      agentSource: agent.source,
+      model: requestedModel,
+      step: params.step,
+      status: 'failed',
+      activities: [],
+      toolCount: 0,
+      latestText: modelResolution.error,
+      exitCode: 1,
+    });
+
+    return {
+      agent: agent.name,
+      agentSource: agent.source,
+      task: params.task,
+      exitCode: 1,
+      output: '',
+      stderr: modelResolution.error,
+      model: requestedModel,
+      step: params.step,
+    };
+  }
+
   const args = ['--mode', 'json', '-p', '--no-session'];
-  if (agent.model) args.push('--model', agent.model);
+  if (modelResolution.cliModel) args.push('--model', modelResolution.cliModel);
   if (agent.tools && agent.tools.length > 0)
     args.push('--tools', agent.tools.join(','));
 
@@ -321,9 +687,30 @@ async function runAgent(params: {
     exitCode: 0,
     output: '',
     stderr: '',
-    model: agent.model,
+    model: modelResolution.cliModel ?? requestedModel,
     step: params.step,
   };
+
+  const progress: AgentProgress = {
+    agent: agent.name,
+    agentSource: agent.source,
+    model: modelResolution.displayModel,
+    step: params.step,
+    status: 'starting',
+    activities: [],
+    toolCount: 0,
+    latestText: '',
+  };
+  const activeByToolCallId = new Map<string, AgentActivity>();
+
+  const emitProgress = (): void => {
+    params.onProgress?.({
+      ...progress,
+      activities: [...progress.activities],
+    });
+  };
+
+  emitProgress();
 
   try {
     const exitCode = await new Promise<number>((resolve) => {
@@ -339,6 +726,80 @@ async function runAgent(params: {
       let childClosed = false;
       let forceKillTimer: ReturnType<typeof setTimeout> | undefined;
       let abortHandler: VoidFunction | undefined;
+      let progressDirty = false;
+      let progressTimer: ReturnType<typeof setTimeout> | undefined;
+      let lastProgressAt = 0;
+
+      const flushProgress = (): void => {
+        if (progressTimer) {
+          clearTimeout(progressTimer);
+          progressTimer = undefined;
+        }
+        if (!progressDirty) return;
+        progressDirty = false;
+        lastProgressAt = Date.now();
+        emitProgress();
+      };
+
+      const scheduleProgress = (): void => {
+        if (!params.onProgress) return;
+        progressDirty = true;
+        const delay = PROGRESS_THROTTLE_MS - (Date.now() - lastProgressAt);
+        if (delay <= 0) {
+          if (progressTimer) {
+            clearTimeout(progressTimer);
+            progressTimer = undefined;
+          }
+          flushProgress();
+          return;
+        }
+        progressTimer ??= setTimeout(() => {
+          progressTimer = undefined;
+          flushProgress();
+        }, delay);
+      };
+
+      const trimRecentActivities = (): void => {
+        if (progress.activities.length <= MAX_RECENT_ACTIVITIES) return;
+        progress.activities.splice(
+          0,
+          progress.activities.length - MAX_RECENT_ACTIVITIES,
+        );
+      };
+
+      const handleToolStart = (
+        toolCallId: string,
+        toolName: string,
+        toolArgs: unknown,
+      ): void => {
+        progress.status = 'running';
+        progress.toolCount += 1;
+        const activity: AgentActivity = {
+          toolName,
+          summary: summarizeToolArgs(toolName, toolArgs),
+          status: 'running',
+        };
+        progress.activities.push(activity);
+        trimRecentActivities();
+        if (toolCallId) activeByToolCallId.set(toolCallId, activity);
+        scheduleProgress();
+      };
+
+      const handleToolEnd = (toolCallId: string, isError: boolean): void => {
+        const activity = activeByToolCallId.get(toolCallId);
+        if (activity) {
+          activity.status = isError ? 'error' : 'done';
+          activeByToolCallId.delete(toolCallId);
+        }
+        scheduleProgress();
+      };
+
+      const handleAssistantMessage = (message: unknown): void => {
+        const text = extractAssistantText(message);
+        if (text) progress.latestText = text;
+        const model = getStringField(message, 'model');
+        if (model) progress.model = model;
+      };
 
       const processLine = (line: string): void => {
         if (!line.trim()) return;
@@ -351,19 +812,63 @@ async function runAgent(params: {
         }
 
         const eventRecord = asRecord(event);
-        if (!eventRecord || eventRecord.type !== 'message_end') return;
+        if (!eventRecord) return;
 
-        const text = extractAssistantText(eventRecord.message);
-        if (text) result.output = text;
+        switch (eventRecord.type) {
+          case 'message_start': {
+            progress.status = 'running';
+            const model = getStringField(eventRecord.message, 'model');
+            if (model) progress.model = model;
+            scheduleProgress();
+            return;
+          }
+          case 'message_update': {
+            handleAssistantMessage(eventRecord.message);
+            scheduleProgress();
+            return;
+          }
+          case 'tool_execution_start': {
+            const toolCallId =
+              typeof eventRecord.toolCallId === 'string'
+                ? eventRecord.toolCallId
+                : '';
+            const toolName =
+              typeof eventRecord.toolName === 'string'
+                ? eventRecord.toolName
+                : 'tool';
+            handleToolStart(toolCallId, toolName, eventRecord.args);
+            return;
+          }
+          case 'tool_execution_end': {
+            const toolCallId =
+              typeof eventRecord.toolCallId === 'string'
+                ? eventRecord.toolCallId
+                : '';
+            handleToolEnd(toolCallId, Boolean(eventRecord.isError));
+            return;
+          }
+          case 'message_end': {
+            const text = extractAssistantText(eventRecord.message);
+            if (text) {
+              result.output = text;
+              progress.latestText = text;
+            }
 
-        result.stopReason =
-          getStringField(eventRecord.message, 'stopReason') ??
-          result.stopReason;
-        result.errorMessage =
-          getStringField(eventRecord.message, 'errorMessage') ??
-          result.errorMessage;
-        result.model =
-          getStringField(eventRecord.message, 'model') ?? result.model;
+            result.stopReason =
+              getStringField(eventRecord.message, 'stopReason') ??
+              result.stopReason;
+            result.errorMessage =
+              getStringField(eventRecord.message, 'errorMessage') ??
+              result.errorMessage;
+            result.model =
+              getStringField(eventRecord.message, 'model') ?? result.model;
+            if (result.model) progress.model = result.model;
+            scheduleProgress();
+            return;
+          }
+          default:
+            return;
+        }
       };
 
       child.stdout.on('data', (data: Buffer) => {
@@ -380,6 +885,10 @@ async function runAgent(params: {
       child.on('error', (error) => {
         childClosed = true;
         if (forceKillTimer) clearTimeout(forceKillTimer);
+        if (progressTimer) {
+          clearTimeout(progressTimer);
+          progressTimer = undefined;
+        }
         if (abortHandler && params.signal)
           params.signal.removeEventListener('abort', abortHandler);
         result.stderr += error.message;
@@ -389,9 +898,14 @@ async function runAgent(params: {
       child.on('close', (code) => {
         childClosed = true;
         if (forceKillTimer) clearTimeout(forceKillTimer);
+        if (progressTimer) {
+          clearTimeout(progressTimer);
+          progressTimer = undefined;
+        }
         if (stdoutBuffer.trim()) processLine(stdoutBuffer);
         if (abortHandler && params.signal)
           params.signal.removeEventListener('abort', abortHandler);
+        flushProgress();
         resolve(aborted ? 130 : (code ?? 0));
       });
 
@@ -421,6 +935,9 @@ async function runAgent(params: {
       (result.stopReason === 'error' || result.stopReason === 'aborted')
         ? 1
         : exitCode;
+    progress.status = result.exitCode === 0 ? 'completed' : 'failed';
+    progress.exitCode = result.exitCode;
+    emitProgress();
     return result;
   } finally {
     await removeTempFile(tempPrompt);
@@ -474,6 +991,8 @@ export default function nhostSubagentExtension(pi: ExtensionAPI): void {
       'Delegate tasks to specialized Pi agents in isolated pi subprocesses.',
       'Supports single mode (agent + task), parallel mode (tasks array), and chain mode (chain array with {previous}).',
       'Project agents live in .pi/agents and require agentScope "project" or "both".',
+      'Use modelOverride to run an agent with a model other than its frontmatter default.',
+      'Model-visible subagent output is capped; full child output is preserved in tool details.',
     ].join(' '),
     promptSnippet:
       'Delegate work to project or user Pi agents with isolated context windows',
@@ -483,9 +1002,13 @@ export default function nhostSubagentExtension(pi: ExtensionAPI): void {
       'Do not run subagent implementers in parallel when they may edit files; use sequential single calls or chain mode instead.',
     ],
     parameters: subagentParamsSchema,
+    executionMode: 'sequential' as ToolExecutionMode,
 
-    async execute(_toolCallId, params, signal, _onUpdate, ctx) {
+    async execute(_toolCallId, params, signal, onUpdate, ctx) {
       const agentScope: AgentScope = params.agentScope ?? 'user';
+      const topLevelModelOverride = normalizeOptionalString(
+        params.modelOverride,
+      );
       const discovery = discoverAgents(ctx.cwd, agentScope);
       const agents = discovery.agents;
 
@@ -496,15 +1019,11 @@ export default function nhostSubagentExtension(pi: ExtensionAPI): void {
         Number(hasSingle) + Number(hasParallel) + Number(hasChain);
 
       if (modeCount !== 1) {
-        return {
-          content: [
-            {
-              type: 'text' as const,
-              text: `Invalid subagent request. Provide exactly one mode.\n\nAvailable agents:\n${formatAvailableAgents(agents)}`,
-            },
-          ],
-          details: { results: [] },
-        };
+        return textResult(
+          `Invalid subagent request. Provide exactly one mode.\n\nAvailable agents:\n${formatAvailableAgents(agents)}`,
+          { results: [] },
+          { fullOutputInDetails: false },
+        );
       }
 
       const requestedNames = new Set<string>();
@@ -512,12 +1031,29 @@ export default function nhostSubagentExtension(pi: ExtensionAPI): void {
       for (const task of params.tasks ?? []) requestedNames.add(task.agent);
       for (const task of params.chain ?? []) requestedNames.add(task.agent);
 
-      const projectAgentsRequested = Array.from(requestedNames)
+      const requestedAgents = Array.from(requestedNames)
         .map((name) => agents.find((agent) => agent.name === name))
-        .filter((agent): agent is AgentConfig => agent?.source === 'project');
+        .filter((agent): agent is AgentConfig => Boolean(agent));
+      const getEffectiveModel = (
+        agentName: string,
+        taskModelOverride?: string,
+      ): string | undefined => {
+        const taskOverride = normalizeOptionalString(taskModelOverride);
+        if (taskOverride) return taskOverride;
+        if (topLevelModelOverride) return topLevelModelOverride;
+
+        return agents.find((agent) => agent.name === agentName)?.model;
+      };
+      const getModelOverrideForTask = (
+        taskModelOverride?: string,
+      ): string | undefined =>
+        normalizeOptionalString(taskModelOverride) ?? topLevelModelOverride;
+      const projectAgentsRequested = requestedAgents.filter(
+        (agent) => agent.source === 'project',
+      );
 
       if (
-        (params.confirmProjectAgents ?? true) &&
+        (params.confirmProjectAgents ?? false) &&
         projectAgentsRequested.length > 0 &&
         ctx.hasUI
       ) {
@@ -530,15 +1066,48 @@ export default function nhostSubagentExtension(pi: ExtensionAPI): void {
         );
 
         if (!ok) {
-          return {
-            content: [
-              {
-                type: 'text' as const,
-                text: 'Canceled: project-local agents were not approved.',
-              },
-            ],
-            details: { results: [] },
-          };
+          return textResult(
+            'Canceled: project-local agents were not approved.',
+            { results: [] },
+            { fullOutputInDetails: false },
+          );
+        }
+      }
+
+      const emitUpdate = (text: string): void => {
+        if (!onUpdate) return;
+        onUpdate({
+          content: [{ type: 'text' as const, text }],
+          details: undefined,
+        });
+      };
+
+      let availableModels: AvailableModel[] = [];
+      let availableModelsError: string | undefined;
+      const effectiveModels: string[] = [];
+      if (params.agent) {
+        const model = getEffectiveModel(params.agent);
+        if (model) effectiveModels.push(model);
+      }
+      for (const task of params.tasks ?? []) {
+        const model = getEffectiveModel(task.agent, task.modelOverride);
+        if (model) effectiveModels.push(model);
+      }
+      for (const task of params.chain ?? []) {
+        const model = getEffectiveModel(task.agent, task.modelOverride);
+        if (model) effectiveModels.push(model);
+      }
+
+      if (effectiveModels.some(modelRequiresRegistryLookup)) {
+        try {
+          const models = await ctx.modelRegistry.getAvailable();
+          availableModels = models.map((model) => ({
+            provider: model.provider,
+            id: model.id,
+            name: model.name,
+          }));
+        } catch (error: unknown) {
+          availableModelsError = getErrorMessage(error);
         }
       }
 
@@ -546,120 +1115,137 @@ export default function nhostSubagentExtension(pi: ExtensionAPI): void {
         const result = await runAgent({
           defaultCwd: ctx.cwd,
           agents,
+          availableModels,
+          availableModelsError,
           agentName: params.agent,
           task: params.task,
           cwd: params.cwd,
+          modelOverride: topLevelModelOverride,
           signal,
+          onProgress: (progress) => {
+            emitUpdate(formatProgress(progress));
+          },
         });
 
-        return {
-          content: [
-            {
-              type: 'text' as const,
-              text:
-                result.output ||
-                result.errorMessage ||
-                result.stderr ||
-                '(no output)',
-            },
-          ],
-          details: { results: [result] },
-        };
+        return textResult(
+          result.output || result.errorMessage || result.stderr || '(no output)',
+          { results: [result] },
+        );
       }
 
       if (hasChain && params.chain) {
         const results: ChildResult[] = [];
         let previous = '';
+        const stepProgress: (AgentProgress | undefined)[] = new Array(
+          params.chain.length,
+        ).fill(undefined);
+
+        const renderChain = (): string =>
+          stepProgress
+            .map((entry, index) => {
+              if (entry) return formatProgress(entry);
+              const item = params.chain?.[index];
+              if (!item) return '';
+              return `### [step ${index + 1}] ${item.agent} \u2014 pending`;
+            })
+            .filter(Boolean)
+            .join('\n\n---\n\n');
 
         for (const [index, item] of params.chain.entries()) {
           const task = item.task.replaceAll('{previous}', previous);
           const result = await runAgent({
             defaultCwd: ctx.cwd,
             agents,
+            availableModels,
+            availableModelsError,
             agentName: item.agent,
             task,
             cwd: item.cwd,
+            modelOverride: getModelOverrideForTask(item.modelOverride),
             step: index + 1,
             signal,
+            onProgress: (progress) => {
+              stepProgress[index] = progress;
+              emitUpdate(renderChain());
+            },
           });
           results.push(result);
 
           if (result.exitCode !== 0) {
-            return {
-              content: [
-                {
-                  type: 'text' as const,
-                  text: `Chain stopped at step ${index + 1}.\n\n${summarizeResult(result)}`,
-                },
-              ],
-              details: { results },
-            };
+            return textResult(
+              `Chain stopped at step ${index + 1}.\n\n${summarizeResult(result)}`,
+              { results },
+            );
           }
 
           previous = result.output;
         }
 
-        return {
-          content: [
-            {
-              type: 'text' as const,
-              text: results.map(summarizeResult).join('\n\n---\n\n'),
-            },
-          ],
-          details: { results },
-        };
+        return textResult(
+          results.map(summarizeResult).join('\n\n---\n\n'),
+          { results },
+        );
       }
 
       if (hasParallel && params.tasks) {
         if (params.tasks.length > MAX_PARALLEL_TASKS) {
-          return {
-            content: [
-              {
-                type: 'text' as const,
-                text: `Too many parallel tasks (${params.tasks.length}). Max is ${MAX_PARALLEL_TASKS}.`,
-              },
-            ],
-            details: { results: [] },
-          };
+          return textResult(
+            `Too many parallel tasks (${params.tasks.length}). Max is ${MAX_PARALLEL_TASKS}.`,
+            { results: [] },
+            { fullOutputInDetails: false },
+          );
         }
+
+        const parallelProgress: (AgentProgress | undefined)[] = new Array(
+          params.tasks.length,
+        ).fill(undefined);
+
+        const renderParallel = (): string =>
+          parallelProgress
+            .map((entry, index) => {
+              if (entry) return formatProgress(entry);
+              const item = params.tasks?.[index];
+              if (!item) return '';
+              return `### ${item.agent} \u2014 pending`;
+            })
+            .filter(Boolean)
+            .join('\n\n---\n\n');
 
         const results = await mapWithConcurrencyLimit(
           params.tasks,
           MAX_CONCURRENCY,
-          (item) =>
+          (item, index) =>
             runAgent({
               defaultCwd: ctx.cwd,
               agents,
+              availableModels,
+              availableModelsError,
               agentName: item.agent,
               task: item.task,
               cwd: item.cwd,
+              modelOverride: getModelOverrideForTask(item.modelOverride),
               signal,
+              onProgress: (progress) => {
+                parallelProgress[index] = progress;
+                emitUpdate(renderParallel());
+              },
             }),
         );
 
         const succeeded = results.filter(
           (result) => result.exitCode === 0,
         ).length;
-        return {
-          content: [
-            {
-              type: 'text' as const,
-              text: `Parallel subagents: ${succeeded}/${results.length} succeeded\n\n${results.map(summarizeResult).join('\n\n---\n\n')}`,
-            },
-          ],
-          details: { results },
-        };
+        return textResult(
+          `Parallel subagents: ${succeeded}/${results.length} succeeded\n\n${results.map(summarizeResult).join('\n\n---\n\n')}`,
+          { results },
+        );
       }
 
-      return {
-        content: [
-          {
-            type: 'text' as const,
-            text: `Invalid subagent request.\n\nAvailable agents:\n${formatAvailableAgents(agents)}`,
-          },
-        ],
-        details: { results: [] },
-      };
+      return textResult(
+        `Invalid subagent request.\n\nAvailable agents:\n${formatAvailableAgents(agents)}`,
+        { results: [] },
+        { fullOutputInDetails: false },
+      );
     },
   });
 }

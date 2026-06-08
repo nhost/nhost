@@ -290,19 +290,20 @@ func (m *cohortManager) executeAndNotifyCohort(
 func buildSubscriberInputs(
 	subscriptions map[string]*cohortSubscription,
 ) ([]string, map[string][]any) {
-	subIDs := make([]string, 0, len(subscriptions))
+	subscriberCount := len(subscriptions)
+	subIDs := make([]string, 0, subscriberCount)
 	sessionVarArrays := make(map[string][]any)
 
 	for _, s := range subscriptions {
+		subscriberIndex := len(subIDs)
 		subIDs = append(subIDs, s.id)
 
-		for varName, varValue := range s.sessionVariables {
-			if _, exists := sessionVarArrays[varName]; !exists {
-				sessionVarArrays[varName] = make([]any, 0, len(subscriptions))
-			}
-
-			sessionVarArrays[varName] = append(sessionVarArrays[varName], varValue)
-		}
+		assignAlignedVars(
+			sessionVarArrays,
+			s.sessionVariables,
+			subscriberIndex,
+			subscriberCount,
+		)
 	}
 
 	return subIDs, sessionVarArrays
@@ -352,10 +353,14 @@ func (m *cohortManager) getOrBuildSQL(
 		return *c.cachedOp, nil
 	}
 
-	// Build template session vars (names only — values don't affect SQL shape).
+	// Build template session vars: each resolves to a SessionVarValue marker
+	// (names only — values don't affect SQL shape). The marker lets the
+	// multiplexed converter recognise genuine permission session variables by
+	// type and rewrite them into per-subscriber result_vars lookups, while
+	// user-supplied literals beginning with "x-hasura-" stay ordinary data.
 	templateSessionVars := make(map[string]any, len(sessionVarArrays))
 	for varName := range sessionVarArrays {
-		templateSessionVars[varName] = varName
+		templateSessionVars[varName] = core.SessionVarValue{Name: varName}
 	}
 
 	// Use any subscriber's GraphQL variables — they're identical within a cohort.

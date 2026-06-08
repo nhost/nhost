@@ -2,6 +2,7 @@ package multiplexed_test
 
 import (
 	"encoding/json"
+	"errors"
 	"testing"
 
 	"github.com/google/go-cmp/cmp"
@@ -18,6 +19,7 @@ func TestMultiplex(t *testing.T) {
 		expectedSQL     string
 		expectedParams  []any
 		expectedNoParam bool
+		expectErr       error
 	}{
 		{
 			name: "no parameters",
@@ -40,7 +42,7 @@ func TestMultiplex(t *testing.T) {
 				Name: "users",
 				SQL:  `SELECT "id", "name" FROM "users" WHERE "user_id" = $1::uuid`,
 				Parameters: []any{
-					"x-hasura-user-id",
+					core.SessionVarValue{Name: "x-hasura-user-id"},
 				},
 				StreamCursors: nil,
 			},
@@ -57,7 +59,7 @@ func TestMultiplex(t *testing.T) {
 				Name: "users",
 				SQL:  `SELECT "id", "name" FROM "users" WHERE "org_id" = $1::uuid AND "status" = $2`,
 				Parameters: []any{
-					"x-hasura-org-id",
+					core.SessionVarValue{Name: "x-hasura-org-id"},
 					"active",
 				},
 				StreamCursors: nil,
@@ -70,13 +72,35 @@ func TestMultiplex(t *testing.T) {
 			expectedParams: []any{"active"},
 		},
 		{
+			// Regression for the session-variable misclassification bug: a
+			// user-supplied where literal that begins with "x-hasura-" is data,
+			// so it must stay a renumbered static parameter ($3), while only the
+			// genuine permission marker becomes a result_vars JSON path.
+			name: "user literal beginning with x-hasura stays a static param",
+			op: core.SQLOperation{
+				Name: "users",
+				SQL:  `SELECT "id" FROM "users" WHERE "tag" = $1 AND "org_id" = $2::uuid`,
+				Parameters: []any{
+					"x-hasura-legacy",
+					core.SessionVarValue{Name: "x-hasura-org-id"},
+				},
+				StreamCursors: nil,
+			},
+			expectedSQL: `SELECT "_subs"."result_id", "_fld_resp"."root" AS "result" FROM ` +
+				`UNNEST($1::text[], $2::json[]) AS "_subs"("result_id", "result_vars") ` +
+				`LEFT OUTER JOIN LATERAL (SELECT json_build_object('users', (` +
+				`SELECT "id" FROM "users" WHERE "tag" = $3 AND "org_id" = (("_subs"."result_vars" #>> '{session,x-hasura-org-id}')::uuid)` +
+				`)) AS "root") AS "_fld_resp" ON ('true')`,
+			expectedParams: []any{"x-hasura-legacy"},
+		},
+		{
 			name: "cursor values",
 			op: core.SQLOperation{
 				Name: "users_stream",
 				SQL:  `SELECT "id", "name" FROM "users" WHERE "id" > $1::uuid AND "org_id" = $2::uuid`,
 				Parameters: []any{
 					core.CursorValue{ColumnName: "id", Value: "initial-id"},
-					"x-hasura-org-id",
+					core.SessionVarValue{Name: "x-hasura-org-id"},
 				},
 				StreamCursors: nil,
 			},
@@ -161,13 +185,43 @@ func TestMultiplex(t *testing.T) {
 				`)) AS "root") AS "_fld_resp" ON ('true')`,
 			expectedParams: []any{"electronics", 99.99},
 		},
+		{
+			// A permission _in mixing a session variable with a literal leaves
+			// the marker trapped in a multi-element array that cannot reduce to a
+			// single result_vars path. Rather than silently bind the variable's
+			// literal name (which would evaluate the row-level permission against
+			// "x-hasura-…" instead of the subscriber's value), Multiplex rejects
+			// the subscription with a clear error.
+			name: "multi-element in with marker is rejected",
+			op: core.SQLOperation{
+				Name: "users",
+				SQL:  `SELECT "id" FROM "users" WHERE "tenant_id" = ANY($1::uuid[])`,
+				Parameters: []any{
+					[]any{core.SessionVarValue{Name: "x-hasura-tenant-id"}, "default"},
+				},
+				StreamCursors: nil,
+			},
+			expectErr: multiplexed.ErrSessionVarInMultiElementArray,
+		},
 	}
 
 	for _, tc := range tests {
 		t.Run(tc.name, func(t *testing.T) {
 			t.Parallel()
 
-			gotSQL, gotParams := multiplexed.Multiplex(tc.op)
+			gotSQL, gotParams, err := multiplexed.Multiplex(tc.op)
+
+			if tc.expectErr != nil {
+				if !errors.Is(err, tc.expectErr) {
+					t.Fatalf("Multiplex error = %v, want errors.Is %v", err, tc.expectErr)
+				}
+
+				return
+			}
+
+			if err != nil {
+				t.Fatalf("unexpected error: %v", err)
+			}
 
 			if gotSQL != tc.expectedSQL {
 				t.Errorf("sql:\ngot:  %s\nwant: %s", gotSQL, tc.expectedSQL)
@@ -315,6 +369,40 @@ func assertSessionVarString(t *testing.T, params []any, key, want string) {
 	}
 }
 
+func assertNilPaddedSessionVars(t *testing.T, params []any) {
+	t.Helper()
+
+	subA := parseResultVarsJSON(t, params, 0)
+
+	sessionA, ok := subA["session"].(map[string]any)
+	if !ok {
+		t.Fatal("sub-a missing session key in result vars")
+	}
+
+	if got := sessionA["x-hasura-user-id"]; got != "user-a" {
+		t.Errorf("sub-a user ID = %v, want user-a", got)
+	}
+
+	if got, exists := sessionA["x-hasura-org-id"]; !exists || got != nil {
+		t.Errorf("sub-a org ID = %v (exists %v), want explicit nil", got, exists)
+	}
+
+	subB := parseResultVarsJSON(t, params, 1)
+
+	sessionB, ok := subB["session"].(map[string]any)
+	if !ok {
+		t.Fatal("sub-b missing session key in result vars")
+	}
+
+	if got := sessionB["x-hasura-user-id"]; got != "user-b" {
+		t.Errorf("sub-b user ID = %v, want user-b", got)
+	}
+
+	if got := sessionB["x-hasura-org-id"]; got != "org-b" {
+		t.Errorf("sub-b org ID = %v, want org-b", got)
+	}
+}
+
 func TestPrepareParams(t *testing.T) {
 	t.Parallel()
 
@@ -376,6 +464,16 @@ func TestPrepareParams(t *testing.T) {
 				t.Helper()
 				assertSessionVarString(t, params, "x-hasura-user-id", `user "with" quotes`)
 			},
+		},
+		{
+			name:            "nil-padded session vars stay aligned",
+			subscriptionIDs: []string{"sub-a", "sub-b"},
+			sessionVarArrays: map[string][]any{
+				"x-hasura-user-id": {"user-a", "user-b"},
+				"x-hasura-org-id":  {nil, "org-b"},
+			},
+			cursorValues: nil,
+			assert:       assertNilPaddedSessionVars,
 		},
 	}
 

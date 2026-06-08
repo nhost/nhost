@@ -73,6 +73,20 @@ func (mr *MockTableMockRecorder) ColumnFromSQLName(name any) *gomock.Call {
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "ColumnFromSQLName", reflect.TypeOf((*MockTable)(nil).ColumnFromSQLName), name)
 }
 
+// ConflictColumns mocks base method.
+func (m *MockTable) ConflictColumns(constraintName string) []string {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "ConflictColumns", constraintName)
+	ret0, _ := ret[0].([]string)
+	return ret0
+}
+
+// ConflictColumns indicates an expected call of ConflictColumns.
+func (mr *MockTableMockRecorder) ConflictColumns(constraintName any) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "ConflictColumns", reflect.TypeOf((*MockTable)(nil).ConflictColumns), constraintName)
+}
+
 // Dialect mocks base method.
 func (m *MockTable) Dialect() dialect.Dialect {
 	m.ctrl.T.Helper()

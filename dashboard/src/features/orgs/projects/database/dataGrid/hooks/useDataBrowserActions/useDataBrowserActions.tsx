@@ -340,7 +340,7 @@ export function useDataBrowserActions({
       ),
       props: {
         PaperProps: {
-          className: 'lg:w-[65%] lg:max-w-7xl',
+          className: 'overflow-hidden lg:w-[65%] lg:max-w-7xl',
         },
       },
     });

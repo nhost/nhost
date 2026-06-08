@@ -117,3 +117,56 @@ func TestSubscriptionUserRole(t *testing.T) { //nolint:paralleltest,dupl
 		}
 	}).Close()
 }
+
+// TestSubscriptionXHasuraLiteralFilterNotSubstituted is the end-to-end
+// regression guard for the session-variable misclassification bug
+// (BUG_MEDIUM_10 / BUG_MEDIUM_13). A subscription filter value that merely
+// begins with "x-hasura-" is user-supplied data and must be treated as a
+// literal — never as a permission session-variable reference. The exists_test
+// role has a row-level filter that references X-Hasura-User-Id, so the
+// permission layer runs its session-variable substitution; before the fix that
+// pass scanned the whole parameter slice and hit the user's "x-hasura-…" filter
+// value, hard-failing the subscription with "session variable not found". After
+// the fix only the permission clause's own parameters are substituted, so the
+// subscription succeeds and returns rows matching the literal (none here),
+// matching Hasura.
+func TestSubscriptionXHasuraLiteralFilterNotSubstituted(t *testing.T) { //nolint:paralleltest
+	ReinitializeTestData(t)
+
+	c, err := subtest.NewClient(t, wsURL)
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	c.Send(subtest.Message{
+		Type: subtest.ConnectionInit,
+		// x-hasura-user-id is the genuine session variable the exists_test
+		// row-level filter references; the title filter value below is a
+		// look-alike literal that is NOT a session variable.
+		Payload: initWithRole("exists_test", map[string]string{
+			"x-hasura-user-id": "00000000-0000-0000-0000-000000000000",
+		}),
+	}).Expect(func(msg subtest.Message) {
+		if msg.Type != subtest.ConnectionAck {
+			t.Fatalf("expected connection_ack, got %s", msg.Type)
+		}
+	}).Send(subtest.Message{
+		ID:   "1",
+		Type: subtest.Subscribe,
+		Payload: subscribePayload(`subscription {
+			news(where: { title: { _eq: "x-hasura-not-a-session-var" } }) {
+				title
+			}
+		}`),
+	}).Expect(func(msg subtest.Message) {
+		// Must be data (empty: no news titled "x-hasura-not-a-session-var"),
+		// NOT an error. A "session variable not found" error here is the bug.
+		if diff := cmp.Diff(msg, subtest.Message{
+			ID:      "1",
+			Type:    subtest.Next,
+			Payload: jsontext.Value(`{"data":{"news":[]}}`),
+		}); diff != "" {
+			t.Fatalf("unexpected message (a session-variable error indicates regression): %s", diff)
+		}
+	}).Close()
+}

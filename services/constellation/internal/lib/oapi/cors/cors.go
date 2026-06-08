@@ -318,8 +318,6 @@ func (cfg corsConfig) applyHeaders(c *gin.Context, origin string) {
 	if cfg.maxAge != "" {
 		c.Header("Access-Control-Max-Age", cfg.maxAge)
 	}
-
-	c.Writer.Header().Add("Vary", "Origin, Access-Control-Request-Method")
 }
 
 // CORS returns a Gin middleware handler that implements Cross-Origin Resource Sharing (CORS).
@@ -362,6 +360,7 @@ func CORS(opts Options) (gin.HandlerFunc, error) {
 
 	return func(c *gin.Context) {
 		origin := c.Request.Header.Get("Origin")
+		c.Writer.Header().Add("Vary", "Origin, Access-Control-Request-Method")
 
 		if origin != "" && cfg.originAllowed(origin) {
 			cfg.applyHeaders(c, origin)

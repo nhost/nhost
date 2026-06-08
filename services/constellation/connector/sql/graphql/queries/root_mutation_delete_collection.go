@@ -69,6 +69,7 @@ func (t *table) buildMutationDeleteCollectionSQL(
 		SQL:           sql,
 		Parameters:    params,
 		StreamCursors: nil,
+		Sequential:    nil,
 	}, nil
 }
 
@@ -154,7 +155,7 @@ func (t *table) buildDeleteCollectionSQL(
 
 	b.WriteString(" ")
 
-	params, _, err = selection.WriteSQLForDelete(
+	params, _, err = selection.WriteSQL(
 		b, fragments, variables, role, sessionVariables, roots, params, paramIndex,
 	)
 	if err != nil {

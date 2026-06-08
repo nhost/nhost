@@ -9,6 +9,7 @@ import (
 
 	_ "github.com/mattn/go-sqlite3"
 
+	"github.com/nhost/nhost/services/constellation/connector/sql/introspection"
 	"github.com/nhost/nhost/services/constellation/connector/sql/sqlite"
 	"github.com/nhost/nhost/services/constellation/internal/lib/testhelpers"
 	"github.com/nhost/nhost/services/constellation/metadata"
@@ -132,6 +133,199 @@ func TestIntrospect(t *testing.T) {
 	}
 
 	testhelpers.GoldenJSON(t, goldenPath, got, *updateGolden)
+}
+
+func TestIntrospectSkipsPartialUniqueIndexes(t *testing.T) {
+	t.Parallel()
+
+	users := introspectUsersTable(t, "partial_unique.db", `
+CREATE TABLE users (
+    id INTEGER PRIMARY KEY,
+    email TEXT NOT NULL,
+    username TEXT NOT NULL,
+    deleted_at DATETIME
+);
+CREATE UNIQUE INDEX users_username_key ON users(username);
+CREATE UNIQUE INDEX users_active_email_key ON users(email) WHERE deleted_at IS NULL;
+`)
+
+	assertPlainUniqueAndSkippedIndex(t, users, "users_active_email_key", "partial")
+}
+
+func TestIntrospectSkipsExpressionUniqueIndexes(t *testing.T) {
+	t.Parallel()
+
+	users := introspectUsersTable(t, "expression_unique.db", `
+CREATE TABLE users (
+    id INTEGER PRIMARY KEY,
+    email TEXT NOT NULL,
+    username TEXT NOT NULL
+);
+CREATE UNIQUE INDEX users_username_key ON users(username);
+CREATE UNIQUE INDEX users_lower_email_key ON users(lower(email));
+`)
+
+	assertPlainUniqueAndSkippedIndex(t, users, "users_lower_email_key", "expression")
+}
+
+func TestIntrospectSkipsPrimaryKeyAutoindexesAsUniqueConstraints(t *testing.T) {
+	t.Parallel()
+
+	dbPath := filepath.Join(t.TempDir(), "pk_autoindexes.db")
+
+	db, err := sql.Open("sqlite3", dbPath)
+	if err != nil {
+		t.Fatalf("failed to open database: %v", err)
+	}
+
+	if _, err := db.ExecContext(t.Context(), `
+CREATE TABLE rowid_alias (
+    id INTEGER PRIMARY KEY,
+    name TEXT
+);
+
+CREATE TABLE composite_pk (
+    tenant_id TEXT NOT NULL,
+    id INTEGER NOT NULL,
+    name TEXT,
+    PRIMARY KEY (tenant_id, id)
+);
+
+CREATE TABLE without_rowid_pk (
+    tenant_id TEXT NOT NULL,
+    id INTEGER NOT NULL,
+    name TEXT,
+    PRIMARY KEY (tenant_id, id)
+) WITHOUT ROWID;
+`); err != nil {
+		t.Fatalf("failed to create schema: %v", err)
+	}
+
+	if err := db.Close(); err != nil {
+		t.Fatalf("failed to close setup database: %v", err)
+	}
+
+	sqlDB, err := sqlite.Open(t.Context(), dbPath)
+	if err != nil {
+		t.Fatalf("failed to open sqlite: %v", err)
+	}
+
+	client := sqlite.NewClient(sqlDB)
+	t.Cleanup(func() { client.Close() })
+
+	got, err := client.Introspect(t.Context(), &metadata.DatabaseMetadata{
+		Tables: []metadata.TableMetadata{
+			{Table: metadata.TableSource{Name: "rowid_alias"}},
+			{Table: metadata.TableSource{Name: "composite_pk"}},
+			{Table: metadata.TableSource{Name: "without_rowid_pk"}},
+		},
+	})
+	if err != nil {
+		t.Fatalf("failed to introspect: %v", err)
+	}
+
+	for _, tableName := range []string{"rowid_alias", "composite_pk", "without_rowid_pk"} {
+		table := got.Schemas[""].Tables[tableName]
+		if table == nil {
+			t.Fatalf("missing table %s", tableName)
+		}
+
+		if len(table.PrimaryKeys) == 0 {
+			t.Fatalf("%s primary key was not introspected", tableName)
+		}
+
+		if len(table.UniqueConstraints) != 0 {
+			t.Fatalf(
+				"%s PK-backed autoindex exposed as unique constraint: %+v",
+				tableName,
+				table.UniqueConstraints,
+			)
+		}
+	}
+}
+
+func introspectUsersTable(
+	t *testing.T, dbFileName string, schema string,
+) *introspection.Table {
+	t.Helper()
+
+	dbPath := filepath.Join(t.TempDir(), dbFileName)
+
+	db, err := sql.Open("sqlite3", dbPath)
+	if err != nil {
+		t.Fatalf("failed to open database: %v", err)
+	}
+
+	if _, err := db.ExecContext(t.Context(), schema); err != nil {
+		t.Fatalf("failed to create schema: %v", err)
+	}
+
+	if err := db.Close(); err != nil {
+		t.Fatalf("failed to close setup database: %v", err)
+	}
+
+	sqlDB, err := sqlite.Open(t.Context(), dbPath)
+	if err != nil {
+		t.Fatalf("failed to open sqlite: %v", err)
+	}
+
+	client := sqlite.NewClient(sqlDB)
+	t.Cleanup(func() { client.Close() })
+
+	got, err := client.Introspect(t.Context(), &metadata.DatabaseMetadata{
+		Tables: []metadata.TableMetadata{
+			{Table: metadata.TableSource{Name: "users"}},
+		},
+	})
+	if err != nil {
+		t.Fatalf("failed to introspect: %v", err)
+	}
+
+	schemaObjs := got.Schemas[""]
+	if schemaObjs == nil {
+		t.Fatalf("expected default schema in introspection objects")
+	}
+
+	users, ok := schemaObjs.Tables["users"]
+	if !ok {
+		t.Fatalf("missing users table in introspection")
+	}
+
+	return users
+}
+
+func assertPlainUniqueAndSkippedIndex(
+	t *testing.T,
+	users *introspection.Table,
+	skippedIndexName string,
+	skippedIndexKind string,
+) {
+	t.Helper()
+
+	foundPlainUnique := false
+	for _, constraint := range users.UniqueConstraints {
+		switch constraint.Name {
+		case "users_username_key":
+			foundPlainUnique = true
+
+			if len(constraint.Columns) != 1 || constraint.Columns[0] != "username" {
+				t.Fatalf(
+					"users_username_key columns = %v, want [username]",
+					constraint.Columns,
+				)
+			}
+		case skippedIndexName:
+			t.Fatalf(
+				"%s unique index %q was exposed as an upsert constraint",
+				skippedIndexKind,
+				constraint.Name,
+			)
+		}
+	}
+
+	if !foundPlainUnique {
+		t.Fatalf("plain unique index was not exposed: %+v", users.UniqueConstraints)
+	}
 }
 
 // TestIntrospectViewMutability covers the INSTEAD OF trigger detection in

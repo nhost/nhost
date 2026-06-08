@@ -68,6 +68,7 @@ func cleanTables(ctx context.Context, conn *pgx.Conn) error {
 		"notes",
 		"exercise_log_sets",
 		"exercise_logs",
+		"identity.artists",
 		"identity_check_logs",
 		"department_files",
 		"kb_entry_departments",
@@ -131,6 +132,7 @@ func applySeedFiles(ctx context.Context, conn *pgx.Conn) error {
 
 type query struct {
 	Query            string         `json:"query"`
+	OperationName    string         `json:"operationName,omitempty"`
 	Variables        map[string]any `json:"variables,omitempty"`
 	Role             string
 	SessionVariables map[string]string
@@ -138,9 +140,18 @@ type query struct {
 
 // TestCase represents a single test case for GraphQL queries/mutations.
 type TestCase struct {
-	name     string
-	query    query
-	expected any
+	name                     string
+	query                    query
+	expected                 any
+	assertConstellationState func(t *testing.T, headers http.Header)
+}
+
+func runConstellationStateAssertion(t *testing.T, tc TestCase, headers http.Header) {
+	t.Helper()
+
+	if tc.assertConstellationState != nil {
+		tc.assertConstellationState(t, headers)
+	}
 }
 
 // TestConfig configures how the test runner should execute tests.
@@ -314,6 +325,8 @@ func RunGraphQLTests(t *testing.T, cases []TestCase, config TestConfig) {
 			if diff := cmp.Diff(hasuraResp, constellationResp); diff != "" {
 				t.Errorf("responses differ (-hasura +constellation):\n%s", diff)
 			}
+
+			runConstellationStateAssertion(t, tc, headers)
 		})
 	}
 }

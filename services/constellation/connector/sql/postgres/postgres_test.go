@@ -83,18 +83,40 @@ func expectExecuteErr(
 	}
 }
 
+func expectJSONTextResult(t *testing.T, result map[string]any, operationName string, want string) {
+	t.Helper()
+
+	v, ok := result[operationName]
+	if !ok {
+		t.Fatalf("expected %s in results", operationName)
+	}
+
+	jv, ok := v.(jsontext.Value)
+	if !ok {
+		t.Fatalf("expected jsontext.Value, got %T", v)
+	}
+
+	if got := string(jv); got != want {
+		t.Errorf("unexpected result: %s", got)
+	}
+}
+
 func TestExecuteOperations(t *testing.T) {
 	t.Parallel()
 
+	defaultOperations := []core.SQLOperation{{Name: "op1", SQL: "SELECT 1", Parameters: nil}}
+
 	tests := []struct {
 		name             string
+		operations       []core.SQLOperation
 		setupMocks       func(t *testing.T, pool *mock.MockPool, tx *mock.MockTx, row *mock.MockRow)
 		wantErrSubstring string
 		wantErrIs        error
 		wantResult       func(t *testing.T, result map[string]any)
 	}{
 		{
-			name: "begin tx error",
+			name:       "begin tx error",
+			operations: defaultOperations,
 			setupMocks: func(_ *testing.T, pool *mock.MockPool, _ *mock.MockTx, _ *mock.MockRow) {
 				pool.EXPECT().
 					BeginTx(gomock.Any()).
@@ -105,7 +127,8 @@ func TestExecuteOperations(t *testing.T) {
 			wantResult:       nil,
 		},
 		{
-			name: "success",
+			name:       "success",
+			operations: defaultOperations,
 			setupMocks: func(t *testing.T, pool *mock.MockPool, tx *mock.MockTx, row *mock.MockRow) {
 				t.Helper()
 				pool.EXPECT().BeginTx(gomock.Any()).Return(tx, nil)
@@ -117,24 +140,102 @@ func TestExecuteOperations(t *testing.T) {
 			wantErrIs:        nil,
 			wantResult: func(t *testing.T, result map[string]any) {
 				t.Helper()
-
-				v, ok := result["op1"]
-				if !ok {
-					t.Fatal("expected op1 in results")
-				}
-
-				jv, ok := v.(jsontext.Value)
-				if !ok {
-					t.Fatalf("expected jsontext.Value, got %T", v)
-				}
-
-				if got := string(jv); got != `{"id": 1}` {
-					t.Errorf("unexpected result: %s", got)
-				}
+				expectJSONTextResult(t, result, "op1", `{"id": 1}`)
 			},
 		},
 		{
-			name: "err no rows",
+			name: "sequential success assembles JSON array",
+			operations: []core.SQLOperation{
+				{
+					Name: "op1",
+					Sequential: []core.SQLOperation{
+						{Name: "child1", SQL: "SELECT child 1", Parameters: []any{"first"}},
+						{Name: "child2", SQL: "SELECT child 2", Parameters: []any{"second"}},
+					},
+				},
+			},
+			setupMocks: func(t *testing.T, pool *mock.MockPool, tx *mock.MockTx, row *mock.MockRow) {
+				t.Helper()
+				gomock.InOrder(
+					pool.EXPECT().BeginTx(gomock.Any()).Return(tx, nil),
+					tx.EXPECT().QueryRow(gomock.Any(), "SELECT child 1", "first").Return(row),
+					row.EXPECT().
+						Scan(gomock.Any()).
+						DoAndReturn(scanJSONInto(t, []byte(`{"id":1}`))),
+					tx.EXPECT().QueryRow(gomock.Any(), "SELECT child 2", "second").Return(row),
+					row.EXPECT().
+						Scan(gomock.Any()).
+						DoAndReturn(scanJSONInto(t, []byte(`{"id":2}`))),
+					tx.EXPECT().Commit(gomock.Any()).Return(nil),
+				)
+			},
+			wantErrSubstring: "",
+			wantErrIs:        nil,
+			wantResult: func(t *testing.T, result map[string]any) {
+				t.Helper()
+				expectJSONTextResult(t, result, "op1", `[{"id":1},{"id":2}]`)
+			},
+		},
+		{
+			name: "sequential child scan error rolls back",
+			operations: []core.SQLOperation{
+				{
+					Name: "op1",
+					Sequential: []core.SQLOperation{
+						{Name: "child1", SQL: "SELECT child 1", Parameters: []any{"first"}},
+						{Name: "child2", SQL: "SELECT child 2", Parameters: []any{"second"}},
+					},
+				},
+			},
+			setupMocks: func(t *testing.T, pool *mock.MockPool, tx *mock.MockTx, row *mock.MockRow) {
+				t.Helper()
+				gomock.InOrder(
+					pool.EXPECT().BeginTx(gomock.Any()).Return(tx, nil),
+					tx.EXPECT().QueryRow(gomock.Any(), "SELECT child 1", "first").Return(row),
+					row.EXPECT().
+						Scan(gomock.Any()).
+						DoAndReturn(scanJSONInto(t, []byte(`{"id":1}`))),
+					tx.EXPECT().QueryRow(gomock.Any(), "SELECT child 2", "second").Return(row),
+					row.EXPECT().Scan(gomock.Any()).Return(errScanFailed),
+					tx.EXPECT().Rollback(gomock.Any()).Return(nil),
+				)
+			},
+			wantErrSubstring: "",
+			wantErrIs:        errScanFailed,
+			wantResult:       nil,
+		},
+		{
+			name: "sequential no rows and null children assemble nulls",
+			operations: []core.SQLOperation{
+				{
+					Name: "op1",
+					Sequential: []core.SQLOperation{
+						{Name: "child1", SQL: "SELECT child 1", Parameters: []any{"first"}},
+						{Name: "child2", SQL: "SELECT child 2", Parameters: []any{"second"}},
+					},
+				},
+			},
+			setupMocks: func(t *testing.T, pool *mock.MockPool, tx *mock.MockTx, row *mock.MockRow) {
+				t.Helper()
+				gomock.InOrder(
+					pool.EXPECT().BeginTx(gomock.Any()).Return(tx, nil),
+					tx.EXPECT().QueryRow(gomock.Any(), "SELECT child 1", "first").Return(row),
+					row.EXPECT().Scan(gomock.Any()).Return(pgx.ErrNoRows),
+					tx.EXPECT().QueryRow(gomock.Any(), "SELECT child 2", "second").Return(row),
+					row.EXPECT().Scan(gomock.Any()).DoAndReturn(scanJSONInto(t, []byte("null"))),
+					tx.EXPECT().Commit(gomock.Any()).Return(nil),
+				)
+			},
+			wantErrSubstring: "",
+			wantErrIs:        nil,
+			wantResult: func(t *testing.T, result map[string]any) {
+				t.Helper()
+				expectJSONTextResult(t, result, "op1", `[null,null]`)
+			},
+		},
+		{
+			name:       "err no rows",
+			operations: defaultOperations,
 			setupMocks: func(_ *testing.T, pool *mock.MockPool, tx *mock.MockTx, row *mock.MockRow) {
 				pool.EXPECT().BeginTx(gomock.Any()).Return(tx, nil)
 				row.EXPECT().Scan(gomock.Any()).Return(pgx.ErrNoRows)
@@ -152,7 +253,8 @@ func TestExecuteOperations(t *testing.T) {
 			},
 		},
 		{
-			name: "scan error",
+			name:       "scan error",
+			operations: defaultOperations,
 			setupMocks: func(_ *testing.T, pool *mock.MockPool, tx *mock.MockTx, row *mock.MockRow) {
 				pool.EXPECT().BeginTx(gomock.Any()).Return(tx, nil)
 				row.EXPECT().Scan(gomock.Any()).Return(errScanFailed)
@@ -164,7 +266,8 @@ func TestExecuteOperations(t *testing.T) {
 			wantResult:       nil,
 		},
 		{
-			name: "commit error",
+			name:       "commit error",
+			operations: defaultOperations,
 			setupMocks: func(t *testing.T, pool *mock.MockPool, tx *mock.MockTx, row *mock.MockRow) {
 				t.Helper()
 				pool.EXPECT().BeginTx(gomock.Any()).Return(tx, nil)
@@ -194,7 +297,7 @@ func TestExecuteOperations(t *testing.T) {
 
 			result, err := client.ExecuteOperations(
 				t.Context(),
-				[]core.SQLOperation{{Name: "op1", SQL: "SELECT 1", Parameters: nil}},
+				tt.operations,
 				discardLogger(),
 			)
 

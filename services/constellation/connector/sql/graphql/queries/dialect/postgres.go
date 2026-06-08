@@ -98,12 +98,28 @@ func (d *PostgresDialect) SupportsLateral() bool {
 	return true
 }
 
-func (d *PostgresDialect) ILike() string {
-	return "ILIKE"
+func (d *PostgresDialect) Like() string {
+	return "LIKE"
 }
 
-func (d *PostgresDialect) NotILike() string {
-	return "NOT ILIKE"
+func (d *PostgresDialect) NotLike() string {
+	return "NOT LIKE"
+}
+
+func (d *PostgresDialect) WriteILikeCondition(
+	b *strings.Builder, source, column, placeholder string,
+) {
+	core.WriteQualifiedColumn(b, source, column)
+	b.WriteString(" ILIKE ")
+	b.WriteString(placeholder)
+}
+
+func (d *PostgresDialect) WriteNotILikeCondition(
+	b *strings.Builder, source, column, placeholder string,
+) {
+	core.WriteQualifiedColumn(b, source, column)
+	b.WriteString(" NOT ILIKE ")
+	b.WriteString(placeholder)
 }
 
 func (d *PostgresDialect) SupportsRegex() bool {
@@ -126,10 +142,6 @@ func (d *PostgresDialect) ThrowError(message, code string) string {
 
 func (d *PostgresDialect) MaterializedCTE() string {
 	return "AS MATERIALIZED"
-}
-
-func (d *PostgresDialect) JSONBuildArray() string {
-	return "jsonb_build_array"
 }
 
 func (d *PostgresDialect) WriteArrayContains(b *strings.Builder, column, castPlaceholder string) {
@@ -200,6 +212,27 @@ func (d *PostgresDialect) SupportsStableVarianceOrderBy() bool { return true }
 // aggregate functions, so the corresponding aggregate selection fields are
 // exposed and computed.
 func (d *PostgresDialect) SupportsVarianceAggregates() bool { return true }
+
+func (d *PostgresDialect) SupportsUpsertUpdateAction() bool { return true }
+
+func (d *PostgresDialect) WriteUpsertUpdateAction(b *strings.Builder) {
+	b.WriteString("(xmax <> 0)")
+}
+
+func (d *PostgresDialect) RequiresOnConflictTargetColumns() bool { return false }
+
+// WriteOnConflictTarget names the constraint directly: PostgreSQL supports the
+// "ON CONFLICT ON CONSTRAINT <name>" form, which targets a specific unique or
+// primary-key constraint by name. The conflictColumns argument is unused here —
+// the constraint name is sufficient and matches Hasura's emitted SQL.
+func (d *PostgresDialect) WriteOnConflictTarget(
+	b *strings.Builder, constraintName string, _ []string,
+) error {
+	b.WriteString(" ON CONFLICT ON CONSTRAINT ")
+	core.WriteQuotedIdentifier(b, constraintName)
+
+	return nil
+}
 
 // BoolAndFunc returns PostgreSQL's native bool_and aggregate.
 func (d *PostgresDialect) BoolAndFunc() string { return "bool_and" }

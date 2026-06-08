@@ -148,6 +148,69 @@ func TestParseStream_HappyPaths(t *testing.T) {
 	}
 }
 
+func TestParseStream_MultiCursorShapeErrors(t *testing.T) {
+	t.Parallel()
+
+	tests := []struct {
+		name    string
+		cursor  *ast.Value
+		message string
+	}{
+		{
+			name: "multiple cursor objects rejected",
+			cursor: listValue(
+				child("", objectValue(
+					child("initial_value", objectValue(child("id", stringValue("abc")))),
+				)),
+				child("", objectValue(
+					child("initial_value", objectValue(child("id", stringValue("def")))),
+				)),
+			),
+			message: "exactly one cursor object",
+		},
+		{
+			name: "multiple initial_value columns rejected",
+			cursor: objectValue(
+				child(
+					"initial_value",
+					objectValue(
+						child("id", stringValue("abc")),
+						child("created_at", stringValue("2026-06-03T00:00:00Z")),
+					),
+				),
+			),
+			message: "exactly one column",
+		},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			t.Parallel()
+
+			ctrl := gomock.NewController(t)
+			tbl := mock.NewMockTable(ctrl)
+
+			args := ast.ArgumentList{
+				&ast.Argument{Name: "batch_size", Value: intValue("10")},
+				&ast.Argument{Name: "cursor", Value: tt.cursor},
+			}
+
+			_, err := arguments.ParseStream(tbl, args, nil, "user", nil)
+			if err == nil {
+				t.Fatal("expected error")
+			}
+
+			if !errors.Is(err, arguments.ErrInvalidArgument) {
+				t.Fatalf("expected ErrInvalidArgument, got %v", err)
+			}
+
+			if !strings.Contains(err.Error(), tt.message) {
+				t.Fatalf("expected %q message, got %v", tt.message, err)
+			}
+		})
+	}
+}
+
 func TestParseStream_Errors(t *testing.T) {
 	t.Parallel()
 

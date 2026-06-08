@@ -6,6 +6,7 @@
 -- =============================================================================
 
 CREATE SCHEMA IF NOT EXISTS auth;
+CREATE SCHEMA IF NOT EXISTS identity;
 CREATE SCHEMA IF NOT EXISTS storage;
 CREATE EXTENSION IF NOT EXISTS citext WITH SCHEMA public;
 CREATE EXTENSION IF NOT EXISTS pgcrypto WITH SCHEMA public;
@@ -149,6 +150,14 @@ CREATE TABLE auth.oauth2_refresh_tokens (
   scopes          TEXT[] NOT NULL DEFAULT '{}',
   created_at      TIMESTAMPTZ DEFAULT now() NOT NULL,
   expires_at      TIMESTAMPTZ NOT NULL
+);
+
+-- ── Identity Schema ─────────────────────────────────────────────────────────
+
+CREATE TABLE identity.artists (
+  id         UUID DEFAULT gen_random_uuid() NOT NULL PRIMARY KEY,
+  stage_name TEXT NOT NULL,
+  created_by UUID NOT NULL REFERENCES auth.users(id) ON UPDATE CASCADE ON DELETE CASCADE
 );
 
 -- ── Storage Schema ──────────────────────────────────────────────────────────
