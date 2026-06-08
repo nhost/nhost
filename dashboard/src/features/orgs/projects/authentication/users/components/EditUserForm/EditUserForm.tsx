@@ -9,9 +9,9 @@ import { useCallback, useEffect, useMemo, useState } from 'react';
 import { FormProvider, useForm } from 'react-hook-form';
 import * as Yup from 'yup';
 import { useDialog } from '@/components/common/DialogProvider';
-import { ControlledCheckbox } from '@/components/form/ControlledCheckbox';
 import { ControlledSelect } from '@/components/form/ControlledSelect';
 import { Form } from '@/components/form/Form';
+import { FormCheckbox } from '@/components/form/FormCheckbox';
 import { Avatar } from '@/components/ui/v2/Avatar';
 import { Box } from '@/components/ui/v2/Box';
 import { Button } from '@/components/ui/v2/Button';
@@ -373,14 +373,15 @@ export default function EditUserForm({
                 errors.email ? (
                   errors?.email?.message
                 ) : (
-                  <ControlledCheckbox
-                    id="emailVerified"
+                  <FormCheckbox
+                    control={form.control}
                     name="emailVerified"
                     label="Verified"
                     aria-label="Email Verified"
                   />
                 )
               }
+              slotProps={{ helperText: { component: 'div' } }}
               fullWidth
               autoComplete="off"
             />
@@ -412,8 +413,8 @@ export default function EditUserForm({
                 errors.phoneNumber ? (
                   errors?.phoneNumber?.message
                 ) : (
-                  <ControlledCheckbox
-                    id="phoneNumberVerified"
+                  <FormCheckbox
+                    control={form.control}
                     name="phoneNumberVerified"
                     label="Verified"
                     aria-label="Phone Number Verified"
@@ -421,6 +422,7 @@ export default function EditUserForm({
                   />
                 )
               }
+              slotProps={{ helperText: { component: 'div' } }}
             />
             <ControlledSelect
               {...localeProps}
@@ -508,8 +510,8 @@ export default function EditUserForm({
               </InputLabel>
               <div className="col-span-3 grid grid-flow-row gap-6">
                 {roles.map((role, i) => (
-                  <ControlledCheckbox
-                    id={`roles.${i}`}
+                  <FormCheckbox
+                    control={form.control}
                     label={Object.keys(role)[0]}
                     name={`roles.${i}`}
                     key={Object.keys(role)[0]}

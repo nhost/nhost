@@ -1,12 +1,57 @@
 package schemamerge_test
 
 import (
+	"slices"
 	"strings"
 	"testing"
 
 	"github.com/nhost/nhost/services/constellation/connector/schemamerge"
 	"github.com/nhost/nhost/services/constellation/graph"
+	"github.com/vektah/gqlparser/v2/ast"
 )
+
+func TestFieldKey(t *testing.T) {
+	t.Parallel()
+
+	tests := []struct {
+		name      string
+		operation ast.Operation
+		fieldName string
+		want      string
+	}{
+		{name: "query", operation: ast.Query, fieldName: "foo", want: "query.foo"},
+		{name: "mutation", operation: ast.Mutation, fieldName: "foo", want: "mutation.foo"},
+		{
+			name:      "subscription",
+			operation: ast.Subscription,
+			fieldName: "foo",
+			want:      "subscription.foo",
+		},
+	}
+
+	for _, tc := range tests {
+		t.Run(tc.name, func(t *testing.T) {
+			t.Parallel()
+
+			if got := schemamerge.FieldKey(tc.operation, tc.fieldName); got != tc.want {
+				t.Errorf("FieldKey() = %q, want %q", got, tc.want)
+			}
+		})
+	}
+}
+
+func assertTypeOwners(
+	t *testing.T,
+	owners map[string][]string,
+	typeName string,
+	want []string,
+) {
+	t.Helper()
+
+	if got := owners[typeName]; !slices.Equal(got, want) {
+		t.Errorf("expected type %q owned by %v, got %v", typeName, want, got)
+	}
+}
 
 // minimalSchema returns a graph.Schema with one query field and a minimal object
 // type. The query type is named via QueryType so callers can exercise both the
@@ -39,7 +84,7 @@ func TestMergeConnectorSchema_RenamesRootTypeToCombinedName(t *testing.T) {
 	schema := minimalSchema("Query", "users", "User")
 	combined := &graph.Schema{}
 	fieldToConnector := map[string]string{}
-	typeToConnector := map[string]string{}
+	typeToConnector := map[string][]string{}
 
 	err := schemamerge.MergeConnectorSchema(
 		schema,
@@ -69,13 +114,11 @@ func TestMergeConnectorSchema_RenamesRootTypeToCombinedName(t *testing.T) {
 		t.Fatalf("expected renamed root type 'query_root' in combined.Types")
 	}
 
-	if got := fieldToConnector["users"]; got != "db" {
+	if got := fieldToConnector[schemamerge.FieldKey(ast.Query, "users")]; got != "db" {
 		t.Errorf("expected field 'users' owned by 'db', got %q", got)
 	}
 
-	if got := typeToConnector["User"]; got != "db" {
-		t.Errorf("expected type 'User' owned by 'db', got %q", got)
-	}
+	assertTypeOwners(t, typeToConnector, "User", []string{"db"})
 
 	if _, ok := typeToConnector["Query"]; ok {
 		t.Errorf("root type should not be tracked in typeToConnector")
@@ -89,7 +132,7 @@ func TestMergeConnectorSchema_MergesIntoExistingRoot(t *testing.T) {
 	first := minimalSchema("Query", "users", "User")
 	combined := &graph.Schema{}
 	fieldToConnector := map[string]string{}
-	typeToConnector := map[string]string{}
+	typeToConnector := map[string][]string{}
 
 	if err := schemamerge.MergeConnectorSchema(
 		first,
@@ -132,12 +175,80 @@ func TestMergeConnectorSchema_MergesIntoExistingRoot(t *testing.T) {
 		t.Fatalf("expected both connectors' fields merged onto root, got %d", len(root.Fields))
 	}
 
-	if got := fieldToConnector["users"]; got != "db1" {
+	if got := fieldToConnector[schemamerge.FieldKey(ast.Query, "users")]; got != "db1" {
 		t.Errorf("expected 'users' owned by db1, got %q", got)
 	}
 
-	if got := fieldToConnector["posts"]; got != "db2" {
+	if got := fieldToConnector[schemamerge.FieldKey(ast.Query, "posts")]; got != "db2" {
 		t.Errorf("expected 'posts' owned by db2, got %q", got)
+	}
+}
+
+func TestMergeConnectorSchema_CrossKindRouting(t *testing.T) {
+	t.Parallel()
+
+	queryType := "Query"
+	mutationType := "Mutation"
+	subscriptionType := "Subscription"
+	combined := &graph.Schema{}
+	fieldToConnector := map[string]string{}
+	typeToConnector := map[string][]string{}
+
+	dbSchema := &graph.Schema{
+		QueryType:        &queryType,
+		SubscriptionType: &subscriptionType,
+		Types: []*graph.ObjectType{
+			{
+				Name:   "Query",
+				Fields: []*graph.Field{{Name: "foo", Type: graph.NewNamedType("String")}},
+			},
+			{
+				Name: "Subscription",
+				Fields: []*graph.Field{
+					{Name: "foo", Type: graph.NewNamedType("String")},
+				},
+			},
+		},
+	}
+	rsSchema := &graph.Schema{
+		MutationType: &mutationType,
+		Types: []*graph.ObjectType{
+			{
+				Name:   "Mutation",
+				Fields: []*graph.Field{{Name: "foo", Type: graph.NewNamedType("String")}},
+			},
+		},
+	}
+
+	if err := schemamerge.MergeConnectorSchema(
+		dbSchema,
+		combined,
+		"db",
+		fieldToConnector,
+		typeToConnector,
+	); err != nil {
+		t.Fatalf("db merge failed: %v", err)
+	}
+
+	if err := schemamerge.MergeConnectorSchema(
+		rsSchema,
+		combined,
+		"rs",
+		fieldToConnector,
+		typeToConnector,
+	); err != nil {
+		t.Fatalf("rs merge failed: %v", err)
+	}
+
+	want := map[string]string{
+		schemamerge.FieldKey(ast.Query, "foo"):        "db",
+		schemamerge.FieldKey(ast.Mutation, "foo"):     "rs",
+		schemamerge.FieldKey(ast.Subscription, "foo"): "db",
+	}
+	for key, connector := range want {
+		if got := fieldToConnector[key]; got != connector {
+			t.Errorf("expected %q owned by %q, got %q", key, connector, got)
+		}
 	}
 }
 
@@ -171,7 +282,7 @@ func TestMergeConnectorSchema_DescriptionCarriedForwardToExistingRoot(t *testing
 		combined,
 		"db",
 		map[string]string{},
-		map[string]string{},
+		map[string][]string{},
 	); err != nil {
 		t.Fatalf("unexpected error: %v", err)
 	}
@@ -184,13 +295,13 @@ func TestMergeConnectorSchema_DescriptionCarriedForwardToExistingRoot(t *testing
 	}
 }
 
-func TestMergeConnectorSchema_NilTypeToConnectorIsAllowed(t *testing.T) {
+func TestMergeConnectorSchema_NilTypeToConnectorsIsAllowed(t *testing.T) {
 	t.Parallel()
 
 	schema := minimalSchema("Query", "users", "User")
 	combined := &graph.Schema{}
 
-	// Pass nil typeToConnector — the function must not panic and must still merge.
+	// Pass nil typeToConnectors — the function must not panic and must still merge.
 	err := schemamerge.MergeConnectorSchema(
 		schema,
 		combined,
@@ -234,7 +345,7 @@ func TestMergeConnectorSchema_PropagatesEnumConflict(t *testing.T) {
 		combined,
 		"db",
 		map[string]string{},
-		map[string]string{},
+		map[string][]string{},
 	)
 	if err == nil || !strings.Contains(err.Error(), "Status") {
 		t.Fatalf("expected enum conflict error mentioning 'Status', got %v", err)
@@ -252,7 +363,7 @@ func TestBuildValidatedSchema_HappyPath(t *testing.T) {
 		combined,
 		"db",
 		map[string]string{},
-		map[string]string{},
+		map[string][]string{},
 	); err != nil {
 		t.Fatalf("merge failed: %v", err)
 	}

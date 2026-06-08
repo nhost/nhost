@@ -39,6 +39,12 @@ type SQLOperation struct {
 	// StreamCursors is non-nil only for stream-subscription operations and
 	// records one entry per cursor column referenced by the operation.
 	StreamCursors []StreamCursorInfo
+	// Sequential is non-empty for a logical operation that must be executed as
+	// multiple SQL statements within the surrounding transaction. Drivers execute
+	// the child operations in order and return a JSON array of their individual
+	// JSON results under this operation's Name. This is used by update_many so
+	// later updates observe earlier ones, matching Hasura's sequential semantics.
+	Sequential []SQLOperation `json:",omitempty"`
 }
 
 // StreamCursorInfo carries metadata for a single cursor column on a stream

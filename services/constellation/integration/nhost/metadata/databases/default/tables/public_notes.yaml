@@ -29,3 +29,15 @@ select_permissions:
       filter:
         author_id:
           _eq: X-Hasura-User-Id
+update_permissions:
+  - role: user
+    permission:
+      columns:
+        - title
+      filter:
+        author_id:
+          _eq: X-Hasura-User-Id
+      check:
+        title:
+          _neq: __forbidden__
+    comment: Users can rename their own notes, but the title must not be forbidden

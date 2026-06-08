@@ -96,20 +96,6 @@ func (mr *MockDialectMockRecorder) EmptyJSONArray() *gomock.Call {
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "EmptyJSONArray", reflect.TypeOf((*MockDialect)(nil).EmptyJSONArray))
 }
 
-// ILike mocks base method.
-func (m *MockDialect) ILike() string {
-	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "ILike")
-	ret0, _ := ret[0].(string)
-	return ret0
-}
-
-// ILike indicates an expected call of ILike.
-func (mr *MockDialectMockRecorder) ILike() *gomock.Call {
-	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "ILike", reflect.TypeOf((*MockDialect)(nil).ILike))
-}
-
 // JSONAggQuotedAlias mocks base method.
 func (m *MockDialect) JSONAggQuotedAlias(alias string) string {
 	m.ctrl.T.Helper()
@@ -138,20 +124,6 @@ func (mr *MockDialectMockRecorder) JSONAggRawExpr(expr any) *gomock.Call {
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "JSONAggRawExpr", reflect.TypeOf((*MockDialect)(nil).JSONAggRawExpr), expr)
 }
 
-// JSONBuildArray mocks base method.
-func (m *MockDialect) JSONBuildArray() string {
-	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "JSONBuildArray")
-	ret0, _ := ret[0].(string)
-	return ret0
-}
-
-// JSONBuildArray indicates an expected call of JSONBuildArray.
-func (mr *MockDialectMockRecorder) JSONBuildArray() *gomock.Call {
-	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "JSONBuildArray", reflect.TypeOf((*MockDialect)(nil).JSONBuildArray))
-}
-
 // JSONBuildObject mocks base method.
 func (m *MockDialect) JSONBuildObject() string {
 	m.ctrl.T.Helper()
@@ -164,6 +136,20 @@ func (m *MockDialect) JSONBuildObject() string {
 func (mr *MockDialectMockRecorder) JSONBuildObject() *gomock.Call {
 	mr.mock.ctrl.T.Helper()
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "JSONBuildObject", reflect.TypeOf((*MockDialect)(nil).JSONBuildObject))
+}
+
+// Like mocks base method.
+func (m *MockDialect) Like() string {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "Like")
+	ret0, _ := ret[0].(string)
+	return ret0
+}
+
+// Like indicates an expected call of Like.
+func (mr *MockDialectMockRecorder) Like() *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "Like", reflect.TypeOf((*MockDialect)(nil).Like))
 }
 
 // MaterializedCTE mocks base method.
@@ -180,18 +166,18 @@ func (mr *MockDialectMockRecorder) MaterializedCTE() *gomock.Call {
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "MaterializedCTE", reflect.TypeOf((*MockDialect)(nil).MaterializedCTE))
 }
 
-// NotILike mocks base method.
-func (m *MockDialect) NotILike() string {
+// NotLike mocks base method.
+func (m *MockDialect) NotLike() string {
 	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "NotILike")
+	ret := m.ctrl.Call(m, "NotLike")
 	ret0, _ := ret[0].(string)
 	return ret0
 }
 
-// NotILike indicates an expected call of NotILike.
-func (mr *MockDialectMockRecorder) NotILike() *gomock.Call {
+// NotLike indicates an expected call of NotLike.
+func (mr *MockDialectMockRecorder) NotLike() *gomock.Call {
 	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "NotILike", reflect.TypeOf((*MockDialect)(nil).NotILike))
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "NotLike", reflect.TypeOf((*MockDialect)(nil).NotLike))
 }
 
 // Placeholder mocks base method.
@@ -206,6 +192,20 @@ func (m *MockDialect) Placeholder(paramIndex int) string {
 func (mr *MockDialectMockRecorder) Placeholder(paramIndex any) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "Placeholder", reflect.TypeOf((*MockDialect)(nil).Placeholder), paramIndex)
+}
+
+// RequiresOnConflictTargetColumns mocks base method.
+func (m *MockDialect) RequiresOnConflictTargetColumns() bool {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "RequiresOnConflictTargetColumns")
+	ret0, _ := ret[0].(bool)
+	return ret0
+}
+
+// RequiresOnConflictTargetColumns indicates an expected call of RequiresOnConflictTargetColumns.
+func (mr *MockDialectMockRecorder) RequiresOnConflictTargetColumns() *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "RequiresOnConflictTargetColumns", reflect.TypeOf((*MockDialect)(nil).RequiresOnConflictTargetColumns))
 }
 
 // SupportsArrays mocks base method.
@@ -304,6 +304,20 @@ func (m *MockDialect) SupportsStableVarianceOrderBy() bool {
 func (mr *MockDialectMockRecorder) SupportsStableVarianceOrderBy() *gomock.Call {
 	mr.mock.ctrl.T.Helper()
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "SupportsStableVarianceOrderBy", reflect.TypeOf((*MockDialect)(nil).SupportsStableVarianceOrderBy))
+}
+
+// SupportsUpsertUpdateAction mocks base method.
+func (m *MockDialect) SupportsUpsertUpdateAction() bool {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "SupportsUpsertUpdateAction")
+	ret0, _ := ret[0].(bool)
+	return ret0
+}
+
+// SupportsUpsertUpdateAction indicates an expected call of SupportsUpsertUpdateAction.
+func (mr *MockDialectMockRecorder) SupportsUpsertUpdateAction() *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "SupportsUpsertUpdateAction", reflect.TypeOf((*MockDialect)(nil).SupportsUpsertUpdateAction))
 }
 
 // SupportsVarianceAggregates mocks base method.
@@ -469,6 +483,18 @@ func (mr *MockDialectMockRecorder) WriteGroupKeysFrom(b, keysAlias, colAlias, sq
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "WriteGroupKeysFrom", reflect.TypeOf((*MockDialect)(nil).WriteGroupKeysFrom), b, keysAlias, colAlias, sqlType, values, params, paramIndex)
 }
 
+// WriteILikeCondition mocks base method.
+func (m *MockDialect) WriteILikeCondition(b *strings.Builder, source, column, placeholder string) {
+	m.ctrl.T.Helper()
+	m.ctrl.Call(m, "WriteILikeCondition", b, source, column, placeholder)
+}
+
+// WriteILikeCondition indicates an expected call of WriteILikeCondition.
+func (mr *MockDialectMockRecorder) WriteILikeCondition(b, source, column, placeholder any) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "WriteILikeCondition", reflect.TypeOf((*MockDialect)(nil).WriteILikeCondition), b, source, column, placeholder)
+}
+
 // WriteJSONRowColumn mocks base method.
 func (m *MockDialect) WriteJSONRowColumn(b *strings.Builder, alias, expr string) {
 	m.ctrl.T.Helper()
@@ -515,4 +541,42 @@ func (m *MockDialect) WriteJSONRowSuffixNoAlias(b *strings.Builder) {
 func (mr *MockDialectMockRecorder) WriteJSONRowSuffixNoAlias(b any) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "WriteJSONRowSuffixNoAlias", reflect.TypeOf((*MockDialect)(nil).WriteJSONRowSuffixNoAlias), b)
+}
+
+// WriteNotILikeCondition mocks base method.
+func (m *MockDialect) WriteNotILikeCondition(b *strings.Builder, source, column, placeholder string) {
+	m.ctrl.T.Helper()
+	m.ctrl.Call(m, "WriteNotILikeCondition", b, source, column, placeholder)
+}
+
+// WriteNotILikeCondition indicates an expected call of WriteNotILikeCondition.
+func (mr *MockDialectMockRecorder) WriteNotILikeCondition(b, source, column, placeholder any) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "WriteNotILikeCondition", reflect.TypeOf((*MockDialect)(nil).WriteNotILikeCondition), b, source, column, placeholder)
+}
+
+// WriteOnConflictTarget mocks base method.
+func (m *MockDialect) WriteOnConflictTarget(b *strings.Builder, constraintName string, conflictColumns []string) error {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "WriteOnConflictTarget", b, constraintName, conflictColumns)
+	ret0, _ := ret[0].(error)
+	return ret0
+}
+
+// WriteOnConflictTarget indicates an expected call of WriteOnConflictTarget.
+func (mr *MockDialectMockRecorder) WriteOnConflictTarget(b, constraintName, conflictColumns any) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "WriteOnConflictTarget", reflect.TypeOf((*MockDialect)(nil).WriteOnConflictTarget), b, constraintName, conflictColumns)
+}
+
+// WriteUpsertUpdateAction mocks base method.
+func (m *MockDialect) WriteUpsertUpdateAction(b *strings.Builder) {
+	m.ctrl.T.Helper()
+	m.ctrl.Call(m, "WriteUpsertUpdateAction", b)
+}
+
+// WriteUpsertUpdateAction indicates an expected call of WriteUpsertUpdateAction.
+func (mr *MockDialectMockRecorder) WriteUpsertUpdateAction(b any) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "WriteUpsertUpdateAction", reflect.TypeOf((*MockDialect)(nil).WriteUpsertUpdateAction), b)
 }

@@ -2,6 +2,7 @@ package arguments_test
 
 import (
 	"errors"
+	"slices"
 	"strings"
 	"testing"
 
@@ -10,6 +11,7 @@ import (
 
 	"github.com/nhost/nhost/services/constellation/connector/sql/graphql/queries/arguments"
 	"github.com/nhost/nhost/services/constellation/connector/sql/graphql/queries/arguments/mock"
+	"github.com/nhost/nhost/services/constellation/connector/sql/graphql/queries/dialect"
 	"github.com/nhost/nhost/services/constellation/connector/sql/graphql/queries/where"
 )
 
@@ -36,7 +38,7 @@ func TestOnConflict_ToSQL(t *testing.T) {
 			params []any
 		)
 
-		gotParams, gotIdx, err := oc.ToSQL(&b, params, 1)
+		gotParams, gotIdx, err := oc.ToSQL(&b, pgDialect(), params, 1)
 		if err != nil {
 			t.Fatalf("ToSQL: %v", err)
 		}
@@ -56,7 +58,7 @@ func TestOnConflict_ToSQL(t *testing.T) {
 		}
 
 		var b strings.Builder
-		if _, _, err := oc.ToSQL(&b, nil, 1); err != nil {
+		if _, _, err := oc.ToSQL(&b, pgDialect(), nil, 1); err != nil {
 			t.Fatalf("ToSQL: %v", err)
 		}
 
@@ -76,7 +78,7 @@ func TestOnConflict_ToSQL(t *testing.T) {
 		}
 
 		var b strings.Builder
-		if _, _, err := oc.ToSQL(&b, nil, 1); err != nil {
+		if _, _, err := oc.ToSQL(&b, pgDialect(), nil, 1); err != nil {
 			t.Fatalf("ToSQL: %v", err)
 		}
 
@@ -98,16 +100,17 @@ func TestOnConflict_ToSQL(t *testing.T) {
 			ConstraintName: "users_pkey",
 			UpdateColumns:  []string{"email"},
 			Where:          where.Clause{f},
+			TargetTableRef: `"public"."users"`,
 		}
 
 		var b strings.Builder
 
-		params, idx, err := oc.ToSQL(&b, nil, 1)
+		params, idx, err := oc.ToSQL(&b, pgDialect(), nil, 1)
 		if err != nil {
 			t.Fatalf("ToSQL: %v", err)
 		}
 
-		if !strings.Contains(b.String(), `EXCLUDED."is_active" = $1::bool`) {
+		if !strings.Contains(b.String(), `"public"."users"."is_active" = $1::bool`) {
 			t.Errorf("missing WHERE fragment: %q", b.String())
 		}
 
@@ -119,6 +122,203 @@ func TestOnConflict_ToSQL(t *testing.T) {
 			t.Errorf("paramIndex=%d want=2", idx)
 		}
 	})
+}
+
+func TestOnConflict_ToSQL_SQLiteEmptyConflictColumnsError(t *testing.T) {
+	t.Parallel()
+
+	oc := &arguments.OnConflict{
+		ConstraintName:  "users_username_key",
+		ConflictColumns: nil,
+		UpdateColumns:   []string{"email"},
+		Where:           nil,
+		TargetTableRef:  "",
+	}
+
+	var b strings.Builder
+
+	params, idx, err := oc.ToSQL(&b, &dialect.SQLiteDialect{}, nil, 1)
+	if err == nil {
+		t.Fatal("expected error")
+	}
+
+	if !errors.Is(err, arguments.ErrInvalidArgument) {
+		t.Errorf("error %v does not wrap ErrInvalidArgument", err)
+	}
+
+	if params != nil {
+		t.Errorf("params=%v want=nil on error", params)
+	}
+
+	if idx != 0 {
+		t.Errorf("paramIndex=%d want=0", idx)
+	}
+
+	if b.Len() != 0 {
+		t.Errorf("SQL builder got %q, want empty on error", b.String())
+	}
+}
+
+// stubWhereWriter builds an arguments.OnConflictWhereWriter that writes the
+// given fragment, appends the given params, advances paramIndex by len(params),
+// and reports hasCondition/err as configured. It lets the tests assert both the
+// emitted SQL and the parameter ordering deterministically.
+func stubWhereWriter(
+	fragment string, extraParams []any, hasCondition bool, err error,
+) arguments.OnConflictWhereWriter {
+	return func(
+		b *strings.Builder, params []any, paramIndex int,
+	) ([]any, int, bool, error) {
+		if err != nil {
+			return nil, 0, false, err
+		}
+
+		if !hasCondition {
+			return params, paramIndex, false, nil
+		}
+
+		b.WriteString(fragment)
+
+		params = append(params, extraParams...)
+
+		return params, paramIndex + len(extraParams), true, nil
+	}
+}
+
+// activeWhere is an oc.Where holding the single filter `is_active = $1::bool`.
+// It contributes one param (true) and one placeholder, so tests can assert that
+// the writer's params land after it.
+func activeWhere() where.Clause {
+	col := newColumn("is_active", "is_active", "bool")
+
+	return where.Clause{where.NewEqualsFilter(col, true, pgDialect())}
+}
+
+// TestOnConflict_ToSQLWithWhere covers the combined-WHERE assembly that only
+// runs when a non-nil OnConflictWhereWriter is supplied: the bare ` WHERE (...)`
+// form (no user-supplied oc.Where), the `<where> AND (...)` form (oc.Where
+// present), the hasCondition=false skip, and writer error propagation. It also
+// pins parameter ordering: any oc.Where params precede the writer's params.
+func TestOnConflict_ToSQLWithWhere(t *testing.T) {
+	t.Parallel()
+
+	const prefix = ` ON CONFLICT ON CONSTRAINT "users_pkey" DO UPDATE SET ` +
+		`"email" = EXCLUDED."email"`
+
+	// writerErr is the sentinel returned by the error-propagation case's writer.
+	writerErr := errors.New("writer boom") //nolint:err113 // test sentinel
+
+	tests := []struct {
+		name       string
+		ocWhere    where.Clause
+		writer     arguments.OnConflictWhereWriter
+		wantSQL    string
+		wantParams []any
+		wantIdx    int
+		wantErr    error
+	}{
+		{
+			name:       "writer predicate with empty oc.Where uses WHERE (...)",
+			ocWhere:    nil,
+			writer:     stubWhereWriter("name = $1", []any{"alice"}, true, nil),
+			wantSQL:    prefix + ` WHERE (name = $1)`,
+			wantParams: []any{"alice"},
+			wantIdx:    2,
+			wantErr:    nil,
+		},
+		{
+			// oc.Where's param (true) must precede the writer's param (alice).
+			name:       "writer predicate with non-empty oc.Where uses AND (...)",
+			ocWhere:    activeWhere(),
+			writer:     stubWhereWriter("name = $2", []any{"alice"}, true, nil),
+			wantSQL:    prefix + ` WHERE "public"."users"."is_active" = $1::bool AND (name = $2)`,
+			wantParams: []any{true, "alice"},
+			wantIdx:    3,
+			wantErr:    nil,
+		},
+		{
+			// fragment/params are ignored because hasCondition is false, so only
+			// oc.Where's clause and param survive.
+			name:       "writer hasCondition=false appends no extra clause",
+			ocWhere:    activeWhere(),
+			writer:     stubWhereWriter("name = $2", []any{"alice"}, false, nil),
+			wantSQL:    prefix + ` WHERE "public"."users"."is_active" = $1::bool`,
+			wantParams: []any{true},
+			wantIdx:    2,
+			wantErr:    nil,
+		},
+		{
+			name:       "writer error is propagated with nil/zero return",
+			ocWhere:    nil,
+			writer:     stubWhereWriter("name = $1", []any{"alice"}, true, writerErr),
+			wantSQL:    "",
+			wantParams: nil,
+			wantIdx:    0,
+			wantErr:    writerErr,
+		},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			t.Parallel()
+
+			oc := &arguments.OnConflict{
+				ConstraintName: "users_pkey",
+				UpdateColumns:  []string{"email"},
+				Where:          tt.ocWhere,
+				TargetTableRef: `"public"."users"`,
+			}
+
+			var b strings.Builder
+
+			params, idx, err := oc.ToSQLWithWhere(&b, pgDialect(), nil, 1, tt.writer)
+
+			if tt.wantErr != nil {
+				assertWriterError(t, tt.wantErr, params, idx, err)
+
+				return
+			}
+
+			if err != nil {
+				t.Fatalf("ToSQLWithWhere: %v", err)
+			}
+
+			if b.String() != tt.wantSQL {
+				t.Errorf("sql got=%q want=%q", b.String(), tt.wantSQL)
+			}
+
+			if !slices.Equal(params, tt.wantParams) {
+				t.Errorf("params=%v want=%v", params, tt.wantParams)
+			}
+
+			if idx != tt.wantIdx {
+				t.Errorf("paramIndex=%d want=%d", idx, tt.wantIdx)
+			}
+		})
+	}
+}
+
+// assertWriterError checks the contract of the writer error path: the error
+// wraps the sentinel and ToSQLWithWhere returns a nil params slice and a zeroed
+// paramIndex.
+func assertWriterError(t *testing.T, sentinel error, params []any, idx int, err error) {
+	t.Helper()
+
+	if err == nil {
+		t.Fatal("expected error from writer")
+	}
+
+	if !errors.Is(err, sentinel) {
+		t.Errorf("error %v does not wrap sentinel %v", err, sentinel)
+	}
+
+	if params != nil {
+		t.Errorf("params=%v want=nil on error path", params)
+	}
+
+	if idx != 0 {
+		t.Errorf("paramIndex=%d want=0 on error path", idx)
+	}
 }
 
 // TestOnConflict_ToSQL_WhereWriteConditionError covers the failure branch
@@ -136,7 +336,7 @@ func TestOnConflict_ToSQL_WhereWriteConditionError(t *testing.T) {
 
 	var b strings.Builder
 
-	_, _, err := oc.ToSQL(&b, nil, 1)
+	_, _, err := oc.ToSQL(&b, pgDialect(), nil, 1)
 	if err == nil {
 		t.Fatal("expected error from Where.WriteCondition failure")
 	}
@@ -179,6 +379,8 @@ func TestParseOnConflict(t *testing.T) {
 		tbl.EXPECT().ParseWhere(
 			gomock.Any(), gomock.Any(), "user", gomock.Any(), 0, where.QueryAliases,
 		).Return(where.Clause{}, nil)
+		tbl.EXPECT().ConflictColumns("users_pkey").Return([]string{"id"})
+		tbl.EXPECT().TableFromClause().Return(`"public"."users"`)
 
 		input := objectValue(
 			child("constraint", enumValue("users_pkey")),
@@ -203,8 +405,16 @@ func TestParseOnConflict(t *testing.T) {
 			t.Errorf("update columns=%v", got.UpdateColumns)
 		}
 
+		if !slices.Equal(got.ConflictColumns, []string{"id"}) {
+			t.Errorf("conflict columns=%v want=[id]", got.ConflictColumns)
+		}
+
 		if got.Where == nil {
 			t.Error("expected non-nil where")
+		}
+
+		if got.TargetTableRef != `"public"."users"` {
+			t.Errorf("target table ref=%q", got.TargetTableRef)
 		}
 	})
 
@@ -289,6 +499,77 @@ func TestParseOnConflict(t *testing.T) {
 			t.Errorf("error %v does not wrap ErrInvalidArgument", err)
 		}
 	})
+}
+
+func TestParseOnConflict_SQLiteEmptyConflictColumnsRejected(t *testing.T) {
+	t.Parallel()
+
+	ctrl := gomock.NewController(t)
+	tbl := mock.NewMockTable(ctrl)
+
+	tbl.EXPECT().ConflictColumns("users_missing_key").Return(nil)
+	tbl.EXPECT().Dialect().Return(&dialect.SQLiteDialect{})
+
+	input := objectValue(
+		child("constraint", enumValue("users_missing_key")),
+		child("update_columns", listValue()),
+	)
+
+	_, err := arguments.ParseOnConflict(
+		tbl,
+		&ast.Argument{Name: "on_conflict", Value: input},
+		nil, "user", nil,
+	)
+	if err == nil {
+		t.Fatal("expected error")
+	}
+
+	if !errors.Is(err, arguments.ErrInvalidArgument) {
+		t.Errorf("error %v does not wrap ErrInvalidArgument", err)
+	}
+
+	if !strings.Contains(err.Error(), "does not resolve to any conflict columns") {
+		t.Errorf("error %q missing conflict-column context", err.Error())
+	}
+}
+
+func TestParseOnConflict_VariableFields(t *testing.T) {
+	t.Parallel()
+
+	ctrl := gomock.NewController(t)
+	tbl := mock.NewMockTable(ctrl)
+
+	tbl.EXPECT().ColumnFromGraphqlName("email").Return(newColumn("email", "email_sql", "text"))
+	tbl.EXPECT().ColumnFromGraphqlName("name").Return(newColumn("name", "name_sql", "text"))
+	tbl.EXPECT().ConflictColumns("users_pkey").Return([]string{"id"})
+	tbl.EXPECT().TableFromClause().Return(`"public"."users"`)
+
+	input := objectValue(
+		child("constraint", variableValue("constraint")),
+		child("update_columns", variableValue("cols")),
+	)
+
+	got, err := arguments.ParseOnConflict(
+		tbl,
+		&ast.Argument{Name: "on_conflict", Value: input},
+		map[string]any{
+			"constraint": "users_pkey",
+			"cols":       []any{"email", "name"},
+		},
+		"user",
+		nil,
+	)
+	if err != nil {
+		t.Fatalf("ParseOnConflict: %v", err)
+	}
+
+	if got.ConstraintName != "users_pkey" {
+		t.Errorf("constraint=%q want=users_pkey", got.ConstraintName)
+	}
+
+	if !slices.Equal(got.UpdateColumns, []string{"email_sql", "name_sql"}) {
+		t.Errorf("update columns=%v", got.UpdateColumns)
+	}
 }
 
 // TestParseOnConflict_WhereParseError covers the branch where the inner

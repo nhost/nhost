@@ -37,9 +37,15 @@ type remoteQuery struct {
 
 	// parentPath is where localPhantomFields live (e.g. "games.homeTeam" for
 	// a "games.homeTeam.department" relationship).
-	parentPath          jsonpath.Path
-	localPhantomFields  []string
+	parentPath jsonpath.Path
+	// localPhantomFields stores source join columns; localJoinAliases maps any
+	// column injected under an internal alias to the actual response key.
+	localPhantomFields []string
+	localJoinAliases   map[string]string
+	// remotePhantomFields stores response keys to remove from remote results;
+	// remoteJoinAliases maps remote join columns to injected response keys.
 	remotePhantomFields []string
+	remoteJoinAliases   map[string]string
 
 	// resolver carries the strategy for type-specific operations. For
 	// grouped-aggregate queries this is nil; the executor uses the
@@ -162,9 +168,20 @@ func (rq *remoteQuery) removePhantomFieldsFromRemoteResults(results []any) {
 	}
 }
 
-// getLocalPhantomFields returns the local phantom fields.
+// getLocalPhantomFields returns the local phantom response keys to delete.
 func (rq *remoteQuery) getLocalPhantomFields() []string {
-	return rq.localPhantomFields
+	fields := make([]string, 0, len(rq.localPhantomFields))
+	for _, field := range rq.localPhantomFields {
+		if alias, ok := rq.localJoinAliases[field]; ok {
+			fields = append(fields, alias)
+
+			continue
+		}
+
+		fields = append(fields, field)
+	}
+
+	return fields
 }
 
 // getParentPath returns the parent path used to locate parent rows for stitching.

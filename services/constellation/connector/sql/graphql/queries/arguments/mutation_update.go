@@ -41,6 +41,19 @@ type Update struct {
 	Where where.Clause
 }
 
+// isEmpty reports whether no update operator targets any column. WHERE-only
+// update mutations are schema-valid, but they cannot produce a valid SQL SET
+// clause and must be rejected before execution.
+func (a Update) isEmpty() bool {
+	return len(a.Set) == 0 &&
+		len(a.Inc) == 0 &&
+		len(a.AppendJSONB) == 0 &&
+		len(a.PrependJSONB) == 0 &&
+		len(a.DeleteKey) == 0 &&
+		len(a.DeleteElem) == 0 &&
+		len(a.DeleteAtPath) == 0
+}
+
 // WriteSQL writes the SET clause of an UPDATE statement (all variants of the
 // update operators) using the given dialect for placeholders and type casts.
 func (a Update) WriteSQL( //nolint:funlen
@@ -267,7 +280,76 @@ func ParseUpdate( //nolint:cyclop,funlen,gocognit
 		return Update{}, fmt.Errorf("failed to apply update presets: %w", err)
 	}
 
+	if err := validateUpdateOperators(update); err != nil {
+		return Update{}, err
+	}
+
 	return update, nil
+}
+
+func validateUpdateOperators(update Update) error {
+	if update.isEmpty() {
+		return newEmptyUpdateError()
+	}
+
+	seen := make(map[string]struct{})
+	for _, col := range update.targetColumns() {
+		if err := checkDuplicateUpdateColumn(seen, col); err != nil {
+			return err
+		}
+	}
+
+	return nil
+}
+
+// targetColumns returns every SQL column targeted by an update operator, in the
+// same deterministic order WriteSQL emits assignments.
+func (a Update) targetColumns() []*core.Column {
+	columns := make(
+		[]*core.Column, 0,
+		len(a.Set)+len(a.Inc)+len(a.AppendJSONB)+len(a.PrependJSONB)+
+			len(a.DeleteKey)+len(a.DeleteElem)+len(a.DeleteAtPath),
+	)
+
+	columns = appendUpdateColumns(columns, a.Set)
+	columns = appendUpdateColumns(columns, a.Inc)
+	columns = appendUpdateColumns(columns, a.AppendJSONB)
+	columns = appendUpdateColumns(columns, a.PrependJSONB)
+	columns = appendUpdateColumns(columns, a.DeleteKey)
+	columns = appendUpdateColumns(columns, a.DeleteElem)
+
+	for _, col := range a.DeleteAtPath {
+		columns = append(columns, col.Column)
+	}
+
+	return columns
+}
+
+func appendUpdateColumns(columns []*core.Column, updateColumns []updateColumn) []*core.Column {
+	for _, col := range updateColumns {
+		columns = append(columns, col.Column)
+	}
+
+	return columns
+}
+
+func checkDuplicateUpdateColumn(seen map[string]struct{}, col *core.Column) error {
+	if col == nil {
+		return nil
+	}
+
+	if _, exists := seen[col.SQLName]; exists {
+		columnName := col.GraphqlName
+		if columnName == "" {
+			columnName = col.SQLName
+		}
+
+		return newDuplicateUpdateColumnError(columnName)
+	}
+
+	seen[col.SQLName] = struct{}{}
+
+	return nil
 }
 
 // ApplyUpdatePresets adds preset columns to the SET clause of an update
@@ -362,9 +444,20 @@ func ParseUpdateMany(
 	updates := make([]Update, 0, len(children))
 
 	for i, child := range children {
+		updateValue, err := values.ResolveVariable(child.Value, variables)
+		if err != nil {
+			return nil, fmt.Errorf("failed to resolve update at index %d: %w", i, err)
+		}
+
+		if updateValue.Kind != ast.ObjectValue {
+			return nil, fmt.Errorf(
+				"%w: update at index %d must be an object", ErrInvalidArgument, i,
+			)
+		}
+
 		// Convert object children to ArgumentList
-		argList := make(ast.ArgumentList, 0, len(child.Value.Children))
-		for _, grandChild := range child.Value.Children {
+		argList := make(ast.ArgumentList, 0, len(updateValue.Children))
+		for _, grandChild := range updateValue.Children {
 			argList = append(argList, &ast.Argument{ //nolint:exhaustruct
 				Name:  grandChild.Name,
 				Value: grandChild.Value,
@@ -443,6 +536,10 @@ func parseupdateColumnList(
 		return nil, fmt.Errorf("resolving update argument: %w", err)
 	}
 
+	if setValue.Kind == ast.NullValue {
+		return nil, nil
+	}
+
 	if setValue.Kind != ast.ObjectValue {
 		return nil, fmt.Errorf("%w: argument must be an object", ErrInvalidArgument)
 	}
@@ -486,6 +583,10 @@ func parseDeleteAtPathArgumentValue(
 	setValue, err := values.ResolveVariable(setValue, variables)
 	if err != nil {
 		return nil, fmt.Errorf("resolving _delete_at_path argument: %w", err)
+	}
+
+	if setValue.Kind == ast.NullValue {
+		return nil, nil
 	}
 
 	if setValue.Kind != ast.ObjectValue {

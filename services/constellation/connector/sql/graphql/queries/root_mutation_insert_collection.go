@@ -64,6 +64,7 @@ func (t *table) buildMutationInsertCollectionSQL(
 		SQL:           sql,
 		Parameters:    params,
 		StreamCursors: nil,
+		Sequential:    nil,
 	}, nil
 }
 
@@ -231,15 +232,19 @@ func (t *table) buildInsertWhereClause(
 	}
 }
 
-// buildInsertCTE builds the INSERT INTO ... RETURNING * CTE.
+// buildInsertCTE builds the INSERT INTO ... RETURNING CTE.
 func (t *table) buildInsertCTE(
 	b *strings.Builder,
 	cteName string,
+	checkCountBaseName string,
 	insertObj arguments.InsertObject,
 	onConflict *arguments.OnConflict,
+	plan upsertUpdateCheckPlan,
 	checkCTEName string,
 	nestedFKIndex arguments.NestedFKSources,
 	hasCheckPermissions bool,
+	role string,
+	sessionVariables map[string]any,
 	params []any,
 	paramIndex int,
 ) ([]any, int, error) {
@@ -252,18 +257,21 @@ func (t *table) buildInsertCTE(
 	t.buildInsertColumnsClause(b, columnNames)
 	t.buildInsertSelectClause(b, columnNames, checkCTEName, nestedFKIndex)
 	t.buildInsertFromClause(b, checkCTEName, nestedFKIndex)
-	t.buildInsertWhereClause(b, cteName, hasCheckPermissions)
+	t.buildInsertWhereClause(b, checkCountBaseName, hasCheckPermissions)
 
 	if onConflict != nil {
 		var err error
 
-		params, paramIndex, err = onConflict.ToSQL(b, params, paramIndex)
+		params, paramIndex, err = t.writeOnConflictSQL(
+			b, onConflict, role, sessionVariables, params, paramIndex,
+		)
 		if err != nil {
-			return nil, 0, err //nolint:wrapcheck
+			return nil, 0, err
 		}
 	}
 
-	b.WriteString(" RETURNING *)")
+	t.writeInsertReturning(b, plan)
+	b.WriteByte(')')
 
 	return params, paramIndex, nil
 }
@@ -289,7 +297,7 @@ func (t *table) buildSingleInsertCTE(
 	sessionVariables map[string]any,
 ) ([]any, int, error) {
 	presentCols := insertPresentColumns([]arguments.InsertObject{insertObj}, nestedFKIndex)
-	if t.requiresPostInsertCheck(role, presentCols) {
+	if t.requiresPostInsertCheck(role, presentCols, onConflict) {
 		return t.buildSingleInsertCTEPostCheck(
 			b, cteName, insertObj, onConflict, nestedFKIndex, tableSubs,
 			params, paramIndex, role, sessionVariables,
@@ -437,7 +445,7 @@ func (t *table) buildInsertMutationCTEBody(
 	paramIndex int,
 ) ([]any, int, error) {
 	presentCols := insertPresentColumns(insertObjs, nestedFKIndex)
-	if t.requiresPostInsertCheck(role, presentCols) {
+	if t.requiresPostInsertCheck(role, presentCols, onConflict) {
 		return t.buildInsertMutationCTEPostCheck(
 			b, insertObjs, allColumns, columnToValue,
 			nestedFKIndex, onConflict, role, sessionVariables, params, paramIndex,

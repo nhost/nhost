@@ -51,9 +51,14 @@ func buildRemoteQueryFromPlan(
 		return nil
 	}
 
-	var localPhantomFields []string
+	var (
+		localPhantomFields []string
+		localJoinAliases   map[string]string
+	)
+
 	if rqp.SourcePhantomFields != nil {
 		localPhantomFields = rqp.SourcePhantomFields.Fields
+		localJoinAliases = rqp.SourcePhantomFields.Aliases
 	}
 
 	// Grouped-aggregate cross-DB relationships bypass the resolver/operation
@@ -69,7 +74,9 @@ func buildRemoteQueryFromPlan(
 			fragments:           fragments,
 			parentPath:          rqp.SourcePath,
 			localPhantomFields:  localPhantomFields,
+			localJoinAliases:    localJoinAliases,
 			remotePhantomFields: nil,
+			remoteJoinAliases:   nil,
 			resolver:            nil,
 			aggregateInfo: &aggregateInfo{
 				targetTableSchema: rqp.TargetTableSchema,
@@ -95,7 +102,9 @@ func buildRemoteQueryFromPlan(
 		fragments:           fragments,
 		parentPath:          rqp.SourcePath,
 		localPhantomFields:  localPhantomFields,
+		localJoinAliases:    localJoinAliases,
 		remotePhantomFields: nil, // Set by resolver during BuildOperation.
+		remoteJoinAliases:   nil, // Set by resolver during BuildOperation when needed.
 		resolver:            resolver,
 		aggregateInfo:       nil,
 	}
@@ -119,7 +128,15 @@ func extractJoinArgumentsFromPlan(
 	sourceColumns := getSourceColumns(rqp)
 	sort.Strings(sourceColumns)
 
-	return buildJoinArguments(rows, sourceColumns)
+	return buildJoinArguments(rows, sourceColumns, sourceColumnAliases(rqp))
+}
+
+func sourceColumnAliases(rqp *planner.RemoteQueryPlan) map[string]string {
+	if rqp.SourcePhantomFields == nil || len(rqp.SourcePhantomFields.Aliases) == 0 {
+		return nil
+	}
+
+	return rqp.SourcePhantomFields.Aliases
 }
 
 // getSourceColumns returns the source columns for join key building.
@@ -144,6 +161,7 @@ func getSourceColumns(rqp *planner.RemoteQueryPlan) []string {
 func buildJoinArguments(
 	rows []map[string]any,
 	sourceColumns []string,
+	sourceColumnAliases map[string]string,
 ) []*remoteJoinArgument {
 	seen := make(map[string]struct{})
 
@@ -155,7 +173,12 @@ func buildJoinArguments(
 		hasNull := false
 
 		for _, sourceCol := range sourceColumns {
-			val := row[sourceCol]
+			lookupKey := sourceCol
+			if alias, ok := sourceColumnAliases[sourceCol]; ok {
+				lookupKey = alias
+			}
+
+			val := row[lookupKey]
 			if val == nil {
 				hasNull = true
 

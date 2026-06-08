@@ -1,6 +1,6 @@
-import { useFormContext, useFormState, useWatch } from 'react-hook-form';
-import { ControlledSelect } from '@/components/form/ControlledSelect';
-import { Option } from '@/components/ui/v2/Option';
+import { useFormContext, useWatch } from 'react-hook-form';
+import { FormSelect } from '@/components/form/FormSelect';
+import { SelectItem } from '@/components/ui/v3/select';
 import type { NormalizedQueryDataRow } from '@/features/orgs/projects/database/dataGrid/types/dataBrowser';
 import type { BaseForeignKeySchemaValues } from './BaseForeignKeyForm';
 
@@ -14,8 +14,7 @@ export interface ReferencedTableSelectProps {
 export default function ReferencedTableSelect({
   options,
 }: ReferencedTableSelectProps) {
-  const { setValue } = useFormContext<BaseForeignKeySchemaValues>();
-  const { errors } = useFormState({ name: 'referencedTable' });
+  const { control, setValue } = useFormContext<BaseForeignKeySchemaValues>();
   const columnName = useWatch({ name: 'columnName' });
   const referencedSchema = useWatch({ name: 'referencedSchema' });
 
@@ -24,30 +23,26 @@ export default function ReferencedTableSelect({
     .map(({ table_name: tableName }) => tableName);
 
   return (
-    <ControlledSelect
-      id="referencedTable"
+    <FormSelect
+      control={control}
       name="referencedTable"
       label="Table"
-      fullWidth
-      disabled={!columnName || !referencedSchema}
       placeholder="Select a table"
-      slotProps={{ listbox: { className: 'max-h-[13rem]' } }}
-      hideEmptyHelperText
-      error={Boolean(errors.referencedTable)}
-      helperText={
-        typeof errors.referencedTable?.message === 'string'
-          ? errors.referencedTable?.message
-          : ''
-      }
-      onChange={() => {
-        setValue('referencedColumn', '');
+      disabled={!columnName || !referencedSchema}
+      contentClassName="z-[1400]"
+      transform={{
+        in: (value: string) => value ?? '',
+        out: (value: string) => {
+          setValue('referencedColumn', '');
+          return value;
+        },
       }}
     >
       {availableTablesInSelectedSchema.map((name) => (
-        <Option value={name} key={name}>
+        <SelectItem value={name} key={name}>
           {name}
-        </Option>
+        </SelectItem>
       ))}
-    </ControlledSelect>
+    </FormSelect>
   );
 }

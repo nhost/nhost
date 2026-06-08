@@ -1,9 +1,9 @@
 import { CircleHelp as QuestionMarkCircleIcon } from 'lucide-react';
+import Link from 'next/link';
 import { useFormContext } from 'react-hook-form';
 import { Box } from '@/components/ui/v2/Box';
 import { Input } from '@/components/ui/v2/Input';
 import { InputLabel } from '@/components/ui/v2/InputLabel';
-import { Link } from '@/components/ui/v2/Link';
 import type { EditRepositorySettingsFormData } from '@/features/orgs/projects/git/common/components/EditRepositorySettings';
 
 export interface EditRepositoryAndBranchSettingsProps {
@@ -58,8 +58,8 @@ export default function EditRepositoryAndBranchSettings({
                   href="https://docs.nhost.io/platform/cloud/deployments#base-directory"
                   rel="noopener noreferrer"
                   target="_blank"
-                  underline="none"
                   aria-label="Base Directory Documentation"
+                  className="text-primary"
                 >
                   <QuestionMarkCircleIcon className="h-4 w-4" />
                 </Link>

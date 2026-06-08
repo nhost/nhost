@@ -186,6 +186,17 @@ CREATE UNIQUE INDEX oauth2_refresh_tokens_token_hash_key
     ON oauth2_refresh_tokens(token_hash);
 
 -- ===========================================================================
+-- identity schema
+-- ===========================================================================
+
+CREATE TABLE artists (
+    id UUID NOT NULL PRIMARY KEY,
+    stage_name TEXT NOT NULL,
+    created_by UUID NOT NULL,
+    FOREIGN KEY (created_by) REFERENCES users(id)
+);
+
+-- ===========================================================================
 -- public schema
 -- ===========================================================================
 

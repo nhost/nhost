@@ -1,3 +1,32 @@
+## [@nhost/dashboard@2.65.1] - 2026-06-05
+
+### 🐛 Bug Fixes
+
+- *(dashboard)* Schema diagram edge routing, arrowheads, and stable layout (#4430)
+- *(dashboard)* Improve logs page (#4260)
+- *(dashboard)* Create Combobox component to replace AutoComplete(v2) (#4436)
+- *(dashboard)* Stabilize flaky e2e tests (#4443)
+- *(dashboard)* Migrate Foreign key form to v3 (#4413)
+- *(dashboard)* Await metadata builder when tracking foreign keys locally (#4452)
+
+
+### ⚙️ Miscellaneous Tasks
+
+- *(ci)* Improvements (#4433)
+
+## [@nhost/dashboard@2.65.0] - 2026-06-03
+
+### 🚀 Features
+
+- *(dashboard)* Migrate onboarding pages to v3/spinner (#4391)
+
+
+### 🐛 Bug Fixes
+
+- *(dashboard)* Align schema diagram node selection border with card height (#4425)
+- *(dashboard)* Migrate permission form to v3 (#4368)
+- *(dashboard)* Use next/link instead of Linkv2 (#4369)
+
 ## [@nhost/dashboard@2.64.0] - 2026-06-02
 
 ### 🚀 Features

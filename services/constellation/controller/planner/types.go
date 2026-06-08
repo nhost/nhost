@@ -90,6 +90,11 @@ type PhantomFieldSpec struct {
 	// Fields are the field names to add (e.g., ["user_id", "department_id"]).
 	Fields []string
 
+	// Aliases maps field names to the internal response key that should be used
+	// when injecting the phantom field. An absent entry means the field can be
+	// injected without an alias.
+	Aliases map[string]string
+
 	// ForRelationship identifies which relationship needs these phantom fields.
 	ForRelationship string
 }

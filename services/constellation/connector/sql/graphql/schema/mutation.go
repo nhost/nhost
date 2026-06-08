@@ -14,11 +14,19 @@ import (
 // Views participate in the schema as read-or-write relations depending on
 // what the database itself allows. Postgres exposes that decision via
 // information_schema.views.is_insertable_into / is_updatable; SQLite views
-// are read-only unless an INSTEAD OF trigger exists (we conservatively treat
-// every SQLite view as read-only). The IsInsertable / IsUpdatable flags on
-// tableInfo capture those decisions and gate the corresponding mutations —
-// even for admin, since admin's "unconditional CRUD" is itself conditional
-// on the database accepting the write.
+// are read-only unless an INSTEAD OF trigger exists, in which case the
+// introspector detects the trigger and reports the view as writable (see
+// getViewMutability in connector/sql/sqlite/introspect.go). The IsInsertable
+// / IsUpdatable flags on tableInfo capture those decisions for both backends
+// and gate the corresponding mutations — even for admin, since admin's
+// "unconditional CRUD" is itself conditional on the database accepting the
+// write.
+//
+// Note: a writable SQLite view does get mutation fields here, but those
+// generated writes currently fail at execution time because the SQL pipeline
+// wraps DML in PostgreSQL-only data-modifying CTEs ("WITH ... AS (<DML> ...
+// RETURNING *)") that SQLite cannot parse. That is a runtime-execution gap,
+// separate from the field-generation gating this function performs.
 func generateTableMutationFields(
 	mutationFields *[]*graph.Field,
 	tableMeta *metadata.TableMetadata,

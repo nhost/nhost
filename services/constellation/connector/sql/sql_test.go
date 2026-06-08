@@ -451,6 +451,81 @@ func TestNewConnector_KitchenSinkInconsistencies(t *testing.T) {
 	}
 }
 
+func TestNewConnector_RecordsInvalidHasuraRemoteRelationshipType(t *testing.T) {
+	t.Parallel()
+
+	meta, err := metadata.FromHasuraJSON([]byte(`{
+		"version": 3,
+		"sources": [{
+			"name": "default",
+			"kind": "postgres",
+			"configuration": {
+				"connection_info": {"database_url": "postgres://localhost/db"}
+			},
+			"tables": [{
+				"table": {"name": "orders", "schema": "public"},
+				"remote_relationships": [{
+					"name": "customer",
+					"definition": {
+						"to_source": {
+							"field_mapping": {"customer_id": "id"},
+							"relationship_type": "typo",
+							"source": "customers_db",
+							"table": {"name": "customers", "schema": "public"}
+						}
+					}
+				}]
+			}]
+		}]
+	}`))
+	if err != nil {
+		t.Fatalf("FromHasuraJSON: %v", err)
+	}
+
+	objs := introspection.NewObjects()
+	objs.Schemas["public"] = &introspection.Schema{
+		Tables: map[string]*introspection.Table{
+			"orders": {
+				Schema:       "public",
+				Name:         "orders",
+				IsInsertable: true,
+				IsUpdatable:  true,
+				Columns: []introspection.Column{
+					{Name: "id", Type: "uuid"},
+					{Name: "customer_id", Type: "uuid"},
+				},
+				PrimaryKeys: []string{"id"},
+			},
+		},
+	}
+
+	ctrl := gomock.NewController(t)
+	driver := mock.NewMockDriver(ctrl)
+	driver.EXPECT().Dialect().Return(&dialect.PostgresDialect{}).AnyTimes()
+	driver.EXPECT().Introspect(gomock.Any(), gomock.Any()).Return(objs, nil)
+	driver.EXPECT().Close().AnyTimes()
+
+	inc := metadata.NewInconsistencies()
+
+	conn, err := csql.NewConnector(t.Context(), driver, &meta.Databases[0], inc, nil)
+	if err != nil {
+		t.Fatalf("NewConnector: %v", err)
+	}
+
+	t.Cleanup(func() { conn.Close() })
+
+	for _, item := range inc.Snapshot() {
+		if item.Kind == metadata.InconsistencyKindRelationship &&
+			item.Source == "default" &&
+			item.Name == "public.orders.customer" &&
+			strings.Contains(item.Reason, "invalid to_source relationship_type") {
+			return
+		}
+	}
+
+	t.Fatalf("expected invalid relationship_type inconsistency, got %+v", inc.Snapshot())
+}
+
 func TestConnector_Close(t *testing.T) {
 	t.Parallel()
 

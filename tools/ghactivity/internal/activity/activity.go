@@ -38,10 +38,15 @@ const (
 
 // Report is the bucketed result of a collection run.
 type Report struct {
+	User  string
+	Since time.Time
+	Until time.Time
+
 	InProgress     []Item
 	ReadyForReview []Item
 	Blocked        []Item
 	ClosedOrMerged []Item
+	Reviewed       []Item
 	Uncategorized  []Item
 }
 
@@ -253,10 +258,14 @@ func runSearch(
 
 func categorise(nodes []searchNode, p Params) *Report {
 	r := &Report{
+		User:           p.User,
+		Since:          p.Since,
+		Until:          p.Until,
 		InProgress:     nil,
 		ReadyForReview: nil,
 		Blocked:        nil,
 		ClosedOrMerged: nil,
+		Reviewed:       nil,
 		Uncategorized:  nil,
 	}
 	for _, n := range nodes {
@@ -282,8 +291,8 @@ func classifyPR(n searchNode, p Params, r *Report) {
 
 	isAuthor := n.Author != nil && strings.EqualFold(n.Author.Login, p.User)
 
-	// 1. Closed or merged in window.
-	if inWindow(n.MergedAt, p) || inWindow(n.ClosedAt, p) {
+	// 1. Authored by user and closed or merged in window.
+	if isAuthor && (inWindow(n.MergedAt, p) || inWindow(n.ClosedAt, p)) {
 		r.ClosedOrMerged = append(r.ClosedOrMerged, item)
 		return
 	}
@@ -308,12 +317,12 @@ func classifyPR(n searchNode, p Params, r *Report) {
 		return
 	}
 
-	// 5. Uncategorized: any other in-window PR activity by the user (reviews
+	// 5. Reviewed: any other in-window PR activity by the user (reviews
 	// or comments). The search uses `updated:Since..Until`, which matches
 	// third-party updates too, so we require an actual user signal — being
 	// non-authored is not enough on its own.
 	if hasUserTimelineActivity(n.TimelineItems.Nodes, p) {
-		r.Uncategorized = append(r.Uncategorized, item)
+		r.Reviewed = append(r.Reviewed, item)
 	}
 }
 

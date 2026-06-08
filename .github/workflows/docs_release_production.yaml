@@ -5,6 +5,9 @@ on:
       - main
     paths:
       - '.github/workflows/docs_release_production.yaml'
+      - '.github/workflows/wf_deploy_vercel.yaml'
+      - '.github/actions/cache-nix/**'
+      - '.github/actions/vercel-deploy-nix/**'
       - 'flake.nix'
       - 'flake.lock'
       - 'nixops/**'
@@ -18,6 +21,10 @@ on:
       - "pnpm-lock.yaml"
       - "turbo.json"
       - "docs/**"
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
 
 jobs:
   deploy-vercel:

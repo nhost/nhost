@@ -171,9 +171,10 @@ type Secret struct {
 	// Type names the signing algorithm. Required when using a static key
 	// (Type+Key form); omit when using JWKURL.
 	Type Algorithm `json:"type,omitempty"`
-	// Key is the signing key material for the static form: a raw or
-	// base64-encoded shared secret for HS*, or a PEM-encoded RSA public key
-	// for RS*. Required when Type is set; omit when using JWKURL.
+	// Key is the signing key material for the static form: the raw shared
+	// secret, used as its UTF-8 bytes to match Hasura/Nhost Auth, for HS*, or a
+	// PEM-encoded RSA public key for RS*. Required when Type is set; omit when
+	// using JWKURL.
 	Key string `json:"key,omitempty"`
 	// Kid pins validation to a specific key ID. Optional; when set, JWTs
 	// without a matching `kid` header are rejected. Applies to both JWKURL

@@ -701,6 +701,18 @@ func (s *Store) HasInsertCheck(role string) bool {
 	return found
 }
 
+// HasNonEmptyInsertCheck reports whether role has a non-empty insert-check
+// predicate. An empty clause (Hasura's `check: {}` / `check: null`) is treated
+// as "no insert constraint" because WriteInsertCheckSubstituted writes "true"
+// and reports hasCheck=false for it, so no all-or-nothing CTE is emitted.
+// Callers use this to decide whether an upsert must route through the
+// post-mutation check path so the insert check is scoped to inserted rows;
+// mirrors HasUpdateCheck.
+func (s *Store) HasNonEmptyInsertCheck(role string) bool {
+	clause, found := s.Insert[role]
+	return found && len(clause) > 0
+}
+
 // HasUpdateFilter reports whether role has any update permission entry.
 func (s *Store) HasUpdateFilter(role string) bool {
 	_, found := s.Update[role]

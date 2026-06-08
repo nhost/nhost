@@ -4,7 +4,9 @@ import { expect, test } from '@/e2e/fixtures/auth-hook';
 test('should be able to create then delete a personal access token', async ({
   authenticatedNhostPage: page,
 }) => {
-  await page.waitForTimeout(1000);
+  await expect(
+    page.getByRole('banner').getByRole('button').last(),
+  ).toBeVisible();
   await page.getByRole('banner').getByRole('button').last().click();
   await page.getByRole('link', { name: /account settings/i }).click();
   await page

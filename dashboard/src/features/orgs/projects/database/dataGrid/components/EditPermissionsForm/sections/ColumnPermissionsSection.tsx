@@ -1,9 +1,9 @@
 import { useFormContext, useWatch } from 'react-hook-form';
 import { HighlightedText } from '@/components/presentational/HighlightedText';
-import { ActivityIndicator } from '@/components/ui/v2/ActivityIndicator';
-import { Button } from '@/components/ui/v2/Button';
-import { Checkbox } from '@/components/ui/v2/Checkbox';
-import { Text } from '@/components/ui/v2/Text';
+import { Button } from '@/components/ui/v3/button';
+import { Checkbox } from '@/components/ui/v3/checkbox';
+import { Label } from '@/components/ui/v3/label';
+import { Spinner } from '@/components/ui/v3/spinner';
 import {
   Tooltip,
   TooltipContent,
@@ -46,8 +46,7 @@ export default function ColumnPermissionsSection({
   table,
   availableComputedFields = [],
 }: ColumnPermissionsSectionProps) {
-  const { register, setValue } =
-    useFormContext<RolePermissionEditorFormValues>();
+  const { setValue } = useFormContext<RolePermissionEditorFormValues>();
   const selectedColumns = useWatch({ name: 'columns' }) as string[];
   const selectedComputedFields = useWatch({ name: 'computedFields' }) as
     | string[]
@@ -84,14 +83,16 @@ export default function ColumnPermissionsSection({
   return (
     <PermissionSettingsSection title={`Column ${action} permissions`}>
       <div className="grid grid-flow-col items-center justify-between gap-2">
-        <Text>
+        <p>
           Allow role <HighlightedText>{role}</HighlightedText> to{' '}
           <HighlightedText>{action}</HighlightedText> columns:
-        </Text>
+        </p>
 
         <Button
-          variant="borderless"
-          size="small"
+          type="button"
+          variant="ghost"
+          size="sm"
+          className="text-primary"
           onClick={() => {
             if (isAllSelected) {
               setValue('columns', []);
@@ -115,9 +116,7 @@ export default function ColumnPermissionsSection({
         </Button>
       </div>
 
-      {tableStatus === 'loading' && (
-        <ActivityIndicator label="Loading columns..." />
-      )}
+      {tableStatus === 'loading' && <Spinner>Loading columns...</Spinner>}
 
       {tableStatus === 'success' && (
         <div className="flex flex-row flex-wrap items-center justify-start gap-6">
@@ -129,16 +128,14 @@ export default function ColumnPermissionsSection({
               return (
                 <Tooltip key={column.column_name}>
                   <TooltipTrigger asChild>
-                    <span className="inline-block cursor-not-allowed">
-                      <Checkbox
-                        className="pointer-events-none"
-                        value={column.column_name}
-                        label={column.column_name}
-                        checked={selectedColumns.includes(column.column_name)}
-                        disabled
-                        {...register('columns')}
-                      />
-                    </span>
+                    <Label
+                      htmlFor={`column-${column.column_name}`}
+                      className="flex cursor-not-allowed flex-row-reverse items-center justify-center gap-2"
+                    >
+                      {column.column_name}
+
+                      <Checkbox id={`column-${column.column_name}`} disabled />
+                    </Label>
                   </TooltipTrigger>
                   <TooltipContent>
                     Generated column — value is computed by Postgres, can't be{' '}
@@ -149,39 +146,68 @@ export default function ColumnPermissionsSection({
             }
 
             return (
-              <Checkbox
-                key={column.column_name}
-                value={column.column_name}
-                label={column.column_name}
-                checked={selectedColumns.includes(column.column_name)}
-                {...register('columns')}
-              />
+              <div key={column.column_name} className="flex items-center gap-2">
+                <Checkbox
+                  id={`column-${column.column_name}`}
+                  checked={selectedColumns.includes(column.column_name)}
+                  onCheckedChange={(c) =>
+                    setValue(
+                      'columns',
+                      c
+                        ? [...selectedColumns, column.column_name]
+                        : selectedColumns.filter(
+                            (v) => v !== column.column_name,
+                          ),
+                      { shouldDirty: true },
+                    )
+                  }
+                />
+                <Label
+                  htmlFor={`column-${column.column_name}`}
+                  className="cursor-pointer"
+                >
+                  {column.column_name}
+                </Label>
+              </div>
             );
           })}
           {showComputedFields &&
             availableComputedFields.map((fieldName) => (
-              <Checkbox
-                value={fieldName}
-                label={
+              <div
+                key={`computed-${fieldName}`}
+                className="flex items-center gap-2"
+              >
+                <Checkbox
+                  id={`computed-${fieldName}`}
+                  checked={selectedComputedFields?.includes(fieldName) ?? false}
+                  onCheckedChange={(c) => {
+                    const current = selectedComputedFields ?? [];
+                    setValue(
+                      'computedFields',
+                      c
+                        ? [...current, fieldName]
+                        : current.filter((v) => v !== fieldName),
+                      { shouldDirty: true },
+                    );
+                  }}
+                />
+                <Label htmlFor={`computed-${fieldName}`}>
                   <Tooltip>
                     <TooltipTrigger asChild>
                       <span className="italic">{fieldName}</span>
                     </TooltipTrigger>
                     <TooltipContent>Computed field</TooltipContent>
                   </Tooltip>
-                }
-                key={`computed-${fieldName}`}
-                checked={selectedComputedFields?.includes(fieldName) ?? false}
-                {...register('computedFields')}
-              />
+                </Label>
+              </div>
             ))}
         </div>
       )}
 
-      <Text variant="subtitle1">
+      <p className="text-muted-foreground">
         For <strong>relationships</strong>, set permissions for the
         corresponding tables/views.
-      </Text>
+      </p>
     </PermissionSettingsSection>
   );
 }

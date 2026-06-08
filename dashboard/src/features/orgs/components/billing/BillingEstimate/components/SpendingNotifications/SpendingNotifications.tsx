@@ -4,7 +4,7 @@ import { useForm } from 'react-hook-form';
 import * as Yup from 'yup';
 import { ActivityIndicator } from '@/components/ui/v2/ActivityIndicator';
 import { Switch } from '@/components/ui/v2/Switch';
-import { Button } from '@/components/ui/v3/button';
+import { ButtonWithLoading } from '@/components/ui/v3/button';
 import {
   Form,
   FormControl,
@@ -300,17 +300,14 @@ export default function SpendingNotifications() {
               </>
             )}
             <div className="flex flex-1 flex-col justify-end">
-              <Button
+              <ButtonWithLoading
                 type="submit"
                 className="h-fit self-end"
                 disabled={!form.formState.isDirty || !isAdmin}
+                loading={form.formState.isSubmitting}
               >
-                {form.formState.isSubmitting ? (
-                  <ActivityIndicator className="text-sm" />
-                ) : (
-                  'Save'
-                )}
-              </Button>
+                Save
+              </ButtonWithLoading>
             </div>
           </div>
         </div>

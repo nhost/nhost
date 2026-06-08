@@ -1,6 +1,5 @@
 {
   pkgs,
-  nix-filter,
   nixops-lib,
 }:
 let
@@ -11,22 +10,25 @@ let
   created = "1970-01-01T00:00:00Z";
 
   # source files needed for the build
-  src = nix-filter.lib.filter {
-    root = ../..;
-    include = with nix-filter.lib; [
-      ".golangci.yaml"
-      "govulncheck.yaml"
-      "go.mod"
-      "go.sum"
-      (and (inDirectory "lib") (matchExt "go"))
-      (inDirectory "vendor")
-      isDirectory
-      "${submodule}/directive/sql/sqlc.yaml"
-      "${submodule}/directive/sql/query.sql"
-      "services/console-next/schema.sql"
-      (and (inDirectory submodule) (matchExt "go"))
-    ];
-  };
+  src =
+    let
+      fs = pkgs.lib.fileset;
+    in
+    fs.toSource {
+      root = ../..;
+      fileset = fs.unions [
+        ../../.golangci.yaml
+        ../../govulncheck.yaml
+        ../../go.mod
+        ../../go.sum
+        (fs.fileFilter (file: file.hasExt "go") ../../lib)
+        ../../vendor
+        ../../${submodule}/directive/sql/sqlc.yaml
+        ../../${submodule}/directive/sql/query.sql
+        ../../services/console-next/schema.sql
+        (fs.fileFilter (file: file.hasExt "go") ../../${submodule})
+      ];
+    };
 
   checkDeps = with pkgs; [
     sqlc

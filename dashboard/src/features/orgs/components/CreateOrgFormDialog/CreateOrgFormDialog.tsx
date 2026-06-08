@@ -1,13 +1,12 @@
 import { zodResolver } from '@hookform/resolvers/zod';
 import { DialogDescription } from '@radix-ui/react-dialog';
-import { ExternalLink as ArrowSquareOutIcon, Plus } from 'lucide-react';
+import { Plus } from 'lucide-react';
 import { useRouter } from 'next/router';
 import { useState } from 'react';
 import { useForm } from 'react-hook-form';
 import { z } from 'zod';
 import { ActivityIndicator } from '@/components/ui/v2/ActivityIndicator';
-import { Link } from '@/components/ui/v2/Link';
-import { Button } from '@/components/ui/v3/button';
+import { Button, ButtonWithLoading } from '@/components/ui/v3/button';
 import {
   Dialog,
   DialogContent,
@@ -33,6 +32,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from '@/components/ui/v3/select';
+import { TextLink } from '@/components/ui/v3/text-link';
 import {
   Tooltip,
   TooltipContent,
@@ -222,16 +222,13 @@ function CreateOrgForm({
                         </div>
                       </div>
 
-                      <Link
+                      <TextLink
                         href="mailto:hello@nhost.io"
-                        target="_blank"
-                        rel="noopener noreferrer"
-                        underline="hover"
+                        external
                         className="font-medium"
                       >
                         Contact us
-                        <ArrowSquareOutIcon className="ml-1 h-4 w-4" />
-                      </Link>
+                      </TextLink>
                     </div>
                   </div>
                 </RadioGroup>
@@ -250,13 +247,12 @@ function CreateOrgForm({
           >
             Cancel
           </Button>
-          <Button type="submit" disabled={form.formState.isSubmitting}>
-            {form.formState.isSubmitting ? (
-              <ActivityIndicator />
-            ) : (
-              'Create organization'
-            )}
-          </Button>
+          <ButtonWithLoading
+            type="submit"
+            loading={form.formState.isSubmitting}
+          >
+            Create organization
+          </ButtonWithLoading>
         </div>
       </form>
     </Form>

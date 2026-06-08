@@ -18,7 +18,8 @@ import (
 	"github.com/nhost/nhost/services/storage/middleware"
 )
 
-func deptr[T any](v *T) T { //nolint:ireturn
+//nolint:ireturn // generic helper returns the caller-selected type parameter.
+func deptr[T any](v *T) T {
 	if v == nil {
 		var zero T
 		return zero
@@ -279,7 +280,7 @@ func (ctrl *Controller) processFileToDownload(
 	}, nil
 }
 
-func (ctrl *Controller) getFileResponse( //nolint: ireturn,dupl,funlen
+func (ctrl *Controller) getFileResponse( //nolint:dupl,funlen,ireturn
 	ctx context.Context,
 	file *processedFile,
 	logger *slog.Logger,

@@ -11,6 +11,7 @@ import (
 
 	"github.com/google/go-cmp/cmp"
 	"github.com/google/go-cmp/cmp/cmpopts"
+	"github.com/jackc/pgx/v5"
 	"github.com/jackc/pgx/v5/pgconn"
 	"github.com/jackc/pgx/v5/pgxpool"
 	"github.com/vektah/gqlparser/v2/ast"
@@ -140,9 +141,17 @@ func normalizeValue(v any) any {
 
 func normalize(ops []core.SQLOperation) {
 	for i := range ops {
-		for j := range ops[i].Parameters {
-			ops[i].Parameters[j] = normalizeValue(ops[i].Parameters[j])
-		}
+		normalizeOperation(&ops[i])
+	}
+}
+
+func normalizeOperation(op *core.SQLOperation) {
+	for j := range op.Parameters {
+		op.Parameters[j] = normalizeValue(op.Parameters[j])
+	}
+
+	for i := range op.Sequential {
+		normalizeOperation(&op.Sequential[i])
 	}
 }
 
@@ -156,6 +165,34 @@ func execureOperation(
 		t.Fatalf("failed to begin transaction: %v", err)
 	}
 	defer tx.Rollback(t.Context()) //nolint:errcheck
+
+	return executeOperationRows(t, tx, operation)
+}
+
+func executeOperationRows(t *testing.T, tx pgx.Tx, operation core.SQLOperation) any {
+	t.Helper()
+
+	if len(operation.Sequential) > 0 {
+		row := make([]any, 0, len(operation.Sequential))
+		for _, op := range operation.Sequential {
+			child := executeOperationRows(t, tx, op)
+
+			childRows, ok := child.([]any)
+			if !ok {
+				return child
+			}
+
+			if len(childRows) == 0 {
+				row = append(row, nil)
+
+				continue
+			}
+
+			row = append(row, childRows[0])
+		}
+
+		return []any{row}
+	}
 
 	r, err := tx.Query(t.Context(), operation.SQL, operation.Parameters...)
 	if err != nil {

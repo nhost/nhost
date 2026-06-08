@@ -102,8 +102,7 @@ test('should create a table with role permissions and a custom check to select r
 
   await expect(page.getByText(/_eq/i)).toBeVisible();
 
-  // limit on number of rows fetched per request.
-  await page.locator('#limit').fill('100');
+  await page.getByLabel('Limit number of rows').fill('100');
 
   await page.getByText('Select variable...', { exact: true }).click();
 

@@ -34,6 +34,74 @@ func tableMetaFor(name string) metadata.TableMetadata {
 	return metadata.TableMetadata{Table: metadata.TableSource{Schema: "public", Name: name}}
 }
 
+func TestBuildRoots_NonPublicTableUsesSchemaQualifiedDefaultRootNames(t *testing.T) {
+	t.Parallel()
+
+	objects := introspection.NewObjects()
+	objects.Schemas["identity"] = &introspection.Schema{
+		Tables: map[string]*introspection.Table{
+			"artists": {
+				Schema:      "identity",
+				Name:        "artists",
+				Columns:     []introspection.Column{{Name: "id", Type: "uuid"}},
+				PrimaryKeys: []string{"id"},
+			},
+		},
+	}
+	md := &metadata.DatabaseMetadata{
+		Tables: []metadata.TableMetadata{{
+			Table: metadata.TableSource{Schema: "identity", Name: "artists"},
+		}},
+	}
+
+	roots, _, err := queries.BuildRoots(objects, md, &dialect.PostgresDialect{})
+	if err != nil {
+		t.Fatalf("unexpected error: %v", err)
+	}
+
+	assertRoot := func(kind queries.OperationKind, name string) {
+		t.Helper()
+
+		ops, ok := roots.Operations[kind]
+		if !ok {
+			t.Fatalf("missing operation kind %q", kind)
+		}
+
+		if _, ok := ops[name]; !ok {
+			t.Errorf("missing %s root %q", kind, name)
+		}
+	}
+
+	assertAbsentRoot := func(kind queries.OperationKind, name string) {
+		t.Helper()
+
+		ops, ok := roots.Operations[kind]
+		if !ok {
+			t.Fatalf("missing operation kind %q", kind)
+		}
+
+		if _, ok := ops[name]; ok {
+			t.Errorf("unexpected %s root %q", kind, name)
+		}
+	}
+
+	assertRoot(queries.OperationQuery, "identity_artists")
+	assertRoot(queries.OperationQuery, "identity_artists_by_pk")
+	assertRoot(queries.OperationQuery, "identity_artists_aggregate")
+	assertRoot(queries.OperationMutation, "insert_identity_artists")
+	assertRoot(queries.OperationMutation, "insert_identity_artists_one")
+	assertRoot(queries.OperationMutation, "update_identity_artists")
+	assertRoot(queries.OperationMutation, "delete_identity_artists")
+	assertRoot(queries.OperationSubscription, "identity_artists")
+	assertRoot(queries.OperationSubscription, "identity_artists_by_pk")
+	assertRoot(queries.OperationSubscription, "identity_artists_aggregate")
+	assertRoot(queries.OperationSubscription, "identity_artists_stream")
+
+	assertAbsentRoot(queries.OperationQuery, "artists")
+	assertAbsentRoot(queries.OperationMutation, "insert_artists")
+	assertAbsentRoot(queries.OperationSubscription, "artists")
+}
+
 func TestBuildRoots_TableMissingFromIntrospection(t *testing.T) {
 	t.Parallel()
 

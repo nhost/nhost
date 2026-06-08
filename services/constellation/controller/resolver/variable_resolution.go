@@ -27,13 +27,28 @@ func resolveVariableReferences(selections ast.SelectionSet, variables map[string
 // resolveArgumentVariables replaces variable references in arguments with literal values.
 func resolveArgumentVariables(args ast.ArgumentList, variables map[string]any) {
 	for _, arg := range args {
-		if arg.Value != nil && arg.Value.Kind == ast.Variable {
-			varName := arg.Value.Raw
-			if val, ok := variables[varName]; ok {
-				arg.Value = toLiteralValue(val)
-			}
-		}
+		arg.Value = resolveValueVariables(arg.Value, variables)
 	}
+}
+
+func resolveValueVariables(value *ast.Value, variables map[string]any) *ast.Value {
+	if value == nil {
+		return nil
+	}
+
+	if value.Kind == ast.Variable {
+		if val, ok := variables[value.Raw]; ok {
+			return toLiteralValue(val)
+		}
+
+		return value
+	}
+
+	for _, child := range value.Children {
+		child.Value = resolveValueVariables(child.Value, variables)
+	}
+
+	return value
 }
 
 // toLiteralValue converts a Go value to an AST literal value.

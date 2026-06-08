@@ -1,11 +1,10 @@
 import { zodResolver } from '@hookform/resolvers/zod';
-import { ExternalLink as ArrowSquareOutIcon, Slash } from 'lucide-react';
+import { Slash } from 'lucide-react';
 import { useRouter } from 'next/router';
 import { useEffect, useMemo, useState } from 'react';
 import { useForm } from 'react-hook-form';
 import { z } from 'zod';
-import { ActivityIndicator } from '@/components/ui/v2/ActivityIndicator';
-import { Button } from '@/components/ui/v3/button';
+import { Button, ButtonWithLoading } from '@/components/ui/v3/button';
 import {
   Dialog,
   DialogContent,
@@ -24,9 +23,9 @@ import {
   FormMessage,
 } from '@/components/ui/v3/form';
 import { RadioGroup, RadioGroupItem } from '@/components/ui/v3/radio-group';
+import { TextLink } from '@/components/ui/v3/text-link';
 import { FinishUpgradeOrganizationProcess } from '@/features/orgs/components/billing/FinishUpgradeOrganizationProcess';
 import { StripeEmbeddedForm } from '@/features/orgs/components/StripeEmbeddedForm';
-import TextLink from '@/features/orgs/projects/common/components/TextLink/TextLink';
 import { planDescriptions } from '@/features/orgs/projects/common/utils/planDescriptions';
 import { useCurrentOrg } from '@/features/orgs/projects/hooks/useCurrentOrg';
 import { execPromiseWithErrorToast } from '@/features/orgs/utils/execPromiseWithErrorToast';
@@ -172,9 +171,11 @@ export default function SubscriptionPlan() {
                       Downgrading is not available. To move to Starter, transfer
                       your projects to a Starter organization and cancel this
                       organization. See{' '}
-                      <TextLink href="https://docs.nhost.io/platform/cloud/billing#downgrading-to-starter">
+                      <TextLink
+                        href="https://docs.nhost.io/platform/cloud/billing#downgrading-to-starter"
+                        external
+                      >
                         documentation
-                        <ArrowSquareOutIcon className="mb-[2px] ml-1 h-4 w-4" />
                       </TextLink>{' '}
                       for details.
                     </FormDescription>
@@ -229,30 +230,28 @@ export default function SubscriptionPlan() {
           <div className="flex w-full flex-col-reverse items-end justify-between gap-2 border-t p-4 md:flex-row md:items-center md:gap-0">
             <div>
               <span>For a complete list of features, visit our </span>
-              <TextLink href="https://nhost.io/pricing">
+              <TextLink href="https://nhost.io/pricing" external>
                 pricing
-                <ArrowSquareOutIcon className="mb-[2px] ml-1 h-4 w-4" />
               </TextLink>
               <span> You can also visit our </span>
-              <TextLink href="https://docs.nhost.io/platform/cloud/billing">
+              <TextLink
+                href="https://docs.nhost.io/platform/cloud/billing"
+                external
+              >
                 documentation
-                <ArrowSquareOutIcon className="mb-[2px] ml-1 h-4 w-4" />
               </TextLink>
               <span> for billing information</span>
             </div>
             <div className="flex w-full flex-row items-center justify-end gap-2">
-              <Button
+              <ButtonWithLoading
                 className="h-fit truncate"
                 variant="secondary"
                 onClick={handleUpdatePaymentDetails}
-                disabled={loading || isFreeOrg}
+                disabled={isFreeOrg}
+                loading={loading}
               >
-                {loading ? (
-                  <ActivityIndicator />
-                ) : (
-                  <span className="truncate">Stripe Customer Portal</span>
-                )}
-              </Button>
+                <span className="truncate">Stripe Customer Portal</span>
+              </ButtonWithLoading>
               <Button
                 disabled={loading}
                 className="h-fit"
@@ -313,9 +312,8 @@ export default function SubscriptionPlan() {
                                 </div>
                               </div>
 
-                              <TextLink href="mailto:hello@nhost.io">
+                              <TextLink href="mailto:hello@nhost.io" external>
                                 Contact us
-                                <ArrowSquareOutIcon className="ml-1 h-4 w-4" />
                               </TextLink>
                             </div>
                           </div>
@@ -334,16 +332,14 @@ export default function SubscriptionPlan() {
                   >
                     Cancel
                   </Button>
-                  <Button
+                  <ButtonWithLoading
                     data-testid="upgradeOrgSubmitButton"
                     type="submit"
-                    disabled={
-                      selectedPlan === org?.plan?.id ||
-                      form.formState.isSubmitting
-                    }
+                    disabled={selectedPlan === org?.plan?.id}
+                    loading={form.formState.isSubmitting}
                   >
-                    {form.formState.isSubmitting ? 'Upgrading...' : 'Upgrade'}
-                  </Button>
+                    Upgrade
+                  </ButtonWithLoading>
                 </DialogFooter>
               </form>
             </Form>

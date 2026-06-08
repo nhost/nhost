@@ -290,19 +290,20 @@ func (m *cohortManager) executeAndNotifyCohort(
 func buildSubscriberInputs(
 	subscriptions map[string]*cohortSubscription,
 ) ([]string, map[string][]any) {
-	subIDs := make([]string, 0, len(subscriptions))
+	subscriberCount := len(subscriptions)
+	subIDs := make([]string, 0, subscriberCount)
 	sessionVarArrays := make(map[string][]any)
 
 	for _, s := range subscriptions {
+		subscriberIndex := len(subIDs)
 		subIDs = append(subIDs, s.id)
 
-		for varName, varValue := range s.sessionVariables {
-			if _, exists := sessionVarArrays[varName]; !exists {
-				sessionVarArrays[varName] = make([]any, 0, len(subscriptions))
-			}
-
-			sessionVarArrays[varName] = append(sessionVarArrays[varName], varValue)
-		}
+		assignAlignedVars(
+			sessionVarArrays,
+			s.sessionVariables,
+			subscriberIndex,
+			subscriberCount,
+		)
 	}
 
 	return subIDs, sessionVarArrays

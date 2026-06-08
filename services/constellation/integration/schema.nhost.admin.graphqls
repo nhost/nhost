@@ -1228,6 +1228,104 @@ enum departments_update_column {
   updated_at
 }
 """
+unique or primary key constraints on table "exercise_log_sets"
+"""
+enum exercise_log_sets_constraint {
+  """
+  unique or primary key constraint on columns "id"
+  """
+  exercise_log_sets_pkey
+}
+"""
+select columns of table "exercise_log_sets"
+"""
+enum exercise_log_sets_select_column {
+  """
+  column name
+  """
+  id
+  """
+  column name
+  """
+  parent_id
+  """
+  column name
+  """
+  parent_kind
+  """
+  column name
+  """
+  reps
+}
+"""
+update columns of table "exercise_log_sets"
+"""
+enum exercise_log_sets_update_column {
+  """
+  column name
+  """
+  id
+  """
+  column name
+  """
+  parent_id
+  """
+  column name
+  """
+  parent_kind
+  """
+  column name
+  """
+  reps
+}
+"""
+unique or primary key constraints on table "exercise_logs"
+"""
+enum exercise_logs_constraint {
+  """
+  unique or primary key constraint on columns "id"
+  """
+  exercise_logs_pkey
+  """
+  unique or primary key constraint on columns "id", "kind"
+  """
+  exercise_logs_id_kind_key
+}
+"""
+select columns of table "exercise_logs"
+"""
+enum exercise_logs_select_column {
+  """
+  column name
+  """
+  id
+  """
+  column name
+  """
+  kind
+  """
+  column name
+  """
+  owner_id
+}
+"""
+update columns of table "exercise_logs"
+"""
+enum exercise_logs_update_column {
+  """
+  column name
+  """
+  id
+  """
+  column name
+  """
+  kind
+  """
+  column name
+  """
+  owner_id
+}
+"""
 unique or primary key constraints on table "storage.files"
 """
 enum files_constraint {
@@ -1351,6 +1449,92 @@ enum files_update_column {
   column name
   """
   metadata
+}
+"""
+unique or primary key constraints on table "identity.artists"
+"""
+enum identity_artists_constraint {
+  """
+  unique or primary key constraint on columns "id"
+  """
+  artists_pkey
+}
+"""
+select columns of table "identity.artists"
+"""
+enum identity_artists_select_column {
+  """
+  column name
+  """
+  id
+  """
+  column name
+  """
+  stage_name
+  """
+  column name
+  """
+  created_by
+}
+"""
+update columns of table "identity.artists"
+"""
+enum identity_artists_update_column {
+  """
+  column name
+  """
+  id
+  """
+  column name
+  """
+  stage_name
+  """
+  column name
+  """
+  created_by
+}
+"""
+unique or primary key constraints on table "identity_check_logs"
+"""
+enum identity_check_logs_constraint {
+  """
+  unique or primary key constraint on columns "id"
+  """
+  identity_check_logs_pkey
+}
+"""
+select columns of table "identity_check_logs"
+"""
+enum identity_check_logs_select_column {
+  """
+  column name
+  """
+  id
+  """
+  column name
+  """
+  owner_id
+  """
+  column name
+  """
+  note
+}
+"""
+update columns of table "identity_check_logs"
+"""
+enum identity_check_logs_update_column {
+  """
+  column name
+  """
+  id
+  """
+  column name
+  """
+  owner_id
+  """
+  column name
+  """
+  note
 }
 """
 unique or primary key constraints on table "kb_entries"
@@ -1594,6 +1778,100 @@ enum news_update_column {
   column name
   """
   author_id
+}
+"""
+unique or primary key constraints on table "note_replies"
+"""
+enum note_replies_constraint {
+  """
+  unique or primary key constraint on columns "id"
+  """
+  note_replies_pkey
+}
+"""
+select columns of table "note_replies"
+"""
+enum note_replies_select_column {
+  """
+  column name
+  """
+  id
+  """
+  column name
+  """
+  note_id
+  """
+  column name
+  """
+  visibility
+  """
+  column name
+  """
+  body
+}
+"""
+update columns of table "note_replies"
+"""
+enum note_replies_update_column {
+  """
+  column name
+  """
+  id
+  """
+  column name
+  """
+  note_id
+  """
+  column name
+  """
+  visibility
+  """
+  column name
+  """
+  body
+}
+"""
+unique or primary key constraints on table "notes"
+"""
+enum notes_constraint {
+  """
+  unique or primary key constraint on columns "id"
+  """
+  notes_pkey
+}
+"""
+select columns of table "notes"
+"""
+enum notes_select_column {
+  """
+  column name
+  """
+  id
+  """
+  column name
+  """
+  author_id
+  """
+  column name
+  """
+  title
+}
+"""
+update columns of table "notes"
+"""
+enum notes_update_column {
+  """
+  column name
+  """
+  id
+  """
+  column name
+  """
+  author_id
+  """
+  column name
+  """
+  title
 }
 """
 column ordering options
@@ -4500,6 +4778,231 @@ type departments_variance_fields {
   budget: Float
 }
 """
+columns and relationships of "exercise_log_sets"
+"""
+type exercise_log_sets {
+  id: uuid!
+  parent_id: uuid!
+  parent_kind: String!
+  reps: Int
+  """
+  An object relationship
+  """
+  parent: exercise_logs!
+}
+"""
+aggregated selection of "exercise_log_sets"
+"""
+type exercise_log_sets_aggregate {
+  aggregate: exercise_log_sets_aggregate_fields
+  nodes: [exercise_log_sets!]!
+}
+"""
+aggregate fields of "exercise_log_sets"
+"""
+type exercise_log_sets_aggregate_fields {
+  count(columns: [exercise_log_sets_select_column!], distinct: Boolean): Int!
+  max: exercise_log_sets_max_fields
+  min: exercise_log_sets_min_fields
+  avg: exercise_log_sets_avg_fields
+  stddev: exercise_log_sets_stddev_fields
+  stddev_pop: exercise_log_sets_stddev_pop_fields
+  stddev_samp: exercise_log_sets_stddev_samp_fields
+  sum: exercise_log_sets_sum_fields
+  var_pop: exercise_log_sets_var_pop_fields
+  var_samp: exercise_log_sets_var_samp_fields
+  variance: exercise_log_sets_variance_fields
+}
+"""
+aggregate avg on columns
+"""
+type exercise_log_sets_avg_fields {
+  reps: Float
+}
+"""
+aggregate max on columns
+"""
+type exercise_log_sets_max_fields {
+  id: uuid
+  parent_id: uuid
+  parent_kind: String
+  reps: Int
+}
+"""
+aggregate min on columns
+"""
+type exercise_log_sets_min_fields {
+  id: uuid
+  parent_id: uuid
+  parent_kind: String
+  reps: Int
+}
+"""
+response of any mutation on the table "exercise_log_sets"
+"""
+type exercise_log_sets_mutation_response {
+  """
+  number of rows affected by the mutation
+  """
+  affected_rows: Int!
+  """
+  data from the rows affected by the mutation
+  """
+  returning: [exercise_log_sets!]!
+}
+"""
+aggregate stddev on columns
+"""
+type exercise_log_sets_stddev_fields {
+  reps: Float
+}
+"""
+aggregate stddev_pop on columns
+"""
+type exercise_log_sets_stddev_pop_fields {
+  reps: Float
+}
+"""
+aggregate stddev_samp on columns
+"""
+type exercise_log_sets_stddev_samp_fields {
+  reps: Float
+}
+"""
+aggregate sum on columns
+"""
+type exercise_log_sets_sum_fields {
+  reps: Int
+}
+"""
+aggregate var_pop on columns
+"""
+type exercise_log_sets_var_pop_fields {
+  reps: Float
+}
+"""
+aggregate var_samp on columns
+"""
+type exercise_log_sets_var_samp_fields {
+  reps: Float
+}
+"""
+aggregate variance on columns
+"""
+type exercise_log_sets_variance_fields {
+  reps: Float
+}
+"""
+columns and relationships of "exercise_logs"
+"""
+type exercise_logs {
+  id: uuid!
+  kind: String!
+  owner_id: uuid!
+  """
+  An array relationship
+  """
+  sets(
+    """
+    distinct select on columns
+    """
+    distinct_on: [exercise_log_sets_select_column!]
+
+    """
+    limit the number of rows returned
+    """
+    limit: Int
+
+    """
+    skip the first n rows. Use only with order_by
+    """
+    offset: Int
+
+    """
+    sort the rows by one or more columns
+    """
+    order_by: [exercise_log_sets_order_by!]
+
+    """
+    filter the rows returned
+    """
+    where: exercise_log_sets_bool_exp
+  ): [exercise_log_sets!]!
+  """
+  An aggregate relationship
+  """
+  sets_aggregate(
+    """
+    distinct select on columns
+    """
+    distinct_on: [exercise_log_sets_select_column!]
+
+    """
+    limit the number of rows returned
+    """
+    limit: Int
+
+    """
+    skip the first n rows. Use only with order_by
+    """
+    offset: Int
+
+    """
+    sort the rows by one or more columns
+    """
+    order_by: [exercise_log_sets_order_by!]
+
+    """
+    filter the rows returned
+    """
+    where: exercise_log_sets_bool_exp
+  ): exercise_log_sets_aggregate!
+}
+"""
+aggregated selection of "exercise_logs"
+"""
+type exercise_logs_aggregate {
+  aggregate: exercise_logs_aggregate_fields
+  nodes: [exercise_logs!]!
+}
+"""
+aggregate fields of "exercise_logs"
+"""
+type exercise_logs_aggregate_fields {
+  count(columns: [exercise_logs_select_column!], distinct: Boolean): Int!
+  max: exercise_logs_max_fields
+  min: exercise_logs_min_fields
+}
+"""
+aggregate max on columns
+"""
+type exercise_logs_max_fields {
+  id: uuid
+  kind: String
+  owner_id: uuid
+}
+"""
+aggregate min on columns
+"""
+type exercise_logs_min_fields {
+  id: uuid
+  kind: String
+  owner_id: uuid
+}
+"""
+response of any mutation on the table "exercise_logs"
+"""
+type exercise_logs_mutation_response {
+  """
+  number of rows affected by the mutation
+  """
+  affected_rows: Int!
+  """
+  data from the rows affected by the mutation
+  """
+  returning: [exercise_logs!]!
+}
+"""
 columns and relationships of "storage.files"
 """
 type files {
@@ -4643,6 +5146,166 @@ aggregate variance on columns
 """
 type files_variance_fields {
   size: Float
+}
+"""
+columns and relationships of "identity.artists"
+"""
+type identity_artists {
+  id: uuid!
+  stage_name: String!
+  created_by: uuid!
+}
+"""
+aggregated selection of "identity.artists"
+"""
+type identity_artists_aggregate {
+  aggregate: identity_artists_aggregate_fields
+  nodes: [identity_artists!]!
+}
+"""
+aggregate fields of "identity.artists"
+"""
+type identity_artists_aggregate_fields {
+  count(columns: [identity_artists_select_column!], distinct: Boolean): Int!
+  max: identity_artists_max_fields
+  min: identity_artists_min_fields
+}
+"""
+aggregate max on columns
+"""
+type identity_artists_max_fields {
+  id: uuid
+  stage_name: String
+  created_by: uuid
+}
+"""
+aggregate min on columns
+"""
+type identity_artists_min_fields {
+  id: uuid
+  stage_name: String
+  created_by: uuid
+}
+"""
+response of any mutation on the table "identity.artists"
+"""
+type identity_artists_mutation_response {
+  """
+  number of rows affected by the mutation
+  """
+  affected_rows: Int!
+  """
+  data from the rows affected by the mutation
+  """
+  returning: [identity_artists!]!
+}
+"""
+columns and relationships of "identity_check_logs"
+"""
+type identity_check_logs {
+  id: bigint!
+  owner_id: uuid!
+  note: String
+}
+"""
+aggregated selection of "identity_check_logs"
+"""
+type identity_check_logs_aggregate {
+  aggregate: identity_check_logs_aggregate_fields
+  nodes: [identity_check_logs!]!
+}
+"""
+aggregate fields of "identity_check_logs"
+"""
+type identity_check_logs_aggregate_fields {
+  count(columns: [identity_check_logs_select_column!], distinct: Boolean): Int!
+  max: identity_check_logs_max_fields
+  min: identity_check_logs_min_fields
+  avg: identity_check_logs_avg_fields
+  stddev: identity_check_logs_stddev_fields
+  stddev_pop: identity_check_logs_stddev_pop_fields
+  stddev_samp: identity_check_logs_stddev_samp_fields
+  sum: identity_check_logs_sum_fields
+  var_pop: identity_check_logs_var_pop_fields
+  var_samp: identity_check_logs_var_samp_fields
+  variance: identity_check_logs_variance_fields
+}
+"""
+aggregate avg on columns
+"""
+type identity_check_logs_avg_fields {
+  id: Float
+}
+"""
+aggregate max on columns
+"""
+type identity_check_logs_max_fields {
+  id: bigint
+  owner_id: uuid
+  note: String
+}
+"""
+aggregate min on columns
+"""
+type identity_check_logs_min_fields {
+  id: bigint
+  owner_id: uuid
+  note: String
+}
+"""
+response of any mutation on the table "identity_check_logs"
+"""
+type identity_check_logs_mutation_response {
+  """
+  number of rows affected by the mutation
+  """
+  affected_rows: Int!
+  """
+  data from the rows affected by the mutation
+  """
+  returning: [identity_check_logs!]!
+}
+"""
+aggregate stddev on columns
+"""
+type identity_check_logs_stddev_fields {
+  id: Float
+}
+"""
+aggregate stddev_pop on columns
+"""
+type identity_check_logs_stddev_pop_fields {
+  id: Float
+}
+"""
+aggregate stddev_samp on columns
+"""
+type identity_check_logs_stddev_samp_fields {
+  id: Float
+}
+"""
+aggregate sum on columns
+"""
+type identity_check_logs_sum_fields {
+  id: bigint
+}
+"""
+aggregate var_pop on columns
+"""
+type identity_check_logs_var_pop_fields {
+  id: Float
+}
+"""
+aggregate var_samp on columns
+"""
+type identity_check_logs_var_samp_fields {
+  id: Float
+}
+"""
+aggregate variance on columns
+"""
+type identity_check_logs_variance_fields {
+  id: Float
 }
 """
 columns and relationships of "kb_entries"
@@ -6040,6 +6703,79 @@ type mutation_root {
     updates: [users_updates!]!
   ): [users_mutation_response]
   """
+  delete single row from the table: "identity.artists"
+  """
+  delete_identity_artists_by_pk(id: uuid!): identity_artists
+  """
+  delete data from the table: "identity.artists"
+  """
+  delete_identity_artists(
+    """
+    filter the rows which have to be deleted
+    """
+    where: identity_artists_bool_exp!
+  ): identity_artists_mutation_response
+  """
+  insert a single row into the table: "identity.artists"
+  """
+  insert_identity_artists_one(
+    """
+    the row to be inserted
+    """
+    object: identity_artists_insert_input!
+
+    """
+    upsert condition
+    """
+    on_conflict: identity_artists_on_conflict
+  ): identity_artists
+  """
+  insert data into the table: "identity.artists"
+  """
+  insert_identity_artists(
+    """
+    the rows to be inserted
+    """
+    objects: [identity_artists_insert_input!]!
+
+    """
+    upsert condition
+    """
+    on_conflict: identity_artists_on_conflict
+  ): identity_artists_mutation_response
+  """
+  update single row of the table: "identity.artists"
+  """
+  update_identity_artists_by_pk(
+    """
+    sets the columns of the filtered rows to the given values
+    """
+    _set: identity_artists_set_input
+  pk_columns: identity_artists_pk_columns_input!): identity_artists
+  """
+  update data of the table: "identity.artists"
+  """
+  update_identity_artists(
+    """
+    sets the columns of the filtered rows to the given values
+    """
+    _set: identity_artists_set_input
+
+    """
+    filter the rows which have to be updated
+    """
+    where: identity_artists_bool_exp!
+  ): identity_artists_mutation_response
+  """
+  update multiples rows of table: "identity.artists"
+  """
+  update_identity_artists_many(
+    """
+    updates to execute, in order
+    """
+    updates: [identity_artists_updates!]!
+  ): [identity_artists_mutation_response]
+  """
   delete single row from the table: "department_files"
   """
   delete_department_files_by_pk(id: uuid!): department_files
@@ -6269,6 +7005,245 @@ type mutation_root {
     updates: [departments_updates!]!
   ): [departments_mutation_response]
   """
+  delete single row from the table: "exercise_log_sets"
+  """
+  delete_exercise_log_sets_by_pk(id: uuid!): exercise_log_sets
+  """
+  delete data from the table: "exercise_log_sets"
+  """
+  delete_exercise_log_sets(
+    """
+    filter the rows which have to be deleted
+    """
+    where: exercise_log_sets_bool_exp!
+  ): exercise_log_sets_mutation_response
+  """
+  insert a single row into the table: "exercise_log_sets"
+  """
+  insert_exercise_log_sets_one(
+    """
+    the row to be inserted
+    """
+    object: exercise_log_sets_insert_input!
+
+    """
+    upsert condition
+    """
+    on_conflict: exercise_log_sets_on_conflict
+  ): exercise_log_sets
+  """
+  insert data into the table: "exercise_log_sets"
+  """
+  insert_exercise_log_sets(
+    """
+    the rows to be inserted
+    """
+    objects: [exercise_log_sets_insert_input!]!
+
+    """
+    upsert condition
+    """
+    on_conflict: exercise_log_sets_on_conflict
+  ): exercise_log_sets_mutation_response
+  """
+  update single row of the table: "exercise_log_sets"
+  """
+  update_exercise_log_sets_by_pk(
+    """
+    increments the numeric columns with given value of the filtered values
+    """
+    _inc: exercise_log_sets_inc_input
+
+    """
+    sets the columns of the filtered rows to the given values
+    """
+    _set: exercise_log_sets_set_input
+  pk_columns: exercise_log_sets_pk_columns_input!): exercise_log_sets
+  """
+  update data of the table: "exercise_log_sets"
+  """
+  update_exercise_log_sets(
+    """
+    increments the numeric columns with given value of the filtered values
+    """
+    _inc: exercise_log_sets_inc_input
+
+    """
+    sets the columns of the filtered rows to the given values
+    """
+    _set: exercise_log_sets_set_input
+
+    """
+    filter the rows which have to be updated
+    """
+    where: exercise_log_sets_bool_exp!
+  ): exercise_log_sets_mutation_response
+  """
+  update multiples rows of table: "exercise_log_sets"
+  """
+  update_exercise_log_sets_many(
+    """
+    updates to execute, in order
+    """
+    updates: [exercise_log_sets_updates!]!
+  ): [exercise_log_sets_mutation_response]
+  """
+  delete single row from the table: "exercise_logs"
+  """
+  delete_exercise_logs_by_pk(id: uuid!): exercise_logs
+  """
+  delete data from the table: "exercise_logs"
+  """
+  delete_exercise_logs(
+    """
+    filter the rows which have to be deleted
+    """
+    where: exercise_logs_bool_exp!
+  ): exercise_logs_mutation_response
+  """
+  insert a single row into the table: "exercise_logs"
+  """
+  insert_exercise_logs_one(
+    """
+    the row to be inserted
+    """
+    object: exercise_logs_insert_input!
+
+    """
+    upsert condition
+    """
+    on_conflict: exercise_logs_on_conflict
+  ): exercise_logs
+  """
+  insert data into the table: "exercise_logs"
+  """
+  insert_exercise_logs(
+    """
+    the rows to be inserted
+    """
+    objects: [exercise_logs_insert_input!]!
+
+    """
+    upsert condition
+    """
+    on_conflict: exercise_logs_on_conflict
+  ): exercise_logs_mutation_response
+  """
+  update single row of the table: "exercise_logs"
+  """
+  update_exercise_logs_by_pk(
+    """
+    sets the columns of the filtered rows to the given values
+    """
+    _set: exercise_logs_set_input
+  pk_columns: exercise_logs_pk_columns_input!): exercise_logs
+  """
+  update data of the table: "exercise_logs"
+  """
+  update_exercise_logs(
+    """
+    sets the columns of the filtered rows to the given values
+    """
+    _set: exercise_logs_set_input
+
+    """
+    filter the rows which have to be updated
+    """
+    where: exercise_logs_bool_exp!
+  ): exercise_logs_mutation_response
+  """
+  update multiples rows of table: "exercise_logs"
+  """
+  update_exercise_logs_many(
+    """
+    updates to execute, in order
+    """
+    updates: [exercise_logs_updates!]!
+  ): [exercise_logs_mutation_response]
+  """
+  delete single row from the table: "identity_check_logs"
+  """
+  delete_identity_check_logs_by_pk(id: bigint!): identity_check_logs
+  """
+  delete data from the table: "identity_check_logs"
+  """
+  delete_identity_check_logs(
+    """
+    filter the rows which have to be deleted
+    """
+    where: identity_check_logs_bool_exp!
+  ): identity_check_logs_mutation_response
+  """
+  insert a single row into the table: "identity_check_logs"
+  """
+  insert_identity_check_logs_one(
+    """
+    the row to be inserted
+    """
+    object: identity_check_logs_insert_input!
+
+    """
+    upsert condition
+    """
+    on_conflict: identity_check_logs_on_conflict
+  ): identity_check_logs
+  """
+  insert data into the table: "identity_check_logs"
+  """
+  insert_identity_check_logs(
+    """
+    the rows to be inserted
+    """
+    objects: [identity_check_logs_insert_input!]!
+
+    """
+    upsert condition
+    """
+    on_conflict: identity_check_logs_on_conflict
+  ): identity_check_logs_mutation_response
+  """
+  update single row of the table: "identity_check_logs"
+  """
+  update_identity_check_logs_by_pk(
+    """
+    increments the numeric columns with given value of the filtered values
+    """
+    _inc: identity_check_logs_inc_input
+
+    """
+    sets the columns of the filtered rows to the given values
+    """
+    _set: identity_check_logs_set_input
+  pk_columns: identity_check_logs_pk_columns_input!): identity_check_logs
+  """
+  update data of the table: "identity_check_logs"
+  """
+  update_identity_check_logs(
+    """
+    increments the numeric columns with given value of the filtered values
+    """
+    _inc: identity_check_logs_inc_input
+
+    """
+    sets the columns of the filtered rows to the given values
+    """
+    _set: identity_check_logs_set_input
+
+    """
+    filter the rows which have to be updated
+    """
+    where: identity_check_logs_bool_exp!
+  ): identity_check_logs_mutation_response
+  """
+  update multiples rows of table: "identity_check_logs"
+  """
+  update_identity_check_logs_many(
+    """
+    updates to execute, in order
+    """
+    updates: [identity_check_logs_updates!]!
+  ): [identity_check_logs_mutation_response]
+  """
   delete single row from the table: "kb_entries"
   """
   delete_kb_entries_by_pk(id: uuid!): kb_entries
@@ -6487,6 +7462,152 @@ type mutation_root {
     """
     updates: [news_updates!]!
   ): [news_mutation_response]
+  """
+  delete single row from the table: "note_replies"
+  """
+  delete_note_replies_by_pk(id: uuid!): note_replies
+  """
+  delete data from the table: "note_replies"
+  """
+  delete_note_replies(
+    """
+    filter the rows which have to be deleted
+    """
+    where: note_replies_bool_exp!
+  ): note_replies_mutation_response
+  """
+  insert a single row into the table: "note_replies"
+  """
+  insert_note_replies_one(
+    """
+    the row to be inserted
+    """
+    object: note_replies_insert_input!
+
+    """
+    upsert condition
+    """
+    on_conflict: note_replies_on_conflict
+  ): note_replies
+  """
+  insert data into the table: "note_replies"
+  """
+  insert_note_replies(
+    """
+    the rows to be inserted
+    """
+    objects: [note_replies_insert_input!]!
+
+    """
+    upsert condition
+    """
+    on_conflict: note_replies_on_conflict
+  ): note_replies_mutation_response
+  """
+  update single row of the table: "note_replies"
+  """
+  update_note_replies_by_pk(
+    """
+    sets the columns of the filtered rows to the given values
+    """
+    _set: note_replies_set_input
+  pk_columns: note_replies_pk_columns_input!): note_replies
+  """
+  update data of the table: "note_replies"
+  """
+  update_note_replies(
+    """
+    sets the columns of the filtered rows to the given values
+    """
+    _set: note_replies_set_input
+
+    """
+    filter the rows which have to be updated
+    """
+    where: note_replies_bool_exp!
+  ): note_replies_mutation_response
+  """
+  update multiples rows of table: "note_replies"
+  """
+  update_note_replies_many(
+    """
+    updates to execute, in order
+    """
+    updates: [note_replies_updates!]!
+  ): [note_replies_mutation_response]
+  """
+  delete single row from the table: "notes"
+  """
+  delete_notes_by_pk(id: uuid!): notes
+  """
+  delete data from the table: "notes"
+  """
+  delete_notes(
+    """
+    filter the rows which have to be deleted
+    """
+    where: notes_bool_exp!
+  ): notes_mutation_response
+  """
+  insert a single row into the table: "notes"
+  """
+  insert_notes_one(
+    """
+    the row to be inserted
+    """
+    object: notes_insert_input!
+
+    """
+    upsert condition
+    """
+    on_conflict: notes_on_conflict
+  ): notes
+  """
+  insert data into the table: "notes"
+  """
+  insert_notes(
+    """
+    the rows to be inserted
+    """
+    objects: [notes_insert_input!]!
+
+    """
+    upsert condition
+    """
+    on_conflict: notes_on_conflict
+  ): notes_mutation_response
+  """
+  update single row of the table: "notes"
+  """
+  update_notes_by_pk(
+    """
+    sets the columns of the filtered rows to the given values
+    """
+    _set: notes_set_input
+  pk_columns: notes_pk_columns_input!): notes
+  """
+  update data of the table: "notes"
+  """
+  update_notes(
+    """
+    sets the columns of the filtered rows to the given values
+    """
+    _set: notes_set_input
+
+    """
+    filter the rows which have to be updated
+    """
+    where: notes_bool_exp!
+  ): notes_mutation_response
+  """
+  update multiples rows of table: "notes"
+  """
+  update_notes_many(
+    """
+    updates to execute, in order
+    """
+    updates: [notes_updates!]!
+  ): [notes_mutation_response]
   """
   delete data from the table: "published_news"
   """
@@ -7155,6 +8276,175 @@ type news_mutation_response {
   data from the rows affected by the mutation
   """
   returning: [news!]!
+}
+"""
+columns and relationships of "note_replies"
+"""
+type note_replies {
+  id: uuid!
+  note_id: uuid!
+  visibility: String!
+  body: String!
+  """
+  An object relationship
+  """
+  note: notes!
+}
+"""
+aggregated selection of "note_replies"
+"""
+type note_replies_aggregate {
+  aggregate: note_replies_aggregate_fields
+  nodes: [note_replies!]!
+}
+"""
+aggregate fields of "note_replies"
+"""
+type note_replies_aggregate_fields {
+  count(columns: [note_replies_select_column!], distinct: Boolean): Int!
+  max: note_replies_max_fields
+  min: note_replies_min_fields
+}
+"""
+aggregate max on columns
+"""
+type note_replies_max_fields {
+  id: uuid
+  note_id: uuid
+  visibility: String
+  body: String
+}
+"""
+aggregate min on columns
+"""
+type note_replies_min_fields {
+  id: uuid
+  note_id: uuid
+  visibility: String
+  body: String
+}
+"""
+response of any mutation on the table "note_replies"
+"""
+type note_replies_mutation_response {
+  """
+  number of rows affected by the mutation
+  """
+  affected_rows: Int!
+  """
+  data from the rows affected by the mutation
+  """
+  returning: [note_replies!]!
+}
+"""
+columns and relationships of "notes"
+"""
+type notes {
+  id: uuid!
+  author_id: uuid!
+  title: String!
+  """
+  An array relationship
+  """
+  replies(
+    """
+    distinct select on columns
+    """
+    distinct_on: [note_replies_select_column!]
+
+    """
+    limit the number of rows returned
+    """
+    limit: Int
+
+    """
+    skip the first n rows. Use only with order_by
+    """
+    offset: Int
+
+    """
+    sort the rows by one or more columns
+    """
+    order_by: [note_replies_order_by!]
+
+    """
+    filter the rows returned
+    """
+    where: note_replies_bool_exp
+  ): [note_replies!]!
+  """
+  An aggregate relationship
+  """
+  replies_aggregate(
+    """
+    distinct select on columns
+    """
+    distinct_on: [note_replies_select_column!]
+
+    """
+    limit the number of rows returned
+    """
+    limit: Int
+
+    """
+    skip the first n rows. Use only with order_by
+    """
+    offset: Int
+
+    """
+    sort the rows by one or more columns
+    """
+    order_by: [note_replies_order_by!]
+
+    """
+    filter the rows returned
+    """
+    where: note_replies_bool_exp
+  ): note_replies_aggregate!
+}
+"""
+aggregated selection of "notes"
+"""
+type notes_aggregate {
+  aggregate: notes_aggregate_fields
+  nodes: [notes!]!
+}
+"""
+aggregate fields of "notes"
+"""
+type notes_aggregate_fields {
+  count(columns: [notes_select_column!], distinct: Boolean): Int!
+  max: notes_max_fields
+  min: notes_min_fields
+}
+"""
+aggregate max on columns
+"""
+type notes_max_fields {
+  id: uuid
+  author_id: uuid
+  title: String
+}
+"""
+aggregate min on columns
+"""
+type notes_min_fields {
+  id: uuid
+  author_id: uuid
+  title: String
+}
+"""
+response of any mutation on the table "notes"
+"""
+type notes_mutation_response {
+  """
+  number of rows affected by the mutation
+  """
+  affected_rows: Int!
+  """
+  data from the rows affected by the mutation
+  """
+  returning: [notes!]!
 }
 """
 columns and relationships of "published_news"
@@ -8037,6 +9327,68 @@ type query_root {
     where: users_bool_exp
   ): users_aggregate!
   """
+  fetch data from the table: "identity.artists"
+  """
+  identity_artists(
+    """
+    distinct select on columns
+    """
+    distinct_on: [identity_artists_select_column!]
+
+    """
+    limit the number of rows returned
+    """
+    limit: Int
+
+    """
+    skip the first n rows. Use only with order_by
+    """
+    offset: Int
+
+    """
+    sort the rows by one or more columns
+    """
+    order_by: [identity_artists_order_by!]
+
+    """
+    filter the rows returned
+    """
+    where: identity_artists_bool_exp
+  ): [identity_artists!]!
+  """
+  fetch data from the table: "identity.artists" using primary key columns
+  """
+  identity_artists_by_pk(id: uuid!): identity_artists
+  """
+  fetch aggregated fields from the table: "identity.artists"
+  """
+  identity_artists_aggregate(
+    """
+    distinct select on columns
+    """
+    distinct_on: [identity_artists_select_column!]
+
+    """
+    limit the number of rows returned
+    """
+    limit: Int
+
+    """
+    skip the first n rows. Use only with order_by
+    """
+    offset: Int
+
+    """
+    sort the rows by one or more columns
+    """
+    order_by: [identity_artists_order_by!]
+
+    """
+    filter the rows returned
+    """
+    where: identity_artists_bool_exp
+  ): identity_artists_aggregate!
+  """
   fetch data from the table: "content_feed"
   """
   contentFeed(
@@ -8281,6 +9633,192 @@ type query_root {
     where: departments_bool_exp
   ): departments_aggregate!
   """
+  fetch data from the table: "exercise_log_sets"
+  """
+  exercise_log_sets(
+    """
+    distinct select on columns
+    """
+    distinct_on: [exercise_log_sets_select_column!]
+
+    """
+    limit the number of rows returned
+    """
+    limit: Int
+
+    """
+    skip the first n rows. Use only with order_by
+    """
+    offset: Int
+
+    """
+    sort the rows by one or more columns
+    """
+    order_by: [exercise_log_sets_order_by!]
+
+    """
+    filter the rows returned
+    """
+    where: exercise_log_sets_bool_exp
+  ): [exercise_log_sets!]!
+  """
+  fetch data from the table: "exercise_log_sets" using primary key columns
+  """
+  exercise_log_sets_by_pk(id: uuid!): exercise_log_sets
+  """
+  fetch aggregated fields from the table: "exercise_log_sets"
+  """
+  exercise_log_sets_aggregate(
+    """
+    distinct select on columns
+    """
+    distinct_on: [exercise_log_sets_select_column!]
+
+    """
+    limit the number of rows returned
+    """
+    limit: Int
+
+    """
+    skip the first n rows. Use only with order_by
+    """
+    offset: Int
+
+    """
+    sort the rows by one or more columns
+    """
+    order_by: [exercise_log_sets_order_by!]
+
+    """
+    filter the rows returned
+    """
+    where: exercise_log_sets_bool_exp
+  ): exercise_log_sets_aggregate!
+  """
+  fetch data from the table: "exercise_logs"
+  """
+  exercise_logs(
+    """
+    distinct select on columns
+    """
+    distinct_on: [exercise_logs_select_column!]
+
+    """
+    limit the number of rows returned
+    """
+    limit: Int
+
+    """
+    skip the first n rows. Use only with order_by
+    """
+    offset: Int
+
+    """
+    sort the rows by one or more columns
+    """
+    order_by: [exercise_logs_order_by!]
+
+    """
+    filter the rows returned
+    """
+    where: exercise_logs_bool_exp
+  ): [exercise_logs!]!
+  """
+  fetch data from the table: "exercise_logs" using primary key columns
+  """
+  exercise_logs_by_pk(id: uuid!): exercise_logs
+  """
+  fetch aggregated fields from the table: "exercise_logs"
+  """
+  exercise_logs_aggregate(
+    """
+    distinct select on columns
+    """
+    distinct_on: [exercise_logs_select_column!]
+
+    """
+    limit the number of rows returned
+    """
+    limit: Int
+
+    """
+    skip the first n rows. Use only with order_by
+    """
+    offset: Int
+
+    """
+    sort the rows by one or more columns
+    """
+    order_by: [exercise_logs_order_by!]
+
+    """
+    filter the rows returned
+    """
+    where: exercise_logs_bool_exp
+  ): exercise_logs_aggregate!
+  """
+  fetch data from the table: "identity_check_logs"
+  """
+  identity_check_logs(
+    """
+    distinct select on columns
+    """
+    distinct_on: [identity_check_logs_select_column!]
+
+    """
+    limit the number of rows returned
+    """
+    limit: Int
+
+    """
+    skip the first n rows. Use only with order_by
+    """
+    offset: Int
+
+    """
+    sort the rows by one or more columns
+    """
+    order_by: [identity_check_logs_order_by!]
+
+    """
+    filter the rows returned
+    """
+    where: identity_check_logs_bool_exp
+  ): [identity_check_logs!]!
+  """
+  fetch data from the table: "identity_check_logs" using primary key columns
+  """
+  identity_check_logs_by_pk(id: bigint!): identity_check_logs
+  """
+  fetch aggregated fields from the table: "identity_check_logs"
+  """
+  identity_check_logs_aggregate(
+    """
+    distinct select on columns
+    """
+    distinct_on: [identity_check_logs_select_column!]
+
+    """
+    limit the number of rows returned
+    """
+    limit: Int
+
+    """
+    skip the first n rows. Use only with order_by
+    """
+    offset: Int
+
+    """
+    sort the rows by one or more columns
+    """
+    order_by: [identity_check_logs_order_by!]
+
+    """
+    filter the rows returned
+    """
+    where: identity_check_logs_bool_exp
+  ): identity_check_logs_aggregate!
+  """
   fetch data from the table: "kb_entries"
   """
   kb_entries(
@@ -8466,6 +10004,130 @@ type query_root {
     """
     where: news_bool_exp
   ): news_aggregate!
+  """
+  fetch data from the table: "note_replies"
+  """
+  note_replies(
+    """
+    distinct select on columns
+    """
+    distinct_on: [note_replies_select_column!]
+
+    """
+    limit the number of rows returned
+    """
+    limit: Int
+
+    """
+    skip the first n rows. Use only with order_by
+    """
+    offset: Int
+
+    """
+    sort the rows by one or more columns
+    """
+    order_by: [note_replies_order_by!]
+
+    """
+    filter the rows returned
+    """
+    where: note_replies_bool_exp
+  ): [note_replies!]!
+  """
+  fetch data from the table: "note_replies" using primary key columns
+  """
+  note_replies_by_pk(id: uuid!): note_replies
+  """
+  fetch aggregated fields from the table: "note_replies"
+  """
+  note_replies_aggregate(
+    """
+    distinct select on columns
+    """
+    distinct_on: [note_replies_select_column!]
+
+    """
+    limit the number of rows returned
+    """
+    limit: Int
+
+    """
+    skip the first n rows. Use only with order_by
+    """
+    offset: Int
+
+    """
+    sort the rows by one or more columns
+    """
+    order_by: [note_replies_order_by!]
+
+    """
+    filter the rows returned
+    """
+    where: note_replies_bool_exp
+  ): note_replies_aggregate!
+  """
+  fetch data from the table: "notes"
+  """
+  notes(
+    """
+    distinct select on columns
+    """
+    distinct_on: [notes_select_column!]
+
+    """
+    limit the number of rows returned
+    """
+    limit: Int
+
+    """
+    skip the first n rows. Use only with order_by
+    """
+    offset: Int
+
+    """
+    sort the rows by one or more columns
+    """
+    order_by: [notes_order_by!]
+
+    """
+    filter the rows returned
+    """
+    where: notes_bool_exp
+  ): [notes!]!
+  """
+  fetch data from the table: "notes" using primary key columns
+  """
+  notes_by_pk(id: uuid!): notes
+  """
+  fetch aggregated fields from the table: "notes"
+  """
+  notes_aggregate(
+    """
+    distinct select on columns
+    """
+    distinct_on: [notes_select_column!]
+
+    """
+    limit the number of rows returned
+    """
+    limit: Int
+
+    """
+    skip the first n rows. Use only with order_by
+    """
+    offset: Int
+
+    """
+    sort the rows by one or more columns
+    """
+    order_by: [notes_order_by!]
+
+    """
+    filter the rows returned
+    """
+    where: notes_bool_exp
+  ): notes_aggregate!
   """
   fetch data from the table: "published_news"
   """
@@ -8820,7 +10482,7 @@ type query_root {
   """
   search_news_aggregate(
     """
-    input parameters for function "search_news"
+    input parameters for function "search_news_aggregate"
     """
     args: search_news_args!
 
@@ -8888,7 +10550,7 @@ type query_root {
   """
   searchNews_aggregate(
     """
-    input parameters for function "searchNews"
+    input parameters for function "searchNews_aggregate"
     """
     args: searchNews_args!
 
@@ -8956,9 +10618,145 @@ type query_root {
   """
   searchNewsAggregate(
     """
-    input parameters for function "searchNewsCollection"
+    input parameters for function "searchNewsAggregate"
     """
     args: search_news_3_args!
+
+    """
+    distinct select on columns
+    """
+    distinct_on: [news_select_column!]
+
+    """
+    limit the number of rows returned
+    """
+    limit: Int
+
+    """
+    skip the first n rows. Use only with order_by
+    """
+    offset: Int
+
+    """
+    sort the rows by one or more columns
+    """
+    order_by: [news_order_by!]
+
+    """
+    filter the rows returned
+    """
+    where: news_bool_exp
+  ): news_aggregate!
+  """
+  execute function "search_news_default" which returns "news"
+  """
+  search_news_default(
+    """
+    input parameters for function "search_news_default"
+    """
+    args: search_news_default_args!
+
+    """
+    distinct select on columns
+    """
+    distinct_on: [news_select_column!]
+
+    """
+    limit the number of rows returned
+    """
+    limit: Int
+
+    """
+    skip the first n rows. Use only with order_by
+    """
+    offset: Int
+
+    """
+    sort the rows by one or more columns
+    """
+    order_by: [news_order_by!]
+
+    """
+    filter the rows returned
+    """
+    where: news_bool_exp
+  ): [news!]!
+  """
+  execute function "search_news_default" and query aggregates on result of table type "news"
+  """
+  search_news_default_aggregate(
+    """
+    input parameters for function "search_news_default_aggregate"
+    """
+    args: search_news_default_args!
+
+    """
+    distinct select on columns
+    """
+    distinct_on: [news_select_column!]
+
+    """
+    limit the number of rows returned
+    """
+    limit: Int
+
+    """
+    skip the first n rows. Use only with order_by
+    """
+    offset: Int
+
+    """
+    sort the rows by one or more columns
+    """
+    order_by: [news_order_by!]
+
+    """
+    filter the rows returned
+    """
+    where: news_bool_exp
+  ): news_aggregate!
+  """
+  execute function "search_news_positional" which returns "news"
+  """
+  search_news_positional(
+    """
+    input parameters for function "search_news_positional"
+    """
+    args: search_news_positional_args!
+
+    """
+    distinct select on columns
+    """
+    distinct_on: [news_select_column!]
+
+    """
+    limit the number of rows returned
+    """
+    limit: Int
+
+    """
+    skip the first n rows. Use only with order_by
+    """
+    offset: Int
+
+    """
+    sort the rows by one or more columns
+    """
+    order_by: [news_order_by!]
+
+    """
+    filter the rows returned
+    """
+    where: news_bool_exp
+  ): [news!]!
+  """
+  execute function "search_news_positional" and query aggregates on result of table type "news"
+  """
+  search_news_positional_aggregate(
+    """
+    input parameters for function "search_news_positional_aggregate"
+    """
+    args: search_news_positional_args!
 
     """
     distinct select on columns
@@ -10128,6 +11926,87 @@ type subscription_root {
     where: users_bool_exp
   ): [users!]!
   """
+  fetch data from the table: "identity.artists"
+  """
+  identity_artists(
+    """
+    distinct select on columns
+    """
+    distinct_on: [identity_artists_select_column!]
+
+    """
+    limit the number of rows returned
+    """
+    limit: Int
+
+    """
+    skip the first n rows. Use only with order_by
+    """
+    offset: Int
+
+    """
+    sort the rows by one or more columns
+    """
+    order_by: [identity_artists_order_by!]
+
+    """
+    filter the rows returned
+    """
+    where: identity_artists_bool_exp
+  ): [identity_artists!]!
+  """
+  fetch data from the table: "identity.artists" using primary key columns
+  """
+  identity_artists_by_pk(id: uuid!): identity_artists
+  """
+  fetch aggregated fields from the table: "identity.artists"
+  """
+  identity_artists_aggregate(
+    """
+    distinct select on columns
+    """
+    distinct_on: [identity_artists_select_column!]
+
+    """
+    limit the number of rows returned
+    """
+    limit: Int
+
+    """
+    skip the first n rows. Use only with order_by
+    """
+    offset: Int
+
+    """
+    sort the rows by one or more columns
+    """
+    order_by: [identity_artists_order_by!]
+
+    """
+    filter the rows returned
+    """
+    where: identity_artists_bool_exp
+  ): identity_artists_aggregate!
+  """
+  fetch data from the table in a streaming manner: "identity.artists"
+  """
+  identity_artists_stream(
+    """
+    maximum number of rows returned in a single batch
+    """
+    batch_size: Int!
+
+    """
+    cursor to stream the results returned by the query
+    """
+    cursor: [identity_artists_stream_cursor_input]!
+
+    """
+    filter the rows returned
+    """
+    where: identity_artists_bool_exp
+  ): [identity_artists!]!
+  """
   fetch data from the table: "content_feed"
   """
   contentFeed(
@@ -10448,6 +12327,249 @@ type subscription_root {
     where: departments_bool_exp
   ): [departments!]!
   """
+  fetch data from the table: "exercise_log_sets"
+  """
+  exercise_log_sets(
+    """
+    distinct select on columns
+    """
+    distinct_on: [exercise_log_sets_select_column!]
+
+    """
+    limit the number of rows returned
+    """
+    limit: Int
+
+    """
+    skip the first n rows. Use only with order_by
+    """
+    offset: Int
+
+    """
+    sort the rows by one or more columns
+    """
+    order_by: [exercise_log_sets_order_by!]
+
+    """
+    filter the rows returned
+    """
+    where: exercise_log_sets_bool_exp
+  ): [exercise_log_sets!]!
+  """
+  fetch data from the table: "exercise_log_sets" using primary key columns
+  """
+  exercise_log_sets_by_pk(id: uuid!): exercise_log_sets
+  """
+  fetch aggregated fields from the table: "exercise_log_sets"
+  """
+  exercise_log_sets_aggregate(
+    """
+    distinct select on columns
+    """
+    distinct_on: [exercise_log_sets_select_column!]
+
+    """
+    limit the number of rows returned
+    """
+    limit: Int
+
+    """
+    skip the first n rows. Use only with order_by
+    """
+    offset: Int
+
+    """
+    sort the rows by one or more columns
+    """
+    order_by: [exercise_log_sets_order_by!]
+
+    """
+    filter the rows returned
+    """
+    where: exercise_log_sets_bool_exp
+  ): exercise_log_sets_aggregate!
+  """
+  fetch data from the table in a streaming manner: "exercise_log_sets"
+  """
+  exercise_log_sets_stream(
+    """
+    maximum number of rows returned in a single batch
+    """
+    batch_size: Int!
+
+    """
+    cursor to stream the results returned by the query
+    """
+    cursor: [exercise_log_sets_stream_cursor_input]!
+
+    """
+    filter the rows returned
+    """
+    where: exercise_log_sets_bool_exp
+  ): [exercise_log_sets!]!
+  """
+  fetch data from the table: "exercise_logs"
+  """
+  exercise_logs(
+    """
+    distinct select on columns
+    """
+    distinct_on: [exercise_logs_select_column!]
+
+    """
+    limit the number of rows returned
+    """
+    limit: Int
+
+    """
+    skip the first n rows. Use only with order_by
+    """
+    offset: Int
+
+    """
+    sort the rows by one or more columns
+    """
+    order_by: [exercise_logs_order_by!]
+
+    """
+    filter the rows returned
+    """
+    where: exercise_logs_bool_exp
+  ): [exercise_logs!]!
+  """
+  fetch data from the table: "exercise_logs" using primary key columns
+  """
+  exercise_logs_by_pk(id: uuid!): exercise_logs
+  """
+  fetch aggregated fields from the table: "exercise_logs"
+  """
+  exercise_logs_aggregate(
+    """
+    distinct select on columns
+    """
+    distinct_on: [exercise_logs_select_column!]
+
+    """
+    limit the number of rows returned
+    """
+    limit: Int
+
+    """
+    skip the first n rows. Use only with order_by
+    """
+    offset: Int
+
+    """
+    sort the rows by one or more columns
+    """
+    order_by: [exercise_logs_order_by!]
+
+    """
+    filter the rows returned
+    """
+    where: exercise_logs_bool_exp
+  ): exercise_logs_aggregate!
+  """
+  fetch data from the table in a streaming manner: "exercise_logs"
+  """
+  exercise_logs_stream(
+    """
+    maximum number of rows returned in a single batch
+    """
+    batch_size: Int!
+
+    """
+    cursor to stream the results returned by the query
+    """
+    cursor: [exercise_logs_stream_cursor_input]!
+
+    """
+    filter the rows returned
+    """
+    where: exercise_logs_bool_exp
+  ): [exercise_logs!]!
+  """
+  fetch data from the table: "identity_check_logs"
+  """
+  identity_check_logs(
+    """
+    distinct select on columns
+    """
+    distinct_on: [identity_check_logs_select_column!]
+
+    """
+    limit the number of rows returned
+    """
+    limit: Int
+
+    """
+    skip the first n rows. Use only with order_by
+    """
+    offset: Int
+
+    """
+    sort the rows by one or more columns
+    """
+    order_by: [identity_check_logs_order_by!]
+
+    """
+    filter the rows returned
+    """
+    where: identity_check_logs_bool_exp
+  ): [identity_check_logs!]!
+  """
+  fetch data from the table: "identity_check_logs" using primary key columns
+  """
+  identity_check_logs_by_pk(id: bigint!): identity_check_logs
+  """
+  fetch aggregated fields from the table: "identity_check_logs"
+  """
+  identity_check_logs_aggregate(
+    """
+    distinct select on columns
+    """
+    distinct_on: [identity_check_logs_select_column!]
+
+    """
+    limit the number of rows returned
+    """
+    limit: Int
+
+    """
+    skip the first n rows. Use only with order_by
+    """
+    offset: Int
+
+    """
+    sort the rows by one or more columns
+    """
+    order_by: [identity_check_logs_order_by!]
+
+    """
+    filter the rows returned
+    """
+    where: identity_check_logs_bool_exp
+  ): identity_check_logs_aggregate!
+  """
+  fetch data from the table in a streaming manner: "identity_check_logs"
+  """
+  identity_check_logs_stream(
+    """
+    maximum number of rows returned in a single batch
+    """
+    batch_size: Int!
+
+    """
+    cursor to stream the results returned by the query
+    """
+    cursor: [identity_check_logs_stream_cursor_input]!
+
+    """
+    filter the rows returned
+    """
+    where: identity_check_logs_bool_exp
+  ): [identity_check_logs!]!
+  """
   fetch data from the table: "kb_entries"
   """
   kb_entries(
@@ -10690,6 +12812,168 @@ type subscription_root {
     """
     where: news_bool_exp
   ): [news!]!
+  """
+  fetch data from the table: "note_replies"
+  """
+  note_replies(
+    """
+    distinct select on columns
+    """
+    distinct_on: [note_replies_select_column!]
+
+    """
+    limit the number of rows returned
+    """
+    limit: Int
+
+    """
+    skip the first n rows. Use only with order_by
+    """
+    offset: Int
+
+    """
+    sort the rows by one or more columns
+    """
+    order_by: [note_replies_order_by!]
+
+    """
+    filter the rows returned
+    """
+    where: note_replies_bool_exp
+  ): [note_replies!]!
+  """
+  fetch data from the table: "note_replies" using primary key columns
+  """
+  note_replies_by_pk(id: uuid!): note_replies
+  """
+  fetch aggregated fields from the table: "note_replies"
+  """
+  note_replies_aggregate(
+    """
+    distinct select on columns
+    """
+    distinct_on: [note_replies_select_column!]
+
+    """
+    limit the number of rows returned
+    """
+    limit: Int
+
+    """
+    skip the first n rows. Use only with order_by
+    """
+    offset: Int
+
+    """
+    sort the rows by one or more columns
+    """
+    order_by: [note_replies_order_by!]
+
+    """
+    filter the rows returned
+    """
+    where: note_replies_bool_exp
+  ): note_replies_aggregate!
+  """
+  fetch data from the table in a streaming manner: "note_replies"
+  """
+  note_replies_stream(
+    """
+    maximum number of rows returned in a single batch
+    """
+    batch_size: Int!
+
+    """
+    cursor to stream the results returned by the query
+    """
+    cursor: [note_replies_stream_cursor_input]!
+
+    """
+    filter the rows returned
+    """
+    where: note_replies_bool_exp
+  ): [note_replies!]!
+  """
+  fetch data from the table: "notes"
+  """
+  notes(
+    """
+    distinct select on columns
+    """
+    distinct_on: [notes_select_column!]
+
+    """
+    limit the number of rows returned
+    """
+    limit: Int
+
+    """
+    skip the first n rows. Use only with order_by
+    """
+    offset: Int
+
+    """
+    sort the rows by one or more columns
+    """
+    order_by: [notes_order_by!]
+
+    """
+    filter the rows returned
+    """
+    where: notes_bool_exp
+  ): [notes!]!
+  """
+  fetch data from the table: "notes" using primary key columns
+  """
+  notes_by_pk(id: uuid!): notes
+  """
+  fetch aggregated fields from the table: "notes"
+  """
+  notes_aggregate(
+    """
+    distinct select on columns
+    """
+    distinct_on: [notes_select_column!]
+
+    """
+    limit the number of rows returned
+    """
+    limit: Int
+
+    """
+    skip the first n rows. Use only with order_by
+    """
+    offset: Int
+
+    """
+    sort the rows by one or more columns
+    """
+    order_by: [notes_order_by!]
+
+    """
+    filter the rows returned
+    """
+    where: notes_bool_exp
+  ): notes_aggregate!
+  """
+  fetch data from the table in a streaming manner: "notes"
+  """
+  notes_stream(
+    """
+    maximum number of rows returned in a single batch
+    """
+    batch_size: Int!
+
+    """
+    cursor to stream the results returned by the query
+    """
+    cursor: [notes_stream_cursor_input]!
+
+    """
+    filter the rows returned
+    """
+    where: notes_bool_exp
+  ): [notes!]!
   """
   fetch data from the table: "published_news"
   """
@@ -11139,7 +13423,7 @@ type subscription_root {
   """
   search_news_aggregate(
     """
-    input parameters for function "search_news"
+    input parameters for function "search_news_aggregate"
     """
     args: search_news_args!
 
@@ -11207,7 +13491,7 @@ type subscription_root {
   """
   searchNews_aggregate(
     """
-    input parameters for function "searchNews"
+    input parameters for function "searchNews_aggregate"
     """
     args: searchNews_args!
 
@@ -11275,9 +13559,145 @@ type subscription_root {
   """
   searchNewsAggregate(
     """
-    input parameters for function "searchNewsCollection"
+    input parameters for function "searchNewsAggregate"
     """
     args: search_news_3_args!
+
+    """
+    distinct select on columns
+    """
+    distinct_on: [news_select_column!]
+
+    """
+    limit the number of rows returned
+    """
+    limit: Int
+
+    """
+    skip the first n rows. Use only with order_by
+    """
+    offset: Int
+
+    """
+    sort the rows by one or more columns
+    """
+    order_by: [news_order_by!]
+
+    """
+    filter the rows returned
+    """
+    where: news_bool_exp
+  ): news_aggregate!
+  """
+  execute function "search_news_default" which returns "news"
+  """
+  search_news_default(
+    """
+    input parameters for function "search_news_default"
+    """
+    args: search_news_default_args!
+
+    """
+    distinct select on columns
+    """
+    distinct_on: [news_select_column!]
+
+    """
+    limit the number of rows returned
+    """
+    limit: Int
+
+    """
+    skip the first n rows. Use only with order_by
+    """
+    offset: Int
+
+    """
+    sort the rows by one or more columns
+    """
+    order_by: [news_order_by!]
+
+    """
+    filter the rows returned
+    """
+    where: news_bool_exp
+  ): [news!]!
+  """
+  execute function "search_news_default" and query aggregates on result of table type "news"
+  """
+  search_news_default_aggregate(
+    """
+    input parameters for function "search_news_default_aggregate"
+    """
+    args: search_news_default_args!
+
+    """
+    distinct select on columns
+    """
+    distinct_on: [news_select_column!]
+
+    """
+    limit the number of rows returned
+    """
+    limit: Int
+
+    """
+    skip the first n rows. Use only with order_by
+    """
+    offset: Int
+
+    """
+    sort the rows by one or more columns
+    """
+    order_by: [news_order_by!]
+
+    """
+    filter the rows returned
+    """
+    where: news_bool_exp
+  ): news_aggregate!
+  """
+  execute function "search_news_positional" which returns "news"
+  """
+  search_news_positional(
+    """
+    input parameters for function "search_news_positional"
+    """
+    args: search_news_positional_args!
+
+    """
+    distinct select on columns
+    """
+    distinct_on: [news_select_column!]
+
+    """
+    limit the number of rows returned
+    """
+    limit: Int
+
+    """
+    skip the first n rows. Use only with order_by
+    """
+    offset: Int
+
+    """
+    sort the rows by one or more columns
+    """
+    order_by: [news_order_by!]
+
+    """
+    filter the rows returned
+    """
+    where: news_bool_exp
+  ): [news!]!
+  """
+  execute function "search_news_positional" and query aggregates on result of table type "news"
+  """
+  search_news_positional_aggregate(
+    """
+    input parameters for function "search_news_positional_aggregate"
+    """
+    args: search_news_positional_args!
 
     """
     distinct select on columns
@@ -14927,6 +17347,299 @@ input departments_updates {
   """
   where: departments_bool_exp!
 }
+input exercise_log_sets_aggregate_bool_exp {
+  count: exercise_log_sets_aggregate_bool_exp_count
+}
+input exercise_log_sets_aggregate_bool_exp_count {
+  arguments: [exercise_log_sets_select_column!]
+  distinct: Boolean
+  filter: exercise_log_sets_bool_exp
+  predicate: Int_comparison_exp!
+}
+"""
+order by aggregate values of table "exercise_log_sets"
+"""
+input exercise_log_sets_aggregate_order_by {
+  count: order_by
+  max: exercise_log_sets_max_order_by
+  min: exercise_log_sets_min_order_by
+  avg: exercise_log_sets_avg_order_by
+  stddev: exercise_log_sets_stddev_order_by
+  stddev_pop: exercise_log_sets_stddev_pop_order_by
+  stddev_samp: exercise_log_sets_stddev_samp_order_by
+  sum: exercise_log_sets_sum_order_by
+  var_pop: exercise_log_sets_var_pop_order_by
+  var_samp: exercise_log_sets_var_samp_order_by
+  variance: exercise_log_sets_variance_order_by
+}
+"""
+input type for inserting array relation for remote table "exercise_log_sets"
+"""
+input exercise_log_sets_arr_rel_insert_input {
+  data: [exercise_log_sets_insert_input!]!
+  """
+  upsert condition
+  """
+  on_conflict: exercise_log_sets_on_conflict
+}
+"""
+order by avg() on columns of table "exercise_log_sets"
+"""
+input exercise_log_sets_avg_order_by {
+  reps: order_by
+}
+"""
+Boolean expression to filter rows from the table "exercise_log_sets". All fields are combined with a logical 'AND'.
+"""
+input exercise_log_sets_bool_exp {
+  _and: [exercise_log_sets_bool_exp!]
+  _not: exercise_log_sets_bool_exp
+  _or: [exercise_log_sets_bool_exp!]
+  id: uuid_comparison_exp
+  parent_id: uuid_comparison_exp
+  parent_kind: String_comparison_exp
+  reps: Int_comparison_exp
+  parent: exercise_logs_bool_exp
+}
+"""
+input type for incrementing numeric columns in table "exercise_log_sets"
+"""
+input exercise_log_sets_inc_input {
+  reps: Int
+}
+"""
+input type for inserting data into table "exercise_log_sets"
+"""
+input exercise_log_sets_insert_input {
+  id: uuid
+  parent_id: uuid
+  parent_kind: String
+  reps: Int
+  parent: exercise_logs_obj_rel_insert_input
+}
+"""
+order by max() on columns of table "exercise_log_sets"
+"""
+input exercise_log_sets_max_order_by {
+  id: order_by
+  parent_id: order_by
+  parent_kind: order_by
+  reps: order_by
+}
+"""
+order by min() on columns of table "exercise_log_sets"
+"""
+input exercise_log_sets_min_order_by {
+  id: order_by
+  parent_id: order_by
+  parent_kind: order_by
+  reps: order_by
+}
+"""
+on_conflict condition type for table "exercise_log_sets"
+"""
+input exercise_log_sets_on_conflict {
+  constraint: exercise_log_sets_constraint!
+  update_columns: [exercise_log_sets_update_column!]! = []
+  where: exercise_log_sets_bool_exp
+}
+"""
+Ordering options when selecting data from "exercise_log_sets".
+"""
+input exercise_log_sets_order_by {
+  id: order_by
+  parent_id: order_by
+  parent_kind: order_by
+  reps: order_by
+  parent: exercise_logs_order_by
+}
+"""
+primary key columns input for table: exercise_log_sets
+"""
+input exercise_log_sets_pk_columns_input {
+  id: uuid!
+}
+"""
+input type for updating data in table "exercise_log_sets"
+"""
+input exercise_log_sets_set_input {
+  id: uuid
+  parent_id: uuid
+  parent_kind: String
+  reps: Int
+}
+"""
+order by stddev() on columns of table "exercise_log_sets"
+"""
+input exercise_log_sets_stddev_order_by {
+  reps: order_by
+}
+"""
+order by stddev_pop() on columns of table "exercise_log_sets"
+"""
+input exercise_log_sets_stddev_pop_order_by {
+  reps: order_by
+}
+"""
+order by stddev_samp() on columns of table "exercise_log_sets"
+"""
+input exercise_log_sets_stddev_samp_order_by {
+  reps: order_by
+}
+"""
+Streaming cursor of the table "exercise_log_sets"
+"""
+input exercise_log_sets_stream_cursor_input {
+  """
+  Stream column input with initial value
+  """
+  initial_value: exercise_log_sets_stream_cursor_value_input!
+  """
+  cursor ordering
+  """
+  ordering: cursor_ordering
+}
+"""
+Initial value of the column from where the streaming should start
+"""
+input exercise_log_sets_stream_cursor_value_input {
+  id: uuid
+  parent_id: uuid
+  parent_kind: String
+  reps: Int
+}
+"""
+order by sum() on columns of table "exercise_log_sets"
+"""
+input exercise_log_sets_sum_order_by {
+  reps: order_by
+}
+input exercise_log_sets_updates {
+  """
+  increments the numeric columns with given value of the filtered values
+  """
+  _inc: exercise_log_sets_inc_input
+  """
+  sets the columns of the filtered rows to the given values
+  """
+  _set: exercise_log_sets_set_input
+  """
+  filter the rows which have to be updated
+  """
+  where: exercise_log_sets_bool_exp!
+}
+"""
+order by var_pop() on columns of table "exercise_log_sets"
+"""
+input exercise_log_sets_var_pop_order_by {
+  reps: order_by
+}
+"""
+order by var_samp() on columns of table "exercise_log_sets"
+"""
+input exercise_log_sets_var_samp_order_by {
+  reps: order_by
+}
+"""
+order by variance() on columns of table "exercise_log_sets"
+"""
+input exercise_log_sets_variance_order_by {
+  reps: order_by
+}
+"""
+Boolean expression to filter rows from the table "exercise_logs". All fields are combined with a logical 'AND'.
+"""
+input exercise_logs_bool_exp {
+  _and: [exercise_logs_bool_exp!]
+  _not: exercise_logs_bool_exp
+  _or: [exercise_logs_bool_exp!]
+  id: uuid_comparison_exp
+  kind: String_comparison_exp
+  owner_id: uuid_comparison_exp
+  sets: exercise_log_sets_bool_exp
+  sets_aggregate: exercise_log_sets_aggregate_bool_exp
+}
+"""
+input type for inserting data into table "exercise_logs"
+"""
+input exercise_logs_insert_input {
+  id: uuid
+  kind: String
+  owner_id: uuid
+  sets: exercise_log_sets_arr_rel_insert_input
+}
+"""
+input type for inserting object relation for remote table "exercise_logs"
+"""
+input exercise_logs_obj_rel_insert_input {
+  data: exercise_logs_insert_input!
+  """
+  upsert condition
+  """
+  on_conflict: exercise_logs_on_conflict
+}
+"""
+on_conflict condition type for table "exercise_logs"
+"""
+input exercise_logs_on_conflict {
+  constraint: exercise_logs_constraint!
+  update_columns: [exercise_logs_update_column!]! = []
+  where: exercise_logs_bool_exp
+}
+"""
+Ordering options when selecting data from "exercise_logs".
+"""
+input exercise_logs_order_by {
+  id: order_by
+  kind: order_by
+  owner_id: order_by
+  sets_aggregate: exercise_log_sets_aggregate_order_by
+}
+"""
+primary key columns input for table: exercise_logs
+"""
+input exercise_logs_pk_columns_input {
+  id: uuid!
+}
+"""
+input type for updating data in table "exercise_logs"
+"""
+input exercise_logs_set_input {
+  id: uuid
+  kind: String
+  owner_id: uuid
+}
+"""
+Streaming cursor of the table "exercise_logs"
+"""
+input exercise_logs_stream_cursor_input {
+  """
+  Stream column input with initial value
+  """
+  initial_value: exercise_logs_stream_cursor_value_input!
+  """
+  cursor ordering
+  """
+  ordering: cursor_ordering
+}
+"""
+Initial value of the column from where the streaming should start
+"""
+input exercise_logs_stream_cursor_value_input {
+  id: uuid
+  kind: String
+  owner_id: uuid
+}
+input exercise_logs_updates {
+  """
+  sets the columns of the filtered rows to the given values
+  """
+  _set: exercise_logs_set_input
+  """
+  filter the rows which have to be updated
+  """
+  where: exercise_logs_bool_exp!
+}
 input files_aggregate_bool_exp {
   count: files_aggregate_bool_exp_count
   bool_and: files_aggregate_bool_exp_bool_and
@@ -15254,6 +17967,176 @@ input files_variance_order_by {
 }
 input get_department_manager_args {
   department_id: uuid!
+}
+"""
+Boolean expression to filter rows from the table "identity.artists". All fields are combined with a logical 'AND'.
+"""
+input identity_artists_bool_exp {
+  _and: [identity_artists_bool_exp!]
+  _not: identity_artists_bool_exp
+  _or: [identity_artists_bool_exp!]
+  id: uuid_comparison_exp
+  stage_name: String_comparison_exp
+  created_by: uuid_comparison_exp
+}
+"""
+input type for inserting data into table "identity.artists"
+"""
+input identity_artists_insert_input {
+  id: uuid
+  stage_name: String
+  created_by: uuid
+}
+"""
+on_conflict condition type for table "identity.artists"
+"""
+input identity_artists_on_conflict {
+  constraint: identity_artists_constraint!
+  update_columns: [identity_artists_update_column!]! = []
+  where: identity_artists_bool_exp
+}
+"""
+Ordering options when selecting data from "identity.artists".
+"""
+input identity_artists_order_by {
+  id: order_by
+  stage_name: order_by
+  created_by: order_by
+}
+"""
+primary key columns input for table: identity.artists
+"""
+input identity_artists_pk_columns_input {
+  id: uuid!
+}
+"""
+input type for updating data in table "identity.artists"
+"""
+input identity_artists_set_input {
+  id: uuid
+  stage_name: String
+  created_by: uuid
+}
+"""
+Streaming cursor of the table "identity_artists"
+"""
+input identity_artists_stream_cursor_input {
+  """
+  Stream column input with initial value
+  """
+  initial_value: identity_artists_stream_cursor_value_input!
+  """
+  cursor ordering
+  """
+  ordering: cursor_ordering
+}
+"""
+Initial value of the column from where the streaming should start
+"""
+input identity_artists_stream_cursor_value_input {
+  id: uuid
+  stage_name: String
+  created_by: uuid
+}
+input identity_artists_updates {
+  """
+  sets the columns of the filtered rows to the given values
+  """
+  _set: identity_artists_set_input
+  """
+  filter the rows which have to be updated
+  """
+  where: identity_artists_bool_exp!
+}
+"""
+Boolean expression to filter rows from the table "identity_check_logs". All fields are combined with a logical 'AND'.
+"""
+input identity_check_logs_bool_exp {
+  _and: [identity_check_logs_bool_exp!]
+  _not: identity_check_logs_bool_exp
+  _or: [identity_check_logs_bool_exp!]
+  id: bigint_comparison_exp
+  owner_id: uuid_comparison_exp
+  note: String_comparison_exp
+}
+"""
+input type for incrementing numeric columns in table "identity_check_logs"
+"""
+input identity_check_logs_inc_input {
+  id: bigint
+}
+"""
+input type for inserting data into table "identity_check_logs"
+"""
+input identity_check_logs_insert_input {
+  id: bigint
+  owner_id: uuid
+  note: String
+}
+"""
+on_conflict condition type for table "identity_check_logs"
+"""
+input identity_check_logs_on_conflict {
+  constraint: identity_check_logs_constraint!
+  update_columns: [identity_check_logs_update_column!]! = []
+  where: identity_check_logs_bool_exp
+}
+"""
+Ordering options when selecting data from "identity_check_logs".
+"""
+input identity_check_logs_order_by {
+  id: order_by
+  owner_id: order_by
+  note: order_by
+}
+"""
+primary key columns input for table: identity_check_logs
+"""
+input identity_check_logs_pk_columns_input {
+  id: bigint!
+}
+"""
+input type for updating data in table "identity_check_logs"
+"""
+input identity_check_logs_set_input {
+  id: bigint
+  owner_id: uuid
+  note: String
+}
+"""
+Streaming cursor of the table "identity_check_logs"
+"""
+input identity_check_logs_stream_cursor_input {
+  """
+  Stream column input with initial value
+  """
+  initial_value: identity_check_logs_stream_cursor_value_input!
+  """
+  cursor ordering
+  """
+  ordering: cursor_ordering
+}
+"""
+Initial value of the column from where the streaming should start
+"""
+input identity_check_logs_stream_cursor_value_input {
+  id: bigint
+  owner_id: uuid
+  note: String
+}
+input identity_check_logs_updates {
+  """
+  increments the numeric columns with given value of the filtered values
+  """
+  _inc: identity_check_logs_inc_input
+  """
+  sets the columns of the filtered rows to the given values
+  """
+  _set: identity_check_logs_set_input
+  """
+  filter the rows which have to be updated
+  """
+  where: identity_check_logs_bool_exp!
 }
 input jsonb_cast_exp {
   String: String_comparison_exp
@@ -15727,6 +18610,233 @@ input news_updates {
   """
   where: news_bool_exp!
 }
+input note_replies_aggregate_bool_exp {
+  count: note_replies_aggregate_bool_exp_count
+}
+input note_replies_aggregate_bool_exp_count {
+  arguments: [note_replies_select_column!]
+  distinct: Boolean
+  filter: note_replies_bool_exp
+  predicate: Int_comparison_exp!
+}
+"""
+order by aggregate values of table "note_replies"
+"""
+input note_replies_aggregate_order_by {
+  count: order_by
+  max: note_replies_max_order_by
+  min: note_replies_min_order_by
+}
+"""
+input type for inserting array relation for remote table "note_replies"
+"""
+input note_replies_arr_rel_insert_input {
+  data: [note_replies_insert_input!]!
+  """
+  upsert condition
+  """
+  on_conflict: note_replies_on_conflict
+}
+"""
+Boolean expression to filter rows from the table "note_replies". All fields are combined with a logical 'AND'.
+"""
+input note_replies_bool_exp {
+  _and: [note_replies_bool_exp!]
+  _not: note_replies_bool_exp
+  _or: [note_replies_bool_exp!]
+  id: uuid_comparison_exp
+  note_id: uuid_comparison_exp
+  visibility: String_comparison_exp
+  body: String_comparison_exp
+  note: notes_bool_exp
+}
+"""
+input type for inserting data into table "note_replies"
+"""
+input note_replies_insert_input {
+  id: uuid
+  note_id: uuid
+  visibility: String
+  body: String
+  note: notes_obj_rel_insert_input
+}
+"""
+order by max() on columns of table "note_replies"
+"""
+input note_replies_max_order_by {
+  id: order_by
+  note_id: order_by
+  visibility: order_by
+  body: order_by
+}
+"""
+order by min() on columns of table "note_replies"
+"""
+input note_replies_min_order_by {
+  id: order_by
+  note_id: order_by
+  visibility: order_by
+  body: order_by
+}
+"""
+on_conflict condition type for table "note_replies"
+"""
+input note_replies_on_conflict {
+  constraint: note_replies_constraint!
+  update_columns: [note_replies_update_column!]! = []
+  where: note_replies_bool_exp
+}
+"""
+Ordering options when selecting data from "note_replies".
+"""
+input note_replies_order_by {
+  id: order_by
+  note_id: order_by
+  visibility: order_by
+  body: order_by
+  note: notes_order_by
+}
+"""
+primary key columns input for table: note_replies
+"""
+input note_replies_pk_columns_input {
+  id: uuid!
+}
+"""
+input type for updating data in table "note_replies"
+"""
+input note_replies_set_input {
+  id: uuid
+  note_id: uuid
+  visibility: String
+  body: String
+}
+"""
+Streaming cursor of the table "note_replies"
+"""
+input note_replies_stream_cursor_input {
+  """
+  Stream column input with initial value
+  """
+  initial_value: note_replies_stream_cursor_value_input!
+  """
+  cursor ordering
+  """
+  ordering: cursor_ordering
+}
+"""
+Initial value of the column from where the streaming should start
+"""
+input note_replies_stream_cursor_value_input {
+  id: uuid
+  note_id: uuid
+  visibility: String
+  body: String
+}
+input note_replies_updates {
+  """
+  sets the columns of the filtered rows to the given values
+  """
+  _set: note_replies_set_input
+  """
+  filter the rows which have to be updated
+  """
+  where: note_replies_bool_exp!
+}
+"""
+Boolean expression to filter rows from the table "notes". All fields are combined with a logical 'AND'.
+"""
+input notes_bool_exp {
+  _and: [notes_bool_exp!]
+  _not: notes_bool_exp
+  _or: [notes_bool_exp!]
+  id: uuid_comparison_exp
+  author_id: uuid_comparison_exp
+  title: String_comparison_exp
+  replies: note_replies_bool_exp
+  replies_aggregate: note_replies_aggregate_bool_exp
+}
+"""
+input type for inserting data into table "notes"
+"""
+input notes_insert_input {
+  id: uuid
+  author_id: uuid
+  title: String
+  replies: note_replies_arr_rel_insert_input
+}
+"""
+input type for inserting object relation for remote table "notes"
+"""
+input notes_obj_rel_insert_input {
+  data: notes_insert_input!
+  """
+  upsert condition
+  """
+  on_conflict: notes_on_conflict
+}
+"""
+on_conflict condition type for table "notes"
+"""
+input notes_on_conflict {
+  constraint: notes_constraint!
+  update_columns: [notes_update_column!]! = []
+  where: notes_bool_exp
+}
+"""
+Ordering options when selecting data from "notes".
+"""
+input notes_order_by {
+  id: order_by
+  author_id: order_by
+  title: order_by
+  replies_aggregate: note_replies_aggregate_order_by
+}
+"""
+primary key columns input for table: notes
+"""
+input notes_pk_columns_input {
+  id: uuid!
+}
+"""
+input type for updating data in table "notes"
+"""
+input notes_set_input {
+  id: uuid
+  author_id: uuid
+  title: String
+}
+"""
+Streaming cursor of the table "notes"
+"""
+input notes_stream_cursor_input {
+  """
+  Stream column input with initial value
+  """
+  initial_value: notes_stream_cursor_value_input!
+  """
+  cursor ordering
+  """
+  ordering: cursor_ordering
+}
+"""
+Initial value of the column from where the streaming should start
+"""
+input notes_stream_cursor_value_input {
+  id: uuid
+  author_id: uuid
+  title: String
+}
+input notes_updates {
+  """
+  sets the columns of the filtered rows to the given values
+  """
+  _set: notes_set_input
+  """
+  filter the rows which have to be updated
+  """
+  where: notes_bool_exp!
+}
 """
 Boolean expression to compare columns of type "numeric". All fields are combined with logical 'AND'.
 """
@@ -15841,6 +18951,14 @@ input search_news_3_args {
 }
 input search_news_args {
   search: String!
+}
+input search_news_default_args {
+  search: String!
+  max_len: Int
+}
+input search_news_positional_args {
+  arg_1: String!
+  arg_2: Int
 }
 input set_department_manager_args {
   p_user_id: uuid!

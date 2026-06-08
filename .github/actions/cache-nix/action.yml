@@ -23,6 +23,7 @@ runs:
         S3_BUCKET="nhost-nix-cache"
         S3_REGION="auto"
         S3_ENDPOINT="https://14bc02755b64adb7c8c62b5420d0a457.eu.r2.cloudflarestorage.com"
+        BUILT_PATHS_FILE="/tmp/nix-built-paths"
         # R2 uses static keys; make sure no stale OIDC session token lingers,
         # which would break SigV4 signing with these credentials.
         unset AWS_SESSION_TOKEN
@@ -98,51 +99,43 @@ runs:
 
         STEP_START=$(date +%s)
 
-        # Find locally-built paths (unsigned, non-drv)
+        # Find paths built by this job. setup-nix installs a Nix post-build
+        # hook that appends OUT_PATHS here; substituted paths are not recorded.
         T=$(date +%s)
+        if [ ! -s "$BUILT_PATHS_FILE" ]; then
+          echo "No post-build-hook paths recorded at $BUILT_PATHS_FILE"
+          exit 0
+        fi
+
         # `mapfile` requires bash 4+, which macOS doesn't ship. Use a portable
         # `while read` loop instead.
         LOCAL_PATHS=()
         while IFS= read -r line; do
-          LOCAL_PATHS+=("$line")
-        done < <(
-          nix path-info --all --json \
-            | jq -r 'to_entries[] | select(.key | endswith(".drv") | not) | select(.value.signatures | length == 0) | .key'
-        )
-        echo "[discover] Found ${#LOCAL_PATHS[@]} locally-built paths in $(elapsed $T)"
+          [ -e "$line" ] || continue
+          case "$line" in
+            /nix/store/*.drv) ;;
+            /nix/store/*) LOCAL_PATHS+=("$line") ;;
+          esac
+        done < <(sort -u "$BUILT_PATHS_FILE")
+        echo "[discover] Found ${#LOCAL_PATHS[@]} built paths in $(elapsed $T)"
 
         if [ ${#LOCAL_PATHS[@]} -eq 0 ]; then
-          echo "No locally-built paths to cache"
+          echo "No built paths to cache"
           exit 0
         fi
 
-        # Sign them
+        # Sign only paths built by this job.
         T=$(date +%s)
         printf '%s\n' "${LOCAL_PATHS[@]}" \
           | xargs nix store sign --key-file <(echo "${{ inputs.NIX_CACHE_PRIV_KEY }}")
         echo "[sign] Signed ${#LOCAL_PATHS[@]} paths in $(elapsed $T)"
 
-        # Check which paths are missing from S3 (in parallel)
+        # Upload built paths directly. If another job won the race and already
+        # cached the same path, overwriting the identical NAR/narinfo is cheaper
+        # than issuing one R2 HEAD request per path.
         T=$(date +%s)
-        MISSING_PATHS=()
-        while IFS= read -r line; do
-          MISSING_PATHS+=("$line")
-        done < <(
-          printf '%s\n' "${LOCAL_PATHS[@]}" \
-            | xargs -P 16 -I{} bash -c \
-              'aws s3api head-object --bucket "$S3_BUCKET" --endpoint-url "$S3_ENDPOINT" --region "$S3_REGION" --key "$(basename "$1" | cut -d- -f1).narinfo" >/dev/null 2>&1 || echo "$1"' _ {}
-        )
-        echo "[check] Found ${#MISSING_PATHS[@]}/${#LOCAL_PATHS[@]} paths missing from cache in $(elapsed $T)"
-
-        if [ ${#MISSING_PATHS[@]} -eq 0 ]; then
-          echo "All paths already cached"
-          exit 0
-        fi
-
-        # Upload missing paths
-        T=$(date +%s)
-        printf '%s\n' "${MISSING_PATHS[@]}" \
+        printf '%s\n' "${LOCAL_PATHS[@]}" \
           | xargs -P 4 -I{} bash -c 'upload_to_s3 "$@"' _ {}
-        echo "[upload] Uploaded ${#MISSING_PATHS[@]} paths in $(elapsed $T)"
+        echo "[upload] Uploaded ${#LOCAL_PATHS[@]} paths in $(elapsed $T)"
 
         echo "[total] Cache step completed in $(elapsed $STEP_START)"

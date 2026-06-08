@@ -1,8 +1,44 @@
 package integration_test
 
 import (
+	"net/http"
 	"testing"
+
+	"github.com/google/go-cmp/cmp"
 )
+
+func assertRejectedUpdateManyLeavesMarketingBudgetUnchanged(t *testing.T, headers http.Header) {
+	t.Helper()
+
+	resp, err := makeHTTPQuery(t.Context(), constellationURL, query{
+		Query: `
+			query {
+			  departments(where: {name: {_eq: "Marketing"}}) {
+				name
+				budget
+			  }
+			}`,
+		Role: "admin",
+	}, headers)
+	if err != nil {
+		t.Fatalf("constellation departments state query failed: %v", err)
+	}
+
+	want := map[string]any{
+		"data": map[string]any{
+			"departments": []any{
+				map[string]any{
+					"name":   "Marketing",
+					"budget": float64(500000),
+				},
+			},
+		},
+	}
+
+	if diff := cmp.Diff(want, resp); diff != "" {
+		t.Fatalf("unexpected departments state after rejected update_many (-want +got):\n%s", diff)
+	}
+}
 
 func TestUpdateMutations(t *testing.T) { //nolint:paralleltest,maintidx
 	cases := []TestCase{
@@ -1283,6 +1319,178 @@ func TestUpdateMutations(t *testing.T) { //nolint:paralleltest,maintidx
 					"user-id": "550e8400-e29b-41d4-a716-446655440001",
 				},
 			},
+		},
+
+		{
+			name: "update with preset only from session variable",
+			query: query{
+				Query: `mutation {
+					updateFiles(
+						where: { id: { _eq: "f1e9b8db-2222-439f-9d63-7f83de523fb2" } }
+					) {
+						affected_rows
+						returning {
+							id
+							uploadedByUserId
+						}
+					}
+				}`,
+				Role: "user",
+				SessionVariables: map[string]string{
+					"user-id": "550e8400-e29b-41d4-a716-446655440001",
+				},
+			},
+		},
+	}
+
+	RunGraphQLTests(t, cases, TestConfig{
+		IsMutation:           true,
+		ReinitBetweenQueries: true,
+	})
+}
+
+// TestUpdateOperatorValidationErrors checks the GraphQL error envelope for
+// invalid update-operator input.
+//
+//   - Same column in two operators (_set + _inc on budget): both engines reject
+//     at validation and the envelope matches Hasura byte-for-byte
+//     (validation-failed, path $.selectionSet.update_departments.args), so it is
+//     compared live against Hasura.
+//   - No operator supplied and no update preset available (update / update_by_pk
+//     / update_many): Constellation rejects all three with the same clean
+//     validation-failed envelope, whereas Hasura diverges — it silently no-ops
+//     the collection update (affected_rows
+//     0), returns {} for _by_pk, and emits a SET-less SQL syntax error for a
+//     _many element. That is an intentional, documented deviation
+//     (KNOWN_DIFFERENCES.md), so each no-operator case asserts Constellation's
+//     envelope via a fixed expected response — guarding against a regression to
+//     a sanitized "internal server error" in production — rather than diffing
+//     against Hasura.
+func TestUpdateOperatorValidationErrors(t *testing.T) { //nolint:paralleltest
+	cases := []TestCase{
+		{
+			name: "update with same column in two operators (validation error)",
+			query: query{
+				Query: `mutation {
+					update_departments(
+						where: { name: { _eq: "Marketing" } }
+						_set: { budget: 100 }
+						_inc: { budget: 5 }
+					) {
+						affected_rows
+					}
+				}`,
+				Role: "admin",
+			},
+		},
+		{
+			name: "update with no operators (validation error)",
+			query: query{
+				Query: `mutation {
+					update_departments(where: { name: { _eq: "Marketing" } }) {
+						affected_rows
+					}
+				}`,
+				Role: "admin",
+			},
+			expected: map[string]any{
+				"errors": []any{
+					map[string]any{
+						"message": "at least one update operator must be provided",
+						"extensions": map[string]any{
+							"code": "validation-failed",
+							"path": "$.selectionSet.update_departments.args",
+						},
+					},
+				},
+			},
+		},
+		{
+			// Hasura returns an empty object {} for a no-operator _by_pk update;
+			// Constellation rejects with the validation-failed envelope.
+			name: "update_by_pk with no operators (validation error)",
+			query: query{
+				Query: `mutation {
+					update_departments_by_pk(
+						pk_columns: { id: "dcd52518-58d0-4834-9683-ba6dee33833f" }
+					) {
+						id
+					}
+				}`,
+				Role: "admin",
+			},
+			expected: map[string]any{
+				"errors": []any{
+					map[string]any{
+						"message": "at least one update operator must be provided",
+						"extensions": map[string]any{
+							"code": "validation-failed",
+							"path": "$.selectionSet.update_departments_by_pk.args",
+						},
+					},
+				},
+			},
+		},
+		{
+			// Hasura returns [] for a single empty _many element (and a SET-less
+			// SQL syntax error when an empty element is mixed with a non-empty
+			// one); Constellation rejects the empty element with the
+			// validation-failed envelope.
+			name: "update_many with an empty update element (validation error)",
+			query: query{
+				Query: `mutation {
+					update_departments_many(
+						updates: [{ where: { name: { _eq: "Marketing" } } }]
+					) {
+						affected_rows
+					}
+				}`,
+				Role: "admin",
+			},
+			expected: map[string]any{
+				"errors": []any{
+					map[string]any{
+						"message": "at least one update operator must be provided",
+						"extensions": map[string]any{
+							"code": "validation-failed",
+							"path": "$.selectionSet.update_departments_many.args",
+						},
+					},
+				},
+			},
+		},
+		{
+			name: "update_many with mixed valid and empty update elements (validation error)",
+			query: query{
+				Query: `mutation {
+					update_departments_many(
+						updates: [
+							{
+								where: { name: { _eq: "Marketing" } }
+								_set: { budget: 100 }
+							},
+							{
+								where: { name: { _eq: "Sales" } }
+							}
+						]
+					) {
+						affected_rows
+					}
+				}`,
+				Role: "admin",
+			},
+			expected: map[string]any{
+				"errors": []any{
+					map[string]any{
+						"message": "at least one update operator must be provided",
+						"extensions": map[string]any{
+							"code": "validation-failed",
+							"path": "$.selectionSet.update_departments_many.args",
+						},
+					},
+				},
+			},
+			assertConstellationState: assertRejectedUpdateManyLeavesMarketingBudgetUnchanged,
 		},
 	}
 

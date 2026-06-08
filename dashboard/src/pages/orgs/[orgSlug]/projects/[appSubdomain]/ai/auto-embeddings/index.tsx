@@ -1,4 +1,5 @@
 import { PlusIcon } from 'lucide-react';
+import Link from 'next/link';
 import { useRouter } from 'next/router';
 import { type ReactElement, useEffect, useMemo, useRef, useState } from 'react';
 import { useDialog } from '@/components/common/DialogProvider';
@@ -9,7 +10,6 @@ import { RetryableErrorBoundary } from '@/components/presentational/RetryableErr
 import { Alert } from '@/components/ui/v2/Alert';
 import { Box } from '@/components/ui/v2/Box';
 import { Button } from '@/components/ui/v2/Button';
-import { Link } from '@/components/ui/v2/Link';
 import { Text } from '@/components/ui/v2/Text';
 import { EmbeddingsIcon } from '@/components/ui/v3/icons/EmbeddingsIcon';
 import { useRemoteApplicationGQLClient } from '@/features/orgs/hooks/useRemoteApplicationGQLClient';
@@ -118,7 +118,7 @@ export default function AutoEmbeddingsPage() {
               <Link
                 href={`/orgs/${slug}/projects/${project?.subdomain}/settings/ai`}
                 rel="noopener noreferrer"
-                underline="hover"
+                className="text-primary hover:underline"
               >
                 AI Settings
               </Link>

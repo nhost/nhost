@@ -115,7 +115,17 @@ func (t *table) astToQuerySelectionWithPath( //nolint:funlen,cyclop,gocognit
 					}
 
 					if !merged {
-						relationships = append(relationships, *r)
+						// Shallow-copy the first occurrence so later duplicate-alias
+						// appends do not mutate the original cached AST. This mirrors
+						// selection_aggregate.go's nodes-field merge guard; only
+						// SelectionSet is copy-on-write because it is the only mutated
+						// field here.
+						field := *r.field
+						field.SelectionSet = append(ast.SelectionSet(nil), r.field.SelectionSet...)
+
+						relationship := *r
+						relationship.field = &field
+						relationships = append(relationships, relationship)
 					}
 
 					continue

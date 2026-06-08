@@ -12,6 +12,7 @@ import (
 	"time"
 
 	"github.com/google/go-cmp/cmp"
+	"github.com/nhost/nhost/services/constellation/connector/schemamerge"
 	"github.com/nhost/nhost/services/constellation/controller/middleware"
 	"github.com/nhost/nhost/services/constellation/controller/websocket"
 	"github.com/nhost/nhost/services/constellation/internal/lib/syncmap"
@@ -46,6 +47,121 @@ func TestWebSocketHandlerConnectionExpiresAt(t *testing.T) {
 	}
 }
 
+func TestWebSocketHandlerOnSubscribeRejectsMissingRequiredDirectiveVariable(t *testing.T) {
+	t.Parallel()
+
+	sendCh := make(chan *websocket.Message, 1)
+
+	h := &webSocketHandler{
+		state: &controllerState{
+			validatedSchemas: wsTestSchemas(t),
+			queryCache:       newQueryCache(),
+		},
+		adminSecret:     "",
+		jwtAuth:         nil,
+		pollingInterval: defaultPollingInterval,
+		devMode:         false,
+		logger:          slog.New(slog.DiscardHandler),
+		session:         &middleware.SessionVariables{Role: "admin", Variables: nil},
+		sendCh:          sendCh,
+		subs:            syncmap.New[string, *subscriptionState](),
+	}
+
+	h.OnSubscribe(context.Background(), "sub-1", websocket.SubscribePayload{
+		OperationName: "Q",
+		Query:         `subscription Q($includeUsers: Boolean!) { users @include(if: $includeUsers) { id } }`,
+		Variables:     nil,
+		Extensions:    nil,
+	})
+
+	errs := firstErrorPayload(t, sendCh)
+
+	got, _ := errs[0]["message"].(string)
+	if got != "must be defined" {
+		t.Fatalf("expected missing-variable validation error, got %q", got)
+	}
+
+	path, ok := errs[0]["path"].([]any)
+	if !ok || len(path) != 2 || path[0] != "variable" || path[1] != "includeUsers" {
+		t.Fatalf("expected variable path, got %v", errs[0]["path"])
+	}
+
+	if _, exists := h.subs.Load("sub-1"); exists {
+		t.Fatal("subscription must not be registered after variable validation fails")
+	}
+}
+
+func TestWebSocketHandlerOnSubscribeCoercesDefaultedDirectiveVariable(t *testing.T) {
+	t.Parallel()
+
+	ctrl := gomock.NewController(t)
+	mockHandler := subscriptionmock.NewMockHandler(ctrl)
+
+	updates := make(chan subscription.Update)
+	close(updates)
+
+	mockHandler.EXPECT().
+		Start(gomock.Any(), gomock.Any(), gomock.Any()).
+		DoAndReturn(func(
+			_ context.Context,
+			req subscription.Request,
+			_ *slog.Logger,
+		) (<-chan subscription.Update, error) {
+			gotDefault, ok := req.Variables["includeUsers"].(bool)
+			if !ok || !gotDefault {
+				t.Fatalf("expected defaulted includeUsers=true, got %v", req.Variables)
+			}
+
+			if len(req.Operation.SelectionSet) != 1 {
+				t.Fatalf(
+					"expected one selected root field, got %d",
+					len(req.Operation.SelectionSet),
+				)
+			}
+
+			field, ok := req.Operation.SelectionSet[0].(*ast.Field)
+			if !ok || field.Name != "users" {
+				t.Fatalf("expected selected users field, got %#v", req.Operation.SelectionSet[0])
+			}
+
+			return updates, nil
+		})
+
+	sendCh := make(chan *websocket.Message, 1)
+
+	h := &webSocketHandler{
+		state: &controllerState{
+			validatedSchemas: wsTestSchemas(t),
+			fieldToConnector: map[string]string{
+				schemamerge.FieldKey(ast.Subscription, "users"): "db",
+			},
+			subHandlers: map[string]subscription.Handler{"db": mockHandler},
+			queryCache:  newQueryCache(),
+		},
+		adminSecret:     "",
+		jwtAuth:         nil,
+		pollingInterval: defaultPollingInterval,
+		devMode:         false,
+		logger:          slog.New(slog.DiscardHandler),
+		session:         &middleware.SessionVariables{Role: "admin", Variables: nil},
+		sendCh:          sendCh,
+		subs:            syncmap.New[string, *subscriptionState](),
+	}
+
+	h.OnSubscribe(context.Background(), "sub-1", websocket.SubscribePayload{
+		OperationName: "Q",
+		Query:         `subscription Q($includeUsers: Boolean = true) { users @include(if: $includeUsers) { id } }`,
+		Variables:     nil,
+		Extensions:    nil,
+	})
+
+	select {
+	case msg := <-sendCh:
+		t.Fatalf("unexpected websocket message: %+v", msg)
+	default:
+	}
+}
+
 func TestGetConnectorForOperation(t *testing.T) {
 	t.Parallel()
 
@@ -61,10 +177,22 @@ func TestGetConnectorForOperation(t *testing.T) {
 		want             string
 	}{
 		{
-			name:             "routes to known connector",
-			fieldToConnector: map[string]string{"users": "db1", "posts": "db2"},
-			selectionFields:  []string{"users"},
-			want:             "db1",
+			name: "routes to known connector",
+			fieldToConnector: map[string]string{
+				schemamerge.FieldKey(ast.Subscription, "users"): "db1",
+				schemamerge.FieldKey(ast.Subscription, "posts"): "db2",
+			},
+			selectionFields: []string{"users"},
+			want:            "db1",
+		},
+		{
+			name: "routes using subscription key when names overlap",
+			fieldToConnector: map[string]string{
+				schemamerge.FieldKey(ast.Query, "foo"):        "dbQ",
+				schemamerge.FieldKey(ast.Subscription, "foo"): "dbS",
+			},
+			selectionFields: []string{"foo"},
+			want:            "dbS",
 		},
 		{
 			name:             "unknown field falls through to default handler",
@@ -96,7 +224,10 @@ func TestGetConnectorForOperation(t *testing.T) {
 				selections[i] = &ast.Field{Name: name}
 			}
 
-			op := &ast.OperationDefinition{SelectionSet: selections}
+			op := &ast.OperationDefinition{
+				Operation:    ast.Subscription,
+				SelectionSet: selections,
+			}
 
 			got := getConnectorForOperation(state, op)
 			if got != tc.want {

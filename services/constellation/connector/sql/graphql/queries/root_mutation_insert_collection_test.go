@@ -196,6 +196,33 @@ func TestInsertBuildQuery(t *testing.T) { //nolint:paralleltest,maintidx
 		},
 
 		{
+			name: "upsert non-admin detectable conflict fails update check with typename only",
+			query: query{
+				Query: `mutation {
+					insert_notes(
+						objects: [
+							{
+								id: "0199cccc-0000-7000-8000-000000000001"
+								author_id: "550e8400-e29b-41d4-a716-446655440001"
+								title: "__forbidden__"
+							}
+						]
+						on_conflict: {
+							constraint: notes_pkey
+							update_columns: [title]
+						}
+					) {
+						__typename
+					}
+				}`,
+				Role: "user",
+				SessionVariables: map[string]any{
+					"x-hasura-user-id": "550e8400-e29b-41d4-a716-446655440001",
+				},
+			},
+		},
+
+		{
 			name: "insert with on_conflict do nothing",
 			query: query{
 				Query: `mutation {

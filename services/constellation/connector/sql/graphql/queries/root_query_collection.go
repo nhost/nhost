@@ -52,6 +52,7 @@ func (t *table) buildQueryCollectionSQL(
 		SQL:           sql,
 		Parameters:    params,
 		StreamCursors: nil,
+		Sequential:    nil,
 	}, nil
 }
 

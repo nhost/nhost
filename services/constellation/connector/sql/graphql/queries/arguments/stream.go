@@ -75,13 +75,6 @@ func ParseStream(
 		return result, fmt.Errorf("failed to parse cursor: %w", err)
 	}
 
-	if len(cursors) == 0 {
-		return result, fmt.Errorf(
-			"%w: at least one cursor is required for stream subscriptions",
-			ErrInvalidArgument,
-		)
-	}
-
 	result.Cursors = cursors
 
 	if whereArg := arguments.ForName("where"); whereArg != nil {
@@ -102,19 +95,21 @@ func ParseStream(
 // Each cursor input has the structure:
 //
 //	{
-//	  initial_value: {column1: value1, column2: value2, ...}
+//	  initial_value: {column: value}
 //	  ordering: cursor_ordering (optional, defaults to ASC)
 //	}
 //
 // GraphQL allows passing a single object instead of an array, which is
-// automatically coerced to an array containing that single object.
+// automatically coerced to an array containing that single object. Hasura
+// supports exactly one cursor object with exactly one cursor column; additional
+// cursor objects or cursor columns are rejected.
 //
-// The function is linear: coerce list, then for each cursor: validate, resolve
-// initial_value, resolve optional ordering, emit one StreamCursor per inner
-// column. Each step needs access to the caller's variables/err state, so
-// splitting into helpers would either thread the same five arguments through
-// three sub-functions or share state via a struct — both heavier than the
-// current sequence. Revisit if a sixth independent step is added.
+// The function is linear: coerce list, validate the single cursor, resolve
+// initial_value, resolve optional ordering, and emit one StreamCursor. Each
+// step needs access to the caller's variables/err state, so splitting into
+// helpers would either thread the same five arguments through three
+// sub-functions or share state via a struct — both heavier than the current
+// sequence. Revisit if a sixth independent step is added.
 //
 //nolint:gocognit,cyclop,funlen // see godoc above for rationale
 func parseStreamCursors(
@@ -141,6 +136,12 @@ func parseStreamCursors(
 		return nil, fmt.Errorf("%w: cursor must be an array or object", ErrInvalidArgument)
 	}
 
+	if len(cursorValues) != 1 {
+		return nil, fmt.Errorf(
+			"%w: exactly one cursor object is supported", ErrInvalidArgument,
+		)
+	}
+
 	var cursors []StreamCursor
 
 	for _, childValue := range cursorValues {
@@ -165,6 +166,12 @@ func parseStreamCursors(
 
 		if initialValue.Kind != ast.ObjectValue {
 			return nil, fmt.Errorf("%w: initial_value must be an object", ErrInvalidArgument)
+		}
+
+		if len(initialValue.Children) != 1 {
+			return nil, fmt.Errorf(
+				"%w: stream cursor must specify exactly one column", ErrInvalidArgument,
+			)
 		}
 
 		ordering := core.OrderAsc

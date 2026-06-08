@@ -6,6 +6,7 @@ import (
 	"fmt"
 
 	"github.com/nhost/nhost/services/constellation/controller/planner"
+	"github.com/nhost/nhost/services/constellation/internal/jsonpath"
 )
 
 // unmarshalRawResults converts any [jsontext.Value] entries in results to
@@ -35,16 +36,34 @@ func removePhantomFieldsFromPlan(results map[string]any, plan *planner.QueryPlan
 		return
 	}
 
-	seen := make(map[string]struct{})
+	fieldsByPath := make(map[string]map[string]struct{})
+	pathsByKey := make(map[string]jsonpath.Path)
 
 	for _, pfs := range plan.AllPhantomFieldSpecs() {
 		key := pfs.Path.String()
-		if _, ok := seen[key]; ok {
-			continue
+
+		pathsByKey[key] = pfs.Path
+		if fieldsByPath[key] == nil {
+			fieldsByPath[key] = make(map[string]struct{})
 		}
 
-		seen[key] = struct{}{}
+		for _, field := range pfs.Fields {
+			if alias, ok := pfs.Aliases[field]; ok {
+				fieldsByPath[key][alias] = struct{}{}
 
-		pfs.Path.Delete(results, pfs.Fields...)
+				continue
+			}
+
+			fieldsByPath[key][field] = struct{}{}
+		}
+	}
+
+	for key, fieldSet := range fieldsByPath {
+		fields := make([]string, 0, len(fieldSet))
+		for field := range fieldSet {
+			fields = append(fields, field)
+		}
+
+		pathsByKey[key].Delete(results, fields...)
 	}
 }

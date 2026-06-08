@@ -85,7 +85,7 @@ test('should not be able to delete a table if other tables have foreign keys ref
   await page.getByRole('button', { name: /add foreign key/i }).click();
 
   // select column in current table
-  await page.locator('#columnName').click();
+  await page.getByRole('combobox', { name: 'Column' }).first().click();
 
   await page.getByRole('option', { name: /author_id/i }).click();
 
@@ -98,7 +98,7 @@ test('should not be able to delete a table if other tables have foreign keys ref
   await page.getByRole('option', { name: firstTableName, exact: true }).click();
 
   // select reference column
-  await page.locator('#referencedColumn').click();
+  await page.getByRole('combobox', { name: 'Column' }).last().click();
   await page.getByRole('option', { name: /id/i }).click();
   await page.getByRole('button', { name: /add/i }).click();
 

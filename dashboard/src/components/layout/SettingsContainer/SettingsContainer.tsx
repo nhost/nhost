@@ -1,4 +1,3 @@
-import { ExternalLink as ArrowSquareOutIcon } from 'lucide-react';
 import Image from 'next/image';
 import type { DetailedHTMLProps, HTMLProps, ReactNode } from 'react';
 import { twMerge } from 'tailwind-merge';
@@ -7,10 +6,10 @@ import type { BoxProps } from '@/components/ui/v2/Box';
 import { Box } from '@/components/ui/v2/Box';
 import type { ButtonProps } from '@/components/ui/v2/Button';
 import { Button } from '@/components/ui/v2/Button';
-import { Link } from '@/components/ui/v2/Link';
 import type { SwitchProps } from '@/components/ui/v2/Switch';
 import { Switch } from '@/components/ui/v2/Switch';
 import { Text } from '@/components/ui/v2/Text';
+import { TextLink } from '@/components/ui/v3/text-link';
 
 export interface SettingsContainerProps
   extends Omit<
@@ -176,16 +175,13 @@ export default function SettingsContainer({
           <div className="grid w-full grid-flow-col justify-start gap-x-1 self-center align-middle">
             <Text>
               Learn more about{' '}
-              <Link
+              <TextLink
                 href={docsLink || 'https://docs.nhost.io/'}
-                target="_blank"
-                rel="noopener noreferrer"
-                underline="hover"
-                className="inline-flex items-center gap-1 font-medium"
+                external
+                className="font-medium"
               >
                 {docsTitle || title}
-                <ArrowSquareOutIcon className="h-4 w-4" />
-              </Link>
+              </TextLink>
             </Text>
           </div>
         )}
