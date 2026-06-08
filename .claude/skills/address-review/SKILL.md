@@ -26,8 +26,9 @@ For every file matching `.review/<glob>` you will:
    run in parallel — independent agents would step on each other's edits,
    re-format the same files, and clash on lint/test runs.
 2. **Route each finding to the right developer agent.** This repo has
-   three: `go-developer` for Go files, `javascript-developer` for
-   JS/TS, `generic-developer` for everything else and for mixed-language
+   four: `go-developer` for Go files, `react-developer` for dashboard
+   React, `typescript-developer` for other JS/TS (SDK, functions,
+   examples), `generic-developer` for everything else and for mixed-language
    findings. The same matching agent is used in **development mode**
    for the implementer and **review mode** for the reviewer; each agent
    already knows its language rules, post-change checks (lint/test
@@ -272,7 +273,8 @@ unit based on the **file paths the finding touches**:
 | Files in the finding                                       | Agent                  |
 |------------------------------------------------------------|------------------------|
 | All `*.go`                                                 | `go-developer`         |
-| All `*.ts`, `*.tsx`, `*.js`, `*.jsx`, `*.mjs`, `*.cjs`     | `javascript-developer` |
+| JS/TS under `dashboard/`                                   | `react-developer`      |
+| JS/TS under `packages/nhost-js/`, `services/functions/`, `examples/`, or `docs/` | `typescript-developer` |
 | All other single-language (SQL, YAML, Nix, Markdown, etc.) | `generic-developer`    |
 | Mixed languages within one finding                         | `generic-developer`    |
 
@@ -284,15 +286,15 @@ over the address-review policy (this file) and the finding, nothing
 else.
 
 `generic-developer` handles mixed-language findings end-to-end and may
-delegate language-specific slices to `go-developer` / `javascript-developer`
-via the Agent tool if needed — that's its design.
+delegate language-specific slices to `go-developer` / `react-developer` /
+`typescript-developer` via the Agent tool if needed — that's its design.
 
 > Note: nested agent delegation (subagent → subagent) is supported in this
 > harness. The developer agents' frontmatter already grants the `Agent` tool
-> (see `.claude/agents/{generic,go,javascript}-developer.md`), so
-> `generic-developer` may invoke `go-developer` or `javascript-developer`
-> via the Agent tool when a mixed-language finding has a clearly
-> language-bounded slice.
+> (see `.claude/agents/{generic,go,react,typescript}-developer.md`), so
+> `generic-developer` may invoke `go-developer`, `react-developer`, or
+> `typescript-developer` via the Agent tool when a mixed-language finding
+> has a clearly language-bounded slice.
 
 ---
 
@@ -350,7 +352,7 @@ non-negotiable.
 ### 3. The implementer agent (one work unit)
 
 Spawn with the `Agent` tool, `subagent_type` set to the routed agent
-(`go-developer`, `javascript-developer`, or `generic-developer`). The
+(`go-developer`, `react-developer`, `typescript-developer`, or `generic-developer`). The
 prompt is **self-contained** — the agent has not seen this conversation.
 
 The agent already knows: its language rules (from its loaded rules
@@ -549,7 +551,7 @@ Return to the orchestrator:
 After all work units have ACCEPT/ACCEPT_WITH_CONCERNS verdicts, run a
 final repo-wide pass yourself (or in a final clean agent of the
 appropriate type — `go-developer` if any Go was touched,
-`javascript-developer` if any JS/TS was touched, both if both):
+`react-developer` / `typescript-developer` if any JS/TS was touched):
 
 - Go: `golines -w --base-formatter=gofumpt .` then `golangci-lint run --fix ./...`
 - JS/TS: route through Turbo so each workspace's own task config is
@@ -710,11 +712,13 @@ same renamed symbol) — and justify the grouping in the prompt and the
 report. A 5-item "they all touch the resolver package" group is too
 broad; split it.
 
-### Routing a Go finding to javascript-developer (or vice versa)
+### Routing a Go finding to a JS/TS agent (or vice versa)
 
-The routing rule is by file extension on the **finding's `**File:**`
-header(s)**. If you route by guesswork or by package name, you'll hand
-a Go-rules agent JS-rules work and vice versa. Read the header. If a
+The routing rule is by file path on the **finding's `**File:**`
+header(s)** — extension picks Go vs JS/TS vs generic, and for JS/TS the
+workspace picks `react-developer` (`dashboard/`) vs `typescript-developer`
+(everything else). If you route by guesswork or by package name, you'll
+hand a Go-rules agent JS-rules work and vice versa. Read the header. If a
 finding has no `**File:**` header at all, treat it as `generic-developer`
 work and let that agent figure out where the change belongs.
 

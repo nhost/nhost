@@ -44,7 +44,7 @@ When the parent delegates a job that spans multiple languages — a security aud
 
 - Trace the change end-to-end across languages.
 - Surface inconsistencies (Go service updated but TS client wasn't, metadata YAML references a column the SQL doesn't define, etc.).
-- For each language-specific finding, decide whether to delegate to `go-developer` or `javascript-developer` via the Agent tool, or handle it inline if it's small.
+- For each language-specific finding, decide whether to delegate to `go-developer`, `react-developer` (dashboard React), or `typescript-developer` (SDK, functions, examples) via the Agent tool, or handle it inline if it's small.
 
 ## Output format in review mode
 
