@@ -40,8 +40,6 @@ let
     root = ../.;
     fileset = fs.unions [
       ../.npmrc
-      ../.prettierignore
-      ../.prettierrc.js
       ../audit-ci.jsonc
       ../package.json
       ../pnpm-workspace.yaml
@@ -51,7 +49,6 @@ let
       ../.gitignore
       ../build/configs
       ./.env.example
-      ./.lintstagedrc.json
       ./biome.json
       ./.lychee.toml
       ./components.json
