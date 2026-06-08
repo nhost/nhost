@@ -4,7 +4,6 @@ import (
 	"context"
 	"crypto/rsa"
 	"crypto/x509"
-	"encoding/base64"
 	"encoding/pem"
 	"errors"
 	"fmt"
@@ -97,7 +96,14 @@ func (sv *secretValidator) initJWKS(
 func (sv *secretValidator) initStatic(secret jwtconfig.Secret, logger *slog.Logger) error {
 	switch secret.Type {
 	case jwtconfig.AlgorithmHS256, jwtconfig.AlgorithmHS384, jwtconfig.AlgorithmHS512:
-		key := decodeHMACKey(secret.Key, logger)
+		key := []byte(secret.Key)
+		if logger != nil {
+			logger.Debug(
+				"jwt hmac key used as raw bytes",
+				slog.Int("key_len", len(secret.Key)),
+			)
+		}
+
 		sv.keyFunc = func(_ *jwt.Token) (any, error) {
 			return key, nil
 		}
@@ -163,37 +169,6 @@ func (sv *secretValidator) close() {
 	if sv.jwksCancel != nil {
 		sv.jwksCancel()
 	}
-}
-
-// decodeHMACKey tries base64 decoding first, falls back to raw bytes.
-// The base64 error is intentionally swallowed: this implements the documented
-// "key is base64 OR raw bytes" contract. The opposite failure mode — a raw
-// secret that happens to look like base64 being silently decoded — is
-// observable at DEBUG: operators chasing an inscrutable "signature invalid"
-// error can confirm which interpretation was used at startup. Only key lengths
-// are logged, never key material.
-func decodeHMACKey(key string, logger *slog.Logger) []byte {
-	decoded, err := base64.StdEncoding.DecodeString(key)
-	if err == nil {
-		if logger != nil {
-			logger.Debug(
-				"jwt hmac key interpreted as base64",
-				slog.Int("encoded_len", len(key)),
-				slog.Int("decoded_len", len(decoded)),
-			)
-		}
-
-		return decoded
-	}
-
-	if logger != nil {
-		logger.Debug(
-			"jwt hmac key interpreted as raw bytes",
-			slog.Int("key_len", len(key)),
-		)
-	}
-
-	return []byte(key)
 }
 
 // parseRSAPublicKey parses a PEM-encoded RSA public key.
