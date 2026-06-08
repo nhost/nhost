@@ -67,6 +67,8 @@ func TestAuthenticator(t *testing.T) { //nolint:maintidx
 
 	rsaPrivKey, rsaPubPEM := generateRSAKeyPair(t)
 
+	const validBase64LookingHMACKey = "0f987876650b4a085e64594fae9219e7781b17506bec02489ad061fba8cb22db"
+
 	cases := []struct {
 		name            string
 		config          jwtconfig.Config
@@ -1129,22 +1131,45 @@ func TestAuthenticator(t *testing.T) { //nolint:maintidx
 
 		// --- HMAC key encoding ---
 		{
-			name: "hs256 - base64 encoded key",
+			name: "hs256 - valid-base64-looking key verified as raw bytes",
 			config: jwtconfig.Config{
 				Secrets: []jwtconfig.Secret{
-					{Type: jwtconfig.AlgorithmHS256, Key: "dGVzdA=="}, // base64("test")
+					{Type: jwtconfig.AlgorithmHS256, Key: validBase64LookingHMACKey},
 				},
 			},
-			headersFn: bearerTokenFn("test", gojwt.SigningMethodHS256, gojwt.MapClaims{
-				"exp": gojwt.NewNumericDate(time.Now().Add(time.Hour)),
-				"https://hasura.io/jwt/claims": hasuraClaims(
-					[]string{"user"}, "user", nil,
-				),
-			}),
+			headersFn: bearerTokenFn(
+				validBase64LookingHMACKey,
+				gojwt.SigningMethodHS256,
+				gojwt.MapClaims{
+					"exp": gojwt.NewNumericDate(time.Now().Add(time.Hour)),
+					"https://hasura.io/jwt/claims": hasuraClaims(
+						[]string{"user"}, "user", nil,
+					),
+				},
+			),
 			expectedSession: &jwt.SessionResult{
 				Role:      "user",
 				Variables: expectedVars("user", []string{"user"}, "user", nil),
 			},
+		},
+		{
+			name: "hs256 - token signed with base64-decoded key is rejected",
+			config: jwtconfig.Config{
+				Secrets: []jwtconfig.Secret{
+					{Type: jwtconfig.AlgorithmHS256, Key: validBase64LookingHMACKey},
+				},
+			},
+			headersFn: base64DecodedBearerTokenFn(
+				validBase64LookingHMACKey,
+				gojwt.SigningMethodHS256,
+				gojwt.MapClaims{
+					"exp": gojwt.NewNumericDate(time.Now().Add(time.Hour)),
+					"https://hasura.io/jwt/claims": hasuraClaims(
+						[]string{"user"}, "user", nil,
+					),
+				},
+			),
+			wantErr: true,
 		},
 
 		// --- Hasura claims type edge cases ---
@@ -1839,6 +1864,42 @@ func bearerTokenFn(
 	claims gojwt.MapClaims,
 ) func(*testing.T) http.Header {
 	return bearerTokenFnWithPrefix("Bearer ", key, method, claims)
+}
+
+func base64DecodedBearerTokenFn(
+	encodedKey string,
+	method gojwt.SigningMethod,
+	claims gojwt.MapClaims,
+) func(*testing.T) http.Header {
+	return func(t *testing.T) http.Header {
+		t.Helper()
+
+		decodedKey, err := base64.StdEncoding.DecodeString(encodedKey)
+		if err != nil {
+			t.Fatalf("decode HMAC key fixture: %v", err)
+		}
+
+		return bearerTokenBytesFn(decodedKey, method, claims)(t)
+	}
+}
+
+func bearerTokenBytesFn(
+	key []byte,
+	method gojwt.SigningMethod,
+	claims gojwt.MapClaims,
+) func(*testing.T) http.Header {
+	return func(t *testing.T) http.Header {
+		t.Helper()
+
+		token := gojwt.NewWithClaims(method, claims)
+
+		tokenStr, err := token.SignedString(key)
+		if err != nil {
+			t.Fatalf("failed to sign token: %v", err)
+		}
+
+		return http.Header{"Authorization": {"Bearer " + tokenStr}}
+	}
 }
 
 // bearerTokenFnWithPrefix is like bearerTokenFn but allows a custom prefix (e.g. "bearer " for case-insensitive tests).
