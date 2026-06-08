@@ -511,6 +511,14 @@ type RelationshipUsing struct {
 	ForeignKeyColumns    []string              `json:"-"`
 	ForeignKeyConstraint *ForeignKeyConstraint `json:"-"`
 	ManualConfiguration  *ManualConfiguration  `json:"manual_configuration,omitempty" yaml:"manual_configuration,omitempty"` //nolint:lll
+
+	// Unknown preserves any sibling key Hasura may add to the `using` block
+	// beyond the two modeled forms. Hasura's `using` is a closed union today, so
+	// this is belt-and-braces — but the custom Un/MarshalJSON below bypass the
+	// usual `,unknown` field handling, so capture and re-emit it by hand to keep
+	// the round-trip invariant every other wire struct upholds. Tagged json:"-"
+	// because the custom methods govern (the tag itself is inert here).
+	Unknown jsontext.Value `json:"-" yaml:"-"`
 }
 
 func mapToForeignKeyConstraint(m map[string]any) (*ForeignKeyConstraint, error) {
@@ -619,6 +627,7 @@ func (r *RelationshipUsing) UnmarshalJSON(data []byte) error {
 	var raw struct {
 		ForeignKeyConstraintOn jsontext.Value       `json:"foreign_key_constraint_on,omitempty"`
 		ManualConfiguration    *ManualConfiguration `json:"manual_configuration,omitempty"`
+		Unknown                jsontext.Value       `json:",unknown"`
 	}
 
 	if err := json.Unmarshal(data, &raw); err != nil {
@@ -626,6 +635,7 @@ func (r *RelationshipUsing) UnmarshalJSON(data []byte) error {
 	}
 
 	r.ManualConfiguration = raw.ManualConfiguration
+	r.Unknown = raw.Unknown
 
 	if raw.ForeignKeyConstraintOn == nil {
 		return nil
@@ -710,6 +720,19 @@ func unmarshalForeignKeyConstraintJSON(data []byte) (*ForeignKeyConstraint, erro
 // when present, mirroring the input structure.
 func (r RelationshipUsing) MarshalJSON() ([]byte, error) {
 	out := map[string]any{}
+
+	// Re-emit any captured unknown sibling keys first; the modeled keys below
+	// never collide with them (the unknown sink excludes both modeled fields).
+	if len(r.Unknown) > 0 {
+		var extra map[string]jsontext.Value
+		if err := json.Unmarshal(r.Unknown, &extra); err != nil {
+			return nil, fmt.Errorf("marshaling relationship using unknown fields: %w", err)
+		}
+
+		for k, v := range extra {
+			out[k] = v
+		}
+	}
 
 	switch {
 	case r.ForeignKeyConstraint != nil:
@@ -868,6 +891,7 @@ func (t *TableMetadata) appendToSourceRelationship(remote RemoteRelationship) {
 			RemoteField:   nil,
 			Unknown:       nil,
 		},
+		Unknown: nil,
 	}
 
 	switch toSource.RelationshipType {
@@ -910,6 +934,7 @@ func (t *TableMetadata) appendToRemoteSchemaRelationship(remote RemoteRelationsh
 				RemoteField:   toRemoteSchema.RemoteField,
 				Unknown:       nil,
 			},
+			Unknown: nil,
 		},
 		Unknown: nil,
 	})

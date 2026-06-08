@@ -238,6 +238,81 @@ func TestRoundTripJSON_PreservesPermissionShape(t *testing.T) {
 	}
 }
 
+// TestRoundTripJSON_PreservesUsingUnknownKeys verifies that a sibling key in a
+// relationship's `using` block (which RelationshipUsing does not model) survives
+// the export round-trip via the type's manual unknown capture. `using` is a
+// closed union in Hasura today, so this guards against silent loss if that ever
+// changes.
+func TestRoundTripJSON_PreservesUsingUnknownKeys(t *testing.T) {
+	t.Parallel()
+
+	blob := []byte(`{
+		"version": 3,
+		"sources": [
+			{
+				"name": "default",
+				"kind": "postgres",
+				"configuration": {"connection_info": {"database_url": "postgres://x"}},
+				"customization": {"root_fields": {}, "type_names": {}},
+				"tables": [
+					{
+						"table": {"name": "posts", "schema": "public"},
+						"object_relationships": [
+							{
+								"name": "author",
+								"using": {
+									"foreign_key_constraint_on": "author_id",
+									"x_future_key": {"a": 1}
+								}
+							}
+						]
+					}
+				]
+			}
+		]
+	}`)
+
+	parsed, err := hasura.FromJSON(blob)
+	if err != nil {
+		t.Fatalf("FromJSON: %v", err)
+	}
+
+	out, err := hasura.ToJSON(parsed)
+	if err != nil {
+		t.Fatalf("ToJSON: %v", err)
+	}
+
+	var doc struct {
+		Sources []struct {
+			Tables []struct {
+				ObjectRelationships []struct {
+					Using map[string]jsontext.Value `json:"using"`
+				} `json:"object_relationships"`
+			} `json:"tables"`
+		} `json:"sources"`
+	}
+	if err := json.Unmarshal(out, &doc); err != nil {
+		t.Fatalf("re-unmarshal export: %v", err)
+	}
+
+	if len(doc.Sources) != 1 || len(doc.Sources[0].Tables) != 1 ||
+		len(doc.Sources[0].Tables[0].ObjectRelationships) != 1 {
+		t.Fatalf("unexpected export shape: %s", out)
+	}
+
+	using := doc.Sources[0].Tables[0].ObjectRelationships[0].Using
+
+	if got, ok := using["foreign_key_constraint_on"]; !ok ||
+		strings.TrimSpace(string(got)) != `"author_id"` {
+		t.Errorf("foreign_key_constraint_on = %q (present=%v); want \"author_id\"",
+			using["foreign_key_constraint_on"], ok)
+	}
+
+	if _, ok := using["x_future_key"]; !ok {
+		t.Errorf("unknown `using` sibling key x_future_key dropped on export: %s", out)
+	}
+}
+
 // Compile-time assurance the public signature stays inverse:
 // FromJSON: []byte -> *Metadata, ToJSON: *Metadata -> []byte.
 var (

@@ -364,7 +364,9 @@ components:
     # ================================================================
     #
     # The block below contains all 334 schemas from Hasura's upstream
-    # metadata.openapi.json (third-party/hasura/graphql-engine, Apache-2.0).
+    # metadata.openapi.json. The upstream lives in the vendored third-party
+    # checkout alongside the repo, at ../third-party/hasura/graphql-engine/
+    # metadata.openapi.json relative to the repo root (Apache-2.0).
     # They are commented out so codegen ignores them; uncomment a schema as
     # you migrate the corresponding metadata operation off the Hasura proxy.
     #
@@ -378,8 +380,9 @@ components:
     #      uncommented schemas.
     #
     # Porting schemas from a newer Hasura upstream: copy the schema YAML from
-    # third-party/hasura/graphql-engine/metadata.openapi.json and apply these
-    # scrubs (oapi-codegen / kin-openapi cannot consume the raw upstream):
+    # ../third-party/hasura/graphql-engine/metadata.openapi.json (the vendored
+    # sibling checkout) and apply these scrubs (oapi-codegen / kin-openapi
+    # cannot consume the raw upstream):
     #   - drop `maximum:` values >= float64 max (kin-openapi overflows them);
     #   - replace standalone `{type: null}` schemas with `{}`;
     #   - remove `{type: null}` members from anyOf / oneOf / allOf;
