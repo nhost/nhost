@@ -137,6 +137,107 @@ func TestRoundTripJSON_PreservesUnknownFields(t *testing.T) {
 	}
 }
 
+// TestRoundTripJSON_PreservesPermissionShape is an export-SHAPE test (distinct
+// from the EquateEmpty round-trip above, which re-parses both sides and so
+// cannot see a dropped empty field). It asserts the bytes ToJSON emits are
+// Hasura-valid: a present-but-empty `filter: {}` survives (required by Hasura
+// on select/delete permissions), and unmodeled permission keys the engine does
+// not model (`limit`, `backend_only`) are not silently dropped.
+func TestRoundTripJSON_PreservesPermissionShape(t *testing.T) {
+	t.Parallel()
+
+	blob := []byte(`{
+		"version": 3,
+		"sources": [
+			{
+				"name": "default",
+				"kind": "postgres",
+				"configuration": {"connection_info": {"database_url": "postgres://x"}},
+				"customization": {"root_fields": {}, "type_names": {}},
+				"tables": [
+					{
+						"table": {"name": "users", "schema": "public"},
+						"select_permissions": [
+							{"role": "user", "permission": {
+								"columns": ["id"],
+								"filter": {},
+								"limit": 10,
+								"backend_only": true
+							}}
+						],
+						"delete_permissions": [
+							{"role": "user", "permission": {"filter": {}}}
+						]
+					}
+				]
+			}
+		]
+	}`)
+
+	parsed, err := hasura.FromJSON(blob)
+	if err != nil {
+		t.Fatalf("FromJSON: %v", err)
+	}
+
+	out, err := hasura.ToJSON(parsed)
+	if err != nil {
+		t.Fatalf("ToJSON: %v", err)
+	}
+
+	var doc struct {
+		Sources []struct {
+			Tables []struct {
+				SelectPermissions []struct {
+					Permission map[string]jsontext.Value `json:"permission"`
+				} `json:"select_permissions"`
+				DeletePermissions []struct {
+					Permission map[string]jsontext.Value `json:"permission"`
+				} `json:"delete_permissions"`
+			} `json:"tables"`
+		} `json:"sources"`
+	}
+	if err := json.Unmarshal(out, &doc); err != nil {
+		t.Fatalf("re-unmarshal export: %v", err)
+	}
+
+	if len(doc.Sources) != 1 || len(doc.Sources[0].Tables) != 1 {
+		t.Fatalf("unexpected export shape: %s", out)
+	}
+
+	table := doc.Sources[0].Tables[0]
+
+	if len(table.SelectPermissions) != 1 {
+		t.Fatalf("expected 1 select permission, got %d", len(table.SelectPermissions))
+	}
+
+	sel := table.SelectPermissions[0].Permission
+
+	for key, want := range map[string]string{
+		"filter":       "{}",
+		"limit":        "10",
+		"backend_only": "true",
+	} {
+		got, ok := sel[key]
+		if !ok {
+			t.Errorf("select permission dropped %q on export: %s", key, out)
+			continue
+		}
+
+		if strings.TrimSpace(string(got)) != want {
+			t.Errorf("select permission %q = %s; want %s", key, got, want)
+		}
+	}
+
+	if len(table.DeletePermissions) != 1 {
+		t.Fatalf("expected 1 delete permission, got %d", len(table.DeletePermissions))
+	}
+
+	del := table.DeletePermissions[0].Permission
+	if got, ok := del["filter"]; !ok || strings.TrimSpace(string(got)) != "{}" {
+		t.Errorf("delete permission filter = %q (present=%v); want {}", del["filter"], ok)
+	}
+}
+
 // Compile-time assurance the public signature stays inverse:
 // FromJSON: []byte -> *Metadata, ToJSON: *Metadata -> []byte.
 var (

@@ -59,20 +59,6 @@ func FromHasuraJSON(data []byte) (*Metadata, error) {
 	return fromHasura(h), nil
 }
 
-// FromHasuraJSONWithHasura parses Hasura v3 metadata JSON and returns both the
-// native *Metadata and the original *hasura.Metadata wire form. The wire form
-// is what /v1/metadata's `export_metadata` op serves back to callers, so
-// retaining it lets the engine round-trip Hasura fields the native model does
-// not consume.
-func FromHasuraJSONWithHasura(data []byte) (*Metadata, *hasura.Metadata, error) {
-	h, err := hasura.FromJSON(data)
-	if err != nil {
-		return nil, nil, fmt.Errorf("parsing hasura JSON metadata: %w", err)
-	}
-
-	return fromHasura(h), h, nil
-}
-
 // FromDetectWithHasura mirrors FromDetect but also returns the *hasura.Metadata
 // wire form when the path resolves to a Hasura YAML directory layout. For TOML
 // paths the wire form is nil — the engine has no Hasura-shaped source to

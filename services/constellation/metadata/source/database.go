@@ -271,20 +271,16 @@ func loadMetadataFromStore(
 		return nil, nil, 0, fmt.Errorf("querying hdb_catalog.hdb_metadata: %w", err)
 	}
 
-	meta, h, err := metadata.FromHasuraJSONWithHasura(metadataJSON)
+	meta, err := metadata.FromHasuraJSON(metadataJSON)
 	if err != nil {
 		return nil, nil, 0, fmt.Errorf("parsing metadata JSON: %w", err)
 	}
 
-	// Re-marshal through MarshalHasura so the cached snapshot reflects what
-	// the engine would emit (i.e. with the `,unknown`-tag round-trip applied
-	// and the auto-derived Object/Array relationships stripped). This keeps
-	// the export_metadata response deterministic regardless of upstream
-	// formatting quirks in hdb_metadata.
-	raw, err := metadata.MarshalHasura(h)
-	if err != nil {
-		return nil, nil, 0, fmt.Errorf("serializing metadata for snapshot: %w", err)
-	}
-
-	return meta, raw, version, nil
+	// Cache the original hdb_catalog.hdb_metadata bytes verbatim. export_metadata
+	// must hand back exactly what Hasura stored; re-marshaling through the parsed
+	// representation would normalize key order and drop fields the engine does not
+	// model, so the source blob is the most faithful snapshot. (The YAML/file
+	// source has no single original blob and must re-marshal via MarshalHasura;
+	// this database path does not.)
+	return meta, metadataJSON, version, nil
 }
