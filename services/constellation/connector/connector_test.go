@@ -15,6 +15,7 @@ import (
 	"testing"
 
 	"github.com/nhost/nhost/services/constellation/connector"
+	actionstore "github.com/nhost/nhost/services/constellation/connector/action/store"
 	"github.com/nhost/nhost/services/constellation/connector/mock"
 	"github.com/nhost/nhost/services/constellation/graph"
 	"github.com/nhost/nhost/services/constellation/internal/lib/testdb"
@@ -612,6 +613,80 @@ func TestBuildConnectorsFromMetadata_ActionConnectorRegistration(t *testing.T) {
 	}
 }
 
+func TestBuildConnectorsFromMetadata_ActionLogConfigOption(t *testing.T) {
+	t.Parallel()
+
+	built, err := connector.BuildConnectorsFromMetadata(
+		t.Context(),
+		validAsyncActionMetadata(),
+		slog.Default(),
+		connector.WithActionLogConfig(connector.ActionLogConfig{
+			Store:               actionstore.NewMemory(),
+			DatabaseURL:         "",
+			MetadataDatabaseURL: "",
+			Schema:              "",
+			Table:               "",
+			CreateIfNotExists:   false,
+			WorkerEnabled:       false,
+			ExclusiveOwner:      false,
+			PollInterval:        0,
+			BatchSize:           0,
+			MaxConcurrency:      0,
+			ShutdownTimeout:     0,
+		}),
+	)
+	if err != nil {
+		t.Fatalf("BuildConnectorsFromMetadata: %v", err)
+	}
+
+	if _, ok := built.Connectors["__constellation_internal_actions"]; !ok {
+		t.Fatalf("action connector was not registered: %v", built.Connectors)
+	}
+
+	if len(built.Inconsistencies) != 0 {
+		t.Fatalf("Inconsistencies = %+v, want none", built.Inconsistencies)
+	}
+}
+
+func TestBuildConnectorsFromMetadata_ActionWorkerRequiresExclusiveOwner(t *testing.T) {
+	t.Parallel()
+
+	built, err := connector.BuildConnectorsFromMetadata(
+		t.Context(),
+		validAsyncActionMetadata(),
+		slog.Default(),
+		connector.WithActionLogConfig(connector.ActionLogConfig{
+			Store:               actionstore.NewMemory(),
+			DatabaseURL:         "",
+			MetadataDatabaseURL: "",
+			Schema:              "",
+			Table:               "",
+			CreateIfNotExists:   false,
+			WorkerEnabled:       true,
+			ExclusiveOwner:      false,
+			PollInterval:        0,
+			BatchSize:           0,
+			MaxConcurrency:      0,
+			ShutdownTimeout:     0,
+		}),
+	)
+	if err != nil {
+		t.Fatalf("BuildConnectorsFromMetadata: %v", err)
+	}
+
+	if _, ok := built.Connectors["__constellation_internal_actions"]; ok {
+		t.Fatalf("action connector registered despite missing exclusive ownership")
+	}
+
+	assertInconsistency(
+		t,
+		built.Inconsistencies,
+		metadata.InconsistencyKindAction,
+		"asyncPing",
+		"requires exclusive action-log ownership",
+	)
+}
+
 func TestBuildConnectorsFromMetadata_ActionHTTPDoerOption(t *testing.T) {
 	t.Parallel()
 
@@ -777,6 +852,50 @@ func validActionMetadata(name, outputType string) *metadata.Metadata {
 					Type:                 metadata.ActionOperationQuery,
 					Arguments:            nil,
 					OutputType:           outputType,
+					RequestTransform:     nil,
+					ResponseTransform:    nil,
+				},
+				Permissions: nil,
+				Comment:     "",
+			},
+		},
+		CustomTypes: metadata.CustomTypes{
+			InputObjects: nil,
+			Objects: []metadata.CustomObjectType{
+				{
+					Name:        "PingOutput",
+					Description: "",
+					Fields: []metadata.CustomTypeField{
+						{Name: "message", Type: "String!", Description: ""},
+					},
+					Relationships: nil,
+				},
+			},
+			Scalars: nil,
+			Enums:   nil,
+		},
+		LoadDiagnostics: nil,
+	}
+}
+
+func validAsyncActionMetadata() *metadata.Metadata {
+	return &metadata.Metadata{
+		Databases:     nil,
+		RemoteSchemas: nil,
+		Actions: []metadata.ActionMetadata{
+			{
+				Name: "asyncPing",
+				Definition: metadata.ActionDefinition{
+					Kind: metadata.ActionKindAsynchronous,
+					Handler: metadata.EnvString(
+						"https://actions.example.test/asyncPing",
+					),
+					ForwardClientHeaders: false,
+					Headers:              nil,
+					Timeout:              0,
+					Type:                 metadata.ActionOperationMutation,
+					Arguments:            nil,
+					OutputType:           "PingOutput!",
 					RequestTransform:     nil,
 					ResponseTransform:    nil,
 				},

@@ -372,7 +372,6 @@ type exprParser struct {
 	cur   token
 }
 
-//nolint:ireturn // grammar parser returns expression interface nodes.
 func parseExpression(input string) (expression, error) {
 	parser := &exprParser{
 		lexer: lexer{input: input, pos: 0},
@@ -405,7 +404,6 @@ func (p *exprParser) advance() error {
 	return nil
 }
 
-//nolint:ireturn // grammar parser returns expression interface nodes.
 func (p *exprParser) parseExpr(minPrecedence int) (expression, error) {
 	left, err := p.parsePrefix()
 	if err != nil {
@@ -456,7 +454,6 @@ func binaryPrecedence(kind tokenKind) (int, bool, bool) {
 	}
 }
 
-//nolint:ireturn // grammar parser returns expression interface nodes.
 func (p *exprParser) parsePrefix() (expression, error) {
 	var expr expression
 
@@ -599,7 +596,6 @@ func (p *exprParser) parsePrefix() (expression, error) {
 	return p.parsePostfix(expr)
 }
 
-//nolint:ireturn // grammar parser returns expression interface nodes.
 func (p *exprParser) parseCall(name string) (expression, error) {
 	if p.cur.kind != tokenLParen {
 		return nil, errors.New("expected function call")
@@ -640,7 +636,6 @@ func (p *exprParser) parseCall(name string) (expression, error) {
 	return callExpr{name: name, args: args}, nil
 }
 
-//nolint:ireturn // grammar parser returns expression interface nodes.
 func (p *exprParser) parseArray() (expression, error) {
 	if err := p.advance(); err != nil {
 		return nil, err
@@ -677,7 +672,6 @@ func (p *exprParser) parseArray() (expression, error) {
 	return arrayExpr{items: items}, nil
 }
 
-//nolint:ireturn // grammar parser returns expression interface nodes.
 func (p *exprParser) parseObject() (expression, error) {
 	if err := p.advance(); err != nil {
 		return nil, err
@@ -734,7 +728,6 @@ func (p *exprParser) parseObject() (expression, error) {
 	return objectExpr{fields: fields}, nil
 }
 
-//nolint:ireturn // grammar parser returns expression interface nodes.
 func (p *exprParser) parsePostfix(expr expression) (expression, error) {
 	selectors := []selector{}
 
@@ -798,7 +791,6 @@ func (p *exprParser) parsePostfix(expr expression) (expression, error) {
 	}
 }
 
-//nolint:ireturn // grammar parser returns selector interface nodes.
 func (p *exprParser) parseIndexSelector(optional bool) (selector, error) {
 	if p.cur.kind != tokenLBracket {
 		return nil, errors.New("expected [")

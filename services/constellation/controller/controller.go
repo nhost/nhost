@@ -118,17 +118,33 @@ func (s *controllerState) closeConnectors() {
 // directly on the struct; everything that gets rebuilt on metadata changes
 // is behind an atomic pointer.
 type Controller struct {
-	state           atomic.Pointer[controllerState]
-	adminSecret     string
-	jwtAuth         middleware.JWTAuthenticator
-	pollingInterval time.Duration
-	logger          *slog.Logger
+	state            atomic.Pointer[controllerState]
+	adminSecret      string
+	jwtAuth          middleware.JWTAuthenticator
+	pollingInterval  time.Duration
+	logger           *slog.Logger
+	connectorOptions []connector.Option
 	// devMode, when true, returns raw connector/database error detail to
 	// clients instead of the sanitized generic message (Hasura
 	// HASURA_GRAPHQL_DEV_MODE parity). Never enable in production.
 	devMode bool
 
 	source metadata.Source
+}
+
+// Option customises Controller construction.
+type Option func(*controllerConfig)
+
+type controllerConfig struct {
+	connectorOptions []connector.Option
+}
+
+// WithConnectorOptions passes options into every metadata-driven connector
+// build, including hot reloads.
+func WithConnectorOptions(opts ...connector.Option) Option {
+	return func(cfg *controllerConfig) {
+		cfg.connectorOptions = append(cfg.connectorOptions, opts...)
+	}
 }
 
 // New constructs a Controller, performing the initial metadata load and
@@ -142,13 +158,25 @@ func New(
 	jwtAuth middleware.JWTAuthenticator,
 	source metadata.Source,
 	logger *slog.Logger,
+	opts ...Option,
 ) (*Controller, error) {
+	cfg := controllerConfig{connectorOptions: nil}
+	for _, opt := range opts {
+		opt(&cfg)
+	}
+
 	meta, err := source.InitialLoad(ctx)
 	if err != nil {
 		return nil, fmt.Errorf("initial metadata load: %w", err)
 	}
 
-	state, err := buildState(ctx, meta, subscriptionPollInterval, logger)
+	state, err := buildState(
+		ctx,
+		meta,
+		subscriptionPollInterval,
+		logger,
+		cfg.connectorOptions,
+	)
 	if err != nil {
 		return nil, fmt.Errorf("building initial state: %w", err)
 	}
@@ -156,13 +184,14 @@ func New(
 	logInconsistencySummary(ctx, logger, state.inconsistencies)
 
 	ctrl := &Controller{
-		state:           atomic.Pointer[controllerState]{},
-		adminSecret:     adminSecret,
-		jwtAuth:         jwtAuth,
-		pollingInterval: subscriptionPollInterval,
-		logger:          logger,
-		devMode:         devMode,
-		source:          source,
+		state:            atomic.Pointer[controllerState]{},
+		adminSecret:      adminSecret,
+		jwtAuth:          jwtAuth,
+		pollingInterval:  subscriptionPollInterval,
+		logger:           logger,
+		connectorOptions: append([]connector.Option(nil), cfg.connectorOptions...),
+		devMode:          devMode,
+		source:           source,
 	}
 	ctrl.state.Store(state)
 
@@ -207,8 +236,9 @@ func buildState(
 	meta *metadata.Metadata,
 	subscriptionPollInterval time.Duration,
 	logger *slog.Logger,
+	connectorOptions []connector.Option,
 ) (*controllerState, error) {
-	built, err := connector.BuildConnectorsFromMetadata(ctx, meta, logger)
+	built, err := connector.BuildConnectorsFromMetadata(ctx, meta, logger, connectorOptions...)
 	if err != nil {
 		return nil, fmt.Errorf("failed to build connectors from metadata: %w", err)
 	}
@@ -272,7 +302,13 @@ func (c *Controller) Run(
 			continue
 		}
 
-		newState, err := buildState(ctx, update.Metadata, c.pollingInterval, logger)
+		newState, err := buildState(
+			ctx,
+			update.Metadata,
+			c.pollingInterval,
+			logger,
+			c.connectorOptions,
+		)
 		if err != nil {
 			logger.ErrorContext(ctx, "failed to rebuild controller state", "error", err)
 
@@ -371,13 +407,14 @@ func NewFromConnectors(
 	)
 
 	ctrl := &Controller{
-		adminSecret:     adminSecret,
-		jwtAuth:         middleware.NewNoOpJWTAuthenticator(),
-		pollingInterval: 0,
-		logger:          logger,
-		devMode:         false,
-		source:          nil,
-		state:           atomic.Pointer[controllerState]{},
+		adminSecret:      adminSecret,
+		jwtAuth:          middleware.NewNoOpJWTAuthenticator(),
+		pollingInterval:  0,
+		logger:           logger,
+		connectorOptions: nil,
+		devMode:          false,
+		source:           nil,
+		state:            atomic.Pointer[controllerState]{},
 	}
 	ctrl.state.Store(state)
 

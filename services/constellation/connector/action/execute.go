@@ -30,12 +30,12 @@ type actionErrorPayload struct {
 	Extensions map[string]any `json:"extensions,omitempty"`
 }
 
-func (c *Connector) Execute(
+func (c *Connector) Execute( //nolint:funlen // connector execution keeps query/mutation error semantics in one loop.
 	ctx context.Context,
 	operation *ast.OperationDefinition,
 	fragments ast.FragmentDefinitionList,
 	variables map[string]any,
-	_ string,
+	role string,
 	sessionVariables map[string]any,
 	_ *slog.Logger,
 ) (map[string]any, error) {
@@ -61,9 +61,11 @@ func (c *Connector) Execute(
 
 		responseKey, value, errs, err := c.executeActionField(
 			ctx,
+			operation.Operation,
 			field,
 			fragments,
 			variables,
+			role,
 			lowerSessionVariables,
 			clientHeaders,
 		)
@@ -113,9 +115,11 @@ func actionExecutionErrors(graphQLErrors []map[string]any, hardErrors []error) e
 
 func (c *Connector) executeActionField(
 	ctx context.Context,
+	operation ast.Operation,
 	field *ast.Field,
 	fragments ast.FragmentDefinitionList,
 	variables map[string]any,
+	role string,
 	sessionVariables map[string]any,
 	clientHeaders http.Header,
 ) (string, any, []map[string]any, error) {
@@ -128,6 +132,21 @@ func (c *Connector) executeActionField(
 			[]any{responseKey},
 			map[string]any{"code": "not-found"},
 		)}, nil
+	}
+
+	if runtime.async {
+		return c.executeAsyncActionField(
+			ctx,
+			operation,
+			responseKey,
+			runtime,
+			field,
+			fragments,
+			variables,
+			role,
+			sessionVariables,
+			clientHeaders,
+		)
 	}
 
 	body, status, err := c.executeRuntimeAction(
@@ -145,6 +164,56 @@ func (c *Connector) executeActionField(
 	return c.actionFieldResult(responseKey, runtime, field, fragments, body, status)
 }
 
+func (c *Connector) executeAsyncActionField(
+	ctx context.Context,
+	operation ast.Operation,
+	responseKey string,
+	runtime runtimeAction,
+	field *ast.Field,
+	fragments ast.FragmentDefinitionList,
+	variables map[string]any,
+	role string,
+	sessionVariables map[string]any,
+	clientHeaders http.Header,
+) (string, any, []map[string]any, error) {
+	if c.asyncStore == nil {
+		return responseKey, nil, []map[string]any{newSingleGraphQLError(
+			fmt.Sprintf("action %q is not available", field.Name),
+			[]any{responseKey},
+			map[string]any{"code": "not-found"},
+		)}, nil
+	}
+
+	switch operation {
+	case ast.Mutation:
+		return c.asyncMutationResult(
+			ctx,
+			runtime,
+			field,
+			fragments,
+			variables,
+			sessionVariables,
+			clientHeaders,
+		)
+	case ast.Query, ast.Subscription:
+		return c.asyncStoredResult(
+			ctx,
+			runtime,
+			field,
+			fragments,
+			variables,
+			role,
+			sessionVariables,
+		)
+	default:
+		return responseKey, nil, nil, fmt.Errorf(
+			"%w: %q",
+			errAsyncActionUnsupportedOperation,
+			operation,
+		)
+	}
+}
+
 func (c *Connector) executeRuntimeAction(
 	ctx context.Context,
 	runtime runtimeAction,
@@ -158,6 +227,22 @@ func (c *Connector) executeRuntimeAction(
 		return nil, 0, fmt.Errorf("building input for action %q: %w", field.Name, err)
 	}
 
+	return c.executeRuntimeActionWithInput(
+		ctx,
+		runtime,
+		input,
+		sessionVariables,
+		clientHeaders,
+	)
+}
+
+func (c *Connector) executeRuntimeActionWithInput(
+	ctx context.Context,
+	runtime runtimeAction,
+	input map[string]any,
+	sessionVariables map[string]any,
+	clientHeaders http.Header,
+) ([]byte, int, error) {
 	payload := actionPayload{
 		Action:           actionPayloadName{Name: runtime.name},
 		Input:            input,

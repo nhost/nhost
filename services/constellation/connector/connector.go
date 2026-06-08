@@ -9,8 +9,10 @@ import (
 	"context"
 	"fmt"
 	"log/slog"
+	"time"
 
 	"github.com/nhost/nhost/services/constellation/connector/action"
+	actstore "github.com/nhost/nhost/services/constellation/connector/action/store"
 	"github.com/nhost/nhost/services/constellation/connector/composer"
 	"github.com/nhost/nhost/services/constellation/connector/customization"
 	"github.com/nhost/nhost/services/constellation/connector/remoteschema"
@@ -134,6 +136,7 @@ type buildConfig struct {
 	remoteSchemaFactory RemoteSchemaFactory
 	httpDoer            remoteschema.HTTPDoer
 	actionHTTPDoer      action.HTTPDoer
+	actionLogConfig     ActionLogConfig
 	inconsistencies     *metadata.Inconsistencies
 }
 
@@ -168,11 +171,34 @@ func WithHTTPDoer(doer remoteschema.HTTPDoer) Option {
 }
 
 // WithActionHTTPDoer sets the HTTPDoer used by the action connector for
-// synchronous action webhook calls. Passing nil preserves the production
-// default hardened HTTP client.
+// action webhook calls. Passing nil preserves the production default hardened
+// HTTP client.
 func WithActionHTTPDoer(doer action.HTTPDoer) Option {
 	return func(c *buildConfig) {
 		c.actionHTTPDoer = doer
+	}
+}
+
+// ActionLogConfig configures the Hasura-compatible asynchronous action log.
+type ActionLogConfig struct {
+	Store               action.ActionLogStore
+	DatabaseURL         string
+	MetadataDatabaseURL string
+	Schema              string
+	Table               string
+	CreateIfNotExists   bool
+	WorkerEnabled       bool
+	ExclusiveOwner      bool
+	PollInterval        time.Duration
+	BatchSize           int
+	MaxConcurrency      int
+	ShutdownTimeout     time.Duration
+}
+
+// WithActionLogConfig configures asynchronous action persistence and workers.
+func WithActionLogConfig(config ActionLogConfig) Option {
+	return func(c *buildConfig) {
+		c.actionLogConfig = config
 	}
 }
 
@@ -203,7 +229,21 @@ func BuildConnectorsFromMetadata(
 		remoteSchemaFactory: nil,
 		httpDoer:            nil,
 		actionHTTPDoer:      nil,
-		inconsistencies:     nil,
+		actionLogConfig: ActionLogConfig{
+			Store:               nil,
+			DatabaseURL:         "",
+			MetadataDatabaseURL: "",
+			Schema:              "",
+			Table:               "",
+			CreateIfNotExists:   false,
+			WorkerEnabled:       false,
+			ExclusiveOwner:      false,
+			PollInterval:        0,
+			BatchSize:           0,
+			MaxConcurrency:      0,
+			ShutdownTimeout:     0,
+		},
+		inconsistencies: nil,
 	}
 	for _, opt := range opts {
 		opt(cfg)
@@ -275,10 +315,12 @@ func (cfg *buildConfig) buildActionConnector(
 		actionRelationshipTargets(meta, connectors),
 		occupiedRootFields,
 		occupiedTypeNames,
+		action.WithAsyncConfig(cfg.resolveActionAsyncConfig(ctx, meta, logger)),
 	)
 
 	schemas, err := backend.GetSchema()
 	if err != nil {
+		backend.CloseWithContext(ctx)
 		cfg.inconsistencies.RecordAction(
 			ctx,
 			logger,
@@ -290,6 +332,8 @@ func (cfg *buildConfig) buildActionConnector(
 	}
 
 	if len(schemas) == 0 {
+		backend.CloseWithContext(ctx)
+
 		return
 	}
 
@@ -298,6 +342,119 @@ func (cfg *buildConfig) buildActionConnector(
 
 func hasActionMetadata(meta *metadata.Metadata) bool {
 	return len(meta.Actions) > 0 || !meta.CustomTypes.IsZero()
+}
+
+func hasAsyncActionMetadata(meta *metadata.Metadata) bool {
+	for _, actionMeta := range meta.Actions {
+		if actionMeta.Definition.Kind == metadata.ActionKindAsynchronous {
+			return true
+		}
+	}
+
+	return false
+}
+
+func (cfg *buildConfig) resolveActionAsyncConfig(
+	ctx context.Context,
+	meta *metadata.Metadata,
+	_ *slog.Logger,
+) action.AsyncConfig {
+	if !hasAsyncActionMetadata(meta) {
+		return action.AsyncConfig{
+			Store:             nil,
+			CloseStore:        false,
+			UnavailableReason: "",
+			WorkerEnabled:     false,
+			PollInterval:      0,
+			BatchSize:         0,
+			MaxConcurrency:    0,
+			ShutdownTimeout:   0,
+		}
+	}
+
+	if cfg.actionLogConfig.WorkerEnabled && !cfg.actionLogConfig.ExclusiveOwner {
+		return cfg.actionAsyncUnavailable(
+			"asynchronous action worker requires exclusive action-log ownership",
+		)
+	}
+
+	if cfg.actionLogConfig.Store != nil {
+		return cfg.actionAsyncRuntimeConfig(cfg.actionLogConfig.Store, false)
+	}
+
+	databaseURL, err := cfg.resolveActionLogDatabaseURL(meta)
+	if err != nil {
+		return cfg.actionAsyncUnavailable(err.Error())
+	}
+
+	store, err := actstore.NewPostgres(ctx, actstore.PostgresConfig{
+		DatabaseURL:       databaseURL,
+		Schema:            cfg.actionLogConfig.Schema,
+		Table:             cfg.actionLogConfig.Table,
+		CreateIfNotExists: cfg.actionLogConfig.CreateIfNotExists,
+	})
+	if err != nil {
+		return cfg.actionAsyncUnavailable(
+			fmt.Sprintf("creating asynchronous action log store: %v", err),
+		)
+	}
+
+	return cfg.actionAsyncRuntimeConfig(store, true)
+}
+
+func (cfg *buildConfig) actionAsyncUnavailable(reason string) action.AsyncConfig {
+	return action.AsyncConfig{
+		Store:             nil,
+		CloseStore:        false,
+		UnavailableReason: reason,
+		WorkerEnabled:     false,
+		PollInterval:      0,
+		BatchSize:         0,
+		MaxConcurrency:    0,
+		ShutdownTimeout:   0,
+	}
+}
+
+func (cfg *buildConfig) actionAsyncRuntimeConfig(
+	store action.ActionLogStore,
+	closeStore bool,
+) action.AsyncConfig {
+	return action.AsyncConfig{
+		Store:             store,
+		CloseStore:        closeStore,
+		UnavailableReason: "",
+		WorkerEnabled:     cfg.actionLogConfig.WorkerEnabled,
+		PollInterval:      cfg.actionLogConfig.PollInterval,
+		BatchSize:         cfg.actionLogConfig.BatchSize,
+		MaxConcurrency:    cfg.actionLogConfig.MaxConcurrency,
+		ShutdownTimeout:   cfg.actionLogConfig.ShutdownTimeout,
+	}
+}
+
+func (cfg *buildConfig) resolveActionLogDatabaseURL(meta *metadata.Metadata) (string, error) {
+	if cfg.actionLogConfig.DatabaseURL != "" {
+		return cfg.actionLogConfig.DatabaseURL, nil
+	}
+
+	if cfg.actionLogConfig.MetadataDatabaseURL != "" {
+		return cfg.actionLogConfig.MetadataDatabaseURL, nil
+	}
+
+	for i := range meta.Databases {
+		dbMeta := &meta.Databases[i]
+		if dbMeta.Kind != "postgres" {
+			continue
+		}
+
+		dbURL, err := resolveDBURL(dbMeta)
+		if err != nil {
+			return "", fmt.Errorf("resolving default async action log database: %w", err)
+		}
+
+		return dbURL, nil
+	}
+
+	return "", ErrActionLogStoreNotConfigured
 }
 
 func actionConnectorNameCollides(

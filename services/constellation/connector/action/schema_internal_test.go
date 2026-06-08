@@ -432,7 +432,7 @@ func TestSchemaConflictFiltering(
 				{
 					kind: metadata.InconsistencyKindAction,
 					name: "asyncAction",
-					sub:  "asynchronous actions are not supported yet",
+					sub:  "asynchronous action log store is not configured",
 				},
 				{
 					kind: metadata.InconsistencyKindAction,

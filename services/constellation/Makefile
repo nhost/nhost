@@ -1,4 +1,4 @@
-ROOT_DIR?=$(abspath ../..)
+ROOT_DIR ?= $(abspath ../..)
 include $(ROOT_DIR)/build/makefiles/general.makefile
 
 DOCKER_DEV_ENV_PATH=build/dev/docker
@@ -34,7 +34,7 @@ dev-env-integration-down:
 	cd integration && nhost down --volumes
 
 
-PACKAGE?=./...
+PACKAGE ?= ./...
 .PHONY: coverage
 coverage:  ## Run test coverage for PACKAGE (default: ./...). Usage: make coverage PACKAGE=./connector/memconnector
 	go test $(PACKAGE) -coverprofile=coverage.out
@@ -62,6 +62,11 @@ run-up:  ## Run constellation in dev mode inside a container connected to the in
 	  -e HASURA_GRAPHQL_DATABASE_URL=postgres://postgres:postgres@integration-postgres-1:5432/local \
 	  -e NHOST_FUNCTIONS_URL=http://integration-functions-1:3000 \
 	  -e NHOST_WEBHOOK_SECRET=nhost-webhook-secret \
+	  -e CONSTELLATION_ACTION_LOG_SCHEMA=constellation_action_log \
+	  -e CONSTELLATION_ACTION_LOG_TABLE=hdb_action_log \
+	  -e CONSTELLATION_ACTION_LOG_CREATE_TABLE=true \
+	  -e CONSTELLATION_ACTION_WORKER_ENABLED=true \
+	  -e CONSTELLATION_ACTION_LOG_EXCLUSIVE_OWNER=true \
 	  -e CONSTELLATION_ADMIN_SECRET=nhost-admin-secret \
 	  -e CONSTELLATION_JWT_SECRET='{"key":"0f987876650b4a085e64594fae9219e7781b17506bec02489ad061fba8cb22db","type":"HS256"}' \
 	  constellation:0.0.0-dev \

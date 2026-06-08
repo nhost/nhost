@@ -18,13 +18,15 @@ import (
 
 const (
 	// ConnectorName is the reserved internal source name used for the action connector.
-	ConnectorName        = "__constellation_internal_actions"
-	queryRootTypeName    = "Query"
-	mutationRootTypeName = "Mutation"
-	deprecatedReason     = "No longer supported"
+	ConnectorName             = "__constellation_internal_actions"
+	queryRootTypeName         = "Query"
+	mutationRootTypeName      = "Mutation"
+	deprecatedReason          = "No longer supported"
+	baseConnectorOptionCount  = 3
+	asyncGeneratedScalarCount = 3
 )
 
-// Connector exposes and executes valid synchronous Hasura Actions.
+// Connector exposes and executes valid Hasura Actions.
 type Connector struct {
 	schemas            map[string]*graph.Schema
 	outputTypeByAction map[string]string
@@ -33,11 +35,17 @@ type Connector struct {
 	enumValues         map[string]map[string]struct{}
 	objectFieldTypes   map[string]map[string]*ast.Type
 	httpClient         *httpClient
+	asyncStore         ActionLogStore
+	asyncStoreOwned    bool
+	asyncWorker        *asyncWorker
+	hasAsyncActions    bool
 }
 
 type runtimeAction struct {
 	name                 string
 	operation            ast.Operation
+	async                bool
+	roles                map[string]struct{}
 	url                  string
 	headers              map[string]string
 	timeout              time.Duration
@@ -72,25 +80,35 @@ type schemaOptions struct {
 	occupiedRootFields  map[string]map[string]struct{}
 	occupiedTypeNames   map[string]map[string]struct{}
 	relationshipTargets RelationshipTargets
+	asyncConfig         AsyncConfig
 }
 
-type schemaOption func(*schemaOptions)
+// Option customises action connector construction.
+type Option func(*schemaOptions)
 
-func withOccupiedRootFields(fields map[string]map[string]struct{}) schemaOption {
+func withOccupiedRootFields(fields map[string]map[string]struct{}) Option {
 	return func(opts *schemaOptions) {
 		opts.occupiedRootFields = fields
 	}
 }
 
-func withOccupiedTypeNames(names map[string]map[string]struct{}) schemaOption {
+func withOccupiedTypeNames(names map[string]map[string]struct{}) Option {
 	return func(opts *schemaOptions) {
 		opts.occupiedTypeNames = names
 	}
 }
 
-func withRelationshipTargets(targets RelationshipTargets) schemaOption {
+func withRelationshipTargets(targets RelationshipTargets) Option {
 	return func(opts *schemaOptions) {
 		opts.relationshipTargets = targets
+	}
+}
+
+// WithAsyncConfig configures asynchronous action persistence and worker
+// execution. Passing an empty config leaves asynchronous actions inconsistent.
+func WithAsyncConfig(config AsyncConfig) Option {
+	return func(opts *schemaOptions) {
+		opts.asyncConfig = config
 	}
 }
 
@@ -109,16 +127,24 @@ func New(
 	relationshipTargets RelationshipTargets,
 	occupiedRootFields map[string]map[string]struct{},
 	occupiedTypeNames map[string]map[string]struct{},
+	opts ...Option,
 ) *Connector {
+	allOpts := make([]Option, 0, len(opts)+baseConnectorOptionCount)
+	allOpts = append(
+		allOpts,
+		withRelationshipTargets(relationshipTargets),
+		withOccupiedRootFields(occupiedRootFields),
+		withOccupiedTypeNames(occupiedTypeNames),
+	)
+	allOpts = append(allOpts, opts...)
+
 	return newConnectorWithDoer(
 		ctx,
 		meta,
 		inconsistencies,
 		logger,
 		doer,
-		withRelationshipTargets(relationshipTargets),
-		withOccupiedRootFields(occupiedRootFields),
-		withOccupiedTypeNames(occupiedTypeNames),
+		allOpts...,
 	)
 }
 
@@ -126,7 +152,7 @@ func newConnector(
 	ctx context.Context,
 	meta *metadata.Metadata,
 	inconsistencies *metadata.Inconsistencies,
-	opts ...schemaOption,
+	opts ...Option,
 ) *Connector {
 	return newConnectorWithDoer(ctx, meta, inconsistencies, nil, nil, opts...)
 }
@@ -137,7 +163,7 @@ func newConnectorWithDoer(
 	inconsistencies *metadata.Inconsistencies,
 	logger *slog.Logger,
 	doer HTTPDoer,
-	opts ...schemaOption,
+	opts ...Option,
 ) *Connector {
 	if inconsistencies == nil {
 		inconsistencies = metadata.NewInconsistencies()
@@ -147,6 +173,16 @@ func newConnectorWithDoer(
 		occupiedRootFields:  nil,
 		occupiedTypeNames:   nil,
 		relationshipTargets: nil,
+		asyncConfig: AsyncConfig{
+			Store:             nil,
+			CloseStore:        false,
+			UnavailableReason: "",
+			WorkerEnabled:     false,
+			PollInterval:      0,
+			BatchSize:         0,
+			MaxConcurrency:    0,
+			ShutdownTimeout:   0,
+		},
 	}
 	for _, opt := range opts {
 		opt(&options)
@@ -164,9 +200,10 @@ func newConnectorWithDoer(
 	}
 
 	schemas, outputTypeByAction, actions := builder.build(ctx)
-	typeKinds, enumValues, objectFieldTypes := builder.runtimeTypeInfo()
+	typeKinds, enumValues, objectFieldTypes := builder.runtimeTypeInfo(actions)
 
-	return &Connector{
+	asyncConfig := options.asyncConfig.withDefaults()
+	conn := &Connector{
 		schemas:            schemas,
 		outputTypeByAction: outputTypeByAction,
 		actions:            runtimeActionsByName(actions),
@@ -174,7 +211,18 @@ func newConnectorWithDoer(
 		enumValues:         enumValues,
 		objectFieldTypes:   objectFieldTypes,
 		httpClient:         newHTTPClient(doer),
+		asyncStore:         asyncConfig.Store,
+		asyncStoreOwned:    asyncConfig.CloseStore,
+		asyncWorker:        nil,
+		hasAsyncActions:    hasAsyncActions(actions),
 	}
+
+	if asyncConfig.WorkerEnabled && asyncConfig.Store != nil && conn.hasAsyncActions {
+		conn.asyncWorker = newAsyncWorker(conn, asyncConfig, logger)
+		conn.asyncWorker.start(ctx)
+	}
+
+	return conn
 }
 
 func (c *Connector) GetSchema() (map[string]*graph.Schema, error) {
@@ -195,7 +243,21 @@ func (c *Connector) GetTypeName(identifier string) string {
 	return c.outputTypeByAction[identifier]
 }
 
-func (c *Connector) Close() {}
+func (c *Connector) Close() {
+	c.CloseWithContext(context.Background())
+}
+
+// CloseWithContext releases connector resources using ctx for bounded worker
+// shutdown and requeue attempts.
+func (c *Connector) CloseWithContext(ctx context.Context) {
+	if c.asyncWorker != nil {
+		c.asyncWorker.Close(ctx)
+	}
+
+	if c.asyncStore != nil && c.asyncStoreOwned {
+		c.asyncStore.Close()
+	}
+}
 
 type customTypeKind string
 
@@ -240,9 +302,11 @@ type typeDefinition struct {
 type actionDefinition struct {
 	meta              metadata.ActionMetadata
 	operation         ast.Operation
+	async             bool
 	arguments         []*graph.Argument
 	outputType        *graph.Type
 	outputBase        string
+	responseTypeName  string
 	reachableTypes    map[string]struct{}
 	url               string
 	headers           map[string]string
@@ -290,12 +354,15 @@ func (b *schemaBuilder) build(
 	return schemas, outputTypeByAction, actions
 }
 
-func (b *schemaBuilder) runtimeTypeInfo() (
+func (b *schemaBuilder) runtimeTypeInfo(actions []actionDefinition) (
 	map[string]customTypeKind,
 	map[string]map[string]struct{},
 	map[string]map[string]*ast.Type,
 ) {
-	typeKinds := make(map[string]customTypeKind, len(b.typeDefs))
+	typeKinds := make(
+		map[string]customTypeKind,
+		len(b.typeDefs)+len(actions)+asyncGeneratedScalarCount,
+	)
 	enumValues := make(map[string]map[string]struct{})
 	objectFieldTypes := make(map[string]map[string]*ast.Type)
 
@@ -325,6 +392,26 @@ func (b *schemaBuilder) runtimeTypeInfo() (
 		}
 	}
 
+	for _, action := range actions {
+		if !action.async {
+			continue
+		}
+
+		typeKinds[action.responseTypeName] = customTypeKindObject
+		objectFieldTypes[action.responseTypeName] = map[string]*ast.Type{
+			"id":         ast.NonNullNamedType(asyncScalarUUID, nil),
+			"created_at": ast.NonNullNamedType(asyncScalarTimestamptz, nil),
+			"errors":     ast.NamedType(asyncScalarJSONB, nil),
+			"output":     astTypeFromGraph(nullableGraphType(action.outputType)),
+		}
+	}
+
+	if hasAsyncActions(actions) {
+		typeKinds[asyncScalarUUID] = customTypeKindScalar
+		typeKinds[asyncScalarTimestamptz] = customTypeKindScalar
+		typeKinds[asyncScalarJSONB] = customTypeKindScalar
+	}
+
 	return typeKinds, enumValues, objectFieldTypes
 }
 
@@ -334,6 +421,8 @@ func runtimeActionsByName(actions []actionDefinition) map[string]runtimeAction {
 		byName[action.meta.Name] = runtimeAction{
 			name:                 action.meta.Name,
 			operation:            action.operation,
+			async:                action.async,
+			roles:                rolesForAction(action.meta),
 			url:                  action.url,
 			headers:              action.headers,
 			timeout:              action.timeout,
@@ -979,6 +1068,7 @@ func duplicateActionNames(actions []metadata.ActionMetadata) map[string]struct{}
 	return duplicates
 }
 
+//nolint:funlen // Action validation is a linear sequence with early inconsistency records.
 func (b *schemaBuilder) validateAction(
 	ctx context.Context,
 	action metadata.ActionMetadata,
@@ -990,7 +1080,12 @@ func (b *schemaBuilder) validateAction(
 	}
 
 	operation, ok := b.validateActionOperation(ctx, action)
-	if !ok || !b.validateActionKind(ctx, action) {
+	if !ok {
+		return emptyActionDefinition(), false
+	}
+
+	async, ok := b.validateActionKind(ctx, action, operation)
+	if !ok {
 		return emptyActionDefinition(), false
 	}
 
@@ -1034,9 +1129,11 @@ func (b *schemaBuilder) validateAction(
 	return actionDefinition{
 		meta:              action,
 		operation:         operation,
+		async:             async,
 		arguments:         arguments,
 		outputType:        outputType,
 		outputBase:        outputBase,
+		responseTypeName:  asyncResponseTypeName(action.Name),
 		reachableTypes:    reachableTypes,
 		url:               handlerURL,
 		headers:           headers,
@@ -1117,14 +1214,30 @@ func (b *schemaBuilder) validateActionOperation(
 func (b *schemaBuilder) validateActionKind(
 	ctx context.Context,
 	action metadata.ActionMetadata,
-) bool {
+	operation ast.Operation,
+) (bool, bool) {
 	switch action.Definition.Kind {
 	case "", metadata.ActionKindSynchronous:
-		return true
+		return false, true
 	case metadata.ActionKindAsynchronous:
-		b.recordAction(ctx, action.Name, "asynchronous actions are not supported yet")
+		if operation != ast.Mutation {
+			b.recordAction(ctx, action.Name, "asynchronous actions must be mutations")
 
-		return false
+			return false, false
+		}
+
+		if b.options.asyncConfig.Store == nil {
+			reason := b.options.asyncConfig.UnavailableReason
+			if reason == "" {
+				reason = "asynchronous action log store is not configured"
+			}
+
+			b.recordAction(ctx, action.Name, reason)
+
+			return false, false
+		}
+
+		return true, true
 	default:
 		b.recordAction(
 			ctx,
@@ -1132,7 +1245,7 @@ func (b *schemaBuilder) validateActionKind(
 			fmt.Sprintf("unsupported action kind %q", action.Definition.Kind),
 		)
 
-		return false
+		return false, false
 	}
 }
 
@@ -1181,9 +1294,11 @@ func emptyActionDefinition() actionDefinition {
 	return actionDefinition{
 		meta:              emptyActionMetadata(),
 		operation:         ast.Query,
+		async:             false,
 		arguments:         nil,
 		outputType:        nil,
 		outputBase:        "",
+		responseTypeName:  "",
 		reachableTypes:    nil,
 		url:               "",
 		headers:           nil,
@@ -1286,14 +1401,10 @@ func rolesForActions(actions []actionDefinition) []string {
 		return nil
 	}
 
-	roles := map[string]struct{}{metadata.RoleAdmin: {}}
+	roles := map[string]struct{}{}
 	for _, action := range actions {
-		for _, permission := range action.meta.Permissions {
-			if permission.Role == "" {
-				continue
-			}
-
-			roles[permission.Role] = struct{}{}
+		for role := range rolesForAction(action.meta) {
+			roles[role] = struct{}{}
 		}
 	}
 
@@ -1307,23 +1418,53 @@ func rolesForActions(actions []actionDefinition) []string {
 	return result
 }
 
+func rolesForAction(action metadata.ActionMetadata) map[string]struct{} {
+	roles := map[string]struct{}{metadata.RoleAdmin: {}}
+	for _, permission := range action.Permissions {
+		if permission.Role == "" {
+			continue
+		}
+
+		roles[permission.Role] = struct{}{}
+	}
+
+	return roles
+}
+
+func hasAsyncActions(actions []actionDefinition) bool {
+	for _, action := range actions {
+		if action.async {
+			return true
+		}
+	}
+
+	return false
+}
+
 func (b *schemaBuilder) buildRoleSchema(
 	ctx context.Context,
 	role string,
 	actions []actionDefinition,
 ) *graph.Schema {
-	queryFields, mutationFields, reachableTypes := b.collectRoleFields(ctx, role, actions)
-	if len(queryFields) == 0 && len(mutationFields) == 0 {
+	queryFields, mutationFields, subscriptionFields, reachableTypes, asyncActions := b.collectRoleFields(
+		ctx,
+		role,
+		actions,
+	)
+	if len(queryFields) == 0 && len(mutationFields) == 0 && len(subscriptionFields) == 0 {
 		return nil
 	}
 
 	slices.SortFunc(queryFields, compareFields)
 	slices.SortFunc(mutationFields, compareFields)
+	slices.SortFunc(subscriptionFields, compareFields)
 
 	schema := newEmptyGraphSchema()
 	appendRootType(schema, ast.Query, queryRootTypeName, queryFields)
 	appendRootType(schema, ast.Mutation, mutationRootTypeName, mutationFields)
+	appendRootType(schema, ast.Subscription, "Subscription", subscriptionFields)
 	b.appendReachableCustomTypes(schema, reachableTypes)
+	appendAsyncTypes(schema, asyncActions)
 
 	return schema
 }
@@ -1332,24 +1473,33 @@ func (b *schemaBuilder) collectRoleFields(
 	ctx context.Context,
 	role string,
 	actions []actionDefinition,
-) ([]*graph.Field, []*graph.Field, map[string]struct{}) {
+) ([]*graph.Field, []*graph.Field, []*graph.Field, map[string]struct{}, []actionDefinition) {
 	queryFields := make([]*graph.Field, 0)
 	mutationFields := make([]*graph.Field, 0)
+	subscriptionFields := make([]*graph.Field, 0)
 	reachableTypes := make(map[string]struct{})
+	asyncActions := make([]actionDefinition, 0)
 
 	for _, action := range actions {
 		if !actionVisibleToRole(action.meta, role) || b.actionHasRoleConflict(ctx, role, action) {
 			continue
 		}
 
-		field := actionField(action)
-		switch action.operation {
-		case ast.Query:
-			queryFields = append(queryFields, field)
-		case ast.Mutation:
-			mutationFields = append(mutationFields, field)
-		case ast.Subscription:
-			continue
+		if action.async {
+			mutationFields = append(mutationFields, asyncMutationField(action))
+			queryFields = append(queryFields, asyncResultField(action))
+			subscriptionFields = append(subscriptionFields, asyncResultField(action))
+			asyncActions = append(asyncActions, action)
+		} else {
+			field := actionField(action)
+			switch action.operation {
+			case ast.Query:
+				queryFields = append(queryFields, field)
+			case ast.Mutation:
+				mutationFields = append(mutationFields, field)
+			case ast.Subscription:
+				continue
+			}
 		}
 
 		for typeName := range action.reachableTypes {
@@ -1357,7 +1507,7 @@ func (b *schemaBuilder) collectRoleFields(
 		}
 	}
 
-	return queryFields, mutationFields, reachableTypes
+	return queryFields, mutationFields, subscriptionFields, reachableTypes, asyncActions
 }
 
 func newEmptyGraphSchema() *graph.Schema {
@@ -1424,15 +1574,17 @@ func (b *schemaBuilder) actionHasRoleConflict(
 	action actionDefinition,
 ) bool {
 	if occupiedFields := b.options.occupiedRootFields[role]; len(occupiedFields) > 0 {
-		key := schemamerge.FieldKey(action.operation, action.meta.Name)
-		if _, occupied := occupiedFields[key]; occupied {
-			b.recordAction(
-				ctx,
-				action.meta.Name,
-				fmt.Sprintf("root field %q conflicts for role %q", action.meta.Name, role),
-			)
+		for _, operation := range actionRootOperations(action) {
+			key := schemamerge.FieldKey(operation, action.meta.Name)
+			if _, occupied := occupiedFields[key]; occupied {
+				b.recordAction(
+					ctx,
+					action.meta.Name,
+					fmt.Sprintf("root field %q conflicts for role %q", action.meta.Name, role),
+				)
 
-			return true
+				return true
+			}
 		}
 	}
 
@@ -1441,7 +1593,16 @@ func (b *schemaBuilder) actionHasRoleConflict(
 		return false
 	}
 
-	for _, typeName := range sortedNames(action.reachableTypes) {
+	typeNames := make(map[string]struct{}, len(action.reachableTypes)+1)
+	for typeName := range action.reachableTypes {
+		typeNames[typeName] = struct{}{}
+	}
+
+	if action.async {
+		typeNames[action.responseTypeName] = struct{}{}
+	}
+
+	for _, typeName := range sortedNames(typeNames) {
 		if _, occupied := occupiedTypes[typeName]; !occupied {
 			continue
 		}
@@ -1463,6 +1624,14 @@ func (b *schemaBuilder) actionHasRoleConflict(
 	return false
 }
 
+func actionRootOperations(action actionDefinition) []ast.Operation {
+	if action.async {
+		return []ast.Operation{ast.Mutation, ast.Query, ast.Subscription}
+	}
+
+	return []ast.Operation{action.operation}
+}
+
 func actionField(action actionDefinition) *graph.Field {
 	return &graph.Field{
 		Name:        action.meta.Name,
@@ -1471,6 +1640,113 @@ func actionField(action actionDefinition) *graph.Field {
 		Arguments:   action.arguments,
 		Directives:  nil,
 	}
+}
+
+func asyncMutationField(action actionDefinition) *graph.Field {
+	return &graph.Field{
+		Name:        action.meta.Name,
+		Description: action.meta.Comment,
+		Type:        graph.NewNonNullType(action.responseTypeName),
+		Arguments:   action.arguments,
+		Directives:  nil,
+	}
+}
+
+func asyncResultField(action actionDefinition) *graph.Field {
+	return &graph.Field{
+		Name:        action.meta.Name,
+		Description: action.meta.Comment,
+		Type:        graph.NewNamedType(action.responseTypeName),
+		Arguments: []*graph.Argument{
+			{
+				Name:         "id",
+				Description:  "",
+				Type:         graph.NewNonNullType(asyncScalarUUID),
+				DefaultValue: nil,
+				Directives:   nil,
+			},
+		},
+		Directives: nil,
+	}
+}
+
+func appendAsyncTypes(schema *graph.Schema, actions []actionDefinition) {
+	if len(actions) == 0 {
+		return
+	}
+
+	schema.Scalars = append(
+		schema.Scalars,
+		&graph.ScalarType{Name: asyncScalarUUID, Description: "", Directives: nil},
+		&graph.ScalarType{Name: asyncScalarTimestamptz, Description: "", Directives: nil},
+		&graph.ScalarType{Name: asyncScalarJSONB, Description: "", Directives: nil},
+	)
+
+	slices.SortFunc(actions, func(a, b actionDefinition) int {
+		return strings.Compare(a.responseTypeName, b.responseTypeName)
+	})
+
+	for _, action := range actions {
+		schema.Types = append(schema.Types, asyncResponseType(action))
+	}
+}
+
+func asyncResponseType(action actionDefinition) *graph.ObjectType {
+	return &graph.ObjectType{
+		Name:        action.responseTypeName,
+		Description: "",
+		Fields: []*graph.Field{
+			{
+				Name:        "id",
+				Description: "",
+				Type:        graph.NewNonNullType(asyncScalarUUID),
+				Arguments:   nil,
+				Directives:  nil,
+			},
+			{
+				Name:        "created_at",
+				Description: "",
+				Type:        graph.NewNonNullType(asyncScalarTimestamptz),
+				Arguments:   nil,
+				Directives:  nil,
+			},
+			{
+				Name:        "errors",
+				Description: "",
+				Type:        graph.NewNamedType(asyncScalarJSONB),
+				Arguments:   nil,
+				Directives:  nil,
+			},
+			{
+				Name:        "output",
+				Description: "",
+				Type:        nullableGraphType(action.outputType),
+				Arguments:   nil,
+				Directives:  nil,
+			},
+		},
+		Interfaces: nil,
+		Directives: nil,
+	}
+}
+
+func nullableGraphType(typeRef *graph.Type) *graph.Type {
+	if typeRef == nil {
+		return nil
+	}
+
+	clone := *typeRef
+
+	clone.NonNull = false
+	if typeRef.Elem != nil {
+		clone.Elem = nullableGraphType(typeRef.Elem)
+	}
+
+	return &clone
+}
+
+func asyncResponseTypeName(actionName string) string {
+	return actionName + "_response"
 }
 
 func compareFields(a, b *graph.Field) int {

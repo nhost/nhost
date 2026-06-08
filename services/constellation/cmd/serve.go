@@ -15,6 +15,7 @@ import (
 
 	"github.com/99designs/gqlgen/graphql/playground"
 	"github.com/gin-gonic/gin"
+	"github.com/nhost/nhost/services/constellation/connector"
 	"github.com/nhost/nhost/services/constellation/controller"
 	"github.com/nhost/nhost/services/constellation/controller/middleware"
 	"github.com/nhost/nhost/services/constellation/internal/jwt"
@@ -37,6 +38,12 @@ const (
 	flagJWTSecret                    = "jwt-secret"
 	flagSubscriptionPollInterval     = "subscription-poll-interval"
 	flagMetadataDatabaseURL          = "metadata-database-url"
+	flagActionLogDatabaseURL         = "action-log-database-url"
+	flagActionLogSchema              = "action-log-schema"
+	flagActionLogTable               = "action-log-table"
+	flagActionLogCreateTable         = "action-log-create-table"
+	flagActionWorkerEnabled          = "action-worker-enabled"
+	flagActionLogExclusiveOwner      = "action-log-exclusive-owner"
 	flagProfileAddress               = "profile-address"
 	flagCORSAllowedOrigins           = "cors-allowed-origins"
 	flagDevMode                      = "dev-mode"
@@ -168,6 +175,49 @@ func dataFlags() []cli.Flag {
 	}
 }
 
+func actionFlags() []cli.Flag {
+	return []cli.Flag{
+		&cli.StringFlag{ //nolint:exhaustruct
+			Name:     flagActionLogDatabaseURL,
+			Usage:    "PostgreSQL URL for asynchronous action logs; defaults to metadata DB or first Postgres source",
+			Category: "actions",
+			Sources:  cli.EnvVars("CONSTELLATION_ACTION_LOG_DATABASE_URL"),
+		},
+		&cli.StringFlag{ //nolint:exhaustruct
+			Name:     flagActionLogSchema,
+			Usage:    "PostgreSQL schema containing the asynchronous action log table",
+			Value:    "hdb_catalog",
+			Category: "actions",
+			Sources:  cli.EnvVars("CONSTELLATION_ACTION_LOG_SCHEMA"),
+		},
+		&cli.StringFlag{ //nolint:exhaustruct
+			Name:     flagActionLogTable,
+			Usage:    "PostgreSQL table containing asynchronous action logs",
+			Value:    "hdb_action_log",
+			Category: "actions",
+			Sources:  cli.EnvVars("CONSTELLATION_ACTION_LOG_TABLE"),
+		},
+		&cli.BoolFlag{ //nolint:exhaustruct
+			Name:     flagActionLogCreateTable,
+			Usage:    "create the asynchronous action log schema/table when missing",
+			Category: "actions",
+			Sources:  cli.EnvVars("CONSTELLATION_ACTION_LOG_CREATE_TABLE"),
+		},
+		&cli.BoolFlag{ //nolint:exhaustruct
+			Name:     flagActionWorkerEnabled,
+			Usage:    "enable Constellation's asynchronous action worker",
+			Category: "actions",
+			Sources:  cli.EnvVars("CONSTELLATION_ACTION_WORKER_ENABLED"),
+		},
+		&cli.BoolFlag{ //nolint:exhaustruct
+			Name:     flagActionLogExclusiveOwner,
+			Usage:    "assert this process exclusively owns the configured action log table while the worker is enabled",
+			Category: "actions",
+			Sources:  cli.EnvVars("CONSTELLATION_ACTION_LOG_EXCLUSIVE_OWNER"),
+		},
+	}
+}
+
 func securityFlags() []cli.Flag {
 	return []cli.Flag{
 		&cli.StringFlag{ //nolint:exhaustruct
@@ -191,6 +241,7 @@ func serveFlags() []cli.Flag {
 	flags := generalFlags()
 	flags = append(flags, serverFlags()...)
 	flags = append(flags, dataFlags()...)
+	flags = append(flags, actionFlags()...)
 	flags = append(flags, securityFlags()...)
 
 	return flags
@@ -385,7 +436,7 @@ func initJWTAuth(
 	return jwtAuth, nil
 }
 
-func newMetadataSource( //nolint:ireturn // selected sources share the metadata.Source boundary.
+func newMetadataSource( //nolint:ireturn,nolintlint // selected sources share metadata.Source.
 	ctx context.Context,
 	cmd *cli.Command,
 	logger *slog.Logger,
@@ -405,6 +456,23 @@ func newMetadataSource( //nolint:ireturn // selected sources share the metadata.
 	}
 
 	return source.NewFileMetadataSource(cmd.String(flagMetadataPath)), nil
+}
+
+func actionLogConfigFromFlags(cmd *cli.Command) connector.ActionLogConfig {
+	return connector.ActionLogConfig{
+		Store:               nil,
+		DatabaseURL:         cmd.String(flagActionLogDatabaseURL),
+		MetadataDatabaseURL: cmd.String(flagMetadataDatabaseURL),
+		Schema:              cmd.String(flagActionLogSchema),
+		Table:               cmd.String(flagActionLogTable),
+		CreateIfNotExists:   cmd.Bool(flagActionLogCreateTable),
+		WorkerEnabled:       cmd.Bool(flagActionWorkerEnabled),
+		ExclusiveOwner:      cmd.Bool(flagActionLogExclusiveOwner),
+		PollInterval:        0,
+		BatchSize:           0,
+		MaxConcurrency:      0,
+		ShutdownTimeout:     0,
+	}
 }
 
 func serve(ctx context.Context, cmd *cli.Command) error {
@@ -434,6 +502,9 @@ func serve(ctx context.Context, cmd *cli.Command) error {
 		jwtAuth,
 		source,
 		logger,
+		controller.WithConnectorOptions(
+			connector.WithActionLogConfig(actionLogConfigFromFlags(cmd)),
+		),
 	)
 	if err != nil {
 		return fmt.Errorf("failed to create controller: %w", err)

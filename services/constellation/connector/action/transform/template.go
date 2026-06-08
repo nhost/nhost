@@ -216,7 +216,6 @@ func tagKeyword(tag string) string {
 	return trimmed
 }
 
-//nolint:ireturn // grammar parser returns template node interfaces.
 func (p *templateParser) parseIf(tag string) (templateNode, error) {
 	conditionSource := strings.TrimSpace(strings.TrimPrefix(tag, "if"))
 
@@ -273,7 +272,6 @@ func (p *templateParser) parseIf(tag string) (templateNode, error) {
 	return ifTemplateNode{branches: branches, elseNodes: elseNodes}, nil
 }
 
-//nolint:ireturn // grammar parser returns template node interfaces.
 func (p *templateParser) parseRange(tag string) (templateNode, error) {
 	spec := strings.TrimSpace(strings.TrimPrefix(tag, "range"))
 
