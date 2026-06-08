@@ -185,7 +185,7 @@ paths:
       tags:
         - user
       security:
-        - BearerAuth: []
+        - BearerAuthElevated: []
       responses:
         "200":
           description: "TOTP secret successfully generated"
