@@ -6,15 +6,18 @@ import (
 	"os"
 
 	"github.com/nhost/nhost/tools/codegen/processor"
+	"github.com/nhost/nhost/tools/codegen/processor/swift"
 	"github.com/nhost/nhost/tools/codegen/processor/typescript"
 	"github.com/pb33f/libopenapi"
 	"github.com/urfave/cli/v3"
 )
 
 const (
-	flagOpenAPIFile = "openapi-file"
-	flagOutputFile  = "output-file"
-	flagPlugin      = "plugin"
+	flagOpenAPIFile     = "openapi-file"
+	flagOutputFile      = "output-file"
+	flagPlugin          = "plugin"
+	flagSwiftNamespace  = "namespace"
+	flagSwiftClientName = "client-name"
 )
 
 func Command() *cli.Command {
@@ -37,9 +40,19 @@ func Command() *cli.Command {
 			},
 			&cli.StringFlag{ //nolint:exhaustruct
 				Name:     flagPlugin,
-				Usage:    "Plugin to use. Supported: typescript",
+				Usage:    "Plugin to use. Supported: typescript, swift",
 				Required: true,
 				Sources:  cli.EnvVars("PLUGIN"),
+			},
+			&cli.StringFlag{ //nolint:exhaustruct
+				Name:    flagSwiftNamespace,
+				Usage:   "Swift model namespace prefix (swift plugin only)",
+				Sources: cli.EnvVars("SWIFT_NAMESPACE"),
+			},
+			&cli.StringFlag{ //nolint:exhaustruct
+				Name:    flagSwiftClientName,
+				Usage:   "Swift client type name (swift plugin only)",
+				Sources: cli.EnvVars("SWIFT_CLIENT_NAME"),
 			},
 		},
 	}
@@ -53,8 +66,13 @@ func action(_ context.Context, c *cli.Command) error {
 	switch c.String(flagPlugin) {
 	case "typescript":
 		p = &typescript.Typescript{}
+	case "swift":
+		p = &swift.Swift{
+			Namespace:  c.String(flagSwiftNamespace),
+			ClientName: c.String(flagSwiftClientName),
+		}
 	default:
-		return cli.Exit("unsupported plugin: %s"+c.String(flagPlugin), 1)
+		return cli.Exit("unsupported plugin: "+c.String(flagPlugin), 1)
 	}
 
 	b, err := os.ReadFile(c.String(flagOpenAPIFile))

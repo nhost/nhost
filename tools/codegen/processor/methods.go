@@ -227,6 +227,10 @@ func (p *Parameter) Name() string {
 	return p.p.ParameterName(p.name)
 }
 
+func (p *Parameter) RawName() string {
+	return p.name
+}
+
 func (p *Parameter) Required() bool {
 	if p.Parameter.Required != nil {
 		return *p.Parameter.Required

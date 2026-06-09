@@ -79,11 +79,23 @@ func (p *Property) Name() string {
 	return p.p.PropertyName(p.name)
 }
 
+func (p *Property) RawName() string {
+	return p.name
+}
+
 func (p *Property) Required() bool {
 	return slices.Contains(
 		p.Parent.Schema().Schema().Required,
 		p.name,
 	)
+}
+
+func (p *Property) Nullable() bool {
+	return schemaNullable(p.Type.Schema())
+}
+
+func (p *Property) Optional() bool {
+	return !p.Required() || p.Nullable()
 }
 
 type TypeEnum struct {
@@ -99,6 +111,10 @@ func (t *TypeEnum) Name() string {
 
 func (t *TypeEnum) Values() []string {
 	return t.p.TypeEnumValues(t.values)
+}
+
+func (t *TypeEnum) RawValues() []any {
+	return t.values
 }
 
 func (t *TypeEnum) Kind() KindIdentifier {
@@ -182,6 +198,14 @@ func (t *TypeMap) Kind() KindIdentifier {
 
 func (t *TypeMap) Schema() *base.SchemaProxy {
 	return t.schema
+}
+
+func schemaNullable(schema *base.SchemaProxy) bool {
+	if schema == nil || schema.Schema() == nil || schema.Schema().Nullable == nil {
+		return false
+	}
+
+	return *schema.Schema().Nullable
 }
 
 func getTypeObject( //nolint:ireturn

@@ -9,6 +9,7 @@ import (
 	"testing"
 
 	"github.com/nhost/nhost/tools/codegen/processor"
+	swiftprocessor "github.com/nhost/nhost/tools/codegen/processor/swift"
 	"github.com/nhost/nhost/tools/codegen/processor/typescript"
 	"github.com/pb33f/libopenapi"
 	v3 "github.com/pb33f/libopenapi/datamodel/high/v3"
@@ -47,24 +48,48 @@ func TestInterMediateRepresentationRender(t *testing.T) {
 	t.Parallel()
 
 	cases := []struct {
-		name string
+		name       string
+		plugin     processor.Plugin
+		goldenFile string
 	}{
 		{
-			name: "types.yaml",
+			name:       "types.yaml",
+			plugin:     &typescript.Typescript{},
+			goldenFile: "types.yaml.ts",
 		},
 		{
-			name: "methods_ref.yaml",
+			name:       "methods_ref.yaml",
+			plugin:     &typescript.Typescript{},
+			goldenFile: "methods_ref.yaml.ts",
 		},
 		{
-			name: "content.yaml",
+			name:       "content.yaml",
+			plugin:     &typescript.Typescript{},
+			goldenFile: "content.yaml.ts",
 		},
 		{
-			name: "form-url-encoded.yaml",
+			name:       "form-url-encoded.yaml",
+			plugin:     &typescript.Typescript{},
+			goldenFile: "form-url-encoded.yaml.ts",
+		},
+		{
+			name: "swift-features.yaml",
+			plugin: &swiftprocessor.Swift{
+				Namespace: "Test",
+			},
+			goldenFile: "swift-features.yaml.swift",
+		},
+		{
+			name: "swift-keyword-names.yaml",
+			plugin: &swiftprocessor.Swift{
+				Namespace: "Type",
+			},
+			goldenFile: "swift-keyword-names.yaml.swift",
 		},
 	}
 
 	for _, tc := range cases {
-		t.Run(tc.name, func(t *testing.T) {
+		t.Run(tc.goldenFile, func(t *testing.T) {
 			t.Parallel()
 
 			doc, err := getModel("testdata/" + tc.name)
@@ -72,7 +97,7 @@ func TestInterMediateRepresentationRender(t *testing.T) {
 				t.Fatalf("failed to get model: %v", err)
 			}
 
-			ir, err := processor.NewInterMediateRepresentation(doc, &typescript.Typescript{})
+			ir, err := processor.NewInterMediateRepresentation(doc, tc.plugin)
 			if err != nil {
 				t.Fatalf("failed to create intermediate representation: %v", err)
 			}
@@ -86,7 +111,7 @@ func TestInterMediateRepresentationRender(t *testing.T) {
 
 			if *flagUpdate {
 				f, err := os.OpenFile(
-					"testdata/"+tc.name+".ts",
+					"testdata/"+tc.goldenFile,
 					os.O_CREATE|os.O_WRONLY|os.O_TRUNC,
 					0o644,
 				)
@@ -100,13 +125,13 @@ func TestInterMediateRepresentationRender(t *testing.T) {
 				}
 			}
 
-			b, err := os.ReadFile("testdata/" + tc.name + ".ts")
+			b, err := os.ReadFile("testdata/" + tc.goldenFile)
 			if err != nil {
 				t.Fatalf("failed to read expected output file: %v", err)
 			}
 
 			assert.Equal(t, string(b), output,
-				"rendered output does not match expected output for %s", tc.name)
+				"rendered output does not match expected output for %s", tc.goldenFile)
 		})
 	}
 }

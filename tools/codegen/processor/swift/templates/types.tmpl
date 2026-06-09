@@ -1,0 +1,49 @@
+{{- define "swiftObject" }}
+{{- range swiftDoc .Schema.Schema.Description }}
+/// {{ . }}
+{{- end }}
+public struct {{ .Name }}: Codable, Sendable {
+{{- range .Properties }}
+{{- range swiftDoc .Type.Schema.Schema.Description }}
+    /// {{ . }}
+{{- end }}
+    public let {{ .Name }}: {{ .Type.Name }}{{ if .Optional }}?{{ end }}
+{{- end }}
+
+    public init(
+{{- range $index, $property := .Properties }}
+        {{ $property.Name }}: {{ $property.Type.Name }}{{ if $property.Optional }}? = nil{{ end }}{{ if not (swiftIsLastProperty $index $.Properties) }},{{ end }}
+{{- end }}
+    ) {
+{{- range .Properties }}
+        self.{{ .Name }} = {{ .Name }}
+{{- end }}
+    }
+{{- if swiftNeedsCodingKeys . }}
+
+    private enum CodingKeys: String, CodingKey {
+{{- range .Properties }}
+        {{ swiftCodingKey . }}
+{{- end }}
+    }
+{{- end }}
+}
+{{- end }}
+
+{{- define "swiftEnum" }}
+{{- range swiftDoc .Schema.Schema.Description }}
+/// {{ . }}
+{{- end }}
+public enum {{ .Name }}: {{ swiftEnumRawType . }}, Codable, Sendable {
+{{- range swiftEnumCases . }}
+    {{ . }}
+{{- end }}
+}
+{{- end }}
+
+{{- define "swiftAlias" }}
+{{- range swiftDoc .Schema.Schema.Description }}
+/// {{ . }}
+{{- end }}
+public typealias {{ .Name }} = {{ .Alias.Name }}
+{{- end }}

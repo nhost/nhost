@@ -1,0 +1,113 @@
+openapi: '3.0.0'
+
+components:
+  schemas:
+    ExternalID:
+      type: string
+      description: Stable external identifier.
+
+    Timestamp:
+      type: string
+      format: date-time
+      description: RFC3339 timestamp.
+
+    BinaryPayload:
+      type: string
+      format: binary
+      description: Binary payload bytes.
+
+    Account:
+      type: object
+      description: Account model with Swift identifier edge cases.
+      properties:
+        id:
+          type: string
+          description: Unique identifier.
+        display_name:
+          type: string
+          nullable: true
+          description: Optional display name.
+        required_nullable:
+          type: string
+          nullable: true
+          description: Required nullable value.
+        class:
+          type: string
+          description: Reserved Swift keyword property.
+        created-at:
+          type: string
+          format: date-time
+          description: Creation time.
+        avatar:
+          type: string
+          format: binary
+          description: Avatar bytes.
+        login-count:
+          type: integer
+          description: Login count.
+        score:
+          type: number
+          description: Account score.
+        active:
+          type: boolean
+          description: Whether the account is active.
+        tags:
+          type: array
+          description: Account tags.
+          items:
+            type: string
+        preferences:
+          type: object
+          additionalProperties: true
+          description: Untyped JSON preferences.
+        localizedLabels:
+          type: object
+          additionalProperties: true
+          x-swift-type: '[String: String]'
+          description: Labels with explicit Swift map override.
+        file[]:
+          type: array
+          description: Uploaded file payloads.
+          items:
+            type: string
+            format: binary
+        status:
+          type: string
+          description: Current account status.
+          enum:
+            - active
+            - in-progress
+            - default
+            - 2fa-enabled
+        tier:
+          type: integer
+          description: Integer-backed tier.
+          enum:
+            - 0
+            - 1
+            - 404
+        owner:
+          type: object
+          description: Nested owner object.
+          properties:
+            user-id:
+              type: string
+              description: Owner user identifier.
+            email:
+              type: string
+              description: Owner email.
+          required:
+            - user-id
+      required:
+        - id
+        - required_nullable
+        - class
+        - created-at
+        - avatar
+        - login-count
+        - score
+        - active
+        - preferences
+        - localizedLabels
+        - status
+        - tier

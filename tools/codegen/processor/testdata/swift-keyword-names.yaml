@@ -1,0 +1,17 @@
+openapi: '3.0.0'
+
+components:
+  schemas:
+    Any:
+      type: string
+      description: Schema alias rendered under a keyword namespace.
+
+    Type:
+      type: object
+      description: Schema name that is a Swift keyword.
+      properties:
+        id:
+          type: string
+          description: Stable identifier.
+      required:
+        - id
