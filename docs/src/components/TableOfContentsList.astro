@@ -4,16 +4,16 @@
 // can render the "On this page" label without an <h2> heading for SEO, while
 // keeping the rest of the table of contents behaviour and markup identical.
 interface TocItem {
-	depth: number;
-	slug: string;
-	text: string;
-	children: TocItem[];
+  depth: number;
+  slug: string;
+  text: string;
+  children: TocItem[];
 }
 
 interface Props {
-	toc: TocItem[];
-	depth?: number;
-	isMobile?: boolean;
+  toc: TocItem[];
+  depth?: number;
+  isMobile?: boolean;
 }
 
 const { toc, isMobile = false, depth = 0 } = Astro.props;
