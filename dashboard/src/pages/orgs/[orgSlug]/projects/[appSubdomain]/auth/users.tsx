@@ -344,12 +344,10 @@ function UsersPageContent() {
                   elementsPerPage={elementsPerPage}
                   onPrevPageClick={async () => {
                     setCurrentPage((page) => page - 1);
-                    if (currentPage - 1 !== 1) {
-                      await router.push({
-                        pathname: router.pathname,
-                        query: { ...router.query, page: currentPage - 1 },
-                      });
-                    }
+                    await router.push({
+                      pathname: router.pathname,
+                      query: { ...router.query, page: currentPage - 1 },
+                    });
                   }}
                   onNextPageClick={async () => {
                     setCurrentPage((page) => page + 1);
