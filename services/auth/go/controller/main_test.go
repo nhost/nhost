@@ -183,9 +183,16 @@ type getControllerOpts struct {
 	idTokenValidatorProviders func(t *testing.T) *oidc.IDTokenValidatorProviders
 	totp                      *controller.Totp
 	encrypter                 controller.Encrypter
+	elevatedClaimMode         string
 }
 
 type getControllerOptsFunc func(*getControllerOpts)
+
+func withElevatedClaimMode(mode string) getControllerOptsFunc {
+	return func(o *getControllerOpts) {
+		o.elevatedClaimMode = mode
+	}
+}
 
 func withCusomClaimer(cc func(*gomock.Controller) controller.CustomClaimer) getControllerOptsFunc {
 	return func(o *getControllerOpts) {
@@ -252,11 +259,16 @@ func getController(
 		cc = controllerOpts.customClaimer(ctrl)
 	}
 
+	elevatedClaimMode := controllerOpts.elevatedClaimMode
+	if elevatedClaimMode == "" {
+		elevatedClaimMode = "disabled"
+	}
+
 	jwtGetter, err := controller.NewJWTGetter(
 		[]byte(config.JWTSecret),
 		time.Second*time.Duration(config.AccessTokenExpiresIn),
 		cc,
-		"",
+		elevatedClaimMode,
 		nil,
 		config.ServerURL.String(),
 	)

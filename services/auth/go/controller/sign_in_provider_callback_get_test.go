@@ -94,6 +94,79 @@ func getStateWithFlowAndPKCE(
 	return state
 }
 
+// connectLinkSuccessDB builds the DB mock for a successful provider link: the
+// connect user is fetched, the provider row is inserted, and the provider
+// session is persisted.
+func connectLinkSuccessDB(
+	userID, userIDConnect uuid.UUID,
+) func(ctrl *gomock.Controller) controller.DBClient {
+	return func(ctrl *gomock.Controller) controller.DBClient {
+		mock := mock.NewMockDBClient(ctrl)
+
+		mock.EXPECT().GetUser( //nolint:dupl
+			gomock.Any(),
+			userIDConnect,
+		).Return(sql.AuthUser{
+			ID: userID,
+			CreatedAt: pgtype.Timestamptz{
+				Time: time.Now(),
+			},
+			UpdatedAt:   pgtype.Timestamptz{},
+			LastSeen:    pgtype.Timestamptz{},
+			Disabled:    false,
+			DisplayName: "John",
+			AvatarUrl:   "",
+			Locale:      "en",
+			Email:       sql.Text("fake@gmail.com"),
+			PhoneNumber: pgtype.Text{},
+			PasswordHash: sql.Text(
+				"$2a$10$pyv7eu9ioQcFnLSz7u/enex22P3ORdh6z6116Vj5a3vSjo0oxFa1u",
+			),
+			EmailVerified:            true,
+			PhoneNumberVerified:      false,
+			NewEmail:                 pgtype.Text{},
+			OtpMethodLastUsed:        pgtype.Text{},
+			OtpHash:                  pgtype.Text{},
+			OtpHashExpiresAt:         pgtype.Timestamptz{},
+			DefaultRole:              "user",
+			IsAnonymous:              false,
+			TotpSecret:               pgtype.Text{},
+			ActiveMfaType:            pgtype.Text{},
+			Ticket:                   pgtype.Text{},
+			TicketExpiresAt:          sql.TimestampTz(time.Now()),
+			Metadata:                 []byte{},
+			WebauthnCurrentChallenge: pgtype.Text{},
+		}, nil)
+
+		mock.EXPECT().InsertUserProvider(
+			gomock.Any(),
+			sql.InsertUserProviderParams{
+				UserID:         userIDConnect,
+				ProviderID:     "fake",
+				ProviderUserID: "1234567890",
+			},
+		).Return(
+			sql.AuthUserProvider{
+				ID:             userIDConnect,
+				CreatedAt:      pgtype.Timestamptz{},
+				UpdatedAt:      pgtype.Timestamptz{},
+				UserID:         userID,
+				AccessToken:    "unset",
+				RefreshToken:   pgtype.Text{},
+				ProviderID:     "fake",
+				ProviderUserID: "1234567890",
+			}, nil,
+		)
+
+		mock.EXPECT().UpdateProviderSession(
+			gomock.Any(),
+			gomock.Any(),
+		).Return(nil)
+
+		return mock
+	}
+}
+
 func TestSignInProviderCallback(t *testing.T) { //nolint:maintidx
 	t.Parallel()
 
@@ -120,6 +193,18 @@ func TestSignInProviderCallback(t *testing.T) { //nolint:maintidx
 
 	// Create JWT token for connect tests
 	jwtToken := "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJleHAiOjEwNzExMTE4MDI0LCJodHRwczovL2hhc3VyYS5pby9qd3QvY2xhaW1zIjp7IngtaGFzdXJhLWFsbG93ZWQtcm9sZXMiOlsibWUiLCJ1c2VyIiwiZWRpdG9yIl0sIngtaGFzdXJhLWRlZmF1bHQtcm9sZSI6InVzZXIiLCJ4LWhhc3VyYS11c2VyLWlkIjoiZjkwNzgyZGUtZjBhMy00MWZlLWI3NzgtMDFlNGY4MGMyNDEzIiwieC1oYXN1cmEtdXNlci1pcy1hbm9ueW1vdXMiOiJmYWxzZSJ9LCJpYXQiOjE3MTExMTgwMjQsImlzcyI6Imhhc3VyYS1hdXRoIiwic3ViIjoiZjkwNzgyZGUtZjBhMy00MWZlLWI3NzgtMDFlNGY4MGMyNDEzIn0.wms_3kNeVVeqxQvSMcM2l7By1BTz4uteKSAGmVgafYY" //nolint:gosec
+
+	// Same connect identity as jwtToken but carrying the elevated claim, used to
+	// exercise the AUTH_REQUIRE_ELEVATED_CLAIM gate on the link flow.
+	elevatedConnect := signTestToken(t, jwtGetter, userIDConnect, map[string]any{
+		"https://hasura.io/jwt/claims": map[string]any{
+			"x-hasura-allowed-roles":     []string{"me", "user", "editor"},
+			"x-hasura-auth-elevated":     userIDConnect.String(),
+			"x-hasura-default-role":      "user",
+			"x-hasura-user-id":           userIDConnect.String(),
+			"x-hasura-user-is-anonymous": "false",
+		},
+	})
 
 	cases := []testRequest[api.SignInProviderCallbackGetRequestObject, api.SignInProviderCallbackGetResponseObject]{
 		{ //nolint:dupl
@@ -901,72 +986,7 @@ func TestSignInProviderCallback(t *testing.T) { //nolint:maintidx
 		{
 			name:   "connect - success",
 			config: getConfig,
-			db: func(ctrl *gomock.Controller) controller.DBClient {
-				mock := mock.NewMockDBClient(ctrl)
-
-				mock.EXPECT().GetUser( //nolint:dupl
-					gomock.Any(),
-					userIDConnect,
-				).Return(sql.AuthUser{
-					ID: userID,
-					CreatedAt: pgtype.Timestamptz{
-						Time: time.Now(),
-					},
-					UpdatedAt:   pgtype.Timestamptz{},
-					LastSeen:    pgtype.Timestamptz{},
-					Disabled:    false,
-					DisplayName: "John",
-					AvatarUrl:   "",
-					Locale:      "en",
-					Email:       sql.Text("fake@gmail.com"),
-					PhoneNumber: pgtype.Text{},
-					PasswordHash: sql.Text(
-						"$2a$10$pyv7eu9ioQcFnLSz7u/enex22P3ORdh6z6116Vj5a3vSjo0oxFa1u",
-					),
-					EmailVerified:            true,
-					PhoneNumberVerified:      false,
-					NewEmail:                 pgtype.Text{},
-					OtpMethodLastUsed:        pgtype.Text{},
-					OtpHash:                  pgtype.Text{},
-					OtpHashExpiresAt:         pgtype.Timestamptz{},
-					DefaultRole:              "user",
-					IsAnonymous:              false,
-					TotpSecret:               pgtype.Text{},
-					ActiveMfaType:            pgtype.Text{},
-					Ticket:                   pgtype.Text{},
-					TicketExpiresAt:          sql.TimestampTz(time.Now()),
-					Metadata:                 []byte{},
-					WebauthnCurrentChallenge: pgtype.Text{},
-				}, nil)
-
-				mock.EXPECT().InsertUserProvider(
-					gomock.Any(),
-					sql.InsertUserProviderParams{
-						UserID:         userIDConnect,
-						ProviderID:     "fake",
-						ProviderUserID: "1234567890",
-					},
-				).Return(
-
-					sql.AuthUserProvider{
-						ID:             userIDConnect,
-						CreatedAt:      pgtype.Timestamptz{},
-						UpdatedAt:      pgtype.Timestamptz{},
-						UserID:         userID,
-						AccessToken:    "unset",
-						RefreshToken:   pgtype.Text{},
-						ProviderID:     "fake",
-						ProviderUserID: "1234567890",
-					}, nil,
-				)
-
-				mock.EXPECT().UpdateProviderSession(
-					gomock.Any(),
-					gomock.Any(),
-				).Return(nil)
-
-				return mock
-			},
+			db:     connectLinkSuccessDB(userID, userIDConnect),
 			request: api.SignInProviderCallbackGetRequestObject{
 				Params: api.SignInProviderCallbackGetParams{
 					Code: new("valid-code-1"),
@@ -994,72 +1014,7 @@ func TestSignInProviderCallback(t *testing.T) { //nolint:maintidx
 			// provider must not block linking.
 			name:   "connect - success - unverified provider email still links",
 			config: getConfig,
-			db: func(ctrl *gomock.Controller) controller.DBClient {
-				mock := mock.NewMockDBClient(ctrl)
-
-				mock.EXPECT().GetUser( //nolint:dupl
-					gomock.Any(),
-					userIDConnect,
-				).Return(sql.AuthUser{
-					ID: userID,
-					CreatedAt: pgtype.Timestamptz{
-						Time: time.Now(),
-					},
-					UpdatedAt:   pgtype.Timestamptz{},
-					LastSeen:    pgtype.Timestamptz{},
-					Disabled:    false,
-					DisplayName: "John",
-					AvatarUrl:   "",
-					Locale:      "en",
-					Email:       sql.Text("fake@gmail.com"),
-					PhoneNumber: pgtype.Text{},
-					PasswordHash: sql.Text(
-						"$2a$10$pyv7eu9ioQcFnLSz7u/enex22P3ORdh6z6116Vj5a3vSjo0oxFa1u",
-					),
-					EmailVerified:            true,
-					PhoneNumberVerified:      false,
-					NewEmail:                 pgtype.Text{},
-					OtpMethodLastUsed:        pgtype.Text{},
-					OtpHash:                  pgtype.Text{},
-					OtpHashExpiresAt:         pgtype.Timestamptz{},
-					DefaultRole:              "user",
-					IsAnonymous:              false,
-					TotpSecret:               pgtype.Text{},
-					ActiveMfaType:            pgtype.Text{},
-					Ticket:                   pgtype.Text{},
-					TicketExpiresAt:          sql.TimestampTz(time.Now()),
-					Metadata:                 []byte{},
-					WebauthnCurrentChallenge: pgtype.Text{},
-				}, nil)
-
-				mock.EXPECT().InsertUserProvider(
-					gomock.Any(),
-					sql.InsertUserProviderParams{
-						UserID:         userIDConnect,
-						ProviderID:     "fake",
-						ProviderUserID: "1234567890",
-					},
-				).Return(
-
-					sql.AuthUserProvider{
-						ID:             userIDConnect,
-						CreatedAt:      pgtype.Timestamptz{},
-						UpdatedAt:      pgtype.Timestamptz{},
-						UserID:         userID,
-						AccessToken:    "unset",
-						RefreshToken:   pgtype.Text{},
-						ProviderID:     "fake",
-						ProviderUserID: "1234567890",
-					}, nil,
-				)
-
-				mock.EXPECT().UpdateProviderSession(
-					gomock.Any(),
-					gomock.Any(),
-				).Return(nil)
-
-				return mock
-			},
+			db:     connectLinkSuccessDB(userID, userIDConnect),
 			request: api.SignInProviderCallbackGetRequestObject{
 				Params: api.SignInProviderCallbackGetParams{
 					Code: new("valid-code-unverified-email"),
@@ -1077,6 +1032,61 @@ func TestSignInProviderCallback(t *testing.T) { //nolint:maintidx
 			expectedJWT:       nil,
 			jwtTokenFn:        nil,
 			getControllerOpts: nil,
+		},
+
+		{
+			// With AUTH_REQUIRE_ELEVATED_CLAIM=required, linking a provider must
+			// fail when the connect JWT lacks the elevated claim, mirroring every
+			// other sensitive endpoint. The write must be rejected before any DB
+			// access.
+			name:   "connect - elevated claim required, claim missing",
+			config: getConfig,
+			db: func(ctrl *gomock.Controller) controller.DBClient {
+				return mock.NewMockDBClient(ctrl)
+			},
+			request: api.SignInProviderCallbackGetRequestObject{
+				Params: api.SignInProviderCallbackGetParams{
+					Code: new("valid-code-1"),
+					State: getState(t, jwtGetter, &jwtToken, api.SignUpOptions{
+						RedirectTo: new("http://localhost:3000/connect-rejected"),
+					}),
+				},
+				Provider: "fake",
+			},
+			expectedResponse: controller.ErrorRedirectResponse{
+				Headers: struct{ Location string }{
+					Location: `^http://localhost:3000/connect-rejected\?error=invalid-request&errorDescription=The\+request\+payload\+is\+incorrect&state=some-random-state$`,
+				},
+			},
+			expectedJWT:       nil,
+			jwtTokenFn:        nil,
+			getControllerOpts: []getControllerOptsFunc{withElevatedClaimMode("required")},
+		},
+
+		{
+			// With AUTH_REQUIRE_ELEVATED_CLAIM=required, a connect JWT that does
+			// carry the elevated claim links successfully, just like every other
+			// sensitive endpoint accepts a freshly elevated token.
+			name:   "connect - elevated claim required, claim present",
+			config: getConfig,
+			db:     connectLinkSuccessDB(userID, userIDConnect),
+			request: api.SignInProviderCallbackGetRequestObject{
+				Params: api.SignInProviderCallbackGetParams{
+					Code: new("valid-code-1"),
+					State: getState(t, jwtGetter, &elevatedConnect, api.SignUpOptions{
+						RedirectTo: new("http://localhost:3000/connect-success"),
+					}),
+				},
+				Provider: "fake",
+			},
+			expectedResponse: api.SignInProviderCallbackGet302Response{
+				Headers: api.SignInProviderCallbackGet302ResponseHeaders{
+					Location: `^http://localhost:3000/connect-success\?state=some-random-state$`,
+				},
+			},
+			expectedJWT:       nil,
+			jwtTokenFn:        nil,
+			getControllerOpts: []getControllerOptsFunc{withElevatedClaimMode("required")},
 		},
 
 		{
