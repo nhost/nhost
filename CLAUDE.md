@@ -34,7 +34,7 @@ Hybrid Go + TypeScript monorepo containing Nhost's open-source services, SDK, CL
 
 ### Swift SDK (`packages/nhost-swift/`)
 
-- SwiftPM package exposing module `Nhost`; Auth/Storage REST clients are generated from OpenAPI in later phases while runtime, middleware, sessions, GraphQL, Functions, and top-level client APIs are hand-written
+- SwiftPM package exposing module `Nhost`; Auth/Storage REST clients are generated from OpenAPI, while runtime, middleware, sessions, GraphQL, Functions, and top-level client APIs are hand-written. Standard checks run through Nix; supplementary Apple CI covers Keychain and destination builds.
 
 ### Documentation (`docs/`)
 

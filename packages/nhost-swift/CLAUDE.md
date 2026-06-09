@@ -6,6 +6,7 @@ This package is a SwiftPM library package exposing the public module `Nhost`.
 
 - Use the repository Nix workflow as the source of truth: `make -C packages/nhost-swift check`.
 - For direct SwiftPM checks, run through the Nix dev shell: `nix develop .#nhost-swift -c swift build` and `nix develop .#nhost-swift -c swift test --disable-swift-testing`.
+- Integration tests under `Tests/NhostIntegrationTests` must stay gated by `NHOST_SWIFT_RUN_INTEGRATION=1` so default `make check` and `swift test` perform no network I/O.
 - Keep `Package.swift` on Swift tools 6.0 unless the plan and Nix toolchain are updated together.
 
 ## Source layout

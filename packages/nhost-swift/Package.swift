@@ -21,5 +21,9 @@ let package = Package(
             name: "NhostTests",
             dependencies: ["Nhost"]
         ),
+        .testTarget(
+            name: "NhostIntegrationTests",
+            dependencies: ["Nhost"]
+        ),
     ]
 )

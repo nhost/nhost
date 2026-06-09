@@ -1,0 +1,84 @@
+---
+name: 'nhost-swift: Apple checks'
+on:
+  pull_request:
+    paths:
+      - '.github/workflows/wf_detect_changes.yaml'
+      - '.github/workflows/nhost-swift_apple_checks.yaml'
+      - 'packages/nhost-swift/**'
+  merge_group:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: ${{ github.workflow }}-${{ startsWith(github.event_name, 'pull_request') && format('pr-{0}', github.event.pull_request.number) || format('push-{0}', github.sha) }}
+  cancel-in-progress: ${{ startsWith(github.event_name, 'pull_request') }}
+
+jobs:
+  detect-changes:
+    uses: ./.github/workflows/wf_detect_changes.yaml
+    with:
+      patterns: |
+        .github/workflows/wf_detect_changes.yaml
+        .github/workflows/nhost-swift_apple_checks.yaml
+        packages/nhost-swift/**
+
+  swiftpm:
+    name: SwiftPM build, test, and Keychain
+    needs: [detect-changes]
+    if: needs.detect-changes.outputs.should_run == 'true'
+    runs-on: macos-latest
+    timeout-minutes: 30
+    defaults:
+      run:
+        working-directory: packages/nhost-swift
+    steps:
+      - uses: actions/checkout@v6
+
+      - name: Show Swift version
+        run: swift --version
+
+      - name: Build package
+        run: swift build
+
+      - name: Run package tests
+        run: swift test
+
+      - name: Run Keychain tests
+        run: NHOST_SWIFT_RUN_KEYCHAIN_TESTS=1 swift test --filter testKeychainStorageRoundTripWhenExplicitlyEnabled
+
+  xcodebuild:
+    name: Xcode build (${{ matrix.name }})
+    needs: [detect-changes]
+    if: needs.detect-changes.outputs.should_run == 'true'
+    runs-on: macos-latest
+    timeout-minutes: 30
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - name: macOS
+            destination: generic/platform=macOS
+          - name: iOS Simulator
+            destination: generic/platform=iOS Simulator
+          - name: tvOS Simulator
+            destination: generic/platform=tvOS Simulator
+          - name: watchOS Simulator
+            destination: generic/platform=watchOS Simulator
+    defaults:
+      run:
+        working-directory: packages/nhost-swift
+    steps:
+      - uses: actions/checkout@v6
+
+      - name: Show Xcode version
+        run: xcodebuild -version
+
+      - name: Build destination
+        run: >-
+          xcodebuild
+          -scheme Nhost
+          -destination '${{ matrix.destination }}'
+          CODE_SIGNING_ALLOWED=NO
+          build
