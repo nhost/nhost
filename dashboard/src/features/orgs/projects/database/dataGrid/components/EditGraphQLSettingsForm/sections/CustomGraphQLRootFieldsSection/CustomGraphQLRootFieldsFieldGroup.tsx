@@ -21,7 +21,7 @@ export default function CustomGraphQLRootFieldsFieldGroup({
   const form = useFormContext();
 
   return (
-    <div className="grid grid-cols-[120px,minmax(0,0.8fr),minmax(0,1fr)] items-center gap-3 bg-background px-4 py-3">
+    <div className="grid grid-cols-[minmax(0,1fr)_minmax(0,1.2fr)_minmax(0,1.5fr)] items-center gap-3 bg-background px-4 py-3">
       <span className="font-medium text-foreground text-sm">{fieldLabel}</span>
       <FormInput
         disabled={disabled}
@@ -33,7 +33,7 @@ export default function CustomGraphQLRootFieldsFieldGroup({
         containerClassName="space-y-0"
         autoComplete="off"
       />
-      <div className="flex gap-0">
+      <div className="-mr-4 flex gap-0">
         <FormInput
           disabled={disabled}
           control={form.control}
