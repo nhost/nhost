@@ -3,7 +3,10 @@
   "root": true,
   "javascript": { "formatter": { "quoteStyle": "single" }, "globals": [] },
   "vcs": { "enabled": true, "clientKind": "git", "useIgnoreFile": true },
-  "files": { "ignoreUnknown": false },
+  "files": {
+    "ignoreUnknown": false,
+    "includes": ["**", "!packages/nhost-swift"]
+  },
   "formatter": {
     "enabled": true,
     "indentStyle": "space"

@@ -153,6 +153,14 @@
             ;
         };
 
+        nhost-swiftf = import ./packages/nhost-swift/project.nix {
+          inherit
+            self
+            pkgs
+            nixops-lib
+            ;
+        };
+
         stripe-graphql-jsf = import ./packages/stripe-graphql-js/project.nix {
           inherit
             self
@@ -227,6 +235,7 @@
           tutorials = tutorialsf.check;
         }
         // pkgs.lib.optionalAttrs pkgs.stdenv.isLinux {
+          nhost-swift = nhost-swiftf.check;
           swift-toolchain = nixopsf.swiftToolchainCheck;
         };
 
@@ -371,6 +380,7 @@
             tutorials = tutorialsf.devShell;
           }
           // pkgs.lib.optionalAttrs pkgs.stdenv.isLinux {
+            nhost-swift = nhost-swiftf.devShell;
             swift-toolchain = nixops-lib.swift.devShell { };
           }
         );
@@ -428,6 +438,7 @@
             tutorials = tutorialsf.package;
           }
           // pkgs.lib.optionalAttrs pkgs.stdenv.isLinux {
+            nhost-swift = nhost-swiftf.package;
             swift-toolchain = pkgs.swift_6;
           };
       }

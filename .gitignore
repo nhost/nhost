@@ -64,6 +64,10 @@ out/
 .envrc
 .direnv/
 
+# SwiftPM
+**/.build/
+**/.swiftpm/
+
 /.vscode/
 
 result

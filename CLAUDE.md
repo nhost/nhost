@@ -32,6 +32,10 @@ Hybrid Go + TypeScript monorepo containing Nhost's open-source services, SDK, CL
 
 - Client SDK providing auth, storage, GraphQL, and functions helpers. Builds to ESM, CJS, and UMD
 
+### Swift SDK (`packages/nhost-swift/`)
+
+- SwiftPM package exposing module `Nhost`; Auth/Storage REST clients are generated from OpenAPI in later phases while runtime, middleware, sessions, GraphQL, Functions, and top-level client APIs are hand-written
+
 ### Documentation (`docs/`)
 
 - Astro-based documentation site
@@ -64,6 +68,7 @@ Hybrid Go + TypeScript monorepo containing Nhost's open-source services, SDK, CL
 - JS/TS packages use pnpm 11.1.0 (not npm or yarn) with Turbo for orchestration
 - Node >= 22 required
 - Swift Nix support uses the pinned Swift.org toolchain in `nixops/overlays/swift.nix`; its XCTest path deliberately hides Swift Testing cross-import overlays because the official Linux 6.2.1 textual overlay does not rebuild reliably in Nix's non-FHS include layout.
+- SwiftPM writes manifest/module caches under `HOME`; Nix Swift derivations must set `HOME=$(mktemp -d)` before `swift build`/`swift test`/package builds so sandboxed builds do not try to write `/homeless-shelter`.
 
 ## Code Standards
 

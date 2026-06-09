@@ -73,6 +73,8 @@ in
       inherit buildInputs;
 
       buildPhase = ''
+        export HOME=$(mktemp -d)
+
         cd ${packagePath}
         swift build -c release -v
       '';
