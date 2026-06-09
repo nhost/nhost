@@ -37,6 +37,12 @@ func TestNormalizePostgresTypeToGraphQL(t *testing.T) {
 		{"citext", "citext"},
 		{"float8", "float8"},
 		{"numeric", "numeric"},
+		{"double precision", "float8"},
+		{"real", "float4"},
+		{"timestamp with time zone", "timestamptz"},
+		{"timestamp without time zone", "timestamp"},
+		{"time with time zone", "timetz"},
+		{"time without time zone", "time"},
 	}
 
 	for _, tt := range tests {

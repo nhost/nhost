@@ -283,6 +283,18 @@ func normalizePostgresTypeToGraphQL(pgType string) string {
 		return "Boolean"
 	case "text", "varchar", "character varying", "char", "character", "name":
 		return "String"
+	case "double precision":
+		return "float8"
+	case "real":
+		return "float4"
+	case "timestamp with time zone":
+		return "timestamptz"
+	case "timestamp without time zone":
+		return "timestamp"
+	case "time with time zone":
+		return "timetz"
+	case "time without time zone":
+		return "time"
 	default:
 		// Everything else uses its own type name
 		return pgType
