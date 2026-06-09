@@ -24,7 +24,11 @@ const (
 // openapi3filter, which calls this function once per scheme.
 //
 // Scheme mapping:
-//   - AdminSecret: satisfied iff the resolved role is "admin".
+//   - AdminSecret: satisfied iff the request presented a valid admin secret.
+//     The resolved role is irrelevant — admin-secret holders may impersonate
+//     any role via X-Hasura-Role, but a JWT with `default-role: admin` does
+//     NOT satisfy this scheme. The credential source is recorded on
+//     SessionVariables.IsAdminSecret.
 //   - BearerAuth:  satisfied iff a non-public session was resolved (a valid
 //     JWT or the admin secret was presented).
 //
@@ -52,11 +56,11 @@ func NewAuthFunc() openapi3filter.AuthenticationFunc {
 
 		switch input.SecuritySchemeName {
 		case securitySchemeAdminSecret:
-			if session.Role != "admin" {
+			if !session.IsAdminSecret {
 				return &oapi.AuthenticatorError{
 					Scheme:  input.SecuritySchemeName,
 					Code:    "unauthorized",
-					Message: "admin role required",
+					Message: "admin secret required",
 				}
 			}
 		case securitySchemeBearerAuth:

@@ -12,6 +12,18 @@ const (
 	AdminSecretScopes = "AdminSecret.Scopes"
 )
 
+// AuthError defines model for AuthError.
+type AuthError struct {
+	// Error Auth error code (e.g. `unauthorized`)
+	Error string `json:"error"`
+
+	// Reason Human-readable reason
+	Reason string `json:"reason"`
+
+	// SecurityScheme Name of the OpenAPI security scheme that denied the request (e.g. `AdminSecret`, `BearerAuth`). Omitted when the failure was raised before scheme dispatch.
+	SecurityScheme *string `json:"securityScheme,omitempty"`
+}
+
 // MetadataError defines model for MetadataError.
 type MetadataError struct {
 	// Code Hasura error code. Known values include `not-supported`, `access-denied`, `parse-failed`, `validation-failed`, `already-tracked`, `already-exists`.
@@ -29,8 +41,8 @@ type MetadataError struct {
 
 // MetadataRequest defines model for MetadataRequest.
 type MetadataRequest struct {
-	// Args Per-operation arguments. Shape is determined by `type` and handled by the Go dispatcher.
-	Args map[string]interface{} `json:"args"`
+	// Args Per-operation arguments. Shape is determined by `type` and handled by the Go dispatcher (object, array, or omitted).
+	Args interface{} `json:"args,omitempty"`
 
 	// ResourceVersion Optimistic-concurrency token from the most recent `export_metadata`
 	ResourceVersion *int `json:"resource_version,omitempty"`

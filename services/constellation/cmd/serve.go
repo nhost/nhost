@@ -174,6 +174,20 @@ func serverFlags() []cli.Flag { //nolint:funlen // long flag list; splitting har
 			Sources: cli.EnvVars(
 				"CONSTELLATION_HASURA_PROXY_REQUEST_BODY_LIMIT_BYTES",
 			),
+			// Reject negative values explicitly. The runtime guard only checks
+			// `> 0`, so a negative value would silently disable the cap (same
+			// behaviour as 0) but with no operator-visible signal. Surfacing it
+			// at startup turns a silent misconfiguration into a loud error.
+			Validator: func(v int64) error {
+				if v < 0 {
+					return fmt.Errorf( //nolint:err113
+						"%s must be >= 0 (0 disables the limit), got %d",
+						flagHasuraProxyRequestBodyLimitBytes, v,
+					)
+				}
+
+				return nil
+			},
 		},
 	}
 }
@@ -361,14 +375,18 @@ func getRouter(
 	//nolint:contextcheck
 	validatorMW := sharedoapi.NewRequestValidator(spec, controller.NewAuthFunc())
 
+	proxyBodyLimit := cmd.Int64(flagHasuraProxyRequestBodyLimitBytes)
+
 	handler := api.NewStrictHandler(ctrl, nil)
 	api.RegisterHandlersWithOptions(router, handler, api.GinServerOptions{
 		BaseURL: "",
 		// Order matters: CaptureRawBody runs first so an oversized body is
 		// rejected on the ContentLength fast-path before request validation
-		// burns cycles parsing it.
+		// burns cycles parsing it. The cap is the same one the proxy NoRoute
+		// path uses so a request that would succeed when routed to /v2/query
+		// is not silently rejected when routed to /v1/metadata.
 		Middlewares: []api.MiddlewareFunc{
-			controller.CaptureRawBody,
+			api.MiddlewareFunc(controller.NewCaptureRawBody(proxyBodyLimit)), //nolint:contextcheck
 			api.MiddlewareFunc(validatorMW),
 		},
 		ErrorHandler: nil,
@@ -394,15 +412,14 @@ func getRouter(
 	router.GET("/v1", ctrl.HandlerGet)
 
 	if hasuraProxy != nil {
-		proxyBodyLimit := cmd.Int64(flagHasuraProxyRequestBodyLimitBytes)
-
 		router.NoRoute(func(c *gin.Context) {
 			// Unhandled paths (/v2/query, /apis/*) are streamed to the Hasura
-			// upstream and are reachable anonymously (Session does not abort the
-			// public role), so bound the body to avoid forwarding an unbounded
-			// payload. MaxBytesReader caps both the ContentLength fast-path and a
-			// chunked stream; on overflow the proxy's read fails and ErrorHandler
-			// returns 502. 0 disables the cap.
+			// upstream and are reachable anonymously (Session does not abort
+			// the public role), so bound the body to avoid forwarding an
+			// unbounded payload. MaxBytesReader enforces the cap when the body
+			// is read (not on Content-Length up front); on overflow the proxy's
+			// read fails and ErrorHandler maps *http.MaxBytesError to 413.
+			// 0 disables the cap.
 			if proxyBodyLimit > 0 {
 				c.Request.Body = http.MaxBytesReader(
 					c.Writer, c.Request.Body, proxyBodyLimit,
@@ -441,7 +458,41 @@ func newHasuraProxy(rawURL string, logger *slog.Logger) (*httputil.ReverseProxy,
 	}
 
 	proxy := httputil.NewSingleHostReverseProxy(target)
+	// NewSingleHostReverseProxy's default Director sets the URL host but
+	// leaves req.Host as the client-supplied value, which makes the upstream
+	// see whatever the original client sent (often Constellation's own host).
+	// Anything in front of Hasura that routes by Host header (ingress, virtual
+	// hosts) breaks under that default — wrap the Director to rewrite Host
+	// to the upstream, matching the be/graphi and be/ecr-proxy idiom.
+	defaultDirector := proxy.Director
+	proxy.Director = func(req *http.Request) {
+		defaultDirector(req)
+		req.Host = target.Host
+	}
 	proxy.ErrorHandler = func(w http.ResponseWriter, r *http.Request, err error) {
+		// MaxBytesReader returns *http.MaxBytesError when the inbound body
+		// exceeds the proxy cap. Surface that as 413 (not 502) so clients
+		// and monitoring can distinguish a too-large request from a real
+		// upstream-unreachable failure.
+		var maxBytesErr *http.MaxBytesError
+		if errors.As(err, &maxBytesErr) {
+			logger.WarnContext(
+				r.Context(),
+				"proxy request body exceeded the configured limit",
+				slog.String("path", r.URL.Path),
+				slog.Int64("limit_bytes", maxBytesErr.Limit),
+			)
+			w.Header().Set("Content-Type", "application/json")
+			w.WriteHeader(http.StatusRequestEntityTooLarge)
+			_, _ = fmt.Fprintf(
+				w,
+				`{"error":"request-too-large","reason":"request body exceeds the %d-byte limit"}`,
+				maxBytesErr.Limit,
+			)
+
+			return
+		}
+
 		logger.ErrorContext(
 			r.Context(),
 			"failed to proxy request to hasura upstream",

@@ -340,7 +340,7 @@ func minio(subdomain, volumeName string) *Service {
 	}
 }
 
-func dashboard( //nolint:funlen
+func dashboard( //nolint:funlen // single env-var config map, not decomposable
 	cfg *model.ConfigConfig,
 	subdomain string,
 	dashboardVersion string,
