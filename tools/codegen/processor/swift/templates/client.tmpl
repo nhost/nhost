@@ -1,0 +1,33 @@
+{{- define "swiftClient" }}
+{{- range .Methods }}
+{{- $types := swiftMethodParameterTypes . }}
+{{- if $types }}
+{{ $types }}
+
+{{- end }}
+{{- end }}
+public struct {{ swiftClientName }}: Sendable {
+    public let baseURL: URL
+    private let fetch: FetchFunction
+
+    public init(baseURL: URL, fetch: @escaping FetchFunction) {
+        self.baseURL = baseURL
+        self.fetch = fetch
+    }
+
+    public init(
+        baseURL: URL,
+        transport: any HTTPTransport = URLSessionTransport(),
+        middleware: [ChainFunction] = []
+    ) {
+        self.init(
+            baseURL: baseURL,
+            fetch: NhostFetchPipeline(transport: transport, middleware: middleware).fetch
+        )
+    }
+{{- range .Methods }}
+
+{{ swiftMethod . }}
+{{- end }}
+}
+{{- end }}

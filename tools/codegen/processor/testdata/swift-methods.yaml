@@ -1,0 +1,307 @@
+openapi: "3.0.0"
+info:
+  title: Swift method generation fixture
+  version: "1.0"
+paths:
+  /session/{ticket-id}:
+    post:
+      operationId: createSession
+      summary: Create a session
+      description: Exercises path, query, header, JSON body, and multiple deterministic 2xx responses.
+      parameters:
+        - name: ticket-id
+          in: path
+          required: true
+          schema:
+            type: string
+        - name: compact
+          in: query
+          explode: false
+          schema:
+            type: object
+            properties:
+              owner-id:
+                type: string
+              active:
+                type: boolean
+        - name: filter
+          in: query
+          explode: true
+          schema:
+            type: object
+            properties:
+              owner-id:
+                type: string
+              limit:
+                type: integer
+        - name: ids
+          in: query
+          explode: false
+          schema:
+            type: array
+            items:
+              type: string
+        - name: include[]
+          in: query
+          explode: true
+          schema:
+            type: array
+            items:
+              type: string
+        - name: redirect-to
+          in: query
+          schema:
+            type: string
+        - name: if-match
+          in: header
+          schema:
+            type: array
+            items:
+              type: string
+        - name: x-hasura-role
+          in: header
+          schema:
+            type: string
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/CreateSessionRequest"
+      responses:
+        "201":
+          description: Created session
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Session"
+        "200":
+          description: Existing session
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Session"
+        "400":
+          description: JSON error
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+        default:
+          description: Default JSON error
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+  /token:
+    post:
+      operationId: exchangeToken
+      summary: Exchange a token
+      requestBody:
+        required: true
+        content:
+          application/x-www-form-urlencoded:
+            schema:
+              type: object
+              required:
+                - client-id
+                - refreshToken
+              properties:
+                client-id:
+                  type: string
+                refreshToken:
+                  type: string
+                options:
+                  type: object
+                  properties:
+                    redirectTo:
+                      type: string
+                    scope:
+                      type: string
+      responses:
+        "204":
+          description: Token exchanged without a body
+        "401":
+          description: Header-only error
+  /files/{id}:
+    get:
+      operationId: downloadFile
+      summary: Download a file
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+        - name: transform
+          in: query
+          schema:
+            type: string
+      responses:
+        "200":
+          description: Binary file response
+          content:
+            application/octet-stream: {}
+        "304":
+          description: Not modified header-only response
+        "404":
+          description: JSON error
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+  /files:
+    post:
+      operationId: uploadFiles
+      summary: Upload files
+      requestBody:
+        required: true
+        content:
+          multipart/form-data:
+            schema:
+              type: object
+              required:
+                - file[]
+              properties:
+                bucket-id:
+                  type: string
+                file[]:
+                  type: array
+                  items:
+                    type: string
+                    format: binary
+                metadata[]:
+                  type: array
+                  items:
+                    $ref: "#/components/schemas/FileMetadata"
+      responses:
+        "200":
+          description: Upload result
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/UploadResult"
+        "400":
+          description: JSON error
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+  /search:
+    get:
+      operationId: searchThings
+      summary: Search with required exploded object query parameters
+      parameters:
+        - name: first-filter
+          in: query
+          required: true
+          explode: true
+          schema:
+            type: object
+            properties:
+              owner-id:
+                type: string
+              limit:
+                type: integer
+        - name: second-filter
+          in: query
+          required: true
+          explode: true
+          schema:
+            type: object
+            properties:
+              active:
+                type: boolean
+              tag:
+                type: string
+      responses:
+        "200":
+          description: Search result
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Session"
+  /verify:
+    get:
+      operationId: verifyTicket
+      summary: Build redirect verification URL
+      parameters:
+        - name: redirectTo
+          in: query
+          required: true
+          schema:
+            type: string
+        - name: ticket
+          in: query
+          required: true
+          schema:
+            type: string
+      responses:
+        "302":
+          description: Redirect response
+          headers:
+            Location:
+              description: Target location
+              schema:
+                type: string
+          content: {}
+components:
+  schemas:
+    CreateSessionRequest:
+      type: object
+      required:
+        - email
+        - verification-code
+      properties:
+        email:
+          type: string
+        verification-code:
+          type: string
+        remember-me:
+          type: boolean
+        metadata:
+          type: object
+          additionalProperties: true
+        requested-at:
+          type: string
+          format: date-time
+    Session:
+      type: object
+      required:
+        - id
+        - createdAt
+        - roles
+      properties:
+        id:
+          type: string
+        createdAt:
+          type: string
+          format: date-time
+        roles:
+          type: array
+          items:
+            type: string
+    FileMetadata:
+      type: object
+      properties:
+        file-id:
+          type: string
+        metadata:
+          type: object
+          additionalProperties: true
+    UploadResult:
+      type: object
+      properties:
+        processedFiles:
+          type: array
+          items:
+            $ref: "#/components/schemas/FileMetadata"
+    ErrorResponse:
+      type: object
+      required:
+        - message
+      properties:
+        message:
+          type: string
+        code:
+          type: string

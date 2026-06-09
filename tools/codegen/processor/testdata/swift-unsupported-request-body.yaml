@@ -1,0 +1,17 @@
+openapi: "3.0.0"
+info:
+  title: Swift unsupported request body fixture
+  version: "1.0"
+paths:
+  /plain:
+    post:
+      operationId: sendPlainText
+      requestBody:
+        required: true
+        content:
+          text/plain:
+            schema:
+              type: string
+      responses:
+        "204":
+          description: Empty success

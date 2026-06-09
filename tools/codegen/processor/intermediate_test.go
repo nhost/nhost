@@ -6,6 +6,7 @@ import (
 	"flag"
 	"fmt"
 	"os"
+	"strings"
 	"testing"
 
 	"github.com/nhost/nhost/tools/codegen/processor"
@@ -86,6 +87,14 @@ func TestInterMediateRepresentationRender(t *testing.T) {
 			},
 			goldenFile: "swift-keyword-names.yaml.swift",
 		},
+		{
+			name: "swift-methods.yaml",
+			plugin: &swiftprocessor.Swift{
+				Namespace:  "Fixture",
+				ClientName: "GeneratedFixtureClient",
+			},
+			goldenFile: "swift-methods.yaml.swift",
+		},
 	}
 
 	for _, tc := range cases {
@@ -132,6 +141,51 @@ func TestInterMediateRepresentationRender(t *testing.T) {
 
 			assert.Equal(t, string(b), output,
 				"rendered output does not match expected output for %s", tc.goldenFile)
+		})
+	}
+}
+
+func TestSwiftUnsupportedFeatureErrors(t *testing.T) {
+	t.Parallel()
+
+	cases := []struct {
+		name          string
+		expectedError string
+	}{
+		{
+			name:          "swift-unsupported-success.yaml",
+			expectedError: "incompatible multiple 2xx success response shapes",
+		},
+		{
+			name:          "swift-unsupported-request-body.yaml",
+			expectedError: "unsupported request body media type text/plain",
+		},
+	}
+
+	for _, tc := range cases {
+		t.Run(tc.name, func(t *testing.T) {
+			t.Parallel()
+
+			doc, err := getModel("testdata/" + tc.name)
+			if err != nil {
+				t.Fatalf("failed to get model: %v", err)
+			}
+
+			ir, err := processor.NewInterMediateRepresentation(doc, &swiftprocessor.Swift{})
+			if err != nil {
+				t.Fatalf("failed to create intermediate representation: %v", err)
+			}
+
+			buf := bytes.NewBuffer(nil)
+
+			err = ir.Render(buf)
+			if !errors.Is(err, processor.ErrUnsupportedFeature) {
+				t.Fatalf("expected ErrUnsupportedFeature, got %v", err)
+			}
+
+			if err == nil || !strings.Contains(err.Error(), tc.expectedError) {
+				t.Fatalf("expected error containing %q, got %v", tc.expectedError, err)
+			}
 		})
 	}
 }

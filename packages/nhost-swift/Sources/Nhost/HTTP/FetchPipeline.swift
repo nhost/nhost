@@ -54,6 +54,16 @@ public enum NhostHTTP {
         }
     }
 
+    public static func binaryResponse(from response: NhostRawResponse) throws -> NhostResponse<Data> {
+        guard response.isSuccess else {
+            throw FetchError.http(
+                NhostHTTPError.decode(status: response.status, headers: response.headers, body: response.body)
+            )
+        }
+
+        return NhostResponse(body: response.body, status: response.status, headers: response.headers)
+    }
+
     public static func emptyResponse(from response: NhostRawResponse) throws -> NhostResponse<Void> {
         guard response.isSuccess else {
             throw FetchError.http(

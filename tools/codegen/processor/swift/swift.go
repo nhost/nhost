@@ -7,6 +7,7 @@ import (
 	"io/fs"
 	"math"
 	"reflect"
+	"slices"
 	"strconv"
 	"strings"
 	"unicode"
@@ -38,14 +39,16 @@ func (s *Swift) GetTemplates() fs.FS {
 
 func (s *Swift) GetFuncMap() map[string]any {
 	return map[string]any{
-		"swiftClientName":      s.swiftClientName,
-		"swiftCodingKey":       swiftCodingKey,
-		"swiftDoc":             swiftDoc,
-		"swiftEnumCases":       swiftEnumCases,
-		"swiftEnumRawType":     swiftEnumRawType,
-		"swiftIsLastProperty":  swiftIsLastProperty,
-		"swiftNamespace":       s.swiftNamespace,
-		"swiftNeedsCodingKeys": swiftNeedsCodingKeys,
+		"swiftClientName":           s.swiftClientName,
+		"swiftCodingKey":            swiftCodingKey,
+		"swiftDoc":                  swiftDoc,
+		"swiftEnumCases":            swiftEnumCases,
+		"swiftEnumRawType":          swiftEnumRawType,
+		"swiftIsLastProperty":       swiftIsLastProperty,
+		"swiftMethod":               s.swiftMethod,
+		"swiftMethodParameterTypes": s.swiftMethodParameterTypes,
+		"swiftNamespace":            s.swiftNamespace,
+		"swiftNeedsCodingKeys":      swiftNeedsCodingKeys,
 	}
 }
 
@@ -193,6 +196,1177 @@ func swiftEnumRawType(enumType *processor.TypeEnum) (string, error) {
 
 func swiftEnumCases(enumType *processor.TypeEnum) ([]string, error) {
 	return swiftEnumCaseDeclarations(enumType.RawValues())
+}
+
+const (
+	swiftStatusSuccessMin  = 200
+	swiftStatusSuccessMax  = 300
+	swiftStatusRedirectMin = 300
+	swiftStatusRedirectMax = 400
+
+	swiftMediaApplicationJSON        = "application/json"
+	swiftMediaApplicationOctetStream = "application/octet-stream"
+	swiftMediaFormURLEncoded         = "application/x-www-form-urlencoded"
+	swiftMediaMultipartFormData      = "multipart/form-data"
+)
+
+type swiftRequestBodyKind string
+
+const (
+	swiftRequestBodyKindNone      swiftRequestBodyKind = "none"
+	swiftRequestBodyKindJSON      swiftRequestBodyKind = "json"
+	swiftRequestBodyKindForm      swiftRequestBodyKind = "form"
+	swiftRequestBodyKindMultipart swiftRequestBodyKind = "multipart"
+)
+
+type swiftRequestBody struct {
+	kind swiftRequestBodyKind
+	typ  processor.Type
+}
+
+type swiftSuccessKind string
+
+const (
+	swiftSuccessKindJSON   swiftSuccessKind = "json"
+	swiftSuccessKindBinary swiftSuccessKind = "binary"
+	swiftSuccessKindEmpty  swiftSuccessKind = "empty"
+)
+
+type swiftSuccessResponse struct {
+	kind     swiftSuccessKind
+	bodyType string
+}
+
+func (s *Swift) swiftMethodParameterTypes(method *processor.Method) (string, error) {
+	sections := make([]string, 0, 2) //nolint:mnd
+
+	if params := swiftSortedParametersByLocation(method.Parameters, "query"); len(params) > 0 {
+		sections = append(sections, s.swiftParameterGroup(method, "Query", params))
+	}
+
+	if params := swiftSortedParametersByLocation(method.Parameters, "header"); len(params) > 0 {
+		sections = append(sections, s.swiftParameterGroup(method, "Headers", params))
+	}
+
+	return strings.Join(sections, "\n\n"), nil
+}
+
+func (s *Swift) swiftParameterGroup(
+	method *processor.Method,
+	suffix string,
+	params []*processor.Parameter,
+) string {
+	var builder strings.Builder
+
+	builder.WriteString("public struct ")
+	builder.WriteString(s.swiftParameterGroupName(method, suffix))
+	builder.WriteString(": Sendable {\n")
+
+	for _, param := range params {
+		builder.WriteString("    public let ")
+		builder.WriteString(param.Name())
+		builder.WriteString(": ")
+		builder.WriteString(param.Type.Name())
+
+		if !param.Required() {
+			builder.WriteByte('?')
+		}
+
+		builder.WriteByte('\n')
+	}
+
+	builder.WriteString("\n    public init(\n")
+
+	for index, param := range params {
+		builder.WriteString("        ")
+		builder.WriteString(param.Name())
+		builder.WriteString(": ")
+		builder.WriteString(param.Type.Name())
+
+		if !param.Required() {
+			builder.WriteString("? = nil")
+		}
+
+		if index != len(params)-1 {
+			builder.WriteByte(',')
+		}
+
+		builder.WriteByte('\n')
+	}
+
+	builder.WriteString("    ) {\n")
+
+	for _, param := range params {
+		builder.WriteString("        self.")
+		builder.WriteString(param.Name())
+		builder.WriteString(" = ")
+		builder.WriteString(param.Name())
+		builder.WriteByte('\n')
+	}
+
+	builder.WriteString("    }\n")
+	builder.WriteString("}")
+
+	return builder.String()
+}
+
+func (s *Swift) swiftMethod(method *processor.Method) (string, error) {
+	if swiftIsRedirectMethod(method) {
+		return s.swiftRedirectMethod(method)
+	}
+
+	success, err := swiftSelectSuccessResponse(method)
+	if err != nil {
+		return "", err
+	}
+
+	body, err := swiftRequestBodyForMethod(method)
+	if err != nil {
+		return "", err
+	}
+
+	params := s.swiftMethodParameters(method, body, false)
+
+	var builder strings.Builder
+	builder.WriteString("    public func ")
+	builder.WriteString(method.Name())
+	builder.WriteString("(")
+
+	if len(params) == 0 {
+		builder.WriteString(") async throws -> ")
+		builder.WriteString(success.responseType())
+		builder.WriteString(" {\n")
+	} else {
+		builder.WriteByte('\n')
+
+		for index, param := range params {
+			builder.WriteString("        ")
+			builder.WriteString(param)
+
+			if index != len(params)-1 {
+				builder.WriteByte(',')
+			}
+
+			builder.WriteByte('\n')
+		}
+
+		builder.WriteString("    ) async throws -> ")
+		builder.WriteString(success.responseType())
+		builder.WriteString(" {\n")
+	}
+
+	if err := s.writeSwiftRequestSetup(&builder, method, body, success); err != nil {
+		return "", err
+	}
+
+	builder.WriteString("        let request = NhostRequest(\n")
+	builder.WriteString("            method: ")
+	builder.WriteString(swiftStringLiteral(method.Method()))
+	builder.WriteString(",\n")
+	builder.WriteString("            url: url,\n")
+	builder.WriteString("            headers: requestHeaders,\n")
+	builder.WriteString("            body: requestBody\n")
+	builder.WriteString("        )\n")
+	builder.WriteString("        let response = try await fetch(request)\n\n")
+	builder.WriteString("        ")
+	builder.WriteString(success.returnStatement())
+	builder.WriteString("\n")
+	builder.WriteString("    }")
+
+	return builder.String(), nil
+}
+
+func (s *Swift) swiftRedirectMethod(method *processor.Method) (string, error) {
+	body, err := swiftRequestBodyForMethod(method)
+	if err != nil {
+		return "", err
+	}
+
+	if body.kind != swiftRequestBodyKindNone {
+		return "", fmt.Errorf(
+			"%w: Swift redirect helper %s cannot accept a request body",
+			processor.ErrUnsupportedFeature,
+			method.Name(),
+		)
+	}
+
+	if len(swiftSortedParametersByLocation(method.Parameters, "header")) > 0 {
+		return "", fmt.Errorf(
+			"%w: Swift redirect helper %s cannot use header parameters because it only returns a URL",
+			processor.ErrUnsupportedFeature,
+			method.Name(),
+		)
+	}
+
+	params := s.swiftMethodParameters(method, body, true)
+
+	var builder strings.Builder
+	builder.WriteString("    public func ")
+	builder.WriteString(swiftMethodNameWithSuffix(method.Name(), "URL"))
+	builder.WriteString("(")
+
+	if len(params) == 0 {
+		builder.WriteString(") throws -> URL {\n")
+	} else {
+		builder.WriteByte('\n')
+
+		for index, param := range params {
+			builder.WriteString("        ")
+			builder.WriteString(param)
+
+			if index != len(params)-1 {
+				builder.WriteByte(',')
+			}
+
+			builder.WriteByte('\n')
+		}
+
+		builder.WriteString("    ) throws -> URL {\n")
+	}
+
+	s.writeSwiftPathSetup(&builder, method)
+	s.writeSwiftQuerySetup(&builder, method)
+
+	if len(swiftSortedParametersByLocation(method.Parameters, "query")) > 0 {
+		builder.WriteString(
+			"        return NhostURLBuilder.redirectURL(baseURL: baseURL, path: path, query: queryItems)\n",
+		)
+	} else {
+		builder.WriteString(
+			"        return NhostURLBuilder.redirectURL(baseURL: baseURL, path: path)\n",
+		)
+	}
+
+	builder.WriteString("    }")
+
+	return builder.String(), nil
+}
+
+func (s *Swift) swiftMethodParameters(
+	method *processor.Method,
+	body *swiftRequestBody,
+	redirect bool,
+) []string {
+	params := make([]string, 0, len(method.Parameters)+3) //nolint:mnd
+
+	for _, param := range method.PathParameters() {
+		params = append(params, param.Name()+": "+param.Type.Name())
+	}
+
+	if !redirect && body.kind != swiftRequestBodyKindNone {
+		bodyType := body.typ.Name()
+		if method.BodyRequired {
+			params = append(params, "body: "+bodyType)
+		} else {
+			params = append(params, "body: "+bodyType+"? = nil")
+		}
+	}
+
+	if queryParams := swiftSortedParametersByLocation(
+		method.Parameters,
+		"query",
+	); len(
+		queryParams,
+	) > 0 {
+		groupName := s.swiftParameterGroupName(method, "Query")
+		if swiftHasRequiredParameters(queryParams) {
+			params = append(params, "query: "+groupName)
+		} else {
+			params = append(params, "query: "+groupName+"? = nil")
+		}
+	}
+
+	if !redirect {
+		if headerParams := swiftSortedParametersByLocation(
+			method.Parameters,
+			"header",
+		); len(
+			headerParams,
+		) > 0 {
+			groupName := s.swiftParameterGroupName(method, "Headers")
+			if swiftHasRequiredParameters(headerParams) {
+				params = append(params, "headers: "+groupName)
+			} else {
+				params = append(params, "headers: "+groupName+"? = nil")
+			}
+		}
+	}
+
+	return params
+}
+
+func (s *Swift) writeSwiftRequestSetup(
+	builder *strings.Builder,
+	method *processor.Method,
+	body *swiftRequestBody,
+	success *swiftSuccessResponse,
+) error {
+	s.writeSwiftPathSetup(builder, method)
+	s.writeSwiftQuerySetup(builder, method)
+
+	if len(swiftSortedParametersByLocation(method.Parameters, "query")) > 0 {
+		builder.WriteString(
+			"        let url = NhostURLBuilder.url(baseURL: baseURL, path: path, query: queryItems)\n",
+		)
+	} else {
+		builder.WriteString("        let url = NhostURLBuilder.url(baseURL: baseURL, path: path)\n")
+	}
+
+	requestHeadersKeyword := "let"
+	if body.kind != swiftRequestBodyKindNone ||
+		len(swiftSortedParametersByLocation(method.Parameters, "header")) > 0 {
+		requestHeadersKeyword = "var"
+	}
+
+	builder.WriteString("        ")
+	builder.WriteString(requestHeadersKeyword)
+	builder.WriteString(" requestHeaders = [\n")
+	builder.WriteString("            \"accept\": ")
+	builder.WriteString(swiftStringLiteral(success.acceptHeader()))
+	builder.WriteString(",\n")
+	builder.WriteString("        ]\n")
+
+	if err := s.writeSwiftBodySetup(builder, method, body); err != nil {
+		return err
+	}
+
+	s.writeSwiftHeaderSetup(builder, method)
+
+	return nil
+}
+
+func (s *Swift) writeSwiftPathSetup(builder *strings.Builder, method *processor.Method) {
+	for _, param := range method.PathParameters() {
+		localName := swiftLocalName(param.Name(), "path")
+
+		builder.WriteString("        let ")
+		builder.WriteString(localName)
+		builder.WriteString(
+			" = try NhostURLBuilder.percentEncodePathSegment(NhostWireEncoder.string(",
+		)
+		builder.WriteString(param.Name())
+		builder.WriteString("))\n")
+	}
+
+	builder.WriteString("        let path = ")
+	builder.WriteString(swiftPathStringLiteral(method.Path(), method.PathParameters()))
+	builder.WriteString("\n")
+}
+
+func (s *Swift) writeSwiftQuerySetup(builder *strings.Builder, method *processor.Method) {
+	params := swiftSortedParametersByLocation(method.Parameters, "query")
+	if len(params) == 0 {
+		return
+	}
+
+	builder.WriteString("        var queryItems: [String: JSONValue?] = [:]\n")
+
+	if swiftHasRequiredParameters(params) {
+		for _, param := range params {
+			s.writeSwiftQueryParameter(builder, param, "query."+param.Name(), "        ")
+		}
+
+		return
+	}
+
+	builder.WriteString("        if let query {\n")
+
+	for _, param := range params {
+		s.writeSwiftQueryParameter(builder, param, "query."+param.Name(), "            ")
+	}
+
+	builder.WriteString("        }\n")
+}
+
+func (s *Swift) writeSwiftQueryParameter(
+	builder *strings.Builder,
+	param *processor.Parameter,
+	access string,
+	indent string,
+) {
+	if obj, ok := swiftObjectType(param.Type); ok && param.Explode() {
+		if param.Required() {
+			builder.WriteString(indent)
+			builder.WriteString("do {\n")
+			builder.WriteString(indent)
+			builder.WriteString("    let value = ")
+			builder.WriteString(access)
+			builder.WriteByte('\n')
+			s.writeSwiftExplodedObjectQueryProperties(builder, obj, "value", indent+"    ")
+			builder.WriteString(indent)
+			builder.WriteString("}\n")
+
+			return
+		}
+
+		builder.WriteString(indent)
+		builder.WriteString("if let value = ")
+		builder.WriteString(access)
+		builder.WriteString(" {\n")
+		s.writeSwiftExplodedObjectQueryProperties(builder, obj, "value", indent+"    ")
+		builder.WriteString(indent)
+		builder.WriteString("}\n")
+
+		return
+	}
+
+	fieldName := swiftStringLiteral(param.RawName())
+	if param.Required() {
+		builder.WriteString(indent)
+		builder.WriteString("queryItems[")
+		builder.WriteString(fieldName)
+		builder.WriteString("] = ")
+		builder.WriteString(swiftJSONValueExpression(access, param.Type, param.Explode()))
+		builder.WriteByte('\n')
+
+		return
+	}
+
+	builder.WriteString(indent)
+	builder.WriteString("queryItems[")
+	builder.WriteString(fieldName)
+	builder.WriteString("] = ")
+	builder.WriteString(swiftOptionalJSONValueExpression(access, param.Type, param.Explode()))
+	builder.WriteByte('\n')
+}
+
+func (s *Swift) writeSwiftExplodedObjectQueryProperties(
+	builder *strings.Builder,
+	obj *processor.TypeObject,
+	valueName string,
+	indent string,
+) {
+	for _, property := range swiftSortedProperties(obj) {
+		fieldName := swiftStringLiteral(property.RawName())
+		access := valueName + "." + property.Name()
+
+		builder.WriteString(indent)
+		builder.WriteString("queryItems[")
+		builder.WriteString(fieldName)
+		builder.WriteString("] = ")
+
+		if property.Optional() {
+			builder.WriteString(swiftOptionalJSONValueExpression(access, property.Type, true))
+		} else {
+			builder.WriteString(swiftJSONValueExpression(access, property.Type, true))
+		}
+
+		builder.WriteByte('\n')
+	}
+}
+
+func (s *Swift) writeSwiftHeaderSetup(builder *strings.Builder, method *processor.Method) {
+	params := swiftSortedParametersByLocation(method.Parameters, "header")
+	if len(params) == 0 {
+		return
+	}
+
+	builder.WriteString("        var headerValues: [String: JSONValue?] = [:]\n")
+
+	if swiftHasRequiredParameters(params) {
+		for _, param := range params {
+			s.writeSwiftHeaderParameter(builder, param, "headers."+param.Name(), "        ")
+		}
+	} else {
+		builder.WriteString("        if let headers {\n")
+
+		for _, param := range params {
+			s.writeSwiftHeaderParameter(builder, param, "headers."+param.Name(), "            ")
+		}
+
+		builder.WriteString("        }\n")
+	}
+
+	builder.WriteString(
+		"        requestHeaders = NhostHeaderEncoder.merge(base: requestHeaders, values: headerValues)\n",
+	)
+}
+
+func (s *Swift) writeSwiftHeaderParameter(
+	builder *strings.Builder,
+	param *processor.Parameter,
+	access string,
+	indent string,
+) {
+	fieldName := swiftStringLiteral(param.RawName())
+
+	builder.WriteString(indent)
+	builder.WriteString("headerValues[")
+	builder.WriteString(fieldName)
+	builder.WriteString("] = ")
+
+	if param.Required() {
+		builder.WriteString(swiftJSONValueExpression(access, param.Type, true))
+	} else {
+		builder.WriteString(swiftOptionalJSONValueExpression(access, param.Type, true))
+	}
+
+	builder.WriteByte('\n')
+}
+
+func (s *Swift) writeSwiftBodySetup(
+	builder *strings.Builder,
+	method *processor.Method,
+	body *swiftRequestBody,
+) error {
+	switch body.kind {
+	case swiftRequestBodyKindNone:
+		builder.WriteString("        let requestBody: Data? = nil\n")
+	case swiftRequestBodyKindJSON:
+		s.writeSwiftJSONBodySetup(builder, method)
+	case swiftRequestBodyKindForm:
+		return s.writeSwiftFormBodySetup(builder, method, body.typ)
+	case swiftRequestBodyKindMultipart:
+		return s.writeSwiftMultipartBodySetup(builder, method, body.typ)
+	default:
+		return fmt.Errorf(
+			"%w: Swift generator does not support request body kind %s for %s",
+			processor.ErrUnsupportedFeature,
+			body.kind,
+			method.Name(),
+		)
+	}
+
+	return nil
+}
+
+func (s *Swift) writeSwiftJSONBodySetup(builder *strings.Builder, method *processor.Method) {
+	if method.BodyRequired {
+		builder.WriteString("        requestHeaders[\"content-type\"] = \"application/json\"\n")
+		builder.WriteString("        let requestBody = try NhostJSON.restEncoder.encode(body)\n")
+
+		return
+	}
+
+	builder.WriteString(
+		"        let requestBody = try body.map { try NhostJSON.restEncoder.encode($0) }\n",
+	)
+	builder.WriteString("        if requestBody != nil {\n")
+	builder.WriteString("            requestHeaders[\"content-type\"] = \"application/json\"\n")
+	builder.WriteString("        }\n")
+}
+
+func (s *Swift) writeSwiftFormBodySetup(
+	builder *strings.Builder,
+	method *processor.Method,
+	typ processor.Type,
+) error {
+	obj, ok := swiftObjectType(typ)
+	if !ok {
+		return fmt.Errorf(
+			"%w: Swift application/x-www-form-urlencoded body for %s must be an object schema",
+			processor.ErrUnsupportedFeature,
+			method.Name(),
+		)
+	}
+
+	for _, property := range swiftSortedProperties(obj) {
+		if swiftContainsBinary(property.Type) {
+			return fmt.Errorf(
+				"%w: Swift application/x-www-form-urlencoded body for %s field %s cannot contain binary data",
+				processor.ErrUnsupportedFeature,
+				method.Name(),
+				property.RawName(),
+			)
+		}
+	}
+
+	if method.BodyRequired {
+		builder.WriteString(
+			"        requestHeaders[\"content-type\"] = NhostURLEncodedFormEncoder.contentType\n",
+		)
+		builder.WriteString("        let formFields: [String: JSONValue?] = [\n")
+		s.writeSwiftFormFields(builder, obj, "body", "            ")
+		builder.WriteString("        ]\n")
+		builder.WriteString(
+			"        let requestBody = NhostURLEncodedFormEncoder.encode(formFields)\n",
+		)
+
+		return nil
+	}
+
+	builder.WriteString("        var requestBody: Data?\n")
+	builder.WriteString("        if let body {\n")
+	builder.WriteString(
+		"            requestHeaders[\"content-type\"] = NhostURLEncodedFormEncoder.contentType\n",
+	)
+	builder.WriteString("            let formFields: [String: JSONValue?] = [\n")
+	s.writeSwiftFormFields(builder, obj, "body", "                ")
+	builder.WriteString("            ]\n")
+	builder.WriteString("            requestBody = NhostURLEncodedFormEncoder.encode(formFields)\n")
+	builder.WriteString("        }\n")
+
+	return nil
+}
+
+func (s *Swift) writeSwiftFormFields(
+	builder *strings.Builder,
+	obj *processor.TypeObject,
+	access string,
+	indent string,
+) {
+	properties := swiftSortedProperties(obj)
+	for index, property := range properties {
+		builder.WriteString(indent)
+		builder.WriteString(swiftStringLiteral(property.RawName()))
+		builder.WriteString(": ")
+
+		fieldAccess := access + "." + property.Name()
+		if property.Optional() {
+			builder.WriteString(swiftOptionalJSONValueExpression(fieldAccess, property.Type, true))
+		} else {
+			builder.WriteString(swiftJSONValueExpression(fieldAccess, property.Type, true))
+		}
+
+		if index != len(properties)-1 {
+			builder.WriteByte(',')
+		}
+
+		builder.WriteByte('\n')
+	}
+}
+
+func (s *Swift) writeSwiftMultipartBodySetup(
+	builder *strings.Builder,
+	method *processor.Method,
+	typ processor.Type,
+) error {
+	obj, ok := swiftObjectType(typ)
+	if !ok {
+		return fmt.Errorf(
+			"%w: Swift multipart/form-data body for %s must be an object schema",
+			processor.ErrUnsupportedFeature,
+			method.Name(),
+		)
+	}
+
+	if method.BodyRequired {
+		builder.WriteString("        var parts: [NhostMultipartPart] = []\n")
+
+		if err := s.writeSwiftMultipartParts(builder, method, obj, "body", "        "); err != nil {
+			return err
+		}
+
+		builder.WriteString(
+			"        let multipartBody = NhostMultipartEncoder.encode(parts: parts)\n",
+		)
+		builder.WriteString(
+			"        requestHeaders[\"content-type\"] = multipartBody.contentType\n",
+		)
+		builder.WriteString("        let requestBody = multipartBody.body\n")
+
+		return nil
+	}
+
+	builder.WriteString("        var requestBody: Data?\n")
+	builder.WriteString("        if let body {\n")
+	builder.WriteString("            var parts: [NhostMultipartPart] = []\n")
+
+	if err := s.writeSwiftMultipartParts(builder, method, obj, "body", "            "); err != nil {
+		return err
+	}
+
+	builder.WriteString(
+		"            let multipartBody = NhostMultipartEncoder.encode(parts: parts)\n",
+	)
+	builder.WriteString(
+		"            requestHeaders[\"content-type\"] = multipartBody.contentType\n",
+	)
+	builder.WriteString("            requestBody = multipartBody.body\n")
+	builder.WriteString("        }\n")
+
+	return nil
+}
+
+func (s *Swift) writeSwiftMultipartParts(
+	builder *strings.Builder,
+	method *processor.Method,
+	obj *processor.TypeObject,
+	access string,
+	indent string,
+) error {
+	for _, property := range swiftSortedProperties(obj) {
+		fieldAccess := access + "." + property.Name()
+		if property.Optional() {
+			builder.WriteString(indent)
+			builder.WriteString("if let value = ")
+			builder.WriteString(fieldAccess)
+			builder.WriteString(" {\n")
+
+			if err := s.writeSwiftMultipartValue(
+				builder,
+				method,
+				property.RawName(),
+				property.Type,
+				"value",
+				indent+"    ",
+			); err != nil {
+				return err
+			}
+
+			builder.WriteString(indent)
+			builder.WriteString("}\n")
+
+			continue
+		}
+
+		if err := s.writeSwiftMultipartValue(
+			builder,
+			method,
+			property.RawName(),
+			property.Type,
+			fieldAccess,
+			indent,
+		); err != nil {
+			return err
+		}
+	}
+
+	return nil
+}
+
+func (s *Swift) writeSwiftMultipartValue(
+	builder *strings.Builder,
+	method *processor.Method,
+	wireName string,
+	typ processor.Type,
+	valueExpr string,
+	indent string,
+) error {
+	typ = swiftUnderlyingType(typ)
+	if array, ok := typ.(*processor.TypeArray); ok {
+		itemType := swiftUnderlyingType(array.Item)
+		if _, nested := itemType.(*processor.TypeArray); nested {
+			return fmt.Errorf(
+				"%w: Swift multipart/form-data body for %s field %s cannot contain nested arrays",
+				processor.ErrUnsupportedFeature,
+				method.Name(),
+				wireName,
+			)
+		}
+
+		builder.WriteString(indent)
+		builder.WriteString("for item in ")
+		builder.WriteString(valueExpr)
+		builder.WriteString(" {\n")
+
+		if err := s.writeSwiftMultipartSinglePart(
+			builder,
+			method,
+			wireName,
+			itemType,
+			"item",
+			indent+"    ",
+		); err != nil {
+			return err
+		}
+
+		builder.WriteString(indent)
+		builder.WriteString("}\n")
+
+		return nil
+	}
+
+	return s.writeSwiftMultipartSinglePart(builder, method, wireName, typ, valueExpr, indent)
+}
+
+func (s *Swift) writeSwiftMultipartSinglePart(
+	builder *strings.Builder,
+	method *processor.Method,
+	wireName string,
+	typ processor.Type,
+	valueExpr string,
+	indent string,
+) error {
+	typ = swiftUnderlyingType(typ)
+
+	builder.WriteString(indent)
+	builder.WriteString("parts.append(")
+
+	switch typed := typ.(type) {
+	case *processor.TypeScalar:
+		if swiftIsBinaryType(typed) {
+			builder.WriteString("NhostMultipartPart(name: ")
+			builder.WriteString(swiftStringLiteral(wireName))
+			builder.WriteString(", contentType: NhostBinaryBody.contentType, body: ")
+			builder.WriteString(valueExpr)
+			builder.WriteString(")")
+		} else {
+			builder.WriteString(".formField(name: ")
+			builder.WriteString(swiftStringLiteral(wireName))
+			builder.WriteString(", value: try NhostWireEncoder.jsonValue(")
+			builder.WriteString(valueExpr)
+			builder.WriteString("))")
+		}
+	case *processor.TypeEnum:
+		builder.WriteString(".formField(name: ")
+		builder.WriteString(swiftStringLiteral(wireName))
+		builder.WriteString(", value: try NhostWireEncoder.jsonValue(")
+		builder.WriteString(valueExpr)
+		builder.WriteString("))")
+	case *processor.TypeObject, *processor.TypeMap:
+		builder.WriteString("NhostMultipartPart(name: ")
+		builder.WriteString(swiftStringLiteral(wireName))
+		builder.WriteString(
+			", contentType: \"application/json\", body: try NhostJSON.restEncoder.encode(",
+		)
+		builder.WriteString(valueExpr)
+		builder.WriteString("))")
+	default:
+		return fmt.Errorf(
+			"%w: Swift multipart/form-data body for %s field %s has unsupported type kind %s",
+			processor.ErrUnsupportedFeature,
+			method.Name(),
+			wireName,
+			typ.Kind(),
+		)
+	}
+
+	builder.WriteString(")\n")
+
+	return nil
+}
+
+func (s *Swift) swiftParameterGroupName(method *processor.Method, suffix string) string {
+	return s.typeName(method.Name() + suffix)
+}
+
+func (r *swiftSuccessResponse) responseType() string {
+	return "NhostResponse<" + r.bodyType + ">"
+}
+
+func (r *swiftSuccessResponse) acceptHeader() string {
+	switch r.kind {
+	case swiftSuccessKindJSON:
+		return swiftMediaApplicationJSON
+	case swiftSuccessKindBinary:
+		return swiftMediaApplicationOctetStream
+	case swiftSuccessKindEmpty:
+		return swiftMediaApplicationJSON
+	default:
+		return swiftMediaApplicationJSON
+	}
+}
+
+func (r *swiftSuccessResponse) returnStatement() string {
+	switch r.kind {
+	case swiftSuccessKindJSON:
+		return "return try NhostHTTP.decodeResponse(" + r.bodyType + ".self, from: response)"
+	case swiftSuccessKindBinary:
+		return "return try NhostHTTP.binaryResponse(from: response)"
+	case swiftSuccessKindEmpty:
+		return "return try NhostHTTP.emptyResponse(from: response)"
+	default:
+		return "return try NhostHTTP.emptyResponse(from: response)"
+	}
+}
+
+func swiftRequestBodyForMethod(method *processor.Method) (*swiftRequestBody, error) {
+	if len(method.Bodies) == 0 {
+		return &swiftRequestBody{
+			kind: swiftRequestBodyKindNone,
+			typ:  nil,
+		}, nil
+	}
+
+	mediaTypes := swiftSortedMapKeys(method.Bodies)
+	if len(mediaTypes) > 1 {
+		return nil, fmt.Errorf(
+			"%w: Swift method %s has multiple request body media types (%s); "+
+				"split the operation or add generator support for explicit content negotiation",
+			processor.ErrUnsupportedFeature,
+			method.Name(),
+			strings.Join(mediaTypes, ", "),
+		)
+	}
+
+	mediaType := mediaTypes[0]
+	body := &swiftRequestBody{
+		kind: swiftRequestBodyKindNone,
+		typ:  method.Bodies[mediaType],
+	}
+
+	switch mediaType {
+	case swiftMediaApplicationJSON:
+		body.kind = swiftRequestBodyKindJSON
+	case swiftMediaFormURLEncoded:
+		body.kind = swiftRequestBodyKindForm
+	case swiftMediaMultipartFormData:
+		body.kind = swiftRequestBodyKindMultipart
+	default:
+		return nil, fmt.Errorf(
+			"%w: Swift method %s has unsupported request body media type %s; supported media types "+
+				"are application/json, application/x-www-form-urlencoded, and multipart/form-data",
+			processor.ErrUnsupportedFeature,
+			method.Name(),
+			mediaType,
+		)
+	}
+
+	if body.typ == nil {
+		return nil, fmt.Errorf(
+			"%w: Swift method %s request body media type %s has no schema",
+			processor.ErrUnsupportedFeature,
+			method.Name(),
+			mediaType,
+		)
+	}
+
+	return body, nil
+}
+
+func swiftSelectSuccessResponse(method *processor.Method) (*swiftSuccessResponse, error) {
+	responses := make([]*swiftSuccessResponse, 0, len(method.Responses))
+
+	for _, code := range swiftSortedMapKeys(method.Responses) {
+		status, ok := swiftStatusCode(code)
+		if !ok || status < swiftStatusSuccessMin || status >= swiftStatusSuccessMax {
+			continue
+		}
+
+		response, err := swiftSuccessResponseForCode(method, code, method.Responses[code])
+		if err != nil {
+			return nil, err
+		}
+
+		responses = append(responses, response)
+	}
+
+	if len(responses) == 0 {
+		return nil, fmt.Errorf(
+			"%w: Swift method %s has no deterministic 2xx success response; "+
+				"add a 2xx response or model the operation as a redirect",
+			processor.ErrUnsupportedFeature,
+			method.Name(),
+		)
+	}
+
+	selected := responses[0]
+	for _, response := range responses[1:] {
+		if response.kind == selected.kind && response.bodyType == selected.bodyType {
+			continue
+		}
+
+		return nil, fmt.Errorf(
+			"%w: Swift method %s has incompatible multiple 2xx success response shapes "+
+				"(%s %s vs %s %s); use one JSON model, one binary body, or only no-body successes",
+			processor.ErrUnsupportedFeature,
+			method.Name(),
+			selected.kind,
+			selected.bodyType,
+			response.kind,
+			response.bodyType,
+		)
+	}
+
+	return selected, nil
+}
+
+func swiftSuccessResponseForCode(
+	method *processor.Method,
+	code string,
+	mediaTypes map[string]processor.Type,
+) (*swiftSuccessResponse, error) {
+	if len(mediaTypes) == 0 {
+		return &swiftSuccessResponse{
+			kind:     swiftSuccessKindEmpty,
+			bodyType: "Void",
+		}, nil
+	}
+
+	mediaKeys := swiftSortedMapKeys(mediaTypes)
+	if len(mediaKeys) > 1 {
+		return nil, fmt.Errorf(
+			"%w: Swift method %s response %s has multiple media types (%s); "+
+				"choose one success media type or split the operation",
+			processor.ErrUnsupportedFeature,
+			method.Name(),
+			code,
+			strings.Join(mediaKeys, ", "),
+		)
+	}
+
+	mediaType := mediaKeys[0]
+	switch mediaType {
+	case swiftMediaApplicationJSON:
+		typ := mediaTypes[mediaType]
+		if typ == nil {
+			return nil, fmt.Errorf(
+				"%w: Swift method %s response %s application/json has no schema",
+				processor.ErrUnsupportedFeature,
+				method.Name(),
+				code,
+			)
+		}
+
+		return &swiftSuccessResponse{
+			kind:     swiftSuccessKindJSON,
+			bodyType: typ.Name(),
+		}, nil
+	case swiftMediaApplicationOctetStream:
+		return &swiftSuccessResponse{
+			kind:     swiftSuccessKindBinary,
+			bodyType: "Data",
+		}, nil
+	default:
+		return nil, fmt.Errorf(
+			"%w: Swift method %s response %s has unsupported success media type %s; "+
+				"supported success media types are application/json and application/octet-stream",
+			processor.ErrUnsupportedFeature,
+			method.Name(),
+			code,
+			mediaType,
+		)
+	}
+}
+
+func swiftIsRedirectMethod(method *processor.Method) bool {
+	hasRedirect := false
+
+	for _, code := range swiftSortedMapKeys(method.Responses) {
+		status, ok := swiftStatusCode(code)
+		if !ok {
+			continue
+		}
+
+		if status >= swiftStatusSuccessMin && status < swiftStatusSuccessMax {
+			return false
+		}
+
+		if status >= swiftStatusRedirectMin && status < swiftStatusRedirectMax {
+			hasRedirect = true
+		}
+	}
+
+	return hasRedirect
+}
+
+func swiftStatusCode(code string) (int, bool) {
+	status, err := strconv.Atoi(code)
+	if err != nil {
+		return 0, false
+	}
+
+	return status, true
+}
+
+func swiftSortedParametersByLocation(
+	params []*processor.Parameter,
+	location string,
+) []*processor.Parameter {
+	filtered := make([]*processor.Parameter, 0, len(params))
+	for _, param := range params {
+		if param.Parameter.In == location {
+			filtered = append(filtered, param)
+		}
+	}
+
+	slices.SortFunc(filtered, func(a *processor.Parameter, b *processor.Parameter) int {
+		return strings.Compare(a.RawName(), b.RawName())
+	})
+
+	return filtered
+}
+
+func swiftHasRequiredParameters(params []*processor.Parameter) bool {
+	return slices.ContainsFunc(params, func(param *processor.Parameter) bool {
+		return param.Required()
+	})
+}
+
+func swiftSortedProperties(obj *processor.TypeObject) []*processor.Property {
+	properties := slices.Clone(obj.Properties())
+	slices.SortFunc(properties, func(a *processor.Property, b *processor.Property) int {
+		return strings.Compare(a.RawName(), b.RawName())
+	})
+
+	return properties
+}
+
+func swiftSortedMapKeys[T any](values map[string]T) []string {
+	keys := make([]string, 0, len(values))
+	for key := range values {
+		keys = append(keys, key)
+	}
+
+	slices.Sort(keys)
+
+	return keys
+}
+
+func swiftPathStringLiteral(path string, params []*processor.Parameter) string {
+	literal := swiftStringLiteral(path)
+	for _, param := range params {
+		literal = strings.ReplaceAll(
+			literal,
+			"{"+param.RawName()+"}",
+			"\\("+swiftLocalName(param.Name(), "path")+")",
+		)
+	}
+
+	return literal
+}
+
+func swiftLocalName(name string, suffix string) string {
+	return escapeSwiftKeyword(swiftIdentifierBare(strings.Trim(name, "`")+" "+suffix, false))
+}
+
+func swiftMethodNameWithSuffix(name string, suffix string) string {
+	return escapeSwiftKeyword(strings.Trim(name, "`") + suffix)
+}
+
+func swiftJSONValueExpression(valueExpr string, typ processor.Type, explode bool) string {
+	typ = swiftUnderlyingType(typ)
+
+	if !explode {
+		switch typ.(type) {
+		case *processor.TypeArray:
+			return "JSONValue.string(try NhostWireEncoder.commaSeparated(" + valueExpr + "))"
+		case *processor.TypeObject, *processor.TypeMap:
+			return "JSONValue.string(try NhostWireEncoder.string(" + valueExpr + "))"
+		}
+	}
+
+	return "try NhostWireEncoder.jsonValue(" + valueExpr + ")"
+}
+
+func swiftOptionalJSONValueExpression(valueExpr string, typ processor.Type, explode bool) string {
+	return "try " + valueExpr + ".map { " + swiftJSONValueExpression("$0", typ, explode) + " }"
+}
+
+//nolint:ireturn // Keeps the concrete processor.Type while unwrapping aliases for type switches.
+func swiftUnderlyingType(typ processor.Type) processor.Type {
+	for {
+		alias, ok := typ.(*processor.TypeAlias)
+		if !ok {
+			return typ
+		}
+
+		typ = alias.Alias()
+	}
+}
+
+func swiftObjectType(typ processor.Type) (*processor.TypeObject, bool) {
+	obj, ok := swiftUnderlyingType(typ).(*processor.TypeObject)
+	return obj, ok
+}
+
+func swiftContainsBinary(typ processor.Type) bool {
+	typ = swiftUnderlyingType(typ)
+
+	switch typed := typ.(type) {
+	case *processor.TypeScalar:
+		return swiftIsBinaryType(typed)
+	case *processor.TypeArray:
+		return swiftContainsBinary(typed.Item)
+	default:
+		return false
+	}
+}
+
+func swiftIsBinaryType(scalar *processor.TypeScalar) bool {
+	schema := scalar.Schema().Schema()
+	return len(schema.Type) > 0 && schema.Type[0] == "string" && schema.Format == "binary"
 }
 
 type enumValueKind uint8
