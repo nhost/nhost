@@ -225,192 +225,211 @@
           postgres = postgresf.check;
           storage = storagef.check;
           tutorials = tutorialsf.check;
+        }
+        // pkgs.lib.optionalAttrs pkgs.stdenv.isLinux {
+          swift-toolchain = nixopsf.swiftToolchainCheck;
         };
 
-        devShells = flake-utils.lib.flattenTree {
-          default = pkgs.mkShell {
-            buildInputs = with pkgs; [
-              # general
-              gh
-              git-cliff
-              gnused
-              skopeo
+        devShells = flake-utils.lib.flattenTree (
+          {
+            default = pkgs.mkShell {
+              buildInputs =
+                with pkgs;
+                [
+                  # general
+                  gh
+                  git-cliff
+                  gnused
+                  skopeo
 
-              # cli
-              certbot-full
-              python312Packages.certbot-dns-route53
+                  # cli
+                  certbot-full
+                  python312Packages.certbot-dns-route53
 
-              nhost-cli
+                  nhost-cli
 
-              # dashboard
-              vercel
-              playwright-driver
-              lychee
+                  # dashboard
+                  vercel
+                  playwright-driver
+                  lychee
 
-              # javascript
-              nodejs
-              pnpm
-              biome
+                  # javascript
+                  nodejs
+                  pnpm
+                  biome
 
-              # go
-              go
-              golines
-              gofumpt
-              golangci-lint
-              gqlgen
-              gqlgenc
-              oapi-codegen
-              mockgen
-              sqlc
-              vacuum-go
-              govulncheck
+                  # go
+                  go
+                  golines
+                  gofumpt
+                  golangci-lint
+                  gqlgen
+                  gqlgenc
+                  oapi-codegen
+                  mockgen
+                  sqlc
+                  vacuum-go
+                  govulncheck
 
-              # others
-              postgresql_18-client
-              bun
-              pi-agent
+                  # others
+                  postgresql_18-client
+                  bun
+                  pi-agent
 
-              # docs
-              vale
+                  # docs
+                  vale
 
-              # nix
-              nixfmt
+                  # nix
+                  nixfmt
 
-              # storate
-              clang
-              pkg-config
-              storagef.vips
+                  # storate
+                  clang
+                  pkg-config
+                  storagef.vips
 
-              # internal packages
-              self.packages.${system}.codegen
-              self.packages.${system}.ghactivity
-              self.packages.${system}.govulncheck-wrapper
-            ];
+                  # internal packages
+                  self.packages.${system}.codegen
+                  self.packages.${system}.ghactivity
+                  self.packages.${system}.govulncheck-wrapper
 
-            shellHook = ''
-              export PLAYWRIGHT_BROWSERS_PATH=${pkgs.playwright-driver.browsers}
-              export PLAYWRIGHT_SKIP_VALIDATE_HOST_REQUIREMENTS=true
+                ]
+                ++ pkgs.lib.optionals pkgs.stdenv.isLinux [
+                  # swift
+                  swift_6
+                ];
 
-              export GOEXPERIMENT=jsonv2
-            '';
+              shellHook = ''
+                export PLAYWRIGHT_BROWSERS_PATH=${pkgs.playwright-driver.browsers}
+                export PLAYWRIGHT_SKIP_VALIDATE_HOST_REQUIREMENTS=true
+
+                export GOEXPERIMENT=jsonv2
+              '';
+            };
+
+            cliff = pkgs.mkShell {
+              buildInputs = with pkgs; [
+                git-cliff
+              ];
+            };
+
+            pnpm = pkgs.mkShell {
+              buildInputs = with pkgs; [
+                nodejs
+                pnpm
+              ];
+            };
+
+            security-updates = pkgs.mkShell {
+              buildInputs = with pkgs; [
+                # pnpm audit --fix=update
+                nodejs
+                pnpm
+
+                # govulncheck-wrapper -fix → go get / go mod tidy / go mod vendor
+                go
+                govulncheck
+                self.packages.${system}.govulncheck-wrapper
+              ];
+
+              shellHook = ''
+                export GOEXPERIMENT=jsonv2
+              '';
+            };
+
+            skopeo = pkgs.mkShell {
+              buildInputs = with pkgs; [
+                skopeo
+              ];
+            };
+
+            vercel = pkgs.mkShell {
+              buildInputs = with pkgs; [
+                pnpm
+                nodejs
+                vercel
+              ];
+            };
+
+            auth = authf.devShell;
+            cli = clif.devShell;
+            codegen = codegenf.devShell;
+            constellation = constellationf.devShell;
+            ghactivity = ghactivityf.devShell;
+            govulncheck-wrapper = govulncheck-wrapperf.devShell;
+            dashboard = dashboardf.devShell;
+            demos = demosf.devShell;
+            guides = guidesf.devShell;
+            docs = docsf.devShell;
+            functions = functionsf.devShell;
+            mcp = mcpf.devShell;
+            nhostclient = nhostclientf.devShell;
+            nhost-js = nhost-jsf.devShell;
+            stripe-graphql-js = stripe-graphql-jsf.devShell;
+            nixops = nixopsf.devShell;
+            postgres = postgresf.devShell;
+            storage = storagef.devShell;
+            tutorials = tutorialsf.devShell;
+          }
+          // pkgs.lib.optionalAttrs pkgs.stdenv.isLinux {
+            swift-toolchain = nixops-lib.swift.devShell { };
+          }
+        );
+
+        packages =
+          flake-utils.lib.flattenTree {
+            auth = authf.package;
+            auth-docker-image = authf.dockerImage;
+            cli = clif.package;
+            cli-multiplatform = clif.cli-multiplatform;
+            cli-docker-image = clif.dockerImage;
+            codegen = codegenf.package;
+            constellation = constellationf.package;
+            constellation-docker-image = constellationf.dockerImage;
+            ghactivity = ghactivityf.package;
+            govulncheck-wrapper = govulncheck-wrapperf.package;
+            dashboard = dashboardf.package;
+            dashboard-docker-image = dashboardf.dockerImage;
+            dashboard-e2e-staging-main = dashboardf.check-staging-main;
+            dashboard-e2e-staging-onboarding = dashboardf.check-staging-onboarding;
+            dashboard-e2e-staging-local = dashboardf.check-staging-local;
+            dashboard-vercel-build-preview = dashboardf.vercelBuildPreview;
+            dashboard-vercel-deploy-preview = dashboardf.vercelDeployPreview;
+            dashboard-vercel-build-production = dashboardf.vercelBuildProduction;
+            dashboard-vercel-deploy-production = dashboardf.vercelDeployProduction;
+            demos = demosf.package;
+            functions = functionsf.package;
+            functions-node22-docker-image = functionsf.node22DockerImage;
+            functions-node24-docker-image = functionsf.node24DockerImage;
+            guides = guidesf.package;
+            docs-vercel-build-preview = docsf.vercelBuildPreview;
+            docs-vercel-deploy-preview = docsf.vercelDeployPreview;
+            docs-vercel-build-production = docsf.vercelBuildProduction;
+            docs-vercel-deploy-production = docsf.vercelDeployProduction;
+            nhost-js = nhost-jsf.package;
+            stripe-graphql-js = stripe-graphql-jsf.package;
+            mcp = mcpf.package;
+            mcp-docker-image = mcpf.dockerImage;
+            nixops = nixopsf.package;
+            nixops-docker-image = nixopsf.dockerImage;
+            pi-agent = pkgs.pi-agent;
+            postgres-pg16 = postgresf.packages.pg16-package;
+            postgres-pg16-docker-image = postgresf.packages.pg16-docker-image;
+            postgres-pg16-as-dir = postgresf.packages.pg16-as-dir;
+            postgres-pg17 = postgresf.packages.pg17-package;
+            postgres-pg17-docker-image = postgresf.packages.pg17-docker-image;
+            postgres-pg17-as-dir = postgresf.packages.pg17-as-dir;
+            postgres-pg18 = postgresf.packages.pg18-package;
+            postgres-pg18-docker-image = postgresf.packages.pg18-docker-image;
+            postgres-pg18-as-dir = postgresf.packages.pg18-as-dir;
+            storage = storagef.package;
+            storage-docker-image = storagef.dockerImage;
+            storage-vips = storagef.vips;
+            clamav-docker-image = storagef.clamav-docker-image;
+            tutorials = tutorialsf.package;
+          }
+          // pkgs.lib.optionalAttrs pkgs.stdenv.isLinux {
+            swift-toolchain = pkgs.swift_6;
           };
-
-          cliff = pkgs.mkShell {
-            buildInputs = with pkgs; [
-              git-cliff
-            ];
-          };
-
-          pnpm = pkgs.mkShell {
-            buildInputs = with pkgs; [
-              nodejs
-              pnpm
-            ];
-          };
-
-          security-updates = pkgs.mkShell {
-            buildInputs = with pkgs; [
-              # pnpm audit --fix=update
-              nodejs
-              pnpm
-
-              # govulncheck-wrapper -fix → go get / go mod tidy / go mod vendor
-              go
-              govulncheck
-              self.packages.${system}.govulncheck-wrapper
-            ];
-
-            shellHook = ''
-              export GOEXPERIMENT=jsonv2
-            '';
-          };
-
-          skopeo = pkgs.mkShell {
-            buildInputs = with pkgs; [
-              skopeo
-            ];
-          };
-
-          vercel = pkgs.mkShell {
-            buildInputs = with pkgs; [
-              pnpm
-              nodejs
-              vercel
-            ];
-          };
-
-          auth = authf.devShell;
-          cli = clif.devShell;
-          codegen = codegenf.devShell;
-          constellation = constellationf.devShell;
-          ghactivity = ghactivityf.devShell;
-          govulncheck-wrapper = govulncheck-wrapperf.devShell;
-          dashboard = dashboardf.devShell;
-          demos = demosf.devShell;
-          guides = guidesf.devShell;
-          docs = docsf.devShell;
-          functions = functionsf.devShell;
-          mcp = mcpf.devShell;
-          nhostclient = nhostclientf.devShell;
-          nhost-js = nhost-jsf.devShell;
-          stripe-graphql-js = stripe-graphql-jsf.devShell;
-          nixops = nixopsf.devShell;
-          postgres = postgresf.devShell;
-          storage = storagef.devShell;
-          tutorials = tutorialsf.devShell;
-        };
-
-        packages = flake-utils.lib.flattenTree {
-          auth = authf.package;
-          auth-docker-image = authf.dockerImage;
-          cli = clif.package;
-          cli-multiplatform = clif.cli-multiplatform;
-          cli-docker-image = clif.dockerImage;
-          codegen = codegenf.package;
-          constellation = constellationf.package;
-          constellation-docker-image = constellationf.dockerImage;
-          ghactivity = ghactivityf.package;
-          govulncheck-wrapper = govulncheck-wrapperf.package;
-          dashboard = dashboardf.package;
-          dashboard-docker-image = dashboardf.dockerImage;
-          dashboard-e2e-staging-main = dashboardf.check-staging-main;
-          dashboard-e2e-staging-onboarding = dashboardf.check-staging-onboarding;
-          dashboard-e2e-staging-local = dashboardf.check-staging-local;
-          dashboard-vercel-build-preview = dashboardf.vercelBuildPreview;
-          dashboard-vercel-deploy-preview = dashboardf.vercelDeployPreview;
-          dashboard-vercel-build-production = dashboardf.vercelBuildProduction;
-          dashboard-vercel-deploy-production = dashboardf.vercelDeployProduction;
-          demos = demosf.package;
-          functions = functionsf.package;
-          functions-node22-docker-image = functionsf.node22DockerImage;
-          functions-node24-docker-image = functionsf.node24DockerImage;
-          guides = guidesf.package;
-          docs-vercel-build-preview = docsf.vercelBuildPreview;
-          docs-vercel-deploy-preview = docsf.vercelDeployPreview;
-          docs-vercel-build-production = docsf.vercelBuildProduction;
-          docs-vercel-deploy-production = docsf.vercelDeployProduction;
-          nhost-js = nhost-jsf.package;
-          stripe-graphql-js = stripe-graphql-jsf.package;
-          mcp = mcpf.package;
-          mcp-docker-image = mcpf.dockerImage;
-          nixops = nixopsf.package;
-          nixops-docker-image = nixopsf.dockerImage;
-          pi-agent = pkgs.pi-agent;
-          postgres-pg16 = postgresf.packages.pg16-package;
-          postgres-pg16-docker-image = postgresf.packages.pg16-docker-image;
-          postgres-pg16-as-dir = postgresf.packages.pg16-as-dir;
-          postgres-pg17 = postgresf.packages.pg17-package;
-          postgres-pg17-docker-image = postgresf.packages.pg17-docker-image;
-          postgres-pg17-as-dir = postgresf.packages.pg17-as-dir;
-          postgres-pg18 = postgresf.packages.pg18-package;
-          postgres-pg18-docker-image = postgresf.packages.pg18-docker-image;
-          postgres-pg18-as-dir = postgresf.packages.pg18-as-dir;
-          storage = storagef.package;
-          storage-docker-image = storagef.dockerImage;
-          storage-vips = storagef.vips;
-          clamav-docker-image = storagef.clamav-docker-image;
-          tutorials = tutorialsf.package;
-        };
       }
     );
 }

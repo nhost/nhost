@@ -77,6 +77,7 @@ let
       wal-g
     ])
     ++ pkgs.lib.optionals pkgs.stdenv.isLinux [
+      pkgs.swift_6
     ]
     ++ pkgs.lib.optionals pkgs.stdenv.isDarwin [
       pkgs.apple-sdk_14
@@ -134,6 +135,10 @@ let
 in
 {
   check = nixops-lib.nix.check { inherit src; };
+
+  swiftToolchainCheck = nixops-lib.swift.check {
+    src = ./testdata/swift-smoke;
+  };
 
   devShell = pkgs.mkShell {
     buildInputs = checkDeps ++ buildInputs ++ nativeBuildInputs;

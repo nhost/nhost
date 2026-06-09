@@ -18,3 +18,4 @@ final: prev:
 // import ./go.nix final prev
 // import ./js.nix final prev
 // import ./postgres.nix final prev
+// import ./swift.nix final prev
