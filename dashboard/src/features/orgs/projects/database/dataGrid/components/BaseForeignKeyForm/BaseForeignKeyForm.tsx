@@ -63,17 +63,6 @@ export const baseForeignKeyValidationSchema = Yup.object().shape({
       }),
     )
     .min(1, 'Add at least one column pair.')
-    .test(
-      'unique-local-columns',
-      'A column can only be used once in this foreign key.',
-      (mappings) => {
-        const columns = (mappings ?? [])
-          .map((mapping) => mapping?.column)
-          .filter(Boolean) as string[];
-
-        return new Set(columns).size === columns.length;
-      },
-    )
     .required(),
   updateAction: Yup.string()
     .nullable()
@@ -133,7 +122,7 @@ export default function BaseForeignKeyForm({
 
   const form = useFormContext<BaseForeignKeySchemaValues>();
   const { control, setValue, getValues } = form;
-  const { dirtyFields, isSubmitting, errors } =
+  const { dirtyFields, isSubmitting } =
     useFormState<BaseForeignKeySchemaValues>();
 
   const { fields, append, remove } = useFieldArray({
@@ -291,12 +280,6 @@ export default function BaseForeignKeyForm({
             <p className="m-0 text-muted-foreground text-xs">
               There are no columns in the {referencedSchema}.{referencedTable}{' '}
               table.
-            </p>
-          )}
-
-          {errors.columnMappings?.root?.message && (
-            <p className="m-0 font-medium text-destructive text-xs">
-              {errors.columnMappings.root.message}
             </p>
           )}
 
