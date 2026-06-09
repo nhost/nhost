@@ -5,11 +5,13 @@
  * API for managing remote schemas and events in Hasura
  * OpenAPI spec version: 1.0.0
  */
+import type { AddComputedFieldStep } from './addComputedFieldStep';
 import type { AddRemoteSchemaPermissionsStep } from './addRemoteSchemaPermissionsStep';
 import type { AddRemoteSchemaStep } from './addRemoteSchemaStep';
 import type { CreateEventTriggerStep } from './createEventTriggerStep';
 import type { CreateFunctionPermissionStep } from './createFunctionPermissionStep';
 import type { DeleteEventTriggerStep } from './deleteEventTriggerStep';
+import type { DropComputedFieldStep } from './dropComputedFieldStep';
 import type { DropFunctionPermissionStep } from './dropFunctionPermissionStep';
 import type { DropRemoteSchemaPermissionsStep } from './dropRemoteSchemaPermissionsStep';
 import type { RemoveRemoteSchemaStep } from './removeRemoteSchemaStep';
@@ -38,4 +40,6 @@ export type MigrationStep =
   | TrackFunctionStep
   | UntrackFunctionStep
   | CreateFunctionPermissionStep
-  | DropFunctionPermissionStep;
+  | DropFunctionPermissionStep
+  | AddComputedFieldStep
+  | DropComputedFieldStep;
