@@ -220,8 +220,9 @@ const (
 )
 
 type swiftRequestBody struct {
-	kind swiftRequestBodyKind
-	typ  processor.Type
+	kind      swiftRequestBodyKind
+	mediaType string
+	typ       processor.Type
 }
 
 type swiftSuccessKind string
@@ -382,20 +383,17 @@ func (s *Swift) swiftRedirectMethod(method *processor.Method) (string, error) {
 		return "", err
 	}
 
-	if body.kind != swiftRequestBodyKindNone {
-		return "", fmt.Errorf(
-			"%w: Swift redirect helper %s cannot accept a request body",
-			processor.ErrUnsupportedFeature,
-			method.Name(),
-		)
-	}
-
 	if len(swiftSortedParametersByLocation(method.Parameters, "header")) > 0 {
 		return "", fmt.Errorf(
 			"%w: Swift redirect helper %s cannot use header parameters because it only returns a URL",
 			processor.ErrUnsupportedFeature,
 			method.Name(),
 		)
+	}
+
+	redirectBody, err := swiftRedirectBodyObject(method, body)
+	if err != nil {
+		return "", err
 	}
 
 	params := s.swiftMethodParameters(method, body, true)
@@ -426,8 +424,9 @@ func (s *Swift) swiftRedirectMethod(method *processor.Method) (string, error) {
 
 	s.writeSwiftPathSetup(&builder, method)
 	s.writeSwiftQuerySetup(&builder, method)
+	s.writeSwiftRedirectBodyQuerySetup(&builder, method, redirectBody)
 
-	if len(swiftSortedParametersByLocation(method.Parameters, "query")) > 0 {
+	if swiftRedirectNeedsQueryItems(method, body) {
 		builder.WriteString(
 			"        return NhostURLBuilder.redirectURL(baseURL: baseURL, path: path, query: queryItems)\n",
 		)
@@ -453,7 +452,7 @@ func (s *Swift) swiftMethodParameters(
 		params = append(params, param.Name()+": "+param.Type.Name())
 	}
 
-	if !redirect && body.kind != swiftRequestBodyKindNone {
+	if body.kind != swiftRequestBodyKindNone && (!redirect || body.kind == swiftRequestBodyKindForm) {
 		bodyType := body.typ.Name()
 		if method.BodyRequired {
 			params = append(params, "body: "+bodyType)
@@ -575,6 +574,30 @@ func (s *Swift) writeSwiftQuerySetup(builder *strings.Builder, method *processor
 		s.writeSwiftQueryParameter(builder, param, "query."+param.Name(), "            ")
 	}
 
+	builder.WriteString("        }\n")
+}
+
+func (s *Swift) writeSwiftRedirectBodyQuerySetup(
+	builder *strings.Builder,
+	method *processor.Method,
+	body *processor.TypeObject,
+) {
+	if body == nil {
+		return
+	}
+
+	if len(swiftSortedParametersByLocation(method.Parameters, "query")) == 0 {
+		builder.WriteString("        var queryItems: [String: JSONValue?] = [:]\n")
+	}
+
+	if method.BodyRequired {
+		s.writeSwiftExplodedObjectQueryProperties(builder, body, "body", "        ")
+
+		return
+	}
+
+	builder.WriteString("        if let body {\n")
+	s.writeSwiftExplodedObjectQueryProperties(builder, body, "body", "            ")
 	builder.WriteString("        }\n")
 }
 
@@ -751,24 +774,13 @@ func (s *Swift) writeSwiftFormBodySetup(
 	method *processor.Method,
 	typ processor.Type,
 ) error {
-	obj, ok := swiftObjectType(typ)
-	if !ok {
-		return fmt.Errorf(
-			"%w: Swift application/x-www-form-urlencoded body for %s must be an object schema",
-			processor.ErrUnsupportedFeature,
-			method.Name(),
-		)
-	}
-
-	for _, property := range swiftSortedProperties(obj) {
-		if swiftContainsBinary(property.Type) {
-			return fmt.Errorf(
-				"%w: Swift application/x-www-form-urlencoded body for %s field %s cannot contain binary data",
-				processor.ErrUnsupportedFeature,
-				method.Name(),
-				property.RawName(),
-			)
-		}
+	obj, err := swiftFormBodyObject(
+		method,
+		typ,
+		"Swift application/x-www-form-urlencoded body",
+	)
+	if err != nil {
+		return err
 	}
 
 	if method.BodyRequired {
@@ -1061,11 +1073,78 @@ func (r *swiftSuccessResponse) returnStatement() string {
 	}
 }
 
+func swiftRedirectBodyObject(
+	method *processor.Method,
+	body *swiftRequestBody,
+) (*processor.TypeObject, error) {
+	switch body.kind {
+	case swiftRequestBodyKindNone:
+		return nil, nil
+	case swiftRequestBodyKindForm:
+		return swiftFormBodyObject(
+			method,
+			body.typ,
+			"Swift redirect application/x-www-form-urlencoded body",
+		)
+	case swiftRequestBodyKindJSON, swiftRequestBodyKindMultipart:
+		return nil, fmt.Errorf(
+			"%w: Swift redirect helper %s only supports application/x-www-form-urlencoded "+
+				"request bodies; got %s, which cannot be safely represented as URL query parameters",
+			processor.ErrUnsupportedFeature,
+			method.Name(),
+			body.mediaType,
+		)
+	default:
+		return nil, fmt.Errorf(
+			"%w: Swift redirect helper %s does not support request body kind %s",
+			processor.ErrUnsupportedFeature,
+			method.Name(),
+			body.kind,
+		)
+	}
+}
+
+func swiftRedirectNeedsQueryItems(method *processor.Method, body *swiftRequestBody) bool {
+	return body.kind != swiftRequestBodyKindNone ||
+		len(swiftSortedParametersByLocation(method.Parameters, "query")) > 0
+}
+
+func swiftFormBodyObject(
+	method *processor.Method,
+	typ processor.Type,
+	context string,
+) (*processor.TypeObject, error) {
+	obj, ok := swiftObjectType(typ)
+	if !ok {
+		return nil, fmt.Errorf(
+			"%w: %s for %s must be an object schema",
+			processor.ErrUnsupportedFeature,
+			context,
+			method.Name(),
+		)
+	}
+
+	for _, property := range swiftSortedProperties(obj) {
+		if swiftContainsBinary(property.Type) {
+			return nil, fmt.Errorf(
+				"%w: %s for %s field %s cannot contain binary data",
+				processor.ErrUnsupportedFeature,
+				context,
+				method.Name(),
+				property.RawName(),
+			)
+		}
+	}
+
+	return obj, nil
+}
+
 func swiftRequestBodyForMethod(method *processor.Method) (*swiftRequestBody, error) {
 	if len(method.Bodies) == 0 {
 		return &swiftRequestBody{
-			kind: swiftRequestBodyKindNone,
-			typ:  nil,
+			kind:      swiftRequestBodyKindNone,
+			mediaType: "",
+			typ:       nil,
 		}, nil
 	}
 
@@ -1082,8 +1161,9 @@ func swiftRequestBodyForMethod(method *processor.Method) (*swiftRequestBody, err
 
 	mediaType := mediaTypes[0]
 	body := &swiftRequestBody{
-		kind: swiftRequestBodyKindNone,
-		typ:  method.Bodies[mediaType],
+		kind:      swiftRequestBodyKindNone,
+		mediaType: mediaType,
+		typ:       method.Bodies[mediaType],
 	}
 
 	switch mediaType {

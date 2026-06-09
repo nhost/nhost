@@ -95,6 +95,14 @@ func TestInterMediateRepresentationRender(t *testing.T) {
 			},
 			goldenFile: "swift-methods.yaml.swift",
 		},
+		{
+			name: "swift-redirect-body.yaml",
+			plugin: &swiftprocessor.Swift{
+				Namespace:  "Redirect",
+				ClientName: "RedirectClient",
+			},
+			goldenFile: "swift-redirect-body.yaml.swift",
+		},
 	}
 
 	for _, tc := range cases {
@@ -145,6 +153,34 @@ func TestInterMediateRepresentationRender(t *testing.T) {
 	}
 }
 
+func TestSwiftRedirectWithRequestBodyRendersURLHelper(t *testing.T) {
+	t.Parallel()
+
+	doc, err := getModel("testdata/swift-redirect-body.yaml")
+	if err != nil {
+		t.Fatalf("failed to get model: %v", err)
+	}
+
+	ir, err := processor.NewInterMediateRepresentation(doc, &swiftprocessor.Swift{})
+	if err != nil {
+		t.Fatalf("failed to create intermediate representation: %v", err)
+	}
+
+	buf := bytes.NewBuffer(nil)
+	if err := ir.Render(buf); err != nil {
+		t.Fatalf("failed to render intermediate representation: %v", err)
+	}
+
+	output := buf.String()
+	if !strings.Contains(output, "public func authorizePostURL(\n        body: AuthorizePostBody\n    ) throws -> URL") {
+		t.Fatalf("expected redirect URL helper to require the form body, got:\n%s", output)
+	}
+
+	if !strings.Contains(output, "queryItems[\"client_id\"] = try NhostWireEncoder.jsonValue(body.clientId)") {
+		t.Fatalf("expected redirect URL helper to fold body fields into the query, got:\n%s", output)
+	}
+}
+
 func TestSwiftUnsupportedFeatureErrors(t *testing.T) {
 	t.Parallel()
 
@@ -159,6 +195,14 @@ func TestSwiftUnsupportedFeatureErrors(t *testing.T) {
 		{
 			name:          "swift-unsupported-request-body.yaml",
 			expectedError: "unsupported request body media type text/plain",
+		},
+		{
+			name:          "swift-unsupported-redirect-json-body.yaml",
+			expectedError: "only supports application/x-www-form-urlencoded request bodies",
+		},
+		{
+			name:          "swift-unsupported-redirect-binary-form-body.yaml",
+			expectedError: "cannot contain binary data",
 		},
 	}
 

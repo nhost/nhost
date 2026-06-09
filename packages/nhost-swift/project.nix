@@ -14,14 +14,19 @@ let
     root = ../..;
     fileset = fs.unions [
       ./CLAUDE.md
+      ./gen.sh
       ./Package.swift
       ./README.md
       ./Sources
       ./Tests
+      ../../services/auth/docs/openapi.yaml
+      ../../services/storage/controller/openapi.yaml
     ];
   };
 
-  checkDeps = [ ];
+  checkDeps = [
+    self.packages.${pkgs.stdenv.hostPlatform.system}.codegen
+  ];
 
   buildInputs = [ ];
   nativeBuildInputs = [ ];
@@ -43,6 +48,14 @@ in
       nativeBuildInputs
       ;
     packagePath = submodule;
+    preCheck = ''
+      echo "➜ Checking generated Auth and Storage clients"
+      committed_generated=$(mktemp -d)
+      cp -R Sources/Nhost/Generated "$committed_generated/Generated"
+
+      ./gen.sh
+      diff -ru "$committed_generated/Generated" Sources/Nhost/Generated
+    '';
   };
 
   package = nixops-lib.swift.package {

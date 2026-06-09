@@ -1,0 +1,29 @@
+openapi: '3.0.0'
+info:
+  title: Swift redirect body fixture
+  version: '1.0'
+paths:
+  /authorize:
+    post:
+      operationId: authorizePost
+      summary: Build a redirect URL for a POST-style authorization endpoint
+      requestBody:
+        required: true
+        content:
+          application/x-www-form-urlencoded:
+            schema:
+              type: object
+              required:
+                - client_id
+              properties:
+                client_id:
+                  type: string
+                redirect_uri:
+                  type: string
+      responses:
+        '302':
+          description: Redirect response
+          headers:
+            Location:
+              schema:
+                type: string

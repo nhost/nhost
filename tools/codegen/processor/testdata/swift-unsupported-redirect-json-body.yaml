@@ -1,0 +1,24 @@
+openapi: "3.0.0"
+info:
+  title: Swift unsupported redirect JSON body fixture
+  version: "1.0"
+paths:
+  /redirect:
+    post:
+      operationId: jsonRedirect
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                client_id:
+                  type: string
+      responses:
+        "302":
+          description: Redirect response
+          headers:
+            Location:
+              schema:
+                type: string

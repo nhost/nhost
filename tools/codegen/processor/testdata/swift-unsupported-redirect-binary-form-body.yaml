@@ -1,0 +1,27 @@
+openapi: "3.0.0"
+info:
+  title: Swift unsupported redirect binary form body fixture
+  version: "1.0"
+paths:
+  /redirect:
+    post:
+      operationId: binaryFormRedirect
+      requestBody:
+        required: true
+        content:
+          application/x-www-form-urlencoded:
+            schema:
+              type: object
+              required:
+                - file
+              properties:
+                file:
+                  type: string
+                  format: binary
+      responses:
+        "302":
+          description: Redirect response
+          headers:
+            Location:
+              schema:
+                type: string
