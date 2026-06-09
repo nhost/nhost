@@ -110,6 +110,8 @@ public struct NhostServerClientOptions: Sendable {
 public struct NhostClient: Sendable {
     public let auth: AuthClient
     public let storage: StorageClient
+    public let graphql: GraphQLClient
+    public let functions: FunctionsClient
     public let sessionStore: SessionStore
     public let sessionRefresher: SessionRefresher
     public let serviceURLs: NhostServiceURLs
@@ -117,12 +119,16 @@ public struct NhostClient: Sendable {
     public init(
         auth: AuthClient,
         storage: StorageClient,
+        graphql: GraphQLClient,
+        functions: FunctionsClient,
         sessionStore: SessionStore,
         sessionRefresher: SessionRefresher,
         serviceURLs: NhostServiceURLs
     ) {
         self.auth = auth
         self.storage = storage
+        self.graphql = graphql
+        self.functions = functions
         self.sessionStore = sessionStore
         self.sessionRefresher = sessionRefresher
         self.serviceURLs = serviceURLs
@@ -211,11 +217,13 @@ private func makeNhostClient(options: NhostClientOptions, sessionMode: SessionMi
     )
 
     let authMiddleware = commonMiddleware + sessionMiddleware
-    let storageMiddleware = commonMiddleware + configuredStorageMiddleware(options) + sessionMiddleware
+    let privilegedServiceMiddleware = commonMiddleware + configuredPrivilegedServiceMiddleware(options) + sessionMiddleware
 
     return NhostClient(
         auth: AuthClient(baseURL: serviceURLs.auth, transport: options.transport, middleware: authMiddleware),
-        storage: StorageClient(baseURL: serviceURLs.storage, transport: options.transport, middleware: storageMiddleware),
+        storage: StorageClient(baseURL: serviceURLs.storage, transport: options.transport, middleware: privilegedServiceMiddleware),
+        graphql: GraphQLClient(url: serviceURLs.graphql, transport: options.transport, middleware: privilegedServiceMiddleware),
+        functions: FunctionsClient(baseURL: serviceURLs.functions, transport: options.transport, middleware: privilegedServiceMiddleware),
         sessionStore: sessionStore,
         sessionRefresher: refresher,
         serviceURLs: serviceURLs
@@ -237,7 +245,7 @@ private func configuredCommonMiddleware(_ options: NhostClientOptions) -> [Chain
     return middleware
 }
 
-private func configuredStorageMiddleware(_ options: NhostClientOptions) -> [ChainFunction] {
+private func configuredPrivilegedServiceMiddleware(_ options: NhostClientOptions) -> [ChainFunction] {
     guard let adminSession = options.adminSession else {
         return []
     }

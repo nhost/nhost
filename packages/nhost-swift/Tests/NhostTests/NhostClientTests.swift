@@ -108,7 +108,7 @@ final class NhostClientTests: XCTestCase {
         XCTAssertEqual(storageRequest.headers["x-hasura-role"], "user")
     }
 
-    func testCreateNhostClientAppliesAdminSessionToStorageOnly() async throws {
+    func testCreateNhostClientAppliesAdminSessionToNonAuthServices() async throws {
         let session = try testAuthSession(exp: testNowSeconds + 600)
         let transport = ClientRecordingTransport(session: session)
         let client = createNhostClient(

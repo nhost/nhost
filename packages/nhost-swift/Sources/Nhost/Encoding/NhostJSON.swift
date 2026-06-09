@@ -5,6 +5,16 @@ import Foundation
 /// The REST date strategy emits RFC3339 timestamps with fractional seconds and decodes both
 /// fractional and non-fractional RFC3339 strings, matching common Nhost REST payloads.
 public enum NhostJSON {
+    /// Plain JSON encoder for user-supplied GraphQL and Functions payloads.
+    public static var neutralEncoder: JSONEncoder {
+        JSONEncoder()
+    }
+
+    /// Plain JSON decoder for user-supplied GraphQL and Functions response models.
+    public static var neutralDecoder: JSONDecoder {
+        JSONDecoder()
+    }
+
     public static var restEncoder: JSONEncoder {
         let encoder = JSONEncoder()
         encoder.outputFormatting = [.sortedKeys]

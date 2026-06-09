@@ -18,7 +18,7 @@ public struct AdminSessionOptions: Sendable, Equatable {
 
 public func attachAccessTokenMiddleware(sessionStore: SessionStore) -> ChainFunction {
     { request, next in
-        guard !NhostMiddlewareHeaders.hasHeader(request.headers, named: "Authorization") else {
+        guard !NhostHeaderLookup.hasHeader(request.headers, named: "Authorization") else {
             return try await next(request)
         }
 
@@ -37,7 +37,7 @@ public func sessionRefreshMiddleware(
     marginSeconds: Int = 60
 ) -> ChainFunction {
     { request, next in
-        if NhostMiddlewareHeaders.hasHeader(request.headers, named: "Authorization")
+        if NhostHeaderLookup.hasHeader(request.headers, named: "Authorization")
             || NhostMiddlewareRequestClassifier.isRefreshTokenEndpoint(request.url)
         {
             return try await next(request)
@@ -72,7 +72,7 @@ public func headersMiddleware(_ defaultHeaders: [String: String]) -> ChainFuncti
         var request = request
 
         for (name, value) in defaultHeaders {
-            NhostMiddlewareHeaders.setHeaderIfAbsent(name, value, on: &request)
+            NhostHeaderLookup.setHeaderIfAbsent(name, value, on: &request)
         }
 
         return try await next(request)
@@ -82,7 +82,7 @@ public func headersMiddleware(_ defaultHeaders: [String: String]) -> ChainFuncti
 public func roleMiddleware(_ role: String) -> ChainFunction {
     { request, next in
         var request = request
-        NhostMiddlewareHeaders.setHeaderIfAbsent("x-hasura-role", role, on: &request)
+        NhostHeaderLookup.setHeaderIfAbsent("x-hasura-role", role, on: &request)
         return try await next(request)
     }
 }
@@ -90,15 +90,15 @@ public func roleMiddleware(_ role: String) -> ChainFunction {
 public func adminSessionMiddleware(_ options: AdminSessionOptions) -> ChainFunction {
     { request, next in
         var request = request
-        NhostMiddlewareHeaders.setHeaderIfAbsent("x-hasura-admin-secret", options.adminSecret, on: &request)
+        NhostHeaderLookup.setHeaderIfAbsent("x-hasura-admin-secret", options.adminSecret, on: &request)
 
         if let role = options.role {
-            NhostMiddlewareHeaders.setHeaderIfAbsent("x-hasura-role", role, on: &request)
+            NhostHeaderLookup.setHeaderIfAbsent("x-hasura-role", role, on: &request)
         }
 
         for (key, value) in options.sessionVariables {
             let header = key.lowercased().hasPrefix("x-hasura-") ? key : "x-hasura-\(key)"
-            NhostMiddlewareHeaders.setHeaderIfAbsent(header, value, on: &request)
+            NhostHeaderLookup.setHeaderIfAbsent(header, value, on: &request)
         }
 
         return try await next(request)
@@ -159,14 +159,3 @@ private enum NhostMiddlewareRequestClassifier {
     }
 }
 
-private enum NhostMiddlewareHeaders {
-    static func hasHeader(_ headers: [String: String], named name: String) -> Bool {
-        let lowercased = name.lowercased()
-        return headers.keys.contains { $0.lowercased() == lowercased }
-    }
-
-    static func setHeaderIfAbsent(_ name: String, _ value: String, on request: inout NhostRequest) {
-        guard !hasHeader(request.headers, named: name) else { return }
-        request.setHeader(name, value)
-    }
-}
