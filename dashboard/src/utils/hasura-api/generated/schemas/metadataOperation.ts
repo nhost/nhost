@@ -7,6 +7,7 @@
  */
 import type { AddRemoteSchemaOperation } from './addRemoteSchemaOperation';
 import type { ClearMetadataOperation } from './clearMetadataOperation';
+import type { ComputedFieldBulkOperation } from './computedFieldBulkOperation';
 import type { CreateArrayRelationshipBulkOperation } from './createArrayRelationshipBulkOperation';
 import type { CreateCronTriggerBulkOperation } from './createCronTriggerBulkOperation';
 import type { CreateEventTriggerBulkOperation } from './createEventTriggerBulkOperation';
@@ -66,6 +67,7 @@ export type MetadataOperation =
   | SetFunctionCustomizationOperation
   | CreateFunctionPermissionBulkOperation
   | DropFunctionPermissionBulkOperation
+  | ComputedFieldBulkOperation
   | SuggestRelationshipsOperation
   | DropRelationshipBulkOperation
   | DeleteRemoteRelationshipBulkOperation
