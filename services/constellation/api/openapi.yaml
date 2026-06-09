@@ -120,54 +120,21 @@ paths:
         "401":
           description: "Invalid admin secret or bearer token"
     get:
-      summary: GraphQL query (via query string)
+      summary: GraphQL subscription (WebSocket upgrade)
       description: >-
-        Execute a GraphQL operation passed as query-string parameters.
-        Useful for cacheable read-only requests. Only `query` operations
-        are valid; mutations must use POST.
+        Upgrades the connection to a WebSocket speaking the
+        `graphql-transport-ws` subprotocol for GraphQL subscriptions.
+        Requests that do NOT send `Upgrade: websocket` are rejected with
+        405. Query-string GraphQL (`?query=`) is intentionally not
+        supported — mutations and queries must use POST.
       operationId: graphqlGet
       tags:
         - graphql
-      security:
-        - AdminSecret: []
-        - BearerAuth: []
-        - {}
-      parameters:
-        - name: query
-          in: query
-          required: true
-          schema:
-            type: string
-          description: "GraphQL document text"
-        - name: operationName
-          in: query
-          required: false
-          schema:
-            type: string
-          description: "Operation name within `query` (required when the document contains multiple operations)"
-        - name: variables
-          in: query
-          required: false
-          schema:
-            type: string
-          description: "JSON-encoded variables object"
-        - name: extensions
-          in: query
-          required: false
-          schema:
-            type: string
-          description: "JSON-encoded extensions object (e.g. persisted-query handshake)"
       responses:
-        "200":
-          description: "GraphQL response envelope"
-          content:
-            application/json:
-              schema:
-                $ref: "#/components/schemas/GraphQLResponse"
-        "400":
-          description: "Malformed request"
-        "401":
-          description: "Invalid admin secret or bearer token"
+        "101":
+          description: "Switching Protocols — WebSocket handshake accepted"
+        "405":
+          description: "Plain GET without a WebSocket upgrade is not supported"
 
   /v1/metadata:
     post:
@@ -201,17 +168,29 @@ paths:
                 type: object
                 additionalProperties: true
         "400":
-          description: "Malformed envelope, unknown op, or op-level validation failure"
+          description: >-
+            Op-level validation failure (`MetadataError`: `{code, error,
+            path, internal?}`). Spec-level failures — invalid JSON, type
+            mismatches, missing required fields — are rejected earlier by
+            the shared OpenAPI validator and return `ValidationError`
+            (`{error, reason}`) instead. Both are 400 with
+            `Content-Type: application/json`; client code that branches on
+            the body must tolerate either shape (the presence of `code`
+            distinguishes them).
           content:
             application/json:
               schema:
                 $ref: "#/components/schemas/MetadataError"
         "401":
-          description: "Missing or invalid admin secret"
+          description: >-
+            Missing or invalid admin secret. Emitted by the shared security
+            middleware before the per-op handler runs, so the body shape is
+            `AuthError` (`{error, reason, securityScheme}`), not
+            `MetadataError`.
           content:
             application/json:
               schema:
-                $ref: "#/components/schemas/MetadataError"
+                $ref: "#/components/schemas/AuthError"
 
 components:
   securitySchemes:
@@ -311,18 +290,22 @@ components:
       additionalProperties: true
       required:
         - type
-        - args
       properties:
         type:
           type: string
           description: "Operation discriminator (e.g. `export_metadata`, `pg_track_table`)"
           example: "export_metadata"
         args:
-          type: object
-          additionalProperties: true
+          # No `type` constraint: real Hasura traffic uses an object for most
+          # ops, an array for `bulk`/`concurrent_bulk`, and may omit `args`
+          # entirely (e.g. `export_metadata` with no parameters). The Go
+          # dispatcher reads `type` only; the raw body is forwarded to the
+          # upstream proxy unchanged, so spec-level args validation here
+          # would only reject valid Hasura requests before they reach the
+          # proxy.
           description: >-
             Per-operation arguments. Shape is determined by `type` and
-            handled by the Go dispatcher.
+            handled by the Go dispatcher (object, array, or omitted).
         version:
           type: integer
           description: "Metadata API version (1 or 2; defaults to 1)"
@@ -358,6 +341,53 @@ components:
           type: object
           additionalProperties: true
           description: "Optional engine-internal detail (omitted in production)"
+
+    ValidationError:
+      # Emitted by the shared OpenAPI request-validation middleware
+      # (internal/lib/oapi.NewRequestValidator) for any spec-level rejection
+      # — invalid JSON, schema mismatch, missing required field. Distinct
+      # from MetadataError because validation runs before the per-op
+      # dispatcher and has no knowledge of Hasura error codes.
+      type: object
+      additionalProperties: false
+      required:
+        - error
+        - reason
+      properties:
+        error:
+          type: string
+          description: >-
+            Validator error category. Known values include
+            `schema-validation-error` (body / param schema failed) and
+            `request-validation-error` (envelope-level binding failed).
+          example: "schema-validation-error"
+        reason:
+          type: string
+          description: "Human-readable reason from kin-openapi"
+
+    AuthError:
+      # Emitted by the shared security middleware on auth failure. Carries
+      # the security scheme that rejected the request so clients can
+      # distinguish AdminSecret denials from BearerAuth denials.
+      type: object
+      additionalProperties: false
+      required:
+        - error
+        - reason
+      properties:
+        error:
+          type: string
+          description: "Auth error code (e.g. `unauthorized`)"
+          example: "unauthorized"
+        reason:
+          type: string
+          description: "Human-readable reason"
+        securityScheme:
+          type: string
+          description: >-
+            Name of the OpenAPI security scheme that denied the request
+            (e.g. `AdminSecret`, `BearerAuth`). Omitted when the failure
+            was raised before scheme dispatch.
 
     # ================================================================
     # Vendored Hasura metadata schemas (commented-out staging area)

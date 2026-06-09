@@ -246,6 +246,73 @@ func assertConstellationOwnsGraphql(t *testing.T, useTLS bool) {
 	}
 }
 
+// TestDashboardHasuraAPIURLRoutesThroughConstellation locks in the dashboard
+// env-var switch: NEXT_PUBLIC_NHOST_HASURA_API_URL points at the `graphql`
+// subdomain (Constellation, which proxies the admin/metadata API to Hasura)
+// when Constellation is enabled, and at the `hasura` subdomain otherwise. The
+// console and migrations URLs must stay on the `hasura` subdomain in both
+// cases — that split is intentional (the console UI and migrate API are served
+// by the hasura-cli helper containers, not Constellation).
+func TestDashboardHasuraAPIURLRoutesThroughConstellation(t *testing.T) {
+	t.Parallel()
+
+	const (
+		hasuraAPIURL  = "http://dev.hasura.local.nhost.run:1337"
+		graphqlAPIURL = "http://dev.graphql.local.nhost.run:1337"
+		consoleURL    = "http://dev.hasura.local.nhost.run:1337/console"
+		migrateURL    = "http://dev.hasura.local.nhost.run:1337/apis/migrate"
+	)
+
+	cases := []struct {
+		name              string
+		withConstellation bool
+		wantHasuraAPIURL  string
+	}{
+		{
+			name:              "constellation disabled routes to hasura subdomain",
+			withConstellation: false,
+			wantHasuraAPIURL:  hasuraAPIURL,
+		},
+		{
+			name:              "constellation enabled routes to graphql subdomain",
+			withConstellation: true,
+			wantHasuraAPIURL:  graphqlAPIURL,
+		},
+	}
+
+	for _, tc := range cases {
+		t.Run(tc.name, func(t *testing.T) {
+			t.Parallel()
+
+			env := callGetServices(t, tc.withConstellation, false)["dashboard"].Environment
+
+			if got := env["NEXT_PUBLIC_NHOST_HASURA_API_URL"]; got != tc.wantHasuraAPIURL {
+				t.Errorf(
+					"NEXT_PUBLIC_NHOST_HASURA_API_URL = %q; want %q",
+					got, tc.wantHasuraAPIURL,
+				)
+			}
+
+			// The console and migrations API stay on the hasura subdomain
+			// regardless of whether Constellation owns the admin/metadata API.
+			if got := env["NEXT_PUBLIC_NHOST_HASURA_CONSOLE_URL"]; got != consoleURL {
+				t.Errorf(
+					"NEXT_PUBLIC_NHOST_HASURA_CONSOLE_URL = %q; want %q (must stay on hasura)",
+					got, consoleURL,
+				)
+			}
+
+			if got := env["NEXT_PUBLIC_NHOST_HASURA_MIGRATIONS_API_URL"]; got != migrateURL {
+				t.Errorf(
+					"NEXT_PUBLIC_NHOST_HASURA_MIGRATIONS_API_URL = %q; want %q (must stay on hasura)",
+					got,
+					migrateURL,
+				)
+			}
+		})
+	}
+}
+
 func TestConstellation(t *testing.T) {
 	t.Parallel()
 

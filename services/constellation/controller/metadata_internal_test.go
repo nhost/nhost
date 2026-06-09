@@ -54,6 +54,11 @@ func (s *stubMetadataSource) HasuraSnapshotJSON() ([]byte, int64) {
 
 const testAdminSecret = "test-admin-secret" //nolint:gosec // test-only constant, not a credential
 
+// testMetadataBodyCap is the body cap used by every metadata test router.
+// It exists only so the oversized-body tests can exceed it cheaply; the
+// production cap is sourced from --hasura-proxy-request-body-limit-bytes.
+const testMetadataBodyCap int64 = 1 * 1024 * 1024
+
 // buildMetadataRouter mirrors the production wiring for the metadata endpoint
 // in a test harness: gin engine + ClientHeadersToContext middleware (so the
 // handler can read X-Hasura-Admin-Secret out of the request context) + the
@@ -103,7 +108,7 @@ func buildMetadataRouterWithSource(
 	api.RegisterHandlersWithOptions(router, handler, api.GinServerOptions{
 		BaseURL: "",
 		Middlewares: []api.MiddlewareFunc{
-			CaptureRawBody,
+			api.MiddlewareFunc(NewCaptureRawBody(testMetadataBodyCap)),
 			api.MiddlewareFunc(validatorMW),
 		},
 		ErrorHandler: nil,
@@ -447,7 +452,7 @@ func TestMetadataRejectsOversizedBodyBeforeAuth(t *testing.T) {
 	// Build a body just over the cap. CaptureRawBody must reject it before
 	// the admin-secret check runs — verify by sending no secret and confirming
 	// the response is 413 (the cap), not 401 (the auth check).
-	oversized := bytes.Repeat([]byte("a"), int(metadataMaxBodyBytes)+1)
+	oversized := bytes.Repeat([]byte("a"), int(testMetadataBodyCap)+1)
 
 	req := httptest.NewRequest(http.MethodPost, "/v1/metadata", bytes.NewReader(oversized))
 	req.Header.Set("Content-Type", "application/json")
@@ -467,7 +472,7 @@ func TestMetadataRejectsOversizedChunkedBody(t *testing.T) {
 
 	// Same payload but with ContentLength stripped, forcing the MaxBytesReader
 	// path inside io.ReadAll rather than the ContentLength fast-fail.
-	oversized := bytes.Repeat([]byte("a"), int(metadataMaxBodyBytes)+1)
+	oversized := bytes.Repeat([]byte("a"), int(testMetadataBodyCap)+1)
 
 	req := httptest.NewRequest(http.MethodPost, "/v1/metadata", bytes.NewReader(oversized))
 	req.Header.Set("Content-Type", "application/json")

@@ -126,10 +126,10 @@ func (s *DatabaseMetadataSource) InitialLoad(
 	return meta, nil
 }
 
-// HasuraSnapshotJSON returns the most recent Hasura wire form (re-marshaled
-// from the parsed in-memory representation, so the `,unknown`-preserved
-// round-trip applies) along with its resource_version. Returns (nil, 0)
-// before InitialLoad has succeeded.
+// HasuraSnapshotJSON returns the verbatim hdb_catalog.hdb_metadata blob
+// captured at the last load (not re-marshaled, so key order and unmodeled
+// fields are preserved exactly as Hasura stored them) along with its
+// resource_version. Returns (nil, 0) before InitialLoad has succeeded.
 func (s *DatabaseMetadataSource) HasuraSnapshotJSON() ([]byte, int64) {
 	if snap := s.snapshot.Load(); snap != nil {
 		return snap.raw, snap.version
@@ -143,7 +143,7 @@ func (s *DatabaseMetadataSource) HasuraSnapshotJSON() ([]byte, int64) {
 //
 // Watch must be called exactly once, after InitialLoad has established the
 // starting resource version. Spawning a second concurrent poller is not a
-// supported use; resourceVersion access is atomic so it stays race-free
+// supported use; snapshot pointer access is atomic so it stays race-free
 // regardless, but multiple pollers would emit redundant reloads.
 func (s *DatabaseMetadataSource) Watch(ctx context.Context) <-chan metadata.Update {
 	ch := make(chan metadata.Update)

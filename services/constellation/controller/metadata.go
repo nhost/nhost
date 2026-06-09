@@ -18,61 +18,69 @@ type (
 	inboundRequestCtxKey struct{}
 )
 
-const metadataMaxBodyBytes int64 = 10 * 1024 * 1024
-
 var (
 	errMetadataBodyUnreadable = errors.New("failed to read metadata request body")
 	errMetadataBodyTooLarge   = errors.New("metadata request body too large")
 )
 
-// CaptureRawBody is gin middleware that, for POST /v1/metadata only, reads
-// the request body up to a fixed size limit, restores it for downstream
+// NewCaptureRawBody returns gin middleware that, for POST /v1/metadata only,
+// reads the request body up to maxBodyBytes, restores it for downstream
 // handlers, and stashes the raw bytes plus the original *http.Request in
 // the request context. The /v1/metadata dispatcher consumes the captured
 // bytes when falling back to the Hasura upstream proxy.
 //
+// maxBodyBytes <= 0 disables the cap (matching the proxy NoRoute path's
+// flag semantics). The cap MUST agree with the proxy fallback's cap: native
+// export_metadata has no real body, so the only request bodies hitting this
+// middleware are proxied ops (replace_metadata, bulk, …) whose acceptable
+// size is governed by --hasura-proxy-request-body-limit-bytes.
+//
 // Only POST /v1/metadata is matched: the same merged api router also serves
 // /healthz and /v1/version, which have no body and don't need this work.
-func CaptureRawBody(c *gin.Context) {
-	if c.Request.Method != http.MethodPost || c.Request.URL.Path != "/v1/metadata" {
-		return
-	}
+func NewCaptureRawBody(maxBodyBytes int64) gin.HandlerFunc {
+	return func(c *gin.Context) {
+		if c.Request.Method != http.MethodPost || c.Request.URL.Path != "/v1/metadata" {
+			return
+		}
 
-	if c.Request.ContentLength > metadataMaxBodyBytes {
-		_ = c.Error(
-			fmt.Errorf("%w: limit is %d bytes", errMetadataBodyTooLarge, metadataMaxBodyBytes),
-		)
-		c.AbortWithStatus(http.StatusRequestEntityTooLarge)
-
-		return
-	}
-
-	c.Request.Body = http.MaxBytesReader(c.Writer, c.Request.Body, metadataMaxBodyBytes)
-
-	raw, err := io.ReadAll(c.Request.Body)
-	if err != nil {
-		var maxBytesErr *http.MaxBytesError
-		if errors.As(err, &maxBytesErr) {
+		if maxBodyBytes > 0 && c.Request.ContentLength > maxBodyBytes {
 			_ = c.Error(
-				fmt.Errorf("%w: limit is %d bytes", errMetadataBodyTooLarge, metadataMaxBodyBytes),
+				fmt.Errorf("%w: limit is %d bytes", errMetadataBodyTooLarge, maxBodyBytes),
 			)
 			c.AbortWithStatus(http.StatusRequestEntityTooLarge)
 
 			return
 		}
 
-		_ = c.Error(fmt.Errorf("%w: %w", errMetadataBodyUnreadable, err))
-		c.AbortWithStatus(http.StatusBadRequest)
+		if maxBodyBytes > 0 {
+			c.Request.Body = http.MaxBytesReader(c.Writer, c.Request.Body, maxBodyBytes)
+		}
 
-		return
+		raw, err := io.ReadAll(c.Request.Body)
+		if err != nil {
+			var maxBytesErr *http.MaxBytesError
+			if errors.As(err, &maxBytesErr) {
+				_ = c.Error(
+					fmt.Errorf("%w: limit is %d bytes", errMetadataBodyTooLarge, maxBodyBytes),
+				)
+				c.AbortWithStatus(http.StatusRequestEntityTooLarge)
+
+				return
+			}
+
+			_ = c.Error(fmt.Errorf("%w: %w", errMetadataBodyUnreadable, err))
+			c.AbortWithStatus(http.StatusBadRequest)
+
+			return
+		}
+
+		c.Request.Body = io.NopCloser(bytes.NewReader(raw))
+
+		ctx := c.Request.Context()
+		ctx = context.WithValue(ctx, rawBodyCtxKey{}, raw)
+		ctx = context.WithValue(ctx, inboundRequestCtxKey{}, c.Request)
+		c.Request = c.Request.WithContext(ctx)
 	}
-
-	c.Request.Body = io.NopCloser(bytes.NewReader(raw))
-
-	ctx := c.Request.Context()
-	ctx = context.WithValue(ctx, rawBodyCtxKey{}, raw)
-	ctx = context.WithValue(ctx, inboundRequestCtxKey{}, c.Request)
-	c.Request = c.Request.WithContext(ctx)
 }
 
 func rawBodyFromContext(ctx context.Context) []byte {
@@ -103,26 +111,33 @@ func (c *Controller) MetadataRequest( //nolint:ireturn
 		), nil
 	}
 
+	// When a Hasura upstream is configured, every op — including
+	// export_metadata — is proxied to it. Serving export_metadata from
+	// the local cache while other ops (replace_metadata, pg_track_table, …)
+	// mutate Hasura via the proxy would let a client read a stale snapshot
+	// after its own write, breaking the export→edit→replace optimistic-
+	// concurrency cycle the CLI/dashboard rely on (stale resource_version
+	// → 409 conflict on the next replace).
+	if c.hasuraProxy != nil {
+		return metadataProxyResponse{
+			proxy:   c.hasuraProxy,
+			inbound: inboundRequestFromContext(ctx),
+			raw:     rawBodyFromContext(ctx),
+		}, nil
+	}
+
 	if req.Body.Type == metadataOpExportMetadata {
 		return c.exportMetadata()
 	}
 
-	if c.hasuraProxy == nil {
-		return metadataErrorResponse(
-			"not-supported",
-			fmt.Sprintf(
-				"metadata operation %q is not yet implemented and no Hasura upstream is configured",
-				req.Body.Type,
-			),
-			"$.args",
-		), nil
-	}
-
-	return metadataProxyResponse{
-		proxy:   c.hasuraProxy,
-		inbound: inboundRequestFromContext(ctx),
-		raw:     rawBodyFromContext(ctx),
-	}, nil
+	return metadataErrorResponse(
+		"not-supported",
+		fmt.Sprintf(
+			"metadata operation %q is not yet implemented and no Hasura upstream is configured",
+			req.Body.Type,
+		),
+		"$.args",
+	), nil
 }
 
 func (c *Controller) exportMetadata() (api.MetadataRequestResponseObject, error) { //nolint:ireturn
