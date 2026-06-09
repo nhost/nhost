@@ -22,3 +22,4 @@ This package is a SwiftPM library package exposing the public module `Nhost`.
 - Hand-written runtime APIs should remain small, `Sendable` where practical, and usable from generated code without Foundation dependencies beyond the package baseline.
 - REST clients use `NhostJSON.restEncoder` and `NhostJSON.restDecoder`; do not reuse that date strategy for arbitrary GraphQL or Functions user response decoding unless the caller explicitly opts in.
 - Tests should use `StubTransport` or custom `HTTPTransport` implementations rather than performing network I/O.
+- In async XCTest methods, await actor/storage values into local variables before passing them to `XCTAssert*`/`XCTUnwrap`; XCTest autoclosures are synchronous and reject `await` directly inside assertions.
