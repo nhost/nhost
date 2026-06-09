@@ -9,6 +9,7 @@ let
     gofumpt
     govulncheck
     govulncheck-wrapper
+    cacert
   ];
 
   dockerImageFn =
