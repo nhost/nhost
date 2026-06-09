@@ -4,7 +4,7 @@ import { PostgreSQL, sql } from '@codemirror/lang-sql';
 import { useTheme } from '@mui/material';
 import { githubDark, githubLight } from '@uiw/codemirror-theme-github';
 import CodeMirror from '@uiw/react-codemirror';
-import { InfoIcon, PlayIcon } from 'lucide-react';
+import { InfoIcon, PlayIcon, XIcon } from 'lucide-react';
 import { useCallback, useState } from 'react';
 import { useResizable } from 'react-resizable-layout';
 import { Pagination } from '@/components/common/Pagination';
@@ -12,6 +12,7 @@ import { ActivityIndicator } from '@/components/ui/v2/ActivityIndicator';
 import { Alert } from '@/components/ui/v2/Alert';
 import { Box } from '@/components/ui/v2/Box';
 import { Button } from '@/components/ui/v2/Button';
+import { IconButton } from '@/components/ui/v2/IconButton';
 import { Input } from '@/components/ui/v2/Input';
 import { Option } from '@/components/ui/v2/Option';
 import { Select } from '@/components/ui/v2/Select';
@@ -32,9 +33,18 @@ import {
 
 interface SQLEditorProps {
   initialSQL?: string;
+  /**
+   * When true, the results panel (and its resize handle) stays hidden until a
+   * query is running or has produced a result. Lets embedders in a constrained
+   * container give the editor the full height while there is nothing to show.
+   */
+  hideEmptyResults?: boolean;
 }
 
-export default function SQLEditor({ initialSQL }: SQLEditorProps) {
+export default function SQLEditor({
+  initialSQL,
+  hideEmptyResults = false,
+}: SQLEditorProps) {
   const theme = useTheme();
   const isPlatform = useIsPlatform();
 
@@ -45,16 +55,8 @@ export default function SQLEditor({ initialSQL }: SQLEditorProps) {
   const [isMigration, setIsMigration] = useState(false);
   const [migrationName, setMigrationName] = useState('');
 
-  const onChange = useCallback((value: string) => setSQLCode(value), []);
-
-  const { runSQL, loading, errorMessage, commandOk, rows, columns } = useRunSQL(
-    sqlCode,
-    track,
-    cascade,
-    readOnly,
-    isMigration,
-    migrationName,
-  );
+  const { runSQL, reset, loading, errorMessage, commandOk, rows, columns } =
+    useRunSQL(sqlCode, track, cascade, readOnly, isMigration, migrationName);
 
   const { position, separatorProps } = useResizable({
     axis: 'y',
@@ -73,6 +75,25 @@ export default function SQLEditor({ initialSQL }: SQLEditorProps) {
     goPrev,
     goNext,
   } = useSQLEditorPagination({ rows });
+
+  const hasResult =
+    loading || Boolean(errorMessage) || commandOk || columns.length > 0;
+  const showResults = !hideEmptyResults || hasResult;
+
+  const canDismissResults =
+    hideEmptyResults &&
+    !loading &&
+    (Boolean(errorMessage) || commandOk || columns.length > 0);
+
+  const onChange = useCallback(
+    (value: string) => {
+      setSQLCode(value);
+      if (canDismissResults) {
+        reset();
+      }
+    },
+    [canDismissResults, reset],
+  );
 
   return (
     <Box className="flex flex-1 flex-col justify-center overflow-hidden">
@@ -181,121 +202,144 @@ export default function SQLEditor({ initialSQL }: SQLEditorProps) {
         onChange={onChange}
       />
 
-      <Box
-        className="h-2 border-t hover:cursor-row-resize"
-        sx={{ background: theme.palette.background.default }}
-        {...separatorProps}
-      />
+      {showResults && (
+        <>
+          <Box
+            className="h-2 border-t hover:cursor-row-resize"
+            sx={{ background: theme.palette.background.default }}
+            {...separatorProps}
+          />
 
-      <Box className="flex flex-col overflow-auto" style={{ height: position }}>
-        {loading && (
-          <Box className="flex flex-1 items-center justify-center p-4">
-            <ActivityIndicator
-              circularProgressProps={{ className: 'w-5 h-5' }}
-            />
-          </Box>
-        )}
-
-        {errorMessage && (
-          <Box className="flex flex-1 items-center justify-center p-4">
-            <Alert
-              severity="error"
-              className="grid grid-flow-row place-content-center gap-2"
-            >
-              <code>{errorMessage}</code>
-            </Alert>
-          </Box>
-        )}
-
-        {!loading && !errorMessage && commandOk && rows.length === 0 && (
-          <Box className="flex flex-1 items-center justify-center p-4">
-            <Alert
-              severity="success"
-              className="grid grid-flow-row place-content-center gap-2"
-            >
-              <code>Success, no rows returned</code>
-            </Alert>
-          </Box>
-        )}
-
-        {!loading && !errorMessage && columns.length > 0 && (
-          <Box className="flex flex-1 flex-col overflow-hidden">
-            <Box className="flex-1 overflow-auto p-4">
-              <Table style={{ tableLayout: 'auto' }} className="w-auto">
-                <TableHead
-                  sx={{ background: theme.palette.background.default }}
+          <Box
+            className="flex flex-col overflow-auto"
+            style={{ height: position }}
+          >
+            {canDismissResults && (
+              <Box className="flex shrink-0 items-center justify-between border-b px-4 py-1">
+                <Text variant="subtitle2" className="text-xs" color="secondary">
+                  Result
+                </Text>
+                <IconButton
+                  variant="borderless"
+                  color="secondary"
+                  aria-label="Close results"
+                  onClick={reset}
                 >
-                  <TableRow>
-                    {columns.map((header) => (
-                      <TableCell
-                        key={header}
-                        scope="col"
-                        className="whitespace-nowrap border px-6 py-3 font-bold"
-                      >
-                        {header}
-                      </TableCell>
-                    ))}
-                  </TableRow>
-                </TableHead>
+                  <XIcon className="h-4 w-4" />
+                </IconButton>
+              </Box>
+            )}
 
-                <TableBody>
-                  {paginatedRows.map((row, rowIndex) => (
-                    <TableRow key={String(rowIndex)}>
-                      {row.map((value, valueIndex) => (
-                        <TableCell
-                          key={`${value}-${valueIndex}`}
-                          className="whitespace-nowrap border px-6 py-4"
-                        >
-                          {value}
-                        </TableCell>
-                      ))}
-                    </TableRow>
-                  ))}
-                </TableBody>
-              </Table>
-            </Box>
-
-            {rows.length > 0 && (
-              <Box className="flex shrink-0 items-center justify-between border-t px-4 py-1">
-                <Box className="flex items-center gap-2">
-                  <Text
-                    variant="subtitle2"
-                    className="whitespace-nowrap text-xs"
-                    color="secondary"
-                  >
-                    Rows per page
-                  </Text>
-                  <Select
-                    aria-label="Rows per page"
-                    value={limit}
-                    onChange={handleLimitChange}
-                    slotProps={{
-                      root: { className: 'h-5 min-w-[60px] text-xs' },
-                    }}
-                  >
-                    {PAGE_SIZE_OPTIONS.map((size) => (
-                      <Option key={size} value={size}>
-                        {size}
-                      </Option>
-                    ))}
-                  </Select>
-                </Box>
-
-                <Pagination
-                  totalNrOfPages={totalNrOfPages}
-                  currentPageNumber={currentPage}
-                  elementsPerPage={limit}
-                  totalNrOfElements={rows.length}
-                  itemsLabel="rows"
-                  onPrevPageClick={goPrev}
-                  onNextPageClick={goNext}
-                  onPageChange={setCurrentPage}
+            {loading && (
+              <Box className="flex flex-1 items-center justify-center p-4">
+                <ActivityIndicator
+                  circularProgressProps={{ className: 'w-5 h-5' }}
                 />
               </Box>
             )}
+
+            {errorMessage && (
+              <Box className="flex flex-1 items-center justify-center p-4">
+                <Alert
+                  severity="error"
+                  className="grid grid-flow-row place-content-center gap-2"
+                >
+                  <code>{errorMessage}</code>
+                </Alert>
+              </Box>
+            )}
+
+            {!loading && !errorMessage && commandOk && rows.length === 0 && (
+              <Box className="flex flex-1 items-center justify-center p-4">
+                <Alert
+                  severity="success"
+                  className="grid grid-flow-row place-content-center gap-2"
+                >
+                  <code>Success, no rows returned</code>
+                </Alert>
+              </Box>
+            )}
+
+            {!loading && !errorMessage && columns.length > 0 && (
+              <Box className="flex flex-1 flex-col overflow-hidden">
+                <Box className="flex-1 overflow-auto p-4">
+                  <Table style={{ tableLayout: 'auto' }} className="w-auto">
+                    <TableHead
+                      sx={{ background: theme.palette.background.default }}
+                    >
+                      <TableRow>
+                        {columns.map((header) => (
+                          <TableCell
+                            key={header}
+                            scope="col"
+                            className="whitespace-nowrap border px-6 py-3 font-bold"
+                          >
+                            {header}
+                          </TableCell>
+                        ))}
+                      </TableRow>
+                    </TableHead>
+
+                    <TableBody>
+                      {paginatedRows.map((row, rowIndex) => (
+                        <TableRow key={String(rowIndex)}>
+                          {row.map((value, valueIndex) => (
+                            <TableCell
+                              key={`${value}-${valueIndex}`}
+                              className="whitespace-nowrap border px-6 py-4"
+                            >
+                              {value}
+                            </TableCell>
+                          ))}
+                        </TableRow>
+                      ))}
+                    </TableBody>
+                  </Table>
+                </Box>
+
+                {rows.length > 0 && (
+                  <Box className="flex shrink-0 items-center justify-between border-t px-4 py-1">
+                    <Box className="flex items-center gap-2">
+                      <Text
+                        variant="subtitle2"
+                        className="whitespace-nowrap text-xs"
+                        color="secondary"
+                      >
+                        Rows per page
+                      </Text>
+                      <Select
+                        aria-label="Rows per page"
+                        value={limit}
+                        onChange={handleLimitChange}
+                        slotProps={{
+                          root: { className: 'h-5 min-w-[60px] text-xs' },
+                        }}
+                      >
+                        {PAGE_SIZE_OPTIONS.map((size) => (
+                          <Option key={size} value={size}>
+                            {size}
+                          </Option>
+                        ))}
+                      </Select>
+                    </Box>
+
+                    <Pagination
+                      totalNrOfPages={totalNrOfPages}
+                      currentPageNumber={currentPage}
+                      elementsPerPage={limit}
+                      totalNrOfElements={rows.length}
+                      itemsLabel="rows"
+                      onPrevPageClick={goPrev}
+                      onNextPageClick={goNext}
+                      onPageChange={setCurrentPage}
+                    />
+                  </Box>
+                )}
+              </Box>
+            )}
           </Box>
-        )}
-      </Box>
+        </>
+      )}
     </Box>
   );
 }

@@ -33,6 +33,10 @@ interface FormComboboxProps<
   emptyText?: ReactNode;
   options: ComboboxOption[];
   filter?: (value: string, search: string, keywords?: string[]) => number;
+  /**
+   * Fired after the field is updated with the newly selected value.
+   */
+  onChange?: (value: string) => void;
   'data-testid'?: string;
 }
 
@@ -53,6 +57,7 @@ export default function FormCombobox<
   emptyText,
   options,
   filter,
+  onChange: onChangeProp,
   'data-testid': dataTestId,
 }: FormComboboxProps<TFieldValues, TName>) {
   return (
@@ -86,7 +91,10 @@ export default function FormCombobox<
               <Combobox
                 ref={field.ref}
                 value={field.value ?? null}
-                onChange={field.onChange}
+                onChange={(next) => {
+                  field.onChange(next);
+                  onChangeProp?.(next);
+                }}
                 onBlur={field.onBlur}
                 options={options}
                 filter={filter}
