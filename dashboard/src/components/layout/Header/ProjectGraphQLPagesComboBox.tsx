@@ -1,6 +1,6 @@
 import { useRouter } from 'next/router';
 import { useMemo } from 'react';
-import { Combobox } from '@/components/ui/v3/combobox';
+import HeaderCombobox from '@/components/layout/Header/HeaderCombobox';
 
 const projectGraphQLPages = [
   {
@@ -47,12 +47,11 @@ export default function ProjectGraphQLPagesComboBox() {
   }));
 
   return (
-    <Combobox
+    <HeaderCombobox
       options={options}
       value={selectedGraphQLPage?.value ?? null}
       placeholder="Select a page"
       searchPlaceholder="Select a page..."
-      className="justify-start gap-2 bg-background text-foreground hover:bg-accent dark:hover:bg-muted"
       onChange={(value) => {
         const option = projectGraphQLPages.find((page) => page.value === value);
         if (option) {

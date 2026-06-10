@@ -1,6 +1,6 @@
 import { useRouter } from 'next/router';
 import { useMemo } from 'react';
-import { Combobox } from '@/components/ui/v3/combobox';
+import HeaderCombobox from '@/components/layout/Header/HeaderCombobox';
 import { useIsPlatform } from '@/features/orgs/projects/common/hooks/useIsPlatform';
 
 const orgPages = [
@@ -32,13 +32,12 @@ export default function OrgPagesComboBox() {
   }));
 
   return (
-    <Combobox
+    <HeaderCombobox
       options={options}
       value={selectedOrgPage?.value ?? null}
       placeholder="Select a page"
       searchPlaceholder="Select a page..."
       disabled={!isPlatform}
-      className="justify-start gap-2 bg-background text-foreground hover:bg-accent dark:hover:bg-muted"
       onChange={(value) => {
         push(`/orgs/${orgSlug}/${value}`);
       }}

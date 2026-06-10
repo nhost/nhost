@@ -1,6 +1,6 @@
 import { useRouter } from 'next/router';
+import HeaderCombobox from '@/components/layout/Header/HeaderCombobox';
 import { Badge } from '@/components/ui/v3/badge';
-import { Combobox } from '@/components/ui/v3/combobox';
 import { useIsPlatform } from '@/features/orgs/projects/common/hooks/useIsPlatform';
 import { useOrgs } from '@/features/orgs/projects/hooks/useOrgs';
 import { useSSRLocalStorage } from '@/hooks/useSSRLocalStorage';
@@ -60,13 +60,13 @@ export default function OrgsComboBox() {
   ) : null;
 
   return (
-    <Combobox
+    <HeaderCombobox
       options={options}
       value={selectedOrg?.slug ?? null}
       triggerLabel={triggerLabel}
       placeholder="Select organization"
       searchPlaceholder="Select organization..."
-      className="w-full justify-between gap-2 bg-background text-foreground hover:bg-accent dark:hover:bg-muted"
+      className="w-full justify-between"
       onChange={(slug) => {
         setLastSlug(slug);
         push(`/orgs/${slug}/projects`);

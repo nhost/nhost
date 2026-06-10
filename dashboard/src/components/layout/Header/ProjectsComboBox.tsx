@@ -1,8 +1,8 @@
 import { SiGithub } from '@icons-pack/react-simple-icons';
 import { Box } from 'lucide-react';
 import { useRouter } from 'next/router';
+import HeaderCombobox from '@/components/layout/Header/HeaderCombobox';
 import ProjectStatus from '@/components/layout/Header/ProjectStatus';
-import { Combobox } from '@/components/ui/v3/combobox';
 import {
   Tooltip,
   TooltipContent,
@@ -93,13 +93,12 @@ export default function ProjectsComboBox() {
 
   return (
     <div className="flex items-center gap-1">
-      <Combobox
+      <HeaderCombobox
         options={options}
         value={selectedProjectFromUrl?.subdomain ?? null}
         triggerLabel={triggerLabel}
         placeholder="Select a project"
         searchPlaceholder="Select a project..."
-        className="justify-start gap-2 bg-background text-foreground hover:bg-accent dark:hover:bg-muted"
         onChange={handleProjectSelect}
       />
     </div>
