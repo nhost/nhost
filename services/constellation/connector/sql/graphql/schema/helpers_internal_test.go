@@ -662,3 +662,140 @@ func TestParseDBKind(t *testing.T) {
 		})
 	}
 }
+
+func TestFunctionHasPermission(t *testing.T) {
+	t.Parallel()
+
+	adminRole := "admin"
+	userRole := "user"
+	anonymousRole := "anonymous"
+
+	baseTableWithUserPerm := &metadata.TableMetadata{
+		SelectPermissions: []metadata.SelectPermission{
+			{Role: userRole},
+		},
+	}
+
+	baseTableWithoutUserPerm := &metadata.TableMetadata{
+		SelectPermissions: []metadata.SelectPermission{
+			{Role: anonymousRole},
+		},
+	}
+
+	tests := []struct {
+		name          string
+		fnMeta        metadata.FunctionMetadata
+		fnInfo        introspection.Function
+		baseTableMeta *metadata.TableMetadata
+		role          string
+		expected      bool
+	}{
+		{
+			name:          "admin role always allowed",
+			fnMeta:        metadata.FunctionMetadata{},
+			fnInfo:        introspection.Function{Volatility: introspection.VolatilityVolatile},
+			baseTableMeta: baseTableWithoutUserPerm,
+			role:          adminRole,
+			expected:      true,
+		},
+		{
+			name:          "stable query function: returns true if role has select permission on base table",
+			fnMeta:        metadata.FunctionMetadata{},
+			fnInfo:        introspection.Function{Volatility: introspection.VolatilityStable},
+			baseTableMeta: baseTableWithUserPerm,
+			role:          userRole,
+			expected:      true,
+		},
+		{
+			name:          "stable query function: returns false if role does not have select permission on base table",
+			fnMeta:        metadata.FunctionMetadata{},
+			fnInfo:        introspection.Function{Volatility: introspection.VolatilityStable},
+			baseTableMeta: baseTableWithoutUserPerm,
+			role:          userRole,
+			expected:      false,
+		},
+		{
+			name:          "immutable query function: returns true if role has select permission on base table",
+			fnMeta:        metadata.FunctionMetadata{},
+			fnInfo:        introspection.Function{Volatility: introspection.VolatilityImmutable},
+			baseTableMeta: baseTableWithUserPerm,
+			role:          userRole,
+			expected:      true,
+		},
+		{
+			name: "volatile function exposed as query: returns true if role has select permission",
+			fnMeta: metadata.FunctionMetadata{
+				Configuration: metadata.FunctionConfiguration{ExposedAs: "query"},
+			},
+			fnInfo:        introspection.Function{Volatility: introspection.VolatilityVolatile},
+			baseTableMeta: baseTableWithUserPerm,
+			role:          userRole,
+			expected:      true,
+		},
+		{
+			name: "stable function exposed as mutation: requires explicit function permission and select permission",
+			fnMeta: metadata.FunctionMetadata{
+				Configuration: metadata.FunctionConfiguration{ExposedAs: "mutation"},
+				Permissions: []metadata.FunctionPermission{
+					{Role: userRole},
+				},
+			},
+			fnInfo:        introspection.Function{Volatility: introspection.VolatilityStable},
+			baseTableMeta: baseTableWithUserPerm,
+			role:          userRole,
+			expected:      true,
+		},
+		{
+			name: "volatile mutation function: returns true if role has function permission and select permission",
+			fnMeta: metadata.FunctionMetadata{
+				Permissions: []metadata.FunctionPermission{
+					{Role: userRole},
+				},
+			},
+			fnInfo:        introspection.Function{Volatility: introspection.VolatilityVolatile},
+			baseTableMeta: baseTableWithUserPerm,
+			role:          userRole,
+			expected:      true,
+		},
+		{
+			name: "volatile mutation function: returns false if role lacks function permission",
+			fnMeta: metadata.FunctionMetadata{
+				Permissions: []metadata.FunctionPermission{
+					{Role: anonymousRole},
+				},
+			},
+			fnInfo:        introspection.Function{Volatility: introspection.VolatilityVolatile},
+			baseTableMeta: baseTableWithUserPerm,
+			role:          userRole,
+			expected:      false,
+		},
+		{
+			name: "volatile mutation function: returns false if role lacks base table select permission",
+			fnMeta: metadata.FunctionMetadata{
+				Permissions: []metadata.FunctionPermission{
+					{Role: userRole},
+				},
+			},
+			fnInfo:        introspection.Function{Volatility: introspection.VolatilityVolatile},
+			baseTableMeta: baseTableWithoutUserPerm,
+			role:          userRole,
+			expected:      false,
+		},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			t.Parallel()
+
+			got := functionHasPermission(&tt.fnMeta, &tt.fnInfo, tt.baseTableMeta, tt.role)
+			if got != tt.expected {
+				t.Errorf(
+					"functionHasPermission(...) = %v, want %v",
+					got,
+					tt.expected,
+				)
+			}
+		})
+	}
+}
+
