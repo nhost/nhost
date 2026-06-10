@@ -31,7 +31,7 @@ func generateForFunction( //nolint:funlen
 		return
 	}
 
-	if !functionHasPermission(fnMeta, baseTableMeta, role) {
+	if !functionHasPermission(fnMeta, fnInfo, baseTableMeta, role) {
 		return
 	}
 
@@ -115,11 +115,27 @@ func generateForFunction( //nolint:funlen
 // For stable/immutable functions (queries), this inherits from the base table's select permissions.
 func functionHasPermission(
 	fnMeta *metadata.FunctionMetadata,
+	fnInfo *introspection.Function,
 	baseTableMeta *metadata.TableMetadata,
 	role string,
 ) bool {
 	if role == roleAdmin {
 		return true
+	}
+
+	// STABLE/IMMUTABLE functions default to query; VOLATILE defaults to mutation.
+	// The explicit ExposedAs override wins.
+	isQuery := fnInfo.Volatility == introspection.VolatilityStable ||
+		fnInfo.Volatility == introspection.VolatilityImmutable
+	switch fnMeta.Configuration.ExposedAs {
+	case "mutation":
+		isQuery = false
+	case "query":
+		isQuery = true
+	}
+
+	if isQuery {
+		return getSelectPermission(baseTableMeta, role) != nil
 	}
 
 	for _, perm := range fnMeta.Permissions {
