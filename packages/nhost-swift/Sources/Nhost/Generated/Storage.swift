@@ -8,7 +8,7 @@ import Foundation
 // Generated model namespace prefix: Storage
 
 /// Date in RFC 2822 format
-public typealias StorageRfc2822Date = String
+public typealias StorageRFC2822Date = String
 
 /// Error details.
 public struct StorageErrorResponseError: Codable, Sendable {
@@ -147,7 +147,7 @@ public struct StorageFileSummary: Codable, Sendable {
 }
 
 /// Contains a presigned URL for direct file operations.
-public struct StoragePresignedUrlResponse: Codable, Sendable {
+public struct StoragePresignedURLResponse: Codable, Sendable {
     /// The presigned URL for file operations.
     public let url: String
     /// The time in seconds until the URL expires.
@@ -365,6 +365,7 @@ public struct StorageGetFileHeaders: Sendable {
         self.ifUnmodifiedSince = ifUnmodifiedSince
     }
 }
+
 public struct StorageGetFileMetadataHeadersQuery: Sendable {
     public let b: Double?
     public let f: StorageOutputImageFormat?
@@ -405,6 +406,7 @@ public struct StorageGetFileMetadataHeadersHeaders: Sendable {
         self.ifUnmodifiedSince = ifUnmodifiedSince
     }
 }
+
 public struct StorageClient: Sendable {
     public let baseURL: URL
     private let fetch: FetchFunction
@@ -426,7 +428,8 @@ public struct StorageClient: Sendable {
     }
 
     public func uploadFiles(
-        body: StorageUploadFilesBody
+        body: StorageUploadFilesBody,
+        extraHeaders: [String: String] = [:]
     ) async throws -> NhostResponse<StorageUploadFilesResponse201> {
         let path = "/files"
         let url = NhostURLBuilder.url(baseURL: baseURL, path: path)
@@ -448,6 +451,9 @@ public struct StorageClient: Sendable {
         let multipartBody = NhostMultipartEncoder.encode(parts: parts)
         requestHeaders["content-type"] = multipartBody.contentType
         let requestBody = multipartBody.body
+        for (name, value) in extraHeaders {
+            requestHeaders[name.lowercased()] = value
+        }
         let request = NhostRequest(
             method: "POST",
             url: url,
@@ -460,15 +466,19 @@ public struct StorageClient: Sendable {
     }
 
     public func deleteFile(
-        id: String
+        id: String,
+        extraHeaders: [String: String] = [:]
     ) async throws -> NhostResponse<Void> {
         let idPath = try NhostURLBuilder.percentEncodePathSegment(NhostWireEncoder.string(id))
         let path = "/files/\(idPath)"
         let url = NhostURLBuilder.url(baseURL: baseURL, path: path)
-        let requestHeaders = [
+        var requestHeaders = [
             "accept": "application/json",
         ]
         let requestBody: Data? = nil
+        for (name, value) in extraHeaders {
+            requestHeaders[name.lowercased()] = value
+        }
         let request = NhostRequest(
             method: "DELETE",
             url: url,
@@ -483,7 +493,8 @@ public struct StorageClient: Sendable {
     public func getFile(
         id: String,
         query: StorageGetFileQuery? = nil,
-        headers: StorageGetFileHeaders? = nil
+        headers: StorageGetFileHeaders? = nil,
+        extraHeaders: [String: String] = [:]
     ) async throws -> NhostResponse<Data> {
         let idPath = try NhostURLBuilder.percentEncodePathSegment(NhostWireEncoder.string(id))
         let path = "/files/\(idPath)"
@@ -509,6 +520,9 @@ public struct StorageClient: Sendable {
             headerValues["if-unmodified-since"] = try headers.ifUnmodifiedSince.map { try NhostWireEncoder.jsonValue($0) }
         }
         requestHeaders = NhostHeaderEncoder.merge(base: requestHeaders, values: headerValues)
+        for (name, value) in extraHeaders {
+            requestHeaders[name.lowercased()] = value
+        }
         let request = NhostRequest(
             method: "GET",
             url: url,
@@ -523,7 +537,8 @@ public struct StorageClient: Sendable {
     public func getFileMetadataHeaders(
         id: String,
         query: StorageGetFileMetadataHeadersQuery? = nil,
-        headers: StorageGetFileMetadataHeadersHeaders? = nil
+        headers: StorageGetFileMetadataHeadersHeaders? = nil,
+        extraHeaders: [String: String] = [:]
     ) async throws -> NhostResponse<Void> {
         let idPath = try NhostURLBuilder.percentEncodePathSegment(NhostWireEncoder.string(id))
         let path = "/files/\(idPath)"
@@ -548,6 +563,9 @@ public struct StorageClient: Sendable {
             headerValues["if-unmodified-since"] = try headers.ifUnmodifiedSince.map { try NhostWireEncoder.jsonValue($0) }
         }
         requestHeaders = NhostHeaderEncoder.merge(base: requestHeaders, values: headerValues)
+        for (name, value) in extraHeaders {
+            requestHeaders[name.lowercased()] = value
+        }
         let request = NhostRequest(
             method: "HEAD",
             url: url,
@@ -561,7 +579,8 @@ public struct StorageClient: Sendable {
 
     public func replaceFile(
         id: String,
-        body: StorageReplaceFileBody
+        body: StorageReplaceFileBody,
+        extraHeaders: [String: String] = [:]
     ) async throws -> NhostResponse<StorageFileMetadata> {
         let idPath = try NhostURLBuilder.percentEncodePathSegment(NhostWireEncoder.string(id))
         let path = "/files/\(idPath)"
@@ -579,6 +598,9 @@ public struct StorageClient: Sendable {
         let multipartBody = NhostMultipartEncoder.encode(parts: parts)
         requestHeaders["content-type"] = multipartBody.contentType
         let requestBody = multipartBody.body
+        for (name, value) in extraHeaders {
+            requestHeaders[name.lowercased()] = value
+        }
         let request = NhostRequest(
             method: "PUT",
             url: url,
@@ -590,16 +612,20 @@ public struct StorageClient: Sendable {
         return try NhostHTTP.decodeResponse(StorageFileMetadata.self, from: response)
     }
 
-    public func getFilePresignedUrl(
-        id: String
-    ) async throws -> NhostResponse<StoragePresignedUrlResponse> {
+    public func getFilePresignedURL(
+        id: String,
+        extraHeaders: [String: String] = [:]
+    ) async throws -> NhostResponse<StoragePresignedURLResponse> {
         let idPath = try NhostURLBuilder.percentEncodePathSegment(NhostWireEncoder.string(id))
         let path = "/files/\(idPath)/presignedurl"
         let url = NhostURLBuilder.url(baseURL: baseURL, path: path)
-        let requestHeaders = [
+        var requestHeaders = [
             "accept": "application/json",
         ]
         let requestBody: Data? = nil
+        for (name, value) in extraHeaders {
+            requestHeaders[name.lowercased()] = value
+        }
         let request = NhostRequest(
             method: "GET",
             url: url,
@@ -608,16 +634,21 @@ public struct StorageClient: Sendable {
         )
         let response = try await fetch(request)
 
-        return try NhostHTTP.decodeResponse(StoragePresignedUrlResponse.self, from: response)
+        return try NhostHTTP.decodeResponse(StoragePresignedURLResponse.self, from: response)
     }
 
-    public func deleteBrokenMetadata() async throws -> NhostResponse<StorageDeleteBrokenMetadataResponse200> {
+    public func deleteBrokenMetadata(
+        extraHeaders: [String: String] = [:]
+    ) async throws -> NhostResponse<StorageDeleteBrokenMetadataResponse200> {
         let path = "/ops/delete-broken-metadata"
         let url = NhostURLBuilder.url(baseURL: baseURL, path: path)
-        let requestHeaders = [
+        var requestHeaders = [
             "accept": "application/json",
         ]
         let requestBody: Data? = nil
+        for (name, value) in extraHeaders {
+            requestHeaders[name.lowercased()] = value
+        }
         let request = NhostRequest(
             method: "POST",
             url: url,
@@ -629,13 +660,18 @@ public struct StorageClient: Sendable {
         return try NhostHTTP.decodeResponse(StorageDeleteBrokenMetadataResponse200.self, from: response)
     }
 
-    public func deleteOrphanedFiles() async throws -> NhostResponse<StorageDeleteOrphanedFilesResponse200> {
+    public func deleteOrphanedFiles(
+        extraHeaders: [String: String] = [:]
+    ) async throws -> NhostResponse<StorageDeleteOrphanedFilesResponse200> {
         let path = "/ops/delete-orphans"
         let url = NhostURLBuilder.url(baseURL: baseURL, path: path)
-        let requestHeaders = [
+        var requestHeaders = [
             "accept": "application/json",
         ]
         let requestBody: Data? = nil
+        for (name, value) in extraHeaders {
+            requestHeaders[name.lowercased()] = value
+        }
         let request = NhostRequest(
             method: "POST",
             url: url,
@@ -647,13 +683,18 @@ public struct StorageClient: Sendable {
         return try NhostHTTP.decodeResponse(StorageDeleteOrphanedFilesResponse200.self, from: response)
     }
 
-    public func listBrokenMetadata() async throws -> NhostResponse<StorageListBrokenMetadataResponse200> {
+    public func listBrokenMetadata(
+        extraHeaders: [String: String] = [:]
+    ) async throws -> NhostResponse<StorageListBrokenMetadataResponse200> {
         let path = "/ops/list-broken-metadata"
         let url = NhostURLBuilder.url(baseURL: baseURL, path: path)
-        let requestHeaders = [
+        var requestHeaders = [
             "accept": "application/json",
         ]
         let requestBody: Data? = nil
+        for (name, value) in extraHeaders {
+            requestHeaders[name.lowercased()] = value
+        }
         let request = NhostRequest(
             method: "POST",
             url: url,
@@ -665,13 +706,18 @@ public struct StorageClient: Sendable {
         return try NhostHTTP.decodeResponse(StorageListBrokenMetadataResponse200.self, from: response)
     }
 
-    public func listFilesNotUploaded() async throws -> NhostResponse<StorageListFilesNotUploadedResponse200> {
+    public func listFilesNotUploaded(
+        extraHeaders: [String: String] = [:]
+    ) async throws -> NhostResponse<StorageListFilesNotUploadedResponse200> {
         let path = "/ops/list-not-uploaded"
         let url = NhostURLBuilder.url(baseURL: baseURL, path: path)
-        let requestHeaders = [
+        var requestHeaders = [
             "accept": "application/json",
         ]
         let requestBody: Data? = nil
+        for (name, value) in extraHeaders {
+            requestHeaders[name.lowercased()] = value
+        }
         let request = NhostRequest(
             method: "POST",
             url: url,
@@ -683,13 +729,18 @@ public struct StorageClient: Sendable {
         return try NhostHTTP.decodeResponse(StorageListFilesNotUploadedResponse200.self, from: response)
     }
 
-    public func listOrphanedFiles() async throws -> NhostResponse<StorageListOrphanedFilesResponse200> {
+    public func listOrphanedFiles(
+        extraHeaders: [String: String] = [:]
+    ) async throws -> NhostResponse<StorageListOrphanedFilesResponse200> {
         let path = "/ops/list-orphans"
         let url = NhostURLBuilder.url(baseURL: baseURL, path: path)
-        let requestHeaders = [
+        var requestHeaders = [
             "accept": "application/json",
         ]
         let requestBody: Data? = nil
+        for (name, value) in extraHeaders {
+            requestHeaders[name.lowercased()] = value
+        }
         let request = NhostRequest(
             method: "POST",
             url: url,
@@ -701,13 +752,18 @@ public struct StorageClient: Sendable {
         return try NhostHTTP.decodeResponse(StorageListOrphanedFilesResponse200.self, from: response)
     }
 
-    public func getVersion() async throws -> NhostResponse<StorageVersionInformation> {
+    public func getVersion(
+        extraHeaders: [String: String] = [:]
+    ) async throws -> NhostResponse<StorageVersionInformation> {
         let path = "/version"
         let url = NhostURLBuilder.url(baseURL: baseURL, path: path)
-        let requestHeaders = [
+        var requestHeaders = [
             "accept": "application/json",
         ]
         let requestBody: Data? = nil
+        for (name, value) in extraHeaders {
+            requestHeaders[name.lowercased()] = value
+        }
         let request = NhostRequest(
             method: "GET",
             url: url,

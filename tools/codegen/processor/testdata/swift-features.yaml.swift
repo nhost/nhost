@@ -8,7 +8,7 @@ import Foundation
 // Generated model namespace prefix: Test
 
 /// Stable external identifier.
-public typealias TestExternalId = String
+public typealias TestExternalID = String
 
 /// RFC3339 timestamp.
 public typealias TestTimestamp = Date
@@ -90,7 +90,7 @@ public struct TestAccount: Codable, Sendable {
     public init(
         id: String,
         displayName: String? = nil,
-        requiredNullable: String? = nil,
+        requiredNullable: String?,
         `class`: String,
         createdAt: Date,
         avatar: Data,

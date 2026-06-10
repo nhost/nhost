@@ -40,7 +40,7 @@ public struct AuthAuthenticationExtensionsClientOutputs: Codable, Sendable {
 
 public struct AuthAuthenticatorAssertionResponse: Codable, Sendable {
     /// Base64url encoded client data JSON
-    public let clientDataJson: String
+    public let clientDataJSON: String
     /// Base64url encoded authenticator data
     public let authenticatorData: String
     /// Base64url encoded assertion signature
@@ -49,22 +49,15 @@ public struct AuthAuthenticatorAssertionResponse: Codable, Sendable {
     public let userHandle: String?
 
     public init(
-        clientDataJson: String,
+        clientDataJSON: String,
         authenticatorData: String,
         signature: String,
         userHandle: String? = nil
     ) {
-        self.clientDataJson = clientDataJson
+        self.clientDataJSON = clientDataJSON
         self.authenticatorData = authenticatorData
         self.signature = signature
         self.userHandle = userHandle
-    }
-
-    private enum CodingKeys: String, CodingKey {
-        case clientDataJson = "clientDataJSON"
-        case authenticatorData
-        case signature
-        case userHandle
     }
 }
 
@@ -76,7 +69,7 @@ public enum AuthAuthenticatorAttachment: String, Codable, Sendable {
 
 public struct AuthAuthenticatorAttestationResponse: Codable, Sendable {
     /// Base64url-encoded binary data
-    public let clientDataJson: String
+    public let clientDataJSON: String
     /// The authenticator transports
     public let transports: [String]?
     /// Base64url-encoded binary data
@@ -89,28 +82,19 @@ public struct AuthAuthenticatorAttestationResponse: Codable, Sendable {
     public let attestationObject: String
 
     public init(
-        clientDataJson: String,
+        clientDataJSON: String,
         transports: [String]? = nil,
         authenticatorData: String? = nil,
         publicKey: String? = nil,
         publicKeyAlgorithm: Int? = nil,
         attestationObject: String
     ) {
-        self.clientDataJson = clientDataJson
+        self.clientDataJSON = clientDataJSON
         self.transports = transports
         self.authenticatorData = authenticatorData
         self.publicKey = publicKey
         self.publicKeyAlgorithm = publicKeyAlgorithm
         self.attestationObject = attestationObject
-    }
-
-    private enum CodingKeys: String, CodingKey {
-        case clientDataJson = "clientDataJSON"
-        case transports
-        case authenticatorData
-        case publicKey
-        case publicKeyAlgorithm
-        case attestationObject
     }
 }
 
@@ -155,7 +139,7 @@ public enum AuthConveyancePreference: String, Codable, Sendable {
     case enterprise = "enterprise"
 }
 
-public struct AuthCreatePatRequest: Codable, Sendable {
+public struct AuthCreatePATRequest: Codable, Sendable {
     /// Expiration date of the PAT
     public let expiresAt: Date
     public let metadata: [String: JSONValue]?
@@ -169,7 +153,7 @@ public struct AuthCreatePatRequest: Codable, Sendable {
     }
 }
 
-public struct AuthCreatePatResponse: Codable, Sendable {
+public struct AuthCreatePATResponse: Codable, Sendable {
     /// ID of the PAT
     public let id: String
     /// PAT
@@ -338,7 +322,7 @@ public enum AuthIdTokenProvider: String, Codable, Sendable {
 }
 
 /// JSON Web Key for JWT verification
-public struct AuthJwk: Codable, Sendable {
+public struct AuthJWK: Codable, Sendable {
     /// Algorithm used with this key
     public let alg: String
     /// RSA public exponent
@@ -370,12 +354,12 @@ public struct AuthJwk: Codable, Sendable {
 }
 
 /// JSON Web Key Set for verifying JWT signatures
-public struct AuthJwkSet: Codable, Sendable {
+public struct AuthJWKSet: Codable, Sendable {
     /// Array of public keys
-    public let keys: [AuthJwk]
+    public let keys: [AuthJWK]
 
     public init(
-        keys: [AuthJwk]
+        keys: [AuthJWK]
     ) {
         self.keys = keys
     }
@@ -400,7 +384,7 @@ public struct AuthLinkIdTokenRequest: Codable, Sendable {
 }
 
 /// Challenge payload for multi-factor authentication
-public struct AuthMfaChallengePayload: Codable, Sendable {
+public struct AuthMFAChallengePayload: Codable, Sendable {
     /// Ticket to use when completing the MFA challenge
     public let ticket: String
 
@@ -411,7 +395,7 @@ public struct AuthMfaChallengePayload: Codable, Sendable {
     }
 }
 
-public enum AuthOkResponse: String, Codable, Sendable {
+public enum AuthOKResponse: String, Codable, Sendable {
     case ok = "OK"
 }
 
@@ -697,11 +681,11 @@ public struct AuthSignInEmailPasswordResponse: Codable, Sendable {
     /// User authentication session containing tokens and user information
     public let session: AuthSession?
     /// Challenge payload for multi-factor authentication
-    public let mfa: AuthMfaChallengePayload?
+    public let mfa: AuthMFAChallengePayload?
 
     public init(
         session: AuthSession? = nil,
-        mfa: AuthMfaChallengePayload? = nil
+        mfa: AuthMFAChallengePayload? = nil
     ) {
         self.session = session
         self.mfa = mfa
@@ -744,7 +728,7 @@ public struct AuthSignInMfaTotpRequest: Codable, Sendable {
     }
 }
 
-public struct AuthSignInOtpEmailRequest: Codable, Sendable {
+public struct AuthSignInOTPEmailRequest: Codable, Sendable {
     /// A valid email
     public let email: String
     public let options: AuthSignUpOptions?
@@ -758,7 +742,7 @@ public struct AuthSignInOtpEmailRequest: Codable, Sendable {
     }
 }
 
-public struct AuthSignInOtpEmailVerifyRequest: Codable, Sendable {
+public struct AuthSignInOTPEmailVerifyRequest: Codable, Sendable {
     /// One time password
     public let otp: String
     /// A valid email
@@ -773,7 +757,7 @@ public struct AuthSignInOtpEmailVerifyRequest: Codable, Sendable {
     }
 }
 
-public struct AuthSignInOtpEmailVerifyResponse: Codable, Sendable {
+public struct AuthSignInOTPEmailVerifyResponse: Codable, Sendable {
     /// User authentication session containing tokens and user information
     public let session: AuthSession?
 
@@ -784,7 +768,7 @@ public struct AuthSignInOtpEmailVerifyResponse: Codable, Sendable {
     }
 }
 
-public struct AuthSignInPatRequest: Codable, Sendable {
+public struct AuthSignInPATRequest: Codable, Sendable {
     /// PAT
     public let personalAccessToken: String
 
@@ -832,11 +816,11 @@ public struct AuthSignInPasswordlessSmsOtpResponse: Codable, Sendable {
     /// User authentication session containing tokens and user information
     public let session: AuthSession?
     /// Challenge payload for multi-factor authentication
-    public let mfa: AuthMfaChallengePayload?
+    public let mfa: AuthMFAChallengePayload?
 
     public init(
         session: AuthSession? = nil,
-        mfa: AuthMfaChallengePayload? = nil
+        mfa: AuthMFAChallengePayload? = nil
     ) {
         self.session = session
         self.mfa = mfa
@@ -875,7 +859,7 @@ public struct AuthSignUpPasswordlessEmailRequest: Codable, Sendable {
     }
 }
 
-public struct AuthSignUpOtpEmailRequest: Codable, Sendable {
+public struct AuthSignUpOTPEmailRequest: Codable, Sendable {
     /// A valid email
     public let email: String
     public let options: AuthSignUpOptions?
@@ -1081,7 +1065,7 @@ public struct AuthTotpGenerateResponse: Codable, Sendable {
 }
 
 /// Base64url-encoded binary data
-public typealias AuthUrlEncodedBase64 = String
+public typealias AuthURLEncodedBase64 = String
 
 /// User profile and account information
 public struct AuthUser: Codable, Sendable {
@@ -1565,11 +1549,11 @@ public struct AuthOAuth2UserinfoResponse: Codable, Sendable {
     }
 }
 
-public struct AuthOAuth2JwksResponse: Codable, Sendable {
-    public let keys: [AuthJwk]
+public struct AuthOAuth2JWKSResponse: Codable, Sendable {
+    public let keys: [AuthJWK]
 
     public init(
-        keys: [AuthJwk]
+        keys: [AuthJWK]
     ) {
         self.keys = keys
     }
@@ -1853,6 +1837,7 @@ public struct AuthSignInProviderQuery: Sendable {
         self.state = state
     }
 }
+
 public struct AuthSignUpProviderQuery: Sendable {
     public let allowedRoles: [String]?
     public let codeChallenge: String?
@@ -1886,6 +1871,7 @@ public struct AuthSignUpProviderQuery: Sendable {
         self.state = state
     }
 }
+
 public struct AuthVerifyTicketQuery: Sendable {
     public let codeChallenge: String?
     public let redirectTo: AuthRedirectToQuery
@@ -1904,6 +1890,7 @@ public struct AuthVerifyTicketQuery: Sendable {
         self.type = type
     }
 }
+
 public struct AuthOauth2AuthorizeQuery: Sendable {
     public let clientId: String
     public let codeChallenge: String?
@@ -1940,6 +1927,7 @@ public struct AuthOauth2AuthorizeQuery: Sendable {
         self.state = state
     }
 }
+
 public struct AuthOauth2LoginGetQuery: Sendable {
     public let requestId: String
 
@@ -1949,6 +1937,7 @@ public struct AuthOauth2LoginGetQuery: Sendable {
         self.requestId = requestId
     }
 }
+
 public struct AuthClient: Sendable {
     public let baseURL: URL
     private let fetch: FetchFunction
@@ -1969,13 +1958,18 @@ public struct AuthClient: Sendable {
         )
     }
 
-    public func getJwKs() async throws -> NhostResponse<AuthJwkSet> {
+    public func getJWKs(
+        extraHeaders: [String: String] = [:]
+    ) async throws -> NhostResponse<AuthJWKSet> {
         let path = "/.well-known/jwks.json"
         let url = NhostURLBuilder.url(baseURL: baseURL, path: path)
-        let requestHeaders = [
+        var requestHeaders = [
             "accept": "application/json",
         ]
         let requestBody: Data? = nil
+        for (name, value) in extraHeaders {
+            requestHeaders[name.lowercased()] = value
+        }
         let request = NhostRequest(
             method: "GET",
             url: url,
@@ -1984,16 +1978,21 @@ public struct AuthClient: Sendable {
         )
         let response = try await fetch(request)
 
-        return try NhostHTTP.decodeResponse(AuthJwkSet.self, from: response)
+        return try NhostHTTP.decodeResponse(AuthJWKSet.self, from: response)
     }
 
-    public func elevateWebauthn() async throws -> NhostResponse<AuthPublicKeyCredentialRequestOptions> {
+    public func elevateWebauthn(
+        extraHeaders: [String: String] = [:]
+    ) async throws -> NhostResponse<AuthPublicKeyCredentialRequestOptions> {
         let path = "/elevate/webauthn"
         let url = NhostURLBuilder.url(baseURL: baseURL, path: path)
-        let requestHeaders = [
+        var requestHeaders = [
             "accept": "application/json",
         ]
         let requestBody: Data? = nil
+        for (name, value) in extraHeaders {
+            requestHeaders[name.lowercased()] = value
+        }
         let request = NhostRequest(
             method: "POST",
             url: url,
@@ -2006,7 +2005,8 @@ public struct AuthClient: Sendable {
     }
 
     public func verifyElevateWebauthn(
-        body: AuthSignInWebauthnVerifyRequest
+        body: AuthSignInWebauthnVerifyRequest,
+        extraHeaders: [String: String] = [:]
     ) async throws -> NhostResponse<AuthSessionPayload> {
         let path = "/elevate/webauthn/verify"
         let url = NhostURLBuilder.url(baseURL: baseURL, path: path)
@@ -2015,6 +2015,9 @@ public struct AuthClient: Sendable {
         ]
         requestHeaders["content-type"] = "application/json"
         let requestBody = try NhostJSON.restEncoder.encode(body)
+        for (name, value) in extraHeaders {
+            requestHeaders[name.lowercased()] = value
+        }
         let request = NhostRequest(
             method: "POST",
             url: url,
@@ -2026,13 +2029,18 @@ public struct AuthClient: Sendable {
         return try NhostHTTP.decodeResponse(AuthSessionPayload.self, from: response)
     }
 
-    public func healthCheckGet() async throws -> NhostResponse<AuthOkResponse> {
+    public func healthCheckGet(
+        extraHeaders: [String: String] = [:]
+    ) async throws -> NhostResponse<AuthOKResponse> {
         let path = "/healthz"
         let url = NhostURLBuilder.url(baseURL: baseURL, path: path)
-        let requestHeaders = [
+        var requestHeaders = [
             "accept": "application/json",
         ]
         let requestBody: Data? = nil
+        for (name, value) in extraHeaders {
+            requestHeaders[name.lowercased()] = value
+        }
         let request = NhostRequest(
             method: "GET",
             url: url,
@@ -2041,16 +2049,21 @@ public struct AuthClient: Sendable {
         )
         let response = try await fetch(request)
 
-        return try NhostHTTP.decodeResponse(AuthOkResponse.self, from: response)
+        return try NhostHTTP.decodeResponse(AuthOKResponse.self, from: response)
     }
 
-    public func healthCheckHead() async throws -> NhostResponse<Void> {
+    public func healthCheckHead(
+        extraHeaders: [String: String] = [:]
+    ) async throws -> NhostResponse<Void> {
         let path = "/healthz"
         let url = NhostURLBuilder.url(baseURL: baseURL, path: path)
-        let requestHeaders = [
+        var requestHeaders = [
             "accept": "application/json",
         ]
         let requestBody: Data? = nil
+        for (name, value) in extraHeaders {
+            requestHeaders[name.lowercased()] = value
+        }
         let request = NhostRequest(
             method: "HEAD",
             url: url,
@@ -2063,8 +2076,9 @@ public struct AuthClient: Sendable {
     }
 
     public func linkIdToken(
-        body: AuthLinkIdTokenRequest
-    ) async throws -> NhostResponse<AuthOkResponse> {
+        body: AuthLinkIdTokenRequest,
+        extraHeaders: [String: String] = [:]
+    ) async throws -> NhostResponse<AuthOKResponse> {
         let path = "/link/idtoken"
         let url = NhostURLBuilder.url(baseURL: baseURL, path: path)
         var requestHeaders = [
@@ -2072,6 +2086,9 @@ public struct AuthClient: Sendable {
         ]
         requestHeaders["content-type"] = "application/json"
         let requestBody = try NhostJSON.restEncoder.encode(body)
+        for (name, value) in extraHeaders {
+            requestHeaders[name.lowercased()] = value
+        }
         let request = NhostRequest(
             method: "POST",
             url: url,
@@ -2080,16 +2097,21 @@ public struct AuthClient: Sendable {
         )
         let response = try await fetch(request)
 
-        return try NhostHTTP.decodeResponse(AuthOkResponse.self, from: response)
+        return try NhostHTTP.decodeResponse(AuthOKResponse.self, from: response)
     }
 
-    public func changeUserMfa() async throws -> NhostResponse<AuthTotpGenerateResponse> {
+    public func changeUserMfa(
+        extraHeaders: [String: String] = [:]
+    ) async throws -> NhostResponse<AuthTotpGenerateResponse> {
         let path = "/mfa/totp/generate"
         let url = NhostURLBuilder.url(baseURL: baseURL, path: path)
-        let requestHeaders = [
+        var requestHeaders = [
             "accept": "application/json",
         ]
         let requestBody: Data? = nil
+        for (name, value) in extraHeaders {
+            requestHeaders[name.lowercased()] = value
+        }
         let request = NhostRequest(
             method: "GET",
             url: url,
@@ -2101,9 +2123,10 @@ public struct AuthClient: Sendable {
         return try NhostHTTP.decodeResponse(AuthTotpGenerateResponse.self, from: response)
     }
 
-    public func createPat(
-        body: AuthCreatePatRequest
-    ) async throws -> NhostResponse<AuthCreatePatResponse> {
+    public func createPAT(
+        body: AuthCreatePATRequest,
+        extraHeaders: [String: String] = [:]
+    ) async throws -> NhostResponse<AuthCreatePATResponse> {
         let path = "/pat"
         let url = NhostURLBuilder.url(baseURL: baseURL, path: path)
         var requestHeaders = [
@@ -2111,6 +2134,9 @@ public struct AuthClient: Sendable {
         ]
         requestHeaders["content-type"] = "application/json"
         let requestBody = try NhostJSON.restEncoder.encode(body)
+        for (name, value) in extraHeaders {
+            requestHeaders[name.lowercased()] = value
+        }
         let request = NhostRequest(
             method: "POST",
             url: url,
@@ -2119,11 +2145,12 @@ public struct AuthClient: Sendable {
         )
         let response = try await fetch(request)
 
-        return try NhostHTTP.decodeResponse(AuthCreatePatResponse.self, from: response)
+        return try NhostHTTP.decodeResponse(AuthCreatePATResponse.self, from: response)
     }
 
     public func signInAnonymous(
-        body: AuthSignInAnonymousRequest? = nil
+        body: AuthSignInAnonymousRequest? = nil,
+        extraHeaders: [String: String] = [:]
     ) async throws -> NhostResponse<AuthSessionPayload> {
         let path = "/signin/anonymous"
         let url = NhostURLBuilder.url(baseURL: baseURL, path: path)
@@ -2133,6 +2160,9 @@ public struct AuthClient: Sendable {
         let requestBody = try body.map { try NhostJSON.restEncoder.encode($0) }
         if requestBody != nil {
             requestHeaders["content-type"] = "application/json"
+        }
+        for (name, value) in extraHeaders {
+            requestHeaders[name.lowercased()] = value
         }
         let request = NhostRequest(
             method: "POST",
@@ -2146,7 +2176,8 @@ public struct AuthClient: Sendable {
     }
 
     public func signInEmailPassword(
-        body: AuthSignInEmailPasswordRequest
+        body: AuthSignInEmailPasswordRequest,
+        extraHeaders: [String: String] = [:]
     ) async throws -> NhostResponse<AuthSignInEmailPasswordResponse> {
         let path = "/signin/email-password"
         let url = NhostURLBuilder.url(baseURL: baseURL, path: path)
@@ -2155,6 +2186,9 @@ public struct AuthClient: Sendable {
         ]
         requestHeaders["content-type"] = "application/json"
         let requestBody = try NhostJSON.restEncoder.encode(body)
+        for (name, value) in extraHeaders {
+            requestHeaders[name.lowercased()] = value
+        }
         let request = NhostRequest(
             method: "POST",
             url: url,
@@ -2167,7 +2201,8 @@ public struct AuthClient: Sendable {
     }
 
     public func signInIdToken(
-        body: AuthSignInIdTokenRequest
+        body: AuthSignInIdTokenRequest,
+        extraHeaders: [String: String] = [:]
     ) async throws -> NhostResponse<AuthSessionPayload> {
         let path = "/signin/idtoken"
         let url = NhostURLBuilder.url(baseURL: baseURL, path: path)
@@ -2176,6 +2211,9 @@ public struct AuthClient: Sendable {
         ]
         requestHeaders["content-type"] = "application/json"
         let requestBody = try NhostJSON.restEncoder.encode(body)
+        for (name, value) in extraHeaders {
+            requestHeaders[name.lowercased()] = value
+        }
         let request = NhostRequest(
             method: "POST",
             url: url,
@@ -2188,7 +2226,8 @@ public struct AuthClient: Sendable {
     }
 
     public func verifySignInMfaTotp(
-        body: AuthSignInMfaTotpRequest
+        body: AuthSignInMfaTotpRequest,
+        extraHeaders: [String: String] = [:]
     ) async throws -> NhostResponse<AuthSessionPayload> {
         let path = "/signin/mfa/totp"
         let url = NhostURLBuilder.url(baseURL: baseURL, path: path)
@@ -2197,6 +2236,9 @@ public struct AuthClient: Sendable {
         ]
         requestHeaders["content-type"] = "application/json"
         let requestBody = try NhostJSON.restEncoder.encode(body)
+        for (name, value) in extraHeaders {
+            requestHeaders[name.lowercased()] = value
+        }
         let request = NhostRequest(
             method: "POST",
             url: url,
@@ -2208,9 +2250,10 @@ public struct AuthClient: Sendable {
         return try NhostHTTP.decodeResponse(AuthSessionPayload.self, from: response)
     }
 
-    public func signInOtpEmail(
-        body: AuthSignInOtpEmailRequest
-    ) async throws -> NhostResponse<AuthOkResponse> {
+    public func signInOTPEmail(
+        body: AuthSignInOTPEmailRequest,
+        extraHeaders: [String: String] = [:]
+    ) async throws -> NhostResponse<AuthOKResponse> {
         let path = "/signin/otp/email"
         let url = NhostURLBuilder.url(baseURL: baseURL, path: path)
         var requestHeaders = [
@@ -2218,6 +2261,9 @@ public struct AuthClient: Sendable {
         ]
         requestHeaders["content-type"] = "application/json"
         let requestBody = try NhostJSON.restEncoder.encode(body)
+        for (name, value) in extraHeaders {
+            requestHeaders[name.lowercased()] = value
+        }
         let request = NhostRequest(
             method: "POST",
             url: url,
@@ -2226,12 +2272,13 @@ public struct AuthClient: Sendable {
         )
         let response = try await fetch(request)
 
-        return try NhostHTTP.decodeResponse(AuthOkResponse.self, from: response)
+        return try NhostHTTP.decodeResponse(AuthOKResponse.self, from: response)
     }
 
-    public func verifySignInOtpEmail(
-        body: AuthSignInOtpEmailVerifyRequest
-    ) async throws -> NhostResponse<AuthSignInOtpEmailVerifyResponse> {
+    public func verifySignInOTPEmail(
+        body: AuthSignInOTPEmailVerifyRequest,
+        extraHeaders: [String: String] = [:]
+    ) async throws -> NhostResponse<AuthSignInOTPEmailVerifyResponse> {
         let path = "/signin/otp/email/verify"
         let url = NhostURLBuilder.url(baseURL: baseURL, path: path)
         var requestHeaders = [
@@ -2239,6 +2286,9 @@ public struct AuthClient: Sendable {
         ]
         requestHeaders["content-type"] = "application/json"
         let requestBody = try NhostJSON.restEncoder.encode(body)
+        for (name, value) in extraHeaders {
+            requestHeaders[name.lowercased()] = value
+        }
         let request = NhostRequest(
             method: "POST",
             url: url,
@@ -2247,12 +2297,13 @@ public struct AuthClient: Sendable {
         )
         let response = try await fetch(request)
 
-        return try NhostHTTP.decodeResponse(AuthSignInOtpEmailVerifyResponse.self, from: response)
+        return try NhostHTTP.decodeResponse(AuthSignInOTPEmailVerifyResponse.self, from: response)
     }
 
     public func signInPasswordlessEmail(
-        body: AuthSignInPasswordlessEmailRequest
-    ) async throws -> NhostResponse<AuthOkResponse> {
+        body: AuthSignInPasswordlessEmailRequest,
+        extraHeaders: [String: String] = [:]
+    ) async throws -> NhostResponse<AuthOKResponse> {
         let path = "/signin/passwordless/email"
         let url = NhostURLBuilder.url(baseURL: baseURL, path: path)
         var requestHeaders = [
@@ -2260,6 +2311,9 @@ public struct AuthClient: Sendable {
         ]
         requestHeaders["content-type"] = "application/json"
         let requestBody = try NhostJSON.restEncoder.encode(body)
+        for (name, value) in extraHeaders {
+            requestHeaders[name.lowercased()] = value
+        }
         let request = NhostRequest(
             method: "POST",
             url: url,
@@ -2268,12 +2322,13 @@ public struct AuthClient: Sendable {
         )
         let response = try await fetch(request)
 
-        return try NhostHTTP.decodeResponse(AuthOkResponse.self, from: response)
+        return try NhostHTTP.decodeResponse(AuthOKResponse.self, from: response)
     }
 
     public func signInPasswordlessSms(
-        body: AuthSignInPasswordlessSmsRequest
-    ) async throws -> NhostResponse<AuthOkResponse> {
+        body: AuthSignInPasswordlessSmsRequest,
+        extraHeaders: [String: String] = [:]
+    ) async throws -> NhostResponse<AuthOKResponse> {
         let path = "/signin/passwordless/sms"
         let url = NhostURLBuilder.url(baseURL: baseURL, path: path)
         var requestHeaders = [
@@ -2281,6 +2336,9 @@ public struct AuthClient: Sendable {
         ]
         requestHeaders["content-type"] = "application/json"
         let requestBody = try NhostJSON.restEncoder.encode(body)
+        for (name, value) in extraHeaders {
+            requestHeaders[name.lowercased()] = value
+        }
         let request = NhostRequest(
             method: "POST",
             url: url,
@@ -2289,11 +2347,12 @@ public struct AuthClient: Sendable {
         )
         let response = try await fetch(request)
 
-        return try NhostHTTP.decodeResponse(AuthOkResponse.self, from: response)
+        return try NhostHTTP.decodeResponse(AuthOKResponse.self, from: response)
     }
 
     public func verifySignInPasswordlessSms(
-        body: AuthSignInPasswordlessSmsOtpRequest
+        body: AuthSignInPasswordlessSmsOtpRequest,
+        extraHeaders: [String: String] = [:]
     ) async throws -> NhostResponse<AuthSignInPasswordlessSmsOtpResponse> {
         let path = "/signin/passwordless/sms/otp"
         let url = NhostURLBuilder.url(baseURL: baseURL, path: path)
@@ -2302,6 +2361,9 @@ public struct AuthClient: Sendable {
         ]
         requestHeaders["content-type"] = "application/json"
         let requestBody = try NhostJSON.restEncoder.encode(body)
+        for (name, value) in extraHeaders {
+            requestHeaders[name.lowercased()] = value
+        }
         let request = NhostRequest(
             method: "POST",
             url: url,
@@ -2313,8 +2375,9 @@ public struct AuthClient: Sendable {
         return try NhostHTTP.decodeResponse(AuthSignInPasswordlessSmsOtpResponse.self, from: response)
     }
 
-    public func signInPat(
-        body: AuthSignInPatRequest
+    public func signInPAT(
+        body: AuthSignInPATRequest,
+        extraHeaders: [String: String] = [:]
     ) async throws -> NhostResponse<AuthSessionPayload> {
         let path = "/signin/pat"
         let url = NhostURLBuilder.url(baseURL: baseURL, path: path)
@@ -2323,6 +2386,9 @@ public struct AuthClient: Sendable {
         ]
         requestHeaders["content-type"] = "application/json"
         let requestBody = try NhostJSON.restEncoder.encode(body)
+        for (name, value) in extraHeaders {
+            requestHeaders[name.lowercased()] = value
+        }
         let request = NhostRequest(
             method: "POST",
             url: url,
@@ -2360,15 +2426,19 @@ public struct AuthClient: Sendable {
     }
 
     public func getProviderTokens(
-        provider: AuthSignInProvider
+        provider: AuthSignInProvider,
+        extraHeaders: [String: String] = [:]
     ) async throws -> NhostResponse<AuthProviderSession> {
         let providerPath = try NhostURLBuilder.percentEncodePathSegment(NhostWireEncoder.string(provider))
         let path = "/signin/provider/\(providerPath)/callback/tokens"
         let url = NhostURLBuilder.url(baseURL: baseURL, path: path)
-        let requestHeaders = [
+        var requestHeaders = [
             "accept": "application/json",
         ]
         let requestBody: Data? = nil
+        for (name, value) in extraHeaders {
+            requestHeaders[name.lowercased()] = value
+        }
         let request = NhostRequest(
             method: "GET",
             url: url,
@@ -2381,7 +2451,8 @@ public struct AuthClient: Sendable {
     }
 
     public func signInWebauthn(
-        body: AuthSignInWebauthnRequest? = nil
+        body: AuthSignInWebauthnRequest? = nil,
+        extraHeaders: [String: String] = [:]
     ) async throws -> NhostResponse<AuthPublicKeyCredentialRequestOptions> {
         let path = "/signin/webauthn"
         let url = NhostURLBuilder.url(baseURL: baseURL, path: path)
@@ -2391,6 +2462,9 @@ public struct AuthClient: Sendable {
         let requestBody = try body.map { try NhostJSON.restEncoder.encode($0) }
         if requestBody != nil {
             requestHeaders["content-type"] = "application/json"
+        }
+        for (name, value) in extraHeaders {
+            requestHeaders[name.lowercased()] = value
         }
         let request = NhostRequest(
             method: "POST",
@@ -2404,7 +2478,8 @@ public struct AuthClient: Sendable {
     }
 
     public func verifySignInWebauthn(
-        body: AuthSignInWebauthnVerifyRequest
+        body: AuthSignInWebauthnVerifyRequest,
+        extraHeaders: [String: String] = [:]
     ) async throws -> NhostResponse<AuthSessionPayload> {
         let path = "/signin/webauthn/verify"
         let url = NhostURLBuilder.url(baseURL: baseURL, path: path)
@@ -2413,6 +2488,9 @@ public struct AuthClient: Sendable {
         ]
         requestHeaders["content-type"] = "application/json"
         let requestBody = try NhostJSON.restEncoder.encode(body)
+        for (name, value) in extraHeaders {
+            requestHeaders[name.lowercased()] = value
+        }
         let request = NhostRequest(
             method: "POST",
             url: url,
@@ -2425,8 +2503,9 @@ public struct AuthClient: Sendable {
     }
 
     public func signOut(
-        body: AuthSignOutRequest
-    ) async throws -> NhostResponse<AuthOkResponse> {
+        body: AuthSignOutRequest,
+        extraHeaders: [String: String] = [:]
+    ) async throws -> NhostResponse<AuthOKResponse> {
         let path = "/signout"
         let url = NhostURLBuilder.url(baseURL: baseURL, path: path)
         var requestHeaders = [
@@ -2434,6 +2513,9 @@ public struct AuthClient: Sendable {
         ]
         requestHeaders["content-type"] = "application/json"
         let requestBody = try NhostJSON.restEncoder.encode(body)
+        for (name, value) in extraHeaders {
+            requestHeaders[name.lowercased()] = value
+        }
         let request = NhostRequest(
             method: "POST",
             url: url,
@@ -2442,11 +2524,12 @@ public struct AuthClient: Sendable {
         )
         let response = try await fetch(request)
 
-        return try NhostHTTP.decodeResponse(AuthOkResponse.self, from: response)
+        return try NhostHTTP.decodeResponse(AuthOKResponse.self, from: response)
     }
 
     public func signUpEmailPassword(
-        body: AuthSignUpEmailPasswordRequest
+        body: AuthSignUpEmailPasswordRequest,
+        extraHeaders: [String: String] = [:]
     ) async throws -> NhostResponse<AuthSessionPayload> {
         let path = "/signup/email-password"
         let url = NhostURLBuilder.url(baseURL: baseURL, path: path)
@@ -2455,6 +2538,9 @@ public struct AuthClient: Sendable {
         ]
         requestHeaders["content-type"] = "application/json"
         let requestBody = try NhostJSON.restEncoder.encode(body)
+        for (name, value) in extraHeaders {
+            requestHeaders[name.lowercased()] = value
+        }
         let request = NhostRequest(
             method: "POST",
             url: url,
@@ -2467,7 +2553,8 @@ public struct AuthClient: Sendable {
     }
 
     public func signUpWebauthn(
-        body: AuthSignUpWebauthnRequest
+        body: AuthSignUpWebauthnRequest,
+        extraHeaders: [String: String] = [:]
     ) async throws -> NhostResponse<AuthPublicKeyCredentialCreationOptions> {
         let path = "/signup/webauthn"
         let url = NhostURLBuilder.url(baseURL: baseURL, path: path)
@@ -2476,6 +2563,9 @@ public struct AuthClient: Sendable {
         ]
         requestHeaders["content-type"] = "application/json"
         let requestBody = try NhostJSON.restEncoder.encode(body)
+        for (name, value) in extraHeaders {
+            requestHeaders[name.lowercased()] = value
+        }
         let request = NhostRequest(
             method: "POST",
             url: url,
@@ -2488,7 +2578,8 @@ public struct AuthClient: Sendable {
     }
 
     public func verifySignUpWebauthn(
-        body: AuthSignUpWebauthnVerifyRequest
+        body: AuthSignUpWebauthnVerifyRequest,
+        extraHeaders: [String: String] = [:]
     ) async throws -> NhostResponse<AuthSessionPayload> {
         let path = "/signup/webauthn/verify"
         let url = NhostURLBuilder.url(baseURL: baseURL, path: path)
@@ -2497,6 +2588,9 @@ public struct AuthClient: Sendable {
         ]
         requestHeaders["content-type"] = "application/json"
         let requestBody = try NhostJSON.restEncoder.encode(body)
+        for (name, value) in extraHeaders {
+            requestHeaders[name.lowercased()] = value
+        }
         let request = NhostRequest(
             method: "POST",
             url: url,
@@ -2509,8 +2603,9 @@ public struct AuthClient: Sendable {
     }
 
     public func signUpPasswordlessEmail(
-        body: AuthSignUpPasswordlessEmailRequest
-    ) async throws -> NhostResponse<AuthOkResponse> {
+        body: AuthSignUpPasswordlessEmailRequest,
+        extraHeaders: [String: String] = [:]
+    ) async throws -> NhostResponse<AuthOKResponse> {
         let path = "/signup/passwordless/email"
         let url = NhostURLBuilder.url(baseURL: baseURL, path: path)
         var requestHeaders = [
@@ -2518,6 +2613,9 @@ public struct AuthClient: Sendable {
         ]
         requestHeaders["content-type"] = "application/json"
         let requestBody = try NhostJSON.restEncoder.encode(body)
+        for (name, value) in extraHeaders {
+            requestHeaders[name.lowercased()] = value
+        }
         let request = NhostRequest(
             method: "POST",
             url: url,
@@ -2526,12 +2624,13 @@ public struct AuthClient: Sendable {
         )
         let response = try await fetch(request)
 
-        return try NhostHTTP.decodeResponse(AuthOkResponse.self, from: response)
+        return try NhostHTTP.decodeResponse(AuthOKResponse.self, from: response)
     }
 
-    public func signUpOtpEmail(
-        body: AuthSignUpOtpEmailRequest
-    ) async throws -> NhostResponse<AuthOkResponse> {
+    public func signUpOTPEmail(
+        body: AuthSignUpOTPEmailRequest,
+        extraHeaders: [String: String] = [:]
+    ) async throws -> NhostResponse<AuthOKResponse> {
         let path = "/signup/otp/email"
         let url = NhostURLBuilder.url(baseURL: baseURL, path: path)
         var requestHeaders = [
@@ -2539,6 +2638,9 @@ public struct AuthClient: Sendable {
         ]
         requestHeaders["content-type"] = "application/json"
         let requestBody = try NhostJSON.restEncoder.encode(body)
+        for (name, value) in extraHeaders {
+            requestHeaders[name.lowercased()] = value
+        }
         let request = NhostRequest(
             method: "POST",
             url: url,
@@ -2547,12 +2649,13 @@ public struct AuthClient: Sendable {
         )
         let response = try await fetch(request)
 
-        return try NhostHTTP.decodeResponse(AuthOkResponse.self, from: response)
+        return try NhostHTTP.decodeResponse(AuthOKResponse.self, from: response)
     }
 
     public func signUpPasswordlessSms(
-        body: AuthSignUpPasswordlessSmsRequest
-    ) async throws -> NhostResponse<AuthOkResponse> {
+        body: AuthSignUpPasswordlessSmsRequest,
+        extraHeaders: [String: String] = [:]
+    ) async throws -> NhostResponse<AuthOKResponse> {
         let path = "/signup/passwordless/sms"
         let url = NhostURLBuilder.url(baseURL: baseURL, path: path)
         var requestHeaders = [
@@ -2560,6 +2663,9 @@ public struct AuthClient: Sendable {
         ]
         requestHeaders["content-type"] = "application/json"
         let requestBody = try NhostJSON.restEncoder.encode(body)
+        for (name, value) in extraHeaders {
+            requestHeaders[name.lowercased()] = value
+        }
         let request = NhostRequest(
             method: "POST",
             url: url,
@@ -2568,11 +2674,12 @@ public struct AuthClient: Sendable {
         )
         let response = try await fetch(request)
 
-        return try NhostHTTP.decodeResponse(AuthOkResponse.self, from: response)
+        return try NhostHTTP.decodeResponse(AuthOKResponse.self, from: response)
     }
 
     public func signUpIdToken(
-        body: AuthSignUpIdTokenRequest
+        body: AuthSignUpIdTokenRequest,
+        extraHeaders: [String: String] = [:]
     ) async throws -> NhostResponse<AuthSessionPayload> {
         let path = "/signup/idtoken"
         let url = NhostURLBuilder.url(baseURL: baseURL, path: path)
@@ -2581,6 +2688,9 @@ public struct AuthClient: Sendable {
         ]
         requestHeaders["content-type"] = "application/json"
         let requestBody = try NhostJSON.restEncoder.encode(body)
+        for (name, value) in extraHeaders {
+            requestHeaders[name.lowercased()] = value
+        }
         let request = NhostRequest(
             method: "POST",
             url: url,
@@ -2617,7 +2727,8 @@ public struct AuthClient: Sendable {
     }
 
     public func refreshToken(
-        body: AuthRefreshTokenRequest
+        body: AuthRefreshTokenRequest,
+        extraHeaders: [String: String] = [:]
     ) async throws -> NhostResponse<AuthSession> {
         let path = "/token"
         let url = NhostURLBuilder.url(baseURL: baseURL, path: path)
@@ -2626,6 +2737,9 @@ public struct AuthClient: Sendable {
         ]
         requestHeaders["content-type"] = "application/json"
         let requestBody = try NhostJSON.restEncoder.encode(body)
+        for (name, value) in extraHeaders {
+            requestHeaders[name.lowercased()] = value
+        }
         let request = NhostRequest(
             method: "POST",
             url: url,
@@ -2639,7 +2753,8 @@ public struct AuthClient: Sendable {
 
     public func refreshProviderToken(
         provider: AuthSignInProvider,
-        body: AuthRefreshProviderTokenRequest
+        body: AuthRefreshProviderTokenRequest,
+        extraHeaders: [String: String] = [:]
     ) async throws -> NhostResponse<AuthProviderSession> {
         let providerPath = try NhostURLBuilder.percentEncodePathSegment(NhostWireEncoder.string(provider))
         let path = "/token/provider/\(providerPath)"
@@ -2649,6 +2764,9 @@ public struct AuthClient: Sendable {
         ]
         requestHeaders["content-type"] = "application/json"
         let requestBody = try NhostJSON.restEncoder.encode(body)
+        for (name, value) in extraHeaders {
+            requestHeaders[name.lowercased()] = value
+        }
         let request = NhostRequest(
             method: "POST",
             url: url,
@@ -2661,7 +2779,8 @@ public struct AuthClient: Sendable {
     }
 
     public func verifyToken(
-        body: AuthVerifyTokenRequest? = nil
+        body: AuthVerifyTokenRequest? = nil,
+        extraHeaders: [String: String] = [:]
     ) async throws -> NhostResponse<String> {
         let path = "/token/verify"
         let url = NhostURLBuilder.url(baseURL: baseURL, path: path)
@@ -2671,6 +2790,9 @@ public struct AuthClient: Sendable {
         let requestBody = try body.map { try NhostJSON.restEncoder.encode($0) }
         if requestBody != nil {
             requestHeaders["content-type"] = "application/json"
+        }
+        for (name, value) in extraHeaders {
+            requestHeaders[name.lowercased()] = value
         }
         let request = NhostRequest(
             method: "POST",
@@ -2683,13 +2805,18 @@ public struct AuthClient: Sendable {
         return try NhostHTTP.decodeResponse(String.self, from: response)
     }
 
-    public func getUser() async throws -> NhostResponse<AuthUser> {
+    public func getUser(
+        extraHeaders: [String: String] = [:]
+    ) async throws -> NhostResponse<AuthUser> {
         let path = "/user"
         let url = NhostURLBuilder.url(baseURL: baseURL, path: path)
-        let requestHeaders = [
+        var requestHeaders = [
             "accept": "application/json",
         ]
         let requestBody: Data? = nil
+        for (name, value) in extraHeaders {
+            requestHeaders[name.lowercased()] = value
+        }
         let request = NhostRequest(
             method: "GET",
             url: url,
@@ -2702,8 +2829,9 @@ public struct AuthClient: Sendable {
     }
 
     public func deanonymizeUser(
-        body: AuthUserDeanonymizeRequest
-    ) async throws -> NhostResponse<AuthOkResponse> {
+        body: AuthUserDeanonymizeRequest,
+        extraHeaders: [String: String] = [:]
+    ) async throws -> NhostResponse<AuthOKResponse> {
         let path = "/user/deanonymize"
         let url = NhostURLBuilder.url(baseURL: baseURL, path: path)
         var requestHeaders = [
@@ -2711,6 +2839,9 @@ public struct AuthClient: Sendable {
         ]
         requestHeaders["content-type"] = "application/json"
         let requestBody = try NhostJSON.restEncoder.encode(body)
+        for (name, value) in extraHeaders {
+            requestHeaders[name.lowercased()] = value
+        }
         let request = NhostRequest(
             method: "POST",
             url: url,
@@ -2719,12 +2850,13 @@ public struct AuthClient: Sendable {
         )
         let response = try await fetch(request)
 
-        return try NhostHTTP.decodeResponse(AuthOkResponse.self, from: response)
+        return try NhostHTTP.decodeResponse(AuthOKResponse.self, from: response)
     }
 
     public func changeUserEmail(
-        body: AuthUserEmailChangeRequest
-    ) async throws -> NhostResponse<AuthOkResponse> {
+        body: AuthUserEmailChangeRequest,
+        extraHeaders: [String: String] = [:]
+    ) async throws -> NhostResponse<AuthOKResponse> {
         let path = "/user/email/change"
         let url = NhostURLBuilder.url(baseURL: baseURL, path: path)
         var requestHeaders = [
@@ -2732,6 +2864,9 @@ public struct AuthClient: Sendable {
         ]
         requestHeaders["content-type"] = "application/json"
         let requestBody = try NhostJSON.restEncoder.encode(body)
+        for (name, value) in extraHeaders {
+            requestHeaders[name.lowercased()] = value
+        }
         let request = NhostRequest(
             method: "POST",
             url: url,
@@ -2740,12 +2875,13 @@ public struct AuthClient: Sendable {
         )
         let response = try await fetch(request)
 
-        return try NhostHTTP.decodeResponse(AuthOkResponse.self, from: response)
+        return try NhostHTTP.decodeResponse(AuthOKResponse.self, from: response)
     }
 
     public func sendVerificationEmail(
-        body: AuthUserEmailSendVerificationEmailRequest
-    ) async throws -> NhostResponse<AuthOkResponse> {
+        body: AuthUserEmailSendVerificationEmailRequest,
+        extraHeaders: [String: String] = [:]
+    ) async throws -> NhostResponse<AuthOKResponse> {
         let path = "/user/email/send-verification-email"
         let url = NhostURLBuilder.url(baseURL: baseURL, path: path)
         var requestHeaders = [
@@ -2753,6 +2889,9 @@ public struct AuthClient: Sendable {
         ]
         requestHeaders["content-type"] = "application/json"
         let requestBody = try NhostJSON.restEncoder.encode(body)
+        for (name, value) in extraHeaders {
+            requestHeaders[name.lowercased()] = value
+        }
         let request = NhostRequest(
             method: "POST",
             url: url,
@@ -2761,12 +2900,13 @@ public struct AuthClient: Sendable {
         )
         let response = try await fetch(request)
 
-        return try NhostHTTP.decodeResponse(AuthOkResponse.self, from: response)
+        return try NhostHTTP.decodeResponse(AuthOKResponse.self, from: response)
     }
 
     public func verifyChangeUserMfa(
-        body: AuthUserMfaRequest
-    ) async throws -> NhostResponse<AuthOkResponse> {
+        body: AuthUserMfaRequest,
+        extraHeaders: [String: String] = [:]
+    ) async throws -> NhostResponse<AuthOKResponse> {
         let path = "/user/mfa"
         let url = NhostURLBuilder.url(baseURL: baseURL, path: path)
         var requestHeaders = [
@@ -2774,6 +2914,9 @@ public struct AuthClient: Sendable {
         ]
         requestHeaders["content-type"] = "application/json"
         let requestBody = try NhostJSON.restEncoder.encode(body)
+        for (name, value) in extraHeaders {
+            requestHeaders[name.lowercased()] = value
+        }
         let request = NhostRequest(
             method: "POST",
             url: url,
@@ -2782,12 +2925,13 @@ public struct AuthClient: Sendable {
         )
         let response = try await fetch(request)
 
-        return try NhostHTTP.decodeResponse(AuthOkResponse.self, from: response)
+        return try NhostHTTP.decodeResponse(AuthOKResponse.self, from: response)
     }
 
     public func changeUserPassword(
-        body: AuthUserPasswordRequest
-    ) async throws -> NhostResponse<AuthOkResponse> {
+        body: AuthUserPasswordRequest,
+        extraHeaders: [String: String] = [:]
+    ) async throws -> NhostResponse<AuthOKResponse> {
         let path = "/user/password"
         let url = NhostURLBuilder.url(baseURL: baseURL, path: path)
         var requestHeaders = [
@@ -2795,6 +2939,9 @@ public struct AuthClient: Sendable {
         ]
         requestHeaders["content-type"] = "application/json"
         let requestBody = try NhostJSON.restEncoder.encode(body)
+        for (name, value) in extraHeaders {
+            requestHeaders[name.lowercased()] = value
+        }
         let request = NhostRequest(
             method: "POST",
             url: url,
@@ -2803,12 +2950,13 @@ public struct AuthClient: Sendable {
         )
         let response = try await fetch(request)
 
-        return try NhostHTTP.decodeResponse(AuthOkResponse.self, from: response)
+        return try NhostHTTP.decodeResponse(AuthOKResponse.self, from: response)
     }
 
     public func sendPasswordResetEmail(
-        body: AuthUserPasswordResetRequest
-    ) async throws -> NhostResponse<AuthOkResponse> {
+        body: AuthUserPasswordResetRequest,
+        extraHeaders: [String: String] = [:]
+    ) async throws -> NhostResponse<AuthOKResponse> {
         let path = "/user/password/reset"
         let url = NhostURLBuilder.url(baseURL: baseURL, path: path)
         var requestHeaders = [
@@ -2816,6 +2964,9 @@ public struct AuthClient: Sendable {
         ]
         requestHeaders["content-type"] = "application/json"
         let requestBody = try NhostJSON.restEncoder.encode(body)
+        for (name, value) in extraHeaders {
+            requestHeaders[name.lowercased()] = value
+        }
         let request = NhostRequest(
             method: "POST",
             url: url,
@@ -2824,16 +2975,21 @@ public struct AuthClient: Sendable {
         )
         let response = try await fetch(request)
 
-        return try NhostHTTP.decodeResponse(AuthOkResponse.self, from: response)
+        return try NhostHTTP.decodeResponse(AuthOKResponse.self, from: response)
     }
 
-    public func addSecurityKey() async throws -> NhostResponse<AuthPublicKeyCredentialCreationOptions> {
+    public func addSecurityKey(
+        extraHeaders: [String: String] = [:]
+    ) async throws -> NhostResponse<AuthPublicKeyCredentialCreationOptions> {
         let path = "/user/webauthn/add"
         let url = NhostURLBuilder.url(baseURL: baseURL, path: path)
-        let requestHeaders = [
+        var requestHeaders = [
             "accept": "application/json",
         ]
         let requestBody: Data? = nil
+        for (name, value) in extraHeaders {
+            requestHeaders[name.lowercased()] = value
+        }
         let request = NhostRequest(
             method: "POST",
             url: url,
@@ -2846,7 +3002,8 @@ public struct AuthClient: Sendable {
     }
 
     public func verifyAddSecurityKey(
-        body: AuthVerifyAddSecurityKeyRequest
+        body: AuthVerifyAddSecurityKeyRequest,
+        extraHeaders: [String: String] = [:]
     ) async throws -> NhostResponse<AuthVerifyAddSecurityKeyResponse> {
         let path = "/user/webauthn/verify"
         let url = NhostURLBuilder.url(baseURL: baseURL, path: path)
@@ -2855,6 +3012,9 @@ public struct AuthClient: Sendable {
         ]
         requestHeaders["content-type"] = "application/json"
         let requestBody = try NhostJSON.restEncoder.encode(body)
+        for (name, value) in extraHeaders {
+            requestHeaders[name.lowercased()] = value
+        }
         let request = NhostRequest(
             method: "POST",
             url: url,
@@ -2867,7 +3027,8 @@ public struct AuthClient: Sendable {
     }
 
     public func tokenExchange(
-        body: AuthTokenExchangeRequest
+        body: AuthTokenExchangeRequest,
+        extraHeaders: [String: String] = [:]
     ) async throws -> NhostResponse<AuthSessionPayload> {
         let path = "/token/exchange"
         let url = NhostURLBuilder.url(baseURL: baseURL, path: path)
@@ -2876,6 +3037,9 @@ public struct AuthClient: Sendable {
         ]
         requestHeaders["content-type"] = "application/json"
         let requestBody = try NhostJSON.restEncoder.encode(body)
+        for (name, value) in extraHeaders {
+            requestHeaders[name.lowercased()] = value
+        }
         let request = NhostRequest(
             method: "POST",
             url: url,
@@ -2899,13 +3063,18 @@ public struct AuthClient: Sendable {
         return NhostURLBuilder.redirectURL(baseURL: baseURL, path: path, query: queryItems)
     }
 
-    public func getVersion() async throws -> NhostResponse<AuthGetVersionResponse200> {
+    public func getVersion(
+        extraHeaders: [String: String] = [:]
+    ) async throws -> NhostResponse<AuthGetVersionResponse200> {
         let path = "/version"
         let url = NhostURLBuilder.url(baseURL: baseURL, path: path)
-        let requestHeaders = [
+        var requestHeaders = [
             "accept": "application/json",
         ]
         let requestBody: Data? = nil
+        for (name, value) in extraHeaders {
+            requestHeaders[name.lowercased()] = value
+        }
         let request = NhostRequest(
             method: "GET",
             url: url,
@@ -2917,13 +3086,18 @@ public struct AuthClient: Sendable {
         return try NhostHTTP.decodeResponse(AuthGetVersionResponse200.self, from: response)
     }
 
-    public func getOpenIdConfiguration() async throws -> NhostResponse<AuthOAuth2DiscoveryResponse> {
+    public func getOpenIDConfiguration(
+        extraHeaders: [String: String] = [:]
+    ) async throws -> NhostResponse<AuthOAuth2DiscoveryResponse> {
         let path = "/.well-known/openid-configuration"
         let url = NhostURLBuilder.url(baseURL: baseURL, path: path)
-        let requestHeaders = [
+        var requestHeaders = [
             "accept": "application/json",
         ]
         let requestBody: Data? = nil
+        for (name, value) in extraHeaders {
+            requestHeaders[name.lowercased()] = value
+        }
         let request = NhostRequest(
             method: "GET",
             url: url,
@@ -2935,13 +3109,18 @@ public struct AuthClient: Sendable {
         return try NhostHTTP.decodeResponse(AuthOAuth2DiscoveryResponse.self, from: response)
     }
 
-    public func getOAuthAuthorizationServer() async throws -> NhostResponse<AuthOAuth2DiscoveryResponse> {
+    public func getOAuthAuthorizationServer(
+        extraHeaders: [String: String] = [:]
+    ) async throws -> NhostResponse<AuthOAuth2DiscoveryResponse> {
         let path = "/.well-known/oauth-authorization-server"
         let url = NhostURLBuilder.url(baseURL: baseURL, path: path)
-        let requestHeaders = [
+        var requestHeaders = [
             "accept": "application/json",
         ]
         let requestBody: Data? = nil
+        for (name, value) in extraHeaders {
+            requestHeaders[name.lowercased()] = value
+        }
         let request = NhostRequest(
             method: "GET",
             url: url,
@@ -2990,7 +3169,8 @@ public struct AuthClient: Sendable {
     }
 
     public func oauth2Token(
-        body: AuthOAuth2TokenRequest
+        body: AuthOAuth2TokenRequest,
+        extraHeaders: [String: String] = [:]
     ) async throws -> NhostResponse<AuthOAuth2TokenResponse> {
         let path = "/oauth2/token"
         let url = NhostURLBuilder.url(baseURL: baseURL, path: path)
@@ -3009,6 +3189,9 @@ public struct AuthClient: Sendable {
             "resource": try body.resource.map { try NhostWireEncoder.jsonValue($0) }
         ]
         let requestBody = NhostURLEncodedFormEncoder.encode(formFields)
+        for (name, value) in extraHeaders {
+            requestHeaders[name.lowercased()] = value
+        }
         let request = NhostRequest(
             method: "POST",
             url: url,
@@ -3020,13 +3203,18 @@ public struct AuthClient: Sendable {
         return try NhostHTTP.decodeResponse(AuthOAuth2TokenResponse.self, from: response)
     }
 
-    public func oauth2UserinfoGet() async throws -> NhostResponse<AuthOAuth2UserinfoResponse> {
+    public func oauth2UserinfoGet(
+        extraHeaders: [String: String] = [:]
+    ) async throws -> NhostResponse<AuthOAuth2UserinfoResponse> {
         let path = "/oauth2/userinfo"
         let url = NhostURLBuilder.url(baseURL: baseURL, path: path)
-        let requestHeaders = [
+        var requestHeaders = [
             "accept": "application/json",
         ]
         let requestBody: Data? = nil
+        for (name, value) in extraHeaders {
+            requestHeaders[name.lowercased()] = value
+        }
         let request = NhostRequest(
             method: "GET",
             url: url,
@@ -3038,13 +3226,18 @@ public struct AuthClient: Sendable {
         return try NhostHTTP.decodeResponse(AuthOAuth2UserinfoResponse.self, from: response)
     }
 
-    public func oauth2UserinfoPost() async throws -> NhostResponse<AuthOAuth2UserinfoResponse> {
+    public func oauth2UserinfoPost(
+        extraHeaders: [String: String] = [:]
+    ) async throws -> NhostResponse<AuthOAuth2UserinfoResponse> {
         let path = "/oauth2/userinfo"
         let url = NhostURLBuilder.url(baseURL: baseURL, path: path)
-        let requestHeaders = [
+        var requestHeaders = [
             "accept": "application/json",
         ]
         let requestBody: Data? = nil
+        for (name, value) in extraHeaders {
+            requestHeaders[name.lowercased()] = value
+        }
         let request = NhostRequest(
             method: "POST",
             url: url,
@@ -3056,13 +3249,18 @@ public struct AuthClient: Sendable {
         return try NhostHTTP.decodeResponse(AuthOAuth2UserinfoResponse.self, from: response)
     }
 
-    public func oauth2Jwks() async throws -> NhostResponse<AuthOAuth2JwksResponse> {
+    public func oauth2Jwks(
+        extraHeaders: [String: String] = [:]
+    ) async throws -> NhostResponse<AuthOAuth2JWKSResponse> {
         let path = "/oauth2/jwks"
         let url = NhostURLBuilder.url(baseURL: baseURL, path: path)
-        let requestHeaders = [
+        var requestHeaders = [
             "accept": "application/json",
         ]
         let requestBody: Data? = nil
+        for (name, value) in extraHeaders {
+            requestHeaders[name.lowercased()] = value
+        }
         let request = NhostRequest(
             method: "GET",
             url: url,
@@ -3071,11 +3269,12 @@ public struct AuthClient: Sendable {
         )
         let response = try await fetch(request)
 
-        return try NhostHTTP.decodeResponse(AuthOAuth2JwksResponse.self, from: response)
+        return try NhostHTTP.decodeResponse(AuthOAuth2JWKSResponse.self, from: response)
     }
 
     public func oauth2Revoke(
-        body: AuthOAuth2RevokeRequest
+        body: AuthOAuth2RevokeRequest,
+        extraHeaders: [String: String] = [:]
     ) async throws -> NhostResponse<Void> {
         let path = "/oauth2/revoke"
         let url = NhostURLBuilder.url(baseURL: baseURL, path: path)
@@ -3090,6 +3289,9 @@ public struct AuthClient: Sendable {
             "token_type_hint": try body.tokenTypeHint.map { try NhostWireEncoder.jsonValue($0) }
         ]
         let requestBody = NhostURLEncodedFormEncoder.encode(formFields)
+        for (name, value) in extraHeaders {
+            requestHeaders[name.lowercased()] = value
+        }
         let request = NhostRequest(
             method: "POST",
             url: url,
@@ -3102,7 +3304,8 @@ public struct AuthClient: Sendable {
     }
 
     public func oauth2Introspect(
-        body: AuthOAuth2IntrospectRequest
+        body: AuthOAuth2IntrospectRequest,
+        extraHeaders: [String: String] = [:]
     ) async throws -> NhostResponse<AuthOAuth2IntrospectResponse> {
         let path = "/oauth2/introspect"
         let url = NhostURLBuilder.url(baseURL: baseURL, path: path)
@@ -3117,6 +3320,9 @@ public struct AuthClient: Sendable {
             "token_type_hint": try body.tokenTypeHint.map { try NhostWireEncoder.jsonValue($0) }
         ]
         let requestBody = NhostURLEncodedFormEncoder.encode(formFields)
+        for (name, value) in extraHeaders {
+            requestHeaders[name.lowercased()] = value
+        }
         let request = NhostRequest(
             method: "POST",
             url: url,
@@ -3129,16 +3335,20 @@ public struct AuthClient: Sendable {
     }
 
     public func oauth2LoginGet(
-        query: AuthOauth2LoginGetQuery
+        query: AuthOauth2LoginGetQuery,
+        extraHeaders: [String: String] = [:]
     ) async throws -> NhostResponse<AuthOAuth2LoginResponse> {
         let path = "/oauth2/login"
         var queryItems: [String: JSONValue?] = [:]
         queryItems["request_id"] = try NhostWireEncoder.jsonValue(query.requestId)
         let url = NhostURLBuilder.url(baseURL: baseURL, path: path, query: queryItems)
-        let requestHeaders = [
+        var requestHeaders = [
             "accept": "application/json",
         ]
         let requestBody: Data? = nil
+        for (name, value) in extraHeaders {
+            requestHeaders[name.lowercased()] = value
+        }
         let request = NhostRequest(
             method: "GET",
             url: url,
@@ -3151,7 +3361,8 @@ public struct AuthClient: Sendable {
     }
 
     public func oauth2LoginPost(
-        body: AuthOAuth2LoginRequest
+        body: AuthOAuth2LoginRequest,
+        extraHeaders: [String: String] = [:]
     ) async throws -> NhostResponse<AuthOAuth2LoginCompleteResponse> {
         let path = "/oauth2/login"
         let url = NhostURLBuilder.url(baseURL: baseURL, path: path)
@@ -3160,6 +3371,9 @@ public struct AuthClient: Sendable {
         ]
         requestHeaders["content-type"] = "application/json"
         let requestBody = try NhostJSON.restEncoder.encode(body)
+        for (name, value) in extraHeaders {
+            requestHeaders[name.lowercased()] = value
+        }
         let request = NhostRequest(
             method: "POST",
             url: url,

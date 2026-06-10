@@ -64,7 +64,7 @@ final class GeneratedClientsTests: XCTestCase {
         XCTAssertEqual(decodedBody.password, credential)
 
         do {
-            _ = try await client.getJwKs()
+            _ = try await client.getJWKs()
             XCTFail("Expected a FetchError.http error")
         } catch let FetchError.http(error) {
             XCTAssertEqual(error.status, 401)
@@ -249,5 +249,36 @@ final class GeneratedClientsTests: XCTestCase {
             XCTAssertEqual(error.rawBody, Data())
             XCTAssertNil(error.body)
         }
+    }
+
+    func testGeneratedMethodExtraHeadersAreMergedAndOverrideDefaults() async throws {
+        let recorder = GeneratedClientRecorder()
+        let transport = StubTransport { request in
+            await recorder.record(request)
+
+            return NhostRawResponse(
+                status: 200,
+                headers: ["content-type": "application/json"],
+                body: Data(#""OK""#.utf8)
+            )
+        }
+        let client = AuthClient(
+            baseURL: try XCTUnwrap(URL(string: "https://auth.example.test/v1")),
+            transport: transport
+        )
+
+        _ = try await client.healthCheckGet(
+            extraHeaders: [
+                "Accept": "application/health+json",
+                "X-Request-Id": "trace-1",
+            ]
+        )
+
+        let recordedRequest = await recorder.request()
+        let request = try XCTUnwrap(recordedRequest)
+
+        XCTAssertEqual(request.headers["accept"], "application/health+json")
+        XCTAssertEqual(request.headers["x-request-id"], "trace-1")
+        XCTAssertNil(request.headers["Accept"])
     }
 }

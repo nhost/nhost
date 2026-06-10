@@ -3,8 +3,7 @@
 {{- $types := swiftMethodParameterTypes . }}
 {{- if $types }}
 {{ $types }}
-
-{{- end }}
+{{ end }}
 {{- end }}
 public struct {{ swiftClientName }}: Sendable {
     public let baseURL: URL

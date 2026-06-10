@@ -257,6 +257,7 @@ public struct FixtureCreateSessionHeaders: Sendable {
         self.xHasuraRole = xHasuraRole
     }
 }
+
 public struct FixtureDownloadFileQuery: Sendable {
     public let transform: String?
 
@@ -266,6 +267,7 @@ public struct FixtureDownloadFileQuery: Sendable {
         self.transform = transform
     }
 }
+
 public struct FixtureSearchThingsQuery: Sendable {
     public let firstFilter: FixtureGetFirstFilter
     public let secondFilter: FixtureGetSecondFilter
@@ -278,6 +280,7 @@ public struct FixtureSearchThingsQuery: Sendable {
         self.secondFilter = secondFilter
     }
 }
+
 public struct FixtureVerifyTicketQuery: Sendable {
     public let redirectTo: String
     public let ticket: String
@@ -290,6 +293,7 @@ public struct FixtureVerifyTicketQuery: Sendable {
         self.ticket = ticket
     }
 }
+
 public struct GeneratedFixtureClient: Sendable {
     public let baseURL: URL
     private let fetch: FetchFunction
@@ -314,7 +318,8 @@ public struct GeneratedFixtureClient: Sendable {
         ticketId: String,
         body: FixtureCreateSessionRequest,
         query: FixtureCreateSessionQuery? = nil,
-        headers: FixtureCreateSessionHeaders? = nil
+        headers: FixtureCreateSessionHeaders? = nil,
+        extraHeaders: [String: String] = [:]
     ) async throws -> NhostResponse<FixtureSession> {
         let ticketIdPath = try NhostURLBuilder.percentEncodePathSegment(NhostWireEncoder.string(ticketId))
         let path = "/session/\(ticketIdPath)"
@@ -341,6 +346,9 @@ public struct GeneratedFixtureClient: Sendable {
             headerValues["x-hasura-role"] = try headers.xHasuraRole.map { try NhostWireEncoder.jsonValue($0) }
         }
         requestHeaders = NhostHeaderEncoder.merge(base: requestHeaders, values: headerValues)
+        for (name, value) in extraHeaders {
+            requestHeaders[name.lowercased()] = value
+        }
         let request = NhostRequest(
             method: "POST",
             url: url,
@@ -353,7 +361,8 @@ public struct GeneratedFixtureClient: Sendable {
     }
 
     public func exchangeToken(
-        body: FixtureExchangeTokenBody
+        body: FixtureExchangeTokenBody,
+        extraHeaders: [String: String] = [:]
     ) async throws -> NhostResponse<Void> {
         let path = "/token"
         let url = NhostURLBuilder.url(baseURL: baseURL, path: path)
@@ -367,6 +376,9 @@ public struct GeneratedFixtureClient: Sendable {
             "refreshToken": try NhostWireEncoder.jsonValue(body.refreshToken)
         ]
         let requestBody = NhostURLEncodedFormEncoder.encode(formFields)
+        for (name, value) in extraHeaders {
+            requestHeaders[name.lowercased()] = value
+        }
         let request = NhostRequest(
             method: "POST",
             url: url,
@@ -380,7 +392,8 @@ public struct GeneratedFixtureClient: Sendable {
 
     public func downloadFile(
         id: String,
-        query: FixtureDownloadFileQuery? = nil
+        query: FixtureDownloadFileQuery? = nil,
+        extraHeaders: [String: String] = [:]
     ) async throws -> NhostResponse<Data> {
         let idPath = try NhostURLBuilder.percentEncodePathSegment(NhostWireEncoder.string(id))
         let path = "/files/\(idPath)"
@@ -389,10 +402,13 @@ public struct GeneratedFixtureClient: Sendable {
             queryItems["transform"] = try query.transform.map { try NhostWireEncoder.jsonValue($0) }
         }
         let url = NhostURLBuilder.url(baseURL: baseURL, path: path, query: queryItems)
-        let requestHeaders = [
+        var requestHeaders = [
             "accept": "application/octet-stream",
         ]
         let requestBody: Data? = nil
+        for (name, value) in extraHeaders {
+            requestHeaders[name.lowercased()] = value
+        }
         let request = NhostRequest(
             method: "GET",
             url: url,
@@ -405,7 +421,8 @@ public struct GeneratedFixtureClient: Sendable {
     }
 
     public func uploadFiles(
-        body: FixtureUploadFilesBody
+        body: FixtureUploadFilesBody,
+        extraHeaders: [String: String] = [:]
     ) async throws -> NhostResponse<FixtureUploadResult> {
         let path = "/files"
         let url = NhostURLBuilder.url(baseURL: baseURL, path: path)
@@ -427,6 +444,9 @@ public struct GeneratedFixtureClient: Sendable {
         let multipartBody = NhostMultipartEncoder.encode(parts: parts)
         requestHeaders["content-type"] = multipartBody.contentType
         let requestBody = multipartBody.body
+        for (name, value) in extraHeaders {
+            requestHeaders[name.lowercased()] = value
+        }
         let request = NhostRequest(
             method: "POST",
             url: url,
@@ -439,7 +459,8 @@ public struct GeneratedFixtureClient: Sendable {
     }
 
     public func searchThings(
-        query: FixtureSearchThingsQuery
+        query: FixtureSearchThingsQuery,
+        extraHeaders: [String: String] = [:]
     ) async throws -> NhostResponse<FixtureSession> {
         let path = "/search"
         var queryItems: [String: JSONValue?] = [:]
@@ -454,10 +475,13 @@ public struct GeneratedFixtureClient: Sendable {
             queryItems["tag"] = try value.tag.map { try NhostWireEncoder.jsonValue($0) }
         }
         let url = NhostURLBuilder.url(baseURL: baseURL, path: path, query: queryItems)
-        let requestHeaders = [
+        var requestHeaders = [
             "accept": "application/json",
         ]
         let requestBody: Data? = nil
+        for (name, value) in extraHeaders {
+            requestHeaders[name.lowercased()] = value
+        }
         let request = NhostRequest(
             method: "GET",
             url: url,

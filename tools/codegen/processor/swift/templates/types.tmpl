@@ -12,7 +12,7 @@ public struct {{ .Name }}: Codable, Sendable {
 
     public init(
 {{- range $index, $property := .Properties }}
-        {{ $property.Name }}: {{ $property.Type.Name }}{{ if $property.Optional }}? = nil{{ end }}{{ if not (swiftIsLastProperty $index $.Properties) }},{{ end }}
+        {{ $property.Name }}: {{ $property.Type.Name }}{{ if $property.Optional }}?{{ end }}{{ if not $property.Required }} = nil{{ end }}{{ if not (swiftIsLastProperty $index $.Properties) }},{{ end }}
 {{- end }}
     ) {
 {{- range .Properties }}

@@ -172,12 +172,21 @@ func TestSwiftRedirectWithRequestBodyRendersURLHelper(t *testing.T) {
 	}
 
 	output := buf.String()
-	if !strings.Contains(output, "public func authorizePostURL(\n        body: AuthorizePostBody\n    ) throws -> URL") {
+	if !strings.Contains(
+		output,
+		"public func authorizePostURL(\n        body: AuthorizePostBody\n    ) throws -> URL",
+	) {
 		t.Fatalf("expected redirect URL helper to require the form body, got:\n%s", output)
 	}
 
-	if !strings.Contains(output, "queryItems[\"client_id\"] = try NhostWireEncoder.jsonValue(body.clientId)") {
-		t.Fatalf("expected redirect URL helper to fold body fields into the query, got:\n%s", output)
+	if !strings.Contains(
+		output,
+		"queryItems[\"client_id\"] = try NhostWireEncoder.jsonValue(body.clientId)",
+	) {
+		t.Fatalf(
+			"expected redirect URL helper to fold body fields into the query, got:\n%s",
+			output,
+		)
 	}
 }
 

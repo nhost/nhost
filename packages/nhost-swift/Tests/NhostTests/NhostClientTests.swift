@@ -125,7 +125,7 @@ final class NhostClientTests: XCTestCase {
             )
         )
 
-        _ = try await client.auth.getJwKs()
+        _ = try await client.auth.getJWKs()
         _ = try await client.storage.getFile(id: "file-1")
 
         let recordedAuthRequest = await transport.request(at: 0)

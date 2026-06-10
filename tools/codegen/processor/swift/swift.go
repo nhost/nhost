@@ -91,9 +91,11 @@ func (s *Swift) TypeEnumName(name string) string {
 func (s *Swift) TypeEnumValues(values []any) []string {
 	cases, err := swiftEnumCaseDeclarations(values)
 	if err != nil {
-		// Plugin.TypeEnumValues cannot return an error for legacy templates. Swift templates
-		// should use the error-propagating FuncMap helpers instead.
-		return nil
+		// Plugin.TypeEnumValues cannot return an error for legacy templates. The Swift
+		// templates use the error-propagating FuncMap helpers instead, so this is only
+		// reachable from a future template calling Type.Values() directly; fail fast
+		// instead of silently rendering an empty enum.
+		panic(fmt.Errorf("swift enum values: %w", err))
 	}
 
 	return cases
@@ -452,7 +454,8 @@ func (s *Swift) swiftMethodParameters(
 		params = append(params, param.Name()+": "+param.Type.Name())
 	}
 
-	if body.kind != swiftRequestBodyKindNone && (!redirect || body.kind == swiftRequestBodyKindForm) {
+	if body.kind != swiftRequestBodyKindNone &&
+		(!redirect || body.kind == swiftRequestBodyKindForm) {
 		bodyType := body.typ.Name()
 		if method.BodyRequired {
 			params = append(params, "body: "+bodyType)
@@ -489,6 +492,11 @@ func (s *Swift) swiftMethodParameters(
 				params = append(params, "headers: "+groupName+"? = nil")
 			}
 		}
+
+		// Mirrors the per-request options every nhost-js client method accepts:
+		// callers can add or override headers on a single call (per-call roles,
+		// idempotency keys, a pre-set Authorization, ...).
+		params = append(params, "extraHeaders: [String: String] = [:]")
 	}
 
 	return params
@@ -511,15 +519,7 @@ func (s *Swift) writeSwiftRequestSetup(
 		builder.WriteString("        let url = NhostURLBuilder.url(baseURL: baseURL, path: path)\n")
 	}
 
-	requestHeadersKeyword := "let"
-	if body.kind != swiftRequestBodyKindNone ||
-		len(swiftSortedParametersByLocation(method.Parameters, "header")) > 0 {
-		requestHeadersKeyword = "var"
-	}
-
-	builder.WriteString("        ")
-	builder.WriteString(requestHeadersKeyword)
-	builder.WriteString(" requestHeaders = [\n")
+	builder.WriteString("        var requestHeaders = [\n")
 	builder.WriteString("            \"accept\": ")
 	builder.WriteString(swiftStringLiteral(success.acceptHeader()))
 	builder.WriteString(",\n")
@@ -530,6 +530,10 @@ func (s *Swift) writeSwiftRequestSetup(
 	}
 
 	s.writeSwiftHeaderSetup(builder, method)
+
+	builder.WriteString("        for (name, value) in extraHeaders {\n")
+	builder.WriteString("            requestHeaders[name.lowercased()] = value\n")
+	builder.WriteString("        }\n")
 
 	return nil
 }
@@ -1000,7 +1004,9 @@ func (s *Swift) writeSwiftMultipartSinglePart(
 		if swiftIsBinaryType(typed) {
 			builder.WriteString("NhostMultipartPart.file(name: ")
 			builder.WriteString(swiftStringLiteral(wireName))
-			builder.WriteString(", filename: \"blob\", contentType: NhostBinaryBody.contentType, data: ")
+			builder.WriteString(
+				", filename: \"blob\", contentType: NhostBinaryBody.contentType, data: ",
+			)
 			builder.WriteString(valueExpr)
 			builder.WriteString(")")
 		} else {
@@ -1079,7 +1085,7 @@ func swiftRedirectBodyObject(
 ) (*processor.TypeObject, error) {
 	switch body.kind {
 	case swiftRequestBodyKindNone:
-		return nil, nil
+		return nil, nil //nolint:nilnil // nil object means "no redirect body"; the writer skips it.
 	case swiftRequestBodyKindForm:
 		return swiftFormBodyObject(
 			method,
@@ -1690,6 +1696,10 @@ func splitCamelSegment(segment []rune) []string {
 
 		if i+1 < len(segment) && unicode.IsUpper(previous) && unicode.IsUpper(current) &&
 			unicode.IsLower(segment[i+1]) {
+			if swiftIsPluralAcronymTail(segment, i+1) {
+				continue
+			}
+
 			words = append(words, string(segment[start:i]))
 			start = i
 		}
@@ -1700,11 +1710,26 @@ func splitCamelSegment(segment []rune) []string {
 	return words
 }
 
+// swiftIsPluralAcronymTail reports whether the lowercase run starting at index is a
+// bare plural 's' terminating an all-caps run (the "s" in "JWKs"), in which case the
+// run is kept as a single word instead of splitting before its last capital.
+func swiftIsPluralAcronymTail(segment []rune, index int) bool {
+	if segment[index] != 's' {
+		return false
+	}
+
+	return index+1 == len(segment) || !unicode.IsLower(segment[index+1])
+}
+
 func lowerIdentifierWord(word string) string {
 	return strings.ToLower(word)
 }
 
 func upperIdentifierWord(word string) string {
+	if isAcronymWord(word) {
+		return word
+	}
+
 	word = strings.ToLower(word)
 	if word == "" {
 		return word
@@ -1714,6 +1739,36 @@ func upperIdentifierWord(word string) string {
 	runes[0] = unicode.ToUpper(runes[0])
 
 	return string(runes)
+}
+
+// isAcronymWord reports whether word is an all-caps acronym (optionally with a plural
+// trailing 's', e.g. "JWKs") whose casing is preserved instead of title-cased. This
+// matches the Swift API Design Guidelines and keeps generated names (getJWKs,
+// createPAT, signInOTPEmail) aligned with the TypeScript SDK, whose method names come
+// from the same operation ids.
+func isAcronymWord(word string) bool {
+	runes := []rune(word)
+	if len(runes) > 0 && runes[len(runes)-1] == 's' {
+		runes = runes[:len(runes)-1]
+	}
+
+	if len(runes) < 2 { //nolint:mnd
+		return false
+	}
+
+	hasUpper := false
+
+	for _, char := range runes {
+		switch {
+		case unicode.IsUpper(char):
+			hasUpper = true
+		case unicode.IsDigit(char):
+		default:
+			return false
+		}
+	}
+
+	return hasUpper
 }
 
 func escapeSwiftKeyword(identifier string) string {

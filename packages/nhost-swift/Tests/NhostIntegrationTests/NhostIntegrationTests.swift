@@ -259,7 +259,7 @@ final class StorageIntegrationTests: XCTestCase {
             XCTAssertEqual(downloaded.status, 200)
             XCTAssertEqual(downloaded.body, firstData)
 
-            let presigned = try await client.storage.getFilePresignedUrl(id: first.id)
+            let presigned = try await client.storage.getFilePresignedURL(id: first.id)
             XCTAssertEqual(presigned.status, 200)
             XCTAssertNotNil(URL(string: presigned.body.url))
             XCTAssertGreaterThan(presigned.body.expiration, 0)
