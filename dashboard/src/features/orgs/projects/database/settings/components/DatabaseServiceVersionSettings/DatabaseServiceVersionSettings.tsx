@@ -5,11 +5,8 @@ import { FormProvider, useForm } from 'react-hook-form';
 import * as Yup from 'yup';
 import { ApplyLocalSettingsDialog } from '@/components/common/ApplyLocalSettingsDialog';
 import { useDialog } from '@/components/common/DialogProvider';
-import {
-  ControlledAutocomplete,
-  defaultFilterOptions,
-} from '@/components/form/ControlledAutocomplete';
 import { Form } from '@/components/form/Form';
+import { FormFreeCombobox } from '@/components/form/FormFreeCombobox';
 import { SettingsContainer } from '@/components/layout/SettingsContainer';
 import { ActivityIndicator } from '@/components/ui/v2/ActivityIndicator';
 import { Box } from '@/components/ui/v2/Box';
@@ -36,31 +33,21 @@ import { isNotEmptyValue } from '@/lib/utils';
 import { ApplicationStatus } from '@/types/application';
 
 const validationSchema = Yup.object({
-  majorVersion: Yup.object({
-    label: Yup.string().required(),
-    value: Yup.string().required('Major version is a required field'),
-  })
+  majorVersion: Yup.string()
     .label('Postgres major version')
-    .required()
+    .required('Major version is a required field')
     .test(
       'must-be-positive-number',
       'Invalid major version',
-      (value) => Number(value?.value) > 0,
+      (value) => Number(value) > 0,
     ),
-  minorVersion: Yup.object({
-    label: Yup.string().required(),
-    value: Yup.string().required('Minor version is a required field'),
-  })
+  minorVersion: Yup.string()
     .label('Postgres minor version')
-    .required(),
+    .required('Minor version is a required field'),
 });
 
 export type DatabaseServiceVersionFormValues = Yup.InferType<
   typeof validationSchema
->;
-
-type DatabaseServiceField = Required<
-  Yup.InferType<typeof validationSchema>['majorVersion']
 >;
 
 export default function DatabaseServiceVersionSettings() {
@@ -106,20 +93,20 @@ export default function DatabaseServiceVersionSettings() {
   const form = useForm<DatabaseServiceVersionFormValues>({
     reValidateMode: 'onSubmit',
     defaultValues: {
-      minorVersion: { label: '', value: '' },
-      majorVersion: { label: '', value: '' },
+      minorVersion: '',
+      majorVersion: '',
     },
     resolver: yupResolver(validationSchema),
   });
 
   const { formState, watch } = form;
 
-  const selectedMajor = watch('majorVersion').value;
-  const selectedMinor = watch('minorVersion').value;
+  const selectedMajor = watch('majorVersion');
+  const selectedMinor = watch('minorVersion');
 
   const getMajorAndMinorVersions = (): {
-    availableMajorVersions: DatabaseServiceField[];
-    majorToMinorVersions: Record<string, DatabaseServiceField[]>;
+    availableMajorVersions: { label: string; value: string }[];
+    majorToMinorVersions: Record<string, { label: string; value: string }[]>;
   } => {
     const minorVersionByMajor = {};
     const majorVersions: { label: string; value: string }[] = [];
@@ -173,14 +160,8 @@ export default function DatabaseServiceVersionSettings() {
       currentPostgresMinor
     ) {
       form.reset({
-        majorVersion: {
-          label: currentPostgresMajor,
-          value: currentPostgresMajor,
-        },
-        minorVersion: {
-          label: currentPostgresMinor,
-          value: currentPostgresMinor,
-        },
+        majorVersion: currentPostgresMajor,
+        minorVersion: currentPostgresMinor,
       });
     }
   }, [
@@ -223,7 +204,7 @@ export default function DatabaseServiceVersionSettings() {
   const handleDatabaseServiceVersionsChange = async (
     formValues: DatabaseServiceVersionFormValues,
   ) => {
-    const newVersion = `${formValues.majorVersion.value}.${formValues.minorVersion.value}`;
+    const newVersion = `${formValues.majorVersion}.${formValues.minorVersion}`;
 
     // Major version change
     if (isMajorVersionDirty && applicationLive) {
@@ -340,82 +321,46 @@ export default function DatabaseServiceVersionSettings() {
           }
         >
           <Box className="grid grid-flow-row gap-x-4 gap-y-2 lg:grid-cols-5">
-            <ControlledAutocomplete
-              id="majorVersion"
+            <FormFreeCombobox
               name="majorVersion"
-              autoHighlight
-              freeSolo
-              disabled={majorVersionFieldDisabled}
-              getOptionLabel={(option) => {
-                if (typeof option === 'string') {
-                  return option || '';
-                }
-
-                return option.value;
-              }}
-              showCustomOption="auto"
-              filterOptions={defaultFilterOptions}
-              onChange={(_event, value) => {
-                if (
-                  typeof value !== 'string' &&
-                  !Array.isArray(value) &&
-                  isNotEmptyValue(value)
-                ) {
-                  if (value.value !== selectedMajor) {
-                    const nextAvailableMinorVersions =
-                      majorToMinorVersions[value.value] || [];
-
-                    const isSelectedMinorAvailable =
-                      nextAvailableMinorVersions.some(
-                        (minor) => minor.value === selectedMinor,
-                      );
-
-                    // If the selected minor version is not available in the new major version, select the first available minor version
-                    if (
-                      !isSelectedMinorAvailable &&
-                      nextAvailableMinorVersions.length > 0
-                    ) {
-                      form.setValue(
-                        'minorVersion',
-                        nextAvailableMinorVersions[0],
-                      );
-                    }
-                  }
-                  form.setValue('majorVersion', value);
-                }
-              }}
-              clearOnBlur
-              fullWidth
-              className="lg:col-span-1"
+              containerClassName="lg:col-span-2"
               label="MAJOR"
               options={availableMajorVersions}
-              error={!!formState.errors?.majorVersion?.message}
-              helperText={formState.errors?.majorVersion?.message}
-              customOptionLabel={(value) => `Use custom value: "${value}"`}
-            />
-            <ControlledAutocomplete
-              id="minorVersion"
-              name="minorVersion"
-              autoHighlight
-              freeSolo
-              getOptionLabel={(option) => {
-                if (typeof option === 'string') {
-                  return option || '';
-                }
+              control={form.control}
+              disabled={majorVersionFieldDisabled}
+              placeholder="Select Major"
+              customValueLabel={(val) => `Use custom value: "${val}"`}
+              onChange={(value) => {
+                if (value && value !== selectedMajor) {
+                  const nextAvailableMinorVersions =
+                    majorToMinorVersions[value] || [];
 
-                return option.value;
+                  const isSelectedMinorAvailable =
+                    nextAvailableMinorVersions.some(
+                      (minor) => minor.value === selectedMinor,
+                    );
+
+                  // If the selected minor version is not available in the new major version, select the first available minor version
+                  if (
+                    !isSelectedMinorAvailable &&
+                    nextAvailableMinorVersions.length > 0
+                  ) {
+                    form.setValue(
+                      'minorVersion',
+                      nextAvailableMinorVersions[0].value,
+                    );
+                  }
+                }
               }}
-              isOptionEqualToValue={() => false}
-              filterOptions={defaultFilterOptions}
-              clearOnBlur
-              fullWidth
-              className="lg:col-span-2"
+            />
+            <FormFreeCombobox
+              name="minorVersion"
+              containerClassName="lg:col-span-3"
               label="MINOR"
               options={availableMinorVersions}
-              error={!!formState.errors?.minorVersion?.message}
-              helperText={formState.errors?.minorVersion?.message}
-              showCustomOption="auto"
-              customOptionLabel={(value) => `Use custom value: "${value}"`}
+              control={form.control}
+              placeholder="Select Minor"
+              customValueLabel={(val) => `Use custom value: "${val}"`}
             />
           </Box>
           {showMigrateWarning && <DatabaseMigrateDowntimeWarning />}
