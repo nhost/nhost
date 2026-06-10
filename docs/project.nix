@@ -57,10 +57,10 @@ let
     vale
   ];
 
-  buildInputs = with pkgs; [ nodejs-pinned ];
+  buildInputs = with pkgs; [ nhost.nodejs ];
 
   nativeBuildInputs = with pkgs; [
-    pnpm
+    nhost.pnpm
     cacert
   ];
 

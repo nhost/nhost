@@ -54,14 +54,14 @@ let
   };
 
   checkDeps = with pkgs; [
-    nhost-cli
+    nhost.nhost-cli
     self.packages.${pkgs.system}.codegen
   ];
 
-  buildInputs = with pkgs; [ nodejs-pinned ];
+  buildInputs = with pkgs; [ nhost.nodejs ];
 
   nativeBuildInputs = with pkgs; [
-    pnpm
+    nhost.pnpm
     cacert
   ];
 in
@@ -72,7 +72,7 @@ in
     buildInputs =
       with pkgs;
       [
-        vercel
+        nhost.vercel
       ]
       ++ checkDeps
       ++ buildInputs
@@ -94,11 +94,11 @@ in
     inherit name version src;
 
     nativeBuildInputs = with pkgs; [
-      pnpm
+      nhost.pnpm
       cacert
-      nodejs-pinned
+      nhost.nodejs
     ];
-    buildInputs = with pkgs; [ nodejs-pinned ];
+    buildInputs = with pkgs; [ nhost.nodejs ];
 
     buildPhase = ''
       cp -r ${src} src

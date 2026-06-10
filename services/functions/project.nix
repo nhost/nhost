@@ -138,10 +138,10 @@ let
 
   checkDeps = with pkgs; [ ];
 
-  buildInputs = with pkgs; [ nodejs-pinned ];
+  buildInputs = with pkgs; [ nhost.nodejs ];
 
   nativeBuildInputs = with pkgs; [
-    pnpm
+    nhost.pnpm
     cacert
   ];
 in
