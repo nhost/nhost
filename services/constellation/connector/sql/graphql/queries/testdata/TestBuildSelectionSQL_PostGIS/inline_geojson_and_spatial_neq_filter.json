@@ -1,0 +1,10 @@
+[
+  {
+    "Name": "postgis_locations",
+    "SQL": "SELECT coalesce(json_agg(\"_root\"), '[]') AS \"_root\" FROM (WITH \"_root.base\" AS (SELECT * FROM \"public\".\"postgis_locations\" WHERE \"public\".\"postgis_locations\".\"geom\" != ST_GeomFromGeoJSON($1) AND \"public\".\"postgis_locations\".\"nullable_geom\" IS NOT NULL ORDER BY \"name\" ASC) SELECT row_to_json((SELECT \"_e\" FROM (SELECT \"_root.base\".\"name\" AS \"name\", ST_AsGeoJSON(\"_root.base\".\"geom\", 15, 4)::jsonb AS \"geom\") AS \"_e\")) AS \"_root\" FROM \"_root.base\") AS \"_root\"",
+    "Parameters": [
+      "{\"coordinates\":[-73.94,40.8],\"type\":\"Point\"}"
+    ],
+    "StreamCursors": null
+  }
+]

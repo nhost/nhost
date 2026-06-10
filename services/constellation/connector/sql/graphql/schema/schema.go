@@ -91,6 +91,10 @@ type Capabilities struct {
 	// SupportsArrays gates the emission of <scalar>_array_comparison_exp
 	// input types and array-typed column fields on bool_exp inputs.
 	SupportsArrays bool
+	// SupportsSpatialTypes gates PostGIS geometry/geography-specific schema
+	// surfaces so they are advertised only by backends with matching runtime SQL
+	// hooks.
+	SupportsSpatialTypes bool
 	// SupportsVarianceAggregates gates the emission of the stddev/variance
 	// aggregate family (stddev, stddev_pop, stddev_samp, var_pop, var_samp,
 	// variance) on <table>_aggregate_fields and their <table>_<fn>_fields object
@@ -153,6 +157,7 @@ func NewCapabilities(kind DBKind, dial dialect.Dialect) Capabilities {
 		SupportsDistinctOn:            dial.SupportsDistinctOn(),
 		SupportsFunctions:             dial.SupportsFunctions(),
 		SupportsArrays:                dial.SupportsArrays(),
+		SupportsSpatialTypes:          dial.SupportsSpatialTypes(),
 		SupportsVarianceAggregates:    dial.SupportsVarianceAggregates(),
 		SupportsStableVarianceOrderBy: dial.SupportsStableVarianceOrderBy(),
 	}

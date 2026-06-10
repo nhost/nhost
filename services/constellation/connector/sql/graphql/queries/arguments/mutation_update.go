@@ -12,6 +12,7 @@ import (
 	"github.com/nhost/nhost/services/constellation/connector/sql/graphql/queries/permissions"
 	"github.com/nhost/nhost/services/constellation/connector/sql/graphql/queries/values"
 	"github.com/nhost/nhost/services/constellation/connector/sql/graphql/queries/where"
+	"github.com/nhost/nhost/services/constellation/connector/sql/pgtypes"
 )
 
 // updateColumn is a (column, value) pair used by _set / _inc / _append /
@@ -73,7 +74,7 @@ func (a Update) WriteSQL( //nolint:funlen
 
 		core.WriteQuotedIdentifier(b, col.Column.SQLName)
 		b.WriteString(" = ")
-		b.WriteString(dialect.TypeCast(dialect.Placeholder(paramIndex), col.Column.SQLType))
+		b.WriteString(updateValueExpression(dialect, col.Column, paramIndex))
 
 		params = append(params, a.Set[i].Value)
 
@@ -91,7 +92,7 @@ func (a Update) WriteSQL( //nolint:funlen
 		b.WriteString(" = ")
 		core.WriteQuotedIdentifier(b, col.Column.SQLName)
 		b.WriteString(" + ")
-		b.WriteString(dialect.TypeCast(dialect.Placeholder(paramIndex), col.Column.SQLType))
+		b.WriteString(updateValueExpression(dialect, col.Column, paramIndex))
 
 		params = append(params, a.Inc[i].Value)
 		paramIndex++
@@ -183,6 +184,15 @@ func (a Update) WriteSQL( //nolint:funlen
 	}
 
 	return params, paramIndex
+}
+
+func updateValueExpression(d dialect.Dialect, column *core.Column, paramIndex int) string {
+	placeholder := d.Placeholder(paramIndex)
+	if pgtypes.IsSpatial(column.SQLType) && d.SupportsSpatialTypes() {
+		return d.SpatialValueExpression(placeholder, column.SQLType)
+	}
+
+	return d.TypeCast(placeholder, column.SQLType)
 }
 
 // ParseUpdate parses the arguments for an update mutation. It extracts the
@@ -397,6 +407,11 @@ func ApplyUpdatePresets(
 			)
 		}
 
+		value, err = values.CoerceSQLValue(col.SQLType, value)
+		if err != nil {
+			return fmt.Errorf("failed to coerce preset column %s: %w", colName, err)
+		}
+
 		update.Set = append(update.Set, updateColumn{
 			Column: col,
 			Value:  value,
@@ -518,6 +533,11 @@ func parsePkColumnsArgument(
 			return nil, fmt.Errorf("failed to resolve pk column %s: %w", child.Name, err)
 		}
 
+		value, err = values.CoerceSQLValue(pkColumn.SQLType, value)
+		if err != nil {
+			return nil, fmt.Errorf("failed to coerce pk column %s: %w", child.Name, err)
+		}
+
 		whereClause = append(whereClause, where.NewEqualsFilter(pkColumn, value, t.Dialect()))
 	}
 
@@ -562,6 +582,11 @@ func parseupdateColumnList(
 		value, err := values.ResolveASTValue(child.Value, variables)
 		if err != nil {
 			return nil, fmt.Errorf("failed to resolve field %s: %w", customFieldName, err)
+		}
+
+		value, err = values.CoerceSQLValue(column.SQLType, value)
+		if err != nil {
+			return nil, fmt.Errorf("failed to coerce field %s: %w", customFieldName, err)
 		}
 
 		result = append(result, updateColumn{

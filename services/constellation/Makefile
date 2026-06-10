@@ -1,12 +1,24 @@
-ROOT_DIR?=$(abspath ../..)
+ifndef ROOT_DIR
+# shellcheck disable=SC2034 # Make variable consumed by include/targets.
+ROOT_DIR=$(abspath ../..)
+endif
 include $(ROOT_DIR)/build/makefiles/general.makefile
 
 DOCKER_DEV_ENV_PATH=build/dev/docker
+ifndef POSTGRES_VERSION
+# shellcheck disable=SC2034 # Make variable consumed by target recipes.
+POSTGRES_VERSION=18
+endif
+POSTGRES_FULL_VERSION := $(shell grep -A4 'postgresql_$(POSTGRES_VERSION) =' $(ROOT_DIR)/nixops/overlays/postgres.nix | grep -oP 'version = "\K[^"]+')
+ifndef POSTGRES_IMAGE
+# shellcheck disable=SC2034 # Make variable consumed by docker compose recipes.
+POSTGRES_IMAGE=nhost/postgres:$(POSTGRES_FULL_VERSION)-$(VERSION)
+endif
 
 
 .PHONY: _dev-env-up
 _dev-env-up: dev-env-integration-up run-up
-	docker compose -f ${DOCKER_DEV_ENV_PATH}/docker-compose.yaml up -d
+	POSTGRES_IMAGE=$(POSTGRES_IMAGE) docker compose -f ${DOCKER_DEV_ENV_PATH}/docker-compose.yaml up -d
 
 
 .PHONY: _dev-env-down
@@ -15,12 +27,17 @@ _dev-env-down: dev-env-integration-down run-down
 
 
 .PHONY: dev-env-up-short
-dev-env-up-short: dev-env-integration-up
-	docker compose -f ${DOCKER_DEV_ENV_PATH}/docker-compose.yaml up -d
+dev-env-up-short: _dev-env-postgres-build dev-env-integration-up
+	POSTGRES_IMAGE=$(POSTGRES_IMAGE) docker compose -f ${DOCKER_DEV_ENV_PATH}/docker-compose.yaml up -d
+
+
+.PHONY: _dev-env-postgres-build
+_dev-env-postgres-build:
+	$(MAKE) -C $(ROOT_DIR)/services/postgres build-docker-image POSTGRES_VERSION=$(POSTGRES_VERSION)
 
 
 .PHONY: _dev-env-build
-_dev-env-build: build-docker-image
+_dev-env-build: _dev-env-postgres-build build-docker-image
 
 
 .PHONY: dev-env-integration-up
@@ -34,7 +51,10 @@ dev-env-integration-down:
 	cd integration && nhost down --volumes
 
 
-PACKAGE?=./...
+ifndef PACKAGE
+# shellcheck disable=SC2034 # Make variable consumed by coverage recipes.
+PACKAGE=./...
+endif
 .PHONY: coverage
 coverage:  ## Run test coverage for PACKAGE (default: ./...). Usage: make coverage PACKAGE=./connector/memconnector
 	go test $(PACKAGE) -coverprofile=coverage.out

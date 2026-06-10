@@ -143,6 +143,7 @@ type aggregateFunctionSelection struct {
 	// PostgreSQL would keep only the last value.
 	responseName    string
 	FuncName        string
+	dialect         dialect.Dialect
 	jsonBuildObject string
 }
 
@@ -205,6 +206,7 @@ func newAggregateFunctionSelection(
 	return &aggregateFunctionSelection{
 		responseName:    responseName,
 		FuncName:        funcName,
+		dialect:         t.dialect,
 		Columns:         columns,
 		Typenames:       typenames,
 		jsonBuildObject: t.dialect.JSONBuildObject(),
@@ -241,6 +243,17 @@ func hasAggregateColumnResponseName(columns []aggregateColumnSelection, response
 	return false
 }
 
+func aggregateColumnExpression(funcName, source string, column *core.Column) string {
+	var b strings.Builder
+
+	b.WriteString(funcName)
+	b.WriteByte('(')
+	core.WriteQualifiedColumn(&b, source, column.SQLName)
+	b.WriteByte(')')
+
+	return b.String()
+}
+
 // Write emits a JSON key/value pair where the value is a nested object of
 // per-column aggregate results, e.g. 'sum', json_build_object('col', SUM(col)).
 // The key is the field's response name (alias if present, otherwise the field
@@ -270,10 +283,9 @@ func (s *aggregateFunctionSelection) write(b *strings.Builder, source string) {
 		b.WriteByte('\'')
 		b.WriteString(colSel.responseName)
 		b.WriteString("', ")
-		b.WriteString(s.FuncName)
-		b.WriteByte('(')
-		core.WriteQualifiedColumn(b, source, colSel.column.SQLName)
-		b.WriteByte(')')
+
+		expr := aggregateColumnExpression(s.FuncName, source, colSel.column)
+		b.WriteString(outputColumnExpression(s.dialect, expr, colSel.column))
 
 		first = false
 	}
