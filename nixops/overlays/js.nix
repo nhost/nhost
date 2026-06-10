@@ -90,6 +90,7 @@
 
     pnpm =
       (final.callPackage "${final.path}/pkgs/development/tools/pnpm/generic.nix" {
+        nodejs = final.nodejs-pinned;
         version = "11.1.0";
         hash = "sha256-VzyCrTVuiwl+bKxIG3OB+d7tM6MYr38xGYSFjr4fl+8=";
       }).overrideAttrs

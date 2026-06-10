@@ -84,7 +84,7 @@ let
   };
 
   mkDockerImage =
-    { nodejs }:
+    { nodeRuntime }:
     pkgs.runCommand "image-as-dir" { } ''
       ${
         (nix2containerPkgs.nix2container.buildImage {
@@ -97,7 +97,7 @@ let
             paths = [
               serverFiles
               pkgs.busybox
-              nodejs
+              nodeRuntime
               pkgs.gitMinimal
               pkgs.openssh
               pkgs.cacert
@@ -119,7 +119,7 @@ let
               "TMPDIR=/tmp"
               "SSL_CERT_FILE=${pkgs.cacert}/etc/ssl/certs/ca-bundle.crt"
               "NODE_PATH=${node_modules_runtime}/${submodule}/node_modules"
-              "PATH=/tmp/corepack-shims:${node_modules_runtime}/${submodule}/node_modules/.bin:${nodejs}/bin:${pkgs.gitMinimal}/bin:${pkgs.openssh}/bin:/bin:/usr/bin"
+              "PATH=/tmp/corepack-shims:${node_modules_runtime}/${submodule}/node_modules/.bin:${nodeRuntime}/bin:${pkgs.gitMinimal}/bin:${pkgs.openssh}/bin:/bin:/usr/bin"
               "SERVER_PATH=/opt/server"
               "NHOST_PROJECT_PATH=/opt/project"
               "PACKAGE_MANAGER=pnpm"
@@ -171,6 +171,6 @@ in
 
   package = serverFiles;
 
-  node22DockerImage = mkDockerImage { nodejs = pkgs.nodejs_22; };
-  node24DockerImage = mkDockerImage { nodejs = pkgs.nodejs_24; };
+  node22DockerImage = mkDockerImage { nodeRuntime = pkgs.nodejs_22; };
+  node24DockerImage = mkDockerImage { nodeRuntime = pkgs.nodejs_24; };
 }
