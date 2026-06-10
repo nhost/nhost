@@ -409,7 +409,9 @@ public struct StorageGetFileMetadataHeadersHeaders: Sendable {
 
 public struct StorageClient: Sendable {
     public let baseURL: URL
-    private let fetch: FetchFunction
+    // Internal (not private) so hand-written same-module extensions, e.g. the
+    // streaming Storage upload, can reuse the configured middleware pipeline.
+    let fetch: FetchFunction
 
     public init(baseURL: URL, fetch: @escaping FetchFunction) {
         self.baseURL = baseURL

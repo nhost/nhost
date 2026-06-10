@@ -189,11 +189,28 @@ Storage errors are surfaced as `FetchError.http(NhostHTTPError)`, preserving the
 HTTP status, headers, raw response body, decoded JSON body when available, and
 extracted error messages.
 
-> **Memory note:** uploads and downloads are currently fully buffered in memory
-> (`Data` in, `Data` out) — a multipart upload briefly holds roughly twice the
-> file size. Keep transfers comfortably below available memory, especially on
-> iOS; streaming via `URLSession.upload(for:fromFile:)`/`bytes(for:)` is a
-> planned follow-up.
+### Streaming uploads
+
+For large files, use the streaming variant of `uploadFiles`: `.fileURL` sources
+are assembled into a temporary multipart file and streamed from disk, so the
+file is never fully loaded into memory. Sources passed as `.data` use the same
+in-memory path as the generated method — give the SDK bytes and it works in
+memory; give it a file URL and it streams.
+
+```swift
+let movieURL = URL(filePath: "/path/to/movie.mov")
+
+let upload = try await nhost.storage.uploadFiles(
+    bucketId: "default",
+    files: [
+        .fileURL(movieURL, metadata: ["source": .string("swift-sdk")]),
+    ]
+)
+```
+
+> **Memory note:** downloads (and `.data` uploads) are still fully buffered in
+> memory; streaming downloads via `URLSession.bytes(for:)`/`download(for:)` are
+> a planned follow-up.
 
 ## Functions
 

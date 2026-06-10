@@ -180,6 +180,53 @@ final class StorageIntegrationTests: XCTestCase {
         XCTAssertEqual(version.body.buildVersion, "0.8.0-beta3")
     }
 
+    func testStreamingUploadFromDiskRoundTripsLargeFile() async throws {
+        let integration = try IntegrationEnvironment.load()
+        let client = integration.makeClient()
+        _ = try await signUp(client: client, integration: integration)
+
+        let fileID = UUID().uuidString.lowercased()
+        let fileName = "nhost-swift-integration-streaming-\(fileID).bin"
+        // Large enough to span several streaming chunks and any transport buffering.
+        let payload = Data((0..<(5 * 1024 * 1024)).map { UInt8(truncatingIfNeeded: $0 &* 31) })
+        let sourceURL = FileManager.default.temporaryDirectory.appendingPathComponent(fileName)
+        try payload.write(to: sourceURL)
+        defer { try? FileManager.default.removeItem(at: sourceURL) }
+
+        var uploadedID: String?
+        do {
+            let upload = try await client.storage.uploadFiles(
+                bucketId: integration.storageBucketID,
+                files: [
+                    .fileURL(
+                        sourceURL,
+                        id: fileID,
+                        metadata: ["source": .string("streaming-integration")]
+                    ),
+                ]
+            )
+            XCTAssertEqual(upload.status, 201)
+            let processed = try XCTUnwrap(upload.body.processedFiles.first)
+            uploadedID = processed.id
+            XCTAssertEqual(processed.id, fileID)
+            XCTAssertEqual(processed.name, fileName)
+            XCTAssertEqual(processed.size, payload.count)
+            XCTAssertEqual(processed.metadata?["source"], .string("streaming-integration"))
+
+            let download = try await client.storage.getFile(id: fileID)
+            XCTAssertEqual(download.status, 200)
+            XCTAssertEqual(download.body, payload)
+
+            let delete = try await client.storage.deleteFile(id: fileID)
+            XCTAssertEqual(delete.status, 204)
+        } catch {
+            if let uploadedID {
+                _ = try? await client.storage.deleteFile(id: uploadedID)
+            }
+            throw error
+        }
+    }
+
     func testUploadReadCacheReplacePresignAndDeleteFiles() async throws {
         let integration = try IntegrationEnvironment.load()
         let client = integration.makeClient()

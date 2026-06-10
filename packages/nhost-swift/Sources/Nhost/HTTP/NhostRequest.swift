@@ -5,6 +5,10 @@ public struct NhostRequest: Sendable, Equatable {
     public var url: URL
     public var headers: [String: String]
     public var body: Data?
+    /// When set, the transport streams the request body from this file instead of
+    /// `body` (which must be nil); the file must outlive the request. Used for
+    /// large multipart uploads assembled by `NhostMultipartEncoder.encodeToFile`.
+    public var bodyFileURL: URL?
 
     public init(
         method: String,
@@ -16,6 +20,20 @@ public struct NhostRequest: Sendable, Equatable {
         self.url = url
         self.headers = headers
         self.body = body
+        bodyFileURL = nil
+    }
+
+    public init(
+        method: String,
+        url: URL,
+        headers: [String: String] = [:],
+        bodyFileURL: URL
+    ) {
+        self.method = method.uppercased()
+        self.url = url
+        self.headers = headers
+        body = nil
+        self.bodyFileURL = bodyFileURL
     }
 
     public mutating func setHeader(_ name: String, _ value: String?) {

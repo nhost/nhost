@@ -18,7 +18,20 @@ private final class URLSessionBox: @unchecked Sendable {
 public struct URLSessionTransport: HTTPTransport {
     private let box: URLSessionBox
 
-    public init(session: URLSession = .shared) {
+    /// Uses a session with HTTP caching disabled: API responses must not be served
+    /// stale after mutations (read-your-writes), and a disk-backed `URLCache` would
+    /// persist authorized responses in cleartext. This also matches nhost-js, whose
+    /// fetch (undici/Node) does not cache. Pass a custom session via
+    /// `init(session:)` to opt back into caching.
+    public init() {
+        let configuration = URLSessionConfiguration.default
+        configuration.urlCache = nil
+        configuration.requestCachePolicy = .reloadIgnoringLocalCacheData
+
+        box = URLSessionBox(session: URLSession(configuration: configuration))
+    }
+
+    public init(session: URLSession) {
         box = URLSessionBox(session: session)
     }
 
@@ -27,14 +40,22 @@ public struct URLSessionTransport: HTTPTransport {
 
         var urlRequest = URLRequest(url: request.url)
         urlRequest.httpMethod = request.method
-        urlRequest.httpBody = request.body
 
         request.headers.forEach { name, value in
             urlRequest.setValue(value, forHTTPHeaderField: name)
         }
 
         do {
-            let (body, response) = try await box.session.data(for: urlRequest)
+            let body: Data
+            let response: URLResponse
+
+            if let bodyFileURL = request.bodyFileURL {
+                (body, response) = try await upload(urlRequest, fromFile: bodyFileURL)
+            } else {
+                urlRequest.httpBody = request.body
+                (body, response) = try await box.session.data(for: urlRequest)
+            }
+
             guard let httpResponse = response as? HTTPURLResponse else {
                 throw FetchError.invalidResponse("Expected HTTPURLResponse")
             }
@@ -57,6 +78,27 @@ public struct URLSessionTransport: HTTPTransport {
         } catch {
             throw FetchError.transport(String(describing: error))
         }
+    }
+
+    private func upload(_ urlRequest: URLRequest, fromFile fileURL: URL) async throws -> (Data, URLResponse) {
+        #if canImport(FoundationNetworking)
+        // swift-corelibs-foundation does not ship the async upload(for:fromFile:)
+        // convenience; wrap the callback-based task instead.
+        try await withCheckedThrowingContinuation { continuation in
+            let task = box.session.uploadTask(with: urlRequest, fromFile: fileURL) { data, response, error in
+                if let error {
+                    continuation.resume(throwing: error)
+                } else if let response {
+                    continuation.resume(returning: (data ?? Data(), response))
+                } else {
+                    continuation.resume(throwing: URLError(.badServerResponse))
+                }
+            }
+            task.resume()
+        }
+        #else
+        try await box.session.upload(for: urlRequest, fromFile: fileURL)
+        #endif
     }
 
     private static func headers(from response: HTTPURLResponse) -> [String: String] {
