@@ -19,7 +19,7 @@ import type {
   DatabaseColumn,
   ForeignKeyRelation,
 } from '@/features/orgs/projects/database/dataGrid/types/dataBrowser';
-import { areStrArraysEqual } from '@/lib/utils';
+import { computeForeignKeyOneToOne } from '@/features/orgs/projects/database/dataGrid/utils/computeForeignKeyOneToOne';
 import type { DialogFormProps } from '@/types/common';
 import ColumnMappingRow from './ColumnMappingRow';
 import ReferencedSchemaSelect from './ReferencedSchemaSelect';
@@ -32,6 +32,12 @@ export interface BaseForeignKeyFormProps extends DialogFormProps {
    * Available columns in the table.
    */
   availableColumns?: DatabaseColumn[];
+  /**
+   * Column sets of the table's primary key / unique constraints. Used to decide
+   * whether a composite foreign key is one-to-one. Reconstructed from the
+   * fetched schema; absent while creating a table that does not exist yet.
+   */
+  constraintColumnSets?: string[][];
   /**
    * Function to be called when the form is submitted.
    */
@@ -78,36 +84,9 @@ export type BaseForeignKeySchemaValues = Yup.InferType<
   typeof baseForeignKeyValidationSchema
 >;
 
-/**
- * Determines whether a foreign key is one-to-one. It is when the local columns
- * are exactly the table's primary key, or it is a single primary/unique column.
- */
-function computeOneToOne(
-  columns: string[],
-  availableColumns: DatabaseColumn[],
-): boolean {
-  const primaryKeyColumns = availableColumns
-    .filter((column) => column.isPrimary)
-    .map((column) => column.name);
-
-  if (
-    primaryKeyColumns.length > 0 &&
-    areStrArraysEqual(columns, primaryKeyColumns)
-  ) {
-    return true;
-  }
-
-  if (columns.length === 1) {
-    const column = availableColumns.find((item) => item.name === columns[0]);
-
-    return Boolean(column?.isPrimary || column?.isUnique);
-  }
-
-  return false;
-}
-
 export default function BaseForeignKeyForm({
   availableColumns,
+  constraintColumnSets,
   onSubmit: handleExternalSubmit,
   onCancel,
   submitButtonText = 'Save',
@@ -224,7 +203,10 @@ export default function BaseForeignKeyForm({
           referencedColumns,
           updateAction: values.updateAction,
           deleteAction: values.deleteAction,
-          oneToOne: computeOneToOne(columns, availableColumns ?? []),
+          oneToOne: computeForeignKeyOneToOne(columns, {
+            columns: availableColumns ?? [],
+            constraintColumnSets,
+          }),
         });
       }}
       className="flex flex-auto flex-col content-between overflow-hidden pb-4"

@@ -292,6 +292,27 @@ describe('getUntrackedForeignKeyRelations', () => {
     expect(result[0].referencedColumns).toEqual(['y', 'x']);
   });
 
+  it('should not re-track a composite foreign key whose pairs were merely reordered', () => {
+    const original: ForeignKeyRelation[] = [
+      createForeignKey({
+        columns: ['a', 'b'],
+        referencedTable: 'parent',
+        referencedColumns: ['x', 'y'],
+      }),
+    ];
+    const updated: ForeignKeyRelation[] = [
+      createForeignKey({
+        columns: ['b', 'a'],
+        referencedTable: 'parent',
+        referencedColumns: ['y', 'x'],
+      }),
+    ];
+
+    const result = getUntrackedForeignKeyRelations(original, updated);
+
+    expect(result).toEqual([]);
+  });
+
   it('should handle multiple changes to the same column', () => {
     const original: ForeignKeyRelation[] = [
       createForeignKey({

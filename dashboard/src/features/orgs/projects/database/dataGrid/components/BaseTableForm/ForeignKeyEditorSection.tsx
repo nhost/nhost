@@ -13,7 +13,18 @@ import type {
 import { getForeignKeyPairSignature } from '@/features/orgs/projects/database/dataGrid/utils/getForeignKeyPairSignature';
 import ForeignKeyEditorRow from './ForeignKeyEditorRow';
 
-export default function ForeignKeyEditorSection() {
+export interface ForeignKeyEditorSectionProps {
+  /**
+   * Column sets of the table's primary key / unique constraints, forwarded to
+   * the foreign key dialogs so they can decide whether a composite foreign key
+   * is one-to-one. Absent while creating a table that does not exist yet.
+   */
+  constraintColumnSets?: string[][];
+}
+
+export default function ForeignKeyEditorSection({
+  constraintColumnSets,
+}: ForeignKeyEditorSectionProps) {
   const { fields, append, remove, update } = useFieldArray({
     name: 'foreignKeyRelations',
   });
@@ -85,6 +96,7 @@ export default function ForeignKeyEditorSection() {
                       ? { ...column, isPrimary: true }
                       : column,
                   )}
+                  constraintColumnSets={constraintColumnSets}
                   onSubmit={(values) => handleEdit(values, index)}
                 />
               ),
@@ -127,6 +139,7 @@ export default function ForeignKeyEditorSection() {
                     ? { ...column, isPrimary: true }
                     : column,
                 )}
+                constraintColumnSets={constraintColumnSets}
                 onSubmit={handleCreate}
               />
             ),

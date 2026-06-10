@@ -16,12 +16,8 @@ import {
 export interface CreateForeignKeyFormProps
   extends Pick<
     BaseForeignKeyFormProps,
-    'onCancel' | 'availableColumns' | 'location'
+    'onCancel' | 'availableColumns' | 'constraintColumnSets' | 'location'
   > {
-  /**
-   * Column selected by default.
-   */
-  selectedColumn?: string;
   /**
    * Function to be called when the form is submitted.
    */
@@ -30,7 +26,6 @@ export interface CreateForeignKeyFormProps
 
 export default function CreateForeignKeyForm({
   onSubmit,
-  selectedColumn,
   ...props
 }: CreateForeignKeyFormProps) {
   const [error, setError] = useState<Error | null>(null);
@@ -39,7 +34,7 @@ export default function CreateForeignKeyForm({
     defaultValues: {
       referencedSchema: 'public',
       referencedTable: '',
-      columnMappings: [{ column: selectedColumn || '', referencedColumn: '' }],
+      columnMappings: [{ column: '', referencedColumn: '' }],
       updateAction: 'RESTRICT',
       deleteAction: 'RESTRICT',
     },

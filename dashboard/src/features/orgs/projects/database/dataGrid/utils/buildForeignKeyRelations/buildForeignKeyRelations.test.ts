@@ -150,7 +150,7 @@ describe('buildForeignKeyRelations', () => {
     expect(result.uniqueConstraintsByColumn.get('a')).toEqual(['child_a_key']);
   });
 
-  it('should mark a single-column foreign key one-to-one when its column is primary or unique', () => {
+  it('should mark a single-column foreign key one-to-one when its column is primary or uniquely constrained', () => {
     const constraints: RawTableConstraint[] = [
       {
         constraint_name: 'child_author_id_fkey',
@@ -171,12 +171,16 @@ describe('buildForeignKeyRelations', () => {
     );
     expect(primaryResult.foreignKeyRelations[0].oneToOne).toBe(true);
 
-    const uniqueColumns: ForeignKeyConstraintColumn[] = [
-      { column_name: 'author_id', is_unique: true },
-    ];
     const uniqueResult = buildForeignKeyRelations(
-      constraints,
-      uniqueColumns,
+      [
+        ...constraints,
+        {
+          constraint_name: 'child_author_id_key',
+          constraint_type: 'u',
+          column_name: 'author_id',
+        },
+      ],
+      [{ column_name: 'author_id' }],
       'public',
     );
     expect(uniqueResult.foreignKeyRelations[0].oneToOne).toBe(true);
@@ -190,6 +194,69 @@ describe('buildForeignKeyRelations', () => {
       'public',
     );
     expect(plainResult.foreignKeyRelations[0].oneToOne).toBe(false);
+  });
+
+  it('should not mark a single-column foreign key one-to-one when its column is part of a composite primary key', () => {
+    const constraints: RawTableConstraint[] = [
+      {
+        constraint_name: 'memberships_user_id_fkey',
+        constraint_type: 'f',
+        constraint_definition:
+          'FOREIGN KEY (user_id) REFERENCES public.users(id) ON UPDATE NO ACTION ON DELETE NO ACTION',
+        column_name: 'user_id',
+      },
+      {
+        constraint_name: 'memberships_pkey',
+        constraint_type: 'p',
+        column_name: 'user_id',
+      },
+      {
+        constraint_name: 'memberships_pkey',
+        constraint_type: 'p',
+        column_name: 'team_id',
+      },
+    ];
+    // COLUMN_DEFINITION_QUERY flags every member of a composite primary key.
+    const columns: ForeignKeyConstraintColumn[] = [
+      { column_name: 'user_id', is_primary: true },
+      { column_name: 'team_id', is_primary: true },
+    ];
+
+    const result = buildForeignKeyRelations(constraints, columns, 'public');
+
+    expect(result.foreignKeyRelations).toHaveLength(1);
+    expect(result.foreignKeyRelations[0].oneToOne).toBe(false);
+  });
+
+  it('should not mark a single-column foreign key one-to-one when its column is only part of a composite unique constraint', () => {
+    const constraints: RawTableConstraint[] = [
+      {
+        constraint_name: 'child_a_fkey',
+        constraint_type: 'f',
+        constraint_definition:
+          'FOREIGN KEY (a) REFERENCES public.parent(x) ON UPDATE NO ACTION ON DELETE NO ACTION',
+        column_name: 'a',
+      },
+      {
+        constraint_name: 'child_a_b_key',
+        constraint_type: 'u',
+        column_name: 'a',
+      },
+      {
+        constraint_name: 'child_a_b_key',
+        constraint_type: 'u',
+        column_name: 'b',
+      },
+    ];
+    const columns: ForeignKeyConstraintColumn[] = [
+      { column_name: 'a' },
+      { column_name: 'b' },
+    ];
+
+    const result = buildForeignKeyRelations(constraints, columns, 'public');
+
+    expect(result.foreignKeyRelations).toHaveLength(1);
+    expect(result.foreignKeyRelations[0].oneToOne).toBe(false);
   });
 
   it('should fall back to the table schema when the referenced schema is omitted', () => {

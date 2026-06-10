@@ -1,6 +1,6 @@
 import type { ForeignKeyRelation } from '@/features/orgs/projects/database/dataGrid/types/dataBrowser';
+import { computeForeignKeyOneToOne } from '@/features/orgs/projects/database/dataGrid/utils/computeForeignKeyOneToOne';
 import { extractForeignKeyRelation } from '@/features/orgs/projects/database/dataGrid/utils/extractForeignKeyRelation';
-import { areStrArraysEqual } from '@/lib/utils';
 
 /**
  * A single row of `CONSTRAINT_DEFINITION_QUERY`. Composite constraints produce
@@ -15,12 +15,14 @@ export interface RawTableConstraint {
 }
 
 /**
- * The subset of a parsed column we need to derive the `oneToOne` flag for
- * single-column foreign keys.
+ * The subset of a parsed column we need to derive the `oneToOne` flag. Only
+ * `is_primary` participates: it rebuilds the primary key column set. The
+ * per-column `is_unique` flag is deliberately ignored because it is true for
+ * every member of a composite unique index; unique constraints enter the
+ * decision through their full column sets instead.
  */
 export interface ForeignKeyConstraintColumn {
   column_name: string;
-  is_unique?: boolean;
   is_primary?: boolean;
 }
 
@@ -64,8 +66,8 @@ function appendToMap(map: Map<string, string[]>, key: string, value: string) {
  * `columns`/`referencedColumns` arrays hold every participating column.
  *
  * @param constraints - Parsed constraint rows (one per participating column).
- * @param columns - Parsed columns of the table, used to derive `oneToOne` for
- *   single-column foreign keys.
+ * @param columns - Parsed columns of the table, used to rebuild the primary
+ *   key column set for the `oneToOne` decision.
  * @param schema - Schema of the table, used as the referenced-schema fallback.
  */
 export default function buildForeignKeyRelations(
@@ -129,26 +131,20 @@ export default function buildForeignKeyRelations(
     }
   });
 
-  const uniqueColumnSets = Array.from(constraintColumns.values())
+  const constraintColumnSets = Array.from(constraintColumns.values())
     .filter(({ type }) => type === 'p' || type === 'u')
     .map(({ columns: constraintColumnNames }) => constraintColumnNames);
 
-  const columnsByName = new Map(
-    columns.map((column) => [column.column_name, column]),
-  );
+  const oneToOneColumns = columns.map((column) => ({
+    name: column.column_name,
+    isPrimary: column.is_primary,
+  }));
 
   function isOneToOne(foreignKeyColumns: string[]): boolean {
-    if (foreignKeyColumns.length === 1) {
-      const column = columnsByName.get(foreignKeyColumns[0]);
-
-      if (column?.is_unique || column?.is_primary) {
-        return true;
-      }
-    }
-
-    return uniqueColumnSets.some((columnSet) =>
-      areStrArraysEqual(columnSet, foreignKeyColumns),
-    );
+    return computeForeignKeyOneToOne(foreignKeyColumns, {
+      columns: oneToOneColumns,
+      constraintColumnSets,
+    });
   }
 
   const foreignKeyRelations: ForeignKeyRelation[] = [];

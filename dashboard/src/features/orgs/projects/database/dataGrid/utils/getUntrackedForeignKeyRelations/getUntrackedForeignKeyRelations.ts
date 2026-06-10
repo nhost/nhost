@@ -32,11 +32,19 @@ function getUntrackedForeignKeyRelations(
   const updatedForeignKeyRelations = updated as ForeignKeyRelation[];
   let untrackedForeignKeyRelataions: ForeignKeyRelation[] = [];
   const originalMap = new Map(
-    originalForeignKeyRelations.map((fk) => [fk.columns.join(','), fk]),
+    originalForeignKeyRelations.map((fk) => [
+      getForeignKeyPairSignature(fk.columns, fk.referencedColumns),
+      fk,
+    ]),
   );
 
   updatedForeignKeyRelations.forEach((updatedFk) => {
-    const originalFk = originalMap.get(updatedFk.columns.join(','));
+    const originalFk = originalMap.get(
+      getForeignKeyPairSignature(
+        updatedFk.columns,
+        updatedFk.referencedColumns,
+      ),
+    );
 
     if (
       (isNotEmptyValue(originalFk) &&

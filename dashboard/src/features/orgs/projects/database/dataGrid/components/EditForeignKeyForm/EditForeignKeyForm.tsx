@@ -17,7 +17,7 @@ import type { ForeignKeyRelation } from '@/features/orgs/projects/database/dataG
 export interface EditForeignKeyFormProps
   extends Pick<
     BaseForeignKeyFormProps,
-    'onCancel' | 'availableColumns' | 'location'
+    'onCancel' | 'availableColumns' | 'constraintColumnSets' | 'location'
   > {
   /**
    * Foreign key relation to be edited.
