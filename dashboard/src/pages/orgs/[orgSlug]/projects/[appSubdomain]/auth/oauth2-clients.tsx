@@ -26,6 +26,7 @@ import {
   useGetOAuth2ProviderSettingsQuery,
 } from '@/generated/graphql';
 import { isVersionGte } from '@/utils/compareVersions';
+import { getPaginationOffset } from '@/utils/getPaginationOffset';
 
 const ELEMENTS_PER_PAGE = 25;
 
@@ -53,7 +54,7 @@ function OAuth2ClientsPageContent() {
   const [nrOfPages, setNrOfPages] = useState(1);
 
   const offset = useMemo(
-    () => (currentPage - 1) * ELEMENTS_PER_PAGE,
+    () => getPaginationOffset(currentPage, ELEMENTS_PER_PAGE),
     [currentPage],
   );
 

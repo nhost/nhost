@@ -68,6 +68,7 @@ export interface ComboboxProps {
    */
   open?: boolean;
   onOpenChange?: (open: boolean) => void;
+  onSearchChange?: (search: string) => void;
   popoverContentClassName?: string;
   id?: string;
   'data-testid'?: string;
@@ -93,6 +94,7 @@ const Combobox = forwardRef<HTMLButtonElement, ComboboxProps>(
       footerSlot,
       open,
       onOpenChange,
+      onSearchChange,
       popoverContentClassName,
       id,
       'data-testid': dataTestId,
@@ -160,7 +162,7 @@ const Combobox = forwardRef<HTMLButtonElement, ComboboxProps>(
         <PopoverContent
           align="start"
           className={cn(
-            'max-h-[var(--radix-popover-content-available-height)] w-[var(--radix-popover-trigger-width)] p-0',
+            'max-h-[var(--radix-popover-content-available-height)] w-auto min-w-[var(--radix-popover-trigger-width)] p-0',
             popoverContentClassName,
           )}
         >
@@ -169,6 +171,7 @@ const Combobox = forwardRef<HTMLButtonElement, ComboboxProps>(
               placeholder={searchPlaceholder}
               className="h-9"
               disabled={disabled}
+              onValueChange={onSearchChange}
             />
             <CommandList>
               <CommandEmpty>{emptyText}</CommandEmpty>
