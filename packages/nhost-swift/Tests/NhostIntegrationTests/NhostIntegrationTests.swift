@@ -20,6 +20,7 @@ private struct IntegrationEnvironment: Sendable {
     let storageBucketID: String
     let graphqlQuery: String
     let functionsPath: String
+    let adminSecret: String
 
     static func load() throws -> IntegrationEnvironment {
         let environment = ProcessInfo.processInfo.environment
@@ -34,7 +35,8 @@ private struct IntegrationEnvironment: Sendable {
             password: environment["NHOST_SWIFT_TEST_PASSWORD"].nilIfEmpty ?? "password123",
             storageBucketID: environment["NHOST_SWIFT_STORAGE_BUCKET_ID"].nilIfEmpty ?? "default",
             graphqlQuery: environment["NHOST_SWIFT_GRAPHQL_QUERY"].nilIfEmpty ?? "query { users(limit: 1) { id displayName metadata } }",
-            functionsPath: environment["NHOST_SWIFT_FUNCTION_PATH"].nilIfEmpty ?? "/echo"
+            functionsPath: environment["NHOST_SWIFT_FUNCTION_PATH"].nilIfEmpty ?? "/echo",
+            adminSecret: environment["NHOST_SWIFT_ADMIN_SECRET"].nilIfEmpty ?? "nhost-admin-secret"
         )
     }
 
@@ -167,7 +169,197 @@ final class AuthIntegrationTests: XCTestCase {
         } catch let error as FetchError {
             XCTAssertEqual(error.status, 401)
             XCTAssertTrue(error.messages.contains("Incorrect email or password"))
+
+            let decoded = try required(
+                error.decodedBody(AuthErrorResponse.self),
+                "Auth error body did not decode into AuthErrorResponse"
+            )
+            XCTAssertEqual(decoded.error, .invalidEmailPassword)
+            XCTAssertEqual(decoded.status, 401)
         }
+    }
+
+    func testRefreshSessionAndMiddlewareRefreshAgainstBackend() async throws {
+        let integration = try IntegrationEnvironment.load()
+        let client = integration.makeClient()
+        _ = try await signUp(client: client, integration: integration)
+
+        // Forced refresh through the shared refresher updates the stored session.
+        // Refresh tokens rotate on every refresh; access tokens can be byte-identical
+        // when issued within the same second (iat has second resolution).
+        let before = try await client.getUserSession()
+        let refreshed = await client.refreshSession(marginSeconds: 0)
+        let refreshedSession = try required(refreshed, "Forced session refresh failed")
+        XCTAssertNotEqual(refreshedSession.refreshToken, before?.refreshToken)
+        let stored = try await client.getUserSession()
+        XCTAssertEqual(stored?.refreshToken, refreshedSession.refreshToken)
+
+        // A refresh margin larger than the backend's 900 s access-token lifetime
+        // forces the session middleware itself to refresh before the next call.
+        let eagerClient = createClient(
+            NhostClientOptions(
+                authURL: integration.authURL,
+                storageURL: integration.storageURL,
+                graphqlURL: integration.graphqlURL,
+                functionsURL: integration.functionsURL,
+                sessionStorage: MemorySessionStorageBackend(),
+                sessionRefreshMarginSeconds: 3600
+            )
+        )
+        _ = try await signIn(client: eagerClient, integration: integration)
+        let seeded = try await eagerClient.getUserSession()
+
+        let user = try await eagerClient.auth.getUser()
+        XCTAssertEqual(user.status, 200)
+
+        let afterCall = try await eagerClient.getUserSession()
+        XCTAssertNotEqual(
+            afterCall?.refreshToken,
+            seeded?.refreshToken,
+            "session middleware should have refreshed proactively before getUser"
+        )
+    }
+
+    func testSignOutInvalidatesRefreshTokenServerSide() async throws {
+        let integration = try IntegrationEnvironment.load()
+        let client = integration.makeClient()
+        let session = try await signUp(client: client, integration: integration)
+
+        let signOut = try await client.auth.signOut(
+            body: AuthSignOutRequest(refreshToken: session.refreshToken)
+        )
+        XCTAssertEqual(signOut.status, 200)
+
+        let freshClient = integration.makeClient()
+        do {
+            _ = try await freshClient.auth.refreshToken(
+                body: AuthRefreshTokenRequest(refreshToken: session.refreshToken)
+            )
+            XCTFail("Expected the signed-out refresh token to be rejected")
+        } catch let error as FetchError {
+            XCTAssertEqual(error.status, 401)
+        }
+    }
+
+    func testRefreshWithUnknownTokenFails() async throws {
+        let integration = try IntegrationEnvironment.load()
+        let client = integration.makeClient()
+
+        do {
+            _ = try await client.auth.refreshToken(
+                body: AuthRefreshTokenRequest(refreshToken: UUID().uuidString.lowercased())
+            )
+            XCTFail("Expected an unknown refresh token to be rejected")
+        } catch let error as FetchError {
+            XCTAssertEqual(error.status, 401)
+        }
+    }
+
+    func testCreatePATAndSignInWithIt() async throws {
+        let integration = try IntegrationEnvironment.load()
+        let client = integration.makeClient()
+        let session = try await signUp(client: client, integration: integration)
+
+        let pat = try await client.auth.createPAT(
+            body: AuthCreatePATRequest(
+                expiresAt: Date().addingTimeInterval(3600),
+                metadata: ["purpose": .string("integration-test")]
+            )
+        )
+        XCTAssertEqual(pat.status, 200)
+        XCTAssertFalse(pat.body.personalAccessToken.isEmpty)
+
+        let patClient = integration.makeClient()
+        let patSignIn = try await patClient.auth.signInPAT(
+            body: AuthSignInPATRequest(personalAccessToken: pat.body.personalAccessToken)
+        )
+        let patSession = try required(patSignIn.body.session, "PAT sign-in did not return a session")
+        XCTAssertEqual(patSession.user?.id, session.user?.id)
+
+        let storedSession = try await patClient.getUserSession()
+        XCTAssertEqual(storedSession?.accessToken, patSession.accessToken)
+    }
+
+    func testChangePasswordClearsSessionAndAllowsReSignIn() async throws {
+        let integration = try IntegrationEnvironment.load()
+        let client = integration.makeClient()
+        _ = try await signUp(client: client, integration: integration)
+
+        let newPassword = "changed-\(UUID().uuidString.lowercased())"
+        let change = try await client.auth.changeUserPassword(
+            body: AuthUserPasswordRequest(newPassword: newPassword)
+        )
+        XCTAssertEqual(change.status, 200)
+
+        // The /user/password middleware special case clears the stored session.
+        let cleared = try await client.getUserSession()
+        XCTAssertNil(cleared)
+
+        let signIn = try await client.auth.signInEmailPassword(
+            body: AuthSignInEmailPasswordRequest(email: integration.email, password: newPassword)
+        )
+        XCTAssertNotNil(signIn.body.session)
+    }
+
+    func testUnauthenticatedGetUserFails() async throws {
+        let integration = try IntegrationEnvironment.load()
+        let bareClient = createNhostClient(
+            NhostClientOptions(
+                authURL: integration.authURL,
+                storageURL: integration.storageURL,
+                graphqlURL: integration.graphqlURL,
+                functionsURL: integration.functionsURL
+            )
+        )
+
+        do {
+            _ = try await bareClient.auth.getUser()
+            XCTFail("Expected unauthenticated getUser to fail")
+        } catch let error as FetchError {
+            // The auth service rejects a missing Authorization header with 400
+            // (request validation), not 401.
+            XCTAssertEqual(error.status, 400)
+        }
+    }
+
+    // getJWKs and getOpenIDConfiguration are deliberately not smoke-tested: the
+    // local backend signs with HS256, so the server returns `keys: null` for the
+    // JWKS endpoint (the spec declares a required array — see review finding 041),
+    // and the OIDC discovery endpoint is not enabled locally (404).
+
+    func testAnonymousSignInAndDeanonymize() async throws {
+        // The auth spec declares user.metadata as a required non-nullable object,
+        // but the server returns `metadata: null` for anonymous users, so the
+        // generated decode fails — see review finding 041 (spec/server
+        // mismatches). Run with NHOST_SWIFT_RUN_ANONYMOUS_TESTS=1 once the auth
+        // OpenAPI spec marks it nullable and the clients are regenerated.
+        try XCTSkipUnless(
+            ProcessInfo.processInfo.environment["NHOST_SWIFT_RUN_ANONYMOUS_TESTS"] == "1",
+            "Blocked on auth OpenAPI spec marking user.metadata nullable (review finding 041)"
+        )
+
+        let integration = try IntegrationEnvironment.load()
+        let client = integration.makeClient()
+
+        let anonymous = try await client.auth.signInAnonymous()
+        let anonymousSession = try required(
+            anonymous.body.session,
+            "Anonymous sign-in did not return a session"
+        )
+        XCTAssertEqual(anonymousSession.user?.isAnonymous, true)
+
+        let storedSession = try await client.getUserSession()
+        XCTAssertEqual(storedSession?.accessToken, anonymousSession.accessToken)
+
+        let deanonymize = try await client.auth.deanonymizeUser(
+            body: AuthUserDeanonymizeRequest(
+                signInMethod: .emailPassword,
+                email: "deanonymized-\(UUID().uuidString.lowercased())@example.com",
+                password: integration.password
+            )
+        )
+        XCTAssertEqual(deanonymize.status, 200)
+        XCTAssertEqual(deanonymize.body, .ok)
     }
 }
 
@@ -230,7 +422,7 @@ final class StorageIntegrationTests: XCTestCase {
     func testUploadReadCacheReplacePresignAndDeleteFiles() async throws {
         let integration = try IntegrationEnvironment.load()
         let client = integration.makeClient()
-        _ = try await signUp(client: client, integration: integration)
+        let session = try await signUp(client: client, integration: integration)
 
         let firstID = UUID().uuidString.lowercased()
         let secondID = UUID().uuidString.lowercased()
@@ -275,6 +467,9 @@ final class StorageIntegrationTests: XCTestCase {
             XCTAssertEqual(second.name, secondName)
             XCTAssertEqual(second.size, secondData.count)
             XCTAssertEqual(second.metadata?["key"]?.stringValue, "value2")
+            XCTAssertFalse(first.etag.isEmpty)
+            XCTAssertLessThanOrEqual(abs(first.createdAt.timeIntervalSinceNow), 300)
+            XCTAssertEqual(first.uploadedByUserId, session.user?.id)
 
             let metadata = try await client.storage.getFileMetadataHeaders(id: first.id)
             XCTAssertEqual(metadata.status, 200)
@@ -291,6 +486,23 @@ final class StorageIntegrationTests: XCTestCase {
                     headers: StorageGetFileMetadataHeadersHeaders(ifNoneMatch: etag)
                 )
                 XCTFail("Expected matching If-None-Match metadata request to return 304")
+            } catch let error as FetchError {
+                XCTAssertEqual(error.status, 304)
+            }
+
+            let nonMatching = try await client.storage.getFileMetadataHeaders(
+                id: first.id,
+                headers: StorageGetFileMetadataHeadersHeaders(ifNoneMatch: "\"different-etag\"")
+            )
+            XCTAssertEqual(nonMatching.status, 200)
+            XCTAssertNotNil(header("cache-control", in: nonMatching.headers))
+
+            do {
+                _ = try await client.storage.getFile(
+                    id: first.id,
+                    headers: StorageGetFileHeaders(ifNoneMatch: etag)
+                )
+                XCTFail("Expected matching If-None-Match download to return 304")
             } catch let error as FetchError {
                 XCTAssertEqual(error.status, 304)
             }
@@ -341,6 +553,84 @@ final class StorageIntegrationTests: XCTestCase {
             let deleted = try await client.storage.deleteFile(id: id)
             XCTAssertEqual(deleted.status, 204)
         }
+    }
+
+    func testStorageErrorPaths() async throws {
+        let integration = try IntegrationEnvironment.load()
+        let client = integration.makeClient()
+        _ = try await signUp(client: client, integration: integration)
+
+        do {
+            _ = try await client.storage.uploadFiles(
+                body: StorageUploadFilesBody(bucketId: integration.storageBucketID, file: [])
+            )
+            XCTFail("Expected an upload without files to fail")
+        } catch let FetchError.http(error) {
+            XCTAssertEqual(error.status, 400)
+            XCTAssertNotNil(error.body)
+            XCTAssertFalse(error.messages.isEmpty)
+            XCTAssertNotNil(header("content-type", in: error.headers))
+        }
+
+        let missingID = UUID().uuidString.lowercased()
+
+        do {
+            _ = try await client.storage.getFile(id: missingID)
+            XCTFail("Expected downloading a missing file to fail")
+        } catch let FetchError.http(error) {
+            XCTAssertEqual(error.status, 404)
+        }
+
+        do {
+            _ = try await client.storage.deleteFile(id: missingID)
+            XCTFail("Expected deleting a missing file to fail")
+        } catch let FetchError.http(error) {
+            XCTAssertEqual(error.status, 404)
+        }
+    }
+
+    func testImageTransformationQueryParameters() async throws {
+        let integration = try IntegrationEnvironment.load()
+        let client = integration.makeClient()
+        _ = try await signUp(client: client, integration: integration)
+
+        let png = try required(
+            Data(
+                base64Encoded: "iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVR42mNkYPhfDwAChwGA60e6kgAAAABJRU5ErkJggg=="
+            ),
+            "Invalid PNG fixture"
+        )
+        let fileID = UUID().uuidString.lowercased()
+
+        let upload = try await client.storage.uploadFiles(
+            body: StorageUploadFilesBody(
+                bucketId: integration.storageBucketID,
+                metadata: [
+                    StorageUploadFileMetadata(id: fileID, name: "nhost-swift-\(fileID).png"),
+                ],
+                file: [png]
+            )
+        )
+        XCTAssertEqual(upload.status, 201)
+
+        do {
+            let transformed = try await client.storage.getFile(
+                id: fileID,
+                query: StorageGetFileQuery(h: 1, q: 50, w: 1)
+            )
+            XCTAssertEqual(transformed.status, 200)
+            XCTAssertTrue(
+                header("content-type", in: transformed.headers)?.hasPrefix("image/") == true,
+                "expected an image content type, got \(header("content-type", in: transformed.headers) ?? "nil")"
+            )
+            XCTAssertFalse(transformed.body.isEmpty)
+        } catch {
+            _ = try? await client.storage.deleteFile(id: fileID)
+            throw error
+        }
+
+        let deleted = try await client.storage.deleteFile(id: fileID)
+        XCTAssertEqual(deleted.status, 204)
     }
 }
 
@@ -467,7 +757,112 @@ final class ServiceIntegrationTests: XCTestCase {
         } catch let error as FunctionsHTTPError {
             XCTAssertEqual(error.status, 500)
             XCTAssertTrue(error.messages.contains("Internal Server Error"))
+            XCTAssertTrue(header("content-type", in: error.headers)?.hasPrefix("text/html") == true)
         }
+    }
+
+    func testGraphQLUnknownFieldReturnsValidationPath() async throws {
+        let integration = try IntegrationEnvironment.load()
+        let client = integration.makeClient()
+        _ = try await signUp(client: client, integration: integration)
+
+        do {
+            _ = try await client.graphql.request(JSONValue.self, query: "query { restricted { id } }")
+            XCTFail("Expected an unknown field to fail validation")
+        } catch let error as GraphQLExecutionError {
+            let first = try required(error.errors.first, "GraphQL error payload missing")
+            XCTAssertTrue(first.message.contains("restricted"), "unexpected message: \(first.message)")
+            XCTAssertEqual(first.extensions?["path"], .string("$.selectionSet.restricted"))
+        }
+    }
+
+    func testFunctionsGETQueryStringAndHelloworldAcceptNegotiation() async throws {
+        let integration = try IntegrationEnvironment.load()
+        let client = integration.makeClient()
+
+        // GET with a query string in the path exercises the path/query splitting.
+        let get = try await client.functions.fetch(
+            JSONValue.self,
+            path: "/echo?foo=bar",
+            headers: ["Accept": "application/json"]
+        )
+        XCTAssertEqual(get.body.json?["method"]?.stringValue, "GET")
+
+        let text = try await client.functions.fetch(
+            JSONValue.self,
+            path: "/helloworld",
+            headers: ["Accept": "text/plain"]
+        )
+        XCTAssertEqual(text.body.text, "Hello, World!")
+
+        let json = try await client.functions.post(JSONValue.self, path: "/helloworld")
+        XCTAssertEqual(json.body.json?["message"]?.stringValue, "Hello, World!")
+
+        do {
+            _ = try await client.functions.fetch(
+                JSONValue.self,
+                path: "/helloworld",
+                headers: ["Accept": "application/xml"]
+            )
+            XCTFail("Expected an unsupported Accept header to fail")
+        } catch let error as FunctionsHTTPError {
+            XCTAssertEqual(error.status, 400)
+            XCTAssertTrue(error.messages.contains("Unsupported Accept Header"))
+        }
+    }
+
+    func testAdminSessionClientActsAsImpersonatedUser() async throws {
+        let integration = try IntegrationEnvironment.load()
+        let userClient = integration.makeClient()
+        let session = try await signUp(client: userClient, integration: integration)
+        let userID = try required(session.user?.id, "Sign-up session did not include a user id")
+
+        let adminClient = createNhostClient(
+            NhostClientOptions(
+                authURL: integration.authURL,
+                storageURL: integration.storageURL,
+                graphqlURL: integration.graphqlURL,
+                functionsURL: integration.functionsURL,
+                adminSession: AdminSessionOptions(
+                    adminSecret: integration.adminSecret,
+                    role: "user",
+                    sessionVariables: ["user-id": userID]
+                )
+            )
+        )
+
+        let upload = try await adminClient.storage.uploadFiles(
+            body: StorageUploadFilesBody(
+                bucketId: integration.storageBucketID,
+                file: [Data("admin-upload".utf8)]
+            )
+        )
+        XCTAssertEqual(upload.status, 201)
+        let file = try required(upload.body.processedFiles.first, "Admin upload returned no file")
+        XCTAssertEqual(file.uploadedByUserId, userID, "upload should be attributed to the impersonated user")
+
+        do {
+            struct FileRecord: Decodable, Sendable {
+                let id: String
+                let name: String
+            }
+            struct FilesData: Decodable, Sendable {
+                let files: [FileRecord]
+            }
+
+            let files = try await adminClient.graphql.request(
+                FilesData.self,
+                query: "query Files($id: uuid!) { files(where: { id: { _eq: $id } }) { id name } }",
+                variables: ["id": .string(file.id)]
+            )
+            XCTAssertEqual(files.body.data?.files.first?.id, file.id)
+        } catch {
+            _ = try? await adminClient.storage.deleteFile(id: file.id)
+            throw error
+        }
+
+        let deleted = try await adminClient.storage.deleteFile(id: file.id)
+        XCTAssertEqual(deleted.status, 204)
     }
 }
 

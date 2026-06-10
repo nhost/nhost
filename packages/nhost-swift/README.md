@@ -81,23 +81,30 @@ with explicit custom session storage.
 ## Auth and sessions
 
 Generated Auth methods return `NhostResponse<T>`, preserving status and headers
-alongside the decoded body.
+alongside the decoded body. (`signInEmailPassword` works the same way for
+existing users.)
 
 ```swift
-let signIn = try await nhost.auth.signInEmailPassword(
-    body: AuthSignInEmailPasswordRequest(
-        email: "ada@example.com",
-        password: ProcessInfo.processInfo.environment["NHOST_EXAMPLE_PASSWORD"] ?? "<password>"
+let email = "ada-\(UUID().uuidString.lowercased())@example.com"
+let password = UUID().uuidString
+
+let signUp = try await nhost.auth.signUpEmailPassword(
+    body: AuthSignUpEmailPasswordRequest(
+        email: email,
+        password: password,
+        options: AuthSignUpOptions(
+            displayName: "Ada Lovelace",
+            metadata: ["favoriteNumber": .number(7)]
+        )
     )
 )
 
-if let session = signIn.body.session {
-    print("signed in with token expiring in \(session.accessTokenExpiresIn)s")
-}
+let session = signUp.body.session
+print("signed in with token expiring in \(session?.accessTokenExpiresIn ?? 0)s")
 
 let stored = try await nhost.getUserSession()
 let defaultRole = stored?.decodedToken.hasuraClaims?["x-hasura-default-role"]?.stringValue
-print(defaultRole ?? "no role")
+let userID = session?.user?.id ?? ""
 ```
 
 `createClient` stores Auth responses in the configured session store, refreshes
@@ -111,47 +118,56 @@ name. Decoding uses a neutral `JSONDecoder` by default so user response models d
 not inherit REST date-decoding behavior unless you opt in.
 
 ```swift
-struct Todo: Decodable, Sendable {
+struct UserRow: Decodable, Sendable {
     let id: String
-    let title: String
+    let displayName: String
 }
 
-struct TodosData: Decodable, Sendable {
-    let todos: [Todo]
+struct UsersData: Decodable, Sendable {
+    let users: [UserRow]
 }
 
-let todos = try await nhost.graphql.request(
-    TodosData.self,
+let users = try await nhost.graphql.request(
+    UsersData.self,
     query: """
-    query Todos($limit: Int!) {
-      todos(limit: $limit, order_by: { created_at: desc }) { id title }
+    query Users($limit: Int!) {
+      users(limit: $limit) { id displayName }
     }
     """,
     variables: ["limit": .number(10)],
-    operationName: "Todos"
+    operationName: "Users"
 )
 
-print(todos.body.data?.todos ?? [])
+print(users.body.data?.users ?? [])
 ```
 
 Mutations use the same API:
 
 ```swift
-struct InsertTodoData: Decodable, Sendable {
-    struct InsertTodo: Decodable, Sendable { let id: String }
-    let insert_todos_one: InsertTodo?
+struct UpdatedUser: Decodable, Sendable {
+    let id: String
+    let displayName: String
 }
 
-let created = try await nhost.graphql.request(
-    InsertTodoData.self,
+struct UpdateUserData: Decodable, Sendable {
+    let updateUser: UpdatedUser?
+}
+
+let updated = try await nhost.graphql.request(
+    UpdateUserData.self,
     query: """
-    mutation InsertTodo($title: String!) {
-      insert_todos_one(object: { title: $title }) { id }
+    mutation UpdateDisplayName($id: uuid!, $displayName: String!) {
+      updateUser(pk_columns: { id: $id }, _set: { displayName: $displayName }) {
+        id
+        displayName
+      }
     }
     """,
-    variables: ["title": .string("Ship Swift SDK")],
-    operationName: "InsertTodo"
+    variables: ["id": .string(userID), "displayName": .string("Ada King")],
+    operationName: "UpdateDisplayName"
 )
+
+print(updated.body.data?.updateUser?.displayName ?? "")
 ```
 
 If a GraphQL response contains `errors`, the client throws
@@ -171,7 +187,6 @@ let upload = try await nhost.storage.uploadFiles(
         bucketId: "default",
         metadata: [
             StorageUploadFileMetadata(
-                id: "hello-swift.txt",
                 name: "hello-swift.txt",
                 metadata: ["source": .string("swift-sdk")]
             ),
@@ -183,6 +198,8 @@ let upload = try await nhost.storage.uploadFiles(
 let fileID = upload.body.processedFiles[0].id
 let download = try await nhost.storage.getFile(id: fileID)
 print(String(decoding: download.body, as: UTF8.self))
+
+_ = try await nhost.storage.deleteFile(id: fileID)
 ```
 
 Storage errors are surfaced as `FetchError.http(NhostHTTPError)`, preserving the
@@ -195,17 +212,18 @@ For large files, use the streaming variant of `uploadFiles`: `.fileURL` sources
 are assembled into a temporary multipart file and streamed from disk, so the
 file is never fully loaded into memory. Sources passed as `.data` use the same
 in-memory path as the generated method — give the SDK bytes and it works in
-memory; give it a file URL and it streams.
+memory; give it a file URL and it streams. Given a `movieURL` pointing at a
+file on disk:
 
 ```swift
-let movieURL = URL(filePath: "/path/to/movie.mov")
-
-let upload = try await nhost.storage.uploadFiles(
+let streamedUpload = try await nhost.storage.uploadFiles(
     bucketId: "default",
     files: [
         .fileURL(movieURL, metadata: ["source": .string("swift-sdk")]),
     ]
 )
+
+_ = try await nhost.storage.deleteFile(id: streamedUpload.body.processedFiles[0].id)
 ```
 
 > **Memory note:** downloads (and `.data` uploads) are still fully buffered in
@@ -216,16 +234,17 @@ let upload = try await nhost.storage.uploadFiles(
 
 Use `fetch` for arbitrary methods and raw bodies, or `post` for JSON request
 bodies. Responses are decoded by content type: JSON into your `Decodable` type,
-`text/*` into `String`, and everything else into `Data`.
+`text/*` into `String`, and everything else into `Data`. (`/helloworld` and
+`/echo` are the functions deployed in the package-local dev backend.)
 
 ```swift
 struct HelloResponse: Decodable, Sendable {
     let message: String
 }
 
-let hello = try await nhost.functions.fetch(
+let hello = try await nhost.functions.post(
     HelloResponse.self,
-    path: "/hello"
+    path: "/helloworld"
 )
 
 if case let .json(body) = hello.body {
@@ -233,13 +252,14 @@ if case let .json(body) = hello.body {
 }
 
 struct EchoRequest: Encodable, Sendable { let message: String }
-struct EchoResponse: Decodable, Sendable { let echoed: String }
 
 let echo = try await nhost.functions.post(
-    EchoResponse.self,
+    JSONValue.self,
     path: "/echo",
     body: EchoRequest(message: "Hi")
 )
+
+print(echo.body.json?["body"]?["message"]?.stringValue ?? "")
 ```
 
 Non-2xx Functions responses throw `FunctionsHTTPError` with status, headers,

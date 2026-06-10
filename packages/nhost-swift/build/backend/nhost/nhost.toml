@@ -70,7 +70,9 @@ expiresIn = 2592000
 
 [auth.method]
 [auth.method.anonymous]
-enabled = false
+# Enabled (diverges from the nhost-js fixture) so the Swift integration tests can
+# cover signInAnonymous + deanonymizeUser.
+enabled = true
 
 [auth.method.emailPasswordless]
 enabled = false
