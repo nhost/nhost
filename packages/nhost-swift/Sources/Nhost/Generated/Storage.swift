@@ -438,7 +438,7 @@ public struct StorageClient: Sendable {
             parts.append(.formField(name: "bucket-id", value: try NhostWireEncoder.jsonValue(value)))
         }
         for item in body.file {
-            parts.append(NhostMultipartPart(name: "file[]", contentType: NhostBinaryBody.contentType, body: item))
+            parts.append(NhostMultipartPart.file(name: "file[]", filename: "blob", contentType: NhostBinaryBody.contentType, data: item))
         }
         if let value = body.metadata {
             for item in value {
@@ -571,7 +571,7 @@ public struct StorageClient: Sendable {
         ]
         var parts: [NhostMultipartPart] = []
         if let value = body.file {
-            parts.append(NhostMultipartPart(name: "file", contentType: NhostBinaryBody.contentType, body: value))
+            parts.append(NhostMultipartPart.file(name: "file", filename: "blob", contentType: NhostBinaryBody.contentType, data: value))
         }
         if let value = body.metadata {
             parts.append(NhostMultipartPart(name: "metadata", contentType: "application/json", body: try NhostJSON.restEncoder.encode(value)))

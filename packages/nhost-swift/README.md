@@ -277,38 +277,45 @@ trusted contexts that already control the session lifecycle.
 
 ## Integration tests
 
-Integration tests live in `Tests/NhostIntegrationTests` and are skipped by
-default unless `NHOST_SWIFT_RUN_INTEGRATION=1` is set. Default `make check` and
-`swift test` therefore remain hermetic and do not perform network I/O.
-
-Auth and Storage integration require a test user and a writable bucket:
+Integration tests live in `Tests/NhostIntegrationTests` and run by default
+against the package-local backend copied from `packages/nhost-js`. Start the
+backend before running checks, matching the CI workflow:
 
 ```sh
-# Set NHOST_SWIFT_TEST_PASSWORD securely in your shell before running.
-export NHOST_SWIFT_TEST_PASSWORD
-
-NHOST_SWIFT_RUN_INTEGRATION=1 \
-NHOST_AUTH_URL=https://<subdomain>.auth.<region>.nhost.run/v1 \
-NHOST_STORAGE_URL=https://<subdomain>.storage.<region>.nhost.run/v1 \
-NHOST_SWIFT_TEST_EMAIL=ada@example.com \
-NHOST_SWIFT_STORAGE_BUCKET_ID=default \
-nix develop .#nhost-swift -c swift test --disable-swift-testing --filter NhostIntegrationTests
+nix develop .#nhost-swift -c make -C packages/nhost-swift dev-env-up
+nix develop .#nhost-swift -c swift test --package-path packages/nhost-swift --disable-swift-testing --filter NhostIntegrationTests
+nix develop .#nhost-swift -c make -C packages/nhost-swift dev-env-down
 ```
 
-Optional GraphQL and Functions checks run when their URLs and inputs are present:
+The default local URLs are:
+
+- `https://local.auth.local.nhost.run/v1`
+- `https://local.storage.local.nhost.run/v1`
+- `https://local.graphql.local.nhost.run/v1`
+- `https://local.functions.local.nhost.run/v1`
+
+By default, the tests create unique email/password users automatically. If
+`NHOST_SWIFT_TEST_EMAIL` already exists, the suite signs in with
+`NHOST_SWIFT_TEST_PASSWORD` and reuses that user. Override URLs or inputs when
+testing another Nhost environment:
 
 ```sh
+NHOST_AUTH_URL=https://<subdomain>.auth.<region>.nhost.run/v1 \
+NHOST_STORAGE_URL=https://<subdomain>.storage.<region>.nhost.run/v1 \
 NHOST_GRAPHQL_URL=https://<subdomain>.graphql.<region>.nhost.run/v1 \
-NHOST_SWIFT_GRAPHQL_QUERY='query { todos(limit: 1) { id } }' \
 NHOST_FUNCTIONS_URL=https://<subdomain>.functions.<region>.nhost.run/v1 \
-NHOST_SWIFT_FUNCTION_PATH=/hello \
-# plus the Auth variables above
-nix develop .#nhost-swift -c swift test --disable-swift-testing --filter NhostIntegrationTests
+NHOST_SWIFT_TEST_EMAIL=ada@example.com \
+NHOST_SWIFT_TEST_PASSWORD=password123 \
+NHOST_SWIFT_STORAGE_BUCKET_ID=default \
+NHOST_SWIFT_GRAPHQL_QUERY='query { users(limit: 1) { id } }' \
+NHOST_SWIFT_FUNCTION_PATH=/echo \
+nix develop .#nhost-swift -c swift test --package-path packages/nhost-swift --disable-swift-testing --filter NhostIntegrationTests
 ```
 
 The Storage integration creates a small text file with a unique ID, downloads it,
 and attempts to delete it during cleanup. Use a dedicated test project or bucket
-with permissions appropriate for the configured test user.
+with permissions appropriate for the configured test user when overriding the
+local backend.
 
 ## Generated code
 

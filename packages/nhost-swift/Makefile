@@ -3,11 +3,11 @@ include $(ROOT_DIR)/build/makefiles/general.makefile
 
 .PHONY: _dev-env-up
 _dev-env-up:
-	@echo "Nothing to do"
+	./dev-env.sh up
 
 .PHONY: _dev-env-down
 _dev-env-down:
-	@echo "Nothing to do"
+	./dev-env.sh down
 
 .PHONY: _dev-env-build
 _dev-env-build:

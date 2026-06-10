@@ -6,7 +6,7 @@ This package is a SwiftPM library package exposing the public module `Nhost`.
 
 - Use the repository Nix workflow as the source of truth: `make -C packages/nhost-swift check`.
 - For direct SwiftPM checks, run through the Nix dev shell: `nix develop .#nhost-swift -c swift build` and `nix develop .#nhost-swift -c swift test --disable-swift-testing`.
-- Integration tests under `Tests/NhostIntegrationTests` must stay gated by `NHOST_SWIFT_RUN_INTEGRATION=1` so default `make check` and `swift test` perform no network I/O.
+- Integration tests under `Tests/NhostIntegrationTests` run against the local backend started with `make -C packages/nhost-swift dev-env-up`, mirroring `packages/nhost-js`; keep URL/env overrides documented in `README.md`.
 - Keep `Package.swift` on Swift tools 6.0 unless the plan and Nix toolchain are updated together.
 
 ## Source layout
@@ -22,5 +22,5 @@ This package is a SwiftPM library package exposing the public module `Nhost`.
 - When validating new generated files before commit, make them tracked or intent-to-add first; Nix flake checks do not include untracked files in the dirty-tree source snapshot.
 - Hand-written runtime APIs should remain small, `Sendable` where practical, and usable from generated code without Foundation dependencies beyond the package baseline.
 - REST clients use `NhostJSON.restEncoder` and `NhostJSON.restDecoder`; do not reuse that date strategy for arbitrary GraphQL or Functions user response decoding unless the caller explicitly opts in.
-- Tests should use `StubTransport` or custom `HTTPTransport` implementations rather than performing network I/O.
+- Unit tests should use `StubTransport` or custom `HTTPTransport` implementations rather than performing network I/O; integration tests are the only networked tests and target the local backend by default.
 - In async XCTest methods, await actor/storage values into local variables before passing them to `XCTAssert*`/`XCTUnwrap`; XCTest autoclosures are synchronous and reject `await` directly inside assertions.

@@ -10,22 +10,37 @@ let
 
   fs = pkgs.lib.fileset;
 
+  srcFileset = fs.unions [
+    ./CLAUDE.md
+    ./gen.sh
+    ./Package.swift
+    ./README.md
+    ./Sources
+    ./Tests
+    ../../services/auth/docs/openapi.yaml
+    ../../services/storage/controller/openapi.yaml
+  ];
+
   src = fs.toSource {
     root = ../..;
+    fileset = srcFileset;
+  };
+
+  checkSrc = fs.toSource {
+    root = ../..;
     fileset = fs.unions [
-      ./CLAUDE.md
-      ./gen.sh
-      ./Package.swift
-      ./README.md
-      ./Sources
-      ./Tests
-      ../../services/auth/docs/openapi.yaml
-      ../../services/storage/controller/openapi.yaml
+      srcFileset
+      ./build/backend
+      ./dev-env.sh
     ];
   };
 
   checkDeps = [
     self.packages.${pkgs.stdenv.hostPlatform.system}.codegen
+  ];
+
+  devEnvDeps = with pkgs; [
+    nhost-cli
   ];
 
   buildInputs = [ ];
@@ -35,18 +50,18 @@ in
   devShell = nixops-lib.swift.devShell {
     inherit
       buildInputs
-      checkDeps
       nativeBuildInputs
       ;
+    checkDeps = checkDeps ++ devEnvDeps;
   };
 
   check = nixops-lib.swift.check {
     inherit
-      src
       buildInputs
       checkDeps
       nativeBuildInputs
       ;
+    src = checkSrc;
     packagePath = submodule;
     preCheck = ''
       echo "➜ Checking generated Auth and Storage clients"

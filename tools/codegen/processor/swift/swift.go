@@ -998,9 +998,9 @@ func (s *Swift) writeSwiftMultipartSinglePart(
 	switch typed := typ.(type) {
 	case *processor.TypeScalar:
 		if swiftIsBinaryType(typed) {
-			builder.WriteString("NhostMultipartPart(name: ")
+			builder.WriteString("NhostMultipartPart.file(name: ")
 			builder.WriteString(swiftStringLiteral(wireName))
-			builder.WriteString(", contentType: NhostBinaryBody.contentType, body: ")
+			builder.WriteString(", filename: \"blob\", contentType: NhostBinaryBody.contentType, data: ")
 			builder.WriteString(valueExpr)
 			builder.WriteString(")")
 		} else {
