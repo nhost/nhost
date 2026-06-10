@@ -25,6 +25,7 @@ import {
   type GetGraphiteAutoEmbeddingsConfigurationsQuery,
   useGetGraphiteAutoEmbeddingsConfigurationsQuery,
 } from '@/utils/__generated__/graphite.graphql';
+import { getPaginationOffset } from '@/utils/getPaginationOffset';
 
 export type AutoEmbeddingsConfiguration = Omit<
   GetGraphiteAutoEmbeddingsConfigurationsQuery['graphiteAutoEmbeddingsConfigurations'][0],
@@ -48,7 +49,10 @@ export default function AutoEmbeddingsPage() {
     parseInt(router.query.page as string, 10) || 1,
   );
   const [nrOfPages, setNrOfPages] = useState(0);
-  const offset = useMemo(() => currentPage - 1, [currentPage]);
+  const offset = useMemo(
+    () => getPaginationOffset(currentPage, limit.current),
+    [currentPage],
+  );
 
   const { data, loading, error, refetch } =
     useGetGraphiteAutoEmbeddingsConfigurationsQuery({
@@ -197,12 +201,10 @@ export default function AutoEmbeddingsPage() {
           elementsPerPage={limit.current}
           onPrevPageClick={async () => {
             setCurrentPage((page) => page - 1);
-            if (currentPage - 1 !== 1) {
-              await router.push({
-                pathname: router.pathname,
-                query: { ...router.query, page: currentPage - 1 },
-              });
-            }
+            await router.push({
+              pathname: router.pathname,
+              query: { ...router.query, page: currentPage - 1 },
+            });
           }}
           onNextPageClick={async () => {
             setCurrentPage((page) => page + 1);

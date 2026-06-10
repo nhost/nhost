@@ -22,7 +22,13 @@
     };
   in
   rec {
-    nodejs-slim_24 = prev.nodejs-slim_24.overrideAttrs (oldAttrs: rec {
+    # Node toolchain pinned ahead of nixpkgs, exposed only under `pkgs.nhost.*`
+    # (see default.nix). Deliberately NOT exported as global
+    # `nodejs`/`nodejs-slim_24`: overriding those globally taints every nixpkgs
+    # package with node in its build closure (npm hooks, docs themes, scons,
+    # ...), forcing source rebuilds of huge dependency cones instead of
+    # substituting them from cache.nixos.org.
+    nodejs-slim = prev.nodejs-slim_24.overrideAttrs (oldAttrs: rec {
       version = "24.16.0";
       src = prev.fetchurl {
         url = "https://nodejs.org/dist/v${version}/node-v${version}.tar.xz";
@@ -37,14 +43,14 @@
 
     nodejs = final.symlinkJoin {
       name = "nodejs";
-      version = final.nodejs-slim_24.version;
+      version = final.nhost.nodejs-slim.version;
       paths = [
-        final.nodejs-slim_24
+        final.nhost.nodejs-slim
         npm_11
       ];
 
       passthru = {
-        inherit (final.nodejs-slim_24)
+        inherit (final.nhost.nodejs-slim)
           version
           python
           meta
@@ -52,7 +58,7 @@
           ;
 
         pkgs = final.callPackage "${final.path}/pkgs/development/node-packages/default.nix" {
-          nodejs = final.nodejs;
+          nodejs = final.nhost.nodejs;
         };
       };
     };
@@ -60,12 +66,8 @@
     vercel =
       (import ./vercel {
         pkgs = final;
-        nodejs = final.nodejs;
+        nodejs = final.nhost.nodejs;
       })."vercel-53.3.2";
-
-    buildNpmPackage = prev.buildNpmPackage.override {
-      nodejs = prev.nodejs;
-    };
 
     npm_11 = final.stdenv.mkDerivation rec {
       pname = "npm";
@@ -74,7 +76,7 @@
         url = "https://registry.npmjs.org/npm/-/npm-${version}.tgz";
         sha256 = "sha256-KS8ULcGowBGZujSgflfPAWwmDqLFm2Tz7uiqrnoudQQ=";
       };
-      nativeBuildInputs = [ final.nodejs-slim_24.out ];
+      nativeBuildInputs = [ final.nhost.nodejs-slim.out ];
       dontBuild = true;
       installPhase = ''
         mkdir -p $out/lib/node_modules/npm
@@ -88,6 +90,7 @@
 
     pnpm =
       (final.callPackage "${final.path}/pkgs/development/tools/pnpm/generic.nix" {
+        nodejs = final.nhost.nodejs;
         version = "11.1.0";
         hash = "sha256-VzyCrTVuiwl+bKxIG3OB+d7tM6MYr38xGYSFjr4fl+8=";
       }).overrideAttrs
@@ -124,10 +127,6 @@
                   'resourceLimits: this._workerResourceLimits, trackUnmanagedFds: false'
             '';
         });
-
-    ell = prev.ell.overrideAttrs (oldAttrs: {
-      doCheck = false;
-    });
 
     biome = final.stdenv.mkDerivation {
       pname = "biome";

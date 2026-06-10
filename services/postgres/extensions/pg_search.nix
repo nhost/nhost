@@ -23,7 +23,7 @@ buildPGRXExtension rec {
   pname = "pg_search";
   version = "0.24.0";
 
-  cargo-pgrx = pkgs.cargo-pgrx_0_18_1;
+  cargo-pgrx = pkgs.nhost.cargo-pgrx_0_18_1;
 
   doCheck = false;
 
