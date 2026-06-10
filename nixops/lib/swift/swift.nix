@@ -31,6 +31,10 @@ in
     }:
     pkgs.runCommand "swifttests"
       {
+        # integration tests need network access to reach the dev-env backend
+        # started on the host via `make dev-env-up` (CI runs nix with
+        # sandbox = relaxed); same approach as nixops/lib/js/js.nix
+        __noChroot = true;
         nativeBuildInputs = swiftCheckDeps ++ checkDeps ++ buildInputs ++ nativeBuildInputs;
       }
       ''

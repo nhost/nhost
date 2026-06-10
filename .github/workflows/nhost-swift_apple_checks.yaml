@@ -43,7 +43,9 @@ jobs:
         run: swift build
 
       - name: Run package tests
-        run: swift test
+        # integration tests need the local backend, which only the Linux
+        # check (wf_check.yaml + dev-env-up) provides
+        run: swift test --skip NhostIntegrationTests
 
       - name: Run Keychain tests
         run: NHOST_SWIFT_RUN_KEYCHAIN_TESTS=1 swift test --filter testKeychainStorageRoundTripWhenExplicitlyEnabled
