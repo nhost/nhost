@@ -24,6 +24,7 @@
 - "!include public_news.yaml"
 - "!include public_note_replies.yaml"
 - "!include public_notes.yaml"
+- "!include public_postgis_locations.yaml"
 - "!include public_published_news.yaml"
 - "!include public_user_departments.yaml"
 - "!include storage_buckets.yaml"

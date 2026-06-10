@@ -4,6 +4,7 @@ import (
 	"fmt"
 
 	"github.com/nhost/nhost/services/constellation/connector/sql/introspection"
+	"github.com/nhost/nhost/services/constellation/connector/sql/pgtypes"
 	"github.com/nhost/nhost/services/constellation/graph"
 	"github.com/nhost/nhost/services/constellation/metadata"
 )
@@ -48,7 +49,7 @@ func generateAggregateTypes(
 
 	// hasMaxFields/hasMinFields drive optional emission in generateAggregateFieldsType below.
 	hasMaxFields, hasMinFields := generateMinMaxFieldsTypes(
-		schema, tableMeta, tableInfo, customTableName, allowedColumns, md,
+		schema, tableMeta, tableInfo, customTableName, allowedColumns, md, caps,
 	)
 
 	hasNumeric := hasNumericColumns(tableInfo, allowedColumns)
@@ -227,6 +228,7 @@ func generateMinMaxFieldsTypes(
 	customTableName string,
 	allowedColumns map[string]struct{},
 	md *metadata.DatabaseMetadata,
+	caps Capabilities,
 ) (bool, bool) {
 	maxFields := []*graph.Field{}
 	for _, col := range tableInfo.Columns {
@@ -239,7 +241,7 @@ func generateMinMaxFieldsTypes(
 			continue
 		}
 
-		if !col.SupportsMinMax {
+		if !supportsMinMaxAggregate(col, caps) {
 			continue
 		}
 
@@ -270,7 +272,7 @@ func generateMinMaxFieldsTypes(
 			continue
 		}
 
-		if !col.SupportsMinMax {
+		if !supportsMinMaxAggregate(col, caps) {
 			continue
 		}
 
@@ -290,6 +292,14 @@ func generateMinMaxFieldsTypes(
 	}
 
 	return len(maxFields) > 0, len(minFields) > 0
+}
+
+func supportsMinMaxAggregate(col introspection.Column, caps Capabilities) bool {
+	if caps.SupportsSpatialTypes && pgtypes.IsSpatial(col.Type) {
+		return false
+	}
+
+	return col.SupportsMinMax
 }
 
 // generateNumericAggregateFieldType generates a single numeric aggregate field type.

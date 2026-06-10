@@ -214,6 +214,7 @@ func TestSQLiteDialect_Capabilities(t *testing.T) {
 		"SupportsJSONB":              d.SupportsJSONB(),
 		"SupportsFunctions":          d.SupportsFunctions(),
 		"SupportsArrays":             d.SupportsArrays(),
+		"SupportsSpatialTypes":       d.SupportsSpatialTypes(),
 		"SupportsVarianceAggregates": d.SupportsVarianceAggregates(),
 		"SupportsUpsertUpdateAction": d.SupportsUpsertUpdateAction(),
 	}
@@ -222,6 +223,20 @@ func TestSQLiteDialect_Capabilities(t *testing.T) {
 		if got {
 			t.Errorf("%s = true, want false (SQLite supports none)", name)
 		}
+	}
+}
+
+func TestSQLiteDialect_SpatialExpressionsAreIdentity(t *testing.T) {
+	t.Parallel()
+
+	d := &dialect.SQLiteDialect{}
+
+	if got := d.SpatialOutputExpression(`"t"."geom"`, "geometry"); got != `"t"."geom"` {
+		t.Fatalf("SpatialOutputExpression = %q", got)
+	}
+
+	if got := d.SpatialValueExpression("?", "geometry"); got != "?" {
+		t.Fatalf("SpatialValueExpression = %q", got)
 	}
 }
 

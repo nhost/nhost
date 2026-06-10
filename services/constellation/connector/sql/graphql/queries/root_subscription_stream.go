@@ -281,8 +281,11 @@ func (t *table) buildStreamQuerySQL( //nolint:cyclop,funlen,gocognit,gocyclo,mai
 		if colSel.literal != "" {
 			t.dialect.WriteJSONRowColumn(b, colSel.alias, "'"+colSel.literal+"'")
 		} else {
-			t.dialect.WriteJSONRowColumn(b, colSel.alias,
-				core.QuoteIdentifier(baseAlias)+"."+core.QuoteIdentifier(colSel.column.SQLName))
+			expr := core.QuoteIdentifier(baseAlias) + "." +
+				core.QuoteIdentifier(colSel.column.SQLName)
+			t.dialect.WriteJSONRowColumn(
+				b, colSel.alias, t.outputColumnExpression(expr, colSel.column),
+			)
 		}
 
 		first = false
@@ -321,8 +324,10 @@ func (t *table) buildStreamQuerySQL( //nolint:cyclop,funlen,gocognit,gocyclo,mai
 			b.WriteString(", ")
 		}
 
-		t.dialect.WriteJSONRowColumn(b, cursor.Column.GraphqlName,
-			core.QuoteIdentifier(baseAlias)+"."+core.QuoteIdentifier(cursor.Column.SQLName))
+		expr := core.QuoteIdentifier(baseAlias) + "." + core.QuoteIdentifier(cursor.Column.SQLName)
+		t.dialect.WriteJSONRowColumn(
+			b, cursor.Column.GraphqlName, t.outputColumnExpression(expr, cursor.Column),
+		)
 
 		first = false
 	}
@@ -415,15 +420,13 @@ func (t *table) writeCursorConditions(
 			operator = "<"
 		}
 
-		// Add cursor value as a core.CursorValue parameter
-		// multiplexed.Multiplex will rewrite this to reference result_vars
-		ph := t.dialect.Placeholder(paramIndex)
-
+		// Add cursor value as a core.CursorValue parameter.
+		// multiplexed.Multiplex will rewrite this to reference result_vars.
 		core.WriteQuotedIdentifier(b, cursor.Column.SQLName)
 		b.WriteByte(' ')
 		b.WriteString(operator)
 		b.WriteByte(' ')
-		b.WriteString(t.dialect.TypeCast(ph, cursor.Column.SQLType))
+		b.WriteString(t.valueExpression(cursor.Column, paramIndex))
 
 		params = append(params, core.CursorValue{
 			ColumnName: cursor.Column.SQLName,

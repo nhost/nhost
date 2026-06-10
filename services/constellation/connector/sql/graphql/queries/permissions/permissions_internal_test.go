@@ -2172,9 +2172,19 @@ func TestStoreHasAccessors(t *testing.T) {
 			wantNonEmptyInsertCheck: true,
 		},
 		{
-			name: "update role present",
+			name: "update role present with empty clause counts as no row-level filter",
 			setup: func(s *Store) {
 				s.Update["user"] = where.Clause{}
+			},
+			role:             "user",
+			wantUpdateFilter: false,
+		},
+		{
+			name: "update role with non-empty clause",
+			setup: func(s *Store) {
+				s.Update["user"] = where.Clause{
+					where.NewEqualsFilter(&core.Column{SQLName: "tenant_id"}, nil, nil),
+				}
 			},
 			role:             "user",
 			wantUpdateFilter: true,
@@ -2198,9 +2208,19 @@ func TestStoreHasAccessors(t *testing.T) {
 			wantUpdateCheck: false,
 		},
 		{
-			name: "delete role present",
+			name: "delete role present with empty clause counts as no row-level filter",
 			setup: func(s *Store) {
 				s.Delete["user"] = where.Clause{}
+			},
+			role:             "user",
+			wantDeleteFilter: false,
+		},
+		{
+			name: "delete role with non-empty clause",
+			setup: func(s *Store) {
+				s.Delete["user"] = where.Clause{
+					where.NewEqualsFilter(&core.Column{SQLName: "tenant_id"}, nil, nil),
+				}
 			},
 			role:             "user",
 			wantDeleteFilter: true,

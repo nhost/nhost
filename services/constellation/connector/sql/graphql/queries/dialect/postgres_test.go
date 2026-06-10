@@ -131,6 +131,87 @@ func TestPostgresDialect_WriteArrayNotInEmpty(t *testing.T) {
 	}
 }
 
+func TestPostgresDialect_SpatialExpressions(t *testing.T) {
+	t.Parallel()
+
+	d := &dialect.PostgresDialect{}
+
+	if got := d.SpatialOutputExpression(
+		`"t"."geom"`,
+		"geometry",
+	); got != `ST_AsGeoJSON("t"."geom", 15, 4)::jsonb` {
+		t.Fatalf("SpatialOutputExpression geometry = %q", got)
+	}
+
+	if got := d.SpatialValueExpression("$1", "geometry"); got != "ST_GeomFromGeoJSON($1)" {
+		t.Fatalf("SpatialValueExpression geometry = %q", got)
+	}
+
+	if got := d.SpatialValueExpression(
+		"$2",
+		"geography",
+	); got != "ST_GeomFromGeoJSON($2)::geography" {
+		t.Fatalf("SpatialValueExpression geography = %q", got)
+	}
+
+	if got := d.SpatialOutputExpression(`"t"."id"`, "uuid"); got != `"t"."id"` {
+		t.Fatalf("SpatialOutputExpression non-spatial = %q", got)
+	}
+}
+
+func TestPostgresDialect_WriteSpatialArrayIn(t *testing.T) {
+	t.Parallel()
+
+	d := &dialect.PostgresDialect{}
+
+	var b strings.Builder
+
+	params, next := d.WriteSpatialArrayIn(
+		&b, `"t"`, "geom", "geometry", []any{"a", "b"}, nil, 2,
+	)
+
+	const want = `"t"."geom" = ANY(ARRAY[ST_GeomFromGeoJSON($2), ST_GeomFromGeoJSON($3)]::geometry[])`
+	if got := b.String(); got != want {
+		t.Fatalf("SQL = %q, want %q", got, want)
+	}
+
+	if next != 4 {
+		t.Fatalf("next paramIndex = %d, want 4", next)
+	}
+
+	if len(params) != 2 {
+		t.Fatalf("params len = %d, want 2", len(params))
+	}
+}
+
+func TestPostgresDialect_WriteSpatialArrayEmpty(t *testing.T) {
+	t.Parallel()
+
+	d := &dialect.PostgresDialect{}
+
+	var b strings.Builder
+
+	params, next := d.WriteSpatialArrayIn(&b, `"t"`, "geom", "geometry", nil, nil, 2)
+	if got := b.String(); got != "1 = 0" {
+		t.Fatalf("empty _in SQL = %q, want 1 = 0", got)
+	}
+
+	if next != 2 || len(params) != 0 {
+		t.Fatalf("empty _in next/params = %d/%d, want 2/0", next, len(params))
+	}
+
+	b.Reset()
+
+	params, next = d.WriteSpatialArrayNotIn(&b, `"t"`, "geom", "geometry", nil, nil, 2)
+	if got := b.String(); got != "1 = 1" {
+		t.Fatalf("empty _nin SQL = %q, want 1 = 1", got)
+	}
+
+	if next != 2 || len(params) != 0 {
+		t.Fatalf("empty _nin next/params = %d/%d, want 2/0", next, len(params))
+	}
+}
+
 func TestPostgresDialect_JSONHelpers(t *testing.T) {
 	t.Parallel()
 
@@ -208,6 +289,7 @@ func TestPostgresDialect_Capabilities(t *testing.T) {
 		"SupportsJSONB":              d.SupportsJSONB(),
 		"SupportsFunctions":          d.SupportsFunctions(),
 		"SupportsArrays":             d.SupportsArrays(),
+		"SupportsSpatialTypes":       d.SupportsSpatialTypes(),
 		"SupportsVarianceAggregates": d.SupportsVarianceAggregates(),
 		"SupportsUpsertUpdateAction": d.SupportsUpsertUpdateAction(),
 	}
