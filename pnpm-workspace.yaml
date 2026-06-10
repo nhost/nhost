@@ -86,6 +86,7 @@ overrides:
   path-to-regexp@>=4.0.0 <6.3.0: ^6.3.0
   "ws@>=8.0.0 <8.20.1": ">=8.20.1"
   "js-cookie@<=3.0.5": ">=3.0.6"
+  "shell-quote@<1.8.4": ">=1.8.4"
 
 minimumReleaseAgeExclude:
   - path-to-regexp@6.3.0
