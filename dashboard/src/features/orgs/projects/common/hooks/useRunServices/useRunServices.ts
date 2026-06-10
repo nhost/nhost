@@ -8,6 +8,7 @@ import {
   useGetLocalRunServiceConfigsQuery,
   useGetRunServicesQuery,
 } from '@/utils/__generated__/graphql';
+import { getPaginationOffset } from '@/utils/getPaginationOffset';
 
 export type RunService = Pick<
   NonNullable<GetRunServicesQuery['app']>['runServices'][number],
@@ -39,7 +40,10 @@ export default function useRunServices() {
   const [currentPage, setCurrentPage] = useState(
     parseInt(router.query.page as string, 10) || 1,
   );
-  const offset = useMemo(() => currentPage - 1, [currentPage]);
+  const offset = useMemo(
+    () => getPaginationOffset(currentPage, limit.current),
+    [currentPage],
+  );
 
   const {
     data,
