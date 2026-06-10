@@ -1,11 +1,6 @@
+import type { LegendPayload } from 'recharts';
 import type { ChartConfig } from '@/components/ui/v3/chart';
 import { cn } from '@/lib/utils';
-
-interface LegendPayloadItem {
-  dataKey?: string | number;
-  color?: string;
-  type?: string;
-}
 
 interface InteractiveChartLegendProps {
   config: ChartConfig;
@@ -15,7 +10,7 @@ interface InteractiveChartLegendProps {
     opts: { metaKey: boolean; ctrlKey: boolean; shiftKey: boolean },
   ) => void;
   onItemHover?: (key: string | null) => void;
-  payload?: LegendPayloadItem[];
+  payload: readonly LegendPayload[];
 }
 
 export default function InteractiveChartLegend({
@@ -25,9 +20,6 @@ export default function InteractiveChartLegend({
   onItemHover,
   payload,
 }: InteractiveChartLegendProps) {
-  if (!payload?.length) {
-    return null;
-  }
   return (
     <div className="flex flex-wrap items-center justify-center gap-3 pt-3">
       {payload

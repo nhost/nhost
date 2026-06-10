@@ -1,7 +1,7 @@
 import { useMeasure } from '@uidotdev/usehooks';
-import { Link2, X } from 'lucide-react';
+import { X } from 'lucide-react';
 import { useEffect, useMemo } from 'react';
-import toast from 'react-hot-toast';
+import CopyToClipboardButton from '@/components/presentational/CopyToClipboardButton/CopyToClipboardButton';
 import { Button } from '@/components/ui/v3/button';
 import MetricChart from '@/features/orgs/projects/common/metrics/components/MetricChart';
 import type { MetricSeries } from '@/features/orgs/projects/common/metrics/types';
@@ -12,7 +12,6 @@ import {
 } from '@/features/orgs/projects/serverless-functions/components/MetricsTab/panels';
 import { accessorsForPanel } from '@/features/orgs/projects/serverless-functions/components/MetricsTab/seriesAccessors';
 import type { FunctionMetricsResponse } from '@/features/orgs/projects/serverless-functions/types';
-import { getToastStyleProps } from '@/utils/constants/settings';
 
 export interface ExpandedMetricPanelProps {
   openPanel: MetricPanelSlug;
@@ -47,6 +46,9 @@ export default function ExpandedMetricPanel({
   const accessors = accessorsForPanel(config.labelDimensions);
 
   const [chartHostRef, { height }] = useMeasure<HTMLDivElement>();
+  // The chart mounts only after the first real measurement (height != null).
+  // Otherwise it paints once at MIN_CHART_HEIGHT and visibly jumps to full
+  // height when useMeasure reports the host's actual height.
   const chartHeight = Math.max(MIN_CHART_HEIGHT, Math.round(height ?? 0));
 
   useEffect(() => {
@@ -59,27 +61,11 @@ export default function ExpandedMetricPanel({
     return () => window.removeEventListener('keydown', onKey);
   }, [onClose]);
 
-  const handleCopyLink = async () => {
-    const toastStyle = getToastStyleProps();
-    try {
-      await navigator.clipboard.writeText(window.location.href);
-      toast.success('Link copied', {
-        style: toastStyle.style,
-        ...toastStyle.success,
-      });
-    } catch {
-      toast.error('Could not copy link', {
-        style: toastStyle.style,
-        ...toastStyle.error,
-      });
-    }
-  };
+  const shareUrl =
+    typeof window === 'undefined' ? undefined : window.location.href;
 
   return (
     <div className="relative flex min-h-0 flex-1 flex-col p-6">
-      {/* Click the area around the card to close. A real <button> (not onClick
-          on a div) keeps this accessible; tabIndex={-1} keeps it mouse-only
-          since Esc and the explicit Close button already cover keyboard users. */}
       <button
         type="button"
         aria-label="Close expanded panel"
@@ -100,16 +86,14 @@ export default function ExpandedMetricPanel({
             ) : null}
           </div>
           <div className="flex shrink-0 items-center gap-2">
-            <Button
-              type="button"
-              variant="outline"
-              size="sm"
-              onClick={handleCopyLink}
-              className="gap-2"
+            <CopyToClipboardButton
+              textToCopy={shareUrl}
+              title="Link"
+              aria-label="Copy link"
+              className="px-3 py-2.5 text-sm"
             >
-              <Link2 className="h-4 w-4" />
               Copy link
-            </Button>
+            </CopyToClipboardButton>
             <Button
               type="button"
               variant="ghost"
@@ -123,9 +107,6 @@ export default function ExpandedMetricPanel({
         </div>
 
         <div ref={chartHostRef} className="min-h-0 flex-1">
-          {/* Mount the chart only after the first real measurement. Otherwise
-              it paints once at MIN_CHART_HEIGHT and visibly jumps to full height
-              when useMeasure reports the host's actual height. */}
           {height != null ? (
             <MetricChart
               data={sourceData}

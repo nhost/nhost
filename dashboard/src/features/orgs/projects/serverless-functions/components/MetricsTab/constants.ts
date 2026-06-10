@@ -1,7 +1,5 @@
-import {
-  HTTP_METHOD_CHART_COLORS,
-  type HttpMethod,
-} from '@/features/orgs/projects/serverless-functions/types';
+import { HTTP_METHOD_CHART_COLORS } from '@/features/orgs/projects/serverless-functions/constants';
+import type { HttpMethod } from '@/features/orgs/projects/serverless-functions/types';
 
 export const CHART_COLOR_PALETTE = [
   'hsl(var(--chart-1))',

@@ -23,9 +23,9 @@ import { ContentTypeCombobox } from '@/features/orgs/projects/serverless-functio
 import { ExecuteRequestBodyEditor } from '@/features/orgs/projects/serverless-functions/components/ExecuteRequestBodyEditor';
 import { KeyValueEditor } from '@/features/orgs/projects/serverless-functions/components/KeyValueEditor';
 import { ResponseArea } from '@/features/orgs/projects/serverless-functions/components/ResponseArea';
+import { HTTP_METHOD_TEXT_CLASSES } from '@/features/orgs/projects/serverless-functions/constants';
 import {
   type ExecuteFormValues,
-  HTTP_METHOD_TEXT_CLASSES,
   HTTP_METHODS,
   type HttpMethod,
   type ResponseState,

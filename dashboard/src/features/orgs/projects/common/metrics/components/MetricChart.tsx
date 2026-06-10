@@ -1,6 +1,7 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import {
   CartesianGrid,
+  type DefaultLegendContentProps,
   Line,
   LineChart,
   ReferenceArea,
@@ -114,8 +115,8 @@ export default function MetricChart({
     [hidden, hiddenSet, keys, setHidden],
   );
 
-  const [refAreaLeft, setRefAreaLeft] = useState<number | ''>('');
-  const [refAreaRight, setRefAreaRight] = useState<number | ''>('');
+  const [refAreaLeft, setRefAreaLeft] = useState<number | null>(null);
+  const [refAreaRight, setRefAreaRight] = useState<number | null>(null);
   const justDraggedRef = useRef(false);
 
   const [pinned, setPinned] = useState<PinnedState | null>(null);
@@ -188,28 +189,28 @@ export default function MetricChart({
   const isEmpty = rows.length === 0 || keys.length === 0;
 
   const handleMouseDown = (e: ChartMouseEvent) => {
-    const v = Number(e?.activeLabel);
-    if (Number.isNaN(v)) {
+    const timestampMs = Number(e?.activeLabel);
+    if (Number.isNaN(timestampMs)) {
       return;
     }
-    setRefAreaLeft(v);
-    setRefAreaRight('');
+    setRefAreaLeft(timestampMs);
+    setRefAreaRight(null);
     justDraggedRef.current = false;
   };
 
   const handleMouseMove = (e: ChartMouseEvent) => {
     updateFocusedKey(e);
-    if (refAreaLeft === '') {
+    if (refAreaLeft === null) {
       return;
     }
-    const v = Number(e?.activeLabel);
-    if (Number.isNaN(v)) {
+    const timestampMs = Number(e?.activeLabel);
+    if (Number.isNaN(timestampMs)) {
       return;
     }
-    if (v !== refAreaLeft) {
+    if (timestampMs !== refAreaLeft) {
       justDraggedRef.current = true;
     }
-    setRefAreaRight(v);
+    setRefAreaRight(timestampMs);
   };
 
   const handleMouseLeave = () => {
@@ -219,9 +220,9 @@ export default function MetricChart({
   const handleMouseUp = () => {
     const ll = refAreaLeft;
     const rr = refAreaRight;
-    setRefAreaLeft('');
-    setRefAreaRight('');
-    if (ll === '' || rr === '' || ll === rr) {
+    setRefAreaLeft(null);
+    setRefAreaRight(null);
+    if (ll === null || rr === null || ll === rr) {
       return;
     }
     const [from, to] = ll < rr ? [ll, rr] : [rr, ll];
@@ -289,6 +290,17 @@ export default function MetricChart({
     <HoverTooltipContent config={config} valueFormatter={valueFormatter} />
   );
 
+  const renderLegend = ({ payload }: DefaultLegendContentProps) =>
+    payload?.length ? (
+      <InteractiveChartLegend
+        payload={payload}
+        config={config}
+        hiddenSet={hiddenSet}
+        onItemClick={handleLegendClick}
+        onItemHover={setLegendHover}
+      />
+    ) : null;
+
   return (
     <div className="flex flex-col gap-2">
       {isEmpty ? (
@@ -323,7 +335,9 @@ export default function MetricChart({
                 axisLine={false}
                 width="auto"
                 tickFormatter={
-                  valueFormatter ? (v) => valueFormatter(Number(v)) : undefined
+                  valueFormatter
+                    ? (tickValue) => valueFormatter(Number(tickValue))
+                    : undefined
                 }
               />
               <ChartTooltip
@@ -331,16 +345,7 @@ export default function MetricChart({
                 active={pinned ? false : undefined}
                 content={tooltipContent}
               />
-              <ChartLegend
-                content={
-                  <InteractiveChartLegend
-                    config={config}
-                    hiddenSet={hiddenSet}
-                    onItemClick={handleLegendClick}
-                    onItemHover={setLegendHover}
-                  />
-                }
-              />
+              <ChartLegend content={renderLegend} />
               <ScaleCapture xScaleRef={xScaleRef} yScaleRef={yScaleRef} />
               {keys.map((key) => (
                 <Line
@@ -355,7 +360,7 @@ export default function MetricChart({
                   zIndex={focusedKey === key ? 500 : undefined}
                 />
               ))}
-              {refAreaLeft !== '' && refAreaRight !== '' ? (
+              {refAreaLeft !== null && refAreaRight !== null ? (
                 <ReferenceArea
                   x1={refAreaLeft}
                   x2={refAreaRight}
