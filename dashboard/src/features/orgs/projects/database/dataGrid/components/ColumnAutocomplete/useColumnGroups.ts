@@ -107,6 +107,21 @@ export default function useColumnGroups({
           ];
         }
         if (
+          Array.isArray(foreign_key_constraint_on) &&
+          isNotEmptyValue(selectedSchema) &&
+          isNotEmptyValue(selectedTable)
+        ) {
+          return [
+            ...relationships,
+            {
+              schema: selectedSchema!,
+              table: selectedTable!,
+              column: foreign_key_constraint_on[0] ?? '',
+              name: currentRelationship.name,
+            },
+          ];
+        }
+        if (
           isNotEmptyValue(foreign_key_constraint_on) &&
           typeof foreign_key_constraint_on !== 'string' &&
           !Array.isArray(foreign_key_constraint_on)

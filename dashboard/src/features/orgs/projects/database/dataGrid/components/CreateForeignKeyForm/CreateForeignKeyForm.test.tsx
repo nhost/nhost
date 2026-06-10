@@ -308,4 +308,87 @@ describe('CreateForeignKeyForm', () => {
 
     expect(onSubmit).not.toHaveBeenCalled();
   });
+
+  it('submits oneToOne: false when the column is only part of a composite unique index', async () => {
+    const onSubmit = vi.fn();
+
+    render(
+      <CreateForeignKeyForm
+        availableColumns={[
+          { name: 'author_id', type: 'uuid', isUnique: true },
+          { name: 'editor_id', type: 'uuid' },
+        ]}
+        constraintColumnSets={[['author_id', 'editor_id']]}
+        onSubmit={onSubmit}
+      />,
+    );
+
+    await selectOption(
+      screen.getByRole('combobox', { name: 'Schema' }),
+      'public',
+    );
+    await selectOption(
+      screen.getByRole('combobox', { name: 'Table' }),
+      'authors',
+    );
+
+    await waitFor(() => {
+      expect(getColumnPairRows()).toHaveLength(1);
+    });
+
+    const pair = getPairComboboxes(getColumnPairRows()[0]);
+    await selectOption(pair.fromSelect, 'author_id');
+    await selectOption(pair.toSelect, 'id');
+
+    await TestUserEvent.fireClickEvent(
+      screen.getByTestId('foreignKeyFormSubmitButton'),
+    );
+
+    await waitFor(() => {
+      expect(onSubmit).toHaveBeenCalledTimes(1);
+    });
+
+    expect(onSubmit.mock.calls[0][0].oneToOne).toBe(false);
+  });
+
+  it('submits oneToOne: true for a unique column when no constraint sets exist yet', async () => {
+    const onSubmit = vi.fn();
+
+    render(
+      <CreateForeignKeyForm
+        availableColumns={[
+          { name: 'author_id', type: 'uuid', isUnique: true },
+          { name: 'editor_id', type: 'uuid' },
+        ]}
+        onSubmit={onSubmit}
+      />,
+    );
+
+    await selectOption(
+      screen.getByRole('combobox', { name: 'Schema' }),
+      'public',
+    );
+    await selectOption(
+      screen.getByRole('combobox', { name: 'Table' }),
+      'authors',
+    );
+
+    await waitFor(() => {
+      expect(getColumnPairRows()).toHaveLength(1);
+    });
+
+    const pair = getPairComboboxes(getColumnPairRows()[0]);
+    await selectOption(pair.fromSelect, 'author_id');
+    await selectOption(pair.toSelect, 'id');
+
+    await TestUserEvent.fireClickEvent(
+      screen.getByTestId('foreignKeyFormSubmitButton'),
+    );
+
+    await waitFor(() => {
+      expect(onSubmit).toHaveBeenCalledTimes(1);
+    });
+
+    expect(onSubmit.mock.calls[0][0].oneToOne).toBe(true);
+  });
 });

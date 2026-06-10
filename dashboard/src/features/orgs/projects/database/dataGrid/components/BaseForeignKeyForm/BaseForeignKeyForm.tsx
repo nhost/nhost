@@ -194,6 +194,13 @@ export default function BaseForeignKeyForm({
           (mapping) => mapping.referencedColumn ?? '',
         );
 
+        const oneToOneColumns = constraintColumnSets
+          ? (availableColumns ?? []).map(({ name, isPrimary }) => ({
+              name,
+              isPrimary,
+            }))
+          : (availableColumns ?? []);
+
         return handleExternalSubmit({
           id: values.id,
           name: values.name,
@@ -204,7 +211,7 @@ export default function BaseForeignKeyForm({
           updateAction: values.updateAction,
           deleteAction: values.deleteAction,
           oneToOne: computeForeignKeyOneToOne(columns, {
-            columns: availableColumns ?? [],
+            columns: oneToOneColumns,
             constraintColumnSets,
           }),
         });
