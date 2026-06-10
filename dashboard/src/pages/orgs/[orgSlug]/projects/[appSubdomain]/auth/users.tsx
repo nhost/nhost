@@ -21,6 +21,7 @@ import { useRemoveQueryParamsFromUrl } from '@/hooks/useRemoveQueryParamsFromUrl
 import { isNotEmptyValue } from '@/lib/utils';
 import type { RemoteAppGetUsersAndAuthRolesQuery } from '@/utils/__generated__/graphql';
 import { useRemoteAppGetUsersAndAuthRolesQuery } from '@/utils/__generated__/graphql';
+import { getPaginationOffset } from '@/utils/getPaginationOffset';
 
 export type RemoteAppUser = Exclude<
   RemoteAppGetUsersAndAuthRolesQuery['users'][0],
@@ -50,7 +51,10 @@ function UsersPageContent() {
 
   const removeQueryParamsFromUrl = useRemoveQueryParamsFromUrl();
 
-  const offset = useMemo(() => currentPage - 1, [currentPage]);
+  const offset = useMemo(
+    () => getPaginationOffset(currentPage, limit.current),
+    [currentPage],
+  );
 
   const remoteAppGetUserVariables = useMemo(
     () => ({
@@ -76,7 +80,7 @@ function UsersPageContent() {
               ],
             },
       limit: limit.current,
-      offset: offset * limit.current,
+      offset,
     }),
     [router.query.userId, searchString, offset],
   );
@@ -344,12 +348,10 @@ function UsersPageContent() {
                   elementsPerPage={elementsPerPage}
                   onPrevPageClick={async () => {
                     setCurrentPage((page) => page - 1);
-                    if (currentPage - 1 !== 1) {
-                      await router.push({
-                        pathname: router.pathname,
-                        query: { ...router.query, page: currentPage - 1 },
-                      });
-                    }
+                    await router.push({
+                      pathname: router.pathname,
+                      query: { ...router.query, page: currentPage - 1 },
+                    });
                   }}
                   onNextPageClick={async () => {
                     setCurrentPage((page) => page + 1);
