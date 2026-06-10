@@ -237,38 +237,38 @@
               skopeo
 
               # cli
-              certbot-full
+              nhost.certbot-full
               python312Packages.certbot-dns-route53
 
-              nhost-cli
+              nhost.nhost-cli
 
               # dashboard
-              vercel
+              nhost.vercel
               playwright-driver
               lychee
 
               # javascript
-              nodejs
-              pnpm
-              biome
+              nhost.nodejs
+              nhost.pnpm
+              nhost.biome
 
               # go
-              go
-              golines
+              nhost.go
+              nhost.golines
               gofumpt
-              golangci-lint
-              gqlgen
-              gqlgenc
-              oapi-codegen
+              nhost.golangci-lint
+              nhost.gqlgen
+              nhost.gqlgenc
+              nhost.oapi-codegen
               mockgen
-              sqlc
+              nhost.sqlc
               vacuum-go
-              govulncheck
+              nhost.govulncheck
 
               # others
-              postgresql_18-client
+              nhost.postgresql_18-client
               bun
-              pi-agent
+              nhost.pi-agent
 
               # docs
               vale
@@ -303,20 +303,20 @@
 
           pnpm = pkgs.mkShell {
             buildInputs = with pkgs; [
-              nodejs
-              pnpm
+              nhost.nodejs
+              nhost.pnpm
             ];
           };
 
           security-updates = pkgs.mkShell {
             buildInputs = with pkgs; [
               # pnpm audit --fix=update
-              nodejs
-              pnpm
+              nhost.nodejs
+              nhost.pnpm
 
               # govulncheck-wrapper -fix → go get / go mod tidy / go mod vendor
-              go
-              govulncheck
+              nhost.go
+              nhost.govulncheck
               self.packages.${system}.govulncheck-wrapper
             ];
 
@@ -333,9 +333,9 @@
 
           vercel = pkgs.mkShell {
             buildInputs = with pkgs; [
-              pnpm
-              nodejs
-              vercel
+              nhost.pnpm
+              nhost.nodejs
+              nhost.vercel
             ];
           };
 
@@ -395,7 +395,7 @@
           mcp-docker-image = mcpf.dockerImage;
           nixops = nixopsf.package;
           nixops-docker-image = nixopsf.dockerImage;
-          pi-agent = pkgs.pi-agent;
+          pi-agent = pkgs.nhost.pi-agent;
           postgres-pg16 = postgresf.packages.pg16-package;
           postgres-pg16-docker-image = postgresf.packages.pg16-docker-image;
           postgres-pg16-as-dir = postgresf.packages.pg16-as-dir;

@@ -58,11 +58,11 @@ let
   ];
 
   checkDeps = with pkgs; [
-    nhost-cli
+    nhost.nhost-cli
     mockgen
-    oapi-codegen
-    sqlc
-    postgresql_18-client
+    nhost.oapi-codegen
+    nhost.sqlc
+    nhost.postgresql_18-client
     vacuum-go
     bun
   ];

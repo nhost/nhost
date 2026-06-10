@@ -74,15 +74,15 @@ let
   };
 
   checkDeps = with pkgs; [
-    nhost-cli
+    nhost.nhost-cli
     lychee
     playwright-driver
   ];
 
-  buildInputs = with pkgs; [ nodejs ];
+  buildInputs = with pkgs; [ nhost.nodejs ];
 
   nativeBuildInputs = with pkgs; [
-    pnpm
+    nhost.pnpm
     cacert
   ];
 
@@ -178,7 +178,7 @@ rec {
     buildInputs =
       with pkgs;
       [
-        vercel
+        nhost.vercel
       ]
       ++ checkDeps
       ++ buildInputs
@@ -258,11 +258,11 @@ rec {
     inherit name version src;
 
     nativeBuildInputs = with pkgs; [
-      pnpm
+      nhost.pnpm
       cacert
-      nodejs
+      nhost.nodejs
     ];
-    buildInputs = with pkgs; [ nodejs ];
+    buildInputs = with pkgs; [ nhost.nodejs ];
 
     configurePhase = ''
       export NEXT_PUBLIC_DASHBOARD_VERSION=${version}
@@ -355,7 +355,7 @@ rec {
           ];
           Entrypoint = [
             "${entrypoint}/bin/docker-entrypoint.sh"
-            "${pkgs.nodejs}/bin/node"
+            "${pkgs.nhost.nodejs}/bin/node"
             "/dashboard/server.js"
           ];
         };
