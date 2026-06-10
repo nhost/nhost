@@ -3,6 +3,11 @@ let
   fs = final.lib.fileset;
 in
 rec {
+  # Go toolchain pinned ahead of nixpkgs, exposed only under `pkgs.nhost.*`
+  # (see default.nix). Deliberately NOT exported as global `go` /
+  # `buildGoModule`: overriding those globally taints every nixpkgs package
+  # with go in its build closure (even libcap), forcing source rebuilds of
+  # huge dependency cones instead of substituting them from cache.nixos.org.
   go = prev.go_1_26.overrideAttrs (
     finalAttrs: previousAttrs: rec {
       version = "1.26.4";
@@ -15,9 +20,9 @@ rec {
     }
   );
 
-  buildGoModule = prev.buildGoModule.override { go = go; };
+  buildGoModule = prev.buildGoModule.override { inherit go; };
 
-  golangci-lint = final.buildGoModule rec {
+  golangci-lint = final.nhost.buildGoModule rec {
     pname = "golangci-lint";
     version = "2.9.0";
     src = final.fetchFromGitHub {
@@ -38,7 +43,7 @@ rec {
     doCheck = false;
   };
 
-  golines = final.buildGoModule rec {
+  golines = final.nhost.buildGoModule rec {
     pname = "golines";
     version = "0.14.0";
     src = final.fetchFromGitHub {
@@ -56,7 +61,7 @@ rec {
     };
   };
 
-  govulncheck = final.buildGoModule rec {
+  govulncheck = final.nhost.buildGoModule rec {
     pname = "govulncheck";
     version = "1.1.4";
     src = final.fetchFromGitHub {
@@ -82,7 +87,7 @@ rec {
     doCheck = false;
   });
 
-  gqlgenc = final.buildGoModule rec {
+  gqlgenc = final.nhost.buildGoModule rec {
     pname = "gqlgenc";
     version = "0.33.0";
     src = final.fetchFromGitHub {
@@ -102,7 +107,7 @@ rec {
     };
   };
 
-  govulncheck-wrapper = final.buildGoModule {
+  govulncheck-wrapper = final.nhost.buildGoModule {
     pname = "govulncheck-wrapper";
     version = "0.0.0-dev";
     src = fs.toSource {

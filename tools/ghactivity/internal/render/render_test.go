@@ -117,11 +117,11 @@ func TestMarkdownItemsSortedAndFormatted(t *testing.T) {
 		t.Errorf("expected PR #4319 before #4321; got:\n%s", got)
 	}
 
-	if !strings.Contains(got, "[PR #12](https://example.com/pr/12) a reviewed pr") {
+	if !strings.Contains(got, "[PR #12](<https://example.com/pr/12>) a reviewed pr") {
 		t.Errorf("expected formatted reviewed PR line, got:\n%s", got)
 	}
 
-	if !strings.Contains(got, "[Issue #13](https://example.com/issue/13) an issue") {
+	if !strings.Contains(got, "[Issue #13](<https://example.com/issue/13>) an issue") {
 		t.Errorf("expected formatted issue line, got:\n%s", got)
 	}
 }

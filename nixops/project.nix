@@ -30,10 +30,10 @@ let
   # for every project's dev-shell and `make check`.
   buildInputs =
     (with pkgs; [
-      biome
+      nhost.biome
       bun
       cacert
-      certbot-full
+      nhost.certbot-full
       clang
       curl
       diffutils
@@ -41,40 +41,40 @@ let
       gh
       git-cliff
       gnused
-      go
+      nhost.go
       go-migrate
       gofumpt
-      golangci-lint
-      golines
-      govulncheck
-      gqlgen
-      gqlgenc
+      nhost.golangci-lint
+      nhost.golines
+      nhost.govulncheck
+      nhost.gqlgen
+      nhost.gqlgenc
       jq
       lychee
       mockgen
-      nhost-cli
+      nhost.nhost-cli
       nixfmt
-      nodejs
-      vercel
-      oapi-codegen
+      nhost.nodejs
+      nhost.vercel
+      nhost.oapi-codegen
       pkg-config
       playwright-driver
-      pnpm
-      postgresql_14-client
-      postgresql_15
-      postgresql_15-client
-      postgresql_16
-      postgresql_16-client
-      postgresql_17
-      postgresql_17-client
-      postgresql_18
-      postgresql_18-client
+      nhost.pnpm
+      nhost.postgresql_14-client
+      nhost.postgresql_15
+      nhost.postgresql_15-client
+      nhost.postgresql_16
+      nhost.postgresql_16-client
+      nhost.postgresql_17
+      nhost.postgresql_17-client
+      nhost.postgresql_18
+      nhost.postgresql_18-client
       python312Packages.certbot-dns-route53
       skopeo
-      sqlc
+      nhost.sqlc
       vacuum-go
       vale
-      wal-g
+      nhost.wal-g
     ])
     ++ pkgs.lib.optionals pkgs.stdenv.isLinux [
     ]
@@ -133,7 +133,20 @@ let
   };
 in
 {
-  check = nixops-lib.nix.check { inherit src; };
+  check = pkgs.symlinkJoin {
+    name = "check-nixops";
+    paths = [
+      (nixops-lib.nix.check { inherit src; })
+      (nixops-lib.nix.checkPinnedToolchains {
+        # Repo-wide: toolchain regressions tend to land in the individual
+        # projects' project.nix, not under nixops/.
+        src = fs.toSource {
+          root = ../.;
+          fileset = fs.fileFilter (f: f.hasExt "nix") ../.;
+        };
+      })
+    ];
+  };
 
   devShell = pkgs.mkShell {
     buildInputs = checkDeps ++ buildInputs ++ nativeBuildInputs;

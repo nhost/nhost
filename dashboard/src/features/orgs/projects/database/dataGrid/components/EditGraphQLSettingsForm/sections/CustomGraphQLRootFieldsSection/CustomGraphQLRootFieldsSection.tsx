@@ -267,7 +267,7 @@ export default function CustomGraphQLRootFieldsSection({
                   </AccordionTrigger>
                   <AccordionContent className="px-0 py-4">
                     <div className="grid gap-3">
-                      <div className="grid grid-cols-[120px,minmax(0,0.8fr),minmax(0,1fr)] items-center gap-3 rounded-md bg-muted px-4 py-2 font-medium text-muted-foreground text-xs uppercase tracking-wide">
+                      <div className="grid grid-cols-[minmax(0,1fr)_minmax(0,1.2fr)_minmax(0,1.5fr)] items-center gap-3 rounded-md bg-muted px-4 py-2 font-medium text-muted-foreground text-xs uppercase tracking-wide">
                         <span>Operation</span>
                         <span>Field Name</span>
                         <span>Comment</span>
@@ -304,7 +304,7 @@ export default function CustomGraphQLRootFieldsSection({
                   </AccordionTrigger>
                   <AccordionContent className="px-0 py-4">
                     <div className="grid gap-3">
-                      <div className="grid grid-cols-[120px,minmax(0,0.8fr),minmax(0,1fr)] items-center gap-3 rounded-md bg-muted px-4 py-2 font-medium text-muted-foreground text-xs uppercase tracking-wide">
+                      <div className="grid grid-cols-[minmax(0,1fr)_minmax(0,1.2fr)_minmax(0,1.5fr)] items-center gap-3 rounded-md bg-muted px-4 py-2 font-medium text-muted-foreground text-xs uppercase tracking-wide">
                         <span>Operation</span>
                         <span>Field Name</span>
                         <span>Comment</span>

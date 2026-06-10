@@ -1,6 +1,11 @@
 import { faker } from '@faker-js/faker';
 import { TEST_ORGANIZATION_SLUG, TEST_PROJECT_SUBDOMAIN } from '@/e2e/env';
 import { expect, test } from '@/e2e/fixtures/auth-hook';
+import { cleanupRunServiceTestIfNeeded } from '@/e2e/utils';
+
+test.beforeAll(async () => {
+  await cleanupRunServiceTestIfNeeded();
+});
 
 test.beforeEach(async ({ authenticatedNhostPage: page }) => {
   const runRoute = `/orgs/${TEST_ORGANIZATION_SLUG}/projects/${TEST_PROJECT_SUBDOMAIN}/run`;

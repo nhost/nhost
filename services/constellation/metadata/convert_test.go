@@ -3,6 +3,7 @@ package metadata_test
 import (
 	"os"
 	"path/filepath"
+	"strings"
 	"testing"
 
 	"github.com/google/go-cmp/cmp"
@@ -68,6 +69,17 @@ func TestFromHasuraJSON(t *testing.T) {
 			check:   assertHappyPathJSON,
 		},
 		{
+			name: "select permission all-columns shorthand",
+			data: []byte(strings.Replace(
+				validHasuraJSON,
+				`"columns": ["id"]`,
+				`"columns": "*"`,
+				1,
+			)),
+			wantErr: false,
+			check:   assertAllColumnsShorthandJSON,
+		},
+		{
 			name:    "malformed JSON",
 			data:    []byte(`{not valid json`),
 			wantErr: true,
@@ -94,6 +106,24 @@ func TestFromHasuraJSON(t *testing.T) {
 			m, err := metadata.FromHasuraJSON(tt.data)
 			checkLoaderResult(t, m, err, tt.wantErr, tt.check)
 		})
+	}
+}
+
+func assertAllColumnsShorthandJSON(t *testing.T, m *metadata.Metadata) {
+	t.Helper()
+
+	if len(m.Databases) != 1 || len(m.Databases[0].Tables) != 1 {
+		t.Fatalf("unexpected metadata shape: %+v", m)
+	}
+
+	perms := m.Databases[0].Tables[0].SelectPermissions
+	if len(perms) != 1 {
+		t.Fatalf("expected one select permission, got %+v", perms)
+	}
+
+	got := perms[0].Permission.Columns
+	if !cmp.Equal(got, []string{"*"}) {
+		t.Fatalf("select permission columns mismatch:\n%s", cmp.Diff([]string{"*"}, got))
 	}
 }
 
@@ -134,6 +164,57 @@ func assertHappyPathJSON(t *testing.T, m *metadata.Metadata) {
 
 	if len(m.RemoteSchemas) != 1 || m.RemoteSchemas[0].Name != "rs" {
 		t.Errorf("unexpected remote schemas: %+v", m.RemoteSchemas)
+	}
+}
+
+func TestFromHasuraJSONPermissionNumbers(t *testing.T) {
+	t.Parallel()
+
+	input := []byte(`{
+		"version": 3,
+		"sources": [{
+			"name": "default",
+			"kind": "postgres",
+			"configuration": {"connection_info": {"database_url": "postgres://localhost/db"}},
+			"tables": [{
+				"table": {"name": "users", "schema": "public"},
+				"select_permissions": [{
+					"role": "user",
+					"permission": {
+						"columns": ["id"],
+						"filter": {
+							"id": {"_eq": 9007199254740993},
+							"score": {"_eq": 1.5}
+						}
+					}
+				}]
+			}]
+		}]
+	}`)
+
+	m, err := metadata.FromHasuraJSON(input)
+	if err != nil {
+		t.Fatalf("FromHasuraJSON failed: %v", err)
+	}
+
+	filter := m.Databases[0].Tables[0].SelectPermissions[0].Permission.Filter
+
+	idFilter, ok := filter["id"].(map[string]any)
+	if !ok {
+		t.Fatalf("id filter = %#v, want map[string]any", filter["id"])
+	}
+
+	if got, want := idFilter["_eq"], int64(9007199254740993); got != want {
+		t.Errorf("large integer filter value = %#v (%T), want %#v", got, got, want)
+	}
+
+	scoreFilter, ok := filter["score"].(map[string]any)
+	if !ok {
+		t.Fatalf("score filter = %#v, want map[string]any", filter["score"])
+	}
+
+	if got, want := scoreFilter["_eq"], 1.5; got != want {
+		t.Errorf("float filter value = %#v (%T), want %#v", got, got, want)
 	}
 }
 

@@ -22,7 +22,7 @@ interface FormComboboxProps<
 > {
   control: Control<TFieldValues>;
   name: TName;
-  label: ReactNode;
+  label?: ReactNode;
   placeholder?: string;
   className?: string;
   containerClassName?: string;
@@ -33,6 +33,10 @@ interface FormComboboxProps<
   emptyText?: ReactNode;
   options: ComboboxOption[];
   filter?: (value: string, search: string, keywords?: string[]) => number;
+  /**
+   * Fired after the field is updated with the newly selected value.
+   */
+  onChange?: (value: string) => void;
   'data-testid'?: string;
 }
 
@@ -53,6 +57,7 @@ export default function FormCombobox<
   emptyText,
   options,
   filter,
+  onChange: onChangeProp,
   'data-testid': dataTestId,
 }: FormComboboxProps<TFieldValues, TName>) {
   return (
@@ -66,14 +71,16 @@ export default function FormCombobox<
             containerClassName,
           )}
         >
-          <FormLabel
-            className={cn({
-              'w-52 max-w-52 flex-shrink-0': inline,
-              'mt-2 self-start': inline && !!helperText,
-            })}
-          >
-            {label}
-          </FormLabel>
+          {!!label && (
+            <FormLabel
+              className={cn({
+                'w-52 max-w-52 flex-shrink-0': inline,
+                'mt-2 self-start': inline && !!helperText,
+              })}
+            >
+              {label}
+            </FormLabel>
+          )}
           <div
             className={cn({
               'flex w-[calc(100%-13.5rem)] max-w-[calc(100%-13.5rem)] flex-col gap-2':
@@ -84,7 +91,10 @@ export default function FormCombobox<
               <Combobox
                 ref={field.ref}
                 value={field.value ?? null}
-                onChange={field.onChange}
+                onChange={(next) => {
+                  field.onChange(next);
+                  onChangeProp?.(next);
+                }}
                 onBlur={field.onBlur}
                 options={options}
                 filter={filter}

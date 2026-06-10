@@ -65,9 +65,9 @@ let
     jq
     curl
     cacert
-    gqlgen
-    gqlgenc
-    oapi-codegen
+    nhost.gqlgen
+    nhost.gqlgenc
+    nhost.oapi-codegen
   ];
 
   buildInputs = [ ];
@@ -107,15 +107,15 @@ rec {
     buildInputs =
       with pkgs;
       [
-        certbot-full
+        nhost.certbot-full
         python312Packages.certbot-dns-route53
 
-        gqlgen
+        nhost.gqlgen
 
         # javascript
-        nodejs
-        pnpm
-        biome
+        nhost.nodejs
+        nhost.pnpm
+        nhost.biome
       ]
       ++ checkDeps
       ++ buildInputs

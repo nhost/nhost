@@ -119,7 +119,7 @@ Mutations are not rejected here, but mutation pipelines never produce cross-conn
 
 ## 7. Field routing
 
-`groupFieldsByConnector` (`controller/resolve.go:257`) walks the *original* operation (not the clean one) and partitions root selections by `state.fieldToConnector[field.Name]`. The mapping is built at schema composition time by `connector/composer`. Any root field whose owner is empty produces a structured error.
+`groupFieldsByConnector` (`controller/resolve.go`) walks the *original* operation (not the clean one) and partitions root selections by the operation-qualified `state.fieldToConnector[schemamerge.FieldKey(operation.Operation, field.Name)]` key. The mapping is built at schema composition time by `connector/composer`. Any root field whose owner is empty produces a structured error.
 
 ## 8. Pre-execution connector validation
 

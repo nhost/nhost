@@ -1,3 +1,25 @@
+## [constellation@0.6.0] - 2026-06-08
+
+### 🚀 Features
+
+- *(constellation)* Support typed remote schema presets (#4459)
+- *(constellation)* Align SQLite LIKE and constraints (#4464)
+- *(constellation)* Accept permission columns wildcard shorthand (#4470)
+
+
+### 🐛 Bug Fixes
+
+- *(constellation)* Expose smallint as scalar (#4447)
+- *(constellation)* Hide unsupported introspection directives (#4448)
+- *(constellation)* Harden WebSocket transport liveness (#4449)
+- *(constellation)* Handle phantom field alias collisions in remote relationships (#4465)
+- *(constellation)* Preserve remote schema env headers and ints (#4475)
+- *(constellation)* Qualify non-public table roots (#4474)
+- *(constellation)* Preserve remote schema header env refs (#4477)
+- *(constellation)* Qualify root field routing by operation (#4478)
+- *(constellation)* Align subscription cohort variables (#4483)
+- *(constellation)* Use raw HMAC JWT secrets (#4484)
+
 ## [constellation@0.5.0] - 2026-06-03
 
 ### 🚀 Features

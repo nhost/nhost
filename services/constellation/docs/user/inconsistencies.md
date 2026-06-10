@@ -106,9 +106,12 @@ applies only to PostgreSQL sources.
 ### `relationship` (PostgreSQL / SQLite source)
 
 Recorded when an `object_relationships` or `array_relationships` entry targets
-a table that does not exist in the same source. Detected by checking
+a table that does not exist in the same source, or when a Hasura
+`remote_relationships[].definition.to_source.relationship_type` value is
+missing or not one of `object` / `array`. Detected by checking
 `using.foreign_key_constraint.table` and
-`using.manual_configuration.remote_table` against the surviving table set.
+`using.manual_configuration.remote_table` against the surviving table set, and
+by validating raw `to_source` remote relationship type discriminators.
 
 **Cross-source relationships** (`manual_configuration.source` pointing at a
 different source name) are *not* validated here — the composer's

@@ -23,23 +23,34 @@ const (
 // distinguish this case from other errors should match it with errors.Is.
 var ErrURLMissingSchemeOrHost = errors.New("url is missing scheme or host")
 
+const corsOriginWildcard = "*"
+
 // corsOriginFromURL extracts the scheme+host CORS origin from rawURL. It
-// returns ("", nil) when the URL uses a scheme other than http/https (e.g.
-// custom mobile redirect schemes like myapp://callback) so callers can skip
-// the entry without erroring — browsers ignore non-http(s) Origin headers
-// anyway, so propagating them into CONSTELLATION_CORS_ALLOWED_ORIGINS is useless.
+// passes through the literal "*" wildcard. It returns ("", nil) when the URL
+// uses a scheme other than http/https (e.g. custom mobile redirect schemes like
+// myapp://callback or com.example.app://) so callers can skip the entry without
+// erroring — browsers ignore non-http(s) Origin headers anyway, so propagating
+// them into CONSTELLATION_CORS_ALLOWED_ORIGINS is useless.
 func corsOriginFromURL(rawURL string) (string, error) {
+	if rawURL == corsOriginWildcard {
+		return corsOriginWildcard, nil
+	}
+
 	u, err := url.Parse(rawURL)
 	if err != nil {
 		return "", fmt.Errorf("failed to parse url %q: %w", rawURL, err)
 	}
 
-	if u.Scheme == "" || u.Host == "" {
-		return "", fmt.Errorf("%w: %q", ErrURLMissingSchemeOrHost, rawURL)
+	if u.Scheme != schemeHTTP && u.Scheme != schemeHTTPS {
+		if u.Scheme == "" {
+			return "", fmt.Errorf("%w: %q", ErrURLMissingSchemeOrHost, rawURL)
+		}
+
+		return "", nil
 	}
 
-	if u.Scheme != schemeHTTP && u.Scheme != schemeHTTPS {
-		return "", nil
+	if u.Host == "" {
+		return "", fmt.Errorf("%w: %q", ErrURLMissingSchemeOrHost, rawURL)
 	}
 
 	return u.Scheme + "://" + u.Host, nil

@@ -47,7 +47,7 @@ You can configure static headers to be sent with every request to the remote sch
 
 ```yaml
 headers:
-  # Literal value
+  # Literal value (sent byte-for-byte; {{VAR}} is not interpolated here)
   - name: x-custom-header
     value: "my-value"
 

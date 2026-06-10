@@ -102,7 +102,8 @@ export function extractColumnMetadata(
 export function createDataGridColumn(
   column: NormalizedQueryDataRow,
   isEditable: boolean = true,
-): DataBrowserGridColumnDef {
+  // biome-ignore lint/suspicious/noExplicitAny: Cell types are dynamically typed depending on postgres columns
+): DataBrowserGridColumnDef<UnknownDataGridRow, any> {
   const meta = extractColumnMetadata(column, isEditable);
 
   const isSortable =
