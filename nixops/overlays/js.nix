@@ -105,6 +105,24 @@
 
             runHook postInstall
           '';
+
+          # macOS-only: Node's worker_threads fd tracker (trackUnmanagedFds, on
+          # by default) races under pnpm's parallel workers and aborts the
+          # process ("File descriptor N opened in unmanaged mode" then
+          # SIGABRT/SIGKILL). pnpm churns fds via graceful-fs' EAGAIN retry loop;
+          # libuv recycles those numbers for internal pipes, and worker-exit
+          # cleanup then closes fds it doesn't own. Disable the tracker on pnpm's
+          # WorkerPool. The --replace-fail target is minified and pinned to this
+          # pnpm version; revisit it on the next pnpm bump. Remove once fixed
+          # upstream: https://github.com/NixOS/nixpkgs/issues/525627
+          postPatch =
+            (oldAttrs.postPatch or "")
+            + final.lib.optionalString final.stdenv.isDarwin ''
+              substituteInPlace dist/pnpm.mjs \
+                --replace-fail \
+                  'resourceLimits: this._workerResourceLimits' \
+                  'resourceLimits: this._workerResourceLimits, trackUnmanagedFds: false'
+            '';
         });
 
     ell = prev.ell.overrideAttrs (oldAttrs: {
