@@ -22,7 +22,13 @@
     };
   in
   rec {
-    nodejs-slim_24 = prev.nodejs-slim_24.overrideAttrs (oldAttrs: rec {
+    # Node toolchain pinned ahead of nixpkgs, scoped to our own packages (and
+    # the dev shell via project.nix). Deliberately NOT exported as
+    # `nodejs`/`nodejs-slim_24`: overriding those globally taints every nixpkgs
+    # package with node in its build closure (npm hooks, docs themes, scons,
+    # ...), forcing source rebuilds of huge dependency cones instead of
+    # substituting them from cache.nixos.org.
+    nodejs-slim-pinned = prev.nodejs-slim_24.overrideAttrs (oldAttrs: rec {
       version = "24.16.0";
       src = prev.fetchurl {
         url = "https://nodejs.org/dist/v${version}/node-v${version}.tar.xz";
@@ -35,16 +41,16 @@
       ) (oldAttrs.patches or [ ]);
     });
 
-    nodejs = final.symlinkJoin {
+    nodejs-pinned = final.symlinkJoin {
       name = "nodejs";
-      version = final.nodejs-slim_24.version;
+      version = final.nodejs-slim-pinned.version;
       paths = [
-        final.nodejs-slim_24
+        final.nodejs-slim-pinned
         npm_11
       ];
 
       passthru = {
-        inherit (final.nodejs-slim_24)
+        inherit (final.nodejs-slim-pinned)
           version
           python
           meta
@@ -52,7 +58,7 @@
           ;
 
         pkgs = final.callPackage "${final.path}/pkgs/development/node-packages/default.nix" {
-          nodejs = final.nodejs;
+          nodejs = final.nodejs-pinned;
         };
       };
     };
@@ -60,12 +66,8 @@
     vercel =
       (import ./vercel {
         pkgs = final;
-        nodejs = final.nodejs;
+        nodejs = final.nodejs-pinned;
       })."vercel-53.3.2";
-
-    buildNpmPackage = prev.buildNpmPackage.override {
-      nodejs = prev.nodejs;
-    };
 
     npm_11 = final.stdenv.mkDerivation rec {
       pname = "npm";
@@ -74,7 +76,7 @@
         url = "https://registry.npmjs.org/npm/-/npm-${version}.tgz";
         sha256 = "sha256-KS8ULcGowBGZujSgflfPAWwmDqLFm2Tz7uiqrnoudQQ=";
       };
-      nativeBuildInputs = [ final.nodejs-slim_24.out ];
+      nativeBuildInputs = [ final.nodejs-slim-pinned.out ];
       dontBuild = true;
       installPhase = ''
         mkdir -p $out/lib/node_modules/npm
@@ -124,10 +126,6 @@
                   'resourceLimits: this._workerResourceLimits, trackUnmanagedFds: false'
             '';
         });
-
-    ell = prev.ell.overrideAttrs (oldAttrs: {
-      doCheck = false;
-    });
 
     biome = final.stdenv.mkDerivation {
       pname = "biome";

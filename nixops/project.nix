@@ -41,7 +41,7 @@ let
       gh
       git-cliff
       gnused
-      go
+      go-pinned
       go-migrate
       gofumpt
       golangci-lint
@@ -54,7 +54,7 @@ let
       mockgen
       nhost-cli
       nixfmt
-      nodejs
+      nodejs-pinned
       vercel
       oapi-codegen
       pkg-config
@@ -133,7 +133,20 @@ let
   };
 in
 {
-  check = nixops-lib.nix.check { inherit src; };
+  check = pkgs.symlinkJoin {
+    name = "check-nixops";
+    paths = [
+      (nixops-lib.nix.check { inherit src; })
+      (nixops-lib.nix.checkPinnedToolchains {
+        # Repo-wide: toolchain regressions tend to land in the individual
+        # projects' project.nix, not under nixops/.
+        src = fs.toSource {
+          root = ../.;
+          fileset = fs.fileFilter (f: f.hasExt "nix") ../.;
+        };
+      })
+    ];
+  };
 
   devShell = pkgs.mkShell {
     buildInputs = checkDeps ++ buildInputs ++ nativeBuildInputs;

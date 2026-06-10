@@ -3,7 +3,12 @@ let
   fs = final.lib.fileset;
 in
 rec {
-  go = prev.go_1_26.overrideAttrs (
+  # Go toolchain pinned ahead of nixpkgs, scoped to our own packages (and the
+  # dev shell via project.nix). Deliberately NOT exported as `go` /
+  # `buildGoModule`: overriding those globally taints every nixpkgs package
+  # with go in its build closure (even libcap), forcing source rebuilds of
+  # huge dependency cones instead of substituting them from cache.nixos.org.
+  go-pinned = prev.go_1_26.overrideAttrs (
     finalAttrs: previousAttrs: rec {
       version = "1.26.4";
 
@@ -15,9 +20,9 @@ rec {
     }
   );
 
-  buildGoModule = prev.buildGoModule.override { go = go; };
+  buildGoModule-pinned = prev.buildGoModule.override { go = go-pinned; };
 
-  golangci-lint = final.buildGoModule rec {
+  golangci-lint = final.buildGoModule-pinned rec {
     pname = "golangci-lint";
     version = "2.9.0";
     src = final.fetchFromGitHub {
@@ -38,7 +43,7 @@ rec {
     doCheck = false;
   };
 
-  golines = final.buildGoModule rec {
+  golines = final.buildGoModule-pinned rec {
     pname = "golines";
     version = "0.14.0";
     src = final.fetchFromGitHub {
@@ -56,7 +61,7 @@ rec {
     };
   };
 
-  govulncheck = final.buildGoModule rec {
+  govulncheck = final.buildGoModule-pinned rec {
     pname = "govulncheck";
     version = "1.1.4";
     src = final.fetchFromGitHub {
@@ -82,7 +87,7 @@ rec {
     doCheck = false;
   });
 
-  gqlgenc = final.buildGoModule rec {
+  gqlgenc = final.buildGoModule-pinned rec {
     pname = "gqlgenc";
     version = "0.33.0";
     src = final.fetchFromGitHub {
@@ -102,7 +107,7 @@ rec {
     };
   };
 
-  govulncheck-wrapper = final.buildGoModule {
+  govulncheck-wrapper = final.buildGoModule-pinned {
     pname = "govulncheck-wrapper";
     version = "0.0.0-dev";
     src = fs.toSource {

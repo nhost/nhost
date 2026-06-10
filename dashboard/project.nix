@@ -79,7 +79,7 @@ let
     playwright-driver
   ];
 
-  buildInputs = with pkgs; [ nodejs ];
+  buildInputs = with pkgs; [ nodejs-pinned ];
 
   nativeBuildInputs = with pkgs; [
     pnpm
@@ -260,9 +260,9 @@ rec {
     nativeBuildInputs = with pkgs; [
       pnpm
       cacert
-      nodejs
+      nodejs-pinned
     ];
-    buildInputs = with pkgs; [ nodejs ];
+    buildInputs = with pkgs; [ nodejs-pinned ];
 
     configurePhase = ''
       export NEXT_PUBLIC_DASHBOARD_VERSION=${version}
@@ -355,7 +355,7 @@ rec {
           ];
           Entrypoint = [
             "${entrypoint}/bin/docker-entrypoint.sh"
-            "${pkgs.nodejs}/bin/node"
+            "${pkgs.nodejs-pinned}/bin/node"
             "/dashboard/server.js"
           ];
         };

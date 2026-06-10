@@ -60,7 +60,7 @@ let
     biome
   ];
 
-  buildInputs = with pkgs; [ nodejs ];
+  buildInputs = with pkgs; [ nodejs-pinned ];
 
   nativeBuildInputs = with pkgs; [
     pnpm
@@ -101,9 +101,9 @@ in
     nativeBuildInputs = with pkgs; [
       pnpm
       cacert
-      nodejs
+      nodejs-pinned
     ];
-    buildInputs = with pkgs; [ nodejs ];
+    buildInputs = with pkgs; [ nodejs-pinned ];
 
     buildPhase = ''
       mkdir -p $TMPDIR/home

@@ -57,7 +57,7 @@ let
     vale
   ];
 
-  buildInputs = with pkgs; [ nodejs ];
+  buildInputs = with pkgs; [ nodejs-pinned ];
 
   nativeBuildInputs = with pkgs; [
     pnpm

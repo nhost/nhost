@@ -4,13 +4,6 @@ final: prev:
     doCheck = false;
   });
 
-  linux-pam = prev.linux-pam.overrideAttrs (oldAttrs: {
-    outputs = [
-      "out"
-      "scripts"
-    ];
-  });
-
   nhost-cli = final.callPackage ./nhost-cli.nix { inherit final; };
 
   pi-agent = final.callPackage ./pi-agent.nix { inherit final; };

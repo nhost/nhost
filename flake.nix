@@ -248,12 +248,12 @@
               lychee
 
               # javascript
-              nodejs
+              nodejs-pinned
               pnpm
               biome
 
               # go
-              go
+              go-pinned
               golines
               gofumpt
               golangci-lint
@@ -303,7 +303,7 @@
 
           pnpm = pkgs.mkShell {
             buildInputs = with pkgs; [
-              nodejs
+              nodejs-pinned
               pnpm
             ];
           };
@@ -311,11 +311,11 @@
           security-updates = pkgs.mkShell {
             buildInputs = with pkgs; [
               # pnpm audit --fix=update
-              nodejs
+              nodejs-pinned
               pnpm
 
               # govulncheck-wrapper -fix → go get / go mod tidy / go mod vendor
-              go
+              go-pinned
               govulncheck
               self.packages.${system}.govulncheck-wrapper
             ];
@@ -334,7 +334,7 @@
           vercel = pkgs.mkShell {
             buildInputs = with pkgs; [
               pnpm
-              nodejs
+              nodejs-pinned
               vercel
             ];
           };

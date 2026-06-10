@@ -113,7 +113,7 @@ rec {
         gqlgen
 
         # javascript
-        nodejs
+        nodejs-pinned
         pnpm
         biome
       ]

@@ -3,7 +3,7 @@ let
   jsCheckDeps = with pkgs; [
     pnpm
     cacert
-    nodejs
+    nodejs-pinned
     biome
   ];
 
@@ -24,7 +24,7 @@ let
       nativeBuildInputs = with pkgs; [
         pnpm
         cacert
-        nodejs
+        nodejs-pinned
       ];
 
       buildPhase = ''
