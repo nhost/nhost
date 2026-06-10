@@ -24,6 +24,16 @@ export default defineConfig({
   // makes the Vercel adapter emit 308 redirects from old `/path/` URLs so already
   // indexed pages and external backlinks keep working.
   trailingSlash: 'never',
+  // Astro 6.4 moved the GFM default onto the new `markdown.processor` (unified())
+  // and left the legacy `markdown.gfm` flag undefined-by-default. But
+  // @astrojs/mdx@5.0.6 still reads the legacy flag rather than the processor, so
+  // without this our .mdx content loses GitHub-Flavored Markdown (notably tables).
+  // `markdown.gfm` is deprecated and emits a warning, but it's currently the only
+  // lever that reaches the MDX pipeline. Remove this once @astrojs/mdx adopts the
+  // processor model (then the gfm-on default applies automatically).
+  markdown: {
+    gfm: true,
+  },
   adapter: vercel({
     includeFiles: [
       './src/assets/fonts/Inter-Regular.ttf',
