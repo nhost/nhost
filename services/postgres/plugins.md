@@ -1,7 +1,7 @@
 | Name | Version | Description |
 | ---- | ------- | ----------- |
-| address_standardizer|3.6.2|Used to parse an address into constituent elements. Generally used to support geocoding address normalization step.|
-| address_standardizer_data_us|3.6.2|Address Standardizer US dataset example|
+| address_standardizer|3.6.4|Used to parse an address into constituent elements. Generally used to support geocoding address normalization step.|
+| address_standardizer_data_us|3.6.4|Address Standardizer US dataset example|
 | amcheck|1.5|functions for verifying relation integrity|
 | autoinc|1.0|functions for autoincrementing fields|
 | bloom|1.0|bloom access method - signature file based index|
@@ -21,7 +21,7 @@
 | insert_username|1.0|functions for tracking who changed a table|
 | intagg|1.1|integer aggregator and enumerator (obsolete)|
 | intarray|1.5|functions, operators, and index support for 1-D arrays of integers|
-| ip4r|2.4||
+| ip4r|2.4|data types and operators for storing, indexing, and manipulating IPv4 and IPv6 addresses and ranges|
 | isn|1.3|data types for international product numbering standards|
 | lo|1.2|Large Object maintenance|
 | ltree|1.3|data type for hierarchical tree-like structures|
@@ -31,12 +31,12 @@
 | pg_cron|1.6|Job scheduler for PostgreSQL|
 | pg_freespacemap|1.3|examine the free space map (FSM)|
 | pg_hashids|1.3|pg_hashids|
-| pg_ivm|1.13|incremental view maintenance on PostgreSQL|
+| pg_ivm|1.14|incremental view maintenance on PostgreSQL|
 | pg_jsonschema|0.3.3|pg_jsonschema|
 | pg_logicalinspect|1.0|functions to inspect logical decoding components|
 | pg_prewarm|1.2|prewarm relation data|
 | pg_repack|1.5.3|Reorganize tables in PostgreSQL databases with minimal locks|
-| pg_search|0.22.2|pg_search: Full text search for PostgreSQL using BM25|
+| pg_search|0.24.0|pg_search: Full text search for PostgreSQL using BM25|
 | pg_squeeze|1.9|A tool to remove unused space from a relation.|
 | pg_stat_statements|1.12|track planning and execution statistics of all SQL statements executed|
 | pg_surgery|1.0|extension to perform surgery on a damaged relation|
@@ -44,22 +44,22 @@
 | pg_visibility|1.2|examine the visibility map (VM) and page-level visibility info|
 | pg_walinspect|1.1|functions to inspect contents of PostgreSQL Write-Ahead Log|
 | pgcrypto|1.4|cryptographic functions|
-| pgmq|1.11.0|A lightweight message queue. Like AWS SQS and RSMQ but on Postgres.|
+| pgmq|1.11.1|A lightweight message queue. Like AWS SQS and RSMQ but on Postgres.|
 | pgrouting|4.0.1|pgRouting Extension|
 | pgrowlocks|1.2|show row-level locking information|
 | pgstattuple|1.5|show tuple-level statistics|
 | plpgsql|1.0|PL/pgSQL procedural language|
-| postgis|3.6.2|PostGIS geometry and geography spatial types and functions|
-| postgis_raster|3.6.2|PostGIS raster types and functions|
-| postgis_tiger_geocoder|3.6.2|PostGIS tiger geocoder and reverse geocoder|
-| postgis_topology|3.6.2|PostGIS topology spatial types and functions|
+| postgis|3.6.4|PostGIS geometry and geography spatial types and functions|
+| postgis_raster|3.6.4|PostGIS raster types and functions|
+| postgis_tiger_geocoder|3.6.4|PostGIS tiger geocoder and reverse geocoder|
+| postgis_topology|3.6.4|PostGIS topology spatial types and functions|
 | postgres_fdw|1.2|foreign-data wrapper for remote PostgreSQL servers|
 | refint|1.0|functions for implementing referential integrity (obsolete)|
 | seg|1.4|data type for representing line segments or floating-point intervals|
 | sslinfo|1.2|information about SSL certificates|
 | tablefunc|1.0|functions that manipulate whole tables, including crosstab|
 | tcn|1.0|Triggered change notifications|
-| timescaledb|2.25.2|Enables scalable inserts and complex queries for time-series data|
+| timescaledb|2.27.2|Enables scalable inserts and complex queries for time-series data|
 | tsm_system_rows|1.0|TABLESAMPLE method which accepts number of rows as a limit|
 | tsm_system_time|1.0|TABLESAMPLE method which accepts time in milliseconds as a limit|
 | unaccent|1.1|text search dictionary that removes accents|
