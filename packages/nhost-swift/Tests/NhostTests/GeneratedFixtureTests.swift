@@ -635,7 +635,7 @@ final class GeneratedFixtureTests: XCTestCase {
         )
         XCTAssertEqual(
             redirect.absoluteString,
-            "https://storage.example.test/verify?redirectTo=https://app.example.test/callback&ticket=ticket-1"
+            "https://storage.example.test/verify?redirectTo=https%3A%2F%2Fapp.example.test%2Fcallback&ticket=ticket-1"
         )
 
         do {

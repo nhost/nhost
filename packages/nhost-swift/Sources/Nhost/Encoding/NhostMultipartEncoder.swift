@@ -55,7 +55,7 @@ public enum NhostMultipartEncoder {
             body.appendString("\r\n")
 
             if let contentType = part.contentType {
-                body.appendString("Content-Type: \(contentType)\r\n")
+                body.appendString("Content-Type: \(sanitize(contentType))\r\n")
             }
 
             body.appendString("\r\n")
@@ -72,9 +72,16 @@ public enum NhostMultipartEncoder {
     }
 
     private static func escape(_ value: String) -> String {
-        value
+        sanitize(value)
             .replacingOccurrences(of: "\\", with: "\\\\")
             .replacingOccurrences(of: "\"", with: "\\\"")
+    }
+
+    // Part names, filenames, and content types are interpolated into part headers; a
+    // CR/LF (or other control character) in them would let callers inject arbitrary
+    // headers or terminate the part early, so control characters are dropped.
+    private static func sanitize(_ value: String) -> String {
+        String(value.unicodeScalars.filter { $0.value >= 0x20 && $0.value != 0x7F })
     }
 }
 

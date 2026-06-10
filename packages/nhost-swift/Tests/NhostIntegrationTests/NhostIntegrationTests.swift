@@ -45,7 +45,7 @@ private struct IntegrationEnvironment: Sendable {
                 storageURL: storageURL,
                 graphqlURL: graphqlURL,
                 functionsURL: functionsURL,
-                storage: MemorySessionStorageBackend()
+                sessionStorage: MemorySessionStorageBackend()
             )
         )
     }

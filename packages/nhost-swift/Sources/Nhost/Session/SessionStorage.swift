@@ -121,6 +121,11 @@ public actor SessionStore {
     }
 }
 
+/// Default key under which the session is persisted. Matches nhost-js's
+/// `DEFAULT_SESSION_KEY`, so custom backends sharing a store with the
+/// JavaScript SDK (e.g. server-side cookies) can interoperate.
+public let defaultSessionKey = "nhostSession"
+
 public func defaultSessionStorageBackend() -> any SessionStorageBackend {
     #if canImport(Security)
     KeychainSessionStorageBackend()

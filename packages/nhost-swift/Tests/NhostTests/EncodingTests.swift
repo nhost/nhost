@@ -77,6 +77,57 @@ final class EncodingTests: XCTestCase {
         XCTAssertTrue(body.hasSuffix("--boundary--\r\n"))
     }
 
+    func testQueryEncoderEncodesPlusSignAndPreservesEncodedBaseItems() throws {
+        let url = try XCTUnwrap(URL(string: "https://example.com/v1/signin?next=a%2Bb"))
+        let encoded = NhostQueryEncoder.append(
+            ["email": .string("me+alias@example.com")],
+            to: url
+        )
+
+        let components = try XCTUnwrap(URLComponents(url: encoded, resolvingAgainstBaseURL: false))
+        XCTAssertEqual(components.percentEncodedQuery, "next=a%2Bb&email=me%2Balias%40example.com")
+    }
+
+    func testMultipartEncoderStripsHeaderInjectionAttempts() throws {
+        let multipart = NhostMultipartEncoder.encode(
+            parts: [
+                .file(
+                    name: "file\r\nX-Injected: name",
+                    filename: "evil\"\r\nContent-Type: text/html\r\n\r\n<script>",
+                    contentType: "image/png\r\nX-Injected: content-type",
+                    data: Data([0x01])
+                ),
+            ],
+            boundary: "boundary"
+        )
+
+        let body = try XCTUnwrap(String(data: multipart.body, encoding: .utf8))
+        // CR/LF is stripped, so injected text can never start a new header line or
+        // terminate the part headers early.
+        XCTAssertFalse(body.contains("\r\nX-Injected"))
+        XCTAssertFalse(body.contains("\r\n\r\n<script>"))
+        XCTAssertTrue(body.contains(#"name="fileX-Injected: name""#))
+        XCTAssertTrue(body.contains(#"filename="evil\"Content-Type: text/html<script>""#))
+        XCTAssertTrue(body.contains("Content-Type: image/pngX-Injected: content-type\r\n"))
+    }
+
+    func testURLBuilderDoesNotTrapOnUnencodedPathsAndQueries() throws {
+        let baseURL = try XCTUnwrap(URL(string: "https://example.com/v1"))
+
+        let spacedPath = NhostURLBuilder.url(baseURL: baseURL, path: "/hello world/100%")
+        XCTAssertEqual(spacedPath.absoluteString, "https://example.com/v1/hello%20world/100%25")
+
+        let alreadyEncoded = NhostURLBuilder.url(baseURL: baseURL, path: "/files/avatar%20image.png")
+        XCTAssertEqual(
+            alreadyEncoded.absoluteString,
+            "https://example.com/v1/files/avatar%20image.png"
+        )
+
+        XCTAssertEqual(NhostURLBuilder.validPercentEncodedQuery("q=a%2Bb&x=1"), "q=a%2Bb&x=1")
+        XCTAssertEqual(NhostURLBuilder.validPercentEncodedQuery("q=a b"), "q=a%20b")
+        XCTAssertEqual(NhostURLBuilder.validPercentEncodedQuery("bad=%2"), "bad=%252")
+    }
+
     func testURLBuilderAndBinaryBody() throws {
         let baseURL = try XCTUnwrap(URL(string: "https://example.com/api/"))
         let segment = NhostURLBuilder.percentEncodePathSegment("avatar image.png")

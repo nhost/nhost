@@ -50,20 +50,28 @@ private actor ClientRecordingTransport: HTTPTransport {
     }
 }
 
+private actor AuthorizationHeaderRecorder {
+    private(set) var values: [String?] = []
+
+    func record(_ value: String?) {
+        values.append(value)
+    }
+}
+
 final class NhostClientTests: XCTestCase {
     func testGenerateServiceUrlMatrix() throws {
         XCTAssertEqual(
-            generateServiceUrl(.auth).absoluteString,
+            generateServiceURL(.auth).absoluteString,
             "https://local.auth.local.nhost.run/v1"
         )
         XCTAssertEqual(
-            generateServiceUrl(.storage, subdomain: "proj", region: "eu-central-1").absoluteString,
+            generateServiceURL(.storage, subdomain: "proj", region: "eu-central-1").absoluteString,
             "https://proj.storage.eu-central-1.nhost.run/v1"
         )
 
         let custom = try XCTUnwrap(URL(string: "https://auth.example.test/custom"))
         XCTAssertEqual(
-            generateServiceUrl(.auth, subdomain: "ignored", region: "ignored", customURL: custom),
+            generateServiceURL(.auth, subdomain: "ignored", region: "ignored", customURL: custom),
             custom
         )
     }
@@ -77,7 +85,7 @@ final class NhostClientTests: XCTestCase {
             NhostClientOptions(
                 authURL: authURL,
                 storageURL: storageURL,
-                storage: MemorySessionStorageBackend(),
+                sessionStorage: MemorySessionStorageBackend(),
                 transport: transport,
                 defaultHeaders: ["x-sdk": "swift"],
                 role: "user"
@@ -108,6 +116,34 @@ final class NhostClientTests: XCTestCase {
         XCTAssertEqual(storageRequest.headers["x-hasura-role"], "user")
     }
 
+    func testCustomMiddlewareRunsInsideSessionMiddleware() async throws {
+        // nhost-js parity: user middleware is innermost, so it observes the Bearer
+        // token attached by the session middleware instead of running before it.
+        let session = try testAuthSession(exp: Int(Date().timeIntervalSince1970) + 600)
+        let transport = ClientRecordingTransport(session: session)
+        let recorder = AuthorizationHeaderRecorder()
+
+        let observer: ChainFunction = { request, next in
+            await recorder.record(NhostHeaderLookup.value(in: request.headers, named: "authorization"))
+            return try await next(request)
+        }
+
+        let client = createClient(
+            NhostClientOptions(
+                authURL: try XCTUnwrap(URL(string: "https://auth.example.test/v1")),
+                storageURL: try XCTUnwrap(URL(string: "https://storage.example.test/v1")),
+                sessionStorage: MemorySessionStorageBackend(session: try StoredSession(session)),
+                transport: transport,
+                middleware: [observer]
+            )
+        )
+
+        _ = try await client.storage.getFile(id: "file-1")
+
+        let observedAuthorization = await recorder.values
+        XCTAssertEqual(observedAuthorization, ["Bearer \(session.accessToken)"])
+    }
+
     func testCreateNhostClientAppliesAdminSessionToNonAuthServices() async throws {
         let session = try testAuthSession(exp: testNowSeconds + 600)
         let transport = ClientRecordingTransport(session: session)
@@ -115,7 +151,7 @@ final class NhostClientTests: XCTestCase {
             NhostClientOptions(
                 authURL: try XCTUnwrap(URL(string: "https://auth.example.test/v1")),
                 storageURL: try XCTUnwrap(URL(string: "https://storage.example.test/v1")),
-                storage: MemorySessionStorageBackend(),
+                sessionStorage: MemorySessionStorageBackend(),
                 transport: transport,
                 adminSession: AdminSessionOptions(
                     adminSecret: "secret",
@@ -147,7 +183,7 @@ final class NhostClientTests: XCTestCase {
             NhostServerClientOptions(
                 authURL: try XCTUnwrap(URL(string: "https://auth.example.test/v1")),
                 storageURL: try XCTUnwrap(URL(string: "https://storage.example.test/v1")),
-                storage: MemorySessionStorageBackend(session: expiredSession),
+                sessionStorage: MemorySessionStorageBackend(session: expiredSession),
                 transport: transport
             )
         )

@@ -51,6 +51,11 @@ public struct FunctionsHTTPError: Error, Sendable, Equatable {
     }
 }
 
+extension FunctionsHTTPError: NhostServiceError {
+    public var statusCode: Int? { status }
+    public var responseHeaders: [String: String] { headers }
+}
+
 extension FunctionsHTTPError: LocalizedError {
     public var errorDescription: String? {
         messages.joined(separator: ", ")
@@ -120,7 +125,7 @@ public struct FunctionsClient: Sendable {
         do {
             requestBody = try encoder().encode(body)
         } catch {
-            throw FetchError.encoding(error.localizedDescription)
+            throw FetchError.encoding(String(describing: error))
         }
 
         return try await fetch(
@@ -164,7 +169,7 @@ public struct FunctionsClient: Sendable {
             do {
                 return .json(try decoder.decode(responseType, from: response.body))
             } catch {
-                throw FetchError.decoding(error.localizedDescription)
+                throw FetchError.decoding(String(describing: error))
             }
         }
 
@@ -248,7 +253,7 @@ public struct FunctionsClient: Sendable {
             return url
         }
 
-        let queryPart = String(parts[1])
+        let queryPart = NhostURLBuilder.validPercentEncodedQuery(String(parts[1]))
         if let percentEncodedQuery = components.percentEncodedQuery, !percentEncodedQuery.isEmpty {
             components.percentEncodedQuery = [percentEncodedQuery, queryPart]
                 .filter { !$0.isEmpty }

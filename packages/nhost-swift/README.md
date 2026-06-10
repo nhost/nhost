@@ -189,6 +189,12 @@ Storage errors are surfaced as `FetchError.http(NhostHTTPError)`, preserving the
 HTTP status, headers, raw response body, decoded JSON body when available, and
 extracted error messages.
 
+> **Memory note:** uploads and downloads are currently fully buffered in memory
+> (`Data` in, `Data` out) — a multipart upload briefly holds roughly twice the
+> file size. Keep transfers comfortably below available memory, especially on
+> iOS; streaming via `URLSession.upload(for:fromFile:)`/`bytes(for:)` is a
+> planned follow-up.
+
 ## Functions
 
 Use `fetch` for arbitrary methods and raw bodies, or `post` for JSON request
@@ -238,7 +244,7 @@ actor SessionBox {
 }
 
 let box = SessionBox()
-let storage = CustomSessionStorageBackend(
+let sessionStorage = CustomSessionStorageBackend(
     get: { await box.get() },
     set: { await box.set($0) },
     remove: { await box.remove() }
@@ -250,7 +256,7 @@ let serverClient = createServerClient(
         storageURL: URL(string: "https://storage.example.com/v1")!,
         graphqlURL: URL(string: "https://graphql.example.com/v1")!,
         functionsURL: URL(string: "https://functions.example.com/v1")!,
-        storage: storage
+        sessionStorage: sessionStorage
     )
 )
 ```

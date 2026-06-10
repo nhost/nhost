@@ -28,7 +28,9 @@ public struct NhostClientOptions: Sendable {
     public let storageURL: URL?
     public let graphqlURL: URL?
     public let functionsURL: URL?
-    public let storage: (any SessionStorageBackend)?
+    /// Backend used to persist the user session. Not to be confused with the
+    /// Storage (file) service, which is configured via `storageURL`.
+    public let sessionStorage: (any SessionStorageBackend)?
     public let transport: any HTTPTransport
     public let middleware: [ChainFunction]
     public let defaultHeaders: [String: String]
@@ -43,7 +45,7 @@ public struct NhostClientOptions: Sendable {
         storageURL: URL? = nil,
         graphqlURL: URL? = nil,
         functionsURL: URL? = nil,
-        storage: (any SessionStorageBackend)? = nil,
+        sessionStorage: (any SessionStorageBackend)? = nil,
         transport: any HTTPTransport = URLSessionTransport(),
         middleware: [ChainFunction] = [],
         defaultHeaders: [String: String] = [:],
@@ -57,7 +59,7 @@ public struct NhostClientOptions: Sendable {
         self.storageURL = storageURL
         self.graphqlURL = graphqlURL
         self.functionsURL = functionsURL
-        self.storage = storage
+        self.sessionStorage = sessionStorage
         self.transport = transport
         self.middleware = middleware
         self.defaultHeaders = defaultHeaders
@@ -72,8 +74,9 @@ public struct NhostServerClientOptions: Sendable {
 
     /// Creates a trusted-context/server-style client configuration.
     ///
-    /// Server clients require explicit custom storage and intentionally do not add automatic
-    /// refresh middleware; they still update storage from Auth responses and attach the stored token.
+    /// Server clients require explicit custom session storage and intentionally do not add
+    /// automatic refresh middleware; they still update storage from Auth responses and attach
+    /// the stored token.
     public init(
         subdomain: String? = nil,
         region: String? = nil,
@@ -81,7 +84,7 @@ public struct NhostServerClientOptions: Sendable {
         storageURL: URL? = nil,
         graphqlURL: URL? = nil,
         functionsURL: URL? = nil,
-        storage: any SessionStorageBackend,
+        sessionStorage: any SessionStorageBackend,
         transport: any HTTPTransport = URLSessionTransport(),
         middleware: [ChainFunction] = [],
         defaultHeaders: [String: String] = [:],
@@ -96,7 +99,7 @@ public struct NhostServerClientOptions: Sendable {
             storageURL: storageURL,
             graphqlURL: graphqlURL,
             functionsURL: functionsURL,
-            storage: storage,
+            sessionStorage: sessionStorage,
             transport: transport,
             middleware: middleware,
             defaultHeaders: defaultHeaders,
@@ -147,7 +150,11 @@ public struct NhostClient: Sendable {
     }
 }
 
-public func generateServiceUrl(
+/// Builds the URL of an Nhost service from a subdomain/region pair, falling back
+/// to the local dev environment (`https://local.{service}.local.nhost.run/v1`)
+/// when neither a pair nor a custom URL is provided. Mirrors nhost-js's
+/// `generateServiceUrl`.
+public func generateServiceURL(
     _ service: NhostService,
     subdomain: String? = nil,
     region: String? = nil,
@@ -157,21 +164,40 @@ public func generateServiceUrl(
         return customURL
     }
 
-    if let subdomain, let region {
-        return URL(string: "https://\(subdomain).\(service.rawValue).\(region).nhost.run/v1")!
+    let urlString = if let subdomain, let region {
+        "https://\(subdomain).\(service.rawValue).\(region).nhost.run/v1"
+    } else {
+        "https://local.\(service.rawValue).local.nhost.run/v1"
     }
 
-    return URL(string: "https://local.\(service.rawValue).local.nhost.run/v1")!
+    guard let url = URL(string: urlString) else {
+        preconditionFailure("Invalid Nhost service URL derived from subdomain/region: \(urlString)")
+    }
+
+    return url
 }
 
+/// Creates a client with **no session middleware**: nothing is persisted, refreshed,
+/// or attached automatically. Use it for admin or service contexts (typically with
+/// `adminSession`) or when you manage sessions yourself. Mirrors nhost-js's
+/// `createNhostClient`; for the session-managed client most apps want, use
+/// ``createClient(_:)``.
 public func createNhostClient(_ options: NhostClientOptions = NhostClientOptions()) -> NhostClient {
     makeNhostClient(options: options, sessionMode: .none)
 }
 
+/// Creates the fully session-managed client most apps want: requests proactively
+/// refresh the session when it is about to expire, sessions returned by Auth
+/// endpoints are persisted, and the stored access token is attached as a Bearer
+/// header. Mirrors nhost-js's `createClient`; for a client without any session
+/// middleware, use ``createNhostClient(_:)``.
 public func createClient(_ options: NhostClientOptions = NhostClientOptions()) -> NhostClient {
     makeNhostClient(options: options, sessionMode: .client)
 }
 
+/// Creates a server-style client: sessions are persisted and attached from the
+/// required explicit `sessionStorage`, but never refreshed automatically. Mirrors
+/// nhost-js's `createServerClient`.
 public func createServerClient(_ options: NhostServerClientOptions) -> NhostClient {
     makeNhostClient(options: options.clientOptions, sessionMode: .server)
 }
@@ -184,20 +210,20 @@ private enum SessionMiddlewareMode {
 
 private func makeNhostClient(options: NhostClientOptions, sessionMode: SessionMiddlewareMode) -> NhostClient {
     let serviceURLs = NhostServiceURLs(
-        auth: generateServiceUrl(.auth, subdomain: options.subdomain, region: options.region, customURL: options.authURL),
-        storage: generateServiceUrl(
+        auth: generateServiceURL(.auth, subdomain: options.subdomain, region: options.region, customURL: options.authURL),
+        storage: generateServiceURL(
             .storage,
             subdomain: options.subdomain,
             region: options.region,
             customURL: options.storageURL
         ),
-        graphql: generateServiceUrl(
+        graphql: generateServiceURL(
             .graphql,
             subdomain: options.subdomain,
             region: options.region,
             customURL: options.graphqlURL
         ),
-        functions: generateServiceUrl(
+        functions: generateServiceURL(
             .functions,
             subdomain: options.subdomain,
             region: options.region,
@@ -205,7 +231,7 @@ private func makeNhostClient(options: NhostClientOptions, sessionMode: SessionMi
         )
     )
 
-    let sessionStore = SessionStore(storage: options.storage ?? defaultSessionStorageBackend())
+    let sessionStore = SessionStore(storage: options.sessionStorage ?? defaultSessionStorageBackend())
     let commonMiddleware = configuredCommonMiddleware(options)
     let refreshAuth = AuthClient(baseURL: serviceURLs.auth, transport: options.transport, middleware: commonMiddleware)
     let refresher = SessionRefresher(auth: refreshAuth, store: sessionStore)
@@ -216,8 +242,11 @@ private func makeNhostClient(options: NhostClientOptions, sessionMode: SessionMi
         marginSeconds: options.sessionRefreshMarginSeconds
     )
 
-    let authMiddleware = commonMiddleware + sessionMiddleware
-    let privilegedServiceMiddleware = commonMiddleware + configuredPrivilegedServiceMiddleware(options) + sessionMiddleware
+    // Session middleware runs outermost and user/common middleware innermost,
+    // matching nhost-js: custom middleware observes the attached Bearer token,
+    // and one that sets Authorization itself cannot suppress refresh/attach.
+    let authMiddleware = sessionMiddleware + commonMiddleware
+    let privilegedServiceMiddleware = sessionMiddleware + configuredPrivilegedServiceMiddleware(options) + commonMiddleware
 
     return NhostClient(
         auth: AuthClient(baseURL: serviceURLs.auth, transport: options.transport, middleware: authMiddleware),

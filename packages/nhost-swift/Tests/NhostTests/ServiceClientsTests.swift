@@ -323,7 +323,7 @@ final class TopLevelServiceClientTests: XCTestCase {
                 storageURL: try XCTUnwrap(URL(string: "https://storage.example.test/v1")),
                 graphqlURL: graphqlURL,
                 functionsURL: functionsURL,
-                storage: MemorySessionStorageBackend(session: session),
+                sessionStorage: MemorySessionStorageBackend(session: session),
                 transport: transport,
                 defaultHeaders: ["x-sdk": "swift"],
                 role: "user",

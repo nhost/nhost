@@ -50,7 +50,10 @@ public enum NhostHTTP {
                 headers: response.headers
             )
         } catch {
-            throw FetchError.decoding(error.localizedDescription)
+            // String(describing:) keeps DecodingError coding paths and debug
+            // descriptions; localizedDescription reduces them to a useless generic
+            // sentence.
+            throw FetchError.decoding(String(describing: error))
         }
     }
 

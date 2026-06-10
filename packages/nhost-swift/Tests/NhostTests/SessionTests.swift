@@ -170,17 +170,23 @@ final class SessionStoreTests: XCTestCase {
     }
 
     #if canImport(Security)
+    // The ad hoc signed `swift test` runner has no application-identifier
+    // entitlement, so these tests must opt out of the macOS data-protection
+    // keychain that the backend uses by default.
+    private static func testKeychainOptions() -> KeychainSessionStorageOptions {
+        KeychainSessionStorageOptions(
+            service: "io.nhost.swift.tests.\(UUID().uuidString)",
+            accountPrefix: "phase6",
+            useDataProtectionKeychain: false
+        )
+    }
+
     func testKeychainStorageRoundTripWhenExplicitlyEnabled() async throws {
         guard ProcessInfo.processInfo.environment["NHOST_SWIFT_RUN_KEYCHAIN_TESTS"] == "1" else {
             throw XCTSkip("Set NHOST_SWIFT_RUN_KEYCHAIN_TESTS=1 to run Keychain-specific tests")
         }
 
-        let backend = KeychainSessionStorageBackend(
-            options: KeychainSessionStorageOptions(
-                service: "io.nhost.swift.tests.\(UUID().uuidString)",
-                accountPrefix: "phase6"
-            )
-        )
+        let backend = KeychainSessionStorageBackend(options: Self.testKeychainOptions())
         let session = try StoredSession(try testAuthSession())
 
         try? await backend.remove()
@@ -190,6 +196,35 @@ final class SessionStoreTests: XCTestCase {
         try await backend.remove()
         let removedSession = try await backend.get()
         XCTAssertNil(removedSession)
+    }
+
+    func testKeychainStorageSelfHealsCorruptedEntriesWhenExplicitlyEnabled() async throws {
+        guard ProcessInfo.processInfo.environment["NHOST_SWIFT_RUN_KEYCHAIN_TESTS"] == "1" else {
+            throw XCTSkip("Set NHOST_SWIFT_RUN_KEYCHAIN_TESTS=1 to run Keychain-specific tests")
+        }
+
+        let options = Self.testKeychainOptions()
+        let backend = KeychainSessionStorageBackend(options: options)
+
+        try? await backend.remove()
+        let corrupted: [String: Any] = [
+            kSecClass as String: kSecClassGenericPassword,
+            kSecAttrService as String: options.service,
+            kSecAttrAccount as String: options.account,
+            kSecValueData as String: Data("not a session".utf8),
+        ]
+        XCTAssertEqual(SecItemAdd(corrupted as CFDictionary, nil), errSecSuccess)
+
+        // A corrupted entry is removed and reported as "no session" instead of
+        // throwing forever (js storage-backend parity).
+        let healed = try await backend.get()
+        XCTAssertNil(healed)
+
+        let session = try StoredSession(try testAuthSession())
+        try await backend.set(session)
+        let storedAccessToken = try await backend.get()?.accessToken
+        XCTAssertEqual(storedAccessToken, session.accessToken)
+        try await backend.remove()
     }
     #else
     func testDefaultStorageFallsBackToMemoryWhenKeychainUnavailable() {

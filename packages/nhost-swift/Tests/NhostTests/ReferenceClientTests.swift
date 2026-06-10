@@ -89,7 +89,7 @@ final class ReferenceClientTests: XCTestCase {
         XCTAssertEqual(request.method, "POST")
         XCTAssertEqual(
             request.url.absoluteString,
-            "https://auth.example.com/v1/signin/email-password?redirectTo=https://app.example.com/callback"
+            "https://auth.example.com/v1/signin/email-password?redirectTo=https%3A%2F%2Fapp.example.com%2Fcallback"
         )
         XCTAssertEqual(request.headers["accept"], "application/json")
         XCTAssertEqual(request.headers["content-type"], "application/json")

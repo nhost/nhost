@@ -28,17 +28,27 @@ public struct KeychainSessionStorageOptions: Sendable {
     public let account: String
     public let accessGroup: String?
     public let accessibility: KeychainAccessibility
+    public let useDataProtectionKeychain: Bool
 
+    /// - Parameter useDataProtectionKeychain: On macOS, stores the session in the
+    ///   data-protection keychain (the iOS-style keychain) instead of the legacy
+    ///   file-based login keychain, where `accessibility` and `accessGroup` are
+    ///   silently ignored. Requires a keychain/application-identifier entitlement,
+    ///   which regular signed apps have; plain unsigned executables (CLI tools, ad
+    ///   hoc test runners) must pass `false`. Ignored on iOS/tvOS/watchOS, where
+    ///   the keychain is always data-protected.
     public init(
         service: String = "io.nhost.swift.session",
         accountPrefix: String = "default",
         accessGroup: String? = nil,
-        accessibility: KeychainAccessibility = .afterFirstUnlockThisDeviceOnly
+        accessibility: KeychainAccessibility = .afterFirstUnlockThisDeviceOnly,
+        useDataProtectionKeychain: Bool = true
     ) {
         self.service = service
-        account = "\(accountPrefix).nhostSession"
+        account = "\(accountPrefix).\(defaultSessionKey)"
         self.accessGroup = accessGroup
         self.accessibility = accessibility
+        self.useDataProtectionKeychain = useDataProtectionKeychain
     }
 }
 
@@ -80,7 +90,15 @@ public struct KeychainSessionStorageBackend: SessionStorageBackend {
             throw KeychainSessionStorageError(status: errSecDecode, operation: "get")
         }
 
-        return try NhostJSON.restDecoder.decode(StoredSession.self, from: data)
+        do {
+            return try NhostJSON.restDecoder.decode(StoredSession.self, from: data)
+        } catch {
+            // Self-heal like the nhost-js storage backends: a corrupted entry would
+            // otherwise disable auth forever, because callers treat storage errors
+            // as "no session" while the bad entry never goes away.
+            try? await remove()
+            return nil
+        }
     }
 
     public func set(_ value: StoredSession) async throws {
@@ -110,6 +128,10 @@ public struct KeychainSessionStorageBackend: SessionStorageBackend {
             kSecAttrService as String: options.service,
             kSecAttrAccount as String: options.account,
         ]
+
+        #if os(macOS)
+        query[kSecUseDataProtectionKeychain as String] = options.useDataProtectionKeychain
+        #endif
 
         if let accessGroup = options.accessGroup {
             query[kSecAttrAccessGroup as String] = accessGroup

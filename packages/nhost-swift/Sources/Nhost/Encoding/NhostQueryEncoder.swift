@@ -4,12 +4,31 @@ public enum NhostQueryEncoder {
     public static func append(_ parameters: [String: JSONValue?], to url: URL) -> URL {
         guard !parameters.isEmpty else { return url }
 
-        var components = URLComponents(url: url, resolvingAgainstBaseURL: false)
-        let existingItems = components?.queryItems ?? []
-        let encodedItems = queryItems(from: parameters)
-        components?.queryItems = existingItems + encodedItems
+        guard var components = URLComponents(url: url, resolvingAgainstBaseURL: false) else {
+            return url
+        }
 
-        return components?.url ?? url
+        // Merge via the percent-encoded view so existing items are never decoded and
+        // re-encoded. New items are encoded here rather than by URLComponents' own
+        // queryItems setter, which leaves "+" raw — form-style parsers (and nhost-js,
+        // whose URLSearchParams emits %2B) decode a raw "+" as a space.
+        let encodedItems = queryItems(from: parameters).map { item in
+            URLQueryItem(
+                name: percentEncodeQueryComponent(item.name),
+                value: item.value.map(percentEncodeQueryComponent)
+            )
+        }
+        components.percentEncodedQueryItems = (components.percentEncodedQueryItems ?? [])
+            + encodedItems
+
+        return components.url ?? url
+    }
+
+    private static func percentEncodeQueryComponent(_ value: String) -> String {
+        var allowed = CharacterSet.urlQueryAllowed
+        allowed.remove(charactersIn: ":#[]@!$&'()*+,;=/?")
+
+        return value.addingPercentEncoding(withAllowedCharacters: allowed) ?? value
     }
 
     public static func queryItems(from parameters: [String: JSONValue?]) -> [URLQueryItem] {

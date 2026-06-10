@@ -23,6 +23,8 @@ public struct URLSessionTransport: HTTPTransport {
     }
 
     public func fetch(_ request: NhostRequest) async throws -> NhostRawResponse {
+        try Task.checkCancellation()
+
         var urlRequest = URLRequest(url: request.url)
         urlRequest.httpMethod = request.method
         urlRequest.httpBody = request.body
@@ -44,8 +46,16 @@ public struct URLSessionTransport: HTTPTransport {
             )
         } catch let error as FetchError {
             throw error
+        } catch is CancellationError {
+            // Cancellation must stay distinguishable from network failures so retry
+            // layers do not retry deliberately cancelled requests.
+            throw CancellationError()
+        } catch let error as URLError where error.code == .cancelled {
+            throw CancellationError()
+        } catch let error as URLError {
+            throw FetchError.transport("URLError \(error.code.rawValue): \(error.localizedDescription)")
         } catch {
-            throw FetchError.transport(error.localizedDescription)
+            throw FetchError.transport(String(describing: error))
         }
     }
 

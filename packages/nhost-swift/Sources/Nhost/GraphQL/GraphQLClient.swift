@@ -83,6 +83,11 @@ public struct GraphQLExecutionError: Error, Sendable, Equatable {
     }
 }
 
+extension GraphQLExecutionError: NhostServiceError {
+    public var statusCode: Int? { status }
+    public var responseHeaders: [String: String] { headers }
+}
+
 extension GraphQLExecutionError: LocalizedError {
     public var errorDescription: String? {
         messages.joined(separator: ", ")
@@ -155,7 +160,7 @@ public struct GraphQLClient: Sendable {
         do {
             requestBody = try NhostJSON.neutralEncoder.encode(graphQLRequest)
         } catch {
-            throw FetchError.encoding(error.localizedDescription)
+            throw FetchError.encoding(String(describing: error))
         }
 
         let response = try await fetch(
@@ -184,7 +189,7 @@ public struct GraphQLClient: Sendable {
         } catch let error as FetchError {
             throw error
         } catch {
-            throw FetchError.decoding(error.localizedDescription)
+            throw FetchError.decoding(String(describing: error))
         }
     }
 

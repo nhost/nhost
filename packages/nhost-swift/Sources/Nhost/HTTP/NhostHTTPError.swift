@@ -1,5 +1,19 @@
 import Foundation
 
+/// Common surface of every error the Nhost service clients throw
+/// (`FetchError` from Auth/Storage, `GraphQLExecutionError` from GraphQL,
+/// `FunctionsHTTPError` from Functions), so a single `catch let error as
+/// NhostServiceError` can handle a mixed workflow generically — the
+/// counterpart of nhost-js's single `FetchError<T>` class.
+public protocol NhostServiceError: Error, Sendable {
+    /// HTTP status code of the failing response, when one was received.
+    var statusCode: Int? { get }
+    /// Headers of the failing response, empty when no response was received.
+    var responseHeaders: [String: String] { get }
+    /// Human-readable error messages extracted from the response or failure.
+    var messages: [String] { get }
+}
+
 public struct NhostHTTPError: Error, Sendable, Equatable {
     public let status: Int
     public let headers: [String: String]
@@ -33,6 +47,26 @@ public struct NhostHTTPError: Error, Sendable, Equatable {
             messages: messages
         )
     }
+
+    /// Decodes the raw error body into a typed error model, mirroring nhost-js's
+    /// `FetchError<ErrorResponse>.body` pattern:
+    ///
+    /// ```swift
+    /// catch let FetchError.http(error) {
+    ///     let details = error.decodedBody(AuthErrorResponse.self)
+    /// }
+    /// ```
+    public func decodedBody<Body: Decodable>(
+        _ bodyType: Body.Type = Body.self,
+        decoder: JSONDecoder = NhostJSON.restDecoder
+    ) -> Body? {
+        try? decoder.decode(bodyType, from: rawBody)
+    }
+}
+
+extension NhostHTTPError: NhostServiceError {
+    public var statusCode: Int? { status }
+    public var responseHeaders: [String: String] { headers }
 }
 
 public enum FetchError: Error, Sendable, Equatable {
@@ -65,6 +99,23 @@ public enum FetchError: Error, Sendable, Equatable {
             error.messages
         }
     }
+}
+
+extension FetchError {
+    /// Decodes the HTTP error body into a typed error model; `nil` for
+    /// non-HTTP failures or bodies that do not match `Body`.
+    public func decodedBody<Body: Decodable>(
+        _ bodyType: Body.Type = Body.self,
+        decoder: JSONDecoder = NhostJSON.restDecoder
+    ) -> Body? {
+        guard case let .http(error) = self else { return nil }
+        return error.decodedBody(bodyType, decoder: decoder)
+    }
+}
+
+extension FetchError: NhostServiceError {
+    public var statusCode: Int? { status }
+    public var responseHeaders: [String: String] { headers }
 }
 
 extension FetchError: LocalizedError {

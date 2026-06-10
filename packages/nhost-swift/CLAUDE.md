@@ -14,6 +14,7 @@ This package is a SwiftPM library package exposing the public module `Nhost`.
 - `Sources/Nhost/Core` contains package-wide primitives.
 - `Sources/Nhost/HTTP` contains request/response, errors, transport, and middleware pipeline contracts.
 - `Sources/Nhost/Encoding` contains wire-format helpers used by generated clients.
+- `Sources/Nhost/Auth` contains hand-written auth helpers (PKCE, incl. a pure-Swift SHA-256 fallback for Linux — the package must stay dependency-free because the Nix `package` derivation builds without network access for SwiftPM).
 - `Sources/Nhost/Generated` is reserved for OpenAPI output in later phases.
 
 ## Runtime and generated code
