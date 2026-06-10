@@ -59,6 +59,7 @@ export default function OperatorComboBox({
       placeholder="Select operator..."
       searchPlaceholder="Search operator..."
       emptyText="No operator found."
+      className="w-full xl:w-40"
       popoverContentClassName="w-80"
     />
   );

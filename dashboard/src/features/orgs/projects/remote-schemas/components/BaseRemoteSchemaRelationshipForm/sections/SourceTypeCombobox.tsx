@@ -1,12 +1,5 @@
 import { useFormContext } from 'react-hook-form';
-import { Combobox } from '@/components/ui/v3/combobox';
-import {
-  FormControl,
-  FormField,
-  FormItem,
-  FormLabel,
-  FormMessage,
-} from '@/components/ui/v3/form';
+import { FormCombobox } from '@/components/form/FormCombobox';
 import type { DatabaseRelationshipFormValues } from './DatabaseRelationshipForm';
 import type { RemoteSchemaRelationshipFormValues } from './RemoteSchemaRelationshipForm';
 
@@ -22,35 +15,14 @@ export default function SourceTypeCombobox({
   >();
 
   return (
-    <FormField
+    <FormCombobox
       control={form.control}
       name="sourceType"
-      render={({ field }) => (
-        <FormItem className="flex flex-1 flex-col">
-          <FormLabel>Source Type</FormLabel>
-          <FormControl>
-            <Combobox
-              options={sourceTypes}
-              value={field.value}
-              onChange={(value) => {
-                form.setValue('sourceType', value, {
-                  shouldValidate: true,
-                  shouldDirty: true,
-                  shouldTouch: true,
-                });
-              }}
-              onBlur={field.onBlur}
-              placeholder="Select type"
-              searchPlaceholder="Search source type..."
-              emptyText="No source type found."
-              className={
-                form.formState.errors.sourceType ? 'border-destructive' : ''
-              }
-            />
-          </FormControl>
-          <FormMessage />
-        </FormItem>
-      )}
+      label="Source Type"
+      placeholder="Select type"
+      searchPlaceholder="Search source type..."
+      emptyText="No source type found."
+      options={sourceTypes}
     />
   );
 }

@@ -25,6 +25,7 @@ export default function TableComboBox({
 
   return (
     <Combobox
+      className="w-72"
       options={tables}
       value={selectedLabel}
       placeholder="Select table..."

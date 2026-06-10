@@ -88,7 +88,7 @@ export default function RelationshipComboBox({
               placeholder="Select relationship..."
               searchPlaceholder="Search relationship..."
               emptyText="No relationships found."
-              className={cn({
+              className={cn('w-72', {
                 'border-destructive text-destructive': hasError,
               })}
               popoverContentClassName="w-80"
