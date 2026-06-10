@@ -60,14 +60,14 @@ let
   };
 
   checkDeps = with pkgs; [
-    nhost-cli
-    biome
+    nhost.nhost-cli
+    nhost.biome
   ];
 
-  buildInputs = with pkgs; [ nodejs ];
+  buildInputs = with pkgs; [ nhost.nodejs ];
 
   nativeBuildInputs = with pkgs; [
-    pnpm
+    nhost.pnpm
     cacert
   ];
 in
@@ -103,11 +103,11 @@ in
     inherit name version src;
 
     nativeBuildInputs = with pkgs; [
-      pnpm
+      nhost.pnpm
       cacert
-      nodejs
+      nhost.nodejs
     ];
-    buildInputs = with pkgs; [ nodejs ];
+    buildInputs = with pkgs; [ nhost.nodejs ];
 
     buildPhase = ''
       mkdir -p $TMPDIR/home
