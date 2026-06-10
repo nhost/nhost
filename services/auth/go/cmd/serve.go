@@ -523,7 +523,7 @@ func CommandServe() *cli.Command { //nolint:funlen,maintidx
 					},
 					Default: "disabled",
 				},
-				Usage:    "Require x-hasura-auth-elevated claim to perform certain actions: create PATs, change email and/or password, enable/disable MFA and add security keys. If set to `recommended` the claim check is only performed if the user has a security key attached. If set to `required` the only action that won't require the claim is setting a security key for the first time.",
+				Usage:    "Require x-hasura-auth-elevated claim to perform certain actions: create PATs, change email and/or password, enable/disable MFA, add security keys, and link a provider to an existing account. If set to `recommended` the claim check is only performed if the user has a security key attached. If set to `required` the only action that won't require the claim is setting a security key for the first time.",
 				Category: "security",
 				Sources:  cli.EnvVars("AUTH_REQUIRE_ELEVATED_CLAIM"),
 			},
