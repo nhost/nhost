@@ -3,8 +3,13 @@
 //
 // Storage serves user-uploaded bytes with the MIME type detected at upload
 // time and Content-Disposition: inline. These headers tell the browser to
-// handle such responses conservatively: not to sniff the content type, not to
-// run active content, and not to allow framing.
+// handle such responses conservatively: not to sniff the content type and not
+// to run active content.
+//
+// Framing is intentionally left unrestricted: the served bytes are static and
+// sandboxed (no active content), so the clickjacking risk is negligible, while
+// X-Frame-Options/frame-ancestors would break legitimate embedding of files
+// (e.g. inline PDF or document previews via <iframe>).
 package securityheaders
 
 import "github.com/gin-gonic/gin"
@@ -12,7 +17,6 @@ import "github.com/gin-gonic/gin"
 const (
 	headerXContentTypeOptions   = "X-Content-Type-Options"
 	headerContentSecurityPolicy = "Content-Security-Policy"
-	headerXFrameOptions         = "X-Frame-Options"
 
 	// valueNoSniff stops the browser from sniffing a response into a more
 	// dangerous type than the one we declare.
@@ -20,12 +24,9 @@ const (
 
 	// valueCSP constrains how the browser may interpret a served response: the
 	// sandbox directive (without allow-scripts) prevents active content from
-	// running, default-src 'none' blocks every subresource and external load,
-	// and frame-ancestors 'none' blocks framing. Static files still render.
-	valueCSP = "default-src 'none'; sandbox; frame-ancestors 'none'"
-
-	// valueXFrameOptions backs up frame-ancestors for legacy browsers.
-	valueXFrameOptions = "DENY"
+	// running and default-src 'none' blocks every subresource and external
+	// load. Static files still render.
+	valueCSP = "default-src 'none'; sandbox"
 )
 
 // New returns a gin middleware that sets browser hardening headers on every
@@ -36,7 +37,6 @@ func New() gin.HandlerFunc {
 		header := ctx.Writer.Header()
 		header.Set(headerXContentTypeOptions, valueNoSniff)
 		header.Set(headerContentSecurityPolicy, valueCSP)
-		header.Set(headerXFrameOptions, valueXFrameOptions)
 
 		ctx.Next()
 	}

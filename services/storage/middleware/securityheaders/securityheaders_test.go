@@ -36,8 +36,7 @@ func TestSecurityHeaders(t *testing.T) {
 
 	wantHeaders := map[string]string{
 		"X-Content-Type-Options":  "nosniff",
-		"Content-Security-Policy": "default-src 'none'; sandbox; frame-ancestors 'none'",
-		"X-Frame-Options":         "DENY",
+		"Content-Security-Policy": "default-src 'none'; sandbox",
 	}
 
 	cases := []struct {
