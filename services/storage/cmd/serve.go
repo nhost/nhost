@@ -57,6 +57,8 @@ const (
 	flagCDNCacheControl          = "cdn-cache-control"
 	flagPprofBind                = "pprof-bind"
 	flagImageTransformerWorkers  = "image-transformer-workers"
+	flagImageTransformerMaxDim   = "image-transformer-max-dimension"
+	flagImageTransformerMaxBlur  = "image-transformer-max-blur-sigma"
 )
 
 func getCORSOptions(cmd *cli.Command) oapimw.CORSOptions {
@@ -408,6 +410,21 @@ func CommandServe() *cli.Command { //nolint:funlen
 				Category: "server",
 				Sources:  cli.EnvVars("IMAGE_TRANSFORMER_WORKERS"),
 			},
+			&cli.IntFlag{ //nolint:exhaustruct
+				Name: flagImageTransformerMaxDim,
+				Usage: "maximum width or height, in pixels, an image may be " +
+					"resized to; bounds libvips memory use per request",
+				Value:    image.DefaultMaxImageDimension,
+				Category: "server",
+				Sources:  cli.EnvVars("IMAGE_TRANSFORMER_MAX_DIMENSION"),
+			},
+			&cli.FloatFlag{ //nolint:exhaustruct
+				Name:     flagImageTransformerMaxBlur,
+				Usage:    "maximum Gaussian blur sigma that may be applied to an image",
+				Value:    image.DefaultMaxBlurSigma,
+				Category: "server",
+				Sources:  cli.EnvVars("IMAGE_TRANSFORMER_MAX_BLUR_SIGMA"),
+			},
 		},
 		Action: serve,
 	}
@@ -456,7 +473,11 @@ func serve(ctx context.Context, cmd *cli.Command) error { //nolint:funlen
 		)
 	}
 
-	imageTransformer := image.NewTransformer(imageTransformerWorkers)
+	imageTransformer := image.NewTransformer(
+		imageTransformerWorkers,
+		cmd.Int(flagImageTransformerMaxDim),
+		cmd.Float(flagImageTransformerMaxBlur),
+	)
 	defer imageTransformer.Shutdown()
 
 	servCtx, cancel := context.WithCancel(ctx)

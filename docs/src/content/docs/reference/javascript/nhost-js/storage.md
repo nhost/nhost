@@ -770,7 +770,7 @@ Parameters for the getFileMetadataHeaders method.
 optional b?: number;
 ```
 
-Blur the image using this sigma value. Only applies to image files
+Blur the image using this sigma value. Only applies to image files. Values above the server-configured maximum (default 250) are clamped to it.
 
 #### f?
 
@@ -788,7 +788,7 @@ Output format for image files. Use 'auto' for content negotiation based on Accep
 optional h?: number;
 ```
 
-Maximum height to resize image to while maintaining aspect ratio. Only applies to image files
+Maximum height, in pixels, to resize image to while maintaining aspect ratio. Only applies to image files. Values above the server-configured maximum (default 8000) are clamped to it.
 
 #### q?
 
@@ -804,7 +804,7 @@ Image quality (1-100). Only applies to JPEG, WebP, AVIF and HEIC files
 optional w?: number;
 ```
 
-Maximum width to resize image to while maintaining aspect ratio. Only applies to image files
+Maximum width, in pixels, to resize image to while maintaining aspect ratio. Only applies to image files. Values above the server-configured maximum (default 8000) are clamped to it.
 
 ---
 
@@ -820,7 +820,7 @@ Parameters for the getFile method.
 optional b?: number;
 ```
 
-Blur the image using this sigma value. Only applies to image files
+Blur the image using this sigma value. Only applies to image files. Values above the server-configured maximum (default 250) are clamped to it.
 
 #### f?
 
@@ -838,7 +838,7 @@ Output format for image files. Use 'auto' for content negotiation based on Accep
 optional h?: number;
 ```
 
-Maximum height to resize image to while maintaining aspect ratio. Only applies to image files
+Maximum height, in pixels, to resize image to while maintaining aspect ratio. Only applies to image files. Values above the server-configured maximum (default 8000) are clamped to it.
 
 #### q?
 
@@ -854,7 +854,7 @@ Image quality (1-100). Only applies to JPEG, WebP, AVIF and HEIC files
 optional w?: number;
 ```
 
-Maximum width to resize image to while maintaining aspect ratio. Only applies to image files
+Maximum width, in pixels, to resize image to while maintaining aspect ratio. Only applies to image files. Values above the server-configured maximum (default 8000) are clamped to it.
 
 ---
 

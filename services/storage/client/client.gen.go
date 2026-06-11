@@ -172,13 +172,13 @@ type GetFileParams struct {
 	// Q Image quality (1-100). Only applies to JPEG, WebP, AVIF and HEIC files
 	Q *int `form:"q,omitempty" json:"q,omitempty"`
 
-	// H Maximum height to resize image to while maintaining aspect ratio. Only applies to image files
+	// H Maximum height, in pixels, to resize image to while maintaining aspect ratio. Only applies to image files. Values above the server-configured maximum (default 8000) are clamped to it.
 	H *int `form:"h,omitempty" json:"h,omitempty"`
 
-	// W Maximum width to resize image to while maintaining aspect ratio. Only applies to image files
+	// W Maximum width, in pixels, to resize image to while maintaining aspect ratio. Only applies to image files. Values above the server-configured maximum (default 8000) are clamped to it.
 	W *int `form:"w,omitempty" json:"w,omitempty"`
 
-	// B Blur the image using this sigma value. Only applies to image files
+	// B Blur the image using this sigma value. Only applies to image files. Values above the server-configured maximum (default 250) are clamped to it.
 	B *float32 `form:"b,omitempty" json:"b,omitempty"`
 
 	// F Output format for image files. Use 'auto' for content negotiation based on Accept header
@@ -205,13 +205,13 @@ type GetFileMetadataHeadersParams struct {
 	// Q Image quality (1-100). Only applies to JPEG, WebP, AVIF and HEIC files
 	Q *int `form:"q,omitempty" json:"q,omitempty"`
 
-	// H Maximum height to resize image to while maintaining aspect ratio. Only applies to image files
+	// H Maximum height, in pixels, to resize image to while maintaining aspect ratio. Only applies to image files. Values above the server-configured maximum (default 8000) are clamped to it.
 	H *int `form:"h,omitempty" json:"h,omitempty"`
 
-	// W Maximum width to resize image to while maintaining aspect ratio. Only applies to image files
+	// W Maximum width, in pixels, to resize image to while maintaining aspect ratio. Only applies to image files. Values above the server-configured maximum (default 8000) are clamped to it.
 	W *int `form:"w,omitempty" json:"w,omitempty"`
 
-	// B Blur the image using this sigma value. Only applies to image files
+	// B Blur the image using this sigma value. Only applies to image files. Values above the server-configured maximum (default 250) are clamped to it.
 	B *float32 `form:"b,omitempty" json:"b,omitempty"`
 
 	// F Output format for image files. Use 'auto' for content negotiation based on Accept header
@@ -271,13 +271,13 @@ type GetFileWithPresignedURLParams struct {
 	// Q Image quality (1-100). Only applies to JPEG, WebP, AVIF and HEIC files
 	Q *int `form:"q,omitempty" json:"q,omitempty"`
 
-	// H Maximum height to resize image to while maintaining aspect ratio. Only applies to image files
+	// H Maximum height, in pixels, to resize image to while maintaining aspect ratio. Only applies to image files. Values above the server-configured maximum (default 8000) are clamped to it.
 	H *int `form:"h,omitempty" json:"h,omitempty"`
 
-	// W Maximum width to resize image to while maintaining aspect ratio. Only applies to image files
+	// W Maximum width, in pixels, to resize image to while maintaining aspect ratio. Only applies to image files. Values above the server-configured maximum (default 8000) are clamped to it.
 	W *int `form:"w,omitempty" json:"w,omitempty"`
 
-	// B Blur the image using this sigma value. Only applies to image files
+	// B Blur the image using this sigma value. Only applies to image files. Values above the server-configured maximum (default 250) are clamped to it.
 	B *float32 `form:"b,omitempty" json:"b,omitempty"`
 
 	// F Output format for image files. Use 'auto' for content negotiation based on Accept header
