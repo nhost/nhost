@@ -64,9 +64,9 @@
           default = nixops-lib.go.devShell {
             buildInputs = with pkgs; [
               mockgen
-              gqlgen
-              gqlgenc
-              oapi-codegen
+              nhost.gqlgen
+              nhost.gqlgenc
+              nhost.oapi-codegen
               skopeo
             ];
           };

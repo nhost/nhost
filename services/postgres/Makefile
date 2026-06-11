@@ -1,17 +1,14 @@
-ROOT_DIR?=$(abspath ../..)
+ROOT_DIR ?= $(abspath ../..)
 include $(ROOT_DIR)/build/makefiles/general.makefile
 
-ifndef POSTGRES_VERSION
-POSTGRES_VERSION=18
-endif
+POSTGRES_VERSION ?= 18
+POSTGRES_VERSION := $(or $(POSTGRES_VERSION),18)
 
 # Resolve full PostgreSQL version (e.g., 18 -> 18.3) from the nix overlay.
 POSTGRES_FULL_VERSION := $(shell grep -A4 'postgresql_$(POSTGRES_VERSION) =' $(ROOT_DIR)/nixops/overlays/postgres.nix | grep -oP 'version = "\K[^"]+')
 
 # Prepend full PG version to VERSION if not already present
-ifeq (,$(findstring $(POSTGRES_VERSION),$(VERSION)))
-VERSION:=$(POSTGRES_FULL_VERSION)-$(VERSION)
-endif
+VERSION := $(shell printf '%s' '$(VERSION)' | grep -Fq '$(POSTGRES_VERSION)' && printf '%s' '$(VERSION)' || printf '%s-%s' '$(POSTGRES_FULL_VERSION)' '$(VERSION)')
 
 
 # Override: postgres packages use version-specific nix attr names
@@ -31,7 +28,8 @@ build-dry-run:  ## Returns the derivation of the build
 build-docker-image:  ## Build and load postgres docker image
 	nix build $(docker-build-options) --print-build-logs \
 		.\#packages.$(ARCH)-linux.postgres-pg$(POSTGRES_VERSION)-as-dir
-	skopeo copy --insecure-policy dir:./result docker-daemon:nhost/postgres:$(VERSION)
+	nix develop \#skopeo -c \
+		skopeo copy --insecure-policy dir:./result docker-daemon:nhost/postgres:$(VERSION)
 	@echo Image Loaded: docker-daemon:nhost/postgres:$(VERSION)
 
 

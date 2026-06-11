@@ -1,5 +1,8 @@
 import type { ReactNode } from 'react';
 import type { Control, FieldPath, FieldValues } from 'react-hook-form';
+import getTransformedFieldProps, {
+  type Transformer,
+} from '@/components/form/utils/getTransformedFieldProps';
 import { Combobox, type ComboboxOption } from '@/components/ui/v3/combobox';
 import {
   FormControl,
@@ -9,7 +12,7 @@ import {
   FormLabel,
   FormMessage,
 } from '@/components/ui/v3/form';
-import { cn } from '@/lib/utils';
+import { cn, isNotEmptyValue } from '@/lib/utils';
 
 export type { ComboboxOption as FormComboboxOption };
 
@@ -22,7 +25,7 @@ interface FormComboboxProps<
 > {
   control: Control<TFieldValues>;
   name: TName;
-  label: ReactNode;
+  label?: ReactNode;
   placeholder?: string;
   className?: string;
   containerClassName?: string;
@@ -33,6 +36,11 @@ interface FormComboboxProps<
   emptyText?: ReactNode;
   options: ComboboxOption[];
   filter?: (value: string, search: string, keywords?: string[]) => number;
+  transform?: Transformer;
+  /**
+   * Fired after the field is updated with the newly selected value.
+   */
+  onChange?: (value: string) => void;
   'data-testid'?: string;
 }
 
@@ -53,58 +61,76 @@ export default function FormCombobox<
   emptyText,
   options,
   filter,
+  transform,
+  onChange: onChangeProp,
   'data-testid': dataTestId,
 }: FormComboboxProps<TFieldValues, TName>) {
   return (
     <FormField
       control={control}
       name={name}
-      render={({ field }) => (
-        <FormItem
-          className={cn(
-            { 'flex w-full items-center gap-4 py-3': inline },
-            containerClassName,
-          )}
-        >
-          <FormLabel
-            className={cn({
-              'w-52 max-w-52 flex-shrink-0': inline,
-              'mt-2 self-start': inline && !!helperText,
-            })}
-          >
-            {label}
-          </FormLabel>
-          <div
-            className={cn({
-              'flex w-[calc(100%-13.5rem)] max-w-[calc(100%-13.5rem)] flex-col gap-2':
-                inline,
-            })}
-          >
-            <FormControl>
-              <Combobox
-                ref={field.ref}
-                value={field.value ?? null}
-                onChange={field.onChange}
-                onBlur={field.onBlur}
-                options={options}
-                filter={filter}
-                placeholder={placeholder}
-                searchPlaceholder={searchPlaceholder}
-                emptyText={emptyText}
-                disabled={disabled}
-                className={cn(comboboxTriggerClasses, className)}
-                data-testid={dataTestId}
-              />
-            </FormControl>
-            {!!helperText && (
-              <FormDescription className="break-all px-[1px]">
-                {helperText}
-              </FormDescription>
+      render={({ field }) => {
+        const {
+          ref: fieldRef,
+          onChange,
+          value,
+          onBlur,
+        } = isNotEmptyValue(transform)
+          ? getTransformedFieldProps(field, transform)
+          : field;
+
+        return (
+          <FormItem
+            className={cn(
+              { 'flex w-full items-center gap-4 py-3': inline },
+              containerClassName,
             )}
-            <FormMessage />
-          </div>
-        </FormItem>
-      )}
+          >
+            {!!label && (
+              <FormLabel
+                className={cn({
+                  'w-52 max-w-52 flex-shrink-0': inline,
+                  'mt-2 self-start': inline && !!helperText,
+                })}
+              >
+                {label}
+              </FormLabel>
+            )}
+            <div
+              className={cn({
+                'flex w-[calc(100%-13.5rem)] max-w-[calc(100%-13.5rem)] flex-col gap-2':
+                  inline,
+              })}
+            >
+              <FormControl>
+                <Combobox
+                  ref={fieldRef}
+                  value={value ?? null}
+                  onChange={(next) => {
+                    onChange(next);
+                    onChangeProp?.(next);
+                  }}
+                  onBlur={onBlur}
+                  options={options}
+                  filter={filter}
+                  placeholder={placeholder}
+                  searchPlaceholder={searchPlaceholder}
+                  emptyText={emptyText}
+                  disabled={disabled}
+                  className={cn(comboboxTriggerClasses, className)}
+                  data-testid={dataTestId}
+                />
+              </FormControl>
+              {!!helperText && (
+                <FormDescription className="break-all px-[1px]">
+                  {helperText}
+                </FormDescription>
+              )}
+              <FormMessage />
+            </div>
+          </FormItem>
+        );
+      }}
     />
   );
 }

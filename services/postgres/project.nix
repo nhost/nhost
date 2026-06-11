@@ -35,9 +35,9 @@ let
 
   mkAsDir = image: pkgs.runCommand "image-as-dir" { } "${image.copyTo}/bin/copy-to dir:$out";
 
-  pg16 = mkPostgres pkgs.postgresql_16;
-  pg17 = mkPostgres pkgs.postgresql_17;
-  pg18 = mkPostgres pkgs.postgresql_18;
+  pg16 = mkPostgres pkgs.nhost.postgresql_16;
+  pg17 = mkPostgres pkgs.nhost.postgresql_17;
+  pg18 = mkPostgres pkgs.nhost.postgresql_18;
 in
 {
   check =
@@ -45,7 +45,7 @@ in
       {
         __noChroot = true;
         nativeBuildInputs = with pkgs; [
-          postgresql_18
+          nhost.postgresql_18
           diffutils
         ];
       }
@@ -77,7 +77,7 @@ in
 
   devShell = pkgs.mkShell {
     buildInputs = with pkgs; [
-      wal-g
+      nhost.wal-g
       docker-client
       skopeo
     ];

@@ -17,7 +17,7 @@ import { useMemo } from 'react';
 export const ACTIONS_WIDTH = 44;
 export const TIMESTAMP_WIDTH = 145;
 export const LOG_LEVEL_WIDTH = 80;
-export const SERVICE_WIDTH = 110;
+export const SERVICE_WIDTH = 120;
 export const LOG_MIN_WIDTH = 300;
 export const LOG_CHAR_WIDTH = 7.5;
 export const LOG_CELL_PADDING = 16;
@@ -69,11 +69,11 @@ function ServiceCell({ getValue }: { getValue: () => string }) {
     <span
       title={service}
       className={cn(
-        'inline-flex max-w-full items-center truncate rounded px-1.5 py-0.5 font-mono text-xs-',
+        'inline-flex max-w-full items-center rounded px-1.5 py-0.5 font-mono text-xs-',
         className,
       )}
     >
-      {label}
+      <span className="truncate">{label}</span>
     </span>
   );
 }
