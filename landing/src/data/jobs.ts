@@ -45,12 +45,13 @@ export const jobs: Job[] = [
       'Experience with testing, automating, operating, and troubleshooting production systems',
       'Experience deploying and operating containers and related technologies',
       'Experience designing and building REST APIs',
+      'Comfortable using AI coding tools and agents as part of your everyday workflow',
       'Excellent communication skills',
     ],
     niceToHaves: [
       'BSc or MSc in Computer Engineering, Computer Science or relevant field',
       'Experience building developer tools and open-source projects',
-      'Experience with cloud providers, preferably AWS (EKS, RDS, Lambda, etc)',
+      'Experience with cloud providers, preferably AWS (EKS, Lambda, etc)',
       'Terraform or Pulumi as IaC',
       'Experience with PostgreSQL',
     ],
@@ -92,6 +93,7 @@ export const jobs: Job[] = [
       'Experience with modern JavaScript application frameworks',
       'Previous experience working closely with designers, building flexible and composable libraries and components',
       'A customer-first mindset and an interest in talking with customers to make sure that we are building the right thing',
+      'Comfortable using AI coding tools and agents as part of your everyday workflow',
       'Excellent communication skills',
     ],
     niceToHaves: [
@@ -120,18 +122,18 @@ export const jobs: Job[] = [
     type: 'Full-time',
     vacation: '25-30 days',
     summary:
-      'Help thousands of developers discover, learn, and ship with Nhost — through technical content, real-world demos, and a public voice the community trusts.',
+      'Help thousands of developers discover, learn, and ship with Nhost through technical content, real-world demos, and a public voice the community trusts.',
     about:
-      "Nhost is an early-stage, remote-first company building the developer platform that gives engineers and AI agents the fastest way to ship modern backends. We're looking for a Developer Relations Engineer who is equal parts builder and storyteller. You'll be one of the most visible voices in our community — producing technical content at a serious clip, shipping real apps on top of Nhost, and helping a global audience of developers go from curious to building in production. This isn't a plug-and-play role: you'll define what Nhost DevRel looks like, set the bar for technical content, and shape how we show up across YouTube, X, Discord, GitHub, and beyond.",
+      "Nhost is an early-stage, remote-first company building the developer platform that gives engineers and AI agents the fastest way to ship modern backends. We're looking for a Developer Relations Engineer who is equal parts builder and storyteller. You'll be one of the most visible voices in our community, producing technical content at a serious clip, shipping real apps on top of Nhost, and helping a global audience of developers go from curious to building in production. This isn't a plug-and-play role: you'll define what Nhost DevRel looks like, set the bar for technical content, and shape how we show up across YouTube, X, Discord, GitHub, and beyond.",
     responsibilities: [
-      'Publish compelling technical content at a high cadence — videos, deep-dive posts, tutorials, and reference repos — that helps developers learn Nhost quickly',
+      'Publish compelling technical content at a high cadence (videos, deep-dive posts, tutorials, and reference repos) that helps developers learn Nhost quickly',
       'Ship real-world apps on Nhost with Next.js, React, React Native, Flutter, GraphQL, and AI tooling. Write guides that others can follow and remix',
       'Represent Nhost publicly: conference talks, meetups, livestreams, podcasts, and Twitter Spaces',
       "Be active in our Discord and on GitHub — answer questions, celebrate community projects, and turn power users into advocates",
-      "Close the loop with product and engineering: translate community signal — docs gaps, DX paper cuts, missing primitives — into roadmap input the team can act on",
+      'Close the loop with product and engineering: translate community signal, like docs gaps, DX paper cuts, and missing primitives, into roadmap input the team can act on',
       "Own the DevRel function end-to-end. You're the first dedicated DevRel hire: pick the channels that matter, set the strategy, build the muscle, and bring on teammates when the time is right",
-      "Lead our developer story for AI agents and AI-native apps — build with our MCP server, ship agent-driven demos, and meet developers where AI dev tools are taking them",
-      'Contribute back to our open-source repos. DevRel here ships code, not just decks — improve docs, examples, and SDKs alongside the engineering team',
+      'Lead our developer story for AI agents and AI-native apps: build with our MCP server, ship agent-driven demos, and meet developers where AI dev tools are taking them',
+      'Contribute back to our open-source repos. DevRel here ships code, not just decks, by improving docs, examples, and SDKs alongside the engineering team',
     ],
     requirements: [
       '3+ years of relevant engineering experience (preferably with TypeScript/JavaScript)',
@@ -139,6 +141,7 @@ export const jobs: Job[] = [
       'A track record of creating technical content — written, video, or both — that developers actually use',
       'Comfort representing a product publicly: on camera, on stage, on livestreams, and on social',
       "A strong bias toward shipping. You'd rather publish a working demo today than a perfect spec next month",
+      'Comfortable using AI coding tools and agents as part of your everyday workflow',
       'Excellent written and verbal communication',
     ],
     niceToHaves: [
@@ -150,7 +153,7 @@ export const jobs: Job[] = [
     benefits: [
       'A generous salary and equity package based on relevant experience',
       'The opportunity to define what DevRel looks like at a fast-moving developer platform',
-      'Autonomy and ownership — your fingerprints will be all over how Nhost shows up in the developer community',
+      'Autonomy and ownership. Your fingerprints will be all over how Nhost shows up in the developer community',
       'Remote',
       'Open and transparent company culture',
       'Equipment of choice, and yearly allowance for books and education',

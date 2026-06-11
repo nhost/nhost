@@ -20,7 +20,7 @@ const values = [
   {
     title: 'Autonomy and ownership',
     description:
-      'You own meaningful problems end-to-end. We trust engineers to make decisions, ship them, and learn from the results — without committees in the way.',
+      'You own meaningful problems end-to-end. We trust engineers to make decisions, ship them, and learn from the results.',
   },
   {
     title: 'For developers, by developers',
@@ -43,7 +43,7 @@ const benefits = [
   {
     title: '25–30 days of vacation',
     description:
-      'Recharge properly. Time off is the kind we actually take, not the kind we talk about.',
+      'Recharge properly. Time off means actually switching off.',
   },
   {
     title: 'Work from anywhere',
@@ -143,7 +143,7 @@ export default function CareersPage() {
               Nhost exists to give developers and agents the fastest way to build, connect, and run modern backends.
             </p>
             <p className="mt-6 text-lg leading-relaxed text-white text-opacity-65">
-              We provide the core backend stack — database, auth, storage, GraphQL, functions, and AI-ready tooling — in one platform that is ready to use, easy to extend, and built to remove operational complexity.
+              We provide the core backend stack — database, auth, storage, GraphQL, containers, serverless functions, and AI-ready tooling — in one platform that is ready to use, easy to extend, and built to remove operational complexity.
             </p>
           </div>
         </div>
