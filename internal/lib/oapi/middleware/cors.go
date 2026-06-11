@@ -73,10 +73,15 @@ type CORSOptions struct {
 	// MaxAge indicates how long preflight results can be cached. Empty means no directive.
 	MaxAge string
 
-	// UnsafeAllowAllOriginsWithCredentials preserves legacy behavior that reflects
-	// arbitrary origins together with Access-Control-Allow-Credentials: true. Do
-	// not use for new services; this exists only to migrate older wildcard CORS
-	// configurations without changing runtime behavior in the same PR.
+	// UnsafeAllowAllOriginsWithCredentials bypasses the allow-all-origin-with-
+	// credentials rejection in Validate, and therefore in CORS and NewRouter,
+	// allowing the middleware to reflect arbitrary origins together with
+	// Access-Control-Allow-Credentials: true. Do not use for new services; it
+	// exists only to keep older wildcard CORS configurations booting while they
+	// migrate to explicit origins. For browser clients (which always send an
+	// Origin header) this matches the legacy wildcard behavior, though the
+	// shared middleware does differ from the old one in browser-immaterial ways
+	// (it always sends Vary and omits CORS headers when no Origin is present).
 	UnsafeAllowAllOriginsWithCredentials bool
 }
 

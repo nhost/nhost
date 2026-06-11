@@ -74,9 +74,14 @@ func getCORSOptions(cmd *cli.Command) oapimw.CORSOptions {
 			"Content-Length", "Content-Type", "Cache-Control", "CDN-Cache-Control", "ETag", "Last-Modified", "X-Error",
 		},
 		AllowCredentials: cmd.Bool(flagCorsAllowCredentials),
-		// Preserve storage's existing behavior for deployments that combine the
-		// default allow-all origin with credentialed CORS. Replace with explicit
-		// allowed origins in a follow-up migration.
+		// Conditionally required: the shared CORS middleware is fail-closed and
+		// rejects allow-all origins combined with credentials, so without this
+		// flag NewRouter would error at startup for any deployment that runs the
+		// default ["*"] origins together with --cors-allow-credentials. Because
+		// both AllowedOrigins and AllowCredentials are config-driven here,
+		// deployments with explicit origins are unaffected; the flag only
+		// preserves boot for the legacy allow-all + credentials combination.
+		// Replace with explicit allowed origins in a follow-up migration.
 		UnsafeAllowAllOriginsWithCredentials: true,
 		MaxAge:                               "86400",
 	}

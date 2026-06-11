@@ -1377,9 +1377,12 @@ func getCORSOptions() oapimw.CORSOptions {
 		AllowedHeaders:   nil,
 		ExposedHeaders:   []string{},
 		AllowCredentials: true,
-		// Preserve auth's existing credentialed allow-all CORS behavior while
-		// adopting the shared stricter middleware. Replace this with explicit
-		// allowed origins in a follow-up migration.
+		// Required: the shared CORS middleware is fail-closed and rejects
+		// allow-all origins combined with credentials, so without this flag
+		// NewRouter would error at startup. It preserves auth's legacy
+		// credentialed allow-all behavior, which is equivalent to the old
+		// middleware for browser clients (which always send an Origin header).
+		// Replace this with explicit allowed origins in a follow-up migration.
 		UnsafeAllowAllOriginsWithCredentials: true,
 		MaxAge:                               "86400",
 	}
