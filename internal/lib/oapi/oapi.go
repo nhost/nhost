@@ -42,7 +42,7 @@ func surfaceErrorsMiddleWare(c *gin.Context) {
 		errorCode = "bad-request"
 	}
 
-	c.JSON(status, gin.H{"errors": errorCode, "message": c.Errors[0].Error()})
+	c.JSON(status, gin.H{"error": errorCode, "message": c.Errors[0].Error()})
 }
 
 // RecordError is the GinServerOptions.ErrorHandler shared by services. The

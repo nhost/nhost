@@ -468,8 +468,8 @@ func TestSurfaceErrors_RecordedErrorWithoutStatus(t *testing.T) {
 		t.Fatalf("decoding response: %v (body = %s)", err, rec.Body.String())
 	}
 
-	if body["errors"] != "internal-server-error" {
-		t.Errorf(`body["errors"] = %q; want "internal-server-error"`, body["errors"])
+	if body["error"] != "internal-server-error" {
+		t.Errorf(`body["error"] = %q; want "internal-server-error"`, body["error"])
 	}
 
 	if body["message"] != "boom" {
@@ -500,8 +500,8 @@ func TestSurfaceErrors_RecordError(t *testing.T) {
 		t.Fatalf("decoding response: %v (body = %s)", err, rec.Body.String())
 	}
 
-	if body["errors"] != "bad-request" {
-		t.Errorf(`body["errors"] = %q; want "bad-request"`, body["errors"])
+	if body["error"] != "bad-request" {
+		t.Errorf(`body["error"] = %q; want "bad-request"`, body["error"])
 	}
 
 	if body["message"] != "invalid param" {

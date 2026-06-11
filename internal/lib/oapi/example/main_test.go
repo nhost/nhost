@@ -85,7 +85,7 @@ func TestRequests(t *testing.T) {
 				`{"email": "crash@email.com", "password": "p4ssw0rd"}`,
 			),
 			expectedStatus:   http.StatusInternalServerError,
-			expectedResponse: `{"errors":"internal-server-error","message":"simulated server crash"}`,
+			expectedResponse: `{"error":"internal-server-error","message":"simulated server crash"}`,
 		},
 
 		{
@@ -135,7 +135,7 @@ func TestRequests(t *testing.T) {
 			},
 			body:             strings.NewReader(`{"email": "asdasd.com", "password": "p4ssw0rd"}`),
 			expectedStatus:   http.StatusBadRequest,
-			expectedResponse: `{"errors":"bad-request","message":"email: failed to pass regex validation"}`,
+			expectedResponse: `{"error":"bad-request","message":"email: failed to pass regex validation"}`,
 		},
 
 		{
