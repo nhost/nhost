@@ -992,3 +992,151 @@ func TestCORSPreflightWithoutOriginEmitsNoCORSHeaders(t *testing.T) {
 		})
 	}
 }
+
+// TestCORSMaxAge pins the cfg.maxAge != "" guard in applyHeaders: an empty MaxAge
+// must omit the Access-Control-Max-Age header entirely rather than emit it with
+// an empty value. The "set" row is duplicated from TestCORS to keep the absence
+// assertion self-contained; the "unset" row is the one TestCORS cannot express,
+// because its subset header comparison never asserts a header is absent.
+func TestCORSMaxAge(t *testing.T) {
+	t.Parallel()
+
+	cases := []struct {
+		name    string
+		maxAge  string
+		wantSet bool
+	}{
+		{name: "set", maxAge: "600", wantSet: true},
+		{name: "unset", maxAge: "", wantSet: false},
+	}
+
+	for _, tc := range cases {
+		t.Run(tc.name, func(t *testing.T) {
+			t.Parallel()
+
+			opts := middleware.CORSOptions{
+				AllowedOrigins: []string{"https://example.com"},
+				AllowedMethods: []string{"GET"},
+				MaxAge:         tc.maxAge,
+			}
+
+			rec, _ := runCORS(t, opts, http.MethodOptions, "https://example.com", "")
+
+			_, present := rec.Header()["Access-Control-Max-Age"]
+			if present != tc.wantSet {
+				t.Errorf("Max-Age presence: got %v, want %v", present, tc.wantSet)
+			}
+
+			if tc.wantSet {
+				if got := rec.Header().Get("Access-Control-Max-Age"); got != tc.maxAge {
+					t.Errorf("Max-Age: got %q, want %q", got, tc.maxAge)
+				}
+			}
+		})
+	}
+}
+
+// TestCORSExposedHeaders pins the cfg.exposedHeaders != "" guard in applyHeaders.
+// Both a nil and an empty non-nil ExposedHeaders join to "" and must omit
+// Access-Control-Expose-Headers; only a non-empty list emits it. The two absence
+// rows are unpinned by TestCORS, whose subset comparison cannot assert a header
+// is missing.
+func TestCORSExposedHeaders(t *testing.T) {
+	t.Parallel()
+
+	cases := []struct {
+		name    string
+		exposed []string
+		want    string
+		wantSet bool
+	}{
+		{name: "set", exposed: []string{"X-One", "X-Two"}, want: "X-One, X-Two", wantSet: true},
+		{name: "unset_nil", exposed: nil, want: "", wantSet: false},
+		{name: "unset_empty", exposed: []string{}, want: "", wantSet: false},
+	}
+
+	for _, tc := range cases {
+		t.Run(tc.name, func(t *testing.T) {
+			t.Parallel()
+
+			opts := middleware.CORSOptions{
+				AllowedOrigins: []string{"https://example.com"},
+				AllowedMethods: []string{"GET"},
+				ExposedHeaders: tc.exposed,
+			}
+
+			rec, _ := runCORS(t, opts, http.MethodGet, "https://example.com", "")
+
+			_, present := rec.Header()["Access-Control-Expose-Headers"]
+			if present != tc.wantSet {
+				t.Errorf("Expose-Headers presence: got %v, want %v", present, tc.wantSet)
+			}
+
+			if got := rec.Header().Get("Access-Control-Expose-Headers"); got != tc.want {
+				t.Errorf("Expose-Headers: got %q, want %q", got, tc.want)
+			}
+		})
+	}
+}
+
+// TestCORSHeaderStrategyReflect pins the reflect strategy (AllowedHeaders nil,
+// no AllowHeadersFunc): it reflects Access-Control-Request-Headers when present
+// but must omit Access-Control-Allow-Headers when that request header is empty or
+// missing, exercising the headers != "" guard in the headerReflect branch of
+// applyHeaders. TestCORS exercises the populated-request case but cannot pin the
+// empty-request absence under subset comparison, and TestCORSAllowHeadersFunc
+// covers only the headerFiltered branch.
+func TestCORSHeaderStrategyReflect(t *testing.T) {
+	t.Parallel()
+
+	cases := []struct {
+		name          string
+		requestHeader string
+		wantACAH      string
+		wantPresent   bool
+	}{
+		{
+			name:          "reflect_nil_populated_request_header",
+			requestHeader: "X-Foo, X-Bar",
+			wantACAH:      "X-Foo, X-Bar",
+			wantPresent:   true,
+		},
+		{
+			name:          "reflect_nil_empty_request_header",
+			requestHeader: "",
+			wantACAH:      "",
+			wantPresent:   false,
+		},
+	}
+
+	for _, tc := range cases {
+		t.Run(tc.name, func(t *testing.T) {
+			t.Parallel()
+
+			opts := middleware.CORSOptions{
+				AllowedOrigins: []string{"https://example.com"},
+				AllowedMethods: []string{"GET"},
+				AllowedHeaders: nil,
+			}
+
+			rec, _ := runCORS(
+				t,
+				opts,
+				http.MethodOptions,
+				"https://example.com",
+				tc.requestHeader,
+			)
+
+			got := rec.Header().Get("Access-Control-Allow-Headers")
+
+			_, present := rec.Header()["Access-Control-Allow-Headers"]
+			if present != tc.wantPresent {
+				t.Errorf("ACAH presence: got %v, want %v (value %q)", present, tc.wantPresent, got)
+			}
+
+			if got != tc.wantACAH {
+				t.Errorf("ACAH: got %q, want %q", got, tc.wantACAH)
+			}
+		})
+	}
+}
