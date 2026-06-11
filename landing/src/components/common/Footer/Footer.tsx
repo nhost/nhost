@@ -115,6 +115,9 @@ export default function Footer() {
         <li>
           <Link href="/customers">Customers</Link>
         </li>
+        <li>
+          <Link href="/careers">Careers</Link>
+        </li>
       </List>
 
       <List title="Resources">
