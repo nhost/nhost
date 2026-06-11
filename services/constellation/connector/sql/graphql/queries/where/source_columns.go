@@ -18,25 +18,62 @@ type compositeFilter interface {
 	children() []Statement
 }
 
-func (f *equalsFilter) sourceColumn() string             { return f.column.SQLName }
-func (f *notEqualsFilter) sourceColumn() string          { return f.column.SQLName }
-func (f *inFilter) sourceColumn() string                 { return f.column.SQLName }
-func (f *notInFilter) sourceColumn() string              { return f.column.SQLName }
-func (f *greaterThanFilter) sourceColumn() string        { return f.column.SQLName }
-func (f *greaterThanOrEqualFilter) sourceColumn() string { return f.column.SQLName }
-func (f *lessThanFilter) sourceColumn() string           { return f.column.SQLName }
-func (f *lessThanOrEqualFilter) sourceColumn() string    { return f.column.SQLName }
-func (f *likeFilter) sourceColumn() string               { return f.column }
-func (f *notLikeFilter) sourceColumn() string            { return f.column }
-func (f *regexFilter) sourceColumn() string              { return f.column }
-func (f *notRegexFilter) sourceColumn() string           { return f.column }
-func (f *isNullFilter) sourceColumn() string             { return f.column }
-func (r *relationshipFilter) sourceColumns() []string    { return r.relationship.ParentColumns() }
-func (f *jsonbContainsFilter) sourceColumn() string      { return f.column }
-func (f *jsonbContainedInFilter) sourceColumn() string   { return f.column }
-func (f *jsonbHasKeyFilter) sourceColumn() string        { return f.column }
-func (f *jsonbHasKeysAllFilter) sourceColumn() string    { return f.column }
-func (f *jsonbHasKeysAnyFilter) sourceColumn() string    { return f.column }
+func (f *equalsFilter) sourceColumn() string {
+	return sourceColumnForTarget(f.column, f.target)
+}
+
+func (f *notEqualsFilter) sourceColumn() string {
+	return sourceColumnForTarget(f.column, f.target)
+}
+
+func (f *inFilter) sourceColumn() string {
+	return sourceColumnForTarget(f.column, f.target)
+}
+
+func (f *notInFilter) sourceColumn() string {
+	return sourceColumnForTarget(f.column, f.target)
+}
+
+func (f *greaterThanFilter) sourceColumn() string {
+	return sourceColumnForTarget(f.column, f.target)
+}
+
+func (f *greaterThanOrEqualFilter) sourceColumn() string {
+	return sourceColumnForTarget(f.column, f.target)
+}
+
+func (f *lessThanFilter) sourceColumn() string {
+	return sourceColumnForTarget(f.column, f.target)
+}
+
+func (f *lessThanOrEqualFilter) sourceColumn() string {
+	return sourceColumnForTarget(f.column, f.target)
+}
+func (f *likeFilter) sourceColumn() string     { return f.column }
+func (f *notLikeFilter) sourceColumn() string  { return f.column }
+func (f *regexFilter) sourceColumn() string    { return f.column }
+func (f *notRegexFilter) sourceColumn() string { return f.column }
+func (f *isNullFilter) sourceColumn() string {
+	if f.target != nil {
+		return f.target.sourceColumn
+	}
+
+	return f.column
+}
+
+func (f *spatialPredicateFilter) sourceColumn() string {
+	return sourceColumnForTarget(f.column, f.target)
+}
+
+func (f *spatialDWithinFilter) sourceColumn() string {
+	return sourceColumnForTarget(f.column, f.target)
+}
+func (r *relationshipFilter) sourceColumns() []string  { return r.relationship.ParentColumns() }
+func (f *jsonbContainsFilter) sourceColumn() string    { return f.column }
+func (f *jsonbContainedInFilter) sourceColumn() string { return f.column }
+func (f *jsonbHasKeyFilter) sourceColumn() string      { return f.column }
+func (f *jsonbHasKeysAllFilter) sourceColumn() string  { return f.column }
+func (f *jsonbHasKeysAnyFilter) sourceColumn() string  { return f.column }
 
 // sourceColumns on aggregateRelationshipFilter mirrors relationshipFilter: the
 // correlated subquery joins the target back to the parent on the relationship's

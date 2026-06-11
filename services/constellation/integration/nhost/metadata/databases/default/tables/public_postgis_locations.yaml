@@ -1,0 +1,47 @@
+table:
+  name: postgis_locations
+  schema: public
+insert_permissions:
+  - role: user
+    permission:
+      check: {}
+      columns:
+        - name
+        - geom
+        - geog
+        - area
+        - nullable_geom
+select_permissions:
+  - role: public
+    permission:
+      columns:
+        - id
+        - name
+        - geom
+        - geog
+        - area
+        - nullable_geom
+      filter: {}
+      allow_aggregations: true
+  - role: user
+    permission:
+      columns:
+        - id
+        - name
+        - geom
+        - geog
+        - area
+        - nullable_geom
+      filter: {}
+      allow_aggregations: true
+update_permissions:
+  - role: user
+    permission:
+      columns:
+        - name
+        - geom
+        - geog
+        - area
+        - nullable_geom
+      filter: {}
+      check: {}
