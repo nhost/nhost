@@ -127,6 +127,8 @@ components:
         - $ref: "#/components/schemas/GetCronTriggersOperation"
         - $ref: "#/components/schemas/CreateCronTriggerBulkOperation"
         - $ref: "#/components/schemas/DeleteCronTriggerOperation"
+        - $ref: "#/components/schemas/ActionsBulkOperation"
+        - $ref: "#/components/schemas/DropActionOperation"
         - $ref: "#/components/schemas/GetScheduledEventsOperation"
         - $ref: "#/components/schemas/GetScheduledEventInvocationsOperation"
         - $ref: "#/components/schemas/CreateScheduledEventOperation"
@@ -1502,6 +1504,14 @@ components:
               description: List of cron triggers
               items:
                 $ref: "#/components/schemas/CronTrigger"
+            actions:
+              type: array
+              description: List of actions
+              items:
+                $ref: "#/components/schemas/ActionItem"
+            custom_types:
+              description: Custom GraphQL types used by actions
+              $ref: "#/components/schemas/CustomTypes"
           additionalProperties: true
 
     GetInconsistentMetadataOperation:
@@ -3700,3 +3710,338 @@ components:
         event_id:
           type: string
           description: The ID of the scheduled event.
+
+    ActionItem:
+      type: object
+      required:
+        - name
+        - definition
+      properties:
+        name:
+          type: string
+          description: Name of the action
+          example: actionName
+        definition:
+          $ref: "#/components/schemas/ActionDefinition"
+        comment:
+          type: string
+          description: Custom comment.
+        permissions:
+          type: array
+          description: Roles that are allowed to call the action
+          items:
+            $ref: "#/components/schemas/ActionPermissionItem"
+
+    ActionPermissionItem:
+      type: object
+      required:
+        - role
+      properties:
+        role:
+          type: string
+          description: Role that is allowed to call the action
+          example: user
+        comment:
+          type: string
+          description: Custom comment.
+
+    ActionDefinition:
+      type: object
+      description: Definition of an action
+      required:
+        - handler
+        - output_type
+      properties:
+        handler:
+          type: string
+          description: URL of the action handler. A String value which supports templating environment variables enclosed in {{ and }}.
+          example: "{{ACTION_BASE_URL}}/handler"
+        output_type:
+          type: string
+          description: GraphQL type of the action response.
+          example: SampleOutput
+        arguments:
+          type: array
+          description: Input arguments of the action
+          items:
+            $ref: "#/components/schemas/InputArgument"
+        type:
+          type: string
+          description: Type of the action
+          enum: [mutation, query]
+          default: mutation
+        kind:
+          type: string
+          description: Execution kind of a mutation action
+          enum: [synchronous, asynchronous]
+          default: synchronous
+        headers:
+          description: List of headers to be sent with the handler request
+          $ref: "#/components/schemas/Headers"
+        forward_client_headers:
+          type: boolean
+          description: If set to true, the client headers are forwarded to the action handler.
+          default: false
+        ignored_client_headers:
+          type: array
+          description: Headers that are not forwarded to the action handler when forward_client_headers is enabled.
+          items:
+            type: string
+        timeout:
+          type: integer
+          description: Number of seconds to wait for the handler response before timing out.
+          default: 30
+        request_transform:
+          $ref: "#/components/schemas/RequestTransformation"
+        response_transform:
+          $ref: "#/components/schemas/ResponseTransformation"
+      additionalProperties: true
+
+    InputArgument:
+      type: object
+      required:
+        - name
+        - type
+      properties:
+        name:
+          type: string
+          description: Name of the argument
+          example: arg1
+        type:
+          type: string
+          description: GraphQL type of the argument
+          example: SampleInput!
+
+    CustomTypes:
+      type: object
+      description: Custom GraphQL types used by action definitions
+      properties:
+        scalars:
+          type: array
+          description: Custom scalar type definitions
+          items:
+            $ref: "#/components/schemas/ScalarTypeDefinition"
+        enums:
+          type: array
+          description: Custom enum type definitions
+          items:
+            $ref: "#/components/schemas/EnumTypeDefinition"
+        input_objects:
+          type: array
+          description: Custom input object type definitions
+          items:
+            $ref: "#/components/schemas/InputObjectTypeDefinition"
+        objects:
+          type: array
+          description: Custom object type definitions
+          items:
+            $ref: "#/components/schemas/ObjectTypeDefinition"
+
+    ScalarTypeDefinition:
+      type: object
+      required:
+        - name
+      properties:
+        name:
+          type: string
+          description: Name of the scalar type
+          example: SpecialDate
+        description:
+          type: string
+          description: Description of the scalar type
+
+    EnumTypeDefinition:
+      type: object
+      required:
+        - name
+        - values
+      properties:
+        name:
+          type: string
+          description: Name of the enum type
+          example: Color
+        description:
+          type: string
+          description: Description of the enum type
+        values:
+          type: array
+          description: Values of the enum type
+          items:
+            $ref: "#/components/schemas/EnumValueDefinition"
+
+    EnumValueDefinition:
+      type: object
+      required:
+        - value
+      properties:
+        value:
+          type: string
+          description: Value of the enum
+          example: RED
+        description:
+          type: string
+          description: Description of the enum value
+        is_deprecated:
+          type: boolean
+          description: If set to true, the enum value is marked as deprecated
+
+    InputObjectTypeDefinition:
+      type: object
+      required:
+        - name
+        - fields
+      properties:
+        name:
+          type: string
+          description: Name of the input object type
+          example: SampleInput
+        description:
+          type: string
+          description: Description of the input object type
+        fields:
+          type: array
+          description: Fields of the input object type
+          items:
+            $ref: "#/components/schemas/CustomTypeObjectField"
+
+    ObjectTypeDefinition:
+      type: object
+      required:
+        - name
+        - fields
+      properties:
+        name:
+          type: string
+          description: Name of the object type
+          example: SampleOutput
+        description:
+          type: string
+          description: Description of the object type
+        fields:
+          type: array
+          description: Fields of the object type
+          items:
+            $ref: "#/components/schemas/CustomTypeObjectField"
+        relationships:
+          type: array
+          description: Relationships of the object type to tables
+          items:
+            type: object
+            additionalProperties: true
+
+    CustomTypeObjectField:
+      type: object
+      required:
+        - name
+        - type
+      properties:
+        name:
+          type: string
+          description: Name of the field
+          example: username
+        type:
+          type: string
+          description: GraphQL type of the field
+          example: String!
+        description:
+          type: string
+          description: Description of the field
+
+    CreateActionArgs:
+      type: object
+      required:
+        - name
+        - definition
+      properties:
+        name:
+          type: string
+          description: Name of the action
+          example: actionName
+        definition:
+          $ref: "#/components/schemas/ActionDefinition"
+        comment:
+          type: string
+          description: Custom comment.
+
+    CreateActionStep:
+      type: object
+      description: Create an action
+      required:
+        - type
+        - args
+      properties:
+        type:
+          type: string
+          enum: [create_action]
+        args:
+          $ref: "#/components/schemas/CreateActionArgs"
+
+    UpdateActionStep:
+      type: object
+      description: Update an existing action
+      required:
+        - type
+        - args
+      properties:
+        type:
+          type: string
+          enum: [update_action]
+        args:
+          $ref: "#/components/schemas/CreateActionArgs"
+
+    SetCustomTypesStep:
+      type: object
+      description: Replace all custom GraphQL types
+      required:
+        - type
+        - args
+      properties:
+        type:
+          type: string
+          enum: [set_custom_types]
+        args:
+          $ref: "#/components/schemas/CustomTypes"
+
+    ActionsBulkOperation:
+      type: object
+      description: Set custom types and create or update actions in a single call.
+      required:
+        - type
+        - args
+      properties:
+        type:
+          type: string
+          enum: [bulk]
+          description: Type of operation to manage actions
+        args:
+          type: array
+          items:
+            oneOf:
+              - $ref: "#/components/schemas/SetCustomTypesStep"
+              - $ref: "#/components/schemas/CreateActionStep"
+              - $ref: "#/components/schemas/UpdateActionStep"
+
+    DropActionArgs:
+      type: object
+      required:
+        - name
+      properties:
+        name:
+          type: string
+          description: Name of the action
+        clear_data:
+          type: boolean
+          description: If set to true, the async action logs are also deleted.
+          default: true
+
+    DropActionOperation:
+      type: object
+      required:
+        - type
+        - args
+      properties:
+        type:
+          type: string
+          enum: [drop_action]
+        args:
+          $ref: "#/components/schemas/DropActionArgs"

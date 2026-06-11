@@ -5,6 +5,7 @@
  * API for managing remote schemas and events in Hasura
  * OpenAPI spec version: 1.0.0
  */
+import type { ActionsBulkOperation } from './actionsBulkOperation';
 import type { AddRemoteSchemaOperation } from './addRemoteSchemaOperation';
 import type { ClearMetadataOperation } from './clearMetadataOperation';
 import type { ComputedFieldBulkOperation } from './computedFieldBulkOperation';
@@ -20,6 +21,7 @@ import type { DeleteEventTriggerBulkOperation } from './deleteEventTriggerBulkOp
 import type { DeleteRemoteRelationshipBulkOperation } from './deleteRemoteRelationshipBulkOperation';
 import type { DeleteRemoteSchemaRemoteRelationshipOperation } from './deleteRemoteSchemaRemoteRelationshipOperation';
 import type { DeleteScheduledEventOperation } from './deleteScheduledEventOperation';
+import type { DropActionOperation } from './dropActionOperation';
 import type { DropFunctionPermissionBulkOperation } from './dropFunctionPermissionBulkOperation';
 import type { DropInconsistentMetadataOperation } from './dropInconsistentMetadataOperation';
 import type { DropRelationshipBulkOperation } from './dropRelationshipBulkOperation';
@@ -93,6 +95,8 @@ export type MetadataOperation =
   | GetCronTriggersOperation
   | CreateCronTriggerBulkOperation
   | DeleteCronTriggerOperation
+  | ActionsBulkOperation
+  | DropActionOperation
   | GetScheduledEventsOperation
   | GetScheduledEventInvocationsOperation
   | CreateScheduledEventOperation
