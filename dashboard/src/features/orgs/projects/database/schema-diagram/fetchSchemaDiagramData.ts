@@ -30,8 +30,27 @@ export interface SchemaDiagramForeignKey {
 export interface SchemaDiagramFunctionReturnType {
   schema: string;
   name: string;
+  /** Function OID, needed to edit/track/delete the function from the diagram. */
+  oid?: string;
   returnType: string;
   returnsSet: boolean;
+  /**
+   * `true` when the function is `VOLATILE`. Hasura exposes volatile functions as
+   * mutations by default, which always require an explicit function permission
+   * (inference never applies to them).
+   */
+  isVolatile: boolean;
+  /**
+   * Schema of the table-like relation the function returns rows of. Only set
+   * when the return type is backed by a real relation (table/view/matview/
+   * foreign table); `undefined` for scalar, `record` and composite-type returns.
+   */
+  returnSchema?: string;
+  /**
+   * Name of the table-like relation the function returns rows of. See
+   * `returnSchema`.
+   */
+  returnTable?: string;
 }
 
 export interface SchemaDiagramData {
@@ -126,10 +145,18 @@ const FUNCTION_RETURN_TYPE_QUERY = `
     SELECT DISTINCT ON (n.nspname, p.proname)
       n.nspname AS schema,
       p.proname AS name,
+      p.oid AS oid,
       pg_catalog.format_type(p.prorettype, NULL) AS return_type,
-      p.proretset AS returns_set
+      p.proretset AS returns_set,
+      p.provolatile AS provolatile,
+      ret_n.nspname AS return_schema,
+      ret_c.relname AS return_table
     FROM pg_proc p
     JOIN pg_namespace n ON n.oid = p.pronamespace
+    LEFT JOIN pg_type  ret_t ON ret_t.oid = p.prorettype
+    LEFT JOIN pg_class ret_c ON ret_c.oid = ret_t.typrelid
+      AND ret_c.relkind IN ('r', 'p', 'v', 'm', 'f')
+    LEFT JOIN pg_namespace ret_n ON ret_n.oid = ret_c.relnamespace
     WHERE n.nspname NOT LIKE 'pg_%'
       AND n.nspname NOT LIKE 'hdb_%'
       AND n.nspname != 'information_schema'
@@ -162,8 +189,16 @@ interface RawForeignKey {
 interface RawFunctionReturnType {
   schema: string;
   name: string;
+  // Postgres `oid` is unsigned 32-bit; `row_to_json` serializes it as a string
+  // (matching `FunctionObject.function_oid`). Selecting it uncast avoids the
+  // `integer out of range` an `::int` cast would raise once the cluster OID
+  // counter passes 2^31-1 — which would fail the whole bulk schema query.
+  oid: string;
   return_type: string;
   returns_set: boolean;
+  provolatile: string;
+  return_schema: string | null;
+  return_table: string | null;
 }
 
 export interface FetchSchemaDiagramDataArgs {
@@ -245,8 +280,12 @@ export default async function fetchSchemaDiagramData({
       return {
         schema: row.schema,
         name: row.name,
+        oid: row.oid != null ? String(row.oid) : undefined,
         returnType: row.return_type,
         returnsSet: row.returns_set,
+        isVolatile: row.provolatile === 'v',
+        returnSchema: row.return_schema ?? undefined,
+        returnTable: row.return_table ?? undefined,
       };
     });
 

@@ -4,6 +4,10 @@ import type {
   HasuraMetadataPermission,
   HasuraMetadataTable,
 } from '@/features/orgs/projects/database/dataGrid/types/dataBrowser';
+import {
+  getFunctionPermissionState,
+  type PermissionState,
+} from '@/features/orgs/projects/database/dataGrid/utils/getFunctionPermissionState';
 
 export const ADMIN_ROLE = 'admin';
 export const PUBLIC_ROLE = 'public';
@@ -183,4 +187,52 @@ export function tableHasAnyPermission(
   return DATABASE_ACTIONS.some(
     (action) => getTablePermissionState(table, role, action) !== 'none',
   );
+}
+
+const FUNCTION_STATE_TO_DOT: Record<PermissionState, PermissionDotState> = {
+  allowed: 'filled',
+  partial: 'hollow',
+  'not-allowed': 'none',
+};
+
+export interface FunctionPermissionDotInput {
+  role: string;
+  inferFunctionPermissions: boolean;
+  isMutationFunction: boolean;
+  hasSelectPermission: boolean;
+  hasFunctionPermission: boolean;
+}
+
+export interface FunctionPermissionDotResult {
+  /** The function's effective access state, matching the Edit Permissions form. */
+  state: PermissionState;
+  /** The dot rendering of `state`: allowed→filled, partial→hollow, not-allowed→none. */
+  dot: PermissionDotState;
+}
+
+/**
+ * Resolves the select-dot state for a set-returning function node, mirroring the
+ * Edit Function Permissions form. Delegates to the shared `getFunctionPermissionState`
+ * so the diagram and the form never disagree: when Hasura's `infer_function_permissions`
+ * is off (or the function is a mutation), access requires an explicit function
+ * permission rather than the return table's select permission.
+ */
+export function getFunctionPermissionDotState({
+  role,
+  inferFunctionPermissions,
+  isMutationFunction,
+  hasSelectPermission,
+  hasFunctionPermission,
+}: FunctionPermissionDotInput): FunctionPermissionDotResult {
+  const state: PermissionState =
+    role === ADMIN_ROLE
+      ? 'allowed'
+      : getFunctionPermissionState({
+          inferFunctionPermissions,
+          isMutationFunction,
+          hasSelectPermission,
+          hasFunctionPermission,
+        });
+
+  return { state, dot: FUNCTION_STATE_TO_DOT[state] };
 }
