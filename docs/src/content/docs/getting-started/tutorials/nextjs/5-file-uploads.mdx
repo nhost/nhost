@@ -715,7 +715,31 @@ export default function FilesClient({
 </TabItem>
 </Tabs>
 
+### Increase the Next.js Server Action Upload Limit
 
+:::note
+By default, Next.js Server Actions only accept request bodies up to 1 MB. 
+In Next.js 15 and 16, you can increase this limit by configuring <a href='https://nextjs.org/docs/app/api-reference/config/next-config-js/serverActions#bodysizelimit' target='_blank' rel="noopener noreferrer">experimental.serverActions.bodySizeLimit</a> in `next.config.ts`.
+:::
+
+To increase the upload limit, we want to update our Next.js config file.
+
+
+```tsx title="next.config.ts" showLineNumbers {4-8}
+import type { NextConfig } from "next";
+
+const nextConfig: NextConfig = {
+  experimental: {
+    serverActions: {
+      bodySizeLimit: "10mb", // increases limit to 10MB
+    },
+  },
+};
+
+export default nextConfig;
+```
+
+Adjust the limit as needed (2mb, 5mb, 25mb, etc).
 
 ### Update Navigation Component
 
