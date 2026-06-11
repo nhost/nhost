@@ -48,7 +48,7 @@ The interesting design choice is the split between **planner** and **connector**
 
 ## 1. Request handling
 
-The HTTP entry point is `Controller.HandlerPost` in `controller/handlers.go`. The Gin chain that wraps it is configured in `getRouter` (`cmd/serve.go`) and, except for `middleware.Session`, uses shared helpers from `internal/lib/oapi/middleware`. In registration order:
+The HTTP entry point is `Controller.HandlerPost` in `controller/handlers.go`. The Gin chain that wraps it is configured in `getRouter` (`cmd/serve.go`) and, except for `gin.Recovery()` and `middleware.Session`, uses shared helpers from `internal/lib/oapi/middleware`. In registration order:
 
 - `gin.Recovery()` recovers from panics in downstream handlers.
 - `Tracing` (oapimw) parses or generates the B3 identifiers, stashes the `Trace` on the request context, and writes the `X-B3-*` response headers at entry. There is no request-id middleware — the generated B3 trace id is the correlation id.

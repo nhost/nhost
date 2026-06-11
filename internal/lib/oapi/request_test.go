@@ -429,6 +429,50 @@ func TestNewRouterValidator_EmptyAPIPrefixMatchesLocalPathsWhenSpecHasServers(t 
 	}
 }
 
+// TestNewRouter_DoesNotMutateSuppliedSpecServers pins NewRouter's ownership
+// boundary: it may add a local apiPrefix server to the validator document, but
+// the caller-supplied OpenAPI document must remain reusable as-is.
+func TestNewRouter_DoesNotMutateSuppliedSpecServers(t *testing.T) {
+	t.Parallel()
+	gin.SetMode(gin.TestMode)
+
+	doc := loadRemoteServerSpec(t)
+	originalServers := append(openapi3.Servers(nil), doc.Servers...)
+
+	for i := range 2 {
+		_, _, err := oapi.NewRouter(
+			doc,
+			"",
+			nil,
+			middleware.CORSOptions{
+				AllowOriginFunc:                      nil,
+				AllowedOrigins:                       []string{},
+				AllowedMethods:                       []string{http.MethodGet},
+				AllowHeadersFunc:                     nil,
+				AllowedHeaders:                       nil,
+				ExposedHeaders:                       nil,
+				AllowCredentials:                     false,
+				MaxAge:                               "",
+				UnsafeAllowAllOriginsWithCredentials: false,
+			},
+			slog.Default(),
+		)
+		if err != nil {
+			t.Fatalf("NewRouter call %d: %v", i+1, err)
+		}
+	}
+
+	if len(doc.Servers) != len(originalServers) {
+		t.Fatalf("len(doc.Servers) = %d; want %d", len(doc.Servers), len(originalServers))
+	}
+
+	for i, want := range originalServers {
+		if doc.Servers[i] != want {
+			t.Errorf("doc.Servers[%d] = %#v; want original %#v", i, doc.Servers[i], want)
+		}
+	}
+}
+
 // unroutableSpec loads cleanly and passes openapi3 validation but carries a
 // server URL that gorillamux's url.Parse rejects ("missing protocol scheme"),
 // so it is the one input that reaches NewRouter's validator construction yet

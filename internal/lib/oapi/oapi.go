@@ -56,7 +56,8 @@ func RecordError(c *gin.Context, err error, statusCode int) {
 }
 
 // NewRouter creates a Gin router with shared OpenAPI middleware and returns the
-// per-route request validator middleware to mount with generated handlers.
+// per-route request validator middleware to mount with generated handlers. It
+// leaves the supplied OpenAPI document unchanged.
 func NewRouter(
 	swagger *openapi3.T,
 	apiPrefix string,
@@ -73,7 +74,9 @@ func NewRouter(
 		return nil, nil, fmt.Errorf("building CORS middleware: %w", err)
 	}
 
-	swagger.AddServer(&openapi3.Server{ //nolint:exhaustruct
+	routerSwagger := *swagger
+	routerSwagger.Servers = append(openapi3.Servers(nil), swagger.Servers...)
+	routerSwagger.AddServer(&openapi3.Server{ //nolint:exhaustruct
 		URL: apiPrefix,
 	})
 
@@ -91,7 +94,7 @@ func NewRouter(
 		corsHandler,
 	)
 
-	validator, err := newRequestValidator(swagger, authenticationFunc)
+	validator, err := newRequestValidator(&routerSwagger, authenticationFunc)
 	if err != nil {
 		return nil, nil, err
 	}
