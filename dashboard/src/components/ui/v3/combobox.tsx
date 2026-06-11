@@ -193,13 +193,13 @@ const Combobox = forwardRef<HTMLButtonElement, ComboboxProps>(
                         setOpen(false);
                       }}
                     >
-                      {option.render ?? option.label}
                       <Check
                         className={cn(
-                          'ml-auto size-4',
+                          'mr-2 size-4 shrink-0',
                           option.value === value ? 'opacity-100' : 'opacity-0',
                         )}
                       />
+                      {option.render ?? option.label}
                     </CommandItem>
                   ))}
                 </CommandGroup>

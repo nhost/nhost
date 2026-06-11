@@ -60,7 +60,7 @@ Creates a new FetchError instance
 ##### Overrides
 
 ```ts
-Error.constructor
+Error.constructor;
 ```
 
 ### Properties
@@ -82,7 +82,7 @@ Configuration options for admin session middleware
 #### adminSecret
 
 ```ts
-adminSecret: string
+adminSecret: string;
 ```
 
 Hasura admin secret for elevated permissions (sets x-hasura-admin-secret header)
@@ -136,7 +136,7 @@ offering access to the parsed response body along with status and headers.
 #### body
 
 ```ts
-body: T
+body: T;
 ```
 
 The parsed response body
@@ -144,7 +144,7 @@ The parsed response body
 #### headers
 
 ```ts
-headers: Headers
+headers: Headers;
 ```
 
 Response headers
@@ -152,7 +152,7 @@ Response headers
 #### status
 
 ```ts
-status: number
+status: number;
 ```
 
 HTTP status code of the response
@@ -162,7 +162,7 @@ HTTP status code of the response
 ## ChainFunction
 
 ```ts
-type ChainFunction = (next: FetchFunction) => FetchFunction
+type ChainFunction = (next: FetchFunction) => FetchFunction;
 ```
 
 Type definition for a chain function (middleware).
@@ -190,7 +190,7 @@ Chain functions can be used to implement:
 ## FetchFunction
 
 ```ts
-type FetchFunction = (url: string, options?: RequestInit) => Promise<Response>
+type FetchFunction = (url: string, options?: RequestInit) => Promise<Response>;
 ```
 
 Type definition for a fetch-like function.
@@ -213,7 +213,7 @@ This allows middleware to intercept and modify requests and responses.
 ## attachAccessTokenMiddleware()
 
 ```ts
-function attachAccessTokenMiddleware(storage: SessionStorage): ChainFunction
+function attachAccessTokenMiddleware(storage: SessionStorage): ChainFunction;
 ```
 
 Creates a fetch middleware that adds the Authorization header with the current access token.
@@ -243,7 +243,7 @@ A middleware function that adds Authorization headers
 ## createEnhancedFetch()
 
 ```ts
-function createEnhancedFetch(chainFunctions?: ChainFunction[]): FetchFunction
+function createEnhancedFetch(chainFunctions?: ChainFunction[]): FetchFunction;
 ```
 
 Creates an enhanced fetch function using a chain of middleware functions.
@@ -271,15 +271,15 @@ Enhanced fetch function with all middleware applied
 // Simple logging middleware
 const loggingMiddleware: ChainFunction = (next) => {
   return async (url, options) => {
-    console.log(`Request to ${url}`)
-    const response = await next(url, options)
-    console.log(`Response from ${url}: ${response.status}`)
-    return response
-  }
-}
+    console.log(`Request to ${url}`);
+    const response = await next(url, options);
+    console.log(`Response from ${url}: ${response.status}`);
+    return response;
+  };
+};
 
-const enhancedFetch = createEnhancedFetch([loggingMiddleware])
-const response = await enhancedFetch('https://api.example.com/data')
+const enhancedFetch = createEnhancedFetch([loggingMiddleware]);
+const response = await enhancedFetch("https://api.example.com/data");
 ```
 
 ---
@@ -290,8 +290,8 @@ const response = await enhancedFetch('https://api.example.com/data')
 function sessionRefreshMiddleware(
   auth: Client,
   storage: SessionStorage,
-  options?: object
-): ChainFunction
+  options?: object,
+): ChainFunction;
 ```
 
 Creates a fetch middleware that automatically refreshes authentication tokens.
@@ -324,7 +324,9 @@ A middleware function that can be used in the fetch chain
 ## updateSessionFromResponseMiddleware()
 
 ```ts
-function updateSessionFromResponseMiddleware(storage: SessionStorage): ChainFunction
+function updateSessionFromResponseMiddleware(
+  storage: SessionStorage,
+): ChainFunction;
 ```
 
 Creates a fetch middleware that automatically extracts and stores session data from API responses.
@@ -356,7 +358,9 @@ A middleware function that can be used in the fetch chain
 ## withAdminSessionMiddleware()
 
 ```ts
-function withAdminSessionMiddleware(options: AdminSessionOptions): ChainFunction
+function withAdminSessionMiddleware(
+  options: AdminSessionOptions,
+): ChainFunction;
 ```
 
 Creates a fetch middleware that attaches the Hasura admin secret and optional session variables to requests.
@@ -391,31 +395,31 @@ A middleware function that can be used in the fetch chain
 ```ts
 // Create middleware with admin secret only
 const adminMiddleware = withAdminSessionMiddleware({
-  adminSecret: process.env.NHOST_ADMIN_SECRET
-})
+  adminSecret: process.env.NHOST_ADMIN_SECRET,
+});
 
 // Create middleware with admin secret and role
 const adminUserMiddleware = withAdminSessionMiddleware({
   adminSecret: process.env.NHOST_ADMIN_SECRET,
-  role: 'user'
-})
+  role: "user",
+});
 
 // Create middleware with admin secret, role, and custom session variables
 const fullMiddleware = withAdminSessionMiddleware({
   adminSecret: process.env.NHOST_ADMIN_SECRET,
-  role: 'user',
+  role: "user",
   sessionVariables: {
-    'user-id': '123',
-    'org-id': '456'
-  }
-})
+    "user-id": "123",
+    "org-id": "456",
+  },
+});
 
 // Use with createCustomClient for an admin client
 const adminClient = createCustomClient({
-  subdomain: 'myproject',
-  region: 'eu-central-1',
-  chainFunctions: [adminMiddleware]
-})
+  subdomain: "myproject",
+  region: "eu-central-1",
+  chainFunctions: [adminMiddleware],
+});
 ```
 
 ---
@@ -423,7 +427,7 @@ const adminClient = createCustomClient({
 ## withHeadersMiddleware()
 
 ```ts
-function withHeadersMiddleware(defaultHeaders: HeadersInit): ChainFunction
+function withHeadersMiddleware(defaultHeaders: HeadersInit): ChainFunction;
 ```
 
 Creates a fetch middleware that attaches default headers to requests.
@@ -453,7 +457,7 @@ A middleware function that can be used in the fetch chain
 ## withRoleMiddleware()
 
 ```ts
-function withRoleMiddleware(role: string): ChainFunction
+function withRoleMiddleware(role: string): ChainFunction;
 ```
 
 Creates a fetch middleware that sets the Hasura role header.
@@ -485,16 +489,16 @@ A middleware function that can be used in the fetch chain
 ```ts
 // Use with createClient to default all requests to a specific role
 const nhost = createClient({
-  subdomain: 'myproject',
-  region: 'eu-central-1',
-  chainFunctions: [withRoleMiddleware('moderator')]
-})
+  subdomain: "myproject",
+  region: "eu-central-1",
+  chainFunctions: [withRoleMiddleware("moderator")],
+});
 
 // Use with createServerClient for server-side requests
 const serverNhost = createServerClient({
-  subdomain: 'myproject',
-  region: 'eu-central-1',
+  subdomain: "myproject",
+  region: "eu-central-1",
   storage: myServerStorage,
-  chainFunctions: [withRoleMiddleware('moderator')]
-})
+  chainFunctions: [withRoleMiddleware("moderator")],
+});
 ```
