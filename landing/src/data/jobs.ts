@@ -124,7 +124,7 @@ export const jobs: Job[] = [
     summary:
       'Help thousands of developers discover, learn, and ship with Nhost through technical content, real-world demos, and a public voice the community trusts.',
     about:
-      "Nhost is an early-stage, remote-first company building the developer platform that gives engineers and AI agents the fastest way to ship modern backends. We're looking for a Developer Relations Engineer who is equal parts builder and storyteller. You'll be one of the most visible voices in our community, producing technical content at a serious clip, shipping real apps on top of Nhost, and helping a global audience of developers go from curious to building in production. This isn't a plug-and-play role: you'll define what Nhost DevRel looks like, set the bar for technical content, and shape how we show up across YouTube, X, Discord, GitHub, and beyond.",
+      "Nhost is an early-stage, remote-first company building the developer platform that gives engineers and AI agents the fastest way to ship modern backends. We're looking for a Developer Relations Engineer who is equal parts builder and storyteller. You'll be one of the most visible voices in our community, producing technical content at a high rate, shipping real apps on top of Nhost, and helping a global audience of developers go from curious to building in production. You'll define what Nhost DevRel looks like, set the bar for technical content, and shape how we show up across YouTube, X, Discord, GitHub, and beyond.",
     responsibilities: [
       'Publish compelling technical content at a high cadence (videos, deep-dive posts, tutorials, and reference repos) that helps developers learn Nhost quickly',
       'Ship real-world apps on Nhost with Next.js, React, React Native, Flutter, GraphQL, and AI tooling. Write guides that others can follow and remix',
@@ -133,7 +133,7 @@ export const jobs: Job[] = [
       'Close the loop with product and engineering: translate community signal, like docs gaps, DX paper cuts, and missing primitives, into roadmap input the team can act on',
       "Own the DevRel function end-to-end. You're the first dedicated DevRel hire: pick the channels that matter, set the strategy, build the muscle, and bring on teammates when the time is right",
       'Lead our developer story for AI agents and AI-native apps: build with our MCP server, ship agent-driven demos, and meet developers where AI dev tools are taking them',
-      'Contribute back to our open-source repos. DevRel here ships code, not just decks, by improving docs, examples, and SDKs alongside the engineering team',
+      'Contribute back to our open-source repos. DevRel here ships code, by improving docs, examples, and SDKs alongside the engineering team',
     ],
     requirements: [
       '3+ years of relevant engineering experience (preferably with TypeScript/JavaScript)',
