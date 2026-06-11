@@ -17,7 +17,9 @@ import (
 
 	"github.com/99designs/gqlgen/graphql/playground"
 	"github.com/gin-gonic/gin"
+	"github.com/nhost/nhost/internal/lib/oapi"
 	oapimw "github.com/nhost/nhost/internal/lib/oapi/middleware"
+	"github.com/nhost/nhost/services/constellation/api"
 	"github.com/nhost/nhost/services/constellation/controller"
 	"github.com/nhost/nhost/services/constellation/controller/middleware"
 	"github.com/nhost/nhost/services/constellation/internal/jwt"
@@ -282,9 +284,11 @@ func getCorsOptions(
 	}
 
 	opts := oapimw.CORSOptions{
-		AllowOriginFunc:                      nil,
-		AllowedOrigins:                       allowedOrigins,
-		AllowedMethods:                       []string{"GET", "POST", "OPTIONS"},
+		AllowOriginFunc: nil,
+		AllowedOrigins:  allowedOrigins,
+		AllowedMethods: []string{
+			"GET", "HEAD", "POST", "PUT", "PATCH", "DELETE", "OPTIONS",
+		},
 		AllowHeadersFunc:                     allowRequestHeader,
 		AllowedHeaders:                       nil,
 		ExposedHeaders:                       nil,
@@ -341,39 +345,27 @@ func getRouter(
 		return nil, err
 	}
 
-	corsHandler, err := oapimw.CORS(corsOpts)
-	if err != nil {
-		return nil, fmt.Errorf("building CORS middleware: %w", err)
-	}
-
-	router := gin.New()
-	// Allow gin.Context.Value to fall through to c.Request.Context().Value
-	// so middlewares (e.g. captureRawBody) can stash values in the request
-	// context that downstream handlers read via the context.Context parameter
-	// of the strict-handler interface.
-	router.ContextWithFallback = true
-
-	router.Use(
-		gin.Recovery(),
-		oapimw.Tracing(),
-		oapimw.Logger(logger), //nolint:contextcheck // middleware uses each request's context.
-		corsHandler,
-		//nolint:contextcheck
-		middleware.Session(cmd.String(flagAdminSecret), jwtAuth),
-	)
-
 	spec, err := api.GetSwagger()
 	if err != nil {
 		return nil, fmt.Errorf("loading embedded OpenAPI spec: %w", err)
 	}
 
-	// Spec-driven validation: validates request body/params/headers AND
-	// drives the per-operation `security:` block via NewAuthFunc.
-	// Mounted via RegisterHandlersWithOptions so it only runs on routes
-	// declared in the spec; /v1/graphql and proxy fallbacks pass through.
-	// validator runs per-request; startup ctx must not be propagated
-	//nolint:contextcheck
-	validatorMW := sharedoapi.NewRequestValidator(spec, controller.NewAuthFunc())
+	router, validatorMW, err := oapi.NewRouter( //nolint:contextcheck
+		spec,
+		"",
+		controller.NewAuthFunc(),
+		corsOpts,
+		logger,
+	)
+	if err != nil {
+		return nil, fmt.Errorf("failed to create router: %w", err)
+	}
+
+	// Session is service-specific middleware that must run after the shared
+	// logger/tracing middleware (so it can enrich the request logger) and before
+	// per-route OpenAPI validation (so NewAuthFunc can authorize against the
+	// resolved session).
+	router.Use(middleware.Session(cmd.String(flagAdminSecret), jwtAuth)) //nolint:contextcheck
 
 	proxyBodyLimit := cmd.Int64(flagHasuraProxyRequestBodyLimitBytes)
 
@@ -389,7 +381,7 @@ func getRouter(
 			api.MiddlewareFunc(controller.NewCaptureRawBody(proxyBodyLimit)), //nolint:contextcheck
 			api.MiddlewareFunc(validatorMW),
 		},
-		ErrorHandler: nil,
+		ErrorHandler: oapi.RecordError,
 	})
 
 	if cmd.Bool(flagEnablePlayground) {
