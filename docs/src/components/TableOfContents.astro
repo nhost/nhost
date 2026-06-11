@@ -1,0 +1,41 @@
+---
+// Override of Starlight's TableOfContents.astro.
+//
+// SEO: the default component renders the "On this page" label as an <h2>, which
+// makes that <h2> the first heading in the document order ahead of the page's
+// <h1>. We keep the exact same text and markup, but render the label as a <p>
+// (not a heading) so the page's <h1> is the first heading on the page.
+//
+// The "On this page" text and the rest of the table of contents are unchanged.
+// The <starlight-toc> custom element (scroll-spy behaviour) is registered by the
+// MobileTableOfContents component, which is always rendered alongside this one.
+import TableOfContentsList from './TableOfContentsList.astro';
+
+const { toc } = Astro.locals.starlightRoute;
+---
+
+{
+	toc && (
+		<starlight-toc data-min-h={toc.minHeadingLevel} data-max-h={toc.maxHeadingLevel}>
+			<nav aria-labelledby="starlight__on-this-page">
+				<p id="starlight__on-this-page">{Astro.locals.t('tableOfContents.onThisPage')}</p>
+				<TableOfContentsList toc={toc.items} />
+			</nav>
+		</starlight-toc>
+	)
+}
+
+<style>
+	@layer starlight.core {
+		/* Match the styling Starlight applies to the original "On this page" <h2>
+		   (see PageSidebar.astro: `.right-sidebar-panel :global(h2)`). */
+		#starlight__on-this-page {
+			color: var(--sl-color-white);
+			font-size: var(--sl-text-h5);
+			font-weight: 600;
+			line-height: var(--sl-line-height-headings);
+			margin-top: 0;
+			margin-bottom: 0.5rem;
+		}
+	}
+</style>

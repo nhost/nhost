@@ -2,6 +2,9 @@
 title: Accessing the Database
 description: How to access the database directly using the connection string
 keywords: ["database access", "connection string", "PostgreSQL", "pgbouncer", "public access", "database connection"]
+head:
+  - tag: title
+    content: "Connecting Directly to Your PostgreSQL Database | Nhost Docs"
 ---
 import { Tabs, TabItem } from '@astrojs/starlight/components';
 
@@ -11,7 +14,7 @@ In most cases you will not need to access the database directly, choosing to int
 
 # Nhost Run
 
-You can find details on how to connect to the database from an [Nhost Run](/products/run/) service [here](/products/run/networking#connecting-to-the-nhost-stack). If you don't know the password you can set a new password in the dashboard:
+You can find details on how to connect to the database from an [Nhost Run](/products/run) service [here](/products/run/networking#connecting-to-the-nhost-stack). If you don't know the password you can set a new password in the dashboard:
 
   **Project Dashboard -> Settings -> Database**
 
@@ -45,4 +48,4 @@ Public access to your database utilizes [pgbouncer](http://www.pgbouncer.org). A
 
 # Functions
 
-[Functions](/products/functions/) run on a separate network, which means in order to access the database you will first need to [make it public](#public-access).
+[Functions](/products/functions) run on a separate network, which means in order to access the database you will first need to [make it public](#public-access).

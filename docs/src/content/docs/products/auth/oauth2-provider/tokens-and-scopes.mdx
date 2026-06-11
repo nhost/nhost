@@ -2,6 +2,9 @@
 title: Tokens and Scopes
 description: Understand OAuth2 token formats, scopes, claims, and lifecycle management
 keywords: ["oauth2", "tokens", "scopes", "jwt", "access token", "id token", "refresh token", "introspection", "revocation", "graphql", "hasura"]
+head:
+  - tag: title
+    content: "OAuth2 Token Formats, Scopes, and Lifecycle | Nhost Docs"
 sidebar:
   label: Tokens and Scopes
 ---
@@ -30,7 +33,7 @@ Access tokens are RSA-signed JWTs. They contain standard OAuth2 claims:
 }
 ```
 
-The JWT header includes `typ: JWT` and `kid` identifying the signing key. The signing algorithm depends on your RSA key configuration (RS256, RS384, or RS512). See [Verify a JWT](/products/auth/jwt/#verify-a-jwt) for how to verify tokens using the JWKS endpoint.
+The JWT header includes `typ: JWT` and `kid` identifying the signing key. The signing algorithm depends on your RSA key configuration (RS256, RS384, or RS512). See [Verify a JWT](/products/auth/jwt#verify-a-jwt) for how to verify tokens using the JWKS endpoint.
 
 ## The `graphql` Scope
 
