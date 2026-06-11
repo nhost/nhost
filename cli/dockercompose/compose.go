@@ -74,19 +74,21 @@ func (e Environment) MarshalYAML() (any, error) {
 
 //nolint:tagliatelle
 type Service struct {
-	Image       string                    `yaml:"image"`
-	DependsOn   map[string]DependsOn      `yaml:"depends_on,omitempty"`
-	EntryPoint  []string                  `yaml:"entrypoint,omitempty"`
-	Command     []string                  `yaml:"command,omitempty"`
-	Environment Environment               `yaml:"environment,omitempty"`
-	ExtraHosts  []string                  `yaml:"extra_hosts"`
-	HealthCheck *HealthCheck              `yaml:"healthcheck,omitempty"`
-	Labels      map[string]string         `yaml:"labels,omitempty"`
-	Networks    map[string]*NetworkConfig `yaml:"networks,omitempty"`
-	Ports       []Port                    `yaml:"ports,omitempty"`
-	Restart     string                    `yaml:"restart"`
-	Volumes     []Volume                  `yaml:"volumes,omitempty"`
-	WorkingDir  *string                   `yaml:"working_dir,omitempty"`
+	Image           string                    `yaml:"image"`
+	DependsOn       map[string]DependsOn      `yaml:"depends_on,omitempty"`
+	EntryPoint      []string                  `yaml:"entrypoint,omitempty"`
+	Command         []string                  `yaml:"command,omitempty"`
+	Environment     Environment               `yaml:"environment,omitempty"`
+	ExtraHosts      []string                  `yaml:"extra_hosts"`
+	HealthCheck     *HealthCheck              `yaml:"healthcheck,omitempty"`
+	Labels          map[string]string         `yaml:"labels,omitempty"`
+	Networks        map[string]*NetworkConfig `yaml:"networks,omitempty"`
+	Ports           []Port                    `yaml:"ports,omitempty"`
+	Restart         string                    `yaml:"restart"`
+	StopGracePeriod string                    `yaml:"stop_grace_period,omitempty"`
+	StopSignal      string                    `yaml:"stop_signal,omitempty"`
+	Volumes         []Volume                  `yaml:"volumes,omitempty"`
+	WorkingDir      *string                   `yaml:"working_dir,omitempty"`
 }
 
 type DependsOn struct {
