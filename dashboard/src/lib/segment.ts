@@ -1,13 +1,13 @@
 import { AnalyticsBrowser, type ID } from '@segment/analytics-next';
 import { isPlatform } from '@/utils/env';
-import { isDevOrStaging } from '@/utils/helpers';
+//import { isDevOrStaging } from '@/utils/helpers';
 
 export const analytics = AnalyticsBrowser.load(
   {
     writeKey: process.env.NEXT_PUBLIC_ANALYTICS_WRITE_KEY!,
   },
   {
-    disable: !isPlatform() || isDevOrStaging(),
+    disable: !isPlatform(), //|| isDevOrStaging(),
   },
 );
 
