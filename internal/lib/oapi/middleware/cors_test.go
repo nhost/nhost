@@ -371,3 +371,138 @@ func TestCORS(t *testing.T) { //nolint:maintidx
 		})
 	}
 }
+
+func TestCORSOptionsValidate(t *testing.T) {
+	t.Parallel()
+
+	cases := []struct {
+		name    string
+		opts    middleware.CORSOptions
+		wantErr bool
+	}{
+		{
+			name: "wildcard with credentials rejected",
+			opts: middleware.CORSOptions{
+				AllowedOrigins:   []string{"*"},
+				AllowCredentials: true,
+			},
+			wantErr: true,
+		},
+		{
+			name: "nil allow all with credentials rejected",
+			opts: middleware.CORSOptions{
+				AllowedOrigins:   nil,
+				AllowCredentials: true,
+			},
+			wantErr: true,
+		},
+		{
+			name: "unsafe migration flag allows legacy wildcard",
+			opts: middleware.CORSOptions{
+				AllowedOrigins:                       []string{"*"},
+				AllowCredentials:                     true,
+				UnsafeAllowAllOriginsWithCredentials: true,
+			},
+			wantErr: false,
+		},
+		{
+			name: "anchored glob with credentials accepted",
+			opts: middleware.CORSOptions{
+				AllowedOrigins:   []string{"https://dashboard-*.example.com"},
+				AllowCredentials: true,
+			},
+			wantErr: false,
+		},
+		{
+			name: "allow origin function is caller responsibility",
+			opts: middleware.CORSOptions{
+				AllowOriginFunc:  func(string) bool { return true },
+				AllowedOrigins:   nil,
+				AllowCredentials: true,
+			},
+			wantErr: false,
+		},
+	}
+
+	for _, tc := range cases {
+		t.Run(tc.name, func(t *testing.T) {
+			t.Parallel()
+
+			err := tc.opts.Validate()
+			if tc.wantErr && err == nil {
+				t.Fatal("Validate() error = nil; want error")
+			}
+
+			if !tc.wantErr && err != nil {
+				t.Fatalf("Validate() error = %v; want nil", err)
+			}
+		})
+	}
+}
+
+func TestCORSAllowHeadersFunc(t *testing.T) {
+	t.Parallel()
+
+	gin.SetMode(gin.TestMode)
+
+	router := gin.New()
+	router.Use(middleware.CORS(middleware.CORSOptions{
+		AllowedOrigins: []string{"https://example.com"},
+		AllowedMethods: []string{"POST"},
+		AllowHeadersFunc: func(name string) bool {
+			lower := strings.ToLower(name)
+
+			return lower == "authorization" || strings.HasPrefix(lower, "x-hasura-")
+		},
+	}))
+	router.POST("/test", func(c *gin.Context) { c.Status(http.StatusOK) })
+
+	req := httptest.NewRequest(http.MethodOptions, "/test", nil)
+	req.Header.Set("Origin", "https://example.com")
+	req.Header.Set(
+		"Access-Control-Request-Headers",
+		"Authorization, X-Hasura-Role, X-Random",
+	)
+
+	w := httptest.NewRecorder()
+	router.ServeHTTP(w, req)
+
+	if got, want := w.Header().Get("Access-Control-Allow-Headers"),
+		"Authorization, X-Hasura-Role"; got != want {
+		t.Fatalf("Access-Control-Allow-Headers = %q; want %q", got, want)
+	}
+}
+
+func TestCORSWildcardOriginPattern(t *testing.T) {
+	t.Parallel()
+
+	gin.SetMode(gin.TestMode)
+
+	router := gin.New()
+	router.Use(middleware.CORS(middleware.CORSOptions{
+		AllowedOrigins: []string{"https://dashboard-*.example.com"},
+		AllowedMethods: []string{"GET"},
+	}))
+	router.GET("/test", func(c *gin.Context) { c.Status(http.StatusOK) })
+
+	allowed := httptest.NewRequest(http.MethodGet, "/test", nil)
+	allowed.Header.Set("Origin", "https://dashboard-pr-42.example.com")
+
+	allowedRec := httptest.NewRecorder()
+	router.ServeHTTP(allowedRec, allowed)
+
+	if got := allowedRec.Header().
+		Get("Access-Control-Allow-Origin"); got != "https://dashboard-pr-42.example.com" {
+		t.Fatalf("allowed origin header = %q", got)
+	}
+
+	denied := httptest.NewRequest(http.MethodGet, "/test", nil)
+	denied.Header.Set("Origin", "https://dashboard-pr-42.example.com.evil.test")
+
+	deniedRec := httptest.NewRecorder()
+	router.ServeHTTP(deniedRec, denied)
+
+	if got := deniedRec.Header().Get("Access-Control-Allow-Origin"); got != "" {
+		t.Fatalf("denied origin header = %q; want empty", got)
+	}
+}

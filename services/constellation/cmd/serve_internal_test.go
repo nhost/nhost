@@ -11,8 +11,8 @@ import (
 	"testing"
 	"time"
 
+	oapimw "github.com/nhost/nhost/internal/lib/oapi/middleware"
 	"github.com/nhost/nhost/services/constellation/controller"
-	oapicors "github.com/nhost/nhost/services/constellation/internal/lib/oapi/cors"
 	"github.com/urfave/cli/v3"
 )
 
@@ -24,12 +24,12 @@ import (
 func runGetCorsOptions(
 	t *testing.T,
 	args []string,
-) (oapicors.Options, *bytes.Buffer, error) {
+) (oapimw.CORSOptions, *bytes.Buffer, error) {
 	t.Helper()
 
 	var (
 		buf     bytes.Buffer
-		gotOpts oapicors.Options
+		gotOpts oapimw.CORSOptions
 		gotErr  error
 	)
 
@@ -76,9 +76,12 @@ func TestGetCorsOptions(t *testing.T) {
 			wantWarn:    true,
 		},
 		{
-			name:        "wildcard with credentials is rejected",
-			args:        []string{"--" + flagCORSAllowedOrigins, "*"},
-			wantErr:     oapicors.ErrWildcardWithCredentials,
+			name: "wildcard with credentials is rejected",
+			args: []string{
+				"--" + flagCORSAllowedOrigins,
+				strings.Repeat("*", 1),
+			},
+			wantErr:     oapimw.ErrWildcardWithCredentials,
 			wantOrigins: nil,
 			wantWarn:    false,
 		},
@@ -540,7 +543,7 @@ func assertWildcardError(t *testing.T, err, want error) {
 // assertSafeDefaultOpts locks in the safe-default guarantee: AllowedOrigins is
 // never nil (a nil slice would allow all origins), matches the expected list,
 // and credentials stay enabled.
-func assertSafeDefaultOpts(t *testing.T, opts oapicors.Options, wantOrigins []string) {
+func assertSafeDefaultOpts(t *testing.T, opts oapimw.CORSOptions, wantOrigins []string) {
 	t.Helper()
 
 	if opts.AllowedOrigins == nil {

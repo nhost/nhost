@@ -1,27 +1,21 @@
-package tracing_test
+package middleware_test
 
 import (
 	"context"
 	"net/http"
 	"net/http/httptest"
-	"os"
 	"testing"
 
 	"github.com/gin-gonic/gin"
-	"github.com/nhost/nhost/services/constellation/internal/lib/oapi/tracing"
+	"github.com/nhost/nhost/internal/lib/oapi/middleware"
 )
-
-func TestMain(m *testing.M) {
-	gin.SetMode(gin.TestMode)
-	os.Exit(m.Run())
-}
 
 func TestTracingWritesIncomingHeadersToResponse(t *testing.T) {
 	t.Parallel()
 
 	rec := httptest.NewRecorder()
 	_, engine := gin.CreateTestContext(rec)
-	engine.Use(tracing.Tracing())
+	engine.Use(middleware.Tracing())
 	engine.GET("/", func(c *gin.Context) { c.Status(http.StatusOK) })
 
 	req := httptest.NewRequest(http.MethodGet, "/", nil)
@@ -46,7 +40,7 @@ func TestTracingGeneratesTraceIDWhenAbsent(t *testing.T) {
 
 	rec := httptest.NewRecorder()
 	_, engine := gin.CreateTestContext(rec)
-	engine.Use(tracing.Tracing())
+	engine.Use(middleware.Tracing())
 	engine.GET("/", func(c *gin.Context) { c.Status(http.StatusOK) })
 
 	req := httptest.NewRequest(http.MethodGet, "/", nil)
@@ -62,11 +56,11 @@ func TestTracingStashesTraceInContext(t *testing.T) {
 
 	rec := httptest.NewRecorder()
 	_, engine := gin.CreateTestContext(rec)
-	engine.Use(tracing.Tracing())
+	engine.Use(middleware.Tracing())
 
-	var seen tracing.Trace
+	var seen middleware.Trace
 	engine.GET("/", func(c *gin.Context) {
-		seen = tracing.FromContext(c.Request.Context())
+		seen = middleware.TraceFromContext(c.Request.Context())
 		c.Status(http.StatusOK)
 	})
 
@@ -89,22 +83,27 @@ func TestTracingStashesTraceInContext(t *testing.T) {
 	}
 }
 
-func TestFromContextZeroWhenAbsent(t *testing.T) {
+func TestTraceContextRoundTrip(t *testing.T) {
 	t.Parallel()
 
-	got := tracing.FromContext(context.Background())
-	if got != (tracing.Trace{TraceID: "", SpanID: "", ParentSpanID: ""}) {
-		t.Errorf("FromContext on empty context: got %+v, want zero", got)
+	want := middleware.Trace{TraceID: "a", SpanID: "b", ParentSpanID: "c"}
+	ctx := middleware.TraceToContext(context.Background(), want)
+
+	if got := middleware.TraceFromContext(ctx); got != want {
+		t.Errorf("TraceToContext/TraceFromContext round-trip: got %+v, want %+v", got, want)
 	}
 }
 
-func TestToContextRoundTrip(t *testing.T) {
+func TestTraceFromHTTPHeadersGeneratesTraceID(t *testing.T) {
 	t.Parallel()
 
-	want := tracing.Trace{TraceID: "a", SpanID: "b", ParentSpanID: "c"}
-	ctx := tracing.ToContext(context.Background(), want)
+	got := middleware.TraceFromHTTPHeaders(http.Header{})
+	if got.TraceID == "" {
+		t.Error("expected generated TraceID when none present")
+	}
 
-	if got := tracing.FromContext(ctx); got != want {
-		t.Errorf("ToContext/FromContext round-trip: got %+v, want %+v", got, want)
+	other := middleware.TraceFromHTTPHeaders(http.Header{})
+	if other.TraceID == got.TraceID {
+		t.Errorf("expected unique generated TraceIDs, got %q twice", got.TraceID)
 	}
 }

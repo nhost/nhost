@@ -115,10 +115,12 @@ func corsMiddleware() gin.HandlerFunc {
 		},
 		// AllowedHeaders: nil reflects the client's Access-Control-Request-Headers,
 		// which is the equivalent of "*" under credentialed CORS.
-		AllowedHeaders:   nil,
-		ExposedHeaders:   nil,
-		AllowCredentials: true,
-		MaxAge:           "",
+		AllowHeadersFunc:                     nil,
+		AllowedHeaders:                       nil,
+		ExposedHeaders:                       nil,
+		AllowCredentials:                     true,
+		MaxAge:                               "",
+		UnsafeAllowAllOriginsWithCredentials: false,
 	})
 }
 

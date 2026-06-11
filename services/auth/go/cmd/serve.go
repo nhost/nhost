@@ -12,7 +12,6 @@ import (
 	"github.com/gin-gonic/gin"
 	"github.com/nhost/nhost/internal/lib/oapi"
 	oapimw "github.com/nhost/nhost/internal/lib/oapi/middleware"
-	"github.com/nhost/nhost/services/auth/docs"
 	"github.com/nhost/nhost/services/auth/go/api"
 	"github.com/nhost/nhost/services/auth/go/controller"
 	crypto "github.com/nhost/nhost/services/auth/go/cryto"
@@ -1374,10 +1373,15 @@ func getCORSOptions() oapimw.CORSOptions {
 		AllowOriginFunc:  nil,
 		AllowedOrigins:   []string{"*"},
 		AllowedMethods:   []string{"POST", "GET"},
+		AllowHeadersFunc: nil,
 		AllowedHeaders:   nil,
 		ExposedHeaders:   []string{},
 		AllowCredentials: true,
-		MaxAge:           "86400",
+		// Preserve auth's existing credentialed allow-all CORS behavior while
+		// adopting the shared stricter middleware. Replace this with explicit
+		// allowed origins in a follow-up migration.
+		UnsafeAllowAllOriginsWithCredentials: true,
+		MaxAge:                               "86400",
 	}
 }
 
@@ -1395,8 +1399,13 @@ func getGoServer(
 
 	handler := api.NewStrictHandler(ctrl, []api.StrictMiddlewareFunc{})
 
+	swagger, err := api.GetSwagger()
+	if err != nil {
+		return nil, fmt.Errorf("loading OpenAPI schema: %w", err)
+	}
+
 	router, mw, err := oapi.NewRouter( //nolint:contextcheck
-		docs.OpenAPISchema,
+		swagger,
 		cmd.String(flagAPIPrefix),
 		jwtGetter.MiddlewareFunc,
 		getCORSOptions(),
@@ -1422,7 +1431,7 @@ func getGoServer(
 		api.GinServerOptions{
 			BaseURL:      cmd.String(flagAPIPrefix),
 			Middlewares:  []api.MiddlewareFunc{mw},
-			ErrorHandler: nil,
+			ErrorHandler: oapi.RecordError,
 		},
 	)
 

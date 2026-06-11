@@ -97,7 +97,7 @@ func TestRequests(t *testing.T) {
 			},
 			body:             nil,
 			expectedStatus:   http.StatusBadRequest,
-			expectedResponse: `{"error":"request-validation-error","reason":"value is required but missing"}`,
+			expectedResponse: `{"error":"request-validation-error","reason":"request body has an error: value is required but missing"}`,
 		},
 
 		{

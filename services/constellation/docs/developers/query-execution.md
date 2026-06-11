@@ -44,11 +44,11 @@ This document traces a GraphQL request through Constellation, from HTTP arrival 
                           HTTP JSON response
 ```
 
-The interesting design choice is the split between **planner** and **connector**: the planner produces a *clean operation* per connector — with relationship fields stripped, fragments filtered, and phantom join columns already injected — so connectors never inspect cross-connector relationships at runtime. See `controller/planner/planner.go:51`.
+The interesting design choice is the split between **planner** and **connector**: the planner produces a _clean operation_ per connector — with relationship fields stripped, fragments filtered, and phantom join columns already injected — so connectors never inspect cross-connector relationships at runtime. See `controller/planner/planner.go:51`.
 
 ## 1. Request handling
 
-The HTTP entry point is `Controller.HandlerPost` in `controller/handlers.go`. The Gin chain that wraps it is configured in `cmd/serve/serve.go` and uses helpers from `internal/lib/oapi/{cors,logger,tracing}/`:
+The HTTP entry point is `Controller.HandlerPost` in `controller/handlers.go`. The Gin chain that wraps it is configured in `cmd/serve/serve.go` and uses shared helpers from `internal/lib/oapi/middleware`:
 
 - `RequestIDMiddleware` assigns a request ID and stashes a `*slog.Logger` on the context via `internal/requestcontext`.
 - `CORSMiddleware` applies the configured CORS policy.
@@ -119,7 +119,7 @@ Mutations are not rejected here, but mutation pipelines never produce cross-conn
 
 ## 7. Field routing
 
-`groupFieldsByConnector` (`controller/resolve.go`) walks the *original* operation (not the clean one) and partitions root selections by the operation-qualified `state.fieldToConnector[schemamerge.FieldKey(operation.Operation, field.Name)]` key. The mapping is built at schema composition time by `connector/composer`. Any root field whose owner is empty produces a structured error.
+`groupFieldsByConnector` (`controller/resolve.go`) walks the _original_ operation (not the clean one) and partitions root selections by the operation-qualified `state.fieldToConnector[schemamerge.FieldKey(operation.Operation, field.Name)]` key. The mapping is built at schema composition time by `connector/composer`. Any root field whose owner is empty produces a structured error.
 
 ## 8. Pre-execution connector validation
 
@@ -151,7 +151,7 @@ type Connector interface {
 - If a `*remoteschema.GraphQLError` is returned, its `Errors` slice is appended to the response errors and any partial data is kept.
 - Any other error becomes `{"message": err.Error()}`.
 
-When *any* connector errored, the controller short-circuits before remote-relationship resolution and returns `{data: partial, errors: [...]}`.
+When _any_ connector errored, the controller short-circuits before remote-relationship resolution and returns `{data: partial, errors: [...]}`.
 
 ### SQL connector
 
@@ -172,7 +172,7 @@ Values returned from SQL drivers are usually `jsontext.Value` (raw JSON) so the 
 
 1. Clones the operation and applies `@preset` argument injection per role and session (`applyPresets`).
 2. Renders the clone + fragments to a GraphQL string with `formatter.NewFormatter`.
-3. Sends the request over HTTP via `httpClient`. Forwarded headers, X-Forwarded-* rewrites, and `forward_client_headers` rules live in `connector/remoteschema/http.go`.
+3. Sends the request over HTTP via `httpClient`. Forwarded headers, X-Forwarded-\* rewrites, and `forward_client_headers` rules live in `connector/remoteschema/http.go`.
 4. Returns the response `data` map. Partial data is returned together with `*GraphQLError`.
 
 ## 10. Remote relationship resolution
@@ -224,15 +224,15 @@ Subscriptions never go through HTTP `Resolve`. They arrive on the WebSocket endp
 
 ## Errors
 
-| Stage | Error source | Shape in response |
-|---|---|---|
-| Auth | Missing session | `{"errors": [{"message": "..."}], "data": null}` |
-| Schema lookup | Unknown role | `{"errors": [...], "data": null}` |
-| Parse / validate | gqlparser | `{"errors": [...with locations/path...], "data": null}` |
-| Planner | Internal failure | `{"errors": [...], "data": null}` |
-| Pre-execution connector validation | Structured argument validation | `{"errors": [...], "data": null}` |
-| Connector | One failed, others ok | `{"errors": [...], "data": {partial}}` |
-| Remote resolution | Resolver failure | `{"errors": [...], "data": null}` |
+| Stage                              | Error source                   | Shape in response                                       |
+| ---------------------------------- | ------------------------------ | ------------------------------------------------------- |
+| Auth                               | Missing session                | `{"errors": [{"message": "..."}], "data": null}`        |
+| Schema lookup                      | Unknown role                   | `{"errors": [...], "data": null}`                       |
+| Parse / validate                   | gqlparser                      | `{"errors": [...with locations/path...], "data": null}` |
+| Planner                            | Internal failure               | `{"errors": [...], "data": null}`                       |
+| Pre-execution connector validation | Structured argument validation | `{"errors": [...], "data": null}`                       |
+| Connector                          | One failed, others ok          | `{"errors": [...], "data": {partial}}`                  |
+| Remote resolution                  | Resolver failure               | `{"errors": [...], "data": null}`                       |
 
 The controller never returns Go errors for user-visible failures; it always produces a `*GraphQLResponse`. The only Go errors that escape `Resolve` are unrecoverable internal failures.
 
@@ -244,28 +244,28 @@ See [architecture.md](./architecture.md) for the full reload contract.
 
 ## File reference
 
-| File | Purpose |
-|---|---|
-| `controller/controller.go` | `Controller`, atomic state pointer, reload loop |
-| `controller/handlers.go` | HTTP handlers; wires Gin to `Resolve` |
-| `controller/resolve.go` | `Resolve`, parsing/validation, planning, execution orchestration |
-| `controller/remote_validation.go` | Pre-execution validation of database-backed remote relationship targets |
-| `controller/querycache.go` | Per-state LRU for parsed queries |
-| `controller/middleware/session.go` | Admin secret → JWT → public-role precedence |
-| `controller/introspection/introspection.go` | `__schema` / `__type` execution |
-| `controller/planner/planner.go` | Per-connector planning, sub-operation building |
-| `controller/planner/analyzer.go` | Remote-relationship detection, phantom-field spec generation |
-| `controller/planner/ast_transformer.go` | Relationship stripping, fragment filtering, phantom injection |
-| `controller/planner/types.go` | `QueryPlan`, `PrimaryQuery`, `RemoteQueryPlan`, `PhantomFieldSpec` |
-| `controller/resolver/remote_relationship_resolver.go` | Resolve loop, raw-result materialisation, phantom cleanup |
-| `controller/resolver/remote_query_builder.go` | Build `RemoteQuery` objects from plan + parent results |
-| `controller/resolver/{database,schema,aggregate}_resolver.go` | Per-strategy resolution |
-| `connector/connector.go` | `Connector` interface, factory registry |
-| `connector/composer/` | Cross-connector schema merge, per-role validation |
-| `connector/sql/query.go` | SQL `Connector.Execute` / `ValidateOperation` |
-| `connector/sql/graphql/queries/roots.go` | Root-field dispatch for SQL builders |
-| `connector/remoteschema/connector.go` | Remote-schema `Connector.Execute` / `ValidateOperation` |
-| `connector/remoteschema/execute.go` | `@preset` application, query string rendering, HTTP request |
+| File                                                          | Purpose                                                                 |
+| ------------------------------------------------------------- | ----------------------------------------------------------------------- |
+| `controller/controller.go`                                    | `Controller`, atomic state pointer, reload loop                         |
+| `controller/handlers.go`                                      | HTTP handlers; wires Gin to `Resolve`                                   |
+| `controller/resolve.go`                                       | `Resolve`, parsing/validation, planning, execution orchestration        |
+| `controller/remote_validation.go`                             | Pre-execution validation of database-backed remote relationship targets |
+| `controller/querycache.go`                                    | Per-state LRU for parsed queries                                        |
+| `controller/middleware/session.go`                            | Admin secret → JWT → public-role precedence                             |
+| `controller/introspection/introspection.go`                   | `__schema` / `__type` execution                                         |
+| `controller/planner/planner.go`                               | Per-connector planning, sub-operation building                          |
+| `controller/planner/analyzer.go`                              | Remote-relationship detection, phantom-field spec generation            |
+| `controller/planner/ast_transformer.go`                       | Relationship stripping, fragment filtering, phantom injection           |
+| `controller/planner/types.go`                                 | `QueryPlan`, `PrimaryQuery`, `RemoteQueryPlan`, `PhantomFieldSpec`      |
+| `controller/resolver/remote_relationship_resolver.go`         | Resolve loop, raw-result materialisation, phantom cleanup               |
+| `controller/resolver/remote_query_builder.go`                 | Build `RemoteQuery` objects from plan + parent results                  |
+| `controller/resolver/{database,schema,aggregate}_resolver.go` | Per-strategy resolution                                                 |
+| `connector/connector.go`                                      | `Connector` interface, factory registry                                 |
+| `connector/composer/`                                         | Cross-connector schema merge, per-role validation                       |
+| `connector/sql/query.go`                                      | SQL `Connector.Execute` / `ValidateOperation`                           |
+| `connector/sql/graphql/queries/roots.go`                      | Root-field dispatch for SQL builders                                    |
+| `connector/remoteschema/connector.go`                         | Remote-schema `Connector.Execute` / `ValidateOperation`                 |
+| `connector/remoteschema/execute.go`                           | `@preset` application, query string rendering, HTTP request             |
 
 ## See also
 

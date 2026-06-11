@@ -15,13 +15,11 @@ import (
 
 	"github.com/99designs/gqlgen/graphql/playground"
 	"github.com/gin-gonic/gin"
+	oapimw "github.com/nhost/nhost/internal/lib/oapi/middleware"
 	"github.com/nhost/nhost/services/constellation/controller"
 	"github.com/nhost/nhost/services/constellation/controller/middleware"
 	"github.com/nhost/nhost/services/constellation/internal/jwt"
 	"github.com/nhost/nhost/services/constellation/internal/jwt/jwtconfig"
-	oapicors "github.com/nhost/nhost/services/constellation/internal/lib/oapi/cors"
-	oapilogger "github.com/nhost/nhost/services/constellation/internal/lib/oapi/logger"
-	oapitracing "github.com/nhost/nhost/services/constellation/internal/lib/oapi/tracing"
 	"github.com/nhost/nhost/services/constellation/metadata"
 	"github.com/nhost/nhost/services/constellation/metadata/source"
 	"github.com/urfave/cli/v3"
@@ -225,14 +223,13 @@ func allowRequestHeader(name string) bool {
 // getCorsOptions builds the CORS configuration from the configured
 // allowed-origins flag. An empty allow-list is the safe default: no origin
 // matches, so no Access-Control-Allow-Origin is emitted and credentialed
-// cross-origin reads are denied. A configured "*" combined with credentials is
-// rejected (see oapicors.Options.Validate) rather than silently
-// reflecting arbitrary origins.
+// cross-origin reads are denied. A configured allow-all origin combined with
+// credentials is rejected rather than silently reflecting arbitrary origins.
 func getCorsOptions(
 	ctx context.Context,
 	cmd *cli.Command,
 	logger *slog.Logger,
-) (oapicors.Options, error) {
+) (oapimw.CORSOptions, error) {
 	allowedOrigins := cmd.StringSlice(flagCORSAllowedOrigins)
 	if allowedOrigins == nil {
 		// A non-nil, empty slice denies all cross-origin requests; a nil slice
@@ -240,19 +237,20 @@ func getCorsOptions(
 		allowedOrigins = []string{}
 	}
 
-	opts := oapicors.Options{
-		AllowOriginFunc:  nil,
-		AllowedOrigins:   allowedOrigins,
-		AllowedMethods:   []string{"GET", "POST", "OPTIONS"},
-		AllowHeadersFunc: allowRequestHeader,
-		AllowedHeaders:   nil,
-		ExposedHeaders:   nil,
-		AllowCredentials: true,
-		MaxAge:           "86400",
+	opts := oapimw.CORSOptions{
+		AllowOriginFunc:                      nil,
+		AllowedOrigins:                       allowedOrigins,
+		AllowedMethods:                       []string{"GET", "POST", "OPTIONS"},
+		AllowHeadersFunc:                     allowRequestHeader,
+		AllowedHeaders:                       nil,
+		ExposedHeaders:                       nil,
+		AllowCredentials:                     true,
+		MaxAge:                               "86400",
+		UnsafeAllowAllOriginsWithCredentials: false,
 	}
 
 	if err := opts.Validate(); err != nil {
-		return oapicors.Options{}, fmt.Errorf(
+		return oapimw.CORSOptions{}, fmt.Errorf(
 			"invalid CORS configuration (set %s to explicit origins): %w",
 			flagCORSAllowedOrigins,
 			err,
@@ -297,18 +295,13 @@ func getRouter(
 		return nil, err
 	}
 
-	corsHandler, err := oapicors.CORS(corsOpts)
-	if err != nil {
-		return nil, fmt.Errorf("building CORS middleware: %w", err)
-	}
-
 	router := gin.New()
 
 	router.Use(
 		gin.Recovery(),
-		oapitracing.Tracing(),
-		oapilogger.Logger(logger),
-		corsHandler,
+		oapimw.Tracing(),
+		oapimw.Logger(logger), //nolint:contextcheck // middleware uses each request's context.
+		oapimw.CORS(corsOpts),
 		//nolint:contextcheck // middleware runs per-request with the request's
 		// own context; the startup ctx must not be propagated here.
 		middleware.Session(cmd.String(flagAdminSecret), jwtAuth),
