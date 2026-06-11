@@ -73,11 +73,9 @@ func NewRouter(
 		return nil, nil, fmt.Errorf("building CORS middleware: %w", err)
 	}
 
-	if apiPrefix != "" {
-		swagger.AddServer(&openapi3.Server{ //nolint:exhaustruct
-			URL: apiPrefix,
-		})
-	}
+	swagger.AddServer(&openapi3.Server{ //nolint:exhaustruct
+		URL: apiPrefix,
+	})
 
 	router := gin.New()
 	// ContextWithFallback lets the *gin.Context that strict handlers receive as

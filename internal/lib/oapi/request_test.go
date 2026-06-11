@@ -347,6 +347,88 @@ func TestNewRouterValidator_UnknownPathSurfacedAsError(t *testing.T) {
 	}
 }
 
+// remoteServerSpec mirrors service specs that advertise their public hosted
+// server URL. NewRouter must still add the local apiPrefix server (including
+// the empty prefix) so validators accept local/dev requests.
+const remoteServerSpec = `
+openapi: 3.0.0
+info:
+  title: test
+  version: "0"
+servers:
+  - url: "https://api.example.com/v1"
+paths:
+  /ping:
+    get:
+      operationId: ping
+      responses:
+        "200": { description: ok }
+`
+
+func loadRemoteServerSpec(t *testing.T) *openapi3.T {
+	t.Helper()
+
+	doc, err := openapi3.NewLoader().LoadFromData([]byte(remoteServerSpec))
+	if err != nil {
+		t.Fatalf("loading spec: %v", err)
+	}
+
+	if err := doc.Validate(t.Context()); err != nil {
+		t.Fatalf("validating spec: %v", err)
+	}
+
+	return doc
+}
+
+// TestNewRouterValidator_EmptyAPIPrefixMatchesLocalPathsWhenSpecHasServers pins
+// auth's CI failure mode: generated specs may already contain a hosted server
+// URL, but local services pass an empty apiPrefix and still need /path requests
+// to validate against the OpenAPI operation.
+func TestNewRouterValidator_EmptyAPIPrefixMatchesLocalPathsWhenSpecHasServers(t *testing.T) {
+	t.Parallel()
+	gin.SetMode(gin.TestMode)
+
+	router, validator, err := oapi.NewRouter(
+		loadRemoteServerSpec(t),
+		"",
+		nil,
+		middleware.CORSOptions{
+			AllowOriginFunc:                      nil,
+			AllowedOrigins:                       []string{},
+			AllowedMethods:                       []string{http.MethodGet},
+			AllowHeadersFunc:                     nil,
+			AllowedHeaders:                       nil,
+			ExposedHeaders:                       nil,
+			AllowCredentials:                     false,
+			MaxAge:                               "",
+			UnsafeAllowAllOriginsWithCredentials: false,
+		},
+		slog.Default(),
+	)
+	if err != nil {
+		t.Fatalf("NewRouter: %v", err)
+	}
+
+	reached := false
+
+	router.Use(validator)
+	router.NoRoute(func(c *gin.Context) {
+		reached = true
+
+		c.Status(http.StatusOK)
+	})
+
+	rec := do(t, router, http.MethodGet, "/ping", nil, "")
+
+	if rec.Code != http.StatusOK {
+		t.Fatalf("status = %d; want 200, body = %s", rec.Code, rec.Body.String())
+	}
+
+	if !reached {
+		t.Fatal("downstream handler was not reached")
+	}
+}
+
 // unroutableSpec loads cleanly and passes openapi3 validation but carries a
 // server URL that gorillamux's url.Parse rejects ("missing protocol scheme"),
 // so it is the one input that reaches NewRouter's validator construction yet
