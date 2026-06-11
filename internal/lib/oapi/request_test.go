@@ -347,6 +347,68 @@ func TestNewRouterValidator_RouteNotFoundPasses(t *testing.T) {
 	}
 }
 
+// unroutableSpec loads cleanly and passes openapi3 validation but carries a
+// server URL that gorillamux's url.Parse rejects ("missing protocol scheme"),
+// so it is the one input that reaches NewRouter's validator construction yet
+// makes gorillamux.NewRouter fail. It pins that this surfaces as a returned
+// error rather than a panic, matching NewRouter's nil-schema and CORS modes.
+const unroutableSpec = `
+openapi: 3.0.0
+info:
+  title: test
+  version: "0"
+servers:
+  - url: "://bad"
+paths:
+  /ping:
+    get:
+      operationId: ping
+      responses:
+        "200": { description: ok }
+`
+
+// TestNewRouter_RouterBuildErrorReturned pins the panic→error contract: a
+// loadable, openapi3-valid spec whose server URL breaks gorillamux route
+// building must make NewRouter return an error, not panic during wiring.
+func TestNewRouter_RouterBuildErrorReturned(t *testing.T) {
+	t.Parallel()
+	gin.SetMode(gin.TestMode)
+
+	doc, err := openapi3.NewLoader().LoadFromData([]byte(unroutableSpec))
+	if err != nil {
+		t.Fatalf("loading spec: %v", err)
+	}
+
+	if err := doc.Validate(t.Context()); err != nil {
+		t.Fatalf("validating spec: %v", err)
+	}
+
+	_, _, err = oapi.NewRouter(
+		doc,
+		"",
+		nil,
+		middleware.CORSOptions{
+			AllowOriginFunc:                      nil,
+			AllowedOrigins:                       []string{},
+			AllowedMethods:                       []string{http.MethodGet},
+			AllowHeadersFunc:                     nil,
+			AllowedHeaders:                       nil,
+			ExposedHeaders:                       nil,
+			AllowCredentials:                     false,
+			MaxAge:                               "",
+			UnsafeAllowAllOriginsWithCredentials: false,
+		},
+		slog.Default(),
+	)
+	if err == nil {
+		t.Fatal("NewRouter returned nil error for an unroutable spec; want a build error")
+	}
+
+	if !strings.Contains(err.Error(), "building request router") {
+		t.Errorf("error = %q; want it to mention %q", err.Error(), "building request router")
+	}
+}
+
 var (
 	errBoom    = errors.New("boom")
 	errInvalid = errors.New("invalid param")

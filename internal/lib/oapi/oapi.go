@@ -93,7 +93,10 @@ func NewRouter(
 		corsHandler,
 	)
 
-	validator := newRequestValidator(swagger, authenticationFunc)
+	validator, err := newRequestValidator(swagger, authenticationFunc)
+	if err != nil {
+		return nil, nil, err
+	}
 
 	return router, func(c *gin.Context) { validator(c) }, nil
 }

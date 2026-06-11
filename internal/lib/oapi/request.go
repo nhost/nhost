@@ -68,10 +68,10 @@ func handleError(c *gin.Context, err error) {
 func newRequestValidator(
 	swagger *openapi3.T,
 	authFn openapi3filter.AuthenticationFunc,
-) gin.HandlerFunc {
+) (gin.HandlerFunc, error) {
 	router, err := gorillamux.NewRouter(swagger)
 	if err != nil {
-		panic(err)
+		return nil, fmt.Errorf("building request router: %w", err)
 	}
 
 	return func(c *gin.Context) {
@@ -80,7 +80,7 @@ func newRequestValidator(
 		}
 
 		c.Next()
-	}
+	}, nil
 }
 
 func validateRequestFromContext(
