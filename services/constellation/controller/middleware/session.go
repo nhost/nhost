@@ -14,6 +14,7 @@ import (
 	"time"
 
 	"github.com/gin-gonic/gin"
+	oapimw "github.com/nhost/nhost/internal/lib/oapi/middleware"
 	"github.com/nhost/nhost/services/constellation/internal/jwt"
 	"github.com/nhost/nhost/services/constellation/internal/requestcontext"
 )
@@ -166,7 +167,7 @@ func extractAdminSession(headers http.Header) *SessionVariables {
 // HTTP 401 on JWT errors.
 func Session(adminSecret string, jwtAuth JWTAuthenticator) gin.HandlerFunc {
 	return func(ctx *gin.Context) {
-		logger := requestcontext.LoggerFromContext(ctx.Request.Context())
+		logger := oapimw.LoggerFromContext(ctx.Request.Context())
 
 		session, err := ExtractSession(adminSecret, jwtAuth, ctx.Request.Header)
 		if err != nil {
@@ -177,16 +178,12 @@ func Session(adminSecret string, jwtAuth JWTAuthenticator) gin.HandlerFunc {
 			return
 		}
 
-		logger = logger.With(
-			slog.Group(
-				"session",
-				slog.String("role", session.Role),
-			),
-		)
-
 		newCtx := sessionToContext(ctx.Request.Context(), session)
 		newCtx = requestcontext.ClientHeadersToContext(newCtx, ctx.Request.Header.Clone())
-		newCtx = requestcontext.LoggerToContext(newCtx, logger)
+		newCtx = oapimw.AddLoggerAttrs(
+			newCtx,
+			slog.Group("session", slog.String("role", session.Role)),
+		)
 
 		ctx.Request = ctx.Request.WithContext(newCtx)
 

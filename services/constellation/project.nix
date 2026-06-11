@@ -20,6 +20,7 @@ let
       ../../vendor
       ../../.golangci.yaml
       ../../govulncheck.yaml
+      ../../internal/lib/oapi
       (fs.fileFilter (f: f.hasExt "go") ./.)
       ./connector/testdata
       ./connector/sql/postgres/testdata
