@@ -114,8 +114,12 @@ func Tracing() gin.HandlerFunc {
 		trace := TraceFromHTTPHeaders(ctx.Request.Header)
 		ctx.Request = ctx.Request.WithContext(TraceToContext(ctx.Request.Context(), trace))
 
-		ctx.Next()
-
+		// Write the B3 response headers before running handlers: gin commits
+		// the header map on the handler's first body write (WriteHeaderNow),
+		// so headers set after ctx.Next() never reach the wire once a handler
+		// has written a body.
 		TraceToHTTPHeaders(trace, ctx.Writer.Header())
+
+		ctx.Next()
 	}
 }

@@ -68,8 +68,9 @@ func NewRouter(
 		return nil, nil, errNilOpenAPISchema
 	}
 
-	if err := middleware.ValidateCORSOptions(corsOptions); err != nil {
-		return nil, nil, fmt.Errorf("validating CORS options: %w", err)
+	corsHandler, err := middleware.CORS(corsOptions)
+	if err != nil {
+		return nil, nil, fmt.Errorf("building CORS middleware: %w", err)
 	}
 
 	if apiPrefix != "" {
@@ -89,7 +90,7 @@ func NewRouter(
 		surfaceErrorsMiddleWare,
 		middleware.Tracing(),
 		middleware.Logger(logger),
-		middleware.CORS(corsOptions),
+		corsHandler,
 	)
 
 	validator := newRequestValidator(swagger, authenticationFunc)

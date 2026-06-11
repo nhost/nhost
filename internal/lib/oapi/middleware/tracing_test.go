@@ -35,6 +35,51 @@ func TestTracingWritesIncomingHeadersToResponse(t *testing.T) {
 	}
 }
 
+// TestTracingWritesHeadersOverRealConnection drives the middleware through a
+// real net/http server (not an httptest.ResponseRecorder, whose live header map
+// masks the timing) with a body-writing handler. Gin's responseWriter commits
+// headers on the first body write, so this asserts the B3 response headers are
+// written before the body and therefore reach the wire.
+func TestTracingWritesHeadersOverRealConnection(t *testing.T) {
+	t.Parallel()
+
+	gin.SetMode(gin.TestMode)
+
+	_, engine := gin.CreateTestContext(httptest.NewRecorder())
+	engine.Use(middleware.Tracing())
+	engine.GET("/", func(c *gin.Context) {
+		c.String(http.StatusOK, "body")
+	})
+
+	srv := httptest.NewServer(engine)
+	defer srv.Close()
+
+	req, err := http.NewRequestWithContext(t.Context(), http.MethodGet, srv.URL, nil)
+	if err != nil {
+		t.Fatalf("new request: %v", err)
+	}
+
+	req.Header.Set("X-B3-TraceId", "trace-123")
+	req.Header.Set("X-B3-SpanId", "span-456")
+	req.Header.Set("X-B3-ParentSpanId", "parent-789")
+
+	resp, err := srv.Client().Do(req)
+	if err != nil {
+		t.Fatalf("do request: %v", err)
+	}
+	defer resp.Body.Close()
+
+	for header, want := range map[string]string{
+		"X-B3-TraceId":      "trace-123",
+		"X-B3-SpanId":       "span-456",
+		"X-B3-ParentSpanId": "parent-789",
+	} {
+		if got := resp.Header.Get(header); got != want {
+			t.Errorf("response %s over the wire: got %q, want %q", header, got, want)
+		}
+	}
+}
+
 func TestTracingGeneratesTraceIDWhenAbsent(t *testing.T) {
 	t.Parallel()
 

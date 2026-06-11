@@ -1,6 +1,7 @@
 package middleware_test
 
 import (
+	"errors"
 	"net/http"
 	"net/http/httptest"
 	"strings"
@@ -10,6 +11,50 @@ import (
 	"github.com/google/go-cmp/cmp"
 	"github.com/nhost/nhost/internal/lib/oapi/middleware"
 )
+
+// runCORS dispatches a single request through the CORS middleware and an
+// optional downstream handler. It returns the ResponseRecorder and a flag
+// indicating whether the downstream handler was invoked. It fails the test if
+// CORS returns a construction error, so callers exercising the fail-closed path
+// must call middleware.CORS directly.
+func runCORS(
+	t *testing.T,
+	opts middleware.CORSOptions,
+	method, origin string,
+	requestHeaders string,
+) (*httptest.ResponseRecorder, bool) {
+	t.Helper()
+
+	gin.SetMode(gin.TestMode)
+
+	rec := httptest.NewRecorder()
+	_, engine := gin.CreateTestContext(rec)
+
+	called := false
+
+	handler, err := middleware.CORS(opts)
+	if err != nil {
+		t.Fatalf("middleware.CORS: unexpected error: %v", err)
+	}
+
+	engine.Use(handler)
+	engine.Any("/", func(*gin.Context) {
+		called = true
+	})
+
+	req := httptest.NewRequest(method, "/", nil)
+	if origin != "" {
+		req.Header.Set("Origin", origin)
+	}
+
+	if requestHeaders != "" {
+		req.Header.Set("Access-Control-Request-Headers", requestHeaders)
+	}
+
+	engine.ServeHTTP(rec, req)
+
+	return rec, called
+}
 
 func TestCORS(t *testing.T) { //nolint:maintidx
 	t.Parallel()
@@ -324,7 +369,12 @@ func TestCORS(t *testing.T) { //nolint:maintidx
 			router := gin.New()
 			nextCalled := false
 
-			router.Use(middleware.CORS(tc.opts))
+			corsHandler, err := middleware.CORS(tc.opts)
+			if err != nil {
+				t.Fatalf("CORS() error = %v; want nil", err)
+			}
+
+			router.Use(corsHandler)
 			router.Any("/test", func(c *gin.Context) {
 				nextCalled = true
 
@@ -378,7 +428,7 @@ func TestCORSOptionsValidate(t *testing.T) {
 	cases := []struct {
 		name    string
 		opts    middleware.CORSOptions
-		wantErr bool
+		wantErr error
 	}{
 		{
 			name: "wildcard with credentials rejected",
@@ -386,15 +436,34 @@ func TestCORSOptionsValidate(t *testing.T) {
 				AllowedOrigins:   []string{"*"},
 				AllowCredentials: true,
 			},
-			wantErr: true,
+			wantErr: middleware.ErrWildcardWithCredentials,
 		},
 		{
+			name: "wildcard among others with credentials rejected",
+			opts: middleware.CORSOptions{
+				AllowedOrigins:   []string{"https://example.com", "*"},
+				AllowCredentials: true,
+			},
+			wantErr: middleware.ErrWildcardWithCredentials,
+		},
+		{
+			name: "allow all glob with credentials rejected",
+			opts: middleware.CORSOptions{
+				AllowedOrigins:   []string{"https://example.com", "**"},
+				AllowCredentials: true,
+			},
+			wantErr: middleware.ErrWildcardWithCredentials,
+		},
+		{
+			// The shared Validate rejects a nil allow-list combined with
+			// credentials, which the constellation implementation did not. A nil
+			// slice means "reflect any origin", so it is as dangerous as "*".
 			name: "nil allow all with credentials rejected",
 			opts: middleware.CORSOptions{
 				AllowedOrigins:   nil,
 				AllowCredentials: true,
 			},
-			wantErr: true,
+			wantErr: middleware.ErrWildcardWithCredentials,
 		},
 		{
 			name: "unsafe migration flag allows legacy wildcard",
@@ -403,7 +472,23 @@ func TestCORSOptionsValidate(t *testing.T) {
 				AllowCredentials:                     true,
 				UnsafeAllowAllOriginsWithCredentials: true,
 			},
-			wantErr: false,
+			wantErr: nil,
+		},
+		{
+			name: "wildcard without credentials ok",
+			opts: middleware.CORSOptions{
+				AllowedOrigins:   []string{"*"},
+				AllowCredentials: false,
+			},
+			wantErr: nil,
+		},
+		{
+			name: "explicit origins with credentials ok",
+			opts: middleware.CORSOptions{
+				AllowedOrigins:   []string{"https://example.com"},
+				AllowCredentials: true,
+			},
+			wantErr: nil,
 		},
 		{
 			name: "anchored glob with credentials accepted",
@@ -411,7 +496,15 @@ func TestCORSOptionsValidate(t *testing.T) {
 				AllowedOrigins:   []string{"https://dashboard-*.example.com"},
 				AllowCredentials: true,
 			},
-			wantErr: false,
+			wantErr: nil,
+		},
+		{
+			name: "empty origins with credentials ok",
+			opts: middleware.CORSOptions{
+				AllowedOrigins:   []string{},
+				AllowCredentials: true,
+			},
+			wantErr: nil,
 		},
 		{
 			name: "allow origin function is caller responsibility",
@@ -420,7 +513,7 @@ func TestCORSOptionsValidate(t *testing.T) {
 				AllowedOrigins:   nil,
 				AllowCredentials: true,
 			},
-			wantErr: false,
+			wantErr: nil,
 		},
 	}
 
@@ -429,12 +522,90 @@ func TestCORSOptionsValidate(t *testing.T) {
 			t.Parallel()
 
 			err := tc.opts.Validate()
-			if tc.wantErr && err == nil {
-				t.Fatal("Validate() error = nil; want error")
+			if !errors.Is(err, tc.wantErr) {
+				t.Fatalf("Validate() error = %v; want %v", err, tc.wantErr)
+			}
+		})
+	}
+}
+
+func TestCORSFailClosed(t *testing.T) {
+	t.Parallel()
+
+	gin.SetMode(gin.TestMode)
+
+	cases := []struct {
+		name    string
+		opts    middleware.CORSOptions
+		wantErr error
+	}{
+		{
+			name: "wildcard with credentials rejected at construction",
+			opts: middleware.CORSOptions{
+				AllowedOrigins:   []string{"*"},
+				AllowCredentials: true,
+			},
+			wantErr: middleware.ErrWildcardWithCredentials,
+		},
+		{
+			name: "wildcard among others with credentials rejected at construction",
+			opts: middleware.CORSOptions{
+				AllowedOrigins:   []string{"https://example.com", "*"},
+				AllowCredentials: true,
+			},
+			wantErr: middleware.ErrWildcardWithCredentials,
+		},
+		{
+			name: "nil allow all with credentials rejected at construction",
+			opts: middleware.CORSOptions{
+				AllowedOrigins:   nil,
+				AllowCredentials: true,
+			},
+			wantErr: middleware.ErrWildcardWithCredentials,
+		},
+		{
+			name: "unsafe migration flag builds a handler",
+			opts: middleware.CORSOptions{
+				AllowedOrigins:                       []string{"*"},
+				AllowCredentials:                     true,
+				UnsafeAllowAllOriginsWithCredentials: true,
+			},
+			wantErr: nil,
+		},
+		{
+			name: "anchored glob with credentials builds a handler",
+			opts: middleware.CORSOptions{
+				AllowedOrigins:   []string{"https://dashboard-*.example.com"},
+				AllowCredentials: true,
+			},
+			wantErr: nil,
+		},
+	}
+
+	for _, tc := range cases {
+		t.Run(tc.name, func(t *testing.T) {
+			t.Parallel()
+
+			handler, err := middleware.CORS(tc.opts)
+
+			if tc.wantErr != nil {
+				if !errors.Is(err, tc.wantErr) {
+					t.Fatalf("CORS() error = %v; want wrapping %v", err, tc.wantErr)
+				}
+
+				if handler != nil {
+					t.Fatal("CORS() returned a non-nil handler on the error path")
+				}
+
+				return
 			}
 
-			if !tc.wantErr && err != nil {
-				t.Fatalf("Validate() error = %v; want nil", err)
+			if err != nil {
+				t.Fatalf("CORS() error = %v; want nil", err)
+			}
+
+			if handler == nil {
+				t.Fatal("CORS() returned a nil handler without an error")
 			}
 		})
 	}
@@ -443,66 +614,381 @@ func TestCORSOptionsValidate(t *testing.T) {
 func TestCORSAllowHeadersFunc(t *testing.T) {
 	t.Parallel()
 
-	gin.SetMode(gin.TestMode)
+	hasuraOrNhostOrAuth := func(name string) bool {
+		lower := strings.ToLower(name)
 
-	router := gin.New()
-	router.Use(middleware.CORS(middleware.CORSOptions{
-		AllowedOrigins: []string{"https://example.com"},
-		AllowedMethods: []string{"POST"},
-		AllowHeadersFunc: func(name string) bool {
-			lower := strings.ToLower(name)
+		return lower == "authorization" ||
+			strings.HasPrefix(lower, "x-hasura-") ||
+			strings.HasPrefix(lower, "x-nhost-")
+	}
 
-			return lower == "authorization" || strings.HasPrefix(lower, "x-hasura-")
+	cases := []struct {
+		name          string
+		allowFunc     func(name string) bool
+		requestHeader string
+		wantACAH      string
+		wantPresent   bool
+	}{
+		{
+			name:          "reflects_only_approved_headers",
+			allowFunc:     hasuraOrNhostOrAuth,
+			requestHeader: "Authorization, X-Hasura-User-Id, X-Random, X-Nhost-Webhook-Secret",
+			wantACAH:      "Authorization, X-Hasura-User-Id, X-Nhost-Webhook-Secret",
+			wantPresent:   true,
 		},
-	}))
-	router.POST("/test", func(c *gin.Context) { c.Status(http.StatusOK) })
+		{
+			name:          "case_insensitive_match_preserves_client_casing",
+			allowFunc:     hasuraOrNhostOrAuth,
+			requestHeader: "x-HASURA-Role, authorization",
+			wantACAH:      "x-HASURA-Role, authorization",
+			wantPresent:   true,
+		},
+		{
+			name:          "all_denied_omits_header",
+			allowFunc:     func(string) bool { return false },
+			requestHeader: "X-Foo, X-Bar",
+			wantACAH:      "",
+			wantPresent:   false,
+		},
+		{
+			name:          "empty_request_headers_omits_header",
+			allowFunc:     hasuraOrNhostOrAuth,
+			requestHeader: "",
+			wantACAH:      "",
+			wantPresent:   false,
+		},
+		{
+			name:          "skips_empty_entries_between_commas",
+			allowFunc:     hasuraOrNhostOrAuth,
+			requestHeader: "Authorization,, X-Hasura-Role",
+			wantACAH:      "Authorization, X-Hasura-Role",
+			wantPresent:   true,
+		},
+	}
 
-	req := httptest.NewRequest(http.MethodOptions, "/test", nil)
-	req.Header.Set("Origin", "https://example.com")
-	req.Header.Set(
-		"Access-Control-Request-Headers",
-		"Authorization, X-Hasura-Role, X-Random",
-	)
+	for _, tc := range cases {
+		t.Run(tc.name, func(t *testing.T) {
+			t.Parallel()
 
-	w := httptest.NewRecorder()
-	router.ServeHTTP(w, req)
+			opts := middleware.CORSOptions{
+				AllowedOrigins:   []string{"https://example.com"},
+				AllowedMethods:   []string{"GET"},
+				AllowHeadersFunc: tc.allowFunc,
+				// AllowedHeaders must be ignored when AllowHeadersFunc is set; a
+				// non-nil value here proves the function takes precedence.
+				AllowedHeaders: []string{"Should-Be-Ignored"},
+			}
 
-	if got, want := w.Header().Get("Access-Control-Allow-Headers"),
-		"Authorization, X-Hasura-Role"; got != want {
-		t.Fatalf("Access-Control-Allow-Headers = %q; want %q", got, want)
+			rec, _ := runCORS(
+				t,
+				opts,
+				http.MethodOptions,
+				"https://example.com",
+				tc.requestHeader,
+			)
+
+			got := rec.Header().Get("Access-Control-Allow-Headers")
+
+			_, present := rec.Header()["Access-Control-Allow-Headers"]
+			if present != tc.wantPresent {
+				t.Errorf(
+					"ACAH presence: got %v, want %v (value %q)",
+					present,
+					tc.wantPresent,
+					got,
+				)
+			}
+
+			if got != tc.wantACAH {
+				t.Errorf("ACAH: got %q, want %q", got, tc.wantACAH)
+			}
+		})
 	}
 }
 
-func TestCORSWildcardOriginPattern(t *testing.T) {
+// TestCORSWildcardOrigins exercises glob matching of AllowedOrigins entries. It
+// covers both legitimate matches and the security-critical property that a glob
+// is anchored at BOTH ends (and that "*" never spans a "/"), so an attacker
+// cannot satisfy it by appending, prepending, or path-smuggling a host they
+// control — the canonical bypass being "*.acme.com" admitting
+// "www.acme.com.evil.com". Each row supplies its own allow-list and a single
+// origin; wantOrigin is the expected Access-Control-Allow-Origin, where "" means
+// the origin must be denied and a non-empty value must equal the reflected
+// origin. AllowCredentials stays on throughout to prove anchored globs are valid
+// alongside credentials.
+func TestCORSWildcardOrigins(t *testing.T) {
 	t.Parallel()
 
-	gin.SetMode(gin.TestMode)
-
-	router := gin.New()
-	router.Use(middleware.CORS(middleware.CORSOptions{
-		AllowedOrigins: []string{"https://dashboard-*.example.com"},
-		AllowedMethods: []string{"GET"},
-	}))
-	router.GET("/test", func(c *gin.Context) { c.Status(http.StatusOK) })
-
-	allowed := httptest.NewRequest(http.MethodGet, "/test", nil)
-	allowed.Header.Set("Origin", "https://dashboard-pr-42.example.com")
-
-	allowedRec := httptest.NewRecorder()
-	router.ServeHTTP(allowedRec, allowed)
-
-	if got := allowedRec.Header().
-		Get("Access-Control-Allow-Origin"); got != "https://dashboard-pr-42.example.com" {
-		t.Fatalf("allowed origin header = %q", got)
+	cases := []struct {
+		name    string
+		allowed []string
+		origin  string
+		// wantOrigin is the expected Access-Control-Allow-Origin: "" denies,
+		// otherwise the origin is reflected verbatim.
+		wantOrigin string
+	}{
+		// Legitimate matches against a realistic mixed allow-list.
+		{
+			name:       "exact_literal_match",
+			allowed:    []string{"http://localhost:3000"},
+			origin:     "http://localhost:3000",
+			wantOrigin: "http://localhost:3000",
+		},
+		{
+			name:       "exact_with_port_match",
+			allowed:    []string{"https://local.dashboard.local.nhost.run:8099"},
+			origin:     "https://local.dashboard.local.nhost.run:8099",
+			wantOrigin: "https://local.dashboard.local.nhost.run:8099",
+		},
+		{
+			name:       "interior_wildcard_match",
+			allowed:    []string{"https://dashboard-staging-*-nhost.vercel.app"},
+			origin:     "https://dashboard-staging-pr42-nhost.vercel.app",
+			wantOrigin: "https://dashboard-staging-pr42-nhost.vercel.app",
+		},
+		{
+			name:       "interior_wildcard_empty_run_match",
+			allowed:    []string{"https://dashboard-staging-*-nhost.vercel.app"},
+			origin:     "https://dashboard-staging--nhost.vercel.app",
+			wantOrigin: "https://dashboard-staging--nhost.vercel.app",
+		},
+		{
+			name:       "leading_subdomain_wildcard_match",
+			allowed:    []string{"https://*.preview.example.com"},
+			origin:     "https://app.preview.example.com",
+			wantOrigin: "https://app.preview.example.com",
+		},
+		{
+			name:       "host_wildcard_matches_multi_label_subdomain",
+			allowed:    []string{"*.acme.com"},
+			origin:     "a.b.acme.com",
+			wantOrigin: "a.b.acme.com",
+		},
+		{
+			name:       "host_wildcard_matches_empty_run",
+			allowed:    []string{"*.acme.com"},
+			origin:     ".acme.com",
+			wantOrigin: ".acme.com",
+		},
+		// Bypass attempts: appending an attacker-controlled host past the
+		// anchored suffix.
+		{
+			name:       "append_after_suffix_denied",
+			allowed:    []string{"*.acme.com"},
+			origin:     "www.acme.com.evil.com",
+			wantOrigin: "",
+		},
+		{
+			name:       "suffix_not_at_end_denied",
+			allowed:    []string{"*.acme.com"},
+			origin:     "acme.com.evil.com",
+			wantOrigin: "",
+		},
+		{
+			name:       "append_with_port_denied",
+			allowed:    []string{"*.acme.com"},
+			origin:     "www.acme.com.evil.com:443",
+			wantOrigin: "",
+		},
+		{
+			name:       "missing_separator_dot_denied",
+			allowed:    []string{"*.acme.com"},
+			origin:     "evilacme.com",
+			wantOrigin: "",
+		},
+		{
+			name:       "unrelated_host_denied",
+			allowed:    []string{"*.acme.com"},
+			origin:     "evil.com",
+			wantOrigin: "",
+		},
+		{
+			name:       "newline_smuggling_denied",
+			allowed:    []string{"*.acme.com"},
+			origin:     "www.acme.com\n.evil.com",
+			wantOrigin: "",
+		},
+		// Bypass attempts against a scheme-anchored host pattern.
+		{
+			name:       "scheme_anchored_append_denied",
+			allowed:    []string{"https://*.acme.com"},
+			origin:     "https://www.acme.com.evil.com",
+			wantOrigin: "",
+		},
+		{
+			name:       "scheme_mismatch_denied",
+			allowed:    []string{"https://*.acme.com"},
+			origin:     "http://www.acme.com",
+			wantOrigin: "",
+		},
+		{
+			name:       "path_smuggled_suffix_denied",
+			allowed:    []string{"https://*.acme.com"},
+			origin:     "https://evil.com/https://www.acme.com",
+			wantOrigin: "",
+		},
+		{
+			name:       "truncated_scheme_prefix_denied",
+			allowed:    []string{"https://*.acme.com"},
+			origin:     "ttps://www.acme.com",
+			wantOrigin: "",
+		},
+		{
+			name:       "scheme_anchored_legit_match",
+			allowed:    []string{"https://*.acme.com"},
+			origin:     "https://staging.app.acme.com",
+			wantOrigin: "https://staging.app.acme.com",
+		},
+		// Bypass attempts against the interior-wildcard pattern.
+		{
+			name:       "interior_append_denied",
+			allowed:    []string{"https://dashboard-staging-*-nhost.vercel.app"},
+			origin:     "https://dashboard-staging-x-nhost.vercel.app.evil.com",
+			wantOrigin: "",
+		},
+		{
+			name:       "interior_prepend_denied",
+			allowed:    []string{"https://dashboard-staging-*-nhost.vercel.app"},
+			origin:     "https://evil.com-dashboard-staging-x-nhost.vercel.app",
+			wantOrigin: "",
+		},
+		{
+			name:       "interior_trailing_junk_denied",
+			allowed:    []string{"https://dashboard-staging-*-nhost.vercel.app"},
+			origin:     "https://dashboard-staging-x-nhost.vercel.app/../evil",
+			wantOrigin: "",
+		},
+		{
+			name:       "prefix_is_case_sensitive_denied",
+			allowed:    []string{"https://dashboard-staging-*-nhost.vercel.app"},
+			origin:     "https://DASHBOARD-staging-x-nhost.vercel.app",
+			wantOrigin: "",
+		},
 	}
 
-	denied := httptest.NewRequest(http.MethodGet, "/test", nil)
-	denied.Header.Set("Origin", "https://dashboard-pr-42.example.com.evil.test")
+	for _, tc := range cases {
+		t.Run(tc.name, func(t *testing.T) {
+			t.Parallel()
 
-	deniedRec := httptest.NewRecorder()
-	router.ServeHTTP(deniedRec, denied)
+			opts := middleware.CORSOptions{
+				AllowedOrigins:   tc.allowed,
+				AllowedMethods:   []string{"GET"},
+				AllowCredentials: true,
+			}
 
-	if got := deniedRec.Header().Get("Access-Control-Allow-Origin"); got != "" {
-		t.Fatalf("denied origin header = %q; want empty", got)
+			rec, _ := runCORS(t, opts, http.MethodGet, tc.origin, "")
+			if got := rec.Header().Get("Access-Control-Allow-Origin"); got != tc.wantOrigin {
+				t.Errorf("Access-Control-Allow-Origin: got %q, want %q", got, tc.wantOrigin)
+			}
+		})
+	}
+}
+
+func TestCORSEmptyOriginsDenyAllCrossOrigin(t *testing.T) {
+	t.Parallel()
+
+	opts := middleware.CORSOptions{
+		AllowedOrigins:   []string{},
+		AllowedMethods:   []string{"GET"},
+		AllowCredentials: true,
+	}
+
+	rec, called := runCORS(t, opts, http.MethodGet, "https://evil.example", "")
+
+	if !called {
+		t.Fatal("downstream handler should still run for a same-method actual request")
+	}
+
+	if got := rec.Header().Get("Access-Control-Allow-Origin"); got != "" {
+		t.Errorf("Access-Control-Allow-Origin must be empty for an empty allow-list, got %q", got)
+	}
+
+	if got := rec.Header().Get("Access-Control-Allow-Credentials"); got != "" {
+		t.Errorf(
+			"Access-Control-Allow-Credentials must not be set when origin is denied, got %q",
+			got,
+		)
+	}
+}
+
+func TestCORSVaryHeaderOnBothPaths(t *testing.T) {
+	t.Parallel()
+
+	opts := middleware.CORSOptions{
+		AllowedOrigins: []string{"https://example.com"},
+		AllowedMethods: []string{"GET"},
+	}
+
+	// Preflight.
+	rec, _ := runCORS(t, opts, http.MethodOptions, "https://example.com", "")
+	if got := rec.Header().Get("Vary"); !strings.Contains(got, "Origin") ||
+		!strings.Contains(got, "Access-Control-Request-Method") {
+		t.Errorf("preflight Vary: got %q", got)
+	}
+
+	// Actual request.
+	rec, _ = runCORS(t, opts, http.MethodGet, "https://example.com", "")
+	if got := rec.Header().Get("Vary"); !strings.Contains(got, "Origin") ||
+		!strings.Contains(got, "Access-Control-Request-Method") {
+		t.Errorf("actual-request Vary: got %q", got)
+	}
+}
+
+// TestCORSPreflightWithoutOriginEmitsNoCORSHeaders pins the origin != "" guard
+// in CORS: a preflight that omits the Origin header must not receive any
+// Access-Control-* response headers, even under an allow-all configuration where
+// originAllowed("") would otherwise return true. The allow-all row fails if that
+// guard is removed; Allow-Methods and Allow-Credentials are non-empty and would
+// leak, whereas an empty Allow-Origin is dropped by Gin and would not surface.
+func TestCORSPreflightWithoutOriginEmitsNoCORSHeaders(t *testing.T) {
+	t.Parallel()
+
+	cases := []struct {
+		name             string
+		opts             middleware.CORSOptions
+		wantHeadersEmpty []string
+	}{
+		{
+			name: "explicit_allow_list",
+			opts: middleware.CORSOptions{
+				AllowedOrigins: []string{"https://example.com"},
+				AllowedMethods: []string{"GET"},
+			},
+			wantHeadersEmpty: []string{"Access-Control-Allow-Origin"},
+		},
+		{
+			name: "allow_all_nil_origins",
+			opts: middleware.CORSOptions{
+				AllowedOrigins: nil,
+				AllowedMethods: []string{"GET"},
+			},
+			wantHeadersEmpty: []string{
+				"Access-Control-Allow-Origin",
+				"Access-Control-Allow-Methods",
+				"Access-Control-Allow-Credentials",
+			},
+		},
+	}
+
+	for _, tc := range cases {
+		t.Run(tc.name, func(t *testing.T) {
+			t.Parallel()
+
+			rec, called := runCORS(t, tc.opts, http.MethodOptions, "", "")
+
+			if called {
+				t.Fatal("downstream handler must not run for a preflight request")
+			}
+
+			if rec.Code != http.StatusNoContent {
+				t.Errorf("status: got %d, want %d", rec.Code, http.StatusNoContent)
+			}
+
+			for _, header := range tc.wantHeadersEmpty {
+				if got := rec.Header().Get(header); got != "" {
+					t.Errorf("%s must be empty, got %q", header, got)
+				}
+			}
+		})
 	}
 }

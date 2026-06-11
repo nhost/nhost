@@ -243,11 +243,19 @@ func (cfg corsConfig) applyHeaders(c *gin.Context, origin string) {
 
 // CORS returns a Gin middleware handler that implements Cross-Origin Resource Sharing.
 //
-// Call [CORSOptions.Validate] at configuration time when configuration errors
-// should fail startup. NewRouter does this automatically; direct users that
-// intentionally preserve legacy wildcard-with-credentials behavior should set
-// UnsafeAllowAllOriginsWithCredentials explicitly.
-func CORS(opts CORSOptions) gin.HandlerFunc {
+// CORS is fail-closed: it calls [CORSOptions.Validate] and returns the resulting
+// error (ErrWildcardWithCredentials) rather than building a middleware that would
+// reflect an arbitrary Origin alongside Access-Control-Allow-Credentials: true.
+// The dangerous combination is rejected by the middleware itself, not only by
+// callers that remember to validate. Callers that intentionally preserve legacy
+// wildcard-with-credentials behavior must set UnsafeAllowAllOriginsWithCredentials
+// explicitly. Validate cannot inspect AllowOriginFunc, so a blanket-allow function
+// plus credentials is still the caller's responsibility (see AllowOriginFunc).
+func CORS(opts CORSOptions) (gin.HandlerFunc, error) {
+	if err := opts.Validate(); err != nil {
+		return nil, fmt.Errorf("invalid CORS options: %w", err)
+	}
+
 	cfg := newCORSConfig(opts)
 
 	return func(c *gin.Context) {
@@ -266,7 +274,7 @@ func CORS(opts CORSOptions) gin.HandlerFunc {
 		}
 
 		c.Next()
-	}
+	}, nil
 }
 
 func allowOriginFunc(opts CORSOptions) func(origin string) bool {
@@ -306,14 +314,4 @@ func allowOriginFunc(opts CORSOptions) func(origin string) bool {
 
 		return false
 	}
-}
-
-// ValidateCORSOptions wraps [CORSOptions.Validate] with context for callers that
-// want a package-level helper instead of invoking the method directly.
-func ValidateCORSOptions(opts CORSOptions) error {
-	if err := opts.Validate(); err != nil {
-		return fmt.Errorf("invalid CORS options: %w", err)
-	}
-
-	return nil
 }

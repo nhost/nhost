@@ -295,13 +295,18 @@ func getRouter(
 		return nil, err
 	}
 
+	corsHandler, err := oapimw.CORS(corsOpts)
+	if err != nil {
+		return nil, fmt.Errorf("building CORS middleware: %w", err)
+	}
+
 	router := gin.New()
 
 	router.Use(
 		gin.Recovery(),
 		oapimw.Tracing(),
 		oapimw.Logger(logger), //nolint:contextcheck // middleware uses each request's context.
-		oapimw.CORS(corsOpts),
+		corsHandler,
 		//nolint:contextcheck // middleware runs per-request with the request's
 		// own context; the startup ctx must not be propagated here.
 		middleware.Session(cmd.String(flagAdminSecret), jwtAuth),
