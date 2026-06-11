@@ -5,6 +5,7 @@ import (
 	"context"
 	"encoding/json"
 	"io"
+	"log/slog"
 	"net/http"
 	"net/http/httptest"
 	"net/http/httputil"
@@ -12,8 +13,10 @@ import (
 	"strings"
 	"testing"
 
+	"github.com/getkin/kin-openapi/openapi3"
 	"github.com/gin-gonic/gin"
 	sharedoapi "github.com/nhost/nhost/internal/lib/oapi"
+	oapimw "github.com/nhost/nhost/internal/lib/oapi/middleware"
 	"github.com/nhost/nhost/services/constellation/api"
 	"github.com/nhost/nhost/services/constellation/controller/middleware"
 	"github.com/nhost/nhost/services/constellation/metadata"
@@ -102,7 +105,7 @@ func buildMetadataRouterWithSource(
 		t.Fatalf("loading embedded spec: %v", err)
 	}
 
-	validatorMW := sharedoapi.NewRequestValidator(spec, NewAuthFunc())
+	validatorMW := testOpenAPIValidator(t, spec)
 
 	handler := api.NewStrictHandler(ctrl, nil)
 	api.RegisterHandlersWithOptions(router, handler, api.GinServerOptions{
@@ -115,6 +118,33 @@ func buildMetadataRouterWithSource(
 	})
 
 	return router
+}
+
+func testOpenAPIValidator(t *testing.T, spec *openapi3.T) gin.HandlerFunc {
+	t.Helper()
+
+	_, validatorMW, err := sharedoapi.NewRouter(
+		spec,
+		"",
+		NewAuthFunc(),
+		oapimw.CORSOptions{
+			AllowOriginFunc:                      nil,
+			AllowedOrigins:                       []string{},
+			AllowedMethods:                       []string{http.MethodPost},
+			AllowHeadersFunc:                     nil,
+			AllowedHeaders:                       nil,
+			ExposedHeaders:                       nil,
+			AllowCredentials:                     false,
+			MaxAge:                               "",
+			UnsafeAllowAllOriginsWithCredentials: false,
+		},
+		slog.Default(),
+	)
+	if err != nil {
+		t.Fatalf("building shared OpenAPI validator: %v", err)
+	}
+
+	return validatorMW
 }
 
 func postMetadata(

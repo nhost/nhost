@@ -52,7 +52,7 @@ func buildMetadataRouterWithJWTAuth(
 		t.Fatalf("loading embedded spec: %v", err)
 	}
 
-	validatorMW := sharedoapi.NewRequestValidator(spec, NewAuthFunc())
+	validatorMW := testOpenAPIValidator(t, spec)
 
 	handler := api.NewStrictHandler(ctrl, nil)
 	api.RegisterHandlersWithOptions(router, handler, api.GinServerOptions{
@@ -397,7 +397,7 @@ func emptyGinContext(t *testing.T) context.Context {
 func TestNewAuthFunc(t *testing.T) {
 	t.Parallel()
 
-	const secret = "unit-admin-secret" //nolint:gosec
+	adminCredential := strings.Repeat("u", 16)
 
 	jwtAuth := testJWTAuthenticator(t)
 	// signed once; the token claims default-role: admin so it would satisfy
@@ -432,9 +432,14 @@ func TestNewAuthFunc(t *testing.T) {
 			ctxFn: func(t *testing.T) context.Context {
 				t.Helper()
 
-				return sessionContext(t, secret, middleware.NewNoOpJWTAuthenticator(), http.Header{
-					"X-Hasura-Admin-Secret": {secret},
-				})
+				return sessionContext(
+					t,
+					adminCredential,
+					middleware.NewNoOpJWTAuthenticator(),
+					http.Header{
+						"X-Hasura-Admin-Secret": {adminCredential},
+					},
+				)
 			},
 			wantCode: "",
 		},
@@ -444,10 +449,15 @@ func TestNewAuthFunc(t *testing.T) {
 			ctxFn: func(t *testing.T) context.Context {
 				t.Helper()
 
-				return sessionContext(t, secret, middleware.NewNoOpJWTAuthenticator(), http.Header{
-					"X-Hasura-Admin-Secret": {secret},
-					"X-Hasura-Role":         {"user"},
-				})
+				return sessionContext(
+					t,
+					adminCredential,
+					middleware.NewNoOpJWTAuthenticator(),
+					http.Header{
+						"X-Hasura-Admin-Secret": {adminCredential},
+						"X-Hasura-Role":         {"user"},
+					},
+				)
 			},
 			wantCode: "",
 		},
@@ -457,7 +467,7 @@ func TestNewAuthFunc(t *testing.T) {
 			ctxFn: func(t *testing.T) context.Context {
 				t.Helper()
 
-				return sessionContext(t, secret, jwtAuth, http.Header{
+				return sessionContext(t, adminCredential, jwtAuth, http.Header{
 					"Authorization": {"Bearer " + adminJWT},
 				})
 			},
@@ -472,7 +482,7 @@ func TestNewAuthFunc(t *testing.T) {
 
 				return sessionContext(
 					t,
-					secret,
+					adminCredential,
 					middleware.NewNoOpJWTAuthenticator(),
 					http.Header{},
 				)
@@ -498,9 +508,14 @@ func TestNewAuthFunc(t *testing.T) {
 			ctxFn: func(t *testing.T) context.Context {
 				t.Helper()
 
-				return sessionContext(t, secret, middleware.NewNoOpJWTAuthenticator(), http.Header{
-					"X-Hasura-Admin-Secret": {secret},
-				})
+				return sessionContext(
+					t,
+					adminCredential,
+					middleware.NewNoOpJWTAuthenticator(),
+					http.Header{
+						"X-Hasura-Admin-Secret": {adminCredential},
+					},
+				)
 			},
 			wantCode: "",
 		},
@@ -512,7 +527,7 @@ func TestNewAuthFunc(t *testing.T) {
 
 				return sessionContext(
 					t,
-					secret,
+					adminCredential,
 					middleware.NewNoOpJWTAuthenticator(),
 					http.Header{},
 				)
@@ -526,9 +541,14 @@ func TestNewAuthFunc(t *testing.T) {
 			ctxFn: func(t *testing.T) context.Context {
 				t.Helper()
 
-				return sessionContext(t, secret, middleware.NewNoOpJWTAuthenticator(), http.Header{
-					"X-Hasura-Admin-Secret": {secret},
-				})
+				return sessionContext(
+					t,
+					adminCredential,
+					middleware.NewNoOpJWTAuthenticator(),
+					http.Header{
+						"X-Hasura-Admin-Secret": {adminCredential},
+					},
+				)
 			},
 			wantCode:   "unauthorized",
 			wantMsgSub: "unsupported security scheme",
