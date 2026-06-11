@@ -79,7 +79,7 @@ func TestGetCorsOptions(t *testing.T) {
 			name: "wildcard with credentials is rejected",
 			args: []string{
 				"--" + flagCORSAllowedOrigins,
-				strings.Repeat("*", 1),
+				"*",
 			},
 			wantErr:     oapimw.ErrWildcardWithCredentials,
 			wantOrigins: nil,

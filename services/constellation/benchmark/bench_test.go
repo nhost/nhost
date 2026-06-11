@@ -119,8 +119,13 @@ func buildRemoteRelRouter(
 	}
 
 	router := gin.New()
+	// Mirror the production middleware order (cmd/serve.go): Tracing before
+	// Logger so Logger takes its trace-from-context fast path instead of the
+	// no-Tracing fallback that re-parses B3 headers and clones the request
+	// context, keeping the benchmark on the path real requests follow.
 	router.Use(
 		gin.Recovery(),
+		oapimw.Tracing(),
 		oapimw.Logger(logger),
 		middleware.Session(adminSecret, nil),
 	)
@@ -141,8 +146,13 @@ func buildRouter(
 	}
 
 	router := gin.New()
+	// Mirror the production middleware order (cmd/serve.go): Tracing before
+	// Logger so Logger takes its trace-from-context fast path instead of the
+	// no-Tracing fallback that re-parses B3 headers and clones the request
+	// context, keeping the benchmark on the path real requests follow.
 	router.Use(
 		gin.Recovery(),
+		oapimw.Tracing(),
 		oapimw.Logger(logger),
 		middleware.Session(adminSecret, nil),
 	)

@@ -307,13 +307,13 @@ func TestNewRouterValidator_BodySchemaError(t *testing.T) {
 	}
 }
 
-// TestNewRouterValidator_RouteNotFoundPasses documents how the returned
+// TestNewRouterValidator_UnknownPathSurfacedAsError documents how the returned
 // validator behaves under non-production wiring where it is mounted engine-wide
 // via router.Use. In that configuration the validator runs on every request, so
 // an unknown path is surfaced as a validator/router error rather than falling
 // through cleanly. We assert only the response shape without locking in a
 // specific status, since kin-openapi wrapping has shifted between versions.
-func TestNewRouterValidator_RouteNotFoundPasses(t *testing.T) {
+func TestNewRouterValidator_UnknownPathSurfacedAsError(t *testing.T) {
 	t.Parallel()
 
 	denyAll := func(_ context.Context, input *openapi3filter.AuthenticationInput) error {
