@@ -17,14 +17,14 @@
     "test:check-links": "./check_broken_links.sh"
   },
   "dependencies": {
-    "@astrojs/markdown-remark": "^7.1.1",
-    "@astrojs/starlight": "^0.38.4",
+    "@astrojs/markdown-remark": "^7.2.0",
+    "@astrojs/starlight": "^0.38.5",
     "@astrojs/vercel": "^10.0.6",
     "@babel/parser": "^7.29.2",
     "@expressive-code/plugin-line-numbers": "^0.41.7",
     "@readme/openapi-parser": "^6.0.1",
     "@resvg/resvg-js": "^2.6.2",
-    "astro": "^6.3.1",
+    "astro": "^6.4.4",
     "github-slugger": "^2.0.0",
     "glob": "^13.0.6",
     "gray-matter": "^4.0.3",
@@ -40,6 +40,7 @@
     "linkinator": "^7.6.1",
     "prettier": "^3.8.1",
     "typedoc": "^0.28.18",
-    "typedoc-plugin-markdown": "^4.11.0"
+    "typedoc-plugin-markdown": "^4.11.0",
+    "vite": "^7.3.2"
   }
 }

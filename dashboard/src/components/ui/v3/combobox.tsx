@@ -29,6 +29,8 @@ export interface ComboboxOption {
    */
   render?: ReactNode;
   group?: string;
+  disabled?: boolean;
+  keywords?: string[];
 }
 
 export interface ComboboxProps {
@@ -68,6 +70,7 @@ export interface ComboboxProps {
    */
   open?: boolean;
   onOpenChange?: (open: boolean) => void;
+  onSearchChange?: (search: string) => void;
   popoverContentClassName?: string;
   id?: string;
   'data-testid'?: string;
@@ -93,6 +96,7 @@ const Combobox = forwardRef<HTMLButtonElement, ComboboxProps>(
       footerSlot,
       open,
       onOpenChange,
+      onSearchChange,
       popoverContentClassName,
       id,
       'data-testid': dataTestId,
@@ -160,7 +164,7 @@ const Combobox = forwardRef<HTMLButtonElement, ComboboxProps>(
         <PopoverContent
           align="start"
           className={cn(
-            'max-h-[var(--radix-popover-content-available-height)] w-[var(--radix-popover-trigger-width)] p-0',
+            'max-h-[var(--radix-popover-content-available-height)] w-auto min-w-[var(--radix-popover-trigger-width)] p-0',
             popoverContentClassName,
           )}
         >
@@ -169,6 +173,7 @@ const Combobox = forwardRef<HTMLButtonElement, ComboboxProps>(
               placeholder={searchPlaceholder}
               className="h-9"
               disabled={disabled}
+              onValueChange={onSearchChange}
             />
             <CommandList>
               <CommandEmpty>{emptyText}</CommandEmpty>
@@ -181,7 +186,8 @@ const Combobox = forwardRef<HTMLButtonElement, ComboboxProps>(
                     <CommandItem
                       key={option.value}
                       value={option.value}
-                      keywords={[option.label]}
+                      keywords={option.keywords ?? [option.label]}
+                      disabled={option.disabled}
                       onSelect={() => {
                         onChange(option.value);
                         setOpen(false);

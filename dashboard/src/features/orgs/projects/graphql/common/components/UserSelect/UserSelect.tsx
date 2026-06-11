@@ -1,9 +1,9 @@
 import { debounce } from '@mui/material/utils';
 import { useCallback, useEffect, useMemo, useState } from 'react';
-import { Autocomplete } from '@/components/ui/v2/Autocomplete';
+import { Combobox } from '@/components/ui/v3/combobox';
 import { useRemoteApplicationGQLClient } from '@/features/orgs/hooks/useRemoteApplicationGQLClient';
 import { getAdminRoles } from '@/features/orgs/projects/roles/settings/utils/getAdminRoles';
-import { isNotEmptyValue } from '@/lib/utils';
+import { cn, isNotEmptyValue } from '@/lib/utils';
 import {
   type RemoteAppGetUsersAndAuthRolesQuery,
   useRemoteAppGetUsersAndAuthRolesLazyQuery,
@@ -15,13 +15,14 @@ export interface UserSelectProps {
    */
   onUserChange: (userId: string, availableRoles: string[]) => void;
   /**
-   * Class name to be applied to the `<Autocomplete />` element.
+   * Class name to be applied to the container element.
    */
   className?: string;
 }
 
 export default function UserSelect({
   onUserChange,
+  className,
   ...props
 }: UserSelectProps) {
   const [inputValue, setInputValue] = useState('');
@@ -32,18 +33,18 @@ export default function UserSelect({
   const [adminAuthRoles, setAdminAuthRoles] = useState<string[]>(() =>
     getAdminRoles(),
   ); // Roles from the auth.roles table
+  const [selectedUserId, setSelectedUserId] = useState<string>('admin');
 
   const userApplicationClient = useRemoteApplicationGQLClient();
 
-  const [fetchAppUsers, { loading }] =
-    useRemoteAppGetUsersAndAuthRolesLazyQuery({
-      client: userApplicationClient,
-      variables: {
-        where: {},
-        limit: 250,
-        offset: 0,
-      },
-    });
+  const [fetchAppUsers] = useRemoteAppGetUsersAndAuthRolesLazyQuery({
+    client: userApplicationClient,
+    variables: {
+      where: {},
+      limit: 250,
+      offset: 0,
+    },
+  });
 
   const fetchUsers = useCallback(
     async (
@@ -102,53 +103,43 @@ export default function UserSelect({
     },
     ...users.map((user) => ({
       value: user.id,
-      label: user.displayName,
+      label: user.displayName || user.id,
       group: 'Users',
     })),
   ];
 
   return (
-    <Autocomplete
-      {...props}
-      id="user-select"
-      label="Make request as"
-      options={autocompleteOptions}
-      defaultValue={{
-        value: 'admin',
-        label: 'Admin',
-        group: 'Admin',
-      }}
-      autoComplete
-      fullWidth
-      autoSelect
-      groupBy={(option) => option.group ?? ''}
-      autoHighlight
-      includeInputInList
-      loading={loading}
-      onChange={(_event, _value, _reason, details) => {
-        setActive(false);
-        const userId = details?.option.value;
-        if (typeof userId !== 'string') {
-          return;
-        }
+    <div className={cn('flex w-full flex-col gap-2', className)}>
+      <span className="font-semibold text-muted-foreground text-xs uppercase tracking-wider">
+        Make request as
+      </span>
+      <Combobox
+        {...props}
+        value={selectedUserId}
+        onChange={(value) => {
+          if (!value) {
+            return;
+          }
+          setActive(false);
+          setSelectedUserId(value);
 
-        if (userId === 'admin') {
-          onUserChange('admin', getAdminRoles(adminAuthRoles));
-          return;
-        }
+          if (value === 'admin') {
+            onUserChange('admin', getAdminRoles(adminAuthRoles));
+            return;
+          }
 
-        const user: RemoteAppGetUsersAndAuthRolesQuery['users'][number] =
-          users.find(({ id }) => id === userId)!;
-
-        if (isNotEmptyValue(user?.roles)) {
-          const roles = user.roles.map(({ role }) => role);
-
-          onUserChange(userId, roles);
-        }
-      }}
-      onInputChange={(_event, newInputValue) => {
-        setInputValue(newInputValue);
-      }}
-    />
+          const user = users.find(({ id }) => id === value);
+          if (user && isNotEmptyValue(user.roles)) {
+            const roles = user.roles.map(({ role }) => role);
+            onUserChange(value, roles);
+          }
+        }}
+        options={autocompleteOptions}
+        placeholder="Select user..."
+        className="w-full"
+        popoverContentClassName="w-80"
+        onSearchChange={setInputValue}
+      />
+    </div>
   );
 }

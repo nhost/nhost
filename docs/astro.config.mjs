@@ -19,6 +19,21 @@ const storageAPISidebarGroup = createOpenAPISidebarGroup();
 // https://astro.build/config
 export default defineConfig({
   site: 'https://docs.nhost.io',
+  // Serve URLs without a trailing slash (e.g. /products/auth, not /products/auth/).
+  // Keeps the Starlight canonical tag and internal links in the no-slash form, and
+  // makes the Vercel adapter emit 308 redirects from old `/path/` URLs so already
+  // indexed pages and external backlinks keep working.
+  trailingSlash: 'never',
+  // Astro 6.4 moved the GFM default onto the new `markdown.processor` (unified())
+  // and left the legacy `markdown.gfm` flag undefined-by-default. But
+  // @astrojs/mdx@5.0.6 still reads the legacy flag rather than the processor, so
+  // without this our .mdx content loses GitHub-Flavored Markdown (notably tables).
+  // `markdown.gfm` is deprecated and emits a warning, but it's currently the only
+  // lever that reaches the MDX pipeline. Remove this once @astrojs/mdx adopts the
+  // processor model (then the gfm-on default applies automatically).
+  markdown: {
+    gfm: true,
+  },
   adapter: vercel({
     includeFiles: [
       './src/assets/fonts/Inter-Regular.ttf',
@@ -58,6 +73,7 @@ export default defineConfig({
         Header: './src/components/Header.astro',
         Head: './src/components/Head.astro',
         PageTitle: './src/components/PageTitle.astro',
+        TableOfContents: './src/components/TableOfContents.astro',
         ThemeSelect: './src/components/ThemeSelect.astro',
       },
       plugins: [
@@ -95,7 +111,7 @@ export default defineConfig({
             {
               id: 'getting-started',
               label: 'Getting Started',
-              link: '/getting-started/',
+              link: '/getting-started',
               items: [
                 { label: 'Getting Started', slug: 'getting-started' },
                 {
@@ -229,7 +245,7 @@ export default defineConfig({
             {
               id: 'products',
               label: 'Products',
-              link: '/products/',
+              link: '/products',
               icon: 'puzzle',
               items: [{ slug: 'products' }],
             },
@@ -237,7 +253,7 @@ export default defineConfig({
             {
               id: 'products-database',
               label: 'Database',
-              link: '/products/database/',
+              link: '/products/database',
               icon: 'seti:db',
               items: [
                 { label: 'Database', slug: 'products/database' },
@@ -258,7 +274,7 @@ export default defineConfig({
             {
               id: 'products-graphql',
               label: 'GraphQL',
-              link: '/products/graphql/',
+              link: '/products/graphql',
               icon: 'seti:graphql',
               items: [
                 { label: 'GraphQL', slug: 'products/graphql' },
@@ -299,7 +315,7 @@ export default defineConfig({
             {
               id: 'products-auth',
               label: 'Auth',
-              link: '/products/auth/',
+              link: '/products/auth',
               icon: 'seti:lock',
               items: [
                 { label: 'Auth', slug: 'products/auth' },
@@ -425,7 +441,7 @@ export default defineConfig({
             {
               id: 'products-storage',
               label: 'Storage',
-              link: '/products/storage/',
+              link: '/products/storage',
               icon: 'seti:folder',
               items: [
                 { label: 'Storage', slug: 'products/storage' },
@@ -464,7 +480,7 @@ export default defineConfig({
             {
               id: 'products-run',
               label: 'Run',
-              link: '/products/run/',
+              link: '/products/run',
               icon: 'seti:docker',
               items: [
                 { label: 'Run', slug: 'products/run' },
@@ -488,7 +504,7 @@ export default defineConfig({
             {
               id: 'products-functions',
               label: 'Functions',
-              link: '/products/functions/',
+              link: '/products/functions',
               icon: 'seti:javascript',
               items: [
                 { label: 'Functions', slug: 'products/functions' },
@@ -519,7 +535,7 @@ export default defineConfig({
             {
               id: 'products-events',
               label: 'Events',
-              link: '/products/events/',
+              link: '/products/events',
               icon: 'seti:lightning',
               items: [
                 { label: 'Events', slug: 'products/events' },
@@ -557,7 +573,7 @@ export default defineConfig({
             {
               id: 'products-ai',
               label: 'AI',
-              link: '/products/ai/',
+              link: '/products/ai',
               icon: 'star',
               items: [
                 { label: 'AI', slug: 'products/ai' },
@@ -577,7 +593,7 @@ export default defineConfig({
             {
               id: 'platform',
               label: 'Platform',
-              link: '/platform/',
+              link: '/platform',
               icon: 'laptop',
               items: [
                 {
@@ -639,7 +655,7 @@ export default defineConfig({
             {
               id: 'reference',
               label: 'Reference',
-              link: '/reference/',
+              link: '/reference',
               icon: 'open-book',
               items: [
                 { label: 'Reference', slug: 'reference' },

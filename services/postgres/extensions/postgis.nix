@@ -9,7 +9,7 @@ let
 in
 buildPGXSExtension rec {
   pname = "postgis";
-  version = "3.6.2";
+  version = "3.6.4";
 
   outputs = [
     "out"
@@ -20,7 +20,7 @@ buildPGXSExtension rec {
     owner = "postgis";
     repo = "postgis";
     tag = version;
-    hash = "sha256-zdwfk2cWUF3l6Rao3kzXdMWFs12F5545Dxkjd/DyPcQ=";
+    hash = "sha256-ZRBrZ23s0w3noFU6L3Ke9G/Z8d7xGGg3qo/2GPDpbK4=";
   };
 
   buildInputs = [
