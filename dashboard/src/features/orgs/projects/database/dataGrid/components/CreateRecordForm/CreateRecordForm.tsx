@@ -22,11 +22,16 @@ export interface CreateRecordFormProps
    */
   onSubmit?: () => Promise<unknown>;
   currentOffset: number;
+  /**
+   * Initial values to populate the form fields.
+   */
+  initialValues?: Record<string, unknown>;
 }
 
 export default function CreateRecordForm({
   onSubmit,
   currentOffset,
+  initialValues,
   ...props
 }: CreateRecordFormProps) {
   const { mutateAsync: insertRow, error, reset } = useCreateRecordMutation();
@@ -36,6 +41,10 @@ export default function CreateRecordForm({
 
   const form = useForm({
     defaultValues: props.columns.reduce((defaultValues, column) => {
+      if (initialValues && initialValues[column.id] !== undefined) {
+        return { ...defaultValues, [column.id]: initialValues[column.id] };
+      }
+
       const hasDefault = !!(column.defaultValue || column.isIdentity);
 
       if (column.type === 'boolean' && column.defaultValue) {
