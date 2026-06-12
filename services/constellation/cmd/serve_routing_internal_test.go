@@ -11,6 +11,7 @@ import (
 
 	"github.com/gin-gonic/gin"
 	"github.com/nhost/nhost/services/constellation/api"
+	"github.com/nhost/nhost/services/constellation/internal/hasuraproxy"
 )
 
 // supportedServeRoutes is the canonical list of (method, path) pairs the
@@ -115,9 +116,9 @@ func TestServeRouter_SupportedRoutesDoNotHitProxy(t *testing.T) {
 	))
 	defer upstream.Close()
 
-	proxy, err := newHasuraProxy(upstream.URL, slog.New(slog.DiscardHandler))
+	proxy, err := hasuraproxy.New(upstream.URL, slog.New(slog.DiscardHandler))
 	if err != nil {
-		t.Fatalf("newHasuraProxy: %v", err)
+		t.Fatalf("hasuraproxy.New: %v", err)
 	}
 
 	router := buildServeRouter(t, proxy)
@@ -161,6 +162,7 @@ func TestServeRouter_SupportedRoutesDoNotHitProxy(t *testing.T) {
 func TestServeRouter_UnsupportedRoutesProxiedToHasura(t *testing.T) {
 	type recorded struct {
 		method, path string
+		host         string
 		body         []byte
 		header       string
 	}
@@ -173,6 +175,7 @@ func TestServeRouter_UnsupportedRoutesProxiedToHasura(t *testing.T) {
 			hits <- recorded{
 				method: r.Method,
 				path:   r.URL.Path,
+				host:   r.Host,
 				body:   body,
 				header: r.Header.Get("X-Hasura-Admin-Secret"),
 			}
@@ -182,11 +185,12 @@ func TestServeRouter_UnsupportedRoutesProxiedToHasura(t *testing.T) {
 	))
 	defer upstream.Close()
 
-	proxy, err := newHasuraProxy(upstream.URL, slog.New(slog.DiscardHandler))
+	proxy, err := hasuraproxy.New(upstream.URL, slog.New(slog.DiscardHandler))
 	if err != nil {
-		t.Fatalf("newHasuraProxy: %v", err)
+		t.Fatalf("hasuraproxy.New: %v", err)
 	}
 
+	upstreamHost := strings.TrimPrefix(upstream.URL, "http://")
 	router := buildServeRouter(t, proxy)
 
 	front := httptest.NewServer(router)
@@ -230,6 +234,10 @@ func TestServeRouter_UnsupportedRoutesProxiedToHasura(t *testing.T) {
 				if got.method != tc.method || got.path != tc.path {
 					t.Errorf("upstream got %s %s; want %s %s",
 						got.method, got.path, tc.method, tc.path)
+				}
+
+				if got.host != upstreamHost {
+					t.Errorf("upstream Host = %q; want %q", got.host, upstreamHost)
 				}
 
 				if string(got.body) != tc.body {

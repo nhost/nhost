@@ -9,9 +9,7 @@ import (
 	"fmt"
 	"log/slog"
 	"net/http"
-	"net/http/httputil"
 	_ "net/http/pprof" //nolint:gosec // pprof is gated behind a CLI flag
-	"net/url"
 	"strings"
 	"time"
 
@@ -22,6 +20,7 @@ import (
 	"github.com/nhost/nhost/services/constellation/api"
 	"github.com/nhost/nhost/services/constellation/controller"
 	"github.com/nhost/nhost/services/constellation/controller/middleware"
+	"github.com/nhost/nhost/services/constellation/internal/hasuraproxy"
 	"github.com/nhost/nhost/services/constellation/internal/jwt"
 	"github.com/nhost/nhost/services/constellation/internal/jwt/jwtconfig"
 	"github.com/nhost/nhost/services/constellation/metadata"
@@ -345,7 +344,7 @@ func getRouter(
 	cmd *cli.Command,
 	ctrl *controller.Controller,
 	jwtAuth middleware.JWTAuthenticator,
-	hasuraProxy *httputil.ReverseProxy,
+	hasuraProxy http.Handler,
 	logger *slog.Logger,
 ) (*gin.Engine, error) {
 	corsOpts, err := getCorsOptions(ctx, cmd, logger)
@@ -444,66 +443,6 @@ func getMaxGraphQLRequestBodyBytes(cmd *cli.Command) (int64, error) {
 	return maxBodyBytes, nil
 }
 
-func newHasuraProxy(rawURL string, logger *slog.Logger) (*httputil.ReverseProxy, error) {
-	target, err := url.Parse(rawURL)
-	if err != nil {
-		return nil, fmt.Errorf("parsing %s: %w", flagHasuraUpstreamURL, err)
-	}
-
-	if target.Scheme == "" || target.Host == "" {
-		return nil, fmt.Errorf( //nolint:err113
-			"%s must be an absolute URL (scheme and host), got %q",
-			flagHasuraUpstreamURL, rawURL,
-		)
-	}
-
-	proxy := httputil.NewSingleHostReverseProxy(target)
-	// NewSingleHostReverseProxy's default Director sets the URL host but
-	// leaves req.Host as the client-supplied value, which makes the upstream
-	// see whatever the original client sent (often Constellation's own host).
-	// Anything in front of Hasura that routes by Host header (ingress, virtual
-	// hosts) breaks under that default — wrap the Director to rewrite Host
-	// to the upstream, matching the be/graphi and be/ecr-proxy idiom.
-	defaultDirector := proxy.Director
-	proxy.Director = func(req *http.Request) {
-		defaultDirector(req)
-		req.Host = target.Host
-	}
-	proxy.ErrorHandler = func(w http.ResponseWriter, r *http.Request, err error) {
-		// MaxBytesReader returns *http.MaxBytesError when the inbound body
-		// exceeds the proxy cap. Surface that as 413 (not 502) so clients
-		// and monitoring can distinguish a too-large request from a real
-		// upstream-unreachable failure.
-		if maxBytesErr, ok := errors.AsType[*http.MaxBytesError](err); ok {
-			logger.WarnContext(
-				r.Context(),
-				"proxy request body exceeded the configured limit",
-				slog.String("path", r.URL.Path),
-				slog.Int64("limit_bytes", maxBytesErr.Limit),
-			)
-			w.Header().Set("Content-Type", "application/json")
-			w.WriteHeader(http.StatusRequestEntityTooLarge)
-			_, _ = fmt.Fprintf(
-				w,
-				`{"error":"request-too-large","reason":"request body exceeds the %d-byte limit"}`,
-				maxBytesErr.Limit,
-			)
-
-			return
-		}
-
-		logger.ErrorContext(
-			r.Context(),
-			"failed to proxy request to hasura upstream",
-			slog.String("path", r.URL.Path),
-			slog.String("error", err.Error()),
-		)
-		w.WriteHeader(http.StatusBadGateway)
-	}
-
-	return proxy, nil
-}
-
 // initJWTAuth builds a JWT authenticator from the configured secrets. At least
 // one JWT secret is required: an empty configuration is a fatal
 // misconfiguration, not a request to disable authentication. Starting with
@@ -531,39 +470,29 @@ func initJWTAuth(
 	return jwtAuth, nil
 }
 
-func newMetadataSource( //nolint:ireturn // selected sources share the metadata.Source boundary.
-	ctx context.Context,
-	cmd *cli.Command,
-	logger *slog.Logger,
-) (metadata.Source, error) {
+func serve(ctx context.Context, cmd *cli.Command) error {
+	logger := getLogger(cmd.Bool(flagDebug), cmd.Bool(flagLogFormatTEXT))
+	logger.InfoContext(ctx, cmd.Root().Name+" v"+cmd.Root().Version)
+	logFlags(ctx, logger, cmd)
+
+	var metadataSource metadata.Source
 	if metaDBURL := cmd.String(flagMetadataDatabaseURL); metaDBURL != "" {
-		source, err := source.NewDatabaseMetadataSource(
+		databaseMetadataSource, err := source.NewDatabaseMetadataSource(
 			ctx,
 			metaDBURL,
 			time.Second,
 			logger,
 		)
 		if err != nil {
-			return nil, fmt.Errorf("creating database metadata source: %w", err)
+			return fmt.Errorf("creating database metadata source: %w", err)
 		}
 
-		return source, nil
+		metadataSource = databaseMetadataSource
+	} else {
+		metadataSource = source.NewFileMetadataSource(cmd.String(flagMetadataPath))
 	}
 
-	return source.NewFileMetadataSource(cmd.String(flagMetadataPath)), nil
-}
-
-func serve(ctx context.Context, cmd *cli.Command) error {
-	logger := getLogger(cmd.Bool(flagDebug), cmd.Bool(flagLogFormatTEXT))
-	logger.InfoContext(ctx, cmd.Root().Name+" v"+cmd.Root().Version)
-	logFlags(ctx, logger, cmd)
-
-	source, err := newMetadataSource(ctx, cmd, logger)
-	if err != nil {
-		return fmt.Errorf("failed to create metadata source: %w", err)
-	}
-
-	defer source.Close()
+	defer metadataSource.Close()
 
 	jwtAuth, err := initJWTAuth(ctx, cmd, logger)
 	if err != nil {
@@ -579,12 +508,12 @@ func serve(ctx context.Context, cmd *cli.Command) error {
 	// proxy in normal side-by-side deployments. A nil proxy means the resolved
 	// flag/env value was explicitly set empty — unimplemented routes return 404
 	// and unknown metadata ops return `not-supported`.
-	var hasuraProxy *httputil.ReverseProxy
+	var hasuraProxy http.Handler
 
 	if upstream := cmd.String(flagHasuraUpstreamURL); upstream != "" {
-		proxy, err := newHasuraProxy(upstream, logger)
+		proxy, err := hasuraproxy.New(upstream, logger)
 		if err != nil {
-			return err
+			return fmt.Errorf("invalid %s: %w", flagHasuraUpstreamURL, err)
 		}
 
 		hasuraProxy = proxy
@@ -596,7 +525,7 @@ func serve(ctx context.Context, cmd *cli.Command) error {
 		cmd.String(flagAdminSecret),
 		cmd.Bool(flagDevMode),
 		jwtAuth,
-		source,
+		metadataSource,
 		logger,
 		cmd.Root().Version,
 		hasuraProxy,
@@ -613,7 +542,7 @@ func runServer(
 	cmd *cli.Command,
 	ctrl *controller.Controller,
 	jwtAuth middleware.JWTAuthenticator,
-	hasuraProxy *httputil.ReverseProxy,
+	hasuraProxy http.Handler,
 	logger *slog.Logger,
 ) error {
 	router, err := getRouter(ctx, cmd, ctrl, jwtAuth, hasuraProxy, logger)

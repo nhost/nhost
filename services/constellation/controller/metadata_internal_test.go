@@ -8,8 +8,6 @@ import (
 	"log/slog"
 	"net/http"
 	"net/http/httptest"
-	"net/http/httputil"
-	"net/url"
 	"strings"
 	"testing"
 
@@ -20,18 +18,19 @@ import (
 	oapimw "github.com/nhost/nhost/internal/lib/oapi/middleware"
 	"github.com/nhost/nhost/services/constellation/api"
 	"github.com/nhost/nhost/services/constellation/controller/middleware"
+	"github.com/nhost/nhost/services/constellation/internal/hasuraproxy"
 	"github.com/nhost/nhost/services/constellation/metadata"
 )
 
-func testReverseProxy(t *testing.T, upstream string) *httputil.ReverseProxy {
+func testReverseProxy(t *testing.T, upstream string) http.Handler {
 	t.Helper()
 
-	target, err := url.Parse(upstream)
+	proxy, err := hasuraproxy.New(upstream, slog.New(slog.DiscardHandler))
 	if err != nil {
-		t.Fatalf("parsing upstream URL: %v", err)
+		t.Fatalf("creating test proxy: %v", err)
 	}
 
-	return httputil.NewSingleHostReverseProxy(target)
+	return proxy
 }
 
 // stubMetadataSource is a minimal metadata.Source for the metadata handler
@@ -72,7 +71,7 @@ const testMetadataBodyCap int64 = 1 * 1024 * 1024
 // is exercised (unknown ops return not-supported instead of proxying).
 func buildMetadataRouter(
 	t *testing.T,
-	proxy *httputil.ReverseProxy,
+	proxy http.Handler,
 ) http.Handler {
 	t.Helper()
 
@@ -81,7 +80,7 @@ func buildMetadataRouter(
 
 func buildMetadataRouterWithSource(
 	t *testing.T,
-	proxy *httputil.ReverseProxy,
+	proxy http.Handler,
 	source metadata.Source,
 ) http.Handler {
 	t.Helper()

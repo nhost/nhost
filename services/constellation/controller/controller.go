@@ -19,7 +19,7 @@ import (
 	"context"
 	"fmt"
 	"log/slog"
-	"net/http/httputil"
+	"net/http"
 	"sync/atomic"
 	"time"
 
@@ -138,7 +138,7 @@ type Controller struct {
 	// hasuraProxy is the per-op fallback used inside the /v1/metadata
 	// dispatcher (any metadata op not yet migrated). Nil when no upstream
 	// is configured — unknown ops then return `not-supported`.
-	hasuraProxy *httputil.ReverseProxy
+	hasuraProxy http.Handler
 }
 
 // New constructs a Controller, performing the initial metadata load and
@@ -153,7 +153,7 @@ func New(
 	source metadata.Source,
 	logger *slog.Logger,
 	version string,
-	hasuraProxy *httputil.ReverseProxy,
+	hasuraProxy http.Handler,
 ) (*Controller, error) {
 	meta, err := source.InitialLoad(ctx)
 	if err != nil {

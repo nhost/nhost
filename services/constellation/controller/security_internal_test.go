@@ -7,8 +7,6 @@ import (
 	"log/slog"
 	"net/http"
 	"net/http/httptest"
-	"net/http/httputil"
-	"net/url"
 	"strings"
 	"testing"
 	"time"
@@ -19,6 +17,7 @@ import (
 	sharedoapi "github.com/nhost/nhost/internal/lib/oapi"
 	"github.com/nhost/nhost/services/constellation/api"
 	"github.com/nhost/nhost/services/constellation/controller/middleware"
+	"github.com/nhost/nhost/services/constellation/internal/hasuraproxy"
 	"github.com/nhost/nhost/services/constellation/internal/jwt"
 	"github.com/nhost/nhost/services/constellation/internal/jwt/jwtconfig"
 	"github.com/nhost/nhost/services/constellation/metadata"
@@ -28,7 +27,7 @@ const testHMACKey = "test-secret-key-for-security-tests-32b"
 
 func buildMetadataRouterWithJWTAuth(
 	t *testing.T,
-	proxy *httputil.ReverseProxy,
+	proxy http.Handler,
 	source metadata.Source,
 	jwtAuth middleware.JWTAuthenticator,
 ) http.Handler {
@@ -191,9 +190,13 @@ func TestMetadataAcceptsBulkArrayArgs(t *testing.T) {
 	))
 	defer upstream.Close()
 
-	target, _ := url.Parse(upstream.URL)
+	proxy, err := hasuraproxy.New(upstream.URL, slog.New(slog.DiscardHandler))
+	if err != nil {
+		t.Fatalf("hasuraproxy.New: %v", err)
+	}
+
 	router := buildMetadataRouterWithJWTAuth(
-		t, httputil.NewSingleHostReverseProxy(target), nil,
+		t, proxy, nil,
 		middleware.NewNoOpJWTAuthenticator(),
 	)
 
@@ -251,11 +254,15 @@ func TestMetadataExportProxiesWhenUpstreamConfigured(t *testing.T) {
 	))
 	defer upstream.Close()
 
-	target, _ := url.Parse(upstream.URL)
+	proxy, err := hasuraproxy.New(upstream.URL, slog.New(slog.DiscardHandler))
+	if err != nil {
+		t.Fatalf("hasuraproxy.New: %v", err)
+	}
+
 	// Source is also wired with an old snapshot to prove the proxy result is
 	// returned, not the cached one.
 	router := buildMetadataRouterWithJWTAuth(
-		t, httputil.NewSingleHostReverseProxy(target),
+		t, proxy,
 		&stubMetadataSource{
 			hasura:  []byte(`{"version":3,"sources":[]}`),
 			version: 1,
