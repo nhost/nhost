@@ -22,7 +22,6 @@ let
       ../../govulncheck.yaml
       ../../internal/lib/oapi
       (fs.fileFilter (f: f.hasExt "go") ./.)
-      ../../internal/lib/oapi
       # oapi-codegen inputs consumed by `go generate` in the hermetic build.
       ./api/openapi.yaml
       ./api/server.cfg.yaml
