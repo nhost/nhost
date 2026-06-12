@@ -1,5 +1,6 @@
 package main
 
+//go:generate oapi-codegen -config api/spec.cfg.yaml api/openapi.yaml
 //go:generate oapi-codegen -config api/server.cfg.yaml api/openapi.yaml
 //go:generate oapi-codegen -config api/types.cfg.yaml api/openapi.yaml
 
