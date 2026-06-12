@@ -913,8 +913,8 @@ github.com/nhost/be/services/mimir/nhost
 github.com/nhost/be/services/mimir/schema
 github.com/nhost/be/services/mimir/schema/appconfig
 github.com/nhost/be/tools/cuegraph/types
-# github.com/oapi-codegen/runtime v1.1.1
-## explicit; go 1.20
+# github.com/oapi-codegen/runtime v1.4.1
+## explicit; go 1.24.0
 github.com/oapi-codegen/runtime
 github.com/oapi-codegen/runtime/types
 # github.com/oasdiff/yaml v0.0.0-20250309154309-f31be36b4037

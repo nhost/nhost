@@ -126,7 +126,7 @@ func getServer(
 
 	handler := api.NewStrictHandler(ctrl, []api.StrictMiddlewareFunc{})
 
-	swagger, err := api.GetSwagger()
+	swagger, err := api.GetSpec()
 	if err != nil {
 		return nil, fmt.Errorf("loading OpenAPI schema: %w", err)
 	}
