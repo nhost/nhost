@@ -52,16 +52,27 @@ func (s pgxPoolStore) Close() {
 	s.pool.Close()
 }
 
+// snapshot is the immutable (bytes, version) pair the source publishes
+// atomically so HasuraSnapshotJSON returns a consistent tuple. Reading the
+// bytes and the version through two separate atomics could observe bytes
+// from poll N alongside the version from poll N+1; storing both behind a
+// single atomic.Pointer eliminates that tearing.
+type snapshot struct {
+	raw     []byte
+	version int64
+}
+
 // DatabaseMetadataSource polls hdb_catalog.hdb_metadata for version changes.
 //
-// resourceVersion is an atomic because it is written by InitialLoad (caller
-// goroutine) and read/written by poll (Watch goroutine); the atomic keeps
-// access race-free regardless of call ordering.
+// snapshot is written by InitialLoad (caller goroutine) and rewritten by poll
+// (Watch goroutine). The atomic.Pointer keeps both fields of (raw bytes,
+// resource_version) consistent for any single Load — HasuraSnapshotJSON or
+// poll's stale-version check.
 type DatabaseMetadataSource struct {
-	store           metadataStore
-	resourceVersion atomic.Int64
-	pollInterval    time.Duration
-	logger          *slog.Logger
+	store        metadataStore
+	snapshot     atomic.Pointer[snapshot]
+	pollInterval time.Duration
+	logger       *slog.Logger
 
 	done      chan struct{}
 	closeOnce sync.Once
@@ -92,12 +103,12 @@ func newDatabaseMetadataSource(
 	logger *slog.Logger,
 ) *DatabaseMetadataSource {
 	return &DatabaseMetadataSource{
-		store:           store,
-		resourceVersion: atomic.Int64{},
-		pollInterval:    pollInterval,
-		logger:          logger,
-		done:            make(chan struct{}),
-		closeOnce:       sync.Once{},
+		store:        store,
+		snapshot:     atomic.Pointer[snapshot]{},
+		pollInterval: pollInterval,
+		logger:       logger,
+		done:         make(chan struct{}),
+		closeOnce:    sync.Once{},
 	}
 }
 
@@ -105,14 +116,26 @@ func newDatabaseMetadataSource(
 func (s *DatabaseMetadataSource) InitialLoad(
 	ctx context.Context,
 ) (*metadata.Metadata, error) {
-	meta, version, err := loadMetadataFromStore(ctx, s.store)
+	meta, raw, version, err := loadMetadataFromStore(ctx, s.store)
 	if err != nil {
 		return nil, fmt.Errorf("loading metadata from database: %w", err)
 	}
 
-	s.resourceVersion.Store(version)
+	s.snapshot.Store(&snapshot{raw: raw, version: version})
 
 	return meta, nil
+}
+
+// HasuraSnapshotJSON returns the verbatim hdb_catalog.hdb_metadata blob
+// captured at the last load (not re-marshaled, so key order and unmodeled
+// fields are preserved exactly as Hasura stored them) along with its
+// resource_version. Returns (nil, 0) before InitialLoad has succeeded.
+func (s *DatabaseMetadataSource) HasuraSnapshotJSON() ([]byte, int64) {
+	if snap := s.snapshot.Load(); snap != nil {
+		return snap.raw, snap.version
+	}
+
+	return nil, 0
 }
 
 // Watch polls for version changes and sends reloads on the returned channel.
@@ -120,7 +143,7 @@ func (s *DatabaseMetadataSource) InitialLoad(
 //
 // Watch must be called exactly once, after InitialLoad has established the
 // starting resource version. Spawning a second concurrent poller is not a
-// supported use; resourceVersion access is atomic so it stays race-free
+// supported use; snapshot pointer access is atomic so it stays race-free
 // regardless, but multiple pollers would emit redundant reloads.
 func (s *DatabaseMetadataSource) Watch(ctx context.Context) <-chan metadata.Update {
 	ch := make(chan metadata.Update)
@@ -173,22 +196,27 @@ func (s *DatabaseMetadataSource) poll(ctx context.Context) *metadata.Update {
 		return nil
 	}
 
-	if version == s.resourceVersion.Load() {
+	var oldVersion int64
+	if cur := s.snapshot.Load(); cur != nil {
+		oldVersion = cur.version
+	}
+
+	if version == oldVersion {
 		return nil
 	}
 
 	s.logger.InfoContext(
 		ctx, "metadata version changed, reloading",
-		slog.Int64("old_version", s.resourceVersion.Load()),
+		slog.Int64("old_version", oldVersion),
 		slog.Int64("new_version", version),
 	)
 
-	meta, resourceVersion, err := loadMetadataFromStore(ctx, s.store)
+	meta, raw, resourceVersion, err := loadMetadataFromStore(ctx, s.store)
 	if err != nil {
 		return &metadata.Update{Metadata: nil, Err: err}
 	}
 
-	s.resourceVersion.Store(resourceVersion)
+	s.snapshot.Store(&snapshot{raw: raw, version: resourceVersion})
 
 	return &metadata.Update{Metadata: meta, Err: nil}
 }
@@ -229,7 +257,7 @@ func fetchResourceVersion(ctx context.Context, store metadataStore) (int64, erro
 
 func loadMetadataFromStore(
 	ctx context.Context, store metadataStore,
-) (*metadata.Metadata, int64, error) {
+) (*metadata.Metadata, []byte, int64, error) {
 	var (
 		metadataJSON []byte
 		version      int64
@@ -240,13 +268,19 @@ func loadMetadataFromStore(
 		"SELECT metadata, resource_version FROM hdb_catalog.hdb_metadata WHERE id = 1",
 	).Scan(&metadataJSON, &version)
 	if err != nil {
-		return nil, 0, fmt.Errorf("querying hdb_catalog.hdb_metadata: %w", err)
+		return nil, nil, 0, fmt.Errorf("querying hdb_catalog.hdb_metadata: %w", err)
 	}
 
 	meta, err := metadata.FromHasuraJSON(metadataJSON)
 	if err != nil {
-		return nil, 0, fmt.Errorf("parsing metadata JSON: %w", err)
+		return nil, nil, 0, fmt.Errorf("parsing metadata JSON: %w", err)
 	}
 
-	return meta, version, nil
+	// Cache the original hdb_catalog.hdb_metadata bytes verbatim. export_metadata
+	// must hand back exactly what Hasura stored; re-marshaling through the parsed
+	// representation would normalize key order and drop fields the engine does not
+	// model, so the source blob is the most faithful snapshot. (The YAML/file
+	// source has no single original blob and must re-marshal via MarshalHasura;
+	// this database path does not.)
+	return meta, metadataJSON, version, nil
 }

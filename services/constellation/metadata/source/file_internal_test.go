@@ -1,6 +1,7 @@
 package source
 
 import (
+	"bytes"
 	"context"
 	"errors"
 	"testing"
@@ -16,8 +17,8 @@ func TestFileMetadataSource_InitialLoad_LoaderErrorPropagates(t *testing.T) {
 
 	src := newFileMetadataSource(
 		"/irrelevant",
-		func(_ context.Context, _ string) (*metadata.Metadata, error) {
-			return nil, errLoaderBoom
+		func(_ context.Context, _ string) (*metadata.Metadata, []byte, error) {
+			return nil, nil, errLoaderBoom
 		},
 	)
 	defer src.Close()
@@ -44,11 +45,11 @@ func TestFileMetadataSource_InitialLoad_LoaderReturnsMetadataPassthrough(t *test
 
 	src := newFileMetadataSource(
 		"/some/path.toml",
-		func(_ context.Context, path string) (*metadata.Metadata, error) {
+		func(_ context.Context, path string) (*metadata.Metadata, []byte, error) {
 			gotCalls++
 			gotPath = path
 
-			return want, nil
+			return want, nil, nil
 		},
 	)
 	defer src.Close()
@@ -68,5 +69,88 @@ func TestFileMetadataSource_InitialLoad_LoaderReturnsMetadataPassthrough(t *test
 
 	if gotCalls != 1 {
 		t.Errorf("loader calls = %d, want 1", gotCalls)
+	}
+}
+
+// TestFileMetadataSource_HasuraSnapshotJSON_StoresLoaderBytes verifies the
+// snapshot held by the file source matches the pre-conversion Hasura JSON
+// returned by the loader, with resource_version 0 (the file source has no
+// hdb_catalog counter).
+func TestFileMetadataSource_HasuraSnapshotJSON_StoresLoaderBytes(t *testing.T) {
+	t.Parallel()
+
+	want := []byte(`{"version":3,"sources":[]}`)
+
+	src := newFileMetadataSource(
+		"/some/path.yaml",
+		func(_ context.Context, _ string) (*metadata.Metadata, []byte, error) {
+			return &metadata.Metadata{Databases: nil, RemoteSchemas: nil}, want, nil
+		},
+	)
+	defer src.Close()
+
+	if _, err := src.InitialLoad(t.Context()); err != nil {
+		t.Fatalf("InitialLoad: %v", err)
+	}
+
+	gotRaw, gotVersion := src.HasuraSnapshotJSON()
+	if !bytes.Equal(gotRaw, want) {
+		t.Errorf("HasuraSnapshotJSON bytes = %q; want %q", gotRaw, want)
+	}
+
+	if gotVersion != 0 {
+		t.Errorf("HasuraSnapshotJSON version = %d; want 0", gotVersion)
+	}
+}
+
+// TestFileMetadataSource_HasuraSnapshotJSON_NilWhenLoaderReturnsNoHasura
+// covers the TOML / no-snapshot path: when the loader returns nil snapshot
+// bytes the source must not store anything and the getter must return
+// (nil, 0).
+func TestFileMetadataSource_HasuraSnapshotJSON_NilWhenLoaderReturnsNoHasura(t *testing.T) {
+	t.Parallel()
+
+	src := newFileMetadataSource(
+		"/some/path.toml",
+		func(_ context.Context, _ string) (*metadata.Metadata, []byte, error) {
+			return &metadata.Metadata{Databases: nil, RemoteSchemas: nil}, nil, nil
+		},
+	)
+	defer src.Close()
+
+	if _, err := src.InitialLoad(t.Context()); err != nil {
+		t.Fatalf("InitialLoad: %v", err)
+	}
+
+	gotRaw, gotVersion := src.HasuraSnapshotJSON()
+	if gotRaw != nil {
+		t.Errorf("HasuraSnapshotJSON bytes = %q; want nil", gotRaw)
+	}
+
+	if gotVersion != 0 {
+		t.Errorf("HasuraSnapshotJSON version = %d; want 0", gotVersion)
+	}
+}
+
+// TestFileMetadataSource_HasuraSnapshotJSON_NilBeforeLoad ensures the getter
+// returns (nil, 0) when called before InitialLoad runs.
+func TestFileMetadataSource_HasuraSnapshotJSON_NilBeforeLoad(t *testing.T) {
+	t.Parallel()
+
+	src := newFileMetadataSource(
+		"/irrelevant",
+		func(_ context.Context, _ string) (*metadata.Metadata, []byte, error) {
+			return nil, nil, nil
+		},
+	)
+	defer src.Close()
+
+	gotRaw, gotVersion := src.HasuraSnapshotJSON()
+	if gotRaw != nil {
+		t.Errorf("HasuraSnapshotJSON bytes = %q; want nil", gotRaw)
+	}
+
+	if gotVersion != 0 {
+		t.Errorf("HasuraSnapshotJSON version = %d; want 0", gotVersion)
 	}
 }

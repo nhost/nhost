@@ -15,9 +15,12 @@ import (
 
 	"github.com/99designs/gqlgen/graphql/playground"
 	"github.com/gin-gonic/gin"
+	"github.com/nhost/nhost/internal/lib/oapi"
 	oapimw "github.com/nhost/nhost/internal/lib/oapi/middleware"
+	"github.com/nhost/nhost/services/constellation/api"
 	"github.com/nhost/nhost/services/constellation/controller"
 	"github.com/nhost/nhost/services/constellation/controller/middleware"
+	"github.com/nhost/nhost/services/constellation/internal/hasuraproxy"
 	"github.com/nhost/nhost/services/constellation/internal/jwt"
 	"github.com/nhost/nhost/services/constellation/internal/jwt/jwtconfig"
 	"github.com/nhost/nhost/services/constellation/metadata"
@@ -41,8 +44,21 @@ const (
 	flagGraphQLRequestBodyLimitBytes = "graphql-request-body-limit-bytes"
 	flagHTTPReadTimeout              = "http-read-timeout"
 	//nolint:gosec // CLI flag name contains "write" but is not a credential.
-	flagHTTPWriteTimeout = "http-write-timeout"
-	flagHTTPIdleTimeout  = "http-idle-timeout"
+	flagHTTPWriteTimeout                 = "http-write-timeout"
+	flagHTTPIdleTimeout                  = "http-idle-timeout"
+	flagHasuraUpstreamURL                = "hasura-upstream-url"
+	flagHasuraProxyRequestBodyLimitBytes = "hasura-proxy-request-body-limit-bytes"
+
+	// defaultHasuraUpstreamURL intentionally targets the Nhost Hasura sidecar so
+	// compatibility endpoints proxy by default in normal side-by-side deployments.
+	// Standalone deployments can pass --hasura-upstream-url "" (or set
+	// CONSTELLATION_HASURA_UPSTREAM_URL empty) to disable the fallback.
+	defaultHasuraUpstreamURL = "http://hasura-service:8080/"
+
+	// defaultHasuraProxyRequestBodyLimitBytes bounds bodies forwarded to the
+	// Hasura upstream via the NoRoute fallback. Generous (100 MiB) so large
+	// migrations / bulk run_sql still pass, but not unbounded.
+	defaultHasuraProxyRequestBodyLimitBytes int64 = 100 * 1024 * 1024
 
 	defaultHTTPReadTimeout   = 30 * time.Second
 	defaultHTTPWriteTimeout  = 5 * time.Minute
@@ -70,7 +86,7 @@ func generalFlags() []cli.Flag {
 	}
 }
 
-func serverFlags() []cli.Flag {
+func serverFlags() []cli.Flag { //nolint:funlen // long flag list; splitting harms readability
 	return []cli.Flag{
 		&cli.BoolFlag{ //nolint:exhaustruct
 			Name:     flagEnablePlayground,
@@ -144,6 +160,43 @@ func serverFlags() []cli.Flag {
 			Value:    defaultHTTPIdleTimeout,
 			Category: "server",
 			Sources:  cli.EnvVars("CONSTELLATION_HTTP_IDLE_TIMEOUT"),
+		},
+		&cli.StringFlag{ //nolint:exhaustruct
+			Name: flagHasuraUpstreamURL,
+			Usage: "absolute URL of a Hasura instance to reverse-proxy requests " +
+				"to for endpoints Constellation does not yet serve natively " +
+				"(e.g. /v1/metadata, /v2/query, /apis/*). Defaults to " +
+				defaultHasuraUpstreamURL + " for Nhost side-by-side deployments. " +
+				"Set to an empty string to disable the proxy; when disabled, " +
+				"unhandled routes return 404",
+			Value:    defaultHasuraUpstreamURL,
+			Category: "server",
+			Sources:  cli.EnvVars("CONSTELLATION_HASURA_UPSTREAM_URL"),
+		},
+		&cli.Int64Flag{ //nolint:exhaustruct
+			Name: flagHasuraProxyRequestBodyLimitBytes,
+			Usage: "maximum request body size, in bytes, forwarded to the Hasura " +
+				"upstream by the proxy fallback for routes Constellation does not " +
+				"serve natively. 0 disables the limit",
+			Value:    defaultHasuraProxyRequestBodyLimitBytes,
+			Category: "server",
+			Sources: cli.EnvVars(
+				"CONSTELLATION_HASURA_PROXY_REQUEST_BODY_LIMIT_BYTES",
+			),
+			// Reject negative values explicitly. The runtime guard only checks
+			// `> 0`, so a negative value would silently disable the cap (same
+			// behaviour as 0) but with no operator-visible signal. Surfacing it
+			// at startup turns a silent misconfiguration into a loud error.
+			Validator: func(v int64) error {
+				if v < 0 {
+					return fmt.Errorf( //nolint:err113
+						"%s must be >= 0 (0 disables the limit), got %d",
+						flagHasuraProxyRequestBodyLimitBytes, v,
+					)
+				}
+
+				return nil
+			},
 		},
 	}
 }
@@ -238,9 +291,11 @@ func getCorsOptions(
 	}
 
 	opts := oapimw.CORSOptions{
-		AllowOriginFunc:                      nil,
-		AllowedOrigins:                       allowedOrigins,
-		AllowedMethods:                       []string{"GET", "POST", "OPTIONS"},
+		AllowOriginFunc: nil,
+		AllowedOrigins:  allowedOrigins,
+		AllowedMethods: []string{
+			"GET", "HEAD", "POST", "PUT", "PATCH", "DELETE", "OPTIONS",
+		},
 		AllowHeadersFunc:                     allowRequestHeader,
 		AllowedHeaders:                       nil,
 		ExposedHeaders:                       nil,
@@ -283,11 +338,13 @@ func playgroundHandler(path string) gin.HandlerFunc {
 	}
 }
 
+//nolint:funlen // assembles the full HTTP wiring; splitting fragments the topology
 func getRouter(
 	ctx context.Context,
 	cmd *cli.Command,
 	ctrl *controller.Controller,
 	jwtAuth middleware.JWTAuthenticator,
+	hasuraProxy http.Handler,
 	logger *slog.Logger,
 ) (*gin.Engine, error) {
 	corsOpts, err := getCorsOptions(ctx, cmd, logger)
@@ -295,32 +352,45 @@ func getRouter(
 		return nil, err
 	}
 
-	corsHandler, err := oapimw.CORS(corsOpts)
+	spec, err := api.GetSpec()
 	if err != nil {
-		return nil, fmt.Errorf("building CORS middleware: %w", err)
+		return nil, fmt.Errorf("loading embedded OpenAPI spec: %w", err)
 	}
 
-	router := gin.New()
-
-	router.Use(
-		gin.Recovery(),
-		oapimw.Tracing(),
-		oapimw.Logger(logger), //nolint:contextcheck // middleware uses each request's context.
-		corsHandler,
-		//nolint:contextcheck // middleware runs per-request with the request's
-		// own context; the startup ctx must not be propagated here.
-		middleware.Session(cmd.String(flagAdminSecret), jwtAuth),
+	router, validatorMW, err := oapi.NewRouter( //nolint:contextcheck
+		spec,
+		"",
+		controller.NewAuthFunc(),
+		corsOpts,
+		logger,
 	)
+	if err != nil {
+		return nil, fmt.Errorf("failed to create router: %w", err)
+	}
 
-	router.GET("/healthz", func(c *gin.Context) {
-		c.String(http.StatusOK, "ok")
-	})
-	router.HEAD("/healthz", func(c *gin.Context) {
-		c.Status(http.StatusOK)
-	})
+	// Session is service-specific middleware that must run after the shared
+	// logger/tracing middleware (so it can enrich the request logger) and before
+	// per-route OpenAPI validation (so NewAuthFunc can authorize against the
+	// resolved session).
+	router.Use(middleware.Session(cmd.String(flagAdminSecret), jwtAuth)) //nolint:contextcheck
 
-	router.GET("/v1/version", func(c *gin.Context) {
-		c.JSON(http.StatusOK, gin.H{"version": cmd.Root().Version})
+	proxyBodyLimit := cmd.Int64(flagHasuraProxyRequestBodyLimitBytes)
+
+	handler := api.NewStrictHandler(ctrl, nil)
+	api.RegisterHandlersWithOptions(router, handler, api.GinServerOptions{
+		BaseURL: "",
+		// Order matters: CaptureRawBody preserves the cheap ContentLength
+		// fast-path before auth, then rejects unauthenticated metadata requests
+		// before reading/allocating the body. It still enforces the streaming
+		// MaxBytesReader cap for authenticated chunked requests. The cap is the
+		// same one the proxy NoRoute path uses so a request that would succeed
+		// when routed to /v2/query is not silently rejected when routed to
+		// /v1/metadata.
+		Middlewares: []api.MiddlewareFunc{
+			api.MiddlewareFunc(controller.NewCaptureRawBody(proxyBodyLimit)), //nolint:contextcheck
+			api.MiddlewareFunc(validatorMW),
+		},
+		ErrorHandler: oapi.RecordError,
 	})
 
 	if cmd.Bool(flagEnablePlayground) {
@@ -341,6 +411,25 @@ func getRouter(
 	// to be removed when we do the one binary thing
 	router.POST("/v1", postHandler)
 	router.GET("/v1", ctrl.HandlerGet)
+
+	if hasuraProxy != nil {
+		router.NoRoute(func(c *gin.Context) {
+			// Unhandled paths (/v2/query, /apis/*) are streamed to the Hasura
+			// upstream and are reachable anonymously (Session does not abort
+			// the public role), so bound the body to avoid forwarding an
+			// unbounded payload. MaxBytesReader enforces the cap when the body
+			// is read (not on Content-Length up front); on overflow the proxy's
+			// read fails and ErrorHandler maps *http.MaxBytesError to 413.
+			// 0 disables the cap.
+			if proxyBodyLimit > 0 {
+				c.Request.Body = http.MaxBytesReader(
+					c.Writer, c.Request.Body, proxyBodyLimit,
+				)
+			}
+
+			hasuraProxy.ServeHTTP(c.Writer, c.Request)
+		})
+	}
 
 	return router, nil
 }
@@ -383,39 +472,29 @@ func initJWTAuth(
 	return jwtAuth, nil
 }
 
-func newMetadataSource( //nolint:ireturn // selected sources share the metadata.Source boundary.
-	ctx context.Context,
-	cmd *cli.Command,
-	logger *slog.Logger,
-) (metadata.Source, error) {
+func serve(ctx context.Context, cmd *cli.Command) error {
+	logger := getLogger(cmd.Bool(flagDebug), cmd.Bool(flagLogFormatTEXT))
+	logger.InfoContext(ctx, cmd.Root().Name+" v"+cmd.Root().Version)
+	logFlags(ctx, logger, cmd)
+
+	var metadataSource metadata.Source
 	if metaDBURL := cmd.String(flagMetadataDatabaseURL); metaDBURL != "" {
-		source, err := source.NewDatabaseMetadataSource(
+		databaseMetadataSource, err := source.NewDatabaseMetadataSource(
 			ctx,
 			metaDBURL,
 			time.Second,
 			logger,
 		)
 		if err != nil {
-			return nil, fmt.Errorf("creating database metadata source: %w", err)
+			return fmt.Errorf("creating database metadata source: %w", err)
 		}
 
-		return source, nil
+		metadataSource = databaseMetadataSource
+	} else {
+		metadataSource = source.NewFileMetadataSource(cmd.String(flagMetadataPath))
 	}
 
-	return source.NewFileMetadataSource(cmd.String(flagMetadataPath)), nil
-}
-
-func serve(ctx context.Context, cmd *cli.Command) error {
-	logger := getLogger(cmd.Bool(flagDebug), cmd.Bool(flagLogFormatTEXT))
-	logger.InfoContext(ctx, cmd.Root().Name+" v"+cmd.Root().Version)
-	logFlags(ctx, logger, cmd)
-
-	source, err := newMetadataSource(ctx, cmd, logger)
-	if err != nil {
-		return fmt.Errorf("failed to create metadata source: %w", err)
-	}
-
-	defer source.Close()
+	defer metadataSource.Close()
 
 	jwtAuth, err := initJWTAuth(ctx, cmd, logger)
 	if err != nil {
@@ -424,20 +503,40 @@ func serve(ctx context.Context, cmd *cli.Command) error {
 
 	defer jwtAuth.Close()
 
+	// Hasura upstream proxy. Used both as the NoRoute fallback (any path
+	// Constellation does not serve natively) and as the per-op fallback
+	// inside the /v1/metadata dispatcher (any metadata op not yet migrated).
+	// The default URL targets the Nhost Hasura sidecar so compatibility routes
+	// proxy in normal side-by-side deployments. A nil proxy means the resolved
+	// flag/env value was explicitly set empty — unimplemented routes return 404
+	// and unknown metadata ops return `not-supported`.
+	var hasuraProxy http.Handler
+
+	if upstream := cmd.String(flagHasuraUpstreamURL); upstream != "" {
+		proxy, err := hasuraproxy.New(upstream, logger)
+		if err != nil {
+			return fmt.Errorf("invalid %s: %w", flagHasuraUpstreamURL, err)
+		}
+
+		hasuraProxy = proxy
+	}
+
 	ctrl, err := controller.New(
 		ctx,
 		cmd.Duration(flagSubscriptionPollInterval),
 		cmd.String(flagAdminSecret),
 		cmd.Bool(flagDevMode),
 		jwtAuth,
-		source,
+		metadataSource,
 		logger,
+		cmd.Root().Version,
+		hasuraProxy,
 	)
 	if err != nil {
 		return fmt.Errorf("failed to create controller: %w", err)
 	}
 
-	return runServer(ctx, cmd, ctrl, jwtAuth, logger)
+	return runServer(ctx, cmd, ctrl, jwtAuth, hasuraProxy, logger)
 }
 
 func runServer(
@@ -445,9 +544,10 @@ func runServer(
 	cmd *cli.Command,
 	ctrl *controller.Controller,
 	jwtAuth middleware.JWTAuthenticator,
+	hasuraProxy http.Handler,
 	logger *slog.Logger,
 ) error {
-	router, err := getRouter(ctx, cmd, ctrl, jwtAuth, logger)
+	router, err := getRouter(ctx, cmd, ctrl, jwtAuth, hasuraProxy, logger)
 	if err != nil {
 		return fmt.Errorf("building HTTP router: %w", err)
 	}

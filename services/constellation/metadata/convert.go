@@ -59,6 +59,58 @@ func FromHasuraJSON(data []byte) (*Metadata, error) {
 	return fromHasura(h), nil
 }
 
+// FromDetectWithHasura mirrors FromDetect but also returns a pre-conversion
+// Hasura JSON snapshot when the path resolves to a Hasura YAML directory
+// layout. For TOML paths the snapshot is nil — the engine has no
+// Hasura-shaped source to serialize and `export_metadata` will return an
+// empty envelope.
+func FromDetectWithHasura(
+	ctx context.Context, path string,
+) (*Metadata, []byte, error) {
+	if strings.HasSuffix(filepath.Base(path), ".toml") {
+		data, err := os.ReadFile(path)
+		if err != nil {
+			return nil, nil, fmt.Errorf("reading TOML metadata file %s: %w", path, err)
+		}
+
+		m, err := unmarshalTOML(data)
+		if err != nil {
+			return nil, nil, err
+		}
+
+		return m, nil, nil
+	}
+
+	h, err := hasura.FromYAML(ctx, path)
+	if err != nil {
+		return nil, nil, fmt.Errorf("loading hasura metadata: %w", err)
+	}
+
+	raw, err := MarshalHasura(h)
+	if err != nil {
+		return nil, nil, fmt.Errorf("serializing hasura metadata for snapshot: %w", err)
+	}
+
+	return fromHasura(h), raw, nil
+}
+
+// MarshalHasura serializes the wire-level Hasura metadata back into the v3
+// JSON envelope. It is the inverse of [hasura.FromJSON]'s parse step (with
+// the native conversion stripped). File metadata sources capture this JSON
+// before native conversion so fields the engine does not model (actions, cron
+// triggers, event triggers, etc.) survive the round-trip required by
+// /v1/metadata's `export_metadata` operation. The reverse projection
+// *Metadata → *hasura.Metadata is intentionally not implemented — see
+// METADATA.md §3.5.
+func MarshalHasura(h *hasura.Metadata) ([]byte, error) {
+	data, err := hasura.ToJSON(h)
+	if err != nil {
+		return nil, fmt.Errorf("marshaling hasura JSON metadata: %w", err)
+	}
+
+	return data, nil
+}
+
 // fromHasuraYAML loads Hasura v3 metadata from the directory layout rooted at
 // filepath.Dir(metadataPath) and converts it to the native format. metadataPath
 // is a locator for the metadata directory only — the file it names is never
