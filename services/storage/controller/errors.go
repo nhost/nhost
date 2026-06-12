@@ -210,6 +210,15 @@ func BadDataError(err error, publicMessage string) *APIError {
 	}
 }
 
+func UnauthorizedError(err error, publicMessage string) *APIError {
+	return &APIError{
+		statusCode:    http.StatusUnauthorized,
+		publicMessage: publicMessage,
+		err:           err,
+		data:          nil,
+	}
+}
+
 func NewAPIError(
 	statusCode int,
 	publicMessage string,
