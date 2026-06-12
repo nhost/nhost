@@ -1,0 +1,21 @@
+{
+  "name": "nhost-cli-preview-linux-arm64",
+  "version": "0.0.0",
+  "description": "Nhost CLI binary for linux-arm64",
+  "os": [
+    "linux"
+  ],
+  "cpu": [
+    "arm64"
+  ],
+  "files": [
+    "nhost"
+  ],
+  "preferUnplugged": true,
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/nhost/nhost.git",
+    "directory": "cli/npm"
+  },
+  "license": "MIT"
+}
