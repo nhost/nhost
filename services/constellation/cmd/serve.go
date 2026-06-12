@@ -474,8 +474,7 @@ func newHasuraProxy(rawURL string, logger *slog.Logger) (*httputil.ReverseProxy,
 		// exceeds the proxy cap. Surface that as 413 (not 502) so clients
 		// and monitoring can distinguish a too-large request from a real
 		// upstream-unreachable failure.
-		var maxBytesErr *http.MaxBytesError
-		if errors.As(err, &maxBytesErr) {
+		if maxBytesErr, ok := errors.AsType[*http.MaxBytesError](err); ok {
 			logger.WarnContext(
 				r.Context(),
 				"proxy request body exceeded the configured limit",
