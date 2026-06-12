@@ -1,0 +1,70 @@
+---
+title: Get up and running with the Nhost CLI
+description: "Start developing locally with Nhost. Install the CLI, initialize your project, and spin up a local PostgreSQL database, GraphQL engine, Auth, and Storage."
+keywords: ["CLI", "quickstart", "local development", "Nhost CLI", "setup", "install"]
+head:
+  - tag: title
+    content: "CLI Quickstart Guide | Nhost Docs"
+sidebar:
+  label: Nhost CLI
+---
+
+The Nhost CLI is the recommended way to start building your application. It sets up a full local development environment including PostgreSQL, Hasura (GraphQL), Authentication, and Storage, tracking all migrations and metadata.
+
+### 1. Install the CLI
+
+Choose your preferred installation method:
+
+**macOS / Linux (Homebrew)**
+```sh
+brew install nhost/tap/nhost
+```
+
+**macOS / Linux (cURL script)**
+```sh
+curl -sSL https://raw.githubusercontent.com/nhost/nhost/main/cli/get.sh | bash
+```
+
+**Nix**
+```sh
+nix profile install github:nhost/nhost#cli
+```
+
+### 2. Authenticate
+
+Login to your Nhost account. This allows the CLI to link your local environment to your remote projects.
+
+```sh
+nhost login
+```
+
+### 3. Initialize a Project
+
+Initialize a new Nhost project in your current directory.
+
+```sh
+nhost init
+```
+
+If you already have a project on Nhost Cloud and want to pull down its configuration:
+```sh
+nhost init --remote
+```
+
+### 4. Start Local Environment
+
+Start the full Nhost stack locally. This uses Docker to spin up all the necessary services.
+
+```sh
+nhost up
+```
+
+Once running, your local services will be available at:
+- **Nhost Dashboard:** `http://localhost:1337`
+- **GraphQL API:** `http://localhost:1337/v1/graphql`
+- **Auth API:** `http://localhost:1337/v1/auth`
+- **Storage API:** `http://localhost:1337/v1/storage`
+
+### Next Steps
+
+Now that your local backend is running, you can connect your frontend application to it. Choose a framework quickstart from the sidebar to continue.
