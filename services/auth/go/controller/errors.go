@@ -32,7 +32,7 @@ var (
 	ErrAnonymousUsersDisabled          = &APIError{api.DisabledEndpoint}
 	ErrUserEmailNotFound               = &APIError{api.InvalidEmailPassword}
 	ErrUserPhoneNumberNotFound         = &APIError{api.InvalidRequest}
-	ErrInvalidOTP                      = &APIError{api.InvalidRequest}
+	ErrInvalidOTP                      = &APIError{api.InvalidOtp}
 	ErrUserProviderNotFound            = &APIError{api.InvalidRequest}
 	ErrSecurityKeyNotFound             = &APIError{api.InvalidRequest}
 	ErrProviderAccountAlreadyLinked    = &APIError{api.ProviderAccountAlreadyLinked}
