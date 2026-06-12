@@ -1,3 +1,14 @@
+## [constellation@0.6.1] - 2026-06-12
+
+### 🐛 Bug Fixes
+
+- *(internal/lib)* Consolidate / improve middleware into shared internal/lib/oapi (#4513)
+
+
+### ⚙️ Miscellaneous Tasks
+
+- *(nixops)* Scope pinned toolchain overlays (#4506)
+
 ## [constellation@0.6.0] - 2026-06-08
 
 ### 🚀 Features
