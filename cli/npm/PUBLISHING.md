@@ -1,8 +1,5 @@
 # Publishing (maintainers)
 
-This file is not shipped to npm — the publish script stages only `package.json`,
-`bin/nhost`, and `README.md` into the main package.
-
 ## CI (the normal path)
 
 Publishing a `cli@X.Y.Z` GitHub release (what merging the release PR does) triggers
