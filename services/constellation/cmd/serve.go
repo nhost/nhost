@@ -50,6 +50,12 @@ const (
 	flagHasuraUpstreamURL                = "hasura-upstream-url"
 	flagHasuraProxyRequestBodyLimitBytes = "hasura-proxy-request-body-limit-bytes"
 
+	// defaultHasuraUpstreamURL intentionally targets the Nhost Hasura sidecar so
+	// compatibility endpoints proxy by default in normal side-by-side deployments.
+	// Standalone deployments can pass --hasura-upstream-url "" (or set
+	// CONSTELLATION_HASURA_UPSTREAM_URL empty) to disable the fallback.
+	defaultHasuraUpstreamURL = "http://hasura-service:8080/"
+
 	// defaultHasuraProxyRequestBodyLimitBytes bounds bodies forwarded to the
 	// Hasura upstream via the NoRoute fallback. Generous (100 MiB) so large
 	// migrations / bulk run_sql still pass, but not unbounded.
@@ -160,9 +166,11 @@ func serverFlags() []cli.Flag { //nolint:funlen // long flag list; splitting har
 			Name: flagHasuraUpstreamURL,
 			Usage: "absolute URL of a Hasura instance to reverse-proxy requests " +
 				"to for endpoints Constellation does not yet serve natively " +
-				"(e.g. /v1/metadata, /v2/query, /apis/*). When empty, unhandled " +
-				"routes return 404",
-			Value:    "http://hasura-service:8080/",
+				"(e.g. /v1/metadata, /v2/query, /apis/*). Defaults to " +
+				defaultHasuraUpstreamURL + " for Nhost side-by-side deployments. " +
+				"Set to an empty string to disable the proxy; when disabled, " +
+				"unhandled routes return 404",
+			Value:    defaultHasuraUpstreamURL,
 			Category: "server",
 			Sources:  cli.EnvVars("CONSTELLATION_HASURA_UPSTREAM_URL"),
 		},
@@ -568,8 +576,10 @@ func serve(ctx context.Context, cmd *cli.Command) error {
 	// Hasura upstream proxy. Used both as the NoRoute fallback (any path
 	// Constellation does not serve natively) and as the per-op fallback
 	// inside the /v1/metadata dispatcher (any metadata op not yet migrated).
-	// Nil when --hasura-upstream-url is unset — unimplemented routes return
-	// 404 and unknown metadata ops return `not-supported`.
+	// The default URL targets the Nhost Hasura sidecar so compatibility routes
+	// proxy in normal side-by-side deployments. A nil proxy means the resolved
+	// flag/env value was explicitly set empty — unimplemented routes return 404
+	// and unknown metadata ops return `not-supported`.
 	var hasuraProxy *httputil.ReverseProxy
 
 	if upstream := cmd.String(flagHasuraUpstreamURL); upstream != "" {

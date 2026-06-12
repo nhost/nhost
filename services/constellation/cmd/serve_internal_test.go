@@ -4,6 +4,7 @@ import (
 	"bytes"
 	"context"
 	"errors"
+	"fmt"
 	"log/slog"
 	"net/http"
 	"slices"
@@ -521,6 +522,8 @@ func clearFlagSourcesForTest(t *testing.T, flag cli.Flag) {
 		typedFlag.Sources = cli.ValueSourceChain{}
 	case *cli.DurationFlag:
 		typedFlag.Sources = cli.ValueSourceChain{}
+	case *cli.StringFlag:
+		typedFlag.Sources = cli.ValueSourceChain{}
 	default:
 		t.Fatalf("clearing env sources for %v: unsupported flag type %T", flag.Names(), flag)
 	}
@@ -613,6 +616,89 @@ func TestGetCorsOptionsAllowsProxiedMethods(t *testing.T) {
 				method, opts.AllowedMethods,
 			)
 		}
+	}
+}
+
+func runHasuraUpstreamURL(
+	t *testing.T,
+	flags []cli.Flag,
+	args []string,
+) (string, error) {
+	t.Helper()
+
+	var gotURL string
+
+	cmd := &cli.Command{
+		Name:  "serve",
+		Flags: flags,
+		Action: func(_ context.Context, cmd *cli.Command) error {
+			gotURL = cmd.String(flagHasuraUpstreamURL)
+
+			return nil
+		},
+	}
+
+	if err := cmd.Run(context.Background(), append([]string{"serve"}, args...)); err != nil {
+		return gotURL, fmt.Errorf("running cli: %w", err)
+	}
+
+	return gotURL, nil
+}
+
+func TestHasuraUpstreamURLDefaultAndDisable(t *testing.T) {
+	t.Parallel()
+
+	tests := []struct {
+		name string
+		args []string
+		want string
+	}{
+		{
+			name: "default targets Nhost sidecar",
+			args: nil,
+			want: defaultHasuraUpstreamURL,
+		},
+		{
+			name: "explicit empty disables proxy",
+			args: []string{"--" + flagHasuraUpstreamURL, ""},
+			want: "",
+		},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			t.Parallel()
+
+			gotURL, err := runHasuraUpstreamURL(
+				t,
+				serverFlagsWithoutEnvVarsForTest(t, flagHasuraUpstreamURL),
+				tt.args,
+			)
+			if err != nil {
+				t.Fatalf("running cli: %v", err)
+			}
+
+			if gotURL != tt.want {
+				t.Errorf("hasura upstream URL = %q; want %q", gotURL, tt.want)
+			}
+		})
+	}
+}
+
+func TestHasuraUpstreamURLEmptyEnvDisablesProxy(t *testing.T) {
+	t.Setenv("CONSTELLATION_HASURA_UPSTREAM_URL", "")
+
+	gotURL, err := runHasuraUpstreamURL(
+		t,
+		serverFlagsByNameForTest(t, flagHasuraUpstreamURL),
+		nil,
+	)
+	if err != nil {
+		t.Fatalf("running cli: %v", err)
+	}
+
+	if gotURL != "" {
+		t.Errorf("hasura upstream URL from empty env = %q; want empty", gotURL)
 	}
 }
 
