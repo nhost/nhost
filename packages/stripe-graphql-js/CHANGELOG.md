@@ -1,3 +1,33 @@
+## [@nhost/stripe-graphql-js@1.3.1] - 2026-06-12
+
+### 🐛 Bug Fixes
+
+- *(deps)* Update lodash due to vulnerability (#4108)
+- *(deps)* Update vite due to CVE (#4122)
+- *(docs)* Downgrade to vite7 due to incompatibilities (#4134)
+- *(deps)* Bump up uuid, Astro and xmldom due to CVEs (#4187)
+- *(deps)* Fix postcss XSS advisory (GHSA-qx2v-qp2m-jg93) (#4197)
+- *(ci)* Make build and check work on NixOS (#4234)
+- *(deps)* Fix fast-uri advisory (GHSA-v39h-62p7-jpjc) (#4265)
+- *(deps)* Fix ws advisory (GHSA-58qx-3vcg-4xpx) (#4307)
+- *(deps)* Bump up shellquote due to CVE (#4499)
+
+
+### ⚙️ Miscellaneous Tasks
+
+- *(ci)* Added a small wrapper around govulncheck to allow filtering some CVEs (#4112)
+- *(nixops)* Drop nix-filter input in favor of pkgs.lib.fileset (#4377)
+- *(nixops)* Scope pinned toolchain overlays (#4506)
+
+
+### Chore
+
+- *(deps)* Update various npm packages due to cves (#4073)
+- *(deps)* Update deps due to cve (#4091)
+- *(deps)* Update pnpm to v11 (#4275)
+- *(deps)* Update various packages due to CVEs (#4328)
+- *(deps)* Update vulnerable dependencies (#4338)
+
 ## [@nhost/stripe-graphql-js@1.3.0] - 2026-03-26
 
 ### 🚀 Features
