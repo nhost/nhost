@@ -1,3 +1,14 @@
+## [@nhost/nhost-js@4.7.3] - 2026-06-12
+
+### 🐛 Bug Fixes
+
+- *(deps)* Bump up shellquote due to CVE (#4499)
+
+
+### ⚙️ Miscellaneous Tasks
+
+- *(nixops)* Scope pinned toolchain overlays (#4506)
+
 ## [@nhost/nhost-js@4.7.2] - 2026-06-03
 
 ### 🐛 Bug Fixes
