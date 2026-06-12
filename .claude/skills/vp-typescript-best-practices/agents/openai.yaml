@@ -1,0 +1,4 @@
+interface:
+  display_name: "VP TypeScript Best Practices"
+  short_description: "Review TypeScript safety and type design"
+  default_prompt: "Use $vp-typescript-best-practices to write, review, or refactor TypeScript with safer type boundaries."

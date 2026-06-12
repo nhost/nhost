@@ -22,7 +22,8 @@ The document has three sections: **Repo-wide rules** apply everywhere; **Dashboa
 - `as const` for literal values.
 - **No `I` prefix** on interfaces.
 - Use optional chaining (`?.`) and nullish coalescing (`??`).
-- Use `unknown` instead of `any` when type is unknown. No `any` unless absolutely necessary.
+- Use `unknown`, never `any`, when the type is unknown. Biome (`noExplicitAny`) flags every `any` — a warning repo-wide, an error in the dashboard.
+- Avoid the non-null assertion `!`; use it only when you are certain the value is present at that point. Biome warns on it repo-wide, but the dashboard turns this rule off — there it's a human-judgment call, so don't rely on the linter to catch it.
 - Strict mode is on; respect it.
 - Use `VoidFunction` for callback types that return nothing.
 
@@ -32,8 +33,8 @@ The document has three sections: **Repo-wide rules** apply everywhere; **Dashboa
 
 ### Errors
 
-- `try/catch` with explicit error types.
-- Use `console.error` for logging errors (Biome allows `console.error`; warns on other console methods).
+- The caught value in `catch` is `unknown` (strict mode) — narrow it (e.g. `err instanceof Error`) before use; you cannot annotate a catch binding with a specific error type. In the dashboard, only throw `Error` (or a subclass) — `useThrowOnlyError` enforces it.
+- Logging: use `console.error` / `console.warn` / `console.info`. In the dashboard, Biome (`noConsole`) errors on any other method, including `console.log`.
 
 ### Comments
 
@@ -48,9 +49,8 @@ Lives in `dashboard/`. Stack: React 19, TypeScript, Next.js (file-system routing
 
 ### Imports
 
-- **Absolute imports only**, via the `@/` alias (configured in `tsconfig.json`). Example: `import Button from '@/components/ui/v3/button';`.
-- **No relative imports** (`../`, `./`) — Biome enforces this.
-- Group imports: React → external libraries → absolute imports → absolute type imports.
+- Prefer the `@/` alias (configured in `tsconfig.json` — `baseUrl: "./src"`, `@/* → ./*`). Example: `import { Button } from '@/components/ui/v3/button';` (`ui/v3` components use named exports).
+- **No parent-directory imports** (`../`) — Biome (`noRestrictedImports`) errors on these; use `@/` instead. Same-directory imports (`./sibling`) are allowed and used widely.
 - Type-only imports use `import type { Foo } from '@/types'`.
 - Imports from `@testing-library/react*` are restricted — use `@/tests/testUtils`.
 
@@ -58,9 +58,9 @@ Lives in `dashboard/`. Stack: React 19, TypeScript, Next.js (file-system routing
 
 - `.tsx` for React components.
 - Function components with TypeScript interfaces for props.
-- `React.forwardRef` for components that need ref forwarding; set `displayName`.
-- Avoid `React.FC`; prefer explicit prop types.
-- Arrow functions are allowed for components.
+- Accept `ref` as a regular prop (React 19) — `forwardRef` is no longer needed. Existing components still use `forwardRef` (~79 files) pending migration; don't add new ones.
+- Avoid `React.FC`; use explicit prop types/interfaces.
+- Components are function declarations (`function Foo() {}`). Arrow-function components exist but are rare — prefer declarations.
 - Prefer Shadcn / `ui/v3` over `ui/v2`. Use `ui/v3` for all new features.
 
 ### Naming
@@ -70,7 +70,7 @@ Lives in `dashboard/`. Stack: React 19, TypeScript, Next.js (file-system routing
 - **Variables/Functions:** camelCase.
 - **Constants:** SCREAMING_SNAKE_CASE for config; PascalCase for object constants.
 - **Types/Interfaces:** PascalCase (no `I` prefix).
-- **Files:** kebab-case for non-components, PascalCase for components.
+- **Files:** PascalCase for app/feature components (`CreateOrgFormDialog.tsx`); kebab-case for `ui/v3` Shadcn primitives (`alert-dialog.tsx`); camelCase for hooks (`useFoo.ts`) and utils (`execPromiseWithErrorToast.ts`).
 
 ### Styling
 
@@ -87,7 +87,7 @@ Lives in `dashboard/`. Stack: React 19, TypeScript, Next.js (file-system routing
 ### Forms
 
 - `react-hook-form` for forms.
-- `zod` or `yup` for validation, via `@hookform/resolvers`.
+- Validation via `@hookform/resolvers`. **New forms must use `zod`.** `yup` is legacy (~100 files) and being phased out — don't add new `yup` schemas; the goal is a single validator (`zod`).
 
 ### State
 
@@ -95,11 +95,60 @@ Lives in `dashboard/`. Stack: React 19, TypeScript, Next.js (file-system routing
 - **UI state:** local `useState` / `useReducer`.
 - **Table data:** `useTableSchemaQuery` if you only need columns / FK relations; `useTableQuery` only when you also need row data.
 
+### Effects (`useEffect`)
+
+`useEffect` is an escape hatch for synchronizing with systems *outside* React (subscriptions, the DOM, non-React widgets, network). Before reaching for one, ask **why** the code runs:
+
+- Can it be **computed from props/state**? Derive it during render (`useMemo` only if expensive).
+- Does it run because of a **user interaction**? Put it in the event handler.
+- Does it run because the component was **displayed** (or must sync with an external system)? Then an Effect is appropriate.
+
+If none of the last applies, you don't need an Effect.
+
+Do **not** use `useEffect` to:
+
+- **Compute a value** from props/state — derive it during render.
+- **Mirror one React state into another** — *including* state held in a custom hook, context provider, or store (Zustand). Wrapping state in a hook/context/store does not make it "external"; it's still React state. Set it where it originates (the event handler) or via the source's own subscription.
+- **React to a user interaction** — put that logic in the event handler, not an effect keyed on the resulting state.
+
+A mirroring effect re-runs on every change, leaves the target a render stale, and makes cleanup easy to get wrong.
+
+**Example — pushing a form's dirty flag to `DialogProvider`:**
+
+❌ effect keyed on a render value, mirroring form state → context state:
+
+```tsx
+const { setDirtySource } = useDialog();
+const { isDirty } = form.formState;
+useEffect(() => {
+  setDirtySource(DIRTY_SOURCE_ID, isDirty);
+  return () => setDirtySource(DIRTY_SOURCE_ID, false);
+}, [isDirty, setDirtySource]);
+```
+
+✅ effect that *subscribes* to the form store, keyed only on stable deps:
+
+```tsx
+const { setDirtySource } = useDialog();
+useEffect(() => {
+  const unsubscribe = form.subscribe({
+    formState: { isDirty: true },
+    callback: ({ isDirty: nextIsDirty }) =>
+      setDirtySource(DIRTY_SOURCE_ID, Boolean(nextIsDirty)),
+  });
+  return () => {
+    unsubscribe();
+    setDirtySource(DIRTY_SOURCE_ID, false);
+  };
+}, [form, setDirtySource]);
+```
+
 ### GraphQL
 
-- Generated types live in `@/utils/__generated__/graphql`.
-- `graphql-request` for simple queries; `@apollo/client` for complex cases.
-- MSW handlers in `src/tests/msw/mocks/`.
+- **Client:** `@apollo/client` is the only GraphQL client.
+- **Generated code:** types and typed Apollo hooks are generated by codegen into `@/utils/__generated__/graphql`. Use the generated hooks for almost all GraphQL operations rather than hand-writing them.
+- Some data fetching goes through TanStack Query (React Query) instead — see the **State** section.
+- **Mocking:** MSW handlers in `src/tests/msw/mocks/` (`graphql/` and `rest/` subdirs). Mock responses, not hooks.
 
 ### Navigation
 
@@ -116,7 +165,7 @@ When adding a new feature page, check whether it needs to be registered in each 
 - **API mocking:** MSW (Mock Service Worker). Mock responses, not components. Mocking hooks like `useRouter` is acceptable.
 - **Async assertions:** `waitFor()`.
 - **Next.js router:** mock with `vi.mock('next/router', ...)`.
-- **Test file naming:** `*.test.tsx` or `*.spec.tsx` alongside source files.
+- **Test file naming:** `*.test.tsx` / `*.test.ts` alongside source files.
 - Reference example: `src/features/orgs/projects/database/dataGrid/components/CustomCheckEditor/CustomCheckEditor.test.tsx` (MSW setup, `TestWrapper` with `react-hook-form`, grouping by `describe`, async assertions with `waitFor`).
 
 ### Tool usage

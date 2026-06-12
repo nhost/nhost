@@ -3,7 +3,7 @@ name: nhost_review
 description: >
   Review the current branch's diff. Generates a PR description and writes
   validated review findings to local files under `.review/`. Routes each part of
-  the diff to the right developer agent (`go-developer`, `javascript-developer`,
+  the diff to the right developer agent (`go-developer`, `react-developer`, `typescript-developer`,
   `generic-developer`) so the rules embedded in those agents drive the review.
   **MUST be invoked automatically — without waiting for the user to type the
   slash command — whenever the user asks to review, audit, critique, or get
@@ -20,7 +20,7 @@ allowed-tools: Bash, Read, Write, Grep, Glob, Agent, TaskCreate, TaskUpdate, Tas
 
 You are `nhost_review`, the orchestrator for reviewing changes in this monorepo.
 
-Your job is **routing and synthesis**. The actual rule-checking lives in the developer agents (`go-developer`, `javascript-developer`, `generic-developer`); each one loads its own CLAUDE.mds and rules doc on startup. You decide which agent gets which slice of the diff, then validate and merge their findings.
+Your job is **routing and synthesis**. The actual rule-checking lives in the developer agents (`go-developer`, `react-developer`, `typescript-developer`, `generic-developer`); each one loads its own CLAUDE.mds and rules doc on startup. You decide which agent gets which slice of the diff, then validate and merge their findings.
 
 CLAUDE.md is already loaded. Do not duplicate its contents.
 
@@ -69,20 +69,20 @@ Group the changed files into **(language, project) buckets** so each developer a
 | Extension                                     | Agent                  |
 |-----------------------------------------------|------------------------|
 | `*.go`                                        | `go-developer`         |
-| `*.ts`, `*.tsx`, `*.js`, `*.jsx`, `*.mjs`, `*.cjs` | `javascript-developer` |
+| `*.ts`, `*.tsx`, `*.js`, `*.jsx`, `*.mjs`, `*.cjs` | `react-developer` or `typescript-developer` — **by workspace, see JS/TS sub-grouping below** |
 | everything else                               | `generic-developer`    |
 
 **Project sub-grouping within each language:**
 
 - **Go:** group by the immediate Go package (directory). Don't merge unrelated packages into one agent.
-- **JS/TS:** group by workspace root — `dashboard/`, `packages/nhost-js/`, `services/functions/`, `docs/`, `examples/<name>/`. Each workspace gets its own agent.
+- **JS/TS:** route by workspace, then sub-group. The **`dashboard/`** workspace goes to **`react-developer`** (React 19 / Next.js). Everything else — **`packages/nhost-js/`**, **`services/functions/`**, and all **`examples/<name>/`** — goes to **`typescript-developer`**. Within each, give each workspace its own agent bucket. (`docs/` `.ts/.js` files also go to `typescript-developer`; `.astro` and other non-JS/TS files in `docs/` follow the "everything else" row → `generic-developer`.)
 - **Generic:** group by top-level project (`services/constellation/`, `services/auth/`, `.github/`, `flake.nix` → root, etc.). Cross-project changes (e.g. a renamed env var that flows through Go, TS, and YAML) go to a single generic-developer that traces them end-to-end.
 
 **Spawn one Agent subagent per bucket, all in a single message** so they run in parallel.
 
 Each subagent prompt must include:
 
-1. The agent type (`subagent_type`: `go-developer` / `javascript-developer` / `generic-developer`).
+1. The agent type (`subagent_type`: `go-developer` / `react-developer` / `typescript-developer` / `generic-developer`).
 2. The file list for this bucket + the relevant diff hunks.
 3. The full pre-fetched PR context (PR number, repo, base ref, etc.).
 4. An explicit instruction: **"You are in review mode. Do not edit any files. Validate every finding before reporting it. Return a JSON array of confirmed findings."**

@@ -83,4 +83,4 @@ Per-project `CLAUDE.md`s layer project-specific invariants on top of these — r
 
 ## Review Guidelines
 
-PR review uses the agents in `.claude/agents/` (`go-developer`, `javascript-developer`, `generic-developer`) and the rules docs in `.claude/docs/`. The `/nhost_review` skill routes diff hunks to the right agent automatically. When reviewing manually, apply the design-rules document that matches the language of the change, and remember to update the project's `CLAUDE.md` if structure or standards change.
+PR review uses the agents in `.claude/agents/` (`go-developer`, `react-developer`, `typescript-developer`, `generic-developer`) and the rules docs in `.claude/docs/`. The `/nhost_review` skill routes diff hunks to the right agent automatically. When reviewing manually, apply the design-rules document that matches the language of the change, and remember to update the project's `CLAUDE.md` if structure or standards change.
