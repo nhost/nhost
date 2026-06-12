@@ -1,0 +1,33 @@
+#!/usr/bin/env node
+'use strict';
+
+const { spawnSync } = require('node:child_process');
+const path = require('node:path');
+
+// Must match the platform package names (and the main package name prefix);
+// the publish script asserts this stays in sync.
+const PKG_PREFIX = '@nhost/cli';
+
+const pkg = `${PKG_PREFIX}-${process.platform}-${process.arch}`;
+
+let bin;
+try {
+  bin = path.join(path.dirname(require.resolve(`${pkg}/package.json`)), 'nhost');
+} catch {
+  console.error(`nhost: no binary available for ${process.platform}-${process.arch}.
+Supported platforms: darwin/linux on x64/arm64 (on Windows, use WSL2).
+If this platform is supported, your package manager skipped optional
+dependencies — reinstall without --no-optional / --omit=optional.`);
+  process.exit(1);
+}
+
+// Stay alive but inert so Ctrl+C reaches the Go process and it can tear
+// down containers itself (`nhost up` / `nhost dev`).
+process.on('SIGINT', () => {});
+process.on('SIGTERM', () => {});
+
+const result = spawnSync(bin, process.argv.slice(2), { stdio: 'inherit' });
+if (result.error) {
+  console.error(`nhost: failed to launch ${bin}: ${result.error.message}`);
+}
+process.exit(result.status ?? 1);

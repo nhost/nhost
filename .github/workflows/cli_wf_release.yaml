@@ -32,6 +32,8 @@ on:
         required: true
       DOCKER_PASSWORD:
         required: true
+      DISCORD_WEBHOOK:
+        required: false
 
 jobs:
   build_artifacts:
@@ -156,6 +158,54 @@ jobs:
           NIX_CACHE_ACCESS_KEY_ID: ${{ secrets.NIX_CACHE_ACCESS_KEY_ID }}
           NIX_CACHE_SECRET_ACCESS_KEY: ${{ secrets.NIX_CACHE_SECRET_ACCESS_KEY }}
         if: always()
+
+  publish-npm:
+    needs:
+      - build-multiplatform
+
+    runs-on: blacksmith-2vcpu-ubuntu-2404
+    timeout-minutes: 15
+
+    permissions:
+      id-token: write
+      contents: read
+
+    defaults:
+      run:
+        working-directory: cli/npm
+
+    steps:
+      - name: "Check out repository"
+        uses: actions/checkout@v6
+        with:
+          ref: ${{ inputs.GIT_REF }}
+
+      - name: "Setup Node"
+        uses: actions/setup-node@v6
+        with:
+          # npm >= 11.5.1 is required for OIDC trusted publishing
+          node-version: "24"
+
+      - name: "Publish to npm"
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          node scripts/publish.mjs --version ${{ inputs.VERSION }}
+
+      - name: Send Discord notification
+        if: always()
+        uses: ./.github/actions/discord-notification
+        with:
+          webhook-url: ${{ secrets.DISCORD_WEBHOOK }}
+          title: "Published @nhost/cli@${{ inputs.VERSION }} to npm"
+          description: |
+            **Status**: ${{ job.status }}
+            **Triggered by**: ${{ github.actor }}
+
+            **Details**:
+            - Version: ${{ inputs.VERSION }}
+            - Packages: @nhost/cli + 4 platform packages
+          color: ${{ job.status == 'success' && '5763719' || '15548997' }}
 
   bump-refs:
     if: ${{ !inputs.IS_PRERELEASE }}
