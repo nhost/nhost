@@ -1,5 +1,5 @@
 {
-  "name": "nhost-cli-preview-linux-arm64",
+  "name": "@nhost/cli-linux-arm64",
   "version": "0.0.0",
   "description": "Nhost CLI binary for linux-arm64",
   "os": [

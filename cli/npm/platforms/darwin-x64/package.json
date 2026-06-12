@@ -1,5 +1,5 @@
 {
-  "name": "nhost-cli-preview-darwin-x64",
+  "name": "@nhost/cli-darwin-x64",
   "version": "0.0.0",
   "description": "Nhost CLI binary for darwin-x64",
   "os": [

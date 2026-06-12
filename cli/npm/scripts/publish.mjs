@@ -187,9 +187,30 @@ function smokeTest(version, distDir) {
   log(`staged binary ok: ${out.trim()}`);
 }
 
+function alreadyPublished(name, version) {
+  const result = spawnSync('npm', ['view', `${name}@${version}`, 'version'], {
+    encoding: 'utf8',
+  });
+  return result.status === 0 && result.stdout.trim() === version;
+}
+
 function publish(pkg, version, dryRun) {
-  log(`${dryRun ? 'dry-run publish' : 'publishing'} ${pkg.name}@${version}`);
-  const args = ['publish', '--access', 'public'];
+  // The registry rejects republishing an existing version, so skip live
+  // packages — re-running after a partial failure (CI retry or manual run)
+  // then publishes only what is missing instead of dying on the conflict.
+  if (!dryRun && alreadyPublished(pkg.name, version)) {
+    log(`skipping ${pkg.name}@${version} — already on the registry`);
+    return;
+  }
+  // npm publish always applies `latest` unless --tag is given; it does not
+  // infer a tag from the semver prerelease component. Publish prereleases
+  // under `beta` (the channel wf_release_npm.yaml uses for the other @nhost
+  // packages) so they don't move `latest` for stable-channel installs.
+  const tag = version.includes('-') ? 'beta' : 'latest';
+  log(
+    `${dryRun ? 'dry-run publish' : 'publishing'} ${pkg.name}@${version} (tag: ${tag})`,
+  );
+  const args = ['publish', '--access', 'public', '--tag', tag];
   if (dryRun) {
     args.push('--dry-run');
   }

@@ -6,7 +6,7 @@ const path = require('node:path');
 
 // Must match the platform package names (and the main package name prefix);
 // the publish script asserts this stays in sync.
-const PKG_PREFIX = 'nhost-cli-preview';
+const PKG_PREFIX = '@nhost/cli';
 
 const pkg = `${PKG_PREFIX}-${process.platform}-${process.arch}`;
 

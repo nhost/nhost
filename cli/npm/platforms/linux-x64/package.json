@@ -1,5 +1,5 @@
 {
-  "name": "nhost-cli-preview-linux-x64",
+  "name": "@nhost/cli-linux-x64",
   "version": "0.0.0",
   "description": "Nhost CLI binary for linux-x64",
   "os": [

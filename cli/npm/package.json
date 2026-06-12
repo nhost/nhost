@@ -1,5 +1,5 @@
 {
-  "name": "nhost-cli-preview",
+  "name": "@nhost/cli",
   "version": "0.0.0",
   "description": "Nhost CLI — run via npx or install as a devDependency",
   "bin": {
@@ -9,10 +9,10 @@
     "bin/nhost"
   ],
   "optionalDependencies": {
-    "nhost-cli-preview-darwin-arm64": "0.0.0",
-    "nhost-cli-preview-darwin-x64": "0.0.0",
-    "nhost-cli-preview-linux-arm64": "0.0.0",
-    "nhost-cli-preview-linux-x64": "0.0.0"
+    "@nhost/cli-darwin-arm64": "0.0.0",
+    "@nhost/cli-darwin-x64": "0.0.0",
+    "@nhost/cli-linux-arm64": "0.0.0",
+    "@nhost/cli-linux-x64": "0.0.0"
   },
   "engines": {
     "node": ">=18"
