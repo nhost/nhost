@@ -1,0 +1,122 @@
+---
+title: Computed Fields
+description: Expose Postgres function results as virtual columns in your GraphQL API
+keywords: ["computed fields", "Postgres functions", "virtual columns", "GraphQL schema", "derived fields", "session argument"]
+head:
+  - tag: title
+    content: "Computed Fields: Postgres Functions as GraphQL Columns | Nhost Docs"
+sidebar:
+  label: Computed Fields
+---
+import { Steps } from '@astrojs/starlight/components';
+
+A **computed field** adds a virtual column to a table in your GraphQL API. Its value is calculated on demand by a Postgres function that receives the row, so clients can query it like any other column — and permissions can reference it the same way. No extra data is stored in the database; the field exists only in the API layer.
+
+## Use Cases
+
+- **Derived values** — combine columns into a single field, e.g. `full_name`, `age`, `slug`.
+- **Per-user state** — return a value that depends on the current session, e.g. `is_liked_by_me` on a `posts` table, using the session argument.
+- **Custom search** — return a boolean from a function that runs `to_tsvector` against several columns.
+- **Filtered sub-lists** — a function returning `SETOF <tracked_table>` exposes a parameter-driven list, e.g. an author's articles matching a search term.
+
+## Supported Postgres Functions
+
+A function can back a computed field when all of the following are true:
+
+- It takes a row of the table as one of its arguments. By default this is the first argument; set **Table Row Argument** if it's a different one.
+- Every input argument is a base scalar (`text`, `int`, `boolean`, …) or a row type (composite). Pseudo, enum, domain, and range types are not supported.
+- It is marked `STABLE` or `IMMUTABLE`. `VOLATILE` functions are not allowed — a computed field must produce the same result for the same input within a transaction.
+- It is not variadic and is not an aggregate.
+- It returns either a base type or `SETOF <tracked_table>`.
+
+A minimal `full_name` function on a `users` table looks like:
+
+```sql
+CREATE OR REPLACE FUNCTION public.user_full_name(user_row public.users)
+RETURNS text
+LANGUAGE sql
+STABLE
+AS $$
+  SELECT user_row.first_name || ' ' || user_row.last_name;
+$$;
+```
+
+The dashboard's function picker filters automatically — functions that fail the argument or volatility rules don't appear in the list. The return type is only validated when you add the field.
+
+## Adding a Computed Field
+
+![Computed Fields section](/images/graphql/computed-fields-section.png)
+
+<Steps>
+
+1. **Open the table's GraphQL settings**
+
+   In the dashboard, go to **Database**, pick the table in the sidebar, open its ⋯ menu, and choose **Edit GraphQL**. Scroll to the **Computed Fields** section.
+
+2. **Open the form**
+
+   Click **New field** to open the form. If the table has no computed fields yet, the empty state shows the same button.
+
+   ![New computed field form](/images/graphql/computed-fields-new.png)
+
+3. **Fill in the form**
+
+   - **Computed Field Name** — how the field appears in the GraphQL schema. Must start with a letter or underscore, followed by letters, digits, or underscores.
+   - **Comment** — optional. Surfaces as the field's description in GraphQL introspection.
+   - **Function Schema** and **Function Name** — pick the Postgres function that backs the field. Only functions that meet the [requirements above](#supported-postgres-functions) appear in the list.
+   - **Table Row Argument** — optional. Leave empty to use the function's first argument; set it if the row is a different argument.
+   - **Session Argument** — optional. The argument that receives the user session as JSON. When set, the function can read session variables like `x-hasura-user-id`, and the argument is hidden from the GraphQL schema so clients don't see it.
+
+4. **Need a new function?**
+
+   Type a name that doesn't exist yet into **Function Name** and pick the **Create function** option that appears. A starter `CREATE FUNCTION` template loads into an SQL editor embedded below the pickers, with the row argument for the current table already wired up — edit the body and click **Run** to create the function without leaving the form.
+
+5. **Review the definition**
+
+   Selecting an existing function loads its source SQL into the same inline editor, so you can check the definition — or tweak it and run the updated statement — before saving the field.
+
+   ![Inline function editor](/images/graphql/computed-fields-function-preview.png)
+
+6. **Save**
+
+   Click **Add**. The field is available in the GraphQL API immediately.
+
+</Steps>
+
+:::note
+Any extra arguments on the function — beyond the row and the optional session argument — become arguments on the GraphQL field, so clients can pass values into the computation at query time.
+:::
+
+## Editing and Deleting
+
+Each computed field row has two actions:
+
+- **Edit** (pencil icon) — expands the row inline with the same form. Change any field and click **Save**, or **Cancel** to revert.
+- **Delete** (trash icon) — opens a confirmation dialog and removes the field. The underlying Postgres function is not dropped.
+
+![Edit and delete actions](/images/graphql/computed-fields-row-actions.png)
+
+:::caution
+If a role's select permission on the table explicitly includes a computed field, editing or deleting the field removes it from those permissions. The editor lists the affected roles next to the **Save** button before you confirm.
+:::
+
+## Querying
+
+A computed field appears in queries alongside regular columns. Given the `full_name` example above, you can select it like any other field:
+
+```graphql
+query {
+  users {
+    id
+    first_name
+    last_name
+    full_name
+  }
+}
+```
+
+For a role to read a computed field, the field must be enabled in that role's select permission on the table. See [Permissions](/products/graphql/permissions) for how to configure column- and field-level access.
+
+For a worked example, see:
+
+- [Session-Aware Computed Fields](/products/graphql/guides/session-aware-computed-fields) — per-user membership state read from the session
