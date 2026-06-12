@@ -110,18 +110,20 @@
             '';
         });
 
-    biome = final.biome.overrideAttrs (finalAttrs: previousAttrs: {
-      version = biome_version;
+    biome = final.biome.overrideAttrs (
+      finalAttrs: previousAttrs: {
+        version = biome_version;
 
-      src = final.fetchFromGitHub {
-        owner = "biomejs";
-        repo = "biome";
-        rev = "@biomejs/biome@${biome_version}";
-        hash = "sha256-Q7yx5ZKIrZdnsG3OS9CZ3jyuv71V7l9crCwYRZDuFpU=";
-      };
+        src = final.fetchFromGitHub {
+          owner = "biomejs";
+          repo = "biome";
+          rev = "@biomejs/biome@${biome_version}";
+          hash = "sha256-Q7yx5ZKIrZdnsG3OS9CZ3jyuv71V7l9crCwYRZDuFpU=";
+        };
 
-      cargoHash = "sha256-UzTE+Grg6RaTWAYIsaKgluVsSZXbDwIK5HY9rY2oIVo=";
-    });
+        cargoHash = "sha256-UzTE+Grg6RaTWAYIsaKgluVsSZXbDwIK5HY9rY2oIVo=";
+      }
+    );
 
   }
 )
