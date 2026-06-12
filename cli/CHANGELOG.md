@@ -1,3 +1,18 @@
+## [cli@1.49.1] - 2026-06-12
+
+### 🐛 Bug Fixes
+
+- *(internal/lib)* Consolidate / improve middleware into shared internal/lib/oapi (#4513)
+- *(cli)* Correct broken Auth and Storage links in README (#4524)
+
+
+### ⚙️ Miscellaneous Tasks
+
+- *(cli)* Bump references to 1.49.0
+- *(nixops)* Scope pinned toolchain overlays (#4506)
+- *(dashboard)* Bump references to 2.66.0
+- *(nixops)* Bump oapi-codegen (#4523)
+
 ## [cli@1.49.0] - 2026-06-05
 
 ### 🚀 Features
