@@ -7,7 +7,6 @@ import (
 	"testing"
 
 	"github.com/nhost/nhost/services/constellation/metadata"
-	"github.com/nhost/nhost/services/constellation/metadata/internal/hasura"
 )
 
 // errLoaderBoom is a test sentinel used to verify loader error propagation.
@@ -18,7 +17,7 @@ func TestFileMetadataSource_InitialLoad_LoaderErrorPropagates(t *testing.T) {
 
 	src := newFileMetadataSource(
 		"/irrelevant",
-		func(_ context.Context, _ string) (*metadata.Metadata, *hasura.Metadata, error) {
+		func(_ context.Context, _ string) (*metadata.Metadata, []byte, error) {
 			return nil, nil, errLoaderBoom
 		},
 	)
@@ -46,7 +45,7 @@ func TestFileMetadataSource_InitialLoad_LoaderReturnsMetadataPassthrough(t *test
 
 	src := newFileMetadataSource(
 		"/some/path.toml",
-		func(_ context.Context, path string) (*metadata.Metadata, *hasura.Metadata, error) {
+		func(_ context.Context, path string) (*metadata.Metadata, []byte, error) {
 			gotCalls++
 			gotPath = path
 
@@ -73,24 +72,19 @@ func TestFileMetadataSource_InitialLoad_LoaderReturnsMetadataPassthrough(t *test
 	}
 }
 
-// TestFileMetadataSource_HasuraSnapshotJSON_StoresMarshaledBytes verifies the
-// snapshot held by the file source matches the MarshalHasura output of the
-// loader-returned *hasura.Metadata, with resource_version 0 (the file source
-// has no hdb_catalog counter).
-func TestFileMetadataSource_HasuraSnapshotJSON_StoresMarshaledBytes(t *testing.T) {
+// TestFileMetadataSource_HasuraSnapshotJSON_StoresLoaderBytes verifies the
+// snapshot held by the file source matches the pre-conversion Hasura JSON
+// returned by the loader, with resource_version 0 (the file source has no
+// hdb_catalog counter).
+func TestFileMetadataSource_HasuraSnapshotJSON_StoresLoaderBytes(t *testing.T) {
 	t.Parallel()
 
-	hasuraMeta := &hasura.Metadata{Databases: nil, RemoteSchemas: nil, Unknown: nil}
-
-	want, err := metadata.MarshalHasura(hasuraMeta)
-	if err != nil {
-		t.Fatalf("MarshalHasura: %v", err)
-	}
+	want := []byte(`{"version":3,"sources":[]}`)
 
 	src := newFileMetadataSource(
 		"/some/path.yaml",
-		func(_ context.Context, _ string) (*metadata.Metadata, *hasura.Metadata, error) {
-			return &metadata.Metadata{Databases: nil, RemoteSchemas: nil}, hasuraMeta, nil
+		func(_ context.Context, _ string) (*metadata.Metadata, []byte, error) {
+			return &metadata.Metadata{Databases: nil, RemoteSchemas: nil}, want, nil
 		},
 	)
 	defer src.Close()
@@ -110,15 +104,15 @@ func TestFileMetadataSource_HasuraSnapshotJSON_StoresMarshaledBytes(t *testing.T
 }
 
 // TestFileMetadataSource_HasuraSnapshotJSON_NilWhenLoaderReturnsNoHasura
-// covers the TOML / no-snapshot path: when the loader returns a nil
-// *hasura.Metadata the source must not store anything and the getter must
-// return (nil, 0).
+// covers the TOML / no-snapshot path: when the loader returns nil snapshot
+// bytes the source must not store anything and the getter must return
+// (nil, 0).
 func TestFileMetadataSource_HasuraSnapshotJSON_NilWhenLoaderReturnsNoHasura(t *testing.T) {
 	t.Parallel()
 
 	src := newFileMetadataSource(
 		"/some/path.toml",
-		func(_ context.Context, _ string) (*metadata.Metadata, *hasura.Metadata, error) {
+		func(_ context.Context, _ string) (*metadata.Metadata, []byte, error) {
 			return &metadata.Metadata{Databases: nil, RemoteSchemas: nil}, nil, nil
 		},
 	)
@@ -145,7 +139,7 @@ func TestFileMetadataSource_HasuraSnapshotJSON_NilBeforeLoad(t *testing.T) {
 
 	src := newFileMetadataSource(
 		"/irrelevant",
-		func(_ context.Context, _ string) (*metadata.Metadata, *hasura.Metadata, error) {
+		func(_ context.Context, _ string) (*metadata.Metadata, []byte, error) {
 			return nil, nil, nil
 		},
 	)

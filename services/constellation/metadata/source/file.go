@@ -7,16 +7,15 @@ import (
 	"sync/atomic"
 
 	"github.com/nhost/nhost/services/constellation/metadata"
-	"github.com/nhost/nhost/services/constellation/metadata/internal/hasura"
 )
 
 // metadataLoader is the minimal filesystem surface FileMetadataSource needs.
 // Extracted so tests can substitute a fake (see file_internal_test.go). The
-// second return value is the Hasura wire form when the path resolved to a
-// Hasura YAML directory layout; nil for TOML paths.
+// second return value is the pre-conversion Hasura JSON snapshot when the path
+// resolved to a Hasura YAML directory layout; nil for TOML paths.
 type metadataLoader func(
 	ctx context.Context, path string,
-) (*metadata.Metadata, *hasura.Metadata, error)
+) (*metadata.Metadata, []byte, error)
 
 // FileMetadataSource loads metadata from a file path once.
 type FileMetadataSource struct {
@@ -49,17 +48,12 @@ func newFileMetadataSource(path string, loader metadataLoader) *FileMetadataSour
 func (s *FileMetadataSource) InitialLoad(
 	ctx context.Context,
 ) (*metadata.Metadata, error) {
-	meta, h, err := s.loader(ctx, s.path)
+	meta, raw, err := s.loader(ctx, s.path)
 	if err != nil {
 		return nil, fmt.Errorf("loading metadata from file: %w", err)
 	}
 
-	if h != nil {
-		raw, err := metadata.MarshalHasura(h)
-		if err != nil {
-			return nil, fmt.Errorf("serializing metadata for snapshot: %w", err)
-		}
-
+	if raw != nil {
 		s.hasuraJSON.Store(&raw)
 	}
 
@@ -71,9 +65,9 @@ func (s *FileMetadataSource) Watch(_ context.Context) <-chan metadata.Update {
 	return s.ch
 }
 
-// HasuraSnapshotJSON returns the Hasura wire form (re-marshaled at load time)
-// retained from the last InitialLoad. For TOML-sourced paths the snapshot is
-// nil. The resource_version is always 0 for file sources since there is no
+// HasuraSnapshotJSON returns the pre-conversion Hasura wire form retained
+// from the last InitialLoad. For TOML-sourced paths the snapshot is nil. The
+// resource_version is always 0 for file sources since there is no
 // hdb_catalog.hdb_metadata-style counter.
 //
 // Fidelity caveat: the snapshot is a best-effort inspection view, NOT a
