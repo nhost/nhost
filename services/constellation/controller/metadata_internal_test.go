@@ -199,6 +199,41 @@ func TestMetadataRejectsWrongAdminSecret(t *testing.T) {
 	}
 }
 
+type readTrackingBody struct {
+	read bool
+}
+
+func (b *readTrackingBody) Read([]byte) (int, error) {
+	b.read = true
+
+	return 0, io.EOF
+}
+
+func (*readTrackingBody) Close() error { return nil }
+
+func TestMetadataRejectsMissingAdminSecretBeforeReadingBody(t *testing.T) {
+	t.Parallel()
+
+	router := buildMetadataRouter(t, nil)
+	body := &readTrackingBody{}
+
+	req := httptest.NewRequest(http.MethodPost, "/v1/metadata", nil)
+	req.Header.Set("Content-Type", "application/json")
+	req.ContentLength = -1
+	req.Body = body
+
+	rec := httptest.NewRecorder()
+	router.ServeHTTP(rec, req)
+
+	if rec.Code != http.StatusUnauthorized {
+		t.Fatalf("status = %d; want %d", rec.Code, http.StatusUnauthorized)
+	}
+
+	if body.read {
+		t.Errorf("unauthenticated metadata request body was read before rejection")
+	}
+}
+
 func TestMetadataBadRequestResponses(t *testing.T) {
 	t.Parallel()
 
@@ -480,9 +515,9 @@ func TestMetadataRejectsOversizedBodyBeforeAuth(t *testing.T) {
 
 	router := buildMetadataRouter(t, nil)
 
-	// Build a body just over the cap. CaptureRawBody must reject it before
-	// the admin-secret check runs — verify by sending no secret and confirming
-	// the response is 413 (the cap), not 401 (the auth check).
+	// Build a body just over the cap. The metadata preflight must reject it
+	// on ContentLength before the admin-secret check runs — verify by sending
+	// no secret and confirming the response is 413 (the cap), not 401 (auth).
 	oversized := bytes.Repeat([]byte("a"), int(testMetadataBodyCap)+1)
 
 	req := httptest.NewRequest(http.MethodPost, "/v1/metadata", bytes.NewReader(oversized))
@@ -501,12 +536,14 @@ func TestMetadataRejectsOversizedChunkedBody(t *testing.T) {
 
 	router := buildMetadataRouter(t, nil)
 
-	// Same payload but with ContentLength stripped, forcing the MaxBytesReader
-	// path inside io.ReadAll rather than the ContentLength fast-fail.
+	// Same payload but with ContentLength stripped and a valid admin secret,
+	// forcing the authenticated MaxBytesReader path inside io.ReadAll rather
+	// than the ContentLength fast-fail.
 	oversized := bytes.Repeat([]byte("a"), int(testMetadataBodyCap)+1)
 
 	req := httptest.NewRequest(http.MethodPost, "/v1/metadata", bytes.NewReader(oversized))
 	req.Header.Set("Content-Type", "application/json")
+	req.Header.Set("X-Hasura-Admin-Secret", testAdminSecret)
 	req.ContentLength = -1
 
 	rec := httptest.NewRecorder()

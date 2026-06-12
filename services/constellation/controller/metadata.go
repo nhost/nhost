@@ -11,6 +11,7 @@ import (
 
 	"github.com/gin-gonic/gin"
 	"github.com/nhost/nhost/services/constellation/api"
+	"github.com/nhost/nhost/services/constellation/controller/middleware"
 )
 
 type (
@@ -24,10 +25,10 @@ var (
 )
 
 // NewCaptureRawBody returns gin middleware that, for POST /v1/metadata only,
-// reads the request body up to maxBodyBytes, restores it for downstream
-// handlers, and stashes the raw bytes plus the original *http.Request in
-// the request context. The /v1/metadata dispatcher consumes the captured
-// bytes when falling back to the Hasura upstream proxy.
+// requires a valid admin secret, reads the request body up to maxBodyBytes,
+// restores it for downstream handlers, and stashes the raw bytes plus the
+// original *http.Request in the request context. The /v1/metadata dispatcher
+// consumes the captured bytes when falling back to the Hasura upstream proxy.
 //
 // maxBodyBytes <= 0 disables the cap (matching the proxy NoRoute path's
 // flag semantics). The cap MUST agree with the proxy fallback's cap: native
@@ -52,14 +53,24 @@ func NewCaptureRawBody(maxBodyBytes int64) gin.HandlerFunc {
 			return
 		}
 
+		session := middleware.SessionFromContext(c.Request.Context())
+		if session == nil || !session.IsAdminSecret {
+			c.AbortWithStatusJSON(http.StatusUnauthorized, gin.H{
+				"error":          "unauthorized",
+				"reason":         "admin secret required",
+				"securityScheme": securitySchemeAdminSecret,
+			})
+
+			return
+		}
+
 		if maxBodyBytes > 0 {
 			c.Request.Body = http.MaxBytesReader(c.Writer, c.Request.Body, maxBodyBytes)
 		}
 
 		raw, err := io.ReadAll(c.Request.Body)
 		if err != nil {
-			var maxBytesErr *http.MaxBytesError
-			if errors.As(err, &maxBytesErr) {
+			if _, ok := errors.AsType[*http.MaxBytesError](err); ok {
 				_ = c.Error(
 					fmt.Errorf("%w: limit is %d bytes", errMetadataBodyTooLarge, maxBodyBytes),
 				)
