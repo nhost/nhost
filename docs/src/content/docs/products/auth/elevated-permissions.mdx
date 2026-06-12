@@ -44,6 +44,7 @@ Some user information needs to be changed via Auth's API rather than via graphql
 - [/user/mfa](/reference/auth/post-user-mfa) for enabling or disabling MFA
 - [/user/webauthn/add](/reference/auth/post-user-webauthn-add) for adding security keys
 - [/pat](/reference/auth/post-pat) for PAT creation
+- the provider `connect` flow for linking an additional OAuth provider to an existing account
 
 To protect these endpoints and require the elevated claim you can use the following configuration option:
 

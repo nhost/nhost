@@ -10,6 +10,7 @@ import (
 	"github.com/google/uuid"
 	"golang.org/x/oauth2"
 
+	"github.com/nhost/nhost/internal/lib/oapi"
 	oapimw "github.com/nhost/nhost/internal/lib/oapi/middleware"
 	"github.com/nhost/nhost/services/auth/go/api"
 	"github.com/nhost/nhost/services/auth/go/oidc"
@@ -377,6 +378,27 @@ func (ctrl *Controller) signinProviderProviderCallbackConnect(
 	if err != nil {
 		logger.ErrorContext(ctx, "invalid jwt token", logError(err))
 		return ErrInvalidRequest
+	}
+
+	// Linking a provider is a permanent, sensitive write, so it must honor
+	// AUTH_REQUIRE_ELEVATED_CLAIM like every other sensitive endpoint. The
+	// spec-driven security middleware can't enforce it on this route because the
+	// token arrives in the connect parameter rather than the Authorization
+	// header, so we run the same elevated-claim check the middleware runs.
+	var requestPath string
+	if c := oapi.GetGinContext(ctx); c != nil && c.Request != nil && c.Request.URL != nil {
+		requestPath = c.Request.URL.Path
+	}
+
+	elevated, err := ctrl.wf.jwtGetter.verifyElevatedClaim(ctx, jwtToken, requestPath)
+	if err != nil {
+		logger.ErrorContext(ctx, "error verifying elevated claim", logError(err))
+		return ErrInternalServerError
+	}
+
+	if !elevated {
+		logger.WarnContext(ctx, "elevated claim required to link provider")
+		return ErrElevatedClaimRequired
 	}
 
 	// Extract user ID from JWT token
