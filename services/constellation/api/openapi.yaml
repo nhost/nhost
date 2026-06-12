@@ -111,10 +111,6 @@ paths:
             application/json:
               schema:
                 $ref: "#/components/schemas/GraphQLResponse"
-            text/event-stream:
-              schema:
-                type: string
-                description: "Server-Sent Events stream for `@defer`/`@stream` and subscriptions"
         "400":
           description: "Malformed request (invalid JSON, missing query, etc.)"
         "401":
