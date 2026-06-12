@@ -176,7 +176,9 @@ paths:
           content:
             application/json:
               schema:
-                $ref: "#/components/schemas/MetadataError"
+                oneOf:
+                  - $ref: "#/components/schemas/MetadataError"
+                  - $ref: "#/components/schemas/ValidationError"
         "401":
           description: >-
             Missing or invalid admin secret. Emitted by the shared security

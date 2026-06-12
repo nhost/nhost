@@ -108,7 +108,7 @@ func (c *Controller) MetadataRequest( //nolint:ireturn
 			"parse-failed",
 			"request body is required",
 			"$",
-		), nil
+		)
 	}
 
 	// When a Hasura upstream is configured, every op — including
@@ -137,7 +137,7 @@ func (c *Controller) MetadataRequest( //nolint:ireturn
 			req.Body.Type,
 		),
 		"$.args",
-	), nil
+	)
 }
 
 func (c *Controller) exportMetadata() (api.MetadataRequestResponseObject, error) { //nolint:ireturn
@@ -189,13 +189,23 @@ func (r metadataProxyResponse) VisitMetadataRequestResponse(w http.ResponseWrite
 // MetadataError body. 401s are produced upstream by the security middleware
 // (see NewAuthFunc), never by this handler, so the only error shape the
 // dispatcher itself emits is a 400.
-func metadataErrorResponse( //nolint:ireturn
+func metadataErrorResponse(
 	code, message, path string,
-) api.MetadataRequestResponseObject {
-	return api.MetadataRequest400JSONResponse(api.MetadataError{
+) (api.MetadataRequest400JSONResponse, error) {
+	response := api.MetadataRequest400JSONResponse{}
+
+	err := response.FromMetadataError(api.MetadataError{
 		Code:     code,
 		Error:    message,
 		Path:     &path,
 		Internal: nil,
 	})
+	if err != nil {
+		return api.MetadataRequest400JSONResponse{}, fmt.Errorf(
+			"building metadata error response: %w",
+			err,
+		)
+	}
+
+	return response, nil
 }

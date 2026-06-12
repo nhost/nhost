@@ -353,7 +353,7 @@ func getRouter(
 		return nil, err
 	}
 
-	spec, err := api.GetSwagger()
+	spec, err := api.GetSpec()
 	if err != nil {
 		return nil, fmt.Errorf("loading embedded OpenAPI spec: %w", err)
 	}

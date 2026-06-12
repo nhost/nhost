@@ -47,7 +47,7 @@ func buildMetadataRouterWithJWTAuth(
 		version:     "test",
 	}
 
-	spec, err := api.GetSwagger()
+	spec, err := api.GetSpec()
 	if err != nil {
 		t.Fatalf("loading embedded spec: %v", err)
 	}

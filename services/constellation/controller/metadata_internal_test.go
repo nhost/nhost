@@ -15,6 +15,7 @@ import (
 
 	"github.com/getkin/kin-openapi/openapi3"
 	"github.com/gin-gonic/gin"
+	"github.com/google/go-cmp/cmp"
 	sharedoapi "github.com/nhost/nhost/internal/lib/oapi"
 	oapimw "github.com/nhost/nhost/internal/lib/oapi/middleware"
 	"github.com/nhost/nhost/services/constellation/api"
@@ -100,7 +101,7 @@ func buildMetadataRouterWithSource(
 		version:     "test",
 	}
 
-	spec, err := api.GetSwagger()
+	spec, err := api.GetSpec()
 	if err != nil {
 		t.Fatalf("loading embedded spec: %v", err)
 	}
@@ -149,7 +150,7 @@ func testOpenAPIValidator(t *testing.T, spec *openapi3.T) gin.HandlerFunc {
 
 func postMetadata(
 	t *testing.T, router http.Handler, adminSecret, body string,
-) (int, api.MetadataError) {
+) (int, []byte) {
 	t.Helper()
 
 	req := httptest.NewRequest(http.MethodPost, "/v1/metadata", strings.NewReader(body))
@@ -164,11 +165,7 @@ func postMetadata(
 
 	raw, _ := io.ReadAll(rec.Body)
 
-	var err api.MetadataError
-
-	_ = json.Unmarshal(raw, &err)
-
-	return rec.Code, err
+	return rec.Code, raw
 }
 
 // Auth-rejection tests assert status only. The response body shape is owned
@@ -203,51 +200,56 @@ func TestMetadataRejectsWrongAdminSecret(t *testing.T) {
 	}
 }
 
-func TestMetadataUnknownOpReturnsNotSupportedWhenNoUpstream(t *testing.T) {
+func TestMetadataBadRequestResponses(t *testing.T) {
 	t.Parallel()
 
-	router := buildMetadataRouter(t, nil)
-
-	status, errBody := postMetadata(
-		t, router, testAdminSecret, `{"type":"pg_track_table","args":{}}`,
-	)
-
-	if status != http.StatusBadRequest {
-		t.Errorf("status = %d; want %d", status, http.StatusBadRequest)
+	tests := []struct {
+		name        string
+		requestBody string
+		wantStatus  int
+		wantBody    map[string]string
+	}{
+		{
+			name:        "handler metadata error",
+			requestBody: `{"type":"pg_track_table","args":{}}`,
+			wantStatus:  http.StatusBadRequest,
+			wantBody: map[string]string{
+				"code":  "not-supported",
+				"error": `metadata operation "pg_track_table" is not yet implemented and no Hasura upstream is configured`,
+				"path":  "$.args",
+			},
+		},
+		{
+			name:        "validator error",
+			requestBody: "not json",
+			wantStatus:  http.StatusBadRequest,
+			wantBody: map[string]string{
+				"error":  "request-validation-error",
+				"reason": "request body has an error: failed to decode request body: invalid character 'o' in literal null (expecting 'u')",
+			},
+		},
 	}
 
-	if errBody.Code != "not-supported" {
-		t.Errorf("code = %q; want %q", errBody.Code, "not-supported")
-	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			t.Parallel()
 
-	if !strings.Contains(errBody.Error, "pg_track_table") {
-		t.Errorf("error message %q does not name the op type", errBody.Error)
-	}
-}
+			router := buildMetadataRouter(t, nil)
 
-func TestMetadataMalformedBodyReturns400(t *testing.T) {
-	t.Parallel()
+			status, raw := postMetadata(t, router, testAdminSecret, tt.requestBody)
+			if status != tt.wantStatus {
+				t.Fatalf("status = %d; want %d (body: %s)", status, tt.wantStatus, raw)
+			}
 
-	router := buildMetadataRouter(t, nil)
+			var gotBody map[string]string
+			if err := json.Unmarshal(raw, &gotBody); err != nil {
+				t.Fatalf("decoding response body: %v", err)
+			}
 
-	// Missing the required `args` field; the generated wrapper still binds
-	// successfully (no schema validation at the wrapper level), so this lands
-	// in our handler with an empty `args` map and falls into the
-	// `not-supported` branch — same as the unknown-op case above.
-	//
-	// We're testing here that *truly* unparseable JSON is rejected by the
-	// wrapper itself with a 400 before reaching the handler.
-	req := httptest.NewRequest(
-		http.MethodPost, "/v1/metadata", bytes.NewReader([]byte("not json")),
-	)
-	req.Header.Set("Content-Type", "application/json")
-	req.Header.Set("X-Hasura-Admin-Secret", testAdminSecret)
-
-	rec := httptest.NewRecorder()
-	router.ServeHTTP(rec, req)
-
-	if rec.Code != http.StatusBadRequest {
-		t.Errorf("malformed JSON: status = %d; want %d", rec.Code, http.StatusBadRequest)
+			if diff := cmp.Diff(tt.wantBody, gotBody); diff != "" {
+				t.Errorf("response body mismatch (-want +got):\n%s", diff)
+			}
+		})
 	}
 }
 
