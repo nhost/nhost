@@ -280,7 +280,7 @@ func loadMetadataFromStore(
 	// must hand back exactly what Hasura stored; re-marshaling through the parsed
 	// representation would normalize key order and drop fields the engine does not
 	// model, so the source blob is the most faithful snapshot. (The YAML/file
-	// source has no single original blob and must re-marshal via MarshalHasura;
-	// this database path does not.)
+	// source has no single original blob and must re-marshal the parsed
+	// metadata back to JSON; this database path does not.)
 	return meta, metadataJSON, version, nil
 }

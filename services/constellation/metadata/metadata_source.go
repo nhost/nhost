@@ -20,7 +20,7 @@ type Update struct {
 // loaded Hasura-format metadata (e.g. a file source backed by TOML) return
 // (nil, 0). The byte slice is intentionally untyped here so callers in
 // other parts of the tree do not need to import the internal hasura
-// package; the source pre-marshals via the engine's MarshalHasura.
+// package; the source pre-marshals the Hasura wire form to JSON itself.
 type Source interface {
 	InitialLoad(ctx context.Context) (*Metadata, error)
 	Watch(ctx context.Context) <-chan Update
