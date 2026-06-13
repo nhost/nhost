@@ -717,12 +717,13 @@ func unmarshalForeignKeyConstraintJSON(data []byte) (*ForeignKeyConstraint, erro
 // populated: a bare string for a single column on the parent table, an array
 // for a composite FK on the parent, or an object with `column(s)` and `table`
 // for an FK on the target table. ManualConfiguration is emitted alongside
-// when present, mirroring the input structure.
+// when present, mirroring the input structure. Keys are emitted in
+// deterministic (sorted) order so the export is byte-stable across processes.
 func (r RelationshipUsing) MarshalJSON() ([]byte, error) {
 	out := map[string]any{}
 
-	// Re-emit any captured unknown sibling keys first; the modeled keys below
-	// never collide with them (the unknown sink excludes both modeled fields).
+	// Merge any captured unknown sibling keys; they never collide with the
+	// modeled keys below (the unknown sink excludes both modeled fields).
 	if len(r.Unknown) > 0 {
 		var extra map[string]jsontext.Value
 		if err := json.Unmarshal(r.Unknown, &extra); err != nil {
@@ -747,7 +748,10 @@ func (r RelationshipUsing) MarshalJSON() ([]byte, error) {
 		out["manual_configuration"] = r.ManualConfiguration
 	}
 
-	b, err := json.Marshal(out)
+	// Deterministic so the export is byte-stable across processes: json/v2
+	// otherwise emits this map's keys in randomized order whenever an unknown
+	// sibling key accompanies a modeled one.
+	b, err := json.Marshal(out, json.Deterministic(true))
 	if err != nil {
 		return nil, fmt.Errorf("marshaling relationship using: %w", err)
 	}

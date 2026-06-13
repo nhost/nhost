@@ -85,7 +85,12 @@ func ToJSON(m *Metadata) ([]byte, error) {
 		Unknown:       m.Unknown,
 	}
 
-	data, err := json.Marshal(&v3)
+	// Deterministic so the file-source export is byte-stable across process
+	// restarts: json/v2 otherwise emits Go-map keys (permission filters,
+	// column_config, type-name mappings, …) in randomized iteration order.
+	// Custom MarshalJSON outputs are spliced verbatim, so any that marshal a
+	// map set the option themselves — see RelationshipUsing.MarshalJSON.
+	data, err := json.Marshal(&v3, json.Deterministic(true))
 	if err != nil {
 		return nil, fmt.Errorf("failed to marshal metadata JSON: %w", err)
 	}

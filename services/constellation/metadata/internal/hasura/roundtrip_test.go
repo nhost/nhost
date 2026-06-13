@@ -313,6 +313,71 @@ func TestRoundTripJSON_PreservesUsingUnknownKeys(t *testing.T) {
 	}
 }
 
+// TestToJSON_Deterministic verifies ToJSON emits byte-identical output for the
+// same input across repeated marshals. json/v2 emits Go-map keys in randomized
+// iteration order unless json.Deterministic is set, so without it ToJSON is
+// byte-unstable in two places exercised here: the top-level marshal (the
+// type_names.mapping below) and RelationshipUsing.MarshalJSON's own map (the
+// `using` block's unknown siblings alongside foreign_key_constraint_on). This
+// guards the byte-stability the file-source export_metadata snapshot relies on;
+// without the fix it is flaky, with it the bytes are stable.
+func TestToJSON_Deterministic(t *testing.T) {
+	t.Parallel()
+
+	blob := []byte(`{
+		"version": 3,
+		"sources": [
+			{
+				"name": "default",
+				"kind": "postgres",
+				"configuration": {"connection_info": {"database_url": "postgres://x"}},
+				"customization": {
+					"root_fields": {},
+					"type_names": {"mapping": {"users": "U", "posts": "P", "comments": "C"}}
+				},
+				"tables": [
+					{
+						"table": {"name": "posts", "schema": "public"},
+						"object_relationships": [
+							{"name": "author", "using": {
+								"foreign_key_constraint_on": "author_id",
+								"x_future_z": 1,
+								"x_future_a": 2,
+								"x_future_m": 3
+							}}
+						]
+					}
+				]
+			}
+		]
+	}`)
+
+	parsed, err := hasura.FromJSON(blob)
+	if err != nil {
+		t.Fatalf("FromJSON: %v", err)
+	}
+
+	first, err := hasura.ToJSON(parsed)
+	if err != nil {
+		t.Fatalf("ToJSON: %v", err)
+	}
+
+	const iterations = 20
+	for i := range iterations {
+		got, err := hasura.ToJSON(parsed)
+		if err != nil {
+			t.Fatalf("ToJSON iteration %d: %v", i, err)
+		}
+
+		if string(got) != string(first) {
+			t.Fatalf(
+				"ToJSON output not byte-stable at iteration %d:\nfirst: %s\ngot:   %s",
+				i, first, got,
+			)
+		}
+	}
+}
+
 // Compile-time assurance the public signature stays inverse:
 // FromJSON: []byte -> *Metadata, ToJSON: *Metadata -> []byte.
 var (
