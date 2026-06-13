@@ -419,7 +419,9 @@ func getRouter(
 			// the public role), so bound the body to avoid forwarding an
 			// unbounded payload. MaxBytesReader enforces the cap when the body
 			// is read (not on Content-Length up front); on overflow the proxy's
-			// read fails and ErrorHandler maps *http.MaxBytesError to 413.
+			// read fails and the reverse proxy's own ErrorHandler
+			// (hasuraproxy.handleProxyError) maps *http.MaxBytesError to 413 —
+			// not oapi.RecordError, which only runs for the generated api routes.
 			// 0 disables the cap.
 			if proxyBodyLimit > 0 {
 				c.Request.Body = http.MaxBytesReader(

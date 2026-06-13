@@ -61,11 +61,16 @@ func FromHasuraJSON(data []byte) (*Metadata, error) {
 
 // FromDetectWithHasura mirrors FromDetect but also returns a pre-conversion
 // Hasura JSON snapshot when the path resolves to a Hasura YAML directory
-// layout. The snapshot is produced by [hasura.ToJSON] — the inverse of the
-// FromYAML parse step — so fields the native model does not capture survive
-// the round-trip that /v1/metadata's `export_metadata` relies on. For TOML
-// paths the snapshot is nil: the engine has no Hasura-shaped source to
-// serialize and `export_metadata` returns an empty envelope.
+// layout. The snapshot is a best-effort re-encoding (via [hasura.ToJSON]) of
+// what hasura.FromYAML reads from databases/ and remote_schemas.yaml — NOT a
+// lossless inverse of the source tree. FromYAML never parses a top-level
+// envelope (it leaves Metadata.Unknown nil), so unmodeled top-level keys such
+// as actions and cron_triggers are dropped; only per-struct unknown keys
+// inside the files it does read survive. A verbatim, fully-faithful snapshot
+// is available only from the database source, which caches the original
+// hdb_metadata blob; see FileMetadataSource.HasuraSnapshotJSON for the file
+// caveat. For TOML paths the snapshot is nil: the engine has no Hasura-shaped
+// source to serialize and `export_metadata` returns an empty envelope.
 func FromDetectWithHasura(
 	ctx context.Context, path string,
 ) (*Metadata, []byte, error) {

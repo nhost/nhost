@@ -843,10 +843,13 @@ type ToSourceRelationship struct {
 // preserved verbatim; the native metadata package handles the flattening and
 // the SQL→GraphQL column rename during conversion.
 //
-// The conversion is idempotent: a remote relationship whose name is already
-// present in ObjectRelationships or ArrayRelationships is skipped. This
-// keeps FromJSON ∘ ToJSON ∘ FromJSON stable, since ToJSON emits both the
-// auto-lowered relationships and the originals.
+// The conversion is idempotent: a remote relationship whose name already
+// appears in ObjectRelationships or ArrayRelationships is skipped, so
+// re-parsing an input that already carries both forms does not double-append.
+// Round-trip stability is provided separately by withoutDerivedRelationships
+// in ToJSON, which strips the lowered duplicates before marshaling (so the
+// guard never fires on the round-trip path — only on an input blob that
+// genuinely carries an object/array and a remote relationship of one name).
 func (t *TableMetadata) convertRemoteRelationships() {
 	existing := make(map[string]struct{}, len(t.ObjectRelationships)+len(t.ArrayRelationships))
 	for _, r := range t.ObjectRelationships {

@@ -43,9 +43,16 @@ func New(rawURL string, logger *slog.Logger) (*httputil.ReverseProxy, error) {
 	}
 
 	proxy := new(httputil.ReverseProxy)
-	// Rewrite is the non-deprecated ReverseProxy hook. SetURL applies the
-	// target URL/path rewrite, and the explicit Host assignment keeps upstream
-	// Host-based routing pointed at Hasura.
+	// Rewrite is the non-deprecated ReverseProxy hook. Before it runs,
+	// ReverseProxy strips Forwarded / X-Forwarded-* from req.Out and runs
+	// cleanQueryParams on req.Out.URL.RawQuery, dropping unparsable params (see
+	// the httputil.ReverseProxy docs). The capture-from-req.In / restore dance
+	// below and the joinRawQuery against the inbound RawQuery compensate for
+	// that stripping — they are load-bearing, not redundant (removing them
+	// breaks TestNewPreservesForwardedHeaders / TestNewPreservesRawQuery).
+	// SetURL rewrites the target URL/path (and clears Host); the explicit Host
+	// assignment keeps upstream Host-based routing pointed at Hasura; and
+	// SetXForwarded appends our client IP onto the restored X-Forwarded-For.
 	proxy.Rewrite = func(req *httputil.ProxyRequest) {
 		forwarded := headerValues(req.In.Header, "Forwarded")
 		xForwardedFor := headerValues(req.In.Header, "X-Forwarded-For")

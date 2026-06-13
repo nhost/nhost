@@ -51,8 +51,8 @@ func TestRoundTripJSON_RealMetadata(t *testing.T) {
 
 // TestRoundTripJSON_PreservesUnknownFields verifies that the `,unknown` tag
 // captures and re-emits envelope-level and per-struct Hasura fields the
-// engine does not model. This is the property METADATA.md §3.5 requires for
-// /v1/metadata's `export_metadata` to faithfully return the on-disk blob.
+// engine does not model. This is the property /v1/metadata's `export_metadata`
+// relies on to faithfully return the on-disk blob.
 func TestRoundTripJSON_PreservesUnknownFields(t *testing.T) {
 	t.Parallel()
 
