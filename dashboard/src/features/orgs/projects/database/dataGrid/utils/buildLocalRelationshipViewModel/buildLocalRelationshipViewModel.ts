@@ -5,7 +5,6 @@ import {
 } from '@/features/orgs/projects/database/dataGrid/types/relationships/guards';
 import type { LocalRelationshipViewModel } from '@/features/orgs/projects/database/dataGrid/types/relationships/relationships';
 import { formatEndpoint } from '@/features/orgs/projects/database/dataGrid/utils/formatEndpoint';
-import { formatForeignKeyColumns } from '@/features/orgs/projects/database/dataGrid/utils/formatForeignKeyColumns';
 import { areStrArraysEqual, isEmptyValue, isNotEmptyValue } from '@/lib/utils';
 import type {
   ArrayRelationshipItem,
@@ -62,32 +61,27 @@ export default function buildLocalRelationshipViewModel({
         localColumns = [foreignKeyConstraintOn];
 
         const matchingRelation = foreignKeyRelations.find(
-          (relation) => relation.columnName === foreignKeyConstraintOn,
+          (relation) =>
+            relation.columns.length === 1 &&
+            relation.columns[0] === foreignKeyConstraintOn,
         );
 
         if (matchingRelation) {
           remoteTableSchema = matchingRelation.referencedSchema ?? tableSchema;
           remoteTableName = matchingRelation.referencedTable;
-          remoteColumns = formatForeignKeyColumns(
-            matchingRelation.referencedColumn,
-          );
+          remoteColumns = matchingRelation.referencedColumns;
         }
       } else if (Array.isArray(foreignKeyConstraintOn)) {
         localColumns = foreignKeyConstraintOn;
 
         const matchingRelation = foreignKeyRelations.find((relation) =>
-          areStrArraysEqual(
-            formatForeignKeyColumns(relation.columnName),
-            foreignKeyConstraintOn,
-          ),
+          areStrArraysEqual(relation.columns, foreignKeyConstraintOn),
         );
 
         if (matchingRelation) {
           remoteTableSchema = matchingRelation.referencedSchema ?? tableSchema;
           remoteTableName = matchingRelation.referencedTable;
-          remoteColumns = formatForeignKeyColumns(
-            matchingRelation.referencedColumn,
-          );
+          remoteColumns = matchingRelation.referencedColumns;
         }
       }
     } else if (type === 'Array') {

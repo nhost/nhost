@@ -3,6 +3,7 @@ import type {
   ForeignKeyRelation,
   HasuraMetadataRelationship,
 } from '@/features/orgs/projects/database/dataGrid/types/dataBrowser';
+import { areStrArraysEqual } from '@/lib/utils';
 
 export interface FetchExistingRelationshipsOptions {
   dataSource: string;
@@ -21,15 +22,24 @@ function findMatchingForeignKeyForCurrentTable(
   relationship: HasuraMetadataRelationship,
   foreignKeys: ForeignKeyRelation[],
 ): ForeignKeyRelation | null {
-  const { using } = relationship;
+  const constraintOn = relationship.using.foreign_key_constraint_on;
 
-  if (typeof using.foreign_key_constraint_on !== 'string') {
-    return null;
+  if (typeof constraintOn === 'string') {
+    return (
+      foreignKeys.find(
+        (fk) => fk.columns.length === 1 && fk.columns[0] === constraintOn,
+      ) || null
+    );
   }
 
-  const columnName = using.foreign_key_constraint_on;
+  if (Array.isArray(constraintOn)) {
+    return (
+      foreignKeys.find((fk) => areStrArraysEqual(fk.columns, constraintOn)) ||
+      null
+    );
+  }
 
-  return foreignKeys.find((fk) => fk.columnName === columnName) || null;
+  return null;
 }
 
 /**
@@ -42,22 +52,26 @@ function findMatchingForeignKeyForReferencedTable(
   currentSchema: string,
   currentTable: string,
 ): ForeignKeyRelation | null {
-  const { using } = relationship;
+  const constraint = relationship.using.foreign_key_constraint_on;
 
-  if (typeof using.foreign_key_constraint_on === 'string') {
+  if (
+    !constraint ||
+    typeof constraint === 'string' ||
+    Array.isArray(constraint)
+  ) {
     return null;
   }
 
-  const constraint = using.foreign_key_constraint_on;
-
-  if (!constraint) {
-    return null;
-  }
+  const matchesColumns =
+    'columns' in constraint
+      ? areStrArraysEqual(constraint.columns, foreignKey.columns)
+      : foreignKey.columns.length === 1 &&
+        foreignKey.columns[0] === constraint.column;
 
   const matchesTable =
     constraint.table.name === currentTable &&
     constraint.table.schema === currentSchema &&
-    constraint.column === foreignKey.columnName;
+    matchesColumns;
 
   return matchesTable ? foreignKey : null;
 }

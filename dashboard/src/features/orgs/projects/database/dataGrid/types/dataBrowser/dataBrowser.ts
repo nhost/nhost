@@ -52,8 +52,16 @@ export interface HasuraMetadataRelationship {
     };
     foreign_key_constraint_on?:
       | string
+      | string[]
       | {
           column: string;
+          table: {
+            name: string;
+            schema: string;
+          };
+        }
+      | {
+          columns: string[];
           table: {
             name: string;
             schema: string;
@@ -416,10 +424,19 @@ export type PostgresReferentialAction =
 export interface ForeignKeyRelation {
   id?: string;
   name?: string;
-  columnName: string;
+  /**
+   * Local columns participating in the foreign key. Holds more than one entry
+   * for composite foreign keys. `columns[i]` maps positionally to
+   * `referencedColumns[i]`.
+   */
+  columns: string[];
   referencedSchema?: string | null;
   referencedTable: string;
-  referencedColumn: string;
+  /**
+   * Referenced columns in the target table, paired positionally with
+   * `columns`.
+   */
+  referencedColumns: string[];
   updateAction: PostgresReferentialAction;
   deleteAction: PostgresReferentialAction;
   oneToOne?: boolean;

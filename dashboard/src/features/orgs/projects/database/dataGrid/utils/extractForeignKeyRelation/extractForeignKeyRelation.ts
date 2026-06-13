@@ -4,8 +4,23 @@ import type {
 } from '@/features/orgs/projects/database/dataGrid/types/dataBrowser';
 
 /**
+ * Turns a parenthesized identifier list captured from a constraint definition
+ * (e.g. `(a, "b")` or `(a, b)`) into a trimmed, unquoted array of column names.
+ */
+function parseColumnList(rawColumnGroup: string): string[] {
+  return rawColumnGroup
+    .replace(/(^\(|\)$)/gi, '')
+    .replaceAll('"', '')
+    .split(',')
+    .map((column) => column.trim())
+    .filter((column) => column.length > 0);
+}
+
+/**
  * Extracts foreign key relation data from a raw foreign key constraint. This
- * function doesn't validate the constraint, it just extracts the data.
+ * function doesn't validate the constraint, it just extracts the data. Both
+ * single-column and composite foreign keys are supported; the column lists are
+ * returned as positionally-paired arrays.
  *
  * @param name - Name of the constraint
  * @param rawConstraintDefinition - Raw foreign key constraint
@@ -42,12 +57,10 @@ export default function extractForeignKeyRelation(
 
   return {
     name,
-    columnName: columnName.replace(/(^\(|\)$)/gi, '').replaceAll('"', ''),
+    columns: parseColumnList(columnName),
     referencedSchema,
     referencedTable: referencedTable.replaceAll('"', ''),
-    referencedColumn: referencedColumn
-      .replace(/(^\(|\)$)/gi, '')
-      .replaceAll('"', ''),
+    referencedColumns: parseColumnList(referencedColumn),
     updateAction:
       (updateAction?.replace('ON UPDATE ', '') as PostgresReferentialAction) ||
       'NO ACTION',

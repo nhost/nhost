@@ -13,11 +13,17 @@ export interface ReferencedSchemaSelectProps {
    * Determines whether the select should be focused on mount.
    */
   autoFocus?: boolean;
+  /**
+   * Called when the referenced schema changes, so dependent selections can be
+   * reset.
+   */
+  onReferenceChange?: VoidFunction;
 }
 
 export default function ReferencedSchemaSelect({
   options,
   autoFocus,
+  onReferenceChange,
 }: ReferencedSchemaSelectProps) {
   const { control, setValue } = useFormContext<BaseForeignKeySchemaValues>();
 
@@ -32,12 +38,13 @@ export default function ReferencedSchemaSelect({
       label="Schema"
       placeholder="Select a schema"
       autoFocus={autoFocus}
+      className="border-border"
       contentClassName="z-[1400]"
       transform={{
         in: (value: string) => value ?? '',
         out: (value: string) => {
           setValue('referencedTable', '');
-          setValue('referencedColumn', '');
+          onReferenceChange?.();
           return value;
         },
       }}

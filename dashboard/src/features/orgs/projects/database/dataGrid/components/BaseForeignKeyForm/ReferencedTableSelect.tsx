@@ -9,13 +9,18 @@ export interface ReferencedTableSelectProps {
    * Available tables in the schema.
    */
   options: NormalizedQueryDataRow[];
+  /**
+   * Called when the referenced table changes, so dependent selections can be
+   * reset.
+   */
+  onReferenceChange?: VoidFunction;
 }
 
 export default function ReferencedTableSelect({
   options,
+  onReferenceChange,
 }: ReferencedTableSelectProps) {
-  const { control, setValue } = useFormContext<BaseForeignKeySchemaValues>();
-  const columnName = useWatch({ name: 'columnName' });
+  const { control } = useFormContext<BaseForeignKeySchemaValues>();
   const referencedSchema = useWatch({ name: 'referencedSchema' });
 
   const availableTablesInSelectedSchema = options
@@ -28,12 +33,13 @@ export default function ReferencedTableSelect({
       name="referencedTable"
       label="Table"
       placeholder="Select a table"
-      disabled={!columnName || !referencedSchema}
+      disabled={!referencedSchema}
+      className="border-border"
       contentClassName="z-[1400]"
       transform={{
         in: (value: string) => value ?? '',
         out: (value: string) => {
-          setValue('referencedColumn', '');
+          onReferenceChange?.();
           return value;
         },
       }}

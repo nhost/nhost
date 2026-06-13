@@ -23,10 +23,10 @@ const baseOptions = {
 const unTrackedForeignKeyRelations: ForeignKeyRelation[] = [
   {
     name: 'authors_author_id_fkey',
-    columnName: 'author_id',
+    columns: ['author_id'],
     referencedSchema: 'public',
     referencedTable: 'authors',
-    referencedColumn: 'id',
+    referencedColumns: ['id'],
     updateAction: 'RESTRICT',
     deleteAction: 'RESTRICT',
   },
