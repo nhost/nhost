@@ -6,7 +6,6 @@ import (
 
 	"github.com/golang-jwt/jwt/v5"
 	"github.com/google/uuid"
-	"github.com/jackc/pgx/v5"
 	"github.com/jackc/pgx/v5/pgtype"
 	"github.com/nhost/nhost/services/auth/go/api"
 	"github.com/nhost/nhost/services/auth/go/controller"
@@ -29,12 +28,17 @@ func TestVerifySignInOTPEmail(t *testing.T) {
 			db: func(ctrl *gomock.Controller) controller.DBClient {
 				mock := mock.NewMockDBClient(ctrl)
 
-				mock.EXPECT().GetUserByEmailAndOTP(
+				mock.EXPECT().VerifyEmailOTP(
 					gomock.Any(),
-					sql.GetUserByEmailAndOTPParams{
-						Email: sql.Text("jane@acme.com"),
-						Otp:   sql.Text("123456789"),
+					sql.VerifyEmailOTPParams{
+						Email:       sql.Text("jane@acme.com"),
+						Otp:         sql.Text("123456789"),
+						MaxAttempts: pgtype.Int4{Int32: 5, Valid: true},
 					},
+				).Return("ok", nil)
+
+				mock.EXPECT().GetUserByEmail(
+					gomock.Any(), sql.Text("jane@acme.com"),
 				).Return(getSigninUser(userID), nil)
 
 				mock.EXPECT().GetUserRoles(
@@ -126,12 +130,17 @@ func TestVerifySignInOTPEmail(t *testing.T) {
 				user := getSigninUser(userID)
 				user.Disabled = true
 
-				mock.EXPECT().GetUserByEmailAndOTP(
+				mock.EXPECT().VerifyEmailOTP(
 					gomock.Any(),
-					sql.GetUserByEmailAndOTPParams{
-						Email: sql.Text("jane@acme.com"),
-						Otp:   sql.Text("123456789"),
+					sql.VerifyEmailOTPParams{
+						Email:       sql.Text("jane@acme.com"),
+						Otp:         sql.Text("123456789"),
+						MaxAttempts: pgtype.Int4{Int32: 5, Valid: true},
 					},
+				).Return("ok", nil)
+
+				mock.EXPECT().GetUserByEmail(
+					gomock.Any(), sql.Text("jane@acme.com"),
 				).Return(user, nil)
 
 				return mock
@@ -153,22 +162,21 @@ func TestVerifySignInOTPEmail(t *testing.T) {
 		},
 
 		{
-			name:   "user not found",
+			name:   "invalid or expired otp",
 			config: getConfig,
 			db: func(ctrl *gomock.Controller) controller.DBClient {
 				mock := mock.NewMockDBClient(ctrl)
 
-				mock.EXPECT().GetUserByEmailAndOTP(
+				// Wrong code with attempts still left, or no live code for the
+				// email: the query reports "invalid" and no user is loaded.
+				mock.EXPECT().VerifyEmailOTP(
 					gomock.Any(),
-					sql.GetUserByEmailAndOTPParams{
-						Email: sql.Text("jane@acme.com"),
-						Otp:   sql.Text("123456789"),
+					sql.VerifyEmailOTPParams{
+						Email:       sql.Text("jane@acme.com"),
+						Otp:         sql.Text("123456789"),
+						MaxAttempts: pgtype.Int4{Int32: 5, Valid: true},
 					},
-				).Return(sql.AuthUser{}, pgx.ErrNoRows)
-
-				mock.EXPECT().GetUserByEmail(
-					gomock.Any(), sql.Text("jane@acme.com"),
-				).Return(sql.AuthUser{}, pgx.ErrNoRows)
+				).Return("invalid", nil)
 
 				return mock
 			},
@@ -194,22 +202,16 @@ func TestVerifySignInOTPEmail(t *testing.T) {
 			db: func(ctrl *gomock.Controller) controller.DBClient {
 				mock := mock.NewMockDBClient(ctrl)
 
-				mock.EXPECT().GetUserByEmailAndOTP(
+				// Code was burned after too many wrong guesses: the query reports
+				// "burned" so the user is told to request a new one.
+				mock.EXPECT().VerifyEmailOTP(
 					gomock.Any(),
-					sql.GetUserByEmailAndOTPParams{
-						Email: sql.Text("jane@acme.com"),
-						Otp:   sql.Text("123456789"),
+					sql.VerifyEmailOTPParams{
+						Email:       sql.Text("jane@acme.com"),
+						Otp:         sql.Text("123456789"),
+						MaxAttempts: pgtype.Int4{Int32: 5, Valid: true},
 					},
-				).Return(sql.AuthUser{}, pgx.ErrNoRows)
-
-				// Code was burned: hash cleared, attempts at the cap.
-				mock.EXPECT().GetUserByEmail(
-					gomock.Any(), sql.Text("jane@acme.com"),
-				).Return(sql.AuthUser{
-					ID:          userID,
-					OtpHash:     pgtype.Text{},
-					OtpAttempts: 5,
-				}, nil)
+				).Return("burned", nil)
 
 				return mock
 			},

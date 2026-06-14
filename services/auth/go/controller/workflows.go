@@ -407,37 +407,51 @@ func (wf *Workflows) GetUserByTicket(
 	return user, nil
 }
 
-func (wf *Workflows) GetUserByEmailAndOTP(
+func (wf *Workflows) VerifyEmailOTP(
 	ctx context.Context,
 	email string,
 	otp string,
 	logger *slog.Logger,
 ) (sql.AuthUser, *APIError) {
-	user, err := wf.db.GetUserByEmailAndOTP(
+	// The query applies the attempt policy and reports the outcome in one
+	// statement, so a failed guess needs no follow-up lookup. The burned case is
+	// distinguished from a plain wrong/expired code so the user is told to
+	// request a new one; ErrTooManyOTPAttempts is sensitive, so it collapses to
+	// the generic error when ConcealErrors is enabled.
+	status, err := wf.db.VerifyEmailOTP(
 		ctx,
-		sql.GetUserByEmailAndOTPParams{
-			Email: sql.Text(email),
-			Otp:   sql.Text(otp),
+		sql.VerifyEmailOTPParams{
+			Email:       sql.Text(email),
+			Otp:         sql.Text(otp),
+			MaxAttempts: pgtype.Int4{Int32: maxOTPVerificationAttempts, Valid: true},
 		},
 	)
-	if errors.Is(err, pgx.ErrNoRows) {
-		// No match can mean a wrong/expired code or a code that was just burned
-		// after too many wrong guesses. Distinguish the burned case so the user
-		// is told to request a new one instead of retrying a dead code. This is
-		// concealed in production (ErrTooManyOTPAttempts is a sensitive error).
-		if existing, lookupErr := wf.db.GetUserByEmail(ctx, sql.Text(email)); lookupErr == nil &&
-			!existing.OtpHash.Valid && existing.OtpAttempts >= maxOTPVerificationAttempts {
-			logger.WarnContext(ctx, "otp burned after too many attempts")
-			return sql.AuthUser{}, ErrTooManyOTPAttempts
-		}
-
-		logger.WarnContext(ctx, "user not found")
-
-		return sql.AuthUser{}, ErrInvalidOTP
+	if err != nil {
+		logger.ErrorContext(ctx, "could not verify email otp", logError(err))
+		return sql.AuthUser{}, ErrInternalServerError
 	}
 
+	switch status {
+	case otpStatusOK:
+		// Correct code: the statement above cleared it and verified the email.
+		// Load the updated user for the session below.
+	case otpStatusBurned:
+		logger.WarnContext(ctx, "otp burned after too many attempts")
+		return sql.AuthUser{}, ErrTooManyOTPAttempts
+	case otpStatusInvalid:
+		logger.WarnContext(ctx, "invalid or expired otp")
+		return sql.AuthUser{}, ErrInvalidOTP
+	default:
+		logger.ErrorContext(
+			ctx, "unexpected otp verification status", slog.String("status", status),
+		)
+
+		return sql.AuthUser{}, ErrInternalServerError
+	}
+
+	user, err := wf.db.GetUserByEmail(ctx, sql.Text(email))
 	if err != nil {
-		logger.ErrorContext(ctx, "could not get user by otp", logError(err))
+		logger.ErrorContext(ctx, "could not get user after otp verification", logError(err))
 		return sql.AuthUser{}, ErrInternalServerError
 	}
 

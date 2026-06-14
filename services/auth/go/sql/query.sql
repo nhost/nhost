@@ -34,30 +34,64 @@ SET ticket = NULL, ticket_expires_at = now()
 WHERE id = (SELECT id FROM selected_user)
 RETURNING *;
 
--- name: GetUserByEmailAndOTP :one
--- A wrong guess increments otp_attempts and only invalidates the code once it
--- reaches the 5-attempt cap, so a typo no longer burns the code on the first
--- mistake while still bounding brute-force. A correct guess clears the counter.
-WITH burn AS (
-    UPDATE auth.users
-    SET otp_attempts = otp_attempts + 1,
-        otp_hash = CASE WHEN otp_attempts + 1 >= 5 THEN NULL ELSE otp_hash END,
-        otp_hash_expires_at =
-            CASE WHEN otp_attempts + 1 >= 5 THEN now() ELSE otp_hash_expires_at END
+-- name: VerifyEmailOTP :one
+-- Verifies an email OTP and applies the attempt policy in a single statement, so
+-- a failed guess needs no follow-up query to learn why it failed. A wrong guess
+-- increments otp_attempts and only burns the code (clears the hash) once it
+-- reaches @max_attempts, so a typo no longer kills the code on the first mistake
+-- while still bounding brute-force; a correct guess clears the code and resets
+-- the counter. The hash is evaluated once (in selected) and reused. Returns the
+-- outcome the caller maps to a response:
+--   'ok'      correct code; email is now verified and the counter reset
+--   'burned'  this guess (or an earlier one) exhausted the attempt cap
+--   'invalid' wrong code with attempts left, or no live code for the email
+WITH selected AS (
+    SELECT id, (otp_hash = crypt(@otp, otp_hash)) AS is_correct
+    FROM auth.users
     WHERE email = @email
+      AND otp_method_last_used = 'email'
       AND otp_hash IS NOT NULL
       AND otp_hash_expires_at > now()
-      AND otp_method_last_used = 'email'
-      AND otp_hash <> crypt(@otp, otp_hash)
-    RETURNING id
+    FOR UPDATE
+),
+correct AS (
+    UPDATE auth.users u
+    SET otp_hash = NULL,
+        otp_hash_expires_at = now(),
+        email_verified = true,
+        otp_attempts = 0
+    FROM selected s
+    WHERE u.id = s.id AND s.is_correct
+    RETURNING u.id
+),
+wrong AS (
+    UPDATE auth.users u
+    SET otp_attempts = u.otp_attempts + 1,
+        otp_hash = CASE
+            WHEN u.otp_attempts + 1 >= @max_attempts::integer THEN NULL
+            ELSE u.otp_hash END,
+        otp_hash_expires_at = CASE
+            WHEN u.otp_attempts + 1 >= @max_attempts::integer THEN now()
+            ELSE u.otp_hash_expires_at END
+    FROM selected s
+    WHERE u.id = s.id AND NOT s.is_correct
+    RETURNING (u.otp_attempts >= @max_attempts::integer) AS burned
 )
-UPDATE auth.users
-SET otp_hash = NULL, otp_hash_expires_at = now(), email_verified = true, otp_attempts = 0
-WHERE email = @email
-  AND otp_hash = crypt(@otp, otp_hash)
-  AND otp_hash_expires_at > now()
-  AND otp_method_last_used = 'email'
-RETURNING *;
+SELECT (
+    CASE
+        WHEN EXISTS (SELECT 1 FROM correct) THEN 'ok'
+        WHEN (SELECT burned FROM wrong) THEN 'burned'
+        WHEN EXISTS (SELECT 1 FROM wrong) THEN 'invalid'
+        WHEN EXISTS (
+            SELECT 1 FROM auth.users
+            WHERE email = @email
+              AND otp_method_last_used = 'email'
+              AND otp_hash IS NULL
+              AND otp_attempts >= @max_attempts::integer
+        ) THEN 'burned'
+        ELSE 'invalid'
+    END
+)::text AS status;
 
 -- name: GetUserByPhoneNumberAndOTP :one
 UPDATE auth.users

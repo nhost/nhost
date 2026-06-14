@@ -168,21 +168,6 @@ func (mr *MockDBClientGetUserMockRecorder) GetUserByEmail(ctx, email any) *gomoc
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetUserByEmail", reflect.TypeOf((*MockDBClientGetUser)(nil).GetUserByEmail), ctx, email)
 }
 
-// GetUserByEmailAndOTP mocks base method.
-func (m *MockDBClientGetUser) GetUserByEmailAndOTP(ctx context.Context, arg sql.GetUserByEmailAndOTPParams) (sql.AuthUser, error) {
-	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "GetUserByEmailAndOTP", ctx, arg)
-	ret0, _ := ret[0].(sql.AuthUser)
-	ret1, _ := ret[1].(error)
-	return ret0, ret1
-}
-
-// GetUserByEmailAndOTP indicates an expected call of GetUserByEmailAndOTP.
-func (mr *MockDBClientGetUserMockRecorder) GetUserByEmailAndOTP(ctx, arg any) *gomock.Call {
-	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetUserByEmailAndOTP", reflect.TypeOf((*MockDBClientGetUser)(nil).GetUserByEmailAndOTP), ctx, arg)
-}
-
 // GetUserByPhoneNumber mocks base method.
 func (m *MockDBClientGetUser) GetUserByPhoneNumber(ctx context.Context, phoneNumber pgtype.Text) (sql.AuthUser, error) {
 	m.ctrl.T.Helper()
@@ -226,6 +211,21 @@ func (m *MockDBClientGetUser) GetUserByTicket(ctx context.Context, ticket pgtype
 func (mr *MockDBClientGetUserMockRecorder) GetUserByTicket(ctx, ticket any) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetUserByTicket", reflect.TypeOf((*MockDBClientGetUser)(nil).GetUserByTicket), ctx, ticket)
+}
+
+// VerifyEmailOTP mocks base method.
+func (m *MockDBClientGetUser) VerifyEmailOTP(ctx context.Context, arg sql.VerifyEmailOTPParams) (string, error) {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "VerifyEmailOTP", ctx, arg)
+	ret0, _ := ret[0].(string)
+	ret1, _ := ret[1].(error)
+	return ret0, ret1
+}
+
+// VerifyEmailOTP indicates an expected call of VerifyEmailOTP.
+func (mr *MockDBClientGetUserMockRecorder) VerifyEmailOTP(ctx, arg any) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "VerifyEmailOTP", reflect.TypeOf((*MockDBClientGetUser)(nil).VerifyEmailOTP), ctx, arg)
 }
 
 // MockDBClientInsertUser is a mock of DBClientInsertUser interface.
@@ -970,21 +970,6 @@ func (mr *MockDBClientMockRecorder) GetUserByEmail(ctx, email any) *gomock.Call 
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetUserByEmail", reflect.TypeOf((*MockDBClient)(nil).GetUserByEmail), ctx, email)
 }
 
-// GetUserByEmailAndOTP mocks base method.
-func (m *MockDBClient) GetUserByEmailAndOTP(ctx context.Context, arg sql.GetUserByEmailAndOTPParams) (sql.AuthUser, error) {
-	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "GetUserByEmailAndOTP", ctx, arg)
-	ret0, _ := ret[0].(sql.AuthUser)
-	ret1, _ := ret[1].(error)
-	return ret0, ret1
-}
-
-// GetUserByEmailAndOTP indicates an expected call of GetUserByEmailAndOTP.
-func (mr *MockDBClientMockRecorder) GetUserByEmailAndOTP(ctx, arg any) *gomock.Call {
-	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetUserByEmailAndOTP", reflect.TypeOf((*MockDBClient)(nil).GetUserByEmailAndOTP), ctx, arg)
-}
-
 // GetUserByPhoneNumber mocks base method.
 func (m *MockDBClient) GetUserByPhoneNumber(ctx context.Context, phoneNumber pgtype.Text) (sql.AuthUser, error) {
 	m.ctrl.T.Helper()
@@ -1429,6 +1414,21 @@ func (m *MockDBClient) UpsertOAuth2CIMDClient(ctx context.Context, arg sql.Upser
 func (mr *MockDBClientMockRecorder) UpsertOAuth2CIMDClient(ctx, arg any) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "UpsertOAuth2CIMDClient", reflect.TypeOf((*MockDBClient)(nil).UpsertOAuth2CIMDClient), ctx, arg)
+}
+
+// VerifyEmailOTP mocks base method.
+func (m *MockDBClient) VerifyEmailOTP(ctx context.Context, arg sql.VerifyEmailOTPParams) (string, error) {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "VerifyEmailOTP", ctx, arg)
+	ret0, _ := ret[0].(string)
+	ret1, _ := ret[1].(error)
+	return ret0, ret1
+}
+
+// VerifyEmailOTP indicates an expected call of VerifyEmailOTP.
+func (mr *MockDBClientMockRecorder) VerifyEmailOTP(ctx, arg any) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "VerifyEmailOTP", reflect.TypeOf((*MockDBClient)(nil).VerifyEmailOTP), ctx, arg)
 }
 
 // MockEncrypter is a mock of Encrypter interface.

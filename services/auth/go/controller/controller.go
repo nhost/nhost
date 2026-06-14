@@ -21,10 +21,15 @@ const (
 	In10Minutes = 10 * time.Minute
 	In5Minutes  = 5 * time.Minute
 
-	// maxOTPVerificationAttempts mirrors the cap enforced in the
-	// GetUserByEmailAndOTP query: the code is burned after this many wrong
-	// guesses. Used to detect the burned state and return a distinct error.
+	// maxOTPVerificationAttempts is the email-OTP attempt cap and the single
+	// source of truth for it: it is passed into the VerifyEmailOTP query (as
+	// @max_attempts), which burns the code after this many wrong guesses.
 	maxOTPVerificationAttempts = 5
+
+	// Email-OTP verification outcomes returned by the VerifyEmailOTP query.
+	otpStatusOK      = "ok"
+	otpStatusBurned  = "burned"
+	otpStatusInvalid = "invalid"
 )
 
 func deptr[T any](x *T) T { //nolint:ireturn
@@ -58,9 +63,9 @@ type DBClientGetUser interface {
 		ctx context.Context, arg sql.GetUserByRefreshTokenHashParams,
 	) (sql.AuthUser, error)
 	GetUserByTicket(ctx context.Context, ticket pgtype.Text) (sql.AuthUser, error)
-	GetUserByEmailAndOTP(
-		ctx context.Context, arg sql.GetUserByEmailAndOTPParams,
-	) (sql.AuthUser, error)
+	VerifyEmailOTP(
+		ctx context.Context, arg sql.VerifyEmailOTPParams,
+	) (string, error)
 }
 
 type DBClientInsertUser interface {

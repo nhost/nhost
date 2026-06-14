@@ -526,71 +526,6 @@ func (q *Queries) GetUserByEmail(ctx context.Context, email pgtype.Text) (AuthUs
 	return i, err
 }
 
-const getUserByEmailAndOTP = `-- name: GetUserByEmailAndOTP :one
-WITH burn AS (
-    UPDATE auth.users
-    SET otp_attempts = otp_attempts + 1,
-        otp_hash = CASE WHEN otp_attempts + 1 >= 5 THEN NULL ELSE otp_hash END,
-        otp_hash_expires_at =
-            CASE WHEN otp_attempts + 1 >= 5 THEN now() ELSE otp_hash_expires_at END
-    WHERE email = $1
-      AND otp_hash IS NOT NULL
-      AND otp_hash_expires_at > now()
-      AND otp_method_last_used = 'email'
-      AND otp_hash <> crypt($2, otp_hash)
-    RETURNING id
-)
-UPDATE auth.users
-SET otp_hash = NULL, otp_hash_expires_at = now(), email_verified = true, otp_attempts = 0
-WHERE email = $1
-  AND otp_hash = crypt($2, otp_hash)
-  AND otp_hash_expires_at > now()
-  AND otp_method_last_used = 'email'
-RETURNING id, created_at, updated_at, last_seen, disabled, display_name, avatar_url, locale, email, phone_number, password_hash, email_verified, phone_number_verified, new_email, otp_method_last_used, otp_hash, otp_hash_expires_at, default_role, is_anonymous, totp_secret, active_mfa_type, ticket, ticket_expires_at, metadata, webauthn_current_challenge, otp_attempts
-`
-
-type GetUserByEmailAndOTPParams struct {
-	Email pgtype.Text
-	Otp   pgtype.Text
-}
-
-// A wrong guess increments otp_attempts and only invalidates the code once it
-// reaches the 5-attempt cap, so a typo no longer burns the code on the first
-// mistake while still bounding brute-force. A correct guess clears the counter.
-func (q *Queries) GetUserByEmailAndOTP(ctx context.Context, arg GetUserByEmailAndOTPParams) (AuthUser, error) {
-	row := q.db.QueryRow(ctx, getUserByEmailAndOTP, arg.Email, arg.Otp)
-	var i AuthUser
-	err := row.Scan(
-		&i.ID,
-		&i.CreatedAt,
-		&i.UpdatedAt,
-		&i.LastSeen,
-		&i.Disabled,
-		&i.DisplayName,
-		&i.AvatarUrl,
-		&i.Locale,
-		&i.Email,
-		&i.PhoneNumber,
-		&i.PasswordHash,
-		&i.EmailVerified,
-		&i.PhoneNumberVerified,
-		&i.NewEmail,
-		&i.OtpMethodLastUsed,
-		&i.OtpHash,
-		&i.OtpHashExpiresAt,
-		&i.DefaultRole,
-		&i.IsAnonymous,
-		&i.TotpSecret,
-		&i.ActiveMfaType,
-		&i.Ticket,
-		&i.TicketExpiresAt,
-		&i.Metadata,
-		&i.WebauthnCurrentChallenge,
-		&i.OtpAttempts,
-	)
-	return i, err
-}
-
 const getUserByPhoneNumber = `-- name: GetUserByPhoneNumber :one
 SELECT id, created_at, updated_at, last_seen, disabled, display_name, avatar_url, locale, email, phone_number, password_hash, email_verified, phone_number_verified, new_email, otp_method_last_used, otp_hash, otp_hash_expires_at, default_role, is_anonymous, totp_secret, active_mfa_type, ticket, ticket_expires_at, metadata, webauthn_current_challenge, otp_attempts FROM auth.users
 WHERE phone_number = $1 LIMIT 1
@@ -2045,4 +1980,78 @@ func (q *Queries) UpsertRoles(ctx context.Context, roles []string) ([]string, er
 		return nil, err
 	}
 	return items, nil
+}
+
+const verifyEmailOTP = `-- name: VerifyEmailOTP :one
+WITH selected AS (
+    SELECT id, (otp_hash = crypt($3, otp_hash)) AS is_correct
+    FROM auth.users
+    WHERE email = $1
+      AND otp_method_last_used = 'email'
+      AND otp_hash IS NOT NULL
+      AND otp_hash_expires_at > now()
+    FOR UPDATE
+),
+correct AS (
+    UPDATE auth.users u
+    SET otp_hash = NULL,
+        otp_hash_expires_at = now(),
+        email_verified = true,
+        otp_attempts = 0
+    FROM selected s
+    WHERE u.id = s.id AND s.is_correct
+    RETURNING u.id
+),
+wrong AS (
+    UPDATE auth.users u
+    SET otp_attempts = u.otp_attempts + 1,
+        otp_hash = CASE
+            WHEN u.otp_attempts + 1 >= $2::integer THEN NULL
+            ELSE u.otp_hash END,
+        otp_hash_expires_at = CASE
+            WHEN u.otp_attempts + 1 >= $2::integer THEN now()
+            ELSE u.otp_hash_expires_at END
+    FROM selected s
+    WHERE u.id = s.id AND NOT s.is_correct
+    RETURNING (u.otp_attempts >= $2::integer) AS burned
+)
+SELECT (
+    CASE
+        WHEN EXISTS (SELECT 1 FROM correct) THEN 'ok'
+        WHEN (SELECT burned FROM wrong) THEN 'burned'
+        WHEN EXISTS (SELECT 1 FROM wrong) THEN 'invalid'
+        WHEN EXISTS (
+            SELECT 1 FROM auth.users
+            WHERE email = $1
+              AND otp_method_last_used = 'email'
+              AND otp_hash IS NULL
+              AND otp_attempts >= $2::integer
+        ) THEN 'burned'
+        ELSE 'invalid'
+    END
+)::text AS status
+`
+
+type VerifyEmailOTPParams struct {
+	Email       pgtype.Text
+	MaxAttempts pgtype.Int4
+	Otp         pgtype.Text
+}
+
+// Verifies an email OTP and applies the attempt policy in a single statement, so
+// a failed guess needs no follow-up query to learn why it failed. A wrong guess
+// increments otp_attempts and only burns the code (clears the hash) once it
+// reaches @max_attempts, so a typo no longer kills the code on the first mistake
+// while still bounding brute-force; a correct guess clears the code and resets
+// the counter. The hash is evaluated once (in selected) and reused. Returns the
+// outcome the caller maps to a response:
+//
+//	'ok'      correct code; email is now verified and the counter reset
+//	'burned'  this guess (or an earlier one) exhausted the attempt cap
+//	'invalid' wrong code with attempts left, or no live code for the email
+func (q *Queries) VerifyEmailOTP(ctx context.Context, arg VerifyEmailOTPParams) (string, error) {
+	row := q.db.QueryRow(ctx, verifyEmailOTP, arg.Email, arg.MaxAttempts, arg.Otp)
+	var status string
+	err := row.Scan(&status)
+	return status, err
 }
