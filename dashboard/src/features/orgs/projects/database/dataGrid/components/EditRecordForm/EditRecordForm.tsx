@@ -97,7 +97,7 @@ function parseHexEWKBPoint(hex: string) {
   }
 }
 
-function formatFormDateValue(value: unknown, specificType?: string | null) {
+export function formatFormDateValue(value: unknown, specificType?: string | null) {
   if (value === null || value === undefined) {
     return value;
   }
