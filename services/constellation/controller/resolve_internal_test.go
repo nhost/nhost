@@ -15,10 +15,10 @@ import (
 	"github.com/vektah/gqlparser/v2/gqlerror"
 	"go.uber.org/mock/gomock"
 
+	oapimw "github.com/nhost/nhost/internal/lib/oapi/middleware"
 	"github.com/nhost/nhost/services/constellation/connector/sql/graphql/queries/arguments"
 	argmock "github.com/nhost/nhost/services/constellation/connector/sql/graphql/queries/arguments/mock"
 	"github.com/nhost/nhost/services/constellation/connector/sql/graphql/queries/core"
-	"github.com/nhost/nhost/services/constellation/internal/lib/oapi/tracing"
 )
 
 func TestGroupFieldsByConnectorUsesOperationQualifiedKeys(t *testing.T) {
@@ -533,7 +533,7 @@ func TestSanitizeConnectorError_NilLoggerSafe(t *testing.T) {
 
 // TestSanitizeConnectorError_UsesTraceFromContext pins the product invariant
 // that the client-facing message and the server-side log share one trace id,
-// sourced from tracing.FromContext(ctx) — not the uuid.NewString() fallback.
+// sourced from middleware.TraceFromContext(ctx) — not the uuid.NewString() fallback.
 // A refactor that strips the tracing-bearing context anywhere on the resolve
 // path would silently break the correlation; this test guards against that.
 func TestSanitizeConnectorError_UsesTraceFromContext(t *testing.T) {
@@ -541,7 +541,7 @@ func TestSanitizeConnectorError_UsesTraceFromContext(t *testing.T) {
 
 	const wantTraceID = "test-trace-123"
 
-	ctx := tracing.ToContext(context.Background(), tracing.Trace{
+	ctx := oapimw.TraceToContext(context.Background(), oapimw.Trace{
 		TraceID:      wantTraceID,
 		ParentSpanID: "",
 		SpanID:       "",

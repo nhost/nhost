@@ -1,4 +1,5 @@
 import { createContext } from 'react';
+import { COLOR_PREFERENCE_STORAGE_KEY } from '@/utils/constants/common';
 
 export interface ColorPreferenceContextProps {
   /**
@@ -20,7 +21,7 @@ export interface ColorPreferenceContextProps {
   /**
    * The key used to store the color preference in the local storage.
    *
-   * @default 'color-preference'
+   * @default COLOR_PREFERENCE_STORAGE_KEY
    */
   colorPreferenceStorageKey: string;
 }
@@ -29,7 +30,7 @@ const ColorPreferenceContext = createContext<ColorPreferenceContextProps>({
   color: 'light',
   colorPreference: 'system',
   setColorPreference: () => {},
-  colorPreferenceStorageKey: 'color-preference',
+  colorPreferenceStorageKey: COLOR_PREFERENCE_STORAGE_KEY,
 });
 
 export default ColorPreferenceContext;
