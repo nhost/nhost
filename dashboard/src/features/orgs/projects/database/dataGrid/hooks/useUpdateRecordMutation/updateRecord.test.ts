@@ -250,4 +250,41 @@ describe('updateRecord', () => {
       }),
     ).rejects.toThrow();
   });
+
+  test('updates json/jsonb values in compressed form', async () => {
+    const row = makeRow([
+      { id: 'id', isPrimary: true, specificType: 'integer', value: 1 },
+      { id: 'metadata', specificType: 'jsonb', value: { a: 1 } },
+    ]);
+
+    await updateRecord({
+      ...defaultOptions,
+      row,
+      columnsToUpdate: {
+        metadata: { value: '{\n  "a": 1,\n  "b": 2\n}' },
+      },
+    });
+
+    const sql = (capturedBody as CapturedRequest).args[0].args.sql;
+    expect(sql).toContain('metadata = \'{"a":1,"b":2}\'::jsonb');
+  });
+
+  test('updates geometry/geography values in compressed form', async () => {
+    const row = makeRow([
+      { id: 'id', isPrimary: true, specificType: 'integer', value: 1 },
+      { id: 'location', specificType: 'geometry(Point,4326)', value: '0101000020E6100000333333333333F33F3333333333330B40' },
+    ]);
+
+    await updateRecord({
+      ...defaultOptions,
+      row,
+      columnsToUpdate: {
+        location: { value: '{\n  "type": "Point",\n  "coordinates": [1.2, 3.4]\n}' },
+      },
+    });
+
+    const sql = (capturedBody as CapturedRequest).args[0].args.sql;
+    expect(sql).toContain('location = \'{"type":"Point","coordinates":[1.2,3.4]}\'::jsonb');
+  });
 });
+
