@@ -55,8 +55,8 @@ type RemoteSchemaDefinition struct {
 	// remote schema.
 	Customization Customization `json:"customization,omitzero" toml:"customization,omitempty"`
 	// Headers are static request headers attached to every call to the
-	// remote endpoint, with environment-variable interpolation on each
-	// header value.
+	// remote endpoint. Literal values are forwarded verbatim; ValueFromEnv
+	// entries are resolved from the process environment.
 	Headers []RemoteSchemaHeader `json:"headers,omitempty" toml:"headers,omitempty"`
 	// ForwardClientHeaders, when true, forwards the incoming client
 	// request's headers to the remote endpoint in addition to Headers.
@@ -65,8 +65,9 @@ type RemoteSchemaDefinition struct {
 
 // RemoteSchemaHeader defines a header to be sent with requests to the remote schema.
 type RemoteSchemaHeader struct {
-	Name  string    `json:"name"  toml:"name"`
-	Value EnvString `json:"value" toml:"value"`
+	Name         string `json:"name"                     toml:"name"`
+	Value        string `json:"value,omitempty"          toml:"value,omitempty"`
+	ValueFromEnv string `json:"value_from_env,omitempty" toml:"value_from_env,omitempty"`
 }
 
 // RemoteSchemaPermission defines permissions for a specific role on a remote schema.

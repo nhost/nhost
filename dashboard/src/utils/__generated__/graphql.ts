@@ -33,7 +33,6 @@ export type Scalars = {
   jsonb: any;
   labels: any;
   map: any;
-  smallint: any;
   timestamptz: any;
   uuid: any;
 };
@@ -12073,7 +12072,7 @@ export type Countries = {
   /** Three-letter country code (ISO 3166-1 alpha-3) */
   iso3?: Maybe<Scalars['bpchar']>;
   /** Three-letter country code (ISO 3166-1 numeric) */
-  isoNumber?: Maybe<Scalars['smallint']>;
+  isoNumber?: Maybe<Scalars['Int']>;
   /** An array relationship */
   locations: Array<Regions>;
   /** An aggregate relationship */
@@ -12217,7 +12216,7 @@ export type Countries_Bool_Exp = {
   /** Three-letter country code (ISO 3166-1 alpha-3) */
   iso3?: InputMaybe<Bpchar_Comparison_Exp>;
   /** Three-letter country code (ISO 3166-1 numeric) */
-  isoNumber?: InputMaybe<Smallint_Comparison_Exp>;
+  isoNumber?: InputMaybe<Int_Comparison_Exp>;
   locations?: InputMaybe<Regions_Bool_Exp>;
   locations_aggregate?: InputMaybe<Regions_Aggregate_Bool_Exp>;
   /** English country name */
@@ -12235,7 +12234,7 @@ export enum Countries_Constraint {
 /** input type for incrementing numeric columns in table "countries" */
 export type Countries_Inc_Input = {
   /** Three-letter country code (ISO 3166-1 numeric) */
-  isoNumber?: InputMaybe<Scalars['smallint']>;
+  isoNumber?: InputMaybe<Scalars['Int']>;
 };
 
 /** input type for inserting data into table "countries" */
@@ -12250,7 +12249,7 @@ export type Countries_Insert_Input = {
   /** Three-letter country code (ISO 3166-1 alpha-3) */
   iso3?: InputMaybe<Scalars['bpchar']>;
   /** Three-letter country code (ISO 3166-1 numeric) */
-  isoNumber?: InputMaybe<Scalars['smallint']>;
+  isoNumber?: InputMaybe<Scalars['Int']>;
   locations?: InputMaybe<Regions_Arr_Rel_Insert_Input>;
   /** English country name */
   name?: InputMaybe<Scalars['String']>;
@@ -12269,7 +12268,7 @@ export type Countries_Max_Fields = {
   /** Three-letter country code (ISO 3166-1 alpha-3) */
   iso3?: Maybe<Scalars['bpchar']>;
   /** Three-letter country code (ISO 3166-1 numeric) */
-  isoNumber?: Maybe<Scalars['smallint']>;
+  isoNumber?: Maybe<Scalars['Int']>;
   /** English country name */
   name?: Maybe<Scalars['String']>;
 };
@@ -12302,7 +12301,7 @@ export type Countries_Min_Fields = {
   /** Three-letter country code (ISO 3166-1 alpha-3) */
   iso3?: Maybe<Scalars['bpchar']>;
   /** Three-letter country code (ISO 3166-1 numeric) */
-  isoNumber?: Maybe<Scalars['smallint']>;
+  isoNumber?: Maybe<Scalars['Int']>;
   /** English country name */
   name?: Maybe<Scalars['String']>;
 };
@@ -12400,7 +12399,7 @@ export type Countries_Set_Input = {
   /** Three-letter country code (ISO 3166-1 alpha-3) */
   iso3?: InputMaybe<Scalars['bpchar']>;
   /** Three-letter country code (ISO 3166-1 numeric) */
-  isoNumber?: InputMaybe<Scalars['smallint']>;
+  isoNumber?: InputMaybe<Scalars['Int']>;
   /** English country name */
   name?: InputMaybe<Scalars['String']>;
 };
@@ -12463,7 +12462,7 @@ export type Countries_Stream_Cursor_Value_Input = {
   /** Three-letter country code (ISO 3166-1 alpha-3) */
   iso3?: InputMaybe<Scalars['bpchar']>;
   /** Three-letter country code (ISO 3166-1 numeric) */
-  isoNumber?: InputMaybe<Scalars['smallint']>;
+  isoNumber?: InputMaybe<Scalars['Int']>;
   /** English country name */
   name?: InputMaybe<Scalars['String']>;
 };
@@ -12472,7 +12471,7 @@ export type Countries_Stream_Cursor_Value_Input = {
 export type Countries_Sum_Fields = {
   __typename?: 'countries_sum_fields';
   /** Three-letter country code (ISO 3166-1 numeric) */
-  isoNumber?: Maybe<Scalars['smallint']>;
+  isoNumber?: Maybe<Scalars['Int']>;
 };
 
 /** order by sum() on columns of table "countries" */
@@ -22415,11 +22414,11 @@ export type Query_Root = {
    *
    * `intervalMs`, `maxDataPoints` and `minInterval` override how Grafana
    * resolves `$__interval` / `$__rate_interval` (step ≈ range/maxDataPoints,
-   * floored to `minInterval`). When omitted, the defaults match Grafana's
-   * graph defaults (maxDataPoints=1000, intervalMs derived from the range,
-   * no minInterval floor). `minInterval` is a Prometheus duration string
-   * (e.g. `"2m"`) and must match the dashboard panel to render an identical
-   * series.
+   * floored to `minInterval`). When omitted, the defaults are
+   * `maxDataPoints=600` (clamped to `[200, 2000]`), `intervalMs` derived
+   * from the range, and no `minInterval` floor. `minInterval` is a
+   * Prometheus duration string (e.g. `"2m"`) and must match the dashboard
+   * panel to render an identical series.
    */
   getFunctionsHistogramMetric: Array<FunctionsMetricSeries>;
   /**
@@ -22448,11 +22447,11 @@ export type Query_Root = {
    *
    * `intervalMs`, `maxDataPoints` and `minInterval` override how Grafana
    * resolves `$__interval` / `$__rate_interval` (step ≈ range/maxDataPoints,
-   * floored to `minInterval`). When omitted, the defaults match Grafana's
-   * graph defaults (maxDataPoints=1000, intervalMs derived from the range,
-   * no minInterval floor). `minInterval` is a Prometheus duration string
-   * (e.g. `"2m"`) and must match the dashboard panel to render an identical
-   * series.
+   * floored to `minInterval`). When omitted, the defaults are
+   * `maxDataPoints=600` (clamped to `[200, 2000]`), `intervalMs` derived
+   * from the range, and no `minInterval` floor. `minInterval` is a
+   * Prometheus duration string (e.g. `"2m"`) and must match the dashboard
+   * panel to render an identical series.
    */
   getFunctionsRangeMetric: Array<FunctionsMetricSeries>;
   getLogsVolume: Metrics;
@@ -25804,19 +25803,6 @@ export type Sla_Level_Updates = {
   _set?: InputMaybe<Sla_Level_Set_Input>;
   /** filter the rows which have to be updated */
   where: Sla_Level_Bool_Exp;
-};
-
-/** Boolean expression to compare columns of type "smallint". All fields are combined with logical 'AND'. */
-export type Smallint_Comparison_Exp = {
-  _eq?: InputMaybe<Scalars['smallint']>;
-  _gt?: InputMaybe<Scalars['smallint']>;
-  _gte?: InputMaybe<Scalars['smallint']>;
-  _in?: InputMaybe<Array<Scalars['smallint']>>;
-  _is_null?: InputMaybe<Scalars['Boolean']>;
-  _lt?: InputMaybe<Scalars['smallint']>;
-  _lte?: InputMaybe<Scalars['smallint']>;
-  _neq?: InputMaybe<Scalars['smallint']>;
-  _nin?: InputMaybe<Array<Scalars['smallint']>>;
 };
 
 /** Software type: hasura, postgres, hasura-auth ... */
@@ -31775,6 +31761,19 @@ export type AppStateHistoryFragment = { __typename?: 'appStateHistory', id: any,
 
 export type ProjectFragment = { __typename?: 'apps', id: any, slug: string, name: string, repositoryProductionBranch: string, subdomain: string, createdAt: any, desiredState: number, nhostBaseFolder: string, automaticDeploys: boolean, config?: { __typename?: 'ConfigConfig', observability: { __typename?: 'ConfigObservability', grafana: { __typename?: 'ConfigGrafana', adminPassword: string } }, hasura: { __typename?: 'ConfigHasura', adminSecret: string, settings?: { __typename?: 'ConfigHasuraSettings', enableConsole?: boolean | null } | null }, ai?: { __typename?: 'ConfigAI', version?: string | null } | null } | null, featureFlags: Array<{ __typename?: 'featureFlags', description: string, id: any, name: string, value: string }>, appStates: Array<{ __typename?: 'appStateHistory', id: any, appId: any, message?: string | null, stateId: number, createdAt: any }>, region: { __typename?: 'regions', id: any, countryCode: string, name: string, domain: string, city: string }, legacyPlan?: { __typename?: 'plans', id: any, name: string, price: number, isFree: boolean, featureMaxDbSize: number } | null, githubRepository?: { __typename?: 'githubRepositories', fullName: string } | null, deployments: Array<{ __typename?: 'deployments', id: any, commitSHA: string, commitMessage?: string | null, commitUserName?: string | null, deploymentStartedAt?: any | null, deploymentEndedAt?: any | null, commitUserAvatarUrl?: string | null, deploymentStatus?: string | null }>, pipelineRuns: Array<{ __typename?: 'pipelineRuns', id: any, name: string, startedAt?: any | null, endedAt?: any | null, status: PipelineRunStatus_Enum, input: any, appId?: any | null, createdAt: any }>, creator?: { __typename?: 'users', id: any, email?: any | null, displayName: string } | null };
 
+export type GetFunctionsMetricsDashboardQueryVariables = Exact<{
+  appID: Scalars['String'];
+  route: Scalars['String'];
+  from?: InputMaybe<Scalars['Timestamp']>;
+  to?: InputMaybe<Scalars['Timestamp']>;
+  intervalMs?: InputMaybe<Scalars['Int']>;
+  maxDataPoints?: InputMaybe<Scalars['Int']>;
+  minInterval?: InputMaybe<Scalars['String']>;
+}>;
+
+
+export type GetFunctionsMetricsDashboardQuery = { __typename?: 'query_root', totalInvocations: Array<{ __typename?: 'FunctionsMetricValue', labels: any, value: any }>, totalBytesSent: Array<{ __typename?: 'FunctionsMetricValue', labels: any, value: any }>, totalDuration: Array<{ __typename?: 'FunctionsMetricValue', labels: any, value: any }>, totalErrors: Array<{ __typename?: 'FunctionsMetricValue', labels: any, value: any }>, totalRequestsByMethod: Array<{ __typename?: 'FunctionsMetricValue', labels: any, value: any }>, invocations: Array<{ __typename?: 'FunctionsMetricSeries', labels: any, timestamps: Array<any>, datapoints: Array<any> }>, responseStatus: Array<{ __typename?: 'FunctionsMetricSeries', labels: any, timestamps: Array<any>, datapoints: Array<any> }>, averageResponseSize: Array<{ __typename?: 'FunctionsMetricSeries', labels: any, timestamps: Array<any>, datapoints: Array<any> }>, averageResponseTime: Array<{ __typename?: 'FunctionsMetricSeries', labels: any, timestamps: Array<any>, datapoints: Array<any> }>, errorRate: Array<{ __typename?: 'FunctionsMetricSeries', labels: any, timestamps: Array<any>, datapoints: Array<any> }>, durationP75: Array<{ __typename?: 'FunctionsMetricSeries', labels: any, timestamps: Array<any>, datapoints: Array<any> }>, durationP95: Array<{ __typename?: 'FunctionsMetricSeries', labels: any, timestamps: Array<any>, datapoints: Array<any> }>, durationMax: Array<{ __typename?: 'FunctionsMetricSeries', labels: any, timestamps: Array<any>, datapoints: Array<any> }> };
+
 export type GithubRepositoryFragment = { __typename?: 'githubRepositories', id: any, name: string, fullName: string, private: boolean, githubAppInstallation: { __typename?: 'githubAppInstallations', id: any, accountLogin?: string | null, accountType?: string | null, accountAvatarUrl?: string | null } };
 
 export type GetGithubRepositoriesQueryVariables = Exact<{ [key: string]: never; }>;
@@ -36228,6 +36227,232 @@ export function useUpdateBucketMutation(baseOptions?: Apollo.MutationHookOptions
 export type UpdateBucketMutationHookResult = ReturnType<typeof useUpdateBucketMutation>;
 export type UpdateBucketMutationResult = Apollo.MutationResult<UpdateBucketMutation>;
 export type UpdateBucketMutationOptions = Apollo.BaseMutationOptions<UpdateBucketMutation, UpdateBucketMutationVariables>;
+export const GetFunctionsMetricsDashboardDocument = gql`
+    query getFunctionsMetricsDashboard($appID: String!, $route: String!, $from: Timestamp, $to: Timestamp, $intervalMs: Int, $maxDataPoints: Int, $minInterval: String) {
+  totalInvocations: getFunctionsInstantMetric(
+    metric: INVOCATIONS
+    aggregate: SUM
+    appID: $appID
+    route: $route
+    from: $from
+    to: $to
+  ) {
+    labels
+    value
+  }
+  totalBytesSent: getFunctionsInstantMetric(
+    metric: BYTES_SENT
+    aggregate: SUM
+    appID: $appID
+    route: $route
+    from: $from
+    to: $to
+  ) {
+    labels
+    value
+  }
+  totalDuration: getFunctionsInstantMetric(
+    metric: DURATION
+    aggregate: SUM
+    appID: $appID
+    route: $route
+    from: $from
+    to: $to
+  ) {
+    labels
+    value
+  }
+  totalErrors: getFunctionsInstantMetric(
+    metric: ERRORS
+    aggregate: SUM
+    groupBy: [METHOD, STATUS]
+    appID: $appID
+    route: $route
+    from: $from
+    to: $to
+  ) {
+    labels
+    value
+  }
+  totalRequestsByMethod: getFunctionsInstantMetric(
+    metric: INVOCATIONS
+    aggregate: SUM
+    groupBy: [METHOD]
+    appID: $appID
+    route: $route
+    from: $from
+    to: $to
+  ) {
+    labels
+    value
+  }
+  invocations: getFunctionsRangeMetric(
+    metric: INVOCATIONS
+    aggregate: SUM
+    groupBy: [METHOD]
+    appID: $appID
+    route: $route
+    from: $from
+    to: $to
+    intervalMs: $intervalMs
+    maxDataPoints: $maxDataPoints
+    minInterval: $minInterval
+  ) {
+    labels
+    timestamps
+    datapoints
+  }
+  responseStatus: getFunctionsRangeMetric(
+    metric: INVOCATIONS
+    aggregate: SUM
+    groupBy: [STATUS]
+    appID: $appID
+    route: $route
+    from: $from
+    to: $to
+    intervalMs: $intervalMs
+    maxDataPoints: $maxDataPoints
+    minInterval: $minInterval
+  ) {
+    labels
+    timestamps
+    datapoints
+  }
+  averageResponseSize: getFunctionsRangeMetric(
+    metric: BYTES_SENT
+    aggregate: AVG
+    groupBy: [METHOD]
+    appID: $appID
+    route: $route
+    from: $from
+    to: $to
+    intervalMs: $intervalMs
+    maxDataPoints: $maxDataPoints
+    minInterval: $minInterval
+  ) {
+    labels
+    timestamps
+    datapoints
+  }
+  averageResponseTime: getFunctionsRangeMetric(
+    metric: DURATION
+    aggregate: AVG
+    groupBy: [METHOD]
+    appID: $appID
+    route: $route
+    from: $from
+    to: $to
+    intervalMs: $intervalMs
+    maxDataPoints: $maxDataPoints
+    minInterval: $minInterval
+  ) {
+    labels
+    timestamps
+    datapoints
+  }
+  errorRate: getFunctionsRangeMetric(
+    metric: ERRORS
+    aggregate: AVG
+    groupBy: [METHOD]
+    appID: $appID
+    route: $route
+    from: $from
+    to: $to
+    intervalMs: $intervalMs
+    maxDataPoints: $maxDataPoints
+    minInterval: $minInterval
+  ) {
+    labels
+    timestamps
+    datapoints
+  }
+  durationP75: getFunctionsHistogramMetric(
+    metric: DURATION
+    percentile: 0.75
+    groupBy: [METHOD]
+    appID: $appID
+    route: $route
+    from: $from
+    to: $to
+    intervalMs: $intervalMs
+    maxDataPoints: $maxDataPoints
+    minInterval: $minInterval
+  ) {
+    labels
+    timestamps
+    datapoints
+  }
+  durationP95: getFunctionsHistogramMetric(
+    metric: DURATION
+    percentile: 0.95
+    groupBy: [METHOD]
+    appID: $appID
+    route: $route
+    from: $from
+    to: $to
+    intervalMs: $intervalMs
+    maxDataPoints: $maxDataPoints
+    minInterval: $minInterval
+  ) {
+    labels
+    timestamps
+    datapoints
+  }
+  durationMax: getFunctionsHistogramMetric(
+    metric: DURATION
+    percentile: 1.0
+    groupBy: [METHOD]
+    appID: $appID
+    route: $route
+    from: $from
+    to: $to
+    intervalMs: $intervalMs
+    maxDataPoints: $maxDataPoints
+    minInterval: $minInterval
+  ) {
+    labels
+    timestamps
+    datapoints
+  }
+}
+    `;
+
+/**
+ * __useGetFunctionsMetricsDashboardQuery__
+ *
+ * To run a query within a React component, call `useGetFunctionsMetricsDashboardQuery` and pass it any options that fit your needs.
+ * When your component renders, `useGetFunctionsMetricsDashboardQuery` returns an object from Apollo Client that contains loading, error, and data properties
+ * you can use to render your UI.
+ *
+ * @param baseOptions options that will be passed into the query, supported options are listed on: https://www.apollographql.com/docs/react/api/react-hooks/#options;
+ *
+ * @example
+ * const { data, loading, error } = useGetFunctionsMetricsDashboardQuery({
+ *   variables: {
+ *      appID: // value for 'appID'
+ *      route: // value for 'route'
+ *      from: // value for 'from'
+ *      to: // value for 'to'
+ *      intervalMs: // value for 'intervalMs'
+ *      maxDataPoints: // value for 'maxDataPoints'
+ *      minInterval: // value for 'minInterval'
+ *   },
+ * });
+ */
+export function useGetFunctionsMetricsDashboardQuery(baseOptions: Apollo.QueryHookOptions<GetFunctionsMetricsDashboardQuery, GetFunctionsMetricsDashboardQueryVariables>) {
+        const options = {...defaultOptions, ...baseOptions}
+        return Apollo.useQuery<GetFunctionsMetricsDashboardQuery, GetFunctionsMetricsDashboardQueryVariables>(GetFunctionsMetricsDashboardDocument, options);
+      }
+export function useGetFunctionsMetricsDashboardLazyQuery(baseOptions?: Apollo.LazyQueryHookOptions<GetFunctionsMetricsDashboardQuery, GetFunctionsMetricsDashboardQueryVariables>) {
+          const options = {...defaultOptions, ...baseOptions}
+          return Apollo.useLazyQuery<GetFunctionsMetricsDashboardQuery, GetFunctionsMetricsDashboardQueryVariables>(GetFunctionsMetricsDashboardDocument, options);
+        }
+export type GetFunctionsMetricsDashboardQueryHookResult = ReturnType<typeof useGetFunctionsMetricsDashboardQuery>;
+export type GetFunctionsMetricsDashboardLazyQueryHookResult = ReturnType<typeof useGetFunctionsMetricsDashboardLazyQuery>;
+export type GetFunctionsMetricsDashboardQueryResult = Apollo.QueryResult<GetFunctionsMetricsDashboardQuery, GetFunctionsMetricsDashboardQueryVariables>;
+export function refetchGetFunctionsMetricsDashboardQuery(variables: GetFunctionsMetricsDashboardQueryVariables) {
+      return { query: GetFunctionsMetricsDashboardDocument, variables: variables }
+    }
 export const GetGithubRepositoriesDocument = gql`
     query getGithubRepositories {
   githubRepositories {

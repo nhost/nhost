@@ -88,8 +88,8 @@ func TestOauth2Authorize(t *testing.T) {
 			},
 			expectedResponse: api.Oauth2Authorize302Response{
 				Headers: api.Oauth2Authorize302ResponseHeaders{
-					Location: "https://auth.example.com/oauth2/consent" +
-						"?request_id=22222222-2222-2222-2222-222222222222",
+					Location: ptr("https://auth.example.com/oauth2/consent" +
+						"?request_id=22222222-2222-2222-2222-222222222222"),
 				},
 			},
 		},
@@ -139,13 +139,13 @@ func TestOauth2Authorize(t *testing.T) {
 			},
 			expectedResponse: api.Oauth2Authorize302Response{
 				Headers: api.Oauth2Authorize302ResponseHeaders{
-					Location: oauth2provider.ErrorRedirectURL(
+					Location: ptr(oauth2provider.ErrorRedirectURL(
 						redirectURI, state, issuer,
 						&oauth2provider.Error{
 							Err:         "unsupported_response_type",
 							Description: "Only response_type=code is supported",
 						},
-					),
+					)),
 				},
 			},
 		},
@@ -169,13 +169,13 @@ func TestOauth2Authorize(t *testing.T) {
 			},
 			expectedResponse: api.Oauth2Authorize302Response{
 				Headers: api.Oauth2Authorize302ResponseHeaders{
-					Location: oauth2provider.ErrorRedirectURL(
+					Location: ptr(oauth2provider.ErrorRedirectURL(
 						redirectURI, "", issuer,
 						&oauth2provider.Error{
 							Err:         "unsupported_response_type",
 							Description: "Only response_type=code is supported",
 						},
-					),
+					)),
 				},
 			},
 		},
@@ -199,13 +199,13 @@ func TestOauth2Authorize(t *testing.T) {
 			},
 			expectedResponse: api.Oauth2Authorize302Response{
 				Headers: api.Oauth2Authorize302ResponseHeaders{
-					Location: oauth2provider.ErrorRedirectURL(
+					Location: ptr(oauth2provider.ErrorRedirectURL(
 						redirectURI, state, issuer,
 						&oauth2provider.Error{
 							Err:         "unsupported_response_type",
 							Description: "Only response_type=code is supported",
 						},
-					),
+					)),
 				},
 			},
 		},
@@ -229,13 +229,13 @@ func TestOauth2Authorize(t *testing.T) {
 			},
 			expectedResponse: api.Oauth2Authorize302Response{
 				Headers: api.Oauth2Authorize302ResponseHeaders{
-					Location: oauth2provider.ErrorRedirectURL(
+					Location: ptr(oauth2provider.ErrorRedirectURL(
 						redirectURI, state, issuer,
 						&oauth2provider.Error{
 							Err:         "invalid_request",
 							Description: "PKCE code_challenge is required for public clients",
 						},
-					),
+					)),
 				},
 			},
 		},
@@ -260,13 +260,13 @@ func TestOauth2Authorize(t *testing.T) {
 			},
 			expectedResponse: api.Oauth2Authorize302Response{
 				Headers: api.Oauth2Authorize302ResponseHeaders{
-					Location: oauth2provider.ErrorRedirectURL(
+					Location: ptr(oauth2provider.ErrorRedirectURL(
 						redirectURI, state, issuer,
 						&oauth2provider.Error{
 							Err:         "invalid_scope",
 							Description: `Scope "invalid_scope" not allowed for this client`,
 						},
-					),
+					)),
 				},
 			},
 		},
@@ -385,13 +385,13 @@ func TestOauth2AuthorizePost(t *testing.T) {
 			},
 			expectedResponse: api.Oauth2AuthorizePost302Response{
 				Headers: api.Oauth2AuthorizePost302ResponseHeaders{
-					Location: oauth2provider.ErrorRedirectURL(
+					Location: ptr(oauth2provider.ErrorRedirectURL(
 						redirectURI, state, issuer,
 						&oauth2provider.Error{
 							Err:         "unsupported_response_type",
 							Description: "Only response_type=code is supported",
 						},
-					),
+					)),
 				},
 			},
 		},
@@ -431,8 +431,8 @@ func TestOauth2AuthorizePost(t *testing.T) {
 			},
 			expectedResponse: api.Oauth2AuthorizePost302Response{
 				Headers: api.Oauth2AuthorizePost302ResponseHeaders{
-					Location: "https://auth.example.com/oauth2/consent" +
-						"?request_id=22222222-2222-2222-2222-222222222222",
+					Location: ptr("https://auth.example.com/oauth2/consent" +
+						"?request_id=22222222-2222-2222-2222-222222222222"),
 				},
 			},
 		},

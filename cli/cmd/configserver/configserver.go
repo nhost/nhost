@@ -100,8 +100,8 @@ func Command() *cli.Command {
 	}
 }
 
-func corsMiddleware() gin.HandlerFunc {
-	return oapimw.CORS(oapimw.CORSOptions{
+func corsMiddleware() (gin.HandlerFunc, error) {
+	handler, err := oapimw.CORS(oapimw.CORSOptions{
 		AllowOriginFunc: dashboardOriginRe.MatchString,
 		AllowedOrigins:  nil,
 		AllowedMethods: []string{
@@ -115,11 +115,18 @@ func corsMiddleware() gin.HandlerFunc {
 		},
 		// AllowedHeaders: nil reflects the client's Access-Control-Request-Headers,
 		// which is the equivalent of "*" under credentialed CORS.
-		AllowedHeaders:   nil,
-		ExposedHeaders:   nil,
-		AllowCredentials: true,
-		MaxAge:           "",
+		AllowHeadersFunc:                     nil,
+		AllowedHeaders:                       nil,
+		ExposedHeaders:                       nil,
+		AllowCredentials:                     true,
+		MaxAge:                               "",
+		UnsafeAllowAllOriginsWithCredentials: false,
 	})
+	if err != nil {
+		return nil, fmt.Errorf("building CORS middleware: %w", err)
+	}
+
+	return handler, nil
 }
 
 func dummyMiddleware(
@@ -205,6 +212,11 @@ func serve(_ context.Context, cmd *cli.Command) error {
 		return fmt.Errorf("failed to create resolver: %w", err)
 	}
 
+	corsHandler, err := corsMiddleware()
+	if err != nil {
+		return err
+	}
+
 	r := graph.SetupRouter(
 		"/v1/configserver",
 		resolver,
@@ -214,7 +226,7 @@ func serve(_ context.Context, cmd *cli.Command) error {
 		cmd.Root().Version,
 		nil,
 		gin.Recovery(),
-		corsMiddleware(),
+		corsHandler,
 	)
 
 	if err := setupLogsAPI(

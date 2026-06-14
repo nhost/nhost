@@ -2,6 +2,9 @@
 title: Confidential Clients
 description: Integrate server-side applications using confidential OAuth2 clients with a client secret
 keywords: ["oauth2", "confidential", "client secret", "server-side", "oidc", "outline", "integration"]
+head:
+  - tag: title
+    content: "OAuth2 for Server-Side Apps with Client Secrets | Nhost Docs"
 sidebar:
   label: Confidential Clients
 ---
@@ -58,7 +61,7 @@ Many applications support **OIDC Discovery** — you only need to provide the di
 | JWKS | `https://<auth-url>/v1/oauth2/jwks` |
 
 :::note
-Some apps make the token and userinfo requests server-to-server. If the app runs in a container alongside Nhost, use the internal service URL (e.g. `http://hasura-auth-service:4000`, see [Run networking](/products/run/networking/)) for these endpoints, and the public URL for the authorization endpoint (which the browser accesses).
+Some apps make the token and userinfo requests server-to-server. If the app runs in a container alongside Nhost, use the internal service URL (e.g. `http://hasura-auth-service:4000`, see [Run networking](/products/run/networking)) for these endpoints, and the public URL for the authorization endpoint (which the browser accesses).
 :::
 
 ## Example: Outline Wiki

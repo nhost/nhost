@@ -10,6 +10,7 @@ import (
 	"net/http"
 	"time"
 
+	"github.com/nhost/nhost/services/constellation/connector/schemamerge"
 	"github.com/nhost/nhost/services/constellation/controller/middleware"
 	"github.com/nhost/nhost/services/constellation/controller/planner/transform"
 	"github.com/nhost/nhost/services/constellation/controller/websocket"
@@ -270,7 +271,8 @@ func getConnectorForOperation(
 ) string {
 	for _, selection := range operation.SelectionSet {
 		if field, ok := selection.(*ast.Field); ok {
-			if dbName, exists := state.fieldToConnector[field.Name]; exists {
+			key := schemamerge.FieldKey(operation.Operation, field.Name)
+			if dbName, exists := state.fieldToConnector[key]; exists {
 				return dbName
 			}
 		}

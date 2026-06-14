@@ -138,7 +138,7 @@ test('should be able to upgrade an organization', async () => {
     'div:has-text("Organization created successfully!")',
   );
   await page.getByText('Select organization', { exact: true }).click();
-  await page.getByLabel('Organizations').getByText(organizationName).click();
+  await page.getByRole('option', { name: organizationName }).click();
 
   await page.waitForSelector('h2:has-text("Welcome to Nhost!")');
   await page.getByRole('link', { name: 'Billing' }).click();

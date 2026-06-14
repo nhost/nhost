@@ -12,6 +12,7 @@ import (
 	"time"
 
 	"github.com/google/go-cmp/cmp"
+	"github.com/nhost/nhost/services/constellation/connector/schemamerge"
 	"github.com/nhost/nhost/services/constellation/controller/middleware"
 	"github.com/nhost/nhost/services/constellation/controller/websocket"
 	"github.com/nhost/nhost/services/constellation/internal/lib/syncmap"
@@ -131,9 +132,11 @@ func TestWebSocketHandlerOnSubscribeCoercesDefaultedDirectiveVariable(t *testing
 	h := &webSocketHandler{
 		state: &controllerState{
 			validatedSchemas: wsTestSchemas(t),
-			fieldToConnector: map[string]string{"users": "db"},
-			subHandlers:      map[string]subscription.Handler{"db": mockHandler},
-			queryCache:       newQueryCache(),
+			fieldToConnector: map[string]string{
+				schemamerge.FieldKey(ast.Subscription, "users"): "db",
+			},
+			subHandlers: map[string]subscription.Handler{"db": mockHandler},
+			queryCache:  newQueryCache(),
 		},
 		adminSecret:     "",
 		jwtAuth:         nil,
@@ -174,10 +177,22 @@ func TestGetConnectorForOperation(t *testing.T) {
 		want             string
 	}{
 		{
-			name:             "routes to known connector",
-			fieldToConnector: map[string]string{"users": "db1", "posts": "db2"},
-			selectionFields:  []string{"users"},
-			want:             "db1",
+			name: "routes to known connector",
+			fieldToConnector: map[string]string{
+				schemamerge.FieldKey(ast.Subscription, "users"): "db1",
+				schemamerge.FieldKey(ast.Subscription, "posts"): "db2",
+			},
+			selectionFields: []string{"users"},
+			want:            "db1",
+		},
+		{
+			name: "routes using subscription key when names overlap",
+			fieldToConnector: map[string]string{
+				schemamerge.FieldKey(ast.Query, "foo"):        "dbQ",
+				schemamerge.FieldKey(ast.Subscription, "foo"): "dbS",
+			},
+			selectionFields: []string{"foo"},
+			want:            "dbS",
 		},
 		{
 			name:             "unknown field falls through to default handler",
@@ -209,7 +224,10 @@ func TestGetConnectorForOperation(t *testing.T) {
 				selections[i] = &ast.Field{Name: name}
 			}
 
-			op := &ast.OperationDefinition{SelectionSet: selections}
+			op := &ast.OperationDefinition{
+				Operation:    ast.Subscription,
+				SelectionSet: selections,
+			}
 
 			got := getConnectorForOperation(state, op)
 			if got != tc.want {

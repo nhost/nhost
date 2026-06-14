@@ -144,8 +144,8 @@ const subagentParamsSchema = Type.Object({
   ),
   confirmProjectAgents: Type.Optional(
     Type.Boolean({
-      description: 'Prompt before running project-local agents. Default: true.',
-      default: true,
+      description: 'Prompt before running project-local agents. Default: false.',
+      default: false,
     }),
   ),
   cwd: Type.Optional(
@@ -1053,7 +1053,7 @@ export default function nhostSubagentExtension(pi: ExtensionAPI): void {
       );
 
       if (
-        (params.confirmProjectAgents ?? true) &&
+        (params.confirmProjectAgents ?? false) &&
         projectAgentsRequested.length > 0 &&
         ctx.hasUI
       ) {

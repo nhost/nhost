@@ -1,11 +1,12 @@
 import { useQueryClient } from '@tanstack/react-query';
 import { useRouter } from 'next/router';
-import { useState } from 'react';
+import { useCallback, useState } from 'react';
 import toast from 'react-hot-toast';
 import { EXPORT_METADATA_QUERY_KEY } from '@/features/orgs/projects/common/hooks/useExportMetadata';
 import { useIsPlatform } from '@/features/orgs/projects/common/hooks/useIsPlatform';
 import { generateAppServiceUrl } from '@/features/orgs/projects/common/utils/generateAppServiceUrl';
 import { useDatabaseQuery } from '@/features/orgs/projects/database/dataGrid/hooks/useDatabaseQuery';
+import { POSTGRES_FUNCTIONS_QUERY_KEY } from '@/features/orgs/projects/database/dataGrid/hooks/usePostgresFunctionsQuery';
 import { useProject } from '@/features/orgs/projects/hooks/useProject';
 import { getToastStyleProps } from '@/utils/constants/settings';
 import { getHasuraMigrationsApiUrl } from '@/utils/env';
@@ -345,12 +346,23 @@ export default function useRunSQL(
     await queryClient.invalidateQueries({
       queryKey: [EXPORT_METADATA_QUERY_KEY, project?.subdomain],
     });
+    await queryClient.invalidateQueries({
+      queryKey: [POSTGRES_FUNCTIONS_QUERY_KEY, project?.subdomain],
+    });
 
     setLoading(false);
   };
 
+  const reset = useCallback(() => {
+    setCommandOk(false);
+    setErrorMessage('');
+    setColumns([]);
+    setRows([[]]);
+  }, []);
+
   return {
     runSQL,
+    reset,
     loading,
     errorMessage,
     commandOk,

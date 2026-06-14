@@ -68,6 +68,7 @@ func cleanTables(ctx context.Context, conn *pgx.Conn) error {
 		"notes",
 		"exercise_log_sets",
 		"exercise_logs",
+		"identity.artists",
 		"identity_check_logs",
 		"department_files",
 		"kb_entry_departments",

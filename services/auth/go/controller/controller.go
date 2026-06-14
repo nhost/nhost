@@ -146,7 +146,7 @@ type DBClient interface { //nolint:interfacebloat
 		ctx context.Context, arg sql.InsertPKCEAuthorizationCodeParams,
 	) (sql.AuthPkceAuthorizationCode, error)
 	ConsumePKCEAuthorizationCode(
-		ctx context.Context, codeHash string,
+		ctx context.Context, arg sql.ConsumePKCEAuthorizationCodeParams,
 	) (sql.AuthPkceAuthorizationCode, error)
 	DeleteExpiredPKCEAuthorizationCodes(ctx context.Context) error
 }

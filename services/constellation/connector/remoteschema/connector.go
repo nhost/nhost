@@ -16,6 +16,7 @@ import (
 	"log/slog"
 	"net/http"
 	"net/url"
+	"os"
 	"time"
 
 	"github.com/nhost/nhost/services/constellation/graph"
@@ -148,11 +149,20 @@ func buildHeaders(meta *metadata.RemoteSchemaMetadata) (map[string]string, error
 	headers := make(map[string]string, len(meta.Definition.Headers))
 
 	for _, h := range meta.Definition.Headers {
-		value, err := h.Value.Resolve()
-		if err != nil {
-			return nil, fmt.Errorf(
-				"resolving header %q for remote schema %s: %w", h.Name, meta.Name, err,
-			)
+		value := h.Value
+		if h.ValueFromEnv != "" {
+			var ok bool
+
+			value, ok = os.LookupEnv(h.ValueFromEnv)
+			if !ok {
+				return nil, fmt.Errorf(
+					"resolving header %q for remote schema %s: %w: %s",
+					h.Name,
+					meta.Name,
+					metadata.ErrUnresolvedEnvVars,
+					h.ValueFromEnv,
+				)
+			}
 		}
 
 		headers[h.Name] = value

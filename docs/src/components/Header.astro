@@ -5,62 +5,62 @@ import type { Props } from '@astrojs/starlight/props';
 const products = [
   {
     label: 'Overview',
-    href: '/products/',
+    href: '/products',
     icon: '<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="7" height="7"/><rect x="14" y="3" width="7" height="7"/><rect x="14" y="14" width="7" height="7"/><rect x="3" y="14" width="7" height="7"/></svg>',
   },
   {
     label: 'Database',
-    href: '/products/database/',
+    href: '/products/database',
     icon: '<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><ellipse cx="12" cy="5" rx="9" ry="3"/><path d="M21 12c0 1.66-4 3-9 3s-9-1.34-9-3"/><path d="M3 5v14c0 1.66 4 3 9 3s9-1.34 9-3V5"/></svg>',
   },
   {
     label: 'GraphQL',
-    href: '/products/graphql/',
+    href: '/products/graphql',
     icon: '<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polygon points="12 2 2 7 2 17 12 22 22 17 22 7 12 2"/><line x1="12" y1="22" x2="12" y2="12"/><line x1="22" y1="7" x2="12" y2="12"/><line x1="2" y1="7" x2="12" y2="12"/></svg>',
   },
   {
     label: 'Auth',
-    href: '/products/auth/',
+    href: '/products/auth',
     icon: '<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="11" width="18" height="11" rx="2" ry="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg>',
   },
   {
     label: 'Storage',
-    href: '/products/storage/',
+    href: '/products/storage',
     icon: '<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M22 19a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h5l2 3h9a2 2 0 0 1 2 2z"/></svg>',
   },
   {
     label: 'Run',
-    href: '/products/run/',
+    href: '/products/run',
     icon: '<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="2" y="2" width="20" height="8" rx="2" ry="2"/><rect x="2" y="14" width="20" height="8" rx="2" ry="2"/><line x1="6" y1="6" x2="6.01" y2="6"/><line x1="6" y1="18" x2="6.01" y2="18"/></svg>',
   },
   {
     label: 'Functions',
-    href: '/products/functions/',
+    href: '/products/functions',
     icon: '<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="16 18 22 12 16 6"/><polyline points="8 6 2 12 8 18"/></svg>',
   },
   {
     label: 'Events',
-    href: '/products/events/',
+    href: '/products/events',
     icon: '<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m3.75 13.5 10.5-11.25L12 10.5h8.25L9.75 21.75 12 13.5H3.75Z"/></svg>',
   },
   {
     label: 'AI',
-    href: '/products/ai/',
+    href: '/products/ai',
     icon: '<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 2L15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2z"/></svg>',
   },
 ];
 
 const navLinks = [
   { label: 'Welcome', href: '/' },
-  { label: 'Getting Started', href: '/getting-started/' },
+  { label: 'Getting Started', href: '/getting-started' },
   {
     label: 'Products',
-    href: '/products/',
+    href: '/products',
     hasDropdown: true,
     dropdownItems: products,
   },
-  { label: 'Platform', href: '/platform/' },
-  { label: 'Reference', href: '/reference/' },
+  { label: 'Platform', href: '/platform' },
+  { label: 'Reference', href: '/reference' },
   { label: 'Blog', href: 'https://nhost.io/blog', external: true },
 ];
 

@@ -99,10 +99,6 @@ enum authRoles_constraint {
   unique or primary key constraint on columns "role"
   """
   roles_pkey
-  """
-  unique or primary key constraint on columns "role"
-  """
-  sqlite_autoindex_roles_1
 }
 """
 update columns of table "roles"
@@ -134,10 +130,6 @@ enum authUserRoles_constraint {
   unique or primary key constraint on columns "user_id", "role"
   """
   user_roles_user_id_role_key
-  """
-  unique or primary key constraint on columns "id"
-  """
-  sqlite_autoindex_user_roles_1
 }
 """
 update columns of table "user_roles"
@@ -197,10 +189,6 @@ enum users_constraint {
   unique or primary key constraint on columns "email"
   """
   users_email_key
-  """
-  unique or primary key constraint on columns "id"
-  """
-  sqlite_autoindex_users_1
 }
 """
 update columns of table "users"
@@ -424,10 +412,6 @@ enum departments_constraint {
   unique or primary key constraint on columns "name"
   """
   departments_name_key
-  """
-  unique or primary key constraint on columns "id"
-  """
-  sqlite_autoindex_departments_1
 }
 """
 update columns of table "departments"
@@ -495,10 +479,6 @@ enum user_departments_constraint {
   unique or primary key constraint on columns "user_id", "department_id"
   """
   user_departments_pkey
-  """
-  unique or primary key constraint on columns "user_id", "department_id"
-  """
-  sqlite_autoindex_user_departments_1
 }
 """
 update columns of table "user_departments"

@@ -10,15 +10,96 @@ import (
 	"testing"
 
 	"github.com/google/go-cmp/cmp"
+	"github.com/nhost/nhost/services/constellation/connector/schemamerge"
 	"github.com/vektah/gqlparser/v2/ast"
 	"github.com/vektah/gqlparser/v2/gqlerror"
 	"go.uber.org/mock/gomock"
 
+	oapimw "github.com/nhost/nhost/internal/lib/oapi/middleware"
 	"github.com/nhost/nhost/services/constellation/connector/sql/graphql/queries/arguments"
 	argmock "github.com/nhost/nhost/services/constellation/connector/sql/graphql/queries/arguments/mock"
 	"github.com/nhost/nhost/services/constellation/connector/sql/graphql/queries/core"
-	"github.com/nhost/nhost/services/constellation/internal/lib/oapi/tracing"
 )
+
+func TestGroupFieldsByConnectorUsesOperationQualifiedKeys(t *testing.T) {
+	t.Parallel()
+
+	selectionSet := ast.SelectionSet{&ast.Field{Name: "foo"}}
+	tests := []struct {
+		name             string
+		operation        ast.Operation
+		fieldToConnector map[string]string
+		wantFieldCounts  map[string]int
+		wantResponse     bool
+	}{
+		{
+			name:      "query routes to database connector",
+			operation: ast.Query,
+			fieldToConnector: map[string]string{
+				schemamerge.FieldKey(ast.Query, "foo"):    "db",
+				schemamerge.FieldKey(ast.Mutation, "foo"): "rs",
+			},
+			wantFieldCounts: map[string]int{"db": 1},
+			wantResponse:    false,
+		},
+		{
+			name:      "mutation routes to remote schema connector",
+			operation: ast.Mutation,
+			fieldToConnector: map[string]string{
+				schemamerge.FieldKey(ast.Query, "foo"):    "db",
+				schemamerge.FieldKey(ast.Mutation, "foo"): "rs",
+			},
+			wantFieldCounts: map[string]int{"rs": 1},
+			wantResponse:    false,
+		},
+		{
+			name:      "mutation without mutation owner fails",
+			operation: ast.Mutation,
+			fieldToConnector: map[string]string{
+				schemamerge.FieldKey(ast.Query, "foo"): "db",
+			},
+			wantFieldCounts: nil,
+			wantResponse:    true,
+		},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			t.Parallel()
+
+			fieldsByConnector, _, resp := groupFieldsByConnector(
+				&controllerState{fieldToConnector: tt.fieldToConnector},
+				&ast.OperationDefinition{Operation: tt.operation, SelectionSet: selectionSet},
+			)
+			if tt.wantResponse {
+				if resp == nil {
+					t.Fatalf(
+						"expected %s foo without a %s owner to fail",
+						tt.operation,
+						tt.operation,
+					)
+				}
+
+				return
+			}
+
+			if resp != nil {
+				t.Fatalf("%s routing failed: %+v", tt.operation, resp)
+			}
+
+			for connectorName, want := range tt.wantFieldCounts {
+				if got := len(fieldsByConnector[connectorName]); got != want {
+					t.Fatalf(
+						"expected %s foo routed to %s, got %d fields",
+						tt.operation,
+						connectorName,
+						got,
+					)
+				}
+			}
+		})
+	}
+}
 
 // distinctOnOrderByMismatchError builds a real *arguments.QueryValidationError
 // by driving the public arguments.ParseQuery with a distinct_on that does not
@@ -452,7 +533,7 @@ func TestSanitizeConnectorError_NilLoggerSafe(t *testing.T) {
 
 // TestSanitizeConnectorError_UsesTraceFromContext pins the product invariant
 // that the client-facing message and the server-side log share one trace id,
-// sourced from tracing.FromContext(ctx) — not the uuid.NewString() fallback.
+// sourced from middleware.TraceFromContext(ctx) — not the uuid.NewString() fallback.
 // A refactor that strips the tracing-bearing context anywhere on the resolve
 // path would silently break the correlation; this test guards against that.
 func TestSanitizeConnectorError_UsesTraceFromContext(t *testing.T) {
@@ -460,7 +541,7 @@ func TestSanitizeConnectorError_UsesTraceFromContext(t *testing.T) {
 
 	const wantTraceID = "test-trace-123"
 
-	ctx := tracing.ToContext(context.Background(), tracing.Trace{
+	ctx := oapimw.TraceToContext(context.Background(), oapimw.Trace{
 		TraceID:      wantTraceID,
 		ParentSpanID: "",
 		SpanID:       "",

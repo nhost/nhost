@@ -985,6 +985,72 @@
         }
       }
     },
+    "identity": {
+      "Tables": {
+        "artists": {
+          "Schema": "identity",
+          "Name": "artists",
+          "Comment": null,
+          "Columns": [
+            {
+              "Name": "id",
+              "Type": "uuid",
+              "IsNullable": false,
+              "IsGenerated": false,
+              "IsIdentity": false,
+              "IsArray": false,
+              "SupportsMinMax": true,
+              "SupportsInc": false,
+              "SupportsAgg": false,
+              "Default": "gen_random_uuid()",
+              "Comment": null
+            },
+            {
+              "Name": "stage_name",
+              "Type": "text",
+              "IsNullable": false,
+              "IsGenerated": false,
+              "IsIdentity": false,
+              "IsArray": false,
+              "SupportsMinMax": true,
+              "SupportsInc": false,
+              "SupportsAgg": false,
+              "Default": null,
+              "Comment": null
+            },
+            {
+              "Name": "created_by",
+              "Type": "uuid",
+              "IsNullable": false,
+              "IsGenerated": false,
+              "IsIdentity": false,
+              "IsArray": false,
+              "SupportsMinMax": true,
+              "SupportsInc": false,
+              "SupportsAgg": false,
+              "Default": null,
+              "Comment": null
+            }
+          ],
+          "PrimaryKeys": [
+            "id"
+          ],
+          "PrimaryKeyConstraintName": "artists_pkey",
+          "ForeignKeys": [
+            {
+              "ColumnName": "created_by",
+              "ForeignSchema": "auth",
+              "ForeignTable": "users",
+              "ForeignColumnName": "id"
+            }
+          ],
+          "UniqueConstraints": null,
+          "IsView": false,
+          "IsInsertable": true,
+          "IsUpdatable": true
+        }
+      }
+    },
     "public": {
       "Tables": {
         "department_roles": {

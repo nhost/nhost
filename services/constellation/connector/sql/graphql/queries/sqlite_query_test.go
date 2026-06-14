@@ -115,6 +115,37 @@ func testBuildQuerySQLite( //nolint:gocognit
 	}
 }
 
+func TestBuildMutationDeleteSQL_SQLite(t *testing.T) { //nolint:paralleltest
+	cases := []buildQueryTestCase{
+		{
+			// Regression guard for SQLITE_MEDIUM_5: when a SQLite mutation returns no
+			// rows, the top-level returning selection must default through
+			// dialect.EmptyJSONArray() -> json_array(), not the bare string literal
+			// '[]'. Nesting a bare literal under json_object would serialize as the
+			// JSON string "[]" instead of the array []. Keeping an array relationship
+			// in the returning shape preserves the production path that originally
+			// exposed the mismatch.
+			name: "delete returning array relationship uses JSON empty array",
+			query: query{
+				Query: `
+					mutation {
+						delete_departments(where: {name: {_eq: "No match"}}) {
+							affected_rows
+							returning {
+								id
+								employees {
+									user_id
+								}
+							}
+						}
+					}`,
+			},
+		},
+	}
+
+	testBuildQuerySQLite(t, cases)
+}
+
 func TestBuildSelectionSQL_SQLite(t *testing.T) { //nolint:paralleltest
 	cases := []buildQueryTestCase{
 		{

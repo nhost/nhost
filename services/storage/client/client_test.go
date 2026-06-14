@@ -36,7 +36,7 @@ func WithHeaders(headers http.Header) func(ctx context.Context, req *http.Reques
 
 func IgnoreResponseHeaders() cmp.Option {
 	return cmpopts.IgnoreMapEntries(func(key string, _ []string) bool {
-		return key == "Date" || key == "Surrogate-Key" || key == "Last-Modified" ||
+		return key == "Date" || key == "Surrogate-Key" || key == "Last-Modified" || key == "Vary" ||
 			strings.HasPrefix(key, "X-B3-")
 	})
 }

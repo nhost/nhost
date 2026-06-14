@@ -109,7 +109,12 @@ analyzer := newAnalyzer(connectorName, schema, relationships, operation.Operatio
 subOp := BuildSubOperation(operation, fields)
 analysis := analyzer.analyzeOperation(subOp)
 
-transformer := newASTTransformer(schema, relationships, connectorName, p.typeToConnector)
+transformer := transform.NewTransformer(
+    schema,
+    toRemoteRelationships(relationships),
+    connectorName,
+    p.typeToConnectors,
+)
 transformResult := transformer.Transform(subOp, fragments)
 
 injectPhantomFields(transformResult.CleanOperation, analysis.PhantomFields)
@@ -117,6 +122,8 @@ injectPhantomFields(transformResult.CleanOperation, analysis.PhantomFields)
 plan.PrimaryQueries = append(plan.PrimaryQueries, &PrimaryQuery{...})
 plan.RemoteQueries = append(plan.RemoteQueries, analysis.RemoteQueries...)
 ```
+
+The transformer receives `p.typeToConnectors` (`map[string][]string`) so structurally identical object types can remain associated with every connector that owns them.
 
 ### Analyzer
 
@@ -130,24 +137,25 @@ The analyzer expands `*ast.FragmentSpread` and `*ast.InlineFragment` so relation
 
 ### Phantom field specification
 
-After detecting relationships, the analyzer subtracts fields the user already selected (`collectSelectedFields`) from `neededPhantoms` and records the remainder as a `PhantomFieldSpec`:
+After detecting relationships, the analyzer compares `neededPhantoms` against fields already selected with their own response key (`collectOwnResponseKeyFields`). Aliased user fields still occupy response keys, so `collectResponseKeys` is used to choose an internal alias when an injected phantom would collide with the user's response shape. The remaining fields are recorded as a `PhantomFieldSpec`:
 
 ```go
 type PhantomFieldSpec struct {
     Path            jsonpath.Path     // e.g. ["users", "profile"]
     Fields          []string          // e.g. ["department_id"]
+    Aliases         map[string]string // optional internal response keys for colliding phantoms
     ForRelationship string
 }
 ```
 
-The spec is referenced from every `RemoteQueryPlan` that shares the same source path, so the resolver can later look up which phantom fields belong to which relationship.
+The spec is referenced from every `RemoteQueryPlan` that shares the same source path, so the resolver can later look up which phantom fields belong to which relationship and which internal response key to read for aliased phantoms.
 
 ### AST transformer
 
-`controller/planner/ast_transformer.go` walks the same sub-operation, producing a deep-cloned `CleanOperation` and `CleanFragments`:
+`controller/planner/transform/transform.go` walks the same sub-operation, producing a deep-cloned `CleanOperation` and `CleanFragments`:
 
 - **Strips** any field whose `(typeName, fieldName)` is a remote relationship.
-- **Filters** fragments whose `TypeCondition` belongs to a different connector (`t.typeToConnector[typeName] != t.connectorName`). This prevents validation errors when a fragment defined for one DB's types is sent to another.
+- **Filters** fragments whose `TypeCondition` is not owned by `t.connectorName` (that is, `t.connectorName` is not in `t.typeToConnectors[typeName]`). Because `typeToConnectors` is a `map[string][]string`, fragments on shared types are preserved for every connector that owns the type.
 - **Drops** fragment spreads that reference fragments which were filtered out or became empty after stripping.
 
 Because the transformer always returns a fresh AST, callers can mutate the result without affecting the planner's shared trees.

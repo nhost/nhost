@@ -98,12 +98,17 @@ func (q *Queries) ConsumeOAuth2CodeAndInsertRefreshToken(ctx context.Context, ar
 
 const consumePKCEAuthorizationCode = `-- name: ConsumePKCEAuthorizationCode :one
 DELETE FROM auth.pkce_authorization_codes
-WHERE code_hash = $1 AND expires_at > now()
+WHERE code_hash = $1 AND code_challenge = $2 AND expires_at > now()
 RETURNING id, user_id, code_hash, code_challenge, redirect_to, expires_at, created_at
 `
 
-func (q *Queries) ConsumePKCEAuthorizationCode(ctx context.Context, codeHash string) (AuthPkceAuthorizationCode, error) {
-	row := q.db.QueryRow(ctx, consumePKCEAuthorizationCode, codeHash)
+type ConsumePKCEAuthorizationCodeParams struct {
+	CodeHash      string
+	CodeChallenge string
+}
+
+func (q *Queries) ConsumePKCEAuthorizationCode(ctx context.Context, arg ConsumePKCEAuthorizationCodeParams) (AuthPkceAuthorizationCode, error) {
+	row := q.db.QueryRow(ctx, consumePKCEAuthorizationCode, arg.CodeHash, arg.CodeChallenge)
 	var i AuthPkceAuthorizationCode
 	err := row.Scan(
 		&i.ID,

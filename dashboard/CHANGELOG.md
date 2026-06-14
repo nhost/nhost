@@ -1,3 +1,50 @@
+## [@nhost/dashboard@2.66.0] - 2026-06-11
+
+### 🚀 Features
+
+- *(dashboard)* Add computed fields in GraphQL settings (#4237)
+- *(dashboard)* Add metrics tab to serverless functions (#4183)
+
+
+### 🐛 Bug Fixes
+
+- *(dashboard)* Migrate checkbox to shadcn (#4440)
+- *(deps)* Bump up shellquote due to CVE (#4499)
+- *(dashboard)* Correct run services and auto-embeddings pagination offset (#4495)
+- *(dashboard)* Clean up leftover run services in run e2e test (#4496)
+- *(dashboard)* Increase the width of the service column (#4508)
+- *(dashboard)* Optimize DataBrowserSidebar tests (#4509)
+- *(dashboard)* Migrate custom autocomplete dropdowns to v3 Combobox primitive (#4492)
+- *(dashboard)* Move the check mark to the left in combobox (#4515)
+- *(dashboard)* Unify session argument wording across GraphQL settings (#4521)
+- *(dashboard)* Mixed light/dark theme after signing in and switching tabs (#4522)
+
+
+### ⚙️ Miscellaneous Tasks
+
+- *(ci)* Nixify dashboard/docs vercel builds and e2e tests (#4460)
+- *(dashboard)* Migrate legacy Autocomplete to v3 Combobox (#4441)
+- *(nixops)* Scope pinned toolchain overlays (#4506)
+- *(ci)* Remove prettier config and unused deps (#4485)
+- *(dashboard)* Re-enable Segment analytics and propagate anonId on signup (#4386)
+- *(dashboard)* Disable Segment analytics on dev and staging (#4520)
+
+## [@nhost/dashboard@2.65.1] - 2026-06-05
+
+### 🐛 Bug Fixes
+
+- *(dashboard)* Schema diagram edge routing, arrowheads, and stable layout (#4430)
+- *(dashboard)* Improve logs page (#4260)
+- *(dashboard)* Create Combobox component to replace AutoComplete(v2) (#4436)
+- *(dashboard)* Stabilize flaky e2e tests (#4443)
+- *(dashboard)* Migrate Foreign key form to v3 (#4413)
+- *(dashboard)* Await metadata builder when tracking foreign keys locally (#4452)
+
+
+### ⚙️ Miscellaneous Tasks
+
+- *(ci)* Improvements (#4433)
+
 ## [@nhost/dashboard@2.65.0] - 2026-06-03
 
 ### 🚀 Features

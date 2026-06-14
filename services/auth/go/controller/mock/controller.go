@@ -652,18 +652,18 @@ func (mr *MockDBClientMockRecorder) ConsumeOAuth2CodeAndInsertRefreshToken(ctx, 
 }
 
 // ConsumePKCEAuthorizationCode mocks base method.
-func (m *MockDBClient) ConsumePKCEAuthorizationCode(ctx context.Context, codeHash string) (sql.AuthPkceAuthorizationCode, error) {
+func (m *MockDBClient) ConsumePKCEAuthorizationCode(ctx context.Context, arg sql.ConsumePKCEAuthorizationCodeParams) (sql.AuthPkceAuthorizationCode, error) {
 	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "ConsumePKCEAuthorizationCode", ctx, codeHash)
+	ret := m.ctrl.Call(m, "ConsumePKCEAuthorizationCode", ctx, arg)
 	ret0, _ := ret[0].(sql.AuthPkceAuthorizationCode)
 	ret1, _ := ret[1].(error)
 	return ret0, ret1
 }
 
 // ConsumePKCEAuthorizationCode indicates an expected call of ConsumePKCEAuthorizationCode.
-func (mr *MockDBClientMockRecorder) ConsumePKCEAuthorizationCode(ctx, codeHash any) *gomock.Call {
+func (mr *MockDBClientMockRecorder) ConsumePKCEAuthorizationCode(ctx, arg any) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "ConsumePKCEAuthorizationCode", reflect.TypeOf((*MockDBClient)(nil).ConsumePKCEAuthorizationCode), ctx, codeHash)
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "ConsumePKCEAuthorizationCode", reflect.TypeOf((*MockDBClient)(nil).ConsumePKCEAuthorizationCode), ctx, arg)
 }
 
 // CountSecurityKeysUser mocks base method.

@@ -10,6 +10,7 @@ import (
 	"github.com/nhost/nhost/services/constellation/connector/sql/graphql/queries/core"
 	"github.com/nhost/nhost/services/constellation/connector/sql/graphql/queries/dialect"
 	"github.com/nhost/nhost/services/constellation/connector/sql/graphql/queries/permissions"
+	graphqlschema "github.com/nhost/nhost/services/constellation/connector/sql/graphql/schema"
 	"github.com/nhost/nhost/services/constellation/connector/sql/introspection"
 	"github.com/nhost/nhost/services/constellation/metadata"
 )
@@ -176,7 +177,10 @@ func (t *table) initializeRootNames(md metadata.TableMetadata) {
 		return b
 	}
 
-	customTableName := orFn(md.Configuration.CustomName, md.Table.Name)
+	customTableName := orFn(
+		md.Configuration.CustomName,
+		graphqlschema.DefaultTypeName(md.Table.Schema, md.Table.Name),
+	)
 
 	t.graphqlTypeName = customTableName
 	t.queryCollectionName = orFn(md.Configuration.CustomRootFields.Select, customTableName)

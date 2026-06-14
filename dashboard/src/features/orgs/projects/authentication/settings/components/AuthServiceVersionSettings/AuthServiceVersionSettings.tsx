@@ -4,11 +4,8 @@ import { FormProvider, useForm } from 'react-hook-form';
 import * as Yup from 'yup';
 import { ApplyLocalSettingsDialog } from '@/components/common/ApplyLocalSettingsDialog';
 import { useDialog } from '@/components/common/DialogProvider';
-import {
-  ControlledAutocomplete,
-  defaultFilterOptions,
-} from '@/components/form/ControlledAutocomplete';
 import { Form } from '@/components/form/Form';
+import { FormFreeCombobox } from '@/components/form/FormFreeCombobox';
 import { SettingsContainer } from '@/components/layout/SettingsContainer';
 import { ActivityIndicator } from '@/components/ui/v2/ActivityIndicator';
 import { useIsPlatform } from '@/features/orgs/projects/common/hooks/useIsPlatform';
@@ -24,10 +21,7 @@ import {
 import { isEmptyValue } from '@/lib/utils';
 
 const validationSchema = Yup.object({
-  version: Yup.object({
-    label: Yup.string().required(),
-    value: Yup.string().required(),
-  }).label('Auth Version'),
+  version: Yup.string().required().label('Auth Version'),
 });
 
 export type AuthServiceVersionFormValues = Yup.InferType<
@@ -79,17 +73,14 @@ export default function AuthServiceVersionSettings() {
 
   const form = useForm<AuthServiceVersionFormValues>({
     reValidateMode: 'onSubmit',
-    defaultValues: { version: { label: '', value: '' } },
+    defaultValues: { version: '' },
     resolver: yupResolver(validationSchema),
   });
 
   useEffect(() => {
     if (!loading && version) {
       form.reset({
-        version: {
-          label: version,
-          value: version,
-        },
+        version,
       });
     }
   }, [loading, version, form]);
@@ -118,7 +109,7 @@ export default function AuthServiceVersionSettings() {
         appId: project?.id,
         config: {
           auth: {
-            version: formValues.version.value,
+            version: formValues.version,
           },
         },
       },
@@ -165,27 +156,13 @@ export default function AuthServiceVersionSettings() {
           docsTitle="the latest releases"
           className="grid grid-flow-row gap-x-4 gap-y-2 px-4 lg:grid-cols-5"
         >
-          <ControlledAutocomplete
-            id="version"
+          <FormFreeCombobox
             name="version"
-            autoHighlight
-            freeSolo
-            getOptionLabel={(option) => {
-              if (typeof option === 'string') {
-                return option || '';
-              }
-
-              return option.value;
-            }}
-            isOptionEqualToValue={() => false}
-            filterOptions={defaultFilterOptions}
-            fullWidth
-            className="lg:col-span-2"
+            className="lg:col-span-3"
             options={availableVersions}
-            error={!!formState.errors?.version?.message}
-            helperText={formState.errors?.version?.message}
-            showCustomOption="auto"
-            customOptionLabel={(value) => `Use custom value: "${value}"`}
+            control={form.control}
+            placeholder="Select Auth Version"
+            customValueLabel={(val) => `Use custom value: "${val}"`}
           />
         </SettingsContainer>
       </Form>

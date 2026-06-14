@@ -18,7 +18,8 @@ import (
 	"github.com/nhost/nhost/services/storage/middleware"
 )
 
-func deptr[T any](v *T) T { //nolint:ireturn
+//nolint:ireturn // generic helper returns the caller-selected type parameter.
+func deptr[T any](v *T) T {
 	if v == nil {
 		var zero T
 		return zero
@@ -279,7 +280,7 @@ func (ctrl *Controller) processFileToDownload(
 	}, nil
 }
 
-func (ctrl *Controller) getFileResponse( //nolint: ireturn,dupl,funlen
+func (ctrl *Controller) getFileResponse( //nolint:dupl,funlen,ireturn
 	ctx context.Context,
 	file *processedFile,
 	logger *slog.Logger,
@@ -289,17 +290,17 @@ func (ctrl *Controller) getFileResponse( //nolint: ireturn,dupl,funlen
 		return api.GetFile200ApplicationoctetStreamResponse{
 			Body: file.body,
 			Headers: api.GetFile200ResponseHeaders{
-				AcceptRanges: "bytes",
-				CacheControl: file.cacheControl,
-				ContentDisposition: fmt.Sprintf(
+				AcceptRanges: new("bytes"),
+				CacheControl: new(file.cacheControl),
+				ContentDisposition: new(fmt.Sprintf(
 					`inline; filename="%s"`,
 					url.QueryEscape(file.filename),
-				),
-				ContentType:      file.mimeType,
-				Etag:             file.fileMetadata.Etag,
-				LastModified:     api.RFC2822Date(file.fileMetadata.UpdatedAt),
-				SurrogateControl: file.cacheControl,
-				SurrogateKey:     file.fileMetadata.Id,
+				)),
+				ContentType:      new(file.mimeType),
+				Etag:             new(file.fileMetadata.Etag),
+				LastModified:     new(api.RFC2822Date(file.fileMetadata.UpdatedAt)),
+				SurrogateControl: new(file.cacheControl),
+				SurrogateKey:     new(file.fileMetadata.Id),
 			},
 			ContentLength: file.contentLength,
 		}
@@ -307,17 +308,17 @@ func (ctrl *Controller) getFileResponse( //nolint: ireturn,dupl,funlen
 		return api.GetFile206ApplicationoctetStreamResponse{
 			Body: file.body,
 			Headers: api.GetFile206ResponseHeaders{
-				CacheControl: file.cacheControl,
-				ContentDisposition: fmt.Sprintf(
+				CacheControl: new(file.cacheControl),
+				ContentDisposition: new(fmt.Sprintf(
 					`inline; filename="%s"`,
 					url.QueryEscape(file.filename),
-				),
-				ContentRange:     file.extraHeaders.Get("Content-Range"),
-				ContentType:      file.mimeType,
-				Etag:             file.fileMetadata.Etag,
-				LastModified:     api.RFC2822Date(file.fileMetadata.UpdatedAt),
-				SurrogateControl: file.cacheControl,
-				SurrogateKey:     file.fileMetadata.Id,
+				)),
+				ContentRange:     new(file.extraHeaders.Get("Content-Range")),
+				ContentType:      new(file.mimeType),
+				Etag:             new(file.fileMetadata.Etag),
+				LastModified:     new(api.RFC2822Date(file.fileMetadata.UpdatedAt)),
+				SurrogateControl: new(file.cacheControl),
+				SurrogateKey:     new(file.fileMetadata.Id),
 			},
 			ContentLength: file.contentLength,
 		}
@@ -326,9 +327,9 @@ func (ctrl *Controller) getFileResponse( //nolint: ireturn,dupl,funlen
 
 		return api.GetFile304Response{
 			Headers: api.GetFile304ResponseHeaders{
-				CacheControl:     file.cacheControl,
-				Etag:             file.fileMetadata.Etag,
-				SurrogateControl: file.cacheControl,
+				CacheControl:     new(file.cacheControl),
+				Etag:             new(file.fileMetadata.Etag),
+				SurrogateControl: new(file.cacheControl),
 			},
 		}
 	case http.StatusPreconditionFailed:
@@ -336,9 +337,9 @@ func (ctrl *Controller) getFileResponse( //nolint: ireturn,dupl,funlen
 
 		return api.GetFile412Response{
 			Headers: api.GetFile412ResponseHeaders{
-				CacheControl:     file.cacheControl,
-				Etag:             file.fileMetadata.Etag,
-				SurrogateControl: file.cacheControl,
+				CacheControl:     new(file.cacheControl),
+				Etag:             new(file.fileMetadata.Etag),
+				SurrogateControl: new(file.cacheControl),
 			},
 		}
 	default:
@@ -352,7 +353,8 @@ func (ctrl *Controller) getFileResponse( //nolint: ireturn,dupl,funlen
 	}
 }
 
-func (ctrl *Controller) GetFile( //nolint:ireturn
+//nolint:ireturn
+func (ctrl *Controller) GetFile(
 	ctx context.Context,
 	request api.GetFileRequestObject,
 ) (api.GetFileResponseObject, error) {
