@@ -166,6 +166,10 @@ func TestVerifySignInOTPEmail(t *testing.T) {
 					},
 				).Return(sql.AuthUser{}, pgx.ErrNoRows)
 
+				mock.EXPECT().GetUserByEmail(
+					gomock.Any(), sql.Text("jane@acme.com"),
+				).Return(sql.AuthUser{}, pgx.ErrNoRows)
+
 				return mock
 			},
 			request: api.VerifySignInOTPEmailRequestObject{
@@ -177,6 +181,47 @@ func TestVerifySignInOTPEmail(t *testing.T) {
 			expectedResponse: controller.ErrorResponse{
 				Error:   "invalid-otp",
 				Message: "Invalid or expired OTP",
+				Status:  400,
+			},
+			expectedJWT:       nil,
+			jwtTokenFn:        nil,
+			getControllerOpts: []getControllerOptsFunc{},
+		},
+
+		{
+			name:   "too many attempts - otp burned",
+			config: getConfig,
+			db: func(ctrl *gomock.Controller) controller.DBClient {
+				mock := mock.NewMockDBClient(ctrl)
+
+				mock.EXPECT().GetUserByEmailAndOTP(
+					gomock.Any(),
+					sql.GetUserByEmailAndOTPParams{
+						Email: sql.Text("jane@acme.com"),
+						Otp:   sql.Text("123456789"),
+					},
+				).Return(sql.AuthUser{}, pgx.ErrNoRows)
+
+				// Code was burned: hash cleared, attempts at the cap.
+				mock.EXPECT().GetUserByEmail(
+					gomock.Any(), sql.Text("jane@acme.com"),
+				).Return(sql.AuthUser{
+					ID:          userID,
+					OtpHash:     pgtype.Text{},
+					OtpAttempts: 5,
+				}, nil)
+
+				return mock
+			},
+			request: api.VerifySignInOTPEmailRequestObject{
+				Body: &api.SignInOTPEmailVerifyRequest{
+					Email: "jane@acme.com",
+					Otp:   "123456789",
+				},
+			},
+			expectedResponse: controller.ErrorResponse{
+				Error:   "otp-too-many-attempts",
+				Message: "Too many incorrect attempts, please request a new OTP",
 				Status:  400,
 			},
 			expectedJWT:       nil,

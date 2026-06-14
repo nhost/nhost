@@ -20,6 +20,11 @@ const (
 	InAMonth    = 30 * 24 * time.Hour
 	In10Minutes = 10 * time.Minute
 	In5Minutes  = 5 * time.Minute
+
+	// maxOTPVerificationAttempts mirrors the cap enforced in the
+	// GetUserByEmailAndOTP query: the code is burned after this many wrong
+	// guesses. Used to detect the burned state and return a distinct error.
+	maxOTPVerificationAttempts = 5
 )
 
 func deptr[T any](x *T) T { //nolint:ireturn

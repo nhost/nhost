@@ -33,6 +33,7 @@ var (
 	ErrUserEmailNotFound               = &APIError{api.InvalidEmailPassword}
 	ErrUserPhoneNumberNotFound         = &APIError{api.InvalidRequest}
 	ErrInvalidOTP                      = &APIError{api.InvalidOtp}
+	ErrTooManyOTPAttempts              = &APIError{api.OtpTooManyAttempts}
 	ErrUserProviderNotFound            = &APIError{api.InvalidRequest}
 	ErrSecurityKeyNotFound             = &APIError{api.InvalidRequest}
 	ErrProviderAccountAlreadyLinked    = &APIError{api.ProviderAccountAlreadyLinked}
@@ -392,6 +393,7 @@ func isSensitive(err api.ErrorResponseError) bool {
 		api.DisabledMfaTotp,
 		api.InvalidTotp,
 		api.InvalidOtp,
+		api.OtpTooManyAttempts,
 		api.NoTotpSecret:
 		return true
 	case
@@ -612,6 +614,12 @@ func (ctrl *Controller) getError( //nolint:gocyclo,cyclop,funlen,maintidx
 			Status:  http.StatusBadRequest,
 			Error:   err.t,
 			Message: "Invalid or expired OTP",
+		}
+	case api.OtpTooManyAttempts:
+		return ErrorResponse{
+			Status:  http.StatusBadRequest,
+			Error:   err.t,
+			Message: "Too many incorrect attempts, please request a new OTP",
 		}
 	case api.ProviderAccountAlreadyLinked:
 		return ErrorResponse{

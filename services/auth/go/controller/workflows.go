@@ -421,7 +421,18 @@ func (wf *Workflows) GetUserByEmailAndOTP(
 		},
 	)
 	if errors.Is(err, pgx.ErrNoRows) {
+		// No match can mean a wrong/expired code or a code that was just burned
+		// after too many wrong guesses. Distinguish the burned case so the user
+		// is told to request a new one instead of retrying a dead code. This is
+		// concealed in production (ErrTooManyOTPAttempts is a sensitive error).
+		if existing, lookupErr := wf.db.GetUserByEmail(ctx, sql.Text(email)); lookupErr == nil &&
+			!existing.OtpHash.Valid && existing.OtpAttempts >= maxOTPVerificationAttempts {
+			logger.WarnContext(ctx, "otp burned after too many attempts")
+			return sql.AuthUser{}, ErrTooManyOTPAttempts
+		}
+
 		logger.WarnContext(ctx, "user not found")
+
 		return sql.AuthUser{}, ErrInvalidOTP
 	}
 

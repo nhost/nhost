@@ -81,6 +81,7 @@ const (
 	OauthProfileFetchFailed         ErrorResponseError = "oauth-profile-fetch-failed"
 	OauthProviderError              ErrorResponseError = "oauth-provider-error"
 	OauthTokenEchangeFailed         ErrorResponseError = "oauth-token-echange-failed"
+	OtpTooManyAttempts              ErrorResponseError = "otp-too-many-attempts"
 	PasswordInHibpDatabase          ErrorResponseError = "password-in-hibp-database"
 	PasswordTooShort                ErrorResponseError = "password-too-short"
 	ProviderAccountAlreadyLinked    ErrorResponseError = "provider-account-already-linked"
