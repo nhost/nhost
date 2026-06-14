@@ -1,6 +1,7 @@
 package controller_test
 
 import (
+	"errors"
 	"testing"
 	"time"
 
@@ -15,7 +16,7 @@ import (
 	"go.uber.org/mock/gomock"
 )
 
-func TestVerifySignInOTPEmail(t *testing.T) {
+func TestVerifySignInOTPEmail(t *testing.T) { //nolint:maintidx
 	t.Parallel()
 
 	refreshTokenID := uuid.MustParse("c3b747ef-76a9-4c56-8091-ed3e6b8afb2c")
@@ -225,6 +226,76 @@ func TestVerifySignInOTPEmail(t *testing.T) {
 				Error:   "otp-too-many-attempts",
 				Message: "Too many incorrect attempts, please request a new OTP",
 				Status:  400,
+			},
+			expectedJWT:       nil,
+			jwtTokenFn:        nil,
+			getControllerOpts: []getControllerOptsFunc{},
+		},
+
+		{
+			name:   "verification query error",
+			config: getConfig,
+			db: func(ctrl *gomock.Controller) controller.DBClient {
+				mock := mock.NewMockDBClient(ctrl)
+
+				// A failed verification query must not leak as a 4xx and must not
+				// load a user.
+				mock.EXPECT().VerifyEmailOTP(
+					gomock.Any(),
+					sql.VerifyEmailOTPParams{
+						Email:       sql.Text("jane@acme.com"),
+						Otp:         sql.Text("123456789"),
+						MaxAttempts: pgtype.Int4{Int32: 5, Valid: true},
+					},
+				).Return("", errors.New("database error")) //nolint:err113
+
+				return mock
+			},
+			request: api.VerifySignInOTPEmailRequestObject{
+				Body: &api.SignInOTPEmailVerifyRequest{
+					Email: "jane@acme.com",
+					Otp:   "123456789",
+				},
+			},
+			expectedResponse: controller.ErrorResponse{
+				Error:   "internal-server-error",
+				Message: "Internal server error",
+				Status:  500,
+			},
+			expectedJWT:       nil,
+			jwtTokenFn:        nil,
+			getControllerOpts: []getControllerOptsFunc{},
+		},
+
+		{
+			name:   "unexpected verification status",
+			config: getConfig,
+			db: func(ctrl *gomock.Controller) controller.DBClient {
+				mock := mock.NewMockDBClient(ctrl)
+
+				// An unrecognized status from the query must fall through to the
+				// safe default (internal error), never to a session.
+				mock.EXPECT().VerifyEmailOTP(
+					gomock.Any(),
+					sql.VerifyEmailOTPParams{
+						Email:       sql.Text("jane@acme.com"),
+						Otp:         sql.Text("123456789"),
+						MaxAttempts: pgtype.Int4{Int32: 5, Valid: true},
+					},
+				).Return("unexpected", nil)
+
+				return mock
+			},
+			request: api.VerifySignInOTPEmailRequestObject{
+				Body: &api.SignInOTPEmailVerifyRequest{
+					Email: "jane@acme.com",
+					Otp:   "123456789",
+				},
+			},
+			expectedResponse: controller.ErrorResponse{
+				Error:   "internal-server-error",
+				Message: "Internal server error",
+				Status:  500,
 			},
 			expectedJWT:       nil,
 			jwtTokenFn:        nil,
