@@ -53,7 +53,20 @@ export default async function createRecord<TData extends object = {}>({
         }
       }
 
-      return format('%L', value);
+      let finalValue = value;
+      const specType = specificType?.toLowerCase() || '';
+      const isJson = specType === 'jsonb' || specType === 'json';
+      const isGeo = specType.startsWith('geography') || specType.startsWith('geometry');
+
+      if ((isJson || isGeo) && typeof value === 'string') {
+        try {
+          finalValue = JSON.parse(value);
+        } catch {
+          // Keep as string if parsing fails
+        }
+      }
+
+      return format('%L', finalValue);
     })
     .join(', ');
 

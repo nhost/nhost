@@ -176,7 +176,7 @@ export default function EditRecordForm({
         typeof value === 'object' &&
         (specType === 'jsonb' || specType === 'json')
       ) {
-        value = JSON.stringify(value);
+        value = JSON.stringify(value, null, 2);
       } else if (
         typeof value === 'string' &&
         (specType.startsWith('geography') || specType.startsWith('geometry'))
@@ -230,7 +230,19 @@ export default function EditRecordForm({
           continue;
         }
 
-        const newValue = insertOptions.value;
+        let newValue = insertOptions.value;
+
+        const specType = column.specificType?.toLowerCase() || '';
+        const isJson = specType === 'jsonb' || specType === 'json';
+        const isGeo = specType.startsWith('geography') || specType.startsWith('geometry');
+
+        if ((isJson || isGeo) && typeof newValue === 'string') {
+          try {
+            newValue = JSON.parse(newValue);
+          } catch {
+            // Keep as string if parsing fails
+          }
+        }
 
         if (
           column.type === 'date' &&
