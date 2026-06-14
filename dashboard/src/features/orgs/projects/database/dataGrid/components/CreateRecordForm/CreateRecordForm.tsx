@@ -168,7 +168,7 @@ export default function CreateRecordForm({
           typeof value === 'object' &&
           (specType === 'jsonb' || specType === 'json')
         ) {
-          value = JSON.stringify(value);
+          value = JSON.stringify(value, null, 2);
         } else if (
           typeof value === 'string' &&
           (specType.startsWith('geography') || specType.startsWith('geometry'))

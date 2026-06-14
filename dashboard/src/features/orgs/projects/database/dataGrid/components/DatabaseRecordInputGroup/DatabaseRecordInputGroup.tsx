@@ -159,7 +159,9 @@ export default function DatabaseRecordInputGroup({
             baseType === 'character' ||
             baseType === 'character varying' ||
             baseType === 'json' ||
-            baseType === 'jsonb';
+            baseType === 'jsonb' ||
+            baseType === 'geometry' ||
+            baseType === 'geography';
 
           const inputLabel = (
             <span className="inline-grid grid-flow-col gap-1">
