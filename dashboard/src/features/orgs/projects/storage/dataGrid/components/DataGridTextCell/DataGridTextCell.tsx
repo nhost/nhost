@@ -234,7 +234,7 @@ export default function DataGridTextCell<
           value={(displayTemporaryValue || '').replace(/\\n/gi, `\n`)}
           onChange={handleChange}
           onKeyDown={handleTextAreaKeyDown}
-          className="!text-xs h-full w-full resize-none rounded-none outline-none focus-within:rounded-none focus-within:border-transparent focus-within:bg-white focus-within:shadow-[inset_0_0_0_1.5px_rgba(0,82,205,1)] focus:outline-none focus:ring-0 dark:focus-within:bg-theme-grey-200"
+          className="!text-xs h-full w-full resize-y rounded-none outline-none focus-within:rounded-none focus-within:border-transparent focus-within:bg-white focus-within:shadow-[inset_0_0_0_1.5px_rgba(0,82,205,1)] focus:outline-none focus:ring-0 dark:focus-within:bg-theme-grey-200"
         />
         {(isNullable || hasDefault) && (
           <CellResetButtons

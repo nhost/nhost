@@ -260,7 +260,7 @@ export default function DatabaseRecordInputGroup({
                 out: convertEmptyStringToNull,
               }}
               className={cn(
-                { 'resize-none': isMultiline },
+                { 'resize-y': isMultiline },
                 'focus-visible:ring-0',
               )}
               type={getInputType({ type, specificType })}
