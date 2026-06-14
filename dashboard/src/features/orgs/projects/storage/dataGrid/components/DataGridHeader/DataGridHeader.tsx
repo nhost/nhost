@@ -19,7 +19,7 @@ export default function DataGridHeader({
   className,
   ...props
 }: DataGridHeaderProps) {
-  const { getFlatHeaders } = useDataGridConfig();
+  const { getFlatHeaders, allowSelection } = useDataGridConfig();
 
   return (
     <div
@@ -41,12 +41,18 @@ export default function DataGridHeader({
               'border-r-1 border-b-1',
               'bg-paper',
               { 'sticky left-0 max-w-2': column.id === SELECTION_COLUMN_ID },
+              { sticky: column.id === 'actions' },
             )}
             style={{
               width,
               minWidth: width,
               maxWidth: column.id === SELECTION_COLUMN_ID ? 32 : maxSize,
-              zIndex: column.id === SELECTION_COLUMN_ID ? 10 : undefined,
+              zIndex:
+                column.id === SELECTION_COLUMN_ID || column.id === 'actions'
+                  ? 10
+                  : undefined,
+              left:
+                column.id === 'actions' ? (allowSelection ? 32 : 0) : undefined,
             }}
             key={header.id}
           >
