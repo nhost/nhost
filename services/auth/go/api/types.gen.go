@@ -221,6 +221,8 @@ func (e ErrorResponseError) Valid() bool {
 		return true
 	case OauthTokenEchangeFailed:
 		return true
+	case OtpTooManyAttempts:
+		return true
 	case PasswordInHibpDatabase:
 		return true
 	case PasswordTooShort:
