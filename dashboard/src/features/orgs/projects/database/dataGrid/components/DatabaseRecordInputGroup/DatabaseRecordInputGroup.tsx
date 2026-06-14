@@ -14,6 +14,8 @@ import {
   isTimestampType,
   isTimeType,
 } from '@/features/orgs/projects/database/dataGrid/utils/temporalTypeHelpers';
+import { POSTGRES_DEFAULT_PLACEHOLDER } from '@/features/orgs/projects/database/dataGrid/utils/postgresDefaultPlaceholder';
+import { POSTGRESQL_FUNCTION_LABELS } from '@/features/orgs/projects/database/dataGrid/utils/postgresqlConstants';
 import { cn } from '@/lib/utils';
 import NullDefaultToggleField from './NullDefaultToggleField';
 import TemporalRecordField from './TemporalRecordField';
@@ -39,16 +41,37 @@ export interface DatabaseRecordInputGroupProps {
 }
 
 function getBooleanValueTransformer(isNullable: boolean) {
-  return function transformBooleanValue(value: string | null) {
-    let convertedValue = value;
-
-    if (convertedValue === null) {
-      convertedValue = isNullable ? 'null' : '';
-    } else if (convertedValue === 'null' || convertedValue === '') {
-      convertedValue = null;
-    }
-
-    return convertedValue;
+  return {
+    in(value: unknown) {
+      if (value === true || value === 'true') {
+        return 'true';
+      }
+      if (value === false || value === 'false') {
+        return 'false';
+      }
+      if (value === 'default' || value === POSTGRES_DEFAULT_PLACEHOLDER) {
+        return 'default';
+      }
+      if (value === null || value === 'null') {
+        return isNullable ? 'null' : '';
+      }
+      return '';
+    },
+    out(value: unknown) {
+      if (value === 'true') {
+        return 'true';
+      }
+      if (value === 'false') {
+        return 'false';
+      }
+      if (value === 'default') {
+        return POSTGRES_DEFAULT_PLACEHOLDER;
+      }
+      if (value === 'null' || value === '') {
+        return null;
+      }
+      return value;
+    },
   };
 }
 
@@ -166,10 +189,7 @@ export default function DatabaseRecordInputGroup({
                 label={inputLabel}
                 placeholder="Select an option"
                 helperText={comment}
-                transform={{
-                  in: getBooleanValueTransformer(!!isNullable),
-                  out: getBooleanValueTransformer(!!isNullable),
-                }}
+                transform={getBooleanValueTransformer(!!isNullable)}
               >
                 <SelectItem value="true">
                   <ReadOnlyToggle checked />
@@ -182,6 +202,12 @@ export default function DatabaseRecordInputGroup({
                 {isNullable && (
                   <SelectItem value="null">
                     <ReadOnlyToggle checked={null} />
+                  </SelectItem>
+                )}
+
+                {hasDefault && (
+                  <SelectItem value="default">
+                    <span className="text-muted-foreground">Default</span>
                   </SelectItem>
                 )}
               </FormSelect>

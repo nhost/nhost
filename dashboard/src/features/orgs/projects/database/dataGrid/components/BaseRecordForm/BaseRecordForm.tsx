@@ -34,6 +34,51 @@ export interface BaseRecordFormProps extends DialogFormProps {
   submitButtonText?: string;
 }
 
+interface GeoJSONPoint {
+  type: string;
+  crs?: {
+    properties?: {
+      name?: string;
+    };
+  };
+  coordinates: number[];
+}
+
+function geoJSONToEWKT(value: unknown) {
+  if (!value) {
+    return null;
+  }
+  let obj = value;
+  if (typeof value === 'string') {
+    try {
+      obj = JSON.parse(value);
+    } catch {
+      return value;
+    }
+  }
+  if (
+    obj &&
+    typeof obj === 'object' &&
+    'type' in obj &&
+    (obj as Record<string, unknown>).type === 'Point' &&
+    'coordinates' in obj &&
+    Array.isArray((obj as Record<string, unknown>).coordinates)
+  ) {
+    const point = obj as unknown as GeoJSONPoint;
+    const x = point.coordinates[0];
+    const y = point.coordinates[1];
+    let srid = 4326;
+    if (point.crs?.properties?.name) {
+      const match = point.crs.properties.name.match(/EPSG::(\d+)/i);
+      if (match) {
+        srid = parseInt(match[1], 10);
+      }
+    }
+    return `SRID=${srid};POINT(${x} ${y})`;
+  }
+  return value;
+}
+
 export default function BaseRecordForm({
   columns,
   onSubmit: handleExternalSubmit,
@@ -138,10 +183,21 @@ export default function BaseRecordForm({
           };
         }
 
+        let finalValue = value;
+        const specType = gridColumn?.specificType?.toLowerCase() || '';
+        if (
+          specType.startsWith('geography') ||
+          specType.startsWith('geometry')
+        ) {
+          finalValue = geoJSONToEWKT(value);
+        } else if (gridColumn?.type === 'date' && value instanceof Date) {
+          finalValue = value.toUTCString();
+        }
+
         return {
           ...options,
           [columnId]: {
-            value: serializeTemporalValue(value, gridColumn?.baseType),
+            value: serializeTemporalValue(finalValue, gridColumn?.baseType),
             isArray: gridColumn?.isArray,
           },
         };
