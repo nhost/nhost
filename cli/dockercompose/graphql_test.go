@@ -161,7 +161,7 @@ func TestGraphql(t *testing.T) {
 	}
 }
 
-func expectedConsole() *Service {
+func expectedConsole(dotNhostFolder string) *Service {
 	return &Service{
 		Image:     "nhost/graphql-engine:v2.25.0.cli-migrations-v3",
 		DependsOn: map[string]DependsOn{"graphql": {Condition: "service_healthy"}},
@@ -183,6 +183,7 @@ func expectedConsole() *Service {
 			"ENV1":                                                     "VALUE1",
 			"ENV2":                                                     "VALUE2",
 			"GRAPHITE_WEBHOOK_SECRET":                                  "webhookSecret",
+			"HOME":                                                     "/home/cli",
 			"HASURA_GRAPHQL_ADMIN_INTERNAL_ERRORS":                     "true",
 			"HASURA_GRAPHQL_ADMIN_SECRET":                              "adminSecret",
 			"HASURA_GRAPHQL_CONSOLE_ASSETS_DIR":                        "/srv/console-assets",
@@ -251,6 +252,12 @@ func expectedConsole() *Service {
 		Restart:  "always",
 		Volumes: []Volume{
 			{Type: "bind", Source: "/path/to/nhost", Target: "/app", ReadOnly: new(false)},
+			{
+				Type:     "bind",
+				Source:   dotNhostFolder + "/hasura",
+				Target:   "/home/cli",
+				ReadOnly: new(false),
+			},
 		},
 		WorkingDir: new("/app"),
 	}
@@ -263,7 +270,7 @@ func TestConsole(t *testing.T) {
 		name     string
 		cfg      func() *model.ConfigConfig
 		useTlS   bool
-		expected func() *Service
+		expected func(dotNhostFolder string) *Service
 	}{
 		{
 			name: "success",
@@ -276,22 +283,19 @@ func TestConsole(t *testing.T) {
 			useTlS:   false,
 			expected: expectedConsole,
 		},
-		// {
-		// 	name: "fail",
-		// 	cfg:  getConfig,
-		// },
 	}
 
 	for _, tc := range cases {
 		t.Run(tc.name, func(t *testing.T) {
 			t.Parallel()
 
-			got, err := console(tc.cfg(), "dev", 1337, tc.useTlS, "/path/to/nhost", 0)
+			dotNhost := t.TempDir()
+			got, err := console(tc.cfg(), "dev", 1337, tc.useTlS, "/path/to/nhost", dotNhost, 0)
 			if err != nil {
 				t.Fatalf("got error: %v", err)
 			}
 
-			if diff := cmp.Diff(tc.expected(), got); diff != "" {
+			if diff := cmp.Diff(tc.expected(dotNhost), got); diff != "" {
 				t.Error(diff)
 			}
 		})

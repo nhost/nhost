@@ -2,6 +2,8 @@ package dockercompose
 
 import (
 	"fmt"
+	"os"
+	"path/filepath"
 
 	"github.com/nhost/be/services/mimir/model"
 	"github.com/nhost/be/services/mimir/schema/appconfig"
@@ -102,8 +104,14 @@ func console( //nolint:funlen
 	httpPort uint,
 	useTLS bool,
 	nhostFolder string,
+	dotNhostFolder string,
 	port uint,
 ) (*Service, error) {
+	homeDir := filepath.Join(dotNhostFolder, "hasura")
+	if err := os.MkdirAll(homeDir, 0o755); err != nil { //nolint:mnd
+		return nil, fmt.Errorf("create hasura-cli home: %w", err)
+	}
+
 	if semver.Compare(*cfg.GetHasura().GetVersion(), minimumHasuraVerson) < 0 {
 		return nil, fmt.Errorf( //nolint:err113
 			"hasura version must be at least %s",
@@ -147,6 +155,12 @@ func console( //nolint:funlen
 
 		env[v.Name] = v.Value
 	}
+	// hasura-cli writes its global config to $HOME/.hasura/config.json.
+	// The image's default HOME is `/`, which only root can write to;
+	// when this container runs as the host user (see applyHostUserID)
+	// the write fails. Mount a host-side, user-owned directory at a
+	// writable HOME so config persists across container restarts.
+	env["HOME"] = "/home/cli"
 
 	return &Service{
 		Image: fmt.Sprintf(
@@ -207,6 +221,12 @@ func console( //nolint:funlen
 				Source:   nhostFolder,
 				Target:   "/app",
 				ReadOnly: new(bool),
+			},
+			{
+				Type:     "bind",
+				Source:   homeDir,
+				Target:   "/home/cli",
+				ReadOnly: new(false),
 			},
 		},
 		WorkingDir: new("/app"),
