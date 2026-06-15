@@ -345,6 +345,7 @@ func traefik(subdomain, projectName string, port uint, dotnhostfolder string) (*
 			},
 		},
 		Restart:    "always",
+		User:       nil,
 		Volumes:    volumes,
 		WorkingDir: nil,
 	}, nil
@@ -365,6 +366,7 @@ func minio(volumeName string) *Service {
 		ExtraHosts:  extraHosts,
 		Ports:       nil,
 		Restart:     "always",
+		User:        nil,
 		HealthCheck: nil,
 		Labels:      nil,
 		Networks:    nil,
@@ -452,6 +454,7 @@ func dashboard( //nolint:funlen // single env-var config map, not decomposable
 		Networks:   nil,
 		Ports:      []Port{},
 		Restart:    "",
+		User:       nil,
 		Volumes:    []Volume{},
 		WorkingDir: new(string),
 	}
@@ -553,6 +556,7 @@ func functions( //nolint:funlen
 		Networks: networkAliases("functions-service"),
 		Ports:    ports(port, functionsPort),
 		Restart:  "always",
+		User:     nil,
 		Volumes: []Volume{
 			{
 				Type:     "bind",
@@ -615,7 +619,11 @@ func prepareFunctionsHostFiles(rootFolder string) error {
 
 	tsconfig := filepath.Join(rootFolder, "functions", "tsconfig.json")
 	if _, err := os.Stat(tsconfig); errors.Is(err, os.ErrNotExist) {
-		if err := os.WriteFile(tsconfig, []byte(defaultFunctionsTSConfig), 0o644); err != nil { //nolint:mnd
+		if err := os.WriteFile(
+			tsconfig,
+			[]byte(defaultFunctionsTSConfig),
+			0o600, //nolint:mnd
+		); err != nil {
 			return fmt.Errorf("create %s: %w", tsconfig, err)
 		}
 	} else if err != nil {
@@ -653,6 +661,7 @@ func mailhog(volumeName string, useTLS bool) *Service {
 		Networks: nil,
 		Ports:    nil,
 		Restart:  "always",
+		User:     nil,
 		Volumes: []Volume{
 			{
 				Type:     "volume",
@@ -739,7 +748,15 @@ func getServices( //nolint: funlen,cyclop
 
 	jwtSecret := graphql.Environment["HASURA_GRAPHQL_JWT_SECRET"]
 
-	console, err := console(cfg, subdomain, httpPort, useTLS, nhostFolder, dotNhostFolder, ports.Console)
+	console, err := console(
+		cfg,
+		subdomain,
+		httpPort,
+		useTLS,
+		nhostFolder,
+		dotNhostFolder,
+		ports.Console,
+	)
 	if err != nil {
 		return nil, err
 	}
@@ -869,6 +886,9 @@ func mountCACertificates(
 // /tmp/corepack-shims. Stub directories that dockerd otherwise
 // creates as root inside the bind-mounted project root are handled
 // separately in functions() by pre-creating the mountpoints.
+// osLinux is runtime.GOOS on Linux hosts.
+const osLinux = "linux"
+
 var servicesRunAsHostUser = []string{ //nolint:gochecknoglobals
 	"console",
 	"configserver",
@@ -900,7 +920,7 @@ func prepareNhostFolderSubdirs(nhostFolder string) error {
 // already maps ownership to the host user, and forcing `user:` can
 // break images that expect their default UID.
 func applyHostUserID(services map[string]*Service) {
-	if runtime.GOOS != "linux" {
+	if runtime.GOOS != osLinux {
 		return
 	}
 

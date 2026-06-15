@@ -72,6 +72,7 @@ func constellation( //nolint:funlen
 		Networks: networkAliases("constellation-service"),
 		Ports:    nil,
 		Restart:  "always",
+		User:     nil,
 		Volumes: []Volume{
 			{
 				Type:     "bind",
