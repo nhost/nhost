@@ -2,24 +2,6 @@
   final: prev:
   let
     biome_version = "2.4.15";
-    biome_dist = {
-      aarch64-darwin = {
-        url = "https://github.com/biomejs/biome/releases/download/%40biomejs%2Fbiome%40${biome_version}/biome-darwin-arm64";
-        sha256 = "0ym19wd6yzpzpj6inydsfc5xzakl6w7g4lj1dihd1z5hnc0mdimj";
-      };
-      x86_64-darwin = {
-        url = "https://github.com/biomejs/biome/releases/download/%40biomejs%2Fbiome%40${biome_version}/biome-darwin-x64";
-        sha256 = "0zd0508kdx6bs4cly6jhny1k96g8wy07ybwmn8hghf2aqnfs7f7s";
-      };
-      aarch64-linux = {
-        url = "https://github.com/biomejs/biome/releases/download/%40biomejs%2Fbiome%40${biome_version}/biome-linux-arm64";
-        sha256 = "1bp2adhhszz38p6izszhbxk9w54vq9lm8m007yj91f9nva9dbf3y";
-      };
-      x86_64-linux = {
-        url = "https://github.com/biomejs/biome/releases/download/%40biomejs%2Fbiome%40${biome_version}/biome-linux-x64";
-        sha256 = "001m5xy2riy2yj3mjf5bq4ywydm0i8dbxlqvx8q35l5gkrry5bwd";
-      };
-    };
   in
   rec {
     # Node toolchain pinned ahead of nixpkgs, exposed only under `pkgs.nhost.*`
@@ -128,28 +110,20 @@
             '';
         });
 
-    biome = final.stdenv.mkDerivation {
-      pname = "biome";
-      version = biome_version;
+    biome = final.biome.overrideAttrs (
+      finalAttrs: previousAttrs: {
+        version = biome_version;
 
-      src = final.fetchurl {
-        inherit
-          (biome_dist.${final.stdenvNoCC.hostPlatform.system}
-            or (throw "Unsupported system: ${final.stdenvNoCC.hostPlatform.system}")
-          )
-          url
-          sha256
-          ;
-      };
+        src = final.fetchFromGitHub {
+          owner = "biomejs";
+          repo = "biome";
+          rev = "@biomejs/biome@${biome_version}";
+          hash = "sha256-Q7yx5ZKIrZdnsG3OS9CZ3jyuv71V7l9crCwYRZDuFpU=";
+        };
 
-      dontUnpack = true;
-
-      installPhase = ''
-        mkdir -p $out/bin
-        cp $src $out/bin/biome
-        chmod +x $out/bin/biome
-      '';
-    };
+        cargoHash = "sha256-UzTE+Grg6RaTWAYIsaKgluVsSZXbDwIK5HY9rY2oIVo=";
+      }
+    );
 
   }
 )
