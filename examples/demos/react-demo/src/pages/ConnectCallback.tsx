@@ -30,7 +30,8 @@ export default function ConnectCallback(): JSX.Element {
     return undefined;
   }, [status, navigate]);
 
-  const providerLabel = provider === 'github' ? 'GitHub' : provider || 'provider';
+  const providerLabel =
+    provider === 'github' ? 'GitHub' : provider || 'provider';
 
   return (
     <div>
@@ -48,7 +49,10 @@ export default function ConnectCallback(): JSX.Element {
             <p className="margin-bottom">
               {errorDescription || error || 'Unknown error'}
             </p>
-            <p className="margin-bottom text-sm" style={{ color: 'var(--text-muted)' }}>
+            <p
+              className="margin-bottom text-sm"
+              style={{ color: 'var(--text-muted)' }}
+            >
               If the server requires elevated permissions, you must elevate your
               session (e.g. with a security key) before linking a provider.
             </p>

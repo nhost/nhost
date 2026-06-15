@@ -100,7 +100,7 @@ export default function LinkedAccounts(): JSX.Element {
     <div className="glass-card p-8 mb-6">
       <h3 className="text-xl mb-4">Connected Accounts</h3>
       <p className="mb-6 text-sm" style={{ color: 'var(--text-muted)' }}>
-        Link an additional OAuth provider to your existing account. 
+        Link an additional OAuth provider to your existing account.
       </p>
 
       {error && <div className="alert alert-error mb-4">{error}</div>}
