@@ -83,7 +83,8 @@ func (d *Docker) HasuraWrapper(
 	// gives hasura-cli a writable path for its global config since the
 	// image's default HOME=/ is only writable by root.
 	if runtime.GOOS == osLinux {
-		args = append(args,
+		args = append(
+			args,
 			"--user", fmt.Sprintf("%d:%d", os.Getuid(), os.Getgid()),
 			"-e", "HOME=/tmp",
 		)
