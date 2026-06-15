@@ -11,17 +11,27 @@ on:
       VERSION:
         type: string
         required: true
+      ARTIFACT:
+        # When set, publish the packages pre-staged in this same-run artifact
+        # (one package directory per subfolder) with npm, instead of building
+        # from source with pnpm. Used by the CLI, whose npm packages wrap
+        # prebuilt Go binaries produced earlier in the release run.
+        type: string
+        required: false
+        default: ""
     secrets:
+      # Only needed for the source-build (pnpm) path; the artifact path
+      # publishes prebuilt packages and needs none of these.
       AWS_ACCOUNT_ID:
-        required: true
+        required: false
       NIX_CACHE_PUB_KEY:
-        required: true
+        required: false
       NIX_CACHE_PRIV_KEY:
-        required: true
+        required: false
       NIX_CACHE_ACCESS_KEY_ID:
-        required: true
+        required: false
       NIX_CACHE_SECRET_ACCESS_KEY:
-        required: true
+        required: false
       DISCORD_WEBHOOK:
         required: false
 
@@ -42,13 +52,16 @@ jobs:
     - name: "Check out repository"
       uses: actions/checkout@v6
 
+    # --- source build (pnpm): nhost-js, stripe-graphql-js ---
     - name: Configure aws
+      if: ${{ inputs.ARTIFACT == '' }}
       uses: aws-actions/configure-aws-credentials@v6
       with:
         role-to-assume: arn:aws:iam::${{ secrets.AWS_ACCOUNT_ID }}:role/github-actions-nhost-${{ github.event.repository.name }}
         aws-region: eu-central-1
 
     - name: Setup Nix with Cache
+      if: ${{ inputs.ARTIFACT == '' }}
       uses: ./.github/actions/setup-nix
       with:
         NAME: ${{ inputs.NAME }}
@@ -58,15 +71,34 @@ jobs:
         GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
     - name: "Build package"
+      if: ${{ inputs.ARTIFACT == '' }}
       run: make build
 
     - name: "Copy build output"
+      if: ${{ inputs.ARTIFACT == '' }}
       run: cp -r result/dist .
 
     - name: "Set package version"
+      if: ${{ inputs.ARTIFACT == '' }}
       run: |
         nix develop .#pnpm -c pnpm version ${{ inputs.VERSION }} --no-git-tag-version
 
+    # --- prebuilt artifact (npm): cli ---
+    - name: "Setup Node"
+      if: ${{ inputs.ARTIFACT != '' }}
+      uses: actions/setup-node@v6
+      with:
+        # npm >= 11.5.1 is required for OIDC trusted publishing
+        node-version: "24"
+
+    - name: "Download staged packages"
+      if: ${{ inputs.ARTIFACT != '' }}
+      uses: actions/download-artifact@v8
+      with:
+        name: ${{ inputs.ARTIFACT }}
+        path: ${{ inputs.PATH }}/dist
+
+    # --- shared ---
     - name: "Determine npm tag"
       id: npm-tag
       run: |
@@ -77,8 +109,44 @@ jobs:
         fi
 
     - name: "Publish to npm"
+      if: ${{ inputs.ARTIFACT == '' }}
       run: |
         nix develop .#pnpm -c pnpm publish --tag ${{ steps.npm-tag.outputs.tag }} --no-git-checks
+
+    - name: "Publish to npm"
+      if: ${{ inputs.ARTIFACT != '' }}
+      env:
+        TAG: ${{ steps.npm-tag.outputs.tag }}
+      run: |
+        set -euo pipefail
+
+        # upload-artifact does not preserve the executable bit; the platform
+        # binaries (and the main shim) must be executable or installs break.
+        chmod +x dist/*/nhost dist/main/bin/nhost
+
+        publish() {
+          dir="$1"
+          name=$(node -p "require('./$dir/package.json').name")
+          version=$(node -p "require('./$dir/package.json').version")
+          # The registry rejects republishing an existing version, so skip
+          # live packages: a re-run after a partial failure (the main package
+          # depends on all four platform packages) then publishes only what is
+          # missing instead of dying on the first conflict.
+          if [ "$(npm view "$name@$version" version 2>/dev/null || true)" = "$version" ]; then
+            echo "--> skipping $name@$version (already published)"
+            return
+          fi
+          echo "--> publishing $name@$version (tag: $TAG)"
+          npm publish "./$dir" --access public --tag "$TAG"
+        }
+
+        # Platform packages must be live before the main package: a published
+        # main with missing platform packages breaks installs.
+        for dir in dist/*/; do
+          [ "$dir" = "dist/main/" ] && continue
+          publish "${dir%/}"
+        done
+        publish dist/main
 
     - name: Send Discord notification
       if: always()

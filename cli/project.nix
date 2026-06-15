@@ -277,4 +277,43 @@ rec {
         cp ${cli-arm64-linux}/bin/${name} $out/linux/arm64/cli
         cp ${cli-amd64-linux}/bin/${name} $out/linux/amd64/cli
       '';
+
+  # Publishable npm tree: one main package that resolves a per-platform
+  # binary package at runtime (esbuild-style optionalDependencies). Versions
+  # are stamped from ${version} so the package metadata and the version baked
+  # into the binary stay in lockstep, leaving the workflow to only publish.
+  cli-npm =
+    pkgs.runCommand "cli-npm-${version}"
+      {
+        nativeBuildInputs = [ pkgs.jq ];
+        meta = {
+          description = "npm packages (main + platform binaries) for ${description}";
+        };
+      }
+      ''
+        # key = npm package suffix (process.platform-process.arch);
+        # os/goarch = cli-multiplatform layout (Go's GOOS/GOARCH).
+        stage_platform() {
+          dir="$out/dist/$1"
+          mkdir -p "$dir"
+          jq --arg v "${version}" '.version = $v' \
+            ${./npm/platforms}/"$1"/package.json > "$dir/package.json"
+          cp ${cli-multiplatform}/"$2"/"$3"/cli "$dir/nhost"
+          chmod +x "$dir/nhost"
+        }
+
+        stage_platform darwin-arm64 darwin arm64
+        stage_platform darwin-x64   darwin amd64
+        stage_platform linux-arm64  linux  arm64
+        stage_platform linux-x64    linux  amd64
+
+        main="$out/dist/main"
+        mkdir -p "$main/bin"
+        jq --arg v "${version}" \
+          '.version = $v | .optionalDependencies |= map_values($v)' \
+          ${./npm/package.json} > "$main/package.json"
+        cp ${./npm/bin/nhost} "$main/bin/nhost"
+        chmod +x "$main/bin/nhost"
+        cp ${./npm/README.md} "$main/README.md"
+      '';
 }

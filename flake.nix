@@ -365,6 +365,7 @@
           auth-docker-image = authf.dockerImage;
           cli = clif.package;
           cli-multiplatform = clif.cli-multiplatform;
+          cli-npm = clif.cli-npm;
           cli-docker-image = clif.dockerImage;
           codegen = codegenf.package;
           constellation = constellationf.package;
