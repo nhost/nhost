@@ -126,7 +126,49 @@ type Volume struct {
 	ReadOnly *bool  `yaml:"read_only,omitempty"`
 }
 
-func extraHosts(subdomain string) []string {
+// extraHosts returns the /etc/hosts entries injected into every bridge
+// service. Public local.nhost.run hostnames are intentionally absent: on
+// Linux, `host-gateway` resolves to the default docker0 bridge gateway,
+// which is unroutable from containers attached to the user-defined
+// project bridge. Resolution for those hostnames is provided by network
+// aliases on the traefik service (see traefikAliases).
+func extraHosts(_ string) []string {
+	return []string{
+		"host.docker.internal:host-gateway",
+	}
+}
+
+// traefikAliases returns the set of public local hostnames that resolve
+// to the traefik container via Docker's embedded DNS on the project
+// bridge. Container-to-container HTTPS via these hostnames terminates at
+// traefik and is routed using the existing ingress labels.
+func traefikAliases(subdomain string) []string {
+	return []string{
+		subdomain + ".auth.local.nhost.run",
+		subdomain + ".db.local.nhost.run",
+		subdomain + ".functions.local.nhost.run",
+		subdomain + ".graphql.local.nhost.run",
+		subdomain + ".hasura.local.nhost.run",
+		subdomain + ".storage.local.nhost.run",
+		subdomain + ".dashboard.local.nhost.run",
+		subdomain + ".mailhog.local.nhost.run",
+		"local.auth.nhost.run",
+		"local.db.nhost.run",
+		"local.functions.nhost.run",
+		"local.graphql.nhost.run",
+		"local.hasura.nhost.run",
+		"local.storage.nhost.run",
+		"local.dashboard.nhost.run",
+		"local.mailhog.nhost.run",
+	}
+}
+
+// hostGatewayHosts returns the legacy host-gateway based mapping used by
+// containers that run outside the project's bridge network (e.g. the
+// standalone hasura-cli helper started via `docker run` without
+// --network), where the default docker0 bridge gateway can reach the
+// host-published traefik port.
+func hostGatewayHosts(subdomain string) []string {
 	return []string{
 		"host.docker.internal:host-gateway",
 		subdomain + ".auth.local.nhost.run:host-gateway",
@@ -135,9 +177,6 @@ func extraHosts(subdomain string) []string {
 		subdomain + ".graphql.local.nhost.run:host-gateway",
 		subdomain + ".hasura.local.nhost.run:host-gateway",
 		subdomain + ".storage.local.nhost.run:host-gateway",
-		// below entries shouldn't be needed unless
-		// users are hardcoding these subdomains
-		// adding out of an abundance of caution
 		"local.auth.nhost.run:host-gateway",
 		"local.db.nhost.run:host-gateway",
 		"local.functions.nhost.run:host-gateway",
@@ -295,7 +334,7 @@ func traefik(subdomain, projectName string, port uint, dotnhostfolder string) (*
 		ExtraHosts:  extraHosts(subdomain),
 		HealthCheck: nil,
 		Labels:      nil,
-		Networks:    nil,
+		Networks:    networkAliases(traefikAliases(subdomain)...),
 		Ports: []Port{
 			{
 				Mode:      "ingress",

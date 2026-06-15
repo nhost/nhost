@@ -2,7 +2,6 @@ package dockercompose
 
 import (
 	"fmt"
-	"strings"
 
 	"github.com/nhost/be/services/mimir/model"
 	"github.com/nhost/be/services/mimir/schema/appconfig"
@@ -131,12 +130,14 @@ func console( //nolint:funlen
 		return nil, fmt.Errorf("failed to get hasura env vars: %w", err)
 	}
 
-	extraHosts := extraHosts(subdomain)
-	for i, host := range extraHosts {
-		if strings.HasPrefix(host, subdomain+".hasura.local.nhost.run") {
-			extraHosts[i] = subdomain + ".hasura.local.nhost.run:0.0.0.0"
-		}
-	}
+	// The console container hosts hasura-cli on port 9695 and serves
+	// itself under <subdomain>.hasura.local.nhost.run. Pin that hostname
+	// to 0.0.0.0 inside this container so the console's API discovery
+	// loops back to itself instead of round-tripping through traefik.
+	extraHosts := append( //nolint:gocritic
+		extraHosts(subdomain),
+		subdomain+".hasura.local.nhost.run:0.0.0.0",
+	)
 
 	env := make(map[string]string, len(envars))
 	for _, v := range envars {
