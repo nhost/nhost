@@ -129,14 +129,14 @@ rec {
     doInstallCheck = false;
   });
 
-  oapi-codegen = prev.oapi-codegen.overrideAttrs (oldAttrs: {
-    version = "2.6.0-beta0";
+  oapi-codegen = prev.oapi-codegen.overrideAttrs (oldAttrs: rec {
+    version = "2.7.1";
     src = final.fetchFromGitHub {
-      owner = "dbarrosop";
+      owner = "oapi-codegen";
       repo = "oapi-codegen";
-      rev = "6225e75bb76ba1fa15113a7fc6aace55ad12862c";
-      hash = "sha256-sXmHVIFKxnogdr9qULZ2Io7cQGG6sMMx0ZLskjz1mOc=";
+      rev = "v${version}";
+      hash = "sha256-Yfw4hb5EOYvBxl95OpUdLS+ZfCi5cHhHUf2LPS9xp0U=";
     };
-    vendorHash = "sha256-obpY7ZATebI/7bkPMidC83xnN60P0lZsJhSuKr2A5T4=";
+    vendorHash = "sha256-ecO8nmegFAvhsvMaQ3W0wCwqbF2jUn48nSIvQGhwwcc=";
   });
 }

@@ -32,8 +32,6 @@ let
     root = ../.;
     fileset = fs.unions [
       ../.npmrc
-      ../.prettierignore
-      ../.prettierrc.js
       ../.gitignore
       ../audit-ci.jsonc
       ../biome.json
