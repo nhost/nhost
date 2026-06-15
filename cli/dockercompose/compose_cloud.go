@@ -55,7 +55,15 @@ func consoleCloud(
 	dotNhostFolder string,
 	ports ExposePorts,
 ) (*Service, error) {
-	console, err := console(cfg, subdomain, httpPort, useTLS, nhostFolder, dotNhostFolder, ports.Console)
+	console, err := console(
+		cfg,
+		subdomain,
+		httpPort,
+		useTLS,
+		nhostFolder,
+		dotNhostFolder,
+		ports.Console,
+	)
 	if err != nil {
 		return nil, err
 	}

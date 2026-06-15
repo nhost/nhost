@@ -93,6 +93,7 @@ func graphql( //nolint:funlen
 		Networks:   networkAliases("hasura-service"),
 		Ports:      ports(port, hasuraPort),
 		Restart:    "always",
+		User:       nil,
 		Volumes:    nil,
 		WorkingDir: nil,
 	}, nil
@@ -215,6 +216,7 @@ func console( //nolint:funlen
 		Networks: nil,
 		Ports:    ports(port, consolePort),
 		Restart:  "always",
+		User:     nil,
 		Volumes: []Volume{
 			{
 				Type:     "bind",

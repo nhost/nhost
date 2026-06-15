@@ -290,6 +290,7 @@ func TestConsole(t *testing.T) {
 			t.Parallel()
 
 			dotNhost := t.TempDir()
+
 			got, err := console(tc.cfg(), "dev", 1337, tc.useTlS, "/path/to/nhost", dotNhost, 0)
 			if err != nil {
 				t.Fatalf("got error: %v", err)
