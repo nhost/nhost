@@ -28,70 +28,6 @@ export interface CreateRecordFormProps
   initialValues?: Record<string, unknown>;
 }
 
-function parseHexEWKBPoint(hex: string) {
-  if (typeof hex !== 'string') {
-    return null;
-  }
-  const cleanHex = hex.trim().toLowerCase();
-  if (cleanHex.length !== 50) {
-    return null;
-  }
-
-  const byteOrder = cleanHex.substring(0, 2);
-  const isLittleEndian = byteOrder === '01';
-
-  const type = cleanHex.substring(2, 10);
-  const isPointSRID = isLittleEndian
-    ? type === '01000020'
-    : type === '20000001';
-  if (!isPointSRID) {
-    return null;
-  }
-
-  const sridHex = cleanHex.substring(10, 18);
-  const xHex = cleanHex.substring(18, 34);
-  const yHex = cleanHex.substring(34, 50);
-
-  function hexToDouble(hexStr: string, littleEndian: boolean) {
-    const bytes = new Uint8Array(8);
-    for (let i = 0; i < 8; i += 1) {
-      const byteIndex = littleEndian ? i : 7 - i;
-      bytes[byteIndex] = parseInt(hexStr.substring(i * 2, i * 2 + 2), 16);
-    }
-    const view = new DataView(bytes.buffer);
-    return view.getFloat64(0, true);
-  }
-
-  function hexToInt(hexStr: string, littleEndian: boolean) {
-    const bytes = new Uint8Array(4);
-    for (let i = 0; i < 4; i += 1) {
-      const byteIndex = littleEndian ? i : 3 - i;
-      bytes[byteIndex] = parseInt(hexStr.substring(i * 2, i * 2 + 2), 16);
-    }
-    const view = new DataView(bytes.buffer);
-    return view.getInt32(0, true);
-  }
-
-  try {
-    const srid = hexToInt(sridHex, isLittleEndian);
-    const x = hexToDouble(xHex, isLittleEndian);
-    const y = hexToDouble(yHex, isLittleEndian);
-
-    return {
-      type: 'Point',
-      crs: {
-        type: 'name',
-        properties: {
-          name: `urn:ogc:def:crs:EPSG::${srid}`,
-        },
-      },
-      coordinates: [x, y],
-    };
-  } catch {
-    return null;
-  }
-}
-
 function formatFormDateValue(value: unknown, specificType?: string | null) {
   if (value === null || value === undefined) {
     return value;
@@ -172,14 +108,6 @@ export default function CreateRecordForm({
           (specType === 'jsonb' || specType === 'json')
         ) {
           value = JSON.stringify(value, null, 2);
-        } else if (
-          typeof value === 'string' &&
-          (specType.startsWith('geography') || specType.startsWith('geometry'))
-        ) {
-          const parsed = parseHexEWKBPoint(value);
-          if (parsed) {
-            value = JSON.stringify(parsed, null, 2);
-          }
         } else if (column.type === 'date') {
           value = formatFormDateValue(value, column.specificType);
         } else if (column.type === 'boolean') {

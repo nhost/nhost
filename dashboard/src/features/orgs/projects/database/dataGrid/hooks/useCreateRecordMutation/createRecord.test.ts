@@ -143,17 +143,5 @@ describe('createRecord', () => {
     expect(sql).toContain('\'{"a":1,"b":2}\'::jsonb');
   });
 
-  test('inserts geometry/geography values in compressed form', async () => {
-    await createRecord({
-      ...defaultOptions,
-      columnValues: {
-        location: { value: '{\n  "type": "Point",\n  "coordinates": [1.2, 3.4]\n}', specificType: 'geometry(Point,4326)' },
-      },
-    });
-
-    const sql = (capturedBody as CapturedRequest).args[0].args.sql;
-    expect(sql).toContain('location');
-    expect(sql).toContain('\'{"type":"Point","coordinates":[1.2,3.4]}\'::jsonb');
-  });
 });
 

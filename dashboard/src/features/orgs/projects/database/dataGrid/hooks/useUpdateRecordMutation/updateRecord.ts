@@ -93,9 +93,8 @@ export default async function updateRecord<
       let finalValue = value;
       const specType = col.specificType?.toLowerCase() || '';
       const isJson = specType === 'jsonb' || specType === 'json';
-      const isGeo = specType.startsWith('geography') || specType.startsWith('geometry');
 
-      if ((isJson || isGeo) && typeof value === 'string') {
+      if (isJson && typeof value === 'string') {
         try {
           finalValue = JSON.parse(value);
         } catch {
