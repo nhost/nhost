@@ -175,6 +175,9 @@ jobs:
   publish-npm:
     needs:
       - build-multiplatform
+    permissions:
+      id-token: write
+      contents: read
     uses: ./.github/workflows/wf_release_npm.yaml
     with:
       NAME: cli

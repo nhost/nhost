@@ -2,10 +2,12 @@
 'use strict';
 
 const { spawnSync } = require('node:child_process');
+const os = require('node:os');
 const path = require('node:path');
 
-// Must match the platform package names (and the main package name prefix);
-// the publish script asserts this stays in sync.
+// Must match the main package name and the platform package names. Nothing
+// enforces this; keep PKG_PREFIX in sync by hand with the five `name` fields
+// and the four optionalDependencies keys (see PUBLISHING.md).
 const PKG_PREFIX = '@nhost/cli';
 
 const pkg = `${PKG_PREFIX}-${process.platform}-${process.arch}`;
@@ -29,5 +31,12 @@ process.on('SIGTERM', () => {});
 const result = spawnSync(bin, process.argv.slice(2), { stdio: 'inherit' });
 if (result.error) {
   console.error(`nhost: failed to launch ${bin}: ${result.error.message}`);
+}
+if (result.signal) {
+  // Surface a signal-killed child as the conventional 128 + signal code
+  // (e.g. 137 for SIGKILL) instead of collapsing it to a generic 1. The
+  // no-op handlers above mean re-raising the signal wouldn't terminate us.
+  const signum = os.constants.signals[result.signal];
+  process.exit(signum ? 128 + signum : 1);
 }
 process.exit(result.status ?? 1);

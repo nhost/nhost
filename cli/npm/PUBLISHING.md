@@ -15,11 +15,11 @@ through the same `wf_release_npm.yaml` as `@nhost/nhost-js`, each of the five pa
 needs the same trusted-publisher configuration as `@nhost/nhost-js` on npmjs.com.
 
 The job publishes the four platform packages before the main package — a live main
-package with missing platform packages breaks installs. A prerelease version (one with a
-`-` suffix, e.g. `1.50.0-beta.1`) goes to the `beta` dist-tag, the same channel the other
-@nhost packages use; everything else goes to `latest`. Versions already on the registry
-are skipped, not failed, so re-running the job after a partial failure publishes only what
-is missing.
+package with missing platform packages breaks installs. A version whose name contains
+`alpha`, `beta`, `dev`, or `rc` (e.g. `1.50.0-beta.1`) goes to the `beta` dist-tag, the
+same channel the other @nhost packages use; everything else goes to `latest`. Versions
+already on the registry are skipped, not failed, so re-running the job after a partial
+failure publishes only what is missing.
 
 ## Manual publishing (first release / recovery)
 
