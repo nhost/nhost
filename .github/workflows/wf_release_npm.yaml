@@ -12,16 +12,10 @@ on:
         type: string
         required: true
       ARTIFACT:
-        # When set, publish the packages pre-staged in this same-run artifact
-        # (one package directory per subfolder) with npm, instead of building
-        # from source with pnpm. Used by the CLI, whose npm packages wrap
-        # prebuilt Go binaries produced earlier in the release run.
         type: string
         required: false
         default: ""
     secrets:
-      # Only needed for the source-build (pnpm) path; the artifact path
-      # publishes prebuilt packages and needs none of these.
       AWS_ACCOUNT_ID:
         required: false
       NIX_CACHE_PUB_KEY:
@@ -52,7 +46,6 @@ jobs:
     - name: "Check out repository"
       uses: actions/checkout@v6
 
-    # --- source build (pnpm): nhost-js, stripe-graphql-js ---
     - name: Configure aws
       if: ${{ inputs.ARTIFACT == '' }}
       uses: aws-actions/configure-aws-credentials@v6
@@ -83,7 +76,6 @@ jobs:
       run: |
         nix develop .#pnpm -c pnpm version ${{ inputs.VERSION }} --no-git-tag-version
 
-    # --- prebuilt artifact (npm): cli ---
     - name: "Setup Node"
       if: ${{ inputs.ARTIFACT != '' }}
       uses: actions/setup-node@v6
@@ -98,7 +90,6 @@ jobs:
         name: ${{ inputs.ARTIFACT }}
         path: ${{ inputs.PATH }}/dist
 
-    # --- shared ---
     - name: "Determine npm tag"
       id: npm-tag
       run: |
@@ -128,10 +119,6 @@ jobs:
           dir="$1"
           name=$(node -p "require('./$dir/package.json').name")
           version=$(node -p "require('./$dir/package.json').version")
-          # The registry rejects republishing an existing version, so skip
-          # live packages: a re-run after a partial failure (the main package
-          # depends on all four platform packages) then publishes only what is
-          # missing instead of dying on the first conflict.
           if [ "$(npm view "$name@$version" version 2>/dev/null || true)" = "$version" ]; then
             echo "--> skipping $name@$version (already published)"
             return

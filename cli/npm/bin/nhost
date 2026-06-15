@@ -33,9 +33,6 @@ if (result.error) {
   console.error(`nhost: failed to launch ${bin}: ${result.error.message}`);
 }
 if (result.signal) {
-  // Surface a signal-killed child as the conventional 128 + signal code
-  // (e.g. 137 for SIGKILL) instead of collapsing it to a generic 1. The
-  // no-op handlers above mean re-raising the signal wouldn't terminate us.
   const signum = os.constants.signals[result.signal];
   process.exit(signum ? 128 + signum : 1);
 }

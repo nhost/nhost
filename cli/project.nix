@@ -278,10 +278,6 @@ rec {
         cp ${cli-amd64-linux}/bin/${name} $out/linux/amd64/cli
       '';
 
-  # Publishable npm tree: one main package that resolves a per-platform
-  # binary package at runtime (esbuild-style optionalDependencies). Versions
-  # are stamped from ${version} so the package metadata and the version baked
-  # into the binary stay in lockstep, leaving the workflow to only publish.
   cli-npm =
     pkgs.runCommand "cli-npm-${version}"
       {
@@ -291,8 +287,6 @@ rec {
         };
       }
       ''
-        # key = npm package suffix (process.platform-process.arch);
-        # os/goarch = cli-multiplatform layout (Go's GOOS/GOARCH).
         stage_platform() {
           dir="$out/dist/$1"
           mkdir -p "$dir"
