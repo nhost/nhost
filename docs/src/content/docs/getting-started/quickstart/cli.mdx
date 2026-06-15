@@ -11,6 +11,8 @@ sidebar:
 
 The Nhost CLI is the recommended way to start building your application. It sets up a full local development environment including PostgreSQL, Hasura (GraphQL), Authentication, and Storage, tracking all migrations and metadata.
 
+[Docker](https://docs.docker.com/get-docker/) is required to run the local environment.
+
 ### 1. Install the CLI
 
 Choose your preferred installation method:
@@ -32,7 +34,7 @@ nix profile install github:nhost/nhost#cli
 
 ### 2. Authenticate
 
-Login to your Nhost account. This allows the CLI to link your local environment to your remote projects.
+Login to your Nhost account. This is required if you want to pull configuration from an existing Nhost Cloud project (step 3) or deploy later. You can skip it if you only want to develop locally.
 
 ```sh
 nhost login
@@ -59,11 +61,23 @@ Start the full Nhost stack locally. This uses Docker to spin up all the necessar
 nhost up
 ```
 
-Once running, your local services will be available at:
-- **Nhost Dashboard:** `http://localhost:1337`
-- **GraphQL API:** `http://localhost:1337/v1/graphql`
-- **Auth API:** `http://localhost:1337/v1/auth`
-- **Storage API:** `http://localhost:1337/v1/storage`
+Once running, the CLI prints the URLs for your local services:
+
+---
+
+| Service | URLs |
+|---------|-----|
+| **Dashboard:** | [https://local.dashboard.local.nhost.run](https://local.dashboard.local.nhost.run) |
+| **GraphQL:** | [https://local.graphql.local.nhost.run](https://local.graphql.local.nhost.run) |
+| **Auth:** | [https://local.auth.local.nhost.run](https://local.auth.local.nhost.run) |
+| **Storage:** | [https://local.storage.local.nhost.run](https://local.storage.local.nhost.run) |
+| **Postgres:** | [postgres://postgres:postgres@localhost:5432/local](postgres://postgres:postgres@localhost:5432/local) |
+| **Functions:** | [https://local.functions.local.nhost.run](https://local.functions.local.nhost.run) |
+| **Mailhog:** | [https://local.mailhog.local.nhost.run](https://local.mailhog.local.nhost.run) |
+
+The `local.nhost.run` domain resolves to your machine, so these URLs work over HTTPS out of the box.
+
+To stop the environment run `nhost down`, and to follow the logs run `nhost logs`.
 
 ### Next Steps
 
