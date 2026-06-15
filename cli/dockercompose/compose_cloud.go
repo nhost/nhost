@@ -52,9 +52,10 @@ func consoleCloud(
 	httpPort uint,
 	useTLS bool,
 	nhostFolder string,
+	dotNhostFolder string,
 	ports ExposePorts,
 ) (*Service, error) {
-	console, err := console(cfg, subdomain, httpPort, useTLS, nhostFolder, ports.Console)
+	console, err := console(cfg, subdomain, httpPort, useTLS, nhostFolder, dotNhostFolder, ports.Console)
 	if err != nil {
 		return nil, err
 	}
@@ -121,6 +122,7 @@ func getServicesCloud( //nolint:funlen
 		httpPort,
 		useTLS,
 		nhostFolder,
+		dotNhostFolder,
 		ports,
 	)
 	if err != nil {
@@ -203,6 +205,12 @@ func CloudComposeFileFromConfig(
 	if caCertificatesPath != "" {
 		mountCACertificates(caCertificatesPath, services)
 	}
+
+	if err := prepareNhostFolderSubdirs(nhostFolder); err != nil {
+		return nil, err
+	}
+
+	applyHostUserID(services)
 
 	return &ComposeFile{
 		Services: services,

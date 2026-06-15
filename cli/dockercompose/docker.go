@@ -10,6 +10,7 @@ import (
 	"os/exec"
 	"os/signal"
 	"path/filepath"
+	"runtime"
 	"syscall"
 
 	"github.com/creack/pty"
@@ -74,6 +75,18 @@ func (d *Docker) HasuraWrapper(
 		"-w", "/app",
 		"-it", "--rm",
 		"--entrypoint", "hasura-cli",
+	}
+
+	// On Linux, run hasura-cli as the host user so files written into
+	// the bind-mounted nhost folder (metadata export, migration squash,
+	// etc.) end up owned by the caller rather than root. HOME=/tmp
+	// gives hasura-cli a writable path for its global config since the
+	// image's default HOME=/ is only writable by root.
+	if runtime.GOOS == "linux" {
+		args = append(args,
+			"--user", fmt.Sprintf("%d:%d", os.Getuid(), os.Getgid()),
+			"-e", "HOME=/tmp",
+		)
 	}
 
 	for _, host := range hostGatewayHosts(subdomain) {

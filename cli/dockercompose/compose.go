@@ -2,11 +2,13 @@ package dockercompose
 
 import (
 	"encoding/json"
+	"errors"
 	"fmt"
 	"net/url"
 	"os"
 	"path/filepath"
 	"regexp"
+	"runtime"
 	"strconv"
 	"strings"
 
@@ -85,6 +87,7 @@ type Service struct {
 	Networks    map[string]*NetworkConfig `yaml:"networks,omitempty"`
 	Ports       []Port                    `yaml:"ports,omitempty"`
 	Restart     string                    `yaml:"restart"`
+	User        *string                   `yaml:"user,omitempty"`
 	Volumes     []Volume                  `yaml:"volumes,omitempty"`
 	WorkingDir  *string                   `yaml:"working_dir,omitempty"`
 }
@@ -493,6 +496,10 @@ func functions( //nolint:funlen
 		return nil, fmt.Errorf("failed to strip JWT secret for %s: %w", "functions", err)
 	}
 
+	if err := prepareFunctionsHostFiles(rootFolder); err != nil {
+		return nil, err
+	}
+
 	envVars := map[string]string{
 		"HASURA_GRAPHQL_ADMIN_SECRET": cfg.Hasura.AdminSecret,
 		"HASURA_GRAPHQL_DATABASE_URL": "postgres://nhost_auth_admin@local.db.nhost.run:5432/local",
@@ -568,6 +575,54 @@ func functions( //nolint:funlen
 		},
 		WorkingDir: nil,
 	}, nil
+}
+
+// defaultFunctionsTSConfig matches services/functions/tsconfig.json,
+// which the nhost/functions image's start.sh copies into the user's
+// project on boot via `cp -n` (no-clobber). The container runs as
+// root, so that copy leaves a root-owned file in the host repo.
+// Pre-creating the file as the calling user makes the `cp -n` a
+// no-op.
+const defaultFunctionsTSConfig = `{
+  "compilerOptions": {
+    "allowJs": true,
+    "skipLibCheck": true,
+    "noEmit": true,
+    "esModuleInterop": true,
+    "resolveJsonModule": true,
+    "isolatedModules": true,
+    "strictNullChecks": false
+  }
+}
+`
+
+// prepareFunctionsHostFiles materialises directories and files that
+// the functions container would otherwise create on the bind-mounted
+// project root as root: nested named-volume mountpoints and the
+// default tsconfig.json. Running here in the CLI process means they
+// land owned by the calling user.
+func prepareFunctionsHostFiles(rootFolder string) error {
+	dirs := []string{
+		filepath.Join(rootFolder, "node_modules"),
+		filepath.Join(rootFolder, "functions"),
+		filepath.Join(rootFolder, "functions", "node_modules"),
+	}
+	for _, p := range dirs {
+		if err := os.MkdirAll(p, 0o755); err != nil { //nolint:mnd
+			return fmt.Errorf("create %s: %w", p, err)
+		}
+	}
+
+	tsconfig := filepath.Join(rootFolder, "functions", "tsconfig.json")
+	if _, err := os.Stat(tsconfig); errors.Is(err, os.ErrNotExist) {
+		if err := os.WriteFile(tsconfig, []byte(defaultFunctionsTSConfig), 0o644); err != nil { //nolint:mnd
+			return fmt.Errorf("create %s: %w", tsconfig, err)
+		}
+	} else if err != nil {
+		return fmt.Errorf("stat %s: %w", tsconfig, err)
+	}
+
+	return nil
 }
 
 func mailhog(volumeName string, useTLS bool) *Service {
@@ -684,7 +739,7 @@ func getServices( //nolint: funlen,cyclop
 
 	jwtSecret := graphql.Environment["HASURA_GRAPHQL_JWT_SECRET"]
 
-	console, err := console(cfg, subdomain, httpPort, useTLS, nhostFolder, ports.Console)
+	console, err := console(cfg, subdomain, httpPort, useTLS, nhostFolder, dotNhostFolder, ports.Console)
 	if err != nil {
 		return nil, err
 	}
@@ -803,6 +858,65 @@ func mountCACertificates(
 	}
 }
 
+// servicesRunAsHostUser is the set of services that write into
+// host-bind-mounted directories the user owns (migrations, metadata,
+// generated config). Running them as the host user keeps those files
+// owned by the caller instead of root.
+//
+// The `functions` service is intentionally excluded: its image is
+// built with Nix and ships a read-only /tmp (mode 0555), so its
+// entrypoint relies on root's DAC_OVERRIDE to create
+// /tmp/corepack-shims. Stub directories that dockerd otherwise
+// creates as root inside the bind-mounted project root are handled
+// separately in functions() by pre-creating the mountpoints.
+var servicesRunAsHostUser = []string{ //nolint:gochecknoglobals
+	"console",
+	"configserver",
+	"constellation",
+}
+
+// prepareNhostFolderSubdirs materialises the directories under the
+// project's nhost/ folder that the stack bind-mounts into containers
+// (metadata, migrations, seeds, emails). Without this, dockerd creates
+// any missing source dirs as root when attaching the bind, leaving
+// root-owned directories in the user's repo even after the relevant
+// containers are demoted to the host user.
+func prepareNhostFolderSubdirs(nhostFolder string) error {
+	for _, name := range []string{"metadata", "migrations", "seeds", "emails"} {
+		p := filepath.Join(nhostFolder, name)
+		if err := os.MkdirAll(p, 0o755); err != nil { //nolint:mnd
+			return fmt.Errorf("create %s: %w", p, err)
+		}
+	}
+
+	return nil
+}
+
+// applyHostUserID sets `user: <uid>:<gid>` on services that produce
+// host-visible files, so those files end up owned by the user who ran
+// `nhost up` rather than root.
+//
+// Linux only: on Docker Desktop (macOS/Windows) the bind-mount layer
+// already maps ownership to the host user, and forcing `user:` can
+// break images that expect their default UID.
+func applyHostUserID(services map[string]*Service) {
+	if runtime.GOOS != "linux" {
+		return
+	}
+
+	uid := os.Getuid()
+	if uid < 0 {
+		return
+	}
+
+	spec := fmt.Sprintf("%d:%d", uid, os.Getgid())
+	for _, name := range servicesRunAsHostUser {
+		if svc, ok := services[name]; ok {
+			svc.User = &spec
+		}
+	}
+}
+
 func ComposeFileFromConfig( //nolint:funlen
 	cfg *model.ConfigConfig,
 	subdomain string,
@@ -866,6 +980,12 @@ func ComposeFileFromConfig( //nolint:funlen
 	if caCertificatesPath != "" {
 		mountCACertificates(caCertificatesPath, services)
 	}
+
+	if err := prepareNhostFolderSubdirs(nhostFolder); err != nil {
+		return nil, err
+	}
+
+	applyHostUserID(services)
 
 	return &ComposeFile{
 		Services: services,
