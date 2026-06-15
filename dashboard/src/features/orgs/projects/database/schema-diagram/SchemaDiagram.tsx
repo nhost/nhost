@@ -196,10 +196,6 @@ function SchemaDiagramContent() {
     error: rolesError,
   } = useGetRemoteAppRolesQuery({ client: gqlClient });
 
-  // Same source as the Edit Function Permissions form, so the diagram's function
-  // permission dots and the form never disagree. Not added to the loading gate:
-  // the role defaults to admin (always allowed), so this only affects non-admin
-  // dots, by which time the small/cached settings query has resolved.
   const { project } = useProject();
   const isPlatform = useIsPlatform();
   const localMimirClient = useLocalMimirClient();

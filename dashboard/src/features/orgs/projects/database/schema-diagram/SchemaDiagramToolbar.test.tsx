@@ -163,7 +163,6 @@ describe('SchemaDiagramToolbar', () => {
       name: 'users',
     });
 
-    // The popover should close after picking an object.
     await waitFor(() => {
       expect(
         screen.queryByRole('option', { name: /public\.users/i }),

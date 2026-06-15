@@ -39,10 +39,6 @@ export interface SchemaDiagramSearchObject {
   schema: string;
   name: string;
   kind: 'table' | 'function';
-  /**
-   * For functions, the schema of the table the function returns rows of, so
-   * the caller can reveal it when focusing the node.
-   */
   returnSchema?: string;
 }
 

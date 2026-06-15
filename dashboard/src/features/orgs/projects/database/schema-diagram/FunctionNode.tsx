@@ -31,7 +31,6 @@ function describeState(state: PermissionState): string {
   }
 }
 
-/** Tooltip body explaining why the function has its current access for a role. */
 function AccessDescription({
   role,
   state,
@@ -52,8 +51,6 @@ function AccessDescription({
     return <>Admin has full access.</>;
   }
 
-  // Inferred path: a query function with inference on follows the return table's
-  // select permission (this is the only path that can't reach 'partial').
   if (inferFunctionPermissions && !isMutationFunction) {
     return (
       <>
@@ -132,9 +129,6 @@ function FunctionNodeView({ data }: NodeProps<FunctionNode>) {
       className="w-[280px] overflow-hidden rounded-md border border-y-border border-r-border border-l-4 border-l-[rgb(var(--schema-color))] bg-background text-foreground shadow-md"
       title={isUntracked ? 'Untracked in GraphQL' : undefined}
     >
-      {/* Edge anchor only; kept invisible so the function node has no stray
-          handle dot (the solid double-chevron edge already shows the link to
-          the table). */}
       <Handle
         type="source"
         position={Position.Right}

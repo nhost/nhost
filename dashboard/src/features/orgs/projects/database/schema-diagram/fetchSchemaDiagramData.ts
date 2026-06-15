@@ -30,26 +30,11 @@ export interface SchemaDiagramForeignKey {
 export interface SchemaDiagramFunctionReturnType {
   schema: string;
   name: string;
-  /** Function OID, needed to edit/track/delete the function from the diagram. */
   oid?: string;
   returnType: string;
   returnsSet: boolean;
-  /**
-   * `true` when the function is `VOLATILE`. Hasura exposes volatile functions as
-   * mutations by default, which always require an explicit function permission
-   * (inference never applies to them).
-   */
   isVolatile: boolean;
-  /**
-   * Schema of the table-like relation the function returns rows of. Only set
-   * when the return type is backed by a real relation (table/view/matview/
-   * foreign table); `undefined` for scalar, `record` and composite-type returns.
-   */
   returnSchema?: string;
-  /**
-   * Name of the table-like relation the function returns rows of. See
-   * `returnSchema`.
-   */
   returnTable?: string;
 }
 
@@ -189,10 +174,6 @@ interface RawForeignKey {
 interface RawFunctionReturnType {
   schema: string;
   name: string;
-  // Postgres `oid` is unsigned 32-bit; `row_to_json` serializes it as a string
-  // (matching `FunctionObject.function_oid`). Selecting it uncast avoids the
-  // `integer out of range` an `::int` cast would raise once the cluster OID
-  // counter passes 2^31-1 — which would fail the whole bulk schema query.
   oid: string;
   return_type: string;
   returns_set: boolean;
