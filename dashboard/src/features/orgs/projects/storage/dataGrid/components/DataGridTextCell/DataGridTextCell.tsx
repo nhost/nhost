@@ -13,73 +13,9 @@ export type DataGridTextCellProps<
   TData extends UnknownDataGridRow = UnknownDataGridRow,
 > = CommonDataGridCellProps<TData, string | null>;
 
-function parseHexEWKBPoint(hex: string) {
-  if (typeof hex !== 'string') {
-    return null;
-  }
-  const cleanHex = hex.trim().toLowerCase();
-  if (cleanHex.length !== 50) {
-    return null;
-  }
-
-  const byteOrder = cleanHex.substring(0, 2);
-  const isLittleEndian = byteOrder === '01';
-
-  const type = cleanHex.substring(2, 10);
-  const isPointSRID = isLittleEndian
-    ? type === '01000020'
-    : type === '20000001';
-  if (!isPointSRID) {
-    return null;
-  }
-
-  const sridHex = cleanHex.substring(10, 18);
-  const xHex = cleanHex.substring(18, 34);
-  const yHex = cleanHex.substring(34, 50);
-
-  function hexToDouble(hexStr: string, littleEndian: boolean) {
-    const bytes = new Uint8Array(8);
-    for (let i = 0; i < 8; i += 1) {
-      const byteIndex = littleEndian ? i : 7 - i;
-      bytes[byteIndex] = parseInt(hexStr.substring(i * 2, i * 2 + 2), 16);
-    }
-    const view = new DataView(bytes.buffer);
-    return view.getFloat64(0, true);
-  }
-
-  function hexToInt(hexStr: string, littleEndian: boolean) {
-    const bytes = new Uint8Array(4);
-    for (let i = 0; i < 4; i += 1) {
-      const byteIndex = littleEndian ? i : 3 - i;
-      bytes[byteIndex] = parseInt(hexStr.substring(i * 2, i * 2 + 2), 16);
-    }
-    const view = new DataView(bytes.buffer);
-    return view.getInt32(0, true);
-  }
-
-  try {
-    const srid = hexToInt(sridHex, isLittleEndian);
-    const x = hexToDouble(xHex, isLittleEndian);
-    const y = hexToDouble(yHex, isLittleEndian);
-
-    return {
-      type: 'Point',
-      crs: {
-        type: 'name',
-        properties: {
-          name: `urn:ogc:def:crs:EPSG::${srid}`,
-        },
-      },
-      coordinates: [x, y],
-    };
-  } catch {
-    return null;
-  }
-}
-
 export default function DataGridTextCell<
   TData extends UnknownDataGridRow = UnknownDataGridRow,
->({
+ >({
   onSave,
   optimisticValue,
   temporaryValue,
@@ -91,9 +27,6 @@ export default function DataGridTextCell<
   const isNullable = column.columnDef.meta?.isNullable;
   const hasDefault = column.columnDef.meta?.defaultValue != null;
 
-  const specType = String(specificType || '').toLowerCase();
-  const isGeo = specType.startsWith('geography') || specType.startsWith('geometry');
-
   const isMultiline =
     isArray ||
     baseType === 'text' ||
@@ -101,30 +34,19 @@ export default function DataGridTextCell<
     baseType === 'character' ||
     baseType === 'character varying' ||
     baseType === 'json' ||
-    baseType === 'jsonb' ||
-    isGeo;
+    baseType === 'jsonb';
 
   // Read-only display formatting
-  const parsedOptimistic = isGeo && typeof optimisticValue === 'string'
-    ? parseHexEWKBPoint(optimisticValue)
-    : null;
-
-  const displayOptimisticValue = parsedOptimistic
-    ? JSON.stringify(parsedOptimistic)
-    : (optimisticValue !== null && typeof optimisticValue === 'object'
+  const displayOptimisticValue =
+    optimisticValue !== null && typeof optimisticValue === 'object'
       ? JSON.stringify(optimisticValue)
-      : (String(optimisticValue) || '').replace(/(\\n)+/gi, ' '));
+      : (String(optimisticValue) || '').replace(/(\\n)+/gi, ' ');
 
   // Edit-mode formatting
-  let displayTemporaryValue = temporaryValue;
-  if (isGeo && typeof temporaryValue === 'string') {
-    const parsed = parseHexEWKBPoint(temporaryValue);
-    if (parsed) {
-      displayTemporaryValue = JSON.stringify(parsed, null, 2);
-    }
-  } else if (temporaryValue !== null && typeof temporaryValue === 'object') {
-    displayTemporaryValue = JSON.stringify(temporaryValue, null, 2);
-  }
+  const displayTemporaryValue =
+    temporaryValue !== null && typeof temporaryValue === 'object'
+      ? JSON.stringify(temporaryValue, null, 2)
+      : temporaryValue;
 
   const { inputRef, focusCell, isEditing, cancelEditCell } = useDataGridCell<
     HTMLInputElement | HTMLTextAreaElement
@@ -140,21 +62,7 @@ export default function DataGridTextCell<
 
   async function handleSave() {
     if (onSave) {
-      let valueToSave = displayTemporaryValue;
-      if (isGeo && typeof displayTemporaryValue === 'string') {
-        try {
-          const parsed = JSON.parse(displayTemporaryValue);
-          if (parsed && typeof parsed === 'object') {
-            const x = parsed.coordinates[0];
-            const y = parsed.coordinates[1];
-            const srid = parsed.crs?.properties?.name?.split('::')[1] || '4326';
-            valueToSave = `SRID=${srid};POINT(${x} ${y})`;
-          }
-        } catch {
-          // Keep as is
-        }
-      }
-      await onSave((valueToSave || '').replace(/\n/gi, `\\n`));
+      await onSave((displayTemporaryValue || '').replace(/\n/gi, `\\n`));
     }
   }
 
