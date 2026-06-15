@@ -379,10 +379,12 @@ func getRouter(
 	handler := api.NewStrictHandler(ctrl, nil)
 	api.RegisterHandlersWithOptions(router, handler, api.GinServerOptions{
 		BaseURL: "",
-		// Order matters: CaptureRawBody preserves the cheap ContentLength
-		// fast-path before auth, then rejects unauthenticated metadata requests
-		// before reading/allocating the body. It still enforces the streaming
-		// MaxBytesReader cap for authenticated chunked requests. The cap is the
+		// Order matters: CaptureRawBody rejects unauthenticated metadata
+		// requests with 401 first — before reading/allocating the body and
+		// before the ContentLength cap — so an unauthenticated caller cannot
+		// probe the configured limit (413-vs-401) on this admin-only endpoint.
+		// Authenticated requests then get the cheap ContentLength fast-fail and
+		// the streaming MaxBytesReader cap for chunked bodies. The cap is the
 		// same one the proxy NoRoute path uses so a request that would succeed
 		// when routed to /v2/query is not silently rejected when routed to
 		// /v1/metadata.

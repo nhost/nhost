@@ -378,6 +378,218 @@ func TestToJSON_Deterministic(t *testing.T) {
 	}
 }
 
+// TestToJSON_FiltersLoweredToSourceRelationship is an export-SHAPE test that
+// the EquateEmpty round-trip above cannot catch. FromJSON lowers every
+// `to_source` remote_relationship into an ObjectRelationship/ArrayRelationship
+// with ManualConfiguration (convertRemoteRelationships); ToJSON must strip those
+// lowered duplicates (withoutDerivedRelationships) so the exported bytes carry
+// ONLY the original remote_relationships entry. The EquateEmpty test is blind to
+// this: even if ToJSON emitted both forms, FromJSON#2's dedup guard would see the
+// lowered name already present and skip re-derivation, so the parsed structs
+// would still compare equal. This asserts on the bytes instead.
+func TestToJSON_FiltersLoweredToSourceRelationship(t *testing.T) {
+	t.Parallel()
+
+	blob := []byte(`{
+		"version": 3,
+		"sources": [
+			{
+				"name": "default",
+				"kind": "postgres",
+				"configuration": {"connection_info": {"database_url": "postgres://x"}},
+				"customization": {"root_fields": {}, "type_names": {}},
+				"tables": [
+					{
+						"table": {"name": "orders", "schema": "public"},
+						"remote_relationships": [
+							{
+								"name": "department",
+								"definition": {
+									"to_source": {
+										"source": "other",
+										"table": {"name": "departments", "schema": "public"},
+										"relationship_type": "object",
+										"field_mapping": {"dept_id": "id"}
+									}
+								}
+							}
+						]
+					}
+				]
+			}
+		]
+	}`)
+
+	parsed, err := hasura.FromJSON(blob)
+	if err != nil {
+		t.Fatalf("FromJSON #1: %v", err)
+	}
+
+	out, err := hasura.ToJSON(parsed)
+	if err != nil {
+		t.Fatalf("ToJSON: %v", err)
+	}
+
+	var doc struct {
+		Sources []struct {
+			Tables []struct {
+				ObjectRelationships []jsontext.Value `json:"object_relationships"`
+				ArrayRelationships  []jsontext.Value `json:"array_relationships"`
+				RemoteRelationships []struct {
+					Name string `json:"name"`
+				} `json:"remote_relationships"`
+			} `json:"tables"`
+		} `json:"sources"`
+	}
+	if err := json.Unmarshal(out, &doc); err != nil {
+		t.Fatalf("re-unmarshal export: %v", err)
+	}
+
+	if len(doc.Sources) != 1 || len(doc.Sources[0].Tables) != 1 {
+		t.Fatalf("unexpected export shape: %s", out)
+	}
+
+	table := doc.Sources[0].Tables[0]
+
+	// The lowered ObjectRelationship/ArrayRelationship must be filtered out — only
+	// the source-of-truth remote_relationships entry survives.
+	if len(table.ObjectRelationships) != 0 {
+		t.Errorf(
+			"lowered to_source relationship leaked into object_relationships: %s",
+			out,
+		)
+	}
+
+	if len(table.ArrayRelationships) != 0 {
+		t.Errorf(
+			"lowered to_source relationship leaked into array_relationships: %s",
+			out,
+		)
+	}
+
+	if len(table.RemoteRelationships) != 1 ||
+		table.RemoteRelationships[0].Name != "department" {
+		t.Errorf(
+			"expected exactly the `department` remote_relationship to survive, got %s",
+			out,
+		)
+	}
+
+	// Stability: FromJSON#2 must equal FromJSON#1. A duplicate-emission regression
+	// where the lowered entry leaks back would re-lower on the second pass and the
+	// two would still match (the dedup guard masks it), so this complements — not
+	// replaces — the byte assertions above.
+	second, err := hasura.FromJSON(out)
+	if err != nil {
+		t.Fatalf("FromJSON #2: %v", err)
+	}
+
+	if diff := cmp.Diff(parsed, second, cmpopts.EquateEmpty()); diff != "" {
+		t.Errorf("FromJSON ∘ ToJSON ∘ FromJSON differs (-first +second):\n%s", diff)
+	}
+}
+
+// TestToJSON_NameCollisionDropsLoweredRemoteRelationship covers the riskiest
+// edge of withoutDerivedRelationships: a table where a real (FK-based) object
+// relationship shares its name with a to_source remote relationship. The filter
+// keys solely on name, so it drops every same-named object/array entry — the
+// user's genuine FK relationship included. This case is unreachable from a valid
+// Hasura export (relationship names map to unique GraphQL field names within a
+// table, so Hasura never emits both forms under one name), but the test pins the
+// observable behavior so the name-only filter is a deliberate, documented choice
+// rather than silent drift.
+func TestToJSON_NameCollisionDropsLoweredRemoteRelationship(t *testing.T) {
+	t.Parallel()
+
+	blob := []byte(`{
+		"version": 3,
+		"sources": [
+			{
+				"name": "default",
+				"kind": "postgres",
+				"configuration": {"connection_info": {"database_url": "postgres://x"}},
+				"customization": {"root_fields": {}, "type_names": {}},
+				"tables": [
+					{
+						"table": {"name": "orders", "schema": "public"},
+						"object_relationships": [
+							{"name": "department", "using": {"foreign_key_constraint_on": "dept_id"}}
+						],
+						"remote_relationships": [
+							{
+								"name": "department",
+								"definition": {
+									"to_source": {
+										"source": "other",
+										"table": {"name": "departments", "schema": "public"},
+										"relationship_type": "object",
+										"field_mapping": {"dept_id": "id"}
+									}
+								}
+							}
+						]
+					}
+				]
+			}
+		]
+	}`)
+
+	parsed, err := hasura.FromJSON(blob)
+	if err != nil {
+		t.Fatalf("FromJSON: %v", err)
+	}
+
+	out, err := hasura.ToJSON(parsed)
+	if err != nil {
+		t.Fatalf("ToJSON: %v", err)
+	}
+
+	var doc struct {
+		Sources []struct {
+			Tables []struct {
+				ObjectRelationships []jsontext.Value `json:"object_relationships"`
+				ArrayRelationships  []jsontext.Value `json:"array_relationships"`
+				RemoteRelationships []struct {
+					Name string `json:"name"`
+				} `json:"remote_relationships"`
+			} `json:"tables"`
+		} `json:"sources"`
+	}
+	if err := json.Unmarshal(out, &doc); err != nil {
+		t.Fatalf("re-unmarshal export: %v", err)
+	}
+
+	if len(doc.Sources) != 1 || len(doc.Sources[0].Tables) != 1 {
+		t.Fatalf("unexpected export shape: %s", out)
+	}
+
+	table := doc.Sources[0].Tables[0]
+
+	// The name-only filter drops every same-named object/array entry, so nothing
+	// remains under object/array_relationships — only the remote_relationship.
+	if len(table.ObjectRelationships) != 0 {
+		t.Errorf(
+			"expected name-colliding object_relationships to be dropped, got %s",
+			out,
+		)
+	}
+
+	if len(table.ArrayRelationships) != 0 {
+		t.Errorf(
+			"expected no array_relationships, got %s",
+			out,
+		)
+	}
+
+	if len(table.RemoteRelationships) != 1 ||
+		table.RemoteRelationships[0].Name != "department" {
+		t.Errorf(
+			"expected the `department` remote_relationship to survive, got %s",
+			out,
+		)
+	}
+}
+
 // Compile-time assurance the public signature stays inverse:
 // FromJSON: []byte -> *Metadata, ToJSON: *Metadata -> []byte.
 var (

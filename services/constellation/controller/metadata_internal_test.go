@@ -510,18 +510,41 @@ func TestMetadataExportRejectsBadAuth(t *testing.T) {
 	}
 }
 
-func TestMetadataRejectsOversizedBodyBeforeAuth(t *testing.T) {
+func TestMetadataChecksAuthBeforeSizeCap(t *testing.T) {
 	t.Parallel()
 
 	router := buildMetadataRouter(t, nil)
 
-	// Build a body just over the cap. The metadata preflight must reject it
-	// on ContentLength before the admin-secret check runs — verify by sending
-	// no secret and confirming the response is 413 (the cap), not 401 (auth).
+	// Build a body just over the cap and send it with NO admin secret. Auth is
+	// checked before the ContentLength cap, so an unauthenticated caller must
+	// get 401 (auth wins) and never observe 413 — otherwise the configured
+	// limit could be probed (413-vs-401) on this admin-only endpoint.
 	oversized := bytes.Repeat([]byte("a"), int(testMetadataBodyCap)+1)
 
 	req := httptest.NewRequest(http.MethodPost, "/v1/metadata", bytes.NewReader(oversized))
 	req.Header.Set("Content-Type", "application/json")
+
+	rec := httptest.NewRecorder()
+	router.ServeHTTP(rec, req)
+
+	if rec.Code != http.StatusUnauthorized {
+		t.Errorf("status = %d; want %d", rec.Code, http.StatusUnauthorized)
+	}
+}
+
+func TestMetadataRejectsOversizedBodyWhenAuthenticated(t *testing.T) {
+	t.Parallel()
+
+	router := buildMetadataRouter(t, nil)
+
+	// Same oversized body, but with a valid admin secret. The DoS cap must
+	// still fire for authenticated admins: the ContentLength fast-fail rejects
+	// it with 413 before the body is read.
+	oversized := bytes.Repeat([]byte("a"), int(testMetadataBodyCap)+1)
+
+	req := httptest.NewRequest(http.MethodPost, "/v1/metadata", bytes.NewReader(oversized))
+	req.Header.Set("Content-Type", "application/json")
+	req.Header.Set("X-Hasura-Admin-Secret", testAdminSecret)
 
 	rec := httptest.NewRecorder()
 	router.ServeHTTP(rec, req)

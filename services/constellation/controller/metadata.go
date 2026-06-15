@@ -44,15 +44,13 @@ func NewCaptureRawBody(maxBodyBytes int64) gin.HandlerFunc {
 			return
 		}
 
-		if maxBodyBytes > 0 && c.Request.ContentLength > maxBodyBytes {
-			_ = c.Error(
-				fmt.Errorf("%w: limit is %d bytes", errMetadataBodyTooLarge, maxBodyBytes),
-			)
-			c.AbortWithStatus(http.StatusRequestEntityTooLarge)
-
-			return
-		}
-
+		// Authenticate before anything else so an unauthenticated caller always
+		// gets 401 and never learns the configured body limit (no 413-vs-401
+		// probing of an admin-only endpoint). The admin-secret check only reads
+		// the already-resolved session from context — it does not touch the body,
+		// so the DoS-avoidance goal (never read/allocate an unauthenticated body)
+		// holds: the ContentLength comparison and io.ReadAll both run only after
+		// this check passes.
 		session := middleware.SessionFromContext(c.Request.Context())
 		if session == nil || !session.IsAdminSecret {
 			c.AbortWithStatusJSON(http.StatusUnauthorized, gin.H{
@@ -60,6 +58,15 @@ func NewCaptureRawBody(maxBodyBytes int64) gin.HandlerFunc {
 				"reason":         "admin secret required",
 				"securityScheme": securitySchemeAdminSecret,
 			})
+
+			return
+		}
+
+		if maxBodyBytes > 0 && c.Request.ContentLength > maxBodyBytes {
+			_ = c.Error(
+				fmt.Errorf("%w: limit is %d bytes", errMetadataBodyTooLarge, maxBodyBytes),
+			)
+			c.AbortWithStatus(http.StatusRequestEntityTooLarge)
 
 			return
 		}
