@@ -255,6 +255,48 @@ func TestMetadataRejectsWrongAdminSecret(t *testing.T) {
 	}
 }
 
+// readTrackingBody records whether its Read was ever called, so a test can
+// prove the request body is never consumed before the admin-secret check.
+type readTrackingBody struct {
+	read bool
+}
+
+func (b *readTrackingBody) Read([]byte) (int, error) {
+	b.read = true
+
+	return 0, io.EOF
+}
+
+func (*readTrackingBody) Close() error { return nil }
+
+// TestMetadataRejectsMissingAdminSecretBeforeReadingBody guards the DoS-avoidance
+// invariant documented on NewCaptureRawBody: an unauthenticated /v1/metadata
+// request must be rejected with 401 before any byte of its body is read or
+// allocated. A status-only assertion is insufficient — this asserts the body
+// was left entirely unread.
+func TestMetadataRejectsMissingAdminSecretBeforeReadingBody(t *testing.T) {
+	t.Parallel()
+
+	router := buildMetadataRouter(t, nil)
+	body := &readTrackingBody{}
+
+	req := httptest.NewRequest(http.MethodPost, "/v1/metadata", nil)
+	req.Header.Set("Content-Type", "application/json")
+	req.ContentLength = -1
+	req.Body = body
+
+	rec := httptest.NewRecorder()
+	router.ServeHTTP(rec, req)
+
+	if rec.Code != http.StatusUnauthorized {
+		t.Fatalf("status = %d; want %d", rec.Code, http.StatusUnauthorized)
+	}
+
+	if body.read {
+		t.Errorf("unauthenticated metadata request body was read before rejection")
+	}
+}
+
 func TestMetadataUnknownOpReturnsNotSupportedWhenNoUpstream(t *testing.T) {
 	t.Parallel()
 
@@ -272,8 +314,15 @@ func TestMetadataUnknownOpReturnsNotSupportedWhenNoUpstream(t *testing.T) {
 		t.Errorf("code = %q; want %q", errBody.Code, "not-supported")
 	}
 
-	if !strings.Contains(errBody.Error, "pg_track_table") {
-		t.Errorf("error message %q does not name the op type", errBody.Error)
+	// Pin the exact error message and the $.args path, not just a substring,
+	// so a regression in either field is caught.
+	wantErr := `metadata operation "pg_track_table" is not yet implemented and no Hasura upstream is configured`
+	if errBody.Error != wantErr {
+		t.Errorf("error = %q; want %q", errBody.Error, wantErr)
+	}
+
+	if errBody.Path == nil || *errBody.Path != "$.args" {
+		t.Errorf("path = %v; want %q", errBody.Path, "$.args")
 	}
 }
 
@@ -300,6 +349,25 @@ func TestMetadataMalformedBodyReturns400(t *testing.T) {
 
 	if rec.Code != http.StatusBadRequest {
 		t.Errorf("malformed JSON: status = %d; want %d", rec.Code, http.StatusBadRequest)
+	}
+
+	// The shared OpenAPI request validator (not our handler) rejects this, so
+	// the body is the request-validation-error envelope rather than a
+	// MetadataError. Pin both fields so a regression in the validator's
+	// response shape is caught at the metadata endpoint.
+	var gotBody map[string]string
+	if err := json.Unmarshal(rec.Body.Bytes(), &gotBody); err != nil {
+		t.Fatalf("decoding response body: %v", err)
+	}
+
+	if gotBody["error"] != "request-validation-error" {
+		t.Errorf("error = %q; want %q", gotBody["error"], "request-validation-error")
+	}
+
+	wantReason := "request body has an error: failed to decode request body: " +
+		"invalid character 'o' in literal null (expecting 'u')"
+	if gotBody["reason"] != wantReason {
+		t.Errorf("reason = %q; want %q", gotBody["reason"], wantReason)
 	}
 }
 
