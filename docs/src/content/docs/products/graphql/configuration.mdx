@@ -89,9 +89,9 @@ Configure the engine under `[hasura]` in your project's configuration file. This
 ```
 
 </TabItem>
-<TabItem label="Example nhost.toml w/ Constellation (recommended)">
+<TabItem label="Example config w/ Constellation (recommended)">
 
-```toml
+```toml title="nhost.toml"
 [hasura]
 version = ''
 adminSecret = 'adminsecret'
@@ -146,9 +146,9 @@ subscriptionPollInterval = "1s"
 ```
 
 </TabItem>
-<TabItem label="Example nhost.toml w/o Constellation">
+<TabItem label="Example config w/o Constellation">
 
-```toml
+```toml title="nhost.toml"
 [hasura]
 version = ''
 adminSecret = 'adminsecret'
@@ -231,9 +231,9 @@ JWT configuration lives in the shared `[hasura]` block, so it applies the same w
 ```
 
 </TabItem>
-<TabItem label="Example nhost.toml">
+<TabItem label="Example config">
 
-```toml
+```toml title="nhost.toml"
 # example 1
 [[hasura.jwtSecrets]]
 type = 'HS256'
