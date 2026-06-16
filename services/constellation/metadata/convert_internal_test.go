@@ -943,6 +943,61 @@ func TestConvertRemoteSchema(t *testing.T) {
 	}
 }
 
+// TestConvertRemoteSchema_ToRemoteSchemaRelationship verifies the rs→rs
+// (to_remote_schema) relationship variant converts into the native model.
+func TestConvertRemoteSchema_ToRemoteSchemaRelationship(t *testing.T) {
+	t.Parallel()
+
+	h := hasura.RemoteSchemaMetadata{
+		Name: "rs",
+		Definition: hasura.RemoteSchemaDefinition{
+			URL: "http://rs.test/graphql",
+		},
+		RemoteRelationships: []hasura.RemoteSchemaTypeRemoteRelationship{
+			{
+				TypeName: "Team",
+				Relationships: []hasura.RemoteSchemaRelationshipDef{
+					{
+						Name: "weather",
+						Definition: hasura.RemoteSchemaRelationshipDefinition{
+							ToRemoteSchema: &hasura.ToRemoteSchemaRelationship{
+								RemoteSchema: "weather_api",
+								LHSFields:    []string{"city"},
+								RemoteField: map[string]hasura.RemoteFieldCall{
+									"forecast": {Arguments: map[string]string{"city": "$city"}},
+								},
+							},
+						},
+					},
+				},
+			},
+		},
+	}
+
+	got := convertRemoteSchema(h)
+
+	toRS := got.RemoteRelationships[0].Relationships[0].Definition.ToRemoteSchema
+	if toRS == nil {
+		t.Fatal("expected ToRemoteSchema to be populated")
+	}
+
+	want := &ToRemoteSchemaRelationship{
+		RemoteSchema: "weather_api",
+		LHSFields:    []string{"city"},
+		RemoteField: map[string]RemoteFieldCall{
+			"forecast": {Arguments: map[string]string{"city": "$city"}},
+		},
+	}
+
+	if diff := cmp.Diff(want, toRS, cmpopts.EquateEmpty()); diff != "" {
+		t.Errorf("to_remote_schema mismatch (-want +got):\n%s", diff)
+	}
+
+	if got.RemoteRelationships[0].Relationships[0].Definition.ToSource != nil {
+		t.Error("ToSource should be nil for a to_remote_schema relationship")
+	}
+}
+
 func TestConvertRemoteSchemaURL(t *testing.T) {
 	t.Parallel()
 

@@ -89,41 +89,84 @@ func forDatabase(
 	return out
 }
 
-// forRemoteSchema builds rs→db relationship metadata for a single remote
-// schema. rs→rs is not supported.
+// forRemoteSchema builds the cross-connector relationship metadata for a single
+// remote schema: rs→db (to_source) and rs→rs (to_remote_schema).
 func forRemoteSchema(rs metadata.RemoteSchemaMetadata) []*planner.RelationshipMetadata {
 	var out []*planner.RelationshipMetadata
 
 	for _, typeRel := range rs.RemoteRelationships {
 		for _, rel := range typeRel.Relationships {
-			if rel.Definition.ToSource == nil {
-				continue
-			}
+			switch {
+			case rel.Definition.ToSource != nil:
+				toSource := rel.Definition.ToSource
 
-			toSource := rel.Definition.ToSource
+				rsRel := &planner.RelationshipMetadata{
+					Name:              rel.Name,
+					SourceType:        typeRel.TypeName,
+					TargetConnector:   toSource.Source,
+					TargetTable:       toSource.Table.Name,
+					TargetTableSchema: toSource.Table.Schema,
+					JoinMapping:       toSource.FieldMapping,
+					IsArray:           toSource.RelationshipType == metadata.RelationshipTypeArray,
+					IsArrayAggregate:  false,
+					IsRemote:          true,
+					LHSFields:         nil,
+					RemoteFieldPath:   nil,
+				}
+				out = append(out, rsRel)
 
-			rsRel := &planner.RelationshipMetadata{
-				Name:              rel.Name,
-				SourceType:        typeRel.TypeName,
-				TargetConnector:   toSource.Source,
-				TargetTable:       toSource.Table.Name,
-				TargetTableSchema: toSource.Table.Schema,
-				JoinMapping:       toSource.FieldMapping,
-				IsArray:           toSource.RelationshipType == metadata.RelationshipTypeArray,
-				IsArrayAggregate:  false,
-				IsRemote:          true,
-				LHSFields:         nil,
-				RemoteFieldPath:   nil,
-			}
-			out = append(out, rsRel)
+				if agg := aggregateRelationship(rsRel); agg != nil {
+					out = append(out, agg)
+				}
 
-			if agg := aggregateRelationship(rsRel); agg != nil {
-				out = append(out, agg)
+			case rel.Definition.ToRemoteSchema != nil:
+				out = append(out, forRemoteSchemaToRemoteSchema(typeRel.TypeName, rel))
 			}
 		}
 	}
 
 	return out
+}
+
+// forRemoteSchemaToRemoteSchema builds rs→rs relationship metadata. The target
+// is another remote schema, so the planner routes it through the schema
+// resolver (RemoteFieldPath set). JoinMapping is keyed by the LHS fields so the
+// phantom-injection pass fetches them from the parent remote-schema response;
+// its values are unused for a remote-schema target (the schema resolver reads
+// LHSFields directly). Mirrors the db→rs branch in forDatabaseRelationship.
+func forRemoteSchemaToRemoteSchema(
+	sourceType string, rel metadata.RemoteSchemaRelationshipDef,
+) *planner.RelationshipMetadata {
+	toRS := rel.Definition.ToRemoteSchema
+
+	extracted := metadata.ExtractRemoteFieldPath(toRS.RemoteField)
+	remoteFieldPath := make([]planner.RemoteFieldPathEntry, len(extracted))
+
+	for i, entry := range extracted {
+		remoteFieldPath[i] = planner.RemoteFieldPathEntry{
+			FieldName: entry.FieldName,
+			Arguments: entry.Arguments,
+		}
+	}
+
+	joinMapping := make(map[string]string, len(toRS.LHSFields))
+	for _, f := range toRS.LHSFields {
+		joinMapping[f] = f
+	}
+
+	return &planner.RelationshipMetadata{
+		Name:              rel.Name,
+		SourceType:        sourceType,
+		TargetConnector:   toRS.RemoteSchema,
+		TargetTable:       "",
+		TargetTableSchema: "",
+		JoinMapping:       joinMapping,
+		IsArray:           false,
+		IsArrayAggregate:  false,
+		IsRemote:          true,
+		LHSFields:         toRS.LHSFields,
+		RemoteFieldPath:   remoteFieldPath,
+	}
 }
 
 // aggregateRelationship produces the "<rel>_aggregate" sibling relationship

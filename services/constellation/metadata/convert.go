@@ -736,10 +736,20 @@ func convertRemoteSchemaTypeRelationship(
 			}
 		}
 
+		var toRemoteSchema *ToRemoteSchemaRelationship
+		if rel.Definition.ToRemoteSchema != nil {
+			toRemoteSchema = &ToRemoteSchemaRelationship{
+				RemoteSchema: rel.Definition.ToRemoteSchema.RemoteSchema,
+				LHSFields:    rel.Definition.ToRemoteSchema.LHSFields,
+				RemoteField:  convertRemoteFieldCalls(rel.Definition.ToRemoteSchema.RemoteField),
+			}
+		}
+
 		relationships[i] = RemoteSchemaRelationshipDef{
 			Name: rel.Name,
 			Definition: RemoteSchemaRelationshipDefinition{
-				ToSource: toSource,
+				ToSource:       toSource,
+				ToRemoteSchema: toRemoteSchema,
 			},
 		}
 	}

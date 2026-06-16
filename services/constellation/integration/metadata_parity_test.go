@@ -384,7 +384,11 @@ func cleanupParityEntities(t *testing.T) {
 		// re-applying an empty configuration, the inverse of the customization op.
 		`{"type":"pg_set_table_customization","args":{"source":"default","table":` + dept + `,"configuration":{}}}`,
 		`{"type":"pg_set_function_customization","args":{"source":"default","function":` + fn + `,"configuration":{}}}`,
-		// Remote-schema entities the parity cases add (remove cascades permissions).
+		// Remote-schema entities the parity cases add. Remote relationships must be
+		// dropped before remove_remote_schema (Hasura blocks removal of a schema
+		// with dependent remote relationships: dependency-error).
+		`{"type":"delete_remote_schema_remote_relationship","args":{"remote_schema":"parity_rs","type_name":"Team","name":"rs_dept"}}`,
+		`{"type":"delete_remote_schema_remote_relationship","args":{"remote_schema":"parity_rs","type_name":"Team","name":"rs_self"}}`,
 		`{"type":"remove_remote_schema","args":{"name":"parity_rs"}}`,
 		`{"type":"remove_remote_schema","args":{"name":"parity_rs_unreachable"}}`,
 	}
