@@ -6,10 +6,12 @@ import { Layout } from '@/components/common/Layout'
 import { LineGrid } from '@/components/common/LineGrid'
 import { Link } from '@/components/common/Link'
 import { Article } from '@/utils/types'
+import { canonicalUrl } from '@/utils/seo'
 import { baseUrl } from '@/utils/utils'
 import { MDXProvider } from '@mdx-js/react'
 import { format, parseISO } from 'date-fns'
 import Image from 'next/image'
+import { useRouter } from 'next/router'
 import { PropsWithChildren, useEffect, useState } from 'react'
 import 'react-medium-image-zoom/dist/styles.css'
 
@@ -93,12 +95,17 @@ export default function BlogPostLayout({
   children,
   article,
 }: PropsWithChildren<BlogPostLayout>) {
+  const router = useRouter()
+  const path = router.asPath.split(/[?#]/)[0]
+
   return (
     <Layout
       slotProps={{
         nextSeo: {
-          title: article.title,
-          description: article.description,
+          title: article.seoTitle || article.title,
+          titleTemplate: '%s | Nhost Blog',
+          description: article.seoDescription || article.description,
+          canonical: canonicalUrl(path),
           openGraph: {
             images: [
               {

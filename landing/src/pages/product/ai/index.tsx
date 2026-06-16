@@ -6,6 +6,7 @@ import { CTASection } from '@/components/common/CTASection'
 import { ExampleSelectorButton } from '@/components/common/ExampleSelectorButton'
 import { ArrowRightIcon } from '@/components/common/icons/ArrowRightIcon'
 import { Layout } from '@/components/common/Layout'
+import { buildSeo } from '@/utils/seo'
 import { SectionHeading } from '@/components/common/SectionHeading'
 import { AIHeroSection } from '@/components/ai/AIHeroSection'
 import { ProductSection } from '@/components/product/ProductSection'
@@ -512,5 +513,18 @@ export default function AIPage() {
 }
 
 AIPage.getLayout = function getLayout(page: ReactElement) {
-  return <Layout>{page}</Layout>
+  return (
+    <Layout
+      slotProps={{
+        nextSeo: buildSeo({
+          path: '/product/ai',
+          title: 'Add AI to Your Backend',
+          description:
+            'Create and deploy AI-powered features with a few lines of configuration. Auto-embeddings, assistants, and AI tools built into your backend.',
+        }),
+      }}
+    >
+      {page}
+    </Layout>
+  )
 }

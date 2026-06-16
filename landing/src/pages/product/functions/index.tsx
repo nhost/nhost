@@ -7,6 +7,7 @@ import { ExampleSelectorButton } from '@/components/common/ExampleSelectorButton
 import { Glow } from '@/components/common/Glow'
 import { ArrowRightIcon } from '@/components/common/icons/ArrowRightIcon'
 import { Layout } from '@/components/common/Layout'
+import { buildSeo } from '@/utils/seo'
 import { LineGrid } from '@/components/common/LineGrid'
 import { SectionHeading } from '@/components/common/SectionHeading'
 import { FunctionsHeroSection } from '@/components/functions/FunctionsHeroSection'
@@ -435,5 +436,18 @@ export default function FunctionsPage() {
 }
 
 FunctionsPage.getLayout = function getLayout(page: ReactElement) {
-  return <Layout>{page}</Layout>
+  return (
+    <Layout
+      slotProps={{
+        nextSeo: buildSeo({
+          path: '/product/functions',
+          title: 'Serverless Functions at Scale',
+          description:
+            'Deploy server-side logic without managing infrastructure. Build webhooks, custom business logic, and integrations in JavaScript or TypeScript.',
+        }),
+      }}
+    >
+      {page}
+    </Layout>
+  )
 }

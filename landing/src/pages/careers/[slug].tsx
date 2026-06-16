@@ -9,6 +9,7 @@ import { Layout } from '@/components/common/Layout'
 import { LineGrid } from '@/components/common/LineGrid'
 import { Link } from '@/components/common/Link'
 import { getJobBySlug, Job, jobs } from '@/data/jobs'
+import { buildSeo } from '@/utils/seo'
 import { GetStaticPaths, GetStaticProps } from 'next'
 import { NextSeo } from 'next-seo'
 import { ReactElement } from 'react'
@@ -69,8 +70,11 @@ export default function JobPage({ job }: JobPageProps) {
   return (
     <>
       <NextSeo
-        title={`${job.title} — Careers`}
-        description={job.summary}
+        {...buildSeo({
+          path: `/careers/${job.slug}`,
+          title: job.title,
+          description: job.summary,
+        })}
       />
       <Container component="section" className="relative pt-12 lg:pt-20">
         <div className="mb-8">

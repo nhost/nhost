@@ -1,5 +1,6 @@
 import { Layout } from '@/components/common/Layout'
 import { SectionHeading } from '@/components/common/SectionHeading'
+import { buildSeo } from '@/utils/seo'
 import { baseUrl } from '@/utils/utils'
 import { format, intervalToDuration } from 'date-fns'
 import { NextSeo } from 'next-seo'
@@ -176,8 +177,12 @@ export default function Page() {
   return (
     <Layout>
       <NextSeo
-        title="Launch Month"
-        description="Nhost Launch Month (February 2023) is a month-long event where we will be launching one new release every week for a month."
+        {...buildSeo({
+          path: '/launch-month',
+          title: 'Launch Month: A New Release Every Week',
+          description:
+            'Nhost Launch Month (February 2023) is a month-long event where we ship one new release every week for a month.',
+        })}
         openGraph={{
           type: 'website',
           images: [

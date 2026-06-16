@@ -9,6 +9,7 @@ import { ProductSection } from '@/components/product/ProductSection'
 import { ReactElement } from 'react'
 import { LovedBySection } from '@/components/home/LovedBySection'
 import { FrameworksSection } from '@/components/home/FrameworksSection'
+import { buildSeo } from '@/utils/seo'
 
 export default function IndexPage() {
   return (
@@ -36,5 +37,18 @@ export default function IndexPage() {
 }
 
 IndexPage.getLayout = function getLayout(page: ReactElement) {
-  return <Layout>{page}</Layout>
+  return (
+    <Layout
+      slotProps={{
+        nextSeo: buildSeo({
+          path: '/',
+          title: 'Postgres Backend to Build, Deploy & Scale',
+          description:
+            'Nhost is a managed backend platform with Postgres, GraphQL, Auth, Storage, and serverless Functions. Launch in minutes and scale without limits.',
+        }),
+      }}
+    >
+      {page}
+    </Layout>
+  )
 }

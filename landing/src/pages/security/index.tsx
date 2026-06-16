@@ -4,6 +4,7 @@ import { SecurityFeatures } from "@/components/security/SecurityFeatures";
 import { LineGrid } from "@/components/common/LineGrid";
 import { SectionHeading } from "@/components/common/SectionHeading";
 import { Layout } from '@/components/common/Layout'
+import { buildSeo } from '@/utils/seo'
 import { ReactElement } from "react";
 
 export default function SecurityPage() {
@@ -38,5 +39,18 @@ export default function SecurityPage() {
 }
 
 SecurityPage.getLayout = function getLayout(page: ReactElement) {
-  return <Layout>{page}</Layout>
+  return (
+    <Layout
+      slotProps={{
+        nextSeo: buildSeo({
+          path: '/security',
+          title: 'Security at Nhost',
+          description:
+            'How Nhost keeps your data secure: SOC 2 Type II compliance, encryption, automated backups, and the practices engineering teams trust.',
+        }),
+      }}
+    >
+      {page}
+    </Layout>
+  )
 }

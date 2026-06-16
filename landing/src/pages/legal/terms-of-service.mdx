@@ -1,6 +1,17 @@
 import { MdxLayout } from '@/components/common/MdxLayout'
 
-export default (props) => <MdxLayout {...props} />
+export default (props) => (
+  <MdxLayout
+    {...props}
+    slotProps={{
+      nextSeo: {
+        title: 'Terms of Service',
+        description:
+          'Read the Nhost terms of service governing your use of our backend platform, including your rights, responsibilities, and obligations.',
+      },
+    }}
+  />
+)
 
 # Terms of Service
 

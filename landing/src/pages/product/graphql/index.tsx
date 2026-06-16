@@ -10,6 +10,7 @@ import { CursorIcon } from '@/components/common/icons/CursorIcon'
 import { LocationIcon } from '@/components/common/icons/LocationIcon'
 import { UserIcon } from '@/components/common/icons/UserIcon'
 import { Layout } from '@/components/common/Layout'
+import { buildSeo } from '@/utils/seo'
 import { LineGrid } from '@/components/common/LineGrid'
 import { SectionHeading } from '@/components/common/SectionHeading'
 import { GraphqlHeroSection } from '@/components/graphql/GraphqlHeroSection'
@@ -491,5 +492,18 @@ export default function GraphqlPage() {
 }
 
 GraphqlPage.getLayout = function getLayout(page: ReactElement) {
-  return <Layout>{page}</Layout>
+  return (
+    <Layout
+      slotProps={{
+        nextSeo: buildSeo({
+          path: '/product/graphql',
+          title: 'Instant GraphQL API with Permissions',
+          description:
+            'Get an instant, secure GraphQL API on top of Postgres and control exactly what data users can access without writing authorization code.',
+        }),
+      }}
+    >
+      {page}
+    </Layout>
+  )
 }

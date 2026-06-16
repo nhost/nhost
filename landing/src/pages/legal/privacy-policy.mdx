@@ -1,7 +1,18 @@
 import Image from 'next/image'
 import { MdxLayout } from '@/components/common/MdxLayout'
 
-export default (props) => <MdxLayout {...props} />
+export default (props) => (
+  <MdxLayout
+    {...props}
+    slotProps={{
+      nextSeo: {
+        title: 'Privacy Policy',
+        description:
+          'Read the Nhost privacy policy: how we collect, process, and protect your personal data when you use our backend platform.',
+      },
+    }}
+  />
+)
 
 # Privacy Policy
 

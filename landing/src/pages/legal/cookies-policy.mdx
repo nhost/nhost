@@ -1,6 +1,17 @@
 import { MdxLayout } from '@/components/common/MdxLayout'
 
-export default (props) => <MdxLayout {...props} />
+export default (props) => (
+  <MdxLayout
+    {...props}
+    slotProps={{
+      nextSeo: {
+        title: 'Cookies Policy',
+        description:
+          'Learn how Nhost uses cookies and similar technologies, what they are used for, and how you can manage or reject them.',
+      },
+    }}
+  />
+)
 
 # Cookies Policy
 

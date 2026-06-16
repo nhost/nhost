@@ -6,6 +6,7 @@ import { Layout } from '@/components/common/Layout'
 import { LineGrid } from '@/components/common/LineGrid'
 import { SectionHeading } from '@/components/common/SectionHeading'
 import { Customer } from '@/utils/types'
+import { buildSeo } from '@/utils/seo'
 import glob from 'fast-glob'
 import Image from 'next/image'
 import * as path from 'path'
@@ -69,7 +70,20 @@ export default function BlogPage({ customers }: CustomersPageProps) {
 }
 
 BlogPage.getLayout = function getLayout(page: ReactElement) {
-  return <Layout>{page}</Layout>
+  return (
+    <Layout
+      slotProps={{
+        nextSeo: buildSeo({
+          path: '/customers',
+          title: 'Customer Stories',
+          description:
+            'Read why companies choose Nhost to build and scale their applications, with real customer case studies and success stories.',
+        }),
+      }}
+    >
+      {page}
+    </Layout>
+  )
 }
 
 export async function getStaticProps() {

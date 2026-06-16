@@ -13,6 +13,10 @@ export interface Article {
   authors: Author[]
   tags: string[]
   slug: string
+  /** SEO meta title (without the "| Nhost Blog" suffix). Keep under 50 chars. */
+  seoTitle?: string
+  /** SEO meta description. Keep under 145 chars. */
+  seoDescription?: string
 }
 
 export interface Customer {
@@ -38,4 +42,8 @@ export interface Customer {
   problem: string
   solution: string
   slug: string
+  /** SEO meta title. Keep the rendered title under 65 chars. */
+  seoTitle?: string
+  /** SEO meta description. Keep under 145 chars. */
+  seoDescription?: string
 }

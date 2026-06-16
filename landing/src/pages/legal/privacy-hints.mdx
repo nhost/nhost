@@ -1,6 +1,17 @@
 import { MdxLayout } from '@/components/common/MdxLayout'
 
-export default (props) => <MdxLayout {...props} />
+export default (props) => (
+  <MdxLayout
+    {...props}
+    slotProps={{
+      nextSeo: {
+        title: 'Privacy Hints',
+        description:
+          'Nhost privacy hints with practical information on data protection, your rights, and how to contact our data protection officer.',
+      },
+    }}
+  />
+)
 
 # Privacy Hints
 
