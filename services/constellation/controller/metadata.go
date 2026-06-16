@@ -78,8 +78,7 @@ func NewCaptureRawBody(maxBodyBytes int64) gin.HandlerFunc {
 
 		raw, err := io.ReadAll(c.Request.Body)
 		if err != nil {
-			var maxBytesErr *http.MaxBytesError
-			if errors.As(err, &maxBytesErr) {
+			if _, ok := errors.AsType[*http.MaxBytesError](err); ok {
 				_ = c.Error(
 					fmt.Errorf("%w: limit is %d bytes", errMetadataBodyTooLarge, maxBodyBytes),
 				)
