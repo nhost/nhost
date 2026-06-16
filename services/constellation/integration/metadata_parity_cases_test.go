@@ -360,10 +360,19 @@ func TestMetadataParity(t *testing.T) { //nolint:paralleltest
 			affectsSchema: true,
 		},
 		{
+			// Enforced: update_remote_schema replaces the definition and DROPS the
+			// schema's remote relationships (verified against Hasura). Seeding
+			// relDept lets Layer B confirm rs_dept is gone on both engines after the
+			// definition-only update, and Layer D confirms the dropped field no
+			// longer resolves. (Permission preservation is covered by the store unit
+			// test and the add/drop-permission cases; seeding a permission here would
+			// only re-trigger the documented SDL-reformat divergence.)
 			name:          "update_remote_schema",
-			setup:         []string{addRS},
+			setup:         []string{addRS, relDept},
 			op:            `{"type":"update_remote_schema","args":{"name":"` + rsName + `","definition":{"url":"http://integration-functions-1:3000/remote-schema","timeout_seconds":30,"forward_client_headers":true,"headers":[{"name":"x-nhost-webhook-secret","value_from_env":"NHOST_WEBHOOK_SECRET"}]}}}`,
 			affectsSchema: true,
+			query:         `query { teams { id rs_dept { id } } }`,
+			queryWantErr:  true,
 		},
 		{
 			name:            "add_remote_schema_permissions",

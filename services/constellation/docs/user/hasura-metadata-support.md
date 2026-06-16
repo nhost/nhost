@@ -337,7 +337,7 @@ these `/v1/metadata` operations are served natively (no Hasura upstream needed):
 | Operation | Status | Notes |
 |---|---|---|
 | `add_remote_schema` | ✅ | Validates the definition and **introspects the upstream synchronously** before persisting — an unreachable endpoint or invalid SDL fails the op, matching Hasura's add-time behaviour. A duplicate name short-circuits to `already-exists`. |
-| `update_remote_schema` | ✅ | Replaces the definition/comment and re-introspects. Existing `permissions` / `remote_relationships` are preserved unless the args supply replacements. |
+| `update_remote_schema` | ✅ | Replaces the definition/comment and re-introspects. Matches Hasura's verified semantics: existing `permissions` are **preserved**, but `remote_relationships` are **dropped** (re-added separately via the `*_remote_schema_remote_relationship` ops). Enforced by the parity suite (relationship-drop diffed against live Hasura). |
 | `remove_remote_schema` | ✅ | Drops the entry; `not-exists` when absent. |
 | `add_remote_schema_permissions` | ✅ | Appends a role's SDL; re-introspects and parses the SDL before persisting. Duplicate role → `already-exists`. |
 | `drop_remote_schema_permissions` | ✅ | Removes a role's permission; `not-exists` when absent. |

@@ -120,7 +120,9 @@ func forRemoteSchema(rs metadata.RemoteSchemaMetadata) []*planner.RelationshipMe
 				}
 
 			case rel.Definition.ToRemoteSchema != nil:
-				out = append(out, forRemoteSchemaToRemoteSchema(typeRel.TypeName, rel))
+				if rsRel := forRemoteSchemaToRemoteSchema(typeRel.TypeName, rel); rsRel != nil {
+					out = append(out, rsRel)
+				}
 			}
 		}
 	}
@@ -140,6 +142,15 @@ func forRemoteSchemaToRemoteSchema(
 	toRS := rel.Definition.ToRemoteSchema
 
 	extracted := metadata.ExtractRemoteFieldPath(toRS.RemoteField)
+	// Guard an empty remote_field: with no path the planner's resolver-kind
+	// discriminator (len(RemoteFieldPath) > 0) would route this through the
+	// database resolver with a remote-schema TargetConnector. Mirrors the
+	// composer's rsRelationshipSpec and the db→rs sibling, which both drop the
+	// relationship in this case.
+	if len(extracted) == 0 {
+		return nil
+	}
+
 	remoteFieldPath := make([]planner.RemoteFieldPathEntry, len(extracted))
 
 	for i, entry := range extracted {
