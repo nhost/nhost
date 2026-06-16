@@ -18,10 +18,12 @@ import { useExportMetadata } from '@/features/orgs/projects/common/hooks/useExpo
 import { useIsPlatform } from '@/features/orgs/projects/common/hooks/useIsPlatform';
 import { useDataBrowserActions } from '@/features/orgs/projects/database/dataGrid/hooks/useDataBrowserActions';
 import { useDatabaseQuery } from '@/features/orgs/projects/database/dataGrid/hooks/useDatabaseQuery';
+import { useGetEnumsSet } from '@/features/orgs/projects/database/dataGrid/hooks/useGetEnumsSet';
 import { useGetTrackedTablesSet } from '@/features/orgs/projects/database/dataGrid/hooks/useGetTrackedTablesSet';
 import type {
   DatabaseObjectViewModel,
   HasuraMetadataTable,
+  TableLikeObjectType,
 } from '@/features/orgs/projects/database/dataGrid/types/dataBrowser';
 import { sortDatabaseObjects } from '@/features/orgs/projects/database/dataGrid/utils/sortDatabaseObjects';
 import { useLocalMimirClient } from '@/features/orgs/projects/hooks/useLocalMimirClient';
@@ -211,6 +213,10 @@ function SchemaDiagramContent() {
   );
 
   const { data: trackedTablesSet } = useGetTrackedTablesSet({
+    dataSource,
+  });
+
+  const { data: enumTablesSet } = useGetEnumsSet({
     dataSource,
   });
 
@@ -503,19 +509,34 @@ function SchemaDiagramContent() {
 
   const searchableObjects = useMemo<SchemaDiagramSearchObject[]>(() => {
     const byId = new Map<string, SchemaDiagramSearchObject>();
+    const objectTypeByKey = new Map<string, TableLikeObjectType>();
+    for (const obj of databaseData?.tableLikeObjects ?? []) {
+      objectTypeByKey.set(
+        `${obj.table_schema}.${obj.table_name}`,
+        obj.table_type || 'ORDINARY TABLE',
+      );
+    }
+    const tableSearchObject = (
+      schema: string,
+      name: string,
+    ): SchemaDiagramSearchObject => ({
+      kind: 'table',
+      schema,
+      name,
+      objectType: objectTypeByKey.get(`${schema}.${name}`) ?? 'ORDINARY TABLE',
+      isEnum: enumTablesSet?.has(`${schema}.${name}`) ?? false,
+    });
     for (const c of schemaData?.columns ?? []) {
-      byId.set(`table:${c.schema}.${c.table}`, {
-        kind: 'table',
-        schema: c.schema,
-        name: c.table,
-      });
+      byId.set(
+        `table:${c.schema}.${c.table}`,
+        tableSearchObject(c.schema, c.table),
+      );
     }
     for (const t of metadataTables ?? []) {
-      byId.set(`table:${t.table.schema}.${t.table.name}`, {
-        kind: 'table',
-        schema: t.table.schema,
-        name: t.table.name,
-      });
+      byId.set(
+        `table:${t.table.schema}.${t.table.name}`,
+        tableSearchObject(t.table.schema, t.table.name),
+      );
     }
     for (const fn of schemaData?.functionReturnTypes ?? []) {
       if (fn.returnsSet && fn.returnTable && fn.returnSchema) {
@@ -532,7 +553,13 @@ function SchemaDiagramContent() {
         ? a.name.localeCompare(b.name)
         : a.schema.localeCompare(b.schema),
     );
-  }, [schemaData?.columns, schemaData?.functionReturnTypes, metadataTables]);
+  }, [
+    schemaData?.columns,
+    schemaData?.functionReturnTypes,
+    metadataTables,
+    databaseData?.tableLikeObjects,
+    enumTablesSet,
+  ]);
 
   if (metadataLoading || columnsLoading || rolesLoading) {
     return (
@@ -559,7 +586,7 @@ function SchemaDiagramContent() {
 
   return (
     <TableActionsProvider
-      value={{ actions: dataBrowserActions, trackedTablesSet }}
+      value={{ actions: dataBrowserActions, trackedTablesSet, enumTablesSet }}
     >
       <div className="flex h-full flex-col">
         <SchemaDiagramToolbar
