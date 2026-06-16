@@ -19,6 +19,9 @@ SKIP=(
 
   # Sign-in portals that reject automated requests with 4xx (false positives)
   'portal\.azure\.com'
+
+  # The site's own canonical/sitemap self-links; 404 until deployed.
+  '^https:\/\/docs\.nhost\.io'
 )
 
 skip_args=()
