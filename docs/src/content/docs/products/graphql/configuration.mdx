@@ -18,7 +18,7 @@ The configuration block is named `[hasura]` and several settings keep the `HASUR
 
 ## GraphQL Engine
 
-Configure the engine under `[hasura]` in your project's configuration file. This block applies whether you run [Constellation](/products/graphql/constellation) or the default engine; opting into Constellation just adds an `[experimental.constellation]` block on top.
+We recommend running [Constellation](/products/graphql/constellation), Nhost's own GraphQL engine. Enable it by adding an `[experimental.constellation]` block to your project's `nhost.toml`. The engine itself is configured under the shared `[hasura]` block, which applies whether or not Constellation is enabled.
 
 <Tabs>
 <TabItem label="Schema">
