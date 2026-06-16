@@ -72,3 +72,13 @@ func (s *fakeStore) QueryRow(_ context.Context, sql string, _ ...any) pgx.Row {
 func (s *fakeStore) Close() {
 	s.closed.Store(true)
 }
+
+// Query is a stub to satisfy the metadataStore interface. Existing tests
+// (database_internal_test.go) exercise only QueryRow; if a future test
+// needs multi-row results, give it a fakeRows implementation analogous
+// to fakeRow.
+func (s *fakeStore) Query(
+	_ context.Context, _ string, _ ...any,
+) (pgx.Rows, error) {
+	return nil, pgx.ErrNoRows
+}
