@@ -7,7 +7,9 @@ import { Layout } from '@/components/common/Layout'
 import { LineGrid } from '@/components/common/LineGrid'
 import { Link } from '@/components/common/Link'
 import { Customer } from '@/utils/types'
+import { canonicalUrl } from '@/utils/seo'
 import Image from 'next/image'
+import { useRouter } from 'next/router'
 import { MDXProvider } from '@mdx-js/react'
 import { PropsWithChildren } from 'react'
 
@@ -26,10 +28,16 @@ export default function CustomerLayout({
   children,
   customer,
 }: PropsWithChildren<CustomerLayout>) {
+  const router = useRouter()
+  const path = router.asPath.split(/[?#]/)[0]
+
   return (
     <Layout
       slotProps={{
         nextSeo: {
+          title: customer.seoTitle || `${customer.name} Case Study`,
+          description: customer.seoDescription || customer.description,
+          canonical: canonicalUrl(path),
           openGraph: {
             images: [
               {

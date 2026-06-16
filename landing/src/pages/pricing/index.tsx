@@ -5,6 +5,7 @@ import { ArrowRightIcon } from '@/components/common/icons/ArrowRightIcon'
 import { Layout } from '@/components/common/Layout'
 import { LineGrid } from '@/components/common/LineGrid'
 import { Link } from '@/components/common/Link'
+import { buildSeo } from '@/utils/seo'
 import { SectionHeading } from '@/components/common/SectionHeading'
 import { CheckmarkCircleIcon } from '@/components/common/icons/CheckmarkCircleIcon'
 
@@ -1668,5 +1669,18 @@ export default function PricingPage() {
 }
 
 PricingPage.getLayout = function getLayout(page: ReactElement) {
-  return <Layout>{page}</Layout>
+  return (
+    <Layout
+      slotProps={{
+        nextSeo: buildSeo({
+          path: '/pricing',
+          title: 'Pricing Plans for Every Stage',
+          description:
+            'Predictable pricing for your backend infrastructure. Start free, then scale with Pro and Team plans as your application grows.',
+        }),
+      }}
+    >
+      {page}
+    </Layout>
+  )
 }

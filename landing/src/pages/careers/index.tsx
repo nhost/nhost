@@ -7,6 +7,7 @@ import { LineGrid } from '@/components/common/LineGrid'
 import { Link } from '@/components/common/Link'
 import { SectionHeading } from '@/components/common/SectionHeading'
 import { jobs } from '@/data/jobs'
+import { buildSeo } from '@/utils/seo'
 import Image from 'next/image'
 import { NextSeo } from 'next-seo'
 import { ReactElement } from 'react'
@@ -71,8 +72,12 @@ export default function CareersPage() {
   return (
     <>
       <NextSeo
-        title="Careers"
-        description="Join Nhost and help build the future of application development. Remote-first, autonomous, and impact-driven."
+        {...buildSeo({
+          path: '/careers',
+          title: 'Careers and Open Positions',
+          description:
+            'Join Nhost and help build the future of application development. Remote-first, autonomous, and impact-driven.',
+        })}
       />
 
       <Container className="relative pt-8 pb-16 lg:pt-20 lg:pb-24">

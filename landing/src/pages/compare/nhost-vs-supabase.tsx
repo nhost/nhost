@@ -5,6 +5,7 @@ import { SectionHeading } from '@/components/common/SectionHeading'
 import { Card } from '@/components/common/Card'
 import { CTASection } from '@/components/common/CTASection'
 import { ArrowRightIcon } from '@/components/common/icons/ArrowRightIcon'
+import { buildSeo } from '@/utils/seo'
 import { ReactElement } from 'react'
 import Link from 'next/link'
 import Image from 'next/image'
@@ -320,5 +321,18 @@ export default function SupabaseVsNhostPage() {
 }
 
 SupabaseVsNhostPage.getLayout = function getLayout(page: ReactElement) {
-  return <Layout>{page}</Layout>
+  return (
+    <Layout
+      slotProps={{
+        nextSeo: buildSeo({
+          path: '/compare/nhost-vs-supabase',
+          title: 'Nhost vs Supabase: The Scalable Alternative',
+          description:
+            'Compare Nhost and Supabase across key capabilities and see why growing teams choose Nhost as a scalable Supabase alternative.',
+        }),
+      }}
+    >
+      {page}
+    </Layout>
+  )
 }

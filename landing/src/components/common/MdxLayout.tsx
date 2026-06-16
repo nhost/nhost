@@ -1,7 +1,9 @@
 import { Container } from '@/components/common/Container'
 import { Footer } from '@/components/common/Footer'
 import { Header } from '@/components/common/Header'
+import { canonicalUrl } from '@/utils/seo'
 import { NextSeo, NextSeoProps } from 'next-seo'
+import { useRouter } from 'next/router'
 import { DetailedHTMLProps, HTMLProps } from 'react'
 import { twMerge } from 'tailwind-merge'
 
@@ -24,6 +26,13 @@ export function MdxLayout({
   slotProps,
   ...props
 }: LayoutProps) {
+  const router = useRouter()
+  const path = router.asPath.split(/[?#]/)[0]
+  const nextSeo: NextSeoProps = {
+    canonical: canonicalUrl(path),
+    ...(slotProps?.nextSeo || {}),
+  }
+
   return (
     <div className="flex min-h-screen flex-col">
       <Header
@@ -39,7 +48,7 @@ export function MdxLayout({
       </main>
 
       <Footer />
-      <NextSeo {...(slotProps?.nextSeo || {})} />
+      <NextSeo {...nextSeo} />
     </div>
   )
 }

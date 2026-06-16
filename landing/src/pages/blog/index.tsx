@@ -5,6 +5,7 @@ import { Layout } from '@/components/common/Layout'
 import { LineGrid } from '@/components/common/LineGrid'
 import { SectionHeading } from '@/components/common/SectionHeading'
 import { Article } from '@/utils/types'
+import { buildSeo } from '@/utils/seo'
 import glob from 'fast-glob'
 import Image from 'next/image'
 import * as path from 'path'
@@ -99,7 +100,20 @@ export default function BlogPage({ articles }: BlogPageProps) {
 }
 
 BlogPage.getLayout = function getLayout(page: ReactElement) {
-  return <Layout>{page}</Layout>
+  return (
+    <Layout
+      slotProps={{
+        nextSeo: buildSeo({
+          path: '/blog',
+          title: 'Blog: Product News and Dev Guides',
+          description:
+            'The latest Nhost news, product updates, engineering deep-dives, and developer guides on Postgres, GraphQL, Auth, and more.',
+        }),
+      }}
+    >
+      {page}
+    </Layout>
+  )
 }
 
 export async function getStaticProps() {

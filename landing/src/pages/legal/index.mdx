@@ -1,6 +1,17 @@
 import { MdxLayout } from '@/components/common/MdxLayout'
 
-export default (props) => <MdxLayout {...props} />
+export default (props) => (
+  <MdxLayout
+    {...props}
+    slotProps={{
+      nextSeo: {
+        title: 'Legal & Policies',
+        description:
+          'Browse Nhost legal documents, including our terms of service, privacy policy, cookies policy, and data processing agreement.',
+      },
+    }}
+  />
+)
 
 # Legal
 

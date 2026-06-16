@@ -1,6 +1,17 @@
 import { MdxLayout } from '@/components/common/MdxLayout'
 
-export default (props) => <MdxLayout {...props} />
+export default (props) => (
+  <MdxLayout
+    {...props}
+    slotProps={{
+      nextSeo: {
+        title: 'Service Level Agreement',
+        description:
+          'Review the Nhost service level agreement, including incident severity levels, response times, and support commitments.',
+      },
+    }}
+  />
+)
 
 # Service Level Agreement
 

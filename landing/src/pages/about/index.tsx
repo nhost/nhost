@@ -4,6 +4,7 @@ import { InvestorCard } from '@/components/common/InvestorCard'
 import { Layout } from '@/components/common/Layout'
 import { LineGrid } from '@/components/common/LineGrid'
 import { SectionHeading } from '@/components/common/SectionHeading'
+import { buildSeo } from '@/utils/seo'
 import Image from 'next/image'
 import { ReactElement } from 'react'
 
@@ -259,5 +260,18 @@ export default function AboutPage() {
 }
 
 AboutPage.getLayout = function getLayout(page: ReactElement) {
-  return <Layout>{page}</Layout>
+  return (
+    <Layout
+      slotProps={{
+        nextSeo: buildSeo({
+          path: '/about',
+          title: 'About Us: Our Mission and Team',
+          description:
+            'Meet the team behind Nhost and our mission to help developers build apps users love. Remote and global-first since day zero.',
+        }),
+      }}
+    >
+      {page}
+    </Layout>
+  )
 }

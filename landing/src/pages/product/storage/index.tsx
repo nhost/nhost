@@ -7,6 +7,7 @@ import { ExampleSelectorButton } from '@/components/common/ExampleSelectorButton
 import { Glow } from '@/components/common/Glow'
 import { ArrowRightIcon } from '@/components/common/icons/ArrowRightIcon'
 import { Layout } from '@/components/common/Layout'
+import { buildSeo } from '@/utils/seo'
 import { LineGrid } from '@/components/common/LineGrid'
 import { SectionHeading } from '@/components/common/SectionHeading'
 import { ProductSection } from '@/components/product/ProductSection'
@@ -350,5 +351,18 @@ export default function StoragePage() {
 }
 
 StoragePage.getLayout = function getLayout(page: ReactElement) {
-  return <Layout>{page}</Layout>
+  return (
+    <Layout
+      slotProps={{
+        nextSeo: buildSeo({
+          path: '/product/storage',
+          title: 'File Storage for Web and Mobile Apps',
+          description:
+            'Add production-ready file management to your app in minutes. Upload, serve, and secure files with a global CDN and fine-grained permissions.',
+        }),
+      }}
+    >
+      {page}
+    </Layout>
+  )
 }
