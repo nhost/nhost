@@ -209,6 +209,12 @@ func resetMetadata(t *testing.T, url string, baseline jsontext.Value) {
 // parityEnvReady reports whether the parity Constellation (:8001) is reachable,
 // so the suite can skip cleanly when `make parity-env-up` has not been run
 // rather than failing with a raw connection error.
+//
+// It distinguishes "not deployed" from "deployed but broken": a skip is only
+// warranted when the server is absent (a dial/connection error from Do). ANY HTTP
+// response — including a 5xx from a regressed export_metadata handler — counts as
+// ready, so the suite runs and the first real export_metadata call fails loudly
+// instead of a metadata regression being masked as a green skip.
 func parityEnvReady() bool {
 	ctx, cancel := context.WithTimeout(context.Background(), 3*time.Second)
 	defer cancel()
@@ -226,23 +232,30 @@ func parityEnvReady() bool {
 
 	resp, err := http.DefaultClient.Do(req)
 	if err != nil {
+		// Connection/dial error: the parity instance is not deployed. Skip.
 		return false
 	}
 
 	defer resp.Body.Close()
 
-	return resp.StatusCode == http.StatusOK
+	// Any reachable HTTP response (even a 5xx) means the server is up; let the
+	// suite run so a broken metadata handler surfaces as a failure, not a skip.
+	return true
 }
 
-// errorCode extracts the top-level Hasura error `code` from a 4xx body.
-func errorCode(body []byte) string {
+// errorCode extracts the top-level Hasura error `code` from a 4xx body. The
+// unmarshal error is returned (not discarded) so callers can distinguish an
+// unparseable body from one that simply lacks a `code` field.
+func errorCode(body []byte) (string, error) {
 	var e struct {
 		Code string `json:"code"`
 	}
 
-	_ = json.Unmarshal(body, &e)
+	if err := json.Unmarshal(body, &e); err != nil {
+		return "", fmt.Errorf("decoding error body: %w", err)
+	}
 
-	return e.Code
+	return e.Code, nil
 }
 
 // RunMetadataParityTests applies each case to both engines and asserts the
@@ -315,11 +328,15 @@ func RunMetadataParityTests(t *testing.T, cases []metadataParityCase) {
 	}
 }
 
-// cleanupParityEntities issues best-effort, idempotent drops of every additive
-// entity the parity cases create (role "paritytest" permissions, parity_* /
-// renamed relationships, the parity event trigger), on both engines. Errors are
-// ignored: the goal is only to ensure a previously interrupted run did not leave
-// these behind to poison the freshly captured baseline.
+// cleanupParityEntities issues best-effort, idempotent resets of every entity the
+// parity cases mutate (role "paritytest" permissions, parity_* / renamed
+// relationships, the parity event trigger, and the departments/get_department_manager
+// customizations), on both engines. Errors are ignored: the goal is only to ensure
+// a previously interrupted run did not leave these behind to poison the freshly
+// captured baseline. The customization resets matter especially because they mutate
+// SHARED, pre-existing objects in place (rather than additive entities a drop would
+// remove): an interrupted run after a customization case would otherwise bake a
+// stray custom_name into the captured baseline and leak it to every other test.
 func cleanupParityEntities(t *testing.T) {
 	t.Helper()
 
@@ -330,7 +347,7 @@ func cleanupParityEntities(t *testing.T) {
 		fn    = `{"schema":"public","name":"get_department_manager"}`
 	)
 
-	drops := []string{
+	ops := []string{
 		`{"type":"pg_drop_select_permission","args":{"source":"default","table":` + dept + `,"role":"` + role + `"}}`,
 		`{"type":"pg_drop_insert_permission","args":{"source":"default","table":` + dept + `,"role":"` + role + `"}}`,
 		`{"type":"pg_drop_update_permission","args":{"source":"default","table":` + dept + `,"role":"` + role + `"}}`,
@@ -341,10 +358,15 @@ func cleanupParityEntities(t *testing.T) {
 		`{"type":"pg_drop_relationship","args":{"source":"default","table":` + udept + `,"relationship":"parity_dept_renamed"}}`,
 		`{"type":"pg_drop_relationship","args":{"source":"default","table":` + dept + `,"relationship":"parity_members"}}`,
 		`{"type":"pg_delete_event_trigger","args":{"source":"default","table":` + dept + `,"name":"parity_etrigger"}}`,
+		// Reset the two in-place customizations the suite applies (custom_name
+		// ParityDepartments on departments; parityMgr on get_department_manager) by
+		// re-applying an empty configuration, the inverse of the customization op.
+		`{"type":"pg_set_table_customization","args":{"source":"default","table":` + dept + `,"configuration":{}}}`,
+		`{"type":"pg_set_function_customization","args":{"source":"default","function":` + fn + `,"configuration":{}}}`,
 	}
 
 	for _, url := range []string{hasuraMetadataURL, constellationMetadataURL} {
-		for _, op := range drops {
+		for _, op := range ops {
 			_, _ = postMetadata(t, url, op)
 		}
 	}
@@ -445,7 +467,25 @@ func assertErrorParity(report func(string, ...any), hStatus int, hBody, cBody []
 		report("expected Hasura to reject the op, got %d: %s", hStatus, hBody)
 	}
 
-	if hCode, cCode := errorCode(hBody), errorCode(cBody); hCode != cCode {
+	hCode, hErr := errorCode(hBody)
+	if hErr != nil {
+		report("could not parse Hasura error body: %v: %s", hErr, hBody)
+	}
+
+	// A code-less Hasura body yields "", and a code-less Constellation body yields
+	// "" too, so a bare equality check would pass while asserting nothing about the
+	// rejection reason. Require a non-empty Hasura code so two empty codes can never
+	// satisfy the equality below.
+	if hCode == "" {
+		report("could not extract Hasura error code from body: %s", hBody)
+	}
+
+	cCode, cErr := errorCode(cBody)
+	if cErr != nil {
+		report("could not parse Constellation error body: %v: %s", cErr, cBody)
+	}
+
+	if hCode != cCode {
 		report("error code differs: hasura=%q constellation=%q", hCode, cCode)
 	}
 }
@@ -460,6 +500,17 @@ func assertErrorParity(report func(string, ...any), hStatus int, hBody, cBody []
 // unless explicitly justified (see justifiedDivergence). The only neutral step
 // is content-addressing array elements, so element order — which Hasura does not
 // guarantee for metadata collections — is not treated as a difference.
+//
+// Accepted limitation — cardinality blindness: leaves are collected into a set,
+// so the comparison is multiplicity-insensitive. Two array elements that share the
+// same flattened leaf (same identity key and same content), or a genuine duplicate
+// present N times in one engine and once in the other, collapse to a single set
+// entry. A divergence that is PURELY a difference in element count (identical
+// content, different multiplicity) is therefore invisible to diffExports. Hasura
+// metadata collections are deduped by identity, so this is an edge case; surfacing
+// it would require an occurrence ordinal in the element key, which would make the
+// identity-localized leaf matching order-sensitive and is not worth the regression
+// risk here.
 func diffExports(t *testing.T) map[string]struct{} {
 	t.Helper()
 
@@ -672,9 +723,11 @@ func schemaDiff(t *testing.T, before, after string) string {
 
 	out, err := cmd.CombinedOutput()
 	if err != nil {
-		// `schema diff` exits non-zero when there IS a diff; that's expected.
-		// We only care about the textual delta.
-		return string(out)
+		// `schema diff` exits 0 on both "identical" and "there is a diff"; it
+		// exits non-zero ONLY when a schema fails to load/parse. So a non-zero
+		// exit is a hard failure, not a delta — returning the error text as the
+		// delta would let two identically-broken dumps false-pass Layer C.
+		t.Fatalf("schema diff: %v: %s", err, out)
 	}
 
 	return string(out)
