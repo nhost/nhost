@@ -1,6 +1,7 @@
 package hasura
 
 import (
+	"encoding/json/jsontext"
 	json "encoding/json/v2"
 	"fmt"
 )
@@ -12,23 +13,31 @@ type RemoteSchemaMetadata struct {
 	Comment             string                               `json:"comment,omitempty"              yaml:"comment,omitempty"`              //nolint:lll
 	Permissions         []RemoteSchemaPermission             `json:"permissions,omitempty"          yaml:"permissions,omitempty"`          //nolint:lll
 	RemoteRelationships []RemoteSchemaTypeRemoteRelationship `json:"remote_relationships,omitempty" yaml:"remote_relationships,omitempty"` //nolint:lll
+
+	Unknown jsontext.Value `json:",unknown" yaml:"-"`
 }
 
 // RemoteSchemaTypeRemoteRelationship maps a type name to its remote relationships.
 type RemoteSchemaTypeRemoteRelationship struct {
 	TypeName      string                        `json:"type_name"     yaml:"type_name"`
 	Relationships []RemoteSchemaRelationshipDef `json:"relationships" yaml:"relationships"`
+
+	Unknown jsontext.Value `json:",unknown" yaml:"-"`
 }
 
 // RemoteSchemaRelationshipDef defines a remote relationship from a remote schema type.
 type RemoteSchemaRelationshipDef struct {
 	Name       string                             `json:"name"       yaml:"name"`
 	Definition RemoteSchemaRelationshipDefinition `json:"definition" yaml:"definition"`
+
+	Unknown jsontext.Value `json:",unknown" yaml:"-"`
 }
 
 // RemoteSchemaRelationshipDefinition contains the relationship definition.
 type RemoteSchemaRelationshipDefinition struct {
 	ToSource *RemoteSchemaToSourceRelationship `json:"to_source,omitempty" yaml:"to_source,omitempty"`
+
+	Unknown jsontext.Value `json:",unknown" yaml:"-"`
 }
 
 // RemoteSchemaToSourceRelationship defines a relationship from a remote schema to a database.
@@ -37,12 +46,16 @@ type RemoteSchemaToSourceRelationship struct {
 	RelationshipType string               `json:"relationship_type" yaml:"relationship_type"`
 	Source           string               `json:"source"            yaml:"source"`
 	Table            RemoteSchemaTableRef `json:"table"             yaml:"table"`
+
+	Unknown jsontext.Value `json:",unknown" yaml:"-"`
 }
 
 // RemoteSchemaTableRef references a table in a database.
 type RemoteSchemaTableRef struct {
 	Name   string `json:"name"   yaml:"name"`
 	Schema string `json:"schema" yaml:"schema"`
+
+	Unknown jsontext.Value `json:",unknown" yaml:"-"`
 }
 
 // RemoteSchemaDefinition defines the connection settings for a remote schema.
@@ -53,6 +66,8 @@ type RemoteSchemaDefinition struct {
 	Customization        RemoteSchemaCustomization `json:"customization"                    yaml:"customization"`                    //nolint:lll
 	Headers              []RemoteSchemaHeader      `json:"headers,omitempty"                yaml:"headers,omitempty"`                //nolint:lll
 	ForwardClientHeaders bool                      `json:"forward_client_headers,omitempty" yaml:"forward_client_headers,omitempty"` //nolint:lll
+
+	Unknown jsontext.Value `json:",unknown" yaml:"-"`
 }
 
 // RemoteSchemaHeader defines a header to be sent with requests to the remote schema.
@@ -105,13 +120,36 @@ func (h *RemoteSchemaHeader) UnmarshalJSON(data []byte) error {
 	return nil
 }
 
+// MarshalJSON inverts UnmarshalJSON: flatten EnvValue into Hasura's sibling
+// `value` / `value_from_env` fields next to `name`.
+func (h RemoteSchemaHeader) MarshalJSON() ([]byte, error) {
+	b, err := json.Marshal(struct {
+		Name         string `json:"name"`
+		Value        string `json:"value,omitempty"`
+		ValueFromEnv string `json:"value_from_env,omitempty"`
+	}{
+		Name:         h.Name,
+		Value:        h.Value.Value,
+		ValueFromEnv: h.Value.FromEnv,
+	})
+	if err != nil {
+		return nil, fmt.Errorf("marshaling remote_schema header: %w", err)
+	}
+
+	return b, nil
+}
+
 // RemoteSchemaPermission defines permissions for a specific role on a remote schema.
 type RemoteSchemaPermission struct {
 	Role       string                    `json:"role"       yaml:"role"`
 	Definition RemoteSchemaPermissionDef `json:"definition" yaml:"definition"`
+
+	Unknown jsontext.Value `json:",unknown" yaml:"-"`
 }
 
 // RemoteSchemaPermissionDef contains the GraphQL SDL schema for a role's permissions.
 type RemoteSchemaPermissionDef struct {
 	Schema string `json:"schema" yaml:"schema"`
+
+	Unknown jsontext.Value `json:",unknown" yaml:"-"`
 }
