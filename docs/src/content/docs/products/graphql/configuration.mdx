@@ -1,6 +1,6 @@
 ---
 title: Configuration
-description: Configure the GraphQL engine through nhost.toml — JWT secrets, CORS, live queries, and other engine settings.
+description: Configure the GraphQL engine through nhost.toml. JWT secrets, CORS, live queries, and other engine settings.
 keywords: ["GraphQL", "configuration", "nhost.toml", "JWT secrets", "CORS", "live queries", "engine settings"]
 head:
   - tag: title
@@ -8,6 +8,7 @@ head:
 sidebar:
   label: Configuration
 ---
+import { Tabs, TabItem } from '@astrojs/starlight/components';
 
 You can customize and tweak the configuration of the GraphQL engine using your project's configuration file.
 
@@ -86,7 +87,52 @@ The configuration block is named `[hasura]` and several settings keep the `HASUR
 
 ## Example Configuration
 
-To configure your GraphQL instance, simply set the relevant settings under `[hasura]` in your project's configuration file.
+Set the engine options under `[hasura]` in your project's configuration file. This block configures the GraphQL engine whether you run [Constellation](/products/graphql/constellation) or the default engine. Opting into Constellation just adds an `[experimental.constellation]` block on top; everything else stays the same.
+
+<Tabs>
+  <TabItem label="Constellation (recommended)">
+
+```toml title="nhost.toml"
+[hasura]
+version = ''
+adminSecret = 'adminsecret'
+webhookSecret = 'webhooksecret'
+
+[[hasura.jwtSecrets]]
+type = 'HS256'
+key = 'secret'
+
+[hasura.settings]
+corsDomain = ['*']
+devMode = false
+enableAllowList = true
+enableConsole = true
+enableRemoteSchemaPermissions = true
+enabledAPIs = ['metadata']
+liveQueriesMultiplexedRefetchInterval = 1000
+stringifyNumericTypes = false
+
+[hasura.logs]
+level = 'warn'
+
+[hasura.events]
+httpPoolSize = 10
+
+[hasura.resources]
+replicas = 1
+
+[hasura.resources.compute]
+cpu = 500
+memory = 1024
+
+# Opt into Constellation. It runs alongside the default engine and reads the
+# same configuration above. See "Constellation settings" below for its options.
+[experimental.constellation]
+version = "0.2.1"
+```
+
+  </TabItem>
+  <TabItem label="Hasura">
 
 ```toml title="nhost.toml"
 [hasura]
@@ -121,6 +167,9 @@ replicas = 1
 cpu = 500
 memory = 1024
 ```
+
+  </TabItem>
+</Tabs>
 
 ### JWT Secret
 
