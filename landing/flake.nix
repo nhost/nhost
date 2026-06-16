@@ -43,6 +43,9 @@
             buildInputs = with pkgs; [
               nodejs_22
               pnpm
+              # Required by next-sitemap.config.js to derive per-page `lastmod`
+              # from the last git commit that touched each source file.
+              git
             ];
           };
         };

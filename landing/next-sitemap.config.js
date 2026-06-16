@@ -103,12 +103,22 @@ module.exports = {
       lastmod = gitLastmod(file)
     }
 
-    return {
+    const entry = {
       loc: routePath,
       changefreq: config.changefreq,
       priority: config.priority,
-      lastmod: lastmod || new Date().toISOString(),
       alternateRefs: config.alternateRefs ?? [],
     }
+
+    // Only emit `lastmod` when we have a real signal (frontmatter date or git
+    // commit date). With `git` available in the dev shell this resolves for
+    // every committed page; for the rare unresolved case (e.g. a brand-new,
+    // uncommitted page) we omit `lastmod` — which is valid and deterministic —
+    // rather than stamp the build time, which would churn on every run.
+    if (lastmod) {
+      entry.lastmod = lastmod
+    }
+
+    return entry
   },
 }
