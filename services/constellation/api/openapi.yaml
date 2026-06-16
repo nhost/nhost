@@ -330,10 +330,15 @@ components:
           description: >-
             Hasura error code returned on a 4xx response. Known values
             include `parse-failed`, `validation-failed`, `conflict`,
-            `not-exists`, `dependency-error`, `not-supported`, and
-            `access-denied`. Idempotent no-op outcomes such as
-            `already-tracked` / `already-exists` are NOT error codes — they
-            are returned in the `message` field of a 200 response.
+            `not-exists`, `dependency-error`, `not-supported`,
+            `access-denied`, and `already-untracked`. Note the dual
+            semantics of the `already-*` codes: `already-tracked` /
+            `already-exists` appear as idempotent no-op outcomes in the
+            `message` field of a 200 response, but `already-exists` AND
+            `already-untracked` are ALSO emitted as 4xx `code` values for
+            hard conflicts — e.g. renaming a relationship onto a name
+            already taken by a different one, or untracking a table that is
+            already untracked.
           example: "not-supported"
         error:
           type: string

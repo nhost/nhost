@@ -17,20 +17,26 @@ const emptyMetadataJSON = `{"version":3,"sources":[]}`
 
 // replaceMetadataArgs accepts Hasura's two args shapes:
 //   - bare envelope: `{"version":3,"sources":[...], ...}`
-//   - wrapper:        `{"metadata":{...}, "allow_inconsistent_metadata":bool}`
+//   - wrapper:        `{"metadata":{...}, "resource_version":N, "allow_inconsistent_metadata":bool}`
 //
-// We detect the wrapper by the presence of a top-level "metadata" key.
+// We detect the wrapper by the presence of a top-level "metadata" key. The
+// optional resource_version is the caller's expected current version, used for
+// optimistic-concurrency control; it is only carried by the wrapper form.
 type replaceMetadataArgs struct {
-	Metadata jsontext.Value `json:"metadata,omitempty"`
+	Metadata        jsontext.Value `json:"metadata,omitempty"`
+	ResourceVersion *int64         `json:"resource_version,omitempty"`
 }
 
 // ReplaceMetadata applies replace_metadata: swap the whole snapshot to
 // a caller-provided payload. Goes through Apply so OCC + broadcast +
-// the existing single-write semantics are preserved.
+// the existing single-write semantics are preserved. If the args carry an
+// expected resource_version (wrapper form only) that disagrees with the
+// current version, it returns ErrResourceVersionConflict before touching
+// the snapshot.
 func (s *Store) ReplaceMetadata(
 	ctx context.Context, argsJSON []byte,
 ) (int64, IdempotencyCode, error) {
-	newRaw, err := extractReplacePayload(argsJSON)
+	newRaw, expectedRV, err := extractReplacePayload(argsJSON)
 	if err != nil {
 		return 0, "", err
 	}
@@ -41,6 +47,10 @@ func (s *Store) ReplaceMetadata(
 	newH, err := hasura.FromJSON(newRaw)
 	if err != nil {
 		return 0, "", fmt.Errorf("parsing replace_metadata payload: %w", err)
+	}
+
+	if expectedRV != nil && *expectedRV != s.ResourceVersion() {
+		return 0, "", ErrResourceVersionConflict
 	}
 
 	rv, err := s.Apply(ctx, func(h *hasura.Metadata) error {
@@ -55,20 +65,22 @@ func (s *Store) ReplaceMetadata(
 	return rv, "", nil
 }
 
-// extractReplacePayload returns the raw Hasura wire JSON to swap in.
-// Accepts both the bare envelope and the {metadata: ...} wrapper.
-func extractReplacePayload(argsJSON []byte) ([]byte, error) {
+// extractReplacePayload returns the raw Hasura wire JSON to swap in along with
+// the caller's optional expected resource_version. Accepts both the bare
+// envelope and the {metadata: ...} wrapper; only the wrapper form carries a
+// resource_version, so the bare envelope yields a nil expected version.
+func extractReplacePayload(argsJSON []byte) ([]byte, *int64, error) {
 	var wrapper replaceMetadataArgs
 	if err := json.Unmarshal(argsJSON, &wrapper); err == nil && len(wrapper.Metadata) > 0 {
-		return []byte(wrapper.Metadata), nil
+		return []byte(wrapper.Metadata), wrapper.ResourceVersion, nil
 	}
 
 	// Treat the args themselves as the metadata envelope.
 	if len(argsJSON) == 0 {
-		return nil, fmt.Errorf("%w: replace_metadata: empty args", errMissingRequiredField)
+		return nil, nil, fmt.Errorf("%w: replace_metadata: empty args", errMissingRequiredField)
 	}
 
-	return argsJSON, nil
+	return argsJSON, nil, nil
 }
 
 // ClearMetadata applies clear_metadata: swap to an empty Hasura v3
