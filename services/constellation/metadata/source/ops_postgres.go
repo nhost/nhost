@@ -155,6 +155,16 @@ func BuildMutation(opType string, argsJSON []byte) (MutationFn, error) {
 		return buildPgCreateRemoteRelationship(argsJSON)
 	case opPgDeleteRemoteRelationship:
 		return buildPgDeleteRemoteRelationship(argsJSON)
+	case opAddRemoteSchema:
+		return buildAddRemoteSchema(argsJSON)
+	case opRemoveRemoteSchema:
+		return buildRemoveRemoteSchema(argsJSON)
+	case opUpdateRemoteSchema:
+		return buildUpdateRemoteSchema(argsJSON)
+	case opAddRemoteSchemaPermissions:
+		return buildAddRemoteSchemaPermissions(argsJSON)
+	case opDropRemoteSchemaPermissions:
+		return buildDropRemoteSchemaPermissions(argsJSON)
 	}
 
 	return nil, fmt.Errorf("%w: %q", ErrUnknownMutationOp, opType)

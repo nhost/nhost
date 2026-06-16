@@ -329,6 +329,43 @@ Single-row (`RETURNS <table>`, not `SETOF`) functions intentionally omit
 Full details: [`docs/user/remote-schema.md`](./remote-schema.md) and
 [`docs/developers/remote-schemas.md`](../developers/remote-schemas.md).
 
+### Remote-schema metadata-API operations
+
+When Constellation runs against the database source (`--metadata-database-url`),
+these `/v1/metadata` operations are served natively (no Hasura upstream needed):
+
+| Operation | Status | Notes |
+|---|---|---|
+| `add_remote_schema` | ✅ | Validates the definition and **introspects the upstream synchronously** before persisting — an unreachable endpoint or invalid SDL fails the op, matching Hasura's add-time behaviour. A duplicate name short-circuits to `already-exists`. |
+| `update_remote_schema` | ✅ | Replaces the definition/comment and re-introspects. Existing `permissions` / `remote_relationships` are preserved unless the args supply replacements. |
+| `remove_remote_schema` | ✅ | Drops the entry; `not-exists` when absent. |
+| `add_remote_schema_permissions` | ✅ | Appends a role's SDL; re-introspects and parses the SDL before persisting. Duplicate role → `already-exists`. |
+| `drop_remote_schema_permissions` | ✅ | Removes a role's permission; `not-exists` when absent. |
+| `introspect_remote_schema` | ✅ | Returns the raw introspection document as `{ "data": { "__schema": … } }`. Read-only; no `resource_version` bump. |
+| `reload_remote_schema` | 🟡 | Re-introspects (an unreachable endpoint errors, like Hasura) and returns `{"message":"success"}`. **Divergence:** Constellation has no cross-request introspection cache, so reload does not push a fresh upstream schema into the running connector on its own — the refreshed schema takes effect on the next metadata change or restart. |
+
+> **SDL validation depth.** Permission SDL is **parse-validated** (syntactically
+> rejected if malformed) and parsed into a role schema, but Constellation does
+> **not** perform Hasura's full subset-validation against the introspected
+> upstream. Syntactically-valid SDL that references types/fields the upstream
+> does not expose is accepted here where Hasura would reject it (Hasura returns
+> `validation-failed`).
+>
+> **Parity divergences (verified in `metadata_parity_test.go`):**
+> - **Permission SDL round-trip:** Constellation stores permission SDL
+>   **verbatim** while Hasura reformats (pretty-prints) it on export. The served
+>   schema is identical; only the stored `permissions[].definition.schema` string
+>   differs. (The `comment` and `timeout_seconds` round-trip gaps were closed —
+>   `add`/`update`/`remove`/`drop_permissions`/`introspect`/`reload` now export
+>   byte-for-leaf identically to Hasura and are fully enforced in the parity suite.)
+> - **Duplicate add:** a duplicate `add_remote_schema` returns `400 already-exists`
+>   on Hasura; Constellation treats it as an idempotent `200` (consistent with
+>   how it treats all `already-*` outcomes — see `KNOWN_DIFFERENCES.md`).
+>
+> An unreachable upstream on `add_remote_schema` is **matched**: both engines
+> reject it with `remote-schema-error` (Constellation maps the synchronous
+> introspection failure via `remoteschema.ErrIntrospection`).
+
 ---
 
 ## Entirely unsupported feature areas
@@ -456,6 +493,14 @@ cd integration && PARITY_SCHEMA_CHECK=1 go test -run TestMetadataParity -v ./...
 
 When the parity Constellation (`:8001`) is not running, the test **skips** with a
 pointer to `make parity-env-up` rather than failing.
+
+The remote-schema authoring ops (`add`/`update`/`remove_remote_schema`,
+`add`/`drop_remote_schema_permissions`, `introspect`/`reload_remote_schema`) are
+covered: they point at the integration functions endpoint
+(`http://integration-functions-1:3000/remote-schema`) reachable by both engines.
+Most cases are fully enforced (byte-for-leaf export parity, matching error
+codes); the only residual divergences (permission-SDL reformatting, idempotent
+duplicate add) are encoded as `knownDivergence` on just those two cases.
 
 Not yet covered (each needs a fixture or has a documented semantic gap, called
 out in the test file): `pg_set_table_is_enum`, remote relationships, and the read
