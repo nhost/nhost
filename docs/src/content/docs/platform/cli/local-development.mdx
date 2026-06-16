@@ -1,13 +1,13 @@
 ---
 title: Local Development
-description: Run the full Nhost stack locally with Docker, including Postgres, Hasura, Auth, Storage, Functions, and Mailhog.
+description: Run the full Nhost stack locally with Docker, including Postgres, GraphQL, Auth, Storage, Functions, and Mailhog.
 keywords: ["local development", "localhost", "Docker", "dev environment", "nhost up", "development server", "local testing"]
 head:
   - tag: title
     content: "Run the Full Nhost Stack Locally with Docker | Nhost Docs"
 ---
 
-Nhost's command-line interface (CLI) lets you run a complete Nhost development environment locally with the following services: PostgreSQL database, Hasura, Authentication, Storage (MinIO), Serverless Functions, and Emails (Mailhog).
+Nhost's command-line interface (CLI) lets you run a complete Nhost development environment locally with the following services: PostgreSQL database, GraphQL, Authentication, Storage (MinIO), Serverless Functions, and Emails (Mailhog).
 
 ## Dependencies
 
@@ -56,7 +56,7 @@ We can now initialize and create the necessary project configuration.
 nhost init
 ```
 
-`nhost init` creates all the configuration necessary for your project, including database migrations and Hasura metadata.
+`nhost init` creates all the configuration necessary for your project, including database migrations and metadata.
 
 We can now start your project with `nhost up`.
 
