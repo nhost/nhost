@@ -60,8 +60,10 @@ func TestMetadataParity(t *testing.T) { //nolint:paralleltest
 			affectsSchema: true,
 		},
 		{
-			name:          "pg_drop_insert_permission",
-			setup:         []string{`{"type":"pg_create_insert_permission","args":{"source":"default","table":` + dept + `,"role":"` + role + `","permission":{"columns":"*","check":{}}}}`},
+			name: "pg_drop_insert_permission",
+			setup: []string{
+				`{"type":"pg_create_insert_permission","args":{"source":"default","table":` + dept + `,"role":"` + role + `","permission":{"columns":"*","check":{}}}}`,
+			},
 			op:            `{"type":"pg_drop_insert_permission","args":{"source":"default","table":` + dept + `,"role":"` + role + `"}}`,
 			affectsSchema: true,
 		},
@@ -71,8 +73,10 @@ func TestMetadataParity(t *testing.T) { //nolint:paralleltest
 			affectsSchema: true,
 		},
 		{
-			name:          "pg_drop_update_permission",
-			setup:         []string{`{"type":"pg_create_update_permission","args":{"source":"default","table":` + dept + `,"role":"` + role + `","permission":{"columns":"*","filter":{},"check":{}}}}`},
+			name: "pg_drop_update_permission",
+			setup: []string{
+				`{"type":"pg_create_update_permission","args":{"source":"default","table":` + dept + `,"role":"` + role + `","permission":{"columns":"*","filter":{},"check":{}}}}`,
+			},
 			op:            `{"type":"pg_drop_update_permission","args":{"source":"default","table":` + dept + `,"role":"` + role + `"}}`,
 			affectsSchema: true,
 		},
@@ -82,8 +86,10 @@ func TestMetadataParity(t *testing.T) { //nolint:paralleltest
 			affectsSchema: true,
 		},
 		{
-			name:          "pg_drop_delete_permission",
-			setup:         []string{`{"type":"pg_create_delete_permission","args":{"source":"default","table":` + dept + `,"role":"` + role + `","permission":{"filter":{}}}}`},
+			name: "pg_drop_delete_permission",
+			setup: []string{
+				`{"type":"pg_create_delete_permission","args":{"source":"default","table":` + dept + `,"role":"` + role + `","permission":{"filter":{}}}}`,
+			},
 			op:            `{"type":"pg_drop_delete_permission","args":{"source":"default","table":` + dept + `,"role":"` + role + `"}}`,
 			affectsSchema: true,
 		},
@@ -143,8 +149,11 @@ func TestMetadataParity(t *testing.T) { //nolint:paralleltest
 			affectsSchema: true,
 		},
 		{
-			name:          "pg_drop_function_permission",
-			setup:         []string{createSelUDept, `{"type":"pg_create_function_permission","args":{"source":"default","function":` + fn + `,"role":"` + role + `"}}`},
+			name: "pg_drop_function_permission",
+			setup: []string{
+				createSelUDept,
+				`{"type":"pg_create_function_permission","args":{"source":"default","function":` + fn + `,"role":"` + role + `"}}`,
+			},
 			op:            `{"type":"pg_drop_function_permission","args":{"source":"default","function":` + fn + `,"role":"` + role + `"}}`,
 			affectsSchema: true,
 		},

@@ -172,7 +172,8 @@ func TestDispatch_PgRenameRelationship_Collision(t *testing.T) {
 	trackUsers(t, router)
 
 	for _, name := range []string{"owner", "creator"} {
-		if code, body := postJSON(t, router,
+		if code, body := postJSON(
+			t, router,
 			`{"type":"pg_create_object_relationship","args":{"source":"default",`+
 				`"table":{"schema":"public","name":"users"},"name":"`+name+`",`+
 				`"using":{"manual_configuration":{"remote_table":{"schema":"public","name":"users"},"column_mapping":{"id":"id"}}}}}`,
@@ -196,7 +197,11 @@ func TestDispatch_PgRenameRelationship_Collision(t *testing.T) {
 	}
 
 	if w.callCount() != writesBefore {
-		t.Errorf("writer calls = %d, want %d (collision must not write)", w.callCount(), writesBefore)
+		t.Errorf(
+			"writer calls = %d, want %d (collision must not write)",
+			w.callCount(),
+			writesBefore,
+		)
 	}
 }
 
@@ -373,8 +378,26 @@ func TestDispatch_PgSuggestRelationships_CompositeFK(t *testing.T) {
 		// Two rows, same constraint, ordered by ordinal position — as
 		// suggestRelationshipsSQL's ORDER BY guarantees.
 		fkRows: [][8]string{
-			{"public", "line_items_order_fkey", "public", "line_items", "order_id", "public", "orders", "id"},
-			{"public", "line_items_order_fkey", "public", "line_items", "order_org", "public", "orders", "org"},
+			{
+				"public",
+				"line_items_order_fkey",
+				"public",
+				"line_items",
+				"order_id",
+				"public",
+				"orders",
+				"id",
+			},
+			{
+				"public",
+				"line_items_order_fkey",
+				"public",
+				"line_items",
+				"order_org",
+				"public",
+				"orders",
+				"org",
+			},
 		},
 	})
 	router := buildMutationRouter(t, store)
