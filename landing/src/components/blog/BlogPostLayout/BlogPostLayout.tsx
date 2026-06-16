@@ -129,6 +129,14 @@ export default function BlogPostLayout({
             <span className="">{article.tags.join(' · ')}</span>
             <span>|</span>
             <span>{format(parseISO(article.date), 'd MMMM yyyy')}</span>
+            {article.updatedAt && article.updatedAt !== article.date && (
+              <>
+                <span>|</span>
+                <span>
+                  Updated {format(parseISO(article.updatedAt), 'd MMMM yyyy')}
+                </span>
+              </>
+            )}
           </div>
 
           <span className="inline truncate text-white text-opacity-65 sm:hidden">
@@ -142,6 +150,12 @@ export default function BlogPostLayout({
           <span className="inline text-white text-opacity-65 sm:hidden">
             {format(parseISO(article.date), 'd MMMM yyyy')}
           </span>
+
+          {article.updatedAt && article.updatedAt !== article.date && (
+            <span className="inline text-white text-opacity-65 sm:hidden">
+              Updated {format(parseISO(article.updatedAt), 'd MMMM yyyy')}
+            </span>
+          )}
         </div>
 
         <div className="mt-8 grid grid-flow-row gap-4">

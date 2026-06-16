@@ -9,7 +9,14 @@ export interface Article {
   title: string
   description: string
   image: string
+  /** Original publish date, `YYYY-MM-DD`. */
   date: string
+  /**
+   * Date the post's content (not its meta tags) was last meaningfully changed,
+   * `YYYY-MM-DD`. Bump this when you edit the body so the sitemap `lastmod`
+   * signals a real update to search engines. Defaults to `date` when absent.
+   */
+  updatedAt?: string
   authors: Author[]
   tags: string[]
   slug: string
