@@ -8,18 +8,22 @@ head:
 sidebar:
   label: Configuration
 ---
+import { Tabs, TabItem } from '@astrojs/starlight/components';
 
-You can customize and tweak the configuration of the GraphQL engine using your project's configuration file. Each section below shows the available settings (the schema) alongside ready-to-copy `nhost.toml` examples.
+You can customize and tweak the configuration of the GraphQL engine using your project's configuration file. Each section has a **Schema** tab listing the available settings alongside ready-to-copy `nhost.toml` examples.
 
 :::note
-The configuration block is named `[hasura]` and several settings keep the `HASURA_GRAPHQL_*` names. These are retained identifiers, so keep them as-is. They configure the GraphQL engine no matter which engine serves your API. To run [Constellation](/products/graphql/constellation), add the `[experimental.constellation]` block shown in the recommended example.
+The configuration block is named `[hasura]` and several settings keep the `HASURA_GRAPHQL_*` names. These are retained identifiers, so keep them as-is. They configure the GraphQL engine no matter which engine serves your API. To run [Constellation](/products/graphql/constellation), add the `[experimental.constellation]` block shown in the example.
 :::
 
 ## GraphQL Engine
 
 Configure the engine under `[hasura]` in your project's configuration file. This block applies whether you run [Constellation](/products/graphql/constellation) or the default engine; opting into Constellation just adds an `[experimental.constellation]` block on top.
 
-```cue title="Schema"
+<Tabs>
+<TabItem label="Schema">
+
+```cue
 // Configuration for the GraphQL engine service
 #Hasura: {
 	// Engine version, you can see available versions in the URL below:
@@ -84,7 +88,10 @@ Configure the engine under `[hasura]` in your project's configuration file. This
 }
 ```
 
-```toml title="nhost.toml (with Constellation, recommended)"
+</TabItem>
+<TabItem label="Example nhost.toml w/ Constellation (recommended)">
+
+```toml
 [hasura]
 version = ''
 adminSecret = 'adminsecret'
@@ -138,7 +145,10 @@ devMode = false
 subscriptionPollInterval = "1s"
 ```
 
-```toml title="nhost.toml (without Constellation)"
+</TabItem>
+<TabItem label="Example nhost.toml w/o Constellation">
+
+```toml
 [hasura]
 version = ''
 adminSecret = 'adminsecret'
@@ -172,11 +182,17 @@ cpu = 500
 memory = 1024
 ```
 
+</TabItem>
+</Tabs>
+
 ## JWT
 
 JWT configuration lives in the shared `[hasura]` block, so it applies the same way whether you run Constellation or the default engine. The `claims_namespace` defaults to `https://hasura.io/jwt/claims` and the claim names use the `x-hasura-` prefix. These are retained identifiers for compatibility, not a product dependency. See [Permission Variables](/products/graphql/permissions/permission-variables) for how these claims drive permissions.
 
-```cue title="Schema"
+<Tabs>
+<TabItem label="Schema">
+
+```cue
 #JWTSecret:
 	({
 		type: "HS384" | "HS512" | "RS256" | "RS384" | "RS512" | "Ed25519" | *"HS256"
@@ -214,7 +230,10 @@ JWT configuration lives in the shared `[hasura]` block, so it applies the same w
 }
 ```
 
-```toml title="nhost.toml"
+</TabItem>
+<TabItem label="Example nhost.toml">
+
+```toml
 # example 1
 [[hasura.jwtSecrets]]
 type = 'HS256'
@@ -238,3 +257,6 @@ claim = "x-other-claim"
 path = "$.user.claim.id"
 default = "default-value"
 ```
+
+</TabItem>
+</Tabs>
