@@ -131,7 +131,9 @@ func Introspect(
 // validates the URL exactly as New does, so the result reflects what the live
 // connector would see. Used by the metadata API's introspect_remote_schema
 // handler, which needs the unparsed introspection JSON rather than a
-// graph.Schema. Passing nil for doer falls back to http.DefaultClient.
+// graph.Schema. Passing nil for doer uses a hardened default client (finite
+// timeout, redirects disabled), mirroring New, so the credentialed introspect/
+// reload request cannot be redirected to an attacker-chosen host.
 func IntrospectRawFromMeta(
 	ctx context.Context,
 	meta *metadata.RemoteSchemaMetadata,
@@ -151,21 +153,26 @@ func IntrospectRawFromMeta(
 		return nil, fmt.Errorf("building headers for remote schema %s: %w", meta.Name, err)
 	}
 
-	return IntrospectRaw(ctx, url, headers, doer)
+	if doer == nil {
+		doer = hardenedHTTPClient(meta.Definition.TimeoutSeconds)
+	}
+
+	return introspectRaw(ctx, url, headers, doer)
 }
 
-// IntrospectRaw issues the standard introspection query against url and returns
+// introspectRaw issues the standard introspection query against url and returns
 // the raw `data` object of the response (the `{ "__schema": { ... } }`
 // document), suitable for echoing verbatim in an introspect_remote_schema
-// response. Passing nil for doer falls back to http.DefaultClient.
-func IntrospectRaw(
+// response. Callers should reach it via IntrospectRawFromMeta, which resolves
+// and validates the URL first; a nil doer falls back to a hardened client.
+func introspectRaw(
 	ctx context.Context,
 	url string,
 	headers map[string]string,
 	doer HTTPDoer,
 ) ([]byte, error) {
 	if doer == nil {
-		doer = http.DefaultClient
+		doer = hardenedHTTPClient(0)
 	}
 
 	body, err := (&httpClient{url: url, headers: headers, client: doer}).do(
@@ -187,7 +194,7 @@ func IntrospectRaw(
 		jsontext.AllowDuplicateNames(true),
 		jsontext.AllowInvalidUTF8(true),
 	); err != nil {
-		return nil, fmt.Errorf("failed to parse introspection response: %w", err)
+		return nil, fmt.Errorf("%w: failed to parse introspection response: %w", ErrIntrospection, err)
 	}
 
 	if len(result.Errors) > 0 {

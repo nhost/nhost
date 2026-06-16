@@ -412,6 +412,41 @@ func TestFromMetadata_RemoteSchemaToRemoteSchemaRelationship(t *testing.T) {
 	}
 }
 
+func TestFromMetadata_RemoteSchemaToRemoteSchemaEmptyRemoteFieldSkipped(t *testing.T) {
+	t.Parallel()
+
+	// An rs→rs relationship with an empty remote_field yields a zero-length
+	// RemoteFieldPath. The planner routes resolver kind on
+	// len(RemoteFieldPath) > 0, so emitting such an entry would mis-route a
+	// remote-schema target through the database resolver. forRemoteSchemaToRemoteSchema
+	// must drop it, mirroring the composer and db→rs guards.
+	meta := &metadata.Metadata{
+		Databases: nil,
+		RemoteSchemas: []metadata.RemoteSchemaMetadata{{
+			Name: "rs",
+			RemoteRelationships: []metadata.RemoteSchemaTypeRemoteRelationship{{
+				TypeName: "Team",
+				Relationships: []metadata.RemoteSchemaRelationshipDef{{
+					Name: "weather",
+					Definition: metadata.RemoteSchemaRelationshipDefinition{
+						ToRemoteSchema: &metadata.ToRemoteSchemaRelationship{
+							RemoteSchema: "weather_api",
+							LHSFields:    []string{"city"},
+							RemoteField:  nil,
+						},
+					},
+				}},
+			}},
+		}},
+	}
+
+	got := relationships.FromMetadata(meta, map[string]connector.Connector{})
+
+	if rels := got["rs"]; len(rels) != 0 {
+		t.Errorf("expected no relationships for empty remote_field, got %d: %+v", len(rels), rels)
+	}
+}
+
 func TestFromMetadata_RemoteSchemaWithoutToSourceSkipped(t *testing.T) {
 	t.Parallel()
 
