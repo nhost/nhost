@@ -188,9 +188,9 @@ Known gaps surfaced by manual testing should be logged against the dashboard-par
 
 `integration/metadata_parity_test.go` applies each authoring op to **both** a
 real Hasura and Constellation and asserts the results are equivalent (response
-code, normalized `export_metadata`, and — for surface-changing ops — the GraphQL
-SDL delta). It runs Constellation against an isolated `cstl` metadata DB so the
-two engines don't fight over `hdb_metadata`:
+code, normalized `export_metadata`, and — for surface-changing ops, opt-in via
+`PARITY_SCHEMA_CHECK=1` — the GraphQL SDL delta). It runs Constellation against an
+isolated `cstl` metadata DB so the two engines don't fight over `hdb_metadata`:
 
 ```bash
 make dev-env-integration-up && make build-docker-image && make parity-env-up

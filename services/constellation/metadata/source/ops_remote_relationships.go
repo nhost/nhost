@@ -47,6 +47,12 @@ func buildPgCreateRemoteRelationship(argsJSON []byte) (MutationFn, error) {
 			}
 		}
 
+		if relationshipNameExists(t, a.Name) {
+			return "", fmt.Errorf(
+				"%w: %q on %s.%s", ErrRelationshipExists, a.Name, a.Table.Schema, a.Table.Name,
+			)
+		}
+
 		t.RemoteRelationships = append(
 			t.RemoteRelationships,
 			hasura.RemoteRelationship{

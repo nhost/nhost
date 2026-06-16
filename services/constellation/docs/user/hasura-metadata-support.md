@@ -393,7 +393,9 @@ results are equivalent, in three layers:
 - **Layer C — schema delta:** for ops that change the GraphQL surface, the
   per-engine SDL delta-vs-baseline (via the CLI `schema dump`/`schema diff`), so
   pre-existing baseline divergences (`integration/schema.*.diff`) don't cause
-  false failures.
+  false failures. **Opt-in and OFF by default** — it dumps the full SDL via the
+  CLI several times per case and is far slower than Layers A/B, so it only runs
+  when `PARITY_SCHEMA_CHECK=1` is set.
 
 **Isolation.** The two engines cannot share one `hdb_catalog.hdb_metadata` row,
 so the harness gives Constellation its own metadata DB (`cstl`, created by
@@ -430,6 +432,14 @@ make build-docker-image          # constellation:0.0.0-dev
 make parity-env-up               # creates cstl, starts constellation-parity on :8001
 cd integration && go test -run TestMetadataParity -v ./...
 make parity-env-down
+```
+
+This runs Layers A and B only. To **also** run the schema-delta layer (Layer C),
+set `PARITY_SCHEMA_CHECK=1` — it is opt-in and OFF by default because it dumps the
+full SDL via the CLI several times per case and is slow:
+
+```bash
+cd integration && PARITY_SCHEMA_CHECK=1 go test -run TestMetadataParity -v ./...
 ```
 
 When the parity Constellation (`:8001`) is not running, the test **skips** with a

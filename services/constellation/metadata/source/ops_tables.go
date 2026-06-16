@@ -289,6 +289,18 @@ func relationshipNameExists(t *hasura.TableMetadata, name string) bool {
 	return false
 }
 
+// remoteRelationshipNameExists reports whether the table already has a remote
+// relationship named name.
+func remoteRelationshipNameExists(t *hasura.TableMetadata, name string) bool {
+	for _, r := range t.RemoteRelationships {
+		if r.Name == name {
+			return true
+		}
+	}
+
+	return false
+}
+
 // renameRelationship renames the object/array relationship `name` to `newName`
 // on table t. A self-rename is an idempotent no-op, but only once the
 // relationship is confirmed to exist (renaming a missing relationship reports

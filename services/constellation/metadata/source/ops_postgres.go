@@ -357,6 +357,12 @@ func buildPgCreateObjectRelationship(argsJSON []byte) (MutationFn, error) {
 			}
 		}
 
+		if relationshipNameExists(t, a.Name) || remoteRelationshipNameExists(t, a.Name) {
+			return "", fmt.Errorf(
+				"%w: %q on %s.%s", ErrRelationshipExists, a.Name, a.Table.Schema, a.Table.Name,
+			)
+		}
+
 		t.ObjectRelationships = append(t.ObjectRelationships, hasura.ObjectRelationship{
 			Name:    a.Name,
 			Using:   a.Using,
@@ -419,6 +425,12 @@ func buildPgCreateArrayRelationship(argsJSON []byte) (MutationFn, error) {
 			if r.Name == a.Name {
 				return CodeAlreadyExists, nil
 			}
+		}
+
+		if relationshipNameExists(t, a.Name) || remoteRelationshipNameExists(t, a.Name) {
+			return "", fmt.Errorf(
+				"%w: %q on %s.%s", ErrRelationshipExists, a.Name, a.Table.Schema, a.Table.Name,
+			)
 		}
 
 		t.ArrayRelationships = append(t.ArrayRelationships, hasura.ArrayRelationship{
