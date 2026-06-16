@@ -24,6 +24,29 @@ Configure the engine under `[hasura]` in your project's configuration file. This
 <TabItem label="Schema">
 
 ```cue
+// Opt into Constellation under [experimental.constellation]
+#Constellation: {
+	// Constellation version. Available tags:
+	// https://hub.docker.com/r/nhost/constellation/tags
+	version: string | *"0.1.0"
+
+	settings?: {
+		// CORS allowed origins. If set, these are used as-is. If unset, origins
+		// are derived from auth.redirections.clientUrl and auth.redirections.allowedUrls.
+		corsAllowedOrigins?: [...string]
+
+		// Enable debug logging.
+		debug: bool | *false
+
+		// Return raw connector/database error detail to clients instead of the
+		// sanitized generic message. Development only; never enable in production.
+		devMode: bool | *false
+
+		// Polling interval for GraphQL subscriptions.
+		subscriptionPollInterval: string & time.Duration | *"1s"
+	}
+}
+
 // Configuration for the GraphQL engine service
 #Hasura: {
 	// Engine version, you can see available versions in the URL below:
@@ -85,29 +108,6 @@ Configure the engine under `[hasura]` in your project's configuration file. This
 
 	// Resources for the service
 	resources?: #Resources
-}
-
-// Opt into Constellation under [experimental.constellation]
-#Constellation: {
-	// Constellation version. Available tags:
-	// https://hub.docker.com/r/nhost/constellation/tags
-	version: string | *"0.1.0"
-
-	settings?: {
-		// CORS allowed origins. If set, these are used as-is. If unset, origins
-		// are derived from auth.redirections.clientUrl and auth.redirections.allowedUrls.
-		corsAllowedOrigins?: [...string]
-
-		// Enable debug logging.
-		debug: bool | *false
-
-		// Return raw connector/database error detail to clients instead of the
-		// sanitized generic message. Development only; never enable in production.
-		devMode: bool | *false
-
-		// Polling interval for GraphQL subscriptions.
-		subscriptionPollInterval: string & time.Duration | *"1s"
-	}
 }
 ```
 
