@@ -91,26 +91,12 @@ Configure the engine under `[hasura]` in your project's configuration file. This
 </TabItem>
 <TabItem label="Example config w/ Constellation (recommended)">
 
-```toml title="nhost.toml" {4-5,7,10,13,16,19}
+```toml title="nhost.toml" {4-5}
 # Opt into Constellation. It runs alongside the default engine and reads the
-# [hasura] config below. Pick the latest version from the CHANGELOG:
-# https://github.com/nhost/nhost/blob/main/services/constellation/CHANGELOG.md
+# [hasura] config below. For version tags and optional settings, see
+# /products/graphql/constellation
 [experimental.constellation]
 version = "0.2.1"
-
-[experimental.constellation.settings]
-# CORS allowed origins. If unset, origins are derived from
-# auth.redirections.clientUrl and auth.redirections.allowedUrls.
-corsAllowedOrigins = []
-
-# Enable debug logging.
-debug = false
-
-# Return raw connector/database error detail to clients. Development only.
-devMode = false
-
-# Polling interval for GraphQL subscriptions.
-subscriptionPollInterval = "1s"
 
 [hasura]
 version = ''
