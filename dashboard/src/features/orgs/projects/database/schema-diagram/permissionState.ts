@@ -150,7 +150,7 @@ export function isOperationAllowed(
     return false;
   }
 
-  // Hasura only restricts root fields for select; insert/update/delete are
+  // Root-field restrictions apply only to select; insert/update/delete are
   // all-or-nothing at the action level.
   if (action !== 'select') {
     return true;
