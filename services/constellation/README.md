@@ -144,7 +144,62 @@ Two things are sourced separately and shouldn't be confused:
 
 - **File mode** — `--metadata-path` (or `CONSTELLATION_METADATA_PATH`) points at a single `.toml` file or at any path inside a Hasura v3 YAML metadata directory (for the YAML case the file you name is not opened; only its parent directory is read per the Hasura layout). Metadata is loaded **once at startup**. There is no file watcher, no polling, and no fallback sync from a database — restart constellation to pick up changes. Best for static deployments and CI.
 
-- **Database mode** — `--metadata-database-url` (or `CONSTELLATION_METADATA_DATABASE_URL`) points at the PostgreSQL database where Hasura stores its `hdb_catalog.hdb_metadata` row. Constellation polls that row's `resource_version` every second; when it changes, the blob is re-read and the live schema is hot-swapped atomically (in-flight requests complete against the old state; new requests see the new one). Best for deployments where Hasura still owns metadata authoring.
+- **Database mode** — `--metadata-database-url` (or `CONSTELLATION_METADATA_DATABASE_URL`) points at the PostgreSQL database where Hasura stores its `hdb_catalog.hdb_metadata` row. Constellation reads the snapshot at boot, then *owns* it: native `pg_*` mutation ops on `POST /v1/metadata` (e.g. `pg_track_table`, `pg_create_select_permission`, `bulk_atomic`, `replace_metadata`) write back to `hdb_metadata` directly, with optimistic concurrency on `resource_version`, then atomically swap the in-process snapshot and hot-reload the live schema. The legacy poller is intentionally disabled in this mode — the in-process Store is the source of truth, so an external Hasura is no longer required for authoring. Best for Hasura-free Nhost deployments where the Nhost dashboard authors metadata directly.
+
+### Metadata authoring (dashboard parity)
+
+In **database mode** the dashboard's database/permissions/functions/events tabs can target Constellation directly (no Hasura peer). Supported ops:
+
+- **Tables**: `pg_track_table`, `pg_untrack_table` (with `cascade`), `pg_set_table_customization`, `pg_set_table_is_enum`
+- **Relationships**: `pg_create_object_relationship`, `pg_create_array_relationship`, `pg_drop_relationship`, `pg_rename_relationship`, `pg_suggest_relationships`, `pg_create_remote_relationship`, `pg_delete_remote_relationship`
+- **Permissions**: 8 ops — `pg_{create,drop}_{select,insert,update,delete}_permission` plus `pg_create_function_permission` / `pg_drop_function_permission`
+- **Functions**: `pg_track_function`, `pg_untrack_function`, `pg_set_function_customization`
+- **Event triggers (config-only)**: `pg_create_event_trigger`, `pg_delete_event_trigger`. The runtime ops (`pg_redeliver_event`, `pg_invoke_event_trigger`, `pg_get_event_logs`, `pg_get_event_by_id`) return `not-supported` until event delivery ships.
+- **Reads**: `pg_get_viewdef`, `pg_suggest_relationships`
+- **Snapshot**: `replace_metadata`, `clear_metadata`, `reload_metadata`
+- **Wrappers**: `bulk`, `bulk_atomic` (single RV bump, atomic rollback), `bulk_keep_going`
+
+The event delivery **runtime** ops (`pg_redeliver_event`, `pg_invoke_event_trigger`, `pg_get_event_logs`, `pg_get_event_by_id`) are always handled natively and always return `not-supported` — they are *never* forwarded to the proxy, even when `--hasura-upstream-url` is configured.
+
+What constellation has **no** native handler for falls through to the Hasura upstream when `--hasura-upstream-url` is configured (else returns `not-supported`): source admin (`pg_add_source` / `pg_drop_source` / `pg_update_source`; sources are config-driven), computed fields, inherited roles, Apollo Federation. `hasura-cli` migration workflows are out of scope.
+
+#### Smoke test
+
+After `make dev-env-integration-up && make run-up-dbsource`, the in-tree script exercises the dashboard's primary ops via `curl`:
+
+```bash
+./scripts/smoke_dashboard_parity.sh
+```
+
+It prints one line per op (HTTP status + first 200 chars of body). A regression shows up as a non-2xx status, a 400 error body carrying a `"code"` field, or a 200 body whose `"message"` is anything other than `"success"` or the expected idempotency outcomes (`"already-tracked"`, `"already-exists"`).
+
+#### Manual dashboard verification
+
+The automated smoke test does not click through tabs. To verify dashboard interactivity:
+
+1. `make dev-env-integration-up && make run-up-dbsource`
+2. Run the nhost dashboard locally (see `dashboard/README.md`) with `NEXT_PUBLIC_NHOST_HASURA_API_URL=http://localhost:8000` (or equivalent project env).
+3. Walk the tabs: Database (create table → modify → add row), Relationships (object + array), Permissions (each verb), Functions, Events (config tab only — “Redeliver” is expected to error), Remote Relationships, Settings → Reload Metadata.
+4. Restart constellation; confirm everything survives (snapshot is in `hdb_metadata`).
+
+Known gaps surfaced by manual testing should be logged against the dashboard-parity ticket.
+
+#### Automated parity tests (Hasura vs Constellation)
+
+`integration/metadata_parity_test.go` applies each authoring op to **both** a
+real Hasura and Constellation and asserts the results are equivalent (response
+code, normalized `export_metadata`, and — for surface-changing ops — the GraphQL
+SDL delta). It runs Constellation against an isolated `cstl` metadata DB so the
+two engines don't fight over `hdb_metadata`:
+
+```bash
+make dev-env-integration-up && make build-docker-image && make parity-env-up
+cd integration && go test -run TestMetadataParity -v ./...
+make parity-env-down
+```
+
+See [`docs/user/hasura-metadata-support.md`](./docs/user/hasura-metadata-support.md#metadata-authoring-parity-tests)
+for how the comparison layers and metadata normalization work.
 
 The modes are mutually exclusive. File mode does not refresh from any database; database mode ignores `--metadata-path`. The metadata DB (`--metadata-database-url`) is also distinct from the data sources declared inside the metadata — pointing it at a data DB would only work if that DB happened to host Hasura's `hdb_catalog` schema.
 

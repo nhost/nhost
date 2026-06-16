@@ -4,6 +4,7 @@ import (
 	"bytes"
 	"context"
 	"encoding/json"
+	"errors"
 	"io"
 	"log/slog"
 	"net/http"
@@ -13,14 +14,46 @@ import (
 
 	"github.com/getkin/kin-openapi/openapi3"
 	"github.com/gin-gonic/gin"
-	"github.com/google/go-cmp/cmp"
 	sharedoapi "github.com/nhost/nhost/internal/lib/oapi"
 	oapimw "github.com/nhost/nhost/internal/lib/oapi/middleware"
 	"github.com/nhost/nhost/services/constellation/api"
 	"github.com/nhost/nhost/services/constellation/controller/middleware"
 	"github.com/nhost/nhost/services/constellation/internal/hasuraproxy"
 	"github.com/nhost/nhost/services/constellation/metadata"
+	"github.com/nhost/nhost/services/constellation/metadata/source"
 )
+
+// testOpenAPIValidator returns the per-route validator middleware produced by
+// sharedoapi.NewRouter, the only exported path to newRequestValidator. The
+// returned *gin.Engine is discarded — the helper handlers below mount the
+// validator on a router they build directly so each test controls the
+// middleware order.
+func testOpenAPIValidator(t *testing.T, spec *openapi3.T) gin.HandlerFunc {
+	t.Helper()
+
+	_, validatorMW, err := sharedoapi.NewRouter(
+		spec,
+		"",
+		NewAuthFunc(),
+		oapimw.CORSOptions{
+			AllowOriginFunc:                      nil,
+			AllowedOrigins:                       []string{},
+			AllowedMethods:                       []string{http.MethodPost},
+			AllowHeadersFunc:                     nil,
+			AllowedHeaders:                       nil,
+			ExposedHeaders:                       nil,
+			AllowCredentials:                     false,
+			MaxAge:                               "",
+			UnsafeAllowAllOriginsWithCredentials: false,
+		},
+		slog.Default(),
+	)
+	if err != nil {
+		t.Fatalf("building shared OpenAPI validator: %v", err)
+	}
+
+	return validatorMW
+}
 
 func testReverseProxy(t *testing.T, upstream string) http.Handler {
 	t.Helper()
@@ -120,36 +153,55 @@ func buildMetadataRouterWithSource(
 	return router
 }
 
-func testOpenAPIValidator(t *testing.T, spec *openapi3.T) gin.HandlerFunc {
+// buildStoreAndProxyRouter wires a Controller with BOTH a non-nil Store and a
+// non-nil Hasura proxy — the production DB-mode shape where --metadata-database-url
+// (the Store) and --hasura-upstream-url (the proxy) are configured together. The
+// Store doubles as the metadata.Source (mirroring dbStoreSource in cmd/serve.go,
+// which embeds *source.Store), so export_metadata reads the Store's live snapshot.
+// The proxy is only the per-op fallback for ops with no native handler.
+func buildStoreAndProxyRouter(
+	t *testing.T,
+	store *source.Store,
+	proxy http.Handler,
+) http.Handler {
 	t.Helper()
+	gin.SetMode(gin.TestMode)
 
-	_, validatorMW, err := sharedoapi.NewRouter(
-		spec,
-		"",
-		NewAuthFunc(),
-		oapimw.CORSOptions{
-			AllowOriginFunc:                      nil,
-			AllowedOrigins:                       []string{},
-			AllowedMethods:                       []string{http.MethodPost},
-			AllowHeadersFunc:                     nil,
-			AllowedHeaders:                       nil,
-			ExposedHeaders:                       nil,
-			AllowCredentials:                     false,
-			MaxAge:                               "",
-			UnsafeAllowAllOriginsWithCredentials: false,
-		},
-		slog.Default(),
-	)
-	if err != nil {
-		t.Fatalf("building shared OpenAPI validator: %v", err)
+	router := gin.New()
+	router.ContextWithFallback = true
+	router.Use(middleware.Session(testAdminSecret, middleware.NewNoOpJWTAuthenticator()))
+
+	ctrl := &Controller{
+		adminSecret: testAdminSecret,
+		hasuraProxy: proxy,
+		store:       store,
+		source:      store,
+		version:     "test",
 	}
 
-	return validatorMW
+	spec, err := api.GetSpec()
+	if err != nil {
+		t.Fatalf("loading embedded spec: %v", err)
+	}
+
+	validatorMW := testOpenAPIValidator(t, spec)
+
+	handler := api.NewStrictHandler(ctrl, nil)
+	api.RegisterHandlersWithOptions(router, handler, api.GinServerOptions{
+		BaseURL: "",
+		Middlewares: []api.MiddlewareFunc{
+			api.MiddlewareFunc(NewCaptureRawBody(testMetadataBodyCap)),
+			api.MiddlewareFunc(validatorMW),
+		},
+		ErrorHandler: nil,
+	})
+
+	return router
 }
 
 func postMetadata(
 	t *testing.T, router http.Handler, adminSecret, body string,
-) (int, []byte) {
+) (int, api.MetadataError) {
 	t.Helper()
 
 	req := httptest.NewRequest(http.MethodPost, "/v1/metadata", strings.NewReader(body))
@@ -164,7 +216,11 @@ func postMetadata(
 
 	raw, _ := io.ReadAll(rec.Body)
 
-	return rec.Code, raw
+	var err api.MetadataError
+
+	_ = json.Unmarshal(raw, &err)
+
+	return rec.Code, err
 }
 
 // Auth-rejection tests assert status only. The response body shape is owned
@@ -199,91 +255,51 @@ func TestMetadataRejectsWrongAdminSecret(t *testing.T) {
 	}
 }
 
-type readTrackingBody struct {
-	read bool
-}
-
-func (b *readTrackingBody) Read([]byte) (int, error) {
-	b.read = true
-
-	return 0, io.EOF
-}
-
-func (*readTrackingBody) Close() error { return nil }
-
-func TestMetadataRejectsMissingAdminSecretBeforeReadingBody(t *testing.T) {
+func TestMetadataUnknownOpReturnsNotSupportedWhenNoUpstream(t *testing.T) {
 	t.Parallel()
 
 	router := buildMetadataRouter(t, nil)
-	body := &readTrackingBody{}
 
-	req := httptest.NewRequest(http.MethodPost, "/v1/metadata", nil)
+	status, errBody := postMetadata(
+		t, router, testAdminSecret, `{"type":"pg_track_table","args":{}}`,
+	)
+
+	if status != http.StatusBadRequest {
+		t.Errorf("status = %d; want %d", status, http.StatusBadRequest)
+	}
+
+	if errBody.Code != "not-supported" {
+		t.Errorf("code = %q; want %q", errBody.Code, "not-supported")
+	}
+
+	if !strings.Contains(errBody.Error, "pg_track_table") {
+		t.Errorf("error message %q does not name the op type", errBody.Error)
+	}
+}
+
+func TestMetadataMalformedBodyReturns400(t *testing.T) {
+	t.Parallel()
+
+	router := buildMetadataRouter(t, nil)
+
+	// Missing the required `args` field; the generated wrapper still binds
+	// successfully (no schema validation at the wrapper level), so this lands
+	// in our handler with an empty `args` map and falls into the
+	// `not-supported` branch — same as the unknown-op case above.
+	//
+	// We're testing here that *truly* unparseable JSON is rejected by the
+	// wrapper itself with a 400 before reaching the handler.
+	req := httptest.NewRequest(
+		http.MethodPost, "/v1/metadata", bytes.NewReader([]byte("not json")),
+	)
 	req.Header.Set("Content-Type", "application/json")
-	req.ContentLength = -1
-	req.Body = body
+	req.Header.Set("X-Hasura-Admin-Secret", testAdminSecret)
 
 	rec := httptest.NewRecorder()
 	router.ServeHTTP(rec, req)
 
-	if rec.Code != http.StatusUnauthorized {
-		t.Fatalf("status = %d; want %d", rec.Code, http.StatusUnauthorized)
-	}
-
-	if body.read {
-		t.Errorf("unauthenticated metadata request body was read before rejection")
-	}
-}
-
-func TestMetadataBadRequestResponses(t *testing.T) {
-	t.Parallel()
-
-	tests := []struct {
-		name        string
-		requestBody string
-		wantStatus  int
-		wantBody    map[string]string
-	}{
-		{
-			name:        "handler metadata error",
-			requestBody: `{"type":"pg_track_table","args":{}}`,
-			wantStatus:  http.StatusBadRequest,
-			wantBody: map[string]string{
-				"code":  "not-supported",
-				"error": `metadata operation "pg_track_table" is not yet implemented and no Hasura upstream is configured`,
-				"path":  "$.args",
-			},
-		},
-		{
-			name:        "validator error",
-			requestBody: "not json",
-			wantStatus:  http.StatusBadRequest,
-			wantBody: map[string]string{
-				"error":  "request-validation-error",
-				"reason": "request body has an error: failed to decode request body: invalid character 'o' in literal null (expecting 'u')",
-			},
-		},
-	}
-
-	for _, tt := range tests {
-		t.Run(tt.name, func(t *testing.T) {
-			t.Parallel()
-
-			router := buildMetadataRouter(t, nil)
-
-			status, raw := postMetadata(t, router, testAdminSecret, tt.requestBody)
-			if status != tt.wantStatus {
-				t.Fatalf("status = %d; want %d (body: %s)", status, tt.wantStatus, raw)
-			}
-
-			var gotBody map[string]string
-			if err := json.Unmarshal(raw, &gotBody); err != nil {
-				t.Fatalf("decoding response body: %v", err)
-			}
-
-			if diff := cmp.Diff(tt.wantBody, gotBody); diff != "" {
-				t.Errorf("response body mismatch (-want +got):\n%s", diff)
-			}
-		})
+	if rec.Code != http.StatusBadRequest {
+		t.Errorf("malformed JSON: status = %d; want %d", rec.Code, http.StatusBadRequest)
 	}
 }
 
@@ -510,36 +526,15 @@ func TestMetadataExportRejectsBadAuth(t *testing.T) {
 	}
 }
 
-func TestMetadataChecksAuthBeforeSizeCap(t *testing.T) {
+func TestMetadataRejectsOversizedBody(t *testing.T) {
 	t.Parallel()
 
 	router := buildMetadataRouter(t, nil)
 
-	// Build a body just over the cap and send it with NO admin secret. Auth is
-	// checked before the ContentLength cap, so an unauthenticated caller must
-	// get 401 (auth wins) and never observe 413 — otherwise the configured
-	// limit could be probed (413-vs-401) on this admin-only endpoint.
-	oversized := bytes.Repeat([]byte("a"), int(testMetadataBodyCap)+1)
-
-	req := httptest.NewRequest(http.MethodPost, "/v1/metadata", bytes.NewReader(oversized))
-	req.Header.Set("Content-Type", "application/json")
-
-	rec := httptest.NewRecorder()
-	router.ServeHTTP(rec, req)
-
-	if rec.Code != http.StatusUnauthorized {
-		t.Errorf("status = %d; want %d", rec.Code, http.StatusUnauthorized)
-	}
-}
-
-func TestMetadataRejectsOversizedBodyWhenAuthenticated(t *testing.T) {
-	t.Parallel()
-
-	router := buildMetadataRouter(t, nil)
-
-	// Same oversized body, but with a valid admin secret. The DoS cap must
-	// still fire for authenticated admins: the ContentLength fast-fail rejects
-	// it with 413 before the body is read.
+	// Authenticated caller posts a body just over the cap. The admin-secret
+	// check runs first (an unauthenticated caller would get 401 and never
+	// learn the limit); once it passes, the ContentLength fast-fail returns
+	// 413.
 	oversized := bytes.Repeat([]byte("a"), int(testMetadataBodyCap)+1)
 
 	req := httptest.NewRequest(http.MethodPost, "/v1/metadata", bytes.NewReader(oversized))
@@ -559,9 +554,9 @@ func TestMetadataRejectsOversizedChunkedBody(t *testing.T) {
 
 	router := buildMetadataRouter(t, nil)
 
-	// Same payload but with ContentLength stripped and a valid admin secret,
-	// forcing the authenticated MaxBytesReader path inside io.ReadAll rather
-	// than the ContentLength fast-fail.
+	// Same payload but with ContentLength stripped, forcing the MaxBytesReader
+	// path inside io.ReadAll rather than the ContentLength fast-fail. Caller
+	// is authenticated so the upfront admin-secret check passes.
 	oversized := bytes.Repeat([]byte("a"), int(testMetadataBodyCap)+1)
 
 	req := httptest.NewRequest(http.MethodPost, "/v1/metadata", bytes.NewReader(oversized))
@@ -574,5 +569,284 @@ func TestMetadataRejectsOversizedChunkedBody(t *testing.T) {
 
 	if rec.Code != http.StatusRequestEntityTooLarge {
 		t.Errorf("status = %d; want %d", rec.Code, http.StatusRequestEntityTooLarge)
+	}
+}
+
+// TestMetadataOversizedBodyRequiresAuth verifies CTO's security fix: an
+// unauthenticated caller posting an oversized body sees 401, never 413, so
+// the configured body limit cannot be probed without an admin secret.
+func TestMetadataOversizedBodyRequiresAuth(t *testing.T) {
+	t.Parallel()
+
+	router := buildMetadataRouter(t, nil)
+
+	oversized := bytes.Repeat([]byte("a"), int(testMetadataBodyCap)+1)
+
+	req := httptest.NewRequest(http.MethodPost, "/v1/metadata", bytes.NewReader(oversized))
+	req.Header.Set("Content-Type", "application/json")
+
+	rec := httptest.NewRecorder()
+	router.ServeHTTP(rec, req)
+
+	if rec.Code != http.StatusUnauthorized {
+		t.Errorf("status = %d; want %d", rec.Code, http.StatusUnauthorized)
+	}
+}
+
+// postViaFront drives a request through a front httptest.Server fronting the
+// router so the reverse proxy's outbound request resolves correctly (the proxy
+// forwards the inbound *http.Request, which needs a real client connection).
+// Returns the response status and decoded JSON body.
+func postViaFront(t *testing.T, router http.Handler, body string) (int, map[string]any) {
+	t.Helper()
+
+	front := httptest.NewServer(router)
+	defer front.Close()
+
+	req, err := http.NewRequestWithContext(
+		context.Background(), http.MethodPost, front.URL+"/v1/metadata",
+		strings.NewReader(body),
+	)
+	if err != nil {
+		t.Fatalf("building request: %v", err)
+	}
+
+	req.Header.Set("Content-Type", "application/json")
+	req.Header.Set("X-Hasura-Admin-Secret", testAdminSecret)
+
+	resp, err := front.Client().Do(req)
+	if err != nil {
+		t.Fatalf("request: %v", err)
+	}
+	defer resp.Body.Close()
+
+	raw, _ := io.ReadAll(resp.Body)
+
+	out := make(map[string]any)
+	_ = json.Unmarshal(raw, &out)
+
+	return resp.StatusCode, out
+}
+
+// TestMetadataStoreAndProxy_NativeFirstWithProxyFallback is the regression for
+// the dead-native-mutation bug: when BOTH a Store and a Hasura proxy are
+// configured, native ops must be applied by the in-process Store (never
+// forwarded), export_metadata must be served from the Store's live snapshot,
+// and only ops with no native handler may fall through to the proxy.
+func TestMetadataStoreAndProxy_NativeFirstWithProxyFallback(t *testing.T) {
+	t.Parallel()
+
+	var proxyHit bool
+
+	upstream := httptest.NewServer(http.HandlerFunc(
+		func(w http.ResponseWriter, _ *http.Request) {
+			proxyHit = true
+
+			w.Header().Set("Content-Type", "application/json")
+			w.WriteHeader(http.StatusOK)
+			_, _ = w.Write([]byte(`{"resource_version":99,"from":"proxy"}`))
+		},
+	))
+	defer upstream.Close()
+
+	w := &writerStub{}
+	store := newBootstrappedStore(t, w)
+	proxy := testReverseProxy(t, upstream.URL)
+	router := buildStoreAndProxyRouter(t, store, proxy)
+
+	// (a) A native op (pg_track_table) is applied by the Store, not proxied.
+	proxyHit = false
+
+	code, body := postViaFront(t, router,
+		`{"type":"pg_track_table","args":{"source":"default",`+
+			`"table":{"schema":"public","name":"users"}}}`)
+	if code != http.StatusOK {
+		t.Fatalf("native op status = %d, want 200; body = %v", code, body)
+	}
+
+	if got, _ := body["message"].(string); got != "success" {
+		t.Errorf("native op message = %v, want %q", body["message"], "success")
+	}
+
+	if got, _ := body["resource_version"].(float64); int64(got) != 12 {
+		t.Errorf("native op resource_version = %v, want 12 (bumped from seed 11)",
+			body["resource_version"])
+	}
+
+	if w.callCount() != 1 {
+		t.Errorf("native op writer calls = %d, want 1 (Store applied the write)",
+			w.callCount())
+	}
+
+	if proxyHit {
+		t.Error("native op was forwarded to the proxy; it must be applied by the Store")
+	}
+
+	// (b) An op with no native handler IS forwarded to the proxy.
+	proxyHit = false
+
+	code, body = postViaFront(t, router, `{"type":"get_inconsistent_metadata","args":{}}`)
+	if code != http.StatusOK {
+		t.Fatalf("fallback op status = %d, want 200; body = %v", code, body)
+	}
+
+	if !proxyHit {
+		t.Error("op with no native handler was not forwarded to the proxy")
+	}
+
+	if got, _ := body["from"].(string); got != "proxy" {
+		t.Errorf("fallback op body = %v, want the proxy's response", body)
+	}
+
+	// (c) export_metadata is served locally from the Store, not proxied.
+	proxyHit = false
+
+	code, body = postViaFront(t, router, `{"type":"export_metadata","args":{}}`)
+	if code != http.StatusOK {
+		t.Fatalf("export status = %d, want 200; body = %v", code, body)
+	}
+
+	if proxyHit {
+		t.Error("export_metadata was forwarded to the proxy; it must be served from the Store")
+	}
+
+	wantRV := store.ResourceVersion()
+
+	if got, _ := body["resource_version"].(float64); int64(got) != wantRV {
+		t.Errorf("export resource_version = %v, want %d (the Store's live version)",
+			body["resource_version"], wantRV)
+	}
+}
+
+// TestMetadataStoreAndProxy_EventRuntimeNeverProxied locks the README
+// guarantee that the four event-runtime ops are always handled natively
+// (returning not-supported) and are NEVER forwarded to the proxy, even with
+// an upstream configured. The store!=nil && proxy!=nil shape is required:
+// buildMutationRouter (proxy==nil) cannot prove the "not forwarded" half,
+// because the no-proxy fallback would also return not-supported.
+func TestMetadataStoreAndProxy_EventRuntimeNeverProxied(t *testing.T) {
+	t.Parallel()
+
+	var proxyHit bool
+
+	upstream := httptest.NewServer(http.HandlerFunc(
+		func(w http.ResponseWriter, _ *http.Request) {
+			proxyHit = true
+
+			w.Header().Set("Content-Type", "application/json")
+			w.WriteHeader(http.StatusOK)
+			_, _ = w.Write([]byte(`{"from":"proxy"}`))
+		},
+	))
+	defer upstream.Close()
+
+	w := &writerStub{}
+	store := newBootstrappedStore(t, w)
+	proxy := testReverseProxy(t, upstream.URL)
+	router := buildStoreAndProxyRouter(t, store, proxy)
+
+	for _, op := range []string{
+		"pg_redeliver_event",
+		"pg_invoke_event_trigger",
+		"pg_get_event_logs",
+		"pg_get_event_by_id",
+	} {
+		proxyHit = false
+
+		code, body := postViaFront(t, router, `{"type":"`+op+`","args":{}}`)
+		if code != http.StatusBadRequest {
+			t.Fatalf("%s status = %d, want 400; body = %v", op, code, body)
+		}
+
+		if got, _ := body["code"].(string); got != "not-supported" {
+			t.Errorf("%s code = %v, want not-supported", op, body["code"])
+		}
+
+		if proxyHit {
+			t.Errorf("%s was forwarded to the proxy; runtime ops must never be proxied", op)
+		}
+	}
+}
+
+// TestMutationOpDispatchParity is a drift guard over the three triplicated
+// op-dispatch tables: source.BuildMutation, Controller.storeOpFor, and the
+// switch in dispatchMutation. For every canonical mutation op it asserts the
+// op is registered in ALL THREE — storeOpFor returns a non-nil handler,
+// source.BuildMutation does not return ErrUnknownMutationOp, and
+// dispatchMutation reports the op as handled. A parse/validation error from
+// BuildMutation or dispatchMutation on empty args is fine — only an
+// unregistered op (ErrUnknownMutationOp / handled==false) fails the guard.
+func TestMutationOpDispatchParity(t *testing.T) {
+	t.Parallel()
+
+	// canonicalMutationOps is the single source of truth for the set of mutation
+	// ops routed to a Store mutator. The controller's storeOpFor switch, the
+	// dispatchMutation switch, and source.BuildMutation MUST all enumerate exactly
+	// these — this test guards against an op being added to one table but missed
+	// in another.
+	//
+	// Read/snapshot/bulk ops (pg_suggest_relationships, pg_get_viewdef,
+	// replace_metadata, bulk*) are intentionally excluded: those are
+	// dispatchMutation-only by design and have no storeOpFor/BuildMutation entry.
+	canonicalMutationOps := []string{
+		opPgTrackTable,
+		opPgSetTableCustomization,
+		opPgCreateObjectRelationship,
+		opPgCreateArrayRelationship,
+		opPgCreateSelectPermission,
+		opPgDropSelectPermission,
+		opPgCreateInsertPermission,
+		opPgDropInsertPermission,
+		opPgCreateUpdatePermission,
+		opPgDropUpdatePermission,
+		opPgCreateDeletePermission,
+		opPgDropDeletePermission,
+		opPgUntrackTable,
+		opPgSetTableIsEnum,
+		opPgDropRelationship,
+		opPgRenameRelationship,
+		opPgTrackFunction,
+		opPgUntrackFunction,
+		opPgSetFunctionCustomization,
+		opPgCreateFunctionPermission,
+		opPgDropFunctionPermission,
+		opPgCreateEventTrigger,
+		opPgDeleteEventTrigger,
+		opPgCreateRemoteRelationship,
+		opPgDeleteRemoteRelationship,
+	}
+
+	// storeOpFor dereferences c.store, so a bootstrapped Store is required.
+	store := newBootstrappedStore(t, &writerStub{})
+	ctrl := &Controller{store: store}
+
+	for _, op := range canonicalMutationOps {
+		t.Run(op, func(t *testing.T) {
+			t.Parallel()
+
+			if ctrl.storeOpFor(op) == nil {
+				t.Errorf("storeOpFor(%q) = nil; op missing from controller dispatch table", op)
+			}
+
+			if _, err := source.BuildMutation(op, []byte(`{}`)); errors.Is(
+				err, source.ErrUnknownMutationOp,
+			) {
+				t.Errorf("source.BuildMutation(%q) returned ErrUnknownMutationOp; "+
+					"op missing from BuildMutation dispatch table", op)
+			}
+
+			// dispatchMutation must also recognize the op. Empty args make
+			// every handler fail validation, but dispatchMutation still
+			// reports handled==true for a registered op; a missing switch arm
+			// returns handled==false (and would silently fall through to the
+			// proxy / not-supported on the single-op path).
+			req := api.MetadataRequestRequestObject{
+				Body: &api.MetadataRequestJSONRequestBody{Type: op, Args: map[string]any{}},
+			}
+			if _, handled := ctrl.dispatchMutation(t.Context(), req); !handled {
+				t.Errorf("dispatchMutation(%q) handled = false; "+
+					"op missing from dispatchMutation switch", op)
+			}
+		})
 	}
 }

@@ -1,0 +1,445 @@
+package source
+
+import (
+	"context"
+	json "encoding/json/v2"
+	"errors"
+	"fmt"
+
+	"github.com/nhost/nhost/services/constellation/metadata/internal/hasura"
+)
+
+// IdempotencyCode is the Hasura-compatible error code returned for ops
+// that succeed by treating a no-op as success (re-tracking an already
+// tracked table, re-creating an existing relationship, etc.). The
+// dispatcher emits these as 200 OK with the code in the response body;
+// the nhost client treats them as success.
+type IdempotencyCode string
+
+const (
+	// CodeAlreadyTracked — pg_track_table on an already-tracked table.
+	CodeAlreadyTracked IdempotencyCode = "already-tracked"
+
+	// CodeAlreadyExists — pg_create_*_relationship when a relationship
+	// of the same name already exists on the table.
+	CodeAlreadyExists IdempotencyCode = "already-exists"
+)
+
+// MutationFn applies a single metadata mutation to a working clone. It
+// returns an IdempotencyCode when the mutation was a no-op (e.g. table
+// already tracked) and the snapshot should remain unchanged; otherwise
+// returns ("", nil) for a successful mutation or ("", err) for a hard
+// failure. Used both by single-op handlers and by ApplyAll for
+// bulk_atomic.
+type MutationFn func(*hasura.Metadata) (IdempotencyCode, error)
+
+// defaultSource is the source name Hasura assumes when the request omits
+// "source". It corresponds to nhost's single configured Postgres source.
+const defaultSource = "default"
+
+var (
+	// ErrSourceNotFound is returned by a mutation handler when the named
+	// source is not present in the metadata snapshot.
+	ErrSourceNotFound = errors.New("source not found")
+
+	// ErrTableNotTracked is returned when the target table is not in
+	// the named source's Tables list.
+	ErrTableNotTracked = errors.New("table not tracked")
+
+	// ErrUnknownMutationOp is returned by BuildMutation when no native
+	// handler is registered for the op type. Bulk dispatchers map this
+	// to a per-child "not-supported" entry.
+	ErrUnknownMutationOp = errors.New("unknown mutation op")
+)
+
+// errMissingRequiredField is the shared sentinel wrapped by every
+// buildXxx parser when a request omits a field it requires (table
+// schema/name, role, function name, …). It is detected before any
+// mutation runs and is deliberately distinct from the not-exists /
+// conflict sentinels so classifyMutationError leaves it in the
+// "validation-failed" catch-all. Wrap it with the per-op context:
+// fmt.Errorf("%w: pg_track_table: table.schema and table.name are required", errMissingRequiredField).
+var errMissingRequiredField = errors.New("missing required field")
+
+func defaultIfEmpty(source string) string {
+	if source == "" {
+		return defaultSource
+	}
+
+	return source
+}
+
+func findDatabase(h *hasura.Metadata, name string) *hasura.DatabaseMetadata {
+	for i := range h.Databases {
+		if h.Databases[i].Name == name {
+			return &h.Databases[i]
+		}
+	}
+
+	return nil
+}
+
+func findTable(db *hasura.DatabaseMetadata, t hasura.TableSource) *hasura.TableMetadata {
+	for i := range db.Tables {
+		if db.Tables[i].Table.Schema == t.Schema && db.Tables[i].Table.Name == t.Name {
+			return &db.Tables[i]
+		}
+	}
+
+	return nil
+}
+
+// BuildMutation returns the MutationFn for a known op type, or
+// ErrUnknownMutationOp. The bulk dispatcher uses this to compose
+// children of a bulk_atomic; single-op handlers below also funnel
+// through it so the type→handler mapping lives in one place.
+//
+//nolint:cyclop,funlen // flat op-dispatch table; one arm per metadata op.
+func BuildMutation(opType string, argsJSON []byte) (MutationFn, error) {
+	switch opType {
+	case opPgTrackTable:
+		return buildPgTrackTable(argsJSON)
+	case opPgSetTableCustomization:
+		return buildPgSetTableCustomization(argsJSON)
+	case opPgCreateObjectRelationship:
+		return buildPgCreateObjectRelationship(argsJSON)
+	case opPgCreateArrayRelationship:
+		return buildPgCreateArrayRelationship(argsJSON)
+	case opPgCreateSelectPermission:
+		return buildPgCreateSelectPermission(argsJSON)
+	case opPgDropSelectPermission:
+		return buildPgDropSelectPermission(argsJSON)
+	case opPgCreateInsertPermission:
+		return buildPgCreateInsertPermission(argsJSON)
+	case opPgDropInsertPermission:
+		return buildPgDropInsertPermission(argsJSON)
+	case opPgCreateUpdatePermission:
+		return buildPgCreateUpdatePermission(argsJSON)
+	case opPgDropUpdatePermission:
+		return buildPgDropUpdatePermission(argsJSON)
+	case opPgCreateDeletePermission:
+		return buildPgCreateDeletePermission(argsJSON)
+	case opPgDropDeletePermission:
+		return buildPgDropDeletePermission(argsJSON)
+	case opPgUntrackTable:
+		return buildPgUntrackTable(argsJSON)
+	case opPgSetTableIsEnum:
+		return buildPgSetTableIsEnum(argsJSON)
+	case opPgDropRelationship:
+		return buildPgDropRelationship(argsJSON)
+	case opPgRenameRelationship:
+		return buildPgRenameRelationship(argsJSON)
+	case opPgTrackFunction:
+		return buildPgTrackFunction(argsJSON)
+	case opPgUntrackFunction:
+		return buildPgUntrackFunction(argsJSON)
+	case opPgSetFunctionCustomization:
+		return buildPgSetFunctionCustomization(argsJSON)
+	case opPgCreateFunctionPermission:
+		return buildPgCreateFunctionPermission(argsJSON)
+	case opPgDropFunctionPermission:
+		return buildPgDropFunctionPermission(argsJSON)
+	case opPgCreateEventTrigger:
+		return buildPgCreateEventTrigger(argsJSON)
+	case opPgDeleteEventTrigger:
+		return buildPgDeleteEventTrigger(argsJSON)
+	case opPgCreateRemoteRelationship:
+		return buildPgCreateRemoteRelationship(argsJSON)
+	case opPgDeleteRemoteRelationship:
+		return buildPgDeleteRemoteRelationship(argsJSON)
+	}
+
+	return nil, fmt.Errorf("%w: %q", ErrUnknownMutationOp, opType)
+}
+
+const (
+	opPgTrackTable               = "pg_track_table"
+	opPgSetTableCustomization    = "pg_set_table_customization"
+	opPgCreateObjectRelationship = "pg_create_object_relationship"
+	opPgCreateArrayRelationship  = "pg_create_array_relationship"
+)
+
+// applyOne runs a single MutationFn through Store.Apply and converts
+// an idempotency outcome into the (rv, code, err) triple the dispatcher
+// expects. On idempotent no-op, rv is the unchanged current version.
+func (s *Store) applyOne(
+	ctx context.Context, fn MutationFn,
+) (int64, IdempotencyCode, error) {
+	var code IdempotencyCode
+
+	rv, err := s.Apply(ctx, func(h *hasura.Metadata) error {
+		c, mErr := fn(h)
+		if mErr != nil {
+			return mErr
+		}
+
+		if c != "" {
+			code = c
+
+			return errIdempotentNoOp
+		}
+
+		return nil
+	})
+
+	if errors.Is(err, errIdempotentNoOp) {
+		return s.ResourceVersion(), code, nil
+	}
+
+	if err != nil {
+		return 0, "", err
+	}
+
+	return rv, "", nil
+}
+
+// errIdempotentNoOp is the sentinel returned from inside Apply's mutate
+// callback to signal "no actual change happened, abort the write but
+// don't surface as an error to the caller". applyOne and ApplyAll
+// translate it into an IdempotencyCode response slot.
+var errIdempotentNoOp = errors.New("idempotent no-op")
+
+type pgTrackTableArgs struct {
+	Source              string                      `json:"source"`
+	Table               hasura.TableSource          `json:"table"`
+	IsEnum              bool                        `json:"is_enum,omitempty"`
+	Configuration       hasura.TableConfiguration   `json:"configuration"`
+	ObjectRelationships []hasura.ObjectRelationship `json:"object_relationships,omitempty"`
+	ArrayRelationships  []hasura.ArrayRelationship  `json:"array_relationships,omitempty"`
+}
+
+func buildPgTrackTable(argsJSON []byte) (MutationFn, error) {
+	var a pgTrackTableArgs
+	if err := json.Unmarshal(argsJSON, &a); err != nil {
+		return nil, fmt.Errorf("parsing pg_track_table args: %w", err)
+	}
+
+	if a.Table.Schema == "" || a.Table.Name == "" {
+		return nil, fmt.Errorf(
+			"%w: pg_track_table: table.schema and table.name are required",
+			errMissingRequiredField,
+		)
+	}
+
+	source := defaultIfEmpty(a.Source)
+
+	return func(h *hasura.Metadata) (IdempotencyCode, error) {
+		db := findDatabase(h, source)
+		if db == nil {
+			return "", fmt.Errorf("%w: %q", ErrSourceNotFound, source)
+		}
+
+		if findTable(db, a.Table) != nil {
+			return CodeAlreadyTracked, nil
+		}
+
+		db.Tables = append(db.Tables, hasura.TableMetadata{
+			Table:               a.Table,
+			IsEnum:              a.IsEnum,
+			Configuration:       a.Configuration,
+			ObjectRelationships: a.ObjectRelationships,
+			ArrayRelationships:  a.ArrayRelationships,
+			RemoteRelationships: nil,
+			SelectPermissions:   nil,
+			InsertPermissions:   nil,
+			UpdatePermissions:   nil,
+			DeletePermissions:   nil,
+			EventTriggers:       nil,
+			Unknown:             nil,
+		})
+
+		return "", nil
+	}, nil
+}
+
+// PgTrackTable applies a pg_track_table mutation. Returns
+// CodeAlreadyTracked if the table is already tracked in the named
+// source; rv reflects the current version in that case.
+func (s *Store) PgTrackTable(
+	ctx context.Context, argsJSON []byte,
+) (int64, IdempotencyCode, error) {
+	fn, err := buildPgTrackTable(argsJSON)
+	if err != nil {
+		return 0, "", err
+	}
+
+	return s.applyOne(ctx, fn)
+}
+
+type pgSetTableCustomizationArgs struct {
+	Source        string                    `json:"source"`
+	Table         hasura.TableSource        `json:"table"`
+	Configuration hasura.TableConfiguration `json:"configuration"`
+}
+
+func buildPgSetTableCustomization(argsJSON []byte) (MutationFn, error) {
+	var a pgSetTableCustomizationArgs
+	if err := json.Unmarshal(argsJSON, &a); err != nil {
+		return nil, fmt.Errorf("parsing pg_set_table_customization args: %w", err)
+	}
+
+	if a.Table.Schema == "" || a.Table.Name == "" {
+		return nil, fmt.Errorf(
+			"%w: pg_set_table_customization: table.schema and table.name are required",
+			errMissingRequiredField,
+		)
+	}
+
+	source := defaultIfEmpty(a.Source)
+
+	return func(h *hasura.Metadata) (IdempotencyCode, error) {
+		db := findDatabase(h, source)
+		if db == nil {
+			return "", fmt.Errorf("%w: %q", ErrSourceNotFound, source)
+		}
+
+		t := findTable(db, a.Table)
+		if t == nil {
+			return "", fmt.Errorf("%w: %s.%s", ErrTableNotTracked, a.Table.Schema, a.Table.Name)
+		}
+
+		t.Configuration = a.Configuration
+
+		return "", nil
+	}, nil
+}
+
+// PgSetTableCustomization applies a pg_set_table_customization mutation.
+func (s *Store) PgSetTableCustomization(
+	ctx context.Context, argsJSON []byte,
+) (int64, IdempotencyCode, error) {
+	fn, err := buildPgSetTableCustomization(argsJSON)
+	if err != nil {
+		return 0, "", err
+	}
+
+	return s.applyOne(ctx, fn)
+}
+
+type pgCreateObjectRelationshipArgs struct {
+	Source  string                   `json:"source"`
+	Table   hasura.TableSource       `json:"table"`
+	Name    string                   `json:"name"`
+	Using   hasura.RelationshipUsing `json:"using"`
+	Comment string                   `json:"comment,omitempty"`
+}
+
+//nolint:dupl // intentional mirror of buildPgCreateArrayRelationship; one per relationship kind.
+func buildPgCreateObjectRelationship(argsJSON []byte) (MutationFn, error) {
+	var a pgCreateObjectRelationshipArgs
+	if err := json.Unmarshal(argsJSON, &a); err != nil {
+		return nil, fmt.Errorf("parsing pg_create_object_relationship args: %w", err)
+	}
+
+	if a.Table.Schema == "" || a.Table.Name == "" || a.Name == "" {
+		return nil, fmt.Errorf(
+			"%w: pg_create_object_relationship: table.schema, table.name and name are required",
+			errMissingRequiredField,
+		)
+	}
+
+	source := defaultIfEmpty(a.Source)
+
+	return func(h *hasura.Metadata) (IdempotencyCode, error) {
+		db := findDatabase(h, source)
+		if db == nil {
+			return "", fmt.Errorf("%w: %q", ErrSourceNotFound, source)
+		}
+
+		t := findTable(db, a.Table)
+		if t == nil {
+			return "", fmt.Errorf("%w: %s.%s", ErrTableNotTracked, a.Table.Schema, a.Table.Name)
+		}
+
+		for _, r := range t.ObjectRelationships {
+			if r.Name == a.Name {
+				return CodeAlreadyExists, nil
+			}
+		}
+
+		t.ObjectRelationships = append(t.ObjectRelationships, hasura.ObjectRelationship{
+			Name:    a.Name,
+			Using:   a.Using,
+			Comment: a.Comment,
+			Unknown: nil,
+		})
+
+		return "", nil
+	}, nil
+}
+
+// PgCreateObjectRelationship applies a pg_create_object_relationship.
+func (s *Store) PgCreateObjectRelationship(
+	ctx context.Context, argsJSON []byte,
+) (int64, IdempotencyCode, error) {
+	fn, err := buildPgCreateObjectRelationship(argsJSON)
+	if err != nil {
+		return 0, "", err
+	}
+
+	return s.applyOne(ctx, fn)
+}
+
+type pgCreateArrayRelationshipArgs struct {
+	Source  string                   `json:"source"`
+	Table   hasura.TableSource       `json:"table"`
+	Name    string                   `json:"name"`
+	Using   hasura.RelationshipUsing `json:"using"`
+	Comment string                   `json:"comment,omitempty"`
+}
+
+//nolint:dupl // intentional mirror of buildPgCreateObjectRelationship; one per relationship kind.
+func buildPgCreateArrayRelationship(argsJSON []byte) (MutationFn, error) {
+	var a pgCreateArrayRelationshipArgs
+	if err := json.Unmarshal(argsJSON, &a); err != nil {
+		return nil, fmt.Errorf("parsing pg_create_array_relationship args: %w", err)
+	}
+
+	if a.Table.Schema == "" || a.Table.Name == "" || a.Name == "" {
+		return nil, fmt.Errorf(
+			"%w: pg_create_array_relationship: table.schema, table.name and name are required",
+			errMissingRequiredField,
+		)
+	}
+
+	source := defaultIfEmpty(a.Source)
+
+	return func(h *hasura.Metadata) (IdempotencyCode, error) {
+		db := findDatabase(h, source)
+		if db == nil {
+			return "", fmt.Errorf("%w: %q", ErrSourceNotFound, source)
+		}
+
+		t := findTable(db, a.Table)
+		if t == nil {
+			return "", fmt.Errorf("%w: %s.%s", ErrTableNotTracked, a.Table.Schema, a.Table.Name)
+		}
+
+		for _, r := range t.ArrayRelationships {
+			if r.Name == a.Name {
+				return CodeAlreadyExists, nil
+			}
+		}
+
+		t.ArrayRelationships = append(t.ArrayRelationships, hasura.ArrayRelationship{
+			Name:    a.Name,
+			Using:   a.Using,
+			Comment: a.Comment,
+			Unknown: nil,
+		})
+
+		return "", nil
+	}, nil
+}
+
+// PgCreateArrayRelationship applies a pg_create_array_relationship.
+func (s *Store) PgCreateArrayRelationship(
+	ctx context.Context, argsJSON []byte,
+) (int64, IdempotencyCode, error) {
+	fn, err := buildPgCreateArrayRelationship(argsJSON)
+	if err != nil {
+		return 0, "", err
+	}
+
+	return s.applyOne(ctx, fn)
+}

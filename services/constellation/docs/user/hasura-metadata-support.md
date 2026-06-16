@@ -377,6 +377,68 @@ what Constellation serves.
   relationships on the same source is not yet handled.
 - **`kind` must be `postgres` or `sqlite`;** other backends fail at startup.
 
+## Metadata-authoring parity tests
+
+`integration/metadata_parity_test.go` is a differential test that applies the
+same `/v1/metadata` op to **both** Hasura and Constellation and asserts the
+results are equivalent, in three layers:
+
+- **Layer A — response parity:** matching HTTP status class and, on error, the
+  same Hasura error `code`. Skipped for ops where Constellation intentionally
+  diverges (idempotent re-apply returns `200` + an idempotency code where Hasura
+  returns `4xx`; see `KNOWN_DIFFERENCES.md`).
+- **Layer B — exported metadata:** `export_metadata` from both engines, flattened
+  to content-addressed leaf sets and compared as a strict set difference. This is
+  the primary assertion.
+- **Layer C — schema delta:** for ops that change the GraphQL surface, the
+  per-engine SDL delta-vs-baseline (via the CLI `schema dump`/`schema diff`), so
+  pre-existing baseline divergences (`integration/schema.*.diff`) don't cause
+  false failures.
+
+**Isolation.** The two engines cannot share one `hdb_catalog.hdb_metadata` row,
+so the harness gives Constellation its own metadata DB (`cstl`, created by
+`make parity-env-up`) while it still introspects the same `local` data DB as
+Hasura — so their schemas match. Before every case both engines are reset to
+Hasura's live baseline via `replace_metadata`, making cases order-independent.
+
+**Strictness — divergence is an error.** Constellation aims to be a drop-in
+Hasura replacement, so Layer B deliberately does **not** normalize away
+representational differences (no dropping of `comment:""`, empty objects, etc.).
+The only neutral step is content-addressing array elements, since Hasura does not
+guarantee element order for metadata collections. Two things follow:
+
+- A dedicated `roundtrip_baseline_fidelity` subtest resets both engines to the
+  same baseline and fails on *any* divergence between their exports — these are
+  Constellation round-trip-fidelity gaps (e.g. it re-serializes
+  `foreign_key_constraint_on: {column: "x"}` as `{columns: ["x"]}`, or a
+  permission `columns: "*"` as `["*"]`). They are properties of the snapshot, not
+  of any op.
+- Each op case subtracts that baseline divergence and fails if the op introduces
+  **any new** divergence — that is op-effect parity.
+
+Genuinely acceptable divergences (if any) are added to the explicit,
+comment-documented `justifiedDivergence` allowlist in `metadata_parity_test.go`,
+which is **empty by default**. Nothing is swept under the rug: an unexpected
+difference fails the suite until it is either fixed in Constellation or
+explicitly justified.
+
+**Running it:**
+
+```bash
+make dev-env-integration-up      # Hasura + local data DB + auth/storage/functions
+make build-docker-image          # constellation:0.0.0-dev
+make parity-env-up               # creates cstl, starts constellation-parity on :8001
+cd integration && go test -run TestMetadataParity -v ./...
+make parity-env-down
+```
+
+When the parity Constellation (`:8001`) is not running, the test **skips** with a
+pointer to `make parity-env-up` rather than failing.
+
+Not yet covered (each needs a fixture or has a documented semantic gap, called
+out in the test file): `pg_set_table_is_enum`, remote relationships, and the read
+ops `pg_suggest_relationships` / `pg_get_viewdef`.
+
 ## See also
 
 - [`KNOWN_DIFFERENCES.md`](../../KNOWN_DIFFERENCES.md) — intentional behavioral divergences from Hasura on the supported surface.

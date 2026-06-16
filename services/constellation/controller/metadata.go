@@ -31,10 +31,11 @@ var (
 // consumes the captured bytes when falling back to the Hasura upstream proxy.
 //
 // maxBodyBytes <= 0 disables the cap (matching the proxy NoRoute path's
-// flag semantics). The cap MUST agree with the proxy fallback's cap: native
-// export_metadata has no real body, so the only request bodies hitting this
-// middleware are proxied ops (replace_metadata, bulk, …) whose acceptable
-// size is governed by --hasura-proxy-request-body-limit-bytes.
+// flag semantics). The cap applies to every /v1/metadata request body:
+// native mutation ops handled in-process by the Store (replace_metadata,
+// bulk, pg_* writes, …) as well as ops forwarded to the Hasura upstream
+// proxy. Its size is governed by --hasura-proxy-request-body-limit-bytes,
+// so the cap MUST agree with the proxy fallback's cap.
 //
 // Only POST /v1/metadata is matched: the same merged api router also serves
 // /healthz and /v1/version, which have no body and don't need this work.
@@ -77,7 +78,8 @@ func NewCaptureRawBody(maxBodyBytes int64) gin.HandlerFunc {
 
 		raw, err := io.ReadAll(c.Request.Body)
 		if err != nil {
-			if _, ok := errors.AsType[*http.MaxBytesError](err); ok {
+			var maxBytesErr *http.MaxBytesError
+			if errors.As(err, &maxBytesErr) {
 				_ = c.Error(
 					fmt.Errorf("%w: limit is %d bytes", errMetadataBodyTooLarge, maxBodyBytes),
 				)
@@ -126,17 +128,17 @@ func (c *Controller) MetadataRequest( //nolint:ireturn
 			"parse-failed",
 			"request body is required",
 			"$",
-		)
+		), nil
 	}
 
-	// When a Hasura upstream is configured, every op — including
-	// export_metadata — is proxied to it. Serving export_metadata from
-	// the local cache while other ops (replace_metadata, pg_track_table, …)
-	// mutate Hasura via the proxy would let a client read a stale snapshot
-	// after its own write, breaking the export→edit→replace optimistic-
-	// concurrency cycle the CLI/dashboard rely on (stale resource_version
-	// → 409 conflict on the next replace).
-	if c.hasuraProxy != nil {
+	// When there is no in-process Store, a configured proxy owns ALL metadata
+	// ops — including export_metadata, which must proxy so the client never
+	// reads a stale local snapshot after its own proxied write (the
+	// export -> edit -> replace optimistic-concurrency cycle). When a Store IS
+	// present it is the source of truth: export, mutations, and snapshot ops are
+	// served natively below and the proxy is only a per-op fallback for ops with
+	// no native handler.
+	if c.store == nil && c.hasuraProxy != nil {
 		return metadataProxyResponse{
 			proxy:   c.hasuraProxy,
 			inbound: inboundRequestFromContext(ctx),
@@ -148,6 +150,20 @@ func (c *Controller) MetadataRequest( //nolint:ireturn
 		return c.exportMetadata()
 	}
 
+	if resp, handled := c.dispatchMutation(ctx, req); handled {
+		return resp, nil
+	}
+
+	// No native handler: fall through to the proxy if configured, else
+	// not-supported.
+	if c.hasuraProxy != nil {
+		return metadataProxyResponse{
+			proxy:   c.hasuraProxy,
+			inbound: inboundRequestFromContext(ctx),
+			raw:     rawBodyFromContext(ctx),
+		}, nil
+	}
+
 	return metadataErrorResponse(
 		"not-supported",
 		fmt.Sprintf(
@@ -155,7 +171,7 @@ func (c *Controller) MetadataRequest( //nolint:ireturn
 			req.Body.Type,
 		),
 		"$.args",
-	)
+	), nil
 }
 
 func (c *Controller) exportMetadata() (api.MetadataRequestResponseObject, error) { //nolint:ireturn
@@ -207,23 +223,16 @@ func (r metadataProxyResponse) VisitMetadataRequestResponse(w http.ResponseWrite
 // MetadataError body. 401s are produced upstream by the security middleware
 // (see NewAuthFunc), never by this handler, so the only error shape the
 // dispatcher itself emits is a 400.
-func metadataErrorResponse(
+func metadataErrorResponse( //nolint:ireturn
 	code, message, path string,
-) (api.MetadataRequest400JSONResponse, error) {
+) api.MetadataRequestResponseObject {
 	response := api.MetadataRequest400JSONResponse{}
-
-	err := response.FromMetadataError(api.MetadataError{
+	_ = response.FromMetadataError(api.MetadataError{
 		Code:     code,
 		Error:    message,
 		Path:     &path,
 		Internal: nil,
 	})
-	if err != nil {
-		return api.MetadataRequest400JSONResponse{}, fmt.Errorf(
-			"building metadata error response: %w",
-			err,
-		)
-	}
 
-	return response, nil
+	return response
 }

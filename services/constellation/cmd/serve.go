@@ -481,21 +481,9 @@ func serve(ctx context.Context, cmd *cli.Command) error {
 	logger.InfoContext(ctx, cmd.Root().Name+" v"+cmd.Root().Version)
 	logFlags(ctx, logger, cmd)
 
-	var metadataSource metadata.Source
-	if metaDBURL := cmd.String(flagMetadataDatabaseURL); metaDBURL != "" {
-		databaseMetadataSource, err := source.NewDatabaseMetadataSource(
-			ctx,
-			metaDBURL,
-			time.Second,
-			logger,
-		)
-		if err != nil {
-			return fmt.Errorf("creating database metadata source: %w", err)
-		}
-
-		metadataSource = databaseMetadataSource
-	} else {
-		metadataSource = source.NewFileMetadataSource(cmd.String(flagMetadataPath))
+	metadataSource, store, err := newMetadataSource(ctx, cmd, logger)
+	if err != nil {
+		return fmt.Errorf("failed to create metadata source: %w", err)
 	}
 
 	defer metadataSource.Close()
@@ -532,6 +520,7 @@ func serve(ctx context.Context, cmd *cli.Command) error {
 		cmd.Bool(flagDevMode),
 		jwtAuth,
 		metadataSource,
+		store,
 		logger,
 		cmd.Root().Version,
 		hasuraProxy,
@@ -541,6 +530,49 @@ func serve(ctx context.Context, cmd *cli.Command) error {
 	}
 
 	return runServer(ctx, cmd, ctrl, jwtAuth, hasuraProxy, logger)
+}
+
+// dbStoreSource lets the in-process Store be the controller's metadata.Source
+// (mutations come from the Store, not the DB poller) while Close still
+// releases the underlying database connection pool.
+type dbStoreSource struct {
+	*source.Store
+
+	db *source.DatabaseMetadataSource
+}
+
+func (s dbStoreSource) Close() {
+	s.Store.Close()
+	s.db.Close()
+}
+
+func newMetadataSource( //nolint:ireturn // selected sources share the metadata.Source boundary.
+	ctx context.Context,
+	cmd *cli.Command,
+	logger *slog.Logger,
+) (metadata.Source, *source.Store, error) {
+	if metaDBURL := cmd.String(flagMetadataDatabaseURL); metaDBURL != "" {
+		dbSrc, err := source.NewDatabaseMetadataSource(
+			ctx,
+			metaDBURL,
+			time.Second,
+			logger,
+		)
+		if err != nil {
+			return nil, nil, fmt.Errorf("creating database metadata source: %w", err)
+		}
+
+		store, err := source.NewDatabaseBackedStore(ctx, dbSrc)
+		if err != nil {
+			dbSrc.Close()
+
+			return nil, nil, fmt.Errorf("bootstrapping metadata store: %w", err)
+		}
+
+		return dbStoreSource{Store: store, db: dbSrc}, store, nil
+	}
+
+	return source.NewFileMetadataSource(cmd.String(flagMetadataPath)), nil, nil
 }
 
 func runServer(

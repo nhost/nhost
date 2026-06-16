@@ -14,6 +14,36 @@ const (
 	AdminSecretScopes adminSecretContextKey = "AdminSecret.Scopes"
 )
 
+// Defines values for PostgresSubscribeOpSpecColumns0.
+const (
+	PostgresSubscribeOpSpecColumns0Asterisk PostgresSubscribeOpSpecColumns0 = "*"
+)
+
+// Valid indicates whether the value is a known member of the PostgresSubscribeOpSpecColumns0 enum.
+func (e PostgresSubscribeOpSpecColumns0) Valid() bool {
+	switch e {
+	case PostgresSubscribeOpSpecColumns0Asterisk:
+		return true
+	default:
+		return false
+	}
+}
+
+// Defines values for PostgresSubscribeOpSpecPayload0.
+const (
+	PostgresSubscribeOpSpecPayload0Asterisk PostgresSubscribeOpSpecPayload0 = "*"
+)
+
+// Valid indicates whether the value is a known member of the PostgresSubscribeOpSpecPayload0 enum.
+func (e PostgresSubscribeOpSpecPayload0) Valid() bool {
+	switch e {
+	case PostgresSubscribeOpSpecPayload0Asterisk:
+		return true
+	default:
+		return false
+	}
+}
+
 // AuthError defines model for AuthError.
 type AuthError struct {
 	// Error Auth error code (e.g. `unauthorized`)
@@ -26,9 +56,85 @@ type AuthError struct {
 	SecurityScheme *string `json:"securityScheme,omitempty"`
 }
 
+// AutoTriggerLogCleanupConfig defines model for AutoTriggerLogCleanupConfig.
+type AutoTriggerLogCleanupConfig struct {
+	BatchSize           *float32     `json:"batch_size,omitempty"`
+	CleanInvocationLogs *bool        `json:"clean_invocation_logs,omitempty"`
+	ClearOlderThan      float32      `json:"clear_older_than"`
+	Paused              *bool        `json:"paused,omitempty"`
+	Schedule            CronSchedule `json:"schedule"`
+	Timeout             *float32     `json:"timeout,omitempty"`
+}
+
+// CronSchedule defines model for CronSchedule.
+type CronSchedule = string
+
+// GraphQLError defines model for GraphQLError.
+type GraphQLError struct {
+	Extensions *map[string]interface{} `json:"extensions,omitempty"`
+	Locations  *[]struct {
+		Column *int `json:"column,omitempty"`
+		Line   *int `json:"line,omitempty"`
+	} `json:"locations,omitempty"`
+	Message string `json:"message"`
+
+	// Path Response-path of the error
+	Path                 *[]GraphQLError_Path_Item `json:"path,omitempty"`
+	AdditionalProperties map[string]interface{}    `json:"-"`
+}
+
+// GraphQLErrorPath0 defines model for .
+type GraphQLErrorPath0 = string
+
+// GraphQLErrorPath1 defines model for .
+type GraphQLErrorPath1 = int
+
+// GraphQLError_Path_Item defines model for GraphQLError.path.Item.
+type GraphQLError_Path_Item struct {
+	union json.RawMessage
+}
+
+// GraphQLRequest defines model for GraphQLRequest.
+type GraphQLRequest struct {
+	// Extensions Protocol extensions (persisted queries, tracing toggles, ...)
+	Extensions *map[string]interface{} `json:"extensions,omitempty"`
+
+	// OperationName Operation to execute when the document defines more than one
+	OperationName *string `json:"operationName,omitempty"`
+
+	// Query GraphQL document text
+	Query string `json:"query"`
+
+	// Variables Variable bindings referenced by the document
+	Variables *map[string]interface{} `json:"variables,omitempty"`
+}
+
+// GraphQLResponse GraphQL response envelope. `data` and `errors` may both be present for partially-successful operations.
+type GraphQLResponse struct {
+	// Data Operation result; null on total failure
+	Data   interface{}     `json:"data,omitempty"`
+	Errors *[]GraphQLError `json:"errors,omitempty"`
+
+	// Extensions Protocol extensions (tracing, persisted-query acks, ...)
+	Extensions           *map[string]interface{} `json:"extensions,omitempty"`
+	AdditionalProperties map[string]interface{}  `json:"-"`
+}
+
+// HeaderConfFromEnv defines model for HeaderConfFromEnv.
+type HeaderConfFromEnv struct {
+	Name         string `json:"name"`
+	ValueFromEnv string `json:"value_from_env"`
+}
+
+// HeaderConfValue defines model for HeaderConfValue.
+type HeaderConfValue struct {
+	Name  string `json:"name"`
+	Value string `json:"value"`
+}
+
 // MetadataError defines model for MetadataError.
 type MetadataError struct {
-	// Code Hasura error code. Known values include `not-supported`, `access-denied`, `parse-failed`, `validation-failed`, `already-tracked`, `already-exists`.
+	// Code Hasura error code returned on a 4xx response. Known values include `parse-failed`, `validation-failed`, `conflict`, `not-exists`, `dependency-error`, `not-supported`, and `access-denied`. Idempotent no-op outcomes such as `already-tracked` / `already-exists` are NOT error codes — they are returned in the `message` field of a 200 response.
 	Code string `json:"code"`
 
 	// Error Human-readable error message
@@ -60,6 +166,66 @@ type MetadataRequest struct {
 	AdditionalProperties map[string]interface{} `json:"-"`
 }
 
+// PostgresEventTriggerConfEventTriggerConf defines model for PostgresEventTriggerConfEventTriggerConf.
+type PostgresEventTriggerConfEventTriggerConf struct {
+	CleanupConfig        *AutoTriggerLogCleanupConfig                             `json:"cleanup_config,omitempty"`
+	Definition           PostgresTriggerOpsDef                                    `json:"definition"`
+	Headers              *[]PostgresEventTriggerConfEventTriggerConf_Headers_Item `json:"headers,omitempty"`
+	Name                 string                                                   `json:"name"`
+	RetryConf            RetryConf                                                `json:"retry_conf"`
+	TriggerOnReplication *bool                                                    `json:"trigger_on_replication,omitempty"`
+	Webhook              *string                                                  `json:"webhook,omitempty"`
+	WebhookFromEnv       *string                                                  `json:"webhook_from_env,omitempty"`
+}
+
+// PostgresEventTriggerConfEventTriggerConf_Headers_Item defines model for PostgresEventTriggerConfEventTriggerConf.headers.Item.
+type PostgresEventTriggerConfEventTriggerConf_Headers_Item struct {
+	union json.RawMessage
+}
+
+// PostgresSubscribeOpSpec defines model for PostgresSubscribeOpSpec.
+type PostgresSubscribeOpSpec struct {
+	Columns PostgresSubscribeOpSpec_Columns  `json:"columns"`
+	Payload *PostgresSubscribeOpSpec_Payload `json:"payload,omitempty"`
+}
+
+// PostgresSubscribeOpSpecColumns0 defines model for PostgresSubscribeOpSpec.Columns.0.
+type PostgresSubscribeOpSpecColumns0 string
+
+// PostgresSubscribeOpSpecColumns1 defines model for .
+type PostgresSubscribeOpSpecColumns1 = []string
+
+// PostgresSubscribeOpSpec_Columns defines model for PostgresSubscribeOpSpec.Columns.
+type PostgresSubscribeOpSpec_Columns struct {
+	union json.RawMessage
+}
+
+// PostgresSubscribeOpSpecPayload0 defines model for PostgresSubscribeOpSpec.Payload.0.
+type PostgresSubscribeOpSpecPayload0 string
+
+// PostgresSubscribeOpSpecPayload1 defines model for .
+type PostgresSubscribeOpSpecPayload1 = []string
+
+// PostgresSubscribeOpSpec_Payload defines model for PostgresSubscribeOpSpec.Payload.
+type PostgresSubscribeOpSpec_Payload struct {
+	union json.RawMessage
+}
+
+// PostgresTriggerOpsDef defines model for PostgresTriggerOpsDef.
+type PostgresTriggerOpsDef struct {
+	Delete       *PostgresSubscribeOpSpec `json:"delete,omitempty"`
+	EnableManual *bool                    `json:"enable_manual,omitempty"`
+	Insert       *PostgresSubscribeOpSpec `json:"insert,omitempty"`
+	Update       *PostgresSubscribeOpSpec `json:"update,omitempty"`
+}
+
+// RetryConf defines model for RetryConf.
+type RetryConf struct {
+	IntervalSec float32  `json:"interval_sec"`
+	NumRetries  float32  `json:"num_retries"`
+	TimeoutSec  *float32 `json:"timeout_sec,omitempty"`
+}
+
 // ValidationError defines model for ValidationError.
 type ValidationError struct {
 	// Error Validator error category. Known values include `schema-validation-error` (body / param schema failed) and `request-validation-error` (envelope-level binding failed).
@@ -82,6 +248,213 @@ type MetadataRequest400JSONResponseBody struct {
 
 // MetadataRequestJSONRequestBody defines body for MetadataRequest for application/json ContentType.
 type MetadataRequestJSONRequestBody = MetadataRequest
+
+// Getter for additional properties for GraphQLError. Returns the specified
+// element and whether it was found
+func (a GraphQLError) Get(fieldName string) (value interface{}, found bool) {
+	if a.AdditionalProperties != nil {
+		value, found = a.AdditionalProperties[fieldName]
+	}
+	return
+}
+
+// Setter for additional properties for GraphQLError
+func (a *GraphQLError) Set(fieldName string, value interface{}) {
+	if a.AdditionalProperties == nil {
+		a.AdditionalProperties = make(map[string]interface{})
+	}
+	a.AdditionalProperties[fieldName] = value
+}
+
+// Override default JSON handling for GraphQLError to handle AdditionalProperties
+func (a *GraphQLError) UnmarshalJSON(b []byte) error {
+	object := make(map[string]json.RawMessage)
+	err := json.Unmarshal(b, &object)
+	if err != nil {
+		return err
+	}
+
+	if raw, found := object["extensions"]; found {
+		err = json.Unmarshal(raw, &a.Extensions)
+		if err != nil {
+			return fmt.Errorf("error reading 'extensions': %w", err)
+		}
+		delete(object, "extensions")
+	}
+
+	if raw, found := object["locations"]; found {
+		err = json.Unmarshal(raw, &a.Locations)
+		if err != nil {
+			return fmt.Errorf("error reading 'locations': %w", err)
+		}
+		delete(object, "locations")
+	}
+
+	if raw, found := object["message"]; found {
+		err = json.Unmarshal(raw, &a.Message)
+		if err != nil {
+			return fmt.Errorf("error reading 'message': %w", err)
+		}
+		delete(object, "message")
+	}
+
+	if raw, found := object["path"]; found {
+		err = json.Unmarshal(raw, &a.Path)
+		if err != nil {
+			return fmt.Errorf("error reading 'path': %w", err)
+		}
+		delete(object, "path")
+	}
+
+	if len(object) != 0 {
+		a.AdditionalProperties = make(map[string]interface{})
+		for fieldName, fieldBuf := range object {
+			var fieldVal interface{}
+			err := json.Unmarshal(fieldBuf, &fieldVal)
+			if err != nil {
+				return fmt.Errorf("error unmarshaling field %s: %w", fieldName, err)
+			}
+			a.AdditionalProperties[fieldName] = fieldVal
+		}
+	}
+	return nil
+}
+
+// Override default JSON handling for GraphQLError to handle AdditionalProperties
+func (a GraphQLError) MarshalJSON() ([]byte, error) {
+	var err error
+	object := make(map[string]json.RawMessage)
+
+	if a.Extensions != nil {
+		object["extensions"], err = json.Marshal(a.Extensions)
+		if err != nil {
+			return nil, fmt.Errorf("error marshaling 'extensions': %w", err)
+		}
+	}
+
+	if a.Locations != nil {
+		object["locations"], err = json.Marshal(a.Locations)
+		if err != nil {
+			return nil, fmt.Errorf("error marshaling 'locations': %w", err)
+		}
+	}
+
+	object["message"], err = json.Marshal(a.Message)
+	if err != nil {
+		return nil, fmt.Errorf("error marshaling 'message': %w", err)
+	}
+
+	if a.Path != nil {
+		object["path"], err = json.Marshal(a.Path)
+		if err != nil {
+			return nil, fmt.Errorf("error marshaling 'path': %w", err)
+		}
+	}
+
+	for fieldName, field := range a.AdditionalProperties {
+		object[fieldName], err = json.Marshal(field)
+		if err != nil {
+			return nil, fmt.Errorf("error marshaling '%s': %w", fieldName, err)
+		}
+	}
+	return json.Marshal(object)
+}
+
+// Getter for additional properties for GraphQLResponse. Returns the specified
+// element and whether it was found
+func (a GraphQLResponse) Get(fieldName string) (value interface{}, found bool) {
+	if a.AdditionalProperties != nil {
+		value, found = a.AdditionalProperties[fieldName]
+	}
+	return
+}
+
+// Setter for additional properties for GraphQLResponse
+func (a *GraphQLResponse) Set(fieldName string, value interface{}) {
+	if a.AdditionalProperties == nil {
+		a.AdditionalProperties = make(map[string]interface{})
+	}
+	a.AdditionalProperties[fieldName] = value
+}
+
+// Override default JSON handling for GraphQLResponse to handle AdditionalProperties
+func (a *GraphQLResponse) UnmarshalJSON(b []byte) error {
+	object := make(map[string]json.RawMessage)
+	err := json.Unmarshal(b, &object)
+	if err != nil {
+		return err
+	}
+
+	if raw, found := object["data"]; found {
+		err = json.Unmarshal(raw, &a.Data)
+		if err != nil {
+			return fmt.Errorf("error reading 'data': %w", err)
+		}
+		delete(object, "data")
+	}
+
+	if raw, found := object["errors"]; found {
+		err = json.Unmarshal(raw, &a.Errors)
+		if err != nil {
+			return fmt.Errorf("error reading 'errors': %w", err)
+		}
+		delete(object, "errors")
+	}
+
+	if raw, found := object["extensions"]; found {
+		err = json.Unmarshal(raw, &a.Extensions)
+		if err != nil {
+			return fmt.Errorf("error reading 'extensions': %w", err)
+		}
+		delete(object, "extensions")
+	}
+
+	if len(object) != 0 {
+		a.AdditionalProperties = make(map[string]interface{})
+		for fieldName, fieldBuf := range object {
+			var fieldVal interface{}
+			err := json.Unmarshal(fieldBuf, &fieldVal)
+			if err != nil {
+				return fmt.Errorf("error unmarshaling field %s: %w", fieldName, err)
+			}
+			a.AdditionalProperties[fieldName] = fieldVal
+		}
+	}
+	return nil
+}
+
+// Override default JSON handling for GraphQLResponse to handle AdditionalProperties
+func (a GraphQLResponse) MarshalJSON() ([]byte, error) {
+	var err error
+	object := make(map[string]json.RawMessage)
+
+	object["data"], err = json.Marshal(a.Data)
+	if err != nil {
+		return nil, fmt.Errorf("error marshaling 'data': %w", err)
+	}
+
+	if a.Errors != nil {
+		object["errors"], err = json.Marshal(a.Errors)
+		if err != nil {
+			return nil, fmt.Errorf("error marshaling 'errors': %w", err)
+		}
+	}
+
+	if a.Extensions != nil {
+		object["extensions"], err = json.Marshal(a.Extensions)
+		if err != nil {
+			return nil, fmt.Errorf("error marshaling 'extensions': %w", err)
+		}
+	}
+
+	for fieldName, field := range a.AdditionalProperties {
+		object[fieldName], err = json.Marshal(field)
+		if err != nil {
+			return nil, fmt.Errorf("error marshaling '%s': %w", fieldName, err)
+		}
+	}
+	return json.Marshal(object)
+}
 
 // Getter for additional properties for MetadataRequest. Returns the specified
 // element and whether it was found
@@ -205,6 +578,254 @@ func (a MetadataRequest) MarshalJSON() ([]byte, error) {
 		}
 	}
 	return json.Marshal(object)
+}
+
+// AsGraphQLErrorPath0 returns the union data inside the GraphQLError_Path_Item as a GraphQLErrorPath0
+func (t GraphQLError_Path_Item) AsGraphQLErrorPath0() (GraphQLErrorPath0, error) {
+	var body GraphQLErrorPath0
+	err := json.Unmarshal(t.union, &body)
+	return body, err
+}
+
+// FromGraphQLErrorPath0 overwrites any union data inside the GraphQLError_Path_Item as the provided GraphQLErrorPath0
+func (t *GraphQLError_Path_Item) FromGraphQLErrorPath0(v GraphQLErrorPath0) error {
+	b, err := json.Marshal(v)
+	t.union = b
+	return err
+}
+
+// MergeGraphQLErrorPath0 performs a merge with any union data inside the GraphQLError_Path_Item, using the provided GraphQLErrorPath0
+func (t *GraphQLError_Path_Item) MergeGraphQLErrorPath0(v GraphQLErrorPath0) error {
+	b, err := json.Marshal(v)
+	if err != nil {
+		return err
+	}
+
+	merged, err := runtime.JSONMerge(t.union, b)
+	t.union = merged
+	return err
+}
+
+// AsGraphQLErrorPath1 returns the union data inside the GraphQLError_Path_Item as a GraphQLErrorPath1
+func (t GraphQLError_Path_Item) AsGraphQLErrorPath1() (GraphQLErrorPath1, error) {
+	var body GraphQLErrorPath1
+	err := json.Unmarshal(t.union, &body)
+	return body, err
+}
+
+// FromGraphQLErrorPath1 overwrites any union data inside the GraphQLError_Path_Item as the provided GraphQLErrorPath1
+func (t *GraphQLError_Path_Item) FromGraphQLErrorPath1(v GraphQLErrorPath1) error {
+	b, err := json.Marshal(v)
+	t.union = b
+	return err
+}
+
+// MergeGraphQLErrorPath1 performs a merge with any union data inside the GraphQLError_Path_Item, using the provided GraphQLErrorPath1
+func (t *GraphQLError_Path_Item) MergeGraphQLErrorPath1(v GraphQLErrorPath1) error {
+	b, err := json.Marshal(v)
+	if err != nil {
+		return err
+	}
+
+	merged, err := runtime.JSONMerge(t.union, b)
+	t.union = merged
+	return err
+}
+
+func (t GraphQLError_Path_Item) MarshalJSON() ([]byte, error) {
+	b, err := t.union.MarshalJSON()
+	return b, err
+}
+
+func (t *GraphQLError_Path_Item) UnmarshalJSON(b []byte) error {
+	err := t.union.UnmarshalJSON(b)
+	return err
+}
+
+// AsHeaderConfValue returns the union data inside the PostgresEventTriggerConfEventTriggerConf_Headers_Item as a HeaderConfValue
+func (t PostgresEventTriggerConfEventTriggerConf_Headers_Item) AsHeaderConfValue() (HeaderConfValue, error) {
+	var body HeaderConfValue
+	err := json.Unmarshal(t.union, &body)
+	return body, err
+}
+
+// FromHeaderConfValue overwrites any union data inside the PostgresEventTriggerConfEventTriggerConf_Headers_Item as the provided HeaderConfValue
+func (t *PostgresEventTriggerConfEventTriggerConf_Headers_Item) FromHeaderConfValue(v HeaderConfValue) error {
+	b, err := json.Marshal(v)
+	t.union = b
+	return err
+}
+
+// MergeHeaderConfValue performs a merge with any union data inside the PostgresEventTriggerConfEventTriggerConf_Headers_Item, using the provided HeaderConfValue
+func (t *PostgresEventTriggerConfEventTriggerConf_Headers_Item) MergeHeaderConfValue(v HeaderConfValue) error {
+	b, err := json.Marshal(v)
+	if err != nil {
+		return err
+	}
+
+	merged, err := runtime.JSONMerge(t.union, b)
+	t.union = merged
+	return err
+}
+
+// AsHeaderConfFromEnv returns the union data inside the PostgresEventTriggerConfEventTriggerConf_Headers_Item as a HeaderConfFromEnv
+func (t PostgresEventTriggerConfEventTriggerConf_Headers_Item) AsHeaderConfFromEnv() (HeaderConfFromEnv, error) {
+	var body HeaderConfFromEnv
+	err := json.Unmarshal(t.union, &body)
+	return body, err
+}
+
+// FromHeaderConfFromEnv overwrites any union data inside the PostgresEventTriggerConfEventTriggerConf_Headers_Item as the provided HeaderConfFromEnv
+func (t *PostgresEventTriggerConfEventTriggerConf_Headers_Item) FromHeaderConfFromEnv(v HeaderConfFromEnv) error {
+	b, err := json.Marshal(v)
+	t.union = b
+	return err
+}
+
+// MergeHeaderConfFromEnv performs a merge with any union data inside the PostgresEventTriggerConfEventTriggerConf_Headers_Item, using the provided HeaderConfFromEnv
+func (t *PostgresEventTriggerConfEventTriggerConf_Headers_Item) MergeHeaderConfFromEnv(v HeaderConfFromEnv) error {
+	b, err := json.Marshal(v)
+	if err != nil {
+		return err
+	}
+
+	merged, err := runtime.JSONMerge(t.union, b)
+	t.union = merged
+	return err
+}
+
+func (t PostgresEventTriggerConfEventTriggerConf_Headers_Item) MarshalJSON() ([]byte, error) {
+	b, err := t.union.MarshalJSON()
+	return b, err
+}
+
+func (t *PostgresEventTriggerConfEventTriggerConf_Headers_Item) UnmarshalJSON(b []byte) error {
+	err := t.union.UnmarshalJSON(b)
+	return err
+}
+
+// AsPostgresSubscribeOpSpecColumns0 returns the union data inside the PostgresSubscribeOpSpec_Columns as a PostgresSubscribeOpSpecColumns0
+func (t PostgresSubscribeOpSpec_Columns) AsPostgresSubscribeOpSpecColumns0() (PostgresSubscribeOpSpecColumns0, error) {
+	var body PostgresSubscribeOpSpecColumns0
+	err := json.Unmarshal(t.union, &body)
+	return body, err
+}
+
+// FromPostgresSubscribeOpSpecColumns0 overwrites any union data inside the PostgresSubscribeOpSpec_Columns as the provided PostgresSubscribeOpSpecColumns0
+func (t *PostgresSubscribeOpSpec_Columns) FromPostgresSubscribeOpSpecColumns0(v PostgresSubscribeOpSpecColumns0) error {
+	b, err := json.Marshal(v)
+	t.union = b
+	return err
+}
+
+// MergePostgresSubscribeOpSpecColumns0 performs a merge with any union data inside the PostgresSubscribeOpSpec_Columns, using the provided PostgresSubscribeOpSpecColumns0
+func (t *PostgresSubscribeOpSpec_Columns) MergePostgresSubscribeOpSpecColumns0(v PostgresSubscribeOpSpecColumns0) error {
+	b, err := json.Marshal(v)
+	if err != nil {
+		return err
+	}
+
+	merged, err := runtime.JSONMerge(t.union, b)
+	t.union = merged
+	return err
+}
+
+// AsPostgresSubscribeOpSpecColumns1 returns the union data inside the PostgresSubscribeOpSpec_Columns as a PostgresSubscribeOpSpecColumns1
+func (t PostgresSubscribeOpSpec_Columns) AsPostgresSubscribeOpSpecColumns1() (PostgresSubscribeOpSpecColumns1, error) {
+	var body PostgresSubscribeOpSpecColumns1
+	err := json.Unmarshal(t.union, &body)
+	return body, err
+}
+
+// FromPostgresSubscribeOpSpecColumns1 overwrites any union data inside the PostgresSubscribeOpSpec_Columns as the provided PostgresSubscribeOpSpecColumns1
+func (t *PostgresSubscribeOpSpec_Columns) FromPostgresSubscribeOpSpecColumns1(v PostgresSubscribeOpSpecColumns1) error {
+	b, err := json.Marshal(v)
+	t.union = b
+	return err
+}
+
+// MergePostgresSubscribeOpSpecColumns1 performs a merge with any union data inside the PostgresSubscribeOpSpec_Columns, using the provided PostgresSubscribeOpSpecColumns1
+func (t *PostgresSubscribeOpSpec_Columns) MergePostgresSubscribeOpSpecColumns1(v PostgresSubscribeOpSpecColumns1) error {
+	b, err := json.Marshal(v)
+	if err != nil {
+		return err
+	}
+
+	merged, err := runtime.JSONMerge(t.union, b)
+	t.union = merged
+	return err
+}
+
+func (t PostgresSubscribeOpSpec_Columns) MarshalJSON() ([]byte, error) {
+	b, err := t.union.MarshalJSON()
+	return b, err
+}
+
+func (t *PostgresSubscribeOpSpec_Columns) UnmarshalJSON(b []byte) error {
+	err := t.union.UnmarshalJSON(b)
+	return err
+}
+
+// AsPostgresSubscribeOpSpecPayload0 returns the union data inside the PostgresSubscribeOpSpec_Payload as a PostgresSubscribeOpSpecPayload0
+func (t PostgresSubscribeOpSpec_Payload) AsPostgresSubscribeOpSpecPayload0() (PostgresSubscribeOpSpecPayload0, error) {
+	var body PostgresSubscribeOpSpecPayload0
+	err := json.Unmarshal(t.union, &body)
+	return body, err
+}
+
+// FromPostgresSubscribeOpSpecPayload0 overwrites any union data inside the PostgresSubscribeOpSpec_Payload as the provided PostgresSubscribeOpSpecPayload0
+func (t *PostgresSubscribeOpSpec_Payload) FromPostgresSubscribeOpSpecPayload0(v PostgresSubscribeOpSpecPayload0) error {
+	b, err := json.Marshal(v)
+	t.union = b
+	return err
+}
+
+// MergePostgresSubscribeOpSpecPayload0 performs a merge with any union data inside the PostgresSubscribeOpSpec_Payload, using the provided PostgresSubscribeOpSpecPayload0
+func (t *PostgresSubscribeOpSpec_Payload) MergePostgresSubscribeOpSpecPayload0(v PostgresSubscribeOpSpecPayload0) error {
+	b, err := json.Marshal(v)
+	if err != nil {
+		return err
+	}
+
+	merged, err := runtime.JSONMerge(t.union, b)
+	t.union = merged
+	return err
+}
+
+// AsPostgresSubscribeOpSpecPayload1 returns the union data inside the PostgresSubscribeOpSpec_Payload as a PostgresSubscribeOpSpecPayload1
+func (t PostgresSubscribeOpSpec_Payload) AsPostgresSubscribeOpSpecPayload1() (PostgresSubscribeOpSpecPayload1, error) {
+	var body PostgresSubscribeOpSpecPayload1
+	err := json.Unmarshal(t.union, &body)
+	return body, err
+}
+
+// FromPostgresSubscribeOpSpecPayload1 overwrites any union data inside the PostgresSubscribeOpSpec_Payload as the provided PostgresSubscribeOpSpecPayload1
+func (t *PostgresSubscribeOpSpec_Payload) FromPostgresSubscribeOpSpecPayload1(v PostgresSubscribeOpSpecPayload1) error {
+	b, err := json.Marshal(v)
+	t.union = b
+	return err
+}
+
+// MergePostgresSubscribeOpSpecPayload1 performs a merge with any union data inside the PostgresSubscribeOpSpec_Payload, using the provided PostgresSubscribeOpSpecPayload1
+func (t *PostgresSubscribeOpSpec_Payload) MergePostgresSubscribeOpSpecPayload1(v PostgresSubscribeOpSpecPayload1) error {
+	b, err := json.Marshal(v)
+	if err != nil {
+		return err
+	}
+
+	merged, err := runtime.JSONMerge(t.union, b)
+	t.union = merged
+	return err
+}
+
+func (t PostgresSubscribeOpSpec_Payload) MarshalJSON() ([]byte, error) {
+	b, err := t.union.MarshalJSON()
+	return b, err
+}
+
+func (t *PostgresSubscribeOpSpec_Payload) UnmarshalJSON(b []byte) error {
+	err := t.union.UnmarshalJSON(b)
+	return err
 }
 
 // AsMetadataError returns the union data inside the MetadataRequest400JSONResponseBody as a MetadataError
