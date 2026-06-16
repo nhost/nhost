@@ -165,6 +165,12 @@ func BuildMutation(opType string, argsJSON []byte) (MutationFn, error) {
 		return buildAddRemoteSchemaPermissions(argsJSON)
 	case opDropRemoteSchemaPermissions:
 		return buildDropRemoteSchemaPermissions(argsJSON)
+	case opCreateRemoteSchemaRemoteRelationship:
+		return buildCreateRemoteSchemaRemoteRelationship(argsJSON)
+	case opUpdateRemoteSchemaRemoteRelationship:
+		return buildUpdateRemoteSchemaRemoteRelationship(argsJSON)
+	case opDeleteRemoteSchemaRemoteRelationship:
+		return buildDeleteRemoteSchemaRemoteRelationship(argsJSON)
 	}
 
 	return nil, fmt.Errorf("%w: %q", ErrUnknownMutationOp, opType)
