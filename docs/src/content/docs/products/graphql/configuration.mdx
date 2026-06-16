@@ -91,7 +91,27 @@ Configure the engine under `[hasura]` in your project's configuration file. This
 </TabItem>
 <TabItem label="Example config w/ Constellation (recommended)">
 
-```toml title="nhost.toml"
+```toml title="nhost.toml" {1-19}
+# Opt into Constellation. It runs alongside the default engine and reads the
+# [hasura] config below. Pick the latest version from the CHANGELOG:
+# https://github.com/nhost/nhost/blob/main/services/constellation/CHANGELOG.md
+[experimental.constellation]
+version = "0.2.1"
+
+[experimental.constellation.settings]
+# CORS allowed origins. If unset, origins are derived from
+# auth.redirections.clientUrl and auth.redirections.allowedUrls.
+corsAllowedOrigins = []
+
+# Enable debug logging.
+debug = false
+
+# Return raw connector/database error detail to clients. Development only.
+devMode = false
+
+# Polling interval for GraphQL subscriptions.
+subscriptionPollInterval = "1s"
+
 [hasura]
 version = ''
 adminSecret = 'adminsecret'
@@ -123,26 +143,6 @@ replicas = 1
 [hasura.resources.compute]
 cpu = 500
 memory = 1024
-
-# Opt into Constellation. It runs alongside the default engine and reads the
-# [hasura] config above. Pick the latest version from the CHANGELOG:
-# https://github.com/nhost/nhost/blob/main/services/constellation/CHANGELOG.md
-[experimental.constellation]
-version = "0.2.1"
-
-[experimental.constellation.settings]
-# CORS allowed origins. If unset, origins are derived from
-# auth.redirections.clientUrl and auth.redirections.allowedUrls.
-corsAllowedOrigins = []
-
-# Enable debug logging.
-debug = false
-
-# Return raw connector/database error detail to clients. Development only.
-devMode = false
-
-# Polling interval for GraphQL subscriptions.
-subscriptionPollInterval = "1s"
 ```
 
 </TabItem>
