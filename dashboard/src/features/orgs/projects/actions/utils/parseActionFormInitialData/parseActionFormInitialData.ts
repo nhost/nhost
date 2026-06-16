@@ -14,6 +14,7 @@ import type {
   ActionItem,
   CustomTypes,
   RequestTransformation,
+  ResponseTransformation,
 } from '@/utils/hasura-api/generated/schemas';
 import {
   isBodyTransform,
@@ -109,6 +110,22 @@ const getFormPayloadTransform = (
   }
 };
 
+const getFormResponseTransform = (
+  responseTransform?: ResponseTransformation,
+): BaseActionFormValues['responseTransform'] => {
+  if (
+    !responseTransform?.body ||
+    !isBodyTransform(responseTransform.body) ||
+    responseTransform.body.action !== 'transform'
+  ) {
+    return undefined;
+  }
+
+  return {
+    template: responseTransform.body.template ?? '',
+  };
+};
+
 export default function parseActionFormInitialData(
   action: ActionItem,
   customTypes: CustomTypes,
@@ -139,6 +156,9 @@ export default function parseActionFormInitialData(
     sampleInput,
     requestTransform,
   );
+  const responseTransform = getFormResponseTransform(
+    action.definition.response_transform,
+  );
 
   const actionTypes = getActionTypes(
     action.definition,
@@ -160,5 +180,6 @@ export default function parseActionFormInitialData(
     sampleContext: [],
     ...(requestOptionsTransform ? { requestOptionsTransform } : {}),
     ...(payloadTransform ? { payloadTransform } : {}),
+    ...(responseTransform ? { responseTransform } : {}),
   };
 }

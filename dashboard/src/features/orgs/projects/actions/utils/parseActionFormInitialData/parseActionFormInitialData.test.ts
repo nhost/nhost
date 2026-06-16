@@ -146,4 +146,33 @@ type SampleOutput {
       },
     });
   });
+
+  it('parses a response transform body template', () => {
+    const result = parseActionFormInitialData(
+      {
+        ...action,
+        definition: {
+          ...action.definition,
+          response_transform: {
+            version: 2,
+            template_engine: 'Kriti',
+            body: {
+              action: 'transform',
+              template: '{\n  "base": {{$body.base_code}}\n}',
+            },
+          },
+        },
+      },
+      customTypes,
+    );
+
+    expect(result.responseTransform).toEqual({
+      template: '{\n  "base": {{$body.base_code}}\n}',
+    });
+  });
+
+  it('omits the response transform when absent', () => {
+    const result = parseActionFormInitialData(action, customTypes);
+    expect(result.responseTransform).toBeUndefined();
+  });
 });

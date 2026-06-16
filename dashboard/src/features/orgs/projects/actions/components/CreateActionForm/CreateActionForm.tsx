@@ -1,6 +1,6 @@
 import { Plus } from 'lucide-react';
 import { useRouter } from 'next/router';
-import { useMemo } from 'react';
+import { type ReactNode, useMemo } from 'react';
 import { Button } from '@/components/ui/v3/button';
 import {
   BaseActionForm,
@@ -22,7 +22,17 @@ const renderCreateActionButton = ({ open }: BaseActionFormTriggerProps) => (
   </Button>
 );
 
-export default function CreateActionForm() {
+export interface CreateActionFormProps {
+  /**
+   * Renders the element that opens the create-action sheet. Defaults to the
+   * sidebar's "New Action" link.
+   */
+  trigger?: (props: BaseActionFormTriggerProps) => ReactNode;
+}
+
+export default function CreateActionForm({
+  trigger = renderCreateActionButton,
+}: CreateActionFormProps = {}) {
   const { mutateAsync: createAction } = useCreateActionMutation();
   const { data: actionsData } = useGetActions();
   const router = useRouter();
@@ -59,7 +69,7 @@ export default function CreateActionForm() {
 
   return (
     <BaseActionForm
-      trigger={renderCreateActionButton}
+      trigger={trigger}
       onSubmit={handleSubmit}
       existingCustomTypes={existingCustomTypes}
       titleText="Create a New Action"

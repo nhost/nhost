@@ -50,7 +50,7 @@ export const validationSchema = z.object({
       ctx.addIssue({ code: z.ZodIssueCode.custom, message: error });
     }
   }),
-  webhook: z.string().min(1, { message: 'Handler URL is required' }),
+  webhook: z.string().min(1, { message: 'Webhook URL is required' }),
   kind: z.enum(
     actionKindOptions.map((option) => option.value) as [
       (typeof actionKindOptions)[number]['value'],
@@ -126,6 +126,11 @@ export const validationSchema = z.object({
       ]),
     })
     .optional(),
+  responseTransform: z
+    .object({
+      template: z.string(),
+    })
+    .optional(),
 });
 
 export type BaseActionFormValues = z.infer<typeof validationSchema>;
@@ -158,6 +163,14 @@ export const defaultPayloadTransformValues: NonNullable<
   },
 };
 
+export const defaultResponseTransformValues: NonNullable<
+  BaseActionFormValues['responseTransform']
+> = {
+  template: `{
+  "field": {{$body.field}}
+}`,
+};
+
 export const defaultFormValues: BaseActionFormValues = {
   actionDefinitionSdl: DEFAULT_ACTION_DEFINITION_SDL,
   typesSdl: DEFAULT_ACTION_TYPES_SDL,
@@ -170,4 +183,5 @@ export const defaultFormValues: BaseActionFormValues = {
   sampleContext: [],
   requestOptionsTransform: undefined,
   payloadTransform: undefined,
+  responseTransform: undefined,
 };

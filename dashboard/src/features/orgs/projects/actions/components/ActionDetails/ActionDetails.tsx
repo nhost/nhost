@@ -1,16 +1,11 @@
 import {
+  ArrowDownToLine,
   ArrowRightLeft,
-  Braces,
+  ArrowUpFromLine,
   MessageSquareText,
-  Timer,
-  Webhook,
   Workflow,
-  Zap,
 } from 'lucide-react';
 import { useRouter } from 'next/router';
-import { useState } from 'react';
-import CopyToClipboardButton from '@/components/presentational/CopyToClipboardButton/CopyToClipboardButton';
-import { Tabs, TabsList, TabsTrigger } from '@/components/ui/v3/tabs';
 import {
   Tooltip,
   TooltipContent,
@@ -18,7 +13,7 @@ import {
 } from '@/components/ui/v3/tooltip';
 import { ActionsEmptyState } from '@/features/orgs/projects/actions/components/ActionsEmptyState';
 import { useGetActions } from '@/features/orgs/projects/actions/hooks/useGetActions';
-import { DEFAULT_ACTION_TIMEOUT_SECONDS } from '@/features/orgs/projects/actions/utils/constants';
+import { TextWithTooltip } from '@/features/orgs/projects/common/components/TextWithTooltip';
 import { isEmptyValue, isNotEmptyValue } from '@/lib/utils';
 import ActionDetailsSkeleton from './ActionDetailsSkeleton';
 import ActionOverview from './sections/ActionOverview';
@@ -41,8 +36,6 @@ export default function ActionDetails() {
   const action = actionsData?.actions.find(
     (actionItem) => actionItem.name === actionSlug,
   );
-
-  const [tab, setTab] = useState('overview');
 
   if (isLoading && actionSlug) {
     return <ActionDetailsSkeleton />;
@@ -82,8 +75,10 @@ export default function ActionDetails() {
     );
   }
 
-  const { definition } = action!;
+  const { comment, definition } = action!;
   const actionType = definition.type ?? 'mutation';
+  const hasHeaders = Boolean(definition.forward_client_headers);
+  const hasMetadata = isNotEmptyValue(comment) || hasHeaders;
 
   return (
     <div className="flex h-full w-full flex-col overflow-hidden bg-background">
@@ -97,53 +92,37 @@ export default function ActionDetails() {
               <h1 className="mb-1 font-semibold text-foreground text-xl">
                 {action!.name}
               </h1>
-              <p className="flex items-center gap-1.5 text-muted-foreground text-sm">
-                <Webhook className="h-3.5 w-3.5 shrink-0" />
-                <span className="truncate">{definition.handler}</span>
-                <CopyToClipboardButton
-                  textToCopy={definition.handler}
-                  title="Copy handler URL"
-                />
-              </p>
+              <Tooltip>
+                <TooltipTrigger asChild>
+                  <span className="flex w-fit cursor-default items-center gap-1.5 text-muted-foreground text-sm">
+                    {actionType === 'query' ? (
+                      <ArrowDownToLine className="h-3.5 w-3.5" />
+                    ) : (
+                      <ArrowUpFromLine className="h-3.5 w-3.5" />
+                    )}
+                    {actionType === 'query' ? 'Query' : 'Mutation'}
+                  </span>
+                </TooltipTrigger>
+                <TooltipContent>
+                  {actionType === 'query'
+                    ? 'Read-only operation'
+                    : 'Modifies data'}
+                </TooltipContent>
+              </Tooltip>
             </div>
           </div>
-          <div className="mt-3 flex flex-wrap items-center gap-x-4 gap-y-1 text-muted-foreground text-sm">
-            <Tooltip>
-              <TooltipTrigger asChild>
-                <span className="flex cursor-default items-center gap-1.5">
-                  <Braces className="h-3.5 w-3.5" />
-                  {actionType}
-                </span>
-              </TooltipTrigger>
-              <TooltipContent>Action type</TooltipContent>
-            </Tooltip>
-            {actionType === 'mutation' && (
-              <>
-                <MetadataSeparator />
-                <Tooltip>
-                  <TooltipTrigger asChild>
-                    <span className="flex cursor-default items-center gap-1.5">
-                      <Zap className="h-3.5 w-3.5" />
-                      {definition.kind ?? 'synchronous'}
-                    </span>
-                  </TooltipTrigger>
-                  <TooltipContent>Execution kind</TooltipContent>
-                </Tooltip>
-              </>
-            )}
-            <MetadataSeparator />
-            <Tooltip>
-              <TooltipTrigger asChild>
-                <span className="flex cursor-default items-center gap-1.5">
-                  <Timer className="h-3.5 w-3.5" />
-                  {definition.timeout ?? DEFAULT_ACTION_TIMEOUT_SECONDS}s
-                </span>
-              </TooltipTrigger>
-              <TooltipContent>Handler timeout</TooltipContent>
-            </Tooltip>
-            {definition.forward_client_headers && (
-              <>
-                <MetadataSeparator />
+          {hasMetadata && (
+            <div className="mt-3 flex flex-wrap items-center gap-x-4 gap-y-1 text-muted-foreground text-sm">
+              {isNotEmptyValue(comment) && (
+                <>
+                  <span className="flex min-w-0 cursor-default items-center gap-1.5">
+                    <MessageSquareText className="h-3.5 w-3.5 shrink-0" />
+                    <TextWithTooltip text={comment} className="max-w-xs" />
+                  </span>
+                  {hasHeaders && <MetadataSeparator />}
+                </>
+              )}
+              {hasHeaders && (
                 <Tooltip>
                   <TooltipTrigger asChild>
                     <span className="flex cursor-default items-center gap-1.5">
@@ -156,40 +135,18 @@ export default function ActionDetails() {
                     handler
                   </TooltipContent>
                 </Tooltip>
-              </>
-            )}
-            {isNotEmptyValue(action!.comment) && (
-              <>
-                <MetadataSeparator />
-                <Tooltip>
-                  <TooltipTrigger asChild>
-                    <span className="flex min-w-0 cursor-default items-center gap-1.5">
-                      <MessageSquareText className="h-3.5 w-3.5 shrink-0" />
-                      <span className="truncate">{action!.comment}</span>
-                    </span>
-                  </TooltipTrigger>
-                  <TooltipContent>{action!.comment}</TooltipContent>
-                </Tooltip>
-              </>
-            )}
-          </div>
+              )}
+            </div>
+          )}
         </div>
-
-        <Tabs value={tab} onValueChange={setTab} className="my-6">
-          <TabsList>
-            <TabsTrigger value="overview">Overview</TabsTrigger>
-          </TabsList>
-        </Tabs>
       </div>
 
-      {tab === 'overview' && (
-        <div className="flex-1 overflow-auto p-6">
-          <ActionOverview
-            action={action!}
-            customTypes={actionsData?.customTypes ?? {}}
-          />
-        </div>
-      )}
+      <div className="flex-1 overflow-auto p-6">
+        <ActionOverview
+          action={action!}
+          customTypes={actionsData?.customTypes ?? {}}
+        />
+      </div>
     </div>
   );
 }

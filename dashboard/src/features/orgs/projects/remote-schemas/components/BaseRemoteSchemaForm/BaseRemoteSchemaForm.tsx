@@ -1,14 +1,14 @@
 import { useEffect } from 'react';
-import { useFormState } from 'react-hook-form';
+import { useFormContext, useFormState } from 'react-hook-form';
 import * as Yup from 'yup';
 import { useDialog } from '@/components/common/DialogProvider';
 import { Form } from '@/components/form/Form';
 import { Box } from '@/components/ui/v2/Box';
 import { Button } from '@/components/ui/v2/Button';
 import { Text } from '@/components/ui/v2/Text';
+import { ForwardClientHeadersToggle } from '@/features/orgs/projects/common/components/ForwardClientHeadersToggle';
 import type { DialogFormProps } from '@/types/common';
 import AdditionalHeadersEditor from './AdditionalHeadersEditor';
-import ForwardClientHeadersToggle from './ForwardClientHeadersToggle';
 import GraphQLCustomizations from './GraphQLCustomizations';
 import GraphQLServerTimeoutInput from './GraphQLServerTimeoutInput';
 import GraphQLServiceURLInput from './GraphQLServiceURLInput';
@@ -147,6 +147,8 @@ export default function BaseRemoteSchemaForm({
   nameInputDisabled = false,
   graphQLCustomizationsSlot,
 }: BaseRemoteSchemaFormProps) {
+  const { control } = useFormContext<BaseRemoteSchemaFormValues>();
+
   return (
     <Form
       onSubmit={handleExternalSubmit}
@@ -184,7 +186,12 @@ export default function BaseRemoteSchemaForm({
           <Text variant="h4" className="font-semibold text-lg">
             Headers for remote GraphQL server
           </Text>
-          <ForwardClientHeadersToggle />
+          <ForwardClientHeadersToggle
+            control={control}
+            name="definition.forward_client_headers"
+            label="Forward all headers from client"
+            tooltip="Toggle forwarding headers sent by the client app in the request to your remote GraphQL server"
+          />
           <AdditionalHeadersEditor />
         </Box>
         <Box className="border-t-1 px-6 py-6">

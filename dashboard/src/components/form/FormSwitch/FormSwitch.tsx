@@ -20,6 +20,7 @@ interface FormSwitchProps<
   label: ReactNode;
   className?: string;
   containerClassName?: string;
+  labelClassName?: string;
   inline?: boolean;
   helperText?: string | null;
   disabled?: boolean;
@@ -35,6 +36,7 @@ function InnerFormSwitch<
     label,
     className = '',
     containerClassName = '',
+    labelClassName = '',
     inline,
     helperText,
     disabled,
@@ -53,9 +55,12 @@ function InnerFormSwitch<
           )}
         >
           <FormLabel
-            className={cn({
-              'mt-2 w-52 max-w-52 flex-shrink-0 self-start': inline,
-            })}
+            className={cn(
+              {
+                'mt-2 w-52 max-w-52 flex-shrink-0 self-start': inline,
+              },
+              labelClassName,
+            )}
           >
             {label}
           </FormLabel>

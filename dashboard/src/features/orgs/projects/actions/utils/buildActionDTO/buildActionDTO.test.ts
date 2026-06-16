@@ -153,10 +153,6 @@ describe('buildActionDTO', () => {
         type: 'mutation',
         kind: 'asynchronous',
         ignored_client_headers: ['Content-Type', 'User-Agent'],
-        response_transform: {
-          version: '2',
-          template_engine: 'Kriti',
-        },
       },
     };
 
@@ -170,12 +166,53 @@ describe('buildActionDTO', () => {
       'Content-Type',
       'User-Agent',
     ]);
-    expect(actionArgs.definition.response_transform).toEqual({
-      version: '2',
-      template_engine: 'Kriti',
-    });
     expect(actionArgs.definition.handler).toBe('https://httpbin.org/post');
     expect(actionArgs.definition.kind).toBe('synchronous');
+  });
+
+  it('builds a response transform when configured', () => {
+    const { actionArgs } = buildActionDTO({
+      formValues: {
+        ...formValues,
+        responseTransform: {
+          template: '{\n  "base": {{$body.base_code}}\n}',
+        },
+      },
+      existingCustomTypes: {},
+    });
+
+    expect(actionArgs.definition.response_transform).toEqual({
+      version: 2,
+      template_engine: 'Kriti',
+      body: {
+        action: 'transform',
+        template: '{\n  "base": {{$body.base_code}}\n}',
+      },
+    });
+  });
+
+  it('drops the response transform when the form removes it', () => {
+    const originalAction: ActionItem = {
+      name: 'actionName',
+      definition: {
+        handler: 'https://old-handler.example.com',
+        output_type: 'SampleOutput',
+        type: 'mutation',
+        response_transform: {
+          version: 2,
+          template_engine: 'Kriti',
+          body: { action: 'transform', template: '{}' },
+        },
+      },
+    };
+
+    const { actionArgs } = buildActionDTO({
+      formValues: { ...formValues, responseTransform: undefined },
+      existingCustomTypes: {},
+      originalAction,
+    });
+
+    expect(actionArgs.definition.response_transform).toBeUndefined();
   });
 
   it('preserves relationships of re-defined object types', () => {

@@ -1,7 +1,9 @@
-import { Ellipsis, SquarePen, Trash2 } from 'lucide-react';
+import { Ellipsis, SquarePen, Trash2, Users } from 'lucide-react';
 import Link from 'next/link';
 import { useRouter } from 'next/router';
 import { useRef, useState } from 'react';
+import { useDialog } from '@/components/common/DialogProvider';
+import { InlineCode } from '@/components/presentational/InlineCode';
 import { Button } from '@/components/ui/v3/button';
 import {
   DropdownMenu,
@@ -12,6 +14,7 @@ import {
 import type { BaseActionFormTriggerProps } from '@/features/orgs/projects/actions/components/BaseActionForm';
 import { DeleteActionDialog } from '@/features/orgs/projects/actions/components/DeleteActionDialog';
 import { EditActionForm } from '@/features/orgs/projects/actions/components/EditActionForm';
+import { EditActionPermissionsForm } from '@/features/orgs/projects/actions/components/EditActionPermissionsForm';
 import { TextWithTooltip } from '@/features/orgs/projects/common/components/TextWithTooltip';
 import { cn } from '@/lib/utils';
 import type { ActionItem } from '@/utils/hasura-api/generated/schemas';
@@ -32,6 +35,33 @@ export default function ActionListItem({ action }: ActionListItemProps) {
   const [isMenuOpen, setIsMenuOpen] = useState(false);
 
   const [showDeleteActionDialog, setShowDeleteActionDialog] = useState(false);
+
+  const { openDrawer, closeDrawer } = useDialog();
+
+  function handleEditPermissionsClick() {
+    openDrawer({
+      title: (
+        <span className="inline-grid grid-flow-col items-center gap-2">
+          Permissions for
+          <InlineCode className="!text-sm+ font-normal">
+            {action.name}
+          </InlineCode>
+          Action
+        </span>
+      ),
+      component: (
+        <EditActionPermissionsForm
+          actionName={action.name}
+          onCancel={closeDrawer}
+        />
+      ),
+      props: {
+        PaperProps: {
+          className: 'lg:w-[65%] lg:max-w-7xl',
+        },
+      },
+    });
+  }
 
   return (
     <>
@@ -107,6 +137,13 @@ export default function ActionListItem({ action }: ActionListItemProps) {
                 >
                   <SquarePen className="size-4" />
                   Edit Action
+                </DropdownMenuItem>
+                <DropdownMenuItem
+                  onSelect={handleEditPermissionsClick}
+                  className={menuItemClassName}
+                >
+                  <Users className="size-4" />
+                  Edit Permissions
                 </DropdownMenuItem>
                 <DropdownMenuItem
                   onSelect={() => setShowDeleteActionDialog(true)}

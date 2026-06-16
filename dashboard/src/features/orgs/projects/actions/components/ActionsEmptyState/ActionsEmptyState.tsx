@@ -15,19 +15,24 @@ export interface ActionsEmptyStateProps
    * Description of the empty state.
    */
   description: ReactNode;
+  /**
+   * Optional content rendered below the description, e.g. a call-to-action.
+   */
+  children?: ReactNode;
 }
 
 export default function ActionsEmptyState({
   title,
   description,
   className,
+  children,
   ...props
 }: ActionsEmptyStateProps) {
   return (
     <div className="h-full w-full bg-background">
       <div
         className={twMerge(
-          'grid w-full place-content-center gap-2 px-4 py-16 text-center',
+          'grid w-full place-content-center gap-6 px-4 py-16 text-center',
           className,
         )}
         {...props}
@@ -40,7 +45,11 @@ export default function ActionsEmptyState({
           {title}
         </h3>
 
-        <p className="leading-7 [&:not(:first-child)]:mt-6">{description}</p>
+        <p className="mx-auto max-w-prose leading-7">{description}</p>
+
+        {children && (
+          <div className="flex flex-col items-center gap-4">{children}</div>
+        )}
       </div>
     </div>
   );

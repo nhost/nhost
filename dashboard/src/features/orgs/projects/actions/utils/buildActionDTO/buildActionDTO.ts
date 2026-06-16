@@ -14,6 +14,7 @@ import type {
   ActionItem,
   CreateActionArgs,
   CustomTypes,
+  ResponseTransformation,
 } from '@/utils/hasura-api/generated/schemas';
 
 const FORM_OWNED_DEFINITION_KEYS = new Set([
@@ -26,6 +27,7 @@ const FORM_OWNED_DEFINITION_KEYS = new Set([
   'forward_client_headers',
   'timeout',
   'request_transform',
+  'response_transform',
 ]);
 
 export interface BuildActionDTOParams {
@@ -38,7 +40,7 @@ export interface BuildActionDTOParams {
   existingCustomTypes: CustomTypes;
   /**
    * The action being edited. Used to preserve definition fields that are not
-   * editable in the form (e.g. `ignored_client_headers`, `response_transform`).
+   * editable in the form (e.g. `ignored_client_headers`).
    */
   originalAction?: ActionItem;
 }
@@ -93,6 +95,18 @@ export default function buildActionDTO({
     ? buildRequestTransformDTO(formValues)
     : undefined;
 
+  const responseTransform: ResponseTransformation | undefined =
+    formValues.responseTransform
+      ? {
+          version: 2,
+          template_engine: 'Kriti',
+          body: {
+            action: 'transform',
+            template: formValues.responseTransform.template,
+          },
+        }
+      : undefined;
+
   const passthroughDefinitionFields = Object.fromEntries(
     Object.entries(originalAction?.definition ?? {}).filter(
       ([key]) => !FORM_OWNED_DEFINITION_KEYS.has(key),
@@ -112,6 +126,7 @@ export default function buildActionDTO({
     ...(shouldIncludeRequestTransform
       ? { request_transform: requestTransform }
       : {}),
+    ...(responseTransform ? { response_transform: responseTransform } : {}),
   };
 
   return {

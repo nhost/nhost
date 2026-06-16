@@ -128,6 +128,7 @@ components:
         - $ref: "#/components/schemas/CreateCronTriggerBulkOperation"
         - $ref: "#/components/schemas/DeleteCronTriggerOperation"
         - $ref: "#/components/schemas/ActionsBulkOperation"
+        - $ref: "#/components/schemas/ActionPermissionsBulkOperation"
         - $ref: "#/components/schemas/DropActionOperation"
         - $ref: "#/components/schemas/GetScheduledEventsOperation"
         - $ref: "#/components/schemas/GetScheduledEventInvocationsOperation"
@@ -2630,12 +2631,13 @@ components:
 
     ResponseTransformation:
       type: object
+      description: Response transformation
       properties:
         version:
           description: Sets the ResponseTransformation schema version. Version 1 uses a String for the body field and Version 2 takes a BodyTransform.
-          type: string
-          enum: ["1", "2"]
-          default: "1"
+          type: integer
+          enum: [1, 2]
+          default: 2
         body:
           description: A template script for transforming the response body.
           oneOf:
@@ -4045,3 +4047,93 @@ components:
           enum: [drop_action]
         args:
           $ref: "#/components/schemas/DropActionArgs"
+
+    ActionPermissionDefinition:
+      type: object
+      description: Action permission definition. Actions have no row/column rules, so the filter is always empty.
+      properties:
+        select:
+          type: object
+          properties:
+            filter:
+              type: object
+              additionalProperties: true
+
+    CreateActionPermissionArgs:
+      type: object
+      required:
+        - action
+        - role
+      properties:
+        action:
+          type: string
+          description: Name of the action
+          example: getExchangeRates
+        role:
+          type: string
+          description: Name of the role that is allowed to call the action
+          example: public
+        definition:
+          $ref: "#/components/schemas/ActionPermissionDefinition"
+        comment:
+          type: string
+          description: Custom comment.
+
+    DropActionPermissionArgs:
+      type: object
+      required:
+        - action
+        - role
+      properties:
+        action:
+          type: string
+          description: Name of the action
+          example: getExchangeRates
+        role:
+          type: string
+          description: Name of the role whose permission is removed
+          example: public
+
+    CreateActionPermissionStep:
+      type: object
+      description: Grant a role permission to call an action
+      required:
+        - type
+        - args
+      properties:
+        type:
+          type: string
+          enum: [create_action_permission]
+        args:
+          $ref: "#/components/schemas/CreateActionPermissionArgs"
+
+    DropActionPermissionStep:
+      type: object
+      description: Remove a role's permission to call an action
+      required:
+        - type
+        - args
+      properties:
+        type:
+          type: string
+          enum: [drop_action_permission]
+        args:
+          $ref: "#/components/schemas/DropActionPermissionArgs"
+
+    ActionPermissionsBulkOperation:
+      type: object
+      description: Grant or remove action permissions in a single call.
+      required:
+        - type
+        - args
+      properties:
+        type:
+          type: string
+          enum: [bulk]
+          description: Type of operation to manage action permissions
+        args:
+          type: array
+          items:
+            oneOf:
+              - $ref: "#/components/schemas/CreateActionPermissionStep"
+              - $ref: "#/components/schemas/DropActionPermissionStep"

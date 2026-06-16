@@ -5,7 +5,7 @@ import { useForm } from 'react-hook-form';
 import { DiscardChangesDialog } from '@/components/common/DiscardChangesDialog';
 import { FormInput } from '@/components/form/FormInput';
 import { FormSelect } from '@/components/form/FormSelect';
-import { FormSwitch } from '@/components/form/FormSwitch';
+import { FormTextarea } from '@/components/form/FormTextarea';
 import {
   Accordion,
   AccordionContent,
@@ -36,6 +36,7 @@ import { GraphQLSdlEditor } from '@/features/orgs/projects/actions/components/Gr
 import { getOverlappingCustomTypenames } from '@/features/orgs/projects/actions/utils/buildActionDTO';
 import { getActionSampleInputPayload } from '@/features/orgs/projects/actions/utils/getActionSampleInputPayload';
 import { parseActionDefinitionSdl } from '@/features/orgs/projects/actions/utils/parseActionDefinitionSdl';
+import { ForwardClientHeadersToggle } from '@/features/orgs/projects/common/components/ForwardClientHeadersToggle';
 import { InfoTooltip } from '@/features/orgs/projects/common/components/InfoTooltip';
 import { HeadersFormSection } from '@/features/orgs/projects/events/common/components/HeadersFormSection';
 import { PayloadTransformFormSection } from '@/features/orgs/projects/events/common/components/PayloadTransformFormSection';
@@ -49,6 +50,7 @@ import {
   defaultFormValues,
   defaultPayloadTransformValues,
   defaultRequestOptionsTransformValues,
+  defaultResponseTransformValues,
   validationSchema,
 } from './BaseActionFormTypes';
 
@@ -103,6 +105,9 @@ export default function BaseActionForm({
   const [isPayloadSectionOpen, setIsPayloadSectionOpen] = useState(
     Boolean(initialData?.payloadTransform),
   );
+  const [isResponseSectionOpen, setIsResponseSectionOpen] = useState(
+    Boolean(initialData?.responseTransform),
+  );
 
   const form = useForm<BaseActionFormValues>({
     resolver: zodResolver(validationSchema),
@@ -140,6 +145,7 @@ export default function BaseActionForm({
       Boolean(initialData?.requestOptionsTransform),
     );
     setIsPayloadSectionOpen(Boolean(initialData?.payloadTransform));
+    setIsResponseSectionOpen(Boolean(initialData?.responseTransform));
   }, [initialData, reset]);
 
   const openForm = useCallback(() => {
@@ -191,6 +197,7 @@ export default function BaseActionForm({
     watch('requestOptionsTransform'),
   );
   const isPayloadTransformEnabled = Boolean(watch('payloadTransform'));
+  const isResponseTransformEnabled = Boolean(watch('responseTransform'));
 
   const toggleRequestOptionsSectionOpen = useCallback(() => {
     setIsRequestOptionsSectionOpen((prev) => {
@@ -225,6 +232,22 @@ export default function BaseActionForm({
       return next;
     });
   }, [isPayloadTransformEnabled, setValue]);
+
+  const toggleResponseSectionOpen = useCallback(() => {
+    setIsResponseSectionOpen((prev) => {
+      const next = !prev;
+
+      if (next && !isResponseTransformEnabled) {
+        setValue('responseTransform', defaultResponseTransformValues, {
+          shouldDirty: true,
+        });
+      } else {
+        setValue('responseTransform', undefined, { shouldDirty: true });
+      }
+
+      return next;
+    });
+  }, [isResponseTransformEnabled, setValue]);
 
   const handleResetSampleInput = useCallback(() => {
     const values = form.getValues();
@@ -323,15 +346,22 @@ export default function BaseActionForm({
                   <Separator />
                   <FormInput
                     control={form.control}
+                    name="comment"
+                    label="Comment"
+                    placeholder="A statement to help describe the action in brief"
+                    className="max-w-lg"
+                    autoComplete="off"
+                  />
+                  <FormInput
+                    control={form.control}
                     name="webhook"
-                    placeholder="https://httpbin.org/post or {{MY_HANDLER_URL}}/handler"
+                    placeholder="https://httpbin.org/post or {{MY_WEBHOOK_URL}}/handler"
                     label={
                       <div className="flex flex-row items-center gap-2">
-                        Handler URL or template{' '}
+                        Webhook URL or template{' '}
                         <InfoTooltip>
-                          The HTTP handler that executes the action. Environment
-                          variables and secrets are available using the{' '}
-                          {'{{VARIABLE}}'} tag.
+                          Environment variables and secrets are available using
+                          the {'{{VARIABLE}}'} tag.
                         </InfoTooltip>
                       </div>
                     }
@@ -361,14 +391,6 @@ export default function BaseActionForm({
                   )}
                   <FormInput
                     control={form.control}
-                    name="comment"
-                    label="Comment"
-                    placeholder="A statement to help describe the action in brief"
-                    className="max-w-lg"
-                    autoComplete="off"
-                  />
-                  <FormInput
-                    control={form.control}
                     name="timeout"
                     type="number"
                     label={
@@ -396,20 +418,11 @@ export default function BaseActionForm({
                     <AccordionContent>
                       <div className="flex flex-col gap-8 border-l">
                         <div className="pl-4">
-                          <FormSwitch
+                          <ForwardClientHeadersToggle
                             control={form.control}
                             name="forwardClientHeaders"
-                            inline
-                            label={
-                              <div className="flex flex-row items-center gap-2">
-                                Forward client headers to webhook{' '}
-                                <InfoTooltip>
-                                  Toggle forwarding the headers sent by the
-                                  client app in the request to your action
-                                  handler.
-                                </InfoTooltip>
-                              </div>
-                            }
+                            label="Forward client headers to webhook"
+                            tooltip="Toggle forwarding the headers sent by the client app in the request to your action handler."
                           />
                         </div>
                         <Separator />
@@ -422,7 +435,7 @@ export default function BaseActionForm({
                     className="px-6"
                   >
                     <AccordionTrigger className="text-base text-foreground">
-                      Request Options
+                      Request & Response Options
                     </AccordionTrigger>
                     <AccordionContent>
                       <div className="flex flex-col gap-8 border-l">
@@ -442,7 +455,7 @@ export default function BaseActionForm({
                               variant="outline"
                               size="sm"
                               className={cn(
-                                'flex flex-row items-center gap-2 text-foreground',
+                                'flex min-w-[14rem] flex-row items-center gap-2 text-foreground',
                                 {
                                   'border-destructive text-destructive hover:bg-destructive/10 hover:text-destructive':
                                     isRequestOptionsSectionOpen,
@@ -483,7 +496,7 @@ export default function BaseActionForm({
                               variant="outline"
                               size="sm"
                               className={cn(
-                                'flex flex-row items-center gap-2 text-foreground',
+                                'flex min-w-[14rem] flex-row items-center gap-2 text-foreground',
                                 {
                                   'border-destructive text-destructive hover:bg-destructive/10 hover:text-destructive':
                                     isPayloadSectionOpen,
@@ -508,6 +521,69 @@ export default function BaseActionForm({
                             isPayloadTransformEnabled && (
                               <PayloadTransformFormSection
                                 onResetSampleInput={handleResetSampleInput}
+                              />
+                            )}
+                          {isResponseSectionOpen &&
+                            (isRequestOptionsSectionOpen ||
+                              isPayloadSectionOpen) && <Separator />}
+                          <div className="flex items-end justify-between gap-2">
+                            <div className="space-y-1">
+                              <h3 className="font-medium text-foreground">
+                                Response Transform
+                              </h3>
+                              <p className="text-muted-foreground text-sm">
+                                Transform the handler response before returning
+                                it to the client.
+                              </p>
+                            </div>
+                            <Button
+                              type="button"
+                              variant="outline"
+                              size="sm"
+                              className={cn(
+                                'flex min-w-[14rem] flex-row items-center gap-2 text-foreground',
+                                {
+                                  'border-destructive text-destructive hover:bg-destructive/10 hover:text-destructive':
+                                    isResponseSectionOpen,
+                                },
+                              )}
+                              onClick={toggleResponseSectionOpen}
+                            >
+                              {isResponseSectionOpen ? (
+                                <>
+                                  <TrashIcon className="size-4" />
+                                  <span>Remove Response Transform</span>
+                                </>
+                              ) : (
+                                <>
+                                  <PlusIcon className="size-4" />
+                                  <span>Add Response Transform</span>
+                                </>
+                              )}
+                            </Button>
+                          </div>
+                          {isResponseSectionOpen &&
+                            isResponseTransformEnabled && (
+                              <FormTextarea
+                                control={form.control}
+                                name="responseTransform.template"
+                                label={
+                                  <div className="flex flex-row items-center gap-2 text-foreground">
+                                    Response Body Transform Template
+                                    <InfoTooltip>
+                                      <p>
+                                        The Kriti template that transforms the
+                                        handler response into your action's
+                                        output type.
+                                      </p>
+                                      <p>
+                                        Use {'{{$body}}'} to access the original
+                                        response body.
+                                      </p>
+                                    </InfoTooltip>
+                                  </div>
+                                }
+                                className="min-h-[250px] max-w-lg font-mono text-foreground"
                               />
                             )}
                         </div>
