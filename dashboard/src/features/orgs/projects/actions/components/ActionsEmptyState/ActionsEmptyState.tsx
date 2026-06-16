@@ -32,23 +32,23 @@ export default function ActionsEmptyState({
     <div className="h-full w-full bg-background">
       <div
         className={twMerge(
-          'grid w-full place-content-center gap-6 px-4 py-16 text-center',
+          'flex w-full flex-col items-center px-4 py-16 text-center',
           className,
         )}
         {...props}
       >
-        <div className="mx-auto">
-          <Workflow className="h-12 w-12" />
-        </div>
+        <Workflow className="h-12 w-12" />
 
-        <h3 className="scroll-m-20 font-medium text-2xl tracking-tight">
+        <h3 className="mt-6 scroll-m-20 font-medium text-2xl tracking-tight">
           {title}
         </h3>
 
-        <p className="mx-auto max-w-prose leading-7">{description}</p>
+        <p className="mt-4 max-w-prose text-left leading-7">{description}</p>
 
         {children && (
-          <div className="flex flex-col items-center gap-4">{children}</div>
+          <div className="mt-10 flex flex-col items-center gap-4">
+            {children}
+          </div>
         )}
       </div>
     </div>

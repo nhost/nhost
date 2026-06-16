@@ -1,4 +1,4 @@
-import { ExternalLink, Plus } from 'lucide-react';
+import { Plus } from 'lucide-react';
 import type { ReactElement } from 'react';
 import { ActivityIndicator } from '@/components/ui/v2/ActivityIndicator';
 import { Box } from '@/components/ui/v2/Box';
@@ -8,6 +8,7 @@ import { ActionsBrowserSidebar } from '@/features/orgs/projects/actions/componen
 import { ActionsEmptyState } from '@/features/orgs/projects/actions/components/ActionsEmptyState';
 import type { BaseActionFormTriggerProps } from '@/features/orgs/projects/actions/components/BaseActionForm';
 import { CreateActionForm } from '@/features/orgs/projects/actions/components/CreateActionForm';
+import { NoActionsEmptyState } from '@/features/orgs/projects/actions/components/NoActionsEmptyState';
 import { useGetActions } from '@/features/orgs/projects/actions/hooks/useGetActions';
 
 const renderNewActionCta = ({ open }: BaseActionFormTriggerProps) => (
@@ -32,23 +33,7 @@ export default function ActionsPage() {
   const hasActions = (actionsData?.actions.length ?? 0) > 0;
 
   if (!hasActions) {
-    return (
-      <ActionsEmptyState
-        title="Create your first action"
-        description="Actions let you extend your GraphQL API with custom business logic running behind an HTTP webhook handler."
-      >
-        <CreateActionForm trigger={renderNewActionCta} />
-        <a
-          href="https://docs.nhost.io/products/graphql"
-          target="_blank"
-          rel="noopener noreferrer"
-          className="inline-flex items-center gap-1 font-medium text-primary hover:underline"
-        >
-          Learn more about GraphQL
-          <ExternalLink className="h-4 w-4" />
-        </a>
-      </ActionsEmptyState>
-    );
+    return <NoActionsEmptyState />;
   }
 
   return (

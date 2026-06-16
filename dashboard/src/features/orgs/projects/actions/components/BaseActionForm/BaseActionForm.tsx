@@ -32,6 +32,7 @@ import {
   SheetHeader,
   SheetTitle,
 } from '@/components/ui/v3/sheet';
+import { CopyToLlmButton } from '@/features/orgs/projects/actions/components/CopyToLlmButton';
 import { GraphQLSdlEditor } from '@/features/orgs/projects/actions/components/GraphQLSdlEditor';
 import { getOverlappingCustomTypenames } from '@/features/orgs/projects/actions/utils/buildActionDTO';
 import { getActionSampleInputPayload } from '@/features/orgs/projects/actions/utils/getActionSampleInputPayload';
@@ -303,11 +304,17 @@ export default function BaseActionForm({
                           </InfoTooltip>
                         </FormLabel>
                         <FormControl>
-                          <GraphQLSdlEditor
-                            aria-label="Action Definition"
-                            value={field.value}
-                            onChange={field.onChange}
-                          />
+                          <div className="relative">
+                            <GraphQLSdlEditor
+                              aria-label="Action Definition"
+                              value={field.value}
+                              onChange={field.onChange}
+                            />
+                            <CopyToLlmButton
+                              target="definition"
+                              className="absolute top-2 right-2 z-10"
+                            />
+                          </div>
                         </FormControl>
                         <FormMessage />
                       </FormItem>
@@ -326,11 +333,17 @@ export default function BaseActionForm({
                           </InfoTooltip>
                         </FormLabel>
                         <FormControl>
-                          <GraphQLSdlEditor
-                            aria-label="Type Configuration"
-                            value={field.value}
-                            onChange={field.onChange}
-                          />
+                          <div className="relative">
+                            <GraphQLSdlEditor
+                              aria-label="Type Configuration"
+                              value={field.value}
+                              onChange={field.onChange}
+                            />
+                            <CopyToLlmButton
+                              target="types"
+                              className="absolute top-2 right-2 z-10"
+                            />
+                          </div>
                         </FormControl>
                         {overlappingTypenames.length > 0 && (
                           <p className="text-muted-foreground text-xs">
