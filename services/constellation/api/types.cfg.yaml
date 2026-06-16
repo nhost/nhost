@@ -3,5 +3,19 @@ generate:
   models: true
 output: api/types.gen.go
 output-options:
+  # Keep schemas that aren't referenced from any operation. The spec's
+  # Hasura-mirrored schemas (PostgresEventTriggerConfEventTriggerConf,
+  # etc.) are the source of truth for the metadata wire shapes; they're
+  # consumed by the Go dispatcher even though no operation lists them
+  # as a request body.
+  #
+  # NOTE: this is global — it retains EVERY unreferenced schema, not just
+  # the event-trigger cluster. As a side effect a handful of otherwise
+  # unused schemas are also emitted as exported types: GraphQLRequest,
+  # GraphQLResponse and GraphQLError* (reachable only from the excluded
+  # `graphql`-tagged operations) plus the fully-orphan ValidationError.
+  # That dead surface is accepted as the cost of keeping the metadata wire
+  # schemas without anchoring each one to a synthetic operation.
+  skip-prune: true
   exclude-tags:
     - graphql

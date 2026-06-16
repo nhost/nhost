@@ -8,6 +8,8 @@ import (
 	json "encoding/json/v2"
 	"errors"
 	"fmt"
+
+	"github.com/nhost/nhost/services/constellation/api"
 )
 
 // errUnexpectedForeignKeyToken signals that foreign_key_constraint_on carried
@@ -51,6 +53,17 @@ type TableMetadata struct {
 	InsertPermissions   []InsertPermission   `json:"insert_permissions,omitempty"   yaml:"insert_permissions,omitempty"`
 	UpdatePermissions   []UpdatePermission   `json:"update_permissions,omitempty"   yaml:"update_permissions,omitempty"`
 	DeletePermissions   []DeletePermission   `json:"delete_permissions,omitempty"   yaml:"delete_permissions,omitempty"`
+	// EventTriggers stores the typed Hasura event-trigger config (modeled
+	// in api/openapi.yaml as PostgresEventTriggerConfEventTriggerConf).
+	// Constellation does not yet run the event delivery loop — the entries
+	// just round-trip so a future runtime can pick them up.
+	//
+	// yaml:"-" is intentional: the api type uses JSON-union helpers (e.g.
+	// PostgresSubscribeOpSpec_Columns) that the goccy/go-yaml decoder
+	// cannot resolve. File-source (YAML) projects ignore event_triggers
+	// today; the DB-source (hdb_metadata JSON) path round-trips them
+	// fully via the v2 JSON encoder.
+	EventTriggers []api.PostgresEventTriggerConfEventTriggerConf `json:"event_triggers,omitempty" yaml:"-"`
 
 	Unknown jsontext.Value `json:",unknown" yaml:"-"`
 }
@@ -326,6 +339,116 @@ func parsePermissionColumnsJSON(value jsontext.Value) ([]string, error) {
 	}
 }
 
+// permissionColumnsValue renders a stored column list as Hasura emits it: the
+// bare "*" wildcard when the list is exactly ["*"] (Constellation stores the
+// wildcard as a one-element slice), the array otherwise, and omitted when empty.
+// ok is false when the field should be omitted.
+func permissionColumnsValue(cols []string) (any, bool) {
+	switch {
+	case len(cols) == 1 && cols[0] == permissionAllColumns:
+		return permissionAllColumns, true
+	case len(cols) > 0:
+		return cols, true
+	default:
+		return nil, false
+	}
+}
+
+// marshalPermissionConfig re-emits captured unknown sibling keys and marshals the
+// assembled permission object deterministically. A custom MarshalJSON bypasses
+// the struct's ,unknown handling, so unknown keys are merged here by hand.
+func marshalPermissionConfig(out map[string]any, unknown jsontext.Value) ([]byte, error) {
+	if len(unknown) > 0 {
+		var extra map[string]jsontext.Value
+		if err := json.Unmarshal(unknown, &extra); err != nil {
+			return nil, fmt.Errorf("marshaling permission unknown fields: %w", err)
+		}
+
+		for k, v := range extra {
+			out[k] = v
+		}
+	}
+
+	b, err := json.Marshal(out, json.Deterministic(true))
+	if err != nil {
+		return nil, fmt.Errorf("marshaling permission config: %w", err)
+	}
+
+	return b, nil
+}
+
+// MarshalJSON emits the select permission as Hasura does, preserving the "*"
+// columns wildcard rather than expanding it to ["*"]. filter / allow_aggregations
+// follow the struct tags' omitzero semantics (nil / false omitted; empty {} /
+// true kept).
+func (p SelectPermissionConfig) MarshalJSON() ([]byte, error) {
+	out := map[string]any{}
+
+	if v, ok := permissionColumnsValue(p.Columns); ok {
+		out["columns"] = v
+	}
+
+	if p.Filter != nil {
+		out["filter"] = p.Filter
+	}
+
+	if p.AllowAggregations {
+		out["allow_aggregations"] = true
+	}
+
+	return marshalPermissionConfig(out, p.Unknown)
+}
+
+// MarshalJSON emits the insert permission as Hasura does, preserving the "*"
+// columns wildcard. check / set follow omitzero semantics.
+func (p InsertPermissionConfig) MarshalJSON() ([]byte, error) {
+	out := map[string]any{}
+
+	if v, ok := permissionColumnsValue(p.Columns); ok {
+		out["columns"] = v
+	}
+
+	if p.Check != nil {
+		out["check"] = p.Check
+	}
+
+	if p.Set != nil {
+		out["set"] = p.Set
+	}
+
+	return marshalPermissionConfig(out, p.Unknown)
+}
+
+// MarshalJSON emits the update permission as Hasura does: the "*" columns
+// wildcard is preserved, and `check` is ALWAYS present (null when unset) because
+// Hasura includes it on every update permission. filter / set follow omitzero.
+func (p UpdatePermissionConfig) MarshalJSON() ([]byte, error) {
+	out := map[string]any{}
+
+	// json/v2 marshals a nil map as `{}`, but Hasura emits an absent check as
+	// `null`, so emit an explicit untyped nil for the unset case. A present-but-
+	// empty `{}` check is preserved.
+	if p.Check == nil {
+		out["check"] = nil
+	} else {
+		out["check"] = p.Check
+	}
+
+	if v, ok := permissionColumnsValue(p.Columns); ok {
+		out["columns"] = v
+	}
+
+	if p.Filter != nil {
+		out["filter"] = p.Filter
+	}
+
+	if p.Set != nil {
+		out["set"] = p.Set
+	}
+
+	return marshalPermissionConfig(out, p.Unknown)
+}
+
 // InsertPermissionConfig captures the columns, row-level check, and presets an
 // insert permission grants.
 type InsertPermissionConfig struct {
@@ -482,16 +605,18 @@ type DeletePermissionConfig struct {
 
 // ObjectRelationship is a many-to-one relationship from this table to another.
 type ObjectRelationship struct {
-	Name  string            `json:"name"  yaml:"name"`
-	Using RelationshipUsing `json:"using" yaml:"using"`
+	Name    string            `json:"name"              yaml:"name"`
+	Using   RelationshipUsing `json:"using"             yaml:"using"`
+	Comment string            `json:"comment,omitempty" yaml:"comment,omitempty"`
 
 	Unknown jsontext.Value `json:",unknown" yaml:"-"`
 }
 
 // ArrayRelationship is a one-to-many relationship from this table to another.
 type ArrayRelationship struct {
-	Name  string            `json:"name"  yaml:"name"`
-	Using RelationshipUsing `json:"using" yaml:"using"`
+	Name    string            `json:"name"              yaml:"name"`
+	Using   RelationshipUsing `json:"using"             yaml:"using"`
+	Comment string            `json:"comment,omitempty" yaml:"comment,omitempty"`
 
 	Unknown jsontext.Value `json:",unknown" yaml:"-"`
 }
@@ -718,12 +843,14 @@ func unmarshalForeignKeyConstraintJSON(data []byte) (*ForeignKeyConstraint, erro
 // for a composite FK on the parent, or an object with `column(s)` and `table`
 // for an FK on the target table. ManualConfiguration is emitted alongside
 // when present, mirroring the input structure. Keys are emitted in
-// deterministic (sorted) order so the export is byte-stable across processes.
+// deterministic (sorted) order so the export is byte-stable across processes:
+// a custom MarshalJSON does not inherit the parent encoder's options, so this
+// map must set json.Deterministic itself (see ToJSON's note).
 func (r RelationshipUsing) MarshalJSON() ([]byte, error) {
 	out := map[string]any{}
 
-	// Merge any captured unknown sibling keys; they never collide with the
-	// modeled keys below (the unknown sink excludes both modeled fields).
+	// Re-emit any captured unknown sibling keys first; the modeled keys below
+	// never collide with them (the unknown sink excludes both modeled fields).
 	if len(r.Unknown) > 0 {
 		var extra map[string]jsontext.Value
 		if err := json.Unmarshal(r.Unknown, &extra); err != nil {
@@ -750,7 +877,8 @@ func (r RelationshipUsing) MarshalJSON() ([]byte, error) {
 
 	// Deterministic so the export is byte-stable across processes: json/v2
 	// otherwise emits this map's keys in randomized order whenever an unknown
-	// sibling key accompanies a modeled one.
+	// sibling key accompanies a modeled one, and the parent encoder's option
+	// does not propagate into a custom MarshalJSON.
 	b, err := json.Marshal(out, json.Deterministic(true))
 	if err != nil {
 		return nil, fmt.Errorf("marshaling relationship using: %w", err)
@@ -785,6 +913,40 @@ type ForeignKeyConstraint struct {
 	Table   TableSource `json:"table"   yaml:"table"`
 
 	Unknown jsontext.Value `json:",unknown" yaml:"-"`
+}
+
+// MarshalJSON emits the target-table FK shape exactly as Hasura does: a singular
+// `column` (bare string) for a single-column FK and `columns` (array) only for a
+// composite one. Constellation stores both in Columns, but a faithful drop-in
+// export must distinguish them on the wire. A custom MarshalJSON does not inherit
+// the parent encoder's options, so set json.Deterministic here for byte-stable
+// key order.
+func (f ForeignKeyConstraint) MarshalJSON() ([]byte, error) {
+	out := map[string]any{"table": f.Table}
+
+	if len(f.Columns) == 1 {
+		out["column"] = f.Columns[0]
+	} else {
+		out["columns"] = f.Columns
+	}
+
+	if len(f.Unknown) > 0 {
+		var extra map[string]jsontext.Value
+		if err := json.Unmarshal(f.Unknown, &extra); err != nil {
+			return nil, fmt.Errorf("marshaling foreign_key_constraint_on unknown fields: %w", err)
+		}
+
+		for k, v := range extra {
+			out[k] = v
+		}
+	}
+
+	b, err := json.Marshal(out, json.Deterministic(true))
+	if err != nil {
+		return nil, fmt.Errorf("marshaling foreign_key_constraint_on: %w", err)
+	}
+
+	return b, nil
 }
 
 // RemoteRelationship represents a cross-database relationship in Hasura format.
@@ -847,13 +1009,10 @@ type ToSourceRelationship struct {
 // preserved verbatim; the native metadata package handles the flattening and
 // the SQL→GraphQL column rename during conversion.
 //
-// The conversion is idempotent: a remote relationship whose name already
-// appears in ObjectRelationships or ArrayRelationships is skipped, so
-// re-parsing an input that already carries both forms does not double-append.
-// Round-trip stability is provided separately by withoutDerivedRelationships
-// in ToJSON, which strips the lowered duplicates before marshaling (so the
-// guard never fires on the round-trip path — only on an input blob that
-// genuinely carries an object/array and a remote relationship of one name).
+// The conversion is idempotent: a remote relationship whose name is already
+// present in ObjectRelationships or ArrayRelationships is skipped. This
+// keeps FromJSON ∘ ToJSON ∘ FromJSON stable, since ToJSON emits both the
+// auto-lowered relationships and the originals.
 func (t *TableMetadata) convertRemoteRelationships() {
 	existing := make(map[string]struct{}, len(t.ObjectRelationships)+len(t.ArrayRelationships))
 	for _, r := range t.ObjectRelationships {
@@ -906,12 +1065,14 @@ func (t *TableMetadata) appendToSourceRelationship(remote RemoteRelationship) {
 		t.ObjectRelationships = append(t.ObjectRelationships, ObjectRelationship{
 			Name:    remote.Name,
 			Using:   using,
+			Comment: "",
 			Unknown: nil,
 		})
 	case relationshipTypeArray:
 		t.ArrayRelationships = append(t.ArrayRelationships, ArrayRelationship{
 			Name:    remote.Name,
 			Using:   using,
+			Comment: "",
 			Unknown: nil,
 		})
 	default:
@@ -943,6 +1104,7 @@ func (t *TableMetadata) appendToRemoteSchemaRelationship(remote RemoteRelationsh
 			},
 			Unknown: nil,
 		},
+		Comment: "",
 		Unknown: nil,
 	})
 }
