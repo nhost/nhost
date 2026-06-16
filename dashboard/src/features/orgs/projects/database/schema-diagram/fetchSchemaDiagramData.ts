@@ -30,8 +30,12 @@ export interface SchemaDiagramForeignKey {
 export interface SchemaDiagramFunctionReturnType {
   schema: string;
   name: string;
+  oid?: string;
   returnType: string;
   returnsSet: boolean;
+  isVolatile: boolean;
+  returnSchema?: string;
+  returnTable?: string;
 }
 
 export interface SchemaDiagramData {
@@ -126,10 +130,18 @@ const FUNCTION_RETURN_TYPE_QUERY = `
     SELECT DISTINCT ON (n.nspname, p.proname)
       n.nspname AS schema,
       p.proname AS name,
+      p.oid AS oid,
       pg_catalog.format_type(p.prorettype, NULL) AS return_type,
-      p.proretset AS returns_set
+      p.proretset AS returns_set,
+      p.provolatile AS provolatile,
+      ret_n.nspname AS return_schema,
+      ret_c.relname AS return_table
     FROM pg_proc p
     JOIN pg_namespace n ON n.oid = p.pronamespace
+    LEFT JOIN pg_type  ret_t ON ret_t.oid = p.prorettype
+    LEFT JOIN pg_class ret_c ON ret_c.oid = ret_t.typrelid
+      AND ret_c.relkind IN ('r', 'p', 'v', 'm', 'f')
+    LEFT JOIN pg_namespace ret_n ON ret_n.oid = ret_c.relnamespace
     WHERE n.nspname NOT LIKE 'pg_%'
       AND n.nspname NOT LIKE 'hdb_%'
       AND n.nspname != 'information_schema'
@@ -162,8 +174,12 @@ interface RawForeignKey {
 interface RawFunctionReturnType {
   schema: string;
   name: string;
+  oid: string;
   return_type: string;
   returns_set: boolean;
+  provolatile: string;
+  return_schema: string | null;
+  return_table: string | null;
 }
 
 export interface FetchSchemaDiagramDataArgs {
@@ -245,8 +261,12 @@ export default async function fetchSchemaDiagramData({
       return {
         schema: row.schema,
         name: row.name,
+        oid: row.oid != null ? String(row.oid) : undefined,
         returnType: row.return_type,
         returnsSet: row.returns_set,
+        isVolatile: row.provolatile === 'v',
+        returnSchema: row.return_schema ?? undefined,
+        returnTable: row.return_table ?? undefined,
       };
     });
 
