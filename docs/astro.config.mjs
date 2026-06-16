@@ -118,6 +118,7 @@ export default defineConfig({
                   label: 'Quickstart',
                   collapsed: false,
                   items: [
+                    { slug: 'getting-started/quickstart/cli' },
                     { slug: 'getting-started/quickstart/react' },
                     { slug: 'getting-started/quickstart/nextjs' },
                     { slug: 'getting-started/quickstart/vue' },
