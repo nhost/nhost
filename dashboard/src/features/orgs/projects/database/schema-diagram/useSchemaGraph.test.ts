@@ -1466,8 +1466,6 @@ describe('useSchemaGraph', () => {
       expect(fnEdge?.target).toBe(nodeIdFor('public', 'users'));
       expect(fnEdge?.sourceHandle).toBe(FUNCTION_SOURCE_HANDLE_ID);
       expect(fnEdge?.targetHandle).toBe(TABLE_ROW_HANDLE_ID);
-      // Distinct double-chevron marker, and a solid line (no dash) so it is not
-      // confused with a selected/animated edge.
       expect(fnEdge?.markerEnd).toBe(EDGE_MARKER_IDS.functionArrow);
       expect(fnEdge?.style?.strokeDasharray).toBeUndefined();
     });

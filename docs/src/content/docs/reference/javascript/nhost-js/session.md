@@ -505,7 +505,7 @@ Set the session in storage
 ## ~~Session~~
 
 ```ts
-type Session = StoredSession
+type Session = StoredSession;
 ```
 
 ### Deprecated
@@ -521,7 +521,7 @@ is the enriched client-side session that includes `decodedToken`.
 ## SessionChangeCallback
 
 ```ts
-type SessionChangeCallback = (session: StoredSession | null) => void
+type SessionChangeCallback = (session: StoredSession | null) => void;
 ```
 
 Callback function type for session change subscriptions
@@ -541,7 +541,7 @@ Callback function type for session change subscriptions
 ## DEFAULT_SESSION_KEY
 
 ```ts
-const DEFAULT_SESSION_KEY: 'nhostSession' = 'nhostSession'
+const DEFAULT_SESSION_KEY: "nhostSession" = "nhostSession";
 ```
 
 Default storage key used for storing the Nhost session
@@ -551,7 +551,7 @@ Default storage key used for storing the Nhost session
 ## detectStorage()
 
 ```ts
-function detectStorage(): SessionStorageBackend
+function detectStorage(): SessionStorageBackend;
 ```
 
 Detects the best available storage implementation for the current environment.
@@ -575,8 +575,8 @@ The best available storage implementation as a SessionStorageBackend
 function refreshSession(
   auth: Client,
   storage: SessionStorage,
-  marginSeconds?: number
-): Promise<StoredSession | null>
+  marginSeconds?: number,
+): Promise<StoredSession | null>;
 ```
 
 Refreshes the authentication session if needed

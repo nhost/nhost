@@ -2,7 +2,6 @@ package requestcontext_test
 
 import (
 	"context"
-	"log/slog"
 	"net/http"
 	"net/http/httptest"
 	"testing"
@@ -97,69 +96,6 @@ func TestClientHeadersFromContext(t *testing.T) {
 	}
 }
 
-func TestLoggerFromContext(t *testing.T) {
-	t.Parallel()
-
-	logger := slog.New(slog.DiscardHandler)
-	ginLogger := slog.New(slog.DiscardHandler)
-
-	tests := []struct {
-		name       string
-		ctxBuilder func(t *testing.T) context.Context
-		// want is the exact logger pointer expected back, or nil to assert only
-		// that a non-nil fallback is returned.
-		want *slog.Logger
-	}{
-		{
-			name: "round trip",
-			ctxBuilder: func(t *testing.T) context.Context {
-				t.Helper()
-				return requestcontext.LoggerToContext(t.Context(), logger)
-			},
-			want: logger,
-		},
-		{
-			name: "missing returns default",
-			ctxBuilder: func(t *testing.T) context.Context {
-				t.Helper()
-				return t.Context()
-			},
-			want: nil,
-		},
-		{
-			name: "gin context unwrap",
-			ctxBuilder: func(t *testing.T) context.Context {
-				t.Helper()
-
-				return ginContextWith(
-					requestcontext.LoggerToContext(t.Context(), ginLogger),
-					t,
-				)
-			},
-			want: ginLogger,
-		},
-	}
-
-	for _, tt := range tests {
-		t.Run(tt.name, func(t *testing.T) {
-			t.Parallel()
-
-			got := requestcontext.LoggerFromContext(tt.ctxBuilder(t))
-
-			if got == nil {
-				t.Fatal("expected non-nil logger")
-			}
-
-			if tt.want != nil && got != tt.want {
-				t.Errorf("expected to retrieve same logger pointer")
-			}
-		})
-	}
-}
-
-// Compile-time guard that the helper signatures we rely on actually accept
+// Compile-time guard that the helper signature we rely on actually accepts
 // context.Context (rather than only *gin.Context or vice versa).
-var (
-	_ func(context.Context) http.Header  = requestcontext.ClientHeadersFromContext
-	_ func(context.Context) *slog.Logger = requestcontext.LoggerFromContext
-)
+var _ func(context.Context) http.Header = requestcontext.ClientHeadersFromContext

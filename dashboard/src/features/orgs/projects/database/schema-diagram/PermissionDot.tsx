@@ -27,11 +27,6 @@ export interface PermissionDotProps {
   state: PermissionDotState;
   size?: number;
   className?: string;
-  /**
-   * Overrides the accessible label and tooltip. Use when the dot's state has a
-   * context-specific meaning (e.g. a function's `hollow` dot does not mean "row
-   * filter"). Falls back to the action/state-derived label when omitted.
-   */
   label?: string;
 }
 

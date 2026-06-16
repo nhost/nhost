@@ -43,7 +43,6 @@ function renderNode(
           id={`fn:${data.schema}.${data.name}`}
           type="functionNode"
           data={data}
-          // The remaining NodeProps fields are not read by the view.
           // biome-ignore lint/suspicious/noExplicitAny: test stub for unused NodeProps fields.
           {...({} as any)}
         />

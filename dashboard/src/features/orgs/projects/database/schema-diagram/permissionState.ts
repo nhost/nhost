@@ -150,7 +150,7 @@ export function isOperationAllowed(
     return false;
   }
 
-  // Hasura only restricts root fields for select; insert/update/delete are
+  // Root-field restrictions apply only to select; insert/update/delete are
   // all-or-nothing at the action level.
   if (action !== 'select') {
     return true;
@@ -204,19 +204,10 @@ export interface FunctionPermissionDotInput {
 }
 
 export interface FunctionPermissionDotResult {
-  /** The function's effective access state, matching the Edit Permissions form. */
   state: PermissionState;
-  /** The dot rendering of `state`: allowed→filled, partial→hollow, not-allowed→none. */
   dot: PermissionDotState;
 }
 
-/**
- * Resolves the select-dot state for a set-returning function node, mirroring the
- * Edit Function Permissions form. Delegates to the shared `getFunctionPermissionState`
- * so the diagram and the form never disagree: when Hasura's `infer_function_permissions`
- * is off (or the function is a mutation), access requires an explicit function
- * permission rather than the return table's select permission.
- */
 export function getFunctionPermissionDotState({
   role,
   inferFunctionPermissions,

@@ -10,7 +10,7 @@ import (
 	"net/http"
 	"strings"
 
-	"github.com/nhost/nhost/services/constellation/internal/requestcontext"
+	oapimw "github.com/nhost/nhost/internal/lib/oapi/middleware"
 )
 
 // clientHeadersIgnored is the list of headers that must not be forwarded to
@@ -138,7 +138,7 @@ func (h *httpClient) do(
 		// Never echo the upstream body into the client-facing error: it can
 		// carry internal hostnames, stack traces, or framework error pages.
 		// Retain the full detail server-side for debugging instead.
-		requestcontext.LoggerFromContext(ctx).ErrorContext(
+		oapimw.LoggerFromContext(ctx).ErrorContext(
 			ctx,
 			"remote schema returned non-200 status",
 			slog.String("url", h.url),

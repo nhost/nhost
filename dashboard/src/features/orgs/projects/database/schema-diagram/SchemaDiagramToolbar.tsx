@@ -1,4 +1,4 @@
-import { Info, Plus, Search, SquareFunction, Table2 } from 'lucide-react';
+import { Info, Plus, Search } from 'lucide-react';
 import { useMemo, useState } from 'react';
 import { Button } from '@/components/ui/v3/button';
 import {
@@ -28,7 +28,11 @@ import {
   SelectTrigger,
   SelectValue,
 } from '@/components/ui/v3/select';
-import type { DatabaseAction } from '@/features/orgs/projects/database/dataGrid/types/dataBrowser';
+import type {
+  DatabaseAction,
+  TableLikeObjectType,
+} from '@/features/orgs/projects/database/dataGrid/types/dataBrowser';
+import { getDatabaseObjectIcon } from '@/features/orgs/projects/database/dataGrid/utils/getDatabaseObjectIcon';
 import HideEmptyTablesSwitch from './HideEmptyTablesSwitch';
 import NamingModeSwitch from './NamingModeSwitch';
 import PermissionDot from './PermissionDot';
@@ -39,11 +43,11 @@ export interface SchemaDiagramSearchObject {
   schema: string;
   name: string;
   kind: 'table' | 'function';
-  /**
-   * For functions, the schema of the table the function returns rows of, so
-   * the caller can reveal it when focusing the node.
-   */
   returnSchema?: string;
+  /** Table-like object type, used to pick the row icon. Omitted for functions. */
+  objectType?: TableLikeObjectType;
+  /** Whether the table is an enum table (changes the icon). */
+  isEnum?: boolean;
 }
 
 export interface SchemaDiagramToolbarProps {
@@ -70,6 +74,8 @@ const legendItems: Array<{ action: DatabaseAction; label: string }> = [
   { action: 'update', label: 'Update' },
   { action: 'delete', label: 'Delete' },
 ];
+
+const FunctionIcon = getDatabaseObjectIcon('FUNCTION', false);
 
 export default function SchemaDiagramToolbar({
   roles,
@@ -169,7 +175,12 @@ export default function SchemaDiagramToolbar({
                   <CommandGroup key={schema} heading={schema}>
                     {items.map((object) => {
                       const ObjectIcon =
-                        object.kind === 'function' ? SquareFunction : Table2;
+                        object.kind === 'function'
+                          ? FunctionIcon
+                          : getDatabaseObjectIcon(
+                              object.objectType ?? 'ORDINARY TABLE',
+                              object.isEnum ?? false,
+                            );
                       return (
                         <CommandItem
                           key={`${object.kind}:${object.schema}.${object.name}`}
@@ -354,7 +365,7 @@ export default function SchemaDiagramToolbar({
                 <ul className="space-y-1.5">
                   <li className="flex items-center gap-2">
                     <span className="flex w-14 shrink-0 justify-center">
-                      <SquareFunction
+                      <FunctionIcon
                         aria-hidden="true"
                         className="h-4 w-4 text-muted-foreground"
                       />

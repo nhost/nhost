@@ -23,6 +23,7 @@ import { useGetTrackedTablesSet } from '@/features/orgs/projects/database/dataGr
 import type {
   DatabaseObjectViewModel,
   HasuraMetadataTable,
+  TableLikeObjectType,
 } from '@/features/orgs/projects/database/dataGrid/types/dataBrowser';
 import { sortDatabaseObjects } from '@/features/orgs/projects/database/dataGrid/utils/sortDatabaseObjects';
 import { useLocalMimirClient } from '@/features/orgs/projects/hooks/useLocalMimirClient';
@@ -197,10 +198,6 @@ function SchemaDiagramContent() {
     error: rolesError,
   } = useGetRemoteAppRolesQuery({ client: gqlClient });
 
-  // Same source as the Edit Function Permissions form, so the diagram's function
-  // permission dots and the form never disagree. Not added to the loading gate:
-  // the role defaults to admin (always allowed), so this only affects non-admin
-  // dots, by which time the small/cached settings query has resolved.
   const { project } = useProject();
   const isPlatform = useIsPlatform();
   const localMimirClient = useLocalMimirClient();
@@ -512,19 +509,34 @@ function SchemaDiagramContent() {
 
   const searchableObjects = useMemo<SchemaDiagramSearchObject[]>(() => {
     const byId = new Map<string, SchemaDiagramSearchObject>();
+    const objectTypeByKey = new Map<string, TableLikeObjectType>();
+    for (const obj of databaseData?.tableLikeObjects ?? []) {
+      objectTypeByKey.set(
+        `${obj.table_schema}.${obj.table_name}`,
+        obj.table_type || 'ORDINARY TABLE',
+      );
+    }
+    const tableSearchObject = (
+      schema: string,
+      name: string,
+    ): SchemaDiagramSearchObject => ({
+      kind: 'table',
+      schema,
+      name,
+      objectType: objectTypeByKey.get(`${schema}.${name}`) ?? 'ORDINARY TABLE',
+      isEnum: enumTablesSet?.has(`${schema}.${name}`) ?? false,
+    });
     for (const c of schemaData?.columns ?? []) {
-      byId.set(`table:${c.schema}.${c.table}`, {
-        kind: 'table',
-        schema: c.schema,
-        name: c.table,
-      });
+      byId.set(
+        `table:${c.schema}.${c.table}`,
+        tableSearchObject(c.schema, c.table),
+      );
     }
     for (const t of metadataTables ?? []) {
-      byId.set(`table:${t.table.schema}.${t.table.name}`, {
-        kind: 'table',
-        schema: t.table.schema,
-        name: t.table.name,
-      });
+      byId.set(
+        `table:${t.table.schema}.${t.table.name}`,
+        tableSearchObject(t.table.schema, t.table.name),
+      );
     }
     for (const fn of schemaData?.functionReturnTypes ?? []) {
       if (fn.returnsSet && fn.returnTable && fn.returnSchema) {
@@ -541,7 +553,13 @@ function SchemaDiagramContent() {
         ? a.name.localeCompare(b.name)
         : a.schema.localeCompare(b.schema),
     );
-  }, [schemaData?.columns, schemaData?.functionReturnTypes, metadataTables]);
+  }, [
+    schemaData?.columns,
+    schemaData?.functionReturnTypes,
+    metadataTables,
+    databaseData?.tableLikeObjects,
+    enumTablesSet,
+  ]);
 
   if (metadataLoading || columnsLoading || rolesLoading) {
     return (

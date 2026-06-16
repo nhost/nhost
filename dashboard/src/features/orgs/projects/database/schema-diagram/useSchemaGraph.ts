@@ -51,21 +51,13 @@ export type TableNode = Node<TableNodeData, 'tableNode'>;
 export interface FunctionNodeData extends Record<string, unknown> {
   schema: string;
   name: string;
-  /** Function OID, needed to edit/track/delete the function from the diagram. */
   oid: string | undefined;
-  /** Custom GraphQL root-field name, when the tracked function defines one. */
   graphqlName: string | undefined;
-  /** Postgres name of the table the function returns `SETOF`. */
   returnTablePostgres: string;
-  /** GraphQL name of the returned table, when it has a custom name. */
   returnTableGraphql: string | undefined;
-  /** Metadata of the returned table, used to derive the select permission dot. */
   returnTableMetadata: HasuraMetadataTable | undefined;
-  /** Whether Hasura's `infer_function_permissions` is enabled (global setting). */
   inferFunctionPermissions: boolean;
-  /** Whether the function is exposed as a mutation (`exposed_as: mutation`, or volatile by default). */
   isMutationFunction: boolean;
-  /** Whether the selected role has an explicit function permission. */
   hasFunctionPermission: boolean;
   isUntracked: boolean;
   role: string;
@@ -83,7 +75,6 @@ export interface UseSchemaGraphInput {
   foreignKeys: SchemaDiagramForeignKey[];
   functionReturnTypes: SchemaDiagramFunctionReturnType[];
   functionsMetadata: ExportMetadataResponseMetadataSourcesItemFunctionsItem[];
-  /** Hasura's `infer_function_permissions` setting; defaults to off. */
   inferFunctionPermissions?: boolean;
   role: string;
   visibleSchemas: Set<string>;
@@ -101,13 +92,10 @@ export function nodeIdFor(schema: string, table: string): string {
   return `${schema}.${table}`;
 }
 
-/** Function node ids are namespaced so they never collide with a table that
- * happens to share the function's schema-qualified name. */
 export function functionNodeIdFor(schema: string, name: string): string {
   return `fn:${schema}.${name}`;
 }
 
-/** Handle ids for the function → return-table edge. */
 export const FUNCTION_SOURCE_HANDLE_ID = 'source-__fn__';
 export const TABLE_ROW_HANDLE_ID = 'target-__row__';
 
@@ -179,12 +167,6 @@ function specToEdge(spec: EdgeSpec): Edge {
   };
 }
 
-/**
- * Builds the edge linking a set-returning function node to the table it returns
- * rows of. A distinct double-chevron arrow head sets it apart from foreign-key
- * relationship edges (single filled/hollow arrows). It stays a solid line so it
- * never reads as a selected edge — selection animates edges into dashes.
- */
 function functionEdge(fnNodeId: string, returnNodeId: string): Edge {
   const data: FunctionEdgeData = { isFunctionEdge: true };
   return {
@@ -607,10 +589,6 @@ export default function useSchemaGraph({
           )
         : layoutEdges;
 
-    // Set-returning functions become their own nodes linked to the table whose
-    // rows they return. We only add a node when the function's schema is
-    // visible and the return table is itself a visible node, so there are no
-    // dangling edges.
     const functionEdges: Edge[] = [];
     const functionNodeHeight = computeNodeHeight(1);
     for (const fn of functionReturnTypes) {
@@ -629,9 +607,6 @@ export default function useSchemaGraph({
       const fnMeta = functionMetaById.get(nodeIdFor(fn.schema, fn.name));
       const config = fnMeta?.configuration;
       const returnTableMetadata = metadataByTableId.get(returnNodeId);
-      // Hasura exposes a function as a mutation when `exposed_as` says so, or —
-      // when unset — when the function is volatile. Mutations always need an
-      // explicit permission, even with `infer_function_permissions` on.
       const exposedAs = config?.exposed_as;
       const isMutationFunction =
         exposedAs === 'mutation' || (exposedAs == null && fn.isVolatile);
@@ -661,17 +636,12 @@ export default function useSchemaGraph({
         position: { x: 0, y: 0 },
         initialWidth: TABLE_NODE_WIDTH,
         initialHeight: functionNodeHeight,
-        // Stamp the rendered size so the smart-edge router treats the function
-        // card as an obstacle too (see the table nodes above).
         measured: { width: TABLE_NODE_WIDTH, height: functionNodeHeight },
         data,
       });
       functionEdges.push(functionEdge(fnNodeId, returnNodeId));
     }
 
-    // Displayed edges follow the naming mode; layout always uses the stable
-    // postgres edge set so toggling modes never repositions nodes. Function
-    // edges are naming-mode independent, so they feed both.
     const edges = [...fkEdges, ...functionEdges];
 
     const layoutRowCountByNodeId = new Map<string, number>();

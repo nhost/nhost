@@ -1,6 +1,7 @@
 import useMediaQuery from '@mui/material/useMediaQuery';
 import type { PropsWithChildren } from 'react';
 import { useCallback, useEffect, useMemo, useState } from 'react';
+import { COLOR_PREFERENCE_STORAGE_KEY } from '@/utils/constants/common';
 import ColorPreferenceContext from './ColorPreferenceContext';
 
 export interface ColorPreferenceProviderProps
@@ -8,14 +9,14 @@ export interface ColorPreferenceProviderProps
   /**
    * The key used to store the color preference in the local storage.
    *
-   * @default 'color-preference'
+   * @default COLOR_PREFERENCE_STORAGE_KEY
    */
   colorPreferenceStorageKey?: string;
 }
 
 function ColorPreferenceProvider({
   children,
-  colorPreferenceStorageKey = 'color-mode',
+  colorPreferenceStorageKey = COLOR_PREFERENCE_STORAGE_KEY,
 }: ColorPreferenceProviderProps) {
   const [colorPreference, setColorPreference] = useState<
     'light' | 'dark' | 'system'
