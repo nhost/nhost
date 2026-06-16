@@ -19,6 +19,10 @@ const (
 	opDropRemoteSchemaPermissions = "drop_remote_schema_permissions"
 	opIntrospectRemoteSchema      = "introspect_remote_schema"
 	opReloadRemoteSchema          = "reload_remote_schema"
+
+	opCreateRemoteSchemaRemoteRelationship = "create_remote_schema_remote_relationship"
+	opUpdateRemoteSchemaRemoteRelationship = "update_remote_schema_remote_relationship"
+	opDeleteRemoteSchemaRemoteRelationship = "delete_remote_schema_remote_relationship"
 )
 
 // ErrRemoteSchemaNotFound is returned by remove/update/permission ops when no
@@ -509,6 +513,217 @@ func (s *Store) ReloadRemoteSchema(
 	}
 
 	return map[string]any{"message": "success"}, nil
+}
+
+// remoteSchemaRemoteRelationshipArgs is the {remote_schema, type_name, name,
+// definition} envelope for create/update_remote_schema_remote_relationship.
+// delete omits definition.
+type remoteSchemaRemoteRelationshipArgs struct {
+	RemoteSchema string                                    `json:"remote_schema"`
+	TypeName     string                                    `json:"type_name"`
+	Name         string                                    `json:"name"`
+	Definition   hasura.RemoteSchemaRelationshipDefinition `json:"definition"`
+}
+
+func (a remoteSchemaRemoteRelationshipArgs) validate(op string, requireDef bool) error {
+	if a.RemoteSchema == "" || a.TypeName == "" || a.Name == "" {
+		return fmt.Errorf(
+			"%w: %s: remote_schema, type_name and name are required", errMissingRequiredField, op,
+		)
+	}
+
+	if requireDef {
+		hasSource := a.Definition.ToSource != nil
+		hasRemote := a.Definition.ToRemoteSchema != nil
+		if hasSource == hasRemote {
+			return fmt.Errorf(
+				"%w: %s: definition must set exactly one of to_source or to_remote_schema",
+				errMissingRequiredField, op,
+			)
+		}
+	}
+
+	return nil
+}
+
+// findRemoteSchemaTypeRel returns the relationships block for a type name on a
+// remote schema, or nil when the type has no relationships yet.
+func findRemoteSchemaTypeRel(
+	rs *hasura.RemoteSchemaMetadata, typeName string,
+) *hasura.RemoteSchemaTypeRemoteRelationship {
+	for i := range rs.RemoteRelationships {
+		if rs.RemoteRelationships[i].TypeName == typeName {
+			return &rs.RemoteRelationships[i]
+		}
+	}
+
+	return nil
+}
+
+func buildCreateRemoteSchemaRemoteRelationship(argsJSON []byte) (MutationFn, error) {
+	var a remoteSchemaRemoteRelationshipArgs
+	if err := json.Unmarshal(argsJSON, &a); err != nil {
+		return nil, fmt.Errorf("parsing %s args: %w", opCreateRemoteSchemaRemoteRelationship, err)
+	}
+
+	if err := a.validate(opCreateRemoteSchemaRemoteRelationship, true /* requireDef */); err != nil {
+		return nil, err
+	}
+
+	return func(h *hasura.Metadata) (IdempotencyCode, error) {
+		rs := findRemoteSchema(h, a.RemoteSchema)
+		if rs == nil {
+			return "", fmt.Errorf("%w: %q", ErrRemoteSchemaNotFound, a.RemoteSchema)
+		}
+
+		rel := hasura.RemoteSchemaRelationshipDef{
+			Name:       a.Name,
+			Definition: a.Definition,
+			Unknown:    nil,
+		}
+
+		typeRel := findRemoteSchemaTypeRel(rs, a.TypeName)
+		if typeRel == nil {
+			rs.RemoteRelationships = append(rs.RemoteRelationships,
+				hasura.RemoteSchemaTypeRemoteRelationship{
+					TypeName:      a.TypeName,
+					Relationships: []hasura.RemoteSchemaRelationshipDef{rel},
+					Unknown:       nil,
+				},
+			)
+
+			return "", nil
+		}
+
+		for i := range typeRel.Relationships {
+			if typeRel.Relationships[i].Name == a.Name {
+				return CodeAlreadyExists, nil
+			}
+		}
+
+		typeRel.Relationships = append(typeRel.Relationships, rel)
+
+		return "", nil
+	}, nil
+}
+
+// CreateRemoteSchemaRemoteRelationship applies a
+// create_remote_schema_remote_relationship mutation (rs→db or rs→rs).
+func (s *Store) CreateRemoteSchemaRemoteRelationship(
+	ctx context.Context, argsJSON []byte,
+) (int64, IdempotencyCode, error) {
+	fn, err := buildCreateRemoteSchemaRemoteRelationship(argsJSON)
+	if err != nil {
+		return 0, "", err
+	}
+
+	return s.applyOne(ctx, fn)
+}
+
+func buildUpdateRemoteSchemaRemoteRelationship(argsJSON []byte) (MutationFn, error) {
+	var a remoteSchemaRemoteRelationshipArgs
+	if err := json.Unmarshal(argsJSON, &a); err != nil {
+		return nil, fmt.Errorf("parsing %s args: %w", opUpdateRemoteSchemaRemoteRelationship, err)
+	}
+
+	if err := a.validate(opUpdateRemoteSchemaRemoteRelationship, true /* requireDef */); err != nil {
+		return nil, err
+	}
+
+	return func(h *hasura.Metadata) (IdempotencyCode, error) {
+		rs := findRemoteSchema(h, a.RemoteSchema)
+		if rs == nil {
+			return "", fmt.Errorf("%w: %q", ErrRemoteSchemaNotFound, a.RemoteSchema)
+		}
+
+		typeRel := findRemoteSchemaTypeRel(rs, a.TypeName)
+		if typeRel != nil {
+			for i := range typeRel.Relationships {
+				if typeRel.Relationships[i].Name == a.Name {
+					typeRel.Relationships[i].Definition = a.Definition
+
+					return "", nil
+				}
+			}
+		}
+
+		return "", fmt.Errorf(
+			"%w: %q on type %q of remote schema %q",
+			ErrRelationshipNotFound, a.Name, a.TypeName, a.RemoteSchema,
+		)
+	}, nil
+}
+
+// UpdateRemoteSchemaRemoteRelationship applies an
+// update_remote_schema_remote_relationship mutation.
+func (s *Store) UpdateRemoteSchemaRemoteRelationship(
+	ctx context.Context, argsJSON []byte,
+) (int64, IdempotencyCode, error) {
+	fn, err := buildUpdateRemoteSchemaRemoteRelationship(argsJSON)
+	if err != nil {
+		return 0, "", err
+	}
+
+	return s.applyOne(ctx, fn)
+}
+
+func buildDeleteRemoteSchemaRemoteRelationship(argsJSON []byte) (MutationFn, error) {
+	var a remoteSchemaRemoteRelationshipArgs
+	if err := json.Unmarshal(argsJSON, &a); err != nil {
+		return nil, fmt.Errorf("parsing %s args: %w", opDeleteRemoteSchemaRemoteRelationship, err)
+	}
+
+	if err := a.validate(opDeleteRemoteSchemaRemoteRelationship, false /* requireDef */); err != nil {
+		return nil, err
+	}
+
+	return func(h *hasura.Metadata) (IdempotencyCode, error) {
+		// delete_remote_schema_remote_relationship is idempotent in Hasura: a
+		// missing schema/type/relationship returns success, not an error. Match
+		// that (verified against a live engine in metadata_parity_test.go).
+		rs := findRemoteSchema(h, a.RemoteSchema)
+		if rs == nil {
+			return "", nil
+		}
+
+		for ti := range rs.RemoteRelationships {
+			typeRel := &rs.RemoteRelationships[ti]
+			if typeRel.TypeName != a.TypeName {
+				continue
+			}
+
+			for ri := range typeRel.Relationships {
+				if typeRel.Relationships[ri].Name != a.Name {
+					continue
+				}
+
+				typeRel.Relationships = append(
+					typeRel.Relationships[:ri], typeRel.Relationships[ri+1:]...,
+				)
+
+				// Leave the now-empty type block in place: Hasura keeps
+				// remote_relationships[].{type_name, relationships: []} after
+				// the last relationship is dropped (verified in the parity suite).
+
+				return "", nil
+			}
+		}
+
+		return "", nil
+	}, nil
+}
+
+// DeleteRemoteSchemaRemoteRelationship applies a
+// delete_remote_schema_remote_relationship mutation.
+func (s *Store) DeleteRemoteSchemaRemoteRelationship(
+	ctx context.Context, argsJSON []byte,
+) (int64, IdempotencyCode, error) {
+	fn, err := buildDeleteRemoteSchemaRemoteRelationship(argsJSON)
+	if err != nil {
+		return 0, "", err
+	}
+
+	return s.applyOne(ctx, fn)
 }
 
 func (s *Store) introspectByName(

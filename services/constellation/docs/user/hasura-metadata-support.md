@@ -319,7 +319,7 @@ Single-row (`RETURNS <table>`, not `SETOF`) functions intentionally omit
 | `permissions` (`role` → `definition.schema` SDL) | ✅ | Per-role SDL. Admin always introspects the live schema; other roles get the SDL. |
 | `@preset(value: …)` directive in role SDL | ✅ | Hides an argument and injects a literal or session variable. See [`remote-schema.md`](./remote-schema.md). |
 | `remote_relationships` (`type_name` → `to_source`) | ✅ | Remote-schema-type → database-source relationships. |
-| `remote_relationships` → `to_remote_schema` | ❌ | Remote-schema → remote-schema relationships are not modeled (only `to_source`). |
+| `remote_relationships` → `to_remote_schema` | ✅ | Remote-schema → remote-schema relationships. The target schema is introspected and stitched through the same schema resolver used by table → remote-schema relationships. |
 | `definition.customization.root_fields_namespace` | ✅ | Wraps every root field under a single `<namespace>Query` / `<namespace>Mutation` / `<namespace>Subscription` field, matching Hasura's remote-schema naming. |
 | `definition.customization.type_names` (`prefix`, `suffix`, `mapping`) | ✅ | Renames types; `mapping` overrides prefix/suffix for the specific names it lists. |
 | `definition.customization.field_names` (per-type field renames) | ❌ | **Rejected at startup** with an error — unlike most unsupported fields this is *not* silently dropped, because the customized schema would advertise renamed fields the execution path cannot reverse. Remove `field_names` to start. |
@@ -343,6 +343,9 @@ these `/v1/metadata` operations are served natively (no Hasura upstream needed):
 | `drop_remote_schema_permissions` | ✅ | Removes a role's permission; `not-exists` when absent. |
 | `introspect_remote_schema` | ✅ | Returns the raw introspection document as `{ "data": { "__schema": … } }`. Read-only; no `resource_version` bump. |
 | `reload_remote_schema` | 🟡 | Re-introspects (an unreachable endpoint errors, like Hasura) and returns `{"message":"success"}`. **Divergence:** Constellation has no cross-request introspection cache, so reload does not push a fresh upstream schema into the running connector on its own — the refreshed schema takes effect on the next metadata change or restart. |
+| `create_remote_schema_remote_relationship` | ✅ | Adds a `to_source` or `to_remote_schema` relationship on a remote-schema type. Duplicate name is an idempotent no-op. |
+| `update_remote_schema_remote_relationship` | ✅ | Replaces an existing relationship's definition; `not-exists` when absent (matches Hasura). |
+| `delete_remote_schema_remote_relationship` | ✅ | Removes a relationship. Idempotent: deleting an absent relationship succeeds (matches Hasura), and the now-empty `type_name` block is retained. |
 
 > **SDL validation depth.** Permission SDL is **parse-validated** (syntactically
 > rejected if malformed) and parsed into a role schema, but Constellation does
@@ -503,8 +506,16 @@ codes); the only residual divergences (permission-SDL reformatting, idempotent
 duplicate add) are encoded as `knownDivergence` on just those two cases.
 
 Not yet covered (each needs a fixture or has a documented semantic gap, called
-out in the test file): `pg_set_table_is_enum`, remote relationships, and the read
-ops `pg_suggest_relationships` / `pg_get_viewdef`.
+out in the test file): `pg_set_table_is_enum`, table→remote-schema relationships
+(`pg_create_remote_relationship`), and the read ops `pg_suggest_relationships` /
+`pg_get_viewdef`. (Remote-schema *remote relationships* — the
+`*_remote_schema_remote_relationship` ops, both `to_source` and
+`to_remote_schema` — are covered.)
+
+> **Divergence — `remove_remote_schema` with dependents:** Hasura refuses to
+> remove a remote schema that still has remote relationships (`dependency-error`);
+> Constellation removes it and its relationships together. Delete the
+> relationships first to stay portable.
 
 ## See also
 

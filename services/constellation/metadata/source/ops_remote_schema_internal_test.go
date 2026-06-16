@@ -499,6 +499,205 @@ func TestReloadRemoteSchema_PropagatesIntrospectionError(t *testing.T) {
 	}
 }
 
+func TestCreateRemoteSchemaRemoteRelationship_ToSource(t *testing.T) {
+	t.Parallel()
+
+	w := &fakeWriter{}
+	s := remoteSchemaStore(t, w)
+
+	rv, code, err := s.CreateRemoteSchemaRemoteRelationship(t.Context(), []byte(
+		`{"remote_schema":"rs","type_name":"Team","name":"dept","definition":`+
+			`{"to_source":{"source":"default","table":{"schema":"public","name":"departments"},`+
+			`"relationship_type":"object","field_mapping":{"departmentId":"id"}}}}`,
+	))
+	if err != nil {
+		t.Fatalf("CreateRemoteSchemaRemoteRelationship: %v", err)
+	}
+
+	if code != "" || rv != 8 {
+		t.Errorf("(code, rv) = (%q, %d), want (\"\", 8)", code, rv)
+	}
+
+	rs := currentRemoteSchemas(t, s)
+	if len(rs[0].RemoteRelationships) != 1 {
+		t.Fatalf("remote_relationships = %+v, want one type block", rs[0].RemoteRelationships)
+	}
+
+	tr := rs[0].RemoteRelationships[0]
+	if tr.TypeName != "Team" || len(tr.Relationships) != 1 || tr.Relationships[0].Name != "dept" {
+		t.Errorf("type block = %+v, want Team/dept", tr)
+	}
+
+	if tr.Relationships[0].Definition.ToSource == nil {
+		t.Error("expected to_source definition")
+	}
+}
+
+func TestCreateRemoteSchemaRemoteRelationship_ToRemoteSchema(t *testing.T) {
+	t.Parallel()
+
+	s := remoteSchemaStore(t, &fakeWriter{})
+
+	_, _, err := s.CreateRemoteSchemaRemoteRelationship(t.Context(), []byte(
+		`{"remote_schema":"rs","type_name":"Team","name":"weather","definition":`+
+			`{"to_remote_schema":{"remote_schema":"weather_api","lhs_fields":["city"],`+
+			`"remote_field":{"forecast":{"arguments":{"city":"$city"}}}}}}`,
+	))
+	if err != nil {
+		t.Fatalf("CreateRemoteSchemaRemoteRelationship: %v", err)
+	}
+
+	rs := currentRemoteSchemas(t, s)
+	toRS := rs[0].RemoteRelationships[0].Relationships[0].Definition.ToRemoteSchema
+	if toRS == nil {
+		t.Fatal("expected to_remote_schema definition")
+	}
+
+	if toRS.RemoteSchema != "weather_api" || len(toRS.LHSFields) != 1 || toRS.LHSFields[0] != "city" {
+		t.Errorf("to_remote_schema = %+v, want weather_api/[city]", toRS)
+	}
+}
+
+func TestCreateRemoteSchemaRemoteRelationship_AlreadyExistsAndNotFound(t *testing.T) {
+	t.Parallel()
+
+	s := remoteSchemaStore(t, &fakeWriter{})
+
+	rel := `{"remote_schema":"rs","type_name":"Team","name":"dept","definition":` +
+		`{"to_source":{"source":"default","table":{"schema":"public","name":"departments"},` +
+		`"relationship_type":"object","field_mapping":{"departmentId":"id"}}}}`
+
+	if _, _, err := s.CreateRemoteSchemaRemoteRelationship(t.Context(), []byte(rel)); err != nil {
+		t.Fatalf("first create: %v", err)
+	}
+
+	_, code, err := s.CreateRemoteSchemaRemoteRelationship(t.Context(), []byte(rel))
+	if err != nil {
+		t.Fatalf("second create: %v", err)
+	}
+
+	if code != CodeAlreadyExists {
+		t.Errorf("code = %q, want %q", code, CodeAlreadyExists)
+	}
+
+	missing := `{"remote_schema":"ghost","type_name":"Team","name":"x","definition":` +
+		`{"to_source":{"source":"default","table":{"schema":"public","name":"departments"},` +
+		`"relationship_type":"object","field_mapping":{"a":"b"}}}}`
+	if _, _, err := s.CreateRemoteSchemaRemoteRelationship(t.Context(), []byte(missing)); !errors.Is(
+		err, ErrRemoteSchemaNotFound,
+	) {
+		t.Fatalf("err = %v, want ErrRemoteSchemaNotFound", err)
+	}
+}
+
+func TestCreateRemoteSchemaRemoteRelationship_RejectsBadDefinition(t *testing.T) {
+	t.Parallel()
+
+	s := remoteSchemaStore(t, &fakeWriter{})
+
+	cases := map[string]string{
+		"neither": `{"remote_schema":"rs","type_name":"Team","name":"x","definition":{}}`,
+		"both": `{"remote_schema":"rs","type_name":"Team","name":"x","definition":` +
+			`{"to_source":{"source":"default","table":{"schema":"public","name":"t"},` +
+			`"relationship_type":"object","field_mapping":{}},` +
+			`"to_remote_schema":{"remote_schema":"x","lhs_fields":["a"],"remote_field":{}}}}`,
+	}
+
+	for name, args := range cases {
+		t.Run(name, func(t *testing.T) {
+			t.Parallel()
+
+			if _, _, err := s.CreateRemoteSchemaRemoteRelationship(
+				t.Context(), []byte(args),
+			); !errors.Is(err, errMissingRequiredField) {
+				t.Fatalf("err = %v, want errMissingRequiredField", err)
+			}
+		})
+	}
+}
+
+func TestUpdateRemoteSchemaRemoteRelationship(t *testing.T) {
+	t.Parallel()
+
+	s := remoteSchemaStore(t, &fakeWriter{})
+
+	create := `{"remote_schema":"rs","type_name":"Team","name":"dept","definition":` +
+		`{"to_source":{"source":"default","table":{"schema":"public","name":"departments"},` +
+		`"relationship_type":"object","field_mapping":{"departmentId":"id"}}}}`
+	if _, _, err := s.CreateRemoteSchemaRemoteRelationship(t.Context(), []byte(create)); err != nil {
+		t.Fatalf("create: %v", err)
+	}
+
+	_, _, err := s.UpdateRemoteSchemaRemoteRelationship(t.Context(), []byte(
+		`{"remote_schema":"rs","type_name":"Team","name":"dept","definition":`+
+			`{"to_source":{"source":"default","table":{"schema":"public","name":"departments"},`+
+			`"relationship_type":"array","field_mapping":{"departmentId":"id"}}}}`,
+	))
+	if err != nil {
+		t.Fatalf("update: %v", err)
+	}
+
+	rs := currentRemoteSchemas(t, s)
+	if got := rs[0].RemoteRelationships[0].Relationships[0].Definition.ToSource.RelationshipType; got != "array" {
+		t.Errorf("relationship_type = %q, want array (updated)", got)
+	}
+}
+
+func TestUpdateRemoteSchemaRemoteRelationship_NotFound(t *testing.T) {
+	t.Parallel()
+
+	s := remoteSchemaStore(t, &fakeWriter{})
+
+	if _, _, err := s.UpdateRemoteSchemaRemoteRelationship(t.Context(), []byte(
+		`{"remote_schema":"rs","type_name":"Team","name":"ghost","definition":`+
+			`{"to_source":{"source":"default","table":{"schema":"public","name":"t"},`+
+			`"relationship_type":"object","field_mapping":{"a":"b"}}}}`,
+	)); !errors.Is(err, ErrRelationshipNotFound) {
+		t.Fatalf("err = %v, want ErrRelationshipNotFound", err)
+	}
+}
+
+func TestDeleteRemoteSchemaRemoteRelationship(t *testing.T) {
+	t.Parallel()
+
+	s := remoteSchemaStore(t, &fakeWriter{})
+
+	create := `{"remote_schema":"rs","type_name":"Team","name":"dept","definition":` +
+		`{"to_source":{"source":"default","table":{"schema":"public","name":"departments"},` +
+		`"relationship_type":"object","field_mapping":{"departmentId":"id"}}}}`
+	if _, _, err := s.CreateRemoteSchemaRemoteRelationship(t.Context(), []byte(create)); err != nil {
+		t.Fatalf("create: %v", err)
+	}
+
+	_, _, err := s.DeleteRemoteSchemaRemoteRelationship(t.Context(), []byte(
+		`{"remote_schema":"rs","type_name":"Team","name":"dept"}`,
+	))
+	if err != nil {
+		t.Fatalf("delete: %v", err)
+	}
+
+	// Hasura keeps the empty type block after the last relationship is removed,
+	// so the type entry remains with an empty relationships slice.
+	rs := currentRemoteSchemas(t, s)
+	if len(rs[0].RemoteRelationships) != 1 || len(rs[0].RemoteRelationships[0].Relationships) != 0 {
+		t.Errorf("remote_relationships = %+v, want one empty Team block", rs[0].RemoteRelationships)
+	}
+}
+
+func TestDeleteRemoteSchemaRemoteRelationship_MissingIsIdempotent(t *testing.T) {
+	t.Parallel()
+
+	s := remoteSchemaStore(t, &fakeWriter{})
+
+	// Hasura's delete_remote_schema_remote_relationship is idempotent: deleting
+	// an absent relationship succeeds rather than erroring.
+	if _, _, err := s.DeleteRemoteSchemaRemoteRelationship(t.Context(), []byte(
+		`{"remote_schema":"rs","type_name":"Team","name":"ghost"}`,
+	)); err != nil {
+		t.Fatalf("delete of missing relationship should succeed, got: %v", err)
+	}
+}
+
 func TestDropRemoteSchemaPermissions_SchemaNotFound(t *testing.T) {
 	t.Parallel()
 

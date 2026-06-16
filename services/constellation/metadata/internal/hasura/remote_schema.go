@@ -37,8 +37,11 @@ type RemoteSchemaRelationshipDef struct {
 }
 
 // RemoteSchemaRelationshipDefinition contains the relationship definition.
+// Exactly one of ToSource / ToRemoteSchema is set: a remote-schema type can
+// join into a database source or into another remote schema.
 type RemoteSchemaRelationshipDefinition struct {
-	ToSource *RemoteSchemaToSourceRelationship `json:"to_source,omitempty" yaml:"to_source,omitempty"`
+	ToSource       *RemoteSchemaToSourceRelationship `json:"to_source,omitempty"        yaml:"to_source,omitempty"`        //nolint:lll
+	ToRemoteSchema *ToRemoteSchemaRelationship       `json:"to_remote_schema,omitempty" yaml:"to_remote_schema,omitempty"` //nolint:lll
 
 	Unknown jsontext.Value `json:",unknown" yaml:"-"`
 }

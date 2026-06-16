@@ -59,6 +59,10 @@ const (
 	opIntrospectRemoteSchema      = "introspect_remote_schema"
 	opReloadRemoteSchema          = "reload_remote_schema"
 
+	opCreateRemoteSchemaRemoteRelationship = "create_remote_schema_remote_relationship"
+	opUpdateRemoteSchemaRemoteRelationship = "update_remote_schema_remote_relationship"
+	opDeleteRemoteSchemaRemoteRelationship = "delete_remote_schema_remote_relationship"
+
 	opReplaceMetadata = "replace_metadata"
 	opClearMetadata   = "clear_metadata"
 	opReloadMetadata  = "reload_metadata"
@@ -188,6 +192,12 @@ func (c *Controller) dispatchMutation( //nolint:ireturn,gocyclo,cyclop,funlen
 		return finishRead(c.store.IntrospectRemoteSchema(ctx, argsJSON))
 	case opReloadRemoteSchema:
 		return finishRead(c.store.ReloadRemoteSchema(ctx, argsJSON))
+	case opCreateRemoteSchemaRemoteRelationship:
+		return finishMutation(c.store.CreateRemoteSchemaRemoteRelationship(ctx, argsJSON))
+	case opUpdateRemoteSchemaRemoteRelationship:
+		return finishMutation(c.store.UpdateRemoteSchemaRemoteRelationship(ctx, argsJSON))
+	case opDeleteRemoteSchemaRemoteRelationship:
+		return finishMutation(c.store.DeleteRemoteSchemaRemoteRelationship(ctx, argsJSON))
 	case opReplaceMetadata:
 		return finishMutation(c.store.ReplaceMetadata(ctx, argsJSON))
 	case opClearMetadata:

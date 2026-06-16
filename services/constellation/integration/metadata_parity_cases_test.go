@@ -60,6 +60,18 @@ func TestMetadataParity(t *testing.T) { //nolint:paralleltest
 	addRSPerm := `{"type":"add_remote_schema_permissions","args":{"remote_schema":"` + rsName +
 		`","role":"` + role + `","definition":{"schema":"` + permSDL + `"}}}`
 
+	// Remote-schema remote relationships. to_source joins the rs type "Team"
+	// into the tracked departments table; to_remote_schema is self-referential
+	// (Team.id → the rs's own team(id:) root field), keeping the fixture to a
+	// single remote schema while exercising a real, Hasura-valid remote_field path.
+	relDept := `{"type":"create_remote_schema_remote_relationship","args":{"remote_schema":"` + rsName +
+		`","type_name":"Team","name":"rs_dept","definition":{"to_source":{"source":"default",` +
+		`"table":{"schema":"public","name":"departments"},"relationship_type":"object",` +
+		`"field_mapping":{"departmentId":"id"}}}}}`
+	relSelf := `{"type":"create_remote_schema_remote_relationship","args":{"remote_schema":"` + rsName +
+		`","type_name":"Team","name":"rs_self","definition":{"to_remote_schema":{"remote_schema":"` + rsName +
+		`","lhs_fields":["id"],"remote_field":{"team":{"arguments":{"id":"$id"}}}}}}}`
+
 	// rsSDLReformat is the remaining round-trip gap once comment is omitempty:
 	// Constellation stores permission SDL verbatim while Hasura reformats
 	// (pretty-prints) it, so the permissions[].definition.schema leaf differs.
@@ -398,6 +410,47 @@ func TestMetadataParity(t *testing.T) { //nolint:paralleltest
 			op:                    addRS,
 			allowStatusDivergence: true,
 			knownDivergence:       "Hasura returns 400 already-exists; Constellation treats a duplicate add as an idempotent 200",
+		},
+		{
+			// Enforced: rs→db remote relationship; export matches Hasura.
+			name:          "create_remote_schema_remote_relationship_to_source",
+			setup:         []string{addRS},
+			op:            relDept,
+			affectsSchema: true,
+		},
+		{
+			// Enforced: rs→rs (self-referential) remote relationship.
+			name:          "create_remote_schema_remote_relationship_to_remote_schema",
+			setup:         []string{addRS},
+			op:            relSelf,
+			affectsSchema: true,
+		},
+		{
+			name:          "update_remote_schema_remote_relationship",
+			setup:         []string{addRS, relDept},
+			op:            `{"type":"update_remote_schema_remote_relationship","args":{"remote_schema":"` + rsName + `","type_name":"Team","name":"rs_dept","definition":{"to_source":{"source":"default","table":{"schema":"public","name":"departments"},"relationship_type":"array","field_mapping":{"departmentId":"id"}}}}}`,
+			affectsSchema: true,
+		},
+		{
+			// Enforced: after delete the relationship is gone on both engines.
+			name:          "delete_remote_schema_remote_relationship",
+			setup:         []string{addRS, relDept},
+			op:            `{"type":"delete_remote_schema_remote_relationship","args":{"remote_schema":"` + rsName + `","type_name":"Team","name":"rs_dept"}}`,
+			affectsSchema: true,
+		},
+		{
+			// Enforced: both engines reject updating an absent relationship with not-exists.
+			name:    "update_remote_schema_remote_relationship_missing",
+			setup:   []string{addRS},
+			op:      `{"type":"update_remote_schema_remote_relationship","args":{"remote_schema":"` + rsName + `","type_name":"Team","name":"ghost","definition":{"to_source":{"source":"default","table":{"schema":"public","name":"departments"},"relationship_type":"object","field_mapping":{"departmentId":"id"}}}}}`,
+			wantErr: true,
+		},
+		{
+			// Enforced: both engines treat deleting an absent relationship as an
+			// idempotent success (200, no metadata change).
+			name:  "delete_remote_schema_remote_relationship_missing",
+			setup: []string{addRS},
+			op:    `{"type":"delete_remote_schema_remote_relationship","args":{"remote_schema":"` + rsName + `","type_name":"Team","name":"ghost"}}`,
 		},
 		{
 			// Enforced: both engines reject an unreachable upstream with
