@@ -46,6 +46,27 @@ func TestMetadataParity(t *testing.T) { //nolint:paralleltest
 		`"webhook":"https://example.com/hook","retry_conf":{"num_retries":0,"interval_sec":10}}}`
 	untrackFn := `{"type":"pg_untrack_function","args":{"source":"default","function":` + fn + `}}`
 
+	// Remote-schema fixtures. The endpoint is the integration functions service,
+	// reachable by both engines on the integration_default docker network; the
+	// webhook secret is resolved from NHOST_WEBHOOK_SECRET (set on both
+	// containers). The functions remote-schema exposes the teams/games schema, so
+	// permSDL is a valid subset Hasura's permission subset-validation accepts.
+	const rsName = "parity_rs"
+	rsDef := `{"url":"http://integration-functions-1:3000/remote-schema",` +
+		`"forward_client_headers":true,"headers":[{"name":"x-nhost-webhook-secret",` +
+		`"value_from_env":"NHOST_WEBHOOK_SECRET"}]}`
+	addRS := `{"type":"add_remote_schema","args":{"name":"` + rsName + `","definition":` + rsDef + `}}`
+	permSDL := `schema { query: Query }\ntype Query { teams: [Team!]! }\ntype Team { id: ID! name: String! }`
+	addRSPerm := `{"type":"add_remote_schema_permissions","args":{"remote_schema":"` + rsName +
+		`","role":"` + role + `","definition":{"schema":"` + permSDL + `"}}}`
+
+	// rsSDLReformat is the remaining round-trip gap once comment is omitempty:
+	// Constellation stores permission SDL verbatim while Hasura reformats
+	// (pretty-prints) it, so the permissions[].definition.schema leaf differs.
+	// See docs/user/hasura-metadata-support.md.
+	const rsSDLReformat = "permission SDL stored verbatim by Constellation, " +
+		"reformatted (pretty-printed) by Hasura"
+
 	cases := []metadataParityCase{
 		// ---- permissions: create + drop for each verb ----
 		{
@@ -310,6 +331,80 @@ func TestMetadataParity(t *testing.T) { //nolint:paralleltest
 			wantConstellationOK: true,
 			knownDivergence: "Hasura rejects a relationship on a non-FK column with invalid-configuration at " +
 				"op time; Constellation defers FK validation to schema build (see KNOWN_DIFFERENCES.md)",
+		},
+		// --- Remote schemas ---
+		{
+			// Enforced: with comment omitempty the export matches Hasura exactly.
+			name:          "add_remote_schema",
+			op:            addRS,
+			affectsSchema: true,
+		},
+		{
+			// Enforced: after remove the schema is gone on both engines, so the
+			// round-trip gap leaves no leaves to diverge.
+			name:          "remove_remote_schema",
+			setup:         []string{addRS},
+			op:            `{"type":"remove_remote_schema","args":{"name":"` + rsName + `"}}`,
+			affectsSchema: true,
+		},
+		{
+			name:          "update_remote_schema",
+			setup:         []string{addRS},
+			op:            `{"type":"update_remote_schema","args":{"name":"` + rsName + `","definition":{"url":"http://integration-functions-1:3000/remote-schema","timeout_seconds":30,"forward_client_headers":true,"headers":[{"name":"x-nhost-webhook-secret","value_from_env":"NHOST_WEBHOOK_SECRET"}]}}}`,
+			affectsSchema: true,
+		},
+		{
+			name:            "add_remote_schema_permissions",
+			setup:           []string{addRS},
+			op:              addRSPerm,
+			affectsSchema:   true,
+			knownDivergence: rsSDLReformat,
+		},
+		{
+			name:  "drop_remote_schema_permissions",
+			setup: []string{addRS, addRSPerm},
+			// Enforced: after the permission is dropped the schema matches Hasura.
+			op:            `{"type":"drop_remote_schema_permissions","args":{"remote_schema":"` + rsName + `","role":"` + role + `"}}`,
+			affectsSchema: true,
+		},
+		{
+			// Enforced: a read op mutates nothing, so both exports stay identical.
+			name:  "introspect_remote_schema",
+			setup: []string{addRS},
+			op:    `{"type":"introspect_remote_schema","args":{"name":"` + rsName + `"}}`,
+		},
+		{
+			// Enforced: reload mutates nothing; both engines return success.
+			name:  "reload_remote_schema",
+			setup: []string{addRS},
+			op:    `{"type":"reload_remote_schema","args":{"name":"` + rsName + `"}}`,
+		},
+		{
+			// Enforced: both engines reject removing an absent schema with not-exists.
+			name:    "remove_remote_schema_missing",
+			op:      `{"type":"remove_remote_schema","args":{"name":"parity_rs_does_not_exist"}}`,
+			wantErr: true,
+		},
+		{
+			// Enforced: both engines reject dropping an absent role with not-exists.
+			name:    "drop_remote_schema_permissions_missing",
+			setup:   []string{addRS},
+			op:      `{"type":"drop_remote_schema_permissions","args":{"remote_schema":"` + rsName + `","role":"ghost_role"}}`,
+			wantErr: true,
+		},
+		{
+			name:                  "add_remote_schema_duplicate",
+			setup:                 []string{addRS},
+			op:                    addRS,
+			allowStatusDivergence: true,
+			knownDivergence:       "Hasura returns 400 already-exists; Constellation treats a duplicate add as an idempotent 200",
+		},
+		{
+			// Enforced: both engines reject an unreachable upstream with
+			// remote-schema-error (Constellation maps remoteschema.ErrIntrospection).
+			name:    "add_remote_schema_unreachable",
+			op:      `{"type":"add_remote_schema","args":{"name":"parity_rs_unreachable","definition":{"url":"http://integration-functions-1:3999/nope"}}}`,
+			wantErr: true,
 		},
 	}
 

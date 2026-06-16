@@ -75,8 +75,56 @@ type Store struct {
 	ch     chan metadata.Update
 	closed bool
 
+	// rsValidator validates a prospective remote schema synchronously
+	// before a mutation is persisted: it resolves URL/headers, parses the
+	// per-role permission SDL, and introspects the upstream endpoint. It is
+	// the same path the controller uses to build the connector, so an
+	// accepted add/update/permission mutation is guaranteed to rebuild
+	// cleanly. Wired at construction by the production server (to a
+	// remoteschema.New-backed closure) and by tests (to a fake-doer-backed
+	// one); nil leaves remote-schema mutations un-introspected — only the
+	// file/read-only and pure bulk_atomic paths run that way. Set once
+	// before serving, so it is read without holding mu.
+	rsValidator RemoteSchemaValidator
+
+	// rsIntrospector fetches the raw introspection `data` document for a
+	// remote schema. Backs introspect_remote_schema / reload_remote_schema.
+	// Wired at construction like rsValidator; nil makes those ops return
+	// ErrRemoteSchemaIntrospectionUnavailable. Set once before serving.
+	rsIntrospector RemoteSchemaIntrospector
+
 	initOnce atomic.Bool
 	logger   *slog.Logger
+}
+
+// RemoteSchemaIntrospector fetches the raw GraphQL introspection `data`
+// document (`{"__schema": {...}}`) for a remote schema, resolving its URL and
+// headers from the (native) definition. Returns the bytes verbatim so the
+// metadata API can echo them in an introspect_remote_schema response.
+type RemoteSchemaIntrospector func(
+	ctx context.Context, rs *metadata.RemoteSchemaMetadata,
+) ([]byte, error)
+
+// SetRemoteSchemaIntrospector installs the introspector used by
+// introspect_remote_schema / reload_remote_schema. Call once during startup
+// before the Store begins serving requests.
+func (s *Store) SetRemoteSchemaIntrospector(i RemoteSchemaIntrospector) {
+	s.rsIntrospector = i
+}
+
+// RemoteSchemaValidator validates a prospective remote schema against its
+// upstream endpoint. Implementations resolve the definition's URL and
+// headers, parse every role's permission SDL, and perform an admin
+// introspection, returning a non-nil error if any step fails. The native
+// metadata form is passed (convert via metadata.ConvertRemoteSchema) so the
+// validator can reuse the connector-construction path.
+type RemoteSchemaValidator func(ctx context.Context, rs *metadata.RemoteSchemaMetadata) error
+
+// SetRemoteSchemaValidator installs the synchronous remote-schema validator
+// used by add_remote_schema / update_remote_schema / *_remote_schema_permissions.
+// Call once during startup before the Store begins serving requests.
+func (s *Store) SetRemoteSchemaValidator(v RemoteSchemaValidator) {
+	s.rsValidator = v
 }
 
 // NewStore returns a Store that has not yet been bootstrapped. Callers
@@ -101,6 +149,8 @@ func NewStore(writer MetadataWriter, queryer Queryer, logger *slog.Logger) *Stor
 		queryer:         queryer,
 		ch:              make(chan metadata.Update, 1),
 		closed:          false,
+		rsValidator:     nil,
+		rsIntrospector:  nil,
 		initOnce:        atomic.Bool{},
 		logger:          logger,
 	}

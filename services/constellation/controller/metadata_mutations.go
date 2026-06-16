@@ -8,6 +8,7 @@ import (
 	"fmt"
 
 	"github.com/nhost/nhost/services/constellation/api"
+	"github.com/nhost/nhost/services/constellation/connector/remoteschema"
 	"github.com/nhost/nhost/services/constellation/metadata/source"
 )
 
@@ -50,6 +51,14 @@ const (
 	opPgCreateRemoteRelationship = "pg_create_remote_relationship"
 	opPgDeleteRemoteRelationship = "pg_delete_remote_relationship"
 
+	opAddRemoteSchema             = "add_remote_schema"
+	opRemoveRemoteSchema          = "remove_remote_schema"
+	opUpdateRemoteSchema          = "update_remote_schema"
+	opAddRemoteSchemaPermissions  = "add_remote_schema_permissions"
+	opDropRemoteSchemaPermissions = "drop_remote_schema_permissions"
+	opIntrospectRemoteSchema      = "introspect_remote_schema"
+	opReloadRemoteSchema          = "reload_remote_schema"
+
 	opReplaceMetadata = "replace_metadata"
 	opClearMetadata   = "clear_metadata"
 	opReloadMetadata  = "reload_metadata"
@@ -63,12 +72,13 @@ const (
 // mirror the wire strings Hasura emits so existing clients (CLI, dashboard)
 // keep classifying failures the same way.
 const (
-	codeParseFailed      = "parse-failed"
-	codeConflict         = "conflict"
-	codeNotExists        = "not-exists"
-	codeDependencyError  = "dependency-error"
-	codeNotSupported     = "not-supported"
-	codeValidationFailed = "validation-failed"
+	codeParseFailed       = "parse-failed"
+	codeConflict          = "conflict"
+	codeNotExists         = "not-exists"
+	codeDependencyError   = "dependency-error"
+	codeNotSupported      = "not-supported"
+	codeValidationFailed  = "validation-failed"
+	codeRemoteSchemaError = "remote-schema-error"
 	// codeAlreadyExists is the error-response (400) form, distinct from the
 	// idempotency code of the same wire string returned in 200 bodies: here it
 	// signals a hard naming conflict (e.g. renaming a relationship onto a name
@@ -164,6 +174,20 @@ func (c *Controller) dispatchMutation( //nolint:ireturn,gocyclo,cyclop,funlen
 		return finishMutation(c.store.PgCreateRemoteRelationship(ctx, argsJSON))
 	case opPgDeleteRemoteRelationship:
 		return finishMutation(c.store.PgDeleteRemoteRelationship(ctx, argsJSON))
+	case opAddRemoteSchema:
+		return finishMutation(c.store.AddRemoteSchema(ctx, argsJSON))
+	case opRemoveRemoteSchema:
+		return finishMutation(c.store.RemoveRemoteSchema(ctx, argsJSON))
+	case opUpdateRemoteSchema:
+		return finishMutation(c.store.UpdateRemoteSchema(ctx, argsJSON))
+	case opAddRemoteSchemaPermissions:
+		return finishMutation(c.store.AddRemoteSchemaPermissions(ctx, argsJSON))
+	case opDropRemoteSchemaPermissions:
+		return finishMutation(c.store.DropRemoteSchemaPermissions(ctx, argsJSON))
+	case opIntrospectRemoteSchema:
+		return finishRead(c.store.IntrospectRemoteSchema(ctx, argsJSON))
+	case opReloadRemoteSchema:
+		return finishRead(c.store.ReloadRemoteSchema(ctx, argsJSON))
 	case opReplaceMetadata:
 		return finishMutation(c.store.ReplaceMetadata(ctx, argsJSON))
 	case opClearMetadata:
@@ -275,7 +299,9 @@ func classifyMutationError(err error) (string, string) {
 		errors.Is(err, source.ErrPermissionNotFound),
 		errors.Is(err, source.ErrRelationshipNotFound),
 		errors.Is(err, source.ErrFunctionNotTracked),
-		errors.Is(err, source.ErrEventTriggerNotFound):
+		errors.Is(err, source.ErrEventTriggerNotFound),
+		errors.Is(err, source.ErrRemoteSchemaNotFound),
+		errors.Is(err, source.ErrRemoteSchemaPermissionNotFound):
 		return codeNotExists, err.Error()
 	case errors.Is(err, source.ErrTableHasDependents):
 		return codeDependencyError, err.Error()
@@ -286,8 +312,13 @@ func classifyMutationError(err error) (string, string) {
 		return codeAlreadyUntracked, err.Error()
 	case errors.Is(err, source.ErrStoreNotInitialized),
 		errors.Is(err, source.ErrStoreReadOnly),
-		errors.Is(err, source.ErrReadOpRequiresDB):
+		errors.Is(err, source.ErrReadOpRequiresDB),
+		errors.Is(err, source.ErrRemoteSchemaIntrospectionUnavailable):
 		return codeNotSupported, err.Error()
+	case errors.Is(err, remoteschema.ErrIntrospection):
+		// An unreachable / errorful upstream during add/update/introspect:
+		// matches Hasura's remote-schema-error code.
+		return codeRemoteSchemaError, err.Error()
 	}
 
 	// Catch-all. Parse errors are surfaced by handlers as plain wrapped

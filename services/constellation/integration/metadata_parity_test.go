@@ -384,6 +384,9 @@ func cleanupParityEntities(t *testing.T) {
 		// re-applying an empty configuration, the inverse of the customization op.
 		`{"type":"pg_set_table_customization","args":{"source":"default","table":` + dept + `,"configuration":{}}}`,
 		`{"type":"pg_set_function_customization","args":{"source":"default","function":` + fn + `,"configuration":{}}}`,
+		// Remote-schema entities the parity cases add (remove cascades permissions).
+		`{"type":"remove_remote_schema","args":{"name":"parity_rs"}}`,
+		`{"type":"remove_remote_schema","args":{"name":"parity_rs_unreachable"}}`,
 	}
 
 	for _, url := range []string{hasuraMetadataURL, constellationMetadataURL} {

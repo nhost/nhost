@@ -18,6 +18,7 @@ import (
 	"github.com/nhost/nhost/internal/lib/oapi"
 	oapimw "github.com/nhost/nhost/internal/lib/oapi/middleware"
 	"github.com/nhost/nhost/services/constellation/api"
+	"github.com/nhost/nhost/services/constellation/connector/remoteschema"
 	"github.com/nhost/nhost/services/constellation/controller"
 	"github.com/nhost/nhost/services/constellation/controller/middleware"
 	"github.com/nhost/nhost/services/constellation/internal/hasuraproxy"
@@ -601,6 +602,32 @@ func newMetadataSource( //nolint:ireturn // selected sources share the metadata.
 		// child of it, so the listener would otherwise outlive the server.
 		listenerCtx, stopListener := context.WithCancel(ctx)
 		go source.ListenAndReload(listenerCtx, metaDBURL, store, logger)
+
+		// Validate prospective remote schemas through the same path the
+		// controller uses to build the connector (URL/header resolution,
+		// permission-SDL parsing, admin introspection), so an accepted
+		// add/update/permission mutation is guaranteed to rebuild cleanly.
+		// Passing a nil doer gives remoteschema.New its hardened default
+		// *http.Client; the connector is discarded after validation.
+		store.SetRemoteSchemaValidator(
+			func(ctx context.Context, rs *metadata.RemoteSchemaMetadata) error {
+				_, err := remoteschema.New(ctx, rs, nil)
+
+				return err //nolint:wrapcheck // wrapped by the store with the schema name.
+			},
+		)
+
+		// introspect_remote_schema / reload_remote_schema fetch the raw
+		// introspection document through the same URL/header resolution.
+		store.SetRemoteSchemaIntrospector(
+			func(ctx context.Context, rs *metadata.RemoteSchemaMetadata) ([]byte, error) {
+				return remoteschema.IntrospectRawFromMeta(
+					ctx,
+					rs,
+					nil,
+				) //nolint:wrapcheck // wrapped by the store with the schema name.
+			},
+		)
 
 		return dbStoreSource{Store: store, db: dbSrc, stopListener: stopListener}, store, nil
 	}

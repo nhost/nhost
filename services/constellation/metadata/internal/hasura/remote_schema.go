@@ -10,10 +10,10 @@ import (
 type RemoteSchemaMetadata struct {
 	Name       string                 `json:"name"       yaml:"name"`
 	Definition RemoteSchemaDefinition `json:"definition" yaml:"definition"`
-	// Comment has no json omitempty: Hasura always emits remote_schemas[].comment
-	// (as "" when unset), so a faithful drop-in export must too. YAML file sources
-	// keep omitempty.
-	Comment             string                               `json:"comment"                        yaml:"comment,omitempty"`              //nolint:lll
+	// Comment is omitempty in both encodings: Hasura's metadata API omits
+	// remote_schemas[].comment when unset (verified against a live engine in
+	// integration/metadata_parity_test.go), so a drop-in export must too.
+	Comment             string                               `json:"comment,omitempty"              yaml:"comment,omitempty"`              //nolint:lll
 	Permissions         []RemoteSchemaPermission             `json:"permissions,omitempty"          yaml:"permissions,omitempty"`          //nolint:lll
 	RemoteRelationships []RemoteSchemaTypeRemoteRelationship `json:"remote_relationships,omitempty" yaml:"remote_relationships,omitempty"` //nolint:lll
 
@@ -63,9 +63,11 @@ type RemoteSchemaTableRef struct {
 
 // RemoteSchemaDefinition defines the connection settings for a remote schema.
 type RemoteSchemaDefinition struct {
-	URL                  string                    `json:"url,omitempty"                    yaml:"url,omitempty"`                    //nolint:lll
-	URLFromEnv           string                    `json:"url_from_env,omitempty"           yaml:"url_from_env,omitempty"`           //nolint:lll
-	TimeoutSeconds       int                       `json:"timeout_seconds,omitempty"        yaml:"timeout_seconds,omitempty"`        //nolint:lll
+	URL        string `json:"url,omitempty"                    yaml:"url,omitempty"`          //nolint:lll
+	URLFromEnv string `json:"url_from_env,omitempty"           yaml:"url_from_env,omitempty"` //nolint:lll
+	// omitzero (not omitempty): jsonv2 omitempty does not drop a zero int, but
+	// Hasura omits timeout_seconds when unset, so a drop-in export must too.
+	TimeoutSeconds       int                       `json:"timeout_seconds,omitzero"         yaml:"timeout_seconds,omitempty"`        //nolint:lll
 	Customization        RemoteSchemaCustomization `json:"customization"                    yaml:"customization"`                    //nolint:lll
 	Headers              []RemoteSchemaHeader      `json:"headers,omitempty"                yaml:"headers,omitempty"`                //nolint:lll
 	ForwardClientHeaders bool                      `json:"forward_client_headers,omitempty" yaml:"forward_client_headers,omitempty"` //nolint:lll
