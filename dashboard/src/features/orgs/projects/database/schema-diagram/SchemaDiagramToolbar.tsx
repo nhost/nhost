@@ -1,4 +1,4 @@
-import { Info, Plus, Search } from 'lucide-react';
+import { Info, Plus, Search, SquareFunction, Table2 } from 'lucide-react';
 import { useMemo, useState } from 'react';
 import { Button } from '@/components/ui/v3/button';
 import {
@@ -35,6 +35,13 @@ import PermissionDot from './PermissionDot';
 import { ADMIN_ROLE } from './permissionState';
 import type { NamingMode } from './useSchemaGraph';
 
+export interface SchemaDiagramSearchObject {
+  schema: string;
+  name: string;
+  kind: 'table' | 'function';
+  returnSchema?: string;
+}
+
 export interface SchemaDiagramToolbarProps {
   roles: string[];
   selectedRole: string;
@@ -49,8 +56,8 @@ export interface SchemaDiagramToolbarProps {
   onNewTable: () => void;
   canCreateTable: boolean;
   targetSchema: string;
-  tables: Array<{ schema: string; name: string }>;
-  onSelectTable: (schema: string, name: string) => void;
+  objects: SchemaDiagramSearchObject[];
+  onSelectObject: (object: SchemaDiagramSearchObject) => void;
 }
 
 const legendItems: Array<{ action: DatabaseAction; label: string }> = [
@@ -74,20 +81,20 @@ export default function SchemaDiagramToolbar({
   onNewTable,
   canCreateTable,
   targetSchema,
-  tables,
-  onSelectTable,
+  objects,
+  onSelectObject,
 }: SchemaDiagramToolbarProps) {
   const allRoles = roles.includes(ADMIN_ROLE) ? roles : [ADMIN_ROLE, ...roles];
   const [searchOpen, setSearchOpen] = useState(false);
-  const tablesBySchema = useMemo(() => {
-    const grouped = new Map<string, Array<{ schema: string; name: string }>>();
-    for (const t of tables) {
-      const list = grouped.get(t.schema) ?? [];
-      list.push(t);
-      grouped.set(t.schema, list);
+  const objectsBySchema = useMemo(() => {
+    const grouped = new Map<string, SchemaDiagramSearchObject[]>();
+    for (const object of objects) {
+      const list = grouped.get(object.schema) ?? [];
+      list.push(object);
+      grouped.set(object.schema, list);
     }
     return Array.from(grouped.entries());
-  }, [tables]);
+  }, [objects]);
 
   return (
     <div className="flex flex-wrap items-center gap-3 border-border border-b bg-background px-4 py-2">
@@ -142,35 +149,43 @@ export default function SchemaDiagramToolbar({
           <PopoverTrigger asChild>
             <button
               type="button"
-              aria-label="Search tables"
+              aria-label="Search database objects"
               className="flex h-8 w-[220px] items-center gap-1.5 rounded-md border border-border bg-background px-2 text-muted-foreground text-xs hover:bg-accent"
             >
               <Search className="h-4 w-4" />
-              <span className="flex-1 text-left">Search tables…</span>
+              <span className="flex-1 text-left">Search database objects…</span>
             </button>
           </PopoverTrigger>
           <PopoverContent align="end" className="w-[320px] p-0">
             <Command>
-              <CommandInput placeholder="Search tables…" />
+              <CommandInput placeholder="Search database objects…" />
               <CommandList>
-                <CommandEmpty>No tables found.</CommandEmpty>
-                {tablesBySchema.map(([schema, items]) => (
+                <CommandEmpty>No database objects found.</CommandEmpty>
+                {objectsBySchema.map(([schema, items]) => (
                   <CommandGroup key={schema} heading={schema}>
-                    {items.map((t) => (
-                      <CommandItem
-                        key={`${t.schema}.${t.name}`}
-                        value={`${t.schema}.${t.name}`}
-                        onSelect={() => {
-                          onSelectTable(t.schema, t.name);
-                          setSearchOpen(false);
-                        }}
-                      >
-                        <span className="text-muted-foreground">
-                          {t.schema}.
-                        </span>
-                        <span className="font-medium">{t.name}</span>
-                      </CommandItem>
-                    ))}
+                    {items.map((object) => {
+                      const ObjectIcon =
+                        object.kind === 'function' ? SquareFunction : Table2;
+                      return (
+                        <CommandItem
+                          key={`${object.kind}:${object.schema}.${object.name}`}
+                          value={`${object.kind}:${object.schema}.${object.name}`}
+                          onSelect={() => {
+                            onSelectObject(object);
+                            setSearchOpen(false);
+                          }}
+                        >
+                          <ObjectIcon
+                            aria-hidden
+                            className="mr-1.5 h-3.5 w-3.5 shrink-0 text-muted-foreground"
+                          />
+                          <span className="text-muted-foreground">
+                            {object.schema}.
+                          </span>
+                          <span className="font-medium">{object.name}</span>
+                        </CommandItem>
+                      );
+                    })}
                   </CommandGroup>
                 ))}
               </CommandList>
@@ -324,6 +339,56 @@ export default function SchemaDiagramToolbar({
                     <span>
                       <span className="text-foreground">Hollow circle</span> —
                       object relationship missing (source side)
+                    </span>
+                  </li>
+                </ul>
+              </div>
+              <div>
+                <div className="mb-1 font-semibold">
+                  Set-returning functions
+                </div>
+                <ul className="space-y-1.5">
+                  <li className="flex items-center gap-2">
+                    <span className="flex w-14 shrink-0 justify-center">
+                      <SquareFunction
+                        aria-hidden="true"
+                        className="h-4 w-4 text-muted-foreground"
+                      />
+                    </span>
+                    <span>
+                      <span className="text-foreground">Function node</span> — a
+                      function that returns{' '}
+                      <span className="font-mono">setof</span> a table
+                    </span>
+                  </li>
+                  <li className="flex items-center gap-2">
+                    <svg
+                      width="56"
+                      height="16"
+                      viewBox="0 0 56 16"
+                      aria-hidden="true"
+                      className="shrink-0"
+                    >
+                      <line
+                        x1="2"
+                        y1="8"
+                        x2="42"
+                        y2="8"
+                        stroke="rgb(148, 163, 184)"
+                        strokeWidth="1.5"
+                      />
+                      <path
+                        d="M42,3 L47,8 L42,13 M47,3 L52,8 L47,13"
+                        fill="none"
+                        stroke="rgb(148, 163, 184)"
+                        strokeWidth="1.5"
+                        strokeLinejoin="round"
+                        strokeLinecap="round"
+                      />
+                    </svg>
+                    <span>
+                      <span className="text-foreground">Double arrow</span> —
+                      points to the table the function returns rows of
                     </span>
                   </li>
                 </ul>
