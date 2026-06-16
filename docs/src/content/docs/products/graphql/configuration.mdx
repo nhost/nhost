@@ -10,44 +10,18 @@ sidebar:
 ---
 import { Tabs, TabItem } from '@astrojs/starlight/components';
 
-You can customize and tweak the configuration of the GraphQL engine using your project's configuration file.
-
-Below you'll find the available settings and example configurations for your GraphQL service.
+You can customize and tweak the configuration of the GraphQL engine using your project's configuration file. Each section below shows the available settings (**Schema**) alongside an **Example** you can copy.
 
 :::note
-The configuration block is named `[hasura]` and several settings keep the `HASURA_GRAPHQL_*` names. These are retained identifiers, so keep them as-is. They configure the GraphQL engine no matter which engine serves your API. To run [Constellation](/products/graphql/constellation), add the `[experimental.constellation]` block shown below.
+The configuration block is named `[hasura]` and several settings keep the `HASURA_GRAPHQL_*` names. These are retained identifiers, so keep them as-is. They configure the GraphQL engine no matter which engine serves your API. To run [Constellation](/products/graphql/constellation), add the `[experimental.constellation]` block shown in the Constellation example.
 :::
 
-## Available Settings
+## GraphQL Engine
+
+Configure the engine under `[hasura]` in your project's configuration file. This block applies whether you run [Constellation](/products/graphql/constellation) or the default engine; Constellation adds its own options under `[experimental.constellation]`, shown in the Constellation example.
 
 <Tabs>
-  <TabItem label="Constellation (recommended)">
-
-[Constellation](/products/graphql/constellation) is Nhost's own GraphQL engine. It reads the shared engine settings (JWT secrets, admin secret, CORS) from the `[hasura]` block in the **Hasura** tab. The options below are the ones specific to Constellation.
-
-```toml title="nhost.toml"
-[experimental.constellation]
-# Pick the latest tag from the CHANGELOG:
-# https://github.com/nhost/nhost/blob/main/services/constellation/CHANGELOG.md
-version = "0.2.1"
-
-[experimental.constellation.settings]
-# CORS allowed origins. If unset, origins are derived from
-# auth.redirections.clientUrl and auth.redirections.allowedUrls.
-corsAllowedOrigins = []
-
-# Enable debug logging.
-debug = false
-
-# Return raw connector/database error detail to clients. Development only.
-devMode = false
-
-# Polling interval for GraphQL subscriptions.
-subscriptionPollInterval = "1s"
-```
-
-  </TabItem>
-  <TabItem label="Hasura">
+<TabItem label="Schema">
 
 ```cue title="Schema"
 // Configuration for the GraphQL engine service
@@ -114,15 +88,13 @@ subscriptionPollInterval = "1s"
 }
 ```
 
-  </TabItem>
-</Tabs>
+</TabItem>
+<TabItem label="Example">
 
-## Example Configuration
-
-Set the engine options under `[hasura]` in your project's configuration file. This block configures the GraphQL engine whether you run [Constellation](/products/graphql/constellation) or the default engine. Opting into Constellation just adds an `[experimental.constellation]` block on top; everything else stays the same.
+Opting into Constellation just adds an `[experimental.constellation]` block on top of the shared `[hasura]` config; everything else stays the same.
 
 <Tabs>
-  <TabItem label="Constellation (recommended)">
+<TabItem label="Constellation (recommended)">
 
 ```toml title="nhost.toml"
 [hasura]
@@ -158,13 +130,28 @@ cpu = 500
 memory = 1024
 
 # Opt into Constellation. It runs alongside the default engine and reads the
-# configuration above. Its runtime options live under [experimental.constellation.settings].
+# [hasura] config above. Pick the latest version from the CHANGELOG:
+# https://github.com/nhost/nhost/blob/main/services/constellation/CHANGELOG.md
 [experimental.constellation]
 version = "0.2.1"
+
+[experimental.constellation.settings]
+# CORS allowed origins. If unset, origins are derived from
+# auth.redirections.clientUrl and auth.redirections.allowedUrls.
+corsAllowedOrigins = []
+
+# Enable debug logging.
+debug = false
+
+# Return raw connector/database error detail to clients. Development only.
+devMode = false
+
+# Polling interval for GraphQL subscriptions.
+subscriptionPollInterval = "1s"
 ```
 
-  </TabItem>
-  <TabItem label="Hasura">
+</TabItem>
+<TabItem label="Hasura">
 
 ```toml title="nhost.toml"
 [hasura]
@@ -200,12 +187,18 @@ cpu = 500
 memory = 1024
 ```
 
-  </TabItem>
+</TabItem>
 </Tabs>
 
-### JWT Secret
+</TabItem>
+</Tabs>
 
-Zooming in on `JWTSecret`. JWT configuration lives in the shared `[hasura]` block, so it applies the same way whether you run Constellation or the default engine.
+## JWT
+
+JWT configuration lives in the shared `[hasura]` block, so it applies the same way whether you run Constellation or the default engine. The `claims_namespace` defaults to `https://hasura.io/jwt/claims` and the claim names use the `x-hasura-` prefix. These are retained identifiers for compatibility, not a product dependency. See [Permission Variables](/products/graphql/permissions/permission-variables) for how these claims drive permissions.
+
+<Tabs>
+<TabItem label="Schema">
 
 ```cue title="Schema"
 #JWTSecret:
@@ -245,9 +238,8 @@ Zooming in on `JWTSecret`. JWT configuration lives in the shared `[hasura]` bloc
 }
 ```
 
-The `claims_namespace` defaults to `https://hasura.io/jwt/claims` and the claim names use the `x-hasura-` prefix. These are retained identifiers for compatibility, not a product dependency. See [Permission Variables](/products/graphql/permissions/permission-variables) for how these claims drive permissions.
-
-### JWT Secret examples
+</TabItem>
+<TabItem label="Example">
 
 ```toml title="nhost.toml"
 # example 1
@@ -273,3 +265,6 @@ claim = "x-other-claim"
 path = "$.user.claim.id"
 default = "default-value"
 ```
+
+</TabItem>
+</Tabs>
