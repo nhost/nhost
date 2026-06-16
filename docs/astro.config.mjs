@@ -279,6 +279,7 @@ export default defineConfig({
               icon: 'seti:graphql',
               items: [
                 { label: 'GraphQL', slug: 'products/graphql' },
+                { slug: 'products/graphql/constellation' },
                 {
                   label: 'Configuration',
                   collapsed: false,

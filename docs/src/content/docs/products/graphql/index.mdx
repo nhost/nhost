@@ -1,15 +1,15 @@
 ---
 title: GraphQL API Overview
-description: Get an instant, realtime GraphQL API over your PostgreSQL database with Hasura — queries, mutations, and live subscriptions.
-keywords: ["GraphQL", "Hasura", "API", "realtime", "subscriptions", "queries", "mutations", "database API"]
+description: Get an instant, realtime GraphQL API over your PostgreSQL database — queries, mutations, and live subscriptions.
+keywords: ["GraphQL", "API", "realtime", "subscriptions", "queries", "mutations", "database API"]
 head:
   - tag: title
-    content: "Instant Realtime GraphQL APIs with Hasura | Nhost Docs"
+    content: "Instant Realtime GraphQL APIs | Nhost Docs"
 ---
 import { Card, CardGroup, ThemeImage } from '@components';
 
 
-Hasura is a powerful GraphQL engine that generates **realtime GraphQL APIs** from your Postgres database.
+Nhost gives you a powerful GraphQL engine that generates **realtime GraphQL APIs** directly from your Postgres database — queries, mutations, and live subscriptions, with no resolvers to write.
 
 <ThemeImage light="/images/introduction-light.svg" dark="/images/introduction-dark.svg" alt="Hero Light" />
 
@@ -30,7 +30,7 @@ query GetTodos {
 
 Define granular, role-based permissions at the level of rows and columns.
 
-You can read more about Hasura Permissions [here](/products/graphql/permissions)
+You can read more about [Permissions](/products/graphql/permissions).
 
 ### GraphQL Clients
 
@@ -46,8 +46,12 @@ The Nhost JavaScript SDK ships with a simple GraphQL client that you can use for
 ### Additional Resources
 
 <CardGroup cols={2}>
-  <Card title="Configuring Hasura" href="/products/graphql/configuring-hasura">
-  Learn how to configure Hasura
+  <Card title="Constellation" href="/products/graphql/constellation">
+  Nhost's own GraphQL engine — faster, lighter, and compatible
+  </Card>
+
+  <Card title="Configuration" href="/products/graphql/configuring-hasura">
+  Configure the GraphQL engine through nhost.toml
   </Card>
 
   <Card title="Permissions" href="/products/graphql/permissions">
@@ -62,4 +66,3 @@ The Nhost JavaScript SDK ships with a simple GraphQL client that you can use for
   Trigger webhooks from database changes, schedules, or one-time events
   </Card>
 </CardGroup>
-
