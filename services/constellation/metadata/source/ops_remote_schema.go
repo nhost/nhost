@@ -194,11 +194,13 @@ func (s *Store) RemoveRemoteSchema(
 }
 
 // buildUpdateRemoteSchema replaces the matched entry's definition and comment in
-// place. Existing permissions and remote_relationships are preserved unless the
-// args explicitly supply replacements, matching the dashboard's update flow.
-//
-// NOTE: the preserve-unless-supplied semantics are provisional and must be
-// confirmed against Hasura's update_remote_schema behaviour in the parity suite.
+// place. It mirrors Hasura's verified update_remote_schema semantics: existing
+// permissions are preserved (unless the args supply replacements), but remote
+// relationships are always dropped. Hasura discards a remote schema's
+// remote_relationships on update_remote_schema regardless of the new definition
+// (confirmed against the live engine — see the
+// update_remote_schema_drops_remote_relationships parity case); they are
+// re-added separately via *_remote_schema_remote_relationship ops.
 func buildUpdateRemoteSchema(argsJSON []byte) (MutationFn, error) {
 	rs, err := parseRemoteSchemaInfo(argsJSON, opUpdateRemoteSchema)
 	if err != nil {
@@ -218,9 +220,7 @@ func buildUpdateRemoteSchema(argsJSON []byte) (MutationFn, error) {
 			existing.Permissions = rs.Permissions
 		}
 
-		if len(rs.RemoteRelationships) > 0 {
-			existing.RemoteRelationships = rs.RemoteRelationships
-		}
+		existing.RemoteRelationships = nil
 
 		return "", nil
 	}, nil
@@ -253,9 +253,10 @@ func (s *Store) UpdateRemoteSchema(
 }
 
 // mergedRemoteSchemaForUpdate returns the entry as it will look after the update
-// mutation, so the validator introspects/parses the final state (new definition
-// + preserved-or-replaced permissions). Falls back to the args alone when the
-// entry is absent (the caller has already rejected that case).
+// mutation, so the validator introspects/parses the final state: new definition,
+// preserved-or-replaced permissions, and dropped remote relationships (matching
+// buildUpdateRemoteSchema). Falls back to the args alone when the entry is absent
+// (the caller has already rejected that case).
 func (s *Store) mergedRemoteSchemaForUpdate(
 	rs hasura.RemoteSchemaMetadata,
 ) hasura.RemoteSchemaMetadata {
@@ -275,9 +276,9 @@ func (s *Store) mergedRemoteSchemaForUpdate(
 		merged.Permissions = rs.Permissions
 	}
 
-	if len(rs.RemoteRelationships) > 0 {
-		merged.RemoteRelationships = rs.RemoteRelationships
-	}
+	// Match buildUpdateRemoteSchema: update_remote_schema drops remote
+	// relationships, so validate the post-update state without them.
+	merged.RemoteRelationships = nil
 
 	return merged
 }
@@ -345,13 +346,13 @@ func buildAddRemoteSchemaPermissions(argsJSON []byte) (MutationFn, error) {
 func (s *Store) AddRemoteSchemaPermissions(
 	ctx context.Context, argsJSON []byte,
 ) (int64, IdempotencyCode, error) {
-	merged, exists, alreadyHasRole, err := s.remoteSchemaWithAddedPermission(argsJSON)
+	merged, name, exists, alreadyHasRole, err := s.remoteSchemaWithAddedPermission(argsJSON)
 	if err != nil {
 		return 0, "", err
 	}
 
 	if !exists {
-		return 0, "", fmt.Errorf("%w", ErrRemoteSchemaNotFound)
+		return 0, "", fmt.Errorf("%w: %q", ErrRemoteSchemaNotFound, name)
 	}
 
 	if alreadyHasRole {
@@ -376,16 +377,16 @@ func (s *Store) AddRemoteSchemaPermissions(
 // idempotent no-op).
 func (s *Store) remoteSchemaWithAddedPermission(
 	argsJSON []byte,
-) (merged hasura.RemoteSchemaMetadata, exists, alreadyHasRole bool, err error) {
+) (merged hasura.RemoteSchemaMetadata, name string, exists, alreadyHasRole bool, err error) {
 	var a remoteSchemaPermissionArgs
 	if err = json.Unmarshal(argsJSON, &a); err != nil {
-		return merged, false, false, fmt.Errorf(
+		return merged, "", false, false, fmt.Errorf(
 			"parsing %s args: %w", opAddRemoteSchemaPermissions, err,
 		)
 	}
 
 	if err = a.validate(opAddRemoteSchemaPermissions, true /* requireSchema */); err != nil {
-		return merged, false, false, err
+		return merged, a.RemoteSchema, false, false, err
 	}
 
 	s.mu.Lock()
@@ -393,14 +394,14 @@ func (s *Store) remoteSchemaWithAddedPermission(
 
 	existing := findRemoteSchema(s.hasura, a.RemoteSchema)
 	if existing == nil {
-		return merged, false, false, nil
+		return merged, a.RemoteSchema, false, false, nil
 	}
 
 	merged = *existing
 
 	for i := range existing.Permissions {
 		if existing.Permissions[i].Role == a.Role {
-			return merged, true, true, nil
+			return merged, a.RemoteSchema, true, true, nil
 		}
 	}
 
@@ -409,7 +410,7 @@ func (s *Store) remoteSchemaWithAddedPermission(
 		hasura.RemoteSchemaPermission{Role: a.Role, Definition: a.Definition, Unknown: nil},
 	)
 
-	return merged, true, false, nil
+	return merged, a.RemoteSchema, true, false, nil
 }
 
 func buildDropRemoteSchemaPermissions(argsJSON []byte) (MutationFn, error) {

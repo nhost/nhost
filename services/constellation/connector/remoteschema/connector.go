@@ -66,6 +66,28 @@ type Connector struct {
 	httpClient           *httpClient
 }
 
+// hardenedHTTPClient is the client used for credentialed outbound remote-schema
+// requests (introspection, validation, reload) when the caller supplies no
+// doer. It sets a finite timeout and disables redirect following: a GraphQL
+// operation is a POST with no legitimate redirect semantics, and following one
+// would re-issue the request — with the configured X-Api-Key and any forwarded
+// Authorization/Cookie headers — to an attacker-chosen host (SSRF + credential
+// leak). http.ErrUseLastResponse makes Do() stop at the first 3xx and hand it
+// back so the caller treats it as a non-200 response. timeoutSeconds <= 0 falls
+// back to defaultTimeoutSeconds.
+func hardenedHTTPClient(timeoutSeconds int) *http.Client {
+	if timeoutSeconds <= 0 {
+		timeoutSeconds = defaultTimeoutSeconds
+	}
+
+	return &http.Client{ //nolint:exhaustruct
+		Timeout: time.Duration(timeoutSeconds) * time.Second,
+		CheckRedirect: func(_ *http.Request, _ []*http.Request) error {
+			return http.ErrUseLastResponse
+		},
+	}
+}
+
 // New creates a new remote schema connector from metadata. The provided doer is
 // used for all HTTP traffic, including the admin introspection request made
 // during construction. Passing nil falls back to a default *http.Client whose
@@ -101,19 +123,7 @@ func New(
 	// Wiring an injected doer into production must re-establish this guard, or
 	// redirects would silently leak the configured credentials.
 	if doer == nil {
-		doer = &http.Client{ //nolint:exhaustruct
-			Timeout: time.Duration(timeout) * time.Second,
-			// Disallow redirect following entirely. A GraphQL operation is a
-			// POST with no legitimate redirect semantics, and following one
-			// would re-issue the request — with the configured X-Api-Key and
-			// any forwarded Authorization/Cookie headers — to an
-			// attacker-chosen host (SSRF + credential leak). Returning
-			// http.ErrUseLastResponse makes Do() stop at the first 3xx and
-			// hand it back so the caller treats it as a non-200 response.
-			CheckRedirect: func(_ *http.Request, _ []*http.Request) error {
-				return http.ErrUseLastResponse
-			},
-		}
+		doer = hardenedHTTPClient(timeout)
 	}
 
 	schemas, presets, err := buildRoleSchemas(meta)

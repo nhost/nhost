@@ -499,6 +499,45 @@ func TestReloadRemoteSchema_PropagatesIntrospectionError(t *testing.T) {
 	}
 }
 
+func TestUpdateRemoteSchema_DropsRemoteRelationships(t *testing.T) {
+	t.Parallel()
+
+	w := &fakeWriter{}
+	s := remoteSchemaStore(t, w)
+
+	v := &recordingValidator{}
+	s.SetRemoteSchemaValidator(v.validate)
+
+	// Seed a remote relationship, then update the definition only. Hasura drops
+	// remote relationships on update_remote_schema while preserving permissions.
+	if _, _, err := s.CreateRemoteSchemaRemoteRelationship(t.Context(), []byte(
+		`{"remote_schema":"rs","type_name":"Team","name":"dept","definition":`+
+			`{"to_source":{"source":"default","table":{"schema":"public","name":"departments"},`+
+			`"relationship_type":"object","field_mapping":{"departmentId":"id"}}}}`,
+	)); err != nil {
+		t.Fatalf("seed CreateRemoteSchemaRemoteRelationship: %v", err)
+	}
+
+	if _, _, err := s.UpdateRemoteSchema(t.Context(), []byte(
+		`{"name":"rs","definition":{"url":"http://updated.test/graphql","timeout_seconds":30}}`,
+	)); err != nil {
+		t.Fatalf("UpdateRemoteSchema: %v", err)
+	}
+
+	rs := currentRemoteSchemas(t, s)
+	if len(rs) != 1 {
+		t.Fatalf("remote schemas = %+v, want one", rs)
+	}
+
+	if len(rs[0].RemoteRelationships) != 0 {
+		t.Errorf("remote_relationships = %+v, want dropped", rs[0].RemoteRelationships)
+	}
+
+	if len(rs[0].Permissions) != 1 || rs[0].Permissions[0].Role != "user" {
+		t.Errorf("permissions = %+v, want preserved [user]", rs[0].Permissions)
+	}
+}
+
 func TestCreateRemoteSchemaRemoteRelationship_ToSource(t *testing.T) {
 	t.Parallel()
 
