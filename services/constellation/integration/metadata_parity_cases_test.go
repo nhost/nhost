@@ -413,30 +413,42 @@ func TestMetadataParity(t *testing.T) { //nolint:paralleltest
 		},
 		{
 			// Enforced: rs→db remote relationship; export matches Hasura.
+			// Layer D queries the rs_dept field to prove the rs→source join
+			// resolves identically (teams come back in the endpoint's fixed order).
 			name:          "create_remote_schema_remote_relationship_to_source",
 			setup:         []string{addRS},
 			op:            relDept,
 			affectsSchema: true,
+			query:         `query { teams { id rs_dept { id name } } }`,
 		},
 		{
-			// Enforced: rs→rs (self-referential) remote relationship.
+			// Enforced: rs→rs (self-referential) remote relationship. Layer D
+			// queries the rs_self field to prove the rs→rs stitch resolves and
+			// returns Hasura-identical data, not just a matching schema.
 			name:          "create_remote_schema_remote_relationship_to_remote_schema",
 			setup:         []string{addRS},
 			op:            relSelf,
 			affectsSchema: true,
+			query:         `query { teams { id name rs_self { id name } } }`,
 		},
 		{
+			// Enforced: object→array reshape. Layer D queries rs_dept (now an array
+			// relationship) to prove both engines resolve it as a list identically.
 			name:          "update_remote_schema_remote_relationship",
 			setup:         []string{addRS, relDept},
 			op:            `{"type":"update_remote_schema_remote_relationship","args":{"remote_schema":"` + rsName + `","type_name":"Team","name":"rs_dept","definition":{"to_source":{"source":"default","table":{"schema":"public","name":"departments"},"relationship_type":"array","field_mapping":{"departmentId":"id"}}}}}`,
 			affectsSchema: true,
+			query:         `query { teams { id rs_dept { id name } } }`,
 		},
 		{
-			// Enforced: after delete the relationship is gone on both engines.
+			// Enforced: after delete the relationship is gone on both engines. Layer D
+			// asserts the rs_dept field no longer resolves on either engine (queryWantErr).
 			name:          "delete_remote_schema_remote_relationship",
 			setup:         []string{addRS, relDept},
 			op:            `{"type":"delete_remote_schema_remote_relationship","args":{"remote_schema":"` + rsName + `","type_name":"Team","name":"rs_dept"}}`,
 			affectsSchema: true,
+			query:         `query { teams { id rs_dept { id } } }`,
+			queryWantErr:  true,
 		},
 		{
 			// Enforced: both engines reject updating an absent relationship with not-exists.
