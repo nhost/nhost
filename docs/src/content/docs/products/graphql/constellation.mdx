@@ -14,17 +14,17 @@ sidebar:
 import { Card, CardGroup } from '@components';
 import { Steps, Tabs, TabItem } from '@astrojs/starlight/components';
 
-**Constellation** is Nhost's own GraphQL engine. It introspects your Postgres database and serves a role-based GraphQL API — queries, mutations, and subscriptions — built from scratch in Go for a predictable, low resource footprint.
+**Constellation** is Nhost's own GraphQL engine — built in Go to turn your Postgres database into a fast, role-based GraphQL API at a fraction of the resources.
 
-Constellation is a **near drop-in replacement for [Hasura](https://hasura.io/) Community Edition**: it reads the same metadata, generates a compatible GraphQL schema, and serves the same query, mutation, and subscription surface — including remote schemas and cross-source relationships. If you've used Hasura CE, you already know how to use Constellation. The rest of these docs describe the GraphQL API in engine-neutral terms because the API surface is the same whichever engine serves it.
+It's a drop-in replacement for [Hasura](https://hasura.io/) Community Edition, so everything behaves the way you'd expect: the same metadata, the same schema, and the same queries, mutations, and subscriptions — remote schemas and cross-source relationships included. That compatibility is also why the rest of these docs describe the GraphQL API in neutral terms: the surface is identical whichever engine serves it.
 
 :::caution[Alpha — opt-in]
-Constellation is in **alpha** and **opt-in** today. It runs **alongside** the existing engine, not instead of it — you can enable it, run real traffic through it, and roll back instantly by removing the config block. Over time it will become the default. Read the announcement: [Introducing Constellation](https://nhost.io/blog/introducing-constellation).
+Constellation is in **alpha** and **opt-in** today: it runs alongside the existing engine rather than replacing it, so you can switch it on, send real traffic through it, and turn it back off whenever you like. It will become the default over time. See the [announcement](https://nhost.io/blog/introducing-constellation) for the full story.
 :::
 
 ## Why Constellation
 
-The GraphQL engine should not be the most expensive thing in your stack. In real production deployments serving the same traffic, Constellation uses **~90% less memory** (roughly 15 MiB vs. 180 MiB) with comparable or slightly lower CPU and latency — before any of the performance work still on the roadmap.
+The GraphQL engine shouldn't be the most expensive thing in your stack. Running the same production traffic, Constellation uses [~90% less memory](https://nhost.io/blog/introducing-constellation) than the engine it replaces, with comparable or slightly lower CPU and latency — and that's before the performance work still on the roadmap.
 
 ## Enabling Constellation
 
@@ -121,16 +121,16 @@ Any non-empty diff should map to a documented, intentional divergence. The full 
 ## Learn more
 
 <CardGroup cols={2}>
-  <Card title="GraphQL API Overview" href="/products/graphql">
-  Queries, mutations, and subscriptions over your database
+  <Card title="Read the announcement" href="https://nhost.io/blog/introducing-constellation">
+  Why we built Constellation, with production benchmarks — on the Nhost blog
   </Card>
-  <Card title="Permissions" href="/products/graphql/permissions">
-  Role-based, row- and column-level access control
+  <Card title="What carries over from Hasura" href="https://github.com/nhost/nhost/blob/main/services/constellation/docs/user/hasura-metadata-support.md">
+  A field-by-field map of the metadata Constellation supports
   </Card>
-  <Card title="Metadata support matrix" href="https://github.com/nhost/nhost/blob/main/services/constellation/docs/user/hasura-metadata-support.md">
-  Every metadata field: supported, partial, ignored, or unsupported
+  <Card title="Known differences" href="https://github.com/nhost/nhost/blob/main/services/constellation/KNOWN_DIFFERENCES.md">
+  The few intentional ways Constellation diverges from Hasura
   </Card>
-  <Card title="Introducing Constellation" href="https://nhost.io/blog/introducing-constellation">
-  The announcement, performance numbers, and rationale
+  <Card title="Configure the engine" href="/products/graphql/configuration">
+  Set the Constellation version and runtime options in nhost.toml
   </Card>
 </CardGroup>
