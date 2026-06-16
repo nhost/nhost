@@ -24,6 +24,11 @@ export default defineConfig({
   // makes the Vercel adapter emit 308 redirects from old `/path/` URLs so already
   // indexed pages and external backlinks keep working.
   trailingSlash: 'never',
+  // Redirects for pages renamed during the GraphQL docs neutralization, so
+  // existing links and indexed URLs keep working.
+  redirects: {
+    '/products/graphql/configuring-hasura': '/products/graphql/configuration',
+  },
   // Astro 6.4 moved the GFM default onto the new `markdown.processor` (unified())
   // and left the legacy `markdown.gfm` flag undefined-by-default. But
   // @astrojs/mdx@5.0.6 still reads the legacy flag rather than the processor, so
@@ -284,7 +289,7 @@ export default defineConfig({
                   label: 'Configuration',
                   collapsed: false,
                   items: [
-                    { slug: 'products/graphql/configuring-hasura' },
+                    { slug: 'products/graphql/configuration' },
                     {
                       label: 'Permissions',
                       collapsed: false,
