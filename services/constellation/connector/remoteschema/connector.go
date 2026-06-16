@@ -136,7 +136,7 @@ func New(
 	// Admin role always has full access via introspection.
 	adminSchema, err := connector.introspectRemoteSchema(ctx)
 	if err != nil {
-		return nil, fmt.Errorf("failed to introspect remote schema for admin role: %w", err)
+		return nil, fmt.Errorf("%w: admin role: %w", ErrIntrospection, err)
 	}
 
 	connector.schemas[metadata.RoleAdmin] = adminSchema

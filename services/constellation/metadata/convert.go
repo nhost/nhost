@@ -659,6 +659,15 @@ func convertRemoteSchemaPermissions(
 	return result
 }
 
+// ConvertRemoteSchema converts a single Hasura wire-form remote schema entry
+// into the native model. Exported so the metadata mutation store can validate
+// a prospective remote schema (URL/header resolution, permission SDL parsing,
+// admin introspection) through the same path the controller uses to build the
+// connector — guaranteeing that an accepted mutation also rebuilds cleanly.
+func ConvertRemoteSchema(h hasura.RemoteSchemaMetadata) RemoteSchemaMetadata {
+	return convertRemoteSchema(h)
+}
+
 func convertRemoteSchema(h hasura.RemoteSchemaMetadata) RemoteSchemaMetadata {
 	remoteRelationships := make([]RemoteSchemaTypeRemoteRelationship, len(h.RemoteRelationships))
 	for i, rr := range h.RemoteRelationships {
