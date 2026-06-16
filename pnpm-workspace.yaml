@@ -108,3 +108,4 @@ minimumReleaseAgeExclude:
   - js-yaml@4.1.2
   - '@babel/core@7.29.1'
   - markdown-it@14.1.2
+  - astro@6.4.6
