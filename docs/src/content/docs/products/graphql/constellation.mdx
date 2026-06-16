@@ -14,9 +14,7 @@ sidebar:
 import { Card, CardGroup } from '@components';
 import { Steps, Tabs, TabItem } from '@astrojs/starlight/components';
 
-**Constellation** turns your Postgres database into a fast, role-based GraphQL API at a fraction of the resources.
-
-It's a drop-in replacement for [Hasura](https://hasura.io/) Community Edition, so everything behaves the way you'd expect. You get the same metadata, the same schema, and the same queries, mutations, and subscriptions, including remote schemas and cross-source relationships. That compatibility is also why the rest of these docs describe the GraphQL API in neutral terms: the surface is identical whichever engine serves it.
+**Constellation** turns your Postgres database into a fast, role-based GraphQL API at a fraction of the resources. It's a drop-in replacement for [Hasura](https://hasura.io/) Community Edition, so everything behaves the way you'd expect: the same metadata, the same schema, and the same queries, mutations, and subscriptions, including remote schemas and cross-source relationships. That compatibility is also why the rest of these docs describe the GraphQL API in neutral terms: the surface is identical whichever engine serves it.
 
 :::caution[Alpha and opt-in]
 Constellation is in **alpha** and **opt-in** today. It runs alongside the existing engine rather than replacing it, so you can switch it on, send real traffic through it, and turn it back off whenever you like. It will become the default over time. See the [announcement](https://nhost.io/blog/introducing-constellation) for the full story.
