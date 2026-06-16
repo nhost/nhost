@@ -59,6 +59,48 @@ func FromHasuraJSON(data []byte) (*Metadata, error) {
 	return fromHasura(h), nil
 }
 
+// FromDetectWithHasura mirrors FromDetect but also returns a pre-conversion
+// Hasura JSON snapshot when the path resolves to a Hasura YAML directory
+// layout. The snapshot is a best-effort re-encoding (via [hasura.ToJSON]) of
+// what hasura.FromYAML reads from databases/ and remote_schemas.yaml — NOT a
+// lossless inverse of the source tree. FromYAML never parses a top-level
+// envelope (it leaves Metadata.Unknown nil), so unmodeled top-level keys such
+// as actions and cron_triggers are dropped; only per-struct unknown keys
+// inside the files it does read survive. A verbatim, fully-faithful snapshot
+// is available only from the database source, which caches the original
+// hdb_metadata blob; see FileMetadataSource.HasuraSnapshotJSON for the file
+// caveat. For TOML paths the snapshot is nil: the engine has no Hasura-shaped
+// source to serialize and `export_metadata` returns an empty envelope.
+func FromDetectWithHasura(
+	ctx context.Context, path string,
+) (*Metadata, []byte, error) {
+	if strings.HasSuffix(filepath.Base(path), ".toml") {
+		data, err := os.ReadFile(path)
+		if err != nil {
+			return nil, nil, fmt.Errorf("reading TOML metadata file %s: %w", path, err)
+		}
+
+		m, err := unmarshalTOML(data)
+		if err != nil {
+			return nil, nil, err
+		}
+
+		return m, nil, nil
+	}
+
+	h, err := hasura.FromYAML(ctx, path)
+	if err != nil {
+		return nil, nil, fmt.Errorf("loading hasura metadata: %w", err)
+	}
+
+	raw, err := hasura.ToJSON(h)
+	if err != nil {
+		return nil, nil, fmt.Errorf("serializing hasura metadata for snapshot: %w", err)
+	}
+
+	return fromHasura(h), raw, nil
+}
+
 // fromHasuraYAML loads Hasura v3 metadata from the directory layout rooted at
 // filepath.Dir(metadataPath) and converts it to the native format. metadataPath
 // is a locator for the metadata directory only — the file it names is never
