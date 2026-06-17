@@ -1,4 +1,5 @@
 import { zodResolver } from '@hookform/resolvers/zod';
+import { graphql } from 'cm6-graphql';
 import { PlusIcon, TrashIcon } from 'lucide-react';
 import {
   type ReactNode,
@@ -10,6 +11,7 @@ import {
 } from 'react';
 import { useForm } from 'react-hook-form';
 import { DiscardChangesDialog } from '@/components/common/DiscardChangesDialog';
+import { FormCodeEditor } from '@/components/form/FormCodeEditor';
 import { FormInput } from '@/components/form/FormInput';
 import { FormSelect } from '@/components/form/FormSelect';
 import { FormTextarea } from '@/components/form/FormTextarea';
@@ -20,14 +22,7 @@ import {
   AccordionTrigger,
 } from '@/components/ui/v3/accordion';
 import { Button, ButtonWithLoading } from '@/components/ui/v3/button';
-import {
-  Form,
-  FormControl,
-  FormField,
-  FormItem,
-  FormLabel,
-  FormMessage,
-} from '@/components/ui/v3/form';
+import { Form } from '@/components/ui/v3/form';
 import { SelectItem } from '@/components/ui/v3/select';
 import { Separator } from '@/components/ui/v3/separator';
 import {
@@ -40,7 +35,6 @@ import {
   SheetTitle,
 } from '@/components/ui/v3/sheet';
 import { CopyToLlmButton } from '@/features/orgs/projects/actions/components/CopyToLlmButton';
-import { GraphQLSdlEditor } from '@/features/orgs/projects/actions/components/GraphQLSdlEditor';
 import { getOverlappingCustomTypenames } from '@/features/orgs/projects/actions/utils/buildActionDTO';
 import { getActionSampleInputPayload } from '@/features/orgs/projects/actions/utils/getActionSampleInputPayload';
 import { parseActionDefinitionSdl } from '@/features/orgs/projects/actions/utils/parseActionDefinitionSdl';
@@ -313,71 +307,56 @@ export default function BaseActionForm({
             >
               <div className="flex flex-auto flex-col">
                 <div className="flex flex-col gap-6 p-6 text-foreground">
-                  <FormField
+                  <FormCodeEditor
                     control={form.control}
                     name="actionDefinitionSdl"
-                    render={({ field }) => (
-                      <FormItem>
-                        <FormLabel className="flex flex-row items-center gap-2">
-                          Action Definition{' '}
-                          <InfoTooltip>
-                            Define the action as a single field under a{' '}
-                            <code>Mutation</code> or <code>Query</code> type.
-                          </InfoTooltip>
-                        </FormLabel>
-                        <FormControl>
-                          <div className="relative">
-                            <GraphQLSdlEditor
-                              aria-label="Action Definition"
-                              value={field.value}
-                              onChange={field.onChange}
-                            />
-                            <CopyToLlmButton
-                              target="definition"
-                              className="absolute top-2 right-2 z-10"
-                            />
-                          </div>
-                        </FormControl>
-                        <FormMessage />
-                      </FormItem>
-                    )}
+                    aria-label="Action Definition"
+                    extensions={[graphql()]}
+                    label={
+                      <>
+                        Action Definition{' '}
+                        <InfoTooltip>
+                          Define the action as a single field under a{' '}
+                          <code>Mutation</code> or <code>Query</code> type.
+                        </InfoTooltip>
+                      </>
+                    }
+                    overlay={
+                      <CopyToLlmButton
+                        target="definition"
+                        className="absolute top-2 right-2 z-10"
+                      />
+                    }
                   />
-                  <FormField
+                  <FormCodeEditor
                     control={form.control}
                     name="typesSdl"
-                    render={({ field }) => (
-                      <FormItem>
-                        <FormLabel className="flex flex-row items-center gap-2">
-                          Type Configuration{' '}
-                          <InfoTooltip>
-                            Define the new input and output types used by the
-                            action.
-                          </InfoTooltip>
-                        </FormLabel>
-                        <FormControl>
-                          <div className="relative">
-                            <GraphQLSdlEditor
-                              aria-label="Type Configuration"
-                              value={field.value}
-                              onChange={field.onChange}
-                            />
-                            <CopyToLlmButton
-                              target="types"
-                              className="absolute top-2 right-2 z-10"
-                            />
-                          </div>
-                        </FormControl>
-                        {overlappingTypenames.length > 0 && (
-                          <p className="text-muted-foreground text-xs">
-                            The following types already exist and will be
-                            overwritten when saving:{' '}
-                            {overlappingTypenames.join(', ')}
-                          </p>
-                        )}
-                        <FormMessage />
-                      </FormItem>
+                    aria-label="Type Configuration"
+                    extensions={[graphql()]}
+                    label={
+                      <>
+                        Type Configuration{' '}
+                        <InfoTooltip>
+                          Define the new input and output types used by the
+                          action.
+                        </InfoTooltip>
+                      </>
+                    }
+                    overlay={
+                      <CopyToLlmButton
+                        target="types"
+                        className="absolute top-2 right-2 z-10"
+                      />
+                    }
+                  >
+                    {overlappingTypenames.length > 0 && (
+                      <p className="text-muted-foreground text-xs">
+                        The following types already exist and will be
+                        overwritten when saving:{' '}
+                        {overlappingTypenames.join(', ')}
+                      </p>
                     )}
-                  />
+                  </FormCodeEditor>
                   <Separator />
                   <FormInput
                     control={form.control}
