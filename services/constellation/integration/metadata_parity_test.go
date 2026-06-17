@@ -90,6 +90,21 @@ type metadataParityCase struct {
 	// keep this list short — it is the explicit allowlist, documented in
 	// docs/user/hasura-metadata-support.md.
 	knownDivergence string
+	// query, when non-empty, is a GraphQL query run against BOTH engines'
+	// GraphQL endpoints after the op (Layer D). It proves the op produced not
+	// just matching metadata/SDL but matching runtime behaviour — the one axis
+	// the export/SDL layers cannot see (e.g. that a relationship field actually
+	// resolves and stitches). Opt-in: set only where a meaningful, deterministic
+	// query exists. Queries over lists must be deterministically ordered.
+	query string
+	// queryRole is the x-hasura-role for the Layer D query; defaults to "admin".
+	queryRole string
+	// queryWantErr inverts the Layer D assertion: instead of requiring a matching
+	// error-free result, it requires BOTH engines to reject the query with a
+	// GraphQL error. Used after a drop op to prove the relationship field stops
+	// resolving on both engines (the field is gone, not merely absent from the
+	// export). Error bodies are not deep-compared — engines word them differently.
+	queryWantErr bool
 }
 
 // metadataRequestTimeout bounds each /v1/metadata call. A reset (replace_metadata)
@@ -458,6 +473,117 @@ func runMetadataParityCase(
 	if tc.affectsSchema && os.Getenv("PARITY_SCHEMA_CHECK") == "1" {
 		compareSchemaDelta(t, baseline, tc)
 	}
+
+	// Layer D — query execution. For cases with a query, run it against both
+	// engines' GraphQL endpoints and diff the responses, proving the op produced
+	// matching runtime behaviour and not just matching metadata/SDL. The op is
+	// already applied (above), leaving both engines in the post-op state.
+	if tc.query != "" {
+		compareQueryResult(t, report, tc)
+	}
+}
+
+// compareQueryResult runs tc.query against both engines and diffs the decoded
+// responses, reusing the query-diff primitive (makeHTTPQuery + cmp.Diff) from
+// the RunGraphQLTests harness. Constellation's connector rebuild after a
+// mutation is asynchronous, so its side is polled until it resolves cleanly.
+func compareQueryResult(t *testing.T, report func(string, ...any), tc metadataParityCase) {
+	t.Helper()
+
+	role := tc.queryRole
+	if role == "" {
+		role = "admin"
+	}
+
+	headers := http.Header{
+		"x-hasura-admin-secret": []string{adminSecret},
+		"x-hasura-role":         []string{role},
+	}
+	q := query{Query: tc.query, Role: role} //nolint:exhaustruct
+
+	hasuraResp, err := makeHTTPQuery(t.Context(), hasuraURL, q, headers)
+	if err != nil {
+		t.Fatalf("hasura query failed: %v", err)
+	}
+
+	// Hasura is the oracle: its response must match the case's expectation, or
+	// the fixture (query vs op) is wrong.
+	if hasErrors(hasuraResp) != tc.queryWantErr {
+		t.Fatalf(
+			"hasura precondition failed for parity query %q: wantErr=%v, response=%v",
+			tc.name, tc.queryWantErr, hasuraResp,
+		)
+	}
+
+	// queryWantErr cases assert only that both engines reject the (removed) field;
+	// error bodies diverge in wording, so they are not deep-compared.
+	if tc.queryWantErr {
+		if _, ok := pollGraphQL(t, q, headers, hasErrors); !ok {
+			report(
+				"constellation still resolves %q after drop while hasura rejects it",
+				tc.name,
+			)
+		}
+
+		return
+	}
+
+	// Success case: poll until Constellation's response converges to Hasura's.
+	// Matching the oracle (not merely "error-free") is the correct readiness
+	// signal for the asynchronous post-mutation rebuild: an object→array reshape,
+	// for instance, leaves the pre-rebuild response error-free but the wrong shape.
+	matches := func(resp any) bool { return cmp.Diff(hasuraResp, resp) == "" }
+
+	constellationResp, ok := pollGraphQL(t, q, headers, matches)
+	if !ok {
+		report(
+			"query result differs (-hasura +constellation):\n%s",
+			cmp.Diff(hasuraResp, constellationResp),
+		)
+	}
+}
+
+// pollGraphQL issues the query against the Constellation parity endpoint until
+// ready(response) holds or the 30s deadline elapses, returning the last
+// error-free response and whether ready was satisfied. It accommodates
+// Constellation's asynchronous post-mutation connector rebuild, during which a
+// just-added field may not yet resolve, a reshaped field may still have its old
+// shape, or a just-dropped field may still resolve.
+func pollGraphQL(
+	t *testing.T, q query, headers http.Header, ready func(any) bool,
+) (any, bool) {
+	t.Helper()
+
+	deadline := time.Now().Add(30 * time.Second)
+
+	var last any
+
+	for time.Now().Before(deadline) {
+		resp, err := makeHTTPQuery(t.Context(), constellationParityGraphQLURL, q, headers)
+		if err == nil {
+			last = resp
+			if ready(resp) {
+				return resp, true
+			}
+		}
+
+		time.Sleep(500 * time.Millisecond)
+	}
+
+	return last, false
+}
+
+// hasErrors reports whether a decoded GraphQL response carries a non-empty
+// top-level "errors" array.
+func hasErrors(resp any) bool {
+	m, ok := resp.(map[string]any)
+	if !ok {
+		return false
+	}
+
+	errs, ok := m["errors"].([]any)
+
+	return ok && len(errs) > 0
 }
 
 // assertErrorParity checks both engines rejected the op with the same Hasura
