@@ -87,6 +87,44 @@ func TestDispatch_AddRemoteSchema_UnreachableMapsToRemoteSchemaError(t *testing.
 	}
 }
 
+// TestDispatch_BulkAtomic_AddRemoteSchema_SkipsValidation pins the documented
+// divergence (docs/user/hasura-metadata-support.md): bulk_atomic composes the
+// pure source.BuildMutation closures and never consults the synchronous
+// remote-schema validator, so an add that the single-op path rejects with
+// remote-schema-error (see TestDispatch_AddRemoteSchema_UnreachableMapsToRemoteSchemaError,
+// same failing validator) is accepted here. The build-time URL check
+// (parseRemoteSchemaInfo) still applies on both paths; only the upstream
+// introspection is skipped.
+func TestDispatch_BulkAtomic_AddRemoteSchema_SkipsValidation(t *testing.T) {
+	t.Parallel()
+
+	store := newBootstrappedStore(t, &writerStub{})
+	store.SetRemoteSchemaValidator(
+		func(_ context.Context, _ *metadata.RemoteSchemaMetadata) error {
+			return fmt.Errorf("%w: dial tcp: connection refused", remoteschema.ErrIntrospection)
+		},
+	)
+	router := buildMutationRouter(t, store)
+
+	code, body := postJSON(t, router,
+		`{"type":"bulk_atomic","args":[{"type":"add_remote_schema","args":`+
+			`{"name":"rs","definition":{"url":"http://unreachable.test/graphql"}}}]}`)
+
+	if code != http.StatusOK {
+		t.Fatalf("status = %d, want 200 (bulk_atomic bypasses validation); body = %v", code, body)
+	}
+
+	results, ok := body["bulk"].([]any)
+	if !ok || len(results) != 1 {
+		t.Fatalf("bulk results = %v, want one entry", body["bulk"])
+	}
+
+	entry, _ := results[0].(map[string]any)
+	if got, _ := entry["message"].(string); got != "success" {
+		t.Errorf("bulk_atomic[0].message = %v, want success (validation skipped)", entry["message"])
+	}
+}
+
 func TestDispatch_DropRemoteSchemaPermissions_NotExists(t *testing.T) {
 	t.Parallel()
 
