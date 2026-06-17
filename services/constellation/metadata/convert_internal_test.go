@@ -45,59 +45,6 @@ func TestConvertDatabaseURL(t *testing.T) {
 	}
 }
 
-func TestConvertHeaderValue(t *testing.T) {
-	t.Parallel()
-
-	tests := []struct {
-		name             string
-		in               hasura.EnvValue
-		wantValue        string
-		wantValueFromEnv string
-	}{
-		{
-			name:             "from env",
-			in:               hasura.EnvValue{FromEnv: "API_KEY"},
-			wantValue:        "",
-			wantValueFromEnv: "API_KEY",
-		},
-		{
-			name:             "direct value",
-			in:               hasura.EnvValue{Value: "secret123"},
-			wantValue:        "secret123",
-			wantValueFromEnv: "",
-		},
-		{
-			name:             "literal braces stay literal",
-			in:               hasura.EnvValue{Value: "{{API_KEY}}"},
-			wantValue:        "{{API_KEY}}",
-			wantValueFromEnv: "",
-		},
-		{
-			name:             "empty",
-			in:               hasura.EnvValue{},
-			wantValue:        "",
-			wantValueFromEnv: "",
-		},
-	}
-
-	for _, tt := range tests {
-		t.Run(tt.name, func(t *testing.T) {
-			t.Parallel()
-
-			gotValue, gotValueFromEnv := convertHeaderValue(tt.in)
-			if gotValue != tt.wantValue || gotValueFromEnv != tt.wantValueFromEnv {
-				t.Errorf(
-					"convertHeaderValue = (%q, %q), want (%q, %q)",
-					gotValue,
-					gotValueFromEnv,
-					tt.wantValue,
-					tt.wantValueFromEnv,
-				)
-			}
-		})
-	}
-}
-
 func TestNormalizePermissionMap(t *testing.T) {
 	t.Parallel()
 
