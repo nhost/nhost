@@ -175,7 +175,11 @@ func buildRemoveRemoteSchema(argsJSON []byte) (MutationFn, error) {
 	}
 
 	if a.Name == "" {
-		return nil, fmt.Errorf("%w: %s: name is required", errMissingRequiredField, opRemoveRemoteSchema)
+		return nil, fmt.Errorf(
+			"%w: %s: name is required",
+			errMissingRequiredField,
+			opRemoveRemoteSchema,
+		)
 	}
 
 	return func(h *hasura.Metadata) (IdempotencyCode, error) {
@@ -587,7 +591,10 @@ func buildCreateRemoteSchemaRemoteRelationship(argsJSON []byte) (MutationFn, err
 		return nil, fmt.Errorf("parsing %s args: %w", opCreateRemoteSchemaRemoteRelationship, err)
 	}
 
-	if err := a.validate(opCreateRemoteSchemaRemoteRelationship, true /* requireDef */); err != nil {
+	if err := a.validate(
+		opCreateRemoteSchemaRemoteRelationship,
+		true, /* requireDef */
+	); err != nil {
 		return nil, err
 	}
 
@@ -604,7 +611,8 @@ func buildCreateRemoteSchemaRemoteRelationship(argsJSON []byte) (MutationFn, err
 
 		typeRel := findRemoteSchemaTypeRel(rs, a.TypeName)
 		if typeRel == nil {
-			typeRels := append(sliceOf(rs.RemoteRelationships),
+			typeRels := append(
+				sliceOf(rs.RemoteRelationships),
 				hasura.RemoteSchemaTypeRemoteRelationship{
 					TypeName:      a.TypeName,
 					Relationships: []hasura.RemoteSchemaRelationshipDef{rel},
@@ -646,7 +654,10 @@ func buildUpdateRemoteSchemaRemoteRelationship(argsJSON []byte) (MutationFn, err
 		return nil, fmt.Errorf("parsing %s args: %w", opUpdateRemoteSchemaRemoteRelationship, err)
 	}
 
-	if err := a.validate(opUpdateRemoteSchemaRemoteRelationship, true /* requireDef */); err != nil {
+	if err := a.validate(
+		opUpdateRemoteSchemaRemoteRelationship,
+		true, /* requireDef */
+	); err != nil {
 		return nil, err
 	}
 
@@ -693,7 +704,10 @@ func buildDeleteRemoteSchemaRemoteRelationship(argsJSON []byte) (MutationFn, err
 		return nil, fmt.Errorf("parsing %s args: %w", opDeleteRemoteSchemaRemoteRelationship, err)
 	}
 
-	if err := a.validate(opDeleteRemoteSchemaRemoteRelationship, false /* requireDef */); err != nil {
+	if err := a.validate(
+		opDeleteRemoteSchemaRemoteRelationship,
+		false, /* requireDef */
+	); err != nil {
 		return nil, err
 	}
 

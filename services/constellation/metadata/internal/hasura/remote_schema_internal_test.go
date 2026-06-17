@@ -129,7 +129,8 @@ definition:
 		t.Fatalf("headers = %d, want 1", len(got.Definition.Headers))
 	}
 
-	if h := got.Definition.Headers[0]; h.Name != "X-Empty" || h.Value != "" || h.ValueFromEnv != "" {
+	if h := got.Definition.Headers[0]; h.Name != "X-Empty" || h.Value != "" ||
+		h.ValueFromEnv != "" {
 		t.Errorf("empty header = %+v, want only name set", h)
 	}
 }

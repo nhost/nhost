@@ -194,7 +194,11 @@ func introspectRaw(
 		jsontext.AllowDuplicateNames(true),
 		jsontext.AllowInvalidUTF8(true),
 	); err != nil {
-		return nil, fmt.Errorf("%w: failed to parse introspection response: %w", ErrIntrospection, err)
+		return nil, fmt.Errorf(
+			"%w: failed to parse introspection response: %w",
+			ErrIntrospection,
+			err,
+		)
 	}
 
 	if len(result.Errors) > 0 {

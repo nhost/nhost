@@ -150,7 +150,10 @@ func TestAddRemoteSchema_AlreadyExistsSkipsValidation(t *testing.T) {
 	}
 
 	if len(v.calls) != 0 {
-		t.Errorf("validator called %d times, want 0 (already-exists short-circuits before introspection)", len(v.calls))
+		t.Errorf(
+			"validator called %d times, want 0 (already-exists short-circuits before introspection)",
+			len(v.calls),
+		)
 	}
 
 	if w.callCount() != 0 {
@@ -615,7 +618,8 @@ func TestCreateRemoteSchemaRemoteRelationship_ToRemoteSchema(t *testing.T) {
 	}
 
 	toRS := body.ToRemoteSchema
-	if toRS.RemoteSchema != "weather_api" || len(toRS.LhsFields) != 1 || toRS.LhsFields[0] != "city" {
+	if toRS.RemoteSchema != "weather_api" || len(toRS.LhsFields) != 1 ||
+		toRS.LhsFields[0] != "city" {
 		t.Errorf("to_remote_schema = %+v, want weather_api/[city]", toRS)
 	}
 }
@@ -645,8 +649,12 @@ func TestCreateRemoteSchemaRemoteRelationship_AlreadyExistsAndNotFound(t *testin
 	missing := `{"remote_schema":"ghost","type_name":"Team","name":"x","definition":` +
 		`{"to_source":{"source":"default","table":{"schema":"public","name":"departments"},` +
 		`"relationship_type":"object","field_mapping":{"a":"b"}}}}`
-	if _, _, err := s.CreateRemoteSchemaRemoteRelationship(t.Context(), []byte(missing)); !errors.Is(
-		err, ErrRemoteSchemaNotFound,
+	if _, _, err := s.CreateRemoteSchemaRemoteRelationship(
+		t.Context(),
+		[]byte(missing),
+	); !errors.Is(
+		err,
+		ErrRemoteSchemaNotFound,
 	) {
 		t.Fatalf("err = %v, want ErrRemoteSchemaNotFound", err)
 	}
@@ -686,7 +694,10 @@ func TestUpdateRemoteSchemaRemoteRelationship(t *testing.T) {
 	create := `{"remote_schema":"rs","type_name":"Team","name":"dept","definition":` +
 		`{"to_source":{"source":"default","table":{"schema":"public","name":"departments"},` +
 		`"relationship_type":"object","field_mapping":{"departmentId":"id"}}}}`
-	if _, _, err := s.CreateRemoteSchemaRemoteRelationship(t.Context(), []byte(create)); err != nil {
+	if _, _, err := s.CreateRemoteSchemaRemoteRelationship(
+		t.Context(),
+		[]byte(create),
+	); err != nil {
 		t.Fatalf("create: %v", err)
 	}
 
@@ -734,7 +745,10 @@ func TestDeleteRemoteSchemaRemoteRelationship(t *testing.T) {
 	create := `{"remote_schema":"rs","type_name":"Team","name":"dept","definition":` +
 		`{"to_source":{"source":"default","table":{"schema":"public","name":"departments"},` +
 		`"relationship_type":"object","field_mapping":{"departmentId":"id"}}}}`
-	if _, _, err := s.CreateRemoteSchemaRemoteRelationship(t.Context(), []byte(create)); err != nil {
+	if _, _, err := s.CreateRemoteSchemaRemoteRelationship(
+		t.Context(),
+		[]byte(create),
+	); err != nil {
 		t.Fatalf("create: %v", err)
 	}
 
