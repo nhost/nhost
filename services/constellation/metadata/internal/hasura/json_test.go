@@ -211,7 +211,7 @@ func assertRemoteSchemas(t *testing.T, meta *hasura.Metadata) {
 
 	// Headers are the generated HeaderConfValue|HeaderConfFromEnv union; project
 	// each through its JSON form to read whichever arm is set.
-	proj := func(item api.RemoteSchemaDef_Headers_Item) (value, valueFromEnv string) {
+	proj := func(item api.RemoteSchemaDef_Headers_Item) (string, string) {
 		var v struct {
 			Value        string `json:"value"`
 			ValueFromEnv string `json:"value_from_env"`

@@ -11,6 +11,13 @@ import (
 	"github.com/nhost/nhost/services/constellation/metadata/internal/hasura"
 )
 
+// Static stub errors for the validator/introspector failure paths (err113
+// forbids defining dynamic errors inline).
+var (
+	errStubIntrospection = errors.New("introspection failed")
+	errStubEndpointDown  = errors.New("endpoint down")
+)
+
 // remoteSchemaSnapshotJSON seeds one source plus one remote schema "rs" with a
 // single "user" permission, so remove/update/permission ops have something to
 // act on.
@@ -167,7 +174,7 @@ func TestAddRemoteSchema_ValidatorErrorBlocksPersist(t *testing.T) {
 	w := &fakeWriter{}
 	s := bootstrappedStore(t, w)
 
-	boom := errors.New("introspection failed")
+	boom := errStubIntrospection
 	s.SetRemoteSchemaValidator((&recordingValidator{err: boom}).validate)
 
 	_, _, err := s.AddRemoteSchema(t.Context(), []byte(
@@ -492,7 +499,7 @@ func TestReloadRemoteSchema_PropagatesIntrospectionError(t *testing.T) {
 
 	s := remoteSchemaStore(t, &fakeWriter{})
 
-	boom := errors.New("endpoint down")
+	boom := errStubEndpointDown
 	s.SetRemoteSchemaIntrospector(
 		func(context.Context, *metadata.RemoteSchemaMetadata) ([]byte, error) { return nil, boom },
 	)
@@ -562,13 +569,15 @@ func TestCreateRemoteSchemaRemoteRelationship_ToSource(t *testing.T) {
 
 	rs := currentRemoteSchemas(t, s)
 	typeRels := sliceOf(rs[0].RemoteRelationships)
+
 	if len(typeRels) != 1 {
 		t.Fatalf("remote_relationships = %+v, want one type block", typeRels)
 	}
 
 	tr := typeRels[0]
 	rels := tr.Relationships
-	if string(tr.TypeName) != "Team" || len(rels) != 1 || rels[0].Name != "dept" {
+
+	if tr.TypeName != "Team" || len(rels) != 1 || rels[0].Name != "dept" {
 		t.Errorf("type block = %+v, want Team/dept", tr)
 	}
 
@@ -605,7 +614,7 @@ func TestCreateRemoteSchemaRemoteRelationship_ToRemoteSchema(t *testing.T) {
 	var body struct {
 		ToRemoteSchema *struct {
 			RemoteSchema string   `json:"remote_schema"`
-			LhsFields    []string `json:"lhs_fields"`
+			LHSFields    []string `json:"lhs_fields"`
 		} `json:"to_remote_schema"`
 	}
 
@@ -618,8 +627,8 @@ func TestCreateRemoteSchemaRemoteRelationship_ToRemoteSchema(t *testing.T) {
 	}
 
 	toRS := body.ToRemoteSchema
-	if toRS.RemoteSchema != "weather_api" || len(toRS.LhsFields) != 1 ||
-		toRS.LhsFields[0] != "city" {
+	if toRS.RemoteSchema != "weather_api" || len(toRS.LHSFields) != 1 ||
+		toRS.LHSFields[0] != "city" {
 		t.Errorf("to_remote_schema = %+v, want weather_api/[city]", toRS)
 	}
 }
@@ -763,6 +772,7 @@ func TestDeleteRemoteSchemaRemoteRelationship(t *testing.T) {
 	// so the type entry remains with an empty relationships slice.
 	rs := currentRemoteSchemas(t, s)
 	typeRels := sliceOf(rs[0].RemoteRelationships)
+
 	if len(typeRels) != 1 || len(typeRels[0].Relationships) != 0 {
 		t.Errorf("remote_relationships = %+v, want one empty Team block", typeRels)
 	}

@@ -748,7 +748,15 @@ func convertRemoteSchema(h hasura.RemoteSchemaMetadata) RemoteSchemaMetadata {
 // definition models customization as an optional object.
 func convertRemoteSchemaCustomization(h *hasura.RemoteSchemaCustomization) Customization {
 	if h == nil {
-		return Customization{}
+		return Customization{
+			RootFieldsNamespace: "",
+			RootFieldsPrefix:    "",
+			RootFieldsSuffix:    "",
+			TypeNamesPrefix:     "",
+			TypeNamesSuffix:     "",
+			TypeNamesMapping:    nil,
+			FieldNames:          nil,
+		}
 	}
 
 	var fieldNames []FieldNameCustomization
@@ -764,8 +772,11 @@ func convertRemoteSchemaCustomization(h *hasura.RemoteSchemaCustomization) Custo
 		}
 	}
 
-	var typePrefix, typeSuffix string
-	var typeMapping map[string]string
+	var (
+		typePrefix, typeSuffix string
+		typeMapping            map[string]string
+	)
+
 	if h.TypeNames != nil {
 		typePrefix = strDeref(h.TypeNames.Prefix)
 		typeSuffix = strDeref(h.TypeNames.Suffix)
@@ -828,7 +839,7 @@ func convertRemoteSchemaRelationshipDefinition(
 	// safe fallback if either ever fails.
 	raw, err := d.MarshalJSON()
 	if err != nil {
-		return RemoteSchemaRelationshipDefinition{}
+		return RemoteSchemaRelationshipDefinition{ToSource: nil, ToRemoteSchema: nil}
 	}
 
 	var body struct {
@@ -840,13 +851,13 @@ func convertRemoteSchemaRelationshipDefinition(
 		} `json:"to_source"`
 		ToRemoteSchema *struct {
 			RemoteSchema string                        `json:"remote_schema"`
-			LhsFields    []string                      `json:"lhs_fields"`
+			LHSFields    []string                      `json:"lhs_fields"`
 			RemoteField  map[string]rawRemoteFieldCall `json:"remote_field"`
 		} `json:"to_remote_schema"`
 	}
 
 	if err := stdjson.Unmarshal(raw, &body); err != nil {
-		return RemoteSchemaRelationshipDefinition{}
+		return RemoteSchemaRelationshipDefinition{ToSource: nil, ToRemoteSchema: nil}
 	}
 
 	var toSource *RemoteSchemaToSourceRelationship
@@ -863,7 +874,7 @@ func convertRemoteSchemaRelationshipDefinition(
 	if body.ToRemoteSchema != nil {
 		toRemoteSchema = &ToRemoteSchemaRelationship{
 			RemoteSchema: body.ToRemoteSchema.RemoteSchema,
-			LHSFields:    body.ToRemoteSchema.LhsFields,
+			LHSFields:    body.ToRemoteSchema.LHSFields,
 			RemoteField:  convertRawRemoteFields(body.ToRemoteSchema.RemoteField),
 		}
 	}

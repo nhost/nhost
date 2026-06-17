@@ -9,10 +9,6 @@ import (
 	"github.com/nhost/nhost/services/constellation/metadata/internal/hasura"
 )
 
-// ptr returns a pointer to v. The generated wire types model optional scalars
-// as pointers, so fixtures use this to set them inline.
-func ptr[T any](v T) *T { return &v }
-
 func TestConvertDatabaseURL(t *testing.T) {
 	t.Parallel()
 
@@ -908,12 +904,12 @@ func TestConvertRemoteSchemaURL(t *testing.T) {
 	}{
 		{
 			name: "url_from_env",
-			in:   hasura.RemoteSchemaDefinition{UrlFromEnv: ptr("GRAPHQL_URL")},
+			in:   hasura.RemoteSchemaDefinition{UrlFromEnv: new("GRAPHQL_URL")},
 			want: "{{GRAPHQL_URL}}",
 		},
 		{
 			name: "direct url",
-			in:   hasura.RemoteSchemaDefinition{Url: ptr("http://localhost:4000/graphql")},
+			in:   hasura.RemoteSchemaDefinition{Url: new("http://localhost:4000/graphql")},
 			want: "http://localhost:4000/graphql",
 		},
 	}
@@ -1038,7 +1034,7 @@ func TestFromHasura(t *testing.T) {
 			{
 				Name: "rs",
 				Definition: hasura.RemoteSchemaDefinition{
-					Url: ptr("http://example.com/graphql"),
+					Url: new("http://example.com/graphql"),
 				},
 			},
 		},

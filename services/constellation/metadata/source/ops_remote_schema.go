@@ -82,6 +82,7 @@ func parseRemoteSchemaInfo(argsJSON []byte, op string) (hasura.RemoteSchemaMetad
 
 	hasURL := rs.Definition.Url != nil && *rs.Definition.Url != ""
 	hasURLFromEnv := rs.Definition.UrlFromEnv != nil && *rs.Definition.UrlFromEnv != ""
+
 	if hasURL == hasURLFromEnv {
 		return rs, fmt.Errorf(
 			"%w: %s: definition must set exactly one of url or url_from_env",
@@ -346,6 +347,7 @@ func buildAddRemoteSchemaPermissions(argsJSON []byte) (MutationFn, error) {
 		}
 
 		perms = append(perms, hasura.RemoteSchemaPermission{
+			Comment:    nil,
 			Role:       a.Role,
 			Definition: a.Definition,
 		})
@@ -393,15 +395,19 @@ func (s *Store) AddRemoteSchemaPermissions(
 // idempotent no-op).
 func (s *Store) remoteSchemaWithAddedPermission(
 	argsJSON []byte,
-) (merged hasura.RemoteSchemaMetadata, name string, exists, alreadyHasRole bool, err error) {
-	var a remoteSchemaPermissionArgs
-	if err = json.Unmarshal(argsJSON, &a); err != nil {
+) (hasura.RemoteSchemaMetadata, string, bool, bool, error) {
+	var (
+		merged hasura.RemoteSchemaMetadata
+		a      remoteSchemaPermissionArgs
+	)
+
+	if err := json.Unmarshal(argsJSON, &a); err != nil {
 		return merged, "", false, false, fmt.Errorf(
 			"parsing %s args: %w", opAddRemoteSchemaPermissions, err,
 		)
 	}
 
-	if err = a.validate(opAddRemoteSchemaPermissions, true /* requireSchema */); err != nil {
+	if err := a.validate(opAddRemoteSchemaPermissions, true /* requireSchema */); err != nil {
 		return merged, a.RemoteSchema, false, false, err
 	}
 
@@ -424,7 +430,7 @@ func (s *Store) remoteSchemaWithAddedPermission(
 
 	newPerms := append(
 		append([]hasura.RemoteSchemaPermission(nil), existingPerms...),
-		hasura.RemoteSchemaPermission{Role: a.Role, Definition: a.Definition},
+		hasura.RemoteSchemaPermission{Comment: nil, Role: a.Role, Definition: a.Definition},
 	)
 	merged.Permissions = &newPerms
 
@@ -577,7 +583,7 @@ func findRemoteSchemaTypeRel(
 
 	rels := *rs.RemoteRelationships
 	for i := range rels {
-		if string(rels[i].TypeName) == typeName {
+		if rels[i].TypeName == typeName {
 			return &rels[i]
 		}
 	}
@@ -727,7 +733,7 @@ func buildDeleteRemoteSchemaRemoteRelationship(argsJSON []byte) (MutationFn, err
 		typeRels := *rs.RemoteRelationships
 		for ti := range typeRels {
 			typeRel := &typeRels[ti]
-			if string(typeRel.TypeName) != a.TypeName {
+			if typeRel.TypeName != a.TypeName {
 				continue
 			}
 

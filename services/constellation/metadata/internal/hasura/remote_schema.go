@@ -70,13 +70,14 @@ func (r *RemoteSchemaMetadata) UnmarshalYAML(
 }
 
 // RemoteSchemaRelationshipKind reports which arm of a remote-relationship
-// definition union is populated, by inspecting the raw JSON keys. The
-// oapi-codegen union has no discriminator, so As* accessors alone cannot tell
-// the variants apart (they ignore unknown keys); key presence is the reliable
-// signal Hasura itself uses.
+// definition union is populated, by inspecting the raw JSON keys. It returns
+// whether the to_source and to_remote_schema arms are present, in that order.
+// The oapi-codegen union has no discriminator, so As* accessors alone cannot
+// tell the variants apart (they ignore unknown keys); key presence is the
+// reliable signal Hasura itself uses.
 func RemoteSchemaRelationshipKind(
 	d RemoteSchemaRelationshipDefinition,
-) (hasToSource, hasToRemoteSchema bool) {
+) (bool, bool) {
 	b, err := d.MarshalJSON()
 	if err != nil {
 		return false, false

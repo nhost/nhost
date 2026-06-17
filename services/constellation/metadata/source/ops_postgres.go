@@ -155,6 +155,17 @@ func BuildMutation(opType string, argsJSON []byte) (MutationFn, error) {
 		return buildPgCreateRemoteRelationship(argsJSON)
 	case opPgDeleteRemoteRelationship:
 		return buildPgDeleteRemoteRelationship(argsJSON)
+	}
+
+	return buildRemoteSchemaMutation(opType, argsJSON)
+}
+
+// buildRemoteSchemaMutation returns the MutationFn for the remote-schema
+// mutation ops, or ErrUnknownMutationOp. Split out of BuildMutation so each
+// op-dispatch table stays under the cyclomatic-complexity limit; the two
+// together enumerate exactly the ops guarded by TestMutationOpDispatchParity.
+func buildRemoteSchemaMutation(opType string, argsJSON []byte) (MutationFn, error) {
+	switch opType {
 	case opAddRemoteSchema:
 		return buildAddRemoteSchema(argsJSON)
 	case opRemoveRemoteSchema:

@@ -621,11 +621,7 @@ func newMetadataSource( //nolint:ireturn // selected sources share the metadata.
 		// introspection document through the same URL/header resolution.
 		store.SetRemoteSchemaIntrospector(
 			func(ctx context.Context, rs *metadata.RemoteSchemaMetadata) ([]byte, error) {
-				return remoteschema.IntrospectRawFromMeta(
-					ctx,
-					rs,
-					nil,
-				) //nolint:wrapcheck // wrapped by the store with the schema name.
+				return remoteschema.IntrospectRawFromMeta(ctx, rs, nil)
 			},
 		)
 
