@@ -145,6 +145,7 @@ func TestRemoteSchemaMetadata_MalformedYAML(t *testing.T) {
 	const yamlDoc = "- not\n- a\n- map\n"
 
 	var rs RemoteSchemaMetadata
+
 	err := yaml.UnmarshalContext(context.Background(), []byte(yamlDoc), &rs)
 	if err == nil {
 		t.Fatalf("expected error decoding a sequence into a remote schema, got nil")
