@@ -21,7 +21,7 @@
     "expo-router": "~6.0.23",
     "expo-sharing": "^13.1.5",
     "expo-status-bar": "~3.0.9",
-    "metro-minify-terser": "^0.83.5",
+    "metro-minify-terser": "^0.83.7",
     "react": "19.1.0",
     "react-native": "0.81.4"
   },
