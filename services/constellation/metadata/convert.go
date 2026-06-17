@@ -821,6 +821,11 @@ type rawRemoteFieldCall struct {
 func convertRemoteSchemaRelationshipDefinition(
 	d hasura.RemoteSchemaRelationshipDefinition,
 ) RemoteSchemaRelationshipDefinition {
+	// Both error returns below are unreachable for validated wire input (as in
+	// convertRemoteSchemaHeaders): the generated union's MarshalJSON only
+	// returns its stored json.RawMessage, and those bytes were already accepted
+	// on decode. An empty definition (both arms nil — "no relationship") is the
+	// safe fallback if either ever fails.
 	raw, err := d.MarshalJSON()
 	if err != nil {
 		return RemoteSchemaRelationshipDefinition{}
