@@ -21,7 +21,7 @@ import "testing"
 //
 // Not parallel: metadata is global per engine, so cases mutate shared state and
 // run serially (each resets to baseline first).
-func TestMetadataParity(t *testing.T) { //nolint:paralleltest
+func TestMetadataParity(t *testing.T) { //nolint:paralleltest,maintidx // serial parity table; one large data-driven case set.
 	const (
 		role   = "paritytest"
 		dept   = `{"schema":"public","name":"departments"}`
@@ -52,6 +52,7 @@ func TestMetadataParity(t *testing.T) { //nolint:paralleltest
 	// containers). The functions remote-schema exposes the teams/games schema, so
 	// permSDL is a valid subset Hasura's permission subset-validation accepts.
 	const rsName = "parity_rs"
+
 	rsDef := `{"url":"http://integration-functions-1:3000/remote-schema",` +
 		`"forward_client_headers":true,"headers":[{"name":"x-nhost-webhook-secret",` +
 		`"value_from_env":"NHOST_WEBHOOK_SECRET"}]}`

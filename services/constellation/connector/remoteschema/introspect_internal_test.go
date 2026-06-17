@@ -25,10 +25,22 @@ type fakeDoer struct {
 
 func (f fakeDoer) Do(*http.Request) (*http.Response, error) { return f.resp, f.err }
 
-func okResponse(body string) *http.Response {
-	return &http.Response{ //nolint:exhaustruct
-		StatusCode: http.StatusOK,
-		Body:       io.NopCloser(strings.NewReader(body)),
+// errStubTransport is a static stand-in for a transport-layer failure (e.g. a
+// refused dial), kept package-level to satisfy err113's wrapped-static-error
+// rule.
+var errStubTransport = errors.New("connection refused")
+
+// okDoer wraps a canned 200 body in a fakeDoer. The body is a NopCloser (no
+// resource to close); returning a fakeDoer rather than a *http.Response also
+// keeps bodyclose from tracking a response whose lifecycle the interface
+// consumer (introspectRaw -> httpClient.do) owns.
+func okDoer(body string) fakeDoer {
+	return fakeDoer{
+		resp: &http.Response{
+			StatusCode: http.StatusOK,
+			Body:       io.NopCloser(strings.NewReader(body)),
+		},
+		err: nil,
 	}
 }
 
@@ -37,7 +49,7 @@ func TestIntrospectRaw_ReturnsRawDataVerbatim(t *testing.T) {
 
 	const data = `{"__schema":{"queryType":{"name":"Query"}}}`
 
-	doer := fakeDoer{resp: okResponse(`{"data":` + data + `,"errors":null}`), err: nil}
+	doer := okDoer(`{"data":` + data + `,"errors":null}`)
 
 	raw, err := introspectRaw(context.Background(), "http://example.com", nil, doer)
 	if err != nil {
@@ -52,7 +64,7 @@ func TestIntrospectRaw_ReturnsRawDataVerbatim(t *testing.T) {
 func TestIntrospectRaw_TransportErrorWrapsErrIntrospection(t *testing.T) {
 	t.Parallel()
 
-	doer := fakeDoer{resp: nil, err: errors.New("connection refused")}
+	doer := fakeDoer{resp: nil, err: errStubTransport}
 
 	_, err := introspectRaw(context.Background(), "http://example.com", nil, doer)
 	if !errors.Is(err, ErrIntrospection) {
@@ -63,10 +75,7 @@ func TestIntrospectRaw_TransportErrorWrapsErrIntrospection(t *testing.T) {
 func TestIntrospectRaw_GraphQLErrorsWrapErrIntrospection(t *testing.T) {
 	t.Parallel()
 
-	doer := fakeDoer{
-		resp: okResponse(`{"data":null,"errors":[{"message":"introspection disabled"}]}`),
-		err:  nil,
-	}
+	doer := okDoer(`{"data":null,"errors":[{"message":"introspection disabled"}]}`)
 
 	_, err := introspectRaw(context.Background(), "http://example.com", nil, doer)
 	if !errors.Is(err, ErrIntrospection) {
@@ -81,7 +90,7 @@ func TestIntrospectRaw_GraphQLErrorsWrapErrIntrospection(t *testing.T) {
 func TestIntrospectRaw_MalformedResponseWrapsErrIntrospection(t *testing.T) {
 	t.Parallel()
 
-	doer := fakeDoer{resp: okResponse(`this is not json`), err: nil}
+	doer := okDoer(`this is not json`)
 
 	_, err := introspectRaw(context.Background(), "http://example.com", nil, doer)
 	if !errors.Is(err, ErrIntrospection) {
@@ -95,7 +104,7 @@ func TestIntrospectRaw_MalformedResponseWrapsErrIntrospection(t *testing.T) {
 func TestIntrospectRaw_NullDataWrapsErrIntrospection(t *testing.T) {
 	t.Parallel()
 
-	doer := fakeDoer{resp: okResponse(`{"data":null,"errors":null}`), err: nil}
+	doer := okDoer(`{"data":null,"errors":null}`)
 
 	_, err := introspectRaw(context.Background(), "http://example.com", nil, doer)
 	if !errors.Is(err, ErrIntrospection) {
@@ -106,7 +115,7 @@ func TestIntrospectRaw_NullDataWrapsErrIntrospection(t *testing.T) {
 func TestIntrospectRaw_AbsentDataWrapsErrIntrospection(t *testing.T) {
 	t.Parallel()
 
-	doer := fakeDoer{resp: okResponse(`{"errors":null}`), err: nil}
+	doer := okDoer(`{"errors":null}`)
 
 	_, err := introspectRaw(context.Background(), "http://example.com", nil, doer)
 	if !errors.Is(err, ErrIntrospection) {
