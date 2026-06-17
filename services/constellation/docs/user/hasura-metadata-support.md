@@ -336,10 +336,10 @@ these `/v1/metadata` operations are served natively (no Hasura upstream needed):
 
 | Operation | Status | Notes |
 |---|---|---|
-| `add_remote_schema` | ✅ | Validates the definition and **introspects the upstream synchronously** before persisting — an unreachable endpoint or invalid SDL fails the op, matching Hasura's add-time behaviour. A duplicate name short-circuits to `already-exists`. |
+| `add_remote_schema` | ✅ | Validates the definition and **introspects the upstream synchronously** before persisting — an unreachable endpoint or invalid SDL fails the op, matching Hasura's add-time behaviour. A duplicate name short-circuits to `already-exists`. (Synchronous introspection runs on the single-op and `bulk` paths but **not** inside `bulk_atomic` — see the `bulk_atomic` divergence below.) |
 | `update_remote_schema` | ✅ | Replaces the definition/comment and re-introspects. Matches Hasura's verified semantics: existing `permissions` are **preserved**, but `remote_relationships` are **dropped** (re-added separately via the `*_remote_schema_remote_relationship` ops). Enforced by the parity suite (relationship-drop diffed against live Hasura). |
 | `remove_remote_schema` | ✅ | Drops the entry; `not-exists` when absent. |
-| `add_remote_schema_permissions` | ✅ | Appends a role's SDL; re-introspects and parses the SDL before persisting. Duplicate role → `already-exists`. |
+| `add_remote_schema_permissions` | ✅ | Appends a role's SDL; re-introspects and parses the SDL before persisting. Duplicate role → `already-exists`. (Like `add`/`update_remote_schema`, the synchronous re-introspection is skipped inside `bulk_atomic` — see below.) |
 | `drop_remote_schema_permissions` | ✅ | Removes a role's permission; `not-exists` when absent. |
 | `introspect_remote_schema` | ✅ | Returns the raw introspection document as `{ "data": { "__schema": … } }`. Read-only; no `resource_version` bump. |
 | `reload_remote_schema` | 🟡 | Re-introspects (an unreachable endpoint errors, like Hasura) and returns `{"message":"success"}`. **Divergence:** Constellation has no cross-request introspection cache, so reload does not push a fresh upstream schema into the running connector on its own — the refreshed schema takes effect on the next metadata change or restart. |
@@ -373,6 +373,19 @@ these `/v1/metadata` operations are served natively (no Hasura upstream needed):
 >   live Hasura wire shape (the parity suite passes byte-for-leaf against the
 >   pinned engine), so the drop only affects keys a future engine version might
 >   add. Pinned by `TestRoundTripJSON_RemoteSchemaDropsUnknownKeys`.
+> - **`bulk_atomic` skips synchronous remote-schema validation:** `add_remote_schema`,
+>   `update_remote_schema`, and `add_remote_schema_permissions` introspect the
+>   upstream (and parse permission SDL) synchronously before persisting on the
+>   single-op and `bulk` paths, but **not** inside `bulk_atomic`. That envelope
+>   composes pure, side-effect-free mutators and applies them in one transaction
+>   (single clone, single write, single `resource_version` bump), so — like every
+>   other op under `bulk_atomic` — it performs no network I/O mid-transaction. A
+>   `bulk_atomic` carrying an `add_remote_schema` for an unreachable/invalid
+>   upstream is therefore **accepted** where the single-op path returns
+>   `remote-schema-error`; the bad schema surfaces later as a dropped
+>   inconsistency at the next state rebuild. The build-time "exactly one of
+>   `url`/`url_from_env`" check still runs on both paths. Pinned by
+>   `TestDispatch_BulkAtomic_AddRemoteSchema_SkipsValidation`.
 >
 > An unreachable upstream on `add_remote_schema` is **matched**: both engines
 > reject it with `remote-schema-error` (Constellation maps the synchronous

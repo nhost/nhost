@@ -857,6 +857,8 @@ func TestMutationOpDispatchParity(t *testing.T) {
 	// Read/snapshot/bulk ops (pg_suggest_relationships, pg_get_viewdef,
 	// replace_metadata, bulk*) are intentionally excluded: those are
 	// dispatchMutation-only by design and have no BuildMutation entry.
+	// introspect_remote_schema / reload_remote_schema are likewise excluded —
+	// they are read ops with no BuildMutation entry.
 	canonicalMutationOps := []string{
 		opPgTrackTable,
 		opPgSetTableCustomization,
@@ -883,6 +885,14 @@ func TestMutationOpDispatchParity(t *testing.T) {
 		opPgDeleteEventTrigger,
 		opPgCreateRemoteRelationship,
 		opPgDeleteRemoteRelationship,
+		opAddRemoteSchema,
+		opRemoveRemoteSchema,
+		opUpdateRemoteSchema,
+		opAddRemoteSchemaPermissions,
+		opDropRemoteSchemaPermissions,
+		opCreateRemoteSchemaRemoteRelationship,
+		opUpdateRemoteSchemaRemoteRelationship,
+		opDeleteRemoteSchemaRemoteRelationship,
 	}
 
 	// dispatchMutation dereferences c.store, so a bootstrapped Store is required.
