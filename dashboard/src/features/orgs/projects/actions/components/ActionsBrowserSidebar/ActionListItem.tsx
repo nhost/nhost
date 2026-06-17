@@ -1,4 +1,4 @@
-import { Ellipsis, SquarePen, Trash2, Users } from 'lucide-react';
+import { Anchor, Ellipsis, SquarePen, Trash2, Users } from 'lucide-react';
 import Link from 'next/link';
 import { useRouter } from 'next/router';
 import { useRef, useState } from 'react';
@@ -15,6 +15,7 @@ import type { BaseActionFormTriggerProps } from '@/features/orgs/projects/action
 import { DeleteActionDialog } from '@/features/orgs/projects/actions/components/DeleteActionDialog';
 import { EditActionForm } from '@/features/orgs/projects/actions/components/EditActionForm';
 import { EditActionPermissionsForm } from '@/features/orgs/projects/actions/components/EditActionPermissionsForm';
+import { EditActionRelationshipsForm } from '@/features/orgs/projects/actions/components/EditActionRelationshipsForm';
 import { TextWithTooltip } from '@/features/orgs/projects/common/components/TextWithTooltip';
 import { cn } from '@/lib/utils';
 import type { ActionItem } from '@/utils/hasura-api/generated/schemas';
@@ -51,6 +52,31 @@ export default function ActionListItem({ action }: ActionListItemProps) {
       ),
       component: (
         <EditActionPermissionsForm
+          actionName={action.name}
+          onCancel={closeDrawer}
+        />
+      ),
+      props: {
+        PaperProps: {
+          className: 'lg:w-[65%] lg:max-w-7xl',
+        },
+      },
+    });
+  }
+
+  function handleEditRelationshipsClick() {
+    openDrawer({
+      title: (
+        <span className="inline-grid grid-flow-col items-center gap-2">
+          Relationships for
+          <InlineCode className="!text-sm+ font-normal">
+            {action.name}
+          </InlineCode>
+          Action
+        </span>
+      ),
+      component: (
+        <EditActionRelationshipsForm
           actionName={action.name}
           onCancel={closeDrawer}
         />
@@ -144,6 +170,13 @@ export default function ActionListItem({ action }: ActionListItemProps) {
                 >
                   <Users className="size-4" />
                   Edit Permissions
+                </DropdownMenuItem>
+                <DropdownMenuItem
+                  onSelect={handleEditRelationshipsClick}
+                  className={menuItemClassName}
+                >
+                  <Anchor className="size-4" />
+                  Edit Relationships
                 </DropdownMenuItem>
                 <DropdownMenuItem
                   onSelect={() => setShowDeleteActionDialog(true)}
