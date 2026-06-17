@@ -160,7 +160,7 @@
     "jsdom": "^27.4.0",
     "msw": "^2.12.7",
     "orval": "^8.4.0",
-    "postcss": "^8.5.12",
+    "postcss": "^8.5.15",
     "require-from-string": "^2.0.2",
     "snake-case": "^3.0.4",
     "tailwindcss": "^3.4.16",
