@@ -499,7 +499,7 @@ func compareQueryResult(t *testing.T, report func(string, ...any), tc metadataPa
 		"x-hasura-admin-secret": []string{adminSecret},
 		"x-hasura-role":         []string{role},
 	}
-	q := query{Query: tc.query, Role: role} //nolint:exhaustruct
+	q := query{Query: tc.query, Role: role}
 
 	hasuraResp, err := makeHTTPQuery(t.Context(), hasuraURL, q, headers)
 	if err != nil {
