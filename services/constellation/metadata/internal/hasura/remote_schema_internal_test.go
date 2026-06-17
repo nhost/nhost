@@ -1,167 +1,88 @@
 package hasura
 
 import (
+	"context"
+	stdjson "encoding/json"
 	json "encoding/json/v2"
-	"strings"
 	"testing"
 
 	"github.com/goccy/go-yaml"
 )
 
-// remoteSchemaHeaderCase is one input/output expectation pair used by both
-// the YAML and JSON test tables.
-type remoteSchemaHeaderCase struct {
-	name            string
-	input           string
-	wantName        string
-	wantValue       string
-	wantFromEnv     string
-	wantErr         bool
-	wantWrapContext string
-}
-
-func runRemoteSchemaHeaderTest(
-	t *testing.T,
-	tc remoteSchemaHeaderCase,
-	unmarshal func([]byte, any) error,
-) {
-	t.Helper()
-
-	var h RemoteSchemaHeader
-
-	err := unmarshal([]byte(tc.input), &h)
-	if (err != nil) != tc.wantErr {
-		t.Fatalf("unmarshal err = %v, wantErr=%v", err, tc.wantErr)
-	}
-
-	if tc.wantErr {
-		if err != nil && !strings.Contains(err.Error(), tc.wantWrapContext) {
-			t.Errorf("expected wrap context %q, got %v", tc.wantWrapContext, err)
-		}
-
-		return
-	}
-
-	if h.Name != tc.wantName {
-		t.Errorf("Name = %q, want %q", h.Name, tc.wantName)
-	}
-
-	if h.Value.Value != tc.wantValue {
-		t.Errorf("Value.Value = %q, want %q", h.Value.Value, tc.wantValue)
-	}
-
-	if h.Value.FromEnv != tc.wantFromEnv {
-		t.Errorf("Value.FromEnv = %q, want %q", h.Value.FromEnv, tc.wantFromEnv)
-	}
-}
-
-// TestRemoteSchemaHeader_UnmarshalYAML exercises both shapes (literal value and
-// value_from_env) and a malformed-input case.
-func TestRemoteSchemaHeader_UnmarshalYAML(t *testing.T) {
+// TestRemoteSchemaMetadata_YAMLJSONBridge verifies the wrapper's YAML<->JSON
+// bridge: a remote schema decoded from YAML must equal the same document
+// decoded from JSON (the generated wire type only carries JSON tags, so YAML
+// routes through JSON), and both header shapes — literal `value` and
+// `value_from_env` — must survive the union round-trip.
+func TestRemoteSchemaMetadata_YAMLJSONBridge(t *testing.T) {
 	t.Parallel()
 
-	tests := []remoteSchemaHeaderCase{
-		{
-			name:            "literal value",
-			input:           "name: Authorization\nvalue: Bearer token123",
-			wantName:        "Authorization",
-			wantValue:       "Bearer token123",
-			wantFromEnv:     "",
-			wantErr:         false,
-			wantWrapContext: "",
-		},
-		{
-			name:            "value_from_env",
-			input:           "name: X-Api-Key\nvalue_from_env: REMOTE_API_KEY",
-			wantName:        "X-Api-Key",
-			wantValue:       "",
-			wantFromEnv:     "REMOTE_API_KEY",
-			wantErr:         false,
-			wantWrapContext: "",
-		},
-		{
-			name:            "both empty",
-			input:           "name: X-Test",
-			wantName:        "X-Test",
-			wantValue:       "",
-			wantFromEnv:     "",
-			wantErr:         false,
-			wantWrapContext: "",
-		},
-		{
-			name:            "malformed yaml type",
-			input:           "[not a map]",
-			wantName:        "",
-			wantValue:       "",
-			wantFromEnv:     "",
-			wantErr:         true,
-			wantWrapContext: "unmarshaling remote schema header",
-		},
+	const yamlDoc = `name: payments
+definition:
+  url: https://example.com/graphql
+  timeout_seconds: 60
+  forward_client_headers: true
+  headers:
+    - name: Authorization
+      value: Bearer token123
+    - name: X-Api-Key
+      value_from_env: REMOTE_API_KEY
+`
+
+	const jsonDoc = `{"name":"payments","definition":{` +
+		`"url":"https://example.com/graphql","timeout_seconds":60,` +
+		`"forward_client_headers":true,"headers":[` +
+		`{"name":"Authorization","value":"Bearer token123"},` +
+		`{"name":"X-Api-Key","value_from_env":"REMOTE_API_KEY"}]}}`
+
+	var fromYAML RemoteSchemaMetadata
+	if err := yaml.UnmarshalContext(context.Background(), []byte(yamlDoc), &fromYAML); err != nil {
+		t.Fatalf("yaml decode: %v", err)
 	}
 
-	for _, tt := range tests {
-		t.Run(tt.name, func(t *testing.T) {
-			t.Parallel()
-
-			runRemoteSchemaHeaderTest(t, tt, yaml.Unmarshal)
-		})
-	}
-}
-
-// TestRemoteSchemaHeader_UnmarshalJSON exercises both shapes (literal value and
-// value_from_env) and a malformed-input case.
-func TestRemoteSchemaHeader_UnmarshalJSON(t *testing.T) {
-	t.Parallel()
-
-	tests := []remoteSchemaHeaderCase{
-		{
-			name:            "literal value",
-			input:           `{"name":"Authorization","value":"Bearer token123"}`,
-			wantName:        "Authorization",
-			wantValue:       "Bearer token123",
-			wantFromEnv:     "",
-			wantErr:         false,
-			wantWrapContext: "",
-		},
-		{
-			name:            "value_from_env",
-			input:           `{"name":"X-Api-Key","value_from_env":"REMOTE_API_KEY"}`,
-			wantName:        "X-Api-Key",
-			wantValue:       "",
-			wantFromEnv:     "REMOTE_API_KEY",
-			wantErr:         false,
-			wantWrapContext: "",
-		},
-		{
-			name:            "both empty",
-			input:           `{"name":"X-Test"}`,
-			wantName:        "X-Test",
-			wantValue:       "",
-			wantFromEnv:     "",
-			wantErr:         false,
-			wantWrapContext: "",
-		},
-		{
-			// Valid JSON but the type is wrong (array, not object), so the
-			// inner json.Unmarshal call inside UnmarshalJSON returns a typed
-			// error that the wrap context captures.
-			name:            "type mismatch array",
-			input:           `["not an object"]`,
-			wantName:        "",
-			wantValue:       "",
-			wantFromEnv:     "",
-			wantErr:         true,
-			wantWrapContext: "unmarshaling remote schema header",
-		},
+	var fromJSON RemoteSchemaMetadata
+	if err := json.Unmarshal([]byte(jsonDoc), &fromJSON); err != nil {
+		t.Fatalf("json decode: %v", err)
 	}
 
-	for _, tt := range tests {
-		t.Run(tt.name, func(t *testing.T) {
-			t.Parallel()
+	yb, err := json.Marshal(fromYAML)
+	if err != nil {
+		t.Fatalf("re-marshal yaml-sourced: %v", err)
+	}
 
-			runRemoteSchemaHeaderTest(t, tt, func(data []byte, v any) error {
-				return json.Unmarshal(data, v)
-			})
-		})
+	jb, err := json.Marshal(fromJSON)
+	if err != nil {
+		t.Fatalf("re-marshal json-sourced: %v", err)
+	}
+
+	if string(yb) != string(jb) {
+		t.Fatalf("YAML and JSON decode paths diverged:\n yaml->json = %s\n json->json = %s", yb, jb)
+	}
+
+	// Headers must round-trip with the right arm of the union populated.
+	var got struct {
+		Definition struct {
+			Headers []struct {
+				Name         string `json:"name"`
+				Value        string `json:"value"`
+				ValueFromEnv string `json:"value_from_env"`
+			} `json:"headers"`
+		} `json:"definition"`
+	}
+
+	if err := stdjson.Unmarshal(yb, &got); err != nil {
+		t.Fatalf("probe headers: %v", err)
+	}
+
+	if len(got.Definition.Headers) != 2 {
+		t.Fatalf("headers = %d, want 2", len(got.Definition.Headers))
+	}
+
+	if h := got.Definition.Headers[0]; h.Name != "Authorization" || h.Value != "Bearer token123" {
+		t.Errorf("literal header = %+v", h)
+	}
+
+	if h := got.Definition.Headers[1]; h.Name != "X-Api-Key" || h.ValueFromEnv != "REMOTE_API_KEY" {
+		t.Errorf("from-env header = %+v", h)
 	}
 }

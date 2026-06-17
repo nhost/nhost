@@ -260,12 +260,12 @@ func TestUpdateRemoteSchema_ReplacesDefinitionPreservesPermissions(t *testing.T)
 		t.Fatalf("remote schemas = %+v, want one", rs)
 	}
 
-	if rs[0].Definition.URL != "http://updated.test/graphql" {
-		t.Errorf("url = %q, want updated", rs[0].Definition.URL)
+	if u := rs[0].Definition.Url; u == nil || *u != "http://updated.test/graphql" {
+		t.Errorf("url = %v, want updated", rs[0].Definition.Url)
 	}
 
-	if len(rs[0].Permissions) != 1 || rs[0].Permissions[0].Role != "user" {
-		t.Errorf("permissions = %+v, want preserved [user]", rs[0].Permissions)
+	if perms := sliceOf(rs[0].Permissions); len(perms) != 1 || perms[0].Role != "user" {
+		t.Errorf("permissions = %+v, want preserved [user]", perms)
 	}
 
 	// Validator must see the merged final state: new URL, preserved permission.
@@ -307,8 +307,8 @@ func TestAddRemoteSchemaPermissions(t *testing.T) {
 	}
 
 	rs := currentRemoteSchemas(t, s)
-	if len(rs[0].Permissions) != 2 {
-		t.Fatalf("permissions = %+v, want two roles", rs[0].Permissions)
+	if perms := sliceOf(rs[0].Permissions); len(perms) != 2 {
+		t.Fatalf("permissions = %+v, want two roles", perms)
 	}
 
 	// The validator must receive the merged entry carrying the new role.
@@ -372,8 +372,8 @@ func TestDropRemoteSchemaPermissions(t *testing.T) {
 		t.Errorf("(code, rv) = (%q, %d), want (\"\", 8)", code, rv)
 	}
 
-	if rs := currentRemoteSchemas(t, s); len(rs[0].Permissions) != 0 {
-		t.Errorf("permissions = %+v, want empty", rs[0].Permissions)
+	if rs := currentRemoteSchemas(t, s); len(sliceOf(rs[0].Permissions)) != 0 {
+		t.Errorf("permissions = %+v, want empty", sliceOf(rs[0].Permissions))
 	}
 }
 
@@ -529,12 +529,12 @@ func TestUpdateRemoteSchema_DropsRemoteRelationships(t *testing.T) {
 		t.Fatalf("remote schemas = %+v, want one", rs)
 	}
 
-	if len(rs[0].RemoteRelationships) != 0 {
-		t.Errorf("remote_relationships = %+v, want dropped", rs[0].RemoteRelationships)
+	if len(sliceOf(rs[0].RemoteRelationships)) != 0 {
+		t.Errorf("remote_relationships = %+v, want dropped", sliceOf(rs[0].RemoteRelationships))
 	}
 
-	if len(rs[0].Permissions) != 1 || rs[0].Permissions[0].Role != "user" {
-		t.Errorf("permissions = %+v, want preserved [user]", rs[0].Permissions)
+	if perms := sliceOf(rs[0].Permissions); len(perms) != 1 || perms[0].Role != "user" {
+		t.Errorf("permissions = %+v, want preserved [user]", perms)
 	}
 }
 
@@ -558,16 +558,18 @@ func TestCreateRemoteSchemaRemoteRelationship_ToSource(t *testing.T) {
 	}
 
 	rs := currentRemoteSchemas(t, s)
-	if len(rs[0].RemoteRelationships) != 1 {
-		t.Fatalf("remote_relationships = %+v, want one type block", rs[0].RemoteRelationships)
+	typeRels := sliceOf(rs[0].RemoteRelationships)
+	if len(typeRels) != 1 {
+		t.Fatalf("remote_relationships = %+v, want one type block", typeRels)
 	}
 
-	tr := rs[0].RemoteRelationships[0]
-	if tr.TypeName != "Team" || len(tr.Relationships) != 1 || tr.Relationships[0].Name != "dept" {
+	tr := typeRels[0]
+	rels := tr.Relationships
+	if string(tr.TypeName) != "Team" || len(rels) != 1 || rels[0].Name != "dept" {
 		t.Errorf("type block = %+v, want Team/dept", tr)
 	}
 
-	if tr.Relationships[0].Definition.ToSource == nil {
+	if hasSource, _ := hasura.RemoteSchemaRelationshipKind(rels[0].Definition); !hasSource {
 		t.Error("expected to_source definition")
 	}
 }
@@ -587,12 +589,33 @@ func TestCreateRemoteSchemaRemoteRelationship_ToRemoteSchema(t *testing.T) {
 	}
 
 	rs := currentRemoteSchemas(t, s)
-	toRS := rs[0].RemoteRelationships[0].Relationships[0].Definition.ToRemoteSchema
-	if toRS == nil {
+	rels := sliceOf(rs[0].RemoteRelationships)[0].Relationships
+
+	// The generated GraphQLValueName union can't decode scalar remote_field
+	// argument values, so read the to_remote_schema arm from the union's raw
+	// JSON rather than the typed AsRelationshipToSchema accessor.
+	raw, err := rels[0].Definition.MarshalJSON()
+	if err != nil {
+		t.Fatalf("definition MarshalJSON: %v", err)
+	}
+
+	var body struct {
+		ToRemoteSchema *struct {
+			RemoteSchema string   `json:"remote_schema"`
+			LhsFields    []string `json:"lhs_fields"`
+		} `json:"to_remote_schema"`
+	}
+
+	if err := stdjson.Unmarshal(raw, &body); err != nil {
+		t.Fatalf("decode to_remote_schema: %v", err)
+	}
+
+	if body.ToRemoteSchema == nil {
 		t.Fatal("expected to_remote_schema definition")
 	}
 
-	if toRS.RemoteSchema != "weather_api" || len(toRS.LHSFields) != 1 || toRS.LHSFields[0] != "city" {
+	toRS := body.ToRemoteSchema
+	if toRS.RemoteSchema != "weather_api" || len(toRS.LhsFields) != 1 || toRS.LhsFields[0] != "city" {
 		t.Errorf("to_remote_schema = %+v, want weather_api/[city]", toRS)
 	}
 }
@@ -677,7 +700,14 @@ func TestUpdateRemoteSchemaRemoteRelationship(t *testing.T) {
 	}
 
 	rs := currentRemoteSchemas(t, s)
-	if got := rs[0].RemoteRelationships[0].Relationships[0].Definition.ToSource.RelationshipType; got != "array" {
+	rels := sliceOf(rs[0].RemoteRelationships)[0].Relationships
+
+	v, err := rels[0].Definition.AsRelationshipToSource()
+	if err != nil {
+		t.Fatalf("AsRelationshipToSource: %v", err)
+	}
+
+	if got := string(v.ToSource.RelationshipType); got != "array" {
 		t.Errorf("relationship_type = %q, want array (updated)", got)
 	}
 }
@@ -718,8 +748,9 @@ func TestDeleteRemoteSchemaRemoteRelationship(t *testing.T) {
 	// Hasura keeps the empty type block after the last relationship is removed,
 	// so the type entry remains with an empty relationships slice.
 	rs := currentRemoteSchemas(t, s)
-	if len(rs[0].RemoteRelationships) != 1 || len(rs[0].RemoteRelationships[0].Relationships) != 0 {
-		t.Errorf("remote_relationships = %+v, want one empty Team block", rs[0].RemoteRelationships)
+	typeRels := sliceOf(rs[0].RemoteRelationships)
+	if len(typeRels) != 1 || len(typeRels[0].Relationships) != 0 {
+		t.Errorf("remote_relationships = %+v, want one empty Team block", typeRels)
 	}
 }
 
