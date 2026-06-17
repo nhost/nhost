@@ -1,4 +1,5 @@
 import { ArrowUpRight, Plus, Workflow } from 'lucide-react';
+import type { ReactNode } from 'react';
 import { Button } from '@/components/ui/v3/button';
 import type { BaseActionFormTriggerProps } from '@/features/orgs/projects/actions/components/BaseActionForm';
 import { CreateActionForm } from '@/features/orgs/projects/actions/components/CreateActionForm';
@@ -10,32 +11,34 @@ const renderNewActionButton = ({ open }: BaseActionFormTriggerProps) => (
   </Button>
 );
 
-export default function NoActionsEmptyState() {
-  return (
-    <div className="relative flex h-full w-full items-center justify-center overflow-hidden bg-background px-4 py-16">
-      <div
-        aria-hidden="true"
-        className="pointer-events-none absolute top-1/2 left-1/2 size-[420px] -translate-x-1/2 -translate-y-1/2 rounded-full bg-primary/5 blur-[100px]"
-      />
+export interface NoActionsEmptyStateProps {
+  /**
+   * Title of the empty state.
+   */
+  title?: ReactNode;
+  /**
+   * Description of the empty state.
+   */
+  description?: ReactNode;
+}
 
-      <div className="relative flex max-w-md flex-col items-center text-center">
-        <div className="relative mb-7">
-          <div
-            aria-hidden="true"
-            className="absolute inset-0 rounded-2xl bg-primary/20 blur-xl"
-          />
-          <div className="relative flex size-16 items-center justify-center rounded-2xl border bg-card shadow-sm">
-            <Workflow className="size-8 text-primary" />
-          </div>
+export default function NoActionsEmptyState({
+  title = 'Create your first action',
+  description = 'Actions let you extend your GraphQL API with custom business logic running behind an HTTP webhook handler.',
+}: NoActionsEmptyStateProps) {
+  return (
+    <div className="flex h-full w-full flex-col items-center bg-background px-4 py-16">
+      <div className="flex max-w-md flex-col items-center text-center">
+        <div className="mb-7 flex size-16 items-center justify-center rounded-2xl border bg-card shadow-sm">
+          <Workflow className="size-8 text-primary" />
         </div>
 
         <h3 className="text-balance font-semibold text-2xl tracking-tight">
-          Create your first action
+          {title}
         </h3>
 
         <p className="mt-3 text-muted-foreground leading-relaxed">
-          Actions let you extend your GraphQL API with custom business logic
-          running behind an HTTP webhook handler.
+          {description}
         </p>
 
         <div className="mt-8 flex flex-col items-center gap-4">
@@ -47,7 +50,7 @@ export default function NoActionsEmptyState() {
             rel="noopener noreferrer"
             className="group inline-flex items-center gap-1 font-medium text-primary text-sm hover:underline"
           >
-            Learn more about GraphQL
+            Learn more about the GraphQL API
             <ArrowUpRight className="size-4 transition-transform group-hover:translate-x-0.5 group-hover:-translate-y-0.5" />
           </a>
         </div>

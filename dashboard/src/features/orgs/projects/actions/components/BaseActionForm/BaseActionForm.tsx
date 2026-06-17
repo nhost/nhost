@@ -1,6 +1,13 @@
 import { zodResolver } from '@hookform/resolvers/zod';
 import { PlusIcon, TrashIcon } from 'lucide-react';
-import { type ReactNode, useCallback, useMemo, useRef, useState } from 'react';
+import {
+  type ReactNode,
+  useCallback,
+  useEffect,
+  useMemo,
+  useRef,
+  useState,
+} from 'react';
 import { useForm } from 'react-hook-form';
 import { DiscardChangesDialog } from '@/components/common/DiscardChangesDialog';
 import { FormInput } from '@/components/form/FormInput';
@@ -129,6 +136,14 @@ export default function BaseActionForm({
       'mutation',
     [actionDefinitionSdl],
   );
+
+  const isQueryAction = parsedActionType === 'query';
+
+  useEffect(() => {
+    if (isQueryAction) {
+      setValue('kind', 'synchronous');
+    }
+  }, [isQueryAction, setValue]);
 
   const overlappingTypenames = useMemo(
     () =>
@@ -269,6 +284,11 @@ export default function BaseActionForm({
     setOpenAccordionSections(value as AccordionSectionValue[]);
   }, []);
 
+  const handleSheetOpenAutoFocus = useCallback((event: Event) => {
+    event.preventDefault();
+    sheetContentRef.current?.focus();
+  }, []);
+
   return (
     <>
       {triggerNode}
@@ -276,6 +296,8 @@ export default function BaseActionForm({
         <SheetContent
           ref={sheetContentRef}
           showOverlay
+          tabIndex={-1}
+          onOpenAutoFocus={handleSheetOpenAutoFocus}
           className="box flex w-xl flex-auto flex-col gap-0 p-0 sm:max-w-4xl md:w-4xl"
         >
           <SheetHeader className="p-6">
@@ -380,28 +402,28 @@ export default function BaseActionForm({
                     }
                     className="max-w-lg text-foreground"
                   />
-                  {parsedActionType === 'mutation' && (
-                    <FormSelect
-                      control={form.control}
-                      name="kind"
-                      label={
-                        <div className="flex flex-row items-center gap-2">
-                          Kind{' '}
-                          <InfoTooltip>
-                            Asynchronous actions return an action id immediately
-                            and the response can be fetched later.
-                          </InfoTooltip>
-                        </div>
-                      }
-                      className="w-60 text-left text-foreground"
-                    >
-                      {actionKindOptions.map((option) => (
-                        <SelectItem key={option.value} value={option.value}>
-                          {option.label}
-                        </SelectItem>
-                      ))}
-                    </FormSelect>
-                  )}
+                  <FormSelect
+                    control={form.control}
+                    name="kind"
+                    disabled={isQueryAction}
+                    label={
+                      <div className="flex flex-row items-center gap-2">
+                        Kind{' '}
+                        <InfoTooltip>
+                          {isQueryAction
+                            ? 'Query actions are always synchronous — only mutations can run asynchronously.'
+                            : 'Asynchronous actions return an action id immediately and the response can be fetched later.'}
+                        </InfoTooltip>
+                      </div>
+                    }
+                    className="w-60 text-left text-foreground"
+                  >
+                    {actionKindOptions.map((option) => (
+                      <SelectItem key={option.value} value={option.value}>
+                        {option.label}
+                      </SelectItem>
+                    ))}
+                  </FormSelect>
                   <FormInput
                     control={form.control}
                     name="timeout"

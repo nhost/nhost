@@ -1,4 +1,5 @@
-import { Sparkles } from 'lucide-react';
+import { Check, Sparkles } from 'lucide-react';
+import { useEffect, useRef, useState } from 'react';
 import { useFormContext } from 'react-hook-form';
 import { Button } from '@/components/ui/v3/button';
 import {
@@ -21,6 +22,17 @@ export default function CopyToLlmButton({
   className,
 }: CopyToLlmButtonProps) {
   const { getValues } = useFormContext<BaseActionFormValues>();
+  const [copied, setCopied] = useState(false);
+  const copyResetTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+
+  useEffect(
+    () => () => {
+      if (copyResetTimerRef.current) {
+        clearTimeout(copyResetTimerRef.current);
+      }
+    },
+    [],
+  );
 
   const handleCopy = () => {
     const { actionDefinitionSdl, typesSdl } = getValues();
@@ -28,6 +40,11 @@ export default function CopyToLlmButton({
       buildActionSdlPrompt({ target, actionDefinitionSdl, typesSdl }),
       'Prompt',
     );
+    setCopied(true);
+    if (copyResetTimerRef.current) {
+      clearTimeout(copyResetTimerRef.current);
+    }
+    copyResetTimerRef.current = setTimeout(() => setCopied(false), 1500);
   };
 
   return (
@@ -38,14 +55,18 @@ export default function CopyToLlmButton({
           variant="outline"
           size="sm"
           onClick={handleCopy}
-          aria-label="Copy a prompt to write this field with an LLM"
+          aria-label="Copy a prompt to write this field with an agent"
           className={cn(
-            'h-7 gap-1.5 bg-background px-2 text-muted-foreground text-xs',
+            'h-7 gap-1.5 bg-background px-2 text-muted-foreground text-xs hover:bg-accent-background',
             className,
           )}
         >
-          <Sparkles className="size-3.5" />
-          Copy to LLM
+          {copied ? (
+            <Check className="size-3.5" />
+          ) : (
+            <Sparkles className="size-3.5" />
+          )}
+          Copy to Agent
         </Button>
       </TooltipTrigger>
       <TooltipContent>
