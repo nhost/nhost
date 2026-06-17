@@ -54,6 +54,17 @@ func findRemoteSchema(h *hasura.Metadata, name string) *hasura.RemoteSchemaMetad
 	return nil
 }
 
+// sliceOf returns the elements addressed by a generated optional array (*[]T),
+// or nil when unset. The api wire types model arrays as pointers; the mutation
+// engine works with plain slices and re-points the field after mutating.
+func sliceOf[T any](p *[]T) []T {
+	if p == nil {
+		return nil
+	}
+
+	return *p
+}
+
 // parseRemoteSchemaInfo decodes the {name, definition, comment, permissions?,
 // remote_relationships?} envelope shared by add_remote_schema and
 // update_remote_schema directly into the wire model that is stored verbatim.
@@ -69,8 +80,8 @@ func parseRemoteSchemaInfo(argsJSON []byte, op string) (hasura.RemoteSchemaMetad
 		return rs, fmt.Errorf("%w: %s: name is required", errMissingRequiredField, op)
 	}
 
-	hasURL := rs.Definition.URL != ""
-	hasURLFromEnv := rs.Definition.URLFromEnv != ""
+	hasURL := rs.Definition.Url != nil && *rs.Definition.Url != ""
+	hasURLFromEnv := rs.Definition.UrlFromEnv != nil && *rs.Definition.UrlFromEnv != ""
 	if hasURL == hasURLFromEnv {
 		return rs, fmt.Errorf(
 			"%w: %s: definition must set exactly one of url or url_from_env",
@@ -216,7 +227,7 @@ func buildUpdateRemoteSchema(argsJSON []byte) (MutationFn, error) {
 		existing.Definition = rs.Definition
 		existing.Comment = rs.Comment
 
-		if len(rs.Permissions) > 0 {
+		if rs.Permissions != nil && len(*rs.Permissions) > 0 {
 			existing.Permissions = rs.Permissions
 		}
 
@@ -272,7 +283,7 @@ func (s *Store) mergedRemoteSchemaForUpdate(
 	merged.Definition = rs.Definition
 	merged.Comment = rs.Comment
 
-	if len(rs.Permissions) > 0 {
+	if rs.Permissions != nil && len(*rs.Permissions) > 0 {
 		merged.Permissions = rs.Permissions
 	}
 
@@ -323,17 +334,18 @@ func buildAddRemoteSchemaPermissions(argsJSON []byte) (MutationFn, error) {
 			return "", fmt.Errorf("%w: %q", ErrRemoteSchemaNotFound, a.RemoteSchema)
 		}
 
-		for i := range rs.Permissions {
-			if rs.Permissions[i].Role == a.Role {
+		perms := sliceOf(rs.Permissions)
+		for i := range perms {
+			if perms[i].Role == a.Role {
 				return CodeAlreadyExists, nil
 			}
 		}
 
-		rs.Permissions = append(rs.Permissions, hasura.RemoteSchemaPermission{
+		perms = append(perms, hasura.RemoteSchemaPermission{
 			Role:       a.Role,
 			Definition: a.Definition,
-			Unknown:    nil,
 		})
+		rs.Permissions = &perms
 
 		return "", nil
 	}, nil
@@ -399,16 +411,18 @@ func (s *Store) remoteSchemaWithAddedPermission(
 
 	merged = *existing
 
-	for i := range existing.Permissions {
-		if existing.Permissions[i].Role == a.Role {
+	existingPerms := sliceOf(existing.Permissions)
+	for i := range existingPerms {
+		if existingPerms[i].Role == a.Role {
 			return merged, a.RemoteSchema, true, true, nil
 		}
 	}
 
-	merged.Permissions = append(
-		append([]hasura.RemoteSchemaPermission(nil), existing.Permissions...),
-		hasura.RemoteSchemaPermission{Role: a.Role, Definition: a.Definition, Unknown: nil},
+	newPerms := append(
+		append([]hasura.RemoteSchemaPermission(nil), existingPerms...),
+		hasura.RemoteSchemaPermission{Role: a.Role, Definition: a.Definition},
 	)
+	merged.Permissions = &newPerms
 
 	return merged, a.RemoteSchema, true, false, nil
 }
@@ -429,9 +443,11 @@ func buildDropRemoteSchemaPermissions(argsJSON []byte) (MutationFn, error) {
 			return "", fmt.Errorf("%w: %q", ErrRemoteSchemaNotFound, a.RemoteSchema)
 		}
 
-		for i := range rs.Permissions {
-			if rs.Permissions[i].Role == a.Role {
-				rs.Permissions = append(rs.Permissions[:i], rs.Permissions[i+1:]...)
+		perms := sliceOf(rs.Permissions)
+		for i := range perms {
+			if perms[i].Role == a.Role {
+				perms = append(perms[:i], perms[i+1:]...)
+				rs.Permissions = &perms
 
 				return "", nil
 			}
@@ -534,8 +550,7 @@ func (a remoteSchemaRemoteRelationshipArgs) validate(op string, requireDef bool)
 	}
 
 	if requireDef {
-		hasSource := a.Definition.ToSource != nil
-		hasRemote := a.Definition.ToRemoteSchema != nil
+		hasSource, hasRemote := hasura.RemoteSchemaRelationshipKind(a.Definition)
 		if hasSource == hasRemote {
 			return fmt.Errorf(
 				"%w: %s: definition must set exactly one of to_source or to_remote_schema",
@@ -552,9 +567,14 @@ func (a remoteSchemaRemoteRelationshipArgs) validate(op string, requireDef bool)
 func findRemoteSchemaTypeRel(
 	rs *hasura.RemoteSchemaMetadata, typeName string,
 ) *hasura.RemoteSchemaTypeRemoteRelationship {
-	for i := range rs.RemoteRelationships {
-		if rs.RemoteRelationships[i].TypeName == typeName {
-			return &rs.RemoteRelationships[i]
+	if rs.RemoteRelationships == nil {
+		return nil
+	}
+
+	rels := *rs.RemoteRelationships
+	for i := range rels {
+		if string(rels[i].TypeName) == typeName {
+			return &rels[i]
 		}
 	}
 
@@ -580,18 +600,17 @@ func buildCreateRemoteSchemaRemoteRelationship(argsJSON []byte) (MutationFn, err
 		rel := hasura.RemoteSchemaRelationshipDef{
 			Name:       a.Name,
 			Definition: a.Definition,
-			Unknown:    nil,
 		}
 
 		typeRel := findRemoteSchemaTypeRel(rs, a.TypeName)
 		if typeRel == nil {
-			rs.RemoteRelationships = append(rs.RemoteRelationships,
+			typeRels := append(sliceOf(rs.RemoteRelationships),
 				hasura.RemoteSchemaTypeRemoteRelationship{
 					TypeName:      a.TypeName,
 					Relationships: []hasura.RemoteSchemaRelationshipDef{rel},
-					Unknown:       nil,
 				},
 			)
+			rs.RemoteRelationships = &typeRels
 
 			return "", nil
 		}
@@ -687,9 +706,14 @@ func buildDeleteRemoteSchemaRemoteRelationship(argsJSON []byte) (MutationFn, err
 			return "", nil
 		}
 
-		for ti := range rs.RemoteRelationships {
-			typeRel := &rs.RemoteRelationships[ti]
-			if typeRel.TypeName != a.TypeName {
+		if rs.RemoteRelationships == nil {
+			return "", nil
+		}
+
+		typeRels := *rs.RemoteRelationships
+		for ti := range typeRels {
+			typeRel := &typeRels[ti]
+			if string(typeRel.TypeName) != a.TypeName {
 				continue
 			}
 

@@ -44,6 +44,24 @@ func (e PostgresSubscribeOpSpecPayload0) Valid() bool {
 	}
 }
 
+// Defines values for ToSourceRelationshipDefRelationshipType.
+const (
+	Array  ToSourceRelationshipDefRelationshipType = "array"
+	Object ToSourceRelationshipDefRelationshipType = "object"
+)
+
+// Valid indicates whether the value is a known member of the ToSourceRelationshipDefRelationshipType enum.
+func (e ToSourceRelationshipDefRelationshipType) Valid() bool {
+	switch e {
+	case Array:
+		return true
+	case Object:
+		return true
+	default:
+		return false
+	}
+}
+
 // AuthError defines model for AuthError.
 type AuthError struct {
 	// Error Auth error code (e.g. `unauthorized`)
@@ -68,6 +86,15 @@ type AutoTriggerLogCleanupConfig struct {
 
 // CronSchedule defines model for CronSchedule.
 type CronSchedule = string
+
+// FieldCall defines model for FieldCall.
+type FieldCall struct {
+	// Arguments Remote arguments are represented by an object that maps each argument name to its value.
+	Arguments RemoteArguments `json:"arguments"`
+
+	// Field Remote fields are represented by an object that maps each field name to its arguments.
+	Field *RemoteFields `json:"field,omitempty"`
+}
 
 // GraphQLError defines model for GraphQLError.
 type GraphQLError struct {
@@ -94,6 +121,9 @@ type GraphQLError_Path_Item struct {
 	union json.RawMessage
 }
 
+// GraphQLName defines model for GraphQLName.
+type GraphQLName = string
+
 // GraphQLRequest defines model for GraphQLRequest.
 type GraphQLRequest struct {
 	// Extensions Protocol extensions (persisted queries, tracing toggles, ...)
@@ -119,6 +149,30 @@ type GraphQLResponse struct {
 	Extensions           *map[string]interface{} `json:"extensions,omitempty"`
 	AdditionalProperties map[string]interface{}  `json:"-"`
 }
+
+// GraphQLSchema defines model for GraphQLSchema.
+type GraphQLSchema = string
+
+// GraphQLValueName defines model for GraphQLValue_Name.
+type GraphQLValueName struct {
+	AdditionalProperties map[string]interface{} `json:"-"`
+	union                json.RawMessage
+}
+
+// GraphQLValueName0 defines model for .
+type GraphQLValueName0 = string
+
+// GraphQLValueName1 defines model for .
+type GraphQLValueName1 = float32
+
+// GraphQLValueName2 defines model for .
+type GraphQLValueName2 = bool
+
+// GraphQLValueName4 defines model for .
+type GraphQLValueName4 = []GraphQLValueName
+
+// GraphQLValueName5 defines model for .
+type GraphQLValueName5 map[string]GraphQLValueName
 
 // HeaderConfFromEnv defines model for HeaderConfFromEnv.
 type HeaderConfFromEnv struct {
@@ -219,12 +273,132 @@ type PostgresTriggerOpsDef struct {
 	Update       *PostgresSubscribeOpSpec `json:"update,omitempty"`
 }
 
+// RelationshipToSchema defines model for RelationshipToSchema.
+type RelationshipToSchema struct {
+	ToRemoteSchema ToSchemaRelationshipDef `json:"to_remote_schema"`
+}
+
+// RelationshipToSource defines model for RelationshipToSource.
+type RelationshipToSource struct {
+	ToSource ToSourceRelationshipDef `json:"to_source"`
+}
+
+// RemoteArguments Remote arguments are represented by an object that maps each argument name to its value.
+type RemoteArguments map[string]GraphQLValueName
+
+// RemoteFieldCustomization defines model for RemoteFieldCustomization.
+type RemoteFieldCustomization struct {
+	Mapping    map[string]GraphQLName `json:"mapping"`
+	ParentType GraphQLName            `json:"parent_type"`
+	Prefix     *GraphQLName           `json:"prefix,omitempty"`
+	Suffix     *GraphQLName           `json:"suffix,omitempty"`
+}
+
+// RemoteFields Remote fields are represented by an object that maps each field name to its arguments.
+type RemoteFields map[string]FieldCall
+
+// RemoteRelationshipRemoteRelationshipDefinition defines model for RemoteRelationship_RemoteRelationshipDefinition.
+type RemoteRelationshipRemoteRelationshipDefinition struct {
+	Definition RemoteRelationshipRemoteRelationshipDefinition_Definition `json:"definition"`
+	Name       string                                                    `json:"name"`
+}
+
+// RemoteRelationshipRemoteRelationshipDefinition_Definition defines model for RemoteRelationshipRemoteRelationshipDefinition.Definition.
+type RemoteRelationshipRemoteRelationshipDefinition_Definition struct {
+	union json.RawMessage
+}
+
+// RemoteSchemaCustomization defines model for RemoteSchemaCustomization.
+type RemoteSchemaCustomization struct {
+	FieldNames          *[]RemoteFieldCustomization `json:"field_names,omitempty"`
+	RootFieldsNamespace *GraphQLName                `json:"root_fields_namespace,omitempty"`
+	TypeNames           *RemoteTypeCustomization    `json:"type_names,omitempty"`
+}
+
+// RemoteSchemaDef defines model for RemoteSchemaDef.
+type RemoteSchemaDef struct {
+	Customization        *RemoteSchemaCustomization      `json:"customization,omitempty"`
+	ForwardClientHeaders *bool                           `json:"forward_client_headers,omitempty"`
+	Headers              *[]RemoteSchemaDef_Headers_Item `json:"headers,omitempty"`
+	TimeoutSeconds       *float32                        `json:"timeout_seconds,omitempty"`
+	Url                  *string                         `json:"url,omitempty"`
+	UrlFromEnv           *string                         `json:"url_from_env,omitempty"`
+}
+
+// RemoteSchemaDef_Headers_Item defines model for RemoteSchemaDef.headers.Item.
+type RemoteSchemaDef_Headers_Item struct {
+	union json.RawMessage
+}
+
+// RemoteSchemaMetadata defines model for RemoteSchemaMetadata.
+type RemoteSchemaMetadata struct {
+	Comment             *string                                             `json:"comment,omitempty"`
+	Definition          RemoteSchemaDef                                     `json:"definition"`
+	Name                string                                              `json:"name"`
+	Permissions         *[]RemoteSchemaPermissionMetadata                   `json:"permissions,omitempty"`
+	RemoteRelationships *[]RemoteSchemaMetadataRemoteRelationshipDefinition `json:"remote_relationships,omitempty"`
+}
+
+// RemoteSchemaMetadataRemoteRelationshipDefinition defines model for RemoteSchemaMetadata_RemoteRelationshipDefinition.
+type RemoteSchemaMetadataRemoteRelationshipDefinition struct {
+	Relationships []RemoteRelationshipRemoteRelationshipDefinition `json:"relationships"`
+	TypeName      GraphQLName                                      `json:"type_name"`
+}
+
+// RemoteSchemaPermissionDefinition defines model for RemoteSchemaPermissionDefinition.
+type RemoteSchemaPermissionDefinition struct {
+	Schema GraphQLSchema `json:"schema"`
+}
+
+// RemoteSchemaPermissionMetadata defines model for RemoteSchemaPermissionMetadata.
+type RemoteSchemaPermissionMetadata struct {
+	Comment    *string                          `json:"comment,omitempty"`
+	Definition RemoteSchemaPermissionDefinition `json:"definition"`
+	Role       string                           `json:"role"`
+}
+
+// RemoteTypeCustomization defines model for RemoteTypeCustomization.
+type RemoteTypeCustomization struct {
+	Mapping map[string]GraphQLName `json:"mapping"`
+	Prefix  *GraphQLName           `json:"prefix,omitempty"`
+	Suffix  *GraphQLName           `json:"suffix,omitempty"`
+}
+
 // RetryConf defines model for RetryConf.
 type RetryConf struct {
 	IntervalSec float32  `json:"interval_sec"`
 	NumRetries  float32  `json:"num_retries"`
 	TimeoutSec  *float32 `json:"timeout_sec,omitempty"`
 }
+
+// ToSchemaRelationshipDef defines model for ToSchemaRelationshipDef.
+type ToSchemaRelationshipDef struct {
+	LhsFields []string `json:"lhs_fields"`
+
+	// RemoteField Remote fields are represented by an object that maps each field name to its arguments.
+	RemoteField  RemoteFields `json:"remote_field"`
+	RemoteSchema string       `json:"remote_schema"`
+}
+
+// ToSchemaRelationshipDefLegacyFormat defines model for ToSchemaRelationshipDefLegacyFormat.
+type ToSchemaRelationshipDefLegacyFormat struct {
+	HasuraFields []string `json:"hasura_fields"`
+
+	// RemoteField Remote fields are represented by an object that maps each field name to its arguments.
+	RemoteField  RemoteFields `json:"remote_field"`
+	RemoteSchema string       `json:"remote_schema"`
+}
+
+// ToSourceRelationshipDef defines model for ToSourceRelationshipDef.
+type ToSourceRelationshipDef struct {
+	FieldMapping     map[string]string                       `json:"field_mapping"`
+	RelationshipType ToSourceRelationshipDefRelationshipType `json:"relationship_type"`
+	Source           string                                  `json:"source"`
+	Table            map[string]interface{}                  `json:"table"`
+}
+
+// ToSourceRelationshipDefRelationshipType defines model for ToSourceRelationshipDef.RelationshipType.
+type ToSourceRelationshipDefRelationshipType string
 
 // ValidationError defines model for ValidationError.
 type ValidationError struct {
@@ -456,6 +630,23 @@ func (a GraphQLResponse) MarshalJSON() ([]byte, error) {
 	return json.Marshal(object)
 }
 
+// Getter for additional properties for GraphQLValueName. Returns the specified
+// element and whether it was found
+func (a GraphQLValueName) Get(fieldName string) (value interface{}, found bool) {
+	if a.AdditionalProperties != nil {
+		value, found = a.AdditionalProperties[fieldName]
+	}
+	return
+}
+
+// Setter for additional properties for GraphQLValueName
+func (a *GraphQLValueName) Set(fieldName string, value interface{}) {
+	if a.AdditionalProperties == nil {
+		a.AdditionalProperties = make(map[string]interface{})
+	}
+	a.AdditionalProperties[fieldName] = value
+}
+
 // Getter for additional properties for MetadataRequest. Returns the specified
 // element and whether it was found
 func (a MetadataRequest) Get(fieldName string) (value interface{}, found bool) {
@@ -639,6 +830,162 @@ func (t GraphQLError_Path_Item) MarshalJSON() ([]byte, error) {
 
 func (t *GraphQLError_Path_Item) UnmarshalJSON(b []byte) error {
 	err := t.union.UnmarshalJSON(b)
+	return err
+}
+
+// AsGraphQLValueName0 returns the union data inside the GraphQLValueName as a GraphQLValueName0
+func (t GraphQLValueName) AsGraphQLValueName0() (GraphQLValueName0, error) {
+	var body GraphQLValueName0
+	err := json.Unmarshal(t.union, &body)
+	return body, err
+}
+
+// FromGraphQLValueName0 overwrites any union data inside the GraphQLValueName as the provided GraphQLValueName0
+func (t *GraphQLValueName) FromGraphQLValueName0(v GraphQLValueName0) error {
+	b, err := json.Marshal(v)
+	t.union = b
+	return err
+}
+
+// MergeGraphQLValueName0 performs a merge with any union data inside the GraphQLValueName, using the provided GraphQLValueName0
+func (t *GraphQLValueName) MergeGraphQLValueName0(v GraphQLValueName0) error {
+	b, err := json.Marshal(v)
+	if err != nil {
+		return err
+	}
+
+	merged, err := runtime.JSONMerge(t.union, b)
+	t.union = merged
+	return err
+}
+
+// AsGraphQLValueName1 returns the union data inside the GraphQLValueName as a GraphQLValueName1
+func (t GraphQLValueName) AsGraphQLValueName1() (GraphQLValueName1, error) {
+	var body GraphQLValueName1
+	err := json.Unmarshal(t.union, &body)
+	return body, err
+}
+
+// FromGraphQLValueName1 overwrites any union data inside the GraphQLValueName as the provided GraphQLValueName1
+func (t *GraphQLValueName) FromGraphQLValueName1(v GraphQLValueName1) error {
+	b, err := json.Marshal(v)
+	t.union = b
+	return err
+}
+
+// MergeGraphQLValueName1 performs a merge with any union data inside the GraphQLValueName, using the provided GraphQLValueName1
+func (t *GraphQLValueName) MergeGraphQLValueName1(v GraphQLValueName1) error {
+	b, err := json.Marshal(v)
+	if err != nil {
+		return err
+	}
+
+	merged, err := runtime.JSONMerge(t.union, b)
+	t.union = merged
+	return err
+}
+
+// AsGraphQLValueName2 returns the union data inside the GraphQLValueName as a GraphQLValueName2
+func (t GraphQLValueName) AsGraphQLValueName2() (GraphQLValueName2, error) {
+	var body GraphQLValueName2
+	err := json.Unmarshal(t.union, &body)
+	return body, err
+}
+
+// FromGraphQLValueName2 overwrites any union data inside the GraphQLValueName as the provided GraphQLValueName2
+func (t *GraphQLValueName) FromGraphQLValueName2(v GraphQLValueName2) error {
+	b, err := json.Marshal(v)
+	t.union = b
+	return err
+}
+
+// MergeGraphQLValueName2 performs a merge with any union data inside the GraphQLValueName, using the provided GraphQLValueName2
+func (t *GraphQLValueName) MergeGraphQLValueName2(v GraphQLValueName2) error {
+	b, err := json.Marshal(v)
+	if err != nil {
+		return err
+	}
+
+	merged, err := runtime.JSONMerge(t.union, b)
+	t.union = merged
+	return err
+}
+
+// AsGraphQLName returns the union data inside the GraphQLValueName as a GraphQLName
+func (t GraphQLValueName) AsGraphQLName() (GraphQLName, error) {
+	var body GraphQLName
+	err := json.Unmarshal(t.union, &body)
+	return body, err
+}
+
+// FromGraphQLName overwrites any union data inside the GraphQLValueName as the provided GraphQLName
+func (t *GraphQLValueName) FromGraphQLName(v GraphQLName) error {
+	b, err := json.Marshal(v)
+	t.union = b
+	return err
+}
+
+// MergeGraphQLName performs a merge with any union data inside the GraphQLValueName, using the provided GraphQLName
+func (t *GraphQLValueName) MergeGraphQLName(v GraphQLName) error {
+	b, err := json.Marshal(v)
+	if err != nil {
+		return err
+	}
+
+	merged, err := runtime.JSONMerge(t.union, b)
+	t.union = merged
+	return err
+}
+
+// AsGraphQLValueName4 returns the union data inside the GraphQLValueName as a GraphQLValueName4
+func (t GraphQLValueName) AsGraphQLValueName4() (GraphQLValueName4, error) {
+	var body GraphQLValueName4
+	err := json.Unmarshal(t.union, &body)
+	return body, err
+}
+
+// FromGraphQLValueName4 overwrites any union data inside the GraphQLValueName as the provided GraphQLValueName4
+func (t *GraphQLValueName) FromGraphQLValueName4(v GraphQLValueName4) error {
+	b, err := json.Marshal(v)
+	t.union = b
+	return err
+}
+
+// MergeGraphQLValueName4 performs a merge with any union data inside the GraphQLValueName, using the provided GraphQLValueName4
+func (t *GraphQLValueName) MergeGraphQLValueName4(v GraphQLValueName4) error {
+	b, err := json.Marshal(v)
+	if err != nil {
+		return err
+	}
+
+	merged, err := runtime.JSONMerge(t.union, b)
+	t.union = merged
+	return err
+}
+
+// AsGraphQLValueName5 returns the union data inside the GraphQLValueName as a GraphQLValueName5
+func (t GraphQLValueName) AsGraphQLValueName5() (GraphQLValueName5, error) {
+	var body GraphQLValueName5
+	err := json.Unmarshal(t.union, &body)
+	return body, err
+}
+
+// FromGraphQLValueName5 overwrites any union data inside the GraphQLValueName as the provided GraphQLValueName5
+func (t *GraphQLValueName) FromGraphQLValueName5(v GraphQLValueName5) error {
+	b, err := json.Marshal(v)
+	t.union = b
+	return err
+}
+
+// MergeGraphQLValueName5 performs a merge with any union data inside the GraphQLValueName, using the provided GraphQLValueName5
+func (t *GraphQLValueName) MergeGraphQLValueName5(v GraphQLValueName5) error {
+	b, err := json.Marshal(v)
+	if err != nil {
+		return err
+	}
+
+	merged, err := runtime.JSONMerge(t.union, b)
+	t.union = merged
 	return err
 }
 
@@ -828,6 +1175,156 @@ func (t *PostgresSubscribeOpSpec_Payload) UnmarshalJSON(b []byte) error {
 	return err
 }
 
+// AsRelationshipToSource returns the union data inside the RemoteRelationshipRemoteRelationshipDefinition_Definition as a RelationshipToSource
+func (t RemoteRelationshipRemoteRelationshipDefinition_Definition) AsRelationshipToSource() (RelationshipToSource, error) {
+	var body RelationshipToSource
+	err := json.Unmarshal(t.union, &body)
+	return body, err
+}
+
+// FromRelationshipToSource overwrites any union data inside the RemoteRelationshipRemoteRelationshipDefinition_Definition as the provided RelationshipToSource
+func (t *RemoteRelationshipRemoteRelationshipDefinition_Definition) FromRelationshipToSource(v RelationshipToSource) error {
+	b, err := json.Marshal(v)
+	t.union = b
+	return err
+}
+
+// MergeRelationshipToSource performs a merge with any union data inside the RemoteRelationshipRemoteRelationshipDefinition_Definition, using the provided RelationshipToSource
+func (t *RemoteRelationshipRemoteRelationshipDefinition_Definition) MergeRelationshipToSource(v RelationshipToSource) error {
+	b, err := json.Marshal(v)
+	if err != nil {
+		return err
+	}
+
+	merged, err := runtime.JSONMerge(t.union, b)
+	t.union = merged
+	return err
+}
+
+// AsRelationshipToSchema returns the union data inside the RemoteRelationshipRemoteRelationshipDefinition_Definition as a RelationshipToSchema
+func (t RemoteRelationshipRemoteRelationshipDefinition_Definition) AsRelationshipToSchema() (RelationshipToSchema, error) {
+	var body RelationshipToSchema
+	err := json.Unmarshal(t.union, &body)
+	return body, err
+}
+
+// FromRelationshipToSchema overwrites any union data inside the RemoteRelationshipRemoteRelationshipDefinition_Definition as the provided RelationshipToSchema
+func (t *RemoteRelationshipRemoteRelationshipDefinition_Definition) FromRelationshipToSchema(v RelationshipToSchema) error {
+	b, err := json.Marshal(v)
+	t.union = b
+	return err
+}
+
+// MergeRelationshipToSchema performs a merge with any union data inside the RemoteRelationshipRemoteRelationshipDefinition_Definition, using the provided RelationshipToSchema
+func (t *RemoteRelationshipRemoteRelationshipDefinition_Definition) MergeRelationshipToSchema(v RelationshipToSchema) error {
+	b, err := json.Marshal(v)
+	if err != nil {
+		return err
+	}
+
+	merged, err := runtime.JSONMerge(t.union, b)
+	t.union = merged
+	return err
+}
+
+// AsToSchemaRelationshipDefLegacyFormat returns the union data inside the RemoteRelationshipRemoteRelationshipDefinition_Definition as a ToSchemaRelationshipDefLegacyFormat
+func (t RemoteRelationshipRemoteRelationshipDefinition_Definition) AsToSchemaRelationshipDefLegacyFormat() (ToSchemaRelationshipDefLegacyFormat, error) {
+	var body ToSchemaRelationshipDefLegacyFormat
+	err := json.Unmarshal(t.union, &body)
+	return body, err
+}
+
+// FromToSchemaRelationshipDefLegacyFormat overwrites any union data inside the RemoteRelationshipRemoteRelationshipDefinition_Definition as the provided ToSchemaRelationshipDefLegacyFormat
+func (t *RemoteRelationshipRemoteRelationshipDefinition_Definition) FromToSchemaRelationshipDefLegacyFormat(v ToSchemaRelationshipDefLegacyFormat) error {
+	b, err := json.Marshal(v)
+	t.union = b
+	return err
+}
+
+// MergeToSchemaRelationshipDefLegacyFormat performs a merge with any union data inside the RemoteRelationshipRemoteRelationshipDefinition_Definition, using the provided ToSchemaRelationshipDefLegacyFormat
+func (t *RemoteRelationshipRemoteRelationshipDefinition_Definition) MergeToSchemaRelationshipDefLegacyFormat(v ToSchemaRelationshipDefLegacyFormat) error {
+	b, err := json.Marshal(v)
+	if err != nil {
+		return err
+	}
+
+	merged, err := runtime.JSONMerge(t.union, b)
+	t.union = merged
+	return err
+}
+
+func (t RemoteRelationshipRemoteRelationshipDefinition_Definition) MarshalJSON() ([]byte, error) {
+	b, err := t.union.MarshalJSON()
+	return b, err
+}
+
+func (t *RemoteRelationshipRemoteRelationshipDefinition_Definition) UnmarshalJSON(b []byte) error {
+	err := t.union.UnmarshalJSON(b)
+	return err
+}
+
+// AsHeaderConfValue returns the union data inside the RemoteSchemaDef_Headers_Item as a HeaderConfValue
+func (t RemoteSchemaDef_Headers_Item) AsHeaderConfValue() (HeaderConfValue, error) {
+	var body HeaderConfValue
+	err := json.Unmarshal(t.union, &body)
+	return body, err
+}
+
+// FromHeaderConfValue overwrites any union data inside the RemoteSchemaDef_Headers_Item as the provided HeaderConfValue
+func (t *RemoteSchemaDef_Headers_Item) FromHeaderConfValue(v HeaderConfValue) error {
+	b, err := json.Marshal(v)
+	t.union = b
+	return err
+}
+
+// MergeHeaderConfValue performs a merge with any union data inside the RemoteSchemaDef_Headers_Item, using the provided HeaderConfValue
+func (t *RemoteSchemaDef_Headers_Item) MergeHeaderConfValue(v HeaderConfValue) error {
+	b, err := json.Marshal(v)
+	if err != nil {
+		return err
+	}
+
+	merged, err := runtime.JSONMerge(t.union, b)
+	t.union = merged
+	return err
+}
+
+// AsHeaderConfFromEnv returns the union data inside the RemoteSchemaDef_Headers_Item as a HeaderConfFromEnv
+func (t RemoteSchemaDef_Headers_Item) AsHeaderConfFromEnv() (HeaderConfFromEnv, error) {
+	var body HeaderConfFromEnv
+	err := json.Unmarshal(t.union, &body)
+	return body, err
+}
+
+// FromHeaderConfFromEnv overwrites any union data inside the RemoteSchemaDef_Headers_Item as the provided HeaderConfFromEnv
+func (t *RemoteSchemaDef_Headers_Item) FromHeaderConfFromEnv(v HeaderConfFromEnv) error {
+	b, err := json.Marshal(v)
+	t.union = b
+	return err
+}
+
+// MergeHeaderConfFromEnv performs a merge with any union data inside the RemoteSchemaDef_Headers_Item, using the provided HeaderConfFromEnv
+func (t *RemoteSchemaDef_Headers_Item) MergeHeaderConfFromEnv(v HeaderConfFromEnv) error {
+	b, err := json.Marshal(v)
+	if err != nil {
+		return err
+	}
+
+	merged, err := runtime.JSONMerge(t.union, b)
+	t.union = merged
+	return err
+}
+
+func (t RemoteSchemaDef_Headers_Item) MarshalJSON() ([]byte, error) {
+	b, err := t.union.MarshalJSON()
+	return b, err
+}
+
+func (t *RemoteSchemaDef_Headers_Item) UnmarshalJSON(b []byte) error {
+	err := t.union.UnmarshalJSON(b)
+	return err
+}
+
 // AsMetadataError returns the union data inside the MetadataRequest400JSONResponseBody as a MetadataError
 func (t MetadataRequest400JSONResponseBody) AsMetadataError() (MetadataError, error) {
 	var body MetadataError
@@ -888,4 +1385,54 @@ func (t MetadataRequest400JSONResponseBody) MarshalJSON() ([]byte, error) {
 func (t *MetadataRequest400JSONResponseBody) UnmarshalJSON(b []byte) error {
 	err := t.union.UnmarshalJSON(b)
 	return err
+}
+
+// Override default JSON handling for GraphQLValueName to handle AdditionalProperties and union
+func (a *GraphQLValueName) UnmarshalJSON(b []byte) error {
+	err := a.union.UnmarshalJSON(b)
+	if err != nil {
+		return err
+	}
+	object := make(map[string]json.RawMessage)
+	err = json.Unmarshal(b, &object)
+	if err != nil {
+		return err
+	}
+
+	if len(object) != 0 {
+		a.AdditionalProperties = make(map[string]interface{})
+		for fieldName, fieldBuf := range object {
+			var fieldVal interface{}
+			err := json.Unmarshal(fieldBuf, &fieldVal)
+			if err != nil {
+				return fmt.Errorf("error unmarshaling field %s: %w", fieldName, err)
+			}
+			a.AdditionalProperties[fieldName] = fieldVal
+		}
+	}
+	return nil
+}
+
+// Override default JSON handling for GraphQLValueName to handle AdditionalProperties and union
+func (a GraphQLValueName) MarshalJSON() ([]byte, error) {
+	var err error
+	b, err := a.union.MarshalJSON()
+	if err != nil {
+		return nil, err
+	}
+	object := make(map[string]json.RawMessage)
+	if a.union != nil {
+		err = json.Unmarshal(b, &object)
+		if err != nil {
+			return nil, err
+		}
+	}
+
+	for fieldName, field := range a.AdditionalProperties {
+		object[fieldName], err = json.Marshal(field)
+		if err != nil {
+			return nil, fmt.Errorf("error marshaling '%s': %w", fieldName, err)
+		}
+	}
+	return json.Marshal(object)
 }
