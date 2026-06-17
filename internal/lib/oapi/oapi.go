@@ -20,11 +20,11 @@ func surfaceErrorsMiddleWare(c *gin.Context) {
 	//  1. the generated code fails to bind/decode the request (fed in through
 	//     RecordError), and
 	//  2. a handler returns an error instead of a response.
-	// Errors that already aborted with their own body (e.g. the request
-	// validator) set c.IsAborted() and are left untouched.
+	// Errors that already produced their own response body (e.g. service handlers)
+	// or aborted with their own body (e.g. the request validator) are left untouched.
 	c.Next()
 
-	if len(c.Errors) == 0 || c.IsAborted() {
+	if len(c.Errors) == 0 || c.IsAborted() || c.Writer.Written() {
 		return
 	}
 

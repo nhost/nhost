@@ -634,3 +634,32 @@ func TestSurfaceErrors_RecordError(t *testing.T) {
 		t.Errorf(`body["message"] = %q; want "invalid param"`, body["message"])
 	}
 }
+
+// TestSurfaceErrors_PreservesWrittenErrorResponse covers services that record
+// an error for logging and also write their own response body. The shared
+// surface middleware must not append a second JSON object after the handler's
+// response has already been committed.
+func TestSurfaceErrors_PreservesWrittenErrorResponse(t *testing.T) {
+	t.Parallel()
+
+	router := surfaceRouter(t)
+	router.GET("/handled", func(c *gin.Context) {
+		_ = c.Error(errInvalid)
+		c.JSON(http.StatusBadRequest, gin.H{"error": "service-owned"})
+	})
+
+	rec := do(t, router, http.MethodGet, "/handled", nil, "")
+
+	if rec.Code != http.StatusBadRequest {
+		t.Fatalf("status = %d; want 400, body = %s", rec.Code, rec.Body.String())
+	}
+
+	var body map[string]string
+	if err := json.Unmarshal(rec.Body.Bytes(), &body); err != nil {
+		t.Fatalf("decoding response: %v (body = %s)", err, rec.Body.String())
+	}
+
+	if body["error"] != "service-owned" {
+		t.Errorf(`body["error"] = %q; want "service-owned"`, body["error"])
+	}
+}
