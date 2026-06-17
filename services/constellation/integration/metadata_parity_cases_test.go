@@ -44,15 +44,26 @@ func TestMetadataParity(t *testing.T) { //nolint:paralleltest
 	cases := []metadataParityCase{
 		// ---- permissions: create + drop for each verb ----
 		{
+			// Layer D: before the op the paritytest role has no select permission so
+			// the `departments` field does not resolve for it; after the op it does,
+			// returning the seeded rows identically on both engines.
 			name:          "pg_create_select_permission",
 			op:            createSelDept,
 			affectsSchema: true,
+			query:         `query { departments(order_by: {name: asc}) { name } }`,
+			queryRole:     role,
 		},
 		{
+			// Layer D mirror image: the setup grants select (the field resolves),
+			// then the op drops it, so afterwards the role's query must be rejected
+			// by both engines (queryWantErr) — the field is gone, not just empty.
 			name:          "pg_drop_select_permission",
 			setup:         []string{createSelDept},
 			op:            `{"type":"pg_drop_select_permission","args":{"source":"default","table":` + dept + `,"role":"` + role + `"}}`,
 			affectsSchema: true,
+			query:         `query { departments(order_by: {name: asc}) { name } }`,
+			queryRole:     role,
+			queryWantErr:  true,
 		},
 		{
 			name:          "pg_create_insert_permission",
@@ -103,15 +114,22 @@ func TestMetadataParity(t *testing.T) { //nolint:paralleltest
 
 		// ---- relationships ----
 		{
+			// Layer D: after the op the new `parity_dept` object relationship resolves
+			// the parent department on both engines (admin role).
 			name:          "pg_create_object_relationship",
 			op:            createObjRel,
 			affectsSchema: true,
+			query:         `query { user_departments(order_by: [{user_id: asc}, {department_id: asc}], limit: 3) { role parity_dept { name } } }`,
 		},
 		{
+			// Layer D mirror image: the setup adds `parity_dept`, the op drops it, so
+			// afterwards the nested field no longer resolves on either engine.
 			name:          "pg_drop_relationship",
 			setup:         []string{createObjRel},
 			op:            `{"type":"pg_drop_relationship","args":{"source":"default","table":` + udept + `,"relationship":"parity_dept"}}`,
 			affectsSchema: true,
+			query:         `query { user_departments(order_by: [{user_id: asc}, {department_id: asc}], limit: 3) { parity_dept { name } } }`,
+			queryWantErr:  true,
 		},
 		{
 			name:          "pg_rename_relationship",
