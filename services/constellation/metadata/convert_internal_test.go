@@ -9,6 +9,10 @@ import (
 	"github.com/nhost/nhost/services/constellation/metadata/internal/hasura"
 )
 
+// ptr returns a pointer to v. The generated wire types model optional scalars
+// as pointers, so fixtures use this to set them inline.
+func ptr[T any](v T) *T { return &v }
+
 func TestConvertDatabaseURL(t *testing.T) {
 	t.Parallel()
 
@@ -807,66 +811,30 @@ func TestConvertRemoteRelationship(t *testing.T) {
 func TestConvertRemoteSchema(t *testing.T) {
 	t.Parallel()
 
-	h := hasura.RemoteSchemaMetadata{
-		Name:    "payments",
-		Comment: "Payment service",
-		Definition: hasura.RemoteSchemaDefinition{
-			URLFromEnv:           "PAYMENTS_URL",
-			TimeoutSeconds:       60,
-			ForwardClientHeaders: true,
-			Customization: hasura.RemoteSchemaCustomization{
-				RootFieldsNamespace: "payments",
-				TypeNames: hasura.TypeNamesCustomization{
-					Prefix:  "Pay_",
-					Suffix:  "_RS",
-					Mapping: map[string]string{"Payment": "Charge"},
-				},
-				FieldNames: []hasura.FieldNamesCustomization{
-					{
-						ParentType: "Payment",
-						Prefix:     "p_",
-						Suffix:     "_f",
-						Mapping:    map[string]string{"id": "paymentId"},
-					},
-					{
-						ParentType: "Query",
-						Prefix:     "q_",
-					},
-				},
-			},
-			Headers: []hasura.RemoteSchemaHeader{
-				{Name: "x-api-key", Value: hasura.EnvValue{FromEnv: "PAYMENTS_KEY"}},
-			},
-		},
-		Permissions: []hasura.RemoteSchemaPermission{
-			{
-				Role: "user",
-				Definition: hasura.RemoteSchemaPermissionDef{
-					Schema: "type Query { getPayment(id: ID!): Payment }",
-				},
-			},
-		},
-		RemoteRelationships: []hasura.RemoteSchemaTypeRemoteRelationship{
-			{
-				TypeName: "Payment",
-				Relationships: []hasura.RemoteSchemaRelationshipDef{
-					{
-						Name: "user",
-						Definition: hasura.RemoteSchemaRelationshipDefinition{
-							ToSource: &hasura.RemoteSchemaToSourceRelationship{
-								FieldMapping:     map[string]string{"user_id": "id"},
-								RelationshipType: "object",
-								Source:           "default",
-								Table: hasura.RemoteSchemaTableRef{
-									Name:   "users",
-									Schema: "auth",
-								},
-							},
-						},
-					},
-				},
-			},
-		},
+	// The Hasura wire type is generated (pointers + oapi-codegen unions), so the
+	// fixture is built by decoding JSON rather than hand-writing pointer/union
+	// literals; this also exercises the wire decode path the store uses.
+	const hJSON = `{` +
+		`"name":"payments","comment":"Payment service",` +
+		`"definition":{` +
+		`"url_from_env":"PAYMENTS_URL","timeout_seconds":60,"forward_client_headers":true,` +
+		`"customization":{"root_fields_namespace":"payments",` +
+		`"type_names":{"prefix":"Pay_","suffix":"_RS","mapping":{"Payment":"Charge"}},` +
+		`"field_names":[` +
+		`{"parent_type":"Payment","prefix":"p_","suffix":"_f","mapping":{"id":"paymentId"}},` +
+		`{"parent_type":"Query","prefix":"q_"}]},` +
+		`"headers":[{"name":"x-api-key","value_from_env":"PAYMENTS_KEY"}]},` +
+		`"permissions":[{"role":"user","definition":` +
+		`{"schema":"type Query { getPayment(id: ID!): Payment }"}}],` +
+		`"remote_relationships":[{"type_name":"Payment","relationships":[` +
+		`{"name":"user","definition":{"to_source":{"field_mapping":{"user_id":"id"},` +
+		`"relationship_type":"object","source":"default",` +
+		`"table":{"name":"users","schema":"auth"}}}}]}]` +
+		`}`
+
+	var h hasura.RemoteSchemaMetadata
+	if err := stdjson.Unmarshal([]byte(hJSON), &h); err != nil {
+		t.Fatalf("building wire fixture: %v", err)
 	}
 
 	got := convertRemoteSchema(h)
@@ -948,30 +916,15 @@ func TestConvertRemoteSchema(t *testing.T) {
 func TestConvertRemoteSchema_ToRemoteSchemaRelationship(t *testing.T) {
 	t.Parallel()
 
-	h := hasura.RemoteSchemaMetadata{
-		Name: "rs",
-		Definition: hasura.RemoteSchemaDefinition{
-			URL: "http://rs.test/graphql",
-		},
-		RemoteRelationships: []hasura.RemoteSchemaTypeRemoteRelationship{
-			{
-				TypeName: "Team",
-				Relationships: []hasura.RemoteSchemaRelationshipDef{
-					{
-						Name: "weather",
-						Definition: hasura.RemoteSchemaRelationshipDefinition{
-							ToRemoteSchema: &hasura.ToRemoteSchemaRelationship{
-								RemoteSchema: "weather_api",
-								LHSFields:    []string{"city"},
-								RemoteField: map[string]hasura.RemoteFieldCall{
-									"forecast": {Arguments: map[string]string{"city": "$city"}},
-								},
-							},
-						},
-					},
-				},
-			},
-		},
+	const hJSON = `{"name":"rs","definition":{"url":"http://rs.test/graphql"},` +
+		`"remote_relationships":[{"type_name":"Team","relationships":[` +
+		`{"name":"weather","definition":{"to_remote_schema":{` +
+		`"remote_schema":"weather_api","lhs_fields":["city"],` +
+		`"remote_field":{"forecast":{"arguments":{"city":"$city"}}}}}}]}]}`
+
+	var h hasura.RemoteSchemaMetadata
+	if err := stdjson.Unmarshal([]byte(hJSON), &h); err != nil {
+		t.Fatalf("building wire fixture: %v", err)
 	}
 
 	got := convertRemoteSchema(h)
@@ -1008,12 +961,12 @@ func TestConvertRemoteSchemaURL(t *testing.T) {
 	}{
 		{
 			name: "url_from_env",
-			in:   hasura.RemoteSchemaDefinition{URLFromEnv: "GRAPHQL_URL"},
+			in:   hasura.RemoteSchemaDefinition{UrlFromEnv: ptr("GRAPHQL_URL")},
 			want: "{{GRAPHQL_URL}}",
 		},
 		{
 			name: "direct url",
-			in:   hasura.RemoteSchemaDefinition{URL: "http://localhost:4000/graphql"},
+			in:   hasura.RemoteSchemaDefinition{Url: ptr("http://localhost:4000/graphql")},
 			want: "http://localhost:4000/graphql",
 		},
 	}
@@ -1138,7 +1091,7 @@ func TestFromHasura(t *testing.T) {
 			{
 				Name: "rs",
 				Definition: hasura.RemoteSchemaDefinition{
-					URL: "http://example.com/graphql",
+					Url: ptr("http://example.com/graphql"),
 				},
 			},
 		},

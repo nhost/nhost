@@ -3610,15 +3610,15 @@ components:
     #   type: object
     # ExtensionsSchema:
     #   type: string
-    # FieldCall:
-    #   properties:
-    #     arguments:
-    #       $ref: '#/components/schemas/RemoteArguments'
-    #     field:
-    #       $ref: '#/components/schemas/RemoteFields'
-    #   required:
-    #   - arguments
-    #   type: object
+    FieldCall:
+      properties:
+        arguments:
+          $ref: '#/components/schemas/RemoteArguments'
+        field:
+          $ref: '#/components/schemas/RemoteFields'
+      required:
+      - arguments
+      type: object
     # FromEnv:
     #   properties:
     #     from_env:
@@ -3665,23 +3665,23 @@ components:
     #   oneOf:
     #   - $ref: '#/components/schemas/TableFunctionResponse'
     #   - $ref: '#/components/schemas/InferredFunctionResponse'
-    # GraphQLName:
-    #   type: string
-    # GraphQLSchema:
-    #   type: string
-    # GraphQLValue_Name:
-    #   additionalProperties: true
-    #   anyOf:
-    #   - type: string
-    #   - type: number
-    #   - type: boolean
-    #   - $ref: '#/components/schemas/GraphQLName'
-    #   - items:
-    #       $ref: '#/components/schemas/GraphQLValue_Name'
-    #     type: array
-    #   - additionalProperties:
-    #       $ref: '#/components/schemas/GraphQLValue_Name'
-    #     type: object
+    GraphQLName:
+      type: string
+    GraphQLSchema:
+      type: string
+    GraphQLValue_Name:
+      additionalProperties: true
+      anyOf:
+      - type: string
+      - type: number
+      - type: boolean
+      - $ref: '#/components/schemas/GraphQLName'
+      - items:
+          $ref: '#/components/schemas/GraphQLValue_Name'
+        type: array
+      - additionalProperties:
+          $ref: '#/components/schemas/GraphQLValue_Name'
+        type: object
     HeaderConfFromEnv:
       properties:
         name:
@@ -6214,136 +6214,157 @@ components:
     #   - name
     #   - using
     #   type: object
-    # RelationshipToSchema:
-    #   properties:
-    #     to_remote_schema:
-    #       $ref: '#/components/schemas/ToSchemaRelationshipDef'
-    #   required:
-    #   - to_remote_schema
-    #   type: object
-    # RelationshipToSource:
-    #   properties:
-    #     to_source:
-    #       $ref: '#/components/schemas/ToSourceRelationshipDef'
-    #   required:
-    #   - to_source
-    #   type: object
-    # RemoteArguments:
-    #   additionalProperties:
-    #     $ref: '#/components/schemas/GraphQLValue_Name'
-    #   description: Remote arguments are represented by an object that maps each argument name to its value.
-    #   type: object
-    # RemoteFieldCustomization:
-    #   properties:
-    #     mapping:
-    #       additionalProperties:
-    #         $ref: '#/components/schemas/GraphQLName'
-    #       type: object
-    #     parent_type:
-    #       $ref: '#/components/schemas/GraphQLName'
-    #     prefix:
-    #       $ref: '#/components/schemas/GraphQLName'
-    #     suffix:
-    #       $ref: '#/components/schemas/GraphQLName'
-    #   required:
-    #   - parent_type
-    #   - mapping
-    #   type: object
-    # RemoteFields:
-    #   additionalProperties:
-    #     $ref: '#/components/schemas/FieldCall'
-    #   description: Remote fields are represented by an object that maps each field name to its arguments.
-    #   type: object
-    # RemoteRelationship_RemoteRelationshipDefinition:
-    #   properties:
-    #     definition:
-    #       oneOf:
-    #       - $ref: '#/components/schemas/RelationshipToSource'
-    #       - $ref: '#/components/schemas/RelationshipToSchema'
-    #       - $ref: '#/components/schemas/ToSchemaRelationshipDefLegacyFormat'
-    #     name:
-    #       type: string
-    #   required:
-    #   - name
-    #   - definition
-    #   type: object
-    # RemoteSchemaCustomization:
-    #   properties:
-    #     field_names:
-    #       items:
-    #         $ref: '#/components/schemas/RemoteFieldCustomization'
-    #       type: array
-    #     root_fields_namespace:
-    #       $ref: '#/components/schemas/GraphQLName'
-    #     type_names:
-    #       $ref: '#/components/schemas/RemoteTypeCustomization'
-    #   type: object
-    # RemoteSchemaDef:
-    #   properties:
-    #     customization:
-    #       $ref: '#/components/schemas/RemoteSchemaCustomization'
-    #     forward_client_headers:
-    #       default: false
-    #       type: boolean
-    #     headers:
-    #       items:
-    #         oneOf:
-    #         - $ref: '#/components/schemas/HeaderConfValue'
-    #         - $ref: '#/components/schemas/HeaderConfFromEnv'
-    #       type: array
-    #     timeout_seconds:
-    #       maximum: 9223372036854775807
-    #       minimum: -9223372036854775808
-    #       type: number
-    #     url:
-    #       type: string
-    #     url_from_env:
-    #       type: string
-    #   type: object
-    # RemoteSchemaMetadata_RemoteRelationshipDefinition:
-    #   properties:
-    #     relationships:
-    #       default: []
-    #       items:
-    #         $ref: '#/components/schemas/RemoteRelationship_RemoteRelationshipDefinition'
-    #       type: array
-    #     type_name:
-    #       $ref: '#/components/schemas/GraphQLName'
-    #   required:
-    #   - type_name
-    #   type: object
-    # RemoteSchemaPermissionDefinition:
-    #   properties:
-    #     schema:
-    #       $ref: '#/components/schemas/GraphQLSchema'
-    #   required:
-    #   - schema
-    #   type: object
-    # RemoteSchemaPermissionMetadata:
-    #   properties:
-    #     comment:
-    #       type: string
-    #     definition:
-    #       $ref: '#/components/schemas/RemoteSchemaPermissionDefinition'
-    #     role:
-    #       type: string
-    #   required:
-    #   - role
-    #   - definition
-    #   type: object
-    # RemoteTypeCustomization:
-    #   properties:
-    #     mapping:
-    #       additionalProperties:
-    #         $ref: '#/components/schemas/GraphQLName'
-    #       type: object
-    #     prefix:
-    #       $ref: '#/components/schemas/GraphQLName'
-    #     suffix:
-    #       $ref: '#/components/schemas/GraphQLName'
-    #   required:
-    #   - mapping
-    #   type: object
+    RelationshipToSchema:
+      properties:
+        to_remote_schema:
+          $ref: '#/components/schemas/ToSchemaRelationshipDef'
+      required:
+      - to_remote_schema
+      type: object
+    RelationshipToSource:
+      properties:
+        to_source:
+          $ref: '#/components/schemas/ToSourceRelationshipDef'
+      required:
+      - to_source
+      type: object
+    RemoteArguments:
+      additionalProperties:
+        $ref: '#/components/schemas/GraphQLValue_Name'
+      description: Remote arguments are represented by an object that maps each argument name to its value.
+      type: object
+    RemoteFieldCustomization:
+      properties:
+        mapping:
+          additionalProperties:
+            $ref: '#/components/schemas/GraphQLName'
+          type: object
+        parent_type:
+          $ref: '#/components/schemas/GraphQLName'
+        prefix:
+          $ref: '#/components/schemas/GraphQLName'
+        suffix:
+          $ref: '#/components/schemas/GraphQLName'
+      required:
+      - parent_type
+      - mapping
+      type: object
+    RemoteFields:
+      additionalProperties:
+        $ref: '#/components/schemas/FieldCall'
+      description: Remote fields are represented by an object that maps each field name to its arguments.
+      type: object
+    RemoteRelationship_RemoteRelationshipDefinition:
+      properties:
+        definition:
+          oneOf:
+          - $ref: '#/components/schemas/RelationshipToSource'
+          - $ref: '#/components/schemas/RelationshipToSchema'
+          - $ref: '#/components/schemas/ToSchemaRelationshipDefLegacyFormat'
+        name:
+          type: string
+      required:
+      - name
+      - definition
+      type: object
+    RemoteSchemaCustomization:
+      properties:
+        field_names:
+          items:
+            $ref: '#/components/schemas/RemoteFieldCustomization'
+          type: array
+        root_fields_namespace:
+          $ref: '#/components/schemas/GraphQLName'
+        type_names:
+          $ref: '#/components/schemas/RemoteTypeCustomization'
+      type: object
+    RemoteSchemaDef:
+      properties:
+        customization:
+          $ref: '#/components/schemas/RemoteSchemaCustomization'
+        forward_client_headers:
+          default: false
+          type: boolean
+        headers:
+          items:
+            oneOf:
+            - $ref: '#/components/schemas/HeaderConfValue'
+            - $ref: '#/components/schemas/HeaderConfFromEnv'
+          type: array
+        timeout_seconds:
+          maximum: 9223372036854775807
+          minimum: -9223372036854775808
+          type: number
+        url:
+          type: string
+        url_from_env:
+          type: string
+      type: object
+    RemoteSchemaMetadata:
+      properties:
+        comment:
+          type: string
+        definition:
+          $ref: '#/components/schemas/RemoteSchemaDef'
+        name:
+          type: string
+        permissions:
+          items:
+            $ref: '#/components/schemas/RemoteSchemaPermissionMetadata'
+          type: array
+        remote_relationships:
+          items:
+            $ref: '#/components/schemas/RemoteSchemaMetadata_RemoteRelationshipDefinition'
+          type: array
+      required:
+      - name
+      - definition
+      type: object
+    RemoteSchemaMetadata_RemoteRelationshipDefinition:
+      properties:
+        relationships:
+          default: []
+          items:
+            $ref: '#/components/schemas/RemoteRelationship_RemoteRelationshipDefinition'
+          type: array
+        type_name:
+          $ref: '#/components/schemas/GraphQLName'
+      required:
+      - type_name
+      - relationships
+      type: object
+    RemoteSchemaPermissionDefinition:
+      properties:
+        schema:
+          $ref: '#/components/schemas/GraphQLSchema'
+      required:
+      - schema
+      type: object
+    RemoteSchemaPermissionMetadata:
+      properties:
+        comment:
+          type: string
+        definition:
+          $ref: '#/components/schemas/RemoteSchemaPermissionDefinition'
+        role:
+          type: string
+      required:
+      - role
+      - definition
+      type: object
+    RemoteTypeCustomization:
+      properties:
+        mapping:
+          additionalProperties:
+            $ref: '#/components/schemas/GraphQLName'
+          type: object
+        prefix:
+          $ref: '#/components/schemas/GraphQLName'
+        suffix:
+          $ref: '#/components/schemas/GraphQLName'
+      required:
+      - mapping
+      type: object
     # RequestTransformV1:
     #   properties:
     #     body:
@@ -6666,57 +6687,57 @@ components:
     #   required:
     #   - host
     #   type: object
-    # ToSchemaRelationshipDef:
-    #   properties:
-    #     lhs_fields:
-    #       items:
-    #         type: string
-    #       type: array
-    #     remote_field:
-    #       $ref: '#/components/schemas/RemoteFields'
-    #     remote_schema:
-    #       type: string
-    #   required:
-    #   - remote_schema
-    #   - lhs_fields
-    #   - remote_field
-    #   type: object
-    # ToSchemaRelationshipDefLegacyFormat:
-    #   properties:
-    #     hasura_fields:
-    #       items:
-    #         type: string
-    #       type: array
-    #     remote_field:
-    #       $ref: '#/components/schemas/RemoteFields'
-    #     remote_schema:
-    #       type: string
-    #   required:
-    #   - remote_schema
-    #   - hasura_fields
-    #   - remote_field
-    #   type: object
-    # ToSourceRelationshipDef:
-    #   properties:
-    #     field_mapping:
-    #       additionalProperties:
-    #         type: string
-    #       type: object
-    #     relationship_type:
-    #       enum:
-    #       - object
-    #       - array
-    #       type: string
-    #     source:
-    #       type: string
-    #     table:
-    #       additionalProperties: true
-    #   required:
-    #   - relationship_type
-    #   - field_mapping
-    #   - source
-    #   - table
-    #   type: object
+    ToSchemaRelationshipDef:
+      properties:
+        lhs_fields:
+          items:
+            type: string
+          type: array
+        remote_field:
+          $ref: '#/components/schemas/RemoteFields'
+        remote_schema:
+          type: string
+      required:
+      - remote_schema
+      - lhs_fields
+      - remote_field
+      type: object
+    ToSchemaRelationshipDefLegacyFormat:
+      properties:
+        hasura_fields:
+          items:
+            type: string
+          type: array
+        remote_field:
+          $ref: '#/components/schemas/RemoteFields'
+        remote_schema:
+          type: string
+      required:
+      - remote_schema
+      - hasura_fields
+      - remote_field
+      type: object
+    ToSourceRelationshipDef:
+      properties:
+        field_mapping:
+          additionalProperties:
+            type: string
+          type: object
+        relationship_type:
+          enum:
+          - object
+          - array
+          type: string
+        source:
+          type: string
+        table:
+          additionalProperties: true
+      required:
+      - relationship_type
+      - field_mapping
+      - source
+      - table
+      type: object
     # TxIsolation:
     #   enum:
     #   - read-committed
