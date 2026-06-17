@@ -1059,3 +1059,66 @@ func TestFromHasura(t *testing.T) {
 			got.Databases[0].Configuration.ConnectionInfo.DatabaseURL, "{{DB}}")
 	}
 }
+
+// TestConvertRawRemoteFields_NestedField pins the recursive `field` descent in
+// convertRawRemoteFields, which the existing single-level remote_field fixtures
+// never exercise: a nested child field map must convert into a nested
+// RemoteFieldCall with its own arguments.
+func TestConvertRawRemoteFields_NestedField(t *testing.T) {
+	t.Parallel()
+
+	in := map[string]rawRemoteFieldCall{
+		"user": {
+			Arguments: map[string]stdjson.RawMessage{"id": stdjson.RawMessage(`"$id"`)},
+			Field: map[string]rawRemoteFieldCall{
+				"address": {
+					Arguments: map[string]stdjson.RawMessage{"kind": stdjson.RawMessage(`"$kind"`)},
+				},
+			},
+		},
+	}
+
+	want := map[string]RemoteFieldCall{
+		"user": {
+			Arguments: map[string]string{"id": "$id"},
+			Field: map[string]RemoteFieldCall{
+				"address": {
+					Arguments: map[string]string{"kind": "$kind"},
+				},
+			},
+		},
+	}
+
+	if diff := cmp.Diff(want, convertRawRemoteFields(in)); diff != "" {
+		t.Errorf("convertRawRemoteFields nested mismatch (-want +got):\n%s", diff)
+	}
+}
+
+// TestJSONRawToString pins both branches of jsonRawToString: a JSON string is
+// unquoted (the common `$`-prefixed argument case), while any non-string value
+// falls through to its raw JSON encoding — a lossy stringification locked in
+// here so it is a deliberate choice rather than a later surprise.
+func TestJSONRawToString(t *testing.T) {
+	t.Parallel()
+
+	tests := []struct {
+		name string
+		in   stdjson.RawMessage
+		want string
+	}{
+		{"string is unquoted", stdjson.RawMessage(`"$id"`), "$id"},
+		{"number falls through to raw json", stdjson.RawMessage(`5`), "5"},
+		{"bool falls through to raw json", stdjson.RawMessage(`true`), "true"},
+		{"object falls through to raw json", stdjson.RawMessage(`{"a":1}`), `{"a":1}`},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			t.Parallel()
+
+			if got := jsonRawToString(tt.in); got != tt.want {
+				t.Errorf("jsonRawToString(%s) = %q, want %q", tt.in, got, tt.want)
+			}
+		})
+	}
+}

@@ -16,7 +16,10 @@ import (
 // TestRoundTripJSON_RealMetadata verifies that the existing 39 KB real-world
 // Hasura metadata blob round-trips through FromJSON ∘ ToJSON ∘ FromJSON
 // without losing structure. Fields the engine doesn't model are preserved by
-// the `json:",unknown"` tags on every wire struct.
+// the `json:",unknown"` tags on the envelope and the
+// `databases`/`tables`/`functions` wire structs; `remote_schemas[]` is the
+// documented exception (its generated `api.*` wire types model only Hasura's
+// known fields — see TestRoundTripJSON_RemoteSchemaDropsUnknownKeys).
 func TestRoundTripJSON_RealMetadata(t *testing.T) {
 	t.Parallel()
 
