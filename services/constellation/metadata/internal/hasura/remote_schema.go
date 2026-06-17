@@ -69,22 +69,6 @@ func (r *RemoteSchemaMetadata) UnmarshalYAML(
 	return nil
 }
 
-// MarshalYAML inverts UnmarshalYAML: emit the JSON projection as a generic
-// value the YAML encoder can serialize.
-func (r RemoteSchemaMetadata) MarshalYAML() (any, error) {
-	b, err := json.Marshal(api.RemoteSchemaMetadata(r))
-	if err != nil {
-		return nil, fmt.Errorf("encoding remote schema: %w", err)
-	}
-
-	var v any
-	if err := stdjson.Unmarshal(b, &v); err != nil {
-		return nil, fmt.Errorf("re-decoding remote schema json: %w", err)
-	}
-
-	return v, nil
-}
-
 // RemoteSchemaRelationshipKind reports which arm of a remote-relationship
 // definition union is populated, by inspecting the raw JSON keys. The
 // oapi-codegen union has no discriminator, so As* accessors alone cannot tell

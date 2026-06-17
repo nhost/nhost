@@ -1,6 +1,7 @@
 package composer
 
 import (
+	"maps"
 	"testing"
 
 	"github.com/nhost/nhost/services/constellation/graph"
@@ -260,17 +261,20 @@ func TestDBRelationshipSpec(t *testing.T) {
 	}
 }
 
-// TestRSRelationshipSpec covers the rs→db happy path, the invalid-type skip,
-// and the nil-ToSource skip (rs→rs is not supported and is currently the only
-// other shape).
+// TestRSRelationshipSpec covers the rs→db happy paths, the invalid-type skip,
+// the nil-definition skip, and both rs→rs shapes (a remote_field that yields a
+// path, and an empty remote_field that is skipped).
 func TestRSRelationshipSpec(t *testing.T) {
 	t.Parallel()
 
 	tests := []struct {
-		name    string
-		rel     metadata.RemoteSchemaRelationshipDef
-		wantOK  bool
-		wantArr bool
+		name            string
+		rel             metadata.RemoteSchemaRelationshipDef
+		wantOK          bool
+		wantArr         bool
+		wantTarget      string
+		wantRemoteField string
+		wantArgs        map[string]string
 	}{
 		{
 			name: "rs_to_db_array",
@@ -335,6 +339,41 @@ func TestRSRelationshipSpec(t *testing.T) {
 			},
 			wantOK: false,
 		},
+		{
+			name: "rs_to_rs",
+			rel: metadata.RemoteSchemaRelationshipDef{
+				Name: "weather",
+				Definition: metadata.RemoteSchemaRelationshipDefinition{
+					ToRemoteSchema: &metadata.ToRemoteSchemaRelationship{
+						RemoteSchema: "weather_api",
+						LHSFields:    []string{"city"},
+						RemoteField: map[string]metadata.RemoteFieldCall{
+							"forecast": {
+								Arguments: map[string]string{"city": "$city"},
+							},
+						},
+					},
+				},
+			},
+			wantOK:          true,
+			wantArr:         false,
+			wantTarget:      "weather_api",
+			wantRemoteField: "forecast",
+			wantArgs:        map[string]string{"city": "$city"},
+		},
+		{
+			name: "rs_to_rs_empty_remote_field_skipped",
+			rel: metadata.RemoteSchemaRelationshipDef{
+				Name: "weather",
+				Definition: metadata.RemoteSchemaRelationshipDefinition{
+					ToRemoteSchema: &metadata.ToRemoteSchemaRelationship{
+						RemoteSchema: "weather_api",
+						RemoteField:  nil,
+					},
+				},
+			},
+			wantOK: false,
+		},
 	}
 
 	for _, tt := range tests {
@@ -352,6 +391,21 @@ func TestRSRelationshipSpec(t *testing.T) {
 
 			if spec.IsArray != tt.wantArr {
 				t.Errorf("IsArray = %v, want %v", spec.IsArray, tt.wantArr)
+			}
+
+			// rs→rs sets the remote-schema target, the leading remote-field
+			// name, and carries the LHS→argument bindings; rs→db leaves these
+			// empty (the want* fields default to zero).
+			if spec.TargetConnector != tt.wantTarget && tt.wantTarget != "" {
+				t.Errorf("TargetConnector = %q, want %q", spec.TargetConnector, tt.wantTarget)
+			}
+
+			if spec.RemoteFieldName != tt.wantRemoteField {
+				t.Errorf("RemoteFieldName = %q, want %q", spec.RemoteFieldName, tt.wantRemoteField)
+			}
+
+			if !maps.Equal(spec.BoundArguments, tt.wantArgs) {
+				t.Errorf("BoundArguments = %v, want %v", spec.BoundArguments, tt.wantArgs)
 			}
 
 			// rs→db never synthesises an object description.
