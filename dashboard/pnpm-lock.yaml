@@ -471,7 +471,7 @@ importers:
         specifier: ^8.4.0
         version: 8.4.0(typescript@5.8.3)
       postcss:
-        specifier: ^8.5.12
+        specifier: ^8.5.15
         version: 8.5.15
       require-from-string:
         specifier: ^2.0.2
