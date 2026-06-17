@@ -208,6 +208,14 @@ func introspectRaw(
 		)
 	}
 
+	// A spec-noncompliant but reachable upstream can answer 200 with no errors
+	// and empty or null data; classify it as an introspection failure rather
+	// than returning a degenerate "null" document (or an empty RawMessage that
+	// fails to marshal downstream in IntrospectRemoteSchema).
+	if len(result.Data) == 0 || string(result.Data) == "null" {
+		return nil, fmt.Errorf("%w: response contained no introspection data", ErrIntrospection)
+	}
+
 	return []byte(result.Data), nil
 }
 

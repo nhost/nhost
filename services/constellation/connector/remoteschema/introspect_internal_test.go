@@ -88,3 +88,28 @@ func TestIntrospectRaw_MalformedResponseWrapsErrIntrospection(t *testing.T) {
 		t.Errorf("expected ErrIntrospection on malformed 200, got: %v", err)
 	}
 }
+
+// A spec-noncompliant upstream can answer 200 with no errors and empty/null
+// data; both shapes must classify as ErrIntrospection rather than yielding a
+// degenerate "null" document or an empty RawMessage that fails downstream.
+func TestIntrospectRaw_NullDataWrapsErrIntrospection(t *testing.T) {
+	t.Parallel()
+
+	doer := fakeDoer{resp: okResponse(`{"data":null,"errors":null}`), err: nil}
+
+	_, err := introspectRaw(context.Background(), "http://example.com", nil, doer)
+	if !errors.Is(err, ErrIntrospection) {
+		t.Errorf("expected ErrIntrospection on data:null, got: %v", err)
+	}
+}
+
+func TestIntrospectRaw_AbsentDataWrapsErrIntrospection(t *testing.T) {
+	t.Parallel()
+
+	doer := fakeDoer{resp: okResponse(`{"errors":null}`), err: nil}
+
+	_, err := introspectRaw(context.Background(), "http://example.com", nil, doer)
+	if !errors.Is(err, ErrIntrospection) {
+		t.Errorf("expected ErrIntrospection on absent data, got: %v", err)
+	}
+}

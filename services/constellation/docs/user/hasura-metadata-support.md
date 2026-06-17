@@ -364,6 +364,15 @@ these `/v1/metadata` operations are served natively (no Hasura upstream needed):
 > - **Duplicate add:** a duplicate `add_remote_schema` returns `400 already-exists`
 >   on Hasura; Constellation treats it as an idempotent `200` (consistent with
 >   how it treats all `already-*` outcomes — see `KNOWN_DIFFERENCES.md`).
+> - **Unmodeled keys are not preserved:** unlike `databases`/`tables`/`functions`
+>   (whose wire types carry an `Unknown` round-trip field), a `remote_schemas[]`
+>   entry is decoded into the generated `api.RemoteSchemaMetadata` wire type,
+>   which models only the fields Hasura emits. Any key inside a remote-schema
+>   entry that Constellation does not model is **dropped** on `FromJSON → ToJSON`
+>   round-trip. This is an accepted divergence: the generated schema mirrors the
+>   live Hasura wire shape (the parity suite passes byte-for-leaf against the
+>   pinned engine), so the drop only affects keys a future engine version might
+>   add. Pinned by `TestRoundTripJSON_RemoteSchemaDropsUnknownKeys`.
 >
 > An unreachable upstream on `add_remote_schema` is **matched**: both engines
 > reject it with `remote-schema-error` (Constellation maps the synchronous

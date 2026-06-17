@@ -147,14 +147,6 @@ func convertDatabaseURL(h hasura.DatabaseURL) EnvString {
 	return EnvString(h.URL)
 }
 
-func convertHeaderValue(h hasura.EnvValue) (string, string) {
-	if h.FromEnv != "" {
-		return "", h.FromEnv
-	}
-
-	return h.Value, ""
-}
-
 func convertDatabase(h hasura.DatabaseMetadata) DatabaseMetadata {
 	tables := make([]TableMetadata, len(h.Tables))
 	for i, t := range h.Tables {
@@ -647,8 +639,8 @@ func convertRemoteSchemaHeaders(
 		return nil
 	}
 
-	result := make([]RemoteSchemaHeader, len(*headers))
-	for i, item := range *headers {
+	result := make([]RemoteSchemaHeader, 0, len(*headers))
+	for _, item := range *headers {
 		// The generated header is a HeaderConfValue|HeaderConfFromEnv union with
 		// no discriminator; project it through its JSON form, which carries
 		// whichever of value / value_from_env is set.
@@ -658,15 +650,28 @@ func convertRemoteSchemaHeaders(
 			ValueFromEnv string `json:"value_from_env"`
 		}
 
-		if b, err := item.MarshalJSON(); err == nil {
-			_ = stdjson.Unmarshal(b, &raw)
+		// Unreachable for validated wire input (the union's MarshalJSON only
+		// returns its stored bytes, and malformed headers are rejected upstream
+		// by parseRemoteSchemaInfo / the YAML bridge); skip rather than emit a
+		// header with an empty name if a projection ever fails.
+		b, err := item.MarshalJSON()
+		if err != nil {
+			continue
 		}
 
-		result[i] = RemoteSchemaHeader{
+		if err := stdjson.Unmarshal(b, &raw); err != nil {
+			continue
+		}
+
+		result = append(result, RemoteSchemaHeader{
 			Name:         raw.Name,
 			Value:        raw.Value,
 			ValueFromEnv: raw.ValueFromEnv,
-		}
+		})
+	}
+
+	if len(result) == 0 {
+		return nil
 	}
 
 	return result

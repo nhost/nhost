@@ -59,6 +59,56 @@ func TestRoundTripJSON_RealMetadata(t *testing.T) {
 	}
 }
 
+// TestRoundTripJSON_RemoteSchemaDropsUnknownKeys pins the accepted divergence
+// documented in hasura-metadata-support.md: unlike databases/tables/functions,
+// the generated remote-schema wire type models only Hasura's fields and carries
+// no `Unknown` capture, so a key inside a remote_schemas[] entry that
+// Constellation does not model is dropped on round-trip.
+func TestRoundTripJSON_RemoteSchemaDropsUnknownKeys(t *testing.T) {
+	t.Parallel()
+
+	blob := []byte(`{
+		"version": 3,
+		"sources": [],
+		"remote_schemas": [
+			{
+				"name": "rs",
+				"definition": {"url": "https://example.com/graphql"},
+				"some_unmodeled_key": {"a": 1}
+			}
+		]
+	}`)
+
+	parsed, err := hasura.FromJSON(blob)
+	if err != nil {
+		t.Fatalf("FromJSON: %v", err)
+	}
+
+	out, err := hasura.ToJSON(parsed)
+	if err != nil {
+		t.Fatalf("ToJSON: %v", err)
+	}
+
+	var withRS struct {
+		RemoteSchemas []map[string]jsontext.Value `json:"remote_schemas"`
+	}
+	if err := json.Unmarshal(out, &withRS); err != nil {
+		t.Fatalf("re-unmarshal: %v", err)
+	}
+
+	if len(withRS.RemoteSchemas) != 1 {
+		t.Fatalf("expected 1 remote schema, got %d", len(withRS.RemoteSchemas))
+	}
+
+	if _, ok := withRS.RemoteSchemas[0]["name"]; !ok {
+		t.Errorf("modeled key `name` was unexpectedly dropped")
+	}
+
+	if _, ok := withRS.RemoteSchemas[0]["some_unmodeled_key"]; ok {
+		t.Errorf("unmodeled remote-schema key was preserved; expected it to be dropped")
+	}
+}
+
 // TestRoundTripJSON_PreservesUnknownFields verifies that the `,unknown` tag
 // captures and re-emits envelope-level and per-struct Hasura fields the
 // engine does not model. This is the property /v1/metadata's `export_metadata`

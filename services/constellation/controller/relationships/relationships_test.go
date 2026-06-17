@@ -407,6 +407,14 @@ func TestFromMetadata_RemoteSchemaToRemoteSchemaRelationship(t *testing.T) {
 		t.Errorf("RemoteFieldPath = %+v, want [forecast]", r.RemoteFieldPath)
 	}
 
+	// The remote_field arguments must be copied onto the path entry: this is
+	// what wires the LHS join value ($city) into the remote query.
+	if diff := cmp.Diff(
+		map[string]string{"city": "$city"}, r.RemoteFieldPath[0].Arguments,
+	); diff != "" {
+		t.Errorf("RemoteFieldPath[0].Arguments mismatch (-want +got):\n%s", diff)
+	}
+
 	if _, ok := r.JoinMapping["city"]; !ok {
 		t.Errorf("JoinMapping = %+v, want a \"city\" key", r.JoinMapping)
 	}
