@@ -279,9 +279,9 @@ func errorCode(body []byte) (string, error) {
 	return e.Code, nil
 }
 
-// RunMetadataParityTests applies each case to both engines and asserts the
+// runMetadataParityTests applies each case to both engines and asserts the
 // layered equivalence described at the top of this file.
-func RunMetadataParityTests(t *testing.T, cases []metadataParityCase) {
+func runMetadataParityTests(t *testing.T, cases []metadataParityCase) {
 	t.Helper()
 
 	if !parityEnvReady() {

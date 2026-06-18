@@ -129,7 +129,7 @@ func (c *Controller) MetadataRequest( //nolint:ireturn
 			"parse-failed",
 			"request body is required",
 			"$",
-		), nil
+		)
 	}
 
 	// When there is no in-process Store, a configured proxy owns ALL metadata
@@ -153,8 +153,8 @@ func (c *Controller) MetadataRequest( //nolint:ireturn
 		return c.exportMetadata()
 	}
 
-	if resp, handled := c.dispatchMutation(ctx, req); handled {
-		return resp, nil
+	if resp, handled, err := c.dispatchMutation(ctx, req); handled {
+		return resp, err
 	}
 
 	// No native handler: fall through to the proxy if configured, else
@@ -176,7 +176,7 @@ func (c *Controller) MetadataRequest( //nolint:ireturn
 			req.Body.Type,
 		),
 		"$.args",
-	), nil
+	)
 }
 
 func (c *Controller) exportMetadata() (api.MetadataRequestResponseObject, error) { //nolint:ireturn
@@ -248,18 +248,28 @@ func (r metadataProxyResponse) VisitMetadataRequestResponse(w http.ResponseWrite
 // dispatcher itself emits is a 400.
 func metadataErrorResponse( //nolint:ireturn
 	code, message, path string,
-) api.MetadataRequestResponseObject {
+) (api.MetadataRequestResponseObject, error) {
 	response := api.MetadataRequest400JSONResponse{}
-	// FromMetadataError only returns an error if json.Marshal of the
-	// MetadataError fails; with two strings, a *string, and a nil map that
-	// cannot happen, and it builds an in-memory value rather than writing the
-	// HTTP response, so the error is safe to drop.
-	_ = response.FromMetadataError(api.MetadataError{
+	if err := response.FromMetadataError(api.MetadataError{
 		Code:     code,
 		Error:    message,
 		Path:     &path,
 		Internal: nil,
-	})
+	}); err != nil {
+		return nil, fmt.Errorf("encoding metadata error response: %w", err)
+	}
 
-	return response
+	return response, nil
+}
+
+// handledError adapts metadataErrorResponse to the (response, handled, err)
+// shape the native dispatchers return: the request was handled, the body is a
+// 400, and any encoding failure is propagated as a Go error rather than
+// swallowed.
+func handledError( //nolint:ireturn
+	code, message, path string,
+) (api.MetadataRequestResponseObject, bool, error) {
+	resp, err := metadataErrorResponse(code, message, path)
+
+	return resp, true, err
 }

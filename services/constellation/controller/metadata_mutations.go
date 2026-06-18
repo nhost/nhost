@@ -96,9 +96,9 @@ const (
 func (c *Controller) dispatchMutation( //nolint:ireturn,gocyclo,cyclop,funlen
 	ctx context.Context,
 	req api.MetadataRequestRequestObject,
-) (api.MetadataRequestResponseObject, bool) {
+) (api.MetadataRequestResponseObject, bool, error) {
 	if c.store == nil {
-		return nil, false
+		return nil, false, nil
 	}
 
 	// Args reaches the dispatcher as JSON bytes carved from the raw request body
@@ -106,7 +106,7 @@ func (c *Controller) dispatchMutation( //nolint:ireturn,gocyclo,cyclop,funlen
 	// the stored metadata.
 	argsJSON, err := metadataArgsJSON(ctx, req)
 	if err != nil {
-		return metadataErrorResponse(codeParseFailed, err.Error(), "$.args"), true
+		return handledError(codeParseFailed, err.Error(), "$.args")
 	}
 
 	switch req.Body.Type {
@@ -174,12 +174,12 @@ func (c *Controller) dispatchMutation( //nolint:ireturn,gocyclo,cyclop,funlen
 		opPgInvokeEventTrigger,
 		opPgGetEventLogs,
 		opPgGetEventByID:
-		return metadataErrorResponse(
+		return handledError(
 			codeNotSupported,
 			"event delivery runtime is not implemented; only metadata authoring "+
 				"of event triggers is supported",
 			"$.args",
-		), true
+		)
 	case opBulk:
 		return c.dispatchBulk(ctx, argsJSON, false /* keepGoing */)
 	case opBulkKeepGoing:
@@ -188,7 +188,7 @@ func (c *Controller) dispatchMutation( //nolint:ireturn,gocyclo,cyclop,funlen
 		return c.dispatchBulkAtomic(ctx, argsJSON)
 	}
 
-	return nil, false
+	return nil, false, nil
 }
 
 // metadataArgsJSON returns the verbatim JSON bytes of the request's `args`
@@ -227,11 +227,11 @@ func metadataArgsJSON(
 // idempotency code; on error it emits 400 with a per-class code.
 func finishMutation( //nolint:ireturn
 	rv int64, code source.IdempotencyCode, err error,
-) (api.MetadataRequestResponseObject, bool) {
+) (api.MetadataRequestResponseObject, bool, error) {
 	if err != nil {
 		errCode, message := classifyMutationError(err)
 
-		return metadataErrorResponse(errCode, message, "$.args"), true
+		return handledError(errCode, message, "$.args")
 	}
 
 	if code != "" {
@@ -239,13 +239,13 @@ func finishMutation( //nolint:ireturn
 		// resource_version absent (the row was not bumped).
 		return api.MetadataRequest200JSONResponse{
 			"message": string(code),
-		}, true
+		}, true, nil
 	}
 
 	return api.MetadataRequest200JSONResponse{
 		"message":          "success",
 		"resource_version": rv,
-	}, true
+	}, true, nil
 }
 
 // finishRead turns a (body, err) pair from a read-only op into the
@@ -254,14 +254,14 @@ func finishMutation( //nolint:ireturn
 // classified code.
 func finishRead( //nolint:ireturn
 	body map[string]any, err error,
-) (api.MetadataRequestResponseObject, bool) {
+) (api.MetadataRequestResponseObject, bool, error) {
 	if err != nil {
 		errCode, message := classifyMutationError(err)
 
-		return metadataErrorResponse(errCode, message, "$.args"), true
+		return handledError(errCode, message, "$.args")
 	}
 
-	return api.MetadataRequest200JSONResponse(body), true
+	return api.MetadataRequest200JSONResponse(body), true, nil
 }
 
 // classifyMutationError maps a Store-level error to the Hasura-shaped

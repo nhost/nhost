@@ -261,5 +261,5 @@ func TestMetadataParity(t *testing.T) { //nolint:paralleltest
 		},
 	}
 
-	RunMetadataParityTests(t, cases)
+	runMetadataParityTests(t, cases)
 }

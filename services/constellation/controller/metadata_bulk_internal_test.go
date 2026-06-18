@@ -304,6 +304,36 @@ func TestDispatch_Bulk_NestedRejected(t *testing.T) {
 	}
 }
 
+func TestDispatch_Bulk_MalformedObjectRejected(t *testing.T) {
+	t.Parallel()
+
+	w := &writerStub{}
+	store := newBootstrappedStore(t, w)
+	router := buildMutationRouter(t, store)
+
+	// A bulk whose args is an object with no "args" array is malformed: Hasura
+	// rejects it, and it must not degrade into an empty (silently successful)
+	// bulk. Guards parseBulkChildren's missing-args path.
+	code, body := postJSON(t, router, `{
+        "type": "bulk",
+        "args": {}
+    }`)
+	if code != http.StatusBadRequest {
+		t.Fatalf("status = %d, want 400; body = %v", code, body)
+	}
+
+	if got, _ := body["code"].(string); got != "parse-failed" {
+		t.Errorf("code = %q, want parse-failed", body["code"])
+	}
+
+	if w.callCount() != 0 {
+		t.Errorf(
+			"writer calls = %d, want 0 (malformed bulk aborts before any write)",
+			w.callCount(),
+		)
+	}
+}
+
 func TestDispatch_BulkKeepGoing_NestedRejected(t *testing.T) {
 	t.Parallel()
 

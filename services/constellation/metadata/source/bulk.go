@@ -26,6 +26,17 @@ import (
 func (s *Store) ApplyAll(
 	ctx context.Context, fns []MutationFn,
 ) ([]IdempotencyCode, int64, error) {
+	// Mirror Apply's guards before the empty fast path: an empty bulk on an
+	// uninitialized or read-only store is still an invalid request and must not
+	// report success with the current version.
+	if !s.initOnce.Load() {
+		return nil, 0, ErrStoreNotInitialized
+	}
+
+	if s.writer == nil {
+		return nil, 0, ErrStoreReadOnly
+	}
+
 	if len(fns) == 0 {
 		return nil, s.ResourceVersion(), nil
 	}

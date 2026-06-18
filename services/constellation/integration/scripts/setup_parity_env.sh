@@ -45,7 +45,7 @@ CREATE SCHEMA IF NOT EXISTS hdb_catalog;
 CREATE TABLE hdb_catalog.hdb_metadata (
   id               integer PRIMARY KEY,
   metadata         json    NOT NULL,
-  resource_version integer NOT NULL DEFAULT 1
+  resource_version integer NOT NULL DEFAULT 1 UNIQUE
 );
 INSERT INTO hdb_catalog.hdb_metadata (id, metadata, resource_version)
 VALUES (1, '${SEED}'::json, 1);

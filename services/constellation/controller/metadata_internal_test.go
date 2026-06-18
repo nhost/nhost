@@ -911,7 +911,7 @@ func TestMutationOpDispatchParity(t *testing.T) {
 			req := api.MetadataRequestRequestObject{
 				Body: &api.MetadataRequestJSONRequestBody{Type: op, Args: map[string]any{}},
 			}
-			if _, handled := ctrl.dispatchMutation(t.Context(), req); !handled {
+			if _, handled, _ := ctrl.dispatchMutation(t.Context(), req); !handled {
 				t.Errorf("dispatchMutation(%q) handled = false; "+
 					"op missing from dispatchMutation switch", op)
 			}
