@@ -1,9 +1,9 @@
-package source //nolint:testpackage // drives unexported Store internals + fakes
+package source
 
 import (
 	"context"
 	"fmt"
-	"sort"
+	"slices"
 	"sync"
 	"testing"
 )
@@ -36,6 +36,8 @@ func TestStore_Apply_ConcurrentMutationsAndReads(t *testing.T) {
 
 	go func() {
 		defer close(watchDone)
+
+		//nolint:revive // intentional drain: consume broadcasts until Watch closes ch.
 		for range ch {
 		}
 	}()
@@ -47,11 +49,7 @@ func TestStore_Apply_ConcurrentMutationsAndReads(t *testing.T) {
 	readerStop := make(chan struct{})
 
 	for range 4 {
-		readerWG.Add(1)
-
-		go func() {
-			defer readerWG.Done()
-
+		readerWG.Go(func() {
 			for {
 				select {
 				case <-readerStop:
@@ -61,7 +59,7 @@ func TestStore_Apply_ConcurrentMutationsAndReads(t *testing.T) {
 					_, _ = s.HasuraSnapshotJSON()
 				}
 			}
-		}()
+		})
 	}
 
 	// Concurrent writers: each tracks a distinct table, so every apply succeeds
@@ -101,7 +99,7 @@ func TestStore_Apply_ConcurrentMutationsAndReads(t *testing.T) {
 		t.Fatalf("writer calls = %d, want %d", len(expected), writers)
 	}
 
-	sort.Slice(expected, func(i, j int) bool { return expected[i] < expected[j] })
+	slices.Sort(expected)
 
 	for i, rv := range expected {
 		want := int64(7 + i)

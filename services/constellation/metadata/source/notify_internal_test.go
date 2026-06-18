@@ -3,7 +3,6 @@ package source
 import (
 	"context"
 	"errors"
-	"io"
 	"log/slog"
 	"testing"
 
@@ -11,10 +10,18 @@ import (
 	"github.com/nhost/nhost/services/constellation/metadata/internal/hasura"
 )
 
+// Static sentinels for the wrap-error assertions (err113 bans inline
+// errors.New in tests).
+var (
+	errNotifyBoom   = errors.New("boom")
+	errNotifyLate   = errors.New("late failure")
+	errReloadFailed = errors.New("reload failed")
+)
+
 // discardLogger is a no-op logger for the dispatch error path, which logs
 // rather than propagates; listenOnce always passes a non-nil logger.
 func discardLogger() *slog.Logger {
-	return slog.New(slog.NewTextHandler(io.Discard, nil))
+	return slog.New(slog.DiscardHandler)
 }
 
 // notifyQueryer captures the args passed to Query and returns a fakeNotifyRows
@@ -91,7 +98,7 @@ func TestNotifyMetadataChange_PassesChannelAndVersion(t *testing.T) {
 func TestNotifyMetadataChange_WrapsQueryError(t *testing.T) {
 	t.Parallel()
 
-	sentinel := errors.New("boom")
+	sentinel := errNotifyBoom
 	q := &notifyQueryer{queryErr: sentinel}
 
 	err := notifyMetadataChange(t.Context(), q, 1)
@@ -103,7 +110,7 @@ func TestNotifyMetadataChange_WrapsQueryError(t *testing.T) {
 func TestNotifyMetadataChange_WrapsRowsError(t *testing.T) {
 	t.Parallel()
 
-	sentinel := errors.New("late failure")
+	sentinel := errNotifyLate
 	q := &notifyQueryer{rowsErr: sentinel}
 
 	err := notifyMetadataChange(t.Context(), q, 1)
@@ -163,7 +170,7 @@ func TestDispatchNotification_SwallowsReloadError(t *testing.T) {
 	t.Parallel()
 
 	// A reload failure must not panic or propagate; listenOnce keeps running.
-	r := &recordingReloader{err: errors.New("reload failed")}
+	r := &recordingReloader{err: errReloadFailed}
 	dispatchNotification(t.Context(), "9", r, discardLogger())
 
 	if len(r.gotRVs) != 1 {

@@ -1,4 +1,4 @@
-package source //nolint:testpackage // exercises unexported builders + fakes
+package source
 
 import (
 	"errors"
@@ -12,6 +12,8 @@ import (
 // (duplicate within objects, duplicate within arrays, name present in both)
 // and the successful-append branch. Every other pg_track_table test passes a
 // bare {source, table}, so this is the only coverage of that logic.
+//
+//nolint:gocognit // table-driven coverage of every inline-relationship collision + append branch.
 func TestPgTrackTable_InlineRelationships(t *testing.T) {
 	t.Parallel()
 
