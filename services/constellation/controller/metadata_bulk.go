@@ -11,13 +11,11 @@ import (
 	"github.com/nhost/nhost/services/constellation/metadata/source"
 )
 
-// bulkChild models one child of a bulk / bulk_atomic /
-// bulk_keep_going request. Hasura accepts either a bare array or
-// {"args":[...]} envelope; the dashboard uses both shapes. We accept
-// both by unmarshaling into either.
-//
-// Each child is a full metadata request (type + args), nested. We
-// re-marshal the child's Args back to bytes for the per-op handlers.
+// bulkChild models one child of a bulk / bulk_atomic / bulk_keep_going request.
+// Hasura accepts either a bare array or a {"args":[...]} envelope; the dashboard
+// uses both shapes, so parseBulkChildren accepts both. Each child is a full
+// metadata request (type + args); the verbatim Args bytes are handed to the
+// per-op handlers.
 type bulkChild struct {
 	Type string             `json:"type"`
 	Args stdjson.RawMessage `json:"args"`
@@ -28,10 +26,9 @@ type bulkChild struct {
 // (silently successful) bulk would mask a malformed call.
 var errBulkArgsMissing = errors.New(`bulk request object is missing the "args" array`)
 
-// parseBulkChildren accepts either a bare array `[...]` or an object
-// `{"args":[...]}`. Both shapes occur in the dashboard's emitted bulks.
 func parseBulkChildren(argsJSON []byte) ([]bulkChild, error) {
-	// Try bare array first.
+	// Bulk args may arrive as a bare array of children or wrapped in an object
+	// with an "args" key. Try the bare array first.
 	var arr []bulkChild
 	if err := json.Unmarshal(argsJSON, &arr); err == nil {
 		return arr, nil
@@ -59,16 +56,16 @@ func parseBulkChildren(argsJSON []byte) ([]bulkChild, error) {
 	return children, nil
 }
 
-// dispatchBulk implements `bulk` (keepGoing=false → fail-fast on first
-// error) and `bulk_keep_going` (keepGoing=true → run every child,
-// collect per-child outcomes). Each child gets its own Apply call, so
-// each successful child bumps the resource_version independently.
-// Children are dispatched only through native Store handlers; an
-// unknown op aborts (bulk) or fills its slot with a not-supported
-// error (bulk_keep_going).
+// dispatchBulk implements `bulk` (keepGoing=false → fail-fast on first error)
+// and `bulk_keep_going` (keepGoing=true → run every child, collect per-child
+// outcomes). Both run all children against ONE in-flight metadata copy with a
+// single durable write and a single resource_version bump (see
+// source.ApplyBulk), matching Hasura. Children accept the full native op set —
+// mutations, reads, and the whole-metadata ops — exactly as the single-op path
+// does. The success body is a bare top-level JSON array of per-child results.
 //
-// Nested bulk in a child is rejected as not-supported to bound
-// recursion; the dashboard's emitted bulks are flat.
+// Nested bulk in a child is reported as not-supported (the dashboard's emitted
+// bulks are flat); see KNOWN_DIFFERENCES.md.
 func (c *Controller) dispatchBulk( //nolint:ireturn
 	ctx context.Context, argsJSON []byte, keepGoing bool,
 ) (api.MetadataRequestResponseObject, bool, error) {
@@ -77,172 +74,79 @@ func (c *Controller) dispatchBulk( //nolint:ireturn
 		return handledError(codeParseFailed, err.Error(), "$.args")
 	}
 
-	results := make([]any, 0, len(children))
-
+	bulkChildren := make([]source.BulkChild, len(children))
 	for i, child := range children {
-		entry, hardErr := c.dispatchBulkChild(ctx, i, child)
-		if hardErr != nil {
-			if !keepGoing {
-				return handledError(
-					hardErr.code, hardErr.message,
-					fmt.Sprintf("$.args[%d]", i),
-				)
-			}
+		bulkChildren[i] = source.BulkChild{Type: child.Type, Args: []byte(child.Args)}
+	}
 
-			results = append(results, map[string]any{
-				"code":  hardErr.code,
-				"error": hardErr.message,
-			})
+	outcomes, _, _, err := c.store.ApplyBulk(ctx, bulkChildren, keepGoing)
+	if err != nil {
+		// Fail-fast abort: a child failed and the whole batch was discarded.
+		var childErr *source.BulkChildError
+		if errors.As(err, &childErr) {
+			code, message := c.classifyBulkChildError(children[childErr.Index].Type, childErr.Err)
+
+			return handledError(code, message, fmt.Sprintf("$.args[%d]", childErr.Index))
+		}
+
+		// Engine-level failure (uninitialized / read-only / RV conflict / write).
+		code, message := classifyMutationError(err)
+
+		return handledError(code, message, "$.args")
+	}
+
+	results := make([]any, len(outcomes))
+	for i, outcome := range outcomes {
+		if outcome.Err != nil {
+			code, message := c.classifyBulkChildError(children[i].Type, outcome.Err)
+			results[i] = map[string]any{"code": code, "error": message}
 
 			continue
 		}
 
-		results = append(results, entry)
+		results[i] = outcome.Body
 	}
 
-	// NOTE: Hasura returns the per-child results as a bare top-level JSON array;
-	// we wrap them under "bulk" because api.MetadataRequest200JSONResponse is a
-	// generated map[string]interface{} and cannot represent a bare array. See
-	// KNOWN_DIFFERENCES.md ("Bulk metadata response shape").
-	return api.MetadataRequest200JSONResponse{
-		"bulk": results,
-	}, true, nil
+	return metadataBulkArrayResponse(results), true, nil
 }
 
-type bulkChildError struct {
-	code    string
-	message string
+// classifyBulkChildError maps a child failure to the Hasura-shaped (code,
+// message) pair, with friendlier messages for the two bulk-specific cases:
+// nested bulk and an op with no native handler.
+func (c *Controller) classifyBulkChildError(childType string, err error) (string, string) {
+	switch {
+	case childType == opBulk || childType == opBulkAtomic || childType == opBulkKeepGoing:
+		return codeNotSupported, fmt.Sprintf("nested %q in bulk is not supported", childType)
+	case errors.Is(err, source.ErrUnknownMutationOp):
+		return codeNotSupported, fmt.Sprintf("op %q is not natively supported", childType)
+	default:
+		return classifyMutationError(err)
+	}
 }
 
-// dispatchBulkChild runs one child through the native single-op
-// handlers. Returns either a result entry suitable for inclusion in
-// the bulk response array, or a structured error for the caller to
-// turn into an abort (bulk) or per-slot failure (bulk_keep_going).
-func (c *Controller) dispatchBulkChild(
-	ctx context.Context, idx int, child bulkChild,
-) (map[string]any, *bulkChildError) {
-	if child.Type == opBulk || child.Type == opBulkAtomic || child.Type == opBulkKeepGoing {
-		return nil, &bulkChildError{
-			code:    codeNotSupported,
-			message: fmt.Sprintf("nested %q in bulk is not supported (child %d)", child.Type, idx),
-		}
-	}
-
-	rv, code, err := c.dispatchSingleStoreOp(ctx, child.Type, []byte(child.Args))
-	if err != nil {
-		if errors.Is(err, source.ErrUnknownMutationOp) {
-			return nil, &bulkChildError{
-				code:    codeNotSupported,
-				message: fmt.Sprintf("op %q is not natively supported (child %d)", child.Type, idx),
-			}
-		}
-
-		errCode, message := classifyMutationError(err)
-
-		return nil, &bulkChildError{code: errCode, message: message}
-	}
-
-	if code != "" {
-		return map[string]any{"message": string(code)}, nil
-	}
-
-	return map[string]any{
-		"message":          "success",
-		"resource_version": rv,
-	}, nil
+// bulkAtomicWhitelist is the set of ops Hasura's bulk_atomic accepts that
+// Constellation also implements. Hasura additionally allows native-query /
+// logical-model / stored-procedure track-untrack, which Constellation has no
+// ops for. Everything else (table tracking, permissions, functions, event
+// triggers, reads, whole-metadata) is rejected by Hasura's bulk_atomic, and
+// Constellation matches that.
+var bulkAtomicWhitelist = map[string]struct{}{
+	opPgCreateObjectRelationship: {},
+	opPgCreateArrayRelationship:  {},
+	opPgDropRelationship:         {},
+	opPgDeleteRemoteRelationship: {},
 }
 
-// storeOp is one Store mutation method bound to its operation type. Every
-// native single-op handler shares this signature.
-type storeOp func(ctx context.Context, argsJSON []byte) (int64, source.IdempotencyCode, error)
+// errBulkAtomicUnsupported mirrors Hasura's "Bulk atomic does not support this
+// command". Hasura raises it as an internal (500) error; Constellation surfaces
+// it through its op-level 400 not-supported channel (500 is reserved for
+// internal failures), which is the one deliberate deviation from Hasura here.
+var errBulkAtomicUnsupported = errors.New("bulk_atomic does not support this command")
 
-// dispatchSingleStoreOp routes one op type to its Store method. Mirrors
-// the switch in dispatchMutation, factored out so the bulk dispatcher
-// can reuse it. The op is resolved through storeOpFor and invoked here so
-// the Store error is wrapped once (keeping errors.Is against the source
-// sentinels working for classifyMutationError).
-func (c *Controller) dispatchSingleStoreOp(
-	ctx context.Context, opType string, argsJSON []byte,
-) (int64, source.IdempotencyCode, error) {
-	op := c.storeOpFor(opType)
-	if op == nil {
-		return 0, "", fmt.Errorf("%w: %q", source.ErrUnknownMutationOp, opType)
-	}
-
-	rv, code, err := op(ctx, argsJSON)
-	if err != nil {
-		return 0, "", fmt.Errorf("%s: %w", opType, err)
-	}
-
-	return rv, code, nil
-}
-
-// storeOpFor returns the native Store handler for opType, or nil when the op
-// has no native handler.
-//
-//nolint:cyclop,funlen // flat op-dispatch table; one arm per metadata op.
-func (c *Controller) storeOpFor(opType string) storeOp {
-	switch opType {
-	case opPgTrackTable:
-		return c.store.PgTrackTable
-	case opPgSetTableCustomization:
-		return c.store.PgSetTableCustomization
-	case opPgCreateObjectRelationship:
-		return c.store.PgCreateObjectRelationship
-	case opPgCreateArrayRelationship:
-		return c.store.PgCreateArrayRelationship
-	case opPgCreateSelectPermission:
-		return c.store.PgCreateSelectPermission
-	case opPgDropSelectPermission:
-		return c.store.PgDropSelectPermission
-	case opPgCreateInsertPermission:
-		return c.store.PgCreateInsertPermission
-	case opPgDropInsertPermission:
-		return c.store.PgDropInsertPermission
-	case opPgCreateUpdatePermission:
-		return c.store.PgCreateUpdatePermission
-	case opPgDropUpdatePermission:
-		return c.store.PgDropUpdatePermission
-	case opPgCreateDeletePermission:
-		return c.store.PgCreateDeletePermission
-	case opPgDropDeletePermission:
-		return c.store.PgDropDeletePermission
-	case opPgUntrackTable:
-		return c.store.PgUntrackTable
-	case opPgSetTableIsEnum:
-		return c.store.PgSetTableIsEnum
-	case opPgDropRelationship:
-		return c.store.PgDropRelationship
-	case opPgRenameRelationship:
-		return c.store.PgRenameRelationship
-	case opPgTrackFunction:
-		return c.store.PgTrackFunction
-	case opPgUntrackFunction:
-		return c.store.PgUntrackFunction
-	case opPgSetFunctionCustomization:
-		return c.store.PgSetFunctionCustomization
-	case opPgCreateFunctionPermission:
-		return c.store.PgCreateFunctionPermission
-	case opPgDropFunctionPermission:
-		return c.store.PgDropFunctionPermission
-	case opPgCreateEventTrigger:
-		return c.store.PgCreateEventTrigger
-	case opPgDeleteEventTrigger:
-		return c.store.PgDeleteEventTrigger
-	case opPgCreateRemoteRelationship:
-		return c.store.PgCreateRemoteRelationship
-	case opPgDeleteRemoteRelationship:
-		return c.store.PgDeleteRemoteRelationship
-	}
-
-	return nil
-}
-
-// dispatchBulkAtomic implements `bulk_atomic`: all children's mutators
-// are composed into one Apply, giving free atomicity (single clone,
-// single write, single RV bump). If any child errors the whole bulk
-// rolls back — the snapshot and RV are unchanged. Per-child responses
-// share the one final RV.
+// dispatchBulkAtomic implements `bulk_atomic`: every child's mutator is composed
+// into one Apply (single clone, single write, single resource_version bump, all
+// or nothing). Per Hasura, the accepted child set is a narrow whitelist and the
+// response is a single {"message":"success"} object — not a per-child array.
 func (c *Controller) dispatchBulkAtomic( //nolint:ireturn
 	ctx context.Context, argsJSON []byte,
 ) (api.MetadataRequestResponseObject, bool, error) {
@@ -254,55 +158,33 @@ func (c *Controller) dispatchBulkAtomic( //nolint:ireturn
 	fns := make([]source.MutationFn, len(children))
 
 	for i, child := range children {
-		if child.Type == opBulk || child.Type == opBulkAtomic || child.Type == opBulkKeepGoing {
+		if _, ok := bulkAtomicWhitelist[child.Type]; !ok {
 			return handledError(
 				codeNotSupported,
-				fmt.Sprintf("nested %q in bulk_atomic is not supported (child %d)", child.Type, i),
+				fmt.Sprintf("%s (op %q)", errBulkAtomicUnsupported.Error(), child.Type),
 				fmt.Sprintf("$.args[%d]", i),
 			)
 		}
 
-		fn, err := source.BuildMutation(child.Type, []byte(child.Args))
-		if err != nil {
-			errCode, message := classifyMutationError(err)
-			if errors.Is(err, source.ErrUnknownMutationOp) {
+		fn, bErr := source.BuildMutation(child.Type, []byte(child.Args))
+		if bErr != nil {
+			errCode, message := classifyMutationError(bErr)
+			if errors.Is(bErr, source.ErrUnknownMutationOp) {
 				errCode = codeNotSupported
 			}
 
-			return handledError(
-				errCode, message,
-				fmt.Sprintf("$.args[%d]", i),
-			)
+			return handledError(errCode, message, fmt.Sprintf("$.args[%d]", i))
 		}
 
 		fns[i] = fn
 	}
 
-	codes, rv, err := c.store.ApplyAll(ctx, fns)
-	if err != nil {
+	if _, _, err := c.store.ApplyAll(ctx, fns); err != nil {
 		errCode, message := classifyMutationError(err)
 
 		return handledError(errCode, message, "$.args")
 	}
 
-	results := make([]any, len(codes))
-
-	for i, code := range codes {
-		if code != "" {
-			results[i] = map[string]any{"message": string(code)}
-
-			continue
-		}
-
-		results[i] = map[string]any{
-			"message":          "success",
-			"resource_version": rv,
-		}
-	}
-
-	// NOTE: bare-array vs "bulk"-wrapped divergence from Hasura — see the note on
-	// the bulk path above and KNOWN_DIFFERENCES.md ("Bulk metadata response shape").
-	return api.MetadataRequest200JSONResponse{
-		"bulk": results,
-	}, true, nil
+	// Hasura returns a single success envelope for bulk_atomic, not an array.
+	return api.MetadataRequest200JSONResponse{"message": "success"}, true, nil
 }

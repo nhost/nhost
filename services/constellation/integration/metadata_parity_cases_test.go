@@ -204,20 +204,20 @@ func TestMetadataParity(t *testing.T) { //nolint:paralleltest
 			affectsSchema: true,
 		},
 		{
-			// Known divergence: Hasura's bulk_atomic rejects permission commands
-			// (500 "Bulk atomic does not support this command"); Constellation
-			// supports bulk_atomic for them — a superset, not a bug.
-			name: "bulk_atomic_create_permissions",
+			// bulk_atomic accepts only Hasura's narrow whitelist (relationship
+			// create/drop, delete remote relationship, ...). Permission commands
+			// are rejected by BOTH engines. Hasura raises an internal 500 ("Bulk
+			// atomic does not support this command"); Constellation matches the
+			// whitelist but surfaces the rejection through its op-level 400
+			// not-supported channel, so the status/code wording differs.
+			name: "bulk_atomic_create_permissions_rejected",
 			op: `{"type":"bulk_atomic","args":[` +
 				createSelDept + `,` +
 				`{"type":"pg_create_delete_permission","args":{"source":"default","table":` + dept + `,"role":"` + role + `","permission":{"filter":{}}}}` +
 				`]}`,
-			// Hard-assert Constellation actually accepts the bulk_atomic permission
-			// op (2xx) rather than only logging Hasura's 500 and dropping the case;
-			// without this the case would pass even if the superset support
-			// regressed entirely.
-			wantConstellationOK: true,
-			knownDivergence:     "Hasura's bulk_atomic does not support permission commands; Constellation does (superset)",
+			wantErr:               true,
+			allowStatusDivergence: true,
+			knownDivergence:       "bulk_atomic rejects permission commands on both engines; Hasura returns 500 internal, Constellation returns 400 not-supported",
 		},
 
 		// ---- idempotent re-apply: Constellation returns 200 + idempotency code

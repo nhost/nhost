@@ -154,10 +154,16 @@ paths:
       responses:
         "200":
           description: >-
-            Per-operation result. The body shape varies by `type`: most
-            ops return `{message: "success"}`, `export_metadata` returns
-            `{resource_version, metadata}`, etc. Modelled as a freeform
-            object until per-op schemas are migrated into this spec.
+            Per-operation result. The body shape varies by `type`: most ops
+            return `{message: "success"}`, `export_metadata` returns
+            `{resource_version, metadata}`, and `bulk` / `bulk_keep_going`
+            return a BARE top-level JSON array of per-child results (matching
+            Hasura), while `bulk_atomic` returns a single `{message:
+            "success"}` object. Modelled here as a freeform object until per-op
+            schemas are migrated into this spec; the bulk array body is emitted
+            by a hand-written response type, so regenerating from this schema
+            keeps the single-op object type. (When per-op response schemas are
+            introduced, model the 200 as `oneOf: [object, array]`.)
           content:
             application/json:
               schema:

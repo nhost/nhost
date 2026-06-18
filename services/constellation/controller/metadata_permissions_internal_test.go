@@ -120,7 +120,7 @@ func TestDispatch_PermissionCRUD(t *testing.T) {
 	}
 }
 
-func TestDispatch_PermissionInsidePermissionBulkAtomic(t *testing.T) {
+func TestDispatch_PermissionsInBulkAtomicRejected(t *testing.T) {
 	t.Parallel()
 
 	w := &writerStub{}
@@ -128,12 +128,43 @@ func TestDispatch_PermissionInsidePermissionBulkAtomic(t *testing.T) {
 	router := buildMutationRouter(t, store)
 	trackUsers(t, router)
 
-	// Single bulk_atomic: 4 different create_*_permission for the same role.
-	// Should land in one write (single RV bump).
 	callsBefore := w.callCount()
 
+	// Permission ops are outside Hasura's bulk_atomic whitelist, so a
+	// permission inside bulk_atomic is rejected (strict parity) with no write.
 	code, body := postJSON(t, router, `{
         "type": "bulk_atomic",
+        "args": [
+            {"type":"pg_create_select_permission","args":{"source":"default","table":{"schema":"public","name":"users"},"role":"user","permission":{"columns":["id"],"filter":{}}}}
+        ]
+    }`)
+	if code != http.StatusBadRequest {
+		t.Fatalf("status=%d body=%v", code, body)
+	}
+
+	if got, _ := body["code"].(string); got != "not-supported" {
+		t.Errorf("code = %q, want not-supported", body["code"])
+	}
+
+	if got := w.callCount() - callsBefore; got != 0 {
+		t.Errorf("writer calls = %d, want 0", got)
+	}
+}
+
+func TestDispatch_PermissionsInBulkSingleWrite(t *testing.T) {
+	t.Parallel()
+
+	w := &writerStub{}
+	store := newBootstrappedStore(t, w)
+	router := buildMutationRouter(t, store)
+	trackUsers(t, router)
+
+	// The non-atomic bulk path accepts permissions and lands all four in a
+	// single write (one resource_version bump).
+	callsBefore := w.callCount()
+
+	code, results, raw := postJSONArray(t, router, `{
+        "type": "bulk",
         "args": [
             {"type":"pg_create_select_permission","args":{"source":"default","table":{"schema":"public","name":"users"},"role":"user","permission":{"columns":["id"],"filter":{}}}},
             {"type":"pg_create_insert_permission","args":{"source":"default","table":{"schema":"public","name":"users"},"role":"user","permission":{"columns":["id"],"check":{}}}},
@@ -142,10 +173,14 @@ func TestDispatch_PermissionInsidePermissionBulkAtomic(t *testing.T) {
         ]
     }`)
 	if code != http.StatusOK {
-		t.Fatalf("status=%d body=%v", code, body)
+		t.Fatalf("status=%d body=%s", code, raw)
+	}
+
+	if len(results) != 4 {
+		t.Fatalf("results = %d, want 4; body = %s", len(results), raw)
 	}
 
 	if got := w.callCount() - callsBefore; got != 1 {
-		t.Errorf("writer calls in bulk_atomic = %d, want 1", got)
+		t.Errorf("writer calls in bulk = %d, want 1 (single write)", got)
 	}
 }
