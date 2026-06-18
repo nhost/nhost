@@ -168,6 +168,36 @@ final: prev: rec {
     ];
   };
 
+  cargo-pgrx_0_18_1 = final.rustPlatform.buildRustPackage rec {
+    pname = "cargo-pgrx";
+    version = "0.18.1";
+
+    src = final.fetchCrate {
+      pname = "cargo-pgrx";
+      hash = "sha256-4/FKpiMm3MedrmJwXf9NMkzTGQyZuU2GYQ4ZIif3YDE=";
+      inherit version;
+    };
+
+    cargoHash = "sha256-4hQL06ZRykZDeVJMYeBSw50jUPlBVh+J5FfyF1hTlNc=";
+
+    nativeBuildInputs = [
+      final.pkg-config
+    ];
+
+    buildInputs = [
+      final.openssl
+    ];
+
+    preCheck = ''
+      export PGRX_HOME=$(mktemp -d)
+    '';
+
+    checkFlags = [
+      # requires pgrx to be properly initialized with cargo pgrx init
+      "--skip=object_utils::tests::parses_managed_postmasters"
+    ];
+  };
+
   wal-g = prev.wal-g.overrideAttrs (
     finalAttrs: previousAttrs: {
       version = "3.0.7";

@@ -1,12 +1,15 @@
 ---
 title: Users
-description: Learn about Users managed by Nhost Auth
+description: Manage user accounts in Nhost Auth, including default and allowed roles, metadata, and GraphQL permissions on the auth schema.
 keywords: ["users", "user management", "roles", "metadata", "profile", "account", "user data"]
+head:
+  - tag: title
+    content: "Managing User Accounts, Roles, and Metadata | Nhost Docs"
 ---
 
 ## Creating Users
 
-Users are created using the sign-up or sign-in flows described under [Supported Methods](/products/auth/#supported-methods).
+Users are created using the sign-up or sign-in flows described under [Supported Methods](/products/auth#supported-methods).
 
 - **Avoid** creating users directly via GraphQL or the database, unless you are [importing users](#import-users) from an external system.
 - **Avoid** modifying the database schema for the `auth.users` table.

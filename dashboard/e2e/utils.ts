@@ -8,10 +8,12 @@ import {
   TEST_PROJECT_SUBDOMAIN,
   TEST_STAGING_REGION,
   TEST_STAGING_SUBDOMAIN,
+  TEST_USER_EMAIL,
   TEST_USER_PASSWORD,
 } from '@/e2e/env';
 import { expect } from '@/e2e/fixtures/auth-hook';
 import { isEmptyValue } from '@/lib/utils';
+import type { Apps } from '@/utils/__generated__/graphql';
 import type { ExportMetadataResponse } from '@/utils/hasura-api/generated/schemas';
 
 const editorRoute = `/orgs/${TEST_ORGANIZATION_SLUG}/projects/${TEST_PROJECT_SUBDOMAIN}/database/browser/default/editor`;
@@ -424,6 +426,110 @@ export async function cleanupRemoteSchemaTestIfNeeded() {
           },
         ),
       ),
+    );
+  } catch (error) {
+    console.error(error);
+    throw error;
+  }
+}
+
+export async function cleanupRunServiceTestIfNeeded() {
+  const signinUrl = `https://${TEST_STAGING_SUBDOMAIN}.auth.${TEST_STAGING_REGION}.nhost.run/v1/signin/email-password`;
+  const graphqlUrl = `https://${TEST_STAGING_SUBDOMAIN}.graphql.${TEST_STAGING_REGION}.nhost.run/v1`;
+
+  try {
+    const signinResponse = await fetch(signinUrl, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        email: TEST_USER_EMAIL,
+        password: TEST_USER_PASSWORD,
+      }),
+    });
+    const signinData = await signinResponse.json();
+    const accessToken = signinData.session?.accessToken;
+
+    if (!accessToken) {
+      return;
+    }
+
+    const authHeader = `Bearer ${accessToken}`;
+
+    const listResponse = await fetch(graphqlUrl, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        Authorization: authHeader,
+      },
+      body: JSON.stringify({
+        query: `
+          query cleanupRunServices($subdomain: String!) {
+            apps(where: { subdomain: { _eq: $subdomain } }) {
+              id
+              runServices {
+                id
+                config(resolve: false) {
+                  name
+                }
+              }
+            }
+          }`,
+        variables: { subdomain: TEST_PROJECT_SUBDOMAIN },
+      }),
+    });
+
+    const listData = (await listResponse.json()) as {
+      data?: { apps?: Array<Pick<Apps, 'id' | 'runServices'>> };
+    };
+
+    const app = listData.data?.apps?.[0];
+    const appID = app?.id;
+    const runServices = app?.runServices ?? [];
+
+    if (!appID || isEmptyValue(runServices)) {
+      return;
+    }
+
+    const servicesToDelete = runServices.filter((service) =>
+      /^e2e-run-/.test(service.config?.name ?? ''),
+    );
+
+    await Promise.all(
+      servicesToDelete.map(async (service) => {
+        await fetch(graphqlUrl, {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+            Authorization: authHeader,
+          },
+          body: JSON.stringify({
+            query: `
+              mutation cleanupDeleteRunService($serviceID: uuid!) {
+                deleteRunService(id: $serviceID) {
+                  id
+                }
+              }`,
+            variables: { serviceID: service.id },
+          }),
+        });
+
+        await fetch(graphqlUrl, {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+            Authorization: authHeader,
+          },
+          body: JSON.stringify({
+            query: `
+              mutation cleanupDeleteRunServiceConfig($appID: uuid!, $serviceID: uuid!) {
+                deleteRunServiceConfig(appID: $appID, serviceID: $serviceID) {
+                  name
+                }
+              }`,
+            variables: { appID, serviceID: service.id },
+          }),
+        });
+      }),
     );
   } catch (error) {
     console.error(error);

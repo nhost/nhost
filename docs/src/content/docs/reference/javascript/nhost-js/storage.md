@@ -11,7 +11,7 @@ but you can also use it directly if you have a specific use case.
 You can import and use this package with:
 
 ```ts
-import { createClient } from '@nhost/nhost-js/storage'
+import { createClient } from "@nhost/nhost-js/storage";
 ```
 
 # Usage
@@ -19,24 +19,26 @@ import { createClient } from '@nhost/nhost-js/storage'
 You can use this library to upload files, download files, and delete files:
 
 ```ts
-import { createClient } from '@nhost/nhost-js'
+import { createClient } from "@nhost/nhost-js";
 
 const nhost = createClient({
   subdomain,
-  region
-})
+  region,
+});
 
 // Sign up/in to authenticate
 await nhost.auth.signUpEmailPassword({
   email: `test-${Date.now()}@example.com`,
-  password: 'password123'
-})
+  password: "password123",
+});
 
 // Upload files to storage
 const uploadResp = await nhost.storage.uploadFiles({
-  'file[]': [new File(['test content'], 'test-file.txt', { type: 'text/plain' })]
-})
-console.log(JSON.stringify(uploadResp, null, 2))
+  "file[]": [
+    new File(["test content"], "test-file.txt", { type: "text/plain" }),
+  ],
+});
+console.log(JSON.stringify(uploadResp, null, 2));
 // {
 //   "body": {
 //     "processedFiles": [
@@ -59,15 +61,15 @@ console.log(JSON.stringify(uploadResp, null, 2))
 //   "headers": {}
 // }
 
-const fileId = uploadResp.body.processedFiles[0].id
+const fileId = uploadResp.body.processedFiles[0].id;
 
 // Download a file from storage
-const downloadResp = await nhost.storage.getFile(fileId)
-console.log('Downloaded file content:', await downloadResp.body.text())
+const downloadResp = await nhost.storage.getFile(fileId);
+console.log("Downloaded file content:", await downloadResp.body.text());
 // Downloaded file content: test content
 
 // Delete the file
-await nhost.storage.deleteFile(fileId)
+await nhost.storage.deleteFile(fileId);
 ```
 
 # Error handling
@@ -77,22 +79,22 @@ if the request fails entirely (i.e., due to network errors). The type of the err
 will be a `FetchError<ErrorResponse>`:
 
 ```ts
-import { createClient } from '@nhost/nhost-js'
-import type { FetchError } from '@nhost/nhost-js/fetch'
-import type { ErrorResponse } from '@nhost/nhost-js/storage'
+import { createClient } from "@nhost/nhost-js";
+import type { FetchError } from "@nhost/nhost-js/fetch";
+import type { ErrorResponse } from "@nhost/nhost-js/storage";
 
 const nhost = createClient({
   subdomain,
-  region
-})
+  region,
+});
 
 try {
   await nhost.storage.uploadFiles({
-    'file[]': [new File(['test1'], 'file-1', { type: 'text/plain' })]
-  })
+    "file[]": [new File(["test1"], "file-1", { type: "text/plain" })],
+  });
 } catch (error) {
-  const err = error as FetchError<ErrorResponse>
-  console.log('Error:', err)
+  const err = error as FetchError<ErrorResponse>;
+  console.log("Error:", err);
   // Error: {
   //   body: { error: { message: 'you are not authorized' } },
   //   status: 403,
@@ -111,25 +113,25 @@ This type extends the standard `Error` type so if you want to just log the error
 do so like this:
 
 ```ts
-import { createClient } from '@nhost/nhost-js'
-import type { FetchError } from '@nhost/nhost-js/fetch'
-import type { ErrorResponse } from '@nhost/nhost-js/storage'
+import { createClient } from "@nhost/nhost-js";
+import type { FetchError } from "@nhost/nhost-js/fetch";
+import type { ErrorResponse } from "@nhost/nhost-js/storage";
 
 const nhost = createClient({
   subdomain,
-  region
-})
+  region,
+});
 
 try {
   await nhost.storage.uploadFiles({
-    'file[]': [new File(['test1'], 'file-1', { type: 'text/plain' })]
-  })
+    "file[]": [new File(["test1"], "file-1", { type: "text/plain" })],
+  });
 } catch (error) {
   if (!(error instanceof Error)) {
-    throw error // Re-throw if it's not an Error
+    throw error; // Re-throw if it's not an Error
   }
 
-  console.log('Error:', error.message)
+  console.log("Error:", error.message);
   // Error: you are not authorized
   // error handling...
 }
@@ -144,7 +146,7 @@ try {
 #### baseURL
 
 ```ts
-baseURL: string
+baseURL: string;
 ```
 
 ### Methods
@@ -532,7 +534,7 @@ Additional data related to the error, if any.
 #### message
 
 ```ts
-message: string
+message: string;
 ```
 
 (`string`) - Human-readable error message.
@@ -582,7 +584,7 @@ Additional data related to the error, if any.
 #### message
 
 ```ts
-message: string
+message: string;
 ```
 
 (`string`) - Human-readable error message.
@@ -600,7 +602,7 @@ Comprehensive metadata information about a file in storage.
 #### bucketId
 
 ```ts
-bucketId: string
+bucketId: string;
 ```
 
 (`string`) - ID of the bucket containing the file.
@@ -610,7 +612,7 @@ bucketId: string
 #### createdAt
 
 ```ts
-createdAt: string
+createdAt: string;
 ```
 
 (`string`) - Timestamp when the file was created.
@@ -621,7 +623,7 @@ createdAt: string
 #### etag
 
 ```ts
-etag: string
+etag: string;
 ```
 
 (`string`) - Entity tag for cache validation.
@@ -631,7 +633,7 @@ etag: string
 #### id
 
 ```ts
-id: string
+id: string;
 ```
 
 (`string`) - Unique identifier for the file.
@@ -641,7 +643,7 @@ id: string
 #### isUploaded
 
 ```ts
-isUploaded: boolean
+isUploaded: boolean;
 ```
 
 (`boolean`) - Whether the file has been successfully uploaded.
@@ -660,7 +662,7 @@ Example - `{"alt":"Profile picture","category":"avatar"}`
 #### mimeType
 
 ```ts
-mimeType: string
+mimeType: string;
 ```
 
 (`string`) - MIME type of the file.
@@ -670,7 +672,7 @@ mimeType: string
 #### name
 
 ```ts
-name: string
+name: string;
 ```
 
 (`string`) - Name of the file including extension.
@@ -680,7 +682,7 @@ name: string
 #### size
 
 ```ts
-size: number
+size: number;
 ```
 
 (`number`) - Size of the file in bytes.
@@ -691,7 +693,7 @@ size: number
 #### updatedAt
 
 ```ts
-updatedAt: string
+updatedAt: string;
 ```
 
 (`string`) - Timestamp when the file was last updated.
@@ -719,7 +721,7 @@ Basic information about a file in storage.
 #### bucketId
 
 ```ts
-bucketId: string
+bucketId: string;
 ```
 
 (`string`) - ID of the bucket containing the file.
@@ -729,7 +731,7 @@ bucketId: string
 #### id
 
 ```ts
-id: string
+id: string;
 ```
 
 (`string`) - Unique identifier for the file.
@@ -739,7 +741,7 @@ id: string
 #### isUploaded
 
 ```ts
-isUploaded: boolean
+isUploaded: boolean;
 ```
 
 (`boolean`) - Whether the file has been successfully uploaded.
@@ -749,7 +751,7 @@ isUploaded: boolean
 #### name
 
 ```ts
-name: string
+name: string;
 ```
 
 (`string`) - Name of the file including extension.
@@ -903,7 +905,7 @@ Contains a presigned URL for direct file operations.
 #### expiration
 
 ```ts
-expiration: number
+expiration: number;
 ```
 
 (`number`) - The time in seconds until the URL expires.
@@ -913,7 +915,7 @@ expiration: number
 #### url
 
 ```ts
-url: string
+url: string;
 ```
 
 (`string`) - The presigned URL for file operations.
@@ -1060,7 +1062,7 @@ Contains version information about the storage service.
 #### buildVersion
 
 ```ts
-buildVersion: string
+buildVersion: string;
 ```
 
 (`string`) - The version number of the storage service build.
@@ -1072,7 +1074,14 @@ buildVersion: string
 ## OutputImageFormat
 
 ```ts
-type OutputImageFormat = 'auto' | 'same' | 'jpeg' | 'webp' | 'png' | 'avif' | 'heic'
+type OutputImageFormat =
+  | "auto"
+  | "same"
+  | "jpeg"
+  | "webp"
+  | "png"
+  | "avif"
+  | "heic";
 ```
 
 Output format for image files. Use 'auto' for content negotiation based on Accept header
@@ -1082,7 +1091,7 @@ Output format for image files. Use 'auto' for content negotiation based on Accep
 ## RFC2822Date
 
 ```ts
-type RFC2822Date = string
+type RFC2822Date = string;
 ```
 
 Date in RFC 2822 format
@@ -1092,7 +1101,10 @@ Date in RFC 2822 format
 ## createAPIClient()
 
 ```ts
-function createAPIClient(baseURL: string, chainFunctions?: ChainFunction[]): Client
+function createAPIClient(
+  baseURL: string,
+  chainFunctions?: ChainFunction[],
+): Client;
 ```
 
 ### Parameters

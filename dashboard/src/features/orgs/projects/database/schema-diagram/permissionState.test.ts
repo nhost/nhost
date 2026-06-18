@@ -3,6 +3,7 @@ import {
   ADMIN_ROLE,
   getColumnPermissionState,
   getComputedFieldPermissionState,
+  getFunctionPermissionDotState,
   getRelevantRules,
   getTablePermissionState,
   isOperationAllowed,
@@ -602,5 +603,95 @@ describe('tableHasAnyPermission', () => {
       ],
     });
     expect(tableHasAnyPermission(table, 'user')).toBe(true);
+  });
+});
+
+describe('getFunctionPermissionDotState', () => {
+  it('returns allowed/filled for admin regardless of other inputs', () => {
+    expect(
+      getFunctionPermissionDotState({
+        role: ADMIN_ROLE,
+        inferFunctionPermissions: false,
+        isMutationFunction: true,
+        hasSelectPermission: false,
+        hasFunctionPermission: false,
+      }),
+    ).toEqual({ state: 'allowed', dot: 'filled' });
+  });
+
+  describe('inferred path (infer on, query function)', () => {
+    it('is allowed/filled when the role has select on the return table', () => {
+      expect(
+        getFunctionPermissionDotState({
+          role: 'user',
+          inferFunctionPermissions: true,
+          isMutationFunction: false,
+          hasSelectPermission: true,
+          hasFunctionPermission: false,
+        }),
+      ).toEqual({ state: 'allowed', dot: 'filled' });
+    });
+
+    it('is not-allowed/none when the role lacks select on the return table', () => {
+      expect(
+        getFunctionPermissionDotState({
+          role: 'user',
+          inferFunctionPermissions: true,
+          isMutationFunction: false,
+          hasSelectPermission: false,
+          hasFunctionPermission: true,
+        }),
+      ).toEqual({ state: 'not-allowed', dot: 'none' });
+    });
+  });
+
+  describe('explicit path (infer off, or mutation function)', () => {
+    it('is not-allowed/none with select but no function permission when infer is off', () => {
+      expect(
+        getFunctionPermissionDotState({
+          role: 'user',
+          inferFunctionPermissions: false,
+          isMutationFunction: false,
+          hasSelectPermission: true,
+          hasFunctionPermission: false,
+        }),
+      ).toEqual({ state: 'not-allowed', dot: 'none' });
+    });
+
+    it('is allowed/filled with both a function permission and select', () => {
+      expect(
+        getFunctionPermissionDotState({
+          role: 'user',
+          inferFunctionPermissions: false,
+          isMutationFunction: false,
+          hasSelectPermission: true,
+          hasFunctionPermission: true,
+        }),
+      ).toEqual({ state: 'allowed', dot: 'filled' });
+    });
+
+    it('is partial/hollow with a function permission but no select on the return table', () => {
+      expect(
+        getFunctionPermissionDotState({
+          role: 'user',
+          inferFunctionPermissions: false,
+          isMutationFunction: false,
+          hasSelectPermission: false,
+          hasFunctionPermission: true,
+        }),
+      ).toEqual({ state: 'partial', dot: 'hollow' });
+    });
+
+    it('treats a mutation function as explicit even when infer is on', () => {
+      expect(
+        getFunctionPermissionDotState({
+          role: 'user',
+          inferFunctionPermissions: true,
+          isMutationFunction: true,
+          hasSelectPermission: true,
+          hasFunctionPermission: false,
+        }),
+      ).toEqual({ state: 'not-allowed', dot: 'none' });
+    });
   });
 });

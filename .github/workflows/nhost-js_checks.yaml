@@ -23,8 +23,6 @@ on:
 
       # common javascript
       - ".npmrc"
-      - ".prettierignore"
-      - ".prettierrc.js"
       - "audit-ci.jsonc"
       - "package.json"
       - "pnpm-workspace.yaml"
@@ -60,8 +58,6 @@ jobs:
         vendor/**
         tools/codegen/**
         .npmrc
-        .prettierignore
-        .prettierrc.js
         audit-ci.jsonc
         package.json
         pnpm-workspace.yaml

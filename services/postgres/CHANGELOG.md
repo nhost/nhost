@@ -1,7 +1,14 @@
 ## CHANGELOG
 
-### main
+### {16.14,17.10,18.4}-20260610-1
 
+- Updated postgres to 16.14, 17.10 and 18.4
+- Updated extensions:
+  - pg_ivm: 1.13 → 1.14
+  - pg_search: 0.22.2 → 0.24.0
+  - pgmq: 1.11.0 → 1.11.1
+  - postgis: 3.6.2 → 3.6.4
+  - timescaledb: 2.25.2 → 2.27.2
 - Update extensions script to dynamically update all outdated extensions instead of only timescaledb
 
 ### {16.13,17.9,18.3}-20260320-1

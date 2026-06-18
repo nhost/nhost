@@ -26,6 +26,7 @@ import {
   useGetOAuth2ProviderSettingsQuery,
 } from '@/generated/graphql';
 import { isVersionGte } from '@/utils/compareVersions';
+import { getPaginationOffset } from '@/utils/getPaginationOffset';
 
 const ELEMENTS_PER_PAGE = 25;
 
@@ -53,7 +54,7 @@ function OAuth2ClientsPageContent() {
   const [nrOfPages, setNrOfPages] = useState(1);
 
   const offset = useMemo(
-    () => (currentPage - 1) * ELEMENTS_PER_PAGE,
+    () => getPaginationOffset(currentPage, ELEMENTS_PER_PAGE),
     [currentPage],
   );
 
@@ -347,12 +348,10 @@ function OAuth2ClientsPageContent() {
                   elementsPerPage={ELEMENTS_PER_PAGE}
                   onPrevPageClick={async () => {
                     setCurrentPage((page) => page - 1);
-                    if (currentPage - 1 !== 1) {
-                      await router.push({
-                        pathname: router.pathname,
-                        query: { ...router.query, page: currentPage - 1 },
-                      });
-                    }
+                    await router.push({
+                      pathname: router.pathname,
+                      query: { ...router.query, page: currentPage - 1 },
+                    });
                   }}
                   onNextPageClick={async () => {
                     setCurrentPage((page) => page + 1);

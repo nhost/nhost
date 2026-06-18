@@ -32,8 +32,6 @@ let
     root = ../.;
     fileset = fs.unions [
       ../.npmrc
-      ../.prettierignore
-      ../.prettierrc.js
       ../.gitignore
       ../audit-ci.jsonc
       ../biome.json
@@ -57,10 +55,10 @@ let
     vale
   ];
 
-  buildInputs = with pkgs; [ nodejs ];
+  buildInputs = with pkgs; [ nhost.nodejs ];
 
   nativeBuildInputs = with pkgs; [
-    pnpm
+    nhost.pnpm
     cacert
   ];
 

@@ -19,8 +19,6 @@ on:
 
       # common javascript
       - ".npmrc"
-      - ".prettierignore"
-      - ".prettierrc.js"
       - "audit-ci.jsonc"
       - "package.json"
       - "pnpm-workspace.yaml"
@@ -55,8 +53,6 @@ jobs:
         nixops/**
         build/**
         .npmrc
-        .prettierignore
-        .prettierrc.js
         audit-ci.jsonc
         package.json
         pnpm-workspace.yaml

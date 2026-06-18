@@ -63,9 +63,10 @@ const (
 
 func getCORSOptions(cmd *cli.Command) oapimw.CORSOptions {
 	return oapimw.CORSOptions{
-		AllowOriginFunc: nil,
-		AllowedOrigins:  cmd.StringSlice(flagCorsAllowOrigins),
-		AllowedMethods:  []string{"GET", "PUT", "POST", "HEAD", "DELETE"},
+		AllowOriginFunc:  nil,
+		AllowedOrigins:   cmd.StringSlice(flagCorsAllowOrigins),
+		AllowedMethods:   []string{"GET", "PUT", "POST", "HEAD", "DELETE"},
+		AllowHeadersFunc: nil,
 		AllowedHeaders: []string{
 			"Authorization", "Origin", "if-match", "if-none-match", "if-modified-since", "if-unmodified-since",
 			"x-hasura-admin-secret", "x-nhost-bucket-id", "x-nhost-file-name", "x-nhost-file-id",
@@ -75,7 +76,16 @@ func getCORSOptions(cmd *cli.Command) oapimw.CORSOptions {
 			"Content-Length", "Content-Type", "Cache-Control", "CDN-Cache-Control", "ETag", "Last-Modified", "X-Error",
 		},
 		AllowCredentials: cmd.Bool(flagCorsAllowCredentials),
-		MaxAge:           "86400",
+		// Conditionally required: the shared CORS middleware is fail-closed and
+		// rejects allow-all origins combined with credentials, so without this
+		// flag NewRouter would error at startup for any deployment that runs the
+		// default ["*"] origins together with --cors-allow-credentials. Because
+		// both AllowedOrigins and AllowCredentials are config-driven here,
+		// deployments with explicit origins are unaffected; the flag only
+		// preserves boot for the legacy allow-all + credentials combination.
+		// Replace with explicit allowed origins in a follow-up migration.
+		UnsafeAllowAllOriginsWithCredentials: true,
+		MaxAge:                               "86400",
 	}
 }
 
@@ -118,8 +128,13 @@ func getServer(
 
 	handler := api.NewStrictHandler(ctrl, []api.StrictMiddlewareFunc{})
 
+	swagger, err := api.GetSpec()
+	if err != nil {
+		return nil, fmt.Errorf("loading OpenAPI schema: %w", err)
+	}
+
 	router, mw, err := oapi.NewRouter(
-		controller.OpenAPISchema,
+		swagger,
 		cmd.String(flagAPIRootPrefix),
 		middleware.AuthenticationFunc(cmd.String(flagHasuraAdminSecret)),
 		getCORSOptions(cmd),
@@ -141,7 +156,7 @@ func getServer(
 		api.GinServerOptions{
 			BaseURL:      cmd.String(flagAPIRootPrefix),
 			Middlewares:  []api.MiddlewareFunc{mw},
-			ErrorHandler: nil,
+			ErrorHandler: oapi.RecordError,
 		},
 	)
 

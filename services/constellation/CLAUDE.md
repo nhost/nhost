@@ -44,7 +44,7 @@ The Go module lives at the repo root (`github.com/nhost/nhost`) with a single sh
   - `requestcontext/` - Context value storage for HTTP headers and logger propagation through middleware chain
   - `lib/lru/` - Thread-safe generic LRU cache (used by controller query cache)
   - `lib/syncmap/` - Thread-safe generic map with RWMutex
-  - `lib/oapi/{cors,logger,tracing}/` - Gin middleware split by concern: CORS, request logging (slog), B3 distributed tracing
+  - `github.com/nhost/nhost/internal/lib/oapi/middleware` (repo-root shared package, not under constellation's `internal/`) - Gin middleware for CORS, request logging (slog), and B3 distributed tracing
   - `lib/testdb/` - Spins up a PostgreSQL test database (per-test schemas) for connector and integration tests
   - `lib/testhelpers/` - Golden file testing helpers (JSON and GraphQL schema comparison)
 - `docs/developers/` - Architecture, query execution pipeline, customization, remote relationships, remote schemas, subscriptions
@@ -123,7 +123,7 @@ Golden file tests live in `testdata/` directories. Update them with the `-update
 - **`connector/sql.Driver`** (5 methods): `Introspect()`, `ExecuteOperations()`, `ExecuteMultiplexedOperation()`, `Dialect()`, `Close()`. Implemented by `postgres.Client`, `sqlite.Client`.
 - **`Dialect`**: Abstracts all SQL syntax differences. Implementations: `PostgresDialect`, `SQLiteDialect`.
 - **`subscription.Handler`** (3 methods): `Start()`, `Stop()`, `Shutdown()`. Implemented by `sql/subscription.Handler`.
-- **`metadata.MetadataSource`** (3 methods): `InitialLoad()`, `Watch()`, `Close()`. Implementations: `FileMetadataSource` (one-time load), `DatabaseMetadataSource` (polls `hdb_catalog`).
+- **`metadata.Source`** (4 methods): `InitialLoad()`, `Watch()`, `HasuraSnapshotJSON()`, `Close()`. Implementations: `FileMetadataSource` (one-time load), `DatabaseMetadataSource` (polls `hdb_catalog`). `HasuraSnapshotJSON()` returns `(nil, 0)` for the TOML file source and prior to `InitialLoad`.
 - **`websocket.MessageHandler`** (4 methods): `OnConnectionInit()`, `OnSubscribe()`, `OnComplete()`, `OnClose()`. Implemented by `controller.WebSocketHandler`.
 
 ## Key Architectural Concepts

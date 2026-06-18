@@ -1,7 +1,10 @@
 ---
 title: Elevated Permissions
-description: Require extra permissions to perform critical operations
+description: Require step-up re-authentication with a security key before sensitive actions using the elevated Hasura claim.
 keywords: ["elevated permissions", "step-up authentication", "MFA", "multi-factor", "security", "re-authentication", "sensitive actions"]
+head:
+  - tag: title
+    content: "Step-Up Authentication for Sensitive Actions | Nhost Docs"
 sidebar:
   label: Elevated Permissions
 ---
@@ -16,7 +19,7 @@ It is important to keep in mind the claim is added to the access token so, for a
 
 # API Endpoints and SDK components
 
-To implement this functionality [auth](/products/auth/) [0.26.0](https://github.com/nhost/hasura-auth/releases/tag/0.26.0) introduces the new endpoint [/elevate/webauthn](/reference/auth/post-elevate-webauthn). This endpoint works the same way as [/signin/webauthn](/reference/auth/post-signin-webauthn) but it requires an Authorization header with a valid token to add the elevated claim to.
+To implement this functionality [auth](/products/auth) [0.26.0](https://github.com/nhost/hasura-auth/releases/tag/0.26.0) introduces the new endpoint [/elevate/webauthn](/reference/auth/post-elevate-webauthn). This endpoint works the same way as [/signin/webauthn](/reference/auth/post-signin-webauthn) but it requires an Authorization header with a valid token to add the elevated claim to.
 
 In addition, a few methods and components have also been added to simplify it's usage:
 

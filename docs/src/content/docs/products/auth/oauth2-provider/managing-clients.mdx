@@ -2,6 +2,9 @@
 title: Managing OAuth2 Clients
 description: Create, update, and delete OAuth2 clients using the dashboard or the GraphQL API
 keywords: ["oauth2", "client", "confidential", "public", "cimd", "graphql", "client secret", "scopes"]
+head:
+  - tag: title
+    content: "Create and Configure OAuth2 Clients | Nhost Docs"
 sidebar:
   label: Managing Clients
 ---
@@ -356,7 +359,7 @@ For a full working example of creating and managing OAuth2 clients from a React 
 | `phone` | Adds `phone_number`, `phone_number_verified` to ID token and UserInfo |
 | `offline_access` | Recognized in discovery metadata. Refresh tokens are always issued. |
 | `graphql` | Adds GraphQL-compatible claims (`https://hasura.io/jwt/claims`) to access tokens with all user roles |
-| `graphql:role:xxxx` | Like `graphql`, but narrows claims to only the specified role(s). See [Tokens and Scopes](/products/auth/oauth2-provider/tokens-and-scopes/#the-graphqlrolexxxx-scope) for details. |
+| `graphql:role:xxxx` | Like `graphql`, but narrows claims to only the specified role(s). See [Tokens and Scopes](/products/auth/oauth2-provider/tokens-and-scopes#the-graphqlrolexxxx-scope) for details. |
 
 When creating a client, the `scopes` array defines which scopes the client is **allowed to request**. If no scopes are specified, the default is the standard scopes (`openid`, `profile`, `email`, `phone`, `offline_access`, `graphql`). To allow `graphql:role:xxxx` scopes, add them explicitly — for example:
 

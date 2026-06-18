@@ -5,6 +5,7 @@ package hasura
 
 import (
 	"context"
+	"encoding/json/jsontext"
 	"errors"
 	"fmt"
 	"io/fs"
@@ -20,6 +21,8 @@ import (
 type Metadata struct {
 	Databases     []DatabaseMetadata     `json:"databases"                yaml:"databases"`
 	RemoteSchemas []RemoteSchemaMetadata `json:"remote_schemas,omitempty" yaml:"remote_schemas,omitempty"`
+
+	Unknown jsontext.Value `json:",unknown" yaml:"-"`
 }
 
 // baseDirKey is the unexported key used to thread the current !include base
@@ -133,6 +136,7 @@ func FromYAML(ctx context.Context, metadataPath string) (*Metadata, error) {
 	return &Metadata{
 		Databases:     databases,
 		RemoteSchemas: remoteSchemas,
+		Unknown:       nil,
 	}, nil
 }
 
