@@ -117,9 +117,13 @@ export default function ActionDetails() {
             <div className="mt-3 flex flex-wrap items-center gap-x-4 gap-y-1 text-muted-foreground text-sm">
               {isNotEmptyValue(comment) && (
                 <>
-                  <span className="flex min-w-0 cursor-default items-center gap-1.5">
-                    <MessageSquareText className="h-3.5 w-3.5 shrink-0" />
-                    <TextWithTooltip text={comment} className="max-w-xs" />
+                  <span className="flex min-w-0 items-start gap-1.5">
+                    <MessageSquareText className="mt-0.5 h-3.5 w-3.5 shrink-0" />
+                    <TextWithTooltip
+                      text={comment}
+                      maxLines={3}
+                      className="max-w-prose break-words"
+                    />
                   </span>
                   {hasHeaders && <MetadataSeparator />}
                 </>
