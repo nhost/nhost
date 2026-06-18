@@ -157,7 +157,7 @@ In **database mode** the dashboard's database/permissions/functions/events tabs 
 - **Event triggers (config-only)**: `pg_create_event_trigger`, `pg_delete_event_trigger`. The runtime ops (`pg_redeliver_event`, `pg_invoke_event_trigger`, `pg_get_event_logs`, `pg_get_event_by_id`) return `not-supported` until event delivery ships.
 - **Reads**: `pg_get_viewdef`, `pg_suggest_relationships`
 - **Snapshot**: `replace_metadata`, `clear_metadata`, `reload_metadata`
-- **Wrappers**: `bulk`, `bulk_atomic` (single RV bump, atomic rollback), `bulk_keep_going`
+- **Wrappers**: `bulk` / `bulk_keep_going` (full native child op set incl. reads and whole-metadata ops; one composed write per request — a single `resource_version` bump; bare top-level array response), `bulk_atomic` (Hasura's narrow relationship whitelist, all-or-nothing, single `{"message":"success"}` response). See `KNOWN_DIFFERENCES.md` for the exact semantics.
 
 The event delivery **runtime** ops (`pg_redeliver_event`, `pg_invoke_event_trigger`, `pg_get_event_logs`, `pg_get_event_by_id`) are always handled natively and always return `not-supported` — they are *never* forwarded to the proxy, even when `--hasura-upstream-url` is configured.
 

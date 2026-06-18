@@ -836,14 +836,15 @@ func TestMetadataStoreAndProxy_EventRuntimeNeverProxied(t *testing.T) {
 	}
 }
 
-// TestMutationOpDispatchParity is a drift guard over the three triplicated
-// op-dispatch tables: source.BuildMutation, Controller.storeOpFor, and the
-// switch in dispatchMutation. For every canonical mutation op it asserts the
-// op is registered in ALL THREE — storeOpFor returns a non-nil handler,
+// TestMutationOpDispatchParity is a drift guard over the two duplicated
+// op-dispatch tables: source.BuildMutation and the switch in dispatchMutation.
+// For every canonical mutation op it asserts the op is registered in BOTH —
 // source.BuildMutation does not return ErrUnknownMutationOp, and
 // dispatchMutation reports the op as handled. A parse/validation error from
 // BuildMutation or dispatchMutation on empty args is fine — only an
 // unregistered op (ErrUnknownMutationOp / handled==false) fails the guard.
+// (The bulk path no longer has a third table: source.ApplyBulk routes children
+// through BuildMutation and the same handlers the single-op path uses.)
 func TestMutationOpDispatchParity(t *testing.T) {
 	t.Parallel()
 
@@ -855,7 +856,7 @@ func TestMutationOpDispatchParity(t *testing.T) {
 	//
 	// Read/snapshot/bulk ops (pg_suggest_relationships, pg_get_viewdef,
 	// replace_metadata, bulk*) are intentionally excluded: those are
-	// dispatchMutation-only by design and have no storeOpFor/BuildMutation entry.
+	// dispatchMutation-only by design and have no BuildMutation entry.
 	canonicalMutationOps := []string{
 		opPgTrackTable,
 		opPgSetTableCustomization,
@@ -884,17 +885,13 @@ func TestMutationOpDispatchParity(t *testing.T) {
 		opPgDeleteRemoteRelationship,
 	}
 
-	// storeOpFor dereferences c.store, so a bootstrapped Store is required.
+	// dispatchMutation dereferences c.store, so a bootstrapped Store is required.
 	store := newBootstrappedStore(t, &writerStub{})
 	ctrl := &Controller{store: store}
 
 	for _, op := range canonicalMutationOps {
 		t.Run(op, func(t *testing.T) {
 			t.Parallel()
-
-			if ctrl.storeOpFor(op) == nil {
-				t.Errorf("storeOpFor(%q) = nil; op missing from controller dispatch table", op)
-			}
 
 			if _, err := source.BuildMutation(op, []byte(`{}`)); errors.Is(
 				err, source.ErrUnknownMutationOp,

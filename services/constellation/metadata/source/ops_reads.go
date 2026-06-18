@@ -63,6 +63,25 @@ type relationshipEndpoint struct {
 func (s *Store) PgSuggestRelationships(
 	ctx context.Context, argsJSON []byte,
 ) (map[string]any, error) {
+	// Snapshot the tracked metadata under the lock so omit_tracked filtering sees
+	// a consistent view, then delegate to the lock-free core. The bulk engine
+	// calls the core directly with its in-flight working copy while it already
+	// holds s.mu (see ApplyBulk), which is why the core itself never locks.
+	s.mu.Lock()
+	h := s.hasura
+	s.mu.Unlock()
+
+	return s.pgSuggestRelationshipsAgainst(ctx, h, argsJSON)
+}
+
+// pgSuggestRelationshipsAgainst is the lock-free core of PgSuggestRelationships.
+// It filters omit_tracked suggestions against the supplied metadata view rather
+// than s.hasura, so a bulk child sees relationships created by earlier children
+// in the same batch (matching Hasura, which runs bulk children against one
+// in-flight metadata). The caller owns any locking.
+func (s *Store) pgSuggestRelationshipsAgainst(
+	ctx context.Context, view *hasura.Metadata, argsJSON []byte,
+) (map[string]any, error) {
 	var a pgSuggestRelationshipsArgs
 	if err := json.Unmarshal(argsJSON, &a); err != nil {
 		return nil, fmt.Errorf("parsing %s args: %w", opPgSuggestRelationships, err)
@@ -86,11 +105,7 @@ func (s *Store) PgSuggestRelationships(
 	}
 
 	if a.OmitTracked {
-		s.mu.Lock()
-		h := s.hasura
-		s.mu.Unlock()
-
-		suggestions = filterTrackedRels(suggestions, h, source)
+		suggestions = filterTrackedRels(suggestions, view, source)
 	}
 
 	return map[string]any{"relationships": suggestions}, nil

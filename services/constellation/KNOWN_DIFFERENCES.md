@@ -71,17 +71,44 @@ in a second step after the DELETE statement completes, potentially within the
 same transaction; Constellation keeps the single statement and returns the rows
 it captured.
 
-# Non-atomic bulk metadata ops and partial resource_version advance
+# Bulk metadata ops (bulk / bulk_keep_going / bulk_atomic)
 
-The non-atomic `bulk` and `bulk_keep_going` metadata ops apply their child
-operations sequentially, and each successful child bumps `resource_version`
-independently. A failure partway through a `bulk` therefore leaves the children
-that already succeeded persisted, with the metadata `resource_version` advanced
-past its starting value (a partial advance). Only `bulk_atomic` is
-all-or-nothing — its children either all apply or all roll back, with a single
-`resource_version` bump. This is not a divergence from Hasura: it matches
-Hasura's non-transactional behavior for `bulk`/`bulk_keep_going`, and is noted
-here only as a clarification.
+All three bulk wrappers run their children against a single in-flight metadata
+copy and perform exactly ONE durable write with ONE `resource_version` bump for
+the whole request — matching Hasura, which writes the metadata once at the end
+of a `/v1/metadata` request regardless of how many children it carries.
+
+- `bulk` is fail-fast: the first child error aborts the whole request with no
+  write (nothing the earlier children did is persisted). Children accept the
+  full native op set — mutations, the read ops (`pg_get_viewdef`,
+  `pg_suggest_relationships`), and the whole-metadata ops (`replace_metadata`,
+  `clear_metadata`, `reload_metadata`) — exactly as the single-op path does. A
+  read child sees tables/relationships created by earlier children in the same
+  batch. `reload_metadata` as a child is a success no-op (the in-flight copy is
+  already the current state). The success body is a bare top-level JSON array of
+  per-child results, and per-child entries carry no `resource_version` (matching
+  Hasura).
+- `bulk_keep_going` is the same but per-child: a failing child rolls back only
+  itself and is reported as `{code, error}` in its slot; the surviving children
+  are persisted by the single write.
+- `bulk_atomic` composes its children into one schema-cache build (all-or-nothing
+  rollback) and returns a single `{"message":"success"}` object. Per Hasura, it
+  accepts only a narrow whitelist — `pg_create_object_relationship`,
+  `pg_create_array_relationship`, `pg_drop_relationship`,
+  `pg_delete_remote_relationship` (Hasura additionally allows native-query /
+  logical-model / stored-procedure track-untrack, which Constellation has no ops
+  for). Every other command (table tracking, permissions, functions, event
+  triggers, reads, whole-metadata) is rejected by both engines.
+
+Two small, deliberate deviations remain:
+
+- An unsupported `bulk_atomic` child is rejected by Hasura as an internal 500
+  ("Bulk atomic does not support this command"); Constellation surfaces it
+  through its op-level **400 `not-supported`** channel (500 is reserved for
+  internal failures).
+- A nested `bulk` / `bulk_atomic` / `bulk_keep_going` child is reported as
+  `not-supported`. Hasura allows nesting; Constellation keeps bulks flat (the
+  dashboard never nests them).
 
 # Functions
 
@@ -132,27 +159,6 @@ END;
 $$;
 ```
 
-# Bulk metadata response shape
-
-The `bulk` / `bulk_atomic` / `bulk_keep_going` success body is emitted as
-`{"bulk": [<per-child result>, ...]}`, whereas Hasura returns the per-child
-results as a bare top-level JSON array (`[<per-child result>, ...]`). The wrapper
-is a constraint of the generated OpenAPI response type
-(`api.MetadataRequest200JSONResponse` is a `map[string]interface{}` and cannot
-represent a bare array), not a deliberate behavioural choice. Per-child entries
-themselves match Hasura. The Nhost dashboard only reads the bulk body on the
-error path (where shapes already match), so no known client breaks; a client
-reading bulk results positionally per Hasura's documented shape would need to
-unwrap the `bulk` key.
-
-# Read ops as bulk children
-
-Read-only metadata ops (`pg_suggest_relationships`, `pg_get_viewdef`) are served
-in the single-op path but are not accepted as children of a `bulk` /
-`bulk_atomic` / `bulk_keep_going` request (they return `not-supported`). Hasura
-permits read commands inside `bulk`. No known client is affected — the dashboard's
-read bulks target `/v2/query`, not `/v1/metadata`.
-
 # pg_untrack_table cascade scope
 
 `pg_untrack_table` with `cascade=true` reproduces Hasura's transitive cascade:
@@ -172,28 +178,21 @@ sweep — explicit-target relationships (`manual_configuration` /
 relationships, and permissions referencing the table directly via `_exists` are
 still dropped, but bare foreign-key relationships and function drops are left in
 the exported metadata and instead discarded from the live schema at reconcile as
-inconsistencies. The metadata-only path applies in three cases:
+inconsistencies. The metadata-only path applies in two cases:
 
 - the source has no resolvable data URL (file-source deployments, or a
   `from_env` connection URL whose variable is unset);
-- the data database is unreachable when the op runs;
-- `pg_untrack_table` appears as a child of a `bulk` / `bulk_atomic` /
-  `bulk_keep_going` request — the bulk machinery composes pure
-  `MutationFn(*hasura.Metadata)` closures and has no database handle to
-  introspect, so bulk children always take the metadata-only path.
+- the data database is unreachable when the op runs.
+
+`pg_untrack_table` inside a non-atomic `bulk` / `bulk_keep_going` now gets the
+SAME full DB-backed cascade as the single-op path: the bulk engine resolves each
+untrack child's cascade dependencies (FK graph, function return types) up front,
+before taking the write lock, so bulk children are no longer limited to the
+metadata-only sweep. (`bulk_atomic` does not accept `pg_untrack_table` at all —
+see the bulk section above.)
 
 Only function **return-type** dependencies are cascaded (matching how Hasura
 tracks function output types); a function is never dropped for referencing the
 table only in its body or argument types.
 
-# Whole-metadata ops as bulk children
 
-The whole-metadata ops `replace_metadata`, `clear_metadata`, and
-`reload_metadata` are served in the single-op path but return `not-supported`
-as children of a `bulk` / `bulk_atomic` / `bulk_keep_going` request. Hasura
-accepts `replace_metadata` / `clear_metadata` inside `bulk`. They are excluded
-because neither fits the `MutationFn(*hasura.Metadata)` shape that the bulk
-machinery composes: `reload_metadata` reads from the database, and
-`replace_metadata` threads an optional `resource_version` optimistic-concurrency
-precondition, so atomic composition under `bulk_atomic`'s rollback semantics
-would require separate machinery. No known client batches these ops.
