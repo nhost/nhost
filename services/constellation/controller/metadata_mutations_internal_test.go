@@ -1,6 +1,7 @@
 package controller
 
 import (
+	"bytes"
 	"context"
 	"encoding/json"
 	"io"
@@ -16,20 +17,26 @@ import (
 	"github.com/nhost/nhost/services/constellation/metadata/source"
 )
 
-// writerStub records WriteMetadata calls and can inject a fixed error.
+// writerStub records WriteMetadata calls (including the verbatim bytes of the
+// most recent successful write) and can inject a fixed error.
 type writerStub struct {
-	mu    sync.Mutex
-	calls int
-	err   error
+	mu      sync.Mutex
+	calls   int
+	lastRaw []byte
+	err     error
 }
 
 func (w *writerStub) WriteMetadata(
-	_ context.Context, _ []byte, _, _ int64,
+	_ context.Context, newRaw []byte, _, _ int64,
 ) error {
 	w.mu.Lock()
 	defer w.mu.Unlock()
 
 	w.calls++
+
+	if w.err == nil {
+		w.lastRaw = append([]byte(nil), newRaw...)
+	}
 
 	return w.err
 }
@@ -39,6 +46,13 @@ func (w *writerStub) callCount() int {
 	defer w.mu.Unlock()
 
 	return w.calls
+}
+
+func (w *writerStub) lastWritten() []byte {
+	w.mu.Lock()
+	defer w.mu.Unlock()
+
+	return w.lastRaw
 }
 
 func buildMutationRouter(t *testing.T, store *source.Store) http.Handler {
@@ -208,6 +222,100 @@ func TestDispatch_UnknownSourceMappedToNotExists(t *testing.T) {
 	if got, _ := resp["code"].(string); got != "not-exists" {
 		t.Errorf("code = %q, want not-exists", resp["code"])
 	}
+}
+
+// TestDispatch_PreservesLargeIntegerLiteral pins the >2^53 precision guarantee
+// of metadataArgsJSON end to end. The OpenAPI bind path decodes req.Body.Args
+// through encoding/json v1 into interface{} (every number becomes a float64, so
+// 9007199254740993 would round to 9007199254740992); metadataArgsJSON sidesteps
+// that by forwarding the raw captured request body verbatim. PermissionExpression
+// then preserves the literal as a json.Number, so the only way the exact digits
+// reach the stored metadata is the verbatim branch. A refactor that always
+// re-marshals the decoded args fails this test.
+func TestDispatch_PreservesLargeIntegerLiteral(t *testing.T) {
+	t.Parallel()
+
+	const bigInt = "9007199254740993" // 2^53 + 1, not representable as float64
+
+	w := &writerStub{}
+	store := newBootstrappedStore(t, w)
+	router := buildMutationRouter(t, store)
+
+	if code, body := postJSON(t, router,
+		`{"type":"pg_track_table","args":{"source":"default",`+
+			`"table":{"schema":"public","name":"users"}}}`); code != http.StatusOK {
+		t.Fatalf("track table status = %d; body = %v", code, body)
+	}
+
+	code, body := postJSON(t, router,
+		`{"type":"pg_create_select_permission","args":{"source":"default",`+
+			`"table":{"schema":"public","name":"users"},"role":"user",`+
+			`"permission":{"columns":["id"],"filter":{"id":{"_eq":`+bigInt+`}}}}}`)
+	if code != http.StatusOK {
+		t.Fatalf("create permission status = %d; body = %v", code, body)
+	}
+
+	written := w.lastWritten()
+	if written == nil {
+		t.Fatal("writer captured no metadata")
+	}
+
+	if !bytes.Contains(written, []byte(bigInt)) {
+		t.Errorf("stored metadata lost large-integer precision: %q not found in\n%s",
+			bigInt, written)
+	}
+}
+
+// TestMetadataArgsJSON covers both branches of the helper directly: the
+// verbatim raw-body branch (which must return the args bytes untouched, keeping
+// large integer literals intact) and the fallback branch (no captured body),
+// which re-marshals the already-decoded req.Body.Args.
+func TestMetadataArgsJSON(t *testing.T) {
+	t.Parallel()
+
+	t.Run("verbatim raw body preserves large integer", func(t *testing.T) {
+		t.Parallel()
+
+		raw := []byte(
+			`{"type":"pg_create_select_permission",` +
+				`"args":{"filter":{"id":{"_eq":9007199254740993}}}}`,
+		)
+		ctx := context.WithValue(t.Context(), rawBodyCtxKey{}, raw)
+
+		got, err := metadataArgsJSON(ctx, api.MetadataRequestRequestObject{})
+		if err != nil {
+			t.Fatalf("metadataArgsJSON: %v", err)
+		}
+
+		if !bytes.Contains(got, []byte("9007199254740993")) {
+			t.Errorf("verbatim args lost precision: got %s", got)
+		}
+	})
+
+	t.Run("fallback re-marshals decoded args", func(t *testing.T) {
+		t.Parallel()
+
+		req := api.MetadataRequestRequestObject{
+			Body: &api.MetadataRequestJSONRequestBody{
+				Type: "pg_track_table",
+				Args: map[string]any{"source": "default"},
+			},
+		}
+
+		got, err := metadataArgsJSON(t.Context(), req)
+		if err != nil {
+			t.Fatalf("metadataArgsJSON: %v", err)
+		}
+
+		want, err := json.Marshal(req.Body.Args)
+		if err != nil {
+			t.Fatalf("marshal want: %v", err)
+		}
+
+		if !bytes.Equal(got, want) {
+			t.Errorf("fallback args = %s, want %s", got, want)
+		}
+	})
 }
 
 func TestDispatch_NoStoreFallsThroughToNotSupported(t *testing.T) {
