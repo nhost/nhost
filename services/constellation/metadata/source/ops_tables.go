@@ -55,7 +55,7 @@ type pgUntrackTableArgs struct {
 	Cascade bool               `json:"cascade,omitempty"`
 }
 
-func buildPgUntrackTable(argsJSON []byte) (MutationFn, error) {
+func buildPgUntrackTable(argsJSON []byte, deps *untrackDeps) (MutationFn, error) {
 	var a pgUntrackTableArgs
 	if err := json.Unmarshal(argsJSON, &a); err != nil {
 		return nil, fmt.Errorf("parsing %s args: %w", opPgUntrackTable, err)
@@ -96,7 +96,17 @@ func buildPgUntrackTable(argsJSON []byte) (MutationFn, error) {
 			return "", ErrTableHasDependents
 		}
 
+		target := db.Tables[idx].Table
 		db.Tables = removeAt(db.Tables, idx)
+
+		// Removing the table drops its own dependents. Hasura's cascade also
+		// drops the transitive reverse dependents across the whole metadata:
+		// relationships that point at the table, functions whose return type is
+		// the table, and permissions whose row filter references it. See
+		// cascadeUntrack.
+		if a.Cascade {
+			cascadeUntrack(h, source, target, deps)
+		}
 
 		return "", nil
 	}, nil
@@ -118,10 +128,23 @@ func tableHasDependents(t hasura.TableMetadata) bool {
 }
 
 // PgUntrackTable applies pg_untrack_table.
+//
+// For a cascade on a database-backed Store, it first introspects the database
+// facts the metadata alone cannot supply — the foreign-key graph (to resolve
+// bare foreign_key_constraint_on relationships to their target table) and the
+// return types of functions — so cascadeUntrack can reproduce Hasura's full
+// transitive drop. The introspection runs before Apply (lock-free); the
+// resulting facts are immutable DB properties, so computing them outside the
+// store mutex is safe.
 func (s *Store) PgUntrackTable(
 	ctx context.Context, argsJSON []byte,
 ) (int64, IdempotencyCode, error) {
-	fn, err := buildPgUntrackTable(argsJSON)
+	deps, err := s.loadUntrackDeps(ctx, argsJSON)
+	if err != nil {
+		return 0, "", err
+	}
+
+	fn, err := buildPgUntrackTable(argsJSON, deps)
 	if err != nil {
 		return 0, "", err
 	}
