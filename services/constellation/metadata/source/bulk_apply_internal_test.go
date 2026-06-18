@@ -70,8 +70,8 @@ func TestApplyBulk_FailFastAbortsWithIndexNoWrite(t *testing.T) {
 		t.Fatalf("err = %v, want *BulkChildError", err)
 	}
 
-	if childErr.Index != 1 {
-		t.Errorf("fail index = %d, want 1", childErr.Index)
+	if len(childErr.Path) != 1 || childErr.Path[0] != 1 {
+		t.Errorf("fail path = %v, want [1]", childErr.Path)
 	}
 
 	if !errors.Is(childErr.Err, ErrSourceNotFound) {
@@ -182,7 +182,8 @@ func TestApplyBulk_NoMutationNoWrite(t *testing.T) {
 	}
 
 	for i, o := range outcomes {
-		if msg, _ := o.Body["message"].(string); msg != "already-tracked" {
+		body, _ := o.Body.(map[string]any)
+		if msg, _ := body["message"].(string); msg != "already-tracked" {
 			t.Errorf("outcome[%d] message = %v, want already-tracked", i, o.Body)
 		}
 	}
@@ -202,5 +203,186 @@ func TestApplyBulk_UninitializedStore(t *testing.T) {
 		ErrStoreNotInitialized,
 	) {
 		t.Errorf("err = %v, want ErrStoreNotInitialized", err)
+	}
+}
+
+// nestedBulkChild wraps children in a bulk op of the given type.
+func nestedBulkChild(typ string, children ...BulkChild) BulkChild {
+	args := `[`
+	for i, c := range children {
+		if i > 0 {
+			args += `,`
+		}
+		args += `{"type":"` + c.Type + `","args":` + string(c.Args) + `}`
+	}
+	args += `]`
+
+	return BulkChild{Type: typ, Args: []byte(args)}
+}
+
+func TestApplyBulk_NestedBulk_SingleWriteNestedArray(t *testing.T) {
+	t.Parallel()
+
+	w := &fakeWriter{}
+	s := bootstrappedStore(t, w)
+
+	// bulk: [ track(users), bulk: [ track(orgs), track(teams) ] ]
+	results, rv, mutated, err := s.ApplyBulk(
+		t.Context(),
+		[]BulkChild{
+			trackChild("users"),
+			nestedBulkChild("bulk", trackChild("orgs"), trackChild("teams")),
+		},
+		false,
+	)
+	if err != nil {
+		t.Fatalf("ApplyBulk: %v", err)
+	}
+
+	if !mutated {
+		t.Errorf("mutated = false, want true")
+	}
+
+	// One durable write for the whole (nested) bulk, one RV bump (7 → 8).
+	if w.callCount() != 1 {
+		t.Errorf("writer calls = %d, want 1 (single write across nesting)", w.callCount())
+	}
+
+	if rv != 8 {
+		t.Errorf("rv = %d, want 8 (one bump)", rv)
+	}
+
+	if len(results) != 2 {
+		t.Fatalf("results = %d, want 2", len(results))
+	}
+
+	// The nested child renders as an array result, not a leaf body.
+	if !results[1].Array || len(results[1].Children) != 2 {
+		t.Errorf("results[1] = %+v, want a 2-element nested array", results[1])
+	}
+
+	snap, _ := s.HasuraSnapshotJSON()
+	got := string(snap)
+	for _, want := range []string{`"name":"users"`, `"name":"orgs"`, `"name":"teams"`} {
+		if !strings.Contains(got, want) {
+			t.Errorf("snapshot missing %s; snap = %s", want, got)
+		}
+	}
+}
+
+func TestApplyBulk_NestedFailFast_AbortsWithNestedPath(t *testing.T) {
+	t.Parallel()
+
+	w := &fakeWriter{}
+	s := bootstrappedStore(t, w)
+
+	// bulk: [ track(users), bulk: [ track(orgs), missing-source ] ]
+	// The inner bulk aborts at its index 1; the whole batch is discarded.
+	_, _, _, err := s.ApplyBulk(
+		t.Context(),
+		[]BulkChild{
+			trackChild("users"),
+			nestedBulkChild("bulk", trackChild("orgs"), missingSourceChild("x")),
+		},
+		false,
+	)
+
+	var childErr *BulkChildError
+	if !errors.As(err, &childErr) {
+		t.Fatalf("err = %v, want *BulkChildError", err)
+	}
+
+	want := []int{1, 1}
+	if len(childErr.Path) != 2 || childErr.Path[0] != want[0] || childErr.Path[1] != want[1] {
+		t.Errorf("path = %v, want %v", childErr.Path, want)
+	}
+
+	if childErr.PathString() != "$.args[1].args[1]" {
+		t.Errorf("PathString = %q, want $.args[1].args[1]", childErr.PathString())
+	}
+
+	if w.callCount() != 0 {
+		t.Errorf("writer calls = %d, want 0 (nested abort discards the batch)", w.callCount())
+	}
+
+	if s.ResourceVersion() != 7 {
+		t.Errorf("rv = %d, want 7 (unchanged)", s.ResourceVersion())
+	}
+}
+
+func TestApplyBulk_KeepGoing_CatchesNestedAbort(t *testing.T) {
+	t.Parallel()
+
+	w := &fakeWriter{}
+	s := bootstrappedStore(t, w)
+
+	// bulk_keep_going: [ inner-bulk-that-aborts, track(survivor) ]
+	// The inner fail-fast bulk aborts; the keep-going parent records it as a slot
+	// error, rolls back the inner partial work, and the survivor still persists.
+	results, rv, mutated, err := s.ApplyBulk(
+		t.Context(),
+		[]BulkChild{
+			nestedBulkChild("bulk", trackChild("orgs"), missingSourceChild("x")),
+			trackChild("survivor"),
+		},
+		true,
+	)
+	if err != nil {
+		t.Fatalf("ApplyBulk: %v", err)
+	}
+
+	if !mutated || rv != 8 {
+		t.Errorf("mutated = %v rv = %d, want true / 8", mutated, rv)
+	}
+
+	if len(results) != 2 {
+		t.Fatalf("results = %d, want 2", len(results))
+	}
+
+	if results[0].Err == nil {
+		t.Errorf("results[0].Err = nil, want the nested abort error")
+	}
+
+	if results[1].Err != nil {
+		t.Errorf("results[1].Err = %v, want nil (survivor)", results[1].Err)
+	}
+
+	// The inner bulk's partial child (orgs) must have rolled back; only the
+	// survivor should be present.
+	snap, _ := s.HasuraSnapshotJSON()
+	got := string(snap)
+	if strings.Contains(got, `"name":"orgs"`) {
+		t.Errorf("snapshot leaked rolled-back inner child 'orgs'; snap = %s", got)
+	}
+	if !strings.Contains(got, `"name":"survivor"`) {
+		t.Errorf("snapshot missing survivor; snap = %s", got)
+	}
+}
+
+func TestApplyBulk_NestedDepthCapRejected(t *testing.T) {
+	t.Parallel()
+
+	w := &fakeWriter{}
+	s := bootstrappedStore(t, w)
+
+	// Build a bulk nested past maxBulkNestingDepth.
+	inner := trackChild("users")
+	for range maxBulkNestingDepth + 1 {
+		inner = nestedBulkChild("bulk", inner)
+	}
+
+	_, _, _, err := s.ApplyBulk(t.Context(), []BulkChild{inner}, false)
+
+	var childErr *BulkChildError
+	if !errors.As(err, &childErr) {
+		t.Fatalf("err = %v, want *BulkChildError", err)
+	}
+
+	if !errors.Is(childErr.Err, ErrBulkNestingTooDeep) {
+		t.Errorf("err = %v, want ErrBulkNestingTooDeep", childErr.Err)
+	}
+
+	if w.callCount() != 0 {
+		t.Errorf("writer calls = %d, want 0", w.callCount())
 	}
 }

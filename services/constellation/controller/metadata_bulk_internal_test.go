@@ -256,34 +256,79 @@ func TestDispatch_Bulk_WholeMetadataChild(t *testing.T) {
 	}
 }
 
-func TestDispatch_Bulk_NestedRejected(t *testing.T) {
+func TestDispatch_Bulk_NestedArray(t *testing.T) {
 	t.Parallel()
 
 	w := &writerStub{}
 	store := newBootstrappedStore(t, w)
 	router := buildMutationRouter(t, store)
 
-	// A nested bulk child aborts a fail-fast bulk with not-supported.
+	// bulk: [ track(users), bulk: [ track(orgs) ] ] → a bare array whose second
+	// entry is a nested array, written once.
+	code, results, raw := postJSONArray(t, router, `{
+        "type": "bulk",
+        "args": [
+            {"type": "pg_track_table", "args": {"source": "default", "table": {"schema": "public", "name": "users"}}},
+            {"type": "bulk", "args": [
+                {"type": "pg_track_table", "args": {"source": "default", "table": {"schema": "public", "name": "orgs"}}}
+            ]}
+        ]
+    }`)
+	if code != http.StatusOK {
+		t.Fatalf("status = %d, want 200; body = %s", code, raw)
+	}
+
+	if len(results) != 2 {
+		t.Fatalf("results = %d, want 2; body = %s", len(results), raw)
+	}
+
+	if bulkMessage(results, 0) != "success" {
+		t.Errorf("child 0 = %v, want success", results[0])
+	}
+
+	nested, ok := results[1].([]any)
+	if !ok {
+		t.Fatalf("child 1 = %v, want a nested array", results[1])
+	}
+
+	if len(nested) != 1 || bulkMessage(nested, 0) != "success" {
+		t.Errorf("nested = %v, want [success]", nested)
+	}
+
+	if w.callCount() != 1 {
+		t.Errorf("writer calls = %d, want 1 (single write across nesting)", w.callCount())
+	}
+}
+
+func TestDispatch_Bulk_NestedAbortPath(t *testing.T) {
+	t.Parallel()
+
+	w := &writerStub{}
+	store := newBootstrappedStore(t, w)
+	router := buildMutationRouter(t, store)
+
+	// The inner bulk's second child targets a missing source → fail-fast abort
+	// with the nested path $.args[1].args[1] and no write.
 	code, body := postJSON(t, router, `{
         "type": "bulk",
         "args": [
-            {"type": "bulk", "args": []}
+            {"type": "pg_track_table", "args": {"source": "default", "table": {"schema": "public", "name": "users"}}},
+            {"type": "bulk", "args": [
+                {"type": "pg_track_table", "args": {"source": "default", "table": {"schema": "public", "name": "orgs"}}},
+                {"type": "pg_track_table", "args": {"source": "missing", "table": {"schema": "public", "name": "x"}}}
+            ]}
         ]
     }`)
 	if code != http.StatusBadRequest {
 		t.Fatalf("status = %d, want 400; body = %v", code, body)
 	}
 
-	if got, _ := body["code"].(string); got != "not-supported" {
-		t.Errorf("code = %q, want not-supported", body["code"])
-	}
-
-	if msg, _ := body["error"].(string); !strings.Contains(msg, "nested") {
-		t.Errorf("error = %q, want the nested-bulk guard message", msg)
+	if got, _ := body["path"].(string); got != "$.args[1].args[1]" {
+		t.Errorf("path = %q, want $.args[1].args[1]", body["path"])
 	}
 
 	if w.callCount() != 0 {
-		t.Errorf("writer calls = %d, want 0 (nested child aborts before any write)", w.callCount())
+		t.Errorf("writer calls = %d, want 0 (nested abort discards the batch)", w.callCount())
 	}
 }
 
@@ -316,15 +361,15 @@ func TestDispatch_Bulk_MalformedObjectRejected(t *testing.T) {
 	}
 }
 
-func TestDispatch_BulkKeepGoing_NestedRejected(t *testing.T) {
+func TestDispatch_BulkKeepGoing_NestedAtomicChild(t *testing.T) {
 	t.Parallel()
 
 	w := &writerStub{}
 	store := newBootstrappedStore(t, w)
 	router := buildMutationRouter(t, store)
 
-	// bulk_keep_going records the nested child as a per-slot not-supported error
-	// and still runs the remaining children.
+	// A nested (empty) bulk_atomic child succeeds with a single success object;
+	// the sibling track also runs. One write.
 	code, results, raw := postJSONArray(t, router, `{
         "type": "bulk_keep_going",
         "args": [
@@ -340,12 +385,13 @@ func TestDispatch_BulkKeepGoing_NestedRejected(t *testing.T) {
 		t.Fatalf("bulk results = %d, want 2; body = %s", len(results), raw)
 	}
 
-	if got, _ := results[0].(map[string]any)["code"].(string); got != "not-supported" {
-		t.Errorf("child 0 code = %v, want not-supported", results[0])
+	// Nested atomic renders as a single success object, not an array.
+	if bulkMessage(results, 0) != "success" {
+		t.Errorf("child 0 = %v, want a single success object", results[0])
 	}
 
-	if msg, _ := results[0].(map[string]any)["error"].(string); !strings.Contains(msg, "nested") {
-		t.Errorf("child 0 error = %q, want the nested-bulk guard message", msg)
+	if _, isArray := results[0].([]any); isArray {
+		t.Errorf("child 0 = %v, want a single object not an array", results[0])
 	}
 
 	if bulkMessage(results, 1) != "success" {
@@ -353,7 +399,7 @@ func TestDispatch_BulkKeepGoing_NestedRejected(t *testing.T) {
 	}
 
 	if w.callCount() != 1 {
-		t.Errorf("writer calls = %d, want 1 (only the valid child wrote)", w.callCount())
+		t.Errorf("writer calls = %d, want 1 (only the track wrote)", w.callCount())
 	}
 }
 

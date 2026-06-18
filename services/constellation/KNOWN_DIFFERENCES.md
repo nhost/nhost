@@ -87,7 +87,11 @@ of a `/v1/metadata` request regardless of how many children it carries.
   batch. `reload_metadata` as a child is a success no-op (the in-flight copy is
   already the current state). The success body is a bare top-level JSON array of
   per-child results, and per-child entries carry no `resource_version` (matching
-  Hasura).
+  Hasura). A child may itself be a `bulk` / `bulk_keep_going` (which recurses and
+  contributes a nested array) or a `bulk_atomic` (an all-or-nothing sub-group
+  contributing a single `{"message":"success"}` object); the whole nested tree
+  runs against the one working copy under the single write, and an abort deep in
+  the tree reports the full path (`$.args[i].args[j]`).
 - `bulk_keep_going` is the same but per-child: a failing child rolls back only
   itself and is reported as `{code, error}` in its slot; the surviving children
   are persisted by the single write.
@@ -100,15 +104,17 @@ of a `/v1/metadata` request regardless of how many children it carries.
   for). Every other command (table tracking, permissions, functions, event
   triggers, reads, whole-metadata) is rejected by both engines.
 
-Two small, deliberate deviations remain:
+One small, deliberate deviation remains:
 
 - An unsupported `bulk_atomic` child is rejected by Hasura as an internal 500
   ("Bulk atomic does not support this command"); Constellation surfaces it
   through its op-level **400 `not-supported`** channel (500 is reserved for
-  internal failures).
-- A nested `bulk` / `bulk_atomic` / `bulk_keep_going` child is reported as
-  `not-supported`. Hasura allows nesting; Constellation keeps bulks flat (the
-  dashboard never nests them).
+  internal failures). This applies equally to a `bulk_atomic` nested inside a
+  `bulk` (whose whitelist excludes nested bulk, matching Hasura) and to a
+  top-level one.
+
+Nested bulk is bounded by a defensive depth cap (Hasura imposes none); the
+dashboard never nests, so any real request is depth 1.
 
 # Functions
 
