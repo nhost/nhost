@@ -219,6 +219,19 @@ func TestMetadataParity(t *testing.T) { //nolint:paralleltest
 			allowStatusDivergence: true,
 			knownDivergence:       "bulk_atomic rejects permission commands on both engines; Hasura returns 500 internal, Constellation returns 400 not-supported",
 		},
+		{
+			// Nested bulk: an outer bulk whose second child is itself a bulk.
+			// Hasura runs the nested children against the same in-flight
+			// metadata under one write; the resulting metadata must match.
+			name: "bulk_nested",
+			op: `{"type":"bulk","args":[` +
+				createSelDept + `,` +
+				`{"type":"bulk","args":[` +
+				`{"type":"pg_create_insert_permission","args":{"source":"default","table":` + dept + `,"role":"` + role + `","permission":{"columns":"*","check":{}}}}` +
+				`]}` +
+				`]}`,
+			affectsSchema: true,
+		},
 
 		// ---- idempotent re-apply: Constellation returns 200 + idempotency code
 		// where Hasura returns 4xx; the resulting metadata must still match. ----
