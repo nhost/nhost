@@ -1,0 +1,138 @@
+---
+name: "gen: Nhost code review"
+on:
+  issue_comment:
+    types: [created]
+
+env:
+  # Default and whitelist are intentionally defined at the workflow level so CI
+  # does not depend on Pi's mutable/default model resolution.
+  REVIEW_DEFAULT_MODEL: cloudflare-ai-gateway/workers-ai/@cf/moonshotai/kimi-k2.7-code
+  REVIEW_FALLBACK_MODELS: cloudflare-ai-gateway/workers-ai/@cf/moonshotai/kimi-k2.6
+  REVIEW_ALLOWED_MODELS: |
+    cloudflare-ai-gateway/workers-ai/@cf/deepseek-ai/deepseek-v4-pro
+    cloudflare-ai-gateway/workers-ai/@cf/moonshotai/kimi-k2.6
+    cloudflare-ai-gateway/workers-ai/@cf/moonshotai/kimi-k2.7-code
+  REVIEW_RETRY_ATTEMPTS: "5"
+  # aarch64-linux nhost-code package output. This is produced by the
+  # nhost-code checks job and fetched through the configured Nix substituters.
+  # Update after the main-branch check builds a new package by copying the
+  # path printed by `nix path-info .#nhost-code` in the aarch64-linux job logs.
+  NHOST_CODE_AARCH64_LINUX_STORE_PATH: /nix/store/1fa1isf3llz6qgdidwx3j16lc9i0p2n8-nhost-code-0.79.4
+jobs:
+  nhost-code-review:
+    # Coarse trigger gate. This only filters obvious non-triggers; the
+    # authoritative write-access check runs as the first job step below,
+    # because `author_association` (e.g. COLLABORATOR) does not by itself
+    # guarantee write permission on this public repository.
+    # GitHub Actions expression strings do not unescape `\n`; parse JSON to build a real newline.
+    if: >-
+      github.event_name == 'issue_comment' &&
+      github.event.issue.pull_request &&
+      github.event.sender.type != 'Bot' &&
+      (
+        github.event.comment.body == '/review' ||
+        startsWith(github.event.comment.body, '/review ') ||
+        startsWith(github.event.comment.body, format('/review{0}', fromJSON('"\n"')))
+      )
+    concurrency:
+      group: nhost-code-review-${{ github.event.issue.number }}
+      cancel-in-progress: true
+    runs-on: blacksmith-2vcpu-ubuntu-2404-arm
+    timeout-minutes: 180
+    permissions:
+      contents: read
+      pull-requests: write
+      issues: write
+      actions: read
+
+    steps:
+      - name: Verify commenter has write access
+        # Public repo: only users with write (or higher) permission may
+        # trigger a secret-bearing review run. Mirrors the logic in
+        # .github/actions/check-permissions, resolved for the comment author.
+        env:
+          GH_TOKEN: ${{ github.token }}
+          REPO: ${{ github.repository }}
+          COMMENT_USER: ${{ github.event.comment.user.login }}
+        shell: bash
+        run: |
+          set -euo pipefail
+          permission=$(gh api "repos/${REPO}/collaborators/${COMMENT_USER}/permission" --jq '.permission')
+          echo "Resolved repository permission for ${COMMENT_USER}: ${permission}"
+          case "${permission}" in
+            admin | maintain | write)
+              echo "Commenter has write or higher permission; proceeding with review."
+              ;;
+            *)
+              echo "::error::Commenter '${COMMENT_USER}' has '${permission}' permission, which is below write. Only users with write access can trigger /review."
+              exit 1
+              ;;
+          esac
+
+      - name: Check out repository
+        uses: actions/checkout@v6
+        with:
+          fetch-depth: 0
+          persist-credentials: false
+
+      - name: Setup Nix with Cache
+        uses: ./.github/actions/setup-nix
+        with:
+          # This job only needs Nix + cache access to substitute the
+          # prebuilt nhost-code store path; it does not build a project
+          # dev-shell. NAME=nixops skips setup-nix's build-verification step.
+          NAME: nixops
+          NIX_CACHE_PUB_KEY: ${{ secrets.NIX_CACHE_PUB_KEY }}
+          NIX_CACHE_ACCESS_KEY_ID: ${{ secrets.NIX_CACHE_ACCESS_KEY_ID }}
+          NIX_CACHE_SECRET_ACCESS_KEY: ${{ secrets.NIX_CACHE_SECRET_ACCESS_KEY }}
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Fetch nhost-code
+        id: fetch-nhost-code
+        shell: bash
+        env:
+          AWS_ACCESS_KEY_ID: ${{ secrets.NIX_CACHE_ACCESS_KEY_ID }}
+          AWS_SECRET_ACCESS_KEY: ${{ secrets.NIX_CACHE_SECRET_ACCESS_KEY }}
+        run: |
+          case "$(uname -m)" in
+            aarch64|arm64) ;;
+            *) echo "::error::NHOST_CODE_AARCH64_LINUX_STORE_PATH requires an aarch64 runner"; exit 1 ;;
+          esac
+
+          out_link="${RUNNER_TEMP}/nhost-code-result"
+          nix build "$NHOST_CODE_AARCH64_LINUX_STORE_PATH" --out-link "$out_link"
+          store_path="$(readlink -f "$out_link")"
+          test -x "${store_path}/bin/nhost-code"
+          echo "store-path=${store_path}" >> "$GITHUB_OUTPUT"
+
+      - name: Run Nhost code review
+        uses: ./.github/actions/nhost-code-review
+        with:
+          binary: ${{ steps.fetch-nhost-code.outputs.store-path }}/bin/nhost-code
+          github-token: ${{ github.token }}
+          phase: review
+          pr-number: ${{ github.event.issue.number }}
+          comment-body: ${{ github.event.comment.body }}
+          run-url: ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}/attempts/${{ github.run_attempt }}
+          cloudflare-api-key: ${{ secrets.CLOUDFLARE_AI_GATEWAY_LLM_CODING_API_TOKEN }}
+          cloudflare-account-id: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
+          cloudflare-gateway-id: ${{ secrets.CLOUDFLARE_GATEWAY_ID }}
+
+      - name: Create nhost-helper-bot token
+        id: helper-bot-token
+        uses: actions/create-github-app-token@v3
+        with:
+          client-id: ${{ secrets.NHOST_BOT_APP_ID }}
+          private-key: ${{ secrets.NHOST_BOT_PRIVATE_KEY }}
+          owner: ${{ github.repository_owner }}
+
+      - name: Publish Nhost code review results
+        uses: ./.github/actions/nhost-code-review
+        with:
+          binary: ${{ steps.fetch-nhost-code.outputs.store-path }}/bin/nhost-code
+          github-token: ${{ steps.helper-bot-token.outputs.token }}
+          phase: publish
+          pr-number: ${{ github.event.issue.number }}
+          comment-body: ${{ github.event.comment.body }}
+          run-url: ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}/attempts/${{ github.run_attempt }}
