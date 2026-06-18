@@ -80,6 +80,12 @@ export interface BaseTableFormProps extends DialogFormProps {
    * Called when the user picks a new schema. Requires `availableSchemas`.
    */
   onSchemaChange?: (schema: string) => void;
+  /**
+   * Column sets of the table's primary key / unique constraints, forwarded to
+   * the foreign key dialogs so they can decide whether a composite foreign key
+   * is one-to-one. Absent while creating a table that does not exist yet.
+   */
+  constraintColumnSets?: string[][];
 }
 
 export const baseColumnValidationSchema = Yup.object().shape({
@@ -200,6 +206,7 @@ export default function BaseTableForm({
   tableName,
   availableSchemas,
   onSchemaChange,
+  constraintColumnSets,
 }: BaseTableFormProps) {
   const [openSections, setOpenSections] = useState<string[]>([
     'columns',
@@ -283,7 +290,9 @@ export default function BaseTableForm({
               Foreign Keys
             </AccordionTrigger>
             <AccordionContent className="pb-3" forceMount>
-              <ForeignKeyEditorSection />
+              <ForeignKeyEditorSection
+                constraintColumnSets={constraintColumnSets}
+              />
             </AccordionContent>
           </AccordionItem>
 

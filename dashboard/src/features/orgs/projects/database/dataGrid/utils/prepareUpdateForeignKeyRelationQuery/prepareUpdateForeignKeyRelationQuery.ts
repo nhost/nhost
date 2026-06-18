@@ -3,6 +3,7 @@ import type {
   ForeignKeyRelation,
   MutationOrQueryBaseOptions,
 } from '@/features/orgs/projects/database/dataGrid/types/dataBrowser';
+import { getForeignKeyPairSignature } from '@/features/orgs/projects/database/dataGrid/utils/getForeignKeyPairSignature';
 
 export interface PrepareUpdateForeignKeyRelationQueryVariables
   extends Omit<MutationOrQueryBaseOptions, 'appUrl' | 'adminSecret'> {
@@ -35,13 +36,18 @@ export default function prepareUpdateForeignKeyRelationQuery({
 
   if (
     originalForeignKeyRelation.name === foreignKeyRelation.name &&
-    originalForeignKeyRelation.columnName === foreignKeyRelation.columnName &&
     originalForeignKeyRelation.referencedSchema ===
       foreignKeyRelation.referencedSchema &&
     originalForeignKeyRelation.referencedTable ===
       foreignKeyRelation.referencedTable &&
-    originalForeignKeyRelation.referencedColumn ===
-      foreignKeyRelation.referencedColumn &&
+    getForeignKeyPairSignature(
+      originalForeignKeyRelation.columns,
+      originalForeignKeyRelation.referencedColumns,
+    ) ===
+      getForeignKeyPairSignature(
+        foreignKeyRelation.columns,
+        foreignKeyRelation.referencedColumns,
+      ) &&
     originalForeignKeyRelation.deleteAction ===
       foreignKeyRelation.deleteAction &&
     originalForeignKeyRelation.updateAction === foreignKeyRelation.updateAction
@@ -62,11 +68,11 @@ export default function prepareUpdateForeignKeyRelationQuery({
       'ALTER TABLE %I.%I ADD CONSTRAINT %I FOREIGN KEY (%I) REFERENCES %I.%I (%I) ON UPDATE %s ON DELETE %s',
       schema,
       table,
-      `${table}_${foreignKeyRelation.columnName}_fkey`,
-      foreignKeyRelation.columnName,
+      `${table}_${foreignKeyRelation.columns.join('_')}_fkey`,
+      foreignKeyRelation.columns,
       foreignKeyRelation.referencedSchema || schema,
       foreignKeyRelation.referencedTable,
-      foreignKeyRelation.referencedColumn,
+      foreignKeyRelation.referencedColumns,
       foreignKeyRelation.updateAction,
       foreignKeyRelation.deleteAction,
     ),
