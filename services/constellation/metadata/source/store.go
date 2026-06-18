@@ -319,7 +319,7 @@ func (s *Store) apply(
 // returns the new resource_version and the Queryer to notify peers with (nil
 // when the Store is not database-backed) so the caller can issue the
 // best-effort NOTIFY without holding s.mu.
-func (s *Store) applyLocked(
+func (s *Store) applyLocked( //nolint:ireturn // returns Queryer so the caller can NOTIFY peers lock-free.
 	ctx context.Context,
 	expectedRV *int64,
 	mutate func(*hasura.Metadata) error,

@@ -1,4 +1,4 @@
-package source //nolint:testpackage // exercises unexported Store internals + fakes
+package source
 
 import (
 	"context"
