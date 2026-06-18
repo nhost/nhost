@@ -2,6 +2,7 @@ package source
 
 import (
 	"errors"
+	"slices"
 	"strings"
 	"testing"
 )
@@ -13,10 +14,10 @@ func trackChild(name string) BulkChild {
 	}
 }
 
-func missingSourceChild(name string) BulkChild {
+func missingSourceChild() BulkChild {
 	return BulkChild{
 		Type: "pg_track_table",
-		Args: []byte(`{"source":"missing","table":{"schema":"public","name":"` + name + `"}}`),
+		Args: []byte(`{"source":"missing","table":{"schema":"public","name":"x"}}`),
 	}
 }
 
@@ -61,7 +62,7 @@ func TestApplyBulk_FailFastAbortsWithIndexNoWrite(t *testing.T) {
 
 	_, _, _, err := s.ApplyBulk(
 		t.Context(),
-		[]BulkChild{trackChild("users"), missingSourceChild("x"), trackChild("orgs")},
+		[]BulkChild{trackChild("users"), missingSourceChild(), trackChild("orgs")},
 		false,
 	)
 
@@ -96,7 +97,7 @@ func TestApplyBulk_KeepGoingPersistsSurvivorsInSingleWrite(t *testing.T) {
 
 	outcomes, rv, mutated, err := s.ApplyBulk(
 		t.Context(),
-		[]BulkChild{trackChild("users"), missingSourceChild("x"), trackChild("orgs")},
+		[]BulkChild{trackChild("users"), missingSourceChild(), trackChild("orgs")},
 		true,
 	)
 	if err != nil {
@@ -206,18 +207,27 @@ func TestApplyBulk_UninitializedStore(t *testing.T) {
 	}
 }
 
-// nestedBulkChild wraps children in a bulk op of the given type.
-func nestedBulkChild(typ string, children ...BulkChild) BulkChild {
-	args := `[`
+// nestedBulkChild wraps children in a `bulk` op.
+func nestedBulkChild(children ...BulkChild) BulkChild {
+	var b strings.Builder
+
+	b.WriteString("[")
+
 	for i, c := range children {
 		if i > 0 {
-			args += `,`
+			b.WriteString(",")
 		}
-		args += `{"type":"` + c.Type + `","args":` + string(c.Args) + `}`
-	}
-	args += `]`
 
-	return BulkChild{Type: typ, Args: []byte(args)}
+		b.WriteString(`{"type":"`)
+		b.WriteString(c.Type)
+		b.WriteString(`","args":`)
+		b.Write(c.Args)
+		b.WriteString("}")
+	}
+
+	b.WriteString("]")
+
+	return BulkChild{Type: "bulk", Args: []byte(b.String())}
 }
 
 func TestApplyBulk_NestedBulk_SingleWriteNestedArray(t *testing.T) {
@@ -231,7 +241,7 @@ func TestApplyBulk_NestedBulk_SingleWriteNestedArray(t *testing.T) {
 		t.Context(),
 		[]BulkChild{
 			trackChild("users"),
-			nestedBulkChild("bulk", trackChild("orgs"), trackChild("teams")),
+			nestedBulkChild(trackChild("orgs"), trackChild("teams")),
 		},
 		false,
 	)
@@ -282,7 +292,7 @@ func TestApplyBulk_NestedFailFast_AbortsWithNestedPath(t *testing.T) {
 		t.Context(),
 		[]BulkChild{
 			trackChild("users"),
-			nestedBulkChild("bulk", trackChild("orgs"), missingSourceChild("x")),
+			nestedBulkChild(trackChild("orgs"), missingSourceChild()),
 		},
 		false,
 	)
@@ -292,9 +302,8 @@ func TestApplyBulk_NestedFailFast_AbortsWithNestedPath(t *testing.T) {
 		t.Fatalf("err = %v, want *BulkChildError", err)
 	}
 
-	want := []int{1, 1}
-	if len(childErr.Path) != 2 || childErr.Path[0] != want[0] || childErr.Path[1] != want[1] {
-		t.Errorf("path = %v, want %v", childErr.Path, want)
+	if !slices.Equal(childErr.Path, []int{1, 1}) {
+		t.Errorf("path = %v, want [1 1]", childErr.Path)
 	}
 
 	if childErr.PathString() != "$.args[1].args[1]" {
@@ -322,7 +331,7 @@ func TestApplyBulk_KeepGoing_CatchesNestedAbort(t *testing.T) {
 	results, rv, mutated, err := s.ApplyBulk(
 		t.Context(),
 		[]BulkChild{
-			nestedBulkChild("bulk", trackChild("orgs"), missingSourceChild("x")),
+			nestedBulkChild(trackChild("orgs"), missingSourceChild()),
 			trackChild("survivor"),
 		},
 		true,
@@ -351,9 +360,11 @@ func TestApplyBulk_KeepGoing_CatchesNestedAbort(t *testing.T) {
 	// survivor should be present.
 	snap, _ := s.HasuraSnapshotJSON()
 	got := string(snap)
+
 	if strings.Contains(got, `"name":"orgs"`) {
 		t.Errorf("snapshot leaked rolled-back inner child 'orgs'; snap = %s", got)
 	}
+
 	if !strings.Contains(got, `"name":"survivor"`) {
 		t.Errorf("snapshot missing survivor; snap = %s", got)
 	}
@@ -368,7 +379,7 @@ func TestApplyBulk_NestedDepthCapRejected(t *testing.T) {
 	// Build a bulk nested past maxBulkNestingDepth.
 	inner := trackChild("users")
 	for range maxBulkNestingDepth + 1 {
-		inner = nestedBulkChild("bulk", inner)
+		inner = nestedBulkChild(inner)
 	}
 
 	_, _, _, err := s.ApplyBulk(t.Context(), []BulkChild{inner}, false)

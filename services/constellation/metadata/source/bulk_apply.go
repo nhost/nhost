@@ -57,6 +57,7 @@ var ErrBulkNestingTooDeep = errors.New("bulk nesting too deep")
 // ops for. Everything else (table tracking, permissions, functions, event
 // triggers, reads, whole-metadata, and nested bulk) is rejected by Hasura's
 // bulk_atomic, and Constellation matches that.
+//nolint:gochecknoglobals // immutable lookup set, mirrors Hasura's bulk_atomic whitelist.
 var bulkAtomicWhitelist = map[string]struct{}{
 	opPgCreateObjectRelationship: {},
 	opPgCreateArrayRelationship:  {},
@@ -133,6 +134,11 @@ func toBulkChildren(envelopes []bulkChildEnvelope) []BulkChild {
 //   - A nested bulk / bulk_keep_going child sets Children and Array: the caller
 //     renders Children as a bare nested array (matching Hasura). A nested
 //     bulk_atomic child instead renders as a single Body of {"message":"success"}.
+//
+// Its fields are a tagged union (leaf body / error / nested children), so a
+// given literal sets only the relevant ones.
+//
+//exhaustruct:ignore
 type BulkResult struct {
 	Type     string
 	Body     any
@@ -176,6 +182,8 @@ func (e *BulkChildError) PathString() string {
 // Exactly one of group / read / noop / mutate is meaningful, unless buildErr is
 // set (a parse/validation error to surface when the step runs). typ is the
 // child's op type, threaded into results and errors for classification.
+//
+//exhaustruct:ignore
 type bulkStep struct {
 	typ      string
 	mutate   MutationFn // metadata-mutating child (incl. whole-metadata replace/clear)
