@@ -8,6 +8,8 @@ head:
 sidebar:
   label: Nhost CLI
 ---
+import { Card, CardGroup, AsciinemaPlayer } from '@components';
+import { Tabs, TabItem } from '@astrojs/starlight/components';
 
 The Nhost CLI is the recommended way to start building your application. It sets up a full local development environment including PostgreSQL, Hasura (GraphQL), Authentication, and Storage, tracking all migrations and metadata.
 
@@ -15,41 +17,70 @@ The Nhost CLI is the recommended way to start building your application. It sets
 
 ### 1. Install the CLI
 
+**Supported platforms**
+
+- MacOS
+- Linux
+- Windows (via WSL2)<sup>1</sup>
+
+:::caution
+<sup>1</sup> Windows isn't supported natively. WSL2 is required to install and use the Nhost CLI. We recommend using docker-ce inside WSL2 instead of Docker Desktop.
+:::
+
 Choose your preferred installation method:
 
-**macOS / Linux (Homebrew)**
-```sh
+<Tabs>
+<TabItem label="Homebrew">
+```sh frame="none"
 brew install nhost/tap/nhost
 ```
-
-**macOS / Linux (cURL script)**
-```sh
+</TabItem>
+<TabItem label="cURL script">
+```sh frame="none"
 curl -sSL https://raw.githubusercontent.com/nhost/nhost/main/cli/get.sh | bash
 ```
-
-**Nix**
-```sh
+</TabItem>
+<TabItem label="Nix">
+```sh frame="none"
 nix profile install github:nhost/nhost#cli
 ```
+</TabItem>
+</Tabs>
 
 ### 2. Authenticate
 
 Login to your Nhost account. This is required if you want to pull configuration from an existing Nhost Cloud project (step 3) or deploy later. You can skip it if you only want to develop locally.
 
-```sh
+```sh frame="none"
 nhost login
 ```
+
+:::note
+If you registered with GitHub, set a password on your [account page](https://app.nhost.io/account) first.
+:::
 
 ### 3. Initialize a Project
 
 Initialize a new Nhost project in your current directory.
 
-```sh
+```sh frame="none"
 nhost init
 ```
 
+This scaffolds your project — a `nhost/` directory holding your backend configuration (all version-controlled in Git) plus a `functions/` directory for serverless functions:
+
+```sh frame="none"
+.
+├─ 📁 functions       # Serverless functions (Node.js / TypeScript)
+└─ 📁 nhost           # Project & backend configuration
+    ├─ 📁 emails      # Email templates (verification, password reset, …)
+    ├─ 📁 metadata    # Hasura metadata — tables, permissions, relationships
+    ├─ 📁 migrations  # Database schema migrations
+    └─ 📁 seeds       # Seed data for local development
+```
+
 If you already have a project on Nhost Cloud and want to pull down its configuration:
-```sh
+```sh frame="none"
 nhost init --remote
 ```
 
@@ -57,9 +88,11 @@ nhost init --remote
 
 Start the full Nhost stack locally. This uses Docker to spin up all the necessary services.
 
-```sh
+```sh frame="none"
 nhost up
 ```
+
+<AsciinemaPlayer src="/casts/cli/cli-quickstart.cast" poster="npt:0:08" idleTimeLimit={2} />
 
 Once running, the CLI prints the URLs for your local services:
 
@@ -67,18 +100,42 @@ Once running, the CLI prints the URLs for your local services:
 
 | Service | URLs |
 |---------|-----|
-| **Dashboard:** | [https://local.dashboard.local.nhost.run](https://local.dashboard.local.nhost.run) |
+| **Postgres:** | [postgres://postgres:postgres@localhost:5432/local](postgres://postgres:postgres@localhost:5432/local) |
+| **Hasura:** | [https://local.hasura.local.nhost.run](https://local.hasura.local.nhost.run) |
 | **GraphQL:** | [https://local.graphql.local.nhost.run](https://local.graphql.local.nhost.run) |
 | **Auth:** | [https://local.auth.local.nhost.run](https://local.auth.local.nhost.run) |
 | **Storage:** | [https://local.storage.local.nhost.run](https://local.storage.local.nhost.run) |
-| **Postgres:** | [postgres://postgres:postgres@localhost:5432/local](postgres://postgres:postgres@localhost:5432/local) |
 | **Functions:** | [https://local.functions.local.nhost.run](https://local.functions.local.nhost.run) |
+| **Dashboard:** | [https://local.dashboard.local.nhost.run](https://local.dashboard.local.nhost.run) |
 | **Mailhog:** | [https://local.mailhog.local.nhost.run](https://local.mailhog.local.nhost.run) |
 
 The `local.nhost.run` domain resolves to your machine, so these URLs work over HTTPS out of the box.
 
 To stop the environment run `nhost down`, and to follow the logs run `nhost logs`.
 
+### 5. Open the Dashboard
+
+Open the local dashboard to manage your database, auth settings, storage, and more.
+
+[https://local.dashboard.local.nhost.run](https://local.dashboard.local.nhost.run)
+
+![Nhost local dashboard](/images/cli/local-dashboard.png)
+
 ### Next Steps
 
-Now that your local backend is running, you can connect your frontend application to it. Choose a framework quickstart from the sidebar to continue.
+Now that your local backend is running, you can connect your frontend application to it or dive deeper into the CLI.
+
+<CardGroup cols={2}>
+  <Card title="Next.js" icon="react" href="/getting-started/quickstart/nextjs">
+    Connect your local Nhost backend to a Next.js app
+  </Card>
+  <Card title="React" icon="react" href="/getting-started/quickstart/react">
+    Connect your local Nhost backend to a React app
+  </Card>
+  <Card title="CLI Reference" icon="terminal" href="/reference/cli/commands">
+    Full reference for all CLI commands and flags
+  </Card>
+  <Card title="Local Development" icon="laptop-code" href="/platform/cli/local-development">
+    Go deeper: database migrations, metadata, and deploying to Nhost
+  </Card>
+</CardGroup>

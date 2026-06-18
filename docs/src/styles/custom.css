@@ -840,3 +840,131 @@ html[data-has-hero]:not([data-has-sidebar]) .content-panel > .sl-container {
 html[data-has-hero]:not([data-has-sidebar]) body {
   overflow-y: auto;
 }
+
+/* Tables: outline + rounded corners (border-collapse:separate lets the radius
+   clip the corners). */
+/* Starlight sets tables to display:block (for horizontal scroll), which makes
+   the inner cells content-width while the bordered block is full-width — so the
+   row lines stop short of the edge. Use real table layout so columns fill. */
+.sl-markdown-content table {
+  display: table !important;
+  width: 100%;
+  border-collapse: separate;
+  border-spacing: 0;
+  border: 1px solid color-mix(in srgb, var(--sl-color-gray-4), var(--sl-color-gray-3) 30%);
+  border-radius: 8px;
+}
+
+/* Reset cell borders, then draw interior grid lines only — the table's own
+   rounded border draws the outer edges (clean corners, no overflow clipping).
+   Long content wraps instead of overflowing now that the table doesn't scroll. */
+.sl-markdown-content :is(th, td) {
+  border: 0;
+  border-bottom: 1px solid color-mix(in srgb, var(--sl-color-gray-4), var(--sl-color-gray-3) 30%);
+  border-right: 1px solid color-mix(in srgb, var(--sl-color-gray-4), var(--sl-color-gray-3) 30%);
+  overflow-wrap: break-word;
+}
+
+.sl-markdown-content :is(th, td):last-child {
+  border-right: 0;
+}
+
+/* Only the last BODY row drops its bottom border. Using tr:last-child alone
+   also matches the single header row and would erase the line beneath it. */
+.sl-markdown-content tbody tr:last-child :is(th, td) {
+  border-bottom: 0;
+}
+
+/* Extra breathing room at the table's left and right edges. */
+.sl-markdown-content :is(th, td):first-child {
+  padding-left: 1rem;
+}
+
+.sl-markdown-content :is(th, td):last-child {
+  padding-right: 1rem;
+}
+
+/* The CLI reference option tables are header-less: hide the empty header row. */
+.sl-markdown-content thead:not(:has(th:not(:empty))) {
+  display: none;
+}
+
+
+
+/* Each command (heading + body) is wrapped in a depth-classed div, so the whole
+   block indents by level (a subcommand heading lines up with its parent's
+   description). The inner body div indents the description, aliases, and
+   options one step further than the heading. */
+/* Command groups and their commands sit flush at the left (aligned with the
+   "Commands" section heading); only each command's description and options
+   indent, via the inner body wrapper. */
+.sl-markdown-content .cli-body {
+  margin-left: 2rem;
+  margin-bottom: 1.75rem;
+}
+
+/* Top-level command groups: much larger plain heading than the page sections.
+   The site forces h2 to 1.25rem !important (Starlight also wraps each heading
+   in a .sl-heading-wrapper), so this must use !important and target by descent. */
+.sl-markdown-content .cli-command.cli-l0 h2 {
+  font-size: 2.75rem !important;
+}
+
+/* Keep option/flag tokens (inline code in the first column) on a single line
+   so commands like --dot-nhost-folder are never split mid-token. */
+.sl-markdown-content :is(th, td):first-child code {
+  white-space: nowrap;
+}
+
+/* Inline-code chips (flag tokens and subcommand names in headings): slightly
+   lighter than the cell border so they read with contrast in dark mode. */
+.sl-markdown-content td code,
+.sl-markdown-content .cli-body code,
+.sl-markdown-content :is(h3, h4, h5) code {
+  background-color: color-mix(in srgb, var(--sl-color-gray-4), var(--sl-color-gray-3) 12%);
+}
+
+.sl-markdown-content :is(h3, h4, h5) code {
+  font-size: inherit;
+}
+
+/* Status badge: a small rounded tag bubble sitting snug above the command, with
+   a distinct colour per status. */
+.cli-badge {
+  display: inline-block;
+  padding: 0.02rem 0.5rem;
+  border-radius: 999px;
+  font-size: 0.6rem;
+  font-weight: 500;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  border: 1px solid currentColor;
+  background-color: transparent;
+}
+
+.cli-badge-experimental {
+  color: var(--sl-color-orange-high);
+}
+
+.cli-badge-beta {
+  color: var(--sl-color-blue-high);
+}
+
+/* Pull the badge tight against the command heading it labels. The badge already
+   indents with its command because it lives inside the command wrapper. */
+.sl-markdown-content p:has(> .cli-badge) {
+  margin-bottom: -0.2rem;
+  line-height: 1;
+}
+
+/* The command heading carries margin-top: 2rem !important from the site, which
+   pushes it away from the badge — zero it (and the wrapper) to sit them tight. */
+.sl-markdown-content p:has(> .cli-badge) + .sl-heading-wrapper,
+.sl-markdown-content p:has(> .cli-badge) + .sl-heading-wrapper :is(h2, h3, h4, h5) {
+  margin-top: 0 !important;
+}
+
+/* Divider between command groups (kept tight so groups don't drift apart). */
+.sl-markdown-content > hr {
+  margin-block: 1.25rem;
+}

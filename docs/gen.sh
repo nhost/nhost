@@ -89,7 +89,17 @@ function build_cli_docs() {
     cli gen-docs > src/content/docs/reference/cli/commands.mdx
     cat src/content/docs/reference/cli/commands.mdx
 
+    # Escape angle brackets so the Markdown is MDX-safe, then expand our
+    # sentinels: badge pills (%%BADGE:Experimental%%) and the per-command body
+    # wrappers (%%BODY_OPEN%% / %%BODY_CLOSE%%) into HTML the docs site styles.
     sed -i 's/</\&lt;/g; s/>/\&gt;/g' src/content/docs/reference/cli/commands.mdx
+    sed -i -E 's/%%BADGE:([A-Za-z]+)%%/<span class="cli-badge cli-badge-\L\1\E">\1<\/span>/g' src/content/docs/reference/cli/commands.mdx
+    sed -i -E 's/%%CMD_OPEN:([0-9]+)%%/<div class="cli-command cli-l\1">/g' src/content/docs/reference/cli/commands.mdx
+    sed -i 's/%%BODY_OPEN%%/<div class="cli-body">/g' src/content/docs/reference/cli/commands.mdx
+    sed -i 's/%%CMD_CLOSE%%/<\/div>/g; s/%%BODY_CLOSE%%/<\/div>/g' src/content/docs/reference/cli/commands.mdx
+    # Restore angle brackets inside code spans (escaped above) so placeholders
+    # like <current-git-branch> render literally.
+    sed -i 's/%%LT%%/</g; s/%%GT%%/>/g' src/content/docs/reference/cli/commands.mdx
 }
 
 build_schemas

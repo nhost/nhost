@@ -43,6 +43,10 @@ First, let's set up a new project in the Nhost Cloud Console.
 Your final PostgreSQL URL will be the connection string with `[YOUR-PASSWORD]` replaced by the password you just set.
 :::
 
+:::note[📷 Screenshot idea — remove if not needed]
+Nhost Cloud Console **Settings → Database** showing the **Public Access** toggle and the **Reset Password** / connection string. Replace with `![Database settings](/images/cli/cloud-database-settings.png)`.
+:::
+
 ## Initialize Your Local Repository
 
 Now let's connect your local development environment to the cloud project.
@@ -72,6 +76,10 @@ Replace the placeholder values with:
 - `your-complete-postgres-url`: The connection string with your password from step 4
 
 This command starts a local development environment that connects to your cloud infrastructure while providing local access to the Nhost dashboard and console.
+
+:::note[▶️ Asciinema idea — remove if not needed]
+`nhost up cloud` connecting to a cloud project and printing the local URLs. Replace with `<AsciinemaPlayer src="/casts/cli/cloud-up.cast" poster="npt:0:05" idleTimeLimit={2} />` (add `import { AsciinemaPlayer } from '@components';` at the top of the file).
+:::
 
 ## Making Changes to Your Project
 
