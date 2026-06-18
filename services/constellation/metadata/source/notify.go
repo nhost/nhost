@@ -107,6 +107,13 @@ func listenOnce(
 		return fmt.Errorf("listening on %s: %w", metadataChannel, err)
 	}
 
+	// Catch-up reload on every (re)connect: a metadata change a peer committed
+	// while we had no listen connection emits a NOTIFY no one here receives, so
+	// without this the replica would serve stale metadata until the *next*
+	// change. An empty payload maps to notifiedRV 0, which ReloadIfStale treats
+	// as a forced reload; it no-ops cheaply when the Store is already current.
+	dispatchNotification(ctx, "", target, logger)
+
 	for {
 		notification, err := conn.WaitForNotification(ctx)
 		if err != nil {

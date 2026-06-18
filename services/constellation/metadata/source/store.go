@@ -286,33 +286,63 @@ func (s *Store) apply(
 	expectedRV *int64,
 	mutate func(*hasura.Metadata) error,
 ) (int64, error) {
+	newRV, queryer, err := s.applyLocked(ctx, expectedRV, mutate)
+	if err != nil {
+		return 0, err
+	}
+
+	// Announce the change to peer replicas (best-effort) OUTSIDE s.mu: a notify
+	// failure does not undo the committed write, and this second Postgres
+	// round-trip has no correctness reason to serialize every reader behind it.
+	// queryer is nil when the Store is not database-backed. Mirrors
+	// ReconcileAfterProxy, which also notifies lock-free.
+	if queryer != nil {
+		if err := notifyMetadataChange(ctx, queryer, newRV); err != nil {
+			s.logger.WarnContext(ctx, "metadata change notification failed", "error", err)
+		}
+	}
+
+	return newRV, nil
+}
+
+// applyLocked performs the durable, lock-held portion of apply: it validates
+// the OCC precondition, clones-mutates-marshals the snapshot, writes it through
+// the writer under s.mu, then swaps all derived state and broadcasts. It
+// returns the new resource_version and the Queryer to notify peers with (nil
+// when the Store is not database-backed) so the caller can issue the
+// best-effort NOTIFY without holding s.mu.
+func (s *Store) applyLocked(
+	ctx context.Context,
+	expectedRV *int64,
+	mutate func(*hasura.Metadata) error,
+) (int64, Queryer, error) {
 	if !s.initOnce.Load() {
-		return 0, ErrStoreNotInitialized
+		return 0, nil, ErrStoreNotInitialized
 	}
 
 	if s.writer == nil {
-		return 0, ErrStoreReadOnly
+		return 0, nil, ErrStoreReadOnly
 	}
 
 	s.mu.Lock()
 	defer s.mu.Unlock()
 
 	if expectedRV != nil && *expectedRV != s.resourceVersion {
-		return 0, ErrResourceVersionConflict
+		return 0, nil, ErrResourceVersionConflict
 	}
 
 	working, err := cloneHasura(s.raw)
 	if err != nil {
-		return 0, fmt.Errorf("cloning hasura snapshot: %w", err)
+		return 0, nil, fmt.Errorf("cloning hasura snapshot: %w", err)
 	}
 
 	if err := mutate(working); err != nil {
-		return 0, err
+		return 0, nil, err
 	}
 
 	newRaw, err := metadata.MarshalHasura(working)
 	if err != nil {
-		return 0, fmt.Errorf("marshaling mutated snapshot: %w", err)
+		return 0, nil, fmt.Errorf("marshaling mutated snapshot: %w", err)
 	}
 
 	// Re-parse into native form BEFORE the durable write. A converter bug must
@@ -321,14 +351,14 @@ func (s *Store) apply(
 	// snapshot and wedge every later Apply on a resource_version conflict.
 	native, err := metadata.FromHasuraJSON(newRaw)
 	if err != nil {
-		return 0, fmt.Errorf("re-parsing mutated snapshot: %w", err)
+		return 0, nil, fmt.Errorf("re-parsing mutated snapshot: %w", err)
 	}
 
 	currentRV := s.resourceVersion
 	newRV := currentRV + 1
 
 	if err := s.writer.WriteMetadata(ctx, newRaw, currentRV, newRV); err != nil {
-		return 0, fmt.Errorf("persisting metadata: %w", err)
+		return 0, nil, fmt.Errorf("persisting metadata: %w", err)
 	}
 
 	// Swap all derived state together, only after the commit succeeded, so any
@@ -343,15 +373,7 @@ func (s *Store) apply(
 		Err:      nil,
 	})
 
-	// Announce the change to peer replicas (best-effort): a notify failure does
-	// not undo the committed write. Skipped when the Store is not database-backed.
-	if s.queryer != nil {
-		if err := notifyMetadataChange(ctx, s.queryer, newRV); err != nil {
-			s.logger.WarnContext(ctx, "metadata change notification failed", "error", err)
-		}
-	}
-
-	return newRV, nil
+	return newRV, s.queryer, nil
 }
 
 func (s *Store) broadcastLocked(update metadata.Update) {

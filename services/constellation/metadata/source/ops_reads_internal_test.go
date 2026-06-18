@@ -43,6 +43,30 @@ func fkConstraintRel(name string, target hasura.TableSource) hasura.ObjectRelati
 	}
 }
 
+// manualConfigRel builds an ObjectRelationship tracked via manual_configuration
+// (remote_table + column_mapping), the shape Hasura emits for a relationship
+// created with manual_configuration rather than a foreign key.
+func manualConfigRel(name string, remote hasura.TableSource) hasura.ObjectRelationship {
+	return hasura.ObjectRelationship{
+		Name: name,
+		Using: hasura.RelationshipUsing{
+			ForeignKeyColumns:    nil,
+			ForeignKeyConstraint: nil,
+			ManualConfiguration: &hasura.ManualConfiguration{
+				RemoteTable:   remote,
+				ColumnMapping: map[string]string{"id": "id"},
+				Source:        "",
+				RemoteSchema:  "",
+				LHSFields:     nil,
+				RemoteField:   nil,
+				Unknown:       nil,
+			},
+			Unknown: nil,
+		},
+		Unknown: nil,
+	}
+}
+
 func TestFilterTrackedRels_ForeignKeyConstraintOn(t *testing.T) {
 	t.Parallel()
 
@@ -69,6 +93,24 @@ func TestFilterTrackedRels_ForeignKeyConstraintOn(t *testing.T) {
 			rels: []hasura.ObjectRelationship{fkConstraintRel("customer", customers)},
 			suggestions: []suggestedRelationship{
 				objectSuggestion(orders, customers),
+				objectSuggestion(orders, products),
+			},
+			want: []suggestedRelationship{
+				objectSuggestion(orders, products),
+			},
+		},
+		{
+			name: "filters relationship tracked via manual_configuration",
+			rels: []hasura.ObjectRelationship{manualConfigRel("customer", customers)},
+			suggestions: []suggestedRelationship{
+				objectSuggestion(orders, customers),
+			},
+			want: nil,
+		},
+		{
+			name: "keeps suggestion when manual_configuration targets a different table",
+			rels: []hasura.ObjectRelationship{manualConfigRel("customer", customers)},
+			suggestions: []suggestedRelationship{
 				objectSuggestion(orders, products),
 			},
 			want: []suggestedRelationship{

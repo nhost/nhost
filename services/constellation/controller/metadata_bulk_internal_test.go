@@ -233,6 +233,10 @@ func TestDispatch_BulkAtomic_AllIdempotent_NoBump(t *testing.T) {
 	}
 
 	results, _ := body["bulk"].([]any)
+	if len(results) != 2 {
+		t.Fatalf("bulk results = %d, want 2", len(results))
+	}
+
 	for i, r := range results {
 		m, _ := r.(map[string]any)
 		if m["message"] != "already-tracked" {

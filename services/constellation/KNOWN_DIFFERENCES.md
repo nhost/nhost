@@ -131,3 +131,24 @@ BEGIN
 END;
 $$;
 ```
+
+# Bulk metadata response shape
+
+The `bulk` / `bulk_atomic` / `bulk_keep_going` success body is emitted as
+`{"bulk": [<per-child result>, ...]}`, whereas Hasura returns the per-child
+results as a bare top-level JSON array (`[<per-child result>, ...]`). The wrapper
+is a constraint of the generated OpenAPI response type
+(`api.MetadataRequest200JSONResponse` is a `map[string]interface{}` and cannot
+represent a bare array), not a deliberate behavioural choice. Per-child entries
+themselves match Hasura. The Nhost dashboard only reads the bulk body on the
+error path (where shapes already match), so no known client breaks; a client
+reading bulk results positionally per Hasura's documented shape would need to
+unwrap the `bulk` key.
+
+# Read ops as bulk children
+
+Read-only metadata ops (`pg_suggest_relationships`, `pg_get_viewdef`) are served
+in the single-op path but are not accepted as children of a `bulk` /
+`bulk_atomic` / `bulk_keep_going` request (they return `not-supported`). Hasura
+permits read commands inside `bulk`. No known client is affected — the dashboard's
+read bulks target `/v2/query`, not `/v1/metadata`.

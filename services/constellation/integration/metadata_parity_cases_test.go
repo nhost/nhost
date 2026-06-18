@@ -212,7 +212,12 @@ func TestMetadataParity(t *testing.T) { //nolint:paralleltest
 				createSelDept + `,` +
 				`{"type":"pg_create_delete_permission","args":{"source":"default","table":` + dept + `,"role":"` + role + `","permission":{"filter":{}}}}` +
 				`]}`,
-			knownDivergence: "Hasura's bulk_atomic does not support permission commands; Constellation does (superset)",
+			// Hard-assert Constellation actually accepts the bulk_atomic permission
+			// op (2xx) rather than only logging Hasura's 500 and dropping the case;
+			// without this the case would pass even if the superset support
+			// regressed entirely.
+			wantConstellationOK: true,
+			knownDivergence:     "Hasura's bulk_atomic does not support permission commands; Constellation does (superset)",
 		},
 
 		// ---- idempotent re-apply: Constellation returns 200 + idempotency code
