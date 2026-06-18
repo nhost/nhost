@@ -1,4 +1,12 @@
-import { Anchor, Ellipsis, SquarePen, Trash2, Users } from 'lucide-react';
+import {
+  Anchor,
+  Ellipsis,
+  FilePen,
+  FileSearch,
+  SquarePen,
+  Trash2,
+  Users,
+} from 'lucide-react';
 import Link from 'next/link';
 import { useRouter } from 'next/router';
 import { useRef, useState } from 'react';
@@ -11,6 +19,11 @@ import {
   DropdownMenuItem,
   DropdownMenuTrigger,
 } from '@/components/ui/v3/dropdown-menu';
+import {
+  Tooltip,
+  TooltipContent,
+  TooltipTrigger,
+} from '@/components/ui/v3/tooltip';
 import type { BaseActionFormTriggerProps } from '@/features/orgs/projects/actions/components/BaseActionForm';
 import { DeleteActionDialog } from '@/features/orgs/projects/actions/components/DeleteActionDialog';
 import { EditActionForm } from '@/features/orgs/projects/actions/components/EditActionForm';
@@ -33,6 +46,8 @@ export default function ActionListItem({ action }: ActionListItemProps) {
   const editTriggerRef = useRef<BaseActionFormTriggerProps | null>(null);
   const isSelected = action.name === actionSlug;
   const href = `/orgs/${orgSlug}/projects/${appSubdomain}/graphql/actions/${action.name}`;
+  const actionType = action.definition.type ?? 'mutation';
+  const ActionIcon = actionType === 'query' ? FileSearch : FilePen;
   const [isMenuOpen, setIsMenuOpen] = useState(false);
 
   const [showDeleteActionDialog, setShowDeleteActionDialog] = useState(false);
@@ -107,12 +122,20 @@ export default function ActionListItem({ action }: ActionListItemProps) {
             <Link
               href={href}
               className={cn(
-                'flex h-full w-[calc(100%-1.6rem)] items-center p-[0.625rem] pr-0 text-left',
+                'flex h-full w-[calc(100%-1.6rem)] items-center gap-1.5 p-[0.625rem] pr-0 text-left',
                 {
                   'text-primary-main': isSelected,
                 },
               )}
             >
+              <Tooltip>
+                <TooltipTrigger asChild>
+                  <ActionIcon className="h-4 w-4 shrink-0 text-primary" />
+                </TooltipTrigger>
+                <TooltipContent side="left" sideOffset={8}>
+                  {actionType === 'query' ? 'Query' : 'Mutation'}
+                </TooltipContent>
+              </Tooltip>
               <TextWithTooltip
                 containerClassName="w-full"
                 className={cn('!truncate text-sm+', {

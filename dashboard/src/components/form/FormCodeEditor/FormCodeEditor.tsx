@@ -19,8 +19,6 @@ interface FormCodeEditorProps<
   control: Control<TFieldValues>;
   name: TName;
   label: ReactNode;
-  /** Absolutely-positioned content layered over the editor (e.g. a copy button). */
-  overlay?: ReactNode;
   /** Rendered between the editor and the validation message (e.g. helper text). */
   children?: ReactNode;
   extensions?: ReactCodeMirrorProps['extensions'];
@@ -36,7 +34,6 @@ export default function FormCodeEditor<
   control,
   name,
   label,
-  overlay,
   children,
   extensions,
   readOnly = false,
@@ -55,7 +52,7 @@ export default function FormCodeEditor<
             {label}
           </FormLabel>
           <FormControl>
-            <div className="relative">
+            <div>
               <CodeMirror
                 aria-label={ariaLabel}
                 value={field.value as string}
@@ -76,7 +73,6 @@ export default function FormCodeEditor<
                   className,
                 )}
               />
-              {overlay}
             </div>
           </FormControl>
           {children}

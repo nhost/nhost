@@ -2,8 +2,9 @@ import {
   ArrowDownToLine,
   ArrowRightLeft,
   ArrowUpFromLine,
+  FilePen,
+  FileSearch,
   MessageSquareText,
-  Workflow,
 } from 'lucide-react';
 import { useRouter } from 'next/router';
 import {
@@ -77,6 +78,7 @@ export default function ActionDetails() {
 
   const { comment, definition } = action!;
   const actionType = definition.type ?? 'mutation';
+  const ActionTypeIcon = actionType === 'query' ? FileSearch : FilePen;
   const hasHeaders = Boolean(definition.forward_client_headers);
   const hasMetadata = isNotEmptyValue(comment) || hasHeaders;
 
@@ -86,7 +88,7 @@ export default function ActionDetails() {
         <div className="pb-4">
           <div className="flex items-start gap-3">
             <div className="flex size-12 shrink-0 items-center justify-center rounded-md bg-muted">
-              <Workflow className="h-6 w-6 text-foreground" />
+              <ActionTypeIcon className="h-6 w-6 text-foreground" />
             </div>
             <div className="min-w-0">
               <h1 className="mb-1 font-semibold text-foreground text-xl">

@@ -1,6 +1,6 @@
 import { zodResolver } from '@hookform/resolvers/zod';
 import { graphql } from 'cm6-graphql';
-import { PlusIcon, TrashIcon } from 'lucide-react';
+import { PlusIcon, TrashIcon, TriangleAlert } from 'lucide-react';
 import {
   type ReactNode,
   useCallback,
@@ -34,7 +34,6 @@ import {
   SheetHeader,
   SheetTitle,
 } from '@/components/ui/v3/sheet';
-import { CopyToLlmButton } from '@/features/orgs/projects/actions/components/CopyToLlmButton';
 import { getOverlappingCustomTypenames } from '@/features/orgs/projects/actions/utils/buildActionDTO';
 import { getActionSampleInputPayload } from '@/features/orgs/projects/actions/utils/getActionSampleInputPayload';
 import { parseActionDefinitionSdl } from '@/features/orgs/projects/actions/utils/parseActionDefinitionSdl';
@@ -321,12 +320,6 @@ export default function BaseActionForm({
                         </InfoTooltip>
                       </>
                     }
-                    overlay={
-                      <CopyToLlmButton
-                        target="definition"
-                        className="absolute top-2 right-2 z-10"
-                      />
-                    }
                   />
                   <FormCodeEditor
                     control={form.control}
@@ -342,19 +335,20 @@ export default function BaseActionForm({
                         </InfoTooltip>
                       </>
                     }
-                    overlay={
-                      <CopyToLlmButton
-                        target="types"
-                        className="absolute top-2 right-2 z-10"
-                      />
-                    }
                   >
                     {overlappingTypenames.length > 0 && (
-                      <p className="text-muted-foreground text-xs">
-                        The following types already exist and will be
-                        overwritten when saving:{' '}
-                        {overlappingTypenames.join(', ')}
-                      </p>
+                      <div className="rounded-lg border border-amber-500/30 bg-amber-500/10 px-3 py-2">
+                        <div className="flex items-start gap-2">
+                          <TriangleAlert className="size-5 shrink-0 text-amber-500" />
+                          <p className="text-pretty text-muted-foreground text-sm">
+                            The following types already exist and will be
+                            overwritten when saving:{' '}
+                            <span className="font-medium text-foreground">
+                              {overlappingTypenames.join(', ')}
+                            </span>
+                          </p>
+                        </div>
+                      </div>
                     )}
                   </FormCodeEditor>
                   <Separator />
