@@ -18,7 +18,7 @@ env:
   # nhost-code checks job and fetched through the configured Nix substituters.
   # Update after the main-branch check builds a new package by copying the
   # path printed by `nix path-info .#nhost-code` in the aarch64-linux job logs.
-  NHOST_CODE_AARCH64_LINUX_STORE_PATH: /nix/store/pg74ssmq5bqkdw0mkmhsdakq8baf7v21-nhost-code-0.79.4
+  NHOST_CODE_AARCH64_LINUX_STORE_PATH: /nix/store/1fa1isf3llz6qgdidwx3j16lc9i0p2n8-nhost-code-0.79.4
 jobs:
   nhost-code-review:
     # Coarse trigger gate. This only filters obvious non-triggers; the
