@@ -57,6 +57,7 @@ var ErrBulkNestingTooDeep = errors.New("bulk nesting too deep")
 // ops for. Everything else (table tracking, permissions, functions, event
 // triggers, reads, whole-metadata, and nested bulk) is rejected by Hasura's
 // bulk_atomic, and Constellation matches that.
+//
 //nolint:gochecknoglobals // immutable lookup set, mirrors Hasura's bulk_atomic whitelist.
 var bulkAtomicWhitelist = map[string]struct{}{
 	opPgCreateObjectRelationship: {},
