@@ -21,9 +21,6 @@ const (
 // is not in the source's Functions list. Maps to "not-exists".
 var ErrFunctionNotTracked = errors.New("function not tracked")
 
-// CodeAlreadyTrackedFn — pg_track_function on an already-tracked function.
-// Reuses CodeAlreadyTracked from ops_postgres.go.
-
 func findFunction(db *hasura.DatabaseMetadata, f hasura.FunctionSource) *hasura.FunctionMetadata {
 	for i := range db.Functions {
 		if db.Functions[i].Function.Schema == f.Schema &&

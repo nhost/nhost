@@ -4,6 +4,7 @@ import (
 	"errors"
 	"fmt"
 	"log/slog"
+	"strings"
 	"testing"
 	"time"
 
@@ -326,5 +327,81 @@ func TestDatabaseMetadataSource_Integration_WriteMetadata_Conflict(t *testing.T)
 
 	if blob != liveBlob {
 		t.Errorf("metadata blob changed on conflict: got %q, want %q", blob, liveBlob)
+	}
+}
+
+// TestNewDatabaseBackedStore_Integration_SeedsAndWritesThrough exercises the
+// production constructor end-to-end: it seeds hdb_metadata, builds a
+// DatabaseMetadataSource, and constructs the Store via NewDatabaseBackedStore
+// (the path cmd/serve.go uses). Controller tests bypass this constructor via
+// NewStore+BootstrapFromJSON, and the other integration tests only cover
+// NewDatabaseMetadataSource — so its seeding and dbSrc-as-writer wiring were
+// otherwise untested. Asserts the seeded snapshot is reflected and that an
+// Apply through the Store persists back to hdb_metadata.
+func TestNewDatabaseBackedStore_Integration_SeedsAndWritesThrough(t *testing.T) {
+	t.Parallel()
+
+	pool := testdb.NewPostgres(t, hdbMetadataDDL, seedV3Metadata(7))
+	dbURL := pool.Config().ConnConfig.ConnString()
+
+	src, err := source.NewDatabaseMetadataSource(
+		t.Context(), dbURL, time.Hour, slog.New(slog.DiscardHandler),
+	)
+	if err != nil {
+		t.Fatalf("NewDatabaseMetadataSource: %v", err)
+	}
+
+	defer src.Close()
+
+	store, err := source.NewDatabaseBackedStore(t.Context(), src)
+	if err != nil {
+		t.Fatalf("NewDatabaseBackedStore: %v", err)
+	}
+
+	defer store.Close()
+
+	// Seeded snapshot is reflected in the Store.
+	if rv := store.ResourceVersion(); rv != 7 {
+		t.Errorf("ResourceVersion = %d, want 7", rv)
+	}
+
+	raw, rv := store.HasuraSnapshotJSON()
+	if rv != 7 {
+		t.Errorf("HasuraSnapshotJSON rv = %d, want 7", rv)
+	}
+
+	if len(raw) == 0 {
+		t.Fatal("HasuraSnapshotJSON returned empty snapshot")
+	}
+
+	meta, err := store.InitialLoad(t.Context())
+	if err != nil {
+		t.Fatalf("InitialLoad: %v", err)
+	}
+
+	if got := len(meta.Databases); got != 1 {
+		t.Fatalf("Databases len = %d, want 1", got)
+	}
+
+	// Writer wiring: an Apply through the Store must persist to hdb_metadata
+	// (dbSrc is the Store's MetadataWriter) and bump the version.
+	newRV, _, err := store.PgTrackTable(t.Context(), []byte(
+		`{"source":"default","table":{"schema":"public","name":"users"}}`,
+	))
+	if err != nil {
+		t.Fatalf("PgTrackTable: %v", err)
+	}
+
+	if newRV != 8 {
+		t.Errorf("rv after track = %d, want 8", newRV)
+	}
+
+	gotRaw, gotRV := readMetadataRow(t, pool)
+	if gotRV != 8 {
+		t.Errorf("db resource_version = %d, want 8", gotRV)
+	}
+
+	if !strings.Contains(gotRaw, "users") {
+		t.Errorf("db metadata missing tracked table 'users': %s", gotRaw)
 	}
 }
