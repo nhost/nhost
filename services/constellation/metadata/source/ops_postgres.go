@@ -5,6 +5,7 @@ import (
 	json "encoding/json/v2"
 	"errors"
 	"fmt"
+	"reflect"
 
 	"github.com/nhost/nhost/services/constellation/metadata/internal/hasura"
 )
@@ -208,6 +209,42 @@ type pgTrackTableArgs struct {
 	ArrayRelationships  []hasura.ArrayRelationship  `json:"array_relationships,omitempty"`
 }
 
+// validateInlineRelationshipNames rejects a pg_track_table payload whose inline
+// object/array relationship lists declare the same name more than once: a
+// duplicate within either list, or a name present in both. This mirrors the
+// reject-on-conflict contract of the dedicated pg_create_*_relationship ops
+// (which return ErrRelationshipExists) rather than silently deduplicating,
+// since silent dedup would diverge from those ops and hide a malformed payload.
+func validateInlineRelationshipNames(
+	objs []hasura.ObjectRelationship, arrs []hasura.ArrayRelationship,
+) error {
+	seen := make(map[string]struct{}, len(objs)+len(arrs))
+
+	for _, r := range objs {
+		if _, dup := seen[r.Name]; dup {
+			return fmt.Errorf(
+				"%w: inline relationship %q declared more than once",
+				ErrRelationshipExists, r.Name,
+			)
+		}
+
+		seen[r.Name] = struct{}{}
+	}
+
+	for _, r := range arrs {
+		if _, dup := seen[r.Name]; dup {
+			return fmt.Errorf(
+				"%w: inline relationship %q declared more than once",
+				ErrRelationshipExists, r.Name,
+			)
+		}
+
+		seen[r.Name] = struct{}{}
+	}
+
+	return nil
+}
+
 func buildPgTrackTable(argsJSON []byte) (MutationFn, error) {
 	var a pgTrackTableArgs
 	if err := json.Unmarshal(argsJSON, &a); err != nil {
@@ -231,6 +268,16 @@ func buildPgTrackTable(argsJSON []byte) (MutationFn, error) {
 
 		if findTable(db, a.Table) != nil {
 			return CodeAlreadyTracked, nil
+		}
+
+		// The dedicated pg_create_*_relationship ops reject duplicate names via
+		// ErrRelationshipExists. track_table's inline lists must uphold the same
+		// contract, otherwise a payload with colliding names persists
+		// self-inconsistent metadata that fails schema validation downstream.
+		if err := validateInlineRelationshipNames(
+			a.ObjectRelationships, a.ArrayRelationships,
+		); err != nil {
+			return "", err
 		}
 
 		db.Tables = append(db.Tables, hasura.TableMetadata{
@@ -324,6 +371,39 @@ type pgCreateObjectRelationshipArgs struct {
 	Comment string                   `json:"comment,omitempty"`
 }
 
+// relationshipReapplyCode decides the outcome of a pg_create_*_relationship
+// whose name already matches an existing object/array relationship on the same
+// table. A remote-derived match (a remote relationship lowered into a same-named
+// object/array entry by convertRemoteRelationships) is always treated as an
+// idempotent CodeAlreadyExists: its lowered definition deliberately diverges
+// from the wire args, so comparing it would spuriously report a conflict. For a
+// genuine object/array relationship, an identical definition (Using + Comment)
+// is the idempotent re-apply Hasura answers with already-exists at 200; a
+// changed definition is rejected with ErrRelationshipExists so the new
+// definition is not silently discarded (Hasura's reject-on-conflict, 400).
+func relationshipReapplyCode(
+	t *hasura.TableMetadata,
+	name string,
+	existingUsing hasura.RelationshipUsing,
+	existingComment string,
+	requestedUsing hasura.RelationshipUsing,
+	requestedComment string,
+) (IdempotencyCode, error) {
+	if relationshipIsRemoteDerived(t, name) {
+		return CodeAlreadyExists, nil
+	}
+
+	if reflect.DeepEqual(existingUsing, requestedUsing) &&
+		existingComment == requestedComment {
+		return CodeAlreadyExists, nil
+	}
+
+	return "", fmt.Errorf(
+		"%w: relationship %q already exists with a different definition",
+		ErrRelationshipExists, name,
+	)
+}
+
 //nolint:dupl // intentional mirror of buildPgCreateArrayRelationship; one per relationship kind.
 func buildPgCreateObjectRelationship(argsJSON []byte) (MutationFn, error) {
 	var a pgCreateObjectRelationshipArgs
@@ -353,7 +433,7 @@ func buildPgCreateObjectRelationship(argsJSON []byte) (MutationFn, error) {
 
 		for _, r := range t.ObjectRelationships {
 			if r.Name == a.Name {
-				return CodeAlreadyExists, nil
+				return relationshipReapplyCode(t, a.Name, r.Using, r.Comment, a.Using, a.Comment)
 			}
 		}
 
@@ -423,7 +503,7 @@ func buildPgCreateArrayRelationship(argsJSON []byte) (MutationFn, error) {
 
 		for _, r := range t.ArrayRelationships {
 			if r.Name == a.Name {
-				return CodeAlreadyExists, nil
+				return relationshipReapplyCode(t, a.Name, r.Using, r.Comment, a.Using, a.Comment)
 			}
 		}
 

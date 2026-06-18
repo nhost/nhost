@@ -52,6 +52,11 @@ type relationshipEndpoint struct {
 // for each FK. When OmitTracked is set, suggestions already present in
 // the snapshot are filtered.
 //
+// The SQL always targets the metadata/primary connection pool; the
+// source argument is used only to scope OmitTracked filtering and does
+// not select a different database. Multi-source or separated-metadata-DB
+// routing is not supported.
+//
 // Read-only: never bumps resource_version.
 func (s *Store) PgSuggestRelationships(
 	ctx context.Context, argsJSON []byte,
@@ -71,6 +76,8 @@ func (s *Store) PgSuggestRelationships(
 
 	source := defaultIfEmpty(a.Source)
 
+	// The query always runs against s.queryer (the metadata/primary pool);
+	// the source arg does not route to a different database.
 	suggestions, err := loadFKSuggestions(ctx, s.queryer, a.Tables)
 	if err != nil {
 		return nil, fmt.Errorf("loading FK suggestions: %w", err)
@@ -113,13 +120,15 @@ JOIN information_schema.referential_constraints rc
 JOIN information_schema.key_column_usage kcu
   ON kcu.constraint_schema = tc.constraint_schema
  AND kcu.constraint_name = tc.constraint_name
+ AND kcu.table_schema = tc.table_schema
+ AND kcu.table_name = tc.table_name
 JOIN information_schema.key_column_usage fkcu
   ON fkcu.constraint_schema = rc.unique_constraint_schema
  AND fkcu.constraint_name = rc.unique_constraint_name
  AND fkcu.ordinal_position = kcu.position_in_unique_constraint
 WHERE tc.constraint_type = 'FOREIGN KEY'
   AND tc.table_schema NOT IN ('hdb_catalog', 'information_schema', 'pg_catalog')
-ORDER BY tc.constraint_schema, tc.constraint_name, kcu.ordinal_position`
+ORDER BY tc.constraint_schema, tc.table_schema, tc.table_name, tc.constraint_name, kcu.ordinal_position`
 
 // foreignKey is one FK constraint with its ordered referencing/referenced
 // column lists (a single entry for composite keys).
@@ -184,8 +193,10 @@ func loadFKSuggestions(
 
 // collectForeignKeys folds the per-column rows of suggestRelationshipsSQL into
 // one foreignKey per constraint. It relies on the query's ORDER BY so a
-// constraint's columns arrive contiguously: a row whose (schema, name) differs
-// from the previous one starts a new foreignKey.
+// constraint's columns arrive contiguously: a row whose
+// (constraint_schema, from_table, constraint_name) differs from the previous
+// one starts a new foreignKey. The referencing table is part of the key
+// because Postgres constraint names are unique per table, not per schema.
 func collectForeignKeys(rows pgx.Rows) ([]foreignKey, error) {
 	var (
 		fks    []foreignKey
@@ -207,7 +218,11 @@ func collectForeignKeys(rows pgx.Rows) ([]foreignKey, error) {
 			return nil, fmt.Errorf("scanning FK row: %w", err)
 		}
 
-		key := constraintSchema + "\x00" + constraintName
+		// Postgres constraint names are unique per table, not per schema, so
+		// the grouping key must include the referencing table (from_table /
+		// tc.table_name). Keying on (schema, name) alone would merge two
+		// same-named FKs on different tables into one corrupt suggestion.
+		key := constraintSchema + "\x00" + fromTable + "\x00" + constraintName
 		if len(fks) == 0 || key != curKey {
 			fks = append(fks, foreignKey{
 				from:        hasura.TableSource{Schema: fromSchema, Name: fromTable, Unknown: nil},
@@ -334,6 +349,11 @@ type pgGetViewdefArgs struct {
 }
 
 // PgGetViewdef returns the SQL definition of a view via pg_get_viewdef.
+//
+// The SQL always targets the metadata/primary connection pool; the
+// source argument does not select a different database. Multi-source or
+// separated-metadata-DB routing is not supported.
+//
 // Read-only.
 func (s *Store) PgGetViewdef(
 	ctx context.Context, argsJSON []byte,
@@ -358,6 +378,8 @@ func (s *Store) PgGetViewdef(
 
 	regclass := fmt.Sprintf("%s.%s", quoteIdent(a.Table.Schema), quoteIdent(a.Table.Name))
 
+	// The query always runs against s.queryer (the metadata/primary pool);
+	// the source arg does not route to a different database.
 	err := s.queryer.QueryRow(
 		ctx, "SELECT pg_get_viewdef($1::regclass, true)", regclass,
 	).Scan(&def)

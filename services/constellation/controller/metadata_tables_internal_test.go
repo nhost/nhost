@@ -3,6 +3,7 @@ package controller
 import (
 	"context"
 	"net/http"
+	"strings"
 	"testing"
 
 	"github.com/jackc/pgx/v5"
@@ -225,7 +226,7 @@ func TestDispatch_PgCreateObjectRelationship_PersistsComment(t *testing.T) {
 	}
 
 	raw, _ := store.HasuraSnapshotJSON()
-	if got := string(raw); !contains(got, `"comment":"the owner"`) {
+	if got := string(raw); !strings.Contains(got, `"comment":"the owner"`) {
 		t.Errorf("snapshot missing relationship comment; raw = %s", got)
 	}
 }
