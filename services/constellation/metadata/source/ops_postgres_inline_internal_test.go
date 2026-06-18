@@ -108,11 +108,21 @@ func TestPgTrackTable_InlineRelationships(t *testing.T) {
 
 			tbl := findTrackedTable(t, meta, tc.table)
 
-			if names := objNames(tbl.ObjectRelationships); !equalUnordered(names, []string{"customer", "seller"}) {
+			if names := objNames(
+				tbl.ObjectRelationships,
+			); !equalUnordered(
+				names,
+				[]string{"customer", "seller"},
+			) {
 				t.Errorf("object relationships = %v, want [customer seller]", names)
 			}
 
-			if names := arrNames(tbl.ArrayRelationships); !equalUnordered(names, []string{"items"}) {
+			if names := arrNames(
+				tbl.ArrayRelationships,
+			); !equalUnordered(
+				names,
+				[]string{"items"},
+			) {
 				t.Errorf("array relationships = %v, want [items]", names)
 			}
 		})
