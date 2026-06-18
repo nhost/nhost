@@ -222,6 +222,12 @@ func (s *Store) InitialLoad(_ context.Context) (*metadata.Metadata, error) {
 // is called or ctx is cancelled. Updates are best-effort: the channel is
 // buffered to depth 1; a slow consumer that misses an Update sees only
 // the newest state on the next read.
+//
+// Watch must be called exactly once (mirroring DatabaseMetadataSource.Watch).
+// The returned channel is shared, and the spawned goroutine closes it when ctx
+// is cancelled — so a second concurrent caller would have its channel closed
+// out from under it when the first caller's ctx is done. There is a single
+// consumer in practice (the controller hot-reload loop).
 func (s *Store) Watch(ctx context.Context) <-chan metadata.Update {
 	go func() {
 		<-ctx.Done()
