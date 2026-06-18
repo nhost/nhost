@@ -1,4 +1,4 @@
-package source //nolint:testpackage // drives the unexported listen loop directly
+package source
 
 import (
 	"context"
@@ -47,6 +47,7 @@ func TestListenAndReload_ReturnsImmediatelyWhenAlreadyCancelled(t *testing.T) {
 	done := make(chan struct{})
 	go func() {
 		defer close(done)
+
 		ListenAndReload(ctx, "postgres://127.0.0.1:1/cstl", &recordingReloader{}, discardLogger())
 	}()
 
