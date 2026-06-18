@@ -152,7 +152,7 @@ In **database mode** the dashboard's database/permissions/functions/events tabs 
 
 - **Tables**: `pg_track_table`, `pg_untrack_table` (with `cascade`), `pg_set_table_customization`, `pg_set_table_is_enum`
 - **Relationships**: `pg_create_object_relationship`, `pg_create_array_relationship`, `pg_drop_relationship`, `pg_rename_relationship`, `pg_suggest_relationships`, `pg_create_remote_relationship`, `pg_delete_remote_relationship`
-- **Permissions**: 8 ops — `pg_{create,drop}_{select,insert,update,delete}_permission` plus `pg_create_function_permission` / `pg_drop_function_permission`
+- **Permissions**: the four CRUD verbs each have create/drop ops — `pg_{create,drop}_{select,insert,update,delete}_permission` (8) — plus `pg_create_function_permission` / `pg_drop_function_permission` (10 total)
 - **Functions**: `pg_track_function`, `pg_untrack_function`, `pg_set_function_customization`
 - **Event triggers (config-only)**: `pg_create_event_trigger`, `pg_delete_event_trigger`. The runtime ops (`pg_redeliver_event`, `pg_invoke_event_trigger`, `pg_get_event_logs`, `pg_get_event_by_id`) return `not-supported` until event delivery ships.
 - **Reads**: `pg_get_viewdef`, `pg_suggest_relationships`

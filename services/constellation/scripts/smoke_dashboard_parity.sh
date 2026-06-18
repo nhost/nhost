@@ -19,6 +19,14 @@ set -euo pipefail
 URL="${CONSTELLATION_URL:-http://localhost:8000}/v1/metadata"
 SECRET="${CONSTELLATION_ADMIN_SECRET:-nhost-admin-secret}"
 
+# The smoke ops track/untrack public.smoke_users, so the table has to exist in
+# the database constellation points at. Create it directly via psql in the
+# integration Postgres container (matches `make run-up-dbsource`) so the script
+# is self-contained and does not assume a pre-seeded fixture. Override
+# PG_CONTAINER / PG_DATABASE to point at a different setup.
+PG_CONTAINER="${PG_CONTAINER:-integration-postgres-1}"
+PG_DATABASE="${PG_DATABASE:-local}"
+
 body_file=$(mktemp)
 trap 'rm -f "$body_file"' EXIT
 
@@ -64,6 +72,14 @@ call() {
 echo "Target: $URL"
 echo
 
+echo "== Setup (create public.smoke_users) =="
+if ! docker exec "$PG_CONTAINER" psql -U postgres -d "$PG_DATABASE" -v ON_ERROR_STOP=1 \
+    -c 'CREATE TABLE IF NOT EXISTS public.smoke_users (id serial PRIMARY KEY, email text);'; then
+    echo "FAIL: could not create public.smoke_users in $PG_CONTAINER/$PG_DATABASE"
+    exit 1
+fi
+
+echo
 echo "== Tables =="
 call pg_track_table \
     '{"type":"pg_track_table","args":{"source":"default","table":{"schema":"public","name":"smoke_users"}}}'
@@ -128,6 +144,11 @@ call 'pg_delete_event_trigger' \
     '{"type":"pg_delete_event_trigger","args":{"source":"default","table":{"schema":"public","name":"smoke_users"},"name":"smoke_trigger"}}'
 call 'pg_untrack_table' \
     '{"type":"pg_untrack_table","args":{"source":"default","table":{"schema":"public","name":"smoke_users"}}}'
+
+# Drop the table we created in setup so reruns start clean (the metadata was
+# already untracked above).
+docker exec "$PG_CONTAINER" psql -U postgres -d "$PG_DATABASE" -v ON_ERROR_STOP=1 \
+    -c 'DROP TABLE IF EXISTS public.smoke_users;' >/dev/null
 
 echo
 echo "All smoke ops succeeded."

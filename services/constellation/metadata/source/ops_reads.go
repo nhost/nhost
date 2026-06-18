@@ -376,6 +376,10 @@ func (s *Store) PgGetViewdef(
 		return nil, ErrReadOpRequiresDB
 	}
 
+	if !s.initOnce.Load() {
+		return nil, ErrStoreNotInitialized
+	}
+
 	var def string
 
 	regclass := fmt.Sprintf("%s.%s", quoteIdent(a.Table.Schema), quoteIdent(a.Table.Name))
