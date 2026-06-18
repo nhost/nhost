@@ -153,6 +153,39 @@ in the single-op path but are not accepted as children of a `bulk` /
 permits read commands inside `bulk`. No known client is affected — the dashboard's
 read bulks target `/v2/query`, not `/v1/metadata`.
 
+# pg_untrack_table cascade scope
+
+`pg_untrack_table` with `cascade=true` reproduces Hasura's transitive cascade:
+beyond the table and its own dependents, it drops every metadata object that
+depends on the table — object/array/remote relationships that point at it
+(including bare `foreign_key_constraint_on` relationships and cross-source
+`to_source` remote relationships), functions whose return type is the table, and
+permissions whose row filter references it (directly via `_exists` or through a
+relationship path that lands on it). Resolving bare foreign-key relationships and
+function return types requires introspecting the source's data database; the
+single-op handler opens a short-lived connection (from the source's
+`connection_info.database_url`) to do so.
+
+When that introspection is unavailable, the cascade degrades to a **metadata-only**
+sweep — explicit-target relationships (`manual_configuration` /
+`foreign_key_constraint_on` with a target table), cross-source remote
+relationships, and permissions referencing the table directly via `_exists` are
+still dropped, but bare foreign-key relationships and function drops are left in
+the exported metadata and instead discarded from the live schema at reconcile as
+inconsistencies. The metadata-only path applies in three cases:
+
+- the source has no resolvable data URL (file-source deployments, or a
+  `from_env` connection URL whose variable is unset);
+- the data database is unreachable when the op runs;
+- `pg_untrack_table` appears as a child of a `bulk` / `bulk_atomic` /
+  `bulk_keep_going` request — the bulk machinery composes pure
+  `MutationFn(*hasura.Metadata)` closures and has no database handle to
+  introspect, so bulk children always take the metadata-only path.
+
+Only function **return-type** dependencies are cascaded (matching how Hasura
+tracks function output types); a function is never dropped for referencing the
+table only in its body or argument types.
+
 # Whole-metadata ops as bulk children
 
 The whole-metadata ops `replace_metadata`, `clear_metadata`, and
