@@ -71,6 +71,18 @@ in a second step after the DELETE statement completes, potentially within the
 same transaction; Constellation keeps the single statement and returns the rows
 it captured.
 
+# Non-atomic bulk metadata ops and partial resource_version advance
+
+The non-atomic `bulk` and `bulk_keep_going` metadata ops apply their child
+operations sequentially, and each successful child bumps `resource_version`
+independently. A failure partway through a `bulk` therefore leaves the children
+that already succeeded persisted, with the metadata `resource_version` advanced
+past its starting value (a partial advance). Only `bulk_atomic` is
+all-or-nothing — its children either all apply or all roll back, with a single
+`resource_version` bump. This is not a divergence from Hasura: it matches
+Hasura's non-transactional behavior for `bulk`/`bulk_keep_going`, and is noted
+here only as a clarification.
+
 # Functions
 
 Functions can return either SETOF <table> (0-many rows) or just <table> (exactly one row). Hasura allows filtering, ordering and limitting on functions that return <table>, which feels wrong since the function is only supposed to return one row. Hence, constellation does not expose where, limit, order_by, etc for functions that return a single row.

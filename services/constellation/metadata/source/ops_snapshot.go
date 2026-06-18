@@ -49,11 +49,12 @@ func (s *Store) ReplaceMetadata(
 		return 0, "", fmt.Errorf("parsing replace_metadata payload: %w", err)
 	}
 
-	if expectedRV != nil && *expectedRV != s.ResourceVersion() {
-		return 0, "", ErrResourceVersionConflict
-	}
-
-	rv, err := s.Apply(ctx, func(h *hasura.Metadata) error {
+	// Thread the caller's expected resource_version into the locked write so the
+	// optimistic-concurrency precondition is enforced atomically with the swap.
+	// Checking it here (outside Apply's lock) would leave a window in which a
+	// concurrent admin mutation could bump the version between the check and the
+	// write, silently discarding that change instead of returning a conflict.
+	rv, err := s.apply(ctx, expectedRV, func(h *hasura.Metadata) error {
 		*h = *newH
 
 		return nil
@@ -161,4 +162,49 @@ func (s *Store) ReloadMetadata(ctx context.Context, _ []byte) (int64, Idempotenc
 	s.broadcastLocked(metadata.Update{Metadata: s.native, Err: nil})
 
 	return rv, "", nil
+}
+
+// ReloadIfStale reloads the in-memory snapshot from the database only when
+// notifiedRV is newer than the version the Store currently holds. It is the
+// callback the cross-replica notify listener invokes (see ListenAndReload): a
+// notifiedRV of 0 — an unparseable payload — forces an unconditional reload.
+// When the Store is already at or ahead of notifiedRV this is a no-op, so a
+// replica does not pointlessly reload in response to its own write.
+func (s *Store) ReloadIfStale(
+	ctx context.Context, notifiedRV int64,
+) (int64, IdempotencyCode, error) {
+	if notifiedRV != 0 && notifiedRV <= s.ResourceVersion() {
+		return s.ResourceVersion(), "", nil
+	}
+
+	return s.ReloadMetadata(ctx, nil)
+}
+
+// ReconcileAfterProxy refreshes the in-memory snapshot from the database after
+// a metadata op was forwarded to the Hasura upstream proxy. The upstream writes
+// to the same hdb_catalog.hdb_metadata the Store owns, so without this the
+// native snapshot (and export_metadata) would not reflect the proxied change.
+// When the proxied op actually advanced the version it also announces the
+// change to peer replicas, since the upstream's own write does not emit
+// Constellation's notification. A Store with no database handle (file source)
+// has nothing to reconcile and returns nil.
+func (s *Store) ReconcileAfterProxy(ctx context.Context) error {
+	if s.queryer == nil {
+		return nil
+	}
+
+	before := s.ResourceVersion()
+
+	rv, _, err := s.ReloadMetadata(ctx, nil)
+	if err != nil {
+		return err
+	}
+
+	if rv > before {
+		if err := notifyMetadataChange(ctx, s.queryer, rv); err != nil {
+			return fmt.Errorf("notifying peers after proxied write: %w", err)
+		}
+	}
+
+	return nil
 }

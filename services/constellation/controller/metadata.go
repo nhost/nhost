@@ -7,11 +7,13 @@ import (
 	"errors"
 	"fmt"
 	"io"
+	"log/slog"
 	"net/http"
 
 	"github.com/gin-gonic/gin"
 	"github.com/nhost/nhost/services/constellation/api"
 	"github.com/nhost/nhost/services/constellation/controller/middleware"
+	"github.com/nhost/nhost/services/constellation/metadata/source"
 )
 
 type (
@@ -142,6 +144,8 @@ func (c *Controller) MetadataRequest( //nolint:ireturn
 			proxy:   c.hasuraProxy,
 			inbound: inboundRequestFromContext(ctx),
 			raw:     rawBodyFromContext(ctx),
+			store:   c.store,
+			logger:  c.logger,
 		}, nil
 	}
 
@@ -160,6 +164,8 @@ func (c *Controller) MetadataRequest( //nolint:ireturn
 			proxy:   c.hasuraProxy,
 			inbound: inboundRequestFromContext(ctx),
 			raw:     rawBodyFromContext(ctx),
+			store:   c.store,
+			logger:  c.logger,
 		}, nil
 	}
 
@@ -197,6 +203,11 @@ type metadataProxyResponse struct {
 	proxy   http.Handler
 	inbound *http.Request
 	raw     []byte
+	// store, when non-nil, is reconciled from the database after the proxied
+	// op so its native snapshot reflects the upstream's write to the shared
+	// hdb_metadata. Nil in all-proxy (no Store) mode.
+	store  *source.Store
+	logger *slog.Logger
 }
 
 var errMetadataProxyMissingRequest = errors.New(
@@ -215,6 +226,19 @@ func (r metadataProxyResponse) VisitMetadataRequestResponse(w http.ResponseWrite
 
 	r.proxy.ServeHTTP(w, proxyReq)
 
+	// The upstream wrote to the shared hdb_metadata; refresh the in-process
+	// store so its native snapshot (and export_metadata) reflects the proxied
+	// change and peer replicas are notified. Detached from the request context
+	// so the reconcile read is not aborted as the response completes.
+	if r.store != nil {
+		ctx := context.WithoutCancel(r.inbound.Context())
+		if err := r.store.ReconcileAfterProxy(ctx); err != nil && r.logger != nil {
+			r.logger.ErrorContext(
+				ctx, "reconciling metadata store after proxied write failed", "error", err,
+			)
+		}
+	}
+
 	return nil
 }
 
@@ -226,6 +250,10 @@ func metadataErrorResponse( //nolint:ireturn
 	code, message, path string,
 ) api.MetadataRequestResponseObject {
 	response := api.MetadataRequest400JSONResponse{}
+	// FromMetadataError only returns an error if json.Marshal of the
+	// MetadataError fails; with two strings, a *string, and a nil map that
+	// cannot happen, and it builds an in-memory value rather than writing the
+	// HTTP response, so the error is safe to drop.
 	_ = response.FromMetadataError(api.MetadataError{
 		Code:     code,
 		Error:    message,

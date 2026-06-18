@@ -26,7 +26,10 @@ code that actually consumes each field (`connector/sql/graphql/schema`,
 > allowlists, etc. will **load without error** — those features simply will not
 > exist in the served API. The same is true field-by-field: a `limit` on a select
 > permission, or a `pool_settings` block, is accepted and thrown away. Treat
-> ⚪/❌ rows as *silently inert*, not *rejected*.
+> ⚪/❌ rows as *silently inert*, not *rejected*. (One partial exception: on the
+> DB metadata source, event-trigger config is *stored* and round-trips through
+> `export_metadata` even though no delivery runtime fires the triggers — see
+> [Event triggers](#entirely-unsupported-feature-areas).)
 
 ## How Constellation reads Hasura metadata
 
@@ -218,7 +221,7 @@ array_relationships:
 |---|---|---|
 | `foreign_key_constraint_on: <column>` (string) | ✅ | FK on this table. |
 | `foreign_key_constraint_on: { column, table }` | ✅ | FK on the remote table pointing back. |
-| `foreign_key_constraint_on: [col1, col2]` / `{ columns: […], table }` | ❌ | **Composite (multi-column) foreign keys are not parsed** — only a single-column string or a single `column` object are recognized. A composite form is silently dropped, yielding no relationship. Use `manual_configuration` with a multi-entry `column_mapping` instead. |
+| `foreign_key_constraint_on: [col1, col2]` / `{ columns: […], table }` | ✅ | **Composite (multi-column) foreign keys are supported** in both the array form (`[col1, col2]`, forward FK on this table) and the object form (`{ columns, table }`, reverse FK on the target table). They are parsed, resolved against the introspected FKs, and build working multi-column relationships (forward and reverse). The only narrow caveat is that the bare array form carries no explicit target-table hint, so its target is inferred from the matching introspected FK rather than declared. |
 | `using.manual_configuration` (`remote_table`, `column_mapping`) | ✅ | Multi-entry `column_mapping` forms a composite join key. |
 | `using.manual_configuration.insertion_order` (array rels) | ⚪ | Dropped. |
 | relationship `comment` | ⚪ | Dropped. |
@@ -333,13 +336,15 @@ Full details: [`docs/user/remote-schema.md`](./remote-schema.md) and
 These Hasura metadata sections have **no representation** in Constellation. When
 present in a Hasura metadata file or `hdb_metadata` blob they are dropped on load
 (no error); when configured through Hasura's Metadata API they have no effect on
-what Constellation serves.
+what Constellation serves. **Exception:** event triggers are a partial case —
+on the DB metadata source their config is stored and round-trips through
+`export_metadata` (no runtime fires them); see the row below.
 
 | Hasura feature | Metadata operations | Status |
 |---|---|---|
 | **Actions** | `create_action`, `create_action_permission`, … | ❌ |
 | **Custom types** | `set_custom_types` | ❌ |
-| **Event triggers** | `*_create_event_trigger`, … | ❌ |
+| **Event triggers** | `pg_create_event_trigger`, `pg_delete_event_trigger`, … | 🟡 — **Metadata authoring only (DB source).** `pg_create_event_trigger`/`pg_delete_event_trigger` are stored and the `event_triggers` key round-trips through `export_metadata`. No event-delivery runtime executes them (triggers never fire), and the file/YAML source still drops them (the struct field is tagged `yaml:"-"`). |
 | **Cron / scheduled triggers** | `create_cron_trigger`, `create_scheduled_event` | ❌ |
 | **Query collections** | `create_query_collection`, `add_query_to_collection` | ❌ |
 | **Allowlist** | `add_collection_to_allowlist`, … | ❌ |
@@ -354,7 +359,7 @@ what Constellation serves.
 | **Logical models** | `*_track_logical_model` | ❌ |
 | **Native queries** | `*_track_native_query` | ❌ |
 | **Stored procedures** (MSSQL) | `mssql_track_stored_procedure` | ❌ (no MSSQL backend) |
-| **Metadata Management HTTP API** | `POST /v1/metadata` (`export_metadata`, `replace_metadata`, `reload_metadata`, …) | ⚠️ — `export_metadata` is served natively from the current snapshot when no upstream is configured. When `--hasura-upstream-url` is set, every op (including `export_metadata`) is proxied to that upstream so the CLI/dashboard export→edit→replace cycle is consistent. Ops with no upstream configured return `not-supported`. **File-source caveat:** when metadata is loaded from a local YAML file (dev mode), `export_metadata` returns a best-effort inspection view of the recognised fields, not a lossless re-encoding of the source file — unmodeled top-level keys (e.g. `actions`, `cron_triggers`) and some scalar defaults are dropped. The source file is the authoritative copy. |
+| **Metadata Management HTTP API** | `POST /v1/metadata` (`export_metadata`, `replace_metadata`, `clear_metadata`, `reload_metadata`, …) | ⚠️ — **When an in-process metadata Store is active (database metadata source)** it is the source of truth: `export_metadata` / `replace_metadata` / `clear_metadata` / `reload_metadata` are served **natively** against `hdb_catalog.hdb_metadata` (with optimistic concurrency on `resource_version`), regardless of upstream config; the proxy is only a per-op fallback for ops with no native handler. **When there is no Store:** with `--hasura-upstream-url` set, every op (including `export_metadata`) is proxied to that upstream so the CLI/dashboard export→edit→replace cycle is consistent; with no upstream configured, `export_metadata` is served natively from the current snapshot and other ops return `not-supported`. **File-source caveat:** when metadata is loaded from a local YAML file (dev mode, no Store), `export_metadata` returns a best-effort inspection view of the recognised fields, not a lossless re-encoding of the source file — unmodeled top-level keys (e.g. `actions`, `cron_triggers`) and some scalar defaults are dropped. The source file is the authoritative copy. |
 | **`/v2/query`, `/apis/*` pass-through** | `POST /v2/query`, `POST /apis/migrate/*`, … | ⚠️ — proxied to `--hasura-upstream-url` when set; not served otherwise. The request body is bounded by `--hasura-proxy-request-body-limit-bytes` (default 100 MiB; `0` disables). |
 
 ---
@@ -366,8 +371,10 @@ what Constellation serves.
   have "no effect," that is expected — Constellation never read it.
 - **`limit` on select permissions does nothing.** Enforce row caps another way.
 - **Pool tuning goes in the connection URL,** not `pool_settings`.
-- **Composite foreign keys** need `manual_configuration` with a multi-entry
-  `column_mapping`; the `foreign_key_constraint_on` array form is dropped.
+- **Composite foreign keys are supported** via `foreign_key_constraint_on` in
+  both its array form (`[col1, col2]`) and object form (`{ columns, table }`),
+  building working multi-column relationships; `manual_configuration` with a
+  multi-entry `column_mapping` also works.
 - **Schema `customization` is applied** — both source-level
   (`sources[].customization`) and remote-schema
   (`remote_schemas[].definition.customization`): root-field

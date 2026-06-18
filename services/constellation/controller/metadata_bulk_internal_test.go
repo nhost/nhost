@@ -2,6 +2,7 @@ package controller
 
 import (
 	"net/http"
+	"strings"
 	"testing"
 )
 
@@ -184,7 +185,7 @@ func TestDispatch_BulkAtomic_Rollback(t *testing.T) {
 
 	// Snapshot must not contain the first child's would-be mutation.
 	raw, _ := store.HasuraSnapshotJSON()
-	if got := string(raw); contains(got, `"name":"users"`) {
+	if got := string(raw); strings.Contains(got, `"name":"users"`) {
 		t.Errorf("snapshot contains 'users' table — rollback failed; raw = %s", got)
 	}
 }
@@ -290,7 +291,7 @@ func TestDispatch_Bulk_NestedRejected(t *testing.T) {
 	// without dispatchBulkChild's nested check, the op would still be rejected
 	// via the unknown-op fallthrough ("op %q is not natively supported"), so
 	// checking only the code would not actually guard the nested branch.
-	if msg, _ := body["error"].(string); !contains(msg, "nested") {
+	if msg, _ := body["error"].(string); !strings.Contains(msg, "nested") {
 		t.Errorf("error = %q, want the nested-bulk guard message", msg)
 	}
 
@@ -331,7 +332,7 @@ func TestDispatch_BulkKeepGoing_NestedRejected(t *testing.T) {
 	// Guard-specific message (see TestDispatch_Bulk_NestedRejected): only the
 	// dispatchBulkChild nested check emits "nested ... in bulk is not supported";
 	// the unknown-op fallthrough would not, so this is what guards the branch.
-	if msg, _ := results[0].(map[string]any)["error"].(string); !contains(msg, "nested") {
+	if msg, _ := results[0].(map[string]any)["error"].(string); !strings.Contains(msg, "nested") {
 		t.Errorf("child 0 error = %q, want the nested-bulk guard message", msg)
 	}
 
@@ -343,14 +344,4 @@ func TestDispatch_BulkKeepGoing_NestedRejected(t *testing.T) {
 	if w.callCount() != 1 {
 		t.Errorf("writer calls = %d, want 1 (only the valid child wrote)", w.callCount())
 	}
-}
-
-func contains(haystack, needle string) bool {
-	for i := 0; i+len(needle) <= len(haystack); i++ {
-		if haystack[i:i+len(needle)] == needle {
-			return true
-		}
-	}
-
-	return false
 }

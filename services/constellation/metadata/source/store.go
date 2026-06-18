@@ -272,6 +272,20 @@ func (s *Store) Apply(
 	ctx context.Context,
 	mutate func(*hasura.Metadata) error,
 ) (int64, error) {
+	return s.apply(ctx, nil, mutate)
+}
+
+// apply is Apply with an optional optimistic-concurrency precondition. When
+// expectedRV is non-nil it is compared against the current snapshot version
+// UNDER s.mu — atomically with the write — so a concurrent admin mutation that
+// bumps the version between a caller's read and this write is detected as a
+// conflict instead of being silently overwritten. (A pre-check outside the lock
+// would leave a window in which a lost update could slip through.)
+func (s *Store) apply(
+	ctx context.Context,
+	expectedRV *int64,
+	mutate func(*hasura.Metadata) error,
+) (int64, error) {
 	if !s.initOnce.Load() {
 		return 0, ErrStoreNotInitialized
 	}
@@ -282,6 +296,10 @@ func (s *Store) Apply(
 
 	s.mu.Lock()
 	defer s.mu.Unlock()
+
+	if expectedRV != nil && *expectedRV != s.resourceVersion {
+		return 0, ErrResourceVersionConflict
+	}
 
 	working, err := cloneHasura(s.raw)
 	if err != nil {
@@ -297,15 +315,26 @@ func (s *Store) Apply(
 		return 0, fmt.Errorf("marshaling mutated snapshot: %w", err)
 	}
 
-	expectedRV := s.resourceVersion
-	newRV := expectedRV + 1
+	// Re-parse into native form BEFORE the durable write. A converter bug must
+	// surface here, as an error, rather than after WriteMetadata has committed:
+	// a post-commit failure would leave the database ahead of the in-memory
+	// snapshot and wedge every later Apply on a resource_version conflict.
+	native, err := metadata.FromHasuraJSON(newRaw)
+	if err != nil {
+		return 0, fmt.Errorf("re-parsing mutated snapshot: %w", err)
+	}
 
-	if err := s.writer.WriteMetadata(ctx, newRaw, expectedRV, newRV); err != nil {
+	currentRV := s.resourceVersion
+	newRV := currentRV + 1
+
+	if err := s.writer.WriteMetadata(ctx, newRaw, currentRV, newRV); err != nil {
 		return 0, fmt.Errorf("persisting metadata: %w", err)
 	}
 
+	// Swap all derived state together, only after the commit succeeded, so any
+	// failure above leaves the in-memory snapshot and version untouched.
 	s.hasura = working
-	s.native = mustFromHasura(newRaw)
+	s.native = native
 	s.raw = newRaw
 	s.resourceVersion = newRV
 
@@ -313,6 +342,14 @@ func (s *Store) Apply(
 		Metadata: s.native,
 		Err:      nil,
 	})
+
+	// Announce the change to peer replicas (best-effort): a notify failure does
+	// not undo the committed write. Skipped when the Store is not database-backed.
+	if s.queryer != nil {
+		if err := notifyMetadataChange(ctx, s.queryer, newRV); err != nil {
+			s.logger.WarnContext(ctx, "metadata change notification failed", "error", err)
+		}
+	}
 
 	return newRV, nil
 }

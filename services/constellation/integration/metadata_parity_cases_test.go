@@ -36,8 +36,12 @@ func TestMetadataParity(t *testing.T) { //nolint:paralleltest
 		`"table":` + udept + `,"role":"` + role + `","permission":{"columns":"*","filter":{}}}}`
 	createObjRel := `{"type":"pg_create_object_relationship","args":{"source":"default",` +
 		`"table":` + udept + `,"name":"parity_dept","using":{"foreign_key_constraint_on":"department_id"}}}`
+	// Hasura's pg_create_event_trigger API takes the operation specs at the TOP
+	// level of args (insert/update/delete/enable_manual), NOT under a definition
+	// wrapper. Constellation accepts this real Hasura request shape and stores
+	// the canonical nested form.
 	createEventTrigger := `{"type":"pg_create_event_trigger","args":{"source":"default",` +
-		`"table":` + dept + `,"name":"parity_etrigger","definition":{"insert":{"columns":"*"}},` +
+		`"table":` + dept + `,"name":"parity_etrigger","insert":{"columns":"*"},` +
 		`"webhook":"https://example.com/hook","retry_conf":{"num_retries":0,"interval_sec":10}}}`
 	untrackFn := `{"type":"pg_untrack_function","args":{"source":"default","function":` + fn + `}}`
 
@@ -177,16 +181,17 @@ func TestMetadataParity(t *testing.T) { //nolint:paralleltest
 		},
 
 		// ---- event triggers (metadata-only: no schema surface) ----
-		// Known divergence: Hasura's pg_create_event_trigger API takes top-level
-		// insert/update/delete specs, while Constellation requires a `definition`
-		// wrapper, so Hasura rejects (parse-failed) the request Constellation
-		// accepts. Surfaced (logged) here; to reconcile with the event-trigger
-		// runtime work. The delete case is omitted because its setup (create)
-		// cannot succeed on Hasura.
+		// Both engines accept the flat Hasura request shape, so this case
+		// hard-asserts (wantConstellationOK) that Constellation stores the
+		// trigger successfully. The exported entry still diverges — Hasura
+		// normalizes it (fills enable_manual, cleanup_config, header defaults;
+		// re-shapes retry_conf) while Constellation round-trips the submitted
+		// config verbatim — so that part is an accepted, logged divergence.
 		{
-			name:            "pg_create_event_trigger",
-			op:              createEventTrigger,
-			knownDivergence: "event-trigger create arg shape: Hasura uses top-level insert/update/delete, Constellation requires a definition wrapper",
+			name:                "pg_create_event_trigger",
+			op:                  createEventTrigger,
+			wantConstellationOK: true,
+			knownDivergence:     "event-trigger export normalization: Hasura fills defaults / reshapes the stored entry; Constellation stores the submitted config verbatim",
 		},
 
 		// ---- bulk wrappers ----

@@ -2,8 +2,10 @@ package controller
 
 import (
 	"context"
+	"encoding/json/jsontext"
 	json "encoding/json/v2"
 	"errors"
+	"fmt"
 
 	"github.com/nhost/nhost/services/constellation/api"
 	"github.com/nhost/nhost/services/constellation/metadata/source"
@@ -99,11 +101,10 @@ func (c *Controller) dispatchMutation( //nolint:ireturn,gocyclo,cyclop,funlen
 		return nil, false
 	}
 
-	// Args is decoded into a free-form Go value (map / slice / nil) by the
-	// runtime, since the OpenAPI generator types it as interface{}. Re-marshal
-	// it back to JSON bytes before dispatching, mirroring how metadata_bulk.go
-	// re-marshals its children's args for the per-op handlers.
-	argsJSON, err := json.Marshal(req.Body.Args)
+	// Args reaches the dispatcher as JSON bytes carved from the raw request body
+	// (see metadataArgsJSON), preserving exact number literals before they reach
+	// the stored metadata.
+	argsJSON, err := metadataArgsJSON(ctx, req)
 	if err != nil {
 		return metadataErrorResponse(codeParseFailed, err.Error(), "$.args"), true
 	}
@@ -190,6 +191,36 @@ func (c *Controller) dispatchMutation( //nolint:ireturn,gocyclo,cyclop,funlen
 	return nil, false
 }
 
+// metadataArgsJSON returns the verbatim JSON bytes of the request's `args`
+// field. It prefers the raw captured request body (stashed by
+// NewCaptureRawBody) so number literals keep full precision:
+// api.MetadataRequest decodes args through encoding/json v1 into interface{},
+// turning every number into a float64, so re-marshaling that decoded value
+// would round integer literals beyond 2^53 and normalize formatting before they
+// reach the stored metadata. When the raw body was not captured (e.g. a unit
+// test invoking the dispatcher directly), it falls back to re-marshaling the
+// decoded args.
+func metadataArgsJSON(
+	ctx context.Context, req api.MetadataRequestRequestObject,
+) ([]byte, error) {
+	if raw := rawBodyFromContext(ctx); len(raw) > 0 {
+		var envelope struct {
+			Args jsontext.Value `json:"args"`
+		}
+
+		if err := json.Unmarshal(raw, &envelope); err == nil && len(envelope.Args) > 0 {
+			return []byte(envelope.Args), nil
+		}
+	}
+
+	out, err := json.Marshal(req.Body.Args)
+	if err != nil {
+		return nil, fmt.Errorf("marshaling metadata args: %w", err)
+	}
+
+	return out, nil
+}
+
 // finishMutation turns the (rv, idempotencyCode, err) triple a Store op
 // returns into the wire response. On success it emits 200 with the new
 // resource_version; on idempotent no-op it emits 200 with the
@@ -248,7 +279,8 @@ func classifyMutationError(err error) (string, string) {
 		return codeNotExists, err.Error()
 	case errors.Is(err, source.ErrTableHasDependents):
 		return codeDependencyError, err.Error()
-	case errors.Is(err, source.ErrRelationshipExists):
+	case errors.Is(err, source.ErrRelationshipExists),
+		errors.Is(err, source.ErrPermissionExists):
 		return codeAlreadyExists, err.Error()
 	case errors.Is(err, source.ErrTableAlreadyUntracked):
 		return codeAlreadyUntracked, err.Error()

@@ -102,16 +102,19 @@ func buildPgUntrackTable(argsJSON []byte) (MutationFn, error) {
 	}, nil
 }
 
-// tableHasDependents reports whether the table has any permissions or
-// relationships configured. Used by pg_untrack_table to enforce the
-// cascade flag.
+// tableHasDependents reports whether the table has any permissions,
+// relationships, event triggers, or remote relationships configured. Used by
+// pg_untrack_table to enforce the cascade flag: dropping the table without
+// cascade must fail rather than silently discard these dependents.
 func tableHasDependents(t hasura.TableMetadata) bool {
 	return len(t.SelectPermissions) > 0 ||
 		len(t.InsertPermissions) > 0 ||
 		len(t.UpdatePermissions) > 0 ||
 		len(t.DeletePermissions) > 0 ||
 		len(t.ObjectRelationships) > 0 ||
-		len(t.ArrayRelationships) > 0
+		len(t.ArrayRelationships) > 0 ||
+		len(t.EventTriggers) > 0 ||
+		len(t.RemoteRelationships) > 0
 }
 
 // PgUntrackTable applies pg_untrack_table.
@@ -200,6 +203,20 @@ func buildPgDropRelationship(argsJSON []byte) (MutationFn, error) {
 		t, err := resolveTable(h, source, a.Table)
 		if err != nil {
 			return "", err
+		}
+
+		// On load, every remote relationship is lowered into a same-named
+		// object/array relationship. Refuse to operate on that lowered duplicate:
+		// removing it leaves t.RemoteRelationships untouched, so the relationship
+		// re-lowers on the next reload and the drop is a silent no-op. Remote
+		// relationships are deleted via pg_delete_remote_relationship.
+		if relationshipIsRemoteDerived(t, a.Relationship) {
+			return "", fmt.Errorf(
+				"%w: %q is a remote relationship; use pg_delete_remote_relationship "+
+					"(pg_rename_relationship/pg_drop_relationship operate only on "+
+					"object/array relationships)",
+				ErrRelationshipNotFound, a.Relationship,
+			)
 		}
 
 		for i, r := range t.ObjectRelationships {
@@ -301,6 +318,42 @@ func remoteRelationshipNameExists(t *hasura.TableMetadata, name string) bool {
 	return false
 }
 
+// relationshipIsRemoteDerived reports whether name belongs to a remote
+// relationship. On load, FromJSON lowers each remote relationship into a
+// same-named object/array relationship, so the object/array lists scanned by
+// pg_drop_relationship / pg_rename_relationship contain a duplicate the export
+// strips by matching RemoteRelationships names. Those ops must skip the lowered
+// duplicate to avoid corrupting the export, so they consult this guard first.
+func relationshipIsRemoteDerived(t *hasura.TableMetadata, name string) bool {
+	return remoteRelationshipNameExists(t, name)
+}
+
+// removeLoweredRelationship drops any object/array relationship named name from
+// t. On load, FromJSON lowers each remote relationship into a same-named
+// object/array relationship, and export strips that duplicate only while the
+// name still appears in RemoteRelationships. A mutator that removes the entry
+// from RemoteRelationships must therefore also remove the lowered duplicate, or
+// the export-time strip no longer recognizes it as derived and persists it as a
+// phantom object/array relationship. The name lowers to exactly one of the two
+// lists, so this removes at most one entry.
+func removeLoweredRelationship(t *hasura.TableMetadata, name string) {
+	for i, r := range t.ObjectRelationships {
+		if r.Name == name {
+			t.ObjectRelationships = removeAt(t.ObjectRelationships, i)
+
+			return
+		}
+	}
+
+	for i, r := range t.ArrayRelationships {
+		if r.Name == name {
+			t.ArrayRelationships = removeAt(t.ArrayRelationships, i)
+
+			return
+		}
+	}
+}
+
 // renameRelationship renames the object/array relationship `name` to `newName`
 // on table t. A self-rename is an idempotent no-op, but only once the
 // relationship is confirmed to exist (renaming a missing relationship reports
@@ -310,6 +363,22 @@ func remoteRelationshipNameExists(t *hasura.TableMetadata, name string) bool {
 func renameRelationship(
 	t *hasura.TableMetadata, table hasura.TableSource, name, newName string,
 ) (IdempotencyCode, error) {
+	// On load, every remote relationship is lowered into a same-named
+	// object/array relationship. Renaming that lowered duplicate leaves the
+	// original in t.RemoteRelationships untouched: the renamed duplicate then
+	// escapes the export-time strip filter (which matches by RemoteRelationships
+	// name) and leaks into the export, while the original re-lowers on reload —
+	// producing a duplicate, non-round-tripping relationship. Refuse it here;
+	// remote relationships are managed via pg_create/pg_delete_remote_relationship.
+	if relationshipIsRemoteDerived(t, name) {
+		return "", fmt.Errorf(
+			"%w: %q is a remote relationship; use pg_delete_remote_relationship "+
+				"(pg_rename_relationship/pg_drop_relationship operate only on "+
+				"object/array relationships)",
+			ErrRelationshipNotFound, name,
+		)
+	}
+
 	objIdx := -1
 
 	for i := range t.ObjectRelationships {

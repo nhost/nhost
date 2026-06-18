@@ -84,7 +84,6 @@ type pgDeleteRemoteRelationshipArgs struct {
 	Name   string             `json:"name"`
 }
 
-//nolint:dupl // intentional mirror of buildPgDeleteEventTrigger; one per deletable child kind.
 func buildPgDeleteRemoteRelationship(argsJSON []byte) (MutationFn, error) {
 	var a pgDeleteRemoteRelationshipArgs
 	if err := json.Unmarshal(argsJSON, &a); err != nil {
@@ -109,6 +108,15 @@ func buildPgDeleteRemoteRelationship(argsJSON []byte) (MutationFn, error) {
 		for i, r := range t.RemoteRelationships {
 			if r.Name == a.Name {
 				t.RemoteRelationships = removeAt(t.RemoteRelationships, i)
+
+				// FromJSON lowered this remote relationship into a same-named
+				// object/array relationship on the working clone; export only
+				// strips that duplicate while the name is still in
+				// RemoteRelationships. Now that it is gone, drop the lowered
+				// duplicate too, otherwise it persists as a phantom
+				// object/array relationship that keeps being served and blocks
+				// re-creating the same name.
+				removeLoweredRelationship(t, a.Name)
 
 				return "", nil
 			}
