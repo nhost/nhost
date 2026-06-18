@@ -555,9 +555,15 @@ type dbStoreSource struct {
 	*source.Store
 
 	db *source.DatabaseMetadataSource
+	// stopListener cancels the cross-replica LISTEN/NOTIFY goroutine and its
+	// dedicated pgx connection. Tied to Close (not the serve/runServer ctx) so
+	// the listener is torn down deterministically on shutdown regardless of
+	// which goroutine triggered it.
+	stopListener context.CancelFunc
 }
 
 func (s dbStoreSource) Close() {
+	s.stopListener()
 	s.Store.Close()
 	s.db.Close()
 }
@@ -589,11 +595,14 @@ func newMetadataSource( //nolint:ireturn // selected sources share the metadata.
 		// reloads the in-process snapshot whenever any replica — or a sidecar
 		// Hasura writing the shared hdb_metadata — announces a newer version.
 		// This replaces the legacy hdb_metadata poller, which is intentionally
-		// not wired in store-backed mode. The goroutine stops when ctx is
-		// cancelled (server shutdown).
-		go source.ListenAndReload(ctx, metaDBURL, store, logger)
+		// not wired in store-backed mode. The goroutine runs on its own
+		// cancellable context, cancelled by dbStoreSource.Close on shutdown —
+		// the parent ctx alone is not enough, since runServer cancels only a
+		// child of it, so the listener would otherwise outlive the server.
+		listenerCtx, stopListener := context.WithCancel(ctx)
+		go source.ListenAndReload(listenerCtx, metaDBURL, store, logger)
 
-		return dbStoreSource{Store: store, db: dbSrc}, store, nil
+		return dbStoreSource{Store: store, db: dbSrc, stopListener: stopListener}, store, nil
 	}
 
 	return source.NewFileMetadataSource(cmd.String(flagMetadataPath)), nil, nil

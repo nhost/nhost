@@ -11,7 +11,7 @@ import (
 	"github.com/nhost/nhost/services/constellation/metadata/source"
 )
 
-// bulkArgs models the `args` field of a bulk / bulk_atomic /
+// bulkChild models one child of a bulk / bulk_atomic /
 // bulk_keep_going request. Hasura accepts either a bare array or
 // {"args":[...]} envelope; the dashboard uses both shapes. We accept
 // both by unmarshaling into either.
@@ -85,6 +85,10 @@ func (c *Controller) dispatchBulk( //nolint:ireturn
 		results = append(results, entry)
 	}
 
+	// NOTE: Hasura returns the per-child results as a bare top-level JSON array;
+	// we wrap them under "bulk" because api.MetadataRequest200JSONResponse is a
+	// generated map[string]interface{} and cannot represent a bare array. See
+	// KNOWN_DIFFERENCES.md ("Bulk metadata response shape").
 	return api.MetadataRequest200JSONResponse{
 		"bulk": results,
 	}, true
@@ -281,6 +285,8 @@ func (c *Controller) dispatchBulkAtomic( //nolint:ireturn
 		}
 	}
 
+	// NOTE: bare-array vs "bulk"-wrapped divergence from Hasura — see the note on
+	// the bulk path above and KNOWN_DIFFERENCES.md ("Bulk metadata response shape").
 	return api.MetadataRequest200JSONResponse{
 		"bulk": results,
 	}, true

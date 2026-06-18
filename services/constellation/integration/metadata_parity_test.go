@@ -459,15 +459,22 @@ func runMetadataParityCase(
 		return
 	}
 
-	// A Hasura non-2xx is a hard failure only when we expect parity; idempotent
-	// re-applies and accepted divergences may legitimately see a Hasura error,
-	// in which case the metadata comparison below is not meaningful.
 	if hStatus/100 != 2 {
-		if !tc.allowStatusDivergence && tc.knownDivergence == "" {
-			t.Fatalf("op failed on Hasura: status=%d body=%s", hStatus, hBody)
+		// An accepted knownDivergence stops here: Hasura rejected an op it does
+		// not support, so there is no shared post-op state to compare against.
+		if tc.knownDivergence != "" {
+			return
 		}
 
-		return
+		// An idempotent re-apply (allowStatusDivergence) is the one case where a
+		// Hasura 4xx is still expected to leave the SAME metadata that
+		// Constellation's idempotent 2xx does. Fall through to Layer B and
+		// actually verify that equivalence — the whole point of the case, and
+		// what allowStatusDivergence's contract promises. Any other Hasura error
+		// is a real failure.
+		if !tc.allowStatusDivergence {
+			t.Fatalf("op failed on Hasura: status=%d body=%s", hStatus, hBody)
+		}
 	}
 
 	// Layer B — exported metadata. Compare the two engines' exports as
