@@ -105,6 +105,12 @@ type metadataParityCase struct {
 	// resolving on both engines (the field is gone, not merely absent from the
 	// export). Error bodies are not deep-compared — engines word them differently.
 	queryWantErr bool
+	// wantConstellationOK hard-asserts that Constellation accepts the op with a
+	// 2xx status, even when knownDivergence is set. Without it, a knownDivergence
+	// case logs every mismatch and so asserts nothing about Constellation's own
+	// result; set it for accepted export-divergence cases where the op itself
+	// must still succeed natively.
+	wantConstellationOK bool
 }
 
 // metadataRequestTimeout bounds each /v1/metadata call. A reset (replace_metadata)
@@ -427,6 +433,16 @@ func runMetadataParityCase(
 
 	hStatus, hBody := postMetadata(t, hasuraMetadataURL, tc.op)
 	cStatus, cBody := postMetadata(t, constellationMetadataURL, tc.op)
+
+	// Hard-assert Constellation's own result up front (regardless of
+	// knownDivergence), so an accepted export divergence cannot silently mask
+	// the op failing natively on Constellation.
+	if tc.wantConstellationOK && cStatus/100 != 2 {
+		t.Errorf(
+			"constellation rejected op that must succeed: status=%d body=%s",
+			cStatus, cBody,
+		)
+	}
 
 	// Layer A — response parity. Skipped for ops where Constellation
 	// intentionally diverges (idempotent re-apply: 200 vs Hasura's 4xx).
@@ -829,6 +845,36 @@ func dumpSDL(t *testing.T, graphqlURL string) string {
 	return string(data)
 }
 
+// settledSDL dumps graphqlURL repeatedly until two consecutive dumps are
+// byte-identical, or the 30s deadline elapses (returning the last dump). A 2xx
+// from a store-backed Constellation metadata op does not imply the GraphQL
+// surface has converged: Store.apply persists the write and returns
+// immediately, while the connector rebuild runs on a separate goroutine
+// (Controller.Run consumes source.Watch, then buildState+swapState, and dumpSDL
+// introspects the swapped state). A single dump therefore races the rebuild and
+// can be computed from a pre-/mid-rebuild SDL, producing a spurious delta or
+// masking a real one. This mirrors the convergence wait pollGraphQL already
+// applies in Layer D; the synchronous Hasura side needs no such settling.
+func settledSDL(t *testing.T, graphqlURL string) string {
+	t.Helper()
+
+	deadline := time.Now().Add(30 * time.Second)
+	prev := dumpSDL(t, graphqlURL)
+
+	for time.Now().Before(deadline) {
+		time.Sleep(500 * time.Millisecond)
+
+		cur := dumpSDL(t, graphqlURL)
+		if cur == prev {
+			return cur
+		}
+
+		prev = cur
+	}
+
+	return prev
+}
+
 // schemaDiff returns the cli's normalized diff between two SDL strings.
 func schemaDiff(t *testing.T, before, after string) string {
 	t.Helper()
@@ -870,7 +916,7 @@ func compareSchemaDelta(t *testing.T, baseline jsontext.Value, tc metadataParity
 	t.Helper()
 
 	hAfter := dumpSDL(t, hasuraURL)
-	cAfter := dumpSDL(t, constellationParityGraphQLURL)
+	cAfter := settledSDL(t, constellationParityGraphQLURL)
 
 	// Capture each engine's "before" SDL by resetting, replaying setup (but not
 	// the measured op), dumping, then re-applying the op so the engine is left
@@ -883,7 +929,7 @@ func compareSchemaDelta(t *testing.T, baseline jsontext.Value, tc metadataParity
 	}
 
 	hBefore := dumpSDL(t, hasuraURL)
-	cBefore := dumpSDL(t, constellationParityGraphQLURL)
+	cBefore := settledSDL(t, constellationParityGraphQLURL)
 
 	applyOpToBoth(t, "schema-delta op", tc.op)
 

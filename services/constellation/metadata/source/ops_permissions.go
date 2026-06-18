@@ -5,6 +5,7 @@ import (
 	json "encoding/json/v2"
 	"errors"
 	"fmt"
+	"reflect"
 
 	"github.com/nhost/nhost/services/constellation/metadata/internal/hasura"
 )
@@ -13,6 +14,11 @@ import (
 // requested (role, table) permission is not configured. The dispatcher
 // maps it to the Hasura error code "not-exists".
 var ErrPermissionNotFound = errors.New("permission not found")
+
+// ErrPermissionExists is returned when a permission for the role already exists
+// with a different definition. The dispatcher maps it to the "already-exists"
+// 400 code.
+var ErrPermissionExists = errors.New("permission already exists")
 
 const (
 	opPgCreateSelectPermission = "pg_create_select_permission"
@@ -102,10 +108,19 @@ func buildPgCreateSelectPermission(argsJSON []byte) (MutationFn, error) {
 			return "", err
 		}
 
-		if indexOfPermission(t.SelectPermissions, a.Role, func(p hasura.SelectPermission) string {
-			return p.Role
-		}) >= 0 {
-			return CodeAlreadyExists, nil
+		if idx := indexOfPermission(
+			t.SelectPermissions,
+			a.Role,
+			func(p hasura.SelectPermission) string { return p.Role },
+		); idx >= 0 {
+			if reflect.DeepEqual(t.SelectPermissions[idx].Permission, a.Permission) {
+				return CodeAlreadyExists, nil
+			}
+
+			return "", fmt.Errorf(
+				"%w: select permission for role %q already exists with a different definition",
+				ErrPermissionExists, a.Role,
+			)
 		}
 
 		t.SelectPermissions = append(
@@ -208,10 +223,19 @@ func buildPgCreateInsertPermission(argsJSON []byte) (MutationFn, error) {
 			return "", err
 		}
 
-		if indexOfPermission(t.InsertPermissions, a.Role, func(p hasura.InsertPermission) string {
-			return p.Role
-		}) >= 0 {
-			return CodeAlreadyExists, nil
+		if idx := indexOfPermission(
+			t.InsertPermissions,
+			a.Role,
+			func(p hasura.InsertPermission) string { return p.Role },
+		); idx >= 0 {
+			if reflect.DeepEqual(t.InsertPermissions[idx].Permission, a.Permission) {
+				return CodeAlreadyExists, nil
+			}
+
+			return "", fmt.Errorf(
+				"%w: insert permission for role %q already exists with a different definition",
+				ErrPermissionExists, a.Role,
+			)
 		}
 
 		t.InsertPermissions = append(
@@ -314,10 +338,19 @@ func buildPgCreateUpdatePermission(argsJSON []byte) (MutationFn, error) {
 			return "", err
 		}
 
-		if indexOfPermission(t.UpdatePermissions, a.Role, func(p hasura.UpdatePermission) string {
-			return p.Role
-		}) >= 0 {
-			return CodeAlreadyExists, nil
+		if idx := indexOfPermission(
+			t.UpdatePermissions,
+			a.Role,
+			func(p hasura.UpdatePermission) string { return p.Role },
+		); idx >= 0 {
+			if reflect.DeepEqual(t.UpdatePermissions[idx].Permission, a.Permission) {
+				return CodeAlreadyExists, nil
+			}
+
+			return "", fmt.Errorf(
+				"%w: update permission for role %q already exists with a different definition",
+				ErrPermissionExists, a.Role,
+			)
 		}
 
 		t.UpdatePermissions = append(
@@ -420,10 +453,19 @@ func buildPgCreateDeletePermission(argsJSON []byte) (MutationFn, error) {
 			return "", err
 		}
 
-		if indexOfPermission(t.DeletePermissions, a.Role, func(p hasura.DeletePermission) string {
-			return p.Role
-		}) >= 0 {
-			return CodeAlreadyExists, nil
+		if idx := indexOfPermission(
+			t.DeletePermissions,
+			a.Role,
+			func(p hasura.DeletePermission) string { return p.Role },
+		); idx >= 0 {
+			if reflect.DeepEqual(t.DeletePermissions[idx].Permission, a.Permission) {
+				return CodeAlreadyExists, nil
+			}
+
+			return "", fmt.Errorf(
+				"%w: delete permission for role %q already exists with a different definition",
+				ErrPermissionExists, a.Role,
+			)
 		}
 
 		t.DeletePermissions = append(

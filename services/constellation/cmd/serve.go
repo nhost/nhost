@@ -513,6 +513,22 @@ func serve(ctx context.Context, cmd *cli.Command) error {
 		hasuraProxy = proxy
 	}
 
+	// In database-store mode a configured proxy is only a per-op fallback for
+	// metadata ops with no native handler (actions, custom types, cron
+	// triggers, remote schemas). Those ops are forwarded to the upstream, which
+	// MUST share the same metadata database (hdb_catalog.hdb_metadata) as
+	// Constellation — otherwise native and proxied metadata diverge. The store
+	// reconciles its snapshot from the database after each proxied write.
+	if store != nil && hasuraProxy != nil {
+		logger.WarnContext(
+			ctx,
+			"database metadata store and Hasura upstream proxy are both active; "+
+				"unhandled metadata ops are forwarded to the upstream, which must "+
+				"share Constellation's metadata database. Set --"+flagHasuraUpstreamURL+
+				`="" to disable the proxy (unhandled ops then return not-supported).`,
+		)
+	}
+
 	ctrl, err := controller.New(
 		ctx,
 		cmd.Duration(flagSubscriptionPollInterval),
@@ -568,6 +584,14 @@ func newMetadataSource( //nolint:ireturn // selected sources share the metadata.
 
 			return nil, nil, fmt.Errorf("bootstrapping metadata store: %w", err)
 		}
+
+		// Cross-replica metadata sync. A dedicated LISTEN/NOTIFY connection
+		// reloads the in-process snapshot whenever any replica — or a sidecar
+		// Hasura writing the shared hdb_metadata — announces a newer version.
+		// This replaces the legacy hdb_metadata poller, which is intentionally
+		// not wired in store-backed mode. The goroutine stops when ctx is
+		// cancelled (server shutdown).
+		go source.ListenAndReload(ctx, metaDBURL, store, logger)
 
 		return dbStoreSource{Store: store, db: dbSrc}, store, nil
 	}

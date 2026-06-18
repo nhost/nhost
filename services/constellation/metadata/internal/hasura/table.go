@@ -8,8 +8,6 @@ import (
 	json "encoding/json/v2"
 	"errors"
 	"fmt"
-
-	"github.com/nhost/nhost/services/constellation/api"
 )
 
 // errUnexpectedForeignKeyToken signals that foreign_key_constraint_on carried
@@ -53,17 +51,18 @@ type TableMetadata struct {
 	InsertPermissions   []InsertPermission   `json:"insert_permissions,omitempty"   yaml:"insert_permissions,omitempty"`
 	UpdatePermissions   []UpdatePermission   `json:"update_permissions,omitempty"   yaml:"update_permissions,omitempty"`
 	DeletePermissions   []DeletePermission   `json:"delete_permissions,omitempty"   yaml:"delete_permissions,omitempty"`
-	// EventTriggers stores the typed Hasura event-trigger config (modeled
-	// in api/openapi.yaml as PostgresEventTriggerConfEventTriggerConf).
-	// Constellation does not yet run the event delivery loop — the entries
-	// just round-trip so a future runtime can pick them up.
+	// EventTriggers stores Hasura event-trigger entries as raw JSON values,
+	// each preserved verbatim. Modeling the trigger as a typed struct dropped
+	// any key the engine does not model (request_transform, response_transform,
+	// comment, future Hasura keys) on every snapshot re-marshal; keeping the
+	// raw value means an unrelated mutation never strips those fields, so
+	// export fidelity holds. Constellation does not yet run the event delivery
+	// loop — the entries just round-trip so a future runtime can pick them up.
 	//
-	// yaml:"-" is intentional: the api type uses JSON-union helpers (e.g.
-	// PostgresSubscribeOpSpec_Columns) that the goccy/go-yaml decoder
-	// cannot resolve. File-source (YAML) projects ignore event_triggers
-	// today; the DB-source (hdb_metadata JSON) path round-trips them
-	// fully via the v2 JSON encoder.
-	EventTriggers []api.PostgresEventTriggerConfEventTriggerConf `json:"event_triggers,omitempty" yaml:"-"`
+	// yaml:"-" is intentional: file-source (YAML) projects ignore event_triggers
+	// today; the DB-source (hdb_metadata JSON) path round-trips them fully via
+	// the v2 JSON encoder.
+	EventTriggers []jsontext.Value `json:"event_triggers,omitempty" yaml:"-"`
 
 	Unknown jsontext.Value `json:",unknown" yaml:"-"`
 }
@@ -199,11 +198,13 @@ func (p *PermissionExpression) UnmarshalJSON(data []byte) error {
 // access a select permission grants.
 type SelectPermissionConfig struct {
 	Columns []string `json:"columns,omitempty" yaml:"columns,omitempty"`
-	// omitzero (not omitempty) so a present-but-empty `filter: {}` — Hasura's
-	// "allow all rows" form, and a required field — survives export, while a
-	// truly absent (nil) filter is still omitted.
-	Filter            PermissionExpression `json:"filter,omitzero"             yaml:"filter,omitempty"`
-	AllowAggregations bool                 `json:"allow_aggregations,omitzero" yaml:"allow_aggregations,omitempty"`
+	// Filter / AllowAggregations emission is decided entirely by the custom
+	// MarshalJSON below — a present-but-empty `filter: {}` (Hasura's "allow all
+	// rows" form) is kept, a nil filter omitted. The JSON struct tags are never
+	// consulted (the custom marshaler/unmarshaler bypass them), so they carry
+	// no omit option; YAML still uses omitempty.
+	Filter            PermissionExpression `json:"filter"             yaml:"filter,omitempty"`
+	AllowAggregations bool                 `json:"allow_aggregations" yaml:"allow_aggregations,omitempty"`
 
 	Unknown jsontext.Value `json:",unknown" yaml:"-"`
 }
@@ -379,8 +380,8 @@ func marshalPermissionConfig(out map[string]any, unknown jsontext.Value) ([]byte
 
 // MarshalJSON emits the select permission as Hasura does, preserving the "*"
 // columns wildcard rather than expanding it to ["*"]. filter / allow_aggregations
-// follow the struct tags' omitzero semantics (nil / false omitted; empty {} /
-// true kept).
+// emission is decided here explicitly (nil / false omitted; empty {} / true
+// kept); the struct tags are not consulted by this custom marshaler.
 func (p SelectPermissionConfig) MarshalJSON() ([]byte, error) {
 	out := map[string]any{}
 
@@ -400,7 +401,8 @@ func (p SelectPermissionConfig) MarshalJSON() ([]byte, error) {
 }
 
 // MarshalJSON emits the insert permission as Hasura does, preserving the "*"
-// columns wildcard. check / set follow omitzero semantics.
+// columns wildcard. check / set are emitted here only when non-nil; the struct
+// tags are not consulted by this custom marshaler.
 func (p InsertPermissionConfig) MarshalJSON() ([]byte, error) {
 	out := map[string]any{}
 
@@ -421,7 +423,8 @@ func (p InsertPermissionConfig) MarshalJSON() ([]byte, error) {
 
 // MarshalJSON emits the update permission as Hasura does: the "*" columns
 // wildcard is preserved, and `check` is ALWAYS present (null when unset) because
-// Hasura includes it on every update permission. filter / set follow omitzero.
+// Hasura includes it on every update permission. filter / set are emitted here
+// only when non-nil; the struct tags are not consulted by this custom marshaler.
 func (p UpdatePermissionConfig) MarshalJSON() ([]byte, error) {
 	out := map[string]any{}
 
@@ -453,10 +456,12 @@ func (p UpdatePermissionConfig) MarshalJSON() ([]byte, error) {
 // insert permission grants.
 type InsertPermissionConfig struct {
 	Columns []string `json:"columns,omitempty" yaml:"columns,omitempty"`
-	// omitzero so a present-but-empty `check: {}` (required by Hasura) survives
-	// export; a nil check/set is still omitted.
-	Check PermissionExpression `json:"check,omitzero" yaml:"check,omitempty"`
-	Set   PermissionExpression `json:"set,omitzero"   yaml:"set,omitempty"`
+	// Check / Set emission is decided by the custom MarshalJSON — a present-but-
+	// empty `check: {}` (required by Hasura) is kept, nil omitted. The JSON
+	// struct tags are not consulted, so they carry no omit option; YAML still
+	// uses omitempty.
+	Check PermissionExpression `json:"check" yaml:"check,omitempty"`
+	Set   PermissionExpression `json:"set"   yaml:"set,omitempty"`
 
 	Unknown jsontext.Value `json:",unknown" yaml:"-"`
 }
@@ -523,11 +528,12 @@ func (p *InsertPermissionConfig) UnmarshalJSON(data []byte) error {
 // and presets an update permission grants.
 type UpdatePermissionConfig struct {
 	Columns []string `json:"columns,omitempty" yaml:"columns,omitempty"`
-	// omitzero so present-but-empty `filter: {}` / `check: {}` survive export;
-	// nil values are still omitted.
-	Filter PermissionExpression `json:"filter,omitzero" yaml:"filter,omitempty"`
-	Check  PermissionExpression `json:"check,omitzero"  yaml:"check,omitempty"`
-	Set    PermissionExpression `json:"set,omitzero"    yaml:"set,omitempty"`
+	// Filter / Check / Set emission is decided by the custom MarshalJSON —
+	// present-but-empty maps are kept, nil omitted. The JSON struct tags are not
+	// consulted, so they carry no omit option; YAML still uses omitempty.
+	Filter PermissionExpression `json:"filter" yaml:"filter,omitempty"`
+	Check  PermissionExpression `json:"check"  yaml:"check,omitempty"`
+	Set    PermissionExpression `json:"set"    yaml:"set,omitempty"`
 
 	Unknown jsontext.Value `json:",unknown" yaml:"-"`
 }

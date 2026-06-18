@@ -508,9 +508,18 @@ func convertRelationshipUsing(h hasura.RelationshipUsing) RelationshipUsing {
 	if h.ManualConfiguration != nil {
 		remoteField := convertRemoteFieldCalls(h.ManualConfiguration.RemoteField)
 
+		// Clone ColumnMapping so the downstream column rename does not alias and
+		// mutate the shared *hasura.Metadata snapshot map, mirroring the
+		// Arguments clone in convertRemoteFieldCalls.
+		var columnMapping map[string]string
+		if h.ManualConfiguration.ColumnMapping != nil {
+			columnMapping = make(map[string]string, len(h.ManualConfiguration.ColumnMapping))
+			maps.Copy(columnMapping, h.ManualConfiguration.ColumnMapping)
+		}
+
 		manual = &ManualConfiguration{
 			RemoteTable:     convertTableSource(h.ManualConfiguration.RemoteTable),
-			ColumnMapping:   h.ManualConfiguration.ColumnMapping,
+			ColumnMapping:   columnMapping,
 			Source:          h.ManualConfiguration.Source,
 			RemoteSchema:    h.ManualConfiguration.RemoteSchema,
 			RemoteFieldPath: ExtractRemoteFieldPath(remoteField),
