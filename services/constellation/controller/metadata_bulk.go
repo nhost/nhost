@@ -23,6 +23,11 @@ type bulkChild struct {
 	Args stdjson.RawMessage `json:"args"`
 }
 
+// errBulkArgsMissing is returned when a bulk request arrives as an object but
+// carries no "args" key. Hasura rejects such a request; treating it as an empty
+// (silently successful) bulk would mask a malformed call.
+var errBulkArgsMissing = errors.New(`bulk request object is missing the "args" array`)
+
 // parseBulkChildren accepts either a bare array `[...]` or an object
 // `{"args":[...]}`. Both shapes occur in the dashboard's emitted bulks.
 func parseBulkChildren(argsJSON []byte) ([]bulkChild, error) {
@@ -32,16 +37,26 @@ func parseBulkChildren(argsJSON []byte) ([]bulkChild, error) {
 		return arr, nil
 	}
 
-	// Fall back to envelope.
-	var envelope struct {
-		Args []bulkChild `json:"args"`
-	}
-
+	// Otherwise it must be an object carrying an explicit "args" array. Decode
+	// the envelope into a raw map so a missing key is distinguishable from a
+	// present-but-non-array value: both are malformed and must fail loudly
+	// rather than degrade to a zero-length (silently successful) bulk.
+	var envelope map[string]stdjson.RawMessage
 	if err := json.Unmarshal(argsJSON, &envelope); err != nil {
 		return nil, fmt.Errorf("parsing bulk args: %w", err)
 	}
 
-	return envelope.Args, nil
+	rawArgs, ok := envelope["args"]
+	if !ok {
+		return nil, errBulkArgsMissing
+	}
+
+	var children []bulkChild
+	if err := json.Unmarshal(rawArgs, &children); err != nil {
+		return nil, fmt.Errorf("parsing bulk args: %w", err)
+	}
+
+	return children, nil
 }
 
 // dispatchBulk implements `bulk` (keepGoing=false → fail-fast on first
@@ -56,10 +71,10 @@ func parseBulkChildren(argsJSON []byte) ([]bulkChild, error) {
 // recursion; the dashboard's emitted bulks are flat.
 func (c *Controller) dispatchBulk( //nolint:ireturn
 	ctx context.Context, argsJSON []byte, keepGoing bool,
-) (api.MetadataRequestResponseObject, bool) {
+) (api.MetadataRequestResponseObject, bool, error) {
 	children, err := parseBulkChildren(argsJSON)
 	if err != nil {
-		return metadataErrorResponse(codeParseFailed, err.Error(), "$.args"), true
+		return handledError(codeParseFailed, err.Error(), "$.args")
 	}
 
 	results := make([]any, 0, len(children))
@@ -68,10 +83,10 @@ func (c *Controller) dispatchBulk( //nolint:ireturn
 		entry, hardErr := c.dispatchBulkChild(ctx, i, child)
 		if hardErr != nil {
 			if !keepGoing {
-				return metadataErrorResponse(
+				return handledError(
 					hardErr.code, hardErr.message,
 					fmt.Sprintf("$.args[%d]", i),
-				), true
+				)
 			}
 
 			results = append(results, map[string]any{
@@ -91,7 +106,7 @@ func (c *Controller) dispatchBulk( //nolint:ireturn
 	// KNOWN_DIFFERENCES.md ("Bulk metadata response shape").
 	return api.MetadataRequest200JSONResponse{
 		"bulk": results,
-	}, true
+	}, true, nil
 }
 
 type bulkChildError struct {
@@ -230,21 +245,21 @@ func (c *Controller) storeOpFor(opType string) storeOp {
 // share the one final RV.
 func (c *Controller) dispatchBulkAtomic( //nolint:ireturn
 	ctx context.Context, argsJSON []byte,
-) (api.MetadataRequestResponseObject, bool) {
+) (api.MetadataRequestResponseObject, bool, error) {
 	children, err := parseBulkChildren(argsJSON)
 	if err != nil {
-		return metadataErrorResponse(codeParseFailed, err.Error(), "$.args"), true
+		return handledError(codeParseFailed, err.Error(), "$.args")
 	}
 
 	fns := make([]source.MutationFn, len(children))
 
 	for i, child := range children {
 		if child.Type == opBulk || child.Type == opBulkAtomic || child.Type == opBulkKeepGoing {
-			return metadataErrorResponse(
+			return handledError(
 				codeNotSupported,
 				fmt.Sprintf("nested %q in bulk_atomic is not supported (child %d)", child.Type, i),
 				fmt.Sprintf("$.args[%d]", i),
-			), true
+			)
 		}
 
 		fn, err := source.BuildMutation(child.Type, []byte(child.Args))
@@ -254,10 +269,10 @@ func (c *Controller) dispatchBulkAtomic( //nolint:ireturn
 				errCode = codeNotSupported
 			}
 
-			return metadataErrorResponse(
+			return handledError(
 				errCode, message,
 				fmt.Sprintf("$.args[%d]", i),
-			), true
+			)
 		}
 
 		fns[i] = fn
@@ -267,7 +282,7 @@ func (c *Controller) dispatchBulkAtomic( //nolint:ireturn
 	if err != nil {
 		errCode, message := classifyMutationError(err)
 
-		return metadataErrorResponse(errCode, message, "$.args"), true
+		return handledError(errCode, message, "$.args")
 	}
 
 	results := make([]any, len(codes))
@@ -289,5 +304,5 @@ func (c *Controller) dispatchBulkAtomic( //nolint:ireturn
 	// the bulk path above and KNOWN_DIFFERENCES.md ("Bulk metadata response shape").
 	return api.MetadataRequest200JSONResponse{
 		"bulk": results,
-	}, true
+	}, true, nil
 }
