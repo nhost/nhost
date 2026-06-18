@@ -235,6 +235,22 @@ func TestMetadataParity(t *testing.T) { //nolint:paralleltest
 			wantErr: true,
 		},
 		{
+			// Cascade must drop reverse dependents in OTHER tables that point at
+			// the untracked table (here the parity_members array relationship on
+			// departments, keyed on foreign_key_constraint_on:{table: user_departments}),
+			// matching Hasura. Setup creates that reverse dependent; the op untracks
+			// user_departments with cascade=true; Layer B asserts both engines'
+			// exports agree the relationship is gone.
+			name: "pg_untrack_table_cascade_reverse_dependents",
+			setup: []string{
+				`{"type":"pg_create_array_relationship","args":{"source":"default","table":` + dept +
+					`,"name":"parity_members","using":{"foreign_key_constraint_on":{"table":` + udept +
+					`,"column":"department_id"}}}}`,
+			},
+			op:            `{"type":"pg_untrack_table","args":{"source":"default","table":` + udept + `,"cascade":true}}`,
+			affectsSchema: true,
+		},
+		{
 			// Known divergence: Hasura returns "permission-denied" when dropping a
 			// non-existent permission (a Hasura quirk); Constellation returns the
 			// clearer "not-exists". Both reject the op.
