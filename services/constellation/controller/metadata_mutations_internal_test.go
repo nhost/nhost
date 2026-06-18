@@ -136,6 +136,27 @@ func postJSON(t *testing.T, router http.Handler, body string) (int, map[string]a
 	return rec.Code, out
 }
 
+// postJSONArray is postJSON for endpoints that return a bare top-level JSON
+// array (the `bulk` / `bulk_keep_going` success shape). Returns the raw bytes
+// too so a caller can fall back to decoding an error object on a non-200.
+func postJSONArray(t *testing.T, router http.Handler, body string) (int, []any, []byte) {
+	t.Helper()
+
+	req := httptest.NewRequest(http.MethodPost, "/v1/metadata", strings.NewReader(body))
+	req.Header.Set("Content-Type", "application/json")
+	req.Header.Set("X-Hasura-Admin-Secret", testAdminSecret)
+
+	rec := httptest.NewRecorder()
+	router.ServeHTTP(rec, req)
+
+	raw, _ := io.ReadAll(rec.Body)
+
+	var out []any
+	_ = json.Unmarshal(raw, &out)
+
+	return rec.Code, out, raw
+}
+
 func TestDispatch_PgTrackTable_Success(t *testing.T) {
 	t.Parallel()
 
