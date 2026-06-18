@@ -32,6 +32,14 @@ var ErrResourceVersionConflict = errors.New("metadata resource_version conflict"
 // resource_version; otherwise WriteMetadata returns
 // ErrResourceVersionConflict and the row is left untouched. On success
 // the row is updated to (newRaw, newRV).
+// MetadataWriter and Queryer are the Store's two external-system boundaries:
+// the durable Postgres metadata persistence sink and a pgx query handle. They
+// are exported only so mockgen can target them; cross-package consumers (e.g.
+// controller tests) drive the Store through the generated mock subpackage. The
+// source package's own tests are white-box (package source) and cannot import
+// source/mock without an import cycle, so they keep inline stubs.
+//
+//go:generate mockgen -package mock -destination mock/source.go . MetadataWriter,Queryer
 type MetadataWriter interface {
 	WriteMetadata(ctx context.Context, newRaw []byte, expectedRV, newRV int64) error
 }
