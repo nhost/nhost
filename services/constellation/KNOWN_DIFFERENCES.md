@@ -152,3 +152,15 @@ in the single-op path but are not accepted as children of a `bulk` /
 `bulk_atomic` / `bulk_keep_going` request (they return `not-supported`). Hasura
 permits read commands inside `bulk`. No known client is affected — the dashboard's
 read bulks target `/v2/query`, not `/v1/metadata`.
+
+# Whole-metadata ops as bulk children
+
+The whole-metadata ops `replace_metadata`, `clear_metadata`, and
+`reload_metadata` are served in the single-op path but return `not-supported`
+as children of a `bulk` / `bulk_atomic` / `bulk_keep_going` request. Hasura
+accepts `replace_metadata` / `clear_metadata` inside `bulk`. They are excluded
+because neither fits the `MutationFn(*hasura.Metadata)` shape that the bulk
+machinery composes: `reload_metadata` reads from the database, and
+`replace_metadata` threads an optional `resource_version` optimistic-concurrency
+precondition, so atomic composition under `bulk_atomic`'s rollback semantics
+would require separate machinery. No known client batches these ops.

@@ -1,11 +1,11 @@
 package source
 
 import (
+	"bytes"
 	"context"
 	json "encoding/json/v2"
 	"errors"
 	"fmt"
-	"reflect"
 
 	"github.com/nhost/nhost/services/constellation/metadata/internal/hasura"
 )
@@ -70,6 +70,29 @@ func resolveTable(
 	return t, nil
 }
 
+// permissionsEqual reports whether two permission configs are semantically
+// identical by comparing their canonical JSON encodings. Each *PermissionConfig
+// MarshalJSON re-emits modeled fields and captured unknown sibling keys
+// deterministically (json.Deterministic), so the comparison is order-insensitive.
+// reflect.DeepEqual is unsuitable here: the stored permission's Unknown bytes are
+// the deterministically re-marshalled snapshot, while the incoming request's
+// Unknown bytes are verbatim, so a semantically-identical re-create carrying an
+// unmodeled key in non-sorted order would compare unequal and return a spurious
+// 400 already-exists instead of the idempotent 200.
+func permissionsEqual(stored, incoming any) (bool, error) {
+	storedJSON, err := json.Marshal(stored)
+	if err != nil {
+		return false, fmt.Errorf("marshaling stored permission for comparison: %w", err)
+	}
+
+	incomingJSON, err := json.Marshal(incoming)
+	if err != nil {
+		return false, fmt.Errorf("marshaling incoming permission for comparison: %w", err)
+	}
+
+	return bytes.Equal(storedJSON, incomingJSON), nil
+}
+
 // indexOfPermission returns the index of role in perms, or -1.
 func indexOfPermission[P any](perms []P, role string, roleOf func(P) string) int {
 	for i, p := range perms {
@@ -113,7 +136,12 @@ func buildPgCreateSelectPermission(argsJSON []byte) (MutationFn, error) {
 			a.Role,
 			func(p hasura.SelectPermission) string { return p.Role },
 		); idx >= 0 {
-			if reflect.DeepEqual(t.SelectPermissions[idx].Permission, a.Permission) {
+			equal, err := permissionsEqual(t.SelectPermissions[idx].Permission, a.Permission)
+			if err != nil {
+				return "", err
+			}
+
+			if equal {
 				return CodeAlreadyExists, nil
 			}
 
@@ -228,7 +256,12 @@ func buildPgCreateInsertPermission(argsJSON []byte) (MutationFn, error) {
 			a.Role,
 			func(p hasura.InsertPermission) string { return p.Role },
 		); idx >= 0 {
-			if reflect.DeepEqual(t.InsertPermissions[idx].Permission, a.Permission) {
+			equal, err := permissionsEqual(t.InsertPermissions[idx].Permission, a.Permission)
+			if err != nil {
+				return "", err
+			}
+
+			if equal {
 				return CodeAlreadyExists, nil
 			}
 
@@ -343,7 +376,12 @@ func buildPgCreateUpdatePermission(argsJSON []byte) (MutationFn, error) {
 			a.Role,
 			func(p hasura.UpdatePermission) string { return p.Role },
 		); idx >= 0 {
-			if reflect.DeepEqual(t.UpdatePermissions[idx].Permission, a.Permission) {
+			equal, err := permissionsEqual(t.UpdatePermissions[idx].Permission, a.Permission)
+			if err != nil {
+				return "", err
+			}
+
+			if equal {
 				return CodeAlreadyExists, nil
 			}
 
@@ -458,7 +496,12 @@ func buildPgCreateDeletePermission(argsJSON []byte) (MutationFn, error) {
 			a.Role,
 			func(p hasura.DeletePermission) string { return p.Role },
 		); idx >= 0 {
-			if reflect.DeepEqual(t.DeletePermissions[idx].Permission, a.Permission) {
+			equal, err := permissionsEqual(t.DeletePermissions[idx].Permission, a.Permission)
+			if err != nil {
+				return "", err
+			}
+
+			if equal {
 				return CodeAlreadyExists, nil
 			}
 
