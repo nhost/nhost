@@ -77,8 +77,11 @@ func TestCascadeUntrack_WithDeps(t *testing.T) {
 
 	deps := &untrackDeps{
 		fkByOwnerCols: map[string]hasura.TableSource{
-			fkOwnerKey(hasura.TableSource{Schema: "public", Name: "departments"}, []string{"department_id"}):      target,
-			fkOwnerKey(hasura.TableSource{Schema: "public", Name: "department_files"}, []string{"department_id"}): {Schema: "public", Name: "departments"},
+			fkOwnerKey(hasura.TableSource{Schema: "public", Name: "departments"}, []string{"department_id"}): target,
+			fkOwnerKey(hasura.TableSource{Schema: "public", Name: "department_files"}, []string{"department_id"}): {
+				Schema: "public",
+				Name:   "departments",
+			},
 		},
 		funcsReturningTarget: map[string]struct{}{
 			funcKey("public", "get_department_manager"): {},
@@ -100,7 +103,9 @@ func TestCascadeUntrack_WithDeps(t *testing.T) {
 
 	files := tableByName(t, db, "storage", "files")
 	if updatePermExists(files.UpdatePermissions, "user") {
-		t.Error("storage.files update permission reaching the table via department_file.department.employees was not cascaded")
+		t.Error(
+			"storage.files update permission reaching the table via department_file.department.employees was not cascaded",
+		)
 	}
 
 	news := tableByName(t, db, "public", "news")
@@ -121,7 +126,11 @@ func TestCascadeUntrack_WithDeps(t *testing.T) {
 	}
 }
 
-func tableByName(t *testing.T, db hasura.DatabaseMetadata, schema, name string) hasura.TableMetadata {
+func tableByName(
+	t *testing.T,
+	db hasura.DatabaseMetadata,
+	schema, name string,
+) hasura.TableMetadata {
 	t.Helper()
 
 	for _, tbl := range db.Tables {
