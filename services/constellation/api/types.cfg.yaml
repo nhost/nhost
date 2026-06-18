@@ -18,9 +18,11 @@ output-options:
   # the event-trigger cluster. As a side effect a handful of otherwise
   # unused schemas are also emitted as exported types: GraphQLRequest,
   # GraphQLResponse and GraphQLError* (reachable only from the excluded
-  # `graphql`-tagged operations) plus the fully-orphan ValidationError.
-  # That dead generated surface is accepted as the cost of keeping the
-  # metadata wire schemas without anchoring each one to a synthetic operation.
+  # `graphql`-tagged operations). That dead generated surface is accepted
+  # as the cost of keeping the metadata wire schemas without anchoring
+  # each one to a synthetic operation. (ValidationError is NOT orphaned —
+  # it is referenced from the metadata POST 400 oneOf response and is
+  # emitted regardless of skip-prune.)
   skip-prune: true
   exclude-tags:
     - graphql

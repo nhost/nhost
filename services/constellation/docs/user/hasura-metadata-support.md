@@ -388,7 +388,7 @@ on the DB metadata source their config is stored and round-trips through
 
 `integration/metadata_parity_test.go` is a differential test that applies the
 same `/v1/metadata` op to **both** Hasura and Constellation and asserts the
-results are equivalent, in three layers:
+results are equivalent, in four layers:
 
 - **Layer A — response parity:** matching HTTP status class and, on error, the
   same Hasura error `code`. Skipped for ops where Constellation intentionally
@@ -403,6 +403,11 @@ results are equivalent, in three layers:
   false failures. **Opt-in and OFF by default** — it dumps the full SDL via the
   CLI several times per case and is far slower than Layers A/B, so it only runs
   when `PARITY_SCHEMA_CHECK=1` is set.
+- **Layer D — query execution:** for cases that define a `query`, the harness runs
+  it against both engines' GraphQL endpoints after the op and diffs the
+  responses (honouring optional `queryRole`/`queryWantErr`), proving the op
+  produced an equivalent *runtime* schema and not just equivalent metadata.
+  Per-case and opt-in — it runs only for cases that set a `query`.
 
 **Isolation.** The two engines cannot share one `hdb_catalog.hdb_metadata` row,
 so the harness gives Constellation its own metadata DB (`cstl`, created by

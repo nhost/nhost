@@ -26,8 +26,10 @@ type pgSuggestRelationshipsArgs struct {
 	Source string               `json:"source"`
 	Tables []hasura.TableSource `json:"tables,omitempty"`
 	// OmitTracked filters out FKs whose object/array form is already in
-	// the metadata. Hasura's default is true; the dashboard relies on
-	// this so it doesn't re-suggest existing relationships.
+	// the metadata. It decodes to false when the key is absent (a bool
+	// has no presence tracking here); the dashboard sends omit_tracked
+	// explicitly as false and filters already-tracked relationships
+	// client-side, so it does not rely on a server-side default.
 	OmitTracked bool `json:"omit_tracked,omitempty"`
 }
 

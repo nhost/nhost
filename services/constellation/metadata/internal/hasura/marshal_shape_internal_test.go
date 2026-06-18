@@ -105,3 +105,59 @@ func TestForeignKeyConstraint_MarshalColumnShape(t *testing.T) {
 		}
 	})
 }
+
+func TestInsertPermissionConfig_MarshalShape(t *testing.T) {
+	t.Parallel()
+
+	t.Run("columns wildcard, nil check and set omitted", func(t *testing.T) {
+		t.Parallel()
+
+		got := marshalString(t, InsertPermissionConfig{Columns: []string{"*"}})
+		if !strings.Contains(got, `"columns":"*"`) {
+			t.Errorf("got %s, want wildcard \"columns\":\"*\"", got)
+		}
+
+		if strings.Contains(got, `"check"`) {
+			t.Errorf("got %s, want no \"check\" key for nil check", got)
+		}
+
+		if strings.Contains(got, `"set"`) {
+			t.Errorf("got %s, want no \"set\" key for nil set", got)
+		}
+	})
+
+	t.Run("single column stays array", func(t *testing.T) {
+		t.Parallel()
+
+		got := marshalString(t, InsertPermissionConfig{Columns: []string{"id"}})
+		if !strings.Contains(got, `"columns":["id"]`) {
+			t.Errorf("got %s, want \"columns\":[\"id\"]", got)
+		}
+	})
+
+	t.Run("present-but-empty check kept as object", func(t *testing.T) {
+		t.Parallel()
+
+		// A non-nil empty check must emit "check":{} (Hasura keeps it), distinct
+		// from the nil case which omits the key entirely.
+		got := marshalString(t, InsertPermissionConfig{
+			Columns: []string{"id"},
+			Check:   PermissionExpression{},
+		})
+		if !strings.Contains(got, `"check":{}`) {
+			t.Errorf("got %s, want \"check\":{} for present-but-empty check", got)
+		}
+	})
+}
+
+func TestRemoteSchemaMetadata_MarshalCommentAlwaysPresent(t *testing.T) {
+	t.Parallel()
+
+	// Hasura always emits remote_schemas[].comment, as "" when unset, so a
+	// faithful drop-in export keeps the key rather than omit it. The round-trip
+	// suite's EquateEmpty is blind to ""-vs-absent, so assert the bytes here.
+	got := marshalString(t, RemoteSchemaMetadata{Name: "weather"})
+	if !strings.Contains(got, `"comment":""`) {
+		t.Errorf("got %s, want \"comment\":\"\" for unset comment", got)
+	}
+}
