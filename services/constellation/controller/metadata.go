@@ -246,6 +246,24 @@ func (r metadataProxyResponse) VisitMetadataRequestResponse(w http.ResponseWrite
 // MetadataError body. 401s are produced upstream by the security middleware
 // (see NewAuthFunc), never by this handler, so the only error shape the
 // dispatcher itself emits is a 400.
+// metadataBulkArrayResponse is the success body for `bulk` / `bulk_keep_going`:
+// a bare top-level JSON array of per-child results, matching Hasura's wire
+// shape. The generated api.MetadataRequest200JSONResponse is a
+// map[string]interface{} and cannot represent a bare array, so this hand-written
+// response type implements the response interface directly.
+type metadataBulkArrayResponse []any
+
+func (r metadataBulkArrayResponse) VisitMetadataRequestResponse(w http.ResponseWriter) error {
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(http.StatusOK)
+
+	if err := json.NewEncoder(w).Encode([]any(r)); err != nil {
+		return fmt.Errorf("encoding bulk metadata response: %w", err)
+	}
+
+	return nil
+}
+
 func metadataErrorResponse( //nolint:ireturn
 	code, message, path string,
 ) (api.MetadataRequestResponseObject, error) {
