@@ -121,9 +121,9 @@ jobs:
 
       - name: Create nhost-helper-bot token
         id: helper-bot-token
-        uses: actions/create-github-app-token@v2
+        uses: actions/create-github-app-token@v3
         with:
-          app-id: ${{ secrets.NHOST_BOT_APP_ID }}
+          client-id: ${{ secrets.NHOST_BOT_APP_ID }}
           private-key: ${{ secrets.NHOST_BOT_PRIVATE_KEY }}
           owner: ${{ github.repository_owner }}
 
