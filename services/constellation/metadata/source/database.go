@@ -19,16 +19,16 @@ import (
 
 // metadataStore is the minimal pgx surface DatabaseMetadataSource needs,
 // extracted so tests can substitute a fake (see fake_store_test.go) instead
-// of standing up a real *pgxpool.Pool.
+// of standing up a real *pgxpool.Pool. It is the query surface (the embedded
+// Queryer, shared with the in-process Store) plus Close for pool lifecycle.
 //
-// QueryRow executes a single-row query used to fetch the metadata blob and
-// its resource version from hdb_catalog.hdb_metadata; the returned pgx.Row
-// must support Scan and surface pgx.ErrNoRows when the row is absent.
+// The embedded QueryRow/Query fetch the metadata blob and its resource version
+// from hdb_catalog.hdb_metadata and emit change notifications; the returned
+// pgx.Row must support Scan and surface pgx.ErrNoRows when the row is absent.
 // Close releases pool resources and must be safe to call multiple times;
 // DatabaseMetadataSource guards its own invocation with sync.Once.
 type metadataStore interface {
-	QueryRow(ctx context.Context, sql string, args ...any) pgx.Row
-	Query(ctx context.Context, sql string, args ...any) (pgx.Rows, error)
+	Queryer
 	Close()
 }
 
@@ -42,14 +42,23 @@ var errResourceVersionMismatch = errors.New(
 )
 
 // upsertMetadataSQL persists a new (raw, newRV) into hdb_catalog.hdb_metadata
-// only when the existing row's resource_version still equals expectedRV. The
+// only when the row's current resource_version still equals expectedRV. The
 // WHERE clause on UPDATE is the optimistic-concurrency guard: a mismatch
 // returns zero rows from RETURNING, surfaced as ErrResourceVersionConflict.
+//
+// The INSERT branch is gated the same way for the no-row case: the row is
+// seeded only when expectedRV is 0 (a missing row is treated as version 0) or
+// the row already exists (so the ON CONFLICT UPDATE guard applies). A no-row
+// write carrying a non-zero expectedRV therefore yields zero rows and a
+// conflict, rather than silently seeding the row regardless of the caller's
+// expectation.
 //
 // $1 = newRaw JSON, $2 = expectedRV, $3 = newRV.
 const upsertMetadataSQL = `
 INSERT INTO hdb_catalog.hdb_metadata (id, metadata, resource_version)
-VALUES (1, $1, $3)
+SELECT 1, $1, $3
+ WHERE $2 = 0
+    OR EXISTS (SELECT 1 FROM hdb_catalog.hdb_metadata WHERE id = 1)
 ON CONFLICT (id) DO UPDATE
    SET metadata = EXCLUDED.metadata,
        resource_version = EXCLUDED.resource_version
