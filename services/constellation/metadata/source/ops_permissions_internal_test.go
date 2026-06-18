@@ -1,4 +1,4 @@
-package source //nolint:testpackage // exercises unexported builders + fakes
+package source
 
 import (
 	"errors"
