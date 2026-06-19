@@ -22,7 +22,7 @@ import "testing"
 // Not parallel: metadata is global per engine, so cases mutate shared state and
 // run serially (each resets to baseline first).
 //
-// nolint:paralleltest,maintidx
+//nolint:paralleltest,maintidx
 func TestMetadataParity(t *testing.T) {
 	const (
 		role   = "paritytest"
