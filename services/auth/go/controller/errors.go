@@ -187,6 +187,10 @@ func (response ErrorResponse) VisitLinkIdTokenResponse( //nolint:revive
 	return response.visit(w)
 }
 
+func (response ErrorResponse) VisitLinkProviderResponse(w http.ResponseWriter) error {
+	return response.visit(w)
+}
+
 func (response ErrorResponse) VisitVerifyTicketResponse(w http.ResponseWriter) error {
 	return response.visit(w)
 }

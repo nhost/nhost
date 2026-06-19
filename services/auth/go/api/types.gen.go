@@ -183,6 +183,26 @@ const (
 	TicketTypeQuerySigninPasswordless TicketTypeQuery = "signinPasswordless"
 )
 
+// Defines values for LinkProviderParamsProvider.
+const (
+	LinkProviderParamsProviderApple       LinkProviderParamsProvider = "apple"
+	LinkProviderParamsProviderAzuread     LinkProviderParamsProvider = "azuread"
+	LinkProviderParamsProviderBitbucket   LinkProviderParamsProvider = "bitbucket"
+	LinkProviderParamsProviderDiscord     LinkProviderParamsProvider = "discord"
+	LinkProviderParamsProviderEntraid     LinkProviderParamsProvider = "entraid"
+	LinkProviderParamsProviderFacebook    LinkProviderParamsProvider = "facebook"
+	LinkProviderParamsProviderGithub      LinkProviderParamsProvider = "github"
+	LinkProviderParamsProviderGitlab      LinkProviderParamsProvider = "gitlab"
+	LinkProviderParamsProviderGoogle      LinkProviderParamsProvider = "google"
+	LinkProviderParamsProviderLinkedin    LinkProviderParamsProvider = "linkedin"
+	LinkProviderParamsProviderSpotify     LinkProviderParamsProvider = "spotify"
+	LinkProviderParamsProviderStrava      LinkProviderParamsProvider = "strava"
+	LinkProviderParamsProviderTwitch      LinkProviderParamsProvider = "twitch"
+	LinkProviderParamsProviderTwitter     LinkProviderParamsProvider = "twitter"
+	LinkProviderParamsProviderWindowslive LinkProviderParamsProvider = "windowslive"
+	LinkProviderParamsProviderWorkos      LinkProviderParamsProvider = "workos"
+)
+
 // Defines values for Oauth2AuthorizeParamsCodeChallengeMethod.
 const (
 	S256 Oauth2AuthorizeParamsCodeChallengeMethod = "S256"
@@ -290,22 +310,22 @@ const (
 
 // Defines values for RefreshProviderTokenParamsProvider.
 const (
-	RefreshProviderTokenParamsProviderApple       RefreshProviderTokenParamsProvider = "apple"
-	RefreshProviderTokenParamsProviderAzuread     RefreshProviderTokenParamsProvider = "azuread"
-	RefreshProviderTokenParamsProviderBitbucket   RefreshProviderTokenParamsProvider = "bitbucket"
-	RefreshProviderTokenParamsProviderDiscord     RefreshProviderTokenParamsProvider = "discord"
-	RefreshProviderTokenParamsProviderEntraid     RefreshProviderTokenParamsProvider = "entraid"
-	RefreshProviderTokenParamsProviderFacebook    RefreshProviderTokenParamsProvider = "facebook"
-	RefreshProviderTokenParamsProviderGithub      RefreshProviderTokenParamsProvider = "github"
-	RefreshProviderTokenParamsProviderGitlab      RefreshProviderTokenParamsProvider = "gitlab"
-	RefreshProviderTokenParamsProviderGoogle      RefreshProviderTokenParamsProvider = "google"
-	RefreshProviderTokenParamsProviderLinkedin    RefreshProviderTokenParamsProvider = "linkedin"
-	RefreshProviderTokenParamsProviderSpotify     RefreshProviderTokenParamsProvider = "spotify"
-	RefreshProviderTokenParamsProviderStrava      RefreshProviderTokenParamsProvider = "strava"
-	RefreshProviderTokenParamsProviderTwitch      RefreshProviderTokenParamsProvider = "twitch"
-	RefreshProviderTokenParamsProviderTwitter     RefreshProviderTokenParamsProvider = "twitter"
-	RefreshProviderTokenParamsProviderWindowslive RefreshProviderTokenParamsProvider = "windowslive"
-	RefreshProviderTokenParamsProviderWorkos      RefreshProviderTokenParamsProvider = "workos"
+	Apple       RefreshProviderTokenParamsProvider = "apple"
+	Azuread     RefreshProviderTokenParamsProvider = "azuread"
+	Bitbucket   RefreshProviderTokenParamsProvider = "bitbucket"
+	Discord     RefreshProviderTokenParamsProvider = "discord"
+	Entraid     RefreshProviderTokenParamsProvider = "entraid"
+	Facebook    RefreshProviderTokenParamsProvider = "facebook"
+	Github      RefreshProviderTokenParamsProvider = "github"
+	Gitlab      RefreshProviderTokenParamsProvider = "gitlab"
+	Google      RefreshProviderTokenParamsProvider = "google"
+	Linkedin    RefreshProviderTokenParamsProvider = "linkedin"
+	Spotify     RefreshProviderTokenParamsProvider = "spotify"
+	Strava      RefreshProviderTokenParamsProvider = "strava"
+	Twitch      RefreshProviderTokenParamsProvider = "twitch"
+	Twitter     RefreshProviderTokenParamsProvider = "twitter"
+	Windowslive RefreshProviderTokenParamsProvider = "windowslive"
+	Workos      RefreshProviderTokenParamsProvider = "workos"
 )
 
 // Defines values for VerifyTicketParamsType.
@@ -488,6 +508,23 @@ type LinkIdTokenRequest struct {
 	// Nonce Nonce used during sign in process
 	Nonce    *string         `json:"nonce,omitempty"`
 	Provider IdTokenProvider `json:"provider"`
+}
+
+// LinkProviderRequest defines model for LinkProviderRequest.
+type LinkProviderRequest struct {
+	ProviderSpecificParams *ProviderSpecificParams `json:"providerSpecificParams,omitempty"`
+
+	// RedirectTo URI to redirect the browser to after the linking flow completes.
+	RedirectTo *string `json:"redirectTo,omitempty"`
+
+	// State Opaque state value to be returned to the client after linking.
+	State *string `json:"state,omitempty"`
+}
+
+// LinkProviderResponse defines model for LinkProviderResponse.
+type LinkProviderResponse struct {
+	// Url The provider authorization URL the client should redirect the browser to.
+	Url string `json:"url"`
 }
 
 // MFAChallengePayload Challenge payload for multi-factor authentication
@@ -1127,6 +1164,9 @@ type TicketQuery = string
 // TicketTypeQuery Type of the ticket
 type TicketTypeQuery string
 
+// LinkProviderParamsProvider defines parameters for LinkProvider.
+type LinkProviderParamsProvider string
+
 // Oauth2AuthorizeParams defines parameters for Oauth2Authorize.
 type Oauth2AuthorizeParams struct {
 	// ClientId The OAuth2 client identifier (RFC 6749 Section 2.2).
@@ -1341,6 +1381,9 @@ type VerifyElevateWebauthnJSONRequestBody = SignInWebauthnVerifyRequest
 
 // LinkIdTokenJSONRequestBody defines body for LinkIdToken for application/json ContentType.
 type LinkIdTokenJSONRequestBody = LinkIdTokenRequest
+
+// LinkProviderJSONRequestBody defines body for LinkProvider for application/json ContentType.
+type LinkProviderJSONRequestBody = LinkProviderRequest
 
 // Oauth2AuthorizePostFormdataRequestBody defines body for Oauth2AuthorizePost for application/x-www-form-urlencoded ContentType.
 type Oauth2AuthorizePostFormdataRequestBody Oauth2AuthorizePostFormdataBody

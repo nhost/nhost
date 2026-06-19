@@ -20,6 +20,11 @@ var ErrInvalidFlow = errors.New("invalid flow claim in state")
 const (
 	FlowSignin = "signin"
 	FlowSignup = "signup"
+	// FlowConnect marks a state JWT created by the authenticated account
+	// linking flow (POST /link/provider/{provider}). The user identity is not
+	// carried in the state; it lives in a short-lived cookie set at init and
+	// read at the callback. Nonce binds that cookie to this state (CSRF).
+	FlowConnect = "connect"
 )
 
 type State struct {
@@ -28,6 +33,7 @@ type State struct {
 	State         *string
 	Flow          string
 	CodeChallenge *string
+	Nonce         *string
 }
 
 func (s *State) Encode() jwt.MapClaims {
@@ -37,6 +43,7 @@ func (s *State) Encode() jwt.MapClaims {
 		"state":         s.State,
 		"flow":          s.Flow,
 		"codeChallenge": s.CodeChallenge,
+		"nonce":         s.Nonce,
 	}
 }
 
@@ -51,7 +58,7 @@ func (s *State) Decode(claims any) error {
 	}
 
 	switch s.Flow {
-	case FlowSignin, FlowSignup:
+	case FlowSignin, FlowSignup, FlowConnect:
 	default:
 		return fmt.Errorf("%w: %q", ErrInvalidFlow, s.Flow)
 	}

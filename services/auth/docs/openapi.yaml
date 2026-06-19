@@ -177,6 +177,44 @@ paths:
                 $ref: "#/components/schemas/ErrorResponse"
           description: "An error occurred while processing the request"
 
+  /link/provider/{provider}:
+    post:
+      summary: Start linking the authenticated user's account with an OAuth2 provider
+      description: >-
+        Begin linking the authenticated user's account with an external OAuth2 provider.
+        Requires elevated permissions. The authenticated user's identity is stored in a
+        short-lived, single-use cookie (never placed in the URL or the OAuth state) and the
+        provider's authorization URL is returned for the client to redirect the browser to.
+        The callback links the provider to the user identified by the cookie, so the link
+        always commits to the user who actually completed the provider login.
+      operationId: linkProvider
+      tags:
+        - security
+      security:
+        - BearerAuthElevated: []
+      parameters:
+        - $ref: "#/components/parameters/SignInProvider"
+      requestBody:
+        description: Options for the provider linking flow
+        required: false
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/LinkProviderRequest"
+      responses:
+        "200":
+          description: Authorization URL the client should redirect the browser to
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/LinkProviderResponse"
+        default:
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+          description: "An error occurred while processing the request"
+
   /mfa/totp/generate:
     get:
       summary: Generate TOTP secret
@@ -2462,6 +2500,32 @@ components:
       required:
         - provider
         - idToken
+
+    LinkProviderRequest:
+      type: object
+      additionalProperties: false
+      properties:
+        redirectTo:
+          type: string
+          format: uri
+          description: URI to redirect the browser to after the linking flow completes.
+          example: https://my-app.com/account
+        state:
+          type: string
+          description: Opaque state value to be returned to the client after linking.
+        providerSpecificParams:
+          $ref: "#/components/schemas/ProviderSpecificParams"
+
+    LinkProviderResponse:
+      type: object
+      additionalProperties: false
+      properties:
+        url:
+          type: string
+          format: uri
+          description: The provider authorization URL the client should redirect the browser to.
+      required:
+        - url
 
     MFAChallengePayload:
       type: object
