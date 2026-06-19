@@ -12,9 +12,8 @@ import {
   DialogTrigger,
 } from '@/components/ui/v3/dialog';
 import { Label } from '@/components/ui/v3/label';
+import useActionWithElevatedPermissions from '@/features/account/settings/hooks/useActionWithElevatedPermissions';
 import execPromiseWithErrorToast from '@/features/orgs/utils/execPromiseWithErrorToast/execPromiseWithErrorToast';
-import { useAccessToken } from '@/hooks/useAccessToken';
-import { appendPkceId, generateAndStorePKCE } from '@/lib/pkce';
 import { isEmptyValue, isNotEmptyValue } from '@/lib/utils';
 import { useNhostClient } from '@/providers/nhost';
 import {
@@ -92,7 +91,6 @@ function ConfirmDisconnectGithubModal({
 
 export default function SocialProvidersSettings() {
   const nhost = useNhostClient();
-  const token = useAccessToken();
   const {
     data,
     loading: loadingAuthUserProviders,
@@ -119,18 +117,20 @@ export default function SocialProvidersSettings() {
     await refetchAuthUserProviders();
   }
 
-  async function handleConnectGithub() {
-    const { challenge, id } = await generateAndStorePKCE();
-    const url = nhost.auth.signInProviderURL('github', {
-      connect: token,
-      redirectTo: appendPkceId(
-        `${window.location.origin}/account?signinProvider=github`,
-        id,
-      ),
-      codeChallenge: challenge,
-    });
-    window.location.href = url;
-  }
+  // Linking is an authenticated, elevated action: the access token goes in the
+  // Authorization header (never the URL), and the auth server records the user
+  // in a single-use cookie. The callback links the provider to that user, then
+  // redirects back here. useActionWithElevatedPermissions steps the session up
+  // first when the user has security keys.
+  const connectGithub = useActionWithElevatedPermissions({
+    actionFn: async () => {
+      const response = await nhost.auth.linkProvider('github', {
+        redirectTo: `${window.location.origin}/account?signinProvider=github`,
+      });
+      window.location.href = response.body.url;
+    },
+    successMessage: 'Redirecting to GitHub…',
+  });
 
   if (!data && loadingAuthUserProviders) {
     return (
@@ -160,7 +160,7 @@ export default function SocialProvidersSettings() {
           <Button
             variant="outline"
             className="flex w-fit flex-row gap-2 bg-white text-sm+ hover:bg-[#e2e8ef] dark:bg-[#171d26] dark:hover:bg-[#2f363e]"
-            onClick={handleConnectGithub}
+            onClick={() => connectGithub()}
           >
             <GitHubIcon />
             Connect with GitHub
