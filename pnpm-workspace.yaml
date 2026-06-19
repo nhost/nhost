@@ -109,3 +109,5 @@ minimumReleaseAgeExclude:
   - '@babel/core@7.29.1'
   - markdown-it@14.1.2
   - astro@6.4.6
+  - undici@8.5.0
+  - undici@7.28.0
