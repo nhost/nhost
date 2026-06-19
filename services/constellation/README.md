@@ -161,7 +161,7 @@ In **database mode** the dashboard's database/permissions/functions/events tabs 
 
 The event delivery **runtime** ops (`pg_redeliver_event`, `pg_invoke_event_trigger`, `pg_get_event_logs`, `pg_get_event_by_id`) are always handled natively and always return `not-supported` — they are *never* forwarded to the proxy, even when `--hasura-upstream-url` is configured.
 
-What constellation has **no** native handler for falls through to the Hasura upstream when `--hasura-upstream-url` is configured (else returns `not-supported`): source admin (`pg_add_source` / `pg_drop_source` / `pg_update_source`; sources are config-driven), computed fields, inherited roles, Apollo Federation. `hasura-cli` migration workflows are out of scope.
+What constellation has **no** native handler for falls through to the Hasura upstream when `--hasura-upstream-url` is configured (else returns `not-supported`). This includes, among others: actions, custom types, cron/scheduled triggers, remote-schema management, source admin (`pg_add_source` / `pg_drop_source` / `pg_update_source`; sources are config-driven), computed fields, inherited roles, and Apollo Federation. `hasura-cli` migration workflows are out of scope.
 
 #### Smoke test
 
