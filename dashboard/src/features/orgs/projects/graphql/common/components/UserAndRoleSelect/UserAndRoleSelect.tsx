@@ -59,7 +59,11 @@ export default function UserAndRoleSelect({
             onRoleChange(value);
           }}
         >
-          <SelectTrigger className="w-full">
+          <SelectTrigger
+            aria-label="Role"
+            data-testid="graphql-role-select"
+            className="w-full"
+          >
             <SelectValue placeholder="Select role" />
           </SelectTrigger>
           <SelectContent>
