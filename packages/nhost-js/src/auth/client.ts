@@ -447,6 +447,42 @@ export interface LinkIdTokenRequest {
 }
 
 /**
+ * 
+ @property redirectTo? (`string`) - URI to redirect the browser to after the linking flow completes.
+    *    Example - `"https://my-app.com/account"`
+    *    Format - uri
+ @property state? (`string`) - Opaque state value to be returned to the client after linking.
+ @property providerSpecificParams? (`ProviderSpecificParams`) - */
+export interface LinkProviderRequest {
+  /**
+   * URI to redirect the browser to after the linking flow completes.
+   *    Example - `"https://my-app.com/account"`
+   *    Format - uri
+   */
+  redirectTo?: string;
+  /**
+   * Opaque state value to be returned to the client after linking.
+   */
+  state?: string;
+  /**
+   *
+   */
+  providerSpecificParams?: ProviderSpecificParams;
+}
+
+/**
+ * 
+ @property url (`string`) - The provider authorization URL the client should redirect the browser to.
+    *    Format - uri*/
+export interface LinkProviderResponse {
+  /**
+   * The provider authorization URL the client should redirect the browser to.
+   *    Format - uri
+   */
+  url: string;
+}
+
+/**
  * Challenge payload for multi-factor authentication
  @property ticket (`string`) - Ticket to use when completing the MFA challenge
     *    Example - `"mfaTotp:abc123def456"`*/
@@ -2258,8 +2294,6 @@ export interface Oauth2AuthorizePostBody {
   
     @property redirectTo? (string) - URI to redirect to
   
-    @property connect? (string) - If set, this means that the user is already authenticated and wants to link their account. This needs to be a valid JWT access token.
-  
     @property state? (string) - Opaque state value to be returned by the provider
   
     @property providerSpecificParams? (ProviderSpecificParams) - Additional provider-specific parameters
@@ -2297,11 +2331,6 @@ export interface SignInProviderParams {
   
    */
   redirectTo?: string;
-  /**
-   * If set, this means that the user is already authenticated and wants to link their account. This needs to be a valid JWT access token.
-  
-   */
-  connect?: string;
   /**
    * Opaque state value to be returned by the provider
   
@@ -2577,6 +2606,19 @@ export interface Client {
     body: LinkIdTokenRequest,
     options?: RequestInit,
   ): Promise<FetchResponse<OKResponse>>;
+
+  /**
+     Summary: Start linking the authenticated user's account with an OAuth2 provider
+     Begin linking the authenticated user's account with an external OAuth2 provider. Requires elevated permissions. The authenticated user's identity is stored in a short-lived, single-use cookie (never placed in the URL or the OAuth state) and the provider's authorization URL is returned for the client to redirect the browser to. The callback links the provider to the user identified by the cookie, so the link always commits to the user who actually completed the provider login.
+
+     This method may return different T based on the response code:
+     - 200: LinkProviderResponse
+     */
+  linkProvider(
+    provider: SignInProvider,
+    body?: LinkProviderRequest,
+    options?: RequestInit,
+  ): Promise<FetchResponse<LinkProviderResponse>>;
 
   /**
      Summary: Generate TOTP secret
@@ -3412,6 +3454,42 @@ export const createAPIClient = (
       status: res.status,
       headers: res.headers,
     } as FetchResponse<OKResponse>;
+  };
+
+  const linkProvider = async (
+    provider: SignInProvider,
+    body?: LinkProviderRequest,
+    options?: RequestInit,
+  ): Promise<FetchResponse<LinkProviderResponse>> => {
+    const url = `${baseURL}/link/provider/${provider}`;
+    const res = await fetch(url, {
+      ...options,
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        ...options?.headers,
+      },
+      body: JSON.stringify(body),
+    });
+
+    if (res.status >= 300) {
+      const responseBody = [412].includes(res.status) ? null : await res.text();
+      const payload: unknown = responseBody ? JSON.parse(responseBody) : {};
+      throw new FetchError(payload, res.status, res.headers);
+    }
+
+    const responseBody = [204, 205, 304].includes(res.status)
+      ? null
+      : await res.text();
+    const payload: LinkProviderResponse = responseBody
+      ? JSON.parse(responseBody)
+      : {};
+
+    return {
+      body: payload,
+      status: res.status,
+      headers: res.headers,
+    } as FetchResponse<LinkProviderResponse>;
   };
 
   const changeUserMfa = async (
@@ -5192,6 +5270,7 @@ export const createAPIClient = (
     healthCheckGet,
     healthCheckHead,
     linkIdToken,
+    linkProvider,
     changeUserMfa,
     createPAT,
     signInAnonymous,
