@@ -164,8 +164,12 @@ func TestRemoteSchemaMetadata_MarshalCommentOmittedWhenUnset(t *testing.T) {
 	}
 
 	comment := "forecast service"
-	if got := marshalString(t, RemoteSchemaMetadata{Name: "weather", Comment: &comment}); !strings.Contains(
-		got, `"comment":"forecast service"`,
+	if got := marshalString(
+		t,
+		RemoteSchemaMetadata{Name: "weather", Comment: &comment},
+	); !strings.Contains(
+		got,
+		`"comment":"forecast service"`,
 	) {
 		t.Errorf("got %s, want \"comment\":\"forecast service\" when set", got)
 	}
