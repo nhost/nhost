@@ -36,7 +36,10 @@ export default async function createRecord<TData extends object = {}>({
     .map((columnId) => {
       const { value, fallbackValue, specificType } = columnValues[columnId];
 
-      if (!value && fallbackValue) {
+      if (
+        (value === null || value === undefined || value === '') &&
+        fallbackValue
+      ) {
         return fallbackValue;
       }
 

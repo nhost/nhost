@@ -1,31 +1,36 @@
 import { yupResolver } from '@hookform/resolvers/yup';
 import { useQueryClient } from '@tanstack/react-query';
+import type { Row } from '@tanstack/react-table';
 import { FormProvider, useForm } from 'react-hook-form';
 import { Alert } from '@/components/ui/v3/alert';
 import { Button } from '@/components/ui/v3/button';
 import { useTablePath } from '@/features/orgs/projects/database/common/hooks/useTablePath';
 import type { BaseRecordFormProps } from '@/features/orgs/projects/database/dataGrid/components/BaseRecordForm';
 import { BaseRecordForm } from '@/features/orgs/projects/database/dataGrid/components/BaseRecordForm';
-import { useCreateRecordMutation } from '@/features/orgs/projects/database/dataGrid/hooks/useCreateRecordMutation';
-import type { ColumnInsertOptions } from '@/features/orgs/projects/database/dataGrid/types/dataBrowser';
+import { useUpdateRecordWithToastMutation } from '@/features/orgs/projects/database/dataGrid/hooks/useUpdateRecordMutation';
+import type {
+  ColumnInsertOptions,
+  ColumnUpdateOptions,
+} from '@/features/orgs/projects/database/dataGrid/types/dataBrowser';
 import {
   POSTGRES_DEFAULT_PLACEHOLDER,
   wrapResolverWithDefaultPlaceholder,
 } from '@/features/orgs/projects/database/dataGrid/utils/postgresDefaultPlaceholder';
 import { createDynamicValidationSchema } from '@/features/orgs/projects/database/dataGrid/utils/validationSchemaHelpers';
+import type { UnknownDataGridRow } from '@/features/orgs/projects/storage/dataGrid/components/DataGrid';
 import { triggerToast } from '@/utils/toast';
 
-export interface CreateRecordFormProps
+export interface EditRecordFormProps
   extends Pick<BaseRecordFormProps, 'columns' | 'onCancel' | 'location'> {
+  /**
+   * The row to be edited.
+   */
+  row: Row<UnknownDataGridRow>;
   /**
    * Function to be called when the form is submitted.
    */
   onSubmit?: () => Promise<unknown>;
   currentOffset: number;
-  /**
-   * Initial values to populate the form fields.
-   */
-  initialValues?: Record<string, unknown>;
 }
 
 function parseHexEWKBPoint(hex: string) {
@@ -149,83 +154,55 @@ function formatFormDateValue(value: unknown, specificType?: string | null) {
   return value;
 }
 
-export default function CreateRecordForm({
+export default function EditRecordForm({
+  row,
   onSubmit,
   currentOffset,
-  initialValues,
   ...props
-}: CreateRecordFormProps) {
-  const { mutateAsync: insertRow, error, reset } = useCreateRecordMutation();
+}: EditRecordFormProps) {
+  const {
+    mutateAsync: updateRow,
+    error,
+    reset,
+  } = useUpdateRecordWithToastMutation();
   const validationSchema = createDynamicValidationSchema(props.columns);
   const currentTablePath = useTablePath();
   const queryClient = useQueryClient();
 
   const form = useForm({
     defaultValues: props.columns.reduce((defaultValues, column) => {
-      if (initialValues && initialValues[column.id] !== undefined) {
-        let value = initialValues[column.id];
-        const specType = column.specificType?.toLowerCase() || '';
+      let value = row.original[column.id];
+      const specType = column.specificType?.toLowerCase() || '';
 
-        if (
-          value !== null &&
-          typeof value === 'object' &&
-          (specType === 'jsonb' || specType === 'json')
-        ) {
-          value = JSON.stringify(value);
-        } else if (
-          typeof value === 'string' &&
-          (specType.startsWith('geography') || specType.startsWith('geometry'))
-        ) {
-          const parsed = parseHexEWKBPoint(value);
-          if (parsed) {
-            value = JSON.stringify(parsed, null, 2);
-          }
-        } else if (column.type === 'date') {
-          value = formatFormDateValue(value, column.specificType);
-        } else if (column.type === 'boolean') {
-          if (value === true || value === 'true') {
-            value = 'true';
-          } else if (value === false || value === 'false') {
-            value = 'false';
-          } else if (value === POSTGRES_DEFAULT_PLACEHOLDER) {
-            value = 'default';
-          } else if (value === null) {
-            value = column.isNullable ? 'null' : '';
-          }
+      if (
+        value !== null &&
+        typeof value === 'object' &&
+        (specType === 'jsonb' || specType === 'json')
+      ) {
+        value = JSON.stringify(value);
+      } else if (
+        typeof value === 'string' &&
+        (specType.startsWith('geography') || specType.startsWith('geometry'))
+      ) {
+        const parsed = parseHexEWKBPoint(value);
+        if (parsed) {
+          value = JSON.stringify(parsed, null, 2);
         }
-        return { ...defaultValues, [column.id]: value };
-      }
-
-      const hasDefault = !!(column.defaultValue || column.isIdentity);
-
-      if (column.isNullable && hasDefault) {
-        return {
-          ...defaultValues,
-          [column.id]: POSTGRES_DEFAULT_PLACEHOLDER,
-        };
-      }
-
-      if (column.type === 'boolean') {
-        let val = column.defaultValue;
-        if (
-          val === 'true' ||
-          (val as unknown) === true ||
-          (typeof val === 'string' && val.includes('true'))
-        ) {
-          val = 'true';
-        } else if (
-          val === 'false' ||
-          (val as unknown) === false ||
-          (typeof val === 'string' && val.includes('false'))
-        ) {
-          val = 'false';
-        } else {
-          val = null;
+      } else if (column.type === 'date') {
+        value = formatFormDateValue(value, column.specificType);
+      } else if (column.type === 'boolean') {
+        if (value === true || value === 'true') {
+          value = 'true';
+        } else if (value === false || value === 'false') {
+          value = 'false';
+        } else if (value === POSTGRES_DEFAULT_PLACEHOLDER) {
+          value = 'default';
+        } else if (value === null) {
+          value = column.isNullable ? 'null' : '';
         }
-        return { ...defaultValues, [column.id]: val };
       }
 
-      return { ...defaultValues, [column.id]: null };
+      return { ...defaultValues, [column.id]: value };
     }, {}),
     reValidateMode: 'onSubmit',
     resolver: wrapResolverWithDefaultPlaceholder(yupResolver(validationSchema)),
@@ -233,21 +210,86 @@ export default function CreateRecordForm({
 
   async function handleSubmit(values: Record<string, ColumnInsertOptions>) {
     try {
-      await insertRow({ columnValues: values });
+      const columnsToUpdate: Record<string, ColumnUpdateOptions> = {};
 
-      if (onSubmit) {
-        await onSubmit();
-        await queryClient.invalidateQueries({
-          queryKey: [currentTablePath, currentOffset],
-        });
-        await queryClient.refetchQueries({
-          queryKey: [currentTablePath, currentOffset],
-        });
+      for (const column of props.columns) {
+        const key = column.id;
+        const insertOptions = values[key];
+        if (!insertOptions) {
+          continue;
+        }
+
+        const originalValue = row.original[key];
+
+        if (insertOptions.fallbackValue === 'DEFAULT') {
+          columnsToUpdate[key] = { reset: 'default' };
+          continue;
+        }
+
+        if (insertOptions.fallbackValue === 'NULL') {
+          if (originalValue !== null) {
+            columnsToUpdate[key] = { reset: 'null' };
+          }
+          continue;
+        }
+
+        const newValue = insertOptions.value;
+
+        if (
+          column.type === 'date' &&
+          newValue !== null &&
+          newValue !== undefined &&
+          originalValue !== null &&
+          originalValue !== undefined
+        ) {
+          try {
+            const newTime = new Date(String(newValue)).getTime();
+            const originalTime = new Date(String(originalValue)).getTime();
+            if (newTime !== originalTime) {
+              columnsToUpdate[key] = { value: newValue };
+            }
+          } catch {
+            if (newValue !== originalValue) {
+              columnsToUpdate[key] = { value: newValue };
+            }
+          }
+          continue;
+        }
+
+        if (
+          typeof newValue === 'object' &&
+          newValue !== null &&
+          typeof originalValue === 'object' &&
+          originalValue !== null
+        ) {
+          if (JSON.stringify(newValue) !== JSON.stringify(originalValue)) {
+            columnsToUpdate[key] = { value: newValue };
+          }
+          continue;
+        }
+
+        if (newValue !== originalValue) {
+          columnsToUpdate[key] = { value: newValue };
+        }
       }
 
-      triggerToast('The row has been inserted successfully.');
+      if (Object.keys(columnsToUpdate).length > 0) {
+        await updateRow({
+          row,
+          columnsToUpdate,
+        });
+
+        if (onSubmit) {
+          await onSubmit();
+          await queryClient.invalidateQueries({
+            queryKey: [currentTablePath, currentOffset],
+          });
+        }
+      }
+
+      triggerToast('The row has been updated successfully.');
     } catch {
-      // This error is handled by the useCreateRecordMutation hook.
+      // Error is handled by the mutation or toast wrapper.
     }
   }
 
@@ -275,7 +317,7 @@ export default function CreateRecordForm({
       ) : null}
 
       <BaseRecordForm
-        submitButtonText="Insert"
+        submitButtonText="Save"
         onSubmit={handleSubmit}
         {...props}
       />
