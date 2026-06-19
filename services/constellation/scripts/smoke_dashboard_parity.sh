@@ -101,9 +101,9 @@ for verb in select insert update delete; do
 done
 
 echo
-echo "== bulk_atomic (4 perms drop in one write) =="
-call bulk_atomic \
-    '{"type":"bulk_atomic","args":[
+echo "== bulk (4 perms drop in one write) =="
+call bulk \
+    '{"type":"bulk","args":[
         {"type":"pg_drop_select_permission","args":{"source":"default","table":{"schema":"public","name":"smoke_users"},"role":"smoke"}},
         {"type":"pg_drop_insert_permission","args":{"source":"default","table":{"schema":"public","name":"smoke_users"},"role":"smoke"}},
         {"type":"pg_drop_update_permission","args":{"source":"default","table":{"schema":"public","name":"smoke_users"},"role":"smoke"}},
