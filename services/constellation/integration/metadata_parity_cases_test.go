@@ -218,17 +218,16 @@ func TestMetadataParity(t *testing.T) {
 		},
 
 		// ---- event triggers (metadata-only: no schema surface) ----
-		// Both engines accept the flat Hasura request shape, so this case
-		// hard-asserts (wantConstellationOK) that Constellation stores the
+		// Both engines accept the flat Hasura request shape; the harness's
+		// unconditional non-error 2xx check pins that Constellation stores the
 		// trigger successfully. The exported entry still diverges — Hasura
 		// normalizes it (fills enable_manual, cleanup_config, header defaults;
 		// re-shapes retry_conf) while Constellation round-trips the submitted
 		// config verbatim — so that part is an accepted, logged divergence.
 		{
-			name:                "pg_create_event_trigger",
-			op:                  createEventTrigger,
-			wantConstellationOK: true,
-			knownDivergence:     "event-trigger export normalization: Hasura fills defaults / reshapes the stored entry; Constellation stores the submitted config verbatim",
+			name:            "pg_create_event_trigger",
+			op:              createEventTrigger,
+			knownDivergence: "event-trigger export normalization: Hasura fills defaults / reshapes the stored entry; Constellation stores the submitted config verbatim",
 		},
 
 		// ---- bulk wrappers ----

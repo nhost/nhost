@@ -393,7 +393,7 @@ func emptyGinContext(t *testing.T) context.Context {
 func TestNewAuthFunc(t *testing.T) {
 	t.Parallel()
 
-	const secret = "unit-admin-secret" //nolint:gosec
+	const secret = "unit-admin-secret" //nolint:gosec // test-only constant, not a credential
 
 	jwtAuth := testJWTAuthenticator(t)
 	// signed once; the token claims default-role: admin so it would satisfy

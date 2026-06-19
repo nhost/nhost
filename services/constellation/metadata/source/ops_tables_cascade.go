@@ -48,6 +48,33 @@ JOIN pg_class c ON c.oid = t.typrelid
 JOIN pg_namespace cn ON cn.oid = c.relnamespace
 WHERE cn.nspname = $1 AND c.relname = $2`
 
+// dataDBConn is the query surface the untrack cascade needs from a source data
+// database, plus Close for the short-lived per-call connection loadUntrackDeps
+// opens. *pgx.Conn satisfies it.
+type dataDBConn interface {
+	Queryer
+	Close(ctx context.Context) error
+}
+
+// dataDBConnector opens a short-lived connection to a source data database.
+// The Store defaults to pgxDataDBConnector; tests inject a fake to exercise the
+// DB-backed cascade and the unreachable-database fallback without a live
+// Postgres. Keeping the connect step behind this seam (rather than calling
+// pgx.Connect inline) is what makes loadUntrackDeps' fallback path testable.
+type dataDBConnector func(ctx context.Context, connStr string) (dataDBConn, error)
+
+// pgxDataDBConnector is the production connector: a plain per-call pgx.Connect.
+//
+//nolint:ireturn // returns the dataDBConn seam interface so tests can inject a fake.
+func pgxDataDBConnector(ctx context.Context, connStr string) (dataDBConn, error) {
+	conn, err := pgx.Connect(ctx, connStr)
+	if err != nil {
+		return nil, fmt.Errorf("connecting to source data database: %w", err)
+	}
+
+	return conn, nil
+}
+
 // loadUntrackDeps introspects the database facts pg_untrack_table needs but the
 // metadata cannot supply: the foreign-key graph and function return types of the
 // untracked table's *source data database*. The result feeds both the cascade
@@ -86,7 +113,12 @@ func (s *Store) loadUntrackDeps(ctx context.Context, argsJSON []byte) (*untrackD
 		return nil, nil //nolint:nilnil
 	}
 
-	conn, err := pgx.Connect(ctx, connStr)
+	connect := s.dataConnector
+	if connect == nil {
+		connect = pgxDataDBConnector
+	}
+
+	conn, err := connect(ctx, connStr)
 	if err != nil {
 		if s.logger != nil {
 			s.logger.WarnContext(
