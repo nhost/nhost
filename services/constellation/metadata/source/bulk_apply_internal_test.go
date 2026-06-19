@@ -60,7 +60,7 @@ func TestApplyBulk_FailFastAbortsWithIndexNoWrite(t *testing.T) {
 	w := &fakeWriter{}
 	s := bootstrappedStore(t, w)
 
-	_, _, _, err := s.ApplyBulk(
+	_, _, _, err := s.ApplyBulk( //nolint:dogsled
 		t.Context(),
 		[]BulkChild{trackChild("users"), missingSourceChild(), trackChild("orgs")},
 		false,
@@ -132,6 +132,7 @@ func TestApplyBulk_KeepGoingPersistsSurvivorsInSingleWrite(t *testing.T) {
 	// The failed child must not have leaked its target into the snapshot, and
 	// both survivors must be present.
 	snap, _ := s.HasuraSnapshotJSON()
+
 	got := string(snap)
 	for _, want := range []string{`"name":"users"`, `"name":"orgs"`} {
 		if !strings.Contains(got, want) {
@@ -272,6 +273,7 @@ func TestApplyBulk_NestedBulk_SingleWriteNestedArray(t *testing.T) {
 	}
 
 	snap, _ := s.HasuraSnapshotJSON()
+
 	got := string(snap)
 	for _, want := range []string{`"name":"users"`, `"name":"orgs"`, `"name":"teams"`} {
 		if !strings.Contains(got, want) {
@@ -288,7 +290,7 @@ func TestApplyBulk_NestedFailFast_AbortsWithNestedPath(t *testing.T) {
 
 	// bulk: [ track(users), bulk: [ track(orgs), missing-source ] ]
 	// The inner bulk aborts at its index 1; the whole batch is discarded.
-	_, _, _, err := s.ApplyBulk(
+	_, _, _, err := s.ApplyBulk( //nolint:dogsled
 		t.Context(),
 		[]BulkChild{
 			trackChild("users"),
@@ -382,7 +384,7 @@ func TestApplyBulk_NestedDepthCapRejected(t *testing.T) {
 		inner = nestedBulkChild(inner)
 	}
 
-	_, _, _, err := s.ApplyBulk(t.Context(), []BulkChild{inner}, false)
+	_, _, _, err := s.ApplyBulk(t.Context(), []BulkChild{inner}, false) //nolint:dogsled
 
 	var childErr *BulkChildError
 	if !errors.As(err, &childErr) {

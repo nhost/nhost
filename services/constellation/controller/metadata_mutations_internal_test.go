@@ -152,6 +152,7 @@ func postJSONArray(t *testing.T, router http.Handler, body string) (int, []any, 
 	raw, _ := io.ReadAll(rec.Body)
 
 	var out []any
+
 	_ = json.Unmarshal(raw, &out)
 
 	return rec.Code, out, raw
