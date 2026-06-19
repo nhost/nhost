@@ -62,7 +62,10 @@ func mustCreateArrRel(t *testing.T, s *Store) {
 func mustCreateRemoteRel(t *testing.T, s *Store) {
 	t.Helper()
 
-	if _, _, err := s.PgCreateRemoteRelationship(t.Context(), []byte(createRemoteRelArgs)); err != nil {
+	if _, _, err := s.PgCreateRemoteRelationship(
+		t.Context(),
+		[]byte(createRemoteRelArgs),
+	); err != nil {
 		t.Fatalf("PgCreateRemoteRelationship: %v", err)
 	}
 }
