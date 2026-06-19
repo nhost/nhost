@@ -40,6 +40,33 @@ func setEnumArgs(isEnum bool) []byte {
 		`"is_enum":` + v + `}`)
 }
 
+// mustCreateObjRel / mustCreateArrRel / mustCreateRemoteRel seed a relationship
+// on public.users and fail the test on error, keeping the create boilerplate out
+// of the table-driven cases below.
+func mustCreateObjRel(t *testing.T, s *Store) {
+	t.Helper()
+
+	if _, _, err := s.PgCreateObjectRelationship(t.Context(), []byte(objRelArgs)); err != nil {
+		t.Fatalf("PgCreateObjectRelationship: %v", err)
+	}
+}
+
+func mustCreateArrRel(t *testing.T, s *Store) {
+	t.Helper()
+
+	if _, _, err := s.PgCreateArrayRelationship(t.Context(), []byte(arrRelArgs)); err != nil {
+		t.Fatalf("PgCreateArrayRelationship: %v", err)
+	}
+}
+
+func mustCreateRemoteRel(t *testing.T, s *Store) {
+	t.Helper()
+
+	if _, _, err := s.PgCreateRemoteRelationship(t.Context(), []byte(createRemoteRelArgs)); err != nil {
+		t.Fatalf("PgCreateRemoteRelationship: %v", err)
+	}
+}
+
 func TestPgSetTableIsEnum(t *testing.T) {
 	t.Parallel()
 
@@ -105,14 +132,8 @@ func TestPgDropRelationship(t *testing.T) {
 
 		s := bootstrappedStore(t, &fakeWriter{})
 		seedUsersTable(t, s)
-
-		if _, _, err := s.PgCreateObjectRelationship(t.Context(), []byte(objRelArgs)); err != nil {
-			t.Fatalf("PgCreateObjectRelationship: %v", err)
-		}
-
-		if _, _, err := s.PgCreateArrayRelationship(t.Context(), []byte(arrRelArgs)); err != nil {
-			t.Fatalf("PgCreateArrayRelationship: %v", err)
-		}
+		mustCreateObjRel(t, s)
+		mustCreateArrRel(t, s)
 
 		if _, _, err := s.PgDropRelationship(t.Context(), dropRelArgs("obj")); err != nil {
 			t.Fatalf("PgDropRelationship(obj): %v", err)
@@ -149,11 +170,7 @@ func TestPgDropRelationship(t *testing.T) {
 		// On load a remote relationship lowers into a same-named object/array
 		// relationship; pg_drop_relationship must refuse to touch that duplicate
 		// (it is managed via pg_delete_remote_relationship) and report not-found.
-		if _, _, err := s.PgCreateRemoteRelationship(
-			t.Context(), []byte(createRemoteRelArgs),
-		); err != nil {
-			t.Fatalf("PgCreateRemoteRelationship: %v", err)
-		}
+		mustCreateRemoteRel(t, s)
 
 		_, _, err := s.PgDropRelationship(t.Context(), dropRelArgs("rel"))
 		if !errors.Is(err, ErrRelationshipNotFound) {
@@ -183,10 +200,7 @@ func TestPgRenameRelationship(t *testing.T) {
 
 		s := bootstrappedStore(t, &fakeWriter{})
 		seedUsersTable(t, s)
-
-		if _, _, err := s.PgCreateObjectRelationship(t.Context(), []byte(objRelArgs)); err != nil {
-			t.Fatalf("PgCreateObjectRelationship: %v", err)
-		}
+		mustCreateObjRel(t, s)
 
 		if _, code, err := s.PgRenameRelationship(
 			t.Context(), renameRelArgs("obj", "obj2"),
@@ -205,10 +219,7 @@ func TestPgRenameRelationship(t *testing.T) {
 
 		s := bootstrappedStore(t, &fakeWriter{})
 		seedUsersTable(t, s)
-
-		if _, _, err := s.PgCreateObjectRelationship(t.Context(), []byte(objRelArgs)); err != nil {
-			t.Fatalf("PgCreateObjectRelationship: %v", err)
-		}
+		mustCreateObjRel(t, s)
 
 		_, code, err := s.PgRenameRelationship(t.Context(), renameRelArgs("obj", "obj"))
 		if err != nil {
@@ -225,14 +236,8 @@ func TestPgRenameRelationship(t *testing.T) {
 
 		s := bootstrappedStore(t, &fakeWriter{})
 		seedUsersTable(t, s)
-
-		if _, _, err := s.PgCreateObjectRelationship(t.Context(), []byte(objRelArgs)); err != nil {
-			t.Fatalf("PgCreateObjectRelationship: %v", err)
-		}
-
-		if _, _, err := s.PgCreateArrayRelationship(t.Context(), []byte(arrRelArgs)); err != nil {
-			t.Fatalf("PgCreateArrayRelationship: %v", err)
-		}
+		mustCreateObjRel(t, s)
+		mustCreateArrRel(t, s)
 
 		_, _, err := s.PgRenameRelationship(t.Context(), renameRelArgs("obj", "arr"))
 		if !errors.Is(err, ErrRelationshipExists) {
@@ -245,12 +250,7 @@ func TestPgRenameRelationship(t *testing.T) {
 
 		s := bootstrappedStore(t, &fakeWriter{})
 		seedUsersTable(t, s)
-
-		if _, _, err := s.PgCreateRemoteRelationship(
-			t.Context(), []byte(createRemoteRelArgs),
-		); err != nil {
-			t.Fatalf("PgCreateRemoteRelationship: %v", err)
-		}
+		mustCreateRemoteRel(t, s)
 
 		_, _, err := s.PgRenameRelationship(t.Context(), renameRelArgs("rel", "rel2"))
 		if !errors.Is(err, ErrRelationshipNotFound) {
