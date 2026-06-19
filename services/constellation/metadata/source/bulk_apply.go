@@ -624,14 +624,10 @@ func (s *Store) planBulkChild(ctx context.Context, c BulkChild, atomic bool, dep
 		fn, bErr := buildPgUntrackTable(c.Args, deps)
 
 		return mutateStep(c.Type, fn, bErr)
-	case opAddRemoteSchema:
+	case opAddRemoteSchema, opUpdateRemoteSchema, opAddRemoteSchemaPermissions:
 		// Synchronous upstream introspection, like the single-op path; the bulk
-		// pre-pass runs it off s.mu (see planAddRemoteSchema).
-		return s.planAddRemoteSchema(ctx, c.Args)
-	case opUpdateRemoteSchema:
-		return s.planUpdateRemoteSchema(ctx, c.Args)
-	case opAddRemoteSchemaPermissions:
-		return s.planAddRemoteSchemaPermissions(ctx, c.Args)
+		// pre-pass runs it off s.mu (see planRemoteSchemaValidatingChild).
+		return s.planRemoteSchemaValidatingChild(ctx, c.Type, c.Args)
 	default:
 		fn, err := BuildMutation(c.Type, c.Args)
 

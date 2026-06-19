@@ -812,6 +812,22 @@ func (s *Store) introspectByName(
 // reason a not-exists / already-* outcome is left for the pure fn to decide
 // against the working copy rather than being validated or rejected here.
 
+// planRemoteSchemaValidatingChild dispatches the three introspection-validating
+// remote-schema ops to their bulk pre-pass planner. Split out of planBulkChild
+// so that switch stays under the cyclomatic-complexity limit.
+func (s *Store) planRemoteSchemaValidatingChild(
+	ctx context.Context, typ string, argsJSON []byte,
+) bulkStep {
+	switch typ {
+	case opUpdateRemoteSchema:
+		return s.planUpdateRemoteSchema(ctx, argsJSON)
+	case opAddRemoteSchemaPermissions:
+		return s.planAddRemoteSchemaPermissions(ctx, argsJSON)
+	default: // opAddRemoteSchema
+		return s.planAddRemoteSchema(ctx, argsJSON)
+	}
+}
+
 // planAddRemoteSchema validates the upstream (unless the add is an idempotent
 // already-exists no-op) before returning the pure add closure.
 func (s *Store) planAddRemoteSchema(ctx context.Context, argsJSON []byte) bulkStep {
