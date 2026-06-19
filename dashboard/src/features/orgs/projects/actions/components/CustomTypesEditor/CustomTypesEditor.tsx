@@ -1,10 +1,7 @@
-import { githubDark, githubLight } from '@uiw/codemirror-theme-github';
-import CodeMirror from '@uiw/react-codemirror';
-import { graphql } from 'cm6-graphql';
 import { useCallback, useEffect, useRef, useState } from 'react';
 import toast from 'react-hot-toast';
-import { useColorPreference } from '@/components/ui/v2/useColorPreference';
 import { Button, ButtonWithLoading } from '@/components/ui/v3/button';
+import { GraphQLSdlEditor } from '@/features/orgs/projects/actions/components/GraphQLSdlEditor';
 import { useGetActions } from '@/features/orgs/projects/actions/hooks/useGetActions';
 import { useSetCustomTypesMutation } from '@/features/orgs/projects/actions/hooks/useSetCustomTypesMutation';
 import { composeTypesSdl } from '@/features/orgs/projects/actions/utils/composeTypesSdl';
@@ -15,20 +12,17 @@ import {
 } from '@/features/orgs/projects/actions/utils/customTypesUtils';
 import { parseTypesSdl } from '@/features/orgs/projects/actions/utils/parseTypesSdl';
 import { execPromiseWithErrorToast } from '@/features/orgs/utils/execPromiseWithErrorToast';
-import { getToastStyleProps } from '@/utils/constants/settings';
 
 export default function CustomTypesEditor() {
-  const { color } = useColorPreference();
-
   const { data, isLoading } = useGetActions();
   const customTypes = data?.customTypes ?? {};
 
-  const { mutateAsync: setCustomTypes } = useSetCustomTypesMutation();
+  const { mutateAsync: setCustomTypes, isPending } =
+    useSetCustomTypesMutation();
 
   const [sdl, setSdl] = useState('');
   const [previousSdl, setPreviousSdl] = useState(''); // used to revert changes
   const [isDirty, setIsDirty] = useState(false);
-  const [isSaving, setIsSaving] = useState(false); // used to show loading spinner on save
 
   // Populate the editor from the metadata only on the first successful load.
   // Subsequent refetches (e.g. after a save) must not clobber in-progress edits.
@@ -56,17 +50,10 @@ export default function CustomTypesEditor() {
   };
 
   const handleSave = async () => {
-    setIsSaving(true);
-
     const { types, error } = parseTypesSdl(sdl);
 
     if (error) {
-      const toastStyle = getToastStyleProps();
-      toast.error(error, {
-        style: toastStyle.style,
-        ...toastStyle.error,
-      });
-      setIsSaving(false);
+      toast.error(error);
       return;
     }
 
@@ -86,16 +73,12 @@ export default function CustomTypesEditor() {
 
         setPreviousSdl(sdl);
         setIsDirty(false);
-        setIsSaving(false);
       },
       {
         loadingMessage: 'Saving custom types...',
         successMessage: 'Custom types have been saved successfully.',
         errorMessage:
           'An error occurred while saving the custom types. Please try again.',
-        onError: () => {
-          setIsSaving(false);
-        },
       },
     );
   };
@@ -110,14 +93,11 @@ export default function CustomTypesEditor() {
         {isLoading ? (
           <div className="h-full w-full animate-pulse bg-muted" />
         ) : (
-          <CodeMirror
+          <GraphQLSdlEditor
             value={sdl}
-            height="100%"
-            width="100%"
-            aria-label="Custom types SDL editor"
-            theme={color === 'light' ? githubLight : githubDark}
-            extensions={[graphql()]}
             onChange={onChange}
+            aria-label="Custom types SDL editor"
+            className="rounded-none border-0"
           />
         )}
       </div>
@@ -132,7 +112,7 @@ export default function CustomTypesEditor() {
         </Button>
 
         <ButtonWithLoading
-          loading={isSaving}
+          loading={isPending}
           disabled={isLoading || !isDirty}
           onClick={handleSave}
         >

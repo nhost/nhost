@@ -6,23 +6,12 @@ import {
 import { unwrapType } from '@/features/orgs/projects/actions/utils/graphqlTypeUtils';
 import type {
   ActionItem,
+  ActionRelationship,
+  ActionRelationshipType,
   CustomTypes,
-  ObjectTypeDefinitionRelationshipsItem,
 } from '@/utils/hasura-api/generated/schemas';
 
-export type ActionRelationshipType = 'object' | 'array';
-
-/**
- * A relationship attached to an action's output object type. These live inside
- * `custom_types.objects[].relationships` and are managed via `set_custom_types`.
- */
-export type ActionRelationship = {
-  source: string;
-  name: string;
-  type: ActionRelationshipType;
-  remote_table: { schema: string; name: string };
-  field_mapping: Record<string, string>;
-};
+export type { ActionRelationship, ActionRelationshipType };
 
 /**
  * Resolves the base (unwrapped) name of the type an action returns, e.g.
@@ -51,7 +40,7 @@ export function findOutputObjectType(
 export function getActionRelationships(
   outputObjectType: ClientCustomType | null,
 ): ActionRelationship[] {
-  return (outputObjectType?.relationships ?? []) as ActionRelationship[];
+  return outputObjectType?.relationships ?? [];
 }
 
 /**
@@ -71,10 +60,7 @@ export function buildCustomTypesWithRelationships(
 
     return {
       ...type,
-      relationships:
-        relationships.length > 0
-          ? (relationships as ObjectTypeDefinitionRelationshipsItem[])
-          : undefined,
+      relationships: relationships.length > 0 ? relationships : undefined,
     };
   });
 

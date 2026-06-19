@@ -105,14 +105,8 @@ export default function BaseActionForm({
   const actionDefinitionSdl = watch('actionDefinitionSdl');
   const typesSdl = watch('typesSdl');
 
-  const parsedActionType = useMemo(
-    () =>
-      parseActionDefinitionSdl(actionDefinitionSdl).definition?.type ??
-      'mutation',
-    [actionDefinitionSdl],
-  );
-
-  const isQueryAction = parsedActionType === 'query';
+  const isQueryAction =
+    parseActionDefinitionSdl(actionDefinitionSdl).definition?.type === 'query';
 
   useEffect(() => {
     if (isQueryAction) {

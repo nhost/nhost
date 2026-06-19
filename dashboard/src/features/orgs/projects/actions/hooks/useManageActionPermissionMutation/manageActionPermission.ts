@@ -1,5 +1,8 @@
 import { metadataOperation } from '@/utils/hasura-api/generated/default/default';
-import type { ActionPermissionsBulkOperation } from '@/utils/hasura-api/generated/schemas';
+import type {
+  CreateActionPermissionStep,
+  DropActionPermissionStep,
+} from '@/utils/hasura-api/generated/schemas';
 import type { MetadataOperationOptions } from '@/utils/hasura-api/types';
 
 export type ManageActionPermissionType =
@@ -25,7 +28,9 @@ export function buildStep({
   action,
   role,
   type,
-}: ManageActionPermissionVariables): ActionPermissionsBulkOperation['args'][number] {
+}: ManageActionPermissionVariables):
+  | CreateActionPermissionStep
+  | DropActionPermissionStep {
   if (type === 'create_action_permission') {
     return {
       type,
@@ -59,10 +64,7 @@ export default async function manageActionPermission({
 }: MetadataOperationOptions & ManageActionPermissionVariables) {
   try {
     const response = await metadataOperation(
-      {
-        type: 'bulk',
-        args: [buildStep({ action, role, type })],
-      } satisfies ActionPermissionsBulkOperation,
+      buildStep({ action, role, type }),
       {
         baseUrl: appUrl,
         adminSecret,

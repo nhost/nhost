@@ -4,7 +4,7 @@ import { FormCombobox } from '@/components/form/FormCombobox';
 import { FormSelect } from '@/components/form/FormSelect';
 import { SelectItem } from '@/components/ui/v3/select';
 import { useGetDataSources } from '@/features/orgs/projects/common/hooks/useGetDataSources';
-import { useGetMetadata } from '@/features/orgs/projects/common/hooks/useGetMetadata';
+import { useMetadataTables } from '@/features/orgs/projects/common/hooks/useMetadataTables';
 import type { ActionRelationshipFormValues } from './ActionRelationshipFormTypes';
 
 export default function RemoteTableSelector() {
@@ -12,22 +12,10 @@ export default function RemoteTableSelector() {
     useFormContext<ActionRelationshipFormValues>();
 
   const { data: dataSources } = useGetDataSources();
-  const { data: metadata } = useGetMetadata();
+  const allTables = useMetadataTables();
 
   const selectedSource = watch('source');
   const selectedSchema = watch('schema');
-
-  const allTables = useMemo(
-    () =>
-      metadata?.sources?.flatMap((source) =>
-        (source.tables ?? []).map((table) => ({
-          source: source.name!,
-          schema: table.table.schema!,
-          table: table.table.name!,
-        })),
-      ) ?? [],
-    [metadata],
-  );
 
   const sourceOptions = useMemo(
     () => [...(dataSources ?? [])].sort((a, b) => a.localeCompare(b)),
@@ -67,11 +55,8 @@ export default function RemoteTableSelector() {
         transform={{
           in: (storedValue: string) => storedValue,
           out: (selectedValue: string) => {
-            setValue('schema', '', {
-              shouldDirty: true,
-              shouldValidate: true,
-            });
-            setValue('table', '', { shouldDirty: true, shouldValidate: true });
+            setValue('schema', '', { shouldDirty: true });
+            setValue('table', '', { shouldDirty: true });
             return selectedValue;
           },
         }}
@@ -97,7 +82,7 @@ export default function RemoteTableSelector() {
         transform={{
           in: (storedValue: string) => storedValue,
           out: (selectedValue: string) => {
-            setValue('table', '', { shouldDirty: true, shouldValidate: true });
+            setValue('table', '', { shouldDirty: true });
             return selectedValue;
           },
         }}

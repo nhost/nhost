@@ -223,7 +223,12 @@ describe('buildActionDTO', () => {
           {
             name: 'SampleOutput',
             fields: [{ name: 'accessToken', type: 'String!' }],
-            relationships: [{ name: 'user', type: 'object' }],
+            relationships: [{
+              name: 'user',
+              type: 'object',
+              remote_table: { schema: 'public', name: 'users' },
+              field_mapping: { userId: 'id' },
+            }],
           },
         ],
       },
@@ -233,7 +238,12 @@ describe('buildActionDTO', () => {
       {
         name: 'SampleOutput',
         fields: [{ name: 'accessToken', type: 'String!' }],
-        relationships: [{ name: 'user', type: 'object' }],
+        relationships: [{
+              name: 'user',
+              type: 'object',
+              remote_table: { schema: 'public', name: 'users' },
+              field_mapping: { userId: 'id' },
+            }],
       },
     ]);
   });

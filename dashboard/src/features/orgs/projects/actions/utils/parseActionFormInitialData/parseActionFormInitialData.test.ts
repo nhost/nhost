@@ -48,9 +48,9 @@ const action: ActionItem = {
 
 describe('parseActionFormInitialData', () => {
   it('parses an action into form initial data', () => {
-    const result = parseActionFormInitialData(action, customTypes);
+    const { initialData } = parseActionFormInitialData(action, customTypes);
 
-    expect(result).toEqual({
+    expect(initialData).toEqual({
       actionDefinitionSdl: `type Mutation {
   actionName(arg1: SampleInput!): SampleOutput
 }
@@ -77,8 +77,17 @@ type SampleOutput {
     });
   });
 
+  it('returns the original type names referenced by the action', () => {
+    const { originalTypeNames } = parseActionFormInitialData(
+      action,
+      customTypes,
+    );
+
+    expect(originalTypeNames).toEqual(['SampleInput', 'SampleOutput']);
+  });
+
   it('applies defaults for omitted definition fields', () => {
-    const result = parseActionFormInitialData(
+    const { initialData } = parseActionFormInitialData(
       {
         name: 'minimalAction',
         definition: {
@@ -90,16 +99,16 @@ type SampleOutput {
       {},
     );
 
-    expect(result.kind).toBe('synchronous');
-    expect(result.comment).toBe('');
-    expect(result.timeout).toBe(30);
-    expect(result.forwardClientHeaders).toBe(false);
-    expect(result.headers).toEqual([]);
-    expect(result.typesSdl).toBe('');
+    expect(initialData.kind).toBe('synchronous');
+    expect(initialData.comment).toBe('');
+    expect(initialData.timeout).toBe(30);
+    expect(initialData.forwardClientHeaders).toBe(false);
+    expect(initialData.headers).toEqual([]);
+    expect(initialData.typesSdl).toBe('');
   });
 
   it('parses request and payload transforms', () => {
-    const result = parseActionFormInitialData(
+    const { initialData } = parseActionFormInitialData(
       {
         ...action,
         definition: {
@@ -120,7 +129,7 @@ type SampleOutput {
       customTypes,
     );
 
-    expect(result.requestOptionsTransform).toEqual({
+    expect(initialData.requestOptionsTransform).toEqual({
       method: 'POST',
       urlTemplate: '/transformed',
       queryParams: {
@@ -129,7 +138,7 @@ type SampleOutput {
       },
     });
 
-    expect(result.payloadTransform).toEqual({
+    expect(initialData.payloadTransform).toEqual({
       sampleInput: JSON.stringify(
         {
           action: { name: 'actionName' },
@@ -148,7 +157,7 @@ type SampleOutput {
   });
 
   it('parses a response transform body template', () => {
-    const result = parseActionFormInitialData(
+    const { initialData } = parseActionFormInitialData(
       {
         ...action,
         definition: {
@@ -166,13 +175,13 @@ type SampleOutput {
       customTypes,
     );
 
-    expect(result.responseTransform).toEqual({
+    expect(initialData.responseTransform).toEqual({
       template: '{\n  "base": {{$body.base_code}}\n}',
     });
   });
 
   it('omits the response transform when absent', () => {
-    const result = parseActionFormInitialData(action, customTypes);
-    expect(result.responseTransform).toBeUndefined();
+    const { initialData } = parseActionFormInitialData(action, customTypes);
+    expect(initialData.responseTransform).toBeUndefined();
   });
 });

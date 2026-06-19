@@ -68,7 +68,7 @@ describe('useManageActionPermissionMutation', () => {
 
   afterAll(() => server.close());
 
-  it('on platform, grants the permission via the metadata bulk API', async () => {
+  it('on platform, grants the permission via the metadata API', async () => {
     mocks.useIsPlatform.mockReturnValue(true);
 
     const { result } = renderHook(() => useManageActionPermissionMutation(), {
@@ -77,17 +77,12 @@ describe('useManageActionPermissionMutation', () => {
     await result.current.mutateAsync(grantVariables);
 
     expect(metadataBody).toEqual({
-      type: 'bulk',
-      args: [
-        {
-          type: 'create_action_permission',
-          args: {
-            action: 'login',
-            role: 'user',
-            definition: { select: { filter: {} } },
-          },
-        },
-      ],
+      type: 'create_action_permission',
+      args: {
+        action: 'login',
+        role: 'user',
+        definition: { select: { filter: {} } },
+      },
     });
     expect(migrationBody).toBeNull();
   });

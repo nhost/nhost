@@ -1,8 +1,8 @@
+import { buildActionMigrationRequest } from '@/features/orgs/projects/actions/utils/buildActionMigrationRequest';
 import { executeMigration } from '@/utils/hasura-api/generated/default/default';
 import type {
   CreateActionArgs,
   MigrationRequest,
-  MigrationStep,
   SetCustomTypesStep,
   UpdateActionStep,
 } from '@/utils/hasura-api/generated/schemas';
@@ -23,8 +23,6 @@ export function buildUpdateActionMigrationRequest({
       : {}),
   };
 
-  // The generated MigrationStep union omits action operations, but the migrate
-  // API accepts them, so the assembled steps are cast.
   const up = [
     {
       type: 'set_custom_types',
@@ -34,7 +32,7 @@ export function buildUpdateActionMigrationRequest({
       type: 'update_action',
       args,
     } satisfies UpdateActionStep,
-  ] as unknown as MigrationStep[];
+  ];
 
   const down = [
     {
@@ -45,15 +43,12 @@ export function buildUpdateActionMigrationRequest({
       type: 'set_custom_types',
       args: previousCustomTypes,
     } satisfies SetCustomTypesStep,
-  ] as unknown as MigrationStep[];
+  ];
 
-  return {
-    name: `modify_action_${originalAction.name}_to_${args.name}`,
-    up,
-    down,
-    datasource: 'default',
-    skip_execution: false,
-  };
+  return buildActionMigrationRequest(
+    `modify_action_${originalAction.name}_to_${args.name}`,
+    { up, down },
+  );
 }
 
 export default async function updateActionMigration({

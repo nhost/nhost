@@ -5,8 +5,8 @@
  * API for managing remote schemas and events in Hasura
  * OpenAPI spec version: 1.0.0
  */
+import type { ActionRelationship } from './actionRelationship';
 import type { CustomTypeObjectField } from './customTypeObjectField';
-import type { ObjectTypeDefinitionRelationshipsItem } from './objectTypeDefinitionRelationshipsItem';
 
 export interface ObjectTypeDefinition {
   /** Name of the object type */
@@ -16,5 +16,5 @@ export interface ObjectTypeDefinition {
   /** Fields of the object type */
   fields: CustomTypeObjectField[];
   /** Relationships of the object type to tables */
-  relationships?: ObjectTypeDefinitionRelationshipsItem[];
+  relationships?: ActionRelationship[];
 }

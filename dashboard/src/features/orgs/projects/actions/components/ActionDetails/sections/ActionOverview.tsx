@@ -1,19 +1,9 @@
-import {
-  ChevronDown,
-  ChevronRight,
-  Pencil,
-  SlidersHorizontal,
-  Webhook,
-} from 'lucide-react';
+import { Pencil, SlidersHorizontal, Webhook } from 'lucide-react';
 import { useMemo, useState } from 'react';
 import { useDialog } from '@/components/common/DialogProvider';
 import CopyToClipboardButton from '@/components/presentational/CopyToClipboardButton/CopyToClipboardButton';
 import { Button } from '@/components/ui/v3/button';
-import {
-  Collapsible,
-  CollapsibleContent,
-  CollapsibleTrigger,
-} from '@/components/ui/v3/collapsible';
+import CollapsibleSection from '@/features/orgs/projects/actions/components/ActionDetails/sections/CollapsibleSection';
 import { EditActionForm } from '@/features/orgs/projects/actions/components/EditActionForm';
 import { GraphQLSdlEditor } from '@/features/orgs/projects/actions/components/GraphQLSdlEditor';
 import { composeActionDefinitionSdl } from '@/features/orgs/projects/actions/utils/composeActionDefinitionSdl';
@@ -104,8 +94,8 @@ export default function ActionOverview({
   return (
     <div className="space-y-4">
       <div className="grid grid-cols-1 gap-4 lg:grid-cols-2">
-        <div className="rounded border border-gray-200 p-4 dark:border-gray-700">
-          <h3 className="mb-3 flex items-center gap-2 font-medium text-gray-900 dark:text-gray-100">
+        <div className="rounded border p-4">
+          <h3 className="mb-3 flex items-center gap-2 font-medium text-foreground">
             <Webhook className="h-4 w-4" />
             Handler
           </h3>
@@ -118,24 +108,22 @@ export default function ActionOverview({
           </div>
         </div>
 
-        <div className="rounded border border-gray-200 p-4 dark:border-gray-700">
-          <h3 className="mb-3 flex items-center gap-2 font-medium text-gray-900 dark:text-gray-100">
+        <div className="rounded border p-4">
+          <h3 className="mb-3 flex items-center gap-2 font-medium text-foreground">
             <SlidersHorizontal className="h-4 w-4" />
             Settings
           </h3>
           <div className="space-y-2">
             <div className="flex justify-between gap-2 text-sm">
-              <span className="text-gray-600 dark:text-gray-400">
-                Handler timeout
-              </span>
-              <span className="font-mono text-gray-900 dark:text-gray-100">
+              <span className="text-muted-foreground">Handler timeout</span>
+              <span className="font-mono text-foreground">
                 {action.definition.timeout ?? DEFAULT_ACTION_TIMEOUT_SECONDS}s
               </span>
             </div>
             {actionType === 'mutation' && (
               <div className="flex justify-between gap-2 text-sm">
-                <span className="text-gray-600 dark:text-gray-400">Kind</span>
-                <span className="font-mono text-gray-900 dark:text-gray-100">
+                <span className="text-muted-foreground">Kind</span>
+                <span className="font-mono text-foreground">
                   {action.definition.kind ?? 'synchronous'}
                 </span>
               </div>
@@ -144,202 +132,139 @@ export default function ActionOverview({
         </div>
       </div>
 
-      <Collapsible
+      <CollapsibleSection
+        title="Action Definition"
         open={isDefinitionOpen}
         onOpenChange={setIsDefinitionOpen}
-        className="rounded border border-gray-200 dark:border-gray-700"
+        action={editButton}
       >
-        <div className="flex items-center justify-between gap-2 px-4">
-          <CollapsibleTrigger className="flex flex-1 items-center gap-2 py-4 text-left font-medium text-base text-gray-900 dark:text-gray-100">
-            {isDefinitionOpen ? (
-              <ChevronDown className="h-4 w-4 text-gray-600 dark:text-gray-400" />
-            ) : (
-              <ChevronRight className="h-4 w-4 text-gray-600 dark:text-gray-400" />
-            )}
-            Action Definition
-          </CollapsibleTrigger>
-          {editButton}
+        <div className="overflow-hidden border-t">
+          <GraphQLSdlEditor
+            value={definitionSdl.trimEnd()}
+            readOnly
+            className="rounded-none border-0"
+          />
         </div>
-        <CollapsibleContent>
-          <div className="overflow-hidden border-gray-200 border-t dark:border-gray-700">
+      </CollapsibleSection>
+
+      {typesSdl && (
+        <CollapsibleSection
+          title="Type Configuration"
+          open={isTypesOpen}
+          onOpenChange={setIsTypesOpen}
+          action={editButton}
+        >
+          <div className="overflow-hidden border-t">
             <GraphQLSdlEditor
-              value={definitionSdl.trimEnd()}
+              value={typesSdl.trimEnd()}
               readOnly
               className="rounded-none border-0"
             />
           </div>
-        </CollapsibleContent>
-      </Collapsible>
-
-      {typesSdl && (
-        <Collapsible
-          open={isTypesOpen}
-          onOpenChange={setIsTypesOpen}
-          className="rounded border border-gray-200 dark:border-gray-700"
-        >
-          <div className="flex items-center justify-between gap-2 px-4">
-            <CollapsibleTrigger className="flex flex-1 items-center gap-2 py-4 text-left font-medium text-base text-gray-900 dark:text-gray-100">
-              {isTypesOpen ? (
-                <ChevronDown className="h-4 w-4 text-gray-600 dark:text-gray-400" />
-              ) : (
-                <ChevronRight className="h-4 w-4 text-gray-600 dark:text-gray-400" />
-              )}
-              Type Configuration
-            </CollapsibleTrigger>
-            {editButton}
-          </div>
-          <CollapsibleContent>
-            <div className="overflow-hidden border-gray-200 border-t dark:border-gray-700">
-              <GraphQLSdlEditor
-                value={typesSdl.trimEnd()}
-                readOnly
-                className="rounded-none border-0"
-              />
-            </div>
-          </CollapsibleContent>
-        </Collapsible>
+        </CollapsibleSection>
       )}
 
       {isNotEmptyValue(action.definition.headers) && (
-        <Collapsible open={isHeadersOpen} onOpenChange={setIsHeadersOpen}>
-          <div className="rounded border border-gray-200 dark:border-gray-700">
-            <CollapsibleTrigger className="flex w-full items-center justify-between p-4 hover:bg-gray-100 dark:hover:bg-gray-700">
-              <h3 className="font-medium text-gray-900 dark:text-gray-100">
-                Request Headers
-              </h3>
-              {isHeadersOpen ? (
-                <ChevronDown className="h-4 w-4 text-gray-600 dark:text-gray-400" />
-              ) : (
-                <ChevronRight className="h-4 w-4 text-gray-600 dark:text-gray-400" />
-              )}
-            </CollapsibleTrigger>
-            <CollapsibleContent>
-              <div className="border-gray-200 border-t p-4 dark:border-gray-700">
-                <div className="overflow-x-auto">
-                  <HeadersTable headers={action.definition.headers} />
-                </div>
-              </div>
-            </CollapsibleContent>
+        <CollapsibleSection
+          title="Request Headers"
+          open={isHeadersOpen}
+          onOpenChange={setIsHeadersOpen}
+        >
+          <div className="border-t p-4">
+            <div className="overflow-x-auto">
+              <HeadersTable headers={action.definition.headers} />
+            </div>
           </div>
-        </Collapsible>
+        </CollapsibleSection>
       )}
 
       {requestTransform && (
-        <Collapsible open={isTransformOpen} onOpenChange={setIsTransformOpen}>
-          <div className="rounded border border-gray-200 dark:border-gray-700">
-            <CollapsibleTrigger className="flex w-full items-center justify-between p-4 hover:bg-gray-100 dark:hover:bg-gray-700">
-              <h3 className="font-medium text-gray-900 dark:text-gray-100">
-                Request Transform Configuration
-              </h3>
-              {isTransformOpen ? (
-                <ChevronDown className="h-4 w-4 text-gray-600 dark:text-gray-400" />
-              ) : (
-                <ChevronRight className="h-4 w-4 text-gray-600 dark:text-gray-400" />
-              )}
-            </CollapsibleTrigger>
-            <CollapsibleContent>
-              <div className="space-y-4 border-gray-200 border-t p-4 pt-4 dark:border-gray-700">
-                <div className="grid grid-cols-2 gap-4 text-sm">
-                  {requestTransform.method && (
-                    <div>
-                      <span className="text-gray-600 dark:text-gray-400">
-                        Method:{' '}
-                      </span>
-                      <span className="font-mono text-gray-900 dark:text-gray-100">
-                        {requestTransform.method}
-                      </span>
-                    </div>
-                  )}
-                  <div>
-                    <span className="text-gray-600 dark:text-gray-400">
-                      Template Engine:{' '}
-                    </span>
-                    <span className="font-mono text-gray-900 dark:text-gray-100">
-                      {requestTransform.template_engine}
-                    </span>
-                  </div>
+        <CollapsibleSection
+          title="Request Transform Configuration"
+          open={isTransformOpen}
+          onOpenChange={setIsTransformOpen}
+        >
+          <div className="space-y-4 border-t p-4 pt-4">
+            <div className="grid grid-cols-2 gap-4 text-sm">
+              {requestTransform.method && (
+                <div>
+                  <span className="text-muted-foreground">Method: </span>
+                  <span className="font-mono text-foreground">
+                    {requestTransform.method}
+                  </span>
                 </div>
-
-                {requestTransform.url && (
-                  <div className="text-sm">
-                    <div className="mb-1 font-medium text-gray-900 dark:text-gray-100">
-                      URL Template:
-                    </div>
-                    <div className="rounded p-2 font-mono text-gray-900 text-xs dark:text-gray-100">
-                      {requestTransform.url}
-                    </div>
-                  </div>
-                )}
-
-                {queryParamsDisplay && (
-                  <div className="text-sm">
-                    <div className="mb-1 font-medium text-gray-900 dark:text-gray-100">
-                      Query Parameters:
-                    </div>
-                    <div className="rounded p-2 font-mono text-gray-900 text-xs dark:text-gray-100">
-                      {queryParamsDisplay}
-                    </div>
-                  </div>
-                )}
-
-                {typeof requestTransform.body === 'object' &&
-                  requestTransform.body.template && (
-                    <div className="text-sm">
-                      <div className="mb-1 font-medium text-gray-900 dark:text-gray-100">
-                        Body Template:
-                      </div>
-                      <pre className="overflow-x-auto rounded p-2 font-mono text-gray-900 text-xs dark:text-gray-100">
-                        {requestTransform.body.template}
-                      </pre>
-                    </div>
-                  )}
+              )}
+              <div>
+                <span className="text-muted-foreground">Template Engine: </span>
+                <span className="font-mono text-foreground">
+                  {requestTransform.template_engine}
+                </span>
               </div>
-            </CollapsibleContent>
+            </div>
+
+            {requestTransform.url && (
+              <div className="text-sm">
+                <div className="mb-1 font-medium text-foreground">
+                  URL Template:
+                </div>
+                <div className="rounded p-2 font-mono text-foreground text-xs">
+                  {requestTransform.url}
+                </div>
+              </div>
+            )}
+
+            {queryParamsDisplay && (
+              <div className="text-sm">
+                <div className="mb-1 font-medium text-foreground">
+                  Query Parameters:
+                </div>
+                <div className="rounded p-2 font-mono text-foreground text-xs">
+                  {queryParamsDisplay}
+                </div>
+              </div>
+            )}
+
+            {typeof requestTransform.body === 'object' &&
+              requestTransform.body.template && (
+                <div className="text-sm">
+                  <div className="mb-1 font-medium text-foreground">
+                    Body Template:
+                  </div>
+                  <pre className="overflow-x-auto rounded p-2 font-mono text-foreground text-xs">
+                    {requestTransform.body.template}
+                  </pre>
+                </div>
+              )}
           </div>
-        </Collapsible>
+        </CollapsibleSection>
       )}
 
       {responseTransform && (
-        <Collapsible
+        <CollapsibleSection
+          title="Response Transform Configuration"
           open={isResponseTransformOpen}
           onOpenChange={setIsResponseTransformOpen}
         >
-          <div className="rounded border border-gray-200 dark:border-gray-700">
-            <CollapsibleTrigger className="flex w-full items-center justify-between p-4 hover:bg-gray-100 dark:hover:bg-gray-700">
-              <h3 className="font-medium text-gray-900 dark:text-gray-100">
-                Response Transform Configuration
-              </h3>
-              {isResponseTransformOpen ? (
-                <ChevronDown className="h-4 w-4 text-gray-600 dark:text-gray-400" />
-              ) : (
-                <ChevronRight className="h-4 w-4 text-gray-600 dark:text-gray-400" />
-              )}
-            </CollapsibleTrigger>
-            <CollapsibleContent>
-              <div className="space-y-4 border-gray-200 border-t p-4 pt-4 dark:border-gray-700">
-                <div className="text-sm">
-                  <span className="text-gray-600 dark:text-gray-400">
-                    Template Engine:{' '}
-                  </span>
-                  <span className="font-mono text-gray-900 dark:text-gray-100">
-                    {responseTransform.template_engine}
-                  </span>
-                </div>
+          <div className="space-y-4 border-t p-4 pt-4">
+            <div className="text-sm">
+              <span className="text-muted-foreground">Template Engine: </span>
+              <span className="font-mono text-foreground">
+                {responseTransform.template_engine}
+              </span>
+            </div>
 
-                {responseTransformBody?.template && (
-                  <div className="text-sm">
-                    <div className="mb-1 font-medium text-gray-900 dark:text-gray-100">
-                      Body Template:
-                    </div>
-                    <pre className="overflow-x-auto rounded p-2 font-mono text-gray-900 text-xs dark:text-gray-100">
-                      {responseTransformBody.template}
-                    </pre>
-                  </div>
-                )}
+            {responseTransformBody?.template && (
+              <div className="text-sm">
+                <div className="mb-1 font-medium text-foreground">
+                  Body Template:
+                </div>
+                <pre className="overflow-x-auto rounded p-2 font-mono text-foreground text-xs">
+                  {responseTransformBody.template}
+                </pre>
               </div>
-            </CollapsibleContent>
+            )}
           </div>
-        </Collapsible>
+        </CollapsibleSection>
       )}
     </div>
   );

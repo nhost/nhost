@@ -1,10 +1,10 @@
 import { unwrapType } from '@/features/orgs/projects/actions/utils/graphqlTypeUtils';
 import type {
   ActionDefinition,
+  ActionRelationship,
   CustomTypeObjectField,
   CustomTypes,
   EnumValueDefinition,
-  ObjectTypeDefinitionRelationshipsItem,
 } from '@/utils/hasura-api/generated/schemas';
 
 export type ClientCustomTypeKind =
@@ -19,7 +19,7 @@ export interface ClientCustomType {
   description?: string;
   fields?: CustomTypeObjectField[];
   values?: EnumValueDefinition[];
-  relationships?: ObjectTypeDefinitionRelationshipsItem[];
+  relationships?: ActionRelationship[];
 }
 
 export function parseCustomTypes(customTypes: CustomTypes): ClientCustomType[] {

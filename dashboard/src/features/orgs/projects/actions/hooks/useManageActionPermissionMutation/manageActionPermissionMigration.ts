@@ -1,8 +1,6 @@
+import { buildActionMigrationRequest } from '@/features/orgs/projects/actions/utils/buildActionMigrationRequest';
 import { executeMigration } from '@/utils/hasura-api/generated/default/default';
-import type {
-  MigrationRequest,
-  MigrationStep,
-} from '@/utils/hasura-api/generated/schemas';
+import type { MigrationRequest } from '@/utils/hasura-api/generated/schemas';
 import type { MigrationOperationOptions } from '@/utils/hasura-api/types';
 import {
   buildStep,
@@ -23,20 +21,15 @@ export function buildManageActionPermissionMigrationRequest({
 
   const granting = type === 'create_action_permission';
 
-  // The generated MigrationStep union omits action operations, but the migrate
-  // API accepts them, so the assembled steps are cast.
-  const up = [granting ? createStep : dropStep] as unknown as MigrationStep[];
-  const down = [granting ? dropStep : createStep] as unknown as MigrationStep[];
+  const up = [granting ? createStep : dropStep];
+  const down = [granting ? dropStep : createStep];
 
-  return {
-    name: granting
+  return buildActionMigrationRequest(
+    granting
       ? `save_action_permission_${action}_${role}`
       : `delete_action_permission_${action}_${role}`,
-    up,
-    down,
-    datasource: 'default',
-    skip_execution: false,
-  };
+    { up, down },
+  );
 }
 
 export default async function manageActionPermissionMigration({

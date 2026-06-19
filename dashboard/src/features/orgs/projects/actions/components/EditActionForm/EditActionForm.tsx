@@ -6,10 +6,6 @@ import type { BaseActionFormValues } from '@/features/orgs/projects/actions/comp
 import { useGetActions } from '@/features/orgs/projects/actions/hooks/useGetActions';
 import { useUpdateActionMutation } from '@/features/orgs/projects/actions/hooks/useUpdateActionMutation';
 import { buildActionDTO } from '@/features/orgs/projects/actions/utils/buildActionDTO';
-import {
-  getActionTypes,
-  parseCustomTypes,
-} from '@/features/orgs/projects/actions/utils/customTypesUtils';
 import { parseActionFormInitialData } from '@/features/orgs/projects/actions/utils/parseActionFormInitialData';
 import { execPromiseWithErrorToast } from '@/features/orgs/utils/execPromiseWithErrorToast';
 import type { DialogFormProps } from '@/types/common';
@@ -34,17 +30,8 @@ export default function EditActionForm({
     [actionsData],
   );
 
-  const initialData = useMemo(
+  const { initialData, originalTypeNames } = useMemo(
     () => parseActionFormInitialData(action, existingCustomTypes),
-    [action, existingCustomTypes],
-  );
-
-  const originalActionTypenames = useMemo(
-    () =>
-      getActionTypes(
-        action.definition,
-        parseCustomTypes(existingCustomTypes),
-      ).map((type) => type.name),
     [action, existingCustomTypes],
   );
 
@@ -89,7 +76,7 @@ export default function EditActionForm({
       onSubmit={handleSubmit}
       initialData={initialData}
       existingCustomTypes={existingCustomTypes}
-      originalActionTypenames={originalActionTypenames}
+      originalActionTypenames={originalTypeNames}
       submitButtonText="Save"
     />
   );

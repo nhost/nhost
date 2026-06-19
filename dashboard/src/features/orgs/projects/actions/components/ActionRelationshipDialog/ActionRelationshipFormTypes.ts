@@ -49,7 +49,7 @@ export function actionRelationshipToFormValues(
   return {
     name: relationship.name,
     type: relationship.type,
-    source: relationship.source,
+    source: relationship.source ?? 'default',
     schema: relationship.remote_table.schema,
     table: relationship.remote_table.name,
     fieldMapping: Object.entries(relationship.field_mapping).map(

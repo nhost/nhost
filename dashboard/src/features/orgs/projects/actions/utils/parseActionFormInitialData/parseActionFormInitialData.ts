@@ -1,7 +1,4 @@
-import type {
-  BaseActionFormInitialData,
-  BaseActionFormValues,
-} from '@/features/orgs/projects/actions/components/BaseActionForm/BaseActionFormTypes';
+import type { BaseActionFormInitialData } from '@/features/orgs/projects/actions/components/BaseActionForm/BaseActionFormTypes';
 import { composeActionDefinitionSdl } from '@/features/orgs/projects/actions/utils/composeActionDefinitionSdl';
 import { composeTypesSdl } from '@/features/orgs/projects/actions/utils/composeTypesSdl';
 import { DEFAULT_ACTION_TIMEOUT_SECONDS } from '@/features/orgs/projects/actions/utils/constants';
@@ -10,10 +7,10 @@ import {
   parseCustomTypes,
 } from '@/features/orgs/projects/actions/utils/customTypesUtils';
 import { getActionSampleInputPayload } from '@/features/orgs/projects/actions/utils/getActionSampleInputPayload';
+import { parseRequestTransform } from '@/features/orgs/projects/events/common/utils/parseRequestTransform';
 import type {
   ActionItem,
   CustomTypes,
-  RequestTransformation,
   ResponseTransformation,
 } from '@/utils/hasura-api/generated/schemas';
 import {
@@ -21,98 +18,9 @@ import {
   isHeaderWithEnvValue,
 } from '@/utils/hasura-api/guards';
 
-type QueryParams =
-  | {
-      queryParams: { value: string; key: string }[];
-      queryParamsType: 'Key Value';
-    }
-  | { queryParamsType: 'URL string template'; queryParamsURL: string };
-
-const getRequestOptionsTransform = (
-  requestTransform?: RequestTransformation,
-): BaseActionFormValues['requestOptionsTransform'] => {
-  if (!requestTransform) {
-    return undefined;
-  }
-
-  let queryParams: QueryParams;
-  if (typeof requestTransform?.query_params === 'string') {
-    queryParams = {
-      queryParamsType: 'URL string template',
-      queryParamsURL: requestTransform.query_params,
-    };
-  } else if (typeof requestTransform?.query_params === 'object') {
-    queryParams = {
-      queryParamsType: 'Key Value',
-      queryParams: Object.entries(requestTransform.query_params).map(
-        ([key, value]) => ({
-          key,
-          value,
-        }),
-      ),
-    };
-  } else {
-    return undefined;
-  }
-
-  const urlTemplate = requestTransform?.url
-    ? requestTransform.url.replace(/^\{\{\$base_url\}\}/, '')
-    : '';
-
-  return {
-    urlTemplate,
-    method: requestTransform?.method ?? 'POST',
-    queryParams,
-  };
-};
-
-const getFormPayloadTransform = (
-  sampleInput: string,
-  requestTransform?: RequestTransformation,
-): BaseActionFormValues['payloadTransform'] => {
-  if (!requestTransform?.body || !isBodyTransform(requestTransform.body)) {
-    return undefined;
-  }
-
-  switch (requestTransform.body.action) {
-    case 'remove':
-      return {
-        requestBodyTransform: {
-          requestBodyTransformType: 'disabled',
-        },
-        sampleInput,
-      };
-    case 'transform':
-      return {
-        requestBodyTransform: {
-          requestBodyTransformType: 'application/json',
-          template: requestTransform.body.template ?? '',
-        },
-        sampleInput,
-      };
-    case 'x_www_form_urlencoded':
-      return {
-        requestBodyTransform: {
-          requestBodyTransformType: 'application/x-www-form-urlencoded',
-          formTemplate: Object.entries(
-            requestTransform.body.form_template ?? {},
-          ).map(([key, value]) => ({
-            key,
-            value,
-          })),
-        },
-        sampleInput,
-      };
-    default: {
-      const exhaustive: never = requestTransform.body.action;
-      throw new Error(`Unexpected request body transform type: ${exhaustive}`);
-    }
-  }
-};
-
 const getFormResponseTransform = (
   responseTransform?: ResponseTransformation,
-): BaseActionFormValues['responseTransform'] => {
+): BaseActionFormInitialData['responseTransform'] => {
   if (
     !responseTransform?.body ||
     !isBodyTransform(responseTransform.body) ||
@@ -126,10 +34,15 @@ const getFormResponseTransform = (
   };
 };
 
+export interface ParsedActionFormInitialData {
+  initialData: BaseActionFormInitialData;
+  originalTypeNames: string[];
+}
+
 export default function parseActionFormInitialData(
   action: ActionItem,
   customTypes: CustomTypes,
-): BaseActionFormInitialData {
+): ParsedActionFormInitialData {
   const headers: BaseActionFormInitialData['headers'] =
     action.definition.headers?.map((header) => {
       if (isHeaderWithEnvValue(header)) {
@@ -146,16 +59,14 @@ export default function parseActionFormInitialData(
       };
     }) ?? [];
 
-  const requestTransform = action.definition.request_transform;
-  const requestOptionsTransform = getRequestOptionsTransform(requestTransform);
   const sampleInput = getActionSampleInputPayload({
     name: action.name,
     arguments: action.definition.arguments,
   });
-  const payloadTransform = getFormPayloadTransform(
+  const { requestOptionsTransform, payloadTransform } = parseRequestTransform({
+    requestTransform: action.definition.request_transform,
     sampleInput,
-    requestTransform,
-  );
+  });
   const responseTransform = getFormResponseTransform(
     action.definition.response_transform,
   );
@@ -165,7 +76,7 @@ export default function parseActionFormInitialData(
     parseCustomTypes(customTypes),
   );
 
-  return {
+  const initialData: BaseActionFormInitialData = {
     actionDefinitionSdl: composeActionDefinitionSdl({
       name: action.name,
       definition: action.definition,
@@ -181,5 +92,10 @@ export default function parseActionFormInitialData(
     ...(requestOptionsTransform ? { requestOptionsTransform } : {}),
     ...(payloadTransform ? { payloadTransform } : {}),
     ...(responseTransform ? { responseTransform } : {}),
+  };
+
+  return {
+    initialData,
+    originalTypeNames: actionTypes.map((type) => type.name),
   };
 }

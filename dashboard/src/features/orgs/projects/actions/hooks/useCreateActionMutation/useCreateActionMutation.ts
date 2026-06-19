@@ -50,22 +50,10 @@ export default function useCreateActionMutation({
       const adminSecret = project!.config!.hasura.adminSecret;
 
       if (isPlatform) {
-        return createAction({
-          args: variables.args,
-          customTypes: variables.customTypes,
-          previousCustomTypes: variables.previousCustomTypes,
-          appUrl,
-          adminSecret,
-        });
+        return createAction({ ...variables, appUrl, adminSecret });
       }
 
-      return createActionMigration({
-        args: variables.args,
-        customTypes: variables.customTypes,
-        previousCustomTypes: variables.previousCustomTypes,
-        appUrl,
-        adminSecret,
-      });
+      return createActionMigration({ ...variables, appUrl, adminSecret });
     },
     {
       onSuccess: () => {

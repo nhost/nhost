@@ -36,7 +36,9 @@ const customTypes: CustomTypes = {
   scalars: [],
   enums: [],
   input_objects: [],
-  objects: [{ name: 'SampleOutput', fields: [{ name: 'token', type: 'String!' }] }],
+  objects: [
+    { name: 'SampleOutput', fields: [{ name: 'token', type: 'String!' }] },
+  ],
 };
 
 const variables = { args, customTypes, previousCustomTypes: {} };

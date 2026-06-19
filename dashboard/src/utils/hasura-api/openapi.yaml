@@ -128,7 +128,8 @@ components:
         - $ref: "#/components/schemas/CreateCronTriggerBulkOperation"
         - $ref: "#/components/schemas/DeleteCronTriggerOperation"
         - $ref: "#/components/schemas/ActionsBulkOperation"
-        - $ref: "#/components/schemas/ActionPermissionsBulkOperation"
+        - $ref: "#/components/schemas/CreateActionPermissionStep"
+        - $ref: "#/components/schemas/DropActionPermissionStep"
         - $ref: "#/components/schemas/DropActionOperation"
         - $ref: "#/components/schemas/GetScheduledEventsOperation"
         - $ref: "#/components/schemas/GetScheduledEventInvocationsOperation"
@@ -3928,8 +3929,7 @@ components:
           type: array
           description: Relationships of the object type to tables
           items:
-            type: object
-            additionalProperties: true
+            $ref: "#/components/schemas/ActionRelationship"
 
     CustomTypeObjectField:
       type: object
@@ -3948,6 +3948,36 @@ components:
         description:
           type: string
           description: Description of the field
+
+    ActionRelationship:
+      type: object
+      description: Relationship from an action's output object type to a table.
+      required:
+        - name
+        - type
+        - remote_table
+        - field_mapping
+      properties:
+        name:
+          type: string
+          description: Name of the relationship, shouldn't conflict with existing field names
+          example: user
+        type:
+          type: string
+          description: Type of the relationship
+          enum: [object, array]
+        source:
+          type: string
+          description: Name of the source database of the remote table
+          default: default
+        remote_table:
+          description: The table to which the relationship is defined
+          $ref: "#/components/schemas/QualifiedTable"
+        field_mapping:
+          type: object
+          description: Mapping of object type field names to the remote table's columns
+          additionalProperties:
+            type: string
 
     CreateActionArgs:
       type: object
@@ -4119,21 +4149,3 @@ components:
           enum: [drop_action_permission]
         args:
           $ref: "#/components/schemas/DropActionPermissionArgs"
-
-    ActionPermissionsBulkOperation:
-      type: object
-      description: Grant or remove action permissions in a single call.
-      required:
-        - type
-        - args
-      properties:
-        type:
-          type: string
-          enum: [bulk]
-          description: Type of operation to manage action permissions
-        args:
-          type: array
-          items:
-            oneOf:
-              - $ref: "#/components/schemas/CreateActionPermissionStep"
-              - $ref: "#/components/schemas/DropActionPermissionStep"

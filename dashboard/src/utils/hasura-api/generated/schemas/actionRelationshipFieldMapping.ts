@@ -6,4 +6,7 @@
  * OpenAPI spec version: 1.0.0
  */
 
-export type ObjectTypeDefinitionRelationshipsItem = { [key: string]: unknown };
+/**
+ * Mapping of object type field names to the remote table's columns
+ */
+export type ActionRelationshipFieldMapping = { [key: string]: string };

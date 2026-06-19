@@ -118,7 +118,7 @@ function ActionsBrowserSidebarContent() {
           variant="link"
           asChild
           className={cn(
-            'flex rounded-none border text-sm+ hover:bg-accent hover:no-underline',
+            '!text-sm+ flex rounded-none border text-foreground hover:bg-accent hover:no-underline',
             {
               'bg-table-selected text-primary-main': asPath === customTypesHref,
             },

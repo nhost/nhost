@@ -82,7 +82,12 @@ enum Color {
         kind: 'object',
         name: 'SampleOutput',
         fields: [{ name: 'userId', type: 'uuid!' }],
-        relationships: [{ name: 'user', type: 'object' }],
+        relationships: [{
+          name: 'user',
+          type: 'object',
+          remote_table: { schema: 'public', name: 'users' },
+          field_mapping: { userId: 'id' },
+        }],
       },
     ]);
 
