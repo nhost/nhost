@@ -87,15 +87,15 @@ func TestDispatch_AddRemoteSchema_UnreachableMapsToRemoteSchemaError(t *testing.
 	}
 }
 
-// TestDispatch_BulkAtomic_AddRemoteSchema_SkipsValidation pins the documented
-// divergence (docs/user/hasura-metadata-support.md): bulk_atomic composes the
-// pure source.BuildMutation closures and never consults the synchronous
-// remote-schema validator, so an add that the single-op path rejects with
-// remote-schema-error (see TestDispatch_AddRemoteSchema_UnreachableMapsToRemoteSchemaError,
-// same failing validator) is accepted here. The build-time URL check
-// (parseRemoteSchemaInfo) still applies on both paths; only the upstream
-// introspection is skipped.
-func TestDispatch_BulkAtomic_AddRemoteSchema_SkipsValidation(t *testing.T) {
+// TestDispatch_BulkAtomic_AddRemoteSchema_Rejected pins Hasura parity: Hasura's
+// runBulkAtomic accepts only a narrow whitelist (create/drop relationship,
+// delete remote relationship, and native-query/logical-model/stored-procedure
+// track-untrack) and answers "Bulk atomic does not support this command" for
+// everything else (server/src-lib/Hasura/Server/API/Metadata.hs). add_remote_schema
+// is therefore not a valid bulk_atomic child; the store never builds it, so the
+// failing validator below is never reached. Constellation reports the rejection
+// as not-supported (see TestDispatch_BulkAtomic_UnsupportedChildRejected).
+func TestDispatch_BulkAtomic_AddRemoteSchema_Rejected(t *testing.T) {
 	t.Parallel()
 
 	store := newBootstrappedStore(t, &writerStub{})
@@ -110,18 +110,70 @@ func TestDispatch_BulkAtomic_AddRemoteSchema_SkipsValidation(t *testing.T) {
 		`{"type":"bulk_atomic","args":[{"type":"add_remote_schema","args":`+
 			`{"name":"rs","definition":{"url":"http://unreachable.test/graphql"}}}]}`)
 
-	if code != http.StatusOK {
-		t.Fatalf("status = %d, want 200 (bulk_atomic bypasses validation); body = %v", code, body)
+	if code != http.StatusBadRequest {
+		t.Fatalf("status = %d, want 400 (add_remote_schema not in bulk_atomic whitelist); body = %v",
+			code, body)
 	}
 
-	results, ok := body["bulk"].([]any)
-	if !ok || len(results) != 1 {
-		t.Fatalf("bulk results = %v, want one entry", body["bulk"])
+	if got, _ := body["code"].(string); got != "not-supported" {
+		t.Errorf("code = %q, want not-supported", body["code"])
+	}
+}
+
+// TestDispatch_Bulk_AddRemoteSchema_ValidatesUpstream pins that the `bulk` path
+// runs the same synchronous upstream introspection as the single-op path: the
+// bulk pre-pass (planAddRemoteSchema) consults the validator off the write lock,
+// so an unreachable upstream fails the child with remote-schema-error rather
+// than being silently accepted.
+func TestDispatch_Bulk_AddRemoteSchema_ValidatesUpstream(t *testing.T) {
+	t.Parallel()
+
+	store := newBootstrappedStore(t, &writerStub{})
+	store.SetRemoteSchemaValidator(
+		func(_ context.Context, _ *metadata.RemoteSchemaMetadata) error {
+			return fmt.Errorf("%w: dial tcp: connection refused", remoteschema.ErrIntrospection)
+		},
+	)
+	router := buildMutationRouter(t, store)
+
+	code, resp := postJSON(t, router,
+		`{"type":"bulk","args":[{"type":"add_remote_schema","args":`+
+			`{"name":"rs","definition":{"url":"http://unreachable.test/graphql"}}}]}`)
+
+	if code != http.StatusBadRequest {
+		t.Fatalf("status = %d, want 400 (bulk validates the upstream); body = %v", code, resp)
 	}
 
-	entry, _ := results[0].(map[string]any)
-	if got, _ := entry["message"].(string); got != "success" {
-		t.Errorf("bulk_atomic[0].message = %v, want success (validation skipped)", entry["message"])
+	if got, _ := resp["code"].(string); got != "remote-schema-error" {
+		t.Errorf("code = %q, want remote-schema-error", resp["code"])
+	}
+}
+
+// TestDispatch_Bulk_AddRemoteSchemaPermissions_ValidatesUpstream is the
+// permission-op counterpart: re-introspection runs on the bulk path too, so a
+// failing upstream surfaces as remote-schema-error.
+func TestDispatch_Bulk_AddRemoteSchemaPermissions_ValidatesUpstream(t *testing.T) {
+	t.Parallel()
+
+	store := newRemoteSchemaStore(t, &writerStub{})
+	store.SetRemoteSchemaValidator(
+		func(_ context.Context, _ *metadata.RemoteSchemaMetadata) error {
+			return fmt.Errorf("%w: dial tcp: connection refused", remoteschema.ErrIntrospection)
+		},
+	)
+	router := buildMutationRouter(t, store)
+
+	code, resp := postJSON(t, router,
+		`{"type":"bulk","args":[{"type":"add_remote_schema_permissions","args":`+
+			`{"remote_schema":"rs","role":"manager","definition":`+
+			`{"schema":"type Query { ping: String }"}}}]}`)
+
+	if code != http.StatusBadRequest {
+		t.Fatalf("status = %d, want 400 (bulk validates the upstream); body = %v", code, resp)
+	}
+
+	if got, _ := resp["code"].(string); got != "remote-schema-error" {
+		t.Errorf("code = %q, want remote-schema-error", resp["code"])
 	}
 }
 
@@ -145,27 +197,29 @@ func TestDispatch_DropRemoteSchemaPermissions_NotExists(t *testing.T) {
 }
 
 // TestDispatch_Bulk_AddRemoteSchemaPermissions covers the dashboard's wire path:
-// add_remote_schema_permissions is sent wrapped in a `bulk` envelope, which
-// routes through storeOpFor (the ctx-aware Store method, with synchronous
-// validation) rather than the pure bulk_atomic path.
+// add_remote_schema_permissions sent wrapped in a `bulk` envelope. `bulk` runs
+// every child through source.ApplyBulk → BuildMutation (one in-flight metadata
+// copy, single write/RV) and returns a bare top-level array of per-child
+// results. The upstream is introspected in the bulk pre-pass just like the
+// single-op path (here the seeded validator is a no-op, so it succeeds); a
+// failing upstream is covered by TestDispatch_Bulk_AddRemoteSchemaPermissions_ValidatesUpstream.
 func TestDispatch_Bulk_AddRemoteSchemaPermissions(t *testing.T) {
 	t.Parallel()
 
 	store := newRemoteSchemaStore(t, &writerStub{})
 	router := buildMutationRouter(t, store)
 
-	code, body := postJSON(t, router,
+	code, results, raw := postJSONArray(t, router,
 		`{"type":"bulk","args":[{"type":"add_remote_schema_permissions","args":`+
 			`{"remote_schema":"rs","role":"manager","definition":`+
 			`{"schema":"type Query { ping: String }"}}}]}`)
 
 	if code != http.StatusOK {
-		t.Fatalf("status = %d, want 200; body = %v", code, body)
+		t.Fatalf("status = %d, want 200; body = %s", code, raw)
 	}
 
-	results, ok := body["bulk"].([]any)
-	if !ok || len(results) != 1 {
-		t.Fatalf("bulk results = %v, want one entry", body["bulk"])
+	if len(results) != 1 {
+		t.Fatalf("bulk results = %v, want one entry", results)
 	}
 
 	entry, _ := results[0].(map[string]any)

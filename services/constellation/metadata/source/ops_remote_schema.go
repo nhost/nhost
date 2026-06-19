@@ -799,3 +799,78 @@ func (s *Store) introspectByName(
 
 	return raw, nil
 }
+
+// --- bulk pre-pass planning for the validating remote-schema ops ---
+//
+// On the bulk / bulk_keep_going path children apply as pure closures, which
+// cannot reach the network. These helpers run the same synchronous upstream
+// introspection the single-op AddRemoteSchema / UpdateRemoteSchema /
+// AddRemoteSchemaPermissions methods do, but in the lock-free bulk pre-pass
+// (planBulkChild), then hand back the pure mutator for the apply phase. Like the
+// single-op path they validate the committed snapshot + this op's own change, so
+// they do not see edits made by earlier children in the same batch; for that
+// reason a not-exists / already-* outcome is left for the pure fn to decide
+// against the working copy rather than being validated or rejected here.
+
+// planAddRemoteSchema validates the upstream (unless the add is an idempotent
+// already-exists no-op) before returning the pure add closure.
+func (s *Store) planAddRemoteSchema(ctx context.Context, argsJSON []byte) bulkStep {
+	rs, err := parseRemoteSchemaInfo(argsJSON, opAddRemoteSchema)
+	if err != nil {
+		return errStep(opAddRemoteSchema, err)
+	}
+
+	// A name collision short-circuits to already-exists without network I/O on
+	// the single-op path; skip validation to match (the pure fn returns
+	// CodeAlreadyExists against the working copy).
+	if !s.remoteSchemaExists(rs.Name) {
+		if vErr := s.validateRemoteSchema(ctx, rs); vErr != nil {
+			return errStep(opAddRemoteSchema, vErr)
+		}
+	}
+
+	fn, bErr := buildAddRemoteSchema(argsJSON)
+
+	return mutateStep(opAddRemoteSchema, fn, bErr)
+}
+
+// planUpdateRemoteSchema re-introspects the post-update entry before returning
+// the pure update closure. A not-exists is left to the pure fn (the entry may be
+// added by an earlier child in the same batch).
+func (s *Store) planUpdateRemoteSchema(ctx context.Context, argsJSON []byte) bulkStep {
+	rs, err := parseRemoteSchemaInfo(argsJSON, opUpdateRemoteSchema)
+	if err != nil {
+		return errStep(opUpdateRemoteSchema, err)
+	}
+
+	if s.remoteSchemaExists(rs.Name) {
+		if vErr := s.validateRemoteSchema(ctx, s.mergedRemoteSchemaForUpdate(rs)); vErr != nil {
+			return errStep(opUpdateRemoteSchema, vErr)
+		}
+	}
+
+	fn, bErr := buildUpdateRemoteSchema(argsJSON)
+
+	return mutateStep(opUpdateRemoteSchema, fn, bErr)
+}
+
+// planAddRemoteSchemaPermissions re-introspects the entry with the added role's
+// SDL before returning the pure closure. Validation runs only when there is a
+// new role to add to an existing schema; not-exists / already-has-role are left
+// to the pure fn against the working copy.
+func (s *Store) planAddRemoteSchemaPermissions(ctx context.Context, argsJSON []byte) bulkStep {
+	merged, _, exists, alreadyHasRole, err := s.remoteSchemaWithAddedPermission(argsJSON)
+	if err != nil {
+		return errStep(opAddRemoteSchemaPermissions, err)
+	}
+
+	if exists && !alreadyHasRole {
+		if vErr := s.validateRemoteSchema(ctx, merged); vErr != nil {
+			return errStep(opAddRemoteSchemaPermissions, vErr)
+		}
+	}
+
+	fn, bErr := buildAddRemoteSchemaPermissions(argsJSON)
+
+	return mutateStep(opAddRemoteSchemaPermissions, fn, bErr)
+}
