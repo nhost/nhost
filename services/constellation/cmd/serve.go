@@ -516,7 +516,8 @@ func serve(ctx context.Context, cmd *cli.Command) error {
 
 	// In database-store mode a configured proxy is only a per-op fallback for
 	// metadata ops with no native handler (actions, custom types, cron
-	// triggers, remote schemas). Those ops are forwarded to the upstream, which
+	// triggers). Remote schemas are now handled natively (see
+	// controller/metadata_mutations.go). Those ops are forwarded to the upstream, which
 	// MUST share the same metadata database (hdb_catalog.hdb_metadata) as
 	// Constellation — otherwise native and proxied metadata diverge. The store
 	// reconciles its snapshot from the database after each proxied write.

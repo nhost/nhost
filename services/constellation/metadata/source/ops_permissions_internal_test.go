@@ -109,6 +109,22 @@ func TestCreatePermission_DivergentDefinitionRejected(t *testing.T) {
 			initial:   `{"filter":{}}`,
 			divergent: `{"filter":{"id":{"_eq":"x"}}}`,
 		},
+		{
+			name: "insert",
+			create: func(s *Store, body string) (int64, IdempotencyCode, error) {
+				return s.PgCreateInsertPermission(t.Context(), []byte(body))
+			},
+			initial:   `{"columns":["id"],"check":{}}`,
+			divergent: `{"columns":["id","email"],"check":{}}`,
+		},
+		{
+			name: "update",
+			create: func(s *Store, body string) (int64, IdempotencyCode, error) {
+				return s.PgCreateUpdatePermission(t.Context(), []byte(body))
+			},
+			initial:   `{"columns":["id"],"filter":{},"check":{}}`,
+			divergent: `{"columns":["id","email"],"filter":{},"check":{}}`,
+		},
 	}
 
 	for _, tc := range cases {
