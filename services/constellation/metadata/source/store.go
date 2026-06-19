@@ -72,6 +72,13 @@ type Store struct {
 	// is not database-backed; those ops then return ErrReadOpRequiresDB.
 	queryer Queryer
 
+	// dataConnector opens a short-lived connection to a source data database
+	// for the pg_untrack_table cascade's introspection (FK graph, function
+	// return types). Defaults to pgxDataDBConnector at construction; tests
+	// override it with a fake. A nil value falls back to pgxDataDBConnector,
+	// so a zero-value Store still uses the real connector.
+	dataConnector dataDBConnector
+
 	ch     chan metadata.Update
 	closed bool
 
@@ -147,6 +154,7 @@ func NewStore(writer MetadataWriter, queryer Queryer, logger *slog.Logger) *Stor
 		resourceVersion: 0,
 		writer:          writer,
 		queryer:         queryer,
+		dataConnector:   pgxDataDBConnector,
 		ch:              make(chan metadata.Update, 1),
 		closed:          false,
 		rsValidator:     nil,

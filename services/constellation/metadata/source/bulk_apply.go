@@ -113,6 +113,14 @@ func ParseBulkChildren(argsJSON []byte) ([]BulkChild, error) {
 		return nil, fmt.Errorf("parsing bulk args: %w", err)
 	}
 
+	// `"args": null` unmarshals into a nil slice without error, which would
+	// silently degrade into a zero-length (successful) bulk. A null args is as
+	// malformed as a missing one, so reject it; an empty array (`[]`) stays a
+	// valid empty bulk (non-nil, len 0).
+	if envelopes == nil {
+		return nil, ErrBulkArgsMissing
+	}
+
 	return toBulkChildren(envelopes), nil
 }
 

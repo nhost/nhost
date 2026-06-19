@@ -105,12 +105,6 @@ type metadataParityCase struct {
 	// resolving on both engines (the field is gone, not merely absent from the
 	// export). Error bodies are not deep-compared — engines word them differently.
 	queryWantErr bool
-	// wantConstellationOK hard-asserts that Constellation accepts the op with a
-	// 2xx status, even when knownDivergence is set. Without it, a knownDivergence
-	// case logs every mismatch and so asserts nothing about Constellation's own
-	// result; set it for accepted export-divergence cases where the op itself
-	// must still succeed natively.
-	wantConstellationOK bool
 }
 
 // metadataRequestTimeout bounds each /v1/metadata call. A reset (replace_metadata)
@@ -442,9 +436,13 @@ func runMetadataParityCase(
 	cStatus, cBody := postMetadata(t, constellationMetadataURL, tc.op)
 
 	// Hard-assert Constellation's own result up front (regardless of
-	// knownDivergence), so an accepted export divergence cannot silently mask
-	// the op failing natively on Constellation.
-	if tc.wantConstellationOK && cStatus/100 != 2 {
+	// knownDivergence / allowStatusDivergence), so an accepted export or status
+	// divergence cannot silently mask the op failing natively on Constellation:
+	// every non-error case MUST succeed on Constellation with a 2xx. This is the
+	// invariant that pins idempotent-200 behaviour (pg_track_table_idempotent_reapply,
+	// add_remote_schema_duplicate) — a Constellation regression to 4xx fails here
+	// even though the unchanged metadata would otherwise compare equal.
+	if !tc.wantErr && cStatus/100 != 2 {
 		t.Errorf(
 			"constellation rejected op that must succeed: status=%d body=%s",
 			cStatus, cBody,

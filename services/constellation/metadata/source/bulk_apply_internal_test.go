@@ -21,6 +21,28 @@ func missingSourceChild() BulkChild {
 	}
 }
 
+func TestParseBulkChildren_RejectsNullArgs(t *testing.T) {
+	t.Parallel()
+
+	// `{"args": null}` must fail loudly like a missing "args", not silently
+	// degrade into a zero-length (successful) bulk.
+	if _, err := ParseBulkChildren([]byte(`{"args":null}`)); !errors.Is(err, ErrBulkArgsMissing) {
+		t.Errorf(`ParseBulkChildren({"args":null}) err = %v, want ErrBulkArgsMissing`, err)
+	}
+
+	// An empty array stays a valid (empty) bulk on both accepted shapes.
+	for _, in := range []string{`[]`, `{"args":[]}`} {
+		children, err := ParseBulkChildren([]byte(in))
+		if err != nil {
+			t.Errorf("ParseBulkChildren(%s) err = %v, want nil", in, err)
+		}
+
+		if len(children) != 0 {
+			t.Errorf("ParseBulkChildren(%s) len = %d, want 0", in, len(children))
+		}
+	}
+}
+
 func TestApplyBulk_SingleWriteForMultipleMutations(t *testing.T) {
 	t.Parallel()
 
