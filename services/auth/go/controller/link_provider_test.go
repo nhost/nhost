@@ -121,10 +121,6 @@ func assertConnectAuthorizeURL(
 		t.Errorf("state flow = %q, want %q", state.Flow, providers.FlowConnect)
 	}
 
-	if state.Connect != nil {
-		t.Errorf("state must not carry a connect token, got %q", *state.Connect)
-	}
-
 	if state.Nonce == nil || *state.Nonce == "" {
 		t.Fatal("state missing nonce")
 	}

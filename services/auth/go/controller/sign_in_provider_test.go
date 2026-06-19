@@ -52,7 +52,6 @@ func TestSignInProvider(t *testing.T) {
 					Locale:                 new("es"),
 					Metadata:               new(map[string]any{"key": "value"}),
 					RedirectTo:             new("http://localhost:3000/redirect"),
-					Connect:                new("asdasd"),
 					State:                  new("custom-state"),
 					ProviderSpecificParams: nil,
 				},

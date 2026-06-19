@@ -640,13 +640,6 @@ paths:
             type: string
             format: uri
             example: https://my-app.com/catch-redirection
-        - name: connect
-          in: query
-          required: false
-          description: >-
-            If set, this means that the user is already authenticated and wants to link their account. This needs to be a valid JWT access token.
-          schema:
-            type: string
         - name: state
           in: query
           required: false

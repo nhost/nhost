@@ -25,7 +25,13 @@ const (
 	linkConnectPurpose = "link-connect"
 )
 
-var errGinContextNotFound = errors.New("gin context not found in request context")
+var (
+	errGinContextNotFound = errors.New("gin context not found in request context")
+
+	// ErrInvalidLinkConnectCookie is returned when the link cookie is missing,
+	// malformed, expired, or is not a link-connect token.
+	ErrInvalidLinkConnectCookie = errors.New("invalid link-connect cookie")
+)
 
 // linkConnectData is the identity captured at the authenticated init step and
 // recovered, in the user's own browser, at the callback. It never appears in
@@ -81,4 +87,54 @@ func (ctrl *Controller) setLinkConnectCookie(ctx context.Context, data linkConne
 	http.SetCookie(ginCtx.Writer, ctrl.newLinkConnectCookie(value))
 
 	return nil
+}
+
+// clearLinkConnectCookie expires the link cookie so it can only be redeemed
+// once.
+func (ctrl *Controller) clearLinkConnectCookie(w http.ResponseWriter) {
+	cookie := ctrl.newLinkConnectCookie("")
+	cookie.MaxAge = -1
+	http.SetCookie(w, cookie)
+}
+
+// readLinkConnectCookie validates the link cookie and returns the captured
+// identity. It rejects anything that is not a fresh link-connect token.
+func (ctrl *Controller) readLinkConnectCookie(r *http.Request) (linkConnectData, error) {
+	cookie, err := r.Cookie(linkConnectCookieName)
+	if err != nil {
+		return linkConnectData{}, fmt.Errorf("%w: %w", ErrInvalidLinkConnectCookie, err)
+	}
+
+	token, err := ctrl.jwtGetter.Validate(cookie.Value)
+	if err != nil {
+		return linkConnectData{}, fmt.Errorf("%w: %w", ErrInvalidLinkConnectCookie, err)
+	}
+
+	claims, ok := token.Claims.(jwt.MapClaims)
+	if !ok {
+		return linkConnectData{}, ErrInvalidLinkConnectCookie
+	}
+
+	if purpose, _ := claims["purpose"].(string); purpose != linkConnectPurpose {
+		return linkConnectData{}, ErrInvalidLinkConnectCookie
+	}
+
+	sub, ok := claims["sub"].(string)
+	if !ok {
+		return linkConnectData{}, ErrInvalidLinkConnectCookie
+	}
+
+	userID, err := uuid.Parse(sub)
+	if err != nil {
+		return linkConnectData{}, fmt.Errorf("%w: %w", ErrInvalidLinkConnectCookie, err)
+	}
+
+	provider, _ := claims["provider"].(string)
+	nonce, _ := claims["nonce"].(string)
+
+	return linkConnectData{
+		UserID:   userID,
+		Provider: provider,
+		Nonce:    nonce,
+	}, nil
 }

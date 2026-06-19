@@ -1,16 +1,21 @@
 package controller_test
 
 import (
+	"context"
 	"errors"
+	"net/http"
+	"net/http/httptest"
 	"testing"
 	"time"
 
+	"github.com/gin-gonic/gin"
 	"github.com/golang-jwt/jwt/v5"
 	"github.com/google/go-cmp/cmp"
 	"github.com/google/go-cmp/cmp/cmpopts"
 	"github.com/google/uuid"
 	"github.com/jackc/pgx/v5"
 	"github.com/jackc/pgx/v5/pgtype"
+	"github.com/nhost/nhost/internal/lib/oapi"
 	"github.com/nhost/nhost/services/auth/go/api"
 	"github.com/nhost/nhost/services/auth/go/controller"
 	"github.com/nhost/nhost/services/auth/go/controller/mock"
@@ -22,30 +27,27 @@ import (
 func getState(
 	t *testing.T,
 	jwtGetter *controller.JWTGetter,
-	connect *string,
 	options api.SignUpOptions,
 ) string {
 	t.Helper()
 
-	return getStateWithPKCE(t, jwtGetter, connect, options, nil)
+	return getStateWithPKCE(t, jwtGetter, options, nil)
 }
 
 func getStateWithPKCE(
 	t *testing.T,
 	jwtGetter *controller.JWTGetter,
-	connect *string,
 	options api.SignUpOptions,
 	codeChallenge *string,
 ) string {
 	t.Helper()
 
-	return getStateWithSignupAndPKCE(t, jwtGetter, connect, options, false, codeChallenge)
+	return getStateWithSignupAndPKCE(t, jwtGetter, options, false, codeChallenge)
 }
 
 func getStateWithSignupAndPKCE(
 	t *testing.T,
 	jwtGetter *controller.JWTGetter,
-	connect *string,
 	options api.SignUpOptions,
 	signupIntent bool,
 	codeChallenge *string,
@@ -57,13 +59,12 @@ func getStateWithSignupAndPKCE(
 		flow = providers.FlowSignup
 	}
 
-	return getStateWithFlowAndPKCE(t, jwtGetter, connect, options, flow, codeChallenge)
+	return getStateWithFlowAndPKCE(t, jwtGetter, options, flow, codeChallenge)
 }
 
 func getStateWithFlowAndPKCE(
 	t *testing.T,
 	jwtGetter *controller.JWTGetter,
-	connect *string,
 	options api.SignUpOptions,
 	flow string,
 	codeChallenge *string,
@@ -72,7 +73,6 @@ func getStateWithFlowAndPKCE(
 
 	state, err := jwtGetter.SignTokenWithClaims(
 		jwt.MapClaims{
-			"connect": connect,
 			"options": api.SignUpOptions{
 				AllowedRoles: options.AllowedRoles,
 				DefaultRole:  options.DefaultRole,
@@ -111,15 +111,11 @@ func TestSignInProviderCallback(t *testing.T) { //nolint:maintidx
 
 	userID := uuid.MustParse("DB477732-48FA-4289-B694-2886A646B6EB")
 	refreshTokenID := uuid.MustParse("DB477732-48FA-4289-B694-2886A646B6EB")
-	userIDConnect := uuid.MustParse("f90782de-f0a3-41fe-b778-01e4f80c2413")
 
 	insertResponse := sql.InsertUserWithUserProviderAndRefreshTokenRow{
 		ID:             userID,
 		RefreshTokenID: refreshTokenID,
 	}
-
-	// Create JWT token for connect tests
-	jwtToken := "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJleHAiOjEwNzExMTE4MDI0LCJodHRwczovL2hhc3VyYS5pby9qd3QvY2xhaW1zIjp7IngtaGFzdXJhLWFsbG93ZWQtcm9sZXMiOlsibWUiLCJ1c2VyIiwiZWRpdG9yIl0sIngtaGFzdXJhLWRlZmF1bHQtcm9sZSI6InVzZXIiLCJ4LWhhc3VyYS11c2VyLWlkIjoiZjkwNzgyZGUtZjBhMy00MWZlLWI3NzgtMDFlNGY4MGMyNDEzIiwieC1oYXN1cmEtdXNlci1pcy1hbm9ueW1vdXMiOiJmYWxzZSJ9LCJpYXQiOjE3MTExMTgwMjQsImlzcyI6Imhhc3VyYS1hdXRoIiwic3ViIjoiZjkwNzgyZGUtZjBhMy00MWZlLWI3NzgtMDFlNGY4MGMyNDEzIn0.wms_3kNeVVeqxQvSMcM2l7By1BTz4uteKSAGmVgafYY" //nolint:gosec
 
 	cases := []testRequest[api.SignInProviderCallbackGetRequestObject, api.SignInProviderCallbackGetResponseObject]{
 		{ //nolint:dupl
@@ -181,7 +177,7 @@ func TestSignInProviderCallback(t *testing.T) { //nolint:maintidx
 			request: api.SignInProviderCallbackGetRequestObject{
 				Params: api.SignInProviderCallbackGetParams{
 					Code:  new("valid-code-1"),
-					State: getState(t, jwtGetter, nil, api.SignUpOptions{}),
+					State: getState(t, jwtGetter, api.SignUpOptions{}),
 				},
 				Provider: "fake",
 			},
@@ -254,7 +250,7 @@ func TestSignInProviderCallback(t *testing.T) { //nolint:maintidx
 			request: api.SignInProviderCallbackGetRequestObject{
 				Params: api.SignInProviderCallbackGetParams{
 					Code: new("valid-code-1"),
-					State: getState(t, jwtGetter, nil, api.SignUpOptions{
+					State: getState(t, jwtGetter, api.SignUpOptions{
 						AllowedRoles: &[]string{"me"},
 						DefaultRole:  new("me"),
 						DisplayName:  new("My Name"),
@@ -306,7 +302,7 @@ func TestSignInProviderCallback(t *testing.T) { //nolint:maintidx
 			request: api.SignInProviderCallbackGetRequestObject{
 				Params: api.SignInProviderCallbackGetParams{
 					Code:  new("valid-code-1"),
-					State: getState(t, jwtGetter, nil, api.SignUpOptions{}),
+					State: getState(t, jwtGetter, api.SignUpOptions{}),
 				},
 				Provider: "fake",
 			},
@@ -375,7 +371,7 @@ func TestSignInProviderCallback(t *testing.T) { //nolint:maintidx
 			request: api.SignInProviderCallbackGetRequestObject{
 				Params: api.SignInProviderCallbackGetParams{
 					Code:  new("valid-code-1"),
-					State: getState(t, jwtGetter, nil, api.SignUpOptions{}),
+					State: getState(t, jwtGetter, api.SignUpOptions{}),
 				},
 				Provider: "fake",
 			},
@@ -418,7 +414,7 @@ func TestSignInProviderCallback(t *testing.T) { //nolint:maintidx
 			request: api.SignInProviderCallbackGetRequestObject{
 				Params: api.SignInProviderCallbackGetParams{
 					Code:  new("valid-code-1"),
-					State: getState(t, jwtGetter, nil, api.SignUpOptions{}),
+					State: getState(t, jwtGetter, api.SignUpOptions{}),
 				},
 				Provider: "fake",
 			},
@@ -511,7 +507,7 @@ func TestSignInProviderCallback(t *testing.T) { //nolint:maintidx
 			request: api.SignInProviderCallbackGetRequestObject{
 				Params: api.SignInProviderCallbackGetParams{
 					Code:  new("valid-code-1"),
-					State: getState(t, jwtGetter, nil, api.SignUpOptions{}),
+					State: getState(t, jwtGetter, api.SignUpOptions{}),
 				},
 				Provider: "fake",
 			},
@@ -629,7 +625,7 @@ func TestSignInProviderCallback(t *testing.T) { //nolint:maintidx
 			request: api.SignInProviderCallbackGetRequestObject{
 				Params: api.SignInProviderCallbackGetParams{
 					Code:  new("valid-code-1"),
-					State: getState(t, jwtGetter, nil, api.SignUpOptions{}),
+					State: getState(t, jwtGetter, api.SignUpOptions{}),
 				},
 				Provider: "fake",
 			},
@@ -680,7 +676,7 @@ func TestSignInProviderCallback(t *testing.T) { //nolint:maintidx
 			request: api.SignInProviderCallbackGetRequestObject{
 				Params: api.SignInProviderCallbackGetParams{
 					Code:  new("valid-code-unverified-email"),
-					State: getState(t, jwtGetter, nil, api.SignUpOptions{}),
+					State: getState(t, jwtGetter, api.SignUpOptions{}),
 				},
 				Provider: "fake",
 			},
@@ -746,7 +742,7 @@ func TestSignInProviderCallback(t *testing.T) { //nolint:maintidx
 			request: api.SignInProviderCallbackGetRequestObject{
 				Params: api.SignInProviderCallbackGetParams{
 					Code:  new("valid-code-1"),
-					State: getState(t, jwtGetter, nil, api.SignUpOptions{}),
+					State: getState(t, jwtGetter, api.SignUpOptions{}),
 				},
 				Provider: "fake",
 			},
@@ -801,7 +797,7 @@ func TestSignInProviderCallback(t *testing.T) { //nolint:maintidx
 				Params: api.SignInProviderCallbackGetParams{
 					Code: new("valid-code-1"),
 					State: getStateWithFlowAndPKCE(
-						t, jwtGetter, nil, api.SignUpOptions{},
+						t, jwtGetter, api.SignUpOptions{},
 						"junk", nil,
 					),
 				},
@@ -828,7 +824,7 @@ func TestSignInProviderCallback(t *testing.T) { //nolint:maintidx
 			request: api.SignInProviderCallbackGetRequestObject{
 				Params: api.SignInProviderCallbackGetParams{
 					Code: new("valid-code-1"),
-					State: getState(t, jwtGetter, nil, api.SignUpOptions{
+					State: getState(t, jwtGetter, api.SignUpOptions{
 						RedirectTo: new("http://now.allowed/redirect/me/here"),
 					}),
 				},
@@ -855,7 +851,7 @@ func TestSignInProviderCallback(t *testing.T) { //nolint:maintidx
 			request: api.SignInProviderCallbackGetRequestObject{
 				Params: api.SignInProviderCallbackGetParams{
 					Code:  new("valid-code-1"),
-					State: getState(t, jwtGetter, nil, api.SignUpOptions{}),
+					State: getState(t, jwtGetter, api.SignUpOptions{}),
 				},
 				Provider: "idontexist",
 			},
@@ -880,7 +876,7 @@ func TestSignInProviderCallback(t *testing.T) { //nolint:maintidx
 			request: api.SignInProviderCallbackGetRequestObject{
 				Params: api.SignInProviderCallbackGetParams{
 					State: getState(
-						t, jwtGetter, nil, api.SignUpOptions{},
+						t, jwtGetter, api.SignUpOptions{},
 					),
 					Error:            new("error-coming-from-provider"),
 					ErrorDescription: new("This is an error coming from the provider"),
@@ -891,384 +887,6 @@ func TestSignInProviderCallback(t *testing.T) { //nolint:maintidx
 			expectedResponse: controller.ErrorRedirectResponse{
 				Headers: struct{ Location string }{
 					Location: `^http://localhost:3000\?error=oauth-provider-error&errorDescription=Provider\+returned\+an\+error&provider_error=error-coming-from-provider&provider_error_description=This\+is\+an\+error\+coming\+from\+the\+provider&provider_error_url=https%3A%2F%2Fexample.com%2Ferror&state=some-random-state$`,
-				},
-			},
-			expectedJWT:       nil,
-			jwtTokenFn:        nil,
-			getControllerOpts: nil,
-		},
-
-		{
-			name:   "connect - success",
-			config: getConfig,
-			db: func(ctrl *gomock.Controller) controller.DBClient {
-				mock := mock.NewMockDBClient(ctrl)
-
-				mock.EXPECT().GetUser( //nolint:dupl
-					gomock.Any(),
-					userIDConnect,
-				).Return(sql.AuthUser{
-					ID: userID,
-					CreatedAt: pgtype.Timestamptz{
-						Time: time.Now(),
-					},
-					UpdatedAt:   pgtype.Timestamptz{},
-					LastSeen:    pgtype.Timestamptz{},
-					Disabled:    false,
-					DisplayName: "John",
-					AvatarUrl:   "",
-					Locale:      "en",
-					Email:       sql.Text("fake@gmail.com"),
-					PhoneNumber: pgtype.Text{},
-					PasswordHash: sql.Text(
-						"$2a$10$pyv7eu9ioQcFnLSz7u/enex22P3ORdh6z6116Vj5a3vSjo0oxFa1u",
-					),
-					EmailVerified:            true,
-					PhoneNumberVerified:      false,
-					NewEmail:                 pgtype.Text{},
-					OtpMethodLastUsed:        pgtype.Text{},
-					OtpHash:                  pgtype.Text{},
-					OtpHashExpiresAt:         pgtype.Timestamptz{},
-					DefaultRole:              "user",
-					IsAnonymous:              false,
-					TotpSecret:               pgtype.Text{},
-					ActiveMfaType:            pgtype.Text{},
-					Ticket:                   pgtype.Text{},
-					TicketExpiresAt:          sql.TimestampTz(time.Now()),
-					Metadata:                 []byte{},
-					WebauthnCurrentChallenge: pgtype.Text{},
-				}, nil)
-
-				mock.EXPECT().InsertUserProvider(
-					gomock.Any(),
-					sql.InsertUserProviderParams{
-						UserID:         userIDConnect,
-						ProviderID:     "fake",
-						ProviderUserID: "1234567890",
-					},
-				).Return(
-
-					sql.AuthUserProvider{
-						ID:             userIDConnect,
-						CreatedAt:      pgtype.Timestamptz{},
-						UpdatedAt:      pgtype.Timestamptz{},
-						UserID:         userID,
-						AccessToken:    "unset",
-						RefreshToken:   pgtype.Text{},
-						ProviderID:     "fake",
-						ProviderUserID: "1234567890",
-					}, nil,
-				)
-
-				mock.EXPECT().UpdateProviderSession(
-					gomock.Any(),
-					gomock.Any(),
-				).Return(nil)
-
-				return mock
-			},
-			request: api.SignInProviderCallbackGetRequestObject{
-				Params: api.SignInProviderCallbackGetParams{
-					Code: new("valid-code-1"),
-					State: getState(t, jwtGetter, &jwtToken, api.SignUpOptions{
-						RedirectTo: new("http://localhost:3000/connect-success"),
-					}),
-				},
-				Provider: "fake",
-			},
-			expectedResponse: api.SignInProviderCallbackGet302Response{
-				Headers: api.SignInProviderCallbackGet302ResponseHeaders{
-					Location: `^http://localhost:3000/connect-success\?state=some-random-state$`,
-				},
-			},
-			expectedJWT:       nil,
-			jwtTokenFn:        nil,
-			getControllerOpts: nil,
-		},
-
-		{
-			// Locks in that the OAuth callback's connect branch ignores the
-			// provider's email verification status: the Nhost account is
-			// identified by the connect JWT embedded in the state, not by the
-			// OAuth email, so an unverified (or unknown) email from the
-			// provider must not block linking.
-			name:   "connect - success - unverified provider email still links",
-			config: getConfig,
-			db: func(ctrl *gomock.Controller) controller.DBClient {
-				mock := mock.NewMockDBClient(ctrl)
-
-				mock.EXPECT().GetUser( //nolint:dupl
-					gomock.Any(),
-					userIDConnect,
-				).Return(sql.AuthUser{
-					ID: userID,
-					CreatedAt: pgtype.Timestamptz{
-						Time: time.Now(),
-					},
-					UpdatedAt:   pgtype.Timestamptz{},
-					LastSeen:    pgtype.Timestamptz{},
-					Disabled:    false,
-					DisplayName: "John",
-					AvatarUrl:   "",
-					Locale:      "en",
-					Email:       sql.Text("fake@gmail.com"),
-					PhoneNumber: pgtype.Text{},
-					PasswordHash: sql.Text(
-						"$2a$10$pyv7eu9ioQcFnLSz7u/enex22P3ORdh6z6116Vj5a3vSjo0oxFa1u",
-					),
-					EmailVerified:            true,
-					PhoneNumberVerified:      false,
-					NewEmail:                 pgtype.Text{},
-					OtpMethodLastUsed:        pgtype.Text{},
-					OtpHash:                  pgtype.Text{},
-					OtpHashExpiresAt:         pgtype.Timestamptz{},
-					DefaultRole:              "user",
-					IsAnonymous:              false,
-					TotpSecret:               pgtype.Text{},
-					ActiveMfaType:            pgtype.Text{},
-					Ticket:                   pgtype.Text{},
-					TicketExpiresAt:          sql.TimestampTz(time.Now()),
-					Metadata:                 []byte{},
-					WebauthnCurrentChallenge: pgtype.Text{},
-				}, nil)
-
-				mock.EXPECT().InsertUserProvider(
-					gomock.Any(),
-					sql.InsertUserProviderParams{
-						UserID:         userIDConnect,
-						ProviderID:     "fake",
-						ProviderUserID: "1234567890",
-					},
-				).Return(
-
-					sql.AuthUserProvider{
-						ID:             userIDConnect,
-						CreatedAt:      pgtype.Timestamptz{},
-						UpdatedAt:      pgtype.Timestamptz{},
-						UserID:         userID,
-						AccessToken:    "unset",
-						RefreshToken:   pgtype.Text{},
-						ProviderID:     "fake",
-						ProviderUserID: "1234567890",
-					}, nil,
-				)
-
-				mock.EXPECT().UpdateProviderSession(
-					gomock.Any(),
-					gomock.Any(),
-				).Return(nil)
-
-				return mock
-			},
-			request: api.SignInProviderCallbackGetRequestObject{
-				Params: api.SignInProviderCallbackGetParams{
-					Code: new("valid-code-unverified-email"),
-					State: getState(t, jwtGetter, &jwtToken, api.SignUpOptions{
-						RedirectTo: new("http://localhost:3000/connect-success"),
-					}),
-				},
-				Provider: "fake",
-			},
-			expectedResponse: api.SignInProviderCallbackGet302Response{
-				Headers: api.SignInProviderCallbackGet302ResponseHeaders{
-					Location: `^http://localhost:3000/connect-success\?state=some-random-state$`,
-				},
-			},
-			expectedJWT:       nil,
-			jwtTokenFn:        nil,
-			getControllerOpts: nil,
-		},
-
-		{
-			name:   "connect - user disabled",
-			config: getConfig,
-			db: func(ctrl *gomock.Controller) controller.DBClient {
-				mock := mock.NewMockDBClient(ctrl)
-
-				mock.EXPECT().GetUser( //nolint:dupl
-					gomock.Any(),
-					userIDConnect,
-				).Return(sql.AuthUser{
-					ID: userIDConnect,
-					CreatedAt: pgtype.Timestamptz{
-						Time: time.Now(),
-					},
-					UpdatedAt:   pgtype.Timestamptz{},
-					LastSeen:    pgtype.Timestamptz{},
-					Disabled:    true,
-					DisplayName: "John",
-					AvatarUrl:   "",
-					Locale:      "en",
-					Email:       sql.Text("fake@gmail.com"),
-					PhoneNumber: pgtype.Text{},
-					PasswordHash: sql.Text(
-						"$2a$10$pyv7eu9ioQcFnLSz7u/enex22P3ORdh6z6116Vj5a3vSjo0oxFa1u",
-					),
-					EmailVerified:            true,
-					PhoneNumberVerified:      false,
-					NewEmail:                 pgtype.Text{},
-					OtpMethodLastUsed:        pgtype.Text{},
-					OtpHash:                  pgtype.Text{},
-					OtpHashExpiresAt:         pgtype.Timestamptz{},
-					DefaultRole:              "user",
-					IsAnonymous:              false,
-					TotpSecret:               pgtype.Text{},
-					ActiveMfaType:            pgtype.Text{},
-					Ticket:                   pgtype.Text{},
-					TicketExpiresAt:          sql.TimestampTz(time.Now()),
-					Metadata:                 []byte{},
-					WebauthnCurrentChallenge: pgtype.Text{},
-				}, nil)
-
-				return mock
-			},
-			request: api.SignInProviderCallbackGetRequestObject{
-				Params: api.SignInProviderCallbackGetParams{
-					Code: new("valid-code-1"),
-					State: getState(t, jwtGetter, &jwtToken, api.SignUpOptions{
-						RedirectTo: new("http://localhost:3000/connect-success"),
-					}),
-				},
-				Provider: "fake",
-			},
-			expectedResponse: controller.ErrorRedirectResponse{
-				Headers: struct{ Location string }{
-					Location: `^http://localhost:3000/connect-success\?error=disabled-user&errorDescription=User\+is\+disabled&state=some-random-state$`,
-				},
-			},
-			expectedJWT:       nil,
-			jwtTokenFn:        nil,
-			getControllerOpts: nil,
-		},
-
-		{
-			name:   "connect - user not found",
-			config: getConfig,
-			db: func(ctrl *gomock.Controller) controller.DBClient {
-				mock := mock.NewMockDBClient(ctrl)
-
-				mock.EXPECT().GetUser(
-					gomock.Any(),
-					userIDConnect,
-				).Return(sql.AuthUser{}, pgx.ErrNoRows)
-
-				return mock
-			},
-			request: api.SignInProviderCallbackGetRequestObject{
-				Params: api.SignInProviderCallbackGetParams{
-					Code: new("valid-code-1"),
-					State: getState(t, jwtGetter, &jwtToken, api.SignUpOptions{
-						RedirectTo: new("http://localhost:3000/connect-success"),
-					}),
-				},
-				Provider: "fake",
-			},
-			expectedResponse: controller.ErrorRedirectResponse{
-				Headers: struct{ Location string }{
-					Location: `^http://localhost:3000/connect-success\?error=invalid-email-password&errorDescription=Incorrect\+email\+or\+password&state=some-random-state$`,
-				},
-			},
-			expectedJWT:       nil,
-			jwtTokenFn:        nil,
-			getControllerOpts: nil,
-		},
-
-		{
-			name:   "connect - provider already linked",
-			config: getConfig,
-			db: func(ctrl *gomock.Controller) controller.DBClient {
-				mock := mock.NewMockDBClient(ctrl)
-
-				mock.EXPECT().GetUser( //nolint:dupl
-					gomock.Any(),
-					userIDConnect,
-				).Return(sql.AuthUser{
-					ID: userIDConnect,
-					CreatedAt: pgtype.Timestamptz{
-						Time: time.Now(),
-					},
-					UpdatedAt:   pgtype.Timestamptz{},
-					LastSeen:    pgtype.Timestamptz{},
-					Disabled:    false,
-					DisplayName: "John",
-					AvatarUrl:   "",
-					Locale:      "en",
-					Email:       sql.Text("fake@gmail.com"),
-					PhoneNumber: pgtype.Text{},
-					PasswordHash: sql.Text(
-						"$2a$10$pyv7eu9ioQcFnLSz7u/enex22P3ORdh6z6116Vj5a3vSjo0oxFa1u",
-					),
-					EmailVerified:            true,
-					PhoneNumberVerified:      false,
-					NewEmail:                 pgtype.Text{},
-					OtpMethodLastUsed:        pgtype.Text{},
-					OtpHash:                  pgtype.Text{},
-					OtpHashExpiresAt:         pgtype.Timestamptz{},
-					DefaultRole:              "user",
-					IsAnonymous:              false,
-					TotpSecret:               pgtype.Text{},
-					ActiveMfaType:            pgtype.Text{},
-					Ticket:                   pgtype.Text{},
-					TicketExpiresAt:          sql.TimestampTz(time.Now()),
-					Metadata:                 []byte{},
-					WebauthnCurrentChallenge: pgtype.Text{},
-				}, nil)
-
-				mock.EXPECT().InsertUserProvider(
-					gomock.Any(),
-					sql.InsertUserProviderParams{
-						UserID:         userIDConnect,
-						ProviderID:     "fake",
-						ProviderUserID: "1234567890",
-					},
-				).Return(
-					sql.AuthUserProvider{},
-					errors.New(`ERROR: duplicate key value violates unique constraint "user_providers_provider_id_provider_user_id_key" (SQLSTATE 23505)`), //nolint:err113
-				)
-
-				return mock
-			},
-			request: api.SignInProviderCallbackGetRequestObject{
-				Params: api.SignInProviderCallbackGetParams{
-					Code: new("valid-code-1"),
-					State: getState(t, jwtGetter, &jwtToken, api.SignUpOptions{
-						RedirectTo: new("http://localhost:3000/connect-success"),
-					}),
-				},
-				Provider: "fake",
-			},
-			expectedResponse: controller.ErrorRedirectResponse{
-				Headers: struct{ Location string }{
-					Location: `^http://localhost:3000/connect-success\?error=provider-account-already-linked&errorDescription=This\+provider\+account\+is\+already\+linked\+to\+a\+user&state=some-random-state$`,
-				},
-			},
-			expectedJWT:       nil,
-			jwtTokenFn:        nil,
-			getControllerOpts: nil,
-		},
-
-		{
-			name:   "connect - invalid JWT",
-			config: getConfig,
-			db: func(ctrl *gomock.Controller) controller.DBClient {
-				mock := mock.NewMockDBClient(ctrl)
-				return mock
-			},
-			request: api.SignInProviderCallbackGetRequestObject{
-				Params: api.SignInProviderCallbackGetParams{
-					Code: new("valid-code-1"),
-					State: getState(
-						t, jwtGetter, new("invalid-jwt-token"),
-						api.SignUpOptions{
-							RedirectTo: new("http://localhost:3000/connect-success"),
-						},
-					),
-				},
-				Provider: "fake",
-			},
-			expectedResponse: controller.ErrorRedirectResponse{
-				Headers: struct{ Location string }{
-					Location: `^http://localhost:3000/connect-success\?error=invalid-request&errorDescription=The\+request\+payload\+is\+incorrect&state=some-random-state$`,
 				},
 			},
 			expectedJWT:       nil,
@@ -1335,7 +953,7 @@ func TestSignInProviderCallback(t *testing.T) { //nolint:maintidx
 			request: api.SignInProviderCallbackGetRequestObject{
 				Params: api.SignInProviderCallbackGetParams{
 					Code:  new("valid-code-empty-email"),
-					State: getState(t, jwtGetter, nil, api.SignUpOptions{}),
+					State: getState(t, jwtGetter, api.SignUpOptions{}),
 				},
 				Provider: "fake",
 			},
@@ -1378,7 +996,7 @@ func TestSignInProviderCallback(t *testing.T) { //nolint:maintidx
 			request: api.SignInProviderCallbackGetRequestObject{
 				Params: api.SignInProviderCallbackGetParams{
 					Code:  new("valid-code-empty-email"),
-					State: getState(t, jwtGetter, nil, api.SignUpOptions{}),
+					State: getState(t, jwtGetter, api.SignUpOptions{}),
 				},
 				Provider: "fake",
 			},
@@ -1447,7 +1065,7 @@ func TestSignInProviderCallback(t *testing.T) { //nolint:maintidx
 			request: api.SignInProviderCallbackGetRequestObject{
 				Params: api.SignInProviderCallbackGetParams{
 					Code:  new("valid-code-empty-email"),
-					State: getState(t, jwtGetter, nil, api.SignUpOptions{}),
+					State: getState(t, jwtGetter, api.SignUpOptions{}),
 				},
 				Provider: "fake",
 			},
@@ -1524,7 +1142,7 @@ func TestSignInProviderCallback(t *testing.T) { //nolint:maintidx
 				Params: api.SignInProviderCallbackGetParams{
 					Code: new("valid-code-1"),
 					State: getStateWithPKCE(
-						t, jwtGetter, nil, api.SignUpOptions{},
+						t, jwtGetter, api.SignUpOptions{},
 						ptr("E9Melhoa2OwvFrEMTJguCHaoeK1t8URWbuGJSstw-cM"),
 					),
 				},
@@ -1603,7 +1221,7 @@ func TestSignInProviderCallback(t *testing.T) { //nolint:maintidx
 				Params: api.SignInProviderCallbackGetParams{
 					Code: new("valid-code-1"),
 					State: getStateWithPKCE(
-						t, jwtGetter, nil, api.SignUpOptions{},
+						t, jwtGetter, api.SignUpOptions{},
 						ptr("E9Melhoa2OwvFrEMTJguCHaoeK1t8URWbuGJSstw-cM"),
 					),
 				},
@@ -1649,7 +1267,7 @@ func TestSignInProviderCallback(t *testing.T) { //nolint:maintidx
 				Params: api.SignInProviderCallbackGetParams{
 					Code: new("valid-code-1"),
 					State: getStateWithPKCE(
-						t, jwtGetter, nil, api.SignUpOptions{},
+						t, jwtGetter, api.SignUpOptions{},
 						ptr("E9Melhoa2OwvFrEMTJguCHaoeK1t8URWbuGJSstw-cM"),
 					),
 				},
@@ -1731,7 +1349,7 @@ func TestSignInProviderCallback(t *testing.T) { //nolint:maintidx
 				Params: api.SignInProviderCallbackGetParams{
 					Code: new("valid-code-1"),
 					State: getStateWithSignupAndPKCE(
-						t, jwtGetter, nil, api.SignUpOptions{},
+						t, jwtGetter, api.SignUpOptions{},
 						true, ptr("E9Melhoa2OwvFrEMTJguCHaoeK1t8URWbuGJSstw-cM"),
 					),
 				},
@@ -1771,7 +1389,7 @@ func TestSignInProviderCallback(t *testing.T) { //nolint:maintidx
 				Params: api.SignInProviderCallbackGetParams{
 					Code: new("valid-code-1"),
 					State: getStateWithSignupAndPKCE(
-						t, jwtGetter, nil, api.SignUpOptions{},
+						t, jwtGetter, api.SignUpOptions{},
 						true, ptr("E9Melhoa2OwvFrEMTJguCHaoeK1t8URWbuGJSstw-cM"),
 					),
 				},
@@ -1876,7 +1494,7 @@ func TestSignInProviderCallback(t *testing.T) { //nolint:maintidx
 				Params: api.SignInProviderCallbackGetParams{
 					Code: new("valid-code-1"),
 					State: getStateWithPKCE(
-						t, jwtGetter, nil, api.SignUpOptions{},
+						t, jwtGetter, api.SignUpOptions{},
 						ptr("E9Melhoa2OwvFrEMTJguCHaoeK1t8URWbuGJSstw-cM"),
 					),
 				},
@@ -1930,7 +1548,7 @@ func TestSignInProviderCallback(t *testing.T) { //nolint:maintidx
 				Params: api.SignInProviderCallbackGetParams{
 					Code: new("valid-code-unverified-email"),
 					State: getStateWithPKCE(
-						t, jwtGetter, nil, api.SignUpOptions{},
+						t, jwtGetter, api.SignUpOptions{},
 						ptr("E9Melhoa2OwvFrEMTJguCHaoeK1t8URWbuGJSstw-cM"),
 					),
 				},
@@ -2002,7 +1620,7 @@ func TestSignInProviderCallback(t *testing.T) { //nolint:maintidx
 				Params: api.SignInProviderCallbackGetParams{
 					Code: new("valid-code-1"),
 					State: getStateWithPKCE(
-						t, jwtGetter, nil, api.SignUpOptions{},
+						t, jwtGetter, api.SignUpOptions{},
 						ptr("E9Melhoa2OwvFrEMTJguCHaoeK1t8URWbuGJSstw-cM"),
 					),
 				},
@@ -2074,7 +1692,7 @@ func TestSignInProviderCallback(t *testing.T) { //nolint:maintidx
 				Params: api.SignInProviderCallbackGetParams{
 					Code: new("valid-code-empty-email"),
 					State: getStateWithPKCE(
-						t, jwtGetter, nil, api.SignUpOptions{},
+						t, jwtGetter, api.SignUpOptions{},
 						ptr("E9Melhoa2OwvFrEMTJguCHaoeK1t8URWbuGJSstw-cM"),
 					),
 				},
@@ -2113,6 +1731,268 @@ func TestSignInProviderCallback(t *testing.T) { //nolint:maintidx
 					return false
 				}, RegexpComparer()),
 			)
+		})
+	}
+}
+
+func getConnectState(
+	t *testing.T, jwtGetter *controller.JWTGetter, nonce, redirectTo string,
+) string {
+	t.Helper()
+
+	state, err := jwtGetter.SignTokenWithClaims(
+		jwt.MapClaims{
+			"options": api.SignUpOptions{RedirectTo: new(redirectTo)},
+			"state":   "some-random-state",
+			"flow":    providers.FlowConnect,
+			"nonce":   nonce,
+		},
+		time.Now().Add(time.Minute),
+	)
+	if err != nil {
+		t.Fatalf("failed to sign connect state: %v", err)
+	}
+
+	return state
+}
+
+func getLinkConnectCookieValue(
+	t *testing.T, jwtGetter *controller.JWTGetter, userID uuid.UUID, provider, nonce string,
+) string {
+	t.Helper()
+
+	token, err := jwtGetter.SignTokenWithClaims(
+		jwt.MapClaims{
+			"sub":      userID.String(),
+			"purpose":  "link-connect",
+			"provider": provider,
+			"nonce":    nonce,
+		},
+		time.Now().Add(5*time.Minute),
+	)
+	if err != nil {
+		t.Fatalf("failed to sign link cookie: %v", err)
+	}
+
+	return token
+}
+
+func assertLinkCookieCleared(t *testing.T, rec *httptest.ResponseRecorder) {
+	t.Helper()
+
+	for _, ck := range rec.Result().Cookies() {
+		if ck.Name == "nhost-link-connect" {
+			if ck.MaxAge >= 0 {
+				t.Errorf("link cookie not cleared, MaxAge=%d", ck.MaxAge)
+			}
+
+			return
+		}
+	}
+
+	t.Error("expected the link cookie to be cleared, but none was set")
+}
+
+// TestSignInProviderCallbackConnect covers the cookie-bound connect flow. The
+// link commits to the user identified by the single-use cookie (not the URL),
+// the state nonce must match the cookie nonce (CSRF), the cookie provider must
+// match the path provider, and a missing cookie links nothing — which is what
+// closes the account-hijack hole.
+func TestSignInProviderCallbackConnect(t *testing.T) {
+	t.Parallel()
+
+	userID := uuid.MustParse("f90782de-f0a3-41fe-b778-01e4f80c2413")
+
+	const (
+		nonce      = "test-nonce-123"
+		redirectTo = "http://localhost:3000/connect-success"
+	)
+
+	emptyDB := func(ctrl *gomock.Controller) controller.DBClient {
+		return mock.NewMockDBClient(ctrl)
+	}
+
+	cases := []struct {
+		name                string
+		setCookie           bool
+		cookieProvider      string
+		cookieNonce         string
+		db                  func(ctrl *gomock.Controller) controller.DBClient
+		expectedResponse    api.SignInProviderCallbackGetResponseObject
+		expectCookieCleared bool
+	}{
+		{
+			name:           "success - links to the cookie user",
+			setCookie:      true,
+			cookieProvider: "fake",
+			cookieNonce:    nonce,
+			db: func(ctrl *gomock.Controller) controller.DBClient {
+				m := mock.NewMockDBClient(ctrl)
+				m.EXPECT().GetUser(gomock.Any(), userID).
+					Return(linkProviderTestUser(userID, false), nil)
+				m.EXPECT().InsertUserProvider(
+					gomock.Any(),
+					sql.InsertUserProviderParams{
+						UserID:         userID,
+						ProviderID:     "fake",
+						ProviderUserID: "1234567890",
+					},
+				).Return(sql.AuthUserProvider{}, nil)
+				m.EXPECT().UpdateProviderSession(gomock.Any(), gomock.Any()).Return(nil)
+
+				return m
+			},
+			expectedResponse: api.SignInProviderCallbackGet302Response{
+				Headers: api.SignInProviderCallbackGet302ResponseHeaders{
+					Location: `^http://localhost:3000/connect-success\?state=some-random-state$`,
+				},
+			},
+			expectCookieCleared: true,
+		},
+		{
+			name:           "user disabled",
+			setCookie:      true,
+			cookieProvider: "fake",
+			cookieNonce:    nonce,
+			db: func(ctrl *gomock.Controller) controller.DBClient {
+				m := mock.NewMockDBClient(ctrl)
+				m.EXPECT().GetUser(gomock.Any(), userID).
+					Return(linkProviderTestUser(userID, true), nil)
+
+				return m
+			},
+			expectedResponse: controller.ErrorRedirectResponse{
+				Headers: struct{ Location string }{
+					Location: `^http://localhost:3000/connect-success\?error=disabled-user&errorDescription=User\+is\+disabled&state=some-random-state$`,
+				},
+			},
+		},
+		{
+			name:           "user not found",
+			setCookie:      true,
+			cookieProvider: "fake",
+			cookieNonce:    nonce,
+			db: func(ctrl *gomock.Controller) controller.DBClient {
+				m := mock.NewMockDBClient(ctrl)
+				m.EXPECT().GetUser(gomock.Any(), userID).
+					Return(sql.AuthUser{}, pgx.ErrNoRows)
+
+				return m
+			},
+			expectedResponse: controller.ErrorRedirectResponse{
+				Headers: struct{ Location string }{
+					Location: `^http://localhost:3000/connect-success\?error=invalid-email-password&errorDescription=Incorrect\+email\+or\+password&state=some-random-state$`,
+				},
+			},
+		},
+		{
+			name:           "provider already linked",
+			setCookie:      true,
+			cookieProvider: "fake",
+			cookieNonce:    nonce,
+			db: func(ctrl *gomock.Controller) controller.DBClient {
+				m := mock.NewMockDBClient(ctrl)
+				m.EXPECT().GetUser(gomock.Any(), userID).
+					Return(linkProviderTestUser(userID, false), nil)
+				m.EXPECT().InsertUserProvider(gomock.Any(), gomock.Any()).Return(
+					sql.AuthUserProvider{},
+					errors.New(`ERROR: duplicate key value violates unique constraint "user_providers_provider_id_provider_user_id_key" (SQLSTATE 23505)`), //nolint:err113
+				)
+
+				return m
+			},
+			expectedResponse: controller.ErrorRedirectResponse{
+				Headers: struct{ Location string }{
+					Location: `^http://localhost:3000/connect-success\?error=provider-account-already-linked&errorDescription=This\+provider\+account\+is\+already\+linked\+to\+a\+user&state=some-random-state$`,
+				},
+			},
+		},
+		{
+			// The hijack fix: with no cookie in the browser that completed the
+			// provider login, nothing is linked.
+			name:      "no cookie - nothing linked",
+			setCookie: false,
+			db:        emptyDB,
+			expectedResponse: controller.ErrorRedirectResponse{
+				Headers: struct{ Location string }{
+					Location: `^http://localhost:3000/connect-success\?error=invalid-request&errorDescription=The\+request\+payload\+is\+incorrect&state=some-random-state$`,
+				},
+			},
+		},
+		{
+			name:           "nonce mismatch - rejected",
+			setCookie:      true,
+			cookieProvider: "fake",
+			cookieNonce:    "a-different-nonce",
+			db:             emptyDB,
+			expectedResponse: controller.ErrorRedirectResponse{
+				Headers: struct{ Location string }{
+					Location: `^http://localhost:3000/connect-success\?error=invalid-request&errorDescription=The\+request\+payload\+is\+incorrect&state=some-random-state$`,
+				},
+			},
+		},
+		{
+			name:           "provider mismatch - rejected",
+			setCookie:      true,
+			cookieProvider: "google",
+			cookieNonce:    nonce,
+			db:             emptyDB,
+			expectedResponse: controller.ErrorRedirectResponse{
+				Headers: struct{ Location string }{
+					Location: `^http://localhost:3000/connect-success\?error=invalid-request&errorDescription=The\+request\+payload\+is\+incorrect&state=some-random-state$`,
+				},
+			},
+		},
+	}
+
+	for _, tc := range cases {
+		t.Run(tc.name, func(t *testing.T) {
+			t.Parallel()
+
+			gmctrl := gomock.NewController(t)
+			c, jwtGetter := getController(t, gmctrl, getConfig, tc.db)
+
+			req := httptest.NewRequest(http.MethodGet, "/signin/provider/fake/callback", nil)
+			if tc.setCookie {
+				req.AddCookie(&http.Cookie{
+					Name: "nhost-link-connect",
+					Value: getLinkConnectCookieValue(
+						t, jwtGetter, userID, tc.cookieProvider, tc.cookieNonce,
+					),
+				})
+			}
+
+			rec := httptest.NewRecorder()
+			ginCtx, _ := gin.CreateTestContext(rec)
+			ginCtx.Request = req
+			ctx := context.WithValue(t.Context(), oapi.GinContextKey, ginCtx)
+
+			request := api.SignInProviderCallbackGetRequestObject{
+				Params: api.SignInProviderCallbackGetParams{
+					Code:  new("valid-code-1"),
+					State: getConnectState(t, jwtGetter, nonce, redirectTo),
+				},
+				Provider: "fake",
+			}
+
+			assertRequest(
+				ctx,
+				t,
+				c.SignInProviderCallbackGet,
+				request,
+				tc.expectedResponse,
+				cmp.FilterPath(func(p cmp.Path) bool {
+					if last := p.Last(); last != nil {
+						return last.String() == ".Location"
+					}
+
+					return false
+				}, RegexpComparer()),
+			)
+
+			if tc.expectCookieCleared {
+				assertLinkCookieCleared(t, rec)
+			}
 		})
 	}
 }

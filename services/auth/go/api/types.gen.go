@@ -1245,9 +1245,6 @@ type SignInProviderParams struct {
 	// RedirectTo URI to redirect to
 	RedirectTo *string `form:"redirectTo,omitempty" json:"redirectTo,omitempty"`
 
-	// Connect If set, this means that the user is already authenticated and wants to link their account. This needs to be a valid JWT access token.
-	Connect *string `form:"connect,omitempty" json:"connect,omitempty"`
-
 	// State Opaque state value to be returned by the provider
 	State *string `form:"state,omitempty" json:"state,omitempty"`
 

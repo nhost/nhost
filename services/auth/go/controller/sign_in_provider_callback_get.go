@@ -10,6 +10,7 @@ import (
 	"github.com/google/uuid"
 	"golang.org/x/oauth2"
 
+	"github.com/nhost/nhost/internal/lib/oapi"
 	oapimw "github.com/nhost/nhost/internal/lib/oapi/middleware"
 	"github.com/nhost/nhost/services/auth/go/api"
 	"github.com/nhost/nhost/services/auth/go/oidc"
@@ -67,7 +68,7 @@ func (ctrl *Controller) signinProviderProviderCallbackValidate(
 	ctx context.Context,
 	req providerCallbackData,
 	logger *slog.Logger,
-) (*api.SignUpOptions, *string, bool, *string, *url.URL, *APIError) {
+) (*api.SignUpOptions, string, *string, *string, *url.URL, *APIError) {
 	redirectTo := ctrl.config.ClientURL
 
 	stateData, apiErr := ctrl.getStateData(ctx, req.State, logger)
@@ -76,7 +77,7 @@ func (ctrl *Controller) signinProviderProviderCallbackValidate(
 			"provider_state": req.State,
 		})
 
-		return nil, nil, false, nil, redirectTo, apiErr
+		return nil, "", nil, nil, redirectTo, apiErr
 	}
 
 	// we just care about the redirect URL for now, the rest is handled by the signin flow
@@ -88,7 +89,7 @@ func (ctrl *Controller) signinProviderProviderCallbackValidate(
 		logger,
 	)
 	if apiErr != nil {
-		return nil, nil, false, nil, redirectTo, apiErr
+		return nil, "", nil, nil, redirectTo, apiErr
 	}
 
 	if req.Error != nil && *req.Error != "" {
@@ -104,13 +105,13 @@ func (ctrl *Controller) signinProviderProviderCallbackValidate(
 
 		redirectTo = appendURLValues(redirectTo, values)
 
-		return nil, nil, false, nil, redirectTo, ErrOauthProviderError
+		return nil, "", nil, nil, redirectTo, ErrOauthProviderError
 	}
 
 	optionsRedirectTo, err := url.Parse(*options.RedirectTo)
 	if err != nil {
 		logger.ErrorContext(ctx, "error parsing redirect URL", logError(err))
-		return nil, nil, false, nil, redirectTo, ErrInvalidRequest
+		return nil, "", nil, nil, redirectTo, ErrInvalidRequest
 	}
 
 	if stateData.State != nil && *stateData.State != "" {
@@ -120,8 +121,8 @@ func (ctrl *Controller) signinProviderProviderCallbackValidate(
 	}
 
 	return stateData.Options,
-		stateData.Connect,
-		stateData.Flow == providers.FlowSignup,
+		stateData.Flow,
+		stateData.Nonce,
 		stateData.CodeChallenge,
 		optionsRedirectTo,
 		nil
@@ -226,23 +227,23 @@ func encryptProviderSession(
 func (ctrl *Controller) signinProviderProviderCallbackSession(
 	ctx context.Context,
 	req providerCallbackData,
-	connnect *string,
-	signupIntent bool,
+	flow string,
+	nonce *string,
 	codeChallenge *string,
 	profile oidc.Profile,
 	options *api.SignUpOptions,
 	redirectTo *url.URL,
 	logger *slog.Logger,
 ) (*url.URL, *APIError) {
-	if connnect != nil {
+	if flow == providers.FlowConnect {
 		return redirectTo, ctrl.signinProviderProviderCallbackConnect(
-			ctx, *connnect, req.Provider, profile, logger,
+			ctx, req.Provider, nonce, profile, logger,
 		)
 	}
 
 	if codeChallenge != nil && *codeChallenge != "" {
 		userID, apiErr := ctrl.providerResolveUser(
-			ctx, profile, req.Provider, options, signupIntent, logger,
+			ctx, profile, req.Provider, options, flow == providers.FlowSignup, logger,
 		)
 		if apiErr != nil {
 			return redirectTo, apiErr
@@ -262,7 +263,7 @@ func (ctrl *Controller) signinProviderProviderCallbackSession(
 		apiErr  *APIError
 	)
 
-	if signupIntent {
+	if flow == providers.FlowSignup {
 		session, apiErr = ctrl.providerSignUpFlow(ctx, profile, req.Provider, options, logger)
 	} else {
 		session, apiErr = ctrl.providerSignInFlow(ctx, profile, req.Provider, options, logger)
@@ -289,7 +290,7 @@ func (ctrl *Controller) signinProviderProviderCallback(
 ) (*url.URL, *APIError) {
 	logger := oapimw.LoggerFromContext(ctx)
 
-	options, connnect, signupIntent, codeChallenge, redirectTo, apiErr := ctrl.signinProviderProviderCallbackValidate( //nolint:lll
+	options, flow, nonce, codeChallenge, redirectTo, apiErr := ctrl.signinProviderProviderCallbackValidate(
 		ctx,
 		req,
 		logger,
@@ -308,7 +309,7 @@ func (ctrl *Controller) signinProviderProviderCallback(
 	}
 
 	redirectTo, apiErr = ctrl.signinProviderProviderCallbackSession(
-		ctx, req, connnect, signupIntent, codeChallenge, profile, options, redirectTo, logger,
+		ctx, req, flow, nonce, codeChallenge, profile, options, redirectTo, logger,
 	)
 	if apiErr != nil {
 		return redirectTo, apiErr
@@ -365,43 +366,53 @@ func (ctrl *Controller) SignInProviderCallbackGet( //nolint:ireturn
 	}, nil
 }
 
+// signinProviderProviderCallbackConnect commits an account link. The user is
+// identified by the single-use link cookie set during the authenticated init
+// step (POST /link/provider/{provider}) — never by anything in the URL — so the
+// link always attaches to the browser that actually started the flow. The
+// state nonce must match the cookie nonce (CSRF double-submit), and the cookie
+// is cleared so it cannot be redeemed twice.
 func (ctrl *Controller) signinProviderProviderCallbackConnect(
 	ctx context.Context,
-	connnect string,
 	provider string,
+	stateNonce *string,
 	profile oidc.Profile,
 	logger *slog.Logger,
 ) *APIError {
-	// Decode JWT token from connect parameter
-	jwtToken, err := ctrl.wf.jwtGetter.Validate(connnect)
+	ginCtx := oapi.GetGinContext(ctx)
+	if ginCtx == nil {
+		logger.ErrorContext(ctx, "gin context not found")
+		return ErrInternalServerError
+	}
+
+	cookie, err := ctrl.readLinkConnectCookie(ginCtx.Request)
 	if err != nil {
-		logger.ErrorContext(ctx, "invalid jwt token", logError(err))
+		logger.WarnContext(ctx, "invalid link cookie", logError(err))
 		return ErrInvalidRequest
 	}
 
-	// Extract user ID from JWT token
-	userID, err := ctrl.wf.jwtGetter.GetUserID(jwtToken)
-	if err != nil {
-		logger.ErrorContext(ctx, "error getting user id from jwt token", logError(err))
+	if stateNonce == nil || cookie.Nonce != *stateNonce || cookie.Provider != provider {
+		logger.WarnContext(ctx, "link cookie does not match state")
 		return ErrInvalidRequest
 	}
 
-	// Verify user exists
-	if _, apiError := ctrl.wf.GetUser(ctx, userID, logger); apiError != nil {
+	// Verify the user still exists and is valid.
+	if _, apiError := ctrl.wf.GetUser(ctx, cookie.UserID, logger); apiError != nil {
 		logger.ErrorContext(ctx, "error getting user", logError(apiError))
 		return apiError
 	}
 
-	// Insert user provider
 	if _, apiErr := ctrl.wf.InsertUserProvider(
 		ctx,
-		userID,
+		cookie.UserID,
 		provider,
 		profile.ProviderUserID,
 		logger,
 	); apiErr != nil {
 		return apiErr
 	}
+
+	ctrl.clearLinkConnectCookie(ginCtx.Writer)
 
 	return nil
 }

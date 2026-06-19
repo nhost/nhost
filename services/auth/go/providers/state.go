@@ -28,7 +28,6 @@ const (
 )
 
 type State struct {
-	Connect       *string
 	Options       *api.SignUpOptions
 	State         *string
 	Flow          string
@@ -38,7 +37,6 @@ type State struct {
 
 func (s *State) Encode() jwt.MapClaims {
 	return jwt.MapClaims{
-		"connect":       s.Connect,
 		"options":       s.Options,
 		"state":         s.State,
 		"flow":          s.Flow,

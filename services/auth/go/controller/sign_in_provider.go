@@ -67,7 +67,6 @@ func (ctrl *Controller) SignInProvider( //nolint:ireturn
 
 	state, err := ctrl.wf.jwtGetter.SignTokenWithClaims(
 		jwt.MapClaims{
-			"connect": req.Params.Connect,
 			"options": api.SignUpOptions{
 				AllowedRoles: req.Params.AllowedRoles,
 				DefaultRole:  req.Params.DefaultRole,
