@@ -117,7 +117,16 @@ func TestLoadUntrackDeps_DBBackedPopulatesDeps(t *testing.T) {
 		// constraintSchema, constraintName, fromSchema, fromTable, fromColumn,
 		// toSchema, toTable, toColumn.
 		fkRows: [][]string{
-			{"public", "fk_dept_udept", "public", "departments", "department_id", "public", "user_departments", "id"},
+			{
+				"public",
+				"fk_dept_udept",
+				"public",
+				"departments",
+				"department_id",
+				"public",
+				"user_departments",
+				"id",
+			},
 		},
 		funcRows: [][]string{{"public", "get_department_manager"}},
 		closed:   false,
@@ -143,7 +152,10 @@ func TestLoadUntrackDeps_DBBackedPopulatesDeps(t *testing.T) {
 	}
 
 	if _, ok := deps.funcsReturningTarget[funcKey("public", "get_department_manager")]; !ok {
-		t.Errorf("funcsReturningTarget missing get_department_manager: %+v", deps.funcsReturningTarget)
+		t.Errorf(
+			"funcsReturningTarget missing get_department_manager: %+v",
+			deps.funcsReturningTarget,
+		)
 	}
 
 	if !conn.closed {
