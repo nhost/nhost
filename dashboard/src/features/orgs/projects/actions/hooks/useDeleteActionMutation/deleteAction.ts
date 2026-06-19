@@ -1,25 +1,29 @@
 import { metadataOperation } from '@/utils/hasura-api/generated/default/default';
-import type { DropActionOperation } from '@/utils/hasura-api/generated/schemas';
+import type {
+  ActionItem,
+  DropActionOperation,
+} from '@/utils/hasura-api/generated/schemas';
 import type { MetadataOperationOptions } from '@/utils/hasura-api/types';
 
 export interface DeleteActionVariables {
   /**
-   * Name of the action to delete.
+   * The action to delete. The full item is required so the local migration path
+   * can recreate it in the down migration.
    */
-  actionName: string;
+  action: ActionItem;
 }
 
 export default async function deleteAction({
   appUrl,
   adminSecret,
-  actionName,
+  action,
 }: MetadataOperationOptions & DeleteActionVariables) {
   try {
     const response = await metadataOperation(
       {
         type: 'drop_action',
         args: {
-          name: actionName,
+          name: action.name,
         },
       } satisfies DropActionOperation,
       {

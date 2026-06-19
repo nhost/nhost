@@ -9,6 +9,11 @@ import type { MetadataOperationOptions } from '@/utils/hasura-api/types';
 export interface CreateActionVariables {
   args: CreateActionArgs;
   customTypes: CustomTypes;
+  /**
+   * Custom types as they were before this action was added. Only used by the
+   * local migration path to build the down migration that restores them.
+   */
+  previousCustomTypes: CustomTypes;
 }
 
 export default async function createAction({

@@ -1,40 +1,20 @@
-import { Plus } from 'lucide-react';
 import { useRouter } from 'next/router';
-import { type ReactNode, useMemo } from 'react';
-import { Button } from '@/components/ui/v3/button';
-import {
-  BaseActionForm,
-  type BaseActionFormTriggerProps,
-} from '@/features/orgs/projects/actions/components/BaseActionForm';
+import { useMemo } from 'react';
+import { useDialog } from '@/components/common/DialogProvider';
+import { BaseActionForm } from '@/features/orgs/projects/actions/components/BaseActionForm';
 import type { BaseActionFormValues } from '@/features/orgs/projects/actions/components/BaseActionForm/BaseActionFormTypes';
 import { useCreateActionMutation } from '@/features/orgs/projects/actions/hooks/useCreateActionMutation';
 import { useGetActions } from '@/features/orgs/projects/actions/hooks/useGetActions';
 import { buildActionDTO } from '@/features/orgs/projects/actions/utils/buildActionDTO';
 import { execPromiseWithErrorToast } from '@/features/orgs/utils/execPromiseWithErrorToast';
+import type { DialogFormProps } from '@/types/common';
 
-const renderCreateActionButton = ({ open }: BaseActionFormTriggerProps) => (
-  <Button
-    variant="link"
-    className="!text-sm+ mt-1 flex w-full justify-between px-[0.625rem] text-primary hover:bg-accent hover:no-underline disabled:text-disabled"
-    onClick={() => open()}
-  >
-    New Action <Plus className="h-4 w-4" />
-  </Button>
-);
+export type CreateActionFormProps = DialogFormProps;
 
-export interface CreateActionFormProps {
-  /**
-   * Renders the element that opens the create-action sheet. Defaults to the
-   * sidebar's "New Action" link.
-   */
-  trigger?: (props: BaseActionFormTriggerProps) => ReactNode;
-}
-
-export default function CreateActionForm({
-  trigger = renderCreateActionButton,
-}: CreateActionFormProps = {}) {
+export default function CreateActionForm({ location }: CreateActionFormProps) {
   const { mutateAsync: createAction } = useCreateActionMutation();
   const { data: actionsData } = useGetActions();
+  const { closeDrawer } = useDialog();
   const router = useRouter();
   const { orgSlug, appSubdomain } = router.query;
 
@@ -53,7 +33,9 @@ export default function CreateActionForm({
         await createAction({
           args: actionArgs,
           customTypes: customTypesArgs,
+          previousCustomTypes: existingCustomTypes,
         });
+        closeDrawer();
         router.push(
           `/orgs/${orgSlug}/projects/${appSubdomain}/graphql/actions/${actionArgs.name}`,
         );
@@ -69,11 +51,9 @@ export default function CreateActionForm({
 
   return (
     <BaseActionForm
-      trigger={trigger}
+      location={location}
       onSubmit={handleSubmit}
       existingCustomTypes={existingCustomTypes}
-      titleText="Create a New Action"
-      descriptionText="Enter the details to create your action. Click Create when you're done."
       submitButtonText="Create"
     />
   );

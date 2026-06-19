@@ -1,8 +1,8 @@
-import { useTheme } from '@mui/material';
 import { githubDark, githubLight } from '@uiw/codemirror-theme-github';
 import CodeMirror, { type ReactCodeMirrorProps } from '@uiw/react-codemirror';
 import type { ReactNode } from 'react';
 import type { Control, FieldPath, FieldValues } from 'react-hook-form';
+import { useColorPreference } from '@/components/ui/v2/useColorPreference';
 import {
   FormControl,
   FormField,
@@ -40,7 +40,7 @@ export default function FormCodeEditor<
   className,
   'aria-label': ariaLabel,
 }: FormCodeEditorProps<TFieldValues, TName>) {
-  const theme = useTheme();
+  const { color } = useColorPreference();
 
   return (
     <FormField
@@ -57,9 +57,7 @@ export default function FormCodeEditor<
                 aria-label={ariaLabel}
                 value={field.value as string}
                 onChange={field.onChange}
-                theme={
-                  theme.palette.mode === 'light' ? githubLight : githubDark
-                }
+                theme={color === 'light' ? githubLight : githubDark}
                 extensions={extensions}
                 readOnly={readOnly}
                 editable={!readOnly}

@@ -1,13 +1,8 @@
 import { useRouter } from 'next/router';
-import { type ReactNode, useEffect, useMemo, useState } from 'react';
-import {
-  BaseActionForm,
-  type BaseActionFormTriggerProps,
-} from '@/features/orgs/projects/actions/components/BaseActionForm';
-import type {
-  BaseActionFormInitialData,
-  BaseActionFormValues,
-} from '@/features/orgs/projects/actions/components/BaseActionForm/BaseActionFormTypes';
+import { useMemo } from 'react';
+import { useDialog } from '@/components/common/DialogProvider';
+import { BaseActionForm } from '@/features/orgs/projects/actions/components/BaseActionForm';
+import type { BaseActionFormValues } from '@/features/orgs/projects/actions/components/BaseActionForm/BaseActionFormTypes';
 import { useGetActions } from '@/features/orgs/projects/actions/hooks/useGetActions';
 import { useUpdateActionMutation } from '@/features/orgs/projects/actions/hooks/useUpdateActionMutation';
 import { buildActionDTO } from '@/features/orgs/projects/actions/utils/buildActionDTO';
@@ -17,19 +12,20 @@ import {
 } from '@/features/orgs/projects/actions/utils/customTypesUtils';
 import { parseActionFormInitialData } from '@/features/orgs/projects/actions/utils/parseActionFormInitialData';
 import { execPromiseWithErrorToast } from '@/features/orgs/utils/execPromiseWithErrorToast';
+import type { DialogFormProps } from '@/types/common';
 import type { ActionItem } from '@/utils/hasura-api/generated/schemas';
 
-export interface EditActionFormProps {
+export interface EditActionFormProps extends DialogFormProps {
   action: ActionItem;
-  trigger: (props: BaseActionFormTriggerProps) => ReactNode;
 }
 
 export default function EditActionForm({
   action,
-  trigger,
+  location,
 }: EditActionFormProps) {
   const router = useRouter();
   const { orgSlug, appSubdomain } = router.query;
+  const { closeDrawer } = useDialog();
   const { data: actionsData } = useGetActions();
   const { mutateAsync: updateAction } = useUpdateActionMutation();
 
@@ -38,13 +34,10 @@ export default function EditActionForm({
     [actionsData],
   );
 
-  const [initialData, setInitialData] = useState<BaseActionFormInitialData>(
+  const initialData = useMemo(
     () => parseActionFormInitialData(action, existingCustomTypes),
+    [action, existingCustomTypes],
   );
-
-  useEffect(() => {
-    setInitialData(parseActionFormInitialData(action, existingCustomTypes));
-  }, [action, existingCustomTypes]);
 
   const originalActionTypenames = useMemo(
     () =>
@@ -73,8 +66,10 @@ export default function EditActionForm({
         await updateAction({
           args: actionArgs,
           customTypes: customTypesArgs,
+          previousCustomTypes: existingCustomTypes,
+          originalAction: action,
         });
-        setInitialData(data);
+        closeDrawer();
         router.push(
           `/orgs/${orgSlug}/projects/${appSubdomain}/graphql/actions/${action.name}`,
         );
@@ -90,13 +85,11 @@ export default function EditActionForm({
 
   return (
     <BaseActionForm
-      trigger={trigger}
+      location={location}
       onSubmit={handleSubmit}
       initialData={initialData}
       existingCustomTypes={existingCustomTypes}
       originalActionTypenames={originalActionTypenames}
-      titleText="Edit Action"
-      descriptionText="Enter the details to edit your action. Click Save when you're done."
       submitButtonText="Save"
     />
   );

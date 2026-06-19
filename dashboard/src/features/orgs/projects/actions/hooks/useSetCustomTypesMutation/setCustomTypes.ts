@@ -11,6 +11,11 @@ export interface SetCustomTypesVariables {
    * whole custom types object, so callers must pass the complete set.
    */
   customTypes: CustomTypes;
+  /**
+   * Custom types as they were before this change. Only used by the local
+   * migration path to build the down migration that restores them.
+   */
+  previousCustomTypes: CustomTypes;
 }
 
 export default async function setCustomTypes({

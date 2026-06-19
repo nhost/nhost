@@ -1,9 +1,9 @@
-import { useTheme } from '@mui/material';
 import { githubDark, githubLight } from '@uiw/codemirror-theme-github';
 import CodeMirror from '@uiw/react-codemirror';
 import { graphql } from 'cm6-graphql';
 import { useCallback, useEffect, useRef, useState } from 'react';
 import toast from 'react-hot-toast';
+import { useColorPreference } from '@/components/ui/v2/useColorPreference';
 import { Button, ButtonWithLoading } from '@/components/ui/v3/button';
 import { useGetActions } from '@/features/orgs/projects/actions/hooks/useGetActions';
 import { useSetCustomTypesMutation } from '@/features/orgs/projects/actions/hooks/useSetCustomTypesMutation';
@@ -18,7 +18,7 @@ import { execPromiseWithErrorToast } from '@/features/orgs/utils/execPromiseWith
 import { getToastStyleProps } from '@/utils/constants/settings';
 
 export default function CustomTypesEditor() {
-  const theme = useTheme();
+  const { color } = useColorPreference();
 
   const { data, isLoading } = useGetActions();
   const customTypes = data?.customTypes ?? {};
@@ -79,7 +79,10 @@ export default function CustomTypesEditor() {
 
     await execPromiseWithErrorToast(
       async () => {
-        await setCustomTypes({ customTypes: reformCustomTypes(hydratedTypes) });
+        await setCustomTypes({
+          customTypes: reformCustomTypes(hydratedTypes),
+          previousCustomTypes: customTypes,
+        });
 
         setPreviousSdl(sdl);
         setIsDirty(false);
@@ -112,7 +115,7 @@ export default function CustomTypesEditor() {
             height="100%"
             width="100%"
             aria-label="Custom types SDL editor"
-            theme={theme.palette.mode === 'light' ? githubLight : githubDark}
+            theme={color === 'light' ? githubLight : githubDark}
             extensions={[graphql()]}
             onChange={onChange}
           />

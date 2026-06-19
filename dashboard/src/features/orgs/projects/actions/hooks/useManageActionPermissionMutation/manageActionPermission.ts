@@ -21,7 +21,7 @@ export interface ManageActionPermissionVariables {
   type: ManageActionPermissionType;
 }
 
-function buildStep({
+export function buildStep({
   action,
   role,
   type,

@@ -10,6 +10,7 @@ import {
   type RolePermissionRow,
   RolePermissionsGrid,
 } from '@/features/orgs/projects/common/components/RolePermissionsGrid';
+import { PermissionsLegend } from '@/features/orgs/projects/database/dataGrid/components/PermissionsLegend';
 import { useCurrentOrg } from '@/features/orgs/projects/hooks/useCurrentOrg';
 import { useProject } from '@/features/orgs/projects/hooks/useProject';
 import { execPromiseWithErrorToast } from '@/features/orgs/utils/execPromiseWithErrorToast';
@@ -132,6 +133,8 @@ export default function EditActionPermissionsForm({
               call this action.
             </p>
           </div>
+
+          <PermissionsLegend hidePartialAccess />
 
           <RolePermissionsGrid
             rows={rows}

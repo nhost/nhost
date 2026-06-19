@@ -13,7 +13,10 @@ import {
 import { ActionRelationshipDialog } from '@/features/orgs/projects/actions/components/ActionRelationshipDialog';
 import { DeleteActionRelationshipDialog } from '@/features/orgs/projects/actions/components/DeleteActionRelationshipDialog';
 import { useGetActions } from '@/features/orgs/projects/actions/hooks/useGetActions';
-import { useSetActionRelationshipsMutation } from '@/features/orgs/projects/actions/hooks/useSetActionRelationshipsMutation';
+import {
+  type SetActionRelationshipsMode,
+  useSetActionRelationshipsMutation,
+} from '@/features/orgs/projects/actions/hooks/useSetActionRelationshipsMutation';
 import {
   type ActionRelationship,
   buildCustomTypesWithRelationships,
@@ -71,13 +74,21 @@ export default function EditActionRelationshipsForm({
     .map((relationship) => relationship.name)
     .filter((name) => name !== relationshipToEdit?.name);
 
-  const persistRelationships = (nextRelationships: ActionRelationship[]) =>
+  const persistRelationships = (
+    nextRelationships: ActionRelationship[],
+    relationshipName: string,
+    mode: SetActionRelationshipsMode,
+  ) =>
     setActionRelationships({
       customTypes: buildCustomTypesWithRelationships(
         customTypes,
         outputTypeName,
         nextRelationships,
       ),
+      previousCustomTypes: customTypes,
+      relationshipName,
+      outputTypeName,
+      mode,
     });
 
   const handleSubmitRelationship = async (relationship: ActionRelationship) => {
@@ -89,7 +100,7 @@ export default function EditActionRelationshipsForm({
       : [...relationships, relationship];
 
     try {
-      await persistRelationships(nextRelationships);
+      await persistRelationships(nextRelationships, relationship.name, 'save');
       triggerToast(
         isEditing
           ? 'Relationship updated successfully.'
@@ -108,6 +119,8 @@ export default function EditActionRelationshipsForm({
       () =>
         persistRelationships(
           relationships.filter((item) => item.name !== relationshipName),
+          relationshipName,
+          'remove',
         ),
       {
         loadingMessage: 'Deleting relationship...',

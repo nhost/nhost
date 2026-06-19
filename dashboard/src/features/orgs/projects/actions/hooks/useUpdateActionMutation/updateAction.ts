@@ -1,5 +1,6 @@
 import { metadataOperation } from '@/utils/hasura-api/generated/default/default';
 import type {
+  ActionItem,
   ActionsBulkOperation,
   CreateActionArgs,
   CustomTypes,
@@ -9,6 +10,16 @@ import type { MetadataOperationOptions } from '@/utils/hasura-api/types';
 export interface UpdateActionVariables {
   args: CreateActionArgs;
   customTypes: CustomTypes;
+  /**
+   * Custom types as they were before this edit. Only used by the local
+   * migration path to build the down migration that restores them.
+   */
+  previousCustomTypes: CustomTypes;
+  /**
+   * The action as it was before this edit. Only used by the local migration
+   * path to build the down migration that restores its definition.
+   */
+  originalAction: ActionItem;
 }
 
 export default async function updateAction({

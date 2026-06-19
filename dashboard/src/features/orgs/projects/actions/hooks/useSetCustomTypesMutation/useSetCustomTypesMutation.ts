@@ -1,18 +1,21 @@
 import type { MutationOptions } from '@tanstack/react-query';
 import { useMutation, useQueryClient } from '@tanstack/react-query';
 import { EXPORT_METADATA_QUERY_KEY } from '@/features/orgs/projects/common/hooks/useExportMetadata';
+import { useIsPlatform } from '@/features/orgs/projects/common/hooks/useIsPlatform';
 import { generateAppServiceUrl } from '@/features/orgs/projects/common/utils/generateAppServiceUrl';
 import { useProject } from '@/features/orgs/projects/hooks/useProject';
 import type { MetadataOperation200 } from '@/utils/hasura-api/generated/schemas/metadataOperation200';
+import type { SuccessResponse } from '@/utils/hasura-api/generated/schemas/successResponse';
 import type { SetCustomTypesVariables } from './setCustomTypes';
 import setCustomTypes from './setCustomTypes';
+import setCustomTypesMigration from './setCustomTypesMigration';
 
 export interface UseSetCustomTypesMutationOptions {
   /**
    * Props passed to the underlying mutation hook.
    */
   mutationOptions?: MutationOptions<
-    MetadataOperation200,
+    SuccessResponse | MetadataOperation200,
     unknown,
     SetCustomTypesVariables
   >;
@@ -29,10 +32,11 @@ export default function useSetCustomTypesMutation({
   mutationOptions,
 }: UseSetCustomTypesMutationOptions = {}) {
   const { project } = useProject();
+  const isPlatform = useIsPlatform();
   const queryClient = useQueryClient();
 
   const mutation = useMutation<
-    MetadataOperation200,
+    SuccessResponse | MetadataOperation200,
     unknown,
     SetCustomTypesVariables
   >(
@@ -45,8 +49,16 @@ export default function useSetCustomTypesMutation({
 
       const adminSecret = project!.config!.hasura.adminSecret;
 
-      return setCustomTypes({
-        customTypes: variables.customTypes,
+      if (isPlatform) {
+        return setCustomTypes({
+          ...variables,
+          appUrl,
+          adminSecret,
+        });
+      }
+
+      return setCustomTypesMigration({
+        ...variables,
         appUrl,
         adminSecret,
       });

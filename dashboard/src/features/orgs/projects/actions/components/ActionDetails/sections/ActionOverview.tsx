@@ -5,7 +5,8 @@ import {
   SlidersHorizontal,
   Webhook,
 } from 'lucide-react';
-import { useMemo, useRef, useState } from 'react';
+import { useMemo, useState } from 'react';
+import { useDialog } from '@/components/common/DialogProvider';
 import CopyToClipboardButton from '@/components/presentational/CopyToClipboardButton/CopyToClipboardButton';
 import { Button } from '@/components/ui/v3/button';
 import {
@@ -13,7 +14,6 @@ import {
   CollapsibleContent,
   CollapsibleTrigger,
 } from '@/components/ui/v3/collapsible';
-import type { BaseActionFormTriggerProps } from '@/features/orgs/projects/actions/components/BaseActionForm';
 import { EditActionForm } from '@/features/orgs/projects/actions/components/EditActionForm';
 import { GraphQLSdlEditor } from '@/features/orgs/projects/actions/components/GraphQLSdlEditor';
 import { composeActionDefinitionSdl } from '@/features/orgs/projects/actions/utils/composeActionDefinitionSdl';
@@ -45,7 +45,7 @@ export default function ActionOverview({
   const [isHeadersOpen, setIsHeadersOpen] = useState(false);
   const [isDefinitionOpen, setIsDefinitionOpen] = useState(true);
   const [isTypesOpen, setIsTypesOpen] = useState(true);
-  const editControlsRef = useRef<BaseActionFormTriggerProps | null>(null);
+  const { openDrawer } = useDialog();
   const actionType = action.definition.type ?? 'mutation';
 
   const definitionSdl = useMemo(
@@ -89,7 +89,12 @@ export default function ActionOverview({
     <Button
       variant="outline"
       size="sm"
-      onClick={() => editControlsRef.current?.open?.()}
+      onClick={() =>
+        openDrawer({
+          title: 'Edit Action',
+          component: <EditActionForm action={action} />,
+        })
+      }
     >
       <Pencil className="mr-2 h-3.5 w-3.5" />
       Edit
@@ -98,14 +103,6 @@ export default function ActionOverview({
 
   return (
     <div className="space-y-4">
-      <EditActionForm
-        action={action}
-        trigger={(controls) => {
-          editControlsRef.current = controls;
-          return null;
-        }}
-      />
-
       <div className="grid grid-cols-1 gap-4 lg:grid-cols-2">
         <div className="rounded border border-gray-200 p-4 dark:border-gray-700">
           <h3 className="mb-3 flex items-center gap-2 font-medium text-gray-900 dark:text-gray-100">

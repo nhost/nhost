@@ -1,18 +1,21 @@
 import type { MutationOptions } from '@tanstack/react-query';
 import { useMutation, useQueryClient } from '@tanstack/react-query';
 import { EXPORT_METADATA_QUERY_KEY } from '@/features/orgs/projects/common/hooks/useExportMetadata';
+import { useIsPlatform } from '@/features/orgs/projects/common/hooks/useIsPlatform';
 import { generateAppServiceUrl } from '@/features/orgs/projects/common/utils/generateAppServiceUrl';
 import { useProject } from '@/features/orgs/projects/hooks/useProject';
 import type { MetadataOperation200 } from '@/utils/hasura-api/generated/schemas/metadataOperation200';
+import type { SuccessResponse } from '@/utils/hasura-api/generated/schemas/successResponse';
 import type { CreateActionVariables } from './createAction';
 import createAction from './createAction';
+import createActionMigration from './createActionMigration';
 
 export interface UseCreateActionMutationOptions {
   /**
    * Props passed to the underlying mutation hook.
    */
   mutationOptions?: MutationOptions<
-    MetadataOperation200,
+    SuccessResponse | MetadataOperation200,
     unknown,
     CreateActionVariables
   >;
@@ -29,10 +32,11 @@ export default function useCreateActionMutation({
   mutationOptions,
 }: UseCreateActionMutationOptions = {}) {
   const { project } = useProject();
+  const isPlatform = useIsPlatform();
   const queryClient = useQueryClient();
 
   const mutation = useMutation<
-    MetadataOperation200,
+    SuccessResponse | MetadataOperation200,
     unknown,
     CreateActionVariables
   >(
@@ -45,9 +49,20 @@ export default function useCreateActionMutation({
 
       const adminSecret = project!.config!.hasura.adminSecret;
 
-      return createAction({
+      if (isPlatform) {
+        return createAction({
+          args: variables.args,
+          customTypes: variables.customTypes,
+          previousCustomTypes: variables.previousCustomTypes,
+          appUrl,
+          adminSecret,
+        });
+      }
+
+      return createActionMigration({
         args: variables.args,
         customTypes: variables.customTypes,
+        previousCustomTypes: variables.previousCustomTypes,
         appUrl,
         adminSecret,
       });

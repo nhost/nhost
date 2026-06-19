@@ -1,6 +1,5 @@
 import type { ReactElement } from 'react';
 import { ActivityIndicator } from '@/components/ui/v2/ActivityIndicator';
-import { Box } from '@/components/ui/v2/Box';
 import { OrgLayout } from '@/features/orgs/layout/OrgLayout';
 import { ActionsBrowserSidebar } from '@/features/orgs/projects/actions/components/ActionsBrowserSidebar';
 import { NoActionsEmptyState } from '@/features/orgs/projects/actions/components/NoActionsEmptyState';
@@ -42,12 +41,9 @@ ActionsPage.getLayout = function getLayout(page: ReactElement) {
     >
       <ActionsBrowserSidebar />
 
-      <Box
-        className="flex w-full flex-auto flex-col overflow-x-hidden"
-        sx={{ backgroundColor: 'background.default' }}
-      >
+      <div className="flex w-full flex-auto flex-col overflow-x-hidden bg-background">
         {page}
-      </Box>
+      </div>
     </OrgLayout>
   );
 };

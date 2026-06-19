@@ -1,15 +1,18 @@
-import { Braces, Search } from 'lucide-react';
+import { Braces, Plus, Search } from 'lucide-react';
 import NextLink from 'next/link';
 import { useRouter } from 'next/router';
-import { useState } from 'react';
+import { useCallback, useState } from 'react';
+import { useDialog } from '@/components/common/DialogProvider';
 import { FeatureSidebar } from '@/components/layout/FeatureSidebar';
 import { Button } from '@/components/ui/v3/button';
 import { Input } from '@/components/ui/v3/input';
 import { CreateActionForm } from '@/features/orgs/projects/actions/components/CreateActionForm';
+import { DeleteActionDialog } from '@/features/orgs/projects/actions/components/DeleteActionDialog';
 import { useGetActions } from '@/features/orgs/projects/actions/hooks/useGetActions';
 import { useIsPlatform } from '@/features/orgs/projects/common/hooks/useIsPlatform';
 import { useProject } from '@/features/orgs/projects/hooks/useProject';
 import { cn } from '@/lib/utils';
+import type { ActionItem } from '@/utils/hasura-api/generated/schemas';
 import ActionListItem from './ActionListItem';
 import ActionsBrowserSidebarSkeleton from './ActionsBrowserSidebarSkeleton';
 
@@ -25,7 +28,23 @@ function ActionsBrowserSidebarContent() {
     query: { orgSlug, appSubdomain },
   } = useRouter();
 
+  const { openDrawer } = useDialog();
+
   const [searchQuery, setSearchQuery] = useState('');
+  const [actionToDelete, setActionToDelete] = useState<ActionItem | null>(null);
+  const [isDeleteDialogOpen, setIsDeleteDialogOpen] = useState(false);
+
+  const handleCreateAction = useCallback(() => {
+    openDrawer({
+      title: 'Create a New Action',
+      component: <CreateActionForm />,
+    });
+  }, [openDrawer]);
+
+  const handleDeleteAction = useCallback((action: ActionItem) => {
+    setActionToDelete(action);
+    setIsDeleteDialogOpen(true);
+  }, []);
 
   if (isLoadingActions) {
     return <ActionsBrowserSidebarSkeleton />;
@@ -68,7 +87,13 @@ function ActionsBrowserSidebarContent() {
           </div>
         )}
         <div className="flex flex-row items-center justify-between">
-          <CreateActionForm />
+          <Button
+            variant="link"
+            className="!text-sm+ mt-1 flex w-full justify-between px-[0.625rem] text-primary hover:bg-accent hover:no-underline disabled:text-disabled"
+            onClick={handleCreateAction}
+          >
+            New Action <Plus className="h-4 w-4" />
+          </Button>
         </div>
       </div>
 
@@ -78,7 +103,11 @@ function ActionsBrowserSidebarContent() {
         )}
         <div className="flex flex-col text-balance">
           {filteredActions.map((action) => (
-            <ActionListItem key={action.name} action={action} />
+            <ActionListItem
+              key={action.name}
+              action={action}
+              onDeleteAction={handleDeleteAction}
+            />
           ))}
         </div>
       </div>
@@ -103,6 +132,14 @@ function ActionsBrowserSidebarContent() {
           </NextLink>
         </Button>
       </div>
+
+      {actionToDelete && (
+        <DeleteActionDialog
+          open={isDeleteDialogOpen}
+          setOpen={setIsDeleteDialogOpen}
+          actionToDelete={actionToDelete}
+        />
+      )}
     </div>
   );
 }

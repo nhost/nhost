@@ -1,15 +1,8 @@
 import { ArrowUpRight, Plus, Workflow } from 'lucide-react';
 import type { ReactNode } from 'react';
+import { useDialog } from '@/components/common/DialogProvider';
 import { Button } from '@/components/ui/v3/button';
-import type { BaseActionFormTriggerProps } from '@/features/orgs/projects/actions/components/BaseActionForm';
 import { CreateActionForm } from '@/features/orgs/projects/actions/components/CreateActionForm';
-
-const renderNewActionButton = ({ open }: BaseActionFormTriggerProps) => (
-  <Button size="sm" className="gap-2" onClick={() => open()}>
-    <Plus className="size-4" />
-    New Action
-  </Button>
-);
 
 export interface NoActionsEmptyStateProps {
   /**
@@ -26,6 +19,8 @@ export default function NoActionsEmptyState({
   title = 'Create your first action',
   description = 'Actions let you extend your GraphQL API with custom business logic running behind an HTTP webhook handler.',
 }: NoActionsEmptyStateProps) {
+  const { openDrawer } = useDialog();
+
   return (
     <div className="flex h-full w-full flex-col items-center bg-background px-4 py-16">
       <div className="flex max-w-md flex-col items-center text-center">
@@ -42,7 +37,19 @@ export default function NoActionsEmptyState({
         </p>
 
         <div className="mt-8 flex flex-col items-center gap-4">
-          <CreateActionForm trigger={renderNewActionButton} />
+          <Button
+            size="sm"
+            className="gap-2"
+            onClick={() =>
+              openDrawer({
+                title: 'Create a New Action',
+                component: <CreateActionForm />,
+              })
+            }
+          >
+            <Plus className="size-4" />
+            New Action
+          </Button>
 
           <a
             href="https://docs.nhost.io/products/graphql"

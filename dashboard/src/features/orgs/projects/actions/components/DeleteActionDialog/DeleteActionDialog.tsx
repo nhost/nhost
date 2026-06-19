@@ -11,11 +11,12 @@ import {
 } from '@/components/ui/v3/dialog';
 import { useDeleteActionMutation } from '@/features/orgs/projects/actions/hooks/useDeleteActionMutation';
 import { execPromiseWithErrorToast } from '@/features/orgs/utils/execPromiseWithErrorToast';
+import type { ActionItem } from '@/utils/hasura-api/generated/schemas';
 
 interface DeleteActionDialogProps {
   open: boolean;
   setOpen: (open: boolean) => void;
-  actionToDelete: string;
+  actionToDelete: ActionItem;
 }
 
 export default function DeleteActionDialog({
@@ -32,9 +33,9 @@ export default function DeleteActionDialog({
     await execPromiseWithErrorToast(
       async () => {
         await deleteAction({
-          actionName: actionToDelete,
+          action: actionToDelete,
         });
-        if (actionSlug === actionToDelete) {
+        if (actionSlug === actionToDelete.name) {
           router.push(
             `/orgs/${orgSlug}/projects/${appSubdomain}/graphql/actions`,
           );
@@ -61,7 +62,7 @@ export default function DeleteActionDialog({
           <DialogDescription>
             Are you sure you want to delete the{' '}
             <span className="rounded-md bg-muted px-1 py-0.5 font-mono">
-              {actionToDelete}
+              {actionToDelete.name}
             </span>{' '}
             action?
           </DialogDescription>

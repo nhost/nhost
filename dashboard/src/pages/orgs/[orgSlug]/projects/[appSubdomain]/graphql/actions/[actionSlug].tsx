@@ -1,7 +1,6 @@
 import type { ReactElement } from 'react';
 import { LoadingScreen } from '@/components/presentational/LoadingScreen';
 import { RetryableErrorBoundary } from '@/components/presentational/RetryableErrorBoundary';
-import { Box } from '@/components/ui/v2/Box';
 import { OrgLayout } from '@/features/orgs/layout/OrgLayout';
 import { ActionDetails } from '@/features/orgs/projects/actions/components/ActionDetails';
 import { ActionsBrowserSidebar } from '@/features/orgs/projects/actions/components/ActionsBrowserSidebar';
@@ -32,12 +31,9 @@ ActionDetailsPage.getLayout = function getLayout(page: ReactElement) {
     >
       <ActionsBrowserSidebar />
 
-      <Box
-        className="flex w-full flex-auto flex-col overflow-x-hidden"
-        sx={{ backgroundColor: 'background.default' }}
-      >
+      <div className="flex w-full flex-auto flex-col overflow-x-hidden bg-background">
         {page}
-      </Box>
+      </div>
     </OrgLayout>
   );
 };
