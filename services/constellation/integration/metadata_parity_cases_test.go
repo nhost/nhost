@@ -21,7 +21,9 @@ import "testing"
 //
 // Not parallel: metadata is global per engine, so cases mutate shared state and
 // run serially (each resets to baseline first).
-func TestMetadataParity(t *testing.T) { //nolint:paralleltest,maintidx // serial parity table; one large data-driven case set.
+func TestMetadataParity(
+	t *testing.T,
+) { //nolint:paralleltest,maintidx // serial parity table; one large data-driven case set.
 	const (
 		role   = "paritytest"
 		dept   = `{"schema":"public","name":"departments"}`
