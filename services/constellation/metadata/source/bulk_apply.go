@@ -136,10 +136,8 @@ func toBulkChildren(envelopes []bulkChildEnvelope) []BulkChild {
 //     renders Children as a bare nested array (matching Hasura). A nested
 //     bulk_atomic child instead renders as a single Body of {"message":"success"}.
 //
-// Its fields are a tagged union (leaf body / error / nested children), so a
-// given literal sets only the relevant ones.
-//
-//exhaustruct:ignore
+// Its fields are a tagged union (leaf body / error / nested children); build one
+// via leafResult / errResult / arrayResult rather than a partial literal.
 type BulkResult struct {
 	Type     string
 	Body     any
@@ -182,9 +180,9 @@ func (e *BulkChildError) PathString() string {
 //
 // Exactly one of group / read / noop / mutate is meaningful, unless buildErr is
 // set (a parse/validation error to surface when the step runs). typ is the
-// child's op type, threaded into results and errors for classification.
-//
-//exhaustruct:ignore
+// child's op type, threaded into results and errors for classification. Build one
+// via mutateStep / readStep / noopStep / groupStep / errStep rather than a
+// partial literal.
 type bulkStep struct {
 	typ      string
 	mutate   MutationFn // metadata-mutating child (incl. whole-metadata replace/clear)
@@ -201,6 +199,43 @@ type bulkGroup struct {
 	steps     []bulkStep
 	keepGoing bool
 	atomic    bool
+}
+
+// Step constructors set every bulkStep field (so the literal is complete) and
+// name the one variant each child uses.
+
+func mutateStep(typ string, fn MutationFn, buildErr error) bulkStep {
+	return bulkStep{typ: typ, mutate: fn, read: nil, noop: false, group: nil, buildErr: buildErr}
+}
+
+func readStep(typ string, read bulkReadFn) bulkStep {
+	return bulkStep{typ: typ, mutate: nil, read: read, noop: false, group: nil, buildErr: nil}
+}
+
+func noopStep(typ string) bulkStep {
+	return bulkStep{typ: typ, mutate: nil, read: nil, noop: true, group: nil, buildErr: nil}
+}
+
+func groupStep(typ string, group *bulkGroup) bulkStep {
+	return bulkStep{typ: typ, mutate: nil, read: nil, noop: false, group: group, buildErr: nil}
+}
+
+func errStep(typ string, err error) bulkStep {
+	return bulkStep{typ: typ, mutate: nil, read: nil, noop: false, group: nil, buildErr: err}
+}
+
+// Result constructors set every BulkResult field for the same reason.
+
+func leafResult(typ string, body any) BulkResult {
+	return BulkResult{Type: typ, Body: body, Err: nil, Children: nil, Array: false}
+}
+
+func errResult(typ string, err error) BulkResult {
+	return BulkResult{Type: typ, Body: nil, Err: err, Children: nil, Array: false}
+}
+
+func arrayResult(typ string, children []BulkResult) BulkResult {
+	return BulkResult{Type: typ, Body: nil, Err: nil, Children: children, Array: true}
 }
 
 // bulkReadFn runs a read-only child against the in-flight working metadata.
@@ -316,7 +351,7 @@ func (s *Store) runGroup(
 		res, changed, err := s.runChild(ctx, working, st, g.keepGoing, childPath(prefix, i))
 		if err != nil {
 			if g.keepGoing {
-				results[i] = BulkResult{Type: err.Type, Err: err.Err}
+				results[i] = errResult(err.Type, err.Err)
 
 				continue
 			}
@@ -357,7 +392,7 @@ func (s *Store) runChild(
 		return BulkResult{}, false, &BulkChildError{Path: path, Type: st.typ, Err: err}
 	}
 
-	return BulkResult{Type: st.typ, Body: body}, changed, nil
+	return leafResult(st.typ, body), changed, nil
 }
 
 // runNestedGroup runs a nested bulk against a clone of working so the sub-group
@@ -383,10 +418,10 @@ func (s *Store) runNestedGroup(
 	*working = *clone
 
 	if st.group.atomic {
-		return BulkResult{Type: st.typ, Body: map[string]any{"message": "success"}}, changed, nil
+		return leafResult(st.typ, map[string]any{"message": "success"}), changed, nil
 	}
 
-	return BulkResult{Type: st.typ, Array: true, Children: results}, changed, nil
+	return arrayResult(st.typ, results), changed, nil
 }
 
 // runLeaf executes one non-group step against working, returning the per-child
@@ -538,15 +573,12 @@ func (s *Store) planGroup(
 func (s *Store) planBulkChild(ctx context.Context, c BulkChild, atomic bool, depth int) bulkStep {
 	if atomic {
 		if !BulkAtomicSupports(c.Type) {
-			return bulkStep{
-				typ:      c.Type,
-				buildErr: fmt.Errorf("%w (op %q)", ErrBulkAtomicUnsupported, c.Type),
-			}
+			return errStep(c.Type, fmt.Errorf("%w (op %q)", ErrBulkAtomicUnsupported, c.Type))
 		}
 
 		fn, err := BuildMutation(c.Type, c.Args)
 
-		return bulkStep{typ: c.Type, mutate: fn, buildErr: err}
+		return mutateStep(c.Type, fn, err)
 	}
 
 	switch c.Type {
@@ -557,43 +589,43 @@ func (s *Store) planBulkChild(ctx context.Context, c BulkChild, atomic bool, dep
 	case opBulkAtomic:
 		return s.planNested(ctx, c, false /* keepGoing */, true /* atomic */, depth)
 	case opPgGetViewdef:
-		return bulkStep{
-			typ: c.Type,
-			read: func(ctx context.Context, _ *hasura.Metadata) (map[string]any, error) {
+		return readStep(
+			c.Type,
+			func(ctx context.Context, _ *hasura.Metadata) (map[string]any, error) {
 				return s.PgGetViewdef(ctx, c.Args)
 			},
-		}
+		)
 	case opPgSuggestRelationships:
-		return bulkStep{
-			typ: c.Type,
-			read: func(ctx context.Context, working *hasura.Metadata) (map[string]any, error) {
+		return readStep(
+			c.Type,
+			func(ctx context.Context, working *hasura.Metadata) (map[string]any, error) {
 				return s.pgSuggestRelationshipsAgainst(ctx, working, c.Args)
 			},
-		}
+		)
 	case opReplaceMetadata:
 		fn, err := buildReplaceMetadataMutation(c.Args)
 
-		return bulkStep{typ: c.Type, mutate: fn, buildErr: err}
+		return mutateStep(c.Type, fn, err)
 	case opClearMetadata:
-		return bulkStep{typ: c.Type, mutate: clearMetadataMutation()}
+		return mutateStep(c.Type, clearMetadataMutation(), nil)
 	case opReloadMetadata:
 		// The working copy is, by construction, the current in-flight state, so
 		// a reload is a success no-op here rather than a DB refetch that would
 		// discard earlier children's edits.
-		return bulkStep{typ: c.Type, noop: true}
+		return noopStep(c.Type)
 	case opPgUntrackTable:
 		deps, err := s.loadUntrackDeps(ctx, c.Args)
 		if err != nil {
-			return bulkStep{typ: c.Type, buildErr: err}
+			return errStep(c.Type, err)
 		}
 
 		fn, bErr := buildPgUntrackTable(c.Args, deps)
 
-		return bulkStep{typ: c.Type, mutate: fn, buildErr: bErr}
+		return mutateStep(c.Type, fn, bErr)
 	default:
 		fn, err := BuildMutation(c.Type, c.Args)
 
-		return bulkStep{typ: c.Type, mutate: fn, buildErr: err}
+		return mutateStep(c.Type, fn, err)
 	}
 }
 
@@ -602,15 +634,15 @@ func (s *Store) planNested(
 	ctx context.Context, c BulkChild, keepGoing, atomic bool, depth int,
 ) bulkStep {
 	if depth+1 > maxBulkNestingDepth {
-		return bulkStep{typ: c.Type, buildErr: ErrBulkNestingTooDeep}
+		return errStep(c.Type, ErrBulkNestingTooDeep)
 	}
 
 	children, err := ParseBulkChildren(c.Args)
 	if err != nil {
-		return bulkStep{typ: c.Type, buildErr: err}
+		return errStep(c.Type, err)
 	}
 
-	return bulkStep{typ: c.Type, group: s.planGroup(ctx, children, keepGoing, atomic, depth+1)}
+	return groupStep(c.Type, s.planGroup(ctx, children, keepGoing, atomic, depth+1))
 }
 
 // buildReplaceMetadataMutation composes replace_metadata onto the working copy.
