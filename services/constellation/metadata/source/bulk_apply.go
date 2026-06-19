@@ -568,8 +568,10 @@ func (s *Store) planGroup(
 // and everything off-list). Otherwise bulk children recurse; mutation children
 // funnel through BuildMutation; pg_untrack_table additionally resolves its
 // cascade dependencies from the data database (the same DB-backed cascade the
-// single-op path gets); reads bind to their lock-free cores; the whole-metadata
-// ops compose onto the working copy.
+// single-op path gets); the validating remote-schema ops (add/update_remote_schema,
+// add_remote_schema_permissions) introspect the upstream synchronously here, off
+// the write lock, matching the single-op path; reads bind to their lock-free
+// cores; the whole-metadata ops compose onto the working copy.
 func (s *Store) planBulkChild(ctx context.Context, c BulkChild, atomic bool, depth int) bulkStep {
 	if atomic {
 		if !BulkAtomicSupports(c.Type) {
@@ -622,6 +624,14 @@ func (s *Store) planBulkChild(ctx context.Context, c BulkChild, atomic bool, dep
 		fn, bErr := buildPgUntrackTable(c.Args, deps)
 
 		return mutateStep(c.Type, fn, bErr)
+	case opAddRemoteSchema:
+		// Synchronous upstream introspection, like the single-op path; the bulk
+		// pre-pass runs it off s.mu (see planAddRemoteSchema).
+		return s.planAddRemoteSchema(ctx, c.Args)
+	case opUpdateRemoteSchema:
+		return s.planUpdateRemoteSchema(ctx, c.Args)
+	case opAddRemoteSchemaPermissions:
+		return s.planAddRemoteSchemaPermissions(ctx, c.Args)
 	default:
 		fn, err := BuildMutation(c.Type, c.Args)
 

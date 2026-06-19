@@ -45,6 +45,46 @@ type (
 // path uses the underlying type's fields directly via the v2 JSON codec.
 type RemoteSchemaMetadata api.RemoteSchemaMetadata
 
+// MarshalJSON emits the remote schema as Hasura does: `comment` is ALWAYS
+// present (empty string when unset), where the generated `comment,omitempty`
+// tag would drop it — a faithful drop-in export keeps the key. The remaining
+// fields keep their generated shape: `definition` is always present, while
+// `permissions` / `remote_relationships` are omitted when absent.
+//
+// A custom marshaler's bytes are spliced verbatim into the enclosing document,
+// so the caller's json.Deterministic option does NOT propagate in here; this
+// marshals with json.Deterministic(true) itself so the nested definition
+// headers/customization maps keep a stable key order (see ToJSON's note).
+func (r RemoteSchemaMetadata) MarshalJSON() ([]byte, error) {
+	comment := ""
+	if r.Comment != nil {
+		comment = *r.Comment
+	}
+
+	// Fixed field order (not a map) so the output itself is byte-stable; comment
+	// carries no omitempty so it is always emitted.
+	shadow := struct {
+		Name                string                                                  `json:"name"`
+		Definition          api.RemoteSchemaDef                                     `json:"definition"`
+		Comment             string                                                  `json:"comment"`
+		Permissions         *[]api.RemoteSchemaPermissionMetadata                   `json:"permissions,omitempty"`
+		RemoteRelationships *[]api.RemoteSchemaMetadataRemoteRelationshipDefinition `json:"remote_relationships,omitempty"`
+	}{
+		Name:                r.Name,
+		Definition:          r.Definition,
+		Comment:             comment,
+		Permissions:         r.Permissions,
+		RemoteRelationships: r.RemoteRelationships,
+	}
+
+	b, err := json.Marshal(shadow, json.Deterministic(true))
+	if err != nil {
+		return nil, fmt.Errorf("marshaling remote schema: %w", err)
+	}
+
+	return b, nil
+}
+
 // UnmarshalYAML decodes YAML by routing through JSON so the generated json tags
 // (snake_case) and the oapi-codegen union (un)marshalers apply. The signature
 // matches the context-aware variant the rest of the loader uses; remote schemas
