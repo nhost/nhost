@@ -28,9 +28,9 @@ const (
 var (
 	errGinContextNotFound = errors.New("gin context not found in request context")
 
-	// ErrInvalidLinkConnectCookie is returned when the link cookie is missing,
+	// errInvalidLinkConnectCookie is returned when the link cookie is missing,
 	// malformed, expired, or is not a link-connect token.
-	ErrInvalidLinkConnectCookie = errors.New("invalid link-connect cookie")
+	errInvalidLinkConnectCookie = errors.New("invalid link-connect cookie")
 )
 
 // linkConnectData is the identity captured at the authenticated init step and
@@ -102,31 +102,31 @@ func (ctrl *Controller) clearLinkConnectCookie(w http.ResponseWriter) {
 func (ctrl *Controller) readLinkConnectCookie(r *http.Request) (linkConnectData, error) {
 	cookie, err := r.Cookie(linkConnectCookieName)
 	if err != nil {
-		return linkConnectData{}, fmt.Errorf("%w: %w", ErrInvalidLinkConnectCookie, err)
+		return linkConnectData{}, fmt.Errorf("%w: %w", errInvalidLinkConnectCookie, err)
 	}
 
 	token, err := ctrl.jwtGetter.Validate(cookie.Value)
 	if err != nil {
-		return linkConnectData{}, fmt.Errorf("%w: %w", ErrInvalidLinkConnectCookie, err)
+		return linkConnectData{}, fmt.Errorf("%w: %w", errInvalidLinkConnectCookie, err)
 	}
 
 	claims, ok := token.Claims.(jwt.MapClaims)
 	if !ok {
-		return linkConnectData{}, ErrInvalidLinkConnectCookie
+		return linkConnectData{}, errInvalidLinkConnectCookie
 	}
 
 	if purpose, _ := claims["purpose"].(string); purpose != linkConnectPurpose {
-		return linkConnectData{}, ErrInvalidLinkConnectCookie
+		return linkConnectData{}, errInvalidLinkConnectCookie
 	}
 
 	sub, ok := claims["sub"].(string)
 	if !ok {
-		return linkConnectData{}, ErrInvalidLinkConnectCookie
+		return linkConnectData{}, errInvalidLinkConnectCookie
 	}
 
 	userID, err := uuid.Parse(sub)
 	if err != nil {
-		return linkConnectData{}, fmt.Errorf("%w: %w", ErrInvalidLinkConnectCookie, err)
+		return linkConnectData{}, fmt.Errorf("%w: %w", errInvalidLinkConnectCookie, err)
 	}
 
 	provider, _ := claims["provider"].(string)

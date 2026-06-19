@@ -27,6 +27,10 @@ func (ctrl *Controller) LinkProvider( //nolint:ireturn
 	logger := oapimw.LoggerFromContext(ctx).
 		With(slog.String("provider", string(req.Provider)))
 
+	if req.Body == nil {
+		req.Body = &api.LinkProviderRequest{} //nolint:exhaustruct
+	}
+
 	user, apiErr := ctrl.wf.GetUserFromJWTInContext(ctx, logger)
 	if apiErr != nil {
 		return ctrl.sendError(apiErr), nil
