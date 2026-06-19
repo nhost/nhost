@@ -38,6 +38,7 @@ let
       curl
       diffutils
       docker-client
+      geos
       gh
       git-cliff
       gnused
