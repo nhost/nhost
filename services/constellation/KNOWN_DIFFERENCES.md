@@ -110,8 +110,8 @@ One small, deliberate deviation remains:
   ("Bulk atomic does not support this command"); Constellation surfaces it
   through its op-level **400 `not-supported`** channel (500 is reserved for
   internal failures). This applies equally to a `bulk_atomic` nested inside a
-  `bulk` (whose whitelist excludes nested bulk, matching Hasura) and to a
-  top-level one.
+  `bulk` (`bulk_atomic`'s whitelist excludes nested bulk, matching Hasura) and
+  to a top-level one.
 
 Nested bulk is bounded by a defensive depth cap (Hasura imposes none); the
 dashboard never nests, so any real request is depth 1.

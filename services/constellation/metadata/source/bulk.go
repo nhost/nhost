@@ -20,9 +20,12 @@ import (
 // idempotent no-op, rv is the current (unchanged) version and no write
 // is issued.
 //
-// This is the primitive that backs bulk_atomic. bulk and
-// bulk_keep_going are implemented at the dispatcher level by looping
-// over single-op Apply calls (each child gets its own rv bump).
+// This is the primitive that backs bulk_atomic: it composes whitelisted
+// mutation children into one Apply call with one resource_version bump.
+// bulk and bulk_keep_going do NOT use this path — they run through
+// ApplyBulk (see bulk_apply.go), which also performs a single composed
+// write per request but supports the full native child op set and the
+// per-child keep-going semantics.
 func (s *Store) ApplyAll(
 	ctx context.Context, fns []MutationFn,
 ) ([]IdempotencyCode, int64, error) {

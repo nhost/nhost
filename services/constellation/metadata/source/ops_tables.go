@@ -434,7 +434,7 @@ func renameRelationship(
 		return CodeAlreadyExists, nil
 	}
 
-	if relationshipNameExists(t, newName) {
+	if relationshipNameExists(t, newName) || remoteRelationshipNameExists(t, newName) {
 		return "", fmt.Errorf(
 			"%w: %q on %s.%s", ErrRelationshipExists, newName, table.Schema, table.Name,
 		)

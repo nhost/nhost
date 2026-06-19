@@ -123,10 +123,13 @@ func BuildMutation(opType string, argsJSON []byte) (MutationFn, error) {
 	case opPgDropDeletePermission:
 		return buildPgDropDeletePermission(argsJSON)
 	case opPgUntrackTable:
-		// Bulk children get the metadata-only cascade (deps == nil): the bulk
-		// machinery composes pure MutationFn(*hasura.Metadata) closures and has
-		// no DB handle to introspect the FK graph / function return types. The
-		// single-op path (Store.PgUntrackTable) supplies deps for full parity.
+		// BuildMutation has no DB handle, so this arm returns a metadata-only
+		// cascade (deps == nil) for direct callers that lack one. The real call
+		// paths do not rely on it: bulk / bulk_keep_going children are
+		// special-cased in planBulkChild, which resolves the FK graph / function
+		// return types and passes real deps for full DB-backed cascade parity,
+		// and bulk_atomic rejects pg_untrack_table before it reaches here. The
+		// single-op path (Store.PgUntrackTable) likewise supplies deps.
 		return buildPgUntrackTable(argsJSON, nil)
 	case opPgSetTableIsEnum:
 		return buildPgSetTableIsEnum(argsJSON)

@@ -4,6 +4,8 @@ import (
 	"errors"
 	"strings"
 	"testing"
+
+	"github.com/nhost/nhost/services/constellation/metadata/internal/hasura"
 )
 
 // seedUsersTable tracks public.users on the bootstrapped store so a
@@ -115,6 +117,38 @@ func TestCreateObjectRelationship_RejectsExistingRemoteName(t *testing.T) {
 
 // TestCreateArrayRelationship_RejectsExistingObjectName covers the
 // object-then-array cross-kind collision.
+func TestRenameRelationship_RejectsExistingRemoteName(t *testing.T) {
+	t.Parallel()
+
+	// Models the state inside a single in-flight working copy (e.g. a bulk
+	// request that creates a remote relationship and then renames an object
+	// relationship in the same batch): the remote relationship "rem" lives only
+	// in RemoteRelationships and has NOT been lowered into the object/array
+	// lists, because that lowering happens once at FromJSON load time, not per
+	// child op. Renaming "obj" onto "rem" would create two relationships sharing
+	// one GraphQL field name (and a non-round-tripping export), so it must be
+	// rejected — mirroring the create handlers, which check both the
+	// object/array and the remote name spaces.
+	tbl := hasura.TableSource{Schema: "public", Name: "users"}
+	tm := &hasura.TableMetadata{
+		Table:               tbl,
+		ObjectRelationships: []hasura.ObjectRelationship{{Name: "obj"}},
+		RemoteRelationships: []hasura.RemoteRelationship{{Name: "rem"}},
+	}
+
+	_, err := renameRelationship(tm, tbl, "obj", "rem")
+	if !errors.Is(err, ErrRelationshipExists) {
+		t.Fatalf("renameRelationship err = %v, want ErrRelationshipExists", err)
+	}
+
+	if tm.ObjectRelationships[0].Name != "obj" {
+		t.Fatalf(
+			"object relationship renamed to %q despite collision with remote relationship",
+			tm.ObjectRelationships[0].Name,
+		)
+	}
+}
+
 func TestCreateArrayRelationship_RejectsExistingObjectName(t *testing.T) {
 	t.Parallel()
 
