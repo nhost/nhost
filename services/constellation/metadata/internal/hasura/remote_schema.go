@@ -45,34 +45,29 @@ type (
 // path uses the underlying type's fields directly via the v2 JSON codec.
 type RemoteSchemaMetadata api.RemoteSchemaMetadata
 
-// MarshalJSON emits the remote schema as Hasura does: `comment` is ALWAYS
-// present (empty string when unset), where the generated `comment,omitempty`
-// tag would drop it — a faithful drop-in export keeps the key. The remaining
-// fields keep their generated shape: `definition` is always present, while
-// `permissions` / `remote_relationships` are omitted when absent.
+// MarshalJSON emits the remote schema as Hasura does: `comment` mirrors Hasura,
+// which omits the key when no comment is set (add_remote_schema without a
+// comment exports no `comment` field) and emits it only when present. The
+// remaining fields keep their generated shape: `definition` is always present,
+// while `permissions` / `remote_relationships` are omitted when absent.
 //
 // A custom marshaler's bytes are spliced verbatim into the enclosing document,
 // so the caller's json.Deterministic option does NOT propagate in here; this
 // marshals with json.Deterministic(true) itself so the nested definition
 // headers/customization maps keep a stable key order (see ToJSON's note).
 func (r RemoteSchemaMetadata) MarshalJSON() ([]byte, error) {
-	comment := ""
-	if r.Comment != nil {
-		comment = *r.Comment
-	}
-
 	// Fixed field order (not a map) so the output itself is byte-stable; comment
-	// carries no omitempty so it is always emitted.
+	// carries omitempty on a pointer so it is omitted when unset, matching Hasura.
 	shadow := struct {
 		Name                string                                                  `json:"name"`
 		Definition          api.RemoteSchemaDef                                     `json:"definition"`
-		Comment             string                                                  `json:"comment"`
+		Comment             *string                                                 `json:"comment,omitempty"`
 		Permissions         *[]api.RemoteSchemaPermissionMetadata                   `json:"permissions,omitempty"`
 		RemoteRelationships *[]api.RemoteSchemaMetadataRemoteRelationshipDefinition `json:"remote_relationships,omitempty"`
 	}{
 		Name:                r.Name,
 		Definition:          r.Definition,
-		Comment:             comment,
+		Comment:             r.Comment,
 		Permissions:         r.Permissions,
 		RemoteRelationships: r.RemoteRelationships,
 	}

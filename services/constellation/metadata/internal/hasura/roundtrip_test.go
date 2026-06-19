@@ -47,9 +47,9 @@ func TestRoundTripJSON_RealMetadata(t *testing.T) {
 
 	// The generated remote-schema wire types model most optional fields as
 	// pointers with omitempty, so the codec normalizes some explicit-empty values
-	// (e.g. customization:{}) to absent on the first re-encode. (comment is the
-	// exception: RemoteSchemaMetadata.MarshalJSON always emits it, "" when unset,
-	// matching Hasura.) Struct equality of first vs second therefore no longer
+	// (e.g. customization:{}) to absent on the first re-encode. (comment is
+	// likewise omitted when unset, matching Hasura.) Struct equality of first vs
+	// second therefore no longer
 	// holds for those benign cases; assert instead that the canonical serialized
 	// form is a fixed point (re-encoding the re-decoded metadata yields identical
 	// bytes). Hasura-fidelity of empty fields is covered by the live parity suite.

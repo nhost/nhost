@@ -150,14 +150,23 @@ func TestInsertPermissionConfig_MarshalShape(t *testing.T) {
 	})
 }
 
-func TestRemoteSchemaMetadata_MarshalCommentAlwaysPresent(t *testing.T) {
+func TestRemoteSchemaMetadata_MarshalCommentOmittedWhenUnset(t *testing.T) {
 	t.Parallel()
 
-	// Hasura always emits remote_schemas[].comment, as "" when unset, so a
-	// faithful drop-in export keeps the key rather than omit it. The round-trip
-	// suite's EquateEmpty is blind to ""-vs-absent, so assert the bytes here.
-	got := marshalString(t, RemoteSchemaMetadata{Name: "weather"})
-	if !strings.Contains(got, `"comment":""`) {
-		t.Errorf("got %s, want \"comment\":\"\" for unset comment", got)
+	// Hasura omits remote_schemas[].comment when no comment is set (verified
+	// against live Hasura by the parity suite's add_remote_schema case), and
+	// emits it only when present. A faithful drop-in export does the same. The
+	// round-trip suite's EquateEmpty is blind to ""-vs-absent, so assert bytes here.
+	if got := marshalString(t, RemoteSchemaMetadata{Name: "weather"}); strings.Contains(
+		got, `"comment"`,
+	) {
+		t.Errorf("got %s, want no \"comment\" key for unset comment", got)
+	}
+
+	comment := "forecast service"
+	if got := marshalString(t, RemoteSchemaMetadata{Name: "weather", Comment: &comment}); !strings.Contains(
+		got, `"comment":"forecast service"`,
+	) {
+		t.Errorf("got %s, want \"comment\":\"forecast service\" when set", got)
 	}
 }
