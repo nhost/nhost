@@ -111,8 +111,11 @@ func TestDispatch_BulkAtomic_AddRemoteSchema_Rejected(t *testing.T) {
 			`{"name":"rs","definition":{"url":"http://unreachable.test/graphql"}}}]}`)
 
 	if code != http.StatusBadRequest {
-		t.Fatalf("status = %d, want 400 (add_remote_schema not in bulk_atomic whitelist); body = %v",
-			code, body)
+		t.Fatalf(
+			"status = %d, want 400 (add_remote_schema not in bulk_atomic whitelist); body = %v",
+			code,
+			body,
+		)
 	}
 
 	if got, _ := body["code"].(string); got != "not-supported" {
