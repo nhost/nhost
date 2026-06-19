@@ -10,7 +10,10 @@ import {
 import Link from 'next/link';
 import { useRouter } from 'next/router';
 import { useState } from 'react';
-import { useDialog } from '@/components/common/DialogProvider';
+import {
+  type OpenDialogOptions,
+  useDialog,
+} from '@/components/common/DialogProvider';
 import { InlineCode } from '@/components/presentational/InlineCode';
 import { Button } from '@/components/ui/v3/button';
 import {
@@ -60,23 +63,21 @@ export default function ActionListItem({
     });
   }
 
-  function handleEditPermissionsClick() {
+  function openActionDrawer(
+    label: string,
+    component: OpenDialogOptions['component'],
+  ) {
     openDrawer({
       title: (
         <span className="inline-grid grid-flow-col items-center gap-2">
-          Permissions for
+          {label} for
           <InlineCode className="!text-sm+ font-normal">
             {action.name}
           </InlineCode>
           Action
         </span>
       ),
-      component: (
-        <EditActionPermissionsForm
-          actionName={action.name}
-          onCancel={closeDrawer}
-        />
-      ),
+      component,
       props: {
         PaperProps: {
           className: 'lg:w-[65%] lg:max-w-7xl',
@@ -85,29 +86,24 @@ export default function ActionListItem({
     });
   }
 
+  function handleEditPermissionsClick() {
+    openActionDrawer(
+      'Permissions',
+      <EditActionPermissionsForm
+        actionName={action.name}
+        onCancel={closeDrawer}
+      />,
+    );
+  }
+
   function handleEditRelationshipsClick() {
-    openDrawer({
-      title: (
-        <span className="inline-grid grid-flow-col items-center gap-2">
-          Relationships for
-          <InlineCode className="!text-sm+ font-normal">
-            {action.name}
-          </InlineCode>
-          Action
-        </span>
-      ),
-      component: (
-        <EditActionRelationshipsForm
-          actionName={action.name}
-          onCancel={closeDrawer}
-        />
-      ),
-      props: {
-        PaperProps: {
-          className: 'lg:w-[65%] lg:max-w-7xl',
-        },
-      },
-    });
+    openActionDrawer(
+      'Relationships',
+      <EditActionRelationshipsForm
+        actionName={action.name}
+        onCancel={closeDrawer}
+      />,
+    );
   }
 
   return (

@@ -101,7 +101,7 @@ function ActionsBrowserSidebarContent() {
         {actions.length > 0 && filteredActions.length === 0 && (
           <p className="px-2 py-1.5 text-disabled text-xs">No actions found.</p>
         )}
-        <div className="flex flex-col text-balance">
+        <div className="mt-2 flex flex-col text-balance">
           {filteredActions.map((action) => (
             <ActionListItem
               key={action.name}

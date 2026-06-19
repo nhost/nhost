@@ -86,14 +86,6 @@ export default function BaseActionForm({
   const [openAccordionSections, setOpenAccordionSections] = useState<
     AccordionSectionValue[]
   >([]);
-  const [isRequestOptionsSectionOpen, setIsRequestOptionsSectionOpen] =
-    useState(Boolean(initialData?.requestOptionsTransform));
-  const [isPayloadSectionOpen, setIsPayloadSectionOpen] = useState(
-    Boolean(initialData?.payloadTransform),
-  );
-  const [isResponseSectionOpen, setIsResponseSectionOpen] = useState(
-    Boolean(initialData?.responseTransform),
-  );
 
   const form = useForm<BaseActionFormValues>({
     resolver: zodResolver(validationSchema),
@@ -153,55 +145,28 @@ export default function BaseActionForm({
   const isPayloadTransformEnabled = Boolean(watch('payloadTransform'));
   const isResponseTransformEnabled = Boolean(watch('responseTransform'));
 
-  const toggleRequestOptionsSectionOpen = useCallback(() => {
-    setIsRequestOptionsSectionOpen((prev) => {
-      const next = !prev;
+  const toggleRequestOptionsSectionOpen = () =>
+    setValue(
+      'requestOptionsTransform',
+      isRequestOptionsTransformEnabled
+        ? undefined
+        : defaultRequestOptionsTransformValues,
+      { shouldDirty: true },
+    );
 
-      if (next && !isRequestOptionsTransformEnabled) {
-        setValue(
-          'requestOptionsTransform',
-          defaultRequestOptionsTransformValues,
-          { shouldDirty: true },
-        );
-      } else {
-        setValue('requestOptionsTransform', undefined, { shouldDirty: true });
-      }
+  const togglePayloadSectionOpen = () =>
+    setValue(
+      'payloadTransform',
+      isPayloadTransformEnabled ? undefined : defaultPayloadTransformValues,
+      { shouldDirty: true },
+    );
 
-      return next;
-    });
-  }, [isRequestOptionsTransformEnabled, setValue]);
-
-  const togglePayloadSectionOpen = useCallback(() => {
-    setIsPayloadSectionOpen((prev) => {
-      const next = !prev;
-
-      if (next && !isPayloadTransformEnabled) {
-        setValue('payloadTransform', defaultPayloadTransformValues, {
-          shouldDirty: true,
-        });
-      } else {
-        setValue('payloadTransform', undefined, { shouldDirty: true });
-      }
-
-      return next;
-    });
-  }, [isPayloadTransformEnabled, setValue]);
-
-  const toggleResponseSectionOpen = useCallback(() => {
-    setIsResponseSectionOpen((prev) => {
-      const next = !prev;
-
-      if (next && !isResponseTransformEnabled) {
-        setValue('responseTransform', defaultResponseTransformValues, {
-          shouldDirty: true,
-        });
-      } else {
-        setValue('responseTransform', undefined, { shouldDirty: true });
-      }
-
-      return next;
-    });
-  }, [isResponseTransformEnabled, setValue]);
+  const toggleResponseSectionOpen = () =>
+    setValue(
+      'responseTransform',
+      isResponseTransformEnabled ? undefined : defaultResponseTransformValues,
+      { shouldDirty: true },
+    );
 
   const handleResetSampleInput = useCallback(() => {
     const values = form.getValues();
@@ -390,12 +355,12 @@ export default function BaseActionForm({
                             'flex min-w-[14rem] flex-row items-center gap-2 text-foreground',
                             {
                               'border-destructive text-destructive hover:bg-destructive/10 hover:text-destructive':
-                                isRequestOptionsSectionOpen,
+                                isRequestOptionsTransformEnabled,
                             },
                           )}
                           onClick={toggleRequestOptionsSectionOpen}
                         >
-                          {isRequestOptionsSectionOpen ? (
+                          {isRequestOptionsTransformEnabled ? (
                             <>
                               <TrashIcon className="size-4" />
                               <span>Remove Options Transform</span>
@@ -408,13 +373,11 @@ export default function BaseActionForm({
                           )}
                         </Button>
                       </div>
-                      {isRequestOptionsSectionOpen &&
-                        isRequestOptionsTransformEnabled && (
-                          <RequestOptionsFormSection />
-                        )}
-                      {isRequestOptionsSectionOpen && isPayloadSectionOpen && (
-                        <Separator />
+                      {isRequestOptionsTransformEnabled && (
+                        <RequestOptionsFormSection />
                       )}
+                      {isRequestOptionsTransformEnabled &&
+                        isPayloadTransformEnabled && <Separator />}
                       <div className="flex items-end justify-between gap-2">
                         <div className="space-y-1">
                           <h3 className="font-medium text-foreground">
@@ -432,12 +395,12 @@ export default function BaseActionForm({
                             'flex min-w-[14rem] flex-row items-center gap-2 text-foreground',
                             {
                               'border-destructive text-destructive hover:bg-destructive/10 hover:text-destructive':
-                                isPayloadSectionOpen,
+                                isPayloadTransformEnabled,
                             },
                           )}
                           onClick={togglePayloadSectionOpen}
                         >
-                          {isPayloadSectionOpen ? (
+                          {isPayloadTransformEnabled ? (
                             <>
                               <TrashIcon className="size-4" />
                               <span>Remove Payload Transform</span>
@@ -450,14 +413,14 @@ export default function BaseActionForm({
                           )}
                         </Button>
                       </div>
-                      {isPayloadSectionOpen && isPayloadTransformEnabled && (
+                      {isPayloadTransformEnabled && (
                         <PayloadTransformFormSection
                           onResetSampleInput={handleResetSampleInput}
                         />
                       )}
-                      {isResponseSectionOpen &&
-                        (isRequestOptionsSectionOpen ||
-                          isPayloadSectionOpen) && <Separator />}
+                      {isResponseTransformEnabled &&
+                        (isRequestOptionsTransformEnabled ||
+                          isPayloadTransformEnabled) && <Separator />}
                       <div className="flex items-end justify-between gap-2">
                         <div className="space-y-1">
                           <h3 className="font-medium text-foreground">
@@ -476,12 +439,12 @@ export default function BaseActionForm({
                             'flex min-w-[14rem] flex-row items-center gap-2 text-foreground',
                             {
                               'border-destructive text-destructive hover:bg-destructive/10 hover:text-destructive':
-                                isResponseSectionOpen,
+                                isResponseTransformEnabled,
                             },
                           )}
                           onClick={toggleResponseSectionOpen}
                         >
-                          {isResponseSectionOpen ? (
+                          {isResponseTransformEnabled ? (
                             <>
                               <TrashIcon className="size-4" />
                               <span>Remove Response Transform</span>
@@ -494,7 +457,7 @@ export default function BaseActionForm({
                           )}
                         </Button>
                       </div>
-                      {isResponseSectionOpen && isResponseTransformEnabled && (
+                      {isResponseTransformEnabled && (
                         <FormTextarea
                           control={form.control}
                           name="responseTransform.template"

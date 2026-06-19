@@ -84,6 +84,11 @@ const server = setupServer(
 
 const WEBHOOK = 'https://example.com/my-handler';
 
+// The dirty-guard confirmation is owned by the DialogProvider; this is the
+// message it renders (see DialogProvider.test.tsx).
+const DIRTY_MESSAGE =
+  'You have unsaved local changes. Are you sure you want to discard them?';
+
 const expectedCustomTypesArgs = {
   scalars: [],
   enums: [],
@@ -230,5 +235,46 @@ describe('CreateActionForm', () => {
     await user.type(webhook, WEBHOOK);
 
     await waitFor(() => expect(createButton).toBeEnabled());
+  });
+
+  describe('discard changes', () => {
+    it('prompts to discard when cancelling with unsaved changes', async () => {
+      const user = new TestUserEvent();
+      render(<CreateActionForm />);
+
+      await fillWebhook(user);
+      await user.click(screen.getByRole('button', { name: 'Cancel' }));
+
+      await waitFor(() =>
+        expect(screen.getByText(DIRTY_MESSAGE)).toBeInTheDocument(),
+      );
+      // The discard prompt must not submit anything.
+      expect(migrationBody).toBeNull();
+    });
+
+    it('closes without prompting when there are no unsaved changes', async () => {
+      const user = new TestUserEvent();
+      render(<CreateActionForm />);
+
+      await screen.findByPlaceholderText(/my-handler/i);
+      await user.click(screen.getByRole('button', { name: 'Cancel' }));
+
+      expect(screen.queryByText(DIRTY_MESSAGE)).not.toBeInTheDocument();
+    });
+
+    it('dismisses the prompt after confirming Discard', async () => {
+      const user = new TestUserEvent();
+      render(<CreateActionForm />);
+
+      await fillWebhook(user);
+      await user.click(screen.getByRole('button', { name: 'Cancel' }));
+      await screen.findByText(DIRTY_MESSAGE);
+
+      await user.click(screen.getByRole('button', { name: 'Discard' }));
+
+      await waitFor(() =>
+        expect(screen.queryByText(DIRTY_MESSAGE)).not.toBeInTheDocument(),
+      );
+    });
   });
 });

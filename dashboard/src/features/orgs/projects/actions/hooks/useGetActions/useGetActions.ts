@@ -2,11 +2,19 @@ import { useExportMetadata } from '@/features/orgs/projects/common/hooks/useExpo
 import type {
   ActionItem,
   CustomTypes,
+  ExportMetadataResponse,
 } from '@/utils/hasura-api/generated/schemas';
 
 export interface ActionsMetadata {
   actions: ActionItem[];
   customTypes: CustomTypes;
+}
+
+function selectActions(data: ExportMetadataResponse): ActionsMetadata {
+  return {
+    actions: data.metadata?.actions ?? [],
+    customTypes: data.metadata?.custom_types ?? {},
+  };
 }
 
 /**
@@ -16,10 +24,5 @@ export interface ActionsMetadata {
  * @returns The result of the query.
  */
 export default function useGetActions() {
-  return useExportMetadata(
-    (data): ActionsMetadata => ({
-      actions: data.metadata?.actions ?? [],
-      customTypes: data.metadata?.custom_types ?? {},
-    }),
-  );
+  return useExportMetadata(selectActions);
 }

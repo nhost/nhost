@@ -15,7 +15,7 @@ import {
 import { ActionsEmptyState } from '@/features/orgs/projects/actions/components/ActionsEmptyState';
 import { useGetActions } from '@/features/orgs/projects/actions/hooks/useGetActions';
 import { TextWithTooltip } from '@/features/orgs/projects/common/components/TextWithTooltip';
-import { isEmptyValue, isNotEmptyValue } from '@/lib/utils';
+import { isNotEmptyValue } from '@/lib/utils';
 import ActionDetailsSkeleton from './ActionDetailsSkeleton';
 import ActionOverview from './sections/ActionOverview';
 
@@ -59,7 +59,7 @@ export default function ActionDetails() {
     );
   }
 
-  if (isEmptyValue(action)) {
+  if (!action) {
     return (
       <ActionsEmptyState
         title="Action not found"
@@ -76,7 +76,7 @@ export default function ActionDetails() {
     );
   }
 
-  const { comment, definition } = action!;
+  const { comment, definition } = action;
   const actionType = definition.type ?? 'mutation';
   const ActionTypeIcon = actionType === 'query' ? FileSearch : FilePen;
   const hasHeaders = Boolean(definition.forward_client_headers);
@@ -92,7 +92,7 @@ export default function ActionDetails() {
             </div>
             <div className="min-w-0">
               <h1 className="mb-1 font-semibold text-foreground text-xl">
-                {action!.name}
+                {action.name}
               </h1>
               <Tooltip>
                 <TooltipTrigger asChild>
@@ -149,7 +149,7 @@ export default function ActionDetails() {
 
       <div className="flex-1 overflow-auto p-6">
         <ActionOverview
-          action={action!}
+          action={action}
           customTypes={actionsData?.customTypes ?? {}}
         />
       </div>
