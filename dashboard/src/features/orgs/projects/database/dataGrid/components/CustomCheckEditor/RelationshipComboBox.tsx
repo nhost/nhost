@@ -3,7 +3,8 @@ import { Combobox } from '@/components/ui/v3/combobox';
 import { FormField, FormMessage } from '@/components/ui/v3/form';
 import { useTableSchemaQuery } from '@/features/orgs/projects/database/common/hooks/useTableSchemaQuery';
 import useColumnGroups from '@/features/orgs/projects/database/dataGrid/components/ColumnAutocomplete/useColumnGroups';
-import { useMetadataQuery } from '@/features/orgs/projects/database/dataGrid/hooks/useMetadataQuery';
+import { useExportMetadata } from '@/features/orgs/projects/common/hooks/useExportMetadata';
+import type { FetchMetadataReturnType } from '@/features/orgs/projects/database/dataGrid/types/dataBrowser';
 import { cn, isNotEmptyValue } from '@/lib/utils';
 import useCustomCheckEditor from './useCustomCheckEditor';
 
@@ -30,8 +31,17 @@ export default function RelationshipComboBox({
     },
   );
 
-  const { data: metadata } = useMetadataQuery([`default.metadata`], {
-    queryOptions: { refetchOnWindowFocus: false },
+  const { data: metadata } = useExportMetadata((data) => {
+    const source = data.metadata.sources?.find(
+      (s) => s.name === 'default',
+    );
+
+    return source
+      ? ({
+          ...source,
+          resourceVersion: data.resource_version,
+        } as FetchMetadataReturnType)
+      : ({ resourceVersion: data.resource_version } as FetchMetadataReturnType);
   });
 
   const options = useColumnGroups({

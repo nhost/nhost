@@ -6,8 +6,11 @@ import {
 import { PermissionsGridLayout } from '@/components/common/PermissionsGridLayout';
 import { Spinner } from '@/components/ui/v3/spinner';
 import { useRemoteApplicationGQLClient } from '@/features/orgs/hooks/useRemoteApplicationGQLClient';
-import { useMetadataQuery } from '@/features/orgs/projects/database/dataGrid/hooks/useMetadataQuery';
-import type { DatabaseAction } from '@/features/orgs/projects/database/dataGrid/types/dataBrowser';
+import { useExportMetadata } from '@/features/orgs/projects/common/hooks/useExportMetadata';
+import type {
+  DatabaseAction,
+  HasuraMetadataTable,
+} from '@/features/orgs/projects/database/dataGrid/types/dataBrowser';
 import { isEmptyValue, isNotEmptyValue } from '@/lib/utils';
 import type { DialogFormProps } from '@/types/common';
 import { useGetRemoteAppRolesQuery } from '@/utils/__generated__/graphql';
@@ -45,7 +48,16 @@ export default function StoragePermissionsForm({
     data: metadata,
     status: metadataStatus,
     error: metadataError,
-  } = useMetadataQuery(['default.metadata'], { dataSource: 'default' });
+  } = useExportMetadata((data) => {
+    const source = data.metadata.sources?.find(
+      (s) => s.name === 'default',
+    );
+
+    return {
+      resourceVersion: data.resource_version,
+      tables: (source?.tables ?? []) as unknown as HasuraMetadataTable[],
+    };
+  });
 
   if (metadataStatus === 'loading' || rolesLoading) {
     return (

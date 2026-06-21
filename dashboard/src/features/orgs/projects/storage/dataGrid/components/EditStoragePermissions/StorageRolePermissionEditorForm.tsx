@@ -9,6 +9,8 @@ import { RoleActionSwitcher } from '@/components/common/RoleActionSwitcher';
 import { Form } from '@/components/form/Form';
 import { Alert } from '@/components/ui/v3/alert';
 import { ButtonWithLoading as Button } from '@/components/ui/v3/button';
+import { EXPORT_METADATA_QUERY_KEY } from '@/features/orgs/projects/common/hooks/useExportMetadata';
+import { useProject } from '@/features/orgs/projects/hooks/useProject';
 import { useManagePermissionMutation } from '@/features/orgs/projects/database/dataGrid/hooks/useManagePermissionMutation';
 import type { HasuraMetadataPermission } from '@/features/orgs/projects/database/dataGrid/types/dataBrowser';
 import type { GroupNode } from '@/features/orgs/projects/database/dataGrid/utils/permissionUtils';
@@ -91,6 +93,7 @@ export default function StorageRolePermissionEditorForm({
   location,
 }: StorageRolePermissionEditorFormProps) {
   const queryClient = useQueryClient();
+  const { project } = useProject();
   const dbAction = STORAGE_ACTION_TO_DB_ACTION[storageAction];
   const actionLabel = STORAGE_ACTION_LABELS[storageAction];
 
@@ -158,7 +161,7 @@ export default function StorageRolePermissionEditorForm({
           permission: primaryPermission,
         });
         await queryClient.invalidateQueries({
-          queryKey: ['default.metadata'],
+          queryKey: [EXPORT_METADATA_QUERY_KEY, project?.subdomain],
         });
         onDirtyStateChange(false, location);
         onSubmit?.();
@@ -200,7 +203,7 @@ export default function StorageRolePermissionEditorForm({
       async () => {
         await deletePermissionPromise;
         await queryClient.invalidateQueries({
-          queryKey: ['default.metadata'],
+          queryKey: [EXPORT_METADATA_QUERY_KEY, project?.subdomain],
         });
         onDirtyStateChange(false, location);
         onSubmit?.();

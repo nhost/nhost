@@ -112,6 +112,19 @@ export interface HasuraMetadataSource {
 }
 
 /**
+ * Represents a pre-narrowed metadata response for a single source.
+ * Equivalent to the legacy `fetchMetadata` return type — kept so that
+ * existing helper hooks (`useColumnGroups`, `useAsyncValue`) continue to
+ * compile without changing their public API.
+ */
+export interface FetchMetadataReturnType extends Partial<HasuraMetadataSource> {
+  /**
+   * The resource version of the metadata.
+   */
+  resourceVersion: number;
+}
+
+/**
  * Represents the metadata from Hasura.
  */
 export interface HasuraMetadata {

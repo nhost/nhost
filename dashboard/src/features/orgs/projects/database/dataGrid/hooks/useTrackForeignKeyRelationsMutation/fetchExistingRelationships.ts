@@ -1,7 +1,8 @@
-import { fetchMetadata } from '@/features/orgs/projects/database/dataGrid/hooks/useMetadataQuery';
+import { fetchExportMetadata } from '@/features/orgs/projects/common/utils/fetchExportMetadata';
 import type {
   ForeignKeyRelation,
   HasuraMetadataRelationship,
+  HasuraMetadataTable,
 } from '@/features/orgs/projects/database/dataGrid/types/dataBrowser';
 
 export interface FetchExistingRelationshipsOptions {
@@ -81,17 +82,22 @@ export default async function fetchExistingRelationships({
 > {
   const relationshipMap = new Map<string, ForeignKeyRelation>();
 
-  const metadata = await fetchMetadata({
-    dataSource,
+  const metadataResponse = await fetchExportMetadata({
     appUrl,
     adminSecret,
   });
 
-  if (!metadata.tables) {
+  const source = metadataResponse.metadata.sources?.find(
+    (s) => s.name === dataSource,
+  );
+
+  if (!source || !source.tables) {
     return relationshipMap;
   }
 
-  const currentTable = metadata.tables.find(
+  const tables = source.tables as unknown as HasuraMetadataTable[];
+
+  const currentTable = tables.find(
     (t) => t.table.name === table && t.table.schema === schema,
   );
 
@@ -110,7 +116,7 @@ export default async function fetchExistingRelationships({
   }
 
   foreignKeys.forEach((foreignKey) => {
-    const referencedTable = metadata.tables?.find(
+    const referencedTable = tables?.find(
       (t) =>
         t.table.name === foreignKey.referencedTable &&
         t.table.schema === foreignKey.referencedSchema,

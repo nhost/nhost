@@ -3,7 +3,8 @@ import { useMemo } from 'react';
 import { useFormContext, useWatch } from 'react-hook-form';
 import { useTableSchemaQuery } from '@/features/orgs/projects/database/common/hooks/useTableSchemaQuery';
 import useColumnGroups from '@/features/orgs/projects/database/dataGrid/components/ColumnAutocomplete/useColumnGroups';
-import { useMetadataQuery } from '@/features/orgs/projects/database/dataGrid/hooks/useMetadataQuery';
+import { useExportMetadata } from '@/features/orgs/projects/common/hooks/useExportMetadata';
+import type { FetchMetadataReturnType } from '@/features/orgs/projects/database/dataGrid/types/dataBrowser';
 import { cn } from '@/lib/utils';
 import GroupNodeRenderer from './GroupNodeRenderer';
 import RelationshipComboBox from './RelationshipComboBox';
@@ -41,8 +42,17 @@ export default function RelationshipNodeRenderer({
     },
   );
 
-  const { data: metadata } = useMetadataQuery([`default.metadata`], {
-    queryOptions: { refetchOnWindowFocus: false },
+  const { data: metadata } = useExportMetadata((data) => {
+    const source = data.metadata.sources?.find(
+      (s) => s.name === 'default',
+    );
+
+    return source
+      ? ({
+          ...source,
+          resourceVersion: data.resource_version,
+        } as FetchMetadataReturnType)
+      : ({ resourceVersion: data.resource_version } as FetchMetadataReturnType);
   });
 
   const options = useColumnGroups({
