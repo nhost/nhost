@@ -124,9 +124,17 @@ export default function SocialProvidersSettings() {
   // first when the user has security keys.
   const connectGithub = useActionWithElevatedPermissions({
     actionFn: async () => {
-      const response = await nhost.auth.linkProvider('github', {
-        redirectTo: `${window.location.origin}/account?signinProvider=github`,
-      });
+      // `credentials: 'include'` is required: the auth server sets the
+      // single-use link cookie on this response, and the browser only stores a
+      // cross-origin Set-Cookie when the request is credentialed. Without it the
+      // provider callback finds no cookie and linking fails with invalid-request.
+      const response = await nhost.auth.linkProvider(
+        'github',
+        {
+          redirectTo: `${window.location.origin}/account?signinProvider=github`,
+        },
+        { credentials: 'include' },
+      );
       window.location.href = response.body.url;
     },
     successMessage: 'Redirecting to GitHub…',
