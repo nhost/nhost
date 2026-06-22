@@ -186,6 +186,33 @@ func TestSpatialOperatorParsersCoverHasuraPostGISSurface(t *testing.T) {
 	}
 }
 
+func TestSpatialNotEqualsUsesEqualsNegationForPostGISCompatibility(t *testing.T) {
+	t.Parallel()
+
+	d := dialect.NewPostgresDialect()
+	sql, params, next := parseAndWriteSpatialComparison(
+		t,
+		d,
+		newColumn("geom", "geometry"),
+		fieldComparisonValue("_neq", pointValue()),
+		nil,
+	)
+
+	wantSQL := `NOT ("t"."geom" = ST_GeomFromGeoJSON($1))`
+	if sql != wantSQL {
+		t.Fatalf("SQL = %q, want %q", sql, wantSQL)
+	}
+
+	wantParams := []any{spatialPointParam}
+	if !reflect.DeepEqual(params, wantParams) {
+		t.Fatalf("params = %#v, want %#v", params, wantParams)
+	}
+
+	if next != 2 {
+		t.Fatalf("next param index = %d, want 2", next)
+	}
+}
+
 func TestSpatialCastParsesExpressionAwareComparisons(t *testing.T) {
 	t.Parallel()
 
@@ -355,6 +382,81 @@ func TestSpatialParsersRejectUnsupportedSurfaces(t *testing.T) {
 			column:  newColumn("geog", "geography"),
 			value:   fieldComparisonValue("_st_contains", pointValue()),
 			wantErr: errSpatialOperatorOnWrongType,
+		},
+		{
+			name:    "spatial operator on non-spatial column",
+			d:       dialect.NewPostgresDialect(),
+			column:  newColumn("data", "jsonb"),
+			value:   fieldComparisonValue("_st_intersects", pointValue()),
+			wantErr: errSpatialOperatorOnNonSpatialColumn,
+		},
+		{
+			name:    "d within input must be object",
+			d:       dialect.NewPostgresDialect(),
+			column:  newColumn("geom", "geometry"),
+			value:   fieldComparisonValue("_st_d_within", stringValue("point")),
+			wantErr: errSpatialDWithinMustBeObject,
+		},
+		{
+			name:   "d within from required",
+			d:      dialect.NewPostgresDialect(),
+			column: newColumn("geom", "geometry"),
+			value: fieldComparisonValue(
+				"_st_d_within",
+				objectValue(child("distance", floatValue("100"))),
+			),
+			wantErr: errSpatialDWithinFromRequired,
+		},
+		{
+			name:   "d within distance required",
+			d:      dialect.NewPostgresDialect(),
+			column: newColumn("geom", "geometry"),
+			value: fieldComparisonValue(
+				"_st_d_within",
+				objectValue(child("from", pointValue())),
+			),
+			wantErr: errSpatialDWithinDistanceRequired,
+		},
+		{
+			name:   "d within use spheroid must be boolean",
+			d:      dialect.NewPostgresDialect(),
+			column: newColumn("geog", "geography"),
+			value: fieldComparisonValue(
+				"_st_d_within",
+				objectValue(
+					child("from", pointValue()),
+					child("distance", floatValue("100")),
+					child("use_spheroid", stringValue("yes")),
+				),
+			),
+			wantErr: errSpatialDWithinUseSpheroidMustBeBoolean,
+		},
+		{
+			name:    "spatial cast input must be object",
+			d:       dialect.NewPostgresDialect(),
+			column:  newColumn("geom", "geometry"),
+			value:   fieldComparisonValue("_cast", stringValue("geometry")),
+			wantErr: errSpatialCastMustBeObject,
+		},
+		{
+			name:   "spatial cast target rejects unknown scalar",
+			d:      dialect.NewPostgresDialect(),
+			column: newColumn("geom", "geometry"),
+			value: fieldComparisonValue(
+				"_cast",
+				objectValue(child("String", fieldComparisonValue("_eq", pointValue()))),
+			),
+			wantErr: errSpatialCastTargetInvalid,
+		},
+		{
+			name:   "spatial cast target rejects same scalar",
+			d:      dialect.NewPostgresDialect(),
+			column: newColumn("geom", "geometry"),
+			value: fieldComparisonValue(
+				"_cast",
+				objectValue(child("geometry", fieldComparisonValue("_eq", pointValue()))),
+			),
+			wantErr: errSpatialCastTargetInvalid,
 		},
 		{
 			name:   "spatial cast on non-spatial column preserves unknown cast behavior",

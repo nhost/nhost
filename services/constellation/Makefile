@@ -9,7 +9,7 @@ ifndef POSTGRES_VERSION
 # shellcheck disable=SC2034 # Make variable consumed by target recipes.
 POSTGRES_VERSION=18
 endif
-POSTGRES_FULL_VERSION := $(shell grep -A4 'postgresql_$(POSTGRES_VERSION) =' $(ROOT_DIR)/nixops/overlays/postgres.nix | grep -oP 'version = "\K[^"]+')
+POSTGRES_FULL_VERSION := $(shell sed -n '/postgresql_$(POSTGRES_VERSION) =/,/version =/{ s/.*version = "\([^"]*\)".*/\1/p; }' $(ROOT_DIR)/nixops/overlays/postgres.nix | head -1)
 ifndef POSTGRES_IMAGE
 # shellcheck disable=SC2034 # Make variable consumed by docker compose recipes.
 POSTGRES_IMAGE=nhost/postgres:$(POSTGRES_FULL_VERSION)-$(VERSION)
@@ -23,7 +23,7 @@ _dev-env-up: dev-env-integration-up run-up
 
 .PHONY: _dev-env-down
 _dev-env-down: dev-env-integration-down run-down
-	docker compose -f ${DOCKER_DEV_ENV_PATH}/docker-compose.yaml down --volumes
+	POSTGRES_IMAGE=$(POSTGRES_IMAGE) docker compose -f ${DOCKER_DEV_ENV_PATH}/docker-compose.yaml down --volumes
 
 
 .PHONY: dev-env-up-short

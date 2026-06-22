@@ -294,8 +294,8 @@ func generateMinMaxFieldsTypes(
 	return len(maxFields) > 0, len(minFields) > 0
 }
 
-func supportsMinMaxAggregate(col introspection.Column, caps Capabilities) bool {
-	if caps.SupportsSpatialTypes && pgtypes.IsSpatial(col.Type) {
+func supportsMinMaxAggregate(col introspection.Column, _ Capabilities) bool {
+	if pgtypes.IsSpatial(col.Type) {
 		return false
 	}
 
@@ -419,7 +419,7 @@ func generateAggregateOrderByTypes( //nolint:funlen
 			continue
 		}
 
-		if !col.SupportsMinMax {
+		if !supportsMinMaxAggregate(col, caps) {
 			continue
 		}
 
@@ -449,7 +449,7 @@ func generateAggregateOrderByTypes( //nolint:funlen
 			continue
 		}
 
-		if !col.SupportsMinMax {
+		if !supportsMinMaxAggregate(col, caps) {
 			continue
 		}
 

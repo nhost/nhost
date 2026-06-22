@@ -891,6 +891,12 @@ func TestCoerceSQLValueSpatial(t *testing.T) {
 			want:    `{"type":"Point","coordinates":[1,2]}`,
 		},
 		{
+			name:    "geojson bytes coerced to string",
+			sqlType: "geometry",
+			value:   []byte(`{"type":"Point","coordinates":[1,2]}`),
+			want:    `{"type":"Point","coordinates":[1,2]}`,
+		},
+		{
 			name:    "null passes through",
 			sqlType: "geometry",
 			value:   nil,
