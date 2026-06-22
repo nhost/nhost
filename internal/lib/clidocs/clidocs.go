@@ -9,6 +9,7 @@ import (
 	"fmt"
 	"reflect"
 	"regexp"
+	"slices"
 	"sort"
 	"strings"
 	"text/template"
@@ -19,16 +20,17 @@ import (
 // introText is the lead paragraph for the generated reference. It is kept
 // separate so each source line stays within the line-length limit; the
 // concatenated result is a single Markdown paragraph.
-const introText = "`{{ .Command.Name }}` is the command-line interface for Nhost. " +
-	"Use it to run your backend locally or against the cloud, manage configuration, " +
-	"database migrations, metadata, and secrets as code, link and deploy projects to " +
-	"Nhost Cloud, and run the MCP server for AI assistants."
+const introText = "The `{{ .Command.Name }}` CLI is the primary tool for developing, " +
+	"deploying, and managing Nhost projects. It lets you run your backend locally, " +
+	"manage configuration and infrastructure as code, link and deploy projects to " +
+	"Nhost Cloud, and provide AI assistants with access to your project through the " +
+	"built-in MCP server."
 
 const markdownDocTemplate = `{{if gt .SectionNum 0}}% {{ .Command.Name }} {{ .SectionNum }}
 
 {{end}}` + introText + `
 
-New here? The [Quickstart](/getting-started/quickstart/cli) covers installing the CLI.
+New here? Head over to [Quickstart](/getting-started/quickstart/cli) for CLI installation.
 
 ## Usage
 
@@ -88,12 +90,16 @@ func writeDocTemplate(cmd *cli.Command, w *bytes.Buffer) error {
 	return nil
 }
 
+// helpName is urfave/cli's reserved name for the auto-generated help command
+// and flag, both of which the reference omits.
+const helpName = "help"
+
 func prepareCommands(commands []*cli.Command, level int, prefix string) []string {
 	var coms []string
 	for _, command := range commands {
 		// Skip hidden commands and the auto-generated "help" subcommand, which
 		// is identical noise under every parent command.
-		if command.Hidden || command.Name == "help" {
+		if command.Hidden || command.Name == helpName {
 			continue
 		}
 
@@ -126,7 +132,7 @@ func prepareCommands(commands []*cli.Command, level int, prefix string) []string
 // renderGroupHeading renders a top-level command as a plain, description-less
 // group label (e.g. "config") wrapped so it indents under the Commands section.
 func renderGroupHeading(command *cli.Command) string {
-	return "---\n\n%%CMD_OPEN:0%%\n\n## " + command.Name + "\n\n%%CMD_CLOSE%%\n"
+	return "---\n\n<div class=\"cli-command cli-l0\">\n\n## " + command.Name + "\n\n</div>\n"
 }
 
 // renderEntry renders a single command as an inline-code heading (its full
@@ -138,8 +144,8 @@ func renderEntry(command *cli.Command, fullCommand string, level int) string {
 	var b strings.Builder
 
 	// Wrap the entry so it indents as a block; the badge and heading sit at the
-	// wrapper's left edge (sentinel expanded to a <div>).
-	fmt.Fprintf(&b, "%%%%CMD_OPEN:%d%%%%\n\n", level)
+	// wrapper's left edge.
+	fmt.Fprintf(&b, "<div class=\"cli-command cli-l%d\">\n\n", level)
 
 	if badges != "" {
 		b.WriteString(badges + "\n\n")
@@ -149,7 +155,7 @@ func renderEntry(command *cli.Command, fullCommand string, level int) string {
 
 	// Inner wrapper indents the description, aliases, and options under the
 	// heading.
-	b.WriteString("%%BODY_OPEN%%\n\n")
+	b.WriteString("<div class=\"cli-body\">\n\n")
 
 	// Description and aliases share a single line (aliases trailing it).
 	line := ""
@@ -178,7 +184,7 @@ func renderEntry(command *cli.Command, fullCommand string, level int) string {
 		b.WriteString(table + "\n")
 	}
 
-	b.WriteString("%%BODY_CLOSE%%\n\n%%CMD_CLOSE%%\n")
+	b.WriteString("</div>\n\n</div>\n")
 
 	return b.String()
 }
@@ -187,7 +193,7 @@ func renderEntry(command *cli.Command, fullCommand string, level int) string {
 // other than the auto-generated help command.
 func hasVisibleSubcommands(command *cli.Command) bool {
 	for _, sc := range command.Commands {
-		if !sc.Hidden && sc.Name != "help" {
+		if !sc.Hidden && sc.Name != helpName {
 			return true
 		}
 	}
@@ -195,28 +201,39 @@ func hasVisibleSubcommands(command *cli.Command) bool {
 	return false
 }
 
-// splitBadges extracts [EXPERIMENTAL]/(BETA) markers from a command's usage,
-// returning the badge sentinels (expanded to <Badge> components downstream)
-// and the remaining description text.
+// splitBadges extracts status markers from a command's usage, returning the
+// rendered badge <span> elements (space-separated) and the remaining
+// description text. To add a status (e.g. alpha), add a row to the table below
+// and an optional `.cli-badge-<label>` colour rule in the docs site CSS; the
+// base `.cli-badge` style already renders an unknown badge as a neutral pill.
 func splitBadges(usage string) (string, string) {
-	badges := ""
+	markers := []struct{ marker, label string }{
+		{"[EXPERIMENTAL]", "Experimental"},
+		{"(BETA)", "Beta"},
+	}
+
+	badges := make([]string, 0, len(markers))
 	desc := strings.TrimSpace(usage)
 
-	if strings.HasPrefix(desc, "[EXPERIMENTAL]") {
-		badges += "%%BADGE:Experimental%%"
-		desc = strings.TrimSpace(strings.TrimPrefix(desc, "[EXPERIMENTAL]"))
-	}
-
-	if strings.Contains(desc, "(BETA)") {
-		if badges != "" {
-			badges += " "
+	for _, m := range markers {
+		if !strings.Contains(desc, m.marker) {
+			continue
 		}
 
-		badges += "%%BADGE:Beta%%"
-		desc = strings.TrimSpace(strings.ReplaceAll(desc, "(BETA)", ""))
+		badges = append(badges, badge(m.label))
+		desc = strings.TrimSpace(strings.ReplaceAll(desc, m.marker, ""))
 	}
 
-	return badges, desc
+	return strings.Join(badges, " "), desc
+}
+
+// badge renders a status label as the inline <span> styled by the docs site.
+func badge(label string) string {
+	return fmt.Sprintf(
+		`<span class="cli-badge cli-badge-%s">%s</span>`,
+		strings.ToLower(label),
+		label,
+	)
 }
 
 // renderOptionTable renders a command's flags as a header-less two-column table
@@ -300,31 +317,51 @@ var codeifyRE = regexp.MustCompile(
 )
 
 // codeify wraps recognized technical tokens in free text in inline code,
-// keeping trailing sentence punctuation outside the code span.
+// keeping trailing sentence punctuation outside the code span. Angle brackets in
+// the surrounding (non-code) text are escaped so the result is MDX-safe.
 func codeify(s string) string {
-	return codeifyRE.ReplaceAllStringFunc(s, func(match string) string {
+	var b strings.Builder
+
+	last := 0
+	for _, loc := range codeifyRE.FindAllStringIndex(s, -1) {
+		b.WriteString(escapeAngles(s[last:loc[0]]))
+
+		match := s[loc[0]:loc[1]]
+
 		trail := ""
 		for len(match) > 0 {
-			last := match[len(match)-1]
-			if last != '.' && last != ',' {
+			c := match[len(match)-1]
+			if c != '.' && c != ',' {
 				break
 			}
 
-			trail = string(last) + trail
+			trail = string(c) + trail
 			match = match[:len(match)-1]
 		}
 
-		return code(match) + trail
-	})
+		b.WriteString(code(match) + trail)
+
+		last = loc[1]
+	}
+
+	b.WriteString(escapeAngles(s[last:]))
+
+	return b.String()
 }
 
-// code wraps a token in inline-code backticks, using sentinels for angle
-// brackets so they survive the downstream HTML-escaping pass and render
-// literally inside the code span.
+// escapeAngles makes free text MDX-safe by escaping the angle brackets it would
+// otherwise parse as JSX. Inline code spans are exempt (see code).
+func escapeAngles(s string) string {
+	s = strings.ReplaceAll(s, "<", "&lt;")
+
+	return strings.ReplaceAll(s, ">", "&gt;")
+}
+
+// code wraps a token in inline-code backticks. Angle brackets are kept literal:
+// MDX renders them verbatim inside a code span, so no escaping is needed (unlike
+// the surrounding free text; see codeify).
 func code(token string) string {
 	token = strings.ReplaceAll(token, "`", "")
-	token = strings.ReplaceAll(token, "<", "%%LT%%")
-	token = strings.ReplaceAll(token, ">", "%%GT%%")
 
 	return "`" + token + "`"
 }
@@ -338,13 +375,7 @@ func collapseSpaces(s string) string {
 
 // isHelpFlag reports whether a flag is the standard help flag.
 func isHelpFlag(f cli.Flag) bool {
-	for _, name := range f.Names() {
-		if name == "help" {
-			return true
-		}
-	}
-
-	return false
+	return slices.Contains(f.Names(), helpName)
 }
 
 // flagNames returns a command's flag names joined by ", ", each prefixed with

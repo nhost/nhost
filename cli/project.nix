@@ -29,6 +29,7 @@ let
       ./nhostclient/graphql/query
 
       (fs.fileFilter (f: f.hasExt "go") ../internal/lib/clidocs)
+      ../internal/lib/clidocs/testdata
 
       (fs.fileFilter (f: f.hasExt "go") ../internal/lib/nhostclient)
 
