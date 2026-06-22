@@ -34,6 +34,39 @@ func writeBinaryTargetComparison(
 	return params, paramIndex + 1, nil
 }
 
+func writeNegatedBinaryTargetComparison(
+	b *strings.Builder,
+	source string,
+	target comparisonTarget,
+	operator string,
+	value any,
+	d dialect.Dialect,
+	params []any,
+	paramIndex int,
+) ([]any, int, error) {
+	var condition strings.Builder
+
+	params, paramIndex, err := writeBinaryTargetComparison(
+		&condition,
+		source,
+		target,
+		operator,
+		value,
+		d,
+		params,
+		paramIndex,
+	)
+	if err != nil {
+		return nil, 0, err
+	}
+
+	b.WriteString("NOT (")
+	b.WriteString(condition.String())
+	b.WriteByte(')')
+
+	return params, paramIndex, nil
+}
+
 func sqlTypeValueExpression(d dialect.Dialect, sqlType string, paramIndex int) string {
 	placeholder := d.Placeholder(paramIndex)
 	if pgtypes.IsSpatial(sqlType) && d.SupportsSpatialTypes() {
@@ -107,10 +140,24 @@ func (f *notEqualsFilter) WriteCondition(
 	params []any,
 	paramIndex int,
 ) ([]any, int, error) {
+	target := comparisonTargetFor(f.column, f.target)
+	if pgtypes.IsSpatial(target.sqlType) && f.dialect.SupportsSpatialTypes() {
+		return writeNegatedBinaryTargetComparison(
+			b,
+			source,
+			target,
+			" = ",
+			f.value,
+			f.dialect,
+			params,
+			paramIndex,
+		)
+	}
+
 	return writeBinaryTargetComparison(
 		b,
 		source,
-		comparisonTargetFor(f.column, f.target),
+		target,
 		" != ",
 		f.value,
 		f.dialect,

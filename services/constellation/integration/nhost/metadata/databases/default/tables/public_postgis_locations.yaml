@@ -23,6 +23,13 @@ select_permissions:
         - nullable_geom
       filter: {}
       allow_aggregations: true
+  - role: spatial_limited
+    permission:
+      columns:
+        - id
+        - name
+        - geog
+      filter: {}
   - role: user
     permission:
       columns:
@@ -45,3 +52,7 @@ update_permissions:
         - nullable_geom
       filter: {}
       check: {}
+delete_permissions:
+  - role: user
+    permission:
+      filter: {}

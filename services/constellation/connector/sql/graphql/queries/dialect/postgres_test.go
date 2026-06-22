@@ -157,6 +157,18 @@ func TestPostgresDialect_SpatialExpressions(t *testing.T) {
 	if got := d.SpatialOutputExpression(`"t"."id"`, "uuid"); got != `"t"."id"` {
 		t.Fatalf("SpatialOutputExpression non-spatial = %q", got)
 	}
+
+	if got := d.SpatialCastExpression("$1", "text", "geometry"); got != "($1)::geometry" {
+		t.Fatalf("SpatialCastExpression geometry = %q", got)
+	}
+
+	if got := d.SpatialCastExpression("$2", "text", "geography"); got != "($2)::geography" {
+		t.Fatalf("SpatialCastExpression geography = %q", got)
+	}
+
+	if got := d.SpatialCastExpression("$3", "text", "uuid"); got != "$3" {
+		t.Fatalf("SpatialCastExpression non-spatial = %q", got)
+	}
 }
 
 func TestPostgresDialect_WriteSpatialArrayIn(t *testing.T) {
