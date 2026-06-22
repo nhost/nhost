@@ -12,10 +12,12 @@ import (
 	"github.com/nhost/nhost/services/constellation/metadata/internal/hasura"
 )
 
-// untrackDeps holds the database facts a faithful pg_untrack_table cascade needs
-// but the metadata snapshot cannot supply. It is loaded once, before Apply, from
-// the Store's Queryer, and is nil for a metadata-only cascade (no DB handle, or a
-// non-cascade untrack).
+// untrackDeps holds the database facts a faithful pg_untrack_table needs but the
+// metadata snapshot cannot supply. It is loaded once, before Apply, from the
+// source's data database, and feeds both the cascade drop (cascadeUntrack) and
+// the non-cascade dependency gate (tableHasReverseDependents). It is nil for a
+// metadata-only resolution (the source has no resolvable data URL, or the data
+// database is unreachable).
 type untrackDeps struct {
 	// fkByOwnerCols resolves a bare foreign_key_constraint_on (columns that live
 	// on the relationship's own table) to the table the FK references. Hasura's
@@ -46,9 +48,13 @@ JOIN pg_class c ON c.oid = t.typrelid
 JOIN pg_namespace cn ON cn.oid = c.relnamespace
 WHERE cn.nspname = $1 AND c.relname = $2`
 
-// loadUntrackDeps introspects the database facts the cascade needs but the
-// metadata cannot supply: the foreign-key graph and function return types of
-// the untracked table's *source data database*.
+// loadUntrackDeps introspects the database facts pg_untrack_table needs but the
+// metadata cannot supply: the foreign-key graph and function return types of the
+// untracked table's *source data database*. The result feeds both the cascade
+// drop (cascadeUntrack) and the non-cascade dependency gate
+// (tableHasReverseDependents), so it is loaded for every pg_untrack_table —
+// cascade or not — since the non-cascade gate must also see bare-FK reverse
+// relationships and functions returning the table to match Hasura.
 //
 // The introspection targets the source's own connection (resolved from its
 // connection_info.database_url), not the Store's metadata-store handle. In a
@@ -59,22 +65,19 @@ WHERE cn.nspname = $1 AND c.relname = $2`
 // pg_untrack_table is a rare admin op, so a per-call connection is cheaper than
 // a Store-lifetime pool and avoids adding pool lifecycle to the Store.
 //
-// It returns (nil, nil) — a metadata-only cascade — when the op is not a
-// cascade, the source has no resolvable data URL (file source, unset env), or
-// the data database is unreachable. The metadata-only cascade still drops
-// relationships with metadata-explicit targets, cross-source remote
-// relationships, and permissions referencing the table directly via `_exists`;
-// it cannot resolve bare foreign-key relationships or function return types,
-// which then drop at reconcile as inconsistencies (see KNOWN_DIFFERENCES.md).
+// It returns (nil, nil) — a metadata-only resolution — when the source has no
+// resolvable data URL (file source, unset env) or the data database is
+// unreachable. The metadata-only resolution still handles relationships with
+// metadata-explicit targets, cross-source remote relationships, and permissions
+// referencing the table directly via `_exists`; it cannot resolve bare
+// foreign-key relationships or function return types, which (on cascade) then
+// drop at reconcile as inconsistencies and (on a non-cascade untrack) do not
+// block the drop (see KNOWN_DIFFERENCES.md).
 func (s *Store) loadUntrackDeps(ctx context.Context, argsJSON []byte) (*untrackDeps, error) {
 	var a pgUntrackTableArgs
 	if err := json.Unmarshal(argsJSON, &a); err != nil {
 		// Defer the parse error to buildPgUntrackTable, which owns arg validation
 		// and returns the Hasura-shaped message.
-		return nil, nil //nolint:nilnil
-	}
-
-	if !a.Cascade {
 		return nil, nil //nolint:nilnil
 	}
 
@@ -88,8 +91,8 @@ func (s *Store) loadUntrackDeps(ctx context.Context, argsJSON []byte) (*untrackD
 		if s.logger != nil {
 			s.logger.WarnContext(
 				ctx,
-				"pg_untrack_table cascade: data database unreachable; "+
-					"falling back to metadata-only cascade",
+				"pg_untrack_table: data database unreachable; "+
+					"resolving table dependents from metadata only",
 				"source", defaultIfEmpty(a.Source), "error", err,
 			)
 		}
@@ -236,6 +239,169 @@ func cascadeUntrack(
 	cascadeReverseRelationships(tdb, relTarget, target)
 	cascadeFunctions(tdb, deps)
 	cascadePermissions(tdb, relTarget, target)
+}
+
+// tableHasReverseDependents reports whether any metadata object OTHER than the
+// target table depends on target in source: an object/array relationship in
+// another table of the source that resolves to it, a to_source remote
+// relationship (in any source) that targets it, a function whose return type is
+// it, or a permission on another table whose row filter reaches it (directly via
+// `_exists` or through a relationship path). It detects exactly the set
+// cascadeUntrack drops, reusing the same predicates, so the non-cascade
+// pg_untrack_table gate can refuse with dependency-error — matching Hasura —
+// rather than orphaning a dangling reference in the exported metadata.
+//
+// It must run BEFORE the target table is removed from the snapshot. The target's
+// OWN dependents are skipped here; they are covered by tableHasDependents and are
+// dropped together with the table.
+//
+// deps carries the database facts (FK graph, function return types) the metadata
+// cannot supply; when nil (data database unreachable or unresolvable), bare
+// foreign_key_constraint_on relationships and function return types are not
+// detected and so do not block — the documented metadata-only degradation (see
+// KNOWN_DIFFERENCES.md).
+func tableHasReverseDependents(
+	h *hasura.Metadata, source string, target hasura.TableSource, deps *untrackDeps,
+) bool {
+	if hasReverseRemoteRelationship(h, source, target) {
+		return true
+	}
+
+	tdb := findDatabase(h, source)
+	if tdb == nil {
+		return false
+	}
+
+	if hasFunctionReturningTarget(tdb, deps) {
+		return true
+	}
+
+	return tableHasReverseRelOrPerm(tdb, target, deps)
+}
+
+// hasReverseRemoteRelationship reports whether any table in any source holds a
+// to_source remote relationship targeting target in source.
+func hasReverseRemoteRelationship(
+	h *hasura.Metadata, source string, target hasura.TableSource,
+) bool {
+	for di := range h.Databases {
+		db := &h.Databases[di]
+		for ti := range db.Tables {
+			for _, rr := range db.Tables[ti].RemoteRelationships {
+				if remoteRelTargets(rr, source, target) {
+					return true
+				}
+			}
+		}
+	}
+
+	return false
+}
+
+// hasFunctionReturningTarget reports whether any function tracked in tdb returns
+// the target table. Resolved only from the database introspection in deps; nil
+// deps cannot detect these (the documented metadata-only degradation).
+func hasFunctionReturningTarget(tdb *hasura.DatabaseMetadata, deps *untrackDeps) bool {
+	if deps == nil {
+		return false
+	}
+
+	for _, fn := range tdb.Functions {
+		f := fn.Function
+		if _, ok := deps.funcsReturningTarget[funcKey(f.Schema, f.Name)]; ok {
+			return true
+		}
+	}
+
+	return false
+}
+
+// tableHasReverseRelOrPerm reports whether any table OTHER than target holds an
+// object/array relationship resolving to target, or a permission whose filter
+// reaches target. relTarget resolves every relationship's target up front so the
+// permission walk can follow relationship hops.
+func tableHasReverseRelOrPerm(
+	tdb *hasura.DatabaseMetadata, target hasura.TableSource, deps *untrackDeps,
+) bool {
+	relTarget := buildRelTargetMap(tdb, deps)
+
+	for ti := range tdb.Tables {
+		t := &tdb.Tables[ti]
+		if tableEquals(t.Table, target) {
+			continue // the target's own dependents go with the table
+		}
+
+		if tableRelTargets(t, relTarget, target) {
+			return true
+		}
+
+		owner := t.Table
+		refs := func(expr hasura.PermissionExpression) bool {
+			return permissionRefsTable(expr, owner, relTarget, target)
+		}
+
+		if anyPermissionRefs(t, refs) {
+			return true
+		}
+	}
+
+	return false
+}
+
+// tableRelTargets reports whether table t has an object or array relationship
+// whose resolved target is target.
+func tableRelTargets(
+	t *hasura.TableMetadata,
+	relTarget map[string]hasura.TableSource,
+	target hasura.TableSource,
+) bool {
+	for _, r := range t.ObjectRelationships {
+		if tgt, ok := relTarget[relKey(t.Table, r.Name)]; ok && tableEquals(tgt, target) {
+			return true
+		}
+	}
+
+	for _, r := range t.ArrayRelationships {
+		if tgt, ok := relTarget[relKey(t.Table, r.Name)]; ok && tableEquals(tgt, target) {
+			return true
+		}
+	}
+
+	return false
+}
+
+// anyPermissionRefs reports whether any of table t's select/insert/update/delete
+// permission expressions satisfy refs. Mirrors the per-kind expression set
+// cascadePermissions drops (insert checks Check; update checks Filter and Check;
+// select/delete check Filter).
+func anyPermissionRefs(
+	t *hasura.TableMetadata, refs func(hasura.PermissionExpression) bool,
+) bool {
+	for _, p := range t.SelectPermissions {
+		if refs(p.Permission.Filter) {
+			return true
+		}
+	}
+
+	for _, p := range t.InsertPermissions {
+		if refs(p.Permission.Check) {
+			return true
+		}
+	}
+
+	for _, p := range t.UpdatePermissions {
+		if refs(p.Permission.Filter) || refs(p.Permission.Check) {
+			return true
+		}
+	}
+
+	for _, p := range t.DeletePermissions {
+		if refs(p.Permission.Filter) {
+			return true
+		}
+	}
+
+	return false
 }
 
 // buildRelTargetMap maps each object/array relationship to its target table,

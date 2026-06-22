@@ -92,11 +92,20 @@ func buildPgUntrackTable(argsJSON []byte, deps *untrackDeps) (MutationFn, error)
 			)
 		}
 
-		if !a.Cascade && tableHasDependents(db.Tables[idx]) {
+		target := db.Tables[idx].Table
+
+		// Without cascade, refuse the untrack if the table has dependents —
+		// both its OWN permissions/relationships and any REVERSE dependent
+		// elsewhere in the metadata (a relationship pointing at it, a function
+		// returning it, or a permission referencing it). Hasura returns
+		// dependency-error in both cases; dropping the table anyway would leave
+		// a dangling reference in the exported metadata.
+		if !a.Cascade &&
+			(tableHasDependents(db.Tables[idx]) ||
+				tableHasReverseDependents(h, source, target, deps)) {
 			return "", ErrTableHasDependents
 		}
 
-		target := db.Tables[idx].Table
 		db.Tables = removeAt(db.Tables, idx)
 
 		// Removing the table drops its own dependents. Hasura's cascade also
@@ -112,10 +121,12 @@ func buildPgUntrackTable(argsJSON []byte, deps *untrackDeps) (MutationFn, error)
 	}, nil
 }
 
-// tableHasDependents reports whether the table has any permissions,
+// tableHasDependents reports whether the table has any of its OWN permissions,
 // relationships, event triggers, or remote relationships configured. Used by
 // pg_untrack_table to enforce the cascade flag: dropping the table without
-// cascade must fail rather than silently discard these dependents.
+// cascade must fail rather than silently discard these dependents. Reverse
+// dependents owned by other tables are detected separately by
+// tableHasReverseDependents.
 func tableHasDependents(t hasura.TableMetadata) bool {
 	return len(t.SelectPermissions) > 0 ||
 		len(t.InsertPermissions) > 0 ||

@@ -263,4 +263,55 @@ func TestReloadIfStale_ZeroForcesReload(t *testing.T) {
 	if q.metadataIdx.Load() != 1 {
 		t.Errorf("metadata query issued %d times, want 1", q.metadataIdx.Load())
 	}
+
+	// A genuine change must broadcast so the controller hot-reloads.
+	select {
+	case <-s.ch:
+	default:
+		t.Error("expected a broadcast after the version advanced 7->11")
+	}
+}
+
+// TestReloadIfStale_ZeroSkipsBroadcastWhenUnchanged pins the catch-up contract:
+// the on-(re)connect catch-up reload (ReloadIfStale(ctx, 0)) reads the database
+// to learn the current version, but when that version equals the one already
+// held it skips the snapshot swap and the broadcast — so a transient listener
+// reconnect does not drive a connector rebuild or tear down live subscriptions
+// when no metadata actually changed.
+func TestReloadIfStale_ZeroSkipsBroadcastWhenUnchanged(t *testing.T) {
+	t.Parallel()
+
+	q := &fakeStore{
+		metadataRows: []fakeRow{
+			// Same resource_version the Store was bootstrapped at (7).
+			{dest: []any{[]byte(trackedSnapshotJSON), int64(7)}},
+		},
+	}
+	s := bootstrappedStoreWithQueryer(t, q)
+
+	rv, _, err := s.ReloadIfStale(t.Context(), 0)
+	if err != nil {
+		t.Fatalf("ReloadIfStale(0, unchanged): %v", err)
+	}
+
+	if rv != 7 {
+		t.Errorf("rv = %d, want 7 (unchanged)", rv)
+	}
+
+	// The database WAS read (the version had to be fetched to compare it)...
+	if q.metadataIdx.Load() != 1 {
+		t.Errorf(
+			"metadata query issued %d times, want 1 (read to compare version)",
+			q.metadataIdx.Load(),
+		)
+	}
+
+	// ...but no Update was broadcast, since the snapshot did not change. The
+	// broadcast is synchronous (under s.mu, before ReloadIfStale returns), so a
+	// non-blocking read is conclusive.
+	select {
+	case <-s.ch:
+		t.Fatal("unexpected broadcast on a catch-up reload at an unchanged version")
+	default:
+	}
 }

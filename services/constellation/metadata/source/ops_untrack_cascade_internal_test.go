@@ -1,6 +1,7 @@
 package source
 
 import (
+	"errors"
 	"strings"
 	"testing"
 
@@ -182,6 +183,140 @@ func funcExists(db hasura.DatabaseMetadata, name string) bool {
 	}
 
 	return false
+}
+
+// TestPgUntrackTable_NoCascade_BlocksOnReverseDependent pins the Hasura-parity
+// gate: an uncascaded pg_untrack_table fails with dependency-error when another
+// table holds a relationship pointing AT the target (here a metadata-explicit
+// manual_configuration, resolvable without DB introspection), even though the
+// target itself has no own dependents. Without this gate the table would be
+// removed while leaving a dangling reference in the exported metadata.
+func TestPgUntrackTable_NoCascade_BlocksOnReverseDependent(t *testing.T) {
+	t.Parallel()
+
+	w := &fakeWriter{}
+	s := bootstrappedStore(t, w) // metadata-only (queryer == nil)
+
+	for _, tbl := range []string{"departments", "user_departments"} {
+		if _, _, err := s.PgTrackTable(t.Context(), []byte(
+			`{"source":"default","table":{"schema":"public","name":"`+tbl+`"}}`,
+		)); err != nil {
+			t.Fatalf("PgTrackTable(%s): %v", tbl, err)
+		}
+	}
+
+	if _, _, err := s.PgCreateObjectRelationship(t.Context(), []byte(
+		`{"source":"default","table":{"schema":"public","name":"departments"},`+
+			`"name":"manual_to_udept","using":{"manual_configuration":`+
+			`{"remote_table":{"schema":"public","name":"user_departments"},`+
+			`"column_mapping":{"id":"department_id"}}}}`,
+	)); err != nil {
+		t.Fatalf("create reverse relationship: %v", err)
+	}
+
+	writesBefore := w.callCount()
+
+	_, _, err := s.PgUntrackTable(t.Context(), []byte(
+		`{"source":"default","table":{"schema":"public","name":"user_departments"}}`,
+	))
+	if !errors.Is(err, ErrTableHasDependents) {
+		t.Fatalf("err = %v, want ErrTableHasDependents", err)
+	}
+
+	if got := w.callCount(); got != writesBefore {
+		t.Errorf(
+			"writer called %d times after a blocked untrack, want %d (no write)",
+			got,
+			writesBefore,
+		)
+	}
+}
+
+// TestPgUntrackTable_NoCascade_CleanTableSucceeds is the positive control: a
+// table with no own dependents and nothing pointing at it untracks without
+// cascade.
+func TestPgUntrackTable_NoCascade_CleanTableSucceeds(t *testing.T) {
+	t.Parallel()
+
+	s := bootstrappedStore(t, &fakeWriter{})
+
+	if _, _, err := s.PgTrackTable(t.Context(), []byte(
+		`{"source":"default","table":{"schema":"public","name":"users"}}`,
+	)); err != nil {
+		t.Fatalf("PgTrackTable: %v", err)
+	}
+
+	if _, _, err := s.PgUntrackTable(t.Context(), []byte(
+		`{"source":"default","table":{"schema":"public","name":"users"}}`,
+	)); err != nil {
+		t.Fatalf("PgUntrackTable(clean, no cascade): %v", err)
+	}
+}
+
+// reverseDepFixtureJSON has departments pointing at user_departments only
+// through facts the database knows: a bare foreign_key_constraint_on
+// relationship (no target table in metadata) and a function whose return type is
+// the table. Neither is resolvable from metadata alone.
+const reverseDepFixtureJSON = `{
+  "version": 3,
+  "sources": [
+    {
+      "name": "default",
+      "kind": "postgres",
+      "tables": [
+        {
+          "table": {"schema": "public", "name": "departments"},
+          "object_relationships": [
+            {"name": "owning_udept", "using": {"foreign_key_constraint_on": "department_id"}}
+          ]
+        }
+      ],
+      "functions": [
+        {"function": {"schema": "public", "name": "get_department_manager"}}
+      ],
+      "configuration": {"connection_info": {"database_url": {"from_env": "PG_URL"}}}
+    }
+  ]
+}`
+
+// TestTableHasReverseDependents_DBFactsGateDetection pins that reverse dependents
+// only the database can resolve — a bare foreign_key_constraint_on relationship
+// and a function whose return type is the table — block an uncascaded untrack
+// ONLY when the introspected deps are available, and degrade to a no-block
+// metadata-only pass when they are not (the documented degradation).
+func TestTableHasReverseDependents_DBFactsGateDetection(t *testing.T) {
+	t.Parallel()
+
+	h, err := hasura.FromJSON([]byte(reverseDepFixtureJSON))
+	if err != nil {
+		t.Fatalf("hasura.FromJSON: %v", err)
+	}
+
+	target := hasura.TableSource{Schema: "public", Name: "user_departments"}
+
+	// Metadata-only: the bare FK and the function are invisible, so nothing
+	// blocks.
+	if tableHasReverseDependents(h, "default", target, nil) {
+		t.Error("metadata-only detection saw a DB-only reverse dependent; want none")
+	}
+
+	// With introspected deps, both the bare-FK relationship and the function
+	// resolve to the target, so the untrack is blocked.
+	deps := &untrackDeps{
+		fkByOwnerCols: map[string]hasura.TableSource{
+			fkOwnerKey(
+				hasura.TableSource{Schema: "public", Name: "departments"},
+				[]string{"department_id"},
+			): target,
+		},
+		funcsReturningTarget: map[string]struct{}{
+			funcKey("public", "get_department_manager"): {},
+		},
+	}
+
+	if !tableHasReverseDependents(h, "default", target, deps) {
+		t.Error("deps-backed detection missed the bare-FK / function reverse dependent")
+	}
 }
 
 // TestPgUntrackTable_Cascade_DropsReverseDependents pins the Hasura-parity

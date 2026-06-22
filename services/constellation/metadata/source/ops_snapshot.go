@@ -112,8 +112,36 @@ func (s *Store) ClearMetadata(
 // Apply, this does not write — it picks up an external write performed
 // by some other process. Resource version is taken from the database.
 //
+// This backs the reload_metadata op, whose contract is to force a re-read AND a
+// schema-cache rebuild even when the resource_version is unchanged (e.g. to pick
+// up a data-database schema change that did not alter metadata), so it always
+// swaps and broadcasts. The cross-replica catch-up path has the opposite need
+// and uses reloadFromDB(ctx, false) via ReloadIfStale.
+//
 // Returns the freshly loaded resource_version.
 func (s *Store) ReloadMetadata(ctx context.Context, _ []byte) (int64, IdempotencyCode, error) {
+	return s.reloadFromDB(ctx, true /* forceRebuild */)
+}
+
+// reloadFromDB re-fetches hdb_metadata via the Store's Queryer under s.mu and,
+// when the snapshot changed (or forceRebuild is set), swaps the in-memory state
+// and broadcasts on Watch.
+//
+// forceRebuild=false is the cross-replica / catch-up contract: when the freshly
+// read resource_version equals the one already held, the swap and broadcast are
+// skipped. The notify listener runs a catch-up reload on every (re)connect (an
+// empty payload → ReloadIfStale(0) → here with forceRebuild=false); without the
+// skip a transient listen-connection blip would broadcast, which drives the
+// Controller hot-reload to rebuild every connector and tear down live
+// subscriptions even though no metadata changed. The rv comparison is done under
+// s.mu, so it is atomic with any concurrent Apply (which holds s.mu across its
+// own write) — no newer version can slip past it unseen.
+//
+// forceRebuild=true (the reload_metadata op) always swaps and broadcasts, even at
+// an unchanged version, to honor that op's reload-and-rebuild contract.
+func (s *Store) reloadFromDB(
+	ctx context.Context, forceRebuild bool,
+) (int64, IdempotencyCode, error) {
 	if !s.initOnce.Load() {
 		return 0, "", ErrStoreNotInitialized
 	}
@@ -146,6 +174,15 @@ func (s *Store) ReloadMetadata(ctx context.Context, _ []byte) (int64, Idempotenc
 		return 0, "", fmt.Errorf("reload_metadata: fetching hdb_metadata: %w", err)
 	}
 
+	// Catch-up path (forceRebuild=false): when nothing changed, skip the
+	// re-parse, the snapshot swap, and the broadcast, so a transient notify
+	// reconnect does not needlessly rebuild connectors / drop live
+	// subscriptions. Compared under s.mu so a concurrent Apply cannot have
+	// slipped a newer version past this check.
+	if !forceRebuild && rv == s.resourceVersion {
+		return rv, "", nil
+	}
+
 	h, err := hasura.FromJSON(raw)
 	if err != nil {
 		return 0, "", fmt.Errorf("reload_metadata: parsing snapshot: %w", err)
@@ -167,9 +204,16 @@ func (s *Store) ReloadMetadata(ctx context.Context, _ []byte) (int64, Idempotenc
 // ReloadIfStale reloads the in-memory snapshot from the database only when
 // notifiedRV is newer than the version the Store currently holds. It is the
 // callback the cross-replica notify listener invokes (see ListenAndReload): a
-// notifiedRV of 0 — an unparseable payload — forces an unconditional reload.
-// When the Store is already at or ahead of notifiedRV this is a no-op, so a
-// replica does not pointlessly reload in response to its own write.
+// notifiedRV of 0 — an unparseable payload, or the catch-up reload run on every
+// (re)connect — forces the database re-read. When the Store is already at or
+// ahead of notifiedRV this is a no-op, so a replica does not pointlessly reload
+// in response to its own write.
+//
+// The reload goes through reloadFromDB with forceRebuild=false: even the
+// notifiedRV-0 forced re-read still skips the snapshot swap and broadcast when
+// the freshly read resource_version matches the one held, so a transient
+// listener reconnect cannot trigger a connector rebuild / subscription teardown
+// when no metadata actually changed.
 func (s *Store) ReloadIfStale(
 	ctx context.Context, notifiedRV int64,
 ) (int64, IdempotencyCode, error) {
@@ -177,7 +221,7 @@ func (s *Store) ReloadIfStale(
 		return s.ResourceVersion(), "", nil
 	}
 
-	return s.ReloadMetadata(ctx, nil)
+	return s.reloadFromDB(ctx, false /* forceRebuild */)
 }
 
 // ReconcileAfterProxy refreshes the in-memory snapshot from the database after
