@@ -30,6 +30,9 @@ type (
 	RemoteSchemaPermission = api.RemoteSchemaPermissionMetadata
 	// RemoteSchemaPermissionDef holds the role-scoped SDL schema.
 	RemoteSchemaPermissionDef = api.RemoteSchemaPermissionDefinition
+	// RemoteSchemaHeaderItem is one entry of definition.headers: the
+	// HeaderConfValue|HeaderConfFromEnv union (no discriminator).
+	RemoteSchemaHeaderItem = api.RemoteSchemaDef_Headers_Item
 	// RemoteSchemaTypeRemoteRelationship groups a type's remote relationships.
 	RemoteSchemaTypeRemoteRelationship = api.RemoteSchemaMetadataRemoteRelationshipDefinition
 	// RemoteSchemaRelationshipDef is one named remote relationship.

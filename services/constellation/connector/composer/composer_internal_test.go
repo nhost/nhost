@@ -291,8 +291,9 @@ func TestRSRelationshipSpec(t *testing.T) {
 					},
 				},
 			},
-			wantOK:  true,
-			wantArr: true,
+			wantOK:     true,
+			wantArr:    true,
+			wantTarget: "default",
 		},
 		{
 			name: "rs_to_db_object",
@@ -309,8 +310,9 @@ func TestRSRelationshipSpec(t *testing.T) {
 					},
 				},
 			},
-			wantOK:  true,
-			wantArr: false,
+			wantOK:     true,
+			wantArr:    false,
+			wantTarget: "default",
 		},
 		{
 			name: "rs_to_db_invalid_relationship_type",
@@ -393,10 +395,9 @@ func TestRSRelationshipSpec(t *testing.T) {
 				t.Errorf("IsArray = %v, want %v", spec.IsArray, tt.wantArr)
 			}
 
-			// rs→rs sets the remote-schema target, the leading remote-field
-			// name, and carries the LHS→argument bindings; rs→db leaves these
-			// empty (the want* fields default to zero).
-			if spec.TargetConnector != tt.wantTarget && tt.wantTarget != "" {
+			// Every wantOK case sets wantTarget: rs→db expects the source name
+			// (the to_source target connector), rs→rs the remote-schema name.
+			if spec.TargetConnector != tt.wantTarget {
 				t.Errorf("TargetConnector = %q, want %q", spec.TargetConnector, tt.wantTarget)
 			}
 

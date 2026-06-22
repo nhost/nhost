@@ -217,6 +217,60 @@ func TestAddRemoteSchema_RejectsMissingNameAndURL(t *testing.T) {
 	}
 }
 
+// TestAddRemoteSchema_RejectsBadHeaders pins that a header whose value /
+// value_from_env is present but not a JSON string (or that has no name) is
+// rejected at parse time rather than silently dropped during conversion to the
+// native model. The generated header union stores raw bytes without
+// type-checking, so this validation is what stops a credential header from
+// vanishing on add/update_remote_schema.
+func TestAddRemoteSchema_RejectsBadHeaders(t *testing.T) {
+	t.Parallel()
+
+	cases := map[string]string{
+		"non-string value_from_env": `{"name":"rs","definition":{"url":"http://x.test",` +
+			`"headers":[{"name":"x-api-key","value_from_env":123}]}}`,
+		"non-string value": `{"name":"rs","definition":{"url":"http://x.test",` +
+			`"headers":[{"name":"x-api-key","value":true}]}}`,
+		"empty header name": `{"name":"rs","definition":{"url":"http://x.test",` +
+			`"headers":[{"value":"v"}]}}`,
+	}
+
+	for name, args := range cases {
+		t.Run(name, func(t *testing.T) {
+			t.Parallel()
+
+			s := bootstrappedStore(t, &fakeWriter{})
+
+			if _, _, err := s.AddRemoteSchema(t.Context(), []byte(args)); !errors.Is(
+				err, errMissingRequiredField,
+			) {
+				t.Fatalf("err = %v, want errMissingRequiredField", err)
+			}
+		})
+	}
+}
+
+// TestAddRemoteSchema_AcceptsValidAndNameOnlyHeaders verifies the header
+// validation does not over-reject: a literal value, a value_from_env, and a
+// name-only header (neither field set) are all accepted. The name-only shape
+// matches what the YAML file source allows.
+func TestAddRemoteSchema_AcceptsValidAndNameOnlyHeaders(t *testing.T) {
+	t.Parallel()
+
+	w := &fakeWriter{}
+	s := bootstrappedStore(t, w)
+	s.SetRemoteSchemaValidator((&recordingValidator{}).validate)
+
+	args := `{"name":"rs","definition":{"url":"http://x.test","headers":[` +
+		`{"name":"a","value":"lit"},` +
+		`{"name":"b","value_from_env":"ENV"},` +
+		`{"name":"c"}]}}`
+
+	if _, _, err := s.AddRemoteSchema(t.Context(), []byte(args)); err != nil {
+		t.Fatalf("AddRemoteSchema with valid headers: %v", err)
+	}
+}
+
 func TestRemoveRemoteSchema(t *testing.T) {
 	t.Parallel()
 

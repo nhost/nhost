@@ -650,10 +650,13 @@ func convertRemoteSchemaHeaders(
 			ValueFromEnv string `json:"value_from_env"`
 		}
 
-		// Unreachable for validated wire input (the union's MarshalJSON only
-		// returns its stored bytes, and malformed headers are rejected upstream
-		// by parseRemoteSchemaInfo / the YAML bridge); skip rather than emit a
-		// header with an empty name if a projection ever fails.
+		// The MarshalJSON error is unreachable (the union's MarshalJSON only
+		// returns its stored bytes with a nil error). The Unmarshal error is
+		// reachable only for a header whose value / value_from_env is present
+		// but not a JSON string — that input is rejected before persisting on
+		// the DB-store mutation path (parseRemoteSchemaInfo), so here it can
+		// arise only from the YAML file source, where dropping a malformed
+		// header is preferable to emitting one with an empty name.
 		b, err := item.MarshalJSON()
 		if err != nil {
 			continue

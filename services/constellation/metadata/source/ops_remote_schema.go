@@ -90,7 +90,76 @@ func parseRemoteSchemaInfo(argsJSON []byte, op string) (hasura.RemoteSchemaMetad
 		)
 	}
 
+	if err := validateRemoteSchemaHeaders(rs.Definition.Headers, op); err != nil {
+		return rs, err
+	}
+
 	return rs, nil
+}
+
+// validateRemoteSchemaHeaders rejects a header whose value / value_from_env is
+// present but not a JSON string. The generated header union (api.RemoteSchemaDef
+// _Headers_Item) stores raw bytes without type-checking, so a header such as
+// {"name":"x","value_from_env":123} decodes here without error and would
+// otherwise be silently dropped when converted to the native model (see
+// convertRemoteSchemaHeaders in metadata/convert.go), registering the schema
+// without its credential header. Hasura rejects such input; so do we. A header
+// with neither field set (only a name) stays valid, matching the YAML
+// file-source behaviour.
+func validateRemoteSchemaHeaders(headers *[]hasura.RemoteSchemaHeaderItem, op string) error {
+	if headers == nil {
+		return nil
+	}
+
+	for i := range *headers {
+		b, err := (*headers)[i].MarshalJSON()
+		if err != nil {
+			return fmt.Errorf(
+				"%w: %s: header %d is malformed: %w", errMissingRequiredField, op, i, err,
+			)
+		}
+
+		var probe struct {
+			Name         string             `json:"name"`
+			Value        stdjson.RawMessage `json:"value"`
+			ValueFromEnv stdjson.RawMessage `json:"value_from_env"`
+		}
+
+		if err := stdjson.Unmarshal(b, &probe); err != nil {
+			return fmt.Errorf(
+				"%w: %s: header %d is malformed: %w", errMissingRequiredField, op, i, err,
+			)
+		}
+
+		if probe.Name == "" {
+			return fmt.Errorf(
+				"%w: %s: header %d: name is required", errMissingRequiredField, op, i,
+			)
+		}
+
+		if !jsonStringOrAbsent(probe.Value) || !jsonStringOrAbsent(probe.ValueFromEnv) {
+			return fmt.Errorf(
+				"%w: %s: header %q: value and value_from_env must be strings",
+				errMissingRequiredField, op, probe.Name,
+			)
+		}
+	}
+
+	return nil
+}
+
+// jsonStringOrAbsent reports whether raw is absent (the key was not present) or
+// is a JSON string. A present-but-non-string value (number, bool, object) is
+// rejected so it cannot be silently dropped during conversion to the native
+// model.
+func jsonStringOrAbsent(raw stdjson.RawMessage) bool {
+	if len(raw) == 0 {
+		return true
+	}
+
+	var s string
+
+	return stdjson.Unmarshal(raw, &s) == nil
 }
 
 // validateRemoteSchema runs the synchronous validator (URL/header resolution,
