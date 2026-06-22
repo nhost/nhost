@@ -55,6 +55,56 @@ type AccordionSectionValue = (typeof ACCORDION_SECTION_VALUES)[number];
 
 const DIRTY_SOURCE_ID = 'base-action-form';
 
+interface TransformSectionToggleProps {
+  title: string;
+  description: string;
+  enabled: boolean;
+  onToggle: () => void;
+  actionLabel: string;
+}
+
+function TransformSectionToggle({
+  title,
+  description,
+  enabled,
+  onToggle,
+  actionLabel,
+}: TransformSectionToggleProps) {
+  return (
+    <div className="flex items-end justify-between gap-2">
+      <div className="space-y-1">
+        <h3 className="font-medium text-foreground">{title}</h3>
+        <p className="text-muted-foreground text-sm">{description}</p>
+      </div>
+      <Button
+        type="button"
+        variant="outline"
+        size="sm"
+        className={cn(
+          'flex min-w-[14rem] flex-row items-center gap-2 text-foreground',
+          {
+            'border-destructive text-destructive hover:bg-destructive/10 hover:text-destructive':
+              enabled,
+          },
+        )}
+        onClick={onToggle}
+      >
+        {enabled ? (
+          <>
+            <TrashIcon className="size-4" />
+            <span>Remove {actionLabel}</span>
+          </>
+        ) : (
+          <>
+            <PlusIcon className="size-4" />
+            <span>Add {actionLabel}</span>
+          </>
+        )}
+      </Button>
+    </div>
+  );
+}
+
 export interface BaseActionFormProps extends DialogFormProps {
   initialData?: BaseActionFormInitialData;
   onSubmit: (data: BaseActionFormValues) => void | Promise<void>;
@@ -339,82 +389,25 @@ export default function BaseActionForm({
                 <AccordionContent>
                   <div className="flex flex-col gap-8 border-l">
                     <div className="flex flex-col gap-6 pl-4">
-                      <div className="flex items-end justify-between gap-2">
-                        <div className="space-y-1">
-                          <h3 className="font-medium text-foreground text-sm">
-                            Request Options Transform
-                          </h3>
-                          <p className="text-muted-foreground text-xs">
-                            Configuration to transform the request before
-                            sending it to the handler
-                          </p>
-                        </div>
-                        <Button
-                          type="button"
-                          variant="outline"
-                          size="sm"
-                          className={cn(
-                            'flex min-w-[14rem] flex-row items-center gap-2 text-foreground',
-                            {
-                              'border-destructive text-destructive hover:bg-destructive/10 hover:text-destructive':
-                                isRequestOptionsTransformEnabled,
-                            },
-                          )}
-                          onClick={toggleRequestOptionsSectionOpen}
-                        >
-                          {isRequestOptionsTransformEnabled ? (
-                            <>
-                              <TrashIcon className="size-4" />
-                              <span>Remove Options Transform</span>
-                            </>
-                          ) : (
-                            <>
-                              <PlusIcon className="size-4" />
-                              <span>Add Options Transform</span>
-                            </>
-                          )}
-                        </Button>
-                      </div>
+                      <TransformSectionToggle
+                        title="Request Options Transform"
+                        description="Configuration to transform the request before sending it to the handler"
+                        enabled={isRequestOptionsTransformEnabled}
+                        onToggle={toggleRequestOptionsSectionOpen}
+                        actionLabel="Options Transform"
+                      />
                       {isRequestOptionsTransformEnabled && (
                         <RequestOptionsFormSection />
                       )}
                       {isRequestOptionsTransformEnabled &&
                         isPayloadTransformEnabled && <Separator />}
-                      <div className="flex items-end justify-between gap-2">
-                        <div className="space-y-1">
-                          <h3 className="font-medium text-foreground">
-                            Payload Transform
-                          </h3>
-                          <p className="text-muted-foreground text-sm">
-                            Adjust the request body.
-                          </p>
-                        </div>
-                        <Button
-                          type="button"
-                          variant="outline"
-                          size="sm"
-                          className={cn(
-                            'flex min-w-[14rem] flex-row items-center gap-2 text-foreground',
-                            {
-                              'border-destructive text-destructive hover:bg-destructive/10 hover:text-destructive':
-                                isPayloadTransformEnabled,
-                            },
-                          )}
-                          onClick={togglePayloadSectionOpen}
-                        >
-                          {isPayloadTransformEnabled ? (
-                            <>
-                              <TrashIcon className="size-4" />
-                              <span>Remove Payload Transform</span>
-                            </>
-                          ) : (
-                            <>
-                              <PlusIcon className="size-4" />
-                              <span>Add Payload Transform</span>
-                            </>
-                          )}
-                        </Button>
-                      </div>
+                      <TransformSectionToggle
+                        title="Payload Transform"
+                        description="Adjust the request body."
+                        enabled={isPayloadTransformEnabled}
+                        onToggle={togglePayloadSectionOpen}
+                        actionLabel="Payload Transform"
+                      />
                       {isPayloadTransformEnabled && (
                         <PayloadTransformFormSection
                           onResetSampleInput={handleResetSampleInput}
@@ -423,42 +416,13 @@ export default function BaseActionForm({
                       {isResponseTransformEnabled &&
                         (isRequestOptionsTransformEnabled ||
                           isPayloadTransformEnabled) && <Separator />}
-                      <div className="flex items-end justify-between gap-2">
-                        <div className="space-y-1">
-                          <h3 className="font-medium text-foreground">
-                            Response Transform
-                          </h3>
-                          <p className="text-muted-foreground text-sm">
-                            Transform the handler response before returning it
-                            to the client.
-                          </p>
-                        </div>
-                        <Button
-                          type="button"
-                          variant="outline"
-                          size="sm"
-                          className={cn(
-                            'flex min-w-[14rem] flex-row items-center gap-2 text-foreground',
-                            {
-                              'border-destructive text-destructive hover:bg-destructive/10 hover:text-destructive':
-                                isResponseTransformEnabled,
-                            },
-                          )}
-                          onClick={toggleResponseSectionOpen}
-                        >
-                          {isResponseTransformEnabled ? (
-                            <>
-                              <TrashIcon className="size-4" />
-                              <span>Remove Response Transform</span>
-                            </>
-                          ) : (
-                            <>
-                              <PlusIcon className="size-4" />
-                              <span>Add Response Transform</span>
-                            </>
-                          )}
-                        </Button>
-                      </div>
+                      <TransformSectionToggle
+                        title="Response Transform"
+                        description="Transform the handler response before returning it to the client."
+                        enabled={isResponseTransformEnabled}
+                        onToggle={toggleResponseSectionOpen}
+                        actionLabel="Response Transform"
+                      />
                       {isResponseTransformEnabled && (
                         <FormTextarea
                           control={form.control}

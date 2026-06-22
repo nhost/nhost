@@ -57,6 +57,18 @@ export default function FieldMappingSection({
     [outputTypeFields],
   );
 
+  const watchedMappings = watch('fieldMapping') ?? [];
+  const selectedSourceFields = new Set(
+    watchedMappings
+      .map((mapping) => mapping?.sourceField)
+      .filter(Boolean) as string[],
+  );
+  const firstUnusedSourceField =
+    sourceFieldNames.find((name) => !selectedSourceFields.has(name)) ?? '';
+  const allSourceFieldsSelected =
+    sourceFieldNames.length > 0 &&
+    sourceFieldNames.every((name) => selectedSourceFields.has(name));
+
   const fieldMappingError =
     errors.fieldMapping?.root?.message ?? errors.fieldMapping?.message;
 
@@ -95,7 +107,14 @@ export default function FieldMappingSection({
                 data-testid={`fieldMapping.${index}.sourceField`}
               >
                 {sourceFieldNames.map((fieldName) => (
-                  <SelectItem key={fieldName} value={fieldName}>
+                  <SelectItem
+                    key={fieldName}
+                    value={fieldName}
+                    disabled={
+                      selectedSourceFields.has(fieldName) &&
+                      watchedMappings[index]?.sourceField !== fieldName
+                    }
+                  >
                     {fieldName}
                   </SelectItem>
                 ))}
@@ -149,12 +168,14 @@ export default function FieldMappingSection({
               className="flex items-center gap-2"
               onClick={() =>
                 appendFieldMapping({
-                  sourceField: sourceFieldNames[0] ?? '',
+                  sourceField: firstUnusedSourceField,
                   referenceColumn: referenceColumns[0] ?? '',
                 })
               }
               disabled={
-                sourceFieldNames.length === 0 || referenceColumns.length === 0
+                sourceFieldNames.length === 0 ||
+                referenceColumns.length === 0 ||
+                allSourceFieldsSelected
               }
             >
               <PlusIcon className="h-4 w-4" /> Add New Mapping

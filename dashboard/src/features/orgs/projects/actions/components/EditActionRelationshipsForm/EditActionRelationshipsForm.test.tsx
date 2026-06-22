@@ -8,6 +8,7 @@ import {
   HASURA_API_URL,
 } from '@/tests/msw/mocks/rest/exportActionsMetadataQuery';
 import {
+  fireEvent,
   mockPointerEvent,
   queryClient,
   render,
@@ -28,6 +29,27 @@ const mocks = vi.hoisted(() => ({
 vi.mock('next/router', () => ({
   useRouter: mocks.useRouter,
 }));
+
+vi.mock('@/features/orgs/projects/common/hooks/useGetDataSources', () => ({
+  useGetDataSources: () => ({ data: ['default'] }),
+}));
+
+vi.mock('@/features/orgs/projects/common/hooks/useMetadataTables', () => ({
+  useMetadataTables: () => [
+    { source: 'default', schema: 'public', table: 'animals' },
+  ],
+}));
+
+vi.mock(
+  '@/features/orgs/projects/database/common/hooks/useTableSchemaQuery',
+  () => ({
+    useTableSchemaQuery: () => ({
+      data: {
+        columns: [{ column_name: 'user_id' }, { column_name: 'created_at' }],
+      },
+    }),
+  }),
+);
 
 Object.defineProperty(window, 'matchMedia', {
   writable: true,
@@ -66,6 +88,21 @@ const relationshipCustomTypes: CustomTypes = {
           field_mapping: { lastUpdated: 'created_at' },
           // biome-ignore lint/suspicious/noExplicitAny: test fixture
         } as any,
+      ],
+    },
+  ],
+};
+
+const cleanCustomTypes: CustomTypes = {
+  scalars: [],
+  enums: [],
+  input_objects: [],
+  objects: [
+    {
+      name: 'ExchangeRatesOutput',
+      fields: [
+        { name: 'base', type: 'String!' },
+        { name: 'lastUpdated', type: 'String!' },
       ],
     },
   ],
@@ -190,5 +227,94 @@ describe('EditActionRelationshipsForm', () => {
         ],
       },
     ]);
+  });
+
+  it('disables a source field already used by another mapping and the add button once all are mapped', async () => {
+    server.use(
+      createExportActionsMetadataHandler({
+        actions: [relationshipAction],
+        customTypes: cleanCustomTypes,
+      }),
+    );
+
+    const user = new TestUserEvent();
+    render(<EditActionRelationshipsForm actionName="getExchangeRates" />);
+
+    await user.click(
+      await screen.findByRole('button', { name: 'Relationship' }),
+    );
+    await screen.findByLabelText('Relationship Name');
+
+    const addButton = screen.getByRole('button', { name: /Add New Mapping/i });
+    await user.click(addButton); // row 0 defaults to the first unused field: base
+    await user.click(addButton); // row 1 defaults to the next unused field: lastUpdated
+
+    await waitFor(() =>
+      expect(
+        screen.getByRole('button', { name: /Add New Mapping/i }),
+      ).toBeDisabled(),
+    );
+
+    await user.click(screen.getByTestId('fieldMapping.1.sourceField'));
+    expect(await screen.findByRole('option', { name: 'base' })).toHaveAttribute(
+      'data-disabled',
+    );
+    expect(
+      screen.getByRole('option', { name: 'lastUpdated' }),
+    ).not.toHaveAttribute('data-disabled');
+  });
+
+  it('persists every mapping when two source fields target the same reference column', async () => {
+    server.use(
+      createExportActionsMetadataHandler({
+        actions: [relationshipAction],
+        customTypes: cleanCustomTypes,
+      }),
+    );
+
+    const user = new TestUserEvent();
+    render(<EditActionRelationshipsForm actionName="getExchangeRates" />);
+
+    await user.click(
+      await screen.findByRole('button', { name: 'Relationship' }),
+    );
+    await screen.findByLabelText('Relationship Name');
+
+    await user.type(screen.getByLabelText('Relationship Name'), 'animal');
+
+    await user.click(screen.getByRole('combobox', { name: 'Schema' }));
+    await user.click(await screen.findByRole('option', { name: 'public' }));
+    await user.click(screen.getByRole('combobox', { name: 'Table' }));
+    await user.click(await screen.findByRole('option', { name: 'animals' }));
+
+    const addButton = screen.getByRole('button', { name: /Add New Mapping/i });
+    await user.click(addButton); // base -> user_id (default reference column)
+    await user.click(addButton); // lastUpdated -> user_id (same reference column)
+
+    const submitButton = screen.getByRole('button', {
+      name: 'Create Relationship',
+    });
+    fireEvent.submit(submitButton.closest('form')!);
+
+    await waitFor(() => expect(migrationBody).not.toBeNull());
+
+    const setCustomTypes = migrationBody?.up.find(
+      (step) => step.type === 'set_custom_types',
+    );
+    const objects = (setCustomTypes?.args.objects ?? []) as Array<{
+      name: string;
+      relationships?: Array<{
+        name: string;
+        field_mapping: Record<string, string>;
+      }>;
+    }>;
+    const relationship = objects
+      .find((object) => object.name === 'ExchangeRatesOutput')
+      ?.relationships?.find((rel) => rel.name === 'animal');
+
+    expect(relationship?.field_mapping).toEqual({
+      base: 'user_id',
+      lastUpdated: 'user_id',
+    });
   });
 });
