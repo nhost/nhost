@@ -1,6 +1,7 @@
 package source_test
 
 import (
+	"context"
 	"errors"
 	"fmt"
 	"log/slog"
@@ -404,4 +405,127 @@ func TestNewDatabaseBackedStore_Integration_SeedsAndWritesThrough(t *testing.T) 
 	if !strings.Contains(gotRaw, "users") {
 		t.Errorf("db metadata missing tracked table 'users': %s", gotRaw)
 	}
+}
+
+// newDBBackedStore builds a DatabaseMetadataSource + Store on dbURL, registering
+// Close on both for cleanup. It is the two-replica building block the
+// LISTEN/NOTIFY tests use to stand up independent stores against one database.
+func newDBBackedStore(t *testing.T, dbURL string) *source.Store {
+	t.Helper()
+
+	src, err := source.NewDatabaseMetadataSource(
+		t.Context(), dbURL, time.Hour, slog.New(slog.DiscardHandler),
+	)
+	if err != nil {
+		t.Fatalf("NewDatabaseMetadataSource: %v", err)
+	}
+
+	t.Cleanup(src.Close)
+
+	store, err := source.NewDatabaseBackedStore(t.Context(), src)
+	if err != nil {
+		t.Fatalf("NewDatabaseBackedStore: %v", err)
+	}
+
+	t.Cleanup(store.Close)
+
+	return store
+}
+
+// waitForResourceVersion polls store.ResourceVersion until it reaches want or the
+// timeout elapses, failing the test on timeout. Used to observe the asynchronous
+// cross-replica reload the LISTEN/NOTIFY listener performs.
+func waitForResourceVersion(t *testing.T, store *source.Store, want int64) {
+	t.Helper()
+
+	deadline := time.Now().Add(5 * time.Second)
+	for time.Now().Before(deadline) {
+		if store.ResourceVersion() == want {
+			return
+		}
+
+		time.Sleep(20 * time.Millisecond)
+	}
+
+	t.Fatalf(
+		"resource_version did not reach %d within 5s (still %d)",
+		want,
+		store.ResourceVersion(),
+	)
+}
+
+// TestListenAndReload_Integration_CrossReplicaSync drives the PR's headline
+// cross-replica mechanism end-to-end against a real database: replica A runs the
+// LISTEN/NOTIFY listener while replica B authors a metadata change on the same
+// database. Replica B's Apply both bumps resource_version and emits the
+// pg_notify, and replica A's listener must observe it (WaitForNotification ->
+// ReloadIfStale) and reload its in-memory snapshot to match — the receive side
+// of the round-trip the unit tests (fakes only) cannot reach.
+func TestListenAndReload_Integration_CrossReplicaSync(t *testing.T) {
+	t.Parallel()
+
+	pool := testdb.NewPostgres(t, hdbMetadataDDL, seedV3Metadata(7))
+	dbURL := pool.Config().ConnConfig.ConnString()
+
+	// Replica A: kept in sync purely by the listener (it never writes).
+	storeA := newDBBackedStore(t, dbURL)
+
+	listenerCtx, stopListener := context.WithCancel(t.Context())
+	defer stopListener()
+
+	go source.ListenAndReload(listenerCtx, dbURL, storeA, slog.New(slog.DiscardHandler))
+
+	// Replica B: authors a change on the same database. Apply bumps the row to
+	// rv=8 and emits the NOTIFY replica A is listening for.
+	storeB := newDBBackedStore(t, dbURL)
+
+	if _, _, err := storeB.PgTrackTable(t.Context(), []byte(
+		`{"source":"default","table":{"schema":"public","name":"users"}}`,
+	)); err != nil {
+		t.Fatalf("replica B PgTrackTable: %v", err)
+	}
+
+	waitForResourceVersion(t, storeA, 8)
+
+	rawA, _ := storeA.HasuraSnapshotJSON()
+	if !strings.Contains(string(rawA), "users") {
+		t.Errorf("replica A snapshot missing the table authored by replica B: %s", rawA)
+	}
+}
+
+// TestListenAndReload_Integration_CatchUpOnConnect covers the catch-up reload the
+// listener runs on every (re)connect: a change committed while a replica has no
+// listen connection emits a NOTIFY no one receives, so on connect listenOnce
+// issues an empty-payload reload to pull any missed change. Here replica A is
+// bootstrapped at rv=7, the row is advanced to rv=8 by replica B BEFORE A's
+// listener starts (so A never receives that NOTIFY), and A's listener must still
+// converge to rv=8 via the on-connect catch-up.
+func TestListenAndReload_Integration_CatchUpOnConnect(t *testing.T) {
+	t.Parallel()
+
+	pool := testdb.NewPostgres(t, hdbMetadataDDL, seedV3Metadata(7))
+	dbURL := pool.Config().ConnConfig.ConnString()
+
+	storeA := newDBBackedStore(t, dbURL) // bootstrapped at rv=7
+
+	// Advance the shared row to rv=8 before A's listener exists, so the NOTIFY is
+	// emitted into the void as far as A is concerned.
+	storeB := newDBBackedStore(t, dbURL)
+	if _, _, err := storeB.PgTrackTable(t.Context(), []byte(
+		`{"source":"default","table":{"schema":"public","name":"users"}}`,
+	)); err != nil {
+		t.Fatalf("replica B PgTrackTable: %v", err)
+	}
+
+	if rv := storeA.ResourceVersion(); rv != 7 {
+		t.Fatalf("replica A advanced to %d before its listener started; want 7", rv)
+	}
+
+	listenerCtx, stopListener := context.WithCancel(t.Context())
+	defer stopListener()
+
+	go source.ListenAndReload(listenerCtx, dbURL, storeA, slog.New(slog.DiscardHandler))
+
+	// The on-connect catch-up reload must pull A up to the missed version.
+	waitForResourceVersion(t, storeA, 8)
 }

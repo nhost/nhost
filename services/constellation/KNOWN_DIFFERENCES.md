@@ -201,4 +201,25 @@ Only function **return-type** dependencies are cascaded (matching how Hasura
 tracks function output types); a function is never dropped for referencing the
 table only in its body or argument types.
 
+## pg_untrack_table without cascade
+
+`pg_untrack_table` without `cascade` refuses with `dependency-error` whenever the
+table has any dependent — both its OWN permissions/relationships and any REVERSE
+dependent elsewhere in the metadata: a relationship in another table that points
+at it, a function whose return type is it, or a permission on another table whose
+row filter reaches it (directly via `_exists` or through a relationship path).
+This matches Hasura, which fails an uncascaded untrack whenever its dependency
+graph shows any dependent.
+
+Reverse dependents that only the database knows — bare `foreign_key_constraint_on`
+relationships and function return types — are resolved with the same short-lived
+introspection the cascade path uses. When that introspection is unavailable (no
+resolvable data URL, or the data database is unreachable) the gate degrades to
+**metadata-only**: explicit-target relationships, cross-source `to_source` remote
+relationships, and `_exists`/relationship-path permissions still block the untrack,
+but bare foreign-key reverse relationships and function-return dependents do not.
+In that degraded case an uncascaded untrack of such a table succeeds — and the
+dangling reference is discarded from the live schema at reconcile as an
+inconsistency — where Hasura would return `dependency-error`.
+
 

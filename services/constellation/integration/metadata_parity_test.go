@@ -857,12 +857,45 @@ func dumpSDL(t *testing.T, graphqlURL string) string {
 // from a store-backed Constellation metadata op does not imply the GraphQL
 // surface has converged: Store.apply persists the write and returns
 // immediately, while the connector rebuild runs on a separate goroutine
-// (Controller.Run consumes source.Watch, then buildState+swapState, and dumpSDL
-// introspects the swapped state). A single dump therefore races the rebuild and
-// can be computed from a pre-/mid-rebuild SDL, producing a spurious delta or
-// masking a real one. This mirrors the convergence wait pollGraphQL already
-// applies in Layer D; the synchronous Hasura side needs no such settling.
+// (Controller.Run consumes source.Watch, then buildState+swapState — an atomic
+// pointer swap, so a dump observes either the whole old surface or the whole new
+// one, never a partial). A dump taken before the swap therefore sees the stale
+// surface.
+//
+// This settles on self-stability, which is a WEAKER readiness signal than the
+// oracle-convergence pollGraphQL applies in Layer D (that polls until the result
+// matches Hasura, so it cannot settle early). A caller measuring the effect of a
+// just-applied op must therefore use settledSDLAfterChange, which additionally
+// waits for the surface to actually change before accepting stability — a plain
+// settle could otherwise lock onto the stale pre-op SDL. The synchronous Hasura
+// side needs no settling.
 func settledSDL(t *testing.T, graphqlURL string) string {
+	t.Helper()
+
+	return settleSDLFrom(t, graphqlURL, "")
+}
+
+// settledSDLAfterChange is settledSDL for the post-op dump: it additionally waits
+// until the SDL differs from the pre-op `before` snapshot before accepting
+// stability. Because the connector rebuild is asynchronous, a plain settle can
+// lock onto the stale pre-op SDL within the first poll window, yielding an empty
+// per-engine delta that spuriously fails Layer C against Hasura's non-empty
+// delta. The atomic state swap means a dump never observes a partial surface, so
+// the first dump that differs from `before` is already the rebuilt one; the
+// consecutive-identical check on top of that is belt-and-braces. If the deadline
+// elapses without a change, the last dump is returned so the caller still gets a
+// (then-failing, never silently-passing) comparison.
+func settledSDLAfterChange(t *testing.T, graphqlURL, before string) string {
+	t.Helper()
+
+	return settleSDLFrom(t, graphqlURL, before)
+}
+
+// settleSDLFrom polls dumpSDL until two consecutive dumps are byte-identical and
+// (when differentFrom is non-empty) differ from it, or the 30s deadline elapses.
+// A dumped SDL is never the empty string, so differentFrom=="" reduces to a
+// plain self-stability settle.
+func settleSDLFrom(t *testing.T, graphqlURL, differentFrom string) string {
 	t.Helper()
 
 	deadline := time.Now().Add(30 * time.Second)
@@ -872,7 +905,7 @@ func settledSDL(t *testing.T, graphqlURL string) string {
 		time.Sleep(500 * time.Millisecond)
 
 		cur := dumpSDL(t, graphqlURL)
-		if cur == prev {
+		if cur == prev && cur != differentFrom {
 			return cur
 		}
 
@@ -922,12 +955,11 @@ func schemaDiff(t *testing.T, before, after string) string {
 func compareSchemaDelta(t *testing.T, baseline jsontext.Value, tc metadataParityCase) {
 	t.Helper()
 
-	hAfter := dumpSDL(t, hasuraURL)
-	cAfter := settledSDL(t, constellationParityGraphQLURL)
-
-	// Capture each engine's "before" SDL by resetting, replaying setup (but not
-	// the measured op), dumping, then re-applying the op so the engine is left
-	// in the post-op state.
+	// The measured op has already been applied to both engines by the caller.
+	// Re-derive each engine's "before" SDL by resetting to baseline and replaying
+	// setup (but NOT the measured op); then re-apply the op so the engines end in
+	// the post-op state we measure. Capturing "before" first lets the post-op
+	// dump below wait until the surface actually reflects the op.
 	resetMetadata(t, hasuraMetadataURL, baseline)
 	resetMetadata(t, constellationMetadataURL, baseline)
 
@@ -939,6 +971,13 @@ func compareSchemaDelta(t *testing.T, baseline jsontext.Value, tc metadataParity
 	cBefore := settledSDL(t, constellationParityGraphQLURL)
 
 	applyOpToBoth(t, "schema-delta op", tc.op)
+
+	hAfter := dumpSDL(t, hasuraURL)
+	// Wait for Constellation's asynchronous rebuild to swap in the post-op
+	// surface (cAfter must differ from cBefore) before settling, so a slow
+	// rebuild cannot leave cAfter on the stale pre-op SDL and fabricate an empty
+	// delta. The Hasura side is synchronous, so a single dump suffices.
+	cAfter := settledSDLAfterChange(t, constellationParityGraphQLURL, cBefore)
 
 	hDelta := schemaDiff(t, hBefore, hAfter)
 	cDelta := schemaDiff(t, cBefore, cAfter)
