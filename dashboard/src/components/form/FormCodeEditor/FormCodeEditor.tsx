@@ -19,6 +19,11 @@ interface FormCodeEditorProps<
   control: Control<TFieldValues>;
   name: TName;
   label: ReactNode;
+  /**
+   * Called with the new value whenever the editor content changes, in addition
+   * to the form field's own onChange.
+   */
+  onChange?: (value: string) => void;
   /** Rendered between the editor and the validation message (e.g. helper text). */
   children?: ReactNode;
   extensions?: ReactCodeMirrorProps['extensions'];
@@ -34,6 +39,7 @@ export default function FormCodeEditor<
   control,
   name,
   label,
+  onChange,
   children,
   extensions,
   readOnly = false,
@@ -56,7 +62,10 @@ export default function FormCodeEditor<
               <CodeMirror
                 aria-label={ariaLabel}
                 value={field.value as string}
-                onChange={field.onChange}
+                onChange={(value) => {
+                  field.onChange(value);
+                  onChange?.(value);
+                }}
                 theme={color === 'light' ? githubLight : githubDark}
                 extensions={extensions}
                 readOnly={readOnly}

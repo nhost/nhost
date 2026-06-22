@@ -48,7 +48,6 @@ export interface BuildActionDTOParams {
 export interface ActionDTO {
   actionArgs: CreateActionArgs;
   customTypesArgs: CustomTypes;
-  overlappingTypenames: string[];
 }
 
 export default function buildActionDTO({
@@ -71,10 +70,7 @@ export default function buildActionDTO({
 
   const existingTypes = parseCustomTypes(existingCustomTypes);
   const hydratedTypes = hydrateTypeRelationships(newTypes, existingTypes);
-  const { types: mergedTypes, overlappingTypenames } = mergeCustomTypes(
-    hydratedTypes,
-    existingTypes,
-  );
+  const mergedTypes = mergeCustomTypes(hydratedTypes, existingTypes);
 
   const headers = formValues.headers.map((header) => {
     if (header.type === 'fromEnv') {
@@ -136,7 +132,6 @@ export default function buildActionDTO({
       ...(formValues.comment ? { comment: formValues.comment } : {}),
     },
     customTypesArgs: reformCustomTypes(mergedTypes),
-    overlappingTypenames,
   };
 }
 

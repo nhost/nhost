@@ -88,7 +88,6 @@ export default function parseActionFormInitialData(
     timeout: action.definition.timeout ?? DEFAULT_ACTION_TIMEOUT_SECONDS,
     forwardClientHeaders: action.definition.forward_client_headers ?? false,
     headers,
-    sampleContext: [],
     ...(requestOptionsTransform ? { requestOptionsTransform } : {}),
     ...(payloadTransform ? { payloadTransform } : {}),
     ...(responseTransform ? { responseTransform } : {}),

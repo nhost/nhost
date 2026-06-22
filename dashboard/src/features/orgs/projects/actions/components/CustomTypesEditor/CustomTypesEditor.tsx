@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useRef, useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import toast from 'react-hot-toast';
 import { Button, ButtonWithLoading } from '@/components/ui/v3/button';
 import { GraphQLSdlEditor } from '@/features/orgs/projects/actions/components/GraphQLSdlEditor';
@@ -22,7 +22,7 @@ export default function CustomTypesEditor() {
 
   const [sdl, setSdl] = useState('');
   const [previousSdl, setPreviousSdl] = useState(''); // used to revert changes
-  const [isDirty, setIsDirty] = useState(false);
+  const isDirty = sdl !== previousSdl;
 
   // Populate the editor from the metadata only on the first successful load.
   // Subsequent refetches (e.g. after a save) must not clobber in-progress edits.
@@ -39,14 +39,8 @@ export default function CustomTypesEditor() {
     initializedRef.current = true;
   }, [isLoading, data]);
 
-  const onChange = useCallback((value: string) => {
-    setSdl(value);
-    setIsDirty(true);
-  }, []);
-
   const handleRevert = () => {
     setSdl(previousSdl);
-    setIsDirty(false);
   };
 
   const handleSave = async () => {
@@ -72,7 +66,6 @@ export default function CustomTypesEditor() {
         });
 
         setPreviousSdl(sdl);
-        setIsDirty(false);
       },
       {
         loadingMessage: 'Saving custom types...',
@@ -95,7 +88,7 @@ export default function CustomTypesEditor() {
         ) : (
           <GraphQLSdlEditor
             value={sdl}
-            onChange={onChange}
+            onChange={setSdl}
             aria-label="Custom types SDL editor"
             className="rounded-none border-0"
           />

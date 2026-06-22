@@ -94,17 +94,11 @@ export function reformCustomTypes(types: ClientCustomType[]): CustomTypes {
   return customTypes;
 }
 
-export interface MergeCustomTypesResult {
-  types: ClientCustomType[];
-  overlappingTypenames: string[];
-}
-
 export function mergeCustomTypes(
   newTypes: ClientCustomType[],
   existingTypes: ClientCustomType[],
-): MergeCustomTypesResult {
+): ClientCustomType[] {
   const mergedTypes = [...existingTypes];
-  const overlappingTypenames: string[] = [];
   const existingTypeIndexes = new Map(
     existingTypes.map((type, index) => [type.name, index]),
   );
@@ -113,13 +107,12 @@ export function mergeCustomTypes(
     const existingIndex = existingTypeIndexes.get(newType.name);
     if (existingIndex !== undefined) {
       mergedTypes[existingIndex] = newType;
-      overlappingTypenames.push(newType.name);
     } else {
       mergedTypes.push(newType);
     }
   });
 
-  return { types: mergedTypes, overlappingTypenames };
+  return mergedTypes;
 }
 
 export function hydrateTypeRelationships(

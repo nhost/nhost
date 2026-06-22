@@ -21,12 +21,12 @@ export default function ActionDetailsSkeleton() {
       </div>
 
       <div className="flex-1 space-y-4 overflow-auto p-6">
-        <div className="rounded border border-gray-200 p-4 dark:border-gray-700">
+        <div className="rounded border p-4">
           <Skeleton className="mb-3 h-5 w-44" />
           <Skeleton className="h-24 w-full" />
         </div>
 
-        <div className="rounded border border-gray-200 p-4 dark:border-gray-700">
+        <div className="rounded border p-4">
           <Skeleton className="mb-3 h-5 w-44" />
           <Skeleton className="h-24 w-full" />
         </div>

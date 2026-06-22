@@ -29,15 +29,13 @@ input SampleInput {
     { name: 'X-From-Value', type: 'fromValue', value: 'static' },
     { name: 'X-From-Env', type: 'fromEnv', value: 'SECRET_ENV_VAR' },
   ],
-  sampleContext: [],
   requestOptionsTransform: undefined,
   payloadTransform: undefined,
 };
 
 describe('buildActionDTO', () => {
   it('builds a create action DTO with merged custom types', () => {
-    const { actionArgs, customTypesArgs, overlappingTypenames } =
-      buildActionDTO({
+    const { actionArgs, customTypesArgs } = buildActionDTO({
         formValues,
         existingCustomTypes: {
           objects: [
@@ -67,7 +65,6 @@ describe('buildActionDTO', () => {
       },
     });
 
-    expect(overlappingTypenames).toEqual([]);
     expect(customTypesArgs).toEqual({
       scalars: [],
       enums: [],

@@ -100,12 +100,8 @@ describe('mergeCustomTypes', () => {
       },
     ];
 
-    const { types, overlappingTypenames } = mergeCustomTypes(
-      newTypes,
-      existingTypes,
-    );
+    const types = mergeCustomTypes(newTypes, existingTypes);
 
-    expect(overlappingTypenames).toEqual(['SampleOutput']);
     expect(types).toHaveLength(existingTypes.length + 1);
     expect(types.find((type) => type.name === 'SampleOutput')).toEqual(
       newTypes[0],

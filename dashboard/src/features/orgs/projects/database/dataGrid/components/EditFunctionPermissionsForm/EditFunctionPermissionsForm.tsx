@@ -5,6 +5,7 @@ import { useDialog } from '@/components/common/DialogProvider';
 import { Alert, AlertDescription } from '@/components/ui/v3/alert';
 import { Button } from '@/components/ui/v3/button';
 import { Spinner } from '@/components/ui/v3/spinner';
+import { PermissionsLegend } from '@/features/orgs/projects/common/components/PermissionsLegend';
 import {
   type RolePermissionRow,
   RolePermissionsGrid,
@@ -12,7 +13,6 @@ import {
 import { useGetMetadataResourceVersion } from '@/features/orgs/projects/common/hooks/useGetMetadataResourceVersion';
 import { useIsPlatform } from '@/features/orgs/projects/common/hooks/useIsPlatform';
 import { FunctionPermissionsDescription } from '@/features/orgs/projects/database/dataGrid/components/EditFunctionPermissionsForm/FunctionPermissionsDescription';
-import { PermissionsLegend } from '@/features/orgs/projects/database/dataGrid/components/PermissionsLegend';
 import { useFunctionCustomizationQuery } from '@/features/orgs/projects/database/dataGrid/hooks/useFunctionCustomizationQuery';
 import { useFunctionPermissionQuery } from '@/features/orgs/projects/database/dataGrid/hooks/useFunctionPermissionQuery';
 import { useFunctionQuery } from '@/features/orgs/projects/database/dataGrid/hooks/useFunctionQuery';
@@ -249,15 +249,15 @@ export default function EditFunctionPermissionsForm({
 
   const handleTogglePermission = async (
     role: string,
-    currentlyHasPermission: boolean,
+    nextHasPermission: boolean,
   ) => {
     await execPromiseWithErrorToast(
       async () => {
         await manageFunctionPermission({
           resourceVersion,
-          type: currentlyHasPermission
-            ? 'pg_drop_function_permission'
-            : 'pg_create_function_permission',
+          type: nextHasPermission
+            ? 'pg_create_function_permission'
+            : 'pg_drop_function_permission',
           args: {
             source: dataSource,
             function: {
@@ -270,10 +270,10 @@ export default function EditFunctionPermissionsForm({
         setExpandedRole(null);
       },
       {
-        loadingMessage: `${currentlyHasPermission ? 'Removing' : 'Granting'} permission...`,
-        successMessage: currentlyHasPermission
-          ? `Permission for role "${role}" has been removed.`
-          : `Permission for role "${role}" has been granted.`,
+        loadingMessage: `${nextHasPermission ? 'Granting' : 'Removing'} permission...`,
+        successMessage: nextHasPermission
+          ? `Permission for role "${role}" has been granted.`
+          : `Permission for role "${role}" has been removed.`,
         errorMessage: 'An error occurred while updating permission.',
       },
     );
@@ -310,9 +310,7 @@ export default function EditFunctionPermissionsForm({
             rows={permissionRows}
             expandedRole={expandedRole}
             onExpandedRoleChange={setExpandedRole}
-            onToggle={(role, nextHasPermission) =>
-              handleTogglePermission(role, !nextHasPermission)
-            }
+            onToggle={handleTogglePermission}
             isMutating={isMutating}
           />
 

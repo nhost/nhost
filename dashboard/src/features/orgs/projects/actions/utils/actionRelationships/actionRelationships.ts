@@ -7,11 +7,10 @@ import { unwrapType } from '@/features/orgs/projects/actions/utils/graphqlTypeUt
 import type {
   ActionItem,
   ActionRelationship,
-  ActionRelationshipType,
   CustomTypes,
 } from '@/utils/hasura-api/generated/schemas';
 
-export type { ActionRelationship, ActionRelationshipType };
+export type { ActionRelationship };
 
 /**
  * Resolves the base (unwrapped) name of the type an action returns, e.g.

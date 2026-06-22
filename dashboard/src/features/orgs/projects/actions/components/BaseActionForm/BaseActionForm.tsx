@@ -105,14 +105,21 @@ export default function BaseActionForm({
   const actionDefinitionSdl = watch('actionDefinitionSdl');
   const typesSdl = watch('typesSdl');
 
-  const isQueryAction =
-    parseActionDefinitionSdl(actionDefinitionSdl).definition?.type === 'query';
+  const isQueryAction = useMemo(
+    () =>
+      parseActionDefinitionSdl(actionDefinitionSdl).definition?.type ===
+      'query',
+    [actionDefinitionSdl],
+  );
 
-  useEffect(() => {
-    if (isQueryAction) {
-      setValue('kind', 'synchronous');
-    }
-  }, [isQueryAction, setValue]);
+  const handleActionDefinitionChange = useCallback(
+    (sdl: string) => {
+      if (parseActionDefinitionSdl(sdl).definition?.type === 'query') {
+        setValue('kind', 'synchronous');
+      }
+    },
+    [setValue],
+  );
 
   const overlappingTypenames = useMemo(
     () =>
@@ -195,6 +202,7 @@ export default function BaseActionForm({
                 name="actionDefinitionSdl"
                 aria-label="Action Definition"
                 extensions={[graphql()]}
+                onChange={handleActionDefinitionChange}
                 label={
                   <>
                     Action Definition{' '}

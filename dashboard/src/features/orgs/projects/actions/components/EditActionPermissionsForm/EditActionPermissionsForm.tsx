@@ -6,11 +6,11 @@ import { Spinner } from '@/components/ui/v3/spinner';
 import { useRemoteApplicationGQLClient } from '@/features/orgs/hooks/useRemoteApplicationGQLClient';
 import { useGetActions } from '@/features/orgs/projects/actions/hooks/useGetActions';
 import { useManageActionPermissionMutation } from '@/features/orgs/projects/actions/hooks/useManageActionPermissionMutation';
+import { PermissionsLegend } from '@/features/orgs/projects/common/components/PermissionsLegend';
 import {
   type RolePermissionRow,
   RolePermissionsGrid,
 } from '@/features/orgs/projects/common/components/RolePermissionsGrid';
-import { PermissionsLegend } from '@/features/orgs/projects/database/dataGrid/components/PermissionsLegend';
 import { useCurrentOrg } from '@/features/orgs/projects/hooks/useCurrentOrg';
 import { useProject } from '@/features/orgs/projects/hooks/useProject';
 import { execPromiseWithErrorToast } from '@/features/orgs/utils/execPromiseWithErrorToast';
@@ -99,24 +99,24 @@ export default function EditActionPermissionsForm({
 
   const handleTogglePermission = async (
     role: string,
-    currentlyHasPermission: boolean,
+    nextHasPermission: boolean,
   ) => {
     await execPromiseWithErrorToast(
       async () => {
         await manageActionPermission({
           action: actionName,
           role,
-          type: currentlyHasPermission
-            ? 'drop_action_permission'
-            : 'create_action_permission',
+          type: nextHasPermission
+            ? 'create_action_permission'
+            : 'drop_action_permission',
         });
         setExpandedRole(null);
       },
       {
-        loadingMessage: `${currentlyHasPermission ? 'Removing' : 'Granting'} permission...`,
-        successMessage: currentlyHasPermission
-          ? `Permission for role "${role}" has been removed.`
-          : `Permission for role "${role}" has been granted.`,
+        loadingMessage: `${nextHasPermission ? 'Granting' : 'Removing'} permission...`,
+        successMessage: nextHasPermission
+          ? `Permission for role "${role}" has been granted.`
+          : `Permission for role "${role}" has been removed.`,
         errorMessage: 'An error occurred while updating the permission.',
       },
     );
@@ -140,9 +140,7 @@ export default function EditActionPermissionsForm({
             rows={rows}
             expandedRole={expandedRole}
             onExpandedRoleChange={setExpandedRole}
-            onToggle={(role, nextHasPermission) =>
-              handleTogglePermission(role, !nextHasPermission)
-            }
+            onToggle={handleTogglePermission}
             isMutating={isMutating}
           />
 
