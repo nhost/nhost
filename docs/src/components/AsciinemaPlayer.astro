@@ -30,7 +30,16 @@ const {
   poster,
 } = Astro.props;
 
-const opts = { cols, rows, autoPlay, loop, speed, idleTimeLimit, theme, poster };
+const opts = {
+  cols,
+  rows,
+  autoPlay,
+  loop,
+  speed,
+  idleTimeLimit,
+  theme,
+  poster,
+};
 const optsJson = JSON.stringify(
   Object.fromEntries(Object.entries(opts).filter(([, v]) => v !== undefined)),
 );

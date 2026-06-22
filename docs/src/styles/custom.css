@@ -851,7 +851,8 @@ html[data-has-hero]:not([data-has-sidebar]) body {
   width: 100%;
   border-collapse: separate;
   border-spacing: 0;
-  border: 1px solid color-mix(in srgb, var(--sl-color-gray-4), var(--sl-color-gray-3) 30%);
+  border: 1px solid
+    color-mix(in srgb, var(--sl-color-gray-4), var(--sl-color-gray-3) 30%);
   border-radius: 8px;
 }
 
@@ -860,8 +861,10 @@ html[data-has-hero]:not([data-has-sidebar]) body {
    Long content wraps instead of overflowing now that the table doesn't scroll. */
 .sl-markdown-content :is(th, td) {
   border: 0;
-  border-bottom: 1px solid color-mix(in srgb, var(--sl-color-gray-4), var(--sl-color-gray-3) 30%);
-  border-right: 1px solid color-mix(in srgb, var(--sl-color-gray-4), var(--sl-color-gray-3) 30%);
+  border-bottom: 1px solid
+    color-mix(in srgb, var(--sl-color-gray-4), var(--sl-color-gray-3) 30%);
+  border-right: 1px solid
+    color-mix(in srgb, var(--sl-color-gray-4), var(--sl-color-gray-3) 30%);
   overflow-wrap: break-word;
 }
 
@@ -888,8 +891,6 @@ html[data-has-hero]:not([data-has-sidebar]) body {
 .sl-markdown-content thead:not(:has(th:not(:empty))) {
   display: none;
 }
-
-
 
 /* Each command (heading + body) is wrapped in a depth-classed div, so the whole
    block indents by level (a subcommand heading lines up with its parent's
@@ -921,7 +922,11 @@ html[data-has-hero]:not([data-has-sidebar]) body {
 .sl-markdown-content td code,
 .sl-markdown-content .cli-body code,
 .sl-markdown-content :is(h3, h4, h5) code {
-  background-color: color-mix(in srgb, var(--sl-color-gray-4), var(--sl-color-gray-3) 12%);
+  background-color: color-mix(
+    in srgb,
+    var(--sl-color-gray-4),
+    var(--sl-color-gray-3) 12%
+  );
 }
 
 .sl-markdown-content :is(h3, h4, h5) code {
@@ -960,7 +965,10 @@ html[data-has-hero]:not([data-has-sidebar]) body {
 /* The command heading carries margin-top: 2rem !important from the site, which
    pushes it away from the badge — zero it (and the wrapper) to sit them tight. */
 .sl-markdown-content p:has(> .cli-badge) + .sl-heading-wrapper,
-.sl-markdown-content p:has(> .cli-badge) + .sl-heading-wrapper :is(h2, h3, h4, h5) {
+.sl-markdown-content
+  p:has(> .cli-badge)
+  + .sl-heading-wrapper
+  :is(h2, h3, h4, h5) {
   margin-top: 0 !important;
 }
 
