@@ -1,0 +1,16 @@
+description: >-
+  Tracking a table whose name is not a valid GraphQL identifier ("users address")
+  succeeds at the metadata layer. Hasura returns 200 here too; making it usable in
+  the GraphQL schema requires a custom_name, but tracking itself is allowed.
+source: tests-py/queries/v1/track_table/track_non_graphql_compliant_table.yaml
+
+steps:
+  - description: Track a table with a non-GraphQL-compliant name
+    query:
+      type: pg_track_table
+      args:
+        source: default
+        table: {schema: public, name: users address}
+    status: 200
+    response:
+      message: success

@@ -23,10 +23,11 @@ import "testing"
 // run serially (each resets to baseline first).
 func TestMetadataParity(t *testing.T) { //nolint:paralleltest
 	const (
-		role  = "paritytest"
-		dept  = `{"schema":"public","name":"departments"}`
-		udept = `{"schema":"public","name":"user_departments"}`
-		fn    = `{"schema":"public","name":"get_department_manager"}`
+		role   = "paritytest"
+		dept   = `{"schema":"public","name":"departments"}`
+		udept  = `{"schema":"public","name":"user_departments"}`
+		droles = `{"schema":"public","name":"department_roles"}`
+		fn     = `{"schema":"public","name":"get_department_manager"}`
 	)
 
 	// Reusable setup ops.
@@ -271,6 +272,44 @@ func TestMetadataParity(t *testing.T) { //nolint:paralleltest
 			op:              `{"type":"pg_drop_select_permission","args":{"source":"default","table":` + dept + `,"role":"ghost_role"}}`,
 			wantErr:         true,
 			knownDivergence: "Hasura returns permission-denied for dropping a missing permission; Constellation returns not-exists",
+		},
+
+		// ---- pg_set_table_is_enum ----
+		// MATCHING: department_roles is enum-shaped (text PK `value` + `comment`)
+		// and is marked is_enum in the baseline, so UNsetting it is a valid op both
+		// engines accept, and the resulting export matches. affectsSchema is left
+		// unset deliberately: the GraphQL-surface (Layer C) effect of toggling an
+		// enum is left for live validation; Layer A (status) + Layer B (export)
+		// parity is the high-confidence assertion.
+		{
+			name: "pg_set_table_is_enum_unset_valid",
+			op: `{"type":"pg_set_table_is_enum","args":{"source":"default",` +
+				`"table":` + droles + `,"is_enum":false}}`,
+		},
+		// DIVERGENCE: departments is NOT enum-shaped (uuid PK, 7 columns). Hasura
+		// validates the shape at op time and rejects with invalid-configuration;
+		// Constellation's metadata op is a pure transform that accepts it (the
+		// invalidity surfaces only at schema build / reconcile). See
+		// KNOWN_DIFFERENCES.md "Op-time validation is deferred".
+		{
+			name:                "pg_set_table_is_enum_invalid_shape",
+			op:                  `{"type":"pg_set_table_is_enum","args":{"source":"default","table":` + dept + `,"is_enum":true}}`,
+			wantConstellationOK: true,
+			knownDivergence: "Hasura rejects a non-enum-shaped table with invalid-configuration at op time; " +
+				"Constellation defers structural validation to schema build (see KNOWN_DIFFERENCES.md)",
+		},
+		// DIVERGENCE: `description` is a plain column on departments with no foreign
+		// key. Hasura rejects the relationship at op time (no foreign constraint
+		// exists); Constellation accepts the metadata and surfaces the invalidity
+		// only at schema build / reconcile. See KNOWN_DIFFERENCES.md.
+		{
+			name: "pg_create_object_relationship_non_fk_column",
+			op: `{"type":"pg_create_object_relationship","args":{"source":"default",` +
+				`"table":` + dept + `,"name":"parity_bad_rel",` +
+				`"using":{"foreign_key_constraint_on":"description"}}}`,
+			wantConstellationOK: true,
+			knownDivergence: "Hasura rejects a relationship on a non-FK column with invalid-configuration at " +
+				"op time; Constellation defers FK validation to schema build (see KNOWN_DIFFERENCES.md)",
 		},
 	}
 
