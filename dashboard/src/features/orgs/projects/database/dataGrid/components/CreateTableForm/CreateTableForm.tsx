@@ -85,7 +85,7 @@ export default function CreateTableForm({
         {
           type: 'uuid',
           name: 'id',
-          defaultValue: { value: 'gen_random_uuid()', custom: false },
+          defaultValue: 'gen_random_uuid()',
           isNullable: false,
           isUnique: false,
           isIdentity: false,
