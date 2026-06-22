@@ -111,7 +111,10 @@ func listenOnce(
 	// while we had no listen connection emits a NOTIFY no one here receives, so
 	// without this the replica would serve stale metadata until the *next*
 	// change. An empty payload maps to notifiedRV 0, which ReloadIfStale treats
-	// as a forced reload; it no-ops cheaply when the Store is already current.
+	// as a forced database re-read; reloadFromDB then swaps the snapshot and
+	// broadcasts only when the freshly read resource_version actually differs
+	// from the one held, so a transient reconnect at an unchanged version does
+	// not rebuild connectors or drop live subscriptions.
 	dispatchNotification(ctx, "", target, logger)
 
 	for {
@@ -130,9 +133,10 @@ func listenOnce(
 
 // dispatchNotification reloads target in response to a single notification
 // payload. An unparseable payload maps to notifiedRV 0, which ReloadIfStale
-// treats as an unconditional reload rather than risk skipping a real change.
-// A reload failure is logged, not propagated: it must not tear down the listen
-// connection, which would drop subsequent notifications.
+// treats as a forced database re-read rather than risk skipping a real change
+// (the re-read still skips the snapshot swap/broadcast when the version is
+// unchanged). A reload failure is logged, not propagated: it must not tear down
+// the listen connection, which would drop subsequent notifications.
 func dispatchNotification(
 	ctx context.Context, payload string, target snapshotReloader, logger *slog.Logger,
 ) {
