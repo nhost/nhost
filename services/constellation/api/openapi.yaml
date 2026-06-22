@@ -429,177 +429,177 @@ components:
     #   - replace standalone `{type: null}` schemas with `{}`;
     #   - remove `{type: null}` members from anyOf / oneOf / allOf;
     #   - de-duplicate anyOf / oneOf / allOf members (dupes emit dup Go methods).
-    # ActionDefinition_Mutation_GraphQLType_InputWebhook:
-    #   properties:
-    #     arguments:
-    #       default: []
-    #       items:
-    #         $ref: '#/components/schemas/ArgumentDefinition_GraphQLType'
-    #       type: array
-    #     forward_client_headers:
-    #       default: false
-    #       type: boolean
-    #     handler:
-    #       type: string
-    #     headers:
-    #       default: []
-    #       items:
-    #         oneOf:
-    #         - $ref: '#/components/schemas/HeaderConfValue'
-    #         - $ref: '#/components/schemas/HeaderConfFromEnv'
-    #       type: array
-    #     ignored_client_headers:
-    #       default:
-    #       - Content-Length
-    #       - Content-MD5
-    #       - User-Agent
-    #       - Host
-    #       - Origin
-    #       - Referer
-    #       - Accept
-    #       - Accept-Encoding
-    #       - Accept-Language
-    #       - Accept-Datetime
-    #       - Cache-Control
-    #       - Connection
-    #       - DNT
-    #       - Content-Type
-    #       items:
-    #         type: string
-    #       type: array
-    #     kind:
-    #       default: synchronous
-    #       enum:
-    #       - synchronous
-    #       - asynchronous
-    #       type: string
-    #     output_type:
-    #       type: string
-    #     request_transform:
-    #       oneOf:
-    #       - $ref: '#/components/schemas/RequestTransformV1'
-    #       - $ref: '#/components/schemas/RequestTransformV2'
-    #     response_transform:
-    #       oneOf:
-    #       - $ref: '#/components/schemas/ResponseTransformV1'
-    #       - $ref: '#/components/schemas/ResponseTransformV2'
-    #     timeout:
-    #       default: 30
-    #       maximum: 9223372036854775807
-    #       minimum: -9223372036854775808
-    #       type: number
-    #     type:
-    #       enum:
-    #       - mutation
-    #       type: string
-    #   required:
-    #   - output_type
-    #   - type
-    #   - handler
-    #   type: object
-    # ActionDefinition_Query_GraphQLType_InputWebhook:
-    #   properties:
-    #     arguments:
-    #       default: []
-    #       items:
-    #         $ref: '#/components/schemas/ArgumentDefinition_GraphQLType'
-    #       type: array
-    #     forward_client_headers:
-    #       default: false
-    #       type: boolean
-    #     handler:
-    #       type: string
-    #     headers:
-    #       default: []
-    #       items:
-    #         oneOf:
-    #         - $ref: '#/components/schemas/HeaderConfValue'
-    #         - $ref: '#/components/schemas/HeaderConfFromEnv'
-    #       type: array
-    #     ignored_client_headers:
-    #       default:
-    #       - Content-Length
-    #       - Content-MD5
-    #       - User-Agent
-    #       - Host
-    #       - Origin
-    #       - Referer
-    #       - Accept
-    #       - Accept-Encoding
-    #       - Accept-Language
-    #       - Accept-Datetime
-    #       - Cache-Control
-    #       - Connection
-    #       - DNT
-    #       - Content-Type
-    #       items:
-    #         type: string
-    #       type: array
-    #     output_type:
-    #       type: string
-    #     request_transform:
-    #       oneOf:
-    #       - $ref: '#/components/schemas/RequestTransformV1'
-    #       - $ref: '#/components/schemas/RequestTransformV2'
-    #     response_transform:
-    #       oneOf:
-    #       - $ref: '#/components/schemas/ResponseTransformV1'
-    #       - $ref: '#/components/schemas/ResponseTransformV2'
-    #     timeout:
-    #       default: 30
-    #       maximum: 9223372036854775807
-    #       minimum: -9223372036854775808
-    #       type: number
-    #     type:
-    #       enum:
-    #       - query
-    #       type: string
-    #   required:
-    #   - output_type
-    #   - type
-    #   - handler
-    #   type: object
-    # ActionMetadata:
-    #   properties:
-    #     comment:
-    #       type: string
-    #     definition:
-    #       oneOf:
-    #       - $ref: '#/components/schemas/ActionDefinition_Query_GraphQLType_InputWebhook'
-    #       - $ref: '#/components/schemas/ActionDefinition_Mutation_GraphQLType_InputWebhook'
-    #     name:
-    #       $ref: '#/components/schemas/GraphQLName'
-    #     permissions:
-    #       default: []
-    #       items:
-    #         $ref: '#/components/schemas/ActionPermissionMetadata'
-    #       type: array
-    #   required:
-    #   - name
-    #   - definition
-    #   type: object
-    # ActionPermissionMetadata:
-    #   properties:
-    #     comment:
-    #       type: string
-    #     role:
-    #       type: string
-    #   required:
-    #   - role
-    #   type: object
-    # AddReplaceOrRemoveFields:
-    #   properties:
-    #     add_headers:
-    #       additionalProperties:
-    #         type: string
-    #       default: {}
-    #       type: object
-    #     remove_headers:
-    #       default: []
-    #       items:
-    #         type: string
-    #       type: array
-    #   type: object
+    ActionDefinition_Mutation_GraphQLType_InputWebhook:
+      properties:
+        arguments:
+          default: []
+          items:
+            $ref: '#/components/schemas/ArgumentDefinition_GraphQLType'
+          type: array
+        forward_client_headers:
+          default: false
+          type: boolean
+        handler:
+          type: string
+        headers:
+          default: []
+          items:
+            oneOf:
+            - $ref: '#/components/schemas/HeaderConfValue'
+            - $ref: '#/components/schemas/HeaderConfFromEnv'
+          type: array
+        ignored_client_headers:
+          default:
+          - Content-Length
+          - Content-MD5
+          - User-Agent
+          - Host
+          - Origin
+          - Referer
+          - Accept
+          - Accept-Encoding
+          - Accept-Language
+          - Accept-Datetime
+          - Cache-Control
+          - Connection
+          - DNT
+          - Content-Type
+          items:
+            type: string
+          type: array
+        kind:
+          default: synchronous
+          enum:
+          - synchronous
+          - asynchronous
+          type: string
+        output_type:
+          type: string
+        request_transform:
+          oneOf:
+          - $ref: '#/components/schemas/RequestTransformV1'
+          - $ref: '#/components/schemas/RequestTransformV2'
+        response_transform:
+          oneOf:
+          - $ref: '#/components/schemas/ResponseTransformV1'
+          - $ref: '#/components/schemas/ResponseTransformV2'
+        timeout:
+          default: 30
+          maximum: 9223372036854775807
+          minimum: -9223372036854775808
+          type: number
+        type:
+          enum:
+          - mutation
+          type: string
+      required:
+      - output_type
+      - type
+      - handler
+      type: object
+    ActionDefinition_Query_GraphQLType_InputWebhook:
+      properties:
+        arguments:
+          default: []
+          items:
+            $ref: '#/components/schemas/ArgumentDefinition_GraphQLType'
+          type: array
+        forward_client_headers:
+          default: false
+          type: boolean
+        handler:
+          type: string
+        headers:
+          default: []
+          items:
+            oneOf:
+            - $ref: '#/components/schemas/HeaderConfValue'
+            - $ref: '#/components/schemas/HeaderConfFromEnv'
+          type: array
+        ignored_client_headers:
+          default:
+          - Content-Length
+          - Content-MD5
+          - User-Agent
+          - Host
+          - Origin
+          - Referer
+          - Accept
+          - Accept-Encoding
+          - Accept-Language
+          - Accept-Datetime
+          - Cache-Control
+          - Connection
+          - DNT
+          - Content-Type
+          items:
+            type: string
+          type: array
+        output_type:
+          type: string
+        request_transform:
+          oneOf:
+          - $ref: '#/components/schemas/RequestTransformV1'
+          - $ref: '#/components/schemas/RequestTransformV2'
+        response_transform:
+          oneOf:
+          - $ref: '#/components/schemas/ResponseTransformV1'
+          - $ref: '#/components/schemas/ResponseTransformV2'
+        timeout:
+          default: 30
+          maximum: 9223372036854775807
+          minimum: -9223372036854775808
+          type: number
+        type:
+          enum:
+          - query
+          type: string
+      required:
+      - output_type
+      - type
+      - handler
+      type: object
+    ActionMetadata:
+      properties:
+        comment:
+          type: string
+        definition:
+          oneOf:
+          - $ref: '#/components/schemas/ActionDefinition_Query_GraphQLType_InputWebhook'
+          - $ref: '#/components/schemas/ActionDefinition_Mutation_GraphQLType_InputWebhook'
+        name:
+          $ref: '#/components/schemas/GraphQLName'
+        permissions:
+          default: []
+          items:
+            $ref: '#/components/schemas/ActionPermissionMetadata'
+          type: array
+      required:
+      - name
+      - definition
+      type: object
+    ActionPermissionMetadata:
+      properties:
+        comment:
+          type: string
+        role:
+          type: string
+      required:
+      - role
+      type: object
+    AddReplaceOrRemoveFields:
+      properties:
+        add_headers:
+          additionalProperties:
+            type: string
+          default: {}
+          type: object
+        remove_headers:
+          default: []
+          items:
+            type: string
+          type: array
+      type: object
     # AllowlistEntry:
     #   properties:
     #     collection:
@@ -663,18 +663,18 @@ components:
     #   required:
     #   - enable
     #   type: object
-    # ArgumentDefinition_GraphQLType:
-    #   properties:
-    #     description:
-    #       type: string
-    #     name:
-    #       $ref: '#/components/schemas/GraphQLName'
-    #     type:
-    #       type: string
-    #   required:
-    #   - name
-    #   - type
-    #   type: object
+    ArgumentDefinition_GraphQLType:
+      properties:
+        description:
+          type: string
+        name:
+          $ref: '#/components/schemas/GraphQLName'
+        type:
+          type: string
+      required:
+      - name
+      - type
+      type: object
     AutoTriggerLogCleanupConfig:
       properties:
         batch_size:
@@ -1381,41 +1381,41 @@ components:
     #   - role
     #   - permission
     #   type: object
-    # BodyTransformFn_ModifyAsFormURLEncoded:
-    #   properties:
-    #     action:
-    #       enum:
-    #       - x_www_form_urlencoded
-    #       type: string
-    #     form_template:
-    #       additionalProperties:
-    #         type: string
-    #       type: object
-    #   required:
-    #   - action
-    #   - form_template
-    #   type: object
-    # BodyTransformFn_ModifyAsJSON:
-    #   properties:
-    #     action:
-    #       enum:
-    #       - transform
-    #       type: string
-    #     template:
-    #       type: string
-    #   required:
-    #   - action
-    #   - template
-    #   type: object
-    # BodyTransformFn_Remove:
-    #   properties:
-    #     action:
-    #       enum:
-    #       - remove
-    #       type: string
-    #   required:
-    #   - action
-    #   type: object
+    BodyTransformFn_ModifyAsFormURLEncoded:
+      properties:
+        action:
+          enum:
+          - x_www_form_urlencoded
+          type: string
+        form_template:
+          additionalProperties:
+            type: string
+          type: object
+      required:
+      - action
+      - form_template
+      type: object
+    BodyTransformFn_ModifyAsJSON:
+      properties:
+        action:
+          enum:
+          - transform
+          type: string
+        template:
+          type: string
+      required:
+      - action
+      - template
+      type: object
+    BodyTransformFn_Remove:
+      properties:
+        action:
+          enum:
+          - remove
+          type: string
+      required:
+      - action
+      type: object
     # CertVar:
     #   nullable: true
     #   properties:
@@ -2880,29 +2880,29 @@ components:
     #     name:
     #       $ref: '#/components/schemas/GraphQLName'
     #   type: object
-    # CustomTypes:
-    #   properties:
-    #     enums:
-    #       default: []
-    #       items:
-    #         $ref: '#/components/schemas/EnumTypeDefinition'
-    #       type: array
-    #     input_objects:
-    #       default: []
-    #       items:
-    #         $ref: '#/components/schemas/InputObjectTypeDefinition'
-    #       type: array
-    #     objects:
-    #       default: []
-    #       items:
-    #         $ref: '#/components/schemas/ObjectTypeDefinition'
-    #       type: array
-    #     scalars:
-    #       default: []
-    #       items:
-    #         $ref: '#/components/schemas/ScalarTypeDefinition'
-    #       type: array
-    #   type: object
+    CustomTypes:
+      properties:
+        enums:
+          default: []
+          items:
+            $ref: '#/components/schemas/EnumTypeDefinition'
+          type: array
+        input_objects:
+          default: []
+          items:
+            $ref: '#/components/schemas/InputObjectTypeDefinition'
+          type: array
+        objects:
+          default: []
+          items:
+            $ref: '#/components/schemas/ObjectTypeDefinition'
+          type: array
+        scalars:
+          default: []
+          items:
+            $ref: '#/components/schemas/ScalarTypeDefinition'
+          type: array
+      type: object
     # DataConnectorConnSourceConfig:
     #   properties:
     #     template:
@@ -3583,31 +3583,31 @@ components:
     #   - methods
     #   - definition
     #   type: object
-    # EnumTypeDefinition:
-    #   properties:
-    #     description:
-    #       type: string
-    #     name:
-    #       $ref: '#/components/schemas/GraphQLName'
-    #     values:
-    #       items:
-    #         $ref: '#/components/schemas/EnumValueDefinition'
-    #       type: array
-    #   required:
-    #   - name
-    #   - values
-    #   type: object
-    # EnumValueDefinition:
-    #   properties:
-    #     description:
-    #       type: string
-    #     is_deprecated:
-    #       type: boolean
-    #     value:
-    #       $ref: '#/components/schemas/GraphQLName'
-    #   required:
-    #   - value
-    #   type: object
+    EnumTypeDefinition:
+      properties:
+        description:
+          type: string
+        name:
+          $ref: '#/components/schemas/GraphQLName'
+        values:
+          items:
+            $ref: '#/components/schemas/EnumValueDefinition'
+          type: array
+      required:
+      - name
+      - values
+      type: object
+    EnumValueDefinition:
+      properties:
+        description:
+          type: string
+        is_deprecated:
+          type: boolean
+        value:
+          $ref: '#/components/schemas/GraphQLName'
+      required:
+      - value
+      type: object
     # ExtensionsSchema:
     #   type: string
     FieldCall:
@@ -3717,32 +3717,32 @@ components:
     #   required:
     #   - type
     #   type: object
-    # InputObjectFieldDefinition:
-    #   properties:
-    #     description:
-    #       type: string
-    #     name:
-    #       type: string
-    #     type:
-    #       type: string
-    #   required:
-    #   - name
-    #   - type
-    #   type: object
-    # InputObjectTypeDefinition:
-    #   properties:
-    #     description:
-    #       type: string
-    #     fields:
-    #       items:
-    #         $ref: '#/components/schemas/InputObjectFieldDefinition'
-    #       type: array
-    #     name:
-    #       type: string
-    #   required:
-    #   - name
-    #   - fields
-    #   type: object
+    InputObjectFieldDefinition:
+      properties:
+        description:
+          type: string
+        name:
+          type: string
+        type:
+          type: string
+      required:
+      - name
+      - type
+      type: object
+    InputObjectTypeDefinition:
+      properties:
+        description:
+          type: string
+        fields:
+          items:
+            $ref: '#/components/schemas/InputObjectFieldDefinition'
+          type: array
+        name:
+          type: string
+      required:
+      - name
+      - fields
+      type: object
     # Limit_MaxBatchSize:
     #   properties:
     #     global:
@@ -4812,39 +4812,39 @@ components:
     #         $ref: '#/components/schemas/TlsAllow'
     #       type: array
     #   type: object
-    # ObjectFieldDefinition_GraphQLType:
-    #   properties:
-    #     arguments:
-    #       additionalProperties: true
-    #     description:
-    #       type: string
-    #     name:
-    #       $ref: '#/components/schemas/GraphQLName'
-    #     type:
-    #       type: string
-    #   required:
-    #   - name
-    #   - type
-    #   type: object
-    # ObjectTypeDefinition:
-    #   properties:
-    #     description:
-    #       type: string
-    #     fields:
-    #       items:
-    #         $ref: '#/components/schemas/ObjectFieldDefinition_GraphQLType'
-    #       type: array
-    #     name:
-    #       type: string
-    #     relationships:
-    #       default: []
-    #       items:
-    #         $ref: '#/components/schemas/TypeRelationshipDefinition'
-    #       type: array
-    #   required:
-    #   - name
-    #   - fields
-    #   type: object
+    ObjectFieldDefinition_GraphQLType:
+      properties:
+        arguments:
+          additionalProperties: true
+        description:
+          type: string
+        name:
+          $ref: '#/components/schemas/GraphQLName'
+        type:
+          type: string
+      required:
+      - name
+      - type
+      type: object
+    ObjectTypeDefinition:
+      properties:
+        description:
+          type: string
+        fields:
+          items:
+            $ref: '#/components/schemas/ObjectFieldDefinition_GraphQLType'
+          type: array
+        name:
+          type: string
+        relationships:
+          default: []
+          items:
+            $ref: '#/components/schemas/TypeRelationshipDefinition'
+          type: array
+      required:
+      - name
+      - fields
+      type: object
     # OpenTelemetryConfig:
     #   properties:
     #     batch_span_processor:
@@ -5380,16 +5380,16 @@ components:
     #   required:
     #   - name
     #   type: object
-    # PostgresQualified_TableName:
-    #   properties:
-    #     name:
-    #       type: string
-    #     schema:
-    #       default: public
-    #       type: string
-    #   required:
-    #   - name
-    #   type: object
+    PostgresQualified_TableName:
+      properties:
+        name:
+          type: string
+        schema:
+          default: public
+          type: string
+      required:
+      - name
+      type: object
     # PostgresRUManual:
     #   properties:
     #     manual_configuration:
@@ -6365,98 +6365,98 @@ components:
       required:
       - mapping
       type: object
-    # RequestTransformV1:
-    #   properties:
-    #     body:
-    #       type: string
-    #     method:
-    #       type: string
-    #     query_params:
-    #       oneOf:
-    #       - additionalProperties:
-    #           nullable: true
-    #           type: string
-    #         type: object
-    #       - type: string
-    #     request_headers:
-    #       $ref: '#/components/schemas/AddReplaceOrRemoveFields'
-    #     template_engine:
-    #       default: Kriti
-    #       enum:
-    #       - Kriti
-    #       type: string
-    #     url:
-    #       type: string
-    #     version:
-    #       enum:
-    #       - 1
-    #       type: number
-    #   type: object
-    # RequestTransformV2:
-    #   properties:
-    #     body:
-    #       oneOf:
-    #       - $ref: '#/components/schemas/BodyTransformFn_Remove'
-    #       - $ref: '#/components/schemas/BodyTransformFn_ModifyAsJSON'
-    #       - $ref: '#/components/schemas/BodyTransformFn_ModifyAsFormURLEncoded'
-    #     method:
-    #       type: string
-    #     query_params:
-    #       oneOf:
-    #       - additionalProperties:
-    #           nullable: true
-    #           type: string
-    #         type: object
-    #       - type: string
-    #     request_headers:
-    #       $ref: '#/components/schemas/AddReplaceOrRemoveFields'
-    #     template_engine:
-    #       default: Kriti
-    #       enum:
-    #       - Kriti
-    #       type: string
-    #     url:
-    #       type: string
-    #     version:
-    #       enum:
-    #       - 2
-    #       type: number
-    #   required:
-    #   - version
-    #   type: object
-    # ResponseTransformV1:
-    #   properties:
-    #     body:
-    #       type: string
-    #     template_engine:
-    #       default: Kriti
-    #       enum:
-    #       - Kriti
-    #       type: string
-    #     version:
-    #       enum:
-    #       - 1
-    #       type: number
-    #   type: object
-    # ResponseTransformV2:
-    #   properties:
-    #     body:
-    #       oneOf:
-    #       - $ref: '#/components/schemas/BodyTransformFn_Remove'
-    #       - $ref: '#/components/schemas/BodyTransformFn_ModifyAsJSON'
-    #       - $ref: '#/components/schemas/BodyTransformFn_ModifyAsFormURLEncoded'
-    #     template_engine:
-    #       default: Kriti
-    #       enum:
-    #       - Kriti
-    #       type: string
-    #     version:
-    #       enum:
-    #       - 2
-    #       type: number
-    #   required:
-    #   - version
-    #   type: object
+    RequestTransformV1:
+      properties:
+        body:
+          type: string
+        method:
+          type: string
+        query_params:
+          oneOf:
+          - additionalProperties:
+              nullable: true
+              type: string
+            type: object
+          - type: string
+        request_headers:
+          $ref: '#/components/schemas/AddReplaceOrRemoveFields'
+        template_engine:
+          default: Kriti
+          enum:
+          - Kriti
+          type: string
+        url:
+          type: string
+        version:
+          enum:
+          - 1
+          type: number
+      type: object
+    RequestTransformV2:
+      properties:
+        body:
+          oneOf:
+          - $ref: '#/components/schemas/BodyTransformFn_Remove'
+          - $ref: '#/components/schemas/BodyTransformFn_ModifyAsJSON'
+          - $ref: '#/components/schemas/BodyTransformFn_ModifyAsFormURLEncoded'
+        method:
+          type: string
+        query_params:
+          oneOf:
+          - additionalProperties:
+              nullable: true
+              type: string
+            type: object
+          - type: string
+        request_headers:
+          $ref: '#/components/schemas/AddReplaceOrRemoveFields'
+        template_engine:
+          default: Kriti
+          enum:
+          - Kriti
+          type: string
+        url:
+          type: string
+        version:
+          enum:
+          - 2
+          type: number
+      required:
+      - version
+      type: object
+    ResponseTransformV1:
+      properties:
+        body:
+          type: string
+        template_engine:
+          default: Kriti
+          enum:
+          - Kriti
+          type: string
+        version:
+          enum:
+          - 1
+          type: number
+      type: object
+    ResponseTransformV2:
+      properties:
+        body:
+          oneOf:
+          - $ref: '#/components/schemas/BodyTransformFn_Remove'
+          - $ref: '#/components/schemas/BodyTransformFn_ModifyAsJSON'
+          - $ref: '#/components/schemas/BodyTransformFn_ModifyAsFormURLEncoded'
+        template_engine:
+          default: Kriti
+          enum:
+          - Kriti
+          type: string
+        version:
+          enum:
+          - 2
+          type: number
+      required:
+      - version
+      type: object
     RetryConf:
       properties:
         interval_sec:
@@ -6526,15 +6526,15 @@ components:
     #   additionalProperties: true
     #   description: value with unspecified type - this is a placeholder that will eventually be replaced with
     #     a more detailed description
-    # ScalarTypeDefinition:
-    #   properties:
-    #     description:
-    #       type: string
-    #     name:
-    #       type: string
-    #   required:
-    #   - name
-    #   type: object
+    ScalarTypeDefinition:
+      properties:
+        description:
+          type: string
+        name:
+          type: string
+      required:
+      - name
+      type: object
     # SourceCustomization:
     #   properties:
     #     naming_convention:
@@ -6744,33 +6744,33 @@ components:
     #   - repeatable-read
     #   - serializable
     #   type: string
-    # TypeRelationshipDefinition:
-    #   properties:
-    #     field_mapping:
-    #       additionalProperties:
-    #         type: string
-    #       type: object
-    #     name:
-    #       type: string
-    #     remote_table:
-    #       additionalProperties: true
-    #       anyOf:
-    #       - $ref: '#/components/schemas/PostgresQualified_TableName'
-    #       - type: string
-    #     source:
-    #       default: default
-    #       type: string
-    #     type:
-    #       enum:
-    #       - object
-    #       - array
-    #       type: string
-    #   required:
-    #   - name
-    #   - type
-    #   - remote_table
-    #   - field_mapping
-    #   type: object
+    TypeRelationshipDefinition:
+      properties:
+        field_mapping:
+          additionalProperties:
+            type: string
+          type: object
+        name:
+          type: string
+        remote_table:
+          additionalProperties: true
+          anyOf:
+          - $ref: '#/components/schemas/PostgresQualified_TableName'
+          - type: string
+        source:
+          default: default
+          type: string
+        type:
+          enum:
+          - object
+          - array
+          type: string
+      required:
+      - name
+      - type
+      - remote_table
+      - field_mapping
+      type: object
     # UrlConfFromParams:
     #   properties:
     #     connection_parameters:

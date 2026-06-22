@@ -63,6 +63,16 @@ const (
 	opUpdateRemoteSchemaRemoteRelationship = "update_remote_schema_remote_relationship"
 	opDeleteRemoteSchemaRemoteRelationship = "delete_remote_schema_remote_relationship"
 
+	opCreateAction           = "create_action"
+	opDropAction             = "drop_action"
+	opUpdateAction           = "update_action"
+	opCreateActionPermission = "create_action_permission"
+	opDropActionPermission   = "drop_action_permission"
+	opSetCustomTypes         = "set_custom_types"
+
+	opAddInheritedRole  = "add_inherited_role"
+	opDropInheritedRole = "drop_inherited_role"
+
 	opReplaceMetadata = "replace_metadata"
 	opClearMetadata   = "clear_metadata"
 	opReloadMetadata  = "reload_metadata"
@@ -91,6 +101,10 @@ const (
 	// codeAlreadyUntracked mirrors Hasura's code for untracking a table that is
 	// not tracked.
 	codeAlreadyUntracked = "already-untracked"
+	// codeInvalidParams mirrors Hasura's code for arguments that are
+	// syntactically valid but semantically rejected (e.g. an inherited role that
+	// names itself among its parents).
+	codeInvalidParams = "invalid-params"
 )
 
 // dispatchMutation routes a /v1/metadata request to its native Store
@@ -198,6 +212,22 @@ func (c *Controller) dispatchMutation( //nolint:ireturn,gocyclo,cyclop,funlen
 		return finishMutation(c.store.UpdateRemoteSchemaRemoteRelationship(ctx, argsJSON))
 	case opDeleteRemoteSchemaRemoteRelationship:
 		return finishMutation(c.store.DeleteRemoteSchemaRemoteRelationship(ctx, argsJSON))
+	case opCreateAction:
+		return finishMutation(c.store.CreateAction(ctx, argsJSON))
+	case opDropAction:
+		return finishMutation(c.store.DropAction(ctx, argsJSON))
+	case opUpdateAction:
+		return finishMutation(c.store.UpdateAction(ctx, argsJSON))
+	case opCreateActionPermission:
+		return finishMutation(c.store.CreateActionPermission(ctx, argsJSON))
+	case opDropActionPermission:
+		return finishMutation(c.store.DropActionPermission(ctx, argsJSON))
+	case opSetCustomTypes:
+		return finishMutation(c.store.SetCustomTypes(ctx, argsJSON))
+	case opAddInheritedRole:
+		return finishMutation(c.store.AddInheritedRole(ctx, argsJSON))
+	case opDropInheritedRole:
+		return finishMutation(c.store.DropInheritedRole(ctx, argsJSON))
 	case opReplaceMetadata:
 		return finishMutation(c.store.ReplaceMetadata(ctx, argsJSON))
 	case opClearMetadata:
@@ -311,7 +341,10 @@ func classifyMutationError(err error) (string, string) {
 		errors.Is(err, source.ErrFunctionNotTracked),
 		errors.Is(err, source.ErrEventTriggerNotFound),
 		errors.Is(err, source.ErrRemoteSchemaNotFound),
-		errors.Is(err, source.ErrRemoteSchemaPermissionNotFound):
+		errors.Is(err, source.ErrRemoteSchemaPermissionNotFound),
+		errors.Is(err, source.ErrActionNotFound),
+		errors.Is(err, source.ErrActionPermissionNotFound),
+		errors.Is(err, source.ErrInheritedRoleNotFound):
 		return codeNotExists, err.Error()
 	case errors.Is(err, source.ErrTableHasDependents):
 		return codeDependencyError, err.Error()
@@ -325,6 +358,14 @@ func classifyMutationError(err error) (string, string) {
 		errors.Is(err, source.ErrReadOpRequiresDB),
 		errors.Is(err, source.ErrRemoteSchemaIntrospectionUnavailable):
 		return codeNotSupported, err.Error()
+	case errors.Is(err, source.ErrInheritedRoleSelfReference):
+		// Self-referential inherited role: matches Hasura's runAddInheritedRole
+		// guard, which rejects with invalid-params.
+		return codeInvalidParams, err.Error()
+	case errors.Is(err, source.ErrReservedEnvVarPrefix):
+		// A header value_from_env referencing HASURA_GRAPHQL_*: matches Hasura's
+		// parse-failed rejection (a security guard).
+		return codeParseFailed, err.Error()
 	case errors.Is(err, remoteschema.ErrIntrospection):
 		// An unreachable / errorful upstream during add/update/introspect:
 		// matches Hasura's remote-schema-error code.

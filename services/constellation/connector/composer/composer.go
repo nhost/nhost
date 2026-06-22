@@ -10,6 +10,7 @@ import (
 	"maps"
 	"slices"
 
+	"github.com/nhost/nhost/services/constellation/connector/action"
 	"github.com/nhost/nhost/services/constellation/connector/relationships"
 	"github.com/nhost/nhost/services/constellation/connector/schemamerge"
 	"github.com/nhost/nhost/services/constellation/graph"
@@ -282,7 +283,55 @@ func (c *Composer) relationshipSpecs() []relationships.RelationshipSpec {
 		}
 	}
 
+	// Action output object types -> database source relationships. Only emitted
+	// when the action connector is a provider (i.e. there are actions); the
+	// source type lives on the action connector.
+	if actionConn := c.providers[action.ConnectorName]; actionConn != nil {
+		for _, object := range c.meta.CustomTypes.Objects {
+			for _, rel := range object.Relationships {
+				if spec, ok := customTypeRelationshipSpec(object.Name, rel); ok {
+					specs = append(specs, spec)
+				}
+			}
+		}
+	}
+
 	return specs
+}
+
+// customTypeRelationshipSpec translates a metadata CustomObjectRelationship (an
+// action output object type -> database source relationship) into a
+// RelationshipSpec. The action connector owns the source object type; the
+// target is a database table, so this mirrors the db->db ToSource shape (SQL
+// filtering args on the injected field). Returns ok=false for an unusable
+// relationship (bad type, missing source/table), which the action connector
+// separately records as a type inconsistency.
+func customTypeRelationshipSpec(
+	sourceType string, rel metadata.CustomObjectRelationship,
+) (relationships.RelationshipSpec, bool) {
+	if rel.Type != metadata.RelationshipTypeObject &&
+		rel.Type != metadata.RelationshipTypeArray {
+		return relationships.RelationshipSpec{}, false //nolint:exhaustruct
+	}
+
+	if rel.Source == "" || rel.RemoteTable.Name == "" || rel.RemoteTable.Schema == "" {
+		return relationships.RelationshipSpec{}, false //nolint:exhaustruct
+	}
+
+	isArray := rel.Type == metadata.RelationshipTypeArray
+
+	return relationships.RelationshipSpec{
+		SourceConnector:   action.ConnectorName,
+		SourceType:        sourceType,
+		Name:              rel.Name,
+		TargetConnector:   rel.Source,
+		TargetIdentifier:  rel.RemoteTable.Schema + "." + rel.RemoteTable.Name,
+		IsArray:           isArray,
+		WithSQLArgs:       true,
+		RemoteFieldName:   "",
+		BoundArguments:    nil,
+		ObjectDescription: dbToDBObjectDescription(isArray),
+	}, true
 }
 
 // dbRelationshipSpec translates a metadata RemoteRelationship (rooted in a

@@ -636,3 +636,55 @@ func TestClassifyConnectorError_DataExceptionError(t *testing.T) {
 		t.Errorf("classifyConnectorError (-want +got):\n%s", diff)
 	}
 }
+
+// fakeActionError satisfies the actionGraphQLErrors contract that the action
+// connector's structured error type implements: it carries already-shaped
+// Hasura-compatible error maps that must reach the client verbatim.
+type fakeActionError struct {
+	errs []map[string]any
+}
+
+func (e *fakeActionError) Error() string { return "graphql error" }
+
+func (e *fakeActionError) GraphQLErrors() []map[string]any { return e.errs }
+
+// TestClassifyConnectorError_ActionError proves an action webhook's structured
+// error (a 4xx with its own message/code) passes through classifyConnectorError
+// verbatim instead of being sanitised into a generic "internal server error"
+// line. The error is wrapped with call-site context to prove the interface
+// lookup still finds it through the wrap chain. devMode is false to prove the
+// pass-through is independent of it. This is the action-error parity guarantee.
+func TestClassifyConnectorError_ActionError(t *testing.T) {
+	t.Parallel()
+
+	c := &Controller{devMode: false}
+
+	actionErr := &fakeActionError{errs: []map[string]any{
+		{
+			"message": "invalid action input",
+			"extensions": map[string]any{
+				"code": "invalid-action-input",
+			},
+		},
+	}}
+
+	wrapped := fmt.Errorf(
+		"failed to execute operations: %w",
+		fmt.Errorf("action %q failed: %w", "insertFoo", actionErr),
+	)
+
+	got := c.classifyConnectorError(context.Background(), slog.Default(), wrapped)
+
+	want := []map[string]any{
+		{
+			"message": "invalid action input",
+			"extensions": map[string]any{
+				"code": "invalid-action-input",
+			},
+		},
+	}
+
+	if diff := cmp.Diff(want, got); diff != "" {
+		t.Errorf("classifyConnectorError (-want +got):\n%s", diff)
+	}
+}

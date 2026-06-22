@@ -4,6 +4,7 @@ import (
 	"maps"
 	"testing"
 
+	"github.com/nhost/nhost/services/constellation/connector/action"
 	"github.com/nhost/nhost/services/constellation/graph"
 	"github.com/nhost/nhost/services/constellation/metadata"
 )
@@ -522,5 +523,66 @@ func TestRelationshipSpecs_SkipsEnumAndMissingConnector(t *testing.T) {
 
 	if specs[0].Name != "members" {
 		t.Errorf("expected only the non-enum spec to survive, got %q", specs[0].Name)
+	}
+}
+
+// TestRelationshipSpecs_ActionCustomTypeToSource covers the action output
+// object type -> database source spec translator, including the per-relationship
+// skip branches and the no-action-provider guard.
+func TestRelationshipSpecs_ActionCustomTypeToSource(t *testing.T) {
+	t.Parallel()
+
+	md := &metadata.Metadata{ //nolint:exhaustruct
+		CustomTypes: metadata.CustomTypes{ //nolint:exhaustruct
+			Objects: []metadata.CustomObjectType{{
+				Name:   "DeptRef",
+				Fields: []metadata.CustomTypeField{{Name: "deptId", Type: "String!"}},
+				Relationships: []metadata.CustomObjectRelationship{
+					{
+						Name:         "department",
+						Type:         metadata.RelationshipTypeObject,
+						RemoteTable:  metadata.TableSource{Schema: "public", Name: "departments"},
+						FieldMapping: map[string]string{"deptId": "id"},
+						Source:       "default",
+					},
+					// invalid type -> skipped
+					{Name: "bad", Type: "typo", RemoteTable: metadata.TableSource{Schema: "public", Name: "departments"}, FieldMapping: map[string]string{"deptId": "id"}, Source: "default"},
+					// missing source -> skipped
+					{Name: "nosrc", Type: metadata.RelationshipTypeObject, RemoteTable: metadata.TableSource{Schema: "public", Name: "departments"}, FieldMapping: map[string]string{"deptId": "id"}, Source: ""},
+				},
+			}},
+		},
+	}
+
+	withAction := &Composer{ //nolint:exhaustruct
+		providers: map[string]SchemaProvider{
+			action.ConnectorName: stubSchemaProvider{typeName: "action"},
+		},
+		meta:            md,
+		inconsistencies: metadata.NewInconsistencies(),
+	}
+
+	specs := withAction.relationshipSpecs()
+	if len(specs) != 1 {
+		t.Fatalf("expected 1 spec (the others skipped), got %d: %+v", len(specs), specs)
+	}
+
+	got := specs[0]
+	if got.SourceConnector != action.ConnectorName || got.SourceType != "DeptRef" ||
+		got.Name != "department" || got.TargetConnector != "default" ||
+		got.TargetIdentifier != "public.departments" || got.IsArray || !got.WithSQLArgs ||
+		got.RemoteFieldName != "" {
+		t.Errorf("unexpected spec: %+v", got)
+	}
+
+	// No action provider registered -> custom-type specs are not emitted.
+	withoutAction := &Composer{ //nolint:exhaustruct
+		providers:       map[string]SchemaProvider{},
+		meta:            md,
+		inconsistencies: metadata.NewInconsistencies(),
+	}
+
+	if specs := withoutAction.relationshipSpecs(); len(specs) != 0 {
+		t.Errorf("expected no specs without an action provider, got %d: %+v", len(specs), specs)
 	}
 }

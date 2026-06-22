@@ -753,7 +753,7 @@ func TestMetadataStoreAndProxy_NativeFirstWithProxyFallback(t *testing.T) {
 	// (b) An op with no native handler IS forwarded to the proxy.
 	proxyHit = false
 
-	code, body = postViaFront(t, router, `{"type":"get_inconsistent_metadata","args":{}}`)
+	code, body = postViaFront(t, router, `{"type":"get_catalog_state","args":{}}`)
 	if code != http.StatusOK {
 		t.Fatalf("fallback op status = %d, want 200; body = %v", code, body)
 	}
@@ -893,6 +893,14 @@ func TestMutationOpDispatchParity(t *testing.T) {
 		opCreateRemoteSchemaRemoteRelationship,
 		opUpdateRemoteSchemaRemoteRelationship,
 		opDeleteRemoteSchemaRemoteRelationship,
+		opCreateAction,
+		opDropAction,
+		opUpdateAction,
+		opCreateActionPermission,
+		opDropActionPermission,
+		opSetCustomTypes,
+		opAddInheritedRole,
+		opDropInheritedRole,
 	}
 
 	// dispatchMutation dereferences c.store, so a bootstrapped Store is required.

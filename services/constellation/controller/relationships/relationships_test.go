@@ -5,6 +5,7 @@ import (
 
 	"github.com/google/go-cmp/cmp"
 	"github.com/nhost/nhost/services/constellation/connector"
+	"github.com/nhost/nhost/services/constellation/connector/action"
 	connectormock "github.com/nhost/nhost/services/constellation/connector/mock"
 	"github.com/nhost/nhost/services/constellation/controller/planner"
 	"github.com/nhost/nhost/services/constellation/controller/relationships"
@@ -542,5 +543,151 @@ func TestFromMetadata_MissingDatabaseConnectorSkipped(t *testing.T) {
 		// alive has no cross-db relationship of its own; an absent entry
 		// (rather than nil slice) is fine — the planner tolerates both.
 		_ = got
+	}
+}
+
+func TestFromMetadata_ActionCustomTypeObjectRelationship(t *testing.T) {
+	t.Parallel()
+
+	ctrl := gomock.NewController(t)
+	actionConn := connectormock.NewMockConnector(ctrl)
+
+	meta := &metadata.Metadata{ //nolint:exhaustruct
+		CustomTypes: metadata.CustomTypes{ //nolint:exhaustruct
+			Objects: []metadata.CustomObjectType{{
+				Name: "DeptRef",
+				Fields: []metadata.CustomTypeField{
+					{Name: "deptId", Type: "String!"},
+				},
+				Relationships: []metadata.CustomObjectRelationship{{
+					Name:         "department",
+					Type:         metadata.RelationshipTypeObject,
+					RemoteTable:  metadata.TableSource{Schema: "public", Name: "departments"},
+					FieldMapping: map[string]string{"deptId": "id"},
+					Source:       "default",
+				}},
+			}},
+		},
+	}
+
+	got := relationships.FromMetadata(meta, map[string]connector.Connector{
+		action.ConnectorName: actionConn,
+	})
+
+	rels := got[action.ConnectorName]
+	if len(rels) != 1 {
+		t.Fatalf("expected 1 relationship, got %d: %+v", len(rels), rels)
+	}
+
+	want := &planner.RelationshipMetadata{
+		Name:              "department",
+		SourceType:        "DeptRef",
+		TargetConnector:   "default",
+		TargetTable:       "departments",
+		TargetTableSchema: "public",
+		JoinMapping:       map[string]string{"deptId": "id"},
+		IsArray:           false,
+		IsArrayAggregate:  false,
+		IsRemote:          true,
+		LHSFields:         nil,
+		RemoteFieldPath:   nil,
+	}
+	if diff := cmp.Diff(want, rels[0]); diff != "" {
+		t.Errorf("mismatch (-want +got):\n%s", diff)
+	}
+}
+
+func TestFromMetadata_ActionCustomTypeArrayRelationshipEmitsAggregate(t *testing.T) {
+	t.Parallel()
+
+	ctrl := gomock.NewController(t)
+	actionConn := connectormock.NewMockConnector(ctrl)
+
+	meta := &metadata.Metadata{ //nolint:exhaustruct
+		CustomTypes: metadata.CustomTypes{ //nolint:exhaustruct
+			Objects: []metadata.CustomObjectType{{
+				Name:   "DeptRef",
+				Fields: []metadata.CustomTypeField{{Name: "deptId", Type: "String!"}},
+				Relationships: []metadata.CustomObjectRelationship{{
+					Name:         "files",
+					Type:         metadata.RelationshipTypeArray,
+					RemoteTable:  metadata.TableSource{Schema: "public", Name: "department_files"},
+					FieldMapping: map[string]string{"deptId": "department_id"},
+					Source:       "default",
+				}},
+			}},
+		},
+	}
+
+	got := relationships.FromMetadata(meta, map[string]connector.Connector{
+		action.ConnectorName: actionConn,
+	})
+
+	rels := got[action.ConnectorName]
+	if len(rels) != 2 {
+		t.Fatalf("expected relationship + aggregate (2), got %d: %+v", len(rels), rels)
+	}
+
+	if !rels[0].IsArray || rels[0].Name != "files" {
+		t.Errorf("rels[0] = %+v, want the array relationship 'files'", rels[0])
+	}
+
+	if !rels[1].IsArrayAggregate || rels[1].Name != "files_aggregate" {
+		t.Errorf("rels[1] = %+v, want 'files_aggregate'", rels[1])
+	}
+}
+
+func TestFromMetadata_ActionCustomTypeRelationshipSkips(t *testing.T) {
+	t.Parallel()
+
+	ctrl := gomock.NewController(t)
+	actionConn := connectormock.NewMockConnector(ctrl)
+
+	meta := &metadata.Metadata{ //nolint:exhaustruct
+		CustomTypes: metadata.CustomTypes{ //nolint:exhaustruct
+			Objects: []metadata.CustomObjectType{{
+				Name:   "DeptRef",
+				Fields: []metadata.CustomTypeField{{Name: "deptId", Type: "String!"}},
+				Relationships: []metadata.CustomObjectRelationship{
+					// Missing source.
+					{Name: "a", Type: metadata.RelationshipTypeObject, RemoteTable: metadata.TableSource{Schema: "public", Name: "departments"}, FieldMapping: map[string]string{"deptId": "id"}, Source: ""},
+					// Missing remote table.
+					{Name: "b", Type: metadata.RelationshipTypeObject, RemoteTable: metadata.TableSource{Schema: "", Name: ""}, FieldMapping: map[string]string{"deptId": "id"}, Source: "default"},
+					// Invalid relationship type.
+					{Name: "c", Type: "bogus", RemoteTable: metadata.TableSource{Schema: "public", Name: "departments"}, FieldMapping: map[string]string{"deptId": "id"}, Source: "default"},
+				},
+			}},
+		},
+	}
+
+	if rels := relationships.FromMetadata(meta, map[string]connector.Connector{
+		action.ConnectorName: actionConn,
+	})[action.ConnectorName]; len(rels) != 0 {
+		t.Errorf("expected all relationships skipped, got %d: %+v", len(rels), rels)
+	}
+}
+
+func TestFromMetadata_ActionCustomTypeRelationshipSkippedWhenNoActionConnector(t *testing.T) {
+	t.Parallel()
+
+	meta := &metadata.Metadata{ //nolint:exhaustruct
+		CustomTypes: metadata.CustomTypes{ //nolint:exhaustruct
+			Objects: []metadata.CustomObjectType{{
+				Name:   "DeptRef",
+				Fields: []metadata.CustomTypeField{{Name: "deptId", Type: "String!"}},
+				Relationships: []metadata.CustomObjectRelationship{{
+					Name:         "department",
+					Type:         metadata.RelationshipTypeObject,
+					RemoteTable:  metadata.TableSource{Schema: "public", Name: "departments"},
+					FieldMapping: map[string]string{"deptId": "id"},
+					Source:       "default",
+				}},
+			}},
+		},
+	}
+
+	// No action connector registered -> nothing emitted.
+	if got := relationships.FromMetadata(meta, map[string]connector.Connector{}); len(got) != 0 {
+		t.Errorf("expected empty result without action connector, got %+v", got)
 	}
 }

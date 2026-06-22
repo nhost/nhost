@@ -178,6 +178,77 @@ func TestMarshalunmarshalTOML_Empty(t *testing.T) {
 	}
 }
 
+func TestMarshalunmarshalTOML_ActionsCustomTypesInheritedRoles(t *testing.T) {
+	t.Parallel()
+
+	original := &Metadata{
+		Actions: []ActionMetadata{
+			{
+				Name: "createUser",
+				Definition: ActionDefinition{
+					Kind:       ActionKindSynchronous,
+					Handler:    EnvString("https://handler.example.test/createUser"),
+					Type:       ActionOperationMutation,
+					Timeout:    30,
+					Arguments:  []ActionArgument{{Name: "input", Type: "CreateUserInput!"}},
+					OutputType: "CreateUserOutput!",
+					// Integer values must decode as int64 (matching the JSON path)
+					// after normalizeMetadataPermissionNumbers runs on TOML decode.
+					RequestTransform: map[string]any{
+						"version": int64(2),
+						"body": map[string]any{
+							"action":   "transform",
+							"template": "{{ $body.input }}",
+						},
+					},
+					ResponseTransform: map[string]any{
+						"version": int64(2),
+						"body": map[string]any{
+							"action":   "transform",
+							"template": "{{ $body }}",
+						},
+					},
+				},
+				Permissions: []ActionPermission{{Role: "user"}},
+			},
+		},
+		CustomTypes: CustomTypes{
+			InputObjects: []CustomInputObjectType{{
+				Name:   "CreateUserInput",
+				Fields: []CustomTypeField{{Name: "name", Type: "String!"}},
+			}},
+			Objects: []CustomObjectType{{
+				Name:   "CreateUserOutput",
+				Fields: []CustomTypeField{{Name: "id", Type: "uuid!"}},
+			}},
+		},
+		InheritedRoles: []InheritedRole{{
+			RoleName: "manager",
+			RoleSet:  []string{"user", "admin"},
+		}},
+	}
+
+	data, err := MarshalTOML(original)
+	if err != nil {
+		t.Fatalf("MarshalTOML: %v", err)
+	}
+
+	got, err := unmarshalTOML(data)
+	if err != nil {
+		t.Fatalf("unmarshalTOML: %v", err)
+	}
+
+	if diff := cmp.Diff(original, got, cmpopts.EquateEmpty()); diff != "" {
+		t.Errorf("roundtrip mismatch (-original +got):\n%s", diff)
+	}
+
+	// Pin that nested request_transform integers decode as int64, not the
+	// go-toml default, matching the JSON path.
+	if v, ok := got.Actions[0].Definition.RequestTransform["version"].(int64); !ok || v != 2 {
+		t.Errorf("request_transform version = %#v, want int64(2)", got.Actions[0].Definition.RequestTransform["version"])
+	}
+}
+
 func TestStripEmptyTableHeaders(t *testing.T) {
 	t.Parallel()
 

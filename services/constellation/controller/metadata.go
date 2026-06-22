@@ -116,7 +116,10 @@ func inboundRequestFromContext(ctx context.Context) *http.Request {
 	return req
 }
 
-const metadataOpExportMetadata = "export_metadata"
+const (
+	metadataOpExportMetadata          = "export_metadata"
+	metadataOpGetInconsistentMetadata = "get_inconsistent_metadata"
+)
 
 // MetadataRequest implements api.StrictServerInterface for /v1/metadata.
 // Admin-secret enforcement is handled upstream by the security middleware
@@ -153,6 +156,10 @@ func (c *Controller) MetadataRequest( //nolint:ireturn
 		return c.exportMetadata()
 	}
 
+	if req.Body.Type == metadataOpGetInconsistentMetadata {
+		return c.getInconsistentMetadata()
+	}
+
 	if resp, handled, err := c.dispatchMutation(ctx, req); handled {
 		return resp, err
 	}
@@ -177,6 +184,36 @@ func (c *Controller) MetadataRequest( //nolint:ireturn
 		),
 		"$.args",
 	)
+}
+
+// getInconsistentMetadata answers Hasura's get_inconsistent_metadata from the
+// inconsistencies recorded during the most recent build (Controller.Inconsistencies()).
+// Unlike Hasura, Constellation accepts metadata that fails validation and records
+// it as an inconsistency at build time rather than rejecting the write inline, so
+// this is how those failures (e.g. an action referencing an undefined output type)
+// become visible.
+func (c *Controller) getInconsistentMetadata() (api.MetadataRequestResponseObject, error) { //nolint:ireturn
+	inc := c.Inconsistencies()
+
+	// Hasura's get_inconsistent_metadata returns a "definition" key holding the
+	// offending entity's metadata definition object. Constellation's
+	// Inconsistency only records type/name/reason, so rather than emit a
+	// misleading "definition" that merely duplicates "name", the key is omitted;
+	// Hasura-compatible clients (console/dashboard) key off type/name/reason and
+	// tolerate its absence.
+	objects := make([]map[string]any, 0, len(inc))
+	for i := range inc {
+		objects = append(objects, map[string]any{
+			"type":   inc[i].Kind,
+			"name":   inc[i].Name,
+			"reason": inc[i].Reason,
+		})
+	}
+
+	return api.MetadataRequest200JSONResponse{
+		"is_consistent":        len(objects) == 0,
+		"inconsistent_objects": objects,
+	}, nil
 }
 
 func (c *Controller) exportMetadata() (api.MetadataRequestResponseObject, error) { //nolint:ireturn

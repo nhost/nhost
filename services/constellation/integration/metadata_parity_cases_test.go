@@ -39,6 +39,20 @@ func TestMetadataParity(t *testing.T) {
 		`"table":` + udept + `,"role":"` + role + `","permission":{"columns":"*","filter":{}}}}`
 	createObjRel := `{"type":"pg_create_object_relationship","args":{"source":"default",` +
 		`"table":` + udept + `,"name":"parity_dept","using":{"foreign_key_constraint_on":"department_id"}}}`
+
+	// Inherited-role parents: two select permissions on departments granting
+	// disjoint columns (parity_p1: id+name, parity_p2: id+description), both
+	// unrestricted (filter {}). The inherited role's effective select permission
+	// is therefore the column union [id, name, description] over all rows — no
+	// cell-level masking arises because every column's granting parent also sees
+	// every row. role_set is given pre-sorted so Constellation's stored order
+	// matches Hasura's sorted export.
+	createSelDeptP1 := `{"type":"pg_create_select_permission","args":{"source":"default",` +
+		`"table":` + dept + `,"role":"parity_p1","permission":{"columns":["id","name"],"filter":{}}}}`
+	createSelDeptP2 := `{"type":"pg_create_select_permission","args":{"source":"default",` +
+		`"table":` + dept + `,"role":"parity_p2","permission":{"columns":["id","description"],"filter":{}}}}`
+	addInhMgr := `{"type":"add_inherited_role","args":` +
+		`{"role_name":"parity_pmgr","role_set":["parity_p1","parity_p2"]}}`
 	// Hasura's pg_create_event_trigger API takes the operation specs at the TOP
 	// level of args (insert/update/delete/enable_manual), NOT under a definition
 	// wrapper. Constellation accepts this real Hasura request shape and stores
@@ -478,6 +492,49 @@ func TestMetadataParity(t *testing.T) {
 			// remote-schema-error (Constellation maps remoteschema.ErrIntrospection).
 			name:    "add_remote_schema_unreachable",
 			op:      `{"type":"add_remote_schema","args":{"name":"parity_rs_unreachable","definition":{"url":"http://integration-functions-1:3999/nope"}}}`,
+			wantErr: true,
+		},
+
+		// ---- inherited roles ----
+		{
+			// add_inherited_role: the inherited role's effective select permission is
+			// the union of its parents. Layer B asserts the inherited_roles export
+			// matches (role_set sorted on both engines); Layer D queries departments
+			// AS the inherited role and proves the merged permission resolves
+			// identically — name is contributed only by parity_p1, description only by
+			// parity_p2, both over all rows.
+			name:          "add_inherited_role",
+			setup:         []string{createSelDeptP1, createSelDeptP2},
+			op:            addInhMgr,
+			affectsSchema: true,
+			query:         `query { departments(order_by: {id: asc}) { id name description } }`,
+			queryRole:     "parity_pmgr",
+		},
+		{
+			// drop_inherited_role: after dropping, the inherited role has no
+			// permissions, so querying departments as it is rejected by both engines
+			// (the role's surface is gone, not merely empty).
+			name:          "drop_inherited_role",
+			setup:         []string{createSelDeptP1, createSelDeptP2, addInhMgr},
+			op:            `{"type":"drop_inherited_role","args":{"role_name":"parity_pmgr"}}`,
+			affectsSchema: true,
+			query:         `query { departments(order_by: {id: asc}) { id } }`,
+			queryRole:     "parity_pmgr",
+			queryWantErr:  true,
+		},
+		{
+			// Enforced: both engines reject an inherited role that names itself among
+			// its parents with invalid-params (the self-ref guard runs before parent
+			// resolution, so no parent setup is needed).
+			name:    "add_inherited_role_self_reference",
+			op:      `{"type":"add_inherited_role","args":{"role_name":"parity_pmgr","role_set":["parity_p1","parity_pmgr"]}}`,
+			wantErr: true,
+		},
+		{
+			// Enforced: both engines reject dropping an absent inherited role with
+			// not-exists.
+			name:    "drop_inherited_role_missing",
+			op:      `{"type":"drop_inherited_role","args":{"role_name":"parity_ghost"}}`,
 			wantErr: true,
 		},
 	}

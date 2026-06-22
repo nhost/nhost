@@ -16,11 +16,15 @@ import (
 	"github.com/goccy/go-yaml"
 )
 
-// Metadata is the Hasura v3 top-level envelope: a list of database sources and
-// a list of remote GraphQL schemas.
+// Metadata is the Hasura v3 top-level envelope: database sources, remote
+// GraphQL schemas, and optional action/custom-type metadata.
 type Metadata struct {
-	Databases     []DatabaseMetadata     `json:"databases"                yaml:"databases"`
-	RemoteSchemas []RemoteSchemaMetadata `json:"remote_schemas,omitempty" yaml:"remote_schemas,omitempty"`
+	Databases       []DatabaseMetadata     `json:"databases"                yaml:"databases"`
+	RemoteSchemas   []RemoteSchemaMetadata `json:"remote_schemas,omitempty" yaml:"remote_schemas,omitempty"`
+	Actions         []ActionMetadata       `json:"actions,omitempty"        yaml:"actions,omitempty"`
+	CustomTypes     CustomTypes            `json:"custom_types,omitzero"    yaml:"custom_types,omitempty"`
+	InheritedRoles  []InheritedRole        `json:"inherited_roles,omitempty" yaml:"inherited_roles,omitempty"`
+	LoadDiagnostics []LoadDiagnostic       `json:"-"                        yaml:"-"`
 
 	Unknown jsontext.Value `json:",unknown" yaml:"-"`
 }
@@ -133,10 +137,33 @@ func FromYAML(ctx context.Context, metadataPath string) (*Metadata, error) {
 		return nil, fmt.Errorf("failed to read file %s: %w", remoteSchemasPath, err)
 	}
 
+	var inheritedRoles []InheritedRole
+
+	inheritedRolesPath := filepath.Join(baseDir, "inherited_roles.yaml")
+
+	inheritedData, err := readFile(inheritedRolesPath)
+
+	switch {
+	case err == nil:
+		if err := yaml.UnmarshalContext(ctx, inheritedData, &inheritedRoles); err != nil {
+			return nil, fmt.Errorf("failed to unmarshal inherited roles: %w", err)
+		}
+	case errors.Is(err, fs.ErrNotExist):
+		// inherited_roles.yaml is optional; an absent file leaves inheritedRoles nil.
+	default:
+		return nil, fmt.Errorf("failed to read file %s: %w", inheritedRolesPath, err)
+	}
+
+	actions, customTypes, diagnostics := loadActionMetadataYAML(ctx, baseDir)
+
 	return &Metadata{
-		Databases:     databases,
-		RemoteSchemas: remoteSchemas,
-		Unknown:       nil,
+		Databases:       databases,
+		RemoteSchemas:   remoteSchemas,
+		Actions:         actions,
+		CustomTypes:     customTypes,
+		InheritedRoles:  inheritedRoles,
+		LoadDiagnostics: diagnostics,
+		Unknown:         nil,
 	}, nil
 }
 

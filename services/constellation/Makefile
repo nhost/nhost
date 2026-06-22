@@ -114,6 +114,9 @@ parity-env-up:  ## Set up the metadata-parity env: isolated 'cstl' metadata DB +
 	  -e NHOST_WEBHOOK_SECRET=nhost-webhook-secret \
 	  -e CONSTELLATION_ADMIN_SECRET=nhost-admin-secret \
 	  -e CONSTELLATION_HASURA_UPSTREAM_URL= \
+	  -e CONSTELLATION_ASYNC_ACTION_WORKER_ENABLED=true \
+	  -e CONSTELLATION_ASYNC_ACTION_WORKER_EXCLUSIVE_OWNER=true \
+	  -e CONSTELLATION_ACTION_LOG_CREATE_IF_NOT_EXISTS=true \
 	  -e CONSTELLATION_JWT_SECRET='{"key":"0f987876650b4a085e64594fae9219e7781b17506bec02489ad061fba8cb22db","type":"HS256"}' \
 	  constellation:0.0.0-dev \
 	    serve

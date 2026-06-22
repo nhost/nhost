@@ -306,9 +306,14 @@ func runMetadataParityTests(t *testing.T, cases []metadataParityCase) {
 	// The parity cases mutate the SHARED Hasura metadata (and Constellation's),
 	// which the other integration tests depend on. Restore both to the ORIGINAL
 	// captured baseline when the suite finishes so it leaves no trace.
+	// Re-adding the original remote schemas makes Hasura re-introspect them,
+	// which routinely exceeds the 90s metadataRequestTimeout used by resetMetadata
+	// and fails the cleanup with a context deadline (even though every subtest
+	// passed). Use the dedicated longer-timeout, Errorf-not-Fatalf restore, as
+	// TestActionExecutionParity does.
 	t.Cleanup(func() {
-		resetMetadata(t, hasuraMetadataURL, original)
-		resetMetadata(t, constellationMetadataURL, original)
+		restoreFullMetadata(t, hasuraMetadataURL, original)
+		restoreFullMetadata(t, constellationMetadataURL, original)
 	})
 
 	// Reset both engines to the same baseline and capture the divergence between
@@ -363,6 +368,10 @@ func cleanupParityEntities(t *testing.T) {
 	)
 
 	ops := []string{
+		// Inherited-role entities (drop the role before its parents' permissions).
+		`{"type":"drop_inherited_role","args":{"role_name":"parity_pmgr"}}`,
+		`{"type":"pg_drop_select_permission","args":{"source":"default","table":` + dept + `,"role":"parity_p1"}}`,
+		`{"type":"pg_drop_select_permission","args":{"source":"default","table":` + dept + `,"role":"parity_p2"}}`,
 		`{"type":"pg_drop_select_permission","args":{"source":"default","table":` + dept + `,"role":"` + role + `"}}`,
 		`{"type":"pg_drop_insert_permission","args":{"source":"default","table":` + dept + `,"role":"` + role + `"}}`,
 		`{"type":"pg_drop_update_permission","args":{"source":"default","table":` + dept + `,"role":"` + role + `"}}`,

@@ -38,7 +38,7 @@ same converter in `metadata/convert.go`):
 
 | Mode | Source | Notes |
 |---|---|---|
-| **File (Hasura v3 directory)** | `--metadata-path` pointing at a Hasura metadata dir | Reads **only** `<root>/databases/databases.yaml` and the optional `<root>/remote_schemas.yaml`. `!include` directives are followed. **No other file is opened** — `actions.yaml`, `cron_triggers.yaml`, `query_collections.yaml`, `allow_list.yaml`, `rest_endpoints.yaml`, `inherited_roles.yaml`, etc. are never read. |
+| **File (Hasura v3 directory)** | `--metadata-path` pointing at a Hasura metadata dir | Reads `<root>/databases/databases.yaml` plus the optional `<root>/remote_schemas.yaml`, `<root>/actions.yaml` (+ `actions.graphql` SDL / `custom_types`), and `<root>/inherited_roles.yaml`. `!include` directives are followed. Other files — `cron_triggers.yaml`, `query_collections.yaml`, `allow_list.yaml`, `rest_endpoints.yaml`, etc. — are never read. |
 | **Database (polled)** | `--metadata-database-url` → `hdb_catalog.hdb_metadata` | Parses the JSON blob Hasura stores. Must be `version: 3`. The blob keys its source list as `sources` (handled). Unknown top-level keys are dropped. |
 | **Native TOML** | `--metadata-path` ending in `.toml` | Constellation's own format. Same shape as the tables below; no Hasura-only keys exist to drop. |
 
@@ -46,19 +46,17 @@ same converter in `metadata/convert.go`):
 
 ## Top-level metadata
 
-Constellation's top-level envelope has exactly two keys.
-
 | Hasura key | Status | Notes |
 |---|---|---|
 | `sources` / `databases` | ✅ | The database list. JSON/DB mode uses `sources`; the YAML directory layout uses `databases`. |
 | `remote_schemas` | ✅ | See [Remote schemas](#remote-schemas). |
 | `version` | ✅ | Must be `3` in JSON/DB mode. |
-| `actions` | ❌ | Hasura Actions are not implemented. |
-| `custom_types` | ❌ | Only meaningful with actions; not modeled. |
+| `actions` | ✅ | Hasura Actions (sync + async) — see [Action parity coverage](../developers/action-parity-coverage.md). |
+| `custom_types` | ✅ | Action input/output custom types (objects, enums, scalars; pg-scalar reuse). |
 | `query_collections` | ❌ | No query collections. |
 | `allowlist` | ❌ | No allowlist enforcement. |
 | `rest_endpoints` | ❌ | No RESTified endpoints. |
-| `inherited_roles` | ❌ | No role inheritance; each role's schema is built from its own permissions. |
+| `inherited_roles` | ✅ | Expanded at build time into effective permissions (most-permissive union of parent roles) on database tables, functions, and actions. Remote-schema permissions are not inherited, and an inherited role whose only resolvable parent is a remote-schema-only role is left unexpanded (recorded as an inconsistency). Cell-level null-masking is not modeled. |
 | `cron_triggers` | ❌ | No scheduled/cron triggers. |
 | `api_limits` | ❌ | No depth/node/time/rate limiting. |
 | `network` | ❌ | No TLS allowlist. |
@@ -415,16 +413,17 @@ what Constellation serves. **Exception:** event triggers are a partial case —
 on the DB metadata source their config is stored and round-trips through
 `export_metadata` (no runtime fires them); see the row below.
 
+Actions, custom types, and inherited roles are **supported** in this build and
+have moved out of this list — see [Top-level metadata](#top-level-metadata) and
+[Action parity coverage](../developers/action-parity-coverage.md).
+
 | Hasura feature | Metadata operations | Status |
 |---|---|---|
-| **Actions** | `create_action`, `create_action_permission`, … | ❌ |
-| **Custom types** | `set_custom_types` | ❌ |
 | **Event triggers** | `pg_create_event_trigger`, `pg_delete_event_trigger`, … | 🟡 — **Metadata authoring only (DB source).** `pg_create_event_trigger`/`pg_delete_event_trigger` are stored and the `event_triggers` key round-trips through `export_metadata`. No event-delivery runtime executes them (triggers never fire), and the file/YAML source still drops them (the struct field is tagged `yaml:"-"`). |
 | **Cron / scheduled triggers** | `create_cron_trigger`, `create_scheduled_event` | ❌ |
 | **Query collections** | `create_query_collection`, `add_query_to_collection` | ❌ |
 | **Allowlist** | `add_collection_to_allowlist`, … | ❌ |
 | **RESTified endpoints** | `create_rest_endpoint` | ❌ |
-| **Inherited roles** | `add_inherited_role` | ❌ |
 | **Computed fields** | `*_add_computed_field` | ❌ (on the roadmap) |
 | **API limits** | `set_api_limits` | ❌ |
 | **Network / TLS allowlist** | `add_host_to_tls_allowlist` | ❌ |
