@@ -1,9 +1,9 @@
 ---
 // Embeds a terminal session recording using asciinema-player (self-hosted, no
-// external script). Drop a `.cast` file (asciicast v2) into `public/casts/` and
-// pass its public path as `src`, e.g. src="/casts/cli-quickstart.cast".
+// external script). Drop a `.cast` file (asciicast v2 or v3) into `public/casts/`
+// and pass its public path as `src`, e.g. src="/casts/cli/nhost-up.cast".
 interface Props {
-  /** Public path to the .cast file, e.g. "/casts/cli-quickstart.cast". */
+  /** Public path to the .cast file, e.g. "/casts/cli/nhost-up.cast". */
   src: string;
   cols?: number;
   rows?: number;

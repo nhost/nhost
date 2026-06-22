@@ -7,21 +7,19 @@ head:
     content: "Upgrade Legacy Projects to the New Config File | Nhost Docs"
 ---
 
-If you want to migrate an existing project you need to:
+import { AsciinemaPlayer } from '@components';
 
-:::note[▶️ Asciinema idea — remove if not needed]
-The full migration flow — `nhost login` → `nhost link` → `nhost config pull` → `nhost up`. Replace with `<AsciinemaPlayer src="/casts/cli/migrate-config.cast" idleTimeLimit={2} />` (add the `AsciinemaPlayer` import at the top of the file).
-:::
+If you want to migrate an existing project you need to:
 
 1. Go into your project's folder:
 
-```bash
+```bash frame="none"
 $ cd /path/to/existingproject
 ```
 
 2. Login:
 
-```bash
+```bash frame="none"
 $ nhost login
 - email: david@nhost.io
 - password:
@@ -33,72 +31,27 @@ Storing PAT for future user
 
 3. Link your project:
 
-```bash
+```bash frame="none"
 $ nhost link
-
-   │                      │               │            │              │
- # │ Subdomain            │ Project       │ Workspace  │ Region       │
- 1 │ lrkadqfanxgmscttabiv │ demo          │ david-yirq │ eu-central-1 │
-   │                      │               │            │              │
-- Select # the workspace to link: 1
-- Enter project subdomain to confirm: lrkadqfanxgmscttabiv
 ```
+
+<AsciinemaPlayer src="/casts/cli/nhost-link.cast" poster="npt:0:07" idleTimeLimit={2} />
 
 4. Pull the configuration from the cloud:
 
-```bash
+```bash frame="none"
 $ nhost config pull
-
-- /path/to/existingproject/nhost/nhost.toml already exists. Do you want to overwrite it? [y/N] y
-- /path/to/existingproject/.secrets already exists. Do you want to overwrite it? [y/N] y
-Pulling config from Nhost...
-Getting secrets list from Nhost...
-Adding .secrets to .gitignore...
-Success!
-- Review `nhost/nhost.toml` and make sure there are no secrets before you commit it to git.
-- Review `.secrets` file and set your development secrets
-- Review `.secrets` was added to .gitignore
 ```
+
+<AsciinemaPlayer src="/casts/cli/nhost-config-pull.cast" poster="npt:0:08" idleTimeLimit={2} />
 
 5. Follow the instructions on screen to ensure your configuration contains no secrets and you don't commit sensitive information to git.
 
 6. Profit:
 
-```bash
+```bash frame="none"
 $ nhost up
-
-Verifying configuration...
-Configuration is valid!
-Setting up Nhost development environment...
-Starting Nhost development environment...
-[+] Running 11/11
- ✔ Network existingproject_default        Created                       0.0s
- ✔ Container existingproject-minio-1      Healthy                      13.9s
- ✔ Container existingproject-postgres-1   Healthy                      13.9s
- ✔ Container existingproject-traefik-1    Healthy                      13.9s
- ✔ Container existingproject-dashboard-1  Healthy                      13.9s
- ✔ Container existingproject-mailhog-1    Healthy                      13.9s
- ✔ Container existingproject-functions-1  Healthy                      13.9s
- ✔ Container existingproject-graphql-1    Healthy                      13.8s
- ✔ Container existingproject-console-1    Healthy                      18.8s
- ✔ Container existingproject-storage-1    Healthy                      13.8s
- ✔ Container existingproject-auth-1       Healthy                      18.8s
-Applying migrations...
-INFO nothing to apply on database: default
-Nhost development environment started.
-URLs:
-- Postgres:             postgres://postgres:postgres@localhost:5432/postgres
-- Hasura:               https://local.hasura.local.nhost.run
-- GraphQL:              https://local.graphql.local.nhost.run
-- Auth:                 https://local.auth.local.nhost.run
-- Storage:              https://local.storage.local.nhost.run
-- Functions:            https://local.functions.local.nhost.run
-- Dashboard:            https://local.dashboard.local.nhost.run
-- Mailhog:              https://local.mailhog.local.nhost.run
-SDK Configuration:
- Subdomain:             local
- Region:                (empty)
-Run `nhost up` to reload the development environment
-Run `nhost down` to stop the development environment
-Run `nhost logs` to watch the logs
 ```
+
+<AsciinemaPlayer src="/casts/cli/nhost-up.cast" poster="npt:0:14" idleTimeLimit={2} />
+
