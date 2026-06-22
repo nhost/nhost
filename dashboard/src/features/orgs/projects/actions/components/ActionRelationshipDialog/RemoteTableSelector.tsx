@@ -11,6 +11,10 @@ export default function RemoteTableSelector() {
   const { control, watch, setValue } =
     useFormContext<ActionRelationshipFormValues>();
 
+  const clearFieldMapping = () => {
+    setValue('fieldMapping', [], { shouldDirty: true });
+  };
+
   const { data: dataSources } = useGetDataSources();
   const allTables = useMetadataTables();
 
@@ -57,6 +61,7 @@ export default function RemoteTableSelector() {
           out: (selectedValue: string) => {
             setValue('schema', '', { shouldDirty: true });
             setValue('table', '', { shouldDirty: true });
+            clearFieldMapping();
             return selectedValue;
           },
         }}
@@ -83,6 +88,7 @@ export default function RemoteTableSelector() {
           in: (storedValue: string) => storedValue,
           out: (selectedValue: string) => {
             setValue('table', '', { shouldDirty: true });
+            clearFieldMapping();
             return selectedValue;
           },
         }}
@@ -108,6 +114,7 @@ export default function RemoteTableSelector() {
         emptyText="No tables found."
         disabled={!selectedSchema}
         options={tableOptions}
+        onChange={clearFieldMapping}
       />
     </div>
   );
