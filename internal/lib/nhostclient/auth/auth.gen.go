@@ -190,6 +190,26 @@ const (
 	TicketTypeQuerySigninPasswordless TicketTypeQuery = "signinPasswordless"
 )
 
+// Defines values for LinkProviderParamsProvider.
+const (
+	LinkProviderParamsProviderApple       LinkProviderParamsProvider = "apple"
+	LinkProviderParamsProviderAzuread     LinkProviderParamsProvider = "azuread"
+	LinkProviderParamsProviderBitbucket   LinkProviderParamsProvider = "bitbucket"
+	LinkProviderParamsProviderDiscord     LinkProviderParamsProvider = "discord"
+	LinkProviderParamsProviderEntraid     LinkProviderParamsProvider = "entraid"
+	LinkProviderParamsProviderFacebook    LinkProviderParamsProvider = "facebook"
+	LinkProviderParamsProviderGithub      LinkProviderParamsProvider = "github"
+	LinkProviderParamsProviderGitlab      LinkProviderParamsProvider = "gitlab"
+	LinkProviderParamsProviderGoogle      LinkProviderParamsProvider = "google"
+	LinkProviderParamsProviderLinkedin    LinkProviderParamsProvider = "linkedin"
+	LinkProviderParamsProviderSpotify     LinkProviderParamsProvider = "spotify"
+	LinkProviderParamsProviderStrava      LinkProviderParamsProvider = "strava"
+	LinkProviderParamsProviderTwitch      LinkProviderParamsProvider = "twitch"
+	LinkProviderParamsProviderTwitter     LinkProviderParamsProvider = "twitter"
+	LinkProviderParamsProviderWindowslive LinkProviderParamsProvider = "windowslive"
+	LinkProviderParamsProviderWorkos      LinkProviderParamsProvider = "workos"
+)
+
 // Defines values for Oauth2AuthorizeParamsCodeChallengeMethod.
 const (
 	S256 Oauth2AuthorizeParamsCodeChallengeMethod = "S256"
@@ -297,22 +317,22 @@ const (
 
 // Defines values for RefreshProviderTokenParamsProvider.
 const (
-	RefreshProviderTokenParamsProviderApple       RefreshProviderTokenParamsProvider = "apple"
-	RefreshProviderTokenParamsProviderAzuread     RefreshProviderTokenParamsProvider = "azuread"
-	RefreshProviderTokenParamsProviderBitbucket   RefreshProviderTokenParamsProvider = "bitbucket"
-	RefreshProviderTokenParamsProviderDiscord     RefreshProviderTokenParamsProvider = "discord"
-	RefreshProviderTokenParamsProviderEntraid     RefreshProviderTokenParamsProvider = "entraid"
-	RefreshProviderTokenParamsProviderFacebook    RefreshProviderTokenParamsProvider = "facebook"
-	RefreshProviderTokenParamsProviderGithub      RefreshProviderTokenParamsProvider = "github"
-	RefreshProviderTokenParamsProviderGitlab      RefreshProviderTokenParamsProvider = "gitlab"
-	RefreshProviderTokenParamsProviderGoogle      RefreshProviderTokenParamsProvider = "google"
-	RefreshProviderTokenParamsProviderLinkedin    RefreshProviderTokenParamsProvider = "linkedin"
-	RefreshProviderTokenParamsProviderSpotify     RefreshProviderTokenParamsProvider = "spotify"
-	RefreshProviderTokenParamsProviderStrava      RefreshProviderTokenParamsProvider = "strava"
-	RefreshProviderTokenParamsProviderTwitch      RefreshProviderTokenParamsProvider = "twitch"
-	RefreshProviderTokenParamsProviderTwitter     RefreshProviderTokenParamsProvider = "twitter"
-	RefreshProviderTokenParamsProviderWindowslive RefreshProviderTokenParamsProvider = "windowslive"
-	RefreshProviderTokenParamsProviderWorkos      RefreshProviderTokenParamsProvider = "workos"
+	Apple       RefreshProviderTokenParamsProvider = "apple"
+	Azuread     RefreshProviderTokenParamsProvider = "azuread"
+	Bitbucket   RefreshProviderTokenParamsProvider = "bitbucket"
+	Discord     RefreshProviderTokenParamsProvider = "discord"
+	Entraid     RefreshProviderTokenParamsProvider = "entraid"
+	Facebook    RefreshProviderTokenParamsProvider = "facebook"
+	Github      RefreshProviderTokenParamsProvider = "github"
+	Gitlab      RefreshProviderTokenParamsProvider = "gitlab"
+	Google      RefreshProviderTokenParamsProvider = "google"
+	Linkedin    RefreshProviderTokenParamsProvider = "linkedin"
+	Spotify     RefreshProviderTokenParamsProvider = "spotify"
+	Strava      RefreshProviderTokenParamsProvider = "strava"
+	Twitch      RefreshProviderTokenParamsProvider = "twitch"
+	Twitter     RefreshProviderTokenParamsProvider = "twitter"
+	Windowslive RefreshProviderTokenParamsProvider = "windowslive"
+	Workos      RefreshProviderTokenParamsProvider = "workos"
 )
 
 // Defines values for VerifyTicketParamsType.
@@ -495,6 +515,23 @@ type LinkIdTokenRequest struct {
 	// Nonce Nonce used during sign in process
 	Nonce    *string         `json:"nonce,omitempty"`
 	Provider IdTokenProvider `json:"provider"`
+}
+
+// LinkProviderRequest defines model for LinkProviderRequest.
+type LinkProviderRequest struct {
+	ProviderSpecificParams *ProviderSpecificParams `json:"providerSpecificParams,omitempty"`
+
+	// RedirectTo URI to redirect the browser to after the linking flow completes.
+	RedirectTo *string `json:"redirectTo,omitempty"`
+
+	// State Opaque state value to be returned to the client after linking.
+	State *string `json:"state,omitempty"`
+}
+
+// LinkProviderResponse defines model for LinkProviderResponse.
+type LinkProviderResponse struct {
+	// Url The provider authorization URL the client should redirect the browser to.
+	Url string `json:"url"`
 }
 
 // MFAChallengePayload Challenge payload for multi-factor authentication
@@ -1134,6 +1171,9 @@ type TicketQuery = string
 // TicketTypeQuery Type of the ticket
 type TicketTypeQuery string
 
+// LinkProviderParamsProvider defines parameters for LinkProvider.
+type LinkProviderParamsProvider string
+
 // Oauth2AuthorizeParams defines parameters for Oauth2Authorize.
 type Oauth2AuthorizeParams struct {
 	// ClientId The OAuth2 client identifier (RFC 6749 Section 2.2).
@@ -1211,9 +1251,6 @@ type SignInProviderParams struct {
 
 	// RedirectTo URI to redirect to
 	RedirectTo *string `form:"redirectTo,omitempty" json:"redirectTo,omitempty"`
-
-	// Connect If set, this means that the user is already authenticated and wants to link their account. This needs to be a valid JWT access token.
-	Connect *string `form:"connect,omitempty" json:"connect,omitempty"`
 
 	// State Opaque state value to be returned by the provider
 	State *string `form:"state,omitempty" json:"state,omitempty"`
@@ -1348,6 +1385,9 @@ type VerifyElevateWebauthnJSONRequestBody = SignInWebauthnVerifyRequest
 
 // LinkIdTokenJSONRequestBody defines body for LinkIdToken for application/json ContentType.
 type LinkIdTokenJSONRequestBody = LinkIdTokenRequest
+
+// LinkProviderJSONRequestBody defines body for LinkProvider for application/json ContentType.
+type LinkProviderJSONRequestBody = LinkProviderRequest
 
 // Oauth2AuthorizePostFormdataRequestBody defines body for Oauth2AuthorizePost for application/x-www-form-urlencoded ContentType.
 type Oauth2AuthorizePostFormdataRequestBody Oauth2AuthorizePostFormdataBody
@@ -1989,6 +2029,11 @@ type ClientInterface interface {
 
 	LinkIdToken(ctx context.Context, body LinkIdTokenJSONRequestBody, reqEditors ...RequestEditorFn) (*http.Response, error)
 
+	// LinkProviderWithBody request with any body
+	LinkProviderWithBody(ctx context.Context, provider LinkProviderParamsProvider, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*http.Response, error)
+
+	LinkProvider(ctx context.Context, provider LinkProviderParamsProvider, body LinkProviderJSONRequestBody, reqEditors ...RequestEditorFn) (*http.Response, error)
+
 	// ChangeUserMfa request
 	ChangeUserMfa(ctx context.Context, reqEditors ...RequestEditorFn) (*http.Response, error)
 
@@ -2332,6 +2377,30 @@ func (c *Client) LinkIdTokenWithBody(ctx context.Context, contentType string, bo
 
 func (c *Client) LinkIdToken(ctx context.Context, body LinkIdTokenJSONRequestBody, reqEditors ...RequestEditorFn) (*http.Response, error) {
 	req, err := NewLinkIdTokenRequest(c.Server, body)
+	if err != nil {
+		return nil, err
+	}
+	req = req.WithContext(ctx)
+	if err := c.applyEditors(ctx, req, reqEditors); err != nil {
+		return nil, err
+	}
+	return c.Client.Do(req)
+}
+
+func (c *Client) LinkProviderWithBody(ctx context.Context, provider LinkProviderParamsProvider, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*http.Response, error) {
+	req, err := NewLinkProviderRequestWithBody(c.Server, provider, contentType, body)
+	if err != nil {
+		return nil, err
+	}
+	req = req.WithContext(ctx)
+	if err := c.applyEditors(ctx, req, reqEditors); err != nil {
+		return nil, err
+	}
+	return c.Client.Do(req)
+}
+
+func (c *Client) LinkProvider(ctx context.Context, provider LinkProviderParamsProvider, body LinkProviderJSONRequestBody, reqEditors ...RequestEditorFn) (*http.Response, error) {
+	req, err := NewLinkProviderRequest(c.Server, provider, body)
 	if err != nil {
 		return nil, err
 	}
@@ -3664,6 +3733,53 @@ func NewLinkIdTokenRequestWithBody(server string, contentType string, body io.Re
 	return req, nil
 }
 
+// NewLinkProviderRequest calls the generic LinkProvider builder with application/json body
+func NewLinkProviderRequest(server string, provider LinkProviderParamsProvider, body LinkProviderJSONRequestBody) (*http.Request, error) {
+	var bodyReader io.Reader
+	buf, err := json.Marshal(body)
+	if err != nil {
+		return nil, err
+	}
+	bodyReader = bytes.NewReader(buf)
+	return NewLinkProviderRequestWithBody(server, provider, "application/json", bodyReader)
+}
+
+// NewLinkProviderRequestWithBody generates requests for LinkProvider with any type of body
+func NewLinkProviderRequestWithBody(server string, provider LinkProviderParamsProvider, contentType string, body io.Reader) (*http.Request, error) {
+	var err error
+
+	var pathParam0 string
+
+	pathParam0, err = runtime.StyleParamWithLocation("simple", false, "provider", runtime.ParamLocationPath, provider)
+	if err != nil {
+		return nil, err
+	}
+
+	serverURL, err := url.Parse(server)
+	if err != nil {
+		return nil, err
+	}
+
+	operationPath := fmt.Sprintf("/link/provider/%s", pathParam0)
+	if operationPath[0] == '/' {
+		operationPath = "." + operationPath
+	}
+
+	queryURL, err := serverURL.Parse(operationPath)
+	if err != nil {
+		return nil, err
+	}
+
+	req, err := http.NewRequest("POST", queryURL.String(), body)
+	if err != nil {
+		return nil, err
+	}
+
+	req.Header.Add("Content-Type", contentType)
+
+	return req, nil
+}
+
 // NewChangeUserMfaRequest generates requests for ChangeUserMfa
 func NewChangeUserMfaRequest(server string) (*http.Request, error) {
 	var err error
@@ -4744,22 +4860,6 @@ func NewSignInProviderRequest(server string, provider SignInProviderParamsProvid
 		if params.RedirectTo != nil {
 
 			if queryFrag, err := runtime.StyleParamWithLocation("form", true, "redirectTo", runtime.ParamLocationQuery, *params.RedirectTo); err != nil {
-				return nil, err
-			} else if parsed, err := url.ParseQuery(queryFrag); err != nil {
-				return nil, err
-			} else {
-				for k, v := range parsed {
-					for _, v2 := range v {
-						queryValues.Add(k, v2)
-					}
-				}
-			}
-
-		}
-
-		if params.Connect != nil {
-
-			if queryFrag, err := runtime.StyleParamWithLocation("form", true, "connect", runtime.ParamLocationQuery, *params.Connect); err != nil {
 				return nil, err
 			} else if parsed, err := url.ParseQuery(queryFrag); err != nil {
 				return nil, err
@@ -6343,6 +6443,11 @@ type ClientWithResponsesInterface interface {
 
 	LinkIdTokenWithResponse(ctx context.Context, body LinkIdTokenJSONRequestBody, reqEditors ...RequestEditorFn) (*LinkIdTokenR, error)
 
+	// LinkProviderWithBodyWithResponse request with any body
+	LinkProviderWithBodyWithResponse(ctx context.Context, provider LinkProviderParamsProvider, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*LinkProviderR, error)
+
+	LinkProviderWithResponse(ctx context.Context, provider LinkProviderParamsProvider, body LinkProviderJSONRequestBody, reqEditors ...RequestEditorFn) (*LinkProviderR, error)
+
 	// ChangeUserMfaWithResponse request
 	ChangeUserMfaWithResponse(ctx context.Context, reqEditors ...RequestEditorFn) (*ChangeUserMfaR, error)
 
@@ -6753,6 +6858,29 @@ func (r LinkIdTokenR) Status() string {
 
 // StatusCode returns HTTPResponse.StatusCode
 func (r LinkIdTokenR) StatusCode() int {
+	if r.HTTPResponse != nil {
+		return r.HTTPResponse.StatusCode
+	}
+	return 0
+}
+
+type LinkProviderR struct {
+	Body         []byte
+	HTTPResponse *http.Response
+	JSON200      *LinkProviderResponse
+	JSONDefault  *ErrorResponse
+}
+
+// Status returns HTTPResponse.Status
+func (r LinkProviderR) Status() string {
+	if r.HTTPResponse != nil {
+		return r.HTTPResponse.Status
+	}
+	return http.StatusText(0)
+}
+
+// StatusCode returns HTTPResponse.StatusCode
+func (r LinkProviderR) StatusCode() int {
 	if r.HTTPResponse != nil {
 		return r.HTTPResponse.StatusCode
 	}
@@ -8038,6 +8166,23 @@ func (c *ClientWithResponses) LinkIdTokenWithResponse(ctx context.Context, body 
 	return ParseLinkIdTokenR(rsp)
 }
 
+// LinkProviderWithBodyWithResponse request with arbitrary body returning *LinkProviderR
+func (c *ClientWithResponses) LinkProviderWithBodyWithResponse(ctx context.Context, provider LinkProviderParamsProvider, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*LinkProviderR, error) {
+	rsp, err := c.LinkProviderWithBody(ctx, provider, contentType, body, reqEditors...)
+	if err != nil {
+		return nil, err
+	}
+	return ParseLinkProviderR(rsp)
+}
+
+func (c *ClientWithResponses) LinkProviderWithResponse(ctx context.Context, provider LinkProviderParamsProvider, body LinkProviderJSONRequestBody, reqEditors ...RequestEditorFn) (*LinkProviderR, error) {
+	rsp, err := c.LinkProvider(ctx, provider, body, reqEditors...)
+	if err != nil {
+		return nil, err
+	}
+	return ParseLinkProviderR(rsp)
+}
+
 // ChangeUserMfaWithResponse request returning *ChangeUserMfaR
 func (c *ClientWithResponses) ChangeUserMfaWithResponse(ctx context.Context, reqEditors ...RequestEditorFn) (*ChangeUserMfaR, error) {
 	rsp, err := c.ChangeUserMfa(ctx, reqEditors...)
@@ -9050,6 +9195,39 @@ func ParseLinkIdTokenR(rsp *http.Response) (*LinkIdTokenR, error) {
 	switch {
 	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 200:
 		var dest OKResponse
+		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
+			return nil, err
+		}
+		response.JSON200 = &dest
+
+	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && true:
+		var dest ErrorResponse
+		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
+			return nil, err
+		}
+		response.JSONDefault = &dest
+
+	}
+
+	return response, nil
+}
+
+// ParseLinkProviderR parses an HTTP response from a LinkProviderWithResponse call
+func ParseLinkProviderR(rsp *http.Response) (*LinkProviderR, error) {
+	bodyBytes, err := io.ReadAll(rsp.Body)
+	defer func() { _ = rsp.Body.Close() }()
+	if err != nil {
+		return nil, err
+	}
+
+	response := &LinkProviderR{
+		Body:         bodyBytes,
+		HTTPResponse: rsp,
+	}
+
+	switch {
+	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 200:
+		var dest LinkProviderResponse
 		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
 			return nil, err
 		}
