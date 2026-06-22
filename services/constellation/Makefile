@@ -5,39 +5,25 @@ endif
 include $(ROOT_DIR)/build/makefiles/general.makefile
 
 DOCKER_DEV_ENV_PATH=build/dev/docker
-ifndef POSTGRES_VERSION
-# shellcheck disable=SC2034 # Make variable consumed by target recipes.
-POSTGRES_VERSION=18
-endif
-POSTGRES_FULL_VERSION := $(shell sed -n '/postgresql_$(POSTGRES_VERSION) =/,/version =/{ s/.*version = "\([^"]*\)".*/\1/p; }' $(ROOT_DIR)/nixops/overlays/postgres.nix | head -1)
-ifndef POSTGRES_IMAGE
-# shellcheck disable=SC2034 # Make variable consumed by docker compose recipes.
-POSTGRES_IMAGE=nhost/postgres:$(POSTGRES_FULL_VERSION)-$(VERSION)
-endif
 
 
 .PHONY: _dev-env-up
 _dev-env-up: dev-env-integration-up run-up
-	POSTGRES_IMAGE=$(POSTGRES_IMAGE) docker compose -f ${DOCKER_DEV_ENV_PATH}/docker-compose.yaml up -d
+	docker compose -f ${DOCKER_DEV_ENV_PATH}/docker-compose.yaml up -d
 
 
 .PHONY: _dev-env-down
 _dev-env-down: dev-env-integration-down run-down
-	POSTGRES_IMAGE=$(POSTGRES_IMAGE) docker compose -f ${DOCKER_DEV_ENV_PATH}/docker-compose.yaml down --volumes
+	docker compose -f ${DOCKER_DEV_ENV_PATH}/docker-compose.yaml down --volumes
 
 
 .PHONY: dev-env-up-short
-dev-env-up-short: _dev-env-postgres-build dev-env-integration-up
-	POSTGRES_IMAGE=$(POSTGRES_IMAGE) docker compose -f ${DOCKER_DEV_ENV_PATH}/docker-compose.yaml up -d
-
-
-.PHONY: _dev-env-postgres-build
-_dev-env-postgres-build:
-	$(MAKE) -C $(ROOT_DIR)/services/postgres build-docker-image POSTGRES_VERSION=$(POSTGRES_VERSION)
+dev-env-up-short: dev-env-integration-up
+	docker compose -f ${DOCKER_DEV_ENV_PATH}/docker-compose.yaml up -d
 
 
 .PHONY: _dev-env-build
-_dev-env-build: _dev-env-postgres-build build-docker-image
+_dev-env-build: build-docker-image
 
 
 .PHONY: dev-env-integration-up

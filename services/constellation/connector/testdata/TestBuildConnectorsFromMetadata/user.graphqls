@@ -4853,6 +4853,19 @@ type mutation_root {
     updates: [news_updates!]!
   ): [news_mutation_response]
   """
+  delete single row from the table: "postgis_locations"
+  """
+  delete_postgis_locations_by_pk(id: uuid!): postgis_locations
+  """
+  delete data from the table: "postgis_locations"
+  """
+  delete_postgis_locations(
+    """
+    filter the rows which have to be deleted
+    """
+    where: postgis_locations_bool_exp!
+  ): postgis_locations_mutation_response
+  """
   insert a single row into the table: "postgis_locations"
   """
   insert_postgis_locations_one(
@@ -5189,6 +5202,15 @@ type Team {
   wins: Int!
   department: departments
 }
+type LeagueGame {
+  awayScore: Int!
+  awayTeam: LeagueTeam!
+  homeScore: Int!
+  homeTeam: LeagueTeam!
+  id: ID!
+  playedAt: String!
+  source: String!
+}
 type LeagueTeam {
   departmentId: ID!
   departmentName: String!
@@ -5202,15 +5224,6 @@ type LeagueTeam {
   name: String!
   points: Int!
   wins: Int!
-}
-type LeagueGame {
-  awayScore: Int!
-  awayTeam: LeagueTeam!
-  homeScore: Int!
-  homeTeam: LeagueTeam!
-  id: ID!
-  playedAt: String!
-  source: String!
 }
 type leagueQuery {
   game(id: ID!): LeagueGame
