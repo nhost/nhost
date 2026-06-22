@@ -22,16 +22,19 @@ export default function DataGridTextCell<
   onTemporaryValueChange,
   cell: { column },
 }: DataGridTextCellProps<TData>) {
-  const specificType = column.columnDef.meta?.specificType;
+  const baseType = column.columnDef.meta?.baseType;
+  const isArray = column.columnDef.meta?.isArray;
   const isNullable = column.columnDef.meta?.isNullable;
   const hasDefault = column.columnDef.meta?.defaultValue != null;
 
   const isMultiline =
-    specificType === 'text' ||
-    specificType === 'bpchar' ||
-    specificType?.includes('character varying') ||
-    specificType === 'json' ||
-    specificType === 'jsonb';
+    isArray ||
+    baseType === 'text' ||
+    baseType === 'bpchar' ||
+    baseType === 'character' ||
+    baseType === 'character varying' ||
+    baseType === 'json' ||
+    baseType === 'jsonb';
 
   const normalizedOptimisticValue =
     optimisticValue !== null && typeof optimisticValue === 'object'
