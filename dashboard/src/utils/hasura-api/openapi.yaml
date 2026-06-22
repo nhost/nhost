@@ -1308,6 +1308,12 @@ components:
         - $ref: "#/components/schemas/DropFunctionPermissionStep"
         - $ref: "#/components/schemas/AddComputedFieldStep"
         - $ref: "#/components/schemas/DropComputedFieldStep"
+        - $ref: "#/components/schemas/SetCustomTypesStep"
+        - $ref: "#/components/schemas/CreateActionStep"
+        - $ref: "#/components/schemas/UpdateActionStep"
+        - $ref: "#/components/schemas/DropActionOperation"
+        - $ref: "#/components/schemas/CreateActionPermissionStep"
+        - $ref: "#/components/schemas/DropActionPermissionStep"
 
     MigrationRequest:
       type: object

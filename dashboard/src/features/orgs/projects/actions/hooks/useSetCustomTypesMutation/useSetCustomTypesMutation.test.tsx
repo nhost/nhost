@@ -77,7 +77,9 @@ describe('useSetCustomTypesMutation', () => {
   it('on platform, persists custom types via the metadata bulk API', async () => {
     mocks.useIsPlatform.mockReturnValue(true);
 
-    const { result } = renderHook(() => useSetCustomTypesMutation(), { wrapper });
+    const { result } = renderHook(() => useSetCustomTypesMutation(), {
+      wrapper,
+    });
     await result.current.mutateAsync(variables);
 
     expect(metadataBody).toEqual({
@@ -90,7 +92,9 @@ describe('useSetCustomTypesMutation', () => {
   it('off platform, persists custom types via the migrations API', async () => {
     mocks.useIsPlatform.mockReturnValue(false);
 
-    const { result } = renderHook(() => useSetCustomTypesMutation(), { wrapper });
+    const { result } = renderHook(() => useSetCustomTypesMutation(), {
+      wrapper,
+    });
     await result.current.mutateAsync(variables);
 
     expect(migrationBody?.name).toBe('update_custom_types');
@@ -104,7 +108,9 @@ describe('useSetCustomTypesMutation', () => {
     mocks.useIsPlatform.mockReturnValue(false);
     const invalidateSpy = vi.spyOn(queryClient, 'invalidateQueries');
 
-    const { result } = renderHook(() => useSetCustomTypesMutation(), { wrapper });
+    const { result } = renderHook(() => useSetCustomTypesMutation(), {
+      wrapper,
+    });
     await result.current.mutateAsync(variables);
 
     await waitFor(() =>

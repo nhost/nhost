@@ -24,7 +24,9 @@ vi.mock('next/router', () => ({
 }));
 
 vi.mock('@uiw/react-codemirror', () => ({
-  default: ({ value }: { value?: string }) => <textarea value={value} readOnly />,
+  default: ({ value }: { value?: string }) => (
+    <textarea value={value} readOnly />
+  ),
 }));
 
 Object.defineProperty(window, 'matchMedia', {

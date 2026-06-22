@@ -1,4 +1,3 @@
-import { describe, expect, it } from 'vitest';
 import parseTypesSdl from './parseTypesSdl';
 
 describe('parseTypesSdl', () => {

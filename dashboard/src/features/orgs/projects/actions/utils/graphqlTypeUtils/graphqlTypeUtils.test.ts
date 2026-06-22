@@ -1,5 +1,4 @@
 import { parseType } from 'graphql';
-import { describe, expect, it } from 'vitest';
 import {
   getAstTypeMetadata,
   unwrapType,

@@ -21,11 +21,9 @@ export default function CustomTypesEditor() {
     useSetCustomTypesMutation();
 
   const [sdl, setSdl] = useState('');
-  const [previousSdl, setPreviousSdl] = useState(''); // used to revert changes
+  const [previousSdl, setPreviousSdl] = useState('');
   const isDirty = sdl !== previousSdl;
 
-  // Populate the editor from the metadata only on the first successful load.
-  // Subsequent refetches (e.g. after a save) must not clobber in-progress edits.
   const initializedRef = useRef(false);
 
   useEffect(() => {

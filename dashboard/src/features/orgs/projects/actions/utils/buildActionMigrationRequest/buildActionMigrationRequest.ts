@@ -4,7 +4,6 @@ import type {
   DropActionOperation,
   DropActionPermissionStep,
   MigrationRequest,
-  MigrationStep,
   SetCustomTypesStep,
   UpdateActionStep,
 } from '@/utils/hasura-api/generated/schemas';
@@ -28,10 +27,8 @@ export default function buildActionMigrationRequest(
 ): MigrationRequest {
   return {
     name,
-    // The generated MigrationStep union omits action operations, but the
-    // migrate API accepts them, so the assembled steps are cast.
-    up: up as unknown as MigrationStep[],
-    down: down as unknown as MigrationStep[],
+    up,
+    down,
     datasource: 'default',
     skip_execution: false,
   };

@@ -108,13 +108,11 @@ export async function prepareTable({
         index,
       ) => {
         const calculatedIndex = index + 1;
-        // set name
         await page
           .getByPlaceholder(/name/i)
           .nth(calculatedIndex)
           .fill(columnName);
 
-        // set type
         await page
           .getByRole('combobox', { name: /type/i })
           .nth(calculatedIndex)
@@ -122,7 +120,6 @@ export async function prepareTable({
         await page.keyboard.type(type);
         await page.getByRole('option', { name: type }).first().click();
 
-        // optionally set default value
         if (defaultValue) {
           await page
             .getByRole('combobox', { name: /default value/i })
@@ -135,7 +132,6 @@ export async function prepareTable({
             .click();
         }
 
-        // optionally check unique
         if (unique) {
           await page
             .getByRole('checkbox', { name: /unique/i })
@@ -143,7 +139,6 @@ export async function prepareTable({
             .check();
         }
 
-        // optionally check nullable
         if (nullable) {
           await page
             .getByRole('checkbox', { name: /nullable/i })
@@ -151,7 +146,6 @@ export async function prepareTable({
             .check();
         }
 
-        // add new column if not last
         if (index < columns.length - 1) {
           await page.getByRole('button', { name: /add column/i }).click();
         }
@@ -339,19 +333,14 @@ export async function selectOrgByName(
   const switcher = page.getByTestId('org-switcher');
   await expect(switcher).toBeVisible();
 
-  // The trigger is a Radix popover toggle: clicking it when the popover is
-  // already open closes it. Open it once, guarding on aria-expanded so a retry
-  // never accidentally toggles it shut.
+  // The trigger toggles the popover, so guard on aria-expanded to open it once without a retry toggling it shut.
   if ((await switcher.getAttribute('aria-expanded')) !== 'true') {
     await switcher.click();
   }
   const search = page.getByPlaceholder('Select organization...');
   await expect(search).toBeVisible();
 
-  // The org list is fetched fresh on the page the redirect lands on, so a
-  // just-created org can appear a beat after the popover opens. Retry only the
-  // data-dependent part: refill the search and re-check for the option, without
-  // re-clicking (and thus toggling) the trigger.
+  // A just-created org can lag the popover opening, so retry only the search + option check, never the trigger click (which would toggle it shut).
   await expect(async () => {
     await search.fill('');
     await search.fill(orgName);
@@ -933,8 +922,7 @@ export async function runGraphQLQuery({
   await page.keyboard.press('Backspace');
   await page.keyboard.type(query, { delay: 5 });
 
-  // Dismiss any open autocomplete dropdown so Enter/clicks do not get captured
-  // by a hint instead of executing the query.
+  // Dismiss any open autocomplete so Enter/clicks execute the query instead of hitting a hint.
   await page.keyboard.press('Escape');
 
   await page.getByRole('button', { name: 'Execute GraphQL query' }).click();

@@ -30,7 +30,6 @@ function renderGrid(
 describe('RolePermissionsGrid', () => {
   it('renders the correct icon per access state', () => {
     renderGrid();
-    // admin (allowed) + public (allowed) => two full-permission icons
     expect(screen.getAllByLabelText('Full permission')).toHaveLength(2);
     expect(screen.getByLabelText('No permission')).toBeInTheDocument();
     expect(screen.getByLabelText('Partial permission')).toBeInTheDocument();
@@ -39,7 +38,6 @@ describe('RolePermissionsGrid', () => {
 
   it('renders a static row (no toggle button) for non-interactive rows', () => {
     renderGrid({ rows: [baseRows[0]] });
-    // The only row is admin (interactive: false) => no clickable trigger.
     expect(screen.queryByRole('button')).not.toBeInTheDocument();
     expect(screen.getByLabelText('Full permission')).toBeInTheDocument();
   });

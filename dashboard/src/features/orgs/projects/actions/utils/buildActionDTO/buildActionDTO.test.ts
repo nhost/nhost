@@ -1,4 +1,3 @@
-import { describe, expect, it } from 'vitest';
 import type { BaseActionFormValues } from '@/features/orgs/projects/actions/components/BaseActionForm/BaseActionFormTypes';
 import type {
   ActionItem,
@@ -36,16 +35,16 @@ input SampleInput {
 describe('buildActionDTO', () => {
   it('builds a create action DTO with merged custom types', () => {
     const { actionArgs, customTypesArgs } = buildActionDTO({
-        formValues,
-        existingCustomTypes: {
-          objects: [
-            {
-              name: 'OtherOutput',
-              fields: [{ name: 'id', type: 'ID!' }],
-            },
-          ],
-        },
-      });
+      formValues,
+      existingCustomTypes: {
+        objects: [
+          {
+            name: 'OtherOutput',
+            fields: [{ name: 'id', type: 'ID!' }],
+          },
+        ],
+      },
+    });
 
     expect(actionArgs).toEqual({
       name: 'actionName',
@@ -220,12 +219,14 @@ describe('buildActionDTO', () => {
           {
             name: 'SampleOutput',
             fields: [{ name: 'accessToken', type: 'String!' }],
-            relationships: [{
-              name: 'user',
-              type: 'object',
-              remote_table: { schema: 'public', name: 'users' },
-              field_mapping: { userId: 'id' },
-            }],
+            relationships: [
+              {
+                name: 'user',
+                type: 'object',
+                remote_table: { schema: 'public', name: 'users' },
+                field_mapping: { userId: 'id' },
+              },
+            ],
           },
         ],
       },
@@ -235,12 +236,14 @@ describe('buildActionDTO', () => {
       {
         name: 'SampleOutput',
         fields: [{ name: 'accessToken', type: 'String!' }],
-        relationships: [{
-              name: 'user',
-              type: 'object',
-              remote_table: { schema: 'public', name: 'users' },
-              field_mapping: { userId: 'id' },
-            }],
+        relationships: [
+          {
+            name: 'user',
+            type: 'object',
+            remote_table: { schema: 'public', name: 'users' },
+            field_mapping: { userId: 'id' },
+          },
+        ],
       },
     ]);
   });

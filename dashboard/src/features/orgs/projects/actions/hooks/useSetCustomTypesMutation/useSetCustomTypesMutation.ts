@@ -64,12 +64,13 @@ export default function useSetCustomTypesMutation({
       });
     },
     {
-      onSuccess: () => {
+      ...mutationOptions,
+      onSuccess: (...args) => {
         queryClient.invalidateQueries({
           queryKey: [EXPORT_METADATA_QUERY_KEY, project?.subdomain],
         });
+        mutationOptions?.onSuccess?.(...args);
       },
-      ...mutationOptions,
     },
   );
 

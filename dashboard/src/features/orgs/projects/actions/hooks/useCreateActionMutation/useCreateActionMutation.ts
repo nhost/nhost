@@ -56,12 +56,13 @@ export default function useCreateActionMutation({
       return createActionMigration({ ...variables, appUrl, adminSecret });
     },
     {
-      onSuccess: () => {
+      ...mutationOptions,
+      onSuccess: (...args) => {
         queryClient.invalidateQueries({
           queryKey: [EXPORT_METADATA_QUERY_KEY, project?.subdomain],
         });
+        mutationOptions?.onSuccess?.(...args);
       },
-      ...mutationOptions,
     },
   );
 

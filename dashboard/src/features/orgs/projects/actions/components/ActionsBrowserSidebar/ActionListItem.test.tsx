@@ -24,8 +24,7 @@ vi.mock('next/router', () => ({
   useRouter: mocks.useRouter,
 }));
 
-// Opening the Edit Action drawer mounts the action form, which pulls in the
-// CodeMirror editor.
+// Opening the Edit Action drawer mounts the action form, which pulls in the CodeMirror editor.
 vi.mock('@uiw/react-codemirror', () => ({
   default: ({
     value,

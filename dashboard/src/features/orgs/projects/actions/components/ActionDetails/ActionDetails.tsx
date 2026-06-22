@@ -38,7 +38,7 @@ export default function ActionDetails() {
     (actionItem) => actionItem.name === actionSlug,
   );
 
-  if (isLoading && actionSlug) {
+  if (isLoading || !actionSlug) {
     return <ActionDetailsSkeleton />;
   }
 

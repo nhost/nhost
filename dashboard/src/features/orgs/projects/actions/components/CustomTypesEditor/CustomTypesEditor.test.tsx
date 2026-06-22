@@ -58,7 +58,6 @@ async function renderInitializedEditor() {
   const editor = (await screen.findByLabelText(
     'Custom types SDL editor',
   )) as HTMLTextAreaElement;
-  // The editor seeds its SDL from the metadata in an effect after load.
   await waitFor(() => expect(editor.value).toContain('SampleInput'));
   return editor;
 }
@@ -120,7 +119,9 @@ describe('CustomTypesEditor', () => {
     const initialValue = editor.value;
 
     expect(screen.getByRole('button', { name: 'Save' })).toBeDisabled();
-    expect(screen.getByRole('button', { name: 'Revert changes' })).toBeDisabled();
+    expect(
+      screen.getByRole('button', { name: 'Revert changes' }),
+    ).toBeDisabled();
 
     fireEvent.change(editor, {
       target: { value: 'input Changed {\n  x: Int\n}' },

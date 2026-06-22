@@ -1,5 +1,5 @@
 import type { ReactElement } from 'react';
-import { ActivityIndicator } from '@/components/ui/v2/ActivityIndicator';
+import { LoadingScreen } from '@/components/presentational/LoadingScreen';
 import { OrgLayout } from '@/features/orgs/layout/OrgLayout';
 import { ActionsBrowserSidebar } from '@/features/orgs/projects/actions/components/ActionsBrowserSidebar';
 import { NoActionsEmptyState } from '@/features/orgs/projects/actions/components/NoActionsEmptyState';
@@ -9,13 +9,7 @@ export default function ActionsPage() {
   const { data: actionsData, isLoading } = useGetActions();
 
   if (isLoading) {
-    return (
-      <ActivityIndicator
-        delay={1000}
-        label="Loading actions..."
-        className="justify-center"
-      />
-    );
+    return <LoadingScreen />;
   }
 
   const hasActions = (actionsData?.actions.length ?? 0) > 0;

@@ -36,7 +36,6 @@ let migrationBody: {
   up: Array<{ type: string; args: unknown }>;
 } | null = null;
 
-// The `login` fixture action already grants the `user` role.
 const rolesHandler = nhostGraphQLLink.query('getRemoteAppRoles', () =>
   HttpResponse.json({
     data: { authRoles: [{ role: 'user' }, { role: 'editor' }] },
@@ -119,7 +118,9 @@ describe('EditActionPermissionsForm', () => {
     render(<EditActionPermissionsForm actionName="login" />);
 
     await expandRole(user, 'user');
-    await user.click(screen.getByRole('button', { name: 'Delete Permissions' }));
+    await user.click(
+      screen.getByRole('button', { name: 'Delete Permissions' }),
+    );
 
     await waitFor(() => expect(migrationBody).not.toBeNull());
     expect(migrationBody?.name).toBe('delete_action_permission_login_user');
@@ -134,7 +135,10 @@ describe('EditActionPermissionsForm', () => {
   it('surfaces an error when the permission change fails', async () => {
     server.use(
       http.post(`${HASURA_API_URL}/apis/migrate`, () =>
-        HttpResponse.json({ error: 'permission update failed' }, { status: 500 }),
+        HttpResponse.json(
+          { error: 'permission update failed' },
+          { status: 500 },
+        ),
       ),
     );
     const user = new TestUserEvent();

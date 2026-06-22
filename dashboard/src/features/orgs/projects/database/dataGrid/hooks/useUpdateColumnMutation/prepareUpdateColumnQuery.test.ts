@@ -195,8 +195,6 @@ describe('prepareUpdateColumnQuery', () => {
     );
   });
   it('should set the default when the value changes between a bare function and a quoted literal', () => {
-    // change default value from the quoted literal 'version()' to the bare
-    // function version()
     const literalToFunctionTransaction = prepareUpdateColumnQuery({
       dataSource: 'test_datasource',
       schema: 'test_schema',
@@ -220,8 +218,6 @@ describe('prepareUpdateColumnQuery', () => {
       'ALTER TABLE test_schema.test_table ALTER COLUMN name SET DEFAULT version();',
     );
 
-    // change default value from the bare function version() to the quoted
-    // literal 'version()'
     const functionToLiteralTransaction = prepareUpdateColumnQuery({
       dataSource: 'test_datasource',
       schema: 'test_schema',

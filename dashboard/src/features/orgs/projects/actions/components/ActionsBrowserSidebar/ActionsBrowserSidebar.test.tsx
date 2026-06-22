@@ -26,7 +26,9 @@ vi.mock('next/router', () => ({
 
 // CreateActionForm (rendered by the sidebar) pulls in the CodeMirror editor.
 vi.mock('@uiw/react-codemirror', () => ({
-  default: ({ value }: { value?: string }) => <textarea value={value} readOnly />,
+  default: ({ value }: { value?: string }) => (
+    <textarea value={value} readOnly />
+  ),
 }));
 
 Object.defineProperty(window, 'matchMedia', {
@@ -85,7 +87,10 @@ describe('ActionsBrowserSidebar', () => {
 
     await screen.findByTestId('action-menu-login');
 
-    await user.type(screen.getByPlaceholderText('Search actions...'), 'PROFILE');
+    await user.type(
+      screen.getByPlaceholderText('Search actions...'),
+      'PROFILE',
+    );
 
     await waitFor(() =>
       expect(screen.queryByTestId('action-menu-login')).not.toBeInTheDocument(),

@@ -1,4 +1,3 @@
-import { describe, expect, it } from 'vitest';
 import type { RequestTransformFormValues } from '@/features/orgs/projects/events/common/utils/buildRequestTransformDTO';
 import type { RequestTransformation } from '@/utils/hasura-api/generated/schemas';
 import parseRequestTransform from './parseRequestTransform';
@@ -92,6 +91,26 @@ describe('parseRequestTransform', () => {
     const result = parseRequestTransform({ requestTransform, sampleInput });
 
     expect(result.requestOptionsTransform).toBeUndefined();
+  });
+
+  it('preserves the method and url when query params are absent', () => {
+    const requestTransform: RequestTransformation = {
+      version: 2,
+      template_engine: 'Kriti',
+      method: 'GET',
+      url: '{{$base_url}}/template',
+    };
+
+    const result = parseRequestTransform({ requestTransform, sampleInput });
+
+    expect(result.requestOptionsTransform).toEqual({
+      method: 'GET',
+      urlTemplate: '/template',
+      queryParams: {
+        queryParamsType: 'Key Value',
+        queryParams: [],
+      },
+    });
   });
 
   it('parses an application/json body transform and passes the sample input through', () => {

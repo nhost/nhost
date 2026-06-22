@@ -15,7 +15,10 @@ import {
   TestUserEvent,
   waitFor,
 } from '@/tests/testUtils';
-import type { ActionItem, CustomTypes } from '@/utils/hasura-api/generated/schemas';
+import type {
+  ActionItem,
+  CustomTypes,
+} from '@/utils/hasura-api/generated/schemas';
 import EditActionRelationshipsForm from './EditActionRelationshipsForm';
 
 const mocks = vi.hoisted(() => ({
@@ -98,14 +101,14 @@ describe('EditActionRelationshipsForm', () => {
   beforeEach(() => {
     mockPointerEvent();
     migrationBody = null;
-    // The export-metadata query is cached by subdomain on a shared client;
-    // clear it so each test sees its own fixture rather than a prior one.
+    // The export-metadata query is cached by subdomain on a shared client; clear it so each test sees its own fixture.
     queryClient.clear();
     mocks.useRouter.mockReturnValue({
       basePath: '',
       pathname: '/orgs/[orgSlug]/projects/[appSubdomain]/graphql/actions',
       route: '/orgs/[orgSlug]/projects/[appSubdomain]/graphql/actions',
-      asPath: '/orgs/xyz/projects/test-project/graphql/actions/getExchangeRates',
+      asPath:
+        '/orgs/xyz/projects/test-project/graphql/actions/getExchangeRates',
       isReady: true,
       query: { orgSlug: 'xyz', appSubdomain: 'test-project' },
       push: vi.fn(),
@@ -151,8 +154,7 @@ describe('EditActionRelationshipsForm', () => {
 
     render(<EditActionRelationshipsForm actionName="getExchangeRates" />);
 
-    // The name renders via TextWithTooltip (which can split the text), so key
-    // off the row's stable delete-button testid instead.
+    // The name renders via TextWithTooltip (which can split the text), so key off the row's delete-button testid.
     expect(
       await screen.findByTestId('delete-action-rel-animal'),
     ).toBeInTheDocument();

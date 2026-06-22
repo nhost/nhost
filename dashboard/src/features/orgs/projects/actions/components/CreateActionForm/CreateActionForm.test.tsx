@@ -76,8 +76,6 @@ const migrateHandler = http.post(
 );
 
 const server = setupServer(
-  // Start with no pre-existing actions or custom types so the create request
-  // body is fully determined by the form defaults + the webhook we type.
   createExportActionsMetadataHandler({ actions: [], customTypes: {} }),
   migrateHandler,
 );
@@ -130,8 +128,6 @@ async function fillWebhook(user: TestUserEvent) {
   return webhook;
 }
 
-// Submit the form element directly — the same approach the repo's other form
-// tests use (`fireEvent.submit`).
 function submitActionForm() {
   const form = document.getElementById('action-form');
   if (!form) {
@@ -217,7 +213,6 @@ describe('CreateActionForm', () => {
     await fillWebhook(user);
     submitActionForm();
 
-    // The error toast surfaces the server's error message.
     expect(
       await screen.findByText('migration rejected by server'),
     ).toBeInTheDocument();
@@ -248,7 +243,6 @@ describe('CreateActionForm', () => {
       await waitFor(() =>
         expect(screen.getByText(DIRTY_MESSAGE)).toBeInTheDocument(),
       );
-      // The discard prompt must not submit anything.
       expect(migrationBody).toBeNull();
     });
 

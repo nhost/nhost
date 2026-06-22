@@ -1,4 +1,3 @@
-import { describe, expect, it } from 'vitest';
 import type { ClientCustomType } from '@/features/orgs/projects/actions/utils/customTypesUtils';
 import { parseTypesSdl } from '@/features/orgs/projects/actions/utils/parseTypesSdl';
 import composeTypesSdl from './composeTypesSdl';
@@ -82,12 +81,14 @@ enum Color {
         kind: 'object',
         name: 'SampleOutput',
         fields: [{ name: 'userId', type: 'uuid!' }],
-        relationships: [{
-          name: 'user',
-          type: 'object',
-          remote_table: { schema: 'public', name: 'users' },
-          field_mapping: { userId: 'id' },
-        }],
+        relationships: [
+          {
+            name: 'user',
+            type: 'object',
+            remote_table: { schema: 'public', name: 'users' },
+            field_mapping: { userId: 'id' },
+          },
+        ],
       },
     ]);
 

@@ -136,7 +136,10 @@ describe('DeleteActionDialog', () => {
   it('surfaces an error and still closes the dialog when the request fails', async () => {
     server.use(
       http.post(`${HASURA_API_URL}/apis/migrate`, () =>
-        HttpResponse.json({ error: 'delete failed on server' }, { status: 500 }),
+        HttpResponse.json(
+          { error: 'delete failed on server' },
+          { status: 500 },
+        ),
       ),
     );
     mockRouterQuery({ actionSlug: 'login' });

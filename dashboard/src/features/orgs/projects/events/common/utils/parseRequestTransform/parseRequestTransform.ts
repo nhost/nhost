@@ -16,13 +16,16 @@ function getRequestOptionsTransform(
     return undefined;
   }
 
-  let queryParams: QueryParams;
+  let queryParams: QueryParams | undefined;
   if (typeof requestTransform.query_params === 'string') {
     queryParams = {
       queryParamsType: 'URL string template',
       queryParamsURL: requestTransform.query_params,
     };
-  } else if (typeof requestTransform.query_params === 'object') {
+  } else if (
+    requestTransform.query_params &&
+    typeof requestTransform.query_params === 'object'
+  ) {
     queryParams = {
       queryParamsType: 'Key Value',
       queryParams: Object.entries(requestTransform.query_params).map(
@@ -32,7 +35,11 @@ function getRequestOptionsTransform(
         }),
       ),
     };
-  } else {
+  }
+
+  // A transform can set a method/url without query params; only bail when none
+  // of them exist, otherwise editing an action would drop the method and url.
+  if (!queryParams && !requestTransform.method && !requestTransform.url) {
     return undefined;
   }
 
@@ -43,7 +50,10 @@ function getRequestOptionsTransform(
   return {
     urlTemplate,
     method: requestTransform.method ?? 'POST',
-    queryParams,
+    queryParams: queryParams ?? {
+      queryParamsType: 'Key Value',
+      queryParams: [],
+    },
   };
 }
 

@@ -59,8 +59,7 @@ test.describe
     });
 
     test.afterAll(async ({ browser }) => {
-      // Drop the table the suite created so a CI retry of beforeAll does not
-      // hit "table already exists" and staging is not left polluted.
+      // Drop the suite's table so a beforeAll CI retry doesn't hit "table already exists" or leave staging polluted.
       const context = await browser.newContext({
         storageState: 'e2e/.auth/user.json',
       });

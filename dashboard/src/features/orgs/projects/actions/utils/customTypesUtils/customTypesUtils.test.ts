@@ -1,4 +1,3 @@
-import { describe, expect, it } from 'vitest';
 import type { CustomTypes } from '@/utils/hasura-api/generated/schemas';
 import type { ClientCustomType } from './customTypesUtils';
 import {
@@ -25,12 +24,14 @@ const serverCustomTypes: CustomTypes = {
     {
       name: 'SampleOutput',
       fields: [{ name: 'accessToken', type: 'String!' }],
-      relationships: [{
+      relationships: [
+        {
           name: 'user',
           type: 'object',
           remote_table: { schema: 'public', name: 'users' },
           field_mapping: { userId: 'id' },
-        }],
+        },
+      ],
     },
   ],
 };
@@ -52,12 +53,14 @@ describe('parseCustomTypes', () => {
         kind: 'object',
         name: 'SampleOutput',
         fields: [{ name: 'accessToken', type: 'String!' }],
-        relationships: [{
-          name: 'user',
-          type: 'object',
-          remote_table: { schema: 'public', name: 'users' },
-          field_mapping: { userId: 'id' },
-        }],
+        relationships: [
+          {
+            name: 'user',
+            type: 'object',
+            remote_table: { schema: 'public', name: 'users' },
+            field_mapping: { userId: 'id' },
+          },
+        ],
       },
     ]);
   });
@@ -126,12 +129,14 @@ describe('hydrateTypeRelationships', () => {
         kind: 'object',
         name: 'SampleOutput',
         fields: [{ name: 'accessToken', type: 'String!' }],
-        relationships: [{
-          name: 'user',
-          type: 'object',
-          remote_table: { schema: 'public', name: 'users' },
-          field_mapping: { userId: 'id' },
-        }],
+        relationships: [
+          {
+            name: 'user',
+            type: 'object',
+            remote_table: { schema: 'public', name: 'users' },
+            field_mapping: { userId: 'id' },
+          },
+        ],
       },
     ]);
   });
