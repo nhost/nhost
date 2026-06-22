@@ -111,3 +111,4 @@ minimumReleaseAgeExclude:
   - astro@6.4.6
   - undici@8.5.0
   - undici@7.28.0
+  - undici@6.27.0
