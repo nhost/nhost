@@ -660,6 +660,34 @@ This method may return different T based on the response code:
 
 `Promise`&lt;[`FetchResponse`](./fetch#fetchresponse)&lt;`"OK"`&gt;&gt;
 
+#### linkProvider()
+
+```ts
+linkProvider(
+   provider: SignInProvider,
+   body?: LinkProviderRequest,
+   options?: RequestInit): Promise<FetchResponse<LinkProviderResponse>>;
+```
+
+Summary: Start linking the authenticated user's account with an OAuth2 provider
+Begin linking the authenticated user's account with an external OAuth2 provider. Requires elevated permissions. The authenticated user's identity is stored in a short-lived, single-use cookie (never placed in the URL or the OAuth state) and the provider's authorization URL is returned for the client to redirect the browser to. The callback links the provider to the user identified by the cookie, so the link always commits to the user who actually completed the provider login.
+
+This method may return different T based on the response code:
+
+- 200: LinkProviderResponse
+
+##### Parameters
+
+| Parameter  | Type                                          |
+| ---------- | --------------------------------------------- |
+| `provider` | [`SignInProvider`](#signinprovider)           |
+| `body?`    | [`LinkProviderRequest`](#linkproviderrequest) |
+| `options?` | `RequestInit`                                 |
+
+##### Returns
+
+`Promise`&lt;[`FetchResponse`](./fetch#fetchresponse)&lt;[`LinkProviderResponse`](#linkproviderresponse)&gt;&gt;
+
 #### oauth2AuthorizePostURL()
 
 ```ts
@@ -2070,6 +2098,52 @@ provider: IdTokenProvider;
 ```
 
 (`IdTokenProvider`) -
+
+---
+
+## LinkProviderRequest
+
+### Properties
+
+#### providerSpecificParams?
+
+```ts
+optional providerSpecificParams?: ProviderSpecificParams;
+```
+
+#### redirectTo?
+
+```ts
+optional redirectTo?: string;
+```
+
+URI to redirect the browser to after the linking flow completes.
+Example - `"https://my-app.com/account"`
+Format - uri
+
+#### state?
+
+```ts
+optional state?: string;
+```
+
+Opaque state value to be returned to the client after linking.
+
+---
+
+## LinkProviderResponse
+
+### Properties
+
+#### url
+
+```ts
+url: string;
+```
+
+(`string`) - The provider authorization URL the client should redirect the browser to.
+
+- Format - uri
 
 ---
 
@@ -3544,14 +3618,6 @@ optional codeChallenge?: string;
 ```
 
 PKCE code challenge (S256). When provided, the callback redirect will contain an authorization code instead of a refresh token.
-
-#### connect?
-
-```ts
-optional connect?: string;
-```
-
-If set, this means that the user is already authenticated and wants to link their account. This needs to be a valid JWT access token.
 
 #### defaultRole?
 
