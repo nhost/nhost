@@ -60,7 +60,7 @@ func TestDeanonymizeUserSMS(t *testing.T) { //nolint:maintidx
 				mock.EXPECT().GetUserByPhoneNumber(
 					gomock.Any(),
 					sql.Text("+1234567890"),
-				).Return(sql.AuthUser{}, pgx.ErrNoRows) //nolint:exhaustruct
+				).Return(sql.AuthUser{}, pgx.ErrNoRows)
 
 				mock.EXPECT().DeleteUserRoles(
 					gomock.Any(), userID,
@@ -68,20 +68,21 @@ func TestDeanonymizeUserSMS(t *testing.T) { //nolint:maintidx
 
 				mock.EXPECT().UpdateUserDeanonymizeSMS(
 					gomock.Any(),
-					cmpDBParams(sql.UpdateUserDeanonymizeSMSParams{
-						Roles:            []string{"user", "me"},
-						PhoneNumber:      sql.Text("+1234567890"),
-						Otp:              sql.Text("otp"),
-						OtpHashExpiresAt: sql.TimestampTz(time.Now().Add(time.Minute * 5)),
-						DefaultRole:      sql.Text("user"),
-						DisplayName:      sql.Text("+1234567890"),
-						Locale:           sql.Text("en"),
-						Metadata:         nil,
-						ID: pgtype.UUID{
-							Bytes: userID,
-							Valid: true,
+					cmpDBParams(
+						sql.UpdateUserDeanonymizeSMSParams{
+							Roles:            []string{"user", "me"},
+							PhoneNumber:      sql.Text("+1234567890"),
+							Otp:              sql.Text("otp"),
+							OtpHashExpiresAt: sql.TimestampTz(time.Now().Add(time.Minute * 5)),
+							DefaultRole:      sql.Text("user"),
+							DisplayName:      sql.Text("+1234567890"),
+							Locale:           sql.Text("en"),
+							Metadata:         nil,
+							ID: pgtype.UUID{
+								Bytes: userID,
+								Valid: true,
+							},
 						},
-					},
 						testhelpers.FilterPathLast(
 							[]string{".OtpHashExpiresAt", "time()"},
 							cmpopts.EquateApproxTime(time.Minute),
@@ -124,7 +125,7 @@ func TestDeanonymizeUserSMS(t *testing.T) { //nolint:maintidx
 				mock.EXPECT().GetUserByPhoneNumber(
 					gomock.Any(),
 					sql.Text("+1234567890"),
-				).Return(sql.AuthUser{}, pgx.ErrNoRows) //nolint:exhaustruct
+				).Return(sql.AuthUser{}, pgx.ErrNoRows)
 
 				mock.EXPECT().DeleteUserRoles(
 					gomock.Any(), userID,
@@ -132,20 +133,21 @@ func TestDeanonymizeUserSMS(t *testing.T) { //nolint:maintidx
 
 				mock.EXPECT().UpdateUserDeanonymizeSMS(
 					gomock.Any(),
-					cmpDBParams(sql.UpdateUserDeanonymizeSMSParams{
-						Roles:            []string{"user"},
-						PhoneNumber:      sql.Text("+1234567890"),
-						Otp:              sql.Text("otp"),
-						OtpHashExpiresAt: sql.TimestampTz(time.Now().Add(time.Minute * 5)),
-						DefaultRole:      sql.Text("user"),
-						DisplayName:      sql.Text("Jane"),
-						Locale:           sql.Text("en"),
-						Metadata:         []byte(`{"key":"value"}`),
-						ID: pgtype.UUID{
-							Bytes: userID,
-							Valid: true,
+					cmpDBParams(
+						sql.UpdateUserDeanonymizeSMSParams{
+							Roles:            []string{"user"},
+							PhoneNumber:      sql.Text("+1234567890"),
+							Otp:              sql.Text("otp"),
+							OtpHashExpiresAt: sql.TimestampTz(time.Now().Add(time.Minute * 5)),
+							DefaultRole:      sql.Text("user"),
+							DisplayName:      sql.Text("Jane"),
+							Locale:           sql.Text("en"),
+							Metadata:         []byte(`{"key":"value"}`),
+							ID: pgtype.UUID{
+								Bytes: userID,
+								Valid: true,
+							},
 						},
-					},
 						testhelpers.FilterPathLast(
 							[]string{".OtpHashExpiresAt", "time()"},
 							cmpopts.EquateApproxTime(time.Minute),
@@ -253,7 +255,7 @@ func TestDeanonymizeUserSMS(t *testing.T) { //nolint:maintidx
 				mock.EXPECT().GetUserByPhoneNumber(
 					gomock.Any(),
 					sql.Text("+1234567890"),
-				).Return(sql.AuthUser{}, nil) //nolint:exhaustruct
+				).Return(sql.AuthUser{}, nil)
 
 				return mock
 			},
@@ -282,7 +284,7 @@ func TestDeanonymizeUserSMS(t *testing.T) { //nolint:maintidx
 				mock.EXPECT().GetUserByPhoneNumber(
 					gomock.Any(),
 					sql.Text("+1234567890"),
-				).Return(sql.AuthUser{}, pgx.ErrNoRows) //nolint:exhaustruct
+				).Return(sql.AuthUser{}, pgx.ErrNoRows)
 
 				return mock
 			},

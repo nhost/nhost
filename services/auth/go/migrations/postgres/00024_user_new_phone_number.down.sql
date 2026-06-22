@@ -3,5 +3,7 @@
 -- users_phone_number_key whenever a different user has since verified the
 -- same number (the squat-vs-claim case).
 
+DROP INDEX IF EXISTS auth.users_new_phone_number_idx;
+
 ALTER TABLE auth.users
-    DROP COLUMN IF EXISTS new_phone_number;
+DROP COLUMN IF EXISTS new_phone_number;

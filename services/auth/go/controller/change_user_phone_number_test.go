@@ -66,16 +66,17 @@ func TestChangeUserPhoneNumber(t *testing.T) {
 						UserID:      userID,
 						PhoneNumber: sql.Text("+1234567890"),
 					},
-				).Return(sql.AuthUser{}, pgx.ErrNoRows) //nolint:exhaustruct
+				).Return(sql.AuthUser{}, pgx.ErrNoRows)
 
 				mock.EXPECT().UpdateUserChangePhoneNumber(
 					gomock.Any(),
-					cmpDBParams(sql.UpdateUserChangePhoneNumberParams{
-						ID:               userID,
-						NewPhoneNumber:   sql.Text("+1234567890"),
-						Otp:              "otp",
-						OtpHashExpiresAt: sql.TimestampTz(time.Now().Add(time.Minute * 5)),
-					},
+					cmpDBParams(
+						sql.UpdateUserChangePhoneNumberParams{
+							ID:               userID,
+							NewPhoneNumber:   sql.Text("+1234567890"),
+							Otp:              "otp",
+							OtpHashExpiresAt: sql.TimestampTz(time.Now().Add(time.Minute * 5)),
+						},
 						testhelpers.FilterPathLast(
 							[]string{".OtpHashExpiresAt", "time()"},
 							cmpopts.EquateApproxTime(time.Minute),
@@ -145,7 +146,7 @@ func TestChangeUserPhoneNumber(t *testing.T) {
 						UserID:      userID,
 						PhoneNumber: sql.Text("+1234567890"),
 					},
-				).Return(sql.AuthUser{}, nil) //nolint:exhaustruct
+				).Return(sql.AuthUser{}, nil)
 
 				return mock
 			},
@@ -178,7 +179,7 @@ func TestChangeUserPhoneNumber(t *testing.T) {
 						UserID:      userID,
 						PhoneNumber: sql.Text("+1234567890"),
 					},
-				).Return(sql.AuthUser{}, pgx.ErrNoRows) //nolint:exhaustruct
+				).Return(sql.AuthUser{}, pgx.ErrNoRows)
 
 				return mock
 			},
@@ -275,7 +276,7 @@ func TestVerifyChangeUserPhoneNumber(t *testing.T) {
 
 				mock.EXPECT().UpdateUserConfirmChangePhoneNumber(
 					gomock.Any(), gomock.Any(),
-				).Return(sql.AuthUser{}, pgx.ErrNoRows) //nolint:exhaustruct
+				).Return(sql.AuthUser{}, pgx.ErrNoRows)
 
 				return mock
 			},
@@ -287,8 +288,8 @@ func TestVerifyChangeUserPhoneNumber(t *testing.T) {
 				},
 			},
 			expectedResponse: controller.ErrorResponse{
-				Error:   "invalid-request",
-				Message: "The request payload is incorrect",
+				Error:   "invalid-otp",
+				Message: "Invalid or expired OTP",
 				Status:  400,
 			},
 			expectedJWT:       nil,
@@ -308,8 +309,8 @@ func TestVerifyChangeUserPhoneNumber(t *testing.T) {
 				mock.EXPECT().UpdateUserConfirmChangePhoneNumber(
 					gomock.Any(), gomock.Any(),
 				).Return(
-					sql.AuthUser{}, //nolint:exhaustruct
-					errors.New(`ERROR: duplicate key value violates unique constraint "users_phone_number_key" (SQLSTATE 23505)`), //nolint:err113,lll
+					sql.AuthUser{},
+					errors.New(`ERROR: duplicate key value violates unique constraint "users_phone_number_key" (SQLSTATE 23505)`), //nolint:err113
 				)
 
 				return mock

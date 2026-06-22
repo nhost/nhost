@@ -214,10 +214,10 @@ func TestSignInPasswordlessEmail(t *testing.T) { //nolint:maintidx
 			db: func(ctrl *gomock.Controller) controller.DBClient { //nolint:dupl
 				mock := mock.NewMockDBClient(ctrl)
 
-				mock.EXPECT().GetUserByEmail(
+				mock.EXPECT().GetUserByEmail( //nolint:dupl // table-driven auth cases intentionally share mock setup
 					gomock.Any(),
 					sql.Text("jane@acme.com"),
-				).Return(sql.AuthUser{ //nolint:exhaustruct
+				).Return(sql.AuthUser{
 					ID:                       userID,
 					CreatedAt:                pgtype.Timestamptz{},
 					UpdatedAt:                pgtype.Timestamptz{},
@@ -692,10 +692,10 @@ func TestSignInPasswordlessEmail(t *testing.T) { //nolint:maintidx
 			db: func(ctrl *gomock.Controller) controller.DBClient { //nolint:dupl
 				mock := mock.NewMockDBClient(ctrl)
 
-				mock.EXPECT().GetUserByEmail(
+				mock.EXPECT().GetUserByEmail( //nolint:dupl // table-driven auth cases intentionally share mock setup
 					gomock.Any(),
 					sql.Text("jane@acme.com"),
-				).Return(sql.AuthUser{ //nolint:exhaustruct
+				).Return(sql.AuthUser{
 					ID:                       userID,
 					CreatedAt:                pgtype.Timestamptz{},
 					UpdatedAt:                pgtype.Timestamptz{},
@@ -786,10 +786,10 @@ func TestSignInPasswordlessEmail(t *testing.T) { //nolint:maintidx
 			db: func(ctrl *gomock.Controller) controller.DBClient {
 				mock := mock.NewMockDBClient(ctrl)
 
-				mock.EXPECT().GetUserByEmail(
+				mock.EXPECT().GetUserByEmail( //nolint:dupl // table-driven auth cases intentionally share mock setup
 					gomock.Any(),
 					sql.Text("jane@acme.com"),
-				).Return(sql.AuthUser{ //nolint:exhaustruct
+				).Return(sql.AuthUser{
 					ID:                       userID,
 					CreatedAt:                pgtype.Timestamptz{},
 					UpdatedAt:                pgtype.Timestamptz{},
