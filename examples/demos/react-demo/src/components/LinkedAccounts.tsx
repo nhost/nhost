@@ -8,12 +8,15 @@ import { useAuth } from '../lib/nhost/AuthProvider';
  * provider to their existing account (the provider "connect" flow) and shows
  * which providers are already connected.
  *
- * Unlike social sign-in, this passes the current access token as the `connect`
- * parameter so Auth links the provider identity onto the logged-in user instead
- * of creating/looking up a separate account. No PKCE code is exchanged on
- * return — Auth redirects straight back to `redirectTo` with `?state=` (success)
- * or `?error=...&errorDescription=...` (failure), which `ConnectCallback`
- * renders.
+ * Unlike social sign-in, this calls `nhost.auth.linkProvider(...)`: the SDK sends
+ * the current access token in the Authorization header (never the URL), and Auth
+ * records the logged-in user in a short-lived, single-use cookie before returning
+ * the provider's authorize URL. `credentials: 'include'` is required so the
+ * browser stores that cookie; the callback then links the provider identity onto
+ * that user instead of creating/looking up a separate account. No PKCE code is
+ * exchanged on return — Auth redirects straight back to `redirectTo` with
+ * `?state=` (success) or `?error=...&errorDescription=...` (failure), which
+ * `ConnectCallback` renders.
  *
  * The linked state is read from the user's `userProviders` relationship so the
  * UI shows "Connected" once a provider is linked rather than always offering to
@@ -79,21 +82,31 @@ export default function LinkedAccounts(): JSX.Element {
     void fetchLinkedProviders();
   }, [fetchLinkedProviders]);
 
-  const handleLink = (provider: 'github'): void => {
-    const accessToken = session?.accessToken;
-    if (!accessToken) return;
+  const handleLink = async (provider: 'github'): Promise<void> => {
+    if (!session?.accessToken) return;
 
     const origin = window.location.origin;
 
-    const url = nhost.auth.signInProviderURL(provider, {
-      // Marks this as a link of the current account rather than a new sign-in.
-      connect: accessToken,
-      redirectTo: `${origin}/connect/callback`,
-      // Echoed back as `?state=` so the callback page can name the provider.
-      state: provider,
-    });
+    try {
+      // linkProvider authenticates via the Authorization header (attached by the
+      // SDK from the current session). `credentials: 'include'` lets the browser
+      // store the single-use link cookie Auth sets on this response; the callback
+      // then links the provider to that cookie's user.
+      const response = await nhost.auth.linkProvider(
+        provider,
+        {
+          redirectTo: `${origin}/connect/callback`,
+          // Echoed back as `?state=` so the callback page can name the provider.
+          state: provider,
+        },
+        { credentials: 'include' },
+      );
 
-    window.location.href = url;
+      window.location.href = response.body.url;
+    } catch (err) {
+      const error = err as FetchError<ErrorResponse>;
+      setError(`Failed to start linking: ${error.message}`);
+    }
   };
 
   return (
@@ -130,7 +143,7 @@ export default function LinkedAccounts(): JSX.Element {
         ) : (
           <button
             type="button"
-            onClick={() => handleLink('github')}
+            onClick={() => void handleLink('github')}
             className="btn btn-secondary flex items-center justify-center gap-2"
           >
             Link GitHub
