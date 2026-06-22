@@ -22,9 +22,9 @@
     "format": "biome format --write src/",
     "install-browsers": "pnpm playwright install && pnpm playwright install-deps",
     "e2e:tests": "pnpm playwright test --config=playwright.config.ts -x",
-    "e2e": "echo 'e2e tests temporarily skipped' && exit 0",
-    "e2e:local": "echo 'e2e local tests temporarily skipped' && exit 0",
-    "e2e:onboarding": "echo 'e2e onboarding tests temporarily skipped' && exit 0"
+    "e2e": "pnpm e2e:tests --project=main --workers=1 && pnpm e2e:tests --project=main-parallelizable --workers=2",
+    "e2e:local": "pnpm e2e:tests --project=local",
+    "e2e:onboarding": "pnpm e2e:tests --project=onboarding"
   },
   "dependencies": {
     "@apollo/client": "^3.14.0",
@@ -134,7 +134,7 @@
     "@graphql-codegen/typescript-operations": "^3.0.4",
     "@graphql-codegen/typescript-react-apollo": "^3.3.7",
     "@next/bundle-analyzer": "^12.3.4",
-    "@playwright/test": "1.59.1",
+    "@playwright/test": "1.60.0",
     "@tailwindcss/typography": "^0.5.13",
     "@testing-library/dom": "^10.4.1",
     "@testing-library/jest-dom": "^5.17.0",
