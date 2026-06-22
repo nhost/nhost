@@ -9,7 +9,7 @@ but you can also use it directly if you have a specific use case.
 # Import
 
 ```ts
-import { createClient } from '@nhost/nhost-js/graphql'
+import { createClient } from "@nhost/nhost-js/graphql";
 ```
 
 # Usage
@@ -21,12 +21,12 @@ integration with third-party libraries.
 ## Basic Usage
 
 ```ts
-import { createClient } from '@nhost/nhost-js'
+import { createClient } from "@nhost/nhost-js";
 
 const nhost = createClient({
   subdomain,
-  region
-})
+  region,
+});
 
 const resp = await nhost.graphql.request({
   query: `query GetMovies {
@@ -36,8 +36,8 @@ const resp = await nhost.graphql.request({
             director
             genre
           }
-        }`
-})
+        }`,
+});
 ```
 
 ## Using Variables
@@ -45,12 +45,12 @@ const resp = await nhost.graphql.request({
 You can pass variables to your GraphQL queries and mutations using the `variables` option:
 
 ```ts
-import { createClient } from '@nhost/nhost-js'
+import { createClient } from "@nhost/nhost-js";
 
 const nhost = createClient({
   subdomain,
-  region
-})
+  region,
+});
 
 const resp = await nhost.graphql.request({
   query: `query GetMovies($genre: String!) {
@@ -62,11 +62,11 @@ const resp = await nhost.graphql.request({
           }
         }`,
   variables: {
-    genre: 'Sci-Fi'
-  }
-})
+    genre: "Sci-Fi",
+  },
+});
 
-console.log(resp.body.data?.movies)
+console.log(resp.body.data?.movies);
 // [
 //   {
 //     id: '3d67a6d0-bfb5-444a-9152-aea543ebd171',
@@ -91,23 +91,23 @@ flexible and reusable.
 You can type your GraphQL queries and responses using TypeScript generics:
 
 ```ts
-import { createClient } from '@nhost/nhost-js'
+import { createClient } from "@nhost/nhost-js";
 
 const nhost = createClient({
   subdomain,
-  region
-})
+  region,
+});
 
 // This is optional but allows you to type the response
 // Tools like Apollo Client or The Guild's GraphQL Code Generator
 // can generate these document nodes for you.
 interface Movies {
   movies: {
-    id: string
-    title: string
-    director: string
-    genre: string
-  }[]
+    id: string;
+    title: string;
+    director: string;
+    genre: string;
+  }[];
 }
 
 const resp = await nhost.graphql.request<Movies>({
@@ -118,8 +118,8 @@ const resp = await nhost.graphql.request<Movies>({
             director
             genre
           }
-        }`
-})
+        }`,
+});
 ```
 
 ## Using GraphQL Document Nodes
@@ -128,24 +128,24 @@ For better integration with third-party libraries like Apollo Client or The Guil
 Code Generator, you can use GraphQL document nodes created with `gql` template literal tags:
 
 ```ts
-import { createClient } from '@nhost/nhost-js'
-import gql from 'graphql-tag'
+import { createClient } from "@nhost/nhost-js";
+import gql from "graphql-tag";
 
 const nhost = createClient({
   subdomain,
-  region
-})
+  region,
+});
 
 // This is optional but allows you to type the response
 // Tools like Apollo Client or The Guild's GraphQL Code Generator
 // can generate these document nodes for you.
 interface Movies {
   movies: {
-    id: string
-    title: string
-    director: string
-    genre: string
-  }[]
+    id: string;
+    title: string;
+    director: string;
+    genre: string;
+  }[];
 }
 
 const getMoviesQuery = gql`
@@ -157,12 +157,12 @@ const getMoviesQuery = gql`
       genre
     }
   }
-`
+`;
 
 const resp = await nhost.graphql.request<Movies>(getMoviesQuery, {
-  genre: 'Sci-Fi'
-})
-console.log(resp.body.data?.movies)
+  genre: "Sci-Fi",
+});
+console.log(resp.body.data?.movies);
 // [
 //   {
 //     id: '3d67a6d0-bfb5-444a-9152-aea543ebd171',
@@ -192,14 +192,14 @@ with length > 0. The error will be an instance of `FetchError<GraphQLResponse>` 
 contain the response body with the errors.
 
 ```ts
-import { createClient } from '@nhost/nhost-js'
-import { FetchError } from '@nhost/nhost-js/fetch'
-import type { GraphQLResponse } from '@nhost/nhost-js/graphql'
+import { createClient } from "@nhost/nhost-js";
+import { FetchError } from "@nhost/nhost-js/fetch";
+import type { GraphQLResponse } from "@nhost/nhost-js/graphql";
 
 const nhost = createClient({
   subdomain,
-  region
-})
+  region,
+});
 
 try {
   await nhost.graphql.request({
@@ -209,17 +209,17 @@ try {
             restrictedField
           }
         }
-      `
-  })
+      `,
+  });
 
-  expect(true).toBe(false) // This should not be reached
+  expect(true).toBe(false); // This should not be reached
 } catch (error) {
   if (!(error instanceof FetchError)) {
-    throw error // Re-throw if it's not a FetchError
+    throw error; // Re-throw if it's not a FetchError
   }
 
-  const resp = error as FetchError<GraphQLResponse>
-  console.log('Error:', JSON.stringify(resp.body, null, 2))
+  const resp = error as FetchError<GraphQLResponse>;
+  console.log("Error:", JSON.stringify(resp.body, null, 2));
   // Error: {
   //   "body": {
   //     "errors": [
@@ -244,14 +244,14 @@ This type extends the standard `Error` type so if you want to just log the error
 do so like this:
 
 ```ts
-import { createClient } from '@nhost/nhost-js'
-import { FetchError } from '@nhost/nhost-js/fetch'
-import type { GraphQLResponse } from '@nhost/nhost-js/graphql'
+import { createClient } from "@nhost/nhost-js";
+import { FetchError } from "@nhost/nhost-js/fetch";
+import type { GraphQLResponse } from "@nhost/nhost-js/graphql";
 
 const nhost = createClient({
   subdomain,
-  region
-})
+  region,
+});
 
 try {
   await nhost.graphql.request({
@@ -261,16 +261,16 @@ try {
             restrictedField
           }
         }
-      `
-  })
+      `,
+  });
 
-  expect(true).toBe(false) // This should not be reached
+  expect(true).toBe(false); // This should not be reached
 } catch (error) {
   if (!(error instanceof Error)) {
-    throw error // Re-throw if it's not an Error
+    throw error; // Re-throw if it's not an Error
   }
 
-  console.log('Error:', error.message)
+  console.log("Error:", error.message);
   // Error: field 'restrictedObject' not found in type: 'query_root'
 }
 ```
@@ -286,7 +286,7 @@ GraphQL client interface providing methods for executing queries and mutations
 #### url
 
 ```ts
-url: string
+url: string;
 ```
 
 URL for the GraphQL endpoint.
@@ -415,7 +415,7 @@ Source locations in the GraphQL document where the error occurred
 #### message
 
 ```ts
-message: string
+message: string;
 ```
 
 Error message
@@ -453,7 +453,7 @@ Optional name of the operation to execute
 #### query
 
 ```ts
-query: string
+query: string;
 ```
 
 The GraphQL query or mutation string
@@ -501,7 +501,7 @@ Array of errors if execution was unsuccessful or partially successful
 ## GraphQLVariables
 
 ```ts
-type GraphQLVariables = Record<string, unknown>
+type GraphQLVariables = Record<string, unknown>;
 ```
 
 Variables object for GraphQL operations.
@@ -512,7 +512,7 @@ Key-value pairs of variable names and their values.
 ## createAPIClient()
 
 ```ts
-function createAPIClient(url: string, chainFunctions?: ChainFunction[]): Client
+function createAPIClient(url: string, chainFunctions?: ChainFunction[]): Client;
 ```
 
 Creates a GraphQL API client for interacting with a GraphQL endpoint.

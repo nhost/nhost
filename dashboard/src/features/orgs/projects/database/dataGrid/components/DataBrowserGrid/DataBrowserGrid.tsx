@@ -74,8 +74,7 @@ export function extractColumnMetadata(
     isIdentity: column.is_identity === 'YES',
     isGenerated,
     generationExpression: column.generation_expression ?? null,
-    defaultValue: normalizedDefault?.value ?? null,
-    isDefaultValueCustom: normalizedDefault?.custom ?? false,
+    defaultValue: normalizedDefault ?? null,
     isUnique: column.is_unique,
     comment: column.column_comment,
     uniqueConstraints: column.unique_constraints,
@@ -102,7 +101,8 @@ export function extractColumnMetadata(
 export function createDataGridColumn(
   column: NormalizedQueryDataRow,
   isEditable: boolean = true,
-): DataBrowserGridColumnDef {
+  // biome-ignore lint/suspicious/noExplicitAny: Cell types are dynamically typed depending on postgres columns
+): DataBrowserGridColumnDef<UnknownDataGridRow, any> {
   const meta = extractColumnMetadata(column, isEditable);
 
   const isSortable =

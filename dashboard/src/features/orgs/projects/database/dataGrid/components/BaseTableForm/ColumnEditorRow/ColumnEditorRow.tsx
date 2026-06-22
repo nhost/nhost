@@ -1,10 +1,10 @@
 import { memo } from 'react';
 import { Checkbox } from './Checkbox';
 import ColumnComment from './ColumnComment';
-import DefaultValueAutocomplete from './DefaultValueAutocomplete';
+import DefaultValueInput from './DefaultValueInput';
 import { NameInput } from './NameInput';
 import { RemoveButton } from './RemoveButton';
-import { TypeAutocomplete } from './TypeAutocomplete';
+import { TypeCombobox } from './TypeCombobox';
 
 export interface FieldArrayInputProps {
   /**
@@ -27,11 +27,11 @@ const ColumnEditorRow = memo(({ index, remove }: ColumnEditorRowProps) => (
     </div>
 
     <div className="w-52 flex-none">
-      <TypeAutocomplete index={index} />
+      <TypeCombobox index={index} />
     </div>
 
     <div className="w-52 flex-none">
-      <DefaultValueAutocomplete index={index} />
+      <DefaultValueInput index={index} />
     </div>
 
     <div className="flex h-10 w-8 flex-none items-center justify-center">

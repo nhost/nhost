@@ -6,6 +6,7 @@ import { type PropsWithChildren, useEffect } from 'react';
 import { ColorPreferenceProvider } from '@/components/ui/v2/ColorPreferenceProvider';
 import { createTheme } from '@/components/ui/v2/createTheme';
 import { useColorPreference } from '@/components/ui/v2/useColorPreference';
+import { COLOR_PREFERENCE_STORAGE_KEY } from '@/utils/constants/common';
 
 function ThemeProviderContent({
   children,
@@ -14,12 +15,15 @@ function ThemeProviderContent({
   const { color: preferredColor } = useColorPreference();
   const theme = createTheme(manualColor || preferredColor);
 
-  // Use effect to set the class on the root html tag
   useEffect(() => {
+    if (manualColor) {
+      return;
+    }
+
     const rootElement = document.documentElement;
-    rootElement.classList.remove('light', 'dark'); // Remove previous classes
-    rootElement.classList.add(preferredColor); // Add the current class
-  }, [preferredColor]);
+    rootElement.classList.remove('light', 'dark');
+    rootElement.classList.add(preferredColor);
+  }, [preferredColor, manualColor]);
 
   return (
     <MaterialThemeProvider theme={theme}>
@@ -34,7 +38,11 @@ function ThemeProviderContent({
       <Head>
         <meta name="theme-color" content={theme.palette.background.paper} />
       </Head>
-      {children}
+      {manualColor ? (
+        <div className={`${manualColor} contents`}>{children}</div>
+      ) : (
+        children
+      )}
     </MaterialThemeProvider>
   );
 }
@@ -43,11 +51,14 @@ export interface ThemeProviderProps extends PropsWithChildren<unknown> {
   /**
    * The key used to store the color preference in local storage.
    *
-   * @default 'color-preference'
+   * @default COLOR_PREFERENCE_STORAGE_KEY
    */
   colorPreferenceStorageKey?: string;
   /**
-   * Manually set the color preference.
+   * Manually set the color preference. When set, the provider is scoped: it
+   * themes only its own subtree (MUI theme plus a `light`/`dark` class on a
+   * wrapper element for Tailwind tokens) and leaves the `<html>` class —
+   * owned by the root provider in `_app.tsx` — untouched.
    */
   color?: 'light' | 'dark';
 }
@@ -55,7 +66,7 @@ export interface ThemeProviderProps extends PropsWithChildren<unknown> {
 function ThemeProvider({
   children,
   color,
-  colorPreferenceStorageKey = 'color-preference',
+  colorPreferenceStorageKey = COLOR_PREFERENCE_STORAGE_KEY,
 }: ThemeProviderProps) {
   return (
     <ColorPreferenceProvider

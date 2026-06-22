@@ -11,6 +11,10 @@ on:
       - "flake.lock"
       - "nixops/**"
       - "build/**"
+
+      # the pinned-toolchains check in checks.nixops scans every .nix file
+      # in the repo, so run it whenever any of them changes
+      - "**.nix"
   merge_group:
 
 concurrency:
@@ -28,6 +32,7 @@ jobs:
         flake.lock
         nixops/**
         build/**
+        **.nix
 
   check-permissions:
     needs: [detect-changes]

@@ -20,14 +20,11 @@ it('should prepare one query for a simple column', () => {
   );
 });
 
-it(`should produce DEFAULT ''::text in the SQL for an empty-string default`, () => {
+it('should emit the default value verbatim for an empty-string default', () => {
   const column: DatabaseColumn = {
     name: 'test_column',
     type: 'text',
-    defaultValue: {
-      value: "''::text",
-      custom: false,
-    },
+    defaultValue: "''",
   };
 
   const transaction = prepareCreateColumnQuery({
@@ -39,7 +36,27 @@ it(`should produce DEFAULT ''::text in the SQL for an empty-string default`, () 
 
   expect(transaction).toHaveLength(1);
   expect(transaction[0].args.sql).toBe(
-    "ALTER TABLE public.test_table ADD test_column text DEFAULT ''::text NOT NULL;",
+    "ALTER TABLE public.test_table ADD test_column text DEFAULT '' NOT NULL;",
+  );
+});
+
+it('should emit a function default verbatim', () => {
+  const column: DatabaseColumn = {
+    name: 'test_column',
+    type: 'uuid',
+    defaultValue: 'gen_random_uuid()',
+  };
+
+  const transaction = prepareCreateColumnQuery({
+    dataSource: 'default',
+    schema: 'public',
+    table: 'test_table',
+    column,
+  });
+
+  expect(transaction).toHaveLength(1);
+  expect(transaction[0].args.sql).toBe(
+    'ALTER TABLE public.test_table ADD test_column uuid DEFAULT gen_random_uuid() NOT NULL;',
   );
 });
 

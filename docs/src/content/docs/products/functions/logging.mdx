@@ -1,7 +1,10 @@
 ---
 title: Logging
-description: Learn how to use logging in Nhost Functions
+description: Log and debug serverless functions with console methods, view captured output, and trace each invocation by its invocation ID.
 keywords: ["logging", "console.log", "serverless functions", "invocation ID", "request tracing", "debugging"]
+head:
+  - tag: title
+    content: "Debugging & Logs for Serverless Functions | Nhost Docs"
 ---
 
 Nhost Functions support logging through standard `console` methods in Node.js. Use `console.log()`, `console.warn()`, and `console.error()` to log messages during function execution. All logs are captured and displayed in the [logs page](https://app.nhost.io/orgs/_/projects/_/logs) page with metadata about each invocation.

@@ -1,0 +1,54 @@
+---
+name: Nhost code review
+description: Run the packaged nhost-code PR review command and publish GitHub review results.
+inputs:
+  binary:
+    description: Path to the built nhost-code binary.
+    required: false
+    default: ./result/bin/nhost-code
+  github-token:
+    description: GitHub token used for API calls in this phase.
+    required: true
+  phase:
+    description: "review-pr phase to run: all, review, or publish."
+    required: false
+    default: all
+  pr-number:
+    description: Pull request number to review.
+    required: true
+  comment-body:
+    description: Original issue comment body that triggered the review.
+    required: true
+  run-url:
+    description: URL to the workflow run for status/failure comments.
+    required: true
+  cloudflare-api-key:
+    description: Optional least-privilege Cloudflare AI Gateway API token used by review-pr.
+    required: false
+    default: ""
+  cloudflare-account-id:
+    description: Optional Cloudflare account ID.
+    required: false
+    default: ""
+  cloudflare-gateway-id:
+    description: Optional Cloudflare AI Gateway ID.
+    required: false
+    default: ""
+runs:
+  using: composite
+  steps:
+    - name: Run nhost-code review-pr
+      shell: bash
+      env:
+        NHOST_CODE_BIN: ${{ inputs.binary }}
+        GH_TOKEN: ${{ inputs.github-token }}
+        REVIEW_PR_PHASE: ${{ inputs.phase }}
+        PR_NUMBER: ${{ inputs.pr-number }}
+        REVIEW_COMMENT_BODY: ${{ inputs.comment-body }}
+        GITHUB_RUN_URL: ${{ inputs.run-url }}
+        CLOUDFLARE_AI_GATEWAY_LLM_CODING_API_TOKEN: ${{ inputs.cloudflare-api-key }}
+        CLOUDFLARE_API_TOKEN: ${{ inputs.cloudflare-api-key }}
+        CLOUDFLARE_API_KEY: ${{ inputs.cloudflare-api-key }}
+        CLOUDFLARE_ACCOUNT_ID: ${{ inputs.cloudflare-account-id }}
+        CLOUDFLARE_GATEWAY_ID: ${{ inputs.cloudflare-gateway-id }}
+      run: exec "$NHOST_CODE_BIN" review-pr

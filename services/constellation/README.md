@@ -185,6 +185,7 @@ All flags are also available as environment variables. The most common:
 | `--debug` | `CONSTELLATION_DEBUG` | `false` |
 | `--log-format-text` | `CONSTELLATION_LOG_FORMAT_TEXT` | `false` — JSON logs by default |
 | `--dev-mode` | `CONSTELLATION_DEV_MODE` | `false` — returns raw connector errors; never enable in production |
+| `--hasura-upstream-url` | `CONSTELLATION_HASURA_UPSTREAM_URL` | `http://hasura-service:8080/` — proxies unimplemented Hasura-compatible routes to the Nhost sidecar by default; set to an empty string for standalone deployments with no upstream |
 | `--profile-address` | `CONSTELLATION_PROFILE_ADDRESS` | *(unset)* — enables `net/http/pprof` |
 
 ## Compatibility

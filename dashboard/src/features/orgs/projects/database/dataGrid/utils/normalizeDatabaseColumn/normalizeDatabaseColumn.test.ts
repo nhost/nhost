@@ -69,7 +69,7 @@ it('should normalize a raw database column', () => {
     isPrimary: true,
     isNullable: false,
     type: 'uuid',
-    defaultValue: { value: 'gen_random_uuid()', custom: false },
+    defaultValue: 'gen_random_uuid()',
     comment: null,
     primaryConstraints: ['test_table_pkey'],
     uniqueConstraints: [],
@@ -140,7 +140,7 @@ it('should set isGenerated to true and map generationExpression for generated co
   });
 });
 
-it('should preserve an empty-string cast default and label it from POSTGRESQL_FUNCTION_LABELS', () => {
+it('should strip the cast from an empty-string default', () => {
   const rawEmptyStringDefaultColumn: typeof rawColumn = {
     ...rawColumn,
     udt_name: 'text',
@@ -151,10 +151,7 @@ it('should preserve an empty-string cast default and label it from POSTGRESQL_FU
 
   const column = normalizeDatabaseColumn(rawEmptyStringDefaultColumn);
 
-  expect(column.defaultValue).toEqual({
-    value: "''::text",
-    custom: false,
-  });
+  expect(column.defaultValue).toBe("''");
 });
 it('should set nullable to true if the column is nullable', () => {
   const rawNullableColumn: typeof rawColumn = {
@@ -172,7 +169,7 @@ it('should set nullable to true if the column is nullable', () => {
     isPrimary: true,
     isNullable: true,
     type: 'uuid',
-    defaultValue: { value: 'gen_random_uuid()', custom: false },
+    defaultValue: 'gen_random_uuid()',
     comment: null,
     primaryConstraints: ['test_table_pkey'],
     uniqueConstraints: [],
@@ -180,7 +177,7 @@ it('should set nullable to true if the column is nullable', () => {
   });
 });
 
-it('should preserve the literal flag when the stored default is a quoted literal that collides with a function name', () => {
+it('should keep the quotes and strip the cast for a quoted literal default', () => {
   const rawLiteralColumn: typeof rawColumn = {
     ...rawColumn,
     udt_name: 'text',
@@ -191,10 +188,10 @@ it('should preserve the literal flag when the stored default is a quoted literal
 
   const column = normalizeDatabaseColumn(rawLiteralColumn);
 
-  expect(column.defaultValue).toEqual({ value: 'version()', custom: true });
+  expect(column.defaultValue).toBe("'version()'");
 });
 
-it('should mark a bare function default as non-custom', () => {
+it('should keep a bare function default verbatim', () => {
   const rawFunctionColumn: typeof rawColumn = {
     ...rawColumn,
     udt_name: 'text',
@@ -205,5 +202,5 @@ it('should mark a bare function default as non-custom', () => {
 
   const column = normalizeDatabaseColumn(rawFunctionColumn);
 
-  expect(column.defaultValue).toEqual({ value: 'version()', custom: false });
+  expect(column.defaultValue).toBe('version()');
 });
