@@ -24,7 +24,7 @@ const typeOptions: FormFreeComboboxOption[] = postgresTypeGroups.map(
   }),
 );
 
-export function TypeAutocomplete({ index }: FieldArrayInputProps) {
+export function TypeCombobox({ index }: FieldArrayInputProps) {
   const { control, setValue } = useFormContext();
   const identityColumnIndex = useWatch({ name: 'identityColumnIndex' });
   const isGenerated = useWatch({ name: `columns.${index}.isGenerated` });
@@ -72,4 +72,4 @@ export function TypeAutocomplete({ index }: FieldArrayInputProps) {
   );
 }
 
-export default TypeAutocomplete;
+export default TypeCombobox;

@@ -17,7 +17,6 @@ declare module '@tanstack/react-table' {
     isNullable?: boolean;
     isIdentity?: boolean;
     isUnique?: boolean;
-    isDefaultValueCustom?: boolean;
     // biome-ignore lint/suspicious/noExplicitAny: generic value
     defaultValue?: any;
     comment?: string | null;
