@@ -29,9 +29,7 @@ import {
 import { useCurrentOrg } from '@/features/orgs/projects/hooks/useCurrentOrg';
 import { useProject } from '@/features/orgs/projects/hooks/useProject';
 import { useGetAuthUserProvidersQuery } from '@/generated/graphql';
-import { useAccessToken } from '@/hooks/useAccessToken';
 import { GitHubAPIError, listGitHubInstallationRepos } from '@/lib/github';
-import { appendPkceId, generateAndStorePKCE } from '@/lib/pkce';
 import { isEmptyValue } from '@/lib/utils';
 import { getToastStyleProps } from '@/utils/constants/settings';
 import { nhost } from '@/utils/nhost';
@@ -78,7 +76,6 @@ export default function ConnectGitHubModal({ close }: ConnectGitHubModalProps) {
   const { project, loading: loadingProject } = useProject();
   const { org, loading: loadingOrg } = useCurrentOrg();
   const hostname = useHostName();
-  const token = useAccessToken();
   const {
     data,
     loading: loadingGithubConnected,
@@ -90,16 +87,18 @@ export default function ConnectGitHubModal({ close }: ConnectGitHubModalProps) {
   );
 
   async function handleConnectGitHub() {
-    const { challenge, id } = await generateAndStorePKCE();
-    const url = nhost.auth.signInProviderURL('github', {
-      connect: token,
-      redirectTo: appendPkceId(
-        `${window.location.origin}?signinProvider=github&state=signin-refresh:${org.slug}:${project?.subdomain}`,
-        id,
-      ),
-      codeChallenge: challenge,
-    });
-    window.location.href = url;
+    // Linking is an authenticated, elevated action: linkProvider sends the access
+    // token in the Authorization header (never the URL) and Auth records the user
+    // in a single-use cookie. credentials: 'include' lets the browser store that
+    // cookie so the callback can link the provider, then redirects back here.
+    const response = await nhost.auth.linkProvider(
+      'github',
+      {
+        redirectTo: `${window.location.origin}?signinProvider=github&state=signin-refresh:${org.slug}:${project?.subdomain}`,
+      },
+      { credentials: 'include' },
+    );
+    window.location.href = response.body.url;
   }
 
   // biome-ignore lint/correctness/useExhaustiveDependencies: close does the same thing every render
