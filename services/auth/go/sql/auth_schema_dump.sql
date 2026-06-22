@@ -733,6 +733,13 @@ CREATE INDEX refresh_tokens_refresh_token_hash_expires_at_user_id_idx ON auth.re
 
 
 --
+-- Name: users_new_phone_number_idx; Type: INDEX; Schema: auth; Owner: postgres
+--
+
+CREATE INDEX users_new_phone_number_idx ON auth.users USING btree (new_phone_number) WHERE (new_phone_number IS NOT NULL);
+
+
+--
 -- Name: oauth2_clients check_oauth2_client_secret_hash; Type: TRIGGER; Schema: auth; Owner: postgres
 --
 

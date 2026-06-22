@@ -1,12 +1,24 @@
 ---
 title: SMS OTP
 description: Learn how to sign in users with one-time passwords delivered via SMS using Twilio.
-keywords: ["SMS", "OTP", "phone", "mobile", "text message", "Twilio", "passwordless", "phone verification", "deanonymize", "change phone number"]
+keywords:
+  [
+    'SMS',
+    'OTP',
+    'phone',
+    'mobile',
+    'text message',
+    'Twilio',
+    'passwordless',
+    'phone verification',
+    'deanonymize',
+    'change phone number'
+  ]
 sidebar:
   label: SMS
 ---
-import { Tabs, TabItem } from '@astrojs/starlight/components';
 
+import { Tabs, TabItem } from '@astrojs/starlight/components'
 
 An SMS OTP (one-time password) is a secure authorization method where a numeric or alphanumeric code is sent to a mobile phone number.
 
@@ -35,7 +47,6 @@ enabled = true
 
 Signing in users with a phone number is a two-step process:
 
-
 ### Request OTP
 
 The user will receive the OTP on the phone number specified.
@@ -56,8 +67,6 @@ await nhost.auth.signIn(
 ```
 </TabItem>
 </Tabs>
-
-
 
 ### Sign In with OTP
 
@@ -82,7 +91,6 @@ await nhost.auth.signIn(
 </TabItem>
 </Tabs>
 
-
 :::note
 A user account is created the first time a phone number is used
 :::
@@ -101,8 +109,8 @@ This endpoint requires [elevated permissions](/products/auth/elevated-permission
 
 ```js
 await nhost.auth.changeUserPhoneNumber({
-  newPhoneNumber: '+11233213123',
-});
+  newPhoneNumber: '+11233213123'
+})
 ```
 
 ### Verify the Change
@@ -112,8 +120,8 @@ Submit the OTP received via SMS to commit the new number:
 ```js
 await nhost.auth.verifyChangeUserPhoneNumber({
   newPhoneNumber: '+11233213123',
-  otp: '123456',
-});
+  otp: '123456'
+})
 ```
 
 If a different user already has this phone number verified, the request fails with `user-already-exists`.
@@ -125,13 +133,13 @@ If a different user already has this phone number verified, the request fails wi
 ```js
 // 1. Anonymous user requests deanonymization with a phone number
 await nhost.auth.deanonymizeUserSMS({
-  phoneNumber: '+11233213123',
-});
+  phoneNumber: '+11233213123'
+})
 
-// 2. The same user verifies the OTP via the regular SMS sign-in endpoint —
+// 2. The same user verifies the OTP via verifySignInPasswordlessSms —
 //    on success the phone number is verified and a non-anonymous session is returned
-await nhost.auth.signIn({
+await nhost.auth.verifySignInPasswordlessSms({
   phoneNumber: '+11233213123',
-  otp: '123456',
-});
+  otp: '123456'
+})
 ```
