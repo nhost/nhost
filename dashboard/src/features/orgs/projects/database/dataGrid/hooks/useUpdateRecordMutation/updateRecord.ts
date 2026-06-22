@@ -90,7 +90,19 @@ export default async function updateRecord<
           );
         }
       }
-      return format('%I = %L', key, value);
+      let finalValue = value;
+      const specType = col.specificType?.toLowerCase() || '';
+      const isJson = specType === 'jsonb' || specType === 'json';
+
+      if (isJson && typeof value === 'string') {
+        try {
+          finalValue = JSON.parse(value);
+        } catch {
+          // Keep as string if parsing fails
+        }
+      }
+
+      return format('%I = %L', key, finalValue);
     })
     .join(', ');
 

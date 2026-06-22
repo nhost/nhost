@@ -20,6 +20,7 @@ import type {
 } from '@/features/orgs/projects/database/dataGrid/types/dataBrowser';
 import type { UnknownDataGridRow } from '@/features/orgs/projects/storage/dataGrid/components/DataGrid';
 import { SELECTION_COLUMN_ID } from '@/features/orgs/projects/storage/dataGrid/components/DataGrid';
+import { useDataGridConfig } from '@/features/orgs/projects/storage/dataGrid/components/DataGridConfigProvider';
 import { cn, isNotEmptyValue } from '@/lib/utils';
 import { copy } from '@/utils/copy';
 import { triggerToast } from '@/utils/toast';
@@ -71,6 +72,7 @@ function DataGridCellContent<
   TData extends UnknownDataGridRow = UnknownDataGridRow,
 >({ cell }: PropsWithChildren<DataGridCellProps<TData>>) {
   const originalValue = cell.getValue<DataGridCellValue>();
+  const { allowSelection } = useDataGridConfig();
   const {
     column: { id, columnDef },
     row,
@@ -311,6 +313,7 @@ function DataGridCellContent<
         'relative grid w-full cursor-default grid-flow-col items-center gap-1 border-divider px-2 py-1.5 text-primary-text',
         cell.column.id === SELECTION_COLUMN_ID &&
           'sticky left-0 z-20 justify-center px-0',
+        cell.column.id === 'actions' && 'sticky z-20 justify-center px-0',
         isEditable &&
           'focus-within:outline-none focus-within:ring-0 focus:ring-0',
         isSelected && 'shadow-outline',
@@ -318,6 +321,8 @@ function DataGridCellContent<
       )}
       style={{
         width: cell.column.getSize(),
+        left:
+          cell.column.id === 'actions' ? (allowSelection ? 32 : 0) : undefined,
       }}
       onFocus={handleFocus}
       onBlur={handleBlur}

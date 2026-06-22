@@ -15,13 +15,13 @@ export type DataGridTextCellProps<
 
 export default function DataGridTextCell<
   TData extends UnknownDataGridRow = UnknownDataGridRow,
->({
+ >({
   onSave,
   optimisticValue,
   temporaryValue,
   onTemporaryValueChange,
   cell: { column },
-}: DataGridTextCellProps<TData>) {
+ }: DataGridTextCellProps<TData>) {
   const specificType = column.columnDef.meta?.specificType;
   const isNullable = column.columnDef.meta?.isNullable;
   const hasDefault = column.columnDef.meta?.defaultValue != null;
@@ -33,14 +33,16 @@ export default function DataGridTextCell<
     specificType === 'json' ||
     specificType === 'jsonb';
 
-  const normalizedOptimisticValue =
+  // Read-only display formatting
+  const displayOptimisticValue =
     optimisticValue !== null && typeof optimisticValue === 'object'
-      ? optimisticValue
+      ? JSON.stringify(optimisticValue)
       : (String(optimisticValue) || '').replace(/(\\n)+/gi, ' ');
 
-  const normalizedTemporaryValue =
+  // Edit-mode formatting
+  const displayTemporaryValue =
     temporaryValue !== null && typeof temporaryValue === 'object'
-      ? JSON.stringify(temporaryValue)
+      ? JSON.stringify(temporaryValue, null, 2)
       : temporaryValue;
 
   const { inputRef, focusCell, isEditing, cancelEditCell } = useDataGridCell<
@@ -57,7 +59,7 @@ export default function DataGridTextCell<
 
   async function handleSave() {
     if (onSave) {
-      await onSave((normalizedTemporaryValue || '').replace(/\n/gi, `\\n`));
+      await onSave((displayTemporaryValue || '').replace(/\n/gi, `\\n`));
     }
   }
 
@@ -137,10 +139,10 @@ export default function DataGridTextCell<
       <div className="absolute top-0 left-0 z-10 h-25 min-h-25 w-full">
         <Textarea
           ref={inputRef as Ref<HTMLTextAreaElement>}
-          value={(normalizedTemporaryValue || '').replace(/\\n/gi, `\n`)}
+          value={(displayTemporaryValue || '').replace(/\\n/gi, `\n`)}
           onChange={handleChange}
           onKeyDown={handleTextAreaKeyDown}
-          className="!text-xs h-full w-full resize-none rounded-none outline-none focus-within:rounded-none focus-within:border-transparent focus-within:bg-white focus-within:shadow-[inset_0_0_0_1.5px_rgba(0,82,205,1)] focus:outline-none focus:ring-0 dark:focus-within:bg-theme-grey-200"
+          className="!text-xs h-full w-full resize-y rounded-none outline-none focus-within:rounded-none focus-within:border-transparent focus-within:bg-white focus-within:shadow-[inset_0_0_0_1.5px_rgba(0,82,205,1)] focus:outline-none focus:ring-0 dark:focus-within:bg-theme-grey-200"
         />
         {(isNullable || hasDefault) && (
           <CellResetButtons
@@ -160,7 +162,7 @@ export default function DataGridTextCell<
       <div className="absolute top-0 left-0 z-10 h-full w-full">
         <Input
           ref={inputRef as Ref<HTMLInputElement>}
-          value={(normalizedTemporaryValue || '').replace(/\\n/gi, `\n`)}
+          value={(displayTemporaryValue || '').replace(/\\n/gi, `\n`)}
           onChange={handleChange}
           onKeyDown={handleInputKeyDown}
           wrapperClassName="h-full w-full"
@@ -189,9 +191,7 @@ export default function DataGridTextCell<
 
   return (
     <p className="truncate text-xs">
-      {typeof normalizedOptimisticValue === 'object'
-        ? JSON.stringify(normalizedOptimisticValue)
-        : normalizedOptimisticValue}
+      {displayOptimisticValue}
     </p>
   );
 }

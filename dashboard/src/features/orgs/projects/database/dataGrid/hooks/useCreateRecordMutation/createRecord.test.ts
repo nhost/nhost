@@ -129,4 +129,19 @@ describe('createRecord', () => {
       }),
     ).rejects.toThrow();
   });
+
+  test('inserts json/jsonb values in compressed form', async () => {
+    await createRecord({
+      ...defaultOptions,
+      columnValues: {
+        metadata: { value: '{\n  "a": 1,\n  "b": 2\n}', specificType: 'jsonb' },
+      },
+    });
+
+    const sql = (capturedBody as CapturedRequest).args[0].args.sql;
+    expect(sql).toContain('metadata');
+    expect(sql).toContain('\'{"a":1,"b":2}\'::jsonb');
+  });
+
 });
+

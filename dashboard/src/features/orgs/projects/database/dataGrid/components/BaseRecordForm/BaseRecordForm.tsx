@@ -137,13 +137,15 @@ export default function BaseRecordForm({
           };
         }
 
+        const finalValue =
+          gridColumn?.type === 'date' && value instanceof Date
+            ? value.toUTCString()
+            : value;
+
         return {
           ...options,
           [columnId]: {
-            value:
-              gridColumn?.type === 'date' && value instanceof Date
-                ? value.toUTCString()
-                : value,
+            value: finalValue,
             specificType: gridColumn?.specificType,
           },
         };

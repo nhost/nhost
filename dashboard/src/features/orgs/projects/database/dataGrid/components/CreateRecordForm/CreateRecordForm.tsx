@@ -22,11 +22,73 @@ export interface CreateRecordFormProps
    */
   onSubmit?: () => Promise<unknown>;
   currentOffset: number;
+  /**
+   * Initial values to populate the form fields.
+   */
+  initialValues?: Record<string, unknown>;
+}
+
+function formatFormDateValue(value: unknown, specificType?: string | null) {
+  if (value === null || value === undefined) {
+    return value;
+  }
+  if (value === POSTGRES_DEFAULT_PLACEHOLDER) {
+    return value;
+  }
+
+  const specType = String(specificType || '').toLowerCase();
+  const isTimestamp =
+    specType.includes('timestamp') || specType.includes('timestamptz');
+  const isTime = specType.includes('time') && !isTimestamp;
+  const isDate = specType.includes('date') && specType !== 'interval';
+
+  if (isTimestamp) {
+    const date = new Date(value as string | number | Date);
+    if (Number.isNaN(date.getTime())) {
+      return value;
+    }
+    const year = date.getFullYear();
+    const month = String(date.getMonth() + 1).padStart(2, '0');
+    const day = String(date.getDate()).padStart(2, '0');
+    const hours = String(date.getHours()).padStart(2, '0');
+    const minutes = String(date.getMinutes()).padStart(2, '0');
+    return `${year}-${month}-${day}T${hours}:${minutes}`;
+  }
+
+  if (isDate) {
+    if (typeof value === 'string' && /^\d{4}-\d{2}-\d{2}/.test(value)) {
+      return value.substring(0, 10);
+    }
+    const date = new Date(value as string | number | Date);
+    if (Number.isNaN(date.getTime())) {
+      return value;
+    }
+    const year = date.getUTCFullYear();
+    const month = String(date.getUTCMonth() + 1).padStart(2, '0');
+    const day = String(date.getUTCDate()).padStart(2, '0');
+    return `${year}-${month}-${day}`;
+  }
+
+  if (isTime) {
+    if (typeof value === 'string' && /^\d{2}:\d{2}/.test(value)) {
+      return value.substring(0, 5);
+    }
+    const date = new Date(value as string | number | Date);
+    if (Number.isNaN(date.getTime())) {
+      return value;
+    }
+    const hours = String(date.getHours()).padStart(2, '0');
+    const minutes = String(date.getMinutes()).padStart(2, '0');
+    return `${hours}:${minutes}`;
+  }
+
+  return value;
 }
 
 export default function CreateRecordForm({
   onSubmit,
   currentOffset,
+  initialValues,
   ...props
 }: CreateRecordFormProps) {
   const { mutateAsync: insertRow, error, reset } = useCreateRecordMutation();
@@ -36,17 +98,59 @@ export default function CreateRecordForm({
 
   const form = useForm({
     defaultValues: props.columns.reduce((defaultValues, column) => {
-      const hasDefault = !!(column.defaultValue || column.isIdentity);
+      if (initialValues && initialValues[column.id] !== undefined) {
+        let value = initialValues[column.id];
+        const specType = column.specificType?.toLowerCase() || '';
 
-      if (column.type === 'boolean' && column.defaultValue) {
-        return { ...defaultValues, [column.id]: column.defaultValue };
+        if (
+          value !== null &&
+          typeof value === 'object' &&
+          (specType === 'jsonb' || specType === 'json')
+        ) {
+          value = JSON.stringify(value, null, 2);
+        } else if (column.type === 'date') {
+          value = formatFormDateValue(value, column.specificType);
+        } else if (column.type === 'boolean') {
+          if (value === true || value === 'true') {
+            value = 'true';
+          } else if (value === false || value === 'false') {
+            value = 'false';
+          } else if (value === POSTGRES_DEFAULT_PLACEHOLDER) {
+            value = 'default';
+          } else if (value === null) {
+            value = column.isNullable ? 'null' : '';
+          }
+        }
+        return { ...defaultValues, [column.id]: value };
       }
+
+      const hasDefault = !!(column.defaultValue || column.isIdentity);
 
       if (column.isNullable && hasDefault) {
         return {
           ...defaultValues,
           [column.id]: POSTGRES_DEFAULT_PLACEHOLDER,
         };
+      }
+
+      if (column.type === 'boolean') {
+        let val = column.defaultValue;
+        if (
+          val === 'true' ||
+          (val as unknown) === true ||
+          (typeof val === 'string' && val.includes('true'))
+        ) {
+          val = 'true';
+        } else if (
+          val === 'false' ||
+          (val as unknown) === false ||
+          (typeof val === 'string' && val.includes('false'))
+        ) {
+          val = 'false';
+        } else {
+          val = null;
+        }
+        return { ...defaultValues, [column.id]: val };
       }
 
       return { ...defaultValues, [column.id]: null };
