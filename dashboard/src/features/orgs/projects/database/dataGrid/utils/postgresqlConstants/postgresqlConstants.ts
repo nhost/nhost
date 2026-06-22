@@ -15,17 +15,6 @@ export const POSTGRESQL_ERROR_CODES = {
 };
 
 /**
- * Human-readable labels for raw PostgreSQL expressions that would otherwise be
- * confusing in the default-value dropdown. Keys are the exact expressions
- * stored in form state and emitted as SQL; values are what gets shown to the
- * user.
- */
-export const POSTGRESQL_FUNCTION_LABELS: Record<string, string> = {
-  "''::text": 'EMPTY STRING',
-  "''::character varying": 'EMPTY STRING',
-};
-
-/**
  * Numeric data types in PostgreSQL.
  *
  * @docs https://www.postgresql.org/docs/current/datatype-numeric.html
@@ -231,8 +220,7 @@ export const dateFunctions = [
  * Relevant functions for PostgreSQL types.
  */
 export const postgresFunctions = {
-  text: ["''::text", 'version()', 'timeofday()'],
-  'character varying': ["''::character varying"],
+  text: ['version()', 'timeofday()'],
   json: ['json_build_object()', 'json_build_array()'],
   jsonb: ['jsonb_build_object()', 'jsonb_build_array()'],
   date: dateFunctions,

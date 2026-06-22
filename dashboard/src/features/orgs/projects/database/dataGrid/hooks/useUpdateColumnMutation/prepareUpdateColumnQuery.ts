@@ -68,16 +68,11 @@ export default function prepareUpdateColumnQuery({
   const originalDefault = originalColumn.defaultValue ?? null;
   const updatedDefault = column.defaultValue ?? null;
 
-  const defaultChanged =
-    originalDefault?.value !== updatedDefault?.value ||
-    originalDefault?.custom !== updatedDefault?.custom;
+  const defaultChanged = originalDefault !== updatedDefault;
 
   if (defaultChanged) {
     const defaultClause = updatedDefault
-      ? format(
-          updatedDefault.custom ? 'SET DEFAULT %L' : 'SET DEFAULT %s',
-          updatedDefault.value,
-        )
+      ? format('SET DEFAULT %s', updatedDefault)
       : format('DROP DEFAULT');
 
     args = args.concat(
