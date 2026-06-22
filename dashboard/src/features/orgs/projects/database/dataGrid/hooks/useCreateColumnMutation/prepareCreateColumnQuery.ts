@@ -40,10 +40,7 @@ export default function prepareCreateColumnQuery({
   let defaultClause = '';
 
   if (column.defaultValue && !column.isIdentity) {
-    defaultClause = format(
-      column.defaultValue.custom ? 'DEFAULT %L' : 'DEFAULT %s',
-      column.defaultValue.value,
-    );
+    defaultClause = format('DEFAULT %s', column.defaultValue);
   }
 
   let args: ReturnType<typeof getPreparedHasuraQuery>[] = [
@@ -74,7 +71,7 @@ export default function prepareCreateColumnQuery({
   }
 
   if (
-    !!column.type &&
+    column.type &&
     (identityTypes as readonly string[]).includes(column.type) &&
     column.isIdentity
   ) {

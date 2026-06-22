@@ -28,6 +28,7 @@ Object.defineProperty(HTMLElement.prototype, 'getBoundingClientRect', {
 
 const mocks = vi.hoisted(() => ({
   onSubmit: vi.fn(),
+  onCancel: vi.fn(),
 }));
 
 const defaultFormValues = {
@@ -60,12 +61,16 @@ function TestTableFormWrapper({ defaultValues = defaultFormValues }: any) {
 
   return (
     <FormProvider {...form}>
-      <BaseTableForm onSubmit={mocks.onSubmit} submitButtonText="Save" />
+      <BaseTableForm
+        onSubmit={mocks.onSubmit}
+        onCancel={mocks.onCancel}
+        submitButtonText="Save"
+      />
     </FormProvider>
   );
 }
 
-async function pickAutocompleteOption(
+async function pickComboboxOption(
   triggerTestId: string,
   searchPlaceholder: string,
   optionName: RegExp | string,
@@ -82,7 +87,7 @@ async function pickAutocompleteOption(
 
 async function fillColumnForm(
   // biome-ignore lint/suspicious/noExplicitAny: test file
-  { columnName, optionName, typeValue, defaultValue, defaultValueKind }: any,
+  { columnName, optionName, typeValue, defaultValue }: any,
   index: number,
   user: TestUserEvent,
 ) {
@@ -90,7 +95,7 @@ async function fillColumnForm(
   expect(columnNameInput).toBeInTheDocument();
   await user.type(columnNameInput, columnName);
 
-  await pickAutocompleteOption(
+  await pickComboboxOption(
     `columns.${index}.type`,
     'Search types...',
     optionName,
@@ -103,28 +108,21 @@ async function fillColumnForm(
   );
 
   if (defaultValue) {
-    expect(
-      screen.getByTestId(`columns.${index}.defaultValue`),
-    ).toBeInTheDocument();
-
-    const kind = defaultValueKind ?? 'literal';
-    await pickAutocompleteOption(
+    const defaultValueInput = screen.getByTestId(
       `columns.${index}.defaultValue`,
-      'Search functions...',
-      kind === 'function' ? defaultValue : `Use '${defaultValue}' as a literal`,
-      defaultValue,
-      user,
     );
+    expect(defaultValueInput).toBeInTheDocument();
 
-    expect(
-      screen.getByTestId(`columns.${index}.defaultValue`),
-    ).toHaveTextContent(defaultValue);
+    await user.type(defaultValueInput, defaultValue);
+
+    expect(defaultValueInput).toHaveValue(defaultValue);
   }
 }
 
 describe('BaseTableForm', () => {
   beforeEach(() => {
     mocks.onSubmit.mockClear();
+    mocks.onCancel.mockClear();
   });
 
   it('should not disable the nullable and unique checkboxes after setting the column name', async () => {
@@ -153,7 +151,6 @@ describe('BaseTableForm', () => {
         optionName: /^uuid.*uuid/,
         typeValue: 'uuid',
         defaultValue: 'gen_random_uuid()',
-        defaultValueKind: 'function',
       },
       0,
       user,
@@ -208,7 +205,6 @@ describe('BaseTableForm', () => {
         optionName: /^uuid.*uuid/,
         typeValue: 'uuid',
         defaultValue: 'gen_random_uuid()',
-        defaultValueKind: 'function',
       },
       0,
       user,
@@ -246,7 +242,7 @@ describe('BaseTableForm', () => {
 
     expect(screen.queryByLabelText('Identity')).not.toBeInTheDocument();
 
-    await pickAutocompleteOption(
+    await pickComboboxOption(
       'columns.0.type',
       'Search types...',
       /^smallint.*int2/,
@@ -264,7 +260,7 @@ describe('BaseTableForm', () => {
 
     expect(screen.queryByLabelText('Identity')).not.toBeInTheDocument();
 
-    await pickAutocompleteOption(
+    await pickComboboxOption(
       'columns.0.type',
       'Search types...',
       /^integer.*int4/,
@@ -282,7 +278,7 @@ describe('BaseTableForm', () => {
 
     expect(screen.queryByLabelText('Identity')).not.toBeInTheDocument();
 
-    await pickAutocompleteOption(
+    await pickComboboxOption(
       'columns.0.type',
       'Search types...',
       /^bigint.*int8/,
@@ -300,7 +296,7 @@ describe('BaseTableForm', () => {
 
     expect(screen.queryByLabelText('Identity')).not.toBeInTheDocument();
 
-    await pickAutocompleteOption(
+    await pickComboboxOption(
       'columns.0.type',
       'Search types...',
       /^text.*text/,
@@ -318,7 +314,7 @@ describe('BaseTableForm', () => {
 
     expect(screen.queryByLabelText('Identity')).not.toBeInTheDocument();
 
-    await pickAutocompleteOption(
+    await pickComboboxOption(
       'columns.0.type',
       'Search types...',
       /^numeric.*numeric/,
@@ -336,7 +332,7 @@ describe('BaseTableForm', () => {
 
     expect(screen.queryByLabelText('Identity')).not.toBeInTheDocument();
 
-    await pickAutocompleteOption(
+    await pickComboboxOption(
       'columns.0.type',
       'Search types...',
       /^text.*text/,
@@ -346,7 +342,7 @@ describe('BaseTableForm', () => {
 
     expect(screen.queryByLabelText('Identity')).not.toBeInTheDocument();
 
-    await pickAutocompleteOption(
+    await pickComboboxOption(
       'columns.0.type',
       'Search types...',
       /^integer.*int4/,
@@ -419,7 +415,6 @@ describe('BaseTableForm', () => {
         optionName: /^uuid.*uuid/,
         typeValue: 'uuid',
         defaultValue: 'gen_random_uuid()',
-        defaultValueKind: 'function',
       },
       0,
       user,
@@ -497,7 +492,7 @@ describe('BaseTableForm', () => {
       {
         name: 'id',
         type: 'uuid',
-        defaultValue: { value: 'gen_random_uuid()', custom: false },
+        defaultValue: 'gen_random_uuid()',
         isNullable: false,
         isUnique: false,
         isIdentity: false,
@@ -524,7 +519,86 @@ describe('BaseTableForm', () => {
     ]);
   });
 
-  it('should submit a colliding default as a literal when the user picks the create item', async () => {
+  it('should not call onSubmit when the Cancel button is clicked, even with a valid form', async () => {
+    render(<TestTableFormWrapper />);
+
+    const user = new TestUserEvent();
+
+    await user.type(screen.getByTestId('tableNameInput'), 'test_table');
+
+    await fillColumnForm(
+      {
+        columnName: 'id',
+        optionName: /^uuid.*uuid/,
+        typeValue: 'uuid',
+        defaultValue: 'gen_random_uuid()',
+      },
+      0,
+      user,
+    );
+
+    const cancelButton = screen.getByRole('button', { name: 'Cancel' });
+    // Without type="button", the button defaults to type="submit" inside the
+    // <form> and clicking Cancel would submit the form.
+    expect(cancelButton).toHaveAttribute('type', 'button');
+
+    await TestUserEvent.fireClickEvent(cancelButton);
+
+    expect(mocks.onSubmit).not.toHaveBeenCalled();
+    expect(mocks.onCancel).toHaveBeenCalledTimes(1);
+  });
+
+  it('should call onCancel without triggering form submission on an untouched form', async () => {
+    render(<TestTableFormWrapper />);
+
+    const cancelButton = screen.getByRole('button', { name: 'Cancel' });
+    // Without type="button", the button defaults to type="submit" inside the
+    // <form> and clicking Cancel would submit the form.
+    expect(cancelButton).toHaveAttribute('type', 'button');
+
+    await TestUserEvent.fireClickEvent(cancelButton);
+
+    expect(mocks.onSubmit).not.toHaveBeenCalled();
+    expect(mocks.onCancel).toHaveBeenCalledTimes(1);
+    expect(
+      screen.queryByText('This field is required.'),
+    ).not.toBeInTheDocument();
+  });
+
+  it('should show an error when the table name exceeds 63 characters', async () => {
+    render(<TestTableFormWrapper />);
+    const user = new TestUserEvent();
+
+    await user.type(screen.getByTestId('tableNameInput'), 'a'.repeat(64));
+
+    await TestUserEvent.fireClickEvent(
+      screen.getByRole('button', { name: 'Save' }),
+    );
+
+    expect(
+      await screen.findByText('Table name must be at most 63 characters.'),
+    ).toBeInTheDocument();
+    expect(mocks.onSubmit).not.toHaveBeenCalled();
+  });
+
+  it('should show an error when a column name exceeds 63 characters', async () => {
+    render(<TestTableFormWrapper />);
+    const user = new TestUserEvent();
+
+    await user.type(screen.getByTestId('tableNameInput'), 'valid_table');
+    await user.type(screen.getByTestId('columns.0.name'), 'a'.repeat(64));
+
+    await TestUserEvent.fireClickEvent(
+      screen.getByRole('button', { name: 'Save' }),
+    );
+
+    expect(
+      await screen.findByText('Column name must be at most 63 characters.'),
+    ).toBeInTheDocument();
+    expect(mocks.onSubmit).not.toHaveBeenCalled();
+  });
+
+  it('should submit a quoted literal verbatim, even when it collides with a function name', async () => {
     render(<TestTableFormWrapper />);
 
     const user = new TestUserEvent();
@@ -536,8 +610,7 @@ describe('BaseTableForm', () => {
         columnName: 'note',
         optionName: /^text.*text/,
         typeValue: 'text',
-        defaultValue: 'version()',
-        defaultValueKind: 'literal',
+        defaultValue: "'version()'",
       },
       0,
       user,
@@ -545,9 +618,31 @@ describe('BaseTableForm', () => {
 
     await TestUserEvent.fireClickEvent(screen.getByText('Save'));
 
-    expect(mocks.onSubmit.mock.calls[0][0].columns[0].defaultValue).toEqual({
-      value: 'version()',
-      custom: true,
-    });
+    expect(mocks.onSubmit.mock.calls[0][0].columns[0].defaultValue).toBe(
+      "'version()'",
+    );
+  });
+
+  it('should submit an empty-string literal default verbatim', async () => {
+    render(<TestTableFormWrapper />);
+
+    const user = new TestUserEvent();
+
+    await user.type(screen.getByTestId('tableNameInput'), 'test_table');
+
+    await fillColumnForm(
+      {
+        columnName: 'note',
+        optionName: /^text.*text/,
+        typeValue: 'text',
+        defaultValue: "''",
+      },
+      0,
+      user,
+    );
+
+    await TestUserEvent.fireClickEvent(screen.getByText('Save'));
+
+    expect(mocks.onSubmit.mock.calls[0][0].columns[0].defaultValue).toBe("''");
   });
 });

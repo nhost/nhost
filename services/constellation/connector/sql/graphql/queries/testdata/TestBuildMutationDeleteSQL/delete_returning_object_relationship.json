@@ -1,0 +1,11 @@
+[
+  {
+    "Name": "delete_user_departments",
+    "SQL": "WITH mutation_result AS (DELETE FROM \"public\".\"user_departments\" WHERE user_departments.\"user_id\" = $1::uuid AND user_departments.\"department_id\" = $2::uuid RETURNING *) SELECT json_build_object('affected_rows', (SELECT COUNT(*) FROM mutation_result), 'returning', (SELECT COALESCE(json_agg(row_to_json(\"_e\")), '[]'::json) FROM (SELECT mutation_result.\"role\" AS \"role\", \"mutation_result.r.department\".\"department\" AS \"department\", \"mutation_result.r.user\".\"user\" AS \"user\" FROM mutation_result LEFT OUTER JOIN LATERAL (WITH \"mutation_result.r.department.base\" AS (SELECT * FROM \"public\".\"departments\" WHERE \"mutation_result\".\"department_id\" = \"id\" LIMIT 1) SELECT row_to_json((SELECT \"_e\" FROM (SELECT \"mutation_result.r.department.base\".\"id\" AS \"id\", \"mutation_result.r.department.base\".\"name\" AS \"name\") AS \"_e\")) AS \"department\" FROM \"mutation_result.r.department.base\") AS \"mutation_result.r.department\" ON ('true') LEFT OUTER JOIN LATERAL (WITH \"mutation_result.r.user.base\" AS (SELECT * FROM \"auth\".\"users\" WHERE \"mutation_result\".\"user_id\" = \"id\" LIMIT 1) SELECT row_to_json((SELECT \"_e\" FROM (SELECT \"mutation_result.r.user.base\".\"id\" AS \"id\", \"mutation_result.r.user.base\".\"email\" AS \"email\") AS \"_e\")) AS \"user\" FROM \"mutation_result.r.user.base\") AS \"mutation_result.r.user\" ON ('true')) AS \"_e\"))",
+    "Parameters": [
+      "550e8400-e29b-41d4-a716-446655440001",
+      "2db9de0a-b9ba-416e-8619-783a399ae2b3"
+    ],
+    "StreamCursors": null
+  }
+]

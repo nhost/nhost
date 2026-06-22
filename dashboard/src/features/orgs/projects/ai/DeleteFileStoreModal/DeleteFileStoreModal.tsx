@@ -2,9 +2,10 @@ import { useState } from 'react';
 import { twMerge } from 'tailwind-merge';
 import { Box } from '@/components/ui/v2/Box';
 import { Button } from '@/components/ui/v2/Button';
-import { Checkbox } from '@/components/ui/v2/Checkbox';
 import { Text } from '@/components/ui/v2/Text';
-import { useAdminApolloClient } from '@/features/orgs/projects/hooks/useAdminApolloClient';
+import { Checkbox } from '@/components/ui/v3/checkbox';
+import { Label } from '@/components/ui/v3/label';
+import { useRemoteApplicationGQLClient } from '@/features/orgs/hooks/useRemoteApplicationGQLClient';
 import { execPromiseWithErrorToast } from '@/features/orgs/utils/execPromiseWithErrorToast';
 import type { GraphiteFileStore } from '@/pages/orgs/[orgSlug]/projects/[appSubdomain]/ai/file-stores';
 import { useDeleteFileStoreMutation } from '@/utils/__generated__/graphite.graphql';
@@ -23,10 +24,10 @@ export default function DeleteFileStoreModal({
   const [remove, setRemove] = useState(false);
   const [loading, setLoading] = useState(false);
 
-  const { adminClient } = useAdminApolloClient();
+  const remoteProjectGQLClient = useRemoteApplicationGQLClient();
 
   const [deleteFileStoreMutation] = useDeleteFileStoreMutation({
-    client: adminClient,
+    client: remoteProjectGQLClient,
   });
 
   const deleteFileStore = async () => {
@@ -71,14 +72,17 @@ export default function DeleteFileStoreModal({
           This cannot be undone.
         </Text>
         <Box className="my-4">
-          <Checkbox
-            id="accept-1"
-            label={`I'm sure I want to delete ${fileStore?.name}`}
-            className="py-2"
-            checked={remove}
-            onChange={(_event, checked) => setRemove(checked)}
-            aria-label="Confirm Delete File Store"
-          />
+          <div className="flex items-center gap-2 py-2">
+            <Checkbox
+              id="accept-1"
+              checked={remove}
+              onCheckedChange={(checked) => setRemove(checked === true)}
+              aria-label="Confirm Delete File Store"
+            />
+            <Label htmlFor="accept-1" className="cursor-pointer font-normal">
+              {`I'm sure I want to delete ${fileStore?.name}`}
+            </Label>
+          </div>
         </Box>
         <div className="grid grid-flow-row gap-2">
           <Button

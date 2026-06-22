@@ -11,7 +11,7 @@ import (
 
 const testBaseURL = "http://localhost:8000/v1"
 
-const accessTokenValidUser = `eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJleHAiOjIwNjg0NDA4NTEsImh0dHBzOi8vaGFzdXJhLmlvL2p3dC9jbGFpbXMiOnsieC1oYXN1cmEtYWxsb3dlZC1yb2xlcyI6WyJhZG1pbiJdLCJ4LWhhc3VyYS1kZWZhdWx0LXJvbGUiOiJhZG1pbiIsIngtaGFzdXJhLXVzZXItaWQiOiJhYjViYTU4ZS05MzJhLTQwZGMtODdlOC03MzM5OTg3OTRlYzIiLCJ4LWhhc3VyYS11c2VyLWlzQW5vbnltb3VzIjoiZmFsc2UifSwiaWF0IjoxNzUzMDgwODUxLCJpc3MiOiJoYXN1cmEtYXV0aCIsInN1YiI6ImFiNWJhNThlLTkzMmEtNDBkYy04N2U4LTczMzk5ODc5NGVjMiJ9.jxx_ve7Ikw1eZrcxYzEuARqkKwiuAhTgCxc2VPvnONY` //nolint:gosec,lll
+const accessTokenValidUser = `eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJleHAiOjIwNjg0NDA4NTEsImh0dHBzOi8vaGFzdXJhLmlvL2p3dC9jbGFpbXMiOnsieC1oYXN1cmEtYWxsb3dlZC1yb2xlcyI6WyJhZG1pbiJdLCJ4LWhhc3VyYS1kZWZhdWx0LXJvbGUiOiJhZG1pbiIsIngtaGFzdXJhLXVzZXItaWQiOiJhYjViYTU4ZS05MzJhLTQwZGMtODdlOC03MzM5OTg3OTRlYzIiLCJ4LWhhc3VyYS11c2VyLWlzQW5vbnltb3VzIjoiZmFsc2UifSwiaWF0IjoxNzUzMDgwODUxLCJpc3MiOiJoYXN1cmEtYXV0aCIsInN1YiI6ImFiNWJhNThlLTkzMmEtNDBkYy04N2U4LTczMzk5ODc5NGVjMiJ9.jxx_ve7Ikw1eZrcxYzEuARqkKwiuAhTgCxc2VPvnONY` //nolint:gosec
 
 const eicarTestFile = `X5O!P%@AP[4\PZX54(P^)7CC)7}$EICAR-STANDARD-ANTIVIRUS-TEST-FILE!$H+H*`
 
@@ -36,7 +36,7 @@ func WithHeaders(headers http.Header) func(ctx context.Context, req *http.Reques
 
 func IgnoreResponseHeaders() cmp.Option {
 	return cmpopts.IgnoreMapEntries(func(key string, _ []string) bool {
-		return key == "Date" || key == "Surrogate-Key" || key == "Last-Modified" ||
+		return key == "Date" || key == "Surrogate-Key" || key == "Last-Modified" || key == "Vary" ||
 			strings.HasPrefix(key, "X-B3-")
 	})
 }

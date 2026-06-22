@@ -1,7 +1,7 @@
+import Link from 'next/link';
 import { useEffect, useState } from 'react';
 import { LoadingScreen } from '@/components/presentational/LoadingScreen';
 import { ActivityIndicator } from '@/components/ui/v2/ActivityIndicator';
-import { Link } from '@/components/ui/v2/Link';
 import { Text } from '@/components/ui/v2/Text';
 import { useProject } from '@/features/orgs/projects/hooks/useProject';
 import { useInterval } from '@/hooks/useInterval';
@@ -96,7 +96,7 @@ export default function AppLoader({
 
       {timeElapsed > 180 && (
         <Link
-          className="font-semibold underline underline-offset-2"
+          className="font-semibold text-primary underline underline-offset-2"
           href="/support"
           target="_blank"
           rel="noopener noreferrer"

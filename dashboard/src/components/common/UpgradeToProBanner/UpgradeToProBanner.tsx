@@ -4,9 +4,8 @@ import { useState } from 'react';
 import { OpenTransferDialogButton } from '@/components/common/OpenTransferDialogButton';
 import { NhostIcon } from '@/components/presentational/NhostIcon';
 import { Box } from '@/components/ui/v2/Box';
-import { ArrowSquareOutIcon } from '@/components/ui/v2/icons/ArrowSquareOutIcon';
-import { Link } from '@/components/ui/v2/Link';
 import { Text } from '@/components/ui/v2/Text';
+import { TextLink } from '@/components/ui/v3/text-link';
 import { TransferProjectDialog } from '@/features/orgs/components/common/TransferProjectDialog';
 
 interface UpgradeToProBannerProps {
@@ -53,19 +52,13 @@ export default function UpgradeToProBanner({
             open={transferProjectDialogOpen}
             setOpen={setTransferProjectDialogOpen}
           />
-          <Link
+          <TextLink
             href="https://nhost.io/pricing"
-            target="_blank"
-            rel="noopener noreferrer"
-            underline="hover"
-            className="text-center font-medium"
-            sx={{
-              color: 'text.secondary',
-            }}
+            external
+            className="justify-center font-medium text-muted-foreground"
           >
             See all features
-            <ArrowSquareOutIcon className="ml-1 h-4 w-4" />
-          </Link>
+          </TextLink>
         </div>
       </div>
 

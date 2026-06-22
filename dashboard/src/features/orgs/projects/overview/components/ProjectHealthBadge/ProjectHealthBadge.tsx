@@ -1,7 +1,7 @@
 import type { ReactNode } from 'react';
 import { Badge, type BadgeProps } from '@/components/ui/v2/Badge';
-import { CheckIcon } from '@/components/ui/v2/icons/CheckIcon';
-import { ExclamationFilledIcon } from '@/components/ui/v2/icons/ExclamationFilledIcon';
+import { ProjectHealthCheckIcon } from '@/components/ui/v3/icons/ProjectHealthCheckIcon';
+import { ProjectHealthExclamationIcon } from '@/components/ui/v3/icons/ProjectHealthExclamationIcon';
 import { QuestionMarkIcon } from '@/components/ui/v3/icons/QuestionMarkIcon';
 
 export interface ProjectHealthBadgeProps extends BadgeProps {
@@ -31,13 +31,7 @@ export default function ProjectHealthBadge({
     );
   } else if (showCheckIcon) {
     innerBadgeContent = (
-      <CheckIcon
-        sx={{
-          color: (theme) =>
-            theme.palette.mode === 'dark' ? 'grey.200' : 'grey.100',
-        }}
-        className="h-2 w-2 stroke-2"
-      />
+      <ProjectHealthCheckIcon className="h-2 w-2 text-[#F5F5F5] dark:text-[#21262D]" />
     );
   }
 
@@ -54,13 +48,7 @@ export default function ProjectHealthBadge({
           horizontal: 'right',
         }}
         badgeContent={
-          <ExclamationFilledIcon
-            sx={{
-              color: (theme) =>
-                theme.palette.mode === 'dark' ? 'grey.900' : 'grey.600',
-            }}
-            className="h-2.5 w-2.5"
-          />
+          <ProjectHealthExclamationIcon className="h-2.5 w-2.5 text-muted-foreground dark:text-foreground" />
         }
       >
         <Badge
@@ -83,7 +71,6 @@ export default function ProjectHealthBadge({
       </Badge>
     );
   }
-
   return (
     <Badge
       color={badgeColor}

@@ -81,7 +81,7 @@ func getAmazonSignature(request api.GetFileWithPresignedURLRequestObject) string
 	)
 }
 
-func (ctrl *Controller) getFileWithPresignedURLResponseObject( //nolint: ireturn,dupl,funlen
+func (ctrl *Controller) getFileWithPresignedURLResponseObject( //nolint:dupl,funlen,ireturn
 	ctx context.Context,
 	file *processedFile,
 	logger *slog.Logger,
@@ -91,17 +91,17 @@ func (ctrl *Controller) getFileWithPresignedURLResponseObject( //nolint: ireturn
 		return api.GetFileWithPresignedURL200ApplicationoctetStreamResponse{
 			Body: file.body,
 			Headers: api.GetFileWithPresignedURL200ResponseHeaders{
-				AcceptRanges: "bytes",
-				CacheControl: file.cacheControl,
-				ContentDisposition: fmt.Sprintf(
+				AcceptRanges: new("bytes"),
+				CacheControl: new(file.cacheControl),
+				ContentDisposition: new(fmt.Sprintf(
 					`inline; filename="%s"`,
 					url.QueryEscape(file.filename),
-				),
-				ContentType:      file.mimeType,
-				Etag:             file.fileMetadata.Etag,
-				LastModified:     api.RFC2822Date(file.fileMetadata.UpdatedAt),
-				SurrogateControl: file.cacheControl,
-				SurrogateKey:     file.fileMetadata.Id,
+				)),
+				ContentType:      new(file.mimeType),
+				Etag:             new(file.fileMetadata.Etag),
+				LastModified:     new(api.RFC2822Date(file.fileMetadata.UpdatedAt)),
+				SurrogateControl: new(file.cacheControl),
+				SurrogateKey:     new(file.fileMetadata.Id),
 			},
 			ContentLength: file.contentLength,
 		}
@@ -109,17 +109,17 @@ func (ctrl *Controller) getFileWithPresignedURLResponseObject( //nolint: ireturn
 		return api.GetFileWithPresignedURL206ApplicationoctetStreamResponse{
 			Body: file.body,
 			Headers: api.GetFileWithPresignedURL206ResponseHeaders{
-				CacheControl: file.cacheControl,
-				ContentDisposition: fmt.Sprintf(
+				CacheControl: new(file.cacheControl),
+				ContentDisposition: new(fmt.Sprintf(
 					`inline; filename="%s"`,
 					url.QueryEscape(file.filename),
-				),
-				ContentRange:     file.extraHeaders.Get("Content-Range"),
-				ContentType:      file.mimeType,
-				Etag:             file.fileMetadata.Etag,
-				LastModified:     api.RFC2822Date(file.fileMetadata.UpdatedAt),
-				SurrogateControl: file.cacheControl,
-				SurrogateKey:     file.fileMetadata.Id,
+				)),
+				ContentRange:     new(file.extraHeaders.Get("Content-Range")),
+				ContentType:      new(file.mimeType),
+				Etag:             new(file.fileMetadata.Etag),
+				LastModified:     new(api.RFC2822Date(file.fileMetadata.UpdatedAt)),
+				SurrogateControl: new(file.cacheControl),
+				SurrogateKey:     new(file.fileMetadata.Id),
 			},
 			ContentLength: file.contentLength,
 		}
@@ -128,9 +128,9 @@ func (ctrl *Controller) getFileWithPresignedURLResponseObject( //nolint: ireturn
 
 		return api.GetFileWithPresignedURL304Response{
 			Headers: api.GetFileWithPresignedURL304ResponseHeaders{
-				CacheControl:     file.cacheControl,
-				Etag:             file.fileMetadata.Etag,
-				SurrogateControl: file.cacheControl,
+				CacheControl:     new(file.cacheControl),
+				Etag:             new(file.fileMetadata.Etag),
+				SurrogateControl: new(file.cacheControl),
 			},
 		}
 	case http.StatusPreconditionFailed:
@@ -138,9 +138,9 @@ func (ctrl *Controller) getFileWithPresignedURLResponseObject( //nolint: ireturn
 
 		return api.GetFileWithPresignedURL412Response{
 			Headers: api.GetFileWithPresignedURL412ResponseHeaders{
-				CacheControl:     file.cacheControl,
-				Etag:             file.fileMetadata.Etag,
-				SurrogateControl: file.cacheControl,
+				CacheControl:     new(file.cacheControl),
+				Etag:             new(file.fileMetadata.Etag),
+				SurrogateControl: new(file.cacheControl),
 			},
 		}
 	default:
@@ -154,7 +154,7 @@ func (ctrl *Controller) getFileWithPresignedURLResponseObject( //nolint: ireturn
 	}
 }
 
-func (ctrl *Controller) GetFileWithPresignedURL( //nolint: ireturn
+func (ctrl *Controller) GetFileWithPresignedURL( //nolint:ireturn
 	ctx context.Context,
 	request api.GetFileWithPresignedURLRequestObject,
 ) (api.GetFileWithPresignedURLResponseObject, error) {

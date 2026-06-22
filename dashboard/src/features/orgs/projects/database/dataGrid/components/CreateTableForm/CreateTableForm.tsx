@@ -1,9 +1,11 @@
 import { yupResolver } from '@hookform/resolvers/yup';
 import { useRouter } from 'next/router';
+import { useState } from 'react';
 import { FormProvider, useForm } from 'react-hook-form';
 import type * as Yup from 'yup';
-import { Alert } from '@/components/ui/v2/Alert';
-import { Button } from '@/components/ui/v2/Button';
+import { useDialog } from '@/components/common/DialogProvider';
+import { Alert } from '@/components/ui/v3/alert';
+import { Button } from '@/components/ui/v3/button';
 import { useGetMetadataResourceVersion } from '@/features/orgs/projects/common/hooks/useGetMetadataResourceVersion';
 import type {
   BaseTableFormProps,
@@ -27,24 +29,40 @@ export interface CreateTableFormProps
    */
   schema: string;
   /**
-   * Function to be called when the form is submitted.
+   * If provided, render a schema picker so the user can choose where to
+   * create the table.
    */
-  // biome-ignore lint/suspicious/noExplicitAny: TODO
-  onSubmit?: (args?: any) => Promise<any>;
+  availableSchemas?: string[];
+  /**
+   * Whether to navigate to the new table's page after a successful create.
+   *
+   * @default true
+   */
+  redirectOnSuccess?: boolean;
+  /**
+   * Function to be called after the table has been created and tracked.
+   */
+  onSubmit?: (info: { schema: string; name: string }) => Promise<unknown>;
 }
 
 export default function CreateTableForm({
   onSubmit,
   schema,
+  availableSchemas,
+  redirectOnSuccess = true,
   ...props
 }: CreateTableFormProps) {
   const router = useRouter();
+  const { closeDrawer } = useDialog();
+  const [selectedSchema, setSelectedSchema] = useState<string>(schema);
+
+  const dataSource = router.query.dataSourceSlug as string;
 
   const {
     mutateAsync: createTable,
     error: createTableError,
     reset: resetCreateError,
-  } = useCreateTableMutation({ schema });
+  } = useCreateTableMutation({ schema: selectedSchema });
 
   const {
     mutateAsync: setTableTracking,
@@ -67,7 +85,7 @@ export default function CreateTableForm({
         {
           type: 'uuid',
           name: 'id',
-          defaultValue: { value: 'gen_random_uuid()', custom: false },
+          defaultValue: 'gen_random_uuid()',
           isNullable: false,
           isUnique: false,
           isIdentity: false,
@@ -117,28 +135,32 @@ export default function CreateTableForm({
         tracked: true,
         resourceVersion,
         args: {
-          source: router.query.dataSourceSlug as string,
-          table: { name: table.name, schema },
+          source: dataSource,
+          table: { name: table.name, schema: selectedSchema },
         },
       });
 
       if (isNotEmptyValue(table.foreignKeyRelations)) {
         await trackForeignKeyRelation({
           unTrackedForeignKeyRelations: table.foreignKeyRelations,
-          schema,
+          schema: selectedSchema,
           table: table.name,
         });
       }
 
       if (onSubmit) {
-        await onSubmit();
+        await onSubmit({ schema: selectedSchema, name: table.name });
       }
 
       triggerToast('The table has been created successfully.');
 
-      await router.push(
-        `/orgs/${router.query.orgSlug}/projects/${router.query.appSubdomain}/database/browser/${router.query.dataSourceSlug}/${schema}/tables/${table.name}`,
-      );
+      if (redirectOnSuccess && dataSource) {
+        await router.push(
+          `/orgs/${router.query.orgSlug}/projects/${router.query.appSubdomain}/database/browser/${dataSource}/${selectedSchema}/tables/${table.name}`,
+        );
+      } else {
+        closeDrawer();
+      }
     } catch {
       // This error is handled by the useCreateTableMutation hook.
     }
@@ -149,21 +171,21 @@ export default function CreateTableForm({
       {error && error instanceof Error ? (
         <div className="-mt-3 mb-4 px-6">
           <Alert
-            severity="error"
-            className="grid grid-flow-col items-center justify-between px-4 py-3"
+            variant="destructive"
+            className="grid grid-flow-col items-center justify-between border-none bg-destructive/20 px-4 py-3"
           >
             <span className="text-left">
               <strong>Error:</strong> {error.message}
             </span>
 
             <Button
-              variant="borderless"
-              color="secondary"
-              className="p-1"
               onClick={() => {
                 resetCreateError();
                 resetTrackError();
               }}
+              size="sm"
+              variant="destructive"
+              className="bg-transparent text-destructive hover:bg-destructive/10"
             >
               Clear
             </Button>
@@ -174,6 +196,9 @@ export default function CreateTableForm({
       <BaseTableForm
         submitButtonText="Create"
         onSubmit={handleSubmit}
+        schema={selectedSchema}
+        availableSchemas={availableSchemas}
+        onSchemaChange={setSelectedSchema}
         {...props}
       />
     </FormProvider>

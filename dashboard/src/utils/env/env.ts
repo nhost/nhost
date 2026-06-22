@@ -124,3 +124,22 @@ export function getLogsWebsocketUrl() {
 export function getDashboardVersion() {
   return process.env.NEXT_PUBLIC_DASHBOARD_VERSION || '0.0.0-dev';
 }
+
+const ZERO_UUID = '00000000-0000-0000-0000-000000000000';
+
+/**
+ * App ID used by the local dashboard to talk to the CLI-managed configserver.
+ * The CLI generates and persists this UUID per project; the value is
+ * substituted into the Docker image at runtime by docker-entrypoint.sh. When
+ * the value is missing or has not been substituted (e.g. older CLI), we fall
+ * back to the legacy all-zeros UUID.
+ */
+export function getLocalAppId() {
+  const appId = process.env.NEXT_PUBLIC_NHOST_APP_ID;
+
+  if (!appId || appId.startsWith('__')) {
+    return ZERO_UUID;
+  }
+
+  return appId;
+}

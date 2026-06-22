@@ -40,7 +40,7 @@ func TestSignUpPasswordlessSms(t *testing.T) {
 				mock.EXPECT().GetUserByPhoneNumber(
 					gomock.Any(),
 					sql.Text("+1234567890"),
-				).Return(sql.AuthUser{}, pgx.ErrNoRows) //nolint:exhaustruct
+				).Return(sql.AuthUser{}, pgx.ErrNoRows)
 
 				mock.EXPECT().InsertUser(
 					gomock.Any(),
@@ -176,7 +176,7 @@ func TestSignUpPasswordlessSms(t *testing.T) {
 				mock.EXPECT().GetUserByPhoneNumber(
 					gomock.Any(),
 					sql.Text("+1234567890"),
-				).Return(sql.AuthUser{ //nolint:exhaustruct
+				).Return(sql.AuthUser{
 					ID:          userID,
 					PhoneNumber: sql.Text("+1234567890"),
 				}, nil)

@@ -1,14 +1,13 @@
 import { inputBaseClasses } from '@mui/material';
 import { useTheme } from '@mui/system';
+import { InfoIcon } from 'lucide-react';
 import { useEffect, useState } from 'react';
 import { useFormContext } from 'react-hook-form';
 import { Box } from '@/components/ui/v2/Box';
 import { Input } from '@/components/ui/v2/Input';
-import { ArrowSquareOutIcon } from '@/components/ui/v2/icons/ArrowSquareOutIcon';
-import { InfoIcon } from '@/components/ui/v2/icons/InfoIcon';
-import { Link } from '@/components/ui/v2/Link';
 import { Text } from '@/components/ui/v2/Text';
 import { Tooltip } from '@/components/ui/v2/Tooltip';
+import { TextLink } from '@/components/ui/v3/text-link';
 import type { ServiceFormValues } from '@/features/orgs/projects/services/components/ServiceForm/ServiceFormTypes';
 
 interface ImageFieldProps {
@@ -85,16 +84,13 @@ export default function ImageField({
         <div className="grid w-full grid-flow-col justify-start gap-x-1 self-center align-middle">
           <Text>
             Learn more about{' '}
-            <Link
+            <TextLink
               href="https://docs.nhost.io/products/run/registry#creating-a-private-repository-for-your-image"
-              target="_blank"
-              rel="noopener noreferrer"
-              underline="hover"
+              external
               className="font-medium"
             >
               using Nhost registry for images
-              <ArrowSquareOutIcon className="ml-1 h-4 w-4" />
-            </Link>
+            </TextLink>
           </Text>
         </div>
       </>
@@ -136,11 +132,7 @@ export default function ImageField({
                   </span>
                 }
               >
-                <InfoIcon
-                  aria-label="Info"
-                  className="h-4 w-4"
-                  color="primary"
-                />
+                <InfoIcon aria-label="Info" className="h-4 w-4 text-primary" />
               </Tooltip>
             </Box>
           }
@@ -155,16 +147,13 @@ export default function ImageField({
         <div className="grid w-full grid-flow-col justify-start gap-x-1 self-center align-middle">
           <Text>
             Learn more about{' '}
-            <Link
+            <TextLink
               href="https://docs.nhost.io/products/run/registry#using-your-own-private-registry"
-              target="_blank"
-              rel="noopener noreferrer"
-              underline="hover"
+              external
               className="font-medium"
             >
               using your own private registry for images
-              <ArrowSquareOutIcon className="ml-1 h-4 w-4" />
-            </Link>
+            </TextLink>
           </Text>
         </div>
       </>

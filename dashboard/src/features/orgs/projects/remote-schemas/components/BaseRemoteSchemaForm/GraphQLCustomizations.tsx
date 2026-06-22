@@ -1,10 +1,9 @@
+import { InfoIcon, PlusIcon } from 'lucide-react';
 import { useState } from 'react';
 import { useFormContext } from 'react-hook-form';
 import { Box } from '@/components/ui/v2/Box';
 import { Button } from '@/components/ui/v2/Button';
 import { Input } from '@/components/ui/v2/Input';
-import { InfoIcon } from '@/components/ui/v2/icons/InfoIcon';
-import { PlusIcon } from '@/components/ui/v2/icons/PlusIcon';
 import { Text } from '@/components/ui/v2/Text';
 import { Tooltip } from '@/components/ui/v2/Tooltip';
 import type { BaseRemoteSchemaFormValues } from './BaseRemoteSchemaForm';
@@ -91,7 +90,7 @@ export default function GraphQLCustomizations() {
           <Box className="flex flex-row items-center space-x-2">
             <Text className="font-medium">Root Field Namespace</Text>
             <Tooltip title="Root field type names will be under this namespace.">
-              <InfoIcon aria-label="Info" className="h-4 w-4" color="primary" />
+              <InfoIcon aria-label="Info" className="h-4 w-4 text-primary" />
             </Tooltip>
           </Box>
           <Input
@@ -115,7 +114,7 @@ export default function GraphQLCustomizations() {
               Types
             </Text>
             <Tooltip title="Add a prefix / suffix to all types of the remote schema">
-              <InfoIcon aria-label="Info" className="h-4 w-4" color="primary" />
+              <InfoIcon aria-label="Info" className="h-4 w-4 text-primary" />
             </Tooltip>
           </Box>
 
@@ -154,7 +153,7 @@ export default function GraphQLCustomizations() {
               Fields
             </Text>
             <Tooltip title="Add a prefix / suffix to the fields of the query / mutation root fields">
-              <InfoIcon aria-label="Info" className="h-4 w-4" color="primary" />
+              <InfoIcon aria-label="Info" className="h-4 w-4 text-primary" />
             </Tooltip>
           </Box>
 

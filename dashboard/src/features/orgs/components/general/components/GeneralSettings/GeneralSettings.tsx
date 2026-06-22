@@ -4,8 +4,7 @@ import { useEffect } from 'react';
 import { useForm } from 'react-hook-form';
 import { toast } from 'react-hot-toast';
 import { z } from 'zod';
-import { ActivityIndicator } from '@/components/ui/v2/ActivityIndicator';
-import { Button } from '@/components/ui/v3/button';
+import { Button, ButtonWithLoading } from '@/components/ui/v3/button';
 import {
   Form,
   FormControl,
@@ -123,9 +122,13 @@ export default function GeneralSettings() {
           </div>
 
           <div className="flex justify-end gap-2 border-t p-2">
-            <Button type="submit" disabled={!form.formState.isDirty}>
-              {form.formState.isSubmitting ? <ActivityIndicator /> : 'Save'}
-            </Button>
+            <ButtonWithLoading
+              type="submit"
+              disabled={!form.formState.isDirty}
+              loading={form.formState.isSubmitting}
+            >
+              Save
+            </ButtonWithLoading>
           </div>
         </div>
       </form>

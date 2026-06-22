@@ -1,0 +1,14 @@
+[
+  {
+    "Name": "departments",
+    "QueryType": "select",
+    "SQL": "SELECT coalesce(json_agg(\"_root\"), '[]') AS \"_root\" FROM (WITH \"_root.base\" AS (SELECT * FROM \"public\".\"departments\" WHERE \"public\".\"departments\".\"name\" = ANY($1::text[])) SELECT row_to_json((SELECT \"_e\" FROM (SELECT \"_root.base\".\"id\" AS \"id\", \"_root.base\".\"name\" AS \"name\") AS \"_e\")) AS \"_root\" FROM \"_root.base\") AS \"_root\"",
+    "Parameters": [
+      [
+        "Sales",
+        "Marketing",
+        "Engineering"
+      ]
+    ]
+  }
+]

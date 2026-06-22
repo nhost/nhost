@@ -9,7 +9,10 @@ import type {
   StringValueNode,
   ValueNode,
 } from 'graphql';
-import { isJSONString } from '@/lib/utils';
+import type {
+  ArgLeafType,
+  ArgTreeType,
+} from '@/features/orgs/projects/remote-schemas/types';
 
 function parseConstValue(node?: ValueNode) {
   if (!node) {
@@ -73,22 +76,17 @@ function parseObjectField(arg: ArgumentNode | ObjectFieldNode) {
   return parseConstValue(arg?.value);
 }
 
-export default function getPresetDirective(field: InputValueDefinitionNode) {
-  let res: Record<string, unknown> | unknown;
+export default function getPresetDirective(
+  field: InputValueDefinitionNode,
+): ArgLeafType | ArgTreeType | undefined {
   const preset = field?.directives?.find(
     (dir) => dir?.name?.value === 'preset',
   );
   const firstArg = preset?.arguments?.[0];
 
-  if (firstArg) {
-    res = parseObjectField(firstArg);
+  if (!firstArg) {
+    return undefined;
   }
 
-  if (typeof res === 'object') {
-    return res;
-  }
-  if (typeof res === 'string' && isJSONString(res)) {
-    return JSON.parse(res);
-  }
-  return res;
+  return parseObjectField(firstArg) as ArgLeafType | ArgTreeType | undefined;
 }

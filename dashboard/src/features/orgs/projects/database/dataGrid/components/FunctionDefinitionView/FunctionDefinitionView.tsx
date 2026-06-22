@@ -134,17 +134,25 @@ export default function FunctionDefinitionView() {
     functionMetadata.parameters.length - functionMetadata.defaultArgsCount;
 
   const isCompositeReturn = functionMetadata.returnTypeKind === 'c';
-  const isTrackable = isCompositeReturn && !functionMetadata.hasVariadic;
+  const { returnsSet, hasVariadic } = functionMetadata;
+  const isTrackable = isCompositeReturn && returnsSet && !hasVariadic;
 
   const returnTypeDisplay = functionMetadata.returnTableName
     ? `${functionMetadata.returnTableSchema}.${functionMetadata.returnTableName}`
     : functionMetadata.returnTypeName;
 
-  const returnPrefix = functionMetadata.returnsSet ? 'SETOF ' : '';
+  const returnPrefix = returnsSet ? 'SETOF ' : '';
 
-  const nonTrackableReason = !isCompositeReturn
-    ? `This function returns the type "${functionMetadata.returnTypeName}", so it can't be exposed in GraphQL.`
-    : "This function uses VARIADIC arguments, so it can't be exposed in GraphQL.";
+  let nonTrackableReason: string;
+  if (!isCompositeReturn) {
+    nonTrackableReason = `This function returns the type "${functionMetadata.returnTypeName}", so it can't be exposed in GraphQL.`;
+  } else if (!returnsSet) {
+    nonTrackableReason =
+      "This function doesn't return a SETOF, so it can't be exposed in GraphQL.";
+  } else {
+    nonTrackableReason =
+      "This function uses VARIADIC arguments, so it can't be exposed in GraphQL.";
+  }
 
   return (
     <div className="flex h-full flex-col overflow-y-auto">
@@ -208,40 +216,29 @@ export default function FunctionDefinitionView() {
                 </>
               )}{' '}
               · Returns{' '}
-              <InlineCode className="bg-opacity-80 px-1 text-xs">
+              <InlineCode className="bg-opacity-80 px-1 text-sm">
                 {returnPrefix}
                 {returnTypeDisplay}
               </InlineCode>
             </p>
           </div>
-          <div className="flex flex-wrap gap-2">
-            {functionMetadata.functionType && (
-              <Badge variant="outline" className="font-medium">
-                {functionMetadata.functionType}
-              </Badge>
-            )}
-            <Badge variant="outline" className="font-medium">
-              {returnPrefix}
-              {functionMetadata.returnTypeName}
-            </Badge>
-            {functionMetadata.returnTableName && (
-              <Badge variant="outline" className="font-medium">
-                Returns table: {functionMetadata.returnTableSchema}.
-                {functionMetadata.returnTableName}
-              </Badge>
-            )}
-            {functionMetadata.hasVariadic && (
-              <Badge variant="outline" className="font-medium">
-                VARIADIC
-              </Badge>
-            )}
-            {functionMetadata.functionType === 'STABLE' ||
-            functionMetadata.functionType === 'IMMUTABLE' ? (
-              <Badge variant="outline" className="font-medium">
-                Query-only
-              </Badge>
-            ) : null}
-          </div>
+          {(hasVariadic ||
+            functionMetadata.functionType === 'STABLE' ||
+            functionMetadata.functionType === 'IMMUTABLE') && (
+            <div className="mt-3 flex flex-wrap gap-2">
+              {hasVariadic && (
+                <Badge variant="outline" className="font-medium">
+                  VARIADIC
+                </Badge>
+              )}
+              {(functionMetadata.functionType === 'STABLE' ||
+                functionMetadata.functionType === 'IMMUTABLE') && (
+                <Badge variant="outline" className="font-medium">
+                  Query-only
+                </Badge>
+              )}
+            </div>
+          )}
         </div>
         {functionMetadata.parameters.length > 0 && (
           <div className="mt-4 rounded-md border bg-muted/20 p-4">
@@ -256,11 +253,11 @@ export default function FunctionDefinitionView() {
                   <span className="w-32 font-medium">
                     {param.name || `arg${index + 1}`}
                   </span>
-                  <InlineCode className="bg-opacity-80 px-1.5 text-xs">
+                  <InlineCode className="bg-opacity-80 px-1.5 text-sm">
                     {param.displayType}
                   </InlineCode>
                   {index >= requiredParamsCount && (
-                    <span className="text-muted-foreground text-xs italic">
+                    <span className="text-muted-foreground text-sm italic">
                       optional
                     </span>
                   )}

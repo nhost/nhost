@@ -27,6 +27,10 @@ on:
       # lib
       - "internal/lib/clidocs/**"
       - "internal/lib/nhostclient/**"
+      - "internal/lib/oapi/**"
+
+      # constellation (imported by `nhost schema` for SDL dump/diff)
+      - "services/constellation/**"
 
       # auth email templates (embedded into the CLI by `nhost init`)
       - "services/auth/email-templates/**"
@@ -59,6 +63,9 @@ jobs:
         vendor/**
         cli/**
         internal/lib/clidocs/**
+        internal/lib/nhostclient/**
+        internal/lib/oapi/**
+        services/constellation/**
         services/auth/email-templates/**
         docs/**
 
@@ -67,7 +74,7 @@ jobs:
     if: needs.detect-changes.outputs.should_run == 'true'
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v6
+      - uses: actions/checkout@v7
       - uses: ./.github/actions/check-permissions
 
   tests:
@@ -85,6 +92,8 @@ jobs:
       AWS_ACCOUNT_ID: ${{ secrets.AWS_PRODUCTION_CORE_ACCOUNT_ID }}
       NIX_CACHE_PUB_KEY: ${{ secrets.NIX_CACHE_PUB_KEY }}
       NIX_CACHE_PRIV_KEY: ${{ secrets.NIX_CACHE_PRIV_KEY }}
+      NIX_CACHE_ACCESS_KEY_ID: ${{ secrets.NIX_CACHE_ACCESS_KEY_ID }}
+      NIX_CACHE_SECRET_ACCESS_KEY: ${{ secrets.NIX_CACHE_SECRET_ACCESS_KEY }}
       NHOST_PAT: ${{ secrets.NHOST_PAT }}
 
   build_artifacts:
@@ -103,6 +112,8 @@ jobs:
       AWS_ACCOUNT_ID: ${{ secrets.AWS_PRODUCTION_CORE_ACCOUNT_ID }}
       NIX_CACHE_PUB_KEY: ${{ secrets.NIX_CACHE_PUB_KEY }}
       NIX_CACHE_PRIV_KEY: ${{ secrets.NIX_CACHE_PRIV_KEY }}
+      NIX_CACHE_ACCESS_KEY_ID: ${{ secrets.NIX_CACHE_ACCESS_KEY_ID }}
+      NIX_CACHE_SECRET_ACCESS_KEY: ${{ secrets.NIX_CACHE_SECRET_ACCESS_KEY }}
 
   test_cli_build:
     uses: ./.github/workflows/cli_wf_test_new_project.yaml
@@ -120,6 +131,8 @@ jobs:
       AWS_ACCOUNT_ID: ${{ secrets.AWS_PRODUCTION_CORE_ACCOUNT_ID }}
       NIX_CACHE_PUB_KEY: ${{ secrets.NIX_CACHE_PUB_KEY }}
       NIX_CACHE_PRIV_KEY: ${{ secrets.NIX_CACHE_PRIV_KEY }}
+      NIX_CACHE_ACCESS_KEY_ID: ${{ secrets.NIX_CACHE_ACCESS_KEY_ID }}
+      NIX_CACHE_SECRET_ACCESS_KEY: ${{ secrets.NIX_CACHE_SECRET_ACCESS_KEY }}
       NHOST_PAT: ${{ secrets.NHOST_PAT }}
 
   remove_label:

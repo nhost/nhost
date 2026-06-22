@@ -29,7 +29,7 @@ func TestVerifySignInPasswordlessSms(t *testing.T) { //nolint:maintidx
 	refreshTokenID := uuid.MustParse("c3b747ef-76a9-4c56-8091-ed3e6b8afb2c")
 	userID := uuid.MustParse("DB477732-48FA-4289-B694-2886A646B6EB")
 
-	cases := []testRequest[api.VerifySignInPasswordlessSmsRequestObject, api.VerifySignInPasswordlessSmsResponseObject]{ //nolint:lll
+	cases := []testRequest[api.VerifySignInPasswordlessSmsRequestObject, api.VerifySignInPasswordlessSmsResponseObject]{
 		{
 			name:   "success",
 			config: getConfig,
@@ -39,15 +39,15 @@ func TestVerifySignInPasswordlessSms(t *testing.T) { //nolint:maintidx
 				mock.EXPECT().GetUserRoles(
 					gomock.Any(), userID,
 				).Return([]sql.AuthUserRole{
-					{UserID: userID, Role: "user"}, //nolint:exhaustruct
-					{UserID: userID, Role: "me"},   //nolint:exhaustruct
+					{UserID: userID, Role: "user"},
+					{UserID: userID, Role: "me"},
 				}, nil)
 
 				mock.EXPECT().InsertRefreshtoken(
 					gomock.Any(),
 					cmpDBParams(sql.InsertRefreshtokenParams{
 						UserID:           userID,
-						RefreshTokenHash: pgtype.Text{}, //nolint:exhaustruct
+						RefreshTokenHash: pgtype.Text{},
 						ExpiresAt:        sql.TimestampTz(time.Now().Add(30 * 24 * time.Hour)),
 						Type:             sql.RefreshTokenTypeRegular,
 						Metadata:         nil,
@@ -189,7 +189,7 @@ func TestVerifySignInPasswordlessSms(t *testing.T) { //nolint:maintidx
 						gomock.Any(),
 						"+1234567890",
 						"wrong",
-					).Return(sql.AuthUser{}, errors.New("invalid OTP")) //nolint:err113,exhaustruct
+					).Return(sql.AuthUser{}, errors.New("invalid OTP")) //nolint:err113
 
 					return mock
 				}),
@@ -334,15 +334,15 @@ func TestVerifySignInPasswordlessSms(t *testing.T) { //nolint:maintidx
 				mock.EXPECT().GetUserRoles(
 					gomock.Any(), userID,
 				).Return([]sql.AuthUserRole{
-					{UserID: userID, Role: "user"}, //nolint:exhaustruct
-					{UserID: userID, Role: "me"},   //nolint:exhaustruct
+					{UserID: userID, Role: "user"},
+					{UserID: userID, Role: "me"},
 				}, nil)
 
 				mock.EXPECT().InsertRefreshtoken(
 					gomock.Any(),
 					cmpDBParams(sql.InsertRefreshtokenParams{
 						UserID:           userID,
-						RefreshTokenHash: pgtype.Text{}, //nolint:exhaustruct
+						RefreshTokenHash: pgtype.Text{},
 						ExpiresAt:        sql.TimestampTz(time.Now().Add(30 * 24 * time.Hour)),
 						Type:             sql.RefreshTokenTypeRegular,
 						Metadata:         nil,
@@ -416,7 +416,7 @@ func TestVerifySignInPasswordlessSms(t *testing.T) { //nolint:maintidx
 					user := getSigninUser(userID)
 					user.PhoneNumber = sql.Text("+1234567890")
 					user.PhoneNumberVerified = true
-					user.Email = pgtype.Text{} //nolint:exhaustruct
+					user.Email = pgtype.Text{}
 					user.EmailVerified = false
 
 					mock.EXPECT().CheckVerificationCode(
@@ -458,7 +458,7 @@ func TestVerifySignInPasswordlessSms(t *testing.T) { //nolint:maintidx
 						gomock.Any(),
 						"",
 						"123456",
-					).Return(sql.AuthUser{}, errors.New("invalid phone number")) //nolint:err113,exhaustruct
+					).Return(sql.AuthUser{}, errors.New("invalid phone number")) //nolint:err113
 
 					return mock
 				}),
@@ -493,7 +493,7 @@ func TestVerifySignInPasswordlessSms(t *testing.T) { //nolint:maintidx
 						gomock.Any(),
 						"+1234567890",
 						"",
-					).Return(sql.AuthUser{}, errors.New("empty OTP")) //nolint:err113,exhaustruct
+					).Return(sql.AuthUser{}, errors.New("empty OTP")) //nolint:err113
 
 					return mock
 				}),
@@ -528,7 +528,7 @@ func TestVerifySignInPasswordlessSms(t *testing.T) { //nolint:maintidx
 						gomock.Any(),
 						"+1234567890",
 						"123456",
-					).Return(sql.AuthUser{}, errors.New("SMS service unavailable")) //nolint:err113,exhaustruct
+					).Return(sql.AuthUser{}, errors.New("SMS service unavailable")) //nolint:err113
 
 					return mock
 				}),

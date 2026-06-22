@@ -20,8 +20,35 @@ Disposition values and the import the codemod should write:
 ## JSX prop translation (apply to every replaced site)
 
 - `color="primary"` → `className="text-primary"` (merge with existing class)
-- `sx={...}` → equivalent Tailwind classes
 - `fontSize="small"` → `size={20}` (lucide/simple-icons take a numeric `size` prop). Verify at the call site rather than relying on a global default.
+- `sx={...}` → equivalent Tailwind classes (`className`), merge with existing. Concrete mappings below.
+
+### `sx={{ color: '<token>' }}` → Tailwind class
+
+Encountered MUI palette tokens and their replacements in this project. Map to the existing token if one exists; for unknown tokens, fall back to the literal hex from the MUI default palette and verify visually.
+
+| MUI token       | Tailwind class           | Notes |
+| ---             | ---                      | --- |
+| `primary.main`  | `text-primary-main`      | MUI-compat shim in `tailwind.config.js`; not the same as `text-primary` (shadcn token). |
+| `error.main`    | `text-error-main`        | MUI-compat shim (`#f13154`). |
+| `text.primary`  | `text-foreground`        | Default body text color. |
+| `text.secondary`| `text-muted-foreground`  | |
+| `text.disabled` | `text-disabled`          | |
+
+### `sx={{ color: (theme) => theme.palette.mode === 'dark' ? 'X' : 'Y' }}`
+
+Dynamic theme callbacks become `dark:`-prefixed Tailwind classes. There is no shadcn equivalent for MUI `grey.*` tokens — translate to the literal MUI hex.
+
+| MUI grey | Hex      |
+| ---      | ---      |
+| 100      | #F5F5F5  |
+| 200      | #21262D  | (this project's `--theme-grey-200` dark-mode override, not MUI's #EEEEEE) |
+| 600      | #757575  |
+| 900      | #212121  |
+
+Example: `sx={{ color: (theme) => theme.palette.mode === 'dark' ? 'grey.200' : 'grey.100' }}` → `className="text-[#F5F5F5] dark:text-[#21262D]"`.
+
+For filled MUI icons replaced by outline-only lucide ones (e.g. `ExclamationFilledIcon` → `CircleAlert`): lucide ships these as line drawings made of strokes, so `fill-current` blacks out the glyph rather than filling a single shape. Don't add it. If the call site renders inside a colored container (e.g. `<Badge variant="standard">`), the container already provides the filled disc — leave the icon stroked. If a true filled glyph is required and there's no colored container, wrap the icon in a `bg-current rounded-full` element instead.
 - Existing `className="h-4 w-4"` (16×16) → bump to `h-5 w-5` (20×20) where layout allows; keep 16×16 only where unavoidable
 - Drop `aria-label` from the icon when the wrapping element already has text or its own `aria-label`; keep it only for standalone state-conveying icons
 
@@ -38,7 +65,7 @@ Disposition values and the import the codemod should write:
 | `ArrowSquareOutIcon` | lucide | `ExternalLink` | `lucide-react` | |
 | `ArrowUpIcon` | lucide | `ArrowUp` | `lucide-react` | |
 | `CalendarIcon` | lucide | `Calendar` | `lucide-react` | |
-| `CheckIcon` | lucide | `Check` | `lucide-react` | |
+| `CheckIcon` | lucide | `Check` | `lucide-react` | For Project Health-specific usages (the small status badge inside `ProjectHealthBadge` / `AccordionHealthBadge`), use the scope-restricted v3 port `ProjectHealthCheckIcon` from `@/components/ui/v3/icons/ProjectHealthCheckIcon` instead. **Why ported instead of replaced:** lucide `Check` renders as thin strokes inside a 24×24 viewBox, which looks washed out at the badge sizes used in Project Health (8–10 px). The v3 port preserves the v2 16×16 viewBox and stroke proportions so the glyph stays legible at small sizes. |
 | `ChevronDownIcon` | lucide | `ChevronDown` | `lucide-react` | |
 | `ChevronLeftIcon` | lucide | `ChevronLeft` | `lucide-react` | |
 | `ChevronRightIcon` | lucide | `ChevronRight` | `lucide-react` | |
@@ -53,7 +80,7 @@ Disposition values and the import the codemod should write:
 | `DotsHorizontalIcon` | lucide | `Ellipsis` | `lucide-react` | |
 | `DotsVerticalIcon` | lucide | `EllipsisVertical` | `lucide-react` | |
 | `EmbeddingsIcon` | already-v3 | `EmbeddingsIcon` | `@/components/ui/v3/icons/EmbeddingsIcon` | Done — ported and call sites migrated in #4202. |
-| `ExclamationFilledIcon` | lucide | `CircleAlert` | `lucide-react` | Lucide is outline-only; if filled appearance is needed, add `className="fill-current"` (or a specific `fill-*` color) at the call site. |
+| `ExclamationFilledIcon` | lucide | `CircleAlert` | `lucide-react` | Lucide is outline-only (see the prop-translation section for why `fill-current` is *not* a safe shortcut here). For Project Health-specific usages (the version-mismatch badge in `ProjectHealthBadge`), use the scope-restricted v3 port `ProjectHealthExclamationIcon` from `@/components/ui/v3/icons/ProjectHealthExclamationIcon` instead. **Why ported instead of replaced:** lucide `CircleAlert` is a stroked outline that doesn't render the original's filled-disc-with-cutout-`!` look, and at badge sizes (≤10 px) the outline glyph is illegible. The v3 port keeps the v2 7×7 filled SVG so the indicator stays readable. |
 | `ExclamationIcon` | lucide | `CircleAlert` | `lucide-react` | |
 | `EyeIcon` | lucide | `Eye` | `lucide-react` | |
 | `EyeOffIcon` | lucide | `EyeOff` | `lucide-react` | |
@@ -70,7 +97,6 @@ Disposition values and the import the codemod should write:
 | `LinkIcon` | lucide | `Link` | `lucide-react` | Lucide export is `Link`; alias on import if `Link` collides with a router import: `import { Link as LinkIcon } from 'lucide-react'`. |
 | `LockIcon` | lucide | `Lock` | `lucide-react` | |
 | `MenuIcon` | lucide | `Menu` | `lucide-react` | |
-| `MinusIcon` | lucide | `Minus` | `lucide-react` | |
 | `NoPermissionIcon` | already-v3 | `NoPermissionIcon` | `@/components/ui/v3/icons/NoPermissionIcon` | |
 | `PartialPermissionIcon` | already-v3 | `PartialPermissionIcon` | `@/components/ui/v3/icons/PartialPermissionIcon` | |
 | `PencilIcon` | lucide | `SquarePen` | `lucide-react` | |

@@ -1,0 +1,19 @@
+[
+  {
+    "Name": "update_departments_many",
+    "SQL": "",
+    "Parameters": null,
+    "StreamCursors": null,
+    "Sequential": [
+      {
+        "Name": "update_departments_many[0]",
+        "SQL": "WITH mutation_result AS (UPDATE \"public\".\"departments\" SET \"budget\" = $1::numeric WHERE departments.\"name\" LIKE $2 RETURNING *) SELECT json_build_object('affected_rows', (SELECT COUNT(*) FROM mutation_result))",
+        "Parameters": [
+          100000,
+          "%Eng%"
+        ],
+        "StreamCursors": null
+      }
+    ]
+  }
+]

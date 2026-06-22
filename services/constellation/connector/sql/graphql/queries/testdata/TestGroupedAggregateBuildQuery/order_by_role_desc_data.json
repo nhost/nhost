@@ -1,0 +1,43 @@
+[
+  [
+    {
+      "_join_key": "00000000-0000-0000-0000-000000000099",
+      "aggregate": {
+        "count": 0
+      },
+      "nodes": []
+    },
+    {
+      "_join_key": "550e8400-e29b-41d4-a716-446655440001",
+      "aggregate": {
+        "count": 2
+      },
+      "nodes": [
+        {
+          "role": "member",
+          "department_id": "fd1e6bba-c292-4b2f-872e-ae16146cdd82"
+        },
+        {
+          "role": "manager",
+          "department_id": "2db9de0a-b9ba-416e-8619-783a399ae2b3"
+        }
+      ]
+    },
+    {
+      "nodes": [
+        {
+          "role": "member",
+          "department_id": "2db9de0a-b9ba-416e-8619-783a399ae2b3"
+        },
+        {
+          "role": "member",
+          "department_id": "023d4410-715e-4675-96a5-a58fd50ef33c"
+        }
+      ],
+      "_join_key": "550e8400-e29b-41d4-a716-446655440002",
+      "aggregate": {
+        "count": 2
+      }
+    }
+  ]
+]

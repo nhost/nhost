@@ -32,7 +32,7 @@ export default defineConfig({
     trace: 'retain-on-failure',
     baseURL: process.env.NHOST_TEST_DASHBOARD_URL,
     launchOptions: {
-      slowMo: 100,
+      slowMo: 50,
     },
   },
   projects: [

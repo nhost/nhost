@@ -1,0 +1,17 @@
+[
+  {
+    "Name": "insert_departments_one",
+    "SQL": "WITH check_mutation_result AS (SELECT * FROM (SELECT $1::numeric AS \"budget\", $2::text AS \"description\", $3::uuid AS \"id\", $4::text AS \"name\") AS data WHERE true), mutation_result AS (INSERT INTO \"public\".\"departments\" (\"budget\", \"description\", \"id\", \"name\") SELECT check_mutation_result.\"budget\", check_mutation_result.\"description\", check_mutation_result.\"id\", check_mutation_result.\"name\" FROM check_mutation_result RETURNING *), check_nested_employees AS (SELECT * FROM (SELECT $5::text AS \"role\", $6::uuid AS \"user_id\", mutation_result.\"id\" AS \"department_id\" FROM mutation_result UNION ALL SELECT $7::text AS \"role\", $8::uuid AS \"user_id\", mutation_result.\"id\" AS \"department_id\" FROM mutation_result) AS data WHERE true), nested_employees AS (INSERT INTO \"public\".\"user_departments\" (\"role\", \"user_id\", \"department_id\") SELECT check_nested_employees.\"role\", check_nested_employees.\"user_id\", mutation_result.\"id\" FROM check_nested_employees, mutation_result RETURNING *) SELECT row_to_json((SELECT \"_e\" FROM (SELECT mutation_result.\"id\" AS \"id\") AS \"_e\")) FROM mutation_result WHERE (SELECT COUNT(*) FROM nested_employees) IS NOT NULL",
+    "Parameters": [
+      300000,
+      "department with many employees",
+      "00000000-0000-0000-0000-000000000789",
+      "Array Insert Dept",
+      "member",
+      "550e8400-e29b-41d4-a716-446655440002",
+      "manager",
+      "550e8400-e29b-41d4-a716-446655440001"
+    ],
+    "StreamCursors": null
+  }
+]

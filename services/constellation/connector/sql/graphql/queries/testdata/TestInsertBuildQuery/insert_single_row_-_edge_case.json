@@ -1,0 +1,12 @@
+[
+  {
+    "Name": "insert_departments",
+    "QueryType": "insert",
+    "SQL": "WITH check_mutation_result AS (SELECT * FROM (SELECT $1::uuid AS \"id\", $2::text AS \"name\", $3::text AS \"description\") AS data WHERE true), mutation_result AS (INSERT INTO \"public\".\"departments\" (\"id\", \"name\", \"description\") SELECT check_mutation_result.\"id\", check_mutation_result.\"name\", check_mutation_result.\"description\" FROM check_mutation_result RETURNING *) SELECT json_build_object('affected_rows', (SELECT COUNT(*) FROM mutation_result), 'returning', (SELECT COALESCE(json_agg(row_to_json(\"_e\")), '[]'::json) FROM (SELECT mutation_result.\"id\" AS \"id\", mutation_result.\"name\" AS \"name\" FROM mutation_result) AS \"_e\"))",
+    "Parameters": [
+      "00000000-0000-0000-0000-000000000017",
+      "Single Row Insert",
+      "Testing single row via insert"
+    ]
+  }
+]

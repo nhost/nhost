@@ -1,3 +1,4 @@
+import { EyeIcon, EyeOffIcon } from 'lucide-react';
 import { Fragment, useState } from 'react';
 import { useDialog } from '@/components/common/DialogProvider';
 import { SettingsContainer } from '@/components/layout/SettingsContainer';
@@ -7,8 +8,6 @@ import { Box } from '@/components/ui/v2/Box';
 import { Button } from '@/components/ui/v2/Button';
 import { Divider } from '@/components/ui/v2/Divider';
 import { IconButton } from '@/components/ui/v2/IconButton';
-import { EyeIcon } from '@/components/ui/v2/icons/EyeIcon';
-import { EyeOffIcon } from '@/components/ui/v2/icons/EyeOffIcon';
 import { List } from '@/components/ui/v2/List';
 import { ListItem } from '@/components/ui/v2/ListItem';
 import { Text } from '@/components/ui/v2/Text';

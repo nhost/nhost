@@ -1,0 +1,13 @@
+[
+  [
+    {
+      "affected_rows": 1,
+      "returning": [
+        {
+          "id": "ffd095c2-9745-43d9-b133-7e8d847e8371",
+          "name": "Sales"
+        }
+      ]
+    }
+  ]
+]

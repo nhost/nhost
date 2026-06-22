@@ -1,10 +1,10 @@
+import { ArrowRightIcon } from 'lucide-react';
 import type { ImageProps } from 'next/image';
 import Image from 'next/image';
+import Link from 'next/link';
 import { twMerge } from 'tailwind-merge';
 import type { BoxProps } from '@/components/ui/v2/Box';
 import { Box } from '@/components/ui/v2/Box';
-import { ArrowRightIcon } from '@/components/ui/v2/icons/ArrowRightIcon';
-import { Link } from '@/components/ui/v2/Link';
 import { Text } from '@/components/ui/v2/Text';
 import type { CardProps } from '@/features/orgs/projects/overview/types/cards';
 
@@ -66,17 +66,17 @@ export default function OverviewCard({
           </Text>
         </div>
       </div>
-      <Link
-        variant="body2"
-        underline="hover"
-        href={link}
-        target="_blank"
-        rel="dofollow"
-        className="grid grid-flow-col items-center justify-start gap-1 font-medium"
-      >
-        Learn more
-        <ArrowRightIcon className="h-4 w-4" />
-      </Link>
+      {link && (
+        <Link
+          href={link}
+          target="_blank"
+          rel="dofollow"
+          className="grid grid-flow-col items-center justify-start gap-1 font-medium text-primary text-sm hover:underline"
+        >
+          Learn more
+          <ArrowRightIcon className="h-4 w-4" />
+        </Link>
+      )}
     </Box>
   );
 }

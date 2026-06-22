@@ -1,8 +1,7 @@
-import { expect, test } from 'vitest';
 import prepareUpdateColumnQuery from './prepareUpdateColumnQuery';
 
 describe('prepareUpdateColumnQuery', () => {
-  test('should not contain any queries if the updated column does not have any changes', () => {
+  it('should not contain any queries if the updated column does not have any changes', () => {
     const transaction = prepareUpdateColumnQuery({
       dataSource: 'test_datasource',
       schema: 'test_schema',
@@ -11,7 +10,7 @@ describe('prepareUpdateColumnQuery', () => {
         id: 'name',
         name: 'name',
         type: 'text',
-        defaultValue: { value: 'test', custom: true },
+        defaultValue: "'test'",
         isNullable: true,
         isUnique: false,
       },
@@ -19,7 +18,7 @@ describe('prepareUpdateColumnQuery', () => {
         id: 'name',
         name: 'name',
         type: 'text',
-        defaultValue: { value: 'test', custom: true },
+        defaultValue: "'test'",
         isNullable: true,
         isUnique: false,
       },
@@ -28,7 +27,7 @@ describe('prepareUpdateColumnQuery', () => {
     expect(transaction).toHaveLength(0);
   });
 
-  test("should contain a query to rename the column if the updated column's name has changed", () => {
+  it("should contain a query to rename the column if the updated column's name has changed", () => {
     const transaction = prepareUpdateColumnQuery({
       dataSource: 'test_datasource',
       schema: 'test_schema',
@@ -51,7 +50,7 @@ describe('prepareUpdateColumnQuery', () => {
     );
   });
 
-  test("should contain queries to drop the default value and to change the type if the updated column's type has changed", () => {
+  it("should contain queries to drop the default value and to change the type if the updated column's type has changed", () => {
     const transaction = prepareUpdateColumnQuery({
       dataSource: 'test_datasource',
       schema: 'test_schema',
@@ -77,7 +76,7 @@ describe('prepareUpdateColumnQuery', () => {
     );
   });
 
-  test('should contain a query to drop the default value if the updated column has no default value', () => {
+  it('should contain a query to drop the default value if the updated column has no default value', () => {
     const transaction = prepareUpdateColumnQuery({
       dataSource: 'test_datasource',
       schema: 'test_schema',
@@ -86,7 +85,7 @@ describe('prepareUpdateColumnQuery', () => {
         id: 'name',
         name: 'name',
         type: 'text',
-        defaultValue: { value: 'test', custom: true },
+        defaultValue: "'test'",
       },
       column: {
         id: 'name',
@@ -102,7 +101,7 @@ describe('prepareUpdateColumnQuery', () => {
     );
   });
 
-  test("should contain a query to set the default value to the updated column's literal default value", () => {
+  it('should not contain any default-value query when neither column has a default', () => {
     const transaction = prepareUpdateColumnQuery({
       dataSource: 'test_datasource',
       schema: 'test_schema',
@@ -111,13 +110,57 @@ describe('prepareUpdateColumnQuery', () => {
         id: 'name',
         name: 'name',
         type: 'text',
-        defaultValue: { value: 'test', custom: true },
       },
       column: {
         id: 'name',
         name: 'name',
         type: 'text',
-        defaultValue: { value: 'new_test', custom: true },
+      },
+    });
+
+    expect(transaction).toHaveLength(0);
+  });
+
+  it('should contain a query to set the default value when the original column has no default', () => {
+    const transaction = prepareUpdateColumnQuery({
+      dataSource: 'test_datasource',
+      schema: 'test_schema',
+      table: 'test_table',
+      originalColumn: {
+        id: 'name',
+        name: 'name',
+        type: 'text',
+      },
+      column: {
+        id: 'name',
+        name: 'name',
+        type: 'text',
+        defaultValue: "'hello'",
+      },
+    });
+
+    expect(transaction).toHaveLength(1);
+    expect(transaction[0].args.sql).toBe(
+      "ALTER TABLE test_schema.test_table ALTER COLUMN name SET DEFAULT 'hello';",
+    );
+  });
+
+  it("should contain a query to set the default value to the updated column's literal default value", () => {
+    const transaction = prepareUpdateColumnQuery({
+      dataSource: 'test_datasource',
+      schema: 'test_schema',
+      table: 'test_table',
+      originalColumn: {
+        id: 'name',
+        name: 'name',
+        type: 'text',
+        defaultValue: "'test'",
+      },
+      column: {
+        id: 'name',
+        name: 'name',
+        type: 'text',
+        defaultValue: "'new_test'",
       },
     });
 
@@ -127,7 +170,7 @@ describe('prepareUpdateColumnQuery', () => {
     );
   });
 
-  test('should emit SET DEFAULT when only the custom flag flips on a colliding value', () => {
+  it('should emit SET DEFAULT when the value changes from a bare function to a quoted literal', () => {
     const transaction = prepareUpdateColumnQuery({
       dataSource: 'test_datasource',
       schema: 'test_schema',
@@ -136,13 +179,13 @@ describe('prepareUpdateColumnQuery', () => {
         id: 'name',
         name: 'name',
         type: 'text',
-        defaultValue: { value: 'version()', custom: false },
+        defaultValue: 'version()',
       },
       column: {
         id: 'name',
         name: 'name',
         type: 'text',
-        defaultValue: { value: 'version()', custom: true },
+        defaultValue: "'version()'",
       },
     });
 
@@ -151,8 +194,59 @@ describe('prepareUpdateColumnQuery', () => {
       "ALTER TABLE test_schema.test_table ALTER COLUMN name SET DEFAULT 'version()';",
     );
   });
+  it('should set the default when the value changes between a bare function and a quoted literal', () => {
+    // change default value from the quoted literal 'version()' to the bare
+    // function version()
+    const literalToFunctionTransaction = prepareUpdateColumnQuery({
+      dataSource: 'test_datasource',
+      schema: 'test_schema',
+      table: 'test_table',
+      originalColumn: {
+        id: 'name',
+        name: 'name',
+        type: 'text',
+        defaultValue: "'version()'",
+      },
+      column: {
+        id: 'name',
+        name: 'name',
+        type: 'text',
+        defaultValue: 'version()',
+      },
+    });
 
-  test('should contain a query to set the comment to null if the updated column has no comments', () => {
+    expect(literalToFunctionTransaction).toHaveLength(1);
+    expect(literalToFunctionTransaction[0].args.sql).toBe(
+      'ALTER TABLE test_schema.test_table ALTER COLUMN name SET DEFAULT version();',
+    );
+
+    // change default value from the bare function version() to the quoted
+    // literal 'version()'
+    const functionToLiteralTransaction = prepareUpdateColumnQuery({
+      dataSource: 'test_datasource',
+      schema: 'test_schema',
+      table: 'test_table',
+      originalColumn: {
+        id: 'name',
+        name: 'name',
+        type: 'text',
+        defaultValue: 'version()',
+      },
+      column: {
+        id: 'name',
+        name: 'name',
+        type: 'text',
+        defaultValue: "'version()'",
+      },
+    });
+
+    expect(functionToLiteralTransaction).toHaveLength(1);
+    expect(functionToLiteralTransaction[0].args.sql).toBe(
+      "ALTER TABLE test_schema.test_table ALTER COLUMN name SET DEFAULT 'version()';",
+    );
+  });
+
+  it('should contain a query to set the comment to null if the updated column has no comments', () => {
     const transaction = prepareUpdateColumnQuery({
       dataSource: 'test_datasource',
       schema: 'test_schema',
@@ -176,7 +270,7 @@ describe('prepareUpdateColumnQuery', () => {
     );
   });
 
-  test('should contain a query to set the comment if the updated column any comments', () => {
+  it('should contain a query to set the comment if the updated column any comments', () => {
     const transaction = prepareUpdateColumnQuery({
       dataSource: 'test_datasource',
       schema: 'test_schema',
@@ -200,7 +294,7 @@ describe('prepareUpdateColumnQuery', () => {
     );
   });
 
-  test('should contain a query to set the comment if the update column has a different comment than the original column', () => {
+  it('should contain a query to set the comment if the update column has a different comment than the original column', () => {
     const transaction = prepareUpdateColumnQuery({
       dataSource: 'test_datasource',
       schema: 'test_schema',
@@ -225,7 +319,7 @@ describe('prepareUpdateColumnQuery', () => {
     );
   });
 
-  test('should contain a query to drop "not null" constraint if the updated column is nullable', () => {
+  it('should contain a query to drop "not null" constraint if the updated column is nullable', () => {
     const transaction = prepareUpdateColumnQuery({
       dataSource: 'test_datasource',
       schema: 'test_schema',
@@ -250,7 +344,7 @@ describe('prepareUpdateColumnQuery', () => {
     );
   });
 
-  test('should contain a query to add a "not null" constraint if the updated column is not nullable anymore', () => {
+  it('should contain a query to add a "not null" constraint if the updated column is not nullable anymore', () => {
     const transaction = prepareUpdateColumnQuery({
       dataSource: 'test_datasource',
       schema: 'test_schema',
@@ -275,7 +369,7 @@ describe('prepareUpdateColumnQuery', () => {
     );
   });
 
-  test('should contain a query to add a unique constraint if the updated column should be unique', () => {
+  it('should contain a query to add a unique constraint if the updated column should be unique', () => {
     const transaction = prepareUpdateColumnQuery({
       dataSource: 'test_datasource',
       schema: 'test_schema',
@@ -300,7 +394,7 @@ describe('prepareUpdateColumnQuery', () => {
     );
   });
 
-  test('should contain a query to drop unique constraint if the updated column should not be unique anymore', () => {
+  it('should contain a query to drop unique constraint if the updated column should not be unique anymore', () => {
     const transaction = prepareUpdateColumnQuery({
       dataSource: 'test_datasource',
       schema: 'test_schema',
@@ -326,7 +420,7 @@ describe('prepareUpdateColumnQuery', () => {
     );
   });
 
-  test('should contain a query to generate column as identity if the updated column should be used as identity', () => {
+  it('should contain a query to generate column as identity if the updated column should be used as identity', () => {
     const transaction = prepareUpdateColumnQuery({
       dataSource: 'test_datasource',
       schema: 'test_schema',
@@ -351,7 +445,7 @@ describe('prepareUpdateColumnQuery', () => {
     );
   });
 
-  test('should contain a query to drop identity if the updated column should not be used as identity', () => {
+  it('should contain a query to drop identity if the updated column should not be used as identity', () => {
     const transaction = prepareUpdateColumnQuery({
       dataSource: 'test_datasource',
       schema: 'test_schema',
@@ -376,7 +470,7 @@ describe('prepareUpdateColumnQuery', () => {
     );
   });
 
-  test('should prepare a query when a foreign key should be created', () => {
+  it('should prepare a query when a foreign key should be created', () => {
     const transaction = prepareUpdateColumnQuery({
       dataSource: 'default',
       schema: 'public',
@@ -408,7 +502,7 @@ describe('prepareUpdateColumnQuery', () => {
     );
   });
 
-  test('should prepare a query when the foreign key should be removed', () => {
+  it('should prepare a query when the foreign key should be removed', () => {
     const transaction = prepareUpdateColumnQuery({
       dataSource: 'default',
       schema: 'public',
@@ -441,7 +535,7 @@ describe('prepareUpdateColumnQuery', () => {
     );
   });
 
-  test('should prepare two queries when the foreign key should be updated', () => {
+  it('should prepare two queries when the foreign key should be updated', () => {
     const transaction = prepareUpdateColumnQuery({
       dataSource: 'default',
       schema: 'public',
@@ -485,7 +579,7 @@ describe('prepareUpdateColumnQuery', () => {
     );
   });
 
-  test('should prepare two queries when foreign key is changed but it should be skipped', () => {
+  it('should prepare two queries when foreign key is changed but it should be skipped', () => {
     const transaction = prepareUpdateColumnQuery({
       dataSource: 'default',
       schema: 'public',
@@ -523,7 +617,7 @@ describe('prepareUpdateColumnQuery', () => {
 
     expect(transaction).toHaveLength(0);
   });
-  test('should contain queries to change the type to varchar(10) when column type is updated', () => {
+  it('should contain queries to change the type to varchar(10) when column type is updated', () => {
     const transaction = prepareUpdateColumnQuery({
       dataSource: 'test_datasource',
       schema: 'test_schema',

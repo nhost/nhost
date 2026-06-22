@@ -1,20 +1,28 @@
-{ self, nix-filter }:
-final: prev: rec {
+final: prev:
+let
+  fs = final.lib.fileset;
+in
+rec {
+  # Go toolchain pinned ahead of nixpkgs, exposed only under `pkgs.nhost.*`
+  # (see default.nix). Deliberately NOT exported as global `go` /
+  # `buildGoModule`: overriding those globally taints every nixpkgs package
+  # with go in its build closure (even libcap), forcing source rebuilds of
+  # huge dependency cones instead of substituting them from cache.nixos.org.
   go = prev.go_1_26.overrideAttrs (
     finalAttrs: previousAttrs: rec {
-      version = "1.26.3";
+      version = "1.26.4";
 
       src = final.fetchurl {
         url = "https://go.dev/dl/go${version}.src.tar.gz";
-        sha256 = "sha256-HGRoddCqh5kTMYTtV895/yS97+jIggRwYCqdPW2Rkrg=";
+        sha256 = "sha256-T2aKMvv8ETLmqIH7lowvHa2mMUkqM5IRc1+7JVpCYC0=";
       };
 
     }
   );
 
-  buildGoModule = prev.buildGoModule.override { go = go; };
+  buildGoModule = prev.buildGoModule.override { inherit go; };
 
-  golangci-lint = final.buildGoModule rec {
+  golangci-lint = final.nhost.buildGoModule rec {
     pname = "golangci-lint";
     version = "2.9.0";
     src = final.fetchFromGitHub {
@@ -35,7 +43,7 @@ final: prev: rec {
     doCheck = false;
   };
 
-  golines = final.buildGoModule rec {
+  golines = final.nhost.buildGoModule rec {
     pname = "golines";
     version = "0.14.0";
     src = final.fetchFromGitHub {
@@ -53,7 +61,7 @@ final: prev: rec {
     };
   };
 
-  govulncheck = final.buildGoModule rec {
+  govulncheck = final.nhost.buildGoModule rec {
     pname = "govulncheck";
     version = "1.1.4";
     src = final.fetchFromGitHub {
@@ -79,7 +87,7 @@ final: prev: rec {
     doCheck = false;
   });
 
-  gqlgenc = final.buildGoModule rec {
+  gqlgenc = final.nhost.buildGoModule rec {
     pname = "gqlgenc";
     version = "0.33.0";
     src = final.fetchFromGitHub {
@@ -99,17 +107,16 @@ final: prev: rec {
     };
   };
 
-  govulncheck-wrapper = final.buildGoModule {
+  govulncheck-wrapper = final.nhost.buildGoModule {
     pname = "govulncheck-wrapper";
     version = "0.0.0-dev";
-    src = nix-filter.lib.filter {
-      root = self;
-      include = with nix-filter.lib; [
-        "go.mod"
-        "go.sum"
-        (inDirectory "vendor")
-        isDirectory
-        (and (inDirectory "tools/govulncheck-wrapper") (matchExt "go"))
+    src = fs.toSource {
+      root = ../..;
+      fileset = fs.unions [
+        ../../go.mod
+        ../../go.sum
+        ../../vendor
+        (fs.fileFilter (f: f.hasExt "go") ../../tools/govulncheck-wrapper)
       ];
     };
     vendorHash = null;
@@ -122,14 +129,14 @@ final: prev: rec {
     doInstallCheck = false;
   });
 
-  oapi-codegen = prev.oapi-codegen.overrideAttrs (oldAttrs: {
-    version = "2.6.0-beta0";
+  oapi-codegen = prev.oapi-codegen.overrideAttrs (oldAttrs: rec {
+    version = "2.7.1";
     src = final.fetchFromGitHub {
-      owner = "dbarrosop";
+      owner = "oapi-codegen";
       repo = "oapi-codegen";
-      rev = "6225e75bb76ba1fa15113a7fc6aace55ad12862c";
-      hash = "sha256-sXmHVIFKxnogdr9qULZ2Io7cQGG6sMMx0ZLskjz1mOc=";
+      rev = "v${version}";
+      hash = "sha256-Yfw4hb5EOYvBxl95OpUdLS+ZfCi5cHhHUf2LPS9xp0U=";
     };
-    vendorHash = "sha256-obpY7ZATebI/7bkPMidC83xnN60P0lZsJhSuKr2A5T4=";
+    vendorHash = "sha256-ecO8nmegFAvhsvMaQ3W0wCwqbF2jUn48nSIvQGhwwcc=";
   });
 }

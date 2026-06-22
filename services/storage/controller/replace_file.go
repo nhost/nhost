@@ -77,13 +77,6 @@ func (ctrl *Controller) ReplaceFile( //nolint:funlen,ireturn
 	logger := oapimw.LoggerFromContext(ctx)
 	sessionHeaders := middleware.SessionHeadersFromContext(ctx)
 
-	file, form, apiErr := replaceFileParseRequest(request)
-	if apiErr != nil {
-		logger.ErrorContext(ctx, "problem parsing request", slog.String("error", apiErr.Error()))
-		return apiErr, nil
-	}
-	defer form.RemoveAll() //nolint:errcheck
-
 	originalMetadata, bucketMetadata, apiErr := ctrl.getFileMetadata(
 		ctx, request.Id, false, sessionHeaders,
 	)
@@ -95,17 +88,23 @@ func (ctrl *Controller) ReplaceFile( //nolint:funlen,ireturn
 		return apiErr, nil
 	}
 
+	file, form, apiErr := replaceFileParseRequest(request)
+	if apiErr != nil {
+		logger.ErrorContext(ctx, "problem parsing request", slog.String("error", apiErr.Error()))
+		return apiErr, nil
+	}
+	defer form.RemoveAll() //nolint:errcheck
+
 	if apiErr = checkFileSize(
 		file.header, bucketMetadata.MinUploadFile, bucketMetadata.MaxUploadFile,
 	); apiErr != nil {
-		wrappedErr := fmt.Errorf("problem checking file size %s: %w", file.Name, apiErr)
 		logger.ErrorContext(
 			ctx, "problem checking file size",
-			slog.String("error", wrappedErr.Error()),
+			slog.String("error", apiErr.Error()),
 			slog.String("fileName", file.Name),
 		)
 
-		return InternalServerError(wrappedErr), nil
+		return apiErr, nil
 	}
 
 	fileContent, contentType, apiErr := ctrl.getMultipartFile(file)

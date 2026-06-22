@@ -1,4 +1,25 @@
-import { Box, ChevronDown, ChevronRight, Code, Plus, Zap } from 'lucide-react';
+import {
+  SiGraphql as GraphQLIcon,
+  SiHasura as HasuraIcon,
+  SiDocker as ServicesIcon,
+} from '@icons-pack/react-simple-icons';
+import {
+  Sparkles as AIIcon,
+  Box,
+  ChevronDown,
+  ChevronRight,
+  CloudIcon,
+  Code,
+  DatabaseIcon,
+  FileTextIcon,
+  GaugeIcon,
+  HomeIcon,
+  Plus,
+  RocketIcon,
+  HardDrive as StorageIcon,
+  UserIcon,
+  Zap,
+} from 'lucide-react';
 import Link from 'next/link';
 import type { ReactElement } from 'react';
 import {
@@ -7,18 +28,6 @@ import {
   type TreeItem,
   type TreeItemIndex,
 } from 'react-complex-tree';
-import { AIIcon } from '@/components/ui/v2/icons/AIIcon';
-import { CloudIcon } from '@/components/ui/v2/icons/CloudIcon';
-import { DatabaseIcon } from '@/components/ui/v2/icons/DatabaseIcon';
-import { FileTextIcon } from '@/components/ui/v2/icons/FileTextIcon';
-import { GaugeIcon } from '@/components/ui/v2/icons/GaugeIcon';
-import { GraphQLIcon } from '@/components/ui/v2/icons/GraphQLIcon';
-import { HasuraIcon } from '@/components/ui/v2/icons/HasuraIcon';
-import { HomeIcon } from '@/components/ui/v2/icons/HomeIcon';
-import { RocketIcon } from '@/components/ui/v2/icons/RocketIcon';
-import { ServicesIcon } from '@/components/ui/v2/icons/ServicesIcon';
-import { StorageIcon } from '@/components/ui/v2/icons/StorageIcon';
-import { UserIcon } from '@/components/ui/v2/icons/UserIcon';
 import { Badge } from '@/components/ui/v3/badge';
 import { Button } from '@/components/ui/v3/button';
 import { type Org, useOrgs } from '@/features/orgs/projects/hooks/useOrgs';
@@ -225,6 +234,19 @@ const projectAuthPages = [
   },
 ];
 
+const projectDatabasePages = [
+  {
+    name: 'Table Editor & Browser',
+    slug: 'browser',
+    route: 'database/browser/default',
+  },
+  {
+    name: 'Schema Navigator',
+    slug: 'schema',
+    route: 'database/schema/default',
+  },
+];
+
 const createOrganization = (org: Org) => {
   const isNotPlatform = !getIsPlatform();
   const configServerVariableNotSet = getConfigServerUrl() === '';
@@ -311,7 +333,8 @@ const createOrganization = (org: Org) => {
           (_page.name === 'Settings' && !shouldDisableSettings) ||
           _page.name === 'GraphQL' ||
           _page.name === 'Events' ||
-          _page.name === 'Auth',
+          _page.name === 'Auth' ||
+          _page.name === 'Database',
         children: (() => {
           if (_page.name === 'Settings' && !shouldDisableSettings) {
             return projectSettingsPages.map(
@@ -331,6 +354,11 @@ const createOrganization = (org: Org) => {
           if (_page.name === 'Auth') {
             return projectAuthPages.map(
               (p) => `${org.slug}-${_app.subdomain}-auth-${p.slug}`,
+            );
+          }
+          if (_page.name === 'Database') {
+            return projectDatabasePages.map(
+              (p) => `${org.slug}-${_app.subdomain}-database-${p.slug}`,
             );
           }
           return undefined;
@@ -400,6 +428,20 @@ const createOrganization = (org: Org) => {
     projectAuthPages.forEach((p) => {
       result[`${org.slug}-${_app.subdomain}-auth-${p.slug}`] = {
         index: `${org.slug}-${_app.subdomain}-auth-${p.slug}`,
+        canMove: false,
+        isFolder: false,
+        children: undefined,
+        data: {
+          name: p.name,
+          targetUrl: `/orgs/${org.slug}/projects/${_app.subdomain}/${p.route}`,
+        },
+        canRename: false,
+      };
+    });
+
+    projectDatabasePages.forEach((p) => {
+      result[`${org.slug}-${_app.subdomain}-database-${p.slug}`] = {
+        index: `${org.slug}-${_app.subdomain}-database-${p.slug}`,
         canMove: false,
         isFolder: false,
         children: undefined,
@@ -562,7 +604,9 @@ export default function NavTree() {
                 }
 
                 if (
-                  ['GraphQL', 'Events', 'Auth'].includes(item.data.name) &&
+                  ['GraphQL', 'Events', 'Auth', 'Database'].includes(
+                    item.data.name,
+                  ) &&
                   item.isFolder
                 ) {
                   if (!context.isExpanded) {

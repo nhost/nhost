@@ -5,6 +5,10 @@ on:
     branches:
       - main
 
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}-${{ startsWith(github.event.head_commit.message, 'release(') && github.sha || 'non-release' }}
+  cancel-in-progress: false
+
 jobs:
   update-changelog:
     if: ${{ !startsWith(github.event.head_commit.message, 'release(') }}
@@ -13,7 +17,18 @@ jobs:
 
     strategy:
       matrix:
-        project: [cli, dashboard, packages/nhost-js, packages/stripe-graphql-js, services/auth, services/functions, services/mcp, services/storage]
+        project:
+          [
+            cli,
+            dashboard,
+            packages/nhost-js,
+            packages/stripe-graphql-js,
+            services/auth,
+            services/constellation,
+            services/functions,
+            services/mcp,
+            services/storage,
+          ]
 
     permissions:
       id-token: write
@@ -26,11 +41,11 @@ jobs:
       id: app-token
       uses: actions/create-github-app-token@v3
       with:
-        app-id: ${{ secrets.NHOST_BOT_APP_ID }}
+        client-id: ${{ secrets.NHOST_BOT_APP_ID }}
         private-key: ${{ secrets.NHOST_BOT_PRIVATE_KEY }}
 
     - name: "Check out repository"
-      uses: actions/checkout@v6
+      uses: actions/checkout@v7
       with:
         fetch-depth: 0
         token: ${{ steps.app-token.outputs.token }}
@@ -46,6 +61,8 @@ jobs:
       with:
         NAME: ${{ matrix.project }}
         NIX_CACHE_PUB_KEY: ${{ secrets.NIX_CACHE_PUB_KEY }}
+        NIX_CACHE_ACCESS_KEY_ID: ${{ secrets.NIX_CACHE_ACCESS_KEY_ID }}
+        NIX_CACHE_SECRET_ACCESS_KEY: ${{ secrets.NIX_CACHE_SECRET_ACCESS_KEY }}
         GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
     - name: "Get next version"

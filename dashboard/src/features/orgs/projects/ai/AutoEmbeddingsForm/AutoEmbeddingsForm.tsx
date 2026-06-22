@@ -1,5 +1,5 @@
 import { yupResolver } from '@hookform/resolvers/yup';
-import { RefreshCwIcon } from 'lucide-react';
+import { InfoIcon, PlusIcon, RefreshCwIcon } from 'lucide-react';
 import { useEffect } from 'react';
 import { FormProvider, useForm } from 'react-hook-form';
 import * as Yup from 'yup';
@@ -9,12 +9,10 @@ import { Form } from '@/components/form/Form';
 import { Box } from '@/components/ui/v2/Box';
 import { Button } from '@/components/ui/v2/Button';
 import { Input } from '@/components/ui/v2/Input';
-import { InfoIcon } from '@/components/ui/v2/icons/InfoIcon';
-import { PlusIcon } from '@/components/ui/v2/icons/PlusIcon';
 import { Option } from '@/components/ui/v2/Option';
 import { Text } from '@/components/ui/v2/Text';
 import { Tooltip } from '@/components/ui/v2/Tooltip';
-import { useAdminApolloClient } from '@/features/orgs/projects/hooks/useAdminApolloClient';
+import { useRemoteApplicationGQLClient } from '@/features/orgs/hooks/useRemoteApplicationGQLClient';
 import { execPromiseWithErrorToast } from '@/features/orgs/utils/execPromiseWithErrorToast';
 import type { DialogFormProps } from '@/types/common';
 import {
@@ -74,16 +72,16 @@ export default function AutoEmbeddingsForm({
 }: AutoEmbeddingsFormProps) {
   const { onDirtyStateChange } = useDialog();
 
-  const { adminClient } = useAdminApolloClient();
+  const remoteProjectGQLClient = useRemoteApplicationGQLClient();
 
   const [insertGraphiteAutoEmbeddingsConfiguration] =
     useInsertGraphiteAutoEmbeddingsConfigurationMutation({
-      client: adminClient,
+      client: remoteProjectGQLClient,
     });
 
   const [updateGraphiteAutoEmbeddingsConfiguration] =
     useUpdateGraphiteAutoEmbeddingsConfigurationMutation({
-      client: adminClient,
+      client: remoteProjectGQLClient,
     });
 
   const form = useForm<AutoEmbeddingsFormValues>({
@@ -159,8 +157,7 @@ export default function AutoEmbeddingsForm({
                 <Tooltip title="Name of the Auto-Embeddings">
                   <InfoIcon
                     aria-label="Info"
-                    className="h-4 w-4"
-                    color="primary"
+                    className="h-4 w-4 text-primary"
                   />
                 </Tooltip>
               </Box>
@@ -186,8 +183,7 @@ export default function AutoEmbeddingsForm({
                 <Tooltip title="Auto-Embeddings Model">
                   <InfoIcon
                     aria-label="Info"
-                    className="h-4 w-4"
-                    color="primary"
+                    className="h-4 w-4 text-primary"
                   />
                 </Tooltip>
               </Box>
@@ -212,8 +208,7 @@ export default function AutoEmbeddingsForm({
                 <Tooltip title={<span>Schema where the table belongs to</span>}>
                   <InfoIcon
                     aria-label="Info"
-                    className="h-4 w-4"
-                    color="primary"
+                    className="h-4 w-4 text-primary"
                   />
                 </Tooltip>
               </Box>
@@ -234,8 +229,7 @@ export default function AutoEmbeddingsForm({
                 <Tooltip title="Table Name">
                   <InfoIcon
                     aria-label="Info"
-                    className="h-4 w-4"
-                    color="primary"
+                    className="h-4 w-4 text-primary"
                   />
                 </Tooltip>
               </Box>
@@ -256,8 +250,7 @@ export default function AutoEmbeddingsForm({
                 <Tooltip title="Column name">
                   <InfoIcon
                     aria-label="Info"
-                    className="h-4 w-4"
-                    color="primary"
+                    className="h-4 w-4 text-primary"
                   />
                 </Tooltip>
               </Box>
@@ -278,8 +271,7 @@ export default function AutoEmbeddingsForm({
                 <Tooltip title="Query">
                   <InfoIcon
                     aria-label="Info"
-                    className="h-4 w-4"
-                    color="primary"
+                    className="h-4 w-4 text-primary"
                   />
                 </Tooltip>
               </Box>
@@ -302,8 +294,7 @@ export default function AutoEmbeddingsForm({
                 <Tooltip title="Mutation">
                   <InfoIcon
                     aria-label="Info"
-                    className="h-4 w-4"
-                    color="primary"
+                    className="h-4 w-4 text-primary"
                   />
                 </Tooltip>
               </Box>
@@ -328,9 +319,9 @@ export default function AutoEmbeddingsForm({
             disabled={isSubmitting}
             startIcon={
               autoEmbeddingsId ? (
-                <RefreshCwIcon width={16} height={16} />
+                <RefreshCwIcon className="h-4 w-4" />
               ) : (
-                <PlusIcon />
+                <PlusIcon className="h-4 w-4" />
               )
             }
           >

@@ -1,11 +1,13 @@
+import { SiHasura as HasuraIcon } from '@icons-pack/react-simple-icons';
+import {
+  Sparkles as AIIcon,
+  DatabaseIcon,
+  HardDrive as StorageIcon,
+  UserIcon,
+} from 'lucide-react';
 import { twMerge } from 'tailwind-merge';
 import { Box } from '@/components/ui/v2/Box';
 import { Divider } from '@/components/ui/v2/Divider';
-import { AIIcon } from '@/components/ui/v2/icons/AIIcon';
-import { DatabaseIcon } from '@/components/ui/v2/icons/DatabaseIcon';
-import { HasuraIcon } from '@/components/ui/v2/icons/HasuraIcon';
-import { StorageIcon } from '@/components/ui/v2/icons/StorageIcon';
-import { UserIcon } from '@/components/ui/v2/icons/UserIcon';
 import { ServicesOutlinedIcon } from '@/components/ui/v3/icons/ServicesOutlinedIcon';
 import { useServiceStatus } from '@/features/orgs/projects/common/hooks/useServiceStatus';
 import { ServiceAccordion } from '@/features/orgs/projects/overview/components/ServiceAccordion';

@@ -4,10 +4,10 @@ import {
   type GetProjectQuery,
   Sla_Level_Enum,
 } from '@/utils/__generated__/graphql';
-import { getHasuraAdminSecret } from '@/utils/env';
+import { getHasuraAdminSecret, getLocalAppId } from '@/utils/env';
 
 export const localApplication: GetProjectQuery['apps'][0] = {
-  id: '00000000-0000-0000-0000-000000000000',
+  id: getLocalAppId(),
   slug: 'local',
   name: 'local',
   appStates: [

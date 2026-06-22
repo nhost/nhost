@@ -45,8 +45,8 @@ func TestGetUser(t *testing.T) {
 					PhoneNumber:              pgtype.Text{String: "+1234567890", Valid: true},
 					PhoneNumberVerified:      true,
 					ActiveMfaType:            pgtype.Text{String: "totp", Valid: true},
-					UpdatedAt:                pgtype.Timestamptz{}, //nolint:exhaustruct
-					LastSeen:                 pgtype.Timestamptz{}, //nolint:exhaustruct
+					UpdatedAt:                pgtype.Timestamptz{},
+					LastSeen:                 pgtype.Timestamptz{},
 					Disabled:                 false,
 					PasswordHash:             pgtype.Text{},        //nolint:exhaustruct
 					NewEmail:                 pgtype.Text{},        //nolint:exhaustruct
@@ -65,8 +65,8 @@ func TestGetUser(t *testing.T) {
 					gomock.Any(),
 					userID,
 				).Return([]sql.AuthUserRole{
-					{Role: "user"},  //nolint:exhaustruct
-					{Role: "admin"}, //nolint:exhaustruct
+					{Role: "user"},
+					{Role: "admin"},
 				}, nil)
 
 				return mock

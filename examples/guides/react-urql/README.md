@@ -91,7 +91,7 @@ Create an authentication context to manage the user session:
 ```typescript
 // src/lib/nhost/AuthProvider.tsx (see file for full code)
 import { createClient, type NhostClient } from "@nhost/nhost-js";
-import type { Session } from "@nhost/nhost-js/auth";
+import type { StoredSession } from "@nhost/nhost-js/session";
 import {
   createContext,
   type ReactNode,
@@ -104,8 +104,8 @@ import {
 } from "react";
 
 interface AuthContextType {
-  user: Session["user"] | null;
-  session: Session | null;
+  user: StoredSession["user"] | null;
+  session: StoredSession | null;
   isAuthenticated: boolean;
   isLoading: boolean;
   nhost: NhostClient;
@@ -114,8 +114,8 @@ interface AuthContextType {
 const AuthContext = createContext<AuthContextType | null>(null);
 
 export const AuthProvider = ({ children }: { children: ReactNode }) => {
-  const [user, setUser] = useState<Session["user"] | null>(null);
-  const [session, setSession] = useState<Session | null>(null);
+  const [user, setUser] = useState<StoredSession["user"] | null>(null);
+  const [session, setSession] = useState<StoredSession | null>(null);
   const [isLoading, setIsLoading] = useState<boolean>(true);
   const [isAuthenticated, setIsAuthenticated] = useState<boolean>(false);
 

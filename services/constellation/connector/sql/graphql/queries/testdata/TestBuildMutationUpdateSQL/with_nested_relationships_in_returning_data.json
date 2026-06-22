@@ -1,0 +1,417 @@
+[
+  [
+    {
+      "affected_rows": 24,
+      "returning": [
+        {
+          "locale": "en",
+          "departments": [
+            {
+              "department": {
+                "name": "Human Resources"
+              }
+            },
+            {
+              "department": {
+                "name": "Operations"
+              }
+            }
+          ],
+          "id": "550e8400-e29b-41d4-a716-446655440001",
+          "displayName": "Sarah Martinez"
+        },
+        {
+          "id": "550e8400-e29b-41d4-a716-446655440002",
+          "displayName": "David Chen",
+          "locale": "en",
+          "departments": [
+            {
+              "department": {
+                "name": "Human Resources"
+              }
+            },
+            {
+              "department": {
+                "name": "Engineering"
+              }
+            }
+          ]
+        },
+        {
+          "departments": [
+            {
+              "department": {
+                "name": "Human Resources"
+              }
+            },
+            {
+              "department": {
+                "name": "Finance"
+              }
+            }
+          ],
+          "id": "550e8400-e29b-41d4-a716-446655440003",
+          "displayName": "Lisa Thompson",
+          "locale": "en"
+        },
+        {
+          "displayName": "Michael Rodriguez",
+          "locale": "en",
+          "departments": [
+            {
+              "department": {
+                "name": "Human Resources"
+              }
+            },
+            {
+              "department": {
+                "name": "Marketing"
+              }
+            }
+          ],
+          "id": "550e8400-e29b-41d4-a716-446655440004"
+        },
+        {
+          "departments": [
+            {
+              "department": {
+                "name": "Engineering"
+              }
+            },
+            {
+              "department": {
+                "name": "Operations"
+              }
+            }
+          ],
+          "id": "550e8400-e29b-41d4-a716-446655440011",
+          "displayName": "Alex Kim",
+          "locale": "en"
+        },
+        {
+          "id": "550e8400-e29b-41d4-a716-446655440012",
+          "displayName": "Emma Wilson",
+          "locale": "en",
+          "departments": [
+            {
+              "department": {
+                "name": "Engineering"
+              }
+            },
+            {
+              "department": {
+                "name": "Marketing"
+              }
+            }
+          ]
+        },
+        {
+          "id": "550e8400-e29b-41d4-a716-446655440013",
+          "displayName": "James Brown",
+          "locale": "en",
+          "departments": [
+            {
+              "department": {
+                "name": "Engineering"
+              }
+            },
+            {
+              "department": {
+                "name": "Sales"
+              }
+            }
+          ]
+        },
+        {
+          "id": "550e8400-e29b-41d4-a716-446655440014",
+          "displayName": "Priya Patel",
+          "locale": "en",
+          "departments": [
+            {
+              "department": {
+                "name": "Engineering"
+              }
+            },
+            {
+              "department": {
+                "name": "Finance"
+              }
+            }
+          ]
+        },
+        {
+          "id": "550e8400-e29b-41d4-a716-446655440021",
+          "displayName": "Jessica Garcia",
+          "locale": "en",
+          "departments": [
+            {
+              "department": {
+                "name": "Marketing"
+              }
+            },
+            {
+              "department": {
+                "name": "Sales"
+              }
+            }
+          ]
+        },
+        {
+          "id": "550e8400-e29b-41d4-a716-446655440022",
+          "displayName": "Ryan Lee",
+          "locale": "en",
+          "departments": [
+            {
+              "department": {
+                "name": "Marketing"
+              }
+            },
+            {
+              "department": {
+                "name": "Human Resources"
+              }
+            }
+          ]
+        },
+        {
+          "id": "550e8400-e29b-41d4-a716-446655440023",
+          "displayName": "Sofia Andersson",
+          "locale": "en",
+          "departments": [
+            {
+              "department": {
+                "name": "Marketing"
+              }
+            },
+            {
+              "department": {
+                "name": "Finance"
+              }
+            }
+          ]
+        },
+        {
+          "id": "550e8400-e29b-41d4-a716-446655440024",
+          "displayName": "Carlos Santos",
+          "locale": "en",
+          "departments": [
+            {
+              "department": {
+                "name": "Marketing"
+              }
+            },
+            {
+              "department": {
+                "name": "Operations"
+              }
+            }
+          ]
+        },
+        {
+          "id": "550e8400-e29b-41d4-a716-446655440031",
+          "displayName": "Amanda Johnson",
+          "locale": "en",
+          "departments": [
+            {
+              "department": {
+                "name": "Sales"
+              }
+            },
+            {
+              "department": {
+                "name": "Finance"
+              }
+            }
+          ]
+        },
+        {
+          "id": "550e8400-e29b-41d4-a716-446655440032",
+          "displayName": "Kevin Wong",
+          "locale": "en",
+          "departments": [
+            {
+              "department": {
+                "name": "Sales"
+              }
+            },
+            {
+              "department": {
+                "name": "Engineering"
+              }
+            }
+          ]
+        },
+        {
+          "departments": [
+            {
+              "department": {
+                "name": "Sales"
+              }
+            },
+            {
+              "department": {
+                "name": "Human Resources"
+              }
+            }
+          ],
+          "id": "550e8400-e29b-41d4-a716-446655440033",
+          "displayName": "Natalie Davis",
+          "locale": "en"
+        },
+        {
+          "departments": [
+            {
+              "department": {
+                "name": "Sales"
+              }
+            },
+            {
+              "department": {
+                "name": "Operations"
+              }
+            }
+          ],
+          "id": "550e8400-e29b-41d4-a716-446655440034",
+          "displayName": "Robert Taylor",
+          "locale": "en"
+        },
+        {
+          "id": "550e8400-e29b-41d4-a716-446655440041",
+          "displayName": "Rachel Moore",
+          "locale": "en",
+          "departments": [
+            {
+              "department": {
+                "name": "Finance"
+              }
+            },
+            {
+              "department": {
+                "name": "Operations"
+              }
+            }
+          ]
+        },
+        {
+          "id": "550e8400-e29b-41d4-a716-446655440042",
+          "displayName": "Daniel Clark",
+          "locale": "en",
+          "departments": [
+            {
+              "department": {
+                "name": "Finance"
+              }
+            },
+            {
+              "department": {
+                "name": "Engineering"
+              }
+            }
+          ]
+        },
+        {
+          "id": "550e8400-e29b-41d4-a716-446655440043",
+          "displayName": "Michelle White",
+          "locale": "en",
+          "departments": [
+            {
+              "department": {
+                "name": "Finance"
+              }
+            },
+            {
+              "department": {
+                "name": "Human Resources"
+              }
+            }
+          ]
+        },
+        {
+          "id": "550e8400-e29b-41d4-a716-446655440044",
+          "displayName": "Thomas Hall",
+          "locale": "en",
+          "departments": [
+            {
+              "department": {
+                "name": "Finance"
+              }
+            },
+            {
+              "department": {
+                "name": "Marketing"
+              }
+            }
+          ]
+        },
+        {
+          "id": "550e8400-e29b-41d4-a716-446655440051",
+          "displayName": "Jennifer Adams",
+          "locale": "en",
+          "departments": [
+            {
+              "department": {
+                "name": "Operations"
+              }
+            },
+            {
+              "department": {
+                "name": "Sales"
+              }
+            }
+          ]
+        },
+        {
+          "id": "550e8400-e29b-41d4-a716-446655440052",
+          "displayName": "Matthew Turner",
+          "locale": "en",
+          "departments": [
+            {
+              "department": {
+                "name": "Operations"
+              }
+            },
+            {
+              "department": {
+                "name": "Engineering"
+              }
+            }
+          ]
+        },
+        {
+          "id": "550e8400-e29b-41d4-a716-446655440053",
+          "displayName": "Stephanie Cooper",
+          "locale": "en",
+          "departments": [
+            {
+              "department": {
+                "name": "Operations"
+              }
+            },
+            {
+              "department": {
+                "name": "Marketing"
+              }
+            }
+          ]
+        },
+        {
+          "locale": "en",
+          "departments": [
+            {
+              "department": {
+                "name": "Operations"
+              }
+            },
+            {
+              "department": {
+                "name": "Human Resources"
+              }
+            }
+          ],
+          "id": "550e8400-e29b-41d4-a716-446655440054",
+          "displayName": "Christopher Bell"
+        }
+      ]
+    }
+  ]
+]

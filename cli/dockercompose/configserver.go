@@ -10,7 +10,8 @@ func configserver( //nolint: funlen
 	image,
 	rootPath,
 	nhostPath,
-	projectName string,
+	projectName,
+	appID string,
 	useTLS bool,
 	runServices ...*RunService,
 ) (*Service, error) {
@@ -85,6 +86,7 @@ func configserver( //nolint: funlen
 		Environment: map[string]string{
 			"DOCKER_HOST":            dockerEndpoint,
 			"DOCKER_COMPOSE_PROJECT": projectName,
+			"NHOST_APP_ID":           appID,
 		},
 		ExtraHosts:  []string{},
 		HealthCheck: nil,

@@ -43,7 +43,12 @@ export default function LogsPage() {
           onSubmitFilterValues={onSubmitFilterValues}
           onRefetch={refetch}
         />
-        <LogsBody error={error} loading={loading} logsData={data} />
+        <LogsBody
+          filters={filters}
+          error={error}
+          loading={loading}
+          logsData={data}
+        />
       </RetryableErrorBoundary>
     </div>
   );

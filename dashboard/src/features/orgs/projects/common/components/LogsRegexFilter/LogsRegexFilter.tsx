@@ -1,10 +1,10 @@
+import { InfoIcon } from 'lucide-react';
 import { forwardRef } from 'react';
 import type { UseFormRegisterReturn } from 'react-hook-form';
 import { Box } from '@/components/ui/v2/Box';
 import { Input } from '@/components/ui/v2/Input';
-import { InfoIcon } from '@/components/ui/v2/icons/InfoIcon';
-import { Link } from '@/components/ui/v2/Link';
 import { Tooltip } from '@/components/ui/v2/Tooltip';
+import { TextLink } from '@/components/ui/v3/text-link';
 
 type LogsRegexFilterProps = UseFormRegisterReturn<
   keyof {
@@ -17,7 +17,7 @@ const LogsRegexFilter = forwardRef<HTMLInputElement, LogsRegexFilterProps>(
     <Input
       {...props}
       ref={ref}
-      placeholder="Filter logs with a regular expression"
+      placeholder="Search logs with a regular expression"
       hideEmptyHelperText
       autoComplete="off"
       fullWidth
@@ -60,15 +60,14 @@ const LogsRegexFilter = forwardRef<HTMLInputElement, LogsRegexFilterProps>(
                 </li>
                 <li>
                   See
-                  <Link
+                  <TextLink
                     href="https://github.com/google/re2/wiki/Syntax"
                     target="_blank"
                     rel="noopener noreferrer"
-                    underline="hover"
                     className="mx-1"
                   >
                     here
-                  </Link>
+                  </TextLink>
                   for more patterns
                 </li>
               </ul>
@@ -76,7 +75,7 @@ const LogsRegexFilter = forwardRef<HTMLInputElement, LogsRegexFilterProps>(
           }
         >
           <Box className="ml-2 cursor-pointer rounded-full">
-            <InfoIcon aria-label="Info" className="h-5 w-5" color="info" />
+            <InfoIcon aria-label="Info" className="h-5 w-5 text-blue-500" />
           </Box>
         </Tooltip>
       }

@@ -43,15 +43,15 @@ func TestSignInPAT(t *testing.T) { //nolint:maintidx
 				mock.EXPECT().GetUserRoles(
 					gomock.Any(), userID,
 				).Return([]sql.AuthUserRole{
-					{UserID: userID, Role: "user"}, //nolint:exhaustruct
-					{UserID: userID, Role: "me"},   //nolint:exhaustruct
+					{UserID: userID, Role: "user"},
+					{UserID: userID, Role: "me"},
 				}, nil)
 
 				mock.EXPECT().InsertRefreshtoken(
 					gomock.Any(),
 					cmpDBParams(sql.InsertRefreshtokenParams{
 						UserID:           userID,
-						RefreshTokenHash: pgtype.Text{}, //nolint:exhaustruct
+						RefreshTokenHash: pgtype.Text{},
 						ExpiresAt:        sql.TimestampTz(time.Now().Add(30 * 24 * time.Hour)),
 						Type:             sql.RefreshTokenTypeRegular,
 						Metadata:         nil,
@@ -136,15 +136,15 @@ func TestSignInPAT(t *testing.T) { //nolint:maintidx
 				mock.EXPECT().GetUserRoles(
 					gomock.Any(), userID,
 				).Return([]sql.AuthUserRole{
-					{UserID: userID, Role: "user"}, //nolint:exhaustruct
-					{UserID: userID, Role: "me"},   //nolint:exhaustruct
+					{UserID: userID, Role: "user"},
+					{UserID: userID, Role: "me"},
 				}, nil)
 
 				mock.EXPECT().InsertRefreshtoken(
 					gomock.Any(),
 					cmpDBParams(sql.InsertRefreshtokenParams{
 						UserID:           userID,
-						RefreshTokenHash: pgtype.Text{}, //nolint:exhaustruct
+						RefreshTokenHash: pgtype.Text{},
 						ExpiresAt:        sql.TimestampTz(time.Now().Add(30 * 24 * time.Hour)),
 						Type:             sql.RefreshTokenTypeRegular,
 						Metadata:         nil,
@@ -215,21 +215,22 @@ func TestSignInPAT(t *testing.T) { //nolint:maintidx
 			},
 			jwtTokenFn: nil,
 			getControllerOpts: []getControllerOptsFunc{
-				withCusomClaimer(func(ctrl *gomock.Controller) controller.CustomClaimer {
-					mock := mock.NewMockCustomClaimer(ctrl)
-					mock.EXPECT().GetClaims(
-						gomock.Any(),
-						"db477732-48fa-4289-b694-2886a646b6eb",
-					).Return(map[string]any{
-						"claim1":      "value1",
-						"claim2":      "value2",
-						"claimArray":  []any{"value1", "value2"},
-						"claimObject": map[string]any{"key1": "value1", "key2": "value2"},
-						"claimNil":    nil,
-					}, nil)
+				withCusomClaimer(
+					func(ctrl *gomock.Controller) controller.CustomClaimer {
+						mock := mock.NewMockCustomClaimer(ctrl)
+						mock.EXPECT().GetClaims(
+							gomock.Any(),
+							"db477732-48fa-4289-b694-2886a646b6eb",
+						).Return(map[string]any{
+							"claim1":      "value1",
+							"claim2":      "value2",
+							"claimArray":  []any{"value1", "value2"},
+							"claimObject": map[string]any{"key1": "value1", "key2": "value2"},
+							"claimNil":    nil,
+						}, nil)
 
-					return mock
-				},
+						return mock
+					},
 				),
 			},
 		},
@@ -251,7 +252,7 @@ func TestSignInPAT(t *testing.T) { //nolint:maintidx
 						RefreshTokenHash: sql.Text(hashedPat),
 						Type:             "pat",
 					},
-				).Return(sql.AuthUser{}, pgx.ErrNoRows) //nolint:exhaustruct
+				).Return(sql.AuthUser{}, pgx.ErrNoRows)
 
 				return mock
 			},

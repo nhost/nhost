@@ -18,6 +18,10 @@ on:
         required: true
       NIX_CACHE_PRIV_KEY:
         required: true
+      NIX_CACHE_ACCESS_KEY_ID:
+        required: true
+      NIX_CACHE_SECRET_ACCESS_KEY:
+        required: true
       DISCORD_WEBHOOK:
         required: false
 
@@ -36,7 +40,7 @@ jobs:
 
     steps:
     - name: "Check out repository"
-      uses: actions/checkout@v6
+      uses: actions/checkout@v7
 
     - name: Configure aws
       uses: aws-actions/configure-aws-credentials@v6
@@ -49,6 +53,8 @@ jobs:
       with:
         NAME: ${{ inputs.NAME }}
         NIX_CACHE_PUB_KEY: ${{ secrets.NIX_CACHE_PUB_KEY }}
+        NIX_CACHE_ACCESS_KEY_ID: ${{ secrets.NIX_CACHE_ACCESS_KEY_ID }}
+        NIX_CACHE_SECRET_ACCESS_KEY: ${{ secrets.NIX_CACHE_SECRET_ACCESS_KEY }}
         GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
     - name: "Build package"

@@ -1,9 +1,9 @@
 import clsx from 'clsx';
+import { UploadIcon } from 'lucide-react';
 import type { DetailedHTMLProps, HTMLProps } from 'react';
 import { useRef } from 'react';
 import type { ButtonProps } from '@/components/ui/v2/Button';
 import { Button } from '@/components/ui/v2/Button';
-import { UploadIcon } from '@/components/ui/v2/icons/UploadIcon';
 
 export type FileUploadButtonProps = Omit<
   ButtonProps,

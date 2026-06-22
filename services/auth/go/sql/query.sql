@@ -635,7 +635,7 @@ RETURNING *;
 
 -- name: ConsumePKCEAuthorizationCode :one
 DELETE FROM auth.pkce_authorization_codes
-WHERE code_hash = $1 AND expires_at > now()
+WHERE code_hash = $1 AND code_challenge = $2 AND expires_at > now()
 RETURNING *;
 
 -- name: DeleteExpiredPKCEAuthorizationCodes :exec

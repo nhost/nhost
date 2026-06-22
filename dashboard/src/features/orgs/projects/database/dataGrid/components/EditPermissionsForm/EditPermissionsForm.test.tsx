@@ -2,8 +2,13 @@ import { beforeEach, describe, expect, it, vi } from 'vitest';
 import { render, screen, within } from '@/tests/testUtils';
 import EditPermissionsForm from './EditPermissionsForm';
 
-const { useMetadataQueryMock } = vi.hoisted(() => ({
+const { useMetadataQueryMock, mockColumnsRef } = vi.hoisted(() => ({
   useMetadataQueryMock: vi.fn(),
+  mockColumnsRef: {
+    current: [{ column_name: 'id' }, { column_name: 'name' }] as Array<
+      Record<string, unknown>
+    >,
+  },
 }));
 
 vi.mock('@/features/orgs/projects/hooks/useProject', () => ({
@@ -36,14 +41,16 @@ vi.mock(
   '@/features/orgs/projects/database/common/hooks/useTableSchemaQuery',
   () => ({
     useTableSchemaQuery: () => ({
-      data: {
-        columns: [{ column_name: 'id' }, { column_name: 'name' }],
-      },
+      data: { columns: mockColumnsRef.current },
       status: 'success',
       error: null,
     }),
   }),
 );
+
+function withColumns(columns: Array<Record<string, unknown>>) {
+  mockColumnsRef.current = columns;
+}
 
 vi.mock(
   '@/features/orgs/projects/database/dataGrid/hooks/useMetadataQuery',
@@ -53,6 +60,7 @@ vi.mock(
 );
 
 beforeEach(() => {
+  withColumns([{ column_name: 'id' }, { column_name: 'name' }]);
   useMetadataQueryMock.mockReturnValue({
     data: { resourceVersion: 1, tables: [] },
     status: 'success',
@@ -393,6 +401,53 @@ describe('EditPermissionsForm – select access level with computed fields', () 
 
     expect(
       getUserSelectIcon().getByLabelText('Full permission'),
+    ).toBeInTheDocument();
+  });
+});
+
+describe('EditPermissionsForm – access level with generated columns', () => {
+  function getUserUpdateIcon() {
+    const userRow = screen.getByText('user').closest('tr') as HTMLElement;
+    const buttons = within(userRow).getAllByRole('button');
+    return within(buttons[2]);
+  }
+
+  it('shows full permission for update when every writable column is granted on a table with a generated column', () => {
+    withColumns([
+      { column_name: 'id' },
+      { column_name: 'name' },
+      { column_name: 'full_name', is_generated: 'ALWAYS' },
+    ]);
+    useMetadataQueryMock.mockReturnValue({
+      data: {
+        resourceVersion: 1,
+        tables: [
+          {
+            table: { name: 'users', schema: 'public' },
+            configuration: {},
+            update_permissions: [
+              {
+                role: 'user',
+                permission: { columns: ['id', 'name'], filter: {} },
+              },
+            ],
+          },
+        ],
+      },
+      status: 'success',
+      error: null,
+    });
+
+    render(
+      <EditPermissionsForm
+        schema="public"
+        table="users"
+        objectType="ORDINARY TABLE"
+      />,
+    );
+
+    expect(
+      getUserUpdateIcon().getByLabelText('Full permission'),
     ).toBeInTheDocument();
   });
 });

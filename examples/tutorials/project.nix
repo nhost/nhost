@@ -2,7 +2,6 @@
   self,
   pkgs,
   nix2containerPkgs,
-  nix-filter,
   nixops-lib,
 }:
 let
@@ -10,29 +9,31 @@ let
   version = "0.0.0-dev";
   submodule = "examples/${name}";
 
+  fs = pkgs.lib.fileset;
+
   node_modules = nixops-lib.js.mkNodeModules {
     name = "node-modules-${name}";
     version = "0.0.0-dev";
 
-    src = nix-filter.lib.filter {
+    src = fs.toSource {
       root = ../..;
-      include = [
-        ".npmrc"
-        "package.json"
-        "pnpm-workspace.yaml"
-        "pnpm-lock.yaml"
-        "${submodule}/package.json"
-        "${submodule}/pnpm-lock.yaml"
-        "${submodule}/nhost-nextjs-tutorial/package.json"
-        "${submodule}/nhost-nextjs-tutorial/pnpm-lock.yaml"
-        "${submodule}/nhost-react-tutorial/package.json"
-        "${submodule}/nhost-react-tutorial/pnpm-lock.yaml"
-        "${submodule}/nhost-reactnative-tutorial/package.json"
-        "${submodule}/nhost-reactnative-tutorial/pnpm-lock.yaml"
-        "${submodule}/nhost-svelte-tutorial/package.json"
-        "${submodule}/nhost-svelte-tutorial/pnpm-lock.yaml"
-        "${submodule}/nhost-vue-tutorial/package.json"
-        "${submodule}/nhost-vue-tutorial/pnpm-lock.yaml"
+      fileset = fs.unions [
+        ../../.npmrc
+        ../../package.json
+        ../../pnpm-workspace.yaml
+        ../../pnpm-lock.yaml
+        ./package.json
+        ./pnpm-lock.yaml
+        ./nhost-nextjs-tutorial/package.json
+        ./nhost-nextjs-tutorial/pnpm-lock.yaml
+        ./nhost-react-tutorial/package.json
+        ./nhost-react-tutorial/pnpm-lock.yaml
+        ./nhost-reactnative-tutorial/package.json
+        ./nhost-reactnative-tutorial/pnpm-lock.yaml
+        ./nhost-svelte-tutorial/package.json
+        ./nhost-svelte-tutorial/pnpm-lock.yaml
+        ./nhost-vue-tutorial/package.json
+        ./nhost-vue-tutorial/pnpm-lock.yaml
       ];
     };
 
@@ -44,32 +45,31 @@ let
     '';
   };
 
-  src = nix-filter.lib.filter {
+  src = fs.toSource {
     root = ../../.;
-    include = with nix-filter.lib; [
-      isDirectory
-      ".gitignore"
-      ".npmrc"
-      "audit-ci.jsonc"
-      "biome.json"
-      "package.json"
-      "pnpm-workspace.yaml"
-      "pnpm-lock.yaml"
-      "turbo.json"
-      (inDirectory "./build")
-      (inDirectory "${submodule}")
+    fileset = fs.unions [
+      ../../.gitignore
+      ../../.npmrc
+      ../../audit-ci.jsonc
+      ../../biome.json
+      ../../package.json
+      ../../pnpm-workspace.yaml
+      ../../pnpm-lock.yaml
+      ../../turbo.json
+      ../../build
+      ./.
     ];
   };
 
   checkDeps = with pkgs; [
-    nhost-cli
-    biome
+    nhost.nhost-cli
+    nhost.biome
   ];
 
-  buildInputs = with pkgs; [ nodejs ];
+  buildInputs = with pkgs; [ nhost.nodejs ];
 
   nativeBuildInputs = with pkgs; [
-    pnpm
+    nhost.pnpm
     cacert
   ];
 in
@@ -95,6 +95,7 @@ in
       ;
 
     preCheck = ''
+      mkdir -p packages
       rm -rf packages/nhost-js
       cp -r ${self.packages.${pkgs.system}.nhost-js} packages/nhost-js
     '';
@@ -104,11 +105,11 @@ in
     inherit name version src;
 
     nativeBuildInputs = with pkgs; [
-      pnpm
+      nhost.pnpm
       cacert
-      nodejs
+      nhost.nodejs
     ];
-    buildInputs = with pkgs; [ nodejs ];
+    buildInputs = with pkgs; [ nhost.nodejs ];
 
     buildPhase = ''
       mkdir -p $TMPDIR/home
@@ -122,6 +123,7 @@ in
         cp -r ${node_modules}/$dir/node_modules $dir/node_modules
       done
 
+      mkdir -p packages
       rm -rf packages/nhost-js
       cp -r ${self.packages.${pkgs.system}.nhost-js} packages/nhost-js
 

@@ -41,7 +41,7 @@ func TestSignUpOTPEmail(t *testing.T) {
 				mock.EXPECT().GetUserByEmail(
 					gomock.Any(),
 					sql.Text("jane@acme.com"),
-				).Return(sql.AuthUser{}, pgx.ErrNoRows) //nolint:exhaustruct
+				).Return(sql.AuthUser{}, pgx.ErrNoRows)
 
 				mock.EXPECT().InsertUser(
 					gomock.Any(),
@@ -105,10 +105,13 @@ func TestSignUpOTPEmail(t *testing.T) {
 								ClientURL:   "http://localhost:3000",
 							},
 							testhelpers.FilterPathLast(
-								[]string{".Ticket"}, cmp.Comparer(cmpTicket)),
+								[]string{".Ticket"}, cmp.Comparer(cmpTicket),
+							),
 							testhelpers.FilterPathLast(
-								[]string{".Link"}, cmp.Comparer(cmpLink)),
-						)).Return(nil)
+								[]string{".Link"}, cmp.Comparer(cmpLink),
+							),
+						),
+					).Return(nil)
 
 					return mock
 				}),
@@ -182,7 +185,7 @@ func TestSignUpOTPEmail(t *testing.T) {
 				mock.EXPECT().GetUserByEmail(
 					gomock.Any(),
 					sql.Text("jane@acme.com"),
-				).Return(sql.AuthUser{ //nolint:exhaustruct
+				).Return(sql.AuthUser{
 					ID:            userID,
 					Email:         sql.Text("jane@acme.com"),
 					EmailVerified: true,
@@ -211,7 +214,7 @@ func TestSignUpOTPEmail(t *testing.T) {
 				mock.EXPECT().GetUserByEmail(
 					gomock.Any(),
 					sql.Text("jane@acme.com"),
-				).Return(sql.AuthUser{ //nolint:exhaustruct
+				).Return(sql.AuthUser{
 					ID:            userID,
 					Email:         sql.Text("jane@acme.com"),
 					EmailVerified: false,

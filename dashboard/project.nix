@@ -2,7 +2,6 @@
   self,
   pkgs,
   nix2containerPkgs,
-  nix-filter,
   nixops-lib,
 }:
 let
@@ -11,19 +10,21 @@ let
   created = "1970-01-01T00:00:00Z";
   submodule = "${name}";
 
+  fs = pkgs.lib.fileset;
+
   node_modules = nixops-lib.js.mkNodeModules {
     name = "node-modules-${name}";
     version = "0.0.0-dev";
 
-    src = nix-filter.lib.filter {
+    src = fs.toSource {
       root = ./..;
-      include = [
-        ".npmrc"
-        "package.json"
-        "pnpm-workspace.yaml"
-        "pnpm-lock.yaml"
-        "${submodule}/package.json"
-        "${submodule}/pnpm-lock.yaml"
+      fileset = fs.unions [
+        ../.npmrc
+        ../package.json
+        ../pnpm-workspace.yaml
+        ../pnpm-lock.yaml
+        ./package.json
+        ./pnpm-lock.yaml
       ];
     };
 
@@ -35,62 +36,137 @@ let
     '';
   };
 
-  src = nix-filter.lib.filter {
+  src = fs.toSource {
     root = ../.;
-    include = with nix-filter.lib; [
-      isDirectory
-      ".npmrc"
-      ".prettierignore"
-      ".prettierrc.js"
-      "audit-ci.jsonc"
-      "package.json"
-      "pnpm-workspace.yaml"
-      "pnpm-lock.yaml"
-      "turbo.json"
-      "biome.json"
-      ".gitignore"
-      (inDirectory "build/configs")
-      "${submodule}/.env.test"
-      "${submodule}/.env.example"
-      "${submodule}/.lintstagedrc.json"
-      "${submodule}/biome.json"
-      "${submodule}/.npmrc"
-      "${submodule}/.prettierignore"
-      "${submodule}/.lychee.toml"
-      "${submodule}/components.json"
-      "${submodule}/graphite.graphql.config.yaml"
-      "${submodule}/graphql.config.yaml"
-      "${submodule}/next-env.d.ts"
-      "${submodule}/next.config.js"
-      "${submodule}/package.json"
-      "${submodule}/pnpm-lock.yaml"
-      "${submodule}/playwright.config.ts"
-      "${submodule}/postcss.config.js"
-      "${submodule}/prettier.config.js"
-      "${submodule}/react-table-config.d.ts"
-      "${submodule}/tailwind.config.js"
-      "${submodule}/tsconfig.json"
-      "${submodule}/tsconfig.test.json"
-      "${submodule}/vitest.config.mts"
-      "${submodule}/vitest.global-setup.ts"
-      (inDirectory "${submodule}/e2e")
-      (inDirectory "${submodule}/public")
-      (inDirectory "${submodule}/src")
+    fileset = fs.unions [
+      ../.npmrc
+      ../audit-ci.jsonc
+      ../package.json
+      ../pnpm-workspace.yaml
+      ../pnpm-lock.yaml
+      ../turbo.json
+      ../biome.json
+      ../.gitignore
+      ../build/configs
+      ./.env.example
+      ./biome.json
+      ./.lychee.toml
+      ./components.json
+      ./graphite.graphql.config.yaml
+      ./graphql.config.yaml
+      ./next.config.js
+      ./package.json
+      ./pnpm-lock.yaml
+      ./playwright.config.ts
+      ./postcss.config.js
+      ./tailwind.config.js
+      ./tsconfig.json
+      ./tsconfig.test.json
+      ./vitest.config.mts
+      ./vitest.global-setup.ts
+      ./e2e
+      ./public
+      ./src
     ];
   };
 
   checkDeps = with pkgs; [
-    nhost-cli
+    nhost.nhost-cli
     lychee
-    playwright-driver
+    nhost.playwright-driver
   ];
 
-  buildInputs = with pkgs; [ nodejs ];
+  buildInputs = with pkgs; [ nhost.nodejs ];
 
   nativeBuildInputs = with pkgs; [
-    pnpm
+    nhost.pnpm
     cacert
   ];
+
+  e2eEnvVars = [
+    "NHOST_TEST_DASHBOARD_URL"
+    "NHOST_TEST_PROJECT_NAME"
+    "NHOST_TEST_ORGANIZATION_NAME"
+    "NHOST_TEST_ORGANIZATION_SLUG"
+    "NHOST_TEST_PERSONAL_ORG_SLUG"
+    "NHOST_TEST_PROJECT_SUBDOMAIN"
+    "NHOST_TEST_PROJECT_REMOTE_SCHEMA_NAME"
+    "NHOST_PRO_TEST_PROJECT_NAME"
+    "NHOST_TEST_USER_EMAIL"
+    "NHOST_TEST_USER_PASSWORD"
+    "NHOST_TEST_ONBOARDING_USER"
+    "NHOST_TEST_PROJECT_ADMIN_SECRET"
+    "NHOST_TEST_STAGING_SUBDOMAIN"
+    "NHOST_TEST_STAGING_REGION"
+  ];
+
+  mkDashboardE2ECheck =
+    { suite, script }:
+    pkgs.runCommand "dashboard-e2e-staging-${suite}"
+      {
+        __noChroot = true;
+        nativeBuildInputs = checkDeps ++ buildInputs ++ nativeBuildInputs;
+        NHOST_DASHBOARD_E2E_ENV_FILE = "/tmp/nhost-dashboard-e2e-${suite}.env";
+      }
+      ''
+        if [ -z "$NHOST_DASHBOARD_E2E_ENV_FILE" ]; then
+          echo "ERROR: NHOST_DASHBOARD_E2E_ENV_FILE environment variable is not set"
+          exit 1
+        fi
+
+        if [ ! -f "$NHOST_DASHBOARD_E2E_ENV_FILE" ]; then
+          echo "ERROR: NHOST_DASHBOARD_E2E_ENV_FILE does not point to a file"
+          exit 1
+        fi
+
+        set -a
+        . "$NHOST_DASHBOARD_E2E_ENV_FILE"
+        set +a
+
+        for env_var in ${pkgs.lib.escapeShellArgs e2eEnvVars}; do
+          if [ -z "''${!env_var:-}" ]; then
+            echo "ERROR: $env_var environment variable is not set"
+            exit 1
+          fi
+        done
+
+        export CI="''${CI:-true}"
+        export NEXT_PUBLIC_ENV="''${NEXT_PUBLIC_ENV:-dev}"
+        export NEXT_TELEMETRY_DISABLED="''${NEXT_TELEMETRY_DISABLED:-1}"
+        export HOME=$TMPDIR
+        export SSL_CERT_FILE=${pkgs.cacert}/etc/ssl/certs/ca-bundle.crt
+        export NIX_SSL_CERT_FILE=$SSL_CERT_FILE
+        export PLAYWRIGHT_BROWSERS_PATH=${pkgs.nhost.playwright-driver.browsers}
+        export PLAYWRIGHT_SKIP_VALIDATE_HOST_REQUIREMENTS=true
+
+        cp -r ${src}/. .
+        chmod +w -R .
+
+        ln -s ${node_modules}/node_modules node_modules
+        ln -s ${node_modules}/dashboard/node_modules dashboard/node_modules
+
+        mkdir -p packages
+        rm -rf packages/nhost-js
+        cp -r ${self.packages.${pkgs.system}.nhost-js} packages/nhost-js
+
+        cd dashboard
+
+        echo "➜ Running dashboard staging e2e tests (${suite})"
+        ${script}
+
+        mkdir -p $out
+      '';
+
+  vercelPrepare = ''
+    cp -r ${node_modules}/node_modules/ node_modules
+    cp -r ${node_modules}/dashboard/node_modules/ dashboard/node_modules
+    chmod +w -R node_modules dashboard/node_modules
+
+    mkdir -p packages
+    rm -rf packages/nhost-js
+    cp -r ${self.packages.${pkgs.stdenv.hostPlatform.system}.nhost-js} packages/nhost-js
+    chmod +w -R packages
+  '';
 in
 rec {
   devShell = nixops-lib.js.devShell {
@@ -99,14 +175,14 @@ rec {
     buildInputs =
       with pkgs;
       [
-        nodePackages.vercel
+        nhost.vercel
       ]
       ++ checkDeps
       ++ buildInputs
       ++ nativeBuildInputs;
 
     shellHook = ''
-      export PLAYWRIGHT_BROWSERS_PATH=${pkgs.playwright-driver.browsers}
+      export PLAYWRIGHT_BROWSERS_PATH=${pkgs.nhost.playwright-driver.browsers}
       export PLAYWRIGHT_SKIP_VALIDATE_HOST_REQUIREMENTS=true
     '';
 
@@ -125,51 +201,65 @@ rec {
       ;
 
     preCheck = ''
+      mkdir -p packages
       rm -rf packages/nhost-js
       cp -r ${self.packages.${pkgs.system}.nhost-js} packages/nhost-js
     '';
   };
 
-  check-staging =
-    pkgs.runCommand "check"
-      {
-        nativeBuildInputs = checkDeps ++ buildInputs ++ nativeBuildInputs;
-      }
-      ''
-        cp -r ${src}/* .
-        chmod +w -R .
+  check-staging-main = mkDashboardE2ECheck {
+    suite = "main";
+    script = "pnpm e2e";
+  };
 
-        cp -r ${node_modules}/node_modules/ node_modules
-        cp -r ${node_modules}/dashboard/node_modules/ dashboard/node_modules
+  check-staging-onboarding = mkDashboardE2ECheck {
+    suite = "onboarding";
+    script = "pnpm e2e:onboarding";
+  };
 
-        rm -rf packages/nhost-js
-        cp -r ${self.packages.${pkgs.system}.nhost-js} packages/nhost-js
+  check-staging-local = mkDashboardE2ECheck {
+    suite = "local";
+    script = "pnpm e2e:local";
+  };
 
-        export HOME=$TMPDIR
+  vercelPreview = nixops-lib.js.mkVercel {
+    inherit
+      src
+      node_modules
+      buildInputs
+      nativeBuildInputs
+      ;
+    name = "dashboard";
+    environment = "preview";
+    prepare = vercelPrepare;
+  };
 
-        cd dashboard
+  vercelProduction = nixops-lib.js.mkVercel {
+    inherit
+      src
+      node_modules
+      buildInputs
+      nativeBuildInputs
+      ;
+    name = "dashboard";
+    environment = "production";
+    prepare = vercelPrepare;
+  };
 
-        echo "➜ Running e2e tests"
-        pnpm e2e
-
-        echo "➜ Running e2e tests (onboarding)"
-        pnpm e2e:onboarding
-
-        echo "➜ Running e2e tests against local Nhost instance"
-        pnpm e2e:local
-
-        mkdir -p $out
-      '';
+  vercelBuildPreview = vercelPreview.build;
+  vercelDeployPreview = vercelPreview.deploy;
+  vercelBuildProduction = vercelProduction.build;
+  vercelDeployProduction = vercelProduction.deploy;
 
   package = pkgs.stdenv.mkDerivation {
     inherit name version src;
 
     nativeBuildInputs = with pkgs; [
-      pnpm
+      nhost.pnpm
       cacert
-      nodejs
+      nhost.nodejs
     ];
-    buildInputs = with pkgs; [ nodejs ];
+    buildInputs = with pkgs; [ nhost.nodejs ];
 
     configurePhase = ''
       export NEXT_PUBLIC_DASHBOARD_VERSION=${version}
@@ -182,12 +272,14 @@ rec {
       export NEXT_PUBLIC_NHOST_HASURA_MIGRATIONS_API_URL=__NEXT_PUBLIC_NHOST_HASURA_MIGRATIONS_API_URL__
       export NEXT_PUBLIC_NHOST_HASURA_API_URL=__NEXT_PUBLIC_NHOST_HASURA_API_URL__
       export NEXT_PUBLIC_NHOST_CONFIGSERVER_URL=__NEXT_PUBLIC_NHOST_CONFIGSERVER_URL__
+      export NEXT_PUBLIC_NHOST_APP_ID=__NEXT_PUBLIC_NHOST_APP_ID__
     '';
 
     buildPhase = ''
       cp -r ${node_modules}/node_modules/ node_modules
       cp -r ${node_modules}/dashboard/node_modules/ dashboard/node_modules
 
+      mkdir -p packages
       rm -rf packages/nhost-js
       cp -r ${self.packages.${pkgs.system}.nhost-js} packages/nhost-js
 
@@ -256,10 +348,11 @@ rec {
             "NEXT_PUBLIC_NHOST_HASURA_MIGRATIONS_API_URL=__NEXT_PUBLIC_NHOST_HASURA_MIGRATIONS_API_URL__"
             "NEXT_PUBLIC_NHOST_HASURA_API_URL=__NEXT_PUBLIC_NHOST_HASURA_API_URL__"
             "NEXT_PUBLIC_NHOST_CONFIGSERVER_URL=__NEXT_PUBLIC_NHOST_CONFIGSERVER_URL__"
+            "NEXT_PUBLIC_NHOST_APP_ID=__NEXT_PUBLIC_NHOST_APP_ID__"
           ];
           Entrypoint = [
             "${entrypoint}/bin/docker-entrypoint.sh"
-            "${pkgs.nodejs}/bin/node"
+            "${pkgs.nhost.nodejs}/bin/node"
             "/dashboard/server.js"
           ];
         };

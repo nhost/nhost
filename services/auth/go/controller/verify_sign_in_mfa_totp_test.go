@@ -16,7 +16,7 @@ import (
 	"go.uber.org/mock/gomock"
 )
 
-const encryptedTotpSecret = "fcceaa61a188729ca5e57108030cd5fde120365a986d3f4e1af1fafa598e8e99092128318cfb8fc1facbb870cbd2c90c5714b2914170bd69c868e906576f2a516da9e48c4237d87432342b6cf45392a2" //nolint:lll,gosec
+const encryptedTotpSecret = "fcceaa61a188729ca5e57108030cd5fde120365a986d3f4e1af1fafa598e8e99092128318cfb8fc1facbb870cbd2c90c5714b2914170bd69c868e906576f2a516da9e48c4237d87432342b6cf45392a2" //nolint:gosec
 
 func fakeNow(t time.Time) func() time.Time {
 	return func() time.Time {
@@ -25,7 +25,6 @@ func fakeNow(t time.Time) func() time.Time {
 }
 
 func getUserSigninMfaTotp(userID uuid.UUID) sql.AuthUser {
-	//nolint:exhaustruct
 	return sql.AuthUser{
 		ID: userID,
 		CreatedAt: pgtype.Timestamptz{
@@ -71,15 +70,15 @@ func TestVerifySignInMfaTotp(t *testing.T) { //nolint:maintidx
 				mock.EXPECT().GetUserRoles(
 					gomock.Any(), userID,
 				).Return([]sql.AuthUserRole{
-					{UserID: userID, Role: "user"}, //nolint:exhaustruct
-					{UserID: userID, Role: "me"},   //nolint:exhaustruct
+					{UserID: userID, Role: "user"},
+					{UserID: userID, Role: "me"},
 				}, nil)
 
 				mock.EXPECT().InsertRefreshtoken(
 					gomock.Any(),
 					cmpDBParams(sql.InsertRefreshtokenParams{
 						UserID:           userID,
-						RefreshTokenHash: pgtype.Text{}, //nolint:exhaustruct
+						RefreshTokenHash: pgtype.Text{},
 						ExpiresAt:        sql.TimestampTz(time.Now().Add(30 * 24 * time.Hour)),
 						Type:             sql.RefreshTokenTypeRegular,
 						Metadata:         nil,
@@ -228,7 +227,7 @@ func TestVerifySignInMfaTotp(t *testing.T) { //nolint:maintidx
 				mock.EXPECT().GetUserByTicket(
 					gomock.Any(),
 					sql.Text("mfaTotp:123456"),
-				).Return(sql.AuthUser{}, pgx.ErrNoRows) //nolint:exhaustruct
+				).Return(sql.AuthUser{}, pgx.ErrNoRows)
 
 				return mock
 			},

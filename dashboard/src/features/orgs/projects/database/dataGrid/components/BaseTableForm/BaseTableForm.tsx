@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react';
+import { type MouseEvent, useEffect, useState } from 'react';
 import { useFormContext, useFormState } from 'react-hook-form';
 import * as Yup from 'yup';
 import { useDialog } from '@/components/common/DialogProvider';
@@ -11,10 +11,18 @@ import {
   AccordionTrigger,
 } from '@/components/ui/v3/accordion';
 import { Button, ButtonWithLoading } from '@/components/ui/v3/button';
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from '@/components/ui/v3/select';
 import type {
   DatabaseTable,
   ForeignKeyRelation,
 } from '@/features/orgs/projects/database/dataGrid/types/dataBrowser';
+import { POSTGRESQL_MAX_IDENTIFIER_LENGTH } from '@/features/orgs/projects/database/dataGrid/utils/postgresqlConstants/postgresqlConstants';
 import type { DialogFormProps } from '@/types/common';
 import ColumnEditorTable from './ColumnEditorTable';
 import ForeignKeyEditorSection from './ForeignKeyEditorSection';
@@ -46,7 +54,7 @@ export interface BaseTableFormProps extends DialogFormProps {
   /**
    * Function to be called when the operation is cancelled.
    */
-  onCancel?: VoidFunction;
+  onCancel?: (event?: MouseEvent<HTMLButtonElement>) => void;
   /**
    * Submit button text.
    *
@@ -63,6 +71,15 @@ export interface BaseTableFormProps extends DialogFormProps {
    * Name of the table being edited.
    */
   tableName?: string;
+  /**
+   * When provided together with `onSchemaChange`, renders a schema selector
+   * alongside the table name so the user can pick the target schema.
+   */
+  availableSchemas?: string[];
+  /**
+   * Called when the user picks a new schema. Requires `availableSchemas`.
+   */
+  onSchemaChange?: (schema: string) => void;
 }
 
 export const baseColumnValidationSchema = Yup.object().shape({
@@ -75,6 +92,10 @@ export const baseColumnValidationSchema = Yup.object().shape({
     .matches(
       /^\w+$/i,
       'Column name must contain only letters, numbers, or underscores.',
+    )
+    .max(
+      POSTGRESQL_MAX_IDENTIFIER_LENGTH,
+      `Column name must be at most ${POSTGRESQL_MAX_IDENTIFIER_LENGTH} characters.`,
     ),
   type: Yup.string().required('This field is required.').nullable(),
 });
@@ -89,6 +110,10 @@ export const baseTableValidationSchema = Yup.object({
     .matches(
       /^\w+$/i,
       'Table name must contain only letters, numbers, or underscores.',
+    )
+    .max(
+      POSTGRESQL_MAX_IDENTIFIER_LENGTH,
+      `Table name must be at most ${POSTGRESQL_MAX_IDENTIFIER_LENGTH} characters.`,
     ),
   columns: Yup.array()
     .of(baseColumnValidationSchema)
@@ -122,6 +147,8 @@ function NameInput() {
   );
 }
 
+const DIRTY_SOURCE_ID = 'base-table-form';
+
 const ACCORDION_SECTION_VALUES = [
   'columns',
   'foreignKeys',
@@ -133,24 +160,15 @@ const ACCORDION_SECTION_VALUES = [
 function FormFooter({
   onCancel,
   submitButtonText,
-  location,
   onSubmitClick,
-}: Pick<BaseTableFormProps, 'onCancel' | 'submitButtonText'> &
-  Pick<DialogFormProps, 'location'> & { onSubmitClick?: VoidFunction }) {
-  const { onDirtyStateChange } = useDialog();
-  const { isSubmitting, dirtyFields } = useFormState();
-
-  // react-hook-form's isDirty gets true even if an input field is focused, then
-  // immediately unfocused - we can't rely on that information
-  const isDirty = Object.keys(dirtyFields).length > 0;
-
-  useEffect(() => {
-    onDirtyStateChange(isDirty, location);
-  }, [isDirty, location, onDirtyStateChange]);
+}: Pick<BaseTableFormProps, 'onCancel' | 'submitButtonText'> & {
+  onSubmitClick?: VoidFunction;
+}) {
+  const { isSubmitting } = useFormState();
 
   return (
     <div className="box grid flex-shrink-0 grid-flow-col justify-between gap-3 border-t-1 p-2">
-      <Button variant="ghost" onClick={onCancel} tabIndex={isDirty ? -1 : 0}>
+      <Button type="button" variant="ghost" onClick={onCancel}>
         Cancel
       </Button>
 
@@ -174,11 +192,30 @@ export default function BaseTableForm({
   submitButtonText = 'Save',
   schema,
   tableName,
+  availableSchemas,
+  onSchemaChange,
 }: BaseTableFormProps) {
   const [openSections, setOpenSections] = useState<string[]>([
     'columns',
     'foreignKeys',
   ]);
+  const { setDirtySource } = useDialog();
+  const { subscribe } = useFormContext();
+
+  useEffect(() => {
+    const unsubscribe = subscribe({
+      formState: { isDirty: true },
+      callback: ({ isDirty }) => {
+        setDirtySource(DIRTY_SOURCE_ID, Boolean(isDirty), location);
+      },
+    });
+    return () => {
+      unsubscribe();
+    };
+  }, [subscribe, setDirtySource, location]);
+
+  const showSchemaPicker =
+    !!onSchemaChange && !!availableSchemas && availableSchemas.length > 0;
 
   return (
     <Form
@@ -186,6 +223,27 @@ export default function BaseTableForm({
       className="flex flex-auto flex-col content-between overflow-hidden border-t-1"
     >
       <div className="flex-auto overflow-y-auto pb-4">
+        {showSchemaPicker && (
+          <section className="grid grid-cols-8 items-center gap-2 px-6 py-3">
+            <label htmlFor="schema" className="col-span-2 font-medium text-sm">
+              Schema
+            </label>
+            <div className="col-span-6">
+              <Select value={schema ?? ''} onValueChange={onSchemaChange}>
+                <SelectTrigger id="schema" className="h-10 w-full">
+                  <SelectValue placeholder="Select schema" />
+                </SelectTrigger>
+                <SelectContent>
+                  {availableSchemas?.map((s) => (
+                    <SelectItem key={s} value={s}>
+                      {s}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </div>
+          </section>
+        )}
         <section className="grid grid-cols-8 px-6 py-3">
           <NameInput />
         </section>
@@ -227,7 +285,6 @@ export default function BaseTableForm({
       <FormFooter
         onCancel={onCancel}
         submitButtonText={submitButtonText}
-        location={location}
         onSubmitClick={() => setOpenSections([...ACCORDION_SECTION_VALUES])}
       />
     </Form>

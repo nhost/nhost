@@ -1,11 +1,8 @@
 import type { ApolloError } from '@apollo/client';
+import { ChevronDownIcon, ChevronUpIcon, CopyIcon, XIcon } from 'lucide-react';
 import { useRouter } from 'next/router';
 import { useState } from 'react';
 import { toast } from 'react-hot-toast';
-import { ChevronDownIcon } from '@/components/ui/v2/icons/ChevronDownIcon';
-import { ChevronUpIcon } from '@/components/ui/v2/icons/ChevronUpIcon';
-import { CopyIcon } from '@/components/ui/v2/icons/CopyIcon';
-import { XIcon } from '@/components/ui/v2/icons/XIcon';
 import { useProject } from '@/features/orgs/projects/hooks/useProject';
 import { useUserData } from '@/hooks/useUserData';
 import { copy } from '@/utils/copy';

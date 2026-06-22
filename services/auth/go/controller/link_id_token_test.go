@@ -111,32 +111,32 @@ func TestLinkIdToken(t *testing.T) { //nolint:maintidx
 					userID,
 				).Return(sql.AuthUser{
 					ID: userID,
-					CreatedAt: pgtype.Timestamptz{ //nolint:exhaustruct
+					CreatedAt: pgtype.Timestamptz{
 						Time: time.Now(),
 					},
-					UpdatedAt:   pgtype.Timestamptz{}, //nolint:exhaustruct
-					LastSeen:    pgtype.Timestamptz{}, //nolint:exhaustruct
+					UpdatedAt:   pgtype.Timestamptz{},
+					LastSeen:    pgtype.Timestamptz{},
 					Disabled:    false,
 					DisplayName: "John",
 					AvatarUrl:   "",
 					Locale:      "en",
 					Email:       sql.Text("fake@gmail.com"),
-					PhoneNumber: pgtype.Text{}, //nolint:exhaustruct
+					PhoneNumber: pgtype.Text{},
 					PasswordHash: sql.Text(
 						"$2a$10$pyv7eu9ioQcFnLSz7u/enex22P3ORdh6z6116Vj5a3vSjo0oxFa1u",
 					),
 					EmailVerified:            true,
 					PhoneNumberVerified:      false,
-					NewEmail:                 pgtype.Text{},        //nolint:exhaustruct
-					OtpMethodLastUsed:        pgtype.Text{},        //nolint:exhaustruct
-					OtpHash:                  pgtype.Text{},        //nolint:exhaustruct
-					OtpHashExpiresAt:         pgtype.Timestamptz{}, //nolint:exhaustruct
+					NewEmail:                 pgtype.Text{},
+					OtpMethodLastUsed:        pgtype.Text{},
+					OtpHash:                  pgtype.Text{},
+					OtpHashExpiresAt:         pgtype.Timestamptz{},
 					DefaultRole:              "user",
 					IsAnonymous:              false,
-					TotpSecret:               pgtype.Text{},        //nolint:exhaustruct
-					ActiveMfaType:            pgtype.Text{},        //nolint:exhaustruct
-					Ticket:                   pgtype.Text{},        //nolint:exhaustruct
-					TicketExpiresAt:          pgtype.Timestamptz{}, //nolint:exhaustruct
+					TotpSecret:               pgtype.Text{},
+					ActiveMfaType:            pgtype.Text{},
+					Ticket:                   pgtype.Text{},
+					TicketExpiresAt:          pgtype.Timestamptz{},
 					Metadata:                 []byte{},
 					WebauthnCurrentChallenge: pgtype.Text{}, //nolint:exhaustruct
 					NewPhoneNumber:           pgtype.Text{}, //nolint:exhaustruct
@@ -152,11 +152,11 @@ func TestLinkIdToken(t *testing.T) { //nolint:maintidx
 				).Return(
 					sql.AuthUserProvider{
 						ID:             userID,
-						CreatedAt:      pgtype.Timestamptz{}, //nolint:exhaustruct
-						UpdatedAt:      pgtype.Timestamptz{}, //nolint:exhaustruct
+						CreatedAt:      pgtype.Timestamptz{},
+						UpdatedAt:      pgtype.Timestamptz{},
 						UserID:         userID,
 						AccessToken:    "unset",
-						RefreshToken:   pgtype.Text{}, //nolint:exhaustruct
+						RefreshToken:   pgtype.Text{},
 						ProviderID:     "fake",
 						ProviderUserID: "106964149809169421082",
 					}, nil,
@@ -194,32 +194,32 @@ func TestLinkIdToken(t *testing.T) { //nolint:maintidx
 					userID,
 				).Return(sql.AuthUser{
 					ID: userID,
-					CreatedAt: pgtype.Timestamptz{ //nolint:exhaustruct
+					CreatedAt: pgtype.Timestamptz{
 						Time: time.Now(),
 					},
-					UpdatedAt:   pgtype.Timestamptz{}, //nolint:exhaustruct
-					LastSeen:    pgtype.Timestamptz{}, //nolint:exhaustruct
+					UpdatedAt:   pgtype.Timestamptz{},
+					LastSeen:    pgtype.Timestamptz{},
 					Disabled:    false,
 					DisplayName: "John",
 					AvatarUrl:   "",
 					Locale:      "en",
 					Email:       sql.Text("fake@gmail.com"),
-					PhoneNumber: pgtype.Text{}, //nolint:exhaustruct
+					PhoneNumber: pgtype.Text{},
 					PasswordHash: sql.Text(
 						"$2a$10$pyv7eu9ioQcFnLSz7u/enex22P3ORdh6z6116Vj5a3vSjo0oxFa1u",
 					),
 					EmailVerified:            true,
 					PhoneNumberVerified:      false,
-					NewEmail:                 pgtype.Text{},        //nolint:exhaustruct
-					OtpMethodLastUsed:        pgtype.Text{},        //nolint:exhaustruct
-					OtpHash:                  pgtype.Text{},        //nolint:exhaustruct
-					OtpHashExpiresAt:         pgtype.Timestamptz{}, //nolint:exhaustruct
+					NewEmail:                 pgtype.Text{},
+					OtpMethodLastUsed:        pgtype.Text{},
+					OtpHash:                  pgtype.Text{},
+					OtpHashExpiresAt:         pgtype.Timestamptz{},
 					DefaultRole:              "user",
 					IsAnonymous:              false,
-					TotpSecret:               pgtype.Text{},        //nolint:exhaustruct
-					ActiveMfaType:            pgtype.Text{},        //nolint:exhaustruct
-					Ticket:                   pgtype.Text{},        //nolint:exhaustruct
-					TicketExpiresAt:          pgtype.Timestamptz{}, //nolint:exhaustruct
+					TotpSecret:               pgtype.Text{},
+					ActiveMfaType:            pgtype.Text{},
+					Ticket:                   pgtype.Text{},
+					TicketExpiresAt:          pgtype.Timestamptz{},
 					Metadata:                 []byte{},
 					WebauthnCurrentChallenge: pgtype.Text{}, //nolint:exhaustruct
 					NewPhoneNumber:           pgtype.Text{}, //nolint:exhaustruct
@@ -235,11 +235,11 @@ func TestLinkIdToken(t *testing.T) { //nolint:maintidx
 				).Return(
 					sql.AuthUserProvider{
 						ID:             userID,
-						CreatedAt:      pgtype.Timestamptz{}, //nolint:exhaustruct
-						UpdatedAt:      pgtype.Timestamptz{}, //nolint:exhaustruct
+						CreatedAt:      pgtype.Timestamptz{},
+						UpdatedAt:      pgtype.Timestamptz{},
 						UserID:         userID,
 						AccessToken:    "unset",
-						RefreshToken:   pgtype.Text{}, //nolint:exhaustruct
+						RefreshToken:   pgtype.Text{},
 						ProviderID:     "fake",
 						ProviderUserID: "106964149809169421082",
 					}, nil,
@@ -273,32 +273,32 @@ func TestLinkIdToken(t *testing.T) { //nolint:maintidx
 					userID,
 				).Return(sql.AuthUser{
 					ID: userID,
-					CreatedAt: pgtype.Timestamptz{ //nolint:exhaustruct
+					CreatedAt: pgtype.Timestamptz{
 						Time: time.Now(),
 					},
-					UpdatedAt:   pgtype.Timestamptz{}, //nolint:exhaustruct
-					LastSeen:    pgtype.Timestamptz{}, //nolint:exhaustruct
+					UpdatedAt:   pgtype.Timestamptz{},
+					LastSeen:    pgtype.Timestamptz{},
 					Disabled:    true,
 					DisplayName: "John",
 					AvatarUrl:   "",
 					Locale:      "en",
 					Email:       sql.Text("fake@gmail.com"),
-					PhoneNumber: pgtype.Text{}, //nolint:exhaustruct
+					PhoneNumber: pgtype.Text{},
 					PasswordHash: sql.Text(
 						"$2a$10$pyv7eu9ioQcFnLSz7u/enex22P3ORdh6z6116Vj5a3vSjo0oxFa1u",
 					),
 					EmailVerified:            true,
 					PhoneNumberVerified:      false,
-					NewEmail:                 pgtype.Text{},        //nolint:exhaustruct
-					OtpMethodLastUsed:        pgtype.Text{},        //nolint:exhaustruct
-					OtpHash:                  pgtype.Text{},        //nolint:exhaustruct
-					OtpHashExpiresAt:         pgtype.Timestamptz{}, //nolint:exhaustruct
+					NewEmail:                 pgtype.Text{},
+					OtpMethodLastUsed:        pgtype.Text{},
+					OtpHash:                  pgtype.Text{},
+					OtpHashExpiresAt:         pgtype.Timestamptz{},
 					DefaultRole:              "user",
 					IsAnonymous:              false,
-					TotpSecret:               pgtype.Text{},        //nolint:exhaustruct
-					ActiveMfaType:            pgtype.Text{},        //nolint:exhaustruct
-					Ticket:                   pgtype.Text{},        //nolint:exhaustruct
-					TicketExpiresAt:          pgtype.Timestamptz{}, //nolint:exhaustruct
+					TotpSecret:               pgtype.Text{},
+					ActiveMfaType:            pgtype.Text{},
+					Ticket:                   pgtype.Text{},
+					TicketExpiresAt:          pgtype.Timestamptz{},
 					Metadata:                 []byte{},
 					WebauthnCurrentChallenge: pgtype.Text{}, //nolint:exhaustruct
 					NewPhoneNumber:           pgtype.Text{}, //nolint:exhaustruct
@@ -334,7 +334,7 @@ func TestLinkIdToken(t *testing.T) { //nolint:maintidx
 				mock.EXPECT().GetUser(
 					gomock.Any(),
 					userID,
-				).Return(sql.AuthUser{}, pgx.ErrNoRows) //nolint:exhaustruct
+				).Return(sql.AuthUser{}, pgx.ErrNoRows)
 
 				return mock
 			},
@@ -368,32 +368,32 @@ func TestLinkIdToken(t *testing.T) { //nolint:maintidx
 					userID,
 				).Return(sql.AuthUser{
 					ID: userID,
-					CreatedAt: pgtype.Timestamptz{ //nolint:exhaustruct
+					CreatedAt: pgtype.Timestamptz{
 						Time: time.Now(),
 					},
-					UpdatedAt:   pgtype.Timestamptz{}, //nolint:exhaustruct
-					LastSeen:    pgtype.Timestamptz{}, //nolint:exhaustruct
+					UpdatedAt:   pgtype.Timestamptz{},
+					LastSeen:    pgtype.Timestamptz{},
 					Disabled:    false,
 					DisplayName: "John",
 					AvatarUrl:   "",
 					Locale:      "en",
 					Email:       sql.Text("fake@gmail.com"),
-					PhoneNumber: pgtype.Text{}, //nolint:exhaustruct
+					PhoneNumber: pgtype.Text{},
 					PasswordHash: sql.Text(
 						"$2a$10$pyv7eu9ioQcFnLSz7u/enex22P3ORdh6z6116Vj5a3vSjo0oxFa1u",
 					),
 					EmailVerified:            true,
 					PhoneNumberVerified:      false,
-					NewEmail:                 pgtype.Text{},        //nolint:exhaustruct
-					OtpMethodLastUsed:        pgtype.Text{},        //nolint:exhaustruct
-					OtpHash:                  pgtype.Text{},        //nolint:exhaustruct
-					OtpHashExpiresAt:         pgtype.Timestamptz{}, //nolint:exhaustruct
+					NewEmail:                 pgtype.Text{},
+					OtpMethodLastUsed:        pgtype.Text{},
+					OtpHash:                  pgtype.Text{},
+					OtpHashExpiresAt:         pgtype.Timestamptz{},
 					DefaultRole:              "user",
 					IsAnonymous:              false,
-					TotpSecret:               pgtype.Text{},        //nolint:exhaustruct
-					ActiveMfaType:            pgtype.Text{},        //nolint:exhaustruct
-					Ticket:                   pgtype.Text{},        //nolint:exhaustruct
-					TicketExpiresAt:          pgtype.Timestamptz{}, //nolint:exhaustruct
+					TotpSecret:               pgtype.Text{},
+					ActiveMfaType:            pgtype.Text{},
+					Ticket:                   pgtype.Text{},
+					TicketExpiresAt:          pgtype.Timestamptz{},
 					Metadata:                 []byte{},
 					WebauthnCurrentChallenge: pgtype.Text{}, //nolint:exhaustruct
 					NewPhoneNumber:           pgtype.Text{}, //nolint:exhaustruct
@@ -407,8 +407,8 @@ func TestLinkIdToken(t *testing.T) { //nolint:maintidx
 						ProviderUserID: "106964149809169421082",
 					},
 				).Return(
-					sql.AuthUserProvider{}, //nolint:exhaustruct
-					errors.New(`ERROR: duplicate key value violates unique constraint "user_providers_provider_id_provider_user_id_key" (SQLSTATE 23505)`), //nolint:err113,lll
+					sql.AuthUserProvider{},
+					errors.New(`ERROR: duplicate key value violates unique constraint "user_providers_provider_id_provider_user_id_key" (SQLSTATE 23505)`), //nolint:err113
 				)
 
 				return mock
