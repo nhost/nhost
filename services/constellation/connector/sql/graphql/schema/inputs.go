@@ -59,13 +59,13 @@ func comparisonOperatorType(op, scalarType string, caps Capabilities) *graph.Typ
 
 func generateCastExp(scalarType string, caps Capabilities) *graph.InputObjectType {
 	switch scalarType {
-	case "jsonb":
+	case scalarJSONB:
 		if !caps.SupportsJSONB {
 			return nil
 		}
 
 		return &graph.InputObjectType{ //nolint:exhaustruct
-			Name: caps.castExpName("jsonb"),
+			Name: caps.castExpName(scalarJSONB),
 			Fields: []*graph.InputField{
 				{
 					Name: "String",
@@ -161,7 +161,7 @@ func getComparisonOperators(scalarType string, caps Capabilities) []string {
 			"_like", "_lt", "_lte", "_neq", "_nilike", "_nin", "_niregex",
 			"_nlike", "_nregex", "_nsimilar", "_regex", "_similar",
 		}
-	case "jsonb": //nolint:goconst,nolintlint // scalar name literal is clearer than a package-wide constant here.
+	case scalarJSONB:
 		if !caps.SupportsJSONB {
 			return []string{"_eq", "_gt", "_gte", "_in", "_is_null", "_lt", "_lte", "_neq", "_nin"}
 		}

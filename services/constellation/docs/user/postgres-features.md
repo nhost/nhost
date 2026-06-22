@@ -287,11 +287,11 @@ Each tracked table produces (names overridable):
 ### Update operators
 
 | Operator          | Applies to      | Notes                                                    |
-| ----------------- | --------------- | -------------------------------------------------------- | --- | --------- |
+| ----------------- | --------------- | -------------------------------------------------------- |
 | `_set`            | any column      | Always available                                         |
 | `_inc`            | numeric columns | Generated when at least one column reports `SupportsInc` |
-| `_append`         | JSONB columns   | Postgres-only; `                                         |     | ` append  |
-| `_prepend`        | JSONB columns   | Postgres-only; `                                         |     | ` prepend |
+| `_append`         | JSONB columns   | Postgres-only; `\|\|` append                             |
+| `_prepend`        | JSONB columns   | Postgres-only; `\|\|` prepend                            |
 | `_delete_key`     | JSONB columns   | Postgres-only; `- text`                                  |
 | `_delete_elem`    | JSONB columns   | Postgres-only; `- int`                                   |
 | `_delete_at_path` | JSONB columns   | Postgres-only; `#- text[]`                               |

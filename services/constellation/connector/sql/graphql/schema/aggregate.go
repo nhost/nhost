@@ -49,7 +49,7 @@ func generateAggregateTypes(
 
 	// hasMaxFields/hasMinFields drive optional emission in generateAggregateFieldsType below.
 	hasMaxFields, hasMinFields := generateMinMaxFieldsTypes(
-		schema, tableMeta, tableInfo, customTableName, allowedColumns, md, caps,
+		schema, tableMeta, tableInfo, customTableName, allowedColumns, md,
 	)
 
 	hasNumeric := hasNumericColumns(tableInfo, allowedColumns)
@@ -228,7 +228,6 @@ func generateMinMaxFieldsTypes(
 	customTableName string,
 	allowedColumns map[string]struct{},
 	md *metadata.DatabaseMetadata,
-	caps Capabilities,
 ) (bool, bool) {
 	maxFields := []*graph.Field{}
 	for _, col := range tableInfo.Columns {
@@ -241,7 +240,7 @@ func generateMinMaxFieldsTypes(
 			continue
 		}
 
-		if !supportsMinMaxAggregate(col, caps) {
+		if !supportsMinMaxAggregate(col) {
 			continue
 		}
 
@@ -272,7 +271,7 @@ func generateMinMaxFieldsTypes(
 			continue
 		}
 
-		if !supportsMinMaxAggregate(col, caps) {
+		if !supportsMinMaxAggregate(col) {
 			continue
 		}
 
@@ -294,7 +293,7 @@ func generateMinMaxFieldsTypes(
 	return len(maxFields) > 0, len(minFields) > 0
 }
 
-func supportsMinMaxAggregate(col introspection.Column, _ Capabilities) bool {
+func supportsMinMaxAggregate(col introspection.Column) bool {
 	if pgtypes.IsSpatial(col.Type) {
 		return false
 	}
@@ -419,7 +418,7 @@ func generateAggregateOrderByTypes( //nolint:funlen
 			continue
 		}
 
-		if !supportsMinMaxAggregate(col, caps) {
+		if !supportsMinMaxAggregate(col) {
 			continue
 		}
 
@@ -449,7 +448,7 @@ func generateAggregateOrderByTypes( //nolint:funlen
 			continue
 		}
 
-		if !supportsMinMaxAggregate(col, caps) {
+		if !supportsMinMaxAggregate(col) {
 			continue
 		}
 
