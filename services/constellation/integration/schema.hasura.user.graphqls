@@ -2161,6 +2161,19 @@ type mutation_root {
   """
   delete_news_by_pk(id: uuid!): news
   """
+  delete data from the table: "postgis_locations"
+  """
+  delete_postgis_locations(
+    """
+    filter the rows which have to be deleted
+    """
+    where: postgis_locations_bool_exp!
+  ): postgis_locations_mutation_response
+  """
+  delete single row from the table: "postgis_locations"
+  """
+  delete_postgis_locations_by_pk(id: uuid!): postgis_locations
+  """
   delete data from the table: "user_departments"
   """
   delete_user_departments(
