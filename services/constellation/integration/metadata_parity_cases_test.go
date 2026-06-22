@@ -327,9 +327,8 @@ func TestMetadataParity(t *testing.T) {
 		// invalidity surfaces only at schema build / reconcile). See
 		// KNOWN_DIFFERENCES.md "Op-time validation is deferred".
 		{
-			name:                "pg_set_table_is_enum_invalid_shape",
-			op:                  `{"type":"pg_set_table_is_enum","args":{"source":"default","table":` + dept + `,"is_enum":true}}`,
-			wantConstellationOK: true,
+			name: "pg_set_table_is_enum_invalid_shape",
+			op:   `{"type":"pg_set_table_is_enum","args":{"source":"default","table":` + dept + `,"is_enum":true}}`,
 			knownDivergence: "Hasura rejects a non-enum-shaped table with invalid-configuration at op time; " +
 				"Constellation defers structural validation to schema build (see KNOWN_DIFFERENCES.md)",
 		},
@@ -342,7 +341,6 @@ func TestMetadataParity(t *testing.T) {
 			op: `{"type":"pg_create_object_relationship","args":{"source":"default",` +
 				`"table":` + dept + `,"name":"parity_bad_rel",` +
 				`"using":{"foreign_key_constraint_on":"description"}}}`,
-			wantConstellationOK: true,
 			knownDivergence: "Hasura rejects a relationship on a non-FK column with invalid-configuration at " +
 				"op time; Constellation defers FK validation to schema build (see KNOWN_DIFFERENCES.md)",
 		},
