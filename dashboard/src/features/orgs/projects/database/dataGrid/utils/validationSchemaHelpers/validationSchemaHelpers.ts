@@ -1,5 +1,6 @@
 import * as yup from 'yup';
 import type { DataBrowserColumnMetadata } from '@/features/orgs/projects/database/dataGrid/types/dataBrowser/dataBrowser';
+import { POSTGRES_DEFAULT_PLACEHOLDER } from '@/features/orgs/projects/database/dataGrid/utils/postgresDefaultPlaceholder';
 
 export interface ColumnDetails {
   isNullable: boolean;
@@ -11,7 +12,7 @@ function createGenericValidationSchema<T extends yup.Schema>(
   genericSchema: T,
   { isNullable, hasDefaultValue, isIdentity }: ColumnDetails,
 ): T {
-  const schema = genericSchema.transform((value) => value || null);
+  const schema = genericSchema.transform((value) => value ?? null);
 
   if (hasDefaultValue || isIdentity) {
     return schema.optional().nullable();
@@ -34,8 +35,12 @@ function createJSONValidationSchema(details: ColumnDetails) {
   const jsonSchema = yup
     .string()
     .test('is-json', 'This is not a valid JSON.', (value) => {
+      if (!value || value === POSTGRES_DEFAULT_PLACEHOLDER) {
+        return true;
+      }
+
       try {
-        JSON.parse(value as string);
+        JSON.parse(value);
 
         return true;
       } catch {
@@ -109,10 +114,14 @@ export function createDynamicValidationSchema(
         [column.id]: createUUIDValidationSchema(details),
       };
     }
-    if (
-      column.type === 'date' &&
-      ['time', 'timetz', 'interval'].includes(column.specificType)
-    ) {
+    const isTimeOrIntervalType =
+      column.specificType &&
+      (['time', 'timetz', 'interval'].includes(column.specificType) ||
+        (column.specificType.includes('time') &&
+          !column.specificType.includes('timestamp')) ||
+        column.specificType.includes('interval'));
+
+    if (column.type === 'date' && isTimeOrIntervalType) {
       return {
         ...currentSchema,
         [column.id]: createTextValidationSchema(details).matches(

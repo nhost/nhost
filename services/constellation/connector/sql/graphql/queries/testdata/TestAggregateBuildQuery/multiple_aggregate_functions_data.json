@@ -1,0 +1,39 @@
+[
+  [
+    {
+      "aggregate": {
+        "variance": {
+          "budget": 154273655555.55554
+        },
+        "var_pop": {
+          "budget": 138846290000
+        },
+        "var_samp": {
+          "budget": 154273655555.55554
+        },
+        "avg": {
+          "budget": 343100
+        },
+        "min": {
+          "budget": 1000
+        },
+        "stddev": {
+          "budget": 392776.85211269
+        },
+        "stddev_pop": {
+          "budget": 372620.83946017
+        },
+        "stddev_samp": {
+          "budget": 392776.85211269
+        },
+        "count": 10,
+        "sum": {
+          "budget": 3431000
+        },
+        "max": {
+          "budget": 1200000
+        }
+      }
+    }
+  ]
+]

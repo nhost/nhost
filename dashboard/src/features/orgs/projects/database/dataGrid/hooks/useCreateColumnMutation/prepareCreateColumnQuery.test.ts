@@ -1,8 +1,7 @@
-import { expect, test } from 'vitest';
 import type { DatabaseColumn } from '@/features/orgs/projects/database/dataGrid/types/dataBrowser';
 import prepareCreateColumnQuery from './prepareCreateColumnQuery';
 
-test('should prepare one query for a simple column', () => {
+it('should prepare one query for a simple column', () => {
   const column: DatabaseColumn = {
     name: 'test_column',
     type: 'text',
@@ -21,7 +20,47 @@ test('should prepare one query for a simple column', () => {
   );
 });
 
-test('should prepare a minimum of two queries for a column with a comment', () => {
+it('should emit the default value verbatim for an empty-string default', () => {
+  const column: DatabaseColumn = {
+    name: 'test_column',
+    type: 'text',
+    defaultValue: "''",
+  };
+
+  const transaction = prepareCreateColumnQuery({
+    dataSource: 'default',
+    schema: 'public',
+    table: 'test_table',
+    column,
+  });
+
+  expect(transaction).toHaveLength(1);
+  expect(transaction[0].args.sql).toBe(
+    "ALTER TABLE public.test_table ADD test_column text DEFAULT '' NOT NULL;",
+  );
+});
+
+it('should emit a function default verbatim', () => {
+  const column: DatabaseColumn = {
+    name: 'test_column',
+    type: 'uuid',
+    defaultValue: 'gen_random_uuid()',
+  };
+
+  const transaction = prepareCreateColumnQuery({
+    dataSource: 'default',
+    schema: 'public',
+    table: 'test_table',
+    column,
+  });
+
+  expect(transaction).toHaveLength(1);
+  expect(transaction[0].args.sql).toBe(
+    'ALTER TABLE public.test_table ADD test_column uuid DEFAULT gen_random_uuid() NOT NULL;',
+  );
+});
+
+it('should prepare a minimum of two queries for a column with a comment', () => {
   const column: DatabaseColumn = {
     name: 'test_column',
     type: 'text',
@@ -44,7 +83,7 @@ test('should prepare a minimum of two queries for a column with a comment', () =
   );
 });
 
-test('should not prepare an identity query if column is not of the right type', () => {
+it('should not prepare an identity query if column is not of the right type', () => {
   // Note that `text` columns can't be identity columns.
   const column: DatabaseColumn = {
     name: 'test_column',
@@ -65,7 +104,7 @@ test('should not prepare an identity query if column is not of the right type', 
   );
 });
 
-test('should prepare a minimum of two queries for an identity column', () => {
+it('should prepare a minimum of two queries for an identity column', () => {
   const column: DatabaseColumn = {
     name: 'test_column',
     type: 'int4',
@@ -88,7 +127,7 @@ test('should prepare a minimum of two queries for an identity column', () => {
   );
 });
 
-test('should prepare a minimum of two queries for a column that has a foreign key relation', () => {
+it('should prepare a minimum of two queries for a column that has a foreign key relation', () => {
   const column: DatabaseColumn = {
     name: 'test_column',
     type: 'int4',
@@ -119,7 +158,7 @@ test('should prepare a minimum of two queries for a column that has a foreign ke
   );
 });
 
-test(`should not prepare a query for the foreign key relation if generator is disabled`, () => {
+it(`should not prepare a query for the foreign key relation if generator is disabled`, () => {
   const column: DatabaseColumn = {
     name: 'test_column',
     type: 'int4',

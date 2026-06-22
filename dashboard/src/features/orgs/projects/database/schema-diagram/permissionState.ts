@@ -4,6 +4,10 @@ import type {
   HasuraMetadataPermission,
   HasuraMetadataTable,
 } from '@/features/orgs/projects/database/dataGrid/types/dataBrowser';
+import {
+  getFunctionPermissionState,
+  type PermissionState,
+} from '@/features/orgs/projects/database/dataGrid/utils/getFunctionPermissionState';
 
 export const ADMIN_ROLE = 'admin';
 export const PUBLIC_ROLE = 'public';
@@ -106,6 +110,72 @@ export function getColumnPermissionState(
   return tableState;
 }
 
+export function getComputedFieldPermissionState(
+  table: HasuraMetadataTable | undefined,
+  role: string,
+  fieldName: string,
+): PermissionDotState {
+  const tableState = getTablePermissionState(table, role, 'select');
+
+  if (tableState === 'none') {
+    return 'none';
+  }
+
+  if (role === ADMIN_ROLE) {
+    return tableState;
+  }
+
+  const permission = findPermission(table, role, 'select');
+  const allowedFields = permission?.computed_fields ?? [];
+
+  if (!allowedFields.includes(fieldName)) {
+    return 'none';
+  }
+
+  return tableState;
+}
+
+export function isOperationAllowed(
+  table: HasuraMetadataTable | undefined,
+  role: string,
+  action: DatabaseAction,
+  operationKey: string,
+): boolean {
+  if (role === ADMIN_ROLE) {
+    return true;
+  }
+
+  const permission = findPermission(table, role, action);
+  if (!permission) {
+    return false;
+  }
+
+  // Root-field restrictions apply only to select; insert/update/delete are
+  // all-or-nothing at the action level.
+  if (action !== 'select') {
+    return true;
+  }
+
+  // select_aggregate also requires allow_aggregations to be true.
+  if (operationKey === 'select_aggregate' && !permission.allow_aggregations) {
+    return false;
+  }
+
+  const queryFields = permission.query_root_fields;
+  const subscriptionFields = permission.subscription_root_fields;
+
+  // select_stream is only a subscription root field; query_root_fields never
+  // exposes it.
+  const allowedAsQuery =
+    operationKey === 'select_stream'
+      ? false
+      : queryFields == null || queryFields.includes(operationKey);
+  const allowedAsSubscription =
+    subscriptionFields == null || subscriptionFields.includes(operationKey);
+
+  return allowedAsQuery || allowedAsSubscription;
+}
+
 export function tableHasAnyPermission(
   table: HasuraMetadataTable | undefined,
   role: string,
@@ -117,4 +187,43 @@ export function tableHasAnyPermission(
   return DATABASE_ACTIONS.some(
     (action) => getTablePermissionState(table, role, action) !== 'none',
   );
+}
+
+const FUNCTION_STATE_TO_DOT: Record<PermissionState, PermissionDotState> = {
+  allowed: 'filled',
+  partial: 'hollow',
+  'not-allowed': 'none',
+};
+
+export interface FunctionPermissionDotInput {
+  role: string;
+  inferFunctionPermissions: boolean;
+  isMutationFunction: boolean;
+  hasSelectPermission: boolean;
+  hasFunctionPermission: boolean;
+}
+
+export interface FunctionPermissionDotResult {
+  state: PermissionState;
+  dot: PermissionDotState;
+}
+
+export function getFunctionPermissionDotState({
+  role,
+  inferFunctionPermissions,
+  isMutationFunction,
+  hasSelectPermission,
+  hasFunctionPermission,
+}: FunctionPermissionDotInput): FunctionPermissionDotResult {
+  const state: PermissionState =
+    role === ADMIN_ROLE
+      ? 'allowed'
+      : getFunctionPermissionState({
+          inferFunctionPermissions,
+          isMutationFunction,
+          hasSelectPermission,
+          hasFunctionPermission,
+        });
+
+  return { state, dot: FUNCTION_STATE_TO_DOT[state] };
 }

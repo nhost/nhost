@@ -57,7 +57,7 @@ func TestRequests(t *testing.T) {
 			},
 			body:             strings.NewReader(`{"email": "asd@asd.com", "password": "p4ssw0rd"}`),
 			expectedStatus:   http.StatusOK,
-			expectedResponse: "{\"session\":{\"accessToken\":\"access_token_example\",\"accessTokenExpiresIn\":900,\"refreshToken\":\"refresh_token_example\",\"refreshTokenId\":\"refresh_token_id_example\"}}\n", //nolint:lll
+			expectedResponse: "{\"session\":{\"accessToken\":\"access_token_example\",\"accessTokenExpiresIn\":900,\"refreshToken\":\"refresh_token_example\",\"refreshTokenId\":\"refresh_token_id_example\"}}\n",
 		},
 
 		{
@@ -71,7 +71,7 @@ func TestRequests(t *testing.T) {
 				`{"email": "bad@email.com", "password": "p4ssw0rd"}`,
 			),
 			expectedStatus:   http.StatusConflict,
-			expectedResponse: "{\"error\":\"disabled-user\",\"message\":\"The user account is disabled.\",\"status\":409}\n", //nolint:lll
+			expectedResponse: "{\"error\":\"disabled-user\",\"message\":\"The user account is disabled.\",\"status\":409}\n",
 		},
 
 		{
@@ -85,7 +85,7 @@ func TestRequests(t *testing.T) {
 				`{"email": "crash@email.com", "password": "p4ssw0rd"}`,
 			),
 			expectedStatus:   http.StatusInternalServerError,
-			expectedResponse: `{"errors":"internal-server-error","message":"simulated server crash"}`,
+			expectedResponse: `{"error":"internal-server-error","message":"simulated server crash"}`,
 		},
 
 		{
@@ -97,7 +97,7 @@ func TestRequests(t *testing.T) {
 			},
 			body:             nil,
 			expectedStatus:   http.StatusBadRequest,
-			expectedResponse: `{"error":"request-validation-error","reason":"value is required but missing"}`,
+			expectedResponse: `{"error":"request-validation-error","reason":"request body has an error: value is required but missing"}`,
 		},
 
 		{
@@ -135,7 +135,7 @@ func TestRequests(t *testing.T) {
 			},
 			body:             strings.NewReader(`{"email": "asdasd.com", "password": "p4ssw0rd"}`),
 			expectedStatus:   http.StatusBadRequest,
-			expectedResponse: `{"errors":"bad-request","message":"email: failed to pass regex validation"}`,
+			expectedResponse: `{"error":"bad-request","message":"email: failed to pass regex validation"}`,
 		},
 
 		{
@@ -147,7 +147,7 @@ func TestRequests(t *testing.T) {
 			},
 			body:             strings.NewReader(`{"newEmail": "new@asd.com"`),
 			expectedStatus:   http.StatusUnauthorized,
-			expectedResponse: `{"error":"unauthorized","reason":"your access token is invalid","securityScheme":"BearerAuthElevated"}`, //nolint:lll
+			expectedResponse: `{"error":"unauthorized","reason":"your access token is invalid","securityScheme":"BearerAuthElevated"}`,
 		},
 	}
 

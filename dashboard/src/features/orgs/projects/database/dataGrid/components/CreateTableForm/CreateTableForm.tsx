@@ -4,8 +4,8 @@ import { useState } from 'react';
 import { FormProvider, useForm } from 'react-hook-form';
 import type * as Yup from 'yup';
 import { useDialog } from '@/components/common/DialogProvider';
-import { Alert } from '@/components/ui/v2/Alert';
-import { Button } from '@/components/ui/v2/Button';
+import { Alert } from '@/components/ui/v3/alert';
+import { Button } from '@/components/ui/v3/button';
 import { useGetMetadataResourceVersion } from '@/features/orgs/projects/common/hooks/useGetMetadataResourceVersion';
 import type {
   BaseTableFormProps,
@@ -85,7 +85,7 @@ export default function CreateTableForm({
         {
           type: 'uuid',
           name: 'id',
-          defaultValue: { value: 'gen_random_uuid()', custom: false },
+          defaultValue: 'gen_random_uuid()',
           isNullable: false,
           isUnique: false,
           isIdentity: false,
@@ -171,21 +171,21 @@ export default function CreateTableForm({
       {error && error instanceof Error ? (
         <div className="-mt-3 mb-4 px-6">
           <Alert
-            severity="error"
-            className="grid grid-flow-col items-center justify-between px-4 py-3"
+            variant="destructive"
+            className="grid grid-flow-col items-center justify-between border-none bg-destructive/20 px-4 py-3"
           >
             <span className="text-left">
               <strong>Error:</strong> {error.message}
             </span>
 
             <Button
-              variant="borderless"
-              color="secondary"
-              className="p-1"
               onClick={() => {
                 resetCreateError();
                 resetTrackError();
               }}
+              size="sm"
+              variant="destructive"
+              className="bg-transparent text-destructive hover:bg-destructive/10"
             >
               Clear
             </Button>

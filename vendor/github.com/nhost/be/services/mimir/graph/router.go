@@ -36,13 +36,14 @@ func SetupRouter(
 	}
 
 	srv := handler.New(
-		generated.NewExecutableSchema(generated.Config{ //nolint: exhaustruct
-			Resolvers: resolver,
-			Directives: generated.DirectiveRoot{
-				HasAppVisibility: hasAppVisibilityFunc,
-				HasRole:          hasRole,
+		generated.NewExecutableSchema(
+			generated.Config{ //nolint: exhaustruct
+				Resolvers: resolver,
+				Directives: generated.DirectiveRoot{
+					HasAppVisibility: hasAppVisibilityFunc,
+					HasRole:          hasRole,
+				},
 			},
-		},
 		),
 	)
 	srv.AddTransport(transport.POST{}) //nolint:exhaustruct

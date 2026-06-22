@@ -23,7 +23,7 @@ func TestGetUserinfo(t *testing.T) { //nolint:maintidx
 	logger := slog.Default()
 	userID := uuid.MustParse("db477732-48fa-4289-b694-2886a646b6eb")
 
-	fullUser := sql.AuthUser{ //nolint:exhaustruct
+	fullUser := sql.AuthUser{
 		ID:                  userID,
 		DisplayName:         "John Doe",
 		AvatarUrl:           "https://example.com/avatar.png",
@@ -52,7 +52,7 @@ func TestGetUserinfo(t *testing.T) { //nolint:maintidx
 			},
 			signer: nil,
 			scopes: []string{"openid", "email", "profile", "phone"},
-			expectedResponse: &api.OAuth2UserinfoResponse{ //nolint:exhaustruct
+			expectedResponse: &api.OAuth2UserinfoResponse{
 				Sub:                 userID.String(),
 				Email:               new("john@example.com"),
 				EmailVerified:       new(true),
@@ -74,7 +74,7 @@ func TestGetUserinfo(t *testing.T) { //nolint:maintidx
 			},
 			signer: nil,
 			scopes: []string{},
-			expectedResponse: &api.OAuth2UserinfoResponse{ //nolint:exhaustruct
+			expectedResponse: &api.OAuth2UserinfoResponse{
 				Sub:                 userID.String(),
 				Email:               nil,
 				EmailVerified:       nil,
@@ -96,7 +96,7 @@ func TestGetUserinfo(t *testing.T) { //nolint:maintidx
 			},
 			signer: nil,
 			scopes: []string{"openid"},
-			expectedResponse: &api.OAuth2UserinfoResponse{ //nolint:exhaustruct
+			expectedResponse: &api.OAuth2UserinfoResponse{
 				Sub:                 userID.String(),
 				Email:               nil,
 				EmailVerified:       nil,
@@ -118,7 +118,7 @@ func TestGetUserinfo(t *testing.T) { //nolint:maintidx
 			},
 			signer: nil,
 			scopes: []string{"email"},
-			expectedResponse: &api.OAuth2UserinfoResponse{ //nolint:exhaustruct
+			expectedResponse: &api.OAuth2UserinfoResponse{
 				Sub:                 userID.String(),
 				Email:               new("john@example.com"),
 				EmailVerified:       new(true),
@@ -134,9 +134,9 @@ func TestGetUserinfo(t *testing.T) { //nolint:maintidx
 			name: "success - email scope with invalid email",
 			db: func(ctrl *gomock.Controller) *mock.MockDBClient {
 				m := mock.NewMockDBClient(ctrl)
-				user := sql.AuthUser{ //nolint:exhaustruct
+				user := sql.AuthUser{
 					ID:    userID,
-					Email: pgtype.Text{}, //nolint:exhaustruct
+					Email: pgtype.Text{},
 				}
 				m.EXPECT().GetUser(gomock.Any(), userID).Return(user, nil)
 
@@ -144,7 +144,7 @@ func TestGetUserinfo(t *testing.T) { //nolint:maintidx
 			},
 			signer: nil,
 			scopes: []string{"email"},
-			expectedResponse: &api.OAuth2UserinfoResponse{ //nolint:exhaustruct
+			expectedResponse: &api.OAuth2UserinfoResponse{
 				Sub:                 userID.String(),
 				Email:               nil,
 				EmailVerified:       nil,
@@ -160,7 +160,7 @@ func TestGetUserinfo(t *testing.T) { //nolint:maintidx
 			name: "success - email scope with unverified email",
 			db: func(ctrl *gomock.Controller) *mock.MockDBClient {
 				m := mock.NewMockDBClient(ctrl)
-				user := sql.AuthUser{ //nolint:exhaustruct
+				user := sql.AuthUser{
 					ID:            userID,
 					Email:         pgtype.Text{String: "john@example.com", Valid: true},
 					EmailVerified: false,
@@ -171,7 +171,7 @@ func TestGetUserinfo(t *testing.T) { //nolint:maintidx
 			},
 			signer: nil,
 			scopes: []string{"email"},
-			expectedResponse: &api.OAuth2UserinfoResponse{ //nolint:exhaustruct
+			expectedResponse: &api.OAuth2UserinfoResponse{
 				Sub:                 userID.String(),
 				Email:               new("john@example.com"),
 				EmailVerified:       new(false),
@@ -193,7 +193,7 @@ func TestGetUserinfo(t *testing.T) { //nolint:maintidx
 			},
 			signer: nil,
 			scopes: []string{"profile"},
-			expectedResponse: &api.OAuth2UserinfoResponse{ //nolint:exhaustruct
+			expectedResponse: &api.OAuth2UserinfoResponse{
 				Sub:                 userID.String(),
 				Email:               nil,
 				EmailVerified:       nil,
@@ -209,7 +209,7 @@ func TestGetUserinfo(t *testing.T) { //nolint:maintidx
 			name: "success - profile scope with empty fields",
 			db: func(ctrl *gomock.Controller) *mock.MockDBClient {
 				m := mock.NewMockDBClient(ctrl)
-				user := sql.AuthUser{ //nolint:exhaustruct
+				user := sql.AuthUser{
 					ID:          userID,
 					DisplayName: "",
 					AvatarUrl:   "",
@@ -221,7 +221,7 @@ func TestGetUserinfo(t *testing.T) { //nolint:maintidx
 			},
 			signer: nil,
 			scopes: []string{"profile"},
-			expectedResponse: &api.OAuth2UserinfoResponse{ //nolint:exhaustruct
+			expectedResponse: &api.OAuth2UserinfoResponse{
 				Sub:                 userID.String(),
 				Email:               nil,
 				EmailVerified:       nil,
@@ -237,7 +237,7 @@ func TestGetUserinfo(t *testing.T) { //nolint:maintidx
 			name: "success - profile scope with partial fields",
 			db: func(ctrl *gomock.Controller) *mock.MockDBClient {
 				m := mock.NewMockDBClient(ctrl)
-				user := sql.AuthUser{ //nolint:exhaustruct
+				user := sql.AuthUser{
 					ID:          userID,
 					DisplayName: "Jane",
 					AvatarUrl:   "",
@@ -249,7 +249,7 @@ func TestGetUserinfo(t *testing.T) { //nolint:maintidx
 			},
 			signer: nil,
 			scopes: []string{"profile"},
-			expectedResponse: &api.OAuth2UserinfoResponse{ //nolint:exhaustruct
+			expectedResponse: &api.OAuth2UserinfoResponse{
 				Sub:                 userID.String(),
 				Email:               nil,
 				EmailVerified:       nil,
@@ -271,7 +271,7 @@ func TestGetUserinfo(t *testing.T) { //nolint:maintidx
 			},
 			signer: nil,
 			scopes: []string{"phone"},
-			expectedResponse: &api.OAuth2UserinfoResponse{ //nolint:exhaustruct
+			expectedResponse: &api.OAuth2UserinfoResponse{
 				Sub:                 userID.String(),
 				Email:               nil,
 				EmailVerified:       nil,
@@ -287,9 +287,9 @@ func TestGetUserinfo(t *testing.T) { //nolint:maintidx
 			name: "success - phone scope with invalid phone",
 			db: func(ctrl *gomock.Controller) *mock.MockDBClient {
 				m := mock.NewMockDBClient(ctrl)
-				user := sql.AuthUser{ //nolint:exhaustruct
+				user := sql.AuthUser{
 					ID:          userID,
-					PhoneNumber: pgtype.Text{}, //nolint:exhaustruct
+					PhoneNumber: pgtype.Text{},
 				}
 				m.EXPECT().GetUser(gomock.Any(), userID).Return(user, nil)
 
@@ -297,7 +297,7 @@ func TestGetUserinfo(t *testing.T) { //nolint:maintidx
 			},
 			signer: nil,
 			scopes: []string{"phone"},
-			expectedResponse: &api.OAuth2UserinfoResponse{ //nolint:exhaustruct
+			expectedResponse: &api.OAuth2UserinfoResponse{
 				Sub:                 userID.String(),
 				Email:               nil,
 				EmailVerified:       nil,
@@ -313,7 +313,7 @@ func TestGetUserinfo(t *testing.T) { //nolint:maintidx
 			name: "success - phone scope with unverified phone",
 			db: func(ctrl *gomock.Controller) *mock.MockDBClient {
 				m := mock.NewMockDBClient(ctrl)
-				user := sql.AuthUser{ //nolint:exhaustruct
+				user := sql.AuthUser{
 					ID:                  userID,
 					PhoneNumber:         pgtype.Text{String: "+1234567890", Valid: true},
 					PhoneNumberVerified: false,
@@ -324,7 +324,7 @@ func TestGetUserinfo(t *testing.T) { //nolint:maintidx
 			},
 			signer: nil,
 			scopes: []string{"phone"},
-			expectedResponse: &api.OAuth2UserinfoResponse{ //nolint:exhaustruct
+			expectedResponse: &api.OAuth2UserinfoResponse{
 				Sub:                 userID.String(),
 				Email:               nil,
 				EmailVerified:       nil,
@@ -345,8 +345,8 @@ func TestGetUserinfo(t *testing.T) { //nolint:maintidx
 				m.EXPECT().GetUser(gomock.Any(), userID).Return(graphqlUser, nil)
 				m.EXPECT().GetUserRoles(gomock.Any(), userID).Return(
 					[]sql.AuthUserRole{
-						{Role: "user"},   //nolint:exhaustruct
-						{Role: "editor"}, //nolint:exhaustruct
+						{Role: "user"},
+						{Role: "editor"},
 					}, nil,
 				)
 
@@ -366,7 +366,7 @@ func TestGetUserinfo(t *testing.T) { //nolint:maintidx
 				return m
 			},
 			scopes: []string{"graphql"},
-			expectedResponse: &api.OAuth2UserinfoResponse{ //nolint:exhaustruct
+			expectedResponse: &api.OAuth2UserinfoResponse{
 				Sub: userID.String(),
 				AdditionalProperties: map[string]any{
 					"https://hasura.io/jwt/claims": map[string]any{
@@ -387,7 +387,7 @@ func TestGetUserinfo(t *testing.T) { //nolint:maintidx
 				m.EXPECT().GetUser(gomock.Any(), userID).Return(graphqlUser, nil)
 				m.EXPECT().GetUserRoles(gomock.Any(), userID).Return(
 					[]sql.AuthUserRole{
-						{Role: "user"}, //nolint:exhaustruct
+						{Role: "user"},
 					}, nil,
 				)
 
@@ -405,7 +405,7 @@ func TestGetUserinfo(t *testing.T) { //nolint:maintidx
 				return m
 			},
 			scopes: []string{"profile", "graphql"},
-			expectedResponse: &api.OAuth2UserinfoResponse{ //nolint:exhaustruct
+			expectedResponse: &api.OAuth2UserinfoResponse{
 				Sub:     userID.String(),
 				Name:    new("John Doe"),
 				Picture: new("https://example.com/avatar.png"),
@@ -427,8 +427,8 @@ func TestGetUserinfo(t *testing.T) { //nolint:maintidx
 				m.EXPECT().GetUser(gomock.Any(), userID).Return(graphqlUser, nil)
 				m.EXPECT().GetUserRoles(gomock.Any(), userID).Return(
 					[]sql.AuthUserRole{
-						{Role: "user"},   //nolint:exhaustruct
-						{Role: "editor"}, //nolint:exhaustruct
+						{Role: "user"},
+						{Role: "editor"},
 					}, nil,
 				)
 
@@ -448,7 +448,7 @@ func TestGetUserinfo(t *testing.T) { //nolint:maintidx
 				return m
 			},
 			scopes: []string{"graphql:role:editor"},
-			expectedResponse: &api.OAuth2UserinfoResponse{ //nolint:exhaustruct
+			expectedResponse: &api.OAuth2UserinfoResponse{
 				Sub: userID.String(),
 				AdditionalProperties: map[string]any{
 					"https://hasura.io/jwt/claims": map[string]any{
@@ -469,8 +469,8 @@ func TestGetUserinfo(t *testing.T) { //nolint:maintidx
 				m.EXPECT().GetUser(gomock.Any(), userID).Return(graphqlUser, nil)
 				m.EXPECT().GetUserRoles(gomock.Any(), userID).Return(
 					[]sql.AuthUserRole{
-						{Role: "user"},   //nolint:exhaustruct
-						{Role: "editor"}, //nolint:exhaustruct
+						{Role: "user"},
+						{Role: "editor"},
 					}, nil,
 				)
 
@@ -490,7 +490,7 @@ func TestGetUserinfo(t *testing.T) { //nolint:maintidx
 				return m
 			},
 			scopes: []string{"graphql:role:user", "graphql:role:editor"},
-			expectedResponse: &api.OAuth2UserinfoResponse{ //nolint:exhaustruct
+			expectedResponse: &api.OAuth2UserinfoResponse{
 				Sub: userID.String(),
 				AdditionalProperties: map[string]any{
 					"https://hasura.io/jwt/claims": map[string]any{
@@ -511,7 +511,7 @@ func TestGetUserinfo(t *testing.T) { //nolint:maintidx
 				m.EXPECT().GetUser(gomock.Any(), userID).Return(graphqlUser, nil)
 				m.EXPECT().GetUserRoles(gomock.Any(), userID).Return(
 					[]sql.AuthUserRole{
-						{Role: "user"}, //nolint:exhaustruct
+						{Role: "user"},
 					}, nil,
 				)
 
@@ -551,7 +551,7 @@ func TestGetUserinfo(t *testing.T) { //nolint:maintidx
 				graphqlUser.DefaultRole = "user"
 				m.EXPECT().GetUser(gomock.Any(), userID).Return(graphqlUser, nil)
 				m.EXPECT().GetUserRoles(gomock.Any(), userID).Return(
-					[]sql.AuthUserRole{{Role: "user"}}, nil, //nolint:exhaustruct
+					[]sql.AuthUserRole{{Role: "user"}}, nil,
 				)
 
 				return m
@@ -577,7 +577,7 @@ func TestGetUserinfo(t *testing.T) { //nolint:maintidx
 			db: func(ctrl *gomock.Controller) *mock.MockDBClient {
 				m := mock.NewMockDBClient(ctrl)
 				m.EXPECT().GetUser(gomock.Any(), userID).
-					Return(sql.AuthUser{}, pgx.ErrNoRows) //nolint:exhaustruct
+					Return(sql.AuthUser{}, pgx.ErrNoRows)
 
 				return m
 			},
@@ -594,7 +594,7 @@ func TestGetUserinfo(t *testing.T) { //nolint:maintidx
 			db: func(ctrl *gomock.Controller) *mock.MockDBClient {
 				m := mock.NewMockDBClient(ctrl)
 				m.EXPECT().GetUser(gomock.Any(), userID).
-					Return(sql.AuthUser{}, errors.New("db error")) //nolint:exhaustruct,err113
+					Return(sql.AuthUser{}, errors.New("db error")) //nolint:err113
 
 				return m
 			},
@@ -623,7 +623,7 @@ func TestGetUserinfo(t *testing.T) { //nolint:maintidx
 
 			provider := oauth2.NewProvider(
 				mockDB, mockSigner, nil, nil,
-				oauth2.Config{}, //nolint:exhaustruct
+				oauth2.Config{},
 				nil,
 			)
 

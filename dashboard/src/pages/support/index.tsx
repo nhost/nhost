@@ -1,11 +1,9 @@
-import { UsersRoundIcon } from 'lucide-react';
+import { SiGithub as GitHubIcon } from '@icons-pack/react-simple-icons';
+import { ArrowRightIcon, FileTextIcon, UsersRoundIcon } from 'lucide-react';
+import Link from 'next/link';
 import { Logo } from '@/components/presentational/Logo';
 import { Box } from '@/components/ui/v2/Box';
 import { Button } from '@/components/ui/v2/Button';
-import { ArrowRightIcon } from '@/components/ui/v2/icons/ArrowRightIcon';
-import { FileTextIcon } from '@/components/ui/v2/icons/FileTextIcon';
-import { GitHubIcon } from '@/components/ui/v2/icons/GitHubIcon';
-import { Link } from '@/components/ui/v2/Link';
 import { Text } from '@/components/ui/v2/Text';
 
 function SupportPage() {
@@ -55,12 +53,10 @@ function SupportPage() {
                   </div>
                 </div>
                 <Link
-                  variant="body2"
-                  underline="hover"
                   href="https://github.com/nhost/nhost/issues/new/choose"
                   target="_blank"
                   rel="dofollow"
-                  className="grid grid-flow-col items-center justify-start gap-1 font-medium"
+                  className="grid grid-flow-col items-center justify-start gap-1 font-medium text-primary text-sm hover:underline"
                 >
                   Open new Issue / Feature request
                   <ArrowRightIcon className="h-4 w-4" />
@@ -83,12 +79,10 @@ function SupportPage() {
                   </div>
                 </div>
                 <Link
-                  variant="body2"
-                  underline="hover"
                   href="https://discord.com/invite/9V7Qb2U"
                   target="_blank"
                   rel="dofollow"
-                  className="grid grid-flow-col items-center justify-start gap-1 font-medium"
+                  className="grid grid-flow-col items-center justify-start gap-1 font-medium text-primary text-sm hover:underline"
                 >
                   Join our Discord
                   <ArrowRightIcon className="h-4 w-4" />
@@ -108,12 +102,10 @@ function SupportPage() {
                   type and severity of the issue.
                 </Text>
                 <Link
-                  variant="body2"
-                  underline="hover"
                   href="/support/ticket"
                   target="_blank"
                   rel="dofollow"
-                  className="grid grid-flow-col items-center justify-start gap-1 font-medium"
+                  className="grid grid-flow-col items-center justify-start gap-1 font-medium text-primary text-sm hover:underline"
                 >
                   Create ticket
                   <ArrowRightIcon className="h-4 w-4" />

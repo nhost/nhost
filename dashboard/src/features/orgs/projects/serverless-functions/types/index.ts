@@ -1,3 +1,5 @@
+import type { MetricSeries } from '@/features/orgs/projects/common/metrics/types';
+
 export interface NhostFunction {
   path: string;
   route: string;
@@ -51,7 +53,12 @@ export interface ExecuteFormValues {
   multipartFields: MultipartField[];
 }
 
-export const FUNCTION_TABS = ['overview', 'execute', 'logs'] as const;
+export const FUNCTION_TABS = [
+  'overview',
+  'execute',
+  'logs',
+  'metrics',
+] as const;
 
 export type FunctionTab = (typeof FUNCTION_TABS)[number];
 
@@ -60,4 +67,43 @@ export function isFunctionTab(value: unknown): value is FunctionTab {
     typeof value === 'string' &&
     (FUNCTION_TABS as readonly string[]).includes(value)
   );
+}
+
+export interface RequestsTableRow {
+  timestamp: string;
+  method: string;
+  value: number;
+}
+
+export interface ErrorsTableRow {
+  timestamp: string;
+  method: string;
+  status: string;
+  value: number;
+}
+
+export interface FunctionMetricsSummary {
+  totalInvocations: number;
+  totalBytesSent: number;
+  totalDurationSeconds: number;
+}
+
+export interface FunctionMetricsResponse {
+  summary: FunctionMetricsSummary;
+  general: {
+    invocationsByMethod: MetricSeries[];
+    responseStatus: MetricSeries[];
+    averageResponseSize: MetricSeries[];
+    totalRequests: RequestsTableRow[];
+  };
+  responseTimes: {
+    max: MetricSeries[];
+    p95: MetricSeries[];
+    p75: MetricSeries[];
+    avg: MetricSeries[];
+  };
+  errors: {
+    errorRate: MetricSeries[];
+    totalErrors: ErrorsTableRow[];
+  };
 }

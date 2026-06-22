@@ -1,65 +1,40 @@
-import { expect, test } from 'vitest';
 import normalizeDefaultValue from './normalizeDefaultValue';
 
-test('should return empty string if no default value', () => {
-  expect(normalizeDefaultValue(null)).toMatchObject({
-    normalizedDefaultValue: '',
-    custom: false,
-  });
-  expect(normalizeDefaultValue('')).toMatchObject({
-    normalizedDefaultValue: '',
-    custom: false,
-  });
+it('should return null if no default value', () => {
+  expect(normalizeDefaultValue(null)).toBeNull();
+  expect(normalizeDefaultValue('')).toBeNull();
 });
 
-test('should not change default value that is a plain string', () => {
-  expect(normalizeDefaultValue('test')).toMatchObject({
-    normalizedDefaultValue: 'test',
-    custom: false,
-  });
+it('should keep a plain string verbatim', () => {
+  expect(normalizeDefaultValue('test')).toBe('test');
 });
 
-test('should remove apostrophes and type definition from default value', () => {
-  expect(normalizeDefaultValue("''::text")).toMatchObject({
-    normalizedDefaultValue: '',
-    custom: true,
-  });
-
-  expect(normalizeDefaultValue("''::character varying")).toMatchObject({
-    normalizedDefaultValue: '',
-    custom: true,
-  });
-
-  expect(normalizeDefaultValue("'Test Value'::text")).toMatchObject({
-    normalizedDefaultValue: 'Test Value',
-    custom: true,
-  });
-
-  expect(
-    normalizeDefaultValue("'Test Value'::character varying"),
-  ).toMatchObject({
-    normalizedDefaultValue: 'Test Value',
-    custom: true,
-  });
-
-  expect(normalizeDefaultValue("'3'::int4")).toMatchObject({
-    normalizedDefaultValue: '3',
-    custom: true,
-  });
+it('should keep functions and expressions verbatim', () => {
+  expect(normalizeDefaultValue('gen_random_uuid()')).toBe('gen_random_uuid()');
+  expect(normalizeDefaultValue('now()')).toBe('now()');
+  expect(normalizeDefaultValue("nextval('test_table_seq')")).toBe(
+    "nextval('test_table_seq')",
+  );
 });
 
-test('should remove arguments from default value function string if enabled', () => {
-  expect(
-    normalizeDefaultValue("nextval('test_table_seq')", { removeArgs: true }),
-  ).toMatchObject({
-    normalizedDefaultValue: 'nextval()',
-    custom: false,
-  });
+it('should strip a trailing ::type cast but keep the quotes', () => {
+  expect(normalizeDefaultValue("'Test Value'::text")).toBe("'Test Value'");
+  expect(normalizeDefaultValue("'Test Value'::character varying")).toBe(
+    "'Test Value'",
+  );
+  expect(normalizeDefaultValue("'3'::int4")).toBe("'3'");
+});
 
-  expect(
-    normalizeDefaultValue("function('args', 'args')", { removeArgs: true }),
-  ).toMatchObject({
-    normalizedDefaultValue: 'function()',
-    custom: false,
-  });
+it('should strip the cast from an empty-string literal', () => {
+  expect(normalizeDefaultValue("''::text")).toBe("''");
+  expect(normalizeDefaultValue("''::character varying")).toBe("''");
+});
+
+it('should only strip the outermost cast and preserve escaped quotes', () => {
+  expect(normalizeDefaultValue("'a::b'::text")).toBe("'a::b'");
+  expect(normalizeDefaultValue("'O''Brien'::text")).toBe("'O''Brien'");
+});
+
+it('should keep a quoted literal without a cast verbatim', () => {
+  expect(normalizeDefaultValue("'already quoted'")).toBe("'already quoted'");
 });

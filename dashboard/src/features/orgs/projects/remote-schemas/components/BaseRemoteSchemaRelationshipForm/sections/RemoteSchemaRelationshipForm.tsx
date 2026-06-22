@@ -1,9 +1,9 @@
 import { zodResolver } from '@hookform/resolvers/zod';
-import { Anchor, ChevronsUpDown } from 'lucide-react';
+import { Anchor, InfoIcon } from 'lucide-react';
 import { useForm } from 'react-hook-form';
 import { z } from 'zod';
+import { FormCombobox } from '@/components/form/FormCombobox';
 import { ActivityIndicator } from '@/components/ui/v2/ActivityIndicator';
-import { InfoIcon } from '@/components/ui/v2/icons/InfoIcon';
 import { Tooltip } from '@/components/ui/v2/Tooltip';
 import { Button } from '@/components/ui/v3/button';
 import {
@@ -15,7 +15,6 @@ import {
   FormMessage,
 } from '@/components/ui/v3/form';
 import { Input } from '@/components/ui/v3/input';
-import { Popover, PopoverTrigger } from '@/components/ui/v3/popover';
 import { Spinner } from '@/components/ui/v3/spinner';
 import { useGetRemoteSchemas } from '@/features/orgs/projects/remote-schemas/hooks/useGetRemoteSchemas';
 import { useIntrospectRemoteSchemaQuery } from '@/features/orgs/projects/remote-schemas/hooks/useIntrospectRemoteSchemaQuery';
@@ -142,8 +141,7 @@ export default function RemoteSchemaRelationshipForm({
                   <Tooltip title="This will be used as the field name in the source type.">
                     <InfoIcon
                       aria-label="Info"
-                      className="h-4 w-4"
-                      color="primary"
+                      className="h-4 w-4 text-primary"
                     />
                   </Tooltip>
                 </FormLabel>
@@ -162,33 +160,12 @@ export default function RemoteSchemaRelationshipForm({
             )}
           />
           <div className="flex flex-row gap-4">
-            <FormField
+            <FormCombobox
               control={form.control}
               name="sourceRemoteSchema"
-              render={({ field }) => (
-                <FormItem className="flex flex-1 flex-col">
-                  <FormLabel>Source Remote Schema</FormLabel>
-                  <Popover>
-                    <PopoverTrigger asChild>
-                      <FormControl>
-                        <Button
-                          disabled
-                          variant="outline"
-                          role="combobox"
-                          className={cn(
-                            'w-full justify-between',
-                            !field.value && 'text-muted-foreground',
-                          )}
-                        >
-                          {sourceSchema}
-                          <ChevronsUpDown className="opacity-50" />
-                        </Button>
-                      </FormControl>
-                    </PopoverTrigger>
-                  </Popover>
-                  <FormMessage />
-                </FormItem>
-              )}
+              label="Source Remote Schema"
+              disabled
+              options={[{ label: sourceSchema, value: sourceSchema }]}
             />
             <SourceTypeCombobox sourceTypes={sourceTypes} />
           </div>

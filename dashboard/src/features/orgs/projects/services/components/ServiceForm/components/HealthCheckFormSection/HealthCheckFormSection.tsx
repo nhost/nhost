@@ -1,8 +1,8 @@
+import { InfoIcon } from 'lucide-react';
 import { useState } from 'react';
 import { useFormContext } from 'react-hook-form';
 import { Box } from '@/components/ui/v2/Box';
 import { Input } from '@/components/ui/v2/Input';
-import { InfoIcon } from '@/components/ui/v2/icons/InfoIcon';
 import { Switch } from '@/components/ui/v2/Switch';
 import { Text } from '@/components/ui/v2/Text';
 import { Tooltip } from '@/components/ui/v2/Tooltip';
@@ -51,7 +51,7 @@ export default function HealthCheckFormSection() {
               </span>
             }
           >
-            <InfoIcon aria-label="Info" className="h-4 w-4" color="primary" />
+            <InfoIcon aria-label="Info" className="h-4 w-4 text-primary" />
           </Tooltip>
         </Box>
 

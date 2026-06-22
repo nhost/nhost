@@ -31,7 +31,7 @@ describe('parseCronTriggerFormInitialData', () => {
         tolerance_seconds: 21601,
       },
       schedule: '*/5 * * * *',
-      webhook: 'https://httpbin.org/delay/5',
+      webhook: 'https://httpbin.org/post',
     };
 
     const result = parseCronTriggerFormInitialData(cronTrigger);
@@ -44,7 +44,7 @@ describe('parseCronTriggerFormInitialData', () => {
     const expectedWithoutPayloadTransform: BaseCronTriggerFormInitialData = {
       triggerName: 'triggerName',
       comment: 'triggerComment',
-      webhook: 'https://httpbin.org/delay/5',
+      webhook: 'https://httpbin.org/post',
       schedule: '*/5 * * * *',
       payload: '{}',
       retryConf: {

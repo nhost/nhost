@@ -237,3 +237,10 @@ export const postgresFunctions = {
 export const identityTypes: ColumnType[] = ['int2', 'int4', 'int8'];
 
 export const RECOVERY_RETENTION_PERIOD_7 = 7;
+
+/**
+ * Maximum length for PostgreSQL identifiers (table and column names).
+ *
+ * @docs https://www.postgresql.org/docs/current/limits.html
+ */
+export const POSTGRESQL_MAX_IDENTIFIER_LENGTH = 63;

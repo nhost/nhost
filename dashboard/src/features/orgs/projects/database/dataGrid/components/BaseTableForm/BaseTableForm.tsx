@@ -22,6 +22,7 @@ import type {
   DatabaseTable,
   ForeignKeyRelation,
 } from '@/features/orgs/projects/database/dataGrid/types/dataBrowser';
+import { POSTGRESQL_MAX_IDENTIFIER_LENGTH } from '@/features/orgs/projects/database/dataGrid/utils/postgresqlConstants/postgresqlConstants';
 import type { DialogFormProps } from '@/types/common';
 import ColumnEditorTable from './ColumnEditorTable';
 import ForeignKeyEditorSection from './ForeignKeyEditorSection';
@@ -53,7 +54,7 @@ export interface BaseTableFormProps extends DialogFormProps {
   /**
    * Function to be called when the operation is cancelled.
    */
-  onCancel?: VoidFunction;
+  onCancel?: (event?: MouseEvent<HTMLButtonElement>) => void;
   /**
    * Submit button text.
    *
@@ -91,6 +92,10 @@ export const baseColumnValidationSchema = Yup.object().shape({
     .matches(
       /^\w+$/i,
       'Column name must contain only letters, numbers, or underscores.',
+    )
+    .max(
+      POSTGRESQL_MAX_IDENTIFIER_LENGTH,
+      `Column name must be at most ${POSTGRESQL_MAX_IDENTIFIER_LENGTH} characters.`,
     ),
   type: Yup.string().required('This field is required.').nullable(),
 });
@@ -105,6 +110,10 @@ export const baseTableValidationSchema = Yup.object({
     .matches(
       /^\w+$/i,
       'Table name must contain only letters, numbers, or underscores.',
+    )
+    .max(
+      POSTGRESQL_MAX_IDENTIFIER_LENGTH,
+      `Table name must be at most ${POSTGRESQL_MAX_IDENTIFIER_LENGTH} characters.`,
     ),
   columns: Yup.array()
     .of(baseColumnValidationSchema)
@@ -155,17 +164,11 @@ function FormFooter({
 }: Pick<BaseTableFormProps, 'onCancel' | 'submitButtonText'> & {
   onSubmitClick?: VoidFunction;
 }) {
-  const { closeDrawerWithDirtyGuard } = useDialog();
   const { isSubmitting } = useFormState();
-
-  const handleCancel = (event: MouseEvent<HTMLButtonElement>) => {
-    onCancel?.();
-    closeDrawerWithDirtyGuard(event);
-  };
 
   return (
     <div className="box grid flex-shrink-0 grid-flow-col justify-between gap-3 border-t-1 p-2">
-      <Button type="button" variant="ghost" onClick={handleCancel}>
+      <Button type="button" variant="ghost" onClick={onCancel}>
         Cancel
       </Button>
 
@@ -197,24 +200,19 @@ export default function BaseTableForm({
     'foreignKeys',
   ]);
   const { setDirtySource } = useDialog();
-  const form = useFormContext();
+  const { subscribe } = useFormContext();
 
   useEffect(() => {
-    const unsubscribe = form.subscribe({
-      formState: { dirtyFields: true },
-      callback: ({ dirtyFields }) => {
-        setDirtySource(
-          DIRTY_SOURCE_ID,
-          Object.keys(dirtyFields ?? {}).length > 0,
-          location,
-        );
+    const unsubscribe = subscribe({
+      formState: { isDirty: true },
+      callback: ({ isDirty }) => {
+        setDirtySource(DIRTY_SOURCE_ID, Boolean(isDirty), location);
       },
     });
     return () => {
       unsubscribe();
-      setDirtySource(DIRTY_SOURCE_ID, false, location);
     };
-  }, [form, setDirtySource, location]);
+  }, [subscribe, setDirtySource, location]);
 
   const showSchemaPicker =
     !!onSchemaChange && !!availableSchemas && availableSchemas.length > 0;

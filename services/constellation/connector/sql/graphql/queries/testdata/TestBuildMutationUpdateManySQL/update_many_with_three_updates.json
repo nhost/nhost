@@ -1,0 +1,37 @@
+[
+  {
+    "Name": "update_departments_many",
+    "SQL": "",
+    "Parameters": null,
+    "StreamCursors": null,
+    "Sequential": [
+      {
+        "Name": "update_departments_many[0]",
+        "SQL": "WITH mutation_result AS (UPDATE \"public\".\"departments\" SET \"description\" = $1::text WHERE departments.\"name\" = $2::text RETURNING *) SELECT json_build_object('affected_rows', (SELECT COUNT(*) FROM mutation_result))",
+        "Parameters": [
+          "Eng Dept",
+          "Engineering"
+        ],
+        "StreamCursors": null
+      },
+      {
+        "Name": "update_departments_many[1]",
+        "SQL": "WITH mutation_result AS (UPDATE \"public\".\"departments\" SET \"description\" = $1::text WHERE departments.\"name\" = $2::text RETURNING *) SELECT json_build_object('affected_rows', (SELECT COUNT(*) FROM mutation_result))",
+        "Parameters": [
+          "Sales Dept",
+          "Sales"
+        ],
+        "StreamCursors": null
+      },
+      {
+        "Name": "update_departments_many[2]",
+        "SQL": "WITH mutation_result AS (UPDATE \"public\".\"departments\" SET \"description\" = $1::text WHERE departments.\"name\" = $2::text RETURNING *) SELECT json_build_object('affected_rows', (SELECT COUNT(*) FROM mutation_result))",
+        "Parameters": [
+          "Marketing Dept",
+          "Marketing"
+        ],
+        "StreamCursors": null
+      }
+    ]
+  }
+]

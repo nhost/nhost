@@ -13,7 +13,7 @@ import (
 	"github.com/nhost/nhost/services/auth/go/api"
 )
 
-func (p *Provider) IntrospectToken( //nolint:cyclop
+func (p *Provider) IntrospectToken(
 	ctx context.Context,
 	req *api.OAuth2IntrospectRequest,
 	logger *slog.Logger,
@@ -140,7 +140,7 @@ func (p *Provider) introspectAccessToken(
 	}
 }
 
-func extractValidatedClaims(token *jwt.Token) (*ValidatedClaims, error) { //nolint:cyclop
+func extractValidatedClaims(token *jwt.Token) (*ValidatedClaims, error) {
 	claims, ok := token.Claims.(jwt.MapClaims)
 	if !ok {
 		return nil, errors.New("unexpected claims type") //nolint:err113

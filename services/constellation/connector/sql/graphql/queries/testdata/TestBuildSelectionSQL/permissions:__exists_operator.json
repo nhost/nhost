@@ -1,0 +1,10 @@
+[
+  {
+    "Name": "news",
+    "QueryType": "select",
+    "SQL": "SELECT coalesce(json_agg(\"_root\"), '[]') AS \"_root\" FROM (WITH \"_root.base\" AS (SELECT * FROM \"public\".\"news\" WHERE EXISTS (SELECT 1 FROM \"public\".\"user_departments\" h WHERE h.\"user_id\" = $1::uuid)) SELECT row_to_json((SELECT \"_e\" FROM (SELECT \"_root.base\".\"id\" AS \"id\", \"_root.base\".\"title\" AS \"title\", \"_root.base\".\"content\" AS \"content\") AS \"_e\")) AS \"_root\" FROM \"_root.base\") AS \"_root\"",
+    "Parameters": [
+      "550e8400-e29b-41d4-a716-446655440001"
+    ]
+  }
+]

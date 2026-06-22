@@ -1,6 +1,10 @@
 import {
-  Check,
-  ChevronsUpDown,
+  SiGraphql as GraphQLIcon,
+  SiHasura as HasuraIcon,
+  SiDocker as ServicesIcon,
+} from '@icons-pack/react-simple-icons';
+import {
+  Sparkles as AIIcon,
   CloudIcon,
   Code,
   CogIcon,
@@ -9,43 +13,15 @@ import {
   GaugeIcon,
   HomeIcon,
   RocketIcon,
+  HardDrive as StorageIcon,
   UserIcon,
   Zap,
 } from 'lucide-react';
 import { useRouter } from 'next/router';
-import { type ReactElement, useMemo, useState } from 'react';
-
-import { AIIcon } from '@/components/ui/v2/icons/AIIcon';
-import { GraphQLIcon } from '@/components/ui/v2/icons/GraphQLIcon';
-import { HasuraIcon } from '@/components/ui/v2/icons/HasuraIcon';
-import { ServicesIcon } from '@/components/ui/v2/icons/ServicesIcon';
-import { StorageIcon } from '@/components/ui/v2/icons/StorageIcon';
-import { Button } from '@/components/ui/v3/button';
-import {
-  Command,
-  CommandEmpty,
-  CommandGroup,
-  CommandInput,
-  CommandItem,
-  CommandList,
-} from '@/components/ui/v3/command';
-import {
-  Popover,
-  PopoverContent,
-  PopoverTrigger,
-} from '@/components/ui/v3/popover';
+import { useMemo } from 'react';
+import HeaderCombobox from '@/components/layout/Header/HeaderCombobox';
 import { useIsPlatform } from '@/features/orgs/projects/common/hooks/useIsPlatform';
 import { useSettingsDisabled } from '@/hooks/useSettingsDisabled';
-import { cn } from '@/lib/utils';
-
-type Option = {
-  value: string;
-  label: string;
-  icon: ReactElement;
-  disabled: boolean;
-};
-
-type SelectedOption = Omit<Option, 'disabled'>;
 
 export default function ProjectPagesComboBox() {
   const {
@@ -173,81 +149,42 @@ export default function ProjectPagesComboBox() {
   const projectPageFromUrl = appSubdomain
     ? pathSegments[5] || 'overview'
     : null;
+
   const selectedProjectPageFromUrl = projectPages.find(
     (item) => item.value === projectPageFromUrl,
   );
-  const selectedProjectPage: SelectedOption | null = selectedProjectPageFromUrl
-    ? {
-        label: selectedProjectPageFromUrl.label,
-        value: selectedProjectPageFromUrl.slug,
-        icon: selectedProjectPageFromUrl.icon,
-      }
-    : null;
 
-  const options: Option[] = projectPages.map((app) => ({
-    label: app.label,
+  const options = projectPages.map((app) => ({
     value: app.slug,
-    icon: app.icon,
+    label: app.label,
     disabled: app.disabled,
+    render: (
+      <div className="flex flex-row items-center gap-2">
+        {app.icon}
+        <span className="max-w-52 truncate">{app.label}</span>
+      </div>
+    ),
   }));
 
-  const [open, setOpen] = useState(false);
+  const triggerLabel = selectedProjectPageFromUrl ? (
+    <div className="flex flex-row items-center justify-center gap-2">
+      {selectedProjectPageFromUrl.icon}
+      {selectedProjectPageFromUrl.label}
+    </div>
+  ) : null;
+
+  const handlePageSelect = (slug: string) => {
+    push(`/orgs/${orgSlug}/projects/${appSubdomain}/${slug}`);
+  };
 
   return (
-    <Popover open={open} onOpenChange={setOpen}>
-      <PopoverTrigger asChild>
-        <Button
-          variant="ghost"
-          size="sm"
-          className="justify-start gap-2 bg-background text-foreground hover:bg-accent dark:hover:bg-muted"
-        >
-          {selectedProjectPage ? (
-            <div className="flex flex-row items-center justify-center gap-2">
-              {selectedProjectPage.icon}
-              {selectedProjectPage.label}
-            </div>
-          ) : (
-            <>Select a page</>
-          )}
-          <ChevronsUpDown className="h-5 w-5 text-muted-foreground" />
-        </Button>
-      </PopoverTrigger>
-      <PopoverContent className="p-0" side="bottom" align="start">
-        <Command>
-          <CommandInput placeholder="Select a page..." />
-          <CommandList>
-            <CommandEmpty>No results found.</CommandEmpty>
-            <CommandGroup>
-              {options.map((option) => (
-                <CommandItem
-                  key={option.value}
-                  value={option.label}
-                  disabled={option.disabled}
-                  onSelect={() => {
-                    setOpen(false);
-                    push(
-                      `/orgs/${orgSlug}/projects/${appSubdomain}/${option.value}`,
-                    );
-                  }}
-                >
-                  <Check
-                    className={cn(
-                      'mr-2 h-4 w-4',
-                      selectedProjectPage?.value === option.value
-                        ? 'opacity-100'
-                        : 'opacity-0',
-                    )}
-                  />
-                  <div className="flex flex-row items-center gap-2">
-                    {option.icon}
-                    <span className="max-w-52 truncate">{option.label}</span>
-                  </div>
-                </CommandItem>
-              ))}
-            </CommandGroup>
-          </CommandList>
-        </Command>
-      </PopoverContent>
-    </Popover>
+    <HeaderCombobox
+      options={options}
+      value={selectedProjectPageFromUrl?.slug ?? null}
+      triggerLabel={triggerLabel}
+      placeholder="Select a page"
+      searchPlaceholder="Select a page..."
+      onChange={handlePageSelect}
+    />
   );
 }

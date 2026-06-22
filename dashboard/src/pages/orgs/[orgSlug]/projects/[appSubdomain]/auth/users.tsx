@@ -1,4 +1,5 @@
 import debounce from 'lodash.debounce';
+import { PlusIcon, SearchIcon, UserIcon } from 'lucide-react';
 import { useRouter } from 'next/router';
 import type { ChangeEvent, ReactElement } from 'react';
 import { useEffect, useMemo, useRef, useState } from 'react';
@@ -10,9 +11,6 @@ import { ActivityIndicator } from '@/components/ui/v2/ActivityIndicator';
 import { Box } from '@/components/ui/v2/Box';
 import { Button } from '@/components/ui/v2/Button';
 import { Input } from '@/components/ui/v2/Input';
-import { PlusIcon } from '@/components/ui/v2/icons/PlusIcon';
-import { SearchIcon } from '@/components/ui/v2/icons/SearchIcon';
-import { UserIcon } from '@/components/ui/v2/icons/UserIcon';
 import { Text } from '@/components/ui/v2/Text';
 import { useRemoteApplicationGQLClient } from '@/features/orgs/hooks/useRemoteApplicationGQLClient';
 import { OrgLayout } from '@/features/orgs/layout/OrgLayout';
@@ -23,6 +21,7 @@ import { useRemoveQueryParamsFromUrl } from '@/hooks/useRemoveQueryParamsFromUrl
 import { isNotEmptyValue } from '@/lib/utils';
 import type { RemoteAppGetUsersAndAuthRolesQuery } from '@/utils/__generated__/graphql';
 import { useRemoteAppGetUsersAndAuthRolesQuery } from '@/utils/__generated__/graphql';
+import { getPaginationOffset } from '@/utils/getPaginationOffset';
 
 export type RemoteAppUser = Exclude<
   RemoteAppGetUsersAndAuthRolesQuery['users'][0],
@@ -52,7 +51,10 @@ function UsersPageContent() {
 
   const removeQueryParamsFromUrl = useRemoveQueryParamsFromUrl();
 
-  const offset = useMemo(() => currentPage - 1, [currentPage]);
+  const offset = useMemo(
+    () => getPaginationOffset(currentPage, limit.current),
+    [currentPage],
+  );
 
   const remoteAppGetUserVariables = useMemo(
     () => ({
@@ -78,7 +80,7 @@ function UsersPageContent() {
               ],
             },
       limit: limit.current,
-      offset: offset * limit.current,
+      offset,
     }),
     [router.query.userId, searchString, offset],
   );
@@ -221,10 +223,7 @@ function UsersPageContent() {
             className="rounded-sm"
             placeholder="Search users"
             startAdornment={
-              <SearchIcon
-                className="-mr-1 ml-2 h-4 w-4 shrink-0"
-                sx={{ color: 'text.disabled' }}
-              />
+              <SearchIcon className="-mr-1 ml-2 h-4 w-4 shrink-0 text-disabled" />
             }
             onChange={handleSearchStringChange}
           />
@@ -269,10 +268,7 @@ function UsersPageContent() {
           className="rounded-sm"
           placeholder="Search users"
           startAdornment={
-            <SearchIcon
-              className="-mr-1 ml-2 h-4 w-4 shrink-0"
-              sx={{ color: 'text.disabled' }}
-            />
+            <SearchIcon className="-mr-1 ml-2 h-4 w-4 shrink-0 text-disabled" />
           }
           onChange={handleSearchStringChange}
         />
@@ -286,11 +282,7 @@ function UsersPageContent() {
       </div>
       {usersCount === 0 ? (
         <Box className="flex flex-col items-center justify-center space-y-5 rounded-lg border px-48 py-12 shadow-sm">
-          <UserIcon
-            strokeWidth={1}
-            className="h-10 w-10"
-            sx={{ color: 'text.disabled' }}
-          />
+          <UserIcon strokeWidth={1} className="h-10 w-10 text-disabled" />
           <div className="flex flex-col space-y-1">
             <Text className="text-center font-medium" variant="h3">
               There are no users yet
@@ -328,8 +320,7 @@ function UsersPageContent() {
                 <Box className="flex flex-col items-center justify-center space-y-5 border-x border-b px-48 py-12">
                   <UserIcon
                     strokeWidth={1}
-                    className="h-10 w-10"
-                    sx={{ color: 'text.disabled' }}
+                    className="h-10 w-10 text-disabled"
                   />
                   <div className="flex flex-col space-y-1">
                     <Text className="text-center font-medium" variant="h3">
@@ -357,12 +348,10 @@ function UsersPageContent() {
                   elementsPerPage={elementsPerPage}
                   onPrevPageClick={async () => {
                     setCurrentPage((page) => page - 1);
-                    if (currentPage - 1 !== 1) {
-                      await router.push({
-                        pathname: router.pathname,
-                        query: { ...router.query, page: currentPage - 1 },
-                      });
-                    }
+                    await router.push({
+                      pathname: router.pathname,
+                      query: { ...router.query, page: currentPage - 1 },
+                    });
                   }}
                   onNextPageClick={async () => {
                     setCurrentPage((page) => page + 1);

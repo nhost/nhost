@@ -1,0 +1,17 @@
+[
+  {
+    "Name": "insert_user_departments_one",
+    "SQL": "WITH check_nested_department AS (SELECT * FROM (SELECT $1::uuid AS \"id\", $2::text AS \"name\", $3::text AS \"description\", $4::numeric AS \"budget\") AS data WHERE true), nested_department AS (INSERT INTO \"public\".\"departments\" (\"id\", \"name\", \"description\", \"budget\") SELECT check_nested_department.\"id\", check_nested_department.\"name\", check_nested_department.\"description\", check_nested_department.\"budget\" FROM check_nested_department RETURNING *), check_nested_employees AS (SELECT * FROM (SELECT $5::uuid AS \"user_id\", $6::text AS \"role\", nested_department.\"id\" AS \"department_id\" FROM nested_department) AS data WHERE true), nested_employees AS (INSERT INTO \"public\".\"user_departments\" (\"user_id\", \"role\", \"department_id\") SELECT check_nested_employees.\"user_id\", check_nested_employees.\"role\", nested_department.\"id\" FROM check_nested_employees, nested_department RETURNING *), check_mutation_result AS (SELECT * FROM (SELECT $7::uuid AS \"user_id\", $8::text AS \"role\", nested_department.\"id\" AS \"department_id\" FROM nested_department) AS data WHERE true), mutation_result AS (INSERT INTO \"public\".\"user_departments\" (\"user_id\", \"role\", \"department_id\") SELECT check_mutation_result.\"user_id\", check_mutation_result.\"role\", nested_department.\"id\" FROM check_mutation_result, nested_department RETURNING *) SELECT row_to_json((SELECT \"_e\" FROM (SELECT mutation_result.\"user_id\" AS \"user_id\", \"mutation_result.r.employees\".\"employees\" AS \"employees\", (SELECT row_to_json((SELECT \"_e\" FROM (SELECT \"id\" AS \"id\", \"name\" AS \"name\") AS \"_e\")) FROM nested_department LIMIT 1) AS \"department\") AS \"_e\")) FROM mutation_result LEFT OUTER JOIN LATERAL (WITH \"mutation_result.r.employees.base\" AS (SELECT * FROM \"auth\".\"users\" WHERE \"mutation_result\".\"user_id\" = \"id\" LIMIT 1) SELECT row_to_json((SELECT \"_e\" FROM (SELECT \"mutation_result.r.employees.base\".\"id\" AS \"id\", \"mutation_result.r.employees.base\".\"display_name\" AS \"displayName\") AS \"_e\")) AS \"employees\" FROM \"mutation_result.r.employees.base\") AS \"mutation_result.r.employees\" ON ('true') WHERE (SELECT COUNT(*) FROM nested_department) IS NOT NULL AND (SELECT COUNT(*) FROM nested_employees) IS NOT NULL",
+    "Parameters": [
+      "00000000-0000-0000-0000-00000000020c",
+      "Alias Collision Department",
+      "nested descendant name collision",
+      123000,
+      "550e8400-e29b-41d4-a716-446655440002",
+      "member",
+      "550e8400-e29b-41d4-a716-446655440001",
+      "manager"
+    ],
+    "StreamCursors": null
+  }
+]

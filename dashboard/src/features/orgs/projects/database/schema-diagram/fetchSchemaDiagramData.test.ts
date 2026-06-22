@@ -19,6 +19,7 @@ const callArgs = {
 
 const columnHeader = ['data'];
 const fkHeader = ['data'];
+const fnHeader = ['data'];
 
 function columnRow(
   overrides: Partial<{
@@ -30,6 +31,7 @@ function columnRow(
     is_nullable: 'YES' | 'NO';
     ordinal_position: number;
     is_primary: boolean;
+    is_generated: 'ALWAYS' | 'NEVER';
   }> = {},
 ): string {
   return JSON.stringify({
@@ -41,6 +43,7 @@ function columnRow(
     is_nullable: 'NO',
     ordinal_position: 1,
     is_primary: true,
+    is_generated: 'NEVER',
     ...overrides,
   });
 }
@@ -68,10 +71,40 @@ function fkRow(
   });
 }
 
-function bulkResponse(columnRows: string[], fkRows: string[]) {
+function fnRow(
+  overrides: Partial<{
+    schema: string;
+    name: string;
+    oid: string;
+    return_type: string;
+    returns_set: boolean;
+    provolatile: string;
+    return_schema: string | null;
+    return_table: string | null;
+  }> = {},
+): string {
+  return JSON.stringify({
+    schema: 'public',
+    name: 'full_name',
+    oid: '100',
+    return_type: 'text',
+    returns_set: false,
+    provolatile: 's',
+    return_schema: null,
+    return_table: null,
+    ...overrides,
+  });
+}
+
+function bulkResponse(
+  columnRows: string[],
+  fkRows: string[],
+  fnRows: string[] = [],
+) {
   return ok([
     { result: [columnHeader, ...columnRows], result_type: 'TuplesOk' },
     { result: [fkHeader, ...fkRows], result_type: 'TuplesOk' },
+    { result: [fnHeader, ...fnRows], result_type: 'TuplesOk' },
   ]);
 }
 
@@ -115,6 +148,7 @@ describe('fetchSchemaDiagramData', () => {
         isNullable: false,
         ordinalPosition: 1,
         isPrimary: true,
+        isGenerated: false,
       },
       {
         schema: 'public',
@@ -125,6 +159,7 @@ describe('fetchSchemaDiagramData', () => {
         isNullable: true,
         ordinalPosition: 2,
         isPrimary: false,
+        isGenerated: false,
       },
     ]);
   });
@@ -173,7 +208,58 @@ describe('fetchSchemaDiagramData', () => {
 
     const result = await fetchSchemaDiagramData(callArgs);
 
-    expect(result).toEqual({ columns: [], foreignKeys: [] });
+    expect(result).toEqual({
+      columns: [],
+      foreignKeys: [],
+      functionReturnTypes: [],
+    });
+  });
+
+  it('maps function rows into typed function return types', async () => {
+    fetchMock.mockResolvedValueOnce(
+      bulkResponse(
+        [],
+        [],
+        [
+          fnRow(),
+          fnRow({
+            schema: 'public',
+            name: 'posts_for_user',
+            oid: '200',
+            return_type: 'public.posts',
+            returns_set: true,
+            provolatile: 'v',
+            return_schema: 'public',
+            return_table: 'posts',
+          }),
+        ],
+      ),
+    );
+
+    const result = await fetchSchemaDiagramData(callArgs);
+
+    expect(result.functionReturnTypes).toEqual([
+      {
+        schema: 'public',
+        name: 'full_name',
+        oid: '100',
+        returnType: 'text',
+        returnsSet: false,
+        isVolatile: false,
+        returnSchema: undefined,
+        returnTable: undefined,
+      },
+      {
+        schema: 'public',
+        name: 'posts_for_user',
+        oid: '200',
+        returnType: 'public.posts',
+        returnsSet: true,
+        isVolatile: true,
+        returnSchema: 'public',
+        returnTable: 'posts',
+      },
+    ]);
   });
 
   it('coerces is_nullable "YES"/"NO" into a boolean', async () => {
@@ -251,11 +337,38 @@ describe('fetchSchemaDiagramData', () => {
     const body = JSON.parse(init.body);
     expect(body.type).toBe('bulk');
     expect(body.version).toBe(1);
-    expect(body.args).toHaveLength(2);
+    expect(body.args).toHaveLength(3);
     for (const arg of body.args) {
       expect(arg.type).toBe('run_sql');
       expect(arg.args.read_only).toBe(true);
       expect(arg.args.source).toBe('default');
     }
+  });
+
+  it("includes materialized-view columns via a UNION on pg_class where relkind='m'", async () => {
+    fetchMock.mockResolvedValueOnce(bulkResponse([], []));
+
+    await fetchSchemaDiagramData(callArgs);
+
+    const [, init] = fetchMock.mock.calls[0];
+    const columnSql: string = JSON.parse(init.body).args[0].args.sql;
+    expect(columnSql).toMatch(/UNION ALL/i);
+    expect(columnSql).toMatch(/relkind\s*=\s*'m'/);
+    expect(columnSql).toMatch(/pg_attribute/);
+  });
+
+  it('resolves the return relation of set-returning functions via pg_type.typrelid → pg_class', async () => {
+    fetchMock.mockResolvedValueOnce(bulkResponse([], []));
+
+    await fetchSchemaDiagramData(callArgs);
+
+    const [, init] = fetchMock.mock.calls[0];
+    const functionSql: string = JSON.parse(init.body).args[2].args.sql;
+    expect(functionSql).toMatch(/proretset/);
+    expect(functionSql).toMatch(/provolatile/);
+    expect(functionSql).toMatch(/typrelid/);
+    expect(functionSql).toMatch(/relkind\s+IN/i);
+    expect(functionSql).toMatch(/return_table/);
+    expect(functionSql).toMatch(/p\.oid/);
   });
 });

@@ -1,7 +1,6 @@
 {
   self,
   pkgs,
-  nix-filter,
   nixops-lib,
   nix2containerPkgs,
 }:
@@ -9,14 +8,16 @@ let
   name = "nhost/postgres";
   version = "0.0.0-dev";
 
-  src = nix-filter.lib.filter {
+  fs = pkgs.lib.fileset;
+
+  src = fs.toSource {
     root = ./.;
-    include = with nix-filter.lib; [
-      (inDirectory "postgres")
-      (inDirectory "extensions")
-      (inDirectory "tests")
-      (matchExt "nix")
-      "plugins.md"
+    fileset = fs.unions [
+      ./postgres
+      ./extensions
+      ./tests
+      (fs.fileFilter (f: f.hasExt "nix") ./.)
+      ./plugins.md
     ];
   };
 
@@ -34,9 +35,9 @@ let
 
   mkAsDir = image: pkgs.runCommand "image-as-dir" { } "${image.copyTo}/bin/copy-to dir:$out";
 
-  pg16 = mkPostgres pkgs.postgresql_16;
-  pg17 = mkPostgres pkgs.postgresql_17;
-  pg18 = mkPostgres pkgs.postgresql_18;
+  pg16 = mkPostgres pkgs.nhost.postgresql_16;
+  pg17 = mkPostgres pkgs.nhost.postgresql_17;
+  pg18 = mkPostgres pkgs.nhost.postgresql_18;
 in
 {
   check =
@@ -44,7 +45,7 @@ in
       {
         __noChroot = true;
         nativeBuildInputs = with pkgs; [
-          postgresql_18
+          nhost.postgresql_18
           diffutils
         ];
       }
@@ -76,7 +77,7 @@ in
 
   devShell = pkgs.mkShell {
     buildInputs = with pkgs; [
-      wal-g
+      nhost.wal-g
       docker-client
       skopeo
     ];

@@ -1,5 +1,5 @@
-import { Info, SquareArrowUpRightIcon } from 'lucide-react';
-import Link from 'next/link';
+import { Info } from 'lucide-react';
+import { TextLink } from '@/components/ui/v3/text-link';
 import usePiTRBaseBackups from '@/features/orgs/hooks/usePiTRBaseBackups/usePiTRBaseBackups';
 import { cn, isEmptyValue } from '@/lib/utils';
 import EarliestBackup from './EarliestBackup';
@@ -7,15 +7,12 @@ import RestoreBackupDialogButton from './RestoreBackupDialogButton';
 
 function LearnMoreAboutPiTRLink() {
   return (
-    <Link
+    <TextLink
       href="https://docs.nhost.io/products/database/backups#point-in-time-recovery"
-      className="flex items-center gap-1 text-[#0052cd] text-[0.9375rem] leading-[1.375rem] hover:underline dark:text-[#3888ff]"
-      target="_blank"
-      rel="noopener noreferrer"
+      external
     >
       Learn more about Point-in-Time Recovery{' '}
-      <SquareArrowUpRightIcon className="h-4 w-4" />
-    </Link>
+    </TextLink>
   );
 }
 

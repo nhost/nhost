@@ -168,7 +168,8 @@ func TestReplaceFile(t *testing.T) {
 					UploadedByUserId: new("some-valid-uuid"),
 					Metadata:         new(map[string]any{"some": "metadata"}),
 				},
-				nil)
+				nil,
+			)
 
 			av.EXPECT().ScanReader(gomock.Any(), gomock.Any()).Return(nil)
 
@@ -194,19 +195,20 @@ func TestReplaceFile(t *testing.T) {
 				t.Fatalf("unexpected error: %v", err)
 			}
 
-			assert(t, api.ReplaceFile200JSONResponse{
-				Id:               file.md.ID,
-				Name:             "a_file.txt",
-				Size:             int64(len(tc.contents)),
-				BucketId:         "blah",
-				Etag:             "some-etag",
-				CreatedAt:        time.Time{}, // ignored
-				UpdatedAt:        time.Time{}, // ignored
-				IsUploaded:       true,
-				MimeType:         "text/plain; charset=utf-8",
-				UploadedByUserId: new("some-valid-uuid"),
-				Metadata:         new(map[string]any{"some": "metadata"}),
-			}, resp,
+			assert(
+				t, api.ReplaceFile200JSONResponse{
+					Id:               file.md.ID,
+					Name:             "a_file.txt",
+					Size:             int64(len(tc.contents)),
+					BucketId:         "blah",
+					Etag:             "some-etag",
+					CreatedAt:        time.Time{}, // ignored
+					UpdatedAt:        time.Time{}, // ignored
+					IsUploaded:       true,
+					MimeType:         "text/plain; charset=utf-8",
+					UploadedByUserId: new("some-valid-uuid"),
+					Metadata:         new(map[string]any{"some": "metadata"}),
+				}, resp,
 				cmpopts.IgnoreFields(api.FileMetadata{}, "Id", "CreatedAt", "UpdatedAt"),
 			)
 		})

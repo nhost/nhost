@@ -74,7 +74,7 @@ func TestVerifyAddSecurityKey(t *testing.T) { //nolint:maintidx
 				mock.EXPECT().GetUser(
 					gomock.Any(),
 					userID,
-				).Return(sql.AuthUser{ //nolint:exhaustruct
+				).Return(sql.AuthUser{
 					ID:          userID,
 					Email:       sql.Text("jane@acme.com"),
 					DisplayName: "Jane Doe",
@@ -87,7 +87,7 @@ func TestVerifyAddSecurityKey(t *testing.T) { //nolint:maintidx
 						UserID:       userID,
 						CredentialID: "LychOomEPgZu4XNwiDvzlP5hd1U",
 						CredentialPublicKey: []uint8{
-							0xa5, 0x01, 0x02, 0x03, 0x26, 0x20, 0x01, 0x21, 0x58, 0x20, 0x57, 0xe1, 0xb5, 0x82, 0xa0, 0x95, 0xc4, 0x1a, 0xf3, 0x65, 0x9d, 0xdd, 0xc2, 0x68, 0xcf, 0x66, 0x35, 0x25, 0x32, 0xa5, 0x86, 0x22, 0xfb, 0xf7, 0xc6, 0xc6, 0x08, 0x6d, 0xa9, 0xc9, 0x64, 0x7f, 0x22, 0x58, 0x20, 0xa3, 0x50, 0x94, 0x11, 0xb8, 0x27, 0x52, 0xae, 0x46, 0xec, 0x56, 0x3a, 0x3b, 0x3a, 0x6d, 0x71, 0x24, 0x10, 0x66, 0xae, 0xb2, 0x57, 0x75, 0xd5, 0xbb, 0x98, 0x8c, 0xd0, 0xc5, 0x91, 0x1f, 0x65, //nolint:lll
+							0xa5, 0x01, 0x02, 0x03, 0x26, 0x20, 0x01, 0x21, 0x58, 0x20, 0x57, 0xe1, 0xb5, 0x82, 0xa0, 0x95, 0xc4, 0x1a, 0xf3, 0x65, 0x9d, 0xdd, 0xc2, 0x68, 0xcf, 0x66, 0x35, 0x25, 0x32, 0xa5, 0x86, 0x22, 0xfb, 0xf7, 0xc6, 0xc6, 0x08, 0x6d, 0xa9, 0xc9, 0x64, 0x7f, 0x22, 0x58, 0x20, 0xa3, 0x50, 0x94, 0x11, 0xb8, 0x27, 0x52, 0xae, 0x46, 0xec, 0x56, 0x3a, 0x3b, 0x3a, 0x6d, 0x71, 0x24, 0x10, 0x66, 0xae, 0xb2, 0x57, 0x75, 0xd5, 0xbb, 0x98, 0x8c, 0xd0, 0xc5, 0x91, 0x1f, 0x65,
 						},
 						Nickname: sql.Text("my-touch-id"),
 					},
@@ -119,7 +119,7 @@ func TestVerifyAddSecurityKey(t *testing.T) { //nolint:maintidx
 				mock.EXPECT().GetUser(
 					gomock.Any(),
 					userID,
-				).Return(sql.AuthUser{ //nolint:exhaustruct
+				).Return(sql.AuthUser{
 					ID:          userID,
 					Email:       sql.Text("jane@acme.com"),
 					DisplayName: "Jane Doe",
@@ -132,9 +132,9 @@ func TestVerifyAddSecurityKey(t *testing.T) { //nolint:maintidx
 						UserID:       userID,
 						CredentialID: "LychOomEPgZu4XNwiDvzlP5hd1U",
 						CredentialPublicKey: []uint8{
-							0xa5, 0x01, 0x02, 0x03, 0x26, 0x20, 0x01, 0x21, 0x58, 0x20, 0x57, 0xe1, 0xb5, 0x82, 0xa0, 0x95, 0xc4, 0x1a, 0xf3, 0x65, 0x9d, 0xdd, 0xc2, 0x68, 0xcf, 0x66, 0x35, 0x25, 0x32, 0xa5, 0x86, 0x22, 0xfb, 0xf7, 0xc6, 0xc6, 0x08, 0x6d, 0xa9, 0xc9, 0x64, 0x7f, 0x22, 0x58, 0x20, 0xa3, 0x50, 0x94, 0x11, 0xb8, 0x27, 0x52, 0xae, 0x46, 0xec, 0x56, 0x3a, 0x3b, 0x3a, 0x6d, 0x71, 0x24, 0x10, 0x66, 0xae, 0xb2, 0x57, 0x75, 0xd5, 0xbb, 0x98, 0x8c, 0xd0, 0xc5, 0x91, 0x1f, 0x65, //nolint:lll
+							0xa5, 0x01, 0x02, 0x03, 0x26, 0x20, 0x01, 0x21, 0x58, 0x20, 0x57, 0xe1, 0xb5, 0x82, 0xa0, 0x95, 0xc4, 0x1a, 0xf3, 0x65, 0x9d, 0xdd, 0xc2, 0x68, 0xcf, 0x66, 0x35, 0x25, 0x32, 0xa5, 0x86, 0x22, 0xfb, 0xf7, 0xc6, 0xc6, 0x08, 0x6d, 0xa9, 0xc9, 0x64, 0x7f, 0x22, 0x58, 0x20, 0xa3, 0x50, 0x94, 0x11, 0xb8, 0x27, 0x52, 0xae, 0x46, 0xec, 0x56, 0x3a, 0x3b, 0x3a, 0x6d, 0x71, 0x24, 0x10, 0x66, 0xae, 0xb2, 0x57, 0x75, 0xd5, 0xbb, 0x98, 0x8c, 0xd0, 0xc5, 0x91, 0x1f, 0x65,
 						},
-						Nickname: pgtype.Text{}, //nolint:exhaustruct
+						Nickname: pgtype.Text{},
 					},
 				).Return(securityKeyID, nil)
 
@@ -172,7 +172,7 @@ func TestVerifyAddSecurityKey(t *testing.T) { //nolint:maintidx
 				Body: unmarshalUserWebauthnVerifyRequest(
 					t,
 					[]byte(
-						`{"credential":{"id":"rkT-z-JhiBWGseoxXEKPulXcKcM","rawId":"rkT-z-JhiBWGseoxXEKPulXcKcM","response":{"authenticatorData":"SZYN5YgOjGh0NBcPZHZgW4_krrmihjLHmVzzuoMdl2MdAAAAAA","clientDataJSON":"eyJ0eXBlIjoid2ViYXV0aG4uZ2V0IiwiY2hhbGxlbmdlIjoibk02b204bHp2VDVveHZSQ0Z1QXFSRE9qLXRsQXE4RmRQLWVSTk93c2ZncyIsIm9yaWdpbiI6Imh0dHA6Ly9sb2NhbGhvc3Q6MzAwMCJ9","signature":"MEYCIQDAjwCZjJdHQub-tZHyXKLYdm4_IYefv2p-V8Z5k8a9lwIhAOhV5Kc5po30xgAc3XrzSiwy-Q5ItdcIMXPP5-4FvHOt","userHandle":"d0902ee3-d160-4853-af6a-8d4b6248117e"},"type":"public-key","clientExtensionResults":{},"authenticatorAttachment":"platform"}}`, //nolint:lll
+						`{"credential":{"id":"rkT-z-JhiBWGseoxXEKPulXcKcM","rawId":"rkT-z-JhiBWGseoxXEKPulXcKcM","response":{"authenticatorData":"SZYN5YgOjGh0NBcPZHZgW4_krrmihjLHmVzzuoMdl2MdAAAAAA","clientDataJSON":"eyJ0eXBlIjoid2ViYXV0aG4uZ2V0IiwiY2hhbGxlbmdlIjoibk02b204bHp2VDVveHZSQ0Z1QXFSRE9qLXRsQXE4RmRQLWVSTk93c2ZncyIsIm9yaWdpbiI6Imh0dHA6Ly9sb2NhbGhvc3Q6MzAwMCJ9","signature":"MEYCIQDAjwCZjJdHQub-tZHyXKLYdm4_IYefv2p-V8Z5k8a9lwIhAOhV5Kc5po30xgAc3XrzSiwy-Q5ItdcIMXPP5-4FvHOt","userHandle":"d0902ee3-d160-4853-af6a-8d4b6248117e"},"type":"public-key","clientExtensionResults":{},"authenticatorAttachment":"platform"}}`,
 					),
 				),
 			},
@@ -200,7 +200,7 @@ func TestVerifyAddSecurityKey(t *testing.T) { //nolint:maintidx
 				mock.EXPECT().GetUser(
 					gomock.Any(),
 					userID,
-				).Return(sql.AuthUser{ //nolint:exhaustruct
+				).Return(sql.AuthUser{
 					ID:          userID,
 					Email:       sql.Text("jane@acme.com"),
 					DisplayName: "Jane Doe",
@@ -237,7 +237,7 @@ func TestVerifyAddSecurityKey(t *testing.T) { //nolint:maintidx
 				Body: unmarshalUserWebauthnVerifyRequest(
 					t,
 					[]byte(
-						`{"credential":{"id":"rkT-z-JhiBWGseoxXEKPulXcKcM","rawId":"rkT-z-JhiBWGseoxXEKPulXcKcM","response":{"authenticatorData":"SZYN5YgOjGh0NBcPZHZgW4_krrmihjLHmVzzuoMdl2MdAAAAAA","clientDataJSON":"eyJ0eXBlIjoid2ViYXV0aG4uZ2V0IiwiY2hhbGxlbmdlIjoibk02b204bHp2VDVveHZSQ0Z1QXFSRE9qLXRsQXE4RmRQLWVSTk93c2ZncyIsIm9yaWdpbiI6Imh0dHA6Ly9sb2NhbGhvc3Q6MzAwMCJ9","signature":"MEYCIQDAjwCZjJdHQub-tZHyXKLYdm4_IYefv2p-V8Z5k8a9lwIhAOhV5Kc5po30xgAc3XrzSiwy-Q5ItdcIMXPP5-4FvHOt","userHandle":"d0902ee3-d160-4853-af6a-8d4b6248117e"},"type":"public-key","clientExtensionResults":{},"authenticatorAttachment":"platform"}}`, //nolint:lll
+						`{"credential":{"id":"rkT-z-JhiBWGseoxXEKPulXcKcM","rawId":"rkT-z-JhiBWGseoxXEKPulXcKcM","response":{"authenticatorData":"SZYN5YgOjGh0NBcPZHZgW4_krrmihjLHmVzzuoMdl2MdAAAAAA","clientDataJSON":"eyJ0eXBlIjoid2ViYXV0aG4uZ2V0IiwiY2hhbGxlbmdlIjoibk02b204bHp2VDVveHZSQ0Z1QXFSRE9qLXRsQXE4RmRQLWVSTk93c2ZncyIsIm9yaWdpbiI6Imh0dHA6Ly9sb2NhbGhvc3Q6MzAwMCJ9","signature":"MEYCIQDAjwCZjJdHQub-tZHyXKLYdm4_IYefv2p-V8Z5k8a9lwIhAOhV5Kc5po30xgAc3XrzSiwy-Q5ItdcIMXPP5-4FvHOt","userHandle":"d0902ee3-d160-4853-af6a-8d4b6248117e"},"type":"public-key","clientExtensionResults":{},"authenticatorAttachment":"platform"}}`,
 					),
 				),
 			},
@@ -261,7 +261,7 @@ func TestVerifyAddSecurityKey(t *testing.T) { //nolint:maintidx
 			c, jwtGetter := getController(t, ctrl, tc.config, tc.db, tc.getControllerOpts...)
 
 			// Setup webauthn session data for the test
-			//nolint:lll
+
 			b := []byte(`{
                 "Session": {
                     "challenge": "nM6om8lzvT5oxvRCFuAqRDOj-tlAq8FdP-eRNOwsfgs",
@@ -329,7 +329,7 @@ func TestVerifyAddSecurityKey(t *testing.T) { //nolint:maintidx
 				tc.request,
 				tc.expectedResponse,
 				cmpopts.IgnoreFields(
-					api.ElevateWebauthn200JSONResponse{}, //nolint:exhaustruct
+					api.ElevateWebauthn200JSONResponse{},
 					"Challenge",
 				),
 			)

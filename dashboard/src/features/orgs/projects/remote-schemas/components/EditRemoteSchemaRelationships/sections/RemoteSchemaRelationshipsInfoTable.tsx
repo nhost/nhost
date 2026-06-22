@@ -1,11 +1,13 @@
+import {
+  Ellipsis as DotsHorizontalIcon,
+  SquarePen as PencilIcon,
+  PlusIcon,
+  Trash2 as TrashIcon,
+} from 'lucide-react';
 import { useDialog } from '@/components/common/DialogProvider';
 import { Divider } from '@/components/ui/v2/Divider';
 import { Dropdown } from '@/components/ui/v2/Dropdown';
 import { IconButton } from '@/components/ui/v2/IconButton';
-import { DotsHorizontalIcon } from '@/components/ui/v2/icons/DotsHorizontalIcon';
-import { PencilIcon } from '@/components/ui/v2/icons/PencilIcon';
-import { PlusIcon } from '@/components/ui/v2/icons/PlusIcon';
-import { TrashIcon } from '@/components/ui/v2/icons/TrashIcon';
 import { Button } from '@/components/ui/v3/button';
 import {
   Table,
@@ -166,10 +168,7 @@ export default function RemoteSchemaRelationshipsInfoTable({
                           handleEditRelationshipClick(relationship)
                         }
                       >
-                        <PencilIcon
-                          className="h-4 w-4"
-                          sx={{ color: 'text.secondary' }}
-                        />
+                        <PencilIcon className="h-4 w-4 text-muted-foreground" />
                         <span>Edit Relationship</span>
                       </Dropdown.Item>
                       <Divider component="li" />
@@ -183,10 +182,7 @@ export default function RemoteSchemaRelationshipsInfoTable({
                           )
                         }
                       >
-                        <TrashIcon
-                          className="h-4 w-4"
-                          sx={{ color: 'error.main' }}
-                        />
+                        <TrashIcon className="h-4 w-4 text-error-main" />
                         <span>Delete Relationship</span>
                       </Dropdown.Item>
                     </Dropdown.Content>

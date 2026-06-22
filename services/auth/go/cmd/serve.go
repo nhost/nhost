@@ -12,7 +12,6 @@ import (
 	"github.com/gin-gonic/gin"
 	"github.com/nhost/nhost/internal/lib/oapi"
 	oapimw "github.com/nhost/nhost/internal/lib/oapi/middleware"
-	"github.com/nhost/nhost/services/auth/docs"
 	"github.com/nhost/nhost/services/auth/go/api"
 	"github.com/nhost/nhost/services/auth/go/controller"
 	crypto "github.com/nhost/nhost/services/auth/go/cryto"
@@ -1426,10 +1425,18 @@ func getCORSOptions() oapimw.CORSOptions {
 		AllowOriginFunc:  nil,
 		AllowedOrigins:   []string{"*"},
 		AllowedMethods:   []string{"POST", "GET"},
+		AllowHeadersFunc: nil,
 		AllowedHeaders:   nil,
 		ExposedHeaders:   []string{},
 		AllowCredentials: true,
-		MaxAge:           "86400",
+		// Required: the shared CORS middleware is fail-closed and rejects
+		// allow-all origins combined with credentials, so without this flag
+		// NewRouter would error at startup. It preserves auth's legacy
+		// credentialed allow-all behavior, which is equivalent to the old
+		// middleware for browser clients (which always send an Origin header).
+		// Replace this with explicit allowed origins in a follow-up migration.
+		UnsafeAllowAllOriginsWithCredentials: true,
+		MaxAge:                               "86400",
 	}
 }
 
@@ -1447,8 +1454,13 @@ func getGoServer(
 
 	handler := api.NewStrictHandler(ctrl, []api.StrictMiddlewareFunc{})
 
+	swagger, err := api.GetSpec()
+	if err != nil {
+		return nil, fmt.Errorf("loading OpenAPI schema: %w", err)
+	}
+
 	router, mw, err := oapi.NewRouter( //nolint:contextcheck
-		docs.OpenAPISchema,
+		swagger,
 		cmd.String(flagAPIPrefix),
 		jwtGetter.MiddlewareFunc,
 		getCORSOptions(),
@@ -1474,7 +1486,7 @@ func getGoServer(
 		api.GinServerOptions{
 			BaseURL:      cmd.String(flagAPIPrefix),
 			Middlewares:  []api.MiddlewareFunc{mw},
-			ErrorHandler: nil,
+			ErrorHandler: oapi.RecordError,
 		},
 	)
 
@@ -1611,7 +1623,8 @@ func serve(ctx context.Context, cmd *cli.Command) error {
 		defer cancel()
 
 		logger.InfoContext(
-			ctx, "starting server", slog.String("port", cmd.String(flagPort)))
+			ctx, "starting server", slog.String("port", cmd.String(flagPort)),
+		)
 
 		if err := server.ListenAndServe(); err != nil && !errors.Is(err, http.ErrServerClosed) {
 			logger.ErrorContext(ctx, "server failed", slog.String("error", err.Error()))
@@ -1623,7 +1636,8 @@ func serve(ctx context.Context, cmd *cli.Command) error {
 	logger.InfoContext(ctx, "shutting down server")
 
 	shutdownCtx, shutdownCancel := context.WithTimeout(
-		context.Background(), 30*time.Second) //nolint:mnd
+		context.Background(), 30*time.Second, //nolint:mnd
+	)
 	defer shutdownCancel()
 
 	if err := server.Shutdown(shutdownCtx); err != nil { //nolint:contextcheck

@@ -4,11 +4,12 @@ import { FormProvider, useForm } from 'react-hook-form';
 import * as Yup from 'yup';
 import { ApplyLocalSettingsDialog } from '@/components/common/ApplyLocalSettingsDialog';
 import { useDialog } from '@/components/common/DialogProvider';
-import { ControlledAutocomplete } from '@/components/form/ControlledAutocomplete';
 import { Form } from '@/components/form/Form';
+import { FormSelect } from '@/components/form/FormSelect';
 import { SettingsContainer } from '@/components/layout/SettingsContainer';
 import { HighlightedText } from '@/components/presentational/HighlightedText';
 import { ActivityIndicator } from '@/components/ui/v2/ActivityIndicator';
+import { SelectItem } from '@/components/ui/v3/select';
 import { useIsPlatform } from '@/features/orgs/projects/common/hooks/useIsPlatform';
 import { useLocalMimirClient } from '@/features/orgs/projects/hooks/useLocalMimirClient';
 import { useProject } from '@/features/orgs/projects/hooks/useProject';
@@ -19,12 +20,7 @@ import {
 } from '@/generated/graphql';
 
 const validationSchema = Yup.object({
-  logLevel: Yup.object({
-    label: Yup.string().required(),
-    value: Yup.string().required(),
-  })
-    .label('Log level')
-    .required(),
+  logLevel: Yup.string().required().label('Log level'),
 });
 
 export type HasuraLogLevelFormValues = Yup.InferType<typeof validationSchema>;
@@ -51,12 +47,7 @@ export default function HasuraLogLevelSettings() {
   const form = useForm<HasuraLogLevelFormValues>({
     reValidateMode: 'onSubmit',
     defaultValues: {
-      logLevel: level
-        ? {
-            label: level,
-            value: level,
-          }
-        : { label: 'warn', value: 'warn' },
+      logLevel: level || 'warn',
     },
     resolver: yupResolver(validationSchema),
   });
@@ -64,10 +55,7 @@ export default function HasuraLogLevelSettings() {
   useEffect(() => {
     if (!loading && level) {
       form.reset({
-        logLevel: {
-          label: level,
-          value: level,
-        },
+        logLevel: level,
       });
     }
   }, [form, loading, level]);
@@ -89,11 +77,6 @@ export default function HasuraLogLevelSettings() {
   const { formState } = form;
   const isDirty = Object.keys(formState.dirtyFields).length > 0;
 
-  const availableLogLevels = AVAILABLE_HASURA_LOG_LEVELS.map((api) => ({
-    label: api,
-    value: api,
-  }));
-
   async function handleSubmit(formValues: HasuraLogLevelFormValues) {
     const updateConfigPromise = updateConfig({
       variables: {
@@ -101,7 +84,7 @@ export default function HasuraLogLevelSettings() {
         config: {
           hasura: {
             logs: {
-              level: formValues.logLevel?.value || 'warn',
+              level: formValues.logLevel || 'warn',
             },
           },
         },
@@ -158,16 +141,18 @@ export default function HasuraLogLevelSettings() {
           }}
           className="grid grid-flow-row gap-x-4 gap-y-2 px-4 lg:grid-cols-5"
         >
-          <ControlledAutocomplete
-            id="logLevel"
+          <FormSelect
             name="logLevel"
-            fullWidth
             className="lg:col-span-2"
-            aria-label="Hasura Log Level"
-            options={availableLogLevels}
-            error={!!formState.errors?.logLevel?.message}
-            helperText={formState.errors?.logLevel?.message}
-          />
+            control={form.control}
+            placeholder="Select Log Level"
+          >
+            {AVAILABLE_HASURA_LOG_LEVELS.map((l) => (
+              <SelectItem key={l} value={l}>
+                {l}
+              </SelectItem>
+            ))}
+          </FormSelect>
         </SettingsContainer>
       </Form>
     </FormProvider>

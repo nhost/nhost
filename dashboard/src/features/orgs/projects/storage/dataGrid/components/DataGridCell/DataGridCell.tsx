@@ -8,7 +8,6 @@ import type {
 } from 'react';
 import { useEffect, useState } from 'react';
 import { useDialog } from '@/components/common/DialogProvider';
-import { useTooltip } from '@/components/ui/v2/Tooltip';
 import { Button } from '@/components/ui/v3/button';
 import {
   Tooltip,
@@ -36,7 +35,10 @@ export interface CommonDataGridCellProps<
   /**
    * Function that is called when the cell is saved.
    */
-  onSave?: (value: TValue, options?: { reset: boolean }) => Promise<void>;
+  onSave?: (
+    value: TValue,
+    options?: { reset?: 'null' | 'default' },
+  ) => Promise<void>;
   /**
    * Optimistic value for the cell.
    */
@@ -75,14 +77,6 @@ function DataGridCellContent<
   } = cell;
   const { onCellEdit, isNullable, type, isEditable } = columnDef.meta || {};
   const { openAlertDialog } = useDialog();
-
-  const {
-    title: tooltipTitle,
-    open: tooltipOpen,
-    openTooltip,
-    closeTooltip,
-    resetTooltipTitle,
-  } = useTooltip();
 
   const [optimisticValue, setOptimisticValue] = useState(originalValue);
   const [temporaryValue, setTemporaryValue] = useState(originalValue);
@@ -140,27 +134,33 @@ function DataGridCellContent<
 
   async function handleSave(
     value: DataGridCellValue,
-    options: { reset: boolean } = { reset: false },
+    options: { reset?: 'null' | 'default' } = {},
   ) {
     if (!onCellEdit) {
       return;
     }
 
-    const normalizedValue =
-      value !== null && typeof value === 'object'
-        ? JSON.stringify(value)
-        : String(value);
+    function normalize(v: DataGridCellValue) {
+      if (v === null || v === undefined) {
+        return null;
+      }
+      if (typeof v === 'object') {
+        return JSON.stringify(v);
+      }
+      return String(v);
+    }
 
-    const normalizedOptimisticValue =
-      optimisticValue !== null && typeof optimisticValue === 'object'
-        ? JSON.stringify(optimisticValue)
-        : String(optimisticValue);
+    const normalizedValue = normalize(value);
+    const normalizedOptimisticValue = normalize(optimisticValue);
 
     // We are making sure that optimistic value is not equal to the current
     // value. If it is, we are not going to save the value.
+    const escapeNewlines = (v: string | null) =>
+      v === null ? null : v.replace(/\n/gi, '\\n');
+
     if (
-      normalizedValue.replace(/\n/gi, '\\n') ===
-        normalizedOptimisticValue.replace(/\n/gi, '\\n') &&
+      escapeNewlines(normalizedValue) ===
+        escapeNewlines(normalizedOptimisticValue) &&
       !options.reset
     ) {
       return;
@@ -176,7 +176,7 @@ function DataGridCellContent<
         row,
         columnsToUpdate: {
           [id]: {
-            value: !options.reset ? value : undefined,
+            value: options.reset ? undefined : value,
             reset: options.reset,
           },
         },
@@ -214,20 +214,11 @@ function DataGridCellContent<
     if (type !== 'boolean') {
       await handleSave(temporaryValue);
     }
-    if (tooltipOpen) {
-      closeTooltip();
-    }
     deselectCell();
   }
 
   function resetCell() {
     if (!isNullable) {
-      openTooltip(
-        <span>
-          <strong>{id}</strong> is non-nullable.
-        </span>,
-      );
-
       return;
     }
 
@@ -242,7 +233,7 @@ function DataGridCellContent<
         primaryButtonText: 'Set to null',
         primaryButtonColor: 'error',
         onPrimaryAction: async () => {
-          await handleSave(null, { reset: true });
+          await handleSave(null, { reset: 'null' });
           focusCell();
         },
       },
@@ -252,10 +243,6 @@ function DataGridCellContent<
   async function handleKeyDown(event: KeyboardEvent<HTMLDivElement>) {
     if (!isEditable) {
       return;
-    }
-
-    if (event.key === 'Escape') {
-      closeTooltip();
     }
 
     // Resetting temporary value and focusing cell on Escape when input field is
@@ -365,25 +352,32 @@ function DataGridCellContent<
         )}
     </div>
   );
-  // TODO: https://github.com/nhost/nhost/issues/3677
-  if (isEditable) {
-    return (
-      <Tooltip
-        delayDuration={100}
-        open={tooltipOpen}
-        onOpenChange={(newState) => {
-          if (!newState) {
-            resetTooltipTitle();
-          }
-        }}
-      >
-        <TooltipTrigger asChild>{content}</TooltipTrigger>
-        <TooltipContent>{tooltipTitle}</TooltipContent>
-      </Tooltip>
-    );
+
+  if (
+    id === 'preview-column' ||
+    type === 'boolean' ||
+    !isNotEmptyValue(optimisticValue)
+  ) {
+    return content;
   }
 
-  return content;
+  const cellPreview =
+    typeof optimisticValue === 'object'
+      ? JSON.stringify(optimisticValue)
+      : String(optimisticValue);
+
+  return (
+    <Tooltip delayDuration={1000}>
+      <TooltipTrigger asChild>{content}</TooltipTrigger>
+      <TooltipContent
+        side="bottom"
+        align="center"
+        className="max-w-sm break-words"
+      >
+        {cellPreview}
+      </TooltipContent>
+    </Tooltip>
+  );
 }
 
 export default function DataGridCell<

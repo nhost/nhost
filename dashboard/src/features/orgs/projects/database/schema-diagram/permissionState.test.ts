@@ -2,8 +2,11 @@ import type { HasuraMetadataTable } from '@/features/orgs/projects/database/data
 import {
   ADMIN_ROLE,
   getColumnPermissionState,
+  getComputedFieldPermissionState,
+  getFunctionPermissionDotState,
   getRelevantRules,
   getTablePermissionState,
+  isOperationAllowed,
   tableHasAnyPermission,
 } from './permissionState';
 
@@ -223,6 +226,113 @@ describe('getColumnPermissionState', () => {
   });
 });
 
+describe('getComputedFieldPermissionState', () => {
+  it('returns "filled" for admin regardless of computed_fields metadata', () => {
+    expect(
+      getComputedFieldPermissionState(buildTable(), ADMIN_ROLE, 'full_name'),
+    ).toBe('filled');
+  });
+
+  it('returns "none" when no select permission exists for the role', () => {
+    const table = buildTable({
+      select_permissions: [
+        {
+          role: 'manager',
+          permission: {
+            columns: ['id'],
+            filter: {},
+            computed_fields: ['full_name'],
+          },
+        },
+      ],
+    });
+    expect(getComputedFieldPermissionState(table, 'user', 'full_name')).toBe(
+      'none',
+    );
+  });
+
+  it('returns "none" when the field is not in the allowed computed_fields list', () => {
+    const table = buildTable({
+      select_permissions: [
+        {
+          role: 'user',
+          permission: {
+            columns: ['id'],
+            filter: {},
+            computed_fields: ['other_field'],
+          },
+        },
+      ],
+    });
+    expect(getComputedFieldPermissionState(table, 'user', 'full_name')).toBe(
+      'none',
+    );
+  });
+
+  it('returns "none" when computed_fields is omitted or null', () => {
+    const tableWithUnset = buildTable({
+      select_permissions: [
+        { role: 'user', permission: { columns: ['id'], filter: {} } },
+      ],
+    });
+    expect(
+      getComputedFieldPermissionState(tableWithUnset, 'user', 'full_name'),
+    ).toBe('none');
+
+    const tableWithNull = buildTable({
+      select_permissions: [
+        {
+          role: 'user',
+          permission: {
+            columns: ['id'],
+            filter: {},
+            computed_fields: null,
+          },
+        },
+      ],
+    });
+    expect(
+      getComputedFieldPermissionState(tableWithNull, 'user', 'full_name'),
+    ).toBe('none');
+  });
+
+  it('mirrors the table state when the field is in the allowed list', () => {
+    const table = buildTable({
+      select_permissions: [
+        {
+          role: 'user',
+          permission: {
+            columns: ['id'],
+            filter: { id: { _eq: 'X-Hasura-User-Id' } },
+            computed_fields: ['full_name'],
+          },
+        },
+      ],
+    });
+    expect(getComputedFieldPermissionState(table, 'user', 'full_name')).toBe(
+      'hollow',
+    );
+  });
+
+  it('returns "filled" when the field is allowed and the filter is empty', () => {
+    const table = buildTable({
+      select_permissions: [
+        {
+          role: 'user',
+          permission: {
+            columns: ['id'],
+            filter: {},
+            computed_fields: ['full_name'],
+          },
+        },
+      ],
+    });
+    expect(getComputedFieldPermissionState(table, 'user', 'full_name')).toBe(
+      'filled',
+    );
+  });
+});
+
 describe('getRelevantRules', () => {
   it('returns only the filter for select', () => {
     expect(
@@ -269,6 +379,214 @@ describe('getRelevantRules', () => {
   });
 });
 
+describe('isOperationAllowed', () => {
+  it('returns true for admin regardless of metadata', () => {
+    expect(isOperationAllowed(undefined, ADMIN_ROLE, 'select', 'select')).toBe(
+      true,
+    );
+    expect(
+      isOperationAllowed(buildTable(), ADMIN_ROLE, 'insert', 'insert_one'),
+    ).toBe(true);
+  });
+
+  it('returns false when the role has no permission for the action', () => {
+    const table = buildTable();
+    expect(isOperationAllowed(table, 'user', 'select', 'select')).toBe(false);
+    expect(isOperationAllowed(table, 'user', 'insert', 'insert')).toBe(false);
+  });
+
+  it('returns true for insert/update/delete root fields whenever the action permission exists', () => {
+    const table = buildTable({
+      insert_permissions: [
+        { role: 'user', permission: { columns: ['id'], check: {} } },
+      ],
+      update_permissions: [
+        {
+          role: 'user',
+          permission: { columns: ['id'], filter: {}, check: {} },
+        },
+      ],
+      delete_permissions: [
+        { role: 'user', permission: { columns: ['id'], filter: {} } },
+      ],
+    });
+    expect(isOperationAllowed(table, 'user', 'insert', 'insert')).toBe(true);
+    expect(isOperationAllowed(table, 'user', 'insert', 'insert_one')).toBe(
+      true,
+    );
+    expect(isOperationAllowed(table, 'user', 'update', 'update_many')).toBe(
+      true,
+    );
+    expect(isOperationAllowed(table, 'user', 'delete', 'delete_by_pk')).toBe(
+      true,
+    );
+  });
+
+  it('allows every select root field by default when no root_fields are configured', () => {
+    const table = buildTable({
+      select_permissions: [
+        { role: 'user', permission: { columns: ['id'], filter: {} } },
+      ],
+    });
+    expect(isOperationAllowed(table, 'user', 'select', 'select')).toBe(true);
+    expect(isOperationAllowed(table, 'user', 'select', 'select_by_pk')).toBe(
+      true,
+    );
+    // select_aggregate also needs allow_aggregations.
+    expect(
+      isOperationAllowed(table, 'user', 'select', 'select_aggregate'),
+    ).toBe(false);
+    expect(isOperationAllowed(table, 'user', 'select', 'select_stream')).toBe(
+      true,
+    );
+  });
+
+  it('restricts query root fields when query_root_fields is set', () => {
+    const table = buildTable({
+      select_permissions: [
+        {
+          role: 'user',
+          permission: {
+            columns: ['id'],
+            filter: {},
+            query_root_fields: ['select_by_pk'],
+            subscription_root_fields: [],
+          },
+        },
+      ],
+    });
+    expect(isOperationAllowed(table, 'user', 'select', 'select')).toBe(false);
+    expect(isOperationAllowed(table, 'user', 'select', 'select_by_pk')).toBe(
+      true,
+    );
+  });
+
+  it('keeps a root field reachable when it is allowed via either query or subscription', () => {
+    const table = buildTable({
+      select_permissions: [
+        {
+          role: 'user',
+          permission: {
+            columns: ['id'],
+            filter: {},
+            query_root_fields: ['select'],
+            subscription_root_fields: ['select_by_pk'],
+          },
+        },
+      ],
+    });
+    expect(isOperationAllowed(table, 'user', 'select', 'select')).toBe(true);
+    expect(isOperationAllowed(table, 'user', 'select', 'select_by_pk')).toBe(
+      true,
+    );
+  });
+
+  it('treats select_stream as subscription-only (query_root_fields never grants it)', () => {
+    const queryOnly = buildTable({
+      select_permissions: [
+        {
+          role: 'user',
+          permission: {
+            columns: ['id'],
+            filter: {},
+            query_root_fields: ['select_stream'],
+            subscription_root_fields: [],
+          },
+        },
+      ],
+    });
+    expect(
+      isOperationAllowed(queryOnly, 'user', 'select', 'select_stream'),
+    ).toBe(false);
+
+    const subAllowed = buildTable({
+      select_permissions: [
+        {
+          role: 'user',
+          permission: {
+            columns: ['id'],
+            filter: {},
+            query_root_fields: [],
+            subscription_root_fields: ['select_stream'],
+          },
+        },
+      ],
+    });
+    expect(
+      isOperationAllowed(subAllowed, 'user', 'select', 'select_stream'),
+    ).toBe(true);
+  });
+
+  it('requires allow_aggregations to be true for select_aggregate, even if listed in root_fields', () => {
+    const withoutAggregations = buildTable({
+      select_permissions: [
+        {
+          role: 'user',
+          permission: {
+            columns: ['id'],
+            filter: {},
+            query_root_fields: ['select_aggregate'],
+            allow_aggregations: false,
+          },
+        },
+      ],
+    });
+    expect(
+      isOperationAllowed(
+        withoutAggregations,
+        'user',
+        'select',
+        'select_aggregate',
+      ),
+    ).toBe(false);
+
+    const withAggregations = buildTable({
+      select_permissions: [
+        {
+          role: 'user',
+          permission: {
+            columns: ['id'],
+            filter: {},
+            query_root_fields: ['select_aggregate'],
+            allow_aggregations: true,
+          },
+        },
+      ],
+    });
+    expect(
+      isOperationAllowed(
+        withAggregations,
+        'user',
+        'select',
+        'select_aggregate',
+      ),
+    ).toBe(true);
+  });
+
+  it('denies everything when both root_fields are empty arrays', () => {
+    const table = buildTable({
+      select_permissions: [
+        {
+          role: 'user',
+          permission: {
+            columns: ['id'],
+            filter: {},
+            query_root_fields: [],
+            subscription_root_fields: [],
+          },
+        },
+      ],
+    });
+    expect(isOperationAllowed(table, 'user', 'select', 'select')).toBe(false);
+    expect(isOperationAllowed(table, 'user', 'select', 'select_by_pk')).toBe(
+      false,
+    );
+    expect(isOperationAllowed(table, 'user', 'select', 'select_stream')).toBe(
+      false,
+    );
+  });
+});
+
 describe('tableHasAnyPermission', () => {
   it('returns true for admin', () => {
     expect(tableHasAnyPermission(buildTable(), ADMIN_ROLE)).toBe(true);
@@ -285,5 +603,95 @@ describe('tableHasAnyPermission', () => {
       ],
     });
     expect(tableHasAnyPermission(table, 'user')).toBe(true);
+  });
+});
+
+describe('getFunctionPermissionDotState', () => {
+  it('returns allowed/filled for admin regardless of other inputs', () => {
+    expect(
+      getFunctionPermissionDotState({
+        role: ADMIN_ROLE,
+        inferFunctionPermissions: false,
+        isMutationFunction: true,
+        hasSelectPermission: false,
+        hasFunctionPermission: false,
+      }),
+    ).toEqual({ state: 'allowed', dot: 'filled' });
+  });
+
+  describe('inferred path (infer on, query function)', () => {
+    it('is allowed/filled when the role has select on the return table', () => {
+      expect(
+        getFunctionPermissionDotState({
+          role: 'user',
+          inferFunctionPermissions: true,
+          isMutationFunction: false,
+          hasSelectPermission: true,
+          hasFunctionPermission: false,
+        }),
+      ).toEqual({ state: 'allowed', dot: 'filled' });
+    });
+
+    it('is not-allowed/none when the role lacks select on the return table', () => {
+      expect(
+        getFunctionPermissionDotState({
+          role: 'user',
+          inferFunctionPermissions: true,
+          isMutationFunction: false,
+          hasSelectPermission: false,
+          hasFunctionPermission: true,
+        }),
+      ).toEqual({ state: 'not-allowed', dot: 'none' });
+    });
+  });
+
+  describe('explicit path (infer off, or mutation function)', () => {
+    it('is not-allowed/none with select but no function permission when infer is off', () => {
+      expect(
+        getFunctionPermissionDotState({
+          role: 'user',
+          inferFunctionPermissions: false,
+          isMutationFunction: false,
+          hasSelectPermission: true,
+          hasFunctionPermission: false,
+        }),
+      ).toEqual({ state: 'not-allowed', dot: 'none' });
+    });
+
+    it('is allowed/filled with both a function permission and select', () => {
+      expect(
+        getFunctionPermissionDotState({
+          role: 'user',
+          inferFunctionPermissions: false,
+          isMutationFunction: false,
+          hasSelectPermission: true,
+          hasFunctionPermission: true,
+        }),
+      ).toEqual({ state: 'allowed', dot: 'filled' });
+    });
+
+    it('is partial/hollow with a function permission but no select on the return table', () => {
+      expect(
+        getFunctionPermissionDotState({
+          role: 'user',
+          inferFunctionPermissions: false,
+          isMutationFunction: false,
+          hasSelectPermission: false,
+          hasFunctionPermission: true,
+        }),
+      ).toEqual({ state: 'partial', dot: 'hollow' });
+    });
+
+    it('treats a mutation function as explicit even when infer is on', () => {
+      expect(
+        getFunctionPermissionDotState({
+          role: 'user',
+          inferFunctionPermissions: true,
+          isMutationFunction: true,
+          hasSelectPermission: true,
+          hasFunctionPermission: false,
+        }),
+      ).toEqual({ state: 'not-allowed', dot: 'none' });
+    });
   });
 });

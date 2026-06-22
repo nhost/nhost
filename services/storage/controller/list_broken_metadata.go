@@ -3,11 +3,11 @@ package controller
 import (
 	"context"
 	"log/slog"
+	"net/http"
 	"path"
 
 	oapimw "github.com/nhost/nhost/internal/lib/oapi/middleware"
 	"github.com/nhost/nhost/services/storage/api"
-	"github.com/nhost/nhost/services/storage/middleware"
 )
 
 type ListBrokenMetadataResponse struct {
@@ -15,9 +15,14 @@ type ListBrokenMetadataResponse struct {
 }
 
 func (ctrl *Controller) listBrokenMetadata(ctx context.Context) ([]FileSummary, *APIError) {
-	sessionHeaders := middleware.SessionHeadersFromContext(ctx)
-
-	filesInHasura, apiErr := ctrl.metadataStorage.ListFiles(ctx, sessionHeaders)
+	// Broken metadata detection must compare the full set of files in Hasura
+	// against the full set in storage, so it always queries Hasura as admin
+	// (like /ops/list-orphans and /ops/list-not-uploaded). The endpoint itself
+	// is already gated by the admin secret in AuthenticationFunc.
+	filesInHasura, apiErr := ctrl.metadataStorage.ListFiles(
+		ctx,
+		http.Header{"x-hasura-admin-secret": []string{ctrl.hasuraAdminSecret}},
+	)
 	if apiErr != nil {
 		return nil, apiErr
 	}
@@ -27,18 +32,21 @@ func (ctrl *Controller) listBrokenMetadata(ctx context.Context) ([]FileSummary, 
 		return nil, apiErr
 	}
 
+	s3IDs := make(map[string]struct{}, len(filesInS3))
+	for _, fileS3 := range filesInS3 {
+		s3IDs[path.Base(fileS3)] = struct{}{}
+	}
+
 	missing := make([]FileSummary, 0, 10) //nolint: mnd
 
 	for _, fileHasura := range filesInHasura {
-		found := false
-
-		for _, fileS3 := range filesInS3 {
-			if path.Base(fileS3) == fileHasura.ID || !fileHasura.IsUploaded {
-				found = true
-			}
+		// A file that hasn't finished uploading is expected to be absent from
+		// S3; that's "not uploaded", not "broken metadata".
+		if !fileHasura.IsUploaded {
+			continue
 		}
 
-		if !found {
+		if _, found := s3IDs[fileHasura.ID]; !found {
 			missing = append(missing, fileHasura)
 		}
 	}
@@ -61,7 +69,8 @@ func fileListSummary(files []FileSummary) *[]api.FileSummary {
 }
 
 func (ctrl *Controller) ListBrokenMetadata( //nolint:ireturn
-	ctx context.Context, _ api.ListBrokenMetadataRequestObject,
+	ctx context.Context,
+	_ api.ListBrokenMetadataRequestObject,
 ) (api.ListBrokenMetadataResponseObject, error) {
 	logger := oapimw.LoggerFromContext(ctx)
 

@@ -113,3 +113,73 @@ func TestListBrokenMetadata(t *testing.T) {
 		})
 	}
 }
+
+// When S3 returns no files (e.g. an empty bucket), only uploaded files must be
+// reported as broken. A file that hasn't finished uploading is expected to be
+// absent from S3 and must not be flagged.
+func TestListBrokenMetadataEmptyS3(t *testing.T) {
+	t.Parallel()
+
+	logger := slog.New(
+		slog.NewTextHandler(os.Stdout, &slog.HandlerOptions{Level: slog.LevelError}),
+	)
+
+	c := gomock.NewController(t)
+	defer c.Finish()
+
+	metadataStorage := mock.NewMockMetadataStorage(c)
+	contentStorage := mock.NewMockContentStorage(c)
+
+	metadataStorage.EXPECT().ListFiles(
+		gomock.Any(), gomock.Any(),
+	).Return(
+		[]controller.FileSummary{
+			{
+				ID:         "b3b4e653-ca59-412c-a165-92d251c3fe86",
+				Name:       "uploaded.txt",
+				IsUploaded: true,
+				BucketID:   "default",
+			},
+			{
+				ID:         "a184ad10-58e2-4619-9a22-04a90b9c4b5f",
+				Name:       "not-uploaded.txt",
+				IsUploaded: false,
+				BucketID:   "default",
+			},
+		}, nil,
+	)
+
+	contentStorage.EXPECT().ListFiles(gomock.Any()).Return([]string{}, nil)
+
+	ctrl := controller.New(
+		"http://asd",
+		"/v1",
+		"asdasd",
+		metadataStorage,
+		contentStorage,
+		nil,
+		nil,
+		logger,
+	)
+
+	expected := api.ListBrokenMetadata200JSONResponse{
+		Metadata: &[]api.FileSummary{
+			{
+				Id:         "b3b4e653-ca59-412c-a165-92d251c3fe86",
+				Name:       "uploaded.txt",
+				IsUploaded: true,
+				BucketId:   "default",
+			},
+		},
+	}
+
+	resp, err := ctrl.ListBrokenMetadata(
+		t.Context(),
+		api.ListBrokenMetadataRequestObject{},
+	)
+	if err != nil {
+		t.Fatalf("unexpected error: %v", err)
+	}
+
+	assert(t, expected, resp)
+}

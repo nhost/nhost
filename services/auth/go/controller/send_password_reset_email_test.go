@@ -31,7 +31,7 @@ func TestSendPasswordResetEmail(t *testing.T) { //nolint:maintidx
 				mock.EXPECT().GetUserByEmail(
 					gomock.Any(),
 					sql.Text("jane@acme.com"),
-				).Return(sql.AuthUser{ //nolint:exhaustruct
+				).Return(sql.AuthUser{
 					ID:            userID,
 					Disabled:      false,
 					DisplayName:   "Jane Doe",
@@ -53,7 +53,7 @@ func TestSendPasswordResetEmail(t *testing.T) { //nolint:maintidx
 				return mock
 			},
 			request: api.SendPasswordResetEmailRequestObject{
-				Body: &api.SendPasswordResetEmailJSONRequestBody{ //nolint:exhaustruct
+				Body: &api.SendPasswordResetEmailJSONRequestBody{
 					Email:   "jane@acme.com",
 					Options: nil,
 				},
@@ -72,7 +72,7 @@ func TestSendPasswordResetEmail(t *testing.T) { //nolint:maintidx
 						notifications.TemplateNamePasswordReset,
 						testhelpers.GomockCmpOpts(
 							notifications.TemplateData{
-								Link:        "https://local.auth.nhost.run/verify?redirectTo=http%3A%2F%2Flocalhost%3A3000&ticket=passwordReset%3Ab66123b7-ea8b-4afe-a875-f201a2f8b224&type=passwordReset", //nolint:lll
+								Link:        "https://local.auth.nhost.run/verify?redirectTo=http%3A%2F%2Flocalhost%3A3000&ticket=passwordReset%3Ab66123b7-ea8b-4afe-a875-f201a2f8b224&type=passwordReset",
 								DisplayName: "Jane Doe",
 								Email:       "jane@acme.com",
 								NewEmail:    "",
@@ -83,11 +83,14 @@ func TestSendPasswordResetEmail(t *testing.T) { //nolint:maintidx
 								ClientURL:   "http://localhost:3000",
 							},
 							testhelpers.FilterPathLast(
-								[]string{".Ticket"}, cmp.Comparer(cmpTicket)),
+								[]string{".Ticket"}, cmp.Comparer(cmpTicket),
+							),
 
 							testhelpers.FilterPathLast(
-								[]string{".Link"}, cmp.Comparer(cmpLink)),
-						)).Return(nil)
+								[]string{".Link"}, cmp.Comparer(cmpLink),
+							),
+						),
+					).Return(nil)
 
 					return mock
 				}),
@@ -103,7 +106,7 @@ func TestSendPasswordResetEmail(t *testing.T) { //nolint:maintidx
 				mock.EXPECT().GetUserByEmail(
 					gomock.Any(),
 					sql.Text("jane@acme.com"),
-				).Return(sql.AuthUser{ //nolint:exhaustruct
+				).Return(sql.AuthUser{
 					ID:            userID,
 					Disabled:      false,
 					DisplayName:   "Jane Doe",
@@ -145,7 +148,7 @@ func TestSendPasswordResetEmail(t *testing.T) { //nolint:maintidx
 						notifications.TemplateNamePasswordReset,
 						testhelpers.GomockCmpOpts(
 							notifications.TemplateData{
-								Link:        "https://local.auth.nhost.run/verify?codeChallenge=E9Melhoa2OwvFrEMTJguCHaoeK1t8URWbuGJSstw-cM&redirectTo=http%3A%2F%2Flocalhost%3A3000&ticket=passwordReset%3Ab66123b7-ea8b-4afe-a875-f201a2f8b224&type=passwordReset", //nolint:lll
+								Link:        "https://local.auth.nhost.run/verify?codeChallenge=E9Melhoa2OwvFrEMTJguCHaoeK1t8URWbuGJSstw-cM&redirectTo=http%3A%2F%2Flocalhost%3A3000&ticket=passwordReset%3Ab66123b7-ea8b-4afe-a875-f201a2f8b224&type=passwordReset",
 								DisplayName: "Jane Doe",
 								Email:       "jane@acme.com",
 								NewEmail:    "",
@@ -156,11 +159,14 @@ func TestSendPasswordResetEmail(t *testing.T) { //nolint:maintidx
 								ClientURL:   "http://localhost:3000",
 							},
 							testhelpers.FilterPathLast(
-								[]string{".Ticket"}, cmp.Comparer(cmpTicket)),
+								[]string{".Ticket"}, cmp.Comparer(cmpTicket),
+							),
 
 							testhelpers.FilterPathLast(
-								[]string{".Link"}, cmp.Comparer(cmpLink)),
-						)).Return(nil)
+								[]string{".Link"}, cmp.Comparer(cmpLink),
+							),
+						),
+					).Return(nil)
 
 					return mock
 				}),
@@ -181,7 +187,7 @@ func TestSendPasswordResetEmail(t *testing.T) { //nolint:maintidx
 				mock.EXPECT().GetUserByEmail(
 					gomock.Any(),
 					sql.Text("jane@acme.com"),
-				).Return(sql.AuthUser{ //nolint:exhaustruct
+				).Return(sql.AuthUser{
 					ID:            userID,
 					Disabled:      false,
 					DisplayName:   "Jane Doe",
@@ -203,7 +209,7 @@ func TestSendPasswordResetEmail(t *testing.T) { //nolint:maintidx
 				return mock
 			},
 			request: api.SendPasswordResetEmailRequestObject{
-				Body: &api.SendPasswordResetEmailJSONRequestBody{ //nolint:exhaustruct
+				Body: &api.SendPasswordResetEmailJSONRequestBody{
 					Email: "jane@acme.com",
 					Options: &api.OptionsRedirectTo{
 						RedirectTo: new("https://myapp.com"),
@@ -224,7 +230,7 @@ func TestSendPasswordResetEmail(t *testing.T) { //nolint:maintidx
 						notifications.TemplateNamePasswordReset,
 						testhelpers.GomockCmpOpts(
 							notifications.TemplateData{
-								Link:        "https://local.auth.nhost.run/verify?redirectTo=https%3A%2F%2Fmyapp.com&ticket=passwordReset%3Adadf0554-f118-4446-bfb1-2487b05cf251&type=passwordReset", //nolint:lll
+								Link:        "https://local.auth.nhost.run/verify?redirectTo=https%3A%2F%2Fmyapp.com&ticket=passwordReset%3Adadf0554-f118-4446-bfb1-2487b05cf251&type=passwordReset",
 								DisplayName: "Jane Doe",
 								Email:       "jane@acme.com",
 								NewEmail:    "",
@@ -235,11 +241,14 @@ func TestSendPasswordResetEmail(t *testing.T) { //nolint:maintidx
 								ClientURL:   "http://localhost:3000",
 							},
 							testhelpers.FilterPathLast(
-								[]string{".Ticket"}, cmp.Comparer(cmpTicket)),
+								[]string{".Ticket"}, cmp.Comparer(cmpTicket),
+							),
 
 							testhelpers.FilterPathLast(
-								[]string{".Link"}, cmp.Comparer(cmpLink)),
-						)).Return(nil)
+								[]string{".Link"}, cmp.Comparer(cmpLink),
+							),
+						),
+					).Return(nil)
 
 					return mock
 				}),
@@ -254,7 +263,7 @@ func TestSendPasswordResetEmail(t *testing.T) { //nolint:maintidx
 				return mock
 			},
 			request: api.SendPasswordResetEmailRequestObject{
-				Body: &api.SendPasswordResetEmailJSONRequestBody{ //nolint:exhaustruct
+				Body: &api.SendPasswordResetEmailJSONRequestBody{
 					Email: "jane@acme.com",
 					Options: &api.OptionsRedirectTo{
 						RedirectTo: new("https://myapp.com"),
@@ -284,7 +293,7 @@ func TestSendPasswordResetEmail(t *testing.T) { //nolint:maintidx
 				return mock
 			},
 			request: api.SendPasswordResetEmailRequestObject{
-				Body: &api.SendPasswordResetEmailJSONRequestBody{ //nolint:exhaustruct
+				Body: &api.SendPasswordResetEmailJSONRequestBody{
 					Email:   "jane@acme.com",
 					Options: nil,
 				},
@@ -304,12 +313,12 @@ func TestSendPasswordResetEmail(t *testing.T) { //nolint:maintidx
 				mock.EXPECT().GetUserByEmail(
 					gomock.Any(),
 					sql.Text("jane@acme.com"),
-				).Return(sql.AuthUser{}, pgx.ErrNoRows) //nolint:exhaustruct
+				).Return(sql.AuthUser{}, pgx.ErrNoRows)
 
 				return mock
 			},
 			request: api.SendPasswordResetEmailRequestObject{
-				Body: &api.SendPasswordResetEmailJSONRequestBody{ //nolint:exhaustruct
+				Body: &api.SendPasswordResetEmailJSONRequestBody{
 					Email:   "jane@acme.com",
 					Options: nil,
 				},
@@ -329,7 +338,7 @@ func TestSendPasswordResetEmail(t *testing.T) { //nolint:maintidx
 				mock.EXPECT().GetUserByEmail(
 					gomock.Any(),
 					sql.Text("jane@acme.com"),
-				).Return(sql.AuthUser{ //nolint:exhaustruct
+				).Return(sql.AuthUser{
 					ID:            userID,
 					Disabled:      true,
 					DisplayName:   "Jane Doe",
@@ -342,7 +351,7 @@ func TestSendPasswordResetEmail(t *testing.T) { //nolint:maintidx
 				return mock
 			},
 			request: api.SendPasswordResetEmailRequestObject{
-				Body: &api.SendPasswordResetEmailJSONRequestBody{ //nolint:exhaustruct
+				Body: &api.SendPasswordResetEmailJSONRequestBody{
 					Email:   "jane@acme.com",
 					Options: nil,
 				},
@@ -367,7 +376,7 @@ func TestSendPasswordResetEmail(t *testing.T) { //nolint:maintidx
 				mock.EXPECT().GetUserByEmail(
 					gomock.Any(),
 					sql.Text("jane@acme.com"),
-				).Return(sql.AuthUser{ //nolint:exhaustruct
+				).Return(sql.AuthUser{
 					ID:            userID,
 					Disabled:      false,
 					DisplayName:   "Jane Doe",
@@ -380,7 +389,7 @@ func TestSendPasswordResetEmail(t *testing.T) { //nolint:maintidx
 				return mock
 			},
 			request: api.SendPasswordResetEmailRequestObject{
-				Body: &api.SendPasswordResetEmailJSONRequestBody{ //nolint:exhaustruct
+				Body: &api.SendPasswordResetEmailJSONRequestBody{
 					Email:   "jane@acme.com",
 					Options: nil,
 				},

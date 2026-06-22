@@ -1,0 +1,20 @@
+[
+  {
+    "Name": "update_departments_many",
+    "SQL": "",
+    "Parameters": null,
+    "StreamCursors": null,
+    "Sequential": [
+      {
+        "Name": "update_departments_many[0]",
+        "SQL": "WITH mutation_result AS (UPDATE \"public\".\"departments\" SET \"description\" = $1::text, \"budget\" = \"budget\" + $2::numeric WHERE departments.\"name\" = $3::text RETURNING *) SELECT json_build_object('affected_rows', (SELECT COUNT(*) FROM mutation_result), 'returning', (SELECT COALESCE(json_agg(row_to_json(\"_e\")), '[]'::json) FROM (SELECT mutation_result.\"id\" AS \"id\", mutation_result.\"name\" AS \"name\", mutation_result.\"description\" AS \"description\", mutation_result.\"budget\" AS \"budget\" FROM mutation_result) AS \"_e\"))",
+        "Parameters": [
+          "Updated Engineering",
+          20000,
+          "Engineering"
+        ],
+        "StreamCursors": null
+      }
+    ]
+  }
+]

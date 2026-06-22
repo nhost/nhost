@@ -16,8 +16,9 @@ function setup(overrides: Partial<SchemaDiagramToolbarProps> = {}) {
   const onRoleChange = vi.fn();
   const onSelectedSchemasChange = vi.fn();
   const onHideEmptyChange = vi.fn();
+  const onNamingModeChange = vi.fn();
   const onNewTable = vi.fn();
-  const onSelectTable = vi.fn();
+  const onSelectObject = vi.fn();
 
   const props: SchemaDiagramToolbarProps = {
     roles: ['admin', 'public', 'user'],
@@ -28,15 +29,23 @@ function setup(overrides: Partial<SchemaDiagramToolbarProps> = {}) {
     onSelectedSchemasChange,
     hideEmpty: false,
     onHideEmptyChange,
+    namingMode: 'graphql',
+    onNamingModeChange,
     onNewTable,
     canCreateTable: true,
     targetSchema: 'public',
-    tables: [
-      { schema: 'public', name: 'users' },
-      { schema: 'public', name: 'posts' },
-      { schema: 'auth', name: 'sessions' },
+    objects: [
+      { kind: 'table', schema: 'public', name: 'users' },
+      { kind: 'table', schema: 'public', name: 'posts' },
+      {
+        kind: 'function',
+        schema: 'public',
+        name: 'search_users',
+        returnSchema: 'public',
+      },
+      { kind: 'table', schema: 'auth', name: 'sessions' },
     ],
-    onSelectTable,
+    onSelectObject,
     ...overrides,
   };
 
@@ -46,8 +55,9 @@ function setup(overrides: Partial<SchemaDiagramToolbarProps> = {}) {
     onRoleChange,
     onSelectedSchemasChange,
     onHideEmptyChange,
+    onNamingModeChange,
     onNewTable,
-    onSelectTable,
+    onSelectObject,
   };
 }
 
@@ -121,29 +131,38 @@ describe('SchemaDiagramToolbar', () => {
     expect(onNewTable).toHaveBeenCalledTimes(1);
   });
 
-  it('lists tables grouped by schema and fires onSelectTable on pick', async () => {
-    const { onSelectTable } = setup();
+  it('lists tables and functions grouped by schema and fires onSelectObject on pick', async () => {
+    const { onSelectObject } = setup();
     const user = new TestUserEvent();
 
-    await user.click(screen.getByRole('button', { name: /Search tables/i }));
+    await user.click(
+      screen.getByRole('button', { name: /Search database objects/i }),
+    );
 
     // CommandGroup headings show the schema name once per group.
     await screen.findByRole('option', { name: /public\.users/i });
 
     const usersOption = screen.getByRole('option', { name: /public\.users/i });
     const postsOption = screen.getByRole('option', { name: /public\.posts/i });
+    const functionOption = screen.getByRole('option', {
+      name: /public\.search_users/i,
+    });
     const sessionsOption = screen.getByRole('option', {
       name: /auth\.sessions/i,
     });
     expect(usersOption).toBeInTheDocument();
     expect(postsOption).toBeInTheDocument();
+    expect(functionOption).toBeInTheDocument();
     expect(sessionsOption).toBeInTheDocument();
 
     await user.click(usersOption);
 
-    expect(onSelectTable).toHaveBeenCalledWith('public', 'users');
+    expect(onSelectObject).toHaveBeenCalledWith({
+      kind: 'table',
+      schema: 'public',
+      name: 'users',
+    });
 
-    // The popover should close after picking a table.
     await waitFor(() => {
       expect(
         screen.queryByRole('option', { name: /public\.users/i }),
@@ -151,12 +170,35 @@ describe('SchemaDiagramToolbar', () => {
     });
   });
 
-  it('shows "No tables found" when the table list is empty', async () => {
-    setup({ tables: [] });
+  it('fires onSelectObject with the full function object when a function is picked', async () => {
+    const { onSelectObject } = setup();
     const user = new TestUserEvent();
 
-    await user.click(screen.getByRole('button', { name: /Search tables/i }));
+    await user.click(
+      screen.getByRole('button', { name: /Search database objects/i }),
+    );
 
-    await screen.findByText('No tables found.');
+    const functionOption = await screen.findByRole('option', {
+      name: /public\.search_users/i,
+    });
+    await user.click(functionOption);
+
+    expect(onSelectObject).toHaveBeenCalledWith({
+      kind: 'function',
+      schema: 'public',
+      name: 'search_users',
+      returnSchema: 'public',
+    });
+  });
+
+  it('shows "No database objects found" when the object list is empty', async () => {
+    setup({ objects: [] });
+    const user = new TestUserEvent();
+
+    await user.click(
+      screen.getByRole('button', { name: /Search database objects/i }),
+    );
+
+    await screen.findByText('No database objects found.');
   });
 });

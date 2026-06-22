@@ -62,7 +62,7 @@ func TestCreatePAT(t *testing.T) {
 
 				mock.EXPECT().
 					GetUser(gomock.Any(), userID).
-					Return(sql.AuthUser{ //nolint:exhaustruct
+					Return(sql.AuthUser{
 						ID:    userID,
 						Email: sql.Text("jane@acme.com"),
 					}, nil)
@@ -76,7 +76,8 @@ func TestCreatePAT(t *testing.T) {
 							ExpiresAt:        sql.TimestampTz(time.Now().Add(time.Hour)),
 							Type:             "pat",
 							Metadata:         nil,
-						})).
+						}),
+					).
 					Return(refreshTokenID, nil)
 
 				return mock
@@ -102,7 +103,7 @@ func TestCreatePAT(t *testing.T) {
 
 				mock.EXPECT().
 					GetUser(gomock.Any(), userID).
-					Return(sql.AuthUser{ //nolint:exhaustruct
+					Return(sql.AuthUser{
 						ID:    userID,
 						Email: sql.Text("jane@acme.com"),
 					}, nil)
@@ -116,7 +117,8 @@ func TestCreatePAT(t *testing.T) {
 							ExpiresAt:        sql.TimestampTz(time.Now().Add(time.Hour)),
 							Type:             "pat",
 							Metadata:         []byte(`{"key":"value"}`),
-						})).
+						}),
+					).
 					Return(refreshTokenID, nil)
 
 				return mock
@@ -142,7 +144,7 @@ func TestCreatePAT(t *testing.T) {
 
 				mock.EXPECT().
 					GetUser(gomock.Any(), userID).
-					Return(sql.AuthUser{ //nolint:exhaustruct
+					Return(sql.AuthUser{
 						ID:       userID,
 						Email:    sql.Text("jane@acme.com"),
 						Disabled: true,
@@ -177,7 +179,7 @@ func TestCreatePAT(t *testing.T) {
 
 				mock.EXPECT().
 					GetUser(gomock.Any(), userID).
-					Return(sql.AuthUser{ //nolint:exhaustruct
+					Return(sql.AuthUser{
 						ID:    userID,
 						Email: sql.Text("jane@acme.com"),
 					}, nil)
@@ -211,7 +213,7 @@ func TestCreatePAT(t *testing.T) {
 
 			cmpopts := []cmp.Option{
 				cmpopts.IgnoreFields(
-					api.CreatePAT200JSONResponse{}, //nolint:exhaustruct
+					api.CreatePAT200JSONResponse{},
 					"PersonalAccessToken",
 				),
 			}

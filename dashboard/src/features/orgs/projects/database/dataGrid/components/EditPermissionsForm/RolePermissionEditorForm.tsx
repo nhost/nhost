@@ -6,9 +6,8 @@ import { useDialog } from '@/components/common/DialogProvider';
 import { RoleActionSwitcher } from '@/components/common/RoleActionSwitcher';
 import { Form } from '@/components/form/Form';
 import { HighlightedText } from '@/components/presentational/HighlightedText';
-import { Alert } from '@/components/ui/v2/Alert';
-import { Box } from '@/components/ui/v2/Box';
-import { Button } from '@/components/ui/v2/Button';
+import { Alert, AlertDescription } from '@/components/ui/v3/alert';
+import { Button, ButtonWithLoading } from '@/components/ui/v3/button';
 import { EXPORT_METADATA_QUERY_KEY } from '@/features/orgs/projects/common/hooks/useExportMetadata';
 import { useManagePermissionMutation } from '@/features/orgs/projects/database/dataGrid/hooks/useManagePermissionMutation';
 import type {
@@ -35,6 +34,36 @@ import RowPermissionsSection from './sections/RowPermissionsSection';
 import validationSchemas from './validationSchemas';
 
 export type RowCheckType = 'none' | 'custom';
+
+export interface RootFields {
+  select: boolean;
+  select_by_pk: boolean;
+  select_aggregate: boolean;
+}
+
+const ROOT_FIELD_KEYS: readonly (keyof RootFields)[] = [
+  'select',
+  'select_by_pk',
+  'select_aggregate',
+];
+
+export function parseRootFields(serialized?: string[] | null): RootFields {
+  return {
+    select: serialized?.includes('select') ?? false,
+    select_by_pk: serialized?.includes('select_by_pk') ?? false,
+    select_aggregate: serialized?.includes('select_aggregate') ?? false,
+  };
+}
+
+export function serializeRootFields(fields?: RootFields): string[] | null {
+  if (!fields) {
+    return null;
+  }
+
+  const result = ROOT_FIELD_KEYS.filter((key) => fields[key]);
+
+  return result.length > 0 ? result : null;
+}
 
 export interface RolePermissionEditorFormValues {
   /**
@@ -65,11 +94,11 @@ export interface RolePermissionEditorFormValues {
   /**
    * The allowed root fields in queries and mutations for the role.
    */
-  queryRootFields?: string[];
+  queryRootFields?: RootFields;
   /**
    * The allowed root fields in subscriptions for the role.
    */
-  subscriptionRootFields?: string[];
+  subscriptionRootFields?: RootFields;
   /**
    * Column presets for the role.
    */
@@ -258,8 +287,10 @@ export default function RolePermissionEditorForm({
       enableRootFieldCustomization:
         isNotEmptyValue(permission?.query_root_fields) ||
         isNotEmptyValue(permission?.subscription_root_fields),
-      queryRootFields: permission?.query_root_fields || [],
-      subscriptionRootFields: permission?.subscription_root_fields || [],
+      queryRootFields: parseRootFields(permission?.query_root_fields),
+      subscriptionRootFields: parseRootFields(
+        permission?.subscription_root_fields,
+      ),
       computedFields: permission?.computed_fields || [],
       columnPresets: getColumnPresets(permission?.set || {}),
       backendOnly: permission?.backend_only || false,
@@ -296,12 +327,10 @@ export default function RolePermissionEditorForm({
         columns: values.columns,
         limit: values.limit,
         allow_aggregations: values.allowAggregations,
-        query_root_fields: isNotEmptyValue(values.queryRootFields)
-          ? values.queryRootFields
-          : null,
-        subscription_root_fields: isNotEmptyValue(values.subscriptionRootFields)
-          ? values.subscriptionRootFields
-          : null,
+        query_root_fields: serializeRootFields(values.queryRootFields),
+        subscription_root_fields: serializeRootFields(
+          values.subscriptionRootFields,
+        ),
         filter: action !== 'insert' ? permissionFilter : permission?.filter,
         check: action === 'insert' ? permissionFilter : permission?.check,
         backend_only: values.backendOnly,
@@ -388,17 +417,17 @@ export default function RolePermissionEditorForm({
       {error && error instanceof Error ? (
         <div className="-mt-3 mb-4 px-6">
           <Alert
-            severity="error"
-            className="grid grid-flow-col items-center justify-between px-4 py-3"
+            variant="destructive"
+            className="flex items-center justify-between gap-4 px-4 py-3"
           >
-            <span className="text-left">
+            <AlertDescription className="text-left">
               <strong>Error:</strong> {error.message}
-            </span>
+            </AlertDescription>
 
             <Button
-              variant="borderless"
-              color="secondary"
-              className="p-1"
+              type="button"
+              variant="ghost"
+              size="sm"
               onClick={resetError}
             >
               Clear
@@ -409,10 +438,10 @@ export default function RolePermissionEditorForm({
 
       <Form
         onSubmit={handleSubmit}
-        className="flex flex-auto flex-col content-between overflow-hidden border-t-1"
+        className="flex min-h-0 flex-auto flex-col content-between overflow-hidden border-t-1"
         sx={{ backgroundColor: 'background.default' }}
       >
-        <div className="grid flex-auto grid-flow-row content-start gap-6 overflow-auto py-4">
+        <div className="grid min-h-0 flex-auto grid-flow-row content-start gap-6 overflow-auto py-4">
           <PermissionSettingsSection
             title="Selected role & action"
             className="grid-flow-col justify-start gap-6"
@@ -461,21 +490,24 @@ export default function RolePermissionEditorForm({
           {action !== 'select' && <BackendOnlySection />}
         </div>
 
-        <Box className="grid flex-shrink-0 gap-2 border-t-1 p-2 sm:grid-flow-col sm:justify-between">
+        <div className="grid flex-shrink-0 gap-2 border-t-1 p-2 sm:grid-flow-col sm:justify-between">
           <Button
-            variant="borderless"
-            color="secondary"
+            type="button"
+            variant="ghost"
+            size="sm"
             onClick={handleCancelClick}
             tabIndex={isDirty ? -1 : 0}
           >
             Cancel
           </Button>
 
-          <Box className="grid grid-flow-row gap-2 sm:grid-flow-col">
+          <div className="grid grid-flow-row gap-2 sm:grid-flow-col">
             {Boolean(permission) && (
               <Button
-                variant="outlined"
-                color="error"
+                type="button"
+                variant="outline"
+                size="sm"
+                className="border-destructive/30 text-destructive hover:bg-destructive/10 hover:text-destructive"
                 onClick={handleDeleteClick}
                 disabled={isPending}
               >
@@ -483,16 +515,17 @@ export default function RolePermissionEditorForm({
               </Button>
             )}
 
-            <Button
+            <ButtonWithLoading
               loading={isSubmitting}
               disabled={isSubmitting}
+              size="sm"
               type="submit"
               className="justify-self-end"
             >
               Save
-            </Button>
-          </Box>
-        </Box>
+            </ButtonWithLoading>
+          </div>
+        </div>
       </Form>
     </FormProvider>
   );

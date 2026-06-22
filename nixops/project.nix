@@ -1,52 +1,87 @@
 {
-  self,
   pkgs,
   nix2containerPkgs,
-  nix-filter,
   nixops-lib,
 }:
 let
   name = "nixops";
   version = "0.0.0-dev";
   created = "1970-01-01T00:00:00Z";
-  submodule = "${name}";
 
-  src = nix-filter.lib.filter {
+  fs = pkgs.lib.fileset;
+
+  src = fs.toSource {
     root = ../.;
-    include = with nix-filter.lib; [
-      "./flake.lock"
-      "./flake.nix"
-      (and (inDirectory submodule) isDirectory)
-      (and (inDirectory submodule) (matchExt "nix"))
+    fileset = fs.unions [
+      ../flake.lock
+      ../flake.nix
+      (fs.fileFilter (f: f.hasExt "nix") ./.)
     ];
   };
 
   checkDeps = [ ];
 
-  # we use this to just build and cache the packages
-  buildInputs = with pkgs; [
-    biome
-    go
-    golangci-lint
-    mockgen
-    golines
-    govulncheck
-    gqlgen
-    gqlgenc
-    oapi-codegen
-    nhost-cli
-    gofumpt
-    golines
-    skopeo
-    postgresql_18-client
-    sqlc
-    vacuum-go
-    bun
-    clang
-    pkg-config
-    nodejs
-    nodePackages.vercel
-  ];
+  # we use this to just build and cache the packages.
+  # this list is the union of all `buildInputs`, `checkDeps`, and
+  # `nativeBuildInputs` referenced by every `project.nix` in the repo,
+  # plus the per-devShell extras (e.g. `go-migrate` from auth, `certbot-*`
+  # from cli) and the root `flake.nix` devShell extras (`gh`, `git-cliff`,
+  # `gnused`, `nixfmt`), so a single `nix build .#nixops` warms the cache
+  # for every project's dev-shell and `make check`.
+  buildInputs =
+    (with pkgs; [
+      nhost.biome
+      bun
+      cacert
+      nhost.certbot-full
+      clang
+      curl
+      diffutils
+      docker-client
+      geos
+      gh
+      git-cliff
+      gnused
+      nhost.go
+      go-migrate
+      gofumpt
+      nhost.golangci-lint
+      nhost.golines
+      nhost.govulncheck
+      nhost.gqlgen
+      nhost.gqlgenc
+      jq
+      lychee
+      mockgen
+      nhost.nhost-cli
+      nixfmt
+      nhost.nodejs
+      nhost.vercel
+      nhost.oapi-codegen
+      pkg-config
+      nhost.playwright-driver
+      nhost.pnpm
+      nhost.postgresql_14-client
+      nhost.postgresql_15
+      nhost.postgresql_15-client
+      nhost.postgresql_16
+      nhost.postgresql_16-client
+      nhost.postgresql_17
+      nhost.postgresql_17-client
+      nhost.postgresql_18
+      nhost.postgresql_18-client
+      python312Packages.certbot-dns-route53
+      skopeo
+      nhost.sqlc
+      vacuum-go
+      vale
+      nhost.wal-g
+    ])
+    ++ pkgs.lib.optionals pkgs.stdenv.isLinux [
+    ]
+    ++ pkgs.lib.optionals pkgs.stdenv.isDarwin [
+      pkgs.apple-sdk_14
+    ];
 
   nativeBuildInputs = [ ];
 
@@ -99,7 +134,20 @@ let
   };
 in
 {
-  check = nixops-lib.nix.check { inherit src; };
+  check = pkgs.symlinkJoin {
+    name = "check-nixops";
+    paths = [
+      (nixops-lib.nix.check { inherit src; })
+      (nixops-lib.nix.checkPinnedToolchains {
+        # Repo-wide: toolchain regressions tend to land in the individual
+        # projects' project.nix, not under nixops/.
+        src = fs.toSource {
+          root = ../.;
+          fileset = fs.fileFilter (f: f.hasExt "nix") ../.;
+        };
+      })
+    ];
+  };
 
   devShell = pkgs.mkShell {
     buildInputs = checkDeps ++ buildInputs ++ nativeBuildInputs;

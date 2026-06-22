@@ -1,5 +1,5 @@
 import { faker } from '@faker-js/faker';
-import type { Page } from '@playwright/test';
+import type { FrameLocator, Page } from '@playwright/test';
 import { add, format } from 'date-fns-v4';
 import {
   TEST_ONBOARDING_USER,
@@ -8,10 +8,12 @@ import {
   TEST_PROJECT_SUBDOMAIN,
   TEST_STAGING_REGION,
   TEST_STAGING_SUBDOMAIN,
+  TEST_USER_EMAIL,
   TEST_USER_PASSWORD,
 } from '@/e2e/env';
 import { expect } from '@/e2e/fixtures/auth-hook';
 import { isEmptyValue } from '@/lib/utils';
+import type { Apps } from '@/utils/__generated__/graphql';
 import type { ExportMetadataResponse } from '@/utils/hasura-api/generated/schemas';
 
 const editorRoute = `/orgs/${TEST_ORGANIZATION_SLUG}/projects/${TEST_PROJECT_SUBDOMAIN}/database/browser/default/editor`;
@@ -165,14 +167,15 @@ export async function prepareTable({
     page.getByRole('option', { name: columns[0].name, exact: true }),
   ).toBeVisible();
   for (const primaryKey of primaryKeys) {
-    await page.waitForTimeout(1000);
+    await expect(
+      page.getByRole('option', { name: primaryKey, exact: true }),
+    ).toBeVisible();
     await page.getByRole('option', { name: primaryKey, exact: true }).click();
     await page
       .locator(`div[data-testid="${primaryKey}"]`)
       .waitFor({ timeout: 1000 });
   }
   await page.getByText('Create a New Table').click();
-  await page.waitForTimeout(1000);
   await expect(
     page.getByRole('option', { name: columns[0].name, exact: true }),
   ).not.toBeVisible();
@@ -272,14 +275,109 @@ export async function gotoAuthURL(page: Page) {
   await page.waitForURL(authUrl, { waitUntil: 'load' });
 }
 
-export async function gotoUrl(page: Page, url: string) {
+/**
+ * Navigates to a URL and waits for the page to settle.
+ *
+ * By default it asserts the browser stays on `url` (the correct behavior for a
+ * route that renders in place). Some routes — notably `/` — always redirect the
+ * user away (to onboarding or an org route), so `waitForURL(url)` would wait
+ * forever. Pass `expectRedirect: true` for those: the caller knows a redirect is
+ * coming, so we wait until the browser actually leaves `url`.
+ *
+ * The redirect away from `/` is client-side (an effect in the index page that
+ * runs after `useOrgs` resolves), so the initial document `load` fires while the
+ * page is still on `/`. Waiting only for `load` returns on that intermediate
+ * state, and a caller that immediately drives the header (e.g. the org switcher)
+ * races the in-flight navigation, which tears down the just-opened popover. We
+ * therefore wait for the URL to settle on the redirect target before returning.
+ *
+ * @param page - The Playwright page object.
+ * @param url - The URL to navigate to.
+ * @param options - Optional settings.
+ * @param options.expectRedirect - Set when `url` is known to redirect elsewhere;
+ *   waits for the browser to leave `url` instead of asserting it stays.
+ */
+export async function gotoUrl(
+  page: Page,
+  url: string,
+  options: { expectRedirect?: boolean } = {},
+) {
   await page.goto(url);
+
+  if (options.expectRedirect) {
+    const target = new URL(url, page.url()).href;
+    await page.waitForURL((current) => current.href !== target, {
+      waitUntil: 'load',
+    });
+    return;
+  }
+
   await page.waitForURL(url, { waitUntil: 'load' });
 }
 
 export function getOrgSlugFromUrl(url: string) {
-  const orgSlug = url.split('/orgs/')[1].split('/projects/')[0];
+  const orgSlug = url.split('/orgs/')[1]?.split('/')[0];
   return orgSlug;
+}
+
+/**
+ * Selects an organization by its name via the header org switcher, the same way
+ * a user does, and waits until the URL carries the org's slug.
+ *
+ * The org name (what the user typed) is not the backend-assigned slug the routes
+ * are keyed by, so we drive the switcher to navigate and then read the slug off
+ * the resulting URL rather than looking it up out-of-band.
+ *
+ * @param page - The Playwright page object.
+ * @param orgName - The exact (unique) name of the organization to select.
+ * @returns A promise resolving to the organization's slug, parsed from the URL.
+ */
+export async function selectOrgByName(
+  page: Page,
+  orgName: string,
+): Promise<string> {
+  const switcher = page.getByTestId('org-switcher');
+  await expect(switcher).toBeVisible();
+
+  // The trigger is a Radix popover toggle: clicking it when the popover is
+  // already open closes it. Open it once, guarding on aria-expanded so a retry
+  // never accidentally toggles it shut.
+  if ((await switcher.getAttribute('aria-expanded')) !== 'true') {
+    await switcher.click();
+  }
+  const search = page.getByPlaceholder('Select organization...');
+  await expect(search).toBeVisible();
+
+  // The org list is fetched fresh on the page the redirect lands on, so a
+  // just-created org can appear a beat after the popover opens. Retry only the
+  // data-dependent part: refill the search and re-check for the option, without
+  // re-clicking (and thus toggling) the trigger.
+  await expect(async () => {
+    await search.fill('');
+    await search.fill(orgName);
+    await expect(page.getByRole('option', { name: orgName })).toBeVisible();
+  }).toPass();
+
+  await page.getByRole('option', { name: orgName }).click();
+  await page.waitForURL('**/orgs/*/projects');
+
+  return getOrgSlugFromUrl(page.url());
+}
+
+/**
+ * Navigates to a page within the currently selected organization via the header
+ * page switcher. Assumes the page is already on a route within the org.
+ *
+ * @param page - The Playwright page object.
+ * @param label - The visible label of the org page to navigate to.
+ * @returns A promise that resolves once the option has been selected.
+ */
+export async function gotoOrgPageViaSwitcher(
+  page: Page,
+  label: 'Billing' | 'Settings' | 'Members' | 'Projects',
+) {
+  await page.getByTestId('org-pages-switcher').click();
+  await page.getByRole('option', { name: label, exact: true }).click();
 }
 
 export function getCardExpiration() {
@@ -297,9 +395,104 @@ export async function loginWithFreeUser(page: Page) {
   await page.getByLabel('Password').fill(TEST_USER_PASSWORD);
   await page.getByRole('button', { name: /sign in/i }).click();
 
-  await page.waitForSelector('h2:has-text("Welcome to Nhost!")', {
-    timeout: 20000,
-  });
+  await expect(
+    page.getByRole('heading', { name: 'Welcome to Nhost!' }),
+  ).toBeVisible({ timeout: 20000 });
+}
+
+/**
+ * Fills and submits the Stripe embedded checkout form rendered inside the
+ * `embedded-checkout` iframe (used by both the onboarding paid-org flow and the
+ * billing upgrade flow). Stripe's hosted form mounts asynchronously and varies
+ * by region/experiment, so every interaction waits on the element it targets
+ * rather than assuming a fixed layout.
+ *
+ * @param page - The Playwright page object.
+ * @returns A promise that resolves once the payment has been submitted.
+ */
+export async function fillStripeCheckout(page: Page) {
+  const stripeFrame: FrameLocator = page
+    .locator('iframe[name="embedded-checkout"]')
+    .first()
+    .contentFrame();
+
+  const emailField = stripeFrame.getByLabel('Email');
+  await expect(emailField).toBeVisible({ timeout: 30000 });
+  await emailField.fill(faker.internet.email());
+
+  await stripeFrame
+    .getByPlaceholder('1234 1234 1234 1234')
+    .fill('4242424242424242');
+  await stripeFrame.getByPlaceholder('MM / YY').fill(getCardExpiration());
+  await stripeFrame.getByPlaceholder('CVC').fill('123');
+  await stripeFrame
+    .getByPlaceholder('Full name on card')
+    .fill('EndyTo EndyTest');
+  await stripeFrame.locator('#billingCountry').scrollIntoViewIfNeeded();
+
+  const manualAddressLink = stripeFrame.getByText('Enter address manually');
+  if (await manualAddressLink.isVisible()) {
+    await stripeFrame.getByPlaceholder('Address', { exact: true }).click();
+    await manualAddressLink.click();
+    await stripeFrame
+      .getByPlaceholder('Address line 1', { exact: true })
+      .fill('123 Main Street');
+    await stripeFrame
+      .getByPlaceholder('City', { exact: true })
+      .fill('Springfield');
+    await stripeFrame.getByPlaceholder('ZIP', { exact: true }).fill('62701');
+  }
+
+  const stripePassToggle = stripeFrame.locator('#enableStripePass');
+  if (await stripePassToggle.isChecked()) {
+    await stripePassToggle.click({ force: true });
+  }
+
+  const submitButton = stripeFrame.getByTestId('hosted-payment-submit-button');
+  await submitButton.scrollIntoViewIfNeeded();
+  await expect(submitButton).toBeEnabled();
+  await submitButton.click();
+}
+
+/**
+ * Deletes the organization the page is currently scoped to. Assumes the page is
+ * on a route within the organization (it navigates to its settings) and that
+ * the org is empty enough to be deletable. Drives the two-checkbox confirmation
+ * dialog and waits for the success toast and the redirect to the empty state.
+ *
+ * @param page - The Playwright page object.
+ * @param orgSlug - The slug of the organization to delete.
+ * @returns A promise that resolves once the organization has been deleted.
+ */
+export async function deleteOrganization(page: Page, orgSlug: string) {
+  await gotoOrgPageViaSwitcher(page, 'Settings');
+  await page.waitForURL(`**/orgs/${orgSlug}/settings`);
+
+  await expect(
+    page.getByRole('heading', { name: 'Delete Organization' }),
+  ).toBeVisible();
+  await page.getByRole('button', { name: 'Delete', exact: true }).click();
+
+  await expect(
+    page.getByRole('alertdialog').getByText('Delete Organization'),
+  ).toBeVisible();
+
+  const confirmButton = page.getByTestId('deleteOrgButton');
+  await expect(confirmButton).toBeDisabled();
+
+  await page.getByLabel("I'm sure I want to delete this Organization").check();
+  await expect(confirmButton).toBeDisabled();
+  await page.getByLabel('I understand this action cannot be undone').check();
+  await expect(confirmButton).toBeEnabled();
+
+  await confirmButton.click();
+
+  await expect(
+    page.getByText('Successfully deleted the organization'),
+  ).toBeVisible({ timeout: 30000 });
+  await expect(
+    page.getByRole('heading', { name: 'Welcome to Nhost!' }),
+  ).toBeVisible({ timeout: 30000 });
 }
 
 export function toPascalCase(str: string, divider = ' ') {
@@ -430,6 +623,110 @@ export async function cleanupRemoteSchemaTestIfNeeded() {
   }
 }
 
+export async function cleanupRunServiceTestIfNeeded() {
+  const signinUrl = `https://${TEST_STAGING_SUBDOMAIN}.auth.${TEST_STAGING_REGION}.nhost.run/v1/signin/email-password`;
+  const graphqlUrl = `https://${TEST_STAGING_SUBDOMAIN}.graphql.${TEST_STAGING_REGION}.nhost.run/v1`;
+
+  try {
+    const signinResponse = await fetch(signinUrl, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        email: TEST_USER_EMAIL,
+        password: TEST_USER_PASSWORD,
+      }),
+    });
+    const signinData = await signinResponse.json();
+    const accessToken = signinData.session?.accessToken;
+
+    if (!accessToken) {
+      return;
+    }
+
+    const authHeader = `Bearer ${accessToken}`;
+
+    const listResponse = await fetch(graphqlUrl, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        Authorization: authHeader,
+      },
+      body: JSON.stringify({
+        query: `
+          query cleanupRunServices($subdomain: String!) {
+            apps(where: { subdomain: { _eq: $subdomain } }) {
+              id
+              runServices {
+                id
+                config(resolve: false) {
+                  name
+                }
+              }
+            }
+          }`,
+        variables: { subdomain: TEST_PROJECT_SUBDOMAIN },
+      }),
+    });
+
+    const listData = (await listResponse.json()) as {
+      data?: { apps?: Array<Pick<Apps, 'id' | 'runServices'>> };
+    };
+
+    const app = listData.data?.apps?.[0];
+    const appID = app?.id;
+    const runServices = app?.runServices ?? [];
+
+    if (!appID || isEmptyValue(runServices)) {
+      return;
+    }
+
+    const servicesToDelete = runServices.filter((service) =>
+      /^e2e-run-/.test(service.config?.name ?? ''),
+    );
+
+    await Promise.all(
+      servicesToDelete.map(async (service) => {
+        await fetch(graphqlUrl, {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+            Authorization: authHeader,
+          },
+          body: JSON.stringify({
+            query: `
+              mutation cleanupDeleteRunService($serviceID: uuid!) {
+                deleteRunService(id: $serviceID) {
+                  id
+                }
+              }`,
+            variables: { serviceID: service.id },
+          }),
+        });
+
+        await fetch(graphqlUrl, {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+            Authorization: authHeader,
+          },
+          body: JSON.stringify({
+            query: `
+              mutation cleanupDeleteRunServiceConfig($appID: uuid!, $serviceID: uuid!) {
+                deleteRunServiceConfig(appID: $appID, serviceID: $serviceID) {
+                  name
+                }
+              }`,
+            variables: { appID, serviceID: service.id },
+          }),
+        });
+      }),
+    );
+  } catch (error) {
+    console.error(error);
+    throw error;
+  }
+}
+
 /**
  * Opens the relationship dialog for a table.
  *
@@ -508,7 +805,9 @@ export async function createRelationship({
   await page.getByTestId('toReferenceTableCombobox').click();
   await page.getByRole('option', { name: referenceTable, exact: true }).click();
 
-  await page.waitForTimeout(1000);
+  await expect(
+    page.getByRole('button', { name: /add new mapping/i }),
+  ).toBeVisible();
 
   await page.getByRole('button', { name: /add new mapping/i }).click();
 
@@ -557,6 +856,17 @@ export async function runSQL({ page, sql }: { page: Page; sql: string }) {
   await expect(page.getByText(/success/i)).toBeVisible();
 }
 
+export function waitForPlaygroundRolesLoaded(page: Page) {
+  return page.waitForResponse(
+    (response) =>
+      response.request().method() === 'POST' &&
+      response.url().includes(`${TEST_PROJECT_SUBDOMAIN}.graphql.`) &&
+      (response.request().postData() ?? '')
+        .toLowerCase()
+        .includes('remoteappgetusersandauthroles'),
+  );
+}
+
 export async function navigateToGraphQLPlayground({
   page,
   orgSlug = TEST_ORGANIZATION_SLUG,
@@ -574,22 +884,41 @@ export async function navigateToGraphQLPlayground({
     .waitFor({ timeout: 30000 });
 }
 
-export async function setGraphQLHeaders({
+/**
+ * Selects a role in the GraphiQL playground's Role dropdown
+ * (`UserAndRoleSelect`). Unlike editing the Headers JSON, this Radix Select
+ * updates `userHeaders` synchronously (no debounce), so the rebuilt fetcher
+ * carries `x-hasura-role: <role>` on the next request the caller triggers.
+ *
+ * @param page - The Playwright page object.
+ * @param role - The role to select (e.g. `public`).
+ * @returns A promise that resolves once the role is selected.
+ */
+export async function selectGraphQLRole({
   page,
-  headers,
+  role,
 }: {
   page: Page;
-  headers: Record<string, string>;
+  role: string;
 }) {
-  await page.getByRole('button', { name: 'Headers' }).click();
+  const roleTrigger = page.getByTestId('graphql-role-select');
 
-  const headersEditor = page.getByLabel('Headers');
-  await headersEditor.click();
-  await page.keyboard.press('Control+a');
-  await page.keyboard.press('Backspace');
-  await page.keyboard.type(JSON.stringify(headers), { delay: 10 });
+  await expect(async () => {
+    await roleTrigger.click();
+    await page.getByRole('option', { name: role, exact: true }).click();
+    await expect(roleTrigger).toContainText(role);
+  }).toPass();
 }
 
+/**
+ * Types a query into the GraphiQL editor and executes it. This drives the
+ * playground exactly as a user does; callers assert on the rendered Result
+ * Window (`page.getByLabel('Result Window')` with web-first matchers), which is
+ * what the user actually sees, rather than on the raw HTTP response body.
+ *
+ * @param page - The Playwright page object.
+ * @param query - The GraphQL query to execute.
+ */
 export async function runGraphQLQuery({
   page,
   query,
@@ -597,23 +926,18 @@ export async function runGraphQLQuery({
   page: Page;
   query: string;
 }) {
-  const queryEditor = page.getByLabel('Query Editor');
-  await queryEditor.click();
-  await page.keyboard.press('Control+a');
+  const queryEditor = page.getByRole('region', { name: 'Query Editor' });
+
+  await queryEditor.locator('.CodeMirror textarea').focus();
+  await page.keyboard.press('ControlOrMeta+a');
   await page.keyboard.press('Backspace');
   await page.keyboard.type(query, { delay: 5 });
 
-  await page.getByRole('button', { name: 'Execute GraphQL query' }).click();
-}
+  // Dismiss any open autocomplete dropdown so Enter/clicks do not get captured
+  // by a hint instead of executing the query.
+  await page.keyboard.press('Escape');
 
-export async function getGraphQLResult({
-  page,
-}: {
-  page: Page;
-}): Promise<string> {
-  const resultWindow = page.getByLabel('Result Window');
-  await expect(resultWindow).not.toBeEmpty({ timeout: 5000 });
-  return resultWindow.innerText();
+  await page.getByRole('button', { name: 'Execute GraphQL query' }).click();
 }
 
 export async function deleteRelationship({
@@ -635,9 +959,11 @@ export async function deleteRelationship({
     'div:has-text("Relationship deleted successfully.")',
   );
 
-  await page.waitForTimeout(1000);
-
   await expect(
-    page.getByText(relationshipName, { exact: true }),
+    page.getByRole('heading', { name: /delete relationship/i }),
   ).not.toBeVisible();
+
+  await expect(page.getByTestId(`delete-rel-${relationshipName}`)).toHaveCount(
+    0,
+  );
 }

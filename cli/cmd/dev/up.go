@@ -114,7 +114,7 @@ func CommandUp() *cli.Command { //nolint:funlen
 			&cli.StringFlag{ //nolint:exhaustruct
 				Name:    flagDashboardVersion,
 				Usage:   "Dashboard version to use",
-				Value:   "nhost/dashboard:2.63.0",
+				Value:   "nhost/dashboard:2.66.0",
 				Sources: cli.EnvVars("NHOST_DASHBOARD_VERSION"),
 			},
 			&cli.StringFlag{ //nolint:exhaustruct
@@ -400,7 +400,7 @@ func processRunServices(
 	return r, nil
 }
 
-func up( //nolint:funlen,cyclop
+func up( //nolint:funlen
 	ctx context.Context,
 	ce *clienv.CliEnv,
 	appVersion string,
@@ -545,24 +545,32 @@ func printInfo(
 ) {
 	w := tabwriter.NewWriter(os.Stdout, 0, 0, 4, ' ', 0) //nolint:mnd
 	fmt.Fprintf(w, "URLs:\n")
-	fmt.Fprintf(w,
+	fmt.Fprintf(
+		w,
 		"- Postgres:\t\tpostgres://postgres:postgres@localhost:%d/local\n",
 		postgresPort,
 	)
 	fmt.Fprintf(w, "- Hasura:\t\t%s\n", dockercompose.URL(
-		subdomain, "hasura", httpPort, useTLS))
+		subdomain, "hasura", httpPort, useTLS,
+	))
 	fmt.Fprintf(w, "- GraphQL:\t\t%s\n", dockercompose.URL(
-		subdomain, "graphql", httpPort, useTLS))
+		subdomain, "graphql", httpPort, useTLS,
+	))
 	fmt.Fprintf(w, "- Auth:\t\t%s\n", dockercompose.URL(
-		subdomain, "auth", httpPort, useTLS))
+		subdomain, "auth", httpPort, useTLS,
+	))
 	fmt.Fprintf(w, "- Storage:\t\t%s\n", dockercompose.URL(
-		subdomain, "storage", httpPort, useTLS))
+		subdomain, "storage", httpPort, useTLS,
+	))
 	fmt.Fprintf(w, "- Functions:\t\t%s\n", dockercompose.URL(
-		subdomain, "functions", httpPort, useTLS))
+		subdomain, "functions", httpPort, useTLS,
+	))
 	fmt.Fprintf(w, "- Dashboard:\t\t%s\n", dockercompose.URL(
-		subdomain, "dashboard", httpPort, useTLS))
+		subdomain, "dashboard", httpPort, useTLS,
+	))
 	fmt.Fprintf(w, "- Mailhog:\t\t%s\n", dockercompose.URL(
-		subdomain, "mailhog", httpPort, useTLS))
+		subdomain, "mailhog", httpPort, useTLS,
+	))
 
 	for _, svc := range runServices {
 		for _, port := range svc.Config.GetPorts() {

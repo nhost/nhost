@@ -1,8 +1,7 @@
+import { InfoIcon } from 'lucide-react';
 import { useFormContext, useFormState } from 'react-hook-form';
-
 import { Box } from '@/components/ui/v2/Box';
 import { Input } from '@/components/ui/v2/Input';
-import { InfoIcon } from '@/components/ui/v2/icons/InfoIcon';
 import { Text } from '@/components/ui/v2/Text';
 import { Tooltip } from '@/components/ui/v2/Tooltip';
 import type { BaseRemoteSchemaFormValues } from './BaseRemoteSchemaForm';
@@ -16,7 +15,7 @@ export default function RemoteSchemaCommentInput() {
       <Box className="flex flex-row items-center space-x-2">
         <Text>Comment</Text>
         <Tooltip title="A statement to help describe the remote schema in brief.">
-          <InfoIcon aria-label="Info" className="h-4 w-4" color="primary" />
+          <InfoIcon aria-label="Info" className="h-4 w-4 text-primary" />
         </Tooltip>
       </Box>
       <Input

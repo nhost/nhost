@@ -13,10 +13,12 @@ import { DataBrowserEmptyState } from '@/features/orgs/projects/database/dataGri
 import { DataBrowserGridControls } from '@/features/orgs/projects/database/dataGrid/components/DataBrowserGridControls';
 import { DEFAULT_ROWS_LIMIT } from '@/features/orgs/projects/database/dataGrid/constants';
 import { useIsReadOnlyDatabaseObject } from '@/features/orgs/projects/database/dataGrid/hooks/useIsReadOnlyDatabaseObject';
+import { useRefreshMaterializedView } from '@/features/orgs/projects/database/dataGrid/hooks/useRefreshMaterializedView';
 import {
   createTableQueryKey,
   useTableQuery,
 } from '@/features/orgs/projects/database/dataGrid/hooks/useTableQuery';
+import { useTableType } from '@/features/orgs/projects/database/dataGrid/hooks/useTableType';
 import type { UpdateRecordVariables } from '@/features/orgs/projects/database/dataGrid/hooks/useUpdateRecordMutation';
 import { useUpdateRecordWithToastMutation } from '@/features/orgs/projects/database/dataGrid/hooks/useUpdateRecordMutation';
 import type {
@@ -24,6 +26,7 @@ import type {
   DataBrowserGridColumnDef,
   NormalizedQueryDataRow,
 } from '@/features/orgs/projects/database/dataGrid/types/dataBrowser';
+import { isGeneratedColumn } from '@/features/orgs/projects/database/dataGrid/utils/isGeneratedColumn';
 import { normalizeDefaultValue } from '@/features/orgs/projects/database/dataGrid/utils/normalizeDefaultValue';
 import {
   POSTGRESQL_CHARACTER_TYPES,
@@ -38,7 +41,6 @@ import {
   type UnknownDataGridRow,
 } from '@/features/orgs/projects/storage/dataGrid/components/DataGrid';
 import { DataGridBooleanCell } from '@/features/orgs/projects/storage/dataGrid/components/DataGridBooleanCell';
-import { DataGridDateCell } from '@/features/orgs/projects/storage/dataGrid/components/DataGridDateCell';
 import { DataGridNumericCell } from '@/features/orgs/projects/storage/dataGrid/components/DataGridNumericCell';
 import { DataGridTextCell } from '@/features/orgs/projects/storage/dataGrid/components/DataGridTextCell';
 import { isEmptyValue, isNotEmptyValue } from '@/lib/utils';
@@ -60,21 +62,19 @@ export function extractColumnMetadata(
   column: NormalizedQueryDataRow,
   isEditable: boolean = true,
 ): DataBrowserColumnMetadata {
-  const { normalizedDefaultValue, custom: isDefaultValueCustom } =
-    normalizeDefaultValue(column.column_default);
+  const normalizedDefault = normalizeDefaultValue(column.column_default);
 
-  const isGeneratedColumn = column.is_generated === 'ALWAYS';
+  const isGenerated = isGeneratedColumn(column);
 
   const metadata: DataBrowserColumnMetadata = {
     id: column.column_name,
-    isEditable: isGeneratedColumn ? false : isEditable,
+    isEditable: isGenerated ? false : isEditable,
     isPrimary: column.is_primary,
     isNullable: column.is_nullable !== 'NO',
     isIdentity: column.is_identity === 'YES',
-    isGenerated: isGeneratedColumn,
+    isGenerated,
     generationExpression: column.generation_expression ?? null,
-    defaultValue: normalizedDefaultValue,
-    isDefaultValueCustom,
+    defaultValue: normalizedDefault ?? null,
     isUnique: column.is_unique,
     comment: column.column_comment,
     uniqueConstraints: column.unique_constraints,
@@ -101,7 +101,8 @@ export function extractColumnMetadata(
 export function createDataGridColumn(
   column: NormalizedQueryDataRow,
   isEditable: boolean = true,
-): DataBrowserGridColumnDef {
+  // biome-ignore lint/suspicious/noExplicitAny: Cell types are dynamically typed depending on postgres columns
+): DataBrowserGridColumnDef<UnknownDataGridRow, any> {
   const meta = extractColumnMetadata(column, isEditable);
 
   const isSortable =
@@ -183,7 +184,7 @@ export function createDataGridColumn(
       ...defaultColumnConfiguration,
       size: 200,
       cell: (props: CellContext<UnknownDataGridRow, string>) => (
-        <DataGridDateCell {...props} />
+        <DataGridTextCell {...props} />
       ),
     };
   }
@@ -220,6 +221,19 @@ export default function DataBrowserGrid(props: DataBrowserGridProps) {
     },
   });
 
+  const { tableType } = useTableType({
+    dataSource: dataSourceSlug as string,
+    schema: schemaSlug as string,
+    name: tableSlug as string,
+    queryOptions: {
+      enabled:
+        typeof schemaSlug === 'string' &&
+        typeof tableSlug === 'string' &&
+        typeof dataSourceSlug === 'string',
+    },
+  });
+  const isMaterializedView = tableType === 'MATERIALIZED VIEW';
+
   const { data, status, error, refetch } = useTableQuery(
     createTableQueryKey(
       currentTablePath,
@@ -238,6 +252,11 @@ export default function DataBrowserGrid(props: DataBrowserGridProps) {
       filters: appliedFilters,
     },
   );
+
+  const {
+    handleRefresh: handleRefreshMaterializedViewClick,
+    isRefreshing: isRefreshingMaterializedView,
+  } = useRefreshMaterializedView({ refetch });
 
   const {
     columns,
@@ -415,6 +434,9 @@ export default function DataBrowserGrid(props: DataBrowserGridProps) {
       controls={
         <DataBrowserGridControls
           onInsertRowClick={isReadOnlyObject ? undefined : handleInsertRowClick}
+          showRefreshMaterializedViewButton={isMaterializedView}
+          onRefreshMaterializedViewClick={handleRefreshMaterializedViewClick}
+          isRefreshingMaterializedView={isRefreshingMaterializedView}
           paginationProps={{
             currentPage: Math.max(currentPage, 1),
             totalPages: Math.max(numberOfPages, 1),

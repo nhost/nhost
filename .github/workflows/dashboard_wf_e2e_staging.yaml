@@ -40,6 +40,10 @@ on:
         required: true
       NIX_CACHE_PUB_KEY:
         required: true
+      NIX_CACHE_ACCESS_KEY_ID:
+        required: true
+      NIX_CACHE_SECRET_ACCESS_KEY:
+        required: true
       NIX_CACHE_PRIV_KEY:
         required: true
       DASHBOARD_VERCEL_DEPLOY_TOKEN:
@@ -81,7 +85,6 @@ env:
   NHOST_TEST_STAGING_SUBDOMAIN: ${{ secrets.NHOST_TEST_STAGING_SUBDOMAIN }}
   NHOST_TEST_STAGING_REGION: ${{ secrets.NHOST_TEST_STAGING_REGION }}
 
-
 jobs:
   tests:
     runs-on: blacksmith-2vcpu-ubuntu-2404
@@ -95,11 +98,11 @@ jobs:
       matrix:
         include:
           - suite: main
-            script: pnpm e2e
+            nix-attr: dashboard-e2e-staging-main
           - suite: onboarding
-            script: pnpm e2e:onboarding
+            nix-attr: dashboard-e2e-staging-onboarding
           - suite: local
-            script: pnpm e2e:local
+            nix-attr: dashboard-e2e-staging-local
             needs-cli: true
 
     defaults:
@@ -112,57 +115,160 @@ jobs:
       actions: read
 
     steps:
-    - name: "Check out repository"
-      uses: actions/checkout@v6
-      with:
-        ref: ${{ inputs.GIT_REF }}
+      - name: "Check out repository"
+        uses: actions/checkout@v7
+        with:
+          ref: ${{ inputs.GIT_REF }}
 
-    - name: Collect Workflow Telemetry
-      uses: catchpoint/workflow-telemetry-action@v2
-      with:
-        comment_on_pr: false
+      - name: Collect Workflow Telemetry
+        uses: catchpoint/workflow-telemetry-action@v2
+        with:
+          comment_on_pr: false
 
-    - name: Configure aws
-      uses: aws-actions/configure-aws-credentials@v6
-      with:
-        role-to-assume: arn:aws:iam::${{ secrets.AWS_ACCOUNT_ID }}:role/github-actions-nhost-${{ github.event.repository.name }}
-        aws-region: eu-central-1
+      - name: Configure aws
+        uses: aws-actions/configure-aws-credentials@v6
+        with:
+          role-to-assume: arn:aws:iam::${{ secrets.AWS_ACCOUNT_ID }}:role/github-actions-nhost-${{ github.event.repository.name }}
+          aws-region: eu-central-1
 
-    - name: Setup Nix with Cache
-      uses: ./.github/actions/setup-nix
-      with:
-        NAME: ${{ inputs.NAME }}
-        NIX_CACHE_PUB_KEY: ${{ secrets.NIX_CACHE_PUB_KEY }}
-        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+      - name: Setup Nix with Cache
+        uses: ./.github/actions/setup-nix
+        with:
+          NAME: ${{ inputs.NAME }}
+          NIX_CACHE_PUB_KEY: ${{ secrets.NIX_CACHE_PUB_KEY }}
+          NIX_CACHE_ACCESS_KEY_ID: ${{ secrets.NIX_CACHE_ACCESS_KEY_ID }}
+          NIX_CACHE_SECRET_ACCESS_KEY: ${{ secrets.NIX_CACHE_SECRET_ACCESS_KEY }}
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
-    - name: Start CLI
-      if: matrix.needs-cli
-      run: |
-        nix develop .\#dashboard -c make dev-env-cli-up
+      - name: "Verify if we need to run e2e ${{ matrix.suite }} tests"
+        id: verify-e2e
+        shell: bash
+        run: |
+          set -euo pipefail
 
-    - name: Run e2e ${{ matrix.suite }} tests
-      run: nix develop .\#dashboard -c ${{ matrix.script }}
+          stderr_log="$(mktemp)"
+          if ! nix build --dry-run ".#${{ matrix.nix-attr }}" 2>"$stderr_log"; then
+            cat "$stderr_log" >&2
+            rm -f "$stderr_log"
+            exit 1
+          fi
 
-    - name: Encrypt Playwright report
-      if: failure()
-      run: |
-        tar -czf playwright-report.tar.gz playwright-report/
-        openssl enc -aes-256-cbc -salt -pbkdf2 -iter 100000 \
-          -in playwright-report.tar.gz \
-          -out playwright-report.tar.gz.enc \
-          -k "${{ secrets.PLAYWRIGHT_REPORT_ENCRYPTION_KEY }}"
-        rm playwright-report.tar.gz
+          if grep -q "will be built" "$stderr_log"; then
+            build_needed=yes
+          else
+            build_needed=no
+          fi
+          rm -f "$stderr_log"
 
-    - name: Upload encrypted Playwright report
-      uses: actions/upload-artifact@v7
-      if: failure()
-      with:
-        name: encrypted-playwright-report-${{ matrix.suite }}-${{ github.run_id }}
-        path: dashboard/playwright-report.tar.gz.enc
-        retention-days: 1
+          echo "BUILD_NEEDED=$build_needed" >> "$GITHUB_OUTPUT"
+          echo "E2E build needed: $build_needed"
 
-    - name: "Store Nix cache"
-      uses: ./.github/actions/cache-nix
-      with:
-        NIX_CACHE_PRIV_KEY: ${{ secrets.NIX_CACHE_PRIV_KEY }}
-      if: always()
+      - name: Start CLI
+        if: ${{ matrix.needs-cli && steps.verify-e2e.outputs.BUILD_NEEDED == 'yes' }}
+        run: |
+          nix develop .\#dashboard -c make dev-env-cli-up
+
+      - name: Run e2e ${{ matrix.suite }} tests
+        if: ${{ steps.verify-e2e.outputs.BUILD_NEEDED == 'yes' }}
+        shell: bash
+        run: |
+          set -euo pipefail
+
+          env_file="/tmp/nhost-dashboard-e2e-${{ matrix.suite }}.env"
+          log_file="${RUNNER_TEMP}/dashboard-e2e-${{ matrix.suite }}.log"
+          trap 'rm -f "$env_file"' EXIT
+
+          write_env() {
+            local name="$1"
+            printf 'export %s=%q\n' "$name" "${!name:-}"
+          }
+
+          install -m 600 /dev/null "$env_file"
+          {
+            for name in \
+              CI \
+              NEXT_PUBLIC_ENV \
+              NEXT_TELEMETRY_DISABLED \
+              NHOST_TEST_DASHBOARD_URL \
+              NHOST_TEST_PROJECT_NAME \
+              NHOST_TEST_ORGANIZATION_NAME \
+              NHOST_TEST_ORGANIZATION_SLUG \
+              NHOST_TEST_PERSONAL_ORG_SLUG \
+              NHOST_TEST_PROJECT_SUBDOMAIN \
+              NHOST_TEST_PROJECT_REMOTE_SCHEMA_NAME \
+              NHOST_PRO_TEST_PROJECT_NAME \
+              NHOST_TEST_USER_EMAIL \
+              NHOST_TEST_USER_PASSWORD \
+              NHOST_TEST_ONBOARDING_USER \
+              NHOST_TEST_PROJECT_ADMIN_SECRET \
+              NHOST_TEST_STAGING_SUBDOMAIN \
+              NHOST_TEST_STAGING_REGION; do
+              write_env "$name"
+            done
+          } > "$env_file"
+          if ! getent group nixbld > /dev/null; then
+            echo "::error::nixbld group is missing; refusing to make the secret env file world-readable"
+            exit 1
+          fi
+          if ! sudo chgrp nixbld "$env_file"; then
+            echo "::error::failed to grant nixbld group access to the secret env file"
+            exit 1
+          fi
+          chmod 640 "$env_file"
+
+          set +e
+          NHOST_DASHBOARD_E2E_ENV_FILE="$env_file" nix build \
+            --impure \
+            --no-link \
+            --print-build-logs \
+            --keep-failed \
+            ".#${{ matrix.nix-attr }}" 2>&1 | tee "$log_file"
+          status=${PIPESTATUS[0]}
+          set -e
+
+          if [ "$status" -ne 0 ]; then
+            build_dir="$(grep -oE "keeping build directory '[^']+'" "$log_file" | tail -n 1 | sed -E "s/.*'([^']+)'.*/\1/" || true)"
+            if [ -n "$build_dir" ] && [ -d "$build_dir/dashboard/playwright-report" ]; then
+              rm -rf playwright-report
+              if ! cp -r "$build_dir/dashboard/playwright-report" playwright-report; then
+                sudo cp -r "$build_dir/dashboard/playwright-report" playwright-report
+                sudo chown -R "$(id -u):$(id -g)" playwright-report
+              fi
+            else
+              echo "No Playwright report found in failed Nix build directory"
+            fi
+          fi
+
+          exit "$status"
+
+      - name: Store Nix cache
+        uses: ./.github/actions/cache-nix
+        if: ${{ always() && steps.verify-e2e.outputs.BUILD_NEEDED == 'yes' }}
+        with:
+          NIX_CACHE_PRIV_KEY: ${{ secrets.NIX_CACHE_PRIV_KEY }}
+          NIX_CACHE_ACCESS_KEY_ID: ${{ secrets.NIX_CACHE_ACCESS_KEY_ID }}
+          NIX_CACHE_SECRET_ACCESS_KEY: ${{ secrets.NIX_CACHE_SECRET_ACCESS_KEY }}
+
+      - name: Encrypt Playwright report
+        if: failure()
+        run: |
+          if [ ! -d playwright-report ]; then
+            echo "No Playwright report found; skipping encryption"
+            exit 0
+          fi
+
+          tar -czf playwright-report.tar.gz playwright-report/
+          openssl enc -aes-256-cbc -salt -pbkdf2 -iter 100000 \
+            -in playwright-report.tar.gz \
+            -out playwright-report.tar.gz.enc \
+            -k "${{ secrets.PLAYWRIGHT_REPORT_ENCRYPTION_KEY }}"
+          rm playwright-report.tar.gz
+
+      - name: Upload encrypted Playwright report
+        uses: actions/upload-artifact@v7
+        if: failure()
+        with:
+          name: encrypted-playwright-report-${{ matrix.suite }}-${{ github.run_id }}
+          path: dashboard/playwright-report.tar.gz.enc
+          if-no-files-found: ignore
+          retention-days: 1

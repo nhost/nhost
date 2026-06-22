@@ -1,45 +1,16 @@
 const crypto = require('node:crypto');
-const { AsyncLocalStorage } = require('node:async_hooks');
-const util = require('node:util');
 const express = require('express');
 const app = express();
 
-const asyncLocalStorage = new AsyncLocalStorage();
+// AsyncLocalStorage and console patching live in the parent runtime so that
+// reloading this bundle does not leak. A per-bundle ALS plus per-bundle
+// console wrappers chained across reloads — each new wrapper closed over the
+// previous one and pinned the prior bundle's full module graph in memory.
+const asyncLocalStorage = global.__nhost_als__;
 
 function logJSON(obj) {
   process.stdout.write(`${JSON.stringify(obj)}\n`);
 }
-
-// Intercept console methods to emit structured JSON during request handling.
-// Outside of a request context (e.g. at module load time), the original
-// console methods are used unchanged.
-const originalConsole = {
-  log: console.log,
-  info: console.info,
-  warn: console.warn,
-  error: console.error,
-};
-
-function wrapConsoleMethod(original, level) {
-  return (...args) => {
-    const store = asyncLocalStorage.getStore();
-    if (store) {
-      logJSON({
-        log: util.format(...args),
-        path: store.path,
-        invocationId: store.invocationId,
-        level,
-      });
-    } else {
-      original.apply(console, args);
-    }
-  };
-}
-
-console.log = wrapConsoleMethod(originalConsole.log, 'INFO');
-console.info = wrapConsoleMethod(originalConsole.info, 'INFO');
-console.warn = wrapConsoleMethod(originalConsole.warn, 'WARN');
-console.error = wrapConsoleMethod(originalConsole.error, 'ERROR');
 
 const rawBodySaver = (req, _res, buf) => {
   req.rawBody = buf.toString();

@@ -1,21 +1,18 @@
 import { yupResolver } from '@hookform/resolvers/yup';
+import { InfoIcon } from 'lucide-react';
 import { useEffect, useState } from 'react';
 import { FormProvider, useForm } from 'react-hook-form';
 import { toast } from 'react-hot-toast';
 import * as Yup from 'yup';
 import { ApplyLocalSettingsDialog } from '@/components/common/ApplyLocalSettingsDialog';
 import { useDialog } from '@/components/common/DialogProvider';
-import {
-  ControlledAutocomplete,
-  defaultFilterOptions,
-} from '@/components/form/ControlledAutocomplete';
 import { Form } from '@/components/form/Form';
+import { FormFreeCombobox } from '@/components/form/FormFreeCombobox';
 import { SettingsContainer } from '@/components/layout/SettingsContainer';
 import { ActivityIndicator } from '@/components/ui/v2/ActivityIndicator';
 import { Alert } from '@/components/ui/v2/Alert';
 import { Box } from '@/components/ui/v2/Box';
 import { Input } from '@/components/ui/v2/Input';
-import { InfoIcon } from '@/components/ui/v2/icons/InfoIcon';
 import { Switch } from '@/components/ui/v2/Switch';
 import { Text } from '@/components/ui/v2/Text';
 import { Tooltip } from '@/components/ui/v2/Tooltip';
@@ -38,10 +35,7 @@ import { RESOURCE_VCPU_MULTIPLIER } from '@/utils/constants/common';
 import { getToastStyleProps } from '@/utils/constants/settings';
 
 const validationSchema = Yup.object({
-  version: Yup.object({
-    label: Yup.string().required(),
-    value: Yup.string().required(),
-  }),
+  version: Yup.string().required().label('AI Version'),
   webhookSecret: Yup.string(),
   synchPeriodMinutes: Yup.number(),
   organization: Yup.string(),
@@ -109,10 +103,7 @@ export default function AISettings() {
   const form = useForm<AISettingsFormValues>({
     reValidateMode: 'onSubmit',
     defaultValues: {
-      version: {
-        label: ai?.version || availableVersions?.at(0)?.label || '',
-        value: ai?.version || availableVersions?.at(0)?.value || '',
-      },
+      version: ai?.version || availableVersions?.at(0)?.value || '',
       webhookSecret: '',
       organization: '',
       apiKey: '',
@@ -132,10 +123,7 @@ export default function AISettings() {
   useEffect(() => {
     if (ai) {
       reset({
-        version: {
-          label: ai!.version!,
-          value: ai!.version!,
-        },
+        version: ai!.version!,
         webhookSecret: ai?.webhookSecret,
         synchPeriodMinutes: ai?.autoEmbeddings?.synchPeriodMinutes,
         apiKey: ai?.openai?.apiKey,
@@ -155,9 +143,9 @@ export default function AISettings() {
       !loadingGraphiteVersionsData &&
       availableVersions.length > 0 &&
       !ai &&
-      !aiSettingsFormValues.version.value
+      !aiSettingsFormValues.version
     ) {
-      setValue('version', availableVersions.at(0)!);
+      setValue('version', availableVersions.at(0)!.value);
     }
   }, [
     ai,
@@ -219,7 +207,7 @@ export default function AISettings() {
             appId: project?.id,
             config: {
               ai: {
-                version: formValues.version.value,
+                version: formValues.version,
                 webhookSecret: formValues.webhookSecret,
                 autoEmbeddings: {
                   synchPeriodMinutes: Number(formValues.synchPeriodMinutes),
@@ -303,32 +291,17 @@ export default function AISettings() {
                     <Tooltip title="Version of the service to use.">
                       <InfoIcon
                         aria-label="Info"
-                        className="h-4 w-4"
-                        color="primary"
+                        className="h-4 w-4 text-primary"
                       />
                     </Tooltip>
                   </Box>
-                  <ControlledAutocomplete
-                    id="version"
+                  <FormFreeCombobox
                     name="version"
-                    autoHighlight
-                    isOptionEqualToValue={() => false}
-                    filterOptions={defaultFilterOptions}
-                    fullWidth
                     className="col-span-4"
                     options={availableVersions}
-                    error={
-                      !!formState.errors?.version?.message ||
-                      !!formState.errors?.version?.value?.message
-                    }
-                    helperText={
-                      formState.errors?.version?.message ||
-                      formState.errors?.version?.value?.message
-                    }
-                    showCustomOption="auto"
-                    customOptionLabel={(value) =>
-                      `Use custom value: "${value}"`
-                    }
+                    control={form.control}
+                    placeholder="Select AI Version"
+                    customValueLabel={(val) => `Use custom value: "${val}"`}
                   />
                 </Box>
 
@@ -340,8 +313,7 @@ export default function AISettings() {
                     <Tooltip title="Used to validate requests between postgres and the AI service. The AI service will also include the header X-Graphite-Webhook-Secret with this value set when calling external webhooks so the source of the request can be validated.">
                       <InfoIcon
                         aria-label="Info"
-                        className="h-4 w-4"
-                        color="primary"
+                        className="h-4 w-4 text-primary"
                       />
                     </Tooltip>
                   </Box>
@@ -364,8 +336,7 @@ export default function AISettings() {
                     <Tooltip title="Dedicated resources allocated for the service.">
                       <InfoIcon
                         aria-label="Info"
-                        className="h-4 w-4"
-                        color="primary"
+                        className="h-4 w-4 text-primary"
                       />
                     </Tooltip>
                   </Box>
@@ -404,8 +375,7 @@ export default function AISettings() {
                         <Tooltip title="Key to use for authenticating API requests to OpenAI">
                           <InfoIcon
                             aria-label="Info"
-                            className="h-4 w-4"
-                            color="primary"
+                            className="h-4 w-4 text-primary"
                           />
                         </Tooltip>
                       </Box>
@@ -427,8 +397,7 @@ export default function AISettings() {
                         <Tooltip title="Optional. OpenAI organization to use.">
                           <InfoIcon
                             aria-label="Info"
-                            className="h-4 w-4"
-                            color="primary"
+                            className="h-4 w-4 text-primary"
                           />
                         </Tooltip>
                       </Box>
@@ -455,8 +424,7 @@ export default function AISettings() {
                         <Tooltip title="How often to run the job that keeps embeddings up to date.">
                           <InfoIcon
                             aria-label="Info"
-                            className="h-4 w-4"
-                            color="primary"
+                            className="h-4 w-4 text-primary"
                           />
                         </Tooltip>
                       </Box>

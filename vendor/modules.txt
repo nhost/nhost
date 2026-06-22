@@ -444,7 +444,7 @@ github.com/cespare/xxhash/v2
 # github.com/charmbracelet/colorprofile v0.2.3-0.20250311203215-f60798e515dc
 ## explicit; go 1.18
 github.com/charmbracelet/colorprofile
-# github.com/charmbracelet/lipgloss v1.1.0
+# github.com/charmbracelet/lipgloss v1.1.1-0.20250319133953-166f707985bc
 ## explicit; go 1.18
 github.com/charmbracelet/lipgloss
 # github.com/charmbracelet/x/ansi v0.8.0
@@ -452,12 +452,30 @@ github.com/charmbracelet/lipgloss
 github.com/charmbracelet/x/ansi
 github.com/charmbracelet/x/ansi/kitty
 github.com/charmbracelet/x/ansi/parser
-# github.com/charmbracelet/x/cellbuf v0.0.13-0.20250311204145-2c3ea96c31dd
+# github.com/charmbracelet/x/cellbuf v0.0.13
 ## explicit; go 1.18
 github.com/charmbracelet/x/cellbuf
 # github.com/charmbracelet/x/term v0.2.1
 ## explicit; go 1.18
 github.com/charmbracelet/x/term
+# github.com/cli/go-gh/v2 v2.13.0
+## explicit; go 1.25.0
+github.com/cli/go-gh/v2/internal/set
+github.com/cli/go-gh/v2/internal/yamlmap
+github.com/cli/go-gh/v2/pkg/api
+github.com/cli/go-gh/v2/pkg/asciisanitizer
+github.com/cli/go-gh/v2/pkg/auth
+github.com/cli/go-gh/v2/pkg/config
+github.com/cli/go-gh/v2/pkg/jsonpretty
+github.com/cli/go-gh/v2/pkg/term
+# github.com/cli/safeexec v1.0.0
+## explicit; go 1.15
+github.com/cli/safeexec
+# github.com/cli/shurcooL-graphql v0.0.4
+## explicit; go 1.21
+github.com/cli/shurcooL-graphql
+github.com/cli/shurcooL-graphql/ident
+github.com/cli/shurcooL-graphql/internal/jsonutil
 # github.com/cloudflare/circl v1.6.3
 ## explicit; go 1.22.0
 github.com/cloudflare/circl/dh/x25519
@@ -770,6 +788,11 @@ github.com/hashicorp/go-multierror
 github.com/hashicorp/golang-lru/v2
 github.com/hashicorp/golang-lru/v2/internal
 github.com/hashicorp/golang-lru/v2/simplelru
+# github.com/henvic/httpretty v0.0.6
+## explicit; go 1.13
+github.com/henvic/httpretty
+github.com/henvic/httpretty/internal/color
+github.com/henvic/httpretty/internal/header
 # github.com/invopop/jsonschema v0.13.0
 ## explicit; go 1.18
 github.com/invopop/jsonschema
@@ -844,6 +867,9 @@ github.com/mattn/go-isatty
 # github.com/mattn/go-runewidth v0.0.16
 ## explicit; go 1.9
 github.com/mattn/go-runewidth
+# github.com/mattn/go-sqlite3 v1.14.22
+## explicit; go 1.19
+github.com/mattn/go-sqlite3
 # github.com/mitchellh/mapstructure v1.5.0
 ## explicit; go 1.14
 github.com/mitchellh/mapstructure
@@ -870,7 +896,7 @@ github.com/muesli/termenv
 # github.com/munnerz/goautoneg v0.0.0-20191010083416-a7dc8b61c822
 ## explicit
 github.com/munnerz/goautoneg
-# github.com/nhost/be v0.0.0-20260420080444-0a4ea34558de
+# github.com/nhost/be v0.0.0-20260605115703-081b98dff496
 ## explicit; go 1.25.7
 github.com/nhost/be/lib/graphql
 github.com/nhost/be/lib/graphql/context
@@ -884,10 +910,9 @@ github.com/nhost/be/services/mimir/nhost
 github.com/nhost/be/services/mimir/schema
 github.com/nhost/be/services/mimir/schema/appconfig
 github.com/nhost/be/tools/cuegraph/types
-# github.com/oapi-codegen/runtime v1.1.1
-## explicit; go 1.20
+# github.com/oapi-codegen/runtime v1.4.1
+## explicit; go 1.24.0
 github.com/oapi-codegen/runtime
-github.com/oapi-codegen/runtime/strictmiddleware/gin
 github.com/oapi-codegen/runtime/types
 # github.com/oasdiff/yaml v0.0.0-20250309154309-f31be36b4037
 ## explicit; go 1.22.5
@@ -1023,6 +1048,9 @@ github.com/spf13/cast/internal
 ## explicit; go 1.17
 github.com/stretchr/testify/assert
 github.com/stretchr/testify/assert/yaml
+# github.com/thlib/go-timezone-local v0.0.0-20210907160436-ef149e42d28e
+## explicit; go 1.16
+github.com/thlib/go-timezone-local/tzlocal
 # github.com/tidwall/gjson v1.18.0
 ## explicit; go 1.12
 github.com/tidwall/gjson
@@ -1073,6 +1101,7 @@ github.com/valyala/fasttemplate
 ## explicit; go 1.22
 github.com/vektah/gqlparser/v2
 github.com/vektah/gqlparser/v2/ast
+github.com/vektah/gqlparser/v2/formatter
 github.com/vektah/gqlparser/v2/gqlerror
 github.com/vektah/gqlparser/v2/lexer
 github.com/vektah/gqlparser/v2/parser
@@ -1130,17 +1159,11 @@ go.opentelemetry.io/otel/propagation
 go.opentelemetry.io/otel/semconv/v1.37.0
 go.opentelemetry.io/otel/semconv/v1.40.0
 go.opentelemetry.io/otel/semconv/v1.40.0/httpconv
-# go.opentelemetry.io/otel/exporters/otlp/otlptrace/otlptracehttp v1.43.0
-## explicit; go 1.25.0
 # go.opentelemetry.io/otel/metric v1.43.0
 ## explicit; go 1.25.0
 go.opentelemetry.io/otel/metric
 go.opentelemetry.io/otel/metric/embedded
 go.opentelemetry.io/otel/metric/noop
-# go.opentelemetry.io/otel/sdk v1.43.0
-## explicit; go 1.25.0
-# go.opentelemetry.io/otel/sdk/metric v1.43.0
-## explicit; go 1.25.0
 # go.opentelemetry.io/otel/trace v1.43.0
 ## explicit; go 1.25.0
 go.opentelemetry.io/otel/trace
@@ -1159,10 +1182,13 @@ go.uber.org/mock/gomock
 # go.yaml.in/yaml/v2 v2.4.3
 ## explicit; go 1.15
 go.yaml.in/yaml/v2
+# go.yaml.in/yaml/v3 v3.0.4
+## explicit; go 1.16
+go.yaml.in/yaml/v3
 # golang.org/x/arch v0.20.0
 ## explicit; go 1.23.0
 golang.org/x/arch/x86/x86asm
-# golang.org/x/crypto v0.50.0
+# golang.org/x/crypto v0.52.0
 ## explicit; go 1.25.0
 golang.org/x/crypto/argon2
 golang.org/x/crypto/bcrypt
@@ -1184,12 +1210,12 @@ golang.org/x/crypto/ssh
 golang.org/x/crypto/ssh/agent
 golang.org/x/crypto/ssh/internal/bcrypt_pbkdf
 golang.org/x/crypto/ssh/knownhosts
-# golang.org/x/mod v0.34.0
+# golang.org/x/mod v0.35.0
 ## explicit; go 1.25.0
 golang.org/x/mod/internal/lazyregexp
 golang.org/x/mod/module
 golang.org/x/mod/semver
-# golang.org/x/net v0.53.0
+# golang.org/x/net v0.55.0
 ## explicit; go 1.25.0
 golang.org/x/net/bpf
 golang.org/x/net/context
@@ -1216,17 +1242,18 @@ golang.org/x/oauth2/internal
 # golang.org/x/sync v0.20.0
 ## explicit; go 1.25.0
 golang.org/x/sync/semaphore
-# golang.org/x/sys v0.43.0
+# golang.org/x/sys v0.45.0
 ## explicit; go 1.25.0
 golang.org/x/sys/cpu
 golang.org/x/sys/execabs
 golang.org/x/sys/plan9
 golang.org/x/sys/unix
 golang.org/x/sys/windows
-# golang.org/x/term v0.42.0
+golang.org/x/sys/windows/registry
+# golang.org/x/term v0.43.0
 ## explicit; go 1.25.0
 golang.org/x/term
-# golang.org/x/text v0.36.0
+# golang.org/x/text v0.37.0
 ## explicit; go 1.25.0
 golang.org/x/text/cases
 golang.org/x/text/encoding
@@ -1286,9 +1313,6 @@ gopkg.in/evanphx/json-patch.v5
 # gopkg.in/warnings.v0 v0.1.2
 ## explicit
 gopkg.in/warnings.v0
-# gopkg.in/yaml.v2 v2.4.0
-## explicit; go 1.15
-gopkg.in/yaml.v2
 # gopkg.in/yaml.v3 v3.0.1
 ## explicit
 gopkg.in/yaml.v3

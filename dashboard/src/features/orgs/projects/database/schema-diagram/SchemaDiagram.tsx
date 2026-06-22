@@ -1,6 +1,5 @@
 import '@xyflow/react/dist/style.css';
 
-import { SmartStepEdge } from '@tisoap/react-flow-smart-edge';
 import {
   Background,
   Controls,
@@ -16,87 +15,150 @@ import { Alert, AlertDescription } from '@/components/ui/v3/alert';
 import { Spinner } from '@/components/ui/v3/spinner';
 import { useRemoteApplicationGQLClient } from '@/features/orgs/hooks/useRemoteApplicationGQLClient';
 import { useExportMetadata } from '@/features/orgs/projects/common/hooks/useExportMetadata';
+import { useIsPlatform } from '@/features/orgs/projects/common/hooks/useIsPlatform';
 import { useDataBrowserActions } from '@/features/orgs/projects/database/dataGrid/hooks/useDataBrowserActions';
 import { useDatabaseQuery } from '@/features/orgs/projects/database/dataGrid/hooks/useDatabaseQuery';
+import { useGetEnumsSet } from '@/features/orgs/projects/database/dataGrid/hooks/useGetEnumsSet';
 import { useGetTrackedTablesSet } from '@/features/orgs/projects/database/dataGrid/hooks/useGetTrackedTablesSet';
 import type {
   DatabaseObjectViewModel,
   HasuraMetadataTable,
+  TableLikeObjectType,
 } from '@/features/orgs/projects/database/dataGrid/types/dataBrowser';
 import { sortDatabaseObjects } from '@/features/orgs/projects/database/dataGrid/utils/sortDatabaseObjects';
+import { useLocalMimirClient } from '@/features/orgs/projects/hooks/useLocalMimirClient';
+import { useProject } from '@/features/orgs/projects/hooks/useProject';
 import { cn } from '@/lib/utils';
-import { useGetRemoteAppRolesQuery } from '@/utils/__generated__/graphql';
+import {
+  useGetHasuraSettingsQuery,
+  useGetRemoteAppRolesQuery,
+} from '@/utils/__generated__/graphql';
+import FunctionNode from './FunctionNode';
 import { ADMIN_ROLE, PUBLIC_ROLE } from './permissionState';
-import SchemaDiagramToolbar from './SchemaDiagramToolbar';
+import SchemaDiagramToolbar, {
+  type SchemaDiagramSearchObject,
+} from './SchemaDiagramToolbar';
 import { getSchemaColor } from './schemaColor';
 import { TableActionsProvider } from './TableActionsContext';
+import TableEdge from './TableEdge';
 import TableNode from './TableNode';
 import useAllTableColumns from './useAllTableColumns';
-import useSchemaGraph, { EDGE_MARKER_IDS, nodeIdFor } from './useSchemaGraph';
+import useSchemaGraph, {
+  EDGE_MARKER_IDS,
+  functionNodeIdFor,
+  type NamingMode,
+  nodeIdFor,
+} from './useSchemaGraph';
 
-const nodeTypes = { tableNode: TableNode } as const;
-const edgeTypes = { smart: SmartStepEdge } as const;
+const nodeTypes = { tableNode: TableNode, functionNode: FunctionNode } as const;
+const edgeTypes = { smart: TableEdge } as const;
 
 const EDGE_COLOR_DEFAULT = 'hsl(var(--muted-foreground))';
 const EDGE_COLOR_HIGHLIGHT = 'hsl(var(--primary))';
+
+const EDGE_MARKER_HIGHLIGHT_SUFFIX = '-highlight';
+
+function highlightMarkerId(baseId: string) {
+  return `${baseId}${EDGE_MARKER_HIGHLIGHT_SUFFIX}`;
+}
+
+// Safari does not resolve the `context-stroke` paint keyword, so markers that
+// relied on it fell back to their SVG initial paint (black fill / no stroke).
+// Bake the two edge colors into their own markers instead — gray for default
+// edges, primary for highlighted ones — so arrowheads match the edge in every
+// browser. Highlighted edges reference the `-highlight` variant via
+// `highlightMarkerId`.
+const MARKER_VARIANTS = [
+  { idSuffix: '', color: EDGE_COLOR_DEFAULT },
+  { idSuffix: EDGE_MARKER_HIGHLIGHT_SUFFIX, color: EDGE_COLOR_HIGHLIGHT },
+] as const;
+
+function EdgeMarkers({ idSuffix, color }: { idSuffix: string; color: string }) {
+  return (
+    <>
+      <marker
+        id={`${EDGE_MARKER_IDS.arrowFilled}${idSuffix}`}
+        viewBox="0 0 12 12"
+        refX="10"
+        refY="6"
+        markerWidth="8"
+        markerHeight="8"
+        orient="auto-start-reverse"
+        markerUnits="userSpaceOnUse"
+      >
+        <path d="M0,0 L12,6 L0,12 z" fill={color} stroke={color} />
+      </marker>
+      <marker
+        id={`${EDGE_MARKER_IDS.arrowHollow}${idSuffix}`}
+        viewBox="0 0 12 12"
+        refX="10"
+        refY="6"
+        markerWidth="9"
+        markerHeight="9"
+        orient="auto-start-reverse"
+        markerUnits="userSpaceOnUse"
+      >
+        <path
+          d="M1,1 L11,6 L1,11 z"
+          className="fill-background"
+          stroke={color}
+          strokeWidth={1.5}
+          strokeLinejoin="round"
+        />
+      </marker>
+      <marker
+        id={`${EDGE_MARKER_IDS.circleHollow}${idSuffix}`}
+        viewBox="0 0 12 12"
+        refX="2"
+        refY="6"
+        markerWidth="9"
+        markerHeight="9"
+        orient="auto"
+        markerUnits="userSpaceOnUse"
+      >
+        <circle
+          cx="6"
+          cy="6"
+          r="4"
+          className="fill-background"
+          stroke={color}
+          strokeWidth={1.5}
+        />
+      </marker>
+      <marker
+        id={`${EDGE_MARKER_IDS.functionArrow}${idSuffix}`}
+        viewBox="0 0 14 12"
+        refX="11"
+        refY="6"
+        markerWidth="12"
+        markerHeight="10"
+        orient="auto-start-reverse"
+        markerUnits="userSpaceOnUse"
+      >
+        <path
+          d="M1,1 L6,6 L1,11 M6,1 L11,6 L6,11"
+          fill="none"
+          stroke={color}
+          strokeWidth={1.6}
+          strokeLinejoin="round"
+          strokeLinecap="round"
+        />
+      </marker>
+    </>
+  );
+}
 
 function EdgeMarkerDefs() {
   return (
     <svg aria-hidden="true" className="pointer-events-none absolute h-0 w-0">
       <defs>
-        <marker
-          id={EDGE_MARKER_IDS.arrowFilled}
-          viewBox="0 0 12 12"
-          refX="10"
-          refY="6"
-          markerWidth="8"
-          markerHeight="8"
-          orient="auto-start-reverse"
-          markerUnits="userSpaceOnUse"
-        >
-          <path
-            d="M0,0 L12,6 L0,12 z"
-            fill="context-stroke"
-            stroke="context-stroke"
+        {MARKER_VARIANTS.map((variant) => (
+          <EdgeMarkers
+            key={variant.idSuffix || 'default'}
+            idSuffix={variant.idSuffix}
+            color={variant.color}
           />
-        </marker>
-        <marker
-          id={EDGE_MARKER_IDS.arrowHollow}
-          viewBox="0 0 12 12"
-          refX="10"
-          refY="6"
-          markerWidth="9"
-          markerHeight="9"
-          orient="auto-start-reverse"
-          markerUnits="userSpaceOnUse"
-        >
-          <path
-            d="M1,1 L11,6 L1,11 z"
-            className="fill-background"
-            stroke="context-stroke"
-            strokeWidth={1.5}
-            strokeLinejoin="round"
-          />
-        </marker>
-        <marker
-          id={EDGE_MARKER_IDS.circleHollow}
-          viewBox="0 0 12 12"
-          refX="2"
-          refY="6"
-          markerWidth="9"
-          markerHeight="9"
-          orient="auto"
-          markerUnits="userSpaceOnUse"
-        >
-          <circle
-            cx="6"
-            cy="6"
-            r="4"
-            className="fill-background"
-            stroke="context-stroke"
-            strokeWidth={1.5}
-          />
-        </marker>
+        ))}
       </defs>
     </svg>
   );
@@ -118,6 +180,11 @@ function SchemaDiagramContent() {
     return (source?.tables ?? []) as unknown as HasuraMetadataTable[];
   });
 
+  const { data: functionsMetadata } = useExportMetadata((data) => {
+    const source = data.metadata.sources?.find((s) => s.name === dataSource);
+    return source?.functions ?? [];
+  });
+
   const {
     data: schemaData,
     isLoading: columnsLoading,
@@ -131,7 +198,25 @@ function SchemaDiagramContent() {
     error: rolesError,
   } = useGetRemoteAppRolesQuery({ client: gqlClient });
 
+  const { project } = useProject();
+  const isPlatform = useIsPlatform();
+  const localMimirClient = useLocalMimirClient();
+
+  const { data: hasuraSettingsData } = useGetHasuraSettingsQuery({
+    variables: { appId: project?.id },
+    ...(!isPlatform ? { client: localMimirClient } : {}),
+    skip: !project?.id,
+  });
+
+  const inferFunctionPermissions = Boolean(
+    hasuraSettingsData?.config?.hasura.settings?.inferFunctionPermissions,
+  );
+
   const { data: trackedTablesSet } = useGetTrackedTablesSet({
+    dataSource,
+  });
+
+  const { data: enumTablesSet } = useGetEnumsSet({
     dataSource,
   });
 
@@ -160,8 +245,13 @@ function SchemaDiagramContent() {
         set.add(t.table.schema);
       }
     }
+    for (const fn of schemaData?.functionReturnTypes ?? []) {
+      if (fn.returnsSet && fn.returnTable) {
+        set.add(fn.schema);
+      }
+    }
     return Array.from(set).sort();
-  }, [schemaData?.columns, metadataTables]);
+  }, [schemaData?.columns, schemaData?.functionReturnTypes, metadataTables]);
 
   const targetSchema = useMemo(() => {
     if (availableSchemas.includes('public')) {
@@ -175,6 +265,7 @@ function SchemaDiagramContent() {
     () => new Set(),
   );
   const [hideEmpty, setHideEmpty] = useState(false);
+  const [namingMode, setNamingMode] = useState<NamingMode>('postgres');
   const [selectedNodeIds, setSelectedNodeIds] = useState<Set<string>>(
     () => new Set(),
   );
@@ -183,20 +274,45 @@ function SchemaDiagramContent() {
     null,
   );
 
-  const focusTable = useCallback((schema: string, name: string) => {
-    const id = nodeIdFor(schema, name);
+  const focusNode = useCallback((id: string, schemasToReveal: string[]) => {
     setSelectedEdgeId(null);
     setDeselectedSchemas((prev) => {
-      if (!prev.has(schema)) {
+      if (schemasToReveal.every((schema) => !prev.has(schema))) {
         return prev;
       }
       const next = new Set(prev);
-      next.delete(schema);
+      for (const schema of schemasToReveal) {
+        next.delete(schema);
+      }
       return next;
     });
     setSelectedNodeIds(new Set([id]));
     setPendingFocusNodeId(id);
   }, []);
+
+  const focusTable = useCallback(
+    (schema: string, name: string) => {
+      focusNode(nodeIdFor(schema, name), [schema]);
+    },
+    [focusNode],
+  );
+
+  const handleSelectObject = useCallback(
+    (object: SchemaDiagramSearchObject) => {
+      if (object.kind === 'function') {
+        const schemasToReveal = object.returnSchema
+          ? [object.schema, object.returnSchema]
+          : [object.schema];
+        focusNode(
+          functionNodeIdFor(object.schema, object.name),
+          schemasToReveal,
+        );
+        return;
+      }
+      focusNode(nodeIdFor(object.schema, object.name), [object.schema]);
+    },
+    [focusNode],
+  );
 
   const handleTableCreated = useCallback(
     (info: { schema: string; name: string }) =>
@@ -232,11 +348,16 @@ function SchemaDiagramContent() {
 
   const { nodes, edges, totalTableCount } = useSchemaGraph({
     metadataTables: metadataTables ?? [],
+    tableLikeObjects: databaseData?.tableLikeObjects ?? [],
     columns: schemaData?.columns ?? [],
     foreignKeys: schemaData?.foreignKeys ?? [],
+    functionReturnTypes: schemaData?.functionReturnTypes ?? [],
+    functionsMetadata: functionsMetadata ?? [],
+    inferFunctionPermissions,
     role: selectedRole,
     visibleSchemas,
     hideTablesWithoutPermissions: hideEmpty,
+    namingMode,
   });
 
   const focusedNodeIds = useMemo(() => {
@@ -284,7 +405,16 @@ function SchemaDiagramContent() {
         ...edge,
         animated: isHighlighted,
         zIndex: isHighlighted ? 1000 : 0,
+        markerStart:
+          isHighlighted && typeof edge.markerStart === 'string'
+            ? highlightMarkerId(edge.markerStart)
+            : edge.markerStart,
+        markerEnd:
+          isHighlighted && typeof edge.markerEnd === 'string'
+            ? highlightMarkerId(edge.markerEnd)
+            : edge.markerEnd,
         style: {
+          ...edge.style,
           stroke: color,
           strokeWidth: isHighlighted ? 2 : 1.25,
           opacity: isDimmed ? (multiSelect ? 0.05 : 0.15) : 1,
@@ -298,7 +428,10 @@ function SchemaDiagramContent() {
     return nodes.map((node) => {
       const isSelected = selectedNodeIds.has(node.id);
       const isDimmed = !!focusedNodeIds && !focusedNodeIds.has(node.id);
-      const isUntracked = !node.data.metadataTable;
+      const isUntracked =
+        node.type === 'functionNode'
+          ? node.data.isUntracked
+          : !node.data.metadataTable;
       const schemaColor = getSchemaColor(node.data.schema);
       const baseOpacity = isSelected ? 1 : isDimmed || isUntracked ? 0.35 : 1;
       return {
@@ -374,23 +507,59 @@ function SchemaDiagramContent() {
     ];
   }, [rolesData]);
 
-  const searchableTables = useMemo(() => {
-    const byId = new Map<string, { schema: string; name: string }>();
+  const searchableObjects = useMemo<SchemaDiagramSearchObject[]>(() => {
+    const byId = new Map<string, SchemaDiagramSearchObject>();
+    const objectTypeByKey = new Map<string, TableLikeObjectType>();
+    for (const obj of databaseData?.tableLikeObjects ?? []) {
+      objectTypeByKey.set(
+        `${obj.table_schema}.${obj.table_name}`,
+        obj.table_type || 'ORDINARY TABLE',
+      );
+    }
+    const tableSearchObject = (
+      schema: string,
+      name: string,
+    ): SchemaDiagramSearchObject => ({
+      kind: 'table',
+      schema,
+      name,
+      objectType: objectTypeByKey.get(`${schema}.${name}`) ?? 'ORDINARY TABLE',
+      isEnum: enumTablesSet?.has(`${schema}.${name}`) ?? false,
+    });
     for (const c of schemaData?.columns ?? []) {
-      byId.set(`${c.schema}.${c.table}`, { schema: c.schema, name: c.table });
+      byId.set(
+        `table:${c.schema}.${c.table}`,
+        tableSearchObject(c.schema, c.table),
+      );
     }
     for (const t of metadataTables ?? []) {
-      byId.set(`${t.table.schema}.${t.table.name}`, {
-        schema: t.table.schema,
-        name: t.table.name,
-      });
+      byId.set(
+        `table:${t.table.schema}.${t.table.name}`,
+        tableSearchObject(t.table.schema, t.table.name),
+      );
+    }
+    for (const fn of schemaData?.functionReturnTypes ?? []) {
+      if (fn.returnsSet && fn.returnTable && fn.returnSchema) {
+        byId.set(`function:${fn.schema}.${fn.name}`, {
+          kind: 'function',
+          schema: fn.schema,
+          name: fn.name,
+          returnSchema: fn.returnSchema,
+        });
+      }
     }
     return [...byId.values()].sort((a, b) =>
       a.schema === b.schema
         ? a.name.localeCompare(b.name)
         : a.schema.localeCompare(b.schema),
     );
-  }, [schemaData?.columns, metadataTables]);
+  }, [
+    schemaData?.columns,
+    schemaData?.functionReturnTypes,
+    metadataTables,
+    databaseData?.tableLikeObjects,
+    enumTablesSet,
+  ]);
 
   if (metadataLoading || columnsLoading || rolesLoading) {
     return (
@@ -417,7 +586,7 @@ function SchemaDiagramContent() {
 
   return (
     <TableActionsProvider
-      value={{ actions: dataBrowserActions, trackedTablesSet }}
+      value={{ actions: dataBrowserActions, trackedTablesSet, enumTablesSet }}
     >
       <div className="flex h-full flex-col">
         <SchemaDiagramToolbar
@@ -429,11 +598,13 @@ function SchemaDiagramContent() {
           onSelectedSchemasChange={handleSelectedSchemasChange}
           hideEmpty={hideEmpty}
           onHideEmptyChange={setHideEmpty}
+          namingMode={namingMode}
+          onNamingModeChange={setNamingMode}
           onNewTable={dataBrowserActions.openCreateTableDrawer}
           canCreateTable={!!targetSchema}
           targetSchema={targetSchema}
-          tables={searchableTables}
-          onSelectTable={focusTable}
+          objects={searchableObjects}
+          onSelectObject={handleSelectObject}
         />
 
         <div className="relative min-h-0 flex-1">

@@ -11,7 +11,6 @@ import { useAppClient } from '@/features/orgs/projects/hooks/useAppClient';
 import { useProject } from '@/features/orgs/projects/hooks/useProject';
 import type { DataGridProps } from '@/features/orgs/projects/storage/dataGrid/components/DataGrid';
 import { DataGrid } from '@/features/orgs/projects/storage/dataGrid/components/DataGrid';
-import { DataGridDateCell } from '@/features/orgs/projects/storage/dataGrid/components/DataGridDateCell';
 import type { PreviewProps } from '@/features/orgs/projects/storage/dataGrid/components/DataGridPreviewCell';
 import { DataGridPreviewCell } from '@/features/orgs/projects/storage/dataGrid/components/DataGridPreviewCell';
 import { FileIcon } from '@/features/orgs/projects/storage/dataGrid/components/DataGridPreviewCell/icons';
@@ -31,6 +30,23 @@ export type StoredFile = Omit<Files, 'bucket'> & {
 };
 
 type Bucket = NonNullable<GetBucketQuery['bucket']>;
+
+function FilesDataGridDateCell({ value }: { value: string | null }) {
+  if (!value) {
+    return <span className="text-secondary text-xs">null</span>;
+  }
+
+  const date = new Date(value);
+  if (Number.isNaN(date.getTime())) {
+    return <span className="text-xs">{value}</span>;
+  }
+
+  return (
+    <span className="truncate font-medium text-xs">
+      {date.toLocaleString()}
+    </span>
+  );
+}
 
 export type FilesDataGridProps = {
   bucket: Bucket;
@@ -101,8 +117,8 @@ export default function FilesDataGrid({
         accessorKey: 'createdAt',
         meta: { dataType: 'timestamptz' },
         size: 120,
-        cell: (props) => (
-          <DataGridDateCell {...(props as CellContext<StoredFile, string>)} />
+        cell: ({ getValue }) => (
+          <FilesDataGridDateCell value={getValue<string>()} />
         ),
       },
       {
@@ -110,8 +126,8 @@ export default function FilesDataGrid({
         accessorKey: 'updatedAt',
         meta: { dataType: 'timestamptz' },
         size: 120,
-        cell: (props) => (
-          <DataGridDateCell {...(props as CellContext<StoredFile, string>)} />
+        cell: ({ getValue }) => (
+          <FilesDataGridDateCell value={getValue<string>()} />
         ),
       },
       {

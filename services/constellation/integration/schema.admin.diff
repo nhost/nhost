@@ -1,0 +1,31 @@
+--- schema.hasura.admin.graphqls
++++ schema.nhost.admin.graphqls
+@@ -4213,7 +4213,7 @@ type mutation_root {
+   recordMyTeamGame(isHome: Boolean!, opponentId: ID!, opponentScore: Int!, teamId: ID!, teamScore: Int!): Game!
+   reportGame(awayScore: Int!, awayTeamId: ID!, homeScore: Int!, homeTeamId: ID!, source: String!): Game!
+   resetLeague: Boolean!
+-  set_department_manager(args: set_department_manager_args! distinct_on: [user_departments_select_column!] limit: Int offset: Int order_by: [user_departments_order_by!] where: user_departments_bool_exp): user_departments
++  set_department_manager(args: set_department_manager_args!): user_departments
+   updateAuthOauth2AuthRequest(_set: authOauth2AuthRequests_set_input pk_columns: authOauth2AuthRequests_pk_columns_input!): authOauth2AuthRequests
+   updateAuthOauth2AuthRequests(_set: authOauth2AuthRequests_set_input where: authOauth2AuthRequests_bool_exp!): authOauth2AuthRequests_mutation_response
+   updateAuthOauth2AuthorizationCode(_set: authOauth2AuthorizationCodes_set_input pk_columns: authOauth2AuthorizationCodes_pk_columns_input!): authOauth2AuthorizationCodes
+@@ -4869,8 +4869,7 @@ type query_root {
+   filesAggregate(distinct_on: [files_select_column!] limit: Int offset: Int order_by: [files_order_by!] where: files_bool_exp): files_aggregate!
+   game(id: ID!): Game
+   games: [Game!]!
+-  get_department_manager(args: get_department_manager_args! distinct_on: [user_departments_select_column!] limit: Int offset: Int order_by: [user_departments_order_by!] where: user_departments_bool_exp): user_departments
+-  get_department_manager_aggregate(args: get_department_manager_args! distinct_on: [user_departments_select_column!] limit: Int offset: Int order_by: [user_departments_order_by!] where: user_departments_bool_exp): user_departments_aggregate!
++  get_department_manager(args: get_department_manager_args!): user_departments
+   identity_artists(distinct_on: [identity_artists_select_column!] limit: Int offset: Int order_by: [identity_artists_order_by!] where: identity_artists_bool_exp): [identity_artists!]!
+   identity_artists_aggregate(distinct_on: [identity_artists_select_column!] limit: Int offset: Int order_by: [identity_artists_order_by!] where: identity_artists_bool_exp): identity_artists_aggregate!
+   identity_artists_by_pk(id: uuid!): identity_artists
+@@ -5027,8 +5026,7 @@ type subscription_root {
+   files(distinct_on: [files_select_column!] limit: Int offset: Int order_by: [files_order_by!] where: files_bool_exp): [files!]!
+   filesAggregate(distinct_on: [files_select_column!] limit: Int offset: Int order_by: [files_order_by!] where: files_bool_exp): files_aggregate!
+   files_stream(batch_size: Int! cursor: [files_stream_cursor_input]! where: files_bool_exp): [files!]!
+-  get_department_manager(args: get_department_manager_args! distinct_on: [user_departments_select_column!] limit: Int offset: Int order_by: [user_departments_order_by!] where: user_departments_bool_exp): user_departments
+-  get_department_manager_aggregate(args: get_department_manager_args! distinct_on: [user_departments_select_column!] limit: Int offset: Int order_by: [user_departments_order_by!] where: user_departments_bool_exp): user_departments_aggregate!
++  get_department_manager(args: get_department_manager_args!): user_departments
+   identity_artists(distinct_on: [identity_artists_select_column!] limit: Int offset: Int order_by: [identity_artists_order_by!] where: identity_artists_bool_exp): [identity_artists!]!
+   identity_artists_aggregate(distinct_on: [identity_artists_select_column!] limit: Int offset: Int order_by: [identity_artists_order_by!] where: identity_artists_bool_exp): identity_artists_aggregate!
+   identity_artists_by_pk(id: uuid!): identity_artists
