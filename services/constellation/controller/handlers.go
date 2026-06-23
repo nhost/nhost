@@ -11,6 +11,7 @@ import (
 	"github.com/gin-gonic/gin"
 	oapimw "github.com/nhost/nhost/internal/lib/oapi/middleware"
 	"github.com/nhost/nhost/services/constellation/controller/websocket"
+	"github.com/nhost/nhost/services/constellation/internal/requestcontext"
 )
 
 const bytesPerMiB int64 = 1024 * 1024
@@ -86,15 +87,22 @@ func (c *Controller) handlePost(g *gin.Context, maxBodyBytes int64) {
 		return
 	}
 
-	resp, err := c.Resolve(
-		g.Request.Context(),
-		reqBody,
-	)
+	// Install a sink so action webhooks can forward Set-Cookie headers to the
+	// client (Hasura's mkSetCookieHeaders behaviour).
+	cookies := &requestcontext.ResponseHeaderCollector{}
+	ctx := requestcontext.ResponseHeaderCollectorToContext(g.Request.Context(), cookies)
+
+	resp, err := c.Resolve(ctx, reqBody)
 	if err != nil {
 		_ = g.Error(fmt.Errorf("resolving request: %w", err))
 		g.JSON(http.StatusInternalServerError, errorResponse(errInternalServerError.Error()))
 
 		return
+	}
+
+	// Relay any forwarded Set-Cookie headers before the body is written.
+	for _, cookie := range cookies.SetCookies() {
+		g.Writer.Header().Add("Set-Cookie", cookie)
 	}
 
 	// Fast path: write pre-built response bytes directly, skipping json.Marshal.

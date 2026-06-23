@@ -636,3 +636,66 @@ func TestClassifyConnectorError_DataExceptionError(t *testing.T) {
 		t.Errorf("classifyConnectorError (-want +got):\n%s", diff)
 	}
 }
+
+// actionGraphQLStubError models the action runtime's structured GraphQL error:
+// it carries Hasura-shaped error maps and exposes them via GraphQLErrors(),
+// which is the behaviour classifyStructuredConnectorError keys on. The real
+// type lives in the unexported connector/action package, so the controller
+// test models the interface contract directly.
+type actionGraphQLStubError struct {
+	errs []map[string]any
+}
+
+func (e *actionGraphQLStubError) Error() string { return "graphql error" }
+
+func (e *actionGraphQLStubError) GraphQLErrors() []map[string]any { return e.errs }
+
+// TestClassifyConnectorError_ActionGraphQLError asserts that a structured
+// action error (a Hasura-compatible 4xx webhook response or a response-shape
+// validation failure) reaches the client verbatim instead of being collapsed
+// into a generic trace-id message by sanitizeConnectorError. devMode is false
+// to prove the pass-through is independent of it. Both production wrappings are
+// covered: the mutation path returns the structured error directly, and the
+// query path joins it with errors.Join, so the test proves the errors.AsType
+// interface lookup finds it through both wrap chains.
+func TestClassifyConnectorError_ActionGraphQLError(t *testing.T) {
+	t.Parallel()
+
+	envelope := []map[string]any{
+		{
+			"message": "handler rejected the request",
+			"path":    []any{"insertUser"},
+			"extensions": map[string]any{
+				"code": "unexpected",
+			},
+		},
+	}
+
+	testCases := []struct {
+		name string
+		err  error
+	}{
+		{
+			name: "direct (mutation path)",
+			err:  &actionGraphQLStubError{errs: envelope},
+		},
+		{
+			name: "joined (query path)",
+			err:  errors.Join(&actionGraphQLStubError{errs: envelope}),
+		},
+	}
+
+	for _, tc := range testCases {
+		t.Run(tc.name, func(t *testing.T) {
+			t.Parallel()
+
+			c := &Controller{devMode: false}
+
+			got := c.classifyConnectorError(context.Background(), slog.Default(), tc.err)
+
+			if diff := cmp.Diff(envelope, got); diff != "" {
+				t.Errorf("classifyConnectorError (-want +got):\n%s", diff)
+			}
+		})
+	}
+}
