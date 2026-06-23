@@ -236,6 +236,7 @@ export default function EditActionRelationshipsForm({
                               type="button"
                               variant="ghost"
                               size="icon"
+                              aria-label={`Edit relationship ${relationship.name}`}
                               onClick={() => handleEditClick(relationship)}
                               data-testid={`edit-action-rel-${relationship.name}`}
                             >

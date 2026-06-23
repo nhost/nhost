@@ -48,6 +48,17 @@ enum Color {
 `);
   });
 
+  it('emits a brace-less enum when it has no values', () => {
+    expect(() =>
+      composeTypesSdl([{ kind: 'enum', name: 'Color', values: [] }]),
+    ).not.toThrow();
+
+    expect(composeTypesSdl([{ kind: 'enum', name: 'Color', values: [] }])).toBe(
+      `enum Color
+`,
+    );
+  });
+
   it('round-trips types with descriptions through parseTypesSdl', () => {
     const types: ClientCustomType[] = [
       {

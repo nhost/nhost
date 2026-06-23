@@ -22,7 +22,10 @@ function composeTypeSdl(type: ClientCustomType): string {
     case 'scalar':
       return `${description}scalar ${type.name}`;
     case 'enum': {
-      const values = (type.values ?? [])
+      if (!type.values?.length) {
+        return `${description}enum ${type.name}`;
+      }
+      const values = type.values
         .map(
           (enumValue) =>
             `  ${composeDescription(enumValue.description)}${enumValue.value}`,
