@@ -134,7 +134,7 @@ func console( //nolint:funlen
 	// itself under <subdomain>.hasura.local.nhost.run. Pin that hostname
 	// to 0.0.0.0 inside this container so the console's API discovery
 	// loops back to itself instead of round-tripping through traefik.
-	extraHosts := append( //nolint:gocritic
+	extraHosts := append(
 		extraHosts(subdomain),
 		subdomain+".hasura.local.nhost.run:0.0.0.0",
 	)
