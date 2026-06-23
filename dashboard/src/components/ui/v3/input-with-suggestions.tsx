@@ -105,6 +105,8 @@ function InputWithSuggestions({
   function pickSuggestion(suggestionValue: string) {
     onChange(suggestionValue);
     close();
+    // Note: keep focus on the input so typing/arrowing can continue and a
+    // click or ArrowDown reopens the list.
     inputRef.current?.focus();
   }
 
@@ -174,6 +176,8 @@ function InputWithSuggestions({
     },
     onBlur: (event: FocusEvent<HTMLInputElement>) => {
       onBlur?.(event);
+      // Note: close only when focus leaves the whole component, so it stays
+      // open while focus is anywhere inside (input or addon).
       if (!containerRef.current?.contains(event.relatedTarget)) {
         close();
       }

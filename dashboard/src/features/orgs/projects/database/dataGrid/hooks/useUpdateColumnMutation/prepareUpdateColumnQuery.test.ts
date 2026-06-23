@@ -10,7 +10,7 @@ describe('prepareUpdateColumnQuery', () => {
         id: 'name',
         name: 'name',
         type: 'text',
-        defaultValue: "'test'",
+        defaultValue: { value: 'test', custom: true },
         isNullable: true,
         isUnique: false,
       },
@@ -18,7 +18,7 @@ describe('prepareUpdateColumnQuery', () => {
         id: 'name',
         name: 'name',
         type: 'text',
-        defaultValue: "'test'",
+        defaultValue: { value: 'test', custom: true },
         isNullable: true,
         isUnique: false,
       },
@@ -85,7 +85,7 @@ describe('prepareUpdateColumnQuery', () => {
         id: 'name',
         name: 'name',
         type: 'text',
-        defaultValue: "'test'",
+        defaultValue: { value: 'test', custom: true },
       },
       column: {
         id: 'name',
@@ -135,7 +135,7 @@ describe('prepareUpdateColumnQuery', () => {
         id: 'name',
         name: 'name',
         type: 'text',
-        defaultValue: "'hello'",
+        defaultValue: { value: 'hello', custom: true },
       },
     });
 
@@ -154,13 +154,13 @@ describe('prepareUpdateColumnQuery', () => {
         id: 'name',
         name: 'name',
         type: 'text',
-        defaultValue: "'test'",
+        defaultValue: { value: 'test', custom: true },
       },
       column: {
         id: 'name',
         name: 'name',
         type: 'text',
-        defaultValue: "'new_test'",
+        defaultValue: { value: 'new_test', custom: true },
       },
     });
 
@@ -170,7 +170,7 @@ describe('prepareUpdateColumnQuery', () => {
     );
   });
 
-  it('should emit SET DEFAULT when the value changes from a bare function to a quoted literal', () => {
+  it('should emit SET DEFAULT when only the custom flag flips on a colliding value', () => {
     const transaction = prepareUpdateColumnQuery({
       dataSource: 'test_datasource',
       schema: 'test_schema',
@@ -179,13 +179,13 @@ describe('prepareUpdateColumnQuery', () => {
         id: 'name',
         name: 'name',
         type: 'text',
-        defaultValue: 'version()',
+        defaultValue: { value: 'version()', custom: false },
       },
       column: {
         id: 'name',
         name: 'name',
         type: 'text',
-        defaultValue: "'version()'",
+        defaultValue: { value: 'version()', custom: true },
       },
     });
 
@@ -194,8 +194,10 @@ describe('prepareUpdateColumnQuery', () => {
       "ALTER TABLE test_schema.test_table ALTER COLUMN name SET DEFAULT 'version()';",
     );
   });
-  it('should set the default when the value changes between a bare function and a quoted literal', () => {
-    const literalToFunctionTransaction = prepareUpdateColumnQuery({
+  it('should contain a query to set the default value if the type changed from custom to non-custom or vice versa', () => {
+    // change default value from custom (literal) 'version()' to non-custom
+    // (non-literal) 'version()'
+    const customToNonCustomTransaction = prepareUpdateColumnQuery({
       dataSource: 'test_datasource',
       schema: 'test_schema',
       table: 'test_table',
@@ -203,22 +205,24 @@ describe('prepareUpdateColumnQuery', () => {
         id: 'name',
         name: 'name',
         type: 'text',
-        defaultValue: "'version()'",
+        defaultValue: { value: 'version()', custom: true },
       },
       column: {
         id: 'name',
         name: 'name',
         type: 'text',
-        defaultValue: 'version()',
+        defaultValue: { value: 'version()', custom: false },
       },
     });
 
-    expect(literalToFunctionTransaction).toHaveLength(1);
-    expect(literalToFunctionTransaction[0].args.sql).toBe(
+    expect(customToNonCustomTransaction).toHaveLength(1);
+    expect(customToNonCustomTransaction[0].args.sql).toBe(
       'ALTER TABLE test_schema.test_table ALTER COLUMN name SET DEFAULT version();',
     );
 
-    const functionToLiteralTransaction = prepareUpdateColumnQuery({
+    // change default value from non-custom (non-literal) version() to custom
+    // (literal) version()
+    const nonCustomToCustomTransaction = prepareUpdateColumnQuery({
       dataSource: 'test_datasource',
       schema: 'test_schema',
       table: 'test_table',
@@ -226,18 +230,18 @@ describe('prepareUpdateColumnQuery', () => {
         id: 'name',
         name: 'name',
         type: 'text',
-        defaultValue: 'version()',
+        defaultValue: { value: 'version()', custom: false },
       },
       column: {
         id: 'name',
         name: 'name',
         type: 'text',
-        defaultValue: "'version()'",
+        defaultValue: { value: 'version()', custom: true },
       },
     });
 
-    expect(functionToLiteralTransaction).toHaveLength(1);
-    expect(functionToLiteralTransaction[0].args.sql).toBe(
+    expect(nonCustomToCustomTransaction).toHaveLength(1);
+    expect(nonCustomToCustomTransaction[0].args.sql).toBe(
       "ALTER TABLE test_schema.test_table ALTER COLUMN name SET DEFAULT 'version()';",
     );
   });
