@@ -122,6 +122,6 @@ This will build the binary available as the `nhost` command in the terminal.
 
 ## Supported Platforms
 
-- MacOS
+- macOS
 - Linux
 - Windows WSL2

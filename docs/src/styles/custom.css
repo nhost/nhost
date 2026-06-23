@@ -841,52 +841,6 @@ html[data-has-hero]:not([data-has-sidebar]) body {
   overflow-y: auto;
 }
 
-/* Tables: outline + rounded corners (border-collapse:separate lets the radius
-   clip the corners). */
-/* Starlight sets tables to display:block (for horizontal scroll), which makes
-   the inner cells content-width while the bordered block is full-width — so the
-   row lines stop short of the edge. Use real table layout so columns fill. */
-.sl-markdown-content table {
-  display: table !important;
-  width: 100%;
-  border-collapse: separate;
-  border-spacing: 0;
-  border: 1px solid
-    color-mix(in srgb, var(--sl-color-gray-4), var(--sl-color-gray-3) 30%);
-  border-radius: 8px;
-}
-
-/* Reset cell borders, then draw interior grid lines only — the table's own
-   rounded border draws the outer edges (clean corners, no overflow clipping).
-   Long content wraps instead of overflowing now that the table doesn't scroll. */
-.sl-markdown-content :is(th, td) {
-  border: 0;
-  border-bottom: 1px solid
-    color-mix(in srgb, var(--sl-color-gray-4), var(--sl-color-gray-3) 30%);
-  border-right: 1px solid
-    color-mix(in srgb, var(--sl-color-gray-4), var(--sl-color-gray-3) 30%);
-  overflow-wrap: break-word;
-}
-
-.sl-markdown-content :is(th, td):last-child {
-  border-right: 0;
-}
-
-/* Only the last BODY row drops its bottom border. Using tr:last-child alone
-   also matches the single header row and would erase the line beneath it. */
-.sl-markdown-content tbody tr:last-child :is(th, td) {
-  border-bottom: 0;
-}
-
-/* Extra breathing room at the table's left and right edges. */
-.sl-markdown-content :is(th, td):first-child {
-  padding-left: 1rem;
-}
-
-.sl-markdown-content :is(th, td):last-child {
-  padding-right: 1rem;
-}
-
 /* The CLI reference option tables are header-less: hide the empty header row. */
 .sl-markdown-content thead:not(:has(th:not(:empty))) {
   display: none;

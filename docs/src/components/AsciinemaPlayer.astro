@@ -59,9 +59,13 @@ const optsJson = JSON.stringify(
       .forEach((el) => {
         const src = el.dataset.src;
         if (!src) return;
-        const opts = JSON.parse(el.dataset.opts || '{}');
-        players.push(AsciinemaPlayer.create(src, el, opts));
-        el.dataset.mounted = 'true';
+        try {
+          const opts = JSON.parse(el.dataset.opts || '{}');
+          players.push(AsciinemaPlayer.create(src, el, opts));
+          el.dataset.mounted = 'true';
+        } catch (err) {
+          console.error('Failed to mount Asciinema player:', src, err);
+        }
       });
   }
 

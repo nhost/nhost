@@ -18,6 +18,15 @@ const goldenPath = "testdata/commands.golden"
 
 func noop(context.Context, *cli.Command) error { return nil }
 
+// testIntro mirrors the lead paragraph the CLI passes to ToMarkdown, so the
+// golden fixture exercises intro rendering.
+const testIntro = "The `myapp` CLI is the primary tool for developing, " +
+	"deploying, and managing Nhost projects. It lets you run your backend locally, " +
+	"manage configuration and infrastructure as code, link and deploy projects to " +
+	"Nhost Cloud, and provide AI assistants with access to your project through the " +
+	"built-in MCP server.\n\n" +
+	"New here? Head over to [Quickstart](/getting-started/quickstart/cli) for CLI installation."
+
 // testCommand builds a synthetic command tree that exercises every rendering
 // branch: global options (with default text, env vars, a bool, and the omitted
 // help flag), a pure group, a runnable group with a child, leaf commands with
@@ -108,7 +117,7 @@ func testCommand() *cli.Command {
 func TestToMarkdownGolden(t *testing.T) {
 	t.Parallel()
 
-	got, err := clidocs.ToMarkdown(testCommand())
+	got, err := clidocs.ToMarkdown(testCommand(), testIntro)
 	if err != nil {
 		t.Fatalf("ToMarkdown: %v", err)
 	}
@@ -140,7 +149,7 @@ func TestToMarkdownGolden(t *testing.T) {
 func TestToMarkdownNoSentinels(t *testing.T) {
 	t.Parallel()
 
-	got, err := clidocs.ToMarkdown(testCommand())
+	got, err := clidocs.ToMarkdown(testCommand(), testIntro)
 	if err != nil {
 		t.Fatalf("ToMarkdown: %v", err)
 	}
@@ -155,7 +164,7 @@ func TestToMarkdownNoSentinels(t *testing.T) {
 func TestToMarkdownStructure(t *testing.T) {
 	t.Parallel()
 
-	got, err := clidocs.ToMarkdown(testCommand())
+	got, err := clidocs.ToMarkdown(testCommand(), testIntro)
 	if err != nil {
 		t.Fatalf("ToMarkdown: %v", err)
 	}

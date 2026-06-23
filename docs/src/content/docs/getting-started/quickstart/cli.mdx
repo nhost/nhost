@@ -19,7 +19,7 @@ The Nhost CLI is the recommended way to start building your application. It sets
 
 **Supported platforms**
 
-- MacOS
+- macOS
 - Linux
 - Windows (via WSL2)<sup>1</sup>
 
@@ -31,17 +31,17 @@ Choose your preferred installation method:
 
 <Tabs>
 <TabItem label="Homebrew">
-```sh frame="none"
+```sh
 brew install nhost/tap/nhost
 ```
 </TabItem>
 <TabItem label="cURL script">
-```sh frame="none"
+```sh
 curl -sSL https://raw.githubusercontent.com/nhost/nhost/main/cli/get.sh | bash
 ```
 </TabItem>
 <TabItem label="Nix">
-```sh frame="none"
+```sh
 nix profile install github:nhost/nhost#cli
 ```
 </TabItem>
@@ -51,7 +51,7 @@ nix profile install github:nhost/nhost#cli
 
 Login to your Nhost account. This is required if you want to pull configuration from an existing Nhost Cloud project (step 3) or deploy later. You can skip it if you only want to develop locally.
 
-```sh frame="none"
+```sh
 nhost login
 ```
 
@@ -63,13 +63,13 @@ If you registered with GitHub, set a password on your [account page](https://app
 
 Initialize a new Nhost project in your current directory.
 
-```sh frame="none"
+```sh
 nhost init
 ```
 
 This scaffolds your project — a `nhost/` directory holding your backend configuration (all version-controlled in Git) plus a `functions/` directory for serverless functions:
 
-```sh frame="none"
+```sh
 .
 ├─ 📁 functions       # Serverless functions (Node.js / TypeScript)
 └─ 📁 nhost           # Project & backend configuration
@@ -80,7 +80,7 @@ This scaffolds your project — a `nhost/` directory holding your backend config
 ```
 
 If you already have a project on Nhost Cloud and want to pull down its configuration:
-```sh frame="none"
+```sh
 nhost init --remote
 ```
 
@@ -88,7 +88,7 @@ nhost init --remote
 
 Start the full Nhost stack locally. This uses Docker to spin up all the necessary services.
 
-```sh frame="none"
+```sh
 nhost up
 ```
 
@@ -115,9 +115,7 @@ To stop the environment run `nhost down`, and to follow the logs run `nhost logs
 
 ### 5. Open the Dashboard
 
-Open the local dashboard to manage your database, auth settings, storage, and more.
-
-[https://local.dashboard.local.nhost.run](https://local.dashboard.local.nhost.run)
+Open the local dashboard by going to [https://local.dashboard.local.nhost.run](https://local.dashboard.local.nhost.run) to manage your database, auth settings, storage, and more.
 
 ![Nhost local dashboard](/images/cli/local-dashboard.png)
 

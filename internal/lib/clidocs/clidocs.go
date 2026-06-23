@@ -17,22 +17,11 @@ import (
 	"github.com/urfave/cli/v3"
 )
 
-// introText is the lead paragraph for the generated reference. It is kept
-// separate so each source line stays within the line-length limit; the
-// concatenated result is a single Markdown paragraph.
-const introText = "The `{{ .Command.Name }}` CLI is the primary tool for developing, " +
-	"deploying, and managing Nhost projects. It lets you run your backend locally, " +
-	"manage configuration and infrastructure as code, link and deploy projects to " +
-	"Nhost Cloud, and provide AI assistants with access to your project through the " +
-	"built-in MCP server."
-
 const markdownDocTemplate = `{{if gt .SectionNum 0}}% {{ .Command.Name }} {{ .SectionNum }}
 
-{{end}}` + introText + `
+{{end}}{{ if .Intro }}{{ .Intro }}
 
-New here? Head over to [Quickstart](/getting-started/quickstart/cli) for CLI installation.
-
-## Usage
+{{ end }}## Usage
 
 ` + "```" + `{{ if .Command.UsageText }}
 {{ .Command.UsageText }}
@@ -56,21 +45,24 @@ New here? Head over to [Quickstart](/getting-started/quickstart/cli) for CLI ins
 type cliCommandTemplate struct {
 	Command       *cli.Command
 	SectionNum    int
+	Intro         string
 	Commands      []string
 	GlobalOptions string
 }
 
-// ToMarkdown creates a markdown string for the *cli.Command.
-func ToMarkdown(cmd *cli.Command) (string, error) {
+// ToMarkdown creates a markdown string for the *cli.Command. The intro is
+// rendered verbatim as a lead paragraph before the Usage section; pass an empty
+// string to omit it.
+func ToMarkdown(cmd *cli.Command, intro string) (string, error) {
 	var w bytes.Buffer
-	if err := writeDocTemplate(cmd, &w); err != nil {
+	if err := writeDocTemplate(cmd, intro, &w); err != nil {
 		return "", err
 	}
 
 	return w.String(), nil
 }
 
-func writeDocTemplate(cmd *cli.Command, w *bytes.Buffer) error {
+func writeDocTemplate(cmd *cli.Command, intro string, w *bytes.Buffer) error {
 	const name = "cli"
 
 	t, err := template.New(name).Parse(markdownDocTemplate)
@@ -81,6 +73,7 @@ func writeDocTemplate(cmd *cli.Command, w *bytes.Buffer) error {
 	if err := t.ExecuteTemplate(w, name, &cliCommandTemplate{
 		Command:       cmd,
 		SectionNum:    0,
+		Intro:         intro,
 		Commands:      prepareCommands(cmd.Commands, 0, cmd.Name),
 		GlobalOptions: renderGlobalOptions(cmd.VisibleFlags()),
 	}); err != nil {

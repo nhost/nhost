@@ -72,7 +72,7 @@ func CommandCloud() *cli.Command {
 			},
 			&cli.StringFlag{ //nolint:exhaustruct
 				Name:    flagCACertificates,
-				Usage:   "Mounts and everrides path to CA certificates in the containers",
+				Usage:   "Mounts and overrides path to CA certificates in the containers",
 				Sources: cli.EnvVars("NHOST_CA_CERTIFICATES"),
 			},
 			&cli.StringFlag{ //nolint:exhaustruct

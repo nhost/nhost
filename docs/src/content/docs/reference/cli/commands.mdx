@@ -142,7 +142,7 @@ Edit base configuration or an overlay.
 | | |
 | --- | --- |
 | `--editor=""` | Editor to use. Default: `"vim"`. Env: `$EDITOR`. |
-| `--subdomain=""` | If specified, edit this subdomain's overlay, otherwise edit base configuation. Env: `$NHOST_SUBDOMAIN`. |
+| `--subdomain=""` | If specified, edit this subdomain's overlay, otherwise edit base configuration. Env: `$NHOST_SUBDOMAIN`. |
 
 </div>
 
@@ -266,7 +266,7 @@ Start local development environment.
 | --- | --- |
 | `--apply-seeds` | Apply seeds. If the .nhost folder does not exist, seeds will be applied regardless of this flag. Env: `$NHOST_APPLY_SEEDS`. |
 | `--auth-port=""` | If specified, expose auth on this port. Not recommended. Default: `0`. |
-| `--ca-certificates=""` | Mounts and everrides path to CA certificates in the containers. Env: `$NHOST_CA_CERTIFICATES`. |
+| `--ca-certificates=""` | Mounts and overrides path to CA certificates in the containers. Env: `$NHOST_CA_CERTIFICATES`. |
 | `--dashboard-version=""` | Dashboard version to use. Default: `"nhost/dashboard:2.66.0"`. Env: `$NHOST_DASHBOARD_VERSION`. |
 | `--disable-tls` | Disable TLS. Env: `$NHOST_DISABLE_TLS`. |
 | `--down-on-error` | Skip confirmation. Env: `$NHOST_YES`. |
@@ -297,7 +297,7 @@ Start local development environment connected to an Nhost Cloud project.
 | | |
 | --- | --- |
 | `--apply-seeds` | Apply seeds. If the .nhost folder does not exist, seeds will be applied regardless of this flag. Env: `$NHOST_APPLY_SEEDS`. |
-| `--ca-certificates=""` | Mounts and everrides path to CA certificates in the containers. Env: `$NHOST_CA_CERTIFICATES`. |
+| `--ca-certificates=""` | Mounts and overrides path to CA certificates in the containers. Env: `$NHOST_CA_CERTIFICATES`. |
 | `--dashboard-version=""` | Dashboard version to use. Default: `"nhost/dashboard:2.66.0"`. Env: `$NHOST_DASHBOARD_VERSION`. |
 | `--disable-tls` | Disable TLS. Env: `$NHOST_DISABLE_TLS`. |
 | `--down-on-error` | Skip confirmation. Env: `$NHOST_YES`. |
@@ -914,4 +914,3 @@ Generate markdown documentation for the CLI.
 </div>
 
 </div>
-
