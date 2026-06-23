@@ -1342,10 +1342,11 @@ type ConfigStandardOauthProviderWithScopeUpdateInput struct {
 }
 
 type ConfigStorage struct {
-	Antivirus *ConfigStorageAntivirus `json:"antivirus,omitempty"`
-	RateLimit *ConfigRateLimit        `json:"rateLimit,omitempty"`
-	Resources *ConfigResources        `json:"resources,omitempty"`
-	Version   *string                 `json:"version,omitempty"`
+	Antivirus        *ConfigStorageAntivirus        `json:"antivirus,omitempty"`
+	ImageTransformer *ConfigStorageImageTransformer `json:"imageTransformer,omitempty"`
+	RateLimit        *ConfigRateLimit               `json:"rateLimit,omitempty"`
+	Resources        *ConfigResources               `json:"resources,omitempty"`
+	Version          *string                        `json:"version,omitempty"`
 }
 
 type ConfigStorageAntivirus struct {
@@ -1356,11 +1357,22 @@ type ConfigStorageAntivirusUpdateInput struct {
 	Server *string `json:"server,omitempty"`
 }
 
+type ConfigStorageImageTransformer struct {
+	MaxBlurSigma            *uint32 `json:"maxBlurSigma,omitempty"`
+	MaxImageOutputDimension *uint32 `json:"maxImageOutputDimension,omitempty"`
+}
+
+type ConfigStorageImageTransformerUpdateInput struct {
+	MaxBlurSigma            *uint32 `json:"maxBlurSigma,omitempty"`
+	MaxImageOutputDimension *uint32 `json:"maxImageOutputDimension,omitempty"`
+}
+
 type ConfigStorageUpdateInput struct {
-	Antivirus *ConfigStorageAntivirusUpdateInput `json:"antivirus,omitempty"`
-	RateLimit *ConfigRateLimitUpdateInput        `json:"rateLimit,omitempty"`
-	Resources *ConfigResourcesUpdateInput        `json:"resources,omitempty"`
-	Version   *string                            `json:"version,omitempty"`
+	Antivirus        *ConfigStorageAntivirusUpdateInput        `json:"antivirus,omitempty"`
+	ImageTransformer *ConfigStorageImageTransformerUpdateInput `json:"imageTransformer,omitempty"`
+	RateLimit        *ConfigRateLimitUpdateInput               `json:"rateLimit,omitempty"`
+	Resources        *ConfigResourcesUpdateInput               `json:"resources,omitempty"`
+	Version          *string                                   `json:"version,omitempty"`
 }
 
 type ConfigSystemConfig struct {
