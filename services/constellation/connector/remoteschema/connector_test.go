@@ -8,6 +8,7 @@ import (
 	"log/slog"
 	"net/http"
 	"net/http/httptest"
+	"sort"
 	"strings"
 	"testing"
 
@@ -15,6 +16,7 @@ import (
 	"github.com/nhost/nhost/services/constellation/connector/remoteschema/mock"
 	"github.com/nhost/nhost/services/constellation/internal/requestcontext"
 	"github.com/nhost/nhost/services/constellation/metadata"
+	"github.com/vektah/gqlparser/v2"
 	"github.com/vektah/gqlparser/v2/ast"
 	"go.uber.org/mock/gomock"
 )
@@ -677,7 +679,7 @@ func TestNew(t *testing.T) { //nolint:gocognit,cyclop,gocyclo,maintidx
 		}
 	})
 
-	t.Run("returns error on invalid SDL", func(t *testing.T) {
+	t.Run("drops role with invalid SDL and records validation failure", func(t *testing.T) {
 		t.Parallel()
 
 		server := newTestServer(t)
@@ -690,9 +692,32 @@ func TestNew(t *testing.T) { //nolint:gocognit,cyclop,gocyclo,maintidx
 			},
 		})
 
-		_, err := remoteschema.New(context.Background(), meta, nil)
-		if err == nil {
-			t.Fatal("expected error on invalid SDL")
+		// A role whose permission SDL cannot be parsed (or is not a valid subset
+		// of the upstream schema) must not abort the whole remote schema: New
+		// succeeds, the offending role is dropped, and the failure is exposed as
+		// a per-role validation failure for the build path to record as an
+		// inconsistency (Hasura's role-based-schema semantics).
+		connector, err := remoteschema.New(context.Background(), meta, nil)
+		if err != nil {
+			t.Fatalf("New() error: %v", err)
+		}
+
+		failures := connector.ValidationFailures()
+		if len(failures) != 1 || failures[0].Role != "user" {
+			t.Fatalf("ValidationFailures() = %+v, want one failure for role \"user\"", failures)
+		}
+
+		schemas, err := connector.GetSchema()
+		if err != nil {
+			t.Fatalf("GetSchema() error: %v", err)
+		}
+
+		if _, ok := schemas["user"]; ok {
+			t.Error("expected dropped \"user\" role to be absent from schemas")
+		}
+
+		if _, ok := schemas[metadata.RoleAdmin]; !ok {
+			t.Error("expected admin role to remain present")
 		}
 	})
 
@@ -1235,7 +1260,7 @@ func TestExecute_AppliesPresets(t *testing.T) {
 
 	introspectionCall := mockDoer.EXPECT().Do(gomock.Any()).Return(&http.Response{
 		StatusCode: http.StatusOK,
-		Body:       io.NopCloser(strings.NewReader(testIntrospectionResponse)),
+		Body:       io.NopCloser(strings.NewReader(introspectionResponseFromSDL(t, userSDL))),
 	}, nil)
 
 	var capturedBody string
@@ -1327,7 +1352,7 @@ func TestExecute_AppliesNilSessionPresetAsNullLiteral(t *testing.T) {
 
 	introspectionCall := mockDoer.EXPECT().Do(gomock.Any()).Return(&http.Response{
 		StatusCode: http.StatusOK,
-		Body:       io.NopCloser(strings.NewReader(testIntrospectionResponse)),
+		Body:       io.NopCloser(strings.NewReader(introspectionResponseFromSDL(t, userSDL))),
 	}, nil)
 
 	var capturedQuery string
@@ -1426,7 +1451,7 @@ func TestExecute_AppliesTypedPresets(t *testing.T) {
 
 	introspectionCall := mockDoer.EXPECT().Do(gomock.Any()).Return(&http.Response{
 		StatusCode: http.StatusOK,
-		Body:       io.NopCloser(strings.NewReader(testIntrospectionResponse)),
+		Body:       io.NopCloser(strings.NewReader(introspectionResponseFromSDL(t, userSDL))),
 	}, nil)
 
 	var capturedBody string
@@ -1508,7 +1533,7 @@ func TestExecute_AppliesAllowedRolesListPreset(t *testing.T) {
 
 	introspectionCall := mockDoer.EXPECT().Do(gomock.Any()).Return(&http.Response{
 		StatusCode: http.StatusOK,
-		Body:       io.NopCloser(strings.NewReader(testIntrospectionResponse)),
+		Body:       io.NopCloser(strings.NewReader(introspectionResponseFromSDL(t, userSDL))),
 	}, nil)
 
 	var capturedQuery string
@@ -1595,7 +1620,7 @@ func TestExecute_AppliesScalarSessionListPreset(t *testing.T) {
 
 	introspectionCall := mockDoer.EXPECT().Do(gomock.Any()).Return(&http.Response{
 		StatusCode: http.StatusOK,
-		Body:       io.NopCloser(strings.NewReader(testIntrospectionResponse)),
+		Body:       io.NopCloser(strings.NewReader(introspectionResponseFromSDL(t, userSDL))),
 	}, nil)
 
 	var capturedQuery string
@@ -1747,7 +1772,9 @@ func TestExecute_AppliesPresetsWithNonDefaultRootType(t *testing.T) {
 
 			introspectionCall := mockDoer.EXPECT().Do(gomock.Any()).Return(&http.Response{
 				StatusCode: http.StatusOK,
-				Body:       io.NopCloser(strings.NewReader(testIntrospectionResponse)),
+				Body: io.NopCloser(
+					strings.NewReader(introspectionResponseFromSDL(t, tt.sdl)),
+				),
 			}, nil)
 
 			var capturedBody string
@@ -1837,7 +1864,7 @@ func TestExecute_AppliesPresetsInInlineFragment(t *testing.T) {
 
 	introspectionCall := mockDoer.EXPECT().Do(gomock.Any()).Return(&http.Response{
 		StatusCode: http.StatusOK,
-		Body:       io.NopCloser(strings.NewReader(testIntrospectionResponse)),
+		Body:       io.NopCloser(strings.NewReader(introspectionResponseFromSDL(t, userSDL))),
 	}, nil)
 
 	var capturedBody string
@@ -1929,7 +1956,7 @@ func TestExecute_AppliesPresetsInNamedFragment(t *testing.T) {
 
 	introspectionCall := mockDoer.EXPECT().Do(gomock.Any()).Return(&http.Response{
 		StatusCode: http.StatusOK,
-		Body:       io.NopCloser(strings.NewReader(testIntrospectionResponse)),
+		Body:       io.NopCloser(strings.NewReader(introspectionResponseFromSDL(t, userSDL))),
 	}, nil)
 
 	var capturedQuery string
@@ -2051,7 +2078,7 @@ func TestExecute_AppliesPresetsMissingSessionVar(t *testing.T) {
 
 	introspectionCall := mockDoer.EXPECT().Do(gomock.Any()).Return(&http.Response{
 		StatusCode: http.StatusOK,
-		Body:       io.NopCloser(strings.NewReader(testIntrospectionResponse)),
+		Body:       io.NopCloser(strings.NewReader(introspectionResponseFromSDL(t, userSDL))),
 	}, nil)
 
 	var capturedBody string
@@ -2253,4 +2280,197 @@ func TestExecute_DoesNotFollowRedirect(t *testing.T) {
 	if !strings.Contains(err.Error(), "remote schema returned status 302") {
 		t.Errorf("expected generic 302 status error, got: %v", err)
 	}
+}
+
+// introspectionResponseFromSDL renders a GraphQL introspection response whose
+// schema is exactly the types declared in sdl. The preset-permission tests use
+// it so the upstream (admin) schema the connector introspects is, by
+// construction, a superset of (in fact equal to) the role permission SDL — which
+// New now validates against. The @preset argument directive in the SDL is
+// predeclared so LoadSchema accepts it, and it is dropped from the rendered
+// introspection since introspection never exposes argument directives.
+func introspectionResponseFromSDL(t *testing.T, sdl string) string {
+	t.Helper()
+
+	const presetDefs = "scalar NhostPresetValue\n" +
+		"directive @preset(value: NhostPresetValue!) on ARGUMENT_DEFINITION\n"
+
+	schema, gqlErr := gqlparser.LoadSchema(&ast.Source{Name: "test_sdl", Input: presetDefs + sdl})
+	if gqlErr != nil {
+		t.Fatalf("loading SDL for introspection fixture: %v", gqlErr)
+	}
+
+	names := make([]string, 0, len(schema.Types))
+	for name := range schema.Types {
+		names = append(names, name)
+	}
+	sort.Strings(names)
+
+	types := make([]map[string]any, 0, len(names))
+	for _, name := range names {
+		if skipIntrospectionType(name) {
+			continue
+		}
+		types = append(types, introspectionType(schema, schema.Types[name]))
+	}
+
+	root := map[string]any{
+		"queryType":        rootTypeRef(schema.Query),
+		"mutationType":     rootTypeRef(schema.Mutation),
+		"subscriptionType": rootTypeRef(schema.Subscription),
+		"types":            types,
+	}
+
+	out, err := json.Marshal(map[string]any{"data": map[string]any{"__schema": root}})
+	if err != nil {
+		t.Fatalf("marshaling introspection fixture: %v", err)
+	}
+
+	return string(out)
+}
+
+func skipIntrospectionType(name string) bool {
+	switch name {
+	case "String", "Int", "Float", "Boolean", "ID", "NhostPresetValue":
+		return true
+	}
+
+	return strings.HasPrefix(name, "__")
+}
+
+func rootTypeRef(def *ast.Definition) any {
+	if def == nil {
+		return nil
+	}
+
+	return map[string]any{"name": def.Name}
+}
+
+func introspectionType(schema *ast.Schema, def *ast.Definition) map[string]any {
+	m := map[string]any{
+		"kind":          string(def.Kind),
+		"name":          def.Name,
+		"description":   "",
+		"fields":        nil,
+		"inputFields":   nil,
+		"interfaces":    nil,
+		"enumValues":    nil,
+		"possibleTypes": nil,
+	}
+
+	switch def.Kind {
+	case ast.Object, ast.Interface:
+		m["fields"] = introspectionFields(schema, def.Fields)
+		m["interfaces"] = typeRefList("INTERFACE", def.Interfaces)
+	case ast.InputObject:
+		m["inputFields"] = introspectionInputFields(schema, def.Fields)
+	case ast.Enum:
+		m["enumValues"] = introspectionEnumValues(def.EnumValues)
+	case ast.Union:
+		m["possibleTypes"] = typeRefList("OBJECT", def.Types)
+	case ast.Scalar:
+	}
+
+	return m
+}
+
+func introspectionFields(schema *ast.Schema, fields ast.FieldList) []map[string]any {
+	out := make([]map[string]any, 0, len(fields))
+	for _, f := range fields {
+		args := make([]map[string]any, 0, len(f.Arguments))
+		for _, a := range f.Arguments {
+			args = append(args, map[string]any{
+				"name":         a.Name,
+				"description":  "",
+				"type":         introspectionTypeRef(schema, a.Type),
+				"defaultValue": nil,
+			})
+		}
+
+		out = append(out, map[string]any{
+			"name":              f.Name,
+			"description":       "",
+			"args":              args,
+			"type":              introspectionTypeRef(schema, f.Type),
+			"isDeprecated":      false,
+			"deprecationReason": nil,
+		})
+	}
+
+	return out
+}
+
+func introspectionInputFields(schema *ast.Schema, fields ast.FieldList) []map[string]any {
+	out := make([]map[string]any, 0, len(fields))
+	for _, f := range fields {
+		out = append(out, map[string]any{
+			"name":         f.Name,
+			"description":  "",
+			"type":         introspectionTypeRef(schema, f.Type),
+			"defaultValue": nil,
+		})
+	}
+
+	return out
+}
+
+func introspectionEnumValues(values ast.EnumValueList) []map[string]any {
+	out := make([]map[string]any, 0, len(values))
+	for _, v := range values {
+		out = append(out, map[string]any{
+			"name":              v.Name,
+			"description":       "",
+			"isDeprecated":      false,
+			"deprecationReason": nil,
+		})
+	}
+
+	return out
+}
+
+func typeRefList(kind string, names []string) []map[string]any {
+	out := make([]map[string]any, 0, len(names))
+	for _, n := range names {
+		out = append(out, map[string]any{"kind": kind, "name": n, "ofType": nil})
+	}
+
+	return out
+}
+
+func introspectionTypeRef(schema *ast.Schema, t *ast.Type) map[string]any {
+	if t == nil {
+		return nil
+	}
+
+	if t.Elem != nil {
+		listRef := map[string]any{
+			"kind":   "LIST",
+			"name":   nil,
+			"ofType": introspectionTypeRef(schema, t.Elem),
+		}
+		if t.NonNull {
+			return map[string]any{"kind": "NON_NULL", "name": nil, "ofType": listRef}
+		}
+
+		return listRef
+	}
+
+	leaf := map[string]any{
+		"kind":   typeKind(schema, t.NamedType),
+		"name":   t.NamedType,
+		"ofType": nil,
+	}
+	if t.NonNull {
+		return map[string]any{"kind": "NON_NULL", "name": nil, "ofType": leaf}
+	}
+
+	return leaf
+}
+
+func typeKind(schema *ast.Schema, name string) string {
+	if def, ok := schema.Types[name]; ok {
+		return string(def.Kind)
+	}
+
+	return "SCALAR"
 }
