@@ -16,6 +16,7 @@ import (
 	"encoding/json/jsontext"
 	json "encoding/json/v2"
 	"errors"
+	"maps"
 
 	"github.com/nhost/nhost/internal/lib/jsontmpl/eval"
 	"github.com/nhost/nhost/internal/lib/jsontmpl/funcs"
@@ -64,20 +65,25 @@ func Render(template string, scope Scope) (jsontext.Value, error) {
 		if err != nil {
 			return nil, wrapLexErr(err)
 		}
+
 		root, err = parser.Parse(toks)
 		if err != nil {
 			return nil, wrapParseErr(err)
 		}
+
 		cache().put(template, root)
 	}
+
 	bindings := make([]eval.Binding, 0, len(scope.vars))
 	for _, b := range scope.vars {
 		v, err := eval.FromJSON([]byte(b.Value))
 		if err != nil {
 			return nil, &Error{Code: CodeTypeError, Message: "scope decode: " + err.Error()}
 		}
+
 		bindings = append(bindings, eval.Binding{Name: b.Name, Value: v})
 	}
+
 	fm := funcs.Basic()
 	for name, fn := range scope.funcs {
 		caller := fn // capture
@@ -86,17 +92,21 @@ func Render(template string, scope Scope) (jsontext.Value, error) {
 			if err != nil {
 				return nil, err
 			}
+
 			rawRes, err := caller(rawArg)
 			if err != nil {
 				return nil, err
 			}
+
 			return eval.FromJSON(rawRes)
 		}
 	}
+
 	result, err := eval.Eval(root, bindings, fm)
 	if err != nil {
 		return nil, wrapEvalErr(err)
 	}
+
 	return json.Marshal(result, json.Deterministic(true))
 }
 
@@ -110,6 +120,7 @@ func wrapLexErr(err error) error {
 			Cause:   err,
 		}
 	}
+
 	return &Error{Code: CodeLexError, Message: err.Error(), Cause: err}
 }
 
@@ -123,6 +134,7 @@ func wrapParseErr(err error) error {
 			Cause:   err,
 		}
 	}
+
 	return &Error{Code: CodeParseError, Message: err.Error(), Cause: err}
 }
 
@@ -136,6 +148,7 @@ func wrapEvalErr(err error) error {
 			Cause:   err,
 		}
 	}
+
 	return &Error{Code: CodeTypeError, Message: err.Error(), Cause: err}
 }
 
@@ -177,6 +190,14 @@ func New() Scope { return Scope{} }
 // WithVar binds a variable in the scope. The value is JSON-marshalled
 // once. Later bindings of the same name shadow earlier ones, matching
 // upstream's Compat.fromList semantics.
+//
+// If v cannot be JSON-marshalled (e.g. a channel, func, or cyclic
+// value), WithVar binds JSON null rather than panicking or returning an
+// error: an unmarshalable scope value is a caller programming error,
+// and surfacing it here would force every fluent call site to handle an
+// error that cannot occur for the JSON-derived values transforms
+// actually bind. The null binding still yields a Kriti-shaped
+// Name/Type error at Render time. Pass only JSON-marshalable values.
 func (s Scope) WithVar(name string, v any) Scope {
 	// Deterministic(true) sorts map keys so the same input always yields
 	// the same scope encoding (encoding/json/v2 randomises map order).
@@ -188,8 +209,10 @@ func (s Scope) WithVar(name string, v any) Scope {
 		// error, never a panic.
 		raw = jsontext.Value(`null`)
 	}
+
 	out := Scope{vars: append([]binding(nil), s.vars...), funcs: s.funcs}
 	out.vars = append(out.vars, binding{Name: name, Value: raw})
+
 	return out
 }
 
@@ -198,10 +221,11 @@ func (s Scope) WithVar(name string, v any) Scope {
 // time.
 func (s Scope) WithFunc(name string, fn Func) Scope {
 	out := Scope{vars: append([]binding(nil), s.vars...)}
+
 	out.funcs = make(map[string]Func, len(s.funcs)+1)
-	for k, v := range s.funcs {
-		out.funcs[k] = v
-	}
+	maps.Copy(out.funcs, s.funcs)
+
 	out.funcs[name] = fn
+
 	return out
 }

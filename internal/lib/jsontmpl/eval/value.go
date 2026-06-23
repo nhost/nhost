@@ -10,7 +10,6 @@ import (
 	"fmt"
 	"io"
 	"sort"
-	"strconv"
 )
 
 // Value is the runtime JSON value type. Concrete types:
@@ -32,6 +31,12 @@ type Value any
 // Object preserves insertion order, mirroring upstream's Compat.Object
 // (an ordered KeyMap). MarshalJSON emits keys in Keys order; duplicate
 // keys retain their first position but the latest value (last-wins).
+// Object is an insertion-ordered JSON object. Set takes a pointer
+// receiver because it mutates, while Get/MarshalJSON take value
+// receivers so an Object held in a Value (which is copied freely)
+// marshals correctly; this mixed-receiver shape is deliberate.
+//
+//nolint:recvcheck // value receivers are required for the Value interface; Set must mutate.
 type Object struct {
 	Keys []string
 	Data map[string]Value
@@ -39,7 +44,7 @@ type Object struct {
 
 // NewObject builds an empty ordered object.
 func NewObject() Object {
-	return Object{Data: map[string]Value{}}
+	return Object{Keys: nil, Data: map[string]Value{}}
 }
 
 // Set assigns v to k, appending k to Keys on first insertion. Duplicate
@@ -48,9 +53,11 @@ func (o *Object) Set(k string, v Value) {
 	if _, ok := o.Data[k]; !ok {
 		o.Keys = append(o.Keys, k)
 	}
+
 	if o.Data == nil {
 		o.Data = map[string]Value{}
 	}
+
 	o.Data[k] = v
 }
 
@@ -66,23 +73,30 @@ func (o Object) Get(k string) (Value, bool) {
 func (o Object) MarshalJSON() ([]byte, error) {
 	var buf bytes.Buffer
 	buf.WriteByte('{')
+
 	for i, k := range o.Keys {
 		if i > 0 {
 			buf.WriteByte(',')
 		}
+
 		kb, err := json.Marshal(k)
 		if err != nil {
-			return nil, err
+			return nil, fmt.Errorf("marshal object key: %w", err)
 		}
+
 		buf.Write(kb)
 		buf.WriteByte(':')
+
 		vb, err := json.Marshal(o.Data[k])
 		if err != nil {
-			return nil, err
+			return nil, fmt.Errorf("marshal object value: %w", err)
 		}
+
 		buf.Write(vb)
 	}
+
 	buf.WriteByte('}')
+
 	return buf.Bytes(), nil
 }
 
@@ -93,17 +107,22 @@ func FromJSON(raw []byte) (Value, error) {
 	if len(bytes.TrimSpace(raw)) == 0 {
 		return nil, nil
 	}
+
 	dec := jsontext.NewDecoder(bytes.NewReader(raw))
+
 	v, err := decodeOne(dec)
 	if err != nil {
 		return nil, err
 	}
+
 	if _, err := dec.ReadToken(); !errors.Is(err, io.EOF) {
 		if err != nil {
-			return nil, err
+			return nil, fmt.Errorf("read trailing token: %w", err)
 		}
-		return nil, fmt.Errorf("trailing tokens after JSON value")
+
+		return nil, errors.New("trailing tokens after JSON value")
 	}
+
 	return v, nil
 }
 
@@ -111,11 +130,16 @@ func FromJSON(raw []byte) (Value, error) {
 // preserving object key order (numbers are normalised to float64, as
 // the rest of the evaluator expects). It mirrors the previous
 // encoding/json streaming decoder, ported to jsontext.
+//
+//nolint:cyclop // flat dispatch over JSON token kinds; one arm per kind.
 func decodeOne(dec *jsontext.Decoder) (Value, error) {
 	tok, err := dec.ReadToken()
 	if err != nil {
-		return nil, err
+		return nil, fmt.Errorf("read token: %w", err)
 	}
+
+	//nolint:exhaustive // jsontext.Kind is matched by its rune value; the
+	// default arm rejects every other (incl. invalid) kind.
 	switch tok.Kind() {
 	case 'n':
 		return nil, nil
@@ -132,36 +156,45 @@ func decodeOne(dec *jsontext.Decoder) (Value, error) {
 			if err != nil {
 				return nil, err
 			}
+
 			out = append(out, e)
 		}
+
 		if _, err := dec.ReadToken(); err != nil { // consume ']'
-			return nil, err
+			return nil, fmt.Errorf("read array close: %w", err)
 		}
+
 		return out, nil
 	case '{':
 		obj := NewObject()
 		for dec.PeekKind() != '}' {
 			kt, err := dec.ReadToken()
 			if err != nil {
-				return nil, err
+				return nil, fmt.Errorf("read object key: %w", err)
 			}
+
 			if kt.Kind() != '"' {
 				return nil, fmt.Errorf("non-string object key (kind %v)", kt.Kind())
 			}
 			// Capture the key before decodeOne advances the decoder:
 			// jsontext voids a Token on the next decoder call.
 			key := kt.String()
+
 			v, err := decodeOne(dec)
 			if err != nil {
 				return nil, err
 			}
+
 			obj.Set(key, v)
 		}
+
 		if _, err := dec.ReadToken(); err != nil { // consume '}'
-			return nil, err
+			return nil, fmt.Errorf("read object close: %w", err)
 		}
+
 		return obj, nil
 	}
+
 	return nil, fmt.Errorf("unexpected token (kind %v)", tok.Kind())
 }
 
@@ -183,6 +216,7 @@ func TypeName(v Value) string {
 	case Object:
 		return "Object"
 	}
+
 	return fmt.Sprintf("%T", v)
 }
 
@@ -196,39 +230,50 @@ func Equal(a, b Value) bool {
 	if ra != rb {
 		return false
 	}
+
+	// ra == rb guarantees a and b share a dynamic type, so the comma-ok
+	// asserts below cannot fail; the ignored ok keeps the linter happy.
 	switch x := a.(type) {
 	case nil:
 		return true
 	case bool:
-		return x == b.(bool)
+		y, _ := b.(bool)
+		return x == y
 	case float64:
-		return x == b.(float64)
+		y, _ := b.(float64)
+		return x == y
 	case string:
-		return x == b.(string)
+		y, _ := b.(string)
+		return x == y
 	case []Value:
-		y := b.([]Value)
+		y, _ := b.([]Value)
 		if len(x) != len(y) {
 			return false
 		}
+
 		for i := range x {
 			if !Equal(x[i], y[i]) {
 				return false
 			}
 		}
+
 		return true
 	case Object:
-		y := b.(Object)
+		y, _ := b.(Object)
 		if len(x.Keys) != len(y.Keys) {
 			return false
 		}
+
 		for k, va := range x.Data {
 			vb, ok := y.Data[k]
 			if !ok || !Equal(va, vb) {
 				return false
 			}
 		}
+
 		return true
 	}
+
 	return false
 }
 
@@ -239,8 +284,12 @@ func Equal(a, b Value) bool {
 // (Null < Bool < Number < String < Array < Object); within a
 // constructor, values are compared natively. Surprising but
 // fixture-required (plan §4.2).
+//
+//nolint:cyclop,funlen // flat Aeson Ord dispatch over the 6 JSON constructors.
 func Compare(a, b Value) int {
 	ra, rb := constructorRank(a), constructorRank(b)
+	// ra == rb below guarantees a and b share a dynamic type, so each
+	// comma-ok assert in the type switch cannot fail.
 	if ra != rb {
 		switch {
 		case ra < rb:
@@ -249,11 +298,12 @@ func Compare(a, b Value) int {
 			return 1
 		}
 	}
+
 	switch x := a.(type) {
 	case nil:
 		return 0
 	case bool:
-		y := b.(bool)
+		y, _ := b.(bool)
 		switch {
 		case x == y:
 			return 0
@@ -263,68 +313,76 @@ func Compare(a, b Value) int {
 			return 1
 		}
 	case float64:
-		y := b.(float64)
+		y, _ := b.(float64)
 		switch {
 		case x < y:
 			return -1
 		case x > y:
 			return 1
 		}
+
 		return 0
 	case string:
-		y := b.(string)
+		y, _ := b.(string)
 		switch {
 		case x < y:
 			return -1
 		case x > y:
 			return 1
 		}
+
 		return 0
 	case []Value:
-		y := b.([]Value)
-		n := len(x)
-		if len(y) < n {
-			n = len(y)
-		}
-		for i := 0; i < n; i++ {
+		y, _ := b.([]Value)
+
+		n := min(len(y), len(x))
+
+		for i := range n {
 			if c := Compare(x[i], y[i]); c != 0 {
 				return c
 			}
 		}
+
 		switch {
 		case len(x) < len(y):
 			return -1
 		case len(x) > len(y):
 			return 1
 		}
+
 		return 0
 	case Object:
 		// Aeson Object Ord: compare as sorted key-value lists.
-		y := b.(Object)
+		y, _ := b.(Object)
+
 		xk := append([]string(nil), x.Keys...)
 		yk := append([]string(nil), y.Keys...)
+
 		sort.Strings(xk)
 		sort.Strings(yk)
-		n := len(xk)
-		if len(yk) < n {
-			n = len(yk)
-		}
-		for i := 0; i < n; i++ {
+
+		n := min(len(yk), len(xk))
+
+		for i := range n {
 			if c := stringCmp(xk[i], yk[i]); c != 0 {
 				return c
 			}
+
 			if c := Compare(x.Data[xk[i]], y.Data[yk[i]]); c != 0 {
 				return c
 			}
 		}
+
 		switch {
 		case len(xk) < len(yk):
 			return -1
 		case len(xk) > len(yk):
 			return 1
 		}
+
 		return 0
 	}
+
 	return 0
 }
 
@@ -335,25 +393,42 @@ func stringCmp(a, b string) int {
 	case a > b:
 		return 1
 	}
+
 	return 0
 }
+
+// Constructor ranks for cross-type ordering, mirroring Aeson's derived
+// Ord on Value: Null < Bool < Number < String < Array < Object.
+const (
+	rankNull = iota
+	rankBool
+	rankNumber
+	rankString
+	rankArray
+	rankObject
+)
+
+// rankUnknown sorts before everything; it is only reached for values
+// outside the six JSON constructors, which the evaluator never builds.
+const rankUnknown = -1
 
 func constructorRank(v Value) int {
 	switch v.(type) {
 	case nil:
-		return 0
+		return rankNull
 	case bool:
-		return 1
+		return rankBool
 	case float64:
-		return 2
+		return rankNumber
 	case string:
-		return 3
+		return rankString
 	case []Value:
-		return 4
+		return rankArray
 	case Object:
-		return 5
+		return rankObject
 	}
-	return -1
+
+	return rankUnknown
 }
 
 // EncodeForStringTem encodes v the way upstream's StringTem rule does
@@ -366,10 +441,12 @@ func EncodeForStringTem(v Value) (string, error) {
 	if s, ok := v.(string); ok {
 		return s, nil
 	}
+
 	b, err := json.Marshal(v)
 	if err != nil {
-		return "", err
+		return "", fmt.Errorf("encode value: %w", err)
 	}
+
 	return string(b), nil
 }
 
@@ -381,8 +458,6 @@ func AsInt(n float64) (int, bool) {
 	if float64(i) == n {
 		return i, true
 	}
+
 	return 0, false
 }
-
-// Itoa wraps strconv.Itoa for use in range-binder fixtures.
-func Itoa(i int) string { return strconv.Itoa(i) }

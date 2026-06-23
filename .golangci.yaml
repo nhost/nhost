@@ -49,6 +49,23 @@ linters:
           - lll
         path: schema\.resolvers\.go
 
+      # jsontmpl: pure-Go Kriti port. The evaluator is built on the open
+      # `Value = any` type, so every helper that returns a runtime value
+      # trips ireturn, and returning `(nil, nil)` is correct because JSON
+      # null is a legitimate Value (nilnil). The Function/Type/Index error
+      # strings are reproduced verbatim from upstream Kriti — the console
+      # matches on them — which trips err113 and revive's error-strings.
+      - linters:
+          - ireturn
+          - err113
+          - nilnil
+        path: internal/lib/jsontmpl/
+      - linters:
+          - revive
+          - staticcheck
+        path: internal/lib/jsontmpl/
+        text: error-strings|ST1005
+
       # storage service specific rules
       - linters:
           - gochecknoglobals

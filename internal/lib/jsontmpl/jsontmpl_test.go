@@ -7,10 +7,78 @@ package jsontmpl_test
 
 import (
 	json "encoding/json/v2"
+	"errors"
 	"testing"
 
 	"github.com/nhost/nhost/internal/lib/jsontmpl"
 )
+
+func TestValidate_ValidTemplate(t *testing.T) {
+	if err := jsontmpl.Validate(`{"x": {{ $.y }}}`); err != nil {
+		t.Fatalf("Validate returned %v, want nil", err)
+	}
+}
+
+func TestValidate_LexError(t *testing.T) {
+	// '@' is not a valid lexeme inside an interpolation.
+	err := jsontmpl.Validate(`{{ @ }}`)
+
+	var jerr *jsontmpl.Error
+	if !errors.As(err, &jerr) {
+		t.Fatalf("Validate error = %v (%T), want *jsontmpl.Error", err, err)
+	}
+
+	if jerr.Code != jsontmpl.CodeLexError {
+		t.Fatalf("Code = %q, want %q", jerr.Code, jsontmpl.CodeLexError)
+	}
+
+	if (jerr.Span == jsontmpl.Span{}) {
+		t.Fatal("lex error carries no source span")
+	}
+}
+
+func TestValidate_ParseError(t *testing.T) {
+	// Missing closing brace on the interpolation.
+	err := jsontmpl.Validate(`{{ $.path }`)
+
+	var jerr *jsontmpl.Error
+	if !errors.As(err, &jerr) {
+		t.Fatalf("Validate error = %v (%T), want *jsontmpl.Error", err, err)
+	}
+
+	if jerr.Code != jsontmpl.CodeParseError {
+		t.Fatalf("Code = %q, want %q", jerr.Code, jsontmpl.CodeParseError)
+	}
+
+	if (jerr.Span == jsontmpl.Span{}) {
+		t.Fatal("parse error carries no source span")
+	}
+}
+
+func TestValidate_IsIdempotentAndPrimesCache(t *testing.T) {
+	const tmpl = `{"x": {{ "hi" }}}`
+
+	// Repeated validation of the same (valid) template succeeds; the
+	// second call is served from the parse cache primed by the first.
+	if err := jsontmpl.Validate(tmpl); err != nil {
+		t.Fatalf("first Validate: %v", err)
+	}
+
+	if err := jsontmpl.Validate(tmpl); err != nil {
+		t.Fatalf("second Validate: %v", err)
+	}
+
+	// A subsequent Render of the validated template reuses the cached
+	// parse and succeeds.
+	got, err := jsontmpl.Render(tmpl, jsontmpl.New())
+	if err != nil {
+		t.Fatalf("Render after Validate: %v", err)
+	}
+
+	if string(got) != `{"x":"hi"}` {
+		t.Fatalf("Render = %s, want {\"x\":\"hi\"}", got)
+	}
+}
 
 func TestRender_TrivialObject(t *testing.T) {
 	got, err := jsontmpl.Render(`{"x": 1}`, jsontmpl.New())

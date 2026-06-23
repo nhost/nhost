@@ -66,6 +66,23 @@ func TestConnectionTemplateScope_BindsSessionAndDefault(t *testing.T) {
 	}
 }
 
+func TestScope_WithVar_UnmarshalableBindsNull(t *testing.T) {
+	// A value that cannot be JSON-marshalled (here a channel) is bound as
+	// JSON null rather than panicking or erroring at scope-build time.
+	// This is the documented WithVar contract; locking it in so the
+	// fluent, panic-free builder semantics don't regress silently.
+	scope := jsontmpl.New().WithVar("bad", make(chan int))
+
+	got, err := jsontmpl.Render(`{{ bad }}`, scope)
+	if err != nil {
+		t.Fatalf("render: %v", err)
+	}
+
+	if string(got) != `null` {
+		t.Fatalf("got %s, want null", got)
+	}
+}
+
 func TestScope_WithFunc_Overlay(t *testing.T) {
 	// Overlay functions should be available alongside the basic map.
 	scope := jsontmpl.New().

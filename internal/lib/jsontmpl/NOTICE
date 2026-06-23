@@ -1,4 +1,4 @@
-This package (internal/jsontmpl and its subpackages) is a clean-room Go port of
+This package (internal/lib/jsontmpl and its subpackages) is a clean-room Go port of
 the Kriti templating language:
 
     hasura/kriti-lang

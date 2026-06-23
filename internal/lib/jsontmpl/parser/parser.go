@@ -18,10 +18,16 @@
 //	iff         := '{{' 'if' expr '}}' expr elif* '{{' 'else' '}}' expr
 //	                  '{{' 'end' '}}'
 //
-// Binops are non-associative and do not chain (Grammar.y:60-63). A
-// function call or 'not' application on either side of a binop must
-// be parenthesised; this matches Happy's nonassoc declaration. `not`
-// is greedy: `not x && y` parses as `not (x && y)`.
+// Binops are non-associative and do not chain (Grammar.y:60-63). The
+// binop production is `atom OP atom`: both operands of an OP are
+// atoms, so an unparenthesised `not`/function call is never a binop
+// operand. Instead parseExpr matches `not` and function calls *before*
+// the binop branch. `not` recurses into a full `expr` and so binds
+// looser than OP: `not x && y` parses as `not (x && y)` and
+// `not(true) && false` as `Function "not" (And true false)`, matching
+// upstream's operators.kriti golden. Parenthesise to restrict `not`'s
+// scope. A function call returns immediately without consuming a
+// trailing OP, so `f(x) && y` is a parse error; parenthesise the call.
 package parser
 
 import (

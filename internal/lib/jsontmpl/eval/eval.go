@@ -3,6 +3,7 @@ package eval
 import (
 	"fmt"
 	"strconv"
+	"strings"
 
 	"github.com/nhost/nhost/internal/lib/jsontmpl/ast"
 	"github.com/nhost/nhost/internal/lib/jsontmpl/token"
@@ -26,6 +27,7 @@ func Eval(root ast.Node, bindings []Binding, funcs map[string]Func) (Value, erro
 		bindings: bindings,
 		funcs:    funcs,
 	}
+
 	return e.eval(root)
 }
 
@@ -40,6 +42,7 @@ func (e *evaluator) lookup(name string) (Value, bool) {
 			return e.bindings[i].Value, true
 		}
 	}
+
 	return nil, false
 }
 
@@ -49,9 +52,11 @@ func (e *evaluator) withBindings(extra []Binding, fn func() (Value, error)) (Val
 	e.bindings = append(e.bindings, extra...)
 	v, err := fn()
 	e.bindings = e.bindings[:prev]
+
 	return v, err
 }
 
+//nolint:cyclop,gocyclo,funlen // flat dispatch over AST node types; one arm per node.
 func (e *evaluator) eval(n ast.Node) (Value, error) {
 	switch x := n.(type) {
 	case ast.Null:
@@ -67,6 +72,7 @@ func (e *evaluator) eval(n ast.Node) (Value, error) {
 				Span: x.Span,
 			}
 		}
+
 		return f, nil
 	case ast.String:
 		return x.Value, nil
@@ -77,8 +83,10 @@ func (e *evaluator) eval(n ast.Node) (Value, error) {
 			if err != nil {
 				return nil, err
 			}
+
 			out = append(out, v)
 		}
+
 		return out, nil
 	case ast.Object:
 		out := NewObject()
@@ -87,8 +95,10 @@ func (e *evaluator) eval(n ast.Node) (Value, error) {
 			if err != nil {
 				return nil, err
 			}
+
 			out.Set(f.Key, v)
 		}
+
 		return out, nil
 	case ast.StringTem:
 		return e.evalStringTem(x)
@@ -97,6 +107,7 @@ func (e *evaluator) eval(n ast.Node) (Value, error) {
 		if !ok {
 			return nil, nameError(x.Span, x.Name)
 		}
+
 		return v, nil
 	case ast.RequiredFieldAccess:
 		return e.evalRequiredField(x)
@@ -109,20 +120,24 @@ func (e *evaluator) eval(n ast.Node) (Value, error) {
 		if err != nil {
 			return nil, err
 		}
+
 		r, err := e.eval(x.Right)
 		if err != nil {
 			return nil, err
 		}
+
 		return Equal(l, r), nil
 	case ast.NotEq:
 		l, err := e.eval(x.Left)
 		if err != nil {
 			return nil, err
 		}
+
 		r, err := e.eval(x.Right)
 		if err != nil {
 			return nil, err
 		}
+
 		return !Equal(l, r), nil
 	case ast.Lt:
 		return e.evalCompare(x.Left, x.Right, func(c int) bool { return c < 0 })
@@ -143,49 +158,60 @@ func (e *evaluator) eval(n ast.Node) (Value, error) {
 		if err != nil {
 			return nil, err
 		}
+
 		if l == nil {
 			return e.eval(x.Right)
 		}
+
 		return l, nil
 	case ast.Range:
 		return e.evalRange(x)
 	case ast.Function:
 		return e.evalFunction(x)
 	}
-	return nil, &Error{Code: CodeType, Msg: fmt.Sprintf("unhandled node type %T", n)}
+
+	return nil, &Error{Code: CodeType, Msg: fmt.Sprintf("unhandled node type %T", n), Span: n.GetSpan()}
 }
 
 func (e *evaluator) evalStringTem(x ast.StringTem) (Value, error) {
-	var out string
+	var out strings.Builder
+
 	for _, p := range x.Parts {
 		v, err := e.eval(p)
 		if err != nil {
 			return nil, err
 		}
+
 		s, err := EncodeForStringTem(v)
 		if err != nil {
 			return nil, &Error{Code: CodeType, Msg: err.Error(), Span: x.Span}
 		}
-		out += s
+
+		out.WriteString(s)
 	}
-	return out, nil
+
+	return out.String(), nil
 }
 
+//nolint:cyclop // flat dispatch over the name/index field-access forms.
 func (e *evaluator) evalRequiredField(x ast.RequiredFieldAccess) (Value, error) {
 	root, err := e.eval(x.Root)
 	if err != nil {
 		return nil, err
 	}
+
 	if x.Field.IsName {
 		// `obj.ident` form. Root must be Object.
 		obj, ok := root.(Object)
 		if !ok {
 			return nil, typeError(x.Root.GetSpan(), TypeName(root), "Object")
 		}
+
 		v, ok := obj.Get(x.Field.Name)
 		if !ok {
 			return nil, attrError(x.Span, x.Field.Name)
 		}
+
 		return v, nil
 	}
 	// `root[ expr ]` form: dispatch on root type, not subscript type.
@@ -195,31 +221,38 @@ func (e *evaluator) evalRequiredField(x ast.RequiredFieldAccess) (Value, error) 
 		if err != nil {
 			return nil, err
 		}
+
 		s, ok := key.(string)
 		if !ok {
 			return nil, typeError(x.Root.GetSpan(), TypeName(key), "String")
 		}
+
 		v, ok := r.Get(s)
 		if !ok {
 			return nil, attrError(x.Span, s)
 		}
+
 		return v, nil
 	case []Value:
 		idx, err := e.eval(x.Field.Expr)
 		if err != nil {
 			return nil, err
 		}
+
 		f, ok := idx.(float64)
 		if !ok {
 			return nil, typeError(x.Span, TypeName(idx), "Integer")
 		}
+
 		i, ok := AsInt(f)
 		if !ok {
 			return nil, typeError(x.Span, TypeName(idx), "Integer")
 		}
+
 		if i < 0 || i >= len(r) {
 			return nil, indexError(x.Span, "")
 		}
+
 		return r[i], nil
 	default:
 		return nil, typeError(x.Root.GetSpan(), TypeName(root), "Object")
@@ -239,6 +272,7 @@ func (e *evaluator) evalOptionalField(x ast.OptionalFieldAccess) (Value, error) 
 	if err != nil {
 		return nil, err
 	}
+
 	switch r := root.(type) {
 	case Object, []Value:
 		return walkOptional(r, keys), nil
@@ -258,12 +292,15 @@ func (e *evaluator) evalFieldChain(fields []ast.FieldKey) ([]Value, error) {
 			out = append(out, f.Name)
 			continue
 		}
+
 		v, err := e.eval(f.Expr)
 		if err != nil {
 			return nil, err
 		}
+
 		out = append(out, v)
 	}
+
 	return out, nil
 }
 
@@ -277,28 +314,34 @@ func walkOptional(v Value, keys []Value) Value {
 			if !ok {
 				return nil
 			}
+
 			val, ok := root.Get(s)
 			if !ok {
 				return nil
 			}
+
 			v = val
 		case []Value:
 			f, ok := k.(float64)
 			if !ok {
 				return nil
 			}
+
 			i, ok := AsInt(f)
 			if !ok {
 				return nil
 			}
+
 			if i < 0 || i >= len(root) {
 				return nil
 			}
+
 			v = root[i]
 		default:
 			return nil
 		}
 	}
+
 	return v
 }
 
@@ -307,26 +350,32 @@ func (e *evaluator) evalIff(x ast.Iff) (Value, error) {
 	if err != nil {
 		return nil, err
 	}
+
 	b, ok := v.(bool)
 	if !ok {
 		return nil, typeError(x.Span, TypeName(v), "Boolean")
 	}
+
 	if b {
 		return e.eval(x.Then)
 	}
+
 	for _, el := range x.Elifs {
 		ev, err := e.eval(el.Cond)
 		if err != nil {
 			return nil, err
 		}
+
 		eb, ok := ev.(bool)
 		if !ok {
 			return nil, typeError(el.Span, TypeName(ev), "Boolean")
 		}
+
 		if eb {
 			return e.eval(el.Then)
 		}
 	}
+
 	return e.eval(x.Else)
 }
 
@@ -335,10 +384,12 @@ func (e *evaluator) evalCompare(l, r ast.Node, predicate func(int) bool) (Value,
 	if err != nil {
 		return nil, err
 	}
+
 	rv, err := e.eval(r)
 	if err != nil {
 		return nil, err
 	}
+
 	return predicate(Compare(lv, rv)), nil
 }
 
@@ -352,18 +403,23 @@ func (e *evaluator) evalAndOr(
 	if err != nil {
 		return nil, err
 	}
+
 	rv, err := e.eval(r)
 	if err != nil {
 		return nil, err
 	}
+
 	lb, lok := lv.(bool)
 	rb, rok := rv.(bool)
+
 	if !lok {
 		return nil, typeError(sp, TypeName(lv), "Boolean")
 	}
+
 	if !rok {
 		return nil, typeError(sp, TypeName(rv), "Boolean")
 	}
+
 	return op(lb, rb), nil
 }
 
@@ -372,17 +428,21 @@ func (e *evaluator) evalIn(x ast.In) (Value, error) {
 	if err != nil {
 		return nil, err
 	}
+
 	rv, err := e.eval(x.Right)
 	if err != nil {
 		return nil, err
 	}
+
 	switch r := rv.(type) {
 	case Object:
 		s, ok := lv.(string)
 		if !ok {
 			return nil, typeError(x.Span, TypeName(lv), "String")
 		}
+
 		_, present := r.Get(s)
+
 		return present, nil
 	case []Value:
 		for _, el := range r {
@@ -390,6 +450,7 @@ func (e *evaluator) evalIn(x ast.In) (Value, error) {
 				return true, nil
 			}
 		}
+
 		return false, nil
 	default:
 		return nil, typeError(x.Span, TypeName(rv), "Array")
@@ -401,6 +462,7 @@ func (e *evaluator) evalRange(x ast.Range) (Value, error) {
 	if err != nil {
 		return nil, err
 	}
+
 	arr, ok := src.([]Value)
 	if !ok {
 		// Upstream raises IndexErrorCode here ("Can only range over an
@@ -408,20 +470,24 @@ func (e *evaluator) evalRange(x ast.Range) (Value, error) {
 		// (Eval.hs:48). Plan §4.8 notes the surprise.
 		return nil, indexError(x.Span, "Can only range over an array")
 	}
+
 	out := make([]Value, 0, len(arr))
 	for i, el := range arr {
 		extra := []Binding{{Name: x.BinderName, Value: el}}
 		if x.IdxName != "" {
 			extra = append(extra, Binding{Name: x.IdxName, Value: float64(i)})
 		}
+
 		v, err := e.withBindings(extra, func() (Value, error) {
 			return e.eval(x.Body)
 		})
 		if err != nil {
 			return nil, err
 		}
+
 		out = append(out, v)
 	}
+
 	return out, nil
 }
 
@@ -430,13 +496,16 @@ func (e *evaluator) evalFunction(x ast.Function) (Value, error) {
 	if err != nil {
 		return nil, err
 	}
+
 	fn, ok := e.funcs[x.Name]
 	if !ok {
 		return nil, nameError(x.Span, x.Name)
 	}
+
 	v, err := fn(arg)
 	if err != nil {
 		return nil, functionError(x.Arg.GetSpan(), err.Error())
 	}
+
 	return v, nil
 }

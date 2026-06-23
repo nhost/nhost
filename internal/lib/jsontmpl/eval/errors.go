@@ -64,6 +64,7 @@ func indexError(sp token.Span, msg string) *Error {
 	if msg == "" {
 		msg = "Index out of range"
 	}
+
 	return &Error{Code: CodeIndex, Msg: msg, Span: sp}
 }
 

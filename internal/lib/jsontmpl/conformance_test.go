@@ -32,6 +32,7 @@ const (
 // "$"; see test/Spec.hs:178 in the upstream repo at the pinned commit.
 func TestConformance_Eval(t *testing.T) {
 	source := readFile(t, filepath.Join(evalDir, "source.json"))
+
 	var sourceVal any
 	if err := json.Unmarshal(source, &sourceVal); err != nil {
 		t.Fatalf("decode source.json: %v", err)
@@ -41,6 +42,7 @@ func TestConformance_Eval(t *testing.T) {
 	if err != nil {
 		t.Fatalf("glob examples: %v", err)
 	}
+
 	if len(examples) == 0 {
 		t.Fatalf("no fixtures found under %s", filepath.Join(evalDir, "examples"))
 	}
@@ -63,20 +65,16 @@ func TestConformance_Eval(t *testing.T) {
 }
 
 // TestConformance_ParserSuccess asserts every parser-success fixture
-// parses without error. We can't compare AST shapes byte-for-byte
-// against upstream's golden .txt files (those are Haskell
-// pretty-printed records that don't map cleanly to a Go AST), so we
-// only assert that Render does not return a Parse Error.
-//
-// Once we have parser-level fixtures of our own under
-// testdata/derived/, we can tighten this to AST equality. For now this
-// matches the spirit of upstream's "parses without error" assertion
-// in Spec.hs:142.
+// renders without a Parse Error. Full AST-shape and span comparison
+// against the upstream Haskell goldens lives in parser/golden_test.go;
+// this case is the coarser "does it parse" smoke check at the public
+// Render boundary, matching upstream's Spec.hs:142 assertion.
 func TestConformance_ParserSuccess(t *testing.T) {
 	examples, err := filepath.Glob(filepath.Join(parserSuccessDir, "examples", "*.kriti"))
 	if err != nil {
 		t.Fatalf("glob: %v", err)
 	}
+
 	if len(examples) == 0 {
 		t.Fatalf("no fixtures found under %s", filepath.Join(parserSuccessDir, "examples"))
 	}
@@ -108,6 +106,7 @@ func TestConformance_ParserFailure(t *testing.T) {
 	if err != nil {
 		t.Fatalf("glob: %v", err)
 	}
+
 	if len(examples) == 0 {
 		t.Fatalf("no fixtures found under %s", filepath.Join(parserFailureDir, "examples"))
 	}
@@ -121,10 +120,12 @@ func TestConformance_ParserFailure(t *testing.T) {
 			if err == nil {
 				t.Fatalf("expected parse error, got nil")
 			}
+
 			var jerr *jsontmpl.Error
 			if !errors.As(err, &jerr) {
 				t.Fatalf("expected *jsontmpl.Error, got %T: %v", err, err)
 			}
+
 			if jerr.Code != jsontmpl.CodeParseError {
 				t.Fatalf("expected Parse Error, got %q: %v", jerr.Code, err)
 			}
@@ -136,10 +137,12 @@ func TestConformance_ParserFailure(t *testing.T) {
 // sites stay tight.
 func readFile(t *testing.T, path string) []byte {
 	t.Helper()
+
 	b, err := os.ReadFile(path)
 	if err != nil {
 		t.Fatalf("read %s: %v", path, err)
 	}
+
 	return b
 }
 
@@ -151,6 +154,7 @@ func readFile(t *testing.T, path string) []byte {
 func assertJSONEqual(t *testing.T, want, got []byte) {
 	t.Helper()
 	wantCanon := canonicaliseJSON(t, want)
+
 	gotCanon := canonicaliseJSON(t, got)
 	if !bytes.Equal(wantCanon, gotCanon) {
 		t.Fatalf("JSON mismatch\nwant: %s\ngot:  %s", wantCanon, gotCanon)
@@ -159,6 +163,7 @@ func assertJSONEqual(t *testing.T, want, got []byte) {
 
 func canonicaliseJSON(t *testing.T, raw []byte) []byte {
 	t.Helper()
+
 	var v any
 	if err := json.Unmarshal(raw, &v); err != nil {
 		t.Fatalf("canonicalise: %v\nraw: %s", err, raw)
@@ -169,5 +174,6 @@ func canonicaliseJSON(t *testing.T, raw []byte) []byte {
 	if err != nil {
 		t.Fatalf("canonicalise marshal: %v", err)
 	}
+
 	return out
 }

@@ -31,13 +31,16 @@ nixpkgs-unstable build needs as of 2026-05).
 To regenerate a fixture after a behaviour change:
 
 ```sh
-$KRITI=third-party/hasura/kriti-lang/result/bin/kriti
-$KRITI -j FIXTURE.input.json -t FIXTURE.kriti -b '$'
+KRITI=third-party/hasura/kriti-lang/result/bin/kriti
+"$KRITI" -j FIXTURE.input.json -t FIXTURE.kriti -b '$'
 ```
+
+The `third-party/` build tree is not committed to this repository; build
+the upstream binary out-of-tree from the pinned commit in `../UPSTREAM.md`.
 
 ## How the port uses these
 
-`derived_test.go` (TODO once the evaluator lands) iterates this
+`derived_test.go` iterates this
 directory and asserts the Go engine matches upstream — with one
 deliberate exception: for `CRASH:` fixtures, the Go port is required
 to return a typed `FunctionError`, not panic. The crash detail is

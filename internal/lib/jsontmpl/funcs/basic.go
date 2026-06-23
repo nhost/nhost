@@ -57,6 +57,7 @@ func emptyF(v eval.Value) (eval.Value, error) {
 	case nil:
 		return true, nil
 	}
+
 	return nil, fmt.Errorf("empty: unhandled type %T", v)
 }
 
@@ -77,10 +78,12 @@ func sizeF(v eval.Value) (eval.Value, error) {
 		if x {
 			return float64(1), nil
 		}
+
 		return float64(0), nil
 	case nil:
 		return float64(0), nil
 	}
+
 	return nil, fmt.Errorf("size: unhandled type %T", v)
 }
 
@@ -95,6 +98,7 @@ func inverseF(v eval.Value) (eval.Value, error) {
 		for i, e := range x {
 			out[len(x)-1-i] = e
 		}
+
 		return out, nil
 	case string:
 		// Reverse by runes, not bytes.
@@ -102,17 +106,20 @@ func inverseF(v eval.Value) (eval.Value, error) {
 		for i, j := 0, len(r)-1; i < j; i, j = i+1, j-1 {
 			r[i], r[j] = r[j], r[i]
 		}
+
 		return string(r), nil
 	case float64:
 		if x == 0 || math.IsNaN(x) {
 			return nil, errors.New("Division by zero")
 		}
+
 		return 1 / x, nil
 	case bool:
 		return !x, nil
 	case nil:
 		return nil, nil
 	}
+
 	return nil, fmt.Errorf("inverse: unhandled type %T", v)
 }
 
@@ -123,14 +130,18 @@ func headF(v eval.Value) (eval.Value, error) {
 		if len(x) == 0 {
 			return nil, errors.New("Empty array")
 		}
+
 		return x[0], nil
 	case string:
 		if x == "" {
 			return nil, errors.New("Empty string")
 		}
+
 		r, _ := utf8.DecodeRuneInString(x)
+
 		return string(r), nil
 	}
+
 	return nil, errors.New("Expected an array or string")
 }
 
@@ -142,14 +153,18 @@ func tailF(v eval.Value) (eval.Value, error) {
 		if len(x) == 0 {
 			return nil, errors.New("Empty array")
 		}
+
 		return append([]eval.Value(nil), x[1:]...), nil
 	case string:
 		if x == "" {
 			return nil, errors.New("Empty string")
 		}
+
 		_, size := utf8.DecodeRuneInString(x)
+
 		return x[size:], nil
 	}
+
 	return nil, errors.New("Expected an array or string")
 }
 
@@ -159,6 +174,7 @@ func toCaseFoldF(v eval.Value) (eval.Value, error) {
 	if !ok {
 		return nil, parsingTextErr(v)
 	}
+
 	return cases.Fold().String(s), nil
 }
 
@@ -167,6 +183,7 @@ func toLowerF(v eval.Value) (eval.Value, error) {
 	if !ok {
 		return nil, parsingTextErr(v)
 	}
+
 	return cases.Lower(language.Und).String(s), nil
 }
 
@@ -175,6 +192,7 @@ func toUpperF(v eval.Value) (eval.Value, error) {
 	if !ok {
 		return nil, parsingTextErr(v)
 	}
+
 	return cases.Upper(language.Und).String(s), nil
 }
 
@@ -183,6 +201,7 @@ func toTitleF(v eval.Value) (eval.Value, error) {
 	if !ok {
 		return nil, parsingTextErr(v)
 	}
+
 	return cases.Title(language.Und).String(s), nil
 }
 
@@ -194,16 +213,19 @@ func escapeURIF(v eval.Value) (eval.Value, error) {
 	if !ok {
 		return nil, parsingTextErr(v)
 	}
+
 	var b strings.Builder
 	for _, r := range s {
 		if isUnreserved(r) {
 			b.WriteRune(r)
 			continue
 		}
+
 		for _, c := range []byte(string(r)) {
 			fmt.Fprintf(&b, "%%%02X", c)
 		}
 	}
+
 	return b.String(), nil
 }
 
@@ -218,6 +240,7 @@ func isUnreserved(r rune) bool {
 	case r == '-', r == '_', r == '.', r == '~':
 		return true
 	}
+
 	return false
 }
 
@@ -228,10 +251,12 @@ func toPairsF(v eval.Value) (eval.Value, error) {
 	if !ok {
 		return nil, parsingErr("Object", v)
 	}
+
 	out := make([]eval.Value, 0, len(obj.Keys))
 	for _, k := range obj.Keys {
 		out = append(out, []eval.Value{k, obj.Data[k]})
 	}
+
 	return out, nil
 }
 
@@ -241,6 +266,7 @@ func fromPairsF(v eval.Value) (eval.Value, error) {
 	if !ok {
 		return nil, parsingErrf("Nested Arrays", "Array", v)
 	}
+
 	out := eval.NewObject()
 	for _, el := range arr {
 		pair, ok := el.([]eval.Value)
@@ -249,12 +275,15 @@ func fromPairsF(v eval.Value) (eval.Value, error) {
 				"Expected an array of shape [ [k1,v1], [k2,v2] ... ] - With String keys.",
 			)
 		}
+
 		key, err := pairKeyFromValue(pair[0])
 		if err != nil {
 			return nil, err
 		}
+
 		out.Set(key, pair[1])
 	}
+
 	return out, nil
 }
 
@@ -276,6 +305,7 @@ func pairKeyFromValue(v eval.Value) (string, error) {
 	case eval.Object:
 		return "", errors.New("parsing Key failed, expected String, but encountered Object")
 	}
+
 	return "", fmt.Errorf("parsing Key failed: unknown value type %T", v)
 }
 
@@ -285,12 +315,14 @@ func removeNullsF(v eval.Value) (eval.Value, error) {
 	if !ok {
 		return nil, parsingErr("Array", v)
 	}
+
 	out := make([]eval.Value, 0, len(arr))
 	for _, el := range arr {
 		if el != nil {
 			out = append(out, el)
 		}
 	}
+
 	return out, nil
 }
 
@@ -314,6 +346,7 @@ func concatF(v eval.Value) (eval.Value, error) {
 	if lastErr != nil {
 		return nil, lastErr
 	}
+
 	return out, nil
 }
 
@@ -324,8 +357,10 @@ func tryFlatten(arr []eval.Value) ([]eval.Value, bool) {
 		if !ok {
 			return nil, false
 		}
+
 		out = append(out, sub...)
 	}
+
 	return out, true
 }
 
@@ -336,8 +371,10 @@ func tryStringJoin(arr []eval.Value) (string, bool) {
 		if !ok {
 			return "", false
 		}
+
 		sb.WriteString(s)
 	}
+
 	return sb.String(), true
 }
 
@@ -351,10 +388,12 @@ func tryObjectMerge(arr []eval.Value) (eval.Value, error) {
 		if !ok {
 			return nil, parsingErrf("Nested Object", "Object", el)
 		}
+
 		for _, k := range obj.Keys {
 			merged.Set(k, obj.Data[k])
 		}
 	}
+
 	return merged, nil
 }
 
@@ -364,6 +403,7 @@ func notF(v eval.Value) (eval.Value, error) {
 	if !ok {
 		return nil, parsingErr("Bool", v)
 	}
+
 	return !b, nil
 }
 

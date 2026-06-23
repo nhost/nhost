@@ -84,6 +84,39 @@ stable Kriti code; the richer message is a deliberate, strictly-more-
 informative divergence. `derived_test.go` accepts any typed `Lex Error`
 for these fixtures.
 
+## Parser AST conformance — see parser/golden_test.go
+
+`parser/golden_test.go` parses every upstream parser-success fixture
+and compares the resulting AST — structure *and* source spans — against
+the upstream Haskell `show` golden (`testdata/conformance/parser/success/golden/*.txt`).
+The goldens are read by a small parser for GHC's pretty-printed
+`ValueExt`. AST structure (node kinds, nesting, literal values, object
+keys, binder names, field-access chains) is asserted **exactly** for all
+fixtures. Five systematic, benign divergences are normalized or pinned
+rather than treated as failures:
+
+1. **Column base.** Our spans use 0-based columns; upstream uses 1-based
+   (lines are 0-based on both). The test shifts our columns by +1.
+2. **Value-string wrapping.** Upstream wraps every JSON string in value
+   position in a one-element `StringTem` (such strings may contain
+   `{{...}}`); we emit a bare `String` when there is no interpolation.
+   Equivalent `StringTem [String s]` is collapsed to `String s`.
+3. **Literal segmentation.** Upstream splits literal text at `{`/escape
+   boundaries into multiple `String` parts; our lexer keeps a run of
+   literal text whole. Adjacent `String` parts in a `StringTem` are
+   coalesced before comparison. (1)–(3) are pure representation
+   differences: rendered output is identical.
+4. **Span shape on a few node kinds.** Index-key `String` spans include
+   the surrounding quotes here (upstream excludes them); our
+   `OptionalFieldAccess` span covers the whole `a?.b` expression
+   (upstream spans only the root `a` — ours is arguably more correct);
+   our `Elif` spans are wider. The own-span of `String`, `Opt`, and
+   `Elif` nodes is therefore not asserted; their structure and children
+   still are.
+5. **Multibyte columns.** Our column counter advances per rune; upstream
+   counts differently for non-ASCII text. Spans are not asserted for the
+   two multibyte fixtures (`unicode`, `unicode2`); structure still is.
+
 ## Transform call-site parity
 
 This package renders templates; the request/response *transform* builders that
@@ -95,8 +128,8 @@ there and pinned by tests in that package:
   is **dropped** from the outgoing request (not sent as the literal string
   `null`), matching graphql-engine. Headers are not dropped this way.
 
-No known transform gaps remain against the ported Hasura action transform
-surface; see [action-parity-coverage.md](../../docs/developers/action-parity-coverage.md).
+The transform-parity coverage matrix is tracked in the consuming
+`connector/action/transform` package, not here.
 
 ## Implementation notes
 
