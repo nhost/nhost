@@ -28,7 +28,8 @@ type Error struct {
 }
 
 func (e *Error) Error() string {
-	return fmt.Sprintf("%s at %d:%d: %s",
+	return fmt.Sprintf(
+		"%s at %d:%d: %s",
 		e.Code, e.Span.Start.Line, e.Span.Start.Column, e.Msg,
 	)
 }
@@ -40,13 +41,21 @@ func nameError(sp token.Span, name string) *Error {
 func attrError(sp token.Span, attr string) *Error {
 	// Message matches upstream verbatim (Eval.hs:34): the dashboard
 	// regex-matches on this string.
-	return &Error{Code: CodeAttribute, Msg: fmt.Sprintf("'Object' has no attribute '%s'", attr), Span: sp}
+	return &Error{
+		Code: CodeAttribute,
+		Msg:  fmt.Sprintf("'Object' has no attribute '%s'", attr),
+		Span: sp,
+	}
 }
 
 func typeError(sp token.Span, actualName, expected string) *Error {
 	return &Error{
 		Code: CodeType,
-		Msg:  fmt.Sprintf("Couldn't match expected type '%s' with actual type '%s'", expected, actualName),
+		Msg: fmt.Sprintf(
+			"Couldn't match expected type '%s' with actual type '%s'",
+			expected,
+			actualName,
+		),
 		Span: sp,
 	}
 }

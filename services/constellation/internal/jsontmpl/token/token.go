@@ -43,33 +43,33 @@ const (
 	KindBoolLit
 
 	// Symbols (Token.hs:20-46).
-	KindBling             // $
-	KindColon             // :
-	KindDot               // .
-	KindComma             // ,
-	KindQuestionMark      // ?
+	KindBling              // $
+	KindColon              // :
+	KindDot                // .
+	KindComma              // ,
+	KindQuestionMark       // ?
 	KindDoubleQuestionMark // ??
-	KindEq                // ==
-	KindNotEq             // !=
-	KindGt                // >
-	KindGte               // >=
-	KindLt                // <
-	KindLte               // <=
-	KindAnd               // &&
-	KindOr                // ||
-	KindSingleQuote       // '
-	KindCurlyOpen         // {
-	KindCurlyClose        // }
-	KindDoubleCurlyOpen   // {{
-	KindDoubleCurlyClose  // }}
-	KindSquareOpen        // [
-	KindSquareClose       // ]
-	KindParenOpen         // (
-	KindParenClose        // )
-	KindUnderscore        // _
-	KindAssignment        // :=
-	KindStringBegin       // " entering string mode
-	KindStringEnd         // " leaving string mode
+	KindEq                 // ==
+	KindNotEq              // !=
+	KindGt                 // >
+	KindGte                // >=
+	KindLt                 // <
+	KindLte                // <=
+	KindAnd                // &&
+	KindOr                 // ||
+	KindSingleQuote        // '
+	KindCurlyOpen          // {
+	KindCurlyClose         // }
+	KindDoubleCurlyOpen    // {{
+	KindDoubleCurlyClose   // }}
+	KindSquareOpen         // [
+	KindSquareClose        // ]
+	KindParenOpen          // (
+	KindParenClose         // )
+	KindUnderscore         // _
+	KindAssignment         // :=
+	KindStringBegin        // " entering string mode
+	KindStringEnd          // " leaving string mode
 )
 
 // String returns a short tag for the token kind. Useful in test

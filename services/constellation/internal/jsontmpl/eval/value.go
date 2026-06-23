@@ -4,8 +4,8 @@ package eval
 
 import (
 	"bytes"
-	json "encoding/json/v2"
 	"encoding/json/jsontext"
+	json "encoding/json/v2"
 	"errors"
 	"fmt"
 	"io"

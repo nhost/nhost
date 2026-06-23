@@ -68,7 +68,11 @@ func TestActionMetadataLifecycle(t *testing.T) {
 	mustMetadataOK(t, echoActionCreate)
 
 	// create_action is idempotent: re-creating the same action is a 2xx no-op.
-	if status, body := postMetadata(t, constellationMetadataURL, echoActionCreate); status/100 != 2 {
+	if status, body := postMetadata(
+		t,
+		constellationMetadataURL,
+		echoActionCreate,
+	); status/100 != 2 {
 		t.Fatalf("repeat create_action: status=%d body=%s", status, body)
 	}
 

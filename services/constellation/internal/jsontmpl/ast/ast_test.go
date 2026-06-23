@@ -43,7 +43,10 @@ func TestNodeSpanRoundTrip(t *testing.T) {
 		ast.Function{},
 	}
 	if len(nodes) != 23 {
-		t.Fatalf("expected 23 node types (22 ValueExt + RequiredFieldAccess distinct), got %d", len(nodes))
+		t.Fatalf(
+			"expected 23 node types (22 ValueExt + RequiredFieldAccess distinct), got %d",
+			len(nodes),
+		)
 	}
 	// Spot-check GetSpan on one node.
 	obj := ast.Object{Span: sp}

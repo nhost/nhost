@@ -36,14 +36,25 @@ func compareOpClass(t *testing.T, label, body, knownDivergence string) {
 	}
 
 	if hOK != cOK {
-		t.Errorf("%s: accept/reject differs (hasura=%d ok=%v, constellation=%d ok=%v)\n  hasura: %s\n  constellation: %s",
-			label, hStatus, hOK, cStatus, cOK, hResp, cResp)
+		t.Errorf(
+			"%s: accept/reject differs (hasura=%d ok=%v, constellation=%d ok=%v)\n  hasura: %s\n  constellation: %s",
+			label,
+			hStatus,
+			hOK,
+			cStatus,
+			cOK,
+			hResp,
+			cResp,
+		)
 	}
 }
 
 func TestActionMetadataParity(t *testing.T) {
 	if !parityEnvReady() {
-		t.Skipf("DB-source Constellation not reachable at %s; run `make parity-env-up`", constellationMetadataURL)
+		t.Skipf(
+			"DB-source Constellation not reachable at %s; run `make parity-env-up`",
+			constellationMetadataURL,
+		)
 	}
 
 	if !hasuraReady() {

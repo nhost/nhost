@@ -12,10 +12,10 @@ const RoleAdmin = "admin"
 
 // Metadata is the top-level configuration for the connector.
 type Metadata struct {
-	Databases      []DatabaseMetadata     `json:"databases"                toml:"databases"`
-	RemoteSchemas  []RemoteSchemaMetadata `json:"remote_schemas,omitempty" toml:"remote_schemas,omitempty"`
-	Actions        []ActionMetadata       `json:"actions,omitempty"        toml:"actions,omitempty"`
-	CustomTypes    CustomTypes            `json:"custom_types,omitzero"    toml:"custom_types,omitempty"`
+	Databases      []DatabaseMetadata     `json:"databases"                 toml:"databases"`
+	RemoteSchemas  []RemoteSchemaMetadata `json:"remote_schemas,omitempty"  toml:"remote_schemas,omitempty"`
+	Actions        []ActionMetadata       `json:"actions,omitempty"         toml:"actions,omitempty"`
+	CustomTypes    CustomTypes            `json:"custom_types,omitzero"     toml:"custom_types,omitempty"`
 	InheritedRoles []InheritedRole        `json:"inherited_roles,omitempty" toml:"inherited_roles,omitempty"`
 
 	// LoadDiagnostics carries non-fatal problems encountered while parsing

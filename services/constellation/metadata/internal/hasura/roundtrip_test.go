@@ -102,8 +102,8 @@ func TestRoundTripJSON_ActionPreservesUnknownKeys(t *testing.T) {
 	}
 
 	var got struct {
-		Actions []map[string]jsontext.Value `json:"actions"`
-		CustomTypes map[string]jsontext.Value `json:"custom_types"`
+		Actions     []map[string]jsontext.Value `json:"actions"`
+		CustomTypes map[string]jsontext.Value   `json:"custom_types"`
 	}
 	if err := json.Unmarshal(out, &got); err != nil {
 		t.Fatalf("re-unmarshal: %v\n%s", err, out)
@@ -278,7 +278,10 @@ func TestRoundTripJSON_PreservesUnknownFields(t *testing.T) {
 	}
 
 	if !strings.Contains(string(roundtripped.Unknown), "cron_triggers") {
-		t.Errorf("Metadata.Unknown does not contain `cron_triggers`: %s", string(roundtripped.Unknown))
+		t.Errorf(
+			"Metadata.Unknown does not contain `cron_triggers`: %s",
+			string(roundtripped.Unknown),
+		)
 	}
 
 	// `actions` and `custom_types` are now modeled fields: they are claimed out

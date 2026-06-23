@@ -13,8 +13,8 @@
 package jsontmpl
 
 import (
-	json "encoding/json/v2"
 	"encoding/json/jsontext"
+	json "encoding/json/v2"
 	"errors"
 
 	"github.com/nhost/nhost/services/constellation/internal/jsontmpl/eval"
@@ -205,4 +205,3 @@ func (s Scope) WithFunc(name string, fn Func) Scope {
 	out.funcs[name] = fn
 	return out
 }
-

@@ -266,7 +266,13 @@ func TestLexBasic(t *testing.T) {
 				t.Fatalf("lex error: %v", err)
 			}
 			if len(got) != len(c.want) {
-				t.Fatalf("token count: got %d, want %d\ngot:  %v\nwant: %v", len(got), len(c.want), got, c.want)
+				t.Fatalf(
+					"token count: got %d, want %d\ngot:  %v\nwant: %v",
+					len(got),
+					len(c.want),
+					got,
+					c.want,
+				)
 			}
 			for i := range got {
 				if got[i].Kind != c.want[i].Kind {

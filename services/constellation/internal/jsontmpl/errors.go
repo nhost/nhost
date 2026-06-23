@@ -50,7 +50,8 @@ func (e *Error) Error() string {
 	if e == nil {
 		return "<nil jsontmpl error>"
 	}
-	return fmt.Sprintf("%s at %d:%d: %s",
+	return fmt.Sprintf(
+		"%s at %d:%d: %s",
 		e.Code, e.Span.Start.Line, e.Span.Start.Column, e.Message,
 	)
 }

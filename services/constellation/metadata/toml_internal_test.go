@@ -245,7 +245,10 @@ func TestMarshalunmarshalTOML_ActionsCustomTypesInheritedRoles(t *testing.T) {
 	// Pin that nested request_transform integers decode as int64, not the
 	// go-toml default, matching the JSON path.
 	if v, ok := got.Actions[0].Definition.RequestTransform["version"].(int64); !ok || v != 2 {
-		t.Errorf("request_transform version = %#v, want int64(2)", got.Actions[0].Definition.RequestTransform["version"])
+		t.Errorf(
+			"request_transform version = %#v, want int64(2)",
+			got.Actions[0].Definition.RequestTransform["version"],
+		)
 	}
 }
 

@@ -3,8 +3,8 @@ package requestcontext_test
 import (
 	"context"
 	"net/http"
-	"slices"
 	"net/http/httptest"
+	"slices"
 	"testing"
 
 	"github.com/gin-gonic/gin"
@@ -150,7 +150,9 @@ func TestResponseHeaderCollectorRoundTrip(t *testing.T) {
 	}
 
 	// Reachable through the *gin.Context unwrap path too.
-	if got := requestcontext.ResponseHeaderCollectorFromContext(ginContextWith(ctx, t)); got != collector {
+	if got := requestcontext.ResponseHeaderCollectorFromContext(
+		ginContextWith(ctx, t),
+	); got != collector {
 		t.Fatalf("FromContext via gin = %p, want %p", got, collector)
 	}
 }

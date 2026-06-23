@@ -245,7 +245,9 @@ func fromPairsF(v eval.Value) (eval.Value, error) {
 	for _, el := range arr {
 		pair, ok := el.([]eval.Value)
 		if !ok || len(pair) != 2 {
-			return nil, errors.New("Expected an array of shape [ [k1,v1], [k2,v2] ... ] - With String keys.")
+			return nil, errors.New(
+				"Expected an array of shape [ [k1,v1], [k2,v2] ... ] - With String keys.",
+			)
 		}
 		key, err := pairKeyFromValue(pair[0])
 		if err != nil {

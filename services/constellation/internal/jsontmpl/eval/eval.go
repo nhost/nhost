@@ -61,7 +61,11 @@ func (e *evaluator) eval(n ast.Node) (Value, error) {
 	case ast.Number:
 		f, err := strconv.ParseFloat(x.Text, 64)
 		if err != nil {
-			return nil, &Error{Code: CodeType, Msg: fmt.Sprintf("invalid number %q: %v", x.Text, err), Span: x.Span}
+			return nil, &Error{
+				Code: CodeType,
+				Msg:  fmt.Sprintf("invalid number %q: %v", x.Text, err),
+				Span: x.Span,
+			}
 		}
 		return f, nil
 	case ast.String:
@@ -338,7 +342,11 @@ func (e *evaluator) evalCompare(l, r ast.Node, predicate func(int) bool) (Value,
 	return predicate(Compare(lv, rv)), nil
 }
 
-func (e *evaluator) evalAndOr(l, r ast.Node, sp token.Span, op func(bool, bool) bool) (Value, error) {
+func (e *evaluator) evalAndOr(
+	l, r ast.Node,
+	sp token.Span,
+	op func(bool, bool) bool,
+) (Value, error) {
 	// Both eager (Eval.hs:170-186). No short-circuit.
 	lv, err := e.eval(l)
 	if err != nil {

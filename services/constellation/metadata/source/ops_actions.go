@@ -101,7 +101,10 @@ func parseActionInfo(argsJSON []byte, op string) (hasura.ActionMetadata, error) 
 	}
 
 	for i := range a.Definition.Headers {
-		if env := a.Definition.Headers[i].Value.FromEnv; strings.HasPrefix(env, reservedEnvVarPrefix) {
+		if env := a.Definition.Headers[i].Value.FromEnv; strings.HasPrefix(
+			env,
+			reservedEnvVarPrefix,
+		) {
 			return a, fmt.Errorf("%w: %s", ErrReservedEnvVarPrefix, env)
 		}
 	}

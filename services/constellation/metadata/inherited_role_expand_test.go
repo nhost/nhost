@@ -116,7 +116,10 @@ func TestExpandInheritedRoles_OnlyWhereAParentHasThePermission(t *testing.T) {
 		metadata.TableMetadata{
 			Table: metadata.TableSource{Schema: "public", Name: "orders"},
 			SelectPermissions: []metadata.SelectPermission{
-				{Role: "employee", Permission: metadata.SelectPermissionConfig{Columns: []string{"id"}}},
+				{
+					Role:       "employee",
+					Permission: metadata.SelectPermissionConfig{Columns: []string{"id"}},
+				},
 			},
 		},
 	)
@@ -144,7 +147,10 @@ func TestExpandInheritedRoles_ExplicitWinsAndIdempotent(t *testing.T) {
 		metadata.TableMetadata{
 			Table: metadata.TableSource{Schema: "public", Name: "orders"},
 			SelectPermissions: []metadata.SelectPermission{
-				{Role: "employee", Permission: metadata.SelectPermissionConfig{Columns: []string{"id", "amount"}}},
+				{
+					Role:       "employee",
+					Permission: metadata.SelectPermissionConfig{Columns: []string{"id", "amount"}},
+				},
 				{Role: "manager", Permission: explicit},
 			},
 		},
@@ -184,7 +190,10 @@ func TestExpandInheritedRoles_NestedExpandsInOrder(t *testing.T) {
 		metadata.TableMetadata{
 			Table: metadata.TableSource{Schema: "public", Name: "orders"},
 			SelectPermissions: []metadata.SelectPermission{
-				{Role: "employee", Permission: metadata.SelectPermissionConfig{Columns: []string{"id"}}},
+				{
+					Role:       "employee",
+					Permission: metadata.SelectPermissionConfig{Columns: []string{"id"}},
+				},
 			},
 		},
 	)
@@ -275,12 +284,18 @@ func TestExpandInheritedRoles_FunctionsAndActions(t *testing.T) {
 	metadata.ExpandInheritedRoles(t.Context(), meta, metadata.NewInconsistencies(), nil)
 
 	fnRoles := meta.Databases[0].Functions[0].Permissions
-	if !slices.ContainsFunc(fnRoles, func(p metadata.FunctionPermission) bool { return p.Role == "manager" }) {
+	if !slices.ContainsFunc(
+		fnRoles,
+		func(p metadata.FunctionPermission) bool { return p.Role == "manager" },
+	) {
 		t.Error("manager function permission not synthesized")
 	}
 
 	actRoles := meta.Actions[0].Permissions
-	if !slices.ContainsFunc(actRoles, func(p metadata.ActionPermission) bool { return p.Role == "manager" }) {
+	if !slices.ContainsFunc(
+		actRoles,
+		func(p metadata.ActionPermission) bool { return p.Role == "manager" },
+	) {
 		t.Error("manager action permission not synthesized")
 	}
 }

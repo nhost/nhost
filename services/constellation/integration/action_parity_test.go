@@ -127,7 +127,10 @@ func runActionExecutionParityTests(t *testing.T, cases []actionParityCase) {
 	t.Helper()
 
 	if !parityEnvReady() {
-		t.Skipf("DB-source Constellation not reachable at %s; run `make parity-env-up`", constellationMetadataURL)
+		t.Skipf(
+			"DB-source Constellation not reachable at %s; run `make parity-env-up`",
+			constellationMetadataURL,
+		)
 	}
 
 	if !hasuraReady() {
@@ -163,7 +166,11 @@ func runActionExecutionParityTests(t *testing.T, cases []actionParityCase) {
 			// not orphan a type still referenced by this action.
 			t.Cleanup(func() {
 				for _, url := range engines {
-					postMetadata(t, url, fmt.Sprintf(`{"type":"drop_action","args":{"name":%q}}`, tc.field))
+					postMetadata(
+						t,
+						url,
+						fmt.Sprintf(`{"type":"drop_action","args":{"name":%q}}`, tc.field),
+					)
 				}
 			})
 
@@ -276,7 +283,11 @@ func compareActionParity(t *testing.T, tc actionParityCase, hResp, cResp any) {
 	if hErr != cErr {
 		t.Errorf(
 			"%s: outcome differs (hasura error=%v, constellation error=%v)\n  hasura: %v\n  constellation: %v",
-			tc.name, hErr, cErr, hResp, cResp,
+			tc.name,
+			hErr,
+			cErr,
+			hResp,
+			cResp,
 		)
 
 		return

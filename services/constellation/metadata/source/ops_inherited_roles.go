@@ -36,11 +36,19 @@ type inheritedRoleArgs struct {
 
 func (a inheritedRoleArgs) validate() error {
 	if a.RoleName == "" {
-		return fmt.Errorf("%w: %s: role_name is required", errMissingRequiredField, opAddInheritedRole)
+		return fmt.Errorf(
+			"%w: %s: role_name is required",
+			errMissingRequiredField,
+			opAddInheritedRole,
+		)
 	}
 
 	if len(a.RoleSet) == 0 {
-		return fmt.Errorf("%w: %s: role_set is required", errMissingRequiredField, opAddInheritedRole)
+		return fmt.Errorf(
+			"%w: %s: role_set is required",
+			errMissingRequiredField,
+			opAddInheritedRole,
+		)
 	}
 
 	if slices.Contains(a.RoleSet, a.RoleName) {

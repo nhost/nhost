@@ -167,7 +167,13 @@ func BuildMutation(opType string, argsJSON []byte) (MutationFn, error) {
 		return buildDropRemoteSchemaPermissions(argsJSON)
 	}
 
-	if fn, err := buildRemoteSchemaMutation(opType, argsJSON); !errors.Is(err, ErrUnknownMutationOp) {
+	if fn, err := buildRemoteSchemaMutation(
+		opType,
+		argsJSON,
+	); !errors.Is(
+		err,
+		ErrUnknownMutationOp,
+	) {
 		return fn, err
 	}
 

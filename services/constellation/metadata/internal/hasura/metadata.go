@@ -19,12 +19,12 @@ import (
 // Metadata is the Hasura v3 top-level envelope: database sources, remote
 // GraphQL schemas, and optional action/custom-type metadata.
 type Metadata struct {
-	Databases       []DatabaseMetadata     `json:"databases"                yaml:"databases"`
-	RemoteSchemas   []RemoteSchemaMetadata `json:"remote_schemas,omitempty" yaml:"remote_schemas,omitempty"`
-	Actions         []ActionMetadata       `json:"actions,omitempty"        yaml:"actions,omitempty"`
-	CustomTypes     CustomTypes            `json:"custom_types,omitzero"    yaml:"custom_types,omitempty"`
+	Databases       []DatabaseMetadata     `json:"databases"                 yaml:"databases"`
+	RemoteSchemas   []RemoteSchemaMetadata `json:"remote_schemas,omitempty"  yaml:"remote_schemas,omitempty"`
+	Actions         []ActionMetadata       `json:"actions,omitempty"         yaml:"actions,omitempty"`
+	CustomTypes     CustomTypes            `json:"custom_types,omitzero"     yaml:"custom_types,omitempty"`
 	InheritedRoles  []InheritedRole        `json:"inherited_roles,omitempty" yaml:"inherited_roles,omitempty"`
-	LoadDiagnostics []LoadDiagnostic       `json:"-"                        yaml:"-"`
+	LoadDiagnostics []LoadDiagnostic       `json:"-"                         yaml:"-"`
 
 	Unknown jsontext.Value `json:",unknown" yaml:"-"`
 }

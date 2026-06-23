@@ -103,7 +103,13 @@ func TestCreateAction_RequiresNameAndHandler(t *testing.T) {
 		`{"definition":{"handler":"http://h.test"}}`,
 		`{"name":"noHandler","definition":{}}`,
 	} {
-		if _, _, err := s.CreateAction(t.Context(), []byte(args)); !errors.Is(err, errMissingRequiredField) {
+		if _, _, err := s.CreateAction(
+			t.Context(),
+			[]byte(args),
+		); !errors.Is(
+			err,
+			errMissingRequiredField,
+		) {
 			t.Errorf("CreateAction(%s) err = %v, want missing-required-field", args, err)
 		}
 	}
@@ -120,12 +126,24 @@ func TestCreateAndUpdateAction_RejectReservedEnvVarHeader(t *testing.T) {
 
 	// create_action rejects a HASURA_GRAPHQL_* value_from_env header, matching
 	// Hasura's parse-failed security guard.
-	if _, _, err := s.CreateAction(t.Context(), []byte(reserved)); !errors.Is(err, ErrReservedEnvVarPrefix) {
+	if _, _, err := s.CreateAction(
+		t.Context(),
+		[]byte(reserved),
+	); !errors.Is(
+		err,
+		ErrReservedEnvVarPrefix,
+	) {
 		t.Errorf("CreateAction err = %v, want ErrReservedEnvVarPrefix", err)
 	}
 
 	// update_action enforces the same guard.
-	if _, _, err := s.UpdateAction(t.Context(), []byte(reserved)); !errors.Is(err, ErrReservedEnvVarPrefix) {
+	if _, _, err := s.UpdateAction(
+		t.Context(),
+		[]byte(reserved),
+	); !errors.Is(
+		err,
+		ErrReservedEnvVarPrefix,
+	) {
 		t.Errorf("UpdateAction err = %v, want ErrReservedEnvVarPrefix", err)
 	}
 
@@ -185,7 +203,10 @@ func TestUpdateAndDropAction_NotFound(t *testing.T) {
 
 	s := bootstrappedStore(t, &fakeWriter{})
 
-	_, _, err := s.UpdateAction(t.Context(), []byte(`{"name":"ghost","definition":{"handler":"http://h"}}`))
+	_, _, err := s.UpdateAction(
+		t.Context(),
+		[]byte(`{"name":"ghost","definition":{"handler":"http://h"}}`),
+	)
 	if !errors.Is(err, ErrActionNotFound) {
 		t.Errorf("UpdateAction err = %v, want ErrActionNotFound", err)
 	}
@@ -205,7 +226,10 @@ func TestDropAction_Removes(t *testing.T) {
 		t.Fatalf("CreateAction: %v", err)
 	}
 
-	if _, _, err := s.DropAction(t.Context(), []byte(`{"name":"sendEmail","clear_data":true}`)); err != nil {
+	if _, _, err := s.DropAction(
+		t.Context(),
+		[]byte(`{"name":"sendEmail","clear_data":true}`),
+	); err != nil {
 		t.Fatalf("DropAction: %v", err)
 	}
 
@@ -271,7 +295,10 @@ func TestBuildMutation_RoutesActionOps(t *testing.T) {
 		opCreateActionPermission, opDropActionPermission, opSetCustomTypes,
 	} {
 		if _, err := BuildMutation(op, []byte(`{}`)); errors.Is(err, ErrUnknownMutationOp) {
-			t.Errorf("BuildMutation(%q) returned ErrUnknownMutationOp; missing from bulk dispatch", op)
+			t.Errorf(
+				"BuildMutation(%q) returned ErrUnknownMutationOp; missing from bulk dispatch",
+				op,
+			)
 		}
 	}
 }
@@ -312,7 +339,10 @@ func TestSetCustomTypes_Replaces(t *testing.T) {
 	}
 
 	// A second call fully replaces the previous registry.
-	if _, _, err := s.SetCustomTypes(t.Context(), []byte(`{"enums":[{"name":"Color","values":[{"value":"RED"}]}]}`)); err != nil {
+	if _, _, err := s.SetCustomTypes(
+		t.Context(),
+		[]byte(`{"enums":[{"name":"Color","values":[{"value":"RED"}]}]}`),
+	); err != nil {
 		t.Fatalf("SetCustomTypes (replace): %v", err)
 	}
 

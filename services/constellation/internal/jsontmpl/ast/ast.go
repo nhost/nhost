@@ -28,8 +28,8 @@ type Object struct {
 	Fields []ObjectField
 }
 
-func (n Object) isNode()                {}
-func (n Object) GetSpan() token.Span    { return n.Span }
+func (n Object) isNode()             {}
+func (n Object) GetSpan() token.Span { return n.Span }
 
 type Array struct {
 	Span  token.Span

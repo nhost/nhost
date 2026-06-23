@@ -81,6 +81,7 @@ func (l *lexer) popMode() {
 		l.modes = l.modes[:len(l.modes)-1]
 	}
 }
+
 func (l *lexer) mode() mode {
 	if len(l.modes) == 0 {
 		return modeInit
@@ -170,21 +171,39 @@ func (l *lexer) stepCode() error {
 	if c == '"' {
 		l.advanceN(1)
 		l.pushMode(modeString)
-		l.emit(token.Token{Kind: token.KindStringBegin, Text: `"`, Span: token.Span{Start: start, End: l.pos}})
+		l.emit(
+			token.Token{
+				Kind: token.KindStringBegin,
+				Text: `"`,
+				Span: token.Span{Start: start, End: l.pos},
+			},
+		)
 		return nil
 	}
 	// Single-quote: enter literal mode.
 	if c == '\'' {
 		l.advanceN(1)
 		l.pushMode(modeLiteral)
-		l.emit(token.Token{Kind: token.KindSingleQuote, Text: "'", Span: token.Span{Start: start, End: l.pos}})
+		l.emit(
+			token.Token{
+				Kind: token.KindSingleQuote,
+				Text: "'",
+				Span: token.Span{Start: start, End: l.pos},
+			},
+		)
 		return nil
 	}
 	// Digraphs first.
 	if l.has2("{{") {
 		l.advanceN(2)
 		l.pushMode(modeExpr)
-		l.emit(token.Token{Kind: token.KindDoubleCurlyOpen, Text: "{{", Span: token.Span{Start: start, End: l.pos}})
+		l.emit(
+			token.Token{
+				Kind: token.KindDoubleCurlyOpen,
+				Text: "{{",
+				Span: token.Span{Start: start, End: l.pos},
+			},
+		)
 		return nil
 	}
 	// }} only matches in modeExpr (Lexer.x:75). At top level we treat
@@ -192,47 +211,93 @@ func (l *lexer) stepCode() error {
 	if l.mode() == modeExpr && l.has2("}}") {
 		l.advanceN(2)
 		l.popMode()
-		l.emit(token.Token{Kind: token.KindDoubleCurlyClose, Text: "}}", Span: token.Span{Start: start, End: l.pos}})
+		l.emit(
+			token.Token{
+				Kind: token.KindDoubleCurlyClose,
+				Text: "}}",
+				Span: token.Span{Start: start, End: l.pos},
+			},
+		)
 		return nil
 	}
 	if l.has2("==") {
 		l.advanceN(2)
-		l.emit(token.Token{Kind: token.KindEq, Text: "==", Span: token.Span{Start: start, End: l.pos}})
+		l.emit(
+			token.Token{Kind: token.KindEq, Text: "==", Span: token.Span{Start: start, End: l.pos}},
+		)
 		return nil
 	}
 	if l.has2("!=") {
 		l.advanceN(2)
-		l.emit(token.Token{Kind: token.KindNotEq, Text: "!=", Span: token.Span{Start: start, End: l.pos}})
+		l.emit(
+			token.Token{
+				Kind: token.KindNotEq,
+				Text: "!=",
+				Span: token.Span{Start: start, End: l.pos},
+			},
+		)
 		return nil
 	}
 	if l.has2(">=") {
 		l.advanceN(2)
-		l.emit(token.Token{Kind: token.KindGte, Text: ">=", Span: token.Span{Start: start, End: l.pos}})
+		l.emit(
+			token.Token{
+				Kind: token.KindGte,
+				Text: ">=",
+				Span: token.Span{Start: start, End: l.pos},
+			},
+		)
 		return nil
 	}
 	if l.has2("<=") {
 		l.advanceN(2)
-		l.emit(token.Token{Kind: token.KindLte, Text: "<=", Span: token.Span{Start: start, End: l.pos}})
+		l.emit(
+			token.Token{
+				Kind: token.KindLte,
+				Text: "<=",
+				Span: token.Span{Start: start, End: l.pos},
+			},
+		)
 		return nil
 	}
 	if l.has2("&&") {
 		l.advanceN(2)
-		l.emit(token.Token{Kind: token.KindAnd, Text: "&&", Span: token.Span{Start: start, End: l.pos}})
+		l.emit(
+			token.Token{
+				Kind: token.KindAnd,
+				Text: "&&",
+				Span: token.Span{Start: start, End: l.pos},
+			},
+		)
 		return nil
 	}
 	if l.has2("||") {
 		l.advanceN(2)
-		l.emit(token.Token{Kind: token.KindOr, Text: "||", Span: token.Span{Start: start, End: l.pos}})
+		l.emit(
+			token.Token{Kind: token.KindOr, Text: "||", Span: token.Span{Start: start, End: l.pos}},
+		)
 		return nil
 	}
 	if l.has2("??") {
 		l.advanceN(2)
-		l.emit(token.Token{Kind: token.KindDoubleQuestionMark, Text: "??", Span: token.Span{Start: start, End: l.pos}})
+		l.emit(
+			token.Token{
+				Kind: token.KindDoubleQuestionMark,
+				Text: "??",
+				Span: token.Span{Start: start, End: l.pos},
+			},
+		)
 		return nil
 	}
 	if l.has2(":=") {
 		l.advanceN(2)
-		l.emit(token.Token{Kind: token.KindAssignment, Text: ":=", Span: token.Span{Start: start, End: l.pos}})
+		l.emit(
+			token.Token{
+				Kind: token.KindAssignment,
+				Text: ":=",
+				Span: token.Span{Start: start, End: l.pos},
+			},
+		)
 		return nil
 	}
 
@@ -253,55 +318,121 @@ func (l *lexer) stepCode() error {
 	switch c {
 	case ':':
 		l.advanceN(1)
-		l.emit(token.Token{Kind: token.KindColon, Text: ":", Span: token.Span{Start: start, End: l.pos}})
+		l.emit(
+			token.Token{
+				Kind: token.KindColon,
+				Text: ":",
+				Span: token.Span{Start: start, End: l.pos},
+			},
+		)
 		return nil
 	case '.':
 		l.advanceN(1)
-		l.emit(token.Token{Kind: token.KindDot, Text: ".", Span: token.Span{Start: start, End: l.pos}})
+		l.emit(
+			token.Token{Kind: token.KindDot, Text: ".", Span: token.Span{Start: start, End: l.pos}},
+		)
 		return nil
 	case ',':
 		l.advanceN(1)
-		l.emit(token.Token{Kind: token.KindComma, Text: ",", Span: token.Span{Start: start, End: l.pos}})
+		l.emit(
+			token.Token{
+				Kind: token.KindComma,
+				Text: ",",
+				Span: token.Span{Start: start, End: l.pos},
+			},
+		)
 		return nil
 	case '?':
 		l.advanceN(1)
-		l.emit(token.Token{Kind: token.KindQuestionMark, Text: "?", Span: token.Span{Start: start, End: l.pos}})
+		l.emit(
+			token.Token{
+				Kind: token.KindQuestionMark,
+				Text: "?",
+				Span: token.Span{Start: start, End: l.pos},
+			},
+		)
 		return nil
 	case '>':
 		l.advanceN(1)
-		l.emit(token.Token{Kind: token.KindGt, Text: ">", Span: token.Span{Start: start, End: l.pos}})
+		l.emit(
+			token.Token{Kind: token.KindGt, Text: ">", Span: token.Span{Start: start, End: l.pos}},
+		)
 		return nil
 	case '<':
 		l.advanceN(1)
-		l.emit(token.Token{Kind: token.KindLt, Text: "<", Span: token.Span{Start: start, End: l.pos}})
+		l.emit(
+			token.Token{Kind: token.KindLt, Text: "<", Span: token.Span{Start: start, End: l.pos}},
+		)
 		return nil
 	case '_':
 		l.advanceN(1)
-		l.emit(token.Token{Kind: token.KindUnderscore, Text: "_", Span: token.Span{Start: start, End: l.pos}})
+		l.emit(
+			token.Token{
+				Kind: token.KindUnderscore,
+				Text: "_",
+				Span: token.Span{Start: start, End: l.pos},
+			},
+		)
 		return nil
 	case '{':
 		l.advanceN(1)
-		l.emit(token.Token{Kind: token.KindCurlyOpen, Text: "{", Span: token.Span{Start: start, End: l.pos}})
+		l.emit(
+			token.Token{
+				Kind: token.KindCurlyOpen,
+				Text: "{",
+				Span: token.Span{Start: start, End: l.pos},
+			},
+		)
 		return nil
 	case '}':
 		l.advanceN(1)
-		l.emit(token.Token{Kind: token.KindCurlyClose, Text: "}", Span: token.Span{Start: start, End: l.pos}})
+		l.emit(
+			token.Token{
+				Kind: token.KindCurlyClose,
+				Text: "}",
+				Span: token.Span{Start: start, End: l.pos},
+			},
+		)
 		return nil
 	case '[':
 		l.advanceN(1)
-		l.emit(token.Token{Kind: token.KindSquareOpen, Text: "[", Span: token.Span{Start: start, End: l.pos}})
+		l.emit(
+			token.Token{
+				Kind: token.KindSquareOpen,
+				Text: "[",
+				Span: token.Span{Start: start, End: l.pos},
+			},
+		)
 		return nil
 	case ']':
 		l.advanceN(1)
-		l.emit(token.Token{Kind: token.KindSquareClose, Text: "]", Span: token.Span{Start: start, End: l.pos}})
+		l.emit(
+			token.Token{
+				Kind: token.KindSquareClose,
+				Text: "]",
+				Span: token.Span{Start: start, End: l.pos},
+			},
+		)
 		return nil
 	case '(':
 		l.advanceN(1)
-		l.emit(token.Token{Kind: token.KindParenOpen, Text: "(", Span: token.Span{Start: start, End: l.pos}})
+		l.emit(
+			token.Token{
+				Kind: token.KindParenOpen,
+				Text: "(",
+				Span: token.Span{Start: start, End: l.pos},
+			},
+		)
 		return nil
 	case ')':
 		l.advanceN(1)
-		l.emit(token.Token{Kind: token.KindParenClose, Text: ")", Span: token.Span{Start: start, End: l.pos}})
+		l.emit(
+			token.Token{
+				Kind: token.KindParenClose,
+				Text: ")",
+				Span: token.Span{Start: start, End: l.pos},
+			},
+		)
 		return nil
 	}
 
@@ -405,7 +536,13 @@ func (l *lexer) lexIdent() error {
 	text := l.src[startOff:l.pos.Offset]
 	// `$` alone is valid (Lexer.x:28 emits TokIdentifier "$").
 	if text == "$" {
-		l.emit(token.Token{Kind: token.KindIdentifier, Text: "$", Span: token.Span{Start: start, End: l.pos}})
+		l.emit(
+			token.Token{
+				Kind: token.KindIdentifier,
+				Text: "$",
+				Span: token.Span{Start: start, End: l.pos},
+			},
+		)
 		return nil
 	}
 	if !hasAlpha {
@@ -413,11 +550,31 @@ func (l *lexer) lexIdent() error {
 	}
 	switch text {
 	case "true":
-		l.emit(token.Token{Kind: token.KindBoolLit, Text: text, Bool: true, Span: token.Span{Start: start, End: l.pos}})
+		l.emit(
+			token.Token{
+				Kind: token.KindBoolLit,
+				Text: text,
+				Bool: true,
+				Span: token.Span{Start: start, End: l.pos},
+			},
+		)
 	case "false":
-		l.emit(token.Token{Kind: token.KindBoolLit, Text: text, Bool: false, Span: token.Span{Start: start, End: l.pos}})
+		l.emit(
+			token.Token{
+				Kind: token.KindBoolLit,
+				Text: text,
+				Bool: false,
+				Span: token.Span{Start: start, End: l.pos},
+			},
+		)
 	default:
-		l.emit(token.Token{Kind: token.KindIdentifier, Text: text, Span: token.Span{Start: start, End: l.pos}})
+		l.emit(
+			token.Token{
+				Kind: token.KindIdentifier,
+				Text: text,
+				Span: token.Span{Start: start, End: l.pos},
+			},
+		)
 	}
 	return nil
 }
@@ -433,19 +590,37 @@ func (l *lexer) stepString() error {
 	if c == '"' {
 		l.advanceN(1)
 		l.popMode()
-		l.emit(token.Token{Kind: token.KindStringEnd, Text: `"`, Span: token.Span{Start: start, End: l.pos}})
+		l.emit(
+			token.Token{
+				Kind: token.KindStringEnd,
+				Text: `"`,
+				Span: token.Span{Start: start, End: l.pos},
+			},
+		)
 		return nil
 	}
 	if l.has2("{{") {
 		l.advanceN(2)
 		l.pushMode(modeExpr)
-		l.emit(token.Token{Kind: token.KindDoubleCurlyOpen, Text: "{{", Span: token.Span{Start: start, End: l.pos}})
+		l.emit(
+			token.Token{
+				Kind: token.KindDoubleCurlyOpen,
+				Text: "{{",
+				Span: token.Span{Start: start, End: l.pos},
+			},
+		)
 		return nil
 	}
 	// Single '{' is a literal { in upstream.
 	if c == '{' {
 		l.advanceN(1)
-		l.emit(token.Token{Kind: token.KindStringLit, Text: "{", Span: token.Span{Start: start, End: l.pos}})
+		l.emit(
+			token.Token{
+				Kind: token.KindStringLit,
+				Text: "{",
+				Span: token.Span{Start: start, End: l.pos},
+			},
+		)
 		return nil
 	}
 	// Escape sequence.
@@ -466,7 +641,13 @@ func (l *lexer) stepString() error {
 	if sb.Len() == 0 {
 		return l.errAt(start, "unterminated string")
 	}
-	l.emit(token.Token{Kind: token.KindStringLit, Text: sb.String(), Span: token.Span{Start: start, End: l.pos}})
+	l.emit(
+		token.Token{
+			Kind: token.KindStringLit,
+			Text: sb.String(),
+			Span: token.Span{Start: start, End: l.pos},
+		},
+	)
 	return nil
 }
 
@@ -509,7 +690,13 @@ func (l *lexer) lexStringEscape() error {
 		return l.errAt(start, fmt.Sprintf("invalid escape sequence \\%c", c))
 	}
 	l.advanceN(1)
-	l.emit(token.Token{Kind: token.KindStringLit, Text: out, Span: token.Span{Start: start, End: l.pos}})
+	l.emit(
+		token.Token{
+			Kind: token.KindStringLit,
+			Text: out,
+			Span: token.Span{Start: start, End: l.pos},
+		},
+	)
 	return nil
 }
 
@@ -537,7 +724,13 @@ func (l *lexer) lexUnicodeEscape(start token.Position) error {
 		}
 		r = decoded
 	}
-	l.emit(token.Token{Kind: token.KindStringLit, Text: string(r), Span: token.Span{Start: start, End: l.pos}})
+	l.emit(
+		token.Token{
+			Kind: token.KindStringLit,
+			Text: string(r),
+			Span: token.Span{Start: start, End: l.pos},
+		},
+	)
 	return nil
 }
 
@@ -569,7 +762,13 @@ func (l *lexer) stepLiteral() error {
 	if c == '\'' {
 		l.advanceN(1)
 		l.popMode()
-		l.emit(token.Token{Kind: token.KindSingleQuote, Text: "'", Span: token.Span{Start: start, End: l.pos}})
+		l.emit(
+			token.Token{
+				Kind: token.KindSingleQuote,
+				Text: "'",
+				Span: token.Span{Start: start, End: l.pos},
+			},
+		)
 		return nil
 	}
 	if c == '{' {
@@ -594,10 +793,16 @@ func (l *lexer) stepLiteral() error {
 	if sb.Len() == 0 {
 		return l.errAt(start, "empty fragment in single-quoted string")
 	}
-	l.emit(token.Token{Kind: token.KindStringLit, Text: sb.String(), Span: token.Span{Start: start, End: l.pos}})
+	l.emit(
+		token.Token{
+			Kind: token.KindStringLit,
+			Text: sb.String(),
+			Span: token.Span{Start: start, End: l.pos},
+		},
+	)
 	return nil
 }
 
-func isDigit(b byte) bool { return b >= '0' && b <= '9' }
-func isAlpha(b byte) bool { return (b >= 'a' && b <= 'z') || (b >= 'A' && b <= 'Z') }
+func isDigit(b byte) bool    { return b >= '0' && b <= '9' }
+func isAlpha(b byte) bool    { return (b >= 'a' && b <= 'z') || (b >= 'A' && b <= 'Z') }
 func isNumStart(b byte) bool { return isDigit(b) }

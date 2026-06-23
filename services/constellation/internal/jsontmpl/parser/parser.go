@@ -51,7 +51,10 @@ func Parse(toks []token.Token) (ast.Node, error) {
 		return nil, err
 	}
 	if p.peek().Kind != token.KindEOF {
-		return nil, p.errAt(p.peek().Span, fmt.Sprintf("unexpected token %s after expression", p.peek()))
+		return nil, p.errAt(
+			p.peek().Span,
+			fmt.Sprintf("unexpected token %s after expression", p.peek()),
+		)
 	}
 	return n, nil
 }
@@ -158,7 +161,8 @@ func (p *parser) parseExpr() (ast.Node, error) {
 		}
 		return ast.Function{Span: spanOf(notTok.Span, arg.GetSpan()), Name: "not", Arg: arg}, nil
 	}
-	if p.peek().Kind == token.KindIdentifier && p.peekAt(1).Kind == token.KindParenOpen && !isReservedIdent(p.peek().Text) {
+	if p.peek().Kind == token.KindIdentifier && p.peekAt(1).Kind == token.KindParenOpen &&
+		!isReservedIdent(p.peek().Text) {
 		return p.parseFunctionCall()
 	}
 
