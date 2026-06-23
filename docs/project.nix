@@ -55,7 +55,10 @@ let
     vale
   ];
 
-  buildInputs = with pkgs; [ nhost.nodejs ];
+  buildInputs = with pkgs; [
+    nhost.nodejs
+    nhost.go # used by gen.sh to generate the configuration reference from the CUE schema
+  ];
 
   nativeBuildInputs = with pkgs; [
     nhost.pnpm

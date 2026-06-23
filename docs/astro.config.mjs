@@ -289,7 +289,6 @@ export default defineConfig({
               icon: 'seti:graphql',
               items: [
                 { label: 'GraphQL', slug: 'products/graphql' },
-                { slug: 'products/graphql/constellation' },
                 {
                   label: 'Configuration',
                   collapsed: false,
@@ -309,6 +308,7 @@ export default defineConfig({
                     },
                     { slug: 'products/graphql/remote-schemas' },
                     { slug: 'products/graphql/advanced-features' },
+                    { slug: 'products/graphql/constellation' },
                   ],
                 },
                 {
@@ -671,6 +671,7 @@ export default defineConfig({
               icon: 'open-book',
               items: [
                 { label: 'Reference', slug: 'reference' },
+                { label: 'Configuration', slug: 'reference/configuration' },
                 {
                   label: 'Backend Services',
                   collapsed: false,

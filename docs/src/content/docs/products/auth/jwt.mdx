@@ -195,6 +195,72 @@ jwIDAQAB
 When using external signing the Auth service will be automatically disabled.
 :::
 
+### Claims Mapping and Namespace
+
+When verifying tokens — especially those issued by an external provider — you can remap their claims onto the session variables your permissions expect, and control where those claims are read from. The `claims_namespace` defaults to `https://hasura.io/jwt/claims` (a retained identifier kept for compatibility) and can be overridden with `claims_namespace` or `claims_namespace_path`. Use `claims_map` to project individual claims from a literal value or a JSON path within the token.
+
+<Tabs>
+  <TabItem label="nhost.toml">
+
+```toml
+[[hasura.jwtSecrets]]
+jwk_url = "https://my-auth-server.com/.well-known/jwks.json"
+issuer = "https://my-auth-server.com"
+
+[[hasura.jwtSecrets.claims_map]]
+claim = "x-some-claim"
+value = "some-value"
+
+[[hasura.jwtSecrets.claims_map]]
+claim = "x-other-claim"
+path = "$.user.claim.id"
+default = "default-value"
+```
+
+  </TabItem>
+  <TabItem label="Schema">
+
+```cue
+#JWTSecret:
+	({
+		type: "HS384" | "HS512" | "RS256" | "RS384" | "RS512" | "Ed25519" | *"HS256"
+		key:  string
+	} |
+	{
+		jwk_url: #Url | *null
+	}) &
+	{
+		claims_format?: "stringified_json" | *"json"
+		audience?:      string
+		issuer?:        string
+		allowed_skew?:  uint32
+		header?:        string
+	} & {
+		claims_map?: [...#ClaimMap]
+	} &
+	({
+		claims_namespace: string | *"https://hasura.io/jwt/claims"
+	} |
+	{
+		claims_namespace_path: string
+	} | *{})
+
+#ClaimMap: {
+	claim: string
+	{
+		value: string
+	} | {
+		path:     string
+		default?: string
+	}
+}
+```
+
+  </TabItem>
+</Tabs>
+
+The complete `#JWTSecret` schema, with every field and default, is documented in the [configuration reference](/reference/configuration#jwtsecret).
+
 ## Verify a JWT
 
 To verify JWTs inside Nhost Functions (for both symmetric and asymmetric keys), see the [JWT Verification guide](/products/functions/guides/jwt-verification).

@@ -1,0 +1,854 @@
+---
+title: Configuration Reference
+description: Full reference for the nhost.toml configuration file, generated from the configuration schema.
+head:
+  - tag: title
+    content: "nhost.toml Configuration Reference | Nhost Docs"
+  - tag: style
+    content: |
+      .sl-markdown-content.sl-markdown-content h2:not(.sl-card-title) {
+        font-size: 2rem !important;
+        line-height: 1.2 !important;
+        margin-top: 5rem !important;
+        margin-bottom: 1.5rem !important;
+      }
+      .sl-markdown-content.sl-markdown-content h3:not(.sl-card-title),
+      .sl-markdown-content.sl-markdown-content h4:not(.sl-card-title),
+      .sl-markdown-content.sl-markdown-content h5:not(.sl-card-title),
+      .sl-markdown-content.sl-markdown-content h6:not(.sl-card-title) {
+        margin-top: 4rem !important;
+      }
+      .sl-markdown-content.sl-markdown-content table {
+        margin-bottom: 4rem !important;
+      }
+      .right-sidebar-panel {
+        padding-block-end: 5rem !important;
+      }
+sidebar:
+  label: Configuration
+---
+{/*
+  This page is generated from the configuration schema by tools/configdocs.
+  Do not edit it by hand; run "pnpm generate" in the docs workspace instead.
+*/}
+
+This page documents every field available in your project's `nhost.toml`, generated
+directly from the configuration schema. For task-oriented guidance and copy-paste
+examples, see the per-product documentation; this page is the exhaustive field reference.
+
+## Top-level structure
+
+The root of `nhost.toml` is made up of the following sections.
+
+| Section | Description |
+|---|---|
+| [`global`](#global) | Global configuration that applies to all services |
+| [`hasura`](#hasura) | Configuration for hasura |
+| [`graphql`](#graphql) | Advanced configuration for GraphQL |
+| [`functions`](#functions) | Configuration for functions service |
+| [`auth`](#auth) | Configuration for auth service |
+| [`postgres`](#postgres) | Configuration for postgres service |
+| [`provider`](#provider) | Configuration for third party providers like SMTP, SMS, etc. |
+| [`storage`](#storage) | Configuration for storage service |
+| [`ai`](#ai) | Configuration for graphite service |
+| [`observability`](#observability) | Configuration for observability service |
+| [`experimental`](#experimental) | Experimental configuration for unreleased services. Subject to breaking changes. |
+
+## global
+
+Global configuration that applies to all services
+
+| Field | Type | Default | Description |
+|---|---|---|---|
+| `environment` | list of [`GlobalEnvironmentVariable`](#globalenvironmentvariable) | `[]` | User-defined environment variables that are spread over all services |
+
+## hasura
+
+Configuration for hasura
+
+| Field | Type | Default | Description |
+|---|---|---|---|
+| `version` | `string` | `"v2.48.10-ce"` | Version of hasura, you can see available versions in the URL below: https://hub.docker.com/r/hasura/graphql-engine/tags |
+| `jwtSecrets` | list of [`JWTSecret`](#jwtsecret) |  | JWT Secrets configuration |
+| `adminSecret` | `string` |  | Admin secret |
+| `webhookSecret` | `string` |  | Webhook secret |
+| `settings` | object |  | Configuration for hasura services |
+| `authHook?` | object |  | Webhook used to authenticate GraphQL requests. |
+| `logs` | object |  | Logging configuration for the service. |
+| `events` | object |  | Event delivery configuration. |
+| `resources?` | [`Resources`](#resources) |  | Resources for the service |
+| `rateLimit?` | [`RateLimit`](#ratelimit) |  | Rate limiting applied to the service. |
+
+### `hasura.settings`
+
+| Field | Type | Default | Description |
+|---|---|---|---|
+| `corsDomain` | list of [`Url`](#url) | `["*"]` | Comma-separated list of domains allowed to make cross-origin requests. |
+| `devMode` | `bool` | `true` | Include detailed error messages in API responses (development only). |
+| `enableAllowList` | `bool` | `false` | Restrict execution to queries in the allowlist. |
+| `enableConsole` | `bool` | `true` | Serve the web console for managing the GraphQL API. |
+| `enableRemoteSchemaPermissions` | `bool` | `false` | Enforce role-based permissions on remote schemas. |
+| `enabledAPIs` | list of [`HasuraAPIs`](#hasuraapis) | `["metadata", "graphql", "pgdump", "config"]` | Comma-separated list of APIs to expose (e.g. metadata, graphql). |
+| `inferFunctionPermissions` | `bool` | `true` | Automatically infer permissions for custom SQL functions. |
+| `liveQueriesMultiplexedRefetchInterval` | `uint32` | `1000` | How often, in milliseconds, live queries are refetched. |
+| `stringifyNumericTypes` | `bool` | `false` | Return numeric and bigint values as strings to avoid precision loss. |
+
+### `hasura.authHook`
+
+*Optional.*
+
+| Field | Type | Default | Description |
+|---|---|---|---|
+| `url` | `string` |  | URL of the webhook used to authenticate requests. |
+| `mode` | `"GET"` | `"POST"` | HTTP method used to call the auth webhook (GET or POST). |
+| `sendRequestBody` | `bool` | `true` | Forward the request body to the auth webhook. |
+
+### `hasura.logs`
+
+| Field | Type | Default | Description |
+|---|---|---|---|
+| `level` | `"debug"` \| `"info"` \| `"error"` | `"warn"` | Minimum severity of log messages to emit. |
+
+### `hasura.events`
+
+| Field | Type | Default | Description |
+|---|---|---|---|
+| `httpPoolSize` | `uint32 & >=1 & <=100` | `100` | Maximum number of concurrent HTTP connections used to deliver events. |
+
+## graphql
+
+*Optional.* Advanced configuration for GraphQL
+
+| Field | Type | Default | Description |
+|---|---|---|---|
+| `security` | [`GraphqlSecurity`](#graphqlsecurity) |  | Security controls for the GraphQL API. |
+
+## functions
+
+Configuration for functions service
+
+| Field | Type | Default | Description |
+|---|---|---|---|
+| `node` | object |  | Node.js runtime configuration for functions. |
+| `resources?` | object |  | Compute resources and scaling for the service. |
+| `rateLimit?` | [`RateLimit`](#ratelimit) |  | Rate limiting applied to the service. |
+
+### `functions.node`
+
+| Field | Type | Default | Description |
+|---|---|---|---|
+| `version` | `20` | `22` | Version of the service image to deploy. |
+
+### `functions.resources`
+
+*Optional.*
+
+| Field | Type | Default | Description |
+|---|---|---|---|
+| `networking?` | [`Networking`](#networking) |  | Network exposure and ingress configuration. |
+
+## auth
+
+Configuration for auth service
+
+| Field | Type | Default | Description |
+|---|---|---|---|
+| `version` | `string` | `"0.49.1"` | Version of auth, you can see available versions in the URL below: https://hub.docker.com/r/nhost/hasura-auth/tags Releases: https://github.com/nhost/hasura-auth/releases |
+| `resources?` | [`Resources`](#resources) |  | Resources for the service |
+| `elevatedPrivileges` | object |  | Settings for elevated-privilege operations. |
+| `redirections` | object |  | Allowed post-authentication redirect URLs. |
+| `signUp` | object |  | User sign-up settings. |
+| `user` | object |  | Default settings applied to users. |
+| `session` | object |  | Access and refresh token settings. |
+| `method` | object |  | Available authentication methods. |
+| `totp` | object |  | Time-based one-time password (TOTP) authentication. |
+| `oauth2Provider` | object |  | Settings for acting as an OAuth 2.0 provider. |
+| `misc` | object |  | Miscellaneous authentication settings. |
+| `rateLimit` | [`AuthRateLimit`](#authratelimit) |  | Rate limiting applied to the service. |
+
+### `auth.elevatedPrivileges`
+
+| Field | Type | Default | Description |
+|---|---|---|---|
+| `mode` | `"recommended"` \| `"required"` | `"disabled"` | How elevated privileges are granted. |
+
+### `auth.redirections`
+
+| Field | Type | Default | Description |
+|---|---|---|---|
+| `clientUrl` | [`Url`](#url) | `"http://localhost:3000"` | URL of your frontend application, used for post-authentication redirects. |
+| `allowedUrls` | list of `string` |  | Additional URLs permitted as post-authentication redirect targets. |
+
+### `auth.signUp`
+
+| Field | Type | Default | Description |
+|---|---|---|---|
+| `enabled` | `bool` | `true` | Inverse of AUTH_DISABLE_SIGNUP |
+| `disableNewUsers` | `bool` | `false` | Block newly registered users from signing in until activated. |
+| `disableAutoSignup` | `bool` | `false` | Require explicit account creation instead of signing users up on first login. |
+| `turnstile?` | object |  | Cloudflare Turnstile bot-protection settings. |
+
+#### `auth.signUp.turnstile`
+
+*Optional.*
+
+| Field | Type | Default | Description |
+|---|---|---|---|
+| `secretKey` | `string` |  | Secret key used to verify Turnstile tokens. |
+
+### `auth.user`
+
+| Field | Type | Default | Description |
+|---|---|---|---|
+| `roles` | object |  | Default and allowed roles for users. |
+| `locale` | object |  | Default and allowed locales for users. |
+| `gravatar` | object |  | Gravatar avatar settings. |
+| `email` | object |  | Restrictions on which email addresses may sign up. |
+| `emailDomains` | object |  | Allowed and blocked email domains for sign-up. |
+
+#### `auth.user.roles`
+
+| Field | Type | Default | Description |
+|---|---|---|---|
+| `default` | [`UserRole`](#userrole) | `"user"` | Default role assigned to new users. |
+| `allowed` | list of [`UserRole`](#userrole) | `[default, "me"]` | Roles a user is allowed to assume. |
+
+#### `auth.user.locale`
+
+| Field | Type | Default | Description |
+|---|---|---|---|
+| `default` | [`Locale`](#locale) | `"en"` | Default locale used for emails and messages. |
+| `allowed` | list of [`Locale`](#locale) | `[default]` | Locales users are allowed to select. |
+
+#### `auth.user.gravatar`
+
+| Field | Type | Default | Description |
+|---|---|---|---|
+| `enabled` | `bool` | `true` | Use Gravatar to provide default user avatars. |
+| `default` | `"404"` \| `"mp"` \| `"identicon"` \| `"monsterid"` \| `"wavatar"` \| `"retro"` \| `"robohash"` | `"blank"` | Fallback Gravatar image used when a user has none. |
+| `rating` | `"pg"` \| `"r"` \| `"x"` | `"g"` | Maximum Gravatar content rating to allow. |
+
+#### `auth.user.email`
+
+| Field | Type | Default | Description |
+|---|---|---|---|
+| `allowed` | list of [`Email`](#email) |  | Email addresses permitted to sign up. |
+| `blocked` | list of [`Email`](#email) |  | Email addresses blocked from signing up. |
+
+#### `auth.user.emailDomains`
+
+| Field | Type | Default | Description |
+|---|---|---|---|
+| `allowed` | list of `string & net.FQDN` |  | Email domains permitted to sign up. |
+| `blocked` | list of `string & net.FQDN` |  | Email domains blocked from signing up. |
+
+### `auth.session`
+
+| Field | Type | Default | Description |
+|---|---|---|---|
+| `accessToken` | object |  | Access token settings. |
+| `refreshToken` | object |  | Refresh token settings. |
+
+#### `auth.session.accessToken`
+
+| Field | Type | Default | Description |
+|---|---|---|---|
+| `expiresIn` | `uint32` | `900` | Lifetime of an access token, in seconds. |
+| `customClaims` | list of object | `[]` | Custom claims added to the JWT, mapped from the session and database. |
+
+#### `auth.session.refreshToken`
+
+| Field | Type | Default | Description |
+|---|---|---|---|
+| `expiresIn` | `uint32` | `2592000` | Lifetime of a refresh token, in seconds. |
+
+### `auth.method`
+
+| Field | Type | Default | Description |
+|---|---|---|---|
+| `anonymous` | object |  | Anonymous (guest) sign-in. |
+| `emailPasswordless` | object |  | Passwordless sign-in via email magic link. |
+| `otp` | object |  | One-time password (OTP) sign-in. |
+| `emailPassword` | object |  | Email and password sign-in. |
+| `smsPasswordless` | object |  | Passwordless sign-in via SMS. |
+| `oauth` | object |  | OAuth social sign-in providers. |
+| `webauthn` | object |  | WebAuthn / passkey sign-in. |
+
+#### `auth.method.anonymous`
+
+| Field | Type | Default | Description |
+|---|---|---|---|
+| `enabled` | `bool` | `false` | Enable this feature. |
+
+#### `auth.method.emailPasswordless`
+
+| Field | Type | Default | Description |
+|---|---|---|---|
+| `enabled` | `bool` | `false` | Enable this feature. |
+
+#### `auth.method.otp`
+
+| Field | Type | Default | Description |
+|---|---|---|---|
+| `email` | object |  | Enable one-time-password sign-in over email. |
+
+##### `auth.method.otp.email`
+
+| Field | Type | Default | Description |
+|---|---|---|---|
+| `enabled` | `bool` | `false` | Enable this feature. |
+
+#### `auth.method.emailPassword`
+
+| Field | Type | Default | Description |
+|---|---|---|---|
+| `hibpEnabled` | `bool` | `false` | Disabling email+password sign in is not implmented yet enabled: bool \| *true |
+| `emailVerificationRequired` | `bool` | `true` | Require users to verify their email before signing in. |
+| `passwordMinLength` | `uint8 & >=3` | `9` | Minimum allowed password length. |
+
+#### `auth.method.smsPasswordless`
+
+| Field | Type | Default | Description |
+|---|---|---|---|
+| `enabled` | `bool` | `false` | Enable this feature. |
+
+#### `auth.method.oauth`
+
+| Field | Type | Default | Description |
+|---|---|---|---|
+| `apple` | object |  | Apple OAuth provider. |
+| `azuread` | object |  | Azure AD OAuth provider. |
+| `bitbucket` | [`StandardOauthProvider`](#standardoauthprovider) |  | Bitbucket OAuth provider. |
+| `discord` | [`StandardOauthProviderWithScope`](#standardoauthproviderwithscope) |  | Discord OAuth provider. |
+| `entraid` | object |  | Microsoft Entra ID OAuth provider. |
+| `facebook` | [`StandardOauthProviderWithScope`](#standardoauthproviderwithscope) |  | Facebook OAuth provider. |
+| `github` | [`StandardOauthProviderWithScope`](#standardoauthproviderwithscope) |  | GitHub OAuth provider. |
+| `gitlab` | [`StandardOauthProviderWithScope`](#standardoauthproviderwithscope) |  | GitLab OAuth provider. |
+| `google` | [`StandardOauthProviderWithScope`](#standardoauthproviderwithscope) |  | Google OAuth provider. |
+| `linkedin` | [`StandardOauthProviderWithScope`](#standardoauthproviderwithscope) |  | LinkedIn OAuth provider. |
+| `spotify` | [`StandardOauthProviderWithScope`](#standardoauthproviderwithscope) |  | Spotify OAuth provider. |
+| `strava` | [`StandardOauthProviderWithScope`](#standardoauthproviderwithscope) |  | Strava OAuth provider. |
+| `twitch` | [`StandardOauthProviderWithScope`](#standardoauthproviderwithscope) |  | Twitch OAuth provider. |
+| `twitter` | object |  | Twitter (X) OAuth provider. |
+| `windowslive` | [`StandardOauthProviderWithScope`](#standardoauthproviderwithscope) |  | Microsoft account (Windows Live) OAuth provider. |
+| `workos` | object |  | WorkOS OAuth provider. |
+
+##### `auth.method.oauth.apple`
+
+| Field | Type | Default | Description |
+|---|---|---|---|
+| `enabled` | `bool` | `false` | Enable this feature. |
+| `clientId` | `string` |  | *(conditional)* Client id |
+| `keyId` | `string` |  | *(conditional)* Key id |
+| `teamId` | `string` |  | *(conditional)* Team id |
+| `privateKey` | `string` |  | *(conditional)* Private key |
+| `audience?` | `string` |  | Expected audience claim for the provider's tokens. |
+| `scope?` | list of `string` |  | OAuth scopes requested from the provider. |
+
+##### `auth.method.oauth.azuread`
+
+Includes all fields from [`StandardOauthProvider`](#standardoauthprovider).
+
+| Field | Type | Default | Description |
+|---|---|---|---|
+| `tenant` | `string` | `"common"` | Directory (tenant) ID for the provider. |
+
+##### `auth.method.oauth.entraid`
+
+Includes all fields from [`StandardOauthProvider`](#standardoauthprovider).
+
+| Field | Type | Default | Description |
+|---|---|---|---|
+| `tenant` | `string` | `"common"` | Directory (tenant) ID for the provider. |
+
+##### `auth.method.oauth.twitter`
+
+| Field | Type | Default | Description |
+|---|---|---|---|
+| `enabled` | `bool` | `false` | Enable this feature. |
+| `consumerKey` | `string` |  | *(conditional)* Consumer key |
+| `consumerSecret` | `string` |  | *(conditional)* Consumer secret |
+
+##### `auth.method.oauth.workos`
+
+Includes all fields from [`StandardOauthProvider`](#standardoauthprovider).
+
+| Field | Type | Default | Description |
+|---|---|---|---|
+| `connection?` | `string` |  | Specific connection to use for the provider. |
+| `organization?` | `string` |  | Organization identifier for the provider. |
+
+#### `auth.method.webauthn`
+
+| Field | Type | Default | Description |
+|---|---|---|---|
+| `enabled` | `bool` | `false` | Enable this feature. |
+| `relyingParty?` | object |  | WebAuthn relying party settings. |
+| `attestation` | object |  | WebAuthn attestation conveyance settings. |
+
+##### `auth.method.webauthn.relyingParty`
+
+*Optional.*
+
+| Field | Type | Default | Description |
+|---|---|---|---|
+| `id` | `string` | `""` | Relying party identifier (typically your domain). |
+| `name?` | `string` |  | Human-readable relying party name. |
+| `origins?` | list of [`Url`](#url) | `[redirections.clientUrl]` | Allowed origins for WebAuthn ceremonies. |
+
+##### `auth.method.webauthn.attestation`
+
+| Field | Type | Default | Description |
+|---|---|---|---|
+| `timeout` | `uint32` | `60000` | Timeout, in milliseconds, for WebAuthn ceremonies. |
+
+### `auth.totp`
+
+| Field | Type | Default | Description |
+|---|---|---|---|
+| `enabled` | `bool` | `false` | Enable this feature. |
+| `issuer` | `string` |  | *(conditional)* Issuer |
+
+### `auth.oauth2Provider`
+
+| Field | Type | Default | Description |
+|---|---|---|---|
+| `enabled` | `bool` | `false` | Enable this feature. |
+| `loginURL` | `string` |  | *(conditional)* Login url |
+| `accessToken` | object |  | Access token settings. |
+| `refreshToken` | object |  | Refresh token settings. |
+| `clientIdMetadataDocument` | object |  | Client ID metadata document settings. |
+
+#### `auth.oauth2Provider.accessToken`
+
+| Field | Type | Default | Description |
+|---|---|---|---|
+| `expiresIn` | `uint32` | `900` | Token lifetime, in seconds. |
+
+#### `auth.oauth2Provider.refreshToken`
+
+| Field | Type | Default | Description |
+|---|---|---|---|
+| `expiresIn` | `uint32` | `2592000` | Token lifetime, in seconds. |
+
+#### `auth.oauth2Provider.clientIdMetadataDocument`
+
+| Field | Type | Default | Description |
+|---|---|---|---|
+| `enabled` | `bool` | `false` | Enable this feature. |
+
+### `auth.misc`
+
+| Field | Type | Default | Description |
+|---|---|---|---|
+| `concealErrors` | `bool` | `false` | Hide detailed error messages from API responses. |
+
+## postgres
+
+Configuration for postgres service
+
+| Field | Type | Default | Description |
+|---|---|---|---|
+| `version` | `string` | `"14.20-20251217-1"` | Version of postgres, you can see available versions in the URL below: https://hub.docker.com/r/nhost/postgres/tags |
+| `resources` | object |  | Resources for the service |
+| `settings?` | object |  | Advanced configuration settings for the service. |
+| `pitr?` | object |  | Point-in-time recovery settings. |
+
+### `postgres.resources`
+
+| Field | Type | Default | Description |
+|---|---|---|---|
+| `compute?` | [`ResourcesCompute`](#resourcescompute) |  | CPU and memory allocation. |
+| `storage` | object |  | Persistent disk storage. |
+| `replicas?` | `1` |  | Number of service replicas to run. |
+| `enablePublicAccess?` | `bool` | `false` | Expose the database on a public endpoint. |
+| `allowedCIDRs?` | `[...net.IPCIDR] & list.MaxItems(3)` |  | CIDR prefixes for IP-based access control. When set, only connections from these CIDRs are allowed. When unset, all IPs are allowed. Only effective when enablePublicAccess is true. |
+
+#### `postgres.resources.storage`
+
+| Field | Type | Default | Description |
+|---|---|---|---|
+| `capacity` | `uint32 & >=1 & <=4000` |  | Storage capacity, in gigabytes. |
+
+### `postgres.settings`
+
+*Optional.*
+
+| Field | Type | Default | Description |
+|---|---|---|---|
+| `jit` | `"off"` \| `"on"` | `"on"` | Enable just-in-time compilation of queries. |
+| `maxConnections` | `int32` | `100` | Maximum number of concurrent database connections. |
+| `sharedBuffers` | `string` | `"128MB"` | Memory dedicated to the shared buffer cache. |
+| `effectiveCacheSize` | `string` | `"4GB"` | Planner estimate of memory available for disk caching. |
+| `maintenanceWorkMem` | `string` | `"64MB"` | Memory used for maintenance operations such as VACUUM. |
+| `checkpointCompletionTarget` | `number` | `0.9` | Target fraction of the checkpoint interval over which to spread writes. |
+| `walBuffers` | `string` | `"-1"` | Memory used for write-ahead log buffers. |
+| `defaultStatisticsTarget` | `int32` | `100` | Default sample size for table statistics. |
+| `randomPageCost` | `number` | `4.0` | Planner's estimated cost of a non-sequential disk page fetch. |
+| `effectiveIOConcurrency` | `int32` | `1` | Number of concurrent disk I/O operations the planner expects. |
+| `workMem` | `string` | `"4MB"` | Memory used per query operation before spilling to disk. |
+| `hugePages` | `string` | `"try"` | Whether to use huge memory pages. |
+| `minWalSize` | `string` | `"80MB"` | Minimum size to shrink the write-ahead log to. |
+| `maxWalSize` | `string` | `"1GB"` | Maximum write-ahead log size before a checkpoint is triggered. |
+| `maxWorkerProcesses` | `int32` | `8` | Maximum number of background worker processes. |
+| `maxParallelWorkersPerGather` | `int32` | `2` | Maximum parallel workers per Gather node. |
+| `maxParallelWorkers` | `int32` | `8` | Maximum parallel workers across the system. |
+| `maxParallelMaintenanceWorkers` | `int32` | `2` | Maximum parallel workers for maintenance operations. |
+| `walLevel` | `string` | `"replica"` | Amount of information written to the write-ahead log. |
+| `maxWalSenders` | `int32` | `10` | Maximum number of concurrent WAL sender processes. |
+| `maxReplicationSlots` | `int32` | `10` | Maximum number of replication slots. |
+| `archiveTimeout` | `int32 & >=300 & <=1073741823` | `300` | Force a WAL segment switch after this many seconds. |
+| `trackIoTiming` | `"on"` | `"off"` | Collect timing statistics for disk I/O. |
+
+### `postgres.pitr`
+
+*Optional.*
+
+| Field | Type | Default | Description |
+|---|---|---|---|
+| `retention` | `uint8 & 7` |  | Number of days to retain backups. |
+
+## provider
+
+Configuration for third party providers like SMTP, SMS, etc.
+
+| Field | Type | Default | Description |
+|---|---|---|---|
+| `smtp?` | [`Smtp`](#smtp) |  | SMTP server used to send emails. |
+| `sms?` | [`Sms`](#sms) |  | SMS provider configuration. |
+
+## storage
+
+Configuration for storage service
+
+| Field | Type | Default | Description |
+|---|---|---|---|
+| `version` | `string` | `"0.14.0"` | Version of storage service, you can see available versions in the URL below: https://hub.docker.com/r/nhost/hasura-storage/tags Releases: https://github.com/nhost/hasura-storage/releases |
+| `resources?` | [`Resources`](#resources) `{networking?: null}` |  | Networking (custom domains at the moment) are not allowed as we need to do further configurations in the CDN. We will enable it again in the future. |
+| `antivirus?` | object |  | Antivirus scanning for uploaded files. |
+| `rateLimit?` | [`RateLimit`](#ratelimit) |  | Rate limiting applied to the service. |
+
+### `storage.antivirus`
+
+*Optional.*
+
+| Field | Type | Default | Description |
+|---|---|---|---|
+| `server` | `"tcp://run-clamav:3310"` |  | Address of the antivirus (ClamAV) server. |
+
+## ai
+
+*Optional.* Configuration for graphite service
+
+| Field | Type | Default | Description |
+|---|---|---|---|
+| `version` | `string` | `"0.8.1"` | Version of the service image to deploy. |
+| `resources` | object |  | Compute resources and scaling for the service. |
+| `openai` | object |  | OpenAI API configuration. |
+| `autoEmbeddings` | object |  | Automatic embeddings generation settings. |
+| `webhookSecret` | `string` |  | Secret used to authenticate webhook calls. |
+
+### `ai.resources`
+
+| Field | Type | Default | Description |
+|---|---|---|---|
+| `compute` | [`ComputeResources`](#computeresources) |  | CPU and memory allocation. |
+
+### `ai.openai`
+
+| Field | Type | Default | Description |
+|---|---|---|---|
+| `organization?` | `string` |  | Organization identifier for the provider. |
+| `apiKey` | `string` |  | API key used to authenticate with the service. |
+
+### `ai.autoEmbeddings`
+
+| Field | Type | Default | Description |
+|---|---|---|---|
+| `synchPeriodMinutes` | `uint32` | `5` | How often, in minutes, embeddings are synchronized. |
+
+## observability
+
+Configuration for observability service
+
+| Field | Type | Default | Description |
+|---|---|---|---|
+| `grafana` | [`Grafana`](#grafana) |  | Grafana dashboards and alerting configuration. |
+
+## experimental
+
+*Optional.* Experimental configuration for unreleased services. Subject to breaking changes.
+
+| Field | Type | Default | Description |
+|---|---|---|---|
+| `constellation?` | [`Constellation`](#constellation) |  | Constellation GraphQL engine settings. |
+
+## Shared types
+
+Types reused across multiple sections above.
+
+### GlobalEnvironmentVariable
+
+| Field | Type | Default | Description |
+|---|---|---|---|
+| `name` | `=~"(?i)^[a-z_]{1,}[a-z0-9_]*" & !~"(?i)^NHOST_" & !~"(?i)^HASURA_"` |  | Name of the environment variable |
+| `value` | `string` |  | Value of the environment variable |
+
+### JWTSecret
+
+Signing key and configuration used to verify JSON Web Tokens. See [JSON Web Tokens](/products/auth/jwt) for the full configuration and examples.
+
+```cue
+({
+	type: "HS384" | "HS512" | *"HS256"
+	key:  string
+} |
+{
+	type:        "RS256" | "RS384" | "RS512"
+	key:         string
+	signingKey?: string
+	kid?:        string
+} |
+{
+	jwk_url: #Url | *null
+}) &
+{
+	claims_format?: "stringified_json" | *"json"
+	audience?:      string
+	issuer?:        string
+	allowed_skew?:  uint32
+	header?:        string
+} & {
+	claims_map?: [...#ClaimMap]
+
+} &
+({
+	claims_namespace: string | *"https://hasura.io/jwt/claims"
+} |
+{
+	claims_namespace_path: string
+} | *{})
+```
+
+### Resources
+
+Resource configuration for a service
+
+| Field | Type | Default | Description |
+|---|---|---|---|
+| `compute?` | [`ResourcesCompute`](#resourcescompute) |  | CPU and memory allocation. |
+| `replicas` | `uint8 & >=1 & <=10` | `1` | Number of replicas for a service |
+| `autoscaler?` | [`Autoscaler`](#autoscaler) |  | Automatic replica scaling settings. |
+| `networking?` | [`Networking`](#networking) \| `null` |  | Network exposure and ingress configuration. |
+
+### RateLimit
+
+| Field | Type | Default | Description |
+|---|---|---|---|
+| `limit` | `uint32` |  | Maximum number of requests allowed per interval. |
+| `interval` | `string & time.Duration` |  | Length of the rate-limit window. |
+
+### Url
+
+```cue
+string
+```
+
+### HasuraAPIs
+
+APIs for hasura
+
+```cue
+"metadata" | "graphql" | "pgdump" | "config"
+```
+
+### GraphqlSecurity
+
+| Field | Type | Default | Description |
+|---|---|---|---|
+| `forbidAminSecret` | `bool` | `false` | Reject requests authenticated with the admin secret. |
+| `maxDepthQueries` | `uint` | `0` | Maximum allowed depth of a GraphQL query. |
+
+### Networking
+
+| Field | Type | Default | Description |
+|---|---|---|---|
+| `ingresses` | list of [`Ingress`](#ingress) | `[]` | Ingress rules exposing the service. |
+
+### AuthRateLimit
+
+| Field | Type | Default | Description |
+|---|---|---|---|
+| `emails` | [`RateLimit`](#ratelimit) | `{limit: 10, interval: "1h"}` | Rate limit for outgoing emails. |
+| `sms` | [`RateLimit`](#ratelimit) | `{limit: 10, interval: "1h"}` | Rate limit for outgoing SMS messages. |
+| `bruteForce` | [`RateLimit`](#ratelimit) | `{limit: 10, interval: "5m"}` | Rate limit to mitigate brute-force attacks. |
+| `signups` | [`RateLimit`](#ratelimit) | `{limit: 10, interval: "5m"}` | Rate limit for new sign-ups. |
+| `global` | [`RateLimit`](#ratelimit) | `{limit: 100, interval: "1m"}` | Global rate limit applied across all auth endpoints. |
+| `oauth2Server` | [`RateLimit`](#ratelimit) | `{limit: 100, interval: "5m"}` | Rate limit for OAuth 2.0 server endpoints. |
+
+### UserRole
+
+```cue
+string
+```
+
+### Locale
+
+```cue
+string & strings.MinRunes(2) & strings.MaxRunes(3)
+```
+
+### Email
+
+```cue
+=~"^[a-zA-Z0-9.!#$%&'*+/=?^_`{|}~-]+@[a-zA-Z0-9](?:[a-zA-Z0-9-]{0,61}[a-zA-Z0-9])?(?:\\.[a-zA-Z0-9](?:[a-zA-Z0-9-]{0,61}[a-zA-Z0-9])?)*$"
+```
+
+### StandardOauthProvider
+
+| Field | Type | Default | Description |
+|---|---|---|---|
+| `enabled` | `bool` | `false` | Enable this feature. |
+| `clientId` | `string` |  | *(conditional)* Client id |
+| `clientSecret` | `string` |  | *(conditional)* Client secret |
+
+### StandardOauthProviderWithScope
+
+| Field | Type | Default | Description |
+|---|---|---|---|
+| `enabled` | `bool` | `false` | Enable this feature. |
+| `clientId` | `string` |  | *(conditional)* Client id |
+| `clientSecret` | `string` |  | *(conditional)* Client secret |
+| `audience?` | `string` |  | Expected audience claim for the provider's tokens. |
+| `scope?` | list of `string` |  | OAuth scopes requested from the provider. |
+
+### ResourcesCompute
+
+| Field | Type | Default | Description |
+|---|---|---|---|
+| `cpu` | `uint32 & >=250 & <=30000` |  | milicpus, 1000 milicpus = 1 cpu |
+| `memory` | `uint32 & >=128 & <=62464` |  | MiB: 128MiB to 30GiB |
+
+### Smtp
+
+```cue
+{
+	host:     "postmark"
+	password: string
+	sender:   string
+	// these are needed for backwards compatibility, they're actually ignored
+	user?:   string
+	port?:   #Port
+	secure?: bool
+	method?: "LOGIN" | "CRAM-MD5" | "PLAIN"
+} | {
+	user:     string
+	password: string
+	sender:   string
+	host:     string & !="postmark" & (net.FQDN | net.IP)
+	port:     #Port
+	secure:   bool
+	method:   "LOGIN" | "CRAM-MD5" | "PLAIN"
+}
+```
+
+### Sms
+
+| Field | Type | Default | Description |
+|---|---|---|---|
+| `provider` | `"twilio"` |  | SMS provider to use. |
+| `accountSid` | `string` |  | Provider account SID. |
+| `authToken` | `string` |  | Provider auth token. |
+| `messagingServiceId` | `string` |  | Provider messaging service ID. |
+
+### ComputeResources
+
+Resource configuration for a service
+
+| Field | Type | Default | Description |
+|---|---|---|---|
+| `cpu` | `uint32 & >=62 & <=14000` |  | milicpus, 1000 milicpus = 1 cpu |
+| `memory` | `uint32 & >=128 & <=28720` |  | MiB: 128MiB to 30GiB |
+
+### Grafana
+
+| Field | Type | Default | Description |
+|---|---|---|---|
+| `adminPassword` | `string` |  | Admin password for Grafana. |
+| `smtp?` | object |  | SMTP server used to send emails. |
+| `alerting` | object |  | Grafana alerting configuration. |
+| `contacts` | object |  | Contact points for Grafana alerts. |
+
+#### `Grafana.smtp`
+
+*Optional.*
+
+| Field | Type | Default | Description |
+|---|---|---|---|
+| `host` | `string & net.FQDN` \| `net.IP` |  | SMTP server hostname. |
+| `port` | [`Port`](#port) |  | SMTP server port. |
+| `sender` | `string` |  | From address for outgoing emails. |
+| `user` | `string` |  | Username for SMTP authentication. |
+| `password` | `string` |  | Password for SMTP authentication. |
+
+#### `Grafana.alerting`
+
+| Field | Type | Default | Description |
+|---|---|---|---|
+| `enabled` | `bool` | `false` | Enable this feature. |
+
+#### `Grafana.contacts`
+
+| Field | Type | Default | Description |
+|---|---|---|---|
+| `emails?` | list of `string` |  | Email addresses to send alerts to. |
+| `pagerduty?` | list of object |  | PagerDuty alert contact. |
+| `discord?` | list of object |  | Discord OAuth provider. |
+| `slack?` | list of object |  | Slack alert contact. |
+| `webhook?` | list of object |  | Webhook alert contact. |
+
+### Constellation
+
+| Field | Type | Default | Description |
+|---|---|---|---|
+| `version` | `string` | `"0.1.0"` | Version of constellation, you can see available versions in the URL below: https://hub.docker.com/r/nhost/constellation/tags |
+| `settings?` | object |  | Advanced configuration settings for the service. |
+
+#### `Constellation.settings`
+
+*Optional.*
+
+| Field | Type | Default | Description |
+|---|---|---|---|
+| `corsAllowedOrigins?` | list of `string` |  | CORS allowed origins. If set, these are used as-is. If unset, origins are derived from auth.redirections.clientUrl and auth.redirections.allowedUrls (paths/queries/fragments stripped). |
+| `debug` | `bool` | `false` | Enable debug logging. |
+| `devMode` | `bool` | `false` | Return raw connector/database error detail to clients instead of the sanitized generic message. For development only — never enable in production, as it leaks internal schema and data values. |
+| `subscriptionPollInterval` | `string & time.Duration` | `"1s"` | Polling interval for GraphQL subscriptions. |
+
+### Autoscaler
+
+| Field | Type | Default | Description |
+|---|---|---|---|
+| `maxReplicas` | `uint8 & >=2 & <=100` |  | Maximum number of replicas the autoscaler may create. |
+
+### Ingress
+
+| Field | Type | Default | Description |
+|---|---|---|---|
+| `fqdn` | list of `string & net.FQDN & strings.MinRunes(1) & strings.MaxRunes(63)` |  | Fully-qualified domain names for the ingress. |
+| `tls?` | object |  | TLS configuration for the ingress. |
+
+#### `Ingress.tls`
+
+*Optional.*
+
+| Field | Type | Default | Description |
+|---|---|---|---|
+| `clientCA?` | `string` |  | Client certificate authority for mutual TLS. |
+
+### Port
+
+```cue
+uint16
+```
+
