@@ -1,10 +1,10 @@
 { pkgs, nix2containerPkgs }:
 let
   jsCheckDeps = with pkgs; [
-    pnpm
+    nhost.pnpm
     cacert
-    nodejs
-    biome
+    nhost.nodejs
+    nhost.biome
   ];
 
   mkNodeModules =
@@ -22,9 +22,9 @@ let
       dontFixup = true;
 
       nativeBuildInputs = with pkgs; [
-        pnpm
+        nhost.pnpm
         cacert
-        nodejs
+        nhost.nodejs
       ];
 
       buildPhase = ''
@@ -167,7 +167,7 @@ let
         jsCheckDeps
         ++ (with pkgs; [
           corepack
-          vercel
+          nhost.vercel
         ])
         ++ buildInputs
         ++ nativeBuildInputs;

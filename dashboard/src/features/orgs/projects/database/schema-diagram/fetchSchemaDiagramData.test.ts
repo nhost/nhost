@@ -75,15 +75,23 @@ function fnRow(
   overrides: Partial<{
     schema: string;
     name: string;
+    oid: string;
     return_type: string;
     returns_set: boolean;
+    provolatile: string;
+    return_schema: string | null;
+    return_table: string | null;
   }> = {},
 ): string {
   return JSON.stringify({
     schema: 'public',
     name: 'full_name',
+    oid: '100',
     return_type: 'text',
     returns_set: false,
+    provolatile: 's',
+    return_schema: null,
+    return_table: null,
     ...overrides,
   });
 }
@@ -217,8 +225,12 @@ describe('fetchSchemaDiagramData', () => {
           fnRow({
             schema: 'public',
             name: 'posts_for_user',
+            oid: '200',
             return_type: 'public.posts',
             returns_set: true,
+            provolatile: 'v',
+            return_schema: 'public',
+            return_table: 'posts',
           }),
         ],
       ),
@@ -230,14 +242,22 @@ describe('fetchSchemaDiagramData', () => {
       {
         schema: 'public',
         name: 'full_name',
+        oid: '100',
         returnType: 'text',
         returnsSet: false,
+        isVolatile: false,
+        returnSchema: undefined,
+        returnTable: undefined,
       },
       {
         schema: 'public',
         name: 'posts_for_user',
+        oid: '200',
         returnType: 'public.posts',
         returnsSet: true,
+        isVolatile: true,
+        returnSchema: 'public',
+        returnTable: 'posts',
       },
     ]);
   });
@@ -335,5 +355,20 @@ describe('fetchSchemaDiagramData', () => {
     expect(columnSql).toMatch(/UNION ALL/i);
     expect(columnSql).toMatch(/relkind\s*=\s*'m'/);
     expect(columnSql).toMatch(/pg_attribute/);
+  });
+
+  it('resolves the return relation of set-returning functions via pg_type.typrelid → pg_class', async () => {
+    fetchMock.mockResolvedValueOnce(bulkResponse([], []));
+
+    await fetchSchemaDiagramData(callArgs);
+
+    const [, init] = fetchMock.mock.calls[0];
+    const functionSql: string = JSON.parse(init.body).args[2].args.sql;
+    expect(functionSql).toMatch(/proretset/);
+    expect(functionSql).toMatch(/provolatile/);
+    expect(functionSql).toMatch(/typrelid/);
+    expect(functionSql).toMatch(/relkind\s+IN/i);
+    expect(functionSql).toMatch(/return_table/);
+    expect(functionSql).toMatch(/p\.oid/);
   });
 });

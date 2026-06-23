@@ -6,6 +6,7 @@ import type {
   TableLikeObject,
   TableLikeObjectType,
 } from '@/features/orgs/projects/database/dataGrid/types/dataBrowser';
+import type { ExportMetadataResponseMetadataSourcesItemFunctionsItem } from '@/utils/hasura-api/generated/schemas';
 import { computeNodeHeight, layoutNodes, TABLE_NODE_WIDTH } from './layout';
 import { tableHasAnyPermission } from './permissionState';
 import type {
@@ -47,12 +48,34 @@ export interface TableNodeData extends Record<string, unknown> {
 
 export type TableNode = Node<TableNodeData, 'tableNode'>;
 
+export interface FunctionNodeData extends Record<string, unknown> {
+  schema: string;
+  name: string;
+  oid: string | undefined;
+  graphqlName: string | undefined;
+  returnTablePostgres: string;
+  returnTableGraphql: string | undefined;
+  returnTableMetadata: HasuraMetadataTable | undefined;
+  inferFunctionPermissions: boolean;
+  isMutationFunction: boolean;
+  hasFunctionPermission: boolean;
+  isUntracked: boolean;
+  role: string;
+  namingMode: NamingMode;
+}
+
+export type FunctionNode = Node<FunctionNodeData, 'functionNode'>;
+
+export type SchemaDiagramNode = TableNode | FunctionNode;
+
 export interface UseSchemaGraphInput {
   metadataTables: HasuraMetadataTable[];
   tableLikeObjects: TableLikeObject[];
   columns: SchemaDiagramColumn[];
   foreignKeys: SchemaDiagramForeignKey[];
   functionReturnTypes: SchemaDiagramFunctionReturnType[];
+  functionsMetadata: ExportMetadataResponseMetadataSourcesItemFunctionsItem[];
+  inferFunctionPermissions?: boolean;
   role: string;
   visibleSchemas: Set<string>;
   hideTablesWithoutPermissions: boolean;
@@ -60,7 +83,7 @@ export interface UseSchemaGraphInput {
 }
 
 export interface UseSchemaGraphResult {
-  nodes: TableNode[];
+  nodes: SchemaDiagramNode[];
   edges: Edge[];
   totalTableCount: number;
 }
@@ -68,6 +91,13 @@ export interface UseSchemaGraphResult {
 export function nodeIdFor(schema: string, table: string): string {
   return `${schema}.${table}`;
 }
+
+export function functionNodeIdFor(schema: string, name: string): string {
+  return `fn:${schema}.${name}`;
+}
+
+export const FUNCTION_SOURCE_HANDLE_ID = 'source-__fn__';
+export const TABLE_ROW_HANDLE_ID = 'target-__row__';
 
 export function columnHandleId(
   side: 'source' | 'target',
@@ -83,10 +113,15 @@ export interface FkEdgeData extends Record<string, unknown> {
   toTracked: boolean;
 }
 
+export interface FunctionEdgeData extends Record<string, unknown> {
+  isFunctionEdge: true;
+}
+
 export const EDGE_MARKER_IDS = {
   arrowFilled: 'schema-diagram-arrow-filled',
   arrowHollow: 'schema-diagram-arrow-hollow',
   circleHollow: 'schema-diagram-circle-hollow',
+  functionArrow: 'schema-diagram-function-arrow',
 } as const;
 
 function edgeKey(
@@ -129,6 +164,20 @@ function specToEdge(spec: EdgeSpec): Edge {
     markerEnd: spec.hasArrayRel
       ? EDGE_MARKER_IDS.arrowFilled
       : EDGE_MARKER_IDS.arrowHollow,
+  };
+}
+
+function functionEdge(fnNodeId: string, returnNodeId: string): Edge {
+  const data: FunctionEdgeData = { isFunctionEdge: true };
+  return {
+    id: `fn-${fnNodeId}->${returnNodeId}`,
+    source: fnNodeId,
+    target: returnNodeId,
+    sourceHandle: FUNCTION_SOURCE_HANDLE_ID,
+    targetHandle: TABLE_ROW_HANDLE_ID,
+    type: 'smart',
+    data,
+    markerEnd: EDGE_MARKER_IDS.functionArrow,
   };
 }
 
@@ -366,6 +415,8 @@ export default function useSchemaGraph({
   columns,
   foreignKeys,
   functionReturnTypes,
+  functionsMetadata,
+  inferFunctionPermissions = false,
   role,
   visibleSchemas,
   hideTablesWithoutPermissions,
@@ -407,6 +458,14 @@ export default function useSchemaGraph({
       metadataByTableId.set(nodeIdFor(t.table.schema, t.table.name), t);
     }
 
+    const functionMetaById = new Map<
+      string,
+      ExportMetadataResponseMetadataSourcesItemFunctionsItem
+    >();
+    for (const fn of functionsMetadata) {
+      functionMetaById.set(nodeIdFor(fn.function.schema, fn.function.name), fn);
+    }
+
     const objectTypeByTableId = new Map<string, TableLikeObjectType>();
     for (const obj of tableLikeObjects) {
       objectTypeByTableId.set(
@@ -439,7 +498,7 @@ export default function useSchemaGraph({
 
     const visibleNodeIds = new Set<string>();
 
-    const nodes: TableNode[] = [];
+    const nodes: SchemaDiagramNode[] = [];
     for (const [id, { schema, table }] of tableIdentByNodeId) {
       if (!visibleSchemas.has(schema)) {
         continue;
@@ -520,7 +579,7 @@ export default function useSchemaGraph({
       visibleNodeIds,
     );
 
-    const edges: Edge[] =
+    const fkEdges: Edge[] =
       namingMode === 'graphql'
         ? buildGraphqlEdges(
             foreignKeys,
@@ -530,8 +589,67 @@ export default function useSchemaGraph({
           )
         : layoutEdges;
 
+    const functionEdges: Edge[] = [];
+    const functionNodeHeight = computeNodeHeight(1);
+    for (const fn of functionReturnTypes) {
+      if (!fn.returnsSet || !fn.returnSchema || !fn.returnTable) {
+        continue;
+      }
+      if (!visibleSchemas.has(fn.schema)) {
+        continue;
+      }
+      const returnNodeId = nodeIdFor(fn.returnSchema, fn.returnTable);
+      if (!visibleNodeIds.has(returnNodeId)) {
+        continue;
+      }
+
+      const fnNodeId = functionNodeIdFor(fn.schema, fn.name);
+      const fnMeta = functionMetaById.get(nodeIdFor(fn.schema, fn.name));
+      const config = fnMeta?.configuration;
+      const returnTableMetadata = metadataByTableId.get(returnNodeId);
+      const exposedAs = config?.exposed_as;
+      const isMutationFunction =
+        exposedAs === 'mutation' || (exposedAs == null && fn.isVolatile);
+      const hasFunctionPermission = (fnMeta?.permissions ?? []).some(
+        (perm) => perm.role === role,
+      );
+      const data: FunctionNodeData = {
+        schema: fn.schema,
+        name: fn.name,
+        oid: fn.oid,
+        graphqlName:
+          config?.custom_root_fields?.function ?? config?.custom_name,
+        returnTablePostgres: fn.returnTable,
+        returnTableGraphql: readTableGraphqlName(returnTableMetadata),
+        returnTableMetadata,
+        inferFunctionPermissions,
+        isMutationFunction,
+        hasFunctionPermission,
+        isUntracked: !fnMeta,
+        role,
+        namingMode,
+      };
+
+      nodes.push({
+        id: fnNodeId,
+        type: 'functionNode',
+        position: { x: 0, y: 0 },
+        initialWidth: TABLE_NODE_WIDTH,
+        initialHeight: functionNodeHeight,
+        measured: { width: TABLE_NODE_WIDTH, height: functionNodeHeight },
+        data,
+      });
+      functionEdges.push(functionEdge(fnNodeId, returnNodeId));
+    }
+
+    const edges = [...fkEdges, ...functionEdges];
+
     const layoutRowCountByNodeId = new Map<string, number>();
     for (const node of nodes) {
+      if (node.type === 'functionNode') {
+        layoutRowCountByNodeId.set(node.id, 1);
+        continue;
+      }
       const reservedComputedFields =
         metadataByTableId.get(node.id)?.computed_fields?.length ?? 0;
       layoutRowCountByNodeId.set(
@@ -542,7 +660,7 @@ export default function useSchemaGraph({
 
     const positionedNodes = layoutNodes(
       nodes,
-      layoutEdges,
+      [...layoutEdges, ...functionEdges],
       layoutRowCountByNodeId,
     );
 
@@ -557,6 +675,8 @@ export default function useSchemaGraph({
     columns,
     foreignKeys,
     functionReturnTypes,
+    functionsMetadata,
+    inferFunctionPermissions,
     role,
     visibleSchemas,
     hideTablesWithoutPermissions,

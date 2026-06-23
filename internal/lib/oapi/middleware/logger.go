@@ -30,12 +30,38 @@ func LoggerFromContext(ctx context.Context) *slog.Logger { //nolint:contextcheck
 	return logger
 }
 
+// AddLoggerAttrs enriches the logger stored in ctx with attrs and stores the
+// result back, returning the derived context. Because it reads through
+// LoggerFromContext and writes through LoggerToContext, enrichment added by a
+// middleware here is picked up by Logger's deferred completion record and by
+// every downstream LoggerFromContext caller, without callers needing to know
+// which context key backs the logger.
+func AddLoggerAttrs(ctx context.Context, attrs ...slog.Attr) context.Context {
+	args := make([]any, len(attrs))
+	for i, attr := range attrs {
+		args[i] = attr
+	}
+
+	return LoggerToContext(ctx, LoggerFromContext(ctx).With(args...))
+}
+
 // Logger is a Gin middleware that logs HTTP requests and responses using slog.
+//
+// It enriches logger with request and trace attributes, stores the enriched
+// logger in the request context, and emits a single completion log record after
+// downstream handlers finish. If the Tracing middleware runs before Logger, the
+// trace identifiers come from the request context; otherwise Logger falls back
+// to parsing/generating B3 headers itself so existing callers still get trace
+// attributes.
 func Logger(logger *slog.Logger) gin.HandlerFunc {
 	return func(ctx *gin.Context) {
 		startTime := time.Now()
 
-		trace := TraceFromHTTPHeaders(ctx.Request.Header)
+		trace := TraceFromContext(ctx.Request.Context())
+		if trace.TraceID == "" {
+			trace = TraceFromHTTPHeaders(ctx.Request.Header)
+			ctx.Request = ctx.Request.WithContext(TraceToContext(ctx.Request.Context(), trace))
+		}
 
 		clientIP := ctx.ClientIP()
 		reqMethod := ctx.Request.Method
@@ -59,7 +85,7 @@ func Logger(logger *slog.Logger) gin.HandlerFunc {
 		)
 		ctx.Next()
 
-		// Re-read logger in case inner middleware enriched it
+		// Re-read logger in case inner middleware enriched it.
 		logger = LoggerFromContext(ctx.Request.Context())
 
 		latencyTime := time.Since(startTime)
@@ -71,8 +97,6 @@ func Logger(logger *slog.Logger) gin.HandlerFunc {
 			slog.Duration("latency_time", latencyTime),
 			slog.Any("errors", ctx.Errors.Errors()),
 		))
-
-		TraceToHTTPHeaders(trace, ctx.Writer.Header())
 
 		if len(ctx.Errors.Errors()) > 0 {
 			logger.ErrorContext(ctx, "call completed with errors")

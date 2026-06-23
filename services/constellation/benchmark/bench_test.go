@@ -12,13 +12,13 @@ import (
 	"testing"
 
 	"github.com/gin-gonic/gin"
+	oapimw "github.com/nhost/nhost/internal/lib/oapi/middleware"
 	"github.com/nhost/nhost/services/constellation/connector"
 	"github.com/nhost/nhost/services/constellation/connector/memconnector"
 	"github.com/nhost/nhost/services/constellation/controller"
 	"github.com/nhost/nhost/services/constellation/controller/middleware"
 	"github.com/nhost/nhost/services/constellation/controller/planner"
 	"github.com/nhost/nhost/services/constellation/graph"
-	oapilogger "github.com/nhost/nhost/services/constellation/internal/lib/oapi/logger"
 )
 
 const adminSecret = "nhost-admin-secret" //nolint:gosec
@@ -119,9 +119,14 @@ func buildRemoteRelRouter(
 	}
 
 	router := gin.New()
+	// Mirror the production middleware order (cmd/serve.go): Tracing before
+	// Logger so Logger takes its trace-from-context fast path instead of the
+	// no-Tracing fallback that re-parses B3 headers and clones the request
+	// context, keeping the benchmark on the path real requests follow.
 	router.Use(
 		gin.Recovery(),
-		oapilogger.Logger(logger),
+		oapimw.Tracing(),
+		oapimw.Logger(logger),
 		middleware.Session(adminSecret, nil),
 	)
 	router.POST("/graphql", ctrl.HandlerPost)
@@ -141,9 +146,14 @@ func buildRouter(
 	}
 
 	router := gin.New()
+	// Mirror the production middleware order (cmd/serve.go): Tracing before
+	// Logger so Logger takes its trace-from-context fast path instead of the
+	// no-Tracing fallback that re-parses B3 headers and clones the request
+	// context, keeping the benchmark on the path real requests follow.
 	router.Use(
 		gin.Recovery(),
-		oapilogger.Logger(logger),
+		oapimw.Tracing(),
+		oapimw.Logger(logger),
 		middleware.Session(adminSecret, nil),
 	)
 	router.POST("/graphql", ctrl.HandlerPost)

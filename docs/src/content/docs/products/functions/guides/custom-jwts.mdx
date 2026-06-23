@@ -2,6 +2,9 @@
 title: Custom JWTs
 description: Generate custom JWTs to act on behalf of users
 keywords: ["JWT", "custom tokens", "user impersonation", "serverless functions", "access tokens", "Hasura claims"]
+head:
+  - tag: title
+    content: "Generate Custom JWT Tokens in Functions | Nhost Docs"
 ---
 
 In some cases you need to act on behalf of a user — for example, to impersonate a user from an admin panel or to generate tokens with custom claims. The Auth service doesn't support this directly, but you can implement it with a function.

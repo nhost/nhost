@@ -10,8 +10,8 @@ import (
 
 	"github.com/cespare/xxhash/v2"
 
+	oapimw "github.com/nhost/nhost/internal/lib/oapi/middleware"
 	"github.com/nhost/nhost/services/constellation/connector/sql/graphql/queries/core"
-	"github.com/nhost/nhost/services/constellation/internal/requestcontext"
 	sub "github.com/nhost/nhost/services/constellation/subscription"
 )
 
@@ -146,7 +146,7 @@ func (m *cohortManager) findOrCreateCohort(
 
 // removeSubscription removes a subscription from its cohort.
 func (m *cohortManager) removeSubscription(ctx context.Context, subID string) {
-	logger := requestcontext.LoggerFromContext(ctx)
+	logger := oapimw.LoggerFromContext(ctx)
 
 	m.mu.Lock()
 	defer m.mu.Unlock()
@@ -412,7 +412,7 @@ func (m *cohortManager) getOrBuildSQL(
 
 // shutdown gracefully shuts down all cohorts.
 func (m *cohortManager) shutdown(ctx context.Context) {
-	logger := requestcontext.LoggerFromContext(ctx)
+	logger := oapimw.LoggerFromContext(ctx)
 
 	m.mu.Lock()
 	defer m.mu.Unlock()
