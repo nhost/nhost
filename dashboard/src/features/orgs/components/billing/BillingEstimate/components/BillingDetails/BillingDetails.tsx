@@ -5,6 +5,7 @@ import {
   AccordionItem,
   AccordionTrigger,
 } from '@/components/ui/v3/accordion';
+import { Alert, AlertDescription, AlertTitle } from '@/components/ui/v3/alert';
 import {
   Table,
   TableBody,
@@ -19,7 +20,7 @@ import { useBillingGetNextInvoiceQuery } from '@/utils/__generated__/graphql';
 
 export default function BillingDetails() {
   const { org } = useCurrentOrg();
-  const { data, loading } = useBillingGetNextInvoiceQuery({
+  const { data, loading, error } = useBillingGetNextInvoiceQuery({
     fetchPolicy: 'cache-first',
     variables: {
       organizationID: org?.id,
@@ -30,7 +31,7 @@ export default function BillingDetails() {
   const billingItems = data?.billingGetNextInvoice?.items ?? [];
   const amountDue = data?.billingGetNextInvoice?.AmountDue ?? null;
 
-  if (!data || loading) {
+  if (loading) {
     return (
       <div className="flex flex-col">
         <div className="flex flex-col gap-4 p-4">
@@ -43,6 +44,24 @@ export default function BillingDetails() {
         </div>
       </div>
     );
+  }
+
+  if (error) {
+    return (
+      <div className="p-4">
+        <Alert variant="destructive" className="text-left">
+          <AlertTitle>Failed to load billing details</AlertTitle>
+          <AlertDescription>
+            {error.message ||
+              'An error occurred while fetching the billing details. Please try again.'}
+          </AlertDescription>
+        </Alert>
+      </div>
+    );
+  }
+
+  if (!data) {
+    return null;
   }
 
   return (
