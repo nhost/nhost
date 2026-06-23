@@ -1,0 +1,329 @@
+Object
+    ( Span
+        { start = AlexSourcePos
+            { line = 0
+            , col = 1
+            }
+        , end = AlexSourcePos
+            { line = 17
+            , col = 2
+            }
+        }
+    )
+    ( fromList
+        [
+            ( "author"
+            , Object
+                ( Span
+                    { start = AlexSourcePos
+                        { line = 1
+                        , col = 13
+                        }
+                    , end = AlexSourcePos
+                        { line = 16
+                        , col = 4
+                        }
+                    }
+                )
+                ( fromList
+                    [
+                        ( "age"
+                        , RequiredFieldAccess
+                            ( Span
+                                { start = AlexSourcePos
+                                    { line = 3
+                                    , col = 14
+                                    }
+                                , end = AlexSourcePos
+                                    { line = 3
+                                    , col = 25
+                                    }
+                                }
+                            )
+                            ( RequiredFieldAccess
+                                ( Span
+                                    { start = AlexSourcePos
+                                        { line = 3
+                                        , col = 14
+                                        }
+                                    , end = AlexSourcePos
+                                        { line = 3
+                                        , col = 21
+                                        }
+                                    }
+                                )
+                                ( Var
+                                    ( Span
+                                        { start = AlexSourcePos
+                                            { line = 3
+                                            , col = 14
+                                            }
+                                        , end = AlexSourcePos
+                                            { line = 3
+                                            , col = 15
+                                            }
+                                        }
+                                    ) "$"
+                                )
+                                ( Left "event" )
+                            )
+                            ( Left "age" )
+                        )
+                    ,
+                        ( "articles"
+                        , Array
+                            ( Span
+                                { start = AlexSourcePos
+                                    { line = 4
+                                    , col = 17
+                                    }
+                                , end = AlexSourcePos
+                                    { line = 15
+                                    , col = 6
+                                    }
+                                }
+                            )
+                            [ Range
+                                ( Span
+                                    { start = AlexSourcePos
+                                        { line = 5
+                                        , col = 1
+                                        }
+                                    , end = AlexSourcePos
+                                        { line = 14
+                                        , col = 10
+                                        }
+                                    }
+                                ) Nothing "x"
+                                ( RequiredFieldAccess
+                                    ( Span
+                                        { start = AlexSourcePos
+                                            { line = 5
+                                            , col = 18
+                                            }
+                                        , end = AlexSourcePos
+                                            { line = 5
+                                            , col = 41
+                                            }
+                                        }
+                                    )
+                                    ( RequiredFieldAccess
+                                        ( Span
+                                            { start = AlexSourcePos
+                                                { line = 5
+                                                , col = 18
+                                                }
+                                            , end = AlexSourcePos
+                                                { line = 5
+                                                , col = 32
+                                                }
+                                            }
+                                        )
+                                        ( RequiredFieldAccess
+                                            ( Span
+                                                { start = AlexSourcePos
+                                                    { line = 5
+                                                    , col = 18
+                                                    }
+                                                , end = AlexSourcePos
+                                                    { line = 5
+                                                    , col = 25
+                                                    }
+                                                }
+                                            )
+                                            ( Var
+                                                ( Span
+                                                    { start = AlexSourcePos
+                                                        { line = 5
+                                                        , col = 18
+                                                        }
+                                                    , end = AlexSourcePos
+                                                        { line = 5
+                                                        , col = 19
+                                                        }
+                                                    }
+                                                ) "$"
+                                            )
+                                            ( Left "event" )
+                                        )
+                                        ( Left "author" )
+                                    )
+                                    ( Left "articles" )
+                                )
+                                ( Iff
+                                    ( Span
+                                        { start = AlexSourcePos
+                                            { line = 6
+                                            , col = 3
+                                            }
+                                        , end = AlexSourcePos
+                                            { line = 13
+                                            , col = 12
+                                            }
+                                        }
+                                    )
+                                    ( RequiredFieldAccess
+                                        ( Span
+                                            { start = AlexSourcePos
+                                                { line = 6
+                                                , col = 9
+                                                }
+                                            , end = AlexSourcePos
+                                                { line = 6
+                                                , col = 20
+                                                }
+                                            }
+                                        )
+                                        ( Var
+                                            ( Span
+                                                { start = AlexSourcePos
+                                                    { line = 6
+                                                    , col = 9
+                                                    }
+                                                , end = AlexSourcePos
+                                                    { line = 6
+                                                    , col = 10
+                                                    }
+                                                }
+                                            ) "x"
+                                        )
+                                        ( Left "published" )
+                                    )
+                                    ( Object
+                                        ( Span
+                                            { start = AlexSourcePos
+                                                { line = 7
+                                                , col = 7
+                                                }
+                                            , end = AlexSourcePos
+                                                { line = 10
+                                                , col = 8
+                                                }
+                                            }
+                                        )
+                                        ( fromList
+                                            [
+                                                ( "id"
+                                                , RequiredFieldAccess
+                                                    ( Span
+                                                        { start = AlexSourcePos
+                                                            { line = 8
+                                                            , col = 17
+                                                            }
+                                                        , end = AlexSourcePos
+                                                            { line = 8
+                                                            , col = 21
+                                                            }
+                                                        }
+                                                    )
+                                                    ( Var
+                                                        ( Span
+                                                            { start = AlexSourcePos
+                                                                { line = 8
+                                                                , col = 17
+                                                                }
+                                                            , end = AlexSourcePos
+                                                                { line = 8
+                                                                , col = 18
+                                                                }
+                                                            }
+                                                        ) "x"
+                                                    )
+                                                    ( Left "id" )
+                                                )
+                                            ,
+                                                ( "title"
+                                                , RequiredFieldAccess
+                                                    ( Span
+                                                        { start = AlexSourcePos
+                                                            { line = 9
+                                                            , col = 20
+                                                            }
+                                                        , end = AlexSourcePos
+                                                            { line = 9
+                                                            , col = 27
+                                                            }
+                                                        }
+                                                    )
+                                                    ( Var
+                                                        ( Span
+                                                            { start = AlexSourcePos
+                                                                { line = 9
+                                                                , col = 20
+                                                                }
+                                                            , end = AlexSourcePos
+                                                                { line = 9
+                                                                , col = 21
+                                                                }
+                                                            }
+                                                        ) "x"
+                                                    )
+                                                    ( Left "title" )
+                                                )
+                                            ]
+                                        )
+                                    ) []
+                                    ( Null
+                                        ( Span
+                                            { start = AlexSourcePos
+                                                { line = 12
+                                                , col = 7
+                                                }
+                                            , end = AlexSourcePos
+                                                { line = 12
+                                                , col = 11
+                                                }
+                                            }
+                                        )
+                                    )
+                                )
+                            ]
+                        )
+                    ,
+                        ( "name"
+                        , RequiredFieldAccess
+                            ( Span
+                                { start = AlexSourcePos
+                                    { line = 2
+                                    , col = 15
+                                    }
+                                , end = AlexSourcePos
+                                    { line = 2
+                                    , col = 27
+                                    }
+                                }
+                            )
+                            ( RequiredFieldAccess
+                                ( Span
+                                    { start = AlexSourcePos
+                                        { line = 2
+                                        , col = 15
+                                        }
+                                    , end = AlexSourcePos
+                                        { line = 2
+                                        , col = 22
+                                        }
+                                    }
+                                )
+                                ( Var
+                                    ( Span
+                                        { start = AlexSourcePos
+                                            { line = 2
+                                            , col = 15
+                                            }
+                                        , end = AlexSourcePos
+                                            { line = 2
+                                            , col = 16
+                                            }
+                                        }
+                                    ) "$"
+                                )
+                                ( Left "event" )
+                            )
+                            ( Left "name" )
+                        )
+                    ]
+                )
+            )
+        ]
+    )
