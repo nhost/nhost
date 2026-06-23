@@ -1,10 +1,13 @@
 import { Divider } from '@/components/ui/v2/Divider';
+import { useIsOrgAdmin } from '@/features/orgs/hooks/useIsOrgAdmin';
 import { BillingCycle } from './components/BillingCycle';
 import { BillingDetails } from './components/BillingDetails';
 import { Estimate } from './components/Estimate';
 import { SpendingNotifications } from './components/SpendingNotifications';
 
 export default function BillingEstimate() {
+  const isOrgAdmin = useIsOrgAdmin();
+
   return (
     <div className="">
       <div className="flex w-full flex-col rounded-md border bg-background">
@@ -18,8 +21,12 @@ export default function BillingEstimate() {
           <Estimate />
           <Divider />
           <SpendingNotifications />
-          <Divider />
-          <BillingDetails />
+          {isOrgAdmin && (
+            <>
+              <Divider />
+              <BillingDetails />
+            </>
+          )}
         </div>
       </div>
     </div>
