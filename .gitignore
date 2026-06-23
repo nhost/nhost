@@ -77,3 +77,6 @@ letsencrypt/*
 /.review/
 /.nhost-code/review/
 /.nhost-code/tmp/
+
+# Local git worktrees for parallel AI/dev sessions
+/.worktrees/
