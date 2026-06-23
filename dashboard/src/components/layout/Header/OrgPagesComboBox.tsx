@@ -33,6 +33,7 @@ export default function OrgPagesComboBox() {
 
   return (
     <HeaderCombobox
+      data-testid="org-pages-switcher"
       options={options}
       value={selectedOrgPage?.value ?? null}
       placeholder="Select a page"
