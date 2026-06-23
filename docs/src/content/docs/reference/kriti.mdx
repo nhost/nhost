@@ -119,6 +119,14 @@ grouping.
 {{ if "admin" in $session_variables.roles }} ... {{ end }}
 ```
 
+:::caution
+`&&` and `||` are **eager**: both operands are always evaluated, so they do
+not short-circuit. An expression like `{{ if $obj && $obj.field }}` fails when
+`$obj` is `null`, because `$obj.field` is still evaluated. When the second
+operand depends on the first existing, use an [optional lookup](#optional-lookups)
+or a nested `if` instead, for example `{{ if $obj?.field }}`.
+:::
+
 ## Conditionals
 
 Use `if` / `else` to choose between values. The branch that matches is rendered

@@ -163,8 +163,8 @@ func convertSpan(s token.Span) Span {
 // single render. Construct it with the generic New + WithVar + WithFunc
 // combinators. The per-transform variable-name parity (which Hasura
 // variables to bind for action/event/cron/response transforms) is owned
-// by the consuming connector/action/transform package, which builds its
-// own scope from those names.
+// by the consuming transform package (added in a follow-up PR), which
+// builds its own scope from those names.
 //
 // Zero value is a valid empty scope.
 type Scope struct {

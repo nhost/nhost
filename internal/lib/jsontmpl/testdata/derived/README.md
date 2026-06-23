@@ -22,21 +22,19 @@ divergences are documented in `../UPSTREAM.md`.
 
 ## Regenerating
 
-The upstream binary lives at
-`third-party/hasura/kriti-lang/result/bin/kriti` (built via
-`nix build` from that directory; see
-`third-party/hasura/kriti-lang/NOTE.md` for the small patches the
-nixpkgs-unstable build needs as of 2026-05).
+Fixtures are generated with the upstream `kriti` binary, built
+out-of-tree from the pinned commit in `../UPSTREAM.md` (for example with
+`nix build` against `hasura/kriti-lang`; nixpkgs-unstable may need small
+build patches). The `third-party/` build tree is not committed to this
+repository.
 
-To regenerate a fixture after a behaviour change:
+To regenerate a fixture after a behaviour change, point `KRITI` at your
+built binary:
 
 ```sh
-KRITI=third-party/hasura/kriti-lang/result/bin/kriti
+KRITI=/path/to/kriti
 "$KRITI" -j FIXTURE.input.json -t FIXTURE.kriti -b '$'
 ```
-
-The `third-party/` build tree is not committed to this repository; build
-the upstream binary out-of-tree from the pinned commit in `../UPSTREAM.md`.
 
 ## How the port uses these
 

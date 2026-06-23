@@ -75,7 +75,7 @@ func (n Null) isNode()             {}
 func (n Null) GetSpan() token.Span { return n.Span }
 
 // StringTem is a string template made of literal fragments and
-// embedded expressions. Each Part is either a *String (literal) or
+// embedded expressions. Each Part is either an ast.String literal or
 // any other Node (interpolated expression).
 type StringTem struct {
 	Span  token.Span

@@ -6,15 +6,15 @@ cron / connection transforms. Kept under a Hasura-neutral package
 name because the engine has no inherent dependency on Hasura.
 
 **Status: implemented.** `Render` lexes, parses, and evaluates
-templates against a `Scope`; the upstream conformance suite and the
-per-call-site transform builders pass. `ErrNotImplemented` is retained
-only for callers that still switch on it.
+templates against a `Scope`, and the upstream conformance suite passes.
+Callers build a `Scope` with the generic `New` + `WithVar` + `WithFunc`
+combinators.
 
 ## Layout
 
 | Path                                       | Purpose                                                            |
 |--------------------------------------------|--------------------------------------------------------------------|
-| `jsontmpl.go`                              | Public API: `Render`, `Scope`, per-call-site builders.             |
+| `jsontmpl.go`                              | Public API: `Render`, `Validate`, `Scope` (+ `WithVar`/`WithFunc`). |
 | `errors.go`                                | `Error`, `ErrorCode` constants, `MarshalJSON` matching upstream.   |
 | `jsontmpl_test.go`                         | Smoke tests for the implemented surface.                           |
 | `conformance_test.go`                      | Conformance suite (eval + parser fixtures, vendored from upstream). |

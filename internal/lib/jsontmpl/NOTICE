@@ -8,7 +8,7 @@ the Kriti templating language:
 The upstream project is licensed under the Apache License, Version 2.0:
 
     https://www.apache.org/licenses/LICENSE-2.0
-    https://github.com/hasura/kriti-lang/blob/master/LICENSE
+    https://github.com/hasura/kriti-lang/blob/daf56edd514a3c5439b457f9de08eaf43c876251/LICENSE
 
     Copyright (c) Hasura Inc.
 

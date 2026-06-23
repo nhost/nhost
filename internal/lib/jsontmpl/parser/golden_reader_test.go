@@ -81,7 +81,10 @@ func gtokenize(s string) []gtok {
 			i++ // closing quote
 
 			out = append(out, gtok{tStr, sb.String()})
-		case c >= '0' && c <= '9':
+		case (c >= '0' && c <= '9') ||
+			(c == '-' && i+1 < len(rs) && rs[i+1] >= '0' && rs[i+1] <= '9'):
+			// Include a leading '-' so negative Number literals keep their
+			// sign; GHC `show` emits negatives bare (e.g. `Number ... -1.5`).
 			j := i + 1
 			for j < len(rs) && (rs[j] >= '0' && rs[j] <= '9' || rs[j] == '.' ||
 				rs[j] == 'e' || rs[j] == 'E' || rs[j] == '+' || rs[j] == '-') {

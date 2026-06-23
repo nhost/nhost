@@ -15,32 +15,31 @@ func TestNodeSpanRoundTrip(t *testing.T) {
 		Start: token.Position{Line: 1, Column: 2, Offset: 3},
 		End:   token.Position{Line: 4, Column: 5, Offset: 6},
 	}
-	_ = sp
 
 	nodes := []ast.Node{
-		ast.Object{},
-		ast.Array{},
-		ast.String{},
-		ast.Number{},
-		ast.Boolean{},
-		ast.Null{},
-		ast.StringTem{},
-		ast.Var{},
-		ast.RequiredFieldAccess{},
-		ast.OptionalFieldAccess{},
-		ast.Iff{},
-		ast.Range{},
-		ast.Eq{},
-		ast.NotEq{},
-		ast.Gt{},
-		ast.Gte{},
-		ast.Lt{},
-		ast.Lte{},
-		ast.And{},
-		ast.Or{},
-		ast.In{},
-		ast.Defaulting{},
-		ast.Function{},
+		ast.Object{Span: sp},
+		ast.Array{Span: sp},
+		ast.String{Span: sp},
+		ast.Number{Span: sp},
+		ast.Boolean{Span: sp},
+		ast.Null{Span: sp},
+		ast.StringTem{Span: sp},
+		ast.Var{Span: sp},
+		ast.RequiredFieldAccess{Span: sp},
+		ast.OptionalFieldAccess{Span: sp},
+		ast.Iff{Span: sp},
+		ast.Range{Span: sp},
+		ast.Eq{Span: sp},
+		ast.NotEq{Span: sp},
+		ast.Gt{Span: sp},
+		ast.Gte{Span: sp},
+		ast.Lt{Span: sp},
+		ast.Lte{Span: sp},
+		ast.And{Span: sp},
+		ast.Or{Span: sp},
+		ast.In{Span: sp},
+		ast.Defaulting{Span: sp},
+		ast.Function{Span: sp},
 	}
 	if len(nodes) != 23 {
 		t.Fatalf(
@@ -48,9 +47,10 @@ func TestNodeSpanRoundTrip(t *testing.T) {
 			len(nodes),
 		)
 	}
-	// Spot-check GetSpan on one node.
-	obj := ast.Object{Span: sp}
-	if obj.GetSpan() != sp {
-		t.Fatalf("Object.GetSpan round-trip failed")
+	// Every concrete node must round-trip its embedded span.
+	for _, n := range nodes {
+		if n.GetSpan() != sp {
+			t.Errorf("%T.GetSpan() = %+v, want %+v", n, n.GetSpan(), sp)
+		}
 	}
 }

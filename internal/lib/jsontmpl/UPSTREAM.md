@@ -119,17 +119,18 @@ rather than treated as failures:
 
 ## Transform call-site parity
 
-This package renders templates; the request/response *transform* builders that
-consume it live in `connector/action/transform`. Two Hasura behaviours that are
-not part of Kriti itself but are required for transform parity are implemented
-there and pinned by tests in that package:
+This package only renders templates. The request/response *transform* builders
+that consume it are not part of this PR; they land in a follow-up that adds the
+consuming transform package. Some Hasura behaviours are not part of Kriti itself
+but are required for transform parity and belong in that consuming package
+rather than here, for example:
 
 - A query parameter or form field whose value template renders to JSON `null`
   is **dropped** from the outgoing request (not sent as the literal string
   `null`), matching graphql-engine. Headers are not dropped this way.
 
-The transform-parity coverage matrix is tracked in the consuming
-`connector/action/transform` package, not here.
+The transform-parity coverage matrix is owned by that consuming package, not
+by this one.
 
 ## Implementation notes
 
