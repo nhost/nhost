@@ -132,8 +132,18 @@ func TestRoundTripJSON_PreservesUnknownFields(t *testing.T) {
 		t.Error("Metadata.Unknown is empty after round-trip; envelope unknowns lost")
 	}
 
-	if !strings.Contains(string(roundtripped.Unknown), "actions") {
-		t.Errorf("Metadata.Unknown does not contain `actions`: %s", string(roundtripped.Unknown))
+	if !strings.Contains(string(roundtripped.Unknown), "cron_triggers") {
+		t.Errorf(
+			"Metadata.Unknown does not contain `cron_triggers`: %s",
+			string(roundtripped.Unknown),
+		)
+	}
+
+	// `actions` and `custom_types` are now modeled fields: they are claimed out
+	// of Unknown and preserved via the typed Metadata.Actions / .CustomTypes,
+	// which is what lets metadata-API mutations to them round-trip.
+	if len(roundtripped.Actions) == 0 {
+		t.Error("actions not preserved as typed Metadata.Actions through round-trip")
 	}
 }
 
