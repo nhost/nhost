@@ -56,7 +56,7 @@ func setupInteractiveTerminal(ptmx *os.File) func() {
 	}
 }
 
-func (d *Docker) HasuraWrapper(
+func (d *Docker) HasuraWrapper( //nolint:funlen
 	ctx context.Context,
 	subdomain,
 	nhostfolder,
