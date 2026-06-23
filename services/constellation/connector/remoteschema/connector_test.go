@@ -2304,13 +2304,16 @@ func introspectionResponseFromSDL(t *testing.T, sdl string) string {
 	for name := range schema.Types {
 		names = append(names, name)
 	}
+
 	sort.Strings(names)
 
 	types := make([]map[string]any, 0, len(names))
+
 	for _, name := range names {
 		if skipIntrospectionType(name) {
 			continue
 		}
+
 		types = append(types, introspectionType(schema, schema.Types[name]))
 	}
 

@@ -189,7 +189,7 @@ func validateObject(idx *upstreamIndex, obj *graph.ObjectType) []string {
 
 	var errs []string
 
-	errs = append(errs, validateFields(idx, "Object", obj.Name, obj.Fields, up.Fields)...)
+	errs = append(errs, validateFields("Object", obj.Name, obj.Fields, up.Fields)...)
 
 	// Implemented interfaces must exist upstream and be implemented by the
 	// corresponding upstream object.
@@ -223,14 +223,13 @@ func validateInterface(idx *upstreamIndex, iface *graph.InterfaceType) []string 
 		return []string{typeDoesNotExist("Interface", iface.Name)}
 	}
 
-	return validateFields(idx, "Interface", iface.Name, iface.Fields, up.Fields)
+	return validateFields("Interface", iface.Name, iface.Fields, up.Fields)
 }
 
 // validateFields checks that every field the role exposes on a parent type
 // exists upstream with a matching type, and that each field argument exists
 // upstream with a matching type.
 func validateFields(
-	idx *upstreamIndex,
 	parentKind, parentName string,
 	roleFields, upstreamFields []*graph.Field,
 ) []string {
