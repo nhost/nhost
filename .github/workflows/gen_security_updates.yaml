@@ -77,7 +77,7 @@ jobs:
         # workspace because sharedWorkspaceLockfile is false — each package
         # has its own lockfile and pnpm audit only sees the cwd's. Non-zero
         # exits are tolerated so partial fixes still land; remaining advisories
-        # surface on the normal audit-ci-recursive CI check.
+        # can be fixed manually.
         run: |
           nix develop .#security-updates -c bash -c '
             set -u
@@ -104,7 +104,7 @@ jobs:
             * **pnpm**: `pnpm audit --fix=update` per workspace lockfile (no overrides added).
             * **Go**: `go mod edit -require` for modules flagged by `govulncheck`, then `go mod tidy && go mod vendor`.
 
-            Anything still flagged after this PR will fail the regular CI checks (`govulncheck`, `audit-ci-recursive`) — fix manually.
+            Anything still flagged after this PR should be fixed manually.
           labels: |
             dependencies
             security
