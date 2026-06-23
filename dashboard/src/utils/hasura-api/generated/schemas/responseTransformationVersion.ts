@@ -13,6 +13,6 @@ export type ResponseTransformationVersion =
   (typeof ResponseTransformationVersion)[keyof typeof ResponseTransformationVersion];
 
 export const ResponseTransformationVersion = {
-  NUMBER_1: '1',
-  NUMBER_2: '2',
+  NUMBER_1: 1,
+  NUMBER_2: 2,
 } as const;
