@@ -1,0 +1,226 @@
+---
+title: Kriti Templating Language
+description: Reference for the Kriti JSON templating language used across Nhost to reshape JSON payloads with path lookups, conditionals, loops, and functions.
+keywords:
+  [
+    'kriti',
+    'templating',
+    'json template',
+    'transformations',
+    'path lookup',
+    'string interpolation',
+  ]
+head:
+  - tag: title
+    content: "Kriti Templating Language | Nhost Docs"
+sidebar:
+  label: Kriti Templating
+---
+
+Kriti is a small JSON templating language. It takes a template together with a
+set of named JSON values and produces a new JSON value. Nhost uses Kriti
+wherever a feature needs to reshape one JSON document into another, such as
+request and payload transformations. This page documents the language
+itself; the variables available inside a template depend on the feature that
+runs it, and each feature documents its own bindings.
+
+## How a template works
+
+A Kriti template is a superset of JSON: any valid JSON document is also a valid
+template that renders to itself. To compute a value, wrap an **expression** in
+double curly braces:
+
+```text
+"http://www.{{ $domain }}.com/{{ $path }}"
+```
+
+The renderer evaluates each `{{ ... }}` expression against the values bound for
+the current call and substitutes the result. Everything outside the braces is
+copied through unchanged.
+
+Expressions reference bound values by name with a leading `$`. The names that
+are available, and what they hold, are provided by the feature embedding the
+template (for instance a transform might bind `$body`, `$base_url`, and
+`$session_variables`). Referencing a name that was not bound is an error; see
+[Optional lookups](#optional-lookups) to read possibly missing values safely.
+
+```json
+{
+  "id": {{ $body.id }},
+  "url": "https://example.com/{{ $body.slug }}"
+}
+```
+
+## Path lookups
+
+Read nested values out of a bound object or array with path syntax:
+
+```text
+{{ $body.foo.bar[0]['my key'] }}
+```
+
+| Syntax        | Meaning                                                    |
+| ------------- | ---------------------------------------------------------- |
+| `.field`      | Look up an object field by name                            |
+| `[n]`         | Look up an array element by integer index (zero-based)     |
+| `['a b c']`   | Look up an object field whose key is a string literal      |
+
+Use the bracketed string form for keys that are not valid identifiers, such as
+keys containing spaces or punctuation. A lookup that fails (an unbound name, a
+missing field, or an out-of-range index) stops evaluation with an error.
+
+## Optional lookups
+
+A required lookup fails if any step is missing. To read a value that may not be
+present, use the optional form. Optional lookups return `null` instead of
+failing, and short-circuit: as soon as one step is missing, the whole chain
+yields `null` without evaluating the rest.
+
+```text
+{{ $body?.foo }}
+{{ $body?.foo.bar.baz }}
+```
+
+| Syntax       | Meaning                                          |
+| ------------ | ------------------------------------------------ |
+| `name?`      | Optionally look up a variable                    |
+| `?.field`    | Optionally look up an object field               |
+| `?[n]`       | Optionally look up an array index                |
+| `?['a b c']` | Optionally look up a string-literal object field |
+
+## Defaulting operator
+
+The defaulting operator `??` replaces a `null` value with a fallback. The
+expression `null ?? true` evaluates to `true`. It pairs naturally with optional
+lookups to supply a default for a missing value:
+
+```text
+{{ $body?.role ?? "user" }}
+```
+
+## Operators
+
+Expressions support comparison and boolean operators. Parenthesize to control
+grouping.
+
+| Operator        | Meaning                                                              |
+| --------------- | -------------------------------------------------------------------- |
+| `==`            | Equal                                                                |
+| `!=`            | Not equal                                                            |
+| `<` `<=`        | Less than, less than or equal                                        |
+| `>` `>=`        | Greater than, greater than or equal                                  |
+| `&&`            | Logical AND                                                          |
+| `\|\|`          | Logical OR                                                           |
+| `in`            | Membership: `x in arr` (array element) or `"k" in obj` (object key)  |
+| `??`            | Replaces a `null` left-hand value with the right-hand fallback       |
+
+```text
+{{ if $body.published && ($body.views > 100) }} ... {{ end }}
+{{ if "admin" in $session_variables.roles }} ... {{ end }}
+```
+
+## Conditionals
+
+Use `if` / `else` to choose between values. The branch that matches is rendered
+in place of the whole block.
+
+```text
+{{ if $body.published }}
+  {
+    "id": {{ $body.id }},
+    "title": {{ $body.title }}
+  }
+{{ else }}
+  null
+{{ end }}
+```
+
+Use `elif` for additional conditions:
+
+```text
+{{ if $body.score > 100 }}
+  "high"
+{{ elif $body.score > 50 }}
+  "medium"
+{{ else }}
+  "low"
+{{ end }}
+```
+
+## Loops
+
+The `range` keyword iterates over an array, rendering its body once per element
+and collecting the results into a new array:
+
+```text
+{{ range i, x := $body.articles }}
+  {
+    "index": {{ i }},
+    "title": {{ x.title }}
+  }
+{{ end }}
+```
+
+`i` binds the zero-based index and `x` binds the element; both names are in
+scope only inside the loop body. Omit the index by using `_` in its place:
+
+```text
+{{ range _, x := $body.articles }}
+  {{ x.title }}
+{{ end }}
+```
+
+Ranging over a value that is not an array is an error.
+
+## String interpolation
+
+Inside a JSON string, any number of `{{ ... }}` expressions are evaluated and
+spliced into the surrounding text. Strings, booleans, and numbers interpolate
+as their textual form:
+
+```text
+"http://www.{{ $domain }}.com/{{ $path }}"
+```
+
+When an expression stands alone as a whole JSON value (not embedded in a
+string), its result keeps its JSON type. For example, `{{ $body.count }}`
+produces a JSON number and `{{ $body.tags }}` produces a JSON array.
+
+## Functions
+
+Functions are called with a single argument: `functionName(expression)`. The
+following functions are always available.
+
+| Function       | Description                                                                                                                                          | Example                          | Result                |
+| -------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------- | -------------------------------- | --------------------- |
+| `empty`        | `true` for an empty object, array, or (whitespace-only) string, for the number `0`, and for `null`. Errors for a boolean.                            | `{{ empty("") }}`                | `true`                |
+| `size`         | Length of an array or string, number of keys of an object, the value of a number, `1` for `true`, `0` for `false`, and `0` for `null`.               | `{{ size("asdf") }}`             | `4`                   |
+| `inverse`      | Reverses an array or string, returns the reciprocal of a number (errors on `0`), negates a boolean, and leaves an object or `null` unchanged.        | `{{ inverse([1,2,3]) }}`         | `[3,2,1]`             |
+| `head`         | First element of an array or first character of a string. Errors on an empty value or any other type.                                                | `{{ head([1,2,3]) }}`            | `1`                   |
+| `tail`         | Drops the first element of an array or the first character of a string. Errors on an empty value or any other type.                                  | `{{ tail([1,2,3]) }}`            | `[2,3]`               |
+| `toLower`      | Lower-cases a string. Errors for non-strings.                                                                                                        | `{{ toLower("AbCd") }}`          | `"abcd"`              |
+| `toUpper`      | Upper-cases a string. Errors for non-strings.                                                                                                        | `{{ toUpper("AbCd") }}`          | `"ABCD"`              |
+| `toTitle`      | Title-cases a string. Errors for non-strings.                                                                                                        | `{{ toTitle("ab cd") }}`         | `"Ab Cd"`             |
+| `toCaseFold`   | Normalizes a string's casing for case-insensitive comparison. Errors for non-strings.                                                                | `{{ toCaseFold("AbCd") }}`       | `"abcd"`              |
+| `escapeUri`    | Percent-encodes a string per RFC 3986, keeping `A-Z a-z 0-9 - _ . ~` and encoding everything else. Errors for non-strings.                           | `{{ escapeUri("a b/c") }}`       | `"a%20b%2Fc"`         |
+| `fromPairs`    | Converts an array of `[key, value]` pairs into an object. Keys must be strings.                                                                       | `{{ fromPairs([["a",1],["b",2]]) }}` | `{"a":1,"b":2}`   |
+| `toPairs`      | Converts an object into an array of `[key, value]` pairs, in insertion order.                                                                         | `{{ toPairs({"a":1,"b":2}) }}`   | `[["a",1],["b",2]]`   |
+| `removeNulls`  | Removes `null` items from an array (non-recursive).                                                                                                   | `{{ removeNulls([1,null,3]) }}`  | `[1,3]`               |
+| `concat`       | Concatenates an array of arrays, of strings, or of objects. For objects, keys from later entries win on collision.                                    | `{{ concat([[1,2],[3,4]]) }}`    | `[1,2,3,4]`           |
+| `not`          | Negates a boolean. Errors for non-booleans.                                                                                                           | `{{ not(true) }}`                | `false`               |
+
+## Errors
+
+When a template cannot be rendered, evaluation stops and reports a typed error
+with a code and the source span (line and column) where the problem occurred.
+Common causes are a syntax error, an unbound variable, a type mismatch, or a
+function applied to an unsupported value. Use [optional lookups](#optional-lookups) and the
+[defaulting operator](#defaulting-operator) to tolerate missing data rather than
+failing.
+
+## Attribution
+
+Kriti is the open source templating language created by Hasura
+([`hasura/kriti-lang`](https://github.com/hasura/kriti-lang), Apache-2.0). Nhost
+implements a compatible engine; this reference describes the behaviour you can
+rely on across Nhost features.
