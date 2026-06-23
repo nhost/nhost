@@ -48,15 +48,16 @@ func TestGetUser(t *testing.T) {
 					UpdatedAt:                pgtype.Timestamptz{},
 					LastSeen:                 pgtype.Timestamptz{},
 					Disabled:                 false,
-					PasswordHash:             pgtype.Text{},
-					NewEmail:                 pgtype.Text{},
-					OtpMethodLastUsed:        pgtype.Text{},
-					OtpHash:                  pgtype.Text{},
-					OtpHashExpiresAt:         pgtype.Timestamptz{},
-					TotpSecret:               pgtype.Text{},
-					Ticket:                   pgtype.Text{},
-					TicketExpiresAt:          pgtype.Timestamptz{},
-					WebauthnCurrentChallenge: pgtype.Text{},
+					PasswordHash:             pgtype.Text{},        //nolint:exhaustruct
+					NewEmail:                 pgtype.Text{},        //nolint:exhaustruct
+					OtpMethodLastUsed:        pgtype.Text{},        //nolint:exhaustruct
+					OtpHash:                  pgtype.Text{},        //nolint:exhaustruct
+					OtpHashExpiresAt:         pgtype.Timestamptz{}, //nolint:exhaustruct
+					TotpSecret:               pgtype.Text{},        //nolint:exhaustruct
+					Ticket:                   pgtype.Text{},        //nolint:exhaustruct
+					TicketExpiresAt:          pgtype.Timestamptz{}, //nolint:exhaustruct
+					WebauthnCurrentChallenge: pgtype.Text{},        //nolint:exhaustruct
+					NewPhoneNumber:           pgtype.Text{},        //nolint:exhaustruct
 				}, nil)
 
 				// Mock GetUserRoles call

@@ -138,7 +138,8 @@ func TestLinkIdToken(t *testing.T) { //nolint:maintidx
 					Ticket:                   pgtype.Text{},
 					TicketExpiresAt:          pgtype.Timestamptz{},
 					Metadata:                 []byte{},
-					WebauthnCurrentChallenge: pgtype.Text{},
+					WebauthnCurrentChallenge: pgtype.Text{}, //nolint:exhaustruct
+					NewPhoneNumber:           pgtype.Text{}, //nolint:exhaustruct
 				}, nil)
 
 				mock.EXPECT().InsertUserProvider(
@@ -220,7 +221,8 @@ func TestLinkIdToken(t *testing.T) { //nolint:maintidx
 					Ticket:                   pgtype.Text{},
 					TicketExpiresAt:          pgtype.Timestamptz{},
 					Metadata:                 []byte{},
-					WebauthnCurrentChallenge: pgtype.Text{},
+					WebauthnCurrentChallenge: pgtype.Text{}, //nolint:exhaustruct
+					NewPhoneNumber:           pgtype.Text{}, //nolint:exhaustruct
 				}, nil)
 
 				mock.EXPECT().InsertUserProvider(
@@ -298,7 +300,8 @@ func TestLinkIdToken(t *testing.T) { //nolint:maintidx
 					Ticket:                   pgtype.Text{},
 					TicketExpiresAt:          pgtype.Timestamptz{},
 					Metadata:                 []byte{},
-					WebauthnCurrentChallenge: pgtype.Text{},
+					WebauthnCurrentChallenge: pgtype.Text{}, //nolint:exhaustruct
+					NewPhoneNumber:           pgtype.Text{}, //nolint:exhaustruct
 				}, nil)
 
 				return mock
@@ -392,7 +395,8 @@ func TestLinkIdToken(t *testing.T) { //nolint:maintidx
 					Ticket:                   pgtype.Text{},
 					TicketExpiresAt:          pgtype.Timestamptz{},
 					Metadata:                 []byte{},
-					WebauthnCurrentChallenge: pgtype.Text{},
+					WebauthnCurrentChallenge: pgtype.Text{}, //nolint:exhaustruct
+					NewPhoneNumber:           pgtype.Text{}, //nolint:exhaustruct
 				}, nil)
 
 				mock.EXPECT().InsertUserProvider(

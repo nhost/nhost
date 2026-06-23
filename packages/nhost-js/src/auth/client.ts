@@ -1515,6 +1515,23 @@ export interface UserDeanonymizeRequest {
 
 /**
  * 
+ @property phoneNumber (`string`) - Phone number of the user
+    *    Example - `"+123456789"`
+ @property options? (`SignUpOptions`) - */
+export interface UserDeanonymizeSMSRequest {
+  /**
+   * Phone number of the user
+   *    Example - `"+123456789"`
+   */
+  phoneNumber: string;
+  /**
+   *
+   */
+  options?: SignUpOptions;
+}
+
+/**
+ * 
  @property newEmail (`string`) - A valid email
     *    Example - `"john.smith@nhost.io"`
     *    Format - email
@@ -1541,6 +1558,37 @@ export interface UserEmailChangeRequest {
    *    MaxLength - 43
    */
   codeChallenge?: string;
+}
+
+/**
+ * 
+ @property newPhoneNumber (`string`) - New phone number to bind to the user once verified via SMS OTP
+    *    Example - `"+123456789"`*/
+export interface UserPhoneNumberChangeRequest {
+  /**
+   * New phone number to bind to the user once verified via SMS OTP
+   *    Example - `"+123456789"`
+   */
+  newPhoneNumber: string;
+}
+
+/**
+ * 
+ @property newPhoneNumber (`string`) - The phone number that was previously requested via /user/phone-number/change
+    *    Example - `"+123456789"`
+ @property otp (`string`) - One-time password received via SMS at the new phone number
+    *    Example - `"123456"`*/
+export interface UserPhoneNumberChangeVerifyRequest {
+  /**
+   * The phone number that was previously requested via /user/phone-number/change
+   *    Example - `"+123456789"`
+   */
+  newPhoneNumber: string;
+  /**
+   * One-time password received via SMS at the new phone number
+   *    Example - `"123456"`
+   */
+  otp: string;
 }
 
 /**
@@ -2965,6 +3013,21 @@ If the user already exists at callback time, they are redirected with `error=use
   ): Promise<FetchResponse<OKResponse>>;
 
   /**
+     Summary: Deanonymize an anonymous user with SMS OTP
+     Convert an anonymous user to a regular user by adding a phone number. A one-time password is sent to the
+phone number; the user completes verification by calling `/signin/passwordless/sms/otp` with the OTP, which
+marks the phone number as verified and returns a session.
+
+
+     This method may return different T based on the response code:
+     - 200: OKResponse
+     */
+  deanonymizeUserSMS(
+    body: UserDeanonymizeSMSRequest,
+    options?: RequestInit,
+  ): Promise<FetchResponse<OKResponse>>;
+
+  /**
      Summary: Change user email
      Request to change the authenticated user's email address. A verification email will be sent to the new address to confirm the change. Requires elevated permissions.
 
@@ -2973,6 +3036,37 @@ If the user already exists at callback time, they are redirected with `error=use
      */
   changeUserEmail(
     body: UserEmailChangeRequest,
+    options?: RequestInit,
+  ): Promise<FetchResponse<OKResponse>>;
+
+  /**
+     Summary: Change user phone number
+     Request to change the authenticated user's phone number. A one-time password is sent
+via SMS to the new phone number; complete the change by calling
+`/user/phone-number/change/verify` with the OTP. The current `phone_number` is left
+unchanged until verification succeeds. Requires elevated permissions.
+
+
+     This method may return different T based on the response code:
+     - 200: OKResponse
+     */
+  changeUserPhoneNumber(
+    body: UserPhoneNumberChangeRequest,
+    options?: RequestInit,
+  ): Promise<FetchResponse<OKResponse>>;
+
+  /**
+     Summary: Verify phone number change
+     Complete a previously-requested phone number change by submitting the OTP that was
+sent via SMS. On success the staged phone number becomes the user's verified phone
+number. Requires elevated permissions.
+
+
+     This method may return different T based on the response code:
+     - 200: OKResponse
+     */
+  verifyChangeUserPhoneNumber(
+    body: UserPhoneNumberChangeVerifyRequest,
     options?: RequestInit,
   ): Promise<FetchResponse<OKResponse>>;
 
@@ -4439,11 +4533,110 @@ export const createAPIClient = (
     } as FetchResponse<OKResponse>;
   };
 
+  const deanonymizeUserSMS = async (
+    body: UserDeanonymizeSMSRequest,
+    options?: RequestInit,
+  ): Promise<FetchResponse<OKResponse>> => {
+    const url = `${baseURL}/user/deanonymize/sms`;
+    const res = await fetch(url, {
+      ...options,
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        ...options?.headers,
+      },
+      body: JSON.stringify(body),
+    });
+
+    if (res.status >= 300) {
+      const responseBody = [412].includes(res.status) ? null : await res.text();
+      const payload: unknown = responseBody ? JSON.parse(responseBody) : {};
+      throw new FetchError(payload, res.status, res.headers);
+    }
+
+    const responseBody = [204, 205, 304].includes(res.status)
+      ? null
+      : await res.text();
+    const payload: OKResponse = responseBody ? JSON.parse(responseBody) : {};
+
+    return {
+      body: payload,
+      status: res.status,
+      headers: res.headers,
+    } as FetchResponse<OKResponse>;
+  };
+
   const changeUserEmail = async (
     body: UserEmailChangeRequest,
     options?: RequestInit,
   ): Promise<FetchResponse<OKResponse>> => {
     const url = `${baseURL}/user/email/change`;
+    const res = await fetch(url, {
+      ...options,
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        ...options?.headers,
+      },
+      body: JSON.stringify(body),
+    });
+
+    if (res.status >= 300) {
+      const responseBody = [412].includes(res.status) ? null : await res.text();
+      const payload: unknown = responseBody ? JSON.parse(responseBody) : {};
+      throw new FetchError(payload, res.status, res.headers);
+    }
+
+    const responseBody = [204, 205, 304].includes(res.status)
+      ? null
+      : await res.text();
+    const payload: OKResponse = responseBody ? JSON.parse(responseBody) : {};
+
+    return {
+      body: payload,
+      status: res.status,
+      headers: res.headers,
+    } as FetchResponse<OKResponse>;
+  };
+
+  const changeUserPhoneNumber = async (
+    body: UserPhoneNumberChangeRequest,
+    options?: RequestInit,
+  ): Promise<FetchResponse<OKResponse>> => {
+    const url = `${baseURL}/user/phone-number/change`;
+    const res = await fetch(url, {
+      ...options,
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        ...options?.headers,
+      },
+      body: JSON.stringify(body),
+    });
+
+    if (res.status >= 300) {
+      const responseBody = [412].includes(res.status) ? null : await res.text();
+      const payload: unknown = responseBody ? JSON.parse(responseBody) : {};
+      throw new FetchError(payload, res.status, res.headers);
+    }
+
+    const responseBody = [204, 205, 304].includes(res.status)
+      ? null
+      : await res.text();
+    const payload: OKResponse = responseBody ? JSON.parse(responseBody) : {};
+
+    return {
+      body: payload,
+      status: res.status,
+      headers: res.headers,
+    } as FetchResponse<OKResponse>;
+  };
+
+  const verifyChangeUserPhoneNumber = async (
+    body: UserPhoneNumberChangeVerifyRequest,
+    options?: RequestInit,
+  ): Promise<FetchResponse<OKResponse>> => {
+    const url = `${baseURL}/user/phone-number/change/verify`;
     const res = await fetch(url, {
       ...options,
       method: 'POST',
@@ -5222,7 +5415,10 @@ export const createAPIClient = (
     verifyToken,
     getUser,
     deanonymizeUser,
+    deanonymizeUserSMS,
     changeUserEmail,
+    changeUserPhoneNumber,
+    verifyChangeUserPhoneNumber,
     sendVerificationEmail,
     verifyChangeUserMfa,
     changeUserPassword,

@@ -464,6 +464,7 @@ CREATE TABLE auth.users (
     ticket_expires_at timestamp with time zone DEFAULT now() NOT NULL,
     metadata jsonb,
     webauthn_current_challenge text,
+    new_phone_number text,
     CONSTRAINT active_mfa_types_check CHECK (((active_mfa_type = 'totp'::text) OR (active_mfa_type = 'sms'::text)))
 );
 
@@ -729,6 +730,13 @@ CREATE INDEX pkce_authorization_codes_expires_at_idx ON auth.pkce_authorization_
 --
 
 CREATE INDEX refresh_tokens_refresh_token_hash_expires_at_user_id_idx ON auth.refresh_tokens USING btree (refresh_token_hash, expires_at, user_id);
+
+
+--
+-- Name: users_new_phone_number_idx; Type: INDEX; Schema: auth; Owner: postgres
+--
+
+CREATE INDEX users_new_phone_number_idx ON auth.users USING btree (new_phone_number) WHERE (new_phone_number IS NOT NULL);
 
 
 --

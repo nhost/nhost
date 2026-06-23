@@ -35,6 +35,9 @@ services:
       AUTH_CLIENT_URL: "http://localhost:3000"
       AUTH_LOG_FORMAT_TEXT: "true"
       AUTH_EMAIL_SIGNIN_EMAIL_VERIFIED_REQUIRED: "false"
+      AUTH_SMS_PASSWORDLESS_ENABLED: "true"
+      AUTH_SMS_PROVIDER: dev
+      AUTH_SMS_DEV_OUTPUT_DIR: /sms-output
     healthcheck:
       test:
         - CMD

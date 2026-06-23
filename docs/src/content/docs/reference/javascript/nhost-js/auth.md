@@ -380,6 +380,33 @@ This method may return different T based on the response code:
 
 `Promise`&lt;[`FetchResponse`](./fetch#fetchresponse)&lt;`"OK"`&gt;&gt;
 
+#### changeUserPhoneNumber()
+
+```ts
+changeUserPhoneNumber(body: UserPhoneNumberChangeRequest, options?: RequestInit): Promise<FetchResponse<"OK">>;
+```
+
+Summary: Change user phone number
+Request to change the authenticated user's phone number. A one-time password is sent
+via SMS to the new phone number; complete the change by calling
+`/user/phone-number/change/verify` with the OTP. The current `phone_number` is left
+unchanged until verification succeeds. Requires elevated permissions.
+
+This method may return different T based on the response code:
+
+- 200: OKResponse
+
+##### Parameters
+
+| Parameter  | Type                                                            |
+| ---------- | --------------------------------------------------------------- |
+| `body`     | [`UserPhoneNumberChangeRequest`](#userphonenumberchangerequest) |
+| `options?` | `RequestInit`                                                   |
+
+##### Returns
+
+`Promise`&lt;[`FetchResponse`](./fetch#fetchresponse)&lt;`"OK"`&gt;&gt;
+
 #### createPAT()
 
 ```ts
@@ -423,6 +450,32 @@ This method may return different T based on the response code:
 | ---------- | --------------------------------------------------- |
 | `body`     | [`UserDeanonymizeRequest`](#userdeanonymizerequest) |
 | `options?` | `RequestInit`                                       |
+
+##### Returns
+
+`Promise`&lt;[`FetchResponse`](./fetch#fetchresponse)&lt;`"OK"`&gt;&gt;
+
+#### deanonymizeUserSMS()
+
+```ts
+deanonymizeUserSMS(body: UserDeanonymizeSMSRequest, options?: RequestInit): Promise<FetchResponse<"OK">>;
+```
+
+Summary: Deanonymize an anonymous user with SMS OTP
+Convert an anonymous user to a regular user by adding a phone number. A one-time password is sent to the
+phone number; the user completes verification by calling `/signin/passwordless/sms/otp` with the OTP, which
+marks the phone number as verified and returns a session.
+
+This method may return different T based on the response code:
+
+- 200: OKResponse
+
+##### Parameters
+
+| Parameter  | Type                                                      |
+| ---------- | --------------------------------------------------------- |
+| `body`     | [`UserDeanonymizeSMSRequest`](#userdeanonymizesmsrequest) |
+| `options?` | `RequestInit`                                             |
 
 ##### Returns
 
@@ -1508,6 +1561,32 @@ This method may return different T based on the response code:
 | ---------- | ----------------------------------- |
 | `body`     | [`UserMfaRequest`](#usermfarequest) |
 | `options?` | `RequestInit`                       |
+
+##### Returns
+
+`Promise`&lt;[`FetchResponse`](./fetch#fetchresponse)&lt;`"OK"`&gt;&gt;
+
+#### verifyChangeUserPhoneNumber()
+
+```ts
+verifyChangeUserPhoneNumber(body: UserPhoneNumberChangeVerifyRequest, options?: RequestInit): Promise<FetchResponse<"OK">>;
+```
+
+Summary: Verify phone number change
+Complete a previously-requested phone number change by submitting the OTP that was
+sent via SMS. On success the staged phone number becomes the user's verified phone
+number. Requires elevated permissions.
+
+This method may return different T based on the response code:
+
+- 200: OKResponse
+
+##### Parameters
+
+| Parameter  | Type                                                                        |
+| ---------- | --------------------------------------------------------------------------- |
+| `body`     | [`UserPhoneNumberChangeVerifyRequest`](#userphonenumberchangeverifyrequest) |
+| `options?` | `RequestInit`                                                               |
 
 ##### Returns
 
@@ -4303,6 +4382,28 @@ signInMethod: UserDeanonymizeRequestSignInMethod;
 
 ---
 
+## UserDeanonymizeSMSRequest
+
+### Properties
+
+#### options?
+
+```ts
+optional options?: SignUpOptions;
+```
+
+#### phoneNumber
+
+```ts
+phoneNumber: string
+```
+
+(`string`) - Phone number of the user
+
+- Example - `"+123456789"`
+
+---
+
 ## UserEmailChangeRequest
 
 ### Properties
@@ -4486,6 +4587,48 @@ email: string;
 ```ts
 optional options?: OptionsRedirectTo;
 ```
+
+---
+
+## UserPhoneNumberChangeRequest
+
+### Properties
+
+#### newPhoneNumber
+
+```ts
+newPhoneNumber: string
+```
+
+(`string`) - New phone number to bind to the user once verified via SMS OTP
+
+- Example - `"+123456789"`
+
+---
+
+## UserPhoneNumberChangeVerifyRequest
+
+### Properties
+
+#### newPhoneNumber
+
+```ts
+newPhoneNumber: string
+```
+
+(`string`) - The phone number that was previously requested via /user/phone-number/change
+
+- Example - `"+123456789"`
+
+#### otp
+
+```ts
+otp: string
+```
+
+(`string`) - One-time password received via SMS at the new phone number
+
+- Example - `"123456"`
 
 ---
 

@@ -129,6 +129,16 @@ func (response ErrorResponse) VisitChangeUserEmailResponse(w http.ResponseWriter
 	return response.visit(w)
 }
 
+func (response ErrorResponse) VisitChangeUserPhoneNumberResponse(w http.ResponseWriter) error {
+	return response.visit(w)
+}
+
+func (response ErrorResponse) VisitVerifyChangeUserPhoneNumberResponse(
+	w http.ResponseWriter,
+) error {
+	return response.visit(w)
+}
+
 func (response ErrorResponse) VisitChangeUserPasswordResponse(w http.ResponseWriter) error {
 	return response.visit(w)
 }
@@ -148,6 +158,10 @@ func (response ErrorResponse) VisitCreatePATResponse(w http.ResponseWriter) erro
 }
 
 func (response ErrorResponse) VisitDeanonymizeUserResponse(w http.ResponseWriter) error {
+	return response.visit(w)
+}
+
+func (response ErrorResponse) VisitDeanonymizeUserSMSResponse(w http.ResponseWriter) error {
 	return response.visit(w)
 }
 

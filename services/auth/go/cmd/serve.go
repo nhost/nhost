@@ -103,6 +103,7 @@ const (
 	flagSMSTwilioMessagingServiceID              = "sms-twilio-messaging-service-id"
 	flagSMSModicaUsername                        = "sms-modica-username"
 	flagSMSModicaPassword                        = "sms-modica-password" //nolint:gosec
+	flagSMSDevOutputDir                          = "sms-dev-output-dir"
 	flagAnonymousUsersEnabled                    = "enable-anonymous-users"
 	flagMfaEnabled                               = "mfa-enabled"
 	flagMfaTotpIssuer                            = "mfa-totp-issuer"
@@ -734,6 +735,12 @@ func CommandServe() *cli.Command { //nolint:funlen,maintidx
 				Usage:    "Modica password for SMS",
 				Category: "sms",
 				Sources:  cli.EnvVars("AUTH_SMS_MODICA_PASSWORD"),
+			},
+			&cli.StringFlag{ //nolint: exhaustruct
+				Name:     flagSMSDevOutputDir,
+				Usage:    "Directory where the dev SMS provider writes each SMS body to <phone>.txt (test only)", //nolint:lll
+				Category: "sms",
+				Sources:  cli.EnvVars("AUTH_SMS_DEV_OUTPUT_DIR"),
 			},
 			&cli.BoolFlag{ //nolint: exhaustruct
 				Name:     flagAnonymousUsersEnabled,

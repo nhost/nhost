@@ -257,27 +257,28 @@ func TestSignUpEmailPassword(t *testing.T) { //nolint:maintidx
 
 				mock.EXPECT().InsertUser(
 					gomock.Any(),
-					cmpDBParams(
-						sql.InsertUserParams{
-							ID:                uuid.UUID{},
-							Disabled:          true,
-							DisplayName:       "jane@acme.com",
-							AvatarUrl:         "",
-							Email:             sql.Text("jane@acme.com"),
-							PasswordHash:      pgtype.Text{},
-							Ticket:            sql.Text("verifyEmail:xxxx"),
-							TicketExpiresAt:   sql.TimestampTz(time.Now().Add(30 * 24 * time.Hour)),
-							EmailVerified:     false,
-							Locale:            "en",
-							DefaultRole:       "user",
-							Metadata:          []byte("null"),
-							Roles:             []string{"user", "me"},
-							PhoneNumber:       pgtype.Text{},
-							Otp:               "",
-							OtpHashExpiresAt:  pgtype.Timestamptz{},
-							OtpMethodLastUsed: pgtype.Text{},
-						},
-						cmpopts.IgnoreFields(sql.InsertUserParams{}, "ID"),
+					cmpDBParams(sql.InsertUserParams{
+						ID:                uuid.UUID{},
+						Disabled:          true,
+						DisplayName:       "jane@acme.com",
+						AvatarUrl:         "",
+						Email:             sql.Text("jane@acme.com"),
+						PasswordHash:      pgtype.Text{}, //nolint:exhaustruct
+						Ticket:            sql.Text("verifyEmail:xxxx"),
+						TicketExpiresAt:   sql.TimestampTz(time.Now().Add(30 * 24 * time.Hour)),
+						EmailVerified:     false,
+						Locale:            "en",
+						DefaultRole:       "user",
+						Metadata:          []byte("null"),
+						Roles:             []string{"user", "me"},
+						PhoneNumber:       pgtype.Text{}, //nolint:exhaustruct
+						NewPhoneNumber:    pgtype.Text{}, //nolint:exhaustruct
+						Otp:               "",
+						OtpHashExpiresAt:  pgtype.Timestamptz{}, //nolint:exhaustruct
+						OtpMethodLastUsed: pgtype.Text{},        //nolint:exhaustruct
+					},
+						cmpopts.IgnoreFields(sql.InsertUserParams{}, "ID"), //nolint:exhaustruct
+
 					),
 				).Return(sql.InsertUserRow{
 					UserID:    uuid.MustParse("DB477732-48FA-4289-B694-2886A646B6EB"),
@@ -315,27 +316,27 @@ func TestSignUpEmailPassword(t *testing.T) { //nolint:maintidx
 
 				mock.EXPECT().InsertUser(
 					gomock.Any(),
-					cmpDBParams(
-						sql.InsertUserParams{
-							ID:                uuid.UUID{},
-							Disabled:          true,
-							DisplayName:       "jane@acme.com",
-							AvatarUrl:         "",
-							Email:             sql.Text("jane@acme.com"),
-							PasswordHash:      pgtype.Text{},
-							Ticket:            sql.Text("verifyEmail:xxxx"),
-							TicketExpiresAt:   sql.TimestampTz(time.Now().Add(30 * 24 * time.Hour)),
-							EmailVerified:     false,
-							Locale:            "en",
-							DefaultRole:       "user",
-							Metadata:          []byte("null"),
-							Roles:             []string{"user", "me"},
-							PhoneNumber:       pgtype.Text{},
-							Otp:               "",
-							OtpHashExpiresAt:  pgtype.Timestamptz{},
-							OtpMethodLastUsed: pgtype.Text{},
-						},
-						cmpopts.IgnoreFields(sql.InsertUserParams{}, "ID"),
+					cmpDBParams(sql.InsertUserParams{
+						ID:                uuid.UUID{},
+						Disabled:          true,
+						DisplayName:       "jane@acme.com",
+						AvatarUrl:         "",
+						Email:             sql.Text("jane@acme.com"),
+						PasswordHash:      pgtype.Text{}, //nolint:exhaustruct
+						Ticket:            sql.Text("verifyEmail:xxxx"),
+						TicketExpiresAt:   sql.TimestampTz(time.Now().Add(30 * 24 * time.Hour)),
+						EmailVerified:     false,
+						Locale:            "en",
+						DefaultRole:       "user",
+						Metadata:          []byte("null"),
+						Roles:             []string{"user", "me"},
+						PhoneNumber:       pgtype.Text{}, //nolint:exhaustruct
+						NewPhoneNumber:    pgtype.Text{}, //nolint:exhaustruct
+						Otp:               "",
+						OtpHashExpiresAt:  pgtype.Timestamptz{}, //nolint:exhaustruct
+						OtpMethodLastUsed: pgtype.Text{},        //nolint:exhaustruct
+					},
+						cmpopts.IgnoreFields(sql.InsertUserParams{}, "ID"), //nolint:exhaustruct
 					),
 				).Return(sql.InsertUserRow{
 					UserID:    uuid.MustParse("DB477732-48FA-4289-B694-2886A646B6EB"),
@@ -372,27 +373,27 @@ func TestSignUpEmailPassword(t *testing.T) { //nolint:maintidx
 
 				mock.EXPECT().InsertUser(
 					gomock.Any(),
-					cmpDBParams(
-						sql.InsertUserParams{
-							ID:                uuid.UUID{},
-							Disabled:          false,
-							DisplayName:       "jane@acme.com",
-							AvatarUrl:         "",
-							Email:             sql.Text("jane@acme.com"),
-							PasswordHash:      pgtype.Text{},
-							Ticket:            sql.Text("verifyEmail:xxxx"),
-							TicketExpiresAt:   sql.TimestampTz(time.Now().Add(30 * 24 * time.Hour)),
-							EmailVerified:     false,
-							Locale:            "en",
-							DefaultRole:       "user",
-							Metadata:          []byte("null"),
-							Roles:             []string{"user", "me"},
-							PhoneNumber:       pgtype.Text{},
-							Otp:               "",
-							OtpHashExpiresAt:  pgtype.Timestamptz{},
-							OtpMethodLastUsed: pgtype.Text{},
-						},
-						cmpopts.IgnoreFields(sql.InsertUserParams{}, "ID"),
+					cmpDBParams(sql.InsertUserParams{
+						ID:                uuid.UUID{},
+						Disabled:          false,
+						DisplayName:       "jane@acme.com",
+						AvatarUrl:         "",
+						Email:             sql.Text("jane@acme.com"),
+						PasswordHash:      pgtype.Text{}, //nolint:exhaustruct
+						Ticket:            sql.Text("verifyEmail:xxxx"),
+						TicketExpiresAt:   sql.TimestampTz(time.Now().Add(30 * 24 * time.Hour)),
+						EmailVerified:     false,
+						Locale:            "en",
+						DefaultRole:       "user",
+						Metadata:          []byte("null"),
+						Roles:             []string{"user", "me"},
+						PhoneNumber:       pgtype.Text{}, //nolint:exhaustruct
+						NewPhoneNumber:    pgtype.Text{}, //nolint:exhaustruct
+						Otp:               "",
+						OtpHashExpiresAt:  pgtype.Timestamptz{}, //nolint:exhaustruct
+						OtpMethodLastUsed: pgtype.Text{},        //nolint:exhaustruct
+					},
+						cmpopts.IgnoreFields(sql.InsertUserParams{}, "ID"), //nolint:exhaustruct
 					),
 				).Return(sql.InsertUserRow{
 					UserID:    uuid.MustParse("DB477732-48FA-4289-B694-2886A646B6EB"),
@@ -974,27 +975,27 @@ func TestSignUpEmailPassword(t *testing.T) { //nolint:maintidx
 
 				mock.EXPECT().InsertUser(
 					gomock.Any(),
-					cmpDBParams(
-						sql.InsertUserParams{
-							ID:                uuid.UUID{},
-							Disabled:          false,
-							DisplayName:       "jane@acme.com",
-							AvatarUrl:         "",
-							Email:             sql.Text("jane@acme.com"),
-							PasswordHash:      pgtype.Text{},
-							Ticket:            sql.Text("verifyEmail:xxxx"),
-							TicketExpiresAt:   sql.TimestampTz(time.Now().Add(30 * 24 * time.Hour)),
-							EmailVerified:     false,
-							Locale:            "en",
-							DefaultRole:       "user",
-							Metadata:          []byte("null"),
-							Roles:             []string{"user", "me"},
-							PhoneNumber:       pgtype.Text{},
-							Otp:               "",
-							OtpHashExpiresAt:  pgtype.Timestamptz{},
-							OtpMethodLastUsed: pgtype.Text{},
-						},
-						cmpopts.IgnoreFields(sql.InsertUserParams{}, "ID"),
+					cmpDBParams(sql.InsertUserParams{
+						ID:                uuid.UUID{},
+						Disabled:          false,
+						DisplayName:       "jane@acme.com",
+						AvatarUrl:         "",
+						Email:             sql.Text("jane@acme.com"),
+						PasswordHash:      pgtype.Text{}, //nolint:exhaustruct
+						Ticket:            sql.Text("verifyEmail:xxxx"),
+						TicketExpiresAt:   sql.TimestampTz(time.Now().Add(30 * 24 * time.Hour)),
+						EmailVerified:     false,
+						Locale:            "en",
+						DefaultRole:       "user",
+						Metadata:          []byte("null"),
+						Roles:             []string{"user", "me"},
+						PhoneNumber:       pgtype.Text{}, //nolint:exhaustruct
+						NewPhoneNumber:    pgtype.Text{}, //nolint:exhaustruct
+						Otp:               "",
+						OtpHashExpiresAt:  pgtype.Timestamptz{}, //nolint:exhaustruct
+						OtpMethodLastUsed: pgtype.Text{},        //nolint:exhaustruct
+					},
+						cmpopts.IgnoreFields(sql.InsertUserParams{}, "ID"), //nolint:exhaustruct
 					),
 				).Return(sql.InsertUserRow{
 					UserID:    uuid.MustParse("DB477732-48FA-4289-B694-2886A646B6EB"),

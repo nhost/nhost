@@ -1371,6 +1371,40 @@ paths:
                 $ref: "#/components/schemas/ErrorResponse"
           description: "An error occurred while processing the request"
 
+  /user/deanonymize/sms:
+    post:
+      summary: Deanonymize an anonymous user with SMS OTP
+      description: |
+        Convert an anonymous user to a regular user by adding a phone number. A one-time password is sent to the
+        phone number; the user completes verification by calling `/signin/passwordless/sms/otp` with the OTP, which
+        marks the phone number as verified and returns a session.
+      operationId: deanonymizeUserSMS
+      tags:
+        - authentication
+      security:
+        - BearerAuth: []
+      requestBody:
+        description: Phone number and optional user options to convert anonymous user to regular user
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/UserDeanonymizeSMSRequest"
+        required: true
+      responses:
+        "200":
+          description: >-
+            User deanonymized successfully and OTP sent to the phone number
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/OKResponse"
+        default:
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+          description: "An error occurred while processing the request"
+
   /user/email/change:
     post:
       summary: Change user email
@@ -1391,6 +1425,74 @@ paths:
         "200":
           description: >-
             Email change requested. An email with a verification link has been sent to the new address
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/OKResponse"
+        default:
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+          description: "An error occurred while processing the request"
+
+  /user/phone-number/change:
+    post:
+      summary: Change user phone number
+      description: |
+        Request to change the authenticated user's phone number. A one-time password is sent
+        via SMS to the new phone number; complete the change by calling
+        `/user/phone-number/change/verify` with the OTP. The current `phone_number` is left
+        unchanged until verification succeeds. Requires elevated permissions.
+      operationId: changeUserPhoneNumber
+      tags:
+        - user
+      security:
+        - BearerAuthElevated: []
+      requestBody:
+        description: New phone number to verify and bind to the user
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/UserPhoneNumberChangeRequest"
+        required: true
+      responses:
+        "200":
+          description: >-
+            Phone number change requested. An SMS with a verification code has been sent to the new phone number.
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/OKResponse"
+        default:
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+          description: "An error occurred while processing the request"
+
+  /user/phone-number/change/verify:
+    post:
+      summary: Verify phone number change
+      description: |
+        Complete a previously-requested phone number change by submitting the OTP that was
+        sent via SMS. On success the staged phone number becomes the user's verified phone
+        number. Requires elevated permissions.
+      operationId: verifyChangeUserPhoneNumber
+      tags:
+        - user
+      security:
+        - BearerAuthElevated: []
+      requestBody:
+        description: New phone number and OTP code to confirm the change
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/UserPhoneNumberChangeVerifyRequest"
+        required: true
+      responses:
+        "200":
+          description: Phone number change verified successfully
           content:
             application/json:
               schema:
@@ -3278,6 +3380,19 @@ components:
         - signInMethod
         - email
 
+    UserDeanonymizeSMSRequest:
+      type: object
+      additionalProperties: false
+      properties:
+        phoneNumber:
+          description: Phone number of the user
+          example: "+123456789"
+          type: string
+        options:
+          $ref: "#/components/schemas/SignUpOptions"
+      required:
+        - phoneNumber
+
     UserEmailChangeRequest:
       type: object
       additionalProperties: false
@@ -3297,6 +3412,33 @@ components:
           pattern: "^[A-Za-z0-9_-]{43}$"
       required:
         - newEmail
+
+    UserPhoneNumberChangeRequest:
+      type: object
+      additionalProperties: false
+      properties:
+        newPhoneNumber:
+          description: New phone number to bind to the user once verified via SMS OTP
+          example: "+123456789"
+          type: string
+      required:
+        - newPhoneNumber
+
+    UserPhoneNumberChangeVerifyRequest:
+      type: object
+      additionalProperties: false
+      properties:
+        newPhoneNumber:
+          description: The phone number that was previously requested via /user/phone-number/change
+          example: "+123456789"
+          type: string
+        otp:
+          description: One-time password received via SMS at the new phone number
+          example: "123456"
+          type: string
+      required:
+        - newPhoneNumber
+        - otp
 
     UserEmailSendVerificationEmailRequest:
       type: object

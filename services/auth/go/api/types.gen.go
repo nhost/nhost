@@ -1624,6 +1624,14 @@ type UserDeanonymizeRequest struct {
 // UserDeanonymizeRequestSignInMethod Which sign-in method to use
 type UserDeanonymizeRequestSignInMethod string
 
+// UserDeanonymizeSMSRequest defines model for UserDeanonymizeSMSRequest.
+type UserDeanonymizeSMSRequest struct {
+	Options *SignUpOptions `json:"options,omitempty"`
+
+	// PhoneNumber Phone number of the user
+	PhoneNumber string `json:"phoneNumber"`
+}
+
 // UserEmailChangeRequest defines model for UserEmailChangeRequest.
 type UserEmailChangeRequest struct {
 	// CodeChallenge PKCE code challenge (S256). When provided, the verification redirect will contain an authorization code instead of a refresh token.
@@ -1685,6 +1693,21 @@ type UserPasswordResetRequest struct {
 	// Email A valid email
 	Email   openapi_types.Email `json:"email"`
 	Options *OptionsRedirectTo  `json:"options,omitempty"`
+}
+
+// UserPhoneNumberChangeRequest defines model for UserPhoneNumberChangeRequest.
+type UserPhoneNumberChangeRequest struct {
+	// NewPhoneNumber New phone number to bind to the user once verified via SMS OTP
+	NewPhoneNumber string `json:"newPhoneNumber"`
+}
+
+// UserPhoneNumberChangeVerifyRequest defines model for UserPhoneNumberChangeVerifyRequest.
+type UserPhoneNumberChangeVerifyRequest struct {
+	// NewPhoneNumber The phone number that was previously requested via /user/phone-number/change
+	NewPhoneNumber string `json:"newPhoneNumber"`
+
+	// Otp One-time password received via SMS at the new phone number
+	Otp string `json:"otp"`
 }
 
 // UserVerificationRequirement A requirement for user verification for the operation
@@ -2042,6 +2065,9 @@ type VerifyTokenJSONRequestBody = VerifyTokenRequest
 // DeanonymizeUserJSONRequestBody defines body for DeanonymizeUser for application/json ContentType.
 type DeanonymizeUserJSONRequestBody = UserDeanonymizeRequest
 
+// DeanonymizeUserSMSJSONRequestBody defines body for DeanonymizeUserSMS for application/json ContentType.
+type DeanonymizeUserSMSJSONRequestBody = UserDeanonymizeSMSRequest
+
 // ChangeUserEmailJSONRequestBody defines body for ChangeUserEmail for application/json ContentType.
 type ChangeUserEmailJSONRequestBody = UserEmailChangeRequest
 
@@ -2056,6 +2082,12 @@ type ChangeUserPasswordJSONRequestBody = UserPasswordRequest
 
 // SendPasswordResetEmailJSONRequestBody defines body for SendPasswordResetEmail for application/json ContentType.
 type SendPasswordResetEmailJSONRequestBody = UserPasswordResetRequest
+
+// ChangeUserPhoneNumberJSONRequestBody defines body for ChangeUserPhoneNumber for application/json ContentType.
+type ChangeUserPhoneNumberJSONRequestBody = UserPhoneNumberChangeRequest
+
+// VerifyChangeUserPhoneNumberJSONRequestBody defines body for VerifyChangeUserPhoneNumber for application/json ContentType.
+type VerifyChangeUserPhoneNumberJSONRequestBody = UserPhoneNumberChangeVerifyRequest
 
 // VerifyAddSecurityKeyJSONRequestBody defines body for VerifyAddSecurityKey for application/json ContentType.
 type VerifyAddSecurityKeyJSONRequestBody = VerifyAddSecurityKeyRequest

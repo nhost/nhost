@@ -122,7 +122,7 @@ func getSMS( //nolint:ireturn
 	case "twilio":
 		return getTwilioSMS(cmd, templates, db)
 	case "dev":
-		return sms.NewDev(templates, db, logger), nil
+		return sms.NewDev(templates, db, cmd.String(flagSMSDevOutputDir), logger), nil
 	default:
 		return nil, fmt.Errorf("unsupported SMS provider: %s", provider) //nolint:err113
 	}
@@ -142,10 +142,9 @@ func getTwilioSMS( //nolint:ireturn
 	}
 
 	if strings.HasPrefix(accountSid, "VA") {
-		// If accountSid starts with "VA", it's a verification service
-		return sms.NewTwilioVerificationService(
-			accountSid, authToken, messagingServiceID, db,
-		), nil
+		return nil, errors.New( //nolint:err113
+			"twilio Verify is no longer supported: AUTH_SMS_TWILIO_ACCOUNT_SID must be a Twilio Account SID (starts with 'AC'), not a Verify Service SID (starts with 'VA'). Use a Twilio Messaging Service SID (starts with 'MG') or a Twilio phone number for AUTH_SMS_TWILIO_MESSAGING_SERVICE_ID instead", //nolint:lll
+		)
 	}
 
 	return sms.NewTwilioSMS(

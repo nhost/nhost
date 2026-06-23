@@ -44,27 +44,27 @@ func TestSignUpPasswordlessSms(t *testing.T) {
 
 				mock.EXPECT().InsertUser(
 					gomock.Any(),
-					cmpDBParams(
-						sql.InsertUserParams{
-							ID:                uuid.UUID{},
-							Disabled:          false,
-							DisplayName:       "+1234567890",
-							AvatarUrl:         "",
-							PhoneNumber:       sql.Text("+1234567890"),
-							Otp:               "otp",
-							OtpHashExpiresAt:  sql.TimestampTz(time.Now().Add(time.Minute * 5)),
-							OtpMethodLastUsed: sql.Text("sms"),
-							Email:             pgtype.Text{},
-							PasswordHash:      pgtype.Text{},
-							Ticket:            pgtype.Text{},
-							TicketExpiresAt:   sql.TimestampTz(time.Now()),
-							EmailVerified:     false,
-							Locale:            "en",
-							DefaultRole:       "user",
-							Metadata:          []byte("null"),
-							Roles:             []string{"user", "me"},
-						},
-						cmpopts.IgnoreFields(sql.InsertUserParams{}, "ID"),
+					cmpDBParams(sql.InsertUserParams{
+						ID:                uuid.UUID{},
+						Disabled:          false,
+						DisplayName:       "+1234567890",
+						AvatarUrl:         "",
+						PhoneNumber:       pgtype.Text{}, //nolint:exhaustruct
+						NewPhoneNumber:    sql.Text("+1234567890"),
+						Otp:               "otp",
+						OtpHashExpiresAt:  sql.TimestampTz(time.Now().Add(time.Minute * 5)),
+						OtpMethodLastUsed: sql.Text("sms"),
+						Email:             pgtype.Text{}, //nolint:exhaustruct
+						PasswordHash:      pgtype.Text{}, //nolint:exhaustruct
+						Ticket:            pgtype.Text{}, //nolint:exhaustruct
+						TicketExpiresAt:   sql.TimestampTz(time.Now()),
+						EmailVerified:     false,
+						Locale:            "en",
+						DefaultRole:       "user",
+						Metadata:          []byte("null"),
+						Roles:             []string{"user", "me"},
+					},
+						cmpopts.IgnoreFields(sql.InsertUserParams{}, "ID"), //nolint:exhaustruct
 						testhelpers.FilterPathLast(
 							[]string{".OtpHash", "text()"},
 							cmp.Comparer(func(x, y string) bool { return x != "" && y != "" }),

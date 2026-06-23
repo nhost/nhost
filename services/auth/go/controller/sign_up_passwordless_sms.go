@@ -95,7 +95,8 @@ func (ctrl *Controller) postSigninPasswordlessSmsSignup(
 				Disabled:          ctrl.config.DisableNewUsers,
 				DisplayName:       deptr(options.DisplayName),
 				AvatarUrl:         gravatarURL,
-				PhoneNumber:       sql.Text(phoneNumber),
+				PhoneNumber:       pgtype.Text{}, //nolint:exhaustruct
+				NewPhoneNumber:    sql.Text(phoneNumber),
 				Otp:               otp,
 				OtpHashExpiresAt:  sql.TimestampTz(expiresAt),
 				OtpMethodLastUsed: sql.Text("sms"),

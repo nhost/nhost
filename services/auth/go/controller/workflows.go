@@ -296,6 +296,25 @@ func (wf *Workflows) UserByEmailExists(
 	return true, nil
 }
 
+func (wf *Workflows) UserByPhoneNumberExists(
+	ctx context.Context,
+	phoneNumber string,
+	logger *slog.Logger,
+) (bool, *APIError) {
+	_, err := wf.db.GetUserByPhoneNumber(ctx, sql.Text(phoneNumber))
+	if errors.Is(err, pgx.ErrNoRows) {
+		logger.WarnContext(ctx, "user not found")
+		return false, nil
+	}
+
+	if err != nil {
+		logger.ErrorContext(ctx, "error getting user by phone number", logError(err))
+		return false, ErrInternalServerError
+	}
+
+	return true, nil
+}
+
 func (wf *Workflows) GetUserByEmail(
 	ctx context.Context,
 	email string,
@@ -729,6 +748,92 @@ func (wf *Workflows) ChangeEmail(
 	return user, nil
 }
 
+// PhoneNumberClaimedByOtherUser returns true only if another non-disabled user
+// has this number as their VERIFIED phone_number. Unverified `new_phone_number`
+// squats are intentionally ignored — see services/auth/test/routes/user/phone-squat.test.ts.
+func (wf *Workflows) PhoneNumberClaimedByOtherUser(
+	ctx context.Context,
+	userID uuid.UUID,
+	phoneNumber string,
+	logger *slog.Logger,
+) (bool, *APIError) {
+	_, err := wf.db.GetVerifiedUserByPhoneNumberOtherThanSelf(
+		ctx,
+		sql.GetVerifiedUserByPhoneNumberOtherThanSelfParams{
+			UserID:      userID,
+			PhoneNumber: sql.Text(phoneNumber),
+		},
+	)
+	if errors.Is(err, pgx.ErrNoRows) {
+		return false, nil
+	}
+
+	if err != nil {
+		logger.ErrorContext(ctx, "error getting user by phone number", logError(err))
+		return false, ErrInternalServerError
+	}
+
+	return true, nil
+}
+
+func (wf *Workflows) ChangePhoneNumber(
+	ctx context.Context,
+	userID uuid.UUID,
+	newPhoneNumber string,
+	otp string,
+	otpExpiresAt time.Time,
+	logger *slog.Logger,
+) *APIError {
+	if err := wf.db.UpdateUserChangePhoneNumber(
+		ctx,
+		sql.UpdateUserChangePhoneNumberParams{
+			ID:               userID,
+			NewPhoneNumber:   sql.Text(newPhoneNumber),
+			Otp:              otp,
+			OtpHashExpiresAt: sql.TimestampTz(otpExpiresAt),
+		},
+	); err != nil {
+		logger.ErrorContext(ctx, "error updating user phone number change", logError(err))
+		return ErrInternalServerError
+	}
+
+	return nil
+}
+
+func (wf *Workflows) ConfirmChangePhoneNumber(
+	ctx context.Context,
+	userID uuid.UUID,
+	newPhoneNumber string,
+	otp string,
+	logger *slog.Logger,
+) (sql.AuthUser, *APIError) {
+	user, err := wf.db.UpdateUserConfirmChangePhoneNumber(
+		ctx,
+		sql.UpdateUserConfirmChangePhoneNumberParams{
+			ID:             userID,
+			NewPhoneNumber: sql.Text(newPhoneNumber),
+			Otp:            otp,
+		},
+	)
+	if errors.Is(err, pgx.ErrNoRows) {
+		logger.WarnContext(ctx, "phone number change verification failed")
+		return sql.AuthUser{}, ErrInvalidOTP
+	}
+
+	if err != nil {
+		if sqlIsDuplcateError(err, "users_phone_number_key") {
+			logger.WarnContext(ctx, "phone number already in use", logError(err))
+			return sql.AuthUser{}, ErrUserAlreadyExists
+		}
+
+		logger.ErrorContext(ctx, "error confirming phone number change", logError(err))
+
+		return sql.AuthUser{}, ErrInternalServerError
+	}
+
+	return user, nil
+}
+
 func (wf *Workflows) ChangePassword(
 	ctx context.Context,
 	userID uuid.UUID,
@@ -1118,6 +1223,79 @@ func (wf *Workflows) DeanonymizeUser(
 			logger.ErrorContext(ctx, "error deleting refresh tokens", logError(err))
 			return ErrInternalServerError
 		}
+	}
+
+	return nil
+}
+
+func (wf *Workflows) DeanonymizeUserSMS(
+	ctx context.Context,
+	userID uuid.UUID,
+	phoneNumber string,
+	otp string,
+	otpExpiresAt time.Time,
+	options *api.SignUpOptions,
+	logger *slog.Logger,
+) *APIError {
+	if err := wf.db.DeleteUserRoles(ctx, userID); err != nil {
+		logger.ErrorContext(ctx, "error deleting user roles", logError(err))
+		return ErrInternalServerError
+	}
+
+	var (
+		metadatab []byte
+		err       error
+	)
+
+	if options.Metadata != nil {
+		metadatab, err = json.Marshal(options.Metadata)
+		if err != nil {
+			logger.ErrorContext(ctx, "error marshalling metadata", logError(err))
+			return ErrInternalServerError
+		}
+	}
+
+	if err := wf.db.UpdateUserDeanonymizeSMS(
+		ctx,
+		sql.UpdateUserDeanonymizeSMSParams{
+			Roles:            *options.AllowedRoles,
+			PhoneNumber:      sql.Text(phoneNumber),
+			Otp:              sql.Text(otp),
+			OtpHashExpiresAt: sql.TimestampTz(otpExpiresAt),
+			DefaultRole:      sql.Text(*options.DefaultRole),
+			DisplayName:      sql.Text(*options.DisplayName),
+			Locale:           sql.Text(*options.Locale),
+			Metadata:         metadatab,
+			ID:               pgtype.UUID{Bytes: userID, Valid: true},
+		},
+	); err != nil {
+		logger.ErrorContext(ctx, "error updating user", logError(err))
+		return ErrInternalServerError
+	}
+
+	// is_anonymous flip and refresh-token revocation are intentionally
+	// deferred to OTP verification (CompleteDeanonymizeSMS) so a user who
+	// loses the OTP can retry without being locked out.
+
+	return nil
+}
+
+// CompleteDeanonymizeSMS finalises an SMS deanonymization after the OTP has
+// been successfully verified for an anonymous user. It flips is_anonymous to
+// false and revokes the anonymous refresh tokens.
+func (wf *Workflows) CompleteDeanonymizeSMS(
+	ctx context.Context,
+	userID uuid.UUID,
+	logger *slog.Logger,
+) *APIError {
+	if err := wf.db.UpdateUserConfirmDeanonymizeSMS(ctx, userID); err != nil {
+		logger.ErrorContext(ctx, "error confirming SMS deanonymization", logError(err))
+		return ErrInternalServerError
+	}
+
+	if err := wf.db.DeleteRefreshTokens(ctx, userID); err != nil {
+		logger.ErrorContext(ctx, "error deleting refresh tokens", logError(err))
+		return ErrInternalServerError
 	}
 
 	return nil

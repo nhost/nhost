@@ -8,7 +8,9 @@ WHERE email = $1 LIMIT 1;
 
 -- name: GetUserByPhoneNumber :one
 SELECT * FROM auth.users
-WHERE phone_number = $1 LIMIT 1;
+WHERE phone_number = $1
+  AND phone_number_verified = true
+LIMIT 1;
 
 -- name: GetUserRoles :many
 SELECT * FROM auth.user_roles
@@ -42,12 +44,17 @@ RETURNING *;
 
 -- name: GetUserByPhoneNumberAndOTP :one
 UPDATE auth.users
-SET otp_hash_expires_at = now(), phone_number_verified = true
+SET
+    phone_number = COALESCE(new_phone_number, phone_number),
+    new_phone_number = NULL,
+    phone_number_verified = true,
+    otp_hash = NULL,
+    otp_hash_expires_at = now()
 WHERE
-  phone_number = $1
-  AND otp_hash = crypt(@otp, otp_hash)
-  AND otp_hash_expires_at > now()
-  AND otp_method_last_used = 'sms'
+    (phone_number = $1 OR new_phone_number = $1)
+    AND otp_hash = crypt(@otp, otp_hash)
+    AND otp_hash_expires_at > now()
+    AND otp_method_last_used = 'sms'
 RETURNING *;
 
 -- name: GetUserByProviderID :one
@@ -69,6 +76,7 @@ WITH inserted_user AS (
         display_name,
         avatar_url,
         phone_number,
+        new_phone_number,
         otp_hash,
         otp_hash_expires_at,
         otp_method_last_used,
@@ -81,7 +89,7 @@ WITH inserted_user AS (
         default_role,
         metadata
     ) VALUES (
-    $1, $2, $3, $4, $5, crypt(@otp, gen_salt('bf')), COALESCE(@otp_hash_expires_at, now()), $8, $9, $10, $11, $12, $13, $14, $15, $16
+    $1, $2, $3, $4, $5, @new_phone_number, crypt(@otp, gen_salt('bf')), COALESCE(@otp_hash_expires_at, now()), $8, $9, $10, $11, $12, $13, $14, $15, $16
     )
     RETURNING *
 )
@@ -335,6 +343,44 @@ SET (email, new_email) = (new_email, null)
 WHERE id = $1
 RETURNING *;
 
+-- name: GetVerifiedUserByPhoneNumberOtherThanSelf :one
+-- Returns a row only if another non-disabled user already has this number
+-- as their VERIFIED phone_number. Unverified `new_phone_number` squats are
+-- intentionally ignored — see services/auth/test/routes/user/phone-squat.test.ts.
+SELECT *
+FROM auth.users
+WHERE
+    disabled = false
+    AND id <> @user_id
+    AND phone_number_verified = true
+    AND phone_number = @phone_number;
+
+-- name: UpdateUserChangePhoneNumber :exec
+UPDATE auth.users
+SET
+    new_phone_number = @new_phone_number,
+    otp_hash = crypt(@otp, gen_salt('bf')),
+    otp_hash_expires_at = @otp_hash_expires_at,
+    otp_method_last_used = 'sms-change'
+WHERE id = @id;
+
+-- name: UpdateUserConfirmChangePhoneNumber :one
+UPDATE auth.users
+SET
+    phone_number = new_phone_number,
+    phone_number_verified = true,
+    new_phone_number = NULL,
+    otp_hash = NULL,
+    otp_hash_expires_at = now(),
+    otp_method_last_used = NULL
+WHERE
+    id = @id
+    AND new_phone_number = @new_phone_number
+    AND otp_hash = crypt(@otp, otp_hash)
+    AND otp_hash_expires_at > now()
+    AND otp_method_last_used = 'sms-change'
+RETURNING *;
+
 -- name: UpdateUserVerifyEmail :one
 UPDATE auth.users
 SET email_verified = true
@@ -369,6 +415,37 @@ WITH inserted_user AS (
 INSERT INTO auth.user_roles (user_id, role)
     SELECT inserted_user.id, roles.role
     FROM inserted_user, unnest(@roles::TEXT[]) AS roles(role);
+
+-- name: UpdateUserDeanonymizeSMS :exec
+-- Stages an SMS-based deanonymization. The is_anonymous flip and refresh-token
+-- revocation are intentionally deferred to OTP verification (see
+-- UpdateUserConfirmDeanonymizeSMS and VerifySignInPasswordlessSms) so that a
+-- user who fails to receive or enter the OTP can retry without being locked out.
+WITH updated_user AS (
+    UPDATE auth.users
+    SET
+        new_phone_number = @phone_number,
+        otp_hash = crypt(@otp, gen_salt('bf')),
+        otp_hash_expires_at = @otp_hash_expires_at,
+        otp_method_last_used = 'sms',
+        default_role = @default_role,
+        display_name = @display_name,
+        locale = @locale,
+        metadata = @metadata
+    WHERE id = @id
+    RETURNING id
+)
+INSERT INTO auth.user_roles (user_id, role)
+    SELECT updated_user.id, roles.role
+    FROM updated_user, unnest(@roles::TEXT[]) AS roles(role);
+
+-- name: UpdateUserConfirmDeanonymizeSMS :exec
+-- Final commit of an SMS deanonymization: flip is_anonymous AFTER the OTP has
+-- been verified by GetUserByPhoneNumberAndOTP. Called only when the verifying
+-- user was anonymous at OTP-check time.
+UPDATE auth.users
+SET is_anonymous = false
+WHERE id = $1;
 
 -- name: DeleteRefreshTokens :exec
 DELETE FROM auth.refresh_tokens
