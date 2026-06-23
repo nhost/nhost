@@ -2,6 +2,7 @@
 
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
+import sitemap from '@astrojs/sitemap';
 import starlight from '@astrojs/starlight';
 import vercel from '@astrojs/vercel';
 import { defineConfig } from 'astro/config';
@@ -57,6 +58,10 @@ export default defineConfig({
     },
   },
   integrations: [
+    // Generate sitemap-index.xml / sitemap-0.xml at build time so search engines
+    // can discover every page. Starlight auto-injects the `<link rel="sitemap">`
+    // tag when this integration is present, and robots.txt points crawlers at it.
+    sitemap(),
     starlight({
       title: 'Nhost Documentation',
       logo: {

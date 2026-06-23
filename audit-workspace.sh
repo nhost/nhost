@@ -21,6 +21,6 @@ jq -r --arg ws "$ws" '
       (if ($paths | length) > 0 then "    Path: \($paths[0])\(if ($paths|length) > 1 then " (+\($paths|length - 1) more)" else "" end)" else empty end),
       (if .url then "    \(.url)" else empty end)
     )
-' <<< "$json" 2>/dev/null
+' <<<"$json" 2>/dev/null
 
 exit $rc

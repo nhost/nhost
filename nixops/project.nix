@@ -38,6 +38,7 @@ let
       curl
       diffutils
       docker-client
+      geos
       gh
       git-cliff
       gnused
@@ -58,7 +59,7 @@ let
       nhost.vercel
       nhost.oapi-codegen
       pkg-config
-      playwright-driver
+      nhost.playwright-driver
       nhost.pnpm
       nhost.postgresql_14-client
       nhost.postgresql_15
