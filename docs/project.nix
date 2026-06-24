@@ -47,6 +47,14 @@ let
       ../packages/nhost-js/tsconfig.json
       ../build/configs/tsconfig/library.json
       ../build/configs/tsconfig/base.json
+      # Go sources for gen.sh's configuration reference generator (tools/configdocs).
+      ../go.mod
+      ../go.sum
+      ../tools/configdocs
+      ../vendor/modules.txt
+      ../vendor/cuelang.org/go
+      ../vendor/github.com/cockroachdb/apd
+      ../vendor/github.com/nhost/be/services/mimir/schema/schema.cue
     ];
   };
 
