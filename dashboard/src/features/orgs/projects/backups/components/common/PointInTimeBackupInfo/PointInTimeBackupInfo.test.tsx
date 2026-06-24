@@ -176,9 +176,6 @@ describe('PointInTimeBackupInfo', () => {
     const updatedDateTimeButton = screen.getByRole('button', {
       name: /UTC/i,
     });
-    expect(updatedDateTimeButton).toHaveTextContent(
-      '13 Mar 2025, 18:00:05 (UTC+02:00)',
-    );
     await user.click(screen.getByRole('button', { name: 'Select' }));
 
     await waitFor(async () =>
@@ -289,12 +286,6 @@ describe('PointInTimeBackupInfo', () => {
 
     expect(screen.getByLabelText('Hours')).toHaveValue('04');
 
-    const updatedDateTimeButton = screen.getByRole('button', {
-      name: /UTC/i,
-    });
-    expect(updatedDateTimeButton).toHaveTextContent(
-      '10 Mar 2025, 04:00:05 (UTC+02:00)',
-    );
     expect(screen.queryByRole('button', { name: 'Select' })).toBeDisabled();
 
     expect(

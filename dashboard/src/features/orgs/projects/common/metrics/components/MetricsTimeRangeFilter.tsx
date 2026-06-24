@@ -62,20 +62,24 @@ export default function MetricsTimeRangeFilter({
     setDraft({ kind: 'preset', preset });
   }
 
-  function handleFromChange(newIso: string) {
-    setDraft({
-      kind: 'absolute',
-      from: newIso,
-      to: resolved.to.toISOString(),
-    });
+  function handleFromChange(newIso: string | null) {
+    if (newIso !== null) {
+      setDraft({
+        kind: 'absolute',
+        from: newIso,
+        to: resolved.to.toISOString(),
+      });
+    }
   }
 
-  function handleToChange(newIso: string) {
-    setDraft({
-      kind: 'absolute',
-      from: resolved.from.toISOString(),
-      to: newIso,
-    });
+  function handleToChange(newIso: string | null) {
+    if (newIso !== null) {
+      setDraft({
+        kind: 'absolute',
+        from: resolved.from.toISOString(),
+        to: newIso,
+      });
+    }
   }
 
   function handleApply() {
