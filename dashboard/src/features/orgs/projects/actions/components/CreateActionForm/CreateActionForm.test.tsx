@@ -164,8 +164,6 @@ describe('CreateActionForm', () => {
 
   afterEach(() => {
     server.resetHandlers();
-    // react-hot-toast keeps a module-global store; clear it so toasts from one
-    // test don't bleed into the next.
     toast.remove();
   });
 

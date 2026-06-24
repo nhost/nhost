@@ -25,7 +25,7 @@ import { Button, ButtonWithLoading } from '@/components/ui/v3/button';
 import { Form } from '@/components/ui/v3/form';
 import { SelectItem } from '@/components/ui/v3/select';
 import { Separator } from '@/components/ui/v3/separator';
-import { getOverlappingCustomTypenames } from '@/features/orgs/projects/actions/utils/buildActionDTO';
+import { getOverlappingCustomTypenames } from '@/features/orgs/projects/actions/utils/getOverlappingCustomTypenames';
 import { getActionSampleInputPayload } from '@/features/orgs/projects/actions/utils/getActionSampleInputPayload';
 import { parseActionDefinitionSdl } from '@/features/orgs/projects/actions/utils/parseActionDefinitionSdl';
 import { InfoTooltip } from '@/features/orgs/projects/common/components/InfoTooltip';

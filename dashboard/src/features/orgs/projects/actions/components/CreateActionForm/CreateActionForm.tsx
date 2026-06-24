@@ -1,6 +1,7 @@
 import { useRouter } from 'next/router';
 import { useMemo } from 'react';
 import { useDialog } from '@/components/common/DialogProvider';
+import { Spinner } from '@/components/ui/v3/spinner';
 import { BaseActionForm } from '@/features/orgs/projects/actions/components/BaseActionForm';
 import type { BaseActionFormValues } from '@/features/orgs/projects/actions/components/BaseActionForm/BaseActionFormTypes';
 import { useCreateActionMutation } from '@/features/orgs/projects/actions/hooks/useCreateActionMutation';
@@ -13,7 +14,7 @@ export type CreateActionFormProps = DialogFormProps;
 
 export default function CreateActionForm({ location }: CreateActionFormProps) {
   const { mutateAsync: createAction } = useCreateActionMutation();
-  const { data: actionsData } = useGetActions();
+  const { data: actionsData, isLoading } = useGetActions();
   const { closeDrawer } = useDialog();
   const router = useRouter();
   const { orgSlug, appSubdomain } = router.query;
@@ -48,6 +49,14 @@ export default function CreateActionForm({ location }: CreateActionFormProps) {
       },
     );
   };
+
+  if (isLoading) {
+    return (
+      <div className="box flex h-full items-center justify-center p-6">
+        <Spinner>Loading action...</Spinner>
+      </div>
+    );
+  }
 
   return (
     <BaseActionForm

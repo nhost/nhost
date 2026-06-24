@@ -1,5 +1,4 @@
 import type { BaseActionFormValues } from '@/features/orgs/projects/actions/components/BaseActionForm/BaseActionFormTypes';
-import type { ClientCustomType } from '@/features/orgs/projects/actions/utils/customTypesUtils';
 import {
   hydrateTypeRelationships,
   mergeCustomTypes,
@@ -133,29 +132,4 @@ export default function buildActionDTO({
     },
     customTypesArgs: reformCustomTypes(mergedTypes),
   };
-}
-
-export function getOverlappingCustomTypenames(
-  typesSdl: string,
-  existingCustomTypes: CustomTypes,
-  typenamesInUseByAction: string[],
-): string[] {
-  const { types: newTypes, error } = parseTypesSdl(typesSdl);
-  if (error !== null) {
-    return [];
-  }
-
-  const inUseByAction = new Set(typenamesInUseByAction);
-  const existingTypenames = new Set(
-    parseCustomTypes(existingCustomTypes).map(
-      (type: ClientCustomType) => type.name,
-    ),
-  );
-
-  return newTypes
-    .map((type) => type.name)
-    .filter(
-      (typename) =>
-        existingTypenames.has(typename) && !inUseByAction.has(typename),
-    );
 }
