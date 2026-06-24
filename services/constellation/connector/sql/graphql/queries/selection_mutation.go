@@ -317,9 +317,8 @@ func (s selectionReturning) writeReturningLateral( //nolint:funlen
 			b.WriteString(colSel.alias)
 			b.WriteByte('"')
 		} else {
-			b.WriteString(cteName)
-			b.WriteByte('.')
-			core.WriteQuotedIdentifier(b, colSel.column.SQLName)
+			expr := cteName + "." + core.QuoteIdentifier(colSel.column.SQLName)
+			b.WriteString(outputColumnExpression(s.dialect, expr, colSel.column))
 			b.WriteString(" AS ")
 			core.WriteQuotedIdentifier(b, colSel.alias)
 		}
@@ -398,9 +397,9 @@ func (s selectionReturning) writeReturningCorrelated( //nolint:funlen
 			b.WriteByte('\'')
 			b.WriteString(colSel.alias)
 			b.WriteString("', ")
-			b.WriteString(cteName)
-			b.WriteByte('.')
-			core.WriteQuotedIdentifier(b, colSel.column.SQLName)
+
+			expr := cteName + "." + core.QuoteIdentifier(colSel.column.SQLName)
+			b.WriteString(outputColumnExpression(s.dialect, expr, colSel.column))
 		}
 
 		first = false
