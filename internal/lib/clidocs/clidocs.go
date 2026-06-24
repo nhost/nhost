@@ -28,6 +28,8 @@ const markdownDocTemplate = `{{if gt .SectionNum 0}}% {{ .Command.Name }} {{ .Se
 {{ else }}
 {{ .Command.Name }} [GLOBAL OPTIONS] [command [COMMAND OPTIONS]] [ARGUMENTS...]
 {{ end }}` + "```" + `
+
+<div class="cli-reference">
 {{ if .GlobalOptions }}
 ---
 
@@ -39,7 +41,8 @@ const markdownDocTemplate = `{{if gt .SectionNum 0}}% {{ .Command.Name }} {{ .Se
 
 ## Commands
 {{ range $v := .Commands }}
-{{ $v }}{{ end }}{{ end -}}
+{{ $v }}{{ end }}{{ end }}
+</div>
 `
 
 type cliCommandTemplate struct {

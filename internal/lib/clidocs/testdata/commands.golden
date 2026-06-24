@@ -8,6 +8,8 @@ New here? Head over to [Quickstart](/getting-started/quickstart/cli) for CLI ins
 myapp [GLOBAL OPTIONS] [command [COMMAND OPTIONS]] [ARGUMENTS...]
 ```
 
+<div class="cli-reference">
+
 ---
 
 ## Global Options
@@ -120,6 +122,8 @@ Create a deployment to the `PROD_TARGET` environment.
 <div class="cli-body">
 
 Start local development environment. *Aliases: `u`*
+
+</div>
 
 </div>
 
