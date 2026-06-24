@@ -1,4 +1,11 @@
+<div align="center">
+
 # jsontmpl
+
+<a href="https://docs.nhost.io/reference/kriti">Docs</a>
+  <br />
+  <hr />
+</div>
 
 Go port of [`hasura/kriti-lang`](https://github.com/hasura/kriti-lang),
 the JSON templating language Hasura uses for action / event-trigger /
