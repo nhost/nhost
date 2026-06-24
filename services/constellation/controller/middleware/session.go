@@ -14,6 +14,7 @@ import (
 	"time"
 
 	"github.com/gin-gonic/gin"
+	oapimw "github.com/nhost/nhost/internal/lib/oapi/middleware"
 	"github.com/nhost/nhost/services/constellation/internal/jwt"
 	"github.com/nhost/nhost/services/constellation/internal/requestcontext"
 )
@@ -61,10 +62,17 @@ type sessionCtxKey struct{}
 // for the current request. The "x-hasura-role" key in Variables always matches
 // Role; downstream code can rely on either. ExpiresAt is set only for JWT-backed
 // sessions and is nil for admin-secret and public-role sessions.
+//
+// IsAdminSecret records the credential source, not the resolved role: it is
+// true iff the request presented a valid X-Hasura-Admin-Secret. A JWT whose
+// default-role claim is "admin" still yields IsAdminSecret=false. The
+// AdminSecret OpenAPI security scheme gates on this field so a JWT cannot
+// satisfy an admin-secret-only operation.
 type SessionVariables struct {
-	Role      string
-	Variables map[string]any
-	ExpiresAt *time.Time
+	Role          string
+	Variables     map[string]any
+	ExpiresAt     *time.Time
+	IsAdminSecret bool
 }
 
 const (
@@ -121,16 +129,18 @@ func ExtractSession(
 
 	if result != nil {
 		return &SessionVariables{
-			Role:      result.Role,
-			Variables: result.Variables,
-			ExpiresAt: expiresAt,
+			Role:          result.Role,
+			Variables:     result.Variables,
+			ExpiresAt:     expiresAt,
+			IsAdminSecret: false,
 		}, nil
 	}
 
 	return &SessionVariables{
-		Role:      publicRole,
-		Variables: map[string]any{"x-hasura-role": publicRole},
-		ExpiresAt: nil,
+		Role:          publicRole,
+		Variables:     map[string]any{"x-hasura-role": publicRole},
+		ExpiresAt:     nil,
+		IsAdminSecret: false,
 	}, nil
 }
 
@@ -155,9 +165,10 @@ func extractAdminSession(headers http.Header) *SessionVariables {
 	variables["x-hasura-role"] = role
 
 	return &SessionVariables{
-		Role:      role,
-		Variables: variables,
-		ExpiresAt: nil,
+		Role:          role,
+		Variables:     variables,
+		ExpiresAt:     nil,
+		IsAdminSecret: true,
 	}
 }
 
@@ -166,7 +177,7 @@ func extractAdminSession(headers http.Header) *SessionVariables {
 // HTTP 401 on JWT errors.
 func Session(adminSecret string, jwtAuth JWTAuthenticator) gin.HandlerFunc {
 	return func(ctx *gin.Context) {
-		logger := requestcontext.LoggerFromContext(ctx.Request.Context())
+		logger := oapimw.LoggerFromContext(ctx.Request.Context())
 
 		session, err := ExtractSession(adminSecret, jwtAuth, ctx.Request.Header)
 		if err != nil {
@@ -177,16 +188,12 @@ func Session(adminSecret string, jwtAuth JWTAuthenticator) gin.HandlerFunc {
 			return
 		}
 
-		logger = logger.With(
-			slog.Group(
-				"session",
-				slog.String("role", session.Role),
-			),
-		)
-
 		newCtx := sessionToContext(ctx.Request.Context(), session)
 		newCtx = requestcontext.ClientHeadersToContext(newCtx, ctx.Request.Header.Clone())
-		newCtx = requestcontext.LoggerToContext(newCtx, logger)
+		newCtx = oapimw.AddLoggerAttrs(
+			newCtx,
+			slog.Group("session", slog.String("role", session.Role)),
+		)
 
 		ctx.Request = ctx.Request.WithContext(newCtx)
 

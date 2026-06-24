@@ -1,6 +1,6 @@
 import { useRouter } from 'next/router';
 import { useEffect } from 'react';
-import { useFormContext, useFormState } from 'react-hook-form';
+import { useFormContext } from 'react-hook-form';
 import * as Yup from 'yup';
 import { useDialog } from '@/components/common/DialogProvider';
 import { Form } from '@/components/form/Form';
@@ -65,15 +65,17 @@ export type BaseForeignKeySchemaValues = Yup.InferType<
   typeof baseForeignKeyValidationSchema
 >;
 
+const DIRTY_SOURCE_ID = 'base-foreign-keyform';
+
 export default function BaseForeignKeyForm({
   availableColumns,
   onSubmit: handleExternalSubmit,
   onCancel,
   submitButtonText = 'Save',
-  location,
   disableOriginColumn,
+  location,
 }: BaseForeignKeyFormProps) {
-  const { onDirtyStateChange } = useDialog();
+  const { setDirtySource } = useDialog();
 
   const router = useRouter();
   const {
@@ -81,32 +83,24 @@ export default function BaseForeignKeyForm({
   } = router;
 
   const form = useFormContext<BaseForeignKeySchemaValues>();
-  const { control } = form;
-  const { dirtyFields, isSubmitting } =
-    useFormState<BaseForeignKeySchemaValues>();
+  const { control, subscribe, formState } = form;
+  const { isSubmitting } = formState;
 
   const { data } = useDatabaseQuery([dataSourceSlug]);
 
   const schemas = data?.schemas ?? [];
   const tables = data?.tableLikeObjects ?? [];
 
-  // react-hook-form's isDirty gets true even if an input field is focused, then
-  // immediately unfocused - we can't rely on that information
-  const isDirty = Object.keys(dirtyFields).length > 0;
-
   useEffect(() => {
-    const unsubscribe = form.subscribe({
-      formState: { dirtyFields: true },
-      callback: ({ dirtyFields: subscribedDirtyFields }) => {
-        onDirtyStateChange(
-          Object.keys(subscribedDirtyFields ?? {}).length > 0,
-          location,
-        );
+    const unsubscribe = subscribe({
+      formState: { isDirty: true },
+      callback: ({ isDirty: isDirtyNext }) => {
+        setDirtySource(DIRTY_SOURCE_ID, Boolean(isDirtyNext), location);
       },
     });
 
     return () => unsubscribe();
-  }, [form, onDirtyStateChange, location]);
+  }, [subscribe, setDirtySource, location]);
 
   return (
     <Form
@@ -203,12 +197,7 @@ export default function BaseForeignKeyForm({
           {submitButtonText}
         </ButtonWithLoading>
 
-        <Button
-          type="button"
-          variant="outline"
-          onClick={onCancel}
-          tabIndex={isDirty ? -1 : 0}
-        >
+        <Button type="button" variant="outline" onClick={onCancel}>
           Cancel
         </Button>
       </div>

@@ -9,9 +9,9 @@ import (
 	"github.com/google/uuid"
 	"github.com/vektah/gqlparser/v2/gqlerror"
 
+	oapimw "github.com/nhost/nhost/internal/lib/oapi/middleware"
 	"github.com/nhost/nhost/services/constellation/connector/remoteschema"
 	"github.com/nhost/nhost/services/constellation/connector/sql/graphql/queries/arguments"
-	"github.com/nhost/nhost/services/constellation/internal/lib/oapi/tracing"
 )
 
 var (
@@ -110,7 +110,7 @@ func sanitizeConnectorError(
 		return err.Error()
 	}
 
-	traceID := tracing.FromContext(ctx).TraceID
+	traceID := oapimw.TraceFromContext(ctx).TraceID
 	if traceID == "" {
 		traceID = uuid.NewString()
 	}

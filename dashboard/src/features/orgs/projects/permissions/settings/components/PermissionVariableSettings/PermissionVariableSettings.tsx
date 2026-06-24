@@ -238,7 +238,7 @@ export default function PermissionVariableSettings() {
                     <>
                       X-Hasura-{permissionVariable.key}{' '}
                       {permissionVariable.isSystemVariable && (
-                        <LockIcon className="h-4 w-4" />
+                        <LockIcon className="inline-block h-4 w-4" />
                       )}
                     </>
                   }

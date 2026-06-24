@@ -29,7 +29,7 @@ let
   ldflags = [ ];
 
   checkDeps = with pkgs; [
-    oapi-codegen
+    nhost.oapi-codegen
   ];
 
   buildInputs = [ ];

@@ -1,5 +1,7 @@
 package hasura
 
+import "encoding/json/jsontext"
+
 // RemoteSchemaCustomization mirrors a remote schema's
 // definition.customization block. Hasura applies it to the introspected
 // remote schema before merging.
@@ -11,6 +13,8 @@ type RemoteSchemaCustomization struct {
 	TypeNames TypeNamesCustomization `json:"type_names" yaml:"type_names"`
 	// FieldNames renames fields per parent type.
 	FieldNames []FieldNamesCustomization `json:"field_names,omitempty" yaml:"field_names,omitempty"`
+
+	Unknown jsontext.Value `json:",unknown" yaml:"-"`
 }
 
 // DatabaseSourceCustomization mirrors a database source's customization
@@ -21,6 +25,8 @@ type DatabaseSourceCustomization struct {
 	RootFields RootFieldsCustomization `json:"root_fields" yaml:"root_fields"`
 	// TypeNames renames types by prefix/suffix.
 	TypeNames TypeNamesCustomization `json:"type_names" yaml:"type_names"`
+
+	Unknown jsontext.Value `json:",unknown" yaml:"-"`
 }
 
 // RootFieldsCustomization is the database root_fields customization: a
@@ -29,6 +35,8 @@ type RootFieldsCustomization struct {
 	Namespace string `json:"namespace,omitempty" yaml:"namespace,omitempty"`
 	Prefix    string `json:"prefix,omitempty"    yaml:"prefix,omitempty"`
 	Suffix    string `json:"suffix,omitempty"    yaml:"suffix,omitempty"`
+
+	Unknown jsontext.Value `json:",unknown" yaml:"-"`
 }
 
 // TypeNamesCustomization renames types. Mapping takes precedence over
@@ -37,6 +45,8 @@ type TypeNamesCustomization struct {
 	Prefix  string            `json:"prefix,omitempty"  yaml:"prefix,omitempty"`
 	Suffix  string            `json:"suffix,omitempty"  yaml:"suffix,omitempty"`
 	Mapping map[string]string `json:"mapping,omitempty" yaml:"mapping,omitempty"`
+
+	Unknown jsontext.Value `json:",unknown" yaml:"-"`
 }
 
 // FieldNamesCustomization renames the fields of a single parent type
@@ -46,4 +56,6 @@ type FieldNamesCustomization struct {
 	Prefix     string            `json:"prefix,omitempty"  yaml:"prefix,omitempty"`
 	Suffix     string            `json:"suffix,omitempty"  yaml:"suffix,omitempty"`
 	Mapping    map[string]string `json:"mapping,omitempty" yaml:"mapping,omitempty"`
+
+	Unknown jsontext.Value `json:",unknown" yaml:"-"`
 }

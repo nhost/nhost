@@ -11,6 +11,10 @@ on:
       - "flake.lock"
       - "nixops/**"
       - "build/**"
+
+      # the pinned-toolchains check in checks.nixops scans every .nix file
+      # in the repo, so run it whenever any of them changes
+      - "**.nix"
   merge_group:
 
 concurrency:
@@ -28,13 +32,14 @@ jobs:
         flake.lock
         nixops/**
         build/**
+        **.nix
 
   check-permissions:
     needs: [detect-changes]
     if: needs.detect-changes.outputs.should_run == 'true'
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v6
+      - uses: actions/checkout@v7
       - uses: ./.github/actions/check-permissions
 
   tests:
