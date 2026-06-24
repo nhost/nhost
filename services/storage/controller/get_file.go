@@ -3,6 +3,7 @@ package controller
 import (
 	"bytes"
 	"context"
+	"errors"
 	"fmt"
 	"io"
 	"log/slog"
@@ -116,10 +117,54 @@ type ImageManipulationOptionsGetter interface {
 	GetF() *api.OutputImageFormat
 }
 
+// checkImageManipulationLimits rejects a request whose explicitly requested
+// width, height or blur exceeds the server-configured maximum. We return a 400
+// here rather than silently clamping so the caller learns the limit instead of
+// receiving an image at an unexpected size. The maxima are operator-configurable
+// (IMAGE_TRANSFORMER_MAX_DIMENSION / IMAGE_TRANSFORMER_MAX_BLUR_SIGMA), so the
+// bound is enforced against the live values rather than as a static OpenAPI
+// constraint, which could not track the configured value.
+func checkImageManipulationLimits(
+	opts image.Options, maxDimension int, maxBlurSigma float64,
+) *APIError {
+	var problems []string
+
+	if opts.Width > maxDimension {
+		problems = append(
+			problems,
+			fmt.Sprintf("width %d exceeds the maximum of %d", opts.Width, maxDimension),
+		)
+	}
+
+	if opts.Height > maxDimension {
+		problems = append(
+			problems,
+			fmt.Sprintf("height %d exceeds the maximum of %d", opts.Height, maxDimension),
+		)
+	}
+
+	if float64(opts.Blur) > maxBlurSigma {
+		problems = append(
+			problems,
+			fmt.Sprintf("blur %g exceeds the maximum of %g", opts.Blur, maxBlurSigma),
+		)
+	}
+
+	if len(problems) == 0 {
+		return nil
+	}
+
+	msg := "image manipulation parameters out of range: " + strings.Join(problems, "; ")
+
+	return BadDataError(errors.New(msg), msg) //nolint:err113
+}
+
 func getImageManipulationOptions(
 	params ImageManipulationOptionsGetter,
 	mimeType string,
 	acceptHeader []string,
+	maxDimension int,
+	maxBlurSigma float64,
 ) (image.Options, *APIError) {
 	outputFormatFound := deptr(params.GetF()) != ""
 
@@ -131,6 +176,11 @@ func getImageManipulationOptions(
 		OriginalFormat: 0,
 		Format:         0,
 	}
+
+	if apiErr := checkImageManipulationLimits(opts, maxDimension, maxBlurSigma); apiErr != nil {
+		return image.Options{}, apiErr
+	}
+
 	if !opts.IsEmpty() || outputFormatFound {
 		orig, format, err := chooseImageFormat(params, mimeType, acceptHeader)
 		opts.Format = format
@@ -222,7 +272,13 @@ func (ctrl *Controller) processFileToDownload(
 	params processFiler,
 	acceptHeader []string,
 ) (*processedFile, *APIError) {
-	opts, apiErr := getImageManipulationOptions(params, fileMetadata.MimeType, acceptHeader)
+	opts, apiErr := getImageManipulationOptions(
+		params,
+		fileMetadata.MimeType,
+		acceptHeader,
+		ctrl.imageTransformer.MaxDimension(),
+		ctrl.imageTransformer.MaxBlurSigma(),
+	)
 	if apiErr != nil {
 		return nil, apiErr
 	}

@@ -381,11 +381,11 @@ export interface ListOrphanedFilesResponse200 {
  * Parameters for the getFile method.
     @property q? (number) - Image quality (1-100). Only applies to JPEG, WebP, AVIF and HEIC files
   
-    @property h? (number) - Maximum height, in pixels, to resize image to while maintaining aspect ratio. Only applies to image files. Values above the server-configured maximum (default 8000) are clamped to it.
+    @property h? (number) - Maximum height, in pixels, to resize image to while maintaining aspect ratio. Only applies to image files. Values above the server-configured maximum (default 8000) are rejected with a 400 error.
   
-    @property w? (number) - Maximum width, in pixels, to resize image to while maintaining aspect ratio. Only applies to image files. Values above the server-configured maximum (default 8000) are clamped to it.
+    @property w? (number) - Maximum width, in pixels, to resize image to while maintaining aspect ratio. Only applies to image files. Values above the server-configured maximum (default 8000) are rejected with a 400 error.
   
-    @property b? (number) - Blur the image using this sigma value. Only applies to image files. Values above the server-configured maximum (default 250) are clamped to it.
+    @property b? (number) - Blur the image using this sigma value. Only applies to image files. Values above the server-configured maximum (default 250) are rejected with a 400 error.
   
     @property f? (OutputImageFormat) - Output format for image files. Use 'auto' for content negotiation based on Accept header
   
@@ -397,17 +397,17 @@ export interface GetFileParams {
    */
   q?: number;
   /**
-   * Maximum height, in pixels, to resize image to while maintaining aspect ratio. Only applies to image files. Values above the server-configured maximum (default 8000) are clamped to it.
+   * Maximum height, in pixels, to resize image to while maintaining aspect ratio. Only applies to image files. Values above the server-configured maximum (default 8000) are rejected with a 400 error.
   
    */
   h?: number;
   /**
-   * Maximum width, in pixels, to resize image to while maintaining aspect ratio. Only applies to image files. Values above the server-configured maximum (default 8000) are clamped to it.
+   * Maximum width, in pixels, to resize image to while maintaining aspect ratio. Only applies to image files. Values above the server-configured maximum (default 8000) are rejected with a 400 error.
   
    */
   w?: number;
   /**
-   * Blur the image using this sigma value. Only applies to image files. Values above the server-configured maximum (default 250) are clamped to it.
+   * Blur the image using this sigma value. Only applies to image files. Values above the server-configured maximum (default 250) are rejected with a 400 error.
   
    */
   b?: number;
@@ -422,11 +422,11 @@ export interface GetFileParams {
  * Parameters for the getFileMetadataHeaders method.
     @property q? (number) - Image quality (1-100). Only applies to JPEG, WebP, AVIF and HEIC files
   
-    @property h? (number) - Maximum height, in pixels, to resize image to while maintaining aspect ratio. Only applies to image files. Values above the server-configured maximum (default 8000) are clamped to it.
+    @property h? (number) - Maximum height, in pixels, to resize image to while maintaining aspect ratio. Only applies to image files. Values above the server-configured maximum (default 8000) are rejected with a 400 error.
   
-    @property w? (number) - Maximum width, in pixels, to resize image to while maintaining aspect ratio. Only applies to image files. Values above the server-configured maximum (default 8000) are clamped to it.
+    @property w? (number) - Maximum width, in pixels, to resize image to while maintaining aspect ratio. Only applies to image files. Values above the server-configured maximum (default 8000) are rejected with a 400 error.
   
-    @property b? (number) - Blur the image using this sigma value. Only applies to image files. Values above the server-configured maximum (default 250) are clamped to it.
+    @property b? (number) - Blur the image using this sigma value. Only applies to image files. Values above the server-configured maximum (default 250) are rejected with a 400 error.
   
     @property f? (OutputImageFormat) - Output format for image files. Use 'auto' for content negotiation based on Accept header
   
@@ -438,17 +438,17 @@ export interface GetFileMetadataHeadersParams {
    */
   q?: number;
   /**
-   * Maximum height, in pixels, to resize image to while maintaining aspect ratio. Only applies to image files. Values above the server-configured maximum (default 8000) are clamped to it.
+   * Maximum height, in pixels, to resize image to while maintaining aspect ratio. Only applies to image files. Values above the server-configured maximum (default 8000) are rejected with a 400 error.
   
    */
   h?: number;
   /**
-   * Maximum width, in pixels, to resize image to while maintaining aspect ratio. Only applies to image files. Values above the server-configured maximum (default 8000) are clamped to it.
+   * Maximum width, in pixels, to resize image to while maintaining aspect ratio. Only applies to image files. Values above the server-configured maximum (default 8000) are rejected with a 400 error.
   
    */
   w?: number;
   /**
-   * Blur the image using this sigma value. Only applies to image files. Values above the server-configured maximum (default 250) are clamped to it.
+   * Blur the image using this sigma value. Only applies to image files. Values above the server-configured maximum (default 250) are rejected with a 400 error.
   
    */
   b?: number;

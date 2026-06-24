@@ -142,6 +142,27 @@ func (t *Transformer) Shutdown() {
 	vips.Shutdown()
 }
 
+// MaxDimension reports the configured upper bound for output width and height.
+// A nil Transformer reports the package default so callers can validate request
+// parameters against the limit even before a transformer is wired up.
+func (t *Transformer) MaxDimension() int {
+	if t == nil {
+		return DefaultMaxImageDimension
+	}
+
+	return t.maxDimension
+}
+
+// MaxBlurSigma reports the configured upper bound for the Gaussian blur sigma. A
+// nil Transformer reports the package default, mirroring MaxDimension.
+func (t *Transformer) MaxBlurSigma() float64 {
+	if t == nil {
+		return DefaultMaxBlurSigma
+	}
+
+	return t.maxBlurSigma
+}
+
 func export(image *vips.Image, opts Options) ([]byte, error) {
 	switch opts.Format {
 	case ImageTypeJPEG:
