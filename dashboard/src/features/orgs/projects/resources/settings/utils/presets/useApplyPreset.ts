@@ -19,9 +19,7 @@ export function applyPresetToForm(
   if (!preset) {
     return;
   }
-  // Validate once via the trigger() below, after all fields are set, instead of on each
-  // write: per-write validation checked the 1:2-ratio rule on `memory` while `autoscale`
-  // still held the previous preset's value, leaving a stale error that wasn't cleared (#4562).
+
   const opts = { shouldDirty, shouldValidate: false } as const;
 
   const isLocked = (vcpu: number, memory: number) =>
