@@ -93,7 +93,7 @@ func (t *table) buildLateralJoinSelection(
 		b.WriteString(", ")
 	}
 
-	relAlias := "mutation_result.r." + relSel.alias
+	relAlias := sqlAlias("mutation_result.r.", relSel.alias)
 	t.dialect.WriteJSONRowColumn(b, relSel.alias,
 		`"`+relAlias+`"."`+relSel.alias+`"`)
 
@@ -161,7 +161,7 @@ func (t *table) buildLateralJoins(
 			continue
 		}
 
-		relAlias := "mutation_result.r." + relSel.alias
+		relAlias := sqlAlias("mutation_result.r.", relSel.alias)
 
 		b.WriteString(" LEFT OUTER JOIN LATERAL (")
 
@@ -274,7 +274,7 @@ func (t *table) buildFinalSelect( //nolint:funlen
 					b.WriteString(", ")
 				}
 
-				relAlias := "mutation_result.r." + relSel.alias
+				relAlias := sqlAlias("mutation_result.r.", relSel.alias)
 
 				b.WriteByte('\'')
 				b.WriteString(relSel.alias)

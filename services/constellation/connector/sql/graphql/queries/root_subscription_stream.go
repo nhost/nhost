@@ -180,7 +180,7 @@ func (t *table) buildStreamQuerySQL( //nolint:cyclop,funlen,gocognit,gocyclo,mai
 		return nil, 0, err
 	}
 
-	baseAlias := alias + ".base"
+	baseAlias := sqlAlias(alias, ".base")
 
 	b.WriteString(`WITH "`)
 	b.WriteString(baseAlias)
@@ -295,7 +295,7 @@ func (t *table) buildStreamQuerySQL( //nolint:cyclop,funlen,gocognit,gocyclo,mai
 				b.WriteString(", ")
 			}
 
-			relAlias := alias + ".r." + relSel.alias
+			relAlias := sqlAlias(alias, ".r.", relSel.alias)
 			t.dialect.WriteJSONRowColumn(b, relSel.alias,
 				`"`+relAlias+`"."`+relSel.alias+`"`)
 
@@ -337,7 +337,7 @@ func (t *table) buildStreamQuerySQL( //nolint:cyclop,funlen,gocognit,gocyclo,mai
 
 		// LEFT OUTER JOIN LATERAL for each nested relationship
 		for _, relSel := range relationships {
-			relAlias := alias + ".r." + relSel.alias
+			relAlias := sqlAlias(alias, ".r.", relSel.alias)
 
 			b.WriteString(" LEFT OUTER JOIN LATERAL (")
 
@@ -360,7 +360,7 @@ func (t *table) buildStreamQuerySQL( //nolint:cyclop,funlen,gocognit,gocyclo,mai
 				b.WriteString(", ")
 			}
 
-			relAlias := alias + ".r." + relSel.alias
+			relAlias := sqlAlias(alias, ".r.", relSel.alias)
 
 			b.WriteByte('\'')
 			b.WriteString(relSel.alias)

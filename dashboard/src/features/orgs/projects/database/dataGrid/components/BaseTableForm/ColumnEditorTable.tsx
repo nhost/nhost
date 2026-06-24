@@ -3,6 +3,7 @@ import { useFieldArray, useFormState } from 'react-hook-form';
 import { Button } from '@/components/ui/v3/button';
 import { Label } from '@/components/ui/v3/label';
 import { ColumnEditorRow } from './ColumnEditorRow';
+import DefaultValueHelpTooltip from './DefaultValueHelpTooltip';
 
 function ColumnErrorMessage() {
   const { errors } = useFormState({ name: 'columns' });
@@ -45,7 +46,10 @@ export default function ColumnEditorTable() {
 
           <div className="w-52 flex-none">
             <Label asChild>
-              <span>Default Value</span>
+              <span className="flex items-center gap-1">
+                Default Value
+                <DefaultValueHelpTooltip />
+              </span>
             </Label>
           </div>
           <div className="w-8 flex-none">

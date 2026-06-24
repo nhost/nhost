@@ -71,7 +71,9 @@ result
 .vitest
 
 **/.claude/settings.local.json
-.claude/PLAN_*
-.review/
 
 letsencrypt/*
+
+/.review/
+/.nhost-code/review/
+/.nhost-code/tmp/
