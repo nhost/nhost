@@ -1,8 +1,6 @@
 import { formatDistance } from 'date-fns';
-import { Avatar } from '@/components/ui/v2/Avatar';
-import { Text } from '@/components/ui/v2/Text';
+import { Avatar } from '@/components/ui/v3/avatar';
 import type { PipelineRunInput } from '@/features/orgs/projects/deployments/types';
-import { ifNullconvertToUndefined } from '@/lib/utils';
 import type {
   DeploymentRowFragment,
   PipelineRunRowFragment,
@@ -48,12 +46,11 @@ export default function DeploymentStatusMessage({
       <span className="flex flex-row justify-start">
         <Avatar
           alt={`Avatar of ${userName}`}
-          src={ifNullconvertToUndefined(avatarUrl)}
+          name={userName ?? undefined}
+          src={avatarUrl}
           className="mr-1 h-4 w-4 self-center"
         />
-        <Text component="span" className="self-center text-sm">
-          {userName} updated just now
-        </Text>
+        <span className="self-center text-sm">{userName} updated just now</span>
       </span>
     );
   }
@@ -65,7 +62,8 @@ export default function DeploymentStatusMessage({
       <div className="relative flex flex-row">
         <Avatar
           alt={`Avatar of ${userName}`}
-          src={ifNullconvertToUndefined(avatarUrl)}
+          name={userName ?? undefined}
+          src={avatarUrl}
           className="mt-1 mr-2 h-4 w-4"
         />
         <div className="flex flex-col text-muted-foreground text-sm">
@@ -76,9 +74,5 @@ export default function DeploymentStatusMessage({
     );
   }
 
-  return (
-    <Text component="span" className="text-muted-foreground text-sm">
-      No deployments
-    </Text>
-  );
+  return <span className="text-muted-foreground text-sm">No deployments</span>;
 }
