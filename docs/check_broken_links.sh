@@ -20,6 +20,10 @@ SKIP=(
   # Sign-in portals that reject automated requests with 4xx (false positives)
   'portal\.azure\.com'
 
+  # Microsoft support behind Akamai/Azure bot detection: returns 301 to real
+  # browsers but 403/404 to datacenter IPs / the link checker (false positive)
+  'support\.microsoft\.com'
+
   # The site's own canonical/sitemap self-links; 404 until deployed.
   '^https:\/\/docs\.nhost\.io'
 )

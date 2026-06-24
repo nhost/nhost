@@ -3,6 +3,7 @@ package schema
 import (
 	"fmt"
 
+	"github.com/nhost/nhost/services/constellation/connector/sql/pgtypes"
 	"github.com/nhost/nhost/services/constellation/graph"
 )
 
@@ -12,29 +13,10 @@ func generateComparisonExp(scalarType string, caps Capabilities) *graph.InputObj
 	fields := make([]*graph.InputField, 0, len(operators))
 
 	for _, op := range operators {
-		var fieldType *graph.Type
-
-		switch op {
-		case "_in", "_nin":
-			fieldType = graph.NewListType(graph.NewNonNullType(scalarType))
-		case "_is_null":
-			fieldType = graph.NewNamedType("Boolean")
-		case "_has_key":
-			fieldType = graph.NewNamedType("String")
-		case "_has_keys_all", "_has_keys_any":
-			fieldType = graph.NewListType(graph.NewNonNullType("String"))
-		case "_cast":
-			fieldType = graph.NewNamedType(caps.castExpName(scalarType))
-		case "_contains", "_contained_in":
-			fieldType = graph.NewNamedType(scalarType)
-		default:
-			fieldType = graph.NewNamedType(scalarType)
-		}
-
 		fields = append(fields, &graph.InputField{ //nolint:exhaustruct
 			Name:        op,
-			Description: getOperatorDescription(op),
-			Type:        fieldType,
+			Description: getOperatorDescription(op, scalarType),
+			Type:        comparisonOperatorType(op, scalarType, caps),
 		})
 	}
 
@@ -45,6 +27,118 @@ func generateComparisonExp(scalarType string, caps Capabilities) *graph.InputObj
 			scalarType,
 		),
 		Fields: fields,
+	}
+}
+
+func comparisonOperatorType(op, scalarType string, caps Capabilities) *graph.Type {
+	switch op {
+	case "_in", "_nin":
+		return graph.NewListType(graph.NewNonNullType(scalarType))
+	case "_is_null":
+		return graph.NewNamedType("Boolean")
+	case "_has_key":
+		return graph.NewNamedType("String")
+	case "_has_keys_all", "_has_keys_any":
+		return graph.NewListType(graph.NewNonNullType("String"))
+	case "_cast":
+		return graph.NewNamedType(caps.castExpName(scalarType))
+	case "_contains", "_contained_in":
+		return graph.NewNamedType(scalarType)
+	case "_st_d_within":
+		if scalarType == pgtypes.Geography {
+			return graph.NewNamedType("st_d_within_geography_input")
+		}
+
+		return graph.NewNamedType("st_d_within_input")
+	case "_st_3d_d_within":
+		return graph.NewNamedType("st_d_within_input")
+	default:
+		return graph.NewNamedType(scalarType)
+	}
+}
+
+func generateCastExp(scalarType string, caps Capabilities) *graph.InputObjectType {
+	switch scalarType {
+	case scalarJSONB:
+		if !caps.SupportsJSONB {
+			return nil
+		}
+
+		return &graph.InputObjectType{ //nolint:exhaustruct
+			Name: caps.castExpName(scalarJSONB),
+			Fields: []*graph.InputField{
+				{
+					Name: "String",
+					Type: graph.NewNamedType(caps.comparisonExpName("String")),
+				},
+			},
+		}
+	case pgtypes.Geography:
+		if !caps.SupportsSpatialTypes {
+			return nil
+		}
+
+		return &graph.InputObjectType{ //nolint:exhaustruct
+			Name: caps.castExpName(pgtypes.Geography),
+			Fields: []*graph.InputField{
+				{
+					Name: pgtypes.Geometry,
+					Type: graph.NewNamedType(caps.comparisonExpName(pgtypes.Geometry)),
+				},
+			},
+		}
+	case pgtypes.Geometry:
+		if !caps.SupportsSpatialTypes {
+			return nil
+		}
+
+		return &graph.InputObjectType{ //nolint:exhaustruct
+			Name: caps.castExpName(pgtypes.Geometry),
+			Fields: []*graph.InputField{
+				{
+					Name: pgtypes.Geography,
+					Type: graph.NewNamedType(caps.comparisonExpName(pgtypes.Geography)),
+				},
+			},
+		}
+	default:
+		return nil
+	}
+}
+
+func generateSpatialOperatorInputs(
+	schema *graph.Schema,
+	selectUsedScalars map[string]struct{},
+	caps Capabilities,
+) {
+	if !caps.SupportsSpatialTypes {
+		return
+	}
+
+	if _, hasGeography := selectUsedScalars[pgtypes.Geography]; hasGeography {
+		defaultUseSpheroid := "true"
+		schema.Inputs = append(schema.Inputs, &graph.InputObjectType{ //nolint:exhaustruct
+			Name: "st_d_within_geography_input",
+			Fields: []*graph.InputField{
+				{Name: "distance", Type: graph.NewNonNullType("Float")},
+				{Name: "from", Type: graph.NewNonNullType(pgtypes.Geography)},
+				{
+					Name:         "use_spheroid",
+					Type:         graph.NewNamedType("Boolean"),
+					DefaultValue: &defaultUseSpheroid,
+				},
+			},
+		})
+	}
+
+	if _, hasGeometry := selectUsedScalars[pgtypes.Geometry]; hasGeometry {
+		schema.Inputs = append(schema.Inputs, &graph.InputObjectType{ //nolint:exhaustruct
+			Name: "st_d_within_input",
+			Fields: []*graph.InputField{
+				{Name: "distance", Type: graph.NewNonNullType("Float")},
+				{Name: "from", Type: graph.NewNonNullType(pgtypes.Geometry)},
+			},
+		})
 	}
 }
 
@@ -67,7 +161,7 @@ func getComparisonOperators(scalarType string, caps Capabilities) []string {
 			"_like", "_lt", "_lte", "_neq", "_nilike", "_nin", "_niregex",
 			"_nlike", "_nregex", "_nsimilar", "_regex", "_similar",
 		}
-	case "jsonb": //nolint:goconst,nolintlint // scalar name literal is clearer than a package-wide constant here.
+	case scalarJSONB:
 		if !caps.SupportsJSONB {
 			return []string{"_eq", "_gt", "_gte", "_in", "_is_null", "_lt", "_lte", "_neq", "_nin"}
 		}
@@ -77,6 +171,26 @@ func getComparisonOperators(scalarType string, caps Capabilities) []string {
 			"_has_key", "_has_keys_all", "_has_keys_any", "_in", "_is_null",
 			"_lt", "_lte", "_neq", "_nin",
 		}
+	case pgtypes.Geography:
+		if caps.SupportsSpatialTypes {
+			return []string{
+				"_cast", "_eq", "_gt", "_gte", "_in", "_is_null", "_lt", "_lte",
+				"_neq", "_nin", "_st_d_within", "_st_intersects",
+			}
+		}
+
+		return []string{"_eq", "_gt", "_gte", "_in", "_is_null", "_lt", "_lte", "_neq", "_nin"}
+	case pgtypes.Geometry:
+		if caps.SupportsSpatialTypes {
+			return []string{
+				"_cast", "_eq", "_gt", "_gte", "_in", "_is_null", "_lt", "_lte",
+				"_neq", "_nin", "_st_3d_d_within", "_st_3d_intersects",
+				"_st_contains", "_st_crosses", "_st_d_within", "_st_equals",
+				"_st_intersects", "_st_overlaps", "_st_touches", "_st_within",
+			}
+		}
+
+		return []string{"_eq", "_gt", "_gte", "_in", "_is_null", "_lt", "_lte", "_neq", "_nin"}
 	default:
 		return []string{"_eq", "_gt", "_gte", "_in", "_is_null", "_lt", "_lte", "_neq", "_nin"}
 	}
@@ -147,7 +261,7 @@ func generateArrayComparisonExp(elementType string, caps Capabilities) *graph.In
 }
 
 // getOperatorDescription returns a description for a comparison operator.
-func getOperatorDescription(op string) string { //nolint:cyclop
+func getOperatorDescription(op, scalarType string) string { //nolint:cyclop,funlen
 	switch op {
 	case "_ilike":
 		return "does the column match the given case-insensitive pattern"
@@ -179,6 +293,34 @@ func getOperatorDescription(op string) string { //nolint:cyclop
 		return "do all of these strings exist as top-level keys in the column"
 	case "_has_keys_any":
 		return "do any of these strings exist as top-level keys in the column"
+	case "_st_3d_d_within":
+		return "is the column within a given 3D distance from the given geometry value"
+	case "_st_3d_intersects":
+		return "does the column spatially intersect the given geometry value in 3D"
+	case "_st_contains":
+		return "does the column contain the given geometry value"
+	case "_st_crosses":
+		return "does the column cross the given geometry value"
+	case "_st_d_within":
+		if scalarType == pgtypes.Geography {
+			return "is the column within a given distance from the given geography value"
+		}
+
+		return "is the column within a given distance from the given geometry value"
+	case "_st_equals":
+		return "is the column equal to given geometry value (directionality is ignored)"
+	case "_st_intersects":
+		if scalarType == pgtypes.Geography {
+			return "does the column spatially intersect the given geography value"
+		}
+
+		return "does the column spatially intersect the given geometry value"
+	case "_st_overlaps":
+		return "does the column 'spatially overlap' (intersect but not completely contain) the given geometry value"
+	case "_st_touches":
+		return "does the column have atleast one point in common with the given geometry value"
+	case "_st_within":
+		return "is the column contained in the given geometry value"
 	default:
 		return ""
 	}

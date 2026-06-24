@@ -104,6 +104,75 @@ func (d *SQLiteDialect) WriteArrayNotIn(
 	return params, paramIndex
 }
 
+func (d *SQLiteDialect) SupportsSpatialTypes() bool {
+	return false
+}
+
+func (d *SQLiteDialect) SpatialOutputExpression(expr, _ string) string {
+	return expr
+}
+
+func (d *SQLiteDialect) SpatialValueExpression(placeholder, sqlType string) string {
+	return d.TypeCast(placeholder, sqlType)
+}
+
+func (d *SQLiteDialect) SpatialCastExpression(expr, _, _ string) string {
+	return expr
+}
+
+func (d *SQLiteDialect) WriteSpatialPredicate(
+	_ *strings.Builder,
+	_ SpatialPredicate,
+	_, _ string,
+) {
+	panic(
+		"dialect: WriteSpatialPredicate called on SQLiteDialect; gate with SupportsSpatialTypes()",
+	)
+}
+
+func (d *SQLiteDialect) WriteSpatialDWithinPredicate(
+	_ *strings.Builder,
+	_ bool,
+	_, _, _, _ string,
+	_ *string,
+) {
+	panic(
+		"dialect: WriteSpatialDWithinPredicate called on SQLiteDialect; gate with SupportsSpatialTypes()",
+	)
+}
+
+func (d *SQLiteDialect) WriteSpatialArrayIn(
+	b *strings.Builder, source, sqlName, sqlType string,
+	values []any, params []any, paramIndex int,
+) ([]any, int) {
+	return d.WriteArrayIn(b, source, sqlName, sqlType, values, params, paramIndex)
+}
+
+func (d *SQLiteDialect) WriteSpatialArrayNotIn(
+	b *strings.Builder, source, sqlName, sqlType string,
+	values []any, params []any, paramIndex int,
+) ([]any, int) {
+	return d.WriteArrayNotIn(b, source, sqlName, sqlType, values, params, paramIndex)
+}
+
+func (d *SQLiteDialect) WriteSpatialArrayInExpression(
+	_ *strings.Builder, _, _ string,
+	_ []any, _ []any, _ int,
+) ([]any, int) {
+	panic(
+		"dialect: WriteSpatialArrayInExpression called on SQLiteDialect; gate with SupportsSpatialTypes()",
+	)
+}
+
+func (d *SQLiteDialect) WriteSpatialArrayNotInExpression(
+	_ *strings.Builder, _, _ string,
+	_ []any, _ []any, _ int,
+) ([]any, int) {
+	panic(
+		"dialect: WriteSpatialArrayNotInExpression called on SQLiteDialect; gate with SupportsSpatialTypes()",
+	)
+}
+
 // JSONAggQuotedAlias wraps the supplied identifier in double quotes and uses
 // json_group_array with an inner json() call: SQLite stores JSON as TEXT, and
 // without the json() wrapper json_group_array would emit the structure as a

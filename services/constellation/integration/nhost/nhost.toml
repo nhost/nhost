@@ -183,6 +183,9 @@ interval = '1m'
 [postgres]
 version = '18.3-20260320-1'
 
+[postgres.settings]
+maxConnections = 300
+
 [postgres.resources]
 [postgres.resources.storage]
 capacity = 1

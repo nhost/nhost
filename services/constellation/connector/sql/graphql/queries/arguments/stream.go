@@ -214,6 +214,11 @@ func parseStreamCursors(
 				return nil, fmt.Errorf("failed to resolve cursor value for %s: %w", field.Name, err)
 			}
 
+			fieldValue, err = values.CoerceSQLValue(column.SQLType, fieldValue)
+			if err != nil {
+				return nil, fmt.Errorf("failed to coerce cursor value for %s: %w", field.Name, err)
+			}
+
 			cursors = append(cursors, StreamCursor{
 				Column:   column,
 				Value:    fieldValue,

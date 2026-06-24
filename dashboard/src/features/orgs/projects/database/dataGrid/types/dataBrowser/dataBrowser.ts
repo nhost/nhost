@@ -111,6 +111,13 @@ export interface HasuraMetadataSource {
   functions?: ExportMetadataResponseMetadataSourcesItemFunctionsItem[];
 }
 
+export interface FetchMetadataReturnType extends Partial<HasuraMetadataSource> {
+  /**
+   * The resource version of the metadata.
+   */
+  resourceVersion: number;
+}
+
 /**
  * Represents the metadata from Hasura.
  */
