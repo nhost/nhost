@@ -6,6 +6,7 @@ import { mockMatchMediaValue, mockRouter } from '@/tests/mocks';
 import {
   createExportActionsMetadataHandler,
   HASURA_API_URL,
+  sampleCustomTypes,
 } from '@/tests/msw/mocks/rest/exportActionsMetadataQuery';
 import {
   fireEvent,
@@ -87,26 +88,6 @@ const WEBHOOK = 'https://example.com/my-handler';
 const DIRTY_MESSAGE =
   'You have unsaved local changes. Are you sure you want to discard them?';
 
-const expectedCustomTypesArgs = {
-  scalars: [],
-  enums: [],
-  input_objects: [
-    {
-      name: 'SampleInput',
-      fields: [
-        { name: 'username', type: 'String!' },
-        { name: 'password', type: 'String!' },
-      ],
-    },
-  ],
-  objects: [
-    {
-      name: 'SampleOutput',
-      fields: [{ name: 'accessToken', type: 'String!' }],
-    },
-  ],
-};
-
 const expectedCreateActionArgs = {
   name: 'actionName',
   definition: {
@@ -174,7 +155,7 @@ describe('CreateActionForm', () => {
 
     expect(migrationBody?.name).toBe('create_action_actionName');
     expect(migrationBody?.up).toEqual([
-      { type: 'set_custom_types', args: expectedCustomTypesArgs },
+      { type: 'set_custom_types', args: sampleCustomTypes },
       { type: 'create_action', args: expectedCreateActionArgs },
     ]);
 

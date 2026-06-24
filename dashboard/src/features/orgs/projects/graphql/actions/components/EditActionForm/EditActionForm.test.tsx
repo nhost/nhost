@@ -6,6 +6,7 @@ import { mockMatchMediaValue, mockRouter } from '@/tests/mocks';
 import {
   createExportActionsMetadataHandler,
   HASURA_API_URL,
+  sampleCustomTypes,
   sampleMutationAction,
 } from '@/tests/msw/mocks/rest/exportActionsMetadataQuery';
 import {
@@ -66,26 +67,6 @@ const server = setupServer(
     return HttpResponse.json({ message: 'success' });
   }),
 );
-
-const expectedCustomTypesArgs = {
-  scalars: [],
-  enums: [],
-  input_objects: [
-    {
-      name: 'SampleInput',
-      fields: [
-        { name: 'username', type: 'String!' },
-        { name: 'password', type: 'String!' },
-      ],
-    },
-  ],
-  objects: [
-    {
-      name: 'SampleOutput',
-      fields: [{ name: 'accessToken', type: 'String!' }],
-    },
-  ],
-};
 
 function renderEditForm() {
   render(<EditActionForm action={sampleMutationAction} />);
@@ -164,7 +145,7 @@ describe('EditActionForm', () => {
 
     expect(migrationBody?.name).toBe('modify_action_login_to_login');
     expect(migrationBody?.up).toEqual([
-      { type: 'set_custom_types', args: expectedCustomTypesArgs },
+      { type: 'set_custom_types', args: sampleCustomTypes },
       {
         type: 'update_action',
         args: {
