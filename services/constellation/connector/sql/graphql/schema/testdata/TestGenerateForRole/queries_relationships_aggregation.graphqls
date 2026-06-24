@@ -509,6 +509,12 @@ type departments_avg_fields {
   budget: Float
 }
 """
+aggregate sum on columns
+"""
+type departments_sum_fields {
+  budget: numeric
+}
+"""
 aggregate stddev on columns
 """
 type departments_stddev_fields {
@@ -525,12 +531,6 @@ aggregate stddev_samp on columns
 """
 type departments_stddev_samp_fields {
   budget: Float
-}
-"""
-aggregate sum on columns
-"""
-type departments_sum_fields {
-  budget: numeric
 }
 """
 aggregate var_pop on columns

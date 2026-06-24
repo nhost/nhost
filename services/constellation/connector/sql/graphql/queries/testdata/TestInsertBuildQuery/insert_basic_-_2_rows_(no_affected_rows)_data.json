@@ -15,7 +15,7 @@
     "File": "nbtinsert.c",
     "Hint": "",
     "Where": "",
-    "Line": 666,
+    "Line": 673,
     "Code": "23505",
     "Message": "duplicate key value violates unique constraint \"departments_pkey\""
   }
