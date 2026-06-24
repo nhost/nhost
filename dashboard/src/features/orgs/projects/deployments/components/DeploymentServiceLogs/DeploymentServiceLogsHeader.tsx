@@ -56,7 +56,7 @@ function DeploymentLogsHeader({ onSubmit, loading, from, to }: Props) {
           onSubmit={form.handleSubmit(onSubmit)}
           className="flex w-full items-center gap-2 md:w-[initial] md:gap-3"
         >
-          <LogsServiceFilter {...form.register('service')} />
+          <LogsServiceFilter control={form.control} name="service" />
           <LogsRegexFilter {...form.register('regexFilter')} />
           <Button
             type="submit"
