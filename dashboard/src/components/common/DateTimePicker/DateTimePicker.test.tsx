@@ -1,4 +1,4 @@
-import { isBefore, startOfDay } from 'date-fns-v4';
+import { isBefore, startOfDay } from 'date-fns';
 import { useState } from 'react';
 import { TZDate } from 'react-day-picker';
 import { vi } from 'vitest';
