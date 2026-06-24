@@ -143,6 +143,7 @@ export default function MetricsTimeRangeFilter({
               <DateTimePicker
                 key={resolved.from.toISOString()}
                 dateTime={resolved.from.toISOString()}
+                triggerTestId="metricsFromDateTimePickerTrigger"
                 onDateTimeChange={handleFromChange}
                 withTimezone
                 align="end"
@@ -153,6 +154,7 @@ export default function MetricsTimeRangeFilter({
               <DateTimePicker
                 key={resolved.to.toISOString()}
                 dateTime={resolved.to.toISOString()}
+                triggerTestId="metricsToDateTimePickerTrigger"
                 onDateTimeChange={handleToChange}
                 withTimezone
                 align="end"
