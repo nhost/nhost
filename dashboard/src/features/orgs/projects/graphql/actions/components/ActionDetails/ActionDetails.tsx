@@ -34,29 +34,16 @@ export default function ActionDetails() {
 
   const { data: actionsData, isLoading, error } = useGetActions();
 
+  if (error instanceof Error) {
+    throw error;
+  }
+
   const action = actionsData?.actions.find(
     (actionItem) => actionItem.name === actionSlug,
   );
 
   if (isLoading || !actionSlug) {
     return <ActionDetailsSkeleton />;
-  }
-
-  if (error instanceof Error) {
-    return (
-      <ActionsEmptyState
-        title="Action not found"
-        description={
-          <span>
-            Action{' '}
-            <code className="relative rounded bg-muted px-[0.3rem] py-[0.2rem] font-medium font-mono text-sm">
-              {actionSlug}
-            </code>{' '}
-            could not be loaded.
-          </span>
-        }
-      />
-    );
   }
 
   if (!action) {

@@ -2,6 +2,7 @@ import { HttpResponse, http } from 'msw';
 import { setupServer } from 'msw/node';
 import { toast } from 'react-hot-toast';
 import { vi } from 'vitest';
+import { RetryableErrorBoundary } from '@/components/presentational/RetryableErrorBoundary';
 import { mockMatchMediaValue } from '@/tests/mocks';
 import {
   createExportActionsMetadataHandler,
@@ -93,6 +94,24 @@ describe('CustomTypesEditor', () => {
     expect(migrationBody?.up[0].args.input_objects).toEqual([
       { name: 'SampleInput', fields: [{ name: 'username', type: 'String!' }] },
     ]);
+  });
+
+  it('surfaces the error boundary retry path when custom types fail to load', async () => {
+    server.use(
+      http.post(`${HASURA_API_URL}/v1/metadata`, () =>
+        HttpResponse.json({ error: 'boom' }, { status: 500 }),
+      ),
+    );
+    render(
+      <RetryableErrorBoundary>
+        <CustomTypesEditor />
+      </RetryableErrorBoundary>,
+    );
+
+    expect(
+      await screen.findByRole('button', { name: /try again/i }),
+    ).toBeInTheDocument();
+    expect(migrationBody).toBeNull();
   });
 
   it('shows a parse error and does not send a request for invalid SDL', async () => {

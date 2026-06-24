@@ -1,6 +1,7 @@
 import { HttpResponse, http } from 'msw';
 import { setupServer } from 'msw/node';
 import { vi } from 'vitest';
+import { RetryableErrorBoundary } from '@/components/presentational/RetryableErrorBoundary';
 import { mockMatchMediaValue, mockRouter as baseRouter } from '@/tests/mocks';
 import {
   createExportActionsMetadataHandler,
@@ -80,15 +81,21 @@ describe('ActionDetails', () => {
     expect(await screen.findByText(/does not exist/i)).toBeInTheDocument();
   });
 
-  it('shows an error state when actions fail to load', async () => {
+  it('surfaces the error boundary retry path when actions fail to load', async () => {
     server.use(
       http.post(`${HASURA_API_URL}/v1/metadata`, () =>
         HttpResponse.json({ error: 'boom' }, { status: 500 }),
       ),
     );
     mockRouter('login');
-    render(<ActionDetails />);
+    render(
+      <RetryableErrorBoundary>
+        <ActionDetails />
+      </RetryableErrorBoundary>,
+    );
 
-    expect(await screen.findByText(/could not be loaded/i)).toBeInTheDocument();
+    expect(
+      await screen.findByRole('button', { name: /try again/i }),
+    ).toBeInTheDocument();
   });
 });

@@ -14,7 +14,7 @@ import { parseTypesSdl } from '@/features/orgs/projects/graphql/actions/utils/pa
 import { execPromiseWithErrorToast } from '@/features/orgs/utils/execPromiseWithErrorToast';
 
 export default function CustomTypesEditor() {
-  const { data, isLoading } = useGetActions();
+  const { data, isLoading, error } = useGetActions();
   const customTypes = data?.customTypes ?? {};
 
   const { mutateAsync: setCustomTypes, isPending } =
@@ -36,6 +36,10 @@ export default function CustomTypesEditor() {
     setPreviousSdl(initialSdl);
     initializedRef.current = true;
   }, [isLoading, data]);
+
+  if (error instanceof Error) {
+    throw error;
+  }
 
   const handleRevert = () => {
     setSdl(previousSdl);
