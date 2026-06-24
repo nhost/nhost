@@ -39,25 +39,31 @@ func TestSignInOTPEmail(t *testing.T) { //nolint:maintidx
 					gomock.Any(),
 					cmpDBParams(
 						sql.InsertUserParams{
-							ID:                uuid.UUID{},
-							Disabled:          false,
-							DisplayName:       "jane@acme.com",
-							AvatarUrl:         "",
-							Email:             sql.Text("jane@acme.com"),
-							PasswordHash:      pgtype.Text{},
-							Ticket:            sql.Text("xxx"),
-							TicketExpiresAt:   sql.TimestampTz(time.Now().Add(time.Hour)),
-							EmailVerified:     false,
-							Locale:            "en",
-							DefaultRole:       "user",
-							Metadata:          []byte("null"),
-							Roles:             []string{"user", "me"},
-							PhoneNumber:       pgtype.Text{},
-							Otp:               "",
-							OtpHashExpiresAt:  pgtype.Timestamptz{},
-							OtpMethodLastUsed: pgtype.Text{},
+							ID:              uuid.UUID{},
+							Disabled:        false,
+							DisplayName:     "jane@acme.com",
+							AvatarUrl:       "",
+							Email:           sql.Text("jane@acme.com"),
+							PasswordHash:    pgtype.Text{},
+							Ticket:          pgtype.Text{},
+							TicketExpiresAt: sql.TimestampTz(time.Now()),
+							EmailVerified:   false,
+							Locale:          "en",
+							DefaultRole:     "user",
+							Metadata:        []byte("null"),
+							Roles:           []string{"user", "me"},
+							PhoneNumber:     pgtype.Text{},
+							Otp:             "xxx",
+							OtpHashExpiresAt: sql.TimestampTz(
+								time.Now().Add(controller.In10Minutes),
+							),
+							OtpMethodLastUsed: sql.Text("email"),
 						},
 						cmpopts.IgnoreFields(sql.InsertUserParams{}, "ID"),
+						testhelpers.FilterPathLast(
+							[]string{".OtpHashExpiresAt", "time()"},
+							cmpopts.EquateApproxTime(time.Minute),
+						),
 					),
 				).Return(sql.InsertUserRow{
 					UserID:    userID,
@@ -217,25 +223,31 @@ func TestSignInOTPEmail(t *testing.T) { //nolint:maintidx
 					gomock.Any(),
 					cmpDBParams(
 						sql.InsertUserParams{
-							ID:                uuid.UUID{},
-							Disabled:          false,
-							DisplayName:       "jane@acme.com",
-							AvatarUrl:         "",
-							Email:             sql.Text("jane@acme.com"),
-							PasswordHash:      pgtype.Text{},
-							Ticket:            sql.Text("xxx"),
-							TicketExpiresAt:   sql.TimestampTz(time.Now().Add(time.Hour)),
-							EmailVerified:     false,
-							Locale:            "en",
-							DefaultRole:       "user",
-							Metadata:          []byte("null"),
-							Roles:             []string{"user", "me"},
-							PhoneNumber:       pgtype.Text{},
-							Otp:               "",
-							OtpHashExpiresAt:  pgtype.Timestamptz{},
-							OtpMethodLastUsed: pgtype.Text{},
+							ID:              uuid.UUID{},
+							Disabled:        false,
+							DisplayName:     "jane@acme.com",
+							AvatarUrl:       "",
+							Email:           sql.Text("jane@acme.com"),
+							PasswordHash:    pgtype.Text{},
+							Ticket:          pgtype.Text{},
+							TicketExpiresAt: sql.TimestampTz(time.Now()),
+							EmailVerified:   false,
+							Locale:          "en",
+							DefaultRole:     "user",
+							Metadata:        []byte("null"),
+							Roles:           []string{"user", "me"},
+							PhoneNumber:     pgtype.Text{},
+							Otp:             "xxx",
+							OtpHashExpiresAt: sql.TimestampTz(
+								time.Now().Add(controller.In10Minutes),
+							),
+							OtpMethodLastUsed: sql.Text("email"),
 						},
 						cmpopts.IgnoreFields(sql.InsertUserParams{}, "ID"),
+						testhelpers.FilterPathLast(
+							[]string{".OtpHashExpiresAt", "time()"},
+							cmpopts.EquateApproxTime(time.Minute),
+						),
 					),
 				).Return(sql.InsertUserRow{
 					UserID:    userID,
@@ -326,7 +338,7 @@ func TestSignInOTPEmail(t *testing.T) { //nolint:maintidx
 			getControllerOpts: []getControllerOptsFunc{},
 		},
 
-		{ //nolint:dupl
+		{
 			name: "signup required - options",
 			config: func() *controller.Config {
 				config := getConfig()
@@ -347,25 +359,31 @@ func TestSignInOTPEmail(t *testing.T) { //nolint:maintidx
 					gomock.Any(),
 					cmpDBParams(
 						sql.InsertUserParams{
-							ID:                uuid.UUID{},
-							Disabled:          false,
-							DisplayName:       "Jane Doe",
-							AvatarUrl:         "",
-							Email:             sql.Text("jane@acme.com"),
-							PasswordHash:      pgtype.Text{},
-							Ticket:            sql.Text("xxx"),
-							TicketExpiresAt:   sql.TimestampTz(time.Now().Add(time.Hour)),
-							EmailVerified:     false,
-							Locale:            "fr",
-							DefaultRole:       "user",
-							Metadata:          []byte(`{"asd":"asd"}`),
-							Roles:             []string{"user"},
-							PhoneNumber:       pgtype.Text{},
-							Otp:               "",
-							OtpHashExpiresAt:  pgtype.Timestamptz{},
-							OtpMethodLastUsed: pgtype.Text{},
+							ID:              uuid.UUID{},
+							Disabled:        false,
+							DisplayName:     "Jane Doe",
+							AvatarUrl:       "",
+							Email:           sql.Text("jane@acme.com"),
+							PasswordHash:    pgtype.Text{},
+							Ticket:          pgtype.Text{},
+							TicketExpiresAt: sql.TimestampTz(time.Now()),
+							EmailVerified:   false,
+							Locale:          "fr",
+							DefaultRole:     "user",
+							Metadata:        []byte(`{"asd":"asd"}`),
+							Roles:           []string{"user"},
+							PhoneNumber:     pgtype.Text{},
+							Otp:             "xxx",
+							OtpHashExpiresAt: sql.TimestampTz(
+								time.Now().Add(controller.In10Minutes),
+							),
+							OtpMethodLastUsed: sql.Text("email"),
 						},
 						cmpopts.IgnoreFields(sql.InsertUserParams{}, "ID"),
+						testhelpers.FilterPathLast(
+							[]string{".OtpHashExpiresAt", "time()"},
+							cmpopts.EquateApproxTime(time.Minute),
+						),
 					),
 				).Return(sql.InsertUserRow{
 					UserID:    userID,
@@ -491,10 +509,10 @@ func TestSignInOTPEmail(t *testing.T) { //nolint:maintidx
 			getControllerOpts: []getControllerOptsFunc{},
 		},
 
-		{ //nolint:dupl
+		{
 			name:   "signup not required",
 			config: getConfig,
-			db: func(ctrl *gomock.Controller) controller.DBClient { //nolint:dupl
+			db: func(ctrl *gomock.Controller) controller.DBClient {
 				mock := mock.NewMockDBClient(ctrl)
 
 				mock.EXPECT().GetUserByEmail(
@@ -528,13 +546,22 @@ func TestSignInOTPEmail(t *testing.T) { //nolint:maintidx
 					WebauthnCurrentChallenge: pgtype.Text{},
 				}, nil)
 
-				mock.EXPECT().UpdateUserTicket(
+				mock.EXPECT().UpdateUserOTPHash(
 					gomock.Any(),
-					cmpDBParams(sql.UpdateUserTicketParams{
-						ID:              userID,
-						Ticket:          sql.Text("xxx"),
-						TicketExpiresAt: sql.TimestampTz(time.Now().Add(time.Hour)),
-					}),
+					cmpDBParams(
+						sql.UpdateUserOTPHashParams{
+							ID:  userID,
+							Otp: "xxx",
+							OtpHashExpiresAt: sql.TimestampTz(
+								time.Now().Add(controller.In10Minutes),
+							),
+							OtpMethodLastUsed: sql.Text("email"),
+						},
+						testhelpers.FilterPathLast(
+							[]string{".OtpHashExpiresAt", "time()"},
+							cmpopts.EquateApproxTime(time.Minute),
+						),
+					),
 				).Return(userID, nil)
 
 				return mock
@@ -584,7 +611,7 @@ func TestSignInOTPEmail(t *testing.T) { //nolint:maintidx
 			},
 		},
 
-		{
+		{ //nolint:dupl
 			name:   "signup not required - user disabled",
 			config: getConfig,
 			db: func(ctrl *gomock.Controller) controller.DBClient {
