@@ -414,7 +414,7 @@ func (t *table) buildNodesRelationshipsLateral(
 			b.WriteString(", ")
 		}
 
-		relAlias := "_root.r." + relSel.alias
+		relAlias := sqlAlias("_root.r.", relSel.alias)
 		t.dialect.WriteJSONRowColumn(b, relSel.alias,
 			`"`+relAlias+`"."`+relSel.alias+`"`)
 
@@ -430,7 +430,7 @@ func (t *table) buildNodesRelationshipsLateral(
 	var err error
 
 	for _, relSel := range relationships {
-		relAlias := "_root.r." + relSel.alias
+		relAlias := sqlAlias("_root.r.", relSel.alias)
 
 		b.WriteString(" LEFT OUTER JOIN LATERAL (")
 
@@ -472,7 +472,7 @@ func (t *table) buildNodesRelationshipsSubquery(
 			b.WriteString(", ")
 		}
 
-		relAlias := "_root.r." + relSel.alias
+		relAlias := sqlAlias("_root.r.", relSel.alias)
 
 		b.WriteByte('\'')
 		b.WriteString(relSel.alias)
@@ -532,7 +532,7 @@ func (t *table) buildNodesWithDistinctOn( //nolint:funlen
 			b.WriteString(", ")
 		}
 
-		relAlias := "_root.r." + relSel.alias
+		relAlias := sqlAlias("_root.r.", relSel.alias)
 		t.dialect.WriteJSONRowColumn(b, relSel.alias,
 			`"`+relAlias+`"."`+relSel.alias+`"`)
 
@@ -556,7 +556,7 @@ func (t *table) buildNodesWithDistinctOn( //nolint:funlen
 
 	// LEFT OUTER JOIN LATERAL for each nested relationship
 	for _, relSel := range relationships {
-		relAlias := "_root.r." + relSel.alias
+		relAlias := sqlAlias("_root.r.", relSel.alias)
 
 		b.WriteString(" LEFT OUTER JOIN LATERAL (")
 

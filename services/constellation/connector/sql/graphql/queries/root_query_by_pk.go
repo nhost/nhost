@@ -186,7 +186,7 @@ func (t *table) buildQuerySQLWithNestedCTEs(
 		return nil, 0, err
 	}
 
-	baseAlias := alias + ".base"
+	baseAlias := sqlAlias(alias, ".base")
 
 	params, paramIndex, err = t.buildQueryCTE(
 		b, field, variables, role, sessionVariables, params, paramIndex,
@@ -381,7 +381,7 @@ func (t *table) buildQueryRelationshipsLateral(
 			b.WriteString(", ")
 		}
 
-		relAlias := alias + ".r." + relSel.alias
+		relAlias := sqlAlias(alias, ".r.", relSel.alias)
 		t.dialect.WriteJSONRowColumn(b, relSel.alias,
 			`"`+relAlias+`"."`+relSel.alias+`"`)
 
@@ -395,7 +395,7 @@ func (t *table) buildQueryRelationshipsLateral(
 	b.WriteByte('"')
 
 	for _, relSel := range relationships {
-		relAlias := alias + ".r." + relSel.alias
+		relAlias := sqlAlias(alias, ".r.", relSel.alias)
 
 		b.WriteString(" LEFT OUTER JOIN LATERAL (")
 
@@ -440,7 +440,7 @@ func (t *table) buildQueryRelationshipsSubquery(
 			b.WriteString(", ")
 		}
 
-		relAlias := alias + ".r." + relSel.alias
+		relAlias := sqlAlias(alias, ".r.", relSel.alias)
 
 		b.WriteByte('\'')
 		b.WriteString(relSel.alias)
