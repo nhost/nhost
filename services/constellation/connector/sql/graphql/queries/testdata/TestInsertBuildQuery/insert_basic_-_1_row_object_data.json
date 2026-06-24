@@ -16,7 +16,7 @@
     "ConstraintName": "departments_pkey",
     "File": "nbtinsert.c",
     "Message": "duplicate key value violates unique constraint \"departments_pkey\"",
-    "Line": 666,
+    "Line": 673,
     "Routine": "_bt_check_unique"
   }
 ]

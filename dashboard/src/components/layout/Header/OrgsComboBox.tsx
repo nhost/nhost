@@ -61,6 +61,7 @@ export default function OrgsComboBox() {
 
   return (
     <HeaderCombobox
+      data-testid="org-switcher"
       options={options}
       value={selectedOrg?.slug ?? null}
       triggerLabel={triggerLabel}

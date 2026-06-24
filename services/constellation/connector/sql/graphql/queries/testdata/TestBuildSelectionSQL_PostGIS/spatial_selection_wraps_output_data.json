@@ -1,0 +1,219 @@
+[
+  [
+    [
+      {
+        "geom": {
+          "crs": {
+            "type": "name",
+            "properties": {
+              "name": "urn:ogc:def:crs:EPSG::4326"
+            }
+          },
+          "type": "Point",
+          "coordinates": [
+            -73.98513,
+            40.758896
+          ]
+        },
+        "geog": {
+          "coordinates": [
+            -73.98513,
+            40.758896
+          ],
+          "crs": {
+            "type": "name",
+            "properties": {
+              "name": "urn:ogc:def:crs:EPSG::4326"
+            }
+          },
+          "type": "Point"
+        },
+        "area": {
+          "crs": {
+            "type": "name",
+            "properties": {
+              "name": "urn:ogc:def:crs:EPSG::4326"
+            }
+          },
+          "type": "Polygon",
+          "coordinates": [
+            [
+              [
+                -74,
+                40.75
+              ],
+              [
+                -73.97,
+                40.75
+              ],
+              [
+                -73.97,
+                40.78
+              ],
+              [
+                -74,
+                40.78
+              ],
+              [
+                -74,
+                40.75
+              ]
+            ]
+          ]
+        },
+        "nullable_geom": {
+          "coordinates": [
+            -73.98,
+            40.76
+          ],
+          "crs": {
+            "properties": {
+              "name": "urn:ogc:def:crs:EPSG::4326"
+            },
+            "type": "name"
+          },
+          "type": "Point"
+        },
+        "name": "inside-square"
+      },
+      {
+        "area": {
+          "type": "Polygon",
+          "coordinates": [
+            [
+              [
+                -74,
+                40.75
+              ],
+              [
+                -73.97,
+                40.75
+              ],
+              [
+                -73.97,
+                40.78
+              ],
+              [
+                -74,
+                40.78
+              ],
+              [
+                -74,
+                40.75
+              ]
+            ]
+          ],
+          "crs": {
+            "type": "name",
+            "properties": {
+              "name": "urn:ogc:def:crs:EPSG::4326"
+            }
+          }
+        },
+        "nullable_geom": null,
+        "name": "outside-square",
+        "geom": {
+          "coordinates": [
+            -73.94,
+            40.8
+          ],
+          "crs": {
+            "type": "name",
+            "properties": {
+              "name": "urn:ogc:def:crs:EPSG::4326"
+            }
+          },
+          "type": "Point"
+        },
+        "geog": {
+          "coordinates": [
+            -73.94,
+            40.8
+          ],
+          "crs": {
+            "type": "name",
+            "properties": {
+              "name": "urn:ogc:def:crs:EPSG::4326"
+            }
+          },
+          "type": "Point"
+        }
+      },
+      {
+        "name": "west-square",
+        "geom": {
+          "crs": {
+            "type": "name",
+            "properties": {
+              "name": "urn:ogc:def:crs:EPSG::4326"
+            }
+          },
+          "type": "Point",
+          "coordinates": [
+            -74.02,
+            40.76
+          ]
+        },
+        "geog": {
+          "crs": {
+            "type": "name",
+            "properties": {
+              "name": "urn:ogc:def:crs:EPSG::4326"
+            }
+          },
+          "type": "Point",
+          "coordinates": [
+            -74.02,
+            40.76
+          ]
+        },
+        "area": {
+          "crs": {
+            "type": "name",
+            "properties": {
+              "name": "urn:ogc:def:crs:EPSG::4326"
+            }
+          },
+          "type": "Polygon",
+          "coordinates": [
+            [
+              [
+                -74.03,
+                40.75
+              ],
+              [
+                -74.01,
+                40.75
+              ],
+              [
+                -74.01,
+                40.77
+              ],
+              [
+                -74.03,
+                40.77
+              ],
+              [
+                -74.03,
+                40.75
+              ]
+            ]
+          ]
+        },
+        "nullable_geom": {
+          "crs": {
+            "type": "name",
+            "properties": {
+              "name": "urn:ogc:def:crs:EPSG::4326"
+            }
+          },
+          "type": "Point",
+          "coordinates": [
+            -74.025,
+            40.765
+          ]
+        }
+      }
+    ]
+  ]
+]

@@ -9,13 +9,6 @@ export const COMPUTED_FIELDS_DIRTY_SOURCE_ID = 'edit-gql-computed-fields';
 
 const identifierPattern = /^[A-Za-z_][A-Za-z0-9_]*$/;
 
-const optionalIdentifier = z
-  .string()
-  .trim()
-  .refine((value) => value === '' || identifierPattern.test(value), {
-    message: 'Must be a valid identifier (letters, digits, underscores).',
-  });
-
 export const computedFieldValidationSchema = z.object({
   name: z
     .string()
@@ -23,12 +16,12 @@ export const computedFieldValidationSchema = z.object({
     .min(1, 'Computed field name is required.')
     .regex(
       identifierPattern,
-      'Must be a valid identifier (letters, digits, underscores).',
+      'Must start with a letter or underscore, followed by letters, digits, or underscores.',
     ),
   functionSchema: z.string().trim().min(1, 'Function schema is required.'),
   functionName: z.string().trim().min(1, 'Function name is required.'),
-  tableArgument: optionalIdentifier,
-  sessionArgument: optionalIdentifier,
+  tableArgument: z.string().trim(),
+  sessionArgument: z.string().trim(),
   comment: z.string(),
 });
 

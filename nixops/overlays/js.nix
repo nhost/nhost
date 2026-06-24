@@ -125,5 +125,57 @@
       }
     );
 
+    # Pinned to match dashboard/package.json's @playwright/test; Chromium only.
+    playwright-driver =
+      let
+        chromiumRevision = "1223";
+        chromiumVersion = "148.0.7778.96";
+        cft = path: "https://cdn.playwright.dev/builds/cft/${chromiumVersion}/${path}";
+        components = prev.playwright-driver.components;
+        chromium = components.chromium.overrideAttrs (_: {
+          src = prev.fetchzip {
+            url = cft "linux64/chrome-linux64.zip";
+            stripRoot = true;
+            hash = "sha256-TnplS4C/PPcmyWrMCqWh7c1KrpevHJFKO0gfh46M3tk=";
+          };
+        });
+        chromium-headless-shell = components."chromium-headless-shell".overrideAttrs (_: {
+          src = prev.fetchzip {
+            url = cft "linux64/chrome-headless-shell-linux64.zip";
+            stripRoot = false;
+            hash = "sha256-Nr0/uczFTBTqvRPR0c/wflIqG5relgKfC9XsMOdE9iE=";
+          };
+        });
+        browsers = prev.linkFarm "playwright-browsers" [
+          {
+            name = "chromium-${chromiumRevision}";
+            path = chromium;
+          }
+          {
+            name = "chromium_headless_shell-${chromiumRevision}";
+            path = chromium-headless-shell;
+          }
+          {
+            name = "ffmpeg-1011";
+            path = components.ffmpeg;
+          }
+        ];
+      in
+      (prev.playwright-driver.overrideAttrs (old: rec {
+        version = "1.60.0";
+        src = prev.fetchFromGitHub {
+          owner = "Microsoft";
+          repo = "playwright";
+          rev = "v${version}";
+          hash = "sha256-jtQHyphdZsS8hf7uhe9zrx16Uf+kgLLha6dTCsCTT/8=";
+        };
+        npmDepsHash = "sha256-K1bCDURaq2+kaqGQcOL1tD6tQt/37pyDFWq2njUVNS4=";
+      })).overrideAttrs
+        (old: {
+          passthru = old.passthru // {
+            inherit browsers;
+          };
+        });
+
   }
 )

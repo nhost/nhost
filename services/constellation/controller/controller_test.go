@@ -456,6 +456,8 @@ func TestHandlerGet_ConnectionClosesOnMetadataReload(t *testing.T) {
 		middleware.NewNoOpJWTAuthenticator(),
 		src,
 		logger,
+		"test",
+		nil,
 	)
 	if err != nil {
 		t.Fatalf("New: %v", err)
@@ -645,6 +647,12 @@ func (f *fakeMetadataSource) Close() {
 	}
 }
 
+// HasuraSnapshot satisfies the Source interface. The controller tests don't
+// exercise the /v1/metadata export_metadata path, so a stub return is fine.
+func (f *fakeMetadataSource) HasuraSnapshotJSON() ([]byte, int64) {
+	return nil, 0
+}
+
 func TestNew_InitialLoadErrorPropagated(t *testing.T) {
 	t.Parallel()
 
@@ -661,6 +669,8 @@ func TestNew_InitialLoadErrorPropagated(t *testing.T) {
 		middleware.NewNoOpJWTAuthenticator(),
 		src,
 		logger,
+		"test",
+		nil,
 	)
 	if err == nil {
 		t.Fatal("expected error, got nil")
@@ -700,6 +710,8 @@ func TestNew_BuildStateRecordsInconsistency(t *testing.T) {
 		middleware.NewNoOpJWTAuthenticator(),
 		src,
 		logger,
+		"test",
+		nil,
 	)
 	if err != nil {
 		t.Fatalf("unexpected error: %v", err)
@@ -742,6 +754,8 @@ func TestNew_HappyPath(t *testing.T) {
 		middleware.NewNoOpJWTAuthenticator(),
 		src,
 		logger,
+		"test",
+		nil,
 	)
 	if err != nil {
 		t.Fatalf("unexpected error: %v", err)
@@ -770,6 +784,8 @@ func TestRun_ExitsOnContextCancel(t *testing.T) {
 		middleware.NewNoOpJWTAuthenticator(),
 		src,
 		logger,
+		"test",
+		nil,
 	)
 	if err != nil {
 		t.Fatalf("New: %v", err)
@@ -811,6 +827,8 @@ func TestRun_ReloadErrorKeepsCurrentState(t *testing.T) {
 		middleware.NewNoOpJWTAuthenticator(),
 		src,
 		logger,
+		"test",
+		nil,
 	)
 	if err != nil {
 		t.Fatalf("New: %v", err)
@@ -877,6 +895,8 @@ func TestRun_ReloadReplacesInconsistencies(t *testing.T) {
 		middleware.NewNoOpJWTAuthenticator(),
 		src,
 		logger,
+		"test",
+		nil,
 	)
 	if err != nil {
 		t.Fatalf("New: %v", err)
