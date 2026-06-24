@@ -1,8 +1,5 @@
 import { Form } from '@/components/form/Form';
-import { ActivityIndicator } from '@/components/ui/v2/ActivityIndicator';
-import type { BoxProps } from '@/components/ui/v2/Box';
-import { Box } from '@/components/ui/v2/Box';
-import { Button } from '@/components/ui/v2/Button';
+import { ButtonWithLoading } from '@/components/ui/v3/button';
 import { SearchIcon } from 'lucide-react';
 import { LogsRegexFilter } from '@/features/orgs/projects/common/components/LogsRegexFilter';
 import { LogsServiceFilter } from '@/features/orgs/projects/common/components/LogsServiceFilter';
@@ -25,7 +22,7 @@ export const validationSchema = Yup.object({
 
 export type LogsFilterFormValues = Yup.InferType<typeof validationSchema>;
 
-interface LogsHeaderProps extends Omit<BoxProps, 'children'> {
+interface LogsHeaderProps {
   /**
    * This is used to indicate that a query is currently inflight
    */
@@ -46,7 +43,6 @@ export default function LogsHeader({
   loading,
   onSubmitFilterValues,
   onRefetch,
-  ...props
 }: LogsHeaderProps) {
   const form = useForm<LogsFilterFormValues>({
     defaultValues: {
@@ -63,7 +59,7 @@ export default function LogsHeader({
 
   const isNotDirty = Object.keys(formState.dirtyFields).length === 0;
 
-  const { register, watch, getValues, setValue } = form;
+  const { register, watch, getValues, setValue, control } = form;
 
   const service = watch('service');
 
@@ -101,41 +97,32 @@ export default function LogsHeader({
   };
 
   return (
-    <Box
-      className="sticky top-0 z-10 grid w-full grid-flow-row gap-x-6 gap-y-2 border-b px-4 py-2.5 lg:grid-flow-col"
-      {...props}
-    >
+    <div className="sticky top-0 z-10 grid w-full grid-flow-row gap-x-6 gap-y-2 border-b px-4 py-2.5 lg:grid-flow-col">
       <FormProvider {...form}>
         <Form
           onSubmit={handleSubmit}
           className="grid w-full grid-flow-row items-center gap-2 md:w-[initial] md:grid-flow-col md:gap-3 lg:justify-end"
         >
-          <Box className="flex flex-row space-x-2">
-            <LogsServiceFilter {...register('service')} />
-            <div className="w-full min-w-fit">
+          <div className="flex flex-row gap-2">
+            <div className="w-60 shrink-0">
+              <LogsServiceFilter control={control} name="service" />
+            </div>
+            <div className="min-w-40 flex-1">
               <LogsRangeSelector onSubmitFilterValues={onSubmitFilterValues} />
             </div>
-          </Box>
+          </div>
           <LogsRegexFilter {...register('regexFilter')} />
 
-          <Button
+          <ButtonWithLoading
             type="submit"
-            className="h-10"
-            startIcon={
-              <div className="flex h-5 w-5 items-center justify-center">
-                {loading ? (
-                  <ActivityIndicator className="h-5 w-5" />
-                ) : (
-                  <SearchIcon className="h-5 w-5" />
-                )}
-              </div>
-            }
-            disabled={loading}
+            loading={loading}
+            loaderClassName="h-4 w-4"
           >
+            {!loading && <SearchIcon className="mr-2 h-4 w-4" />}
             Search
-          </Button>
+          </ButtonWithLoading>
         </Form>
       </FormProvider>
-    </Box>
+    </div>
   );
 }
