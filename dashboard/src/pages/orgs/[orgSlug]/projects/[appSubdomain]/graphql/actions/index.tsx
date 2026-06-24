@@ -1,10 +1,10 @@
 import type { ReactElement } from 'react';
 import { LoadingScreen } from '@/components/presentational/LoadingScreen';
 import { OrgLayout } from '@/features/orgs/layout/OrgLayout';
-import { ActionsBrowserSidebar } from '@/features/orgs/projects/actions/components/ActionsBrowserSidebar';
-import { ActionsEmptyState } from '@/features/orgs/projects/actions/components/ActionsEmptyState';
-import { NoActionsEmptyState } from '@/features/orgs/projects/actions/components/NoActionsEmptyState';
-import { useGetActions } from '@/features/orgs/projects/actions/hooks/useGetActions';
+import { ActionsBrowserSidebar } from '@/features/orgs/projects/graphql/actions/components/ActionsBrowserSidebar';
+import { ActionsEmptyState } from '@/features/orgs/projects/graphql/actions/components/ActionsEmptyState';
+import { NoActionsEmptyState } from '@/features/orgs/projects/graphql/actions/components/NoActionsEmptyState';
+import { useGetActions } from '@/features/orgs/projects/graphql/actions/hooks/useGetActions';
 import { useIsPlatform } from '@/features/orgs/projects/common/hooks/useIsPlatform';
 import { useProject } from '@/features/orgs/projects/hooks/useProject';
 
