@@ -69,6 +69,7 @@ jobs:
         uses: actions/checkout@v7
         with:
           ref: ${{ inputs.GIT_REF }}
+          allow-unsafe-pr-checkout: true
 
       - name: Configure aws
         uses: aws-actions/configure-aws-credentials@v6
