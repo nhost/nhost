@@ -334,7 +334,7 @@ func (s selectionReturning) writeReturningLateral( //nolint:funlen
 			b.WriteString(", ")
 		}
 
-		relAlias := cteName + ".r." + relSel.alias
+		relAlias := sqlAlias(cteName, ".r.", relSel.alias)
 
 		b.WriteByte('"')
 		b.WriteString(relAlias)
@@ -411,7 +411,7 @@ func (s selectionReturning) writeReturningCorrelated( //nolint:funlen
 			b.WriteString(", ")
 		}
 
-		relAlias := cteName + ".r." + relSel.alias
+		relAlias := sqlAlias(cteName, ".r.", relSel.alias)
 
 		b.WriteByte('\'')
 		b.WriteString(relSel.alias)
@@ -670,7 +670,7 @@ func writeNestedReturningSelection(
 	paramIndex int,
 ) ([]any, int, error) {
 	fromClause, sourceRef := nestedReturningSourceFromClause(
-		nestedCTERef.cteNames, relAlias+".source", relSel.relationship,
+		nestedCTERef.cteNames, sqlAlias(relAlias, ".source"), relSel.relationship,
 	)
 
 	return relSel.relationship.buildSelectionSQLFromSource(
@@ -704,7 +704,7 @@ func (s selectionReturning) writeLateralJoinsWithCTE(
 	paramIndex int,
 ) ([]any, int, error) {
 	for _, relSel := range s.relationships {
-		relAlias := cteName + ".r." + relSel.alias
+		relAlias := sqlAlias(cteName, ".r.", relSel.alias)
 
 		b.WriteString(" LEFT OUTER JOIN LATERAL (")
 
