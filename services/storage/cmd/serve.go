@@ -25,6 +25,7 @@ import (
 	"github.com/nhost/nhost/services/storage/middleware"
 	"github.com/nhost/nhost/services/storage/middleware/cdn/cdncachecontrol"
 	"github.com/nhost/nhost/services/storage/middleware/cdn/fastly"
+	"github.com/nhost/nhost/services/storage/middleware/securityheaders"
 	"github.com/nhost/nhost/services/storage/migrations"
 	"github.com/nhost/nhost/services/storage/storage"
 	"github.com/urfave/cli/v3"
@@ -88,6 +89,9 @@ func getCORSOptions(cmd *cli.Command) oapimw.CORSOptions {
 }
 
 func configureMiddleware(cmd *cli.Command, router *gin.Engine, logger *slog.Logger) {
+	// Always set standard security headers on every response. Not behind a flag.
+	router.Use(securityheaders.New())
+
 	if cmd.Bool(flagCDNCacheControl) {
 		logger.InfoContext(context.Background(), "enabling cdn-cache-control middleware")
 		router.Use(cdncachecontrol.New())

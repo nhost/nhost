@@ -25,6 +25,7 @@ export interface DateTimePickerProps {
   isCalendarDayDisabled?: (date: Date) => boolean;
   align?: 'start' | 'center' | 'end';
   validateDateFn?: (date: Date) => string;
+  triggerTestId?: string;
 }
 
 function DateTimePicker({
@@ -36,6 +37,7 @@ function DateTimePicker({
   isCalendarDayDisabled,
   align = 'start',
   validateDateFn,
+  triggerTestId = 'dateTimePickerTrigger',
 }: DateTimePickerProps) {
   const [date, setDate] = useState(() => {
     if (withTimezone) {
@@ -106,7 +108,7 @@ function DateTimePicker({
     <Popover open={open} onOpenChange={handleOpenChange}>
       <PopoverTrigger asChild>
         <Button
-          data-testid="dateTimePickerTrigger"
+          data-testid={triggerTestId}
           variant="outline"
           className={cn(
             'w-full justify-between text-left font-normal',

@@ -111,6 +111,13 @@ export interface HasuraMetadataSource {
   functions?: ExportMetadataResponseMetadataSourcesItemFunctionsItem[];
 }
 
+export interface FetchMetadataReturnType extends Partial<HasuraMetadataSource> {
+  /**
+   * The resource version of the metadata.
+   */
+  resourceVersion: number;
+}
+
 /**
  * Represents the metadata from Hasura.
  */
@@ -425,17 +432,12 @@ export interface ForeignKeyRelation {
   oneToOne?: boolean;
 }
 
-export interface ColumnDefaultValue {
-  /**
-   * The raw default value text (e.g. `gen_random_uuid()`, `Hello`).
-   */
-  value: string;
-  /**
-   * `true` if the value is a literal string the user typed in; `false` if it
-   * is a postgres function reference. Drives `DEFAULT %L` vs `DEFAULT %s`.
-   */
-  custom: boolean;
-}
+/**
+ * A column default, entered and stored as verbatim SQL (e.g. `'Hello'`, `42`,
+ * `gen_random_uuid()`, `''`). The user owns quoting; the value is emitted as-is
+ * via `DEFAULT %s`.
+ */
+export type ColumnDefaultValue = string;
 
 /**
  * Represents a column in the database.
@@ -458,9 +460,7 @@ export interface DatabaseColumn {
    */
   type: string | null;
   /**
-   * Default value of the column. `custom` distinguishes a literal (e.g. the
-   * user typed `version()` as a string) from a postgres function reference
-   * (e.g. picking `version()` from the function list).
+   * Default value of the column, as verbatim SQL.
    */
   defaultValue?: ColumnDefaultValue | null;
   /**
@@ -592,10 +592,6 @@ export interface DataBrowserColumnMetadata {
    * Determines whether or not the column is editable.
    */
   isEditable?: boolean;
-  /**
-   * Determines whether or not the default value is custom.
-   */
-  isDefaultValueCustom?: boolean;
   /**
    * Name of unique constraints on the column.
    */

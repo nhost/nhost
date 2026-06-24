@@ -2,7 +2,7 @@
   nixConfig = {
     sandbox = "relaxed";
     extra-substituters = [
-      "s3://nhost-nix-cache?endpoint=https://14bc02755b64adb7c8c62b5420d0a457.eu.r2.cloudflarestorage.com&region=auto&profile=nhost-nix-cache"
+      "s3://nhost-nix-cache?endpoint=https://14bc02755b64adb7c8c62b5420d0a457.eu.r2.cloudflarestorage.com&region=auto&profile=nhost-nix-cache&priority=10"
       "https://cache.nixos.org"
     ];
     extra-trusted-public-keys = [
@@ -244,7 +244,7 @@
 
               # dashboard
               nhost.vercel
-              playwright-driver
+              nhost.playwright-driver
               lychee
 
               # javascript
@@ -288,7 +288,7 @@
             ];
 
             shellHook = ''
-              export PLAYWRIGHT_BROWSERS_PATH=${pkgs.playwright-driver.browsers}
+              export PLAYWRIGHT_BROWSERS_PATH=${pkgs.nhost.playwright-driver.browsers}
               export PLAYWRIGHT_SKIP_VALIDATE_HOST_REQUIREMENTS=true
 
               export GOEXPERIMENT=jsonv2

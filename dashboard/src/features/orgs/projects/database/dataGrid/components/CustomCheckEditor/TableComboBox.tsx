@@ -1,5 +1,6 @@
 import { Combobox } from '@/components/ui/v3/combobox';
-import { useMetadataQuery } from '@/features/orgs/projects/database/dataGrid/hooks/useMetadataQuery';
+import { useExportMetadata } from '@/features/orgs/projects/common/hooks/useExportMetadata';
+import type { HasuraMetadataTable } from '@/features/orgs/projects/database/dataGrid/types/dataBrowser';
 
 interface TableComboBoxProps {
   schema: string;
@@ -12,9 +13,12 @@ export default function TableComboBox({
   table,
   onChange,
 }: TableComboBoxProps) {
-  const { data: metadata } = useMetadataQuery(['default.metadata']);
+  const { data: metadataTables } = useExportMetadata((data) => {
+    const source = data.metadata.sources?.find((s) => s.name === 'default');
+    return (source?.tables ?? []) as unknown as HasuraMetadataTable[];
+  });
 
-  const tables = (metadata?.tables ?? []).map((t) => ({
+  const tables = (metadataTables ?? []).map((t) => ({
     schema: t.table.schema,
     table: t.table.name,
     label: `${t.table.schema}.${t.table.name}`,

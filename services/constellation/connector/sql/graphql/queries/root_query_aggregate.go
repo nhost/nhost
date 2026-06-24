@@ -384,8 +384,14 @@ func (t *table) writeNodeColumnSelections(
 		if colSel.literal != "" {
 			t.dialect.WriteJSONRowColumn(b, colSel.alias, "'"+colSel.literal+"'")
 		} else {
-			t.dialect.WriteJSONRowColumn(b, colSel.alias,
-				core.QuoteIdentifier(cteAlias)+"."+core.QuoteIdentifier(colSel.column.SQLName))
+			expr := core.QuoteIdentifier(
+				cteAlias,
+			) + "." + core.QuoteIdentifier(
+				colSel.column.SQLName,
+			)
+			t.dialect.WriteJSONRowColumn(
+				b, colSel.alias, t.outputColumnExpression(expr, colSel.column),
+			)
 		}
 
 		first = false
@@ -414,7 +420,7 @@ func (t *table) buildNodesRelationshipsLateral(
 			b.WriteString(", ")
 		}
 
-		relAlias := "_root.r." + relSel.alias
+		relAlias := sqlAlias("_root.r.", relSel.alias)
 		t.dialect.WriteJSONRowColumn(b, relSel.alias,
 			`"`+relAlias+`"."`+relSel.alias+`"`)
 
@@ -430,7 +436,7 @@ func (t *table) buildNodesRelationshipsLateral(
 	var err error
 
 	for _, relSel := range relationships {
-		relAlias := "_root.r." + relSel.alias
+		relAlias := sqlAlias("_root.r.", relSel.alias)
 
 		b.WriteString(" LEFT OUTER JOIN LATERAL (")
 
@@ -472,7 +478,7 @@ func (t *table) buildNodesRelationshipsSubquery(
 			b.WriteString(", ")
 		}
 
-		relAlias := "_root.r." + relSel.alias
+		relAlias := sqlAlias("_root.r.", relSel.alias)
 
 		b.WriteByte('\'')
 		b.WriteString(relSel.alias)
@@ -532,7 +538,7 @@ func (t *table) buildNodesWithDistinctOn( //nolint:funlen
 			b.WriteString(", ")
 		}
 
-		relAlias := "_root.r." + relSel.alias
+		relAlias := sqlAlias("_root.r.", relSel.alias)
 		t.dialect.WriteJSONRowColumn(b, relSel.alias,
 			`"`+relAlias+`"."`+relSel.alias+`"`)
 
@@ -556,7 +562,7 @@ func (t *table) buildNodesWithDistinctOn( //nolint:funlen
 
 	// LEFT OUTER JOIN LATERAL for each nested relationship
 	for _, relSel := range relationships {
-		relAlias := "_root.r." + relSel.alias
+		relAlias := sqlAlias("_root.r.", relSel.alias)
 
 		b.WriteString(" LEFT OUTER JOIN LATERAL (")
 

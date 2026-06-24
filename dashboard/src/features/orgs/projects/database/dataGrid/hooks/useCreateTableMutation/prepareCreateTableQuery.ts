@@ -43,10 +43,7 @@ export default function prepareCreateTableQuery({
       let defaultClause = '';
 
       if (column.defaultValue) {
-        defaultClause = format(
-          column.defaultValue.custom ? 'DEFAULT %L' : 'DEFAULT %s',
-          column.defaultValue.value,
-        );
+        defaultClause = format('DEFAULT %s', column.defaultValue);
       }
 
       return [columnBase, defaultClause, uniqueClause, notNullClause]
