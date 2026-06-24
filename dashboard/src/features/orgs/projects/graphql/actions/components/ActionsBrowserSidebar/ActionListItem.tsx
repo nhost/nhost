@@ -1,8 +1,19 @@
-import { Ellipsis, FilePen, FileSearch, SquarePen, Trash2 } from 'lucide-react';
+import {
+  Ellipsis,
+  FilePen,
+  FileSearch,
+  SquarePen,
+  Trash2,
+  Users,
+} from 'lucide-react';
 import Link from 'next/link';
 import { useRouter } from 'next/router';
 import { useState } from 'react';
-import { useDialog } from '@/components/common/DialogProvider';
+import {
+  type OpenDialogOptions,
+  useDialog,
+} from '@/components/common/DialogProvider';
+import { InlineCode } from '@/components/presentational/InlineCode';
 import { Button } from '@/components/ui/v3/button';
 import {
   DropdownMenu,
@@ -16,6 +27,7 @@ import {
   TooltipTrigger,
 } from '@/components/ui/v3/tooltip';
 import { EditActionForm } from '@/features/orgs/projects/graphql/actions/components/EditActionForm';
+import { EditActionPermissionsForm } from '@/features/orgs/projects/graphql/actions/components/EditActionPermissionsForm';
 import { TextWithTooltip } from '@/features/orgs/projects/common/components/TextWithTooltip';
 import { cn } from '@/lib/utils';
 import type { ActionItem } from '@/utils/hasura-api/generated/schemas';
@@ -40,13 +52,46 @@ export default function ActionListItem({
   const ActionIcon = actionType === 'query' ? FileSearch : FilePen;
   const [isMenuOpen, setIsMenuOpen] = useState(false);
 
-  const { openDrawer } = useDialog();
+  const { openDrawer, closeDrawer } = useDialog();
 
   function handleEditClick() {
     openDrawer({
       title: 'Edit Action',
       component: <EditActionForm action={action} />,
     });
+  }
+
+  function openActionDrawer(
+    label: string,
+    component: OpenDialogOptions['component'],
+  ) {
+    openDrawer({
+      title: (
+        <span className="inline-grid grid-flow-col items-center gap-2">
+          {label} for
+          <InlineCode className="!text-sm+ font-normal">
+            {action.name}
+          </InlineCode>
+          Action
+        </span>
+      ),
+      component,
+      props: {
+        PaperProps: {
+          className: 'lg:w-[65%] lg:max-w-7xl',
+        },
+      },
+    });
+  }
+
+  function handleEditPermissionsClick() {
+    openActionDrawer(
+      'Permissions',
+      <EditActionPermissionsForm
+        actionName={action.name}
+        onCancel={closeDrawer}
+      />,
+    );
   }
 
   return (
@@ -129,6 +174,13 @@ export default function ActionListItem({
               >
                 <SquarePen className="size-4" />
                 Edit Action
+              </DropdownMenuItem>
+              <DropdownMenuItem
+                onSelect={handleEditPermissionsClick}
+                className={menuItemClassName}
+              >
+                <Users className="size-4" />
+                Edit Permissions
               </DropdownMenuItem>
               <DropdownMenuItem
                 onSelect={() => onDeleteAction(action)}
