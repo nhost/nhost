@@ -219,6 +219,42 @@ describe('CreateActionForm', () => {
     expect(mocks.push).not.toHaveBeenCalled();
   });
 
+  it('forces a query action to synchronous and disables the Kind select', async () => {
+    const user = new TestUserEvent();
+    render(<CreateActionForm />);
+
+    await screen.findByPlaceholderText(/my-handler/i);
+
+    const kindSelect = screen.getByRole('combobox');
+    await user.click(kindSelect);
+    await user.click(
+      await screen.findByRole('option', { name: 'Asynchronous' }),
+    );
+    await waitFor(() => expect(kindSelect).toHaveTextContent('Asynchronous'));
+    expect(kindSelect).toBeEnabled();
+
+    fireEvent.change(screen.getByLabelText('Action Definition'), {
+      target: {
+        value:
+          'type Query {\n  actionName(arg1: SampleInput!): SampleOutput\n}',
+      },
+    });
+
+    await waitFor(() => expect(kindSelect).toBeDisabled());
+
+    await fillWebhook(user);
+    submitActionForm();
+
+    await waitFor(() => expect(migrationBody).not.toBeNull());
+
+    const createActionArgs = migrationBody?.up.find(
+      (op) => op.type === 'create_action',
+    )?.args as { definition: { type: string; kind?: string } };
+
+    expect(createActionArgs.definition.type).toBe('query');
+    expect(createActionArgs.definition.kind).toBeUndefined();
+  });
+
   it('keeps the submit button disabled until the form is dirty', async () => {
     const user = new TestUserEvent();
     render(<CreateActionForm />);

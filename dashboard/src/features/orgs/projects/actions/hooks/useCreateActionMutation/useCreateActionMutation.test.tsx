@@ -121,6 +121,19 @@ describe('useCreateActionMutation', () => {
     expect(metadataBody).toBeNull();
   });
 
+  it('rejects when the request returns a non-200 response', async () => {
+    mocks.useIsPlatform.mockReturnValue(true);
+    server.use(
+      http.post(`${HASURA_API_URL}/v1/metadata`, () =>
+        HttpResponse.json({ error: 'boom' }, { status: 500 }),
+      ),
+    );
+
+    const { result } = renderHook(() => useCreateActionMutation(), { wrapper });
+
+    await expect(result.current.mutateAsync(variables)).rejects.toThrow();
+  });
+
   it('invalidates the export-metadata cache on success', async () => {
     mocks.useIsPlatform.mockReturnValue(false);
     const invalidateSpy = vi.spyOn(queryClient, 'invalidateQueries');
