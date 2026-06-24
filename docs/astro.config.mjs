@@ -666,11 +666,6 @@ export default defineConfig({
               items: [
                 { label: 'Reference', slug: 'reference' },
                 {
-                  label: 'Templating',
-                  collapsed: false,
-                  items: [{ label: 'Kriti', slug: 'reference/kriti' }],
-                },
-                {
                   label: 'Backend Services',
                   collapsed: false,
                   items: [
@@ -759,6 +754,11 @@ export default defineConfig({
                   items: [
                     { label: 'Commands', slug: 'reference/cli/commands' },
                   ],
+                },
+                {
+                  label: 'Templating',
+                  collapsed: false,
+                  items: [{ label: 'Kriti', slug: 'reference/kriti' }],
                 },
               ],
             },
