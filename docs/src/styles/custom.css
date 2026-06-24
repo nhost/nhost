@@ -841,8 +841,10 @@ html[data-has-hero]:not([data-has-sidebar]) body {
   overflow-y: auto;
 }
 
-/* The CLI reference option tables are header-less: hide the empty header row. */
-.sl-markdown-content thead:not(:has(th:not(:empty))) {
+/* The CLI reference option tables are header-less: hide the empty header row.
+   Scoped to the CLI reference page (.cli-reference wraps the generated body) so
+   header-less tables elsewhere in the docs are untouched. */
+.cli-reference thead:not(:has(th:not(:empty))) {
   display: none;
 }
 
@@ -867,15 +869,15 @@ html[data-has-hero]:not([data-has-sidebar]) body {
 
 /* Keep option/flag tokens (inline code in the first column) on a single line
    so commands like --dot-nhost-folder are never split mid-token. */
-.sl-markdown-content :is(th, td):first-child code {
+.cli-reference :is(th, td):first-child code {
   white-space: nowrap;
 }
 
 /* Inline-code chips (flag tokens and subcommand names in headings): slightly
    lighter than the cell border so they read with contrast in dark mode. */
-.sl-markdown-content td code,
-.sl-markdown-content .cli-body code,
-.sl-markdown-content :is(h3, h4, h5) code {
+.cli-reference td code,
+.cli-reference .cli-body code,
+.cli-reference :is(h3, h4, h5) code {
   background-color: color-mix(
     in srgb,
     var(--sl-color-gray-4),
@@ -883,7 +885,7 @@ html[data-has-hero]:not([data-has-sidebar]) body {
   );
 }
 
-.sl-markdown-content :is(h3, h4, h5) code {
+.cli-reference :is(h3, h4, h5) code {
   font-size: inherit;
 }
 
@@ -927,6 +929,6 @@ html[data-has-hero]:not([data-has-sidebar]) body {
 }
 
 /* Divider between command groups (kept tight so groups don't drift apart). */
-.sl-markdown-content > hr {
+.cli-reference > hr {
   margin-block: 1.25rem;
 }
