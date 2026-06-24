@@ -2,7 +2,7 @@
 
 # jsontmpl
 
-<a href="https://docs.nhost.io/reference/kriti">Docs</a>
+<a href="https://docs.nhost.io/reference/kriti">Kriti Reference Docs</a>
   <br />
   <hr />
 </div>
