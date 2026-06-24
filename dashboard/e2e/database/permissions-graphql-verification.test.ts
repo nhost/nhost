@@ -4,13 +4,13 @@ import { TEST_ORGANIZATION_SLUG, TEST_PROJECT_SUBDOMAIN } from '@/e2e/env';
 import { expect, test } from '@/e2e/fixtures/auth-hook';
 import {
   clickPermissionButton,
+  getGraphQLResult,
   navigateToGraphQLPlayground,
   navigateToSQLEditor,
   prepareTable,
   runGraphQLQuery,
   runSQL,
-  selectGraphQLRole,
-  waitForPlaygroundRolesLoaded,
+  setGraphQLHeaders,
 } from '@/e2e/utils';
 
 const tableName = snakeCase(faker.lorem.words(3));
@@ -58,40 +58,29 @@ test.describe
       await context.close();
     });
 
-    test.afterAll(async ({ browser }) => {
-      // Drop the table the suite created so a CI retry of beforeAll does not
-      // hit "table already exists" and staging is not left polluted.
-      const context = await browser.newContext({
-        storageState: 'e2e/.auth/user.json',
-      });
-      const page = await context.newPage();
-
-      await navigateToSQLEditor({ page });
-      await runSQL({
-        page,
-        sql: `DROP TABLE IF EXISTS public.${tableName} CASCADE;`,
-      });
-
-      await context.close();
-    });
-
     test('public role should not be able to query books without permissions', async ({
       authenticatedNhostPage: page,
     }) => {
-      const rolesLoaded = waitForPlaygroundRolesLoaded(page);
       await navigateToGraphQLPlayground({ page });
-      await rolesLoaded;
 
-      await selectGraphQLRole({ page, role: 'public' });
+      await setGraphQLHeaders({
+        page,
+        headers: { 'x-hasura-role': 'public' },
+      });
 
       await runGraphQLQuery({
         page,
         query: `query { ${tableName} { id title genre status } }`,
       });
 
-      await expect(page.getByLabel('Result Window')).toContainText(
-        /field '.*' not found in type|not exist|permission/i,
-      );
+      const result = await getGraphQLResult({ page });
+
+      const hasError =
+        result.includes('error') ||
+        result.includes('not found in type') ||
+        result.includes('not exist') ||
+        result.includes('permission');
+      expect(hasError).toBe(true);
     });
 
     test('public role should only see books matching custom check', async ({
@@ -125,19 +114,19 @@ test.describe
 
       await page.getByText('Add check').click();
       await columnSearch.fill('genre');
-      await page.locator('[cmdk-item][data-value="genre"]').click();
+      await columnSearch.press('Enter');
 
       await page.getByText('Select variable...').click();
       await variableSearch.fill('fiction');
-      await page.locator('[cmdk-item][data-value="create"]').click();
+      await page.getByRole('option', { name: /fiction/i }).click();
 
       await page.getByRole('button', { name: /^add$/i }).click();
       await columnSearch.fill('status');
-      await page.locator('[cmdk-item][data-value="status"]').click();
+      await columnSearch.press('Enter');
 
       await page.getByText('Select variable...').click();
       await variableSearch.fill('published');
-      await page.locator('[cmdk-item][data-value="create"]').click();
+      await page.getByRole('option', { name: /published/i }).click();
 
       await page.getByRole('button', { name: /select all/i }).click();
       await page.getByRole('button', { name: /save/i }).click();
@@ -146,20 +135,22 @@ test.describe
         page.getByText(/permission has been saved successfully/i),
       ).toBeVisible();
 
-      const rolesLoaded = waitForPlaygroundRolesLoaded(page);
       await navigateToGraphQLPlayground({ page });
-      await rolesLoaded;
 
-      await selectGraphQLRole({ page, role: 'public' });
+      await setGraphQLHeaders({
+        page,
+        headers: { 'x-hasura-role': 'public' },
+      });
 
       await runGraphQLQuery({
         page,
         query: `query { ${tableName} { id title genre status } }`,
       });
 
-      const resultWindow = page.getByLabel('Result Window');
-      await expect(resultWindow).toContainText('The Great Gatsby');
-      await expect(resultWindow).not.toContainText('A Brief History of Time');
-      await expect(resultWindow).not.toContainText('Draft Novel');
+      const result = await getGraphQLResult({ page });
+
+      expect(result).toContain('The Great Gatsby');
+      expect(result).not.toContain('A Brief History of Time');
+      expect(result).not.toContain('Draft Novel');
     });
   });

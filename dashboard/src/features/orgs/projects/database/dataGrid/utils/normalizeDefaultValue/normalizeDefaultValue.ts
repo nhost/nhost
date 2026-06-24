@@ -23,9 +23,7 @@ export default function normalizeDefaultValue(
     return null;
   }
 
-  // Note: strip a trailing `::type` cast that applies to a whole single-quoted
-  // literal, keeping the quotes. e.g. `'hello'::text` => `'hello'`. The literal
-  // body may itself contain `::`, so the cast we remove is only the final one.
+  // Strip only the final trailing `::type` cast from a whole single-quoted literal (the body may itself contain `::`), keeping the quotes.
   const trailingCastRegExp = /^('(?:[^']|'')*')::(?:\w|\s)+$/;
   const [, literal] = trailingCastRegExp.exec(defaultValue) || [];
 
