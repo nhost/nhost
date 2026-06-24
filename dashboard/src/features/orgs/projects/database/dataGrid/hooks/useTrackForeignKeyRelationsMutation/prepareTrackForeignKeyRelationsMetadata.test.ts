@@ -2,13 +2,10 @@ import { vi } from 'vitest';
 import * as exportMetadataUtils from '@/features/orgs/projects/common/utils/fetchExportMetadata';
 import prepareTrackForeignKeyRelationsMetadata from './prepareTrackForeignKeyRelationsMetadata';
 
-// Mock the fetchMetadata module
-vi.mock(
-  '@/features/orgs/projects/common/utils/fetchExportMetadata',
-  () => ({
-    fetchExportMetadata: vi.fn(),
-  }),
-);
+// Mock the fetchExportMetadata module
+vi.mock('@/features/orgs/projects/common/utils/fetchExportMetadata', () => ({
+  fetchExportMetadata: vi.fn(),
+}));
 
 const TEST_DATA_SOURCE = 'default';
 const TEST_SCHEMA = 'public';
@@ -23,11 +20,11 @@ describe('prepareTrackForeignKeyRelationsMetadata', () => {
       metadata: {
         version: 3,
         sources: [
-        {
-          name: 'default',
-          kind: 'postgres',
-          tables: [],
-        },
+          {
+            name: 'default',
+            kind: 'postgres',
+            tables: [],
+          },
         ],
       },
     });
@@ -440,27 +437,27 @@ describe('prepareTrackForeignKeyRelationsMetadata', () => {
       metadata: {
         version: 3,
         sources: [
-        {
-          name: TEST_DATA_SOURCE,
-          kind: 'postgres',
-          tables: [
           {
-            table: {
-              name: 'books',
-              schema: TEST_SCHEMA,
-            },
-            configuration: {},
-            object_relationships: [
+            name: TEST_DATA_SOURCE,
+            kind: 'postgres',
+            tables: [
               {
-                name: 'author',
-                using: {
-                  foreign_key_constraint_on: 'existing_author_id',
+                table: {
+                  name: 'books',
+                  schema: TEST_SCHEMA,
                 },
+                configuration: {},
+                object_relationships: [
+                  {
+                    name: 'author',
+                    using: {
+                      foreign_key_constraint_on: 'existing_author_id',
+                    },
+                  },
+                ],
               },
             ],
           },
-      ],
-        },
         ],
       },
     });
@@ -511,40 +508,40 @@ describe('prepareTrackForeignKeyRelationsMetadata', () => {
       metadata: {
         version: 3,
         sources: [
-        {
-          name: TEST_DATA_SOURCE,
-          kind: 'postgres',
-          tables: [
           {
-            table: {
-              name: 'books',
-              schema: TEST_SCHEMA,
-            },
-            configuration: {},
-          },
-          {
-            table: {
-              name: 'authors',
-              schema: TEST_SCHEMA,
-            },
-            configuration: {},
-            array_relationships: [
+            name: TEST_DATA_SOURCE,
+            kind: 'postgres',
+            tables: [
               {
-                name: 'books',
-                using: {
-                  foreign_key_constraint_on: {
-                    column: 'existing_id',
-                    table: {
-                      name: 'books',
-                      schema: TEST_SCHEMA,
+                table: {
+                  name: 'books',
+                  schema: TEST_SCHEMA,
+                },
+                configuration: {},
+              },
+              {
+                table: {
+                  name: 'authors',
+                  schema: TEST_SCHEMA,
+                },
+                configuration: {},
+                array_relationships: [
+                  {
+                    name: 'books',
+                    using: {
+                      foreign_key_constraint_on: {
+                        column: 'existing_id',
+                        table: {
+                          name: 'books',
+                          schema: TEST_SCHEMA,
+                        },
+                      },
                     },
                   },
-                },
+                ],
               },
             ],
           },
-      ],
-        },
         ],
       },
     });
@@ -590,48 +587,48 @@ describe('prepareTrackForeignKeyRelationsMetadata', () => {
       metadata: {
         version: 3,
         sources: [
-        {
-          name: TEST_DATA_SOURCE,
-          kind: 'postgres',
-          tables: [
           {
-            table: {
-              name: 'books',
-              schema: TEST_SCHEMA,
-            },
-            configuration: {},
-            object_relationships: [
+            name: TEST_DATA_SOURCE,
+            kind: 'postgres',
+            tables: [
               {
-                name: 'author',
-                using: {
-                  foreign_key_constraint_on: 'existing_author_id',
+                table: {
+                  name: 'books',
+                  schema: TEST_SCHEMA,
                 },
-              },
-            ],
-          },
-          {
-            table: {
-              name: 'authors',
-              schema: TEST_SCHEMA,
-            },
-            configuration: {},
-            array_relationships: [
-              {
-                name: 'books',
-                using: {
-                  foreign_key_constraint_on: {
-                    column: 'existing_author_id',
-                    table: {
-                      name: 'books',
-                      schema: TEST_SCHEMA,
+                configuration: {},
+                object_relationships: [
+                  {
+                    name: 'author',
+                    using: {
+                      foreign_key_constraint_on: 'existing_author_id',
                     },
                   },
+                ],
+              },
+              {
+                table: {
+                  name: 'authors',
+                  schema: TEST_SCHEMA,
                 },
+                configuration: {},
+                array_relationships: [
+                  {
+                    name: 'books',
+                    using: {
+                      foreign_key_constraint_on: {
+                        column: 'existing_author_id',
+                        table: {
+                          name: 'books',
+                          schema: TEST_SCHEMA,
+                        },
+                      },
+                    },
+                  },
+                ],
               },
             ],
           },
-      ],
-        },
         ],
       },
     });
@@ -671,7 +668,7 @@ describe('prepareTrackForeignKeyRelationsMetadata', () => {
     expect(response[1].args.name).toBe('books_author_id');
   });
 
-  it('should not call fetchMetadata when trackedForeignKeyRelations is empty', async () => {
+  it('should not call fetchExportMetadata when trackedForeignKeyRelations is empty', async () => {
     await prepareTrackForeignKeyRelationsMetadata({
       dataSource: TEST_DATA_SOURCE,
       schema: TEST_SCHEMA,
@@ -695,7 +692,7 @@ describe('prepareTrackForeignKeyRelationsMetadata', () => {
     expect(exportMetadataUtils.fetchExportMetadata).not.toHaveBeenCalled();
   });
 
-  it('should not call fetchMetadata when trackedForeignKeyRelations is undefined', async () => {
+  it('should not call fetchExportMetadata when trackedForeignKeyRelations is undefined', async () => {
     await prepareTrackForeignKeyRelationsMetadata({
       dataSource: TEST_DATA_SOURCE,
       schema: TEST_SCHEMA,
@@ -725,40 +722,40 @@ describe('prepareTrackForeignKeyRelationsMetadata', () => {
       metadata: {
         version: 3,
         sources: [
-        {
-          name: TEST_DATA_SOURCE,
-          kind: 'postgres',
-          tables: [
           {
-            table: {
-              name: 'books',
-              schema: TEST_SCHEMA,
-            },
-            configuration: {},
-          },
-          {
-            table: {
-              name: 'authors',
-              schema: TEST_SCHEMA,
-            },
-            configuration: {},
-            array_relationships: [
+            name: TEST_DATA_SOURCE,
+            kind: 'postgres',
+            tables: [
               {
-                name: 'books',
-                using: {
-                  foreign_key_constraint_on: {
-                    column: 'existing_id',
-                    table: {
-                      name: 'books',
-                      schema: TEST_SCHEMA,
+                table: {
+                  name: 'books',
+                  schema: TEST_SCHEMA,
+                },
+                configuration: {},
+              },
+              {
+                table: {
+                  name: 'authors',
+                  schema: TEST_SCHEMA,
+                },
+                configuration: {},
+                array_relationships: [
+                  {
+                    name: 'books',
+                    using: {
+                      foreign_key_constraint_on: {
+                        column: 'existing_id',
+                        table: {
+                          name: 'books',
+                          schema: TEST_SCHEMA,
+                        },
+                      },
                     },
                   },
-                },
+                ],
               },
             ],
           },
-      ],
-        },
         ],
       },
     });
@@ -817,48 +814,48 @@ describe('prepareTrackForeignKeyRelationsMetadata', () => {
       metadata: {
         version: 3,
         sources: [
-        {
-          name: TEST_DATA_SOURCE,
-          kind: 'postgres',
-          tables: [
           {
-            table: {
-              name: 'employees',
-              schema: TEST_SCHEMA,
-            },
-            configuration: {},
-            object_relationships: [
+            name: TEST_DATA_SOURCE,
+            kind: 'postgres',
+            tables: [
               {
-                name: 'address',
-                using: {
-                  foreign_key_constraint_on: 'existing_address_id',
+                table: {
+                  name: 'employees',
+                  schema: TEST_SCHEMA,
                 },
-              },
-            ],
-          },
-          {
-            table: {
-              name: 'addresses',
-              schema: TEST_SCHEMA,
-            },
-            configuration: {},
-            object_relationships: [
-              {
-                name: 'employee',
-                using: {
-                  foreign_key_constraint_on: {
-                    column: 'existing_address_id',
-                    table: {
-                      name: 'employees',
-                      schema: TEST_SCHEMA,
+                configuration: {},
+                object_relationships: [
+                  {
+                    name: 'address',
+                    using: {
+                      foreign_key_constraint_on: 'existing_address_id',
                     },
                   },
+                ],
+              },
+              {
+                table: {
+                  name: 'addresses',
+                  schema: TEST_SCHEMA,
                 },
+                configuration: {},
+                object_relationships: [
+                  {
+                    name: 'employee',
+                    using: {
+                      foreign_key_constraint_on: {
+                        column: 'existing_address_id',
+                        table: {
+                          name: 'employees',
+                          schema: TEST_SCHEMA,
+                        },
+                      },
+                    },
+                  },
+                ],
               },
             ],
           },
-      ],
-        },
         ],
       },
     });
@@ -907,11 +904,11 @@ describe('prepareTrackForeignKeyRelationsMetadata', () => {
       metadata: {
         version: 3,
         sources: [
-        {
-          name: 'default',
-          kind: 'postgres',
-          tables: [],
-        },
+          {
+            name: 'default',
+            kind: 'postgres',
+            tables: [],
+          },
         ],
       },
     });
@@ -956,40 +953,40 @@ describe('prepareTrackForeignKeyRelationsMetadata', () => {
       metadata: {
         version: 3,
         sources: [
-        {
-          name: TEST_DATA_SOURCE,
-          kind: 'postgres',
-          tables: [
           {
-            table: {
-              name: 'books',
-              schema: 'public',
-            },
-            configuration: {},
-          },
-          {
-            table: {
-              name: 'categories',
-              schema: 'catalog',
-            },
-            configuration: {},
-            array_relationships: [
+            name: TEST_DATA_SOURCE,
+            kind: 'postgres',
+            tables: [
               {
-                name: 'books',
-                using: {
-                  foreign_key_constraint_on: {
-                    column: 'existing_category_id',
-                    table: {
-                      name: 'books',
-                      schema: 'public',
+                table: {
+                  name: 'books',
+                  schema: 'public',
+                },
+                configuration: {},
+              },
+              {
+                table: {
+                  name: 'categories',
+                  schema: 'catalog',
+                },
+                configuration: {},
+                array_relationships: [
+                  {
+                    name: 'books',
+                    using: {
+                      foreign_key_constraint_on: {
+                        column: 'existing_category_id',
+                        table: {
+                          name: 'books',
+                          schema: 'public',
+                        },
+                      },
                     },
                   },
-                },
+                ],
               },
             ],
           },
-      ],
-        },
         ],
       },
     });

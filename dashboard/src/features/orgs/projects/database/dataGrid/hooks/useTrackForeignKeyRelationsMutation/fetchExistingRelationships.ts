@@ -91,7 +91,7 @@ export default async function fetchExistingRelationships({
     (s) => s.name === dataSource,
   );
 
-  if (!source || !source.tables) {
+  if (!source?.tables) {
     return relationshipMap;
   }
 

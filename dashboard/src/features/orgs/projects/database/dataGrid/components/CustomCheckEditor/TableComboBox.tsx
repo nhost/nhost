@@ -13,7 +13,6 @@ export default function TableComboBox({
   table,
   onChange,
 }: TableComboBoxProps) {
-
   const { data: metadataTables } = useExportMetadata((data) => {
     const source = data.metadata.sources?.find((s) => s.name === 'default');
     return (source?.tables ?? []) as unknown as HasuraMetadataTable[];

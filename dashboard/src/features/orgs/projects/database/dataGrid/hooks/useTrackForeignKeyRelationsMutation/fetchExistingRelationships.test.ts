@@ -20,11 +20,11 @@ describe('fetchExistingRelationships', () => {
       metadata: {
         version: 3,
         sources: [
-        {
-          name: TEST_DATA_SOURCE,
-          kind: 'postgres',
-          tables: [],
-        },
+          {
+            name: TEST_DATA_SOURCE,
+            kind: 'postgres',
+            tables: [],
+          },
         ],
       },
     });
@@ -36,27 +36,27 @@ describe('fetchExistingRelationships', () => {
       metadata: {
         version: 3,
         sources: [
-        {
-          name: TEST_DATA_SOURCE,
-          kind: 'postgres',
-          tables: [
           {
-            table: {
-              name: 'books',
-              schema: TEST_SCHEMA,
-            },
-            configuration: {},
-            object_relationships: [
+            name: TEST_DATA_SOURCE,
+            kind: 'postgres',
+            tables: [
               {
-                name: 'author',
-                using: {
-                  foreign_key_constraint_on: 'author_id',
+                table: {
+                  name: 'books',
+                  schema: TEST_SCHEMA,
                 },
+                configuration: {},
+                object_relationships: [
+                  {
+                    name: 'author',
+                    using: {
+                      foreign_key_constraint_on: 'author_id',
+                    },
+                  },
+                ],
               },
             ],
           },
-      ],
-        },
         ],
       },
     });
@@ -93,33 +93,33 @@ describe('fetchExistingRelationships', () => {
       metadata: {
         version: 3,
         sources: [
-        {
-          name: TEST_DATA_SOURCE,
-          kind: 'postgres',
-          tables: [
           {
-            table: {
-              name: 'books',
-              schema: TEST_SCHEMA,
-            },
-            configuration: {},
-            object_relationships: [
+            name: TEST_DATA_SOURCE,
+            kind: 'postgres',
+            tables: [
               {
-                name: 'author',
-                using: {
-                  foreign_key_constraint_on: 'author_id',
+                table: {
+                  name: 'books',
+                  schema: TEST_SCHEMA,
                 },
-              },
-              {
-                name: 'publisher',
-                using: {
-                  foreign_key_constraint_on: 'publisher_id',
-                },
+                configuration: {},
+                object_relationships: [
+                  {
+                    name: 'author',
+                    using: {
+                      foreign_key_constraint_on: 'author_id',
+                    },
+                  },
+                  {
+                    name: 'publisher',
+                    using: {
+                      foreign_key_constraint_on: 'publisher_id',
+                    },
+                  },
+                ],
               },
             ],
           },
-      ],
-        },
         ],
       },
     });
@@ -165,27 +165,27 @@ describe('fetchExistingRelationships', () => {
       metadata: {
         version: 3,
         sources: [
-        {
-          name: TEST_DATA_SOURCE,
-          kind: 'postgres',
-          tables: [
           {
-            table: {
-              name: 'books',
-              schema: TEST_SCHEMA,
-            },
-            configuration: {},
-            object_relationships: [
+            name: TEST_DATA_SOURCE,
+            kind: 'postgres',
+            tables: [
               {
-                name: 'author',
-                using: {
-                  foreign_key_constraint_on: 'different_column',
+                table: {
+                  name: 'books',
+                  schema: TEST_SCHEMA,
                 },
+                configuration: {},
+                object_relationships: [
+                  {
+                    name: 'author',
+                    using: {
+                      foreign_key_constraint_on: 'different_column',
+                    },
+                  },
+                ],
               },
             ],
           },
-      ],
-        },
         ],
       },
     });
@@ -220,40 +220,40 @@ describe('fetchExistingRelationships', () => {
       metadata: {
         version: 3,
         sources: [
-        {
-          name: TEST_DATA_SOURCE,
-          kind: 'postgres',
-          tables: [
           {
-            table: {
-              name: 'books',
-              schema: TEST_SCHEMA,
-            },
-            configuration: {},
-          },
-          {
-            table: {
-              name: 'authors',
-              schema: TEST_SCHEMA,
-            },
-            configuration: {},
-            array_relationships: [
+            name: TEST_DATA_SOURCE,
+            kind: 'postgres',
+            tables: [
               {
-                name: 'books',
-                using: {
-                  foreign_key_constraint_on: {
-                    column: 'author_id',
-                    table: {
-                      name: 'books',
-                      schema: TEST_SCHEMA,
+                table: {
+                  name: 'books',
+                  schema: TEST_SCHEMA,
+                },
+                configuration: {},
+              },
+              {
+                table: {
+                  name: 'authors',
+                  schema: TEST_SCHEMA,
+                },
+                configuration: {},
+                array_relationships: [
+                  {
+                    name: 'books',
+                    using: {
+                      foreign_key_constraint_on: {
+                        column: 'author_id',
+                        table: {
+                          name: 'books',
+                          schema: TEST_SCHEMA,
+                        },
+                      },
                     },
                   },
-                },
+                ],
               },
             ],
           },
-      ],
-        },
         ],
       },
     });
@@ -290,61 +290,61 @@ describe('fetchExistingRelationships', () => {
       metadata: {
         version: 3,
         sources: [
-        {
-          name: TEST_DATA_SOURCE,
-          kind: 'postgres',
-          tables: [
           {
-            table: {
-              name: 'books',
-              schema: TEST_SCHEMA,
-            },
-            configuration: {},
-          },
-          {
-            table: {
-              name: 'authors',
-              schema: TEST_SCHEMA,
-            },
-            configuration: {},
-            array_relationships: [
+            name: TEST_DATA_SOURCE,
+            kind: 'postgres',
+            tables: [
               {
-                name: 'books',
-                using: {
-                  foreign_key_constraint_on: {
-                    column: 'author_id',
-                    table: {
-                      name: 'books',
-                      schema: TEST_SCHEMA,
+                table: {
+                  name: 'books',
+                  schema: TEST_SCHEMA,
+                },
+                configuration: {},
+              },
+              {
+                table: {
+                  name: 'authors',
+                  schema: TEST_SCHEMA,
+                },
+                configuration: {},
+                array_relationships: [
+                  {
+                    name: 'books',
+                    using: {
+                      foreign_key_constraint_on: {
+                        column: 'author_id',
+                        table: {
+                          name: 'books',
+                          schema: TEST_SCHEMA,
+                        },
+                      },
                     },
                   },
+                ],
+              },
+              {
+                table: {
+                  name: 'publishers',
+                  schema: TEST_SCHEMA,
                 },
+                configuration: {},
+                array_relationships: [
+                  {
+                    name: 'books',
+                    using: {
+                      foreign_key_constraint_on: {
+                        column: 'publisher_id',
+                        table: {
+                          name: 'books',
+                          schema: TEST_SCHEMA,
+                        },
+                      },
+                    },
+                  },
+                ],
               },
             ],
           },
-          {
-            table: {
-              name: 'publishers',
-              schema: TEST_SCHEMA,
-            },
-            configuration: {},
-            array_relationships: [
-              {
-                name: 'books',
-                using: {
-                  foreign_key_constraint_on: {
-                    column: 'publisher_id',
-                    table: {
-                      name: 'books',
-                      schema: TEST_SCHEMA,
-                    },
-                  },
-                },
-              },
-            ],
-          },
-      ],
-        },
         ],
       },
     });
@@ -390,40 +390,40 @@ describe('fetchExistingRelationships', () => {
       metadata: {
         version: 3,
         sources: [
-        {
-          name: TEST_DATA_SOURCE,
-          kind: 'postgres',
-          tables: [
           {
-            table: {
-              name: 'books',
-              schema: TEST_SCHEMA,
-            },
-            configuration: {},
-          },
-          {
-            table: {
-              name: 'authors',
-              schema: TEST_SCHEMA,
-            },
-            configuration: {},
-            array_relationships: [
+            name: TEST_DATA_SOURCE,
+            kind: 'postgres',
+            tables: [
               {
-                name: 'books',
-                using: {
-                  foreign_key_constraint_on: {
-                    column: 'author_id',
-                    table: {
-                      name: 'different_table',
-                      schema: TEST_SCHEMA,
+                table: {
+                  name: 'books',
+                  schema: TEST_SCHEMA,
+                },
+                configuration: {},
+              },
+              {
+                table: {
+                  name: 'authors',
+                  schema: TEST_SCHEMA,
+                },
+                configuration: {},
+                array_relationships: [
+                  {
+                    name: 'books',
+                    using: {
+                      foreign_key_constraint_on: {
+                        column: 'author_id',
+                        table: {
+                          name: 'different_table',
+                          schema: TEST_SCHEMA,
+                        },
+                      },
                     },
                   },
-                },
+                ],
               },
             ],
           },
-      ],
-        },
         ],
       },
     });
@@ -458,40 +458,40 @@ describe('fetchExistingRelationships', () => {
       metadata: {
         version: 3,
         sources: [
-        {
-          name: TEST_DATA_SOURCE,
-          kind: 'postgres',
-          tables: [
           {
-            table: {
-              name: 'books',
-              schema: TEST_SCHEMA,
-            },
-            configuration: {},
-          },
-          {
-            table: {
-              name: 'authors',
-              schema: TEST_SCHEMA,
-            },
-            configuration: {},
-            array_relationships: [
+            name: TEST_DATA_SOURCE,
+            kind: 'postgres',
+            tables: [
               {
-                name: 'books',
-                using: {
-                  foreign_key_constraint_on: {
-                    column: 'author_id',
-                    table: {
-                      name: 'books',
-                      schema: 'different_schema',
+                table: {
+                  name: 'books',
+                  schema: TEST_SCHEMA,
+                },
+                configuration: {},
+              },
+              {
+                table: {
+                  name: 'authors',
+                  schema: TEST_SCHEMA,
+                },
+                configuration: {},
+                array_relationships: [
+                  {
+                    name: 'books',
+                    using: {
+                      foreign_key_constraint_on: {
+                        column: 'author_id',
+                        table: {
+                          name: 'books',
+                          schema: 'different_schema',
+                        },
+                      },
                     },
                   },
-                },
+                ],
               },
             ],
           },
-      ],
-        },
         ],
       },
     });
@@ -526,40 +526,40 @@ describe('fetchExistingRelationships', () => {
       metadata: {
         version: 3,
         sources: [
-        {
-          name: TEST_DATA_SOURCE,
-          kind: 'postgres',
-          tables: [
           {
-            table: {
-              name: 'books',
-              schema: TEST_SCHEMA,
-            },
-            configuration: {},
-          },
-          {
-            table: {
-              name: 'authors',
-              schema: TEST_SCHEMA,
-            },
-            configuration: {},
-            array_relationships: [
+            name: TEST_DATA_SOURCE,
+            kind: 'postgres',
+            tables: [
               {
-                name: 'books',
-                using: {
-                  foreign_key_constraint_on: {
-                    column: 'different_column',
-                    table: {
-                      name: 'books',
-                      schema: TEST_SCHEMA,
+                table: {
+                  name: 'books',
+                  schema: TEST_SCHEMA,
+                },
+                configuration: {},
+              },
+              {
+                table: {
+                  name: 'authors',
+                  schema: TEST_SCHEMA,
+                },
+                configuration: {},
+                array_relationships: [
+                  {
+                    name: 'books',
+                    using: {
+                      foreign_key_constraint_on: {
+                        column: 'different_column',
+                        table: {
+                          name: 'books',
+                          schema: TEST_SCHEMA,
+                        },
+                      },
                     },
                   },
-                },
+                ],
               },
             ],
           },
-      ],
-        },
         ],
       },
     });
@@ -594,40 +594,40 @@ describe('fetchExistingRelationships', () => {
       metadata: {
         version: 3,
         sources: [
-        {
-          name: TEST_DATA_SOURCE,
-          kind: 'postgres',
-          tables: [
           {
-            table: {
-              name: 'books',
-              schema: TEST_SCHEMA,
-            },
-            configuration: {},
-          },
-          {
-            table: {
-              name: 'book_metadata',
-              schema: TEST_SCHEMA,
-            },
-            configuration: {},
-            object_relationships: [
+            name: TEST_DATA_SOURCE,
+            kind: 'postgres',
+            tables: [
               {
-                name: 'book',
-                using: {
-                  foreign_key_constraint_on: {
-                    column: 'id',
-                    table: {
-                      name: 'books',
-                      schema: TEST_SCHEMA,
+                table: {
+                  name: 'books',
+                  schema: TEST_SCHEMA,
+                },
+                configuration: {},
+              },
+              {
+                table: {
+                  name: 'book_metadata',
+                  schema: TEST_SCHEMA,
+                },
+                configuration: {},
+                object_relationships: [
+                  {
+                    name: 'book',
+                    using: {
+                      foreign_key_constraint_on: {
+                        column: 'id',
+                        table: {
+                          name: 'books',
+                          schema: TEST_SCHEMA,
+                        },
+                      },
                     },
                   },
-                },
+                ],
               },
             ],
           },
-      ],
-        },
         ],
       },
     });
@@ -667,48 +667,48 @@ describe('fetchExistingRelationships', () => {
       metadata: {
         version: 3,
         sources: [
-        {
-          name: TEST_DATA_SOURCE,
-          kind: 'postgres',
-          tables: [
           {
-            table: {
-              name: 'books',
-              schema: TEST_SCHEMA,
-            },
-            configuration: {},
-            object_relationships: [
+            name: TEST_DATA_SOURCE,
+            kind: 'postgres',
+            tables: [
               {
-                name: 'book_metadatum',
-                using: {
-                  foreign_key_constraint_on: 'id',
+                table: {
+                  name: 'books',
+                  schema: TEST_SCHEMA,
                 },
-              },
-            ],
-          },
-          {
-            table: {
-              name: 'book_metadata',
-              schema: TEST_SCHEMA,
-            },
-            configuration: {},
-            object_relationships: [
-              {
-                name: 'book',
-                using: {
-                  foreign_key_constraint_on: {
-                    column: 'id',
-                    table: {
-                      name: 'books',
-                      schema: TEST_SCHEMA,
+                configuration: {},
+                object_relationships: [
+                  {
+                    name: 'book_metadatum',
+                    using: {
+                      foreign_key_constraint_on: 'id',
                     },
                   },
+                ],
+              },
+              {
+                table: {
+                  name: 'book_metadata',
+                  schema: TEST_SCHEMA,
                 },
+                configuration: {},
+                object_relationships: [
+                  {
+                    name: 'book',
+                    using: {
+                      foreign_key_constraint_on: {
+                        column: 'id',
+                        table: {
+                          name: 'books',
+                          schema: TEST_SCHEMA,
+                        },
+                      },
+                    },
+                  },
+                ],
               },
             ],
           },
-      ],
-        },
         ],
       },
     });
@@ -746,48 +746,48 @@ describe('fetchExistingRelationships', () => {
       metadata: {
         version: 3,
         sources: [
-        {
-          name: TEST_DATA_SOURCE,
-          kind: 'postgres',
-          tables: [
           {
-            table: {
-              name: 'books',
-              schema: 'public',
-            },
-            configuration: {},
-            object_relationships: [
+            name: TEST_DATA_SOURCE,
+            kind: 'postgres',
+            tables: [
               {
-                name: 'category',
-                using: {
-                  foreign_key_constraint_on: 'category_id',
+                table: {
+                  name: 'books',
+                  schema: 'public',
                 },
-              },
-            ],
-          },
-          {
-            table: {
-              name: 'categories',
-              schema: 'catalog',
-            },
-            configuration: {},
-            array_relationships: [
-              {
-                name: 'books',
-                using: {
-                  foreign_key_constraint_on: {
-                    column: 'category_id',
-                    table: {
-                      name: 'books',
-                      schema: 'public',
+                configuration: {},
+                object_relationships: [
+                  {
+                    name: 'category',
+                    using: {
+                      foreign_key_constraint_on: 'category_id',
                     },
                   },
+                ],
+              },
+              {
+                table: {
+                  name: 'categories',
+                  schema: 'catalog',
                 },
+                configuration: {},
+                array_relationships: [
+                  {
+                    name: 'books',
+                    using: {
+                      foreign_key_constraint_on: {
+                        column: 'category_id',
+                        table: {
+                          name: 'books',
+                          schema: 'public',
+                        },
+                      },
+                    },
+                  },
+                ],
               },
             ],
           },
-      ],
-        },
         ],
       },
     });
@@ -823,75 +823,75 @@ describe('fetchExistingRelationships', () => {
       metadata: {
         version: 3,
         sources: [
-        {
-          name: TEST_DATA_SOURCE,
-          kind: 'postgres',
-          tables: [
           {
-            table: {
-              name: 'books',
-              schema: TEST_SCHEMA,
-            },
-            configuration: {},
-            object_relationships: [
+            name: TEST_DATA_SOURCE,
+            kind: 'postgres',
+            tables: [
               {
-                name: 'author',
-                using: {
-                  foreign_key_constraint_on: 'author_id',
+                table: {
+                  name: 'books',
+                  schema: TEST_SCHEMA,
                 },
-              },
-              {
-                name: 'publisher',
-                using: {
-                  foreign_key_constraint_on: 'publisher_id',
-                },
-              },
-            ],
-          },
-          {
-            table: {
-              name: 'authors',
-              schema: TEST_SCHEMA,
-            },
-            configuration: {},
-            array_relationships: [
-              {
-                name: 'books',
-                using: {
-                  foreign_key_constraint_on: {
-                    column: 'author_id',
-                    table: {
-                      name: 'books',
-                      schema: TEST_SCHEMA,
+                configuration: {},
+                object_relationships: [
+                  {
+                    name: 'author',
+                    using: {
+                      foreign_key_constraint_on: 'author_id',
                     },
                   },
-                },
-              },
-            ],
-          },
-          {
-            table: {
-              name: 'publishers',
-              schema: TEST_SCHEMA,
-            },
-            configuration: {},
-            array_relationships: [
-              {
-                name: 'books',
-                using: {
-                  foreign_key_constraint_on: {
-                    column: 'publisher_id',
-                    table: {
-                      name: 'books',
-                      schema: TEST_SCHEMA,
+                  {
+                    name: 'publisher',
+                    using: {
+                      foreign_key_constraint_on: 'publisher_id',
                     },
                   },
+                ],
+              },
+              {
+                table: {
+                  name: 'authors',
+                  schema: TEST_SCHEMA,
                 },
+                configuration: {},
+                array_relationships: [
+                  {
+                    name: 'books',
+                    using: {
+                      foreign_key_constraint_on: {
+                        column: 'author_id',
+                        table: {
+                          name: 'books',
+                          schema: TEST_SCHEMA,
+                        },
+                      },
+                    },
+                  },
+                ],
+              },
+              {
+                table: {
+                  name: 'publishers',
+                  schema: TEST_SCHEMA,
+                },
+                configuration: {},
+                array_relationships: [
+                  {
+                    name: 'books',
+                    using: {
+                      foreign_key_constraint_on: {
+                        column: 'publisher_id',
+                        table: {
+                          name: 'books',
+                          schema: TEST_SCHEMA,
+                        },
+                      },
+                    },
+                  },
+                ],
               },
             ],
           },
-      ],
-        },
         ],
       },
     });
@@ -939,75 +939,75 @@ describe('fetchExistingRelationships', () => {
       metadata: {
         version: 3,
         sources: [
-        {
-          name: TEST_DATA_SOURCE,
-          kind: 'postgres',
-          tables: [
           {
-            table: {
-              name: 'books',
-              schema: TEST_SCHEMA,
-            },
-            configuration: {},
-            object_relationships: [
+            name: TEST_DATA_SOURCE,
+            kind: 'postgres',
+            tables: [
               {
-                name: 'author',
-                using: {
-                  foreign_key_constraint_on: 'author_id',
+                table: {
+                  name: 'books',
+                  schema: TEST_SCHEMA,
                 },
-              },
-              {
-                name: 'book_metadatum',
-                using: {
-                  foreign_key_constraint_on: 'metadata_id',
-                },
-              },
-            ],
-          },
-          {
-            table: {
-              name: 'authors',
-              schema: TEST_SCHEMA,
-            },
-            configuration: {},
-            array_relationships: [
-              {
-                name: 'books',
-                using: {
-                  foreign_key_constraint_on: {
-                    column: 'author_id',
-                    table: {
-                      name: 'books',
-                      schema: TEST_SCHEMA,
+                configuration: {},
+                object_relationships: [
+                  {
+                    name: 'author',
+                    using: {
+                      foreign_key_constraint_on: 'author_id',
                     },
                   },
-                },
-              },
-            ],
-          },
-          {
-            table: {
-              name: 'book_metadata',
-              schema: TEST_SCHEMA,
-            },
-            configuration: {},
-            object_relationships: [
-              {
-                name: 'book',
-                using: {
-                  foreign_key_constraint_on: {
-                    column: 'metadata_id',
-                    table: {
-                      name: 'books',
-                      schema: TEST_SCHEMA,
+                  {
+                    name: 'book_metadatum',
+                    using: {
+                      foreign_key_constraint_on: 'metadata_id',
                     },
                   },
+                ],
+              },
+              {
+                table: {
+                  name: 'authors',
+                  schema: TEST_SCHEMA,
                 },
+                configuration: {},
+                array_relationships: [
+                  {
+                    name: 'books',
+                    using: {
+                      foreign_key_constraint_on: {
+                        column: 'author_id',
+                        table: {
+                          name: 'books',
+                          schema: TEST_SCHEMA,
+                        },
+                      },
+                    },
+                  },
+                ],
+              },
+              {
+                table: {
+                  name: 'book_metadata',
+                  schema: TEST_SCHEMA,
+                },
+                configuration: {},
+                object_relationships: [
+                  {
+                    name: 'book',
+                    using: {
+                      foreign_key_constraint_on: {
+                        column: 'metadata_id',
+                        table: {
+                          name: 'books',
+                          schema: TEST_SCHEMA,
+                        },
+                      },
+                    },
+                  },
+                ],
               },
             ],
           },
-      ],
-        },
         ],
       },
     });
@@ -1056,27 +1056,27 @@ describe('fetchExistingRelationships', () => {
       metadata: {
         version: 3,
         sources: [
-        {
-          name: TEST_DATA_SOURCE,
-          kind: 'postgres',
-          tables: [
           {
-            table: {
-              name: 'books',
-              schema: TEST_SCHEMA,
-            },
-            configuration: {},
-            object_relationships: [
+            name: TEST_DATA_SOURCE,
+            kind: 'postgres',
+            tables: [
               {
-                name: 'author',
-                using: {
-                  foreign_key_constraint_on: 'author_id',
+                table: {
+                  name: 'books',
+                  schema: TEST_SCHEMA,
                 },
+                configuration: {},
+                object_relationships: [
+                  {
+                    name: 'author',
+                    using: {
+                      foreign_key_constraint_on: 'author_id',
+                    },
+                  },
+                ],
               },
             ],
           },
-      ],
-        },
         ],
       },
     });
@@ -1099,11 +1099,11 @@ describe('fetchExistingRelationships', () => {
       metadata: {
         version: 3,
         sources: [
-        {
-          name: 'default',
-          kind: 'postgres',
-          tables: [],
-        },
+          {
+            name: 'default',
+            kind: 'postgres',
+            tables: [],
+          },
         ],
       },
     });
@@ -1138,19 +1138,19 @@ describe('fetchExistingRelationships', () => {
       metadata: {
         version: 3,
         sources: [
-        {
-          name: TEST_DATA_SOURCE,
-          kind: 'postgres',
-          tables: [
           {
-            table: {
-              name: 'different_table',
-              schema: TEST_SCHEMA,
-            },
-            configuration: {},
+            name: TEST_DATA_SOURCE,
+            kind: 'postgres',
+            tables: [
+              {
+                table: {
+                  name: 'different_table',
+                  schema: TEST_SCHEMA,
+                },
+                configuration: {},
+              },
+            ],
           },
-      ],
-        },
         ],
       },
     });
@@ -1185,19 +1185,19 @@ describe('fetchExistingRelationships', () => {
       metadata: {
         version: 3,
         sources: [
-        {
-          name: TEST_DATA_SOURCE,
-          kind: 'postgres',
-          tables: [
           {
-            table: {
-              name: 'books',
-              schema: TEST_SCHEMA,
-            },
-            configuration: {},
+            name: TEST_DATA_SOURCE,
+            kind: 'postgres',
+            tables: [
+              {
+                table: {
+                  name: 'books',
+                  schema: TEST_SCHEMA,
+                },
+                configuration: {},
+              },
+            ],
           },
-      ],
-        },
         ],
       },
     });
@@ -1232,27 +1232,27 @@ describe('fetchExistingRelationships', () => {
       metadata: {
         version: 3,
         sources: [
-        {
-          name: TEST_DATA_SOURCE,
-          kind: 'postgres',
-          tables: [
           {
-            table: {
-              name: 'books',
-              schema: TEST_SCHEMA,
-            },
-            configuration: {},
-            object_relationships: [
+            name: TEST_DATA_SOURCE,
+            kind: 'postgres',
+            tables: [
               {
-                name: 'author',
-                using: {
-                  foreign_key_constraint_on: 'author_id',
+                table: {
+                  name: 'books',
+                  schema: TEST_SCHEMA,
                 },
+                configuration: {},
+                object_relationships: [
+                  {
+                    name: 'author',
+                    using: {
+                      foreign_key_constraint_on: 'author_id',
+                    },
+                  },
+                ],
               },
             ],
           },
-      ],
-        },
         ],
       },
     });
@@ -1288,34 +1288,34 @@ describe('fetchExistingRelationships', () => {
       metadata: {
         version: 3,
         sources: [
-        {
-          name: TEST_DATA_SOURCE,
-          kind: 'postgres',
-          tables: [
           {
-            table: {
-              name: 'books',
-              schema: TEST_SCHEMA,
-            },
-            configuration: {},
-            object_relationships: [
+            name: TEST_DATA_SOURCE,
+            kind: 'postgres',
+            tables: [
               {
-                name: 'author',
-                using: {
-                  foreign_key_constraint_on: 'author_id',
+                table: {
+                  name: 'books',
+                  schema: TEST_SCHEMA,
                 },
+                configuration: {},
+                object_relationships: [
+                  {
+                    name: 'author',
+                    using: {
+                      foreign_key_constraint_on: 'author_id',
+                    },
+                  },
+                ],
+              },
+              {
+                table: {
+                  name: 'authors',
+                  schema: TEST_SCHEMA,
+                },
+                configuration: {},
               },
             ],
           },
-          {
-            table: {
-              name: 'authors',
-              schema: TEST_SCHEMA,
-            },
-            configuration: {},
-          },
-      ],
-        },
         ],
       },
     });
@@ -1351,48 +1351,48 @@ describe('fetchExistingRelationships', () => {
       metadata: {
         version: 3,
         sources: [
-        {
-          name: TEST_DATA_SOURCE,
-          kind: 'postgres',
-          tables: [
           {
-            table: {
-              name: 'books',
-              schema: TEST_SCHEMA,
-            },
-            configuration: {},
-            object_relationships: [
+            name: TEST_DATA_SOURCE,
+            kind: 'postgres',
+            tables: [
               {
-                name: 'author',
-                using: {
-                  foreign_key_constraint_on: 'author_id',
+                table: {
+                  name: 'books',
+                  schema: TEST_SCHEMA,
                 },
-              },
-            ],
-          },
-          {
-            table: {
-              name: 'authors',
-              schema: TEST_SCHEMA,
-            },
-            configuration: {},
-            array_relationships: [
-              {
-                name: 'books',
-                using: {
-                  foreign_key_constraint_on: {
-                    column: 'author_id',
-                    table: {
-                      name: 'books',
-                      schema: TEST_SCHEMA,
+                configuration: {},
+                object_relationships: [
+                  {
+                    name: 'author',
+                    using: {
+                      foreign_key_constraint_on: 'author_id',
                     },
                   },
+                ],
+              },
+              {
+                table: {
+                  name: 'authors',
+                  schema: TEST_SCHEMA,
                 },
+                configuration: {},
+                array_relationships: [
+                  {
+                    name: 'books',
+                    using: {
+                      foreign_key_constraint_on: {
+                        column: 'author_id',
+                        table: {
+                          name: 'books',
+                          schema: TEST_SCHEMA,
+                        },
+                      },
+                    },
+                  },
+                ],
               },
             ],
           },
-      ],
-        },
         ],
       },
     });
@@ -1422,17 +1422,17 @@ describe('fetchExistingRelationships', () => {
     expect(result.has(`${TEST_SCHEMA}.books.author`)).toBe(true);
   });
 
-  it('should call fetchMetadata with correct parameters', async () => {
+  it('should call fetchExportMetadata with correct parameters', async () => {
     vi.mocked(exportMetadataUtils.fetchExportMetadata).mockResolvedValue({
       resource_version: 1,
       metadata: {
         version: 3,
         sources: [
-        {
-          name: 'default',
-          kind: 'postgres',
-          tables: [],
-        },
+          {
+            name: 'default',
+            kind: 'postgres',
+            tables: [],
+          },
         ],
       },
     });
@@ -1461,66 +1461,66 @@ describe('fetchExistingRelationships', () => {
       metadata: {
         version: 3,
         sources: [
-        {
-          name: TEST_DATA_SOURCE,
-          kind: 'postgres',
-          tables: [
           {
-            table: {
-              name: 'orders',
-              schema: TEST_SCHEMA,
-            },
-            configuration: {},
-            object_relationships: [
+            name: TEST_DATA_SOURCE,
+            kind: 'postgres',
+            tables: [
               {
-                name: 'customer',
-                using: {
-                  foreign_key_constraint_on: 'customer_id',
+                table: {
+                  name: 'orders',
+                  schema: TEST_SCHEMA,
                 },
+                configuration: {},
+                object_relationships: [
+                  {
+                    name: 'customer',
+                    using: {
+                      foreign_key_constraint_on: 'customer_id',
+                    },
+                  },
+                  {
+                    name: 'seller',
+                    using: {
+                      foreign_key_constraint_on: 'seller_id',
+                    },
+                  },
+                ],
               },
               {
-                name: 'seller',
-                using: {
-                  foreign_key_constraint_on: 'seller_id',
+                table: {
+                  name: 'users',
+                  schema: TEST_SCHEMA,
                 },
+                configuration: {},
+                array_relationships: [
+                  {
+                    name: 'orders_as_customer',
+                    using: {
+                      foreign_key_constraint_on: {
+                        column: 'customer_id',
+                        table: {
+                          name: 'orders',
+                          schema: TEST_SCHEMA,
+                        },
+                      },
+                    },
+                  },
+                  {
+                    name: 'orders_as_seller',
+                    using: {
+                      foreign_key_constraint_on: {
+                        column: 'seller_id',
+                        table: {
+                          name: 'orders',
+                          schema: TEST_SCHEMA,
+                        },
+                      },
+                    },
+                  },
+                ],
               },
             ],
           },
-          {
-            table: {
-              name: 'users',
-              schema: TEST_SCHEMA,
-            },
-            configuration: {},
-            array_relationships: [
-              {
-                name: 'orders_as_customer',
-                using: {
-                  foreign_key_constraint_on: {
-                    column: 'customer_id',
-                    table: {
-                      name: 'orders',
-                      schema: TEST_SCHEMA,
-                    },
-                  },
-                },
-              },
-              {
-                name: 'orders_as_seller',
-                using: {
-                  foreign_key_constraint_on: {
-                    column: 'seller_id',
-                    table: {
-                      name: 'orders',
-                      schema: TEST_SCHEMA,
-                    },
-                  },
-                },
-              },
-            ],
-          },
-      ],
-        },
         ],
       },
     });

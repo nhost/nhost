@@ -16,14 +16,14 @@ import {
   PopoverContent,
   PopoverTrigger,
 } from '@/components/ui/v3/popover';
+import { useExportMetadata } from '@/features/orgs/projects/common/hooks/useExportMetadata';
 import { useTableSchemaQuery } from '@/features/orgs/projects/database/common/hooks/useTableSchemaQuery';
+import type { FetchMetadataReturnType } from '@/features/orgs/projects/database/dataGrid/types/dataBrowser';
 import { cn } from '@/lib/utils';
 import type { UseAsyncValueOptions } from './useAsyncValue';
 import useAsyncValue from './useAsyncValue';
 import type { UseColumnGroupsOptions } from './useColumnGroups';
 import useColumnGroups from './useColumnGroups';
-import { useExportMetadata } from '@/features/orgs/projects/common/hooks/useExportMetadata';
-import type { FetchMetadataReturnType } from '@/features/orgs/projects/database/dataGrid/types/dataBrowser';
 
 export interface ColumnAutocompleteProps
   extends Omit<ButtonProps, 'onChange' | 'name'> {
@@ -103,16 +103,16 @@ export default forwardRef(
       status: metadataStatus,
       isFetching: isMetadataFetching,
     } = useExportMetadata((data) => {
-      const source = data.metadata.sources?.find(
-        (s) => s.name === 'default',
-      );
+      const source = data.metadata.sources?.find((s) => s.name === 'default');
 
       return source
         ? ({
-          ...source,
-          resourceVersion: data.resource_version,
-        } as FetchMetadataReturnType)
-        : ({ resourceVersion: data.resource_version } as FetchMetadataReturnType);
+            ...source,
+            resourceVersion: data.resource_version,
+          } as FetchMetadataReturnType)
+        : ({
+            resourceVersion: data.resource_version,
+          } as FetchMetadataReturnType);
     });
 
     const {

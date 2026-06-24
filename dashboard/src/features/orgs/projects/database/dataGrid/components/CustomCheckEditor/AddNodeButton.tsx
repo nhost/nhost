@@ -16,9 +16,9 @@ import {
   PopoverContent,
   PopoverTrigger,
 } from '@/components/ui/v3/popover';
+import { useExportMetadata } from '@/features/orgs/projects/common/hooks/useExportMetadata';
 import { useTableSchemaQuery } from '@/features/orgs/projects/database/common/hooks/useTableSchemaQuery';
 import useColumnGroups from '@/features/orgs/projects/database/dataGrid/components/ColumnAutocomplete/useColumnGroups';
-import { useExportMetadata } from '@/features/orgs/projects/common/hooks/useExportMetadata';
 import type { FetchMetadataReturnType } from '@/features/orgs/projects/database/dataGrid/types/dataBrowser';
 import type { RuleNode } from '@/features/orgs/projects/database/dataGrid/utils/permissionUtils';
 import { cn } from '@/lib/utils';
@@ -51,16 +51,16 @@ export default function AddNodeButton({
 
   const { data: metadata, status: metadataStatus } = useExportMetadata(
     (data) => {
-      const source = data.metadata.sources?.find(
-        (s) => s.name === 'default',
-      );
+      const source = data.metadata.sources?.find((s) => s.name === 'default');
 
       return source
         ? ({
             ...source,
             resourceVersion: data.resource_version,
           } as FetchMetadataReturnType)
-        : ({ resourceVersion: data.resource_version } as FetchMetadataReturnType);
+        : ({
+            resourceVersion: data.resource_version,
+          } as FetchMetadataReturnType);
     },
   );
 

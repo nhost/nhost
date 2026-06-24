@@ -6,8 +6,8 @@ import {
 import { PermissionsGridLayout } from '@/components/common/PermissionsGridLayout';
 import { Spinner } from '@/components/ui/v3/spinner';
 import { useRemoteApplicationGQLClient } from '@/features/orgs/hooks/useRemoteApplicationGQLClient';
-import { useTableSchemaQuery } from '@/features/orgs/projects/database/common/hooks/useTableSchemaQuery';
 import { useExportMetadata } from '@/features/orgs/projects/common/hooks/useExportMetadata';
+import { useTableSchemaQuery } from '@/features/orgs/projects/database/common/hooks/useTableSchemaQuery';
 import type {
   DatabaseAccessLevel,
   DatabaseAction,
@@ -83,14 +83,11 @@ export default function EditPermissionsForm({
     status: metadataStatus,
     error: metadataError,
   } = useExportMetadata((data) => {
-    const source = data.metadata.sources?.find(
-      (s) => s.name === 'default',
-    );
+    const source = data.metadata.sources?.find((s) => s.name === 'default');
 
     const metadataForTable = source?.tables?.find(
       ({ table: currentTable }) =>
-        currentTable.name === table &&
-        currentTable.schema === schema,
+        currentTable.name === table && currentTable.schema === schema,
     ) as HasuraMetadataTable | undefined;
 
     return {

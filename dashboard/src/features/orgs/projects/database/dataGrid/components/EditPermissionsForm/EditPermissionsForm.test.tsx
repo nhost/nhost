@@ -52,23 +52,22 @@ function withColumns(columns: Array<Record<string, unknown>>) {
   mockColumnsRef.current = columns;
 }
 
-vi.mock(
-  '@/features/orgs/projects/common/hooks/useExportMetadata',
-  () => ({
-    useExportMetadata: useExportMetadataMock,
-  }),
-);
+vi.mock('@/features/orgs/projects/common/hooks/useExportMetadata', () => ({
+  useExportMetadata: useExportMetadataMock,
+}));
 
 beforeEach(() => {
   withColumns([{ column_name: 'id' }, { column_name: 'name' }]);
-  useExportMetadataMock.mockImplementation((select: (data: any) => any) => ({
-    data: select({
-      resource_version: 1,
-      metadata: { sources: [], version: 3 },
+  useExportMetadataMock.mockImplementation(
+    (select: (data: unknown) => unknown) => ({
+      data: select({
+        resource_version: 1,
+        metadata: { sources: [], version: 3 },
+      }),
+      status: 'success',
+      error: null,
     }),
-    status: 'success',
-    error: null,
-  }));
+  );
 });
 
 // pg_relation_is_updatable(oid, true) returns a bitmask:
@@ -282,7 +281,7 @@ describe('EditPermissionsForm – select access level with computed fields', () 
       },
     };
 
-    return (select: (data: any) => any) => ({
+    return (select: (data: unknown) => unknown) => ({
       data: select(rawResponse),
       status: 'success' as const,
       error: null,
@@ -298,7 +297,11 @@ describe('EditPermissionsForm – select access level with computed fields', () 
 
   it('shows partial permission when all columns are selected but a computed field is missing', () => {
     useExportMetadataMock.mockImplementation(
-      buildMetadata({ columns: ['id', 'name'], filter: {}, computed_fields: ['full_name'] }),
+      buildMetadata({
+        columns: ['id', 'name'],
+        filter: {},
+        computed_fields: ['full_name'],
+      }),
     );
 
     render(
@@ -316,7 +319,11 @@ describe('EditPermissionsForm – select access level with computed fields', () 
 
   it('shows full permission when all columns and all computed fields are selected', () => {
     useExportMetadataMock.mockImplementation(
-      buildMetadata({ columns: ['id', 'name'], filter: {}, computed_fields: ['full_name', 'age_in_days'] }),
+      buildMetadata({
+        columns: ['id', 'name'],
+        filter: {},
+        computed_fields: ['full_name', 'age_in_days'],
+      }),
     );
 
     render(
@@ -334,7 +341,11 @@ describe('EditPermissionsForm – select access level with computed fields', () 
 
   it('shows partial permission when only a computed field is granted (no columns)', () => {
     useExportMetadataMock.mockImplementation(
-      buildMetadata({ columns: [], filter: {}, computed_fields: ['full_name'] }),
+      buildMetadata({
+        columns: [],
+        filter: {},
+        computed_fields: ['full_name'],
+      }),
     );
 
     render(
@@ -369,34 +380,36 @@ describe('EditPermissionsForm – select access level with computed fields', () 
   });
 
   it('shows full permission when all columns are selected on a table with no computed fields configured', () => {
-    useExportMetadataMock.mockImplementation((select: (data: any) => any) => ({
-      data: select({
-        resource_version: 1,
-        metadata: {
-          version: 3,
-          sources: [
-            {
-              name: 'default',
-              kind: 'postgres',
-              tables: [
-                {
-                  table: { name: 'users', schema: 'public' },
-                  configuration: {},
-                  select_permissions: [
-                    {
-                      role: 'user',
-                      permission: { columns: ['id', 'name'], filter: {} },
-                    },
-                  ],
-                },
-              ],
-            },
-          ],
-        },
+    useExportMetadataMock.mockImplementation(
+      (select: (data: unknown) => unknown) => ({
+        data: select({
+          resource_version: 1,
+          metadata: {
+            version: 3,
+            sources: [
+              {
+                name: 'default',
+                kind: 'postgres',
+                tables: [
+                  {
+                    table: { name: 'users', schema: 'public' },
+                    configuration: {},
+                    select_permissions: [
+                      {
+                        role: 'user',
+                        permission: { columns: ['id', 'name'], filter: {} },
+                      },
+                    ],
+                  },
+                ],
+              },
+            ],
+          },
+        }),
+        status: 'success',
+        error: null,
       }),
-      status: 'success',
-      error: null,
-    }));
+    );
 
     render(
       <EditPermissionsForm
@@ -425,34 +438,36 @@ describe('EditPermissionsForm – access level with generated columns', () => {
       { column_name: 'name' },
       { column_name: 'full_name', is_generated: 'ALWAYS' },
     ]);
-    useExportMetadataMock.mockImplementation((select: (data: any) => any) => ({
-      data: select({
-        resource_version: 1,
-        metadata: {
-          version: 3,
-          sources: [
-            {
-              name: 'default',
-              kind: 'postgres',
-              tables: [
-                {
-                  table: { name: 'users', schema: 'public' },
-                  configuration: {},
-                  update_permissions: [
-                    {
-                      role: 'user',
-                      permission: { columns: ['id', 'name'], filter: {} },
-                    },
-                  ],
-                },
-              ],
-            },
-          ],
-        },
+    useExportMetadataMock.mockImplementation(
+      (select: (data: unknown) => unknown) => ({
+        data: select({
+          resource_version: 1,
+          metadata: {
+            version: 3,
+            sources: [
+              {
+                name: 'default',
+                kind: 'postgres',
+                tables: [
+                  {
+                    table: { name: 'users', schema: 'public' },
+                    configuration: {},
+                    update_permissions: [
+                      {
+                        role: 'user',
+                        permission: { columns: ['id', 'name'], filter: {} },
+                      },
+                    ],
+                  },
+                ],
+              },
+            ],
+          },
+        }),
+        status: 'success',
+        error: null,
       }),
-      status: 'success',
-      error: null,
-    }));
+    );
 
     render(
       <EditPermissionsForm

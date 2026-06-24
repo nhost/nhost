@@ -1,9 +1,9 @@
 import { X } from 'lucide-react';
 import { useMemo } from 'react';
 import { useFormContext, useWatch } from 'react-hook-form';
+import { useExportMetadata } from '@/features/orgs/projects/common/hooks/useExportMetadata';
 import { useTableSchemaQuery } from '@/features/orgs/projects/database/common/hooks/useTableSchemaQuery';
 import useColumnGroups from '@/features/orgs/projects/database/dataGrid/components/ColumnAutocomplete/useColumnGroups';
-import { useExportMetadata } from '@/features/orgs/projects/common/hooks/useExportMetadata';
 import type { FetchMetadataReturnType } from '@/features/orgs/projects/database/dataGrid/types/dataBrowser';
 import { cn } from '@/lib/utils';
 import GroupNodeRenderer from './GroupNodeRenderer';
@@ -43,9 +43,7 @@ export default function RelationshipNodeRenderer({
   );
 
   const { data: metadata } = useExportMetadata((data) => {
-    const source = data.metadata.sources?.find(
-      (s) => s.name === 'default',
-    );
+    const source = data.metadata.sources?.find((s) => s.name === 'default');
 
     return source
       ? ({

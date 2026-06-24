@@ -49,9 +49,7 @@ export default function StoragePermissionsForm({
     status: metadataStatus,
     error: metadataError,
   } = useExportMetadata((data) => {
-    const source = data.metadata.sources?.find(
-      (s) => s.name === 'default',
-    );
+    const source = data.metadata.sources?.find((s) => s.name === 'default');
 
     return {
       resourceVersion: data.resource_version,

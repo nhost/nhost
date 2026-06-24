@@ -1,9 +1,9 @@
 import { useFormContext } from 'react-hook-form';
 import { Combobox } from '@/components/ui/v3/combobox';
 import { FormField, FormMessage } from '@/components/ui/v3/form';
+import { useExportMetadata } from '@/features/orgs/projects/common/hooks/useExportMetadata';
 import { useTableSchemaQuery } from '@/features/orgs/projects/database/common/hooks/useTableSchemaQuery';
 import useColumnGroups from '@/features/orgs/projects/database/dataGrid/components/ColumnAutocomplete/useColumnGroups';
-import { useExportMetadata } from '@/features/orgs/projects/common/hooks/useExportMetadata';
 import type { FetchMetadataReturnType } from '@/features/orgs/projects/database/dataGrid/types/dataBrowser';
 import { cn, isNotEmptyValue } from '@/lib/utils';
 import useCustomCheckEditor from './useCustomCheckEditor';
@@ -32,9 +32,7 @@ export default function RelationshipComboBox({
   );
 
   const { data: metadata } = useExportMetadata((data) => {
-    const source = data.metadata.sources?.find(
-      (s) => s.name === 'default',
-    );
+    const source = data.metadata.sources?.find((s) => s.name === 'default');
 
     return source
       ? ({
