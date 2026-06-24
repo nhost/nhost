@@ -547,3 +547,140 @@ func TestPostgresDialect_WriteUpsertUpdateAction(t *testing.T) {
 		t.Fatalf("WriteUpsertUpdateAction:\n got  %q\n want %q", got, want)
 	}
 }
+
+// TestPostgresDialect_WriteSpatialPredicate pins the SpatialPredicate -> ST_*
+// function mapping and the two-argument call shape. A wrong entry here (e.g.
+// Touches resolving to ST_Within) would otherwise only surface in the
+// database-backed golden suite; this test guards the mapping without a DB.
+func TestPostgresDialect_WriteSpatialPredicate(t *testing.T) {
+	t.Parallel()
+
+	d := &dialect.PostgresDialect{}
+
+	tests := []struct {
+		predicate dialect.SpatialPredicate
+		want      string
+	}{
+		{dialect.SpatialPredicateContains, `ST_Contains("t"."geom", ST_GeomFromGeoJSON($1))`},
+		{dialect.SpatialPredicateCrosses, `ST_Crosses("t"."geom", ST_GeomFromGeoJSON($1))`},
+		{dialect.SpatialPredicateEquals, `ST_Equals("t"."geom", ST_GeomFromGeoJSON($1))`},
+		{dialect.SpatialPredicateIntersects, `ST_Intersects("t"."geom", ST_GeomFromGeoJSON($1))`},
+		{dialect.SpatialPredicateOverlaps, `ST_Overlaps("t"."geom", ST_GeomFromGeoJSON($1))`},
+		{dialect.SpatialPredicateTouches, `ST_Touches("t"."geom", ST_GeomFromGeoJSON($1))`},
+		{dialect.SpatialPredicateWithin, `ST_Within("t"."geom", ST_GeomFromGeoJSON($1))`},
+		{
+			dialect.SpatialPredicate3DIntersects,
+			`ST_3DIntersects("t"."geom", ST_GeomFromGeoJSON($1))`,
+		},
+	}
+
+	for _, tt := range tests {
+		t.Run(string(tt.predicate), func(t *testing.T) {
+			t.Parallel()
+
+			var b strings.Builder
+
+			d.WriteSpatialPredicate(&b, tt.predicate, `"t"."geom"`, "ST_GeomFromGeoJSON($1)")
+
+			if got := b.String(); got != tt.want {
+				t.Fatalf(
+					"WriteSpatialPredicate(%q):\n got  %q\n want %q",
+					tt.predicate,
+					got,
+					tt.want,
+				)
+			}
+		})
+	}
+}
+
+// TestPostgresDialect_WriteSpatialPredicate_UnknownPanics asserts the mapping
+// fails loud on an unrecognised predicate rather than emitting an empty
+// function name; the predicate set is closed and internal, so reaching the
+// default branch is a programming error.
+func TestPostgresDialect_WriteSpatialPredicate_UnknownPanics(t *testing.T) {
+	t.Parallel()
+
+	d := &dialect.PostgresDialect{}
+
+	defer func() {
+		if r := recover(); r == nil {
+			t.Fatal("expected panic for unknown spatial predicate, got none")
+		}
+	}()
+
+	var b strings.Builder
+
+	d.WriteSpatialPredicate(&b, dialect.SpatialPredicate("not_a_predicate"), "a", "b")
+}
+
+// TestPostgresDialect_WriteSpatialDWithinPredicate pins ST_DWithin/ST_3DDWithin
+// rendering, including the geography-only fourth use_spheroid argument and the
+// rule that a non-nil use_spheroid expression is ignored for geometry.
+func TestPostgresDialect_WriteSpatialDWithinPredicate(t *testing.T) {
+	t.Parallel()
+
+	d := &dialect.PostgresDialect{}
+	spheroid := "$3"
+
+	tests := []struct {
+		name             string
+		threeDimensional bool
+		sqlType          string
+		useSpheroidExpr  *string
+		want             string
+	}{
+		{
+			name:    "geometry 2d",
+			sqlType: "geometry",
+			want:    `ST_DWithin("t"."geom", ST_GeomFromGeoJSON($1), $2)`,
+		},
+		{
+			name:             "geometry 3d",
+			threeDimensional: true,
+			sqlType:          "geometry",
+			want:             `ST_3DDWithin("t"."geom", ST_GeomFromGeoJSON($1), $2)`,
+		},
+		{
+			name:            "geography with use_spheroid",
+			sqlType:         "geography",
+			useSpheroidExpr: &spheroid,
+			want:            `ST_DWithin("t"."geog", ST_GeomFromGeoJSON($1)::geography, $2, $3)`,
+		},
+		{
+			name:    "geography without use_spheroid expr omits fourth arg",
+			sqlType: "geography",
+			want:    `ST_DWithin("t"."geog", ST_GeomFromGeoJSON($1)::geography, $2)`,
+		},
+		{
+			name:            "geometry ignores use_spheroid expr",
+			sqlType:         "geometry",
+			useSpheroidExpr: &spheroid,
+			want:            `ST_DWithin("t"."geom", ST_GeomFromGeoJSON($1), $2)`,
+		},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			t.Parallel()
+
+			left := `"t"."geom"`
+			right := "ST_GeomFromGeoJSON($1)"
+
+			if tt.sqlType == "geography" {
+				left = `"t"."geog"`
+				right = "ST_GeomFromGeoJSON($1)::geography"
+			}
+
+			var b strings.Builder
+
+			d.WriteSpatialDWithinPredicate(
+				&b, tt.threeDimensional, left, right, "$2", tt.sqlType, tt.useSpheroidExpr,
+			)
+
+			if got := b.String(); got != tt.want {
+				t.Fatalf("WriteSpatialDWithinPredicate:\n got  %q\n want %q", got, tt.want)
+			}
+		})
+	}
+}
