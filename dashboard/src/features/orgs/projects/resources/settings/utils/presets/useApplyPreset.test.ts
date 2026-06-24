@@ -1,8 +1,8 @@
 import { yupResolver } from '@hookform/resolvers/yup';
-import { useForm } from 'react-hook-form';
+import { type UseFormSetValue, useForm } from 'react-hook-form';
 import {
-  resourceSettingsValidationSchema,
   type ResourceSettingsFormValues,
+  resourceSettingsValidationSchema,
 } from '@/features/orgs/projects/resources/settings/utils/resourceSettingsValidationSchema';
 import { act, renderHook, waitFor } from '@/tests/testUtils';
 import {
@@ -41,10 +41,7 @@ function buildDefaultValues(
 }
 
 describe('applyPresetToForm', () => {
-  // Regression test for #4562: a stale "1:2 ratio" error appeared after switching presets
-  // because each field was validated on write — `memory` was checked while `autoscale`
-  // still held the previous preset's value. The fix validates once, after all fields are set.
-  it('validates once after the whole preset is applied, not on each intermediate field write', async () => {
+  it('applies every field without per-write validation and validates once at the end', async () => {
     let validationRuns = 0;
     const baseResolver = yupResolver(resourceSettingsValidationSchema);
     const resolver: typeof baseResolver = (values, context, options) => {
@@ -52,8 +49,6 @@ describe('applyPresetToForm', () => {
       return baseResolver(values, context, options);
     };
 
-    // Start from an autoscaling preset so that, mid-apply, `autoscale` is still `true`
-    // when the next preset's `memory` is written — the exact trigger for #4562.
     const { result } = renderHook(() =>
       useForm<ResourceSettingsFormValues>({
         resolver,
@@ -61,18 +56,27 @@ describe('applyPresetToForm', () => {
       }),
     );
 
+    const setValueOptions: Array<{ shouldValidate?: boolean }> = [];
+    const trackingSetValue: UseFormSetValue<ResourceSettingsFormValues> = (
+      name,
+      value,
+      options,
+    ) => {
+      setValueOptions.push({ shouldValidate: options?.shouldValidate });
+      return result.current.setValue(name, value, options);
+    };
+
     await act(async () => {
-      applyPresetToForm(
-        result.current.setValue,
-        result.current.trigger,
-        'standard',
-      );
+      applyPresetToForm(trackingSetValue, result.current.trigger, 'standard');
     });
 
-    // One validation pass over the final, consistent state — not one per field write.
+    expect(setValueOptions.length).toBeGreaterThan(0);
+    expect(
+      setValueOptions.every(({ shouldValidate }) => shouldValidate !== true),
+    ).toBe(true);
+
     expect(validationRuns).toBe(1);
 
-    // Standard runs a single replica with the autoscaler off, so the ratio rule is N/A.
     await waitFor(() => {
       expect(result.current.formState.errors.auth?.memory).toBeUndefined();
       expect(result.current.formState.errors.storage?.memory).toBeUndefined();
