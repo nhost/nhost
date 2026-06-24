@@ -1,4 +1,5 @@
 import * as yup from 'yup';
+import { TIME_PATTERN } from '@/components/common/TimePickerField/isValidTime';
 import type { DataBrowserColumnMetadata } from '@/features/orgs/projects/database/dataGrid/types/dataBrowser/dataBrowser';
 import { POSTGRES_DEFAULT_PLACEHOLDER } from '@/features/orgs/projects/database/dataGrid/utils/postgresDefaultPlaceholder';
 import {
@@ -65,14 +66,6 @@ function createUUIDValidationSchema(details: ColumnDetails) {
   );
 }
 
-function createDateValidationSchema(details: ColumnDetails) {
-  const dateSchema = yup
-    .date()
-    .transform((value) => (Number.isNaN(value) ? null : value));
-
-  return createGenericValidationSchema(dateSchema, details);
-}
-
 function createBooleanValidationSchema(details: ColumnDetails) {
   const booleanSchema = yup.string().test((value, { createError }) => {
     const isTrueOrFalse = value === 'true' || value === 'false';
@@ -109,8 +102,8 @@ export function createDynamicValidationSchema(
       column.defaultValue !== null;
 
     const details: ColumnDetails = {
-      isNullable: !!isNullable,
-      isIdentity: !!isIdentity,
+      isNullable: Boolean(isNullable),
+      isIdentity: Boolean(isIdentity),
       hasDefaultValue,
     };
 
@@ -137,8 +130,8 @@ export function createDynamicValidationSchema(
       return {
         ...currentSchema,
         [column.id]: createTextValidationSchema(details).matches(
-          /^\d{2}:\d{2}(:\d{2})?$/,
-          'This is not a valid time (e.g: HH:MM:SS / HH:MM).',
+          TIME_PATTERN,
+          'This is not a valid time (e.g: HH:MM:SS / HH:MM / HH:MM:SS+00).',
         ),
       };
     }
@@ -153,10 +146,13 @@ export function createDynamicValidationSchema(
       };
     }
 
+    // date / timestamp inputs preserve raw PostgreSQL literals typed by the
+    // user (for example fractional seconds, offsets, or `infinity`). Let the
+    // database validate semantics instead of casting through JavaScript Date.
     if (isTimestampType(baseType) || isDateType(baseType)) {
       return {
         ...currentSchema,
-        [column.id]: createDateValidationSchema(details),
+        [column.id]: createTextValidationSchema(details),
       };
     }
 
