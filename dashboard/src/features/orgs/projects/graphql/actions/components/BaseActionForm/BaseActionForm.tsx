@@ -205,10 +205,22 @@ export default function BaseActionForm({
       { shouldDirty: true },
     );
 
+  const getCurrentSampleInput = useCallback(() => {
+    const { definition } = parseActionDefinitionSdl(
+      form.getValues('actionDefinitionSdl'),
+    );
+    return getActionSampleInputPayload(definition ?? undefined);
+  }, [form]);
+
   const togglePayloadSectionOpen = () =>
     setValue(
       'payloadTransform',
-      isPayloadTransformEnabled ? undefined : defaultPayloadTransformValues,
+      isPayloadTransformEnabled
+        ? undefined
+        : {
+            ...defaultPayloadTransformValues,
+            sampleInput: getCurrentSampleInput(),
+          },
       { shouldDirty: true },
     );
 
@@ -220,13 +232,8 @@ export default function BaseActionForm({
     );
 
   const handleResetSampleInput = useCallback(() => {
-    const values = form.getValues();
-    const { definition } = parseActionDefinitionSdl(values.actionDefinitionSdl);
-    form.setValue(
-      'payloadTransform.sampleInput',
-      getActionSampleInputPayload(definition ?? undefined),
-    );
-  }, [form]);
+    form.setValue('payloadTransform.sampleInput', getCurrentSampleInput());
+  }, [form, getCurrentSampleInput]);
 
   const handleAccordionValueChange = useCallback((value: string[]) => {
     setOpenAccordionSections(value as AccordionSectionValue[]);
