@@ -41,8 +41,10 @@ func IgnoreResponseHeaders() cmp.Option {
 	// on active-content responses only. Both are asserted in that middleware's
 	// own tests, so they are ignored here.
 	return cmpopts.IgnoreMapEntries(func(key string, _ []string) bool {
-    return key == "Date" || key == "Surrogate-Key" || key == "Last-Modified" ||
-    	key == "X-Content-Type-Options" || key == "Content-Security-Policy" ||
-    	key == "Vary" || strings.HasPrefix(key, "X-B3-")
+		return key == "Date" || key == "Surrogate-Key" || key == "Last-Modified" ||
+			key == "X-Content-Type-Options" ||
+			key == "Content-Security-Policy" ||
+			key == "Vary" ||
+			strings.HasPrefix(key, "X-B3-")
 	})
 }
