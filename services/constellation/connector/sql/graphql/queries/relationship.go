@@ -335,10 +335,7 @@ func (r *relationship) buildSelectionSQLFromSource( //nolint:funlen
 
 	joinCondition := r.buildJoinConditionForSelection(parentTableAlias)
 
-	outputName := relationshipAlias
-	if idx := strings.LastIndex(relationshipAlias, "."); idx >= 0 {
-		outputName = relationshipAlias[idx+1:]
-	}
+	outputName := rootFieldName(field)
 
 	argumentPath := childArgumentPath(parentArgumentPath, field)
 
