@@ -1,4 +1,4 @@
-name: "deploy to vercel"
+name: 'deploy to vercel'
 
 on:
   workflow_call:
