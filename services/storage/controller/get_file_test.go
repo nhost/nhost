@@ -12,6 +12,7 @@ import (
 	"github.com/nhost/nhost/services/storage/api"
 	"github.com/nhost/nhost/services/storage/controller"
 	"github.com/nhost/nhost/services/storage/controller/mock"
+	"github.com/nhost/nhost/services/storage/image"
 	gomock "go.uber.org/mock/gomock"
 )
 
@@ -292,7 +293,7 @@ func TestGetFile(t *testing.T) { //nolint:maintidx
 				"asdasd",
 				metadataStorage,
 				contentStorage,
-				nil,
+				image.NewTransformer(0, 0, 0),
 				nil,
 				logger,
 			)
