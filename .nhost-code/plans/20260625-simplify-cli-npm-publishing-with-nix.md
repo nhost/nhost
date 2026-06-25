@@ -208,7 +208,17 @@ Restore `.github/workflows/wf_release_npm.yaml` to its pre-branch JS/SDK-only Ni
 
 **Implementation log**
 
-_(filled by `nhost-implement` during execution: implementation notes, reviewer verdict, and any assumption/decision taken with its pillar justification.)_
+- Added `validate_platform_metadata` inside the existing `cli-npm` derivation in `cli/project.nix`, after staging packages from `cli-multiplatform`. The validation enforces main package version, platform package versions, optional dependency values, exact optional dependency key set matching staged platform package names, platform package name prefix alignment with the main package, and npm shim `PKG_PREFIX` alignment with the main package name.
+- Kept the phase deliberately narrow: no Makefile, flake, workflow, package metadata, shim, helper-script, or publish-helper changes were introduced because the existing package metadata already matched the new invariants.
+- Reviewer verdict: `ACCEPT`. The reviewer confirmed the diff only touched `cli/project.nix`, satisfies the Phase 2 definition of done, and verified with a negative test that a platform package name drift makes Nix staging fail early.
+- Autonomous decisions / assumptions:
+  - Used a `jq`/shell validation inside the existing Nix derivation rather than adding a separate helper, prioritizing long-term maintenance and the plan's minimal-scope constraint.
+  - Accepted the non-blocking reviewer concern that `cli/npm/bin/nhost` still says `PKG_PREFIX` is kept in sync by hand; correctness is protected by the new Nix build validation, and the comment can be corrected with Phase 3 documentation/comment cleanup if the docs implementer touches that area.
+- Quality gate history:
+  - `make -C cli build-npm` — passed and exercised the new derivation validation.
+  - Staged package inspection for `cli/result/dist/main/package.json`, platform package metadata, optional dependencies, and executable bits — passed.
+  - `nix develop .#pnpm -c npm pack --dry-run --json ./cli/result/dist/{main,darwin-arm64,darwin-x64,linux-arm64,linux-x64}` — passed for all five staged packages; npm only emitted existing repo config warnings for `auto-install-peers` and `hoist`.
+  - `git diff --check -- cli/project.nix` — passed.
 
 ### Phase 3 — Update CLI npm publishing docs
 

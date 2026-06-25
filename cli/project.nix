@@ -309,5 +309,65 @@ rec {
         cp ${./npm/bin/nhost} "$main/bin/nhost"
         chmod +x "$main/bin/nhost"
         cp ${./npm/README.md} "$main/README.md"
+
+        validate_platform_metadata() {
+          main_name=$(jq -r '.name' "$main/package.json")
+          single_quote_prefix="const PKG_PREFIX = '$main_name';"
+          double_quote_prefix="const PKG_PREFIX = \"$main_name\";"
+          if ! grep -Fqx "$single_quote_prefix" "$main/bin/nhost" \
+            && ! grep -Fqx "$double_quote_prefix" "$main/bin/nhost"; then
+            echo "ERROR: cli npm shim PKG_PREFIX must match main package name '$main_name'" >&2
+            exit 1
+          fi
+
+          if ! jq -e --arg v "${version}" '.version == $v' "$main/package.json" > /dev/null; then
+            echo "ERROR: main npm package version must be ${version}" >&2
+            exit 1
+          fi
+
+          if ! jq -e --arg v "${version}" \
+            '(.optionalDependencies | type == "object") and (.optionalDependencies | all(.[]; . == $v))' \
+            "$main/package.json" > /dev/null; then
+            echo "ERROR: main npm optionalDependencies must all use version ${version}" >&2
+            exit 1
+          fi
+
+          platform_names_file="$TMPDIR/cli-npm-platform-names"
+          optional_dependency_names_file="$TMPDIR/cli-npm-optional-dependency-names"
+          : > "$platform_names_file"
+
+          for platform in darwin-arm64 darwin-x64 linux-arm64 linux-x64; do
+            platform_package="$out/dist/$platform/package.json"
+            if ! jq -e --arg v "${version}" '.version == $v' "$platform_package" > /dev/null; then
+              echo "ERROR: $platform npm package version must be ${version}" >&2
+              exit 1
+            fi
+
+            platform_name=$(jq -r '.name' "$platform_package")
+            case "$platform_name" in
+              "$main_name"-*) ;;
+              *)
+                echo "ERROR: $platform package name '$platform_name' must use prefix '$main_name-'" >&2
+                exit 1
+                ;;
+            esac
+            echo "$platform_name" >> "$platform_names_file"
+          done
+          sort -o "$platform_names_file" "$platform_names_file"
+
+          jq -r '.optionalDependencies | keys[]' "$main/package.json" > "$optional_dependency_names_file"
+          sort -o "$optional_dependency_names_file" "$optional_dependency_names_file"
+
+          if ! cmp -s "$optional_dependency_names_file" "$platform_names_file"; then
+            echo "ERROR: main npm optionalDependencies must exactly match platform package names" >&2
+            echo "optionalDependencies:" >&2
+            cat "$optional_dependency_names_file" >&2
+            echo "platform package names:" >&2
+            cat "$platform_names_file" >&2
+            exit 1
+          fi
+        }
+
+        validate_platform_metadata
       '';
 }
