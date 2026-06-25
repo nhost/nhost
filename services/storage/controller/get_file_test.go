@@ -1,6 +1,7 @@
 package controller_test
 
 import (
+	"bytes"
 	"io"
 	"log/slog"
 	"net/http"
@@ -355,4 +356,94 @@ func assertAPIError(t *testing.T, resp any, wantCode int, wantMsg string) {
 			wantMsg, apiErr.PublicMessage(),
 		)
 	}
+}
+
+// TestGetFileRejectsOversizedDerivedDimension exercises the limit a request can
+// only hit once the source image is loaded: nhost.jpg is 678x258 (landscape),
+// so asking for only the height at the cap derives a width ~2.6x larger. The
+// controller validates the explicit height fine (it is at the cap), so the
+// oversized derived width is caught by the transformer, which must surface it
+// as a 400 rather than a 500.
+func TestGetFileRejectsOversizedDerivedDimension(t *testing.T) {
+	t.Parallel()
+
+	const fileID = "55af1e60-0f28-454e-885e-ea6aab2bb288"
+
+	imgBytes, err := os.ReadFile("../image/testdata/nhost.jpg")
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	c := gomock.NewController(t)
+	defer c.Finish()
+
+	metadataStorage := mock.NewMockMetadataStorage(c)
+	contentStorage := mock.NewMockContentStorage(c)
+
+	metadataStorage.EXPECT().GetFileByID(
+		gomock.Any(), fileID, gomock.Any(),
+	).Return(api.FileMetadata{
+		Id:               fileID,
+		Name:             "nhost.jpg",
+		Size:             int64(len(imgBytes)),
+		BucketId:         "default",
+		Etag:             `"` + fileID + `"`,
+		CreatedAt:        time.Date(2021, 12, 27, 9, 58, 11, 0, time.UTC),
+		UpdatedAt:        time.Date(2021, 12, 27, 9, 58, 11, 0, time.UTC),
+		IsUploaded:       true,
+		MimeType:         "image/jpeg",
+		UploadedByUserId: new("0f7f0ff0-f945-4597-89e1-3636b16775cd"),
+	}, nil)
+
+	metadataStorage.EXPECT().GetBucketByID(
+		gomock.Any(), "default", gomock.Any(),
+	).Return(controller.BucketMetadata{
+		ID:                   "default",
+		MinUploadFile:        0,
+		MaxUploadFile:        100,
+		PresignedURLsEnabled: true,
+		DownloadExpiration:   30,
+		CreatedAt:            "2021-12-15T13:26:52.082485+00:00",
+		UpdatedAt:            "2021-12-15T13:26:52.082485+00:00",
+		CacheControl:         "max-age=3600",
+	}, nil)
+
+	contentStorage.EXPECT().GetFile(
+		gomock.Any(), fileID, gomock.Any(),
+	).Return(
+		&controller.File{
+			StatusCode:    200,
+			Etag:          `"` + fileID + `"`,
+			Body:          io.NopCloser(bytes.NewReader(imgBytes)),
+			ContentLength: int64(len(imgBytes)),
+			ExtraHeaders:  make(http.Header),
+		},
+		nil,
+	)
+
+	logger := slog.New(slog.NewTextHandler(os.Stdout, &slog.HandlerOptions{Level: slog.LevelError}))
+
+	ctrl := controller.New(
+		"http://asd",
+		"/v1",
+		"asdasd",
+		metadataStorage,
+		contentStorage,
+		image.NewTransformer(0, 0, 0),
+		nil,
+		logger,
+	)
+
+	resp, err := ctrl.GetFile(
+		t.Context(),
+		api.GetFileRequestObject{
+			Id:     fileID,
+			Params: api.GetFileParams{H: new(8000)},
+		},
+	)
+	if err != nil {
+		t.Fatalf("unexpected error: %v", err)
+	}
+
+	assertAPIError(t, resp, http.StatusBadRequest, "8000")
 }

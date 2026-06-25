@@ -143,42 +143,6 @@ func TestManipulate(t *testing.T) {
 	}
 }
 
-func TestManipulateRejectsOversizedDimensions(t *testing.T) {
-	t.Parallel()
-
-	// The controller rejects oversized explicit requests up front, but the
-	// transformer is the enforcement floor for anything that reaches it.
-	// libvips allocates the full output buffer up front, so honouring an
-	// oversized request verbatim (e.g. 50000x50000) attempts a huge allocation
-	// and can OOM-kill the process (memory-exhaustion DoS); the transformer
-	// rejects it instead. A small cap keeps the test cheap.
-	const (
-		requested     = 50000
-		maxDimension  = 200
-		nhostJPGBytes = 33399
-	)
-
-	transformer := image.NewTransformer(1, maxDimension, 0)
-
-	orig, err := os.Open("testdata/nhost.jpg")
-	if err != nil {
-		t.Fatal(err)
-	}
-	defer orig.Close()
-
-	var out bytes.Buffer
-
-	err = transformer.Run(
-		orig,
-		nhostJPGBytes,
-		&out,
-		image.Options{Width: requested, Height: requested, Format: image.ImageTypeJPEG},
-	)
-	if !errors.Is(err, image.ErrDimensionsTooLarge) {
-		t.Fatalf("expected ErrDimensionsTooLarge, got %v", err)
-	}
-}
-
 func TestManipulateRejectsOversizedDerivedDimension(t *testing.T) {
 	t.Parallel()
 

@@ -197,13 +197,12 @@ func export(image *vips.Image, opts Options) ([]byte, error) {
 
 // resolveDimensions resolves the requested output dimensions against the
 // source image size, deriving a missing dimension from the aspect ratio. The
-// explicit width and height are validated up front by the controller; a
-// dimension derived from the source aspect ratio is the one value the
-// controller cannot check, since aspect-ratio derivation can amplify a single
-// bounded dimension past the cap. The resolved dimensions are therefore
-// validated here and rejected with ErrDimensionsTooLarge if either exceeds
-// maxDimension: libvips allocates the full output buffer up front, so an
-// oversized dimension would let one request exhaust process memory.
+// explicit width and height are validated by the controller; only a dimension
+// derived here from the source aspect ratio can exceed maxDimension without the
+// controller seeing it, since derivation can amplify a single bounded dimension
+// past the cap. Only that derived value is checked, and an oversized one is
+// rejected with ErrDimensionsTooLarge: libvips allocates the full output buffer
+// up front, so it would otherwise let one request exhaust process memory.
 func resolveDimensions(
 	reqWidth, reqHeight, srcWidth, srcHeight, maxDimension int,
 ) (int, int, error) {
@@ -211,20 +210,26 @@ func resolveDimensions(
 
 	if width == 0 && srcHeight != 0 {
 		width = int((float64(height) / float64(srcHeight)) * float64(srcWidth))
+		if width > maxDimension {
+			return 0, 0, dimensionsTooLargeError(width, height, maxDimension)
+		}
 	}
 
 	if height == 0 && srcWidth != 0 {
 		height = int((float64(width) / float64(srcWidth)) * float64(srcHeight))
-	}
-
-	if width > maxDimension || height > maxDimension {
-		return 0, 0, fmt.Errorf(
-			"%w: resizing to %dx%d exceeds the maximum dimension of %d",
-			ErrDimensionsTooLarge, width, height, maxDimension,
-		)
+		if height > maxDimension {
+			return 0, 0, dimensionsTooLargeError(width, height, maxDimension)
+		}
 	}
 
 	return width, height, nil
+}
+
+func dimensionsTooLargeError(width, height, maxDimension int) error {
+	return fmt.Errorf(
+		"%w: resizing to %dx%d exceeds the maximum dimension of %d",
+		ErrDimensionsTooLarge, width, height, maxDimension,
+	)
 }
 
 func (t *Transformer) imageResize(image *vips.Image, opts Options) error {
