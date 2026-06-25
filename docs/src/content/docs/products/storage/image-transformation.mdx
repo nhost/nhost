@@ -26,7 +26,7 @@ Images can be transformed on-the-fly by adding query parameters to file URLs. Tr
 - `same` -- keeps the original format (default)
 
 :::note
-`w`, `h`, and `b` are bounded to keep a single transformation from exhausting server memory. Values above the maximum are clamped rather than rejected. The values shown are the defaults; self-hosted instances can tune them with the `IMAGE_TRANSFORMER_MAX_DIMENSION` and `IMAGE_TRANSFORMER_MAX_BLUR_SIGMA` environment variables on the storage service.
+`w`, `h`, and `b` are bounded to keep a single transformation from exhausting server memory. Values above the maximum are rejected with a `400` error rather than silently clamped, so the caller learns the limit instead of receiving an image at an unexpected size. The values shown are the defaults; self-hosted instances can tune them with the `IMAGE_TRANSFORMER_MAX_DIMENSION` and `IMAGE_TRANSFORMER_MAX_BLUR_SIGMA` environment variables on the storage service.
 :::
 
 ## Usage
