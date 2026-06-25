@@ -5,9 +5,9 @@ const { spawnSync } = require('node:child_process');
 const os = require('node:os');
 const path = require('node:path');
 
-// Must match the main package name and the platform package names. Nothing
-// enforces this; keep PKG_PREFIX in sync by hand with the five `name` fields
-// and the four optionalDependencies keys (see PUBLISHING.md).
+// Must match the main package name and the platform package names. The
+// cli-npm derivation validates this against the five `name` fields and the
+// four optionalDependencies keys (see PUBLISHING.md).
 const PKG_PREFIX = '@nhost/cli';
 
 const pkg = `${PKG_PREFIX}-${process.platform}-${process.arch}`;

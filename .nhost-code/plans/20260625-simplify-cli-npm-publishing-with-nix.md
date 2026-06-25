@@ -260,7 +260,39 @@ Restore `.github/workflows/wf_release_npm.yaml` to its pre-branch JS/SDK-only Ni
 
 **Implementation log**
 
-_(filled by `nhost-implement` during execution: implementation notes, reviewer verdict, and any assumption/decision taken with its pillar justification.)_
+- Rewrote `cli/npm/PUBLISHING.md` for the final Nix-native CLI npm
+  release path: `ci_release.yaml` triggers `cli_wf_release.yaml`,
+  `build-multiplatform` builds and caches release binaries, and the inline
+  `publish-npm` job rebuilds `cli-npm` from the Nix cache before publishing
+  with Nix-provided npm.
+- Documented trusted-publisher setup for all five CLI packages, explicitly
+  targeting `.github/workflows/cli_wf_release.yaml` / `publish-npm` rather
+  than the restored JS/SDK shared npm workflow.
+- Documented platform-first publish order, dist-tag selection, rerun-safe
+  `npm view name@version` skip behavior, manual first-publish bootstrap,
+  partial-publish recovery, and the need for a live prerelease/beta publish
+  to prove npm OIDC claim matching.
+- Updated the `cli/npm/bin/nhost` comment to reflect the Phase 2 Nix
+  derivation validation for `PKG_PREFIX`; `cli/npm/README.md` was left
+  unchanged because it does not describe workflow or publishing behavior.
+- Reviewer verdict: `ACCEPT`. The reviewer confirmed the docs match the
+  actual Phase 1 workflow and Phase 2 staging validation, contain no stale
+  normal-path artifact/setup-node guidance, and leave only the documented live
+  prerelease OIDC proof as an external residual risk.
+- Autonomous decisions / assumptions:
+  - Allowed the tiny `cli/npm/bin/nhost` comment update in this docs phase
+    because it resolves the Phase 2 reviewer's stale-comment concern and
+    improves long-term maintenance without changing runtime behavior.
+  - Did not run Nix/package builds for this docs-only phase because the
+    changed files do not affect package output; docs/static checks and review
+    against workflow contents provide the relevant correctness evidence.
+- Quality gate history:
+  - `git diff --check -- cli/npm/PUBLISHING.md cli/npm/bin/nhost` — passed.
+  - Targeted docs validation for required workflow/trusted-publisher/order/
+    rerun content and absence of stale normal-path setup-node/artifact terms —
+    passed.
+  - Reviewer cross-check against `.github/workflows/cli_wf_release.yaml` —
+    passed.
 
 ---
 
