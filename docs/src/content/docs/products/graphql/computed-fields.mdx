@@ -26,8 +26,11 @@ A **computed field** adds a virtual column to a table in your GraphQL API. Its v
 
 - **Derived values** — combine columns into a single field, e.g. `full_name`, `age`, `slug`.
 - **Per-user state** — return a value that depends on the current session, e.g. `is_liked_by_me` on a `posts` table, using the session argument.
+- **Parameterized values** — accept query-time arguments, e.g. a product's price with a discount percentage applied.
 - **Custom search** — return a boolean from a function that runs `to_tsvector` against several columns.
 - **Filtered sub-lists** — a function returning `SETOF <tracked_table>` exposes a parameter-driven list, e.g. an author's articles matching a search term.
+
+For working SQL, see [Example Functions](#example-functions) below.
 
 ## Requirements for Postgres Functions
 
@@ -43,9 +46,9 @@ The dashboard's function picker hides functions with the wrong arguments or a `V
 
 ## Example Functions
 
-### Derived scalar
+### Derived values
 
-A row in, a scalar out — combine columns into a single field.
+A row in, a scalar out — combine columns into a single field. This example builds a full name from the user's first and last name.
 
 ```sql
 CREATE OR REPLACE FUNCTION public.user_full_name(user_row public.users)
@@ -57,9 +60,9 @@ AS $$
 $$;
 ```
 
-### Session-aware scalar
+### Per-user state
 
-Read a session variable for per-user state, bound with the **Session Argument** setting.
+Read a session variable for per-user state, bound with the **Session Argument** setting. The function below reports whether the current session's user has liked the post.
 
 ```sql
 CREATE OR REPLACE FUNCTION public.post_is_liked_by_me(
@@ -79,9 +82,9 @@ AS $$
 $$;
 ```
 
-### Scalar with extra arguments
+### Parameterized values
 
-Arguments beyond the row become query-time arguments on the field, passed under an `args` input object.
+Arguments beyond the row become query-time arguments on the field, passed under an `args` input object — for instance, applying a discount percentage to a product's price.
 
 ```sql
 CREATE OR REPLACE FUNCTION public.product_discounted_price(
@@ -96,9 +99,27 @@ AS $$
 $$;
 ```
 
-### Set of rows from a tracked table
+### Custom search
 
-Return `SETOF <tracked_table>` for a parameter-driven nested list that respects the table's permissions.
+Return a boolean from a full-text search over several columns, such as checking whether an article matches a search query.
+
+```sql
+CREATE OR REPLACE FUNCTION public.article_matches(
+  article_row public.articles,
+  query text
+)
+RETURNS boolean
+LANGUAGE sql
+STABLE
+AS $$
+  SELECT to_tsvector('english', article_row.title || ' ' || article_row.body)
+         @@ plainto_tsquery('english', query);
+$$;
+```
+
+### Filtered sub-lists
+
+Return `SETOF <tracked_table>` for a parameter-driven nested list that respects the table's permissions, like an author's articles whose title matches a search term.
 
 ```sql
 CREATE OR REPLACE FUNCTION public.author_articles(
@@ -154,7 +175,7 @@ $$;
 </Steps>
 
 :::note
-Any extra arguments on the function — beyond the row and the optional session argument — are passed at query time under an `args` input object on the GraphQL field. See [Scalar with extra arguments](#scalar-with-extra-arguments) for an example.
+Any extra arguments on the function — beyond the row and the optional session argument — are passed at query time under an `args` input object on the GraphQL field. See [Parameterized values](#parameterized-values) for an example.
 :::
 
 ## Editing and Deleting
