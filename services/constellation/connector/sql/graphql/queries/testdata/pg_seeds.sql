@@ -3352,3 +3352,30 @@ INSERT INTO public.exercise_logs (id, kind, owner_id) VALUES
 -- PostgreSQL. owner is Sarah Martinez (550e8400-...0001).
 INSERT INTO public.notes (id, author_id, title) VALUES
     ('0199cccc-0000-7000-8000-000000000001', '550e8400-e29b-41d4-a716-446655440001', 'Seeded Note');
+
+-- PostGIS fixture rows mirrored from integration/nhost/seeds/default/35-postgis_locations.sql.
+INSERT INTO public.postgis_locations (id, name, geom, geog, area, nullable_geom) VALUES
+(
+  '11111111-1111-4111-8111-111111111111',
+  'inside-square',
+  ST_SetSRID(ST_MakePoint(-73.985130, 40.758896), 4326),
+  ST_SetSRID(ST_MakePoint(-73.985130, 40.758896), 4326)::geography,
+  ST_GeomFromText('POLYGON((-74.000000 40.750000,-73.970000 40.750000,-73.970000 40.780000,-74.000000 40.780000,-74.000000 40.750000))', 4326),
+  ST_SetSRID(ST_MakePoint(-73.980000, 40.760000), 4326)
+),
+(
+  '22222222-2222-4222-8222-222222222222',
+  'outside-square',
+  ST_SetSRID(ST_MakePoint(-73.940000, 40.800000), 4326),
+  ST_SetSRID(ST_MakePoint(-73.940000, 40.800000), 4326)::geography,
+  ST_GeomFromText('POLYGON((-74.000000 40.750000,-73.970000 40.750000,-73.970000 40.780000,-74.000000 40.780000,-74.000000 40.750000))', 4326),
+  NULL
+),
+(
+  '33333333-3333-4333-8333-333333333333',
+  'west-square',
+  ST_SetSRID(ST_MakePoint(-74.020000, 40.760000), 4326),
+  ST_SetSRID(ST_MakePoint(-74.020000, 40.760000), 4326)::geography,
+  ST_GeomFromText('POLYGON((-74.030000 40.750000,-74.010000 40.750000,-74.010000 40.770000,-74.030000 40.770000,-74.030000 40.750000))', 4326),
+  ST_SetSRID(ST_MakePoint(-74.025000, 40.765000), 4326)
+);

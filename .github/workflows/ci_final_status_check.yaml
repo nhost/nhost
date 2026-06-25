@@ -29,10 +29,10 @@ jobs:
           VALID_TYPES="feat|fix|chore|release"
           VALID_PKGS="auth|ci|cli|codegen|constellation|dashboard|deps|docs|examples|functions|ghactivity|govulncheck-wrapper|internal\/lib|mcp|nhost-js|nixops|postgres|storage|observability|stripe-graphql-js"
 
-          if [[ ! "$PR_TITLE" =~ ^(${VALID_TYPES})\((${VALID_PKGS})\):\ .+ ]]; then
+          if [[ ! "$PR_TITLE" =~ ^(${VALID_TYPES})\((${VALID_PKGS})\)\!?:\ .+ ]]; then
             echo "PR title does not follow the required format!"
             echo ""
-            echo "Expected format: TYPE(PKG): SUMMARY"
+            echo "Expected format: TYPE(PKG)[!]: SUMMARY"
             echo ""
             echo "Valid TYPEs:"
             echo "  - feat:   mark this pull request as a feature"
@@ -44,7 +44,9 @@ jobs:
             echo "  - ghactivity, govulncheck-wrapper, mcp, nhost-js, nixops, postgres, storage, observability,"
             echo "  - internal/lib, stripe-graphql-js"
             echo ""
-            echo "Example: feat(cli): add new command for database migrations"
+            echo "Examples:"
+            echo "  - feat(cli): add new command for database migrations"
+            echo "  - fix(auth)!: require elevated auth for TOTP secret generation"
             exit 1
           fi
 

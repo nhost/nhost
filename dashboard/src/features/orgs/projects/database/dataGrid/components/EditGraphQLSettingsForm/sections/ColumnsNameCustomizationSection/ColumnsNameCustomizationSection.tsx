@@ -12,6 +12,7 @@ import { useTableSchemaQuery } from '@/features/orgs/projects/database/common/ho
 import { useSetTableCustomizationMutation } from '@/features/orgs/projects/database/dataGrid/hooks/useSetTableCustomizationMutation';
 import { useTableCustomizationQuery } from '@/features/orgs/projects/database/dataGrid/hooks/useTableCustomizationQuery';
 import { convertSnakeToCamelCase } from '@/features/orgs/projects/database/dataGrid/utils/convertSnakeToCamelCase';
+import { getDisplayType } from '@/features/orgs/projects/database/dataGrid/utils/getDisplayType';
 import { prepareCustomGraphQLColumnNameDTO } from '@/features/orgs/projects/database/dataGrid/utils/prepareCustomGraphQLColumnNameDTO';
 import { execPromiseWithErrorToast } from '@/features/orgs/utils/execPromiseWithErrorToast';
 import { cn, isEmptyValue } from '@/lib/utils';
@@ -259,8 +260,9 @@ export default function ColumnsNameCustomizationSection({
                       return null;
                     }
 
-                    const dataType: string =
-                      column.full_data_type || column.data_type || 'unknown';
+                    const displayType: string = getDisplayType(
+                      column.full_data_type,
+                    );
                     const fieldPath =
                       `columns.${columnName}.graphqlFieldName` satisfies GraphQLFieldNamePath;
 
@@ -276,7 +278,7 @@ export default function ColumnsNameCustomizationSection({
                         </div>
 
                         <span className="font-mono text-foreground text-sm">
-                          {dataType}
+                          {displayType}
                         </span>
 
                         <FormInput

@@ -713,10 +713,12 @@ func (s *Store) HasNonEmptyInsertCheck(role string) bool {
 	return found && len(clause) > 0
 }
 
-// HasUpdateFilter reports whether role has any update permission entry.
+// HasUpdateFilter reports whether role has a non-empty update row filter.
+// An empty clause is treated as "no row-level filter" because callers wrap
+// emitted predicates in AND (...), and an empty clause would produce invalid SQL.
 func (s *Store) HasUpdateFilter(role string) bool {
-	_, found := s.Update[role]
-	return found
+	clause, found := s.Update[role]
+	return found && len(clause) > 0
 }
 
 // HasUpdateCheck reports whether role has a non-empty post-update check
@@ -728,10 +730,12 @@ func (s *Store) HasUpdateCheck(role string) bool {
 	return found && len(clause) > 0
 }
 
-// HasDeleteFilter reports whether role has any delete permission entry.
+// HasDeleteFilter reports whether role has a non-empty delete row filter.
+// An empty clause is treated as "no row-level filter" for the same reason as
+// HasUpdateFilter.
 func (s *Store) HasDeleteFilter(role string) bool {
-	_, found := s.Delete[role]
-	return found
+	clause, found := s.Delete[role]
+	return found && len(clause) > 0
 }
 
 // WriteRowLevel emits the row-level select-permission predicate for role,

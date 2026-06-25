@@ -1,3 +1,4 @@
+//nolint:ireturn // Where parser helpers intentionally return the Statement interface abstraction.
 package where
 
 import (
@@ -7,6 +8,7 @@ import (
 	"github.com/vektah/gqlparser/v2/ast"
 
 	"github.com/nhost/nhost/services/constellation/connector/sql/graphql/queries/core"
+	"github.com/nhost/nhost/services/constellation/connector/sql/graphql/queries/dialect"
 	"github.com/nhost/nhost/services/constellation/connector/sql/graphql/queries/values"
 )
 
@@ -129,8 +131,8 @@ func parseBoolExp(
 
 // parseWhereChild dispatches a single object field of a where-clause to the
 // matching parser. Logical _and flattens into the parent clause; everything
-// else contributes a single Statement, returned as a one-element Clause to
-// keep the caller's append loop uniform.
+// else contributes zero or one Statement, returned as a Clause to keep the
+// caller's append loop uniform.
 func parseWhereChild(
 	t Table,
 	child *ast.ChildValue,
@@ -189,6 +191,10 @@ func parseWhereChild(
 			return nil, err
 		}
 
+		if stmt == nil {
+			return nil, nil
+		}
+
 		return Clause{stmt}, nil
 	}
 }
@@ -197,7 +203,7 @@ func parseWhereChild(
 // table: a matching column dispatches to ParseFieldComparison; otherwise a
 // matching relationship recurses into Parse with the relationship's target
 // table; anything else is an unknown field.
-func parseFieldOrRelationship( //nolint:ireturn,nolintlint
+func parseFieldOrRelationship(
 	t Table,
 	fieldName string,
 	value *ast.Value,
@@ -400,7 +406,7 @@ func orElement(conditions Clause) Clause {
 	return conditions
 }
 
-func parseLogicalNot( //nolint:ireturn,nolintlint
+func parseLogicalNot(
 	t Table,
 	value *ast.Value,
 	variables map[string]any,
@@ -444,6 +450,27 @@ func resolveScalarValue(operatorValue *ast.Value, variables map[string]any) (any
 	return v, nil
 }
 
+func resolveTargetScalarValue(
+	column *core.Column,
+	target *comparisonTarget,
+	operatorValue *ast.Value,
+	variables map[string]any,
+) (any, error) {
+	v, err := resolveScalarValue(operatorValue, variables)
+	if err != nil {
+		return nil, err
+	}
+
+	t := comparisonTargetFor(column, target)
+
+	coerced, err := values.CoerceSQLValue(t.sqlType, v)
+	if err != nil {
+		return nil, fmt.Errorf("coercing scalar value for %s: %w", t.sourceColumn, err)
+	}
+
+	return coerced, nil
+}
+
 // resolveArrayValue resolves a variable reference and extracts an array of values.
 // This is the common pattern for array operators (_in, _nin).
 func resolveArrayValue(
@@ -461,6 +488,27 @@ func resolveArrayValue(
 	}
 
 	return out, nil
+}
+
+func resolveTargetArrayValue(
+	column *core.Column,
+	target *comparisonTarget,
+	operatorValue *ast.Value,
+	variables map[string]any,
+) ([]any, error) {
+	out, err := resolveArrayValue(operatorValue, variables)
+	if err != nil {
+		return nil, err
+	}
+
+	t := comparisonTargetFor(column, target)
+
+	coerced, err := values.CoerceSQLValues(t.sqlType, out)
+	if err != nil {
+		return nil, fmt.Errorf("coercing array values for %s: %w", t.sourceColumn, err)
+	}
+
+	return coerced, nil
 }
 
 // resolveStringArrayValue resolves a variable reference and extracts a string array.
@@ -485,30 +533,42 @@ func resolveStringArrayValue(
 // ParseFieldComparison parses an operator object ({_eq: ..., _in: ..., ...}) for a
 // single column into a Statement. Multiple operators in the same object are
 // AND-ed together. An empty object returns a nil Statement. The per-operator
-// logic lives in the operatorParsers dispatch table in operators.go.
-func ParseFieldComparison( //nolint:ireturn,nolintlint
+// logic lives in the operatorParserFor dispatch table in operators.go.
+func ParseFieldComparison(
 	t Table,
 	column *core.Column,
 	value *ast.Value,
 	variables map[string]any,
 ) (Statement, error) {
+	return parseFieldComparisonValue(column, nil, value, variables, t.Dialect())
+}
+
+func parseFieldComparisonValue(
+	column *core.Column,
+	target *comparisonTarget,
+	value *ast.Value,
+	variables map[string]any,
+	d dialect.Dialect,
+) (Statement, error) {
 	if value.Kind != ast.ObjectValue {
 		return nil, errFieldComparisonMustBeObject
 	}
 
-	d := t.Dialect()
-
 	conditions := make([]Statement, 0, len(value.Children))
 
 	for _, child := range value.Children {
-		parser, ok := operatorParsers[child.Name]
+		parser, ok := operatorParserFor(child.Name)
 		if !ok {
 			return nil, fmt.Errorf("%w: %s", errUnknownWhereOperator, child.Name)
 		}
 
-		cond, err := parser(column, child.Value, variables, d)
+		cond, err := parser(column, target, child.Value, variables, d)
 		if err != nil {
 			return nil, err
+		}
+
+		if cond == nil {
+			continue
 		}
 
 		conditions = append(conditions, cond)

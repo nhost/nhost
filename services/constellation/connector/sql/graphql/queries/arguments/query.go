@@ -494,6 +494,11 @@ func parsePkArguments(
 			)
 		}
 
+		value, err = values.CoerceSQLValue(col.SQLType, value)
+		if err != nil {
+			return nil, fmt.Errorf("failed to coerce pk column %s: %w", col.GraphqlName, err)
+		}
+
 		pkConditions[i] = where.NewEqualsFilter(col, value, t.Dialect())
 	}
 

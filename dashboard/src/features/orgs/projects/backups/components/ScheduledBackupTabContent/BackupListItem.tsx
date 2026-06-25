@@ -1,9 +1,8 @@
 import { format, formatDistanceStrict, parseISO } from 'date-fns';
 import { twMerge } from 'tailwind-merge';
 import { useDialog } from '@/components/common/DialogProvider';
-import { Button } from '@/components/ui/v2/Button';
-import { TableCell } from '@/components/ui/v2/TableCell';
-import { TableRow } from '@/components/ui/v2/TableRow';
+import { Button, ButtonWithLoading } from '@/components/ui/v3/button';
+import { TableCell, TableRow } from '@/components/ui/v3/table';
 import type { Backup } from '@/types/application';
 import { useGetBackupPresignedUrlLazyQuery } from '@/utils/__generated__/graphql';
 import { prettifySize } from '@/utils/prettifySize';
@@ -72,22 +71,28 @@ export default function BackupListItem({
         })}
       </TableCell>
       <TableCell
-        className={twMerge(
-          'grid grid-flow-col justify-end gap-2',
-          !loadingPresignedUrl && 'pl-8',
-        )}
+        className={twMerge('text-right', !loadingPresignedUrl && 'pl-8')}
       >
-        <Button
-          variant="borderless"
-          onClick={downloadBackup}
-          loading={loadingPresignedUrl}
-        >
-          Download
-        </Button>
+        <div className="flex flex-row justify-end gap-2">
+          <ButtonWithLoading
+            variant="ghost"
+            size="sm"
+            className="text-primary hover:text-primary"
+            onClick={downloadBackup}
+            loading={loadingPresignedUrl}
+          >
+            Download
+          </ButtonWithLoading>
 
-        <Button variant="borderless" onClick={restoreBackup}>
-          Restore
-        </Button>
+          <Button
+            variant="ghost"
+            size="sm"
+            className="text-primary hover:text-primary"
+            onClick={restoreBackup}
+          >
+            Restore
+          </Button>
+        </div>
       </TableCell>
     </TableRow>
   );

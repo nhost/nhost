@@ -1,0 +1,10 @@
+# Path Lookups
+[ {{ $foo }},
+  {{ $foo.bar.baz }},
+  {{ $foo['bar baz'].qux }},
+  {{ $foo[1][0][3].ok }},
+  {{ $foo?.bar }},
+  {{ $foo?['bar'] }},
+  {{ $foo?[1] }},
+  {{ $foo?[1]?.baz }}
+]
