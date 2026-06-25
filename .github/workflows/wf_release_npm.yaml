@@ -11,21 +11,17 @@ on:
       VERSION:
         type: string
         required: true
-      ARTIFACT:
-        type: string
-        required: false
-        default: ""
     secrets:
       AWS_ACCOUNT_ID:
-        required: false
+        required: true
       NIX_CACHE_PUB_KEY:
-        required: false
+        required: true
       NIX_CACHE_PRIV_KEY:
-        required: false
+        required: true
       NIX_CACHE_ACCESS_KEY_ID:
-        required: false
+        required: true
       NIX_CACHE_SECRET_ACCESS_KEY:
-        required: false
+        required: true
       DISCORD_WEBHOOK:
         required: false
 
@@ -43,110 +39,59 @@ jobs:
       contents: read
 
     steps:
-    - name: "Check out repository"
-      uses: actions/checkout@v6
+      - name: "Check out repository"
+        uses: actions/checkout@v6
 
-    - name: Configure aws
-      if: ${{ inputs.ARTIFACT == '' }}
-      uses: aws-actions/configure-aws-credentials@v6
-      with:
-        role-to-assume: arn:aws:iam::${{ secrets.AWS_ACCOUNT_ID }}:role/github-actions-nhost-${{ github.event.repository.name }}
-        aws-region: eu-central-1
+      - name: Configure aws
+        uses: aws-actions/configure-aws-credentials@v6
+        with:
+          role-to-assume: arn:aws:iam::${{ secrets.AWS_ACCOUNT_ID }}:role/github-actions-nhost-${{ github.event.repository.name }}
+          aws-region: eu-central-1
 
-    - name: Setup Nix with Cache
-      if: ${{ inputs.ARTIFACT == '' }}
-      uses: ./.github/actions/setup-nix
-      with:
-        NAME: ${{ inputs.NAME }}
-        NIX_CACHE_PUB_KEY: ${{ secrets.NIX_CACHE_PUB_KEY }}
-        NIX_CACHE_ACCESS_KEY_ID: ${{ secrets.NIX_CACHE_ACCESS_KEY_ID }}
-        NIX_CACHE_SECRET_ACCESS_KEY: ${{ secrets.NIX_CACHE_SECRET_ACCESS_KEY }}
-        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+      - name: Setup Nix with Cache
+        uses: ./.github/actions/setup-nix
+        with:
+          NAME: ${{ inputs.NAME }}
+          NIX_CACHE_PUB_KEY: ${{ secrets.NIX_CACHE_PUB_KEY }}
+          NIX_CACHE_ACCESS_KEY_ID: ${{ secrets.NIX_CACHE_ACCESS_KEY_ID }}
+          NIX_CACHE_SECRET_ACCESS_KEY: ${{ secrets.NIX_CACHE_SECRET_ACCESS_KEY }}
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
-    - name: "Build package"
-      if: ${{ inputs.ARTIFACT == '' }}
-      run: make build
+      - name: "Build package"
+        run: make build
 
-    - name: "Copy build output"
-      if: ${{ inputs.ARTIFACT == '' }}
-      run: cp -r result/dist .
+      - name: "Copy build output"
+        run: cp -r result/dist .
 
-    - name: "Set package version"
-      if: ${{ inputs.ARTIFACT == '' }}
-      run: |
-        nix develop .#pnpm -c pnpm version ${{ inputs.VERSION }} --no-git-tag-version
+      - name: "Set package version"
+        run: |
+          nix develop .#pnpm -c pnpm version "${{ inputs.VERSION }}" --no-git-tag-version
 
-    - name: "Setup Node"
-      if: ${{ inputs.ARTIFACT != '' }}
-      uses: actions/setup-node@v6
-      with:
-        # npm >= 11.5.1 is required for OIDC trusted publishing
-        node-version: "24"
-
-    - name: "Download staged packages"
-      if: ${{ inputs.ARTIFACT != '' }}
-      uses: actions/download-artifact@v8
-      with:
-        name: ${{ inputs.ARTIFACT }}
-        path: ${{ inputs.PATH }}/dist
-
-    - name: "Determine npm tag"
-      id: npm-tag
-      run: |
-        if [[ "${{ inputs.VERSION }}" =~ (alpha|beta|dev|rc) ]]; then
-          echo "tag=beta" >> $GITHUB_OUTPUT
-        else
-          echo "tag=latest" >> $GITHUB_OUTPUT
-        fi
-
-    - name: "Publish to npm"
-      if: ${{ inputs.ARTIFACT == '' }}
-      run: |
-        nix develop .#pnpm -c pnpm publish --tag ${{ steps.npm-tag.outputs.tag }} --no-git-checks
-
-    - name: "Publish to npm"
-      if: ${{ inputs.ARTIFACT != '' }}
-      env:
-        TAG: ${{ steps.npm-tag.outputs.tag }}
-      run: |
-        set -euo pipefail
-
-        # upload-artifact does not preserve the executable bit; the platform
-        # binaries (and the main shim) must be executable or installs break.
-        chmod +x dist/*/nhost dist/main/bin/nhost
-
-        publish() {
-          dir="$1"
-          name=$(node -p "require('./$dir/package.json').name")
-          version=$(node -p "require('./$dir/package.json').version")
-          if [ "$(npm view "$name@$version" version 2>/dev/null || true)" = "$version" ]; then
-            echo "--> skipping $name@$version (already published)"
-            return
+      - name: "Determine npm tag"
+        id: npm-tag
+        run: |
+          if [[ "${{ inputs.VERSION }}" =~ (alpha|beta|dev|rc) ]]; then
+            echo "tag=beta" >> "$GITHUB_OUTPUT"
+          else
+            echo "tag=latest" >> "$GITHUB_OUTPUT"
           fi
-          echo "--> publishing $name@$version (tag: $TAG)"
-          npm publish "./$dir" --access public --tag "$TAG"
-        }
 
-        # Platform packages must be live before the main package: a published
-        # main with missing platform packages breaks installs.
-        for dir in dist/*/; do
-          [ "$dir" = "dist/main/" ] && continue
-          publish "${dir%/}"
-        done
-        publish dist/main
+      - name: "Publish to npm"
+        run: |
+          nix develop .#pnpm -c pnpm publish --tag "${{ steps.npm-tag.outputs.tag }}" --no-git-checks
 
-    - name: Send Discord notification
-      if: always()
-      uses: ./.github/actions/discord-notification
-      with:
-        webhook-url: ${{ secrets.DISCORD_WEBHOOK }}
-        title: "Published ${{ inputs.NAME }}@${{ inputs.VERSION }} to npm"
-        description: |
-          **Status**: ${{ job.status }}
-          **Tag**: ${{ steps.npm-tag.outputs.tag }}
-          **Triggered by**: ${{ github.actor }}
+      - name: Send Discord notification
+        if: always()
+        uses: ./.github/actions/discord-notification
+        with:
+          webhook-url: ${{ secrets.DISCORD_WEBHOOK }}
+          title: "Published ${{ inputs.NAME }}@${{ inputs.VERSION }} to npm"
+          description: |
+            **Status**: ${{ job.status }}
+            **Tag**: ${{ steps.npm-tag.outputs.tag }}
+            **Triggered by**: ${{ github.actor }}
 
-          **Details**:
-          - Version: ${{ inputs.VERSION }}
-          - Package: ${{ inputs.NAME }}
-        color: ${{ job.status == 'success' && '5763719' || '15548997' }}
+            **Details**:
+            - Version: ${{ inputs.VERSION }}
+            - Package: ${{ inputs.NAME }}
+          color: ${{ job.status == 'success' && '5763719' || '15548997' }}

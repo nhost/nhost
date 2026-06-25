@@ -153,7 +153,21 @@ Restore `.github/workflows/wf_release_npm.yaml` to its pre-branch JS/SDK-only Ni
 
 **Implementation log**
 
-_(filled by `nhost-implement` during execution: implementation notes, reviewer verdict, and any assumption/decision taken with its pillar justification.)_
+- Implemented inline CLI npm publishing in `.github/workflows/cli_wf_release.yaml`: removed the `cli-npm-dist` artifact handoff and reusable `wf_release_npm.yaml` call, added a dependent `publish-npm` job that checks out the release ref, configures Nix/cache access, runs `make get-version` before `make build-npm`, gates npm trusted publishing support on npm `>= 11.5.1`, validates staged package names/versions/optional dependencies/executable bits, publishes platform packages before `@nhost/cli`, and skips already-published `name@version` pairs.
+- Restored `.github/workflows/wf_release_npm.yaml` to the JS/SDK-only Nix + pnpm release flow. `.github/workflows/ci_release.yaml` was left unchanged because it already passes `DISCORD_WEBHOOK_PRODUCTION` into the CLI workflow, and the Discord action itself guards empty webhook URLs.
+- Reviewer verdict: `ACCEPT`. The reviewer confirmed the shared npm workflow matches the pre-CLI baseline, the CLI workflow no longer references `wf_release_npm.yaml`, the publish job satisfies the phase definition of done, and residual npm OIDC/bootstrap risks are external operational prerequisites for Phase 3 docs rather than blockers.
+- Autonomous decisions / assumptions:
+  - Used the plan's workflow/package checks as the mandatory Phase 1 gate instead of unrelated full monorepo tests because Phase 1 only changes release workflows; this maximizes correctness signal and long-term maintainability without widening validation to unrelated projects.
+  - Treated the initial local `make -C cli get-version` failure on macOS BSD `date`/`sed` as an environment/tooling mismatch, then reran the same gate with GNU coreutils/gnused on `PATH`, matching CI/Linux semantics; this preserves correctness while avoiding a false negative from local platform tools.
+  - Accepted the reviewer-noted npm trusted-publisher live-claim and first-publish bootstrap risks as non-blocking because they are external operational prerequisites already called out by the plan and will be documented in Phase 3.
+- Quality gate history:
+  - `nix run nixpkgs#actionlint -- -ignore 'label "blacksmith-2vcpu-ubuntu-2404" is unknown' -ignore 'SC2001' -ignore 'SC2086' .github/workflows/ci_release.yaml .github/workflows/cli_wf_release.yaml .github/workflows/wf_release_npm.yaml` — passed. Unignored actionlint only reported the repository's custom runner label and pre-existing unchanged `ci_release.yaml` shellcheck style/info findings.
+  - Static grep checks — passed: no `actions/setup-node` in `.github/workflows` for this feature, no `cli-npm-dist`, no `ARTIFACT` input/branch in `wf_release_npm.yaml`, and no CLI `publish-npm` call to `wf_release_npm.yaml`.
+  - `nix develop .#pnpm -c npm --version` — passed with npm `11.7.0`.
+  - `make -C cli get-version VER=0.0.0-dev && make -C cli build-npm` — initially failed locally with BSD `date`/`sed`; rerun with GNU coreutils/gnused on `PATH` passed and restored `cli/project.nix` afterwards.
+  - `nix develop .#pnpm -c npm pack --dry-run --json ./cli/result/dist/{main,darwin-arm64,darwin-x64,linux-arm64,linux-x64}` — passed for all five staged packages.
+  - Direct staged package validation for versions, optional dependencies, package names, and executable bits — passed.
+  - `git diff --check` for the scoped workflow files — passed.
 
 ### Phase 2 — Harden Nix package staging invariants
 
