@@ -170,7 +170,11 @@ func (e *evaluator) eval(n ast.Node) (Value, error) {
 		return e.evalFunction(x)
 	}
 
-	return nil, &Error{Code: CodeType, Msg: fmt.Sprintf("unhandled node type %T", n), Span: n.GetSpan()}
+	return nil, &Error{
+		Code: CodeType,
+		Msg:  fmt.Sprintf("unhandled node type %T", n),
+		Span: n.GetSpan(),
+	}
 }
 
 func (e *evaluator) evalStringTem(x ast.StringTem) (Value, error) {

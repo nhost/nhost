@@ -113,12 +113,11 @@ func assertDerivedError(t *testing.T, golden string, renderErr error) {
 	// "Parse Error". Strip the "ERROR " prefix and the class label.
 	rest := strings.TrimPrefix(golden, "ERROR ")
 
-	idx := strings.Index(rest, ": ")
-	if idx < 0 {
+	_, wantMsg, found := strings.Cut(rest, ": ")
+	if !found {
 		t.Fatalf("malformed ERROR golden: %q", golden)
 	}
 
-	wantMsg := rest[idx+2:]
 	if jerr.Message != wantMsg {
 		t.Errorf("error message mismatch\nwant: %q\ngot:  %q", wantMsg, jerr.Message)
 	}

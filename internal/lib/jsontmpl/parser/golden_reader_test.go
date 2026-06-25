@@ -487,7 +487,12 @@ func interpReq(t *term) (*gnode, error) {
 		return nil, err
 	}
 
-	return &gnode{kind: "Req", span: termSpan(t.args[0]), kids: []*gnode{root}, keys: []gkey{key}}, nil
+	return &gnode{
+		kind: "Req",
+		span: termSpan(t.args[0]),
+		kids: []*gnode{root},
+		keys: []gkey{key},
+	}, nil
 }
 
 func interpOpt(t *term) (*gnode, error) {

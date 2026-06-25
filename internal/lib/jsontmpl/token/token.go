@@ -36,6 +36,7 @@ const (
 	KindEOF Kind = iota
 
 	// Literal-bearing.
+
 	KindStringLit
 	KindIdentifier
 	KindIntLit
@@ -43,6 +44,7 @@ const (
 	KindBoolLit
 
 	// Symbols (Token.hs:20-46).
+
 	KindBling              // $
 	KindColon              // :
 	KindDot                // .

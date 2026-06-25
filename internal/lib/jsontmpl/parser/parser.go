@@ -126,12 +126,13 @@ func (p *parser) expect(k token.Kind) (token.Token, error) {
 
 // expectIdent asserts the current token is an identifier with the
 // given text and consumes it.
-func (p *parser) expectIdent(name string) (token.Token, error) {
+func (p *parser) expectIdent(name string) error {
 	t := p.peek()
 	if t.Kind != token.KindIdentifier || t.Text != name {
-		return t, p.errAt(t.Span, fmt.Sprintf("expected identifier %q, got %s", name, t))
+		return p.errAt(t.Span, fmt.Sprintf("expected identifier %q, got %s", name, t))
 	}
-	return p.advance(), nil
+	p.advance()
+	return nil
 }
 
 func (p *parser) isIdent(name string) bool {
@@ -478,7 +479,7 @@ func (p *parser) parseCurlyExpr() (ast.Node, error) {
 // parseRange: '{{' 'range' mident ',' ident ':=' expr '}}' expr '{{'
 // 'end' '}}'. `{{` was already consumed by the caller.
 func (p *parser) parseRange(open token.Token) (ast.Node, error) {
-	if _, err := p.expectIdent("range"); err != nil {
+	if err := p.expectIdent("range"); err != nil {
 		return nil, err
 	}
 	idxName, err := p.parseMident()
@@ -509,7 +510,7 @@ func (p *parser) parseRange(open token.Token) (ast.Node, error) {
 	if _, err := p.expect(token.KindDoubleCurlyOpen); err != nil {
 		return nil, err
 	}
-	if _, err := p.expectIdent("end"); err != nil {
+	if err := p.expectIdent("end"); err != nil {
 		return nil, err
 	}
 	close, err := p.expect(token.KindDoubleCurlyClose)
@@ -542,7 +543,7 @@ func (p *parser) parseMident() (string, error) {
 // parseIff: '{{' 'if' expr '}}' expr elif* '{{' 'else' '}}' expr '{{'
 // 'end' '}}'. `{{` was already consumed by the caller.
 func (p *parser) parseIff(open token.Token) (ast.Node, error) {
-	if _, err := p.expectIdent("if"); err != nil {
+	if err := p.expectIdent("if"); err != nil {
 		return nil, err
 	}
 	cond, err := p.parseExpr()
@@ -581,7 +582,7 @@ func (p *parser) parseIff(open token.Token) (ast.Node, error) {
 	if _, err := p.expect(token.KindDoubleCurlyOpen); err != nil {
 		return nil, err
 	}
-	if _, err := p.expectIdent("else"); err != nil {
+	if err := p.expectIdent("else"); err != nil {
 		return nil, err
 	}
 	if _, err := p.expect(token.KindDoubleCurlyClose); err != nil {
@@ -594,7 +595,7 @@ func (p *parser) parseIff(open token.Token) (ast.Node, error) {
 	if _, err := p.expect(token.KindDoubleCurlyOpen); err != nil {
 		return nil, err
 	}
-	if _, err := p.expectIdent("end"); err != nil {
+	if err := p.expectIdent("end"); err != nil {
 		return nil, err
 	}
 	close, err := p.expect(token.KindDoubleCurlyClose)

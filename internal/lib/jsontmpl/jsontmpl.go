@@ -16,6 +16,7 @@ import (
 	"encoding/json/jsontext"
 	json "encoding/json/v2"
 	"errors"
+	"fmt"
 	"maps"
 
 	"github.com/nhost/nhost/internal/lib/jsontmpl/eval"
@@ -90,7 +91,7 @@ func Render(template string, scope Scope) (jsontext.Value, error) {
 		fm[name] = func(arg eval.Value) (eval.Value, error) {
 			rawArg, err := json.Marshal(arg, json.Deterministic(true))
 			if err != nil {
-				return nil, err
+				return nil, fmt.Errorf("marshal function argument: %w", err)
 			}
 
 			rawRes, err := caller(rawArg)
@@ -107,7 +108,11 @@ func Render(template string, scope Scope) (jsontext.Value, error) {
 		return nil, wrapEvalErr(err)
 	}
 
-	return json.Marshal(result, json.Deterministic(true))
+	out, err := json.Marshal(result, json.Deterministic(true))
+	if err != nil {
+		return nil, fmt.Errorf("marshal render result: %w", err)
+	}
+	return out, nil
 }
 
 func wrapLexErr(err error) error {

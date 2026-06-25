@@ -47,7 +47,8 @@ func (c *astCache) get(key string) (ast.Node, bool) {
 		return nil, false
 	}
 	c.order.MoveToFront(el)
-	return el.Value.(*cacheEntry).ast, true
+	entry, _ := el.Value.(*cacheEntry)
+	return entry.ast, true
 }
 
 func (c *astCache) put(key string, n ast.Node) {
@@ -55,7 +56,8 @@ func (c *astCache) put(key string, n ast.Node) {
 	defer c.mu.Unlock()
 	if el, ok := c.entries[key]; ok {
 		c.order.MoveToFront(el)
-		el.Value.(*cacheEntry).ast = n
+		entry, _ := el.Value.(*cacheEntry)
+		entry.ast = n
 		return
 	}
 	el := c.order.PushFront(&cacheEntry{key: key, ast: n})
@@ -64,7 +66,8 @@ func (c *astCache) put(key string, n ast.Node) {
 		oldest := c.order.Back()
 		if oldest != nil {
 			c.order.Remove(oldest)
-			delete(c.entries, oldest.Value.(*cacheEntry).key)
+			entry, _ := oldest.Value.(*cacheEntry)
+			delete(c.entries, entry.key)
 		}
 	}
 }

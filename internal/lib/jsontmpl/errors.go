@@ -69,7 +69,7 @@ func (e *Error) Unwrap() error { return e.Cause }
 //	  }
 //	}
 func (e *Error) MarshalJSON() ([]byte, error) {
-	return json.Marshal(struct {
+	out, err := json.Marshal(struct {
 		ErrorCode      ErrorCode `json:"error_code"`
 		Message        string    `json:"message"`
 		SourcePosition struct {
@@ -93,4 +93,8 @@ func (e *Error) MarshalJSON() ([]byte, error) {
 			EndColumn:   e.Span.End.Column,
 		},
 	})
+	if err != nil {
+		return nil, fmt.Errorf("marshal serialized error: %w", err)
+	}
+	return out, nil
 }

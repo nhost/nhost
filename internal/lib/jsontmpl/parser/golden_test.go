@@ -83,7 +83,11 @@ func spanExemptKind(kind string) bool {
 	}
 }
 
-func (g *gnode) dump(b *strings.Builder, depth int, showSpans bool) { //nolint:cyclop // flat per-kind dump.
+func (g *gnode) dump(
+	b *strings.Builder,
+	depth int,
+	showSpans bool,
+) { //nolint:cyclop // flat per-kind dump.
 	pad := strings.Repeat("  ", depth)
 
 	if g == nil {
@@ -338,7 +342,12 @@ func astToG(n ast.Node) *gnode {
 			kids:   []*gnode{astToG(x.Source), astToG(x.Body)},
 		}
 	case ast.RequiredFieldAccess:
-		return &gnode{kind: "Req", span: spanOf(n), kids: []*gnode{astToG(x.Root)}, keys: []gkey{keyOf(x.Field)}}
+		return &gnode{
+			kind: "Req",
+			span: spanOf(n),
+			kids: []*gnode{astToG(x.Root)},
+			keys: []gkey{keyOf(x.Field)},
+		}
 	case ast.OptionalFieldAccess:
 		keys := make([]gkey, len(x.Fields))
 		for i, f := range x.Fields {

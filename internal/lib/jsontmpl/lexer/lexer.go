@@ -23,6 +23,7 @@
 package lexer
 
 import (
+	"errors"
 	"fmt"
 	"strings"
 	"unicode/utf16"
@@ -47,10 +48,7 @@ func (e *Error) Error() string {
 func Lex(src string) ([]token.Token, error) {
 	l := &lexer{src: src}
 	l.pushMode(modeInit)
-	for {
-		if l.eof() {
-			break
-		}
+	for !l.eof() {
 		if err := l.step(); err != nil {
 			return nil, err
 		}
@@ -112,10 +110,7 @@ func (l *lexer) has2(s string) bool {
 // advanceN advances n bytes, updating line/col. Assumes the consumed
 // bytes do not contain mid-codepoint splits.
 func (l *lexer) advanceN(n int) {
-	end := l.pos.Offset + n
-	if end > len(l.src) {
-		end = len(l.src)
-	}
+	end := min(l.pos.Offset+n, len(l.src))
 	for l.pos.Offset < end {
 		r, size := utf8.DecodeRuneInString(l.src[l.pos.Offset:])
 		if r == '\n' {
@@ -736,7 +731,7 @@ func (l *lexer) lexUnicodeEscape(start token.Position) error {
 
 func (l *lexer) readHex4() (rune, error) {
 	var v rune
-	for i := 0; i < 4; i++ {
+	for range 4 {
 		c := l.peek(0)
 		switch {
 		case c >= '0' && c <= '9':
@@ -746,7 +741,7 @@ func (l *lexer) readHex4() (rune, error) {
 		case c >= 'A' && c <= 'F':
 			v = v<<4 | rune(c-'A'+10)
 		default:
-			return 0, fmt.Errorf("expected 4 hex digits in \\u escape")
+			return 0, errors.New("expected 4 hex digits in \\u escape")
 		}
 		l.advanceN(1)
 	}

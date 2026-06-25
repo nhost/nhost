@@ -28,6 +28,7 @@ import (
 )
 
 func seedCorpus(f *testing.F) {
+	f.Helper()
 	roots := []string{
 		"testdata/conformance/eval/examples",
 		"testdata/conformance/parser/success/examples",

@@ -59,12 +59,52 @@ linters:
           - ireturn
           - err113
           - nilnil
+          # Opinionated style linters: the lexer/parser are a faithful
+          # hand-port of upstream Kriti and follow its control-flow shape,
+          # so the whitespace/struct-completeness/magic-number conventions
+          # are deliberately not idiomatic-Go here.
+          - wsl_v5
+          - exhaustruct
+          - paralleltest
+          - mnd
         path: internal/lib/jsontmpl/
       - linters:
           - revive
           - staticcheck
         path: internal/lib/jsontmpl/
         text: error-strings|ST1005
+      # jsontmpl: structural consequences of the faithful Kriti port — large
+      # lexer/parser switch-and-dispatch functions, duplicated table-driven
+      # tests, and the package-level render cache. Same rationale as the
+      # carve-outs above.
+      - linters:
+          - exhaustive
+          - gocyclo
+          - cyclop
+          - maintidx
+          - funlen
+          - dupl
+          - gochecknoglobals
+          - testpackage
+          - dupword
+          - lll
+          - nolintlint
+        path: internal/lib/jsontmpl/
+      # Package names mirror upstream Kriti (ast/parser/token) and close/cap
+      # are used as local identifiers in the ported lexer/parser.
+      - linters:
+          - revive
+          - predeclared
+        path: internal/lib/jsontmpl/
+        text: redefines-builtin-id|var-naming|same name as predeclared
+      # parser.go assembles literal fragments with += inside the ported
+      # scanner loops; rewriting to strings.Builder reshuffles the
+      # flush/span bookkeeping of a faithful port (see UPSTREAM.md) for no
+      # real gain on these short key/string fragments.
+      - linters:
+          - modernize
+          - perfsprint
+        path: internal/lib/jsontmpl/parser/
 
       # storage service specific rules
       - linters:
