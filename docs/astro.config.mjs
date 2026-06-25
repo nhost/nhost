@@ -1,15 +1,15 @@
 // @ts-check
 
-import path from "node:path";
-import { fileURLToPath } from "node:url";
-import sitemap from "@astrojs/sitemap";
-import starlight from "@astrojs/starlight";
-import vercel from "@astrojs/vercel";
-import { defineConfig } from "astro/config";
-import starlightSidebarTopics from "starlight-sidebar-topics";
+import path from 'node:path';
+import { fileURLToPath } from 'node:url';
+import sitemap from '@astrojs/sitemap';
+import starlight from '@astrojs/starlight';
+import vercel from '@astrojs/vercel';
+import { defineConfig } from 'astro/config';
+import starlightSidebarTopics from 'starlight-sidebar-topics';
 import starlightOpenAPI, {
   createOpenAPISidebarGroup,
-} from "./src/plugins/starlight-openapi/index.ts";
+} from './src/plugins/starlight-openapi/index.ts';
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 
@@ -19,12 +19,12 @@ const storageAPISidebarGroup = createOpenAPISidebarGroup();
 
 // https://astro.build/config
 export default defineConfig({
-  site: "https://docs.nhost.io",
+  site: 'https://docs.nhost.io',
   // Serve URLs without a trailing slash (e.g. /products/auth, not /products/auth/).
   // Keeps the Starlight canonical tag and internal links in the no-slash form, and
   // makes the Vercel adapter emit 308 redirects from old `/path/` URLs so already
   // indexed pages and external backlinks keep working.
-  trailingSlash: "never",
+  trailingSlash: 'never',
   // Astro 6.4 moved the GFM default onto the new `markdown.processor` (unified())
   // and left the legacy `markdown.gfm` flag undefined-by-default. But
   // @astrojs/mdx@5.0.6 still reads the legacy flag rather than the processor, so
@@ -37,18 +37,18 @@ export default defineConfig({
   },
   adapter: vercel({
     includeFiles: [
-      "./src/assets/fonts/Inter-Regular.ttf",
-      "./src/assets/fonts/Inter-SemiBold.ttf",
-      "./src/assets/fonts/Inter-Bold.ttf",
-      "./src/assets/logo/dark.svg",
+      './src/assets/fonts/Inter-Regular.ttf',
+      './src/assets/fonts/Inter-SemiBold.ttf',
+      './src/assets/fonts/Inter-Bold.ttf',
+      './src/assets/logo/dark.svg',
     ],
   }),
-  cacheDir: path.resolve(__dirname, ".astro"),
+  cacheDir: path.resolve(__dirname, '.astro'),
   vite: {
-    cacheDir: path.resolve(__dirname, ".vite"),
+    cacheDir: path.resolve(__dirname, '.vite'),
     resolve: {
       alias: {
-        "@components": path.resolve(__dirname, "./src/components"),
+        '@components': path.resolve(__dirname, './src/components'),
       },
     },
   },
@@ -58,53 +58,53 @@ export default defineConfig({
     // tag when this integration is present, and robots.txt points crawlers at it.
     sitemap(),
     starlight({
-      title: "Nhost Documentation",
+      title: 'Nhost Documentation',
       logo: {
-        light: "./src/assets/logo/light.svg",
-        dark: "./src/assets/logo/dark.svg",
+        light: './src/assets/logo/light.svg',
+        dark: './src/assets/logo/dark.svg',
         replacesTitle: true,
       },
-      customCss: ["./src/styles/custom.css"],
+      customCss: ['./src/styles/custom.css'],
       social: [
-        { icon: "x.com", label: "Twitter", href: "https://twitter.com/nhost" },
-        { icon: "github", label: "GitHub", href: "https://github.com/nhost" },
+        { icon: 'x.com', label: 'Twitter', href: 'https://twitter.com/nhost' },
+        { icon: 'github', label: 'GitHub', href: 'https://github.com/nhost' },
         {
-          icon: "linkedin",
-          label: "LinkedIn",
-          href: "https://www.linkedin.com/company/nhost",
+          icon: 'linkedin',
+          label: 'LinkedIn',
+          href: 'https://www.linkedin.com/company/nhost',
         },
       ],
       components: {
-        Header: "./src/components/Header.astro",
-        Head: "./src/components/Head.astro",
-        PageTitle: "./src/components/PageTitle.astro",
-        TableOfContents: "./src/components/TableOfContents.astro",
-        ThemeSelect: "./src/components/ThemeSelect.astro",
+        Header: './src/components/Header.astro',
+        Head: './src/components/Head.astro',
+        PageTitle: './src/components/PageTitle.astro',
+        TableOfContents: './src/components/TableOfContents.astro',
+        ThemeSelect: './src/components/ThemeSelect.astro',
       },
       plugins: [
         starlightOpenAPI([
           {
-            base: "reference/auth",
-            schema: "./src/schemas/auth.yaml",
+            base: 'reference/auth',
+            schema: './src/schemas/auth.yaml',
             sidebar: {
-              label: "Auth API",
+              label: 'Auth API',
               collapsed: true,
               group: authAPISidebarGroup,
               operations: {
-                labels: "path",
+                labels: 'path',
                 badges: true,
               },
             },
           },
           {
-            base: "reference/storage",
-            schema: "./src/schemas/storage.yaml",
+            base: 'reference/storage',
+            schema: './src/schemas/storage.yaml',
             sidebar: {
-              label: "Storage API",
+              label: 'Storage API',
               collapsed: true,
               group: storageAPISidebarGroup,
               operations: {
-                labels: "path",
+                labels: 'path',
                 badges: true,
               },
             },
@@ -114,132 +114,136 @@ export default defineConfig({
           [
             // Getting Started
             {
-              id: "getting-started",
-              label: "Getting Started",
-              link: "/getting-started",
+              id: 'getting-started',
+              label: 'Getting Started',
+              link: '/getting-started',
               items: [
-                { label: "Getting Started", slug: "getting-started" },
+                { label: 'Getting Started', slug: 'getting-started' },
                 {
-                  label: "Quickstart",
+                  label: 'Quickstart',
                   collapsed: false,
                   items: [
-                    { slug: "getting-started/quickstart/cli" },
-                    { slug: "getting-started/quickstart/react" },
-                    { slug: "getting-started/quickstart/nextjs" },
-                    { slug: "getting-started/quickstart/vue" },
-                    { slug: "getting-started/quickstart/sveltekit" },
-                    { slug: "getting-started/quickstart/reactnative" },
+                    { slug: 'getting-started/quickstart/react' },
+                    { slug: 'getting-started/quickstart/nextjs' },
+                    { slug: 'getting-started/quickstart/vue' },
+                    { slug: 'getting-started/quickstart/sveltekit' },
+                    { slug: 'getting-started/quickstart/reactnative' },
                   ],
                 },
                 {
-                  label: "Tutorials",
+                  label: 'Local Development',
+                  collapsed: false,
+                  items: [{ slug: 'getting-started/local-development/cli' }],
+                },
+                {
+                  label: 'Tutorials',
                   collapsed: false,
                   items: [
                     {
-                      label: "React",
+                      label: 'React',
                       collapsed: true,
                       items: [
                         {
-                          slug: "getting-started/tutorials/react/1-introduction",
+                          slug: 'getting-started/tutorials/react/1-introduction',
                         },
                         {
-                          slug: "getting-started/tutorials/react/2-protected-routes",
+                          slug: 'getting-started/tutorials/react/2-protected-routes',
                         },
                         {
-                          slug: "getting-started/tutorials/react/3-user-authentication",
+                          slug: 'getting-started/tutorials/react/3-user-authentication',
                         },
                         {
-                          slug: "getting-started/tutorials/react/4-graphql-operations",
+                          slug: 'getting-started/tutorials/react/4-graphql-operations',
                         },
                         {
-                          slug: "getting-started/tutorials/react/5-file-uploads",
+                          slug: 'getting-started/tutorials/react/5-file-uploads',
                         },
                       ],
                     },
                     {
-                      label: "Next.js",
+                      label: 'Next.js',
                       collapsed: true,
                       items: [
                         {
-                          slug: "getting-started/tutorials/nextjs/1-introduction",
+                          slug: 'getting-started/tutorials/nextjs/1-introduction',
                         },
                         {
-                          slug: "getting-started/tutorials/nextjs/2-protected-routes",
+                          slug: 'getting-started/tutorials/nextjs/2-protected-routes',
                         },
                         {
-                          slug: "getting-started/tutorials/nextjs/3-user-authentication",
+                          slug: 'getting-started/tutorials/nextjs/3-user-authentication',
                         },
                         {
-                          slug: "getting-started/tutorials/nextjs/4-graphql-operations",
+                          slug: 'getting-started/tutorials/nextjs/4-graphql-operations',
                         },
                         {
-                          slug: "getting-started/tutorials/nextjs/5-file-uploads",
+                          slug: 'getting-started/tutorials/nextjs/5-file-uploads',
                         },
                       ],
                     },
                     {
-                      label: "Vue",
+                      label: 'Vue',
                       collapsed: true,
                       items: [
                         {
-                          slug: "getting-started/tutorials/vue/1-introduction",
+                          slug: 'getting-started/tutorials/vue/1-introduction',
                         },
                         {
-                          slug: "getting-started/tutorials/vue/2-protected-routes",
+                          slug: 'getting-started/tutorials/vue/2-protected-routes',
                         },
                         {
-                          slug: "getting-started/tutorials/vue/3-user-authentication",
+                          slug: 'getting-started/tutorials/vue/3-user-authentication',
                         },
                         {
-                          slug: "getting-started/tutorials/vue/4-graphql-operations",
+                          slug: 'getting-started/tutorials/vue/4-graphql-operations',
                         },
                         {
-                          slug: "getting-started/tutorials/vue/5-file-uploads",
+                          slug: 'getting-started/tutorials/vue/5-file-uploads',
                         },
                       ],
                     },
                     {
-                      label: "Svelte",
+                      label: 'Svelte',
                       collapsed: true,
                       items: [
                         {
-                          slug: "getting-started/tutorials/svelte/1-introduction",
+                          slug: 'getting-started/tutorials/svelte/1-introduction',
                         },
                         {
-                          slug: "getting-started/tutorials/svelte/2-protected-routes",
+                          slug: 'getting-started/tutorials/svelte/2-protected-routes',
                         },
                         {
-                          slug: "getting-started/tutorials/svelte/3-user-authentication",
+                          slug: 'getting-started/tutorials/svelte/3-user-authentication',
                         },
                         {
-                          slug: "getting-started/tutorials/svelte/4-graphql-operations",
+                          slug: 'getting-started/tutorials/svelte/4-graphql-operations',
                         },
                         {
-                          slug: "getting-started/tutorials/svelte/5-file-uploads",
+                          slug: 'getting-started/tutorials/svelte/5-file-uploads',
                         },
                       ],
                     },
                     {
-                      label: "React Native",
+                      label: 'React Native',
                       collapsed: true,
                       items: [
                         {
-                          slug: "getting-started/tutorials/reactnative/1-introduction",
+                          slug: 'getting-started/tutorials/reactnative/1-introduction',
                         },
                         {
-                          slug: "getting-started/tutorials/reactnative/2-protected-routes",
+                          slug: 'getting-started/tutorials/reactnative/2-protected-routes',
                         },
                         {
-                          slug: "getting-started/tutorials/reactnative/3-user-authentication",
+                          slug: 'getting-started/tutorials/reactnative/3-user-authentication',
                         },
                         {
-                          slug: "getting-started/tutorials/reactnative/4-graphql-operations",
+                          slug: 'getting-started/tutorials/reactnative/4-graphql-operations',
                         },
                         {
-                          slug: "getting-started/tutorials/reactnative/5-file-uploads",
+                          slug: 'getting-started/tutorials/reactnative/5-file-uploads',
                         },
                         {
-                          slug: "getting-started/tutorials/reactnative/6-sign-in-with-apple",
+                          slug: 'getting-started/tutorials/reactnative/6-sign-in-with-apple',
                         },
                       ],
                     },
@@ -249,472 +253,472 @@ export default defineConfig({
             },
             // Products Overview
             {
-              id: "products",
-              label: "Products",
-              link: "/products",
-              icon: "puzzle",
-              items: [{ slug: "products" }],
+              id: 'products',
+              label: 'Products',
+              link: '/products',
+              icon: 'puzzle',
+              items: [{ slug: 'products' }],
             },
             // Products - Each product is its own topic
             {
-              id: "products-database",
-              label: "Database",
-              link: "/products/database",
-              icon: "seti:db",
+              id: 'products-database',
+              label: 'Database',
+              link: '/products/database',
+              icon: 'seti:db',
               items: [
-                { label: "Database", slug: "products/database" },
+                { label: 'Database', slug: 'products/database' },
                 {
-                  label: "Guides",
+                  label: 'Guides',
                   collapsed: false,
                   items: [
-                    { slug: "products/database/configuring-postgres" },
-                    { slug: "products/database/backups" },
-                    { slug: "products/database/access" },
-                    { slug: "products/database/extensions" },
-                    { slug: "products/database/performance" },
-                    { slug: "products/database/upgrade-major" },
+                    { slug: 'products/database/configuring-postgres' },
+                    { slug: 'products/database/backups' },
+                    { slug: 'products/database/access' },
+                    { slug: 'products/database/extensions' },
+                    { slug: 'products/database/performance' },
+                    { slug: 'products/database/upgrade-major' },
                   ],
                 },
               ],
             },
             {
-              id: "products-graphql",
-              label: "GraphQL",
-              link: "/products/graphql",
-              icon: "seti:graphql",
+              id: 'products-graphql',
+              label: 'GraphQL',
+              link: '/products/graphql',
+              icon: 'seti:graphql',
               items: [
-                { label: "GraphQL", slug: "products/graphql" },
+                { label: 'GraphQL', slug: 'products/graphql' },
                 {
-                  label: "Configuration",
+                  label: 'Configuration',
                   collapsed: false,
                   items: [
-                    { slug: "products/graphql/configuring-hasura" },
+                    { slug: 'products/graphql/configuring-hasura' },
                     {
-                      label: "Permissions",
+                      label: 'Permissions',
                       collapsed: false,
                       items: [
-                        { slug: "products/graphql/permissions" },
-                        { slug: "products/graphql/permissions/rule-editor" },
+                        { slug: 'products/graphql/permissions' },
+                        { slug: 'products/graphql/permissions/rule-editor' },
                         {
-                          slug: "products/graphql/permissions/permission-variables",
+                          slug: 'products/graphql/permissions/permission-variables',
                         },
-                        { slug: "products/graphql/permissions/examples" },
+                        { slug: 'products/graphql/permissions/examples' },
                       ],
                     },
-                    { slug: "products/graphql/remote-schemas" },
-                    { slug: "products/graphql/advanced-features" },
+                    { slug: 'products/graphql/remote-schemas' },
+                    { slug: 'products/graphql/advanced-features' },
                   ],
                 },
                 {
-                  label: "Guides",
+                  label: 'Guides',
                   collapsed: false,
                   items: [
-                    { slug: "products/graphql/guides/react-apollo" },
-                    { slug: "products/graphql/guides/react-query" },
-                    { slug: "products/graphql/guides/react-urql" },
-                    { slug: "products/graphql/guides/codegen-nhost" },
-                    { slug: "products/graphql/guides/stripe" },
+                    { slug: 'products/graphql/guides/react-apollo' },
+                    { slug: 'products/graphql/guides/react-query' },
+                    { slug: 'products/graphql/guides/react-urql' },
+                    { slug: 'products/graphql/guides/codegen-nhost' },
+                    { slug: 'products/graphql/guides/stripe' },
                   ],
                 },
               ],
             },
             {
-              id: "products-auth",
-              label: "Auth",
-              link: "/products/auth",
-              icon: "seti:lock",
+              id: 'products-auth',
+              label: 'Auth',
+              link: '/products/auth',
+              icon: 'seti:lock',
               items: [
-                { label: "Auth", slug: "products/auth" },
+                { label: 'Auth', slug: 'products/auth' },
                 {
-                  label: "Configuration",
+                  label: 'Configuration',
                   collapsed: false,
                   items: [
-                    { slug: "products/auth/users" },
-                    { slug: "products/auth/client_and_redirect_urls" },
-                    { slug: "products/auth/jwt" },
-                    { slug: "products/auth/email-templates" },
-                    { slug: "products/auth/gravatar" },
-                    { slug: "products/auth/controlling-user-creation" },
+                    { slug: 'products/auth/users' },
+                    { slug: 'products/auth/client_and_redirect_urls' },
+                    { slug: 'products/auth/jwt' },
+                    { slug: 'products/auth/email-templates' },
+                    { slug: 'products/auth/gravatar' },
+                    { slug: 'products/auth/controlling-user-creation' },
                   ],
                 },
                 {
-                  label: "Sign In Methods",
+                  label: 'Sign In Methods',
                   collapsed: false,
                   items: [
                     {
-                      label: "Providers",
+                      label: 'Providers',
                       collapsed: true,
                       items: [
-                        { slug: "products/auth/providers" },
-                        { slug: "products/auth/providers/sign-in-provider" },
-                        { slug: "products/auth/providers/tokens" },
-                        { slug: "products/auth/providers/connect" },
-                        { slug: "products/auth/providers/idtokens" },
+                        { slug: 'products/auth/providers' },
+                        { slug: 'products/auth/providers/sign-in-provider' },
+                        { slug: 'products/auth/providers/tokens' },
+                        { slug: 'products/auth/providers/connect' },
+                        { slug: 'products/auth/providers/idtokens' },
                         {
-                          label: "Configuration",
+                          label: 'Configuration',
                           collapsed: true,
                           items: [
-                            { slug: "products/auth/providers/sign-in-apple" },
-                            { slug: "products/auth/providers/sign-in-azuread" },
+                            { slug: 'products/auth/providers/sign-in-apple' },
+                            { slug: 'products/auth/providers/sign-in-azuread' },
                             {
-                              slug: "products/auth/providers/sign-in-bitbucket",
+                              slug: 'products/auth/providers/sign-in-bitbucket',
                             },
-                            { slug: "products/auth/providers/sign-in-discord" },
-                            { slug: "products/auth/providers/sign-in-entraid" },
+                            { slug: 'products/auth/providers/sign-in-discord' },
+                            { slug: 'products/auth/providers/sign-in-entraid' },
                             {
-                              slug: "products/auth/providers/sign-in-facebook",
+                              slug: 'products/auth/providers/sign-in-facebook',
                             },
-                            { slug: "products/auth/providers/sign-in-github" },
-                            { slug: "products/auth/providers/sign-in-gitlab" },
-                            { slug: "products/auth/providers/sign-in-google" },
+                            { slug: 'products/auth/providers/sign-in-github' },
+                            { slug: 'products/auth/providers/sign-in-gitlab' },
+                            { slug: 'products/auth/providers/sign-in-google' },
                             {
-                              slug: "products/auth/providers/sign-in-linkedin",
+                              slug: 'products/auth/providers/sign-in-linkedin',
                             },
-                            { slug: "products/auth/providers/sign-in-spotify" },
-                            { slug: "products/auth/providers/sign-in-strava" },
-                            { slug: "products/auth/providers/sign-in-twitch" },
+                            { slug: 'products/auth/providers/sign-in-spotify' },
+                            { slug: 'products/auth/providers/sign-in-strava' },
+                            { slug: 'products/auth/providers/sign-in-twitch' },
                             {
-                              slug: "products/auth/providers/sign-in-windowslive",
+                              slug: 'products/auth/providers/sign-in-windowslive',
                             },
-                            { slug: "products/auth/providers/sign-in-workos" },
+                            { slug: 'products/auth/providers/sign-in-workos' },
                           ],
                         },
                       ],
                     },
-                    { slug: "products/auth/sign-in-email-password" },
-                    { slug: "products/auth/mfa" },
+                    { slug: 'products/auth/sign-in-email-password' },
+                    { slug: 'products/auth/mfa' },
                     {
-                      label: "One-Time Passwords",
+                      label: 'One-Time Passwords',
                       collapsed: true,
                       items: [
-                        { slug: "products/auth/otp/email" },
-                        { slug: "products/auth/otp/sms" },
+                        { slug: 'products/auth/otp/email' },
+                        { slug: 'products/auth/otp/sms' },
                       ],
                     },
-                    { slug: "products/auth/sign-in-magic-link" },
-                    { slug: "products/auth/sign-in-anonymous" },
-                    { slug: "products/auth/webauthn" },
+                    { slug: 'products/auth/sign-in-magic-link' },
+                    { slug: 'products/auth/sign-in-anonymous' },
+                    { slug: 'products/auth/webauthn' },
                   ],
                 },
                 {
-                  label: "Security",
+                  label: 'Security',
                   collapsed: false,
                   items: [
-                    { slug: "products/auth/pkce" },
-                    { slug: "products/auth/elevated-permissions" },
-                    { slug: "products/auth/bot-protection" },
-                    { slug: "products/auth/custom-jwts" },
-                    { slug: "products/auth/restricting_emails_and_domains" },
+                    { slug: 'products/auth/pkce' },
+                    { slug: 'products/auth/elevated-permissions' },
+                    { slug: 'products/auth/bot-protection' },
+                    { slug: 'products/auth/custom-jwts' },
+                    { slug: 'products/auth/restricting_emails_and_domains' },
                   ],
                 },
                 {
-                  label: "OAuth2 / OIDC Provider",
+                  label: 'OAuth2 / OIDC Provider',
                   collapsed: false,
                   items: [
-                    { slug: "products/auth/oauth2-provider" },
+                    { slug: 'products/auth/oauth2-provider' },
                     {
-                      label: "Authorization Flows",
+                      label: 'Authorization Flows',
                       collapsed: true,
                       items: [
                         {
-                          label: "Code Flow",
+                          label: 'Code Flow',
                           collapsed: true,
                           items: [
                             {
-                              slug: "products/auth/oauth2-provider/authorization-flow",
+                              slug: 'products/auth/oauth2-provider/authorization-flow',
                             },
                             {
-                              slug: "products/auth/oauth2-provider/confidential-clients",
+                              slug: 'products/auth/oauth2-provider/confidential-clients',
                             },
                             {
-                              slug: "products/auth/oauth2-provider/public-clients",
+                              slug: 'products/auth/oauth2-provider/public-clients',
                             },
                             {
-                              slug: "products/auth/oauth2-provider/cimd-clients",
+                              slug: 'products/auth/oauth2-provider/cimd-clients',
                             },
                           ],
                         },
                       ],
                     },
                     {
-                      slug: "products/auth/oauth2-provider/tokens-and-scopes",
+                      slug: 'products/auth/oauth2-provider/tokens-and-scopes',
                     },
-                    { slug: "products/auth/oauth2-provider/managing-clients" },
+                    { slug: 'products/auth/oauth2-provider/managing-clients' },
                   ],
                 },
               ],
             },
             {
-              id: "products-storage",
-              label: "Storage",
-              link: "/products/storage",
-              icon: "seti:folder",
+              id: 'products-storage',
+              label: 'Storage',
+              link: '/products/storage',
+              icon: 'seti:folder',
               items: [
-                { label: "Storage", slug: "products/storage" },
+                { label: 'Storage', slug: 'products/storage' },
                 {
-                  label: "Concepts",
+                  label: 'Concepts',
                   collapsed: false,
                   items: [
-                    { slug: "products/storage/architecture" },
-                    { slug: "products/storage/buckets" },
-                    { slug: "products/storage/permissions" },
-                    { slug: "products/storage/image-transformation" },
+                    { slug: 'products/storage/architecture' },
+                    { slug: 'products/storage/buckets' },
+                    { slug: 'products/storage/permissions' },
+                    { slug: 'products/storage/image-transformation' },
                   ],
                 },
                 {
-                  label: "Guides",
+                  label: 'Guides',
                   collapsed: false,
                   items: [
-                    { slug: "products/storage/guides/file-operations" },
-                    { slug: "products/storage/guides/presigned-urls" },
-                    { slug: "products/storage/guides/display-images" },
+                    { slug: 'products/storage/guides/file-operations' },
+                    { slug: 'products/storage/guides/presigned-urls' },
+                    { slug: 'products/storage/guides/display-images' },
                     {
-                      slug: "products/storage/guides/permissions-and-relationships",
+                      slug: 'products/storage/guides/permissions-and-relationships',
                     },
                   ],
                 },
                 {
-                  label: "Platform",
+                  label: 'Platform',
                   collapsed: false,
                   items: [
-                    { slug: "products/storage/cdn" },
-                    { slug: "products/storage/antivirus" },
+                    { slug: 'products/storage/cdn' },
+                    { slug: 'products/storage/antivirus' },
                   ],
                 },
               ],
             },
             {
-              id: "products-run",
-              label: "Run",
-              link: "/products/run",
-              icon: "seti:docker",
+              id: 'products-run',
+              label: 'Run',
+              link: '/products/run',
+              icon: 'seti:docker',
               items: [
-                { label: "Run", slug: "products/run" },
+                { label: 'Run', slug: 'products/run' },
                 {
-                  label: "Guides",
+                  label: 'Guides',
                   collapsed: false,
                   items: [
-                    { slug: "products/run/getting-started" },
-                    { slug: "products/run/configuration" },
-                    { slug: "products/run/networking" },
-                    { slug: "products/run/health-checks" },
-                    { slug: "products/run/resources" },
-                    { slug: "products/run/registry" },
-                    { slug: "products/run/local-development" },
-                    { slug: "products/run/configuration-overlays" },
-                    { slug: "products/run/cli-deployments" },
+                    { slug: 'products/run/getting-started' },
+                    { slug: 'products/run/configuration' },
+                    { slug: 'products/run/networking' },
+                    { slug: 'products/run/health-checks' },
+                    { slug: 'products/run/resources' },
+                    { slug: 'products/run/registry' },
+                    { slug: 'products/run/local-development' },
+                    { slug: 'products/run/configuration-overlays' },
+                    { slug: 'products/run/cli-deployments' },
                   ],
                 },
               ],
             },
             {
-              id: "products-functions",
-              label: "Functions",
-              link: "/products/functions",
-              icon: "seti:javascript",
+              id: 'products-functions',
+              label: 'Functions',
+              link: '/products/functions',
+              icon: 'seti:javascript',
               items: [
-                { label: "Functions", slug: "products/functions" },
+                { label: 'Functions', slug: 'products/functions' },
                 {
-                  label: "Concepts",
+                  label: 'Concepts',
                   collapsed: false,
                   items: [
-                    { slug: "products/functions/runtimes" },
-                    { slug: "products/functions/logging" },
-                    { slug: "products/functions/limits" },
+                    { slug: 'products/functions/runtimes' },
+                    { slug: 'products/functions/logging' },
+                    { slug: 'products/functions/limits' },
                   ],
                 },
                 {
-                  label: "Guides",
+                  label: 'Guides',
                   collapsed: false,
                   items: [
-                    { slug: "products/functions/guides/getting-started" },
-                    { slug: "products/functions/guides/jwt-verification" },
-                    { slug: "products/functions/guides/custom-jwts" },
-                    { slug: "products/functions/guides/graphql-server" },
-                    { slug: "products/functions/guides/error-handling" },
-                    { slug: "products/functions/guides/nhost-sdk" },
-                    { slug: "products/functions/guides/cors" },
+                    { slug: 'products/functions/guides/getting-started' },
+                    { slug: 'products/functions/guides/jwt-verification' },
+                    { slug: 'products/functions/guides/custom-jwts' },
+                    { slug: 'products/functions/guides/graphql-server' },
+                    { slug: 'products/functions/guides/error-handling' },
+                    { slug: 'products/functions/guides/nhost-sdk' },
+                    { slug: 'products/functions/guides/cors' },
                   ],
                 },
               ],
             },
             {
-              id: "products-events",
-              label: "Events",
-              link: "/products/events",
-              icon: "seti:lightning",
+              id: 'products-events',
+              label: 'Events',
+              link: '/products/events',
+              icon: 'seti:lightning',
               items: [
-                { label: "Events", slug: "products/events" },
+                { label: 'Events', slug: 'products/events' },
                 {
-                  label: "Configuration",
+                  label: 'Configuration',
                   collapsed: false,
                   items: [
-                    { slug: "products/events/event-triggers" },
-                    { slug: "products/events/cron-triggers" },
+                    { slug: 'products/events/event-triggers' },
+                    { slug: 'products/events/cron-triggers' },
                     {
-                      slug: "products/events/one-off-scheduled-events",
+                      slug: 'products/events/one-off-scheduled-events',
                     },
-                    { slug: "products/events/transformations" },
-                    { slug: "products/events/retry-configuration" },
+                    { slug: 'products/events/transformations' },
+                    { slug: 'products/events/retry-configuration' },
                   ],
                 },
                 {
-                  label: "Guides",
+                  label: 'Guides',
                   collapsed: false,
                   items: [
-                    { slug: "products/events/guides/webhook-security" },
+                    { slug: 'products/events/guides/webhook-security' },
                     {
-                      slug: "products/events/guides/community-notifications",
+                      slug: 'products/events/guides/community-notifications',
                     },
                     {
-                      slug: "products/events/guides/stale-todo-cleanup",
+                      slug: 'products/events/guides/stale-todo-cleanup',
                     },
                     {
-                      slug: "products/events/guides/broadcast-notifications",
+                      slug: 'products/events/guides/broadcast-notifications',
                     },
                   ],
                 },
               ],
             },
             {
-              id: "products-ai",
-              label: "AI",
-              link: "/products/ai",
-              icon: "star",
+              id: 'products-ai',
+              label: 'AI',
+              link: '/products/ai',
+              icon: 'star',
               items: [
-                { label: "AI", slug: "products/ai" },
+                { label: 'AI', slug: 'products/ai' },
                 {
-                  label: "Guides",
+                  label: 'Guides',
                   collapsed: false,
                   items: [
-                    { slug: "products/ai/enabling-service" },
-                    { slug: "products/ai/local-development" },
-                    { slug: "products/ai/auto-embeddings" },
-                    { slug: "products/ai/assistants" },
+                    { slug: 'products/ai/enabling-service' },
+                    { slug: 'products/ai/local-development' },
+                    { slug: 'products/ai/auto-embeddings' },
+                    { slug: 'products/ai/assistants' },
                   ],
                 },
               ],
             },
             // Platform
             {
-              id: "platform",
-              label: "Platform",
-              link: "/platform",
-              icon: "laptop",
+              id: 'platform',
+              label: 'Platform',
+              link: '/platform',
+              icon: 'laptop',
               items: [
                 {
-                  label: "Cloud",
+                  label: 'Cloud',
                   collapsed: false,
                   items: [
-                    { slug: "platform/cloud" },
-                    { slug: "platform/cloud/subdomain" },
-                    { slug: "platform/cloud/compute-resources" },
-                    { slug: "platform/cloud/service-replicas" },
-                    { slug: "platform/cloud/metrics" },
-                    { slug: "platform/cloud/logs" },
-                    { slug: "platform/cloud/environment-variables" },
-                    { slug: "platform/cloud/secrets" },
-                    { slug: "platform/cloud/deployments" },
-                    { slug: "platform/cloud/custom-domains" },
-                    { slug: "platform/cloud/rate-limits" },
-                    { slug: "platform/cloud/tls" },
-                    { slug: "platform/cloud/billing" },
+                    { slug: 'platform/cloud' },
+                    { slug: 'platform/cloud/subdomain' },
+                    { slug: 'platform/cloud/compute-resources' },
+                    { slug: 'platform/cloud/service-replicas' },
+                    { slug: 'platform/cloud/metrics' },
+                    { slug: 'platform/cloud/logs' },
+                    { slug: 'platform/cloud/environment-variables' },
+                    { slug: 'platform/cloud/secrets' },
+                    { slug: 'platform/cloud/deployments' },
+                    { slug: 'platform/cloud/custom-domains' },
+                    { slug: 'platform/cloud/rate-limits' },
+                    { slug: 'platform/cloud/tls' },
+                    { slug: 'platform/cloud/billing' },
                   ],
                 },
                 {
-                  label: "Development",
+                  label: 'Development',
                   collapsed: false,
                   items: [
-                    { slug: "platform/cli" },
-                    { slug: "platform/cli/local-development" },
-                    { slug: "platform/cli/cloud-development" },
-                    { slug: "platform/cli/subdomain" },
-                    { slug: "platform/cli/multiple-projects" },
-                    { slug: "platform/cli/configuration-overlays" },
-                    { slug: "platform/cli/seeds" },
+                    { slug: 'platform/cli' },
+                    { slug: 'platform/cli/local-development' },
+                    { slug: 'platform/cli/cloud-development' },
+                    { slug: 'platform/cli/subdomain' },
+                    { slug: 'platform/cli/multiple-projects' },
+                    { slug: 'platform/cli/configuration-overlays' },
+                    { slug: 'platform/cli/seeds' },
                     {
-                      label: "MCP Server",
+                      label: 'MCP Server',
                       collapsed: true,
                       items: [
-                        { slug: "platform/cli/mcp" },
-                        { slug: "platform/cli/mcp/configuration" },
-                        { slug: "platform/cli/mcp/clients" },
-                        { slug: "platform/cli/mcp/troubleshooting" },
+                        { slug: 'platform/cli/mcp' },
+                        { slug: 'platform/cli/mcp/configuration' },
+                        { slug: 'platform/cli/mcp/clients' },
+                        { slug: 'platform/cli/mcp/troubleshooting' },
                       ],
                     },
                   ],
                 },
                 {
-                  label: "Self-Hosting",
+                  label: 'Self-Hosting',
                   collapsed: false,
                   items: [
-                    { slug: "platform/self-hosting" },
-                    { slug: "platform/self-hosting/community" },
-                    { slug: "platform/self-hosting/support" },
-                    { slug: "platform/self-hosting/dedicated" },
+                    { slug: 'platform/self-hosting' },
+                    { slug: 'platform/self-hosting/community' },
+                    { slug: 'platform/self-hosting/support' },
+                    { slug: 'platform/self-hosting/dedicated' },
                   ],
                 },
               ],
             },
             // Reference
             {
-              id: "reference",
-              label: "Reference",
-              link: "/reference",
-              icon: "open-book",
+              id: 'reference',
+              label: 'Reference',
+              link: '/reference',
+              icon: 'open-book',
               items: [
-                { label: "Reference", slug: "reference" },
+                { label: 'Reference', slug: 'reference' },
                 {
-                  label: "Backend Services",
+                  label: 'Backend Services',
                   collapsed: false,
                   items: [
                     authAPISidebarGroup,
                     storageAPISidebarGroup,
                     {
-                      label: "AI GraphQL",
+                      label: 'AI GraphQL',
                       collapsed: true,
                       items: [
-                        { slug: "reference/graphql/ai" },
+                        { slug: 'reference/graphql/ai' },
                         {
-                          label: "Query",
+                          label: 'Query',
                           collapsed: true,
                           items: [
-                            { slug: "reference/graphql/ai/query/assistant" },
-                            { slug: "reference/graphql/ai/query/assistants" },
-                            { slug: "reference/graphql/ai/query/session" },
+                            { slug: 'reference/graphql/ai/query/assistant' },
+                            { slug: 'reference/graphql/ai/query/assistants' },
+                            { slug: 'reference/graphql/ai/query/session' },
                             {
-                              slug: "reference/graphql/ai/query/session-messages",
+                              slug: 'reference/graphql/ai/query/session-messages',
                             },
-                            { slug: "reference/graphql/ai/query/sessions" },
+                            { slug: 'reference/graphql/ai/query/sessions' },
                           ],
                         },
                         {
-                          label: "Mutation",
+                          label: 'Mutation',
                           collapsed: true,
                           items: [
                             {
-                              slug: "reference/graphql/ai/mutation/insert-assistant",
+                              slug: 'reference/graphql/ai/mutation/insert-assistant',
                             },
                             {
-                              slug: "reference/graphql/ai/mutation/update-assistant",
+                              slug: 'reference/graphql/ai/mutation/update-assistant',
                             },
                             {
-                              slug: "reference/graphql/ai/mutation/delete-assistant",
+                              slug: 'reference/graphql/ai/mutation/delete-assistant',
                             },
                             {
-                              slug: "reference/graphql/ai/mutation/start-session",
+                              slug: 'reference/graphql/ai/mutation/start-session',
                             },
                             {
-                              slug: "reference/graphql/ai/mutation/delete-session",
+                              slug: 'reference/graphql/ai/mutation/delete-session',
                             },
                             {
-                              slug: "reference/graphql/ai/mutation/send-message",
+                              slug: 'reference/graphql/ai/mutation/send-message',
                             },
                             {
-                              slug: "reference/graphql/ai/mutation/start-dev-session",
+                              slug: 'reference/graphql/ai/mutation/start-dev-session',
                             },
                             {
-                              slug: "reference/graphql/ai/mutation/send-dev-message",
+                              slug: 'reference/graphql/ai/mutation/send-dev-message',
                             },
                           ],
                         },
@@ -723,24 +727,24 @@ export default defineConfig({
                   ],
                 },
                 {
-                  label: "Client Libraries",
+                  label: 'Client Libraries',
                   collapsed: false,
                   items: [
                     {
-                      label: "JavaScript",
+                      label: 'JavaScript',
                       collapsed: true,
                       items: [
                         {
-                          label: "nhost-js",
+                          label: 'nhost-js',
                           collapsed: true,
                           items: [
-                            { slug: "reference/javascript/nhost-js/main" },
-                            { slug: "reference/javascript/nhost-js/auth" },
-                            { slug: "reference/javascript/nhost-js/functions" },
-                            { slug: "reference/javascript/nhost-js/graphql" },
-                            { slug: "reference/javascript/nhost-js/storage" },
-                            { slug: "reference/javascript/nhost-js/session" },
-                            { slug: "reference/javascript/nhost-js/fetch" },
+                            { slug: 'reference/javascript/nhost-js/main' },
+                            { slug: 'reference/javascript/nhost-js/auth' },
+                            { slug: 'reference/javascript/nhost-js/functions' },
+                            { slug: 'reference/javascript/nhost-js/graphql' },
+                            { slug: 'reference/javascript/nhost-js/storage' },
+                            { slug: 'reference/javascript/nhost-js/session' },
+                            { slug: 'reference/javascript/nhost-js/fetch' },
                           ],
                         },
                       ],
@@ -748,10 +752,10 @@ export default defineConfig({
                   ],
                 },
                 {
-                  label: "CLI",
+                  label: 'CLI',
                   collapsed: false,
                   items: [
-                    { label: "Commands", slug: "reference/cli/commands" },
+                    { label: 'Commands', slug: 'reference/cli/commands' },
                   ],
                 },
                 {
@@ -766,10 +770,10 @@ export default defineConfig({
             // Associate pages with topics
             topics: {
               reference: [
-                "/reference/auth",
-                "/reference/auth/**/*",
-                "/reference/storage",
-                "/reference/storage/**/*",
+                '/reference/auth',
+                '/reference/auth/**/*',
+                '/reference/storage',
+                '/reference/storage/**/*',
               ],
             },
           },
