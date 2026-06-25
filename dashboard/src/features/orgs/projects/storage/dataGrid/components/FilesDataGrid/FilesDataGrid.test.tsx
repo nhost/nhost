@@ -6,7 +6,7 @@ import { DATA_GRID_FILTER_STORAGE_KEY } from '@/features/orgs/projects/database/
 import { getProjectQuery } from '@/tests/msw/mocks/graphql/getProjectQuery';
 import nhostGraphQLLink from '@/tests/msw/mocks/graphql/nhostGraphQLLink';
 import tokenQuery from '@/tests/msw/mocks/rest/tokenQuery';
-import { render, screen, waitFor } from '@/tests/testUtils';
+import { render, screen, waitFor, localStorageMock } from '@/tests/testUtils';
 import FilesDataGrid from './FilesDataGrid';
 
 const mocks = vi.hoisted(() => ({
@@ -67,7 +67,10 @@ const server = setupServer(
   getFilesAggregateHandler,
 );
 
-beforeAll(() => server.listen());
+beforeAll(() => {
+  server.listen();
+  global.localStorage = localStorageMock();
+});
 afterEach(() => {
   server.resetHandlers();
   capturedFilesVariables = undefined;

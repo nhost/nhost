@@ -1,3 +1,4 @@
+import { useEffect } from 'react';
 import { useQuery } from '@tanstack/react-query';
 import {
   Dialog,
@@ -40,17 +41,47 @@ export default function FilePreviewDialog({
   } = useQuery({
     queryKey: ['file-presigned-url', id],
     queryFn: async () => {
-      const { body } = await appClient.storage.getFilePresignedURL(id, {
-        headers: {
-          'x-hasura-admin-secret': project!.config!.hasura.adminSecret,
-        },
-      });
+      try {
+        const { body } = await appClient.storage.getFilePresignedURL(id, {
+          headers: {
+            'x-hasura-admin-secret': project!.config!.hasura.adminSecret,
+          },
+        });
 
-      if (!body?.url) {
-        throw new Error('Presigned URL could not be fetched.');
+        if (!body?.url) {
+          throw new Error('Presigned URL could not be fetched.');
+        }
+
+        return body.url;
+      } catch (presignedError) {
+        // Fallback: download the file as a Blob using the admin secret
+        try {
+          const { res } = await appClient.storage.getFile(
+            id,
+            {},
+            {
+              headers: {
+                'x-hasura-admin-secret': project!.config!.hasura.adminSecret,
+              },
+            },
+          );
+
+          if (!res.ok) {
+            throw new Error(`Storage returned status ${res.status}`);
+          }
+
+          const blob = await res.blob();
+          return URL.createObjectURL(blob);
+        } catch (downloadError) {
+          throw new Error(
+            `Could not load preview. (Presigned URL failed: ${
+              presignedError instanceof Error ? presignedError.message : 'Unknown error'
+            }. Fallback download failed: ${
+              downloadError instanceof Error ? downloadError.message : 'Unknown error'
+            })`,
+          );
+        }
       }
-
-      return body.url;
     },
     enabled: open,
     staleTime: Math.max(
@@ -58,6 +89,14 @@ export default function FilePreviewDialog({
       (downloadExpiration - PRESIGNED_URL_SAFETY_MARGIN_SECONDS) * 1000,
     ),
   });
+
+  useEffect(() => {
+    return () => {
+      if (presignedUrl && presignedUrl.startsWith('blob:')) {
+        URL.revokeObjectURL(presignedUrl);
+      }
+    };
+  }, [presignedUrl]);
 
   const isVideo = mimeType?.startsWith('video');
   const isAudio = mimeType?.startsWith('audio');

@@ -56,17 +56,52 @@ export default function DataGridPreviewCell({
 
     await execPromiseWithErrorToast(
       async () => {
-        const { body } = await appClient.storage.getFilePresignedURL(id, {
-          headers: {
-            'x-hasura-admin-secret': project!.config!.hasura.adminSecret,
-          },
-        });
+        try {
+          const { body } = await appClient.storage.getFilePresignedURL(id, {
+            headers: {
+              'x-hasura-admin-secret': project!.config!.hasura.adminSecret,
+            },
+          });
 
-        if (!body?.url) {
-          throw new Error('Presigned URL could not be fetched.');
+          if (!body?.url) {
+            throw new Error('Presigned URL could not be fetched.');
+          }
+
+          window.open(body.url, '_blank', 'noopener noreferrer');
+        } catch (presignedError) {
+          // Fallback: download the file as a Blob using the admin secret
+          try {
+            const { res } = await appClient.storage.getFile(
+              id,
+              {},
+              {
+                headers: {
+                  'x-hasura-admin-secret': project!.config!.hasura.adminSecret,
+                },
+              },
+            );
+
+            if (!res.ok) {
+              throw new Error(`Storage returned status ${res.status}`);
+            }
+
+            const blob = await res.blob();
+            const blobUrl = URL.createObjectURL(blob);
+            window.open(blobUrl, '_blank', 'noopener noreferrer');
+            // Clean up the object URL after a delay (e.g. 60 seconds) to ensure the browser has time to load it
+            setTimeout(() => {
+              URL.revokeObjectURL(blobUrl);
+            }, 60000);
+          } catch (downloadError) {
+            throw new Error(
+              `Could not open file. (Presigned URL failed: ${
+                presignedError instanceof Error ? presignedError.message : 'Unknown error'
+              }. Fallback download failed: ${
+                downloadError instanceof Error ? downloadError.message : 'Unknown error'
+              })`,
+            );
+          }
         }
-
-        window.open(body.url, '_blank', 'noopener noreferrer');
       },
       {
         loadingMessage: 'Opening file...',
