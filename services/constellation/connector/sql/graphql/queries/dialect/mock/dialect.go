@@ -13,6 +13,7 @@ import (
 	reflect "reflect"
 	strings "strings"
 
+	dialect "github.com/nhost/nhost/services/constellation/connector/sql/graphql/queries/dialect"
 	gomock "go.uber.org/mock/gomock"
 )
 
@@ -96,20 +97,6 @@ func (mr *MockDialectMockRecorder) EmptyJSONArray() *gomock.Call {
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "EmptyJSONArray", reflect.TypeOf((*MockDialect)(nil).EmptyJSONArray))
 }
 
-// ILike mocks base method.
-func (m *MockDialect) ILike() string {
-	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "ILike")
-	ret0, _ := ret[0].(string)
-	return ret0
-}
-
-// ILike indicates an expected call of ILike.
-func (mr *MockDialectMockRecorder) ILike() *gomock.Call {
-	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "ILike", reflect.TypeOf((*MockDialect)(nil).ILike))
-}
-
 // JSONAggQuotedAlias mocks base method.
 func (m *MockDialect) JSONAggQuotedAlias(alias string) string {
 	m.ctrl.T.Helper()
@@ -152,6 +139,20 @@ func (mr *MockDialectMockRecorder) JSONBuildObject() *gomock.Call {
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "JSONBuildObject", reflect.TypeOf((*MockDialect)(nil).JSONBuildObject))
 }
 
+// Like mocks base method.
+func (m *MockDialect) Like() string {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "Like")
+	ret0, _ := ret[0].(string)
+	return ret0
+}
+
+// Like indicates an expected call of Like.
+func (mr *MockDialectMockRecorder) Like() *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "Like", reflect.TypeOf((*MockDialect)(nil).Like))
+}
+
 // MaterializedCTE mocks base method.
 func (m *MockDialect) MaterializedCTE() string {
 	m.ctrl.T.Helper()
@@ -166,18 +167,18 @@ func (mr *MockDialectMockRecorder) MaterializedCTE() *gomock.Call {
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "MaterializedCTE", reflect.TypeOf((*MockDialect)(nil).MaterializedCTE))
 }
 
-// NotILike mocks base method.
-func (m *MockDialect) NotILike() string {
+// NotLike mocks base method.
+func (m *MockDialect) NotLike() string {
 	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "NotILike")
+	ret := m.ctrl.Call(m, "NotLike")
 	ret0, _ := ret[0].(string)
 	return ret0
 }
 
-// NotILike indicates an expected call of NotILike.
-func (mr *MockDialectMockRecorder) NotILike() *gomock.Call {
+// NotLike indicates an expected call of NotLike.
+func (mr *MockDialectMockRecorder) NotLike() *gomock.Call {
 	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "NotILike", reflect.TypeOf((*MockDialect)(nil).NotILike))
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "NotLike", reflect.TypeOf((*MockDialect)(nil).NotLike))
 }
 
 // Placeholder mocks base method.
@@ -206,6 +207,48 @@ func (m *MockDialect) RequiresOnConflictTargetColumns() bool {
 func (mr *MockDialectMockRecorder) RequiresOnConflictTargetColumns() *gomock.Call {
 	mr.mock.ctrl.T.Helper()
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "RequiresOnConflictTargetColumns", reflect.TypeOf((*MockDialect)(nil).RequiresOnConflictTargetColumns))
+}
+
+// SpatialCastExpression mocks base method.
+func (m *MockDialect) SpatialCastExpression(expr, fromSQLType, toSQLType string) string {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "SpatialCastExpression", expr, fromSQLType, toSQLType)
+	ret0, _ := ret[0].(string)
+	return ret0
+}
+
+// SpatialCastExpression indicates an expected call of SpatialCastExpression.
+func (mr *MockDialectMockRecorder) SpatialCastExpression(expr, fromSQLType, toSQLType any) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "SpatialCastExpression", reflect.TypeOf((*MockDialect)(nil).SpatialCastExpression), expr, fromSQLType, toSQLType)
+}
+
+// SpatialOutputExpression mocks base method.
+func (m *MockDialect) SpatialOutputExpression(expr, sqlType string) string {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "SpatialOutputExpression", expr, sqlType)
+	ret0, _ := ret[0].(string)
+	return ret0
+}
+
+// SpatialOutputExpression indicates an expected call of SpatialOutputExpression.
+func (mr *MockDialectMockRecorder) SpatialOutputExpression(expr, sqlType any) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "SpatialOutputExpression", reflect.TypeOf((*MockDialect)(nil).SpatialOutputExpression), expr, sqlType)
+}
+
+// SpatialValueExpression mocks base method.
+func (m *MockDialect) SpatialValueExpression(placeholder, sqlType string) string {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "SpatialValueExpression", placeholder, sqlType)
+	ret0, _ := ret[0].(string)
+	return ret0
+}
+
+// SpatialValueExpression indicates an expected call of SpatialValueExpression.
+func (mr *MockDialectMockRecorder) SpatialValueExpression(placeholder, sqlType any) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "SpatialValueExpression", reflect.TypeOf((*MockDialect)(nil).SpatialValueExpression), placeholder, sqlType)
 }
 
 // SupportsArrays mocks base method.
@@ -290,6 +333,20 @@ func (m *MockDialect) SupportsRegex() bool {
 func (mr *MockDialectMockRecorder) SupportsRegex() *gomock.Call {
 	mr.mock.ctrl.T.Helper()
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "SupportsRegex", reflect.TypeOf((*MockDialect)(nil).SupportsRegex))
+}
+
+// SupportsSpatialTypes mocks base method.
+func (m *MockDialect) SupportsSpatialTypes() bool {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "SupportsSpatialTypes")
+	ret0, _ := ret[0].(bool)
+	return ret0
+}
+
+// SupportsSpatialTypes indicates an expected call of SupportsSpatialTypes.
+func (mr *MockDialectMockRecorder) SupportsSpatialTypes() *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "SupportsSpatialTypes", reflect.TypeOf((*MockDialect)(nil).SupportsSpatialTypes))
 }
 
 // SupportsStableVarianceOrderBy mocks base method.
@@ -483,6 +540,18 @@ func (mr *MockDialectMockRecorder) WriteGroupKeysFrom(b, keysAlias, colAlias, sq
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "WriteGroupKeysFrom", reflect.TypeOf((*MockDialect)(nil).WriteGroupKeysFrom), b, keysAlias, colAlias, sqlType, values, params, paramIndex)
 }
 
+// WriteILikeCondition mocks base method.
+func (m *MockDialect) WriteILikeCondition(b *strings.Builder, source, column, placeholder string) {
+	m.ctrl.T.Helper()
+	m.ctrl.Call(m, "WriteILikeCondition", b, source, column, placeholder)
+}
+
+// WriteILikeCondition indicates an expected call of WriteILikeCondition.
+func (mr *MockDialectMockRecorder) WriteILikeCondition(b, source, column, placeholder any) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "WriteILikeCondition", reflect.TypeOf((*MockDialect)(nil).WriteILikeCondition), b, source, column, placeholder)
+}
+
 // WriteJSONRowColumn mocks base method.
 func (m *MockDialect) WriteJSONRowColumn(b *strings.Builder, alias, expr string) {
 	m.ctrl.T.Helper()
@@ -531,6 +600,18 @@ func (mr *MockDialectMockRecorder) WriteJSONRowSuffixNoAlias(b any) *gomock.Call
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "WriteJSONRowSuffixNoAlias", reflect.TypeOf((*MockDialect)(nil).WriteJSONRowSuffixNoAlias), b)
 }
 
+// WriteNotILikeCondition mocks base method.
+func (m *MockDialect) WriteNotILikeCondition(b *strings.Builder, source, column, placeholder string) {
+	m.ctrl.T.Helper()
+	m.ctrl.Call(m, "WriteNotILikeCondition", b, source, column, placeholder)
+}
+
+// WriteNotILikeCondition indicates an expected call of WriteNotILikeCondition.
+func (mr *MockDialectMockRecorder) WriteNotILikeCondition(b, source, column, placeholder any) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "WriteNotILikeCondition", reflect.TypeOf((*MockDialect)(nil).WriteNotILikeCondition), b, source, column, placeholder)
+}
+
 // WriteOnConflictTarget mocks base method.
 func (m *MockDialect) WriteOnConflictTarget(b *strings.Builder, constraintName string, conflictColumns []string) error {
 	m.ctrl.T.Helper()
@@ -543,6 +624,90 @@ func (m *MockDialect) WriteOnConflictTarget(b *strings.Builder, constraintName s
 func (mr *MockDialectMockRecorder) WriteOnConflictTarget(b, constraintName, conflictColumns any) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "WriteOnConflictTarget", reflect.TypeOf((*MockDialect)(nil).WriteOnConflictTarget), b, constraintName, conflictColumns)
+}
+
+// WriteSpatialArrayIn mocks base method.
+func (m *MockDialect) WriteSpatialArrayIn(b *strings.Builder, source, sqlName, sqlType string, values, params []any, paramIndex int) ([]any, int) {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "WriteSpatialArrayIn", b, source, sqlName, sqlType, values, params, paramIndex)
+	ret0, _ := ret[0].([]any)
+	ret1, _ := ret[1].(int)
+	return ret0, ret1
+}
+
+// WriteSpatialArrayIn indicates an expected call of WriteSpatialArrayIn.
+func (mr *MockDialectMockRecorder) WriteSpatialArrayIn(b, source, sqlName, sqlType, values, params, paramIndex any) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "WriteSpatialArrayIn", reflect.TypeOf((*MockDialect)(nil).WriteSpatialArrayIn), b, source, sqlName, sqlType, values, params, paramIndex)
+}
+
+// WriteSpatialArrayInExpression mocks base method.
+func (m *MockDialect) WriteSpatialArrayInExpression(b *strings.Builder, leftExpr, sqlType string, values, params []any, paramIndex int) ([]any, int) {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "WriteSpatialArrayInExpression", b, leftExpr, sqlType, values, params, paramIndex)
+	ret0, _ := ret[0].([]any)
+	ret1, _ := ret[1].(int)
+	return ret0, ret1
+}
+
+// WriteSpatialArrayInExpression indicates an expected call of WriteSpatialArrayInExpression.
+func (mr *MockDialectMockRecorder) WriteSpatialArrayInExpression(b, leftExpr, sqlType, values, params, paramIndex any) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "WriteSpatialArrayInExpression", reflect.TypeOf((*MockDialect)(nil).WriteSpatialArrayInExpression), b, leftExpr, sqlType, values, params, paramIndex)
+}
+
+// WriteSpatialArrayNotIn mocks base method.
+func (m *MockDialect) WriteSpatialArrayNotIn(b *strings.Builder, source, sqlName, sqlType string, values, params []any, paramIndex int) ([]any, int) {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "WriteSpatialArrayNotIn", b, source, sqlName, sqlType, values, params, paramIndex)
+	ret0, _ := ret[0].([]any)
+	ret1, _ := ret[1].(int)
+	return ret0, ret1
+}
+
+// WriteSpatialArrayNotIn indicates an expected call of WriteSpatialArrayNotIn.
+func (mr *MockDialectMockRecorder) WriteSpatialArrayNotIn(b, source, sqlName, sqlType, values, params, paramIndex any) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "WriteSpatialArrayNotIn", reflect.TypeOf((*MockDialect)(nil).WriteSpatialArrayNotIn), b, source, sqlName, sqlType, values, params, paramIndex)
+}
+
+// WriteSpatialArrayNotInExpression mocks base method.
+func (m *MockDialect) WriteSpatialArrayNotInExpression(b *strings.Builder, leftExpr, sqlType string, values, params []any, paramIndex int) ([]any, int) {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "WriteSpatialArrayNotInExpression", b, leftExpr, sqlType, values, params, paramIndex)
+	ret0, _ := ret[0].([]any)
+	ret1, _ := ret[1].(int)
+	return ret0, ret1
+}
+
+// WriteSpatialArrayNotInExpression indicates an expected call of WriteSpatialArrayNotInExpression.
+func (mr *MockDialectMockRecorder) WriteSpatialArrayNotInExpression(b, leftExpr, sqlType, values, params, paramIndex any) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "WriteSpatialArrayNotInExpression", reflect.TypeOf((*MockDialect)(nil).WriteSpatialArrayNotInExpression), b, leftExpr, sqlType, values, params, paramIndex)
+}
+
+// WriteSpatialDWithinPredicate mocks base method.
+func (m *MockDialect) WriteSpatialDWithinPredicate(b *strings.Builder, threeDimensional bool, leftExpr, rightExpr, distanceExpr, sqlType string, useSpheroidExpr *string) {
+	m.ctrl.T.Helper()
+	m.ctrl.Call(m, "WriteSpatialDWithinPredicate", b, threeDimensional, leftExpr, rightExpr, distanceExpr, sqlType, useSpheroidExpr)
+}
+
+// WriteSpatialDWithinPredicate indicates an expected call of WriteSpatialDWithinPredicate.
+func (mr *MockDialectMockRecorder) WriteSpatialDWithinPredicate(b, threeDimensional, leftExpr, rightExpr, distanceExpr, sqlType, useSpheroidExpr any) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "WriteSpatialDWithinPredicate", reflect.TypeOf((*MockDialect)(nil).WriteSpatialDWithinPredicate), b, threeDimensional, leftExpr, rightExpr, distanceExpr, sqlType, useSpheroidExpr)
+}
+
+// WriteSpatialPredicate mocks base method.
+func (m *MockDialect) WriteSpatialPredicate(b *strings.Builder, predicate dialect.SpatialPredicate, leftExpr, rightExpr string) {
+	m.ctrl.T.Helper()
+	m.ctrl.Call(m, "WriteSpatialPredicate", b, predicate, leftExpr, rightExpr)
+}
+
+// WriteSpatialPredicate indicates an expected call of WriteSpatialPredicate.
+func (mr *MockDialectMockRecorder) WriteSpatialPredicate(b, predicate, leftExpr, rightExpr any) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "WriteSpatialPredicate", reflect.TypeOf((*MockDialect)(nil).WriteSpatialPredicate), b, predicate, leftExpr, rightExpr)
 }
 
 // WriteUpsertUpdateAction mocks base method.

@@ -74,15 +74,23 @@ function InnerFormCheckbox<
                   data-testid={dataTestId}
                 />
               </FormControl>
-              {!!label && (
-                <FormLabel className="font-normal">{label}</FormLabel>
+              {(!!label || !!helperText) && (
+                <div className="flex flex-col gap-0.5">
+                  {!!label && (
+                    <FormLabel
+                      className={cn('font-normal', disabled && 'opacity-50')}
+                    >
+                      {label}
+                    </FormLabel>
+                  )}
+                  {!!helperText && (
+                    <FormDescription className="break-words">
+                      {helperText}
+                    </FormDescription>
+                  )}
+                </div>
               )}
             </div>
-            {!!helperText && (
-              <FormDescription className="break-all px-[1px]">
-                {helperText}
-              </FormDescription>
-            )}
             <FormMessage />
           </FormItem>
         );

@@ -9,6 +9,21 @@ import (
 	"strings"
 )
 
+// SpatialPredicate identifies the fixed PostGIS boolean predicate a spatial
+// comparison operator maps to. Values are internal constants, never user input.
+type SpatialPredicate string
+
+const (
+	SpatialPredicateContains     SpatialPredicate = "contains"
+	SpatialPredicateCrosses      SpatialPredicate = "crosses"
+	SpatialPredicateEquals       SpatialPredicate = "equals"
+	SpatialPredicateIntersects   SpatialPredicate = "intersects"
+	SpatialPredicateOverlaps     SpatialPredicate = "overlaps"
+	SpatialPredicateTouches      SpatialPredicate = "touches"
+	SpatialPredicateWithin       SpatialPredicate = "within"
+	SpatialPredicate3DIntersects SpatialPredicate = "3d_intersects"
+)
+
 //go:generate mockgen -package mock -destination mock/dialect.go . Dialect
 
 // Dialect abstracts SQL syntax differences between database backends.
@@ -36,6 +51,68 @@ type Dialect interface { //nolint:interfacebloat
 		values []any, params []any, paramIndex int,
 	) ([]any, int)
 
+	// SupportsSpatialTypes returns whether the backend can execute PostGIS
+	// geometry/geography input and output expressions.
+	SupportsSpatialTypes() bool
+
+	// SpatialOutputExpression converts a spatial column expression into the JSON
+	// object value Hasura returns to GraphQL clients. Non-spatial implementations
+	// return expr unchanged.
+	SpatialOutputExpression(expr, sqlType string) string
+
+	// SpatialValueExpression converts a placeholder into a spatial SQL value
+	// expression. Callers still append the GeoJSON string to params.
+	SpatialValueExpression(placeholder, sqlType string) string
+
+	// SpatialCastExpression casts one spatial expression to another spatial type.
+	SpatialCastExpression(expr, fromSQLType, toSQLType string) string
+
+	// WriteSpatialPredicate writes a fixed PostGIS-style spatial boolean
+	// predicate such as ST_Intersects(left, right).
+	WriteSpatialPredicate(
+		b *strings.Builder, predicate SpatialPredicate, leftExpr, rightExpr string,
+	)
+
+	// WriteSpatialDWithinPredicate writes ST_DWithin/ST_3DDWithin for geometry
+	// and geography. useSpheroidExpr is nil for geometry and non-nil for
+	// geography's fourth argument.
+	WriteSpatialDWithinPredicate(
+		b *strings.Builder,
+		threeDimensional bool,
+		leftExpr, rightExpr, distanceExpr, sqlType string,
+		useSpheroidExpr *string,
+	)
+
+	// WriteSpatialArrayIn writes a spatial _in predicate using one placeholder
+	// per GeoJSON value. Spatial values cannot share WriteArrayIn's one-slice
+	// array binding because each element must pass through ST_GeomFromGeoJSON or
+	// ST_GeogFromGeoJSON first.
+	WriteSpatialArrayIn(
+		b *strings.Builder, source, sqlName, sqlType string,
+		values []any, params []any, paramIndex int,
+	) ([]any, int)
+
+	// WriteSpatialArrayNotIn writes the spatial _nin counterpart to
+	// WriteSpatialArrayIn.
+	WriteSpatialArrayNotIn(
+		b *strings.Builder, source, sqlName, sqlType string,
+		values []any, params []any, paramIndex int,
+	) ([]any, int)
+
+	// WriteSpatialArrayInExpression writes the spatial _in predicate for an
+	// arbitrary left-hand SQL expression, used by spatial _cast filters.
+	WriteSpatialArrayInExpression(
+		b *strings.Builder, leftExpr, sqlType string,
+		values []any, params []any, paramIndex int,
+	) ([]any, int)
+
+	// WriteSpatialArrayNotInExpression writes the spatial _nin counterpart to
+	// WriteSpatialArrayInExpression.
+	WriteSpatialArrayNotInExpression(
+		b *strings.Builder, leftExpr, sqlType string,
+		values []any, params []any, paramIndex int,
+	) ([]any, int)
+
 	// JSONAggQuotedAlias wraps a column/alias identifier in a JSON array
 	// aggregation, quoting the identifier. The argument is treated as an
 	// identifier name, not raw SQL: it is wrapped in double quotes verbatim.
@@ -59,8 +136,8 @@ type Dialect interface { //nolint:interfacebloat
 	// PostgreSQL: to_jsonb(expr)    SQLite: json(expr)
 	ToJSON(expr string) string
 
-	// EmptyJSONArray returns an empty JSON array literal.
-	// PostgreSQL: '[]'::json    SQLite: '[]'
+	// EmptyJSONArray returns an empty JSON array expression.
+	// PostgreSQL: '[]'::json    SQLite: json_array()
 	EmptyJSONArray() string
 
 	// TableRef returns a schema-qualified table reference.
@@ -70,13 +147,21 @@ type Dialect interface { //nolint:interfacebloat
 	// SupportsLateral returns whether LEFT JOIN LATERAL is available.
 	SupportsLateral() bool
 
-	// ILike returns the case-insensitive LIKE operator.
-	// PostgreSQL: ILIKE    SQLite: LIKE
-	ILike() string
+	// Like returns the case-sensitive LIKE operator.
+	// PostgreSQL: LIKE    SQLite: LIKE (with PRAGMA case_sensitive_like=ON)
+	Like() string
 
-	// NotILike returns the negated case-insensitive LIKE operator.
-	// PostgreSQL: NOT ILIKE    SQLite: NOT LIKE
-	NotILike() string
+	// NotLike returns the negated case-sensitive LIKE operator.
+	// PostgreSQL: NOT LIKE    SQLite: NOT LIKE (with PRAGMA case_sensitive_like=ON)
+	NotLike() string
+
+	// WriteILikeCondition writes a case-insensitive LIKE predicate.
+	// PostgreSQL: source.column ILIKE $N    SQLite: LOWER(source.column) LIKE LOWER(?)
+	WriteILikeCondition(b *strings.Builder, source, column, placeholder string)
+
+	// WriteNotILikeCondition writes a negated case-insensitive LIKE predicate.
+	// PostgreSQL: source.column NOT ILIKE $N    SQLite: LOWER(source.column) NOT LIKE LOWER(?)
+	WriteNotILikeCondition(b *strings.Builder, source, column, placeholder string)
 
 	// SupportsRegex returns whether regex operators are available.
 	SupportsRegex() bool

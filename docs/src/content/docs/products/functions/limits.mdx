@@ -1,7 +1,10 @@
 ---
 title: Limitations
-description: Constraints and limits for Nhost Functions
+description: Serverless function limits — JavaScript and TypeScript only, no native dependencies, plus execution timeouts and payload caps by tier.
 keywords: ["functions", "limits", "timeout", "payload", "response size", "execution time", "limitations", "JavaScript", "TypeScript"]
+head:
+  - tag: title
+    content: "Serverless Functions Timeouts & Size Limits | Nhost Docs"
 ---
 
 ## JavaScript and TypeScript Only
@@ -13,7 +16,7 @@ Each function is bundled and minified into a single JavaScript file during deplo
 - **better-sqlite3** — embeds a native SQLite binary
 - **canvas** — depends on native Cairo bindings
 
-If you need native dependencies or a non-JavaScript runtime, use [Nhost Run](/products/run/) instead.
+If you need native dependencies or a non-JavaScript runtime, use [Nhost Run](/products/run) instead.
 
 ## Execution Timeout
 

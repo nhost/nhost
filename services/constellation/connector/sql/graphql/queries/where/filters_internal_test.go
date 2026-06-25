@@ -4,9 +4,11 @@ import (
 	"strings"
 	"testing"
 
+	"github.com/google/go-cmp/cmp"
 	"go.uber.org/mock/gomock"
 
 	"github.com/nhost/nhost/services/constellation/connector/sql/graphql/queries/core"
+	"github.com/nhost/nhost/services/constellation/connector/sql/graphql/queries/dialect"
 	dialectmock "github.com/nhost/nhost/services/constellation/connector/sql/graphql/queries/dialect/mock"
 )
 
@@ -112,30 +114,35 @@ func TestLikeFilters_CaseSensitiveVsInsensitive(t *testing.T) {
 	t.Parallel()
 
 	cases := []struct {
-		name string
-		// makeFilter constructs the filter; primeDialect sets up dialect mock
-		// expectations for the case-insensitive branch.
+		name          string
 		makeFilter    func(d *dialectmock.MockDialect, caseSensitive bool) Statement
 		primeDialect  func(d *dialectmock.MockDialect)
 		caseSensitive bool
-		wantOp        string
+		wantSQL       string
 	}{
 		{
 			name: "like sensitive",
 			makeFilter: func(d *dialectmock.MockDialect, cs bool) Statement {
 				return &likeFilter{column: "name", pattern: "%foo%", caseSensitive: cs, dialect: d}
 			},
+			primeDialect:  func(d *dialectmock.MockDialect) { d.EXPECT().Like().Return("LIKE") },
 			caseSensitive: true,
-			wantOp:        " LIKE ",
+			wantSQL:       `"t"."name" LIKE $1`,
 		},
 		{
 			name: "like insensitive",
 			makeFilter: func(d *dialectmock.MockDialect, cs bool) Statement {
 				return &likeFilter{column: "name", pattern: "%foo%", caseSensitive: cs, dialect: d}
 			},
-			primeDialect:  func(d *dialectmock.MockDialect) { d.EXPECT().ILike().Return("ILIKE") },
+			primeDialect: func(d *dialectmock.MockDialect) {
+				d.EXPECT().
+					WriteILikeCondition(gomock.Any(), `"t"`, "name", "$1").
+					Do(func(b *strings.Builder, _, _, _ string) {
+						b.WriteString(`"t"."name" ILIKE $1`)
+					})
+			},
 			caseSensitive: false,
-			wantOp:        " ILIKE ",
+			wantSQL:       `"t"."name" ILIKE $1`,
 		},
 		{
 			name: "not like sensitive",
@@ -147,8 +154,9 @@ func TestLikeFilters_CaseSensitiveVsInsensitive(t *testing.T) {
 					dialect:       d,
 				}
 			},
+			primeDialect:  func(d *dialectmock.MockDialect) { d.EXPECT().NotLike().Return("NOT LIKE") },
 			caseSensitive: true,
-			wantOp:        " NOT LIKE ",
+			wantSQL:       `"t"."name" NOT LIKE $1`,
 		},
 		{
 			name: "not like insensitive",
@@ -160,9 +168,15 @@ func TestLikeFilters_CaseSensitiveVsInsensitive(t *testing.T) {
 					dialect:       d,
 				}
 			},
-			primeDialect:  func(d *dialectmock.MockDialect) { d.EXPECT().NotILike().Return("NOT ILIKE") },
+			primeDialect: func(d *dialectmock.MockDialect) {
+				d.EXPECT().
+					WriteNotILikeCondition(gomock.Any(), `"t"`, "name", "$1").
+					Do(func(b *strings.Builder, _, _, _ string) {
+						b.WriteString(`"t"."name" NOT ILIKE $1`)
+					})
+			},
 			caseSensitive: false,
-			wantOp:        " NOT ILIKE ",
+			wantSQL:       `"t"."name" NOT ILIKE $1`,
 		},
 	}
 
@@ -179,8 +193,64 @@ func TestLikeFilters_CaseSensitiveVsInsensitive(t *testing.T) {
 			}
 
 			sql, _ := runStatement(t, tc.makeFilter(d, tc.caseSensitive), `"t"`)
-			if !strings.Contains(sql, tc.wantOp) {
-				t.Errorf("expected %q in %q", tc.wantOp, sql)
+			if sql != tc.wantSQL {
+				t.Errorf("sql = %q, want %q", sql, tc.wantSQL)
+			}
+		})
+	}
+}
+
+func TestLikeFilters_SQLiteRendering(t *testing.T) {
+	t.Parallel()
+
+	d := dialect.NewSQLiteDialect()
+
+	tests := []struct {
+		name string
+		stmt Statement
+		want string
+	}{
+		{
+			name: "_like is case-sensitive",
+			stmt: &likeFilter{
+				column: "name", pattern: "%Foo%", caseSensitive: true, dialect: d,
+			},
+			want: `"t"."name" LIKE ?`,
+		},
+		{
+			name: "_ilike lowers both operands",
+			stmt: &likeFilter{
+				column: "name", pattern: "%Foo%", caseSensitive: false, dialect: d,
+			},
+			want: `LOWER("t"."name") LIKE LOWER(?)`,
+		},
+		{
+			name: "_nlike is case-sensitive",
+			stmt: &notLikeFilter{
+				column: "name", pattern: "%Foo%", caseSensitive: true, dialect: d,
+			},
+			want: `"t"."name" NOT LIKE ?`,
+		},
+		{
+			name: "_nilike lowers both operands",
+			stmt: &notLikeFilter{
+				column: "name", pattern: "%Foo%", caseSensitive: false, dialect: d,
+			},
+			want: `LOWER("t"."name") NOT LIKE LOWER(?)`,
+		},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			t.Parallel()
+
+			sql, params := runStatement(t, tt.stmt, `"t"`)
+			if sql != tt.want {
+				t.Errorf("sql = %q, want %q", sql, tt.want)
+			}
+
+			if len(params) != 1 || params[0] != "%Foo%" {
+				t.Errorf("params = %v, want [%%Foo%%]", params)
 			}
 		})
 	}
@@ -548,5 +618,83 @@ func TestArrayContainmentFilters(t *testing.T) {
 				t.Errorf("expected %q in %q", tc.op, sql)
 			}
 		})
+	}
+}
+
+func TestSpatialFilters_WriteCondition(t *testing.T) {
+	t.Parallel()
+
+	ctrl := gomock.NewController(t)
+	d := dialectmock.NewMockDialect(ctrl)
+	d.EXPECT().SupportsSpatialTypes().Return(true)
+	d.EXPECT().Placeholder(1).Return("$1")
+	d.EXPECT().SpatialValueExpression("$1", "geometry").Return("ST_GeomFromGeoJSON($1)")
+
+	f := &equalsFilter{
+		column: newColumn("geom", "geometry"),
+		value: map[string]any{
+			"type":        "Point",
+			"coordinates": []any{float64(1), float64(2)},
+		},
+		dialect: d,
+	}
+
+	sql, params := runStatement(t, f, `"t"`)
+
+	const wantSQL = `"t"."geom" = ST_GeomFromGeoJSON($1)`
+	if sql != wantSQL {
+		t.Fatalf("sql = %q, want %q", sql, wantSQL)
+	}
+
+	wantParams := []any{`{"coordinates":[1,2],"type":"Point"}`}
+	if diff := cmp.Diff(wantParams, params); diff != "" {
+		t.Fatalf("params mismatch (-want +got):\n%s", diff)
+	}
+}
+
+func TestSpatialInFilter_WriteCondition(t *testing.T) {
+	t.Parallel()
+
+	ctrl := gomock.NewController(t)
+	d := dialectmock.NewMockDialect(ctrl)
+	d.EXPECT().SupportsSpatialTypes().Return(true)
+	d.EXPECT().WriteSpatialArrayIn(
+		gomock.Any(),
+		`"t"`,
+		"geom",
+		"geometry",
+		[]any{`{"coordinates":[1,2],"type":"Point"}`},
+		nil,
+		1,
+	).DoAndReturn(func(
+		b *strings.Builder,
+		_, _, _ string,
+		vals []any,
+		params []any,
+		paramIndex int,
+	) ([]any, int) {
+		b.WriteString(`"t"."geom" = ANY(ARRAY[ST_GeomFromGeoJSON($1)]::geometry[])`)
+		return append(params, vals...), paramIndex + len(vals)
+	})
+
+	f := &inFilter{
+		column: newColumn("geom", "geometry"),
+		values: []any{map[string]any{
+			"type":        "Point",
+			"coordinates": []any{float64(1), float64(2)},
+		}},
+		dialect: d,
+	}
+
+	sql, params := runStatement(t, f, `"t"`)
+
+	const wantSQL = `"t"."geom" = ANY(ARRAY[ST_GeomFromGeoJSON($1)]::geometry[])`
+	if sql != wantSQL {
+		t.Fatalf("sql = %q, want %q", sql, wantSQL)
+	}
+
+	wantParams := []any{`{"coordinates":[1,2],"type":"Point"}`}
+	if diff := cmp.Diff(wantParams, params); diff != "" {
+		t.Fatalf("params mismatch (-want +got):\n%s", diff)
 	}
 }

@@ -83,6 +83,7 @@ import (
 
 	"github.com/nhost/nhost/services/constellation/connector"
 	"github.com/nhost/nhost/services/constellation/connector/groupedaggregate"
+	"github.com/nhost/nhost/services/constellation/internal/jsonpath"
 	"github.com/vektah/gqlparser/v2/ast"
 )
 
@@ -214,6 +215,9 @@ func (r *RemoteRelationshipResolver) executeAndStitch(
 		ctx, remoteOp, filteredFragments, variables, role, sessionVariables, logger,
 	)
 	if err != nil {
+		// Root-field execution can merge partial connector data field-by-field, but
+		// remote relationships need a complete lookup set before stitching into
+		// parent rows. Do not stitch partial relationship data on error.
 		err = remapRemoteQueryValidationArgumentPath(err, rq, remoteOp)
 
 		return fmt.Errorf("failed to execute remote query: %w", err)
@@ -301,8 +305,8 @@ func (r *RemoteRelationshipResolver) removeAllLocalPhantomFields(
 	results map[string]any,
 	remoteQueries []*remoteQuery,
 ) {
-	// Track which paths we've already processed to avoid duplicate work
-	seen := make(map[string]struct{})
+	fieldsByPath := make(map[string]map[string]struct{})
+	pathsByKey := make(map[string]jsonpath.Path)
 
 	for _, rq := range remoteQueries {
 		parentPath := rq.getParentPath()
@@ -312,16 +316,25 @@ func (r *RemoteRelationshipResolver) removeAllLocalPhantomFields(
 			continue
 		}
 
-		// Create a unique key for this path
 		key := parentPath.String()
-		if _, ok := seen[key]; ok {
-			continue
+
+		pathsByKey[key] = parentPath
+		if fieldsByPath[key] == nil {
+			fieldsByPath[key] = make(map[string]struct{})
 		}
 
-		seen[key] = struct{}{}
+		for _, field := range phantomFields {
+			fieldsByPath[key][field] = struct{}{}
+		}
+	}
 
-		// Remove the phantom fields at this path
-		parentPath.Delete(results, phantomFields...)
+	for key, fieldSet := range fieldsByPath {
+		phantomFields := make([]string, 0, len(fieldSet))
+		for field := range fieldSet {
+			phantomFields = append(phantomFields, field)
+		}
+
+		pathsByKey[key].Delete(results, phantomFields...)
 	}
 }
 

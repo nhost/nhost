@@ -19,6 +19,7 @@ import (
 	"context"
 	"fmt"
 	"log/slog"
+	"net/http"
 	"sync/atomic"
 	"time"
 
@@ -129,6 +130,15 @@ type Controller struct {
 	devMode bool
 
 	source metadata.Source
+
+	// version is the build-time version string surfaced by the GetVersion
+	// OpenAPI handler.
+	version string
+
+	// hasuraProxy is the per-op fallback used inside the /v1/metadata
+	// dispatcher (any metadata op not yet migrated). Nil when no upstream
+	// is configured — unknown ops then return `not-supported`.
+	hasuraProxy http.Handler
 }
 
 // New constructs a Controller, performing the initial metadata load and
@@ -142,6 +152,8 @@ func New(
 	jwtAuth middleware.JWTAuthenticator,
 	source metadata.Source,
 	logger *slog.Logger,
+	version string,
+	hasuraProxy http.Handler,
 ) (*Controller, error) {
 	meta, err := source.InitialLoad(ctx)
 	if err != nil {
@@ -163,6 +175,8 @@ func New(
 		logger:          logger,
 		devMode:         devMode,
 		source:          source,
+		version:         version,
+		hasuraProxy:     hasuraProxy,
 	}
 	ctrl.state.Store(state)
 
@@ -239,7 +253,7 @@ func buildState(
 	queryPlanner := planner.New(
 		built.ValidatedSchemas,
 		built.FieldToConnector,
-		built.TypeToConnector,
+		built.TypeToConnectors,
 		connectorRelationships,
 	)
 
@@ -337,7 +351,7 @@ func NewFromConnectors(
 	queryPlanner := planner.New(
 		composed.ValidatedSchemas,
 		composed.FieldToConnector,
-		composed.TypeToConnector,
+		composed.TypeToConnectors,
 		relationships,
 	)
 
@@ -358,6 +372,8 @@ func NewFromConnectors(
 		logger:          logger,
 		devMode:         false,
 		source:          nil,
+		hasuraProxy:     nil,
+		version:         "",
 		state:           atomic.Pointer[controllerState]{},
 	}
 	ctrl.state.Store(state)

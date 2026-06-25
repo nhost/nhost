@@ -2,7 +2,7 @@
 
 A [`gh` CLI extension](https://docs.github.com/en/github-cli/github-cli/using-github-cli-extensions) that produces a markdown stand-up report of a GitHub user's activity in an organisation over a time window.
 
-It looks at every pull request and issue the user touched, sorts each one into one of five buckets, and prints a markdown report ready to paste into a stand-up channel.
+It looks at every pull request and issue the user touched, sorts each one into one of six buckets, and prints a markdown report ready to paste into a stand-up channel.
 
 ## Install
 
@@ -66,13 +66,13 @@ The tool runs three GitHub searches against the org and your window:
 - `reviewed-by:USER updated:SINCE..UNTIL`
 - `review-requested:USER updated:SINCE..UNTIL`
 
-It dedupes the union by URL, then routes each item into exactly one of five buckets. **Routing is first-match-wins**, in the priority order listed below — once a PR matches a bucket, no later rule can move it.
+It dedupes the union by URL, then routes each item into exactly one of six buckets. **Routing is first-match-wins**, in the priority order listed below — once a PR matches a bucket, no later rule can move it.
 
 ### Pull requests
 
 For each PR, in this order:
 
-1. **`ClosedOrMerged`** — the PR was merged or closed inside the window (`mergedAt` or `closedAt` falls between `--since` and `--until`).
+1. **`ClosedOrMerged`** — the user authored the PR **and** it was merged or closed inside the window (`mergedAt` or `closedAt` falls between `--since` and `--until`).
 2. **`Blocked`** — the user authored the PR **and** its Projects v2 status column was set to the `--waiting-status` value inside the window.
 3. **`ReadyForReview`** — the user authored the PR **and** either:
    - its Projects v2 status was set to the `--ready-status` value in the window, or
@@ -80,7 +80,7 @@ For each PR, in this order:
 4. **`InProgress`** — the user authored the PR **and** either:
    - the PR was opened in the window (`createdAt` is in range), or
    - the user pushed a commit in the window.
-5. **`Uncategorized`** — anything else where the user left a review or comment on the PR inside the window. The name is literal: the search's `updated:` qualifier is broad, so being merely returned by search isn't enough — there has to be an actual user action (a `PullRequestReview` submitted or an `IssueComment` posted by the user) inside the window.
+5. **`Reviewed`** — anything else where the user left a review or comment on the PR inside the window. The name is broad enough to include top-level PR comments as well as `PullRequestReview` submissions such as approvals or change requests. The search's `updated:` qualifier is broad, so being merely returned by search isn't enough — there has to be an actual user signal inside the window.
 
 PRs that don't match any of the above are dropped from the report.
 
@@ -94,7 +94,7 @@ All issue activity lands in `Uncategorized` today; if a richer issue taxonomy is
 
 ### Why "first-match-wins"
 
-The bucket order encodes how a stand-up reads top-to-bottom: things that wrapped up (`ClosedOrMerged`) lead, then the things blocking the user (`Blocked`), then what's awaiting review (`ReadyForReview`), then live work (`InProgress`), and finally context items (`Uncategorized`). A PR that was opened and then merged in the same window is reported as merged, not as in-progress — which is what you'd say in stand-up.
+The bucket order encodes how a stand-up reads top-to-bottom: things that wrapped up (`ClosedOrMerged`) lead, then the things blocking the user (`Blocked`), then what's awaiting review (`ReadyForReview`), then live work (`InProgress`), then review/comment activity (`Reviewed`), and finally issue or odd leftover context (`Uncategorized`). A PR that was opened and then merged in the same window is reported as merged, not as in-progress — which is what you'd say in stand-up.
 
 ### Why the status field is configurable
 
@@ -102,19 +102,24 @@ Different teams name their Projects v2 status field differently — `Status`, `W
 
 ## Output
 
-A markdown report with a fixed set of level-3 (`###`) sections, in this order:
+A markdown report starts with a level-2 heading for the report window and user, for example `## 2026-05-20 - meh`. If the window spans multiple dates, the heading uses a date range, for example `## 2026-04-25 to 2026-06-04 - meh`.
+
+It then emits a fixed set of level-3 (`###`) sections, in this order:
 
 1. `### 🟢 In progress`
 2. `### 👀 Moved to waiting for review`
 3. `### ⏸️ Blocked / waiting on something else`
 4. `### ✅ Closed / merged`
-5. `### 🎯 Today's focus` — scaffolding for the human to fill in.
-6. `### 📝 Other` — scaffolding for the human to fill in.
-7. `### Uncategorized` — items the user merely touched (reviewed/commented) inside the window.
+5. `### 🔍 Reviewed / commented`
+6. `### 🎯 Today's focus` — scaffolding for the human to fill in.
+7. `### 📝 Other` — scaffolding for the human to fill in.
+8. `### Uncategorized` — issue activity and any remaining context that does not fit the PR-specific buckets.
 
 Every heading is always emitted, even when its bucket is empty — the layout is designed to be pasted into a stand-up channel and filled in by hand, so the empty sections act as a checklist. Within a bucket, items are sorted by repository then PR/issue number for stable diffs day-to-day, and rendered as `- [PR #N](URL) Title` (or `- [Issue #N](URL) Title`).
 
 ```markdown
+## 2026-05-20 - meh
+
 ### 🟢 In progress
 
 - [PR #46](https://github.com/nhost/example/pull/46) WIP: baz refactor
@@ -128,6 +133,10 @@ Every heading is always emitted, even when its bucket is empty — the layout is
 ### ✅ Closed / merged
 
 - [PR #42](https://github.com/nhost/example/pull/42) Tidy up the foo handler
+
+### 🔍 Reviewed / commented
+
+- [PR #47](https://github.com/nhost/example/pull/47) Review teammate change
 
 ### 🎯 Today's focus
 

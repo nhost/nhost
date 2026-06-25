@@ -73,11 +73,10 @@ func getQualifiedName(schema, table string) string {
 	return schema + "." + table
 }
 
-// getDefaultTypeName returns the default GraphQL type name for a table.
-// For public schema tables (and unschemaed SQLite tables), returns just the
-// table name. For non-public schemas, returns schema_table to match Hasura's
-// behavior.
-func getDefaultTypeName(schema, table string) string {
+// DefaultTypeName returns the default GraphQL type/root base name for a table.
+// Public schema tables and unschemaed SQLite tables use the table name directly;
+// non-public schemas use schema_table to match Hasura's behavior.
+func DefaultTypeName(schema, table string) string {
 	if schema == "public" || schema == "" {
 		return table
 	}
@@ -91,7 +90,7 @@ func getCustomOrDefaultTypeName(tableMeta *metadata.TableMetadata) string {
 		return tableMeta.Configuration.CustomName
 	}
 
-	return getDefaultTypeName(tableMeta.Table.Schema, tableMeta.Table.Name)
+	return DefaultTypeName(tableMeta.Table.Schema, tableMeta.Table.Name)
 }
 
 // getColumnDescription returns the column comment as a description string, or empty if none.
@@ -274,8 +273,10 @@ func normalizePostgresTypeToGraphQL(pgType string) string {
 	// Only map to built-in GraphQL types
 	//nolint:goconst,nolintlint
 	switch pgType {
-	case "integer", "int", "int4", "int2", "smallint":
+	case "integer", "int", "int4":
 		return "Int"
+	case "int2", "smallint":
+		return "smallint"
 	case "int8":
 		return "bigint"
 	case "boolean", "bool":

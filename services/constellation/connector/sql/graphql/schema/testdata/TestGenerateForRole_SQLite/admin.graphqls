@@ -59,10 +59,6 @@ enum authOauth2AuthRequests_constraint {
   unique or primary key constraint on columns "id"
   """
   oauth2_auth_requests_pkey
-  """
-  unique or primary key constraint on columns "id"
-  """
-  sqlite_autoindex_oauth2_auth_requests_1
 }
 """
 update columns of table "oauth2_auth_requests"
@@ -206,10 +202,6 @@ enum authOauth2AuthorizationCodes_constraint {
   unique or primary key constraint on columns "code_hash"
   """
   oauth2_authorization_codes_code_hash_key
-  """
-  unique or primary key constraint on columns "id"
-  """
-  sqlite_autoindex_oauth2_authorization_codes_1
 }
 """
 update columns of table "oauth2_authorization_codes"
@@ -287,10 +279,6 @@ enum authOauth2Clients_constraint {
   unique or primary key constraint on columns "client_id"
   """
   oauth2_clients_pkey
-  """
-  unique or primary key constraint on columns "client_id"
-  """
-  sqlite_autoindex_oauth2_clients_1
 }
 """
 update columns of table "oauth2_clients"
@@ -394,10 +382,6 @@ enum authOauth2RefreshTokens_constraint {
   unique or primary key constraint on columns "token_hash"
   """
   oauth2_refresh_tokens_token_hash_key
-  """
-  unique or primary key constraint on columns "id"
-  """
-  sqlite_autoindex_oauth2_refresh_tokens_1
 }
 """
 update columns of table "oauth2_refresh_tokens"
@@ -481,10 +465,6 @@ enum authProviderRequests_constraint {
   unique or primary key constraint on columns "id"
   """
   provider_requests_pkey
-  """
-  unique or primary key constraint on columns "id"
-  """
-  sqlite_autoindex_provider_requests_1
 }
 """
 update columns of table "provider_requests"
@@ -520,10 +500,6 @@ enum authProviders_constraint {
   unique or primary key constraint on columns "id"
   """
   providers_pkey
-  """
-  unique or primary key constraint on columns "id"
-  """
-  sqlite_autoindex_providers_1
 }
 """
 update columns of table "providers"
@@ -551,10 +527,6 @@ enum authRefreshTokenTypes_constraint {
   unique or primary key constraint on columns "value"
   """
   refresh_token_types_pkey
-  """
-  unique or primary key constraint on columns "value"
-  """
-  sqlite_autoindex_refresh_token_types_1
 }
 """
 update columns of table "refresh_token_types"
@@ -590,10 +562,6 @@ enum authRefreshTokens_constraint {
   unique or primary key constraint on columns "id"
   """
   refresh_tokens_pkey
-  """
-  unique or primary key constraint on columns "id"
-  """
-  sqlite_autoindex_refresh_tokens_1
 }
 """
 update columns of table "refresh_tokens"
@@ -711,10 +679,6 @@ enum authRoles_constraint {
   unique or primary key constraint on columns "role"
   """
   roles_pkey
-  """
-  unique or primary key constraint on columns "role"
-  """
-  sqlite_autoindex_roles_1
 }
 """
 update columns of table "roles"
@@ -746,10 +710,6 @@ enum authUserProviders_constraint {
   unique or primary key constraint on columns "provider_id", "provider_user_id"
   """
   user_providers_provider_id_provider_user_id_key
-  """
-  unique or primary key constraint on columns "id"
-  """
-  sqlite_autoindex_user_providers_1
 }
 """
 update columns of table "user_providers"
@@ -837,10 +797,6 @@ enum authUserRoles_constraint {
   unique or primary key constraint on columns "user_id", "role"
   """
   user_roles_user_id_role_key
-  """
-  unique or primary key constraint on columns "id"
-  """
-  sqlite_autoindex_user_roles_1
 }
 """
 update columns of table "user_roles"
@@ -896,10 +852,6 @@ enum authUserSecurityKeys_constraint {
   unique or primary key constraint on columns "credential_id"
   """
   user_security_key_credential_id_key
-  """
-  unique or primary key constraint on columns "id"
-  """
-  sqlite_autoindex_user_security_keys_1
 }
 """
 update columns of table "user_security_keys"
@@ -1019,10 +971,6 @@ enum users_constraint {
   unique or primary key constraint on columns "email"
   """
   users_email_key
-  """
-  unique or primary key constraint on columns "id"
-  """
-  sqlite_autoindex_users_1
 }
 """
 update columns of table "users"
@@ -1235,6 +1183,49 @@ enum users_select_column {
   currentChallenge
 }
 """
+unique or primary key constraints on table "artists"
+"""
+enum artists_constraint {
+  """
+  unique or primary key constraint on columns "id"
+  """
+  artists_pkey
+}
+"""
+update columns of table "artists"
+"""
+enum artists_update_column {
+  """
+  column name
+  """
+  id
+  """
+  column name
+  """
+  stage_name
+  """
+  column name
+  """
+  created_by
+}
+"""
+select columns of table "artists"
+"""
+enum artists_select_column {
+  """
+  column name
+  """
+  id
+  """
+  column name
+  """
+  stage_name
+  """
+  column name
+  """
+  created_by
+}
+"""
 select columns of table "content_feed"
 """
 enum contentFeed_select_column {
@@ -1267,10 +1258,6 @@ enum department_files_constraint {
   unique or primary key constraint on columns "id"
   """
   department_files_pkey
-  """
-  unique or primary key constraint on columns "id"
-  """
-  sqlite_autoindex_department_files_1
 }
 """
 update columns of table "department_files"
@@ -1322,10 +1309,6 @@ enum department_roles_constraint {
   unique or primary key constraint on columns "value"
   """
   department_roles_pkey
-  """
-  unique or primary key constraint on columns "value"
-  """
-  sqlite_autoindex_department_roles_1
 }
 """
 update columns of table "department_roles"
@@ -1365,10 +1348,6 @@ enum departments_constraint {
   unique or primary key constraint on columns "name"
   """
   departments_name_key
-  """
-  unique or primary key constraint on columns "id"
-  """
-  sqlite_autoindex_departments_1
 }
 """
 update columns of table "departments"
@@ -1440,10 +1419,6 @@ enum exercise_log_sets_constraint {
   unique or primary key constraint on columns "id"
   """
   exercise_log_sets_pkey
-  """
-  unique or primary key constraint on columns "id"
-  """
-  sqlite_autoindex_exercise_log_sets_1
 }
 """
 update columns of table "exercise_log_sets"
@@ -1499,10 +1474,6 @@ enum exercise_logs_constraint {
   unique or primary key constraint on columns "id", "kind"
   """
   sqlite_autoindex_exercise_logs_2
-  """
-  unique or primary key constraint on columns "id"
-  """
-  sqlite_autoindex_exercise_logs_1
 }
 """
 update columns of table "exercise_logs"
@@ -1589,10 +1560,6 @@ enum kb_entries_constraint {
   unique or primary key constraint on columns "id"
   """
   kb_entries_pkey
-  """
-  unique or primary key constraint on columns "id"
-  """
-  sqlite_autoindex_kb_entries_1
 }
 """
 update columns of table "kb_entries"
@@ -1688,10 +1655,6 @@ enum kb_entry_departments_constraint {
   unique or primary key constraint on columns "kb_entry_id", "department_id"
   """
   kb_entry_departments_kb_entry_id_department_id_key
-  """
-  unique or primary key constraint on columns "id"
-  """
-  sqlite_autoindex_kb_entry_departments_1
 }
 """
 update columns of table "kb_entry_departments"
@@ -1739,10 +1702,6 @@ enum news_constraint {
   unique or primary key constraint on columns "title"
   """
   news_title_key
-  """
-  unique or primary key constraint on columns "id"
-  """
-  sqlite_autoindex_news_1
 }
 """
 update columns of table "news"
@@ -1826,10 +1785,6 @@ enum note_replies_constraint {
   unique or primary key constraint on columns "id"
   """
   note_replies_pkey
-  """
-  unique or primary key constraint on columns "id"
-  """
-  sqlite_autoindex_note_replies_1
 }
 """
 update columns of table "note_replies"
@@ -1881,10 +1836,6 @@ enum notes_constraint {
   unique or primary key constraint on columns "id"
   """
   notes_pkey
-  """
-  unique or primary key constraint on columns "id"
-  """
-  sqlite_autoindex_notes_1
 }
 """
 update columns of table "notes"
@@ -1919,6 +1870,77 @@ enum notes_select_column {
   column name
   """
   title
+}
+"""
+unique or primary key constraints on table "postgis_locations"
+"""
+enum postgis_locations_constraint {
+  """
+  unique or primary key constraint on columns "id"
+  """
+  postgis_locations_pkey
+  """
+  unique or primary key constraint on columns "name"
+  """
+  sqlite_autoindex_postgis_locations_2
+}
+"""
+update columns of table "postgis_locations"
+"""
+enum postgis_locations_update_column {
+  """
+  column name
+  """
+  id
+  """
+  column name
+  """
+  name
+  """
+  column name
+  """
+  geom
+  """
+  column name
+  """
+  geog
+  """
+  column name
+  """
+  area
+  """
+  column name
+  """
+  nullable_geom
+}
+"""
+select columns of table "postgis_locations"
+"""
+enum postgis_locations_select_column {
+  """
+  column name
+  """
+  id
+  """
+  column name
+  """
+  name
+  """
+  column name
+  """
+  geom
+  """
+  column name
+  """
+  geog
+  """
+  column name
+  """
+  area
+  """
+  column name
+  """
+  nullable_geom
 }
 """
 select columns of table "published_news"
@@ -1961,10 +1983,6 @@ enum user_departments_constraint {
   unique or primary key constraint on columns "user_id", "department_id"
   """
   user_departments_pkey
-  """
-  unique or primary key constraint on columns "user_id", "department_id"
-  """
-  sqlite_autoindex_user_departments_1
 }
 """
 update columns of table "user_departments"
@@ -2042,10 +2060,6 @@ enum buckets_constraint {
   unique or primary key constraint on columns "id"
   """
   buckets_pkey
-  """
-  unique or primary key constraint on columns "id"
-  """
-  sqlite_autoindex_buckets_1
 }
 """
 update columns of table "buckets"
@@ -2129,10 +2143,6 @@ enum files_constraint {
   unique or primary key constraint on columns "id"
   """
   files_pkey
-  """
-  unique or primary key constraint on columns "id"
-  """
-  sqlite_autoindex_files_1
 }
 """
 update columns of table "files"
@@ -2240,10 +2250,6 @@ enum virus_constraint {
   unique or primary key constraint on columns "id"
   """
   virus_pkey
-  """
-  unique or primary key constraint on columns "id"
-  """
-  sqlite_autoindex_virus_1
 }
 """
 update columns of table "virus"
@@ -4012,6 +4018,58 @@ type users_mutation_response {
   returning: [users!]!
 }
 """
+columns and relationships of "artists"
+"""
+type artists {
+  id: uuid!
+  stage_name: String!
+  created_by: uuid!
+}
+"""
+aggregated selection of "artists"
+"""
+type artists_aggregate {
+  aggregate: artists_aggregate_fields
+  nodes: [artists!]!
+}
+"""
+aggregate max on columns
+"""
+type artists_max_fields {
+  id: uuid
+  stage_name: String
+  created_by: uuid
+}
+"""
+aggregate min on columns
+"""
+type artists_min_fields {
+  id: uuid
+  stage_name: String
+  created_by: uuid
+}
+"""
+aggregate fields of "artists"
+"""
+type artists_aggregate_fields {
+  count(columns: [artists_select_column!], distinct: Boolean): Int!
+  max: artists_max_fields
+  min: artists_min_fields
+}
+"""
+response of any mutation on the table "artists"
+"""
+type artists_mutation_response {
+  """
+  number of rows affected by the mutation
+  """
+  affected_rows: Int!
+  """
+  data from the rows affected by the mutation
+  """
+  returning: [artists!]!
+}
+"""
 columns and relationships of "content_feed"
 """
 type contentFeed {
@@ -5034,6 +5092,67 @@ type notes_mutation_response {
   data from the rows affected by the mutation
   """
   returning: [notes!]!
+}
+"""
+columns and relationships of "postgis_locations"
+"""
+type postgis_locations {
+  id: uuid
+  name: String!
+  geom: String!
+  geog: String!
+  area: String!
+  nullable_geom: String
+}
+"""
+aggregated selection of "postgis_locations"
+"""
+type postgis_locations_aggregate {
+  aggregate: postgis_locations_aggregate_fields
+  nodes: [postgis_locations!]!
+}
+"""
+aggregate max on columns
+"""
+type postgis_locations_max_fields {
+  id: uuid
+  name: String
+  geom: String
+  geog: String
+  area: String
+  nullable_geom: String
+}
+"""
+aggregate min on columns
+"""
+type postgis_locations_min_fields {
+  id: uuid
+  name: String
+  geom: String
+  geog: String
+  area: String
+  nullable_geom: String
+}
+"""
+aggregate fields of "postgis_locations"
+"""
+type postgis_locations_aggregate_fields {
+  count(columns: [postgis_locations_select_column!], distinct: Boolean): Int!
+  max: postgis_locations_max_fields
+  min: postgis_locations_min_fields
+}
+"""
+response of any mutation on the table "postgis_locations"
+"""
+type postgis_locations_mutation_response {
+  """
+  number of rows affected by the mutation
+  """
+  affected_rows: Int!
+  """
+  data from the rows affected by the mutation
+  """
+  returning: [postgis_locations!]!
 }
 """
 columns and relationships of "published_news"
@@ -6135,6 +6254,58 @@ type query_root {
     where: users_bool_exp
   ): users_aggregate!
   """
+  fetch data from the table: "artists"
+  """
+  artists(
+    """
+    limit the number of rows returned
+    """
+    limit: Int
+
+    """
+    skip the first n rows. Use only with order_by
+    """
+    offset: Int
+
+    """
+    sort the rows by one or more columns
+    """
+    order_by: [artists_order_by!]
+
+    """
+    filter the rows returned
+    """
+    where: artists_bool_exp
+  ): [artists!]!
+  """
+  fetch data from the table: "artists" using primary key columns
+  """
+  artists_by_pk(id: uuid!): artists
+  """
+  fetch aggregated fields from the table: "artists"
+  """
+  artists_aggregate(
+    """
+    limit the number of rows returned
+    """
+    limit: Int
+
+    """
+    skip the first n rows. Use only with order_by
+    """
+    offset: Int
+
+    """
+    sort the rows by one or more columns
+    """
+    order_by: [artists_order_by!]
+
+    """
+    filter the rows returned
+    """
+    where: artists_bool_exp
+  ): artists_aggregate!
+  """
   fetch data from the table: "content_feed"
   """
   contentFeed(
@@ -6754,6 +6925,58 @@ type query_root {
     """
     where: notes_bool_exp
   ): notes_aggregate!
+  """
+  fetch data from the table: "postgis_locations"
+  """
+  postgis_locations(
+    """
+    limit the number of rows returned
+    """
+    limit: Int
+
+    """
+    skip the first n rows. Use only with order_by
+    """
+    offset: Int
+
+    """
+    sort the rows by one or more columns
+    """
+    order_by: [postgis_locations_order_by!]
+
+    """
+    filter the rows returned
+    """
+    where: postgis_locations_bool_exp
+  ): [postgis_locations!]!
+  """
+  fetch data from the table: "postgis_locations" using primary key columns
+  """
+  postgis_locations_by_pk(id: uuid!): postgis_locations
+  """
+  fetch aggregated fields from the table: "postgis_locations"
+  """
+  postgis_locations_aggregate(
+    """
+    limit the number of rows returned
+    """
+    limit: Int
+
+    """
+    skip the first n rows. Use only with order_by
+    """
+    offset: Int
+
+    """
+    sort the rows by one or more columns
+    """
+    order_by: [postgis_locations_order_by!]
+
+    """
+    filter the rows returned
+    """
+    where: postgis_locations_bool_exp
+  ): postgis_locations_aggregate!
   """
   fetch data from the table: "published_news"
   """
@@ -7975,6 +8198,79 @@ type mutation_root {
     updates: [users_updates!]!
   ): [users_mutation_response]
   """
+  delete single row from the table: "artists"
+  """
+  delete_artists_by_pk(id: uuid!): artists
+  """
+  delete data from the table: "artists"
+  """
+  delete_artists(
+    """
+    filter the rows which have to be deleted
+    """
+    where: artists_bool_exp!
+  ): artists_mutation_response
+  """
+  insert a single row into the table: "artists"
+  """
+  insert_artists_one(
+    """
+    the row to be inserted
+    """
+    object: artists_insert_input!
+
+    """
+    upsert condition
+    """
+    on_conflict: artists_on_conflict
+  ): artists
+  """
+  insert data into the table: "artists"
+  """
+  insert_artists(
+    """
+    the rows to be inserted
+    """
+    objects: [artists_insert_input!]!
+
+    """
+    upsert condition
+    """
+    on_conflict: artists_on_conflict
+  ): artists_mutation_response
+  """
+  update single row of the table: "artists"
+  """
+  update_artists_by_pk(
+    """
+    sets the columns of the filtered rows to the given values
+    """
+    _set: artists_set_input
+  pk_columns: artists_pk_columns_input!): artists
+  """
+  update data of the table: "artists"
+  """
+  update_artists(
+    """
+    sets the columns of the filtered rows to the given values
+    """
+    _set: artists_set_input
+
+    """
+    filter the rows which have to be updated
+    """
+    where: artists_bool_exp!
+  ): artists_mutation_response
+  """
+  update multiples rows of table: "artists"
+  """
+  update_artists_many(
+    """
+    updates to execute, in order
+    """
+    updates: [artists_updates!]!
+  ): [artists_mutation_response]
+  """
   delete single row from the table: "department_files"
   """
   delete_department_files_by_pk(id: uuid!): department_files
@@ -8807,6 +9103,79 @@ type mutation_root {
     """
     updates: [notes_updates!]!
   ): [notes_mutation_response]
+  """
+  delete single row from the table: "postgis_locations"
+  """
+  delete_postgis_locations_by_pk(id: uuid!): postgis_locations
+  """
+  delete data from the table: "postgis_locations"
+  """
+  delete_postgis_locations(
+    """
+    filter the rows which have to be deleted
+    """
+    where: postgis_locations_bool_exp!
+  ): postgis_locations_mutation_response
+  """
+  insert a single row into the table: "postgis_locations"
+  """
+  insert_postgis_locations_one(
+    """
+    the row to be inserted
+    """
+    object: postgis_locations_insert_input!
+
+    """
+    upsert condition
+    """
+    on_conflict: postgis_locations_on_conflict
+  ): postgis_locations
+  """
+  insert data into the table: "postgis_locations"
+  """
+  insert_postgis_locations(
+    """
+    the rows to be inserted
+    """
+    objects: [postgis_locations_insert_input!]!
+
+    """
+    upsert condition
+    """
+    on_conflict: postgis_locations_on_conflict
+  ): postgis_locations_mutation_response
+  """
+  update single row of the table: "postgis_locations"
+  """
+  update_postgis_locations_by_pk(
+    """
+    sets the columns of the filtered rows to the given values
+    """
+    _set: postgis_locations_set_input
+  pk_columns: postgis_locations_pk_columns_input!): postgis_locations
+  """
+  update data of the table: "postgis_locations"
+  """
+  update_postgis_locations(
+    """
+    sets the columns of the filtered rows to the given values
+    """
+    _set: postgis_locations_set_input
+
+    """
+    filter the rows which have to be updated
+    """
+    where: postgis_locations_bool_exp!
+  ): postgis_locations_mutation_response
+  """
+  update multiples rows of table: "postgis_locations"
+  """
+  update_postgis_locations_many(
+    """
+    updates to execute, in order
+    """
+    updates: [postgis_locations_updates!]!
+  ): [postgis_locations_mutation_response]
   """
   delete single row from the table: "user_departments"
   """
@@ -10045,6 +10414,77 @@ type subscription_root {
     where: users_bool_exp
   ): [users!]!
   """
+  fetch data from the table: "artists"
+  """
+  artists(
+    """
+    limit the number of rows returned
+    """
+    limit: Int
+
+    """
+    skip the first n rows. Use only with order_by
+    """
+    offset: Int
+
+    """
+    sort the rows by one or more columns
+    """
+    order_by: [artists_order_by!]
+
+    """
+    filter the rows returned
+    """
+    where: artists_bool_exp
+  ): [artists!]!
+  """
+  fetch data from the table: "artists" using primary key columns
+  """
+  artists_by_pk(id: uuid!): artists
+  """
+  fetch aggregated fields from the table: "artists"
+  """
+  artists_aggregate(
+    """
+    limit the number of rows returned
+    """
+    limit: Int
+
+    """
+    skip the first n rows. Use only with order_by
+    """
+    offset: Int
+
+    """
+    sort the rows by one or more columns
+    """
+    order_by: [artists_order_by!]
+
+    """
+    filter the rows returned
+    """
+    where: artists_bool_exp
+  ): artists_aggregate!
+  """
+  fetch data from the table in a streaming manner: "artists"
+  """
+  artists_stream(
+    """
+    maximum number of rows returned in a single batch
+    """
+    batch_size: Int!
+
+    """
+    cursor to stream the results returned by the query
+    """
+    cursor: [artists_stream_cursor_input]!
+
+    """
+    filter the rows returned
+    """
+    where: artists_bool_exp
+  ): [artists!]!
+  """
   fetch data from the table: "content_feed"
   """
   contentFeed(
@@ -10892,6 +11332,77 @@ type subscription_root {
     """
     where: notes_bool_exp
   ): [notes!]!
+  """
+  fetch data from the table: "postgis_locations"
+  """
+  postgis_locations(
+    """
+    limit the number of rows returned
+    """
+    limit: Int
+
+    """
+    skip the first n rows. Use only with order_by
+    """
+    offset: Int
+
+    """
+    sort the rows by one or more columns
+    """
+    order_by: [postgis_locations_order_by!]
+
+    """
+    filter the rows returned
+    """
+    where: postgis_locations_bool_exp
+  ): [postgis_locations!]!
+  """
+  fetch data from the table: "postgis_locations" using primary key columns
+  """
+  postgis_locations_by_pk(id: uuid!): postgis_locations
+  """
+  fetch aggregated fields from the table: "postgis_locations"
+  """
+  postgis_locations_aggregate(
+    """
+    limit the number of rows returned
+    """
+    limit: Int
+
+    """
+    skip the first n rows. Use only with order_by
+    """
+    offset: Int
+
+    """
+    sort the rows by one or more columns
+    """
+    order_by: [postgis_locations_order_by!]
+
+    """
+    filter the rows returned
+    """
+    where: postgis_locations_bool_exp
+  ): postgis_locations_aggregate!
+  """
+  fetch data from the table in a streaming manner: "postgis_locations"
+  """
+  postgis_locations_stream(
+    """
+    maximum number of rows returned in a single batch
+    """
+    batch_size: Int!
+
+    """
+    cursor to stream the results returned by the query
+    """
+    cursor: [postgis_locations_stream_cursor_input]!
+
+    """
+    filter the rows returned
+    """
+    where: postgis_locations_bool_exp
+  ): [postgis_locations!]!
   """
   fetch data from the table: "published_news"
   """
@@ -13311,6 +13822,86 @@ input users_arr_rel_insert_input {
   on_conflict: users_on_conflict
 }
 """
+Boolean expression to filter rows from the table "artists". All fields are combined with a logical 'AND'.
+"""
+input artists_bool_exp {
+  _and: [artists_bool_exp!]
+  _not: artists_bool_exp
+  _or: [artists_bool_exp!]
+  id: uuid_sqlite_comparison_exp
+  stage_name: String_sqlite_comparison_exp
+  created_by: uuid_sqlite_comparison_exp
+}
+"""
+Ordering options when selecting data from "artists".
+"""
+input artists_order_by {
+  id: order_by
+  stage_name: order_by
+  created_by: order_by
+}
+"""
+Initial value of the column from where the streaming should start
+"""
+input artists_stream_cursor_value_input {
+  id: uuid
+  stage_name: String
+  created_by: uuid
+}
+"""
+Streaming cursor of the table "artists"
+"""
+input artists_stream_cursor_input {
+  """
+  Stream column input with initial value
+  """
+  initial_value: artists_stream_cursor_value_input!
+  """
+  cursor ordering
+  """
+  ordering: cursor_ordering
+}
+"""
+input type for inserting data into table "artists"
+"""
+input artists_insert_input {
+  id: uuid
+  stage_name: String
+  created_by: uuid
+}
+"""
+on_conflict condition type for table "artists"
+"""
+input artists_on_conflict {
+  constraint: artists_constraint!
+  update_columns: [artists_update_column!]! = []
+  where: artists_bool_exp
+}
+"""
+primary key columns input for table: artists
+"""
+input artists_pk_columns_input {
+  id: uuid!
+}
+"""
+input type for updating data in table "artists"
+"""
+input artists_set_input {
+  id: uuid
+  stage_name: String
+  created_by: uuid
+}
+input artists_updates {
+  """
+  sets the columns of the filtered rows to the given values
+  """
+  _set: artists_set_input
+  """
+  filter the rows which have to be updated
+  """
+  where: artists_bool_exp!
+}
+"""
 Boolean expression to filter rows from the table "content_feed". All fields are combined with a logical 'AND'.
 """
 input contentFeed_bool_exp {
@@ -14651,6 +15242,101 @@ input notes_obj_rel_insert_input {
   upsert condition
   """
   on_conflict: notes_on_conflict
+}
+"""
+Boolean expression to filter rows from the table "postgis_locations". All fields are combined with a logical 'AND'.
+"""
+input postgis_locations_bool_exp {
+  _and: [postgis_locations_bool_exp!]
+  _not: postgis_locations_bool_exp
+  _or: [postgis_locations_bool_exp!]
+  id: uuid_sqlite_comparison_exp
+  name: String_sqlite_comparison_exp
+  geom: String_sqlite_comparison_exp
+  geog: String_sqlite_comparison_exp
+  area: String_sqlite_comparison_exp
+  nullable_geom: String_sqlite_comparison_exp
+}
+"""
+Ordering options when selecting data from "postgis_locations".
+"""
+input postgis_locations_order_by {
+  id: order_by
+  name: order_by
+  geom: order_by
+  geog: order_by
+  area: order_by
+  nullable_geom: order_by
+}
+"""
+Initial value of the column from where the streaming should start
+"""
+input postgis_locations_stream_cursor_value_input {
+  id: uuid
+  name: String
+  geom: String
+  geog: String
+  area: String
+  nullable_geom: String
+}
+"""
+Streaming cursor of the table "postgis_locations"
+"""
+input postgis_locations_stream_cursor_input {
+  """
+  Stream column input with initial value
+  """
+  initial_value: postgis_locations_stream_cursor_value_input!
+  """
+  cursor ordering
+  """
+  ordering: cursor_ordering
+}
+"""
+input type for inserting data into table "postgis_locations"
+"""
+input postgis_locations_insert_input {
+  id: uuid
+  name: String
+  geom: String
+  geog: String
+  area: String
+  nullable_geom: String
+}
+"""
+on_conflict condition type for table "postgis_locations"
+"""
+input postgis_locations_on_conflict {
+  constraint: postgis_locations_constraint!
+  update_columns: [postgis_locations_update_column!]! = []
+  where: postgis_locations_bool_exp
+}
+"""
+primary key columns input for table: postgis_locations
+"""
+input postgis_locations_pk_columns_input {
+  id: uuid!
+}
+"""
+input type for updating data in table "postgis_locations"
+"""
+input postgis_locations_set_input {
+  id: uuid
+  name: String
+  geom: String
+  geog: String
+  area: String
+  nullable_geom: String
+}
+input postgis_locations_updates {
+  """
+  sets the columns of the filtered rows to the given values
+  """
+  _set: postgis_locations_set_input
+  """
+  filter the rows which have to be updated
+  """
+  where: postgis_locations_bool_exp!
 }
 """
 Boolean expression to filter rows from the table "published_news". All fields are combined with a logical 'AND'.

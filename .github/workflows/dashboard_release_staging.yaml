@@ -7,7 +7,10 @@ on:
     paths:
       - '.github/workflows/wf_build_artifacts.yaml'
       - '.github/workflows/wf_check.yaml'
+      - '.github/workflows/wf_deploy_vercel.yaml'
       - '.github/workflows/dashboard_checks.yaml'
+      - '.github/actions/cache-nix/**'
+      - '.github/actions/vercel-deploy-nix/**'
 
       # common build
       - 'flake.nix'
@@ -17,8 +20,6 @@ on:
 
       # common javascript
       - ".npmrc"
-      - ".prettierignore"
-      - ".prettierrc.js"
       - "audit-ci.jsonc"
       - "package.json"
       - "pnpm-workspace.yaml"

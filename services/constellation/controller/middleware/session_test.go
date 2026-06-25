@@ -100,8 +100,9 @@ func TestExtractSession(t *testing.T) {
 				"X-Hasura-Admin-Secret": {"my-admin-secret"},
 			},
 			expected: &middleware.SessionVariables{
-				Role:      "admin",
-				Variables: map[string]any{"x-hasura-role": "admin"},
+				Role:          "admin",
+				Variables:     map[string]any{"x-hasura-role": "admin"},
+				IsAdminSecret: true,
 			},
 		},
 		{
@@ -113,8 +114,9 @@ func TestExtractSession(t *testing.T) {
 				"X-Hasura-Role":         {"editor"},
 			},
 			expected: &middleware.SessionVariables{
-				Role:      "editor",
-				Variables: map[string]any{"x-hasura-role": "editor"},
+				Role:          "editor",
+				Variables:     map[string]any{"x-hasura-role": "editor"},
+				IsAdminSecret: true,
 			},
 		},
 		{
@@ -131,6 +133,7 @@ func TestExtractSession(t *testing.T) {
 					"x-hasura-role":    "admin",
 					"x-hasura-user-id": "user-456",
 				},
+				IsAdminSecret: true,
 			},
 		},
 		{
@@ -236,8 +239,35 @@ func TestExtractSession(t *testing.T) {
 				"Authorization":         {"Bearer " + signToken(t, validJWTClaims())},
 			},
 			expected: &middleware.SessionVariables{
-				Role:      "admin",
-				Variables: map[string]any{"x-hasura-role": "admin"},
+				Role:          "admin",
+				Variables:     map[string]any{"x-hasura-role": "admin"},
+				IsAdminSecret: true,
+			},
+		},
+		{
+			name:        "jwt with default-role admin does not set IsAdminSecret",
+			adminSecret: "my-admin-secret",
+			jwtAuth:     jwtAuth,
+			headers: http.Header{
+				"Authorization": {"Bearer " + signToken(t, gojwt.MapClaims{
+					"sub": "user-123",
+					"exp": gojwt.NewNumericDate(time.Now().Add(time.Hour)),
+					"https://hasura.io/jwt/claims": map[string]any{
+						"x-hasura-allowed-roles": []any{"admin"},
+						"x-hasura-default-role":  "admin",
+						"x-hasura-user-id":       "123",
+					},
+				})},
+			},
+			expected: &middleware.SessionVariables{
+				Role: "admin",
+				Variables: map[string]any{
+					"x-hasura-role":          "admin",
+					"x-hasura-allowed-roles": toAnySlice([]string{"admin"}),
+					"x-hasura-default-role":  "admin",
+					"x-hasura-user-id":       "123",
+				},
+				IsAdminSecret: false,
 			},
 		},
 		{

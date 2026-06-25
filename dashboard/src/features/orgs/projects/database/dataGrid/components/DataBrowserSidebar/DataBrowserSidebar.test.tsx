@@ -34,6 +34,8 @@ const mocks = vi.hoisted(() => ({
   useTableSchemaQuery: vi.fn(),
   useTableIsEnumQuery: vi.fn(),
   useSetTableIsEnumMutation: vi.fn(),
+  useTableComputedFieldsQuery: vi.fn(),
+  usePostgresFunctionsQuery: vi.fn(),
 }));
 
 vi.mock('next/router', () => ({
@@ -166,6 +168,20 @@ vi.mock(
   '@/features/orgs/projects/database/dataGrid/hooks/useSetTableIsEnumMutation',
   () => ({
     useSetTableIsEnumMutation: mocks.useSetTableIsEnumMutation,
+  }),
+);
+
+vi.mock(
+  '@/features/orgs/projects/database/dataGrid/hooks/useTableComputedFieldsQuery',
+  () => ({
+    useTableComputedFieldsQuery: mocks.useTableComputedFieldsQuery,
+  }),
+);
+
+vi.mock(
+  '@/features/orgs/projects/database/dataGrid/hooks/usePostgresFunctionsQuery',
+  () => ({
+    usePostgresFunctionsQuery: mocks.usePostgresFunctionsQuery,
   }),
 );
 
@@ -325,6 +341,18 @@ function setupMocks() {
   mocks.useSetTableIsEnumMutation.mockReturnValue({
     mutateAsync: vi.fn(),
   });
+  mocks.useTableComputedFieldsQuery.mockReturnValue({
+    data: [],
+    isLoading: false,
+    error: null,
+    isError: false,
+  });
+  mocks.usePostgresFunctionsQuery.mockReturnValue({
+    data: { functions: [] },
+    isLoading: false,
+    error: null,
+    isError: false,
+  });
 }
 
 function getVisibleObjectNames(): string[] {
@@ -469,6 +497,9 @@ async function openGraphQLSettingsDrawer(
   await user.click(
     await screen.findByRole('menuitem', { name: /Edit GraphQL/ }),
   );
+
+  // wait for the loaded form (its "Back" button) before querying its fields.
+  await screen.findByRole('button', { name: 'Back' }, { timeout: 15000 });
 }
 
 describe('DataBrowserSidebar — discard guard for GraphQL settings drawer', () => {

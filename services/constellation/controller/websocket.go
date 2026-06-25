@@ -10,6 +10,7 @@ import (
 	"net/http"
 	"time"
 
+	"github.com/nhost/nhost/services/constellation/connector/schemamerge"
 	"github.com/nhost/nhost/services/constellation/controller/middleware"
 	"github.com/nhost/nhost/services/constellation/controller/planner/transform"
 	"github.com/nhost/nhost/services/constellation/controller/websocket"
@@ -121,11 +122,6 @@ func (h *webSocketHandler) ConnectionExpiresAt() (time.Time, bool) {
 func (h *webSocketHandler) OnSubscribe(
 	ctx context.Context, id string, payload websocket.SubscribePayload,
 ) {
-	if h.session == nil {
-		h.sendError(id, "session not available")
-		return
-	}
-
 	if _, exists := h.subs.Load(id); exists {
 		h.sendError(id, "subscription with ID already exists")
 		return
@@ -275,7 +271,8 @@ func getConnectorForOperation(
 ) string {
 	for _, selection := range operation.SelectionSet {
 		if field, ok := selection.(*ast.Field); ok {
-			if dbName, exists := state.fieldToConnector[field.Name]; exists {
+			key := schemamerge.FieldKey(operation.Operation, field.Name)
+			if dbName, exists := state.fieldToConnector[key]; exists {
 				return dbName
 			}
 		}

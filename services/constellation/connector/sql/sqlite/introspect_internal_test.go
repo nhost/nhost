@@ -11,11 +11,11 @@ func TestMapSQLiteType(t *testing.T) {
 	}{
 		// Integer types
 		{"INTEGER", "int8"},
-		{"INT", "int8"},
+		{"INT", "int4"},
 		{"BIGINT", "int8"},
-		{"SMALLINT", "int8"},
-		{"TINYINT", "int8"},
-		{"MEDIUMINT", "int8"},
+		{"SMALLINT", "int2"},
+		{"TINYINT", "int2"},
+		{"MEDIUMINT", "int4"},
 		{"integer", "int8"},
 
 		// Real types
@@ -88,6 +88,8 @@ func TestTypeSupportsMinMax(t *testing.T) {
 		want   bool
 	}{
 		{"int8", true},
+		{"int4", true},
+		{"int2", true},
 		{"float8", true},
 		{"numeric", true},
 		{"text", true},
@@ -119,6 +121,8 @@ func TestTypeSupportsInc(t *testing.T) {
 		want   bool
 	}{
 		{"int8", true},
+		{"int4", true},
+		{"int2", true},
 		{"float8", true},
 		{"numeric", true},
 		{"bool", false},
@@ -149,6 +153,8 @@ func TestTypeSupportsAgg(t *testing.T) {
 		want   bool
 	}{
 		{"int8", true},
+		{"int4", true},
+		{"int2", true},
 		{"float8", true},
 		{"numeric", true},
 		{"bool", false},

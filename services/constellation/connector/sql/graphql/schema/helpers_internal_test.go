@@ -20,8 +20,8 @@ func TestNormalizePostgresTypeToGraphQL(t *testing.T) {
 		{"integer", "Int"},
 		{"int", "Int"},
 		{"int4", "Int"},
-		{"int2", "Int"},
-		{"smallint", "Int"},
+		{"int2", "smallint"},
+		{"smallint", "smallint"},
 		{"int8", "bigint"},
 		{"boolean", "Boolean"},
 		{"bool", "Boolean"},
@@ -73,6 +73,7 @@ func TestIsCustomScalar(t *testing.T) {
 		{"jsonb", true},
 		{"citext", true},
 		{"bigint", true},
+		{"smallint", true},
 		{"numeric", true},
 	}
 
@@ -88,28 +89,40 @@ func TestIsCustomScalar(t *testing.T) {
 	}
 }
 
-func TestGetDefaultTypeName(t *testing.T) {
+func TestDefaultTypeName(t *testing.T) {
 	t.Parallel()
 
 	tests := []struct {
+		name     string
 		schema   string
 		table    string
 		expected string
 	}{
-		{"public", "users", "users"},
-		{"public", "auth_accounts", "auth_accounts"},
-		{"auth", "users", "auth_users"},
-		{"custom_schema", "my_table", "custom_schema_my_table"},
+		{name: "empty schema", schema: "", table: "users", expected: "users"},
+		{name: "public schema", schema: "public", table: "users", expected: "users"},
+		{
+			name:     "public schema with underscored table",
+			schema:   "public",
+			table:    "auth_accounts",
+			expected: "auth_accounts",
+		},
+		{name: "non-public schema", schema: "auth", table: "users", expected: "auth_users"},
+		{
+			name:     "non-public schema with underscores",
+			schema:   "custom_schema",
+			table:    "my_table",
+			expected: "custom_schema_my_table",
+		},
 	}
 
 	for _, tt := range tests {
-		t.Run(tt.schema+"."+tt.table, func(t *testing.T) {
+		t.Run(tt.name, func(t *testing.T) {
 			t.Parallel()
 
-			got := getDefaultTypeName(tt.schema, tt.table)
+			got := DefaultTypeName(tt.schema, tt.table)
 			if got != tt.expected {
 				t.Errorf(
-					"getDefaultTypeName(%q, %q) = %q, want %q",
+					"DefaultTypeName(%q, %q) = %q, want %q",
 					tt.schema,
 					tt.table,
 					got,

@@ -29,8 +29,10 @@ func (t *table) buildColumnSelections(
 		if colSel.literal != "" {
 			t.dialect.WriteJSONRowColumn(b, colSel.alias, "'"+colSel.literal+"'")
 		} else {
-			t.dialect.WriteJSONRowColumn(b, colSel.alias,
-				"mutation_result."+core.QuoteIdentifier(colSel.column.SQLName))
+			expr := "mutation_result." + core.QuoteIdentifier(colSel.column.SQLName)
+			t.dialect.WriteJSONRowColumn(
+				b, colSel.alias, t.outputColumnExpression(expr, colSel.column),
+			)
 		}
 
 		*first = false
@@ -67,8 +69,12 @@ func (t *table) buildNestedInsertSelection(
 			nestedExpr.WriteString(", ")
 		}
 
-		t.dialect.WriteJSONRowColumn(nestedExpr, sf.alias,
-			core.QuoteIdentifier(sf.column.SQLName))
+		expr := core.QuoteIdentifier(sf.column.SQLName)
+		t.dialect.WriteJSONRowColumn(
+			nestedExpr,
+			sf.alias,
+			relSel.relationship.table.outputColumnExpression(expr, sf.column),
+		)
 	}
 
 	t.dialect.WriteJSONRowSuffixNoAlias(nestedExpr)
@@ -93,7 +99,7 @@ func (t *table) buildLateralJoinSelection(
 		b.WriteString(", ")
 	}
 
-	relAlias := "mutation_result.r." + relSel.alias
+	relAlias := sqlAlias("mutation_result.r.", relSel.alias)
 	t.dialect.WriteJSONRowColumn(b, relSel.alias,
 		`"`+relAlias+`"."`+relSel.alias+`"`)
 
@@ -161,7 +167,7 @@ func (t *table) buildLateralJoins(
 			continue
 		}
 
-		relAlias := "mutation_result.r." + relSel.alias
+		relAlias := sqlAlias("mutation_result.r.", relSel.alias)
 
 		b.WriteString(" LEFT OUTER JOIN LATERAL (")
 
@@ -274,7 +280,7 @@ func (t *table) buildFinalSelect( //nolint:funlen
 					b.WriteString(", ")
 				}
 
-				relAlias := "mutation_result.r." + relSel.alias
+				relAlias := sqlAlias("mutation_result.r.", relSel.alias)
 
 				b.WriteByte('\'')
 				b.WriteString(relSel.alias)

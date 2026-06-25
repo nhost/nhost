@@ -10,8 +10,8 @@ import (
 
 	"github.com/cespare/xxhash/v2"
 
+	oapimw "github.com/nhost/nhost/internal/lib/oapi/middleware"
 	"github.com/nhost/nhost/services/constellation/connector/sql/graphql/queries/core"
-	"github.com/nhost/nhost/services/constellation/internal/requestcontext"
 	sub "github.com/nhost/nhost/services/constellation/subscription"
 )
 
@@ -146,7 +146,7 @@ func (m *cohortManager) findOrCreateCohort(
 
 // removeSubscription removes a subscription from its cohort.
 func (m *cohortManager) removeSubscription(ctx context.Context, subID string) {
-	logger := requestcontext.LoggerFromContext(ctx)
+	logger := oapimw.LoggerFromContext(ctx)
 
 	m.mu.Lock()
 	defer m.mu.Unlock()
@@ -290,19 +290,20 @@ func (m *cohortManager) executeAndNotifyCohort(
 func buildSubscriberInputs(
 	subscriptions map[string]*cohortSubscription,
 ) ([]string, map[string][]any) {
-	subIDs := make([]string, 0, len(subscriptions))
+	subscriberCount := len(subscriptions)
+	subIDs := make([]string, 0, subscriberCount)
 	sessionVarArrays := make(map[string][]any)
 
 	for _, s := range subscriptions {
+		subscriberIndex := len(subIDs)
 		subIDs = append(subIDs, s.id)
 
-		for varName, varValue := range s.sessionVariables {
-			if _, exists := sessionVarArrays[varName]; !exists {
-				sessionVarArrays[varName] = make([]any, 0, len(subscriptions))
-			}
-
-			sessionVarArrays[varName] = append(sessionVarArrays[varName], varValue)
-		}
+		assignAlignedVars(
+			sessionVarArrays,
+			s.sessionVariables,
+			subscriberIndex,
+			subscriberCount,
+		)
 	}
 
 	return subIDs, sessionVarArrays
@@ -411,7 +412,7 @@ func (m *cohortManager) getOrBuildSQL(
 
 // shutdown gracefully shuts down all cohorts.
 func (m *cohortManager) shutdown(ctx context.Context) {
-	logger := requestcontext.LoggerFromContext(ctx)
+	logger := oapimw.LoggerFromContext(ctx)
 
 	m.mu.Lock()
 	defer m.mu.Unlock()

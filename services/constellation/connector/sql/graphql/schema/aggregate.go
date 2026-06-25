@@ -4,6 +4,7 @@ import (
 	"fmt"
 
 	"github.com/nhost/nhost/services/constellation/connector/sql/introspection"
+	"github.com/nhost/nhost/services/constellation/connector/sql/pgtypes"
 	"github.com/nhost/nhost/services/constellation/graph"
 	"github.com/nhost/nhost/services/constellation/metadata"
 )
@@ -239,7 +240,7 @@ func generateMinMaxFieldsTypes(
 			continue
 		}
 
-		if !col.SupportsMinMax {
+		if !supportsMinMaxAggregate(col) {
 			continue
 		}
 
@@ -270,7 +271,7 @@ func generateMinMaxFieldsTypes(
 			continue
 		}
 
-		if !col.SupportsMinMax {
+		if !supportsMinMaxAggregate(col) {
 			continue
 		}
 
@@ -290,6 +291,14 @@ func generateMinMaxFieldsTypes(
 	}
 
 	return len(maxFields) > 0, len(minFields) > 0
+}
+
+func supportsMinMaxAggregate(col introspection.Column) bool {
+	if pgtypes.IsSpatial(col.Type) {
+		return false
+	}
+
+	return col.SupportsMinMax
 }
 
 // generateNumericAggregateFieldType generates a single numeric aggregate field type.
@@ -409,7 +418,7 @@ func generateAggregateOrderByTypes( //nolint:funlen
 			continue
 		}
 
-		if !col.SupportsMinMax {
+		if !supportsMinMaxAggregate(col) {
 			continue
 		}
 
@@ -439,7 +448,7 @@ func generateAggregateOrderByTypes( //nolint:funlen
 			continue
 		}
 
-		if !col.SupportsMinMax {
+		if !supportsMinMaxAggregate(col) {
 			continue
 		}
 

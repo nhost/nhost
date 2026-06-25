@@ -31,14 +31,14 @@ func TestGetFile(t *testing.T) { //nolint:maintidx
 			},
 			expected: api.GetFile200ApplicationoctetStreamResponse{
 				Headers: api.GetFile200ResponseHeaders{
-					AcceptRanges:       "bytes",
-					CacheControl:       "max-age=3600",
-					ContentDisposition: `inline; filename="my-file.txt"`,
-					ContentType:        "text/plain; charset=utf-8",
-					Etag:               `"55af1e60-0f28-454e-885e-ea6aab2bb288"`,
-					LastModified:       api.Date(2021, 12, 27, 9, 58, 11, 0, time.UTC),
-					SurrogateControl:   "max-age=3600",
-					SurrogateKey:       "55af1e60-0f28-454e-885e-ea6aab2bb288",
+					AcceptRanges:       new("bytes"),
+					CacheControl:       new("max-age=3600"),
+					ContentDisposition: new(`inline; filename="my-file.txt"`),
+					ContentType:        new("text/plain; charset=utf-8"),
+					Etag:               new(`"55af1e60-0f28-454e-885e-ea6aab2bb288"`),
+					LastModified:       new(api.Date(2021, 12, 27, 9, 58, 11, 0, time.UTC)),
+					SurrogateControl:   new("max-age=3600"),
+					SurrogateKey:       new("55af1e60-0f28-454e-885e-ea6aab2bb288"),
 				},
 				ContentLength: 64,
 			},
@@ -53,14 +53,14 @@ func TestGetFile(t *testing.T) { //nolint:maintidx
 			},
 			expected: api.GetFile200ApplicationoctetStreamResponse{
 				Headers: api.GetFile200ResponseHeaders{
-					AcceptRanges:       "bytes",
-					CacheControl:       "max-age=3600",
-					ContentDisposition: `inline; filename="my-file.txt"`,
-					ContentType:        "text/plain; charset=utf-8",
-					Etag:               `"55af1e60-0f28-454e-885e-ea6aab2bb288"`,
-					LastModified:       api.Date(2021, 12, 27, 9, 58, 11, 0, time.UTC),
-					SurrogateControl:   "max-age=3600",
-					SurrogateKey:       "55af1e60-0f28-454e-885e-ea6aab2bb288",
+					AcceptRanges:       new("bytes"),
+					CacheControl:       new("max-age=3600"),
+					ContentDisposition: new(`inline; filename="my-file.txt"`),
+					ContentType:        new("text/plain; charset=utf-8"),
+					Etag:               new(`"55af1e60-0f28-454e-885e-ea6aab2bb288"`),
+					LastModified:       new(api.Date(2021, 12, 27, 9, 58, 11, 0, time.UTC)),
+					SurrogateControl:   new("max-age=3600"),
+					SurrogateKey:       new("55af1e60-0f28-454e-885e-ea6aab2bb288"),
 				},
 				ContentLength: 64,
 			},
@@ -75,9 +75,9 @@ func TestGetFile(t *testing.T) { //nolint:maintidx
 			},
 			expected: api.GetFile412Response{
 				Headers: api.GetFile412ResponseHeaders{
-					CacheControl:     "max-age=3600",
-					Etag:             `"55af1e60-0f28-454e-885e-ea6aab2bb288"`,
-					SurrogateControl: "max-age=3600",
+					CacheControl:     new("max-age=3600"),
+					Etag:             new(`"55af1e60-0f28-454e-885e-ea6aab2bb288"`),
+					SurrogateControl: new("max-age=3600"),
 				},
 			},
 		},
@@ -91,9 +91,9 @@ func TestGetFile(t *testing.T) { //nolint:maintidx
 			},
 			expected: api.GetFile304Response{
 				Headers: api.GetFile304ResponseHeaders{
-					CacheControl:     "max-age=3600",
-					Etag:             `"55af1e60-0f28-454e-885e-ea6aab2bb288"`,
-					SurrogateControl: "max-age=3600",
+					CacheControl:     new("max-age=3600"),
+					Etag:             new(`"55af1e60-0f28-454e-885e-ea6aab2bb288"`),
+					SurrogateControl: new("max-age=3600"),
 				},
 			},
 		},
@@ -107,14 +107,14 @@ func TestGetFile(t *testing.T) { //nolint:maintidx
 			},
 			expected: api.GetFile200ApplicationoctetStreamResponse{
 				Headers: api.GetFile200ResponseHeaders{
-					AcceptRanges:       "bytes",
-					CacheControl:       "max-age=3600",
-					ContentDisposition: `inline; filename="my-file.txt"`,
-					ContentType:        "text/plain; charset=utf-8",
-					Etag:               `"55af1e60-0f28-454e-885e-ea6aab2bb288"`,
-					LastModified:       api.Date(2021, 12, 27, 9, 58, 11, 0, time.UTC),
-					SurrogateControl:   "max-age=3600",
-					SurrogateKey:       "55af1e60-0f28-454e-885e-ea6aab2bb288",
+					AcceptRanges:       new("bytes"),
+					CacheControl:       new("max-age=3600"),
+					ContentDisposition: new(`inline; filename="my-file.txt"`),
+					ContentType:        new("text/plain; charset=utf-8"),
+					Etag:               new(`"55af1e60-0f28-454e-885e-ea6aab2bb288"`),
+					LastModified:       new(api.Date(2021, 12, 27, 9, 58, 11, 0, time.UTC)),
+					SurrogateControl:   new("max-age=3600"),
+					SurrogateKey:       new("55af1e60-0f28-454e-885e-ea6aab2bb288"),
 				},
 				ContentLength: 64,
 			},
@@ -129,14 +129,14 @@ func TestGetFile(t *testing.T) { //nolint:maintidx
 			},
 			expected: api.GetFile200ApplicationoctetStreamResponse{
 				Headers: api.GetFile200ResponseHeaders{
-					AcceptRanges:       "bytes",
-					CacheControl:       "max-age=3600",
-					ContentDisposition: `inline; filename="my-file.txt"`,
-					ContentType:        "text/plain; charset=utf-8",
-					Etag:               `"55af1e60-0f28-454e-885e-ea6aab2bb288"`,
-					LastModified:       api.Date(2021, 12, 27, 9, 58, 11, 0, time.UTC),
-					SurrogateControl:   "max-age=3600",
-					SurrogateKey:       "55af1e60-0f28-454e-885e-ea6aab2bb288",
+					AcceptRanges:       new("bytes"),
+					CacheControl:       new("max-age=3600"),
+					ContentDisposition: new(`inline; filename="my-file.txt"`),
+					ContentType:        new("text/plain; charset=utf-8"),
+					Etag:               new(`"55af1e60-0f28-454e-885e-ea6aab2bb288"`),
+					LastModified:       new(api.Date(2021, 12, 27, 9, 58, 11, 0, time.UTC)),
+					SurrogateControl:   new("max-age=3600"),
+					SurrogateKey:       new("55af1e60-0f28-454e-885e-ea6aab2bb288"),
 				},
 				ContentLength: 64,
 			},
@@ -151,9 +151,9 @@ func TestGetFile(t *testing.T) { //nolint:maintidx
 			},
 			expected: api.GetFile304Response{
 				Headers: api.GetFile304ResponseHeaders{
-					CacheControl:     "max-age=3600",
-					Etag:             `"55af1e60-0f28-454e-885e-ea6aab2bb288"`,
-					SurrogateControl: "max-age=3600",
+					CacheControl:     new("max-age=3600"),
+					Etag:             new(`"55af1e60-0f28-454e-885e-ea6aab2bb288"`),
+					SurrogateControl: new("max-age=3600"),
 				},
 			},
 		},
@@ -167,14 +167,14 @@ func TestGetFile(t *testing.T) { //nolint:maintidx
 			},
 			expected: api.GetFile200ApplicationoctetStreamResponse{
 				Headers: api.GetFile200ResponseHeaders{
-					AcceptRanges:       "bytes",
-					CacheControl:       "max-age=3600",
-					ContentDisposition: `inline; filename="my-file.txt"`,
-					ContentType:        "text/plain; charset=utf-8",
-					Etag:               `"55af1e60-0f28-454e-885e-ea6aab2bb288"`,
-					LastModified:       api.Date(2021, 12, 27, 9, 58, 11, 0, time.UTC),
-					SurrogateControl:   "max-age=3600",
-					SurrogateKey:       "55af1e60-0f28-454e-885e-ea6aab2bb288",
+					AcceptRanges:       new("bytes"),
+					CacheControl:       new("max-age=3600"),
+					ContentDisposition: new(`inline; filename="my-file.txt"`),
+					ContentType:        new("text/plain; charset=utf-8"),
+					Etag:               new(`"55af1e60-0f28-454e-885e-ea6aab2bb288"`),
+					LastModified:       new(api.Date(2021, 12, 27, 9, 58, 11, 0, time.UTC)),
+					SurrogateControl:   new("max-age=3600"),
+					SurrogateKey:       new("55af1e60-0f28-454e-885e-ea6aab2bb288"),
 				},
 				ContentLength: 64,
 			},
@@ -189,9 +189,9 @@ func TestGetFile(t *testing.T) { //nolint:maintidx
 			},
 			expected: api.GetFile412Response{
 				Headers: api.GetFile412ResponseHeaders{
-					CacheControl:     "max-age=3600",
-					Etag:             `"55af1e60-0f28-454e-885e-ea6aab2bb288"`,
-					SurrogateControl: "max-age=3600",
+					CacheControl:     new("max-age=3600"),
+					Etag:             new(`"55af1e60-0f28-454e-885e-ea6aab2bb288"`),
+					SurrogateControl: new("max-age=3600"),
 				},
 			},
 		},
@@ -295,5 +295,78 @@ func TestGetFile(t *testing.T) { //nolint:maintidx
 				assert(t, resp, tc.expected)
 			}
 		})
+	}
+}
+
+func TestGetFileRejectsOversizedImageManipulation(t *testing.T) {
+	t.Parallel()
+
+	logger := slog.New(slog.NewTextHandler(os.Stderr, nil))
+
+	c := gomock.NewController(t)
+	defer c.Finish()
+
+	metadataStorage := mock.NewMockMetadataStorage(c)
+	contentStorage := mock.NewMockContentStorage(c)
+
+	metadataStorage.EXPECT().GetFileByID(
+		gomock.Any(), "55af1e60-0f28-454e-885e-ea6aab2bb288", gomock.Any(),
+	).Return(api.FileMetadata{
+		Id:               "55af1e60-0f28-454e-885e-ea6aab2bb288",
+		Name:             "image.jpg",
+		Size:             64,
+		BucketId:         "default",
+		Etag:             "\"55af1e60-0f28-454e-885e-ea6aab2bb288\"",
+		CreatedAt:        time.Date(2021, 12, 27, 9, 58, 11, 0, time.UTC),
+		UpdatedAt:        time.Date(2021, 12, 27, 9, 58, 11, 0, time.UTC),
+		IsUploaded:       true,
+		MimeType:         "image/jpeg",
+		UploadedByUserId: new("0f7f0ff0-f945-4597-89e1-3636b16775cd"),
+	}, nil)
+
+	metadataStorage.EXPECT().GetBucketByID(
+		gomock.Any(), "default", gomock.Any(),
+	).Return(controller.BucketMetadata{
+		ID:                   "default",
+		MinUploadFile:        0,
+		MaxUploadFile:        100,
+		PresignedURLsEnabled: true,
+		DownloadExpiration:   30,
+		CreatedAt:            "2021-12-15T13:26:52.082485+00:00",
+		UpdatedAt:            "2021-12-15T13:26:52.082485+00:00",
+		CacheControl:         "max-age=3600",
+	}, nil)
+
+	// nil transformer reports the default maxima (8000 / 250), so w=9000 is
+	// rejected. The content store is never queried because the request is
+	// refused before any download happens.
+	ctrl := controller.New(
+		"http://asd",
+		"/v1",
+		"asdasd",
+		metadataStorage,
+		contentStorage,
+		nil,
+		nil,
+		logger,
+	)
+
+	resp, err := ctrl.GetFile(t.Context(), api.GetFileRequestObject{
+		Id:     "55af1e60-0f28-454e-885e-ea6aab2bb288",
+		Params: api.GetFileParams{W: new(9000)},
+	})
+	if err != nil {
+		t.Fatalf("unexpected error: %v", err)
+	}
+
+	apiErr, ok := resp.(*controller.APIError)
+	if !ok {
+		t.Fatalf("expected *controller.APIError, got %T", resp)
+	}
+
+	assert(t, apiErr.StatusCode(), http.StatusBadRequest)
+
+	if !strings.Contains(apiErr.PublicMessage(), "8000") {
+		t.Errorf("expected message to state the maximum 8000, got: %q", apiErr.PublicMessage())
 	}
 }

@@ -44,6 +44,7 @@ function DeploymentServiceLogs({ from, to }: Props) {
       />
       <div className={cn({ 'h-[calc(90vh-180px)]': hasLogs }, 'pb-10')}>
         <LogsBody
+          filters={{ ...filters, from, to }}
           logsData={data}
           error={error}
           loading={loading}

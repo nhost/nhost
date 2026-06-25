@@ -57,7 +57,24 @@ Visit [https://docs.nhost.io](https://docs.nhost.io) for the complete documentat
 2. Create Nhost app.
 3. Done.
 
-## Option 2: Self-hosting
+## Option 2: Local Development (CLI)
+
+The Nhost CLI is the easiest way to start developing locally. It sets up a local environment that tracks database migrations and Hasura metadata.
+
+**Install the CLI:**
+- **macOS / Linux:** `brew install nhost/tap/nhost` or `curl -sSL https://raw.githubusercontent.com/nhost/nhost/main/cli/get.sh | bash`
+- **Nix:** `nix profile install github:nhost/nhost#cli`
+
+**Start building:**
+```bash
+nhost login
+nhost init
+nhost up
+```
+
+Read the full [CLI Quickstart guide](https://docs.nhost.io/getting-started/quickstart/cli).
+
+## Option 3: Self-hosting
 
 Since Nhost is 100% open source, you can self-host the whole Nhost stack. Check out the example [docker-compose file](https://github.com/nhost/nhost/tree/main/examples/docker-compose) to self-host Nhost.
 

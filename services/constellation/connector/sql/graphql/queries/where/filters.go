@@ -1,14 +1,84 @@
 package where
 
 import (
+	"fmt"
 	"strings"
 
 	"github.com/nhost/nhost/services/constellation/connector/sql/graphql/queries/core"
 	"github.com/nhost/nhost/services/constellation/connector/sql/graphql/queries/dialect"
+	"github.com/nhost/nhost/services/constellation/connector/sql/graphql/queries/values"
+	"github.com/nhost/nhost/services/constellation/connector/sql/pgtypes"
 )
+
+func writeBinaryTargetComparison(
+	b *strings.Builder,
+	source string,
+	target comparisonTarget,
+	operator string,
+	value any,
+	d dialect.Dialect,
+	params []any,
+	paramIndex int,
+) ([]any, int, error) {
+	coerced, err := values.CoerceSQLValue(target.sqlType, value)
+	if err != nil {
+		return nil, 0, fmt.Errorf("coercing comparison value: %w", err)
+	}
+
+	target.writeSQL(b, source)
+	b.WriteString(operator)
+	b.WriteString(sqlTypeValueExpression(d, target.sqlType, paramIndex))
+
+	params = append(params, coerced)
+
+	return params, paramIndex + 1, nil
+}
+
+func writeNegatedBinaryTargetComparison(
+	b *strings.Builder,
+	source string,
+	target comparisonTarget,
+	operator string,
+	value any,
+	d dialect.Dialect,
+	params []any,
+	paramIndex int,
+) ([]any, int, error) {
+	var condition strings.Builder
+
+	params, paramIndex, err := writeBinaryTargetComparison(
+		&condition,
+		source,
+		target,
+		operator,
+		value,
+		d,
+		params,
+		paramIndex,
+	)
+	if err != nil {
+		return nil, 0, err
+	}
+
+	b.WriteString("NOT (")
+	b.WriteString(condition.String())
+	b.WriteByte(')')
+
+	return params, paramIndex, nil
+}
+
+func sqlTypeValueExpression(d dialect.Dialect, sqlType string, paramIndex int) string {
+	placeholder := d.Placeholder(paramIndex)
+	if pgtypes.IsSpatial(sqlType) && d.SupportsSpatialTypes() {
+		return d.SpatialValueExpression(placeholder, sqlType)
+	}
+
+	return d.TypeCast(placeholder, sqlType)
+}
 
 type equalsFilter struct {
 	column  *core.Column
+	target  *comparisonTarget
 	value   any
 	dialect dialect.Dialect
 }
@@ -19,17 +89,21 @@ func (f *equalsFilter) WriteCondition(
 	params []any,
 	paramIndex int,
 ) ([]any, int, error) {
-	core.WriteQualifiedColumn(b, source, f.column.SQLName)
-	b.WriteString(` = `)
-	b.WriteString(f.dialect.TypeCast(f.dialect.Placeholder(paramIndex), f.column.SQLType))
-
-	params = append(params, f.value)
-
-	return params, paramIndex + 1, nil
+	return writeBinaryTargetComparison(
+		b,
+		source,
+		comparisonTargetFor(f.column, f.target),
+		" = ",
+		f.value,
+		f.dialect,
+		params,
+		paramIndex,
+	)
 }
 
 type inFilter struct {
 	column  *core.Column
+	target  *comparisonTarget
 	values  []any
 	dialect dialect.Dialect
 }
@@ -40,15 +114,22 @@ func (f *inFilter) WriteCondition(
 	params []any,
 	paramIndex int,
 ) ([]any, int, error) {
-	params, paramIndex = f.dialect.WriteArrayIn(
-		b, source, f.column.SQLName, f.column.SQLType, f.values, params, paramIndex,
+	return writeArrayTargetComparison(
+		b,
+		source,
+		f.column,
+		f.target,
+		f.values,
+		f.dialect,
+		params,
+		paramIndex,
+		false,
 	)
-
-	return params, paramIndex, nil
 }
 
 type notEqualsFilter struct {
 	column  *core.Column
+	target  *comparisonTarget
 	value   any
 	dialect dialect.Dialect
 }
@@ -59,17 +140,35 @@ func (f *notEqualsFilter) WriteCondition(
 	params []any,
 	paramIndex int,
 ) ([]any, int, error) {
-	core.WriteQualifiedColumn(b, source, f.column.SQLName)
-	b.WriteString(` != `)
-	b.WriteString(f.dialect.TypeCast(f.dialect.Placeholder(paramIndex), f.column.SQLType))
+	target := comparisonTargetFor(f.column, f.target)
+	if pgtypes.IsSpatial(target.sqlType) && f.dialect.SupportsSpatialTypes() {
+		return writeNegatedBinaryTargetComparison(
+			b,
+			source,
+			target,
+			" = ",
+			f.value,
+			f.dialect,
+			params,
+			paramIndex,
+		)
+	}
 
-	params = append(params, f.value)
-
-	return params, paramIndex + 1, nil
+	return writeBinaryTargetComparison(
+		b,
+		source,
+		target,
+		" != ",
+		f.value,
+		f.dialect,
+		params,
+		paramIndex,
+	)
 }
 
 type greaterThanFilter struct {
 	column  *core.Column
+	target  *comparisonTarget
 	value   any
 	dialect dialect.Dialect
 }
@@ -80,17 +179,21 @@ func (f *greaterThanFilter) WriteCondition(
 	params []any,
 	paramIndex int,
 ) ([]any, int, error) {
-	core.WriteQualifiedColumn(b, source, f.column.SQLName)
-	b.WriteString(` > `)
-	b.WriteString(f.dialect.TypeCast(f.dialect.Placeholder(paramIndex), f.column.SQLType))
-
-	params = append(params, f.value)
-
-	return params, paramIndex + 1, nil
+	return writeBinaryTargetComparison(
+		b,
+		source,
+		comparisonTargetFor(f.column, f.target),
+		" > ",
+		f.value,
+		f.dialect,
+		params,
+		paramIndex,
+	)
 }
 
 type greaterThanOrEqualFilter struct {
 	column  *core.Column
+	target  *comparisonTarget
 	value   any
 	dialect dialect.Dialect
 }
@@ -101,17 +204,21 @@ func (f *greaterThanOrEqualFilter) WriteCondition(
 	params []any,
 	paramIndex int,
 ) ([]any, int, error) {
-	core.WriteQualifiedColumn(b, source, f.column.SQLName)
-	b.WriteString(` >= `)
-	b.WriteString(f.dialect.TypeCast(f.dialect.Placeholder(paramIndex), f.column.SQLType))
-
-	params = append(params, f.value)
-
-	return params, paramIndex + 1, nil
+	return writeBinaryTargetComparison(
+		b,
+		source,
+		comparisonTargetFor(f.column, f.target),
+		" >= ",
+		f.value,
+		f.dialect,
+		params,
+		paramIndex,
+	)
 }
 
 type lessThanFilter struct {
 	column  *core.Column
+	target  *comparisonTarget
 	value   any
 	dialect dialect.Dialect
 }
@@ -122,17 +229,21 @@ func (f *lessThanFilter) WriteCondition(
 	params []any,
 	paramIndex int,
 ) ([]any, int, error) {
-	core.WriteQualifiedColumn(b, source, f.column.SQLName)
-	b.WriteString(` < `)
-	b.WriteString(f.dialect.TypeCast(f.dialect.Placeholder(paramIndex), f.column.SQLType))
-
-	params = append(params, f.value)
-
-	return params, paramIndex + 1, nil
+	return writeBinaryTargetComparison(
+		b,
+		source,
+		comparisonTargetFor(f.column, f.target),
+		" < ",
+		f.value,
+		f.dialect,
+		params,
+		paramIndex,
+	)
 }
 
 type lessThanOrEqualFilter struct {
 	column  *core.Column
+	target  *comparisonTarget
 	value   any
 	dialect dialect.Dialect
 }
@@ -143,17 +254,21 @@ func (f *lessThanOrEqualFilter) WriteCondition(
 	params []any,
 	paramIndex int,
 ) ([]any, int, error) {
-	core.WriteQualifiedColumn(b, source, f.column.SQLName)
-	b.WriteString(` <= `)
-	b.WriteString(f.dialect.TypeCast(f.dialect.Placeholder(paramIndex), f.column.SQLType))
-
-	params = append(params, f.value)
-
-	return params, paramIndex + 1, nil
+	return writeBinaryTargetComparison(
+		b,
+		source,
+		comparisonTargetFor(f.column, f.target),
+		" <= ",
+		f.value,
+		f.dialect,
+		params,
+		paramIndex,
+	)
 }
 
 type notInFilter struct {
 	column  *core.Column
+	target  *comparisonTarget
 	values  []any
 	dialect dialect.Dialect
 }
@@ -164,17 +279,99 @@ func (f *notInFilter) WriteCondition(
 	params []any,
 	paramIndex int,
 ) ([]any, int, error) {
-	params, paramIndex = f.dialect.WriteArrayNotIn(
+	return writeArrayTargetComparison(
 		b,
 		source,
-		f.column.SQLName,
-		f.column.SQLType,
+		f.column,
+		f.target,
 		f.values,
+		f.dialect,
 		params,
 		paramIndex,
+		true,
 	)
+}
+
+func writeArrayTargetComparison(
+	b *strings.Builder,
+	source string,
+	column *core.Column,
+	targetOverride *comparisonTarget,
+	rawValues []any,
+	d dialect.Dialect,
+	params []any,
+	paramIndex int,
+	negated bool,
+) ([]any, int, error) {
+	target := comparisonTargetFor(column, targetOverride)
+
+	vals, err := values.CoerceSQLValues(target.sqlType, rawValues)
+	if err != nil {
+		return nil, 0, fmt.Errorf("coercing %s values: %w", arrayOperatorName(negated), err)
+	}
+
+	if pgtypes.IsSpatial(target.sqlType) && d.SupportsSpatialTypes() {
+		params, paramIndex = writeSpatialArrayTargetComparison(
+			b, source, column, targetOverride, target, vals, d, params, paramIndex, negated,
+		)
+
+		return params, paramIndex, nil
+	}
+
+	if negated {
+		params, paramIndex = d.WriteArrayNotIn(
+			b, source, column.SQLName, target.sqlType, vals, params, paramIndex,
+		)
+	} else {
+		params, paramIndex = d.WriteArrayIn(
+			b, source, column.SQLName, target.sqlType, vals, params, paramIndex,
+		)
+	}
 
 	return params, paramIndex, nil
+}
+
+func writeSpatialArrayTargetComparison(
+	b *strings.Builder,
+	source string,
+	column *core.Column,
+	targetOverride *comparisonTarget,
+	target comparisonTarget,
+	vals []any,
+	d dialect.Dialect,
+	params []any,
+	paramIndex int,
+	negated bool,
+) ([]any, int) {
+	if targetOverride != nil {
+		if negated {
+			return d.WriteSpatialArrayNotInExpression(
+				b, target.sqlExpression(source), target.sqlType, vals, params, paramIndex,
+			)
+		}
+
+		return d.WriteSpatialArrayInExpression(
+			b, target.sqlExpression(source), target.sqlType, vals, params, paramIndex,
+		)
+	}
+
+	if negated {
+		return d.WriteSpatialArrayNotIn(
+			b, source, column.SQLName, target.sqlType, vals, params, paramIndex,
+		)
+	}
+
+	return d.WriteSpatialArrayIn(
+		b, source, column.SQLName, target.sqlType, vals, params, paramIndex,
+	)
+}
+
+func arrayOperatorName(negated bool) string {
+	if negated {
+		return "_nin"
+	}
+
+	return "_in"
 }
 
 type likeFilter struct {
@@ -190,17 +387,17 @@ func (f *likeFilter) WriteCondition(
 	params []any,
 	paramIndex int,
 ) ([]any, int, error) {
-	core.WriteQualifiedColumn(b, source, f.column)
+	placeholder := f.dialect.Placeholder(paramIndex)
 
 	if f.caseSensitive {
-		b.WriteString(" LIKE ")
+		core.WriteQualifiedColumn(b, source, f.column)
+		b.WriteByte(' ')
+		b.WriteString(f.dialect.Like())
+		b.WriteByte(' ')
+		b.WriteString(placeholder)
 	} else {
-		b.WriteByte(' ')
-		b.WriteString(f.dialect.ILike())
-		b.WriteByte(' ')
+		f.dialect.WriteILikeCondition(b, source, f.column, placeholder)
 	}
-
-	b.WriteString(f.dialect.Placeholder(paramIndex))
 
 	params = append(params, f.pattern)
 
@@ -220,17 +417,17 @@ func (f *notLikeFilter) WriteCondition(
 	params []any,
 	paramIndex int,
 ) ([]any, int, error) {
-	core.WriteQualifiedColumn(b, source, f.column)
+	placeholder := f.dialect.Placeholder(paramIndex)
 
 	if f.caseSensitive {
-		b.WriteString(" NOT LIKE ")
+		core.WriteQualifiedColumn(b, source, f.column)
+		b.WriteByte(' ')
+		b.WriteString(f.dialect.NotLike())
+		b.WriteByte(' ')
+		b.WriteString(placeholder)
 	} else {
-		b.WriteByte(' ')
-		b.WriteString(f.dialect.NotILike())
-		b.WriteByte(' ')
+		f.dialect.WriteNotILikeCondition(b, source, f.column, placeholder)
 	}
-
-	b.WriteString(f.dialect.Placeholder(paramIndex))
 
 	params = append(params, f.pattern)
 
@@ -295,6 +492,7 @@ func (f *notRegexFilter) WriteCondition(
 
 type isNullFilter struct {
 	column string
+	target *comparisonTarget
 	isNull bool
 }
 
@@ -304,7 +502,12 @@ func (f *isNullFilter) WriteCondition(
 	params []any,
 	paramIndex int,
 ) ([]any, int, error) {
-	core.WriteQualifiedColumn(b, source, f.column)
+	if f.target != nil {
+		f.target.writeSQL(b, source)
+	} else {
+		core.WriteQualifiedColumn(b, source, f.column)
+	}
+
 	b.WriteString(` IS `)
 
 	if !f.isNull {
@@ -334,31 +537,25 @@ func (f *rawFilter) WriteCondition(
 
 // NewRawFilter builds a Statement that emits a fixed SQL fragment.
 // Used by callers that splice a relationship join condition into a where clause.
-// Returning the Statement interface (rather than *rawFilter) keeps the
-// concrete filter type unexported while still letting callers compose it
-// alongside other Statements.
-func NewRawFilter( //nolint:ireturn,nolintlint
-	condition string,
-) Statement {
+// The returned unexported type implements Statement and composes alongside
+// other where conditions.
+func NewRawFilter(condition string) Statement { //nolint:ireturn,nolintlint
 	return &rawFilter{condition: condition}
 }
 
 // NewEqualsFilter builds a Statement that emits `col = $N::sqltype`.
 // Used by callers that build primary-key equality predicates outside the
-// parser (e.g. update_by_pk / delete_by_pk). Returning the Statement
-// interface keeps the concrete filter type unexported.
+// parser (e.g. update_by_pk / delete_by_pk). The returned unexported type
+// implements Statement.
 func NewEqualsFilter( //nolint:ireturn,nolintlint
 	column *core.Column, value any, d dialect.Dialect,
 ) Statement {
-	return &equalsFilter{column: column, value: value, dialect: d}
+	return &equalsFilter{column: column, target: nil, value: value, dialect: d}
 }
 
 // NewAndFilter builds a Statement that ANDs all of conditions together.
 // Used by callers (e.g. query_by_pk) that need to combine PK conditions
-// into a single statement. Returning the Statement interface keeps the
-// concrete filter type unexported.
-func NewAndFilter( //nolint:ireturn,nolintlint
-	conditions []Statement,
-) Statement {
+// into a single statement. The returned unexported type implements Statement.
+func NewAndFilter(conditions []Statement) Statement { //nolint:ireturn,nolintlint
 	return &andFilter{conditions: conditions}
 }

@@ -2,6 +2,9 @@
 title: CORS
 description: Handle Cross-Origin Resource Sharing in Nhost Functions
 keywords: ["CORS", "cross-origin", "serverless functions", "Access-Control", "preflight", "OPTIONS"]
+head:
+  - tag: title
+    content: "Cross-Origin Requests in Serverless Functions | Nhost Docs"
 ---
 
 Nhost Functions inject a small set of default CORS headers so simple cross-origin `GET` and `POST` requests work without extra code. The defaults only fill in headers your function doesn't set. Anything you set yourself (directly or via middleware like [`cors`](https://www.npmjs.com/package/cors)) is preserved as-is. Other methods, custom headers, or credentials are your responsibility.

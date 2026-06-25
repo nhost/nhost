@@ -2,7 +2,7 @@
   nixConfig = {
     sandbox = "relaxed";
     extra-substituters = [
-      "s3://nhost-nix-cache?endpoint=https://14bc02755b64adb7c8c62b5420d0a457.eu.r2.cloudflarestorage.com&region=auto&profile=nhost-nix-cache"
+      "s3://nhost-nix-cache?endpoint=https://14bc02755b64adb7c8c62b5420d0a457.eu.r2.cloudflarestorage.com&region=auto&profile=nhost-nix-cache&priority=10"
       "https://cache.nixos.org"
     ];
     extra-trusted-public-keys = [
@@ -237,38 +237,38 @@
               skopeo
 
               # cli
-              certbot-full
+              nhost.certbot-full
               python312Packages.certbot-dns-route53
 
-              nhost-cli
+              nhost.nhost-cli
 
               # dashboard
-              vercel
-              playwright-driver
+              nhost.vercel
+              nhost.playwright-driver
               lychee
 
               # javascript
-              nodejs
-              pnpm
-              biome
+              nhost.nodejs
+              nhost.pnpm
+              nhost.biome
 
               # go
-              go
-              golines
+              nhost.go
+              nhost.golines
               gofumpt
-              golangci-lint
-              gqlgen
-              gqlgenc
-              oapi-codegen
+              nhost.golangci-lint
+              nhost.gqlgen
+              nhost.gqlgenc
+              nhost.oapi-codegen
               mockgen
-              sqlc
+              nhost.sqlc
               vacuum-go
-              govulncheck
+              nhost.govulncheck
 
               # others
-              postgresql_18-client
+              nhost.postgresql_18-client
               bun
-              pi-agent
+              nhost.pi-agent
 
               # docs
               vale
@@ -288,7 +288,7 @@
             ];
 
             shellHook = ''
-              export PLAYWRIGHT_BROWSERS_PATH=${pkgs.playwright-driver.browsers}
+              export PLAYWRIGHT_BROWSERS_PATH=${pkgs.nhost.playwright-driver.browsers}
               export PLAYWRIGHT_SKIP_VALIDATE_HOST_REQUIREMENTS=true
 
               export GOEXPERIMENT=jsonv2
@@ -303,20 +303,20 @@
 
           pnpm = pkgs.mkShell {
             buildInputs = with pkgs; [
-              nodejs
-              pnpm
+              nhost.nodejs
+              nhost.pnpm
             ];
           };
 
           security-updates = pkgs.mkShell {
             buildInputs = with pkgs; [
               # pnpm audit --fix=update
-              nodejs
-              pnpm
+              nhost.nodejs
+              nhost.pnpm
 
               # govulncheck-wrapper -fix → go get / go mod tidy / go mod vendor
-              go
-              govulncheck
+              nhost.go
+              nhost.govulncheck
               self.packages.${system}.govulncheck-wrapper
             ];
 
@@ -333,9 +333,9 @@
 
           vercel = pkgs.mkShell {
             buildInputs = with pkgs; [
-              pnpm
-              nodejs
-              vercel
+              nhost.pnpm
+              nhost.nodejs
+              nhost.vercel
             ];
           };
 
@@ -373,18 +373,29 @@
           govulncheck-wrapper = govulncheck-wrapperf.package;
           dashboard = dashboardf.package;
           dashboard-docker-image = dashboardf.dockerImage;
+          dashboard-e2e-staging-main = dashboardf.check-staging-main;
+          dashboard-e2e-staging-onboarding = dashboardf.check-staging-onboarding;
+          dashboard-e2e-staging-local = dashboardf.check-staging-local;
+          dashboard-vercel-build-preview = dashboardf.vercelBuildPreview;
+          dashboard-vercel-deploy-preview = dashboardf.vercelDeployPreview;
+          dashboard-vercel-build-production = dashboardf.vercelBuildProduction;
+          dashboard-vercel-deploy-production = dashboardf.vercelDeployProduction;
           demos = demosf.package;
           functions = functionsf.package;
           functions-node22-docker-image = functionsf.node22DockerImage;
           functions-node24-docker-image = functionsf.node24DockerImage;
           guides = guidesf.package;
+          docs-vercel-build-preview = docsf.vercelBuildPreview;
+          docs-vercel-deploy-preview = docsf.vercelDeployPreview;
+          docs-vercel-build-production = docsf.vercelBuildProduction;
+          docs-vercel-deploy-production = docsf.vercelDeployProduction;
           nhost-js = nhost-jsf.package;
           stripe-graphql-js = stripe-graphql-jsf.package;
           mcp = mcpf.package;
           mcp-docker-image = mcpf.dockerImage;
           nixops = nixopsf.package;
           nixops-docker-image = nixopsf.dockerImage;
-          pi-agent = pkgs.pi-agent;
+          pi-agent = pkgs.nhost.pi-agent;
           postgres-pg16 = postgresf.packages.pg16-package;
           postgres-pg16-docker-image = postgresf.packages.pg16-docker-image;
           postgres-pg16-as-dir = postgresf.packages.pg16-as-dir;

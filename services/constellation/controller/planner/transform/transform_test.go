@@ -51,6 +51,15 @@ func containsString(slice []string, s string) bool {
 	return slices.Contains(slice, s)
 }
 
+func typeOwners(owners map[string]string) map[string][]string {
+	out := make(map[string][]string, len(owners))
+	for typeName, connectorName := range owners {
+		out[typeName] = []string{connectorName}
+	}
+
+	return out
+}
+
 func usersWithDepartmentSchema() *ast.Schema {
 	return makeSchema(
 		ast.FieldList{
@@ -195,7 +204,7 @@ func TestTransform(t *testing.T) {
 		name            string
 		schema          *ast.Schema
 		remotes         []transform.RemoteRelationship
-		typeToConnector map[string]string
+		typeToConnector map[string][]string
 		op              *ast.OperationDefinition
 		fragments       ast.FragmentDefinitionList
 		check           func(t *testing.T, result *transform.Result, op *ast.OperationDefinition)
@@ -221,7 +230,7 @@ func TestTransform(t *testing.T) {
 				},
 			),
 			remotes:         nil,
-			typeToConnector: map[string]string{"users": "db1"},
+			typeToConnector: typeOwners(map[string]string{"users": "db1"}),
 			op: &ast.OperationDefinition{
 				Operation: ast.Query,
 				Name:      "GetUsers",
@@ -248,7 +257,7 @@ func TestTransform(t *testing.T) {
 			name:            "strips remote relationship field from root",
 			schema:          usersWithDepartmentSchema(),
 			remotes:         []transform.RemoteRelationship{departmentRemoteRel()},
-			typeToConnector: map[string]string{"users": "db1", "departments": "db2"},
+			typeToConnector: typeOwners(map[string]string{"users": "db1", "departments": "db2"}),
 			op: &ast.OperationDefinition{
 				Operation: ast.Query,
 				Name:      "GetUsersWithDept",
@@ -287,7 +296,7 @@ func TestTransform(t *testing.T) {
 			name:            "preserves non-relationship fields",
 			schema:          usersWithDepartmentSchema(),
 			remotes:         []transform.RemoteRelationship{departmentRemoteRel()},
-			typeToConnector: map[string]string{"users": "db1", "departments": "db2"},
+			typeToConnector: typeOwners(map[string]string{"users": "db1", "departments": "db2"}),
 			op: &ast.OperationDefinition{
 				Operation: ast.Query,
 				Name:      "GetUsers",
@@ -358,7 +367,7 @@ func TestTransform(t *testing.T) {
 				},
 			),
 			remotes:         []transform.RemoteRelationship{departmentRemoteRel()},
-			typeToConnector: map[string]string{"users": "db1", "departments": "db2"},
+			typeToConnector: typeOwners(map[string]string{"users": "db1", "departments": "db2"}),
 			op: &ast.OperationDefinition{
 				Operation: ast.Query,
 				Name:      "GetUsers",
@@ -420,7 +429,7 @@ func TestTransform(t *testing.T) {
 			name:            "strips relationship from subscription root field",
 			schema:          usersWithDepartmentSchemaAllRoots(),
 			remotes:         []transform.RemoteRelationship{departmentRemoteRel()},
-			typeToConnector: map[string]string{"users": "db1", "departments": "db2"},
+			typeToConnector: typeOwners(map[string]string{"users": "db1", "departments": "db2"}),
 			op: &ast.OperationDefinition{
 				Operation: ast.Subscription,
 				Name:      "WatchUsersWithDept",
@@ -476,11 +485,11 @@ func TestTransform(t *testing.T) {
 			name:    "strips relationship inside mutation returning",
 			schema:  usersWithDepartmentSchemaAllRoots(),
 			remotes: []transform.RemoteRelationship{departmentRemoteRel()},
-			typeToConnector: map[string]string{
+			typeToConnector: typeOwners(map[string]string{
 				"users":                   "db1",
 				"users_mutation_response": "db1",
 				"departments":             "db2",
-			},
+			}),
 			op: &ast.OperationDefinition{
 				Operation: ast.Mutation,
 				Name:      "InsertUsersWithDept",
@@ -575,7 +584,7 @@ func TestTransform(t *testing.T) {
 			name:            "strips empty fragment spread from operation",
 			schema:          usersWithDepartmentSchema(),
 			remotes:         []transform.RemoteRelationship{departmentRemoteRel()},
-			typeToConnector: map[string]string{"users": "db1", "departments": "db2"},
+			typeToConnector: typeOwners(map[string]string{"users": "db1", "departments": "db2"}),
 			op: &ast.OperationDefinition{
 				Operation: ast.Query,
 				Name:      "GetUsers",
@@ -795,6 +804,90 @@ func TestInjectPhantomFields_DeduplicatesExistingFields(t *testing.T) {
 
 	if !containsString(names, "org_id") {
 		t.Errorf("expected 'org_id' to be injected, got %v", names)
+	}
+}
+
+func TestInjectPhantomFields_InjectsUnaliasedPhantomWhenExistingFieldUsesDifferentAlias(
+	t *testing.T,
+) {
+	t.Parallel()
+
+	op := &ast.OperationDefinition{
+		Operation: ast.Query,
+		Name:      "GetUsers",
+		SelectionSet: ast.SelectionSet{
+			&ast.Field{
+				Name: "users",
+				SelectionSet: ast.SelectionSet{
+					&ast.Field{Name: "id"},
+					&ast.Field{Name: "department_id", Alias: "dep_id"},
+				},
+			},
+		},
+	}
+
+	specs := []transform.PhantomSpec{
+		{
+			Path:   jsonpath.Parse("users"),
+			Fields: []string{"department_id"},
+		},
+	}
+
+	transform.InjectPhantomFields(op, specs)
+
+	usersField, ok := op.SelectionSet[0].(*ast.Field)
+	if !ok {
+		t.Fatal("expected root selection to be *ast.Field")
+	}
+
+	responseKeys := fieldNames(usersField.SelectionSet)
+	if !containsString(responseKeys, "dep_id") {
+		t.Fatalf("expected original aliased field to remain, got %v", responseKeys)
+	}
+
+	if !containsString(responseKeys, "department_id") {
+		t.Fatalf("expected unaliased phantom field to be injected, got %v", responseKeys)
+	}
+}
+
+func TestInjectPhantomFields_AliasCollisionUsesPhantomAlias(t *testing.T) {
+	t.Parallel()
+
+	op := &ast.OperationDefinition{
+		Operation: ast.Query,
+		Name:      "GetUsers",
+		SelectionSet: ast.SelectionSet{
+			&ast.Field{
+				Name: "users",
+				SelectionSet: ast.SelectionSet{
+					&ast.Field{Name: "id", Alias: "department_id"},
+				},
+			},
+		},
+	}
+
+	specs := []transform.PhantomSpec{
+		{
+			Path:    jsonpath.Parse("users"),
+			Fields:  []string{"department_id"},
+			Aliases: map[string]string{"department_id": "_constellation_phantom_department_id"},
+		},
+	}
+
+	transform.InjectPhantomFields(op, specs)
+
+	usersField, ok := op.SelectionSet[0].(*ast.Field)
+	if !ok {
+		t.Fatal("expected root selection to be *ast.Field")
+	}
+
+	responseKeys := fieldNames(usersField.SelectionSet)
+	if !containsString(responseKeys, "department_id") {
+		t.Fatalf("expected original aliased field to remain, got %v", responseKeys)
+	}
+
+	if !containsString(responseKeys, "_constellation_phantom_department_id") {
+		t.Fatalf("expected aliased phantom field to be injected, got %v", responseKeys)
 	}
 }
 

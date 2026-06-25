@@ -38,9 +38,14 @@ interface FormSelectProps<
   placeholder?: string;
   className?: string;
   containerClassName?: string;
+  // Forwarded to the dropdown content. Needed to raise the z-index when the
+  // select lives inside a higher-stacked container such as a MUI dialog.
+  contentClassName?: string;
   inline?: boolean;
   helperText?: string | null;
+  helperTextClassName?: string;
   disabled?: boolean;
+  autoFocus?: boolean;
   transform?: Transformer;
   'data-testid'?: string;
 }
@@ -56,9 +61,12 @@ function FormSelectImpl<
     placeholder,
     className,
     containerClassName,
+    contentClassName,
     inline,
     helperText,
+    helperTextClassName,
     disabled,
+    autoFocus,
     children,
     transform,
     'data-testid': dataTestId,
@@ -110,14 +118,19 @@ function FormSelectImpl<
                     className={cn(selectClasses, className)}
                     ref={mergeRefs([fieldRef, ref])}
                     data-testid={dataTestId}
+                    autoFocus={autoFocus}
                   >
                     <SelectValue placeholder={placeholder} />
                   </SelectTrigger>
                 </FormControl>
-                <SelectContent>{children}</SelectContent>
+                <SelectContent className={contentClassName}>
+                  {children}
+                </SelectContent>
               </Select>
               {!!helperText && (
-                <FormDescription className="break-all px-[1px]">
+                <FormDescription
+                  className={cn('break-all px-[1px]', helperTextClassName)}
+                >
                   {helperText}
                 </FormDescription>
               )}

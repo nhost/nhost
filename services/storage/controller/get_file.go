@@ -3,6 +3,7 @@ package controller
 import (
 	"bytes"
 	"context"
+	"errors"
 	"fmt"
 	"io"
 	"log/slog"
@@ -18,7 +19,8 @@ import (
 	"github.com/nhost/nhost/services/storage/middleware"
 )
 
-func deptr[T any](v *T) T { //nolint:ireturn
+//nolint:ireturn // generic helper returns the caller-selected type parameter.
+func deptr[T any](v *T) T {
 	if v == nil {
 		var zero T
 		return zero
@@ -115,10 +117,54 @@ type ImageManipulationOptionsGetter interface {
 	GetF() *api.OutputImageFormat
 }
 
+// checkImageManipulationLimits rejects a request whose explicitly requested
+// width, height or blur exceeds the server-configured maximum. We return a 400
+// here rather than silently clamping so the caller learns the limit instead of
+// receiving an image at an unexpected size. The maxima are operator-configurable
+// (IMAGE_TRANSFORMER_MAX_DIMENSION / IMAGE_TRANSFORMER_MAX_BLUR_SIGMA), so the
+// bound is enforced against the live values rather than as a static OpenAPI
+// constraint, which could not track the configured value.
+func checkImageManipulationLimits(
+	opts image.Options, maxDimension int, maxBlurSigma float64,
+) *APIError {
+	var problems []string
+
+	if opts.Width > maxDimension {
+		problems = append(
+			problems,
+			fmt.Sprintf("width %d exceeds the maximum of %d", opts.Width, maxDimension),
+		)
+	}
+
+	if opts.Height > maxDimension {
+		problems = append(
+			problems,
+			fmt.Sprintf("height %d exceeds the maximum of %d", opts.Height, maxDimension),
+		)
+	}
+
+	if float64(opts.Blur) > maxBlurSigma {
+		problems = append(
+			problems,
+			fmt.Sprintf("blur %g exceeds the maximum of %g", opts.Blur, maxBlurSigma),
+		)
+	}
+
+	if len(problems) == 0 {
+		return nil
+	}
+
+	msg := "image manipulation parameters out of range: " + strings.Join(problems, "; ")
+
+	return BadDataError(errors.New(msg), msg) //nolint:err113
+}
+
 func getImageManipulationOptions(
 	params ImageManipulationOptionsGetter,
 	mimeType string,
 	acceptHeader []string,
+	maxDimension int,
+	maxBlurSigma float64,
 ) (image.Options, *APIError) {
 	outputFormatFound := deptr(params.GetF()) != ""
 
@@ -130,6 +176,11 @@ func getImageManipulationOptions(
 		OriginalFormat: 0,
 		Format:         0,
 	}
+
+	if apiErr := checkImageManipulationLimits(opts, maxDimension, maxBlurSigma); apiErr != nil {
+		return image.Options{}, apiErr
+	}
+
 	if !opts.IsEmpty() || outputFormatFound {
 		orig, format, err := chooseImageFormat(params, mimeType, acceptHeader)
 		opts.Format = format
@@ -221,7 +272,13 @@ func (ctrl *Controller) processFileToDownload(
 	params processFiler,
 	acceptHeader []string,
 ) (*processedFile, *APIError) {
-	opts, apiErr := getImageManipulationOptions(params, fileMetadata.MimeType, acceptHeader)
+	opts, apiErr := getImageManipulationOptions(
+		params,
+		fileMetadata.MimeType,
+		acceptHeader,
+		ctrl.imageTransformer.MaxDimension(),
+		ctrl.imageTransformer.MaxBlurSigma(),
+	)
 	if apiErr != nil {
 		return nil, apiErr
 	}
@@ -279,7 +336,7 @@ func (ctrl *Controller) processFileToDownload(
 	}, nil
 }
 
-func (ctrl *Controller) getFileResponse( //nolint: ireturn,dupl,funlen
+func (ctrl *Controller) getFileResponse( //nolint:dupl,funlen,ireturn
 	ctx context.Context,
 	file *processedFile,
 	logger *slog.Logger,
@@ -289,17 +346,17 @@ func (ctrl *Controller) getFileResponse( //nolint: ireturn,dupl,funlen
 		return api.GetFile200ApplicationoctetStreamResponse{
 			Body: file.body,
 			Headers: api.GetFile200ResponseHeaders{
-				AcceptRanges: "bytes",
-				CacheControl: file.cacheControl,
-				ContentDisposition: fmt.Sprintf(
+				AcceptRanges: new("bytes"),
+				CacheControl: new(file.cacheControl),
+				ContentDisposition: new(fmt.Sprintf(
 					`inline; filename="%s"`,
 					url.QueryEscape(file.filename),
-				),
-				ContentType:      file.mimeType,
-				Etag:             file.fileMetadata.Etag,
-				LastModified:     api.RFC2822Date(file.fileMetadata.UpdatedAt),
-				SurrogateControl: file.cacheControl,
-				SurrogateKey:     file.fileMetadata.Id,
+				)),
+				ContentType:      new(file.mimeType),
+				Etag:             new(file.fileMetadata.Etag),
+				LastModified:     new(api.RFC2822Date(file.fileMetadata.UpdatedAt)),
+				SurrogateControl: new(file.cacheControl),
+				SurrogateKey:     new(file.fileMetadata.Id),
 			},
 			ContentLength: file.contentLength,
 		}
@@ -307,17 +364,17 @@ func (ctrl *Controller) getFileResponse( //nolint: ireturn,dupl,funlen
 		return api.GetFile206ApplicationoctetStreamResponse{
 			Body: file.body,
 			Headers: api.GetFile206ResponseHeaders{
-				CacheControl: file.cacheControl,
-				ContentDisposition: fmt.Sprintf(
+				CacheControl: new(file.cacheControl),
+				ContentDisposition: new(fmt.Sprintf(
 					`inline; filename="%s"`,
 					url.QueryEscape(file.filename),
-				),
-				ContentRange:     file.extraHeaders.Get("Content-Range"),
-				ContentType:      file.mimeType,
-				Etag:             file.fileMetadata.Etag,
-				LastModified:     api.RFC2822Date(file.fileMetadata.UpdatedAt),
-				SurrogateControl: file.cacheControl,
-				SurrogateKey:     file.fileMetadata.Id,
+				)),
+				ContentRange:     new(file.extraHeaders.Get("Content-Range")),
+				ContentType:      new(file.mimeType),
+				Etag:             new(file.fileMetadata.Etag),
+				LastModified:     new(api.RFC2822Date(file.fileMetadata.UpdatedAt)),
+				SurrogateControl: new(file.cacheControl),
+				SurrogateKey:     new(file.fileMetadata.Id),
 			},
 			ContentLength: file.contentLength,
 		}
@@ -326,9 +383,9 @@ func (ctrl *Controller) getFileResponse( //nolint: ireturn,dupl,funlen
 
 		return api.GetFile304Response{
 			Headers: api.GetFile304ResponseHeaders{
-				CacheControl:     file.cacheControl,
-				Etag:             file.fileMetadata.Etag,
-				SurrogateControl: file.cacheControl,
+				CacheControl:     new(file.cacheControl),
+				Etag:             new(file.fileMetadata.Etag),
+				SurrogateControl: new(file.cacheControl),
 			},
 		}
 	case http.StatusPreconditionFailed:
@@ -336,9 +393,9 @@ func (ctrl *Controller) getFileResponse( //nolint: ireturn,dupl,funlen
 
 		return api.GetFile412Response{
 			Headers: api.GetFile412ResponseHeaders{
-				CacheControl:     file.cacheControl,
-				Etag:             file.fileMetadata.Etag,
-				SurrogateControl: file.cacheControl,
+				CacheControl:     new(file.cacheControl),
+				Etag:             new(file.fileMetadata.Etag),
+				SurrogateControl: new(file.cacheControl),
 			},
 		}
 	default:
@@ -352,7 +409,8 @@ func (ctrl *Controller) getFileResponse( //nolint: ireturn,dupl,funlen
 	}
 }
 
-func (ctrl *Controller) GetFile( //nolint:ireturn
+//nolint:ireturn
+func (ctrl *Controller) GetFile(
 	ctx context.Context,
 	request api.GetFileRequestObject,
 ) (api.GetFileResponseObject, error) {

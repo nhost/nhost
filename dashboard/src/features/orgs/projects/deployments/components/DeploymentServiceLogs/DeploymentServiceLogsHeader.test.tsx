@@ -2,7 +2,14 @@ import { setupServer } from 'msw/node';
 import { vi } from 'vitest';
 import { mockApplication } from '@/tests/mocks';
 import tokenQuery from '@/tests/msw/mocks/rest/tokenQuery';
-import { render, screen, TestUserEvent, waitFor } from '@/tests/testUtils';
+import {
+  fireEvent,
+  mockPointerEvent,
+  render,
+  screen,
+  TestUserEvent,
+  waitFor,
+} from '@/tests/testUtils';
 import DeploymentServiceLogsHeader from './DeploymentServiceLogsHeader';
 
 const server = setupServer(tokenQuery);
@@ -31,6 +38,8 @@ Object.defineProperty(HTMLElement.prototype, 'getBoundingClientRect', {
   })),
 });
 
+mockPointerEvent();
+
 vi.mock('@/features/orgs/projects/hooks/useProject', async () => ({
   useProject: () => ({ project: mockApplication }),
 }));
@@ -46,7 +55,7 @@ vi.mock('@/utils/__generated__/graphql', async () => {
   };
 });
 
-describe('LogsHeader', () => {
+describe('DeploymentServiceLogsHeader', () => {
   beforeAll(() => {
     process.env.NEXT_PUBLIC_NHOST_PLATFORM = 'true';
     process.env.NEXT_PUBLIC_ENV = 'staging';
@@ -64,29 +73,35 @@ describe('LogsHeader', () => {
         onSubmit={onSubmitMock}
       />,
     );
-    waitFor(() => {
-      expect(screen.getByTestId('ServicePicker')).toBeInTheDocument();
-    });
+    await TestUserEvent.fireClickEvent(
+      await screen.findByTestId('ServicePicker'),
+    );
 
-    await TestUserEvent.fireClickEvent(screen.getByTestId('ServicePicker'));
-
-    waitFor(async () => {
-      expect(screen.getByText('run-service')).toBeInTheDocument();
+    const runBillingOption = await screen.findByRole('option', {
+      name: 'run-service',
     });
-    const runBillingOption = await screen.findByText('run-service');
     await user.click(runBillingOption);
     expect(await screen.findByTestId('ServicePicker')).toHaveTextContent(
       'run-service',
     );
     const regexInput = screen.getByPlaceholderText(
-      'Filter logs with a regular expression',
+      'Search logs with a regular expression',
     );
     expect(regexInput).toBeInTheDocument();
 
-    onSubmitMock.mockRestore();
+    onSubmitMock.mockReset();
 
     await user.type(regexInput, 'Random text');
-    await user.click(screen.getByText('Search'));
-    expect(onSubmitMock).toHaveBeenCalledTimes(1);
+    fireEvent.submit(regexInput.closest('form')!);
+    await waitFor(() => {
+      expect(onSubmitMock).toHaveBeenCalledTimes(1);
+    });
+    expect(onSubmitMock).toHaveBeenCalledWith(
+      expect.objectContaining({
+        regexFilter: 'Random text',
+        service: 'run-service',
+      }),
+      expect.anything(),
+    );
   });
 });

@@ -219,6 +219,10 @@ func executeDirectivesField(
 	directives := make([]map[string]any, 0, len(names))
 
 	for _, name := range names {
+		if !shouldAdvertiseDirective(name) {
+			continue
+		}
+
 		directiveInfo := executeDirectiveFields(
 			schema.Directives[name], field.SelectionSet, query, schema,
 		)
@@ -226,6 +230,17 @@ func executeDirectivesField(
 	}
 
 	return directives
+}
+
+// shouldAdvertiseDirective filters gqlparser prelude directives Constellation
+// does not support at execution time from __schema.directives output.
+func shouldAdvertiseDirective(name string) bool {
+	switch name {
+	case "defer", "oneOf":
+		return false
+	default:
+		return true
+	}
 }
 
 func executeDirectiveFields(
@@ -259,6 +274,8 @@ func fillDirectiveField(
 		result[key] = directive.Name
 	case kindDescription:
 		result[key] = stringOrNil(directive.Description)
+	case "isRepeatable":
+		result[key] = directive.IsRepeatable
 	case "locations":
 		locations := make([]string, 0, len(directive.Locations))
 		for _, location := range directive.Locations {

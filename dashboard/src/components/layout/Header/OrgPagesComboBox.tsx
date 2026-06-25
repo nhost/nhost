@@ -1,27 +1,7 @@
-import { Check, ChevronsUpDown } from 'lucide-react';
 import { useRouter } from 'next/router';
-import { useMemo, useState } from 'react';
-import { Button } from '@/components/ui/v3/button';
-import {
-  Command,
-  CommandEmpty,
-  CommandGroup,
-  CommandInput,
-  CommandItem,
-  CommandList,
-} from '@/components/ui/v3/command';
-import {
-  Popover,
-  PopoverContent,
-  PopoverTrigger,
-} from '@/components/ui/v3/popover';
+import { useMemo } from 'react';
+import HeaderCombobox from '@/components/layout/Header/HeaderCombobox';
 import { useIsPlatform } from '@/features/orgs/projects/common/hooks/useIsPlatform';
-import { cn } from '@/lib/utils';
-
-type Option = {
-  value: string;
-  label: string;
-};
 
 const orgPages = [
   { label: 'Settings', value: 'settings' },
@@ -46,61 +26,22 @@ export default function OrgPagesComboBox() {
     (item) => item.value === orgPageFromUrl,
   );
 
-  const options: Option[] = orgPages.map((page) => ({
+  const options = orgPages.map((page) => ({
     label: page.label,
     value: page.value,
   }));
 
-  const [open, setOpen] = useState(false);
-
   return (
-    <Popover open={open} onOpenChange={setOpen}>
-      <PopoverTrigger disabled={!isPlatform} asChild>
-        <Button
-          variant="ghost"
-          size="sm"
-          className="justify-start gap-2 bg-background text-foreground hover:bg-accent dark:hover:bg-muted"
-        >
-          {selectedOrgPage ? (
-            <div>{selectedOrgPage.label}</div>
-          ) : (
-            <>Select a page</>
-          )}
-          <ChevronsUpDown className="h-5 w-5 text-muted-foreground" />
-        </Button>
-      </PopoverTrigger>
-      <PopoverContent className="p-0" side="bottom" align="start">
-        <Command>
-          <CommandInput placeholder="Select a page..." />
-          <CommandList>
-            <CommandEmpty>No results found.</CommandEmpty>
-            <CommandGroup>
-              {options.map((option) => (
-                <CommandItem
-                  key={option.value}
-                  value={option.label}
-                  onSelect={() => {
-                    setOpen(false);
-                    push(`/orgs/${orgSlug}/${option.value}`);
-                  }}
-                >
-                  <Check
-                    className={cn(
-                      'mr-2 h-4 w-4',
-                      selectedOrgPage?.value === option.value
-                        ? 'opacity-100'
-                        : 'opacity-0',
-                    )}
-                  />
-                  <div className="flex flex-row items-center gap-2">
-                    <span className="max-w-52 truncate">{option.label}</span>
-                  </div>
-                </CommandItem>
-              ))}
-            </CommandGroup>
-          </CommandList>
-        </Command>
-      </PopoverContent>
-    </Popover>
+    <HeaderCombobox
+      data-testid="org-pages-switcher"
+      options={options}
+      value={selectedOrgPage?.value ?? null}
+      placeholder="Select a page"
+      searchPlaceholder="Select a page..."
+      disabled={!isPlatform}
+      onChange={(value) => {
+        push(`/orgs/${orgSlug}/${value}`);
+      }}
+    />
   );
 }

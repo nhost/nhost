@@ -111,34 +111,34 @@ func (ctrl *Controller) getFileMetadataHeadersResponseObject( //nolint:ireturn
 	case http.StatusOK:
 		return api.GetFileMetadataHeaders200Response{
 			Headers: api.GetFileMetadataHeaders200ResponseHeaders{
-				AcceptRanges:     "bytes",
-				CacheControl:     bucketMetadata.CacheControl,
-				ContentType:      fileMetadata.MimeType,
-				Etag:             fileMetadata.Etag,
-				LastModified:     api.RFC2822Date(fileMetadata.UpdatedAt),
-				SurrogateControl: bucketMetadata.CacheControl,
-				SurrogateKey:     fileMetadata.Id,
-				ContentDisposition: fmt.Sprintf(
+				AcceptRanges:     new("bytes"),
+				CacheControl:     new(bucketMetadata.CacheControl),
+				ContentType:      new(fileMetadata.MimeType),
+				Etag:             new(fileMetadata.Etag),
+				LastModified:     new(api.RFC2822Date(fileMetadata.UpdatedAt)),
+				SurrogateControl: new(bucketMetadata.CacheControl),
+				SurrogateKey:     new(fileMetadata.Id),
+				ContentDisposition: new(fmt.Sprintf(
 					`inline; filename="%s"`,
 					url.QueryEscape(fileMetadata.Name),
-				),
-				ContentLength: int(fileMetadata.Size),
+				)),
+				ContentLength: new(int(fileMetadata.Size)),
 			},
 		}, nil
 	case http.StatusNotModified:
 		return api.GetFileMetadataHeaders304Response{
 			Headers: api.GetFileMetadataHeaders304ResponseHeaders{
-				CacheControl:     bucketMetadata.CacheControl,
-				Etag:             fileMetadata.Etag,
-				SurrogateControl: bucketMetadata.CacheControl,
+				CacheControl:     new(bucketMetadata.CacheControl),
+				Etag:             new(fileMetadata.Etag),
+				SurrogateControl: new(bucketMetadata.CacheControl),
 			},
 		}, nil
 	case http.StatusPreconditionFailed:
 		return api.GetFileMetadataHeaders412Response{
 			Headers: api.GetFileMetadataHeaders412ResponseHeaders{
-				CacheControl:     bucketMetadata.CacheControl,
-				Etag:             fileMetadata.Etag,
-				SurrogateControl: bucketMetadata.CacheControl,
+				CacheControl:     new(bucketMetadata.CacheControl),
+				Etag:             new(fileMetadata.Etag),
+				SurrogateControl: new(bucketMetadata.CacheControl),
 			},
 		}, nil
 	default:
@@ -147,7 +147,8 @@ func (ctrl *Controller) getFileMetadataHeadersResponseObject( //nolint:ireturn
 }
 
 func (ctrl *Controller) getFileMetadataHeaders( //nolint:ireturn
-	ctx context.Context, request api.GetFileMetadataHeadersRequestObject,
+	ctx context.Context,
+	request api.GetFileMetadataHeadersRequestObject,
 ) (api.GetFileMetadataHeadersResponseObject, *APIError) {
 	sessionHeaders := middleware.SessionHeadersFromContext(ctx)
 	acceptHeader := middleware.AcceptHeaderFromContext(ctx)
@@ -168,7 +169,13 @@ func (ctrl *Controller) getFileMetadataHeaders( //nolint:ireturn
 		return nil, apiErr
 	}
 
-	opts, apiErr := getImageManipulationOptions(request.Params, fileMetadata.MimeType, acceptHeader)
+	opts, apiErr := getImageManipulationOptions(
+		request.Params,
+		fileMetadata.MimeType,
+		acceptHeader,
+		ctrl.imageTransformer.MaxDimension(),
+		ctrl.imageTransformer.MaxBlurSigma(),
+	)
 	if apiErr != nil {
 		return nil, apiErr
 	}
@@ -195,13 +202,14 @@ func (ctrl *Controller) getFileMetadataHeaders( //nolint:ireturn
 }
 
 func (ctrl *Controller) GetFileMetadataHeaders( //nolint:ireturn
-	ctx context.Context, request api.GetFileMetadataHeadersRequestObject,
+	ctx context.Context,
+	request api.GetFileMetadataHeadersRequestObject,
 ) (api.GetFileMetadataHeadersResponseObject, error) {
 	response, apiErr := ctrl.getFileMetadataHeaders(ctx, request)
 	if apiErr != nil {
 		return api.GetFileMetadataHeadersdefaultResponse{
 			Headers: api.GetFileMetadataHeadersdefaultResponseHeaders{
-				XError: apiErr.PublicMessage(),
+				XError: new(apiErr.PublicMessage()),
 			},
 			StatusCode: apiErr.StatusCode(),
 		}, nil

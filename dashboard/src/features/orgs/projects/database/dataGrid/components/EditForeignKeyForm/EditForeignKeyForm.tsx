@@ -2,8 +2,8 @@ import { yupResolver } from '@hookform/resolvers/yup';
 import { useState } from 'react';
 import { FormProvider, useForm } from 'react-hook-form';
 import type * as Yup from 'yup';
-import { Alert } from '@/components/ui/v2/Alert';
-import { Button } from '@/components/ui/v2/Button';
+import { Alert } from '@/components/ui/v3/alert';
+import { Button } from '@/components/ui/v3/button';
 import type {
   BaseForeignKeyFormProps,
   BaseForeignKeyFormValues,
@@ -78,18 +78,18 @@ export default function EditForeignKeyForm({
       {error && (
         <div className="mb-4 px-6">
           <Alert
-            severity="error"
-            className="grid grid-flow-col items-center justify-between px-4 py-3"
+            variant="destructive"
+            className="grid grid-flow-col items-center justify-between border-none bg-destructive/20 px-4 py-3"
           >
             <span className="text-left">
               <strong>Error:</strong> {error.message}
             </span>
 
             <Button
-              variant="borderless"
-              color="error"
-              size="small"
               onClick={() => setError(null)}
+              size="sm"
+              variant="destructive"
+              className="bg-transparent text-destructive hover:bg-destructive/10"
             >
               Clear
             </Button>

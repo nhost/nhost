@@ -66,9 +66,10 @@ jobs:
         working-directory: .
 
       - name: "Check out repository"
-        uses: actions/checkout@v6
+        uses: actions/checkout@v7
         with:
           ref: ${{ inputs.GIT_REF }}
+          allow-unsafe-pr-checkout: true
 
       - name: Configure aws
         uses: aws-actions/configure-aws-credentials@v6
@@ -155,4 +156,4 @@ jobs:
           NIX_CACHE_PRIV_KEY: ${{ secrets.NIX_CACHE_PRIV_KEY }}
           NIX_CACHE_ACCESS_KEY_ID: ${{ secrets.NIX_CACHE_ACCESS_KEY_ID }}
           NIX_CACHE_SECRET_ACCESS_KEY: ${{ secrets.NIX_CACHE_SECRET_ACCESS_KEY }}
-        if: ${{ always() && steps.verify-build.outputs.BUILD_NEEDED == 'yes' }}
+        if: ${{ always() }}
