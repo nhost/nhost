@@ -201,10 +201,13 @@ func export(image *vips.Image, opts Options) ([]byte, error) {
 
 // resolveDimensions resolves the requested output dimensions against the
 // source image size, deriving a missing dimension from the aspect ratio. Both
-// the requested and the derived values are clamped to maxDimension: libvips
-// allocates the full output buffer up front, so an unbounded value (e.g.
-// w=50000) lets a single request exhaust process memory. Aspect-ratio
-// derivation can amplify a single bounded dimension, hence the final clamp.
+// the requested and the derived values are clamped to maxDimension as a
+// backstop: the controller already rejects oversized explicit requests, so the
+// clamp on the requested values only fires for callers that bypass it. The
+// live case is the derived dimension, which the controller cannot check:
+// aspect-ratio derivation can amplify a single bounded dimension past the cap,
+// and libvips allocates the full output buffer up front, so an unbounded value
+// would let one request exhaust process memory.
 func resolveDimensions(reqWidth, reqHeight, srcWidth, srcHeight, maxDimension int) (int, int) {
 	width := min(reqWidth, maxDimension)
 	height := min(reqHeight, maxDimension)
@@ -252,8 +255,10 @@ func (t *Transformer) imagePipeline(image *vips.Image, opts Options) error {
 	}
 
 	if opts.Blur > 0 {
-		// Clamp the blur sigma: the Gaussian kernel grows with sigma, so an
-		// unbounded value (e.g. b=1000000) exhausts CPU and memory.
+		// Backstop the blur sigma: the controller already rejects oversized
+		// requests, so this only fires for callers that bypass it. The Gaussian
+		// kernel grows with sigma, so an unbounded value (e.g. b=1000000) would
+		// otherwise exhaust CPU and memory.
 		sigma := min(float64(opts.Blur), t.maxBlurSigma)
 		if err := image.Gaussblur(sigma, nil); err != nil {
 			return fmt.Errorf("failed to blur: %w", err)

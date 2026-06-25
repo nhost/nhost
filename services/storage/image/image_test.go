@@ -147,11 +147,12 @@ func TestManipulate(t *testing.T) {
 func TestManipulateClampsOversizedDimensions(t *testing.T) {
 	t.Parallel()
 
-	// libvips allocates the full output buffer up front, so honouring an
-	// oversized request verbatim (e.g. 50000x50000) attempts a huge
-	// allocation and can OOM-kill the process (memory-exhaustion DoS). The
-	// transformer must cap the output to its configured maximum. A small cap
-	// keeps the test cheap while still exercising the clamp.
+	// The controller rejects oversized explicit requests, but the transformer
+	// clamps them too as a backstop for callers that bypass it. libvips
+	// allocates the full output buffer up front, so honouring an oversized
+	// request verbatim (e.g. 50000x50000) attempts a huge allocation and can
+	// OOM-kill the process (memory-exhaustion DoS). A small cap keeps the test
+	// cheap while still exercising the clamp.
 	const (
 		requested     = 50000
 		maxDimension  = 200
@@ -247,10 +248,11 @@ func TestManipulateClampsDerivedDimension(t *testing.T) {
 func TestManipulateClampsOversizedBlur(t *testing.T) {
 	t.Parallel()
 
-	// The Gaussian kernel grows with the blur sigma, so honouring an oversized
-	// request verbatim (e.g. b=1000000) exhausts CPU and memory. The
-	// transformer must cap the sigma to its configured maximum, which means an
-	// oversized request must produce exactly the same output as one made at the
+	// The controller rejects oversized explicit requests, but the transformer
+	// clamps the sigma too as a backstop for callers that bypass it. The
+	// Gaussian kernel grows with the blur sigma, so honouring an oversized
+	// request verbatim (e.g. b=1000000) exhausts CPU and memory. Capping means
+	// an oversized request produces exactly the same output as one made at the
 	// cap. A small cap keeps the test cheap while still exercising the clamp.
 	const (
 		oversized     = 1_000_000
