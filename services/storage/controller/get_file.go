@@ -227,6 +227,14 @@ func (ctrl *Controller) manipulateImage(
 	}()
 
 	if err := <-done; err != nil {
+		// A derived output dimension over the configured maximum is a bad
+		// request, not a server fault: the controller validates the explicit
+		// params up front but cannot compute the derived dimension, so the
+		// transformer reports it and we surface it as a 400.
+		if errors.Is(err, image.ErrDimensionsTooLarge) {
+			return nil, 0, BadDataError(err, err.Error())
+		}
+
 		slog.Error("image manipulation failed", slog.String("error", err.Error()))
 
 		return nil, 0, InternalServerError(err)
