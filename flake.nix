@@ -186,6 +186,14 @@
             ;
         };
 
+        jsontmplf = import ./internal/lib/jsontmpl/project.nix {
+          inherit
+            self
+            pkgs
+            nixops-lib
+            ;
+        };
+
         storagef = import ./services/storage/project.nix {
           inherit
             self
@@ -217,6 +225,7 @@
           functions = functionsf.check;
           guides = guidesf.check;
           docs = docsf.check;
+          jsontmpl = jsontmplf.check;
           mcp = mcpf.check;
           nhostclient = nhostclientf.check;
           nhost-js = nhost-jsf.check;
@@ -350,6 +359,7 @@
           guides = guidesf.devShell;
           docs = docsf.devShell;
           functions = functionsf.devShell;
+          jsontmpl = jsontmplf.devShell;
           mcp = mcpf.devShell;
           nhostclient = nhostclientf.devShell;
           nhost-js = nhost-jsf.devShell;
