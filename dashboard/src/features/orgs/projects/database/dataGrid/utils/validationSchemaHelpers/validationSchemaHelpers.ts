@@ -1,6 +1,12 @@
 import * as yup from 'yup';
 import type { DataBrowserColumnMetadata } from '@/features/orgs/projects/database/dataGrid/types/dataBrowser/dataBrowser';
 import { POSTGRES_DEFAULT_PLACEHOLDER } from '@/features/orgs/projects/database/dataGrid/utils/postgresDefaultPlaceholder';
+import {
+  isDateType,
+  isIntervalType,
+  isTimestampType,
+  isTimeType,
+} from '@/features/orgs/projects/database/dataGrid/utils/temporalTypeHelpers';
 
 export interface ColumnDetails {
   isNullable: boolean;
@@ -108,20 +114,26 @@ export function createDynamicValidationSchema(
       hasDefaultValue,
     };
 
-    if (column.type === 'uuid') {
+    const { baseType } = column;
+
+    // Arrays are entered as a JSON-array literal in a free-text box; the server
+    // validates the element contents. Checked first so an `integer[]` is never
+    // mistaken for a scalar `integer`.
+    if (column.isArray) {
+      return {
+        ...currentSchema,
+        [column.id]: createTextValidationSchema(details),
+      };
+    }
+
+    if (baseType === 'uuid') {
       return {
         ...currentSchema,
         [column.id]: createUUIDValidationSchema(details),
       };
     }
-    const isTimeOrIntervalType =
-      column.specificType &&
-      (['time', 'timetz', 'interval'].includes(column.specificType) ||
-        (column.specificType.includes('time') &&
-          !column.specificType.includes('timestamp')) ||
-        column.specificType.includes('interval'));
 
-    if (column.type === 'date' && isTimeOrIntervalType) {
+    if (isTimeType(baseType)) {
       return {
         ...currentSchema,
         [column.id]: createTextValidationSchema(details).matches(
@@ -131,24 +143,31 @@ export function createDynamicValidationSchema(
       };
     }
 
-    if (column.type === 'date') {
+    // interval has no native input control and accepts free-form PostgreSQL
+    // interval syntax ('1 day', '2 hours 30 minutes', …) — let the server
+    // validate rather than constraining client-side.
+    if (isIntervalType(baseType)) {
+      return {
+        ...currentSchema,
+        [column.id]: createTextValidationSchema(details),
+      };
+    }
+
+    if (isTimestampType(baseType) || isDateType(baseType)) {
       return {
         ...currentSchema,
         [column.id]: createDateValidationSchema(details),
       };
     }
 
-    if (column.type === 'boolean') {
+    if (baseType === 'boolean') {
       return {
         ...currentSchema,
         [column.id]: createBooleanValidationSchema(details),
       };
     }
 
-    if (
-      column.type === 'text' &&
-      (column.specificType === 'jsonb' || column.specificType === 'json')
-    ) {
+    if (baseType === 'json' || baseType === 'jsonb') {
       return {
         ...currentSchema,
         [column.id]: createJSONValidationSchema(details),
