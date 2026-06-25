@@ -759,6 +759,11 @@ export default defineConfig({
                     { label: 'Commands', slug: 'reference/cli/commands' },
                   ],
                 },
+                {
+                  label: 'Templating',
+                  collapsed: false,
+                  items: [{ label: 'Kriti', slug: 'reference/kriti' }],
+                },
               ],
             },
           ],

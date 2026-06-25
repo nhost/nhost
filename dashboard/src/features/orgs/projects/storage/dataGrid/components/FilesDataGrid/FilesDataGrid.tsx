@@ -7,6 +7,9 @@ import { ReadOnlyToggle } from '@/components/presentational/ReadOnlyToggle';
 import { Button } from '@/components/ui/v3/button';
 import { usePageBoundsRedirect } from '@/features/orgs/projects/common/hooks/usePageBoundsRedirect';
 import { useDataGridQueryParams } from '@/features/orgs/projects/database/dataGrid/components/DataBrowserGrid/DataGridQueryParamsProvider';
+import { getBaseType } from '@/features/orgs/projects/database/dataGrid/utils/getBaseType';
+import { getDisplayType } from '@/features/orgs/projects/database/dataGrid/utils/getDisplayType';
+import { isArray } from '@/features/orgs/projects/database/dataGrid/utils/isArray';
 import { useAppClient } from '@/features/orgs/projects/hooks/useAppClient';
 import { useProject } from '@/features/orgs/projects/hooks/useProject';
 import type { DataGridProps } from '@/features/orgs/projects/storage/dataGrid/components/DataGrid';
@@ -56,8 +59,8 @@ export default function FilesDataGrid({
   bucket,
   ...dataGridProps
 }: FilesDataGridProps) {
-  const columns = useMemo<ColumnDef<StoredFile>[]>(
-    () => [
+  const columns = useMemo<ColumnDef<StoredFile>[]>(() => {
+    const definitions: ColumnDef<StoredFile>[] = [
       {
         id: 'preview-column',
         header: PreviewHeader,
@@ -88,7 +91,7 @@ export default function FilesDataGrid({
       {
         header: 'id',
         accessorKey: 'id',
-        meta: { dataType: 'uuid' },
+        meta: { specificType: 'uuid' },
         cell: (props) => (
           <DataGridTextCell {...(props as CellContext<StoredFile, string>)} />
         ),
@@ -97,25 +100,25 @@ export default function FilesDataGrid({
       {
         header: 'name',
         accessorKey: 'name',
-        meta: { dataType: 'text' },
+        meta: { specificType: 'text' },
         size: 200,
       },
       {
         header: 'size',
         accessorKey: 'size',
-        meta: { dataType: 'integer' },
+        meta: { specificType: 'integer' },
         size: 80,
       },
       {
         header: 'mimeType',
         accessorKey: 'mimeType',
-        meta: { dataType: 'text' },
+        meta: { specificType: 'text' },
         size: 120,
       },
       {
         header: 'createdAt',
         accessorKey: 'createdAt',
-        meta: { dataType: 'timestamptz' },
+        meta: { specificType: 'timestamp with time zone' },
         size: 120,
         cell: ({ getValue }) => (
           <FilesDataGridDateCell value={getValue<string>()} />
@@ -124,7 +127,7 @@ export default function FilesDataGrid({
       {
         header: 'updatedAt',
         accessorKey: 'updatedAt',
-        meta: { dataType: 'timestamptz' },
+        meta: { specificType: 'timestamp with time zone' },
         size: 120,
         cell: ({ getValue }) => (
           <FilesDataGridDateCell value={getValue<string>()} />
@@ -139,13 +142,13 @@ export default function FilesDataGrid({
       {
         header: 'etag',
         accessorKey: 'etag',
-        meta: { dataType: 'text' },
+        meta: { specificType: 'text' },
         size: 280,
       },
       {
         header: 'isUploaded',
         accessorKey: 'isUploaded',
-        meta: { dataType: 'boolean' },
+        meta: { specificType: 'boolean' },
         size: 100,
         cell: ({ getValue }) => (
           <ReadOnlyToggle checked={getValue<boolean>()} />
@@ -154,12 +157,25 @@ export default function FilesDataGrid({
       {
         header: 'uploadedByUserId',
         accessorKey: 'uploadedByUserId',
-        meta: { dataType: 'uuid' },
+        meta: { specificType: 'uuid' },
         size: 318,
       },
-    ],
-    [bucket.downloadExpiration],
-  );
+    ];
+
+    return definitions.map((definition) =>
+      definition.meta?.specificType
+        ? {
+            ...definition,
+            meta: {
+              ...definition.meta,
+              baseType: getBaseType(definition.meta.specificType),
+              isArray: isArray(definition.meta.specificType),
+              displayType: getDisplayType(definition.meta.specificType),
+            },
+          }
+        : definition,
+    );
+  }, [bucket.downloadExpiration]);
   const router = useRouter();
   const { project } = useProject();
   const appClient = useAppClient();
