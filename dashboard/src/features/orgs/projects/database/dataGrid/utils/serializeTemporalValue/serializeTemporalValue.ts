@@ -1,4 +1,4 @@
-import { format } from 'date-fns-v4';
+import { format } from 'date-fns';
 import {
   isDateType,
   isTimestampType,
