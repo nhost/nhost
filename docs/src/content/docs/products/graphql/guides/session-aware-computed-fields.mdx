@@ -75,6 +75,8 @@ computed_fields:
 
 In the dashboard: **Database → communities → Edit GraphQL → Computed Fields**. Set **Session Argument** to `user_session` for both.
 
+![Setting the session argument on a computed field](/images/graphql/computed-fields-session-argument.png)
+
 ## Granting access
 
 ```yaml title="public_communities.yaml"
@@ -111,6 +113,8 @@ query GetCommunities {
 
 ## Using the values in the UI
 
+![Communities list showing membership and join time](/images/graphql/computed-fields-communities.png)
+
 `is_member` drives Join/Leave; `my_joined_at` renders as a small muted line under Leave for member rows:
 
 ```tsx title="src/pages/Communities.tsx"
@@ -145,8 +149,6 @@ const isMember = (community: Community) => community.is_member;
   )}
 </td>
 ```
-
-![Communities list showing membership and join time](/images/graphql/computed-fields-communities.png)
 
 ## Related resources
 
