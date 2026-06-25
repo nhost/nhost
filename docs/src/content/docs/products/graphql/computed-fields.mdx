@@ -136,19 +136,16 @@ $$;
 
    ![Inline function editor](/images/graphql/computed-fields-function-preview.png)
 
-   <Steps>
-   1. **Computed Field Name** — how the field appears in the GraphQL schema. Must start with a letter or underscore, followed by letters, digits, or underscores.
-   2. **Comment** — optional. Surfaces as the field's description in GraphQL introspection.
-   3. **Function Schema** and **Function Name** — pick the Postgres function that backs the field. Only functions that meet the [requirements above](#requirements-for-postgres-functions) appear in the list.
+   - **3.1 Computed Field Name** — how the field appears in the GraphQL schema. Must start with a letter or underscore, followed by letters, digits, or underscores.
+   - **3.2 Comment** — optional. Surfaces as the field's description in GraphQL introspection.
+   - **3.3 Function Schema** and **Function Name** — pick the Postgres function that backs the field. Only functions that meet the [requirements above](#requirements-for-postgres-functions) appear in the list.
 
-      Need a new one? Type a name that doesn't exist yet into **Function Name** and pick the **Create function** option that appears — a starter `CREATE FUNCTION` template loads into an SQL editor embedded below the pickers, with the row argument for the current table already wired up. Edit the body and click **Run** to create the function without leaving the form.
+     Need a new one? Type a name that doesn't exist yet into **Function Name** and pick the **Create function** option that appears — a starter `CREATE FUNCTION` template loads into an SQL editor embedded below the pickers, with the row argument for the current table already wired up. Edit the body and click **Run** to create the function without leaving the form.
 
-      Selecting an existing function loads its source SQL into the same inline editor, so you can review the definition — or tweak it and run the updated statement — before saving the field.
+     Selecting an existing function loads its source SQL into the same inline editor, so you can review the definition — or tweak it and run the updated statement — before saving the field.
 
-   4. **Table Row Argument** — optional. Leave empty to use the function's first argument; set it if the row is a different argument.
-   5. **Session Argument** — optional. The argument that receives the user session as JSON. When set, the function can read session variables like `x-hasura-user-id`, and the argument is hidden from the GraphQL schema so clients don't see it.
-
-   </Steps>
+   - **3.4 Table Row Argument** — optional. Leave empty to use the function's first argument; set it if the row is a different argument.
+   - **3.5 Session Argument** — optional. The argument that receives the user session as JSON. When set, the function can read session variables like `x-hasura-user-id`, and the argument is hidden from the GraphQL schema so clients don't see it.
 
 4. **Add**
 
