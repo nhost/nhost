@@ -491,7 +491,7 @@ export default function BaseEventTriggerForm({
                     control={form.control}
                     name="webhook"
                     label="Webhook URL or template"
-                    placeholder="https://httpbin.org/post or {{MY_WEBHOOK_URL}}/handler"
+                    placeholder="{{NHOST_FUNCTIONS_URL}}/handler or https://httpbin.org/post"
                     className="max-w-lg text-foreground"
                   />
                 </div>

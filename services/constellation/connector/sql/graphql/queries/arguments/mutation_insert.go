@@ -601,29 +601,12 @@ func parseInsertObject(
 			continue
 		}
 
-		column := t.ColumnFromGraphqlName(customFieldName)
-		if column == nil {
-			return InsertObject{}, fmt.Errorf(
-				"%w: column %s not found in table %s",
-				ErrInvalidArgument,
-				customFieldName,
-				t.TableName(),
-			)
-		}
-
-		value, err := values.ResolveASTValue(child.Value, variables)
+		column, err := parseInsertColumn(t, child, customFieldName, variables)
 		if err != nil {
-			return InsertObject{}, fmt.Errorf(
-				"failed to resolve field %s: %w",
-				customFieldName,
-				err,
-			)
+			return InsertObject{}, err
 		}
 
-		columns = append(columns, InsertColumn{
-			Column: column,
-			Value:  value,
-		})
+		columns = append(columns, column)
 	}
 
 	insertObj := InsertObject{
@@ -636,6 +619,46 @@ func parseInsertObject(
 	}
 
 	return insertObj, nil
+}
+
+func parseInsertColumn(
+	t Table,
+	child *ast.ChildValue,
+	customFieldName string,
+	variables map[string]any,
+) (InsertColumn, error) {
+	column := t.ColumnFromGraphqlName(customFieldName)
+	if column == nil {
+		return InsertColumn{}, fmt.Errorf(
+			"%w: column %s not found in table %s",
+			ErrInvalidArgument,
+			customFieldName,
+			t.TableName(),
+		)
+	}
+
+	value, err := values.ResolveASTValue(child.Value, variables)
+	if err != nil {
+		return InsertColumn{}, fmt.Errorf(
+			"failed to resolve field %s: %w",
+			customFieldName,
+			err,
+		)
+	}
+
+	value, err = values.CoerceSQLValue(column.SQLType, value)
+	if err != nil {
+		return InsertColumn{}, fmt.Errorf(
+			"failed to coerce field %s: %w",
+			customFieldName,
+			err,
+		)
+	}
+
+	return InsertColumn{
+		Column: column,
+		Value:  value,
+	}, nil
 }
 
 // ApplyInsertPresets adds preset columns and values to the insert object.
@@ -681,6 +704,11 @@ func ApplyInsertPresets(
 				colName,
 				err,
 			)
+		}
+
+		value, err = values.CoerceSQLValue(col.SQLType, value)
+		if err != nil {
+			return fmt.Errorf("failed to coerce preset column %s: %w", colName, err)
 		}
 
 		insertObj.Columns = append(insertObj.Columns, InsertColumn{

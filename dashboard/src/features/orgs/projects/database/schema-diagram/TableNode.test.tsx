@@ -45,6 +45,7 @@ function renderNode(
   context: TableActionsContextValue | null = {
     actions: makeActions(),
     trackedTablesSet: new Set([`${data.schema}.${data.table}`]),
+    enumTablesSet: new Set(),
   },
 ) {
   return render(
@@ -125,6 +126,30 @@ describe('TableNode', () => {
     renderNode({ ...baseData, columns: [] });
 
     expect(screen.getByText('No columns')).toBeInTheDocument();
+  });
+
+  it.each([
+    { objectType: 'ORDINARY TABLE' as const, label: 'Table' },
+    { objectType: 'VIEW' as const, label: 'View' },
+    { objectType: 'MATERIALIZED VIEW' as const, label: 'Materialized View' },
+    { objectType: 'FOREIGN TABLE' as const, label: 'Foreign Table' },
+  ])('renders the "$label" object-type icon in the header for a $objectType', ({
+    objectType,
+    label,
+  }) => {
+    renderNode({ ...baseData, objectType });
+
+    expect(screen.getByLabelText(label)).toBeInTheDocument();
+  });
+
+  it('renders the "Enum" icon for an enum table', () => {
+    renderNode(baseData, {
+      actions: makeActions(),
+      trackedTablesSet: new Set(['public.users']),
+      enumTablesSet: new Set(['public.users']),
+    });
+
+    expect(screen.getByLabelText('Enum')).toBeInTheDocument();
   });
 
   it('renders the Sigma indicator on generated columns', () => {
@@ -248,6 +273,7 @@ describe('TableNode', () => {
         openEditTableDrawer,
       }),
       trackedTablesSet: new Set(['public.users']),
+      enumTablesSet: new Set(),
     });
 
     const user = new TestUserEvent();
@@ -267,6 +293,7 @@ describe('TableNode', () => {
         sidebarMenuObject: 'ORDINARY TABLE.public.users',
       }),
       trackedTablesSet: new Set(),
+      enumTablesSet: new Set(),
     });
 
     const permsItem = await screen.findByRole('menuitem', {
@@ -295,6 +322,7 @@ describe('TableNode', () => {
           handleDeleteDatabaseObject,
         }),
         trackedTablesSet: new Set(['public.active_users']),
+        enumTablesSet: new Set(),
       },
     );
 
@@ -333,6 +361,7 @@ describe('TableNode', () => {
           openEditViewDrawer,
         }),
         trackedTablesSet: new Set(['public.daily_metrics']),
+        enumTablesSet: new Set(),
       },
     );
 

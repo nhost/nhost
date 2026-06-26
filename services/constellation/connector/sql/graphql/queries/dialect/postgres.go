@@ -5,6 +5,7 @@ import (
 	"strings"
 
 	"github.com/nhost/nhost/services/constellation/connector/sql/graphql/queries/core"
+	"github.com/nhost/nhost/services/constellation/connector/sql/pgtypes"
 )
 
 // PostgresDialect implements Dialect for PostgreSQL.
@@ -59,6 +60,193 @@ func (d *PostgresDialect) WriteArrayNotIn(
 	params = append(params, values)
 
 	return params, paramIndex + 1
+}
+
+func (d *PostgresDialect) SupportsSpatialTypes() bool {
+	return true
+}
+
+func (d *PostgresDialect) SpatialOutputExpression(expr, sqlType string) string {
+	if !pgtypes.IsSpatial(sqlType) {
+		return expr
+	}
+
+	return "ST_AsGeoJSON(" + expr + ", 15, 4)::jsonb"
+}
+
+func (d *PostgresDialect) SpatialValueExpression(placeholder, sqlType string) string {
+	switch pgtypes.SpatialScalarName(sqlType) {
+	case pgtypes.Geometry:
+		return "ST_GeomFromGeoJSON(" + placeholder + ")"
+	case pgtypes.Geography:
+		// PostGIS exposes ST_GeomFromGeoJSON for GeoJSON text; geography input
+		// uses the resulting geometry cast to geography rather than a separate
+		// ST_GeogFromGeoJSON constructor.
+		return "ST_GeomFromGeoJSON(" + placeholder + ")::geography"
+	default:
+		return d.TypeCast(placeholder, sqlType)
+	}
+}
+
+func (d *PostgresDialect) SpatialCastExpression(expr, _, toSQLType string) string {
+	switch pgtypes.SpatialScalarName(toSQLType) {
+	case pgtypes.Geometry:
+		return "(" + expr + ")::geometry"
+	case pgtypes.Geography:
+		return "(" + expr + ")::geography"
+	default:
+		return expr
+	}
+}
+
+func (d *PostgresDialect) WriteSpatialPredicate(
+	b *strings.Builder,
+	predicate SpatialPredicate,
+	leftExpr string,
+	rightExpr string,
+) {
+	b.WriteString(postgresSpatialPredicateFunction(predicate))
+	b.WriteByte('(')
+	b.WriteString(leftExpr)
+	b.WriteString(", ")
+	b.WriteString(rightExpr)
+	b.WriteByte(')')
+}
+
+func postgresSpatialPredicateFunction(predicate SpatialPredicate) string {
+	switch predicate {
+	case SpatialPredicateContains:
+		return "ST_Contains"
+	case SpatialPredicateCrosses:
+		return "ST_Crosses"
+	case SpatialPredicateEquals:
+		return "ST_Equals"
+	case SpatialPredicateIntersects:
+		return "ST_Intersects"
+	case SpatialPredicateOverlaps:
+		return "ST_Overlaps"
+	case SpatialPredicateTouches:
+		return "ST_Touches"
+	case SpatialPredicateWithin:
+		return "ST_Within"
+	case SpatialPredicate3DIntersects:
+		return "ST_3DIntersects"
+	default:
+		panic("dialect: unknown spatial predicate " + string(predicate))
+	}
+}
+
+func (d *PostgresDialect) WriteSpatialDWithinPredicate(
+	b *strings.Builder,
+	threeDimensional bool,
+	leftExpr string,
+	rightExpr string,
+	distanceExpr string,
+	sqlType string,
+	useSpheroidExpr *string,
+) {
+	if threeDimensional {
+		b.WriteString("ST_3DDWithin(")
+	} else {
+		b.WriteString("ST_DWithin(")
+	}
+
+	b.WriteString(leftExpr)
+	b.WriteString(", ")
+	b.WriteString(rightExpr)
+	b.WriteString(", ")
+	b.WriteString(distanceExpr)
+
+	if pgtypes.IsGeography(sqlType) && useSpheroidExpr != nil {
+		b.WriteString(", ")
+		b.WriteString(*useSpheroidExpr)
+	}
+
+	b.WriteByte(')')
+}
+
+func (d *PostgresDialect) WriteSpatialArrayIn(
+	b *strings.Builder, source, sqlName, sqlType string,
+	values []any, params []any, paramIndex int,
+) ([]any, int) {
+	var left strings.Builder
+	core.WriteQualifiedColumn(&left, source, sqlName)
+
+	return d.WriteSpatialArrayInExpression(
+		b, left.String(), sqlType, values, params, paramIndex,
+	)
+}
+
+func (d *PostgresDialect) WriteSpatialArrayNotIn(
+	b *strings.Builder, source, sqlName, sqlType string,
+	values []any, params []any, paramIndex int,
+) ([]any, int) {
+	var left strings.Builder
+	core.WriteQualifiedColumn(&left, source, sqlName)
+
+	return d.WriteSpatialArrayNotInExpression(
+		b, left.String(), sqlType, values, params, paramIndex,
+	)
+}
+
+func (d *PostgresDialect) WriteSpatialArrayInExpression(
+	b *strings.Builder, leftExpr, sqlType string,
+	values []any, params []any, paramIndex int,
+) ([]any, int) {
+	return d.writeSpatialArrayComparisonExpression(
+		b, leftExpr, sqlType, values, params, paramIndex, " = ANY", false,
+	)
+}
+
+func (d *PostgresDialect) WriteSpatialArrayNotInExpression(
+	b *strings.Builder, leftExpr, sqlType string,
+	values []any, params []any, paramIndex int,
+) ([]any, int) {
+	return d.writeSpatialArrayComparisonExpression(
+		b, leftExpr, sqlType, values, params, paramIndex, " != ALL", true,
+	)
+}
+
+func (d *PostgresDialect) writeSpatialArrayComparisonExpression(
+	b *strings.Builder,
+	leftExpr string,
+	sqlType string,
+	values []any,
+	params []any,
+	paramIndex int,
+	operator string,
+	emptyMatchesAll bool,
+) ([]any, int) {
+	if len(values) == 0 {
+		if emptyMatchesAll {
+			b.WriteString("1 = 1")
+		} else {
+			b.WriteString("1 = 0")
+		}
+
+		return params, paramIndex
+	}
+
+	b.WriteString(leftExpr)
+	b.WriteString(operator)
+	b.WriteString("(ARRAY[")
+
+	for i, value := range values {
+		if i > 0 {
+			b.WriteString(", ")
+		}
+
+		b.WriteString(d.SpatialValueExpression(d.Placeholder(paramIndex), sqlType))
+
+		params = append(params, value)
+		paramIndex++
+	}
+
+	b.WriteString("]::")
+	b.WriteString(pgtypes.SpatialScalarName(sqlType))
+	b.WriteString("[])")
+
+	return params, paramIndex
 }
 
 // JSONAggQuotedAlias wraps the supplied identifier in double quotes before

@@ -2,6 +2,7 @@ package hasura
 
 import (
 	"context"
+	"encoding/json/jsontext"
 	json "encoding/json/v2"
 	"fmt"
 
@@ -17,6 +18,8 @@ type DatabaseMetadata struct {
 	Customization DatabaseSourceCustomization `json:"customization"       yaml:"customization"`
 	Tables        []TableMetadata             `json:"tables,omitempty"    yaml:"tables,omitempty"`
 	Functions     []FunctionMetadata          `json:"functions,omitempty" yaml:"functions,omitempty"`
+
+	Unknown jsontext.Value `json:",unknown" yaml:"-"`
 }
 
 // UnmarshalYAML implements custom YAML unmarshaling to handle !include directives.
@@ -144,12 +147,38 @@ func (d *DatabaseURL) IsFromEnv() bool {
 	return d.FromEnv != ""
 }
 
+// MarshalJSON inverts UnmarshalJSON: emit a bare string when the URL is
+// literal, or the {from_env: VAR} mapping when it is environment-backed.
+func (d DatabaseURL) MarshalJSON() ([]byte, error) {
+	if d.FromEnv != "" {
+		b, err := json.Marshal(struct {
+			FromEnv string `json:"from_env"`
+		}{FromEnv: d.FromEnv})
+		if err != nil {
+			return nil, fmt.Errorf("marshaling database url from_env: %w", err)
+		}
+
+		return b, nil
+	}
+
+	b, err := json.Marshal(d.URL)
+	if err != nil {
+		return nil, fmt.Errorf("marshaling database url: %w", err)
+	}
+
+	return b, nil
+}
+
 // DatabaseConnectionInfo holds the connection settings for a tracked database.
 type DatabaseConnectionInfo struct {
 	DatabaseURL DatabaseURL `json:"database_url" yaml:"database_url"`
+
+	Unknown jsontext.Value `json:",unknown" yaml:"-"`
 }
 
 // DatabaseConfiguration wraps the per-database connection block.
 type DatabaseConfiguration struct {
 	ConnectionInfo DatabaseConnectionInfo `json:"connection_info" yaml:"connection_info"`
+
+	Unknown jsontext.Value `json:",unknown" yaml:"-"`
 }

@@ -28,6 +28,26 @@ func TestNestedQueries(t *testing.T) { //nolint:maintidx,paralleltest
 			},
 		},
 
+		{
+			name: "long nested relationship alias does not collide after PostgreSQL truncation",
+			query: query{
+				Query: `query {
+					departments(limit: 2, order_by: {id: asc}) {
+						id
+						thisRelationshipAliasIsLongEnoughToCollideAfterPgTrunc: employees(
+							limit: 2,
+							order_by: {user_id: asc}
+						) {
+							user {
+								id
+							}
+						}
+					}
+				}`,
+				Role: "admin",
+			},
+		},
+
 		// Basic one-level nested queries - users with roles
 		{
 			name: "users with roles",

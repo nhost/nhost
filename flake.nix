@@ -2,7 +2,7 @@
   nixConfig = {
     sandbox = "relaxed";
     extra-substituters = [
-      "s3://nhost-nix-cache?endpoint=https://14bc02755b64adb7c8c62b5420d0a457.eu.r2.cloudflarestorage.com&region=auto&profile=nhost-nix-cache"
+      "s3://nhost-nix-cache?endpoint=https://14bc02755b64adb7c8c62b5420d0a457.eu.r2.cloudflarestorage.com&region=auto&profile=nhost-nix-cache&priority=10"
       "https://cache.nixos.org"
     ];
     extra-trusted-public-keys = [
@@ -186,6 +186,14 @@
             ;
         };
 
+        jsontmplf = import ./internal/lib/jsontmpl/project.nix {
+          inherit
+            self
+            pkgs
+            nixops-lib
+            ;
+        };
+
         storagef = import ./services/storage/project.nix {
           inherit
             self
@@ -217,6 +225,7 @@
           functions = functionsf.check;
           guides = guidesf.check;
           docs = docsf.check;
+          jsontmpl = jsontmplf.check;
           mcp = mcpf.check;
           nhostclient = nhostclientf.check;
           nhost-js = nhost-jsf.check;
@@ -244,7 +253,7 @@
 
               # dashboard
               nhost.vercel
-              playwright-driver
+              nhost.playwright-driver
               lychee
 
               # javascript
@@ -288,7 +297,7 @@
             ];
 
             shellHook = ''
-              export PLAYWRIGHT_BROWSERS_PATH=${pkgs.playwright-driver.browsers}
+              export PLAYWRIGHT_BROWSERS_PATH=${pkgs.nhost.playwright-driver.browsers}
               export PLAYWRIGHT_SKIP_VALIDATE_HOST_REQUIREMENTS=true
 
               export GOEXPERIMENT=jsonv2
@@ -350,6 +359,7 @@
           guides = guidesf.devShell;
           docs = docsf.devShell;
           functions = functionsf.devShell;
+          jsontmpl = jsontmplf.devShell;
           mcp = mcpf.devShell;
           nhostclient = nhostclientf.devShell;
           nhost-js = nhost-jsf.devShell;

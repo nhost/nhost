@@ -111,6 +111,13 @@ export interface HasuraMetadataSource {
   functions?: ExportMetadataResponseMetadataSourcesItemFunctionsItem[];
 }
 
+export interface FetchMetadataReturnType extends Partial<HasuraMetadataSource> {
+  /**
+   * The resource version of the metadata.
+   */
+  resourceVersion: number;
+}
+
 /**
  * Represents the metadata from Hasura.
  */
@@ -278,10 +285,11 @@ export interface ColumnInsertOptions {
    */
   fallbackValue?: 'NULL' | 'DEFAULT';
   /**
-   * PostgreSQL specific type of the column (e.g. `text`, `integer[]`).
-   * Used to determine special SQL formatting such as ARRAY[...] literals.
+   * Whether the column is a PostgreSQL array. When true the value is emitted as
+   * an `ARRAY[...]` literal instead of a plain literal. Derived once on the
+   * column metadata (`isArray`); the mutation never re-parses a type string.
    */
-  specificType?: string;
+  isArray?: boolean;
 }
 
 /**
@@ -304,7 +312,10 @@ export type BooleanColumnType = 'bool';
 export type UUIDColumnType = 'uuid';
 
 /**
- * User defined column type of a date / time field in PostgreSQL.
+ * User defined column type of a date / time field in PostgreSQL — the short
+ * picker / DDL names. The long `FORMAT_TYPE` spellings (e.g. `timestamp with
+ * time zone`) are introspection output and live in plain `string` fields, not
+ * in `ColumnType`.
  */
 export type DateColumnType =
   | 'date'
@@ -312,11 +323,7 @@ export type DateColumnType =
   | 'timestamptz'
   | 'time'
   | 'timetz'
-  | 'interval'
-  | 'timestamp without time zone'
-  | 'timestamp with time zone'
-  | 'time without time zone'
-  | 'time with time zone';
+  | 'interval';
 
 /**
  * User defined column type of a numeric field in PostgreSQL.
@@ -425,17 +432,12 @@ export interface ForeignKeyRelation {
   oneToOne?: boolean;
 }
 
-export interface ColumnDefaultValue {
-  /**
-   * The raw default value text (e.g. `gen_random_uuid()`, `Hello`).
-   */
-  value: string;
-  /**
-   * `true` if the value is a literal string the user typed in; `false` if it
-   * is a postgres function reference. Drives `DEFAULT %L` vs `DEFAULT %s`.
-   */
-  custom: boolean;
-}
+/**
+ * A column default, entered and stored as verbatim SQL (e.g. `'Hello'`, `42`,
+ * `gen_random_uuid()`, `''`). The user owns quoting; the value is emitted as-is
+ * via `DEFAULT %s`.
+ */
+export type ColumnDefaultValue = string;
 
 /**
  * Represents a column in the database.
@@ -458,9 +460,7 @@ export interface DatabaseColumn {
    */
   type: string | null;
   /**
-   * Default value of the column. `custom` distinguishes a literal (e.g. the
-   * user typed `version()` as a string) from a postgres function reference
-   * (e.g. picking `version()` from the function list).
+   * Default value of the column, as verbatim SQL.
    */
   defaultValue?: ColumnDefaultValue | null;
   /**
@@ -540,17 +540,32 @@ export interface DataBrowserColumnMetadata {
    */
   id: string;
   /**
-   * Simple type of the column.
+   * PostgreSQL type as returned by FORMAT_TYPE (e.g. `timestamp with time
+   * zone`, `character varying(12)`, `integer[]`). Raw source of truth for type
+   * logic; the `baseType` / `isArray` siblings are derived from it once at
+   * metadata-build time so views never re-parse it.
    */
-  type: 'text' | 'number' | 'boolean' | 'date' | 'uuid';
+  specificType: string;
   /**
-   * Specific database type of the column (e.g. `timestamptz`).
+   * Element family of `specificType` with the `[]` array suffix and any `(…)`
+   * precision modifier stripped (e.g. `integer`, `timestamp with time zone`),
+   * derived via `getBaseType`. Pair with `isArray` for the shape axis — never
+   * re-derive this from `specificType` in a view.
    */
-  specificType: ColumnType;
+  baseType: string;
   /**
-   * Data type of the column (e.g. `timestamp with time zone`).
+   * Whether the column is a PostgreSQL array (`integer[]`). The shape axis that
+   * `baseType` discards; check this before any `baseType` branch so arrays are
+   * not treated as their scalar element.
    */
-  dataType: string;
+  isArray: boolean;
+  /**
+   * Short, user-facing label for the type (e.g. `timestamptz`, `varchar(12)`),
+   * derived from `specificType` via `getDisplayType` when the metadata is
+   * built. Render this — not `specificType` — so the displayed type is
+   * consistent everywhere.
+   */
+  displayType: string;
   /**
    * Default value of the column. `null` when the column has no default.
    */
@@ -592,10 +607,6 @@ export interface DataBrowserColumnMetadata {
    * Determines whether or not the column is editable.
    */
   isEditable?: boolean;
-  /**
-   * Determines whether or not the default value is custom.
-   */
-  isDefaultValueCustom?: boolean;
   /**
    * Name of unique constraints on the column.
    */

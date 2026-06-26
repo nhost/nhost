@@ -340,7 +340,7 @@ func minio(subdomain, volumeName string) *Service {
 	}
 }
 
-func dashboard(
+func dashboard( //nolint:funlen // single env-var config map, not decomposable
 	cfg *model.ConfigConfig,
 	subdomain string,
 	dashboardVersion string,
@@ -348,6 +348,15 @@ func dashboard(
 	useTLS bool,
 	appID string,
 ) *Service {
+	// With constellation enabled, the dashboard's hasura admin/metadata API
+	// calls flow through constellation (which proxies unmatched paths to hasura)
+	// instead of hitting hasura directly. Console UI and migrations API stay on
+	// the hasura-cli helper containers and are not affected.
+	hasuraAPISubdomain := "hasura"
+	if cfg.GetExperimental().GetConstellation() != nil {
+		hasuraAPISubdomain = "graphql"
+	}
+
 	return &Service{
 		Image:      dashboardVersion,
 		DependsOn:  nil,
@@ -376,7 +385,9 @@ func dashboard(
 			"NEXT_PUBLIC_NHOST_GRAPHQL_URL": URL(
 				subdomain, "graphql", httpPort, useTLS,
 			) + "/v1",
-			"NEXT_PUBLIC_NHOST_HASURA_API_URL": URL(subdomain, "hasura", httpPort, useTLS),
+			"NEXT_PUBLIC_NHOST_HASURA_API_URL": URL(
+				subdomain, hasuraAPISubdomain, httpPort, useTLS,
+			),
 			"NEXT_PUBLIC_NHOST_HASURA_CONSOLE_URL": URL(
 				subdomain, "hasura", httpPort, useTLS,
 			) + "/console",

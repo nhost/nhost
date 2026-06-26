@@ -2,6 +2,7 @@
 
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
+import sitemap from '@astrojs/sitemap';
 import starlight from '@astrojs/starlight';
 import vercel from '@astrojs/vercel';
 import { defineConfig } from 'astro/config';
@@ -52,6 +53,10 @@ export default defineConfig({
     },
   },
   integrations: [
+    // Generate sitemap-index.xml / sitemap-0.xml at build time so search engines
+    // can discover every page. Starlight auto-injects the `<link rel="sitemap">`
+    // tag when this integration is present, and robots.txt points crawlers at it.
+    sitemap(),
     starlight({
       title: 'Nhost Documentation',
       logo: {
@@ -118,6 +123,7 @@ export default defineConfig({
                   label: 'Quickstart',
                   collapsed: false,
                   items: [
+                    { slug: 'getting-started/quickstart/cli' },
                     { slug: 'getting-started/quickstart/react' },
                     { slug: 'getting-started/quickstart/nextjs' },
                     { slug: 'getting-started/quickstart/vue' },
@@ -295,6 +301,7 @@ export default defineConfig({
                         { slug: 'products/graphql/permissions/examples' },
                       ],
                     },
+                    { slug: 'products/graphql/computed-fields' },
                     { slug: 'products/graphql/remote-schemas' },
                     { slug: 'products/graphql/advanced-features' },
                   ],
@@ -308,6 +315,9 @@ export default defineConfig({
                     { slug: 'products/graphql/guides/react-urql' },
                     { slug: 'products/graphql/guides/codegen-nhost' },
                     { slug: 'products/graphql/guides/stripe' },
+                    {
+                      slug: 'products/graphql/guides/session-aware-computed-fields',
+                    },
                   ],
                 },
               ],
@@ -748,6 +758,11 @@ export default defineConfig({
                   items: [
                     { label: 'Commands', slug: 'reference/cli/commands' },
                   ],
+                },
+                {
+                  label: 'Templating',
+                  collapsed: false,
+                  items: [{ label: 'Kriti', slug: 'reference/kriti' }],
                 },
               ],
             },

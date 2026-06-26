@@ -1,4 +1,4 @@
-ROOT_DIR?=$(abspath ../..)
+ROOT_DIR ?= $(abspath ../..)
 include $(ROOT_DIR)/build/makefiles/general.makefile
 
 DOCKER_DEV_ENV_PATH=build/dev/docker
@@ -34,7 +34,7 @@ dev-env-integration-down:
 	cd integration && nhost down --volumes
 
 
-PACKAGE?=./...
+PACKAGE ?= ./...
 .PHONY: coverage
 coverage:  ## Run test coverage for PACKAGE (default: ./...). Usage: make coverage PACKAGE=./connector/memconnector
 	go test $(PACKAGE) -coverprofile=coverage.out

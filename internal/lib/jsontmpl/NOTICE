@@ -1,0 +1,18 @@
+This package (internal/lib/jsontmpl and its subpackages) is a clean-room Go port of
+the Kriti templating language:
+
+    hasura/kriti-lang
+    https://github.com/hasura/kriti-lang
+    Pinned commit: daf56edd514a3c5439b457f9de08eaf43c876251 (2022-11-15)
+
+The upstream project is licensed under the Apache License, Version 2.0:
+
+    https://www.apache.org/licenses/LICENSE-2.0
+    https://github.com/hasura/kriti-lang/blob/daf56edd514a3c5439b457f9de08eaf43c876251/LICENSE
+
+    Copyright (c) Hasura Inc.
+
+This Go port is a derivative work. In accordance with Apache-2.0 section 4,
+attribution to the upstream project and a pointer to the Apache-2.0 License are
+retained here. Behavioural divergences from upstream are documented in
+UPSTREAM.md.

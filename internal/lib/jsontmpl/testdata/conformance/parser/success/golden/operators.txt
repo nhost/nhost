@@ -1,0 +1,608 @@
+Array
+    ( Span
+        { start = AlexSourcePos
+            { line = 0
+            , col = 1
+            }
+        , end = AlexSourcePos
+            { line = 13
+            , col = 2
+            }
+        }
+    )
+    [ Gt
+        ( Span
+            { start = AlexSourcePos
+                { line = 0
+                , col = 6
+                }
+            , end = AlexSourcePos
+                { line = 0
+                , col = 14
+                }
+            }
+        )
+        ( Number
+            ( Span
+                { start = AlexSourcePos
+                    { line = 0
+                    , col = 6
+                    }
+                , end = AlexSourcePos
+                    { line = 0
+                    , col = 7
+                    }
+                }
+            ) 1.0
+        )
+        ( Boolean
+            ( Span
+                { start = AlexSourcePos
+                    { line = 0
+                    , col = 10
+                    }
+                , end = AlexSourcePos
+                    { line = 0
+                    , col = 14
+                    }
+                }
+            ) True
+        )
+    , Gt
+        ( Span
+            { start = AlexSourcePos
+                { line = 1
+                , col = 6
+                }
+            , end = AlexSourcePos
+                { line = 1
+                , col = 14
+                }
+            }
+        )
+        ( Var
+            ( Span
+                { start = AlexSourcePos
+                    { line = 1
+                    , col = 6
+                    }
+                , end = AlexSourcePos
+                    { line = 1
+                    , col = 10
+                    }
+                }
+            ) "$foo"
+        )
+        ( Number
+            ( Span
+                { start = AlexSourcePos
+                    { line = 1
+                    , col = 13
+                    }
+                , end = AlexSourcePos
+                    { line = 1
+                    , col = 14
+                    }
+                }
+            ) 1.0
+        )
+    , Gte
+        ( Span
+            { start = AlexSourcePos
+                { line = 2
+                , col = 6
+                }
+            , end = AlexSourcePos
+                { line = 2
+                , col = 15
+                }
+            }
+        )
+        ( Var
+            ( Span
+                { start = AlexSourcePos
+                    { line = 2
+                    , col = 6
+                    }
+                , end = AlexSourcePos
+                    { line = 2
+                    , col = 10
+                    }
+                }
+            ) "$foo"
+        )
+        ( Number
+            ( Span
+                { start = AlexSourcePos
+                    { line = 2
+                    , col = 14
+                    }
+                , end = AlexSourcePos
+                    { line = 2
+                    , col = 15
+                    }
+                }
+            ) 1.0
+        )
+    , Eq
+        ( Span
+            { start = AlexSourcePos
+                { line = 3
+                , col = 6
+                }
+            , end = AlexSourcePos
+                { line = 3
+                , col = 15
+                }
+            }
+        )
+        ( Var
+            ( Span
+                { start = AlexSourcePos
+                    { line = 3
+                    , col = 6
+                    }
+                , end = AlexSourcePos
+                    { line = 3
+                    , col = 10
+                    }
+                }
+            ) "$foo"
+        )
+        ( Number
+            ( Span
+                { start = AlexSourcePos
+                    { line = 3
+                    , col = 14
+                    }
+                , end = AlexSourcePos
+                    { line = 3
+                    , col = 15
+                    }
+                }
+            ) 1.0
+        )
+    , Lte
+        ( Span
+            { start = AlexSourcePos
+                { line = 4
+                , col = 6
+                }
+            , end = AlexSourcePos
+                { line = 4
+                , col = 15
+                }
+            }
+        )
+        ( Var
+            ( Span
+                { start = AlexSourcePos
+                    { line = 4
+                    , col = 6
+                    }
+                , end = AlexSourcePos
+                    { line = 4
+                    , col = 10
+                    }
+                }
+            ) "$foo"
+        )
+        ( Number
+            ( Span
+                { start = AlexSourcePos
+                    { line = 4
+                    , col = 14
+                    }
+                , end = AlexSourcePos
+                    { line = 4
+                    , col = 15
+                    }
+                }
+            ) 1.0
+        )
+    , Defaulting
+        ( Span
+            { start = AlexSourcePos
+                { line = 5
+                , col = 6
+                }
+            , end = AlexSourcePos
+                { line = 5
+                , col = 15
+                }
+            }
+        )
+        ( Var
+            ( Span
+                { start = AlexSourcePos
+                    { line = 5
+                    , col = 6
+                    }
+                , end = AlexSourcePos
+                    { line = 5
+                    , col = 10
+                    }
+                }
+            ) "$foo"
+        )
+        ( Number
+            ( Span
+                { start = AlexSourcePos
+                    { line = 5
+                    , col = 14
+                    }
+                , end = AlexSourcePos
+                    { line = 5
+                    , col = 15
+                    }
+                }
+            ) 1.0
+        )
+    , NotEq
+        ( Span
+            { start = AlexSourcePos
+                { line = 6
+                , col = 6
+                }
+            , end = AlexSourcePos
+                { line = 6
+                , col = 23
+                }
+            }
+        )
+        ( Var
+            ( Span
+                { start = AlexSourcePos
+                    { line = 6
+                    , col = 6
+                    }
+                , end = AlexSourcePos
+                    { line = 6
+                    , col = 10
+                    }
+                }
+            ) "$foo"
+        )
+        ( Function
+            ( Span
+                { start = AlexSourcePos
+                    { line = 6
+                    , col = 15
+                    }
+                , end = AlexSourcePos
+                    { line = 6
+                    , col = 23
+                    }
+                }
+            ) "not"
+            ( Var
+                ( Span
+                    { start = AlexSourcePos
+                        { line = 6
+                        , col = 19
+                        }
+                    , end = AlexSourcePos
+                        { line = 6
+                        , col = 23
+                        }
+                    }
+                ) "$bar"
+            )
+        )
+    , Or
+        ( Span
+            { start = AlexSourcePos
+                { line = 7
+                , col = 6
+                }
+            , end = AlexSourcePos
+                { line = 7
+                , col = 23
+                }
+            }
+        )
+        ( Var
+            ( Span
+                { start = AlexSourcePos
+                    { line = 7
+                    , col = 6
+                    }
+                , end = AlexSourcePos
+                    { line = 7
+                    , col = 10
+                    }
+                }
+            ) "$foo"
+        )
+        ( Function
+            ( Span
+                { start = AlexSourcePos
+                    { line = 7
+                    , col = 15
+                    }
+                , end = AlexSourcePos
+                    { line = 7
+                    , col = 23
+                    }
+                }
+            ) "not"
+            ( Boolean
+                ( Span
+                    { start = AlexSourcePos
+                        { line = 7
+                        , col = 19
+                        }
+                    , end = AlexSourcePos
+                        { line = 7
+                        , col = 23
+                        }
+                    }
+                ) True
+            )
+        )
+    , And
+        ( Span
+            { start = AlexSourcePos
+                { line = 8
+                , col = 6
+                }
+            , end = AlexSourcePos
+                { line = 8
+                , col = 23
+                }
+            }
+        )
+        ( Var
+            ( Span
+                { start = AlexSourcePos
+                    { line = 8
+                    , col = 6
+                    }
+                , end = AlexSourcePos
+                    { line = 8
+                    , col = 10
+                    }
+                }
+            ) "$foo"
+        )
+        ( Function
+            ( Span
+                { start = AlexSourcePos
+                    { line = 8
+                    , col = 15
+                    }
+                , end = AlexSourcePos
+                    { line = 8
+                    , col = 23
+                    }
+                }
+            ) "not"
+            ( Boolean
+                ( Span
+                    { start = AlexSourcePos
+                        { line = 8
+                        , col = 19
+                        }
+                    , end = AlexSourcePos
+                        { line = 8
+                        , col = 23
+                        }
+                    }
+                ) True
+            )
+        )
+    , In
+        ( Span
+            { start = AlexSourcePos
+                { line = 9
+                , col = 6
+                }
+            , end = AlexSourcePos
+                { line = 9
+                , col = 24
+                }
+            }
+        )
+        ( Var
+            ( Span
+                { start = AlexSourcePos
+                    { line = 9
+                    , col = 6
+                    }
+                , end = AlexSourcePos
+                    { line = 9
+                    , col = 10
+                    }
+                }
+            ) "$foo"
+        )
+        ( Object
+            ( Span
+                { start = AlexSourcePos
+                    { line = 9
+                    , col = 14
+                    }
+                , end = AlexSourcePos
+                    { line = 9
+                    , col = 24
+                    }
+                }
+            )
+            ( fromList
+                [
+                    ( "foo"
+                    , Number
+                        ( Span
+                            { start = AlexSourcePos
+                                { line = 9
+                                , col = 22
+                                }
+                            , end = AlexSourcePos
+                                { line = 9
+                                , col = 23
+                                }
+                            }
+                        ) 1.0
+                    )
+                ]
+            )
+        )
+    , In
+        ( Span
+            { start = AlexSourcePos
+                { line = 10
+                , col = 6
+                }
+            , end = AlexSourcePos
+                { line = 10
+                , col = 34
+                }
+            }
+        )
+        ( Var
+            ( Span
+                { start = AlexSourcePos
+                    { line = 10
+                    , col = 6
+                    }
+                , end = AlexSourcePos
+                    { line = 10
+                    , col = 10
+                    }
+                }
+            ) "$foo"
+        )
+        ( Object
+            ( Span
+                { start = AlexSourcePos
+                    { line = 10
+                    , col = 14
+                    }
+                , end = AlexSourcePos
+                    { line = 10
+                    , col = 34
+                    }
+                }
+            )
+            ( fromList
+                [
+                    ( "foo"
+                    , Var
+                        ( Span
+                            { start = AlexSourcePos
+                                { line = 10
+                                , col = 25
+                                }
+                            , end = AlexSourcePos
+                                { line = 10
+                                , col = 29
+                                }
+                            }
+                        ) "$bar"
+                    )
+                ]
+            )
+        )
+    , Function
+        ( Span
+            { start = AlexSourcePos
+                { line = 11
+                , col = 6
+                }
+            , end = AlexSourcePos
+                { line = 11
+                , col = 24
+                }
+            }
+        ) "not"
+        ( And
+            ( Span
+                { start = AlexSourcePos
+                    { line = 11
+                    , col = 10
+                    }
+                , end = AlexSourcePos
+                    { line = 11
+                    , col = 24
+                    }
+                }
+            )
+            ( Boolean
+                ( Span
+                    { start = AlexSourcePos
+                        { line = 11
+                        , col = 10
+                        }
+                    , end = AlexSourcePos
+                        { line = 11
+                        , col = 14
+                        }
+                    }
+                ) True
+            )
+            ( Boolean
+                ( Span
+                    { start = AlexSourcePos
+                        { line = 11
+                        , col = 19
+                        }
+                    , end = AlexSourcePos
+                        { line = 11
+                        , col = 24
+                        }
+                    }
+                ) False
+            )
+        )
+    , Function
+        ( Span
+            { start = AlexSourcePos
+                { line = 12
+                , col = 6
+                }
+            , end = AlexSourcePos
+                { line = 12
+                , col = 24
+                }
+            }
+        ) "not"
+        ( Defaulting
+            ( Span
+                { start = AlexSourcePos
+                    { line = 12
+                    , col = 10
+                    }
+                , end = AlexSourcePos
+                    { line = 12
+                    , col = 24
+                    }
+                }
+            )
+            ( Boolean
+                ( Span
+                    { start = AlexSourcePos
+                        { line = 12
+                        , col = 10
+                        }
+                    , end = AlexSourcePos
+                        { line = 12
+                        , col = 14
+                        }
+                    }
+                ) True
+            )
+            ( Boolean
+                ( Span
+                    { start = AlexSourcePos
+                        { line = 12
+                        , col = 19
+                        }
+                    , end = AlexSourcePos
+                        { line = 12
+                        , col = 24
+                        }
+                    }
+                ) False
+            )
+        )
+    ]
