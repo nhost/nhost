@@ -337,8 +337,24 @@ export function CommandPaletteProvider({
   const { pushRecent } = useRecent();
   const recentItems = useRecentItems(tree);
   const switchItems = useSwitchItems().map(toScoredNode);
-  const items = useMemo(() => getVisibleItems(state, tree), [state, tree]);
-  const pageItems = useMemo(() => getRootPageItems(tree), [tree]);
+  const hasActiveProject = Boolean(getQueryString(router.query.appSubdomain));
+  const displayTree = useMemo(
+    () =>
+      hasActiveProject
+        ? tree
+        : {
+            ...tree,
+            children: tree.children?.filter(
+              (child) => child.scope !== 'project',
+            ),
+          },
+    [tree, hasActiveProject],
+  );
+  const items = useMemo(
+    () => getVisibleItems(state, displayTree),
+    [state, displayTree],
+  );
+  const pageItems = useMemo(() => getRootPageItems(displayTree), [displayTree]);
 
   const openCommandPalette = useCallback(() => setOpen(true), []);
   const closeCommandPalette = useCallback(() => setOpen(false), []);

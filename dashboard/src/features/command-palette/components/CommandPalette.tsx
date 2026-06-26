@@ -1,7 +1,7 @@
 import { Search } from 'lucide-react';
 import type { KeyboardEvent } from 'react';
 import { useEffect, useMemo, useRef, useState } from 'react';
-
+import { Logo } from '@/components/presentational/Logo';
 import {
   Command,
   CommandEmpty,
@@ -16,7 +16,6 @@ import {
   DialogDescription,
   DialogTitle,
 } from '@/components/ui/v3/dialog';
-import { Logo } from '@/components/presentational/Logo';
 import { CommandRow } from '@/features/command-palette/components/CommandRow';
 import { ScopeChip } from '@/features/command-palette/components/ScopeChip';
 import { useAnimatedHeight } from '@/features/command-palette/hooks/useAnimatedHeight';
