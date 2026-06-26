@@ -212,7 +212,10 @@ func (ctrl *Controller) GetFileWithPresignedURL( //nolint:ireturn
 			ctx, "failed to process file for download", slog.String("error", apiErr.Error()),
 		)
 
-		return nil, apiErr
+		// Return the APIError as the response object (not as a Go error) so its
+		// status code is honoured; returning it as an error makes the strict
+		// handler emit a generic 500 instead of the intended 4xx.
+		return apiErr, nil
 	}
 
 	return ctrl.getFileWithPresignedURLResponseObject(ctx, processedFile, logger), nil
