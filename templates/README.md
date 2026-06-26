@@ -66,55 +66,18 @@ pnpm lint && pnpm build
 
 ## How templates are delivered
 
-The CLI downloads a per-template tarball from a rolling GitHub release, `templates@latest`:
+The CLI fetches templates from the Nhost monorepo with a shallow, blobless, sparse git checkout of `templates/<name>/`, copies that subtree into the generated project, then removes the temporary clone. Generated projects do not receive the templates repository's `.git` directory.
 
-```
-https://github.com/nhost/nhost/releases/download/templates@latest/<name>.tar.gz
-```
+By default, templates are fetched from `https://github.com/nhost/nhost` at the `main` ref. Override the source with `--templates-repo` / `NHOST_CREATE_TEMPLATES_REPO` and `--templates-ref` / `NHOST_CREATE_TEMPLATES_REF` when testing a branch or local fixture.
 
-On every push to `main` that touches `templates/`, [`templates_release.yaml`](../.github/workflows/templates_release.yaml) packs each template (via `templates/scripts/pack.sh`, which uses `git archive` so only tracked files are included) and uploads it to that release. [`templates_checks.yaml`](../.github/workflows/templates_checks.yaml) builds and lints the template on PRs.
+[`templates_checks.yaml`](../.github/workflows/templates_checks.yaml) builds and lints templates on PRs.
 
-Override the source with `--templates-url <base>` or `NHOST_CREATE_TEMPLATES_URL`.
+## Try a template locally
 
-## Demo with `npx nhost-cli-preview`
-
-To demo `nhost create` end-to-end before this is released, publish a preview CLI and the template tarball.
-
-### 1. Publish the template tarball
+Use `--template-path` to scaffold from a local checkout without fetching from git:
 
 ```sh
-git add templates/ && git commit -m "templates: nextjs-shadcn"   # pack.sh archives committed files
-./templates/scripts/pack.sh                                       # -> templates/dist/*.tar.gz (+ .sha256)
-
-# First time only — create the rolling release:
-gh release create templates@latest --prerelease --latest=false \
-  --title "nhost create templates (rolling)" --notes "Rolling templates release."
-
-gh release upload templates@latest templates/dist/* --clobber
-```
-
-(Once merged to `main`, the release workflow does this automatically.)
-
-### 2. Publish a preview CLI that includes `create`
-
-Pick a version not already on the registry (the live `nhost-cli-preview` is `1.49.0`):
-
-```sh
-cli/npm/scripts/build-preview.sh 1.49.1
-# then run the two `npm publish` commands it prints (platform package first, then main)
-```
-
-### 3. Demo it
-
-```sh
-npx nhost-cli-preview@1.49.1 create demo
+npx @nhost/cli create demo --template-path templates/nextjs-shadcn
 cd demo/backend && nhost up           # start the local backend
 cd demo/frontend && pnpm dev          # http://localhost:3000, OTP sign-in
-```
-
-The preview binary fetches templates from `nhost/nhost`'s `templates@latest` by default. If you uploaded the tarball somewhere else, point the CLI at it:
-
-```sh
-NHOST_CREATE_TEMPLATES_URL=https://github.com/<you>/<repo>/releases/download/templates@latest/ \
-  npx nhost-cli-preview@1.49.1 create demo
 ```
