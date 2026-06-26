@@ -1,0 +1,436 @@
+import toast from 'react-hot-toast';
+import { vi } from 'vitest';
+
+import { CommandPaletteProvider } from '@/features/command-palette/components/CommandPaletteProvider';
+import {
+  fireEvent,
+  mockPointerEvent,
+  render,
+  screen,
+  waitFor,
+  within,
+} from '@/tests/testUtils';
+
+const push = vi.fn();
+const openWindow = vi.fn();
+
+const router = {
+  query: { orgSlug: 'org-a', appSubdomain: 'project-a' },
+  push,
+  isReady: true,
+};
+
+const useOrgsMock = vi.fn();
+const useProjectMock = vi.fn();
+const useIsPlatformMock = vi.fn();
+
+vi.mock('next/router', () => ({
+  useRouter: () => router,
+}));
+
+vi.mock('@/features/orgs/projects/hooks/useOrgs', () => ({
+  useOrgs: () => useOrgsMock(),
+}));
+
+vi.mock('@/features/orgs/projects/hooks/useProject', () => ({
+  useProject: () => useProjectMock(),
+}));
+
+vi.mock('@/features/orgs/projects/common/hooks/useIsPlatform', () => ({
+  useIsPlatform: () => useIsPlatformMock(),
+}));
+
+const makeProject = (name: string, subdomain: string) => ({
+  id: subdomain,
+  name,
+  subdomain,
+});
+
+const projectA = makeProject('Project A', 'project-a');
+const projectB = makeProject('Project B', 'project-b');
+const projectC = makeProject('Project C', 'project-c');
+
+const orgA = {
+  id: 'org-a',
+  name: 'Org A',
+  slug: 'org-a',
+  apps: [projectA, projectB],
+};
+const orgB = {
+  id: 'org-b',
+  name: 'Org B',
+  slug: 'org-b',
+  apps: [projectC],
+};
+
+const renderProvider = (children = <div>Dashboard body</div>) =>
+  render(<CommandPaletteProvider>{children}</CommandPaletteProvider>);
+
+const openPalette = async () => {
+  fireEvent.keyDown(window, { key: 'k', metaKey: true });
+
+  return screen.findByLabelText('Search dashboard');
+};
+
+beforeEach(() => {
+  toast.remove();
+  push.mockReset();
+  window.localStorage.clear();
+  process.env.NEXT_PUBLIC_NHOST_PLATFORM = 'true';
+  process.env.NEXT_PUBLIC_NHOST_CONFIGSERVER_URL = 'http://config.local';
+  router.query = { orgSlug: 'org-a', appSubdomain: 'project-a' };
+  useIsPlatformMock.mockReturnValue(true);
+  useOrgsMock.mockReturnValue({
+    orgs: [orgA, orgB],
+    currentOrg: orgA,
+    loading: false,
+    error: null,
+    refetch: vi.fn(),
+  });
+  useProjectMock.mockReturnValue({
+    project: projectA,
+    loading: false,
+    error: null,
+    refetch: vi.fn(),
+    projectNotFound: false,
+  });
+  window.open = openWindow;
+  openWindow.mockReset();
+  mockPointerEvent();
+  window.matchMedia = vi.fn().mockImplementation((query: string) => ({
+    matches: false,
+    media: query,
+    onchange: null,
+    addListener: vi.fn(),
+    removeListener: vi.fn(),
+    addEventListener: vi.fn(),
+    removeEventListener: vi.fn(),
+    dispatchEvent: vi.fn(),
+  }));
+  window.requestAnimationFrame = (callback) => {
+    callback(0);
+    return 0;
+  };
+  window.HTMLElement.prototype.scrollIntoView = vi.fn();
+});
+
+describe('CommandPaletteProvider', () => {
+  it('opens and closes with the keyboard and Escape', async () => {
+    renderProvider();
+
+    const input = await openPalette();
+
+    expect(input).toBeInTheDocument();
+
+    fireEvent.keyDown(window, { key: 'Escape' });
+
+    await waitFor(() => {
+      expect(
+        screen.queryByLabelText('Search dashboard'),
+      ).not.toBeInTheDocument();
+    });
+
+    await openPalette();
+
+    const reopenedInput = await screen.findByLabelText('Search dashboard');
+    expect(reopenedInput).toBeInTheDocument();
+
+    fireEvent.blur(reopenedInput);
+    fireEvent.keyDown(window, { key: 'k', metaKey: true });
+
+    await waitFor(() => {
+      expect(
+        screen.queryByLabelText('Search dashboard'),
+      ).not.toBeInTheDocument();
+    });
+  });
+
+  it('closes when clicking the backdrop', async () => {
+    renderProvider();
+    await openPalette();
+
+    const dialog = await screen.findByRole('dialog');
+    const backdrop = dialog.parentElement;
+    expect(backdrop).not.toBeNull();
+
+    fireEvent.pointerDown(backdrop as HTMLElement, {
+      button: 0,
+      ctrlKey: false,
+      pointerType: 'mouse',
+    });
+
+    await waitFor(() => {
+      expect(
+        screen.queryByLabelText('Search dashboard'),
+      ).not.toBeInTheDocument();
+    });
+  });
+
+  it('routes page navigation shallowly and writes recent entries', async () => {
+    renderProvider();
+    const input = await openPalette();
+    fireEvent.change(input, { target: { value: 'logs' } });
+
+    fireEvent.click(
+      await screen.findByTestId('command-palette-item-project-logs'),
+    );
+
+    await waitFor(() => {
+      expect(push).toHaveBeenCalledWith(
+        '/orgs/org-a/projects/project-a/logs',
+        undefined,
+        { shallow: true },
+      );
+    });
+    expect(window.localStorage.getItem('command-palette-recent')).toContain(
+      'project-logs',
+    );
+  });
+
+  it('reaches a deep settings leaf from flat search with keyboard only', async () => {
+    renderProvider();
+    const input = await openPalette();
+
+    fireEvent.change(input, { target: { value: 'environment variables' } });
+    await screen.findByTestId(
+      'command-palette-item-project-settings-environment-variables',
+    );
+    fireEvent.keyDown(input, { key: 'Enter' });
+
+    await waitFor(() => {
+      expect(push).toHaveBeenCalledWith(
+        '/orgs/org-a/projects/project-a/settings/environment-variables',
+        undefined,
+        { shallow: true },
+      );
+    });
+  });
+
+  it('reaches the same deep settings leaf by drilling with keyboard only', async () => {
+    renderProvider();
+    const input = await openPalette();
+
+    fireEvent.change(input, { target: { value: 'configuration' } });
+    const settingsRow = await screen.findByTestId(
+      'command-palette-item-project-settings',
+    );
+    fireEvent.keyDown(input, { key: 'ArrowDown' });
+    await waitFor(() => {
+      expect(settingsRow).toHaveAttribute('aria-selected', 'true');
+    });
+    (input as HTMLInputElement).setSelectionRange(
+      (input as HTMLInputElement).value.length,
+      (input as HTMLInputElement).value.length,
+    );
+    fireEvent.keyDown(input, { key: 'ArrowRight' });
+
+    expect(
+      await screen.findByRole('button', { name: /leave settings scope/i }),
+    ).toBeInTheDocument();
+
+    fireEvent.change(input, { target: { value: 'environment variables' } });
+    await screen.findByTestId(
+      'command-palette-item-project-settings-environment-variables',
+    );
+    fireEvent.keyDown(input, { key: 'Enter' });
+
+    await waitFor(() => {
+      expect(push).toHaveBeenCalledWith(
+        '/orgs/org-a/projects/project-a/settings/environment-variables',
+        undefined,
+        { shallow: true },
+      );
+    });
+  });
+
+  it('keeps the dialog accessible and avoids forced transitions under reduced motion', async () => {
+    window.matchMedia = vi.fn().mockImplementation((query: string) => ({
+      matches: query === '(prefers-reduced-motion: reduce)',
+      media: query,
+      onchange: null,
+      addListener: vi.fn(),
+      removeListener: vi.fn(),
+      addEventListener: vi.fn(),
+      removeEventListener: vi.fn(),
+      dispatchEvent: vi.fn(),
+    }));
+
+    renderProvider();
+    await openPalette();
+
+    const dialog = await screen.findByRole('dialog');
+    expect(within(dialog).getByText('Command palette')).toHaveClass('sr-only');
+    expect(dialog).not.toHaveClass('transition', 'animate-pulse');
+  });
+
+  it('opens docs in a new tab without routing in-app', async () => {
+    renderProvider();
+    await openPalette();
+
+    fireEvent.click(await screen.findByTestId('command-palette-item-docs'));
+
+    await waitFor(() => {
+      expect(openWindow).toHaveBeenCalledWith(
+        'https://docs.nhost.io',
+        '_blank',
+        'noopener,noreferrer',
+      );
+    });
+    expect(push).not.toHaveBeenCalled();
+  });
+
+  it('routes recent entries with their captured scope', async () => {
+    window.localStorage.setItem(
+      'command-palette-recent',
+      JSON.stringify([
+        {
+          nodeId: 'project-overview',
+          title: 'Overview',
+          path: '',
+          accessedAt: 1,
+          orgSlug: 'org-b',
+          appSubdomain: 'project-c',
+        },
+      ]),
+    );
+    router.query = { orgSlug: 'org-a', appSubdomain: 'project-a' };
+    renderProvider();
+    await openPalette();
+
+    fireEvent.click(
+      await screen.findByTestId(
+        'command-palette-item-recent:project-overview:org-b:project-c',
+      ),
+    );
+
+    await waitFor(() => {
+      expect(push).toHaveBeenCalledWith(
+        '/orgs/org-b/projects/project-c',
+        undefined,
+        { shallow: false },
+      );
+    });
+  });
+
+  it('drops recent entries whose project no longer exists', async () => {
+    window.localStorage.setItem(
+      'command-palette-recent',
+      JSON.stringify([
+        {
+          nodeId: 'project-logs',
+          title: 'Logs',
+          path: 'logs',
+          accessedAt: 1,
+          orgSlug: 'org-a',
+          appSubdomain: 'deleted-project',
+        },
+      ]),
+    );
+
+    renderProvider();
+    await openPalette();
+
+    expect(
+      await screen.findByLabelText('Search dashboard'),
+    ).toBeInTheDocument();
+    expect(
+      screen.queryByTestId(
+        'command-palette-item-recent:project-logs:org-a:deleted-project',
+      ),
+    ).not.toBeInTheDocument();
+  });
+
+  it('switches to another project with a full navigation', async () => {
+    renderProvider();
+    await openPalette();
+
+    fireEvent.click(
+      await screen.findByTestId(
+        'command-palette-item-switch:project:org-a:project-b',
+      ),
+    );
+
+    await waitFor(() => {
+      expect(push).toHaveBeenCalledWith(
+        '/orgs/org-a/projects/project-b',
+        undefined,
+        { shallow: false },
+      );
+    });
+  });
+
+  it('hides switch and gated nodes off-platform', async () => {
+    process.env.NEXT_PUBLIC_NHOST_PLATFORM = 'false';
+    process.env.NEXT_PUBLIC_NHOST_CONFIGSERVER_URL = '';
+    useIsPlatformMock.mockReturnValue(false);
+    useOrgsMock.mockReturnValue({
+      orgs: [
+        {
+          id: 'local',
+          name: 'Local',
+          slug: 'local',
+          apps: [makeProject('Local', 'local')],
+        },
+      ],
+      currentOrg: { id: 'local', name: 'Local', slug: 'local', apps: [] },
+      loading: false,
+      error: null,
+      refetch: vi.fn(),
+    });
+    useProjectMock.mockReturnValue({
+      project: makeProject('Local', 'local'),
+      loading: false,
+      error: null,
+      refetch: vi.fn(),
+      projectNotFound: false,
+    });
+    router.query = { orgSlug: 'local', appSubdomain: 'local' };
+
+    renderProvider();
+    await openPalette();
+
+    expect(
+      await screen.findByLabelText('Search dashboard'),
+    ).toBeInTheDocument();
+    expect(screen.queryByText('Switch')).not.toBeInTheDocument();
+    expect(screen.queryByText('Deployments')).not.toBeInTheDocument();
+    expect(screen.queryByText('Settings')).not.toBeInTheDocument();
+    expect(screen.getByText('Overview')).toBeInTheDocument();
+  });
+
+  it('shows project settings off-platform when config server is set', async () => {
+    process.env.NEXT_PUBLIC_NHOST_PLATFORM = 'false';
+    process.env.NEXT_PUBLIC_NHOST_CONFIGSERVER_URL = 'http://config.local';
+    useIsPlatformMock.mockReturnValue(false);
+    useOrgsMock.mockReturnValue({
+      orgs: [
+        {
+          id: 'local',
+          name: 'Local',
+          slug: 'local',
+          apps: [makeProject('Local', 'local')],
+        },
+      ],
+      currentOrg: { id: 'local', name: 'Local', slug: 'local', apps: [] },
+      loading: false,
+      error: null,
+      refetch: vi.fn(),
+    });
+    useProjectMock.mockReturnValue({
+      project: makeProject('Local', 'local'),
+      loading: false,
+      error: null,
+      refetch: vi.fn(),
+      projectNotFound: false,
+    });
+    router.query = { orgSlug: 'local', appSubdomain: 'local' };
+
+    renderProvider();
+    await openPalette();
+
+    expect(
+      await screen.findByLabelText('Search dashboard'),
+    ).toBeInTheDocument();
+    expect(screen.getByText('Settings')).toBeInTheDocument();
+  });
+});
