@@ -173,8 +173,7 @@ func (ctrl *Controller) getFileMetadataHeaders( //nolint:ireturn
 		request.Params,
 		fileMetadata.MimeType,
 		acceptHeader,
-		ctrl.imageTransformer.MaxDimension(),
-		ctrl.imageTransformer.MaxBlurSigma(),
+		ctrl.imageTransformer,
 	)
 	if apiErr != nil {
 		return nil, apiErr
