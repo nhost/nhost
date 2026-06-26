@@ -8,6 +8,7 @@ import (
 	"github.com/nhost/nhost/cli/clienv"
 	"github.com/nhost/nhost/cli/cmd/config"
 	"github.com/nhost/nhost/cli/cmd/configserver"
+	"github.com/nhost/nhost/cli/cmd/create"
 	"github.com/nhost/nhost/cli/cmd/deployments"
 	"github.com/nhost/nhost/cli/cmd/dev"
 	"github.com/nhost/nhost/cli/cmd/dockercredentials"
@@ -39,6 +40,7 @@ func main() {
 		Commands: []*cli.Command{
 			config.Command(),
 			configserver.Command(),
+			create.Command(),
 			deployments.Command(),
 			dev.Command(),
 			dev.CommandUp(),
