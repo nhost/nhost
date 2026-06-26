@@ -3,7 +3,9 @@ package create //nolint:testpackage
 import (
 	"bytes"
 	"context"
+	"errors"
 	"os"
+	"os/exec"
 	"path/filepath"
 	"strings"
 	"testing"
@@ -79,6 +81,132 @@ func TestStageProjectLocalTemplate(t *testing.T) {
 	packageJSON := readTestFile(t, filepath.Join(projectDir, "frontend", "package.json"))
 	if !strings.Contains(packageJSON, `"name": "my-app"`) {
 		t.Fatalf("package.json name was not patched:\n%s", packageJSON)
+	}
+}
+
+func TestCreateFetchesTemplateFromLocalGitFixture(t *testing.T) {
+	git := requireGit(t)
+	workdir := t.TempDir()
+
+	tmpDir := filepath.Join(workdir, "tmp")
+	if err := os.MkdirAll(tmpDir, 0o755); err != nil {
+		t.Fatalf("MkdirAll TMPDIR: %v", err)
+	}
+
+	t.Setenv("TMPDIR", tmpDir)
+
+	fixture := createTemplateGitFixture(t, git, "template-branch")
+	t.Chdir(workdir)
+
+	var output bytes.Buffer
+
+	cmd := newTestRootCommand(t, &output)
+	if err := cmd.Run(
+		context.Background(),
+		[]string{
+			"nhost",
+			"create",
+			"--templates-repo",
+			"file://" + fixture,
+			"--templates-ref",
+			"template-branch",
+			"--no-install",
+			"my-app",
+		},
+	); err != nil {
+		t.Fatalf("create command: %v\n%s", err, output.String())
+	}
+
+	projectDir := filepath.Join(workdir, "my-app")
+
+	packageJSON := readTestFile(t, filepath.Join(projectDir, "frontend", "package.json"))
+	if !strings.Contains(packageJSON, `"name": "my-app"`) {
+		t.Fatalf("package.json name was not patched:\n%s", packageJSON)
+	}
+
+	if got := readTestFile(
+		t,
+		filepath.Join(projectDir, "frontend", "src", "app.ts"),
+	); got != "export const ok = true\n" {
+		t.Fatalf("frontend file = %q", got)
+	}
+
+	assertNoGitDirs(t, projectDir)
+	assertNoTemplateTempClones(t, tmpDir)
+}
+
+func TestCreateCleansUpAfterGitFetchFailure(t *testing.T) {
+	git := requireGit(t)
+	workdir := t.TempDir()
+
+	tmpDir := filepath.Join(workdir, "tmp")
+	if err := os.MkdirAll(tmpDir, 0o755); err != nil {
+		t.Fatalf("MkdirAll TMPDIR: %v", err)
+	}
+
+	t.Setenv("TMPDIR", tmpDir)
+
+	fixture := createTemplateGitFixture(t, git, "template-branch")
+	t.Chdir(workdir)
+
+	var output bytes.Buffer
+
+	cmd := newTestRootCommand(t, &output)
+
+	err := cmd.Run(
+		context.Background(),
+		[]string{
+			"nhost",
+			"create",
+			"--templates-repo",
+			"file://" + fixture,
+			"--templates-ref",
+			"missing-branch",
+			"--no-install",
+			"broken-app",
+		},
+	)
+	if err == nil {
+		t.Fatal("create command succeeded; want git fetch failure")
+	}
+
+	if _, statErr := os.Stat(
+		filepath.Join(workdir, "broken-app"),
+	); !errors.Is(
+		statErr,
+		os.ErrNotExist,
+	) {
+		t.Fatalf("target directory exists after failure: %v", statErr)
+	}
+
+	assertNoTemplateTempClones(t, tmpDir)
+}
+
+//nolint:paralleltest // mutates package-level gitLookPath test seam
+func TestFetchTemplateGitNotInstalled(t *testing.T) {
+	oldGitLookPath := gitLookPath
+	gitLookPath = func(string) (string, error) {
+		return "", exec.ErrNotFound
+	}
+	t.Cleanup(func() { gitLookPath = oldGitLookPath })
+
+	err := fetchTemplate(
+		context.Background(),
+		nil,
+		"file:///tmp/templates",
+		"main",
+		Template{Name: "nextjs-shadcn"},
+		t.TempDir(),
+	)
+	if err == nil {
+		t.Fatal("fetchTemplate succeeded; want git-not-installed error")
+	}
+
+	msg := err.Error()
+	for _, want := range []string{"git is required", "install git", "--template-path"} {
+		if !strings.Contains(msg, want) {
+			t.Fatalf("error %q missing %q", msg, want)
+		}
 	}
 }
 
@@ -199,6 +327,109 @@ func TestPatchPackageJSONName(t *testing.T) {
 	want := "{\n  \"name\": \"my-app\",\n  \"version\": \"0.1.0\"\n}\n"
 	if string(got) != want {
 		t.Errorf("patched package.json = %q, want %q", got, want)
+	}
+}
+
+func newTestRootCommand(t *testing.T, output *bytes.Buffer) *cli.Command {
+	t.Helper()
+
+	flags, err := clienv.Flags()
+	if err != nil {
+		t.Fatalf("Flags: %v", err)
+	}
+
+	return &cli.Command{
+		Name:      "nhost",
+		Commands:  []*cli.Command{Command()},
+		Flags:     flags,
+		Writer:    output,
+		ErrWriter: output,
+	}
+}
+
+func requireGit(t *testing.T) string {
+	t.Helper()
+
+	git, err := exec.LookPath("git")
+	if err != nil {
+		t.Skipf("git not found on PATH: %v", err)
+	}
+
+	return git
+}
+
+func createTemplateGitFixture(t *testing.T, git string, branch string) string {
+	t.Helper()
+
+	fixture := filepath.Join(t.TempDir(), "templates-repo")
+	if err := os.MkdirAll(fixture, 0o755); err != nil {
+		t.Fatalf("MkdirAll fixture: %v", err)
+	}
+
+	runGit(t, git, fixture, "init")
+	runGit(t, git, fixture, "checkout", "-b", branch)
+	runGit(t, git, fixture, "config", "user.email", "create-test@example.com")
+	runGit(t, git, fixture, "config", "user.name", "Create Test")
+
+	writeTestFile(
+		t,
+		filepath.Join(fixture, "templates", "nextjs-shadcn", "frontend", "package.json"),
+		"{\n  \"name\": \"starter\",\n  \"version\": \"0.1.0\"\n}\n",
+	)
+	writeTestFile(
+		t,
+		filepath.Join(fixture, "templates", "nextjs-shadcn", "frontend", "src", "app.ts"),
+		"export const ok = true\n",
+	)
+	runGit(t, git, fixture, "add", ".")
+	runGit(t, git, fixture, "commit", "-m", "add template")
+
+	return fixture
+}
+
+func runGit(t *testing.T, git string, dir string, args ...string) {
+	t.Helper()
+
+	cmd := exec.CommandContext(context.Background(), git, args...)
+	cmd.Dir = dir
+
+	out, err := cmd.CombinedOutput()
+	if err != nil {
+		t.Fatalf("git %s failed: %v\n%s", strings.Join(args, " "), err, out)
+	}
+}
+
+func assertNoGitDirs(t *testing.T, root string) {
+	t.Helper()
+
+	err := filepath.WalkDir(root, func(path string, d os.DirEntry, err error) error {
+		if err != nil {
+			return err
+		}
+
+		if d.IsDir() && d.Name() == ".git" {
+			t.Fatalf("found .git directory under generated project: %s", path)
+		}
+
+		return nil
+	})
+	if err != nil {
+		t.Fatalf("WalkDir(%s): %v", root, err)
+	}
+}
+
+func assertNoTemplateTempClones(t *testing.T, tmpDir string) {
+	t.Helper()
+
+	entries, err := os.ReadDir(tmpDir)
+	if err != nil {
+		t.Fatalf("ReadDir(%s): %v", tmpDir, err)
+	}
+
+	for _, entry := range entries {
+		if strings.HasPrefix(entry.Name(), "nhost-create-template-") {
+			t.Fatalf("temporary clone was not removed: %s", filepath.Join(tmpDir, entry.Name()))
+		}
 	}
 }
 
