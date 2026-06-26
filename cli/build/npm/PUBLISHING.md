@@ -8,6 +8,9 @@ job builds the release binaries and stores them in the Nix cache. After that
 succeeds, the inline `publish-npm` job checks out the same release ref, computes
 the sanitized release version with `make get-version`, and runs `make build-npm`
 to rebuild the `cli-npm` staging output from the cached Nix release binaries.
+`make build-npm` depends on the same `cli-multiplatform` Nix derivation, so it
+uses the cached binaries when `build-multiplatform` already built them and
+rebuilds them if the cache is unavailable.
 
 The publish job runs the same Make targets maintainers use locally:
 `make validate-npm` checks the staged `build/npm/dist` packages before any
@@ -74,6 +77,7 @@ and publish platform packages first, then the main package:
 nix develop .#pnpm -c npm login
 
 VERSION=$(make -C cli get-version VER=1.49.0)
+# No separate make build-multiplatform step is required; build-npm depends on it.
 make -C cli build-npm
 make -C cli validate-npm
 make -C cli publish-npm

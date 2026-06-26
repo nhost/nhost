@@ -4,9 +4,16 @@ import path from 'node:path';
 
 import { validateStagedPackages } from './validate-staged-packages.mjs';
 
-const publishOrder = ['darwin-arm64', 'darwin-x64', 'linux-arm64', 'linux-x64', 'main'];
+const publishOrder = [
+  'darwin-arm64',
+  'darwin-x64',
+  'linux-arm64',
+  'linux-x64',
+  'main',
+];
 
-const npmTagForVersion = (version) => (/(alpha|beta|dev|rc)/.test(version) ? 'beta' : 'latest');
+const npmTagForVersion = (version) =>
+  /(alpha|beta|dev|rc)/.test(version) ? 'beta' : 'latest';
 
 const run = (command, args, options = {}) => {
   const result = spawnSync(command, args, {
@@ -18,7 +25,9 @@ const run = (command, args, options = {}) => {
     throw result.error;
   }
   if (result.status !== 0 && !options.allowFailure) {
-    throw new Error(`${command} ${args.join(' ')} failed with exit code ${result.status}`);
+    throw new Error(
+      `${command} ${args.join(' ')} failed with exit code ${result.status}`,
+    );
   }
 
   return result;
@@ -34,7 +43,9 @@ for (const dir of publishOrder) {
   const pkg = readPackage(root, dir);
 
   if (pkg.version !== version) {
-    throw new Error(`Version mismatch for ${pkg.name}: ${pkg.version} != ${version}`);
+    throw new Error(
+      `Version mismatch for ${pkg.name}: ${pkg.version} != ${version}`,
+    );
   }
 
   const view = run('npm', ['view', `${pkg.name}@${pkg.version}`, 'version'], {
@@ -48,5 +59,12 @@ for (const dir of publishOrder) {
   }
 
   console.log(`--> publishing ${pkg.name}@${pkg.version} (tag: ${tag})`);
-  run('npm', ['publish', path.join(root, dir), '--access', 'public', '--tag', tag]);
+  run('npm', [
+    'publish',
+    path.join(root, dir),
+    '--access',
+    'public',
+    '--tag',
+    tag,
+  ]);
 }

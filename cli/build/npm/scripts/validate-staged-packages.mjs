@@ -71,7 +71,10 @@ export const validateStagedPackages = ({
     if (main.version !== version) {
       fail(`main package version is ${main.version}, expected ${version}`);
     }
-    if (JSON.stringify(optionalDependencies) !== JSON.stringify(expectedDependencies)) {
+    if (
+      JSON.stringify(optionalDependencies) !==
+      JSON.stringify(expectedDependencies)
+    ) {
       fail(
         `main optionalDependencies are ${JSON.stringify(optionalDependencies)}, expected ${JSON.stringify(expectedDependencies)}`,
       );
@@ -80,7 +83,9 @@ export const validateStagedPackages = ({
   }
 
   if (failures.length > 0) {
-    throw new Error(`npm package validation failed:\n- ${failures.join('\n- ')}`);
+    throw new Error(
+      `npm package validation failed:\n- ${failures.join('\n- ')}`,
+    );
   }
 
   return { root, version, platforms };
@@ -88,5 +93,7 @@ export const validateStagedPackages = ({
 
 if (import.meta.url === `file://${process.argv[1]}`) {
   const result = validateStagedPackages();
-  console.log(`Validated @nhost/cli npm packages in ${result.root} for ${result.version}`);
+  console.log(
+    `Validated @nhost/cli npm packages in ${result.root} for ${result.version}`,
+  );
 }
