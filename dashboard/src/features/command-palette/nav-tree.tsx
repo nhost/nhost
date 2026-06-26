@@ -5,7 +5,6 @@ import {
 } from '@icons-pack/react-simple-icons';
 import {
   Sparkles as AIIcon,
-  Building2 as OrgIcon,
   CloudIcon,
   Code,
   CogIcon,
@@ -14,6 +13,7 @@ import {
   FileTextIcon,
   GaugeIcon,
   HomeIcon,
+  Building2 as OrgIcon,
   RocketIcon,
   HardDrive as StorageIcon,
   UserIcon,

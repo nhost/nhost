@@ -38,13 +38,19 @@ vi.mock('@/components/layout/Header/BreadcrumbNav', () => ({
   default: () => <nav>Breadcrumbs</nav>,
 }));
 
-vi.mock('@/features/orgs/components/members/components/AnnouncementsTray', () => ({
-  AnnouncementsTray: () => <div>Announcements</div>,
-}));
+vi.mock(
+  '@/features/orgs/components/members/components/AnnouncementsTray',
+  () => ({
+    AnnouncementsTray: () => <div>Announcements</div>,
+  }),
+);
 
-vi.mock('@/features/orgs/components/members/components/NotificationsTray', () => ({
-  NotificationsTray: () => <div>Notifications</div>,
-}));
+vi.mock(
+  '@/features/orgs/components/members/components/NotificationsTray',
+  () => ({
+    NotificationsTray: () => <div>Notifications</div>,
+  }),
+);
 
 vi.mock('@/features/orgs/projects/hooks/useOrgs', () => ({
   useOrgs: () => useOrgsMock(),

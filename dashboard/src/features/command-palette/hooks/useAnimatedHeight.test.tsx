@@ -1,5 +1,5 @@
-import { renderHook } from '@testing-library/react';
 import { afterEach, describe, expect, it, vi } from 'vitest';
+import { renderHook } from '@/tests/testUtils';
 
 import { useAnimatedHeight } from './useAnimatedHeight';
 
