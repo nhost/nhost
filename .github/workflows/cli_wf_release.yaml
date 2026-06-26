@@ -252,7 +252,7 @@ jobs:
           const path = require('node:path');
 
           const version = process.env.VERSION;
-          const root = path.join('result', 'dist');
+          const root = path.join('build', 'npm', 'dist');
           const platforms = ['darwin-arm64', 'darwin-x64', 'linux-arm64', 'linux-x64'];
           const failures = [];
 
@@ -353,11 +353,11 @@ jobs:
             npm publish "$dir" --access public --tag "$TAG"
           }
 
-          publish result/dist/darwin-arm64
-          publish result/dist/darwin-x64
-          publish result/dist/linux-arm64
-          publish result/dist/linux-x64
-          publish result/dist/main
+          publish build/npm/dist/darwin-arm64
+          publish build/npm/dist/darwin-x64
+          publish build/npm/dist/linux-arm64
+          publish build/npm/dist/linux-x64
+          publish build/npm/dist/main
           BASH
 
       - name: Send Discord notification

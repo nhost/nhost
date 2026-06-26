@@ -9,7 +9,7 @@ succeeds, the inline `publish-npm` job checks out the same release ref, computes
 the sanitized release version with `make get-version`, and runs `make build-npm`
 to rebuild the `cli-npm` staging output from the cached Nix release binaries.
 
-The publish job validates the staged `result/dist` packages before any publish:
+The publish job validates the staged `build/npm/dist` packages before any publish:
 all five package versions must match the sanitized release version, the main
 package `optionalDependencies` must point at the four platform packages, package
 names must keep the expected `@nhost/cli` prefix, and the packaged binaries must
@@ -79,11 +79,11 @@ TAG=latest
 # Use TAG=beta for alpha/beta/dev/rc prereleases.
 
 for d in \
-  cli/result/dist/darwin-arm64 \
-  cli/result/dist/darwin-x64 \
-  cli/result/dist/linux-arm64 \
-  cli/result/dist/linux-x64 \
-  cli/result/dist/main
+  cli/build/npm/dist/darwin-arm64 \
+  cli/build/npm/dist/darwin-x64 \
+  cli/build/npm/dist/linux-arm64 \
+  cli/build/npm/dist/linux-x64 \
+  cli/build/npm/dist/main
 do
   name=$(nix develop .#pnpm -c node -p "require('./$d/package.json').name")
   version=$(nix develop .#pnpm -c node -p "require('./$d/package.json').version")

@@ -67,6 +67,7 @@ out/
 /.vscode/
 
 result
+/cli/build/npm/dist
 
 .vitest
 

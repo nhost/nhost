@@ -288,10 +288,10 @@ rec {
       }
       ''
         stage_platform() {
-          dir="$out/dist/$1"
+          dir="$out/$1"
           mkdir -p "$dir"
           jq --arg v "${version}" '.version = $v' \
-            ${./npm/platforms}/"$1"/package.json > "$dir/package.json"
+            ${./build/npm/platforms}/"$1"/package.json > "$dir/package.json"
           cp ${cli-multiplatform}/"$2"/"$3"/cli "$dir/nhost"
           chmod +x "$dir/nhost"
         }
@@ -301,14 +301,14 @@ rec {
         stage_platform linux-arm64  linux  arm64
         stage_platform linux-x64    linux  amd64
 
-        main="$out/dist/main"
+        main="$out/main"
         mkdir -p "$main/bin"
         jq --arg v "${version}" \
           '.version = $v | .optionalDependencies |= map_values($v)' \
-          ${./npm/package.json} > "$main/package.json"
-        cp ${./npm/bin/nhost} "$main/bin/nhost"
+          ${./build/npm/package.json} > "$main/package.json"
+        cp ${./build/npm/bin/nhost} "$main/bin/nhost"
         chmod +x "$main/bin/nhost"
-        cp ${./npm/README.md} "$main/README.md"
+        cp ${./build/npm/README.md} "$main/README.md"
 
         validate_platform_metadata() {
           main_name=$(jq -r '.name' "$main/package.json")
@@ -337,7 +337,7 @@ rec {
           : > "$platform_names_file"
 
           for platform in darwin-arm64 darwin-x64 linux-arm64 linux-x64; do
-            platform_package="$out/dist/$platform/package.json"
+            platform_package="$out/$platform/package.json"
             if ! jq -e --arg v "${version}" '.version == $v' "$platform_package" > /dev/null; then
               echo "ERROR: $platform npm package version must be ${version}" >&2
               exit 1

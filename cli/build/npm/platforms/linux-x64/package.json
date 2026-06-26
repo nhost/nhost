@@ -1,12 +1,12 @@
 {
-  "name": "@nhost/cli-darwin-arm64",
+  "name": "@nhost/cli-linux-x64",
   "version": "0.0.0",
-  "description": "Nhost CLI binary for darwin-arm64",
+  "description": "Nhost CLI binary for linux-x64",
   "os": [
-    "darwin"
+    "linux"
   ],
   "cpu": [
-    "arm64"
+    "x64"
   ],
   "files": [
     "nhost"
@@ -15,7 +15,7 @@
   "repository": {
     "type": "git",
     "url": "git+https://github.com/nhost/nhost.git",
-    "directory": "cli/npm"
+    "directory": "cli/build/npm"
   },
   "license": "MIT"
 }

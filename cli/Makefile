@@ -26,9 +26,11 @@ build-multiplatform:  ## Build cli for all supported platforms
 
 
 .PHONY: build-npm
-build-npm:  ## Stage the npm packages (main + platform binaries) under ./result/dist
+build-npm:  ## Stage the npm packages (main + platform binaries) under ./build/npm/dist
+	mkdir -p build
 	nix build \
 		--print-build-logs \
+		--out-link build/npm/dist \
 		.\#packages.$(ARCH)-$(OS).cli-npm
 
 
