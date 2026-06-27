@@ -132,7 +132,7 @@ extension StorageClient {
                 bodyFileURL: multipartBody.fileURL
             )
         } else {
-            let multipartBody = NhostMultipartEncoder.encode(parts: parts)
+            let multipartBody = try NhostMultipartEncoder.encode(parts: parts)
             requestHeaders["content-type"] = multipartBody.contentType
             applyExtraHeaders(extraHeaders, to: &requestHeaders)
             request = NhostRequest(

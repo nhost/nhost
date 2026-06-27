@@ -20,7 +20,23 @@ final class StorageStreamingTests: XCTestCase {
         status: 201,
         headers: ["content-type": "application/json"],
         body: Data(
-            #"{"processedFiles":[{"id":"f1","name":"a.bin","size":4,"bucketId":"default","etag":"e","createdAt":"2026-01-01T00:00:00Z","updatedAt":"2026-01-01T00:00:00Z","isUploaded":true,"mimeType":"application/octet-stream"}]}"#.utf8
+            """
+            {
+              "processedFiles": [
+                {
+                  "id": "f1",
+                  "name": "a.bin",
+                  "size": 4,
+                  "bucketId": "default",
+                  "etag": "e",
+                  "createdAt": "2026-01-01T00:00:00Z",
+                  "updatedAt": "2026-01-01T00:00:00Z",
+                  "isUploaded": true,
+                  "mimeType": "application/octet-stream"
+                }
+              ]
+            }
+            """.utf8
         )
     )
 
@@ -136,7 +152,7 @@ final class StorageStreamingTests: XCTestCase {
             .file(name: "file[]", filename: "a.bin", contentType: "application/octet-stream", fileURL: sourceURL),
         ]
 
-        let inMemory = NhostMultipartEncoder.encode(parts: dataParts, boundary: "boundary")
+        let inMemory = try NhostMultipartEncoder.encode(parts: dataParts, boundary: "boundary")
         let onDisk = try NhostMultipartEncoder.encodeToFile(parts: fileParts, boundary: "boundary")
         defer { try? FileManager.default.removeItem(at: onDisk.fileURL) }
 

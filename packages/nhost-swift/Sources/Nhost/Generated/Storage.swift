@@ -450,7 +450,7 @@ public struct StorageClient: Sendable {
                 parts.append(NhostMultipartPart(name: "metadata[]", contentType: "application/json", body: try NhostJSON.restEncoder.encode(item)))
             }
         }
-        let multipartBody = NhostMultipartEncoder.encode(parts: parts)
+        let multipartBody = try NhostMultipartEncoder.encode(parts: parts)
         requestHeaders["content-type"] = multipartBody.contentType
         let requestBody = multipartBody.body
         for (name, value) in extraHeaders {
@@ -597,7 +597,7 @@ public struct StorageClient: Sendable {
         if let value = body.metadata {
             parts.append(NhostMultipartPart(name: "metadata", contentType: "application/json", body: try NhostJSON.restEncoder.encode(value)))
         }
-        let multipartBody = NhostMultipartEncoder.encode(parts: parts)
+        let multipartBody = try NhostMultipartEncoder.encode(parts: parts)
         requestHeaders["content-type"] = multipartBody.contentType
         let requestBody = multipartBody.body
         for (name, value) in extraHeaders {

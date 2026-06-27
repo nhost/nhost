@@ -79,21 +79,21 @@ public enum NhostMultipartEncoder {
 
     /// Assembles the multipart body in memory. `.fileURL` parts are read fully —
     /// callers that want to keep large files off the heap should use
-    /// `encodeToFile` instead.
+    /// `encodeToFile` instead. File read failures are propagated to the caller.
     public static func encode(
         parts: [NhostMultipartPart],
         boundary: String = UUID().uuidString
-    ) -> NhostMultipartBody {
+    ) throws -> NhostMultipartBody {
         var body = Data()
 
-        parts.forEach { part in
+        for part in parts {
             body.appendString(partHeader(for: part, boundary: boundary))
 
             switch part.content {
             case let .data(data):
                 body.append(data)
             case let .fileURL(url):
-                body.append((try? Data(contentsOf: url)) ?? Data())
+                body.append(try Data(contentsOf: url))
             }
 
             body.appendString("\r\n")

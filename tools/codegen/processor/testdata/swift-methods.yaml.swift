@@ -438,7 +438,7 @@ public struct GeneratedFixtureClient: Sendable {
                 parts.append(NhostMultipartPart(name: "metadata[]", contentType: "application/json", body: try NhostJSON.restEncoder.encode(item)))
             }
         }
-        let multipartBody = NhostMultipartEncoder.encode(parts: parts)
+        let multipartBody = try NhostMultipartEncoder.encode(parts: parts)
         requestHeaders["content-type"] = multipartBody.contentType
         let requestBody = multipartBody.body
         for (name, value) in extraHeaders {

@@ -864,7 +864,7 @@ func (s *Swift) writeSwiftMultipartBodySetup(
 		}
 
 		builder.WriteString(
-			"        let multipartBody = NhostMultipartEncoder.encode(parts: parts)\n",
+			"        let multipartBody = try NhostMultipartEncoder.encode(parts: parts)\n",
 		)
 		builder.WriteString(
 			"        requestHeaders[\"content-type\"] = multipartBody.contentType\n",
@@ -883,7 +883,7 @@ func (s *Swift) writeSwiftMultipartBodySetup(
 	}
 
 	builder.WriteString(
-		"            let multipartBody = NhostMultipartEncoder.encode(parts: parts)\n",
+		"            let multipartBody = try NhostMultipartEncoder.encode(parts: parts)\n",
 	)
 	builder.WriteString(
 		"            requestHeaders[\"content-type\"] = multipartBody.contentType\n",

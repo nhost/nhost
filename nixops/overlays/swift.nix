@@ -175,6 +175,4 @@ in
       ];
     };
   };
-
-  swiftpm_6 = final.swift_6;
 }

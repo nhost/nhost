@@ -56,7 +56,7 @@ final class EncodingTests: XCTestCase {
     }
 
     func testMultipartEncoder() throws {
-        let multipart = NhostMultipartEncoder.encode(
+        let multipart = try NhostMultipartEncoder.encode(
             parts: [
                 .formField(name: "metadata[]", value: .string("avatar")),
                 .file(
@@ -77,6 +77,25 @@ final class EncodingTests: XCTestCase {
         XCTAssertTrue(body.hasSuffix("--boundary--\r\n"))
     }
 
+    func testMultipartEncoderPropagatesFileReadErrors() {
+        let missingURL = FileManager.default.temporaryDirectory
+            .appendingPathComponent("nhost-missing-\(UUID().uuidString).bin")
+
+        XCTAssertThrowsError(
+            try NhostMultipartEncoder.encode(
+                parts: [
+                    .file(
+                        name: "file[]",
+                        filename: "missing.bin",
+                        contentType: "application/octet-stream",
+                        fileURL: missingURL
+                    ),
+                ],
+                boundary: "boundary"
+            )
+        )
+    }
+
     func testQueryEncoderEncodesPlusSignAndPreservesEncodedBaseItems() throws {
         let url = try XCTUnwrap(URL(string: "https://example.com/v1/signin?next=a%2Bb"))
         let encoded = NhostQueryEncoder.append(
@@ -89,7 +108,7 @@ final class EncodingTests: XCTestCase {
     }
 
     func testMultipartEncoderStripsHeaderInjectionAttempts() throws {
-        let multipart = NhostMultipartEncoder.encode(
+        let multipart = try NhostMultipartEncoder.encode(
             parts: [
                 .file(
                     name: "file\r\nX-Injected: name",
