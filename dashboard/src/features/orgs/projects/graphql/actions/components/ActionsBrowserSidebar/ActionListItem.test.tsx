@@ -147,4 +147,14 @@ describe('ActionListItem', () => {
 
     expect(await screen.findByText(/Permissions for/)).toBeInTheDocument();
   });
+
+  it('opens the relationships drawer from the dropdown menu', async () => {
+    const user = new TestUserEvent();
+    renderItem();
+
+    await user.click(screen.getByTestId('action-menu-login'));
+    await user.click(await screen.findByText('Edit Relationships'));
+
+    expect(await screen.findByText(/Relationships for/)).toBeInTheDocument();
+  });
 });

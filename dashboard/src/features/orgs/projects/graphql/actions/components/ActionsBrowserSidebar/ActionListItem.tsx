@@ -1,4 +1,5 @@
 import {
+  Anchor,
   Ellipsis,
   FilePen,
   FileSearch,
@@ -28,6 +29,7 @@ import {
 } from '@/components/ui/v3/tooltip';
 import { EditActionForm } from '@/features/orgs/projects/graphql/actions/components/EditActionForm';
 import { EditActionPermissionsForm } from '@/features/orgs/projects/graphql/actions/components/EditActionPermissionsForm';
+import { EditActionRelationshipsForm } from '@/features/orgs/projects/graphql/actions/components/EditActionRelationshipsForm';
 import { TextWithTooltip } from '@/features/orgs/projects/common/components/TextWithTooltip';
 import { cn } from '@/lib/utils';
 import type { ActionItem } from '@/utils/hasura-api/generated/schemas';
@@ -88,6 +90,16 @@ export default function ActionListItem({
     openActionDrawer(
       'Permissions',
       <EditActionPermissionsForm
+        actionName={action.name}
+        onCancel={closeDrawer}
+      />,
+    );
+  }
+
+  function handleEditRelationshipsClick() {
+    openActionDrawer(
+      'Relationships',
+      <EditActionRelationshipsForm
         actionName={action.name}
         onCancel={closeDrawer}
       />,
@@ -181,6 +193,13 @@ export default function ActionListItem({
               >
                 <Users className="size-4" />
                 Edit Permissions
+              </DropdownMenuItem>
+              <DropdownMenuItem
+                onSelect={handleEditRelationshipsClick}
+                className={menuItemClassName}
+              >
+                <Anchor className="size-4" />
+                Edit Relationships
               </DropdownMenuItem>
               <DropdownMenuItem
                 onSelect={() => onDeleteAction(action)}
