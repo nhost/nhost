@@ -7,6 +7,7 @@ import (
 	"errors"
 	"io"
 	"os"
+	"strings"
 	"testing"
 
 	"github.com/google/go-cmp/cmp"
@@ -176,6 +177,95 @@ func TestManipulateRejectsOversizedDerivedDimension(t *testing.T) {
 	)
 	if !errors.Is(err, image.ErrDimensionsTooLarge) {
 		t.Fatalf("expected ErrDimensionsTooLarge, got %v", err)
+	}
+}
+
+func TestValidateOptions(t *testing.T) {
+	t.Parallel()
+
+	const (
+		maxDimension = 100
+		maxBlurSigma = 10
+	)
+
+	transformer := image.NewTransformer(1, maxDimension, maxBlurSigma)
+
+	cases := []struct {
+		name         string
+		opts         image.Options
+		wantErr      bool
+		wantContains []string
+	}{
+		{
+			name:         "empty options pass",
+			opts:         image.Options{},
+			wantErr:      false,
+			wantContains: nil,
+		},
+		{
+			name: "values exactly at the limit pass",
+			opts: image.Options{
+				Width:  maxDimension,
+				Height: maxDimension,
+				Blur:   maxBlurSigma,
+			},
+			wantErr:      false,
+			wantContains: nil,
+		},
+		{
+			name:         "width over max is rejected",
+			opts:         image.Options{Width: maxDimension + 1},
+			wantErr:      true,
+			wantContains: []string{"width", "100"},
+		},
+		{
+			name:         "height over max is rejected",
+			opts:         image.Options{Height: maxDimension + 1},
+			wantErr:      true,
+			wantContains: []string{"height", "100"},
+		},
+		{
+			name:         "blur over max is rejected",
+			opts:         image.Options{Blur: maxBlurSigma + 1},
+			wantErr:      true,
+			wantContains: []string{"blur", "10"},
+		},
+		{
+			name: "multiple violations are all reported",
+			opts: image.Options{
+				Width:  maxDimension + 1,
+				Height: maxDimension + 1,
+				Blur:   maxBlurSigma + 1,
+			},
+			wantErr:      true,
+			wantContains: []string{"width", "height", "blur"},
+		},
+	}
+
+	for _, tc := range cases {
+		t.Run(tc.name, func(t *testing.T) {
+			t.Parallel()
+
+			err := transformer.ValidateOptions(tc.opts)
+
+			if !tc.wantErr {
+				if err != nil {
+					t.Fatalf("expected no error, got %v", err)
+				}
+
+				return
+			}
+
+			if !errors.Is(err, image.ErrOptionsOutOfRange) {
+				t.Fatalf("expected ErrOptionsOutOfRange, got %v", err)
+			}
+
+			for _, want := range tc.wantContains {
+				if !strings.Contains(err.Error(), want) {
+					t.Errorf("expected error %q to contain %q", err.Error(), want)
+				}
+			}
+		})
 	}
 }
 
