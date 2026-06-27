@@ -63,7 +63,7 @@
         "noUnusedFunctionParameters": "off"
       },
       "nursery": {
-        "noShadow": "error",
+
         "useSortedClasses": {
           "level": "error",
           "fix": "safe",
