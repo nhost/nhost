@@ -1,7 +1,9 @@
+import type { SignUpOptions } from '@nhost/nhost-js/auth';
 import { startRegistration } from '@simplewebauthn/browser';
 import { useRouter } from 'next/router';
 import toast from 'react-hot-toast';
 import { appendPkceId, generateAndStorePKCE } from '@/lib/pkce';
+import { getAnonId } from '@/lib/segment';
 import { isEmptyValue } from '@/lib/utils';
 import { useNhostClient } from '@/providers/nhost';
 import { getToastStyleProps } from '@/utils/constants/settings';
@@ -19,13 +21,20 @@ function useOnSignUpWithSecurityKeyHandler() {
     try {
       const { challenge, id } = await generateAndStorePKCE();
 
+      const options: SignUpOptions = {
+        displayName,
+        redirectTo: appendPkceId(window.location.origin, id),
+      };
+
+      const anonId = await getAnonId();
+      if (anonId) {
+        options.metadata = { anonId };
+      }
+
       const webAuthnResponse = await nhost.auth.signUpWebauthn(
         {
           email,
-          options: {
-            displayName,
-            redirectTo: appendPkceId(window.location.origin, id),
-          },
+          options,
         },
         {
           headers: {
@@ -39,10 +48,7 @@ function useOnSignUpWithSecurityKeyHandler() {
 
       const verifyResponse = await nhost.auth.verifySignUpWebauthn({
         credential,
-        options: {
-          displayName,
-          redirectTo: appendPkceId(window.location.origin, id),
-        },
+        options,
         codeChallenge: challenge,
       });
       if (verifyResponse.status === 200 && isEmptyValue(verifyResponse.body)) {

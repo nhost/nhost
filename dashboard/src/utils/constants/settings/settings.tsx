@@ -1,6 +1,5 @@
+import { CheckIcon, XIcon } from 'lucide-react';
 import type { DefaultToastOptions } from 'react-hot-toast';
-import { CheckIcon } from '@/components/ui/v2/icons/CheckIcon';
-import { XIcon } from '@/components/ui/v2/icons/XIcon';
 import { getDesignTokens } from '@/components/ui/v2/theme/getDesignTokens';
 import { COLOR_PREFERENCE_STORAGE_KEY } from '@/utils/constants/common';
 
@@ -12,7 +11,10 @@ export function getToastBackgroundColor() {
     return lightTokens.grey?.[700] || 'rgb(33 50 75)';
   }
 
-  const colorMode = window.localStorage.getItem(COLOR_PREFERENCE_STORAGE_KEY);
+  const colorMode =
+    typeof window.localStorage?.getItem === 'function'
+      ? window.localStorage.getItem(COLOR_PREFERENCE_STORAGE_KEY)
+      : null;
 
   if (colorMode === 'dark') {
     return darkTokens.grey?.[400] || 'rgb(33 50 75)';

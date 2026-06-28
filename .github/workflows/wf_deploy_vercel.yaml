@@ -19,6 +19,10 @@ on:
         required: true
       NIX_CACHE_PRIV_KEY:
         required: true
+      NIX_CACHE_ACCESS_KEY_ID:
+        required: true
+      NIX_CACHE_SECRET_ACCESS_KEY:
+        required: true
       VERCEL_TEAM_ID:
         required: true
       VERCEL_PROJECT_ID:
@@ -28,94 +32,91 @@ on:
       DISCORD_WEBHOOK:
         required: false
       TURBO_TOKEN:
-        required: true
+        required: false
 
     outputs:
       preview-url:
         description: "The preview URL from Vercel deployment"
-        value: ${{ jobs.publish-vercel.outputs.preview-url }}
+        value: ${{ jobs.deploy-vercel.outputs.preview-url }}
 
 jobs:
-  publish-vercel:
-    name: Publish to Vercel
+  deploy-vercel:
+    name: Build and deploy Vercel output
     runs-on: blacksmith-2vcpu-ubuntu-2404
     outputs:
-      preview-url: ${{ steps.deploy.outputs.preview-url }}  # Add this line
+      preview-url: ${{ steps.deploy.outputs.preview-url }}
     permissions:
       id-token: write
-      contents: write
+      contents: read
       actions: read
       pull-requests: write
 
     steps:
-    - name: Checkout repository
-      uses: actions/checkout@v6
-      with:
-        ref: ${{ inputs.GIT_REF }}
+      - name: Checkout repository
+        uses: actions/checkout@v7
+        with:
+          ref: ${{ inputs.GIT_REF }}
+          allow-unsafe-pr-checkout: true
 
-    - name: Configure aws
-      uses: aws-actions/configure-aws-credentials@v6
-      with:
-        role-to-assume: arn:aws:iam::${{ secrets.AWS_ACCOUNT_ID }}:role/github-actions-nhost-${{ github.event.repository.name }}
-        aws-region: eu-central-1
+      - name: Configure aws
+        uses: aws-actions/configure-aws-credentials@v6
+        with:
+          role-to-assume: arn:aws:iam::${{ secrets.AWS_ACCOUNT_ID }}:role/github-actions-nhost-${{ github.event.repository.name }}
+          aws-region: eu-central-1
 
-    - name: Setup Nix with Cache
-      uses: ./.github/actions/setup-nix
-      with:
-        NAME: ${{ inputs.NAME }}
-        NIX_CACHE_PUB_KEY: ${{ secrets.NIX_CACHE_PUB_KEY }}
-        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+      - name: Setup Nix with Cache
+        uses: ./.github/actions/setup-nix
+        with:
+          NAME: ${{ inputs.NAME }}
+          NIX_CACHE_PUB_KEY: ${{ secrets.NIX_CACHE_PUB_KEY }}
+          NIX_CACHE_ACCESS_KEY_ID: ${{ secrets.NIX_CACHE_ACCESS_KEY_ID }}
+          NIX_CACHE_SECRET_ACCESS_KEY: ${{ secrets.NIX_CACHE_SECRET_ACCESS_KEY }}
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
-    - name: Trigger Vercel deployment
-      id: deploy
-      env:
-        VERCEL_ORG_ID: ${{ secrets.VERCEL_TEAM_ID }}
-        VERCEL_PROJECT_ID: ${{ secrets.VERCEL_PROJECT_ID }}
-        TURBO_TOKEN: ${{ secrets.TURBO_TOKEN }}
-        TURBO_TEAM: nhost
-      run: |
-        set -o pipefail
-        TARGET_OPTS="--target=${{ inputs.ENVIRONMENT }}"
-        echo "Deploying to: ${{ inputs.ENVIRONMENT }}..."
-        nix develop .\#vercel -c \
-          vercel pull --environment=${{ inputs.ENVIRONMENT }} --token=${{ secrets.VERCEL_DEPLOY_TOKEN }}
-        nix develop .\#vercel -c \
-          vercel build $TARGET_OPTS --token=${{ secrets.VERCEL_DEPLOY_TOKEN }}
-        nix develop .\#vercel -c \
-          vercel deploy $TARGET_OPTS --prebuilt --token=${{ secrets.VERCEL_DEPLOY_TOKEN }} | tee /tmp/vercel_output
+      - name: Build and deploy Vercel output
+        id: deploy
+        uses: ./.github/actions/vercel-deploy-nix
+        with:
+          NAME: ${{ inputs.NAME }}
+          ENVIRONMENT: ${{ inputs.ENVIRONMENT }}
+          VERCEL_TEAM_ID: ${{ secrets.VERCEL_TEAM_ID }}
+          VERCEL_PROJECT_ID: ${{ secrets.VERCEL_PROJECT_ID }}
+          VERCEL_DEPLOY_TOKEN: ${{ secrets.VERCEL_DEPLOY_TOKEN }}
+          TURBO_TOKEN: ${{ secrets.TURBO_TOKEN }}
+          VERCEL_CACHE_BUSTER: ${{ vars.VERCEL_CACHE_BUSTER }}
 
-        PREVIEW_URL=$(cat /tmp/vercel_output)
-        echo "\n🔗🔗🔗 Preview URL: $PREVIEW_URL"
-        echo "preview-url=$PREVIEW_URL" >> $GITHUB_OUTPUT
+      - name: Store Nix cache
+        uses: ./.github/actions/cache-nix
+        with:
+          NIX_CACHE_PRIV_KEY: ${{ secrets.NIX_CACHE_PRIV_KEY }}
+          NIX_CACHE_ACCESS_KEY_ID: ${{ secrets.NIX_CACHE_ACCESS_KEY_ID }}
+          NIX_CACHE_SECRET_ACCESS_KEY: ${{ secrets.NIX_CACHE_SECRET_ACCESS_KEY }}
 
-    - uses: marocchino/sticky-pull-request-comment@v3
-      with:
-        header: "vercel-${{ inputs.NAME }}-${{ inputs.ENVIRONMENT }}"
-        message: |
-          # Vercel Deployment Info - ${{ inputs.NAME }}
+      - uses: marocchino/sticky-pull-request-comment@v3
+        with:
+          header: "vercel-${{ inputs.NAME }}-${{ inputs.ENVIRONMENT }}"
+          message: |
+            # Vercel Deployment Info - ${{ inputs.NAME }}
 
-          * URL: ${{ steps.deploy.outputs.preview-url }}
-          * Git Ref: `${{ inputs.GIT_REF }}`
-          * Commit: `${{ github.event.pull_request.head.sha || github.sha }}`
+            * URL: ${{ steps.deploy.outputs.preview-url }}
+            * Git Ref: `${{ inputs.GIT_REF }}`
+            * Commit: `${{ github.event.pull_request.head.sha || github.sha }}`
 
-      if: github.event_name == 'pull_request' || github.event_name == 'pull_request_target'
+        if: github.event_name == 'pull_request' || github.event_name == 'pull_request_target'
 
-    - name: Send Discord notification
-      if: always()
-      uses: ./.github/actions/discord-notification
-      with:
-        webhook-url: ${{ secrets.DISCORD_WEBHOOK }}
-        title: "Deployed ${{ inputs.NAME }} to Vercel"
-        description: |
-          **Environment**: ${{ inputs.ENVIRONMENT }}
-          **URL**: ${{ steps.deploy.outputs.preview-url }}
-          **Triggered by**: ${{ github.actor }}
-          **Status**: ${{ job.status }}
+      - name: Send Discord notification
+        if: always()
+        uses: ./.github/actions/discord-notification
+        with:
+          webhook-url: ${{ secrets.DISCORD_WEBHOOK }}
+          title: "Deployed ${{ inputs.NAME }} to Vercel"
+          description: |
+            **Environment**: ${{ inputs.ENVIRONMENT }}
+            **URL**: ${{ steps.deploy.outputs.preview-url }}
+            **Triggered by**: ${{ github.actor }}
+            **Status**: ${{ job.status }}
 
-          **Details**:
-          - Git Ref: ${{ inputs.GIT_REF }}
-          - Commit: ${{ github.event.pull_request.head.sha || github.sha }}
-        color: ${{ job.status == 'success' && '5763719' || '15548997' }}
-
-    - run: rm -rf .vercel
-      if: always()
+            **Details**:
+            - Git Ref: ${{ inputs.GIT_REF }}
+            - Commit: ${{ github.event.pull_request.head.sha || github.sha }}
+          color: ${{ job.status == 'success' && '5763719' || '15548997' }}

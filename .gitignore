@@ -67,10 +67,14 @@ out/
 /.vscode/
 
 result
+/cli/build/npm/dist
 
 .vitest
 
 **/.claude/settings.local.json
-.review/
 
 letsencrypt/*
+
+/.review/
+/.nhost-code/review/
+/.nhost-code/tmp/

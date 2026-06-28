@@ -1,0 +1,29 @@
+table:
+  name: user_profiles
+  schema: public
+configuration:
+  column_config: {}
+  custom_column_names: {}
+  custom_name: userProfiles
+  custom_root_fields: {}
+remote_relationships:
+  - definition:
+      to_source:
+        field_mapping:
+          user_id: user_id
+        relationship_type: array
+        source: default
+        table:
+          name: user_departments
+          schema: public
+    name: departments
+  - definition:
+      to_source:
+        field_mapping:
+          user_id: id
+        relationship_type: object
+        source: default
+        table:
+          name: users
+          schema: auth
+    name: user

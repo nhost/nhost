@@ -32,12 +32,12 @@ func TestIntrospectToken(t *testing.T) { //nolint:maintidx
 
 	now := time.Now()
 
-	confidentialClient := sql.AuthOauth2Client{ //nolint:exhaustruct
+	confidentialClient := sql.AuthOauth2Client{
 		ClientID:         clientID,
 		ClientSecretHash: pgtype.Text{String: "hashed-secret", Valid: true},
 	}
 
-	validRefreshToken := sql.AuthOauth2RefreshToken{ //nolint:exhaustruct
+	validRefreshToken := sql.AuthOauth2RefreshToken{
 		TokenHash: tokenHash,
 		ClientID:  clientID,
 		UserID:    userID,
@@ -46,7 +46,7 @@ func TestIntrospectToken(t *testing.T) { //nolint:maintidx
 		CreatedAt: sql.TimestampTz(now.Add(-time.Hour)),
 	}
 
-	validToken := &jwt.Token{ //nolint:exhaustruct
+	validToken := &jwt.Token{
 		Valid: true,
 		Claims: jwt.MapClaims{
 			"sub":   userID.String(),
@@ -61,7 +61,7 @@ func TestIntrospectToken(t *testing.T) { //nolint:maintidx
 	refreshTokenHint := api.OAuth2IntrospectRequestTokenTypeHintRefreshToken
 	accessTokenHint := api.OAuth2IntrospectRequestTokenTypeHintAccessToken
 
-	inactive := &api.OAuth2IntrospectResponse{Active: false} //nolint:exhaustruct
+	inactive := &api.OAuth2IntrospectResponse{Active: false}
 
 	cases := []struct {
 		name             string
@@ -120,7 +120,7 @@ func TestIntrospectToken(t *testing.T) { //nolint:maintidx
 			db: func(ctrl *gomock.Controller) *mock.MockDBClient {
 				m := mock.NewMockDBClient(ctrl)
 				m.EXPECT().GetOAuth2ClientByClientID(gomock.Any(), clientID).
-					Return(sql.AuthOauth2Client{}, pgx.ErrNoRows) //nolint:exhaustruct
+					Return(sql.AuthOauth2Client{}, pgx.ErrNoRows)
 
 				return m
 			},
@@ -150,7 +150,7 @@ func TestIntrospectToken(t *testing.T) { //nolint:maintidx
 				m := mock.NewMockSigner(ctrl)
 				return m
 			},
-			request: api.OAuth2IntrospectRequest{ //nolint:exhaustruct
+			request: api.OAuth2IntrospectRequest{
 				Token:    refreshTokenValue,
 				ClientId: new(clientID),
 			},
@@ -177,7 +177,7 @@ func TestIntrospectToken(t *testing.T) { //nolint:maintidx
 
 				return m
 			},
-			request: api.OAuth2IntrospectRequest{ //nolint:exhaustruct
+			request: api.OAuth2IntrospectRequest{
 				Token:        refreshTokenValue,
 				ClientId:     new(clientID),
 				ClientSecret: new("secret"),
@@ -292,7 +292,7 @@ func TestIntrospectToken(t *testing.T) { //nolint:maintidx
 				m.EXPECT().GetOAuth2ClientByClientID(gomock.Any(), clientID).
 					Return(confidentialClient, nil)
 				m.EXPECT().GetOAuth2RefreshTokenByHash(gomock.Any(), tokenHash).
-					Return(sql.AuthOauth2RefreshToken{}, pgx.ErrNoRows) //nolint:exhaustruct
+					Return(sql.AuthOauth2RefreshToken{}, pgx.ErrNoRows)
 
 				return m
 			},
@@ -316,7 +316,7 @@ func TestIntrospectToken(t *testing.T) { //nolint:maintidx
 				m.EXPECT().GetOAuth2ClientByClientID(gomock.Any(), clientID).
 					Return(confidentialClient, nil)
 				m.EXPECT().GetOAuth2RefreshTokenByHash(gomock.Any(), gomock.Any()).
-					Return(sql.AuthOauth2RefreshToken{}, pgx.ErrNoRows) //nolint:exhaustruct
+					Return(sql.AuthOauth2RefreshToken{}, pgx.ErrNoRows)
 
 				return m
 			},
@@ -326,7 +326,7 @@ func TestIntrospectToken(t *testing.T) { //nolint:maintidx
 
 				return m
 			},
-			request: api.OAuth2IntrospectRequest{ //nolint:exhaustruct
+			request: api.OAuth2IntrospectRequest{
 				Token:        accessTokenValue,
 				ClientId:     new(clientID),
 				ClientSecret: new("secret"),
@@ -412,7 +412,7 @@ func TestIntrospectToken(t *testing.T) { //nolint:maintidx
 			},
 			signer: func(ctrl *gomock.Controller) *mock.MockSigner {
 				m := mock.NewMockSigner(ctrl)
-				wrongAudToken := &jwt.Token{ //nolint:exhaustruct
+				wrongAudToken := &jwt.Token{
 					Valid: true,
 					Claims: jwt.MapClaims{
 						"sub":   userID.String(),
@@ -447,7 +447,7 @@ func TestIntrospectToken(t *testing.T) { //nolint:maintidx
 			},
 			signer: func(ctrl *gomock.Controller) *mock.MockSigner {
 				m := mock.NewMockSigner(ctrl)
-				noScopeToken := &jwt.Token{ //nolint:exhaustruct
+				noScopeToken := &jwt.Token{
 					Valid: true,
 					Claims: jwt.MapClaims{
 						"sub": userID.String(),
@@ -467,7 +467,7 @@ func TestIntrospectToken(t *testing.T) { //nolint:maintidx
 				ClientSecret:  new("secret"),
 				TokenTypeHint: &accessTokenHint,
 			},
-			expectedResponse: &api.OAuth2IntrospectResponse{ //nolint:exhaustruct
+			expectedResponse: &api.OAuth2IntrospectResponse{
 				Active:    true,
 				ClientId:  new(clientID),
 				Sub:       new(userID.String()),
@@ -492,7 +492,7 @@ func TestIntrospectToken(t *testing.T) { //nolint:maintidx
 			provider := oauth2.NewProvider(
 				mockDB, mockSigner, nil,
 				func(_, _ string) bool { return true },
-				oauth2.Config{}, //nolint:exhaustruct
+				oauth2.Config{},
 				nil,
 			)
 

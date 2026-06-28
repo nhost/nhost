@@ -1,5 +1,6 @@
 import { yupResolver } from '@hookform/resolvers/yup';
 import bcrypt from 'bcryptjs';
+import { CopyIcon } from 'lucide-react';
 import { useEffect, useState } from 'react';
 import { FormProvider, useForm } from 'react-hook-form';
 import * as Yup from 'yup';
@@ -10,7 +11,6 @@ import { Divider } from '@/components/ui/v2/Divider';
 import { Input } from '@/components/ui/v2/Input';
 import { InputAdornment } from '@/components/ui/v2/InputAdornment';
 import { InputLabel } from '@/components/ui/v2/InputLabel';
-import { CopyIcon } from '@/components/ui/v2/icons/CopyIcon';
 import { Text } from '@/components/ui/v2/Text';
 import { useRemoteApplicationGQLClient } from '@/features/orgs/hooks/useRemoteApplicationGQLClient';
 import ScopePicker from '@/features/orgs/projects/authentication/oauth2/ScopePicker';

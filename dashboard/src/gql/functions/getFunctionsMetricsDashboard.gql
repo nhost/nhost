@@ -1,0 +1,195 @@
+query getFunctionsMetricsDashboard(
+  $appID: String!
+  $route: String!
+  $from: Timestamp
+  $to: Timestamp
+  $intervalMs: Int
+  $maxDataPoints: Int
+  $minInterval: String
+) {
+  totalInvocations: getFunctionsInstantMetric(
+    metric: INVOCATIONS
+    aggregate: SUM
+    appID: $appID
+    route: $route
+    from: $from
+    to: $to
+  ) {
+    labels
+    value
+  }
+  totalBytesSent: getFunctionsInstantMetric(
+    metric: BYTES_SENT
+    aggregate: SUM
+    appID: $appID
+    route: $route
+    from: $from
+    to: $to
+  ) {
+    labels
+    value
+  }
+  totalDuration: getFunctionsInstantMetric(
+    metric: DURATION
+    aggregate: SUM
+    appID: $appID
+    route: $route
+    from: $from
+    to: $to
+  ) {
+    labels
+    value
+  }
+  totalErrors: getFunctionsInstantMetric(
+    metric: ERRORS
+    aggregate: SUM
+    groupBy: [METHOD, STATUS]
+    appID: $appID
+    route: $route
+    from: $from
+    to: $to
+  ) {
+    labels
+    value
+  }
+  totalRequestsByMethod: getFunctionsInstantMetric(
+    metric: INVOCATIONS
+    aggregate: SUM
+    groupBy: [METHOD]
+    appID: $appID
+    route: $route
+    from: $from
+    to: $to
+  ) {
+    labels
+    value
+  }
+  invocations: getFunctionsRangeMetric(
+    metric: INVOCATIONS
+    aggregate: SUM
+    groupBy: [METHOD]
+    appID: $appID
+    route: $route
+    from: $from
+    to: $to
+    intervalMs: $intervalMs
+    maxDataPoints: $maxDataPoints
+    minInterval: $minInterval
+  ) {
+    labels
+    timestamps
+    datapoints
+  }
+  responseStatus: getFunctionsRangeMetric(
+    metric: INVOCATIONS
+    aggregate: SUM
+    groupBy: [STATUS]
+    appID: $appID
+    route: $route
+    from: $from
+    to: $to
+    intervalMs: $intervalMs
+    maxDataPoints: $maxDataPoints
+    minInterval: $minInterval
+  ) {
+    labels
+    timestamps
+    datapoints
+  }
+  averageResponseSize: getFunctionsRangeMetric(
+    metric: BYTES_SENT
+    aggregate: AVG
+    groupBy: [METHOD]
+    appID: $appID
+    route: $route
+    from: $from
+    to: $to
+    intervalMs: $intervalMs
+    maxDataPoints: $maxDataPoints
+    minInterval: $minInterval
+  ) {
+    labels
+    timestamps
+    datapoints
+  }
+  averageResponseTime: getFunctionsRangeMetric(
+    metric: DURATION
+    aggregate: AVG
+    groupBy: [METHOD]
+    appID: $appID
+    route: $route
+    from: $from
+    to: $to
+    intervalMs: $intervalMs
+    maxDataPoints: $maxDataPoints
+    minInterval: $minInterval
+  ) {
+    labels
+    timestamps
+    datapoints
+  }
+  errorRate: getFunctionsRangeMetric(
+    metric: ERRORS
+    aggregate: AVG
+    groupBy: [METHOD]
+    appID: $appID
+    route: $route
+    from: $from
+    to: $to
+    intervalMs: $intervalMs
+    maxDataPoints: $maxDataPoints
+    minInterval: $minInterval
+  ) {
+    labels
+    timestamps
+    datapoints
+  }
+  durationP75: getFunctionsHistogramMetric(
+    metric: DURATION
+    percentile: 0.75
+    groupBy: [METHOD]
+    appID: $appID
+    route: $route
+    from: $from
+    to: $to
+    intervalMs: $intervalMs
+    maxDataPoints: $maxDataPoints
+    minInterval: $minInterval
+  ) {
+    labels
+    timestamps
+    datapoints
+  }
+  durationP95: getFunctionsHistogramMetric(
+    metric: DURATION
+    percentile: 0.95
+    groupBy: [METHOD]
+    appID: $appID
+    route: $route
+    from: $from
+    to: $to
+    intervalMs: $intervalMs
+    maxDataPoints: $maxDataPoints
+    minInterval: $minInterval
+  ) {
+    labels
+    timestamps
+    datapoints
+  }
+  durationMax: getFunctionsHistogramMetric(
+    metric: DURATION
+    percentile: 1.0
+    groupBy: [METHOD]
+    appID: $appID
+    route: $route
+    from: $from
+    to: $to
+    intervalMs: $intervalMs
+    maxDataPoints: $maxDataPoints
+    minInterval: $minInterval
+  ) {
+    labels
+    timestamps
+    datapoints
+  }
+}

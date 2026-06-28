@@ -1,0 +1,16 @@
+[
+  {
+    "Name": "insert_departments",
+    "QueryType": "insert",
+    "SQL": "WITH insert_data AS (SELECT * FROM (SELECT $1::uuid AS \"id\", $2::text AS \"name\", $3::numeric AS \"budget\" UNION ALL SELECT $4::uuid AS \"id\", $5::text AS \"name\", $6::numeric AS \"budget\") AS data), _mutation_result AS (INSERT INTO \"public\".\"departments\" (\"id\", \"name\", \"budget\") SELECT insert_data.\"id\", insert_data.\"name\", insert_data.\"budget\" FROM insert_data RETURNING *), post_check AS (SELECT CASE WHEN (SELECT COUNT(*) FROM _mutation_result WHERE _mutation_result.\"has_high_budget\" = $7::bool) = (SELECT COUNT(*) FROM _mutation_result) THEN 1 ELSE (SELECT 0 FROM (SELECT constellation_throw_error('check constraint of an insert/update permission has failed', 'ZZ901')) x) END AS status), mutation_result AS (SELECT * FROM _mutation_result WHERE (SELECT status FROM post_check) = 1) SELECT json_build_object('affected_rows', (SELECT COUNT(*) FROM mutation_result), 'returning', (SELECT COALESCE(json_agg(row_to_json(\"_e\")), '[]'::json) FROM (SELECT mutation_result.\"id\" AS \"id\", mutation_result.\"name\" AS \"name\", mutation_result.\"budget\" AS \"budget\", mutation_result.\"has_high_budget\" AS \"has_high_budget\" FROM mutation_result) AS \"_e\"))",
+    "Parameters": [
+      "00000000-0000-0000-0000-000000000301",
+      "High Budget A",
+      600000,
+      "00000000-0000-0000-0000-000000000302",
+      "High Budget B",
+      700000,
+      true
+    ]
+  }
+]

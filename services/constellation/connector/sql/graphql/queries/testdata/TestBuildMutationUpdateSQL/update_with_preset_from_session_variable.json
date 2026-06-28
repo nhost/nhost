@@ -1,0 +1,14 @@
+[
+  {
+    "Name": "updateFiles",
+    "QueryType": "update",
+    "SQL": "WITH mutation_result AS (UPDATE \"storage\".\"files\" SET \"name\" = $1::text, \"uploaded_by_user_id\" = $2::uuid WHERE files.\"id\" = $3::uuid AND (EXISTS (SELECT 1 FROM \"public\".\"department_files\" g WHERE g.\"file_id\" = files.\"id\" AND EXISTS (SELECT 1 FROM \"public\".\"departments\" \"g1\" WHERE g.\"department_id\" = \"g1\".\"id\" AND EXISTS (SELECT 1 FROM \"public\".\"user_departments\" \"g2\" WHERE \"g2\".\"department_id\" = \"g1\".\"id\" AND \"g2\".\"role\" = $4::text AND \"g2\".\"user_id\" = $5::uuid)))) RETURNING *) SELECT json_build_object('affected_rows', (SELECT COUNT(*) FROM mutation_result), 'returning', (SELECT COALESCE(json_agg(row_to_json(\"_e\")), '[]'::json) FROM (SELECT mutation_result.\"id\" AS \"id\", mutation_result.\"name\" AS \"name\", mutation_result.\"uploaded_by_user_id\" AS \"uploadedByUserId\" FROM mutation_result) AS \"_e\"))",
+    "Parameters": [
+      "renamed-file.txt",
+      "550e8400-e29b-41d4-a716-446655440001",
+      "f1e9b8db-1111-439f-9d63-7f83de523fb1",
+      "manager",
+      "550e8400-e29b-41d4-a716-446655440001"
+    ]
+  }
+]

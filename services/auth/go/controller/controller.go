@@ -16,9 +16,20 @@ import (
 )
 
 const (
-	In30Days   = 720 * time.Hour
-	InAMonth   = 30 * 24 * time.Hour
-	In5Minutes = 5 * time.Minute
+	In30Days    = 720 * time.Hour
+	InAMonth    = 30 * 24 * time.Hour
+	In10Minutes = 10 * time.Minute
+	In5Minutes  = 5 * time.Minute
+
+	// maxOTPVerificationAttempts is the email-OTP attempt cap and the single
+	// source of truth for it: it is passed into the VerifyEmailOTP query (as
+	// @max_attempts), which burns the code after this many wrong guesses.
+	maxOTPVerificationAttempts = 5
+
+	// Email-OTP verification outcomes returned by the VerifyEmailOTP query.
+	otpStatusOK      = "ok"
+	otpStatusBurned  = "burned"
+	otpStatusInvalid = "invalid"
 )
 
 func deptr[T any](x *T) T { //nolint:ireturn
@@ -52,9 +63,9 @@ type DBClientGetUser interface {
 		ctx context.Context, arg sql.GetUserByRefreshTokenHashParams,
 	) (sql.AuthUser, error)
 	GetUserByTicket(ctx context.Context, ticket pgtype.Text) (sql.AuthUser, error)
-	GetUserByEmailAndTicket(
-		ctx context.Context, arg sql.GetUserByEmailAndTicketParams,
-	) (sql.AuthUser, error)
+	VerifyEmailOTP(
+		ctx context.Context, arg sql.VerifyEmailOTPParams,
+	) (string, error)
 }
 
 type DBClientInsertUser interface {
@@ -135,7 +146,7 @@ type DBClient interface { //nolint:interfacebloat
 		ctx context.Context, arg sql.InsertPKCEAuthorizationCodeParams,
 	) (sql.AuthPkceAuthorizationCode, error)
 	ConsumePKCEAuthorizationCode(
-		ctx context.Context, codeHash string,
+		ctx context.Context, arg sql.ConsumePKCEAuthorizationCodeParams,
 	) (sql.AuthPkceAuthorizationCode, error)
 	DeleteExpiredPKCEAuthorizationCodes(ctx context.Context) error
 }

@@ -8,6 +8,10 @@ import type { BaseRecordFormProps } from '@/features/orgs/projects/database/data
 import { BaseRecordForm } from '@/features/orgs/projects/database/dataGrid/components/BaseRecordForm';
 import { useCreateRecordMutation } from '@/features/orgs/projects/database/dataGrid/hooks/useCreateRecordMutation';
 import type { ColumnInsertOptions } from '@/features/orgs/projects/database/dataGrid/types/dataBrowser';
+import {
+  POSTGRES_DEFAULT_PLACEHOLDER,
+  wrapResolverWithDefaultPlaceholder,
+} from '@/features/orgs/projects/database/dataGrid/utils/postgresDefaultPlaceholder';
 import { createDynamicValidationSchema } from '@/features/orgs/projects/database/dataGrid/utils/validationSchemaHelpers';
 import { triggerToast } from '@/utils/toast';
 
@@ -32,17 +36,27 @@ export default function CreateRecordForm({
 
   const form = useForm({
     defaultValues: props.columns.reduce((defaultValues, column) => {
-      if (column.defaultValue && column.type === 'boolean') {
+      const hasDefault = !!(column.defaultValue || column.isIdentity);
+
+      if (
+        column.baseType === 'boolean' &&
+        !column.isArray &&
+        column.defaultValue
+      ) {
+        return { ...defaultValues, [column.id]: column.defaultValue };
+      }
+
+      if (column.isNullable && hasDefault) {
         return {
           ...defaultValues,
-          [column.id]: column.defaultValue,
+          [column.id]: POSTGRES_DEFAULT_PLACEHOLDER,
         };
       }
 
       return { ...defaultValues, [column.id]: null };
     }, {}),
     reValidateMode: 'onSubmit',
-    resolver: yupResolver(validationSchema),
+    resolver: wrapResolverWithDefaultPlaceholder(yupResolver(validationSchema)),
   });
 
   async function handleSubmit(values: Record<string, ColumnInsertOptions>) {

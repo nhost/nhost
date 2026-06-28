@@ -7,11 +7,13 @@ import { ReadOnlyToggle } from '@/components/presentational/ReadOnlyToggle';
 import { Button } from '@/components/ui/v3/button';
 import { usePageBoundsRedirect } from '@/features/orgs/projects/common/hooks/usePageBoundsRedirect';
 import { useDataGridQueryParams } from '@/features/orgs/projects/database/dataGrid/components/DataBrowserGrid/DataGridQueryParamsProvider';
+import { getBaseType } from '@/features/orgs/projects/database/dataGrid/utils/getBaseType';
+import { getDisplayType } from '@/features/orgs/projects/database/dataGrid/utils/getDisplayType';
+import { isArray } from '@/features/orgs/projects/database/dataGrid/utils/isArray';
 import { useAppClient } from '@/features/orgs/projects/hooks/useAppClient';
 import { useProject } from '@/features/orgs/projects/hooks/useProject';
 import type { DataGridProps } from '@/features/orgs/projects/storage/dataGrid/components/DataGrid';
 import { DataGrid } from '@/features/orgs/projects/storage/dataGrid/components/DataGrid';
-import { DataGridDateCell } from '@/features/orgs/projects/storage/dataGrid/components/DataGridDateCell';
 import type { PreviewProps } from '@/features/orgs/projects/storage/dataGrid/components/DataGridPreviewCell';
 import { DataGridPreviewCell } from '@/features/orgs/projects/storage/dataGrid/components/DataGridPreviewCell';
 import { FileIcon } from '@/features/orgs/projects/storage/dataGrid/components/DataGridPreviewCell/icons';
@@ -24,7 +26,6 @@ import { filtersToFilesWhere } from '@/features/orgs/projects/storage/dataGrid/u
 import { isNotEmptyValue } from '@/lib/utils';
 import type { Files, GetBucketQuery } from '@/utils/__generated__/graphql';
 import { Order_By as OrderBy } from '@/utils/__generated__/graphql';
-import { getHasuraAdminSecret } from '@/utils/env';
 import { showLoadingToast, triggerToast } from '@/utils/toast';
 
 export type StoredFile = Omit<Files, 'bucket'> & {
@@ -32,6 +33,23 @@ export type StoredFile = Omit<Files, 'bucket'> & {
 };
 
 type Bucket = NonNullable<GetBucketQuery['bucket']>;
+
+function FilesDataGridDateCell({ value }: { value: string | null }) {
+  if (!value) {
+    return <span className="text-secondary text-xs">null</span>;
+  }
+
+  const date = new Date(value);
+  if (Number.isNaN(date.getTime())) {
+    return <span className="text-xs">{value}</span>;
+  }
+
+  return (
+    <span className="truncate font-medium text-xs">
+      {date.toLocaleString()}
+    </span>
+  );
+}
 
 export type FilesDataGridProps = {
   bucket: Bucket;
@@ -41,8 +59,8 @@ export default function FilesDataGrid({
   bucket,
   ...dataGridProps
 }: FilesDataGridProps) {
-  const columns = useMemo<ColumnDef<StoredFile>[]>(
-    () => [
+  const columns = useMemo<ColumnDef<StoredFile>[]>(() => {
+    const definitions: ColumnDef<StoredFile>[] = [
       {
         id: 'preview-column',
         header: PreviewHeader,
@@ -73,7 +91,7 @@ export default function FilesDataGrid({
       {
         header: 'id',
         accessorKey: 'id',
-        meta: { dataType: 'uuid' },
+        meta: { specificType: 'uuid' },
         cell: (props) => (
           <DataGridTextCell {...(props as CellContext<StoredFile, string>)} />
         ),
@@ -82,37 +100,37 @@ export default function FilesDataGrid({
       {
         header: 'name',
         accessorKey: 'name',
-        meta: { dataType: 'text' },
+        meta: { specificType: 'text' },
         size: 200,
       },
       {
         header: 'size',
         accessorKey: 'size',
-        meta: { dataType: 'integer' },
+        meta: { specificType: 'integer' },
         size: 80,
       },
       {
         header: 'mimeType',
         accessorKey: 'mimeType',
-        meta: { dataType: 'text' },
+        meta: { specificType: 'text' },
         size: 120,
       },
       {
         header: 'createdAt',
         accessorKey: 'createdAt',
-        meta: { dataType: 'timestamptz' },
+        meta: { specificType: 'timestamp with time zone' },
         size: 120,
-        cell: (props) => (
-          <DataGridDateCell {...(props as CellContext<StoredFile, string>)} />
+        cell: ({ getValue }) => (
+          <FilesDataGridDateCell value={getValue<string>()} />
         ),
       },
       {
         header: 'updatedAt',
         accessorKey: 'updatedAt',
-        meta: { dataType: 'timestamptz' },
+        meta: { specificType: 'timestamp with time zone' },
         size: 120,
-        cell: (props) => (
-          <DataGridDateCell {...(props as CellContext<StoredFile, string>)} />
+        cell: ({ getValue }) => (
+          <FilesDataGridDateCell value={getValue<string>()} />
         ),
       },
       {
@@ -124,13 +142,13 @@ export default function FilesDataGrid({
       {
         header: 'etag',
         accessorKey: 'etag',
-        meta: { dataType: 'text' },
+        meta: { specificType: 'text' },
         size: 280,
       },
       {
         header: 'isUploaded',
         accessorKey: 'isUploaded',
-        meta: { dataType: 'boolean' },
+        meta: { specificType: 'boolean' },
         size: 100,
         cell: ({ getValue }) => (
           <ReadOnlyToggle checked={getValue<boolean>()} />
@@ -139,12 +157,25 @@ export default function FilesDataGrid({
       {
         header: 'uploadedByUserId',
         accessorKey: 'uploadedByUserId',
-        meta: { dataType: 'uuid' },
+        meta: { specificType: 'uuid' },
         size: 318,
       },
-    ],
-    [bucket.downloadExpiration],
-  );
+    ];
+
+    return definitions.map((definition) =>
+      definition.meta?.specificType
+        ? {
+            ...definition,
+            meta: {
+              ...definition.meta,
+              baseType: getBaseType(definition.meta.specificType),
+              isArray: isArray(definition.meta.specificType),
+              displayType: getDisplayType(definition.meta.specificType),
+            },
+          }
+        : definition,
+    );
+  }, [bucket.downloadExpiration]);
   const router = useRouter();
   const { project } = useProject();
   const appClient = useAppClient();
@@ -264,10 +295,7 @@ export default function FilesDataGrid({
         },
         {
           headers: {
-            'x-hasura-admin-secret':
-              process.env.NEXT_PUBLIC_ENV === 'dev'
-                ? getHasuraAdminSecret()
-                : project!.config!.hasura.adminSecret,
+            'x-hasura-admin-secret': project!.config!.hasura.adminSecret,
           },
         },
       );

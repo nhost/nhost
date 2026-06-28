@@ -1,3 +1,5 @@
+import { PlusIcon } from 'lucide-react';
+import Link from 'next/link';
 import { type ReactElement, useMemo } from 'react';
 import { useDialog } from '@/components/common/DialogProvider';
 import { UpgradeToProBanner } from '@/components/common/UpgradeToProBanner';
@@ -6,10 +8,9 @@ import { ActivityIndicator } from '@/components/ui/v2/ActivityIndicator';
 import { Alert } from '@/components/ui/v2/Alert';
 import { Box } from '@/components/ui/v2/Box';
 import { Button } from '@/components/ui/v2/Button';
-import { FileStoresIcon } from '@/components/ui/v2/icons/FileStoresIcon';
-import { PlusIcon } from '@/components/ui/v2/icons/PlusIcon';
-import { Link } from '@/components/ui/v2/Link';
 import { Text } from '@/components/ui/v2/Text';
+import { FileStoresIcon } from '@/components/ui/v3/icons/FileStoresIcon';
+import { useRemoteApplicationGQLClient } from '@/features/orgs/hooks/useRemoteApplicationGQLClient';
 import { AISidebar } from '@/features/orgs/layout/AISidebar';
 import { OrgLayout } from '@/features/orgs/layout/OrgLayout';
 import { FileStoreForm } from '@/features/orgs/projects/ai/FileStoreForm';
@@ -17,7 +18,6 @@ import { FileStoresList } from '@/features/orgs/projects/ai/FileStoresList';
 import { useIsFileStoreSupported } from '@/features/orgs/projects/common/hooks/useIsFileStoreSupported';
 import { useIsGraphiteEnabled } from '@/features/orgs/projects/common/hooks/useIsGraphiteEnabled';
 import { useIsPlatform } from '@/features/orgs/projects/common/hooks/useIsPlatform';
-import { useAdminApolloClient } from '@/features/orgs/projects/hooks/useAdminApolloClient';
 import { useCurrentOrg } from '@/features/orgs/projects/hooks/useCurrentOrg';
 import { useProject } from '@/features/orgs/projects/hooks/useProject';
 import {
@@ -37,12 +37,12 @@ export default function FileStoresPage() {
   const { org, loading: loadingOrg } = useCurrentOrg();
   const { project, loading: loadingProject } = useProject();
 
-  const { adminClient } = useAdminApolloClient();
+  const remoteProjectGQLClient = useRemoteApplicationGQLClient();
   const { isGraphiteEnabled } = useIsGraphiteEnabled();
   const { isFileStoreSupported } = useIsFileStoreSupported();
 
   const { data, loading, error, refetch } = useGetGraphiteFileStoresQuery({
-    client: adminClient,
+    client: remoteProjectGQLClient,
   });
 
   const fileStores = useMemo(() => data?.graphite?.fileStores || [], [data]);
@@ -100,7 +100,7 @@ export default function FileStoresPage() {
               <Link
                 href={`/orgs/${slug}/projects/${project?.subdomain}/settings/ai`}
                 rel="noopener noreferrer"
-                underline="hover"
+                className="text-primary hover:underline"
               >
                 AI Settings
               </Link>

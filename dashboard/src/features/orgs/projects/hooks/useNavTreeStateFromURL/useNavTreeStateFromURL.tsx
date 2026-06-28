@@ -38,6 +38,10 @@ const useNavTreeStateFromURL = (): TreeState => {
   const authSubPage =
     isAuthPage && pathSegments.length > 6 ? pathSegments[6] || null : null;
 
+  const isDatabasePage = pathSegments[5] === 'database';
+  const databaseSubPage =
+    isDatabasePage && pathSegments.length > 6 ? pathSegments[6] || null : null;
+
   return useMemo(() => {
     if (!orgSlug) {
       // If no orgSlug, return an empty state
@@ -106,6 +110,15 @@ const useNavTreeStateFromURL = (): TreeState => {
       }
     }
 
+    if (isDatabasePage) {
+      expandedItems.push(`${orgSlug}-${appSubdomain}-database`);
+      if (!databaseSubPage) {
+        focusedItem = `${orgSlug}-${appSubdomain}-database-browser`;
+      } else {
+        focusedItem = `${orgSlug}-${appSubdomain}-database-${databaseSubPage}`;
+      }
+    }
+
     return { expandedItems, focusedItem };
   }, [
     orgSlug,
@@ -120,6 +133,8 @@ const useNavTreeStateFromURL = (): TreeState => {
     eventsSubPage,
     isAuthPage,
     authSubPage,
+    isDatabasePage,
+    databaseSubPage,
     newProject,
   ]);
 };

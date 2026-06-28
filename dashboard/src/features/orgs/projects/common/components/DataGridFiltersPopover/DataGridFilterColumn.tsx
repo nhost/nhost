@@ -22,7 +22,7 @@ function DataGridFilterColumn({
   index,
   currentOp,
 }: DataFilterColumnProps) {
-  const columns = useGetDataColumns<{ dataType: string }>();
+  const columns = useGetDataColumns<{ specificType: string }>();
   const { setColumn, setOp, setValue } = useDataGridFilters();
   const selectRef = useRef<HTMLButtonElement | null>(null);
 
@@ -36,9 +36,9 @@ function DataGridFilterColumn({
       value={value}
       onValueChange={(newColumn) => {
         setColumn(index, newColumn);
-        const newDataType = columns.find((col) => col.id === newColumn)
-          ?.columnDef.meta?.dataType;
-        const availableOps = getAvailableOperators(newDataType);
+        const newSpecificType = columns.find((col) => col.id === newColumn)
+          ?.columnDef.meta?.specificType;
+        const availableOps = getAvailableOperators(newSpecificType);
         if (!availableOps.some((o) => o.op === currentOp)) {
           setOp(index, availableOps[0].op);
           setValue(index, '');
@@ -58,7 +58,7 @@ function DataGridFilterColumn({
           <SelectItem key={column.id} value={column.id}>
             {column.id}{' '}
             <Badge className="rounded-sm+ bg-secondary p-1 font-normal text-[0.75rem] leading-[0.75]">
-              {column.columnDef.meta?.dataType}
+              {column.columnDef.meta?.displayType}
             </Badge>
           </SelectItem>
         ))}

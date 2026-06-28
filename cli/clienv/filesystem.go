@@ -75,6 +75,10 @@ func (p PathStructure) MCPConfig() string {
 	return filepath.Join(p.dotNhostFolder, "mcp-nhost.toml")
 }
 
+func (p PathStructure) AppID() string {
+	return filepath.Join(p.dotNhostFolder, "app_id")
+}
+
 func (p PathStructure) Functions() string {
 	return filepath.Join(p.root, "functions")
 }

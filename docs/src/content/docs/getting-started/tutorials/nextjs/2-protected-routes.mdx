@@ -4,6 +4,9 @@ description: >-
   Learn how to protect routes and content in a Next.js application using Nhost
   authentication.
 keywords: ["Next.js", "protected routes", "authentication", "App Router", "server components", "session management"]
+head:
+  - tag: title
+    content: "Secure Next.js App Router Pages with Auth | Nhost Docs"
 sidebar:
   label: Protecting Routes
 ---
@@ -54,7 +57,7 @@ File upload and management
 We'll start by creating a fresh Next.js application with TypeScript support. Next.js provides server-side rendering, file-based routing, and optimized builds for modern React applications.
 
 ```bash
-npx create-next-app@16 nhost-nextjs-tutorial --typescript --eslint --app --no-tailwind --yes
+npx create-next-app@16 nhost-nextjs-tutorial --typescript --eslint --app --no-tailwind --src-dir --yes
 cd nhost-nextjs-tutorial
 npm install
 ```
@@ -147,7 +150,7 @@ export async function createNhostClient(): Promise<NhostClient> {
 export async function handleNhostProxy(
   request: NextRequest,
   response: NextResponse<unknown>,
-): Promise<Session | null> {
+): Promise<StoredSession | null> {
   const nhost = createServerClient({
     region: process.env["NHOST_REGION"] || "local",
     subdomain: process.env["NHOST_SUBDOMAIN"] || "local",

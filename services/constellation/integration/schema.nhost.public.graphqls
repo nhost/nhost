@@ -1,0 +1,1817 @@
+schema {
+  query: query_root
+  subscription: subscription_root
+}
+scalar geography
+scalar geometry
+scalar jsonb
+scalar timestamptz
+scalar uuid
+"""
+select columns of table "content_feed"
+"""
+enum contentFeed_select_column {
+  """
+  column name
+  """
+  id
+  """
+  column name
+  """
+  source
+  """
+  column name
+  """
+  title
+  """
+  column name
+  """
+  content
+  """
+  column name
+  """
+  created_at
+}
+"""
+ordering argument of a cursor
+"""
+enum cursor_ordering {
+  """
+  ascending ordering of the cursor
+  """
+  ASC
+  """
+  descending ordering of the cursor
+  """
+  DESC
+}
+"""
+select columns of table "storage.files"
+"""
+enum files_select_column {
+  """
+  column name
+  """
+  id
+  """
+  column name
+  """
+  createdAt
+  """
+  column name
+  """
+  updatedAt
+  """
+  column name
+  """
+  bucketId
+  """
+  column name
+  """
+  name
+  """
+  column name
+  """
+  size
+  """
+  column name
+  """
+  mimeType
+  """
+  column name
+  """
+  etag
+  """
+  column name
+  """
+  isUploaded
+  """
+  column name
+  """
+  uploadedByUserId
+  """
+  column name
+  """
+  metadata
+}
+"""
+select columns of table "news"
+"""
+enum news_select_column {
+  """
+  column name
+  """
+  id
+  """
+  column name
+  """
+  created_at
+  """
+  column name
+  """
+  updated_at
+  """
+  column name
+  """
+  title
+  """
+  column name
+  """
+  content
+}
+"""
+column ordering options
+"""
+enum order_by {
+  """
+  in ascending order, nulls last
+  """
+  asc
+  """
+  in ascending order, nulls first
+  """
+  asc_nulls_first
+  """
+  in ascending order, nulls last
+  """
+  asc_nulls_last
+  """
+  in descending order, nulls first
+  """
+  desc
+  """
+  in descending order, nulls first
+  """
+  desc_nulls_first
+  """
+  in descending order, nulls last
+  """
+  desc_nulls_last
+}
+"""
+select columns of table "postgis_locations"
+"""
+enum postgis_locations_select_column {
+  """
+  column name
+  """
+  id
+  """
+  column name
+  """
+  name
+  """
+  column name
+  """
+  geom
+  """
+  column name
+  """
+  geog
+  """
+  column name
+  """
+  area
+  """
+  column name
+  """
+  nullable_geom
+}
+"""
+select columns of table "published_news"
+"""
+enum publishedNews_select_column {
+  """
+  column name
+  """
+  id
+  """
+  column name
+  """
+  created_at
+  """
+  column name
+  """
+  updated_at
+  """
+  column name
+  """
+  title
+  """
+  column name
+  """
+  content
+  """
+  column name
+  """
+  department_id
+  """
+  column name
+  """
+  author_id
+}
+"""
+select columns of table "auth.users"
+"""
+enum users_select_column {
+  """
+  column name
+  """
+  displayName
+}
+"""
+columns and relationships of "content_feed"
+"""
+type contentFeed {
+  id: uuid
+  source: String
+  title: String
+  content: String
+  created_at: timestamptz
+}
+"""
+aggregated selection of "content_feed"
+"""
+type contentFeed_aggregate {
+  aggregate: contentFeed_aggregate_fields
+  nodes: [contentFeed!]!
+}
+"""
+aggregate fields of "content_feed"
+"""
+type contentFeed_aggregate_fields {
+  count(columns: [contentFeed_select_column!], distinct: Boolean): Int!
+  max: contentFeed_max_fields
+  min: contentFeed_min_fields
+}
+"""
+aggregate max on columns
+"""
+type contentFeed_max_fields {
+  id: uuid
+  source: String
+  title: String
+  content: String
+  created_at: timestamptz
+}
+"""
+aggregate min on columns
+"""
+type contentFeed_min_fields {
+  id: uuid
+  source: String
+  title: String
+  content: String
+  created_at: timestamptz
+}
+"""
+columns and relationships of "storage.files"
+"""
+type files {
+  id: uuid!
+  createdAt: timestamptz!
+  updatedAt: timestamptz!
+  bucketId: String!
+  name: String
+  size: Int
+  mimeType: String
+  etag: String
+  isUploaded: Boolean
+  uploadedByUserId: uuid
+  metadata(
+    """
+    JSON select path
+    """
+    path: String
+  ): jsonb
+}
+"""
+columns and relationships of "news"
+"""
+type news {
+  id: uuid!
+  created_at: timestamptz!
+  updated_at: timestamptz!
+  title: String!
+  content: String!
+  """
+  An object relationship
+  """
+  author: users!
+}
+"""
+columns and relationships of "postgis_locations"
+"""
+type postgis_locations {
+  id: uuid!
+  name: String!
+  geom: geometry!
+  geog: geography!
+  area: geometry!
+  nullable_geom: geometry
+}
+"""
+aggregated selection of "postgis_locations"
+"""
+type postgis_locations_aggregate {
+  aggregate: postgis_locations_aggregate_fields
+  nodes: [postgis_locations!]!
+}
+"""
+aggregate fields of "postgis_locations"
+"""
+type postgis_locations_aggregate_fields {
+  count(columns: [postgis_locations_select_column!], distinct: Boolean): Int!
+  max: postgis_locations_max_fields
+  min: postgis_locations_min_fields
+}
+"""
+aggregate max on columns
+"""
+type postgis_locations_max_fields {
+  id: uuid
+  name: String
+}
+"""
+aggregate min on columns
+"""
+type postgis_locations_min_fields {
+  id: uuid
+  name: String
+}
+"""
+columns and relationships of "published_news"
+"""
+type publishedNews {
+  id: uuid
+  created_at: timestamptz
+  updated_at: timestamptz
+  title: String
+  content: String
+  department_id: uuid
+  author_id: uuid
+  """
+  An object relationship
+  """
+  author: users
+}
+"""
+aggregated selection of "published_news"
+"""
+type publishedNews_aggregate {
+  aggregate: publishedNews_aggregate_fields
+  nodes: [publishedNews!]!
+}
+"""
+aggregate fields of "published_news"
+"""
+type publishedNews_aggregate_fields {
+  count(columns: [publishedNews_select_column!], distinct: Boolean): Int!
+  max: publishedNews_max_fields
+  min: publishedNews_min_fields
+}
+"""
+aggregate max on columns
+"""
+type publishedNews_max_fields {
+  id: uuid
+  created_at: timestamptz
+  updated_at: timestamptz
+  title: String
+  content: String
+  department_id: uuid
+  author_id: uuid
+}
+"""
+aggregate min on columns
+"""
+type publishedNews_min_fields {
+  id: uuid
+  created_at: timestamptz
+  updated_at: timestamptz
+  title: String
+  content: String
+  department_id: uuid
+  author_id: uuid
+}
+type query_root {
+  """
+  fetch data from the table: "auth.users"
+  """
+  users(
+    """
+    distinct select on columns
+    """
+    distinct_on: [users_select_column!]
+
+    """
+    limit the number of rows returned
+    """
+    limit: Int
+
+    """
+    skip the first n rows. Use only with order_by
+    """
+    offset: Int
+
+    """
+    sort the rows by one or more columns
+    """
+    order_by: [users_order_by!]
+
+    """
+    filter the rows returned
+    """
+    where: users_bool_exp
+  ): [users!]!
+  """
+  fetch data from the table: "content_feed"
+  """
+  contentFeed(
+    """
+    distinct select on columns
+    """
+    distinct_on: [contentFeed_select_column!]
+
+    """
+    limit the number of rows returned
+    """
+    limit: Int
+
+    """
+    skip the first n rows. Use only with order_by
+    """
+    offset: Int
+
+    """
+    sort the rows by one or more columns
+    """
+    order_by: [contentFeed_order_by!]
+
+    """
+    filter the rows returned
+    """
+    where: contentFeed_bool_exp
+  ): [contentFeed!]!
+  """
+  fetch aggregated fields from the table: "content_feed"
+  """
+  contentFeedAggregate(
+    """
+    distinct select on columns
+    """
+    distinct_on: [contentFeed_select_column!]
+
+    """
+    limit the number of rows returned
+    """
+    limit: Int
+
+    """
+    skip the first n rows. Use only with order_by
+    """
+    offset: Int
+
+    """
+    sort the rows by one or more columns
+    """
+    order_by: [contentFeed_order_by!]
+
+    """
+    filter the rows returned
+    """
+    where: contentFeed_bool_exp
+  ): contentFeed_aggregate!
+  """
+  fetch data from the table: "news"
+  """
+  news(
+    """
+    distinct select on columns
+    """
+    distinct_on: [news_select_column!]
+
+    """
+    limit the number of rows returned
+    """
+    limit: Int
+
+    """
+    skip the first n rows. Use only with order_by
+    """
+    offset: Int
+
+    """
+    sort the rows by one or more columns
+    """
+    order_by: [news_order_by!]
+
+    """
+    filter the rows returned
+    """
+    where: news_bool_exp
+  ): [news!]!
+  """
+  fetch data from the table: "news" using primary key columns
+  """
+  news_by_pk(id: uuid!): news
+  """
+  fetch data from the table: "postgis_locations"
+  """
+  postgis_locations(
+    """
+    distinct select on columns
+    """
+    distinct_on: [postgis_locations_select_column!]
+
+    """
+    limit the number of rows returned
+    """
+    limit: Int
+
+    """
+    skip the first n rows. Use only with order_by
+    """
+    offset: Int
+
+    """
+    sort the rows by one or more columns
+    """
+    order_by: [postgis_locations_order_by!]
+
+    """
+    filter the rows returned
+    """
+    where: postgis_locations_bool_exp
+  ): [postgis_locations!]!
+  """
+  fetch data from the table: "postgis_locations" using primary key columns
+  """
+  postgis_locations_by_pk(id: uuid!): postgis_locations
+  """
+  fetch aggregated fields from the table: "postgis_locations"
+  """
+  postgis_locations_aggregate(
+    """
+    distinct select on columns
+    """
+    distinct_on: [postgis_locations_select_column!]
+
+    """
+    limit the number of rows returned
+    """
+    limit: Int
+
+    """
+    skip the first n rows. Use only with order_by
+    """
+    offset: Int
+
+    """
+    sort the rows by one or more columns
+    """
+    order_by: [postgis_locations_order_by!]
+
+    """
+    filter the rows returned
+    """
+    where: postgis_locations_bool_exp
+  ): postgis_locations_aggregate!
+  """
+  fetch data from the table: "published_news"
+  """
+  publishedNews(
+    """
+    distinct select on columns
+    """
+    distinct_on: [publishedNews_select_column!]
+
+    """
+    limit the number of rows returned
+    """
+    limit: Int
+
+    """
+    skip the first n rows. Use only with order_by
+    """
+    offset: Int
+
+    """
+    sort the rows by one or more columns
+    """
+    order_by: [publishedNews_order_by!]
+
+    """
+    filter the rows returned
+    """
+    where: publishedNews_bool_exp
+  ): [publishedNews!]!
+  """
+  fetch aggregated fields from the table: "published_news"
+  """
+  publishedNewAggregate(
+    """
+    distinct select on columns
+    """
+    distinct_on: [publishedNews_select_column!]
+
+    """
+    limit the number of rows returned
+    """
+    limit: Int
+
+    """
+    skip the first n rows. Use only with order_by
+    """
+    offset: Int
+
+    """
+    sort the rows by one or more columns
+    """
+    order_by: [publishedNews_order_by!]
+
+    """
+    filter the rows returned
+    """
+    where: publishedNews_bool_exp
+  ): publishedNews_aggregate!
+  """
+  fetch data from the table: "storage.files"
+  """
+  files(
+    """
+    distinct select on columns
+    """
+    distinct_on: [files_select_column!]
+
+    """
+    limit the number of rows returned
+    """
+    limit: Int
+
+    """
+    skip the first n rows. Use only with order_by
+    """
+    offset: Int
+
+    """
+    sort the rows by one or more columns
+    """
+    order_by: [files_order_by!]
+
+    """
+    filter the rows returned
+    """
+    where: files_bool_exp
+  ): [files!]!
+  """
+  fetch data from the table: "storage.files" using primary key columns
+  """
+  file(id: uuid!): files
+  """
+  execute function "search_news" which returns "news"
+  """
+  search_news(
+    """
+    input parameters for function "search_news"
+    """
+    args: search_news_args!
+
+    """
+    distinct select on columns
+    """
+    distinct_on: [news_select_column!]
+
+    """
+    limit the number of rows returned
+    """
+    limit: Int
+
+    """
+    skip the first n rows. Use only with order_by
+    """
+    offset: Int
+
+    """
+    sort the rows by one or more columns
+    """
+    order_by: [news_order_by!]
+
+    """
+    filter the rows returned
+    """
+    where: news_bool_exp
+  ): [news!]!
+  """
+  execute function "search_news_default" which returns "news"
+  """
+  search_news_default(
+    """
+    input parameters for function "search_news_default"
+    """
+    args: search_news_default_args!
+
+    """
+    distinct select on columns
+    """
+    distinct_on: [news_select_column!]
+
+    """
+    limit the number of rows returned
+    """
+    limit: Int
+
+    """
+    skip the first n rows. Use only with order_by
+    """
+    offset: Int
+
+    """
+    sort the rows by one or more columns
+    """
+    order_by: [news_order_by!]
+
+    """
+    filter the rows returned
+    """
+    where: news_bool_exp
+  ): [news!]!
+  """
+  execute function "search_news_positional" which returns "news"
+  """
+  search_news_positional(
+    """
+    input parameters for function "search_news_positional"
+    """
+    args: search_news_positional_args!
+
+    """
+    distinct select on columns
+    """
+    distinct_on: [news_select_column!]
+
+    """
+    limit the number of rows returned
+    """
+    limit: Int
+
+    """
+    skip the first n rows. Use only with order_by
+    """
+    offset: Int
+
+    """
+    sort the rows by one or more columns
+    """
+    order_by: [news_order_by!]
+
+    """
+    filter the rows returned
+    """
+    where: news_bool_exp
+  ): [news!]!
+}
+type subscription_root {
+  """
+  fetch data from the table: "auth.users"
+  """
+  users(
+    """
+    distinct select on columns
+    """
+    distinct_on: [users_select_column!]
+
+    """
+    limit the number of rows returned
+    """
+    limit: Int
+
+    """
+    skip the first n rows. Use only with order_by
+    """
+    offset: Int
+
+    """
+    sort the rows by one or more columns
+    """
+    order_by: [users_order_by!]
+
+    """
+    filter the rows returned
+    """
+    where: users_bool_exp
+  ): [users!]!
+  """
+  fetch data from the table in a streaming manner: "auth.users"
+  """
+  users_stream(
+    """
+    maximum number of rows returned in a single batch
+    """
+    batch_size: Int!
+
+    """
+    cursor to stream the results returned by the query
+    """
+    cursor: [users_stream_cursor_input]!
+
+    """
+    filter the rows returned
+    """
+    where: users_bool_exp
+  ): [users!]!
+  """
+  fetch data from the table: "content_feed"
+  """
+  contentFeed(
+    """
+    distinct select on columns
+    """
+    distinct_on: [contentFeed_select_column!]
+
+    """
+    limit the number of rows returned
+    """
+    limit: Int
+
+    """
+    skip the first n rows. Use only with order_by
+    """
+    offset: Int
+
+    """
+    sort the rows by one or more columns
+    """
+    order_by: [contentFeed_order_by!]
+
+    """
+    filter the rows returned
+    """
+    where: contentFeed_bool_exp
+  ): [contentFeed!]!
+  """
+  fetch aggregated fields from the table: "content_feed"
+  """
+  contentFeedAggregate(
+    """
+    distinct select on columns
+    """
+    distinct_on: [contentFeed_select_column!]
+
+    """
+    limit the number of rows returned
+    """
+    limit: Int
+
+    """
+    skip the first n rows. Use only with order_by
+    """
+    offset: Int
+
+    """
+    sort the rows by one or more columns
+    """
+    order_by: [contentFeed_order_by!]
+
+    """
+    filter the rows returned
+    """
+    where: contentFeed_bool_exp
+  ): contentFeed_aggregate!
+  """
+  fetch data from the table in a streaming manner: "content_feed"
+  """
+  contentFeed_stream(
+    """
+    maximum number of rows returned in a single batch
+    """
+    batch_size: Int!
+
+    """
+    cursor to stream the results returned by the query
+    """
+    cursor: [contentFeed_stream_cursor_input]!
+
+    """
+    filter the rows returned
+    """
+    where: contentFeed_bool_exp
+  ): [contentFeed!]!
+  """
+  fetch data from the table: "news"
+  """
+  news(
+    """
+    distinct select on columns
+    """
+    distinct_on: [news_select_column!]
+
+    """
+    limit the number of rows returned
+    """
+    limit: Int
+
+    """
+    skip the first n rows. Use only with order_by
+    """
+    offset: Int
+
+    """
+    sort the rows by one or more columns
+    """
+    order_by: [news_order_by!]
+
+    """
+    filter the rows returned
+    """
+    where: news_bool_exp
+  ): [news!]!
+  """
+  fetch data from the table: "news" using primary key columns
+  """
+  news_by_pk(id: uuid!): news
+  """
+  fetch data from the table in a streaming manner: "news"
+  """
+  news_stream(
+    """
+    maximum number of rows returned in a single batch
+    """
+    batch_size: Int!
+
+    """
+    cursor to stream the results returned by the query
+    """
+    cursor: [news_stream_cursor_input]!
+
+    """
+    filter the rows returned
+    """
+    where: news_bool_exp
+  ): [news!]!
+  """
+  fetch data from the table: "postgis_locations"
+  """
+  postgis_locations(
+    """
+    distinct select on columns
+    """
+    distinct_on: [postgis_locations_select_column!]
+
+    """
+    limit the number of rows returned
+    """
+    limit: Int
+
+    """
+    skip the first n rows. Use only with order_by
+    """
+    offset: Int
+
+    """
+    sort the rows by one or more columns
+    """
+    order_by: [postgis_locations_order_by!]
+
+    """
+    filter the rows returned
+    """
+    where: postgis_locations_bool_exp
+  ): [postgis_locations!]!
+  """
+  fetch data from the table: "postgis_locations" using primary key columns
+  """
+  postgis_locations_by_pk(id: uuid!): postgis_locations
+  """
+  fetch aggregated fields from the table: "postgis_locations"
+  """
+  postgis_locations_aggregate(
+    """
+    distinct select on columns
+    """
+    distinct_on: [postgis_locations_select_column!]
+
+    """
+    limit the number of rows returned
+    """
+    limit: Int
+
+    """
+    skip the first n rows. Use only with order_by
+    """
+    offset: Int
+
+    """
+    sort the rows by one or more columns
+    """
+    order_by: [postgis_locations_order_by!]
+
+    """
+    filter the rows returned
+    """
+    where: postgis_locations_bool_exp
+  ): postgis_locations_aggregate!
+  """
+  fetch data from the table in a streaming manner: "postgis_locations"
+  """
+  postgis_locations_stream(
+    """
+    maximum number of rows returned in a single batch
+    """
+    batch_size: Int!
+
+    """
+    cursor to stream the results returned by the query
+    """
+    cursor: [postgis_locations_stream_cursor_input]!
+
+    """
+    filter the rows returned
+    """
+    where: postgis_locations_bool_exp
+  ): [postgis_locations!]!
+  """
+  fetch data from the table: "published_news"
+  """
+  publishedNews(
+    """
+    distinct select on columns
+    """
+    distinct_on: [publishedNews_select_column!]
+
+    """
+    limit the number of rows returned
+    """
+    limit: Int
+
+    """
+    skip the first n rows. Use only with order_by
+    """
+    offset: Int
+
+    """
+    sort the rows by one or more columns
+    """
+    order_by: [publishedNews_order_by!]
+
+    """
+    filter the rows returned
+    """
+    where: publishedNews_bool_exp
+  ): [publishedNews!]!
+  """
+  fetch aggregated fields from the table: "published_news"
+  """
+  publishedNewAggregate(
+    """
+    distinct select on columns
+    """
+    distinct_on: [publishedNews_select_column!]
+
+    """
+    limit the number of rows returned
+    """
+    limit: Int
+
+    """
+    skip the first n rows. Use only with order_by
+    """
+    offset: Int
+
+    """
+    sort the rows by one or more columns
+    """
+    order_by: [publishedNews_order_by!]
+
+    """
+    filter the rows returned
+    """
+    where: publishedNews_bool_exp
+  ): publishedNews_aggregate!
+  """
+  fetch data from the table in a streaming manner: "published_news"
+  """
+  publishedNews_stream(
+    """
+    maximum number of rows returned in a single batch
+    """
+    batch_size: Int!
+
+    """
+    cursor to stream the results returned by the query
+    """
+    cursor: [publishedNews_stream_cursor_input]!
+
+    """
+    filter the rows returned
+    """
+    where: publishedNews_bool_exp
+  ): [publishedNews!]!
+  """
+  fetch data from the table: "storage.files"
+  """
+  files(
+    """
+    distinct select on columns
+    """
+    distinct_on: [files_select_column!]
+
+    """
+    limit the number of rows returned
+    """
+    limit: Int
+
+    """
+    skip the first n rows. Use only with order_by
+    """
+    offset: Int
+
+    """
+    sort the rows by one or more columns
+    """
+    order_by: [files_order_by!]
+
+    """
+    filter the rows returned
+    """
+    where: files_bool_exp
+  ): [files!]!
+  """
+  fetch data from the table: "storage.files" using primary key columns
+  """
+  file(id: uuid!): files
+  """
+  fetch data from the table in a streaming manner: "storage.files"
+  """
+  files_stream(
+    """
+    maximum number of rows returned in a single batch
+    """
+    batch_size: Int!
+
+    """
+    cursor to stream the results returned by the query
+    """
+    cursor: [files_stream_cursor_input]!
+
+    """
+    filter the rows returned
+    """
+    where: files_bool_exp
+  ): [files!]!
+  """
+  execute function "search_news" which returns "news"
+  """
+  search_news(
+    """
+    input parameters for function "search_news"
+    """
+    args: search_news_args!
+
+    """
+    distinct select on columns
+    """
+    distinct_on: [news_select_column!]
+
+    """
+    limit the number of rows returned
+    """
+    limit: Int
+
+    """
+    skip the first n rows. Use only with order_by
+    """
+    offset: Int
+
+    """
+    sort the rows by one or more columns
+    """
+    order_by: [news_order_by!]
+
+    """
+    filter the rows returned
+    """
+    where: news_bool_exp
+  ): [news!]!
+  """
+  execute function "search_news_default" which returns "news"
+  """
+  search_news_default(
+    """
+    input parameters for function "search_news_default"
+    """
+    args: search_news_default_args!
+
+    """
+    distinct select on columns
+    """
+    distinct_on: [news_select_column!]
+
+    """
+    limit the number of rows returned
+    """
+    limit: Int
+
+    """
+    skip the first n rows. Use only with order_by
+    """
+    offset: Int
+
+    """
+    sort the rows by one or more columns
+    """
+    order_by: [news_order_by!]
+
+    """
+    filter the rows returned
+    """
+    where: news_bool_exp
+  ): [news!]!
+  """
+  execute function "search_news_positional" which returns "news"
+  """
+  search_news_positional(
+    """
+    input parameters for function "search_news_positional"
+    """
+    args: search_news_positional_args!
+
+    """
+    distinct select on columns
+    """
+    distinct_on: [news_select_column!]
+
+    """
+    limit the number of rows returned
+    """
+    limit: Int
+
+    """
+    skip the first n rows. Use only with order_by
+    """
+    offset: Int
+
+    """
+    sort the rows by one or more columns
+    """
+    order_by: [news_order_by!]
+
+    """
+    filter the rows returned
+    """
+    where: news_bool_exp
+  ): [news!]!
+}
+"""
+User account information. Don't modify its structure as Hasura Auth relies on it to function properly.
+"""
+type users {
+  displayName: String!
+}
+"""
+Boolean expression to compare columns of type "Boolean". All fields are combined with logical 'AND'.
+"""
+input Boolean_comparison_exp {
+  _eq: Boolean
+  _gt: Boolean
+  _gte: Boolean
+  _in: [Boolean!]
+  _is_null: Boolean
+  _lt: Boolean
+  _lte: Boolean
+  _neq: Boolean
+  _nin: [Boolean!]
+}
+"""
+Boolean expression to compare columns of type "Int". All fields are combined with logical 'AND'.
+"""
+input Int_comparison_exp {
+  _eq: Int
+  _gt: Int
+  _gte: Int
+  _in: [Int!]
+  _is_null: Boolean
+  _lt: Int
+  _lte: Int
+  _neq: Int
+  _nin: [Int!]
+}
+"""
+Boolean expression to compare columns of type "String". All fields are combined with logical 'AND'.
+"""
+input String_comparison_exp {
+  _eq: String
+  _gt: String
+  _gte: String
+  """
+  does the column match the given case-insensitive pattern
+  """
+  _ilike: String
+  _in: [String!]
+  """
+  does the column match the given POSIX regular expression, case insensitive
+  """
+  _iregex: String
+  _is_null: Boolean
+  """
+  does the column match the given pattern
+  """
+  _like: String
+  _lt: String
+  _lte: String
+  _neq: String
+  """
+  does the column NOT match the given case-insensitive pattern
+  """
+  _nilike: String
+  _nin: [String!]
+  """
+  does the column NOT match the given POSIX regular expression, case insensitive
+  """
+  _niregex: String
+  """
+  does the column NOT match the given pattern
+  """
+  _nlike: String
+  """
+  does the column NOT match the given POSIX regular expression, case sensitive
+  """
+  _nregex: String
+  """
+  does the column NOT match the given SQL regular expression
+  """
+  _nsimilar: String
+  """
+  does the column match the given POSIX regular expression, case sensitive
+  """
+  _regex: String
+  """
+  does the column match the given SQL regular expression
+  """
+  _similar: String
+}
+"""
+Boolean expression to filter rows from the table "content_feed". All fields are combined with a logical 'AND'.
+"""
+input contentFeed_bool_exp {
+  _and: [contentFeed_bool_exp!]
+  _not: contentFeed_bool_exp
+  _or: [contentFeed_bool_exp!]
+  id: uuid_comparison_exp
+  source: String_comparison_exp
+  title: String_comparison_exp
+  content: String_comparison_exp
+  created_at: timestamptz_comparison_exp
+}
+"""
+Ordering options when selecting data from "content_feed".
+"""
+input contentFeed_order_by {
+  id: order_by
+  source: order_by
+  title: order_by
+  content: order_by
+  created_at: order_by
+}
+"""
+Streaming cursor of the table "contentFeed"
+"""
+input contentFeed_stream_cursor_input {
+  """
+  Stream column input with initial value
+  """
+  initial_value: contentFeed_stream_cursor_value_input!
+  """
+  cursor ordering
+  """
+  ordering: cursor_ordering
+}
+"""
+Initial value of the column from where the streaming should start
+"""
+input contentFeed_stream_cursor_value_input {
+  id: uuid
+  source: String
+  title: String
+  content: String
+  created_at: timestamptz
+}
+"""
+Boolean expression to filter rows from the table "storage.files". All fields are combined with a logical 'AND'.
+"""
+input files_bool_exp {
+  _and: [files_bool_exp!]
+  _not: files_bool_exp
+  _or: [files_bool_exp!]
+  id: uuid_comparison_exp
+  createdAt: timestamptz_comparison_exp
+  updatedAt: timestamptz_comparison_exp
+  bucketId: String_comparison_exp
+  name: String_comparison_exp
+  size: Int_comparison_exp
+  mimeType: String_comparison_exp
+  etag: String_comparison_exp
+  isUploaded: Boolean_comparison_exp
+  uploadedByUserId: uuid_comparison_exp
+  metadata: jsonb_comparison_exp
+}
+"""
+Ordering options when selecting data from "storage.files".
+"""
+input files_order_by {
+  id: order_by
+  createdAt: order_by
+  updatedAt: order_by
+  bucketId: order_by
+  name: order_by
+  size: order_by
+  mimeType: order_by
+  etag: order_by
+  isUploaded: order_by
+  uploadedByUserId: order_by
+  metadata: order_by
+}
+"""
+Streaming cursor of the table "files"
+"""
+input files_stream_cursor_input {
+  """
+  Stream column input with initial value
+  """
+  initial_value: files_stream_cursor_value_input!
+  """
+  cursor ordering
+  """
+  ordering: cursor_ordering
+}
+"""
+Initial value of the column from where the streaming should start
+"""
+input files_stream_cursor_value_input {
+  id: uuid
+  createdAt: timestamptz
+  updatedAt: timestamptz
+  bucketId: String
+  name: String
+  size: Int
+  mimeType: String
+  etag: String
+  isUploaded: Boolean
+  uploadedByUserId: uuid
+  metadata: jsonb
+}
+input geography_cast_exp {
+  geometry: geometry_comparison_exp
+}
+"""
+Boolean expression to compare columns of type "geography". All fields are combined with logical 'AND'.
+"""
+input geography_comparison_exp {
+  _cast: geography_cast_exp
+  _eq: geography
+  _gt: geography
+  _gte: geography
+  _in: [geography!]
+  _is_null: Boolean
+  _lt: geography
+  _lte: geography
+  _neq: geography
+  _nin: [geography!]
+  """
+  is the column within a given distance from the given geography value
+  """
+  _st_d_within: st_d_within_geography_input
+  """
+  does the column spatially intersect the given geography value
+  """
+  _st_intersects: geography
+}
+input geometry_cast_exp {
+  geography: geography_comparison_exp
+}
+"""
+Boolean expression to compare columns of type "geometry". All fields are combined with logical 'AND'.
+"""
+input geometry_comparison_exp {
+  _cast: geometry_cast_exp
+  _eq: geometry
+  _gt: geometry
+  _gte: geometry
+  _in: [geometry!]
+  _is_null: Boolean
+  _lt: geometry
+  _lte: geometry
+  _neq: geometry
+  _nin: [geometry!]
+  """
+  is the column within a given 3D distance from the given geometry value
+  """
+  _st_3d_d_within: st_d_within_input
+  """
+  does the column spatially intersect the given geometry value in 3D
+  """
+  _st_3d_intersects: geometry
+  """
+  does the column contain the given geometry value
+  """
+  _st_contains: geometry
+  """
+  does the column cross the given geometry value
+  """
+  _st_crosses: geometry
+  """
+  is the column within a given distance from the given geometry value
+  """
+  _st_d_within: st_d_within_input
+  """
+  is the column equal to given geometry value (directionality is ignored)
+  """
+  _st_equals: geometry
+  """
+  does the column spatially intersect the given geometry value
+  """
+  _st_intersects: geometry
+  """
+  does the column 'spatially overlap' (intersect but not completely contain) the given geometry value
+  """
+  _st_overlaps: geometry
+  """
+  does the column have atleast one point in common with the given geometry value
+  """
+  _st_touches: geometry
+  """
+  is the column contained in the given geometry value
+  """
+  _st_within: geometry
+}
+input jsonb_cast_exp {
+  String: String_comparison_exp
+}
+"""
+Boolean expression to compare columns of type "jsonb". All fields are combined with logical 'AND'.
+"""
+input jsonb_comparison_exp {
+  _cast: jsonb_cast_exp
+  """
+  is the column contained in the given json value
+  """
+  _contained_in: jsonb
+  """
+  does the column contain the given json value at the top level
+  """
+  _contains: jsonb
+  _eq: jsonb
+  _gt: jsonb
+  _gte: jsonb
+  """
+  does the string exist as a top-level key in the column
+  """
+  _has_key: String
+  """
+  do all of these strings exist as top-level keys in the column
+  """
+  _has_keys_all: [String!]
+  """
+  do any of these strings exist as top-level keys in the column
+  """
+  _has_keys_any: [String!]
+  _in: [jsonb!]
+  _is_null: Boolean
+  _lt: jsonb
+  _lte: jsonb
+  _neq: jsonb
+  _nin: [jsonb!]
+}
+"""
+Boolean expression to filter rows from the table "news". All fields are combined with a logical 'AND'.
+"""
+input news_bool_exp {
+  _and: [news_bool_exp!]
+  _not: news_bool_exp
+  _or: [news_bool_exp!]
+  id: uuid_comparison_exp
+  created_at: timestamptz_comparison_exp
+  updated_at: timestamptz_comparison_exp
+  title: String_comparison_exp
+  content: String_comparison_exp
+  author: users_bool_exp
+}
+"""
+Ordering options when selecting data from "news".
+"""
+input news_order_by {
+  id: order_by
+  created_at: order_by
+  updated_at: order_by
+  title: order_by
+  content: order_by
+  author: users_order_by
+}
+"""
+Streaming cursor of the table "news"
+"""
+input news_stream_cursor_input {
+  """
+  Stream column input with initial value
+  """
+  initial_value: news_stream_cursor_value_input!
+  """
+  cursor ordering
+  """
+  ordering: cursor_ordering
+}
+"""
+Initial value of the column from where the streaming should start
+"""
+input news_stream_cursor_value_input {
+  id: uuid
+  created_at: timestamptz
+  updated_at: timestamptz
+  title: String
+  content: String
+}
+"""
+Boolean expression to filter rows from the table "postgis_locations". All fields are combined with a logical 'AND'.
+"""
+input postgis_locations_bool_exp {
+  _and: [postgis_locations_bool_exp!]
+  _not: postgis_locations_bool_exp
+  _or: [postgis_locations_bool_exp!]
+  id: uuid_comparison_exp
+  name: String_comparison_exp
+  geom: geometry_comparison_exp
+  geog: geography_comparison_exp
+  area: geometry_comparison_exp
+  nullable_geom: geometry_comparison_exp
+}
+"""
+Ordering options when selecting data from "postgis_locations".
+"""
+input postgis_locations_order_by {
+  id: order_by
+  name: order_by
+  geom: order_by
+  geog: order_by
+  area: order_by
+  nullable_geom: order_by
+}
+"""
+Streaming cursor of the table "postgis_locations"
+"""
+input postgis_locations_stream_cursor_input {
+  """
+  Stream column input with initial value
+  """
+  initial_value: postgis_locations_stream_cursor_value_input!
+  """
+  cursor ordering
+  """
+  ordering: cursor_ordering
+}
+"""
+Initial value of the column from where the streaming should start
+"""
+input postgis_locations_stream_cursor_value_input {
+  id: uuid
+  name: String
+  geom: geometry
+  geog: geography
+  area: geometry
+  nullable_geom: geometry
+}
+"""
+Boolean expression to filter rows from the table "published_news". All fields are combined with a logical 'AND'.
+"""
+input publishedNews_bool_exp {
+  _and: [publishedNews_bool_exp!]
+  _not: publishedNews_bool_exp
+  _or: [publishedNews_bool_exp!]
+  id: uuid_comparison_exp
+  created_at: timestamptz_comparison_exp
+  updated_at: timestamptz_comparison_exp
+  title: String_comparison_exp
+  content: String_comparison_exp
+  department_id: uuid_comparison_exp
+  author_id: uuid_comparison_exp
+  author: users_bool_exp
+}
+"""
+Ordering options when selecting data from "published_news".
+"""
+input publishedNews_order_by {
+  id: order_by
+  created_at: order_by
+  updated_at: order_by
+  title: order_by
+  content: order_by
+  department_id: order_by
+  author_id: order_by
+  author: users_order_by
+}
+"""
+Streaming cursor of the table "publishedNews"
+"""
+input publishedNews_stream_cursor_input {
+  """
+  Stream column input with initial value
+  """
+  initial_value: publishedNews_stream_cursor_value_input!
+  """
+  cursor ordering
+  """
+  ordering: cursor_ordering
+}
+"""
+Initial value of the column from where the streaming should start
+"""
+input publishedNews_stream_cursor_value_input {
+  id: uuid
+  created_at: timestamptz
+  updated_at: timestamptz
+  title: String
+  content: String
+  department_id: uuid
+  author_id: uuid
+}
+input search_news_args {
+  search: String!
+}
+input search_news_default_args {
+  search: String!
+  max_len: Int
+}
+input search_news_positional_args {
+  arg_1: String!
+  arg_2: Int
+}
+input st_d_within_geography_input {
+  distance: Float!
+  from: geography!
+  use_spheroid: Boolean = true
+}
+input st_d_within_input {
+  distance: Float!
+  from: geometry!
+}
+"""
+Boolean expression to compare columns of type "timestamptz". All fields are combined with logical 'AND'.
+"""
+input timestamptz_comparison_exp {
+  _eq: timestamptz
+  _gt: timestamptz
+  _gte: timestamptz
+  _in: [timestamptz!]
+  _is_null: Boolean
+  _lt: timestamptz
+  _lte: timestamptz
+  _neq: timestamptz
+  _nin: [timestamptz!]
+}
+"""
+Boolean expression to filter rows from the table "auth.users". All fields are combined with a logical 'AND'.
+"""
+input users_bool_exp {
+  _and: [users_bool_exp!]
+  _not: users_bool_exp
+  _or: [users_bool_exp!]
+  displayName: String_comparison_exp
+}
+"""
+Ordering options when selecting data from "auth.users".
+"""
+input users_order_by {
+  displayName: order_by
+}
+"""
+Streaming cursor of the table "users"
+"""
+input users_stream_cursor_input {
+  """
+  Stream column input with initial value
+  """
+  initial_value: users_stream_cursor_value_input!
+  """
+  cursor ordering
+  """
+  ordering: cursor_ordering
+}
+"""
+Initial value of the column from where the streaming should start
+"""
+input users_stream_cursor_value_input {
+  displayName: String
+}
+"""
+Boolean expression to compare columns of type "uuid". All fields are combined with logical 'AND'.
+"""
+input uuid_comparison_exp {
+  _eq: uuid
+  _gt: uuid
+  _gte: uuid
+  _in: [uuid!]
+  _is_null: Boolean
+  _lt: uuid
+  _lte: uuid
+  _neq: uuid
+  _nin: [uuid!]
+}

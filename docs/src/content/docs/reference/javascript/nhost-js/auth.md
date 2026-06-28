@@ -11,23 +11,23 @@ but you can also use it directly if you have a specific use case.
 You can import and use this package with:
 
 ```ts
-import { createClient } from '@nhost/nhost-js/auth'
+import { createClient } from "@nhost/nhost-js/auth";
 ```
 
 # Usage
 
 ```ts
-import { createClient } from '@nhost/nhost-js'
+import { createClient } from "@nhost/nhost-js";
 
 const nhost = createClient({
   subdomain,
-  region
-})
+  region,
+});
 
 await nhost.auth.signUpEmailPassword({
   email,
-  password
-})
+  password,
+});
 ```
 
 # Error handling
@@ -37,25 +37,25 @@ if the request fails entirely (i.e., due to network errors). The type of the err
 will be a `FetchError<ErrorResponse>`:
 
 ```ts
-import { createClient } from '@nhost/nhost-js'
-import { FetchError } from '@nhost/nhost-js/fetch'
+import { createClient } from "@nhost/nhost-js";
+import { FetchError } from "@nhost/nhost-js/fetch";
 
 const nhost = createClient({
   subdomain,
-  region
-})
+  region,
+});
 
 try {
   await nhost.auth.signInEmailPassword({
     email,
-    password
-  })
+    password,
+  });
 } catch (err) {
   if (!(err instanceof FetchError)) {
-    throw err // Re-throw if it's not a FetchError
+    throw err; // Re-throw if it's not a FetchError
   }
 
-  console.log('Error:', err)
+  console.log("Error:", err);
   // Error: {
   //   body: {
   //     error: 'invalid-email-password',
@@ -78,25 +78,25 @@ This type extends the standard `Error` type so if you want to just log the error
 do so like this:
 
 ```ts
-import { createClient } from '@nhost/nhost-js'
-import { FetchError } from '@nhost/nhost-js/fetch'
+import { createClient } from "@nhost/nhost-js";
+import { FetchError } from "@nhost/nhost-js/fetch";
 
 const nhost = createClient({
   subdomain,
-  region
-})
+  region,
+});
 
 try {
   await nhost.auth.signInEmailPassword({
     email,
-    password
-  })
+    password,
+  });
 } catch (err) {
   if (!(err instanceof Error)) {
-    throw err // Re-throw if it's not an Error
+    throw err; // Re-throw if it's not an Error
   }
 
-  console.log('Error:', err.message)
+  console.log("Error:", err.message);
   // Error: Incorrect email or password
 }
 ```
@@ -142,7 +142,7 @@ HMAC secret extension output
 #### authenticatorData
 
 ```ts
-authenticatorData: string
+authenticatorData: string;
 ```
 
 (`string`) - Base64url encoded authenticator data
@@ -150,7 +150,7 @@ authenticatorData: string
 #### clientDataJSON
 
 ```ts
-clientDataJSON: string
+clientDataJSON: string;
 ```
 
 (`string`) - Base64url encoded client data JSON
@@ -158,7 +158,7 @@ clientDataJSON: string
 #### signature
 
 ```ts
-signature: string
+signature: string;
 ```
 
 (`string`) - Base64url encoded assertion signature
@@ -180,7 +180,7 @@ Base64url encoded user handle
 #### attestationObject
 
 ```ts
-attestationObject: string
+attestationObject: string;
 ```
 
 (`string`) - Base64url-encoded binary data
@@ -199,7 +199,7 @@ Format - byte
 #### clientDataJSON
 
 ```ts
-clientDataJSON: string
+clientDataJSON: string;
 ```
 
 (`string`) - Base64url-encoded binary data
@@ -279,7 +279,7 @@ A requirement for user verification for the operation
 #### baseURL
 
 ```ts
-baseURL: string
+baseURL: string;
 ```
 
 ### Methods
@@ -1712,7 +1712,7 @@ This method may return different T based on the response code:
 #### expiresAt
 
 ```ts
-expiresAt: string
+expiresAt: string;
 ```
 
 (`string`) - Expiration date of the PAT
@@ -1736,7 +1736,7 @@ Example - `{"name":"my-pat","used-by":"my-app-cli"}`
 #### id
 
 ```ts
-id: string
+id: string;
 ```
 
 (`string`) - ID of the PAT
@@ -1747,7 +1747,7 @@ id: string
 #### personalAccessToken
 
 ```ts
-personalAccessToken: string
+personalAccessToken: string;
 ```
 
 (`string`) - PAT
@@ -1780,7 +1780,7 @@ Map of extension outputs from the client
 #### id
 
 ```ts
-id: string
+id: string;
 ```
 
 (`string`) - The credential's identifier
@@ -1788,7 +1788,7 @@ id: string
 #### rawId
 
 ```ts
-rawId: string
+rawId: string;
 ```
 
 (`string`) - Base64url-encoded binary data
@@ -1798,7 +1798,7 @@ rawId: string
 #### response
 
 ```ts
-response: AuthenticatorAssertionResponse
+response: AuthenticatorAssertionResponse;
 ```
 
 (`AuthenticatorAssertionResponse`) -
@@ -1806,7 +1806,7 @@ response: AuthenticatorAssertionResponse
 #### type
 
 ```ts
-type: string
+type: string;
 ```
 
 (`string`) - The credential type represented by this object
@@ -1836,7 +1836,7 @@ Map of extension outputs from the client
 #### id
 
 ```ts
-id: string
+id: string;
 ```
 
 (`string`) - The credential's identifier
@@ -1844,7 +1844,7 @@ id: string
 #### rawId
 
 ```ts
-rawId: string
+rawId: string;
 ```
 
 (`string`) - Base64url-encoded binary data
@@ -1854,7 +1854,7 @@ rawId: string
 #### response
 
 ```ts
-response: AuthenticatorAttestationResponse
+response: AuthenticatorAttestationResponse;
 ```
 
 (`AuthenticatorAttestationResponse`) -
@@ -1862,7 +1862,7 @@ response: AuthenticatorAttestationResponse
 #### type
 
 ```ts
-type: string
+type: string;
 ```
 
 (`string`) - The credential type represented by this object
@@ -1876,7 +1876,7 @@ type: string
 #### alg
 
 ```ts
-alg: number
+alg: number;
 ```
 
 (`number`) - The cryptographic algorithm identifier
@@ -1884,7 +1884,7 @@ alg: number
 #### type
 
 ```ts
-type: 'public-key'
+type: "public-key";
 ```
 
 (`CredentialType`) - The valid credential types
@@ -1916,7 +1916,7 @@ Standardized error response
 #### error
 
 ```ts
-error: ErrorResponseError
+error: ErrorResponseError;
 ```
 
 (`ErrorResponseError`) - Error code identifying the specific application error
@@ -1924,7 +1924,7 @@ error: ErrorResponseError
 #### message
 
 ```ts
-message: string
+message: string;
 ```
 
 (`string`) - Human-friendly error message
@@ -1934,7 +1934,7 @@ message: string
 #### status
 
 ```ts
-status: number
+status: number;
 ```
 
 (`number`) - HTTP status error code
@@ -1950,7 +1950,7 @@ status: number
 #### version
 
 ```ts
-version: string
+version: string;
 ```
 
 (`string`) - The version of the authentication service
@@ -1968,7 +1968,7 @@ JSON Web Key for JWT verification
 #### alg
 
 ```ts
-alg: string
+alg: string;
 ```
 
 (`string`) - Algorithm used with this key
@@ -1978,7 +1978,7 @@ alg: string
 #### e
 
 ```ts
-e: string
+e: string;
 ```
 
 (`string`) - RSA public exponent
@@ -1988,7 +1988,7 @@ e: string
 #### kid
 
 ```ts
-kid: string
+kid: string;
 ```
 
 (`string`) - Key ID
@@ -1998,7 +1998,7 @@ kid: string
 #### kty
 
 ```ts
-kty: string
+kty: string;
 ```
 
 (`string`) - Key type
@@ -2008,7 +2008,7 @@ kty: string
 #### n
 
 ```ts
-n: string
+n: string;
 ```
 
 (`string`) - RSA modulus
@@ -2018,7 +2018,7 @@ n: string
 #### use
 
 ```ts
-use: string
+use: string;
 ```
 
 (`string`) - Key usage
@@ -2050,7 +2050,7 @@ keys: JWK[];
 #### idToken
 
 ```ts
-idToken: string
+idToken: string;
 ```
 
 (`string`) - Apple ID token
@@ -2066,7 +2066,7 @@ Nonce used during sign in process
 #### provider
 
 ```ts
-provider: IdTokenProvider
+provider: IdTokenProvider;
 ```
 
 (`IdTokenProvider`) -
@@ -2082,7 +2082,7 @@ Challenge payload for multi-factor authentication
 #### ticket
 
 ```ts
-ticket: string
+ticket: string;
 ```
 
 (`string`) - Ticket to use when completing the MFA challenge
@@ -2100,7 +2100,7 @@ Parameters for the oauth2Authorize method.
 #### client_id
 
 ```ts
-client_id: string
+client_id: string;
 ```
 
 (string) - The OAuth2 client identifier (RFC 6749 Section 2.2).
@@ -2140,7 +2140,7 @@ Space-delimited list of prompts to present to the user (OpenID Connect Core Sect
 #### redirect_uri
 
 ```ts
-redirect_uri: string
+redirect_uri: string;
 ```
 
 (string) - The URI to redirect the user-agent to after authorization (RFC 6749 Section 3.1.2).
@@ -2156,7 +2156,7 @@ Resource indicator for the target service (RFC 8707).
 #### response_type
 
 ```ts
-response_type: string
+response_type: string;
 ```
 
 (string) - The authorization response type. Only 'code' is supported (RFC 6749 Section 3.1.1).
@@ -2186,7 +2186,7 @@ Opaque value used to maintain state between the request and callback (RFC 6749 S
 #### client_id
 
 ```ts
-client_id: string
+client_id: string;
 ```
 
 (`string`) -
@@ -2220,7 +2220,7 @@ optional prompt?: string;
 #### redirect_uri
 
 ```ts
-redirect_uri: string
+redirect_uri: string;
 ```
 
 (`string`) -
@@ -2234,7 +2234,7 @@ optional resource?: string;
 #### response_type
 
 ```ts
-response_type: string
+response_type: string;
 ```
 
 (`string`) -
@@ -2260,7 +2260,7 @@ optional state?: string;
 #### authorization_endpoint
 
 ```ts
-authorization_endpoint: string
+authorization_endpoint: string;
 ```
 
 (`string`) -
@@ -2310,7 +2310,7 @@ optional introspection_endpoint?: string;
 #### issuer
 
 ```ts
-issuer: string
+issuer: string;
 ```
 
 (`string`) -
@@ -2318,7 +2318,7 @@ issuer: string
 #### jwks_uri
 
 ```ts
-jwks_uri: string
+jwks_uri: string;
 ```
 
 (`string`) -
@@ -2358,7 +2358,7 @@ optional subject_types_supported?: string[];
 #### token_endpoint
 
 ```ts
-token_endpoint: string
+token_endpoint: string;
 ```
 
 (`string`) -
@@ -2384,7 +2384,7 @@ optional userinfo_endpoint?: string;
 #### error
 
 ```ts
-error: string
+error: string;
 ```
 
 (`string`) - OAuth2 error code
@@ -2418,7 +2418,7 @@ optional client_secret?: string;
 #### token
 
 ```ts
-token: string
+token: string;
 ```
 
 (`string`) -
@@ -2438,7 +2438,7 @@ optional token_type_hint?: OAuth2IntrospectRequestToken_type_hint;
 #### active
 
 ```ts
-active: boolean
+active: boolean;
 ```
 
 (`boolean`) -
@@ -2508,7 +2508,7 @@ keys: JWK[];
 #### redirectUri
 
 ```ts
-redirectUri: string
+redirectUri: string;
 ```
 
 (`string`) -
@@ -2526,7 +2526,7 @@ Parameters for the oauth2LoginGet method.
 #### request_id
 
 ```ts
-request_id: string
+request_id: string;
 ```
 
 (string) - The pending authorization request identifier.
@@ -2540,7 +2540,7 @@ request_id: string
 #### requestId
 
 ```ts
-requestId: string
+requestId: string;
 ```
 
 (`string`) -
@@ -2556,7 +2556,7 @@ requestId: string
 #### clientId
 
 ```ts
-clientId: string
+clientId: string;
 ```
 
 (`string`) -
@@ -2564,7 +2564,7 @@ clientId: string
 #### redirectUri
 
 ```ts
-redirectUri: string
+redirectUri: string;
 ```
 
 (`string`) -
@@ -2572,7 +2572,7 @@ redirectUri: string
 #### requestId
 
 ```ts
-requestId: string
+requestId: string;
 ```
 
 (`string`) -
@@ -2608,7 +2608,7 @@ optional client_secret?: string;
 #### token
 
 ```ts
-token: string
+token: string;
 ```
 
 (`string`) -
@@ -2652,7 +2652,7 @@ optional code_verifier?: string;
 #### grant_type
 
 ```ts
-grant_type: OAuth2TokenRequestGrant_type
+grant_type: OAuth2TokenRequestGrant_type;
 ```
 
 (`OAuth2TokenRequestGrant_type`) -
@@ -2684,7 +2684,7 @@ optional resource?: string;
 #### access_token
 
 ```ts
-access_token: string
+access_token: string;
 ```
 
 (`string`) -
@@ -2692,7 +2692,7 @@ access_token: string
 #### expires_in
 
 ```ts
-expires_in: number
+expires_in: number;
 ```
 
 (`number`) -
@@ -2718,7 +2718,7 @@ optional scope?: string;
 #### token_type
 
 ```ts
-token_type: string
+token_type: string;
 ```
 
 (`string`) -
@@ -2774,7 +2774,7 @@ optional picture?: string;
 #### sub
 
 ```ts
-sub: string
+sub: string;
 ```
 
 (`string`) -
@@ -2805,7 +2805,7 @@ OAuth2 provider session containing access and refresh tokens
 #### accessToken
 
 ```ts
-accessToken: string
+accessToken: string;
 ```
 
 (`string`) - OAuth2 provider access token for API calls
@@ -2815,7 +2815,7 @@ accessToken: string
 #### expiresAt
 
 ```ts
-expiresAt: string
+expiresAt: string;
 ```
 
 (`string`) - Timestamp when the access token expires
@@ -2826,7 +2826,7 @@ expiresAt: string
 #### expiresIn
 
 ```ts
-expiresIn: number
+expiresIn: number;
 ```
 
 (`number`) - Number of seconds until the access token expires
@@ -2895,7 +2895,7 @@ optional authenticatorSelection?: AuthenticatorSelection;
 #### challenge
 
 ```ts
-challenge: string
+challenge: string;
 ```
 
 (`string`) - Base64url-encoded binary data
@@ -2937,7 +2937,7 @@ pubKeyCredParams: CredentialParameter[];
 #### rp
 
 ```ts
-rp: RelyingPartyEntity
+rp: RelyingPartyEntity;
 ```
 
 (`RelyingPartyEntity`) -
@@ -2953,7 +2953,7 @@ A time, in milliseconds, that the caller is willing to wait for the call to comp
 #### user
 
 ```ts
-user: UserEntity
+user: UserEntity;
 ```
 
 (`UserEntity`) -
@@ -2967,7 +2967,7 @@ user: UserEntity
 #### id
 
 ```ts
-id: string
+id: string;
 ```
 
 (`string`) - Base64url-encoded binary data
@@ -2985,7 +2985,7 @@ The authenticator transports that can be used
 #### type
 
 ```ts
-type: 'public-key'
+type: "public-key";
 ```
 
 (`CredentialType`) - The valid credential types
@@ -3007,7 +3007,7 @@ A list of CredentialDescriptor objects representing public key credentials accep
 #### challenge
 
 ```ts
-challenge: string
+challenge: string;
 ```
 
 (`string`) - Base64url-encoded binary data
@@ -3065,7 +3065,7 @@ Request to refresh OAuth2 provider tokens
 #### refreshToken
 
 ```ts
-refreshToken: string
+refreshToken: string;
 ```
 
 (`string`) - OAuth2 provider refresh token obtained from previous authentication
@@ -3083,7 +3083,7 @@ Request to refresh an access token
 #### refreshToken
 
 ```ts
-refreshToken: string
+refreshToken: string;
 ```
 
 (`string`) - Refresh token used to generate a new access token
@@ -3100,7 +3100,7 @@ refreshToken: string
 #### id
 
 ```ts
-id: string
+id: string;
 ```
 
 (`string`) - A unique identifier for the Relying Party entity, which sets the RP ID
@@ -3108,7 +3108,7 @@ id: string
 #### name
 
 ```ts
-name: string
+name: string;
 ```
 
 (`string`) - A human-palatable name for the entity
@@ -3128,7 +3128,7 @@ User authentication session containing tokens and user information
 #### accessToken
 
 ```ts
-accessToken: string
+accessToken: string;
 ```
 
 (`string`) - JWT token for authenticating API requests
@@ -3138,7 +3138,7 @@ accessToken: string
 #### accessTokenExpiresIn
 
 ```ts
-accessTokenExpiresIn: number
+accessTokenExpiresIn: number;
 ```
 
 (`number`) - Expiration time of the access token in seconds
@@ -3149,7 +3149,7 @@ accessTokenExpiresIn: number
 #### refreshToken
 
 ```ts
-refreshToken: string
+refreshToken: string;
 ```
 
 (`string`) - Token used to refresh the access token
@@ -3160,7 +3160,7 @@ refreshToken: string
 #### refreshTokenId
 
 ```ts
-refreshTokenId: string
+refreshTokenId: string;
 ```
 
 (`string`) - Identifier for the refresh token
@@ -3236,7 +3236,7 @@ Request to authenticate using email and password
 #### email
 
 ```ts
-email: string
+email: string;
 ```
 
 (`string`) - User's email address
@@ -3247,7 +3247,7 @@ email: string
 #### password
 
 ```ts
-password: string
+password: string;
 ```
 
 (`string`) - User's password
@@ -3289,7 +3289,7 @@ User authentication session containing tokens and user information
 #### idToken
 
 ```ts
-idToken: string
+idToken: string;
 ```
 
 (`string`) - Apple ID token
@@ -3311,7 +3311,7 @@ optional options?: SignUpOptions;
 #### provider
 
 ```ts
-provider: IdTokenProvider
+provider: IdTokenProvider;
 ```
 
 (`IdTokenProvider`) -
@@ -3325,7 +3325,7 @@ provider: IdTokenProvider
 #### otp
 
 ```ts
-otp: string
+otp: string;
 ```
 
 (`string`) - One time password
@@ -3333,7 +3333,7 @@ otp: string
 #### ticket
 
 ```ts
-ticket: string
+ticket: string;
 ```
 
 (`string`) - Ticket
@@ -3349,7 +3349,7 @@ ticket: string
 #### email
 
 ```ts
-email: string
+email: string;
 ```
 
 (`string`) - A valid email
@@ -3372,7 +3372,7 @@ optional options?: SignUpOptions;
 #### email
 
 ```ts
-email: string
+email: string;
 ```
 
 (`string`) - A valid email
@@ -3383,7 +3383,7 @@ email: string
 #### otp
 
 ```ts
-otp: string
+otp: string;
 ```
 
 (`string`) - One time password
@@ -3422,7 +3422,7 @@ MaxLength - 43
 #### email
 
 ```ts
-email: string
+email: string;
 ```
 
 (`string`) - A valid email
@@ -3445,7 +3445,7 @@ optional options?: SignUpOptions;
 #### otp
 
 ```ts
-otp: string
+otp: string;
 ```
 
 (`string`) - One-time password received by SMS
@@ -3453,7 +3453,7 @@ otp: string
 #### phoneNumber
 
 ```ts
-phoneNumber: string
+phoneNumber: string;
 ```
 
 (`string`) - Phone number of the user
@@ -3497,7 +3497,7 @@ optional options?: SignUpOptions;
 #### phoneNumber
 
 ```ts
-phoneNumber: string
+phoneNumber: string;
 ```
 
 (`string`) - Phone number of the user
@@ -3513,7 +3513,7 @@ phoneNumber: string
 #### personalAccessToken
 
 ```ts
-personalAccessToken: string
+personalAccessToken: string;
 ```
 
 (`string`) - PAT
@@ -3634,7 +3634,7 @@ Format - email
 #### credential
 
 ```ts
-credential: CredentialAssertionResponse
+credential: CredentialAssertionResponse;
 ```
 
 (`CredentialAssertionResponse`) -
@@ -3693,7 +3693,7 @@ MaxLength - 43
 #### email
 
 ```ts
-email: string
+email: string;
 ```
 
 (`string`) - Email address for the new user account
@@ -3710,7 +3710,7 @@ optional options?: SignUpOptions;
 #### password
 
 ```ts
-password: string
+password: string;
 ```
 
 (`string`) - Password for the new user account
@@ -3728,7 +3728,7 @@ password: string
 #### idToken
 
 ```ts
-idToken: string
+idToken: string;
 ```
 
 (`string`) - Apple or Google ID token
@@ -3750,7 +3750,7 @@ optional options?: SignUpOptions;
 #### provider
 
 ```ts
-provider: IdTokenProvider
+provider: IdTokenProvider;
 ```
 
 (`IdTokenProvider`) -
@@ -3824,7 +3824,7 @@ Format - uri
 #### email
 
 ```ts
-email: string
+email: string;
 ```
 
 (`string`) - A valid email
@@ -3858,7 +3858,7 @@ MaxLength - 43
 #### email
 
 ```ts
-email: string
+email: string;
 ```
 
 (`string`) - A valid email
@@ -3887,7 +3887,7 @@ optional options?: SignUpOptions;
 #### phoneNumber
 
 ```ts
-phoneNumber: string
+phoneNumber: string;
 ```
 
 (`string`) - Phone number of the user
@@ -3983,7 +3983,7 @@ Opaque state value to be returned by the provider
 #### email
 
 ```ts
-email: string
+email: string;
 ```
 
 (`string`) - A valid email
@@ -4017,7 +4017,7 @@ MaxLength - 43
 #### credential
 
 ```ts
-credential: CredentialCreationResponse
+credential: CredentialCreationResponse;
 ```
 
 (`CredentialCreationResponse`) -
@@ -4047,7 +4047,7 @@ Request to exchange an authorization code for a session using PKCE
 #### code
 
 ```ts
-code: string
+code: string;
 ```
 
 (`string`) - The authorization code received from the redirect
@@ -4055,7 +4055,7 @@ code: string
 #### codeVerifier
 
 ```ts
-codeVerifier: string
+codeVerifier: string;
 ```
 
 (`string`) - The original PKCE code verifier (43-128 characters)
@@ -4074,7 +4074,7 @@ Response containing TOTP setup information for MFA
 #### imageUrl
 
 ```ts
-imageUrl: string
+imageUrl: string;
 ```
 
 (`string`) - URL to QR code image for scanning with an authenticator app
@@ -4084,7 +4084,7 @@ imageUrl: string
 #### totpSecret
 
 ```ts
-totpSecret: string
+totpSecret: string;
 ```
 
 (`string`) - TOTP secret key for manual setup with an authenticator app
@@ -4110,7 +4110,7 @@ Active MFA type for the user
 #### avatarUrl
 
 ```ts
-avatarUrl: string
+avatarUrl: string;
 ```
 
 (`string`) - URL to the user's profile picture
@@ -4120,7 +4120,7 @@ avatarUrl: string
 #### createdAt
 
 ```ts
-createdAt: string
+createdAt: string;
 ```
 
 (`string`) - Timestamp when the user account was created
@@ -4131,7 +4131,7 @@ createdAt: string
 #### defaultRole
 
 ```ts
-defaultRole: string
+defaultRole: string;
 ```
 
 (`string`) - Default authorization role for the user
@@ -4141,7 +4141,7 @@ defaultRole: string
 #### displayName
 
 ```ts
-displayName: string
+displayName: string;
 ```
 
 (`string`) - User's display name
@@ -4161,7 +4161,7 @@ Format - email
 #### emailVerified
 
 ```ts
-emailVerified: boolean
+emailVerified: boolean;
 ```
 
 (`boolean`) - Whether the user's email has been verified
@@ -4171,7 +4171,7 @@ emailVerified: boolean
 #### id
 
 ```ts
-id: string
+id: string;
 ```
 
 (`string`) - Unique identifier for the user
@@ -4182,7 +4182,7 @@ id: string
 #### isAnonymous
 
 ```ts
-isAnonymous: boolean
+isAnonymous: boolean;
 ```
 
 (`boolean`) - Whether this is an anonymous user account
@@ -4192,7 +4192,7 @@ isAnonymous: boolean
 #### locale
 
 ```ts
-locale: string
+locale: string;
 ```
 
 (`string`) - User's preferred locale (language code)
@@ -4204,7 +4204,7 @@ locale: string
 #### metadata
 
 ```ts
-metadata: Record<string, unknown>
+metadata: Record<string, unknown>;
 ```
 
 (`Record<string, unknown>`) - Custom metadata associated with the user
@@ -4223,7 +4223,7 @@ Example - `"+12025550123"`
 #### phoneNumberVerified
 
 ```ts
-phoneNumberVerified: boolean
+phoneNumberVerified: boolean;
 ```
 
 (`boolean`) - Whether the user's phone number has been verified
@@ -4268,7 +4268,7 @@ Deprecated, will be ignored
 #### email
 
 ```ts
-email: string
+email: string;
 ```
 
 (`string`) - A valid email
@@ -4296,7 +4296,7 @@ MaxLength - 50
 #### signInMethod
 
 ```ts
-signInMethod: UserDeanonymizeRequestSignInMethod
+signInMethod: UserDeanonymizeRequestSignInMethod;
 ```
 
 (`UserDeanonymizeRequestSignInMethod`) - Which sign-in method to use
@@ -4321,7 +4321,7 @@ MaxLength - 43
 #### newEmail
 
 ```ts
-newEmail: string
+newEmail: string;
 ```
 
 (`string`) - A valid email
@@ -4355,7 +4355,7 @@ MaxLength - 43
 #### email
 
 ```ts
-email: string
+email: string;
 ```
 
 (`string`) - A valid email
@@ -4378,7 +4378,7 @@ optional options?: OptionsRedirectTo;
 #### displayName
 
 ```ts
-displayName: string
+displayName: string;
 ```
 
 (`string`) - A human-palatable name for the user account, intended only for display
@@ -4386,7 +4386,7 @@ displayName: string
 #### id
 
 ```ts
-id: string
+id: string;
 ```
 
 (`string`) - The user handle of the user account entity
@@ -4394,7 +4394,7 @@ id: string
 #### name
 
 ```ts
-name: string
+name: string;
 ```
 
 (`string`) - A human-palatable name for the entity
@@ -4419,7 +4419,7 @@ Example - `"totp"`
 #### code
 
 ```ts
-code: string
+code: string;
 ```
 
 (`string`) - Verification code from the authenticator app when activating MFA
@@ -4435,7 +4435,7 @@ code: string
 #### newPassword
 
 ```ts
-newPassword: string
+newPassword: string;
 ```
 
 (`string`) - A password of minimum 3 characters
@@ -4473,7 +4473,7 @@ MaxLength - 43
 #### email
 
 ```ts
-email: string
+email: string;
 ```
 
 (`string`) - A valid email
@@ -4496,7 +4496,7 @@ optional options?: OptionsRedirectTo;
 #### credential
 
 ```ts
-credential: CredentialCreationResponse
+credential: CredentialCreationResponse;
 ```
 
 (`CredentialCreationResponse`) -
@@ -4518,7 +4518,7 @@ Optional nickname for the security key
 #### id
 
 ```ts
-id: string
+id: string;
 ```
 
 (`string`) - The ID of the newly added security key
@@ -4552,7 +4552,7 @@ PKCE code challenge (S256). When present, the redirect will contain an authoriza
 #### redirectTo
 
 ```ts
-redirectTo: string
+redirectTo: string;
 ```
 
 (RedirectToQuery) - Target URL for the redirect
@@ -4562,7 +4562,7 @@ redirectTo: string
 #### ticket
 
 ```ts
-ticket: string
+ticket: string;
 ```
 
 (TicketQuery) - Ticket
@@ -4599,13 +4599,13 @@ JWT token to verify
 
 ```ts
 type AttestationFormat =
-  | 'packed'
-  | 'tpm'
-  | 'android-key'
-  | 'android-safetynet'
-  | 'fido-u2f'
-  | 'apple'
-  | 'none'
+  | "packed"
+  | "tpm"
+  | "android-key"
+  | "android-safetynet"
+  | "fido-u2f"
+  | "apple"
+  | "none";
 ```
 
 The attestation statement format
@@ -4615,7 +4615,7 @@ The attestation statement format
 ## AuthenticatorAttachment
 
 ```ts
-type AuthenticatorAttachment = 'platform' | 'cross-platform'
+type AuthenticatorAttachment = "platform" | "cross-platform";
 ```
 
 The authenticator attachment modality
@@ -4625,7 +4625,13 @@ The authenticator attachment modality
 ## AuthenticatorTransport
 
 ```ts
-type AuthenticatorTransport = 'usb' | 'nfc' | 'ble' | 'smart-card' | 'hybrid' | 'internal'
+type AuthenticatorTransport =
+  | "usb"
+  | "nfc"
+  | "ble"
+  | "smart-card"
+  | "hybrid"
+  | "internal";
 ```
 
 The authenticator transports that can be used
@@ -4635,7 +4641,7 @@ The authenticator transports that can be used
 ## ConveyancePreference
 
 ```ts
-type ConveyancePreference = 'none' | 'indirect' | 'direct' | 'enterprise'
+type ConveyancePreference = "none" | "indirect" | "direct" | "enterprise";
 ```
 
 The attestation conveyance preference
@@ -4645,7 +4651,7 @@ The attestation conveyance preference
 ## CredentialType
 
 ```ts
-type CredentialType = 'public-key'
+type CredentialType = "public-key";
 ```
 
 The valid credential types
@@ -4656,38 +4662,39 @@ The valid credential types
 
 ```ts
 type ErrorResponseError =
-  | 'default-role-must-be-in-allowed-roles'
-  | 'disabled-endpoint'
-  | 'disabled-user'
-  | 'user-already-exists'
-  | 'email-already-verified'
-  | 'forbidden-anonymous'
-  | 'internal-server-error'
-  | 'invalid-email-password'
-  | 'invalid-request'
-  | 'locale-not-allowed'
-  | 'password-too-short'
-  | 'password-in-hibp-database'
-  | 'redirectTo-not-allowed'
-  | 'role-not-allowed'
-  | 'signup-disabled'
-  | 'unverified-user'
-  | 'user-not-anonymous'
-  | 'invalid-pat'
-  | 'invalid-refresh-token'
-  | 'invalid-ticket'
-  | 'disabled-mfa-totp'
-  | 'no-totp-secret'
-  | 'invalid-totp'
-  | 'mfa-type-not-found'
-  | 'totp-already-active'
-  | 'invalid-state'
-  | 'oauth-token-echange-failed'
-  | 'oauth-profile-fetch-failed'
-  | 'oauth-provider-error'
-  | 'invalid-otp'
-  | 'cannot-send-sms'
-  | 'provider-account-already-linked'
+  | "default-role-must-be-in-allowed-roles"
+  | "disabled-endpoint"
+  | "disabled-user"
+  | "user-already-exists"
+  | "email-already-verified"
+  | "forbidden-anonymous"
+  | "internal-server-error"
+  | "invalid-email-password"
+  | "invalid-request"
+  | "locale-not-allowed"
+  | "password-too-short"
+  | "password-in-hibp-database"
+  | "redirectTo-not-allowed"
+  | "role-not-allowed"
+  | "signup-disabled"
+  | "unverified-user"
+  | "user-not-anonymous"
+  | "invalid-pat"
+  | "invalid-refresh-token"
+  | "invalid-ticket"
+  | "disabled-mfa-totp"
+  | "no-totp-secret"
+  | "invalid-totp"
+  | "mfa-type-not-found"
+  | "totp-already-active"
+  | "invalid-state"
+  | "oauth-token-echange-failed"
+  | "oauth-profile-fetch-failed"
+  | "oauth-provider-error"
+  | "invalid-otp"
+  | "otp-too-many-attempts"
+  | "cannot-send-sms"
+  | "provider-account-already-linked";
 ```
 
 Error code identifying the specific application error
@@ -4697,7 +4704,7 @@ Error code identifying the specific application error
 ## GetCode_challenge_method
 
 ```ts
-type GetCode_challenge_method = 'S256'
+type GetCode_challenge_method = "S256";
 ```
 
 ---
@@ -4705,7 +4712,7 @@ type GetCode_challenge_method = 'S256'
 ## IdTokenProvider
 
 ```ts
-type IdTokenProvider = 'apple' | 'google'
+type IdTokenProvider = "apple" | "google";
 ```
 
 ---
@@ -4713,7 +4720,7 @@ type IdTokenProvider = 'apple' | 'google'
 ## OAuth2IntrospectRequestToken_type_hint
 
 ```ts
-type OAuth2IntrospectRequestToken_type_hint = 'access_token' | 'refresh_token'
+type OAuth2IntrospectRequestToken_type_hint = "access_token" | "refresh_token";
 ```
 
 ---
@@ -4721,7 +4728,7 @@ type OAuth2IntrospectRequestToken_type_hint = 'access_token' | 'refresh_token'
 ## OAuth2RevokeRequestToken_type_hint
 
 ```ts
-type OAuth2RevokeRequestToken_type_hint = 'access_token' | 'refresh_token'
+type OAuth2RevokeRequestToken_type_hint = "access_token" | "refresh_token";
 ```
 
 ---
@@ -4729,7 +4736,7 @@ type OAuth2RevokeRequestToken_type_hint = 'access_token' | 'refresh_token'
 ## OAuth2TokenRequestGrant_type
 
 ```ts
-type OAuth2TokenRequestGrant_type = 'authorization_code' | 'refresh_token'
+type OAuth2TokenRequestGrant_type = "authorization_code" | "refresh_token";
 ```
 
 ---
@@ -4737,7 +4744,7 @@ type OAuth2TokenRequestGrant_type = 'authorization_code' | 'refresh_token'
 ## OKResponse
 
 ```ts
-type OKResponse = 'OK'
+type OKResponse = "OK";
 ```
 
 ---
@@ -4745,7 +4752,7 @@ type OKResponse = 'OK'
 ## PublicKeyCredentialHints
 
 ```ts
-type PublicKeyCredentialHints = 'security-key' | 'client-device' | 'hybrid'
+type PublicKeyCredentialHints = "security-key" | "client-device" | "hybrid";
 ```
 
 Hints to help guide the user through the experience
@@ -4755,7 +4762,7 @@ Hints to help guide the user through the experience
 ## RedirectToQuery
 
 ```ts
-type RedirectToQuery = string
+type RedirectToQuery = string;
 ```
 
 Target URL for the redirect
@@ -4765,7 +4772,7 @@ Target URL for the redirect
 ## ResidentKeyRequirement
 
 ```ts
-type ResidentKeyRequirement = 'discouraged' | 'preferred' | 'required'
+type ResidentKeyRequirement = "discouraged" | "preferred" | "required";
 ```
 
 The resident key requirement
@@ -4776,22 +4783,22 @@ The resident key requirement
 
 ```ts
 type SignInProvider =
-  | 'apple'
-  | 'github'
-  | 'google'
-  | 'linkedin'
-  | 'discord'
-  | 'spotify'
-  | 'twitch'
-  | 'gitlab'
-  | 'bitbucket'
-  | 'workos'
-  | 'azuread'
-  | 'entraid'
-  | 'strava'
-  | 'facebook'
-  | 'windowslive'
-  | 'twitter'
+  | "apple"
+  | "github"
+  | "google"
+  | "linkedin"
+  | "discord"
+  | "spotify"
+  | "twitch"
+  | "gitlab"
+  | "bitbucket"
+  | "workos"
+  | "azuread"
+  | "entraid"
+  | "strava"
+  | "facebook"
+  | "windowslive"
+  | "twitter";
 ```
 
 ---
@@ -4799,7 +4806,7 @@ type SignInProvider =
 ## TicketQuery
 
 ```ts
-type TicketQuery = string
+type TicketQuery = string;
 ```
 
 Ticket
@@ -4809,7 +4816,11 @@ Ticket
 ## TicketTypeQuery
 
 ```ts
-type TicketTypeQuery = 'emailVerify' | 'emailConfirmChange' | 'signinPasswordless' | 'passwordReset'
+type TicketTypeQuery =
+  | "emailVerify"
+  | "emailConfirmChange"
+  | "signinPasswordless"
+  | "passwordReset";
 ```
 
 Type of the ticket
@@ -4819,7 +4830,7 @@ Type of the ticket
 ## URLEncodedBase64
 
 ```ts
-type URLEncodedBase64 = string
+type URLEncodedBase64 = string;
 ```
 
 Base64url-encoded binary data
@@ -4829,7 +4840,7 @@ Base64url-encoded binary data
 ## UserDeanonymizeRequestSignInMethod
 
 ```ts
-type UserDeanonymizeRequestSignInMethod = 'email-password' | 'passwordless'
+type UserDeanonymizeRequestSignInMethod = "email-password" | "passwordless";
 ```
 
 Which sign-in method to use
@@ -4839,7 +4850,7 @@ Which sign-in method to use
 ## UserMfaRequestActiveMfaType
 
 ```ts
-type UserMfaRequestActiveMfaType = 'totp' | ''
+type UserMfaRequestActiveMfaType = "totp" | "";
 ```
 
 Type of MFA to activate. Use empty string to disable MFA.
@@ -4849,7 +4860,7 @@ Type of MFA to activate. Use empty string to disable MFA.
 ## UserVerificationRequirement
 
 ```ts
-type UserVerificationRequirement = 'required' | 'preferred' | 'discouraged'
+type UserVerificationRequirement = "required" | "preferred" | "discouraged";
 ```
 
 A requirement for user verification for the operation
@@ -4859,7 +4870,10 @@ A requirement for user verification for the operation
 ## createAPIClient()
 
 ```ts
-function createAPIClient(baseURL: string, chainFunctions?: ChainFunction[]): Client
+function createAPIClient(
+  baseURL: string,
+  chainFunctions?: ChainFunction[],
+): Client;
 ```
 
 ### Parameters
@@ -4878,7 +4892,7 @@ function createAPIClient(baseURL: string, chainFunctions?: ChainFunction[]): Cli
 ## generateCodeChallenge()
 
 ```ts
-function generateCodeChallenge(verifier: string): Promise<string>
+function generateCodeChallenge(verifier: string): Promise<string>;
 ```
 
 Derive a S256 code challenge from a code verifier.
@@ -4898,7 +4912,7 @@ Derive a S256 code challenge from a code verifier.
 ## generateCodeVerifier()
 
 ```ts
-function generateCodeVerifier(): string
+function generateCodeVerifier(): string;
 ```
 
 Generate a cryptographically random PKCE code verifier (43 base64url characters).
@@ -4913,9 +4927,9 @@ Generate a cryptographically random PKCE code verifier (43 base64url characters)
 
 ```ts
 function generatePKCEPair(): Promise<{
-  challenge: string
-  verifier: string
-}>
+  challenge: string;
+  verifier: string;
+}>;
 ```
 
 Generate a PKCE code verifier and its S256 challenge in one call.

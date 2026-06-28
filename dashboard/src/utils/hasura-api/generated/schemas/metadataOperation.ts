@@ -5,8 +5,11 @@
  * API for managing remote schemas and events in Hasura
  * OpenAPI spec version: 1.0.0
  */
+import type { ActionsBulkOperation } from './actionsBulkOperation';
 import type { AddRemoteSchemaOperation } from './addRemoteSchemaOperation';
 import type { ClearMetadataOperation } from './clearMetadataOperation';
+import type { ComputedFieldBulkOperation } from './computedFieldBulkOperation';
+import type { CreateActionPermissionStep } from './createActionPermissionStep';
 import type { CreateArrayRelationshipBulkOperation } from './createArrayRelationshipBulkOperation';
 import type { CreateCronTriggerBulkOperation } from './createCronTriggerBulkOperation';
 import type { CreateEventTriggerBulkOperation } from './createEventTriggerBulkOperation';
@@ -19,6 +22,8 @@ import type { DeleteEventTriggerBulkOperation } from './deleteEventTriggerBulkOp
 import type { DeleteRemoteRelationshipBulkOperation } from './deleteRemoteRelationshipBulkOperation';
 import type { DeleteRemoteSchemaRemoteRelationshipOperation } from './deleteRemoteSchemaRemoteRelationshipOperation';
 import type { DeleteScheduledEventOperation } from './deleteScheduledEventOperation';
+import type { DropActionOperation } from './dropActionOperation';
+import type { DropActionPermissionStep } from './dropActionPermissionStep';
 import type { DropFunctionPermissionBulkOperation } from './dropFunctionPermissionBulkOperation';
 import type { DropInconsistentMetadataOperation } from './dropInconsistentMetadataOperation';
 import type { DropRelationshipBulkOperation } from './dropRelationshipBulkOperation';
@@ -66,6 +71,7 @@ export type MetadataOperation =
   | SetFunctionCustomizationOperation
   | CreateFunctionPermissionBulkOperation
   | DropFunctionPermissionBulkOperation
+  | ComputedFieldBulkOperation
   | SuggestRelationshipsOperation
   | DropRelationshipBulkOperation
   | DeleteRemoteRelationshipBulkOperation
@@ -91,6 +97,10 @@ export type MetadataOperation =
   | GetCronTriggersOperation
   | CreateCronTriggerBulkOperation
   | DeleteCronTriggerOperation
+  | ActionsBulkOperation
+  | CreateActionPermissionStep
+  | DropActionPermissionStep
+  | DropActionOperation
   | GetScheduledEventsOperation
   | GetScheduledEventInvocationsOperation
   | CreateScheduledEventOperation

@@ -13,10 +13,12 @@ import { DataBrowserEmptyState } from '@/features/orgs/projects/database/dataGri
 import { DataBrowserGridControls } from '@/features/orgs/projects/database/dataGrid/components/DataBrowserGridControls';
 import { DEFAULT_ROWS_LIMIT } from '@/features/orgs/projects/database/dataGrid/constants';
 import { useIsReadOnlyDatabaseObject } from '@/features/orgs/projects/database/dataGrid/hooks/useIsReadOnlyDatabaseObject';
+import { useRefreshMaterializedView } from '@/features/orgs/projects/database/dataGrid/hooks/useRefreshMaterializedView';
 import {
   createTableQueryKey,
   useTableQuery,
 } from '@/features/orgs/projects/database/dataGrid/hooks/useTableQuery';
+import { useTableType } from '@/features/orgs/projects/database/dataGrid/hooks/useTableType';
 import type { UpdateRecordVariables } from '@/features/orgs/projects/database/dataGrid/hooks/useUpdateRecordMutation';
 import { useUpdateRecordWithToastMutation } from '@/features/orgs/projects/database/dataGrid/hooks/useUpdateRecordMutation';
 import type {
@@ -24,21 +26,24 @@ import type {
   DataBrowserGridColumnDef,
   NormalizedQueryDataRow,
 } from '@/features/orgs/projects/database/dataGrid/types/dataBrowser';
+import { getBaseType } from '@/features/orgs/projects/database/dataGrid/utils/getBaseType';
+import { getDisplayType } from '@/features/orgs/projects/database/dataGrid/utils/getDisplayType';
+import { isArray } from '@/features/orgs/projects/database/dataGrid/utils/isArray';
+import { isGeneratedColumn } from '@/features/orgs/projects/database/dataGrid/utils/isGeneratedColumn';
 import { normalizeDefaultValue } from '@/features/orgs/projects/database/dataGrid/utils/normalizeDefaultValue';
 import {
   POSTGRESQL_CHARACTER_TYPES,
-  POSTGRESQL_DATE_TIME_TYPES,
   POSTGRESQL_JSON_TYPES,
   POSTGRESQL_NUMERIC_TYPES,
   POSTGRESQL_UNSORTABLE_TYPES,
 } from '@/features/orgs/projects/database/dataGrid/utils/postgresqlConstants';
+import { isTemporalType } from '@/features/orgs/projects/database/dataGrid/utils/temporalTypeHelpers';
 import {
   DataGrid,
   type DataGridProps,
   type UnknownDataGridRow,
 } from '@/features/orgs/projects/storage/dataGrid/components/DataGrid';
 import { DataGridBooleanCell } from '@/features/orgs/projects/storage/dataGrid/components/DataGridBooleanCell';
-import { DataGridDateCell } from '@/features/orgs/projects/storage/dataGrid/components/DataGridDateCell';
 import { DataGridNumericCell } from '@/features/orgs/projects/storage/dataGrid/components/DataGridNumericCell';
 import { DataGridTextCell } from '@/features/orgs/projects/storage/dataGrid/components/DataGridTextCell';
 import { isEmptyValue, isNotEmptyValue } from '@/lib/utils';
@@ -60,40 +65,29 @@ export function extractColumnMetadata(
   column: NormalizedQueryDataRow,
   isEditable: boolean = true,
 ): DataBrowserColumnMetadata {
-  const { normalizedDefaultValue, custom: isDefaultValueCustom } =
-    normalizeDefaultValue(column.column_default);
+  const normalizedDefault = normalizeDefaultValue(column.column_default);
 
-  const isGeneratedColumn = column.is_generated === 'ALWAYS';
+  const isGenerated = isGeneratedColumn(column);
 
   const metadata: DataBrowserColumnMetadata = {
     id: column.column_name,
-    isEditable: isGeneratedColumn ? false : isEditable,
+    isEditable: isGenerated ? false : isEditable,
     isPrimary: column.is_primary,
     isNullable: column.is_nullable !== 'NO',
     isIdentity: column.is_identity === 'YES',
-    isGenerated: isGeneratedColumn,
+    isGenerated,
     generationExpression: column.generation_expression ?? null,
-    defaultValue: normalizedDefaultValue,
-    isDefaultValueCustom,
+    defaultValue: normalizedDefault ?? null,
     isUnique: column.is_unique,
     comment: column.column_comment,
     uniqueConstraints: column.unique_constraints,
     primaryConstraints: column.primary_constraints,
     foreignKeyRelation: column.foreign_key_relation,
     specificType: column.full_data_type,
-    dataType: column.data_type,
-    type: 'text',
+    baseType: getBaseType(column.full_data_type),
+    isArray: isArray(column.full_data_type),
+    displayType: getDisplayType(column.full_data_type),
   };
-
-  if (POSTGRESQL_NUMERIC_TYPES.includes(column.data_type)) {
-    metadata.type = 'number';
-  } else if (column.data_type === 'boolean') {
-    metadata.type = 'boolean';
-  } else if (column.udt_name === 'uuid') {
-    metadata.type = 'uuid';
-  } else if (POSTGRESQL_DATE_TIME_TYPES.includes(column.data_type)) {
-    metadata.type = 'date';
-  }
 
   return metadata;
 }
@@ -101,7 +95,8 @@ export function extractColumnMetadata(
 export function createDataGridColumn(
   column: NormalizedQueryDataRow,
   isEditable: boolean = true,
-): DataBrowserGridColumnDef {
+  // biome-ignore lint/suspicious/noExplicitAny: Cell types are dynamically typed depending on postgres columns
+): DataBrowserGridColumnDef<UnknownDataGridRow, any> {
   const meta = extractColumnMetadata(column, isEditable);
 
   const isSortable =
@@ -122,7 +117,7 @@ export function createDataGridColumn(
           {column.column_name}
         </span>
 
-        <InlineCode>{column.full_data_type}</InlineCode>
+        <InlineCode>{meta.displayType}</InlineCode>
       </div>
     ),
     id: column.column_name,
@@ -135,7 +130,17 @@ export function createDataGridColumn(
     ),
   };
 
-  if (meta.type === 'number') {
+  if (meta.isArray) {
+    return {
+      ...defaultColumnConfiguration,
+      size: 250,
+      cell: (props: CellContext<UnknownDataGridRow, string>) => (
+        <DataGridTextCell {...props} />
+      ),
+    };
+  }
+
+  if (POSTGRESQL_NUMERIC_TYPES.includes(meta.baseType)) {
     return {
       ...defaultColumnConfiguration,
       size: 250,
@@ -145,7 +150,7 @@ export function createDataGridColumn(
     };
   }
 
-  if (meta.type === 'boolean') {
+  if (meta.baseType === 'boolean') {
     return {
       ...defaultColumnConfiguration,
       size: 140,
@@ -156,8 +161,8 @@ export function createDataGridColumn(
   }
 
   if (
-    POSTGRESQL_CHARACTER_TYPES.includes(column.data_type) ||
-    POSTGRESQL_JSON_TYPES.includes(column.data_type)
+    POSTGRESQL_CHARACTER_TYPES.includes(meta.baseType) ||
+    POSTGRESQL_JSON_TYPES.includes(meta.baseType)
   ) {
     return {
       ...defaultColumnConfiguration,
@@ -168,7 +173,7 @@ export function createDataGridColumn(
     };
   }
 
-  if (meta.type === 'uuid') {
+  if (meta.baseType === 'uuid') {
     return {
       ...defaultColumnConfiguration,
       size: 318,
@@ -178,12 +183,12 @@ export function createDataGridColumn(
     };
   }
 
-  if (meta.type === 'date') {
+  if (isTemporalType(meta.baseType)) {
     return {
       ...defaultColumnConfiguration,
       size: 200,
       cell: (props: CellContext<UnknownDataGridRow, string>) => (
-        <DataGridDateCell {...props} />
+        <DataGridTextCell {...props} />
       ),
     };
   }
@@ -220,6 +225,19 @@ export default function DataBrowserGrid(props: DataBrowserGridProps) {
     },
   });
 
+  const { tableType } = useTableType({
+    dataSource: dataSourceSlug as string,
+    schema: schemaSlug as string,
+    name: tableSlug as string,
+    queryOptions: {
+      enabled:
+        typeof schemaSlug === 'string' &&
+        typeof tableSlug === 'string' &&
+        typeof dataSourceSlug === 'string',
+    },
+  });
+  const isMaterializedView = tableType === 'MATERIALIZED VIEW';
+
   const { data, status, error, refetch } = useTableQuery(
     createTableQueryKey(
       currentTablePath,
@@ -238,6 +256,11 @@ export default function DataBrowserGrid(props: DataBrowserGridProps) {
       filters: appliedFilters,
     },
   );
+
+  const {
+    handleRefresh: handleRefreshMaterializedViewClick,
+    isRefreshing: isRefreshingMaterializedView,
+  } = useRefreshMaterializedView({ refetch });
 
   const {
     columns,
@@ -415,6 +438,9 @@ export default function DataBrowserGrid(props: DataBrowserGridProps) {
       controls={
         <DataBrowserGridControls
           onInsertRowClick={isReadOnlyObject ? undefined : handleInsertRowClick}
+          showRefreshMaterializedViewButton={isMaterializedView}
+          onRefreshMaterializedViewClick={handleRefreshMaterializedViewClick}
+          isRefreshingMaterializedView={isRefreshingMaterializedView}
           paginationProps={{
             currentPage: Math.max(currentPage, 1),
             totalPages: Math.max(numberOfPages, 1),

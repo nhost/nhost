@@ -1,0 +1,11 @@
+[
+  {
+    "Name": "deactivateDepartment",
+    "SQL": "SELECT coalesce(json_agg(\"_root\"), '[]') AS \"deactivateDepartment\" FROM (WITH \"_root.base\" AS (SELECT * FROM \"public\".\"deactivate_department\"(\"p_department_id\" := $1, \"session\" := $2) AS \"_fn_deactivate_department\") SELECT row_to_json((SELECT \"_e\" FROM (SELECT \"_root.base\".\"user_id\" AS \"user_id\", \"_root.base\".\"department_id\" AS \"department_id\", \"_root.base\".\"is_active\" AS \"is_active\") AS \"_e\")) AS \"_root\" FROM \"_root.base\") AS \"_root\"",
+    "Parameters": [
+      "2db9de0a-b9ba-416e-8619-783a399ae2b3",
+      "{}"
+    ],
+    "StreamCursors": null
+  }
+]

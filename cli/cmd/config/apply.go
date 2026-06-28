@@ -55,7 +55,7 @@ func commandApply(ctx context.Context, cmd *cli.Command) error {
 	return commandApplyPlain(ctx, ce, proj.GetSubdomain(), proj.GetID(), proj.ID, skipConfirm)
 }
 
-func commandApplyTUI( //nolint:funlen
+func commandApplyTUI(
 	ctx context.Context,
 	ce *clienv.CliEnv,
 	subdomain, projID, appID string,
@@ -77,6 +77,7 @@ func commandApplyTUI( //nolint:funlen
 			Name: "Validating configuration",
 			Fn: func() error {
 				var err error
+
 				cfg, _, err = ValidateRemote(ctx, ce, subdomain, projID)
 
 				return err
@@ -88,7 +89,7 @@ func commandApplyTUI( //nolint:funlen
 				return Apply(ctx, ce, appID, cfg, true)
 			},
 		},
-	}) //nolint:wrapcheck
+	})
 }
 
 func commandApplyPlain(

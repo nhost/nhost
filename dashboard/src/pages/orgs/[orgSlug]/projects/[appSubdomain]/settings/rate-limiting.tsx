@@ -1,9 +1,8 @@
 import type { ReactElement } from 'react';
 import { Container } from '@/components/layout/Container';
 import { Box } from '@/components/ui/v2/Box';
-import { ArrowSquareOutIcon } from '@/components/ui/v2/icons/ArrowSquareOutIcon';
-import { Link } from '@/components/ui/v2/Link';
 import { Text } from '@/components/ui/v2/Text';
+import { TextLink } from '@/components/ui/v3/text-link';
 import { OrgLayout } from '@/features/orgs/layout/OrgLayout';
 import { SettingsLayout } from '@/features/orgs/layout/SettingsLayout';
 import { AuthLimitingForm } from '@/features/orgs/projects/rate-limiting/settings/components/AuthLimitingForm';
@@ -33,16 +32,13 @@ export default function RateLimiting() {
 
           <Text color="secondary">
             Learn more about
-            <Link
+            <TextLink
               href="https://docs.nhost.io/platform/cloud/rate-limits"
-              target="_blank"
-              rel="noopener noreferrer"
-              underline="hover"
+              external
               className="ml-1 font-medium"
             >
               Rate Limiting
-              <ArrowSquareOutIcon className="ml-1 h-4 w-4" />
-            </Link>
+            </TextLink>
           </Text>
         </div>
       </Box>

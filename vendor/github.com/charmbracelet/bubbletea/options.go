@@ -19,7 +19,7 @@ type ProgramOption func(*Program)
 // cancelled it will exit with an error ErrProgramKilled.
 func WithContext(ctx context.Context) ProgramOption {
 	return func(p *Program) {
-		p.externalCtx = ctx
+		p.ctx = ctx
 	}
 }
 

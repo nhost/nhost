@@ -58,7 +58,7 @@ const rawColumn: NormalizedQueryDataRow = {
   foreign_key_relation: null,
 };
 
-test('should normalize a raw database column', () => {
+it('should normalize a raw database column', () => {
   const column = normalizeDatabaseColumn(rawColumn);
 
   expect(column).toMatchObject<DatabaseColumn>({
@@ -68,15 +68,8 @@ test('should normalize a raw database column', () => {
     isUnique: true,
     isPrimary: true,
     isNullable: false,
-    type: {
-      value: 'uuid',
-      label: 'uuid',
-    },
-    defaultValue: {
-      value: 'gen_random_uuid()',
-      label: 'gen_random_uuid()',
-      custom: false,
-    },
+    type: 'uuid',
+    defaultValue: 'gen_random_uuid()',
     comment: null,
     primaryConstraints: ['test_table_pkey'],
     uniqueConstraints: [],
@@ -84,7 +77,7 @@ test('should normalize a raw database column', () => {
   });
 });
 
-test('should set identity to true if the column is an identity column', () => {
+it('should set identity to true if the column is an identity column', () => {
   const rawIdentityColumn: typeof rawColumn = {
     ...rawColumn,
     udt_name: 'int4',
@@ -103,11 +96,7 @@ test('should set identity to true if the column is an identity column', () => {
     isUnique: true,
     isPrimary: true,
     isNullable: false,
-    type: {
-      value: 'int4',
-      label: 'integer',
-      custom: false,
-    },
+    type: 'int4',
     defaultValue: null,
     comment: null,
     primaryConstraints: ['test_table_pkey'],
@@ -116,7 +105,7 @@ test('should set identity to true if the column is an identity column', () => {
   });
 });
 
-test('should set isGenerated to true and map generationExpression for generated columns', () => {
+it('should set isGenerated to true and map generationExpression for generated columns', () => {
   const rawGeneratedColumn: typeof rawColumn = {
     ...rawColumn,
     column_name: 'total',
@@ -142,7 +131,7 @@ test('should set isGenerated to true and map generationExpression for generated 
     isNullable: false,
     isUnique: false,
     isPrimary: false,
-    type: { value: 'numeric', label: 'numeric' },
+    type: 'numeric',
     defaultValue: null,
     comment: null,
     primaryConstraints: [],
@@ -151,7 +140,20 @@ test('should set isGenerated to true and map generationExpression for generated 
   });
 });
 
-test('should set nullable to true if the column is nullable', () => {
+it('should strip the cast from an empty-string default', () => {
+  const rawEmptyStringDefaultColumn: typeof rawColumn = {
+    ...rawColumn,
+    udt_name: 'text',
+    data_type: 'text',
+    full_data_type: 'text',
+    column_default: "''::text",
+  };
+
+  const column = normalizeDatabaseColumn(rawEmptyStringDefaultColumn);
+
+  expect(column.defaultValue).toBe("''");
+});
+it('should set nullable to true if the column is nullable', () => {
   const rawNullableColumn: typeof rawColumn = {
     ...rawColumn,
     is_nullable: 'YES',
@@ -166,18 +168,39 @@ test('should set nullable to true if the column is nullable', () => {
     isUnique: true,
     isPrimary: true,
     isNullable: true,
-    type: {
-      value: 'uuid',
-      label: 'uuid',
-    },
-    defaultValue: {
-      value: 'gen_random_uuid()',
-      label: 'gen_random_uuid()',
-      custom: false,
-    },
+    type: 'uuid',
+    defaultValue: 'gen_random_uuid()',
     comment: null,
     primaryConstraints: ['test_table_pkey'],
     uniqueConstraints: [],
     foreignKeyRelation: null,
   });
+});
+
+it('should keep the quotes and strip the cast for a quoted literal default', () => {
+  const rawLiteralColumn: typeof rawColumn = {
+    ...rawColumn,
+    udt_name: 'text',
+    data_type: 'text',
+    full_data_type: 'text',
+    column_default: "'version()'::text",
+  };
+
+  const column = normalizeDatabaseColumn(rawLiteralColumn);
+
+  expect(column.defaultValue).toBe("'version()'");
+});
+
+it('should keep a bare function default verbatim', () => {
+  const rawFunctionColumn: typeof rawColumn = {
+    ...rawColumn,
+    udt_name: 'text',
+    data_type: 'text',
+    full_data_type: 'text',
+    column_default: 'version()',
+  };
+
+  const column = normalizeDatabaseColumn(rawFunctionColumn);
+
+  expect(column.defaultValue).toBe('version()');
 });

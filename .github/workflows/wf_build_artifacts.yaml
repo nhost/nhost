@@ -36,6 +36,10 @@ on:
         required: true
       NIX_CACHE_PRIV_KEY:
         required: true
+      NIX_CACHE_ACCESS_KEY_ID:
+        required: true
+      NIX_CACHE_SECRET_ACCESS_KEY:
+        required: true
 
 jobs:
   artifacts:
@@ -62,9 +66,10 @@ jobs:
         working-directory: .
 
       - name: "Check out repository"
-        uses: actions/checkout@v6
+        uses: actions/checkout@v7
         with:
           ref: ${{ inputs.GIT_REF }}
+          allow-unsafe-pr-checkout: true
 
       - name: Configure aws
         uses: aws-actions/configure-aws-credentials@v6
@@ -77,15 +82,33 @@ jobs:
         with:
           NAME: ${{ inputs.NAME }}
           NIX_CACHE_PUB_KEY: ${{ secrets.NIX_CACHE_PUB_KEY }}
+          NIX_CACHE_ACCESS_KEY_ID: ${{ secrets.NIX_CACHE_ACCESS_KEY_ID }}
+          NIX_CACHE_SECRET_ACCESS_KEY: ${{ secrets.NIX_CACHE_SECRET_ACCESS_KEY }}
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
       - name: "Verify if we need to build"
         id: verify-build
         run: |
-          export drvPath=$(make build-dry-run)
-          nix path-info --store s3://nhost-nix-cache\?region=eu-central-1 $drvPath \
-            && export BUILD_NEEDED=no \
-            || export BUILD_NEEDED=yes
+          # `nix build --dry-run` (inside `make build-dry-run`) walks the
+          # full build graph and reports what would be built locally vs
+          # fetched from configured substituters (cache.nixos.org + our
+          # S3 cache). If any derivation would be built we have new paths
+          # worth uploading. This catches the case where the top-level
+          # output is cached but transitive build deps aren't — `nix
+          # path-info --recursive` only sees the runtime closure, which
+          # misses build-time intermediates.
+          stderr_log=$(mktemp)
+          if ! make build-dry-run 2>"$stderr_log" >/dev/null; then
+            cat "$stderr_log" >&2
+            rm -f "$stderr_log"
+            exit 1
+          fi
+          if grep -q "will be built" "$stderr_log"; then
+            export BUILD_NEEDED=yes
+          else
+            export BUILD_NEEDED=no
+          fi
+          rm -f "$stderr_log"
           echo BUILD_NEEDED=$BUILD_NEEDED >> $GITHUB_OUTPUT
 
       - name: Compute common env vars
@@ -117,7 +140,7 @@ jobs:
           sudo mkdir -p "/run/containers/$(id -u runner)"
           sudo chown runner: "/run/containers/$(id -u runner)"
           make build-docker-image
-        if: ${{ ( inputs.DOCKER ) }}
+        if: ${{ inputs.DOCKER && runner.os != 'macOS' }}
 
       - name: "Push docker image to artifact repository"
         uses: actions/upload-artifact@v7
@@ -125,10 +148,12 @@ jobs:
           name: ${{ inputs.NAME }}-docker-image${{ inputs.ARTIFACT_SUFFIX }}-${{ steps.vars.outputs.ARCH }}-${{ steps.vars.outputs.VERSION }}
           path: ${{ inputs.PATH }}/result
           retention-days: 7
-        if: ${{ ( inputs.DOCKER ) }}
+        if: ${{ inputs.DOCKER && runner.os != 'macOS' }}
 
       - name: "Store Nix cache"
         uses: ./.github/actions/cache-nix
         with:
           NIX_CACHE_PRIV_KEY: ${{ secrets.NIX_CACHE_PRIV_KEY }}
-        if: ${{ always() && steps.verify-build.outputs.BUILD_NEEDED == 'yes' }}
+          NIX_CACHE_ACCESS_KEY_ID: ${{ secrets.NIX_CACHE_ACCESS_KEY_ID }}
+          NIX_CACHE_SECRET_ACCESS_KEY: ${{ secrets.NIX_CACHE_SECRET_ACCESS_KEY }}
+        if: ${{ always() }}

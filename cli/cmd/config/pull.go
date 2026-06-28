@@ -22,9 +22,8 @@ import (
 )
 
 const (
-	DefaultHasuraGraphqlAdminSecret = "nhost-admin-secret" //nolint:gosec
-	DefaultGraphqlJWTSecret         = "0f987876650b4a085e64594fae9219e7781b17506bec02489ad061fba8cb22db"
-	DefaultNhostWebhookSecret       = "nhost-webhook-secret" //nolint:gosec
+	DefaultGraphqlJWTSecret   = "0f987876650b4a085e64594fae9219e7781b17506bec02489ad061fba8cb22db"
+	DefaultNhostWebhookSecret = "nhost-webhook-secret" //nolint:gosec
 )
 
 const (
@@ -166,7 +165,7 @@ func anonymizeSecret(
 
 	switch clone.Name {
 	case "HASURA_GRAPHQL_ADMIN_SECRET":
-		clone.Value = DefaultHasuraGraphqlAdminSecret
+		clone.Value = clienv.DefaultLocalAdminSecret
 	case "HASURA_GRAPHQL_JWT_SECRET":
 		clone.Value = DefaultGraphqlJWTSecret
 	case "NHOST_WEBHOOK_SECRET":

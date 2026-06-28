@@ -150,7 +150,7 @@ func TestSignInWebauthn(t *testing.T) {
 					Timeout:        60000,
 					RelyingPartyID: "react-apollo.example.nhost.io",
 					AllowedCredentials: []protocol.CredentialDescriptor{
-						{ //nolint:exhaustruct
+						{
 							Type:         "public-key",
 							CredentialID: credentialID,
 						},
@@ -267,7 +267,7 @@ func TestSignInWebauthn(t *testing.T) {
 				tc.request,
 				tc.expectedResponse,
 				cmpopts.IgnoreFields(
-					api.SignInWebauthn200JSONResponse{}, //nolint:exhaustruct
+					api.SignInWebauthn200JSONResponse{},
 					"Challenge",
 				),
 			)

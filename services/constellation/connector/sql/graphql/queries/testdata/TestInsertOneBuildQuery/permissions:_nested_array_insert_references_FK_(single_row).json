@@ -1,0 +1,16 @@
+[
+  {
+    "Name": "insert_kb_entries_one",
+    "SQL": "WITH check_mutation_result AS (SELECT * FROM (SELECT $1::text AS \"title\", $2::text AS \"summary\", $3::text AS \"content\", $4::uuid AS \"uploader_id\") AS data WHERE true), mutation_result AS (INSERT INTO \"public\".\"kb_entries\" (\"title\", \"summary\", \"content\", \"uploader_id\") SELECT check_mutation_result.\"title\", check_mutation_result.\"summary\", check_mutation_result.\"content\", check_mutation_result.\"uploader_id\" FROM check_mutation_result RETURNING *), check_nested_kb_entry_departments AS (SELECT * FROM (SELECT $5::uuid AS \"department_id\", mutation_result.\"id\" AS \"kb_entry_id\" FROM mutation_result) AS data WHERE EXISTS (SELECT 1 FROM mutation_result g WHERE data.\"kb_entry_id\" = g.\"id\" AND g.\"uploader_id\" = $6::uuid) AND data.\"department_id\" = ANY($7::uuid[])), nested_kb_entry_departments_check_count AS (SELECT CASE WHEN (SELECT COUNT(*) FROM check_nested_kb_entry_departments) >= 1 THEN 1 ELSE (SELECT 0 FROM (SELECT constellation_throw_error('check constraint of an insert/update permission has failed', 'ZZ901')) x) END AS status), nested_kb_entry_departments AS (INSERT INTO \"public\".\"kb_entry_departments\" (\"department_id\", \"kb_entry_id\") SELECT check_nested_kb_entry_departments.\"department_id\", mutation_result.\"id\" FROM check_nested_kb_entry_departments, mutation_result WHERE (SELECT status FROM nested_kb_entry_departments_check_count) = 1 RETURNING *) SELECT row_to_json((SELECT \"_e\" FROM (SELECT mutation_result.\"title\" AS \"title\") AS \"_e\")) FROM mutation_result WHERE (SELECT COUNT(*) FROM nested_kb_entry_departments) IS NOT NULL",
+    "Parameters": [
+      "Single-row nested array test",
+      "summary",
+      "content",
+      "550e8400-e29b-41d4-a716-446655440001",
+      "2db9de0a-b9ba-416e-8619-783a399ae2b3",
+      "550e8400-e29b-41d4-a716-446655440001",
+      "{2db9de0a-b9ba-416e-8619-783a399ae2b3,fd1e6bba-c292-4b2f-872e-ae16146cdd82}"
+    ],
+    "StreamCursors": null
+  }
+]

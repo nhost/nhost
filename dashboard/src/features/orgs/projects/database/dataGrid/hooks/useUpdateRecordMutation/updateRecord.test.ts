@@ -1,6 +1,7 @@
 import { HttpResponse, http } from 'msw';
 import { setupServer } from 'msw/node';
 import type { DataBrowserGridRow } from '@/features/orgs/projects/database/dataGrid/types/dataBrowser';
+import { isArray } from '@/features/orgs/projects/database/dataGrid/utils/isArray';
 import updateRecord from './updateRecord';
 
 const defaultOptions = {
@@ -31,6 +32,7 @@ function makeRow(cells: RowCell[]): DataBrowserGridRow {
               id: c.id,
               isPrimary: c.isPrimary ?? false,
               specificType: c.specificType,
+              isArray: isArray(c.specificType),
             },
           },
         },
@@ -100,7 +102,7 @@ describe('updateRecord', () => {
     expect(sql).not.toMatch(/tags = '(\[.*\])'/);
   });
 
-  test('sets a column to NULL when reset is true', async () => {
+  test("sets a column to NULL when reset is 'null'", async () => {
     const row = makeRow([
       { id: 'id', isPrimary: true, specificType: 'integer', value: 1 },
       { id: 'bio', specificType: 'text', value: 'hello' },
@@ -109,11 +111,28 @@ describe('updateRecord', () => {
     await updateRecord({
       ...defaultOptions,
       row,
-      columnsToUpdate: { bio: { value: null, reset: true } },
+      columnsToUpdate: { bio: { reset: 'null' } },
     });
 
     const sql = (capturedBody as CapturedRequest).args[0].args.sql;
     expect(sql).toContain('bio = NULL');
+  });
+
+  test("sets a column to DEFAULT when reset is 'default'", async () => {
+    const row = makeRow([
+      { id: 'id', isPrimary: true, specificType: 'integer', value: 1 },
+      { id: 'created_at', specificType: 'timestamptz', value: '2026-01-01' },
+    ]);
+
+    await updateRecord({
+      ...defaultOptions,
+      row,
+      columnsToUpdate: { created_at: { reset: 'default' } },
+    });
+
+    const sql = (capturedBody as CapturedRequest).args[0].args.sql;
+    expect(sql).toContain('created_at = DEFAULT');
+    expect(sql).not.toContain('created_at = NULL');
   });
 
   test('builds the WHERE clause from primary key columns', async () => {
@@ -158,6 +177,47 @@ describe('updateRecord', () => {
         columnsToUpdate: { tags: { value: '{a,b}' } },
       }),
     ).rejects.toThrow('Invalid array value for column "tags"');
+  });
+
+  it("sets an array column to DEFAULT when reset is 'default' without emitting ARRAY[...] syntax", async () => {
+    const row = makeRow([
+      { id: 'id', isPrimary: true, specificType: 'integer', value: 1 },
+      { id: 'tags', specificType: 'text[]', value: ['a', 'b'] },
+    ]);
+
+    await updateRecord({
+      ...defaultOptions,
+      row,
+      columnsToUpdate: { tags: { reset: 'default' } },
+    });
+
+    const sql = (capturedBody as CapturedRequest).args[0].args.sql;
+    expect(sql).toContain('tags = DEFAULT');
+    expect(sql).not.toContain('ARRAY[');
+  });
+
+  it('combines NULL, DEFAULT, and value updates in a single SET clause', async () => {
+    const row = makeRow([
+      { id: 'id', isPrimary: true, specificType: 'integer', value: 1 },
+      { id: 'name', specificType: 'text', value: 'Alice' },
+      { id: 'age', specificType: 'integer', value: 30 },
+      { id: 'bio', specificType: 'text', value: 'hello' },
+    ]);
+
+    await updateRecord({
+      ...defaultOptions,
+      row,
+      columnsToUpdate: {
+        name: { reset: 'null' },
+        age: { reset: 'default' },
+        bio: { value: 'foo' },
+      },
+    });
+
+    const sql = (capturedBody as CapturedRequest).args[0].args.sql;
+    expect(sql).toContain('name = NULL');
+    expect(sql).toContain('age = DEFAULT');
+    expect(sql).toContain("bio = 'foo'");
   });
 
   test('throws a normalized error when the server returns an error', async () => {

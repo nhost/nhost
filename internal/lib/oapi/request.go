@@ -55,13 +55,23 @@ func handleError(c *gin.Context, err error) {
 	}
 }
 
-func requestValidatorWithOptions(
+// newRequestValidator returns a gin middleware that validates each incoming
+// request against the OpenAPI spec (body, params, headers) and drives the
+// per-operation `security:` block by invoking authFn once per declared scheme.
+// AND/OR/anonymous semantics come from openapi3filter; the supplied
+// AuthenticationFunc should return a *AuthenticatorError on failure so the
+// canonical error shape ({error, reason, securityScheme}) is produced.
+//
+// NewRouter exposes this as a per-route middleware so callers mount it through
+// RegisterHandlersWithOptions and leave routes registered directly on the gin
+// engine outside spec validation.
+func newRequestValidator(
 	swagger *openapi3.T,
 	authFn openapi3filter.AuthenticationFunc,
-) gin.HandlerFunc {
+) (gin.HandlerFunc, error) {
 	router, err := gorillamux.NewRouter(swagger)
 	if err != nil {
-		panic(err)
+		return nil, fmt.Errorf("building request router: %w", err)
 	}
 
 	return func(c *gin.Context) {
@@ -70,7 +80,7 @@ func requestValidatorWithOptions(
 		}
 
 		c.Next()
-	}
+	}, nil
 }
 
 func validateRequestFromContext(

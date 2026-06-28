@@ -38,9 +38,14 @@ interface FormSelectProps<
   placeholder?: string;
   className?: string;
   containerClassName?: string;
+  // Forwarded to the dropdown content. Needed to raise the z-index when the
+  // select lives inside a higher-stacked container such as a MUI dialog.
+  contentClassName?: string;
   inline?: boolean;
   helperText?: string | null;
+  helperTextClassName?: string;
   disabled?: boolean;
+  autoFocus?: boolean;
   transform?: Transformer;
   'data-testid'?: string;
 }
@@ -56,9 +61,12 @@ function FormSelectImpl<
     placeholder,
     className,
     containerClassName,
+    contentClassName,
     inline,
     helperText,
+    helperTextClassName,
     disabled,
+    autoFocus,
     children,
     transform,
     'data-testid': dataTestId,
@@ -80,21 +88,23 @@ function FormSelectImpl<
         return (
           <FormItem
             className={cn(
-              { 'flex w-full items-center gap-4 py-3': inline },
+              {
+                'sm:flex sm:w-full sm:items-center sm:gap-4 sm:py-3': inline,
+              },
               containerClassName,
             )}
           >
             <FormLabel
               className={cn({
-                'w-52 max-w-52 flex-shrink-0': inline,
-                'mt-2 self-start': inline && !!helperText,
+                'sm:w-52 sm:max-w-52 sm:flex-shrink-0': inline,
+                'sm:mt-2 sm:self-start': inline && !!helperText,
               })}
             >
               {label}
             </FormLabel>
             <div
               className={cn({
-                'flex w-[calc(100%-13.5rem)] max-w-[calc(100%-13.5rem)] flex-col gap-2':
+                'sm:flex sm:w-[calc(100%-13.5rem)] sm:max-w-[calc(100%-13.5rem)] sm:flex-col sm:gap-2':
                   inline,
               })}
             >
@@ -108,14 +118,19 @@ function FormSelectImpl<
                     className={cn(selectClasses, className)}
                     ref={mergeRefs([fieldRef, ref])}
                     data-testid={dataTestId}
+                    autoFocus={autoFocus}
                   >
                     <SelectValue placeholder={placeholder} />
                   </SelectTrigger>
                 </FormControl>
-                <SelectContent>{children}</SelectContent>
+                <SelectContent className={contentClassName}>
+                  {children}
+                </SelectContent>
               </Select>
               {!!helperText && (
-                <FormDescription className="break-all px-[1px]">
+                <FormDescription
+                  className={cn('break-all px-[1px]', helperTextClassName)}
+                >
                   {helperText}
                 </FormDescription>
               )}

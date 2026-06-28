@@ -1,27 +1,6 @@
-import { Check, ChevronsUpDown } from 'lucide-react';
 import { useRouter } from 'next/router';
-import { useEffect, useMemo, useState } from 'react';
-import { Button } from '@/components/ui/v3/button';
-import {
-  Command,
-  CommandEmpty,
-  CommandGroup,
-  CommandInput,
-  CommandItem,
-  CommandList,
-} from '@/components/ui/v3/command';
-import {
-  Popover,
-  PopoverContent,
-  PopoverTrigger,
-} from '@/components/ui/v3/popover';
-import { cn } from '@/lib/utils';
-
-type Option = {
-  value: string;
-  label: string;
-  route: string;
-};
+import { useMemo } from 'react';
+import HeaderCombobox from '@/components/layout/Header/HeaderCombobox';
 
 const projectEventsPages = [
   {
@@ -58,82 +37,29 @@ export default function ProjectEventsPagesComboBox() {
     ? pathSegments[6] || 'event-triggers'
     : null;
 
-  const selectedEventsPageFromUrl = projectEventsPages.find(
+  const selectedEventsPage = projectEventsPages.find(
     (item) => item.value === eventsPageFromUrl,
   );
-  const [selectedEventsPage, setSelectedEventsPage] = useState<Option | null>(
-    null,
-  );
 
-  useEffect(() => {
-    if (selectedEventsPageFromUrl) {
-      setSelectedEventsPage({
-        label: selectedEventsPageFromUrl.label,
-        value: selectedEventsPageFromUrl.value,
-        route: selectedEventsPageFromUrl.route,
-      });
-    }
-  }, [selectedEventsPageFromUrl]);
-
-  const options: Option[] = projectEventsPages.map((page) => ({
+  const options = projectEventsPages.map((page) => ({
     label: page.label,
     value: page.value,
-    route: page.route,
   }));
 
-  const [open, setOpen] = useState(false);
-
   return (
-    <Popover open={open} onOpenChange={setOpen}>
-      <PopoverTrigger asChild>
-        <Button
-          variant="ghost"
-          size="sm"
-          className="justify-start gap-2 bg-background text-foreground hover:bg-accent dark:hover:bg-muted"
-        >
-          {selectedEventsPage ? (
-            <div>{selectedEventsPage.label}</div>
-          ) : (
-            <>Select a page</>
-          )}
-          <ChevronsUpDown className="h-5 w-5 text-muted-foreground" />
-        </Button>
-      </PopoverTrigger>
-      <PopoverContent className="p-0" side="bottom" align="start">
-        <Command>
-          <CommandInput placeholder="Select a page..." />
-          <CommandList>
-            <CommandEmpty>No results found.</CommandEmpty>
-            <CommandGroup>
-              {options.map((option) => (
-                <CommandItem
-                  key={option.value}
-                  value={option.label}
-                  onSelect={() => {
-                    setSelectedEventsPage(option);
-                    setOpen(false);
-                    push(
-                      `/orgs/${orgSlug}/projects/${appSubdomain}/events/${option.route}/`,
-                    );
-                  }}
-                >
-                  <Check
-                    className={cn(
-                      'mr-2 h-4 w-4',
-                      selectedEventsPage?.value === option.value
-                        ? 'opacity-100'
-                        : 'opacity-0',
-                    )}
-                  />
-                  <div className="flex flex-row items-center gap-2">
-                    <span className="max-w-52 truncate">{option.label}</span>
-                  </div>
-                </CommandItem>
-              ))}
-            </CommandGroup>
-          </CommandList>
-        </Command>
-      </PopoverContent>
-    </Popover>
+    <HeaderCombobox
+      options={options}
+      value={selectedEventsPage?.value ?? null}
+      placeholder="Select a page"
+      searchPlaceholder="Select a page..."
+      onChange={(value) => {
+        const option = projectEventsPages.find((page) => page.value === value);
+        if (option) {
+          push(
+            `/orgs/${orgSlug}/projects/${appSubdomain}/events/${option.route}/`,
+          );
+        }
+      }}
+    />
   );
 }

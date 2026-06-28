@@ -57,7 +57,7 @@ func commandValidateLocal(ce *clienv.CliEnv, isTTY bool) error {
 					return validateLocalConfig(ce)
 				},
 			},
-		}) //nolint:wrapcheck
+		})
 	}
 
 	ce.Infoln("Validating configuration...")
@@ -111,7 +111,7 @@ func commandValidateRemote(
 					return err
 				},
 			},
-		}) //nolint:wrapcheck
+		})
 	}
 
 	_, _, err = ValidateRemote(ctx, ce, proj.GetSubdomain(), proj.GetID())

@@ -3,15 +3,15 @@ import { useMemo, useState } from 'react';
 import { twMerge } from 'tailwind-merge';
 import { Box } from '@/components/ui/v2/Box';
 import { Button } from '@/components/ui/v2/Button';
-import { Checkbox } from '@/components/ui/v2/Checkbox';
 import { Text } from '@/components/ui/v2/Text';
+import { Checkbox } from '@/components/ui/v3/checkbox';
+import { Label } from '@/components/ui/v3/label';
 import { generateAppServiceUrl } from '@/features/orgs/projects/common/utils/generateAppServiceUrl';
 import { useProject } from '@/features/orgs/projects/hooks/useProject';
 import { execPromiseWithErrorToast } from '@/features/orgs/utils/execPromiseWithErrorToast';
 import { isNotEmptyValue } from '@/lib/utils';
 import type { AutoEmbeddingsConfiguration } from '@/pages/orgs/[orgSlug]/projects/[appSubdomain]/ai/auto-embeddings';
 import { useDeleteGraphiteAutoEmbeddingsConfigurationMutation } from '@/utils/__generated__/graphite.graphql';
-import { getHasuraAdminSecret } from '@/utils/env';
 
 export interface DeleteAutoEmbeddingsModalProps {
   autoEmbeddingsConfiguration: AutoEmbeddingsConfiguration;
@@ -45,10 +45,7 @@ export default function DeleteAutoEmbeddingsModal({
         link: new HttpLink({
           uri: serviceUrl,
           headers: {
-            'x-hasura-admin-secret':
-              process.env.NEXT_PUBLIC_ENV === 'dev'
-                ? getHasuraAdminSecret()
-                : project.config.hasura.adminSecret,
+            'x-hasura-admin-secret': project.config.hasura.adminSecret,
           },
         }),
       });
@@ -109,14 +106,17 @@ export default function DeleteAutoEmbeddingsModal({
         </Text>
 
         <Box className="my-4">
-          <Checkbox
-            id="accept-1"
-            label={`I'm sure I want to delete ${autoEmbeddingsConfiguration?.name}`}
-            className="py-2"
-            checked={remove}
-            onChange={(_event, checked) => setRemove(checked)}
-            aria-label="Confirm Delete Auto-Embeddings Configuration"
-          />
+          <div className="flex items-center gap-2 py-2">
+            <Checkbox
+              id="accept-1"
+              checked={remove}
+              onCheckedChange={(checked) => setRemove(checked === true)}
+              aria-label="Confirm Delete Auto-Embeddings Configuration"
+            />
+            <Label htmlFor="accept-1" className="cursor-pointer font-normal">
+              {`I'm sure I want to delete ${autoEmbeddingsConfiguration?.name}`}
+            </Label>
+          </div>
         </Box>
 
         <div className="grid grid-flow-row gap-2">

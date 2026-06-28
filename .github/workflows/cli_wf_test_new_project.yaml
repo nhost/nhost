@@ -18,6 +18,10 @@ on:
         required: true
       NIX_CACHE_PRIV_KEY:
         required: true
+      NIX_CACHE_ACCESS_KEY_ID:
+        required: true
+      NIX_CACHE_SECRET_ACCESS_KEY:
+        required: true
       NHOST_PAT:
         required: true
 
@@ -40,9 +44,10 @@ jobs:
 
     steps:
       - name: "Check out repository"
-        uses: actions/checkout@v6
+        uses: actions/checkout@v7
         with:
           ref: ${{ inputs.GIT_REF }}
+          allow-unsafe-pr-checkout: true
 
       - name: Collect Workflow Telemetry
         uses: catchpoint/workflow-telemetry-action@v2
@@ -60,6 +65,8 @@ jobs:
         with:
           NAME: ${{ inputs.NAME }}
           NIX_CACHE_PUB_KEY: ${{ secrets.NIX_CACHE_PUB_KEY }}
+          NIX_CACHE_ACCESS_KEY_ID: ${{ secrets.NIX_CACHE_ACCESS_KEY_ID }}
+          NIX_CACHE_SECRET_ACCESS_KEY: ${{ secrets.NIX_CACHE_SECRET_ACCESS_KEY }}
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
       - name: "Get artifacts"
@@ -104,4 +111,6 @@ jobs:
         uses: ./.github/actions/cache-nix
         with:
           NIX_CACHE_PRIV_KEY: ${{ secrets.NIX_CACHE_PRIV_KEY }}
+          NIX_CACHE_ACCESS_KEY_ID: ${{ secrets.NIX_CACHE_ACCESS_KEY_ID }}
+          NIX_CACHE_SECRET_ACCESS_KEY: ${{ secrets.NIX_CACHE_SECRET_ACCESS_KEY }}
         if: always()

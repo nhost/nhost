@@ -1,46 +1,35 @@
-import { describe, expect, test } from 'vitest';
 import getInputType from './getInputType';
 
 describe('getInputType', () => {
-  test('should return "number" if the column is numeric', () => {
-    expect(getInputType({ type: 'number' })).toBe('number');
-    expect(getInputType({ type: 'number', specificType: 'numeric' })).toBe(
-      'number',
-    );
-    expect(getInputType({ type: 'number', specificType: 'int4' })).toBe(
-      'number',
-    );
+  it('returns "datetime-local" for timestamp types', () => {
+    expect(getInputType('timestamp')).toBe('datetime-local');
+    expect(getInputType('timestamptz')).toBe('datetime-local');
+    expect(getInputType('timestamp without time zone')).toBe('datetime-local');
+    expect(getInputType('timestamp with time zone')).toBe('datetime-local');
   });
 
-  test('should return "text" if the column is text based', () => {
-    expect(getInputType({ type: 'text', specificType: 'text' })).toBe('text');
-    expect(
-      getInputType({ type: 'text', specificType: 'character varying' }),
-    ).toBe('text');
-    expect(getInputType({ type: 'text', specificType: 'bpchar' })).toBe('text');
+  it('returns "time" for time-of-day types', () => {
+    expect(getInputType('time')).toBe('time');
+    expect(getInputType('timetz')).toBe('time');
+    expect(getInputType('time without time zone')).toBe('time');
+    expect(getInputType('time with time zone')).toBe('time');
   });
 
-  test('should return "date" if the column has "date" type, but not time', () => {
-    expect(getInputType({ type: 'date' })).toBe('date');
-    expect(getInputType({ type: 'date', specificType: 'time' })).not.toBe(
-      'date',
-    );
+  it('returns "date" for the calendar date type', () => {
+    expect(getInputType('date')).toBe('date');
   });
 
-  test('should return "datetime-local" if the column has a "datetime" type, but not time', () => {
-    expect(getInputType({ type: 'date', specificType: 'timestamp' })).toBe(
-      'datetime-local',
-    );
-    expect(getInputType({ type: 'date', specificType: 'timestamptz' })).toBe(
-      'datetime-local',
-    );
-    expect(getInputType({ type: 'date', specificType: 'time' })).not.toBe(
-      'date',
-    );
+  it('returns "number" for numeric types', () => {
+    expect(getInputType('integer')).toBe('number');
+    expect(getInputType('numeric')).toBe('number');
+    expect(getInputType('double precision')).toBe('number');
   });
 
-  test('should return "time" if the column has a "time" type', () => {
-    expect(getInputType({ type: 'date', specificType: 'time' })).toBe('time');
-    expect(getInputType({ type: 'date', specificType: 'timetz' })).toBe('time');
+  it('returns "text" for text, interval and unknown types', () => {
+    expect(getInputType('text')).toBe('text');
+    expect(getInputType('character varying')).toBe('text');
+    expect(getInputType('interval')).toBe('text');
+    expect(getInputType('uuid')).toBe('text');
+    expect(getInputType(undefined)).toBe('text');
   });
 });

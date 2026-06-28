@@ -13,8 +13,8 @@ It's recommended to use the Nhost CLI and the [Nhost GitHub Integration](https:/
 - [Nhost Dashboard](https://github.com/nhost/nhost/tree/main/dashboard)
 - [Postgres Database](https://www.postgresql.org/)
 - [GraphQL Engine](https://github.com/hasura/graphql-engine)
-- [Auth](https://github.com/nhost/nhost/main/auth)
-- [Storage](https://github.com/nhost/nhost/main/storage)
+- [Auth](https://github.com/nhost/nhost/tree/main/services/auth)
+- [Storage](https://github.com/nhost/nhost/tree/main/services/storage)
 - [Nhost Serverless Functions](https://github.com/nhost/functions)
 - [Minio S3](https://github.com/minio/minio)
 - [Mailhog](https://github.com/mailhog/MailHog)
@@ -39,6 +39,26 @@ Or run it directly without installing:
 
 ```sh
 nix run github:nhost/nhost#cli
+```
+
+### npm / pnpm / Yarn / Bun
+
+Install the CLI in a project to pin the version for the whole team:
+
+```sh
+npm install -D @nhost/cli
+pnpm add -D @nhost/cli
+yarn add -D @nhost/cli
+bun add -d @nhost/cli
+```
+
+Or run it without installing:
+
+```sh
+npx @nhost/cli@latest --version
+pnpm dlx @nhost/cli@latest --version
+yarn dlx @nhost/cli@latest --version
+bunx @nhost/cli@latest --version
 ```
 
 ### Quick install (Linux / macOS)
@@ -101,6 +121,7 @@ The source code includes a self-signed certificate for testing purposes. Nhost w
 ```bash
 go build -o /usr/local/bin/nhost
 ```
+
 This will build the binary available as the `nhost` command in the terminal.
 
 ## Dependencies

@@ -3,6 +3,7 @@ package config
 import (
 	"os"
 
+	"github.com/nhost/nhost/cli/clienv"
 	"github.com/nhost/nhost/cli/tui"
 	"golang.org/x/term"
 )
@@ -65,10 +66,10 @@ func wizardLocal() (*Project, error) {
 	}
 
 	secret, err := tui.RunPrompt(
-		"Admin secret", "nhost-admin-secret",
+		"Admin secret", clienv.DefaultLocalAdminSecret,
 	)
 	if err != nil {
-		secret = "nhost-admin-secret" //nolint:gosec
+		secret = clienv.DefaultLocalAdminSecret
 	}
 
 	return &Project{

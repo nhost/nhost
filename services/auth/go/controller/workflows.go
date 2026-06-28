@@ -115,7 +115,7 @@ func (wf *Workflows) ValidatePassword(
 	return nil
 }
 
-func (wf *Workflows) ValidateSignUpOptions( //nolint:cyclop
+func (wf *Workflows) ValidateSignUpOptions(
 	ctx context.Context, options *api.SignUpOptions, defaultName string, logger *slog.Logger,
 ) (*api.SignUpOptions, *APIError) {
 	if options == nil {
@@ -407,26 +407,51 @@ func (wf *Workflows) GetUserByTicket(
 	return user, nil
 }
 
-func (wf *Workflows) GetUserByEmailAndTicket(
+func (wf *Workflows) VerifyEmailOTP(
 	ctx context.Context,
 	email string,
-	ticket string,
+	otp string,
 	logger *slog.Logger,
 ) (sql.AuthUser, *APIError) {
-	user, err := wf.db.GetUserByEmailAndTicket(
+	// The query applies the attempt policy and reports the outcome in one
+	// statement, so a failed guess needs no follow-up lookup. The burned case is
+	// distinguished from a plain wrong/expired code so the user is told to
+	// request a new one; ErrTooManyOTPAttempts is sensitive, so it collapses to
+	// the generic error when ConcealErrors is enabled.
+	status, err := wf.db.VerifyEmailOTP(
 		ctx,
-		sql.GetUserByEmailAndTicketParams{
-			Email:  sql.Text(email),
-			Ticket: sql.Text(ticket),
+		sql.VerifyEmailOTPParams{
+			Email:       sql.Text(email),
+			Otp:         sql.Text(otp),
+			MaxAttempts: pgtype.Int4{Int32: maxOTPVerificationAttempts, Valid: true},
 		},
 	)
-	if errors.Is(err, pgx.ErrNoRows) {
-		logger.WarnContext(ctx, "user not found")
-		return sql.AuthUser{}, ErrInvalidTicket
+	if err != nil {
+		logger.ErrorContext(ctx, "could not verify email otp", logError(err))
+		return sql.AuthUser{}, ErrInternalServerError
 	}
 
+	switch status {
+	case otpStatusOK:
+		// Correct code: the statement above cleared it and verified the email.
+		// Load the updated user for the session below.
+	case otpStatusBurned:
+		logger.WarnContext(ctx, "otp burned after too many attempts")
+		return sql.AuthUser{}, ErrTooManyOTPAttempts
+	case otpStatusInvalid:
+		logger.WarnContext(ctx, "invalid or expired otp")
+		return sql.AuthUser{}, ErrInvalidOTP
+	default:
+		logger.ErrorContext(
+			ctx, "unexpected otp verification status", slog.String("status", status),
+		)
+
+		return sql.AuthUser{}, ErrInternalServerError
+	}
+
+	user, err := wf.db.GetUserByEmail(ctx, sql.Text(email))
 	if err != nil {
-		logger.ErrorContext(ctx, "could not get user by ticket", logError(err))
+		logger.ErrorContext(ctx, "could not get user after otp verification", logError(err))
 		return sql.AuthUser{}, ErrInternalServerError
 	}
 
@@ -600,7 +625,8 @@ func (wf *Workflows) GetJWTInContext(
 ) (uuid.UUID, *APIError) {
 	jwtToken, ok := wf.jwtGetter.FromContext(ctx)
 	if !ok {
-		logger.ErrorContext(ctx,
+		logger.ErrorContext(
+			ctx,
 			"jwt token not found in context, this should not be possible due to middleware",
 		)
 

@@ -59,7 +59,7 @@ func commandDefaultTUI(ce *clienv.CliEnv) error {
 				return clienv.MarshalFile(secrets, ce.Path.Secrets(), env.Marshal)
 			},
 		},
-	}) //nolint:wrapcheck
+	})
 }
 
 func commandDefaultPlain(ce *clienv.CliEnv) error {

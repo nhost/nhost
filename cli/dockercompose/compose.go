@@ -58,13 +58,27 @@ type ComposeFile struct {
 	Volumes  map[string]struct{} `yaml:"volumes"`
 }
 
+// Environment is a map of environment variables that escapes literal `$` as
+// `$$` when marshaled to YAML so Docker Compose doesn't interpret them as
+// variable substitution.
+type Environment map[string]string
+
+func (e Environment) MarshalYAML() (any, error) {
+	escaped := make(map[string]string, len(e))
+	for k, v := range e {
+		escaped[k] = strings.ReplaceAll(v, "$", "$$")
+	}
+
+	return escaped, nil
+}
+
 //nolint:tagliatelle
 type Service struct {
 	Image       string                    `yaml:"image"`
 	DependsOn   map[string]DependsOn      `yaml:"depends_on,omitempty"`
 	EntryPoint  []string                  `yaml:"entrypoint,omitempty"`
 	Command     []string                  `yaml:"command,omitempty"`
-	Environment map[string]string         `yaml:"environment,omitempty"`
+	Environment Environment               `yaml:"environment,omitempty"`
 	ExtraHosts  []string                  `yaml:"extra_hosts"`
 	HealthCheck *HealthCheck              `yaml:"healthcheck,omitempty"`
 	Labels      map[string]string         `yaml:"labels,omitempty"`
@@ -326,13 +340,23 @@ func minio(subdomain, volumeName string) *Service {
 	}
 }
 
-func dashboard(
+func dashboard( //nolint:funlen // single env-var config map, not decomposable
 	cfg *model.ConfigConfig,
 	subdomain string,
 	dashboardVersion string,
 	httpPort uint,
 	useTLS bool,
+	appID string,
 ) *Service {
+	// With constellation enabled, the dashboard's hasura admin/metadata API
+	// calls flow through constellation (which proxies unmatched paths to hasura)
+	// instead of hitting hasura directly. Console UI and migrations API stay on
+	// the hasura-cli helper containers and are not affected.
+	hasuraAPISubdomain := "hasura"
+	if cfg.GetExperimental().GetConstellation() != nil {
+		hasuraAPISubdomain = "graphql"
+	}
+
 	return &Service{
 		Image:      dashboardVersion,
 		DependsOn:  nil,
@@ -341,9 +365,11 @@ func dashboard(
 		Environment: map[string]string{
 			"NEXT_PUBLIC_ENV":                "dev",
 			"NEXT_PUBLIC_NHOST_PLATFORM":     "false",
+			"NEXT_PUBLIC_NHOST_APP_ID":       appID,
 			"NEXT_PUBLIC_NHOST_ADMIN_SECRET": cfg.Hasura.AdminSecret,
 			"NEXT_PUBLIC_NHOST_AUTH_URL": URL(
-				subdomain, "auth", httpPort, useTLS) + "/v1",
+				subdomain, "auth", httpPort, useTLS,
+			) + "/v1",
 			"NEXT_PUBLIC_NHOST_CONFIGSERVER_URL": URL(
 				subdomain, "dashboard", httpPort, useTLS,
 			) + "/v1/configserver/graphql",
@@ -357,15 +383,20 @@ func dashboard(
 				subdomain, "dashboard", httpPort, useTLS,
 			) + "/v1/logs/graphql",
 			"NEXT_PUBLIC_NHOST_GRAPHQL_URL": URL(
-				subdomain, "graphql", httpPort, useTLS) + "/v1",
-			"NEXT_PUBLIC_NHOST_HASURA_API_URL": URL(subdomain, "hasura", httpPort, useTLS),
+				subdomain, "graphql", httpPort, useTLS,
+			) + "/v1",
+			"NEXT_PUBLIC_NHOST_HASURA_API_URL": URL(
+				subdomain, hasuraAPISubdomain, httpPort, useTLS,
+			),
 			"NEXT_PUBLIC_NHOST_HASURA_CONSOLE_URL": URL(
 				subdomain, "hasura", httpPort, useTLS,
 			) + "/console",
 			"NEXT_PUBLIC_NHOST_HASURA_MIGRATIONS_API_URL": URL(
-				subdomain, "hasura", httpPort, useTLS) + "/apis/migrate",
+				subdomain, "hasura", httpPort, useTLS,
+			) + "/apis/migrate",
 			"NEXT_PUBLIC_NHOST_STORAGE_URL": URL(
-				subdomain, "storage", httpPort, useTLS) + "/v1",
+				subdomain, "storage", httpPort, useTLS,
+			) + "/v1",
 		},
 		ExtraHosts:  extraHosts(subdomain),
 		HealthCheck: nil,
@@ -555,7 +586,7 @@ func sanitizeBranch(name string) string {
 	return strings.ToLower(re.ReplaceAllString(name, ""))
 }
 
-func IsJWTSecretCompatibleWithHasuraAuth( //nolint:cyclop
+func IsJWTSecretCompatibleWithHasuraAuth(
 	jwtSecret *model.ConfigJWTSecret,
 ) bool {
 	if jwtSecret != nil && jwtSecret.Type != nil && *jwtSecret.Type != "" && jwtSecret.Key != nil &&
@@ -583,6 +614,7 @@ func getServices( //nolint: funlen,cyclop
 	dashboardVersion string,
 	functionsVersion string,
 	configserviceImage string,
+	appID string,
 	startFunctions bool,
 	runServices ...*RunService,
 ) (map[string]*Service, error) {
@@ -602,7 +634,13 @@ func getServices( //nolint: funlen,cyclop
 		return nil, err
 	}
 
-	graphql, err := graphql(cfg, subdomain, useTLS, httpPort, ports.Graphql)
+	graphql, err := graphql(
+		cfg,
+		subdomain,
+		useTLS,
+		httpPort,
+		ports.Graphql,
+	)
 	if err != nil {
 		return nil, err
 	}
@@ -627,6 +665,7 @@ func getServices( //nolint: funlen,cyclop
 		rootFolder,
 		nhostFolder,
 		projectName,
+		appID,
 		useTLS,
 		runServices...,
 	)
@@ -636,7 +675,7 @@ func getServices( //nolint: funlen,cyclop
 
 	services := map[string]*Service{
 		"console":      console,
-		"dashboard":    dashboard(cfg, subdomain, dashboardVersion, httpPort, useTLS),
+		"dashboard":    dashboard(cfg, subdomain, dashboardVersion, httpPort, useTLS, appID),
 		"graphql":      graphql,
 		"minio":        minio,
 		"postgres":     postgres,
@@ -661,6 +700,22 @@ func getServices( //nolint: funlen,cyclop
 		if err != nil {
 			return nil, err
 		}
+	}
+
+	if cfg.GetExperimental().GetConstellation() != nil {
+		c, err := constellation(
+			cfg,
+			subdomain,
+			useTLS,
+			httpPort,
+			nhostFolder,
+			"nhost/constellation:"+*cfg.GetExperimental().GetConstellation().GetVersion(),
+		)
+		if err != nil {
+			return nil, err
+		}
+
+		services["constellation"] = c
 	}
 
 	if len(cfg.GetHasura().GetJwtSecrets()) > 0 &&
@@ -711,7 +766,7 @@ func mountCACertificates(
 	}
 }
 
-func ComposeFileFromConfig(
+func ComposeFileFromConfig( //nolint:funlen
 	cfg *model.ConfigConfig,
 	subdomain string,
 	projectName string,
@@ -726,6 +781,7 @@ func ComposeFileFromConfig(
 	dashboardVersion string,
 	functionsVersion string,
 	configserverImage string,
+	appID string,
 	startFunctions bool,
 	caCertificatesPath string,
 	runServices ...*RunService,
@@ -745,6 +801,7 @@ func ComposeFileFromConfig(
 		dashboardVersion,
 		functionsVersion,
 		configserverImage,
+		appID,
 		startFunctions,
 		runServices...,
 	)

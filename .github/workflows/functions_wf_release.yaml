@@ -20,6 +20,10 @@ on:
         required: true
       NIX_CACHE_PRIV_KEY:
         required: true
+      NIX_CACHE_ACCESS_KEY_ID:
+        required: true
+      NIX_CACHE_SECRET_ACCESS_KEY:
+        required: true
       DOCKER_USERNAME:
         required: true
       DOCKER_PASSWORD:
@@ -33,7 +37,7 @@ jobs:
   build_artifacts:
     strategy:
       matrix:
-        node: ["20", "22"]
+        node: ["22", "24"]
       fail-fast: true
     uses: ./.github/workflows/wf_build_artifacts.yaml
     with:
@@ -48,11 +52,13 @@ jobs:
       AWS_ACCOUNT_ID: ${{ secrets.AWS_ACCOUNT_ID }}
       NIX_CACHE_PUB_KEY: ${{ secrets.NIX_CACHE_PUB_KEY }}
       NIX_CACHE_PRIV_KEY: ${{ secrets.NIX_CACHE_PRIV_KEY }}
+      NIX_CACHE_ACCESS_KEY_ID: ${{ secrets.NIX_CACHE_ACCESS_KEY_ID }}
+      NIX_CACHE_SECRET_ACCESS_KEY: ${{ secrets.NIX_CACHE_SECRET_ACCESS_KEY }}
 
   push-docker-hub:
     strategy:
       matrix:
-        node: ["20", "22"]
+        node: ["22", "24"]
       fail-fast: true
     uses: ./.github/workflows/wf_docker_push_image.yaml
     needs:

@@ -4,8 +4,8 @@ import type { Optional } from 'utility-types';
 import * as yup from 'yup';
 import { ApplyLocalSettingsDialog } from '@/components/common/ApplyLocalSettingsDialog';
 import { useDialog } from '@/components/common/DialogProvider';
-import { ControlledCheckbox } from '@/components/form/ControlledCheckbox';
 import { Form } from '@/components/form/Form';
+import { FormCheckbox } from '@/components/form/FormCheckbox';
 import { SettingsContainer } from '@/components/layout/SettingsContainer';
 import { Input } from '@/components/ui/v2/Input';
 import { useIsPlatform } from '@/features/orgs/projects/common/hooks/useIsPlatform';
@@ -131,7 +131,7 @@ export default function SMTPSettings() {
           title="SMTP Settings"
           description="Configure your SMTP settings to send emails from your email domain."
           submitButtonText="Save"
-          className="grid grid-cols-9 gap-4"
+          className="grid grid-cols-1 gap-4 lg:grid-cols-9"
           slotProps={{
             submitButton: {
               disabled: !isDirty,
@@ -217,11 +217,11 @@ export default function SMTPSettings() {
             helperText={errors.method?.message}
           />
 
-          <ControlledCheckbox
+          <FormCheckbox
+            control={form.control}
             name="secure"
-            id="secure"
             label="Use SSL"
-            className="lg:col-span-9"
+            containerClassName="lg:col-span-9"
           />
         </SettingsContainer>
       </Form>

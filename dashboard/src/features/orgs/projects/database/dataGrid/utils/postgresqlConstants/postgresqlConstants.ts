@@ -70,18 +70,36 @@ export const POSTGRESQL_UNSORTABLE_TYPES = [
 ];
 
 /**
- * Date / Time types in PostgreSQL.
- *
- * @docs https://www.postgresql.org/docs/current/datatype-datetime.html
+ * Timestamp types in PostgreSQL, in both the `information_schema` /
+ * `FORMAT_TYPE` long form and the short `udt_name` form.
  */
-export const POSTGRESQL_DATE_TIME_TYPES = [
-  'timestamp without time zone',
+export const POSTGRESQL_TIMESTAMP_TYPES = [
   'timestamp with time zone',
-  'date',
-  'time without time zone',
-  'time with time zone',
-  'interval',
+  'timestamp without time zone',
+  'timestamptz',
+  'timestamp',
 ];
+
+/**
+ * Time-of-day types in PostgreSQL (long and short spellings).
+ */
+export const POSTGRESQL_TIME_TYPES = [
+  'time with time zone',
+  'time without time zone',
+  'timetz',
+  'time',
+];
+
+/**
+ * Calendar date type in PostgreSQL.
+ */
+export const POSTGRESQL_DATE_TYPES = ['date'];
+
+/**
+ * Interval type in PostgreSQL. Interval columns may also carry a field
+ * qualifier (e.g. `interval day to second`), matched by `isIntervalType`.
+ */
+export const POSTGRESQL_INTERVAL_TYPES = ['interval'];
 
 /**
  * Types grouped by category in PostgreSQL.
@@ -237,3 +255,10 @@ export const postgresFunctions = {
 export const identityTypes: ColumnType[] = ['int2', 'int4', 'int8'];
 
 export const RECOVERY_RETENTION_PERIOD_7 = 7;
+
+/**
+ * Maximum length for PostgreSQL identifiers (table and column names).
+ *
+ * @docs https://www.postgresql.org/docs/current/limits.html
+ */
+export const POSTGRESQL_MAX_IDENTIFIER_LENGTH = 63;

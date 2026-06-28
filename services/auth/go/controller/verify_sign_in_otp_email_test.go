@@ -1,12 +1,12 @@
 package controller_test
 
 import (
+	"errors"
 	"testing"
 	"time"
 
 	"github.com/golang-jwt/jwt/v5"
 	"github.com/google/uuid"
-	"github.com/jackc/pgx/v5"
 	"github.com/jackc/pgx/v5/pgtype"
 	"github.com/nhost/nhost/services/auth/go/api"
 	"github.com/nhost/nhost/services/auth/go/controller"
@@ -16,7 +16,7 @@ import (
 	"go.uber.org/mock/gomock"
 )
 
-func TestVerifySignInOTPEmail(t *testing.T) {
+func TestVerifySignInOTPEmail(t *testing.T) { //nolint:maintidx
 	t.Parallel()
 
 	refreshTokenID := uuid.MustParse("c3b747ef-76a9-4c56-8091-ed3e6b8afb2c")
@@ -29,26 +29,31 @@ func TestVerifySignInOTPEmail(t *testing.T) {
 			db: func(ctrl *gomock.Controller) controller.DBClient {
 				mock := mock.NewMockDBClient(ctrl)
 
-				mock.EXPECT().GetUserByEmailAndTicket(
+				mock.EXPECT().VerifyEmailOTP(
 					gomock.Any(),
-					sql.GetUserByEmailAndTicketParams{
-						Email:  sql.Text("jane@acme.com"),
-						Ticket: sql.Text("123456789"),
+					sql.VerifyEmailOTPParams{
+						Email:       sql.Text("jane@acme.com"),
+						Otp:         sql.Text("123456789"),
+						MaxAttempts: pgtype.Int4{Int32: 5, Valid: true},
 					},
+				).Return("ok", nil)
+
+				mock.EXPECT().GetUserByEmail(
+					gomock.Any(), sql.Text("jane@acme.com"),
 				).Return(getSigninUser(userID), nil)
 
 				mock.EXPECT().GetUserRoles(
 					gomock.Any(), userID,
 				).Return([]sql.AuthUserRole{
-					{UserID: userID, Role: "user"}, //nolint:exhaustruct
-					{UserID: userID, Role: "me"},   //nolint:exhaustruct
+					{UserID: userID, Role: "user"},
+					{UserID: userID, Role: "me"},
 				}, nil)
 
 				mock.EXPECT().InsertRefreshtoken(
 					gomock.Any(),
 					cmpDBParams(sql.InsertRefreshtokenParams{
 						UserID:           userID,
-						RefreshTokenHash: pgtype.Text{}, //nolint:exhaustruct
+						RefreshTokenHash: pgtype.Text{},
 						ExpiresAt:        sql.TimestampTz(time.Now().Add(30 * 24 * time.Hour)),
 						Type:             sql.RefreshTokenTypeRegular,
 						Metadata:         nil,
@@ -126,12 +131,17 @@ func TestVerifySignInOTPEmail(t *testing.T) {
 				user := getSigninUser(userID)
 				user.Disabled = true
 
-				mock.EXPECT().GetUserByEmailAndTicket(
+				mock.EXPECT().VerifyEmailOTP(
 					gomock.Any(),
-					sql.GetUserByEmailAndTicketParams{
-						Email:  sql.Text("jane@acme.com"),
-						Ticket: sql.Text("123456789"),
+					sql.VerifyEmailOTPParams{
+						Email:       sql.Text("jane@acme.com"),
+						Otp:         sql.Text("123456789"),
+						MaxAttempts: pgtype.Int4{Int32: 5, Valid: true},
 					},
+				).Return("ok", nil)
+
+				mock.EXPECT().GetUserByEmail(
+					gomock.Any(), sql.Text("jane@acme.com"),
 				).Return(user, nil)
 
 				return mock
@@ -153,18 +163,21 @@ func TestVerifySignInOTPEmail(t *testing.T) {
 		},
 
 		{
-			name:   "user not found",
+			name:   "invalid or expired otp",
 			config: getConfig,
 			db: func(ctrl *gomock.Controller) controller.DBClient {
 				mock := mock.NewMockDBClient(ctrl)
 
-				mock.EXPECT().GetUserByEmailAndTicket(
+				// Wrong code with attempts still left, or no live code for the
+				// email: the query reports "invalid" and no user is loaded.
+				mock.EXPECT().VerifyEmailOTP(
 					gomock.Any(),
-					sql.GetUserByEmailAndTicketParams{
-						Email:  sql.Text("jane@acme.com"),
-						Ticket: sql.Text("123456789"),
+					sql.VerifyEmailOTPParams{
+						Email:       sql.Text("jane@acme.com"),
+						Otp:         sql.Text("123456789"),
+						MaxAttempts: pgtype.Int4{Int32: 5, Valid: true},
 					},
-				).Return(sql.AuthUser{}, pgx.ErrNoRows) //nolint:exhaustruct
+				).Return("invalid", nil)
 
 				return mock
 			},
@@ -175,9 +188,114 @@ func TestVerifySignInOTPEmail(t *testing.T) {
 				},
 			},
 			expectedResponse: controller.ErrorResponse{
-				Error:   "invalid-ticket",
-				Message: "Invalid ticket",
-				Status:  401,
+				Error:   "invalid-otp",
+				Message: "Invalid or expired OTP",
+				Status:  400,
+			},
+			expectedJWT:       nil,
+			jwtTokenFn:        nil,
+			getControllerOpts: []getControllerOptsFunc{},
+		},
+
+		{
+			name:   "too many attempts - otp burned",
+			config: getConfig,
+			db: func(ctrl *gomock.Controller) controller.DBClient {
+				mock := mock.NewMockDBClient(ctrl)
+
+				// Code was burned after too many wrong guesses: the query reports
+				// "burned" so the user is told to request a new one.
+				mock.EXPECT().VerifyEmailOTP(
+					gomock.Any(),
+					sql.VerifyEmailOTPParams{
+						Email:       sql.Text("jane@acme.com"),
+						Otp:         sql.Text("123456789"),
+						MaxAttempts: pgtype.Int4{Int32: 5, Valid: true},
+					},
+				).Return("burned", nil)
+
+				return mock
+			},
+			request: api.VerifySignInOTPEmailRequestObject{
+				Body: &api.SignInOTPEmailVerifyRequest{
+					Email: "jane@acme.com",
+					Otp:   "123456789",
+				},
+			},
+			expectedResponse: controller.ErrorResponse{
+				Error:   "otp-too-many-attempts",
+				Message: "Too many incorrect attempts, please request a new OTP",
+				Status:  400,
+			},
+			expectedJWT:       nil,
+			jwtTokenFn:        nil,
+			getControllerOpts: []getControllerOptsFunc{},
+		},
+
+		{
+			name:   "verification query error",
+			config: getConfig,
+			db: func(ctrl *gomock.Controller) controller.DBClient {
+				mock := mock.NewMockDBClient(ctrl)
+
+				// A failed verification query must not leak as a 4xx and must not
+				// load a user.
+				mock.EXPECT().VerifyEmailOTP(
+					gomock.Any(),
+					sql.VerifyEmailOTPParams{
+						Email:       sql.Text("jane@acme.com"),
+						Otp:         sql.Text("123456789"),
+						MaxAttempts: pgtype.Int4{Int32: 5, Valid: true},
+					},
+				).Return("", errors.New("database error")) //nolint:err113
+
+				return mock
+			},
+			request: api.VerifySignInOTPEmailRequestObject{
+				Body: &api.SignInOTPEmailVerifyRequest{
+					Email: "jane@acme.com",
+					Otp:   "123456789",
+				},
+			},
+			expectedResponse: controller.ErrorResponse{
+				Error:   "internal-server-error",
+				Message: "Internal server error",
+				Status:  500,
+			},
+			expectedJWT:       nil,
+			jwtTokenFn:        nil,
+			getControllerOpts: []getControllerOptsFunc{},
+		},
+
+		{
+			name:   "unexpected verification status",
+			config: getConfig,
+			db: func(ctrl *gomock.Controller) controller.DBClient {
+				mock := mock.NewMockDBClient(ctrl)
+
+				// An unrecognized status from the query must fall through to the
+				// safe default (internal error), never to a session.
+				mock.EXPECT().VerifyEmailOTP(
+					gomock.Any(),
+					sql.VerifyEmailOTPParams{
+						Email:       sql.Text("jane@acme.com"),
+						Otp:         sql.Text("123456789"),
+						MaxAttempts: pgtype.Int4{Int32: 5, Valid: true},
+					},
+				).Return("unexpected", nil)
+
+				return mock
+			},
+			request: api.VerifySignInOTPEmailRequestObject{
+				Body: &api.SignInOTPEmailVerifyRequest{
+					Email: "jane@acme.com",
+					Otp:   "123456789",
+				},
+			},
+			expectedResponse: controller.ErrorResponse{
+				Error:   "internal-server-error",
+				Message: "Internal server error",
+				Status:  500,
 			},
 			expectedJWT:       nil,
 			jwtTokenFn:        nil,

@@ -23,7 +23,8 @@ type GetFilePresignedURLRequest struct {
 }
 
 func (ctrl *Controller) GetFilePresignedURL( //nolint:ireturn
-	ctx context.Context, request api.GetFilePresignedURLRequestObject,
+	ctx context.Context,
+	request api.GetFilePresignedURLRequestObject,
 ) (api.GetFilePresignedURLResponseObject, error) {
 	logger := oapimw.LoggerFromContext(ctx)
 	logger = logger.With("file_id", request.Id)
@@ -58,7 +59,8 @@ func (ctrl *Controller) GetFilePresignedURL( //nolint:ireturn
 	)
 	if apiErr != nil {
 		logger.ErrorContext(
-			ctx, "error creating presigned URL for file", slog.String("error", apiErr.Error()))
+			ctx, "error creating presigned URL for file", slog.String("error", apiErr.Error()),
+		)
 
 		return apiErr, nil
 	}

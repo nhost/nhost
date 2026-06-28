@@ -75,7 +75,7 @@ func cmpTicket(x, y string) bool {
 	return false
 }
 
-func cmpLink(x, y string) bool { //nolint:cyclop
+func cmpLink(x, y string) bool {
 	if x == y {
 		return true
 	}
@@ -130,6 +130,10 @@ func cmpDBParams(
 		),
 		testhelpers.FilterPathLast(
 			[]string{".Ticket", "text()"},
+			cmp.Comparer(cmpTicket),
+		),
+		testhelpers.FilterPathLast(
+			[]string{".Otp"},
 			cmp.Comparer(cmpTicket),
 		),
 		cmp.Transformer("time", func(x pgtype.Timestamptz) time.Time {
@@ -231,7 +235,7 @@ func withEncrypter(encrypter controller.Encrypter) getControllerOptsFunc {
 	}
 }
 
-func getController( //nolint:cyclop
+func getController(
 	t *testing.T,
 	ctrl *gomock.Controller,
 	configFn func() *controller.Config,
@@ -352,7 +356,7 @@ func assertRequest[T any, U any](
 		testhelpers.FilterPathLast(
 			[]string{".Ticket"}, cmp.Comparer(cmpTicket),
 		),
-		cmpopts.IgnoreFields(api.Session{}, "RefreshToken", "AccessToken"), //nolint:exhaustruct
+		cmpopts.IgnoreFields(api.Session{}, "RefreshToken", "AccessToken"),
 	}, options...)
 
 	if _, err := json.Marshal(resp); err != nil {
@@ -394,7 +398,7 @@ func assertSession(
 	if diff := cmp.Diff(
 		token,
 		expectedJWT,
-		cmpopts.IgnoreFields(jwt.Token{}, "Raw", "Signature"), //nolint:exhaustruct
+		cmpopts.IgnoreFields(jwt.Token{}, "Raw", "Signature"),
 		cmpopts.EquateApprox(0, 10),
 	); diff != "" {
 		t.Fatalf("unexpected jwt: %s", diff)
@@ -409,11 +413,11 @@ func testOAuth2Client() sql.AuthOauth2Client {
 		ClientSecretHash:          pgtype.Text{String: "", Valid: false},
 		RedirectUris:              []string{"https://example.com/callback"},
 		Scopes:                    []string{"openid", "profile", "email"},
-		CreatedBy:                 pgtype.UUID{},                              //nolint:exhaustruct
-		CreatedAt:                 pgtype.Timestamptz{Time: now, Valid: true}, //nolint:exhaustruct
-		UpdatedAt:                 pgtype.Timestamptz{Time: now, Valid: true}, //nolint:exhaustruct
+		CreatedBy:                 pgtype.UUID{},
+		CreatedAt:                 pgtype.Timestamptz{Time: now, Valid: true},
+		UpdatedAt:                 pgtype.Timestamptz{Time: now, Valid: true},
 		Type:                      sql.OAuth2ClientTypeRegistered,
-		MetadataDocumentFetchedAt: pgtype.Timestamptz{}, //nolint:exhaustruct
+		MetadataDocumentFetchedAt: pgtype.Timestamptz{},
 		Metadata:                  nil,
 	}
 }

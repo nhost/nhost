@@ -1,8 +1,8 @@
+import { SiGithub as GitHubIcon } from '@icons-pack/react-simple-icons';
 import { useDialog } from '@/components/common/DialogProvider';
 import { SettingsContainer } from '@/components/layout/SettingsContainer';
 import { Box } from '@/components/ui/v2/Box';
 import { Button } from '@/components/ui/v2/Button';
-import { GitHubIcon } from '@/components/ui/v2/icons/GitHubIcon';
 import { Text } from '@/components/ui/v2/Text';
 import { useGitHubModal } from '@/features/orgs/projects/git/common/hooks/useGitHubModal';
 import { useProject } from '@/features/orgs/projects/hooks/useProject';

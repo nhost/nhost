@@ -1,3 +1,5 @@
+import { PlusIcon } from 'lucide-react';
+import Link from 'next/link';
 import { useRouter } from 'next/router';
 import { type ReactElement, useEffect, useMemo, useRef, useState } from 'react';
 import { useDialog } from '@/components/common/DialogProvider';
@@ -8,23 +10,22 @@ import { RetryableErrorBoundary } from '@/components/presentational/RetryableErr
 import { Alert } from '@/components/ui/v2/Alert';
 import { Box } from '@/components/ui/v2/Box';
 import { Button } from '@/components/ui/v2/Button';
-import { EmbeddingsIcon } from '@/components/ui/v2/icons/EmbeddingsIcon';
-import { PlusIcon } from '@/components/ui/v2/icons/PlusIcon';
-import { Link } from '@/components/ui/v2/Link';
 import { Text } from '@/components/ui/v2/Text';
+import { EmbeddingsIcon } from '@/components/ui/v3/icons/EmbeddingsIcon';
+import { useRemoteApplicationGQLClient } from '@/features/orgs/hooks/useRemoteApplicationGQLClient';
 import { AISidebar } from '@/features/orgs/layout/AISidebar';
 import { OrgLayout } from '@/features/orgs/layout/OrgLayout';
 import { AutoEmbeddingsForm } from '@/features/orgs/projects/ai/AutoEmbeddingsForm';
 import { AutoEmbeddingsList } from '@/features/orgs/projects/ai/AutoEmbeddingsList';
 import { useIsGraphiteEnabled } from '@/features/orgs/projects/common/hooks/useIsGraphiteEnabled';
 import { useIsPlatform } from '@/features/orgs/projects/common/hooks/useIsPlatform';
-import { useAdminApolloClient } from '@/features/orgs/projects/hooks/useAdminApolloClient';
 import { useCurrentOrg } from '@/features/orgs/projects/hooks/useCurrentOrg';
 import { useProject } from '@/features/orgs/projects/hooks/useProject';
 import {
   type GetGraphiteAutoEmbeddingsConfigurationsQuery,
   useGetGraphiteAutoEmbeddingsConfigurationsQuery,
 } from '@/utils/__generated__/graphite.graphql';
+import { getPaginationOffset } from '@/utils/getPaginationOffset';
 
 export type AutoEmbeddingsConfiguration = Omit<
   GetGraphiteAutoEmbeddingsConfigurationsQuery['graphiteAutoEmbeddingsConfigurations'][0],
@@ -41,18 +42,21 @@ export default function AutoEmbeddingsPage() {
   const { org } = useCurrentOrg();
   const { project } = useProject();
 
-  const { adminClient } = useAdminApolloClient();
+  const remoteProjectGQLClient = useRemoteApplicationGQLClient();
   const { isGraphiteEnabled } = useIsGraphiteEnabled();
 
   const [currentPage, setCurrentPage] = useState(
     parseInt(router.query.page as string, 10) || 1,
   );
   const [nrOfPages, setNrOfPages] = useState(0);
-  const offset = useMemo(() => currentPage - 1, [currentPage]);
+  const offset = useMemo(
+    () => getPaginationOffset(currentPage, limit.current),
+    [currentPage],
+  );
 
   const { data, loading, error, refetch } =
     useGetGraphiteAutoEmbeddingsConfigurationsQuery({
-      client: adminClient,
+      client: remoteProjectGQLClient,
       variables: {
         limit: limit.current,
         offset,
@@ -118,7 +122,7 @@ export default function AutoEmbeddingsPage() {
               <Link
                 href={`/orgs/${slug}/projects/${project?.subdomain}/settings/ai`}
                 rel="noopener noreferrer"
-                underline="hover"
+                className="text-primary hover:underline"
               >
                 AI Settings
               </Link>
@@ -197,12 +201,10 @@ export default function AutoEmbeddingsPage() {
           elementsPerPage={limit.current}
           onPrevPageClick={async () => {
             setCurrentPage((page) => page - 1);
-            if (currentPage - 1 !== 1) {
-              await router.push({
-                pathname: router.pathname,
-                query: { ...router.query, page: currentPage - 1 },
-              });
-            }
+            await router.push({
+              pathname: router.pathname,
+              query: { ...router.query, page: currentPage - 1 },
+            });
           }}
           onNextPageClick={async () => {
             setCurrentPage((page) => page + 1);

@@ -1,25 +1,35 @@
-import { Box } from '@/components/ui/v2/Box';
-import { Button } from '@/components/ui/v2/Button';
-import { Dropdown, useDropdown } from '@/components/ui/v2/Dropdown';
-import { ClockIcon } from '@/components/ui/v2/icons/ClockIcon';
+import { DateTimePicker } from '@/components/common/DateTimePicker';
+import { Button } from '@/components/ui/v3/button';
+import { Label } from '@/components/ui/v3/label';
+import {
+  Popover,
+  PopoverContent,
+  PopoverTrigger,
+} from '@/components/ui/v3/popover';
 import { useProject } from '@/features/orgs/projects/hooks/useProject';
-import { LogsDatePicker } from '@/features/orgs/projects/logs/components/LogsDatePicker';
 import type { LogsFilterFormValues } from '@/features/orgs/projects/logs/components/LogsHeader';
+import { DATEPICKER_DISPLAY_FORMAT } from '@/features/orgs/projects/logs/utils/constants/datePicker';
 import {
   LOGS_AVAILABLE_INTERVALS,
   type LogsCustomInterval,
 } from '@/features/orgs/projects/logs/utils/constants/intervals';
-import { useInterval } from '@/hooks/useInterval';
-import { isNotEmptyValue } from '@/lib/utils';
-import { ChevronDownIcon } from '@graphiql/react';
-import { formatDistance, parseISO, subMinutes } from 'date-fns';
+import { cn, isNotEmptyValue } from '@/lib/utils';
+import { format, formatDistance, parseISO, startOfDay, subMinutes } from 'date-fns';
+import { ChevronDownIcon, ClockIcon } from 'lucide-react';
 import { useState } from 'react';
 import { useFormContext, useWatch } from 'react-hook-form';
-import { twMerge } from 'tailwind-merge';
+
+function isDayOutsideRange(day: Date, minDate: Date, maxDate: Date) {
+  const target = startOfDay(day);
+  return target < startOfDay(minDate) || target > startOfDay(maxDate);
+}
+
+function formatPickerDate(date: Date | string) {
+  const parsed = typeof date === 'string' ? parseISO(date) : date;
+  return format(parsed, DATEPICKER_DISPLAY_FORMAT);
+}
 
 function LogsToDatePickerLiveButton() {
-  const [currentTime, setCurrentTime] = useState(new Date());
-
   const { setValue } = useFormContext<LogsFilterFormValues>();
   const { from, to } = useWatch() as LogsFilterFormValues;
   const isLive = !to;
@@ -33,48 +43,52 @@ function LogsToDatePickerLiveButton() {
     }
 
     setValue('to', null);
-    setCurrentTime(new Date());
     setValue('interval', null);
   }
 
-  function handleChangeToDate(date: Date) {
-    setValue('to', date.toISOString());
+  function handleChangeToDate(newIso: string) {
+    setValue('to', newIso);
     setValue('interval', null);
   }
-
-  useInterval(() => setCurrentTime(new Date()), isLive ? 1000 : 0);
 
   return (
-    <div className="text-greyscaleMedium flex flex-col">
+    <div className="flex flex-col">
       {!isLive && (
-        <LogsDatePicker
-          label="To"
-          value={!isLive ? parseISO(to) : currentTime}
-          disabled={isLive}
-          onChange={handleChangeToDate}
-          minDate={parseISO(from)}
-          maxDate={new Date()}
-          componentsProps={{
-            button: {
-              className: twMerge('rounded-r-none', isLive ? 'z-0' : 'z-10'),
-              color: to ? 'inherit' : 'secondary',
-            },
-          }}
-        />
+        <div className="grid grid-cols-[3.5rem_1fr] items-center gap-x-3">
+          <Label className="text-sm+ font-normal text-muted-foreground">
+            To
+          </Label>
+          <DateTimePicker
+            key={to}
+            dateTime={to}
+            triggerTestId="logsToDateTimePickerTrigger"
+            onDateTimeChange={handleChangeToDate}
+            formatDateFn={formatPickerDate}
+            isCalendarDayDisabled={(day) =>
+              isDayOutsideRange(day, parseISO(from), new Date())
+            }
+            validateDateFn={(date) => {
+              if (date < parseISO(from)) {
+                return '"To" must be later than "From".';
+              }
+              if (date > new Date()) {
+                return '"To" cannot be in the future.';
+              }
+              return '';
+            }}
+          />
+        </div>
       )}
 
       <Button
-        variant="outlined"
-        color={isLive ? 'primary' : 'secondary'}
-        sx={{
-          backgroundColor: (theme) =>
-            !isLive ? `${theme.palette.grey[200]} !important` : 'transparent',
-          color: !isLive ? 'text.secondary' : undefined,
-        }}
-        className={twMerge(!isLive ? 'z-0 mt-4' : 'z-10')}
-        startIcon={<ClockIcon className="h-4 w-4 self-center align-middle" />}
+        variant={isLive ? 'default' : 'outline'}
+        className={cn(
+          'gap-2',
+          !isLive && 'mt-4 bg-muted text-muted-foreground',
+        )}
         onClick={handleLiveButtonClick}
       >
+        <ClockIcon className="h-4 w-4 self-center align-middle" />
         Live
       </Button>
     </div>
@@ -85,20 +99,23 @@ interface LogsRangeSelectorProps {
   onSubmitFilterValues: (value: LogsFilterFormValues) => void;
 }
 
+interface LogsRangeSelectorIntervalPickersProps extends LogsRangeSelectorProps {
+  onClose: () => void;
+}
+
 function LogsRangeSelectorIntervalPickers({
   onSubmitFilterValues,
-}: LogsRangeSelectorProps) {
+  onClose,
+}: LogsRangeSelectorIntervalPickersProps) {
   const { project } = useProject();
   const applicationCreationDate = new Date(project?.createdAt);
 
   const { setValue, getValues } = useFormContext<LogsFilterFormValues>();
   const { from, interval } = useWatch() as LogsFilterFormValues;
 
-  const { handleClose } = useDropdown();
-
   const handleApply = () => {
     onSubmitFilterValues(getValues());
-    handleClose();
+    onClose();
   };
 
   /**
@@ -115,62 +132,76 @@ function LogsRangeSelectorIntervalPickers({
     setValue('interval', minutesToDecreaseFromCurrentDate);
   }
 
-  function handleChangeFromDate(date: Date) {
-    setValue('from', date.toISOString());
+  function handleChangeFromDate(newIso: string) {
+    setValue('from', newIso);
     setValue('interval', null);
   }
 
   return (
-    <Box className="flex flex-col space-y-4">
+    <div className="flex flex-col space-y-4">
       <div className="flex flex-col space-y-4">
-        <LogsDatePicker
-          label="From"
-          value={parseISO(from)}
-          onChange={handleChangeFromDate}
-          minDate={applicationCreationDate}
-          maxDate={new Date()}
-        />
+        <div className="grid grid-cols-[3.5rem_1fr] items-center gap-x-3">
+          <Label className="text-sm+ font-normal text-muted-foreground">
+            From
+          </Label>
+          <DateTimePicker
+            key={from}
+            dateTime={from}
+            triggerTestId="logsFromDateTimePickerTrigger"
+            onDateTimeChange={handleChangeFromDate}
+            formatDateFn={formatPickerDate}
+            isCalendarDayDisabled={(day) =>
+              isDayOutsideRange(day, applicationCreationDate, new Date())
+            }
+            validateDateFn={(date) => {
+              if (date < applicationCreationDate) {
+                return '"From" must be after the project creation date.';
+              }
+              if (date > new Date()) {
+                return '"From" cannot be in the future.';
+              }
+              return '';
+            }}
+          />
+        </div>
 
         <LogsToDatePickerLiveButton />
       </div>
 
-      <Box className="grid grid-cols-2 gap-2">
+      <div className="grid grid-cols-2 gap-2">
         {LOGS_AVAILABLE_INTERVALS.map((logInterval) => (
           <Button
             key={logInterval.label}
-            variant="outlined"
-            color={
-              interval === logInterval.minutesToDecreaseFromCurrentDate
-                ? 'primary'
-                : 'secondary'
-            }
-            className="self-center"
+            variant="outline"
+            className={cn(
+              'self-center',
+              interval === logInterval.minutesToDecreaseFromCurrentDate &&
+                'border-primary text-primary hover:text-primary',
+            )}
             onClick={() => handleIntervalChange(logInterval)}
           >
             Last {logInterval.label}
           </Button>
         ))}
-      </Box>
+      </div>
 
-      <Button color="primary" variant="contained" onClick={handleApply}>
-        Apply
-      </Button>
-    </Box>
+      <Button onClick={handleApply}>Apply</Button>
+    </div>
   );
 }
 
 export default function LogsRangeSelector({
   onSubmitFilterValues,
 }: LogsRangeSelectorProps) {
+  const [open, setOpen] = useState(false);
   const { from, to } = useWatch() as LogsFilterFormValues;
 
   return (
-    <Dropdown.Root>
-      <Dropdown.Trigger hideChevron className="flex w-full rounded-full">
+    <Popover open={open} onOpenChange={setOpen}>
+      <PopoverTrigger asChild>
         <Button
-          component="a"
+          variant="outline"
           className="h-10 w-full min-w-40 items-center justify-between"
-          variant="outlined"
         >
           <span>
             {isNotEmptyValue(to)
@@ -179,13 +210,14 @@ export default function LogsRangeSelector({
           </span>
           <ChevronDownIcon className="h-3 w-3" />
         </Button>
-      </Dropdown.Trigger>
+      </PopoverTrigger>
 
-      <Dropdown.Content PaperProps={{ className: 'mt-1 max-w-xs w-full p-3' }}>
+      <PopoverContent align="start" className="mt-1 w-80 p-3">
         <LogsRangeSelectorIntervalPickers
           onSubmitFilterValues={onSubmitFilterValues}
+          onClose={() => setOpen(false)}
         />
-      </Dropdown.Content>
-    </Dropdown.Root>
+      </PopoverContent>
+    </Popover>
   );
 }

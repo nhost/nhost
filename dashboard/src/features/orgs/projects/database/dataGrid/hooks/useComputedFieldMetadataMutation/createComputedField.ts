@@ -1,0 +1,44 @@
+import { metadataOperation } from '@/utils/hasura-api/generated/default/default';
+import type { AddComputedFieldArgs } from '@/utils/hasura-api/generated/schemas';
+import type { MetadataOperationOptions } from '@/utils/hasura-api/types';
+
+export interface CreateComputedFieldVariables {
+  resourceVersion: number;
+  args: AddComputedFieldArgs;
+}
+
+export default async function createComputedField({
+  appUrl,
+  adminSecret,
+  resourceVersion,
+  args,
+}: MetadataOperationOptions & CreateComputedFieldVariables) {
+  try {
+    const response = await metadataOperation(
+      {
+        type: 'bulk',
+        source: args.source ?? 'default',
+        resource_version: resourceVersion,
+        args: [
+          {
+            type: 'pg_add_computed_field',
+            args,
+          },
+        ],
+      },
+      {
+        baseUrl: appUrl,
+        adminSecret,
+      },
+    );
+
+    if (response.status === 200) {
+      return response.data;
+    }
+
+    throw new Error(response.data.error);
+  } catch (error) {
+    console.error(error);
+    throw error;
+  }
+}

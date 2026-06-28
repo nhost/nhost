@@ -1,7 +1,6 @@
 {
   self,
   pkgs,
-  nix-filter,
   nixops-lib,
 }:
 let
@@ -10,15 +9,16 @@ let
   version = "0.0.0-dev";
   submodule = "tools/${name}";
 
-  src = nix-filter.lib.filter {
+  fs = pkgs.lib.fileset;
+
+  src = fs.toSource {
     root = ../..;
-    include = with nix-filter.lib; [
-      "go.mod"
-      "go.sum"
-      (inDirectory "vendor")
-      ".golangci.yaml"
-      isDirectory
-      (and (inDirectory submodule) (matchExt "go"))
+    fileset = fs.unions [
+      ../../go.mod
+      ../../go.sum
+      ../../vendor
+      ../../.golangci.yaml
+      (fs.fileFilter (f: f.hasExt "go") ./.)
     ];
   };
 

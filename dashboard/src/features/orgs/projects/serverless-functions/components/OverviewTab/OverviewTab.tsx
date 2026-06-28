@@ -1,4 +1,4 @@
-import { Clock, Cpu, GitCommit, Globe } from 'lucide-react';
+import { Cpu, GitCommit, Globe } from 'lucide-react';
 import Link from 'next/link';
 import { useRouter } from 'next/router';
 import CopyToClipboardButton from '@/components/presentational/CopyToClipboardButton/CopyToClipboardButton';
@@ -6,16 +6,14 @@ import { Badge } from '@/components/ui/v3/badge';
 import { TextWithTooltip } from '@/features/orgs/projects/common/components/TextWithTooltip';
 import { TruncatedText } from '@/features/orgs/projects/common/components/TruncatedText';
 import { useIsPlatform } from '@/features/orgs/projects/common/hooks/useIsPlatform';
+import { useProject } from '@/features/orgs/projects/hooks/useProject';
 import {
   MetadataCard,
   MetadataRow,
 } from '@/features/orgs/projects/serverless-functions/components/MetadataCard';
 import type { NhostFunction } from '@/features/orgs/projects/serverless-functions/types';
-import { isNotEmptyValue } from '@/lib/utils';
-
-function formatDate(dateString: string): string {
-  return new Date(dateString).toLocaleString();
-}
+import { isEmptyValue, isNotEmptyValue } from '@/lib/utils';
+import { useGetUnifiedDeploymentByCommitShaQuery } from '@/utils/__generated__/graphql';
 
 export interface OverviewTabProps {
   fn: NhostFunction;
@@ -30,10 +28,24 @@ export default function OverviewTab({
 }: OverviewTabProps) {
   const isPlatform = useIsPlatform();
   const { orgSlug, appSubdomain } = useRouter().query;
-  const isPlaceholderDate = (date: string) => date.startsWith('0001-01-01');
+  const { project } = useProject();
   const showDeploymentCard =
     isPlatform &&
     (isNotEmptyValue(fn.createdWithCommitSha) || isNotEmptyValue(fn.checksum));
+
+  const { data: deploymentData } = useGetUnifiedDeploymentByCommitShaQuery({
+    variables: {
+      appId: project?.id,
+      commitSHA: fn.createdWithCommitSha ?? '',
+    },
+    skip: !isPlatform || !project?.id || isEmptyValue(fn.createdWithCommitSha),
+  });
+
+  const deploymentId = deploymentData?.unifiedDeployments[0]?.id;
+  const deploymentsBasePath = `/orgs/${orgSlug}/projects/${appSubdomain}/deployments`;
+  const commitHref = deploymentId
+    ? `${deploymentsBasePath}/${deploymentId}`
+    : deploymentsBasePath;
 
   return (
     <div className="space-y-4">
@@ -103,10 +115,7 @@ export default function OverviewTab({
                     Commit
                   </span>
                   <div className="flex items-center gap-1">
-                    <Link
-                      href={`/orgs/${orgSlug}/projects/${appSubdomain}/deployments`}
-                      className="hover:underline"
-                    >
+                    <Link href={commitHref} className="hover:underline">
                       <Badge variant="outline" className="font-mono text-xs">
                         {fn.createdWithCommitSha.slice(0, 7)}
                       </Badge>
@@ -141,26 +150,6 @@ export default function OverviewTab({
           </MetadataCard>
         )}
       </div>
-
-      {(!isPlaceholderDate(fn.createdAt) ||
-        !isPlaceholderDate(fn.updatedAt)) && (
-        <MetadataCard title="Timestamps" icon={Clock}>
-          <div className="grid grid-cols-1 gap-4 text-sm lg:grid-cols-2">
-            <div>
-              <span className="text-gray-600 dark:text-gray-400">Created</span>
-              <div className="font-medium text-gray-900 dark:text-gray-100">
-                {formatDate(fn.createdAt)}
-              </div>
-            </div>
-            <div>
-              <span className="text-gray-600 dark:text-gray-400">Updated</span>
-              <div className="font-medium text-gray-900 dark:text-gray-100">
-                {formatDate(fn.updatedAt)}
-              </div>
-            </div>
-          </div>
-        </MetadataCard>
-      )}
     </div>
   );
 }

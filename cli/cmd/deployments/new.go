@@ -97,7 +97,8 @@ func commandNew(ctx context.Context, cmd *cli.Command) error {
 
 	if resp.InsertPipelineRun == nil {
 		return errors.New( //nolint:err113
-			"failed to create deployment: server returned no pipeline run")
+			"failed to create deployment: server returned no pipeline run",
+		)
 	}
 
 	ce.Println("Deployment created: %s", resp.InsertPipelineRun.ID)

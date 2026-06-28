@@ -10,7 +10,6 @@ import (
 	"os"
 	"path/filepath"
 
-	"github.com/hashicorp/go-getter/v2"
 	"github.com/nhost/be/services/mimir/model"
 	"github.com/nhost/nhost/cli/clienv"
 	"github.com/nhost/nhost/cli/cmd/cmdutil"
@@ -18,6 +17,7 @@ import (
 	"github.com/nhost/nhost/cli/dockercompose"
 	"github.com/nhost/nhost/cli/nhostclient/graphql"
 	"github.com/nhost/nhost/cli/tui"
+	emailtemplates "github.com/nhost/nhost/services/auth/email-templates"
 	"github.com/urfave/cli/v3"
 	"golang.org/x/term"
 	"gopkg.in/yaml.v3"
@@ -30,50 +30,59 @@ const (
 //go:embed templates/init/*
 var embeddedFS embed.FS
 
-func writeFiles(ps *clienv.PathStructure, root, relPath string) error {
-	dirEntries, err := embeddedFS.ReadDir(filepath.Join(root, relPath))
-	if err != nil {
-		return fmt.Errorf("failed to read dir: %w", err)
-	}
+func writeFS(srcFS fs.FS, srcRoot, dstRoot string) error {
+	return fs.WalkDir( //nolint:wrapcheck
+		srcFS,
+		srcRoot,
+		func(p string, d fs.DirEntry, err error) error {
+			if err != nil {
+				return fmt.Errorf("failed to walk %s: %w", p, err)
+			}
 
-	for _, entry := range dirEntries {
-		if entry.IsDir() {
-			return writeFiles(ps, root, filepath.Join(relPath, entry.Name()))
-		}
+			rel, err := filepath.Rel(srcRoot, p)
+			if err != nil {
+				return fmt.Errorf("failed to compute relative path for %s: %w", p, err)
+			}
 
-		if err := writeEmbeddedFile(ps, root, relPath, entry); err != nil {
-			return err
-		}
+			dst := filepath.Join(dstRoot, rel)
+
+			if d.IsDir() {
+				if err := os.MkdirAll(dst, 0o755); err != nil { //nolint:mnd
+					return fmt.Errorf("failed to create dir %s: %w", dst, err)
+				}
+
+				return nil
+			}
+
+			data, err := fs.ReadFile(srcFS, p)
+			if err != nil {
+				return fmt.Errorf("failed to read file %s: %w", p, err)
+			}
+
+			if err := os.WriteFile(dst, data, 0o600); err != nil { //nolint:mnd
+				return fmt.Errorf("failed to write file %s: %w", dst, err)
+			}
+
+			return nil
+		},
+	)
+}
+
+func writeProjectFiles(ps *clienv.PathStructure) error {
+	if err := writeFS(embeddedFS, "templates/init", ps.Root()); err != nil {
+		return fmt.Errorf("failed to write project files: %w", err)
 	}
 
 	return nil
 }
 
-func writeEmbeddedFile(
-	ps *clienv.PathStructure,
-	root, relPath string,
-	entry fs.DirEntry,
-) error {
-	src := filepath.Join(root, relPath, entry.Name())
-
-	fileData, err := fs.ReadFile(embeddedFS, src)
-	if err != nil {
-		return fmt.Errorf("failed to read file %s: %w", src, err)
-	}
-
-	dst := filepath.Join(ps.Root(), relPath, entry.Name())
-
-	f, err := os.OpenFile(
-		filepath.Join(ps.Root(), dst),
-		os.O_RDWR|os.O_CREATE|os.O_TRUNC, 0o600, //nolint:mnd
-	)
-	if err != nil {
-		return fmt.Errorf("failed to open file %s: %w", dst, err)
-	}
-	defer f.Close()
-
-	if _, err := f.Write(fileData); err != nil {
-		return fmt.Errorf("failed to write file %s: %w", dst, err)
+func writeEmailTemplates(ps *clienv.PathStructure) error {
+	if err := writeFS(
+		emailtemplates.FS,
+		".",
+		filepath.Join(ps.NhostFolder(), "emails"),
+	); err != nil {
+		return fmt.Errorf("failed to write email templates: %w", err)
 	}
 
 	return nil
@@ -102,7 +111,9 @@ func commandInit(ctx context.Context, cmd *cli.Command) error {
 	ce := clienv.FromCLI(cmd)
 
 	if clienv.PathExists(ce.Path.NhostFolder()) {
-		return errors.New("project already initialized. To reinitialize, remove the nhost/ folder first") //nolint:err113
+		return errors.New(
+			"project already initialized. To reinitialize, remove the nhost/ folder first",
+		)
 	}
 
 	if err := os.MkdirAll(ce.Path.NhostFolder(), 0o755); err != nil { //nolint:mnd
@@ -118,7 +129,7 @@ func commandInit(ctx context.Context, cmd *cli.Command) error {
 			return fmt.Errorf("failed to initialize remote project: %w", err)
 		}
 	} else {
-		if err := initInit(ctx, ce); err != nil {
+		if err := initInit(ce); err != nil {
 			return fmt.Errorf("failed to initialize project: %w", err)
 		}
 	}
@@ -128,15 +139,15 @@ func commandInit(ctx context.Context, cmd *cli.Command) error {
 	return nil
 }
 
-func initInit(ctx context.Context, ce *clienv.CliEnv) error {
+func initInit(ce *clienv.CliEnv) error {
 	if term.IsTerminal(int(os.Stdout.Fd())) {
-		return initInitTUI(ctx, ce)
+		return initInitTUI(ce)
 	}
 
-	return initInitPlain(ctx, ce)
+	return initInitPlain(ce)
 }
 
-func initInitTUI(ctx context.Context, ce *clienv.CliEnv) error {
+func initInitTUI(ce *clienv.CliEnv) error {
 	return tui.RunSteps([]tui.Step{
 		{
 			Name: "Creating project structure",
@@ -148,6 +159,7 @@ func initInitTUI(ctx context.Context, ce *clienv.CliEnv) error {
 			Name: "Initializing Hasura",
 			Fn: func() error {
 				hasuraConf := map[string]any{"version": hasuraMetadataVersion}
+
 				return clienv.MarshalFile(
 					hasuraConf, ce.Path.HasuraConfig(), yaml.Marshal,
 				)
@@ -156,19 +168,19 @@ func initInitTUI(ctx context.Context, ce *clienv.CliEnv) error {
 		{
 			Name: "Writing default configuration",
 			Fn: func() error {
-				return writeFiles(ce.Path, "templates/init", "")
+				return writeProjectFiles(ce.Path)
 			},
 		},
 		{
-			Name: "Downloading email templates",
+			Name: "Writing email templates",
 			Fn: func() error {
-				return downloadEmailTemplates(ctx)
+				return writeEmailTemplates(ce.Path)
 			},
 		},
-	}) //nolint:wrapcheck
+	})
 }
 
-func initInitPlain(ctx context.Context, ce *clienv.CliEnv) error {
+func initInitPlain(ce *clienv.CliEnv) error {
 	ce.Infoln("Creating project structure...")
 
 	if err := initFolders(ce.Path); err != nil {
@@ -184,27 +196,14 @@ func initInitPlain(ctx context.Context, ce *clienv.CliEnv) error {
 
 	ce.Infoln("Writing default configuration...")
 
-	if err := writeFiles(ce.Path, "templates/init", ""); err != nil {
+	if err := writeProjectFiles(ce.Path); err != nil {
 		return err
 	}
 
-	ce.Infoln("Downloading email templates...")
+	ce.Infoln("Writing email templates...")
 
-	if err := downloadEmailTemplates(ctx); err != nil {
+	if err := writeEmailTemplates(ce.Path); err != nil {
 		return err
-	}
-
-	return nil
-}
-
-func downloadEmailTemplates(ctx context.Context) error {
-	getclient := &getter.Client{}                    //nolint:exhaustruct
-	if _, err := getclient.Get(ctx, &getter.Request{ //nolint:exhaustruct
-		Src:             "git::https://github.com/nhost/nhost.git//services/auth/email-templates",
-		Dst:             "nhost/emails",
-		DisableSymlinks: true,
-	}); err != nil {
-		return fmt.Errorf("failed to download email templates: %w", err)
 	}
 
 	return nil
@@ -260,7 +259,9 @@ func initRemoteTUI(
 			Name: "Pulling configuration from cloud",
 			Fn: func() error {
 				var err error
+
 				cfg, err = config.Pull(ctx, ce, proj, true)
+
 				return err
 			},
 		},
@@ -277,11 +278,11 @@ func initRemoteTUI(
 		},
 		{
 			Name: "Writing default configuration",
-			Fn:   func() error { return writeFiles(ce.Path, "templates/init", "") },
+			Fn:   func() error { return writeProjectFiles(ce.Path) },
 		},
 		{
-			Name: "Downloading email templates",
-			Fn:   func() error { return downloadEmailTemplates(ctx) },
+			Name: "Writing email templates",
+			Fn:   func() error { return writeEmailTemplates(ce.Path) },
 		},
 		{
 			Name: "Creating migrations",
@@ -289,7 +290,7 @@ func initRemoteTUI(
 				return deployRemote(ctx, ce, cfg, proj)
 			},
 		},
-	}) //nolint:wrapcheck
+	})
 }
 
 func initRemotePlain(
@@ -304,7 +305,7 @@ func initRemotePlain(
 		return fmt.Errorf("failed to pull config: %w", err)
 	}
 
-	if err := initInitPlain(ctx, ce); err != nil {
+	if err := initInitPlain(ce); err != nil {
 		return err
 	}
 
@@ -333,12 +334,9 @@ func deployRemote(
 		return fmt.Errorf("failed to get hasura admin secret: %w", err)
 	}
 
-	hasuraEndpoint := fmt.Sprintf(
-		"https://%s.hasura.%s.nhost.run", proj.Subdomain, proj.Region.Name,
-	)
-
 	return deploy(
-		ctx, ce, cfg, hasuraEndpoint,
+		ctx, ce, cfg,
+		clienv.NhostHasuraURL(proj.Subdomain, proj.Region.Name),
 		hasuraAdminSecret.App.Config.Hasura.AdminSecret,
 	)
 }

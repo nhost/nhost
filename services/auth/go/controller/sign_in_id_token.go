@@ -122,7 +122,8 @@ func (ctrl *Controller) ensureProviderLinkAllowed(
 		return nil
 	}
 
-	logger.WarnContext(ctx,
+	logger.WarnContext(
+		ctx,
 		"refusing to link provider to existing account: email not verified by provider",
 		slog.String("provider", provider),
 	)
@@ -227,7 +228,7 @@ func (ctrl *Controller) providerResolveUser(
 // providerSignUpResolveOnly creates a new user from an OAuth provider profile
 // without creating a session. Returns uuid.Nil when the user needs email
 // verification before they can sign in.
-func (ctrl *Controller) providerSignUpResolveOnly( //nolint:cyclop,funlen
+func (ctrl *Controller) providerSignUpResolveOnly( //nolint:funlen
 	ctx context.Context,
 	provider string,
 	profile oidc.Profile,

@@ -1,8 +1,7 @@
-// Package spinner provides a spinner component for Bubble Tea applications.
 package spinner
 
 import (
-	"sync/atomic"
+	"sync"
 	"time"
 
 	tea "github.com/charmbracelet/bubbletea"
@@ -11,10 +10,17 @@ import (
 
 // Internal ID management. Used during animating to ensure that frame messages
 // are received only by spinner components that sent them.
-var lastID int64
+var (
+	lastID int
+	idMtx  sync.Mutex
+)
 
+// Return the next ID we should use on the Model.
 func nextID() int {
-	return int(atomic.AddInt64(&lastID, 1))
+	idMtx.Lock()
+	defer idMtx.Unlock()
+	lastID++
+	return lastID
 }
 
 // Spinner is a set of frames used in animating the spinner.
@@ -27,39 +33,39 @@ type Spinner struct {
 var (
 	Line = Spinner{
 		Frames: []string{"|", "/", "-", "\\"},
-		FPS:    time.Second / 10, //nolint:mnd
+		FPS:    time.Second / 10, //nolint:gomnd
 	}
 	Dot = Spinner{
 		Frames: []string{"⣾ ", "⣽ ", "⣻ ", "⢿ ", "⡿ ", "⣟ ", "⣯ ", "⣷ "},
-		FPS:    time.Second / 10, //nolint:mnd
+		FPS:    time.Second / 10, //nolint:gomnd
 	}
 	MiniDot = Spinner{
 		Frames: []string{"⠋", "⠙", "⠹", "⠸", "⠼", "⠴", "⠦", "⠧", "⠇", "⠏"},
-		FPS:    time.Second / 12, //nolint:mnd
+		FPS:    time.Second / 12, //nolint:gomnd
 	}
 	Jump = Spinner{
 		Frames: []string{"⢄", "⢂", "⢁", "⡁", "⡈", "⡐", "⡠"},
-		FPS:    time.Second / 10, //nolint:mnd
+		FPS:    time.Second / 10, //nolint:gomnd
 	}
 	Pulse = Spinner{
 		Frames: []string{"█", "▓", "▒", "░"},
-		FPS:    time.Second / 8, //nolint:mnd
+		FPS:    time.Second / 8, //nolint:gomnd
 	}
 	Points = Spinner{
 		Frames: []string{"∙∙∙", "●∙∙", "∙●∙", "∙∙●"},
-		FPS:    time.Second / 7, //nolint:mnd
+		FPS:    time.Second / 7, //nolint:gomnd
 	}
 	Globe = Spinner{
 		Frames: []string{"🌍", "🌎", "🌏"},
-		FPS:    time.Second / 4, //nolint:mnd
+		FPS:    time.Second / 4, //nolint:gomnd
 	}
 	Moon = Spinner{
 		Frames: []string{"🌑", "🌒", "🌓", "🌔", "🌕", "🌖", "🌗", "🌘"},
-		FPS:    time.Second / 8, //nolint:mnd
+		FPS:    time.Second / 8, //nolint:gomnd
 	}
 	Monkey = Spinner{
 		Frames: []string{"🙈", "🙉", "🙊"},
-		FPS:    time.Second / 3, //nolint:mnd
+		FPS:    time.Second / 3, //nolint:gomnd
 	}
 	Meter = Spinner{
 		Frames: []string{
@@ -71,15 +77,15 @@ var (
 			"▰▱▱",
 			"▱▱▱",
 		},
-		FPS: time.Second / 7, //nolint:mnd
+		FPS: time.Second / 7, //nolint:gomnd
 	}
 	Hamburger = Spinner{
 		Frames: []string{"☱", "☲", "☴", "☲"},
-		FPS:    time.Second / 3, //nolint:mnd
+		FPS:    time.Second / 3, //nolint:gomnd
 	}
 	Ellipsis = Spinner{
 		Frames: []string{"", ".", "..", "..."},
-		FPS:    time.Second / 3, //nolint:mnd
+		FPS:    time.Second / 3, //nolint:gomnd
 	}
 )
 

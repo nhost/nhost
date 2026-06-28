@@ -23,7 +23,8 @@ func (ctrl *Controller) SignInPasswordlessSms( //nolint:ireturn
 	}
 
 	options, apiErr := ctrl.signinSmsValidateRequest(
-		ctx, request.Body.PhoneNumber, request.Body.Options, logger)
+		ctx, request.Body.PhoneNumber, request.Body.Options, logger,
+	)
 	if apiErr != nil {
 		return ctrl.respondWithError(apiErr), nil
 	}

@@ -72,9 +72,9 @@ function printTypeSDL(
             }
 
             const argName = argTree?.[type?.name]?.[f?.name]?.[arg?.name];
-            if (argName) {
+            if (argName !== undefined) {
               const preset = stringifyGraphQLValue({ arg, argName });
-              if (!isEmptyValue(preset)) {
+              if (preset !== undefined && preset !== '') {
                 valueStr = `${valueStr} @preset(value: ${preset}) `;
               }
             }

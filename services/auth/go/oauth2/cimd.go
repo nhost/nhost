@@ -55,7 +55,7 @@ func IsCIMDClientID(clientID string, allowInsecure bool) bool {
 	return validScheme && u.Host != "" && u.Path != "" && u.Path != "/"
 }
 
-func ValidateCIMDURL( //nolint:cyclop
+func ValidateCIMDURL(
 	ctx context.Context, clientID string, allowInsecure bool,
 ) (*url.URL, *Error) {
 	u, err := url.Parse(clientID)
@@ -116,7 +116,7 @@ func hasDotSegments(path string) bool {
 		strings.HasSuffix(path, "/..")
 }
 
-func isPrivateOrLoopback(ctx context.Context, host string) bool { //nolint:cyclop
+func isPrivateOrLoopback(ctx context.Context, host string) bool {
 	ip := net.ParseIP(host)
 	if ip != nil {
 		return ip.IsLoopback() || ip.IsPrivate() ||
@@ -368,7 +368,7 @@ func parseCIMDMetadata(
 	return &metadata, nil
 }
 
-func (p *Provider) ResolveCIMDClient( //nolint:cyclop
+func (p *Provider) ResolveCIMDClient(
 	ctx context.Context,
 	clientID string,
 	logger *slog.Logger,

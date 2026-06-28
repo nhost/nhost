@@ -15,17 +15,17 @@
   },
   "dependencies": {
     "@nhost/nhost-js": "workspace:*",
-    "@simplewebauthn/browser": "^13.1.0",
+    "@simplewebauthn/browser": "^13.1.2",
     "bcryptjs": "^2.4.3",
-    "react": "^19.1.0",
-    "react-dom": "^19.1.0",
-    "react-router-dom": "^7.6.0"
+    "react": "^19.2.3",
+    "react-dom": "^19.2.3",
+    "react-router-dom": "^7.16.0"
   },
   "devDependencies": {
     "@types/bcryptjs": "^2.4.6",
-    "@types/react": "^19.1.2",
-    "@types/react-dom": "^19.1.2",
+    "@types/react": "^19.1.12",
+    "@types/react-dom": "^19.1.9",
     "@vitejs/plugin-react": "^6.0.1",
-    "vite": "^8.0.10"
+    "vite": "^8.0.16"
   }
 }

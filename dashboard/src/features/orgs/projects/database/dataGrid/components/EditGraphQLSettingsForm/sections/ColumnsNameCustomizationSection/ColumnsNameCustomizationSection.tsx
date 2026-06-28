@@ -12,6 +12,7 @@ import { useTableSchemaQuery } from '@/features/orgs/projects/database/common/ho
 import { useSetTableCustomizationMutation } from '@/features/orgs/projects/database/dataGrid/hooks/useSetTableCustomizationMutation';
 import { useTableCustomizationQuery } from '@/features/orgs/projects/database/dataGrid/hooks/useTableCustomizationQuery';
 import { convertSnakeToCamelCase } from '@/features/orgs/projects/database/dataGrid/utils/convertSnakeToCamelCase';
+import { getDisplayType } from '@/features/orgs/projects/database/dataGrid/utils/getDisplayType';
 import { prepareCustomGraphQLColumnNameDTO } from '@/features/orgs/projects/database/dataGrid/utils/prepareCustomGraphQLColumnNameDTO';
 import { execPromiseWithErrorToast } from '@/features/orgs/utils/execPromiseWithErrorToast';
 import { cn, isEmptyValue } from '@/lib/utils';
@@ -239,7 +240,7 @@ export default function ColumnsNameCustomizationSection({
           ) : (
             <div className="space-y-3">
               <div className="px-4">
-                <div className="grid grid-cols-[minmax(0,1fr),minmax(0,1fr),minmax(0,1.5fr)] items-center gap-3 rounded-md bg-muted px-4 py-2 font-medium text-muted-foreground text-xs uppercase tracking-wide">
+                <div className="grid grid-cols-[minmax(0,1fr)_minmax(0,1.2fr)_minmax(0,1.5fr)] items-center gap-3 rounded-md bg-muted px-4 py-2 font-medium text-muted-foreground text-xs uppercase tracking-wide">
                   <span>Column</span>
                   <span>Data Type</span>
                   <span>GraphQL Field Name</span>
@@ -259,15 +260,16 @@ export default function ColumnsNameCustomizationSection({
                       return null;
                     }
 
-                    const dataType: string =
-                      column.full_data_type || column.data_type || 'unknown';
+                    const displayType: string = getDisplayType(
+                      column.full_data_type,
+                    );
                     const fieldPath =
                       `columns.${columnName}.graphqlFieldName` satisfies GraphQLFieldNamePath;
 
                     return (
                       <div
                         key={columnName}
-                        className="grid grid-cols-[minmax(0,1fr),minmax(0,1fr),minmax(0,1.5fr)] items-center gap-3 rounded-md bg-background py-3 pr-0 pl-4"
+                        className="grid grid-cols-[minmax(0,1fr)_minmax(0,1.2fr)_minmax(0,1.5fr)] items-center gap-3 rounded-md bg-background px-4 py-3"
                       >
                         <div className="space-y-1">
                           <span className="font-medium text-foreground text-sm">
@@ -276,7 +278,7 @@ export default function ColumnsNameCustomizationSection({
                         </div>
 
                         <span className="font-mono text-foreground text-sm">
-                          {dataType}
+                          {displayType}
                         </span>
 
                         <FormInput
@@ -285,8 +287,8 @@ export default function ColumnsNameCustomizationSection({
                           name={fieldPath}
                           label=""
                           placeholder={`${columnName} (default)`}
-                          className="pr-4 font-mono"
-                          containerClassName="space-y-0"
+                          className="font-mono"
+                          containerClassName="-mr-4 space-y-0"
                         />
                       </div>
                     );

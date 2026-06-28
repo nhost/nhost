@@ -1,0 +1,641 @@
+package queries_test
+
+import (
+	"testing"
+
+	"github.com/nhost/nhost/services/constellation/connector/sql/graphql/queries/arguments"
+)
+
+func TestBuildSubscriptionAggregateSQL(t *testing.T) { //nolint:paralleltest,maintidx
+	cases := []buildQueryTestCase{
+		{
+			name: "count only",
+			query: query{
+				Query: `
+					subscription {
+						departments_aggregate {
+							aggregate {
+								count
+							}
+						}
+					}`,
+			},
+		},
+		{
+			name: "count with nodes",
+			query: query{
+				Query: `
+					subscription {
+						departments_aggregate(limit: 5) {
+							aggregate {
+								count
+							}
+							nodes {
+								id
+								name
+							}
+						}
+					}`,
+			},
+		},
+		{
+			name: "sum aggregate",
+			query: query{
+				Query: `
+					subscription {
+						departments_aggregate {
+							aggregate {
+								sum {
+									budget
+								}
+							}
+						}
+					}`,
+			},
+		},
+		{
+			name: "avg aggregate",
+			query: query{
+				Query: `
+					subscription {
+						departments_aggregate {
+							aggregate {
+								avg {
+									budget
+								}
+							}
+						}
+					}`,
+			},
+		},
+		{
+			name: "max aggregate",
+			query: query{
+				Query: `
+					subscription {
+						departments_aggregate {
+							aggregate {
+								max {
+									budget
+								}
+							}
+						}
+					}`,
+			},
+		},
+		{
+			name: "min aggregate",
+			query: query{
+				Query: `
+					subscription {
+						departments_aggregate {
+							aggregate {
+								min {
+									budget
+								}
+							}
+						}
+					}`,
+			},
+		},
+		{
+			name: "multiple aggregate functions",
+			query: query{
+				Query: `
+					subscription {
+						departments_aggregate {
+							aggregate {
+								count
+								sum {
+									budget
+								}
+								avg {
+									budget
+								}
+								max {
+									budget
+								}
+								min {
+									budget
+								}
+								stddev {
+									budget
+								}
+								stddev_pop {
+									budget
+								}
+								stddev_samp {
+									budget
+								}
+								variance {
+									budget
+								}
+								var_pop {
+									budget
+								}
+								var_samp {
+									budget
+								}
+							}
+						}
+					}`,
+			},
+		},
+		{
+			name: "aggregate with WHERE clause",
+			query: query{
+				Query: `
+					subscription {
+						departments_aggregate(where: {budget: {_gt: 1000}}) {
+							aggregate {
+								count
+							}
+						}
+					}`,
+			},
+		},
+		{
+			name: "aggregate with nodes and WHERE clause",
+			query: query{
+				Query: `
+					subscription {
+						departments_aggregate(where: {budget: {_gt: 1000}}) {
+							aggregate {
+								count
+								sum {
+									budget
+								}
+							}
+							nodes {
+								id
+								name
+								budget
+							}
+						}
+					}`,
+			},
+		},
+		{
+			name: "aggregate with nodes, WHERE, ORDER BY, and LIMIT",
+			query: query{
+				Query: `
+					subscription {
+						departments_aggregate(
+							where: {budget: {_gte: 500}},
+							order_by: {budget: desc},
+							limit: 5
+						) {
+							aggregate {
+								count
+								avg {
+									budget
+								}
+							}
+							nodes {
+								id
+								name
+								budget
+							}
+						}
+					}`,
+			},
+		},
+		{
+			name: "aggregate with nodes and OFFSET",
+			query: query{
+				Query: `
+					subscription {
+						departments_aggregate(
+							order_by: {name: asc},
+							limit: 10,
+							offset: 5
+						) {
+							aggregate {
+								count
+							}
+							nodes {
+								id
+								name
+							}
+						}
+					}`,
+			},
+		},
+		{
+			name: "aggregate with complex WHERE conditions",
+			query: query{
+				Query: `
+					subscription {
+						departments_aggregate(
+							where: {
+								_and: [
+									{budget: {_gte: 500}},
+									{budget: {_lte: 5000}}
+								]
+							}
+						) {
+							aggregate {
+								count
+								avg {
+									budget
+								}
+							}
+						}
+					}`,
+			},
+		},
+		{
+			name: "aggregate nodes only (no aggregate fields)",
+			query: query{
+				Query: `
+					subscription {
+						departments_aggregate(limit: 3) {
+							nodes {
+								id
+								name
+							}
+						}
+					}`,
+			},
+		},
+
+		{
+			name: "nested",
+			query: query{
+				Query: `
+				subscription {
+				  departments {
+				    name
+					files_aggregate {
+					  aggregate {
+					    count
+					  }
+					}
+				  }
+				}`,
+			},
+		},
+
+		{
+			name: "permissions: simple",
+			query: query{
+				Query: `subscription {
+					departments_aggregate {
+						aggregate {
+							count
+						}
+						nodes {
+							id
+							name
+						}
+					}
+				}`,
+				Role: "user",
+				SessionVariables: map[string]any{
+					"x-hasura-user-id":     "550e8400-e29b-41d4-a716-446655440001",
+					"x-hasura-departments": "{2db9de0a-b9ba-416e-8619-783a399ae2b3,fd1e6bba-c292-4b2f-872e-ae16146cdd82}",
+				},
+			},
+		},
+
+		{
+			name: "permissions: nested",
+			query: query{
+				Query: `subscription {
+					departments {
+						files_aggregate {
+							aggregate {
+							    count
+						    }
+						}
+					}
+				}`,
+				Role: "user",
+				SessionVariables: map[string]any{
+					"x-hasura-user-id":     "550e8400-e29b-41d4-a716-446655440001",
+					"x-hasura-departments": "{2db9de0a-b9ba-416e-8619-783a399ae2b3,fd1e6bba-c292-4b2f-872e-ae16146cdd82}",
+				},
+			},
+		},
+
+		{
+			name: "permissions: nested with filter",
+			query: query{
+				Query: `subscription {
+					departments {
+						files_aggregate(where: {file: {bucketId: {_eq: "default"}}}) {
+							aggregate {
+							    count
+						    }
+						    nodes {
+						        file {
+						            id
+						        }
+						    }
+						}
+					}
+				}`,
+				Role: "user",
+				SessionVariables: map[string]any{
+					"x-hasura-user-id":     "550e8400-e29b-41d4-a716-446655440001",
+					"x-hasura-departments": "{2db9de0a-b9ba-416e-8619-783a399ae2b3,fd1e6bba-c292-4b2f-872e-ae16146cdd82}",
+				},
+			},
+		},
+
+		{
+			name: "aggregate with distinct_on",
+			query: query{
+				Query: `subscription {
+					usersAggregate(
+						distinct_on: defaultRole,
+						order_by: {defaultRole: asc},
+						limit: 10
+					) {
+						aggregate {
+							count
+						}
+						nodes {
+							id
+							displayName
+							defaultRole
+						}
+					}
+				}`,
+				Role: "admin",
+			},
+		},
+
+		{
+			// distinct_on with no order_by must still emit a leading ORDER BY on
+			// the distinct columns in the aggregate base CTE so row selection and
+			// nodes output stay deterministic, matching Hasura.
+			name: "aggregate with distinct_on without order by",
+			query: query{
+				Query: `subscription {
+					departments_aggregate(distinct_on: name) {
+						aggregate {
+							count
+						}
+						nodes {
+							id
+							name
+							budget
+						}
+					}
+				}`,
+				Role: "admin",
+			},
+		},
+
+		{
+			// distinct_on column differs from the leading order_by column. Hasura
+			// rejects this at validation rather than reconciling, so Constellation
+			// does too instead of silently reordering the user's order_by.
+			name: "aggregate with distinct_on mismatched order by",
+			query: query{
+				Query: `subscription {
+					departments_aggregate(
+						distinct_on: name,
+						order_by: {budget: desc},
+						limit: 10
+					) {
+						aggregate {
+							count
+						}
+						nodes {
+							id
+							name
+							budget
+						}
+					}
+				}`,
+				Role: "admin",
+			},
+			expectError: arguments.ErrInvalidArgument,
+		},
+
+		{
+			name: "nested aggregate",
+			query: query{
+				Query: `subscription {
+					  departments_aggregate {
+						aggregate {
+						  count
+						}
+						nodes {
+						  files_aggregate {
+							aggregate {
+							  count
+							}
+							nodes {
+							  file {
+								name
+							  }
+							}
+						  }
+						  employees_aggregate {
+							aggregate {
+							  count
+							}
+							nodes {
+							  user {
+								displayName
+							  }
+							}
+						  }
+						}
+						nodes {
+						  name
+						}
+					  }
+					}`,
+				Role: "admin",
+			},
+		},
+
+		{
+			name: "aggregate with fragment in aggregate fields",
+			query: query{
+				Query: `
+					fragment AggFields on departments_aggregate_fields {
+						sum {
+							budget
+						}
+						avg {
+							budget
+						}
+					}
+
+					subscription {
+						departments_aggregate {
+							aggregate {
+								count
+								...AggFields
+							}
+							nodes {
+								id
+								name
+							}
+						}
+					}`,
+			},
+		},
+
+		{
+			name: "aggregate with fragment in nodes",
+			query: query{
+				Query: `
+					fragment DeptFields on departments {
+						id
+						name
+						budget
+					}
+
+					subscription {
+						departments_aggregate(limit: 5) {
+							aggregate {
+								count
+							}
+							nodes {
+								...DeptFields
+							}
+						}
+					}`,
+			},
+		},
+
+		{
+			name: "aggregate with inline fragment",
+			query: query{
+				Query: `
+					subscription {
+						departments_aggregate {
+							aggregate {
+								count
+								... {
+									sum {
+										budget
+									}
+								}
+							}
+							nodes {
+								id
+								name
+							}
+						}
+					}`,
+			},
+		},
+
+		{
+			name: "aggregate with multiple fragments merged",
+			query: query{
+				Query: `
+					fragment AggCount on departments_aggregate_fields {
+						count
+					}
+
+					fragment AggSum on departments_aggregate_fields {
+						sum {
+							budget
+						}
+					}
+
+					subscription {
+						departments_aggregate {
+							aggregate {
+								...AggCount
+								...AggSum
+							}
+							nodes {
+								id
+								name
+							}
+						}
+					}`,
+			},
+		},
+
+		{
+			name: "nested aggregate with fragments",
+			query: query{
+				Query: `
+					fragment FileAggFields on department_files_aggregate_fields {
+						count
+					}
+
+					fragment EmpAggFields on user_departments_aggregate_fields {
+						count
+					}
+
+					fragment DeptNodeFields on departments {
+						name
+					}
+
+					subscription {
+						departments_aggregate {
+							aggregate {
+								count
+							}
+							nodes {
+								files_aggregate {
+									aggregate {
+										...FileAggFields
+									}
+									nodes {
+										file {
+											name
+										}
+									}
+								}
+								employees_aggregate {
+									aggregate {
+										...EmpAggFields
+									}
+									nodes {
+										user {
+											displayName
+										}
+									}
+								}
+								...DeptNodeFields
+							}
+						}
+					}`,
+				Role: "admin",
+			},
+		},
+
+		{
+			name: "aggregate with duplicate fields via fragments (merging)",
+			query: query{
+				Query: `
+					fragment NodesFields1 on departments {
+						id
+						name
+					}
+
+					fragment NodesFields2 on departments {
+						budget
+					}
+
+					subscription {
+						departments_aggregate(limit: 3) {
+							aggregate {
+								count
+							}
+							nodes {
+								...NodesFields1
+							}
+							nodes {
+								...NodesFields2
+							}
+						}
+					}`,
+			},
+		},
+	}
+
+	testBuildSubscription(t, cases, false)
+}

@@ -1,0 +1,22 @@
+[
+  {
+    "Code": "ZZ901",
+    "Hint": "",
+    "InternalPosition": 0,
+    "ConstraintName": "",
+    "SeverityUnlocalized": "ERROR",
+    "Detail": "",
+    "TableName": "",
+    "File": "pl_exec.c",
+    "Severity": "ERROR",
+    "Message": "check constraint of an insert/update permission has failed",
+    "DataTypeName": "",
+    "Line": 3923,
+    "Routine": "exec_stmt_raise",
+    "Position": 0,
+    "InternalQuery": "",
+    "Where": "PL/pgSQL function constellation_throw_error(text,text) line 3 at RAISE",
+    "SchemaName": "",
+    "ColumnName": ""
+  }
+]

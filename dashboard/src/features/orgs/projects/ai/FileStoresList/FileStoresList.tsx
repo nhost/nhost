@@ -1,14 +1,16 @@
+import {
+  CopyIcon,
+  Ellipsis as DotsHorizontalIcon,
+  EyeIcon,
+  Trash2 as TrashIcon,
+} from 'lucide-react';
 import { useDialog } from '@/components/common/DialogProvider';
 import { Box } from '@/components/ui/v2/Box';
 import { Divider } from '@/components/ui/v2/Divider';
 import { Dropdown } from '@/components/ui/v2/Dropdown';
 import { IconButton } from '@/components/ui/v2/IconButton';
-import { CopyIcon } from '@/components/ui/v2/icons/CopyIcon';
-import { DotsHorizontalIcon } from '@/components/ui/v2/icons/DotsHorizontalIcon';
-import { FileStoresIcon } from '@/components/ui/v2/icons/FileStoresIcon';
-import { TrashIcon } from '@/components/ui/v2/icons/TrashIcon';
-import { UserIcon } from '@/components/ui/v2/icons/UserIcon';
 import { Text } from '@/components/ui/v2/Text';
+import { FileStoresIcon } from '@/components/ui/v3/icons/FileStoresIcon';
 import { DeleteFileStoreModal } from '@/features/orgs/projects/ai/DeleteFileStoreModal';
 import { FileStoreForm } from '@/features/orgs/projects/ai/FileStoreForm';
 import type { GraphiteFileStore } from '@/pages/orgs/[orgSlug]/projects/[appSubdomain]/ai/file-stores';
@@ -134,7 +136,7 @@ export default function FileStoresList({
                 onClick={() => viewFileStore(fileStore)}
                 className="z-50 grid grid-flow-col items-center gap-2 p-2 font-medium text-sm+"
               >
-                <UserIcon className="h-4 w-4" />
+                <EyeIcon className="h-4 w-4" />
                 <Text className="font-medium">View {fileStore?.name}</Text>
               </Dropdown.Item>
               <Divider component="li" />

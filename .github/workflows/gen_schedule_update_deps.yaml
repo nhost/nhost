@@ -2,79 +2,73 @@
 name: "gen: update depenendencies"
 on:
   schedule:
-    - cron: '0 2 1 2,6,10 *'
+    - cron: "0 2 1 2,6,10 *"
 
 jobs:
   run:
     runs-on: ubuntu-latest
 
     permissions:
-      id-token: write
       contents: write
       pull-requests: write
 
     steps:
-    - name: "Generate App token"
-      id: app-token
-      uses: actions/create-github-app-token@v3
-      with:
-        app-id: ${{ secrets.NHOST_BOT_APP_ID }}
-        private-key: ${{ secrets.NHOST_BOT_PRIVATE_KEY }}
+      - name: "Generate App token"
+        id: app-token
+        uses: actions/create-github-app-token@v3
+        with:
+          client-id: ${{ secrets.NHOST_BOT_APP_ID }}
+          private-key: ${{ secrets.NHOST_BOT_PRIVATE_KEY }}
 
-    - name: Check out repository
-      uses: actions/checkout@v6
-      with:
-        token: ${{ steps.app-token.outputs.token }}
+      - name: Check out repository
+        uses: actions/checkout@v7
+        with:
+          token: ${{ steps.app-token.outputs.token }}
 
-    - name: Configure aws
-      uses: aws-actions/configure-aws-credentials@v6
-      with:
-        role-to-assume: arn:aws:iam::${{ secrets.AWS_PRODUCTION_CORE_ACCOUNT_ID }}:role/github-actions-nhost-${{ github.event.repository.name }}
-        aws-region: eu-central-1
+      - name: Setup Nix with Cache
+        uses: ./.github/actions/setup-nix
+        with:
+          NAME: ${{ inputs.NAME }}
+          NIX_CACHE_PUB_KEY: ${{ secrets.NIX_CACHE_PUB_KEY }}
+          NIX_CACHE_ACCESS_KEY_ID: ${{ secrets.NIX_CACHE_ACCESS_KEY_ID }}
+          NIX_CACHE_SECRET_ACCESS_KEY: ${{ secrets.NIX_CACHE_SECRET_ACCESS_KEY }}
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
-    - uses: nixbuild/nix-quick-install-action@v34
-      with:
-        nix_version: 2.16.2
-        nix_conf: |
-          experimental-features = nix-command flakes
-          sandbox = false
-          access-tokens = github.com=${{ secrets.GITHUB_TOKEN }}
-          substituters = https://cache.nixos.org/?priority=40 s3://nhost-nix-cache?region=eu-central-1&priority=50
-          trusted-public-keys = cache.nixos.org-1:6NCHdD59X431o0gWypbMrAURkbJ16ZPMQFGspcDShjY= ${{ secrets.NIX_CACHE_PUB_KEY }}
+      - name: Update nix flakes
+        run: nix flake update
 
-    - name: Update nix flakes
-      run: nix flake update
+      - name: Update dependencies
+        run: |
+          nix develop -c bash -c "
+            pnpm dedupe
+            pnpm update -r
+            pnpm dedupe
+          "
 
-    - name: Update dependencies
-      run: |
-        nix develop -c bash -c "
-          pnpm dedupe
-          pnpm update -r
-          pnpm dedupe
-        "
+      - name: Create Pull Request
+        uses: peter-evans/create-pull-request@v8
+        with:
+          token: ${{ steps.app-token.outputs.token }}
+          commit-message: Update dependencies
+          committer: ${{ steps.app-token.outputs.app-slug }}[bot] <${{ steps.app-token.outputs.app-slug }}[bot]@users.noreply.github.com>
+          author: ${{ steps.app-token.outputs.app-slug }}[bot] <${{ steps.app-token.outputs.app-slug }}[bot]@users.noreply.github.com>
+          signoff: false
+          branch: automated/update-deps
+          delete-branch: true
+          title: "[Scheduled] Update dependencies"
+          body: |
+            Dependencies updated
+          labels: |
+            dependencies
+          draft: false
 
-    - name: Create Pull Request
-      uses: peter-evans/create-pull-request@v8
-      with:
-        token: ${{ steps.app-token.outputs.token }}
-        commit-message: Update dependencies
-        committer: ${{ steps.app-token.outputs.app-slug }}[bot] <${{ steps.app-token.outputs.app-slug }}[bot]@users.noreply.github.com>
-        author: ${{ steps.app-token.outputs.app-slug }}[bot] <${{ steps.app-token.outputs.app-slug }}[bot]@users.noreply.github.com>
-        signoff: false
-        branch: automated/update-deps
-        delete-branch: true
-        title: '[Scheduled] Update dependencies'
-        body: |
-          Dependencies updated
-        labels: |
-          dependencies
-        draft: false
+      - name: "Build dev shell"
+        run: nix build .\#devShells.x86_64-linux.default
 
-    - name: "Build dev shell"
-      run: nix build .\#devShells.x86_64-linux.default
-
-    - name: "Cache nix store on s3"
-      uses: ./.github/actions/cache-nix
-      with:
-        NIX_CACHE_PRIV_KEY: ${{ secrets.NIX_CACHE_PRIV_KEY }}
-      if: always()
+      - name: "Cache nix store on R2"
+        uses: ./.github/actions/cache-nix
+        with:
+          NIX_CACHE_PRIV_KEY: ${{ secrets.NIX_CACHE_PRIV_KEY }}
+          NIX_CACHE_ACCESS_KEY_ID: ${{ secrets.NIX_CACHE_ACCESS_KEY_ID }}
+          NIX_CACHE_SECRET_ACCESS_KEY: ${{ secrets.NIX_CACHE_SECRET_ACCESS_KEY }}
+        if: always()

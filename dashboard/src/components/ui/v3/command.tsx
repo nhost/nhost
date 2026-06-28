@@ -157,8 +157,17 @@ CommandShortcut.displayName = 'CommandShortcut';
 
 const CommandCreateItem = ({
   onCreate,
+  label,
+  value = 'create',
 }: {
   onCreate: (value: string) => void;
+  label?: (query: string) => React.ReactNode;
+  /**
+   * cmdk item value. Defaults to `'create'`. Override when rendering more than
+   * one create row in the same list so their values stay distinct (otherwise
+   * cmdk's keyboard navigation and selection collide).
+   */
+  value?: string;
 }) => {
   const query = useCommandState((state) => state.search);
   if (!query || !onCreate) {
@@ -166,8 +175,14 @@ const CommandCreateItem = ({
   }
 
   return (
-    <CommandItem forceMount value="create" onSelect={() => onCreate(query)}>
-      <PlusIcon className="mr-2" /> {query}
+    <CommandItem forceMount value={value} onSelect={() => onCreate(query)}>
+      {label ? (
+        label(query)
+      ) : (
+        <>
+          <PlusIcon className="mr-2" /> {query}
+        </>
+      )}
     </CommandItem>
   );
 };

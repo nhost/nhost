@@ -7,6 +7,7 @@ import (
 	"io"
 	"log/slog"
 	"mime/multipart"
+	"net/http"
 	"net/textproto"
 	"os"
 	"strings"
@@ -207,7 +208,8 @@ func TestUploadFile(t *testing.T) {
 						UploadedByUserId: new("some-valid-uuid"),
 						Metadata:         new(map[string]any{}),
 					},
-					nil)
+					nil,
+				)
 			}
 
 			{
@@ -257,7 +259,8 @@ func TestUploadFile(t *testing.T) {
 						UploadedByUserId: new("some-valid-uuid"),
 						Metadata:         new(map[string]any{"some": "metadata"}),
 					},
-					nil)
+					nil,
+				)
 			}
 
 			av.EXPECT().ScanReader(gomock.Any(), gomock.Any()).Return(nil)
@@ -284,38 +287,116 @@ func TestUploadFile(t *testing.T) {
 				t.Fatal(err)
 			}
 
-			assert(t, api.UploadFiles201JSONResponse{
-				ProcessedFiles: []api.FileMetadata{
-					{
-						Id:               "38288c85-02af-416b-b075-11c4dae9",
-						Name:             "a_file.txt",
-						Size:             12,
-						BucketId:         "blah",
-						Etag:             "some-etag",
-						CreatedAt:        time.Time{}, // ignored
-						UpdatedAt:        time.Time{}, // ignored
-						IsUploaded:       true,
-						MimeType:         "text/plain; charset=utf-8",
-						UploadedByUserId: new("some-valid-uuid"),
-						Metadata:         new(map[string]any{}),
+			assert(
+				t, api.UploadFiles201JSONResponse{
+					ProcessedFiles: []api.FileMetadata{
+						{
+							Id:               "38288c85-02af-416b-b075-11c4dae9",
+							Name:             "a_file.txt",
+							Size:             12,
+							BucketId:         "blah",
+							Etag:             "some-etag",
+							CreatedAt:        time.Time{}, // ignored
+							UpdatedAt:        time.Time{}, // ignored
+							IsUploaded:       true,
+							MimeType:         "text/plain; charset=utf-8",
+							UploadedByUserId: new("some-valid-uuid"),
+							Metadata:         new(map[string]any{}),
+						},
+						{
+							Id:               "d041c7c5-10e7-410e-a599-799409b5",
+							Name:             "another_file.md",
+							Size:             12,
+							BucketId:         "blah",
+							Etag:             "some-etag",
+							CreatedAt:        time.Time{}, // ignored
+							UpdatedAt:        time.Time{}, // ignored
+							IsUploaded:       true,
+							MimeType:         "text/plain; charset=utf-8",
+							UploadedByUserId: new("some-valid-uuid"),
+							Metadata:         new(map[string]any{"some": "metadata"}),
+						},
 					},
-					{
-						Id:               "d041c7c5-10e7-410e-a599-799409b5",
-						Name:             "another_file.md",
-						Size:             12,
-						BucketId:         "blah",
-						Etag:             "some-etag",
-						CreatedAt:        time.Time{}, // ignored
-						UpdatedAt:        time.Time{}, // ignored
-						IsUploaded:       true,
-						MimeType:         "text/plain; charset=utf-8",
-						UploadedByUserId: new("some-valid-uuid"),
-						Metadata:         new(map[string]any{"some": "metadata"}),
-					},
-				},
-			}, resp,
+				}, resp,
 				cmpopts.IgnoreFields(api.FileMetadata{}, "Id", "CreatedAt", "UpdatedAt"),
 			)
 		})
 	}
+}
+
+func TestUploadFiles_FileTooBig(t *testing.T) {
+	t.Parallel()
+
+	logger := slog.New(
+		slog.NewTextHandler(os.Stdout, &slog.HandlerOptions{Level: slog.LevelError}),
+	)
+
+	c := gomock.NewController(t)
+	defer c.Finish()
+
+	metadataStorage := mock.NewMockMetadataStorage(c)
+	contentStorage := mock.NewMockContentStorage(c)
+	av := mock.NewMockAntivirus(c)
+
+	metadataStorage.EXPECT().GetBucketByID(
+		gomock.Any(), "blah", gomock.Any(),
+	).Return(controller.BucketMetadata{
+		ID:                   "blah",
+		MinUploadFile:        0,
+		MaxUploadFile:        10,
+		PresignedURLsEnabled: false,
+		DownloadExpiration:   30,
+		CreatedAt:            "2021-12-15T13:26:52.082485+00:00",
+		UpdatedAt:            "2021-12-15T13:26:52.082485+00:00",
+	}, nil)
+
+	file := fakeFile{
+		contents:    strings.Repeat("a", 100),
+		contentType: "",
+		md: fakeFileMetadata{
+			Name:     "big.txt",
+			ID:       uuid.New().String(),
+			Metadata: map[string]any{},
+		},
+	}
+
+	ctrl := controller.New(
+		"http://asd",
+		"/v1",
+		"asdasd",
+		metadataStorage,
+		contentStorage,
+		nil,
+		av,
+		logger,
+	)
+
+	resp, err := ctrl.UploadFiles(
+		t.Context(),
+		api.UploadFilesRequestObject{
+			Body: createMultiForm(t, file),
+		},
+	)
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	assert(t, resp, api.UploadFilesdefaultJSONResponse{
+		Body: api.ErrorResponseWithProcessedFiles{
+			Error: &struct {
+				Data    *map[string]any `json:"data,omitempty"`
+				Message string          `json:"message"`
+			}{
+				Data: &map[string]any{
+					"file":     "big.txt",
+					"filename": "big.txt",
+					"size":     100,
+					"maxSize":  10,
+				},
+				Message: "file too big",
+			},
+			ProcessedFiles: &[]api.FileMetadata{},
+		},
+		StatusCode: http.StatusBadRequest,
+	})
 }

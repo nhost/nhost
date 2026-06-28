@@ -1,0 +1,14 @@
+[
+  {
+    "Name": "insert_department_files",
+    "SQL": "WITH check_nested_file AS (SELECT * FROM (SELECT $1::uuid AS \"id\", $2::text AS \"bucket_id\") AS data WHERE true), nested_file AS (INSERT INTO \"storage\".\"files\" (\"id\", \"bucket_id\") SELECT check_nested_file.\"id\", check_nested_file.\"bucket_id\" FROM check_nested_file RETURNING *), check_mutation_result AS (SELECT * FROM (SELECT $3::uuid AS \"id\", $4::text AS \"description\", $5::uuid AS \"department_id\", nested_file.\"id\" AS \"file_id\" FROM nested_file) AS data WHERE true), mutation_result AS (INSERT INTO \"public\".\"department_files\" (\"id\", \"description\", \"department_id\", \"file_id\") SELECT check_mutation_result.\"id\", check_mutation_result.\"description\", check_mutation_result.\"department_id\", nested_file.\"id\" FROM check_mutation_result, nested_file RETURNING *) SELECT json_build_object('affected_rows', ((SELECT COUNT(*) FROM mutation_result) + (SELECT COUNT(*) FROM nested_file)), 'returning', (SELECT COALESCE(json_agg(row_to_json(\"_e\")), '[]'::json) FROM (SELECT mutation_result.\"id\" AS \"id\" FROM mutation_result WHERE (SELECT COUNT(*) FROM nested_file) IS NOT NULL) AS \"_e\"))",
+    "Parameters": [
+      "00000000-0000-0000-0000-0000000000ff",
+      "default",
+      "00000000-0000-0000-0000-0000000000fe",
+      "object-rel-affected-rows",
+      "2db9de0a-b9ba-416e-8619-783a399ae2b3"
+    ],
+    "StreamCursors": null
+  }
+]
