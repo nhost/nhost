@@ -1,0 +1,20 @@
+{
+  "name": "@nhost/screenshot-extension",
+  "private": true,
+  "version": "0.1.0",
+  "description": "Internal dev-only Chrome extension for composing Nhost docs/dashboard screenshots (dim, spotlight, outline).",
+  "type": "module",
+  "scripts": {
+    "build": "node build.mjs",
+    "watch": "node build.mjs --watch",
+    "dev": "node dev/serve.mjs",
+    "icons": "node dev/make-icons.mjs",
+    "icons:watch": "node dev/make-icons.mjs --watch",
+    "typecheck": "tsc --noEmit"
+  },
+  "devDependencies": {
+    "@types/chrome": "^0.0.287",
+    "esbuild": "^0.25.0",
+    "typescript": "5.8.3"
+  }
+}

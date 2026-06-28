@@ -1,0 +1,202 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Extension icon — preview</title>
+    <style>
+      * {
+        box-sizing: border-box;
+      }
+      body {
+        margin: 0;
+        font-family:
+          ui-sans-serif,
+          system-ui,
+          -apple-system,
+          sans-serif;
+        background: #f5f7fb;
+        color: #1a2230;
+      }
+      main {
+        max-width: 920px;
+        margin: 0 auto;
+        padding: 32px 24px 80px;
+      }
+      h1 {
+        font-size: 22px;
+        margin: 0 0 4px;
+      }
+      p.lead {
+        color: #5b6472;
+        margin: 0 0 28px;
+        font-size: 14px;
+      }
+      .panel {
+        border-radius: 16px;
+        padding: 28px;
+        margin: 18px 0;
+        display: flex;
+        align-items: flex-end;
+        gap: 36px;
+        flex-wrap: wrap;
+      }
+      .panel.light {
+        background: #e9edf3;
+      }
+      .panel.dark {
+        background: #0d0f14;
+      }
+      .panel.dark .label {
+        color: #9aa3b2;
+      }
+      .item {
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        gap: 10px;
+      }
+      .item img {
+        display: block;
+        image-rendering: auto;
+      }
+      .label {
+        font-size: 12px;
+        color: #5b6472;
+        font-variant-numeric: tabular-nums;
+      }
+
+      .chrome {
+        margin: 18px 0;
+        border-radius: 12px;
+        overflow: hidden;
+        border: 1px solid #d8deea;
+      }
+      .chrome .bar {
+        display: flex;
+        align-items: center;
+        gap: 10px;
+        padding: 8px 12px;
+      }
+      .chrome .bar.light {
+        background: #dee1e6;
+      }
+      .chrome .bar.dark {
+        background: #202124;
+      }
+      .dots {
+        display: flex;
+        gap: 6px;
+      }
+      .dots i {
+        width: 12px;
+        height: 12px;
+        border-radius: 50%;
+        display: block;
+      }
+      .urlbar {
+        flex: 1;
+        height: 28px;
+        border-radius: 14px;
+        background: #fff;
+      }
+      .chrome .bar.dark .urlbar {
+        background: #3c4043;
+      }
+      .toolbar-icon {
+        width: 24px;
+        height: 24px;
+        border-radius: 6px;
+        display: grid;
+        place-items: center;
+      }
+      .chrome .bar.light .toolbar-icon:hover {
+        background: rgba(0, 0, 0, 0.06);
+      }
+      .chrome .bar.dark .toolbar-icon:hover {
+        background: rgba(255, 255, 255, 0.1);
+      }
+      h2 {
+        font-size: 13px;
+        text-transform: uppercase;
+        letter-spacing: 0.04em;
+        color: #8a909c;
+        margin: 28px 0 8px;
+      }
+    </style>
+  </head>
+  <body>
+    <main>
+      <h1>Extension icon — preview</h1>
+      <p class="lead">
+        The real baked PNGs at true size. Edit <code>icons/icon.svg</code> and
+        this page rebakes &amp; reloads automatically.
+      </p>
+
+      <h2>On light</h2>
+      <div class="panel light" data-sizes></div>
+
+      <h2>On dark</h2>
+      <div class="panel dark" data-sizes></div>
+
+      <h2>In a browser toolbar (16px action icon)</h2>
+      <div class="chrome">
+        <div class="bar light">
+          <div class="dots">
+            <i style="background: #ff5f57"></i
+            ><i style="background: #febc2e"></i
+            ><i style="background: #28c840"></i>
+          </div>
+          <div class="urlbar"></div>
+          <div class="toolbar-icon">
+            <img data-toolbar width="16" height="16" alt="" />
+          </div>
+        </div>
+        <div class="bar dark">
+          <div class="dots">
+            <i style="background: #ff5f57"></i
+            ><i style="background: #febc2e"></i
+            ><i style="background: #28c840"></i>
+          </div>
+          <div class="urlbar"></div>
+          <div class="toolbar-icon">
+            <img data-toolbar width="16" height="16" alt="" />
+          </div>
+        </div>
+      </div>
+    </main>
+
+    <script>
+      const SIZES = [128, 48, 32, 16];
+      function bust() {
+        return `?t=${Date.now()}`;
+      }
+      function paint() {
+        const t = bust();
+        for (const panel of document.querySelectorAll("[data-sizes]")) {
+          panel.replaceChildren(
+            ...SIZES.map((s) => {
+              const item = document.createElement("div");
+              item.className = "item";
+              const img = document.createElement("img");
+              img.width = s;
+              img.height = s;
+              img.alt = `${s}px`;
+              img.src = `icon-${s}.png${t}`;
+              const label = document.createElement("div");
+              label.className = "label";
+              label.textContent = `${s}×${s}`;
+              item.append(img, label);
+              return item;
+            }),
+          );
+        }
+        for (const img of document.querySelectorAll("[data-toolbar]")) {
+          img.src = `icon-16.png${t}`;
+        }
+      }
+      paint();
+      new EventSource("/events").addEventListener("change", paint);
+    </script>
+  </body>
+</html>

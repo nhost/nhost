@@ -1,0 +1,899 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Screenshot tool — dev harness</title>
+    <style>
+      /* nhost dashboard dark theme tokens (mirrors dashboard globals.css .dark). */
+      :root {
+        color-scheme: dark;
+        --background: 216 24.59% 11.96%;
+        --foreground: 210 40% 98%;
+        --card: 216 25% 12%;
+        --primary: 216 100% 61%;
+        --primary-foreground: 222.2 47.4% 11.2%;
+        --muted: 217.2 32.6% 17.5%;
+        --muted-foreground: 215 20.2% 65.1%;
+        --accent: 215.88 100% 60.98%;
+        --accent-background: 217 24% 11%;
+        --border: 210 13% 21%;
+      }
+      * {
+        box-sizing: border-box;
+      }
+      html,
+      body {
+        height: 100%;
+      }
+      body {
+        margin: 0;
+        font-family: ui-sans-serif, system-ui, -apple-system, sans-serif;
+        color: hsl(var(--foreground));
+        background: hsl(var(--background));
+      }
+      .app {
+        display: flex;
+        flex-direction: column;
+        height: 100vh;
+      }
+      a {
+        text-decoration: none;
+        color: inherit;
+      }
+      svg {
+        display: block;
+      }
+
+      /* Header */
+      header.site {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        gap: 8px;
+        border-bottom: 1px solid hsl(var(--border));
+        padding: 6px 16px;
+        background: hsl(var(--background));
+      }
+      .logo {
+        height: 24px;
+        width: 24px;
+        margin-right: 8px;
+      }
+      .breadcrumb {
+        display: flex;
+        align-items: center;
+        gap: 6px;
+        color: hsl(var(--muted-foreground));
+        font-size: 14px;
+      }
+      .slash {
+        width: 14px;
+        height: 14px;
+        color: hsl(var(--muted-foreground) / 0.5);
+      }
+      .crumb {
+        display: inline-flex;
+        align-items: center;
+        gap: 8px;
+        height: 36px;
+        padding: 0 12px;
+        border: 0;
+        border-radius: 6px;
+        background: transparent;
+        color: hsl(var(--foreground));
+        font-size: 14px;
+        font-weight: 500;
+        cursor: pointer;
+      }
+      .crumb:hover {
+        background: hsl(var(--accent) / 0.16);
+      }
+      .pro-badge {
+        display: inline-flex;
+        align-items: center;
+        height: 20px;
+        padding: 0 6px;
+        border-radius: 999px;
+        background: hsl(var(--primary));
+        color: #fff;
+        font-size: 10px;
+        font-weight: 600;
+      }
+      .chev {
+        width: 16px;
+        height: 16px;
+        opacity: 0.5;
+      }
+      .header-actions {
+        display: flex;
+        align-items: center;
+        gap: 4px;
+      }
+      .icon-btn {
+        display: flex;
+        align-items: center;
+        height: 32px;
+        padding: 0 8px;
+        border: 1px solid hsl(var(--border));
+        border-radius: 6px;
+        background: hsl(var(--background));
+        color: hsl(var(--foreground));
+        cursor: pointer;
+      }
+      .icon-btn:hover {
+        background: hsl(var(--accent) / 0.16);
+      }
+      .icon-btn svg {
+        width: 18px;
+        height: 18px;
+      }
+      .header-link {
+        display: flex;
+        align-items: center;
+        height: 32px;
+        padding: 0 10px;
+        border-radius: 6px;
+        color: hsl(var(--foreground));
+        font-size: 14px;
+      }
+      .header-link:hover {
+        background: hsl(var(--accent) / 0.16);
+      }
+      .avatar {
+        display: grid;
+        place-items: center;
+        height: 28px;
+        width: 28px;
+        border-radius: 999px;
+        background: hsl(var(--muted));
+        color: hsl(var(--foreground));
+        font-size: 12px;
+        font-weight: 600;
+        border: 0;
+        cursor: pointer;
+      }
+
+      /* Body: sidebar + content */
+      .body {
+        display: flex;
+        flex-direction: row;
+        flex: 1;
+        overflow: hidden;
+      }
+      .sidebar {
+        display: flex;
+        flex-direction: column;
+        width: 100%;
+        max-width: 310px;
+        flex-shrink: 0;
+        border-right: 1px solid hsl(var(--border));
+        background: hsl(var(--background));
+      }
+      .sidebar-top {
+        display: flex;
+        justify-content: flex-end;
+        height: 48px;
+        padding: 4px;
+        border-bottom: 1px solid hsl(var(--border));
+      }
+      .sidebar-pin {
+        display: flex;
+        align-items: center;
+        height: 40px;
+        padding: 0 16px;
+        border: 0;
+        border-radius: 6px;
+        background: transparent;
+        color: hsl(var(--foreground));
+        cursor: pointer;
+      }
+      .sidebar-pin:hover {
+        background: hsl(var(--accent) / 0.16);
+      }
+      .sidebar-pin svg {
+        width: 20px;
+        height: 20px;
+      }
+      .nav {
+        display: flex;
+        flex-direction: column;
+        gap: 4px;
+        padding: 8px;
+      }
+      .nav-row {
+        display: flex;
+        align-items: center;
+      }
+      .nav-expand {
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        height: 32px;
+        padding: 0 4px;
+        border: 0;
+        border-radius: 6px;
+        background: transparent;
+        color: hsl(var(--foreground));
+        cursor: pointer;
+      }
+      .nav-expand:hover {
+        background: hsl(var(--accent) / 0.16);
+      }
+      .nav-expand svg {
+        width: 16px;
+        height: 16px;
+      }
+      .nav-item {
+        display: flex;
+        flex: 1;
+        align-items: center;
+        gap: 4px;
+        height: 32px;
+        padding: 0 8px;
+        border-radius: 6px;
+        font-size: 14px;
+        font-weight: 500;
+        color: hsl(var(--foreground));
+      }
+      .nav-item:hover {
+        background: hsl(var(--accent) / 0.16);
+      }
+      .nav-item.active {
+        background: hsl(var(--muted));
+      }
+      .nav-item.active span {
+        color: hsl(var(--primary));
+        font-weight: 700;
+      }
+      .new-org {
+        display: flex;
+        align-items: center;
+        gap: 12px;
+        height: 32px;
+        margin: 8px;
+        padding: 0 8px;
+        border: 0;
+        border-radius: 6px;
+        background: transparent;
+        color: hsl(var(--foreground));
+        font-size: 14px;
+        font-weight: 500;
+        cursor: pointer;
+      }
+      .new-org:hover {
+        background: hsl(var(--accent) / 0.16);
+      }
+      .new-org svg {
+        width: 16px;
+        height: 16px;
+      }
+
+      /* Content */
+      .content {
+        display: flex;
+        flex-direction: column;
+        flex: 1;
+        overflow: auto;
+        background: hsl(var(--accent-background));
+      }
+      .content-toolbar {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        gap: 8px;
+        padding: 8px;
+        border-bottom: 1px solid hsl(var(--border));
+        background: hsl(var(--background));
+      }
+      .search {
+        display: flex;
+        align-items: center;
+        width: 100%;
+        max-width: 512px;
+        height: 40px;
+        padding-left: 4px;
+        border: 1px solid hsl(var(--border));
+        border-radius: 6px;
+        background: hsl(var(--background));
+      }
+      .search svg {
+        width: 18px;
+        height: 18px;
+        margin: 0 8px;
+        color: hsl(var(--muted-foreground));
+      }
+      .search input {
+        flex: 1;
+        height: 100%;
+        border: 0;
+        background: transparent;
+        color: hsl(var(--foreground));
+        font-size: 14px;
+        outline: none;
+      }
+      .create-btn {
+        display: flex;
+        align-items: center;
+        gap: 8px;
+        height: 40px;
+        padding: 0 16px;
+        border: 0;
+        border-radius: 6px;
+        background: hsl(var(--primary));
+        color: #fff;
+        font-size: 14px;
+        font-weight: 500;
+        cursor: pointer;
+        white-space: nowrap;
+      }
+      .create-btn:hover {
+        background: hsl(var(--primary) / 0.9);
+      }
+      .create-btn svg {
+        width: 20px;
+        height: 20px;
+      }
+
+      .cards-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fill, minmax(260px, 1fr));
+        gap: 16px;
+        padding: 16px;
+      }
+      .project-card {
+        display: flex;
+        flex-direction: column;
+        gap: 16px;
+        height: 176px;
+        padding: 16px;
+        border: 1px solid hsl(var(--border));
+        border-radius: 8px;
+        background: hsl(var(--background));
+        color: hsl(var(--foreground));
+      }
+      .project-card:hover {
+        box-shadow: 0 1px 2px rgba(0, 0, 0, 0.4);
+      }
+      .card-head {
+        display: flex;
+        align-items: flex-start;
+        gap: 8px;
+      }
+      .card-head > svg {
+        width: 20px;
+        height: 20px;
+        margin-top: 2px;
+        flex-shrink: 0;
+      }
+      .card-titles {
+        display: flex;
+        flex-direction: column;
+        width: 100%;
+        overflow: hidden;
+      }
+      .card-title {
+        margin: 0;
+        font-weight: 700;
+        white-space: nowrap;
+        overflow: hidden;
+        text-overflow: ellipsis;
+      }
+      .card-region {
+        color: hsl(var(--muted-foreground));
+        font-size: 12px;
+      }
+      .card-dot {
+        height: 8px;
+        width: 8px;
+        margin-top: 2px;
+        flex-shrink: 0;
+        border-radius: 999px;
+        background: hsl(var(--primary));
+      }
+      .card-dot.slate {
+        background: #94a3b8;
+      }
+      .card-body {
+        display: flex;
+        flex: 1;
+        align-items: flex-start;
+        gap: 8px;
+      }
+      .card-deploy {
+        display: flex;
+        flex-direction: row;
+      }
+      .deploy-avatar {
+        display: grid;
+        place-items: center;
+        height: 16px;
+        width: 16px;
+        margin: 4px 8px 0 0;
+        border-radius: 999px;
+        background: hsl(var(--muted));
+        font-size: 8px;
+        font-weight: 600;
+      }
+      .deploy-meta {
+        display: flex;
+        flex-direction: column;
+        color: hsl(var(--muted-foreground));
+        font-size: 14px;
+      }
+      .deploy-meta p {
+        margin: 0;
+      }
+      .card-empty {
+        color: hsl(var(--muted-foreground));
+        font-size: 14px;
+      }
+      .card-foot {
+        display: flex;
+        justify-content: flex-end;
+      }
+      .card-foot svg {
+        width: 24px;
+        height: 24px;
+      }
+    </style>
+  </head>
+  <body>
+    <div class="app">
+      <header class="site">
+        <div style="display: flex; align-items: center">
+          <svg
+            class="logo"
+            viewBox="0 0 32 34"
+            fill="none"
+            xmlns="http://www.w3.org/2000/svg"
+            aria-label="Logo of Nhost"
+          >
+            <title>Logo</title>
+            <path
+              d="M29.013 7.305 17.12.46a3.489 3.489 0 0 0-3.461 0 3.458 3.458 0 0 0-1.729 2.984v.894l-.775-.447a3.489 3.489 0 0 0-3.461 0 3.459 3.459 0 0 0-1.729 2.99v.892l-.775-.446a3.488 3.488 0 0 0-3.46 0A3.459 3.459 0 0 0 0 10.313v21.443a1.624 1.624 0 0 0 1.803 1.612c.303-.033.591-.15.83-.34l5.898-4.636 9.096 5.233a1.652 1.652 0 0 0 1.627 0c.501-.29.814-.826.814-1.404V19.319a5.952 5.952 0 0 0-2.983-5.149l-2.983-1.716V3.448a1.288 1.288 0 0 1 1.291-1.286c.227 0 .449.06.645.173L27.93 9.177a3.795 3.795 0 0 1 1.898 3.276V28.52c0 .458-.248.884-.645 1.113l-3.151 1.813V15.884a5.953 5.953 0 0 0-2.983-5.148L15.73 6.524V9.02l6.237 3.59a3.793 3.793 0 0 1 1.898 3.275V32.38c0 .575.311 1.115.813 1.405a1.653 1.653 0 0 0 1.628 0l3.965-2.282A3.457 3.457 0 0 0 32 28.517V12.448a5.968 5.968 0 0 0-2.987-5.143ZM15.995 16.04a3.792 3.792 0 0 1 1.898 3.277v11.97l-7.53-4.333 2.417-1.898a3.424 3.424 0 0 0 1.318-2.707v-7.397l1.898 1.09v-.002Zm-4.066-2.34v8.645c0 .397-.18.766-.491 1.01l-9.27 7.283V10.31a1.286 1.286 0 0 1 1.29-1.286c.226 0 .448.06.644.173l1.863 1.07v15.325l2.168-1.704V6.878a1.286 1.286 0 0 1 1.29-1.285c.227 0 .45.06.645.173l1.861 1.07v4.367L9.762 9.955v2.498l2.17 1.249h-.003Z"
+              fill="white"
+            />
+          </svg>
+          <nav class="breadcrumb" aria-label="breadcrumb">
+            <svg
+              class="slash"
+              xmlns="http://www.w3.org/2000/svg"
+              viewBox="0 0 24 24"
+              fill="none"
+              stroke="currentColor"
+              stroke-width="3.5"
+              stroke-linecap="round"
+            >
+              <path d="M22 2 2 22" />
+            </svg>
+            <button class="crumb" type="button">
+              <span>Nhost - Paul's Projects</span>
+              <span class="pro-badge">Pro</span>
+              <svg
+                class="chev"
+                xmlns="http://www.w3.org/2000/svg"
+                viewBox="0 0 24 24"
+                fill="none"
+                stroke="currentColor"
+                stroke-width="2"
+                stroke-linecap="round"
+                stroke-linejoin="round"
+              >
+                <path d="m7 15 5 5 5-5" />
+                <path d="m7 9 5-5 5 5" />
+              </svg>
+            </button>
+            <svg
+              class="slash"
+              xmlns="http://www.w3.org/2000/svg"
+              viewBox="0 0 24 24"
+              fill="none"
+              stroke="currentColor"
+              stroke-width="3.5"
+              stroke-linecap="round"
+            >
+              <path d="M22 2 2 22" />
+            </svg>
+            <button class="crumb" type="button">
+              <span>Projects</span>
+              <svg
+                class="chev"
+                xmlns="http://www.w3.org/2000/svg"
+                viewBox="0 0 24 24"
+                fill="none"
+                stroke="currentColor"
+                stroke-width="2"
+                stroke-linecap="round"
+                stroke-linejoin="round"
+              >
+                <path d="m7 15 5 5 5-5" />
+                <path d="m7 9 5-5 5 5" />
+              </svg>
+            </button>
+          </nav>
+        </div>
+
+        <div class="header-actions">
+          <button class="icon-btn" type="button" aria-label="Notifications">
+            <svg
+              xmlns="http://www.w3.org/2000/svg"
+              viewBox="0 0 24 24"
+              fill="none"
+              stroke="currentColor"
+              stroke-width="2"
+              stroke-linecap="round"
+              stroke-linejoin="round"
+            >
+              <path d="M10.268 21a2 2 0 0 0 3.464 0" />
+              <path
+                d="M3.262 15.326A1 1 0 0 0 4 17h16a1 1 0 0 0 .74-1.673C19.41 13.956 18 12.499 18 8A6 6 0 0 0 6 8c0 4.499-1.411 5.956-2.738 7.326"
+              />
+            </svg>
+          </button>
+          <button class="icon-btn" type="button" aria-label="Announcements">
+            <svg
+              xmlns="http://www.w3.org/2000/svg"
+              viewBox="0 0 24 24"
+              fill="none"
+              stroke="currentColor"
+              stroke-width="2"
+              stroke-linecap="round"
+              stroke-linejoin="round"
+            >
+              <path
+                d="M11 6a13 13 0 0 0 8.4-2.8A1 1 0 0 1 21 4v12a1 1 0 0 1-1.6.8A13 13 0 0 0 11 14H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2z"
+              />
+              <path
+                d="M6 14a12 12 0 0 0 2.4 7.2 2 2 0 0 0 3.2-2.4A8 8 0 0 1 10 14"
+              />
+              <path d="M8 6v8" />
+            </svg>
+          </button>
+          <a class="header-link" href="#">Support</a>
+          <a class="header-link" href="#">Docs</a>
+          <button class="avatar" type="button">PY</button>
+        </div>
+      </header>
+
+      <div class="body">
+        <aside class="sidebar">
+          <div class="sidebar-top">
+            <button class="sidebar-pin" type="button" aria-label="Unpin">
+              <svg
+                xmlns="http://www.w3.org/2000/svg"
+                viewBox="0 0 24 24"
+                fill="none"
+                stroke="currentColor"
+                stroke-width="2"
+                stroke-linecap="round"
+                stroke-linejoin="round"
+              >
+                <path d="M12 17v5" />
+                <path d="M15 9.34V7a1 1 0 0 1 1-1 2 2 0 0 0 0-4H7.89" />
+                <path d="m2 2 20 20" />
+                <path
+                  d="M9 9v1.76a2 2 0 0 1-1.11 1.79l-1.78.9A2 2 0 0 0 5 15.24V16a1 1 0 0 0 1 1h11"
+                />
+              </svg>
+            </button>
+          </div>
+          <div class="nav">
+            <div class="nav-row">
+              <button class="nav-expand" type="button" aria-label="Expand">
+                <svg
+                  xmlns="http://www.w3.org/2000/svg"
+                  viewBox="0 0 24 24"
+                  fill="none"
+                  stroke="currentColor"
+                  stroke-width="3"
+                  stroke-linecap="round"
+                  stroke-linejoin="round"
+                >
+                  <path d="m9 18 6-6-6-6" />
+                </svg>
+              </button>
+              <a class="nav-item active" href="#"><span>Projects</span></a>
+            </div>
+            <div class="nav-row">
+              <a class="nav-item" href="/harness2.html"><span>Settings</span></a>
+            </div>
+            <div class="nav-row">
+              <a class="nav-item" href="#"><span>Members</span></a>
+            </div>
+            <div class="nav-row">
+              <a class="nav-item" href="#"><span>Billing</span></a>
+            </div>
+          </div>
+          <button class="new-org" type="button">
+            <svg
+              xmlns="http://www.w3.org/2000/svg"
+              viewBox="0 0 24 24"
+              fill="none"
+              stroke="currentColor"
+              stroke-width="3"
+              stroke-linecap="round"
+              stroke-linejoin="round"
+            >
+              <path d="M5 12h14" />
+              <path d="M12 5v14" />
+            </svg>
+            New Organization
+          </button>
+        </aside>
+
+        <main class="content">
+          <div class="content-toolbar">
+            <div class="search">
+              <svg
+                xmlns="http://www.w3.org/2000/svg"
+                viewBox="0 0 24 24"
+                fill="none"
+                stroke="currentColor"
+                stroke-width="2"
+                stroke-linecap="round"
+                stroke-linejoin="round"
+              >
+                <path d="m21 21-4.34-4.34" />
+                <circle cx="11" cy="11" r="8" />
+              </svg>
+              <input type="text" placeholder="Find Project" />
+            </div>
+            <!-- Doubles as the harness toolbar toggle. -->
+            <button id="harness-toggle" class="create-btn" type="button">
+              <svg
+                xmlns="http://www.w3.org/2000/svg"
+                viewBox="0 0 24 24"
+                fill="none"
+                stroke="currentColor"
+                stroke-width="2"
+                stroke-linecap="round"
+                stroke-linejoin="round"
+              >
+                <path d="M5 12h14" />
+                <path d="M12 5v14" />
+              </svg>
+              <span>Create project</span>
+            </button>
+          </div>
+
+          <div class="cards-grid">
+            <a class="project-card" href="#">
+              <div class="card-head">
+                <svg
+                  xmlns="http://www.w3.org/2000/svg"
+                  viewBox="0 0 24 24"
+                  fill="none"
+                  stroke="currentColor"
+                  stroke-width="2"
+                  stroke-linecap="round"
+                  stroke-linejoin="round"
+                >
+                  <path
+                    d="M21 8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16Z"
+                  />
+                  <path d="m3.3 7 8.7 5 8.7-5" />
+                  <path d="M12 22V12" />
+                </svg>
+                <div class="card-titles">
+                  <p class="card-title" title="react-demo">react-demo</p>
+                  <span class="card-region">ap-southeast-1</span>
+                </div>
+                <span class="card-dot"></span>
+              </div>
+              <div class="card-body">
+                <span class="card-empty">No deployments</span>
+              </div>
+              <div class="card-foot">
+                <svg
+                  xmlns="http://www.w3.org/2000/svg"
+                  viewBox="0 0 24 24"
+                  fill="none"
+                  stroke="currentColor"
+                  stroke-width="2"
+                  stroke-linecap="round"
+                  stroke-linejoin="round"
+                >
+                  <path d="M5 12h14" />
+                  <path d="m12 5 7 7-7 7" />
+                </svg>
+              </div>
+            </a>
+
+            <a class="project-card" href="#">
+              <div class="card-head">
+                <svg
+                  xmlns="http://www.w3.org/2000/svg"
+                  viewBox="0 0 24 24"
+                  fill="none"
+                  stroke="currentColor"
+                  stroke-width="2"
+                  stroke-linecap="round"
+                  stroke-linejoin="round"
+                >
+                  <path
+                    d="M21 8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16Z"
+                  />
+                  <path d="m3.3 7 8.7 5 8.7-5" />
+                  <path d="M12 22V12" />
+                </svg>
+                <div class="card-titles">
+                  <p class="card-title" title="Aspire You">Aspire You</p>
+                  <span class="card-region">eu-central-1</span>
+                </div>
+                <span class="card-dot slate"></span>
+              </div>
+              <div class="card-body">
+                <div class="card-deploy">
+                  <div class="deploy-avatar">PV</div>
+                  <div class="deploy-meta">
+                    <p>PVUL</p>
+                    <p>deployed 2 months ago</p>
+                  </div>
+                </div>
+              </div>
+              <div class="card-foot">
+                <svg
+                  xmlns="http://www.w3.org/2000/svg"
+                  viewBox="0 0 24 24"
+                  fill="none"
+                  stroke="currentColor"
+                  stroke-width="2"
+                  stroke-linecap="round"
+                  stroke-linejoin="round"
+                >
+                  <path d="M5 12h14" />
+                  <path d="m12 5 7 7-7 7" />
+                </svg>
+              </div>
+            </a>
+
+            <a class="project-card" href="#">
+              <div class="card-head">
+                <svg
+                  xmlns="http://www.w3.org/2000/svg"
+                  viewBox="0 0 24 24"
+                  fill="none"
+                  stroke="currentColor"
+                  stroke-width="2"
+                  stroke-linecap="round"
+                  stroke-linejoin="round"
+                >
+                  <path
+                    d="M21 8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16Z"
+                  />
+                  <path d="m3.3 7 8.7 5 8.7-5" />
+                  <path d="M12 22V12" />
+                </svg>
+                <div class="card-titles">
+                  <p class="card-title" title="Aspire Network">Aspire Network</p>
+                  <span class="card-region">ap-southeast-1</span>
+                </div>
+                <span class="card-dot"></span>
+              </div>
+              <div class="card-body">
+                <div class="card-deploy">
+                  <div class="deploy-avatar">PV</div>
+                  <div class="deploy-meta">
+                    <p>PVUL</p>
+                    <p>deployed 25 days ago</p>
+                  </div>
+                </div>
+              </div>
+              <div class="card-foot">
+                <svg
+                  xmlns="http://www.w3.org/2000/svg"
+                  viewBox="0 0 24 24"
+                  fill="none"
+                  stroke="currentColor"
+                  stroke-width="2"
+                  stroke-linecap="round"
+                  stroke-linejoin="round"
+                >
+                  <path d="M5 12h14" />
+                  <path d="m12 5 7 7-7 7" />
+                </svg>
+              </div>
+            </a>
+
+            <a class="project-card" href="#">
+              <div class="card-head">
+                <svg
+                  xmlns="http://www.w3.org/2000/svg"
+                  viewBox="0 0 24 24"
+                  fill="none"
+                  stroke="currentColor"
+                  stroke-width="2"
+                  stroke-linecap="round"
+                  stroke-linejoin="round"
+                >
+                  <path
+                    d="M21 8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16Z"
+                  />
+                  <path d="m3.3 7 8.7 5 8.7-5" />
+                  <path d="M12 22V12" />
+                </svg>
+                <div class="card-titles">
+                  <p class="card-title" title="Nhost Starter Tutorial">
+                    Nhost Starter Tutorial
+                  </p>
+                  <span class="card-region">ap-southeast-1</span>
+                </div>
+                <span class="card-dot"></span>
+              </div>
+              <div class="card-body">
+                <span class="card-empty">No deployments</span>
+              </div>
+              <div class="card-foot">
+                <svg
+                  xmlns="http://www.w3.org/2000/svg"
+                  viewBox="0 0 24 24"
+                  fill="none"
+                  stroke="currentColor"
+                  stroke-width="2"
+                  stroke-linecap="round"
+                  stroke-linejoin="round"
+                >
+                  <path d="M5 12h14" />
+                  <path d="m12 5 7 7-7 7" />
+                </svg>
+              </div>
+            </a>
+
+            <a class="project-card" href="#">
+              <div class="card-head">
+                <svg
+                  xmlns="http://www.w3.org/2000/svg"
+                  viewBox="0 0 24 24"
+                  fill="none"
+                  stroke="currentColor"
+                  stroke-width="2"
+                  stroke-linecap="round"
+                  stroke-linejoin="round"
+                >
+                  <path
+                    d="M21 8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16Z"
+                  />
+                  <path d="m3.3 7 8.7 5 8.7-5" />
+                  <path d="M12 22V12" />
+                </svg>
+                <div class="card-titles">
+                  <p class="card-title" title="nhost-create-project-tutorial">
+                    nhost-create-project-tutorial
+                  </p>
+                  <span class="card-region">ap-southeast-1</span>
+                </div>
+                <span class="card-dot"></span>
+              </div>
+              <div class="card-body">
+                <span class="card-empty">No deployments</span>
+              </div>
+              <div class="card-foot">
+                <svg
+                  xmlns="http://www.w3.org/2000/svg"
+                  viewBox="0 0 24 24"
+                  fill="none"
+                  stroke="currentColor"
+                  stroke-width="2"
+                  stroke-linecap="round"
+                  stroke-linejoin="round"
+                >
+                  <path d="M5 12h14" />
+                  <path d="m12 5 7 7-7 7" />
+                </svg>
+              </div>
+            </a>
+          </div>
+        </main>
+      </div>
+    </div>
+
+    <script src="/.serve/harness.js"></script>
+    <script>
+      // esbuild live-reload: refresh on every successful rebuild.
+      new EventSource("/esbuild").addEventListener("change", () =>
+        location.reload(),
+      );
+    </script>
+  </body>
+</html>

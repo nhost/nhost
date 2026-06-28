@@ -1,0 +1,5 @@
+node_modules/
+dist/
+dev/.serve/
+icons/preview.png
+icons/.icon-master.png
