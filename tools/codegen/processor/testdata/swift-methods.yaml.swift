@@ -51,6 +51,19 @@ public struct FixtureSession: Codable, Sendable {
         self.createdAt = createdAt
         self.roles = roles
     }
+
+    private enum CodingKeys: String, CodingKey {
+        case id
+        case createdAt
+        case roles
+    }
+
+    public init(from decoder: Decoder) throws {
+        let container = try decoder.container(keyedBy: CodingKeys.self)
+        id = try container.decode(String.self, forKey: .id)
+        createdAt = try container.decode(Date.self, forKey: .createdAt)
+        roles = try container.decodeIfPresent([String].self, forKey: .roles) ?? []
+    }
 }
 
 public struct FixtureFileMetadata: Codable, Sendable {
@@ -184,6 +197,13 @@ public struct FixtureUploadFilesBody: Codable, Sendable {
         case bucketId = "bucket-id"
         case file = "file[]"
         case metadata = "metadata[]"
+    }
+
+    public init(from decoder: Decoder) throws {
+        let container = try decoder.container(keyedBy: CodingKeys.self)
+        bucketId = try container.decodeIfPresent(String.self, forKey: .bucketId)
+        file = try container.decodeIfPresent([Data].self, forKey: .file) ?? []
+        metadata = try container.decodeIfPresent([FixtureFileMetadata].self, forKey: .metadata)
     }
 }
 

@@ -74,6 +74,55 @@ final class GeneratedClientsTests: XCTestCase {
         }
     }
 
+    func testGeneratedRequiredCollectionsDecodeMissingOrNullAsEmpty() throws {
+        let sessionJSON = """
+        {
+          "session": {
+            "accessToken": "access-token",
+            "accessTokenExpiresIn": 3600,
+            "refreshTokenId": "refresh-id",
+            "refreshToken": "refresh-token",
+            "user": {
+              "avatarUrl": "",
+              "createdAt": "2026-06-27T10:00:00.000Z",
+              "defaultRole": "user",
+              "displayName": "Neo Athlete",
+              "email": "athlete@example.com",
+              "emailVerified": true,
+              "id": "user-id",
+              "isAnonymous": false,
+              "locale": "en",
+              "metadata": null,
+              "phoneNumber": null,
+              "phoneNumberVerified": false,
+              "activeMfaType": null
+            }
+          }
+        }
+        """
+
+        let response = try NhostJSON.restDecoder.decode(
+            AuthSignInOTPEmailVerifyResponse.self,
+            from: Data(sessionJSON.utf8)
+        )
+        let user = try XCTUnwrap(response.session?.user)
+
+        XCTAssertEqual(user.metadata.isEmpty, true)
+        XCTAssertEqual(user.roles, [])
+
+        let nullKeys = try NhostJSON.restDecoder.decode(
+            AuthJWKSet.self,
+            from: Data(#"{"keys":null}"#.utf8)
+        )
+        let missingKeys = try NhostJSON.restDecoder.decode(
+            AuthOAuth2JWKSResponse.self,
+            from: Data(#"{}"#.utf8)
+        )
+
+        XCTAssertTrue(nullKeys.keys.isEmpty)
+        XCTAssertTrue(missingKeys.keys.isEmpty)
+    }
+
     func testGeneratedAuthURLEncodedAndRedirectURLPaths() async throws {
         let recorder = GeneratedClientRecorder()
         let transport = StubTransport { request in
@@ -176,7 +225,24 @@ final class GeneratedClientsTests: XCTestCase {
                 status: 201,
                 headers: ["content-type": "application/json"],
                 body: Data(
-                    #"{"processedFiles":[{"id":"file-1","name":"avatar.png","size":10,"bucketId":"avatars","etag":"etag-2","createdAt":"2026-06-09T12:00:00Z","updatedAt":"2026-06-09T12:00:01Z","isUploaded":true,"mimeType":"image/png","metadata":{"kind":"avatar"}}]}"#.utf8
+                    """
+                    {
+                      "processedFiles": [
+                        {
+                          "id": "file-1",
+                          "name": "avatar.png",
+                          "size": 10,
+                          "bucketId": "avatars",
+                          "etag": "etag-2",
+                          "createdAt": "2026-06-09T12:00:00Z",
+                          "updatedAt": "2026-06-09T12:00:01Z",
+                          "isUploaded": true,
+                          "mimeType": "image/png",
+                          "metadata": {"kind": "avatar"}
+                        }
+                      ]
+                    }
+                    """.utf8
                 )
             )
         }

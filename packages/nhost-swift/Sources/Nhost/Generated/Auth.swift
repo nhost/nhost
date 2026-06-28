@@ -363,6 +363,15 @@ public struct AuthJWKSet: Codable, Sendable {
     ) {
         self.keys = keys
     }
+
+    private enum CodingKeys: String, CodingKey {
+        case keys
+    }
+
+    public init(from decoder: Decoder) throws {
+        let container = try decoder.container(keyedBy: CodingKeys.self)
+        keys = try container.decodeIfPresent([AuthJWK].self, forKey: .keys) ?? []
+    }
 }
 
 public struct AuthLinkIdTokenRequest: Codable, Sendable {
@@ -454,6 +463,35 @@ public struct AuthPublicKeyCredentialCreationOptions: Codable, Sendable {
         self.attestation = attestation
         self.attestationFormats = attestationFormats
         self.extensions = extensions
+    }
+
+    private enum CodingKeys: String, CodingKey {
+        case rp
+        case user
+        case challenge
+        case pubKeyCredParams
+        case timeout
+        case excludeCredentials
+        case authenticatorSelection
+        case hints
+        case attestation
+        case attestationFormats
+        case extensions
+    }
+
+    public init(from decoder: Decoder) throws {
+        let container = try decoder.container(keyedBy: CodingKeys.self)
+        rp = try container.decode(AuthRelyingPartyEntity.self, forKey: .rp)
+        user = try container.decode(AuthUserEntity.self, forKey: .user)
+        challenge = try container.decode(String.self, forKey: .challenge)
+        pubKeyCredParams = try container.decodeIfPresent([AuthCredentialParameter].self, forKey: .pubKeyCredParams) ?? []
+        timeout = try container.decodeIfPresent(Int.self, forKey: .timeout)
+        excludeCredentials = try container.decodeIfPresent([AuthPublicKeyCredentialDescriptor].self, forKey: .excludeCredentials)
+        authenticatorSelection = try container.decodeIfPresent(AuthAuthenticatorSelection.self, forKey: .authenticatorSelection)
+        hints = try container.decodeIfPresent([AuthPublicKeyCredentialHints].self, forKey: .hints)
+        attestation = try container.decodeIfPresent(AuthConveyancePreference.self, forKey: .attestation)
+        attestationFormats = try container.decodeIfPresent([AuthAttestationFormat].self, forKey: .attestationFormats)
+        extensions = try container.decodeIfPresent([String: JSONValue].self, forKey: .extensions)
     }
 }
 
@@ -1129,6 +1167,41 @@ public struct AuthUser: Codable, Sendable {
         self.roles = roles
         self.activeMfaType = activeMfaType
     }
+
+    private enum CodingKeys: String, CodingKey {
+        case avatarUrl
+        case createdAt
+        case defaultRole
+        case displayName
+        case email
+        case emailVerified
+        case id
+        case isAnonymous
+        case locale
+        case metadata
+        case phoneNumber
+        case phoneNumberVerified
+        case roles
+        case activeMfaType
+    }
+
+    public init(from decoder: Decoder) throws {
+        let container = try decoder.container(keyedBy: CodingKeys.self)
+        avatarUrl = try container.decode(String.self, forKey: .avatarUrl)
+        createdAt = try container.decode(Date.self, forKey: .createdAt)
+        defaultRole = try container.decode(String.self, forKey: .defaultRole)
+        displayName = try container.decode(String.self, forKey: .displayName)
+        email = try container.decodeIfPresent(String.self, forKey: .email)
+        emailVerified = try container.decode(Bool.self, forKey: .emailVerified)
+        id = try container.decode(String.self, forKey: .id)
+        isAnonymous = try container.decode(Bool.self, forKey: .isAnonymous)
+        locale = try container.decode(String.self, forKey: .locale)
+        metadata = try container.decodeIfPresent([String: JSONValue].self, forKey: .metadata) ?? [:]
+        phoneNumber = try container.decodeIfPresent(String.self, forKey: .phoneNumber)
+        phoneNumberVerified = try container.decode(Bool.self, forKey: .phoneNumberVerified)
+        roles = try container.decodeIfPresent([String].self, forKey: .roles) ?? []
+        activeMfaType = try container.decodeIfPresent(String.self, forKey: .activeMfaType)
+    }
 }
 
 /// Which sign-in method to use
@@ -1424,6 +1497,28 @@ public struct AuthOAuth2DiscoveryResponse: Codable, Sendable {
         case authorizationResponseIssParameterSupported = "authorization_response_iss_parameter_supported"
         case clientIdMetadataDocumentSupported = "client_id_metadata_document_supported"
     }
+
+    public init(from decoder: Decoder) throws {
+        let container = try decoder.container(keyedBy: CodingKeys.self)
+        issuer = try container.decode(String.self, forKey: .issuer)
+        authorizationEndpoint = try container.decode(String.self, forKey: .authorizationEndpoint)
+        tokenEndpoint = try container.decode(String.self, forKey: .tokenEndpoint)
+        userinfoEndpoint = try container.decodeIfPresent(String.self, forKey: .userinfoEndpoint)
+        jwksUri = try container.decode(String.self, forKey: .jwksUri)
+        revocationEndpoint = try container.decodeIfPresent(String.self, forKey: .revocationEndpoint)
+        introspectionEndpoint = try container.decodeIfPresent(String.self, forKey: .introspectionEndpoint)
+        scopesSupported = try container.decodeIfPresent([String].self, forKey: .scopesSupported)
+        responseTypesSupported = try container.decodeIfPresent([String].self, forKey: .responseTypesSupported) ?? []
+        grantTypesSupported = try container.decodeIfPresent([String].self, forKey: .grantTypesSupported)
+        subjectTypesSupported = try container.decodeIfPresent([String].self, forKey: .subjectTypesSupported)
+        idTokenSigningAlgValuesSupported = try container.decodeIfPresent([String].self, forKey: .idTokenSigningAlgValuesSupported)
+        tokenEndpointAuthMethodsSupported = try container.decodeIfPresent([String].self, forKey: .tokenEndpointAuthMethodsSupported)
+        codeChallengeMethodsSupported = try container.decodeIfPresent([String].self, forKey: .codeChallengeMethodsSupported)
+        claimsSupported = try container.decodeIfPresent([String].self, forKey: .claimsSupported)
+        requestParameterSupported = try container.decodeIfPresent(Bool.self, forKey: .requestParameterSupported)
+        authorizationResponseIssParameterSupported = try container.decodeIfPresent(Bool.self, forKey: .authorizationResponseIssParameterSupported)
+        clientIdMetadataDocumentSupported = try container.decodeIfPresent(Bool.self, forKey: .clientIdMetadataDocumentSupported)
+    }
 }
 
 public enum AuthOAuth2TokenRequestGrantType: String, Codable, Sendable {
@@ -1557,6 +1652,15 @@ public struct AuthOAuth2JWKSResponse: Codable, Sendable {
     ) {
         self.keys = keys
     }
+
+    private enum CodingKeys: String, CodingKey {
+        case keys
+    }
+
+    public init(from decoder: Decoder) throws {
+        let container = try decoder.container(keyedBy: CodingKeys.self)
+        keys = try container.decodeIfPresent([AuthJWK].self, forKey: .keys) ?? []
+    }
 }
 
 public enum AuthOAuth2RevokeRequestTokenTypeHint: String, Codable, Sendable {
@@ -1679,6 +1783,21 @@ public struct AuthOAuth2LoginResponse: Codable, Sendable {
         self.clientId = clientId
         self.scopes = scopes
         self.redirectUri = redirectUri
+    }
+
+    private enum CodingKeys: String, CodingKey {
+        case requestId
+        case clientId
+        case scopes
+        case redirectUri
+    }
+
+    public init(from decoder: Decoder) throws {
+        let container = try decoder.container(keyedBy: CodingKeys.self)
+        requestId = try container.decode(String.self, forKey: .requestId)
+        clientId = try container.decode(String.self, forKey: .clientId)
+        scopes = try container.decodeIfPresent([String].self, forKey: .scopes) ?? []
+        redirectUri = try container.decode(String.self, forKey: .redirectUri)
     }
 }
 

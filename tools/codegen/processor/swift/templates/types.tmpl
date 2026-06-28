@@ -27,6 +27,15 @@ public struct {{ .Name }}: Codable, Sendable {
 {{- end }}
     }
 {{- end }}
+{{- if swiftNeedsCustomDecoder . }}
+
+    public init(from decoder: Decoder) throws {
+        let container = try decoder.container(keyedBy: CodingKeys.self)
+{{- range .Properties }}
+        {{ swiftDecodeProperty . }}
+{{- end }}
+    }
+{{- end }}
 }
 {{- end }}
 

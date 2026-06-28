@@ -107,6 +107,7 @@ components:
         - login-count
         - score
         - active
+        - tags
         - preferences
         - localizedLabels
         - status

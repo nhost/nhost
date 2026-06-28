@@ -1,11 +1,11 @@
 { pkgs }:
 let
-  swiftCheckDeps = with pkgs; [
-    swift_6
+  swiftCheckDeps = pkgs.lib.optionals pkgs.stdenv.isLinux [
+    pkgs.swift_6
   ];
 in
 {
-  toolchain = pkgs.swift_6;
+  toolchain = if pkgs.stdenv.isLinux then pkgs.swift_6 else null;
 
   devShell =
     {
@@ -16,7 +16,15 @@ in
     }:
     pkgs.mkShell {
       buildInputs = swiftCheckDeps ++ checkDeps ++ buildInputs ++ nativeBuildInputs;
-      inherit shellHook;
+      shellHook =
+        pkgs.lib.optionalString pkgs.stdenv.isDarwin ''
+          # The Swift package uses the host Xcode toolchain on Darwin. Do not let
+          # Nix's apple-sdk setup leak into SwiftPM, because mismatched SDK and
+          # compiler versions make package manifest compilation fail.
+          unset DEVELOPER_DIR
+          unset SDKROOT
+        ''
+        + shellHook;
     };
 
   check =

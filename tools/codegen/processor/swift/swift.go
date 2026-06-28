@@ -49,6 +49,8 @@ func (s *Swift) GetFuncMap() map[string]any {
 		"swiftMethodParameterTypes": s.swiftMethodParameterTypes,
 		"swiftNamespace":            s.swiftNamespace,
 		"swiftNeedsCodingKeys":      swiftNeedsCodingKeys,
+		"swiftNeedsCustomDecoder":   swiftNeedsCustomDecoder,
+		"swiftDecodeProperty":       swiftDecodeProperty,
 	}
 }
 
@@ -176,7 +178,54 @@ func swiftNeedsCodingKeys(obj *processor.TypeObject) bool {
 		}
 	}
 
-	return false
+	return swiftNeedsCustomDecoder(obj)
+}
+
+func swiftNeedsCustomDecoder(obj *processor.TypeObject) bool {
+	return slices.ContainsFunc(obj.Properties(), swiftDecodesMissingOrNullAsEmpty)
+}
+
+func swiftDecodesMissingOrNullAsEmpty(property *processor.Property) bool {
+	return property.Required() && !property.Nullable() && slices.Contains(
+		[]processor.KindIdentifier{
+			processor.KindIdentifierArray,
+			processor.KindIdentifierMap,
+		},
+		property.Type.Kind(),
+	)
+}
+
+func swiftDecodeProperty(property *processor.Property) string {
+	name := property.Name()
+	decode := fmt.Sprintf(
+		"try container.decode(%s.self, forKey: .%s)",
+		property.Type.Name(),
+		name,
+	)
+
+	if property.Optional() {
+		decode = fmt.Sprintf(
+			"try container.decodeIfPresent(%s.self, forKey: .%s)",
+			property.Type.Name(),
+			name,
+		)
+	}
+
+	if swiftDecodesMissingOrNullAsEmpty(property) {
+		emptyLiteral := "[]"
+		if property.Type.Kind() == processor.KindIdentifierMap {
+			emptyLiteral = "[:]"
+		}
+
+		decode = fmt.Sprintf(
+			"try container.decodeIfPresent(%s.self, forKey: .%s) ?? %s",
+			property.Type.Name(),
+			name,
+			emptyLiteral,
+		)
+	}
+
+	return fmt.Sprintf("%s = %s", name, decode)
 }
 
 func swiftCodingKey(property *processor.Property) string {

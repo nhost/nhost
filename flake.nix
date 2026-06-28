@@ -373,6 +373,7 @@
             mcp = mcpf.devShell;
             nhostclient = nhostclientf.devShell;
             nhost-js = nhost-jsf.devShell;
+            nhost-swift = nhost-swiftf.devShell;
             stripe-graphql-js = stripe-graphql-jsf.devShell;
             nixops = nixopsf.devShell;
             postgres = postgresf.devShell;
@@ -380,7 +381,6 @@
             tutorials = tutorialsf.devShell;
           }
           // pkgs.lib.optionalAttrs pkgs.stdenv.isLinux {
-            nhost-swift = nhost-swiftf.devShell;
             swift-toolchain = nixops-lib.swift.devShell { };
           }
         );

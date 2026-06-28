@@ -244,6 +244,13 @@ public struct StorageUploadFilesBody: Codable, Sendable {
         case metadata = "metadata[]"
         case file = "file[]"
     }
+
+    public init(from decoder: Decoder) throws {
+        let container = try decoder.container(keyedBy: CodingKeys.self)
+        bucketId = try container.decodeIfPresent(String.self, forKey: .bucketId)
+        metadata = try container.decodeIfPresent([StorageUploadFileMetadata].self, forKey: .metadata)
+        file = try container.decodeIfPresent([Data].self, forKey: .file) ?? []
+    }
 }
 
 public struct StorageUploadFilesResponse201: Codable, Sendable {
@@ -254,6 +261,15 @@ public struct StorageUploadFilesResponse201: Codable, Sendable {
         processedFiles: [StorageFileMetadata]
     ) {
         self.processedFiles = processedFiles
+    }
+
+    private enum CodingKeys: String, CodingKey {
+        case processedFiles
+    }
+
+    public init(from decoder: Decoder) throws {
+        let container = try decoder.container(keyedBy: CodingKeys.self)
+        processedFiles = try container.decodeIfPresent([StorageFileMetadata].self, forKey: .processedFiles) ?? []
     }
 }
 

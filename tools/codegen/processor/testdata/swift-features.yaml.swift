@@ -73,7 +73,7 @@ public struct TestAccount: Codable, Sendable {
     /// Whether the account is active.
     public let active: Bool
     /// Account tags.
-    public let tags: [String]?
+    public let tags: [String]
     /// Untyped JSON preferences.
     public let preferences: [String: JSONValue]
     /// Labels with explicit Swift map override.
@@ -97,7 +97,7 @@ public struct TestAccount: Codable, Sendable {
         loginCount: Int,
         score: Double,
         active: Bool,
-        tags: [String]? = nil,
+        tags: [String],
         preferences: [String: JSONValue],
         localizedLabels: [String: String],
         file: [Data]? = nil,
@@ -140,5 +140,25 @@ public struct TestAccount: Codable, Sendable {
         case status
         case tier
         case owner
+    }
+
+    public init(from decoder: Decoder) throws {
+        let container = try decoder.container(keyedBy: CodingKeys.self)
+        id = try container.decode(String.self, forKey: .id)
+        displayName = try container.decodeIfPresent(String.self, forKey: .displayName)
+        requiredNullable = try container.decodeIfPresent(String.self, forKey: .requiredNullable)
+        `class` = try container.decode(String.self, forKey: .`class`)
+        createdAt = try container.decode(Date.self, forKey: .createdAt)
+        avatar = try container.decode(Data.self, forKey: .avatar)
+        loginCount = try container.decode(Int.self, forKey: .loginCount)
+        score = try container.decode(Double.self, forKey: .score)
+        active = try container.decode(Bool.self, forKey: .active)
+        tags = try container.decodeIfPresent([String].self, forKey: .tags) ?? []
+        preferences = try container.decodeIfPresent([String: JSONValue].self, forKey: .preferences) ?? [:]
+        localizedLabels = try container.decodeIfPresent([String: String].self, forKey: .localizedLabels) ?? [:]
+        file = try container.decodeIfPresent([Data].self, forKey: .file)
+        status = try container.decode(TestAccountStatus.self, forKey: .status)
+        tier = try container.decode(TestAccountTier.self, forKey: .tier)
+        owner = try container.decodeIfPresent(TestAccountOwner.self, forKey: .owner)
     }
 }
