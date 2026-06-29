@@ -471,12 +471,12 @@ func (j *JWTGetter) verifyElevatedClaim(
 			return false, fmt.Errorf("error parsing user id: %w", err)
 		}
 
-		n, err := j.db.CountSecurityKeysUser(ctx, userID)
+		bypass, err := j.canBypassElevation(ctx, userID)
 		if err != nil {
-			return false, fmt.Errorf("error checking if user has security keys: %w", err)
+			return false, err
 		}
 
-		if n == 0 {
+		if bypass {
 			return true, nil
 		}
 	}
@@ -484,6 +484,36 @@ func (j *JWTGetter) verifyElevatedClaim(
 	elevatedClaim := j.GetCustomClaim(token, "x-hasura-auth-elevated")
 
 	return elevatedClaim == u, nil
+}
+
+// canBypassElevation reports whether elevation can be skipped for the user
+// because they have no second factor to elevate with. A user with no security
+// keys can still elevate via TOTP MFA when it is active, so the bypass only
+// applies when the user has neither security keys nor active TOTP MFA.
+func (j *JWTGetter) canBypassElevation(
+	ctx context.Context,
+	userID uuid.UUID,
+) (bool, error) {
+	n, err := j.db.CountSecurityKeysUser(ctx, userID)
+	if err != nil {
+		return false, fmt.Errorf("error checking if user has security keys: %w", err)
+	}
+
+	if n > 0 {
+		return false, nil
+	}
+
+	// Only users with no security keys reach this point, so the extra GetUser
+	// round-trip is confined to that case (and only when elevation is optional).
+	// It is a single primary-key lookup, so the added cost is acceptable; if it
+	// ever shows up on the hot path, replace it with a query that selects just
+	// active_mfa_type.
+	user, err := j.db.GetUser(ctx, userID)
+	if err != nil {
+		return false, fmt.Errorf("error getting user: %w", err)
+	}
+
+	return user.ActiveMfaType.String != string(api.Totp), nil
 }
 
 func (j *JWTGetter) isElevatedClaimOptional(requestPath string) bool {
