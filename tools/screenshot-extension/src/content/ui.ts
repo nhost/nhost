@@ -1114,7 +1114,7 @@ export function createToolbar(): Toolbar {
   const cropApplyBtn = makeBtn('Apply', {
     className: 'is-primary nhost-ss-crop-apply',
   });
-  cropBarRight.append(cropCancelBtn, cropApplyBtn, cropBtn);
+  cropBarRight.append(cropApplyBtn, cropCancelBtn, cropBtn);
   cropBar.append(cropBarLeft, cropBarRight);
 
   // Full-screen preview overlay (appended to the shadow on demand, above the
@@ -1137,16 +1137,6 @@ export function createToolbar(): Toolbar {
   filename.type = 'text';
   filename.spellcheck = false;
   filename.placeholder = 'Filename';
-  // Clicking the field selects the whole name for easy retyping. focus selects;
-  // the click's mouseup would otherwise collapse it, so reselect on a plain
-  // click while still respecting a deliberate drag-selection.
-  filename.addEventListener('focus', () => filename.select());
-  filename.addEventListener('mouseup', (event) => {
-    if (filename.selectionStart === filename.selectionEnd) {
-      event.preventDefault();
-      filename.select();
-    }
-  });
   field.append(filename);
 
   const saveAsBtn = makeBtn('Save as', { className: 'is-primary' });

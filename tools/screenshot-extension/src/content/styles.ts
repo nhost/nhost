@@ -356,10 +356,11 @@ export const FRAME_STYLES = `
   opacity: 0;
   pointer-events: none;
   transition: opacity 0.2s ease-in-out;
-  /* Crisp black outline (zero-blur offsets) so the white check stays visible
-   * over bright picks without a soft shadow bleeding onto the swatch. */
-  filter: drop-shadow(1.5px 0 0 #000) drop-shadow(-1.5px 0 0 #000)
-    drop-shadow(0 1.5px 0 #000) drop-shadow(0 -1.5px 0 #000);
+  /* Black outline so the white check stays visible over bright picks. A small
+   * blur radius on each offset anti-aliases the corners without the soft halo
+   * of a zero-offset shadow bleeding onto the swatch. */
+  filter: drop-shadow(1.2px 0 0.5px #000) drop-shadow(-1.2px 0 0.5px #000)
+    drop-shadow(0 1.2px 0.5px #000) drop-shadow(0 -1.2px 0.5px #000);
 }
 .nhost-ss-swatch--custom.is-confirming { background-image: none; }
 .nhost-ss-swatch--custom.is-confirming .nhost-ss-swatch-check { opacity: 1; }
@@ -548,7 +549,7 @@ export const FRAME_STYLES = `
   height: 300px;
   border-radius: 12px;
   border: 1px solid rgba(255, 255, 255, 0.08);
-  background: #0b0d12;
+  background: transparent;
   overflow: hidden;
 }
 .nhost-ss-preview img {
@@ -714,6 +715,7 @@ export const FRAME_STYLES = `
   text-align: center;
   word-break: break-word;
 }
+.nhost-ss-status:empty { display: none; }
 .nhost-ss-status.is-ok { color: #4ade80; }
 .nhost-ss-status.is-err { color: #f87171; }
 `;
