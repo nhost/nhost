@@ -1,10 +1,13 @@
 package image_test
 
 import (
+	"bytes"
 	"crypto/sha256"
 	"encoding/hex"
+	"errors"
 	"io"
 	"os"
+	"strings"
 	"testing"
 
 	"github.com/google/go-cmp/cmp"
@@ -111,7 +114,7 @@ func TestManipulate(t *testing.T) {
 		},
 	}
 
-	transformer := image.NewTransformer(0)
+	transformer := image.NewTransformer(0, 0, 0)
 
 	for _, tc := range cases {
 		t.Run(tc.name, func(t *testing.T) {
@@ -141,8 +144,159 @@ func TestManipulate(t *testing.T) {
 	}
 }
 
+func TestRunRejectsOversizedExplicitOptions(t *testing.T) {
+	t.Parallel()
+
+	const (
+		maxDimension = 100
+		maxBlurSigma = 10
+	)
+
+	transformer := image.NewTransformer(1, maxDimension, maxBlurSigma)
+
+	err := transformer.Run(
+		strings.NewReader("not an image"),
+		12,
+		io.Discard,
+		image.Options{
+			Width:  maxDimension + 1,
+			Height: maxDimension + 1,
+			Blur:   maxBlurSigma + 1,
+			Format: image.ImageTypeJPEG,
+		},
+	)
+	if !errors.Is(err, image.ErrOptionsOutOfRange) {
+		t.Fatalf("expected ErrOptionsOutOfRange, got %v", err)
+	}
+}
+
+func TestManipulateRejectsOversizedDerivedDimension(t *testing.T) {
+	t.Parallel()
+
+	// When only one dimension is requested the other is derived from the
+	// source aspect ratio. testdata/nhost.jpg is 678x258 (landscape), so a
+	// bounded height of maxDimension derives a width of maxDimension*678/258
+	// ~= 2.6x larger. That derived width is the one dimension the controller
+	// cannot check, so the transformer must reject it (the same
+	// memory-exhaustion DoS as an explicit oversized request).
+	const (
+		maxDimension  = 200
+		nhostJPGBytes = 33399
+	)
+
+	transformer := image.NewTransformer(1, maxDimension, 0)
+
+	orig, err := os.Open("testdata/nhost.jpg")
+	if err != nil {
+		t.Fatal(err)
+	}
+	defer orig.Close()
+
+	var out bytes.Buffer
+
+	// Only the height is requested; the wider dimension is derived.
+	err = transformer.Run(
+		orig,
+		nhostJPGBytes,
+		&out,
+		image.Options{Height: maxDimension, Format: image.ImageTypeJPEG},
+	)
+	if !errors.Is(err, image.ErrDimensionsTooLarge) {
+		t.Fatalf("expected ErrDimensionsTooLarge, got %v", err)
+	}
+}
+
+func TestValidateOptions(t *testing.T) {
+	t.Parallel()
+
+	const (
+		maxDimension = 100
+		maxBlurSigma = 10
+	)
+
+	transformer := image.NewTransformer(1, maxDimension, maxBlurSigma)
+
+	cases := []struct {
+		name         string
+		opts         image.Options
+		wantErr      bool
+		wantContains []string
+	}{
+		{
+			name:         "empty options pass",
+			opts:         image.Options{},
+			wantErr:      false,
+			wantContains: nil,
+		},
+		{
+			name: "values exactly at the limit pass",
+			opts: image.Options{
+				Width:  maxDimension,
+				Height: maxDimension,
+				Blur:   maxBlurSigma,
+			},
+			wantErr:      false,
+			wantContains: nil,
+		},
+		{
+			name:         "width over max is rejected",
+			opts:         image.Options{Width: maxDimension + 1},
+			wantErr:      true,
+			wantContains: []string{"width", "100"},
+		},
+		{
+			name:         "height over max is rejected",
+			opts:         image.Options{Height: maxDimension + 1},
+			wantErr:      true,
+			wantContains: []string{"height", "100"},
+		},
+		{
+			name:         "blur over max is rejected",
+			opts:         image.Options{Blur: maxBlurSigma + 1},
+			wantErr:      true,
+			wantContains: []string{"blur", "10"},
+		},
+		{
+			name: "multiple violations are all reported",
+			opts: image.Options{
+				Width:  maxDimension + 1,
+				Height: maxDimension + 1,
+				Blur:   maxBlurSigma + 1,
+			},
+			wantErr:      true,
+			wantContains: []string{"width", "height", "blur"},
+		},
+	}
+
+	for _, tc := range cases {
+		t.Run(tc.name, func(t *testing.T) {
+			t.Parallel()
+
+			err := transformer.ValidateOptions(tc.opts)
+
+			if !tc.wantErr {
+				if err != nil {
+					t.Fatalf("expected no error, got %v", err)
+				}
+
+				return
+			}
+
+			if !errors.Is(err, image.ErrOptionsOutOfRange) {
+				t.Fatalf("expected ErrOptionsOutOfRange, got %v", err)
+			}
+
+			for _, want := range tc.wantContains {
+				if !strings.Contains(err.Error(), want) {
+					t.Errorf("expected error %q to contain %q", err.Error(), want)
+				}
+			}
+		})
+	}
+}
+
 func BenchmarkManipulate(b *testing.B) {
-	transformer := image.NewTransformer(0)
+	transformer := image.NewTransformer(0, 0, 0)
 
 	orig, err := os.Open("testdata/nhost.jpg")
 	if err != nil {

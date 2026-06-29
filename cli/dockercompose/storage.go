@@ -66,7 +66,7 @@ func storage( //nolint:funlen
 			"serve",
 		},
 		Environment: env,
-		ExtraHosts:  extraHosts(subdomain),
+		ExtraHosts:  extraHosts,
 		Labels: Ingresses{
 			{
 				Name:    "storage",

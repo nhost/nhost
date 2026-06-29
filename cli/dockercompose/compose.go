@@ -126,7 +126,47 @@ type Volume struct {
 	ReadOnly *bool  `yaml:"read_only,omitempty"`
 }
 
-func extraHosts(subdomain string) []string {
+// extraHosts is the set of /etc/hosts entries injected into every bridge
+// service. Public local.nhost.run hostnames are intentionally absent: on
+// Linux, `host-gateway` resolves to the default docker0 bridge gateway,
+// which is unroutable from containers attached to the user-defined
+// project bridge. Resolution for those hostnames is provided by network
+// aliases on the traefik service (see traefikAliases).
+var extraHosts = []string{ //nolint:gochecknoglobals // immutable /etc/hosts entries shared by all bridge services
+	"host.docker.internal:host-gateway",
+}
+
+// traefikAliases returns the set of public local hostnames that resolve
+// to the traefik container via Docker's embedded DNS on the project
+// bridge. Container-to-container HTTPS via these hostnames terminates at
+// traefik and is routed using the existing ingress labels.
+func traefikAliases(subdomain string) []string {
+	return []string{
+		subdomain + ".auth.local.nhost.run",
+		subdomain + ".db.local.nhost.run",
+		subdomain + ".functions.local.nhost.run",
+		subdomain + ".graphql.local.nhost.run",
+		subdomain + ".hasura.local.nhost.run",
+		subdomain + ".storage.local.nhost.run",
+		subdomain + ".dashboard.local.nhost.run",
+		subdomain + ".mailhog.local.nhost.run",
+		"local.auth.nhost.run",
+		"local.db.nhost.run",
+		"local.functions.nhost.run",
+		"local.graphql.nhost.run",
+		"local.hasura.nhost.run",
+		"local.storage.nhost.run",
+		"local.dashboard.nhost.run",
+		"local.mailhog.nhost.run",
+	}
+}
+
+// hostGatewayHosts returns the legacy host-gateway based mapping used by
+// containers that run outside the project's bridge network (e.g. the
+// standalone hasura-cli helper started via `docker run` without
+// --network), where the default docker0 bridge gateway can reach the
+// host-published traefik port.
+func hostGatewayHosts(subdomain string) []string {
 	return []string{
 		"host.docker.internal:host-gateway",
 		subdomain + ".auth.local.nhost.run:host-gateway",
@@ -135,9 +175,6 @@ func extraHosts(subdomain string) []string {
 		subdomain + ".graphql.local.nhost.run:host-gateway",
 		subdomain + ".hasura.local.nhost.run:host-gateway",
 		subdomain + ".storage.local.nhost.run:host-gateway",
-		// below entries shouldn't be needed unless
-		// users are hardcoding these subdomains
-		// adding out of an abundance of caution
 		"local.auth.nhost.run:host-gateway",
 		"local.db.nhost.run:host-gateway",
 		"local.functions.nhost.run:host-gateway",
@@ -292,10 +329,10 @@ func traefik(subdomain, projectName string, port uint, dotnhostfolder string) (*
 			fmt.Sprintf("--entrypoints.web.address=:%d", port),
 		},
 		Environment: nil,
-		ExtraHosts:  extraHosts(subdomain),
+		ExtraHosts:  extraHosts,
 		HealthCheck: nil,
 		Labels:      nil,
-		Networks:    nil,
+		Networks:    networkAliases(traefikAliases(subdomain)...),
 		Ports: []Port{
 			{
 				Mode:      "ingress",
@@ -310,7 +347,7 @@ func traefik(subdomain, projectName string, port uint, dotnhostfolder string) (*
 	}, nil
 }
 
-func minio(subdomain, volumeName string) *Service {
+func minio(volumeName string) *Service {
 	return &Service{
 		Image:      "minio/minio:RELEASE.2025-02-28T09-55-16Z",
 		DependsOn:  nil,
@@ -322,7 +359,7 @@ func minio(subdomain, volumeName string) *Service {
 			"MINIO_ROOT_PASSWORD": "minioaccesskey123123",
 			"MINIO_ROOT_USER":     "minioaccesskey123123",
 		},
-		ExtraHosts:  extraHosts(subdomain),
+		ExtraHosts:  extraHosts,
 		Ports:       nil,
 		Restart:     "always",
 		HealthCheck: nil,
@@ -398,7 +435,7 @@ func dashboard( //nolint:funlen // single env-var config map, not decomposable
 				subdomain, "storage", httpPort, useTLS,
 			) + "/v1",
 		},
-		ExtraHosts:  extraHosts(subdomain),
+		ExtraHosts:  extraHosts,
 		HealthCheck: nil,
 		Labels: Ingresses{
 			{
@@ -487,7 +524,7 @@ func functions( //nolint:funlen
 		EntryPoint:  nil,
 		Command:     nil,
 		Environment: envVars,
-		ExtraHosts:  extraHosts(subdomain),
+		ExtraHosts:  extraHosts,
 		HealthCheck: &HealthCheck{
 			Test:        []string{"CMD", "wget", "--spider", "-S", "http://localhost:3000/healthz"},
 			Interval:    "5s",
@@ -533,7 +570,7 @@ func functions( //nolint:funlen
 	}, nil
 }
 
-func mailhog(subdomain, volumeName string, useTLS bool) *Service {
+func mailhog(volumeName string, useTLS bool) *Service {
 	return &Service{
 		Image:      "jcalonso/mailhog:v1.0.1",
 		DependsOn:  nil,
@@ -547,7 +584,7 @@ func mailhog(subdomain, volumeName string, useTLS bool) *Service {
 			"SMTP_SENDER": "auth@example.com",
 			"SMTP_USER":   "user",
 		},
-		ExtraHosts:  extraHosts(subdomain),
+		ExtraHosts:  extraHosts,
 		HealthCheck: nil,
 		Labels: Ingresses{
 			{
@@ -619,7 +656,7 @@ func getServices( //nolint: funlen,cyclop
 	runServices ...*RunService,
 ) (map[string]*Service, error) {
 	minioVolumeName := "minio_" + sanitizeBranch(branch)
-	minio := minio(subdomain, minioVolumeName)
+	minio := minio(minioVolumeName)
 
 	storage, err := storage(cfg, subdomain, useTLS, httpPort, ports.Storage)
 	if err != nil {
@@ -629,7 +666,7 @@ func getServices( //nolint: funlen,cyclop
 	pgVolumeName := "pgdata_" + sanitizeBranch(branch)
 	dataFolder := filepath.Join(dotNhostFolder, "data")
 
-	postgres, err := postgres(cfg, subdomain, postgresPort, dataFolder, pgVolumeName)
+	postgres, err := postgres(cfg, postgresPort, dataFolder, pgVolumeName)
 	if err != nil {
 		return nil, err
 	}
@@ -658,7 +695,7 @@ func getServices( //nolint: funlen,cyclop
 	}
 
 	mailhogVolumeName := "mailhog_" + sanitizeBranch(branch)
-	mailhog := mailhog(subdomain, mailhogVolumeName, useTLS)
+	mailhog := mailhog(mailhogVolumeName, useTLS)
 
 	cs, err := configserver(
 		configserviceImage,
@@ -729,12 +766,12 @@ func getServices( //nolint: funlen,cyclop
 		services["auth"] = auth
 
 		if cfg.Ai != nil {
-			services["ai"] = ai(cfg, subdomain)
+			services["ai"] = ai(cfg)
 		}
 	}
 
 	for _, runService := range runServices {
-		svc := run(runService.Config, subdomain, branch)
+		svc := run(runService.Config, branch)
 
 		if len(runService.BindMounts) > 0 {
 			svc.Volumes = append(svc.Volumes, runService.BindMounts...)
