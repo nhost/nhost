@@ -118,7 +118,7 @@ func TestRun(t *testing.T) {
 		t.Run(tc.name, func(t *testing.T) {
 			t.Parallel()
 
-			got := run(tc.cfg(), "dev", "branch")
+			got := run(tc.cfg(), "branch")
 			if diff := cmp.Diff(tc.expected(), got); diff != "" {
 				t.Error(diff)
 			}

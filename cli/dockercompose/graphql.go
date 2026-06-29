@@ -77,7 +77,7 @@ func graphql( //nolint:funlen
 		EntryPoint:  nil,
 		Command:     nil,
 		Environment: env,
-		ExtraHosts:  extraHosts(subdomain),
+		ExtraHosts:  extraHosts,
 		HealthCheck: &HealthCheck{
 			Test: []string{
 				"CMD-SHELL",
@@ -135,7 +135,7 @@ func console( //nolint:funlen
 	// to 0.0.0.0 inside this container so the console's API discovery
 	// loops back to itself instead of round-tripping through traefik.
 	extraHosts := append(
-		extraHosts(subdomain),
+		extraHosts,
 		subdomain+".hasura.local.nhost.run:0.0.0.0",
 	)
 

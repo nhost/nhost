@@ -126,16 +126,14 @@ type Volume struct {
 	ReadOnly *bool  `yaml:"read_only,omitempty"`
 }
 
-// extraHosts returns the /etc/hosts entries injected into every bridge
+// extraHosts is the set of /etc/hosts entries injected into every bridge
 // service. Public local.nhost.run hostnames are intentionally absent: on
 // Linux, `host-gateway` resolves to the default docker0 bridge gateway,
 // which is unroutable from containers attached to the user-defined
 // project bridge. Resolution for those hostnames is provided by network
 // aliases on the traefik service (see traefikAliases).
-func extraHosts(_ string) []string {
-	return []string{
-		"host.docker.internal:host-gateway",
-	}
+var extraHosts = []string{
+	"host.docker.internal:host-gateway",
 }
 
 // traefikAliases returns the set of public local hostnames that resolve
@@ -331,7 +329,7 @@ func traefik(subdomain, projectName string, port uint, dotnhostfolder string) (*
 			fmt.Sprintf("--entrypoints.web.address=:%d", port),
 		},
 		Environment: nil,
-		ExtraHosts:  extraHosts(subdomain),
+		ExtraHosts:  extraHosts,
 		HealthCheck: nil,
 		Labels:      nil,
 		Networks:    networkAliases(traefikAliases(subdomain)...),
@@ -361,7 +359,7 @@ func minio(subdomain, volumeName string) *Service {
 			"MINIO_ROOT_PASSWORD": "minioaccesskey123123",
 			"MINIO_ROOT_USER":     "minioaccesskey123123",
 		},
-		ExtraHosts:  extraHosts(subdomain),
+		ExtraHosts:  extraHosts,
 		Ports:       nil,
 		Restart:     "always",
 		HealthCheck: nil,
@@ -437,7 +435,7 @@ func dashboard( //nolint:funlen // single env-var config map, not decomposable
 				subdomain, "storage", httpPort, useTLS,
 			) + "/v1",
 		},
-		ExtraHosts:  extraHosts(subdomain),
+		ExtraHosts:  extraHosts,
 		HealthCheck: nil,
 		Labels: Ingresses{
 			{
@@ -526,7 +524,7 @@ func functions( //nolint:funlen
 		EntryPoint:  nil,
 		Command:     nil,
 		Environment: envVars,
-		ExtraHosts:  extraHosts(subdomain),
+		ExtraHosts:  extraHosts,
 		HealthCheck: &HealthCheck{
 			Test:        []string{"CMD", "wget", "--spider", "-S", "http://localhost:3000/healthz"},
 			Interval:    "5s",
@@ -586,7 +584,7 @@ func mailhog(subdomain, volumeName string, useTLS bool) *Service {
 			"SMTP_SENDER": "auth@example.com",
 			"SMTP_USER":   "user",
 		},
-		ExtraHosts:  extraHosts(subdomain),
+		ExtraHosts:  extraHosts,
 		HealthCheck: nil,
 		Labels: Ingresses{
 			{
@@ -668,7 +666,7 @@ func getServices( //nolint: funlen,cyclop
 	pgVolumeName := "pgdata_" + sanitizeBranch(branch)
 	dataFolder := filepath.Join(dotNhostFolder, "data")
 
-	postgres, err := postgres(cfg, subdomain, postgresPort, dataFolder, pgVolumeName)
+	postgres, err := postgres(cfg, postgresPort, dataFolder, pgVolumeName)
 	if err != nil {
 		return nil, err
 	}
@@ -768,12 +766,12 @@ func getServices( //nolint: funlen,cyclop
 		services["auth"] = auth
 
 		if cfg.Ai != nil {
-			services["ai"] = ai(cfg, subdomain)
+			services["ai"] = ai(cfg)
 		}
 	}
 
 	for _, runService := range runServices {
-		svc := run(runService.Config, subdomain, branch)
+		svc := run(runService.Config, branch)
 
 		if len(runService.BindMounts) > 0 {
 			svc.Volumes = append(svc.Volumes, runService.BindMounts...)

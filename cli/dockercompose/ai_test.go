@@ -70,7 +70,7 @@ func TestAI(t *testing.T) {
 		t.Run(tc.name, func(t *testing.T) {
 			t.Parallel()
 
-			got := ai(tc.cfg(), "dev")
+			got := ai(tc.cfg())
 			if diff := cmp.Diff(tc.expected(), got); diff != "" {
 				t.Error(diff)
 			}
