@@ -5,6 +5,7 @@
 package main
 
 import (
+	"errors"
 	"flag"
 	"fmt"
 	"os"
@@ -21,6 +22,7 @@ import (
 func main() {
 	schemaPath := flag.String("schema", "", "path to the mimir schema.cue file")
 	outPath := flag.String("out", "", "path to the .mdx file to write")
+
 	flag.Parse()
 
 	if *schemaPath == "" || *outPath == "" {
@@ -40,12 +42,12 @@ func main() {
 		os.Exit(1)
 	}
 
-	if err := os.MkdirAll(filepath.Dir(*outPath), 0o755); err != nil { //nolint:mnd
+	if err := os.MkdirAll(filepath.Dir(*outPath), 0o755); err != nil { //nolint:mnd // 0o755: standard directory permissions
 		fmt.Fprintf(os.Stderr, "mkdir: %v\n", err)
 		os.Exit(1)
 	}
 
-	if err := os.WriteFile(*outPath, []byte(out), 0o644); err != nil { //nolint:mnd
+	if err := os.WriteFile(*outPath, []byte(out), 0o644); err != nil { //nolint:mnd // 0o644: standard read/write file permissions
 		fmt.Fprintf(os.Stderr, "write: %v\n", err)
 		os.Exit(1)
 	}
@@ -84,20 +86,23 @@ func generate(filename string, src []byte) (string, error) {
 		if !ok {
 			continue
 		}
+
 		name, isDef := defName(f.Label)
 		if !isDef {
 			continue
 		}
+
 		g.defs[name] = f
 	}
 
 	root, ok := g.defs["#Config"]
 	if !ok {
-		return "", fmt.Errorf("#Config definition not found")
+		return "", errors.New("#Config definition not found")
 	}
+
 	rootStruct, ok := root.Value.(*ast.StructLit)
 	if !ok {
-		return "", fmt.Errorf("#Config is not a struct literal")
+		return "", errors.New("#Config is not a struct literal")
 	}
 
 	topFields, _ := g.collectFields(rootStruct)
@@ -111,12 +116,12 @@ func generate(filename string, src []byte) (string, error) {
 	body.WriteString("## Top-level structure\n\n")
 	body.WriteString("The root of `nhost.toml` is made up of the following sections.\n\n")
 	body.WriteString("| Section | Description |\n|---|---|\n")
+
 	for _, fi := range topFields {
-		body.WriteString(fmt.Sprintf(
-			"| [`%s`](#%s) | %s |\n",
-			fi.name, slug(fi.name), cell(resolveDoc(fi.doc, fi.name, fi.name)),
-		))
+		fmt.Fprintf(&body, "| [`%s`](#%s) | %s |\n",
+			fi.name, slug(fi.name), cell(resolveDoc(fi.doc, fi.name, fi.name)))
 	}
+
 	body.WriteString("\n")
 
 	for _, fi := range topFields {
@@ -124,20 +129,29 @@ func generate(filename string, src []byte) (string, error) {
 		if !ok || !strings.HasPrefix(id.Name, "#") {
 			continue
 		}
+
 		doc := fi.doc
 		if doc == "" {
 			doc = docOf(g.defs[id.Name])
 		}
+
 		g.renderSection(&body, fi.name, id.Name, 2, fi.optional, doc)
 	}
 
 	if len(g.sharedQueue) > 0 {
 		body.WriteString("## Shared types\n\n")
 		body.WriteString("Types reused across multiple sections above.\n\n")
-		for i := 0; i < len(g.sharedQueue); i++ {
+
+		// Rendering a shared type can enqueue further referenced types, so the
+		// queue grows during iteration. Re-check len each step rather than ranging
+		// over a fixed bound, which would drop types enqueued while rendering.
+		i := 0
+		for i < len(g.sharedQueue) {
 			name := g.sharedQueue[i]
 			title := strings.TrimPrefix(name, "#")
 			g.renderSection(&body, title, name, 3, false, docOf(g.defs[name]))
+
+			i++
 		}
 	}
 
@@ -198,9 +212,11 @@ func (g *generator) renderSection(b *strings.Builder, title, defName string, lev
 	}
 
 	b.WriteString(strings.Repeat("#", level) + " " + title + "\n\n")
+
 	if optional {
 		doc = strings.TrimSpace("*Optional.* " + doc)
 	}
+
 	if doc != "" {
 		b.WriteString(doc + "\n\n")
 	}
@@ -227,63 +243,95 @@ func (g *generator) renderStruct(b *strings.Builder, prefix string, st *ast.Stru
 
 	if len(fields) > 0 {
 		b.WriteString("| Field | Type | Default | Description |\n|---|---|---|---|\n")
+
 		for _, fi := range fields {
 			typeCell, def := g.renderType(fi.value)
+
 			name := fi.name
 			if fi.optional {
 				name += "?"
 			}
+
 			fieldPath := fi.name
 			if prefix != "" {
 				fieldPath = prefix + "." + fi.name
 			}
+
 			desc := resolveDoc(fi.doc, fieldPath, fi.name)
 			if fi.conditional {
 				desc = strings.TrimSpace("*(conditional)* " + desc)
 			}
-			b.WriteString(fmt.Sprintf("| `%s` | %s | %s | %s |\n", name, typeCell, def, cell(desc)))
+
+			fmt.Fprintf(b, "| `%s` | %s | %s | %s |\n", name, typeCell, def, cell(desc))
 		}
+
 		b.WriteString("\n")
 	}
 
-	childLevel := level + 1
-	if childLevel > 6 {
-		childLevel = 6
-	}
+	childLevel := min(level+1, 6)
+
 	for _, fi := range fields {
 		child, ok := fi.value.(*ast.StructLit)
 		if !ok {
 			continue
 		}
+
 		path := fi.name
 		if prefix != "" {
 			path = prefix + "." + fi.name
 		}
+
 		b.WriteString(strings.Repeat("#", childLevel) + " `" + path + "`\n\n")
+
 		if fi.optional {
 			b.WriteString("*Optional.*\n\n")
 		}
+
 		g.renderStruct(b, path, child, childLevel)
 	}
 }
 
 // renderType returns the markdown for a field's type cell and its default value
-// (empty if none). Disjunction defaults (marked with `*` in CUE) are extracted
-// into the default column.
+// (empty if none). The default operand is marked with `*` in CUE and always
+// populates the default column. When the disjunction is an enumeration of
+// literal values (e.g. "GET" | *"POST"), the default is itself one of the
+// allowed values, so it is also listed in the type column; for a broader-typed
+// field (e.g. bool | *true) the default is shown only in the default column.
 func (g *generator) renderType(expr ast.Expr) (typeCell, def string) {
 	operands := splitDisjunction(expr)
+
+	enum := true
+	for _, op := range operands {
+		v := op
+		if u, ok := op.(*ast.UnaryExpr); ok && u.Op == token.MUL {
+			v = u.X
+		}
+
+		if !isLiteralValue(v) {
+			enum = false
+			break
+		}
+	}
+
 	parts := make([]string, 0, len(operands))
 	for _, op := range operands {
 		if u, ok := op.(*ast.UnaryExpr); ok && u.Op == token.MUL {
 			def = "`" + formatExpr(u.X) + "`"
+			if enum {
+				parts = append(parts, g.typeAtom(u.X))
+			}
+
 			continue
 		}
+
 		parts = append(parts, g.typeAtom(op))
 	}
+
 	parts = dedupeStrings(parts)
 	if len(parts) == 0 {
 		parts = []string{"`" + formatExpr(expr) + "`"}
 	}
+
 	return strings.Join(parts, " \\| "), def
 }
 
@@ -295,6 +343,7 @@ func (g *generator) typeAtom(expr ast.Expr) string {
 		if strings.HasPrefix(e.Name, "#") {
 			return g.linkToDef(e.Name)
 		}
+
 		return "`" + e.Name + "`"
 	case *ast.StructLit:
 		return "object"
@@ -302,6 +351,7 @@ func (g *generator) typeAtom(expr ast.Expr) string {
 		if elem := listElem(e); elem != nil {
 			return "list of " + g.typeAtom(elem)
 		}
+
 		return "`" + formatExpr(e) + "`"
 	case *ast.BinaryExpr:
 		// Constraints such as `uint32 & >=1 & <=100`: link the leading type if it
@@ -311,6 +361,7 @@ func (g *generator) typeAtom(expr ast.Expr) string {
 				return g.linkToDef(id.Name) + " `" + formatExpr(e.Y) + "`"
 			}
 		}
+
 		return "`" + formatExpr(e) + "`"
 	default:
 		return "`" + formatExpr(expr) + "`"
@@ -325,10 +376,12 @@ func (g *generator) linkToDef(name string) string {
 		// Unknown definition (e.g. a builtin-looking alias not in this file).
 		return "`" + name + "`"
 	}
+
 	if !g.topLevel[name] && !g.sharedSeen[name] {
 		g.sharedSeen[name] = true
 		g.sharedQueue = append(g.sharedQueue, name)
 	}
+
 	return fmt.Sprintf("[`%s`](#%s)", bare, slug(bare))
 }
 
@@ -340,6 +393,7 @@ func (g *generator) collectFields(st *ast.StructLit) (fields []fieldInfo, embeds
 	seen := map[string]bool{}
 
 	var walk func(elts []ast.Decl, conditional bool)
+
 	walk = func(elts []ast.Decl, conditional bool) {
 		for _, d := range elts {
 			switch e := d.(type) {
@@ -348,12 +402,15 @@ func (g *generator) collectFields(st *ast.StructLit) (fields []fieldInfo, embeds
 				if !isIdent || name == "" || strings.HasPrefix(name, "_") {
 					continue
 				}
+
 				if strings.HasPrefix(name, "#") {
 					continue
 				}
+
 				if seen[name] {
 					continue
 				}
+
 				seen[name] = true
 				fields = append(fields, fieldInfo{
 					name:        name,
@@ -375,6 +432,7 @@ func (g *generator) collectFields(st *ast.StructLit) (fields []fieldInfo, embeds
 	}
 
 	walk(st.Elts, false)
+
 	return fields, embeds
 }
 
@@ -384,7 +442,17 @@ func splitDisjunction(expr ast.Expr) []ast.Expr {
 	if !ok || be.Op != token.OR {
 		return []ast.Expr{expr}
 	}
+
 	return append(splitDisjunction(be.X), splitDisjunction(be.Y)...)
+}
+
+// isLiteralValue reports whether expr is a concrete value (a string, number, or
+// the bool/null keywords) rather than a type. CUE parses all of these as
+// *ast.BasicLit, so a disjunction whose operands are all literal values is an
+// enumeration whose default is one of the allowed values.
+func isLiteralValue(expr ast.Expr) bool {
+	_, ok := expr.(*ast.BasicLit)
+	return ok
 }
 
 // listElem returns the element type of a list written as `[...T]` or `[T]`.
@@ -394,11 +462,13 @@ func listElem(l *ast.ListLit) ast.Expr {
 			return e.Type
 		}
 	}
+
 	if len(l.Elts) == 1 {
 		if _, ok := l.Elts[0].(*ast.Ellipsis); !ok {
 			return l.Elts[0]
 		}
 	}
+
 	return nil
 }
 
@@ -407,9 +477,11 @@ func defName(label ast.Label) (string, bool) {
 	if !ok {
 		return "", false
 	}
+
 	if !strings.HasPrefix(id.Name, "#") {
 		return "", false
 	}
+
 	return id.Name, true
 }
 
@@ -428,15 +500,18 @@ func docOf(n ast.Node) string {
 	if n == nil {
 		return ""
 	}
+
 	var parts []string
 	for _, cg := range ast.Comments(n) {
 		if cg.Line || cg.Position != 0 {
 			continue
 		}
+
 		if t := strings.TrimSpace(cg.Text()); t != "" {
 			parts = append(parts, t)
 		}
 	}
+
 	return strings.Join(parts, " ")
 }
 
@@ -445,6 +520,7 @@ func formatExpr(expr ast.Expr) string {
 	if err != nil {
 		return ""
 	}
+
 	return strings.TrimSpace(string(b))
 }
 
@@ -456,6 +532,7 @@ func oneLine(s string) string {
 	s = strings.ReplaceAll(s, ">", "&gt;")
 	s = strings.ReplaceAll(s, "{", "\\{")
 	s = strings.ReplaceAll(s, "}", "\\}")
+
 	return strings.TrimSpace(strings.Join(strings.Fields(s), " "))
 }
 
@@ -466,6 +543,7 @@ func cell(s string) string {
 	if s == "" {
 		return "-"
 	}
+
 	return s
 }
 
@@ -481,16 +559,21 @@ func resolveDoc(raw, path, name string) string {
 			if d, ok := envOverrides[raw]; ok {
 				return d
 			}
+
 			return humanizeEnvVar(raw)
 		}
+
 		return raw
 	}
+
 	if d, ok := pathOverrides[path]; ok {
 		return d
 	}
+
 	if d, ok := fieldOverrides[name]; ok {
 		return d
 	}
+
 	return humanizeName(name)
 }
 
@@ -503,6 +586,7 @@ func humanizeName(s string) string {
 	if s == "" {
 		return ""
 	}
+
 	return strings.ToUpper(s[:1]) + s[1:]
 }
 
@@ -523,15 +607,17 @@ func isEnvVar(s string) bool {
 func humanizeEnvVar(s string) string {
 	s = strings.TrimSpace(s)
 	for _, p := range []string{"HASURA_GRAPHQL_", "AUTH_", "NHOST_", "POSTGRES_", "STORAGE_"} {
-		if strings.HasPrefix(s, p) {
-			s = strings.TrimPrefix(s, p)
+		if after, ok := strings.CutPrefix(s, p); ok {
+			s = after
 			break
 		}
 	}
+
 	s = strings.ToLower(strings.ReplaceAll(s, "_", " "))
 	if s == "" {
 		return ""
 	}
+
 	return strings.ToUpper(s[:1]) + s[1:]
 }
 
@@ -746,14 +832,17 @@ var fieldOverrides = map[string]string{
 
 func dedupeStrings(in []string) []string {
 	seen := map[string]bool{}
+
 	out := in[:0]
 	for _, s := range in {
 		if seen[s] {
 			continue
 		}
+
 		seen[s] = true
 		out = append(out, s)
 	}
+
 	return out
 }
 
@@ -761,6 +850,7 @@ func dedupeStrings(in []string) []string {
 // drop characters that are not alphanumeric/space/hyphen, spaces to hyphens.
 func slug(s string) string {
 	s = strings.ToLower(s)
+
 	var b strings.Builder
 	for _, r := range s {
 		switch {
@@ -770,5 +860,6 @@ func slug(s string) string {
 			b.WriteRune('-')
 		}
 	}
+
 	return b.String()
 }

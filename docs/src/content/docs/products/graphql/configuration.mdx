@@ -66,65 +66,70 @@ memory = 1024
 ```cue
 // Configuration for the GraphQL engine service
 #Hasura: {
-	// Engine version, you can see available versions in the URL below:
-	// https://hub.docker.com/r/hasura/graphql-engine/tags
-	version: string | *"v2.33.4-ce"
+  // Engine version, you can see available versions in the URL below:
+  // https://hub.docker.com/r/hasura/graphql-engine/tags
+  version: string | *"v2.48.10-ce"
 
-	// JWT Secrets configuration
-	jwtSecrets: [#JWTSecret]
+  // JWT Secrets configuration
+  jwtSecrets: [#JWTSecret]
 
-	// Admin secret
-	adminSecret: string
+  // Admin secret
+  adminSecret: string
 
-	// Webhook secret
-	webhookSecret: string
+  // Webhook secret
+  webhookSecret: string
 
-	// Engine settings
-	// Reference: https://hasura.io/docs/latest/deployment/graphql-engine-flags/reference/
-	settings: {
-		// HASURA_GRAPHQL_CORS_DOMAIN
-		corsDomain: [...#Url] | *["*"]
-		// HASURA_GRAPHQL_DEV_MODE
-		devMode: bool | *true
-		// HASURA_GRAPHQL_ENABLE_ALLOWLIST
-		enableAllowList: bool | *false
-		// HASURA_GRAPHQL_ENABLE_CONSOLE
-		enableConsole: bool | *true
-		// HASURA_GRAPHQL_ENABLE_REMOTE_SCHEMA_PERMISSIONS
-		enableRemoteSchemaPermissions: bool | *false
-		// HASURA_GRAPHQL_ENABLED_APIS
-		enabledAPIs: [...#HasuraAPIs] | *["metadata", "graphql", "pgdump", "config"]
+  // Engine settings
+  // Reference: https://hasura.io/docs/latest/deployment/graphql-engine-flags/reference/
+  settings: {
+    // HASURA_GRAPHQL_CORS_DOMAIN
+    corsDomain: [...#Url] | *["*"]
+    // HASURA_GRAPHQL_DEV_MODE
+    devMode: bool | *true
+    // HASURA_GRAPHQL_ENABLE_ALLOWLIST
+    enableAllowList: bool | *false
+    // HASURA_GRAPHQL_ENABLE_CONSOLE
+    enableConsole: bool | *true
+    // HASURA_GRAPHQL_ENABLE_REMOTE_SCHEMA_PERMISSIONS
+    enableRemoteSchemaPermissions: bool | *false
+    // HASURA_GRAPHQL_ENABLED_APIS
+    enabledAPIs: [...#HasuraAPIs] | *["metadata", "graphql", "pgdump", "config"]
 
-		// HASURA_GRAPHQL_LIVE_QUERIES_MULTIPLEXED_REFETCH_INTERVAL
-		liveQueriesMultiplexedRefetchInterval: uint32 | *1000
+    // HASURA_GRAPHQL_INFER_FUNCTION_PERMISSIONS
+    inferFunctionPermissions: bool | *true
 
-        // HASURA_GRAPHQL_STRINGIFY_NUMERIC_TYPES
-        stringifyNumericTypes: bool | *false
-	}
+    // HASURA_GRAPHQL_LIVE_QUERIES_MULTIPLEXED_REFETCH_INTERVAL
+    liveQueriesMultiplexedRefetchInterval: uint32 | *1000
 
-    authHook?: {
-        // HASURA_GRAPHQL_AUTH_HOOK
-        url: string
+    // HASURA_GRAPHQL_STRINGIFY_NUMERIC_TYPES
+    stringifyNumericTypes: bool | *false
+  }
 
-        // HASURA_GRAPHQL_AUTH_HOOK_MODE
-        mode: "GET"|*"POST"
+  authHook?: {
+    // HASURA_GRAPHQL_AUTH_HOOK
+    url: string
 
-        // HASURA_GRAPHQL_AUTH_HOOK_SEND_REQUEST_BODY
-        sendRequestBody: bool | *true
-    }
+    // HASURA_GRAPHQL_AUTH_HOOK_MODE
+    mode: "GET" | *"POST"
 
-	logs: {
-		// HASURA_GRAPHQL_LOG_LEVEL
-		level: "debug" | "info" | "error" | *"warn"
-	}
+    // HASURA_GRAPHQL_AUTH_HOOK_SEND_REQUEST_BODY
+    sendRequestBody: bool | *true
+  }
 
-	events: {
-		// HASURA_GRAPHQL_EVENTS_HTTP_POOL_SIZE
-		httpPoolSize: uint32 & >=1 & <=100 | *100
-	}
+  logs: {
+    // HASURA_GRAPHQL_LOG_LEVEL
+    level: "debug" | "info" | "error" | *"warn"
+  }
 
-	// Resources for the service
-	resources?: #Resources
+  events: {
+    // HASURA_GRAPHQL_EVENTS_HTTP_POOL_SIZE
+    httpPoolSize: uint32 & >=1 & <=100 | *100
+  }
+
+  // Resources for the service
+  resources?: #Resources
+
+  rateLimit?: #RateLimit
 }
 ```
 

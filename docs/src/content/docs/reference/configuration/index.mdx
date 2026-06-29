@@ -100,14 +100,14 @@ Configuration for hasura
 | Field | Type | Default | Description |
 |---|---|---|---|
 | `url` | `string` |  | URL of the webhook used to authenticate requests. |
-| `mode` | `"GET"` | `"POST"` | HTTP method used to call the auth webhook (GET or POST). |
+| `mode` | `"GET"` \| `"POST"` | `"POST"` | HTTP method used to call the auth webhook (GET or POST). |
 | `sendRequestBody` | `bool` | `true` | Forward the request body to the auth webhook. |
 
 ### `hasura.logs`
 
 | Field | Type | Default | Description |
 |---|---|---|---|
-| `level` | `"debug"` \| `"info"` \| `"error"` | `"warn"` | Minimum severity of log messages to emit. |
+| `level` | `"debug"` \| `"info"` \| `"error"` \| `"warn"` | `"warn"` | Minimum severity of log messages to emit. |
 
 ### `hasura.events`
 
@@ -137,7 +137,7 @@ Configuration for functions service
 
 | Field | Type | Default | Description |
 |---|---|---|---|
-| `version` | `20` | `22` | Version of the service image to deploy. |
+| `version` | `20` \| `22` | `22` | Version of the service image to deploy. |
 
 ### `functions.resources`
 
@@ -170,7 +170,7 @@ Configuration for auth service
 
 | Field | Type | Default | Description |
 |---|---|---|---|
-| `mode` | `"recommended"` \| `"required"` | `"disabled"` | How elevated privileges are granted. |
+| `mode` | `"recommended"` \| `"required"` \| `"disabled"` | `"disabled"` | How elevated privileges are granted. |
 
 ### `auth.redirections`
 
@@ -225,8 +225,8 @@ Configuration for auth service
 | Field | Type | Default | Description |
 |---|---|---|---|
 | `enabled` | `bool` | `true` | Use Gravatar to provide default user avatars. |
-| `default` | `"404"` \| `"mp"` \| `"identicon"` \| `"monsterid"` \| `"wavatar"` \| `"retro"` \| `"robohash"` | `"blank"` | Fallback Gravatar image used when a user has none. |
-| `rating` | `"pg"` \| `"r"` \| `"x"` | `"g"` | Maximum Gravatar content rating to allow. |
+| `default` | `"404"` \| `"mp"` \| `"identicon"` \| `"monsterid"` \| `"wavatar"` \| `"retro"` \| `"robohash"` \| `"blank"` | `"blank"` | Fallback Gravatar image used when a user has none. |
+| `rating` | `"pg"` \| `"r"` \| `"x"` \| `"g"` | `"g"` | Maximum Gravatar content rating to allow. |
 
 #### `auth.user.email`
 
@@ -498,7 +498,7 @@ Configuration for postgres service
 | `maxWalSenders` | `int32` | `10` | Maximum number of concurrent WAL sender processes. |
 | `maxReplicationSlots` | `int32` | `10` | Maximum number of replication slots. |
 | `archiveTimeout` | `int32 & >=300 & <=1073741823` | `300` | Force a WAL segment switch after this many seconds. |
-| `trackIoTiming` | `"on"` | `"off"` | Collect timing statistics for disk I/O. |
+| `trackIoTiming` | `"on"` \| `"off"` | `"off"` | Collect timing statistics for disk I/O. |
 
 ### `postgres.pitr`
 
