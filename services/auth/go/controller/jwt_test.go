@@ -3,6 +3,7 @@ package controller_test
 import (
 	"context"
 	"crypto"
+	"errors"
 	"log/slog"
 	"maps"
 	"net/http"
@@ -19,6 +20,7 @@ import (
 	"github.com/nhost/nhost/internal/lib/oapi"
 	"github.com/nhost/nhost/services/auth/go/controller"
 	"github.com/nhost/nhost/services/auth/go/controller/mock"
+	"github.com/nhost/nhost/services/auth/go/sql"
 	"go.uber.org/mock/gomock"
 )
 
@@ -310,7 +312,7 @@ func signTestToken(
 	return token
 }
 
-func TestMiddlewareFunc(t *testing.T) {
+func TestMiddlewareFunc(t *testing.T) { //nolint:maintidx
 	t.Parallel()
 
 	userID := uuid.MustParse("f90782de-f0a3-41fe-b778-01e4f80c2413")
@@ -386,6 +388,7 @@ func TestMiddlewareFunc(t *testing.T) {
 			db: func(ctrl *gomock.Controller) *mock.MockDBClient {
 				mock := mock.NewMockDBClient(ctrl)
 				mock.EXPECT().CountSecurityKeysUser(gomock.Any(), userID).Return(int64(0), nil)
+				mock.EXPECT().GetUser(gomock.Any(), userID).Return(sql.AuthUser{}, nil)
 
 				return mock
 			},
@@ -459,6 +462,7 @@ func TestMiddlewareFunc(t *testing.T) {
 			db: func(ctrl *gomock.Controller) *mock.MockDBClient {
 				mock := mock.NewMockDBClient(ctrl)
 				mock.EXPECT().CountSecurityKeysUser(gomock.Any(), userID).Return(int64(0), nil)
+				mock.EXPECT().GetUser(gomock.Any(), userID).Return(sql.AuthUser{}, nil)
 
 				return mock
 			},
@@ -474,6 +478,7 @@ func TestMiddlewareFunc(t *testing.T) {
 			db: func(ctrl *gomock.Controller) *mock.MockDBClient {
 				mock := mock.NewMockDBClient(ctrl)
 				mock.EXPECT().CountSecurityKeysUser(gomock.Any(), userID).Return(int64(0), nil)
+				mock.EXPECT().GetUser(gomock.Any(), userID).Return(sql.AuthUser{}, nil)
 
 				return mock
 			},
@@ -481,6 +486,68 @@ func TestMiddlewareFunc(t *testing.T) {
 			scheme:     "BearerAuthElevated",
 			requestURL: &url.URL{Path: "/user/webauthn/verify"},
 			expectErr:  nil,
+		},
+
+		{
+			name:         "BearerAuthElevated: elevated recommended, no security keys, totp active, claim not present",
+			elevatedMode: "recommended",
+			db: func(ctrl *gomock.Controller) *mock.MockDBClient {
+				mock := mock.NewMockDBClient(ctrl)
+				mock.EXPECT().CountSecurityKeysUser(gomock.Any(), userID).Return(int64(0), nil)
+				mock.EXPECT().GetUser(gomock.Any(), userID).Return(
+					sql.AuthUser{ActiveMfaType: sql.Text("totp")}, nil,
+				)
+
+				return mock
+			},
+			token:      nonElevatedToken,
+			scheme:     "BearerAuthElevated",
+			requestURL: nil,
+			expectErr: &oapi.AuthenticatorError{
+				Scheme:  "BearerAuthElevated",
+				Code:    "unauthorized",
+				Message: "elevated claim required",
+			},
+		},
+
+		{
+			name:         "BearerAuthElevated: elevated recommended, no security keys, totp active, claim present",
+			elevatedMode: "recommended",
+			db: func(ctrl *gomock.Controller) *mock.MockDBClient {
+				mock := mock.NewMockDBClient(ctrl)
+				mock.EXPECT().CountSecurityKeysUser(gomock.Any(), userID).Return(int64(0), nil)
+				mock.EXPECT().GetUser(gomock.Any(), userID).Return(
+					sql.AuthUser{ActiveMfaType: sql.Text("totp")}, nil,
+				)
+
+				return mock
+			},
+			token:      elevatedToken,
+			scheme:     "BearerAuthElevated",
+			requestURL: nil,
+			expectErr:  nil,
+		},
+
+		{
+			name:         "BearerAuthElevated: elevated recommended, no security keys, get user fails",
+			elevatedMode: "recommended",
+			db: func(ctrl *gomock.Controller) *mock.MockDBClient {
+				mock := mock.NewMockDBClient(ctrl)
+				mock.EXPECT().CountSecurityKeysUser(gomock.Any(), userID).Return(int64(0), nil)
+				mock.EXPECT().GetUser(gomock.Any(), userID).Return(
+					sql.AuthUser{}, errors.New("database error"), //nolint:err113
+				)
+
+				return mock
+			},
+			token:      nonElevatedToken,
+			scheme:     "BearerAuthElevated",
+			requestURL: nil,
+			expectErr: &oapi.AuthenticatorError{
+				Scheme:  "BearerAuthElevated",
+				Code:    "unauthorized",
+				Message: "error verifying elevated claim",
+			},
 		},
 	}
 
