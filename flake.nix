@@ -69,6 +69,14 @@
             ;
         };
 
+        configdocsf = import ./tools/configdocs/project.nix {
+          inherit
+            self
+            pkgs
+            nixops-lib
+            ;
+        };
+
         constellationf = import ./services/constellation/project.nix {
           inherit
             self
@@ -217,6 +225,7 @@
           auth = authf.check;
           cli = clif.check;
           codegen = codegenf.check;
+          configdocs = configdocsf.check;
           constellation = constellationf.check;
           ghactivity = ghactivityf.check;
           govulncheck-wrapper = govulncheck-wrapperf.check;

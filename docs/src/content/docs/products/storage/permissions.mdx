@@ -8,7 +8,6 @@ head:
 ---
 import { Tabs, TabItem } from '@astrojs/starlight/components';
 
-
 File permissions control who can upload, download, replace, and delete files. They are managed per role in the dashboard.
 
 Permissions follow a **Zero Trust** model -- by default no role has access. Access must be explicitly granted.
@@ -109,7 +108,7 @@ For multi-tenant applications where files belong to an organization. This uses a
 
 This example assumes you have a relationship from `storage.files` to your `organizations` table through a custom `org_id` column in your file metadata or through a linking table.
 
-A simpler approach uses the file's custom `metadata` JSONB column to store the organization ID, and a database view or relationship to evaluate it.
+A simpler approach uses the file's custom `metadata` JSONB column to store the organization ID, and a [computed field](/products/graphql/computed-fields) or relationship to evaluate it.
 
 Alternatively, you can create a dedicated `organization_files` table that references `storage.files`:
 
@@ -210,4 +209,3 @@ Each dashboard action maps to a permission on the `storage.files` table:
 | **Download** | `select` | **All** columns must be granted |
 | **Replace** | `update` | `bucket_id`, `etag`, `is_uploaded`, `metadata`, `mime_type`, `name`, `size` |
 | **Delete** | `delete` | -- |
-

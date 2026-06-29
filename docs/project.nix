@@ -48,6 +48,13 @@ let
       ../build/configs/tsconfig/library.json
       ../build/configs/tsconfig/base.json
       # Go sources for gen.sh's configuration reference generator (tools/configdocs).
+      # Copying vendor/modules.txt auto-activates Go's vendor mode, so the build
+      # resolves solely from vendor/ with no network fallback. The vendored module
+      # trees below MUST stay equal to configdocs's dependency closure --
+      # `go list -deps ./tools/configdocs` mapped to modules (currently
+      # cuelang.org/go + github.com/cockroachdb/apd/v3). If configdocs gains a
+      # direct import or a dep bump pulls in a new module, add it here or the docs
+      # build fails with `cannot find package ... in vendor`.
       ../go.mod
       ../go.sum
       ../tools/configdocs

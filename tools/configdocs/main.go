@@ -19,6 +19,11 @@ import (
 	"cuelang.org/go/cue/token"
 )
 
+var (
+	errConfigNotFound  = errors.New("#Config definition not found")
+	errConfigNotStruct = errors.New("#Config is not a struct literal")
+)
+
 func main() {
 	schemaPath := flag.String("schema", "", "path to the mimir schema.cue file")
 	outPath := flag.String("out", "", "path to the .mdx file to write")
@@ -42,12 +47,12 @@ func main() {
 		os.Exit(1)
 	}
 
-	if err := os.MkdirAll(filepath.Dir(*outPath), 0o755); err != nil { //nolint:mnd // 0o755: standard directory permissions
+	if err := os.MkdirAll(filepath.Dir(*outPath), 0o755); err != nil {
 		fmt.Fprintf(os.Stderr, "mkdir: %v\n", err)
 		os.Exit(1)
 	}
 
-	if err := os.WriteFile(*outPath, []byte(out), 0o644); err != nil { //nolint:mnd // 0o644: standard read/write file permissions
+	if err := os.WriteFile(*outPath, []byte(out), 0o644); err != nil {
 		fmt.Fprintf(os.Stderr, "write: %v\n", err)
 		os.Exit(1)
 	}
@@ -69,17 +74,22 @@ type fieldInfo struct {
 	doc         string
 }
 
+func newGenerator() *generator {
+	return &generator{
+		defs:        map[string]*ast.Field{},
+		topLevel:    map[string]bool{},
+		sharedSeen:  map[string]bool{},
+		sharedQueue: nil,
+	}
+}
+
 func generate(filename string, src []byte) (string, error) {
 	file, err := parser.ParseFile(filename, src, parser.ParseComments)
 	if err != nil {
 		return "", fmt.Errorf("parse cue: %w", err)
 	}
 
-	g := &generator{
-		defs:       map[string]*ast.Field{},
-		topLevel:   map[string]bool{},
-		sharedSeen: map[string]bool{},
-	}
+	g := newGenerator()
 
 	for _, d := range file.Decls {
 		f, ok := d.(*ast.Field)
@@ -97,12 +107,12 @@ func generate(filename string, src []byte) (string, error) {
 
 	root, ok := g.defs["#Config"]
 	if !ok {
-		return "", errors.New("#Config definition not found")
+		return "", errConfigNotFound
 	}
 
 	rootStruct, ok := root.Value.(*ast.StructLit)
 	if !ok {
-		return "", errors.New("#Config is not a struct literal")
+		return "", errConfigNotStruct
 	}
 
 	topFields, _ := g.collectFields(rootStruct)
@@ -113,16 +123,7 @@ func generate(filename string, src []byte) (string, error) {
 	}
 
 	var body strings.Builder
-	body.WriteString("## Top-level structure\n\n")
-	body.WriteString("The root of `nhost.toml` is made up of the following sections.\n\n")
-	body.WriteString("| Section | Description |\n|---|---|\n")
-
-	for _, fi := range topFields {
-		fmt.Fprintf(&body, "| [`%s`](#%s) | %s |\n",
-			fi.name, slug(fi.name), cell(resolveDoc(fi.doc, fi.name, fi.name)))
-	}
-
-	body.WriteString("\n")
+	g.renderTopLevel(&body, topFields)
 
 	for _, fi := range topFields {
 		id, ok := fi.value.(*ast.Ident)
@@ -138,24 +139,46 @@ func generate(filename string, src []byte) (string, error) {
 		g.renderSection(&body, fi.name, id.Name, 2, fi.optional, doc)
 	}
 
-	if len(g.sharedQueue) > 0 {
-		body.WriteString("## Shared types\n\n")
-		body.WriteString("Types reused across multiple sections above.\n\n")
-
-		// Rendering a shared type can enqueue further referenced types, so the
-		// queue grows during iteration. Re-check len each step rather than ranging
-		// over a fixed bound, which would drop types enqueued while rendering.
-		i := 0
-		for i < len(g.sharedQueue) {
-			name := g.sharedQueue[i]
-			title := strings.TrimPrefix(name, "#")
-			g.renderSection(&body, title, name, 3, false, docOf(g.defs[name]))
-
-			i++
-		}
-	}
+	g.renderShared(&body)
 
 	return frontmatter + body.String(), nil
+}
+
+// renderTopLevel writes the overview table introducing every root section.
+func (g *generator) renderTopLevel(b *strings.Builder, topFields []fieldInfo) {
+	b.WriteString("## Top-level structure\n\n")
+	b.WriteString("The root of `nhost.toml` is made up of the following sections.\n\n")
+	b.WriteString("| Section | Description |\n|---|---|\n")
+
+	for _, fi := range topFields {
+		fmt.Fprintf(b, "| [`%s`](#%s) | %s |\n",
+			fi.name, slug(fi.name), cell(resolveDoc(fi.doc, fi.name, fi.name)))
+	}
+
+	b.WriteString("\n")
+}
+
+// renderShared appends the "Shared types" appendix: definitions referenced from
+// more than one section, rendered once at the end.
+func (g *generator) renderShared(b *strings.Builder) {
+	if len(g.sharedQueue) == 0 {
+		return
+	}
+
+	b.WriteString("## Shared types\n\n")
+	b.WriteString("Types reused across multiple sections above.\n\n")
+
+	// Rendering a shared type can enqueue further referenced types, so the queue
+	// grows during iteration. Re-check len each step rather than ranging over a
+	// fixed bound, which would drop types enqueued while rendering.
+	i := 0
+	for i < len(g.sharedQueue) {
+		name := g.sharedQueue[i]
+		title := strings.TrimPrefix(name, "#")
+		g.renderSection(b, title, name, 3, false, docOf(g.defs[name]))
+
+		i++
+	}
 }
 
 const frontmatter = `---
@@ -199,7 +222,13 @@ examples, see the per-product documentation; this page is the exhaustive field r
 `
 
 // renderSection renders a single named definition under the given title.
-func (g *generator) renderSection(b *strings.Builder, title, defName string, level int, optional bool, doc string) {
+func (g *generator) renderSection(
+	b *strings.Builder,
+	title, defName string,
+	level int,
+	optional bool,
+	doc string,
+) {
 	f, ok := g.defs[defName]
 	if !ok {
 		return
@@ -590,7 +619,9 @@ func humanizeName(s string) string {
 	return strings.ToUpper(s[:1]) + s[1:]
 }
 
-var hasuraDocRe = regexp.MustCompile(`(?i)\s*(see|reference:?)?\s*https?://[^\s)]*hasura\.io[^\s)]*`)
+var hasuraDocRe = regexp.MustCompile(
+	`(?i)\s*(see|reference:?)?\s*https?://[^\s)]*hasura\.io[^\s)]*`,
+)
 
 // sanitizeHasura removes links into Hasura's documentation; the engine config
 // names themselves are retained, but we point readers at Nhost docs instead.

@@ -32,7 +32,7 @@ Add an `[experimental.constellation]` block to your project's `nhost.toml`, eith
 [experimental.constellation]
 # Pick the latest tag from the CHANGELOG. We recommend always running the latest.
 # https://github.com/nhost/nhost/blob/main/services/constellation/CHANGELOG.md
-version = "0.2.1"
+version = "0.7.0"
 
 [experimental.constellation.settings]
 # CORS allowed origins. If unset, origins are derived from
@@ -91,14 +91,18 @@ Because both engines run against the same database and metadata, you can confirm
 1. **Dump each role's schema from both endpoints**
 
    ```bash
-   nhost schema dump --role user --subdomain <subdomain> \
+   nhost schema dump --role user --admin-secret <admin-secret> \
      -u "https://<subdomain>.hasura.<region>.nhost.run/v1/graphql" \
      -o schema.existing.user.graphqls
 
-   nhost schema dump --role user --subdomain <subdomain> \
+   nhost schema dump --role user --admin-secret <admin-secret> \
      -u "https://<subdomain>.graphql.<region>.nhost.run/v1/graphql" \
      -o schema.constellation.user.graphqls
    ```
+
+   The `--admin-secret` is required: without it the request is unauthenticated,
+   so the engine ignores the `X-Hasura-Role` header and resolves both dumps as
+   the `public` role, making the per-role diff meaningless.
 
 2. **Diff them**
 
@@ -111,7 +115,7 @@ Because both engines run against the same database and metadata, you can confirm
 </Steps>
 
 :::tip
-If you've linked a project with `nhost link`, you can drop `-u`/`--admin-secret` and just pass `--role`.
+A linked project (`nhost link`) auto-resolves to the Constellation endpoint and fetches the admin secret for you, so for the Constellation dump you can drop `-u`/`--admin-secret` and just pass `--role`. Dumping the existing engine still needs the explicit `-u`/`--admin-secret` shown above.
 :::
 
 Any non-empty diff should map to a documented, intentional divergence. The full list lives in **[known differences](https://github.com/nhost/nhost/blob/main/services/constellation/KNOWN_DIFFERENCES.md)**. For example, Constellation rejects empty update mutations that the existing engine silently no-ops, and it discovers aggregate support from Postgres rather than hardcoding it. If you find a divergence that isn't documented there, please [open an issue](https://github.com/nhost/nhost/issues/new).
