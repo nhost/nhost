@@ -173,8 +173,8 @@ export const FRAME_STYLES = `
 }
 /* Clear is the pill's right cap. */
 .nhost-ss-clear {
-  padding-left: 23px;
-  padding-right: 23px;
+  padding-left: 20px;
+  padding-right: 20px;
   border-radius: 0 999px 999px 0;
   /* Above the left group so it stays hidden behind the pill while sliding. */
   z-index: 1;
@@ -226,24 +226,81 @@ export const FRAME_STYLES = `
   transform: translate(-50%, -50%) rotate(-45deg);
 }
 
-/* Color picker popover: a solid dark card of round swatches matching the
- * save modal's surface, so it reads dark over light pages too. */
+/* Shared popover (opened from the color swatch): a solid dark card matching the
+ * save modal's surface, with the color row on top and the settings sliders
+ * below, so it reads dark over light pages too. */
 .nhost-ss-color-pop {
   position: fixed;
-  display: none;
-  align-items: center;
-  flex-wrap: wrap;
-  gap: 8px;
+  display: flex;
+  flex-direction: column;
+  gap: 11px;
+  width: fit-content;
   max-width: 320px;
-  padding: 10px 12px;
+  padding: 12px 14px;
   background: #14171e;
   border: 1px solid rgba(255, 255, 255, 0.12);
   border-radius: 14px;
   box-shadow: 0 12px 32px rgba(0, 0, 0, 0.5);
   z-index: 2147483602;
-  animation: nhost-ss-pop-in 0.16s cubic-bezier(0.22, 1, 0.36, 1);
+  /* Fade + slight rise on open and close. Kept off display:none so the close
+   * direction can transition too; visibility is delayed until the fade ends. */
+  opacity: 0;
+  visibility: hidden;
+  pointer-events: none;
+  transform: translateY(-6px) scale(0.98);
+  transform-origin: top left;
+  transition: opacity 0.12s ease-in-out, transform 0.12s ease-in-out,
+    visibility 0s linear 0.12s;
 }
-.nhost-ss-color-pop.is-open { display: flex; }
+.nhost-ss-color-pop.is-open {
+  opacity: 1;
+  visibility: visible;
+  pointer-events: auto;
+  transform: translateY(0) scale(1);
+  transition: opacity 0.12s ease-in-out, transform 0.12s ease-in-out;
+}
+/* Header: drag handle on the left (title) and a close button on the right. */
+.nhost-ss-pop-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 14px;
+  margin-bottom: 1px;
+  cursor: grab;
+  user-select: none;
+}
+.nhost-ss-pop-head.is-dragging { cursor: grabbing; }
+.nhost-ss-pop-title {
+  font-size: 12px;
+  font-weight: 600;
+  color: #a1a1aa;
+}
+.nhost-ss-pop-close {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 20px;
+  height: 20px;
+  padding: 0;
+  border: 0;
+  border-radius: 6px;
+  background: transparent;
+  color: #a1a1aa;
+  cursor: pointer;
+  transition: background 0.12s ease, color 0.12s ease;
+}
+.nhost-ss-pop-close:hover { background: rgba(255, 255, 255, 0.12); color: #fff; }
+.nhost-ss-pop-close:focus,
+.nhost-ss-pop-close:focus-visible { outline: none; }
+.nhost-ss-pop-close svg { width: 13px; height: 13px; }
+/* Row of round color swatches below the header. Spread evenly across the full
+ * popover width so the six circles are uniformly distributed. */
+.nhost-ss-color-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+}
 .nhost-ss-swatch {
   width: 24px;
   height: 24px;
@@ -273,11 +330,40 @@ export const FRAME_STYLES = `
   background: #ff3b30;
   transform: translate(-50%, -50%) rotate(-45deg);
 }
+/* Empty history slot: a faint, non-interactive placeholder that keeps the row
+ * a constant width regardless of how many colors have been saved. */
+.nhost-ss-swatch--empty {
+  border-color: rgba(255, 255, 255, 0.25);
+  box-shadow: none;
+  background: transparent;
+  cursor: default;
+}
+.nhost-ss-swatch--empty:hover { transform: none; }
 .nhost-ss-swatch--custom {
   position: relative;
   overflow: hidden;
   background: conic-gradient(from 0deg, #ff4d4d, #ffd24d, #4dff88, #4dd2ff, #4d4dff, #ff4dff, #ff4d4d);
 }
+/* While picking, the custom swatch shows the previewed color (set inline) with
+ * a checkmark overlay, signalling that it now confirms the pick. */
+.nhost-ss-swatch-check {
+  display: flex;
+  position: absolute;
+  inset: 0;
+  align-items: center;
+  justify-content: center;
+  color: #fff;
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity 0.2s ease-in-out;
+  /* Crisp black outline (zero-blur offsets) so the white check stays visible
+   * over bright picks without a soft shadow bleeding onto the swatch. */
+  filter: drop-shadow(1.5px 0 0 #000) drop-shadow(-1.5px 0 0 #000)
+    drop-shadow(0 1.5px 0 #000) drop-shadow(0 -1.5px 0 #000);
+}
+.nhost-ss-swatch--custom.is-confirming { background-image: none; }
+.nhost-ss-swatch--custom.is-confirming .nhost-ss-swatch-check { opacity: 1; }
+.nhost-ss-swatch-check svg { width: 14px; height: 14px; }
 .nhost-ss-color-input {
   position: absolute;
   inset: 0;
@@ -289,24 +375,8 @@ export const FRAME_STYLES = `
   cursor: pointer;
 }
 
-/* Settings: a gear icon button plus a popover of labelled, stop-snapping
- * sliders. The popover reuses the dark card surface of the color popover. */
-.nhost-ss-settings-btn { padding: 6px 9px; }
-.nhost-ss-settings-pop {
-  position: fixed;
-  display: none;
-  flex-direction: column;
-  gap: 11px;
-  width: fit-content;
-  padding: 14px 16px;
-  background: #14171e;
-  border: 1px solid rgba(255, 255, 255, 0.12);
-  border-radius: 14px;
-  box-shadow: 0 12px 32px rgba(0, 0, 0, 0.5);
-  z-index: 2147483602;
-  animation: nhost-ss-pop-in 0.16s cubic-bezier(0.22, 1, 0.36, 1);
-}
-.nhost-ss-settings-pop.is-open { display: flex; }
+/* Settings: labelled, stop-snapping sliders rendered below the color row in the
+ * shared popover. */
 .nhost-ss-set-row {
   display: flex;
   align-items: center;
@@ -366,8 +436,8 @@ export const FRAME_STYLES = `
 .nhost-ss-slider {
   -webkit-appearance: none;
   appearance: none;
-  flex: 0 0 64px;
-  width: 64px;
+  flex: 0 0 56px;
+  width: 56px;
   height: 4px;
   margin: 0;
   border-radius: 3px;
@@ -464,46 +534,37 @@ export const FRAME_STYLES = `
 }
 .nhost-ss-modal-title { font-size: 15px; font-weight: 600; color: #fff; }
 
-.nhost-ss-preview-wrap { position: relative; overflow: hidden; border-radius: 12px; }
+.nhost-ss-preview-wrap {
+  position: relative;
+  overflow: hidden;
+  border-radius: 12px;
+  user-select: none;
+  -webkit-user-select: none;
+}
 .nhost-ss-preview {
   display: flex;
   align-items: center;
   justify-content: center;
-  min-height: 160px;
-  max-height: 300px;
+  height: 300px;
   border-radius: 12px;
   border: 1px solid rgba(255, 255, 255, 0.08);
   background: #0b0d12;
   overflow: hidden;
 }
-.nhost-ss-preview img { max-width: 100%; max-height: 300px; object-fit: contain; display: block; }
-.nhost-ss-preview-actions {
-  position: absolute;
-  top: 8px;
-  right: 8px;
-  display: flex;
-  gap: 6px;
+.nhost-ss-preview img {
+  max-width: 100%;
+  max-height: 100%;
+  object-fit: contain;
+  display: block;
+  user-select: none;
+  -webkit-user-select: none;
+  -webkit-user-drag: none;
 }
-.nhost-ss-expand {
-  padding: 6px;
-  border-radius: 9px;
-  color: #e6e8ec;
-  background: rgba(8, 10, 14, 0.6);
-  border: 1px solid rgba(255, 255, 255, 0.14);
-  backdrop-filter: blur(4px);
-  -webkit-backdrop-filter: blur(4px);
-}
-.nhost-ss-expand:hover { background: rgba(8, 10, 14, 0.85); }
-.nhost-ss-expand svg { width: 16px; height: 16px; }
-.nhost-ss-expand.is-active {
-  background: #fff;
-  border-color: #fff;
-  color: #14171e;
-}
-.nhost-ss-expand:disabled {
-  opacity: 0.4;
+.nhost-ss-preview.is-zoomable { cursor: zoom-in; }
+.nhost-ss-actbtn:disabled {
+  opacity: 0.35;
   cursor: default;
-  background: rgba(8, 10, 14, 0.6);
+  pointer-events: none;
 }
 
 /* ---- Crop overlay ---- */
@@ -512,64 +573,59 @@ export const FRAME_STYLES = `
   display: none;
   cursor: crosshair;
   touch-action: none;
+  user-select: none;
+  -webkit-user-select: none;
 }
 .nhost-ss-crop.is-active { display: block; }
 .nhost-ss-crop-rect {
   position: absolute;
   box-sizing: border-box;
   border: 1px solid rgba(255, 255, 255, 0.9);
+  border-radius: 4px;
   box-shadow: 0 0 0 9999px rgba(8, 10, 14, 0.55);
-  cursor: move;
+  cursor: grab;
 }
-.nhost-ss-crop-h {
-  position: absolute;
-  width: 10px;
-  height: 10px;
-  background: #fff;
-  border: 1px solid rgba(8, 10, 14, 0.6);
-  border-radius: 2px;
-}
-.nhost-ss-crop-h.is-nw { left: -5px; top: -5px; cursor: nwse-resize; }
-.nhost-ss-crop-h.is-n { left: calc(50% - 5px); top: -5px; cursor: ns-resize; }
-.nhost-ss-crop-h.is-ne { right: -5px; top: -5px; cursor: nesw-resize; }
-.nhost-ss-crop-h.is-e { right: -5px; top: calc(50% - 5px); cursor: ew-resize; }
-.nhost-ss-crop-h.is-se { right: -5px; bottom: -5px; cursor: nwse-resize; }
-.nhost-ss-crop-h.is-s { left: calc(50% - 5px); bottom: -5px; cursor: ns-resize; }
-.nhost-ss-crop-h.is-sw { left: -5px; bottom: -5px; cursor: nesw-resize; }
-.nhost-ss-crop-h.is-w { left: -5px; top: calc(50% - 5px); cursor: ew-resize; }
+/* Transparent resize zones — pull the corners or sides, no visible dots. */
+.nhost-ss-crop-h { position: absolute; }
+.nhost-ss-crop-h.is-nw { left: -9px; top: -9px; width: 18px; height: 18px; cursor: nwse-resize; }
+.nhost-ss-crop-h.is-ne { right: -9px; top: -9px; width: 18px; height: 18px; cursor: nesw-resize; }
+.nhost-ss-crop-h.is-se { right: -9px; bottom: -9px; width: 18px; height: 18px; cursor: nwse-resize; }
+.nhost-ss-crop-h.is-sw { left: -9px; bottom: -9px; width: 18px; height: 18px; cursor: nesw-resize; }
+.nhost-ss-crop-h.is-n { left: 9px; right: 9px; top: -5px; height: 10px; cursor: ns-resize; }
+.nhost-ss-crop-h.is-s { left: 9px; right: 9px; bottom: -5px; height: 10px; cursor: ns-resize; }
+.nhost-ss-crop-h.is-w { top: 9px; bottom: 9px; left: -5px; width: 10px; cursor: ew-resize; }
+.nhost-ss-crop-h.is-e { top: 9px; bottom: 9px; right: -5px; width: 10px; cursor: ew-resize; }
+
+/* Persistent row below the preview: Reset crop on the left; Crop on the right,
+ * swapping to Cancel/Apply while cropping. Always mounted so the modal height
+ * stays put when entering crop mode. */
 .nhost-ss-crop-bar {
-  position: absolute;
-  bottom: 8px;
-  left: 50%;
-  transform: translateX(-50%);
-  display: flex;
-  gap: 8px;
-  padding: 4px;
-  border-radius: 11px;
-  background: rgba(8, 10, 14, 0.7);
-  border: 1px solid rgba(255, 255, 255, 0.14);
-  backdrop-filter: blur(4px);
-  -webkit-backdrop-filter: blur(4px);
-}
-.nhost-ss-crop-act {
-  appearance: none;
   display: flex;
   align-items: center;
-  justify-content: center;
-  width: 30px;
-  height: 30px;
-  padding: 0;
-  border-radius: 8px;
-  cursor: pointer;
-  color: #e6e8ec;
-  background: rgba(255, 255, 255, 0.08);
-  border: 1px solid rgba(255, 255, 255, 0.12);
-  transition: background 0.15s ease;
+  gap: 8px;
+  min-height: 36px;
 }
-.nhost-ss-crop-act:hover { background: rgba(255, 255, 255, 0.18); }
-.nhost-ss-crop-act:focus,
-.nhost-ss-crop-act:focus-visible { outline: none; }
-.nhost-ss-crop-act svg { width: 16px; height: 16px; }
+.nhost-ss-crop-left { flex: 1; min-width: 0; display: flex; }
+.nhost-ss-crop-right { display: flex; gap: 8px; }
+.nhost-ss-crop-bar .nhost-ss-btn {
+  padding: 8px 16px;
+  border-radius: 10px;
+}
+.nhost-ss-crop-bar .nhost-ss-btn:not(.is-primary) {
+  background: rgba(255, 255, 255, 0.06);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  color: #e6e8ec;
+}
+.nhost-ss-crop-bar .nhost-ss-btn:not(.is-primary):hover {
+  background: rgba(255, 255, 255, 0.14);
+  color: #fff;
+}
+.nhost-ss-crop-cancel,
+.nhost-ss-crop-apply { display: none; }
+.nhost-ss-crop-bar.is-cropping .nhost-ss-crop-toggle { display: none; }
+.nhost-ss-crop-bar.is-cropping .nhost-ss-crop-cancel,
+.nhost-ss-crop-bar.is-cropping .nhost-ss-crop-apply { display: flex; }
+.nhost-ss-crop-bar.is-cropping .nhost-ss-crop-reset { display: none; }
 
 /* Full-screen preview overlay: sits above the modal, click anywhere to close. */
 .nhost-ss-fs {

@@ -42,7 +42,7 @@ function saveOutlineColor(color: string): void {
 // in the color popover. Persisted and validated as hex on read like the current
 // color, since the page shares this storage.
 const RECENT_COLORS_KEY = 'nhost-ss:recent-colors';
-const MAX_RECENT_COLORS = 3;
+const MAX_RECENT_COLORS = 4;
 // Transparent (no outline) is a permanent first swatch, never part of history.
 // Stored as 8-digit hex so it passes HEX_COLOR validation on persist/read.
 const TRANSPARENT_COLOR = '#00000000';
@@ -330,8 +330,6 @@ const ICONS = {
     '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>',
   copy: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="9" y="9" width="13" height="13" rx="2"/><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/></svg>',
   undo: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 14 4 9l5-5"/><path d="M4 9h10.5a5.5 5.5 0 0 1 5.5 5.5 5.5 5.5 0 0 1-5.5 5.5H11"/></svg>',
-  settings:
-    '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 1 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 1 1-2.83-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 1 1 2.83-2.83l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 1 1 2.83 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z"/></svg>',
   expand:
     '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="15 3 21 3 21 9"/><polyline points="9 21 3 21 3 15"/><line x1="21" y1="3" x2="14" y2="10"/><line x1="3" y1="21" x2="10" y2="14"/></svg>',
   crop: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M6 2v14a2 2 0 0 0 2 2h14"/><path d="M18 22V8a2 2 0 0 0-2-2H2"/></svg>',
@@ -473,34 +471,91 @@ export function createToolbar(): Toolbar {
   const outlineBtn = document.createElement('button');
   outlineBtn.type = 'button';
   outlineBtn.className = 'nhost-ss-btn nhost-ss-outline-btn';
-  outlineBtn.title = 'Outline color';
+  outlineBtn.title = 'Color & settings';
   outlineBtn.appendChild(outlineSwatch);
 
+  // A single floating, draggable popover opened from the color swatch: a header
+  // (drag handle + close) on top, then the color row, then the settings.
   const colorPop = document.createElement('div');
   colorPop.className = 'nhost-ss-color-pop';
+  const colorPopHead = document.createElement('div');
+  colorPopHead.className = 'nhost-ss-pop-head';
+  const colorPopTitle = document.createElement('span');
+  colorPopTitle.className = 'nhost-ss-pop-title';
+  colorPopTitle.textContent = 'Color & settings';
+  const colorPopClose = iconBtn(ICONS.close, 'nhost-ss-pop-close', 'Close');
+  colorPopHead.append(colorPopTitle, colorPopClose);
+  const colorRow = document.createElement('div');
+  colorRow.className = 'nhost-ss-color-row';
+  colorPop.append(colorPopHead, colorRow);
 
   let colorPopOpen = false;
-  // Assigned when the settings popover is built below; lets the two popovers be
-  // mutually exclusive (opening one closes the other).
-  let closeSettingsPop: () => void = () => {};
   // Assigned with the reset button below; keeps it disabled when every setting
-  // (color + history, padding, thickness, radius) is already at its default.
+  // (color, padding, thickness, radius, dim) is already at its default.
   let syncReset: () => void = () => {};
+  // Assigned below; reverts the custom swatch out of its "confirm" state.
+  let resetCustomPick: () => void = () => {};
   const closeColorPop = () => {
     colorPopOpen = false;
     colorPop.classList.remove('is-open');
+    resetCustomPick();
   };
   const openColorPop = () => {
-    closeSettingsPop();
+    // Always (re)open at the default spot under the button, even if it was
+    // dragged elsewhere while previously open.
     const r = outlineBtn.getBoundingClientRect();
     colorPop.style.left = `${r.left}px`;
-    colorPop.style.top = `${r.bottom + 8}px`;
-    // Render on open so a freshly-picked color only joins the row the next time
-    // the popover is opened (not while it's closing after the pick).
+    colorPop.style.top = `${r.bottom + 13}px`;
     renderColorPop();
     colorPopOpen = true;
     colorPop.classList.add('is-open');
   };
+
+  // Drag the popover by its header; the close button is exempt so clicking it
+  // dismisses rather than starting a drag.
+  {
+    let dragging = false;
+    let dx = 0;
+    let dy = 0;
+    colorPopHead.addEventListener('pointerdown', (e) => {
+      if (colorPopClose.contains(e.target as Node)) {
+        return;
+      }
+      dragging = true;
+      const r = colorPop.getBoundingClientRect();
+      dx = e.clientX - r.left;
+      dy = e.clientY - r.top;
+      colorPopHead.setPointerCapture(e.pointerId);
+      colorPopHead.classList.add('is-dragging');
+    });
+    colorPopHead.addEventListener('pointermove', (e) => {
+      if (!dragging) {
+        return;
+      }
+      const left = Math.min(
+        Math.max(0, e.clientX - dx),
+        Math.max(0, window.innerWidth - colorPop.offsetWidth),
+      );
+      // Never let it rise above the toolbar; keep it below the header.
+      const top = Math.min(
+        Math.max(TOOLBAR_HEIGHT, e.clientY - dy),
+        Math.max(TOOLBAR_HEIGHT, window.innerHeight - colorPop.offsetHeight),
+      );
+      colorPop.style.left = `${left}px`;
+      colorPop.style.top = `${top}px`;
+    });
+    const endDrag = (e: PointerEvent) => {
+      if (!dragging) {
+        return;
+      }
+      dragging = false;
+      colorPopHead.releasePointerCapture(e.pointerId);
+      colorPopHead.classList.remove('is-dragging');
+    };
+    colorPopHead.addEventListener('pointerup', endDrag);
+    colorPopHead.addEventListener('pointercancel', endDrag);
+  }
+  colorPopClose.addEventListener('click', closeColorPop);
 
   // Transparent is a permanent first swatch (rendered separately), so history
   // holds only real colors. Seed it with white when empty, and make sure the
@@ -530,8 +585,8 @@ export function createToolbar(): Toolbar {
   };
 
   // The custom picker (rainbow swatch) opens the browser's native color dialog.
-  // 'input' previews the color live while dragging; 'change' commits it so a
-  // whole drag adds a single recent entry rather than dozens.
+  // 'input' previews the color live; the pick is committed only when confirmed
+  // (the swatch's checkmark, or the native dialog's own commit on modal OSes).
   const colorInput = document.createElement('input');
   colorInput.type = 'color';
   colorInput.className = 'nhost-ss-color-input';
@@ -543,11 +598,52 @@ export function createToolbar(): Toolbar {
   customBtn.type = 'button';
   customBtn.className = 'nhost-ss-swatch nhost-ss-swatch--custom';
   customBtn.title = 'Custom color';
-  // The transparent input is overlaid full-size on the button (CSS inset:0), so
-  // a click lands on it directly and opens the native picker. Forwarding a
-  // second synthetic colorInput.click() from the button would double-activate
-  // and cancel the picker in Chrome, so the button has no click handler.
+  // The native color input is overlaid full-size on the button (CSS inset:0),
+  // so a click lands on it directly and opens the native picker.
   customBtn.appendChild(colorInput);
+  // Shown only while picking: the swatch morphs into a confirm (checkmark)
+  // button that locks the color in and adds it to the history.
+  const customCheck = document.createElement('span');
+  customCheck.className = 'nhost-ss-swatch-check';
+  customCheck.appendChild(svgEl(ICONS.check));
+  customBtn.appendChild(customCheck);
+
+  // While the native picker is open the swatch acts as a confirm button. A flag
+  // (not the bubbled input click) distinguishes the two: opening clicks target
+  // the overlaid input; once we disable its pointer events, confirm clicks land
+  // on the button itself.
+  let customPicking = false;
+  const beginCustomPick = (): void => {
+    if (customPicking) {
+      return;
+    }
+    customPicking = true;
+    customBtn.classList.add('is-confirming');
+    customBtn.title = 'Confirm color';
+    customBtn.style.background = colorInput.value;
+    colorInput.style.pointerEvents = 'none';
+  };
+  resetCustomPick = (): void => {
+    if (!customPicking) {
+      return;
+    }
+    customPicking = false;
+    customBtn.classList.remove('is-confirming');
+    customBtn.title = 'Custom color';
+    customBtn.style.background = '';
+    colorInput.style.pointerEvents = '';
+  };
+  const confirmCustomPick = (): void => {
+    if (!customPicking) {
+      return;
+    }
+    resetCustomPick();
+    // Best-effort dismissal of the native picker (the OS panel may linger on
+    // some platforms, but the color is committed regardless).
+    colorInput.blur();
+    commitColor(colorInput.value);
+    renderColorPop();
+  };
 
   function commitColor(color: string): void {
     const norm = color.toLowerCase();
@@ -562,13 +658,26 @@ export function createToolbar(): Toolbar {
     applyColor(norm, true);
     syncReset();
   }
+  // Reflect the current color onto the existing swatches without rebuilding the
+  // row. Rebuilding mid-click would detach the clicked element, and the
+  // toolbar's outside-click dismiss would then treat it as a click outside the
+  // popover and close it.
+  function setActiveSwatch(): void {
+    const current = opts.outlineColor.toLowerCase();
+    for (const el of colorRow.children) {
+      if (el instanceof HTMLElement && el.dataset.color !== undefined) {
+        el.classList.toggle('is-active', el.dataset.color === current);
+      }
+    }
+  }
   function renderColorPop(): void {
-    colorPop.replaceChildren();
+    colorRow.replaceChildren();
     const current = opts.outlineColor.toLowerCase();
     const makeSwatch = (color: string, transparent: boolean) => {
       const sw = document.createElement('button');
       sw.type = 'button';
       sw.className = 'nhost-ss-swatch';
+      sw.dataset.color = color;
       if (transparent) {
         sw.classList.add('nhost-ss-swatch--transparent');
         sw.title = 'No outline';
@@ -579,27 +688,48 @@ export function createToolbar(): Toolbar {
       if (current === color) {
         sw.classList.add('is-active');
       }
+      // Selecting applies immediately and leaves the popover open; it closes
+      // only via the header X, the toolbar color button, or Esc.
       sw.addEventListener('click', () => {
-        commitColor(color);
-        closeColorPop();
+        applyColor(color, true);
+        syncReset();
+        setActiveSwatch();
       });
       return sw;
     };
-    // Transparent always first, then the (white-seeded) color history.
-    colorPop.appendChild(makeSwatch(TRANSPARENT_COLOR, true));
-    for (const color of recentColors) {
-      colorPop.appendChild(makeSwatch(color, false));
+    // Fixed layout: transparent first, a constant number of history slots
+    // (empty ones shown as placeholders so the row never changes width), then
+    // the custom picker last.
+    colorRow.appendChild(makeSwatch(TRANSPARENT_COLOR, true));
+    for (let i = 0; i < MAX_RECENT_COLORS; i++) {
+      const color = recentColors[i];
+      if (color) {
+        colorRow.appendChild(makeSwatch(color, false));
+      } else {
+        const empty = document.createElement('span');
+        empty.className = 'nhost-ss-swatch nhost-ss-swatch--empty';
+        colorRow.appendChild(empty);
+      }
     }
-    colorPop.append(customBtn);
+    colorRow.append(customBtn);
   }
 
-  colorInput.addEventListener('input', () =>
-    applyColor(colorInput.value, false),
-  );
-  // Committing a custom color selects it and closes the popover.
-  colorInput.addEventListener('change', () => {
-    commitColor(colorInput.value);
-    closeColorPop();
+  colorInput.addEventListener('click', beginCustomPick);
+  colorInput.addEventListener('input', () => {
+    applyColor(colorInput.value, false);
+    // Preview the picked color on the swatch, behind the checkmark.
+    customBtn.style.background = colorInput.value;
+  });
+  // On modal platforms the popover can't be clicked while the native dialog is
+  // open, so the dialog's own commit ('change') confirms the pick too.
+  colorInput.addEventListener('change', confirmCustomPick);
+  // In confirm mode the input's pointer events are off, so this click lands on
+  // the button; opening clicks target the input and are ignored here.
+  customBtn.addEventListener('click', (e) => {
+    if (e.target === colorInput) {
+      return;
+    }
+    confirmCustomPick();
   });
 
   outlineBtn.addEventListener('click', () => {
@@ -619,14 +749,7 @@ export function createToolbar(): Toolbar {
     syncReset();
   };
 
-  // --- Settings popover (gear button, between padding and Select) ---
-  const settingsBtn = iconBtn(
-    ICONS.settings,
-    'nhost-ss-btn nhost-ss-settings-btn',
-    'Settings',
-  );
-  const settingsPop = document.createElement('div');
-  settingsPop.className = 'nhost-ss-settings-pop';
+  // --- Settings (sliders appended into the shared color popover below) ---
 
   // A labelled slider that snaps to a few discrete stops. Returns the row plus
   // a `sync` that reflects an externally-set value (e.g. padding toggled by its
@@ -835,14 +958,10 @@ export function createToolbar(): Toolbar {
     className: 'nhost-ss-set-reset',
     title: 'Restore all settings to their defaults',
   });
-  // Disabled only when every setting already matches its default: color
-  // (white, history just the white seed), padding (on at the default
-  // amount), thickness, and radius.
+  // Disabled when the current color is white and every slider is at its
+  // default. Reset leaves the saved color history untouched.
   syncReset = () => {
-    const colorDefault =
-      opts.outlineColor.toLowerCase() === WHITE_COLOR &&
-      recentColors.length === 1 &&
-      recentColors[0] === WHITE_COLOR;
+    const colorDefault = opts.outlineColor.toLowerCase() === WHITE_COLOR;
     const settingsDefault =
       opts.padding === PADDING_DEFAULT_ON &&
       opts.outlineWidth === DEFAULT_OPTIONS.outlineWidth &&
@@ -851,9 +970,7 @@ export function createToolbar(): Toolbar {
     resetBtn.disabled = colorDefault && settingsDefault;
   };
   resetBtn.addEventListener('click', () => {
-    // Color + history: white current, history reset to the white seed.
-    recentColors = [WHITE_COLOR];
-    saveRecentColors(recentColors);
+    // Current color back to white; the saved color history is preserved.
     applyColor(WHITE_COLOR, true);
     renderColorPop();
     // Padding.
@@ -881,40 +998,27 @@ export function createToolbar(): Toolbar {
   // Footer: "Hotkey setup" on the left, Reset all on the right (one row).
   const footerRow = document.createElement('div');
   footerRow.className = 'nhost-ss-set-row nhost-ss-set-footer';
-  const hotkeyBtn = makeBtn('Hotkey', {
+  const hotkeyBtn = makeBtn('Set hotkey', {
     className: 'nhost-ss-set-reset',
   });
-  hotkeyBtn.addEventListener('click', () => requestOpenShortcuts());
+  // The dev harness stubs chrome.runtime without an extension id, and
+  // chrome://extensions/shortcuts can't be opened there — disable the button so
+  // it doesn't look broken.
+  if (chrome.runtime.id) {
+    hotkeyBtn.addEventListener('click', () => requestOpenShortcuts());
+  } else {
+    hotkeyBtn.disabled = true;
+  }
   footerRow.append(hotkeyBtn, resetBtn);
 
-  settingsPop.append(
+  // Append the settings below the color row in the shared popover.
+  colorPop.append(
     padSlider.row,
     thicknessSlider.row,
     radiusSlider.row,
     dimSlider.row,
     footerRow,
   );
-
-  let settingsPopOpen = false;
-  closeSettingsPop = () => {
-    settingsPopOpen = false;
-    settingsPop.classList.remove('is-open');
-  };
-  const openSettingsPop = () => {
-    closeColorPop();
-    const r = settingsBtn.getBoundingClientRect();
-    settingsPop.style.left = `${r.left}px`;
-    settingsPop.style.top = `${r.bottom + 8}px`;
-    settingsPopOpen = true;
-    settingsPop.classList.add('is-open');
-  };
-  settingsBtn.addEventListener('click', () => {
-    if (settingsPopOpen) {
-      closeSettingsPop();
-    } else {
-      openSettingsPop();
-    }
-  });
 
   // --- Capture / close ---
   const captureBtn = iconBtn(
@@ -930,27 +1034,20 @@ export function createToolbar(): Toolbar {
 
   // Layout: the frame is a 3-column grid (1fr / auto / 1fr) so Select (the
   // center column) is always screen-centered regardless of the side widths. The
-  // left group (swatch, padding, settings, undo) and Select + Clear together
+  // left group (undo, swatch) and Select + Clear together
   // read as one pill. The left group collapses to zero width when not picking
   // and slides open when select mode is toggled on; Select never moves. The
   // close button is pinned to the right edge. There is no dim button — dimming
   // is automatic (see below).
   const leftGroup = document.createElement('div');
   leftGroup.className = 'nhost-ss-leftgroup';
-  leftGroup.append(undoBtn, outlineBtn, settingsBtn);
+  leftGroup.append(undoBtn, outlineBtn);
 
   const rightGroup = document.createElement('div');
   rightGroup.className = 'nhost-ss-rightgroup';
   rightGroup.append(clearBtn, captureBtn);
 
-  frame.append(
-    leftGroup,
-    selectBtn,
-    rightGroup,
-    closeBtn,
-    colorPop,
-    settingsPop,
-  );
+  frame.append(leftGroup, selectBtn, rightGroup, closeBtn, colorPop);
 
   // --- Save modal (built once, shown by appending the backdrop) ---
   const backdrop = document.createElement('div');
@@ -976,43 +1073,49 @@ export function createToolbar(): Toolbar {
   previewImg.alt = 'Screenshot preview';
   const spinner = document.createElement('div');
   spinner.className = 'nhost-ss-spinner';
-  const expandBtn = iconBtn(ICONS.expand, 'nhost-ss-expand', 'Full screen');
-  const cropBtn = iconBtn(ICONS.crop, 'nhost-ss-expand', 'Crop');
-  const resetCropBtn = iconBtn(ICONS.undo, 'nhost-ss-expand', 'Reset crop');
-  // Overlay action row in the preview's top-right corner: crop, reset crop,
-  // and full-screen expand sit together.
-  const previewActions = document.createElement('div');
-  previewActions.className = 'nhost-ss-preview-actions';
-  previewActions.append(cropBtn, resetCropBtn, expandBtn);
+  const cropBtn = makeBtn('Crop', { className: 'nhost-ss-crop-toggle' });
+  const resetCropBtn = makeBtn('Reset crop', {
+    className: 'nhost-ss-crop-reset',
+  });
 
   // Crop overlay: sits over the preview image while cropping. The selection
-  // rectangle paints a huge box-shadow to dim everything outside it; eight
-  // handles resize it and its interior drags to reposition. The floating bar
-  // commits or cancels the crop.
+  // rectangle paints a huge box-shadow to dim everything outside it; its
+  // interior drags to reposition (grab/grabbing) and eight transparent edge
+  // and corner zones resize it.
   const cropLayer = document.createElement('div');
   cropLayer.className = 'nhost-ss-crop';
   const cropRect = document.createElement('div');
   cropRect.className = 'nhost-ss-crop-rect';
   const cropHandles = ['nw', 'n', 'ne', 'e', 'se', 's', 'sw', 'w'].map(
     (pos) => {
-      const h = document.createElement('div');
-      h.className = `nhost-ss-crop-h is-${pos}`;
-      h.dataset.pos = pos;
-      return h;
+      const handle = document.createElement('div');
+      handle.className = `nhost-ss-crop-h is-${pos}`;
+      handle.dataset.pos = pos;
+      return handle;
     },
   );
   cropRect.append(...cropHandles);
+  cropLayer.append(cropRect);
+  previewWrap.append(preview, cropLayer);
+
+  // Persistent row below the preview. Reset crop sits on the left; the right
+  // side shows Crop normally and swaps to Cancel/Apply while cropping. Keeping
+  // the row mounted at all times stops the modal from jumping on crop entry.
   const cropBar = document.createElement('div');
   cropBar.className = 'nhost-ss-crop-bar';
-  const cropApplyBtn = iconBtn(ICONS.check, 'nhost-ss-crop-act', 'Apply crop');
-  const cropCancelBtn = iconBtn(
-    ICONS.close,
-    'nhost-ss-crop-act',
-    'Cancel crop',
-  );
-  cropBar.append(cropApplyBtn, cropCancelBtn);
-  cropLayer.append(cropRect, cropBar);
-  previewWrap.append(preview, previewActions, cropLayer);
+  const cropBarLeft = document.createElement('div');
+  cropBarLeft.className = 'nhost-ss-crop-left';
+  cropBarLeft.append(resetCropBtn);
+  const cropBarRight = document.createElement('div');
+  cropBarRight.className = 'nhost-ss-crop-right';
+  const cropCancelBtn = makeBtn('Cancel', {
+    className: 'nhost-ss-crop-cancel',
+  });
+  const cropApplyBtn = makeBtn('Apply', {
+    className: 'is-primary nhost-ss-crop-apply',
+  });
+  cropBarRight.append(cropCancelBtn, cropApplyBtn, cropBtn);
+  cropBar.append(cropBarLeft, cropBarRight);
 
   // Full-screen preview overlay (appended to the shadow on demand, above the
   // modal). Click anywhere or press Esc to dismiss.
@@ -1054,7 +1157,7 @@ export function createToolbar(): Toolbar {
   const status = document.createElement('div');
   status.className = 'nhost-ss-status';
 
-  modal.append(modalHead, controls, previewWrap, status);
+  modal.append(modalHead, controls, previewWrap, cropBar, status);
   backdrop.appendChild(modal);
 
   shadow.append(style, frame);
@@ -1130,7 +1233,6 @@ export function createToolbar(): Toolbar {
     exitCrop();
     cropBtn.disabled = true;
     updateResetCrop();
-    expandBtn.style.display = 'none';
     preview.replaceChildren(spinner);
     shadow.appendChild(backdrop);
     document.addEventListener('keydown', onModalKeydown, true);
@@ -1153,7 +1255,7 @@ export function createToolbar(): Toolbar {
         originalDataUrl = dataUrl;
         previewImg.src = dataUrl;
         preview.replaceChildren(previewImg);
-        expandBtn.style.display = '';
+        preview.classList.add('is-zoomable');
         cropBtn.disabled = false;
         updateResetCrop();
       } catch (error) {
@@ -1199,6 +1301,14 @@ export function createToolbar(): Toolbar {
 
   const clamp01 = (n: number) => Math.min(1, Math.max(0, n));
 
+  // While cropping, the only valid actions are Apply/Cancel, so the
+  // save/download/copy buttons are disabled.
+  const setActionsDisabled = (disabled: boolean) => {
+    saveAsBtn.disabled = disabled;
+    downloadBtn.disabled = disabled;
+    copyBtn.disabled = disabled;
+  };
+
   const updateResetCrop = () => {
     const cropped =
       capturedDataUrl !== null && capturedDataUrl !== originalDataUrl;
@@ -1234,11 +1344,11 @@ export function createToolbar(): Toolbar {
     cropping = false;
     cropSel = null;
     cropDrag = null;
+    cropLayer.style.cursor = '';
     cropLayer.classList.remove('is-active');
-    cropBtn.classList.remove('is-active');
-    if (capturedDataUrl) {
-      expandBtn.style.display = '';
-    }
+    cropBar.classList.remove('is-cropping');
+    preview.classList.toggle('is-zoomable', capturedDataUrl !== null);
+    setActionsDisabled(false);
   }
 
   const enterCrop = () => {
@@ -1246,10 +1356,14 @@ export function createToolbar(): Toolbar {
       return;
     }
     cropping = true;
-    cropBtn.classList.add('is-active');
+    // Swap the bottom row to Cancel/Apply and disable the save/download/copy
+    // actions so the only choices are Apply or Cancel.
+    preview.classList.remove('is-zoomable');
+    setActionsDisabled(true);
     cropLayer.classList.add('is-active');
-    expandBtn.style.display = 'none';
+    cropBar.classList.add('is-cropping');
     positionCropLayer();
+    // Start fully maximized — pull the edges or corners to shrink it.
     cropSel = { x: 0, y: 0, w: 1, h: 1 };
     renderCropSel();
   };
@@ -1262,6 +1376,19 @@ export function createToolbar(): Toolbar {
       fx: clamp01((event.clientX - cropImgRect.left) / cropImgRect.width),
       fy: clamp01((event.clientY - cropImgRect.top) / cropImgRect.height),
     };
+  };
+
+  const cursorForPos = (pos: string): string => {
+    if (pos === 'nw' || pos === 'se') {
+      return 'nwse-resize';
+    }
+    if (pos === 'ne' || pos === 'sw') {
+      return 'nesw-resize';
+    }
+    if (pos === 'n' || pos === 's') {
+      return 'ns-resize';
+    }
+    return 'ew-resize';
   };
 
   const resizeCropSel = (
@@ -1298,11 +1425,18 @@ export function createToolbar(): Toolbar {
     });
 
   const applyCrop = async () => {
-    if (!capturedDataUrl || !cropSel) {
+    if (!capturedDataUrl) {
       return;
     }
-    // Ignore degenerate selections — nothing meaningful to crop.
-    if (cropSel.w < 0.01 || cropSel.h < 0.01) {
+    // Nothing to crop when there's no selection, a degenerate one, or the
+    // selection still covers the whole image.
+    const full =
+      cropSel !== null &&
+      cropSel.x < 0.005 &&
+      cropSel.y < 0.005 &&
+      cropSel.w > 0.995 &&
+      cropSel.h > 0.995;
+    if (!cropSel || cropSel.w < 0.01 || cropSel.h < 0.01 || full) {
       exitCrop();
       return;
     }
@@ -1353,32 +1487,32 @@ export function createToolbar(): Toolbar {
   cropCancelBtn.addEventListener('click', exitCrop);
 
   cropLayer.addEventListener('pointerdown', (event) => {
-    if (!cropping || !cropSel) {
+    if (!cropping) {
       return;
     }
     const target = event.target as HTMLElement;
-    if (target.closest('.nhost-ss-crop-bar')) {
-      return;
-    }
     event.preventDefault();
     positionCropLayer();
     const { fx, fy } = fracFromEvent(event);
     cropLayer.setPointerCapture(event.pointerId);
-    if (target.classList.contains('nhost-ss-crop-h')) {
+    const pos = target.dataset.pos;
+    if (cropSel && pos) {
       cropDrag = {
         kind: 'resize',
-        pos: target.dataset.pos,
+        pos,
         startFx: fx,
         startFy: fy,
         startSel: { ...cropSel },
       };
-    } else if (target === cropRect) {
+      cropLayer.style.cursor = cursorForPos(pos);
+    } else if (cropSel && target === cropRect) {
       cropDrag = {
         kind: 'move',
         startFx: fx,
         startFy: fy,
         startSel: { ...cropSel },
       };
+      cropLayer.style.cursor = 'grabbing';
     } else {
       cropSel = { x: fx, y: fy, w: 0, h: 0 };
       cropDrag = {
@@ -1387,6 +1521,7 @@ export function createToolbar(): Toolbar {
         startFy: fy,
         startSel: { ...cropSel },
       };
+      cropLayer.style.cursor = 'crosshair';
       renderCropSel();
     }
   });
@@ -1412,7 +1547,7 @@ export function createToolbar(): Toolbar {
       };
       cropSel.x = Math.min(cropSel.x, 1 - s.w);
       cropSel.y = Math.min(cropSel.y, 1 - s.h);
-    } else if (cropDrag.pos) {
+    } else if (cropDrag.kind === 'resize' && cropDrag.pos) {
       cropSel = resizeCropSel(s, cropDrag.pos, fx, fy);
     }
     renderCropSel();
@@ -1421,6 +1556,7 @@ export function createToolbar(): Toolbar {
     if (cropDrag) {
       cropLayer.releasePointerCapture(event.pointerId);
       cropDrag = null;
+      cropLayer.style.cursor = '';
     }
   };
   cropLayer.addEventListener('pointerup', endCropDrag);
@@ -1479,22 +1615,18 @@ export function createToolbar(): Toolbar {
   undoBtn.addEventListener('click', () => overlay.undo());
   clearBtn.addEventListener('click', () => overlay.clearSelection());
 
-  // Dismiss the color popover when clicking elsewhere in the toolbar.
+  // Dismiss the color popover when clicking elsewhere in the toolbar. Undo and
+  // Clear are exempt so adjusting selections in select mode keeps it open.
   shadow.addEventListener('click', (event) => {
     const target = event.target as Node;
     if (
       colorPopOpen &&
       !colorPop.contains(target) &&
-      !outlineBtn.contains(target)
+      !outlineBtn.contains(target) &&
+      !clearBtn.contains(target) &&
+      !undoBtn.contains(target)
     ) {
       closeColorPop();
-    }
-    if (
-      settingsPopOpen &&
-      !settingsPop.contains(target) &&
-      !settingsBtn.contains(target)
-    ) {
-      closeSettingsPop();
     }
   });
 
@@ -1507,7 +1639,6 @@ export function createToolbar(): Toolbar {
   const handleOutsideClick = (event: MouseEvent) => {
     if (!host.contains(event.target as Node)) {
       closeColorPop();
-      closeSettingsPop();
     }
   };
 
@@ -1519,7 +1650,6 @@ export function createToolbar(): Toolbar {
       // so reopening the toolbar doesn't restore select mode.
       saveSelectMode(false);
       closeColorPop();
-      closeSettingsPop();
     }
   };
 
@@ -1538,7 +1668,13 @@ export function createToolbar(): Toolbar {
     }
     pressedOnBackdrop = false;
   });
-  expandBtn.addEventListener('click', openFs);
+  // Click anywhere on the preview opens the full-screen view. While cropping,
+  // the crop layer sits on top and swallows these clicks.
+  preview.addEventListener('click', () => {
+    if (!cropping) {
+      openFs();
+    }
+  });
   fsOverlay.addEventListener('click', closeFs);
   saveAsBtn.addEventListener('click', () => {
     if (!capturedDataUrl) {
@@ -1639,7 +1775,6 @@ export function createToolbar(): Toolbar {
     saveActive(false);
     closeModal();
     closeColorPop();
-    closeSettingsPop();
     document.removeEventListener('click', handleOutsideClick);
     document.removeEventListener('keydown', handleEscape, true);
     window.removeEventListener('popstate', handleNavigation);
