@@ -11,7 +11,6 @@ import (
 
 func postgres( //nolint:funlen
 	cfg *model.ConfigConfig,
-	subdomain string,
 	port uint,
 	dataFolder string,
 	volumeName string,
@@ -59,7 +58,7 @@ func postgres( //nolint:funlen
 			"-c", "hba_file=/etc/pg_hba_local.conf",
 		},
 		Environment: env,
-		ExtraHosts:  extraHosts(subdomain),
+		ExtraHosts:  extraHosts,
 		HealthCheck: &HealthCheck{
 			Test: []string{
 				"CMD-SHELL", "pg_isready -U postgres -d postgres -q",
