@@ -1,0 +1,33 @@
+description: >-
+  Permission arg validation: create/drop require table + role. Missing required
+  fields are rejected with validation-failed before any mutation runs.
+source: permission arg validation (ops_permissions.go, pgPermissionTarget.validate)
+
+steps:
+  - description: Track author
+    query: {type: pg_track_table, args: {source: default, table: {schema: public, name: author}}}
+    status: 200
+    response: {message: success}
+
+  - description: Create select permission missing role
+    query:
+      type: pg_create_select_permission
+      args:
+        source: default
+        table: {schema: public, name: author}
+        permission:
+          columns: ['id']
+          filter: {}
+    status: 400
+    response:
+      code: validation-failed
+
+  - description: Drop select permission missing role
+    query:
+      type: pg_drop_select_permission
+      args:
+        source: default
+        table: {schema: public, name: author}
+    status: 400
+    response:
+      code: validation-failed
