@@ -3,11 +3,17 @@
     nixops.url = "github:nhost/nhost";
     nixpkgs.follows = "nixops/nixpkgs";
     flake-utils.follows = "nixops/flake-utils";
-    nix-filter.follows = "nixops/nix-filter";
   };
 
-  outputs = { self, nixops, nixpkgs, flake-utils, nix-filter }:
-    flake-utils.lib.eachDefaultSystem (system:
+  outputs =
+    {
+      self,
+      nixops,
+      nixpkgs,
+      flake-utils,
+    }:
+    flake-utils.lib.eachDefaultSystem (
+      system:
       let
         pkgs = import nixpkgs {
           inherit system;
@@ -16,26 +22,29 @@
           ];
         };
 
-        nix-src = nix-filter.lib.filter {
-          root = ./.;
-          include = [
-            (nix-filter.lib.matchExt "nix")
+        fs = pkgs.lib.fileset;
+        nix-src = fs.toSource {
+          root = ../.;
+          fileset = fs.unions [
+            ../flake.lock
+            ../flake.nix
+            (fs.fileFilter (f: f.hasExt "nix") ./.)
           ];
         };
       in
       {
         checks = {
-          nixpkgs-fmt = pkgs.runCommand "check-nixpkgs-fmt"
-            {
-              nativeBuildInputs = with pkgs;
-                [
+          nixpkgs-fmt =
+            pkgs.runCommand "check-nixpkgs-fmt"
+              {
+                nativeBuildInputs = with pkgs; [
                   nixpkgs-fmt
                 ];
-            }
-            ''
-              mkdir $out
-              nixpkgs-fmt --check ${nix-src}
-            '';
+              }
+              ''
+                mkdir $out
+                nixpkgs-fmt --check ${nix-src}
+              '';
         };
 
         devShells = flake-utils.lib.flattenTree rec {
