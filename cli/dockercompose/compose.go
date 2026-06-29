@@ -886,12 +886,19 @@ func mountCACertificates(
 // /tmp/corepack-shims. Stub directories that dockerd otherwise
 // creates as root inside the bind-mounted project root are handled
 // separately in functions() by pre-creating the mountpoints.
+//
+// The `configserver` service is also excluded: it bind-mounts the
+// host Docker socket to discover sibling containers and serve their
+// logs. That socket is owned by root:docker, and the caller normally
+// reaches it via the `docker` supplementary group. Forcing
+// `user: <uid>:<gid>` runs the container with only that primary gid
+// and drops the caller's supplementary groups, so it would lose
+// access to the socket. It therefore keeps its default (root) user.
 // osLinux is runtime.GOOS on Linux hosts.
 const osLinux = "linux"
 
 var servicesRunAsHostUser = []string{ //nolint:gochecknoglobals
 	"console",
-	"configserver",
 	"constellation",
 }
 
