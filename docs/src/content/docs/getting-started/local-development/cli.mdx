@@ -29,7 +29,27 @@ The Nhost CLI is the recommended way to start building your application. It sets
 
 Choose your preferred installation method:
 
-<Tabs>
+<Tabs syncKey="pkg">
+<TabItem label="npm">
+```sh
+npm install -D @nhost/cli
+```
+</TabItem>
+<TabItem label="pnpm">
+```sh
+pnpm add -D @nhost/cli
+```
+</TabItem>
+<TabItem label="Yarn">
+```sh
+yarn add -D @nhost/cli
+```
+</TabItem>
+<TabItem label="Bun">
+```sh
+bun add -d @nhost/cli
+```
+</TabItem>
 <TabItem label="Homebrew">
 ```sh
 brew install nhost/tap/nhost
@@ -43,6 +63,31 @@ curl -sSL https://raw.githubusercontent.com/nhost/nhost/main/cli/get.sh | bash
 <TabItem label="Nix">
 ```sh
 nix profile install github:nhost/nhost#cli
+```
+</TabItem>
+</Tabs>
+
+You can also run the CLI without installing it:
+
+<Tabs syncKey="pkg">
+<TabItem label="npm">
+```sh
+npx @nhost/cli@latest --version
+```
+</TabItem>
+<TabItem label="pnpm">
+```sh
+pnpm dlx @nhost/cli@latest --version
+```
+</TabItem>
+<TabItem label="Yarn">
+```sh
+yarn dlx @nhost/cli@latest --version
+```
+</TabItem>
+<TabItem label="Bun">
+```sh
+bunx @nhost/cli@latest --version
 ```
 </TabItem>
 </Tabs>
@@ -80,6 +125,7 @@ This scaffolds your project — a `nhost/` directory holding your backend config
 ```
 
 If you already have a project on Nhost Cloud and want to pull down its configuration:
+
 ```sh
 nhost init --remote
 ```

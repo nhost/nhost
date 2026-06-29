@@ -94,6 +94,9 @@ importers:
       '@expressive-code/plugin-line-numbers':
         specifier: ^0.41.7
         version: 0.41.7
+      '@lucide/astro':
+        specifier: ^1.21.0
+        version: 1.21.0(astro@6.4.7(@types/node@24.12.2)(@vercel/functions@3.4.3)(rollup@4.62.0)(tsx@4.21.0)(yaml@2.8.3))
       '@readme/openapi-parser':
         specifier: ^6.0.1
         version: 6.0.1(openapi-types@12.1.3)
@@ -588,6 +591,11 @@ packages:
 
   '@jridgewell/sourcemap-codec@1.5.5':
     resolution: {integrity: sha512-cYQ9310grqxueWbl+WuIUIaiUaDcj7WOq5fVhEljNVgRfOUhY9fy2zTvfoqWsnebh8Sl70VScFbICvJnLKB0Og==}
+
+  '@lucide/astro@1.21.0':
+    resolution: {integrity: sha512-RSz8xUah+eApcVKuQJXuLzcaYwK++tTLHa34peSln3h8n/RblaohSmsHdOj1JUQT/KutfbXw19u2x5g0zMTT0w==}
+    peerDependencies:
+      astro: ^4 || ^5 || ^6
 
   '@mapbox/node-pre-gyp@2.0.3':
     resolution: {integrity: sha512-uwPAhccfFJlsfCxMYTwOdVfOz3xqyj8xYL3zJj8f0pb30tLohnnFPhLuqp4/qoEz8sNxe4SESZedcBojRefIzg==}
@@ -2934,6 +2942,10 @@ snapshots:
       minipass: 7.1.3
 
   '@jridgewell/sourcemap-codec@1.5.5': {}
+
+  '@lucide/astro@1.21.0(astro@6.4.7(@types/node@24.12.2)(@vercel/functions@3.4.3)(rollup@4.62.0)(tsx@4.21.0)(yaml@2.8.3))':
+    dependencies:
+      astro: 6.4.7(@types/node@24.12.2)(@vercel/functions@3.4.3)(rollup@4.62.0)(tsx@4.21.0)(yaml@2.8.3)
 
   '@mapbox/node-pre-gyp@2.0.3':
     dependencies:

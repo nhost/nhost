@@ -305,6 +305,7 @@ export default defineConfig({
                         { slug: 'products/graphql/permissions/examples' },
                       ],
                     },
+                    { slug: 'products/graphql/computed-fields' },
                     { slug: 'products/graphql/remote-schemas' },
                     { slug: 'products/graphql/advanced-features' },
                   ],
@@ -318,6 +319,9 @@ export default defineConfig({
                     { slug: 'products/graphql/guides/react-urql' },
                     { slug: 'products/graphql/guides/codegen-nhost' },
                     { slug: 'products/graphql/guides/stripe' },
+                    {
+                      slug: 'products/graphql/guides/session-aware-computed-fields',
+                    },
                   ],
                 },
               ],
