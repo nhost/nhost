@@ -81,7 +81,7 @@ func auth( //nolint:funlen
 		EntryPoint:  nil,
 		Command:     nil,
 		Environment: env,
-		ExtraHosts:  extraHosts(subdomain),
+		ExtraHosts:  extraHosts,
 		HealthCheck: &HealthCheck{
 			Test:        []string{"CMD", "wget", "--spider", "-S", "http://localhost:4000/healthz"},
 			Timeout:     "60s",
