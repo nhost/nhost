@@ -77,7 +77,7 @@ const docsIntro = "The `%s` CLI is the primary tool for developing, " +
 	"manage configuration and infrastructure as code, link and deploy projects to " +
 	"Nhost Cloud, and provide AI assistants with access to your project through the " +
 	"built-in MCP server.\n\n" +
-	"New here? Head over to [Quickstart](/getting-started/quickstart/cli) for CLI installation."
+	"New here? Head over to [Quickstart](/getting-started/local-development/cli) for CLI installation."
 
 func markdownDocs() *cli.Command {
 	return &cli.Command{ //nolint:exhaustruct

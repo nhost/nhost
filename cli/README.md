@@ -75,7 +75,7 @@ curl -sSL https://raw.githubusercontent.com/nhost/nhost/main/cli/get.sh | bash -
 
 ## Get Started
 
-> The steps below are a quick reference. For a guided walkthrough, see the [CLI Quickstart](https://docs.nhost.io/getting-started/quickstart/cli).
+> The steps below are a quick reference. For a guided walkthrough, see the [CLI Quickstart](https://docs.nhost.io/getting-started/local-development/cli).
 
 ### Authenticate
 
@@ -107,7 +107,7 @@ Spins up the full stack (Postgres, GraphQL, Auth, Storage, Functions) with Docke
 nhost up
 ```
 
-The local dashboard runs at https://local.dashboard.local.nhost.run. Stop the stack with `nhost down` and follow logs with `nhost logs`.
+The local dashboard runs at <https://local.dashboard.local.nhost.run>. Stop the stack with `nhost down` and follow logs with `nhost logs`.
 
 ## MCP Server
 
@@ -117,7 +117,7 @@ You can read more about the MCP server in the [MCP Server documentation](https:/
 
 ## Documentation
 
-- [CLI Quickstart](https://docs.nhost.io/getting-started/quickstart/cli)
+- [CLI Quickstart](https://docs.nhost.io/getting-started/local-development/cli)
 - [Nhost CLI](https://docs.nhost.io/platform/cli)
 - [Reference](https://docs.nhost.io/reference/cli/commands)
 - [MCP Server](https://docs.nhost.io/platform/cli/mcp)
