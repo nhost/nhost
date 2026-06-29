@@ -169,7 +169,12 @@ func (ctrl *Controller) getFileMetadataHeaders( //nolint:ireturn
 		return nil, apiErr
 	}
 
-	opts, apiErr := getImageManipulationOptions(request.Params, fileMetadata.MimeType, acceptHeader)
+	opts, apiErr := getImageManipulationOptions(
+		request.Params,
+		fileMetadata.MimeType,
+		acceptHeader,
+		ctrl.imageTransformer,
+	)
 	if apiErr != nil {
 		return nil, apiErr
 	}

@@ -3,6 +3,7 @@ package controller
 import (
 	"bytes"
 	"context"
+	"errors"
 	"fmt"
 	"io"
 	"log/slog"
@@ -120,6 +121,7 @@ func getImageManipulationOptions(
 	params ImageManipulationOptionsGetter,
 	mimeType string,
 	acceptHeader []string,
+	transformer *image.Transformer,
 ) (image.Options, *APIError) {
 	outputFormatFound := deptr(params.GetF()) != ""
 
@@ -131,6 +133,15 @@ func getImageManipulationOptions(
 		OriginalFormat: 0,
 		Format:         0,
 	}
+
+	// Reject an oversized explicit width/height/blur before the source is
+	// downloaded. A dimension derived from the source aspect ratio is checked
+	// later by the transformer in manipulateImage, since it cannot be computed
+	// without the image.
+	if err := transformer.ValidateOptions(opts); err != nil {
+		return image.Options{}, BadDataError(err, err.Error())
+	}
+
 	if !opts.IsEmpty() || outputFormatFound {
 		orig, format, err := chooseImageFormat(params, mimeType, acceptHeader)
 		opts.Format = format
@@ -177,6 +188,15 @@ func (ctrl *Controller) manipulateImage(
 	}()
 
 	if err := <-done; err != nil {
+		// A derived output dimension over the configured maximum is a bad
+		// request, not a server fault: the controller validates the explicit
+		// params up front but cannot compute the derived dimension, so the
+		// transformer reports it and we surface it as a 400.
+		if errors.Is(err, image.ErrDimensionsTooLarge) ||
+			errors.Is(err, image.ErrOptionsOutOfRange) {
+			return nil, 0, BadDataError(err, err.Error())
+		}
+
 		slog.Error("image manipulation failed", slog.String("error", err.Error()))
 
 		return nil, 0, InternalServerError(err)
@@ -222,7 +242,12 @@ func (ctrl *Controller) processFileToDownload(
 	params processFiler,
 	acceptHeader []string,
 ) (*processedFile, *APIError) {
-	opts, apiErr := getImageManipulationOptions(params, fileMetadata.MimeType, acceptHeader)
+	opts, apiErr := getImageManipulationOptions(
+		params,
+		fileMetadata.MimeType,
+		acceptHeader,
+		ctrl.imageTransformer,
+	)
 	if apiErr != nil {
 		return nil, apiErr
 	}
