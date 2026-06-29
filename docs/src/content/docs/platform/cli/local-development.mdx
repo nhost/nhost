@@ -6,6 +6,7 @@ head:
   - tag: title
     content: "Run the Full Nhost Stack Locally with Docker | Nhost Docs"
 ---
+import { AsciinemaPlayer } from '@components';
 
 Nhost's command-line interface (CLI) lets you run a complete Nhost development environment locally with the following services: PostgreSQL database, Hasura, Authentication, Storage (MinIO), Serverless Functions, and Emails (Mailhog).
 
@@ -119,15 +120,9 @@ It's time to link, or associate, your local project to the remote one:
 
 ```bash
 nhost link
-
-    │                      │                                 │                  │              │
- #  │ Subdomain            │ Project                         │ Workspace        │ Region       │
- 1  │ kgrbyupffiamgqwnovkb │ local-development               │ Nhost            │ eu-central-1 │
- 2  │ odtxlexktkcwdynjssqg │ nbp                             │ Nuno's Workspace │ eu-central-1 │
-    │                      │                                 │                  │              │
-- Select the workspace # to link: 1
-- Enter project subdomain to confirm: kgrbyupffiamgqwnovkb
 ```
+
+<AsciinemaPlayer src="/casts/cli/nhost-link.cast" poster="npt:0:07" idleTimeLimit={2} />
 
 You have now successfully linked your local project to a hosted project running on the Nhost Cloud.
 
@@ -138,7 +133,7 @@ git add -A
 git push -u origin main
 ```
 
-To check out your deployment, head over to the **Deployments** tab (https://app.nhost.io).
+To check out your deployment, head over to the **Deployments** tab (`https://app.nhost.io/orgs/_/projects/_/deployments` - _Note: `_` is a placeholder for the user's org/project_). 
 
 ![Deployments](/images/cli/deployments.png)
 
