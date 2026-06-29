@@ -106,25 +106,6 @@ linters:
           - perfsprint
         path: internal/lib/jsontmpl/parser/
 
-      # configdocs: dev-time generator that walks the mimir CUE AST to render
-      # the configuration reference page. It is run via `go run` from
-      # docs/gen.sh and never shipped, so several opinionated linters fire on
-      # deliberate shape rather than defects: the four override maps are a
-      # TEMPORARY curation layer (see main.go) slated for upstream migration
-      # and deletion, which trips gochecknoglobals and lll; ireturn and
-      # nonamedreturns are inherent to walking the cue/ast interface types;
-      # gosec G306 is intended (the generated docs file is world-readable by
-      # design); cyclop and mnd reflect the markdown heading-level assembly.
-      - linters:
-          - gochecknoglobals
-          - lll
-          - ireturn
-          - nonamedreturns
-          - gosec
-          - cyclop
-          - mnd
-        path: tools/configdocs/
-
       # storage service specific rules
       - linters:
           - gochecknoglobals

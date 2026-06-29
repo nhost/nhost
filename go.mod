@@ -3,7 +3,6 @@ module github.com/nhost/nhost
 go 1.26.0
 
 require (
-	cuelang.org/go v0.11.2
 	github.com/99designs/gqlgen v0.17.86
 	github.com/MicahParks/keyfunc/v3 v3.7.0
 	github.com/Yamashou/gqlgenc v0.33.0
@@ -63,6 +62,7 @@ require (
 )
 
 require (
+	cuelang.org/go v0.11.2 // indirect
 	dario.cat/mergo v1.0.2 // indirect
 	github.com/MicahParks/jwkset v0.11.0 // indirect
 	github.com/Microsoft/go-winio v0.6.2 // indirect
