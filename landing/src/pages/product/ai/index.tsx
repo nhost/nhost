@@ -114,7 +114,7 @@ export default function AIPage() {
             variant="borderless"
             className="animate-fade-in text-base font-bold"
             size="sm"
-            href="https://docs.nhost.io/products/ai/overview"
+            href="https://docs.nhost.io/products/ai"
             rel="noopener noreferrer"
             target="_blank"
           >
@@ -166,8 +166,7 @@ export default function AIPage() {
               <div
                 className={twMerge(
                   'absolute z-10 h-full w-full',
-                  inView &&
-                    `ai-example-connectors-${activeExampleNumber}`,
+                  inView && `ai-example-connectors-${activeExampleNumber}`,
                 )}
               >
                 <div
@@ -228,8 +227,8 @@ export default function AIPage() {
             />
             <h3 className="text-base font-bold">AI agents</h3>
             <p className="text-base text-white text-opacity-65">
-              Create customized AI agents so your users can interact with
-              your data using natural language and get intelligent responses.
+              Create customized AI agents so your users can interact with your
+              data using natural language and get intelligent responses.
             </p>
           </Card>
           <Card className="hover:shadow-glow-sm flex flex-col space-y-3 transition-all">
@@ -247,7 +246,6 @@ export default function AIPage() {
             </p>
           </Card>
 
-
           <Card className="hover:shadow-glow-sm flex flex-col space-y-3 transition-all">
             <Image
               src="/products/graphite-logo.svg"
@@ -259,8 +257,7 @@ export default function AIPage() {
             <h3 className="text-base font-bold">Developer assistant</h3>
             <p className="text-base text-white text-opacity-65">
               Boost your development speed with a custom AI assistant that has
-              access to your project&apos;s database and
-              GraphQL schema.
+              access to your project&apos;s database and GraphQL schema.
             </p>
           </Card>
           <Card className="hover:shadow-glow-sm flex flex-col space-y-3 transition-all">
