@@ -329,8 +329,7 @@ func TestGetFile(t *testing.T) { //nolint:maintidx
 				t.Fatalf("unexpected error: %v", err)
 			}
 
-			switch expectedResp := tc.expected.(type) {
-			case expectedAPIError:
+			if expectedResp, ok := tc.expected.(expectedAPIError); ok {
 				assertAPIError(t, resp, expectedResp)
 
 				return
