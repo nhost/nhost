@@ -192,7 +192,8 @@ func (ctrl *Controller) manipulateImage(
 		// request, not a server fault: the controller validates the explicit
 		// params up front but cannot compute the derived dimension, so the
 		// transformer reports it and we surface it as a 400.
-		if errors.Is(err, image.ErrDimensionsTooLarge) {
+		if errors.Is(err, image.ErrDimensionsTooLarge) ||
+			errors.Is(err, image.ErrOptionsOutOfRange) {
 			return nil, 0, BadDataError(err, err.Error())
 		}
 

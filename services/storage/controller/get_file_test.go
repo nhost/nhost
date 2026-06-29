@@ -17,15 +17,19 @@ import (
 	gomock "go.uber.org/mock/gomock"
 )
 
+type expectedAPIError struct {
+	StatusCode int
+	Message    string
+}
+
 func TestGetFile(t *testing.T) { //nolint:maintidx
 	t.Parallel()
 
 	cases := []struct {
-		name     string
-		request  api.GetFileRequestObject
-		expected api.GetFileResponseObject
-		wantCode int
-		wantMsg  string
+		name         string
+		request      api.GetFileRequestObject
+		expected     any
+		wantDownload bool
 	}{
 		{
 			name: "no headers",
@@ -46,6 +50,7 @@ func TestGetFile(t *testing.T) { //nolint:maintidx
 				},
 				ContentLength: 64,
 			},
+			wantDownload: true,
 		},
 		{
 			name: "If-Match matches",
@@ -68,6 +73,7 @@ func TestGetFile(t *testing.T) { //nolint:maintidx
 				},
 				ContentLength: 64,
 			},
+			wantDownload: true,
 		},
 		{
 			name: "If-Match doesn't match",
@@ -84,6 +90,7 @@ func TestGetFile(t *testing.T) { //nolint:maintidx
 					SurrogateControl: new("max-age=3600"),
 				},
 			},
+			wantDownload: true,
 		},
 		{
 			name: "If-None-Match matches",
@@ -100,6 +107,7 @@ func TestGetFile(t *testing.T) { //nolint:maintidx
 					SurrogateControl: new("max-age=3600"),
 				},
 			},
+			wantDownload: true,
 		},
 		{
 			name: "If-None-Match doesn't match",
@@ -122,6 +130,7 @@ func TestGetFile(t *testing.T) { //nolint:maintidx
 				},
 				ContentLength: 64,
 			},
+			wantDownload: true,
 		},
 		{
 			name: "If-Modified since matches",
@@ -144,6 +153,7 @@ func TestGetFile(t *testing.T) { //nolint:maintidx
 				},
 				ContentLength: 64,
 			},
+			wantDownload: true,
 		},
 		{
 			name: "If-Modified doesn't match",
@@ -160,6 +170,7 @@ func TestGetFile(t *testing.T) { //nolint:maintidx
 					SurrogateControl: new("max-age=3600"),
 				},
 			},
+			wantDownload: true,
 		},
 		{
 			name: "If-Unmodified-Since matches",
@@ -182,6 +193,7 @@ func TestGetFile(t *testing.T) { //nolint:maintidx
 				},
 				ContentLength: 64,
 			},
+			wantDownload: true,
 		},
 		{
 			name: "If-Unmodified-Since doesn't match",
@@ -198,6 +210,7 @@ func TestGetFile(t *testing.T) { //nolint:maintidx
 					SurrogateControl: new("max-age=3600"),
 				},
 			},
+			wantDownload: true,
 		},
 		{
 			name: "width over max is rejected",
@@ -205,8 +218,12 @@ func TestGetFile(t *testing.T) { //nolint:maintidx
 				Id:     "55af1e60-0f28-454e-885e-ea6aab2bb288",
 				Params: api.GetFileParams{W: new(9000)},
 			},
-			wantCode: http.StatusBadRequest,
-			wantMsg:  "8000",
+			expected: expectedAPIError{
+				StatusCode: http.StatusBadRequest,
+				Message: "image manipulation parameters out of range: " +
+					"width 9000 exceeds the maximum of 8000",
+			},
+			wantDownload: false,
 		},
 		{
 			name: "height over max is rejected",
@@ -214,8 +231,12 @@ func TestGetFile(t *testing.T) { //nolint:maintidx
 				Id:     "55af1e60-0f28-454e-885e-ea6aab2bb288",
 				Params: api.GetFileParams{H: new(9000)},
 			},
-			wantCode: http.StatusBadRequest,
-			wantMsg:  "8000",
+			expected: expectedAPIError{
+				StatusCode: http.StatusBadRequest,
+				Message: "image manipulation parameters out of range: " +
+					"height 9000 exceeds the maximum of 8000",
+			},
+			wantDownload: false,
 		},
 		{
 			name: "blur over max is rejected",
@@ -223,8 +244,12 @@ func TestGetFile(t *testing.T) { //nolint:maintidx
 				Id:     "55af1e60-0f28-454e-885e-ea6aab2bb288",
 				Params: api.GetFileParams{B: new(float32(300))},
 			},
-			wantCode: http.StatusBadRequest,
-			wantMsg:  "250",
+			expected: expectedAPIError{
+				StatusCode: http.StatusBadRequest,
+				Message: "image manipulation parameters out of range: " +
+					"blur 300 exceeds the maximum of 250",
+			},
+			wantDownload: false,
 		},
 	}
 
@@ -268,25 +293,22 @@ func TestGetFile(t *testing.T) { //nolint:maintidx
 				CacheControl:         "max-age=3600",
 			}, nil)
 
-			downloadCalls := 1
-			if tc.wantCode != 0 {
-				downloadCalls = 0
+			if tc.wantDownload {
+				contentStorage.EXPECT().GetFile(
+					gomock.Any(),
+					"55af1e60-0f28-454e-885e-ea6aab2bb288",
+					gomock.Any(),
+				).Return(
+					&controller.File{
+						StatusCode:    200,
+						Etag:          `"55af1e60-0f28-454e-885e-ea6aab2bb288"`,
+						Body:          io.NopCloser(strings.NewReader("Hello, world!")),
+						ContentLength: 64,
+						ExtraHeaders:  make(http.Header),
+					},
+					nil,
+				)
 			}
-
-			contentStorage.EXPECT().GetFile(
-				gomock.Any(),
-				"55af1e60-0f28-454e-885e-ea6aab2bb288",
-				gomock.Any(),
-			).Return(
-				&controller.File{
-					StatusCode:    200,
-					Etag:          `"55af1e60-0f28-454e-885e-ea6aab2bb288"`,
-					Body:          io.NopCloser(strings.NewReader("Hello, world!")),
-					ContentLength: 64,
-					ExtraHeaders:  make(http.Header),
-				},
-				nil,
-			).Times(downloadCalls)
 
 			ctrl := controller.New(
 				"http://asd",
@@ -307,8 +329,9 @@ func TestGetFile(t *testing.T) { //nolint:maintidx
 				t.Fatalf("unexpected error: %v", err)
 			}
 
-			if tc.wantCode != 0 {
-				assertAPIError(t, resp, tc.wantCode, tc.wantMsg)
+			switch expectedResp := tc.expected.(type) {
+			case expectedAPIError:
+				assertAPIError(t, resp, expectedResp)
 
 				return
 			}
@@ -340,7 +363,7 @@ func TestGetFile(t *testing.T) { //nolint:maintidx
 	}
 }
 
-func assertAPIError(t *testing.T, resp any, wantCode int, wantMsg string) {
+func assertAPIError(t *testing.T, resp any, expected expectedAPIError) {
 	t.Helper()
 
 	apiErr, ok := resp.(*controller.APIError)
@@ -348,14 +371,12 @@ func assertAPIError(t *testing.T, resp any, wantCode int, wantMsg string) {
 		t.Fatalf("expected *controller.APIError, got %T", resp)
 	}
 
-	assert(t, apiErr.StatusCode(), wantCode)
-
-	if !strings.Contains(apiErr.PublicMessage(), wantMsg) {
-		t.Errorf(
-			"expected message to contain %q, got: %q",
-			wantMsg, apiErr.PublicMessage(),
-		)
+	got := expectedAPIError{
+		StatusCode: apiErr.StatusCode(),
+		Message:    apiErr.PublicMessage(),
 	}
+
+	assert(t, got, expected)
 }
 
 // TestGetFileRejectsOversizedDerivedDimension exercises the limit a request can
@@ -445,5 +466,9 @@ func TestGetFileRejectsOversizedDerivedDimension(t *testing.T) {
 		t.Fatalf("unexpected error: %v", err)
 	}
 
-	assertAPIError(t, resp, http.StatusBadRequest, "8000")
+	assertAPIError(t, resp, expectedAPIError{
+		StatusCode: http.StatusBadRequest,
+		Message: "output dimensions exceed the maximum: " +
+			"resizing to 21023x8000 exceeds the maximum dimension of 8000",
+	})
 }

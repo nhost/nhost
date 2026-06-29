@@ -318,6 +318,12 @@ func (t *Transformer) Run(
 	modified io.Writer,
 	opts Options,
 ) error {
+	// caller may call this one but we also do it ourselves as it's cheap
+	// and we need to ensure limits
+	if err := t.ValidateOptions(opts); err != nil {
+		return err
+	}
+
 	<-t.workers
 	defer func() { t.workers <- struct{}{} }()
 

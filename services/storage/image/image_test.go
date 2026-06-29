@@ -144,6 +144,32 @@ func TestManipulate(t *testing.T) {
 	}
 }
 
+func TestRunRejectsOversizedExplicitOptions(t *testing.T) {
+	t.Parallel()
+
+	const (
+		maxDimension = 100
+		maxBlurSigma = 10
+	)
+
+	transformer := image.NewTransformer(1, maxDimension, maxBlurSigma)
+
+	err := transformer.Run(
+		strings.NewReader("not an image"),
+		12,
+		io.Discard,
+		image.Options{
+			Width:  maxDimension + 1,
+			Height: maxDimension + 1,
+			Blur:   maxBlurSigma + 1,
+			Format: image.ImageTypeJPEG,
+		},
+	)
+	if !errors.Is(err, image.ErrOptionsOutOfRange) {
+		t.Fatalf("expected ErrOptionsOutOfRange, got %v", err)
+	}
+}
+
 func TestManipulateRejectsOversizedDerivedDimension(t *testing.T) {
 	t.Parallel()
 
