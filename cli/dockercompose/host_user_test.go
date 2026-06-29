@@ -23,7 +23,7 @@ func TestApplyHostUserID(t *testing.T) {
 		"postgres":      {},
 		"traefik":       {},
 	}
-	unstamped := []string{"postgres", "traefik", "functions"}
+	unstamped := []string{"postgres", "traefik", "functions", "configserver"}
 
 	applyHostUserID(services)
 
