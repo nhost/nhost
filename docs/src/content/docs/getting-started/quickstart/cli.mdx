@@ -18,18 +18,39 @@ The Nhost CLI is the recommended way to start building your application. It sets
 Choose your preferred installation method:
 
 **macOS / Linux (Homebrew)**
+
 ```sh
 brew install nhost/tap/nhost
 ```
 
 **macOS / Linux (cURL script)**
+
 ```sh
 curl -sSL https://raw.githubusercontent.com/nhost/nhost/main/cli/get.sh | bash
 ```
 
 **Nix**
+
 ```sh
 nix profile install github:nhost/nhost#cli
+```
+
+**npm / pnpm / Yarn / Bun**
+
+```sh
+npm install -D @nhost/cli
+pnpm add -D @nhost/cli
+yarn add -D @nhost/cli
+bun add -d @nhost/cli
+```
+
+You can also run the CLI without installing it:
+
+```sh
+npx @nhost/cli@latest --version
+pnpm dlx @nhost/cli@latest --version
+yarn dlx @nhost/cli@latest --version
+bunx @nhost/cli@latest --version
 ```
 
 ### 2. Authenticate
@@ -49,6 +70,7 @@ nhost init
 ```
 
 If you already have a project on Nhost Cloud and want to pull down its configuration:
+
 ```sh
 nhost init --remote
 ```

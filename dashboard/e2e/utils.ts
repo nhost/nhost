@@ -1,6 +1,6 @@
 import { faker } from '@faker-js/faker';
 import type { FrameLocator, Page } from '@playwright/test';
-import { add, format } from 'date-fns-v4';
+import { add, format } from 'date-fns';
 import {
   TEST_ONBOARDING_USER,
   TEST_ORGANIZATION_SLUG,

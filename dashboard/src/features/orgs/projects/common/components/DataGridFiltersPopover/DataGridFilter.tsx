@@ -16,9 +16,9 @@ type FilterProps = {
 
 function DataGridFilter({ column, op, value, index }: FilterProps) {
   const { removeFilter } = useDataGridFilters();
-  const columns = useGetDataColumns<{ dataType: string }>();
-  const selectedColumnDataType = columns.find((col) => col.id === column)
-    ?.columnDef.meta?.dataType;
+  const columns = useGetDataColumns<{ specificType: string }>();
+  const selectedColumnSpecificType = columns.find((col) => col.id === column)
+    ?.columnDef.meta?.specificType;
 
   return (
     <div className="flex gap-2 p-1">
@@ -26,7 +26,7 @@ function DataGridFilter({ column, op, value, index }: FilterProps) {
       <DataGridFilterOperators
         value={op}
         index={index}
-        columnDataType={selectedColumnDataType}
+        columnSpecificType={selectedColumnSpecificType}
       />
       <DataGridFilterValue
         value={value}

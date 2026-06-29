@@ -1,6 +1,7 @@
 import { HttpResponse, http } from 'msw';
 import { setupServer } from 'msw/node';
 import type { DataBrowserGridRow } from '@/features/orgs/projects/database/dataGrid/types/dataBrowser';
+import { isArray } from '@/features/orgs/projects/database/dataGrid/utils/isArray';
 import updateRecord from './updateRecord';
 
 const defaultOptions = {
@@ -31,6 +32,7 @@ function makeRow(cells: RowCell[]): DataBrowserGridRow {
               id: c.id,
               isPrimary: c.isPrimary ?? false,
               specificType: c.specificType,
+              isArray: isArray(c.specificType),
             },
           },
         },

@@ -19,7 +19,8 @@ export function applyPresetToForm(
   if (!preset) {
     return;
   }
-  const opts = { shouldDirty, shouldValidate: true } as const;
+
+  const opts = { shouldDirty, shouldValidate: false } as const;
 
   const isLocked = (vcpu: number, memory: number) =>
     memory === computeMemoryFromCPU(vcpu);

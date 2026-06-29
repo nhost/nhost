@@ -48,7 +48,7 @@ describe('createRecord', () => {
     await createRecord({
       ...defaultOptions,
       columnValues: {
-        tags: { value: '["a","b","c"]', specificType: 'text[]' },
+        tags: { value: '["a","b","c"]', isArray: true },
       },
     });
 
@@ -65,7 +65,7 @@ describe('createRecord', () => {
     await createRecord({
       ...defaultOptions,
       columnValues: {
-        scores: { value: '[1,2,3]', specificType: 'integer[]' },
+        scores: { value: '[1,2,3]', isArray: true },
       },
     });
 
@@ -103,7 +103,7 @@ describe('createRecord', () => {
       createRecord({
         ...defaultOptions,
         columnValues: {
-          tags: { value: '{a,b}', specificType: 'text[]' },
+          tags: { value: '{a,b}', isArray: true },
         },
       }),
     ).rejects.toThrow('Invalid array value for column "tags"');

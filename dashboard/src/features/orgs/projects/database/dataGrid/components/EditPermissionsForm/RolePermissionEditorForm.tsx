@@ -265,7 +265,6 @@ export default function RolePermissionEditorForm({
     table,
     mutationOptions: {
       onSuccess: () => {
-        queryClient.invalidateQueries({ queryKey: ['default.metadata'] });
         queryClient.invalidateQueries({
           queryKey: [EXPORT_METADATA_QUERY_KEY, project?.subdomain],
         });

@@ -1,0 +1,1 @@
+{{ if $[0].isActive }} "if_evaluated" {{ elif $[1].isActive }} "elif_evaluated" {{ else }} "none_evaluated" {{ end }}

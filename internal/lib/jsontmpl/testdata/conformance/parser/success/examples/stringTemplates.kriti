@@ -1,0 +1,14 @@
+# Variations on string templates
+[ "hello{{world}}",
+  "hello{{$world}}",
+  "foo{{$bar.baz}}/{{$qux}}",
+  "{{obj['x-y']}}",
+  "{{obj['x y']}}",
+  "{{obj['x y']}}/str",
+  "foo{",
+  "foo{bar",
+  "bar-{{$.baz}}1",
+  "bar-{{true}}1",
+  "bar-{{1.5}}1",
+  "{{obj['a b cde-fgh']}}"
+]

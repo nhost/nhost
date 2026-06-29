@@ -384,8 +384,14 @@ func (t *table) writeNodeColumnSelections(
 		if colSel.literal != "" {
 			t.dialect.WriteJSONRowColumn(b, colSel.alias, "'"+colSel.literal+"'")
 		} else {
-			t.dialect.WriteJSONRowColumn(b, colSel.alias,
-				core.QuoteIdentifier(cteAlias)+"."+core.QuoteIdentifier(colSel.column.SQLName))
+			expr := core.QuoteIdentifier(
+				cteAlias,
+			) + "." + core.QuoteIdentifier(
+				colSel.column.SQLName,
+			)
+			t.dialect.WriteJSONRowColumn(
+				b, colSel.alias, t.outputColumnExpression(expr, colSel.column),
+			)
 		}
 
 		first = false
