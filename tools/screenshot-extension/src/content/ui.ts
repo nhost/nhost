@@ -334,6 +334,9 @@ const ICONS = {
     '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 1 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 1 1-2.83-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 1 1 2.83-2.83l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 1 1 2.83 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z"/></svg>',
   expand:
     '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="15 3 21 3 21 9"/><polyline points="9 21 3 21 3 15"/><line x1="21" y1="3" x2="14" y2="10"/><line x1="3" y1="21" x2="10" y2="14"/></svg>',
+  crop: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M6 2v14a2 2 0 0 0 2 2h14"/><path d="M18 22V8a2 2 0 0 0-2-2H2"/></svg>',
+  check:
+    '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg>',
 };
 
 // Toolbar height in px. The toolbar is fixed at the top and the document is
@@ -974,7 +977,42 @@ export function createToolbar(): Toolbar {
   const spinner = document.createElement('div');
   spinner.className = 'nhost-ss-spinner';
   const expandBtn = iconBtn(ICONS.expand, 'nhost-ss-expand', 'Full screen');
-  previewWrap.append(preview, expandBtn);
+  const cropBtn = iconBtn(ICONS.crop, 'nhost-ss-expand', 'Crop');
+  const resetCropBtn = iconBtn(ICONS.undo, 'nhost-ss-expand', 'Reset crop');
+  // Overlay action row in the preview's top-right corner: crop, reset crop,
+  // and full-screen expand sit together.
+  const previewActions = document.createElement('div');
+  previewActions.className = 'nhost-ss-preview-actions';
+  previewActions.append(cropBtn, resetCropBtn, expandBtn);
+
+  // Crop overlay: sits over the preview image while cropping. The selection
+  // rectangle paints a huge box-shadow to dim everything outside it; eight
+  // handles resize it and its interior drags to reposition. The floating bar
+  // commits or cancels the crop.
+  const cropLayer = document.createElement('div');
+  cropLayer.className = 'nhost-ss-crop';
+  const cropRect = document.createElement('div');
+  cropRect.className = 'nhost-ss-crop-rect';
+  const cropHandles = ['nw', 'n', 'ne', 'e', 'se', 's', 'sw', 'w'].map(
+    (pos) => {
+      const h = document.createElement('div');
+      h.className = `nhost-ss-crop-h is-${pos}`;
+      h.dataset.pos = pos;
+      return h;
+    },
+  );
+  cropRect.append(...cropHandles);
+  const cropBar = document.createElement('div');
+  cropBar.className = 'nhost-ss-crop-bar';
+  const cropApplyBtn = iconBtn(ICONS.check, 'nhost-ss-crop-act', 'Apply crop');
+  const cropCancelBtn = iconBtn(
+    ICONS.close,
+    'nhost-ss-crop-act',
+    'Cancel crop',
+  );
+  cropBar.append(cropApplyBtn, cropCancelBtn);
+  cropLayer.append(cropRect, cropBar);
+  previewWrap.append(preview, previewActions, cropLayer);
 
   // Full-screen preview overlay (appended to the shadow on demand, above the
   // modal). Click anywhere or press Esc to dismiss.
@@ -1022,7 +1060,10 @@ export function createToolbar(): Toolbar {
   shadow.append(style, frame);
 
   // --- State + helpers ---
+  // capturedDataUrl is what save/download/copy act on — it tracks the latest
+  // crop. originalDataUrl is the untouched capture so a crop can be reset.
   let capturedDataUrl: string | null = null;
+  let originalDataUrl: string | null = null;
 
   // Push the page down so the toolbar sits above the content instead of over
   // it. We restore whatever inline padding-top the page had on the way out.
@@ -1076,6 +1117,7 @@ export function createToolbar(): Toolbar {
   };
   const closeModal = () => {
     document.removeEventListener('keydown', onModalKeydown, true);
+    exitCrop();
     closeFs();
     backdrop.remove();
   };
@@ -1084,6 +1126,10 @@ export function createToolbar(): Toolbar {
     setStatus('');
     filename.value = downloadFilename();
     capturedDataUrl = null;
+    originalDataUrl = null;
+    exitCrop();
+    cropBtn.disabled = true;
+    updateResetCrop();
     expandBtn.style.display = 'none';
     preview.replaceChildren(spinner);
     shadow.appendChild(backdrop);
@@ -1104,9 +1150,12 @@ export function createToolbar(): Toolbar {
         await nextRepaint();
         const dataUrl = await requestCapture();
         capturedDataUrl = dataUrl;
+        originalDataUrl = dataUrl;
         previewImg.src = dataUrl;
         preview.replaceChildren(previewImg);
         expandBtn.style.display = '';
+        cropBtn.disabled = false;
+        updateResetCrop();
       } catch (error) {
         const message = error instanceof Error ? error.message : String(error);
         preview.replaceChildren();
@@ -1125,6 +1174,257 @@ export function createToolbar(): Toolbar {
       }
     })();
   };
+
+  // --- Crop ---
+  // Selection stored as fractions (0..1) of the displayed image so it stays
+  // valid regardless of the preview's render size.
+  interface CropSel {
+    x: number;
+    y: number;
+    w: number;
+    h: number;
+  }
+  type CropDrag = {
+    kind: 'new' | 'move' | 'resize';
+    pos?: string;
+    startFx: number;
+    startFy: number;
+    startSel: CropSel;
+  };
+  let cropping = false;
+  let cropSel: CropSel | null = null;
+  // The displayed image's box in viewport coords, used to map pointer events.
+  let cropImgRect: DOMRect | null = null;
+  let cropDrag: CropDrag | null = null;
+
+  const clamp01 = (n: number) => Math.min(1, Math.max(0, n));
+
+  const updateResetCrop = () => {
+    const cropped =
+      capturedDataUrl !== null && capturedDataUrl !== originalDataUrl;
+    resetCropBtn.disabled = !cropped;
+    resetCropBtn.style.display = cropped ? '' : 'none';
+  };
+
+  // Lay the crop layer exactly over the rendered image (which is centered in
+  // the preview and may be smaller than it).
+  const positionCropLayer = () => {
+    const imgRect = previewImg.getBoundingClientRect();
+    const wrapRect = previewWrap.getBoundingClientRect();
+    cropLayer.style.left = `${imgRect.left - wrapRect.left}px`;
+    cropLayer.style.top = `${imgRect.top - wrapRect.top}px`;
+    cropLayer.style.width = `${imgRect.width}px`;
+    cropLayer.style.height = `${imgRect.height}px`;
+    cropImgRect = imgRect;
+  };
+
+  const renderCropSel = () => {
+    if (!cropSel) {
+      cropRect.style.display = 'none';
+      return;
+    }
+    cropRect.style.display = 'block';
+    cropRect.style.left = `${cropSel.x * 100}%`;
+    cropRect.style.top = `${cropSel.y * 100}%`;
+    cropRect.style.width = `${cropSel.w * 100}%`;
+    cropRect.style.height = `${cropSel.h * 100}%`;
+  };
+
+  function exitCrop(): void {
+    cropping = false;
+    cropSel = null;
+    cropDrag = null;
+    cropLayer.classList.remove('is-active');
+    cropBtn.classList.remove('is-active');
+    if (capturedDataUrl) {
+      expandBtn.style.display = '';
+    }
+  }
+
+  const enterCrop = () => {
+    if (!capturedDataUrl) {
+      return;
+    }
+    cropping = true;
+    cropBtn.classList.add('is-active');
+    cropLayer.classList.add('is-active');
+    expandBtn.style.display = 'none';
+    positionCropLayer();
+    cropSel = { x: 0, y: 0, w: 1, h: 1 };
+    renderCropSel();
+  };
+
+  const fracFromEvent = (event: PointerEvent) => {
+    if (!cropImgRect) {
+      return { fx: 0, fy: 0 };
+    }
+    return {
+      fx: clamp01((event.clientX - cropImgRect.left) / cropImgRect.width),
+      fy: clamp01((event.clientY - cropImgRect.top) / cropImgRect.height),
+    };
+  };
+
+  const resizeCropSel = (
+    s: CropSel,
+    pos: string,
+    fx: number,
+    fy: number,
+  ): CropSel => {
+    let left = s.x;
+    let top = s.y;
+    let right = s.x + s.w;
+    let bottom = s.y + s.h;
+    if (pos.includes('w')) {
+      left = clamp01(Math.min(fx, right));
+    }
+    if (pos.includes('e')) {
+      right = clamp01(Math.max(fx, left));
+    }
+    if (pos.includes('n')) {
+      top = clamp01(Math.min(fy, bottom));
+    }
+    if (pos.includes('s')) {
+      bottom = clamp01(Math.max(fy, top));
+    }
+    return { x: left, y: top, w: right - left, h: bottom - top };
+  };
+
+  const loadImage = (src: string): Promise<HTMLImageElement> =>
+    new Promise((resolve, reject) => {
+      const im = new Image();
+      im.onload = () => resolve(im);
+      im.onerror = () => reject(new Error('Failed to load image'));
+      im.src = src;
+    });
+
+  const applyCrop = async () => {
+    if (!capturedDataUrl || !cropSel) {
+      return;
+    }
+    // Ignore degenerate selections — nothing meaningful to crop.
+    if (cropSel.w < 0.01 || cropSel.h < 0.01) {
+      exitCrop();
+      return;
+    }
+    const sel = cropSel;
+    try {
+      const img = await loadImage(capturedDataUrl);
+      const sx = Math.round(sel.x * img.naturalWidth);
+      const sy = Math.round(sel.y * img.naturalHeight);
+      const sw = Math.max(1, Math.round(sel.w * img.naturalWidth));
+      const sh = Math.max(1, Math.round(sel.h * img.naturalHeight));
+      const canvas = document.createElement('canvas');
+      canvas.width = sw;
+      canvas.height = sh;
+      const ctx = canvas.getContext('2d');
+      if (!ctx) {
+        return;
+      }
+      ctx.drawImage(img, sx, sy, sw, sh, 0, 0, sw, sh);
+      capturedDataUrl = canvas.toDataURL('image/png');
+      previewImg.src = capturedDataUrl;
+      exitCrop();
+      updateResetCrop();
+    } catch (error) {
+      const message = error instanceof Error ? error.message : String(error);
+      setStatus(`Crop failed: ${message}`, 'err');
+    }
+  };
+
+  const resetCrop = () => {
+    if (!originalDataUrl) {
+      return;
+    }
+    capturedDataUrl = originalDataUrl;
+    previewImg.src = originalDataUrl;
+    exitCrop();
+    updateResetCrop();
+  };
+
+  cropBtn.addEventListener('click', () => {
+    if (cropping) {
+      exitCrop();
+    } else {
+      enterCrop();
+    }
+  });
+  resetCropBtn.addEventListener('click', resetCrop);
+  cropApplyBtn.addEventListener('click', () => void applyCrop());
+  cropCancelBtn.addEventListener('click', exitCrop);
+
+  cropLayer.addEventListener('pointerdown', (event) => {
+    if (!cropping || !cropSel) {
+      return;
+    }
+    const target = event.target as HTMLElement;
+    if (target.closest('.nhost-ss-crop-bar')) {
+      return;
+    }
+    event.preventDefault();
+    positionCropLayer();
+    const { fx, fy } = fracFromEvent(event);
+    cropLayer.setPointerCapture(event.pointerId);
+    if (target.classList.contains('nhost-ss-crop-h')) {
+      cropDrag = {
+        kind: 'resize',
+        pos: target.dataset.pos,
+        startFx: fx,
+        startFy: fy,
+        startSel: { ...cropSel },
+      };
+    } else if (target === cropRect) {
+      cropDrag = {
+        kind: 'move',
+        startFx: fx,
+        startFy: fy,
+        startSel: { ...cropSel },
+      };
+    } else {
+      cropSel = { x: fx, y: fy, w: 0, h: 0 };
+      cropDrag = {
+        kind: 'new',
+        startFx: fx,
+        startFy: fy,
+        startSel: { ...cropSel },
+      };
+      renderCropSel();
+    }
+  });
+  cropLayer.addEventListener('pointermove', (event) => {
+    if (!cropDrag || !cropSel) {
+      return;
+    }
+    const { fx, fy } = fracFromEvent(event);
+    const s = cropDrag.startSel;
+    if (cropDrag.kind === 'new') {
+      cropSel = {
+        x: Math.min(cropDrag.startFx, fx),
+        y: Math.min(cropDrag.startFy, fy),
+        w: Math.abs(fx - cropDrag.startFx),
+        h: Math.abs(fy - cropDrag.startFy),
+      };
+    } else if (cropDrag.kind === 'move') {
+      cropSel = {
+        x: clamp01(s.x + (fx - cropDrag.startFx)),
+        y: clamp01(s.y + (fy - cropDrag.startFy)),
+        w: s.w,
+        h: s.h,
+      };
+      cropSel.x = Math.min(cropSel.x, 1 - s.w);
+      cropSel.y = Math.min(cropSel.y, 1 - s.h);
+    } else if (cropDrag.pos) {
+      cropSel = resizeCropSel(s, cropDrag.pos, fx, fy);
+    }
+    renderCropSel();
+  });
+  const endCropDrag = (event: PointerEvent) => {
+    if (cropDrag) {
+      cropLayer.releasePointerCapture(event.pointerId);
+      cropDrag = null;
+    }
+  };
+  cropLayer.addEventListener('pointerup', endCropDrag);
+  cropLayer.addEventListener('pointercancel', endCropDrag);
 
   // --- Wiring: toolbar ---
   // Dim is automatic: the page dims whenever the spotlight is in use — while
