@@ -42,6 +42,7 @@ func sendsSMS(path string) bool {
 // endpnits that can be brute forced.
 func bruteForceProtected(path string) bool {
 	return strings.HasPrefix(path, "/signin") ||
+		strings.HasPrefix(path, "/elevate") ||
 		strings.HasSuffix(path, "/verify") ||
 		strings.HasSuffix(path, "/otp") ||
 		path == "/oauth2/authorize" ||
