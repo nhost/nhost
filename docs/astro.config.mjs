@@ -25,12 +25,6 @@ export default defineConfig({
   // makes the Vercel adapter emit 308 redirects from old `/path/` URLs so already
   // indexed pages and external backlinks keep working.
   trailingSlash: 'never',
-  // Keep old `/platform/cli/cloud-development` links working after the page was
-  // renamed to `/platform/cli/deployments`. The Vercel adapter turns this into a
-  // real redirect so indexed pages and external backlinks don't 404.
-  redirects: {
-    '/platform/cli/cloud-development': '/platform/cli/deployments',
-  },
   // Astro 6.4 moved the GFM default onto the new `markdown.processor` (unified())
   // and left the legacy `markdown.gfm` flag undefined-by-default. But
   // @astrojs/mdx@5.0.6 still reads the legacy flag rather than the processor, so
@@ -641,7 +635,7 @@ export default defineConfig({
                   items: [
                     { slug: 'platform/cli' },
                     { slug: 'platform/cli/local-development' },
-                    { slug: 'platform/cli/deployments' },
+                    { slug: 'platform/cli/cloud-development' },
                     { slug: 'platform/cli/subdomain' },
                     { slug: 'platform/cli/multiple-projects' },
                     { slug: 'platform/cli/configuration-overlays' },
