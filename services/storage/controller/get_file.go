@@ -117,54 +117,11 @@ type ImageManipulationOptionsGetter interface {
 	GetF() *api.OutputImageFormat
 }
 
-// checkImageManipulationLimits rejects a request whose explicitly requested
-// width, height or blur exceeds the server-configured maximum. We return a 400
-// here rather than silently clamping so the caller learns the limit instead of
-// receiving an image at an unexpected size. The maxima are operator-configurable
-// (IMAGE_TRANSFORMER_MAX_DIMENSION / IMAGE_TRANSFORMER_MAX_BLUR_SIGMA), so the
-// bound is enforced against the live values rather than as a static OpenAPI
-// constraint, which could not track the configured value.
-func checkImageManipulationLimits(
-	opts image.Options, maxDimension int, maxBlurSigma float64,
-) *APIError {
-	var problems []string
-
-	if opts.Width > maxDimension {
-		problems = append(
-			problems,
-			fmt.Sprintf("width %d exceeds the maximum of %d", opts.Width, maxDimension),
-		)
-	}
-
-	if opts.Height > maxDimension {
-		problems = append(
-			problems,
-			fmt.Sprintf("height %d exceeds the maximum of %d", opts.Height, maxDimension),
-		)
-	}
-
-	if float64(opts.Blur) > maxBlurSigma {
-		problems = append(
-			problems,
-			fmt.Sprintf("blur %g exceeds the maximum of %g", opts.Blur, maxBlurSigma),
-		)
-	}
-
-	if len(problems) == 0 {
-		return nil
-	}
-
-	msg := "image manipulation parameters out of range: " + strings.Join(problems, "; ")
-
-	return BadDataError(errors.New(msg), msg) //nolint:err113
-}
-
 func getImageManipulationOptions(
 	params ImageManipulationOptionsGetter,
 	mimeType string,
 	acceptHeader []string,
-	maxDimension int,
-	maxBlurSigma float64,
+	transformer *image.Transformer,
 ) (image.Options, *APIError) {
 	outputFormatFound := deptr(params.GetF()) != ""
 
@@ -177,8 +134,12 @@ func getImageManipulationOptions(
 		Format:         0,
 	}
 
-	if apiErr := checkImageManipulationLimits(opts, maxDimension, maxBlurSigma); apiErr != nil {
-		return image.Options{}, apiErr
+	// Reject an oversized explicit width/height/blur before the source is
+	// downloaded. A dimension derived from the source aspect ratio is checked
+	// later by the transformer in manipulateImage, since it cannot be computed
+	// without the image.
+	if err := transformer.ValidateOptions(opts); err != nil {
+		return image.Options{}, BadDataError(err, err.Error())
 	}
 
 	if !opts.IsEmpty() || outputFormatFound {
@@ -227,6 +188,14 @@ func (ctrl *Controller) manipulateImage(
 	}()
 
 	if err := <-done; err != nil {
+		// A derived output dimension over the configured maximum is a bad
+		// request, not a server fault: the controller validates the explicit
+		// params up front but cannot compute the derived dimension, so the
+		// transformer reports it and we surface it as a 400.
+		if errors.Is(err, image.ErrDimensionsTooLarge) {
+			return nil, 0, BadDataError(err, err.Error())
+		}
+
 		slog.Error("image manipulation failed", slog.String("error", err.Error()))
 
 		return nil, 0, InternalServerError(err)
@@ -276,8 +245,7 @@ func (ctrl *Controller) processFileToDownload(
 		params,
 		fileMetadata.MimeType,
 		acceptHeader,
-		ctrl.imageTransformer.MaxDimension(),
-		ctrl.imageTransformer.MaxBlurSigma(),
+		ctrl.imageTransformer,
 	)
 	if apiErr != nil {
 		return nil, apiErr

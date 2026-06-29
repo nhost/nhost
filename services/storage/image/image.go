@@ -2,14 +2,28 @@ package image //nolint:revive
 
 import (
 	"bytes"
+	"errors"
 	"fmt"
 	"io"
 	"runtime"
+	"strings"
 	"sync"
 	"sync/atomic"
 
 	"github.com/cshum/vipsgen/vips"
 )
+
+// ErrDimensionsTooLarge is returned by Run when the output dimensions — an
+// explicit width/height or a dimension derived from the source aspect ratio —
+// exceed the configured maximum. The controller maps it to a 400 so the caller
+// learns the limit instead of receiving an unexpectedly sized image.
+var ErrDimensionsTooLarge = errors.New("output dimensions exceed the maximum")
+
+// ErrOptionsOutOfRange is returned by ValidateOptions when an explicitly
+// requested width, height or blur exceeds the configured maximum. The controller
+// maps it to a 400 so the caller learns the limit instead of receiving an image
+// at an unexpected size.
+var ErrOptionsOutOfRange = errors.New("image manipulation parameters out of range")
 
 type ImageType int //nolint:revive
 
@@ -142,25 +156,41 @@ func (t *Transformer) Shutdown() {
 	vips.Shutdown()
 }
 
-// MaxDimension reports the configured upper bound for output width and height.
-// A nil Transformer reports the package default so callers can validate request
-// parameters against the limit even before a transformer is wired up.
-func (t *Transformer) MaxDimension() int {
-	if t == nil {
-		return DefaultMaxImageDimension
+// ValidateOptions rejects a request whose explicitly requested width, height or
+// blur exceeds the configured maximum, returning ErrOptionsOutOfRange. It is
+// called before the source is downloaded so an oversized explicit request never
+// reaches libvips. A dimension derived from the source aspect ratio cannot be
+// computed without the image, so that one is checked later in Run; this keeps all
+// limit logic in this package rather than splitting it into the controller.
+func (t *Transformer) ValidateOptions(opts Options) error {
+	var problems []string
+
+	if opts.Width > t.maxDimension {
+		problems = append(
+			problems,
+			fmt.Sprintf("width %d exceeds the maximum of %d", opts.Width, t.maxDimension),
+		)
 	}
 
-	return t.maxDimension
-}
-
-// MaxBlurSigma reports the configured upper bound for the Gaussian blur sigma. A
-// nil Transformer reports the package default, mirroring MaxDimension.
-func (t *Transformer) MaxBlurSigma() float64 {
-	if t == nil {
-		return DefaultMaxBlurSigma
+	if opts.Height > t.maxDimension {
+		problems = append(
+			problems,
+			fmt.Sprintf("height %d exceeds the maximum of %d", opts.Height, t.maxDimension),
+		)
 	}
 
-	return t.maxBlurSigma
+	if float64(opts.Blur) > t.maxBlurSigma {
+		problems = append(
+			problems,
+			fmt.Sprintf("blur %g exceeds the maximum of %g", opts.Blur, t.maxBlurSigma),
+		)
+	}
+
+	if len(problems) == 0 {
+		return nil
+	}
+
+	return fmt.Errorf("%w: %s", ErrOptionsOutOfRange, strings.Join(problems, "; "))
 }
 
 func export(image *vips.Image, opts Options) ([]byte, error) {
@@ -200,24 +230,40 @@ func export(image *vips.Image, opts Options) ([]byte, error) {
 }
 
 // resolveDimensions resolves the requested output dimensions against the
-// source image size, deriving a missing dimension from the aspect ratio. Both
-// the requested and the derived values are clamped to maxDimension: libvips
-// allocates the full output buffer up front, so an unbounded value (e.g.
-// w=50000) lets a single request exhaust process memory. Aspect-ratio
-// derivation can amplify a single bounded dimension, hence the final clamp.
-func resolveDimensions(reqWidth, reqHeight, srcWidth, srcHeight, maxDimension int) (int, int) {
-	width := min(reqWidth, maxDimension)
-	height := min(reqHeight, maxDimension)
+// source image size, deriving a missing dimension from the aspect ratio. The
+// explicit width and height are validated up front by ValidateOptions; only a
+// dimension derived here from the source aspect ratio can exceed maxDimension
+// without that check seeing it, since derivation can amplify a single bounded
+// dimension past the cap. Only that derived value is checked, and an oversized
+// one is rejected with ErrDimensionsTooLarge: libvips allocates the full output
+// buffer up front, so it would otherwise let one request exhaust process memory.
+func resolveDimensions(
+	reqWidth, reqHeight, srcWidth, srcHeight, maxDimension int,
+) (int, int, error) {
+	width, height := reqWidth, reqHeight
 
 	if width == 0 && srcHeight != 0 {
 		width = int((float64(height) / float64(srcHeight)) * float64(srcWidth))
+		if width > maxDimension {
+			return 0, 0, dimensionsTooLargeError(width, height, maxDimension)
+		}
 	}
 
 	if height == 0 && srcWidth != 0 {
 		height = int((float64(width) / float64(srcWidth)) * float64(srcHeight))
+		if height > maxDimension {
+			return 0, 0, dimensionsTooLargeError(width, height, maxDimension)
+		}
 	}
 
-	return min(width, maxDimension), min(height, maxDimension)
+	return width, height, nil
+}
+
+func dimensionsTooLargeError(width, height, maxDimension int) error {
+	return fmt.Errorf(
+		"%w: resizing to %dx%d exceeds the maximum dimension of %d",
+		ErrDimensionsTooLarge, width, height, maxDimension,
+	)
 }
 
 func (t *Transformer) imageResize(image *vips.Image, opts Options) error {
@@ -225,9 +271,12 @@ func (t *Transformer) imageResize(image *vips.Image, opts Options) error {
 		return nil
 	}
 
-	width, height := resolveDimensions(
+	width, height, err := resolveDimensions(
 		opts.Width, opts.Height, image.Width(), image.Height(), t.maxDimension,
 	)
+	if err != nil {
+		return err
+	}
 
 	thumbnailOpts := vips.DefaultThumbnailImageOptions()
 	thumbnailOpts.Crop = vips.InterestingCentre
@@ -252,10 +301,10 @@ func (t *Transformer) imagePipeline(image *vips.Image, opts Options) error {
 	}
 
 	if opts.Blur > 0 {
-		// Clamp the blur sigma: the Gaussian kernel grows with sigma, so an
-		// unbounded value (e.g. b=1000000) exhausts CPU and memory.
-		sigma := min(float64(opts.Blur), t.maxBlurSigma)
-		if err := image.Gaussblur(sigma, nil); err != nil {
+		// The controller rejects an oversized blur sigma before the request
+		// reaches the transformer (there is no derived blur to amplify it, so
+		// unlike the resize dimensions it needs no enforcement here).
+		if err := image.Gaussblur(float64(opts.Blur), nil); err != nil {
 			return fmt.Errorf("failed to blur: %w", err)
 		}
 	}

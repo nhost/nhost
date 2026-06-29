@@ -257,11 +257,8 @@ importers:
         specifier: ^0.8.5
         version: 0.8.5
       date-fns:
-        specifier: ^2.30.0
-        version: 2.30.0
-      date-fns-v4:
-        specifier: npm:date-fns@4.1.0
-        version: date-fns@4.1.0
+        specifier: ^4.4.0
+        version: 4.4.0
       dequal:
         specifier: ^2.0.3
         version: 2.0.3
@@ -4192,12 +4189,8 @@ packages:
   date-fns-jalali@4.1.0-0:
     resolution: {integrity: sha512-hTIP/z+t+qKwBDcmmsnmjWTduxCg+5KfdqWQvb2X/8C9+knYY6epN/pfxdDuyVlSVeFz0sM5eEfwIUQ70U4ckg==}
 
-  date-fns@2.30.0:
-    resolution: {integrity: sha512-fnULvOpxnC5/Vg3NCiWelDsLiUc9bRwAPs/+LfTLNvetFCtCTN+yQz15C/fs4AwX1R9K5GLtLfn8QW+dWisaAw==}
-    engines: {node: '>=0.11'}
-
-  date-fns@4.1.0:
-    resolution: {integrity: sha512-Ukq0owbQXxa/U3EGtsdVBkR1w7KOQ5gIBqdH2hkvknzZPYvBxb/aa6E8L7tmjFtkwZBu3UXBbjIgPo/Ez4xaNg==}
+  date-fns@4.4.0:
+    resolution: {integrity: sha512-+1UMbeh68lH1SegH83CGWwpb6OHHbpSgr3+s5Eww5M4CAgswBpoWS0AjTOfEJ33HiYKz1hdj/KTFprzXHmq/6w==}
 
   debounce-promise@3.1.2:
     resolution: {integrity: sha512-rZHcgBkbYavBeD9ej6sP56XfG53d51CD4dnaw989YX/nZ/ZJfgRx/9ePKmTNiUiyQvh4mtrMoS3OAWW+yoYtpg==}
@@ -10676,11 +10669,7 @@ snapshots:
 
   date-fns-jalali@4.1.0-0: {}
 
-  date-fns@2.30.0:
-    dependencies:
-      '@babel/runtime': 7.28.6
-
-  date-fns@4.1.0: {}
+  date-fns@4.4.0: {}
 
   debounce-promise@3.1.2: {}
 
@@ -12033,7 +12022,7 @@ snapshots:
   react-day-picker@9.6.3(react@19.2.3):
     dependencies:
       '@date-fns/tz': 1.2.0
-      date-fns: 4.1.0
+      date-fns: 4.4.0
       date-fns-jalali: 4.1.0-0
       react: 19.2.3
 

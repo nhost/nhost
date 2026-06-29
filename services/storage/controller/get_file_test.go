@@ -1,6 +1,7 @@
 package controller_test
 
 import (
+	"bytes"
 	"io"
 	"log/slog"
 	"net/http"
@@ -12,6 +13,7 @@ import (
 	"github.com/nhost/nhost/services/storage/api"
 	"github.com/nhost/nhost/services/storage/controller"
 	"github.com/nhost/nhost/services/storage/controller/mock"
+	"github.com/nhost/nhost/services/storage/image"
 	gomock "go.uber.org/mock/gomock"
 )
 
@@ -22,6 +24,8 @@ func TestGetFile(t *testing.T) { //nolint:maintidx
 		name     string
 		request  api.GetFileRequestObject
 		expected api.GetFileResponseObject
+		wantCode int
+		wantMsg  string
 	}{
 		{
 			name: "no headers",
@@ -195,6 +199,33 @@ func TestGetFile(t *testing.T) { //nolint:maintidx
 				},
 			},
 		},
+		{
+			name: "width over max is rejected",
+			request: api.GetFileRequestObject{
+				Id:     "55af1e60-0f28-454e-885e-ea6aab2bb288",
+				Params: api.GetFileParams{W: new(9000)},
+			},
+			wantCode: http.StatusBadRequest,
+			wantMsg:  "8000",
+		},
+		{
+			name: "height over max is rejected",
+			request: api.GetFileRequestObject{
+				Id:     "55af1e60-0f28-454e-885e-ea6aab2bb288",
+				Params: api.GetFileParams{H: new(9000)},
+			},
+			wantCode: http.StatusBadRequest,
+			wantMsg:  "8000",
+		},
+		{
+			name: "blur over max is rejected",
+			request: api.GetFileRequestObject{
+				Id:     "55af1e60-0f28-454e-885e-ea6aab2bb288",
+				Params: api.GetFileParams{B: new(float32(300))},
+			},
+			wantCode: http.StatusBadRequest,
+			wantMsg:  "250",
+		},
 	}
 
 	logger := slog.New(slog.NewTextHandler(os.Stdout, &slog.HandlerOptions{Level: slog.LevelError}))
@@ -237,6 +268,11 @@ func TestGetFile(t *testing.T) { //nolint:maintidx
 				CacheControl:         "max-age=3600",
 			}, nil)
 
+			downloadCalls := 1
+			if tc.wantCode != 0 {
+				downloadCalls = 0
+			}
+
 			contentStorage.EXPECT().GetFile(
 				gomock.Any(),
 				"55af1e60-0f28-454e-885e-ea6aab2bb288",
@@ -250,7 +286,7 @@ func TestGetFile(t *testing.T) { //nolint:maintidx
 					ExtraHeaders:  make(http.Header),
 				},
 				nil,
-			)
+			).Times(downloadCalls)
 
 			ctrl := controller.New(
 				"http://asd",
@@ -258,7 +294,7 @@ func TestGetFile(t *testing.T) { //nolint:maintidx
 				"asdasd",
 				metadataStorage,
 				contentStorage,
-				nil,
+				image.NewTransformer(0, 0, 0),
 				nil,
 				logger,
 			)
@@ -269,6 +305,12 @@ func TestGetFile(t *testing.T) { //nolint:maintidx
 			)
 			if err != nil {
 				t.Fatalf("unexpected error: %v", err)
+			}
+
+			if tc.wantCode != 0 {
+				assertAPIError(t, resp, tc.wantCode, tc.wantMsg)
+
+				return
 			}
 
 			switch actualResp := resp.(type) {
@@ -298,10 +340,39 @@ func TestGetFile(t *testing.T) { //nolint:maintidx
 	}
 }
 
-func TestGetFileRejectsOversizedImageManipulation(t *testing.T) {
+func assertAPIError(t *testing.T, resp any, wantCode int, wantMsg string) {
+	t.Helper()
+
+	apiErr, ok := resp.(*controller.APIError)
+	if !ok {
+		t.Fatalf("expected *controller.APIError, got %T", resp)
+	}
+
+	assert(t, apiErr.StatusCode(), wantCode)
+
+	if !strings.Contains(apiErr.PublicMessage(), wantMsg) {
+		t.Errorf(
+			"expected message to contain %q, got: %q",
+			wantMsg, apiErr.PublicMessage(),
+		)
+	}
+}
+
+// TestGetFileRejectsOversizedDerivedDimension exercises the limit a request can
+// only hit once the source image is loaded: nhost.jpg is 678x258 (landscape),
+// so asking for only the height at the cap derives a width ~2.6x larger. The
+// controller validates the explicit height fine (it is at the cap), so the
+// oversized derived width is caught by the transformer, which must surface it
+// as a 400 rather than a 500.
+func TestGetFileRejectsOversizedDerivedDimension(t *testing.T) {
 	t.Parallel()
 
-	logger := slog.New(slog.NewTextHandler(os.Stderr, nil))
+	const fileID = "55af1e60-0f28-454e-885e-ea6aab2bb288"
+
+	imgBytes, err := os.ReadFile("../image/testdata/nhost.jpg")
+	if err != nil {
+		t.Fatal(err)
+	}
 
 	c := gomock.NewController(t)
 	defer c.Finish()
@@ -310,13 +381,13 @@ func TestGetFileRejectsOversizedImageManipulation(t *testing.T) {
 	contentStorage := mock.NewMockContentStorage(c)
 
 	metadataStorage.EXPECT().GetFileByID(
-		gomock.Any(), "55af1e60-0f28-454e-885e-ea6aab2bb288", gomock.Any(),
+		gomock.Any(), fileID, gomock.Any(),
 	).Return(api.FileMetadata{
-		Id:               "55af1e60-0f28-454e-885e-ea6aab2bb288",
-		Name:             "image.jpg",
-		Size:             64,
+		Id:               fileID,
+		Name:             "nhost.jpg",
+		Size:             int64(len(imgBytes)),
 		BucketId:         "default",
-		Etag:             "\"55af1e60-0f28-454e-885e-ea6aab2bb288\"",
+		Etag:             `"` + fileID + `"`,
 		CreatedAt:        time.Date(2021, 12, 27, 9, 58, 11, 0, time.UTC),
 		UpdatedAt:        time.Date(2021, 12, 27, 9, 58, 11, 0, time.UTC),
 		IsUploaded:       true,
@@ -337,36 +408,42 @@ func TestGetFileRejectsOversizedImageManipulation(t *testing.T) {
 		CacheControl:         "max-age=3600",
 	}, nil)
 
-	// nil transformer reports the default maxima (8000 / 250), so w=9000 is
-	// rejected. The content store is never queried because the request is
-	// refused before any download happens.
+	contentStorage.EXPECT().GetFile(
+		gomock.Any(), fileID, gomock.Any(),
+	).Return(
+		&controller.File{
+			StatusCode:    200,
+			Etag:          `"` + fileID + `"`,
+			Body:          io.NopCloser(bytes.NewReader(imgBytes)),
+			ContentLength: int64(len(imgBytes)),
+			ExtraHeaders:  make(http.Header),
+		},
+		nil,
+	)
+
+	logger := slog.New(slog.NewTextHandler(os.Stdout, &slog.HandlerOptions{Level: slog.LevelError}))
+
 	ctrl := controller.New(
 		"http://asd",
 		"/v1",
 		"asdasd",
 		metadataStorage,
 		contentStorage,
-		nil,
+		image.NewTransformer(0, 0, 0),
 		nil,
 		logger,
 	)
 
-	resp, err := ctrl.GetFile(t.Context(), api.GetFileRequestObject{
-		Id:     "55af1e60-0f28-454e-885e-ea6aab2bb288",
-		Params: api.GetFileParams{W: new(9000)},
-	})
+	resp, err := ctrl.GetFile(
+		t.Context(),
+		api.GetFileRequestObject{
+			Id:     fileID,
+			Params: api.GetFileParams{H: new(8000)},
+		},
+	)
 	if err != nil {
 		t.Fatalf("unexpected error: %v", err)
 	}
 
-	apiErr, ok := resp.(*controller.APIError)
-	if !ok {
-		t.Fatalf("expected *controller.APIError, got %T", resp)
-	}
-
-	assert(t, apiErr.StatusCode(), http.StatusBadRequest)
-
-	if !strings.Contains(apiErr.PublicMessage(), "8000") {
-		t.Errorf("expected message to state the maximum 8000, got: %q", apiErr.PublicMessage())
-	}
+	assertAPIError(t, resp, http.StatusBadRequest, "8000")
 }

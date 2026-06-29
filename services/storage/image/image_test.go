@@ -4,10 +4,10 @@ import (
 	"bytes"
 	"crypto/sha256"
 	"encoding/hex"
-	stdimage "image"
-	_ "image/jpeg" // register the JPEG decoder for image.DecodeConfig
+	"errors"
 	"io"
 	"os"
+	"strings"
 	"testing"
 
 	"github.com/google/go-cmp/cmp"
@@ -144,68 +144,15 @@ func TestManipulate(t *testing.T) {
 	}
 }
 
-func TestManipulateClampsOversizedDimensions(t *testing.T) {
-	t.Parallel()
-
-	// libvips allocates the full output buffer up front, so honouring an
-	// oversized request verbatim (e.g. 50000x50000) attempts a huge
-	// allocation and can OOM-kill the process (memory-exhaustion DoS). The
-	// transformer must cap the output to its configured maximum. A small cap
-	// keeps the test cheap while still exercising the clamp.
-	const (
-		requested     = 50000
-		maxDimension  = 200
-		nhostJPGBytes = 33399
-	)
-
-	transformer := image.NewTransformer(1, maxDimension, 0)
-
-	orig, err := os.Open("testdata/nhost.jpg")
-	if err != nil {
-		t.Fatal(err)
-	}
-	defer orig.Close()
-
-	var out bytes.Buffer
-	if err := transformer.Run(
-		orig,
-		nhostJPGBytes,
-		&out,
-		image.Options{Width: requested, Height: requested, Format: image.ImageTypeJPEG},
-	); err != nil {
-		t.Fatal(err)
-	}
-
-	cfg, _, err := stdimage.DecodeConfig(bytes.NewReader(out.Bytes()))
-	if err != nil {
-		t.Fatalf("failed to decode transformed image: %v", err)
-	}
-
-	if cfg.Width > maxDimension || cfg.Height > maxDimension {
-		t.Errorf(
-			"output dimensions %dx%d exceed the configured cap of %d: clamp not applied",
-			cfg.Width, cfg.Height, maxDimension,
-		)
-	}
-
-	if cfg.Width == requested || cfg.Height == requested {
-		t.Errorf(
-			"output honoured the unclamped request: %dx%d",
-			cfg.Width, cfg.Height,
-		)
-	}
-}
-
-func TestManipulateClampsDerivedDimension(t *testing.T) {
+func TestManipulateRejectsOversizedDerivedDimension(t *testing.T) {
 	t.Parallel()
 
 	// When only one dimension is requested the other is derived from the
 	// source aspect ratio. testdata/nhost.jpg is 678x258 (landscape), so a
-	// bounded height of maxDimension derives a width of
-	// maxDimension*678/258 ~= 2.6x larger. Without the post-derivation clamp
-	// that amplified width would flow unbounded into libvips (the same
-	// memory-exhaustion DoS as an explicit oversized request), so the
-	// transformer must clamp the derived dimension too.
+	// bounded height of maxDimension derives a width of maxDimension*678/258
+	// ~= 2.6x larger. That derived width is the one dimension the controller
+	// cannot check, so the transformer must reject it (the same
+	// memory-exhaustion DoS as an explicit oversized request).
 	const (
 		maxDimension  = 200
 		nhostJPGBytes = 33399
@@ -220,76 +167,105 @@ func TestManipulateClampsDerivedDimension(t *testing.T) {
 	defer orig.Close()
 
 	var out bytes.Buffer
-	if err := transformer.Run(
+
+	// Only the height is requested; the wider dimension is derived.
+	err = transformer.Run(
 		orig,
 		nhostJPGBytes,
 		&out,
-		// Only the height is requested; the wider dimension is derived.
 		image.Options{Height: maxDimension, Format: image.ImageTypeJPEG},
-	); err != nil {
-		t.Fatal(err)
-	}
-
-	cfg, _, err := stdimage.DecodeConfig(bytes.NewReader(out.Bytes()))
-	if err != nil {
-		t.Fatalf("failed to decode transformed image: %v", err)
-	}
-
-	if cfg.Width > maxDimension || cfg.Height > maxDimension {
-		t.Errorf(
-			"derived dimensions %dx%d exceed the configured cap of %d: "+
-				"post-derivation clamp not applied",
-			cfg.Width, cfg.Height, maxDimension,
-		)
+	)
+	if !errors.Is(err, image.ErrDimensionsTooLarge) {
+		t.Fatalf("expected ErrDimensionsTooLarge, got %v", err)
 	}
 }
 
-func TestManipulateClampsOversizedBlur(t *testing.T) {
+func TestValidateOptions(t *testing.T) {
 	t.Parallel()
 
-	// The Gaussian kernel grows with the blur sigma, so honouring an oversized
-	// request verbatim (e.g. b=1000000) exhausts CPU and memory. The
-	// transformer must cap the sigma to its configured maximum, which means an
-	// oversized request must produce exactly the same output as one made at the
-	// cap. A small cap keeps the test cheap while still exercising the clamp.
 	const (
-		oversized     = 1_000_000
-		maxBlurSigma  = 5
-		nhostJPGBytes = 33399
+		maxDimension = 100
+		maxBlurSigma = 10
 	)
 
-	transformer := image.NewTransformer(1, 0, maxBlurSigma)
+	transformer := image.NewTransformer(1, maxDimension, maxBlurSigma)
 
-	src, err := os.ReadFile("testdata/nhost.jpg")
-	if err != nil {
-		t.Fatal(err)
+	cases := []struct {
+		name         string
+		opts         image.Options
+		wantErr      bool
+		wantContains []string
+	}{
+		{
+			name:         "empty options pass",
+			opts:         image.Options{},
+			wantErr:      false,
+			wantContains: nil,
+		},
+		{
+			name: "values exactly at the limit pass",
+			opts: image.Options{
+				Width:  maxDimension,
+				Height: maxDimension,
+				Blur:   maxBlurSigma,
+			},
+			wantErr:      false,
+			wantContains: nil,
+		},
+		{
+			name:         "width over max is rejected",
+			opts:         image.Options{Width: maxDimension + 1},
+			wantErr:      true,
+			wantContains: []string{"width", "100"},
+		},
+		{
+			name:         "height over max is rejected",
+			opts:         image.Options{Height: maxDimension + 1},
+			wantErr:      true,
+			wantContains: []string{"height", "100"},
+		},
+		{
+			name:         "blur over max is rejected",
+			opts:         image.Options{Blur: maxBlurSigma + 1},
+			wantErr:      true,
+			wantContains: []string{"blur", "10"},
+		},
+		{
+			name: "multiple violations are all reported",
+			opts: image.Options{
+				Width:  maxDimension + 1,
+				Height: maxDimension + 1,
+				Blur:   maxBlurSigma + 1,
+			},
+			wantErr:      true,
+			wantContains: []string{"width", "height", "blur"},
+		},
 	}
 
-	run := func(blur float32) []byte {
-		t.Helper()
+	for _, tc := range cases {
+		t.Run(tc.name, func(t *testing.T) {
+			t.Parallel()
 
-		var out bytes.Buffer
-		if err := transformer.Run(
-			bytes.NewReader(src),
-			nhostJPGBytes,
-			&out,
-			image.Options{Blur: blur, Format: image.ImageTypeJPEG},
-		); err != nil {
-			t.Fatal(err)
-		}
+			err := transformer.ValidateOptions(tc.opts)
 
-		return out.Bytes()
-	}
+			if !tc.wantErr {
+				if err != nil {
+					t.Fatalf("expected no error, got %v", err)
+				}
 
-	atCap := run(maxBlurSigma)
-	clamped := run(oversized)
+				return
+			}
 
-	if !bytes.Equal(atCap, clamped) {
-		t.Errorf(
-			"oversized blur sigma was not clamped to the cap: "+
-				"output for b=%d (%d bytes) differs from b=%d (%d bytes)",
-			oversized, len(clamped), maxBlurSigma, len(atCap),
-		)
+			if !errors.Is(err, image.ErrOptionsOutOfRange) {
+				t.Fatalf("expected ErrOptionsOutOfRange, got %v", err)
+			}
+
+			for _, want := range tc.wantContains {
+				if !strings.Contains(err.Error(), want) {
+					t.Errorf("expected error %q to contain %q", err.Error(), want)
+				}
+			}
+		})
 	}
 }
 

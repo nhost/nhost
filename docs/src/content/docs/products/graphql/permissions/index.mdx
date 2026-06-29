@@ -22,6 +22,8 @@ Imagine a table `todos` with `id`, `created_at`, `completed_at`, `title`, `compl
 
 The permission above makes sure users can only select their own todos, because the value of `user_id` must be equal (`_eq`) to the authenticated user's ID (`x-hasura-user-id`).
 
+Besides columns, a select permission also controls access to the table's [computed fields](/products/graphql/computed-fields) — each field is enabled per role alongside the columns.
+
 ## Explore
 
 The rest of this section covers each piece of the permission system in detail:

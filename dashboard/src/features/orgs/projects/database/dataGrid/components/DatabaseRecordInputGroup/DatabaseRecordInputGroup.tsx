@@ -110,8 +110,10 @@ export default function DatabaseRecordInputGroup({
         {columns.map((column, index) => {
           const {
             id: columnId,
-            type,
             specificType,
+            baseType,
+            isArray,
+            displayType,
             defaultValue,
             isPrimary,
             isNullable,
@@ -122,11 +124,13 @@ export default function DatabaseRecordInputGroup({
           const hasDefault = !!(defaultValue || isIdentity);
 
           const isMultiline =
-            specificType === 'text' ||
-            specificType === 'bpchar' ||
-            specificType?.includes('character varying') ||
-            specificType === 'json' ||
-            specificType === 'jsonb';
+            isArray ||
+            baseType === 'text' ||
+            baseType === 'bpchar' ||
+            baseType === 'character' ||
+            baseType === 'character varying' ||
+            baseType === 'json' ||
+            baseType === 'jsonb';
 
           const inputLabel = (
             <span className="inline-grid grid-flow-col gap-1">
@@ -141,12 +145,12 @@ export default function DatabaseRecordInputGroup({
                 className="h-[1.125rem] overflow-hidden whitespace-nowrap leading-[1.125rem]"
                 title={specificType}
               >
-                {specificType}
+                {displayType}
               </InlineCode>
             </span>
           );
 
-          if (type === 'boolean') {
+          if (!isArray && baseType === 'boolean') {
             return (
               <FormSelect
                 key={columnId}
@@ -191,14 +195,21 @@ export default function DatabaseRecordInputGroup({
                 helperText={comment}
                 multiline={isMultiline}
                 className={cn({ 'focus-visible:ring-0': isMultiline })}
-                type={getInputType({ type, specificType })}
+                type={getInputType(baseType)}
               />
             );
           }
 
+          let fallbackPlaceholder: string | undefined;
+          if (isArray) {
+            fallbackPlaceholder = 'e.g. [1, 2, 3]';
+          } else if (isNullable) {
+            fallbackPlaceholder = 'NULL';
+          }
+
           const placeholder =
             getDefaultPlaceholder(defaultValue, isIdentity) ??
-            (isNullable ? 'NULL' : undefined);
+            fallbackPlaceholder;
           const InputComponent = isMultiline ? FormTextarea : FormInput;
           return (
             <InputComponent
@@ -218,7 +229,7 @@ export default function DatabaseRecordInputGroup({
                 { 'resize-none': isMultiline },
                 'focus-visible:ring-0',
               )}
-              type={getInputType({ type, specificType })}
+              type={getInputType(baseType)}
             />
           );
         })}

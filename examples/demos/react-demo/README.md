@@ -16,6 +16,7 @@ This demo application showcases how to use the Nhost SDK with React.
 - **Event triggers** — Editing a community description triggers a notification to all community members (via Hasura event trigger + serverless function)
 - **Cron triggers** — Hourly cron job marks todos older than 7 days as stale and notifies affected users (via Hasura cron trigger + serverless function)
 - **One-off scheduled events** — Broadcast notifications to all users, created from the Hasura console (via one-off scheduled event + serverless function)
+- **Computed fields** — Current-user membership status (`is_member`) and join time (`my_joined_at`) are exposed as virtual columns on `communities`, backed by session-aware Postgres functions that read the current user from the request
 - **Serverless functions** — Testing interface for various function patterns (echo, error handling, JWT verification, CORS, SDK queries)
 - **OAuth2 client management** — Create, edit, and delete OAuth2 clients with redirect URIs, scopes, and secret management
 - **OAuth2 consent page** — Authorization consent flow for third-party applications

@@ -11,7 +11,10 @@ import (
 	"github.com/jackc/pgx/v5/internal/pgio"
 )
 
-const pgTimestampFormat = "2006-01-02 15:04:05.999999999"
+const (
+	pgTimestampFormat = "2006-01-02 15:04:05.999999999"
+	jsonISO8601       = "2006-01-02T15:04:05.999999999"
+)
 
 type TimestampScanner interface {
 	ScanTimestamp(v Timestamp) error
@@ -28,16 +31,18 @@ type Timestamp struct {
 	Valid            bool
 }
 
+// ScanTimestamp implements the [TimestampScanner] interface.
 func (ts *Timestamp) ScanTimestamp(v Timestamp) error {
 	*ts = v
 	return nil
 }
 
+// TimestampValue implements the [TimestampValuer] interface.
 func (ts Timestamp) TimestampValue() (Timestamp, error) {
 	return ts, nil
 }
 
-// Scan implements the database/sql Scanner interface.
+// Scan implements the [database/sql.Scanner] interface.
 func (ts *Timestamp) Scan(src any) error {
 	if src == nil {
 		*ts = Timestamp{}
@@ -55,7 +60,7 @@ func (ts *Timestamp) Scan(src any) error {
 	return fmt.Errorf("cannot scan %T", src)
 }
 
-// Value implements the database/sql/driver Valuer interface.
+// Value implements the [database/sql/driver.Valuer] interface.
 func (ts Timestamp) Value() (driver.Value, error) {
 	if !ts.Valid {
 		return nil, nil
@@ -67,6 +72,7 @@ func (ts Timestamp) Value() (driver.Value, error) {
 	return ts.Time, nil
 }
 
+// MarshalJSON implements the [encoding/json.Marshaler] interface.
 func (ts Timestamp) MarshalJSON() ([]byte, error) {
 	if !ts.Valid {
 		return []byte("null"), nil
@@ -76,7 +82,7 @@ func (ts Timestamp) MarshalJSON() ([]byte, error) {
 
 	switch ts.InfinityModifier {
 	case Finite:
-		s = ts.Time.Format(time.RFC3339Nano)
+		s = ts.Time.Format(jsonISO8601)
 	case Infinity:
 		s = "infinity"
 	case NegativeInfinity:
@@ -86,6 +92,7 @@ func (ts Timestamp) MarshalJSON() ([]byte, error) {
 	return json.Marshal(s)
 }
 
+// UnmarshalJSON implements the [encoding/json.Unmarshaler] interface.
 func (ts *Timestamp) UnmarshalJSON(b []byte) error {
 	var s *string
 	err := json.Unmarshal(b, &s)
@@ -104,15 +111,23 @@ func (ts *Timestamp) UnmarshalJSON(b []byte) error {
 	case "-infinity":
 		*ts = Timestamp{Valid: true, InfinityModifier: -Infinity}
 	default:
-		// PostgreSQL uses ISO 8601 wihout timezone for to_json function and casting from a string to timestampt
-		tim, err := time.Parse(time.RFC3339Nano, *s+"Z")
-		if err != nil {
-			return err
+		// Parse time with or without timezone
+		tss := *s
+		// PostgreSQL uses ISO 8601 without timezone for to_json function and casting from a string to timestamp
+		tim, err := time.Parse(time.RFC3339Nano, tss)
+		if err == nil {
+			*ts = Timestamp{Time: tim, Valid: true}
+			return nil
 		}
-
-		*ts = Timestamp{Time: tim, Valid: true}
+		tim, err = time.ParseInLocation(jsonISO8601, tss, time.UTC)
+		if err == nil {
+			*ts = Timestamp{Time: tim, Valid: true}
+			return nil
+		}
+		ts.Valid = false
+		return fmt.Errorf("cannot unmarshal %s to timestamp with layout %s or %s (%w)",
+			*s, time.RFC3339Nano, jsonISO8601, err)
 	}
-
 	return nil
 }
 
@@ -161,7 +176,7 @@ func (encodePlanTimestampCodecBinary) Encode(value any, buf []byte) (newBuf []by
 	switch ts.InfinityModifier {
 	case Finite:
 		t := discardTimeZone(ts.Time)
-		microsecSinceUnixEpoch := t.Unix()*1000000 + int64(t.Nanosecond())/1000
+		microsecSinceUnixEpoch := t.Unix()*1_000_000 + int64(t.Nanosecond())/1000
 		microsecSinceY2K = microsecSinceUnixEpoch - microsecFromUnixEpochToY2K
 	case Infinity:
 		microsecSinceY2K = infinityMicrosecondOffset
@@ -264,8 +279,8 @@ func (plan *scanPlanBinaryTimestampToTimestampScanner) Scan(src []byte, dst any)
 		ts = Timestamp{Valid: true, InfinityModifier: -Infinity}
 	default:
 		tim := time.Unix(
-			microsecFromUnixEpochToY2K/1000000+microsecSinceY2K/1000000,
-			(microsecFromUnixEpochToY2K%1000000*1000)+(microsecSinceY2K%1000000*1000),
+			microsecFromUnixEpochToY2K/1_000_000+microsecSinceY2K/1_000_000,
+			(microsecFromUnixEpochToY2K%1_000_000*1_000)+(microsecSinceY2K%1_000_000*1000),
 		).UTC()
 		if plan.location != nil {
 			tim = time.Date(tim.Year(), tim.Month(), tim.Day(), tim.Hour(), tim.Minute(), tim.Second(), tim.Nanosecond(), plan.location)
