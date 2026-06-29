@@ -132,7 +132,7 @@ type Volume struct {
 // which is unroutable from containers attached to the user-defined
 // project bridge. Resolution for those hostnames is provided by network
 // aliases on the traefik service (see traefikAliases).
-var extraHosts = []string{
+var extraHosts = []string{ //nolint:gochecknoglobals // immutable /etc/hosts entries shared by all bridge services
 	"host.docker.internal:host-gateway",
 }
 
@@ -347,7 +347,7 @@ func traefik(subdomain, projectName string, port uint, dotnhostfolder string) (*
 	}, nil
 }
 
-func minio(subdomain, volumeName string) *Service {
+func minio(volumeName string) *Service {
 	return &Service{
 		Image:      "minio/minio:RELEASE.2025-02-28T09-55-16Z",
 		DependsOn:  nil,
@@ -570,7 +570,7 @@ func functions( //nolint:funlen
 	}, nil
 }
 
-func mailhog(subdomain, volumeName string, useTLS bool) *Service {
+func mailhog(volumeName string, useTLS bool) *Service {
 	return &Service{
 		Image:      "jcalonso/mailhog:v1.0.1",
 		DependsOn:  nil,
@@ -656,7 +656,7 @@ func getServices( //nolint: funlen,cyclop
 	runServices ...*RunService,
 ) (map[string]*Service, error) {
 	minioVolumeName := "minio_" + sanitizeBranch(branch)
-	minio := minio(subdomain, minioVolumeName)
+	minio := minio(minioVolumeName)
 
 	storage, err := storage(cfg, subdomain, useTLS, httpPort, ports.Storage)
 	if err != nil {
@@ -695,7 +695,7 @@ func getServices( //nolint: funlen,cyclop
 	}
 
 	mailhogVolumeName := "mailhog_" + sanitizeBranch(branch)
-	mailhog := mailhog(subdomain, mailhogVolumeName, useTLS)
+	mailhog := mailhog(mailhogVolumeName, useTLS)
 
 	cs, err := configserver(
 		configserviceImage,
