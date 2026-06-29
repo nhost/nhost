@@ -57,9 +57,9 @@ const defaultColumnOperators = [
 ] as const;
 
 export function getAvailableOperators(
-  dataType?: string,
+  specificType?: string,
 ): readonly { op: DataGridFilterOperator; label: string }[] {
-  if (dataType === 'jsonb') {
+  if (specificType === 'jsonb') {
     return jsonbColumnOperators;
   }
 

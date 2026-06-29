@@ -1,7 +1,7 @@
 'use client';
 
 import { TZDate } from '@date-fns/tz';
-import { add, format, parseISO } from 'date-fns-v4';
+import { add, format, parseISO } from 'date-fns';
 import { Calendar as CalendarIcon } from 'lucide-react';
 import { useState } from 'react';
 import { TimePicker } from '@/components/common/TimePicker';

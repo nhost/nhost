@@ -1,4 +1,4 @@
-import { format, isBefore, startOfDay } from 'date-fns-v4';
+import { format, isBefore, startOfDay } from 'date-fns';
 import { Controller, useFormContext } from 'react-hook-form';
 import { DateTimePicker } from '@/components/common/DateTimePicker';
 import { FormItem, FormLabel, FormMessage } from '@/components/ui/v3/form';

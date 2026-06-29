@@ -38,6 +38,10 @@ func cardinality(dimensions []ArrayDimension) int {
 		elementCount *= int(d.Length)
 	}
 
+	if elementCount < 0 {
+		return 0
+	}
+
 	return elementCount
 }
 
@@ -51,16 +55,20 @@ func (dst *arrayHeader) DecodeBinary(m *Map, src []byte) (int, error) {
 	numDims := int(binary.BigEndian.Uint32(src[rp:]))
 	rp += 4
 
+	if numDims > 6 {
+		return 0, fmt.Errorf("array has too many dimensions: %d", numDims)
+	}
+
 	dst.ContainsNull = binary.BigEndian.Uint32(src[rp:]) == 1
 	rp += 4
 
 	dst.ElementOID = binary.BigEndian.Uint32(src[rp:])
 	rp += 4
 
-	dst.Dimensions = make([]ArrayDimension, numDims)
 	if len(src) < 12+numDims*8 {
 		return 0, fmt.Errorf("array header too short for %d dimensions: %d", numDims, len(src))
 	}
+	dst.Dimensions = make([]ArrayDimension, numDims)
 	for i := range dst.Dimensions {
 		dst.Dimensions[i].Length = int32(binary.BigEndian.Uint32(src[rp:]))
 		rp += 4
@@ -299,7 +307,7 @@ func arrayParseQuotedValue(buf *bytes.Buffer) (string, bool, error) {
 				return "", false, err
 			}
 		case '"':
-			r, _, err = buf.ReadRune()
+			_, _, err = buf.ReadRune()
 			if err != nil {
 				return "", false, err
 			}
@@ -374,8 +382,8 @@ func quoteArrayElementIfNeeded(src string) string {
 	return src
 }
 
-// Array represents a PostgreSQL array for T. It implements the ArrayGetter and ArraySetter interfaces. It preserves
-// PostgreSQL dimensions and custom lower bounds. Use FlatArray if these are not needed.
+// Array represents a PostgreSQL array for T. It implements the [ArrayGetter] and [ArraySetter] interfaces. It preserves
+// PostgreSQL dimensions and custom lower bounds. Use [FlatArray] if these are not needed.
 type Array[T any] struct {
 	Elements []T
 	Dims     []ArrayDimension
@@ -419,8 +427,8 @@ func (a Array[T]) ScanIndexType() any {
 	return new(T)
 }
 
-// FlatArray implements the ArrayGetter and ArraySetter interfaces for any slice of T. It ignores PostgreSQL dimensions
-// and custom lower bounds. Use Array to preserve these.
+// FlatArray implements the [ArrayGetter] and [ArraySetter] interfaces for any slice of T. It ignores PostgreSQL dimensions
+// and custom lower bounds. Use [Array] to preserve these.
 type FlatArray[T any] []T
 
 func (a FlatArray[T]) Dimensions() []ArrayDimension {

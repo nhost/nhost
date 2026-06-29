@@ -1,7 +1,6 @@
 import '@tanstack/react-table';
 import type { Row, RowData } from '@tanstack/react-table';
 import type {
-  ColumnType,
   ColumnUpdateOptions,
   ForeignKeyRelation,
 } from '@/features/orgs/projects/database/dataGrid/types/dataBrowser';
@@ -23,12 +22,9 @@ declare module '@tanstack/react-table' {
     uniqueConstraints?: string[];
     primaryConstraints?: string[];
     foreignKeyRelation?: ForeignKeyRelation | null;
-    specificType?: ColumnType;
-    dataType?: string;
-    /**
-     * More generic type of the column. Determines what type of input field is
-     * rendered.
-     */
-    type?: string;
+    specificType?: string;
+    baseType?: string;
+    isArray?: boolean;
+    displayType?: string;
   }
 }
