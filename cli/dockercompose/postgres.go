@@ -77,7 +77,9 @@ func postgres( //nolint:funlen
 				Protocol:  "tcp",
 			},
 		},
-		Restart: "always",
+		Restart:         "always",
+		StopGracePeriod: "60s",
+		StopSignal:      "SIGTERM",
 		Volumes: []Volume{
 			{
 				Type:     "volume",
