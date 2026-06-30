@@ -97,11 +97,7 @@ export default function MobileNav({ className, ...props }: MobileNavProps) {
         </section>
 
         <section className={twMerge('grid grid-flow-row gap-3')}>
-          <Text variant="h2" className="font-semibold text-xl">
-            Theme
-          </Text>
-
-          <ThemeSwitcher aria-label="Theme" />
+          <ThemeSwitcher layout="mobile" />
         </section>
 
         {isPlatform && (

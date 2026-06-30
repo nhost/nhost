@@ -14,6 +14,7 @@ import { useProject } from '@/features/orgs/projects/hooks/useProject';
 import { RateLimitField } from '@/features/orgs/projects/rate-limiting/settings/components/RateLimitField';
 import { rateLimitingItemValidationSchema } from '@/features/orgs/projects/rate-limiting/settings/components/validationSchemas';
 import type { UseGetRunServiceRateLimitsReturn } from '@/features/orgs/projects/rate-limiting/settings/hooks/useGetRunServiceRateLimits/useGetRunServiceRateLimits';
+import { DEFAULT_RATE_LIMITS } from '@/features/orgs/projects/rate-limiting/settings/utils/constants';
 import { execPromiseWithErrorToast } from '@/features/orgs/utils/execPromiseWithErrorToast';
 import { isNotEmptyValue } from '@/lib/utils';
 import { useUpdateRunServiceConfigMutation } from '@/utils/__generated__/graphql';
@@ -58,7 +59,8 @@ export default function RunServiceLimitingForm({
         ...(ports ?? []).map((port) => ({
           limit: port?.rateLimit?.limit,
           interval: port?.rateLimit?.interval,
-          intervalUnit: port?.rateLimit?.intervalUnit,
+          intervalUnit:
+            port?.rateLimit?.intervalUnit ?? DEFAULT_RATE_LIMITS.intervalUnit,
         })),
       ],
     },
@@ -74,7 +76,8 @@ export default function RunServiceLimitingForm({
           ...(ports ?? []).map((port) => ({
             limit: port?.rateLimit?.limit,
             interval: port?.rateLimit?.interval,
-            intervalUnit: port?.rateLimit?.intervalUnit,
+            intervalUnit:
+              port?.rateLimit?.intervalUnit ?? DEFAULT_RATE_LIMITS.intervalUnit,
           })),
         ],
       });
