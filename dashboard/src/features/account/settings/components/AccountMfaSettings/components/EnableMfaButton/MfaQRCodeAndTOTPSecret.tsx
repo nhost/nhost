@@ -2,6 +2,7 @@ import { useEffect, useState } from 'react';
 import { toast } from 'react-hot-toast';
 import { MfaOtpForm } from '@/components/common/MfaOtpForm';
 import { Spinner } from '@/components/ui/v3/spinner';
+import useActionWithElevatedPermissions from '@/features/account/settings/hooks/useActionWithElevatedPermissions';
 import { useNhostClient } from '@/providers/nhost';
 import { getToastStyleProps } from '@/utils/constants/settings';
 import CopyMfaTOTPSecret from './CopyMfaTOTPSecret';
@@ -13,9 +14,18 @@ interface Props {
 function MfaQRCodeAndTOTPSecret({ onSuccess }: Props) {
   const [qrCodeDataUrl, setQrCodeDataUrl] = useState<string | undefined>();
   const [totpSecret, setTotpSecret] = useState<string | undefined>();
-  const [isGenerating, setIsGenerating] = useState(false);
+  const [isGenerating, setIsGenerating] = useState(true);
   const [isActivating, setIsActivating] = useState(false);
   const nhost = useNhostClient();
+
+  const generateMfa = useActionWithElevatedPermissions({
+    actionFn: nhost.auth.changeUserMfa,
+    onSuccess: (response) => {
+      setQrCodeDataUrl(response.body.imageUrl);
+      setTotpSecret(response.body.totpSecret);
+    },
+    successMessage: 'A new TOTP secret has been generated.',
+  });
 
   async function onSendMfaOtp(code: string) {
     try {
@@ -33,21 +43,9 @@ function MfaQRCodeAndTOTPSecret({ onSuccess }: Props) {
       setIsActivating(false);
     }
   }
-  // biome-ignore lint/correctness/useExhaustiveDependencies: singInProviderURL does not change
+  // biome-ignore lint/correctness/useExhaustiveDependencies: generate once on mount
   useEffect(() => {
-    async function generate() {
-      try {
-        setIsGenerating(true);
-        const response = await nhost.auth.changeUserMfa();
-        setQrCodeDataUrl(response.body.imageUrl);
-        setTotpSecret(response.body.totpSecret);
-      } catch (error) {
-        toast.error(error?.message, getToastStyleProps());
-      } finally {
-        setIsGenerating(false);
-      }
-    }
-    generate();
+    generateMfa().finally(() => setIsGenerating(false));
   }, []);
 
   return (

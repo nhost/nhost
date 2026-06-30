@@ -58,18 +58,6 @@ func expectedGraphql() *Service {
 		},
 		ExtraHosts: []string{
 			"host.docker.internal:host-gateway",
-			"dev.auth.local.nhost.run:host-gateway",
-			"dev.db.local.nhost.run:host-gateway",
-			"dev.functions.local.nhost.run:host-gateway",
-			"dev.graphql.local.nhost.run:host-gateway",
-			"dev.hasura.local.nhost.run:host-gateway",
-			"dev.storage.local.nhost.run:host-gateway",
-			"local.auth.nhost.run:host-gateway",
-			"local.db.nhost.run:host-gateway",
-			"local.functions.nhost.run:host-gateway",
-			"local.graphql.nhost.run:host-gateway",
-			"local.hasura.nhost.run:host-gateway",
-			"local.storage.nhost.run:host-gateway",
 		},
 		HealthCheck: &HealthCheck{
 			Test: []string{
@@ -234,18 +222,7 @@ func expectedConsole() *Service {
 		},
 		ExtraHosts: []string{
 			"host.docker.internal:host-gateway",
-			"dev.auth.local.nhost.run:host-gateway",
-			"dev.db.local.nhost.run:host-gateway",
-			"dev.functions.local.nhost.run:host-gateway",
-			"dev.graphql.local.nhost.run:host-gateway",
 			"dev.hasura.local.nhost.run:0.0.0.0",
-			"dev.storage.local.nhost.run:host-gateway",
-			"local.auth.nhost.run:host-gateway",
-			"local.db.nhost.run:host-gateway",
-			"local.functions.nhost.run:host-gateway",
-			"local.graphql.nhost.run:host-gateway",
-			"local.hasura.nhost.run:host-gateway",
-			"local.storage.nhost.run:host-gateway",
 		},
 		HealthCheck: &HealthCheck{
 			Test: []string{

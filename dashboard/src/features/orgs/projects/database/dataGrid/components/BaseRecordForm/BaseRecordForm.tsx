@@ -9,6 +9,7 @@ import type {
   DataBrowserColumnMetadata,
 } from '@/features/orgs/projects/database/dataGrid/types/dataBrowser';
 import { POSTGRES_DEFAULT_PLACEHOLDER } from '@/features/orgs/projects/database/dataGrid/utils/postgresDefaultPlaceholder';
+import { serializeTemporalValue } from '@/features/orgs/projects/database/dataGrid/utils/serializeTemporalValue';
 import { cn } from '@/lib/utils';
 import type { DialogFormProps } from '@/types/common';
 
@@ -140,11 +141,8 @@ export default function BaseRecordForm({
         return {
           ...options,
           [columnId]: {
-            value:
-              gridColumn?.type === 'date' && value instanceof Date
-                ? value.toUTCString()
-                : value,
-            specificType: gridColumn?.specificType,
+            value: serializeTemporalValue(value, gridColumn?.baseType),
+            isArray: gridColumn?.isArray,
           },
         };
       }, {});

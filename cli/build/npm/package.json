@@ -1,0 +1,26 @@
+{
+  "name": "@nhost/cli",
+  "version": "0.0.0",
+  "description": "Nhost CLI — run via npx or install as a devDependency",
+  "bin": {
+    "nhost": "bin/nhost"
+  },
+  "files": [
+    "bin/nhost"
+  ],
+  "optionalDependencies": {
+    "@nhost/cli-darwin-arm64": "0.0.0",
+    "@nhost/cli-darwin-x64": "0.0.0",
+    "@nhost/cli-linux-arm64": "0.0.0",
+    "@nhost/cli-linux-x64": "0.0.0"
+  },
+  "engines": {
+    "node": ">=18"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/nhost/nhost.git",
+    "directory": "cli/build/npm"
+  },
+  "license": "MIT"
+}

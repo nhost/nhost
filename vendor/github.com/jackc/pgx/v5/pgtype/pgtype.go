@@ -96,6 +96,8 @@ const (
 	RecordArrayOID         = 2287
 	UUIDOID                = 2950
 	UUIDArrayOID           = 2951
+	TSVectorOID            = 3614
+	TSVectorArrayOID       = 3643
 	JSONBOID               = 3802
 	JSONBArrayOID          = 3807
 	DaterangeOID           = 3912
@@ -154,7 +156,7 @@ const (
 	BinaryFormatCode = 1
 )
 
-// A Codec converts between Go and PostgreSQL values. A Codec must not be mutated after it is registered with a Map.
+// A Codec converts between Go and PostgreSQL values. A Codec must not be mutated after it is registered with a [Map].
 type Codec interface {
 	// FormatSupported returns true if the format is supported.
 	FormatSupported(int16) bool
@@ -185,7 +187,7 @@ func (e *nullAssignmentError) Error() string {
 	return fmt.Sprintf("cannot assign NULL to %T", e.dst)
 }
 
-// Type represents a PostgreSQL data type. It must not be mutated after it is registered with a Map.
+// Type represents a PostgreSQL data type. It must not be mutated after it is registered with a [Map].
 type Type struct {
 	Codec Codec
 	Name  string
@@ -202,7 +204,6 @@ type Map struct {
 
 	reflectTypeToType map[reflect.Type]*Type
 
-	memoizedScanPlans   map[uint32]map[reflect.Type][2]ScanPlan
 	memoizedEncodePlans map[uint32]map[reflect.Type][2]EncodePlan
 
 	// TryWrapEncodePlanFuncs is a slice of functions that will wrap a value that cannot be encoded by the Codec. Every
@@ -236,13 +237,13 @@ func NewMap() *Map {
 		reflectTypeToName: make(map[reflect.Type]string),
 		oidToFormatCode:   make(map[uint32]int16),
 
-		memoizedScanPlans:   make(map[uint32]map[reflect.Type][2]ScanPlan),
 		memoizedEncodePlans: make(map[uint32]map[reflect.Type][2]EncodePlan),
 
 		TryWrapEncodePlanFuncs: []TryWrapEncodePlanFunc{
 			TryWrapDerefPointerEncodePlan,
 			TryWrapBuiltinTypeEncodePlan,
 			TryWrapFindUnderlyingTypeEncodePlan,
+			TryWrapStringerEncodePlan,
 			TryWrapStructEncodePlan,
 			TryWrapSliceEncodePlan,
 			TryWrapMultiDimSliceEncodePlan,
@@ -268,7 +269,7 @@ func (m *Map) RegisterTypes(types []*Type) {
 	}
 }
 
-// RegisterType registers a data type with the Map. t must not be mutated after it is registered.
+// RegisterType registers a data type with the [Map]. t must not be mutated after it is registered.
 func (m *Map) RegisterType(t *Type) {
 	m.oidToType[t.OID] = t
 	m.nameToType[t.Name] = t
@@ -276,9 +277,6 @@ func (m *Map) RegisterType(t *Type) {
 
 	// Invalidated by type registration
 	m.reflectTypeToType = nil
-	for k := range m.memoizedScanPlans {
-		delete(m.memoizedScanPlans, k)
-	}
 	for k := range m.memoizedEncodePlans {
 		delete(m.memoizedEncodePlans, k)
 	}
@@ -292,15 +290,12 @@ func (m *Map) RegisterDefaultPgType(value any, name string) {
 
 	// Invalidated by type registration
 	m.reflectTypeToType = nil
-	for k := range m.memoizedScanPlans {
-		delete(m.memoizedScanPlans, k)
-	}
 	for k := range m.memoizedEncodePlans {
 		delete(m.memoizedEncodePlans, k)
 	}
 }
 
-// TypeForOID returns the Type registered for the given OID. The returned Type must not be mutated.
+// TypeForOID returns the [Type] registered for the given OID. The returned [Type] must not be mutated.
 func (m *Map) TypeForOID(oid uint32) (*Type, bool) {
 	if dt, ok := m.oidToType[oid]; ok {
 		return dt, true
@@ -310,7 +305,7 @@ func (m *Map) TypeForOID(oid uint32) (*Type, bool) {
 	return dt, ok
 }
 
-// TypeForName returns the Type registered for the given name. The returned Type must not be mutated.
+// TypeForName returns the [Type] registered for the given name. The returned [Type] must not be mutated.
 func (m *Map) TypeForName(name string) (*Type, bool) {
 	if dt, ok := m.nameToType[name]; ok {
 		return dt, true
@@ -329,8 +324,8 @@ func (m *Map) buildReflectTypeToType() {
 	}
 }
 
-// TypeForValue finds a data type suitable for v. Use RegisterType to register types that can encode and decode
-// themselves. Use RegisterDefaultPgType to register that can be handled by a registered data type.  The returned Type
+// TypeForValue finds a data type suitable for v. Use [Map.RegisterType] to register types that can encode and decode
+// themselves. Use [Map.RegisterDefaultPgType] to register that can be handled by a registered data type.  The returned [Type]
 // must not be mutated.
 func (m *Map) TypeForValue(v any) (*Type, bool) {
 	if m.reflectTypeToType == nil {
@@ -396,11 +391,7 @@ type scanPlanSQLScanner struct {
 }
 
 func (plan *scanPlanSQLScanner) Scan(src []byte, dst any) error {
-	scanner := getSQLScanner(dst)
-
-	if scanner == nil {
-		return fmt.Errorf("cannot scan into %T", dst)
-	}
+	scanner := dst.(sql.Scanner)
 
 	if src == nil {
 		// This is necessary because interface value []byte:nil does not equal nil:nil for the binary format path and the
@@ -411,21 +402,6 @@ func (plan *scanPlanSQLScanner) Scan(src []byte, dst any) error {
 	} else {
 		return scanner.Scan(string(src))
 	}
-}
-
-// we don't know if the target is a sql.Scanner or a pointer on a sql.Scanner, so we need to check recursively
-func getSQLScanner(target any) sql.Scanner {
-	val := reflect.ValueOf(target)
-	for val.Kind() == reflect.Ptr {
-		if _, ok := val.Interface().(sql.Scanner); ok {
-			if val.IsNil() {
-				val.Set(reflect.New(val.Type().Elem()))
-			}
-			return val.Interface().(sql.Scanner)
-		}
-		val = val.Elem()
-	}
-	return nil
 }
 
 type scanPlanString struct{}
@@ -550,20 +526,20 @@ type SkipUnderlyingTypePlanner interface {
 }
 
 var elemKindToPointerTypes map[reflect.Kind]reflect.Type = map[reflect.Kind]reflect.Type{
-	reflect.Int:     reflect.TypeOf(new(int)),
-	reflect.Int8:    reflect.TypeOf(new(int8)),
-	reflect.Int16:   reflect.TypeOf(new(int16)),
-	reflect.Int32:   reflect.TypeOf(new(int32)),
-	reflect.Int64:   reflect.TypeOf(new(int64)),
-	reflect.Uint:    reflect.TypeOf(new(uint)),
-	reflect.Uint8:   reflect.TypeOf(new(uint8)),
-	reflect.Uint16:  reflect.TypeOf(new(uint16)),
-	reflect.Uint32:  reflect.TypeOf(new(uint32)),
-	reflect.Uint64:  reflect.TypeOf(new(uint64)),
-	reflect.Float32: reflect.TypeOf(new(float32)),
-	reflect.Float64: reflect.TypeOf(new(float64)),
-	reflect.String:  reflect.TypeOf(new(string)),
-	reflect.Bool:    reflect.TypeOf(new(bool)),
+	reflect.Int:     reflect.TypeFor[*int](),
+	reflect.Int8:    reflect.TypeFor[*int8](),
+	reflect.Int16:   reflect.TypeFor[*int16](),
+	reflect.Int32:   reflect.TypeFor[*int32](),
+	reflect.Int64:   reflect.TypeFor[*int64](),
+	reflect.Uint:    reflect.TypeFor[*uint](),
+	reflect.Uint8:   reflect.TypeFor[*uint8](),
+	reflect.Uint16:  reflect.TypeFor[*uint16](),
+	reflect.Uint32:  reflect.TypeFor[*uint32](),
+	reflect.Uint64:  reflect.TypeFor[*uint64](),
+	reflect.Float32: reflect.TypeFor[*float32](),
+	reflect.Float64: reflect.TypeFor[*float64](),
+	reflect.String:  reflect.TypeFor[*string](),
+	reflect.Bool:    reflect.TypeFor[*bool](),
 }
 
 type underlyingTypeScanPlan struct {
@@ -928,7 +904,7 @@ func (plan *pointerEmptyInterfaceScanPlan) Scan(src []byte, dst any) error {
 	return nil
 }
 
-// TryWrapStructPlan tries to wrap a struct with a wrapper that implements CompositeIndexGetter.
+// TryWrapStructScanPlan tries to wrap a struct with a wrapper that implements CompositeIndexGetter.
 func TryWrapStructScanPlan(target any) (plan WrappedScanPlanNextSetter, nextValue any, ok bool) {
 	targetValue := reflect.ValueOf(target)
 	if targetValue.Kind() != reflect.Ptr {
@@ -1086,32 +1062,14 @@ func (plan *wrapPtrArrayReflectScanPlan) Scan(src []byte, target any) error {
 
 // PlanScan prepares a plan to scan a value into target.
 func (m *Map) PlanScan(oid uint32, formatCode int16, target any) ScanPlan {
-	return m.planScanDepth(oid, formatCode, target, 0)
+	return m.planScan(oid, formatCode, target, 0)
 }
 
-func (m *Map) planScanDepth(oid uint32, formatCode int16, target any, depth int) ScanPlan {
+func (m *Map) planScan(oid uint32, formatCode int16, target any, depth int) ScanPlan {
 	if depth > 8 {
 		return &scanPlanFail{m: m, oid: oid, formatCode: formatCode}
 	}
 
-	oidMemo := m.memoizedScanPlans[oid]
-	if oidMemo == nil {
-		oidMemo = make(map[reflect.Type][2]ScanPlan)
-		m.memoizedScanPlans[oid] = oidMemo
-	}
-	targetReflectType := reflect.TypeOf(target)
-	typeMemo := oidMemo[targetReflectType]
-	plan := typeMemo[formatCode]
-	if plan == nil {
-		plan = m.planScan(oid, formatCode, target, depth)
-		typeMemo[formatCode] = plan
-		oidMemo[targetReflectType] = typeMemo
-	}
-
-	return plan
-}
-
-func (m *Map) planScan(oid uint32, formatCode int16, target any, depth int) ScanPlan {
 	if target == nil {
 		return &scanPlanFail{m: m, oid: oid, formatCode: formatCode}
 	}
@@ -1171,7 +1129,7 @@ func (m *Map) planScan(oid uint32, formatCode int16, target any, depth int) Scan
 
 	for _, f := range m.TryWrapScanPlanFuncs {
 		if wrapperPlan, nextDst, ok := f(target); ok {
-			if nextPlan := m.planScanDepth(oid, formatCode, nextDst, depth+1); nextPlan != nil {
+			if nextPlan := m.planScan(oid, formatCode, nextDst, depth+1); nextPlan != nil {
 				if _, failed := nextPlan.(*scanPlanFail); !failed {
 					wrapperPlan.SetNext(nextPlan)
 					return wrapperPlan
@@ -1180,10 +1138,18 @@ func (m *Map) planScan(oid uint32, formatCode int16, target any, depth int) Scan
 		}
 	}
 
-	if dt != nil {
-		if _, ok := target.(*any); ok {
-			return &pointerEmptyInterfaceScanPlan{codec: dt.Codec, m: m, oid: oid, formatCode: formatCode}
+	if _, ok := target.(*any); ok {
+		var codec Codec
+		if dt != nil {
+			codec = dt.Codec
+		} else {
+			if formatCode == TextFormatCode {
+				codec = TextCodec{}
+			} else {
+				codec = ByteaCodec{}
+			}
 		}
+		return &pointerEmptyInterfaceScanPlan{codec: codec, m: m, oid: oid, formatCode: formatCode}
 	}
 
 	return &scanPlanFail{m: m, oid: oid, formatCode: formatCode}
@@ -1228,7 +1194,7 @@ func codecDecodeToTextFormat(codec Codec, m *Map, oid uint32, format int16, src 
 	}
 }
 
-// PlanEncode returns an Encode plan for encoding value into PostgreSQL format for oid and format. If no plan can be
+// PlanEncode returns an EncodePlan for encoding value into PostgreSQL format for oid and format. If no plan can be
 // found then nil is returned.
 func (m *Map) PlanEncode(oid uint32, format int16, value any) EncodePlan {
 	return m.planEncodeDepth(oid, format, value, 0)
@@ -1409,23 +1375,23 @@ func TryWrapDerefPointerEncodePlan(value any) (plan WrappedEncodePlanNextSetter,
 }
 
 var kindToTypes map[reflect.Kind]reflect.Type = map[reflect.Kind]reflect.Type{
-	reflect.Int:     reflect.TypeOf(int(0)),
-	reflect.Int8:    reflect.TypeOf(int8(0)),
-	reflect.Int16:   reflect.TypeOf(int16(0)),
-	reflect.Int32:   reflect.TypeOf(int32(0)),
-	reflect.Int64:   reflect.TypeOf(int64(0)),
-	reflect.Uint:    reflect.TypeOf(uint(0)),
-	reflect.Uint8:   reflect.TypeOf(uint8(0)),
-	reflect.Uint16:  reflect.TypeOf(uint16(0)),
-	reflect.Uint32:  reflect.TypeOf(uint32(0)),
-	reflect.Uint64:  reflect.TypeOf(uint64(0)),
-	reflect.Float32: reflect.TypeOf(float32(0)),
-	reflect.Float64: reflect.TypeOf(float64(0)),
-	reflect.String:  reflect.TypeOf(""),
-	reflect.Bool:    reflect.TypeOf(false),
+	reflect.Int:     reflect.TypeFor[int](),
+	reflect.Int8:    reflect.TypeFor[int8](),
+	reflect.Int16:   reflect.TypeFor[int16](),
+	reflect.Int32:   reflect.TypeFor[int32](),
+	reflect.Int64:   reflect.TypeFor[int64](),
+	reflect.Uint:    reflect.TypeFor[uint](),
+	reflect.Uint8:   reflect.TypeFor[uint8](),
+	reflect.Uint16:  reflect.TypeFor[uint16](),
+	reflect.Uint32:  reflect.TypeFor[uint32](),
+	reflect.Uint64:  reflect.TypeFor[uint64](),
+	reflect.Float32: reflect.TypeFor[float32](),
+	reflect.Float64: reflect.TypeFor[float64](),
+	reflect.String:  reflect.TypeFor[string](),
+	reflect.Bool:    reflect.TypeFor[bool](),
 }
 
-var byteSliceType = reflect.TypeOf([]byte{})
+var byteSliceType = reflect.TypeFor[[]byte]()
 
 type underlyingTypeEncodePlan struct {
 	nextValueType reflect.Type
@@ -1476,6 +1442,24 @@ func TryWrapFindUnderlyingTypeEncodePlan(value any) (plan WrappedEncodePlanNextS
 		if refValue.Type() != underlyingArrayType {
 			return &underlyingTypeEncodePlan{nextValueType: underlyingArrayType}, refValue.Convert(underlyingArrayType).Interface(), true
 		}
+	}
+
+	return nil, nil, false
+}
+
+// TryWrapStringerEncodePlan tries to wrap a fmt.Stringer type with a wrapper that provides TextValuer. This is
+// intentionally a separate function from TryWrapBuiltinTypeEncodePlan so it can be ordered after
+// TryWrapFindUnderlyingTypeEncodePlan. This ensures that named types with an underlying builtin type (e.g. type MyEnum
+// int32 with a String() method) prefer encoding via the underlying type's codec (e.g. as an integer) rather than via
+// Stringer. Stringer is only used as a fallback when no type-specific encoding plan succeeds.
+// (https://github.com/jackc/pgx/discussions/2527)
+func TryWrapStringerEncodePlan(value any) (plan WrappedEncodePlanNextSetter, nextValue any, ok bool) {
+	if _, ok := value.(driver.Valuer); ok {
+		return nil, nil, false
+	}
+
+	if s, ok := value.(fmt.Stringer); ok {
+		return &wrapFmtStringerEncodePlan{}, fmtStringerWrapper{s}, true
 	}
 
 	return nil, nil, false
@@ -1541,8 +1525,6 @@ func TryWrapBuiltinTypeEncodePlan(value any) (plan WrappedEncodePlanNextSetter, 
 		return &wrapByte16EncodePlan{}, byte16Wrapper(value), true
 	case []byte:
 		return &wrapByteSliceEncodePlan{}, byteSliceWrapper(value), true
-	case fmt.Stringer:
-		return &wrapFmtStringerEncodePlan{}, fmtStringerWrapper{value}, true
 	}
 
 	return nil, nil, false
@@ -1788,7 +1770,7 @@ func (plan *wrapFmtStringerEncodePlan) Encode(value any, buf []byte) (newBuf []b
 	return plan.next.Encode(fmtStringerWrapper{value.(fmt.Stringer)}, buf)
 }
 
-// TryWrapStructPlan tries to wrap a struct with a wrapper that implements CompositeIndexGetter.
+// TryWrapStructEncodePlan tries to wrap a struct with a wrapper that implements CompositeIndexGetter.
 func TryWrapStructEncodePlan(value any) (plan WrappedEncodePlanNextSetter, nextValue any, ok bool) {
 	if _, ok := value.(driver.Valuer); ok {
 		return nil, nil, false
@@ -2044,37 +2026,18 @@ func (w *sqlScannerWrapper) Scan(src any) error {
 		case []byte:
 			bufSrc = src
 		default:
-			bufSrc = []byte(fmt.Sprint(bufSrc))
+			bufSrc = fmt.Append(nil, bufSrc)
 		}
 	}
 
 	return w.m.Scan(t.OID, TextFormatCode, bufSrc, w.v)
 }
 
-// canBeNil returns true if value can be nil.
-func canBeNil(value any) bool {
-	refVal := reflect.ValueOf(value)
-	kind := refVal.Kind()
-	switch kind {
-	case reflect.Chan, reflect.Func, reflect.Map, reflect.Ptr, reflect.UnsafePointer, reflect.Interface, reflect.Slice:
-		return true
-	default:
-		return false
-	}
-}
-
-// valuerReflectType is a reflect.Type for driver.Valuer. It has confusing syntax because reflect.TypeOf returns nil
-// when it's argument is a nil interface value. So we use a pointer to the interface and call Elem to get the actual
-// type. Yuck.
-//
-// This can be simplified in Go 1.22 with reflect.TypeFor.
-//
-// var valuerReflectType = reflect.TypeFor[driver.Valuer]()
-var valuerReflectType = reflect.TypeOf((*driver.Valuer)(nil)).Elem()
+var valuerReflectType = reflect.TypeFor[driver.Valuer]()
 
 // isNilDriverValuer returns true if value is any type of nil unless it implements driver.Valuer. *T is not considered to implement
 // driver.Valuer if it is only implemented by T.
-func isNilDriverValuer(value any) (isNil bool, callNilDriverValuer bool) {
+func isNilDriverValuer(value any) (isNil, callNilDriverValuer bool) {
 	if value == nil {
 		return true, false
 	}

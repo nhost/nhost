@@ -73,7 +73,7 @@ let
   checkDeps = with pkgs; [
     nhost.nhost-cli
     lychee
-    playwright-driver
+    nhost.playwright-driver
   ];
 
   buildInputs = with pkgs; [ nhost.nodejs ];
@@ -136,7 +136,7 @@ let
         export HOME=$TMPDIR
         export SSL_CERT_FILE=${pkgs.cacert}/etc/ssl/certs/ca-bundle.crt
         export NIX_SSL_CERT_FILE=$SSL_CERT_FILE
-        export PLAYWRIGHT_BROWSERS_PATH=${pkgs.playwright-driver.browsers}
+        export PLAYWRIGHT_BROWSERS_PATH=${pkgs.nhost.playwright-driver.browsers}
         export PLAYWRIGHT_SKIP_VALIDATE_HOST_REQUIREMENTS=true
 
         cp -r ${src}/. .
@@ -182,7 +182,7 @@ rec {
       ++ nativeBuildInputs;
 
     shellHook = ''
-      export PLAYWRIGHT_BROWSERS_PATH=${pkgs.playwright-driver.browsers}
+      export PLAYWRIGHT_BROWSERS_PATH=${pkgs.nhost.playwright-driver.browsers}
       export PLAYWRIGHT_SKIP_VALIDATE_HOST_REQUIREMENTS=true
     '';
 

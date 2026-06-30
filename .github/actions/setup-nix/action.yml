@@ -29,10 +29,16 @@ runs:
           experimental-features = nix-command flakes
           sandbox = relaxed
           access-tokens = github.com=${{ inputs.GITHUB_TOKEN }}
-          substituters = https://cache.nixos.org/?priority=40 s3://nhost-nix-cache?endpoint=https://14bc02755b64adb7c8c62b5420d0a457.eu.r2.cloudflarestorage.com&region=auto&priority=50
+          substituters = https://cache.nixos.org/?priority=40 s3://nhost-nix-cache?endpoint=https://14bc02755b64adb7c8c62b5420d0a457.eu.r2.cloudflarestorage.com&region=auto&priority=10
           trusted-public-keys = cache.nixos.org-1:6NCHdD59X431o0gWypbMrAURkbJ16ZPMQFGspcDShjY= ${{ inputs.NIX_CACHE_PUB_KEY }}
           keep-env-derivations = true
           keep-outputs = true
+          # Build from source when a substitute fails (e.g. a corrupt narinfo
+          # upstream) instead of aborting the job. See nixops/project.nix where
+          # geos is cached: this lets the first build past a bad cache.nixos.org
+          # entry and into our R2 cache, after which the priority=10 nhost
+          # substituter serves it.
+          fallback = true
 
     - name: "Configure Nix daemon cache access and build collector"
       # The Nix daemon runs as root and doesn't inherit AWS_* env vars

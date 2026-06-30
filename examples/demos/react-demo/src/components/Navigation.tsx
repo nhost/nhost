@@ -15,62 +15,51 @@ export default function Navigation(): JSX.Element {
   return (
     <nav className="navbar">
       <div className="navbar-container">
-        <div className="flex items-center">
-          <span className="navbar-brand">Nhost Demo</span>
-          <div className="navbar-links">
-            {isAuthenticated ? (
-              <>
-                <Link
-                  to="/profile"
-                  className={`nav-link ${isActive('/profile')}`}
-                >
-                  Profile
-                </Link>
-                <Link to="/todos" className={`nav-link ${isActive('/todos')}`}>
-                  Todos
-                </Link>
-                <Link
-                  to="/upload"
-                  className={`nav-link ${isActive('/upload')}`}
-                >
-                  Upload
-                </Link>
-                <Link
-                  to="/communities"
-                  className={`nav-link ${isActive('/communities')}`}
-                >
-                  Communities
-                </Link>
-                <Link
-                  to="/functions"
-                  className={`nav-link ${isActive('/functions')}`}
-                >
-                  Functions
-                </Link>
-                <Link
-                  to="/oauth2-providers"
-                  className={`nav-link ${isActive('/oauth2-providers')}`}
-                >
-                  OAuth2
-                </Link>
-              </>
-            ) : (
-              <>
-                <Link
-                  to="/signin"
-                  className={`nav-link ${isActive('/signin')}`}
-                >
-                  Sign In
-                </Link>
-                <Link
-                  to="/signup"
-                  className={`nav-link ${isActive('/signup')}`}
-                >
-                  Sign Up
-                </Link>
-              </>
-            )}
-          </div>
+        <span className="navbar-brand">Nhost Demo</span>
+        <div className="navbar-links">
+          {isAuthenticated ? (
+            <>
+              <Link
+                to="/profile"
+                className={`nav-link ${isActive('/profile')}`}
+              >
+                Profile
+              </Link>
+              <Link to="/todos" className={`nav-link ${isActive('/todos')}`}>
+                Todos
+              </Link>
+              <Link to="/upload" className={`nav-link ${isActive('/upload')}`}>
+                Upload
+              </Link>
+              <Link
+                to="/communities"
+                className={`nav-link ${isActive('/communities')}`}
+              >
+                Communities
+              </Link>
+              <Link
+                to="/functions"
+                className={`nav-link ${isActive('/functions')}`}
+              >
+                Functions
+              </Link>
+              <Link
+                to="/oauth2-providers"
+                className={`nav-link ${isActive('/oauth2-providers')}`}
+              >
+                OAuth2
+              </Link>
+            </>
+          ) : (
+            <>
+              <Link to="/signin" className={`nav-link ${isActive('/signin')}`}>
+                Sign In
+              </Link>
+              <Link to="/signup" className={`nav-link ${isActive('/signup')}`}>
+                Sign Up
+              </Link>
+            </>
+          )}
         </div>
 
         {isAuthenticated && (

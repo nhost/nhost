@@ -4,6 +4,7 @@ import (
 	"bytes"
 	"context"
 	"errors"
+	"fmt"
 	"log/slog"
 	"net/http"
 	"slices"
@@ -521,6 +522,8 @@ func clearFlagSourcesForTest(t *testing.T, flag cli.Flag) {
 		typedFlag.Sources = cli.ValueSourceChain{}
 	case *cli.DurationFlag:
 		typedFlag.Sources = cli.ValueSourceChain{}
+	case *cli.StringFlag:
+		typedFlag.Sources = cli.ValueSourceChain{}
 	default:
 		t.Fatalf("clearing env sources for %v: unsupported flag type %T", flag.Names(), flag)
 	}
@@ -586,4 +589,170 @@ func equalStrings(a, b []string) bool {
 	}
 
 	return true
+}
+
+// the CORS preflight must permit every method that can be proxied to Hasura.
+// The previous hardcoded {GET, POST, OPTIONS} silently broke browser
+// preflights against Hasura REST endpoints (PUT/PATCH/DELETE) and HEAD
+// liveness probes.
+func TestGetCorsOptionsAllowsProxiedMethods(t *testing.T) {
+	t.Parallel()
+
+	opts, _, err := runGetCorsOptions(
+		t,
+		[]string{"--" + flagCORSAllowedOrigins, "https://app.example.com"},
+	)
+	if err != nil {
+		t.Fatalf("getCorsOptions unexpected error: %v", err)
+	}
+
+	for _, method := range []string{
+		"GET", "HEAD", "POST", "PUT", "PATCH", "DELETE", "OPTIONS",
+	} {
+		if !slices.Contains(opts.AllowedMethods, method) {
+			t.Errorf(
+				"AllowedMethods missing %q (got %v); browsers cannot preflight "+
+					"this method against the proxy fallback",
+				method, opts.AllowedMethods,
+			)
+		}
+	}
+}
+
+func runHasuraUpstreamURL(
+	t *testing.T,
+	flags []cli.Flag,
+	args []string,
+) (string, error) {
+	t.Helper()
+
+	var gotURL string
+
+	cmd := &cli.Command{
+		Name:  "serve",
+		Flags: flags,
+		Action: func(_ context.Context, cmd *cli.Command) error {
+			gotURL = cmd.String(flagHasuraUpstreamURL)
+
+			return nil
+		},
+	}
+
+	if err := cmd.Run(context.Background(), append([]string{"serve"}, args...)); err != nil {
+		return gotURL, fmt.Errorf("running cli: %w", err)
+	}
+
+	return gotURL, nil
+}
+
+func TestHasuraUpstreamURLDefaultAndDisable(t *testing.T) {
+	t.Parallel()
+
+	tests := []struct {
+		name string
+		args []string
+		want string
+	}{
+		{
+			name: "default targets Nhost sidecar",
+			args: nil,
+			want: defaultHasuraUpstreamURL,
+		},
+		{
+			name: "explicit empty disables proxy",
+			args: []string{"--" + flagHasuraUpstreamURL, ""},
+			want: "",
+		},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			t.Parallel()
+
+			gotURL, err := runHasuraUpstreamURL(
+				t,
+				serverFlagsWithoutEnvVarsForTest(t, flagHasuraUpstreamURL),
+				tt.args,
+			)
+			if err != nil {
+				t.Fatalf("running cli: %v", err)
+			}
+
+			if gotURL != tt.want {
+				t.Errorf("hasura upstream URL = %q; want %q", gotURL, tt.want)
+			}
+		})
+	}
+}
+
+func TestHasuraUpstreamURLEmptyEnvDisablesProxy(t *testing.T) {
+	t.Setenv("CONSTELLATION_HASURA_UPSTREAM_URL", "")
+
+	gotURL, err := runHasuraUpstreamURL(
+		t,
+		serverFlagsByNameForTest(t, flagHasuraUpstreamURL),
+		nil,
+	)
+	if err != nil {
+		t.Fatalf("running cli: %v", err)
+	}
+
+	if gotURL != "" {
+		t.Errorf("hasura upstream URL from empty env = %q; want empty", gotURL)
+	}
+}
+
+// a negative --hasura-proxy-request-body-limit-bytes used to silently disable
+// the cap (same observable behaviour as `0`) because the runtime guard only
+// checked `> 0`. The flag now has a Validator that surfaces the
+// misconfiguration at startup rather than letting a typo accidentally disable
+// a security cap.
+func TestHasuraProxyBodyLimitRejectsNegative(t *testing.T) {
+	t.Parallel()
+
+	cmd := &cli.Command{
+		Name: "serve",
+		Flags: serverFlagsWithoutEnvVarsForTest(
+			t, flagHasuraProxyRequestBodyLimitBytes,
+		),
+		Action: func(context.Context, *cli.Command) error { return nil },
+	}
+
+	err := cmd.Run(context.Background(), []string{
+		"serve",
+		"--" + flagHasuraProxyRequestBodyLimitBytes, "-1",
+	})
+	if err == nil {
+		t.Fatal("expected error for negative limit; got nil")
+	}
+
+	if !strings.Contains(err.Error(), flagHasuraProxyRequestBodyLimitBytes) {
+		t.Errorf("error %q does not name the flag", err)
+	}
+
+	if !strings.Contains(err.Error(), ">= 0") {
+		t.Errorf("error %q does not document the constraint", err)
+	}
+}
+
+// And the zero case still passes — it's the documented way to disable the
+// cap and must remain accepted.
+func TestHasuraProxyBodyLimitAcceptsZero(t *testing.T) {
+	t.Parallel()
+
+	cmd := &cli.Command{
+		Name: "serve",
+		Flags: serverFlagsWithoutEnvVarsForTest(
+			t, flagHasuraProxyRequestBodyLimitBytes,
+		),
+		Action: func(context.Context, *cli.Command) error { return nil },
+	}
+
+	err := cmd.Run(context.Background(), []string{
+		"serve",
+		"--" + flagHasuraProxyRequestBodyLimitBytes, "0",
+	})
+	if err != nil {
+		t.Fatalf("zero must be accepted (disables the cap), got %v", err)
+	}
 }

@@ -136,6 +136,26 @@ describe('useDeploymentLogs', () => {
     });
   });
 
+  describe('query variables', () => {
+    it('should query through one minute after endedAt', () => {
+      renderHook(() =>
+        useDeploymentLogs({
+          ...defaultProps,
+          status: 'succeeded',
+          endedAt: '2024-01-01T10:05:00Z',
+        }),
+      );
+
+      expect(mockUseGetPipelineRunLogsQuery).toHaveBeenCalledWith(
+        expect.objectContaining({
+          variables: expect.objectContaining({
+            to: '2024-01-01T10:06:00.000Z',
+          }),
+        }),
+      );
+    });
+  });
+
   describe('skip conditions', () => {
     it('should skip when appID is undefined', () => {
       renderHook(() =>

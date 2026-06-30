@@ -17,9 +17,10 @@ const mockColumns: DataBrowserColumnMetadata[] = [
     isNullable: false,
     isIdentity: false,
     defaultValue: undefined,
-    type: 'text',
     specificType: 'text',
-    dataType: 'text',
+    baseType: 'text',
+    isArray: false,
+    displayType: 'text',
   },
 ];
 
@@ -49,9 +50,10 @@ const mockColumnsWithGenerated: DataBrowserColumnMetadata[] = [
     isIdentity: false,
     isGenerated: false,
     defaultValue: undefined,
-    type: 'number',
     specificType: 'numeric',
-    dataType: 'numeric',
+    baseType: 'numeric',
+    isArray: false,
+    displayType: 'numeric',
   },
   {
     id: 'total',
@@ -61,9 +63,10 @@ const mockColumnsWithGenerated: DataBrowserColumnMetadata[] = [
     isGenerated: true,
     generationExpression: 'price * quantity',
     defaultValue: undefined,
-    type: 'number',
     specificType: 'numeric',
-    dataType: 'numeric',
+    baseType: 'numeric',
+    isArray: false,
+    displayType: 'numeric',
   },
 ];
 
@@ -113,27 +116,30 @@ describe('BaseRecordForm handleSubmit', () => {
 
   const nullableColumnWithDefault: DataBrowserColumnMetadata = {
     id: 'col',
-    type: 'text',
     specificType: 'text',
-    dataType: 'text',
+    baseType: 'text',
+    isArray: false,
+    displayType: 'text',
     isNullable: true,
     defaultValue: 'some_default',
   };
 
   const requiredColumnWithDefault: DataBrowserColumnMetadata = {
     id: 'col',
-    type: 'text',
     specificType: 'text',
-    dataType: 'text',
+    baseType: 'text',
+    isArray: false,
+    displayType: 'text',
     isNullable: false,
     defaultValue: 'some_default',
   };
 
   const nullableColumnWithoutDefault: DataBrowserColumnMetadata = {
     id: 'col',
-    type: 'text',
     specificType: 'text',
-    dataType: 'text',
+    baseType: 'text',
+    isArray: false,
+    displayType: 'text',
     isNullable: true,
     defaultValue: undefined,
   };
@@ -219,7 +225,7 @@ describe('BaseRecordForm handleSubmit', () => {
     );
 
     expect(mocks.onSubmit).toHaveBeenCalledWith({
-      col: { value: '', specificType: 'text' },
+      col: { value: '', isArray: false },
     });
   });
 });
