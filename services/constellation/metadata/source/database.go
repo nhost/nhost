@@ -5,6 +5,7 @@ package source
 
 import (
 	"context"
+	"errors"
 	"fmt"
 	"log/slog"
 	"sync"
@@ -18,17 +19,51 @@ import (
 
 // metadataStore is the minimal pgx surface DatabaseMetadataSource needs,
 // extracted so tests can substitute a fake (see fake_store_test.go) instead
-// of standing up a real *pgxpool.Pool.
+// of standing up a real *pgxpool.Pool. It is the query surface (the embedded
+// Queryer, shared with the in-process Store) plus Close for pool lifecycle.
 //
-// QueryRow executes a single-row query used to fetch the metadata blob and
-// its resource version from hdb_catalog.hdb_metadata; the returned pgx.Row
-// must support Scan and surface pgx.ErrNoRows when the row is absent.
+// The embedded QueryRow/Query fetch the metadata blob and its resource version
+// from hdb_catalog.hdb_metadata and emit change notifications; the returned
+// pgx.Row must support Scan and surface pgx.ErrNoRows when the row is absent.
 // Close releases pool resources and must be safe to call multiple times;
 // DatabaseMetadataSource guards its own invocation with sync.Once.
 type metadataStore interface {
-	QueryRow(ctx context.Context, sql string, args ...any) pgx.Row
+	Queryer
 	Close()
 }
+
+// errResourceVersionMismatch is returned by WriteMetadata when the upsert
+// succeeded but RETURNING reported a resource_version other than the one
+// we asked it to write — an invariant violation that should never happen
+// in practice. Static so err113 is satisfied; the call site wraps it with
+// the concrete expected/actual values.
+var errResourceVersionMismatch = errors.New(
+	"hdb_metadata resource_version mismatch after write",
+)
+
+// upsertMetadataSQL persists a new (raw, newRV) into hdb_catalog.hdb_metadata
+// only when the row's current resource_version still equals expectedRV. The
+// WHERE clause on UPDATE is the optimistic-concurrency guard: a mismatch
+// returns zero rows from RETURNING, surfaced as ErrResourceVersionConflict.
+//
+// The INSERT branch is gated the same way for the no-row case: the row is
+// seeded only when expectedRV is 0 (a missing row is treated as version 0) or
+// the row already exists (so the ON CONFLICT UPDATE guard applies). A no-row
+// write carrying a non-zero expectedRV therefore yields zero rows and a
+// conflict, rather than silently seeding the row regardless of the caller's
+// expectation.
+//
+// $1 = newRaw JSON, $2 = expectedRV, $3 = newRV.
+const upsertMetadataSQL = `
+INSERT INTO hdb_catalog.hdb_metadata (id, metadata, resource_version)
+SELECT 1, $1, $3
+ WHERE $2 = 0
+    OR EXISTS (SELECT 1 FROM hdb_catalog.hdb_metadata WHERE id = 1)
+ON CONFLICT (id) DO UPDATE
+   SET metadata = EXCLUDED.metadata,
+       resource_version = EXCLUDED.resource_version
+ WHERE hdb_metadata.resource_version = $2
+RETURNING resource_version`
 
 // pgxPoolStore adapts *pgxpool.Pool to metadataStore.
 type pgxPoolStore struct {
@@ -46,6 +81,14 @@ func (s pgxPoolStore) QueryRow( //nolint:ireturn,nolintlint
 	args ...any,
 ) pgx.Row {
 	return s.pool.QueryRow(ctx, sql, args...)
+}
+
+func (s pgxPoolStore) Query( //nolint:ireturn,nolintlint
+	ctx context.Context,
+	sql string,
+	args ...any,
+) (pgx.Rows, error) {
+	return s.pool.Query(ctx, sql, args...) //nolint:wrapcheck
 }
 
 func (s pgxPoolStore) Close() {
@@ -177,6 +220,41 @@ func (s *DatabaseMetadataSource) Watch(ctx context.Context) <-chan metadata.Upda
 	return ch
 }
 
+// WriteMetadata implements MetadataWriter. It upserts hdb_metadata id=1
+// with the new wire JSON and resource_version, guarded by an
+// optimistic-concurrency check: the UPDATE fires only when the row's
+// current resource_version equals expectedRV. A mismatch (another writer
+// bumped the row since the Store read it) leaves the row untouched and
+// returns ErrResourceVersionConflict.
+//
+// The Store mutates its in-memory snapshot only after this returns nil,
+// so a conflict here means the caller never observed a stale write.
+func (s *DatabaseMetadataSource) WriteMetadata(
+	ctx context.Context, newRaw []byte, expectedRV, newRV int64,
+) error {
+	var returnedRV int64
+
+	err := s.store.QueryRow(
+		ctx, upsertMetadataSQL, newRaw, expectedRV, newRV,
+	).Scan(&returnedRV)
+	if errors.Is(err, pgx.ErrNoRows) {
+		return ErrResourceVersionConflict
+	}
+
+	if err != nil {
+		return fmt.Errorf("writing hdb_metadata: %w", err)
+	}
+
+	if returnedRV != newRV {
+		return fmt.Errorf(
+			"%w: expected %d, got %d",
+			errResourceVersionMismatch, newRV, returnedRV,
+		)
+	}
+
+	return nil
+}
+
 // Close cancels any active Watch goroutines and closes the underlying store.
 // Safe to call multiple times.
 func (s *DatabaseMetadataSource) Close() {
@@ -280,7 +358,7 @@ func loadMetadataFromStore(
 	// must hand back exactly what Hasura stored; re-marshaling through the parsed
 	// representation would normalize key order and drop fields the engine does not
 	// model, so the source blob is the most faithful snapshot. (The YAML/file
-	// source has no single original blob and must re-marshal the parsed
-	// metadata back to JSON; this database path does not.)
+	// source has no single original blob and must re-marshal via MarshalHasura;
+	// this database path does not.)
 	return meta, metadataJSON, version, nil
 }

@@ -154,10 +154,16 @@ paths:
       responses:
         "200":
           description: >-
-            Per-operation result. The body shape varies by `type`: most
-            ops return `{message: "success"}`, `export_metadata` returns
-            `{resource_version, metadata}`, etc. Modelled as a freeform
-            object until per-op schemas are migrated into this spec.
+            Per-operation result. The body shape varies by `type`: most ops
+            return `{message: "success"}`, `export_metadata` returns
+            `{resource_version, metadata}`, and `bulk` / `bulk_keep_going`
+            return a BARE top-level JSON array of per-child results (matching
+            Hasura), while `bulk_atomic` returns a single `{message:
+            "success"}` object. Modelled here as a freeform object until per-op
+            schemas are migrated into this spec; the bulk array body is emitted
+            by a hand-written response type, so regenerating from this schema
+            keeps the single-op object type. (When per-op response schemas are
+            introduced, model the 200 as `oneOf: [object, array]`.)
           content:
             application/json:
               schema:
@@ -324,9 +330,17 @@ components:
         code:
           type: string
           description: >-
-            Hasura error code. Known values include `not-supported`,
-            `access-denied`, `parse-failed`, `validation-failed`,
-            `already-tracked`, `already-exists`.
+            Hasura error code returned on a 4xx response. Known values
+            include `parse-failed`, `validation-failed`, `conflict`,
+            `not-exists`, `dependency-error`, `not-supported`,
+            `access-denied`, and `already-untracked`. Note the dual
+            semantics of the `already-*` codes: `already-tracked` /
+            `already-exists` appear as idempotent no-op outcomes in the
+            `message` field of a 200 response, but `already-exists` AND
+            `already-untracked` are ALSO emitted as 4xx `code` values for
+            hard conflicts — e.g. renaming a relationship onto a name
+            already taken by a different one, or untracking a table that is
+            already untracked.
           example: "not-supported"
         error:
           type: string
@@ -661,34 +675,34 @@ components:
     #   - name
     #   - type
     #   type: object
-    # AutoTriggerLogCleanupConfig:
-    #   properties:
-    #     batch_size:
-    #       default: 10000
-    #       maximum: 9223372036854775807
-    #       minimum: -9223372036854775808
-    #       type: number
-    #     clean_invocation_logs:
-    #       default: false
-    #       type: boolean
-    #     clear_older_than:
-    #       maximum: 9223372036854775807
-    #       minimum: -9223372036854775808
-    #       type: number
-    #     paused:
-    #       default: false
-    #       type: boolean
-    #     schedule:
-    #       $ref: '#/components/schemas/CronSchedule'
-    #     timeout:
-    #       default: 60
-    #       maximum: 9223372036854775807
-    #       minimum: -9223372036854775808
-    #       type: number
-    #   required:
-    #   - schedule
-    #   - clear_older_than
-    #   type: object
+    AutoTriggerLogCleanupConfig:
+      properties:
+        batch_size:
+          default: 10000
+          maximum: 9223372036854775807
+          minimum: -9223372036854775808
+          type: number
+        clean_invocation_logs:
+          default: false
+          type: boolean
+        clear_older_than:
+          maximum: 9223372036854775807
+          minimum: -9223372036854775808
+          type: number
+        paused:
+          default: false
+          type: boolean
+        schedule:
+          $ref: '#/components/schemas/CronSchedule'
+        timeout:
+          default: 60
+          maximum: 9223372036854775807
+          minimum: -9223372036854775808
+          type: number
+      required:
+      - schedule
+      - clear_older_than
+      type: object
     # BackendMap_BackendConfigWrapper:
     #   properties:
     #     bigquery:
@@ -2818,8 +2832,8 @@ components:
     #   - name
     #   - definition
     #   type: object
-    # CronSchedule:
-    #   type: string
+    CronSchedule:
+      type: string
     # CronTriggerMetadata:
     #   properties:
     #     comment:
@@ -3668,26 +3682,26 @@ components:
     #   - additionalProperties:
     #       $ref: '#/components/schemas/GraphQLValue_Name'
     #     type: object
-    # HeaderConfFromEnv:
-    #   properties:
-    #     name:
-    #       type: string
-    #     value_from_env:
-    #       type: string
-    #   required:
-    #   - name
-    #   - value_from_env
-    #   type: object
-    # HeaderConfValue:
-    #   properties:
-    #     name:
-    #       type: string
-    #     value:
-    #       type: string
-    #   required:
-    #   - name
-    #   - value
-    #   type: object
+    HeaderConfFromEnv:
+      properties:
+        name:
+          type: string
+        value_from_env:
+          type: string
+      required:
+      - name
+      - value_from_env
+      type: object
+    HeaderConfValue:
+      properties:
+        name:
+          type: string
+        value:
+          type: string
+      required:
+      - name
+      - value
+      type: object
     # HealthCheckTestSql:
     #   properties:
     #     sql:
@@ -5062,42 +5076,41 @@ components:
     #   - role
     #   - permission
     #   type: object
-    # PostgresEventTriggerConfEventTriggerConf:
-    #   properties:
-    #     cleanup_config:
-    #       $ref: '#/components/schemas/AutoTriggerLogCleanupConfig'
-    #     definition:
-    #       $ref: '#/components/schemas/PostgresTriggerOpsDef'
-    #     headers:
-    #       items:
-    #         oneOf:
-    #         - $ref: '#/components/schemas/HeaderConfValue'
-    #         - $ref: '#/components/schemas/HeaderConfFromEnv'
-    #       type: array
-    #     name:
-    #       type: string
-    #     request_transform:
-    #       oneOf:
-    #       - $ref: '#/components/schemas/RequestTransformV1'
-    #       - $ref: '#/components/schemas/RequestTransformV2'
-    #     response_transform:
-    #       oneOf:
-    #       - $ref: '#/components/schemas/ResponseTransformV1'
-    #       - $ref: '#/components/schemas/ResponseTransformV2'
-    #     retry_conf:
-    #       $ref: '#/components/schemas/RetryConf'
-    #     trigger_on_replication:
-    #       default: false
-    #       type: boolean
-    #     webhook:
-    #       type: string
-    #     webhook_from_env:
-    #       type: string
-    #   required:
-    #   - name
-    #   - definition
-    #   - retry_conf
-    #   type: object
+    PostgresEventTriggerConfEventTriggerConf:
+      # Webhook request/response transform fields (request_transform,
+      # response_transform) are intentionally omitted: their referenced
+      # schemas (RequestTransformV1/V2, ResponseTransformV1/V2) are not
+      # present in this spec, and Constellation does not run an event
+      # delivery loop yet, so the transforms have no consumer. Add them
+      # back when (1) event delivery ships, and (2) the transform
+      # schemas are uncommented or added.
+      properties:
+        cleanup_config:
+          $ref: '#/components/schemas/AutoTriggerLogCleanupConfig'
+        definition:
+          $ref: '#/components/schemas/PostgresTriggerOpsDef'
+        headers:
+          items:
+            oneOf:
+            - $ref: '#/components/schemas/HeaderConfValue'
+            - $ref: '#/components/schemas/HeaderConfFromEnv'
+          type: array
+        name:
+          type: string
+        retry_conf:
+          $ref: '#/components/schemas/RetryConf'
+        trigger_on_replication:
+          default: false
+          type: boolean
+        webhook:
+          type: string
+        webhook_from_env:
+          type: string
+      required:
+      - name
+      - definition
+      - retry_conf
+      type: object
     # PostgresFunctionMetadata:
     #   description: 'A custom SQL function to add to the GraphQL schema with configuration.
     #
@@ -5596,27 +5609,27 @@ components:
     #   - configuration
     #   - returns
     #   type: object
-    # PostgresSubscribeOpSpec:
-    #   properties:
-    #     columns:
-    #       oneOf:
-    #       - enum:
-    #         - '*'
-    #         type: string
-    #       - items:
-    #           type: string
-    #         type: array
-    #     payload:
-    #       oneOf:
-    #       - enum:
-    #         - '*'
-    #         type: string
-    #       - items:
-    #           type: string
-    #         type: array
-    #   required:
-    #   - columns
-    #   type: object
+    PostgresSubscribeOpSpec:
+      properties:
+        columns:
+          oneOf:
+          - enum:
+            - '*'
+            type: string
+          - items:
+              type: string
+            type: array
+        payload:
+          oneOf:
+          - enum:
+            - '*'
+            type: string
+          - items:
+              type: string
+            type: array
+      required:
+      - columns
+      type: object
     # PostgresTableConfig:
     #   properties:
     #     column_config:
@@ -5704,17 +5717,17 @@ components:
     #   required:
     #   - table
     #   type: object
-    # PostgresTriggerOpsDef:
-    #   properties:
-    #     delete:
-    #       $ref: '#/components/schemas/PostgresSubscribeOpSpec'
-    #     enable_manual:
-    #       type: boolean
-    #     insert:
-    #       $ref: '#/components/schemas/PostgresSubscribeOpSpec'
-    #     update:
-    #       $ref: '#/components/schemas/PostgresSubscribeOpSpec'
-    #   type: object
+    PostgresTriggerOpsDef:
+      properties:
+        delete:
+          $ref: '#/components/schemas/PostgresSubscribeOpSpec'
+        enable_manual:
+          type: boolean
+        insert:
+          $ref: '#/components/schemas/PostgresSubscribeOpSpec'
+        update:
+          $ref: '#/components/schemas/PostgresSubscribeOpSpec'
+      type: object
     # PostgresUpdPerm:
     #   properties:
     #     backend_only:
@@ -6423,24 +6436,24 @@ components:
     #   required:
     #   - version
     #   type: object
-    # RetryConf:
-    #   properties:
-    #     interval_sec:
-    #       maximum: 9223372036854775807
-    #       minimum: -9223372036854775808
-    #       type: number
-    #     num_retries:
-    #       maximum: 9223372036854775807
-    #       minimum: -9223372036854775808
-    #       type: number
-    #     timeout_sec:
-    #       maximum: 9223372036854775807
-    #       minimum: -9223372036854775808
-    #       type: number
-    #   required:
-    #   - num_retries
-    #   - interval_sec
-    #   type: object
+    RetryConf:
+      properties:
+        interval_sec:
+          maximum: 9223372036854775807
+          minimum: -9223372036854775808
+          type: number
+        num_retries:
+          maximum: 9223372036854775807
+          minimum: -9223372036854775808
+          type: number
+        timeout_sec:
+          maximum: 9223372036854775807
+          minimum: -9223372036854775808
+          type: number
+      required:
+      - num_retries
+      - interval_sec
+      type: object
     # Role:
     #   properties:
     #     role_name:
