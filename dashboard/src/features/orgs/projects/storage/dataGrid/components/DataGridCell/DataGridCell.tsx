@@ -75,7 +75,9 @@ function DataGridCellContent<
     column: { id, columnDef },
     row,
   } = cell;
-  const { onCellEdit, isNullable, type, isEditable } = columnDef.meta || {};
+  const { onCellEdit, isNullable, isEditable, baseType, isArray } =
+    columnDef.meta || {};
+  const isBooleanColumn = baseType === 'boolean' && !isArray;
   const { openAlertDialog } = useDialog();
 
   const [optimisticValue, setOptimisticValue] = useState(originalValue);
@@ -106,7 +108,7 @@ function DataGridCellContent<
   function activateInput() {
     editCell();
 
-    if (type === 'boolean') {
+    if (isBooleanColumn) {
       clickInput();
     } else {
       focusInput();
@@ -118,7 +120,7 @@ function DataGridCellContent<
       return;
     }
 
-    if (event.detail === 2 && type !== 'boolean') {
+    if (event.detail === 2 && !isBooleanColumn) {
       editCell();
       await focusInput();
     }
@@ -206,12 +208,12 @@ function DataGridCellContent<
     if (
       !isEditable ||
       event.currentTarget.contains(event.relatedTarget) ||
-      (isEditing && type === 'boolean' && isTargetDropdownMenu)
+      (isEditing && isBooleanColumn && isTargetDropdownMenu)
     ) {
       return;
     }
 
-    if (type !== 'boolean') {
+    if (!isBooleanColumn) {
       await handleSave(temporaryValue);
     }
     deselectCell();
@@ -329,7 +331,7 @@ function DataGridCellContent<
     >
       {flexRender(cell.column.columnDef.cell, cellProps)}
       {id !== 'preview-column' &&
-        type !== 'boolean' &&
+        !isBooleanColumn &&
         isNotEmptyValue(optimisticValue) && (
           <Button
             variant="outline"
@@ -355,7 +357,7 @@ function DataGridCellContent<
 
   if (
     id === 'preview-column' ||
-    type === 'boolean' ||
+    isBooleanColumn ||
     !isNotEmptyValue(optimisticValue)
   ) {
     return content;

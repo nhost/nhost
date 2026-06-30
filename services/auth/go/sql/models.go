@@ -138,6 +138,7 @@ type AuthUser struct {
 	TicketExpiresAt          pgtype.Timestamptz
 	Metadata                 []byte
 	WebauthnCurrentChallenge pgtype.Text
+	OtpAttempts              int16
 }
 
 // Active providers for a given user. Don't modify its structure as Hasura Auth relies on it to function properly.

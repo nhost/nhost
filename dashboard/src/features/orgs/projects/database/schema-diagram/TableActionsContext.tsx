@@ -6,6 +6,7 @@ type DataBrowserActions = ReturnType<typeof useDataBrowserActions>;
 export interface TableActionsContextValue {
   actions: DataBrowserActions;
   trackedTablesSet: Set<string> | undefined;
+  enumTablesSet: Set<string> | undefined;
 }
 
 const TableActionsContext = createContext<TableActionsContextValue | null>(

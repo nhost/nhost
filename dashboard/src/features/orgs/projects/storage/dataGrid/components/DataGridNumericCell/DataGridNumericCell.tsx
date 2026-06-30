@@ -23,7 +23,7 @@ export default function DataGridNumericCell<TData extends UnknownDataGridRow>({
 }: DataGridNumericCellProps<TData>) {
   const { inputRef, isEditing } = useDataGridCell<HTMLInputElement>();
 
-  const dataType = column.columnDef.meta?.dataType;
+  const baseType = column.columnDef.meta?.baseType;
   const isNullable = column.columnDef.meta?.isNullable;
   const hasDefault = column.columnDef.meta?.defaultValue != null;
 
@@ -77,7 +77,7 @@ export default function DataGridNumericCell<TData extends UnknownDataGridRow>({
   }
 
   if (isEditing) {
-    const step = dataType === 'integer' ? 1 : 0.1;
+    const step = baseType === 'integer' ? 1 : 0.1;
 
     return (
       <div className="absolute top-0 left-0 z-10 h-full w-full">

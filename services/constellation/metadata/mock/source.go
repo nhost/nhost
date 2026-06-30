@@ -53,6 +53,21 @@ func (mr *MockSourceMockRecorder) Close() *gomock.Call {
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "Close", reflect.TypeOf((*MockSource)(nil).Close))
 }
 
+// HasuraSnapshotJSON mocks base method.
+func (m *MockSource) HasuraSnapshotJSON() ([]byte, int64) {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "HasuraSnapshotJSON")
+	ret0, _ := ret[0].([]byte)
+	ret1, _ := ret[1].(int64)
+	return ret0, ret1
+}
+
+// HasuraSnapshotJSON indicates an expected call of HasuraSnapshotJSON.
+func (mr *MockSourceMockRecorder) HasuraSnapshotJSON() *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "HasuraSnapshotJSON", reflect.TypeOf((*MockSource)(nil).HasuraSnapshotJSON))
+}
+
 // InitialLoad mocks base method.
 func (m *MockSource) InitialLoad(ctx context.Context) (*metadata.Metadata, error) {
 	m.ctrl.T.Helper()

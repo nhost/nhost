@@ -1,0 +1,1788 @@
+Array
+    ( Span
+        { start = AlexSourcePos
+            { line = 1
+            , col = 1
+            }
+        , end = AlexSourcePos
+            { line = 18
+            , col = 2
+            }
+        }
+    )
+    [ Iff
+        ( Span
+            { start = AlexSourcePos
+                { line = 1
+                , col = 3
+                }
+            , end = AlexSourcePos
+                { line = 1
+                , col = 45
+                }
+            }
+        )
+        ( Var
+            ( Span
+                { start = AlexSourcePos
+                    { line = 1
+                    , col = 9
+                    }
+                , end = AlexSourcePos
+                    { line = 1
+                    , col = 10
+                    }
+                }
+            ) "p"
+        )
+        ( Boolean
+            ( Span
+                { start = AlexSourcePos
+                    { line = 1
+                    , col = 14
+                    }
+                , end = AlexSourcePos
+                    { line = 1
+                    , col = 18
+                    }
+                }
+            ) True
+        ) []
+        ( Boolean
+            ( Span
+                { start = AlexSourcePos
+                    { line = 1
+                    , col = 30
+                    }
+                , end = AlexSourcePos
+                    { line = 1
+                    , col = 35
+                    }
+                }
+            ) False
+        )
+    , Iff
+        ( Span
+            { start = AlexSourcePos
+                { line = 2
+                , col = 3
+                }
+            , end = AlexSourcePos
+                { line = 2
+                , col = 47
+                }
+            }
+        )
+        ( Var
+            ( Span
+                { start = AlexSourcePos
+                    { line = 2
+                    , col = 10
+                    }
+                , end = AlexSourcePos
+                    { line = 2
+                    , col = 11
+                    }
+                }
+            ) "p"
+        )
+        ( Boolean
+            ( Span
+                { start = AlexSourcePos
+                    { line = 2
+                    , col = 16
+                    }
+                , end = AlexSourcePos
+                    { line = 2
+                    , col = 20
+                    }
+                }
+            ) True
+        ) []
+        ( Boolean
+            ( Span
+                { start = AlexSourcePos
+                    { line = 2
+                    , col = 32
+                    }
+                , end = AlexSourcePos
+                    { line = 2
+                    , col = 37
+                    }
+                }
+            ) False
+        )
+    , Iff
+        ( Span
+            { start = AlexSourcePos
+                { line = 3
+                , col = 3
+                }
+            , end = AlexSourcePos
+                { line = 3
+                , col = 50
+                }
+            }
+        )
+        ( And
+            ( Span
+                { start = AlexSourcePos
+                    { line = 3
+                    , col = 9
+                    }
+                , end = AlexSourcePos
+                    { line = 3
+                    , col = 15
+                    }
+                }
+            )
+            ( Var
+                ( Span
+                    { start = AlexSourcePos
+                        { line = 3
+                        , col = 9
+                        }
+                    , end = AlexSourcePos
+                        { line = 3
+                        , col = 10
+                        }
+                    }
+                ) "p"
+            )
+            ( Var
+                ( Span
+                    { start = AlexSourcePos
+                        { line = 3
+                        , col = 14
+                        }
+                    , end = AlexSourcePos
+                        { line = 3
+                        , col = 15
+                        }
+                    }
+                ) "q"
+            )
+        )
+        ( Boolean
+            ( Span
+                { start = AlexSourcePos
+                    { line = 3
+                    , col = 19
+                    }
+                , end = AlexSourcePos
+                    { line = 3
+                    , col = 23
+                    }
+                }
+            ) True
+        ) []
+        ( Boolean
+            ( Span
+                { start = AlexSourcePos
+                    { line = 3
+                    , col = 35
+                    }
+                , end = AlexSourcePos
+                    { line = 3
+                    , col = 40
+                    }
+                }
+            ) False
+        )
+    , Iff
+        ( Span
+            { start = AlexSourcePos
+                { line = 4
+                , col = 3
+                }
+            , end = AlexSourcePos
+                { line = 4
+                , col = 52
+                }
+            }
+        )
+        ( And
+            ( Span
+                { start = AlexSourcePos
+                    { line = 4
+                    , col = 10
+                    }
+                , end = AlexSourcePos
+                    { line = 4
+                    , col = 16
+                    }
+                }
+            )
+            ( Var
+                ( Span
+                    { start = AlexSourcePos
+                        { line = 4
+                        , col = 10
+                        }
+                    , end = AlexSourcePos
+                        { line = 4
+                        , col = 11
+                        }
+                    }
+                ) "p"
+            )
+            ( Var
+                ( Span
+                    { start = AlexSourcePos
+                        { line = 4
+                        , col = 15
+                        }
+                    , end = AlexSourcePos
+                        { line = 4
+                        , col = 16
+                        }
+                    }
+                ) "q"
+            )
+        )
+        ( Boolean
+            ( Span
+                { start = AlexSourcePos
+                    { line = 4
+                    , col = 21
+                    }
+                , end = AlexSourcePos
+                    { line = 4
+                    , col = 25
+                    }
+                }
+            ) True
+        ) []
+        ( Boolean
+            ( Span
+                { start = AlexSourcePos
+                    { line = 4
+                    , col = 37
+                    }
+                , end = AlexSourcePos
+                    { line = 4
+                    , col = 42
+                    }
+                }
+            ) False
+        )
+    , Iff
+        ( Span
+            { start = AlexSourcePos
+                { line = 5
+                , col = 3
+                }
+            , end = AlexSourcePos
+                { line = 5
+                , col = 57
+                }
+            }
+        )
+        ( Or
+            ( Span
+                { start = AlexSourcePos
+                    { line = 5
+                    , col = 10
+                    }
+                , end = AlexSourcePos
+                    { line = 5
+                    , col = 22
+                    }
+                }
+            )
+            ( And
+                ( Span
+                    { start = AlexSourcePos
+                        { line = 5
+                        , col = 10
+                        }
+                    , end = AlexSourcePos
+                        { line = 5
+                        , col = 16
+                        }
+                    }
+                )
+                ( Var
+                    ( Span
+                        { start = AlexSourcePos
+                            { line = 5
+                            , col = 10
+                            }
+                        , end = AlexSourcePos
+                            { line = 5
+                            , col = 11
+                            }
+                        }
+                    ) "p"
+                )
+                ( Var
+                    ( Span
+                        { start = AlexSourcePos
+                            { line = 5
+                            , col = 15
+                            }
+                        , end = AlexSourcePos
+                            { line = 5
+                            , col = 16
+                            }
+                        }
+                    ) "q"
+                )
+            )
+            ( Var
+                ( Span
+                    { start = AlexSourcePos
+                        { line = 5
+                        , col = 21
+                        }
+                    , end = AlexSourcePos
+                        { line = 5
+                        , col = 22
+                        }
+                    }
+                ) "q"
+            )
+        )
+        ( Boolean
+            ( Span
+                { start = AlexSourcePos
+                    { line = 5
+                    , col = 26
+                    }
+                , end = AlexSourcePos
+                    { line = 5
+                    , col = 30
+                    }
+                }
+            ) True
+        ) []
+        ( Boolean
+            ( Span
+                { start = AlexSourcePos
+                    { line = 5
+                    , col = 42
+                    }
+                , end = AlexSourcePos
+                    { line = 5
+                    , col = 47
+                    }
+                }
+            ) False
+        )
+    , Iff
+        ( Span
+            { start = AlexSourcePos
+                { line = 6
+                , col = 3
+                }
+            , end = AlexSourcePos
+                { line = 6
+                , col = 54
+                }
+            }
+        )
+        ( Eq
+            ( Span
+                { start = AlexSourcePos
+                    { line = 6
+                    , col = 11
+                    }
+                , end = AlexSourcePos
+                    { line = 6
+                    , col = 18
+                    }
+                }
+            )
+            ( Number
+                ( Span
+                    { start = AlexSourcePos
+                        { line = 6
+                        , col = 11
+                        }
+                    , end = AlexSourcePos
+                        { line = 6
+                        , col = 12
+                        }
+                    }
+                ) 1.0
+            )
+            ( Number
+                ( Span
+                    { start = AlexSourcePos
+                        { line = 6
+                        , col = 17
+                        }
+                    , end = AlexSourcePos
+                        { line = 6
+                        , col = 18
+                        }
+                    }
+                ) 3.0
+            )
+        )
+        ( Boolean
+            ( Span
+                { start = AlexSourcePos
+                    { line = 6
+                    , col = 23
+                    }
+                , end = AlexSourcePos
+                    { line = 6
+                    , col = 27
+                    }
+                }
+            ) True
+        ) []
+        ( Boolean
+            ( Span
+                { start = AlexSourcePos
+                    { line = 6
+                    , col = 39
+                    }
+                , end = AlexSourcePos
+                    { line = 6
+                    , col = 44
+                    }
+                }
+            ) False
+        )
+    , Iff
+        ( Span
+            { start = AlexSourcePos
+                { line = 7
+                , col = 3
+                }
+            , end = AlexSourcePos
+                { line = 7
+                , col = 70
+                }
+            }
+        )
+        ( Eq
+            ( Span
+                { start = AlexSourcePos
+                    { line = 7
+                    , col = 11
+                    }
+                , end = AlexSourcePos
+                    { line = 7
+                    , col = 18
+                    }
+                }
+            )
+            ( Number
+                ( Span
+                    { start = AlexSourcePos
+                        { line = 7
+                        , col = 11
+                        }
+                    , end = AlexSourcePos
+                        { line = 7
+                        , col = 12
+                        }
+                    }
+                ) 1.0
+            )
+            ( Number
+                ( Span
+                    { start = AlexSourcePos
+                        { line = 7
+                        , col = 17
+                        }
+                    , end = AlexSourcePos
+                        { line = 7
+                        , col = 18
+                        }
+                    }
+                ) 3.0
+            )
+        )
+        ( RequiredFieldAccess
+            ( Span
+                { start = AlexSourcePos
+                    { line = 7
+                    , col = 26
+                    }
+                , end = AlexSourcePos
+                    { line = 7
+                    , col = 41
+                    }
+                }
+            )
+            ( Var
+                ( Span
+                    { start = AlexSourcePos
+                        { line = 7
+                        , col = 26
+                        }
+                    , end = AlexSourcePos
+                        { line = 7
+                        , col = 31
+                        }
+                    }
+                ) "$path"
+            )
+            ( Right
+                ( String
+                    ( Span
+                        { start = AlexSourcePos
+                            { line = 7
+                            , col = 33
+                            }
+                        , end = AlexSourcePos
+                            { line = 7
+                            , col = 39
+                            }
+                        }
+                    ) "lookup"
+                )
+            )
+        ) []
+        ( Boolean
+            ( Span
+                { start = AlexSourcePos
+                    { line = 7
+                    , col = 55
+                    }
+                , end = AlexSourcePos
+                    { line = 7
+                    , col = 60
+                    }
+                }
+            ) False
+        )
+    , Iff
+        ( Span
+            { start = AlexSourcePos
+                { line = 8
+                , col = 3
+                }
+            , end = AlexSourcePos
+                { line = 8
+                , col = 66
+                }
+            }
+        )
+        ( Eq
+            ( Span
+                { start = AlexSourcePos
+                    { line = 8
+                    , col = 9
+                    }
+                , end = AlexSourcePos
+                    { line = 8
+                    , col = 31
+                    }
+                }
+            )
+            ( RequiredFieldAccess
+                ( Span
+                    { start = AlexSourcePos
+                        { line = 8
+                        , col = 9
+                        }
+                    , end = AlexSourcePos
+                        { line = 8
+                        , col = 22
+                        }
+                    }
+                )
+                ( RequiredFieldAccess
+                    ( Span
+                        { start = AlexSourcePos
+                            { line = 8
+                            , col = 9
+                            }
+                        , end = AlexSourcePos
+                            { line = 8
+                            , col = 13
+                            }
+                        }
+                    )
+                    ( Var
+                        ( Span
+                            { start = AlexSourcePos
+                                { line = 8
+                                , col = 9
+                                }
+                            , end = AlexSourcePos
+                                { line = 8
+                                , col = 10
+                                }
+                            }
+                        ) "$"
+                    )
+                    ( Right
+                        ( Number
+                            ( Span
+                                { start = AlexSourcePos
+                                    { line = 8
+                                    , col = 11
+                                    }
+                                , end = AlexSourcePos
+                                    { line = 8
+                                    , col = 12
+                                    }
+                                }
+                            ) 0.0
+                        )
+                    )
+                )
+                ( Left "isActive" )
+            )
+            ( Boolean
+                ( Span
+                    { start = AlexSourcePos
+                        { line = 8
+                        , col = 26
+                        }
+                    , end = AlexSourcePos
+                        { line = 8
+                        , col = 31
+                        }
+                    }
+                ) False
+            )
+        )
+        ( Boolean
+            ( Span
+                { start = AlexSourcePos
+                    { line = 8
+                    , col = 35
+                    }
+                , end = AlexSourcePos
+                    { line = 8
+                    , col = 39
+                    }
+                }
+            ) True
+        ) []
+        ( Boolean
+            ( Span
+                { start = AlexSourcePos
+                    { line = 8
+                    , col = 51
+                    }
+                , end = AlexSourcePos
+                    { line = 8
+                    , col = 56
+                    }
+                }
+            ) False
+        )
+    , Iff
+        ( Span
+            { start = AlexSourcePos
+                { line = 9
+                , col = 3
+                }
+            , end = AlexSourcePos
+                { line = 9
+                , col = 57
+                }
+            }
+        )
+        ( RequiredFieldAccess
+            ( Span
+                { start = AlexSourcePos
+                    { line = 9
+                    , col = 9
+                    }
+                , end = AlexSourcePos
+                    { line = 9
+                    , col = 22
+                    }
+                }
+            )
+            ( RequiredFieldAccess
+                ( Span
+                    { start = AlexSourcePos
+                        { line = 9
+                        , col = 9
+                        }
+                    , end = AlexSourcePos
+                        { line = 9
+                        , col = 13
+                        }
+                    }
+                )
+                ( Var
+                    ( Span
+                        { start = AlexSourcePos
+                            { line = 9
+                            , col = 9
+                            }
+                        , end = AlexSourcePos
+                            { line = 9
+                            , col = 10
+                            }
+                        }
+                    ) "$"
+                )
+                ( Right
+                    ( Number
+                        ( Span
+                            { start = AlexSourcePos
+                                { line = 9
+                                , col = 11
+                                }
+                            , end = AlexSourcePos
+                                { line = 9
+                                , col = 12
+                                }
+                            }
+                        ) 0.0
+                    )
+                )
+            )
+            ( Left "isActive" )
+        )
+        ( Boolean
+            ( Span
+                { start = AlexSourcePos
+                    { line = 9
+                    , col = 26
+                    }
+                , end = AlexSourcePos
+                    { line = 9
+                    , col = 30
+                    }
+                }
+            ) True
+        ) []
+        ( Boolean
+            ( Span
+                { start = AlexSourcePos
+                    { line = 9
+                    , col = 42
+                    }
+                , end = AlexSourcePos
+                    { line = 9
+                    , col = 47
+                    }
+                }
+            ) False
+        )
+    , Iff
+        ( Span
+            { start = AlexSourcePos
+                { line = 10
+                , col = 3
+                }
+            , end = AlexSourcePos
+                { line = 10
+                , col = 54
+                }
+            }
+        )
+        ( NotEq
+            ( Span
+                { start = AlexSourcePos
+                    { line = 10
+                    , col = 11
+                    }
+                , end = AlexSourcePos
+                    { line = 10
+                    , col = 18
+                    }
+                }
+            )
+            ( Number
+                ( Span
+                    { start = AlexSourcePos
+                        { line = 10
+                        , col = 11
+                        }
+                    , end = AlexSourcePos
+                        { line = 10
+                        , col = 12
+                        }
+                    }
+                ) 1.0
+            )
+            ( Number
+                ( Span
+                    { start = AlexSourcePos
+                        { line = 10
+                        , col = 17
+                        }
+                    , end = AlexSourcePos
+                        { line = 10
+                        , col = 18
+                        }
+                    }
+                ) 3.0
+            )
+        )
+        ( Boolean
+            ( Span
+                { start = AlexSourcePos
+                    { line = 10
+                    , col = 23
+                    }
+                , end = AlexSourcePos
+                    { line = 10
+                    , col = 27
+                    }
+                }
+            ) True
+        ) []
+        ( Boolean
+            ( Span
+                { start = AlexSourcePos
+                    { line = 10
+                    , col = 39
+                    }
+                , end = AlexSourcePos
+                    { line = 10
+                    , col = 44
+                    }
+                }
+            ) False
+        )
+    , Iff
+        ( Span
+            { start = AlexSourcePos
+                { line = 11
+                , col = 3
+                }
+            , end = AlexSourcePos
+                { line = 11
+                , col = 54
+                }
+            }
+        )
+        ( Gte
+            ( Span
+                { start = AlexSourcePos
+                    { line = 11
+                    , col = 11
+                    }
+                , end = AlexSourcePos
+                    { line = 11
+                    , col = 18
+                    }
+                }
+            )
+            ( Number
+                ( Span
+                    { start = AlexSourcePos
+                        { line = 11
+                        , col = 11
+                        }
+                    , end = AlexSourcePos
+                        { line = 11
+                        , col = 12
+                        }
+                    }
+                ) 1.0
+            )
+            ( Number
+                ( Span
+                    { start = AlexSourcePos
+                        { line = 11
+                        , col = 17
+                        }
+                    , end = AlexSourcePos
+                        { line = 11
+                        , col = 18
+                        }
+                    }
+                ) 3.0
+            )
+        )
+        ( Boolean
+            ( Span
+                { start = AlexSourcePos
+                    { line = 11
+                    , col = 23
+                    }
+                , end = AlexSourcePos
+                    { line = 11
+                    , col = 27
+                    }
+                }
+            ) True
+        ) []
+        ( Boolean
+            ( Span
+                { start = AlexSourcePos
+                    { line = 11
+                    , col = 39
+                    }
+                , end = AlexSourcePos
+                    { line = 11
+                    , col = 44
+                    }
+                }
+            ) False
+        )
+    , Iff
+        ( Span
+            { start = AlexSourcePos
+                { line = 12
+                , col = 3
+                }
+            , end = AlexSourcePos
+                { line = 12
+                , col = 54
+                }
+            }
+        )
+        ( Lte
+            ( Span
+                { start = AlexSourcePos
+                    { line = 12
+                    , col = 11
+                    }
+                , end = AlexSourcePos
+                    { line = 12
+                    , col = 18
+                    }
+                }
+            )
+            ( Number
+                ( Span
+                    { start = AlexSourcePos
+                        { line = 12
+                        , col = 11
+                        }
+                    , end = AlexSourcePos
+                        { line = 12
+                        , col = 12
+                        }
+                    }
+                ) 1.0
+            )
+            ( Number
+                ( Span
+                    { start = AlexSourcePos
+                        { line = 12
+                        , col = 17
+                        }
+                    , end = AlexSourcePos
+                        { line = 12
+                        , col = 18
+                        }
+                    }
+                ) 3.0
+            )
+        )
+        ( Boolean
+            ( Span
+                { start = AlexSourcePos
+                    { line = 12
+                    , col = 23
+                    }
+                , end = AlexSourcePos
+                    { line = 12
+                    , col = 27
+                    }
+                }
+            ) True
+        ) []
+        ( Boolean
+            ( Span
+                { start = AlexSourcePos
+                    { line = 12
+                    , col = 39
+                    }
+                , end = AlexSourcePos
+                    { line = 12
+                    , col = 44
+                    }
+                }
+            ) False
+        )
+    , Iff
+        ( Span
+            { start = AlexSourcePos
+                { line = 13
+                , col = 3
+                }
+            , end = AlexSourcePos
+                { line = 13
+                , col = 53
+                }
+            }
+        )
+        ( In
+            ( Span
+                { start = AlexSourcePos
+                    { line = 13
+                    , col = 9
+                    }
+                , end = AlexSourcePos
+                    { line = 13
+                    , col = 25
+                    }
+                }
+            )
+            ( StringTem
+                ( Span
+                    { start = AlexSourcePos
+                        { line = 13
+                        , col = 9
+                        }
+                    , end = AlexSourcePos
+                        { line = 13
+                        , col = 14
+                        }
+                    }
+                )
+                [ String
+                    ( Span
+                        { start = AlexSourcePos
+                            { line = 13
+                            , col = 10
+                            }
+                        , end = AlexSourcePos
+                            { line = 13
+                            , col = 13
+                            }
+                        }
+                    ) "foo"
+                ]
+            )
+            ( Array
+                ( Span
+                    { start = AlexSourcePos
+                        { line = 13
+                        , col = 18
+                        }
+                    , end = AlexSourcePos
+                        { line = 13
+                        , col = 25
+                        }
+                    }
+                )
+                [ StringTem
+                    ( Span
+                        { start = AlexSourcePos
+                            { line = 13
+                            , col = 19
+                            }
+                        , end = AlexSourcePos
+                            { line = 13
+                            , col = 24
+                            }
+                        }
+                    )
+                    [ String
+                        ( Span
+                            { start = AlexSourcePos
+                                { line = 13
+                                , col = 20
+                                }
+                            , end = AlexSourcePos
+                                { line = 13
+                                , col = 23
+                                }
+                            }
+                        ) "foo"
+                    ]
+                ]
+            )
+        )
+        ( Number
+            ( Span
+                { start = AlexSourcePos
+                    { line = 13
+                    , col = 29
+                    }
+                , end = AlexSourcePos
+                    { line = 13
+                    , col = 30
+                    }
+                }
+            ) 1.0
+        ) []
+        ( Number
+            ( Span
+                { start = AlexSourcePos
+                    { line = 13
+                    , col = 42
+                    }
+                , end = AlexSourcePos
+                    { line = 13
+                    , col = 43
+                    }
+                }
+            ) 0.0
+        )
+    , Iff
+        ( Span
+            { start = AlexSourcePos
+                { line = 14
+                , col = 3
+                }
+            , end = AlexSourcePos
+                { line = 14
+                , col = 61
+                }
+            }
+        )
+        ( In
+            ( Span
+                { start = AlexSourcePos
+                    { line = 14
+                    , col = 9
+                    }
+                , end = AlexSourcePos
+                    { line = 14
+                    , col = 33
+                    }
+                }
+            )
+            ( StringTem
+                ( Span
+                    { start = AlexSourcePos
+                        { line = 14
+                        , col = 9
+                        }
+                    , end = AlexSourcePos
+                        { line = 14
+                        , col = 14
+                        }
+                    }
+                )
+                [ String
+                    ( Span
+                        { start = AlexSourcePos
+                            { line = 14
+                            , col = 10
+                            }
+                        , end = AlexSourcePos
+                            { line = 14
+                            , col = 13
+                            }
+                        }
+                    ) "foo"
+                ]
+            )
+            ( Object
+                ( Span
+                    { start = AlexSourcePos
+                        { line = 14
+                        , col = 18
+                        }
+                    , end = AlexSourcePos
+                        { line = 14
+                        , col = 33
+                        }
+                    }
+                )
+                ( fromList
+                    [
+                        ( "foo"
+                        , Boolean
+                            ( Span
+                                { start = AlexSourcePos
+                                    { line = 14
+                                    , col = 27
+                                    }
+                                , end = AlexSourcePos
+                                    { line = 14
+                                    , col = 31
+                                    }
+                                }
+                            ) True
+                        )
+                    ]
+                )
+            )
+        )
+        ( Number
+            ( Span
+                { start = AlexSourcePos
+                    { line = 14
+                    , col = 37
+                    }
+                , end = AlexSourcePos
+                    { line = 14
+                    , col = 38
+                    }
+                }
+            ) 1.0
+        ) []
+        ( Number
+            ( Span
+                { start = AlexSourcePos
+                    { line = 14
+                    , col = 50
+                    }
+                , end = AlexSourcePos
+                    { line = 14
+                    , col = 51
+                    }
+                }
+            ) 0.0
+        )
+    , Iff
+        ( Span
+            { start = AlexSourcePos
+                { line = 15
+                , col = 3
+                }
+            , end = AlexSourcePos
+                { line = 15
+                , col = 63
+                }
+            }
+        )
+        ( In
+            ( Span
+                { start = AlexSourcePos
+                    { line = 15
+                    , col = 10
+                    }
+                , end = AlexSourcePos
+                    { line = 15
+                    , col = 34
+                    }
+                }
+            )
+            ( StringTem
+                ( Span
+                    { start = AlexSourcePos
+                        { line = 15
+                        , col = 10
+                        }
+                    , end = AlexSourcePos
+                        { line = 15
+                        , col = 15
+                        }
+                    }
+                )
+                [ String
+                    ( Span
+                        { start = AlexSourcePos
+                            { line = 15
+                            , col = 11
+                            }
+                        , end = AlexSourcePos
+                            { line = 15
+                            , col = 14
+                            }
+                        }
+                    ) "foo"
+                ]
+            )
+            ( Object
+                ( Span
+                    { start = AlexSourcePos
+                        { line = 15
+                        , col = 19
+                        }
+                    , end = AlexSourcePos
+                        { line = 15
+                        , col = 34
+                        }
+                    }
+                )
+                ( fromList
+                    [
+                        ( "foo"
+                        , Boolean
+                            ( Span
+                                { start = AlexSourcePos
+                                    { line = 15
+                                    , col = 28
+                                    }
+                                , end = AlexSourcePos
+                                    { line = 15
+                                    , col = 32
+                                    }
+                                }
+                            ) True
+                        )
+                    ]
+                )
+            )
+        )
+        ( Number
+            ( Span
+                { start = AlexSourcePos
+                    { line = 15
+                    , col = 39
+                    }
+                , end = AlexSourcePos
+                    { line = 15
+                    , col = 40
+                    }
+                }
+            ) 1.0
+        ) []
+        ( Number
+            ( Span
+                { start = AlexSourcePos
+                    { line = 15
+                    , col = 52
+                    }
+                , end = AlexSourcePos
+                    { line = 15
+                    , col = 53
+                    }
+                }
+            ) 0.0
+        )
+    , Iff
+        ( Span
+            { start = AlexSourcePos
+                { line = 16
+                , col = 3
+                }
+            , end = AlexSourcePos
+                { line = 16
+                , col = 104
+                }
+            }
+        )
+        ( In
+            ( Span
+                { start = AlexSourcePos
+                    { line = 16
+                    , col = 10
+                    }
+                , end = AlexSourcePos
+                    { line = 16
+                    , col = 35
+                    }
+                }
+            )
+            ( StringTem
+                ( Span
+                    { start = AlexSourcePos
+                        { line = 16
+                        , col = 10
+                        }
+                    , end = AlexSourcePos
+                        { line = 16
+                        , col = 15
+                        }
+                    }
+                )
+                [ String
+                    ( Span
+                        { start = AlexSourcePos
+                            { line = 16
+                            , col = 11
+                            }
+                        , end = AlexSourcePos
+                            { line = 16
+                            , col = 14
+                            }
+                        }
+                    ) "foo"
+                ]
+            )
+            ( Object
+                ( Span
+                    { start = AlexSourcePos
+                        { line = 16
+                        , col = 19
+                        }
+                    , end = AlexSourcePos
+                        { line = 16
+                        , col = 35
+                        }
+                    }
+                )
+                ( fromList
+                    [
+                        ( "foo"
+                        , Boolean
+                            ( Span
+                                { start = AlexSourcePos
+                                    { line = 16
+                                    , col = 28
+                                    }
+                                , end = AlexSourcePos
+                                    { line = 16
+                                    , col = 33
+                                    }
+                                }
+                            ) False
+                        )
+                    ]
+                )
+            )
+        )
+        ( Number
+            ( Span
+                { start = AlexSourcePos
+                    { line = 16
+                    , col = 40
+                    }
+                , end = AlexSourcePos
+                    { line = 16
+                    , col = 41
+                    }
+                }
+            ) 1.0
+        )
+        [ Elif
+            ( Span
+                { start = AlexSourcePos
+                    { line = 16
+                    , col = 45
+                    }
+                , end = AlexSourcePos
+                    { line = 16
+                    , col = 75
+                    }
+                }
+            )
+            ( In
+                ( Span
+                    { start = AlexSourcePos
+                        { line = 16
+                        , col = 51
+                        }
+                    , end = AlexSourcePos
+                        { line = 16
+                        , col = 75
+                        }
+                    }
+                )
+                ( StringTem
+                    ( Span
+                        { start = AlexSourcePos
+                            { line = 16
+                            , col = 51
+                            }
+                        , end = AlexSourcePos
+                            { line = 16
+                            , col = 56
+                            }
+                        }
+                    )
+                    [ String
+                        ( Span
+                            { start = AlexSourcePos
+                                { line = 16
+                                , col = 52
+                                }
+                            , end = AlexSourcePos
+                                { line = 16
+                                , col = 55
+                                }
+                            }
+                        ) "foo"
+                    ]
+                )
+                ( Object
+                    ( Span
+                        { start = AlexSourcePos
+                            { line = 16
+                            , col = 60
+                            }
+                        , end = AlexSourcePos
+                            { line = 16
+                            , col = 75
+                            }
+                        }
+                    )
+                    ( fromList
+                        [
+                            ( "foo"
+                            , Boolean
+                                ( Span
+                                    { start = AlexSourcePos
+                                        { line = 16
+                                        , col = 69
+                                        }
+                                    , end = AlexSourcePos
+                                        { line = 16
+                                        , col = 73
+                                        }
+                                    }
+                                ) True
+                            )
+                        ]
+                    )
+                )
+            )
+            ( Number
+                ( Span
+                    { start = AlexSourcePos
+                        { line = 16
+                        , col = 80
+                        }
+                    , end = AlexSourcePos
+                        { line = 16
+                        , col = 81
+                        }
+                    }
+                ) 0.0
+            )
+        ]
+        ( Number
+            ( Span
+                { start = AlexSourcePos
+                    { line = 16
+                    , col = 93
+                    }
+                , end = AlexSourcePos
+                    { line = 16
+                    , col = 94
+                    }
+                }
+            ) 0.0
+        )
+    , Iff
+        ( Span
+            { start = AlexSourcePos
+                { line = 17
+                , col = 3
+                }
+            , end = AlexSourcePos
+                { line = 17
+                , col = 127
+                }
+            }
+        )
+        ( In
+            ( Span
+                { start = AlexSourcePos
+                    { line = 17
+                    , col = 10
+                    }
+                , end = AlexSourcePos
+                    { line = 17
+                    , col = 35
+                    }
+                }
+            )
+            ( StringTem
+                ( Span
+                    { start = AlexSourcePos
+                        { line = 17
+                        , col = 10
+                        }
+                    , end = AlexSourcePos
+                        { line = 17
+                        , col = 15
+                        }
+                    }
+                )
+                [ String
+                    ( Span
+                        { start = AlexSourcePos
+                            { line = 17
+                            , col = 11
+                            }
+                        , end = AlexSourcePos
+                            { line = 17
+                            , col = 14
+                            }
+                        }
+                    ) "foo"
+                ]
+            )
+            ( Object
+                ( Span
+                    { start = AlexSourcePos
+                        { line = 17
+                        , col = 19
+                        }
+                    , end = AlexSourcePos
+                        { line = 17
+                        , col = 35
+                        }
+                    }
+                )
+                ( fromList
+                    [
+                        ( "foo"
+                        , Boolean
+                            ( Span
+                                { start = AlexSourcePos
+                                    { line = 17
+                                    , col = 28
+                                    }
+                                , end = AlexSourcePos
+                                    { line = 17
+                                    , col = 33
+                                    }
+                                }
+                            ) False
+                        )
+                    ]
+                )
+            )
+        )
+        ( Number
+            ( Span
+                { start = AlexSourcePos
+                    { line = 17
+                    , col = 40
+                    }
+                , end = AlexSourcePos
+                    { line = 17
+                    , col = 41
+                    }
+                }
+            ) 1.0
+        )
+        [ Elif
+            ( Span
+                { start = AlexSourcePos
+                    { line = 17
+                    , col = 45
+                    }
+                , end = AlexSourcePos
+                    { line = 17
+                    , col = 75
+                    }
+                }
+            )
+            ( In
+                ( Span
+                    { start = AlexSourcePos
+                        { line = 17
+                        , col = 51
+                        }
+                    , end = AlexSourcePos
+                        { line = 17
+                        , col = 75
+                        }
+                    }
+                )
+                ( StringTem
+                    ( Span
+                        { start = AlexSourcePos
+                            { line = 17
+                            , col = 51
+                            }
+                        , end = AlexSourcePos
+                            { line = 17
+                            , col = 56
+                            }
+                        }
+                    )
+                    [ String
+                        ( Span
+                            { start = AlexSourcePos
+                                { line = 17
+                                , col = 52
+                                }
+                            , end = AlexSourcePos
+                                { line = 17
+                                , col = 55
+                                }
+                            }
+                        ) "bar"
+                    ]
+                )
+                ( Object
+                    ( Span
+                        { start = AlexSourcePos
+                            { line = 17
+                            , col = 60
+                            }
+                        , end = AlexSourcePos
+                            { line = 17
+                            , col = 75
+                            }
+                        }
+                    )
+                    ( fromList
+                        [
+                            ( "bar"
+                            , Boolean
+                                ( Span
+                                    { start = AlexSourcePos
+                                        { line = 17
+                                        , col = 69
+                                        }
+                                    , end = AlexSourcePos
+                                        { line = 17
+                                        , col = 73
+                                        }
+                                    }
+                                ) True
+                            )
+                        ]
+                    )
+                )
+            )
+            ( Number
+                ( Span
+                    { start = AlexSourcePos
+                        { line = 17
+                        , col = 80
+                        }
+                    , end = AlexSourcePos
+                        { line = 17
+                        , col = 81
+                        }
+                    }
+                ) 0.0
+            )
+        , Elif
+            ( Span
+                { start = AlexSourcePos
+                    { line = 17
+                    , col = 85
+                    }
+                , end = AlexSourcePos
+                    { line = 17
+                    , col = 94
+                    }
+                }
+            )
+            ( Boolean
+                ( Span
+                    { start = AlexSourcePos
+                        { line = 17
+                        , col = 90
+                        }
+                    , end = AlexSourcePos
+                        { line = 17
+                        , col = 94
+                        }
+                    }
+                ) True
+            )
+            ( StringTem
+                ( Span
+                    { start = AlexSourcePos
+                        { line = 17
+                        , col = 98
+                        }
+                    , end = AlexSourcePos
+                        { line = 17
+                        , col = 104
+                        }
+                    }
+                )
+                [ String
+                    ( Span
+                        { start = AlexSourcePos
+                            { line = 17
+                            , col = 99
+                            }
+                        , end = AlexSourcePos
+                            { line = 17
+                            , col = 103
+                            }
+                        }
+                    ) "text"
+                ]
+            )
+        ]
+        ( Number
+            ( Span
+                { start = AlexSourcePos
+                    { line = 17
+                    , col = 116
+                    }
+                , end = AlexSourcePos
+                    { line = 17
+                    , col = 117
+                    }
+                }
+            ) 0.0
+        )
+    ]

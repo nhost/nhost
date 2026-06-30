@@ -40,7 +40,7 @@
     "react-native-webview": "13.13.5"
   },
   "devDependencies": {
-    "@babel/core": "^7.28.4",
+    "@babel/core": "^7.29.7",
     "@types/react": "~19.0.14",
     "eslint": "^9.35.0",
     "eslint-config-expo": "~9.2.0",

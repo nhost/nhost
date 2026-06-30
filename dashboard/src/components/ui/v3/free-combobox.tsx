@@ -13,6 +13,23 @@ export type FreeComboboxChangeSource = 'option' | 'custom';
 
 export interface FreeComboboxChangeMeta {
   source: FreeComboboxChangeSource;
+  /**
+   * Which custom action committed the value, when `customValueActions` is used.
+   * `undefined` for option picks and for the single-action `customValueLabel`
+   * path.
+   */
+  actionKey?: string;
+}
+
+/**
+ * One "create custom value" row. Use `customValueActions` (instead of
+ * `customValueLabel`) when a typed value can be committed in more than one way
+ * — e.g. quote-as-text vs. raw SQL. The chosen `key` is reported back through
+ * `onChange`'s `meta.actionKey`.
+ */
+export interface FreeComboboxCustomAction {
+  key: string;
+  label: (input: string) => ReactNode;
 }
 
 export interface FreeComboboxProps {
@@ -29,9 +46,15 @@ export interface FreeComboboxProps {
   triggerLabel?: ReactNode;
   /**
    * Label for the "create custom value" row. Receives the current search
-   * input. Defaults to the input prefixed with a plus icon.
+   * input. Defaults to the input prefixed with a plus icon. Ignored when
+   * `customValueActions` is provided.
    */
   customValueLabel?: (input: string) => ReactNode;
+  /**
+   * Multiple "create custom value" rows, each committing the typed value a
+   * different way. When provided, takes precedence over `customValueLabel`.
+   */
+  customValueActions?: FreeComboboxCustomAction[];
   popoverContentClassName?: string;
   'data-testid'?: string;
   'aria-label'?: string;
@@ -46,10 +69,32 @@ export interface FreeComboboxProps {
  */
 const FreeCombobox = forwardRef<HTMLButtonElement, FreeComboboxProps>(
   function FreeComboboxComponent(
-    { value, onChange, customValueLabel, ...comboboxProps },
+    { value, onChange, customValueLabel, customValueActions, ...comboboxProps },
     ref,
   ) {
     const [open, setOpen] = useState(false);
+
+    const footerSlot = customValueActions ? (
+      customValueActions.map((action) => (
+        <CommandCreateItem
+          key={action.key}
+          value={`create-${action.key}`}
+          onCreate={(input) => {
+            onChange(input, { source: 'custom', actionKey: action.key });
+            setOpen(false);
+          }}
+          label={action.label}
+        />
+      ))
+    ) : (
+      <CommandCreateItem
+        onCreate={(input) => {
+          onChange(input, { source: 'custom' });
+          setOpen(false);
+        }}
+        label={customValueLabel}
+      />
+    );
 
     return (
       <Combobox
@@ -59,15 +104,7 @@ const FreeCombobox = forwardRef<HTMLButtonElement, FreeComboboxProps>(
         open={open}
         onOpenChange={setOpen}
         onChange={(next) => onChange(next, { source: 'option' })}
-        footerSlot={
-          <CommandCreateItem
-            onCreate={(input) => {
-              onChange(input, { source: 'custom' });
-              setOpen(false);
-            }}
-            label={customValueLabel}
-          />
-        }
+        footerSlot={footerSlot}
       />
     );
   },

@@ -54,13 +54,12 @@ func (t *table) buildCheckConstraintSelectClause(
 			continue
 		}
 
-		ph := t.dialect.Placeholder(paramIndex)
 		if col.Column.SQLType != "" {
-			b.WriteString(t.dialect.TypeCast(ph, col.Column.SQLType))
+			b.WriteString(t.valueExpression(col.Column, paramIndex))
 			b.WriteString(" AS ")
 			core.WriteQuotedIdentifier(b, colName)
 		} else {
-			b.WriteString(ph)
+			b.WriteString(t.dialect.Placeholder(paramIndex))
 			b.WriteString(" AS ")
 			core.WriteQuotedIdentifier(b, colName)
 		}
@@ -718,11 +717,12 @@ func (t *table) writeTypedPlaceholder(
 	params []any,
 	paramIndex int,
 ) ([]any, int) {
-	ph := t.dialect.Placeholder(paramIndex)
-	if colType != "" {
-		b.WriteString(t.dialect.TypeCast(ph, colType))
+	if tableCol := t.tableColumn(col); tableCol != nil && colType != "" {
+		b.WriteString(t.valueExpression(tableCol, paramIndex))
+	} else if colType != "" {
+		b.WriteString(t.dialect.TypeCast(t.dialect.Placeholder(paramIndex), colType))
 	} else {
-		b.WriteString(ph)
+		b.WriteString(t.dialect.Placeholder(paramIndex))
 	}
 
 	b.WriteString(" AS ")

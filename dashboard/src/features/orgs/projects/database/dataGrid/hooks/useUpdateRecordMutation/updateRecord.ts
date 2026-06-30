@@ -81,7 +81,7 @@ export default async function updateRecord<
           (column.columnDef.meta as DataBrowserColumnMetadata)?.id === key,
       )!.column.columnDef.meta as DataBrowserColumnMetadata;
 
-      if (col.specificType.endsWith('[]')) {
+      if (col.isArray) {
         try {
           return format('%I = ARRAY[%L]', key, JSON.parse(value));
         } catch {
