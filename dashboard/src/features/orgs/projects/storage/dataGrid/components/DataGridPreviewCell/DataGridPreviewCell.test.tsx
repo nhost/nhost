@@ -38,11 +38,8 @@ describe('DataGridPreviewCell and FilePreviewDialog Fallbacks', () => {
     const getFilePresignedURLMock = vi.fn().mockRejectedValue(new Error('Presigned URLs disabled'));
     const mockBlob = new Blob(['image data'], { type: 'image/png' });
     const getFileMock = vi.fn().mockResolvedValue({
-      res: {
-        ok: true,
-        status: 200,
-        blob: async () => mockBlob,
-      },
+      body: mockBlob,
+      status: 200,
     });
 
     mocks.useAppClient.mockReturnValue({
@@ -92,11 +89,8 @@ describe('DataGridPreviewCell and FilePreviewDialog Fallbacks', () => {
     const getFilePresignedURLMock = vi.fn().mockRejectedValue(new Error('Presigned URLs disabled'));
     const mockBlob = new Blob(['pdf data'], { type: 'application/pdf' });
     const getFileMock = vi.fn().mockResolvedValue({
-      res: {
-        ok: true,
-        status: 200,
-        blob: async () => mockBlob,
-      },
+      body: mockBlob,
+      status: 200,
     });
 
     mocks.useAppClient.mockReturnValue({

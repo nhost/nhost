@@ -7,6 +7,7 @@ import { previewableFileTypes } from '@/features/orgs/projects/storage/dataGrid/
 import FilePreviewDialog from '@/features/orgs/projects/storage/dataGrid/components/DataGridPreviewCell/FilePreviewDialog';
 import ViewFileButton from '@/features/orgs/projects/storage/dataGrid/components/DataGridPreviewCell/ViewFileButton';
 import { execPromiseWithErrorToast } from '@/features/orgs/utils/execPromiseWithErrorToast';
+import { getFileUrlOrFallback } from './utils';
 
 export type PreviewProps = {
   fetchBlob: (
@@ -23,6 +24,7 @@ export type DataGridPreviewCellProps = PreviewProps & {
   fallbackPreview?: ReactNode;
   isDisabled: boolean;
   downloadExpiration: number;
+  presignedUrlsEnabled?: boolean;
 };
 
 export default function DataGridPreviewCell({
@@ -34,6 +36,7 @@ export default function DataGridPreviewCell({
   fallbackPreview,
   isDisabled,
   downloadExpiration,
+  presignedUrlsEnabled,
 }: DataGridPreviewCellProps) {
   const [isDialogOpen, setIsDialogOpen] = useState(false);
   const appClient = useAppClient();
@@ -57,50 +60,25 @@ export default function DataGridPreviewCell({
     await execPromiseWithErrorToast(
       async () => {
         try {
-          const { body } = await appClient.storage.getFilePresignedURL(id, {
-            headers: {
-              'x-hasura-admin-secret': project!.config!.hasura.adminSecret,
-            },
+          const url = await getFileUrlOrFallback({
+            appClient,
+            id,
+            adminSecret: project!.config!.hasura.adminSecret,
+            presignedUrlsEnabled,
           });
 
-          if (!body?.url) {
-            throw new Error('Presigned URL could not be fetched.');
-          }
+          window.open(url, '_blank', 'noopener noreferrer');
 
-          window.open(body.url, '_blank', 'noopener noreferrer');
-        } catch (presignedError) {
-          // Fallback: download the file as a Blob using the admin secret
-          try {
-            const { res } = await appClient.storage.getFile(
-              id,
-              {},
-              {
-                headers: {
-                  'x-hasura-admin-secret': project!.config!.hasura.adminSecret,
-                },
-              },
-            );
-
-            if (!res.ok) {
-              throw new Error(`Storage returned status ${res.status}`);
-            }
-
-            const blob = await res.blob();
-            const blobUrl = URL.createObjectURL(blob);
-            window.open(blobUrl, '_blank', 'noopener noreferrer');
-            // Clean up the object URL after a delay (e.g. 60 seconds) to ensure the browser has time to load it
+          // Clean up the object URL after a delay (e.g. 60 seconds) to ensure the browser has time to load it
+          if (url.startsWith('blob:')) {
             setTimeout(() => {
-              URL.revokeObjectURL(blobUrl);
+              URL.revokeObjectURL(url);
             }, 60000);
-          } catch (downloadError) {
-            throw new Error(
-              `Could not open file. (Presigned URL failed: ${
-                presignedError instanceof Error ? presignedError.message : 'Unknown error'
-              }. Fallback download failed: ${
-                downloadError instanceof Error ? downloadError.message : 'Unknown error'
-              })`,
-            );
           }
+        } catch (err) {
+          throw new Error(
+            `Could not open file. ${err instanceof Error ? err.message : 'Unknown error'}`,
+          );
         }
       },
       {
@@ -130,6 +108,7 @@ export default function DataGridPreviewCell({
         mimeType={mimeType}
         alt={alt}
         downloadExpiration={downloadExpiration}
+        presignedUrlsEnabled={presignedUrlsEnabled}
       />
     </>
   );

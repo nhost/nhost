@@ -11,6 +11,7 @@ import { useAppClient } from '@/features/orgs/projects/hooks/useAppClient';
 import { useProject } from '@/features/orgs/projects/hooks/useProject';
 import { previewableImages } from '@/features/orgs/projects/storage/dataGrid/components/DataGridPreviewCell/constants';
 import { cn } from '@/lib/utils';
+import { getFileUrlOrFallback } from './utils';
 
 export type FilePreviewDialogProps = {
   open: boolean;
@@ -19,6 +20,7 @@ export type FilePreviewDialogProps = {
   mimeType?: string;
   alt?: string;
   downloadExpiration: number;
+  presignedUrlsEnabled?: boolean;
 };
 
 const PRESIGNED_URL_SAFETY_MARGIN_SECONDS = 10;
@@ -30,6 +32,7 @@ export default function FilePreviewDialog({
   mimeType,
   alt,
   downloadExpiration,
+  presignedUrlsEnabled,
 }: FilePreviewDialogProps) {
   const appClient = useAppClient();
   const { project } = useProject();
@@ -42,45 +45,16 @@ export default function FilePreviewDialog({
     queryKey: ['file-presigned-url', id],
     queryFn: async () => {
       try {
-        const { body } = await appClient.storage.getFilePresignedURL(id, {
-          headers: {
-            'x-hasura-admin-secret': project!.config!.hasura.adminSecret,
-          },
+        return await getFileUrlOrFallback({
+          appClient,
+          id,
+          adminSecret: project!.config!.hasura.adminSecret,
+          presignedUrlsEnabled,
         });
-
-        if (!body?.url) {
-          throw new Error('Presigned URL could not be fetched.');
-        }
-
-        return body.url;
-      } catch (presignedError) {
-        // Fallback: download the file as a Blob using the admin secret
-        try {
-          const { res } = await appClient.storage.getFile(
-            id,
-            {},
-            {
-              headers: {
-                'x-hasura-admin-secret': project!.config!.hasura.adminSecret,
-              },
-            },
-          );
-
-          if (!res.ok) {
-            throw new Error(`Storage returned status ${res.status}`);
-          }
-
-          const blob = await res.blob();
-          return URL.createObjectURL(blob);
-        } catch (downloadError) {
-          throw new Error(
-            `Could not load preview. (Presigned URL failed: ${
-              presignedError instanceof Error ? presignedError.message : 'Unknown error'
-            }. Fallback download failed: ${
-              downloadError instanceof Error ? downloadError.message : 'Unknown error'
-            })`,
-          );
-        }
+      } catch (err) {
+        throw new Error(
+          `Could not load preview. ${err instanceof Error ? err.message : 'Unknown error'}`,
+        );
       }
     },
     enabled: open,
