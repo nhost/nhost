@@ -17,23 +17,17 @@
           "options": {
             "paths": {
               "@nhost/nhost-js/session": {
-                "importNames": [
-                  "Session"
-                ],
+                "importNames": ["Session"],
                 "message": "`Session` from @nhost/nhost-js/session is deprecated; import `StoredSession` instead."
               }
             },
             "patterns": [
               {
-                "group": [
-                  "../**/*"
-                ],
+                "group": ["../**/*"],
                 "message": "Please use absolute imports instead. (e.g: @/components/, @/hooks/, etc.)"
               },
               {
-                "group": [
-                  "@testing-library/react*"
-                ],
+                "group": ["@testing-library/react*"],
                 "message": "Please use @/tests/testUtils instead."
               }
             ]
@@ -54,11 +48,7 @@
         "noConsole": {
           "level": "error",
           "options": {
-            "allow": [
-              "error",
-              "warn",
-              "info"
-            ]
+            "allow": ["error", "warn", "info"]
           }
         },
         "noExplicitAny": "error"
@@ -78,13 +68,7 @@
           "level": "error",
           "fix": "safe",
           "options": {
-            "functions": [
-              "clsx",
-              "cva",
-              "tw",
-              "tw.*",
-              "cn"
-            ]
+            "functions": ["clsx", "cva", "tw", "tw.*", "cn"]
           }
         }
       },
@@ -112,9 +96,7 @@
   },
   "overrides": [
     {
-      "includes": [
-        "src/tests/testUtils.tsx"
-      ],
+      "includes": ["src/tests/testUtils.tsx"],
       "linter": {
         "rules": {
           "style": {
@@ -123,9 +105,7 @@
               "options": {
                 "patterns": [
                   {
-                    "group": [
-                      "../**/*"
-                    ],
+                    "group": ["../**/*"],
                     "message": "Please use absolute imports instead. (e.g: @/components/, @/hooks/, etc.)"
                   }
                 ]
@@ -136,9 +116,7 @@
       }
     },
     {
-      "includes": [
-        "**/*.css"
-      ],
+      "includes": ["**/*.css"],
       "linter": {
         "rules": {
           "suspicious": {
