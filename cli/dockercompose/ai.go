@@ -7,7 +7,6 @@ import (
 
 func ai(
 	cfg *model.ConfigConfig,
-	subdomain string,
 ) *Service {
 	envars := appconfig.AIEnv(
 		cfg,
@@ -40,7 +39,7 @@ func ai(
 			"serve",
 		},
 		Environment: env,
-		ExtraHosts:  extraHosts(subdomain),
+		ExtraHosts:  extraHosts,
 		Labels:      nil,
 		Networks:    nil,
 		Ports:       nil,

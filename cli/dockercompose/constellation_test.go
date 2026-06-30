@@ -61,18 +61,6 @@ func expectedConstellation(useTLS bool) *Service {
 		},
 		ExtraHosts: []string{
 			"host.docker.internal:host-gateway",
-			"dev.auth.local.nhost.run:host-gateway",
-			"dev.db.local.nhost.run:host-gateway",
-			"dev.functions.local.nhost.run:host-gateway",
-			"dev.graphql.local.nhost.run:host-gateway",
-			"dev.hasura.local.nhost.run:host-gateway",
-			"dev.storage.local.nhost.run:host-gateway",
-			"local.auth.nhost.run:host-gateway",
-			"local.db.nhost.run:host-gateway",
-			"local.functions.nhost.run:host-gateway",
-			"local.graphql.nhost.run:host-gateway",
-			"local.hasura.nhost.run:host-gateway",
-			"local.storage.nhost.run:host-gateway",
 		},
 		HealthCheck: &HealthCheck{
 			Test: []string{
@@ -138,7 +126,7 @@ func callGetServices(t *testing.T, withConstellation, useTLS bool) map[string]*S
 		tmp,
 		ExposePorts{},
 		"main",
-		"nhost/dashboard:2.66.0",
+		"nhost/dashboard:3.0.0",
 		"2.1.0",
 		"nhost/cli:dev",
 		"00000000-0000-0000-0000-000000000000",

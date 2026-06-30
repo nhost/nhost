@@ -76,7 +76,7 @@ func (d *Docker) HasuraWrapper(
 		"--entrypoint", "hasura-cli",
 	}
 
-	for _, host := range extraHosts(subdomain) {
+	for _, host := range hostGatewayHosts(subdomain) {
 		args = append(args, "--add-host", host)
 	}
 
