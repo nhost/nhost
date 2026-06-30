@@ -26,7 +26,10 @@ code that actually consumes each field (`connector/sql/graphql/schema`,
 > allowlists, etc. will **load without error** — those features simply will not
 > exist in the served API. The same is true field-by-field: a `limit` on a select
 > permission, or a `pool_settings` block, is accepted and thrown away. Treat
-> ⚪/❌ rows as *silently inert*, not *rejected*.
+> ⚪/❌ rows as *silently inert*, not *rejected*. (One partial exception: on the
+> DB metadata source, event-trigger config is *stored* and round-trips through
+> `export_metadata` even though no delivery runtime fires the triggers — see
+> [Event triggers](#entirely-unsupported-feature-areas).)
 
 ## How Constellation reads Hasura metadata
 
@@ -35,7 +38,7 @@ same converter in `metadata/convert.go`):
 
 | Mode | Source | Notes |
 |---|---|---|
-| **File (Hasura v3 directory)** | `--metadata-path` pointing at a Hasura metadata dir | Reads **only** `<root>/databases/databases.yaml` and the optional `<root>/remote_schemas.yaml`. `!include` directives are followed. **No other file is opened** — `actions.yaml`, `cron_triggers.yaml`, `query_collections.yaml`, `allow_list.yaml`, `rest_endpoints.yaml`, `inherited_roles.yaml`, etc. are never read. |
+| **File (Hasura v3 directory)** | `--metadata-path` pointing at a Hasura metadata dir | Reads `<root>/databases/databases.yaml` plus the optional `<root>/remote_schemas.yaml`, `<root>/actions.yaml` (+ `actions.graphql` SDL / `custom_types`), and `<root>/inherited_roles.yaml`. `!include` directives are followed. Other files — `cron_triggers.yaml`, `query_collections.yaml`, `allow_list.yaml`, `rest_endpoints.yaml`, etc. — are never read. |
 | **Database (polled)** | `--metadata-database-url` → `hdb_catalog.hdb_metadata` | Parses the JSON blob Hasura stores. Must be `version: 3`. The blob keys its source list as `sources` (handled). Unknown top-level keys are dropped. |
 | **Native TOML** | `--metadata-path` ending in `.toml` | Constellation's own format. Same shape as the tables below; no Hasura-only keys exist to drop. |
 
@@ -43,19 +46,17 @@ same converter in `metadata/convert.go`):
 
 ## Top-level metadata
 
-Constellation's top-level envelope has exactly two keys.
-
 | Hasura key | Status | Notes |
 |---|---|---|
 | `sources` / `databases` | ✅ | The database list. JSON/DB mode uses `sources`; the YAML directory layout uses `databases`. |
 | `remote_schemas` | ✅ | See [Remote schemas](#remote-schemas). |
 | `version` | ✅ | Must be `3` in JSON/DB mode. |
-| `actions` | ❌ | Hasura Actions are not implemented. |
-| `custom_types` | ❌ | Only meaningful with actions; not modeled. |
+| `actions` | ✅ | Hasura Actions (sync + async) — see [Action parity coverage](../developers/action-parity-coverage.md). |
+| `custom_types` | ✅ | Action input/output custom types (objects, enums, scalars; pg-scalar reuse). |
 | `query_collections` | ❌ | No query collections. |
 | `allowlist` | ❌ | No allowlist enforcement. |
 | `rest_endpoints` | ❌ | No RESTified endpoints. |
-| `inherited_roles` | ❌ | No role inheritance; each role's schema is built from its own permissions. |
+| `inherited_roles` | ✅ | Expanded at build time into effective permissions (most-permissive union of parent roles) on database tables, functions, and actions. Remote-schema permissions are not inherited, and an inherited role whose only resolvable parent is a remote-schema-only role is left unexpanded (recorded as an inconsistency). Cell-level null-masking is not modeled. |
 | `cron_triggers` | ❌ | No scheduled/cron triggers. |
 | `api_limits` | ❌ | No depth/node/time/rate limiting. |
 | `network` | ❌ | No TLS allowlist. |
@@ -218,7 +219,7 @@ array_relationships:
 |---|---|---|
 | `foreign_key_constraint_on: <column>` (string) | ✅ | FK on this table. |
 | `foreign_key_constraint_on: { column, table }` | ✅ | FK on the remote table pointing back. |
-| `foreign_key_constraint_on: [col1, col2]` / `{ columns: […], table }` | ❌ | **Composite (multi-column) foreign keys are not parsed** — only a single-column string or a single `column` object are recognized. A composite form is silently dropped, yielding no relationship. Use `manual_configuration` with a multi-entry `column_mapping` instead. |
+| `foreign_key_constraint_on: [col1, col2]` / `{ columns: […], table }` | ✅ | **Composite (multi-column) foreign keys are supported** in both the array form (`[col1, col2]`, forward FK on this table) and the object form (`{ columns, table }`, reverse FK on the target table). They are parsed, resolved against the introspected FKs, and build working multi-column relationships (forward and reverse). The only narrow caveat is that the bare array form carries no explicit target-table hint, so its target is inferred from the matching introspected FK rather than declared. |
 | `using.manual_configuration` (`remote_table`, `column_mapping`) | ✅ | Multi-entry `column_mapping` forms a composite join key. |
 | `using.manual_configuration.insertion_order` (array rels) | ⚪ | Dropped. |
 | relationship `comment` | ⚪ | Dropped. |
@@ -316,7 +317,7 @@ Single-row (`RETURNS <table>`, not `SETOF`) functions intentionally omit
 | `permissions` (`role` → `definition.schema` SDL) | ✅ | Per-role SDL. Admin always introspects the live schema; other roles get the SDL. |
 | `@preset(value: …)` directive in role SDL | ✅ | Hides an argument and injects a literal or session variable. See [`remote-schema.md`](./remote-schema.md). |
 | `remote_relationships` (`type_name` → `to_source`) | ✅ | Remote-schema-type → database-source relationships. |
-| `remote_relationships` → `to_remote_schema` | ❌ | Remote-schema → remote-schema relationships are not modeled (only `to_source`). |
+| `remote_relationships` → `to_remote_schema` | ✅ | Remote-schema → remote-schema relationships. The target schema is introspected and stitched through the same schema resolver used by table → remote-schema relationships. |
 | `definition.customization.root_fields_namespace` | ✅ | Wraps every root field under a single `<namespace>Query` / `<namespace>Mutation` / `<namespace>Subscription` field, matching Hasura's remote-schema naming. |
 | `definition.customization.type_names` (`prefix`, `suffix`, `mapping`) | ✅ | Renames types; `mapping` overrides prefix/suffix for the specific names it lists. |
 | `definition.customization.field_names` (per-type field renames) | ❌ | **Rejected at startup** with an error — unlike most unsupported fields this is *not* silently dropped, because the customized schema would advertise renamed fields the execution path cannot reverse. Remove `field_names` to start. |
@@ -326,6 +327,81 @@ Single-row (`RETURNS <table>`, not `SETOF`) functions intentionally omit
 Full details: [`docs/user/remote-schema.md`](./remote-schema.md) and
 [`docs/developers/remote-schemas.md`](../developers/remote-schemas.md).
 
+### Remote-schema metadata-API operations
+
+When Constellation runs against the database source (`--metadata-database-url`),
+these `/v1/metadata` operations are served natively (no Hasura upstream needed):
+
+| Operation | Status | Notes |
+|---|---|---|
+| `add_remote_schema` | ✅ | Validates the definition and **introspects the upstream synchronously** before persisting — an unreachable endpoint or invalid SDL fails the op, matching Hasura's add-time behaviour. A duplicate name short-circuits to `already-exists`. (Synchronous introspection runs on both the **single-op** and **`bulk`** paths — the bulk pre-pass introspects off the write lock — but `bulk_atomic` rejects remote-schema ops outright; see the `bulk_atomic` note below.) |
+| `update_remote_schema` | ✅ | Replaces the definition/comment and re-introspects. Matches Hasura's verified semantics: existing `permissions` are **preserved**, but `remote_relationships` are **dropped** (re-added separately via the `*_remote_schema_remote_relationship` ops). Enforced by the parity suite (relationship-drop diffed against live Hasura). |
+| `remove_remote_schema` | ✅ | Drops the entry; `not-exists` when absent. |
+| `add_remote_schema_permissions` | ✅ | Appends a role's SDL; re-introspects and parses the SDL before persisting. Duplicate role → `already-exists`. (Like `add`/`update_remote_schema`, the synchronous re-introspection runs on both the single-op and `bulk` paths; `bulk_atomic` rejects the op — see below.) |
+| `drop_remote_schema_permissions` | ✅ | Removes a role's permission; `not-exists` when absent. |
+| `introspect_remote_schema` | ✅ | Returns the raw introspection document as `{ "data": { "__schema": … } }`. Read-only; no `resource_version` bump. |
+| `reload_remote_schema` | 🟡 | Re-introspects (an unreachable endpoint errors, like Hasura) and returns `{"message":"success"}`. **Divergence:** Constellation has no cross-request introspection cache, so reload does not push a fresh upstream schema into the running connector on its own — the refreshed schema takes effect on the next metadata change or restart. |
+| `create_remote_schema_remote_relationship` | ✅ | Adds a `to_source` or `to_remote_schema` relationship on a remote-schema type. Duplicate name is an idempotent no-op. |
+| `update_remote_schema_remote_relationship` | ✅ | Replaces an existing relationship's definition; `not-exists` when absent (matches Hasura). |
+| `delete_remote_schema_remote_relationship` | ✅ | Removes a relationship. Idempotent: deleting an absent relationship succeeds (matches Hasura), and the now-empty `type_name` block is retained. |
+
+> **SDL validation depth.** Permission SDL is **parse-validated** (syntactically
+> rejected if malformed) and parsed into a role schema, but Constellation does
+> **not** perform Hasura's full subset-validation against the introspected
+> upstream. Syntactically-valid SDL that references types/fields the upstream
+> does not expose is accepted here where Hasura would reject it (Hasura returns
+> `validation-failed`).
+>
+> **Parity divergences (verified in `metadata_parity_test.go`):**
+> - **Permission SDL round-trip:** Constellation stores permission SDL
+>   **verbatim** while Hasura reformats (pretty-prints) it on export. The served
+>   schema is identical; only the stored `permissions[].definition.schema` string
+>   differs. (The `comment` and `timeout_seconds` round-trip gaps were closed —
+>   `add`/`update`/`remove`/`drop_permissions`/`introspect`/`reload` now export
+>   byte-for-leaf identically to Hasura and are fully enforced in the parity suite.)
+> - **Duplicate add:** a duplicate `add_remote_schema` returns `400 already-exists`
+>   on Hasura; Constellation treats it as an idempotent `200` (consistent with
+>   how it treats all `already-*` outcomes — see `KNOWN_DIFFERENCES.md`).
+> - **Unmodeled keys are not preserved:** unlike `databases`/`tables`/`functions`
+>   (whose wire types carry an `Unknown` round-trip field), a `remote_schemas[]`
+>   entry is decoded into the generated `api.RemoteSchemaMetadata` wire type,
+>   which models only the fields Hasura emits. Any key inside a remote-schema
+>   entry that Constellation does not model is **dropped** on `FromJSON → ToJSON`
+>   round-trip. This is an accepted divergence: the generated schema mirrors the
+>   live Hasura wire shape (the parity suite passes byte-for-leaf against the
+>   pinned engine), so the drop only affects keys a future engine version might
+>   add. Pinned by `TestRoundTripJSON_RemoteSchemaDropsUnknownKeys`.
+> - **`bulk_atomic` rejects remote-schema ops:** Hasura's `runBulkAtomic`
+>   accepts only a narrow whitelist (create/drop relationship, delete remote
+>   relationship, and native-query / logical-model / stored-procedure
+>   track-untrack) and answers *"Bulk atomic does not support this command"* for
+>   everything else (`server/src-lib/Hasura/Server/API/Metadata.hs`). The
+>   remote-schema ops are **not** on that whitelist, so a `bulk_atomic` child of
+>   `add_remote_schema` / `update_remote_schema` / `*_remote_schema_permissions`
+>   / `*_remote_schema_remote_relationship` is rejected with `not-supported`,
+>   matching Hasura. Pinned by `TestDispatch_BulkAtomic_AddRemoteSchema_Rejected`.
+> - **`bulk` introspects remote schemas (off the write lock):** `add_remote_schema`,
+>   `update_remote_schema`, and `add_remote_schema_permissions` introspect the
+>   upstream synchronously on both the single-op and `bulk` / `bulk_keep_going`
+>   paths. On the bulk path the introspection runs in the lock-free pre-pass
+>   (`planBulkChild`), validating the committed snapshot + the child's own change
+>   — the same state the single-op path validates — before the children apply as
+>   pure mutators in one write (single `resource_version` bump). An unreachable
+>   or invalid upstream fails the child with `remote-schema-error`, matching the
+>   single-op path. Pinned by `TestDispatch_Bulk_AddRemoteSchema_ValidatesUpstream`
+>   and `TestDispatch_Bulk_AddRemoteSchemaPermissions_ValidatesUpstream`.
+>   - *Residual divergence:* because the pre-pass validates the committed
+>     snapshot, a single batch that both **creates** a remote schema and then
+>     **references** it (e.g. `add_remote_schema` followed by
+>     `add_remote_schema_permissions` on the same schema) skips introspection for
+>     the dependent child — it applies against the working copy without a fresh
+>     upstream check. The independent and dashboard wire paths (permissions on an
+>     already-registered schema) are fully validated.
+>
+> An unreachable upstream on `add_remote_schema` is **matched**: both engines
+> reject it with `remote-schema-error` (Constellation maps the synchronous
+> introspection failure via `remoteschema.ErrIntrospection`).
+
 ---
 
 ## Entirely unsupported feature areas
@@ -333,18 +409,21 @@ Full details: [`docs/user/remote-schema.md`](./remote-schema.md) and
 These Hasura metadata sections have **no representation** in Constellation. When
 present in a Hasura metadata file or `hdb_metadata` blob they are dropped on load
 (no error); when configured through Hasura's Metadata API they have no effect on
-what Constellation serves.
+what Constellation serves. **Exception:** event triggers are a partial case —
+on the DB metadata source their config is stored and round-trips through
+`export_metadata` (no runtime fires them); see the row below.
+
+Actions, custom types, and inherited roles are **supported** in this build and
+have moved out of this list — see [Top-level metadata](#top-level-metadata) and
+[Action parity coverage](../developers/action-parity-coverage.md).
 
 | Hasura feature | Metadata operations | Status |
 |---|---|---|
-| **Actions** | `create_action`, `create_action_permission`, … | ❌ |
-| **Custom types** | `set_custom_types` | ❌ |
-| **Event triggers** | `*_create_event_trigger`, … | ❌ |
+| **Event triggers** | `pg_create_event_trigger`, `pg_delete_event_trigger`, … | 🟡 — **Metadata authoring only (DB source).** `pg_create_event_trigger`/`pg_delete_event_trigger` are stored and the `event_triggers` key round-trips through `export_metadata`. No event-delivery runtime executes them (triggers never fire), and the file/YAML source still drops them (the struct field is tagged `yaml:"-"`). |
 | **Cron / scheduled triggers** | `create_cron_trigger`, `create_scheduled_event` | ❌ |
 | **Query collections** | `create_query_collection`, `add_query_to_collection` | ❌ |
 | **Allowlist** | `add_collection_to_allowlist`, … | ❌ |
 | **RESTified endpoints** | `create_rest_endpoint` | ❌ |
-| **Inherited roles** | `add_inherited_role` | ❌ |
 | **Computed fields** | `*_add_computed_field` | ❌ (on the roadmap) |
 | **API limits** | `set_api_limits` | ❌ |
 | **Network / TLS allowlist** | `add_host_to_tls_allowlist` | ❌ |
@@ -354,7 +433,7 @@ what Constellation serves.
 | **Logical models** | `*_track_logical_model` | ❌ |
 | **Native queries** | `*_track_native_query` | ❌ |
 | **Stored procedures** (MSSQL) | `mssql_track_stored_procedure` | ❌ (no MSSQL backend) |
-| **Metadata Management HTTP API** | `POST /v1/metadata` (`export_metadata`, `replace_metadata`, `reload_metadata`, …) | ⚠️ — `export_metadata` is served natively from the current snapshot when no upstream is configured. When `--hasura-upstream-url` is set, every op (including `export_metadata`) is proxied to that upstream so the CLI/dashboard export→edit→replace cycle is consistent. Ops with no upstream configured return `not-supported`. **File-source caveat:** when metadata is loaded from a local YAML file (dev mode), `export_metadata` returns a best-effort inspection view of the recognised fields, not a lossless re-encoding of the source file — unmodeled top-level keys (e.g. `actions`, `cron_triggers`) and some scalar defaults are dropped. The source file is the authoritative copy. |
+| **Metadata Management HTTP API** | `POST /v1/metadata` (`export_metadata`, `replace_metadata`, `clear_metadata`, `reload_metadata`, …) | ⚠️ — **When an in-process metadata Store is active (database metadata source)** it is the source of truth: `export_metadata` / `replace_metadata` / `clear_metadata` / `reload_metadata` are served **natively** against `hdb_catalog.hdb_metadata` (with optimistic concurrency on `resource_version`), regardless of upstream config; the proxy is only a per-op fallback for ops with no native handler. **When there is no Store:** with `--hasura-upstream-url` set, every op (including `export_metadata`) is proxied to that upstream so the CLI/dashboard export→edit→replace cycle is consistent; with no upstream configured, `export_metadata` is served natively from the current snapshot and other ops return `not-supported`. **File-source caveat:** when metadata is loaded from a local YAML file (dev mode, no Store), `export_metadata` returns a best-effort inspection view of the recognised fields, not a lossless re-encoding of the source file — unmodeled top-level keys (e.g. `actions`, `cron_triggers`) and some scalar defaults are dropped. The source file is the authoritative copy. |
 | **`/v2/query`, `/apis/*` pass-through** | `POST /v2/query`, `POST /apis/migrate/*`, … | ⚠️ — proxied to `--hasura-upstream-url` when set; not served otherwise. The request body is bounded by `--hasura-proxy-request-body-limit-bytes` (default 100 MiB; `0` disables). |
 
 ---
@@ -366,8 +445,10 @@ what Constellation serves.
   have "no effect," that is expected — Constellation never read it.
 - **`limit` on select permissions does nothing.** Enforce row caps another way.
 - **Pool tuning goes in the connection URL,** not `pool_settings`.
-- **Composite foreign keys** need `manual_configuration` with a multi-entry
-  `column_mapping`; the `foreign_key_constraint_on` array form is dropped.
+- **Composite foreign keys are supported** via `foreign_key_constraint_on` in
+  both its array form (`[col1, col2]`) and object form (`{ columns, table }`),
+  building working multi-column relationships; `manual_configuration` with a
+  multi-entry `column_mapping` also works.
 - **Schema `customization` is applied** — both source-level
   (`sources[].customization`) and remote-schema
   (`remote_schemas[].definition.customization`): root-field
@@ -376,6 +457,99 @@ what Constellation serves.
   startup** (not silently dropped). Combining `customization` with remote
   relationships on the same source is not yet handled.
 - **`kind` must be `postgres` or `sqlite`;** other backends fail at startup.
+
+## Metadata-authoring parity tests
+
+`integration/metadata_parity_test.go` is a differential test that applies the
+same `/v1/metadata` op to **both** Hasura and Constellation and asserts the
+results are equivalent, in four layers:
+
+- **Layer A — response parity:** matching HTTP status class and, on error, the
+  same Hasura error `code`. Skipped for ops where Constellation intentionally
+  diverges (idempotent re-apply returns `200` + an idempotency code where Hasura
+  returns `4xx`; see `KNOWN_DIFFERENCES.md`).
+- **Layer B — exported metadata:** `export_metadata` from both engines, flattened
+  to content-addressed leaf sets and compared as a strict set difference. This is
+  the primary assertion.
+- **Layer C — schema delta:** for ops that change the GraphQL surface, the
+  per-engine SDL delta-vs-baseline (via the CLI `schema dump`/`schema diff`), so
+  pre-existing baseline divergences (`integration/schema.*.diff`) don't cause
+  false failures. **Opt-in and OFF by default** — it dumps the full SDL via the
+  CLI several times per case and is far slower than Layers A/B, so it only runs
+  when `PARITY_SCHEMA_CHECK=1` is set.
+- **Layer D — query execution:** for cases that define a `query`, the harness runs
+  it against both engines' GraphQL endpoints after the op and diffs the
+  responses (honouring optional `queryRole`/`queryWantErr`), proving the op
+  produced an equivalent *runtime* schema and not just equivalent metadata.
+  Per-case and opt-in — it runs only for cases that set a `query`.
+
+**Isolation.** The two engines cannot share one `hdb_catalog.hdb_metadata` row,
+so the harness gives Constellation its own metadata DB (`cstl`, created by
+`make parity-env-up`) while it still introspects the same `local` data DB as
+Hasura — so their schemas match. Before every case both engines are reset to
+Hasura's live baseline via `replace_metadata`, making cases order-independent.
+
+**Strictness — divergence is an error.** Constellation aims to be a drop-in
+Hasura replacement, so Layer B deliberately does **not** normalize away
+representational differences (no dropping of `comment:""`, empty objects, etc.).
+The only neutral step is content-addressing array elements, since Hasura does not
+guarantee element order for metadata collections. Two things follow:
+
+- A dedicated `roundtrip_baseline_fidelity` subtest resets both engines to the
+  same baseline and fails on *any* divergence between their exports — these are
+  Constellation round-trip-fidelity gaps (e.g. it re-serializes
+  `foreign_key_constraint_on: {column: "x"}` as `{columns: ["x"]}`, or a
+  permission `columns: "*"` as `["*"]`). They are properties of the snapshot, not
+  of any op.
+- Each op case subtracts that baseline divergence and fails if the op introduces
+  **any new** divergence — that is op-effect parity.
+
+Genuinely acceptable divergences (if any) are added to the explicit,
+comment-documented `justifiedDivergence` allowlist in `metadata_parity_test.go`,
+which is **empty by default**. Nothing is swept under the rug: an unexpected
+difference fails the suite until it is either fixed in Constellation or
+explicitly justified.
+
+**Running it:**
+
+```bash
+make dev-env-integration-up      # Hasura + local data DB + auth/storage/functions
+make build-docker-image          # constellation:0.0.0-dev
+make parity-env-up               # creates cstl, starts constellation-parity on :8001
+cd integration && go test -run TestMetadataParity -v ./...
+make parity-env-down
+```
+
+This runs Layers A and B only. To **also** run the schema-delta layer (Layer C),
+set `PARITY_SCHEMA_CHECK=1` — it is opt-in and OFF by default because it dumps the
+full SDL via the CLI several times per case and is slow:
+
+```bash
+cd integration && PARITY_SCHEMA_CHECK=1 go test -run TestMetadataParity -v ./...
+```
+
+When the parity Constellation (`:8001`) is not running, the test **skips** with a
+pointer to `make parity-env-up` rather than failing.
+
+The remote-schema authoring ops (`add`/`update`/`remove_remote_schema`,
+`add`/`drop_remote_schema_permissions`, `introspect`/`reload_remote_schema`) are
+covered: they point at the integration functions endpoint
+(`http://integration-functions-1:3000/remote-schema`) reachable by both engines.
+Most cases are fully enforced (byte-for-leaf export parity, matching error
+codes); the only residual divergences (permission-SDL reformatting, idempotent
+duplicate add) are encoded as `knownDivergence` on just those two cases.
+
+Not yet covered (each needs a fixture or has a documented semantic gap, called
+out in the test file): `pg_set_table_is_enum`, table→remote-schema relationships
+(`pg_create_remote_relationship`), and the read ops `pg_suggest_relationships` /
+`pg_get_viewdef`. (Remote-schema *remote relationships* — the
+`*_remote_schema_remote_relationship` ops, both `to_source` and
+`to_remote_schema` — are covered.)
+
+> **Divergence — `remove_remote_schema` with dependents:** Hasura refuses to
+> remove a remote schema that still has remote relationships (`dependency-error`);
+> Constellation removes it and its relationships together. Delete the
+> relationships first to stay portable.
 
 ## See also
 

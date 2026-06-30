@@ -13,6 +13,7 @@ import (
 	"time"
 
 	oapimw "github.com/nhost/nhost/internal/lib/oapi/middleware"
+	"github.com/nhost/nhost/services/constellation/connector"
 	"github.com/nhost/nhost/services/constellation/controller"
 	"github.com/urfave/cli/v3"
 )
@@ -755,4 +756,108 @@ func TestHasuraProxyBodyLimitAcceptsZero(t *testing.T) {
 	if err != nil {
 		t.Fatalf("zero must be accepted (disables the cap), got %v", err)
 	}
+}
+
+// runActionLogConfigFromFlags drives actionLogConfigFromFlags through a real
+// cli.Command so flag resolution (defaults, env, types) matches runtime.
+func runActionLogConfigFromFlags(t *testing.T, args []string) connector.ActionLogConfig {
+	t.Helper()
+
+	var got connector.ActionLogConfig
+
+	// Only the flag groups actionLogConfigFromFlags reads, so unrelated required
+	// security flags (admin-secret, jwt-secret) don't need stubbing.
+	cmd := &cli.Command{ //nolint:exhaustruct
+		Name:  "serve",
+		Flags: append(dataFlags(), actionFlags()...),
+		Action: func(_ context.Context, cmd *cli.Command) error {
+			got = actionLogConfigFromFlags(cmd)
+
+			return nil
+		},
+	}
+
+	if err := cmd.Run(context.Background(), append([]string{"serve"}, args...)); err != nil {
+		t.Fatalf("running cli: %v", err)
+	}
+
+	return got
+}
+
+func TestActionLogConfigFromFlags(t *testing.T) {
+	t.Parallel()
+
+	// Defaults: only the admin secret is required; everything async stays zero
+	// so the connector treats async as unconfigured.
+	t.Run("defaults", func(t *testing.T) {
+		t.Parallel()
+
+		got := runActionLogConfigFromFlags(t, nil)
+
+		want := connector.ActionLogConfig{
+			Store:               nil,
+			DatabaseURL:         "",
+			MetadataDatabaseURL: "",
+			Schema:              "",
+			Table:               "",
+			CreateIfNotExists:   false,
+			WorkerEnabled:       false,
+			ExclusiveOwner:      false,
+			PollInterval:        0,
+			BatchSize:           0,
+			MaxConcurrency:      0,
+			ShutdownTimeout:     0,
+		}
+		if got != want {
+			t.Fatalf("config = %+v, want %+v", got, want)
+		}
+	})
+
+	// The metadata DB URL is threaded as MetadataDatabaseURL so the action log
+	// defaults to the metadata database (Hasura's hdb_catalog layout).
+	t.Run("metadata database url threads through", func(t *testing.T) {
+		t.Parallel()
+
+		got := runActionLogConfigFromFlags(t, []string{
+			"--metadata-database-url", "postgres://meta/db",
+		})
+		if got.MetadataDatabaseURL != "postgres://meta/db" {
+			t.Fatalf("MetadataDatabaseURL = %q, want %q", got.MetadataDatabaseURL, "postgres://meta/db")
+		}
+	})
+
+	t.Run("full worker config", func(t *testing.T) {
+		t.Parallel()
+
+		got := runActionLogConfigFromFlags(t, []string{
+			"--action-log-database-url", "postgres://log/db",
+			"--action-log-schema", "myschema",
+			"--action-log-table", "mylog",
+			"--action-log-create-if-not-exists",
+			"--async-action-worker-enabled",
+			"--async-action-worker-exclusive-owner",
+			"--async-action-worker-poll-interval", "2s",
+			"--async-action-worker-batch-size", "25",
+			"--async-action-worker-max-concurrency", "8",
+			"--async-action-worker-shutdown-timeout", "10s",
+		})
+
+		want := connector.ActionLogConfig{
+			Store:               nil,
+			DatabaseURL:         "postgres://log/db",
+			MetadataDatabaseURL: "",
+			Schema:              "myschema",
+			Table:               "mylog",
+			CreateIfNotExists:   true,
+			WorkerEnabled:       true,
+			ExclusiveOwner:      true,
+			PollInterval:        2 * time.Second,
+			BatchSize:           25,
+			MaxConcurrency:      8,
+			ShutdownTimeout:     10 * time.Second,
+		}
+		if got != want {
+			t.Fatalf("config = %+v, want %+v", got, want)
+		}
+	})
 }

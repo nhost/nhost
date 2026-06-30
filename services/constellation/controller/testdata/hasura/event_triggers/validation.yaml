@@ -1,0 +1,38 @@
+description: >-
+  Event-trigger arg validation: create/delete require table + name; operating on
+  an untracked table is not-exists.
+source: ops_event_triggers.go
+
+steps:
+  - description: Create event trigger missing name
+    query:
+      type: pg_create_event_trigger
+      args:
+        source: default
+        table: {schema: public, name: author}
+        webhook: http://example.com/hook
+    status: 400
+    response:
+      code: validation-failed
+
+  - description: Create event trigger on an untracked table
+    query:
+      type: pg_create_event_trigger
+      args:
+        source: default
+        table: {schema: public, name: author}
+        name: t1
+        webhook: http://example.com/hook
+    status: 400
+    response:
+      code: not-exists
+
+  - description: Delete event trigger missing name
+    query:
+      type: pg_delete_event_trigger
+      args:
+        source: default
+        table: {schema: public, name: author}
+    status: 400
+    response:
+      code: validation-failed

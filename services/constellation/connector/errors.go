@@ -14,3 +14,7 @@ var ErrDatabaseURLNotSet = errors.New("database URL is not set")
 // configuration uses a feature that is not yet supported by the execution
 // path (e.g. per-type field_names renames).
 var ErrUnsupportedCustomization = errors.New("unsupported customization")
+
+// ErrActionLogStoreNotConfigured is returned when asynchronous action metadata
+// exists but no PostgreSQL action-log store can be resolved.
+var ErrActionLogStoreNotConfigured = errors.New("asynchronous action log store is not configured")

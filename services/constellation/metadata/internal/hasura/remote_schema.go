@@ -1,155 +1,134 @@
 package hasura
 
 import (
-	"encoding/json/jsontext"
+	"context"
+	stdjson "encoding/json"
 	json "encoding/json/v2"
 	"fmt"
+
+	"github.com/nhost/nhost/services/constellation/api"
 )
 
-// RemoteSchemaMetadata contains the metadata for a remote GraphQL schema.
-type RemoteSchemaMetadata struct {
-	Name                string                               `json:"name"                           yaml:"name"`
-	Definition          RemoteSchemaDefinition               `json:"definition"                     yaml:"definition"`
-	Comment             string                               `json:"comment,omitempty"              yaml:"comment,omitempty"`              //nolint:lll
-	Permissions         []RemoteSchemaPermission             `json:"permissions,omitempty"          yaml:"permissions,omitempty"`          //nolint:lll
-	RemoteRelationships []RemoteSchemaTypeRemoteRelationship `json:"remote_relationships,omitempty" yaml:"remote_relationships,omitempty"` //nolint:lll
+// The Hasura remote-schema metadata wire types are generated from
+// api/openapi.yaml (oapi-codegen, see api/types.gen.go) and live in the api
+// package. This file re-exports them under the names the metadata layer uses
+// and adds the YAML<->JSON bridge the file-source loader needs: the generated
+// types carry only JSON tags, so YAML (de)serialization routes through their
+// JSON form (which also drives the oapi-codegen union (un)marshalers for
+// headers and remote-relationship definitions).
 
-	Unknown jsontext.Value `json:",unknown" yaml:"-"`
-}
+// Aliases of the generated wire types. Nested values need no custom YAML
+// handling of their own: they ride the top-level RemoteSchemaMetadata wrapper's
+// JSON bridge.
+type (
+	// RemoteSchemaDefinition is a remote schema's connection definition
+	// (url/url_from_env, headers, timeout, customization).
+	RemoteSchemaDefinition = api.RemoteSchemaDef
+	// RemoteSchemaCustomization mirrors definition.customization.
+	RemoteSchemaCustomization = api.RemoteSchemaCustomization
+	// RemoteSchemaPermission is a single role permission entry.
+	RemoteSchemaPermission = api.RemoteSchemaPermissionMetadata
+	// RemoteSchemaPermissionDef holds the role-scoped SDL schema.
+	RemoteSchemaPermissionDef = api.RemoteSchemaPermissionDefinition
+	// RemoteSchemaHeaderItem is one entry of definition.headers: the
+	// HeaderConfValue|HeaderConfFromEnv union (no discriminator).
+	RemoteSchemaHeaderItem = api.RemoteSchemaDef_Headers_Item
+	// RemoteSchemaTypeRemoteRelationship groups a type's remote relationships.
+	RemoteSchemaTypeRemoteRelationship = api.RemoteSchemaMetadataRemoteRelationshipDefinition
+	// RemoteSchemaRelationshipDef is one named remote relationship.
+	RemoteSchemaRelationshipDef = api.RemoteRelationshipRemoteRelationshipDefinition
+	// RemoteSchemaRelationshipDefinition is the to_source|to_remote_schema
+	// union (oneOf) carried by a remote relationship.
+	RemoteSchemaRelationshipDefinition = api.RemoteRelationshipRemoteRelationshipDefinition_Definition
+)
 
-// RemoteSchemaTypeRemoteRelationship maps a type name to its remote relationships.
-type RemoteSchemaTypeRemoteRelationship struct {
-	TypeName      string                        `json:"type_name"     yaml:"type_name"`
-	Relationships []RemoteSchemaRelationshipDef `json:"relationships" yaml:"relationships"`
+// RemoteSchemaMetadata is the generated api.RemoteSchemaMetadata wire type with
+// a YAML<->JSON bridge so the file-source loader (remote_schemas.yaml) can
+// decode it; the generated type only carries JSON tags. The DB-source (JSON)
+// path uses the underlying type's fields directly via the v2 JSON codec.
+type RemoteSchemaMetadata api.RemoteSchemaMetadata
 
-	Unknown jsontext.Value `json:",unknown" yaml:"-"`
-}
-
-// RemoteSchemaRelationshipDef defines a remote relationship from a remote schema type.
-type RemoteSchemaRelationshipDef struct {
-	Name       string                             `json:"name"       yaml:"name"`
-	Definition RemoteSchemaRelationshipDefinition `json:"definition" yaml:"definition"`
-
-	Unknown jsontext.Value `json:",unknown" yaml:"-"`
-}
-
-// RemoteSchemaRelationshipDefinition contains the relationship definition.
-type RemoteSchemaRelationshipDefinition struct {
-	ToSource *RemoteSchemaToSourceRelationship `json:"to_source,omitempty" yaml:"to_source,omitempty"`
-
-	Unknown jsontext.Value `json:",unknown" yaml:"-"`
-}
-
-// RemoteSchemaToSourceRelationship defines a relationship from a remote schema to a database.
-type RemoteSchemaToSourceRelationship struct {
-	FieldMapping     map[string]string    `json:"field_mapping"     yaml:"field_mapping"`
-	RelationshipType string               `json:"relationship_type" yaml:"relationship_type"`
-	Source           string               `json:"source"            yaml:"source"`
-	Table            RemoteSchemaTableRef `json:"table"             yaml:"table"`
-
-	Unknown jsontext.Value `json:",unknown" yaml:"-"`
-}
-
-// RemoteSchemaTableRef references a table in a database.
-type RemoteSchemaTableRef struct {
-	Name   string `json:"name"   yaml:"name"`
-	Schema string `json:"schema" yaml:"schema"`
-
-	Unknown jsontext.Value `json:",unknown" yaml:"-"`
-}
-
-// RemoteSchemaDefinition defines the connection settings for a remote schema.
-type RemoteSchemaDefinition struct {
-	URL                  string                    `json:"url,omitempty"                    yaml:"url,omitempty"`                    //nolint:lll
-	URLFromEnv           string                    `json:"url_from_env,omitempty"           yaml:"url_from_env,omitempty"`           //nolint:lll
-	TimeoutSeconds       int                       `json:"timeout_seconds,omitempty"        yaml:"timeout_seconds,omitempty"`        //nolint:lll
-	Customization        RemoteSchemaCustomization `json:"customization"                    yaml:"customization"`                    //nolint:lll
-	Headers              []RemoteSchemaHeader      `json:"headers,omitempty"                yaml:"headers,omitempty"`                //nolint:lll
-	ForwardClientHeaders bool                      `json:"forward_client_headers,omitempty" yaml:"forward_client_headers,omitempty"` //nolint:lll
-
-	Unknown jsontext.Value `json:",unknown" yaml:"-"`
-}
-
-// RemoteSchemaHeader defines a header to be sent with requests to the remote schema.
-type RemoteSchemaHeader struct {
-	Name  string   `json:"name" yaml:"name"`
-	Value EnvValue `json:"-"    yaml:"-"`
-}
-
-// UnmarshalYAML implements custom YAML unmarshaling to handle Hasura's header format
-// where value and value_from_env are sibling fields.
-func (h *RemoteSchemaHeader) UnmarshalYAML(unmarshal func(any) error) error {
-	var raw struct {
-		Name         string `yaml:"name"`
-		Value        string `yaml:"value,omitempty"`
-		ValueFromEnv string `yaml:"value_from_env,omitempty"`
-	}
-
-	if err := unmarshal(&raw); err != nil {
-		return fmt.Errorf("unmarshaling remote schema header: %w", err)
-	}
-
-	h.Name = raw.Name
-	h.Value = EnvValue{
-		Value:   raw.Value,
-		FromEnv: raw.ValueFromEnv,
-	}
-
-	return nil
-}
-
-// UnmarshalJSON implements custom JSON unmarshaling to handle Hasura's header format
-// where value and value_from_env are sibling fields.
-func (h *RemoteSchemaHeader) UnmarshalJSON(data []byte) error {
-	var raw struct {
-		Name         string `json:"name"`
-		Value        string `json:"value,omitempty"`
-		ValueFromEnv string `json:"value_from_env,omitempty"`
-	}
-
-	if err := json.Unmarshal(data, &raw); err != nil {
-		return fmt.Errorf("unmarshaling remote schema header: %w", err)
-	}
-
-	h.Name = raw.Name
-	h.Value = EnvValue{
-		Value:   raw.Value,
-		FromEnv: raw.ValueFromEnv,
-	}
-
-	return nil
-}
-
-// MarshalJSON inverts UnmarshalJSON: flatten EnvValue into Hasura's sibling
-// `value` / `value_from_env` fields next to `name`.
-func (h RemoteSchemaHeader) MarshalJSON() ([]byte, error) {
-	b, err := json.Marshal(struct {
-		Name         string `json:"name"`
-		Value        string `json:"value,omitempty"`
-		ValueFromEnv string `json:"value_from_env,omitempty"`
+// MarshalJSON emits the remote schema as Hasura does: `comment` mirrors Hasura,
+// which omits the key when no comment is set (add_remote_schema without a
+// comment exports no `comment` field) and emits it only when present. The
+// remaining fields keep their generated shape: `definition` is always present,
+// while `permissions` / `remote_relationships` are omitted when absent.
+//
+// A custom marshaler's bytes are spliced verbatim into the enclosing document,
+// so the caller's json.Deterministic option does NOT propagate in here; this
+// marshals with json.Deterministic(true) itself so the nested definition
+// headers/customization maps keep a stable key order (see ToJSON's note).
+func (r RemoteSchemaMetadata) MarshalJSON() ([]byte, error) {
+	// Fixed field order (not a map) so the output itself is byte-stable; comment
+	// carries omitempty on a pointer so it is omitted when unset, matching Hasura.
+	shadow := struct {
+		Name                string                                                  `json:"name"`
+		Definition          api.RemoteSchemaDef                                     `json:"definition"`
+		Comment             *string                                                 `json:"comment,omitempty"`
+		Permissions         *[]api.RemoteSchemaPermissionMetadata                   `json:"permissions,omitempty"`
+		RemoteRelationships *[]api.RemoteSchemaMetadataRemoteRelationshipDefinition `json:"remote_relationships,omitempty"`
 	}{
-		Name:         h.Name,
-		Value:        h.Value.Value,
-		ValueFromEnv: h.Value.FromEnv,
-	})
+		Name:                r.Name,
+		Definition:          r.Definition,
+		Comment:             r.Comment,
+		Permissions:         r.Permissions,
+		RemoteRelationships: r.RemoteRelationships,
+	}
+
+	b, err := json.Marshal(shadow, json.Deterministic(true))
 	if err != nil {
-		return nil, fmt.Errorf("marshaling remote_schema header: %w", err)
+		return nil, fmt.Errorf("marshaling remote schema: %w", err)
 	}
 
 	return b, nil
 }
 
-// RemoteSchemaPermission defines permissions for a specific role on a remote schema.
-type RemoteSchemaPermission struct {
-	Role       string                    `json:"role"       yaml:"role"`
-	Definition RemoteSchemaPermissionDef `json:"definition" yaml:"definition"`
+// UnmarshalYAML decodes YAML by routing through JSON so the generated json tags
+// (snake_case) and the oapi-codegen union (un)marshalers apply. The signature
+// matches the context-aware variant the rest of the loader uses; remote schemas
+// carry no !include directives, so the base-dir context is unused.
+func (r *RemoteSchemaMetadata) UnmarshalYAML(
+	_ context.Context, unmarshal func(any) error,
+) error {
+	var raw any
+	if err := unmarshal(&raw); err != nil {
+		return fmt.Errorf("unmarshaling remote schema: %w", err)
+	}
 
-	Unknown jsontext.Value `json:",unknown" yaml:"-"`
+	b, err := stdjson.Marshal(raw)
+	if err != nil {
+		return fmt.Errorf("re-encoding remote schema yaml: %w", err)
+	}
+
+	if err := json.Unmarshal(b, (*api.RemoteSchemaMetadata)(r)); err != nil {
+		return fmt.Errorf("decoding remote schema: %w", err)
+	}
+
+	return nil
 }
 
-// RemoteSchemaPermissionDef contains the GraphQL SDL schema for a role's permissions.
-type RemoteSchemaPermissionDef struct {
-	Schema string `json:"schema" yaml:"schema"`
+// RemoteSchemaRelationshipKind reports which arm of a remote-relationship
+// definition union is populated, by inspecting the raw JSON keys. It returns
+// whether the to_source and to_remote_schema arms are present, in that order.
+// The oapi-codegen union has no discriminator, so As* accessors alone cannot
+// tell the variants apart (they ignore unknown keys); key presence is the
+// reliable signal Hasura itself uses.
+func RemoteSchemaRelationshipKind(
+	d RemoteSchemaRelationshipDefinition,
+) (bool, bool) {
+	b, err := d.MarshalJSON()
+	if err != nil {
+		return false, false
+	}
 
-	Unknown jsontext.Value `json:",unknown" yaml:"-"`
+	var probe struct {
+		ToSource       stdjson.RawMessage `json:"to_source"`
+		ToRemoteSchema stdjson.RawMessage `json:"to_remote_schema"`
+	}
+
+	if err := stdjson.Unmarshal(b, &probe); err != nil {
+		return false, false
+	}
+
+	return len(probe.ToSource) > 0, len(probe.ToRemoteSchema) > 0
 }
