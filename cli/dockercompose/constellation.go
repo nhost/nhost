@@ -47,7 +47,7 @@ func constellation( //nolint:funlen
 		EntryPoint:  nil,
 		Command:     []string{"serve"},
 		Environment: env,
-		ExtraHosts:  extraHosts(subdomain),
+		ExtraHosts:  extraHosts,
 		HealthCheck: &HealthCheck{
 			Test: []string{
 				"CMD",

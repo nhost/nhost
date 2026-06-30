@@ -94,14 +94,16 @@ function FormSelectImpl<
               containerClassName,
             )}
           >
-            <FormLabel
-              className={cn({
-                'sm:w-52 sm:max-w-52 sm:flex-shrink-0': inline,
-                'sm:mt-2 sm:self-start': inline && !!helperText,
-              })}
-            >
-              {label}
-            </FormLabel>
+            {!!label && (
+              <FormLabel
+                className={cn({
+                  'sm:w-52 sm:max-w-52 sm:flex-shrink-0': inline,
+                  'sm:mt-2 sm:self-start': inline && !!helperText,
+                })}
+              >
+                {label}
+              </FormLabel>
+            )}
             <div
               className={cn({
                 'sm:flex sm:w-[calc(100%-13.5rem)] sm:max-w-[calc(100%-13.5rem)] sm:flex-col sm:gap-2':

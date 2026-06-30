@@ -155,19 +155,19 @@ paths:
             minimum: 1
             maximum: 100
         - name: h
-          description: "Maximum height to resize image to while maintaining aspect ratio. Only applies to image files"
+          description: "Maximum height, in pixels, to resize image to while maintaining aspect ratio. Only applies to image files. Values above the server-configured maximum (default 8000) are rejected with a 400 error."
           in: query
           schema:
             type: integer
             minimum: 1
         - name: w
-          description: "Maximum width to resize image to while maintaining aspect ratio. Only applies to image files"
+          description: "Maximum width, in pixels, to resize image to while maintaining aspect ratio. Only applies to image files. Values above the server-configured maximum (default 8000) are rejected with a 400 error."
           in: query
           schema:
             type: integer
             minimum: 1
         - name: b
-          description: "Blur the image using this sigma value. Only applies to image files"
+          description: "Blur the image using this sigma value. Only applies to image files. Values above the server-configured maximum (default 250) are rejected with a 400 error."
           in: query
           schema:
             type: number
@@ -339,19 +339,19 @@ paths:
             minimum: 1
             maximum: 100
         - name: h
-          description: "Maximum height to resize image to while maintaining aspect ratio. Only applies to image files"
+          description: "Maximum height, in pixels, to resize image to while maintaining aspect ratio. Only applies to image files. Values above the server-configured maximum (default 8000) are rejected with a 400 error."
           in: query
           schema:
             type: integer
             minimum: 1
         - name: w
-          description: "Maximum width to resize image to while maintaining aspect ratio. Only applies to image files"
+          description: "Maximum width, in pixels, to resize image to while maintaining aspect ratio. Only applies to image files. Values above the server-configured maximum (default 8000) are rejected with a 400 error."
           in: query
           schema:
             type: integer
             minimum: 1
         - name: b
-          description: "Blur the image using this sigma value. Only applies to image files"
+          description: "Blur the image using this sigma value. Only applies to image files. Values above the server-configured maximum (default 250) are rejected with a 400 error."
           in: query
           schema:
             type: number
@@ -621,19 +621,19 @@ paths:
             minimum: 1
             maximum: 100
         - name: h
-          description: "Maximum height to resize image to while maintaining aspect ratio. Only applies to image files"
+          description: "Maximum height, in pixels, to resize image to while maintaining aspect ratio. Only applies to image files. Values above the server-configured maximum (default 8000) are rejected with a 400 error."
           in: query
           schema:
             type: integer
             minimum: 1
         - name: w
-          description: "Maximum width to resize image to while maintaining aspect ratio. Only applies to image files"
+          description: "Maximum width, in pixels, to resize image to while maintaining aspect ratio. Only applies to image files. Values above the server-configured maximum (default 8000) are rejected with a 400 error."
           in: query
           schema:
             type: integer
             minimum: 1
         - name: b
-          description: "Blur the image using this sigma value. Only applies to image files"
+          description: "Blur the image using this sigma value. Only applies to image files. Values above the server-configured maximum (default 250) are rejected with a 400 error."
           in: query
           schema:
             type: number
