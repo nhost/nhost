@@ -109,7 +109,7 @@ export default function HeadersFormSection() {
                 />
               </div>
             </div>
-            <div className="flex justify-end self-start h-10 items-center">
+            <div className="flex h-10 items-center justify-end self-start">
               <Button
                 type="button"
                 variant="ghost"
