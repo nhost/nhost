@@ -14,8 +14,6 @@ import { Box } from '@/components/ui/v2/Box';
 import { Button } from '@/components/ui/v2/Button';
 import { IconButton } from '@/components/ui/v2/IconButton';
 import { Input } from '@/components/ui/v2/Input';
-import { Option } from '@/components/ui/v2/Option';
-import { Select } from '@/components/ui/v2/Select';
 import { Switch } from '@/components/ui/v2/Switch';
 import { Table } from '@/components/ui/v2/Table';
 import { TableBody } from '@/components/ui/v2/TableBody';
@@ -24,6 +22,13 @@ import { TableHead } from '@/components/ui/v2/TableHead';
 import { TableRow } from '@/components/ui/v2/TableRow';
 import { Text } from '@/components/ui/v2/Text';
 import { Tooltip } from '@/components/ui/v2/Tooltip';
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from '@/components/ui/v3/select';
 import { useIsPlatform } from '@/features/orgs/projects/common/hooks/useIsPlatform';
 import { useRunSQL } from '@/features/orgs/projects/database/dataGrid/hooks/useRunSQL';
 import {
@@ -308,18 +313,24 @@ export default function SQLEditor({
                         Rows per page
                       </Text>
                       <Select
-                        aria-label="Rows per page"
-                        value={limit}
-                        onChange={handleLimitChange}
-                        slotProps={{
-                          root: { className: 'h-5 min-w-[60px] text-xs' },
-                        }}
+                        value={String(limit)}
+                        onValueChange={(value) =>
+                          handleLimitChange(null, Number(value))
+                        }
                       >
-                        {PAGE_SIZE_OPTIONS.map((size) => (
-                          <Option key={size} value={size}>
-                            {size}
-                          </Option>
-                        ))}
+                        <SelectTrigger
+                          aria-label="Rows per page"
+                          className="h-7 min-w-[60px] px-2 text-xs"
+                        >
+                          <SelectValue />
+                        </SelectTrigger>
+                        <SelectContent>
+                          {PAGE_SIZE_OPTIONS.map((size) => (
+                            <SelectItem key={size} value={String(size)}>
+                              {size}
+                            </SelectItem>
+                          ))}
+                        </SelectContent>
                       </Select>
                     </Box>
 
