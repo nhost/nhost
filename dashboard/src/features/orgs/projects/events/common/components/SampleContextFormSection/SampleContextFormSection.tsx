@@ -1,44 +1,35 @@
 import { Plus, Trash } from 'lucide-react';
 import { useFieldArray, useFormContext } from 'react-hook-form';
 import { FormInput } from '@/components/form/FormInput';
-import { FormSelect } from '@/components/form/FormSelect';
 import { Button } from '@/components/ui/v3/button';
-import { SelectItem } from '@/components/ui/v3/select';
 import { InfoTooltip } from '@/features/orgs/projects/common/components/InfoTooltip';
 
-interface HeadersFormValues {
-  headers: Array<{
-    name: string;
-    type: 'fromValue' | 'fromEnv';
+interface SampleContextFormValues {
+  sampleContext: Array<{
+    key: string;
     value: string;
   }>;
 }
 
-export const HEADER_TYPES = [
-  { label: 'Value', value: 'fromValue' },
-  { label: 'Env Var', value: 'fromEnv' },
-] as const;
-
-export default function HeadersFormSection() {
-  const form = useFormContext<HeadersFormValues>();
-  const { watch } = form;
+export default function SampleContextFormSection() {
+  const form = useFormContext<SampleContextFormValues>();
   const { fields, append, remove } = useFieldArray({
     control: form.control,
-    name: 'headers',
+    name: 'sampleContext',
   });
 
-  const types = watch('headers').map((header) => header.type);
-
   return (
-    <div className="flex flex-col gap-6 pl-4">
+    <div className="flex max-w-lg flex-col gap-6">
       <div className="flex items-center justify-between">
         <div className="flex flex-row items-center gap-2">
-          <h3 className="font-medium text-base text-foreground">
-            Additional Headers{' '}
+          <h3 className="font-medium text-foreground text-sm">
+            Sample Context
           </h3>
           <p className="text-muted-foreground text-sm">
             <InfoTooltip>
-              Custom headers to be sent with the webhook request.
+              <p>
+                Mock environment variables to be used during the test execution.
+              </p>
             </InfoTooltip>
           </p>
         </div>
@@ -47,8 +38,8 @@ export default function HeadersFormSection() {
           variant="ghost"
           size="sm"
           className="px-4 text-primary hover:bg-muted hover:text-primary"
-          onClick={() => append({ name: '', type: 'fromValue', value: '' })}
-          data-testid="add-header-button"
+          onClick={() => append({ key: '', value: '' })}
+          data-testid="add-sample-context-button"
         >
           <Plus className="size-5" />
         </Button>
@@ -56,8 +47,8 @@ export default function HeadersFormSection() {
       <div className="flex flex-col gap-4">
         {fields.length > 0 && (
           <div className="grid grid-cols-9 gap-2 text-foreground text-sm+">
-            <span className="col-span-3">Key</span>
-            <span className="col-span-4 col-start-5">Value</span>
+            <span className="col-span-4">Key</span>
+            <span className="col-span-4 col-start-6">Value</span>
           </div>
         )}
         {fields.map((fieldItem, index) => (
@@ -65,12 +56,12 @@ export default function HeadersFormSection() {
             key={fieldItem.id}
             className="grid grid-cols-9 items-center gap-2"
           >
-            <div className="col-span-3 self-start">
+            <div className="col-span-4 self-start">
               <FormInput
                 control={form.control}
-                name={`headers.${index}.name`}
+                name={`sampleContext.${index}.key`}
                 label=""
-                placeholder="Header name"
+                placeholder="Key"
                 className="text-foreground"
                 autoComplete="off"
               />
@@ -78,33 +69,14 @@ export default function HeadersFormSection() {
             <div className="flex h-10 items-center justify-center self-start">
               <span className="text-center text-foreground">:</span>
             </div>
-            <div className="col-span-4 flex items-start self-start">
-              <div className="self-start">
-                <FormSelect
-                  control={form.control}
-                  name={`headers.${index}.type`}
-                  label=""
-                  placeholder="Select type"
-                  className="relative min-w-[120px] max-w-60 rounded-r-none border-r-0 text-foreground focus:z-10"
-                >
-                  {HEADER_TYPES.map((type) => (
-                    <SelectItem key={type.value} value={type.value}>
-                      {type.label}
-                    </SelectItem>
-                  ))}
-                </FormSelect>
-              </div>
+            <div className="col-span-3 flex items-center self-start">
               <div className="flex-1">
                 <FormInput
                   control={form.control}
-                  name={`headers.${index}.value`}
+                  name={`sampleContext.${index}.value`}
                   label=""
-                  placeholder={
-                    types[index] === 'fromValue'
-                      ? 'Header value'
-                      : 'Env variable'
-                  }
-                  className="relative rounded-l-none text-foreground focus:z-10"
+                  placeholder="Value"
+                  className="text-foreground"
                   autoComplete="off"
                 />
               </div>
