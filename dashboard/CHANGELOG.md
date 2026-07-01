@@ -1,3 +1,16 @@
+## [@nhost/dashboard@3.1.0] - 2026-07-01
+
+### 🚀 Features
+
+- *(dashboard)* Add sample context UI for event trigger tests (#4602)
+
+
+### 🐛 Bug Fixes
+
+- *(dashboard)* Resolve CI failures on main branch (#4605)
+- *(dashboard)* Align additional headers input fields (#4601)
+- *(dashboard)* Fallback to getFile download for storage files in private buckets (#4598)
+
 ## [@nhost/dashboard@3.0.0] - 2026-06-29
 
 ### 🚀 Features
