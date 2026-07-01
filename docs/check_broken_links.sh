@@ -24,6 +24,11 @@ SKIP=(
   # browsers but 403/404 to datacenter IPs / the link checker (false positive)
   'support\.microsoft\.com'
 
+  # Read the Docs aggressively rate-limits datacenter IPs: returns 429 to the
+  # link checker even with retries, while the pages are live in a browser
+  # (false positive)
+  'hypopg\.readthedocs\.io'
+
   # The site's own canonical/sitemap self-links; 404 until deployed.
   '^https:\/\/docs\.nhost\.io'
 )
