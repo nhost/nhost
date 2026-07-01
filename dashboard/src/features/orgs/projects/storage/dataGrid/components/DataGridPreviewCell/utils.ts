@@ -1,5 +1,7 @@
+import type { NhostClient } from '@nhost/nhost-js';
+
 export interface GetFileUrlOrFallbackOptions {
-  appClient: any;
+  appClient: NhostClient;
   id: string;
   adminSecret: string;
   presignedUrlsEnabled?: boolean;

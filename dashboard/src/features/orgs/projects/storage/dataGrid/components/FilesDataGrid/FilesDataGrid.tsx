@@ -176,7 +176,7 @@ export default function FilesDataGrid({
           }
         : definition,
     );
-  }, [bucket.downloadExpiration]);
+  }, [bucket.downloadExpiration, bucket.presignedUrlsEnabled]);
   const router = useRouter();
   const { project } = useProject();
   const appClient = useAppClient();

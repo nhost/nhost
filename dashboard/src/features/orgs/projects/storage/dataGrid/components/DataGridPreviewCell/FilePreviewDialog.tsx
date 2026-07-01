@@ -1,5 +1,5 @@
-import { useEffect } from 'react';
 import { useQuery } from '@tanstack/react-query';
+import { useEffect } from 'react';
 import {
   Dialog,
   DialogContent,
@@ -66,7 +66,7 @@ export default function FilePreviewDialog({
 
   useEffect(() => {
     return () => {
-      if (presignedUrl && presignedUrl.startsWith('blob:')) {
+      if (presignedUrl?.startsWith('blob:')) {
         URL.revokeObjectURL(presignedUrl);
       }
     };

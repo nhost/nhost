@@ -1,6 +1,6 @@
+import userEvent from '@testing-library/user-event';
 import { vi } from 'vitest';
 import { render, screen, waitFor } from '@/tests/testUtils';
-import userEvent from '@testing-library/user-event';
 import DataGridPreviewCell from './DataGridPreviewCell';
 
 const mocks = vi.hoisted(() => ({
@@ -35,7 +35,9 @@ describe('DataGridPreviewCell and FilePreviewDialog Fallbacks', () => {
   });
 
   it('FilePreviewDialog falls back to getFile when getFilePresignedURL fails', async () => {
-    const getFilePresignedURLMock = vi.fn().mockRejectedValue(new Error('Presigned URLs disabled'));
+    const getFilePresignedURLMock = vi
+      .fn()
+      .mockRejectedValue(new Error('Presigned URLs disabled'));
     const mockBlob = new Blob(['image data'], { type: 'image/png' });
     const getFileMock = vi.fn().mockResolvedValue({
       body: mockBlob,
@@ -49,8 +51,12 @@ describe('DataGridPreviewCell and FilePreviewDialog Fallbacks', () => {
       },
     });
 
-    const createObjectURLSpy = vi.spyOn(URL, 'createObjectURL').mockReturnValue('blob:http://localhost/test-blob-url');
-    const revokeObjectURLSpy = vi.spyOn(URL, 'revokeObjectURL').mockImplementation(() => {});
+    const createObjectURLSpy = vi
+      .spyOn(URL, 'createObjectURL')
+      .mockReturnValue('blob:http://localhost/test-blob-url');
+    const revokeObjectURLSpy = vi
+      .spyOn(URL, 'revokeObjectURL')
+      .mockImplementation(() => {});
 
     render(
       <DataGridPreviewCell
@@ -60,7 +66,7 @@ describe('DataGridPreviewCell and FilePreviewDialog Fallbacks', () => {
         fetchBlob={async () => null}
         isDisabled={false}
         downloadExpiration={30}
-      />
+      />,
     );
 
     // Open preview dialog (images are previewable)
@@ -72,9 +78,13 @@ describe('DataGridPreviewCell and FilePreviewDialog Fallbacks', () => {
       expect(getFilePresignedURLMock).toHaveBeenCalledWith(fileId, {
         headers: { 'x-hasura-admin-secret': adminSecret },
       });
-      expect(getFileMock).toHaveBeenCalledWith(fileId, {}, {
-        headers: { 'x-hasura-admin-secret': adminSecret },
-      });
+      expect(getFileMock).toHaveBeenCalledWith(
+        fileId,
+        {},
+        {
+          headers: { 'x-hasura-admin-secret': adminSecret },
+        },
+      );
     });
 
     // Check that createObjectURL was called with the blob
@@ -86,7 +96,9 @@ describe('DataGridPreviewCell and FilePreviewDialog Fallbacks', () => {
   });
 
   it('DataGridPreviewCell handleOpenPreview falls back to getFile and opens in new tab for non-previewable files', async () => {
-    const getFilePresignedURLMock = vi.fn().mockRejectedValue(new Error('Presigned URLs disabled'));
+    const getFilePresignedURLMock = vi
+      .fn()
+      .mockRejectedValue(new Error('Presigned URLs disabled'));
     const mockBlob = new Blob(['pdf data'], { type: 'application/pdf' });
     const getFileMock = vi.fn().mockResolvedValue({
       body: mockBlob,
@@ -100,9 +112,15 @@ describe('DataGridPreviewCell and FilePreviewDialog Fallbacks', () => {
       },
     });
 
-    const createObjectURLSpy = vi.spyOn(URL, 'createObjectURL').mockReturnValue('blob:http://localhost/pdf-blob-url');
-    const revokeObjectURLSpy = vi.spyOn(URL, 'revokeObjectURL').mockImplementation(() => {});
-    const windowOpenSpy = vi.spyOn(window, 'open').mockImplementation(() => null);
+    const createObjectURLSpy = vi
+      .spyOn(URL, 'createObjectURL')
+      .mockReturnValue('blob:http://localhost/pdf-blob-url');
+    const revokeObjectURLSpy = vi
+      .spyOn(URL, 'revokeObjectURL')
+      .mockImplementation(() => {});
+    const windowOpenSpy = vi
+      .spyOn(window, 'open')
+      .mockImplementation(() => null);
 
     render(
       <DataGridPreviewCell
@@ -112,7 +130,7 @@ describe('DataGridPreviewCell and FilePreviewDialog Fallbacks', () => {
         fetchBlob={async () => null}
         isDisabled={false}
         downloadExpiration={30}
-      />
+      />,
     );
 
     // Click button to open the PDF (non-previewable type)
@@ -121,10 +139,18 @@ describe('DataGridPreviewCell and FilePreviewDialog Fallbacks', () => {
 
     // Verify fallback download and window.open is called with local blob URL
     await waitFor(() => {
-      expect(getFileMock).toHaveBeenCalledWith(fileId, {}, {
-        headers: { 'x-hasura-admin-secret': adminSecret },
-      });
-      expect(windowOpenSpy).toHaveBeenCalledWith('blob:http://localhost/pdf-blob-url', '_blank', 'noopener noreferrer');
+      expect(getFileMock).toHaveBeenCalledWith(
+        fileId,
+        {},
+        {
+          headers: { 'x-hasura-admin-secret': adminSecret },
+        },
+      );
+      expect(windowOpenSpy).toHaveBeenCalledWith(
+        'blob:http://localhost/pdf-blob-url',
+        '_blank',
+        'noopener noreferrer',
+      );
     });
   });
 });
