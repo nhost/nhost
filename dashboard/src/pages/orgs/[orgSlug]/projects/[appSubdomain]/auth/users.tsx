@@ -218,9 +218,10 @@ function UsersPageContent() {
         className="flex h-full max-w-9xl flex-col"
         rootClassName="h-full"
       >
-        <div className="flex shrink-0 grow-0 flex-row place-content-between">
+        <div className="flex shrink-0 grow-0 flex-col gap-3 sm:flex-row sm:items-center sm:place-content-between">
           <Input
-            className="rounded-sm"
+            className="w-full sm:w-72 rounded-sm"
+            fullWidth
             placeholder="Search users"
             startAdornment={
               <SearchIcon className="-mr-1 ml-2 h-4 w-4 shrink-0 text-disabled" />
@@ -231,6 +232,7 @@ function UsersPageContent() {
             onClick={openCreateUserDialog}
             startIcon={<PlusIcon className="h-4 w-4" />}
             size="small"
+            className="w-full sm:w-auto"
           >
             Create User
           </Button>
@@ -263,9 +265,10 @@ function UsersPageContent() {
       : (dataRemoteAppUsersAndAuthRoles?.usersAggregate?.aggregate?.count ?? 0);
   return (
     <Container className="mx-auto max-w-9xl space-y-5 overflow-x-hidden">
-      <div className="flex flex-row place-content-between">
+      <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:place-content-between">
         <Input
-          className="rounded-sm"
+          className="w-full sm:w-72 rounded-sm"
+          fullWidth
           placeholder="Search users"
           startAdornment={
             <SearchIcon className="-mr-1 ml-2 h-4 w-4 shrink-0 text-disabled" />
@@ -276,12 +279,13 @@ function UsersPageContent() {
           onClick={openCreateUserDialog}
           startIcon={<PlusIcon className="h-4 w-4" />}
           size="small"
+          className="w-full sm:w-auto"
         >
           Create User
         </Button>
       </div>
       {usersCount === 0 ? (
-        <Box className="flex flex-col items-center justify-center space-y-5 rounded-lg border px-48 py-12 shadow-sm">
+        <Box className="flex flex-col items-center justify-center space-y-5 rounded-lg border px-4 sm:px-48 py-12 shadow-sm">
           <UserIcon strokeWidth={1} className="h-10 w-10 text-disabled" />
           <div className="flex flex-col space-y-1">
             <Text className="text-center font-medium" variant="h3">

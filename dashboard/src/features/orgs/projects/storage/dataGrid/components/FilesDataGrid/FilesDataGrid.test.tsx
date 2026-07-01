@@ -69,6 +69,8 @@ const server = setupServer(
   getFilesAggregateHandler,
 );
 
+const originalLocalStorage = global.localStorage;
+
 beforeAll(() => {
   server.listen();
   global.localStorage = localStorageMock();
@@ -79,7 +81,10 @@ afterEach(() => {
   capturedAggregateVariables = undefined;
   localStorage.removeItem(DATA_GRID_FILTER_STORAGE_KEY);
 });
-afterAll(() => server.close());
+afterAll(() => {
+  server.close();
+  global.localStorage = originalLocalStorage;
+});
 
 describe('FilesDataGrid integration', () => {
   beforeEach(() => {

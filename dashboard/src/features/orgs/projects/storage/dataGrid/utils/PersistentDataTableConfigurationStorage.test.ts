@@ -11,8 +11,13 @@ import {
 
 describe('PersistentDataTableConfigurationStorage', () => {
   const TABLE_PATH = 'default.public.myTable';
+  const originalLocalStorage = global.localStorage;
   beforeAll(() => {
     global.localStorage = localStorageMock();
+  });
+
+  afterAll(() => {
+    global.localStorage = originalLocalStorage;
   });
 
   beforeEach(() => {

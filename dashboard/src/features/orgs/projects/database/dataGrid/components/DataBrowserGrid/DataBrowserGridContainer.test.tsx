@@ -61,6 +61,7 @@ function createRouterValue(tableSlug: string) {
 }
 
 describe('DataBrowserGridContainer', () => {
+  const originalLocalStorage = global.localStorage;
   beforeAll(() => {
     global.localStorage = localStorageMock();
     window.HTMLElement.prototype.scrollTo = vi.fn();
@@ -74,6 +75,7 @@ describe('DataBrowserGridContainer', () => {
 
   afterAll(() => {
     server.close();
+    global.localStorage = originalLocalStorage;
   });
 
   it('should load the correct column visibility for each table when switching', async () => {
