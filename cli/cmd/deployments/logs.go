@@ -254,7 +254,7 @@ func handlePipelineRunLogs(
 func commandLogs(ctx context.Context, cmd *cli.Command) error {
 	deploymentID := cmd.Args().First()
 	if deploymentID == "" {
-		return errors.New("deployment_id is required") //nolint:err113
+		return errors.New("deployment ID is required. Usage: nhost deployments logs <ID>") //nolint:err113
 	}
 
 	ce := clienv.FromCLI(cmd)

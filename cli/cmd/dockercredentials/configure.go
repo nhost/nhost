@@ -3,17 +3,20 @@ package dockercredentials
 import (
 	"context"
 	"encoding/json"
+	"errors"
 	"fmt"
 	"os"
 	"os/exec"
 
 	"github.com/nhost/nhost/cli/clienv"
+	"github.com/nhost/nhost/cli/tui"
 	"github.com/urfave/cli/v3"
+	"golang.org/x/term"
 )
 
 const (
-	flagDockerConfig  = "docker-config"
-	flagNoInteractive = "no-interactive"
+	flagDockerConfig = "docker-config"
+	flagYes          = "yes"
 )
 
 const (
@@ -40,9 +43,9 @@ func CommandConfigure() *cli.Command {
 				DefaultText: "$HOME/.docker/config.json",
 			},
 			&cli.BoolFlag{ //nolint:exhaustruct
-				Name:    flagNoInteractive,
-				Usage:   "Do not prompt for confirmation",
-				Sources: cli.EnvVars("NO_INTERACTIVE"),
+				Name:    flagYes,
+				Usage:   "Skip confirmation",
+				Sources: cli.EnvVars("NHOST_YES"),
 				Value:   false,
 			},
 		},
@@ -148,24 +151,30 @@ func actionConfigure(ctx context.Context, cmd *cli.Command) error {
 		return err
 	}
 
-	if cmd.Bool(flagNoInteractive) {
+	if cmd.Bool(flagYes) {
 		return configureDocker(cmd.String(flagDockerConfig))
 	}
 
-	//nolint:lll
-	ce.PromptMessage(
-		"I am about to configure docker to authenticate with Nhost's registry. This will modify your docker config file on %s. Should I continue? [y/N] ",
-		cmd.String(flagDockerConfig),
-	)
-
-	v, err := ce.PromptInput(false)
+	confirmed, err := confirmDockerConfigure()
 	if err != nil {
 		return fmt.Errorf("could not read input: %w", err)
 	}
 
-	if v == "y" || v == "Y" {
+	if confirmed {
 		return configureDocker(cmd.String(flagDockerConfig))
 	}
 
 	return nil
+}
+
+func confirmDockerConfigure() (bool, error) {
+	if !term.IsTerminal(int(os.Stdout.Fd())) {
+		return false, errors.New( //nolint:err113
+			"use --yes to skip confirmation",
+		)
+	}
+
+	return tui.RunConfirm(
+		"Configure Docker for Nhost registry authentication?",
+	)
 }

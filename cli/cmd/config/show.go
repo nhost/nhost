@@ -2,7 +2,9 @@ package config
 
 import (
 	"context"
+	"encoding/json"
 	"fmt"
+	"os"
 
 	"github.com/nhost/be/services/mimir/model"
 	"github.com/nhost/nhost/cli/clienv"
@@ -10,6 +12,8 @@ import (
 	"github.com/pelletier/go-toml/v2"
 	"github.com/urfave/cli/v3"
 )
+
+const flagJSON = "json"
 
 func CommandShow() *cli.Command {
 	return &cli.Command{ //nolint:exhaustruct
@@ -23,6 +27,10 @@ func CommandShow() *cli.Command {
 				Name:    flagSubdomain,
 				Usage:   "Show this subdomain's rendered configuration. Defaults to base configuration",
 				Sources: cli.EnvVars("NHOST_SUBDOMAIN"),
+			},
+			&cli.BoolFlag{ //nolint:exhaustruct
+				Name:  flagJSON,
+				Usage: "Output as JSON",
 			},
 		},
 	}
@@ -44,12 +52,27 @@ func commandShow(_ context.Context, cmd *cli.Command) error {
 		return err
 	}
 
+	if cmd.Bool(flagJSON) {
+		return showJSON(cfg)
+	}
+
 	b, err := toml.Marshal(cfg)
 	if err != nil {
 		return fmt.Errorf("error marshalling config: %w", err)
 	}
 
 	ce.Println("%s", b)
+
+	return nil
+}
+
+func showJSON(cfg *model.ConfigConfig) error {
+	enc := json.NewEncoder(os.Stdout)
+	enc.SetIndent("", "  ")
+
+	if err := enc.Encode(cfg); err != nil {
+		return fmt.Errorf("failed to encode JSON: %w", err)
+	}
 
 	return nil
 }
