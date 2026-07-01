@@ -95,10 +95,10 @@ function build_config_reference() {
 
 function build_cli_docs() {
 	echo "⚒️⚒️⚒️ Building CLI documentation..."
+	# `cli gen-docs` emits the final MDX directly (badge/<div> wrappers and
+	# angle-bracket escaping are handled in internal/lib/clidocs), so no
+	# post-processing is needed here.
 	cli gen-docs >src/content/docs/reference/cli/commands.mdx
-	cat src/content/docs/reference/cli/commands.mdx
-
-	sed -i 's/</\&lt;/g; s/>/\&gt;/g' src/content/docs/reference/cli/commands.mdx
 }
 
 build_schemas

@@ -6,92 +6,17 @@ head:
   - tag: title
     content: "Run the Full Nhost Stack Locally with Docker | Nhost Docs"
 ---
+import { AsciinemaPlayer } from '@components';
 
 Nhost's command-line interface (CLI) lets you run a complete Nhost development environment locally with the following services: PostgreSQL database, GraphQL, Authentication, Storage (MinIO), Serverless Functions, and Emails (Mailhog).
 
-## Dependencies
+## Before you start
 
-- [Git](https://git-scm.com/downloads)
-- [Docker](https://www.docker.com/get-started)
+This guide assumes you've already installed the CLI and have a project running locally. If you haven't, follow the [CLI Quickstart](/getting-started/local-development/cli) to install the CLI, authenticate, run `nhost init`, and start your stack with `nhost up`.
 
-## Supported platforms
+With your environment running, this guide covers the everyday local workflow: verifying your services, creating database migrations, tracking metadata changes, and deploying to Nhost.
 
-- MacOS
-- Linux
-- Windows (via WSL2)<sup>1</sup>
-
-:::caution
-<sup>1</sup> Windows isn't supported natively. WSL2 is required to install and use the Nhost CLI. We recommend using docker-ce inside WSL2 instead of Docker Desktop.
-:::
-
-## Installing Nhost's CLI
-
-```bash
-sudo curl -L https://raw.githubusercontent.com/nhost/nhost/main/cli/get.sh | bash
-```
-
-## Login to Nhost
-
-```bash
-nhost login
-```
-
-:::note
-If you used GitHub to register, you will have to first set a password in your [account
-  page](https://app.nhost.io/account).
-:::
-
-## Initialize local project
-
-Let's start by creating a directory to hold your project.
-
-```bash
-mkdir my-project
-cd my-project
-```
-
-We can now initialize and create the necessary project configuration.
-
-```bash
-nhost init
-```
-
-`nhost init` creates all the configuration necessary for your project, including database migrations and metadata.
-
-We can now start your project with `nhost up`.
-
-```bash
-nhost up
-```
-
-Once all services are up and running, the following information is displayed for your project:
-
-```bash
-Nhost development environment started.
-
-URLs:
-- Postgres:             postgres://postgres:postgres@localhost:5432/local
-- Hasura:               https://local.hasura.local.nhost.run
-- GraphQL:              https://local.graphql.local.nhost.run
-- Auth:                 https://local.auth.local.nhost.run
-- Storage:              https://local.storage.local.nhost.run
-- Functions:            https://local.functions.local.nhost.run
-- Dashboard:            https://local.dashboard.local.nhost.run
-- Mailhog:              https://local.mailhog.local.nhost.run
-
-SDK Configuration:
- Subdomain:             local
- Region:                (empty)
-
-Run `nhost up` to reload the development environment
-Run `nhost down` to stop the development environment
-Run `nhost logs` to watch the logs
-
-```
-
-You can use `nhost down` at any time to tear down your environment.
-
-### Access your project's services
+## Verify your services are running
 
 To test that the services are running, let's curl the Auth endpoint and get its version:
 
@@ -122,10 +47,10 @@ All changes to your project should be tested locally first before deploying to y
 
 Let's create a new table called `messages`, with the following columns:
 
-- id (UUID)
-- text (Text)
-- author_id (UUID)
-- created_at (Timestamp)
+- `id` (UUID)
+- `text` (Text)
+- `author_id` (UUID)
+- `created_at` (Timestamp)
 
 There are other ways to generate a migration, here we will use the local Nhost Dashboard running on `https://local.dashboard.local.nhost.run/local/local`. Please head to the `database` tab and add the columns as follows:
 
@@ -195,15 +120,9 @@ It's time to link, or associate, your local project to the remote one:
 
 ```bash
 nhost link
-
-    │                      │                                 │                  │              │
- #  │ Subdomain            │ Project                         │ Workspace        │ Region       │
- 1  │ kgrbyupffiamgqwnovkb │ local-development               │ Nhost            │ eu-central-1 │
- 2  │ odtxlexktkcwdynjssqg │ nbp                             │ Nuno's Workspace │ eu-central-1 │
-    │                      │                                 │                  │              │
-- Select the workspace # to link: 1
-- Enter project subdomain to confirm: kgrbyupffiamgqwnovkb
 ```
+
+<AsciinemaPlayer src="/casts/cli/nhost-link.cast" poster="npt:0:07" idleTimeLimit={2} />
 
 You have now successfully linked your local project to a hosted project running on the Nhost Cloud.
 
@@ -214,8 +133,12 @@ git add -A
 git push -u origin main
 ```
 
-To check out your deployment, head over to the **Deployments** tab (https://app.nhost.io).
+To check out your deployment, head over to the **Deployments** tab (`https://app.nhost.io/orgs/_/projects/_/deployments` - _Note: `_` is a placeholder for the user's org/project_).
 
 ![Deployments](/images/cli/deployments.png)
 
 You should now have the same `messages` table (and permissions) on your production instance!
+
+## See also
+
+For the full list of commands, flags, and environment variables, see the [Nhost CLI Reference](/reference/cli/commands).

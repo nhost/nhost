@@ -4,5 +4,10 @@ export default {
   plugins: [pluginLineNumbers()],
   defaultProps: {
     showLineNumbers: false,
+    overridesByLang: {
+      'sh,bash': {
+        frame: 'none',
+      },
+    },
   },
 };

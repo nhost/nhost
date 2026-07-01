@@ -128,13 +128,17 @@ export default defineConfig({
                   label: 'Quickstart',
                   collapsed: false,
                   items: [
-                    { slug: 'getting-started/quickstart/cli' },
                     { slug: 'getting-started/quickstart/react' },
                     { slug: 'getting-started/quickstart/nextjs' },
                     { slug: 'getting-started/quickstart/vue' },
                     { slug: 'getting-started/quickstart/sveltekit' },
                     { slug: 'getting-started/quickstart/reactnative' },
                   ],
+                },
+                {
+                  label: 'Local Development',
+                  collapsed: false,
+                  items: [{ slug: 'getting-started/local-development/cli' }],
                 },
                 {
                   label: 'Tutorials',
@@ -639,7 +643,6 @@ export default defineConfig({
                     { slug: 'platform/cli/local-development' },
                     { slug: 'platform/cli/cloud-development' },
                     { slug: 'platform/cli/subdomain' },
-                    { slug: 'platform/cli/migrate-config' },
                     { slug: 'platform/cli/multiple-projects' },
                     { slug: 'platform/cli/configuration-overlays' },
                     { slug: 'platform/cli/seeds' },
