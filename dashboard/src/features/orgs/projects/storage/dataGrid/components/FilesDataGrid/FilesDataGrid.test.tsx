@@ -9,9 +9,31 @@ import tokenQuery from '@/tests/msw/mocks/rest/tokenQuery';
 import { render, screen, waitFor } from '@/tests/testUtils';
 import FilesDataGrid from './FilesDataGrid';
 
-const mocks = vi.hoisted(() => ({
-  useRouter: vi.fn(),
-}));
+const mocks = vi.hoisted(() => {
+  const store: Record<string, string> = {};
+  global.localStorage = {
+    getItem: (key: string) => store[key] || null,
+    setItem: (key: string, value: string) => {
+      store[key] = value.toString();
+    },
+    removeItem: (key: string) => {
+      delete store[key];
+    },
+    clear: () => {
+      for (const key in store) {
+        delete store[key];
+      }
+    },
+    get length() {
+      return Object.keys(store).length;
+    },
+    key: (index: number) => Object.keys(store)[index] ?? null,
+  };
+
+  return {
+    useRouter: vi.fn(),
+  };
+});
 
 vi.mock('next/router', () => ({
   useRouter: mocks.useRouter,

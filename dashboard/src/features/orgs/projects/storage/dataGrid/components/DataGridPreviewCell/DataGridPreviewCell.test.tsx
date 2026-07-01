@@ -1,7 +1,18 @@
-import userEvent from '@testing-library/user-event';
+import { mockMatchMediaValue } from '@/tests/mocks';
+import {
+  localStorageMock,
+  render,
+  screen,
+  TestUserEvent,
+  waitFor,
+} from '@/tests/testUtils';
 import { vi } from 'vitest';
-import { render, screen, waitFor } from '@/tests/testUtils';
 import DataGridPreviewCell from './DataGridPreviewCell';
+
+Object.defineProperty(window, 'matchMedia', {
+  writable: true,
+  value: vi.fn().mockImplementation(mockMatchMediaValue),
+});
 
 const mocks = vi.hoisted(() => ({
   useProject: vi.fn(),
@@ -19,6 +30,10 @@ vi.mock('@/features/orgs/projects/hooks/useAppClient', () => ({
 describe('DataGridPreviewCell and FilePreviewDialog Fallbacks', () => {
   const adminSecret = 'my-admin-secret';
   const fileId = 'test-file-id';
+
+  beforeAll(() => {
+    global.localStorage = localStorageMock();
+  });
 
   beforeEach(() => {
     vi.restoreAllMocks();
@@ -54,9 +69,6 @@ describe('DataGridPreviewCell and FilePreviewDialog Fallbacks', () => {
     const createObjectURLSpy = vi
       .spyOn(URL, 'createObjectURL')
       .mockReturnValue('blob:http://localhost/test-blob-url');
-    const revokeObjectURLSpy = vi
-      .spyOn(URL, 'revokeObjectURL')
-      .mockImplementation(() => {});
 
     render(
       <DataGridPreviewCell
@@ -71,7 +83,7 @@ describe('DataGridPreviewCell and FilePreviewDialog Fallbacks', () => {
 
     // Open preview dialog (images are previewable)
     const button = screen.getByRole('button');
-    await userEvent.click(button);
+    await TestUserEvent.fireClickEvent(button);
 
     // Verify it tries to get presigned URL first, then falls back to getFile with admin secret
     await waitFor(() => {
@@ -112,15 +124,10 @@ describe('DataGridPreviewCell and FilePreviewDialog Fallbacks', () => {
       },
     });
 
-    const createObjectURLSpy = vi
-      .spyOn(URL, 'createObjectURL')
-      .mockReturnValue('blob:http://localhost/pdf-blob-url');
-    const revokeObjectURLSpy = vi
-      .spyOn(URL, 'revokeObjectURL')
-      .mockImplementation(() => {});
-    const windowOpenSpy = vi
-      .spyOn(window, 'open')
-      .mockImplementation(() => null);
+    vi.spyOn(URL, 'createObjectURL').mockReturnValue(
+      'blob:http://localhost/pdf-blob-url',
+    );
+    const windowOpenSpy = vi.spyOn(window, 'open').mockImplementation(() => null);
 
     render(
       <DataGridPreviewCell
@@ -135,7 +142,7 @@ describe('DataGridPreviewCell and FilePreviewDialog Fallbacks', () => {
 
     // Click button to open the PDF (non-previewable type)
     const button = screen.getByRole('button');
-    await userEvent.click(button);
+    await TestUserEvent.fireClickEvent(button);
 
     // Verify fallback download and window.open is called with local blob URL
     await waitFor(() => {
