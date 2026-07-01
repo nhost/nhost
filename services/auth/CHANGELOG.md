@@ -1,3 +1,31 @@
+## [auth@0.51.0] - 2026-07-01
+
+### 🚀 Features
+
+- *(cli)* Embed email templates instead of fetching at runtime (#4273)
+- *(cli)* Harden local configserver against cross-origin and exfil access (#4302)
+
+
+### 🐛 Bug Fixes
+
+- *(ci)* Make build and check work on NixOS (#4234)
+- *(auth)* Validate PKCE verifier before consuming authorization code (#4432)
+- *(auth)* Prevent JSON injection in turnstile siteverify request (#4431)
+- *(internal/lib)* Consolidate / improve middleware into shared internal/lib/oapi (#4513)
+- *(auth)* Hash email OTP, make it single-use, and shorten its TTL (#4421)
+- *(auth)* ⚠️ **BREAKING** ⚠️ Require elevated permissions to generate TOTP secret (#4493)
+
+
+### ⚙️ Miscellaneous Tasks
+
+- *(docs)* Fix broken links in auth README (#4292)
+- *(ci)* Minor changes to go linter to reduce noise (#4329)
+- *(ci)* Follow-up skill improvements (#4332)
+- *(nixops)* Drop nix-filter input in favor of pkgs.lib.fileset (#4377)
+- *(nixops)* Fix repo after bumping nixpkgs (#4394)
+- *(nixops)* Scope pinned toolchain overlays (#4506)
+- *(nixops)* Bump oapi-codegen (#4523)
+
 ## [auth@0.50.1] - 2026-04-30
 
 ### 🐛 Bug Fixes
