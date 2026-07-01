@@ -1,3 +1,4 @@
+import { vi } from 'vitest';
 import { mockMatchMediaValue } from '@/tests/mocks';
 import {
   localStorageMock,
@@ -6,7 +7,6 @@ import {
   TestUserEvent,
   waitFor,
 } from '@/tests/testUtils';
-import { vi } from 'vitest';
 import DataGridPreviewCell from './DataGridPreviewCell';
 
 Object.defineProperty(window, 'matchMedia', {
@@ -127,7 +127,9 @@ describe('DataGridPreviewCell and FilePreviewDialog Fallbacks', () => {
     vi.spyOn(URL, 'createObjectURL').mockReturnValue(
       'blob:http://localhost/pdf-blob-url',
     );
-    const windowOpenSpy = vi.spyOn(window, 'open').mockImplementation(() => null);
+    const windowOpenSpy = vi
+      .spyOn(window, 'open')
+      .mockImplementation(() => null);
 
     render(
       <DataGridPreviewCell
