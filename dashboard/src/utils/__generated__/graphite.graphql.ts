@@ -1,16 +1,10 @@
-import * as Apollo from '@apollo/client';
 import { gql } from '@apollo/client';
+import * as Apollo from '@apollo/client';
 export type Maybe<T> = T | null;
 export type InputMaybe<T> = Maybe<T>;
-export type Exact<T extends { [key: string]: unknown }> = {
-  [K in keyof T]: T[K];
-};
-export type MakeOptional<T, K extends keyof T> = Omit<T, K> & {
-  [SubKey in K]?: Maybe<T[SubKey]>;
-};
-export type MakeMaybe<T, K extends keyof T> = Omit<T, K> & {
-  [SubKey in K]: Maybe<T[SubKey]>;
-};
+export type Exact<T extends { [key: string]: unknown }> = { [K in keyof T]: T[K] };
+export type MakeOptional<T, K extends keyof T> = Omit<T, K> & { [SubKey in K]?: Maybe<T[SubKey]> };
+export type MakeMaybe<T, K extends keyof T> = Omit<T, K> & { [SubKey in K]: Maybe<T[SubKey]> };
 const defaultOptions = {} as const;
 /** All built-in and custom scalars, mapped to their actual values */
 export type Scalars = {
@@ -52,6 +46,23 @@ export type Int_Comparison_Exp = {
   _lte?: InputMaybe<Scalars['Int']>;
   _neq?: InputMaybe<Scalars['Int']>;
   _nin?: InputMaybe<Array<Scalars['Int']>>;
+};
+
+/** Boolean expression to compare columns of type "String". All fields are combined with logical 'AND'. */
+export type String_Array_Comparison_Exp = {
+  /** is the array contained in the given array value */
+  _contained_in?: InputMaybe<Array<Scalars['String']>>;
+  /** does the array contain the given value */
+  _contains?: InputMaybe<Array<Scalars['String']>>;
+  _eq?: InputMaybe<Array<Scalars['String']>>;
+  _gt?: InputMaybe<Array<Scalars['String']>>;
+  _gte?: InputMaybe<Array<Scalars['String']>>;
+  _in?: InputMaybe<Array<Array<Scalars['String']>>>;
+  _is_null?: InputMaybe<Scalars['Boolean']>;
+  _lt?: InputMaybe<Array<Scalars['String']>>;
+  _lte?: InputMaybe<Array<Scalars['String']>>;
+  _neq?: InputMaybe<Array<Scalars['String']>>;
+  _nin?: InputMaybe<Array<Array<Scalars['String']>>>;
 };
 
 /** Boolean expression to compare columns of type "String". All fields are combined with logical 'AND'. */
@@ -111,6 +122,7 @@ export type _GraphiteAssistantFileStores_Aggregate_Fields = {
   min?: Maybe<_GraphiteAssistantFileStores_Min_Fields>;
 };
 
+
 /** aggregate fields of "graphite.assistant_file_stores" */
 export type _GraphiteAssistantFileStores_Aggregate_FieldsCountArgs = {
   columns?: InputMaybe<Array<_GraphiteAssistantFileStores_Select_Column>>;
@@ -131,7 +143,7 @@ export type _GraphiteAssistantFileStores_Bool_Exp = {
 /** unique or primary key constraints on table "graphite.assistant_file_stores" */
 export enum _GraphiteAssistantFileStores_Constraint {
   /** unique or primary key constraint on columns "assistant_id", "file_store_id" */
-  AssistantFileStoresPkey = 'assistant_file_stores_pkey',
+  AssistantFileStoresPkey = 'assistant_file_stores_pkey'
 }
 
 /** input type for inserting data into table "graphite.assistant_file_stores" */
@@ -199,7 +211,7 @@ export enum _GraphiteAssistantFileStores_Select_Column {
   /** column name */
   FileStoreId = 'fileStoreID',
   /** column name */
-  UpdatedAt = 'updatedAt',
+  UpdatedAt = 'updatedAt'
 }
 
 /** input type for updating data in table "graphite.assistant_file_stores" */
@@ -235,7 +247,7 @@ export enum _GraphiteAssistantFileStores_Update_Column {
   /** column name */
   FileStoreId = 'fileStoreID',
   /** column name */
-  UpdatedAt = 'updatedAt',
+  UpdatedAt = 'updatedAt'
 }
 
 export type _GraphiteAssistantFileStores_Updates = {
@@ -256,6 +268,7 @@ export type _GraphiteAssistants = {
   user_id?: Maybe<Scalars['uuid']>;
 };
 
+
 /** columns and relationships of "graphite.assistants" */
 export type _GraphiteAssistantsDataArgs = {
   path?: InputMaybe<Scalars['String']>;
@@ -275,6 +288,7 @@ export type _GraphiteAssistants_Aggregate_Fields = {
   max?: Maybe<_GraphiteAssistants_Max_Fields>;
   min?: Maybe<_GraphiteAssistants_Min_Fields>;
 };
+
 
 /** aggregate fields of "graphite.assistants" */
 export type _GraphiteAssistants_Aggregate_FieldsCountArgs = {
@@ -305,7 +319,7 @@ export enum _GraphiteAssistants_Constraint {
   /** unique or primary key constraint on columns "assistant_id" */
   AssistantsAssistantIdKey = 'assistants_assistant_id_key',
   /** unique or primary key constraint on columns "id" */
-  AssistantsPkey = 'assistants_pkey',
+  AssistantsPkey = 'assistants_pkey'
 }
 
 /** delete the field or element with specified path (for JSON arrays, negative integers count from the end) */
@@ -402,7 +416,7 @@ export enum _GraphiteAssistants_Select_Column {
   /** column name */
   UpdatedAt = 'updatedAt',
   /** column name */
-  UserId = 'user_id',
+  UserId = 'user_id'
 }
 
 /** input type for updating data in table "graphite.assistants" */
@@ -446,7 +460,7 @@ export enum _GraphiteAssistants_Update_Column {
   /** column name */
   UpdatedAt = 'updatedAt',
   /** column name */
-  UserId = 'user_id',
+  UserId = 'user_id'
 }
 
 export type _GraphiteAssistants_Updates = {
@@ -490,6 +504,7 @@ export type _GraphiteFileStoreBuckets_Aggregate_Fields = {
   min?: Maybe<_GraphiteFileStoreBuckets_Min_Fields>;
 };
 
+
 /** aggregate fields of "graphite.file_store_buckets" */
 export type _GraphiteFileStoreBuckets_Aggregate_FieldsCountArgs = {
   columns?: InputMaybe<Array<_GraphiteFileStoreBuckets_Select_Column>>;
@@ -510,7 +525,7 @@ export type _GraphiteFileStoreBuckets_Bool_Exp = {
 /** unique or primary key constraints on table "graphite.file_store_buckets" */
 export enum _GraphiteFileStoreBuckets_Constraint {
   /** unique or primary key constraint on columns "bucket_id", "file_store_id" */
-  FileStoreBucketsPkey = 'file_store_buckets_pkey',
+  FileStoreBucketsPkey = 'file_store_buckets_pkey'
 }
 
 /** input type for inserting data into table "graphite.file_store_buckets" */
@@ -578,7 +593,7 @@ export enum _GraphiteFileStoreBuckets_Select_Column {
   /** column name */
   FileStoreId = 'fileStoreID',
   /** column name */
-  UpdatedAt = 'updatedAt',
+  UpdatedAt = 'updatedAt'
 }
 
 /** input type for updating data in table "graphite.file_store_buckets" */
@@ -614,7 +629,7 @@ export enum _GraphiteFileStoreBuckets_Update_Column {
   /** column name */
   FileStoreId = 'fileStoreID',
   /** column name */
-  UpdatedAt = 'updatedAt',
+  UpdatedAt = 'updatedAt'
 }
 
 export type _GraphiteFileStoreBuckets_Updates = {
@@ -651,6 +666,7 @@ export type _GraphiteFileStores_Aggregate_Fields = {
   min?: Maybe<_GraphiteFileStores_Min_Fields>;
 };
 
+
 /** aggregate fields of "graphite.file_stores" */
 export type _GraphiteFileStores_Aggregate_FieldsCountArgs = {
   columns?: InputMaybe<Array<_GraphiteFileStores_Select_Column>>;
@@ -676,7 +692,7 @@ export enum _GraphiteFileStores_Constraint {
   /** unique or primary key constraint on columns "id" */
   FileStoresPkey = 'file_stores_pkey',
   /** unique or primary key constraint on columns "vector_store_id" */
-  FileStoresVectorStoreIdKey = 'file_stores_vector_store_id_key',
+  FileStoresVectorStoreIdKey = 'file_stores_vector_store_id_key'
 }
 
 /** input type for inserting data into table "graphite.file_stores" */
@@ -761,7 +777,7 @@ export enum _GraphiteFileStores_Select_Column {
   /** column name */
   UserId = 'userID',
   /** column name */
-  VectorStoreId = 'vectorStoreID',
+  VectorStoreId = 'vectorStoreID'
 }
 
 /** input type for updating data in table "graphite.file_stores" */
@@ -809,7 +825,7 @@ export enum _GraphiteFileStores_Update_Column {
   /** column name */
   UserId = 'userID',
   /** column name */
-  VectorStoreId = 'vectorStoreID',
+  VectorStoreId = 'vectorStoreID'
 }
 
 export type _GraphiteFileStores_Updates = {
@@ -845,6 +861,7 @@ export type _GraphiteFiles_Aggregate_Fields = {
   min?: Maybe<_GraphiteFiles_Min_Fields>;
 };
 
+
 /** aggregate fields of "graphite.files" */
 export type _GraphiteFiles_Aggregate_FieldsCountArgs = {
   columns?: InputMaybe<Array<_GraphiteFiles_Select_Column>>;
@@ -871,7 +888,7 @@ export enum _GraphiteFiles_Constraint {
   /** unique or primary key constraint on columns "id" */
   FilesPkey = 'files_pkey',
   /** unique or primary key constraint on columns "storage_file_id" */
-  FilesStorageFileIdKey = 'files_storage_file_id_key',
+  FilesStorageFileIdKey = 'files_storage_file_id_key'
 }
 
 /** input type for inserting data into table "graphite.files" */
@@ -950,7 +967,7 @@ export enum _GraphiteFiles_Select_Column {
   /** column name */
   StorageFileId = 'storageFileID',
   /** column name */
-  UpdatedAt = 'updatedAt',
+  UpdatedAt = 'updatedAt'
 }
 
 /** input type for updating data in table "graphite.files" */
@@ -994,7 +1011,7 @@ export enum _GraphiteFiles_Update_Column {
   /** column name */
   StorageFileId = 'storageFileID',
   /** column name */
-  UpdatedAt = 'updatedAt',
+  UpdatedAt = 'updatedAt'
 }
 
 export type _GraphiteFiles_Updates = {
@@ -1030,6 +1047,7 @@ export type _GraphiteSessions_Aggregate_Fields = {
   min?: Maybe<_GraphiteSessions_Min_Fields>;
 };
 
+
 /** aggregate fields of "graphite.sessions" */
 export type _GraphiteSessions_Aggregate_FieldsCountArgs = {
   columns?: InputMaybe<Array<_GraphiteSessions_Select_Column>>;
@@ -1054,7 +1072,7 @@ export enum _GraphiteSessions_Constraint {
   /** unique or primary key constraint on columns "id" */
   SessionsPkey = 'sessions_pkey',
   /** unique or primary key constraint on columns "session_id" */
-  SessionsSessionIdKey = 'sessions_session_id_key',
+  SessionsSessionIdKey = 'sessions_session_id_key'
 }
 
 /** input type for inserting data into table "graphite.sessions" */
@@ -1133,7 +1151,7 @@ export enum _GraphiteSessions_Select_Column {
   /** column name */
   UpdatedAt = 'updatedAt',
   /** column name */
-  UserId = 'userID',
+  UserId = 'userID'
 }
 
 /** input type for updating data in table "graphite.sessions" */
@@ -1177,7 +1195,7 @@ export enum _GraphiteSessions_Update_Column {
   /** column name */
   UpdatedAt = 'updatedAt',
   /** column name */
-  UserId = 'userID',
+  UserId = 'userID'
 }
 
 export type _GraphiteSessions_Updates = {
@@ -1187,12 +1205,1343 @@ export type _GraphiteSessions_Updates = {
   where: _GraphiteSessions_Bool_Exp;
 };
 
+/** In-flight OAuth2 authorization requests. */
+export type AuthOauth2AuthRequests = {
+  __typename?: 'authOauth2AuthRequests';
+  authTime?: Maybe<Scalars['timestamptz']>;
+  /** An array relationship */
+  authorizationCodes: Array<AuthOauth2AuthorizationCodes>;
+  /** An aggregate relationship */
+  authorizationCodes_aggregate: AuthOauth2AuthorizationCodes_Aggregate;
+  /** An object relationship */
+  client: AuthOauth2Clients;
+  clientId: Scalars['String'];
+  codeChallenge?: Maybe<Scalars['String']>;
+  codeChallengeMethod?: Maybe<Scalars['String']>;
+  createdAt: Scalars['timestamptz'];
+  done: Scalars['Boolean'];
+  expiresAt: Scalars['timestamptz'];
+  id: Scalars['uuid'];
+  nonce?: Maybe<Scalars['String']>;
+  redirectUri: Scalars['String'];
+  /** An array relationship */
+  refreshTokens: Array<AuthOauth2RefreshTokens>;
+  /** An aggregate relationship */
+  refreshTokens_aggregate: AuthOauth2RefreshTokens_Aggregate;
+  resource?: Maybe<Scalars['String']>;
+  responseType: Scalars['String'];
+  scopes: Array<Scalars['String']>;
+  state?: Maybe<Scalars['String']>;
+  /** An object relationship */
+  user?: Maybe<Users>;
+  userId?: Maybe<Scalars['uuid']>;
+};
+
+
+/** In-flight OAuth2 authorization requests. */
+export type AuthOauth2AuthRequestsAuthorizationCodesArgs = {
+  distinct_on?: InputMaybe<Array<AuthOauth2AuthorizationCodes_Select_Column>>;
+  limit?: InputMaybe<Scalars['Int']>;
+  offset?: InputMaybe<Scalars['Int']>;
+  order_by?: InputMaybe<Array<AuthOauth2AuthorizationCodes_Order_By>>;
+  where?: InputMaybe<AuthOauth2AuthorizationCodes_Bool_Exp>;
+};
+
+
+/** In-flight OAuth2 authorization requests. */
+export type AuthOauth2AuthRequestsAuthorizationCodes_AggregateArgs = {
+  distinct_on?: InputMaybe<Array<AuthOauth2AuthorizationCodes_Select_Column>>;
+  limit?: InputMaybe<Scalars['Int']>;
+  offset?: InputMaybe<Scalars['Int']>;
+  order_by?: InputMaybe<Array<AuthOauth2AuthorizationCodes_Order_By>>;
+  where?: InputMaybe<AuthOauth2AuthorizationCodes_Bool_Exp>;
+};
+
+
+/** In-flight OAuth2 authorization requests. */
+export type AuthOauth2AuthRequestsRefreshTokensArgs = {
+  distinct_on?: InputMaybe<Array<AuthOauth2RefreshTokens_Select_Column>>;
+  limit?: InputMaybe<Scalars['Int']>;
+  offset?: InputMaybe<Scalars['Int']>;
+  order_by?: InputMaybe<Array<AuthOauth2RefreshTokens_Order_By>>;
+  where?: InputMaybe<AuthOauth2RefreshTokens_Bool_Exp>;
+};
+
+
+/** In-flight OAuth2 authorization requests. */
+export type AuthOauth2AuthRequestsRefreshTokens_AggregateArgs = {
+  distinct_on?: InputMaybe<Array<AuthOauth2RefreshTokens_Select_Column>>;
+  limit?: InputMaybe<Scalars['Int']>;
+  offset?: InputMaybe<Scalars['Int']>;
+  order_by?: InputMaybe<Array<AuthOauth2RefreshTokens_Order_By>>;
+  where?: InputMaybe<AuthOauth2RefreshTokens_Bool_Exp>;
+};
+
+/** aggregated selection of "auth.oauth2_auth_requests" */
+export type AuthOauth2AuthRequests_Aggregate = {
+  __typename?: 'authOauth2AuthRequests_aggregate';
+  aggregate?: Maybe<AuthOauth2AuthRequests_Aggregate_Fields>;
+  nodes: Array<AuthOauth2AuthRequests>;
+};
+
+export type AuthOauth2AuthRequests_Aggregate_Bool_Exp = {
+  bool_and?: InputMaybe<AuthOauth2AuthRequests_Aggregate_Bool_Exp_Bool_And>;
+  bool_or?: InputMaybe<AuthOauth2AuthRequests_Aggregate_Bool_Exp_Bool_Or>;
+  count?: InputMaybe<AuthOauth2AuthRequests_Aggregate_Bool_Exp_Count>;
+};
+
+export type AuthOauth2AuthRequests_Aggregate_Bool_Exp_Bool_And = {
+  arguments: AuthOauth2AuthRequests_Select_Column_AuthOauth2AuthRequests_Aggregate_Bool_Exp_Bool_And_Arguments_Columns;
+  distinct?: InputMaybe<Scalars['Boolean']>;
+  filter?: InputMaybe<AuthOauth2AuthRequests_Bool_Exp>;
+  predicate: Boolean_Comparison_Exp;
+};
+
+export type AuthOauth2AuthRequests_Aggregate_Bool_Exp_Bool_Or = {
+  arguments: AuthOauth2AuthRequests_Select_Column_AuthOauth2AuthRequests_Aggregate_Bool_Exp_Bool_Or_Arguments_Columns;
+  distinct?: InputMaybe<Scalars['Boolean']>;
+  filter?: InputMaybe<AuthOauth2AuthRequests_Bool_Exp>;
+  predicate: Boolean_Comparison_Exp;
+};
+
+export type AuthOauth2AuthRequests_Aggregate_Bool_Exp_Count = {
+  arguments?: InputMaybe<Array<AuthOauth2AuthRequests_Select_Column>>;
+  distinct?: InputMaybe<Scalars['Boolean']>;
+  filter?: InputMaybe<AuthOauth2AuthRequests_Bool_Exp>;
+  predicate: Int_Comparison_Exp;
+};
+
+/** aggregate fields of "auth.oauth2_auth_requests" */
+export type AuthOauth2AuthRequests_Aggregate_Fields = {
+  __typename?: 'authOauth2AuthRequests_aggregate_fields';
+  count: Scalars['Int'];
+  max?: Maybe<AuthOauth2AuthRequests_Max_Fields>;
+  min?: Maybe<AuthOauth2AuthRequests_Min_Fields>;
+};
+
+
+/** aggregate fields of "auth.oauth2_auth_requests" */
+export type AuthOauth2AuthRequests_Aggregate_FieldsCountArgs = {
+  columns?: InputMaybe<Array<AuthOauth2AuthRequests_Select_Column>>;
+  distinct?: InputMaybe<Scalars['Boolean']>;
+};
+
+/** order by aggregate values of table "auth.oauth2_auth_requests" */
+export type AuthOauth2AuthRequests_Aggregate_Order_By = {
+  count?: InputMaybe<Order_By>;
+  max?: InputMaybe<AuthOauth2AuthRequests_Max_Order_By>;
+  min?: InputMaybe<AuthOauth2AuthRequests_Min_Order_By>;
+};
+
+/** input type for inserting array relation for remote table "auth.oauth2_auth_requests" */
+export type AuthOauth2AuthRequests_Arr_Rel_Insert_Input = {
+  data: Array<AuthOauth2AuthRequests_Insert_Input>;
+  /** upsert condition */
+  on_conflict?: InputMaybe<AuthOauth2AuthRequests_On_Conflict>;
+};
+
+/** Boolean expression to filter rows from the table "auth.oauth2_auth_requests". All fields are combined with a logical 'AND'. */
+export type AuthOauth2AuthRequests_Bool_Exp = {
+  _and?: InputMaybe<Array<AuthOauth2AuthRequests_Bool_Exp>>;
+  _not?: InputMaybe<AuthOauth2AuthRequests_Bool_Exp>;
+  _or?: InputMaybe<Array<AuthOauth2AuthRequests_Bool_Exp>>;
+  authTime?: InputMaybe<Timestamptz_Comparison_Exp>;
+  authorizationCodes?: InputMaybe<AuthOauth2AuthorizationCodes_Bool_Exp>;
+  authorizationCodes_aggregate?: InputMaybe<AuthOauth2AuthorizationCodes_Aggregate_Bool_Exp>;
+  client?: InputMaybe<AuthOauth2Clients_Bool_Exp>;
+  clientId?: InputMaybe<String_Comparison_Exp>;
+  codeChallenge?: InputMaybe<String_Comparison_Exp>;
+  codeChallengeMethod?: InputMaybe<String_Comparison_Exp>;
+  createdAt?: InputMaybe<Timestamptz_Comparison_Exp>;
+  done?: InputMaybe<Boolean_Comparison_Exp>;
+  expiresAt?: InputMaybe<Timestamptz_Comparison_Exp>;
+  id?: InputMaybe<Uuid_Comparison_Exp>;
+  nonce?: InputMaybe<String_Comparison_Exp>;
+  redirectUri?: InputMaybe<String_Comparison_Exp>;
+  refreshTokens?: InputMaybe<AuthOauth2RefreshTokens_Bool_Exp>;
+  refreshTokens_aggregate?: InputMaybe<AuthOauth2RefreshTokens_Aggregate_Bool_Exp>;
+  resource?: InputMaybe<String_Comparison_Exp>;
+  responseType?: InputMaybe<String_Comparison_Exp>;
+  scopes?: InputMaybe<String_Array_Comparison_Exp>;
+  state?: InputMaybe<String_Comparison_Exp>;
+  user?: InputMaybe<Users_Bool_Exp>;
+  userId?: InputMaybe<Uuid_Comparison_Exp>;
+};
+
+/** unique or primary key constraints on table "auth.oauth2_auth_requests" */
+export enum AuthOauth2AuthRequests_Constraint {
+  /** unique or primary key constraint on columns "id" */
+  Oauth2AuthRequestsPkey = 'oauth2_auth_requests_pkey'
+}
+
+/** input type for inserting data into table "auth.oauth2_auth_requests" */
+export type AuthOauth2AuthRequests_Insert_Input = {
+  authTime?: InputMaybe<Scalars['timestamptz']>;
+  authorizationCodes?: InputMaybe<AuthOauth2AuthorizationCodes_Arr_Rel_Insert_Input>;
+  client?: InputMaybe<AuthOauth2Clients_Obj_Rel_Insert_Input>;
+  clientId?: InputMaybe<Scalars['String']>;
+  codeChallenge?: InputMaybe<Scalars['String']>;
+  codeChallengeMethod?: InputMaybe<Scalars['String']>;
+  createdAt?: InputMaybe<Scalars['timestamptz']>;
+  done?: InputMaybe<Scalars['Boolean']>;
+  expiresAt?: InputMaybe<Scalars['timestamptz']>;
+  id?: InputMaybe<Scalars['uuid']>;
+  nonce?: InputMaybe<Scalars['String']>;
+  redirectUri?: InputMaybe<Scalars['String']>;
+  refreshTokens?: InputMaybe<AuthOauth2RefreshTokens_Arr_Rel_Insert_Input>;
+  resource?: InputMaybe<Scalars['String']>;
+  responseType?: InputMaybe<Scalars['String']>;
+  scopes?: InputMaybe<Array<Scalars['String']>>;
+  state?: InputMaybe<Scalars['String']>;
+  user?: InputMaybe<Users_Obj_Rel_Insert_Input>;
+  userId?: InputMaybe<Scalars['uuid']>;
+};
+
+/** aggregate max on columns */
+export type AuthOauth2AuthRequests_Max_Fields = {
+  __typename?: 'authOauth2AuthRequests_max_fields';
+  authTime?: Maybe<Scalars['timestamptz']>;
+  clientId?: Maybe<Scalars['String']>;
+  codeChallenge?: Maybe<Scalars['String']>;
+  codeChallengeMethod?: Maybe<Scalars['String']>;
+  createdAt?: Maybe<Scalars['timestamptz']>;
+  expiresAt?: Maybe<Scalars['timestamptz']>;
+  id?: Maybe<Scalars['uuid']>;
+  nonce?: Maybe<Scalars['String']>;
+  redirectUri?: Maybe<Scalars['String']>;
+  resource?: Maybe<Scalars['String']>;
+  responseType?: Maybe<Scalars['String']>;
+  scopes?: Maybe<Array<Scalars['String']>>;
+  state?: Maybe<Scalars['String']>;
+  userId?: Maybe<Scalars['uuid']>;
+};
+
+/** order by max() on columns of table "auth.oauth2_auth_requests" */
+export type AuthOauth2AuthRequests_Max_Order_By = {
+  authTime?: InputMaybe<Order_By>;
+  clientId?: InputMaybe<Order_By>;
+  codeChallenge?: InputMaybe<Order_By>;
+  codeChallengeMethod?: InputMaybe<Order_By>;
+  createdAt?: InputMaybe<Order_By>;
+  expiresAt?: InputMaybe<Order_By>;
+  id?: InputMaybe<Order_By>;
+  nonce?: InputMaybe<Order_By>;
+  redirectUri?: InputMaybe<Order_By>;
+  resource?: InputMaybe<Order_By>;
+  responseType?: InputMaybe<Order_By>;
+  scopes?: InputMaybe<Order_By>;
+  state?: InputMaybe<Order_By>;
+  userId?: InputMaybe<Order_By>;
+};
+
+/** aggregate min on columns */
+export type AuthOauth2AuthRequests_Min_Fields = {
+  __typename?: 'authOauth2AuthRequests_min_fields';
+  authTime?: Maybe<Scalars['timestamptz']>;
+  clientId?: Maybe<Scalars['String']>;
+  codeChallenge?: Maybe<Scalars['String']>;
+  codeChallengeMethod?: Maybe<Scalars['String']>;
+  createdAt?: Maybe<Scalars['timestamptz']>;
+  expiresAt?: Maybe<Scalars['timestamptz']>;
+  id?: Maybe<Scalars['uuid']>;
+  nonce?: Maybe<Scalars['String']>;
+  redirectUri?: Maybe<Scalars['String']>;
+  resource?: Maybe<Scalars['String']>;
+  responseType?: Maybe<Scalars['String']>;
+  scopes?: Maybe<Array<Scalars['String']>>;
+  state?: Maybe<Scalars['String']>;
+  userId?: Maybe<Scalars['uuid']>;
+};
+
+/** order by min() on columns of table "auth.oauth2_auth_requests" */
+export type AuthOauth2AuthRequests_Min_Order_By = {
+  authTime?: InputMaybe<Order_By>;
+  clientId?: InputMaybe<Order_By>;
+  codeChallenge?: InputMaybe<Order_By>;
+  codeChallengeMethod?: InputMaybe<Order_By>;
+  createdAt?: InputMaybe<Order_By>;
+  expiresAt?: InputMaybe<Order_By>;
+  id?: InputMaybe<Order_By>;
+  nonce?: InputMaybe<Order_By>;
+  redirectUri?: InputMaybe<Order_By>;
+  resource?: InputMaybe<Order_By>;
+  responseType?: InputMaybe<Order_By>;
+  scopes?: InputMaybe<Order_By>;
+  state?: InputMaybe<Order_By>;
+  userId?: InputMaybe<Order_By>;
+};
+
+/** response of any mutation on the table "auth.oauth2_auth_requests" */
+export type AuthOauth2AuthRequests_Mutation_Response = {
+  __typename?: 'authOauth2AuthRequests_mutation_response';
+  /** number of rows affected by the mutation */
+  affected_rows: Scalars['Int'];
+  /** data from the rows affected by the mutation */
+  returning: Array<AuthOauth2AuthRequests>;
+};
+
+/** input type for inserting object relation for remote table "auth.oauth2_auth_requests" */
+export type AuthOauth2AuthRequests_Obj_Rel_Insert_Input = {
+  data: AuthOauth2AuthRequests_Insert_Input;
+  /** upsert condition */
+  on_conflict?: InputMaybe<AuthOauth2AuthRequests_On_Conflict>;
+};
+
+/** on_conflict condition type for table "auth.oauth2_auth_requests" */
+export type AuthOauth2AuthRequests_On_Conflict = {
+  constraint: AuthOauth2AuthRequests_Constraint;
+  update_columns?: Array<AuthOauth2AuthRequests_Update_Column>;
+  where?: InputMaybe<AuthOauth2AuthRequests_Bool_Exp>;
+};
+
+/** Ordering options when selecting data from "auth.oauth2_auth_requests". */
+export type AuthOauth2AuthRequests_Order_By = {
+  authTime?: InputMaybe<Order_By>;
+  authorizationCodes_aggregate?: InputMaybe<AuthOauth2AuthorizationCodes_Aggregate_Order_By>;
+  client?: InputMaybe<AuthOauth2Clients_Order_By>;
+  clientId?: InputMaybe<Order_By>;
+  codeChallenge?: InputMaybe<Order_By>;
+  codeChallengeMethod?: InputMaybe<Order_By>;
+  createdAt?: InputMaybe<Order_By>;
+  done?: InputMaybe<Order_By>;
+  expiresAt?: InputMaybe<Order_By>;
+  id?: InputMaybe<Order_By>;
+  nonce?: InputMaybe<Order_By>;
+  redirectUri?: InputMaybe<Order_By>;
+  refreshTokens_aggregate?: InputMaybe<AuthOauth2RefreshTokens_Aggregate_Order_By>;
+  resource?: InputMaybe<Order_By>;
+  responseType?: InputMaybe<Order_By>;
+  scopes?: InputMaybe<Order_By>;
+  state?: InputMaybe<Order_By>;
+  user?: InputMaybe<Users_Order_By>;
+  userId?: InputMaybe<Order_By>;
+};
+
+/** primary key columns input for table: auth.oauth2_auth_requests */
+export type AuthOauth2AuthRequests_Pk_Columns_Input = {
+  id: Scalars['uuid'];
+};
+
+/** select columns of table "auth.oauth2_auth_requests" */
+export enum AuthOauth2AuthRequests_Select_Column {
+  /** column name */
+  AuthTime = 'authTime',
+  /** column name */
+  ClientId = 'clientId',
+  /** column name */
+  CodeChallenge = 'codeChallenge',
+  /** column name */
+  CodeChallengeMethod = 'codeChallengeMethod',
+  /** column name */
+  CreatedAt = 'createdAt',
+  /** column name */
+  Done = 'done',
+  /** column name */
+  ExpiresAt = 'expiresAt',
+  /** column name */
+  Id = 'id',
+  /** column name */
+  Nonce = 'nonce',
+  /** column name */
+  RedirectUri = 'redirectUri',
+  /** column name */
+  Resource = 'resource',
+  /** column name */
+  ResponseType = 'responseType',
+  /** column name */
+  Scopes = 'scopes',
+  /** column name */
+  State = 'state',
+  /** column name */
+  UserId = 'userId'
+}
+
+/** select "authOauth2AuthRequests_aggregate_bool_exp_bool_and_arguments_columns" columns of table "auth.oauth2_auth_requests" */
+export enum AuthOauth2AuthRequests_Select_Column_AuthOauth2AuthRequests_Aggregate_Bool_Exp_Bool_And_Arguments_Columns {
+  /** column name */
+  Done = 'done'
+}
+
+/** select "authOauth2AuthRequests_aggregate_bool_exp_bool_or_arguments_columns" columns of table "auth.oauth2_auth_requests" */
+export enum AuthOauth2AuthRequests_Select_Column_AuthOauth2AuthRequests_Aggregate_Bool_Exp_Bool_Or_Arguments_Columns {
+  /** column name */
+  Done = 'done'
+}
+
+/** input type for updating data in table "auth.oauth2_auth_requests" */
+export type AuthOauth2AuthRequests_Set_Input = {
+  authTime?: InputMaybe<Scalars['timestamptz']>;
+  clientId?: InputMaybe<Scalars['String']>;
+  codeChallenge?: InputMaybe<Scalars['String']>;
+  codeChallengeMethod?: InputMaybe<Scalars['String']>;
+  createdAt?: InputMaybe<Scalars['timestamptz']>;
+  done?: InputMaybe<Scalars['Boolean']>;
+  expiresAt?: InputMaybe<Scalars['timestamptz']>;
+  id?: InputMaybe<Scalars['uuid']>;
+  nonce?: InputMaybe<Scalars['String']>;
+  redirectUri?: InputMaybe<Scalars['String']>;
+  resource?: InputMaybe<Scalars['String']>;
+  responseType?: InputMaybe<Scalars['String']>;
+  scopes?: InputMaybe<Array<Scalars['String']>>;
+  state?: InputMaybe<Scalars['String']>;
+  userId?: InputMaybe<Scalars['uuid']>;
+};
+
+/** Streaming cursor of the table "authOauth2AuthRequests" */
+export type AuthOauth2AuthRequests_Stream_Cursor_Input = {
+  /** Stream column input with initial value */
+  initial_value: AuthOauth2AuthRequests_Stream_Cursor_Value_Input;
+  /** cursor ordering */
+  ordering?: InputMaybe<Cursor_Ordering>;
+};
+
+/** Initial value of the column from where the streaming should start */
+export type AuthOauth2AuthRequests_Stream_Cursor_Value_Input = {
+  authTime?: InputMaybe<Scalars['timestamptz']>;
+  clientId?: InputMaybe<Scalars['String']>;
+  codeChallenge?: InputMaybe<Scalars['String']>;
+  codeChallengeMethod?: InputMaybe<Scalars['String']>;
+  createdAt?: InputMaybe<Scalars['timestamptz']>;
+  done?: InputMaybe<Scalars['Boolean']>;
+  expiresAt?: InputMaybe<Scalars['timestamptz']>;
+  id?: InputMaybe<Scalars['uuid']>;
+  nonce?: InputMaybe<Scalars['String']>;
+  redirectUri?: InputMaybe<Scalars['String']>;
+  resource?: InputMaybe<Scalars['String']>;
+  responseType?: InputMaybe<Scalars['String']>;
+  scopes?: InputMaybe<Array<Scalars['String']>>;
+  state?: InputMaybe<Scalars['String']>;
+  userId?: InputMaybe<Scalars['uuid']>;
+};
+
+/** update columns of table "auth.oauth2_auth_requests" */
+export enum AuthOauth2AuthRequests_Update_Column {
+  /** column name */
+  AuthTime = 'authTime',
+  /** column name */
+  ClientId = 'clientId',
+  /** column name */
+  CodeChallenge = 'codeChallenge',
+  /** column name */
+  CodeChallengeMethod = 'codeChallengeMethod',
+  /** column name */
+  CreatedAt = 'createdAt',
+  /** column name */
+  Done = 'done',
+  /** column name */
+  ExpiresAt = 'expiresAt',
+  /** column name */
+  Id = 'id',
+  /** column name */
+  Nonce = 'nonce',
+  /** column name */
+  RedirectUri = 'redirectUri',
+  /** column name */
+  Resource = 'resource',
+  /** column name */
+  ResponseType = 'responseType',
+  /** column name */
+  Scopes = 'scopes',
+  /** column name */
+  State = 'state',
+  /** column name */
+  UserId = 'userId'
+}
+
+export type AuthOauth2AuthRequests_Updates = {
+  /** sets the columns of the filtered rows to the given values */
+  _set?: InputMaybe<AuthOauth2AuthRequests_Set_Input>;
+  /** filter the rows which have to be updated */
+  where: AuthOauth2AuthRequests_Bool_Exp;
+};
+
+/** OAuth2 authorization codes pending exchange for tokens. */
+export type AuthOauth2AuthorizationCodes = {
+  __typename?: 'authOauth2AuthorizationCodes';
+  /** An object relationship */
+  authRequest: AuthOauth2AuthRequests;
+  authRequestId: Scalars['uuid'];
+  codeHash: Scalars['String'];
+  createdAt: Scalars['timestamptz'];
+  expiresAt: Scalars['timestamptz'];
+  id: Scalars['uuid'];
+};
+
+/** aggregated selection of "auth.oauth2_authorization_codes" */
+export type AuthOauth2AuthorizationCodes_Aggregate = {
+  __typename?: 'authOauth2AuthorizationCodes_aggregate';
+  aggregate?: Maybe<AuthOauth2AuthorizationCodes_Aggregate_Fields>;
+  nodes: Array<AuthOauth2AuthorizationCodes>;
+};
+
+export type AuthOauth2AuthorizationCodes_Aggregate_Bool_Exp = {
+  count?: InputMaybe<AuthOauth2AuthorizationCodes_Aggregate_Bool_Exp_Count>;
+};
+
+export type AuthOauth2AuthorizationCodes_Aggregate_Bool_Exp_Count = {
+  arguments?: InputMaybe<Array<AuthOauth2AuthorizationCodes_Select_Column>>;
+  distinct?: InputMaybe<Scalars['Boolean']>;
+  filter?: InputMaybe<AuthOauth2AuthorizationCodes_Bool_Exp>;
+  predicate: Int_Comparison_Exp;
+};
+
+/** aggregate fields of "auth.oauth2_authorization_codes" */
+export type AuthOauth2AuthorizationCodes_Aggregate_Fields = {
+  __typename?: 'authOauth2AuthorizationCodes_aggregate_fields';
+  count: Scalars['Int'];
+  max?: Maybe<AuthOauth2AuthorizationCodes_Max_Fields>;
+  min?: Maybe<AuthOauth2AuthorizationCodes_Min_Fields>;
+};
+
+
+/** aggregate fields of "auth.oauth2_authorization_codes" */
+export type AuthOauth2AuthorizationCodes_Aggregate_FieldsCountArgs = {
+  columns?: InputMaybe<Array<AuthOauth2AuthorizationCodes_Select_Column>>;
+  distinct?: InputMaybe<Scalars['Boolean']>;
+};
+
+/** order by aggregate values of table "auth.oauth2_authorization_codes" */
+export type AuthOauth2AuthorizationCodes_Aggregate_Order_By = {
+  count?: InputMaybe<Order_By>;
+  max?: InputMaybe<AuthOauth2AuthorizationCodes_Max_Order_By>;
+  min?: InputMaybe<AuthOauth2AuthorizationCodes_Min_Order_By>;
+};
+
+/** input type for inserting array relation for remote table "auth.oauth2_authorization_codes" */
+export type AuthOauth2AuthorizationCodes_Arr_Rel_Insert_Input = {
+  data: Array<AuthOauth2AuthorizationCodes_Insert_Input>;
+  /** upsert condition */
+  on_conflict?: InputMaybe<AuthOauth2AuthorizationCodes_On_Conflict>;
+};
+
+/** Boolean expression to filter rows from the table "auth.oauth2_authorization_codes". All fields are combined with a logical 'AND'. */
+export type AuthOauth2AuthorizationCodes_Bool_Exp = {
+  _and?: InputMaybe<Array<AuthOauth2AuthorizationCodes_Bool_Exp>>;
+  _not?: InputMaybe<AuthOauth2AuthorizationCodes_Bool_Exp>;
+  _or?: InputMaybe<Array<AuthOauth2AuthorizationCodes_Bool_Exp>>;
+  authRequest?: InputMaybe<AuthOauth2AuthRequests_Bool_Exp>;
+  authRequestId?: InputMaybe<Uuid_Comparison_Exp>;
+  codeHash?: InputMaybe<String_Comparison_Exp>;
+  createdAt?: InputMaybe<Timestamptz_Comparison_Exp>;
+  expiresAt?: InputMaybe<Timestamptz_Comparison_Exp>;
+  id?: InputMaybe<Uuid_Comparison_Exp>;
+};
+
+/** unique or primary key constraints on table "auth.oauth2_authorization_codes" */
+export enum AuthOauth2AuthorizationCodes_Constraint {
+  /** unique or primary key constraint on columns "code_hash" */
+  Oauth2AuthorizationCodesCodeHashKey = 'oauth2_authorization_codes_code_hash_key',
+  /** unique or primary key constraint on columns "id" */
+  Oauth2AuthorizationCodesPkey = 'oauth2_authorization_codes_pkey'
+}
+
+/** input type for inserting data into table "auth.oauth2_authorization_codes" */
+export type AuthOauth2AuthorizationCodes_Insert_Input = {
+  authRequest?: InputMaybe<AuthOauth2AuthRequests_Obj_Rel_Insert_Input>;
+  authRequestId?: InputMaybe<Scalars['uuid']>;
+  codeHash?: InputMaybe<Scalars['String']>;
+  createdAt?: InputMaybe<Scalars['timestamptz']>;
+  expiresAt?: InputMaybe<Scalars['timestamptz']>;
+  id?: InputMaybe<Scalars['uuid']>;
+};
+
+/** aggregate max on columns */
+export type AuthOauth2AuthorizationCodes_Max_Fields = {
+  __typename?: 'authOauth2AuthorizationCodes_max_fields';
+  authRequestId?: Maybe<Scalars['uuid']>;
+  codeHash?: Maybe<Scalars['String']>;
+  createdAt?: Maybe<Scalars['timestamptz']>;
+  expiresAt?: Maybe<Scalars['timestamptz']>;
+  id?: Maybe<Scalars['uuid']>;
+};
+
+/** order by max() on columns of table "auth.oauth2_authorization_codes" */
+export type AuthOauth2AuthorizationCodes_Max_Order_By = {
+  authRequestId?: InputMaybe<Order_By>;
+  codeHash?: InputMaybe<Order_By>;
+  createdAt?: InputMaybe<Order_By>;
+  expiresAt?: InputMaybe<Order_By>;
+  id?: InputMaybe<Order_By>;
+};
+
+/** aggregate min on columns */
+export type AuthOauth2AuthorizationCodes_Min_Fields = {
+  __typename?: 'authOauth2AuthorizationCodes_min_fields';
+  authRequestId?: Maybe<Scalars['uuid']>;
+  codeHash?: Maybe<Scalars['String']>;
+  createdAt?: Maybe<Scalars['timestamptz']>;
+  expiresAt?: Maybe<Scalars['timestamptz']>;
+  id?: Maybe<Scalars['uuid']>;
+};
+
+/** order by min() on columns of table "auth.oauth2_authorization_codes" */
+export type AuthOauth2AuthorizationCodes_Min_Order_By = {
+  authRequestId?: InputMaybe<Order_By>;
+  codeHash?: InputMaybe<Order_By>;
+  createdAt?: InputMaybe<Order_By>;
+  expiresAt?: InputMaybe<Order_By>;
+  id?: InputMaybe<Order_By>;
+};
+
+/** response of any mutation on the table "auth.oauth2_authorization_codes" */
+export type AuthOauth2AuthorizationCodes_Mutation_Response = {
+  __typename?: 'authOauth2AuthorizationCodes_mutation_response';
+  /** number of rows affected by the mutation */
+  affected_rows: Scalars['Int'];
+  /** data from the rows affected by the mutation */
+  returning: Array<AuthOauth2AuthorizationCodes>;
+};
+
+/** on_conflict condition type for table "auth.oauth2_authorization_codes" */
+export type AuthOauth2AuthorizationCodes_On_Conflict = {
+  constraint: AuthOauth2AuthorizationCodes_Constraint;
+  update_columns?: Array<AuthOauth2AuthorizationCodes_Update_Column>;
+  where?: InputMaybe<AuthOauth2AuthorizationCodes_Bool_Exp>;
+};
+
+/** Ordering options when selecting data from "auth.oauth2_authorization_codes". */
+export type AuthOauth2AuthorizationCodes_Order_By = {
+  authRequest?: InputMaybe<AuthOauth2AuthRequests_Order_By>;
+  authRequestId?: InputMaybe<Order_By>;
+  codeHash?: InputMaybe<Order_By>;
+  createdAt?: InputMaybe<Order_By>;
+  expiresAt?: InputMaybe<Order_By>;
+  id?: InputMaybe<Order_By>;
+};
+
+/** primary key columns input for table: auth.oauth2_authorization_codes */
+export type AuthOauth2AuthorizationCodes_Pk_Columns_Input = {
+  id: Scalars['uuid'];
+};
+
+/** select columns of table "auth.oauth2_authorization_codes" */
+export enum AuthOauth2AuthorizationCodes_Select_Column {
+  /** column name */
+  AuthRequestId = 'authRequestId',
+  /** column name */
+  CodeHash = 'codeHash',
+  /** column name */
+  CreatedAt = 'createdAt',
+  /** column name */
+  ExpiresAt = 'expiresAt',
+  /** column name */
+  Id = 'id'
+}
+
+/** input type for updating data in table "auth.oauth2_authorization_codes" */
+export type AuthOauth2AuthorizationCodes_Set_Input = {
+  authRequestId?: InputMaybe<Scalars['uuid']>;
+  codeHash?: InputMaybe<Scalars['String']>;
+  createdAt?: InputMaybe<Scalars['timestamptz']>;
+  expiresAt?: InputMaybe<Scalars['timestamptz']>;
+  id?: InputMaybe<Scalars['uuid']>;
+};
+
+/** Streaming cursor of the table "authOauth2AuthorizationCodes" */
+export type AuthOauth2AuthorizationCodes_Stream_Cursor_Input = {
+  /** Stream column input with initial value */
+  initial_value: AuthOauth2AuthorizationCodes_Stream_Cursor_Value_Input;
+  /** cursor ordering */
+  ordering?: InputMaybe<Cursor_Ordering>;
+};
+
+/** Initial value of the column from where the streaming should start */
+export type AuthOauth2AuthorizationCodes_Stream_Cursor_Value_Input = {
+  authRequestId?: InputMaybe<Scalars['uuid']>;
+  codeHash?: InputMaybe<Scalars['String']>;
+  createdAt?: InputMaybe<Scalars['timestamptz']>;
+  expiresAt?: InputMaybe<Scalars['timestamptz']>;
+  id?: InputMaybe<Scalars['uuid']>;
+};
+
+/** update columns of table "auth.oauth2_authorization_codes" */
+export enum AuthOauth2AuthorizationCodes_Update_Column {
+  /** column name */
+  AuthRequestId = 'authRequestId',
+  /** column name */
+  CodeHash = 'codeHash',
+  /** column name */
+  CreatedAt = 'createdAt',
+  /** column name */
+  ExpiresAt = 'expiresAt',
+  /** column name */
+  Id = 'id'
+}
+
+export type AuthOauth2AuthorizationCodes_Updates = {
+  /** sets the columns of the filtered rows to the given values */
+  _set?: InputMaybe<AuthOauth2AuthorizationCodes_Set_Input>;
+  /** filter the rows which have to be updated */
+  where: AuthOauth2AuthorizationCodes_Bool_Exp;
+};
+
+/** Registered OAuth2 client applications for the identity provider. */
+export type AuthOauth2Clients = {
+  __typename?: 'authOauth2Clients';
+  /** An array relationship */
+  authRequests: Array<AuthOauth2AuthRequests>;
+  /** An aggregate relationship */
+  authRequests_aggregate: AuthOauth2AuthRequests_Aggregate;
+  clientId: Scalars['String'];
+  clientSecretHash?: Maybe<Scalars['String']>;
+  createdAt: Scalars['timestamptz'];
+  createdBy?: Maybe<Scalars['uuid']>;
+  /** An object relationship */
+  createdByUser?: Maybe<Users>;
+  metadata?: Maybe<Scalars['jsonb']>;
+  metadataDocumentFetchedAt?: Maybe<Scalars['timestamptz']>;
+  /** An array relationship */
+  oauth2RefreshTokens: Array<AuthOauth2RefreshTokens>;
+  /** An aggregate relationship */
+  oauth2RefreshTokens_aggregate: AuthOauth2RefreshTokens_Aggregate;
+  redirectUris: Array<Scalars['String']>;
+  scopes: Array<Scalars['String']>;
+  type: Scalars['String'];
+  updatedAt: Scalars['timestamptz'];
+};
+
+
+/** Registered OAuth2 client applications for the identity provider. */
+export type AuthOauth2ClientsAuthRequestsArgs = {
+  distinct_on?: InputMaybe<Array<AuthOauth2AuthRequests_Select_Column>>;
+  limit?: InputMaybe<Scalars['Int']>;
+  offset?: InputMaybe<Scalars['Int']>;
+  order_by?: InputMaybe<Array<AuthOauth2AuthRequests_Order_By>>;
+  where?: InputMaybe<AuthOauth2AuthRequests_Bool_Exp>;
+};
+
+
+/** Registered OAuth2 client applications for the identity provider. */
+export type AuthOauth2ClientsAuthRequests_AggregateArgs = {
+  distinct_on?: InputMaybe<Array<AuthOauth2AuthRequests_Select_Column>>;
+  limit?: InputMaybe<Scalars['Int']>;
+  offset?: InputMaybe<Scalars['Int']>;
+  order_by?: InputMaybe<Array<AuthOauth2AuthRequests_Order_By>>;
+  where?: InputMaybe<AuthOauth2AuthRequests_Bool_Exp>;
+};
+
+
+/** Registered OAuth2 client applications for the identity provider. */
+export type AuthOauth2ClientsMetadataArgs = {
+  path?: InputMaybe<Scalars['String']>;
+};
+
+
+/** Registered OAuth2 client applications for the identity provider. */
+export type AuthOauth2ClientsOauth2RefreshTokensArgs = {
+  distinct_on?: InputMaybe<Array<AuthOauth2RefreshTokens_Select_Column>>;
+  limit?: InputMaybe<Scalars['Int']>;
+  offset?: InputMaybe<Scalars['Int']>;
+  order_by?: InputMaybe<Array<AuthOauth2RefreshTokens_Order_By>>;
+  where?: InputMaybe<AuthOauth2RefreshTokens_Bool_Exp>;
+};
+
+
+/** Registered OAuth2 client applications for the identity provider. */
+export type AuthOauth2ClientsOauth2RefreshTokens_AggregateArgs = {
+  distinct_on?: InputMaybe<Array<AuthOauth2RefreshTokens_Select_Column>>;
+  limit?: InputMaybe<Scalars['Int']>;
+  offset?: InputMaybe<Scalars['Int']>;
+  order_by?: InputMaybe<Array<AuthOauth2RefreshTokens_Order_By>>;
+  where?: InputMaybe<AuthOauth2RefreshTokens_Bool_Exp>;
+};
+
+/** aggregated selection of "auth.oauth2_clients" */
+export type AuthOauth2Clients_Aggregate = {
+  __typename?: 'authOauth2Clients_aggregate';
+  aggregate?: Maybe<AuthOauth2Clients_Aggregate_Fields>;
+  nodes: Array<AuthOauth2Clients>;
+};
+
+export type AuthOauth2Clients_Aggregate_Bool_Exp = {
+  count?: InputMaybe<AuthOauth2Clients_Aggregate_Bool_Exp_Count>;
+};
+
+export type AuthOauth2Clients_Aggregate_Bool_Exp_Count = {
+  arguments?: InputMaybe<Array<AuthOauth2Clients_Select_Column>>;
+  distinct?: InputMaybe<Scalars['Boolean']>;
+  filter?: InputMaybe<AuthOauth2Clients_Bool_Exp>;
+  predicate: Int_Comparison_Exp;
+};
+
+/** aggregate fields of "auth.oauth2_clients" */
+export type AuthOauth2Clients_Aggregate_Fields = {
+  __typename?: 'authOauth2Clients_aggregate_fields';
+  count: Scalars['Int'];
+  max?: Maybe<AuthOauth2Clients_Max_Fields>;
+  min?: Maybe<AuthOauth2Clients_Min_Fields>;
+};
+
+
+/** aggregate fields of "auth.oauth2_clients" */
+export type AuthOauth2Clients_Aggregate_FieldsCountArgs = {
+  columns?: InputMaybe<Array<AuthOauth2Clients_Select_Column>>;
+  distinct?: InputMaybe<Scalars['Boolean']>;
+};
+
+/** order by aggregate values of table "auth.oauth2_clients" */
+export type AuthOauth2Clients_Aggregate_Order_By = {
+  count?: InputMaybe<Order_By>;
+  max?: InputMaybe<AuthOauth2Clients_Max_Order_By>;
+  min?: InputMaybe<AuthOauth2Clients_Min_Order_By>;
+};
+
+/** append existing jsonb value of filtered columns with new jsonb value */
+export type AuthOauth2Clients_Append_Input = {
+  metadata?: InputMaybe<Scalars['jsonb']>;
+};
+
+/** input type for inserting array relation for remote table "auth.oauth2_clients" */
+export type AuthOauth2Clients_Arr_Rel_Insert_Input = {
+  data: Array<AuthOauth2Clients_Insert_Input>;
+  /** upsert condition */
+  on_conflict?: InputMaybe<AuthOauth2Clients_On_Conflict>;
+};
+
+/** Boolean expression to filter rows from the table "auth.oauth2_clients". All fields are combined with a logical 'AND'. */
+export type AuthOauth2Clients_Bool_Exp = {
+  _and?: InputMaybe<Array<AuthOauth2Clients_Bool_Exp>>;
+  _not?: InputMaybe<AuthOauth2Clients_Bool_Exp>;
+  _or?: InputMaybe<Array<AuthOauth2Clients_Bool_Exp>>;
+  authRequests?: InputMaybe<AuthOauth2AuthRequests_Bool_Exp>;
+  authRequests_aggregate?: InputMaybe<AuthOauth2AuthRequests_Aggregate_Bool_Exp>;
+  clientId?: InputMaybe<String_Comparison_Exp>;
+  clientSecretHash?: InputMaybe<String_Comparison_Exp>;
+  createdAt?: InputMaybe<Timestamptz_Comparison_Exp>;
+  createdBy?: InputMaybe<Uuid_Comparison_Exp>;
+  createdByUser?: InputMaybe<Users_Bool_Exp>;
+  metadata?: InputMaybe<Jsonb_Comparison_Exp>;
+  metadataDocumentFetchedAt?: InputMaybe<Timestamptz_Comparison_Exp>;
+  oauth2RefreshTokens?: InputMaybe<AuthOauth2RefreshTokens_Bool_Exp>;
+  oauth2RefreshTokens_aggregate?: InputMaybe<AuthOauth2RefreshTokens_Aggregate_Bool_Exp>;
+  redirectUris?: InputMaybe<String_Array_Comparison_Exp>;
+  scopes?: InputMaybe<String_Array_Comparison_Exp>;
+  type?: InputMaybe<String_Comparison_Exp>;
+  updatedAt?: InputMaybe<Timestamptz_Comparison_Exp>;
+};
+
+/** unique or primary key constraints on table "auth.oauth2_clients" */
+export enum AuthOauth2Clients_Constraint {
+  /** unique or primary key constraint on columns "client_id" */
+  Oauth2ClientsPkey = 'oauth2_clients_pkey'
+}
+
+/** delete the field or element with specified path (for JSON arrays, negative integers count from the end) */
+export type AuthOauth2Clients_Delete_At_Path_Input = {
+  metadata?: InputMaybe<Array<Scalars['String']>>;
+};
+
+/** delete the array element with specified index (negative integers count from the end). throws an error if top level container is not an array */
+export type AuthOauth2Clients_Delete_Elem_Input = {
+  metadata?: InputMaybe<Scalars['Int']>;
+};
+
+/** delete key/value pair or string element. key/value pairs are matched based on their key value */
+export type AuthOauth2Clients_Delete_Key_Input = {
+  metadata?: InputMaybe<Scalars['String']>;
+};
+
+/** input type for inserting data into table "auth.oauth2_clients" */
+export type AuthOauth2Clients_Insert_Input = {
+  authRequests?: InputMaybe<AuthOauth2AuthRequests_Arr_Rel_Insert_Input>;
+  clientId?: InputMaybe<Scalars['String']>;
+  clientSecretHash?: InputMaybe<Scalars['String']>;
+  createdAt?: InputMaybe<Scalars['timestamptz']>;
+  createdBy?: InputMaybe<Scalars['uuid']>;
+  createdByUser?: InputMaybe<Users_Obj_Rel_Insert_Input>;
+  metadata?: InputMaybe<Scalars['jsonb']>;
+  metadataDocumentFetchedAt?: InputMaybe<Scalars['timestamptz']>;
+  oauth2RefreshTokens?: InputMaybe<AuthOauth2RefreshTokens_Arr_Rel_Insert_Input>;
+  redirectUris?: InputMaybe<Array<Scalars['String']>>;
+  scopes?: InputMaybe<Array<Scalars['String']>>;
+  type?: InputMaybe<Scalars['String']>;
+  updatedAt?: InputMaybe<Scalars['timestamptz']>;
+};
+
+/** aggregate max on columns */
+export type AuthOauth2Clients_Max_Fields = {
+  __typename?: 'authOauth2Clients_max_fields';
+  clientId?: Maybe<Scalars['String']>;
+  clientSecretHash?: Maybe<Scalars['String']>;
+  createdAt?: Maybe<Scalars['timestamptz']>;
+  createdBy?: Maybe<Scalars['uuid']>;
+  metadataDocumentFetchedAt?: Maybe<Scalars['timestamptz']>;
+  redirectUris?: Maybe<Array<Scalars['String']>>;
+  scopes?: Maybe<Array<Scalars['String']>>;
+  type?: Maybe<Scalars['String']>;
+  updatedAt?: Maybe<Scalars['timestamptz']>;
+};
+
+/** order by max() on columns of table "auth.oauth2_clients" */
+export type AuthOauth2Clients_Max_Order_By = {
+  clientId?: InputMaybe<Order_By>;
+  clientSecretHash?: InputMaybe<Order_By>;
+  createdAt?: InputMaybe<Order_By>;
+  createdBy?: InputMaybe<Order_By>;
+  metadataDocumentFetchedAt?: InputMaybe<Order_By>;
+  redirectUris?: InputMaybe<Order_By>;
+  scopes?: InputMaybe<Order_By>;
+  type?: InputMaybe<Order_By>;
+  updatedAt?: InputMaybe<Order_By>;
+};
+
+/** aggregate min on columns */
+export type AuthOauth2Clients_Min_Fields = {
+  __typename?: 'authOauth2Clients_min_fields';
+  clientId?: Maybe<Scalars['String']>;
+  clientSecretHash?: Maybe<Scalars['String']>;
+  createdAt?: Maybe<Scalars['timestamptz']>;
+  createdBy?: Maybe<Scalars['uuid']>;
+  metadataDocumentFetchedAt?: Maybe<Scalars['timestamptz']>;
+  redirectUris?: Maybe<Array<Scalars['String']>>;
+  scopes?: Maybe<Array<Scalars['String']>>;
+  type?: Maybe<Scalars['String']>;
+  updatedAt?: Maybe<Scalars['timestamptz']>;
+};
+
+/** order by min() on columns of table "auth.oauth2_clients" */
+export type AuthOauth2Clients_Min_Order_By = {
+  clientId?: InputMaybe<Order_By>;
+  clientSecretHash?: InputMaybe<Order_By>;
+  createdAt?: InputMaybe<Order_By>;
+  createdBy?: InputMaybe<Order_By>;
+  metadataDocumentFetchedAt?: InputMaybe<Order_By>;
+  redirectUris?: InputMaybe<Order_By>;
+  scopes?: InputMaybe<Order_By>;
+  type?: InputMaybe<Order_By>;
+  updatedAt?: InputMaybe<Order_By>;
+};
+
+/** response of any mutation on the table "auth.oauth2_clients" */
+export type AuthOauth2Clients_Mutation_Response = {
+  __typename?: 'authOauth2Clients_mutation_response';
+  /** number of rows affected by the mutation */
+  affected_rows: Scalars['Int'];
+  /** data from the rows affected by the mutation */
+  returning: Array<AuthOauth2Clients>;
+};
+
+/** input type for inserting object relation for remote table "auth.oauth2_clients" */
+export type AuthOauth2Clients_Obj_Rel_Insert_Input = {
+  data: AuthOauth2Clients_Insert_Input;
+  /** upsert condition */
+  on_conflict?: InputMaybe<AuthOauth2Clients_On_Conflict>;
+};
+
+/** on_conflict condition type for table "auth.oauth2_clients" */
+export type AuthOauth2Clients_On_Conflict = {
+  constraint: AuthOauth2Clients_Constraint;
+  update_columns?: Array<AuthOauth2Clients_Update_Column>;
+  where?: InputMaybe<AuthOauth2Clients_Bool_Exp>;
+};
+
+/** Ordering options when selecting data from "auth.oauth2_clients". */
+export type AuthOauth2Clients_Order_By = {
+  authRequests_aggregate?: InputMaybe<AuthOauth2AuthRequests_Aggregate_Order_By>;
+  clientId?: InputMaybe<Order_By>;
+  clientSecretHash?: InputMaybe<Order_By>;
+  createdAt?: InputMaybe<Order_By>;
+  createdBy?: InputMaybe<Order_By>;
+  createdByUser?: InputMaybe<Users_Order_By>;
+  metadata?: InputMaybe<Order_By>;
+  metadataDocumentFetchedAt?: InputMaybe<Order_By>;
+  oauth2RefreshTokens_aggregate?: InputMaybe<AuthOauth2RefreshTokens_Aggregate_Order_By>;
+  redirectUris?: InputMaybe<Order_By>;
+  scopes?: InputMaybe<Order_By>;
+  type?: InputMaybe<Order_By>;
+  updatedAt?: InputMaybe<Order_By>;
+};
+
+/** primary key columns input for table: auth.oauth2_clients */
+export type AuthOauth2Clients_Pk_Columns_Input = {
+  clientId: Scalars['String'];
+};
+
+/** prepend existing jsonb value of filtered columns with new jsonb value */
+export type AuthOauth2Clients_Prepend_Input = {
+  metadata?: InputMaybe<Scalars['jsonb']>;
+};
+
+/** select columns of table "auth.oauth2_clients" */
+export enum AuthOauth2Clients_Select_Column {
+  /** column name */
+  ClientId = 'clientId',
+  /** column name */
+  ClientSecretHash = 'clientSecretHash',
+  /** column name */
+  CreatedAt = 'createdAt',
+  /** column name */
+  CreatedBy = 'createdBy',
+  /** column name */
+  Metadata = 'metadata',
+  /** column name */
+  MetadataDocumentFetchedAt = 'metadataDocumentFetchedAt',
+  /** column name */
+  RedirectUris = 'redirectUris',
+  /** column name */
+  Scopes = 'scopes',
+  /** column name */
+  Type = 'type',
+  /** column name */
+  UpdatedAt = 'updatedAt'
+}
+
+/** input type for updating data in table "auth.oauth2_clients" */
+export type AuthOauth2Clients_Set_Input = {
+  clientId?: InputMaybe<Scalars['String']>;
+  clientSecretHash?: InputMaybe<Scalars['String']>;
+  createdAt?: InputMaybe<Scalars['timestamptz']>;
+  createdBy?: InputMaybe<Scalars['uuid']>;
+  metadata?: InputMaybe<Scalars['jsonb']>;
+  metadataDocumentFetchedAt?: InputMaybe<Scalars['timestamptz']>;
+  redirectUris?: InputMaybe<Array<Scalars['String']>>;
+  scopes?: InputMaybe<Array<Scalars['String']>>;
+  type?: InputMaybe<Scalars['String']>;
+  updatedAt?: InputMaybe<Scalars['timestamptz']>;
+};
+
+/** Streaming cursor of the table "authOauth2Clients" */
+export type AuthOauth2Clients_Stream_Cursor_Input = {
+  /** Stream column input with initial value */
+  initial_value: AuthOauth2Clients_Stream_Cursor_Value_Input;
+  /** cursor ordering */
+  ordering?: InputMaybe<Cursor_Ordering>;
+};
+
+/** Initial value of the column from where the streaming should start */
+export type AuthOauth2Clients_Stream_Cursor_Value_Input = {
+  clientId?: InputMaybe<Scalars['String']>;
+  clientSecretHash?: InputMaybe<Scalars['String']>;
+  createdAt?: InputMaybe<Scalars['timestamptz']>;
+  createdBy?: InputMaybe<Scalars['uuid']>;
+  metadata?: InputMaybe<Scalars['jsonb']>;
+  metadataDocumentFetchedAt?: InputMaybe<Scalars['timestamptz']>;
+  redirectUris?: InputMaybe<Array<Scalars['String']>>;
+  scopes?: InputMaybe<Array<Scalars['String']>>;
+  type?: InputMaybe<Scalars['String']>;
+  updatedAt?: InputMaybe<Scalars['timestamptz']>;
+};
+
+/** update columns of table "auth.oauth2_clients" */
+export enum AuthOauth2Clients_Update_Column {
+  /** column name */
+  ClientId = 'clientId',
+  /** column name */
+  ClientSecretHash = 'clientSecretHash',
+  /** column name */
+  CreatedAt = 'createdAt',
+  /** column name */
+  CreatedBy = 'createdBy',
+  /** column name */
+  Metadata = 'metadata',
+  /** column name */
+  MetadataDocumentFetchedAt = 'metadataDocumentFetchedAt',
+  /** column name */
+  RedirectUris = 'redirectUris',
+  /** column name */
+  Scopes = 'scopes',
+  /** column name */
+  Type = 'type',
+  /** column name */
+  UpdatedAt = 'updatedAt'
+}
+
+export type AuthOauth2Clients_Updates = {
+  /** append existing jsonb value of filtered columns with new jsonb value */
+  _append?: InputMaybe<AuthOauth2Clients_Append_Input>;
+  /** delete the field or element with specified path (for JSON arrays, negative integers count from the end) */
+  _delete_at_path?: InputMaybe<AuthOauth2Clients_Delete_At_Path_Input>;
+  /** delete the array element with specified index (negative integers count from the end). throws an error if top level container is not an array */
+  _delete_elem?: InputMaybe<AuthOauth2Clients_Delete_Elem_Input>;
+  /** delete key/value pair or string element. key/value pairs are matched based on their key value */
+  _delete_key?: InputMaybe<AuthOauth2Clients_Delete_Key_Input>;
+  /** prepend existing jsonb value of filtered columns with new jsonb value */
+  _prepend?: InputMaybe<AuthOauth2Clients_Prepend_Input>;
+  /** sets the columns of the filtered rows to the given values */
+  _set?: InputMaybe<AuthOauth2Clients_Set_Input>;
+  /** filter the rows which have to be updated */
+  where: AuthOauth2Clients_Bool_Exp;
+};
+
+/** OAuth2 refresh tokens with client and scope binding. */
+export type AuthOauth2RefreshTokens = {
+  __typename?: 'authOauth2RefreshTokens';
+  /** An object relationship */
+  authRequest?: Maybe<AuthOauth2AuthRequests>;
+  authRequestId?: Maybe<Scalars['uuid']>;
+  /** An object relationship */
+  client: AuthOauth2Clients;
+  clientId: Scalars['String'];
+  createdAt: Scalars['timestamptz'];
+  expiresAt: Scalars['timestamptz'];
+  id: Scalars['uuid'];
+  scopes: Array<Scalars['String']>;
+  tokenHash: Scalars['String'];
+  /** An object relationship */
+  user: Users;
+  userId: Scalars['uuid'];
+};
+
+/** aggregated selection of "auth.oauth2_refresh_tokens" */
+export type AuthOauth2RefreshTokens_Aggregate = {
+  __typename?: 'authOauth2RefreshTokens_aggregate';
+  aggregate?: Maybe<AuthOauth2RefreshTokens_Aggregate_Fields>;
+  nodes: Array<AuthOauth2RefreshTokens>;
+};
+
+export type AuthOauth2RefreshTokens_Aggregate_Bool_Exp = {
+  count?: InputMaybe<AuthOauth2RefreshTokens_Aggregate_Bool_Exp_Count>;
+};
+
+export type AuthOauth2RefreshTokens_Aggregate_Bool_Exp_Count = {
+  arguments?: InputMaybe<Array<AuthOauth2RefreshTokens_Select_Column>>;
+  distinct?: InputMaybe<Scalars['Boolean']>;
+  filter?: InputMaybe<AuthOauth2RefreshTokens_Bool_Exp>;
+  predicate: Int_Comparison_Exp;
+};
+
+/** aggregate fields of "auth.oauth2_refresh_tokens" */
+export type AuthOauth2RefreshTokens_Aggregate_Fields = {
+  __typename?: 'authOauth2RefreshTokens_aggregate_fields';
+  count: Scalars['Int'];
+  max?: Maybe<AuthOauth2RefreshTokens_Max_Fields>;
+  min?: Maybe<AuthOauth2RefreshTokens_Min_Fields>;
+};
+
+
+/** aggregate fields of "auth.oauth2_refresh_tokens" */
+export type AuthOauth2RefreshTokens_Aggregate_FieldsCountArgs = {
+  columns?: InputMaybe<Array<AuthOauth2RefreshTokens_Select_Column>>;
+  distinct?: InputMaybe<Scalars['Boolean']>;
+};
+
+/** order by aggregate values of table "auth.oauth2_refresh_tokens" */
+export type AuthOauth2RefreshTokens_Aggregate_Order_By = {
+  count?: InputMaybe<Order_By>;
+  max?: InputMaybe<AuthOauth2RefreshTokens_Max_Order_By>;
+  min?: InputMaybe<AuthOauth2RefreshTokens_Min_Order_By>;
+};
+
+/** input type for inserting array relation for remote table "auth.oauth2_refresh_tokens" */
+export type AuthOauth2RefreshTokens_Arr_Rel_Insert_Input = {
+  data: Array<AuthOauth2RefreshTokens_Insert_Input>;
+  /** upsert condition */
+  on_conflict?: InputMaybe<AuthOauth2RefreshTokens_On_Conflict>;
+};
+
+/** Boolean expression to filter rows from the table "auth.oauth2_refresh_tokens". All fields are combined with a logical 'AND'. */
+export type AuthOauth2RefreshTokens_Bool_Exp = {
+  _and?: InputMaybe<Array<AuthOauth2RefreshTokens_Bool_Exp>>;
+  _not?: InputMaybe<AuthOauth2RefreshTokens_Bool_Exp>;
+  _or?: InputMaybe<Array<AuthOauth2RefreshTokens_Bool_Exp>>;
+  authRequest?: InputMaybe<AuthOauth2AuthRequests_Bool_Exp>;
+  authRequestId?: InputMaybe<Uuid_Comparison_Exp>;
+  client?: InputMaybe<AuthOauth2Clients_Bool_Exp>;
+  clientId?: InputMaybe<String_Comparison_Exp>;
+  createdAt?: InputMaybe<Timestamptz_Comparison_Exp>;
+  expiresAt?: InputMaybe<Timestamptz_Comparison_Exp>;
+  id?: InputMaybe<Uuid_Comparison_Exp>;
+  scopes?: InputMaybe<String_Array_Comparison_Exp>;
+  tokenHash?: InputMaybe<String_Comparison_Exp>;
+  user?: InputMaybe<Users_Bool_Exp>;
+  userId?: InputMaybe<Uuid_Comparison_Exp>;
+};
+
+/** unique or primary key constraints on table "auth.oauth2_refresh_tokens" */
+export enum AuthOauth2RefreshTokens_Constraint {
+  /** unique or primary key constraint on columns "id" */
+  Oauth2RefreshTokensPkey = 'oauth2_refresh_tokens_pkey',
+  /** unique or primary key constraint on columns "token_hash" */
+  Oauth2RefreshTokensTokenHashKey = 'oauth2_refresh_tokens_token_hash_key'
+}
+
+/** input type for inserting data into table "auth.oauth2_refresh_tokens" */
+export type AuthOauth2RefreshTokens_Insert_Input = {
+  authRequest?: InputMaybe<AuthOauth2AuthRequests_Obj_Rel_Insert_Input>;
+  authRequestId?: InputMaybe<Scalars['uuid']>;
+  client?: InputMaybe<AuthOauth2Clients_Obj_Rel_Insert_Input>;
+  clientId?: InputMaybe<Scalars['String']>;
+  createdAt?: InputMaybe<Scalars['timestamptz']>;
+  expiresAt?: InputMaybe<Scalars['timestamptz']>;
+  id?: InputMaybe<Scalars['uuid']>;
+  scopes?: InputMaybe<Array<Scalars['String']>>;
+  tokenHash?: InputMaybe<Scalars['String']>;
+  user?: InputMaybe<Users_Obj_Rel_Insert_Input>;
+  userId?: InputMaybe<Scalars['uuid']>;
+};
+
+/** aggregate max on columns */
+export type AuthOauth2RefreshTokens_Max_Fields = {
+  __typename?: 'authOauth2RefreshTokens_max_fields';
+  authRequestId?: Maybe<Scalars['uuid']>;
+  clientId?: Maybe<Scalars['String']>;
+  createdAt?: Maybe<Scalars['timestamptz']>;
+  expiresAt?: Maybe<Scalars['timestamptz']>;
+  id?: Maybe<Scalars['uuid']>;
+  scopes?: Maybe<Array<Scalars['String']>>;
+  tokenHash?: Maybe<Scalars['String']>;
+  userId?: Maybe<Scalars['uuid']>;
+};
+
+/** order by max() on columns of table "auth.oauth2_refresh_tokens" */
+export type AuthOauth2RefreshTokens_Max_Order_By = {
+  authRequestId?: InputMaybe<Order_By>;
+  clientId?: InputMaybe<Order_By>;
+  createdAt?: InputMaybe<Order_By>;
+  expiresAt?: InputMaybe<Order_By>;
+  id?: InputMaybe<Order_By>;
+  scopes?: InputMaybe<Order_By>;
+  tokenHash?: InputMaybe<Order_By>;
+  userId?: InputMaybe<Order_By>;
+};
+
+/** aggregate min on columns */
+export type AuthOauth2RefreshTokens_Min_Fields = {
+  __typename?: 'authOauth2RefreshTokens_min_fields';
+  authRequestId?: Maybe<Scalars['uuid']>;
+  clientId?: Maybe<Scalars['String']>;
+  createdAt?: Maybe<Scalars['timestamptz']>;
+  expiresAt?: Maybe<Scalars['timestamptz']>;
+  id?: Maybe<Scalars['uuid']>;
+  scopes?: Maybe<Array<Scalars['String']>>;
+  tokenHash?: Maybe<Scalars['String']>;
+  userId?: Maybe<Scalars['uuid']>;
+};
+
+/** order by min() on columns of table "auth.oauth2_refresh_tokens" */
+export type AuthOauth2RefreshTokens_Min_Order_By = {
+  authRequestId?: InputMaybe<Order_By>;
+  clientId?: InputMaybe<Order_By>;
+  createdAt?: InputMaybe<Order_By>;
+  expiresAt?: InputMaybe<Order_By>;
+  id?: InputMaybe<Order_By>;
+  scopes?: InputMaybe<Order_By>;
+  tokenHash?: InputMaybe<Order_By>;
+  userId?: InputMaybe<Order_By>;
+};
+
+/** response of any mutation on the table "auth.oauth2_refresh_tokens" */
+export type AuthOauth2RefreshTokens_Mutation_Response = {
+  __typename?: 'authOauth2RefreshTokens_mutation_response';
+  /** number of rows affected by the mutation */
+  affected_rows: Scalars['Int'];
+  /** data from the rows affected by the mutation */
+  returning: Array<AuthOauth2RefreshTokens>;
+};
+
+/** on_conflict condition type for table "auth.oauth2_refresh_tokens" */
+export type AuthOauth2RefreshTokens_On_Conflict = {
+  constraint: AuthOauth2RefreshTokens_Constraint;
+  update_columns?: Array<AuthOauth2RefreshTokens_Update_Column>;
+  where?: InputMaybe<AuthOauth2RefreshTokens_Bool_Exp>;
+};
+
+/** Ordering options when selecting data from "auth.oauth2_refresh_tokens". */
+export type AuthOauth2RefreshTokens_Order_By = {
+  authRequest?: InputMaybe<AuthOauth2AuthRequests_Order_By>;
+  authRequestId?: InputMaybe<Order_By>;
+  client?: InputMaybe<AuthOauth2Clients_Order_By>;
+  clientId?: InputMaybe<Order_By>;
+  createdAt?: InputMaybe<Order_By>;
+  expiresAt?: InputMaybe<Order_By>;
+  id?: InputMaybe<Order_By>;
+  scopes?: InputMaybe<Order_By>;
+  tokenHash?: InputMaybe<Order_By>;
+  user?: InputMaybe<Users_Order_By>;
+  userId?: InputMaybe<Order_By>;
+};
+
+/** primary key columns input for table: auth.oauth2_refresh_tokens */
+export type AuthOauth2RefreshTokens_Pk_Columns_Input = {
+  id: Scalars['uuid'];
+};
+
+/** select columns of table "auth.oauth2_refresh_tokens" */
+export enum AuthOauth2RefreshTokens_Select_Column {
+  /** column name */
+  AuthRequestId = 'authRequestId',
+  /** column name */
+  ClientId = 'clientId',
+  /** column name */
+  CreatedAt = 'createdAt',
+  /** column name */
+  ExpiresAt = 'expiresAt',
+  /** column name */
+  Id = 'id',
+  /** column name */
+  Scopes = 'scopes',
+  /** column name */
+  TokenHash = 'tokenHash',
+  /** column name */
+  UserId = 'userId'
+}
+
+/** input type for updating data in table "auth.oauth2_refresh_tokens" */
+export type AuthOauth2RefreshTokens_Set_Input = {
+  authRequestId?: InputMaybe<Scalars['uuid']>;
+  clientId?: InputMaybe<Scalars['String']>;
+  createdAt?: InputMaybe<Scalars['timestamptz']>;
+  expiresAt?: InputMaybe<Scalars['timestamptz']>;
+  id?: InputMaybe<Scalars['uuid']>;
+  scopes?: InputMaybe<Array<Scalars['String']>>;
+  tokenHash?: InputMaybe<Scalars['String']>;
+  userId?: InputMaybe<Scalars['uuid']>;
+};
+
+/** Streaming cursor of the table "authOauth2RefreshTokens" */
+export type AuthOauth2RefreshTokens_Stream_Cursor_Input = {
+  /** Stream column input with initial value */
+  initial_value: AuthOauth2RefreshTokens_Stream_Cursor_Value_Input;
+  /** cursor ordering */
+  ordering?: InputMaybe<Cursor_Ordering>;
+};
+
+/** Initial value of the column from where the streaming should start */
+export type AuthOauth2RefreshTokens_Stream_Cursor_Value_Input = {
+  authRequestId?: InputMaybe<Scalars['uuid']>;
+  clientId?: InputMaybe<Scalars['String']>;
+  createdAt?: InputMaybe<Scalars['timestamptz']>;
+  expiresAt?: InputMaybe<Scalars['timestamptz']>;
+  id?: InputMaybe<Scalars['uuid']>;
+  scopes?: InputMaybe<Array<Scalars['String']>>;
+  tokenHash?: InputMaybe<Scalars['String']>;
+  userId?: InputMaybe<Scalars['uuid']>;
+};
+
+/** update columns of table "auth.oauth2_refresh_tokens" */
+export enum AuthOauth2RefreshTokens_Update_Column {
+  /** column name */
+  AuthRequestId = 'authRequestId',
+  /** column name */
+  ClientId = 'clientId',
+  /** column name */
+  CreatedAt = 'createdAt',
+  /** column name */
+  ExpiresAt = 'expiresAt',
+  /** column name */
+  Id = 'id',
+  /** column name */
+  Scopes = 'scopes',
+  /** column name */
+  TokenHash = 'tokenHash',
+  /** column name */
+  UserId = 'userId'
+}
+
+export type AuthOauth2RefreshTokens_Updates = {
+  /** sets the columns of the filtered rows to the given values */
+  _set?: InputMaybe<AuthOauth2RefreshTokens_Set_Input>;
+  /** filter the rows which have to be updated */
+  where: AuthOauth2RefreshTokens_Bool_Exp;
+};
+
 /** Oauth requests, inserted before redirecting to the provider's site. Don't modify its structure as Hasura Auth relies on it to function properly. */
 export type AuthProviderRequests = {
   __typename?: 'authProviderRequests';
   id: Scalars['uuid'];
   options?: Maybe<Scalars['jsonb']>;
 };
+
 
 /** Oauth requests, inserted before redirecting to the provider's site. Don't modify its structure as Hasura Auth relies on it to function properly. */
 export type AuthProviderRequestsOptionsArgs = {
@@ -1213,6 +2562,7 @@ export type AuthProviderRequests_Aggregate_Fields = {
   max?: Maybe<AuthProviderRequests_Max_Fields>;
   min?: Maybe<AuthProviderRequests_Min_Fields>;
 };
+
 
 /** aggregate fields of "auth.provider_requests" */
 export type AuthProviderRequests_Aggregate_FieldsCountArgs = {
@@ -1237,7 +2587,7 @@ export type AuthProviderRequests_Bool_Exp = {
 /** unique or primary key constraints on table "auth.provider_requests" */
 export enum AuthProviderRequests_Constraint {
   /** unique or primary key constraint on columns "id" */
-  ProviderRequestsPkey = 'provider_requests_pkey',
+  ProviderRequestsPkey = 'provider_requests_pkey'
 }
 
 /** delete the field or element with specified path (for JSON arrays, negative integers count from the end) */
@@ -1310,7 +2660,7 @@ export enum AuthProviderRequests_Select_Column {
   /** column name */
   Id = 'id',
   /** column name */
-  Options = 'options',
+  Options = 'options'
 }
 
 /** input type for updating data in table "auth.provider_requests" */
@@ -1338,7 +2688,7 @@ export enum AuthProviderRequests_Update_Column {
   /** column name */
   Id = 'id',
   /** column name */
-  Options = 'options',
+  Options = 'options'
 }
 
 export type AuthProviderRequests_Updates = {
@@ -1368,6 +2718,7 @@ export type AuthProviders = {
   userProviders_aggregate: AuthUserProviders_Aggregate;
 };
 
+
 /** List of available Oauth providers. Don't modify its structure as Hasura Auth relies on it to function properly. */
 export type AuthProvidersUserProvidersArgs = {
   distinct_on?: InputMaybe<Array<AuthUserProviders_Select_Column>>;
@@ -1376,6 +2727,7 @@ export type AuthProvidersUserProvidersArgs = {
   order_by?: InputMaybe<Array<AuthUserProviders_Order_By>>;
   where?: InputMaybe<AuthUserProviders_Bool_Exp>;
 };
+
 
 /** List of available Oauth providers. Don't modify its structure as Hasura Auth relies on it to function properly. */
 export type AuthProvidersUserProviders_AggregateArgs = {
@@ -1401,6 +2753,7 @@ export type AuthProviders_Aggregate_Fields = {
   min?: Maybe<AuthProviders_Min_Fields>;
 };
 
+
 /** aggregate fields of "auth.providers" */
 export type AuthProviders_Aggregate_FieldsCountArgs = {
   columns?: InputMaybe<Array<AuthProviders_Select_Column>>;
@@ -1420,7 +2773,7 @@ export type AuthProviders_Bool_Exp = {
 /** unique or primary key constraints on table "auth.providers" */
 export enum AuthProviders_Constraint {
   /** unique or primary key constraint on columns "id" */
-  ProvidersPkey = 'providers_pkey',
+  ProvidersPkey = 'providers_pkey'
 }
 
 /** input type for inserting data into table "auth.providers" */
@@ -1478,7 +2831,7 @@ export type AuthProviders_Pk_Columns_Input = {
 /** select columns of table "auth.providers" */
 export enum AuthProviders_Select_Column {
   /** column name */
-  Id = 'id',
+  Id = 'id'
 }
 
 /** input type for updating data in table "auth.providers" */
@@ -1502,7 +2855,7 @@ export type AuthProviders_Stream_Cursor_Value_Input = {
 /** update columns of table "auth.providers" */
 export enum AuthProviders_Update_Column {
   /** column name */
-  Id = 'id',
+  Id = 'id'
 }
 
 export type AuthProviders_Updates = {
@@ -1523,6 +2876,7 @@ export type AuthRefreshTokenTypes = {
   value: Scalars['String'];
 };
 
+
 /** columns and relationships of "auth.refresh_token_types" */
 export type AuthRefreshTokenTypesRefreshTokensArgs = {
   distinct_on?: InputMaybe<Array<AuthRefreshTokens_Select_Column>>;
@@ -1531,6 +2885,7 @@ export type AuthRefreshTokenTypesRefreshTokensArgs = {
   order_by?: InputMaybe<Array<AuthRefreshTokens_Order_By>>;
   where?: InputMaybe<AuthRefreshTokens_Bool_Exp>;
 };
+
 
 /** columns and relationships of "auth.refresh_token_types" */
 export type AuthRefreshTokenTypesRefreshTokens_AggregateArgs = {
@@ -1556,6 +2911,7 @@ export type AuthRefreshTokenTypes_Aggregate_Fields = {
   min?: Maybe<AuthRefreshTokenTypes_Min_Fields>;
 };
 
+
 /** aggregate fields of "auth.refresh_token_types" */
 export type AuthRefreshTokenTypes_Aggregate_FieldsCountArgs = {
   columns?: InputMaybe<Array<AuthRefreshTokenTypes_Select_Column>>;
@@ -1576,14 +2932,14 @@ export type AuthRefreshTokenTypes_Bool_Exp = {
 /** unique or primary key constraints on table "auth.refresh_token_types" */
 export enum AuthRefreshTokenTypes_Constraint {
   /** unique or primary key constraint on columns "value" */
-  RefreshTokenTypesPkey = 'refresh_token_types_pkey',
+  RefreshTokenTypesPkey = 'refresh_token_types_pkey'
 }
 
 export enum AuthRefreshTokenTypes_Enum {
   /** Personal access token */
   Pat = 'pat',
   /** Regular refresh token */
-  Regular = 'regular',
+  Regular = 'regular'
 }
 
 /** Boolean expression to compare columns of type "authRefreshTokenTypes_enum". All fields are combined with logical 'AND'. */
@@ -1649,7 +3005,7 @@ export enum AuthRefreshTokenTypes_Select_Column {
   /** column name */
   Comment = 'comment',
   /** column name */
-  Value = 'value',
+  Value = 'value'
 }
 
 /** input type for updating data in table "auth.refresh_token_types" */
@@ -1677,7 +3033,7 @@ export enum AuthRefreshTokenTypes_Update_Column {
   /** column name */
   Comment = 'comment',
   /** column name */
-  Value = 'value',
+  Value = 'value'
 }
 
 export type AuthRefreshTokenTypes_Updates = {
@@ -1700,6 +3056,7 @@ export type AuthRefreshTokens = {
   user: Users;
   userId: Scalars['uuid'];
 };
+
 
 /** User refresh tokens. Hasura auth uses them to rotate new access tokens as long as the refresh token is not expired. Don't modify its structure as Hasura Auth relies on it to function properly. */
 export type AuthRefreshTokensMetadataArgs = {
@@ -1731,6 +3088,7 @@ export type AuthRefreshTokens_Aggregate_Fields = {
   max?: Maybe<AuthRefreshTokens_Max_Fields>;
   min?: Maybe<AuthRefreshTokens_Min_Fields>;
 };
+
 
 /** aggregate fields of "auth.refresh_tokens" */
 export type AuthRefreshTokens_Aggregate_FieldsCountArgs = {
@@ -1775,7 +3133,7 @@ export type AuthRefreshTokens_Bool_Exp = {
 /** unique or primary key constraints on table "auth.refresh_tokens" */
 export enum AuthRefreshTokens_Constraint {
   /** unique or primary key constraint on columns "id" */
-  RefreshTokensPkey = 'refresh_tokens_pkey',
+  RefreshTokensPkey = 'refresh_tokens_pkey'
 }
 
 /** delete the field or element with specified path (for JSON arrays, negative integers count from the end) */
@@ -1896,7 +3254,7 @@ export enum AuthRefreshTokens_Select_Column {
   /** column name */
   Type = 'type',
   /** column name */
-  UserId = 'userId',
+  UserId = 'userId'
 }
 
 /** input type for updating data in table "auth.refresh_tokens" */
@@ -1944,7 +3302,7 @@ export enum AuthRefreshTokens_Update_Column {
   /** column name */
   Type = 'type',
   /** column name */
-  UserId = 'userId',
+  UserId = 'userId'
 }
 
 export type AuthRefreshTokens_Updates = {
@@ -1978,6 +3336,7 @@ export type AuthRoles = {
   usersByDefaultRole_aggregate: Users_Aggregate;
 };
 
+
 /** Persistent Hasura roles for users. Don't modify its structure as Hasura Auth relies on it to function properly. */
 export type AuthRolesUserRolesArgs = {
   distinct_on?: InputMaybe<Array<AuthUserRoles_Select_Column>>;
@@ -1986,6 +3345,7 @@ export type AuthRolesUserRolesArgs = {
   order_by?: InputMaybe<Array<AuthUserRoles_Order_By>>;
   where?: InputMaybe<AuthUserRoles_Bool_Exp>;
 };
+
 
 /** Persistent Hasura roles for users. Don't modify its structure as Hasura Auth relies on it to function properly. */
 export type AuthRolesUserRoles_AggregateArgs = {
@@ -1996,6 +3356,7 @@ export type AuthRolesUserRoles_AggregateArgs = {
   where?: InputMaybe<AuthUserRoles_Bool_Exp>;
 };
 
+
 /** Persistent Hasura roles for users. Don't modify its structure as Hasura Auth relies on it to function properly. */
 export type AuthRolesUsersByDefaultRoleArgs = {
   distinct_on?: InputMaybe<Array<Users_Select_Column>>;
@@ -2004,6 +3365,7 @@ export type AuthRolesUsersByDefaultRoleArgs = {
   order_by?: InputMaybe<Array<Users_Order_By>>;
   where?: InputMaybe<Users_Bool_Exp>;
 };
+
 
 /** Persistent Hasura roles for users. Don't modify its structure as Hasura Auth relies on it to function properly. */
 export type AuthRolesUsersByDefaultRole_AggregateArgs = {
@@ -2029,6 +3391,7 @@ export type AuthRoles_Aggregate_Fields = {
   min?: Maybe<AuthRoles_Min_Fields>;
 };
 
+
 /** aggregate fields of "auth.roles" */
 export type AuthRoles_Aggregate_FieldsCountArgs = {
   columns?: InputMaybe<Array<AuthRoles_Select_Column>>;
@@ -2050,7 +3413,7 @@ export type AuthRoles_Bool_Exp = {
 /** unique or primary key constraints on table "auth.roles" */
 export enum AuthRoles_Constraint {
   /** unique or primary key constraint on columns "role" */
-  RolesPkey = 'roles_pkey',
+  RolesPkey = 'roles_pkey'
 }
 
 /** input type for inserting data into table "auth.roles" */
@@ -2110,7 +3473,7 @@ export type AuthRoles_Pk_Columns_Input = {
 /** select columns of table "auth.roles" */
 export enum AuthRoles_Select_Column {
   /** column name */
-  Role = 'role',
+  Role = 'role'
 }
 
 /** input type for updating data in table "auth.roles" */
@@ -2134,7 +3497,7 @@ export type AuthRoles_Stream_Cursor_Value_Input = {
 /** update columns of table "auth.roles" */
 export enum AuthRoles_Update_Column {
   /** column name */
-  Role = 'role',
+  Role = 'role'
 }
 
 export type AuthRoles_Updates = {
@@ -2187,6 +3550,7 @@ export type AuthUserProviders_Aggregate_Fields = {
   min?: Maybe<AuthUserProviders_Min_Fields>;
 };
 
+
 /** aggregate fields of "auth.user_providers" */
 export type AuthUserProviders_Aggregate_FieldsCountArgs = {
   columns?: InputMaybe<Array<AuthUserProviders_Select_Column>>;
@@ -2229,9 +3593,7 @@ export enum AuthUserProviders_Constraint {
   /** unique or primary key constraint on columns "id" */
   UserProvidersPkey = 'user_providers_pkey',
   /** unique or primary key constraint on columns "provider_user_id", "provider_id" */
-  UserProvidersProviderIdProviderUserIdKey = 'user_providers_provider_id_provider_user_id_key',
-  /** unique or primary key constraint on columns "user_id", "provider_id" */
-  UserProvidersUserIdProviderIdKey = 'user_providers_user_id_provider_id_key',
+  UserProvidersProviderIdProviderUserIdKey = 'user_providers_provider_id_provider_user_id_key'
 }
 
 /** input type for inserting data into table "auth.user_providers" */
@@ -2350,7 +3712,7 @@ export enum AuthUserProviders_Select_Column {
   /** column name */
   UpdatedAt = 'updatedAt',
   /** column name */
-  UserId = 'userId',
+  UserId = 'userId'
 }
 
 /** input type for updating data in table "auth.user_providers" */
@@ -2402,7 +3764,7 @@ export enum AuthUserProviders_Update_Column {
   /** column name */
   UpdatedAt = 'updatedAt',
   /** column name */
-  UserId = 'userId',
+  UserId = 'userId'
 }
 
 export type AuthUserProviders_Updates = {
@@ -2451,6 +3813,7 @@ export type AuthUserRoles_Aggregate_Fields = {
   min?: Maybe<AuthUserRoles_Min_Fields>;
 };
 
+
 /** aggregate fields of "auth.user_roles" */
 export type AuthUserRoles_Aggregate_FieldsCountArgs = {
   columns?: InputMaybe<Array<AuthUserRoles_Select_Column>>;
@@ -2489,7 +3852,7 @@ export enum AuthUserRoles_Constraint {
   /** unique or primary key constraint on columns "id" */
   UserRolesPkey = 'user_roles_pkey',
   /** unique or primary key constraint on columns "user_id", "role" */
-  UserRolesUserIdRoleKey = 'user_roles_user_id_role_key',
+  UserRolesUserIdRoleKey = 'user_roles_user_id_role_key'
 }
 
 /** input type for inserting data into table "auth.user_roles" */
@@ -2576,7 +3939,7 @@ export enum AuthUserRoles_Select_Column {
   /** column name */
   Role = 'role',
   /** column name */
-  UserId = 'userId',
+  UserId = 'userId'
 }
 
 /** input type for updating data in table "auth.user_roles" */
@@ -2612,7 +3975,7 @@ export enum AuthUserRoles_Update_Column {
   /** column name */
   Role = 'role',
   /** column name */
-  UserId = 'userId',
+  UserId = 'userId'
 }
 
 export type AuthUserRoles_Updates = {
@@ -2669,6 +4032,7 @@ export type AuthUserSecurityKeys_Aggregate_Fields = {
   var_samp?: Maybe<AuthUserSecurityKeys_Var_Samp_Fields>;
   variance?: Maybe<AuthUserSecurityKeys_Variance_Fields>;
 };
+
 
 /** aggregate fields of "auth.user_security_keys" */
 export type AuthUserSecurityKeys_Aggregate_FieldsCountArgs = {
@@ -2729,7 +4093,7 @@ export enum AuthUserSecurityKeys_Constraint {
   /** unique or primary key constraint on columns "credential_id" */
   UserSecurityKeyCredentialIdKey = 'user_security_key_credential_id_key',
   /** unique or primary key constraint on columns "id" */
-  UserSecurityKeysPkey = 'user_security_keys_pkey',
+  UserSecurityKeysPkey = 'user_security_keys_pkey'
 }
 
 /** input type for incrementing numeric columns in table "auth.user_security_keys" */
@@ -2839,7 +4203,7 @@ export enum AuthUserSecurityKeys_Select_Column {
   /** column name */
   Transports = 'transports',
   /** column name */
-  UserId = 'userId',
+  UserId = 'userId'
 }
 
 /** input type for updating data in table "auth.user_security_keys" */
@@ -2931,7 +4295,7 @@ export enum AuthUserSecurityKeys_Update_Column {
   /** column name */
   Transports = 'transports',
   /** column name */
-  UserId = 'userId',
+  UserId = 'userId'
 }
 
 export type AuthUserSecurityKeys_Updates = {
@@ -3006,6 +4370,7 @@ export type Buckets = {
   updatedAt: Scalars['timestamptz'];
 };
 
+
 /** columns and relationships of "storage.buckets" */
 export type BucketsFilesArgs = {
   distinct_on?: InputMaybe<Array<Files_Select_Column>>;
@@ -3014,6 +4379,7 @@ export type BucketsFilesArgs = {
   order_by?: InputMaybe<Array<Files_Order_By>>;
   where?: InputMaybe<Files_Bool_Exp>;
 };
+
 
 /** columns and relationships of "storage.buckets" */
 export type BucketsFiles_AggregateArgs = {
@@ -3046,6 +4412,7 @@ export type Buckets_Aggregate_Fields = {
   var_samp?: Maybe<Buckets_Var_Samp_Fields>;
   variance?: Maybe<Buckets_Variance_Fields>;
 };
+
 
 /** aggregate fields of "storage.buckets" */
 export type Buckets_Aggregate_FieldsCountArgs = {
@@ -3081,7 +4448,7 @@ export type Buckets_Bool_Exp = {
 /** unique or primary key constraints on table "storage.buckets" */
 export enum Buckets_Constraint {
   /** unique or primary key constraint on columns "id" */
-  BucketsPkey = 'buckets_pkey',
+  BucketsPkey = 'buckets_pkey'
 }
 
 /** input type for incrementing numeric columns in table "storage.buckets" */
@@ -3186,7 +4553,7 @@ export enum Buckets_Select_Column {
   /** column name */
   PresignedUrlsEnabled = 'presignedUrlsEnabled',
   /** column name */
-  UpdatedAt = 'updatedAt',
+  UpdatedAt = 'updatedAt'
 }
 
 /** input type for updating data in table "storage.buckets" */
@@ -3270,7 +4637,7 @@ export enum Buckets_Update_Column {
   /** column name */
   PresignedUrlsEnabled = 'presignedUrlsEnabled',
   /** column name */
-  UpdatedAt = 'updatedAt',
+  UpdatedAt = 'updatedAt'
 }
 
 export type Buckets_Updates = {
@@ -3352,12 +4719,667 @@ export type Citext_Comparison_Exp = {
   _similar?: InputMaybe<Scalars['citext']>;
 };
 
+/** columns and relationships of "communities" */
+export type Communities = {
+  __typename?: 'communities';
+  /** An array relationship */
+  community_files: Array<Community_Files>;
+  /** An aggregate relationship */
+  community_files_aggregate: Community_Files_Aggregate;
+  created_at: Scalars['timestamptz'];
+  description?: Maybe<Scalars['String']>;
+  id: Scalars['uuid'];
+  /** An array relationship */
+  members: Array<Community_Members>;
+  /** An aggregate relationship */
+  members_aggregate: Community_Members_Aggregate;
+  name: Scalars['String'];
+  updated_at: Scalars['timestamptz'];
+};
+
+
+/** columns and relationships of "communities" */
+export type CommunitiesCommunity_FilesArgs = {
+  distinct_on?: InputMaybe<Array<Community_Files_Select_Column>>;
+  limit?: InputMaybe<Scalars['Int']>;
+  offset?: InputMaybe<Scalars['Int']>;
+  order_by?: InputMaybe<Array<Community_Files_Order_By>>;
+  where?: InputMaybe<Community_Files_Bool_Exp>;
+};
+
+
+/** columns and relationships of "communities" */
+export type CommunitiesCommunity_Files_AggregateArgs = {
+  distinct_on?: InputMaybe<Array<Community_Files_Select_Column>>;
+  limit?: InputMaybe<Scalars['Int']>;
+  offset?: InputMaybe<Scalars['Int']>;
+  order_by?: InputMaybe<Array<Community_Files_Order_By>>;
+  where?: InputMaybe<Community_Files_Bool_Exp>;
+};
+
+
+/** columns and relationships of "communities" */
+export type CommunitiesMembersArgs = {
+  distinct_on?: InputMaybe<Array<Community_Members_Select_Column>>;
+  limit?: InputMaybe<Scalars['Int']>;
+  offset?: InputMaybe<Scalars['Int']>;
+  order_by?: InputMaybe<Array<Community_Members_Order_By>>;
+  where?: InputMaybe<Community_Members_Bool_Exp>;
+};
+
+
+/** columns and relationships of "communities" */
+export type CommunitiesMembers_AggregateArgs = {
+  distinct_on?: InputMaybe<Array<Community_Members_Select_Column>>;
+  limit?: InputMaybe<Scalars['Int']>;
+  offset?: InputMaybe<Scalars['Int']>;
+  order_by?: InputMaybe<Array<Community_Members_Order_By>>;
+  where?: InputMaybe<Community_Members_Bool_Exp>;
+};
+
+/** aggregated selection of "communities" */
+export type Communities_Aggregate = {
+  __typename?: 'communities_aggregate';
+  aggregate?: Maybe<Communities_Aggregate_Fields>;
+  nodes: Array<Communities>;
+};
+
+/** aggregate fields of "communities" */
+export type Communities_Aggregate_Fields = {
+  __typename?: 'communities_aggregate_fields';
+  count: Scalars['Int'];
+  max?: Maybe<Communities_Max_Fields>;
+  min?: Maybe<Communities_Min_Fields>;
+};
+
+
+/** aggregate fields of "communities" */
+export type Communities_Aggregate_FieldsCountArgs = {
+  columns?: InputMaybe<Array<Communities_Select_Column>>;
+  distinct?: InputMaybe<Scalars['Boolean']>;
+};
+
+/** Boolean expression to filter rows from the table "communities". All fields are combined with a logical 'AND'. */
+export type Communities_Bool_Exp = {
+  _and?: InputMaybe<Array<Communities_Bool_Exp>>;
+  _not?: InputMaybe<Communities_Bool_Exp>;
+  _or?: InputMaybe<Array<Communities_Bool_Exp>>;
+  community_files?: InputMaybe<Community_Files_Bool_Exp>;
+  community_files_aggregate?: InputMaybe<Community_Files_Aggregate_Bool_Exp>;
+  created_at?: InputMaybe<Timestamptz_Comparison_Exp>;
+  description?: InputMaybe<String_Comparison_Exp>;
+  id?: InputMaybe<Uuid_Comparison_Exp>;
+  members?: InputMaybe<Community_Members_Bool_Exp>;
+  members_aggregate?: InputMaybe<Community_Members_Aggregate_Bool_Exp>;
+  name?: InputMaybe<String_Comparison_Exp>;
+  updated_at?: InputMaybe<Timestamptz_Comparison_Exp>;
+};
+
+/** unique or primary key constraints on table "communities" */
+export enum Communities_Constraint {
+  /** unique or primary key constraint on columns "name" */
+  CommunitiesNameKey = 'communities_name_key',
+  /** unique or primary key constraint on columns "id" */
+  CommunitiesPkey = 'communities_pkey'
+}
+
+/** input type for inserting data into table "communities" */
+export type Communities_Insert_Input = {
+  community_files?: InputMaybe<Community_Files_Arr_Rel_Insert_Input>;
+  created_at?: InputMaybe<Scalars['timestamptz']>;
+  description?: InputMaybe<Scalars['String']>;
+  id?: InputMaybe<Scalars['uuid']>;
+  members?: InputMaybe<Community_Members_Arr_Rel_Insert_Input>;
+  name?: InputMaybe<Scalars['String']>;
+  updated_at?: InputMaybe<Scalars['timestamptz']>;
+};
+
+/** aggregate max on columns */
+export type Communities_Max_Fields = {
+  __typename?: 'communities_max_fields';
+  created_at?: Maybe<Scalars['timestamptz']>;
+  description?: Maybe<Scalars['String']>;
+  id?: Maybe<Scalars['uuid']>;
+  name?: Maybe<Scalars['String']>;
+  updated_at?: Maybe<Scalars['timestamptz']>;
+};
+
+/** aggregate min on columns */
+export type Communities_Min_Fields = {
+  __typename?: 'communities_min_fields';
+  created_at?: Maybe<Scalars['timestamptz']>;
+  description?: Maybe<Scalars['String']>;
+  id?: Maybe<Scalars['uuid']>;
+  name?: Maybe<Scalars['String']>;
+  updated_at?: Maybe<Scalars['timestamptz']>;
+};
+
+/** response of any mutation on the table "communities" */
+export type Communities_Mutation_Response = {
+  __typename?: 'communities_mutation_response';
+  /** number of rows affected by the mutation */
+  affected_rows: Scalars['Int'];
+  /** data from the rows affected by the mutation */
+  returning: Array<Communities>;
+};
+
+/** input type for inserting object relation for remote table "communities" */
+export type Communities_Obj_Rel_Insert_Input = {
+  data: Communities_Insert_Input;
+  /** upsert condition */
+  on_conflict?: InputMaybe<Communities_On_Conflict>;
+};
+
+/** on_conflict condition type for table "communities" */
+export type Communities_On_Conflict = {
+  constraint: Communities_Constraint;
+  update_columns?: Array<Communities_Update_Column>;
+  where?: InputMaybe<Communities_Bool_Exp>;
+};
+
+/** Ordering options when selecting data from "communities". */
+export type Communities_Order_By = {
+  community_files_aggregate?: InputMaybe<Community_Files_Aggregate_Order_By>;
+  created_at?: InputMaybe<Order_By>;
+  description?: InputMaybe<Order_By>;
+  id?: InputMaybe<Order_By>;
+  members_aggregate?: InputMaybe<Community_Members_Aggregate_Order_By>;
+  name?: InputMaybe<Order_By>;
+  updated_at?: InputMaybe<Order_By>;
+};
+
+/** primary key columns input for table: communities */
+export type Communities_Pk_Columns_Input = {
+  id: Scalars['uuid'];
+};
+
+/** select columns of table "communities" */
+export enum Communities_Select_Column {
+  /** column name */
+  CreatedAt = 'created_at',
+  /** column name */
+  Description = 'description',
+  /** column name */
+  Id = 'id',
+  /** column name */
+  Name = 'name',
+  /** column name */
+  UpdatedAt = 'updated_at'
+}
+
+/** input type for updating data in table "communities" */
+export type Communities_Set_Input = {
+  created_at?: InputMaybe<Scalars['timestamptz']>;
+  description?: InputMaybe<Scalars['String']>;
+  id?: InputMaybe<Scalars['uuid']>;
+  name?: InputMaybe<Scalars['String']>;
+  updated_at?: InputMaybe<Scalars['timestamptz']>;
+};
+
+/** Streaming cursor of the table "communities" */
+export type Communities_Stream_Cursor_Input = {
+  /** Stream column input with initial value */
+  initial_value: Communities_Stream_Cursor_Value_Input;
+  /** cursor ordering */
+  ordering?: InputMaybe<Cursor_Ordering>;
+};
+
+/** Initial value of the column from where the streaming should start */
+export type Communities_Stream_Cursor_Value_Input = {
+  created_at?: InputMaybe<Scalars['timestamptz']>;
+  description?: InputMaybe<Scalars['String']>;
+  id?: InputMaybe<Scalars['uuid']>;
+  name?: InputMaybe<Scalars['String']>;
+  updated_at?: InputMaybe<Scalars['timestamptz']>;
+};
+
+/** update columns of table "communities" */
+export enum Communities_Update_Column {
+  /** column name */
+  CreatedAt = 'created_at',
+  /** column name */
+  Description = 'description',
+  /** column name */
+  Id = 'id',
+  /** column name */
+  Name = 'name',
+  /** column name */
+  UpdatedAt = 'updated_at'
+}
+
+export type Communities_Updates = {
+  /** sets the columns of the filtered rows to the given values */
+  _set?: InputMaybe<Communities_Set_Input>;
+  /** filter the rows which have to be updated */
+  where: Communities_Bool_Exp;
+};
+
+/** columns and relationships of "community_files" */
+export type Community_Files = {
+  __typename?: 'community_files';
+  /** An object relationship */
+  community: Communities;
+  community_id: Scalars['uuid'];
+  created_at: Scalars['timestamptz'];
+  /** An object relationship */
+  file: Files;
+  file_id: Scalars['uuid'];
+  id: Scalars['uuid'];
+};
+
+/** aggregated selection of "community_files" */
+export type Community_Files_Aggregate = {
+  __typename?: 'community_files_aggregate';
+  aggregate?: Maybe<Community_Files_Aggregate_Fields>;
+  nodes: Array<Community_Files>;
+};
+
+export type Community_Files_Aggregate_Bool_Exp = {
+  count?: InputMaybe<Community_Files_Aggregate_Bool_Exp_Count>;
+};
+
+export type Community_Files_Aggregate_Bool_Exp_Count = {
+  arguments?: InputMaybe<Array<Community_Files_Select_Column>>;
+  distinct?: InputMaybe<Scalars['Boolean']>;
+  filter?: InputMaybe<Community_Files_Bool_Exp>;
+  predicate: Int_Comparison_Exp;
+};
+
+/** aggregate fields of "community_files" */
+export type Community_Files_Aggregate_Fields = {
+  __typename?: 'community_files_aggregate_fields';
+  count: Scalars['Int'];
+  max?: Maybe<Community_Files_Max_Fields>;
+  min?: Maybe<Community_Files_Min_Fields>;
+};
+
+
+/** aggregate fields of "community_files" */
+export type Community_Files_Aggregate_FieldsCountArgs = {
+  columns?: InputMaybe<Array<Community_Files_Select_Column>>;
+  distinct?: InputMaybe<Scalars['Boolean']>;
+};
+
+/** order by aggregate values of table "community_files" */
+export type Community_Files_Aggregate_Order_By = {
+  count?: InputMaybe<Order_By>;
+  max?: InputMaybe<Community_Files_Max_Order_By>;
+  min?: InputMaybe<Community_Files_Min_Order_By>;
+};
+
+/** input type for inserting array relation for remote table "community_files" */
+export type Community_Files_Arr_Rel_Insert_Input = {
+  data: Array<Community_Files_Insert_Input>;
+  /** upsert condition */
+  on_conflict?: InputMaybe<Community_Files_On_Conflict>;
+};
+
+/** Boolean expression to filter rows from the table "community_files". All fields are combined with a logical 'AND'. */
+export type Community_Files_Bool_Exp = {
+  _and?: InputMaybe<Array<Community_Files_Bool_Exp>>;
+  _not?: InputMaybe<Community_Files_Bool_Exp>;
+  _or?: InputMaybe<Array<Community_Files_Bool_Exp>>;
+  community?: InputMaybe<Communities_Bool_Exp>;
+  community_id?: InputMaybe<Uuid_Comparison_Exp>;
+  created_at?: InputMaybe<Timestamptz_Comparison_Exp>;
+  file?: InputMaybe<Files_Bool_Exp>;
+  file_id?: InputMaybe<Uuid_Comparison_Exp>;
+  id?: InputMaybe<Uuid_Comparison_Exp>;
+};
+
+/** unique or primary key constraints on table "community_files" */
+export enum Community_Files_Constraint {
+  /** unique or primary key constraint on columns "id" */
+  CommunityFilesPkey = 'community_files_pkey'
+}
+
+/** input type for inserting data into table "community_files" */
+export type Community_Files_Insert_Input = {
+  community?: InputMaybe<Communities_Obj_Rel_Insert_Input>;
+  community_id?: InputMaybe<Scalars['uuid']>;
+  created_at?: InputMaybe<Scalars['timestamptz']>;
+  file?: InputMaybe<Files_Obj_Rel_Insert_Input>;
+  file_id?: InputMaybe<Scalars['uuid']>;
+  id?: InputMaybe<Scalars['uuid']>;
+};
+
+/** aggregate max on columns */
+export type Community_Files_Max_Fields = {
+  __typename?: 'community_files_max_fields';
+  community_id?: Maybe<Scalars['uuid']>;
+  created_at?: Maybe<Scalars['timestamptz']>;
+  file_id?: Maybe<Scalars['uuid']>;
+  id?: Maybe<Scalars['uuid']>;
+};
+
+/** order by max() on columns of table "community_files" */
+export type Community_Files_Max_Order_By = {
+  community_id?: InputMaybe<Order_By>;
+  created_at?: InputMaybe<Order_By>;
+  file_id?: InputMaybe<Order_By>;
+  id?: InputMaybe<Order_By>;
+};
+
+/** aggregate min on columns */
+export type Community_Files_Min_Fields = {
+  __typename?: 'community_files_min_fields';
+  community_id?: Maybe<Scalars['uuid']>;
+  created_at?: Maybe<Scalars['timestamptz']>;
+  file_id?: Maybe<Scalars['uuid']>;
+  id?: Maybe<Scalars['uuid']>;
+};
+
+/** order by min() on columns of table "community_files" */
+export type Community_Files_Min_Order_By = {
+  community_id?: InputMaybe<Order_By>;
+  created_at?: InputMaybe<Order_By>;
+  file_id?: InputMaybe<Order_By>;
+  id?: InputMaybe<Order_By>;
+};
+
+/** response of any mutation on the table "community_files" */
+export type Community_Files_Mutation_Response = {
+  __typename?: 'community_files_mutation_response';
+  /** number of rows affected by the mutation */
+  affected_rows: Scalars['Int'];
+  /** data from the rows affected by the mutation */
+  returning: Array<Community_Files>;
+};
+
+/** on_conflict condition type for table "community_files" */
+export type Community_Files_On_Conflict = {
+  constraint: Community_Files_Constraint;
+  update_columns?: Array<Community_Files_Update_Column>;
+  where?: InputMaybe<Community_Files_Bool_Exp>;
+};
+
+/** Ordering options when selecting data from "community_files". */
+export type Community_Files_Order_By = {
+  community?: InputMaybe<Communities_Order_By>;
+  community_id?: InputMaybe<Order_By>;
+  created_at?: InputMaybe<Order_By>;
+  file?: InputMaybe<Files_Order_By>;
+  file_id?: InputMaybe<Order_By>;
+  id?: InputMaybe<Order_By>;
+};
+
+/** primary key columns input for table: community_files */
+export type Community_Files_Pk_Columns_Input = {
+  id: Scalars['uuid'];
+};
+
+/** select columns of table "community_files" */
+export enum Community_Files_Select_Column {
+  /** column name */
+  CommunityId = 'community_id',
+  /** column name */
+  CreatedAt = 'created_at',
+  /** column name */
+  FileId = 'file_id',
+  /** column name */
+  Id = 'id'
+}
+
+/** input type for updating data in table "community_files" */
+export type Community_Files_Set_Input = {
+  community_id?: InputMaybe<Scalars['uuid']>;
+  created_at?: InputMaybe<Scalars['timestamptz']>;
+  file_id?: InputMaybe<Scalars['uuid']>;
+  id?: InputMaybe<Scalars['uuid']>;
+};
+
+/** Streaming cursor of the table "community_files" */
+export type Community_Files_Stream_Cursor_Input = {
+  /** Stream column input with initial value */
+  initial_value: Community_Files_Stream_Cursor_Value_Input;
+  /** cursor ordering */
+  ordering?: InputMaybe<Cursor_Ordering>;
+};
+
+/** Initial value of the column from where the streaming should start */
+export type Community_Files_Stream_Cursor_Value_Input = {
+  community_id?: InputMaybe<Scalars['uuid']>;
+  created_at?: InputMaybe<Scalars['timestamptz']>;
+  file_id?: InputMaybe<Scalars['uuid']>;
+  id?: InputMaybe<Scalars['uuid']>;
+};
+
+/** update columns of table "community_files" */
+export enum Community_Files_Update_Column {
+  /** column name */
+  CommunityId = 'community_id',
+  /** column name */
+  CreatedAt = 'created_at',
+  /** column name */
+  FileId = 'file_id',
+  /** column name */
+  Id = 'id'
+}
+
+export type Community_Files_Updates = {
+  /** sets the columns of the filtered rows to the given values */
+  _set?: InputMaybe<Community_Files_Set_Input>;
+  /** filter the rows which have to be updated */
+  where: Community_Files_Bool_Exp;
+};
+
+/** columns and relationships of "community_members" */
+export type Community_Members = {
+  __typename?: 'community_members';
+  /** An object relationship */
+  community: Communities;
+  community_id: Scalars['uuid'];
+  id: Scalars['uuid'];
+  joined_at: Scalars['timestamptz'];
+  /** An object relationship */
+  user: Users;
+  user_id: Scalars['uuid'];
+};
+
+/** aggregated selection of "community_members" */
+export type Community_Members_Aggregate = {
+  __typename?: 'community_members_aggregate';
+  aggregate?: Maybe<Community_Members_Aggregate_Fields>;
+  nodes: Array<Community_Members>;
+};
+
+export type Community_Members_Aggregate_Bool_Exp = {
+  count?: InputMaybe<Community_Members_Aggregate_Bool_Exp_Count>;
+};
+
+export type Community_Members_Aggregate_Bool_Exp_Count = {
+  arguments?: InputMaybe<Array<Community_Members_Select_Column>>;
+  distinct?: InputMaybe<Scalars['Boolean']>;
+  filter?: InputMaybe<Community_Members_Bool_Exp>;
+  predicate: Int_Comparison_Exp;
+};
+
+/** aggregate fields of "community_members" */
+export type Community_Members_Aggregate_Fields = {
+  __typename?: 'community_members_aggregate_fields';
+  count: Scalars['Int'];
+  max?: Maybe<Community_Members_Max_Fields>;
+  min?: Maybe<Community_Members_Min_Fields>;
+};
+
+
+/** aggregate fields of "community_members" */
+export type Community_Members_Aggregate_FieldsCountArgs = {
+  columns?: InputMaybe<Array<Community_Members_Select_Column>>;
+  distinct?: InputMaybe<Scalars['Boolean']>;
+};
+
+/** order by aggregate values of table "community_members" */
+export type Community_Members_Aggregate_Order_By = {
+  count?: InputMaybe<Order_By>;
+  max?: InputMaybe<Community_Members_Max_Order_By>;
+  min?: InputMaybe<Community_Members_Min_Order_By>;
+};
+
+/** input type for inserting array relation for remote table "community_members" */
+export type Community_Members_Arr_Rel_Insert_Input = {
+  data: Array<Community_Members_Insert_Input>;
+  /** upsert condition */
+  on_conflict?: InputMaybe<Community_Members_On_Conflict>;
+};
+
+/** Boolean expression to filter rows from the table "community_members". All fields are combined with a logical 'AND'. */
+export type Community_Members_Bool_Exp = {
+  _and?: InputMaybe<Array<Community_Members_Bool_Exp>>;
+  _not?: InputMaybe<Community_Members_Bool_Exp>;
+  _or?: InputMaybe<Array<Community_Members_Bool_Exp>>;
+  community?: InputMaybe<Communities_Bool_Exp>;
+  community_id?: InputMaybe<Uuid_Comparison_Exp>;
+  id?: InputMaybe<Uuid_Comparison_Exp>;
+  joined_at?: InputMaybe<Timestamptz_Comparison_Exp>;
+  user?: InputMaybe<Users_Bool_Exp>;
+  user_id?: InputMaybe<Uuid_Comparison_Exp>;
+};
+
+/** unique or primary key constraints on table "community_members" */
+export enum Community_Members_Constraint {
+  /** unique or primary key constraint on columns "id" */
+  CommunityMembersPkey = 'community_members_pkey',
+  /** unique or primary key constraint on columns "user_id", "community_id" */
+  CommunityMembersUserIdCommunityIdKey = 'community_members_user_id_community_id_key'
+}
+
+/** input type for inserting data into table "community_members" */
+export type Community_Members_Insert_Input = {
+  community?: InputMaybe<Communities_Obj_Rel_Insert_Input>;
+  community_id?: InputMaybe<Scalars['uuid']>;
+  id?: InputMaybe<Scalars['uuid']>;
+  joined_at?: InputMaybe<Scalars['timestamptz']>;
+  user?: InputMaybe<Users_Obj_Rel_Insert_Input>;
+  user_id?: InputMaybe<Scalars['uuid']>;
+};
+
+/** aggregate max on columns */
+export type Community_Members_Max_Fields = {
+  __typename?: 'community_members_max_fields';
+  community_id?: Maybe<Scalars['uuid']>;
+  id?: Maybe<Scalars['uuid']>;
+  joined_at?: Maybe<Scalars['timestamptz']>;
+  user_id?: Maybe<Scalars['uuid']>;
+};
+
+/** order by max() on columns of table "community_members" */
+export type Community_Members_Max_Order_By = {
+  community_id?: InputMaybe<Order_By>;
+  id?: InputMaybe<Order_By>;
+  joined_at?: InputMaybe<Order_By>;
+  user_id?: InputMaybe<Order_By>;
+};
+
+/** aggregate min on columns */
+export type Community_Members_Min_Fields = {
+  __typename?: 'community_members_min_fields';
+  community_id?: Maybe<Scalars['uuid']>;
+  id?: Maybe<Scalars['uuid']>;
+  joined_at?: Maybe<Scalars['timestamptz']>;
+  user_id?: Maybe<Scalars['uuid']>;
+};
+
+/** order by min() on columns of table "community_members" */
+export type Community_Members_Min_Order_By = {
+  community_id?: InputMaybe<Order_By>;
+  id?: InputMaybe<Order_By>;
+  joined_at?: InputMaybe<Order_By>;
+  user_id?: InputMaybe<Order_By>;
+};
+
+/** response of any mutation on the table "community_members" */
+export type Community_Members_Mutation_Response = {
+  __typename?: 'community_members_mutation_response';
+  /** number of rows affected by the mutation */
+  affected_rows: Scalars['Int'];
+  /** data from the rows affected by the mutation */
+  returning: Array<Community_Members>;
+};
+
+/** on_conflict condition type for table "community_members" */
+export type Community_Members_On_Conflict = {
+  constraint: Community_Members_Constraint;
+  update_columns?: Array<Community_Members_Update_Column>;
+  where?: InputMaybe<Community_Members_Bool_Exp>;
+};
+
+/** Ordering options when selecting data from "community_members". */
+export type Community_Members_Order_By = {
+  community?: InputMaybe<Communities_Order_By>;
+  community_id?: InputMaybe<Order_By>;
+  id?: InputMaybe<Order_By>;
+  joined_at?: InputMaybe<Order_By>;
+  user?: InputMaybe<Users_Order_By>;
+  user_id?: InputMaybe<Order_By>;
+};
+
+/** primary key columns input for table: community_members */
+export type Community_Members_Pk_Columns_Input = {
+  id: Scalars['uuid'];
+};
+
+/** select columns of table "community_members" */
+export enum Community_Members_Select_Column {
+  /** column name */
+  CommunityId = 'community_id',
+  /** column name */
+  Id = 'id',
+  /** column name */
+  JoinedAt = 'joined_at',
+  /** column name */
+  UserId = 'user_id'
+}
+
+/** input type for updating data in table "community_members" */
+export type Community_Members_Set_Input = {
+  community_id?: InputMaybe<Scalars['uuid']>;
+  id?: InputMaybe<Scalars['uuid']>;
+  joined_at?: InputMaybe<Scalars['timestamptz']>;
+  user_id?: InputMaybe<Scalars['uuid']>;
+};
+
+/** Streaming cursor of the table "community_members" */
+export type Community_Members_Stream_Cursor_Input = {
+  /** Stream column input with initial value */
+  initial_value: Community_Members_Stream_Cursor_Value_Input;
+  /** cursor ordering */
+  ordering?: InputMaybe<Cursor_Ordering>;
+};
+
+/** Initial value of the column from where the streaming should start */
+export type Community_Members_Stream_Cursor_Value_Input = {
+  community_id?: InputMaybe<Scalars['uuid']>;
+  id?: InputMaybe<Scalars['uuid']>;
+  joined_at?: InputMaybe<Scalars['timestamptz']>;
+  user_id?: InputMaybe<Scalars['uuid']>;
+};
+
+/** update columns of table "community_members" */
+export enum Community_Members_Update_Column {
+  /** column name */
+  CommunityId = 'community_id',
+  /** column name */
+  Id = 'id',
+  /** column name */
+  JoinedAt = 'joined_at',
+  /** column name */
+  UserId = 'user_id'
+}
+
+export type Community_Members_Updates = {
+  /** sets the columns of the filtered rows to the given values */
+  _set?: InputMaybe<Community_Members_Set_Input>;
+  /** filter the rows which have to be updated */
+  where: Community_Members_Bool_Exp;
+};
+
 /** ordering argument of a cursor */
 export enum Cursor_Ordering {
   /** ascending ordering of the cursor */
   Asc = 'ASC',
   /** descending ordering of the cursor */
-  Desc = 'DESC',
+  Desc = 'DESC'
 }
 
 /** columns and relationships of "storage.files" */
@@ -3366,6 +5388,10 @@ export type Files = {
   /** An object relationship */
   bucket: Buckets;
   bucketId: Scalars['String'];
+  /** An array relationship */
+  community_files: Array<Community_Files>;
+  /** An aggregate relationship */
+  community_files_aggregate: Community_Files_Aggregate;
   createdAt: Scalars['timestamptz'];
   etag?: Maybe<Scalars['String']>;
   id: Scalars['uuid'];
@@ -3375,8 +5401,31 @@ export type Files = {
   name?: Maybe<Scalars['String']>;
   size?: Maybe<Scalars['Int']>;
   updatedAt: Scalars['timestamptz'];
+  /** An object relationship */
+  uploadedByUser?: Maybe<Users>;
   uploadedByUserId?: Maybe<Scalars['uuid']>;
 };
+
+
+/** columns and relationships of "storage.files" */
+export type FilesCommunity_FilesArgs = {
+  distinct_on?: InputMaybe<Array<Community_Files_Select_Column>>;
+  limit?: InputMaybe<Scalars['Int']>;
+  offset?: InputMaybe<Scalars['Int']>;
+  order_by?: InputMaybe<Array<Community_Files_Order_By>>;
+  where?: InputMaybe<Community_Files_Bool_Exp>;
+};
+
+
+/** columns and relationships of "storage.files" */
+export type FilesCommunity_Files_AggregateArgs = {
+  distinct_on?: InputMaybe<Array<Community_Files_Select_Column>>;
+  limit?: InputMaybe<Scalars['Int']>;
+  offset?: InputMaybe<Scalars['Int']>;
+  order_by?: InputMaybe<Array<Community_Files_Order_By>>;
+  where?: InputMaybe<Community_Files_Bool_Exp>;
+};
+
 
 /** columns and relationships of "storage.files" */
 export type FilesMetadataArgs = {
@@ -3433,6 +5482,7 @@ export type Files_Aggregate_Fields = {
   variance?: Maybe<Files_Variance_Fields>;
 };
 
+
 /** aggregate fields of "storage.files" */
 export type Files_Aggregate_FieldsCountArgs = {
   columns?: InputMaybe<Array<Files_Select_Column>>;
@@ -3484,6 +5534,8 @@ export type Files_Bool_Exp = {
   _or?: InputMaybe<Array<Files_Bool_Exp>>;
   bucket?: InputMaybe<Buckets_Bool_Exp>;
   bucketId?: InputMaybe<String_Comparison_Exp>;
+  community_files?: InputMaybe<Community_Files_Bool_Exp>;
+  community_files_aggregate?: InputMaybe<Community_Files_Aggregate_Bool_Exp>;
   createdAt?: InputMaybe<Timestamptz_Comparison_Exp>;
   etag?: InputMaybe<String_Comparison_Exp>;
   id?: InputMaybe<Uuid_Comparison_Exp>;
@@ -3493,13 +5545,14 @@ export type Files_Bool_Exp = {
   name?: InputMaybe<String_Comparison_Exp>;
   size?: InputMaybe<Int_Comparison_Exp>;
   updatedAt?: InputMaybe<Timestamptz_Comparison_Exp>;
+  uploadedByUser?: InputMaybe<Users_Bool_Exp>;
   uploadedByUserId?: InputMaybe<Uuid_Comparison_Exp>;
 };
 
 /** unique or primary key constraints on table "storage.files" */
 export enum Files_Constraint {
   /** unique or primary key constraint on columns "id" */
-  FilesPkey = 'files_pkey',
+  FilesPkey = 'files_pkey'
 }
 
 /** delete the field or element with specified path (for JSON arrays, negative integers count from the end) */
@@ -3526,6 +5579,7 @@ export type Files_Inc_Input = {
 export type Files_Insert_Input = {
   bucket?: InputMaybe<Buckets_Obj_Rel_Insert_Input>;
   bucketId?: InputMaybe<Scalars['String']>;
+  community_files?: InputMaybe<Community_Files_Arr_Rel_Insert_Input>;
   createdAt?: InputMaybe<Scalars['timestamptz']>;
   etag?: InputMaybe<Scalars['String']>;
   id?: InputMaybe<Scalars['uuid']>;
@@ -3535,6 +5589,7 @@ export type Files_Insert_Input = {
   name?: InputMaybe<Scalars['String']>;
   size?: InputMaybe<Scalars['Int']>;
   updatedAt?: InputMaybe<Scalars['timestamptz']>;
+  uploadedByUser?: InputMaybe<Users_Obj_Rel_Insert_Input>;
   uploadedByUserId?: InputMaybe<Scalars['uuid']>;
 };
 
@@ -3619,6 +5674,7 @@ export type Files_On_Conflict = {
 export type Files_Order_By = {
   bucket?: InputMaybe<Buckets_Order_By>;
   bucketId?: InputMaybe<Order_By>;
+  community_files_aggregate?: InputMaybe<Community_Files_Aggregate_Order_By>;
   createdAt?: InputMaybe<Order_By>;
   etag?: InputMaybe<Order_By>;
   id?: InputMaybe<Order_By>;
@@ -3628,6 +5684,7 @@ export type Files_Order_By = {
   name?: InputMaybe<Order_By>;
   size?: InputMaybe<Order_By>;
   updatedAt?: InputMaybe<Order_By>;
+  uploadedByUser?: InputMaybe<Users_Order_By>;
   uploadedByUserId?: InputMaybe<Order_By>;
 };
 
@@ -3664,19 +5721,19 @@ export enum Files_Select_Column {
   /** column name */
   UpdatedAt = 'updatedAt',
   /** column name */
-  UploadedByUserId = 'uploadedByUserId',
+  UploadedByUserId = 'uploadedByUserId'
 }
 
 /** select "files_aggregate_bool_exp_bool_and_arguments_columns" columns of table "storage.files" */
 export enum Files_Select_Column_Files_Aggregate_Bool_Exp_Bool_And_Arguments_Columns {
   /** column name */
-  IsUploaded = 'isUploaded',
+  IsUploaded = 'isUploaded'
 }
 
 /** select "files_aggregate_bool_exp_bool_or_arguments_columns" columns of table "storage.files" */
 export enum Files_Select_Column_Files_Aggregate_Bool_Exp_Bool_Or_Arguments_Columns {
   /** column name */
-  IsUploaded = 'isUploaded',
+  IsUploaded = 'isUploaded'
 }
 
 /** input type for updating data in table "storage.files" */
@@ -3784,7 +5841,7 @@ export enum Files_Update_Column {
   /** column name */
   UpdatedAt = 'updatedAt',
   /** column name */
-  UploadedByUserId = 'uploadedByUserId',
+  UploadedByUserId = 'uploadedByUserId'
 }
 
 export type Files_Updates = {
@@ -3837,6 +5894,944 @@ export type Files_Variance_Fields = {
 /** order by variance() on columns of table "storage.files" */
 export type Files_Variance_Order_By = {
   size?: InputMaybe<Order_By>;
+};
+
+/** columns and relationships of "graphite.agent_messages" */
+export type GraphiteAgentMessages = {
+  __typename?: 'graphiteAgentMessages';
+  /** An object relationship */
+  agentSession: GraphiteAgentSessions;
+  content: Scalars['String'];
+  createdAt: Scalars['timestamptz'];
+  id: Scalars['uuid'];
+  role: Scalars['String'];
+  sessionID: Scalars['uuid'];
+  toolCallID?: Maybe<Scalars['String']>;
+  toolCalls?: Maybe<Scalars['jsonb']>;
+  toolName?: Maybe<Scalars['String']>;
+};
+
+
+/** columns and relationships of "graphite.agent_messages" */
+export type GraphiteAgentMessagesToolCallsArgs = {
+  path?: InputMaybe<Scalars['String']>;
+};
+
+/** aggregated selection of "graphite.agent_messages" */
+export type GraphiteAgentMessages_Aggregate = {
+  __typename?: 'graphiteAgentMessages_aggregate';
+  aggregate?: Maybe<GraphiteAgentMessages_Aggregate_Fields>;
+  nodes: Array<GraphiteAgentMessages>;
+};
+
+export type GraphiteAgentMessages_Aggregate_Bool_Exp = {
+  count?: InputMaybe<GraphiteAgentMessages_Aggregate_Bool_Exp_Count>;
+};
+
+export type GraphiteAgentMessages_Aggregate_Bool_Exp_Count = {
+  arguments?: InputMaybe<Array<GraphiteAgentMessages_Select_Column>>;
+  distinct?: InputMaybe<Scalars['Boolean']>;
+  filter?: InputMaybe<GraphiteAgentMessages_Bool_Exp>;
+  predicate: Int_Comparison_Exp;
+};
+
+/** aggregate fields of "graphite.agent_messages" */
+export type GraphiteAgentMessages_Aggregate_Fields = {
+  __typename?: 'graphiteAgentMessages_aggregate_fields';
+  count: Scalars['Int'];
+  max?: Maybe<GraphiteAgentMessages_Max_Fields>;
+  min?: Maybe<GraphiteAgentMessages_Min_Fields>;
+};
+
+
+/** aggregate fields of "graphite.agent_messages" */
+export type GraphiteAgentMessages_Aggregate_FieldsCountArgs = {
+  columns?: InputMaybe<Array<GraphiteAgentMessages_Select_Column>>;
+  distinct?: InputMaybe<Scalars['Boolean']>;
+};
+
+/** order by aggregate values of table "graphite.agent_messages" */
+export type GraphiteAgentMessages_Aggregate_Order_By = {
+  count?: InputMaybe<Order_By>;
+  max?: InputMaybe<GraphiteAgentMessages_Max_Order_By>;
+  min?: InputMaybe<GraphiteAgentMessages_Min_Order_By>;
+};
+
+/** append existing jsonb value of filtered columns with new jsonb value */
+export type GraphiteAgentMessages_Append_Input = {
+  toolCalls?: InputMaybe<Scalars['jsonb']>;
+};
+
+/** input type for inserting array relation for remote table "graphite.agent_messages" */
+export type GraphiteAgentMessages_Arr_Rel_Insert_Input = {
+  data: Array<GraphiteAgentMessages_Insert_Input>;
+  /** upsert condition */
+  on_conflict?: InputMaybe<GraphiteAgentMessages_On_Conflict>;
+};
+
+/** Boolean expression to filter rows from the table "graphite.agent_messages". All fields are combined with a logical 'AND'. */
+export type GraphiteAgentMessages_Bool_Exp = {
+  _and?: InputMaybe<Array<GraphiteAgentMessages_Bool_Exp>>;
+  _not?: InputMaybe<GraphiteAgentMessages_Bool_Exp>;
+  _or?: InputMaybe<Array<GraphiteAgentMessages_Bool_Exp>>;
+  agentSession?: InputMaybe<GraphiteAgentSessions_Bool_Exp>;
+  content?: InputMaybe<String_Comparison_Exp>;
+  createdAt?: InputMaybe<Timestamptz_Comparison_Exp>;
+  id?: InputMaybe<Uuid_Comparison_Exp>;
+  role?: InputMaybe<String_Comparison_Exp>;
+  sessionID?: InputMaybe<Uuid_Comparison_Exp>;
+  toolCallID?: InputMaybe<String_Comparison_Exp>;
+  toolCalls?: InputMaybe<Jsonb_Comparison_Exp>;
+  toolName?: InputMaybe<String_Comparison_Exp>;
+};
+
+/** unique or primary key constraints on table "graphite.agent_messages" */
+export enum GraphiteAgentMessages_Constraint {
+  /** unique or primary key constraint on columns "id" */
+  AgentMessagesPkey = 'agent_messages_pkey'
+}
+
+/** delete the field or element with specified path (for JSON arrays, negative integers count from the end) */
+export type GraphiteAgentMessages_Delete_At_Path_Input = {
+  toolCalls?: InputMaybe<Array<Scalars['String']>>;
+};
+
+/** delete the array element with specified index (negative integers count from the end). throws an error if top level container is not an array */
+export type GraphiteAgentMessages_Delete_Elem_Input = {
+  toolCalls?: InputMaybe<Scalars['Int']>;
+};
+
+/** delete key/value pair or string element. key/value pairs are matched based on their key value */
+export type GraphiteAgentMessages_Delete_Key_Input = {
+  toolCalls?: InputMaybe<Scalars['String']>;
+};
+
+/** input type for inserting data into table "graphite.agent_messages" */
+export type GraphiteAgentMessages_Insert_Input = {
+  agentSession?: InputMaybe<GraphiteAgentSessions_Obj_Rel_Insert_Input>;
+  content?: InputMaybe<Scalars['String']>;
+  createdAt?: InputMaybe<Scalars['timestamptz']>;
+  id?: InputMaybe<Scalars['uuid']>;
+  role?: InputMaybe<Scalars['String']>;
+  sessionID?: InputMaybe<Scalars['uuid']>;
+  toolCallID?: InputMaybe<Scalars['String']>;
+  toolCalls?: InputMaybe<Scalars['jsonb']>;
+  toolName?: InputMaybe<Scalars['String']>;
+};
+
+/** aggregate max on columns */
+export type GraphiteAgentMessages_Max_Fields = {
+  __typename?: 'graphiteAgentMessages_max_fields';
+  content?: Maybe<Scalars['String']>;
+  createdAt?: Maybe<Scalars['timestamptz']>;
+  id?: Maybe<Scalars['uuid']>;
+  role?: Maybe<Scalars['String']>;
+  sessionID?: Maybe<Scalars['uuid']>;
+  toolCallID?: Maybe<Scalars['String']>;
+  toolName?: Maybe<Scalars['String']>;
+};
+
+/** order by max() on columns of table "graphite.agent_messages" */
+export type GraphiteAgentMessages_Max_Order_By = {
+  content?: InputMaybe<Order_By>;
+  createdAt?: InputMaybe<Order_By>;
+  id?: InputMaybe<Order_By>;
+  role?: InputMaybe<Order_By>;
+  sessionID?: InputMaybe<Order_By>;
+  toolCallID?: InputMaybe<Order_By>;
+  toolName?: InputMaybe<Order_By>;
+};
+
+/** aggregate min on columns */
+export type GraphiteAgentMessages_Min_Fields = {
+  __typename?: 'graphiteAgentMessages_min_fields';
+  content?: Maybe<Scalars['String']>;
+  createdAt?: Maybe<Scalars['timestamptz']>;
+  id?: Maybe<Scalars['uuid']>;
+  role?: Maybe<Scalars['String']>;
+  sessionID?: Maybe<Scalars['uuid']>;
+  toolCallID?: Maybe<Scalars['String']>;
+  toolName?: Maybe<Scalars['String']>;
+};
+
+/** order by min() on columns of table "graphite.agent_messages" */
+export type GraphiteAgentMessages_Min_Order_By = {
+  content?: InputMaybe<Order_By>;
+  createdAt?: InputMaybe<Order_By>;
+  id?: InputMaybe<Order_By>;
+  role?: InputMaybe<Order_By>;
+  sessionID?: InputMaybe<Order_By>;
+  toolCallID?: InputMaybe<Order_By>;
+  toolName?: InputMaybe<Order_By>;
+};
+
+/** response of any mutation on the table "graphite.agent_messages" */
+export type GraphiteAgentMessages_Mutation_Response = {
+  __typename?: 'graphiteAgentMessages_mutation_response';
+  /** number of rows affected by the mutation */
+  affected_rows: Scalars['Int'];
+  /** data from the rows affected by the mutation */
+  returning: Array<GraphiteAgentMessages>;
+};
+
+/** on_conflict condition type for table "graphite.agent_messages" */
+export type GraphiteAgentMessages_On_Conflict = {
+  constraint: GraphiteAgentMessages_Constraint;
+  update_columns?: Array<GraphiteAgentMessages_Update_Column>;
+  where?: InputMaybe<GraphiteAgentMessages_Bool_Exp>;
+};
+
+/** Ordering options when selecting data from "graphite.agent_messages". */
+export type GraphiteAgentMessages_Order_By = {
+  agentSession?: InputMaybe<GraphiteAgentSessions_Order_By>;
+  content?: InputMaybe<Order_By>;
+  createdAt?: InputMaybe<Order_By>;
+  id?: InputMaybe<Order_By>;
+  role?: InputMaybe<Order_By>;
+  sessionID?: InputMaybe<Order_By>;
+  toolCallID?: InputMaybe<Order_By>;
+  toolCalls?: InputMaybe<Order_By>;
+  toolName?: InputMaybe<Order_By>;
+};
+
+/** primary key columns input for table: graphite.agent_messages */
+export type GraphiteAgentMessages_Pk_Columns_Input = {
+  id: Scalars['uuid'];
+};
+
+/** prepend existing jsonb value of filtered columns with new jsonb value */
+export type GraphiteAgentMessages_Prepend_Input = {
+  toolCalls?: InputMaybe<Scalars['jsonb']>;
+};
+
+/** select columns of table "graphite.agent_messages" */
+export enum GraphiteAgentMessages_Select_Column {
+  /** column name */
+  Content = 'content',
+  /** column name */
+  CreatedAt = 'createdAt',
+  /** column name */
+  Id = 'id',
+  /** column name */
+  Role = 'role',
+  /** column name */
+  SessionId = 'sessionID',
+  /** column name */
+  ToolCallId = 'toolCallID',
+  /** column name */
+  ToolCalls = 'toolCalls',
+  /** column name */
+  ToolName = 'toolName'
+}
+
+/** input type for updating data in table "graphite.agent_messages" */
+export type GraphiteAgentMessages_Set_Input = {
+  content?: InputMaybe<Scalars['String']>;
+  createdAt?: InputMaybe<Scalars['timestamptz']>;
+  id?: InputMaybe<Scalars['uuid']>;
+  role?: InputMaybe<Scalars['String']>;
+  sessionID?: InputMaybe<Scalars['uuid']>;
+  toolCallID?: InputMaybe<Scalars['String']>;
+  toolCalls?: InputMaybe<Scalars['jsonb']>;
+  toolName?: InputMaybe<Scalars['String']>;
+};
+
+/** Streaming cursor of the table "graphiteAgentMessages" */
+export type GraphiteAgentMessages_Stream_Cursor_Input = {
+  /** Stream column input with initial value */
+  initial_value: GraphiteAgentMessages_Stream_Cursor_Value_Input;
+  /** cursor ordering */
+  ordering?: InputMaybe<Cursor_Ordering>;
+};
+
+/** Initial value of the column from where the streaming should start */
+export type GraphiteAgentMessages_Stream_Cursor_Value_Input = {
+  content?: InputMaybe<Scalars['String']>;
+  createdAt?: InputMaybe<Scalars['timestamptz']>;
+  id?: InputMaybe<Scalars['uuid']>;
+  role?: InputMaybe<Scalars['String']>;
+  sessionID?: InputMaybe<Scalars['uuid']>;
+  toolCallID?: InputMaybe<Scalars['String']>;
+  toolCalls?: InputMaybe<Scalars['jsonb']>;
+  toolName?: InputMaybe<Scalars['String']>;
+};
+
+/** update columns of table "graphite.agent_messages" */
+export enum GraphiteAgentMessages_Update_Column {
+  /** column name */
+  Content = 'content',
+  /** column name */
+  CreatedAt = 'createdAt',
+  /** column name */
+  Id = 'id',
+  /** column name */
+  Role = 'role',
+  /** column name */
+  SessionId = 'sessionID',
+  /** column name */
+  ToolCallId = 'toolCallID',
+  /** column name */
+  ToolCalls = 'toolCalls',
+  /** column name */
+  ToolName = 'toolName'
+}
+
+export type GraphiteAgentMessages_Updates = {
+  /** append existing jsonb value of filtered columns with new jsonb value */
+  _append?: InputMaybe<GraphiteAgentMessages_Append_Input>;
+  /** delete the field or element with specified path (for JSON arrays, negative integers count from the end) */
+  _delete_at_path?: InputMaybe<GraphiteAgentMessages_Delete_At_Path_Input>;
+  /** delete the array element with specified index (negative integers count from the end). throws an error if top level container is not an array */
+  _delete_elem?: InputMaybe<GraphiteAgentMessages_Delete_Elem_Input>;
+  /** delete key/value pair or string element. key/value pairs are matched based on their key value */
+  _delete_key?: InputMaybe<GraphiteAgentMessages_Delete_Key_Input>;
+  /** prepend existing jsonb value of filtered columns with new jsonb value */
+  _prepend?: InputMaybe<GraphiteAgentMessages_Prepend_Input>;
+  /** sets the columns of the filtered rows to the given values */
+  _set?: InputMaybe<GraphiteAgentMessages_Set_Input>;
+  /** filter the rows which have to be updated */
+  where: GraphiteAgentMessages_Bool_Exp;
+};
+
+/** columns and relationships of "graphite.agent_providers" */
+export type GraphiteAgentProviders = {
+  __typename?: 'graphiteAgentProviders';
+  comment?: Maybe<Scalars['String']>;
+  value: Scalars['String'];
+};
+
+/** aggregated selection of "graphite.agent_providers" */
+export type GraphiteAgentProviders_Aggregate = {
+  __typename?: 'graphiteAgentProviders_aggregate';
+  aggregate?: Maybe<GraphiteAgentProviders_Aggregate_Fields>;
+  nodes: Array<GraphiteAgentProviders>;
+};
+
+/** aggregate fields of "graphite.agent_providers" */
+export type GraphiteAgentProviders_Aggregate_Fields = {
+  __typename?: 'graphiteAgentProviders_aggregate_fields';
+  count: Scalars['Int'];
+  max?: Maybe<GraphiteAgentProviders_Max_Fields>;
+  min?: Maybe<GraphiteAgentProviders_Min_Fields>;
+};
+
+
+/** aggregate fields of "graphite.agent_providers" */
+export type GraphiteAgentProviders_Aggregate_FieldsCountArgs = {
+  columns?: InputMaybe<Array<GraphiteAgentProviders_Select_Column>>;
+  distinct?: InputMaybe<Scalars['Boolean']>;
+};
+
+/** Boolean expression to filter rows from the table "graphite.agent_providers". All fields are combined with a logical 'AND'. */
+export type GraphiteAgentProviders_Bool_Exp = {
+  _and?: InputMaybe<Array<GraphiteAgentProviders_Bool_Exp>>;
+  _not?: InputMaybe<GraphiteAgentProviders_Bool_Exp>;
+  _or?: InputMaybe<Array<GraphiteAgentProviders_Bool_Exp>>;
+  comment?: InputMaybe<String_Comparison_Exp>;
+  value?: InputMaybe<String_Comparison_Exp>;
+};
+
+/** unique or primary key constraints on table "graphite.agent_providers" */
+export enum GraphiteAgentProviders_Constraint {
+  /** unique or primary key constraint on columns "value" */
+  AgentProvidersPkey = 'agent_providers_pkey'
+}
+
+export enum GraphiteAgentProviders_Enum {
+  /** Anthropic Claude models */
+  Anthropic = 'anthropic',
+  /** Google Gemini models */
+  Google = 'google',
+  /** OpenAI models */
+  Openai = 'openai'
+}
+
+/** Boolean expression to compare columns of type "graphiteAgentProviders_enum". All fields are combined with logical 'AND'. */
+export type GraphiteAgentProviders_Enum_Comparison_Exp = {
+  _eq?: InputMaybe<GraphiteAgentProviders_Enum>;
+  _in?: InputMaybe<Array<GraphiteAgentProviders_Enum>>;
+  _is_null?: InputMaybe<Scalars['Boolean']>;
+  _neq?: InputMaybe<GraphiteAgentProviders_Enum>;
+  _nin?: InputMaybe<Array<GraphiteAgentProviders_Enum>>;
+};
+
+/** input type for inserting data into table "graphite.agent_providers" */
+export type GraphiteAgentProviders_Insert_Input = {
+  comment?: InputMaybe<Scalars['String']>;
+  value?: InputMaybe<Scalars['String']>;
+};
+
+/** aggregate max on columns */
+export type GraphiteAgentProviders_Max_Fields = {
+  __typename?: 'graphiteAgentProviders_max_fields';
+  comment?: Maybe<Scalars['String']>;
+  value?: Maybe<Scalars['String']>;
+};
+
+/** aggregate min on columns */
+export type GraphiteAgentProviders_Min_Fields = {
+  __typename?: 'graphiteAgentProviders_min_fields';
+  comment?: Maybe<Scalars['String']>;
+  value?: Maybe<Scalars['String']>;
+};
+
+/** response of any mutation on the table "graphite.agent_providers" */
+export type GraphiteAgentProviders_Mutation_Response = {
+  __typename?: 'graphiteAgentProviders_mutation_response';
+  /** number of rows affected by the mutation */
+  affected_rows: Scalars['Int'];
+  /** data from the rows affected by the mutation */
+  returning: Array<GraphiteAgentProviders>;
+};
+
+/** on_conflict condition type for table "graphite.agent_providers" */
+export type GraphiteAgentProviders_On_Conflict = {
+  constraint: GraphiteAgentProviders_Constraint;
+  update_columns?: Array<GraphiteAgentProviders_Update_Column>;
+  where?: InputMaybe<GraphiteAgentProviders_Bool_Exp>;
+};
+
+/** Ordering options when selecting data from "graphite.agent_providers". */
+export type GraphiteAgentProviders_Order_By = {
+  comment?: InputMaybe<Order_By>;
+  value?: InputMaybe<Order_By>;
+};
+
+/** primary key columns input for table: graphite.agent_providers */
+export type GraphiteAgentProviders_Pk_Columns_Input = {
+  value: Scalars['String'];
+};
+
+/** select columns of table "graphite.agent_providers" */
+export enum GraphiteAgentProviders_Select_Column {
+  /** column name */
+  Comment = 'comment',
+  /** column name */
+  Value = 'value'
+}
+
+/** input type for updating data in table "graphite.agent_providers" */
+export type GraphiteAgentProviders_Set_Input = {
+  comment?: InputMaybe<Scalars['String']>;
+  value?: InputMaybe<Scalars['String']>;
+};
+
+/** Streaming cursor of the table "graphiteAgentProviders" */
+export type GraphiteAgentProviders_Stream_Cursor_Input = {
+  /** Stream column input with initial value */
+  initial_value: GraphiteAgentProviders_Stream_Cursor_Value_Input;
+  /** cursor ordering */
+  ordering?: InputMaybe<Cursor_Ordering>;
+};
+
+/** Initial value of the column from where the streaming should start */
+export type GraphiteAgentProviders_Stream_Cursor_Value_Input = {
+  comment?: InputMaybe<Scalars['String']>;
+  value?: InputMaybe<Scalars['String']>;
+};
+
+/** update columns of table "graphite.agent_providers" */
+export enum GraphiteAgentProviders_Update_Column {
+  /** column name */
+  Comment = 'comment',
+  /** column name */
+  Value = 'value'
+}
+
+export type GraphiteAgentProviders_Updates = {
+  /** sets the columns of the filtered rows to the given values */
+  _set?: InputMaybe<GraphiteAgentProviders_Set_Input>;
+  /** filter the rows which have to be updated */
+  where: GraphiteAgentProviders_Bool_Exp;
+};
+
+/** columns and relationships of "graphite.agent_sessions" */
+export type GraphiteAgentSessions = {
+  __typename?: 'graphiteAgentSessions';
+  /** An object relationship */
+  agent: GraphiteAgents;
+  agentID: Scalars['uuid'];
+  /** An array relationship */
+  agentMessages: Array<GraphiteAgentMessages>;
+  /** An aggregate relationship */
+  agentMessages_aggregate: GraphiteAgentMessages_Aggregate;
+  createdAt: Scalars['timestamptz'];
+  id: Scalars['uuid'];
+  updatedAt: Scalars['timestamptz'];
+  /** An object relationship */
+  user?: Maybe<Users>;
+  userID?: Maybe<Scalars['uuid']>;
+};
+
+
+/** columns and relationships of "graphite.agent_sessions" */
+export type GraphiteAgentSessionsAgentMessagesArgs = {
+  distinct_on?: InputMaybe<Array<GraphiteAgentMessages_Select_Column>>;
+  limit?: InputMaybe<Scalars['Int']>;
+  offset?: InputMaybe<Scalars['Int']>;
+  order_by?: InputMaybe<Array<GraphiteAgentMessages_Order_By>>;
+  where?: InputMaybe<GraphiteAgentMessages_Bool_Exp>;
+};
+
+
+/** columns and relationships of "graphite.agent_sessions" */
+export type GraphiteAgentSessionsAgentMessages_AggregateArgs = {
+  distinct_on?: InputMaybe<Array<GraphiteAgentMessages_Select_Column>>;
+  limit?: InputMaybe<Scalars['Int']>;
+  offset?: InputMaybe<Scalars['Int']>;
+  order_by?: InputMaybe<Array<GraphiteAgentMessages_Order_By>>;
+  where?: InputMaybe<GraphiteAgentMessages_Bool_Exp>;
+};
+
+/** aggregated selection of "graphite.agent_sessions" */
+export type GraphiteAgentSessions_Aggregate = {
+  __typename?: 'graphiteAgentSessions_aggregate';
+  aggregate?: Maybe<GraphiteAgentSessions_Aggregate_Fields>;
+  nodes: Array<GraphiteAgentSessions>;
+};
+
+/** aggregate fields of "graphite.agent_sessions" */
+export type GraphiteAgentSessions_Aggregate_Fields = {
+  __typename?: 'graphiteAgentSessions_aggregate_fields';
+  count: Scalars['Int'];
+  max?: Maybe<GraphiteAgentSessions_Max_Fields>;
+  min?: Maybe<GraphiteAgentSessions_Min_Fields>;
+};
+
+
+/** aggregate fields of "graphite.agent_sessions" */
+export type GraphiteAgentSessions_Aggregate_FieldsCountArgs = {
+  columns?: InputMaybe<Array<GraphiteAgentSessions_Select_Column>>;
+  distinct?: InputMaybe<Scalars['Boolean']>;
+};
+
+/** Boolean expression to filter rows from the table "graphite.agent_sessions". All fields are combined with a logical 'AND'. */
+export type GraphiteAgentSessions_Bool_Exp = {
+  _and?: InputMaybe<Array<GraphiteAgentSessions_Bool_Exp>>;
+  _not?: InputMaybe<GraphiteAgentSessions_Bool_Exp>;
+  _or?: InputMaybe<Array<GraphiteAgentSessions_Bool_Exp>>;
+  agent?: InputMaybe<GraphiteAgents_Bool_Exp>;
+  agentID?: InputMaybe<Uuid_Comparison_Exp>;
+  agentMessages?: InputMaybe<GraphiteAgentMessages_Bool_Exp>;
+  agentMessages_aggregate?: InputMaybe<GraphiteAgentMessages_Aggregate_Bool_Exp>;
+  createdAt?: InputMaybe<Timestamptz_Comparison_Exp>;
+  id?: InputMaybe<Uuid_Comparison_Exp>;
+  updatedAt?: InputMaybe<Timestamptz_Comparison_Exp>;
+  user?: InputMaybe<Users_Bool_Exp>;
+  userID?: InputMaybe<Uuid_Comparison_Exp>;
+};
+
+/** unique or primary key constraints on table "graphite.agent_sessions" */
+export enum GraphiteAgentSessions_Constraint {
+  /** unique or primary key constraint on columns "id" */
+  AgentSessionsPkey = 'agent_sessions_pkey'
+}
+
+/** input type for inserting data into table "graphite.agent_sessions" */
+export type GraphiteAgentSessions_Insert_Input = {
+  agent?: InputMaybe<GraphiteAgents_Obj_Rel_Insert_Input>;
+  agentID?: InputMaybe<Scalars['uuid']>;
+  agentMessages?: InputMaybe<GraphiteAgentMessages_Arr_Rel_Insert_Input>;
+  createdAt?: InputMaybe<Scalars['timestamptz']>;
+  id?: InputMaybe<Scalars['uuid']>;
+  updatedAt?: InputMaybe<Scalars['timestamptz']>;
+  user?: InputMaybe<Users_Obj_Rel_Insert_Input>;
+  userID?: InputMaybe<Scalars['uuid']>;
+};
+
+/** aggregate max on columns */
+export type GraphiteAgentSessions_Max_Fields = {
+  __typename?: 'graphiteAgentSessions_max_fields';
+  agentID?: Maybe<Scalars['uuid']>;
+  createdAt?: Maybe<Scalars['timestamptz']>;
+  id?: Maybe<Scalars['uuid']>;
+  updatedAt?: Maybe<Scalars['timestamptz']>;
+  userID?: Maybe<Scalars['uuid']>;
+};
+
+/** aggregate min on columns */
+export type GraphiteAgentSessions_Min_Fields = {
+  __typename?: 'graphiteAgentSessions_min_fields';
+  agentID?: Maybe<Scalars['uuid']>;
+  createdAt?: Maybe<Scalars['timestamptz']>;
+  id?: Maybe<Scalars['uuid']>;
+  updatedAt?: Maybe<Scalars['timestamptz']>;
+  userID?: Maybe<Scalars['uuid']>;
+};
+
+/** response of any mutation on the table "graphite.agent_sessions" */
+export type GraphiteAgentSessions_Mutation_Response = {
+  __typename?: 'graphiteAgentSessions_mutation_response';
+  /** number of rows affected by the mutation */
+  affected_rows: Scalars['Int'];
+  /** data from the rows affected by the mutation */
+  returning: Array<GraphiteAgentSessions>;
+};
+
+/** input type for inserting object relation for remote table "graphite.agent_sessions" */
+export type GraphiteAgentSessions_Obj_Rel_Insert_Input = {
+  data: GraphiteAgentSessions_Insert_Input;
+  /** upsert condition */
+  on_conflict?: InputMaybe<GraphiteAgentSessions_On_Conflict>;
+};
+
+/** on_conflict condition type for table "graphite.agent_sessions" */
+export type GraphiteAgentSessions_On_Conflict = {
+  constraint: GraphiteAgentSessions_Constraint;
+  update_columns?: Array<GraphiteAgentSessions_Update_Column>;
+  where?: InputMaybe<GraphiteAgentSessions_Bool_Exp>;
+};
+
+/** Ordering options when selecting data from "graphite.agent_sessions". */
+export type GraphiteAgentSessions_Order_By = {
+  agent?: InputMaybe<GraphiteAgents_Order_By>;
+  agentID?: InputMaybe<Order_By>;
+  agentMessages_aggregate?: InputMaybe<GraphiteAgentMessages_Aggregate_Order_By>;
+  createdAt?: InputMaybe<Order_By>;
+  id?: InputMaybe<Order_By>;
+  updatedAt?: InputMaybe<Order_By>;
+  user?: InputMaybe<Users_Order_By>;
+  userID?: InputMaybe<Order_By>;
+};
+
+/** primary key columns input for table: graphite.agent_sessions */
+export type GraphiteAgentSessions_Pk_Columns_Input = {
+  id: Scalars['uuid'];
+};
+
+/** select columns of table "graphite.agent_sessions" */
+export enum GraphiteAgentSessions_Select_Column {
+  /** column name */
+  AgentId = 'agentID',
+  /** column name */
+  CreatedAt = 'createdAt',
+  /** column name */
+  Id = 'id',
+  /** column name */
+  UpdatedAt = 'updatedAt',
+  /** column name */
+  UserId = 'userID'
+}
+
+/** input type for updating data in table "graphite.agent_sessions" */
+export type GraphiteAgentSessions_Set_Input = {
+  agentID?: InputMaybe<Scalars['uuid']>;
+  createdAt?: InputMaybe<Scalars['timestamptz']>;
+  id?: InputMaybe<Scalars['uuid']>;
+  updatedAt?: InputMaybe<Scalars['timestamptz']>;
+  userID?: InputMaybe<Scalars['uuid']>;
+};
+
+/** Streaming cursor of the table "graphiteAgentSessions" */
+export type GraphiteAgentSessions_Stream_Cursor_Input = {
+  /** Stream column input with initial value */
+  initial_value: GraphiteAgentSessions_Stream_Cursor_Value_Input;
+  /** cursor ordering */
+  ordering?: InputMaybe<Cursor_Ordering>;
+};
+
+/** Initial value of the column from where the streaming should start */
+export type GraphiteAgentSessions_Stream_Cursor_Value_Input = {
+  agentID?: InputMaybe<Scalars['uuid']>;
+  createdAt?: InputMaybe<Scalars['timestamptz']>;
+  id?: InputMaybe<Scalars['uuid']>;
+  updatedAt?: InputMaybe<Scalars['timestamptz']>;
+  userID?: InputMaybe<Scalars['uuid']>;
+};
+
+/** update columns of table "graphite.agent_sessions" */
+export enum GraphiteAgentSessions_Update_Column {
+  /** column name */
+  AgentId = 'agentID',
+  /** column name */
+  CreatedAt = 'createdAt',
+  /** column name */
+  Id = 'id',
+  /** column name */
+  UpdatedAt = 'updatedAt',
+  /** column name */
+  UserId = 'userID'
+}
+
+export type GraphiteAgentSessions_Updates = {
+  /** sets the columns of the filtered rows to the given values */
+  _set?: InputMaybe<GraphiteAgentSessions_Set_Input>;
+  /** filter the rows which have to be updated */
+  where: GraphiteAgentSessions_Bool_Exp;
+};
+
+/** columns and relationships of "graphite.agents" */
+export type GraphiteAgents = {
+  __typename?: 'graphiteAgents';
+  createdAt: Scalars['timestamptz'];
+  description: Scalars['String'];
+  id: Scalars['uuid'];
+  instructions: Scalars['String'];
+  model: Scalars['String'];
+  name: Scalars['String'];
+  provider: GraphiteAgentProviders_Enum;
+  toolsConfig?: Maybe<Scalars['jsonb']>;
+  updatedAt: Scalars['timestamptz'];
+  userID?: Maybe<Scalars['uuid']>;
+};
+
+
+/** columns and relationships of "graphite.agents" */
+export type GraphiteAgentsToolsConfigArgs = {
+  path?: InputMaybe<Scalars['String']>;
+};
+
+/** aggregated selection of "graphite.agents" */
+export type GraphiteAgents_Aggregate = {
+  __typename?: 'graphiteAgents_aggregate';
+  aggregate?: Maybe<GraphiteAgents_Aggregate_Fields>;
+  nodes: Array<GraphiteAgents>;
+};
+
+/** aggregate fields of "graphite.agents" */
+export type GraphiteAgents_Aggregate_Fields = {
+  __typename?: 'graphiteAgents_aggregate_fields';
+  count: Scalars['Int'];
+  max?: Maybe<GraphiteAgents_Max_Fields>;
+  min?: Maybe<GraphiteAgents_Min_Fields>;
+};
+
+
+/** aggregate fields of "graphite.agents" */
+export type GraphiteAgents_Aggregate_FieldsCountArgs = {
+  columns?: InputMaybe<Array<GraphiteAgents_Select_Column>>;
+  distinct?: InputMaybe<Scalars['Boolean']>;
+};
+
+/** append existing jsonb value of filtered columns with new jsonb value */
+export type GraphiteAgents_Append_Input = {
+  toolsConfig?: InputMaybe<Scalars['jsonb']>;
+};
+
+/** Boolean expression to filter rows from the table "graphite.agents". All fields are combined with a logical 'AND'. */
+export type GraphiteAgents_Bool_Exp = {
+  _and?: InputMaybe<Array<GraphiteAgents_Bool_Exp>>;
+  _not?: InputMaybe<GraphiteAgents_Bool_Exp>;
+  _or?: InputMaybe<Array<GraphiteAgents_Bool_Exp>>;
+  createdAt?: InputMaybe<Timestamptz_Comparison_Exp>;
+  description?: InputMaybe<String_Comparison_Exp>;
+  id?: InputMaybe<Uuid_Comparison_Exp>;
+  instructions?: InputMaybe<String_Comparison_Exp>;
+  model?: InputMaybe<String_Comparison_Exp>;
+  name?: InputMaybe<String_Comparison_Exp>;
+  provider?: InputMaybe<GraphiteAgentProviders_Enum_Comparison_Exp>;
+  toolsConfig?: InputMaybe<Jsonb_Comparison_Exp>;
+  updatedAt?: InputMaybe<Timestamptz_Comparison_Exp>;
+  userID?: InputMaybe<Uuid_Comparison_Exp>;
+};
+
+/** unique or primary key constraints on table "graphite.agents" */
+export enum GraphiteAgents_Constraint {
+  /** unique or primary key constraint on columns "id" */
+  AgentsPkey = 'agents_pkey'
+}
+
+/** delete the field or element with specified path (for JSON arrays, negative integers count from the end) */
+export type GraphiteAgents_Delete_At_Path_Input = {
+  toolsConfig?: InputMaybe<Array<Scalars['String']>>;
+};
+
+/** delete the array element with specified index (negative integers count from the end). throws an error if top level container is not an array */
+export type GraphiteAgents_Delete_Elem_Input = {
+  toolsConfig?: InputMaybe<Scalars['Int']>;
+};
+
+/** delete key/value pair or string element. key/value pairs are matched based on their key value */
+export type GraphiteAgents_Delete_Key_Input = {
+  toolsConfig?: InputMaybe<Scalars['String']>;
+};
+
+/** input type for inserting data into table "graphite.agents" */
+export type GraphiteAgents_Insert_Input = {
+  createdAt?: InputMaybe<Scalars['timestamptz']>;
+  description?: InputMaybe<Scalars['String']>;
+  id?: InputMaybe<Scalars['uuid']>;
+  instructions?: InputMaybe<Scalars['String']>;
+  model?: InputMaybe<Scalars['String']>;
+  name?: InputMaybe<Scalars['String']>;
+  provider?: InputMaybe<GraphiteAgentProviders_Enum>;
+  toolsConfig?: InputMaybe<Scalars['jsonb']>;
+  updatedAt?: InputMaybe<Scalars['timestamptz']>;
+  userID?: InputMaybe<Scalars['uuid']>;
+};
+
+/** aggregate max on columns */
+export type GraphiteAgents_Max_Fields = {
+  __typename?: 'graphiteAgents_max_fields';
+  createdAt?: Maybe<Scalars['timestamptz']>;
+  description?: Maybe<Scalars['String']>;
+  id?: Maybe<Scalars['uuid']>;
+  instructions?: Maybe<Scalars['String']>;
+  model?: Maybe<Scalars['String']>;
+  name?: Maybe<Scalars['String']>;
+  updatedAt?: Maybe<Scalars['timestamptz']>;
+  userID?: Maybe<Scalars['uuid']>;
+};
+
+/** aggregate min on columns */
+export type GraphiteAgents_Min_Fields = {
+  __typename?: 'graphiteAgents_min_fields';
+  createdAt?: Maybe<Scalars['timestamptz']>;
+  description?: Maybe<Scalars['String']>;
+  id?: Maybe<Scalars['uuid']>;
+  instructions?: Maybe<Scalars['String']>;
+  model?: Maybe<Scalars['String']>;
+  name?: Maybe<Scalars['String']>;
+  updatedAt?: Maybe<Scalars['timestamptz']>;
+  userID?: Maybe<Scalars['uuid']>;
+};
+
+/** response of any mutation on the table "graphite.agents" */
+export type GraphiteAgents_Mutation_Response = {
+  __typename?: 'graphiteAgents_mutation_response';
+  /** number of rows affected by the mutation */
+  affected_rows: Scalars['Int'];
+  /** data from the rows affected by the mutation */
+  returning: Array<GraphiteAgents>;
+};
+
+/** input type for inserting object relation for remote table "graphite.agents" */
+export type GraphiteAgents_Obj_Rel_Insert_Input = {
+  data: GraphiteAgents_Insert_Input;
+  /** upsert condition */
+  on_conflict?: InputMaybe<GraphiteAgents_On_Conflict>;
+};
+
+/** on_conflict condition type for table "graphite.agents" */
+export type GraphiteAgents_On_Conflict = {
+  constraint: GraphiteAgents_Constraint;
+  update_columns?: Array<GraphiteAgents_Update_Column>;
+  where?: InputMaybe<GraphiteAgents_Bool_Exp>;
+};
+
+/** Ordering options when selecting data from "graphite.agents". */
+export type GraphiteAgents_Order_By = {
+  createdAt?: InputMaybe<Order_By>;
+  description?: InputMaybe<Order_By>;
+  id?: InputMaybe<Order_By>;
+  instructions?: InputMaybe<Order_By>;
+  model?: InputMaybe<Order_By>;
+  name?: InputMaybe<Order_By>;
+  provider?: InputMaybe<Order_By>;
+  toolsConfig?: InputMaybe<Order_By>;
+  updatedAt?: InputMaybe<Order_By>;
+  userID?: InputMaybe<Order_By>;
+};
+
+/** primary key columns input for table: graphite.agents */
+export type GraphiteAgents_Pk_Columns_Input = {
+  id: Scalars['uuid'];
+};
+
+/** prepend existing jsonb value of filtered columns with new jsonb value */
+export type GraphiteAgents_Prepend_Input = {
+  toolsConfig?: InputMaybe<Scalars['jsonb']>;
+};
+
+/** select columns of table "graphite.agents" */
+export enum GraphiteAgents_Select_Column {
+  /** column name */
+  CreatedAt = 'createdAt',
+  /** column name */
+  Description = 'description',
+  /** column name */
+  Id = 'id',
+  /** column name */
+  Instructions = 'instructions',
+  /** column name */
+  Model = 'model',
+  /** column name */
+  Name = 'name',
+  /** column name */
+  Provider = 'provider',
+  /** column name */
+  ToolsConfig = 'toolsConfig',
+  /** column name */
+  UpdatedAt = 'updatedAt',
+  /** column name */
+  UserId = 'userID'
+}
+
+/** input type for updating data in table "graphite.agents" */
+export type GraphiteAgents_Set_Input = {
+  createdAt?: InputMaybe<Scalars['timestamptz']>;
+  description?: InputMaybe<Scalars['String']>;
+  id?: InputMaybe<Scalars['uuid']>;
+  instructions?: InputMaybe<Scalars['String']>;
+  model?: InputMaybe<Scalars['String']>;
+  name?: InputMaybe<Scalars['String']>;
+  provider?: InputMaybe<GraphiteAgentProviders_Enum>;
+  toolsConfig?: InputMaybe<Scalars['jsonb']>;
+  updatedAt?: InputMaybe<Scalars['timestamptz']>;
+  userID?: InputMaybe<Scalars['uuid']>;
+};
+
+/** Streaming cursor of the table "graphiteAgents" */
+export type GraphiteAgents_Stream_Cursor_Input = {
+  /** Stream column input with initial value */
+  initial_value: GraphiteAgents_Stream_Cursor_Value_Input;
+  /** cursor ordering */
+  ordering?: InputMaybe<Cursor_Ordering>;
+};
+
+/** Initial value of the column from where the streaming should start */
+export type GraphiteAgents_Stream_Cursor_Value_Input = {
+  createdAt?: InputMaybe<Scalars['timestamptz']>;
+  description?: InputMaybe<Scalars['String']>;
+  id?: InputMaybe<Scalars['uuid']>;
+  instructions?: InputMaybe<Scalars['String']>;
+  model?: InputMaybe<Scalars['String']>;
+  name?: InputMaybe<Scalars['String']>;
+  provider?: InputMaybe<GraphiteAgentProviders_Enum>;
+  toolsConfig?: InputMaybe<Scalars['jsonb']>;
+  updatedAt?: InputMaybe<Scalars['timestamptz']>;
+  userID?: InputMaybe<Scalars['uuid']>;
+};
+
+/** update columns of table "graphite.agents" */
+export enum GraphiteAgents_Update_Column {
+  /** column name */
+  CreatedAt = 'createdAt',
+  /** column name */
+  Description = 'description',
+  /** column name */
+  Id = 'id',
+  /** column name */
+  Instructions = 'instructions',
+  /** column name */
+  Model = 'model',
+  /** column name */
+  Name = 'name',
+  /** column name */
+  Provider = 'provider',
+  /** column name */
+  ToolsConfig = 'toolsConfig',
+  /** column name */
+  UpdatedAt = 'updatedAt',
+  /** column name */
+  UserId = 'userID'
+}
+
+export type GraphiteAgents_Updates = {
+  /** append existing jsonb value of filtered columns with new jsonb value */
+  _append?: InputMaybe<GraphiteAgents_Append_Input>;
+  /** delete the field or element with specified path (for JSON arrays, negative integers count from the end) */
+  _delete_at_path?: InputMaybe<GraphiteAgents_Delete_At_Path_Input>;
+  /** delete the array element with specified index (negative integers count from the end). throws an error if top level container is not an array */
+  _delete_elem?: InputMaybe<GraphiteAgents_Delete_Elem_Input>;
+  /** delete key/value pair or string element. key/value pairs are matched based on their key value */
+  _delete_key?: InputMaybe<GraphiteAgents_Delete_Key_Input>;
+  /** prepend existing jsonb value of filtered columns with new jsonb value */
+  _prepend?: InputMaybe<GraphiteAgents_Prepend_Input>;
+  /** sets the columns of the filtered rows to the given values */
+  _set?: InputMaybe<GraphiteAgents_Set_Input>;
+  /** filter the rows which have to be updated */
+  where: GraphiteAgents_Bool_Exp;
 };
 
 export type GraphiteAssistant = {
@@ -3986,11 +6981,10 @@ export type GraphiteAutoEmbeddingsConfiguration_Aggregate_Fields = {
   min?: Maybe<GraphiteAutoEmbeddingsConfiguration_Min_Fields>;
 };
 
+
 /** aggregate fields of "graphite.auto_embeddings_configuration" */
 export type GraphiteAutoEmbeddingsConfiguration_Aggregate_FieldsCountArgs = {
-  columns?: InputMaybe<
-    Array<GraphiteAutoEmbeddingsConfiguration_Select_Column>
-  >;
+  columns?: InputMaybe<Array<GraphiteAutoEmbeddingsConfiguration_Select_Column>>;
   distinct?: InputMaybe<Scalars['Boolean']>;
 };
 
@@ -4018,8 +7012,8 @@ export enum GraphiteAutoEmbeddingsConfiguration_Constraint {
   AutoEmbeddingsConfigurationNameKey = 'auto_embeddings_configuration_name_key',
   /** unique or primary key constraint on columns "id" */
   AutoEmbeddingsConfigurationPkey = 'auto_embeddings_configuration_pkey',
-  /** unique or primary key constraint on columns "column_name", "schema_name", "table_name" */
-  AutoEmbeddingsConfigurationSchemaNameTableNameColumnKey = 'auto_embeddings_configuration_schema_name_table_name_column_key',
+  /** unique or primary key constraint on columns "table_name", "column_name", "schema_name" */
+  AutoEmbeddingsConfigurationSchemaNameTableNameColumnKey = 'auto_embeddings_configuration_schema_name_table_name_column_key'
 }
 
 /** input type for inserting data into table "graphite.auto_embeddings_configuration" */
@@ -4128,7 +7122,7 @@ export enum GraphiteAutoEmbeddingsConfiguration_Select_Column {
   /** column name */
   TableName = 'tableName',
   /** column name */
-  UpdatedAt = 'updatedAt',
+  UpdatedAt = 'updatedAt'
 }
 
 /** input type for updating data in table "graphite.auto_embeddings_configuration" */
@@ -4192,7 +7186,7 @@ export enum GraphiteAutoEmbeddingsConfiguration_Update_Column {
   /** column name */
   TableName = 'tableName',
   /** column name */
-  UpdatedAt = 'updatedAt',
+  UpdatedAt = 'updatedAt'
 }
 
 export type GraphiteAutoEmbeddingsConfiguration_Updates = {
@@ -4381,25 +7375,31 @@ export type GraphiteMutation = {
   updateFileStore: GraphiteFileStore;
 };
 
+
 export type GraphiteMutationDeleteAssistantArgs = {
   assistantID: Scalars['String'];
 };
+
 
 export type GraphiteMutationDeleteFileStoreArgs = {
   id: Scalars['uuid'];
 };
 
+
 export type GraphiteMutationDeleteSessionArgs = {
   sessionID: Scalars['String'];
 };
+
 
 export type GraphiteMutationInsertAssistantArgs = {
   object: GraphiteAssistantInput;
 };
 
+
 export type GraphiteMutationInsertFileStoreArgs = {
   object: GraphiteFileStoreInput;
 };
+
 
 export type GraphiteMutationSendDevMessageArgs = {
   message: Scalars['String'];
@@ -4407,20 +7407,24 @@ export type GraphiteMutationSendDevMessageArgs = {
   sessionID: Scalars['String'];
 };
 
+
 export type GraphiteMutationSendMessageArgs = {
   message: Scalars['String'];
   prevMessageID: Scalars['String'];
   sessionID: Scalars['String'];
 };
 
+
 export type GraphiteMutationStartSessionArgs = {
   assistantID: Scalars['String'];
 };
+
 
 export type GraphiteMutationUpdateAssistantArgs = {
   assistantID: Scalars['String'];
   object: GraphiteAssistantInput;
 };
+
 
 export type GraphiteMutationUpdateFileStoreArgs = {
   id: Scalars['uuid'];
@@ -4502,13 +7506,16 @@ export type GraphiteQuery = {
   sessions: Array<GraphiteSession>;
 };
 
+
 export type GraphiteQueryAssistantArgs = {
   assistantID: Scalars['String'];
 };
 
+
 export type GraphiteQuerySessionArgs = {
   sessionID: Scalars['String'];
 };
+
 
 export type GraphiteQuerySessionMessagesArgs = {
   sessionID: Scalars['String'];
@@ -4630,29 +7637,33 @@ export type Mutation_Root = {
   /** update data of the table: "graphite.sessions" */
   _updateGraphiteSessions?: Maybe<_GraphiteSessions_Mutation_Response>;
   /** update multiples rows of table: "graphite.assistant_file_stores" */
-  _updateManyGraphiteAssistantFileStores?: Maybe<
-    Array<Maybe<_GraphiteAssistantFileStores_Mutation_Response>>
-  >;
+  _updateManyGraphiteAssistantFileStores?: Maybe<Array<Maybe<_GraphiteAssistantFileStores_Mutation_Response>>>;
   /** update multiples rows of table: "graphite.assistants" */
-  _updateManyGraphiteAssistants?: Maybe<
-    Array<Maybe<_GraphiteAssistants_Mutation_Response>>
-  >;
+  _updateManyGraphiteAssistants?: Maybe<Array<Maybe<_GraphiteAssistants_Mutation_Response>>>;
   /** update multiples rows of table: "graphite.file_store_buckets" */
-  _updateManyGraphiteFileStoreBuckets?: Maybe<
-    Array<Maybe<_GraphiteFileStoreBuckets_Mutation_Response>>
-  >;
+  _updateManyGraphiteFileStoreBuckets?: Maybe<Array<Maybe<_GraphiteFileStoreBuckets_Mutation_Response>>>;
   /** update multiples rows of table: "graphite.file_stores" */
-  _updateManyGraphiteFileStores?: Maybe<
-    Array<Maybe<_GraphiteFileStores_Mutation_Response>>
-  >;
+  _updateManyGraphiteFileStores?: Maybe<Array<Maybe<_GraphiteFileStores_Mutation_Response>>>;
   /** update multiples rows of table: "graphite.files" */
-  _updateManyGraphiteFiles?: Maybe<
-    Array<Maybe<_GraphiteFiles_Mutation_Response>>
-  >;
+  _updateManyGraphiteFiles?: Maybe<Array<Maybe<_GraphiteFiles_Mutation_Response>>>;
   /** update multiples rows of table: "graphite.sessions" */
-  _updateManyGraphiteSessions?: Maybe<
-    Array<Maybe<_GraphiteSessions_Mutation_Response>>
-  >;
+  _updateManyGraphiteSessions?: Maybe<Array<Maybe<_GraphiteSessions_Mutation_Response>>>;
+  /** delete single row from the table: "auth.oauth2_auth_requests" */
+  deleteAuthOauth2AuthRequest?: Maybe<AuthOauth2AuthRequests>;
+  /** delete data from the table: "auth.oauth2_auth_requests" */
+  deleteAuthOauth2AuthRequests?: Maybe<AuthOauth2AuthRequests_Mutation_Response>;
+  /** delete single row from the table: "auth.oauth2_authorization_codes" */
+  deleteAuthOauth2AuthorizationCode?: Maybe<AuthOauth2AuthorizationCodes>;
+  /** delete data from the table: "auth.oauth2_authorization_codes" */
+  deleteAuthOauth2AuthorizationCodes?: Maybe<AuthOauth2AuthorizationCodes_Mutation_Response>;
+  /** delete single row from the table: "auth.oauth2_clients" */
+  deleteAuthOauth2Client?: Maybe<AuthOauth2Clients>;
+  /** delete data from the table: "auth.oauth2_clients" */
+  deleteAuthOauth2Clients?: Maybe<AuthOauth2Clients_Mutation_Response>;
+  /** delete single row from the table: "auth.oauth2_refresh_tokens" */
+  deleteAuthOauth2RefreshToken?: Maybe<AuthOauth2RefreshTokens>;
+  /** delete data from the table: "auth.oauth2_refresh_tokens" */
+  deleteAuthOauth2RefreshTokens?: Maybe<AuthOauth2RefreshTokens_Mutation_Response>;
   /** delete single row from the table: "auth.providers" */
   deleteAuthProvider?: Maybe<AuthProviders>;
   /** delete single row from the table: "auth.provider_requests" */
@@ -4693,6 +7704,22 @@ export type Mutation_Root = {
   deleteFile?: Maybe<Files>;
   /** delete data from the table: "storage.files" */
   deleteFiles?: Maybe<Files_Mutation_Response>;
+  /** delete single row from the table: "graphite.agents" */
+  deleteGraphiteAgent?: Maybe<GraphiteAgents>;
+  /** delete single row from the table: "graphite.agent_messages" */
+  deleteGraphiteAgentMessage?: Maybe<GraphiteAgentMessages>;
+  /** delete data from the table: "graphite.agent_messages" */
+  deleteGraphiteAgentMessages?: Maybe<GraphiteAgentMessages_Mutation_Response>;
+  /** delete single row from the table: "graphite.agent_providers" */
+  deleteGraphiteAgentProvider?: Maybe<GraphiteAgentProviders>;
+  /** delete data from the table: "graphite.agent_providers" */
+  deleteGraphiteAgentProviders?: Maybe<GraphiteAgentProviders_Mutation_Response>;
+  /** delete single row from the table: "graphite.agent_sessions" */
+  deleteGraphiteAgentSession?: Maybe<GraphiteAgentSessions>;
+  /** delete data from the table: "graphite.agent_sessions" */
+  deleteGraphiteAgentSessions?: Maybe<GraphiteAgentSessions_Mutation_Response>;
+  /** delete data from the table: "graphite.agents" */
+  deleteGraphiteAgents?: Maybe<GraphiteAgents_Mutation_Response>;
   /** delete single row from the table: "graphite.auto_embeddings_configuration" */
   deleteGraphiteAutoEmbeddingsConfiguration?: Maybe<GraphiteAutoEmbeddingsConfiguration>;
   /** delete data from the table: "graphite.auto_embeddings_configuration" */
@@ -4705,7 +7732,43 @@ export type Mutation_Root = {
   deleteVirus?: Maybe<Virus>;
   /** delete data from the table: "storage.virus" */
   deleteViruses?: Maybe<Virus_Mutation_Response>;
+  /** delete data from the table: "communities" */
+  delete_communities?: Maybe<Communities_Mutation_Response>;
+  /** delete single row from the table: "communities" */
+  delete_communities_by_pk?: Maybe<Communities>;
+  /** delete data from the table: "community_files" */
+  delete_community_files?: Maybe<Community_Files_Mutation_Response>;
+  /** delete single row from the table: "community_files" */
+  delete_community_files_by_pk?: Maybe<Community_Files>;
+  /** delete data from the table: "community_members" */
+  delete_community_members?: Maybe<Community_Members_Mutation_Response>;
+  /** delete single row from the table: "community_members" */
+  delete_community_members_by_pk?: Maybe<Community_Members>;
+  /** delete data from the table: "notifications" */
+  delete_notifications?: Maybe<Notifications_Mutation_Response>;
+  /** delete single row from the table: "notifications" */
+  delete_notifications_by_pk?: Maybe<Notifications>;
+  /** delete data from the table: "todos" */
+  delete_todos?: Maybe<Todos_Mutation_Response>;
+  /** delete single row from the table: "todos" */
+  delete_todos_by_pk?: Maybe<Todos>;
   graphite?: Maybe<GraphiteMutation>;
+  /** insert a single row into the table: "auth.oauth2_auth_requests" */
+  insertAuthOauth2AuthRequest?: Maybe<AuthOauth2AuthRequests>;
+  /** insert data into the table: "auth.oauth2_auth_requests" */
+  insertAuthOauth2AuthRequests?: Maybe<AuthOauth2AuthRequests_Mutation_Response>;
+  /** insert a single row into the table: "auth.oauth2_authorization_codes" */
+  insertAuthOauth2AuthorizationCode?: Maybe<AuthOauth2AuthorizationCodes>;
+  /** insert data into the table: "auth.oauth2_authorization_codes" */
+  insertAuthOauth2AuthorizationCodes?: Maybe<AuthOauth2AuthorizationCodes_Mutation_Response>;
+  /** insert a single row into the table: "auth.oauth2_clients" */
+  insertAuthOauth2Client?: Maybe<AuthOauth2Clients>;
+  /** insert data into the table: "auth.oauth2_clients" */
+  insertAuthOauth2Clients?: Maybe<AuthOauth2Clients_Mutation_Response>;
+  /** insert a single row into the table: "auth.oauth2_refresh_tokens" */
+  insertAuthOauth2RefreshToken?: Maybe<AuthOauth2RefreshTokens>;
+  /** insert data into the table: "auth.oauth2_refresh_tokens" */
+  insertAuthOauth2RefreshTokens?: Maybe<AuthOauth2RefreshTokens_Mutation_Response>;
   /** insert a single row into the table: "auth.providers" */
   insertAuthProvider?: Maybe<AuthProviders>;
   /** insert a single row into the table: "auth.provider_requests" */
@@ -4746,6 +7809,22 @@ export type Mutation_Root = {
   insertFile?: Maybe<Files>;
   /** insert data into the table: "storage.files" */
   insertFiles?: Maybe<Files_Mutation_Response>;
+  /** insert a single row into the table: "graphite.agents" */
+  insertGraphiteAgent?: Maybe<GraphiteAgents>;
+  /** insert a single row into the table: "graphite.agent_messages" */
+  insertGraphiteAgentMessage?: Maybe<GraphiteAgentMessages>;
+  /** insert data into the table: "graphite.agent_messages" */
+  insertGraphiteAgentMessages?: Maybe<GraphiteAgentMessages_Mutation_Response>;
+  /** insert a single row into the table: "graphite.agent_providers" */
+  insertGraphiteAgentProvider?: Maybe<GraphiteAgentProviders>;
+  /** insert data into the table: "graphite.agent_providers" */
+  insertGraphiteAgentProviders?: Maybe<GraphiteAgentProviders_Mutation_Response>;
+  /** insert a single row into the table: "graphite.agent_sessions" */
+  insertGraphiteAgentSession?: Maybe<GraphiteAgentSessions>;
+  /** insert data into the table: "graphite.agent_sessions" */
+  insertGraphiteAgentSessions?: Maybe<GraphiteAgentSessions_Mutation_Response>;
+  /** insert data into the table: "graphite.agents" */
+  insertGraphiteAgents?: Maybe<GraphiteAgents_Mutation_Response>;
   /** insert a single row into the table: "graphite.auto_embeddings_configuration" */
   insertGraphiteAutoEmbeddingsConfiguration?: Maybe<GraphiteAutoEmbeddingsConfiguration>;
   /** insert data into the table: "graphite.auto_embeddings_configuration" */
@@ -4758,6 +7837,42 @@ export type Mutation_Root = {
   insertVirus?: Maybe<Virus>;
   /** insert data into the table: "storage.virus" */
   insertViruses?: Maybe<Virus_Mutation_Response>;
+  /** insert data into the table: "communities" */
+  insert_communities?: Maybe<Communities_Mutation_Response>;
+  /** insert a single row into the table: "communities" */
+  insert_communities_one?: Maybe<Communities>;
+  /** insert data into the table: "community_files" */
+  insert_community_files?: Maybe<Community_Files_Mutation_Response>;
+  /** insert a single row into the table: "community_files" */
+  insert_community_files_one?: Maybe<Community_Files>;
+  /** insert data into the table: "community_members" */
+  insert_community_members?: Maybe<Community_Members_Mutation_Response>;
+  /** insert a single row into the table: "community_members" */
+  insert_community_members_one?: Maybe<Community_Members>;
+  /** insert data into the table: "notifications" */
+  insert_notifications?: Maybe<Notifications_Mutation_Response>;
+  /** insert a single row into the table: "notifications" */
+  insert_notifications_one?: Maybe<Notifications>;
+  /** insert data into the table: "todos" */
+  insert_todos?: Maybe<Todos_Mutation_Response>;
+  /** insert a single row into the table: "todos" */
+  insert_todos_one?: Maybe<Todos>;
+  /** update single row of the table: "auth.oauth2_auth_requests" */
+  updateAuthOauth2AuthRequest?: Maybe<AuthOauth2AuthRequests>;
+  /** update data of the table: "auth.oauth2_auth_requests" */
+  updateAuthOauth2AuthRequests?: Maybe<AuthOauth2AuthRequests_Mutation_Response>;
+  /** update single row of the table: "auth.oauth2_authorization_codes" */
+  updateAuthOauth2AuthorizationCode?: Maybe<AuthOauth2AuthorizationCodes>;
+  /** update data of the table: "auth.oauth2_authorization_codes" */
+  updateAuthOauth2AuthorizationCodes?: Maybe<AuthOauth2AuthorizationCodes_Mutation_Response>;
+  /** update single row of the table: "auth.oauth2_clients" */
+  updateAuthOauth2Client?: Maybe<AuthOauth2Clients>;
+  /** update data of the table: "auth.oauth2_clients" */
+  updateAuthOauth2Clients?: Maybe<AuthOauth2Clients_Mutation_Response>;
+  /** update single row of the table: "auth.oauth2_refresh_tokens" */
+  updateAuthOauth2RefreshToken?: Maybe<AuthOauth2RefreshTokens>;
+  /** update data of the table: "auth.oauth2_refresh_tokens" */
+  updateAuthOauth2RefreshTokens?: Maybe<AuthOauth2RefreshTokens_Mutation_Response>;
   /** update single row of the table: "auth.providers" */
   updateAuthProvider?: Maybe<AuthProviders>;
   /** update single row of the table: "auth.provider_requests" */
@@ -4798,14 +7913,36 @@ export type Mutation_Root = {
   updateFile?: Maybe<Files>;
   /** update data of the table: "storage.files" */
   updateFiles?: Maybe<Files_Mutation_Response>;
+  /** update single row of the table: "graphite.agents" */
+  updateGraphiteAgent?: Maybe<GraphiteAgents>;
+  /** update single row of the table: "graphite.agent_messages" */
+  updateGraphiteAgentMessage?: Maybe<GraphiteAgentMessages>;
+  /** update data of the table: "graphite.agent_messages" */
+  updateGraphiteAgentMessages?: Maybe<GraphiteAgentMessages_Mutation_Response>;
+  /** update single row of the table: "graphite.agent_providers" */
+  updateGraphiteAgentProvider?: Maybe<GraphiteAgentProviders>;
+  /** update data of the table: "graphite.agent_providers" */
+  updateGraphiteAgentProviders?: Maybe<GraphiteAgentProviders_Mutation_Response>;
+  /** update single row of the table: "graphite.agent_sessions" */
+  updateGraphiteAgentSession?: Maybe<GraphiteAgentSessions>;
+  /** update data of the table: "graphite.agent_sessions" */
+  updateGraphiteAgentSessions?: Maybe<GraphiteAgentSessions_Mutation_Response>;
+  /** update data of the table: "graphite.agents" */
+  updateGraphiteAgents?: Maybe<GraphiteAgents_Mutation_Response>;
   /** update single row of the table: "graphite.auto_embeddings_configuration" */
   updateGraphiteAutoEmbeddingsConfiguration?: Maybe<GraphiteAutoEmbeddingsConfiguration>;
   /** update data of the table: "graphite.auto_embeddings_configuration" */
   updateGraphiteAutoEmbeddingsConfigurations?: Maybe<GraphiteAutoEmbeddingsConfiguration_Mutation_Response>;
+  /** update multiples rows of table: "graphite.agent_messages" */
+  updateManyGraphiteAgentMessages?: Maybe<Array<Maybe<GraphiteAgentMessages_Mutation_Response>>>;
+  /** update multiples rows of table: "graphite.agent_providers" */
+  updateManyGraphiteAgentProviders?: Maybe<Array<Maybe<GraphiteAgentProviders_Mutation_Response>>>;
+  /** update multiples rows of table: "graphite.agent_sessions" */
+  updateManyGraphiteAgentSessions?: Maybe<Array<Maybe<GraphiteAgentSessions_Mutation_Response>>>;
+  /** update multiples rows of table: "graphite.agents" */
+  updateManyGraphiteAgents?: Maybe<Array<Maybe<GraphiteAgents_Mutation_Response>>>;
   /** update multiples rows of table: "graphite.auto_embeddings_configuration" */
-  updateManyGraphiteAutoEmbeddingsConfigurations?: Maybe<
-    Array<Maybe<GraphiteAutoEmbeddingsConfiguration_Mutation_Response>>
-  >;
+  updateManyGraphiteAutoEmbeddingsConfigurations?: Maybe<Array<Maybe<GraphiteAutoEmbeddingsConfiguration_Mutation_Response>>>;
   /** update single row of the table: "auth.users" */
   updateUser?: Maybe<Users>;
   /** update data of the table: "auth.users" */
@@ -4814,50 +7951,76 @@ export type Mutation_Root = {
   updateVirus?: Maybe<Virus>;
   /** update data of the table: "storage.virus" */
   updateViruses?: Maybe<Virus_Mutation_Response>;
+  /** update multiples rows of table: "auth.oauth2_auth_requests" */
+  update_authOauth2AuthRequests_many?: Maybe<Array<Maybe<AuthOauth2AuthRequests_Mutation_Response>>>;
+  /** update multiples rows of table: "auth.oauth2_authorization_codes" */
+  update_authOauth2AuthorizationCodes_many?: Maybe<Array<Maybe<AuthOauth2AuthorizationCodes_Mutation_Response>>>;
+  /** update multiples rows of table: "auth.oauth2_clients" */
+  update_authOauth2Clients_many?: Maybe<Array<Maybe<AuthOauth2Clients_Mutation_Response>>>;
+  /** update multiples rows of table: "auth.oauth2_refresh_tokens" */
+  update_authOauth2RefreshTokens_many?: Maybe<Array<Maybe<AuthOauth2RefreshTokens_Mutation_Response>>>;
   /** update multiples rows of table: "auth.provider_requests" */
-  update_authProviderRequests_many?: Maybe<
-    Array<Maybe<AuthProviderRequests_Mutation_Response>>
-  >;
+  update_authProviderRequests_many?: Maybe<Array<Maybe<AuthProviderRequests_Mutation_Response>>>;
   /** update multiples rows of table: "auth.providers" */
-  update_authProviders_many?: Maybe<
-    Array<Maybe<AuthProviders_Mutation_Response>>
-  >;
+  update_authProviders_many?: Maybe<Array<Maybe<AuthProviders_Mutation_Response>>>;
   /** update multiples rows of table: "auth.refresh_token_types" */
-  update_authRefreshTokenTypes_many?: Maybe<
-    Array<Maybe<AuthRefreshTokenTypes_Mutation_Response>>
-  >;
+  update_authRefreshTokenTypes_many?: Maybe<Array<Maybe<AuthRefreshTokenTypes_Mutation_Response>>>;
   /** update multiples rows of table: "auth.refresh_tokens" */
-  update_authRefreshTokens_many?: Maybe<
-    Array<Maybe<AuthRefreshTokens_Mutation_Response>>
-  >;
+  update_authRefreshTokens_many?: Maybe<Array<Maybe<AuthRefreshTokens_Mutation_Response>>>;
   /** update multiples rows of table: "auth.roles" */
   update_authRoles_many?: Maybe<Array<Maybe<AuthRoles_Mutation_Response>>>;
   /** update multiples rows of table: "auth.user_providers" */
-  update_authUserProviders_many?: Maybe<
-    Array<Maybe<AuthUserProviders_Mutation_Response>>
-  >;
+  update_authUserProviders_many?: Maybe<Array<Maybe<AuthUserProviders_Mutation_Response>>>;
   /** update multiples rows of table: "auth.user_roles" */
-  update_authUserRoles_many?: Maybe<
-    Array<Maybe<AuthUserRoles_Mutation_Response>>
-  >;
+  update_authUserRoles_many?: Maybe<Array<Maybe<AuthUserRoles_Mutation_Response>>>;
   /** update multiples rows of table: "auth.user_security_keys" */
-  update_authUserSecurityKeys_many?: Maybe<
-    Array<Maybe<AuthUserSecurityKeys_Mutation_Response>>
-  >;
+  update_authUserSecurityKeys_many?: Maybe<Array<Maybe<AuthUserSecurityKeys_Mutation_Response>>>;
   /** update multiples rows of table: "storage.buckets" */
   update_buckets_many?: Maybe<Array<Maybe<Buckets_Mutation_Response>>>;
+  /** update data of the table: "communities" */
+  update_communities?: Maybe<Communities_Mutation_Response>;
+  /** update single row of the table: "communities" */
+  update_communities_by_pk?: Maybe<Communities>;
+  /** update multiples rows of table: "communities" */
+  update_communities_many?: Maybe<Array<Maybe<Communities_Mutation_Response>>>;
+  /** update data of the table: "community_files" */
+  update_community_files?: Maybe<Community_Files_Mutation_Response>;
+  /** update single row of the table: "community_files" */
+  update_community_files_by_pk?: Maybe<Community_Files>;
+  /** update multiples rows of table: "community_files" */
+  update_community_files_many?: Maybe<Array<Maybe<Community_Files_Mutation_Response>>>;
+  /** update data of the table: "community_members" */
+  update_community_members?: Maybe<Community_Members_Mutation_Response>;
+  /** update single row of the table: "community_members" */
+  update_community_members_by_pk?: Maybe<Community_Members>;
+  /** update multiples rows of table: "community_members" */
+  update_community_members_many?: Maybe<Array<Maybe<Community_Members_Mutation_Response>>>;
   /** update multiples rows of table: "storage.files" */
   update_files_many?: Maybe<Array<Maybe<Files_Mutation_Response>>>;
+  /** update data of the table: "notifications" */
+  update_notifications?: Maybe<Notifications_Mutation_Response>;
+  /** update single row of the table: "notifications" */
+  update_notifications_by_pk?: Maybe<Notifications>;
+  /** update multiples rows of table: "notifications" */
+  update_notifications_many?: Maybe<Array<Maybe<Notifications_Mutation_Response>>>;
+  /** update data of the table: "todos" */
+  update_todos?: Maybe<Todos_Mutation_Response>;
+  /** update single row of the table: "todos" */
+  update_todos_by_pk?: Maybe<Todos>;
+  /** update multiples rows of table: "todos" */
+  update_todos_many?: Maybe<Array<Maybe<Todos_Mutation_Response>>>;
   /** update multiples rows of table: "auth.users" */
   update_users_many?: Maybe<Array<Maybe<Users_Mutation_Response>>>;
   /** update multiples rows of table: "storage.virus" */
   update_virus_many?: Maybe<Array<Maybe<Virus_Mutation_Response>>>;
 };
 
+
 /** mutation root */
 export type Mutation_Root_DeleteGraphiteAssistantArgs = {
   id: Scalars['uuid'];
 };
+
 
 /** mutation root */
 export type Mutation_Root_DeleteGraphiteAssistantFileStoreArgs = {
@@ -4865,25 +8028,30 @@ export type Mutation_Root_DeleteGraphiteAssistantFileStoreArgs = {
   fileStoreID: Scalars['uuid'];
 };
 
+
 /** mutation root */
 export type Mutation_Root_DeleteGraphiteAssistantFileStoresArgs = {
   where: _GraphiteAssistantFileStores_Bool_Exp;
 };
+
 
 /** mutation root */
 export type Mutation_Root_DeleteGraphiteAssistantsArgs = {
   where: _GraphiteAssistants_Bool_Exp;
 };
 
+
 /** mutation root */
 export type Mutation_Root_DeleteGraphiteFileArgs = {
   id: Scalars['uuid'];
 };
 
+
 /** mutation root */
 export type Mutation_Root_DeleteGraphiteFileStoreArgs = {
   id: Scalars['uuid'];
 };
+
 
 /** mutation root */
 export type Mutation_Root_DeleteGraphiteFileStoreBucketArgs = {
@@ -4891,30 +8059,36 @@ export type Mutation_Root_DeleteGraphiteFileStoreBucketArgs = {
   fileStoreID: Scalars['uuid'];
 };
 
+
 /** mutation root */
 export type Mutation_Root_DeleteGraphiteFileStoreBucketsArgs = {
   where: _GraphiteFileStoreBuckets_Bool_Exp;
 };
+
 
 /** mutation root */
 export type Mutation_Root_DeleteGraphiteFileStoresArgs = {
   where: _GraphiteFileStores_Bool_Exp;
 };
 
+
 /** mutation root */
 export type Mutation_Root_DeleteGraphiteFilesArgs = {
   where: _GraphiteFiles_Bool_Exp;
 };
+
 
 /** mutation root */
 export type Mutation_Root_DeleteGraphiteSessionArgs = {
   id: Scalars['uuid'];
 };
 
+
 /** mutation root */
 export type Mutation_Root_DeleteGraphiteSessionsArgs = {
   where: _GraphiteSessions_Bool_Exp;
 };
+
 
 /** mutation root */
 export type Mutation_Root_InsertGraphiteAssistantArgs = {
@@ -4922,11 +8096,13 @@ export type Mutation_Root_InsertGraphiteAssistantArgs = {
   on_conflict?: InputMaybe<_GraphiteAssistants_On_Conflict>;
 };
 
+
 /** mutation root */
 export type Mutation_Root_InsertGraphiteAssistantFileStoreArgs = {
   object: _GraphiteAssistantFileStores_Insert_Input;
   on_conflict?: InputMaybe<_GraphiteAssistantFileStores_On_Conflict>;
 };
+
 
 /** mutation root */
 export type Mutation_Root_InsertGraphiteAssistantFileStoresArgs = {
@@ -4934,11 +8110,13 @@ export type Mutation_Root_InsertGraphiteAssistantFileStoresArgs = {
   on_conflict?: InputMaybe<_GraphiteAssistantFileStores_On_Conflict>;
 };
 
+
 /** mutation root */
 export type Mutation_Root_InsertGraphiteAssistantsArgs = {
   objects: Array<_GraphiteAssistants_Insert_Input>;
   on_conflict?: InputMaybe<_GraphiteAssistants_On_Conflict>;
 };
+
 
 /** mutation root */
 export type Mutation_Root_InsertGraphiteFileArgs = {
@@ -4946,11 +8124,13 @@ export type Mutation_Root_InsertGraphiteFileArgs = {
   on_conflict?: InputMaybe<_GraphiteFiles_On_Conflict>;
 };
 
+
 /** mutation root */
 export type Mutation_Root_InsertGraphiteFileStoreArgs = {
   object: _GraphiteFileStores_Insert_Input;
   on_conflict?: InputMaybe<_GraphiteFileStores_On_Conflict>;
 };
+
 
 /** mutation root */
 export type Mutation_Root_InsertGraphiteFileStoreBucketArgs = {
@@ -4958,11 +8138,13 @@ export type Mutation_Root_InsertGraphiteFileStoreBucketArgs = {
   on_conflict?: InputMaybe<_GraphiteFileStoreBuckets_On_Conflict>;
 };
 
+
 /** mutation root */
 export type Mutation_Root_InsertGraphiteFileStoreBucketsArgs = {
   objects: Array<_GraphiteFileStoreBuckets_Insert_Input>;
   on_conflict?: InputMaybe<_GraphiteFileStoreBuckets_On_Conflict>;
 };
+
 
 /** mutation root */
 export type Mutation_Root_InsertGraphiteFileStoresArgs = {
@@ -4970,11 +8152,13 @@ export type Mutation_Root_InsertGraphiteFileStoresArgs = {
   on_conflict?: InputMaybe<_GraphiteFileStores_On_Conflict>;
 };
 
+
 /** mutation root */
 export type Mutation_Root_InsertGraphiteFilesArgs = {
   objects: Array<_GraphiteFiles_Insert_Input>;
   on_conflict?: InputMaybe<_GraphiteFiles_On_Conflict>;
 };
+
 
 /** mutation root */
 export type Mutation_Root_InsertGraphiteSessionArgs = {
@@ -4982,11 +8166,13 @@ export type Mutation_Root_InsertGraphiteSessionArgs = {
   on_conflict?: InputMaybe<_GraphiteSessions_On_Conflict>;
 };
 
+
 /** mutation root */
 export type Mutation_Root_InsertGraphiteSessionsArgs = {
   objects: Array<_GraphiteSessions_Insert_Input>;
   on_conflict?: InputMaybe<_GraphiteSessions_On_Conflict>;
 };
+
 
 /** mutation root */
 export type Mutation_Root_UpdateGraphiteAssistantArgs = {
@@ -4999,17 +8185,20 @@ export type Mutation_Root_UpdateGraphiteAssistantArgs = {
   pk_columns: _GraphiteAssistants_Pk_Columns_Input;
 };
 
+
 /** mutation root */
 export type Mutation_Root_UpdateGraphiteAssistantFileStoreArgs = {
   _set?: InputMaybe<_GraphiteAssistantFileStores_Set_Input>;
   pk_columns: _GraphiteAssistantFileStores_Pk_Columns_Input;
 };
 
+
 /** mutation root */
 export type Mutation_Root_UpdateGraphiteAssistantFileStoresArgs = {
   _set?: InputMaybe<_GraphiteAssistantFileStores_Set_Input>;
   where: _GraphiteAssistantFileStores_Bool_Exp;
 };
+
 
 /** mutation root */
 export type Mutation_Root_UpdateGraphiteAssistantsArgs = {
@@ -5022,11 +8211,13 @@ export type Mutation_Root_UpdateGraphiteAssistantsArgs = {
   where: _GraphiteAssistants_Bool_Exp;
 };
 
+
 /** mutation root */
 export type Mutation_Root_UpdateGraphiteFileArgs = {
   _set?: InputMaybe<_GraphiteFiles_Set_Input>;
   pk_columns: _GraphiteFiles_Pk_Columns_Input;
 };
+
 
 /** mutation root */
 export type Mutation_Root_UpdateGraphiteFileStoreArgs = {
@@ -5034,11 +8225,13 @@ export type Mutation_Root_UpdateGraphiteFileStoreArgs = {
   pk_columns: _GraphiteFileStores_Pk_Columns_Input;
 };
 
+
 /** mutation root */
 export type Mutation_Root_UpdateGraphiteFileStoreBucketArgs = {
   _set?: InputMaybe<_GraphiteFileStoreBuckets_Set_Input>;
   pk_columns: _GraphiteFileStoreBuckets_Pk_Columns_Input;
 };
+
 
 /** mutation root */
 export type Mutation_Root_UpdateGraphiteFileStoreBucketsArgs = {
@@ -5046,11 +8239,13 @@ export type Mutation_Root_UpdateGraphiteFileStoreBucketsArgs = {
   where: _GraphiteFileStoreBuckets_Bool_Exp;
 };
 
+
 /** mutation root */
 export type Mutation_Root_UpdateGraphiteFileStoresArgs = {
   _set?: InputMaybe<_GraphiteFileStores_Set_Input>;
   where: _GraphiteFileStores_Bool_Exp;
 };
+
 
 /** mutation root */
 export type Mutation_Root_UpdateGraphiteFilesArgs = {
@@ -5058,11 +8253,13 @@ export type Mutation_Root_UpdateGraphiteFilesArgs = {
   where: _GraphiteFiles_Bool_Exp;
 };
 
+
 /** mutation root */
 export type Mutation_Root_UpdateGraphiteSessionArgs = {
   _set?: InputMaybe<_GraphiteSessions_Set_Input>;
   pk_columns: _GraphiteSessions_Pk_Columns_Input;
 };
+
 
 /** mutation root */
 export type Mutation_Root_UpdateGraphiteSessionsArgs = {
@@ -5070,165 +8267,410 @@ export type Mutation_Root_UpdateGraphiteSessionsArgs = {
   where: _GraphiteSessions_Bool_Exp;
 };
 
+
 /** mutation root */
 export type Mutation_Root_UpdateManyGraphiteAssistantFileStoresArgs = {
   updates: Array<_GraphiteAssistantFileStores_Updates>;
 };
+
 
 /** mutation root */
 export type Mutation_Root_UpdateManyGraphiteAssistantsArgs = {
   updates: Array<_GraphiteAssistants_Updates>;
 };
 
+
 /** mutation root */
 export type Mutation_Root_UpdateManyGraphiteFileStoreBucketsArgs = {
   updates: Array<_GraphiteFileStoreBuckets_Updates>;
 };
+
 
 /** mutation root */
 export type Mutation_Root_UpdateManyGraphiteFileStoresArgs = {
   updates: Array<_GraphiteFileStores_Updates>;
 };
 
+
 /** mutation root */
 export type Mutation_Root_UpdateManyGraphiteFilesArgs = {
   updates: Array<_GraphiteFiles_Updates>;
 };
+
 
 /** mutation root */
 export type Mutation_Root_UpdateManyGraphiteSessionsArgs = {
   updates: Array<_GraphiteSessions_Updates>;
 };
 
+
+/** mutation root */
+export type Mutation_RootDeleteAuthOauth2AuthRequestArgs = {
+  id: Scalars['uuid'];
+};
+
+
+/** mutation root */
+export type Mutation_RootDeleteAuthOauth2AuthRequestsArgs = {
+  where: AuthOauth2AuthRequests_Bool_Exp;
+};
+
+
+/** mutation root */
+export type Mutation_RootDeleteAuthOauth2AuthorizationCodeArgs = {
+  id: Scalars['uuid'];
+};
+
+
+/** mutation root */
+export type Mutation_RootDeleteAuthOauth2AuthorizationCodesArgs = {
+  where: AuthOauth2AuthorizationCodes_Bool_Exp;
+};
+
+
+/** mutation root */
+export type Mutation_RootDeleteAuthOauth2ClientArgs = {
+  clientId: Scalars['String'];
+};
+
+
+/** mutation root */
+export type Mutation_RootDeleteAuthOauth2ClientsArgs = {
+  where: AuthOauth2Clients_Bool_Exp;
+};
+
+
+/** mutation root */
+export type Mutation_RootDeleteAuthOauth2RefreshTokenArgs = {
+  id: Scalars['uuid'];
+};
+
+
+/** mutation root */
+export type Mutation_RootDeleteAuthOauth2RefreshTokensArgs = {
+  where: AuthOauth2RefreshTokens_Bool_Exp;
+};
+
+
 /** mutation root */
 export type Mutation_RootDeleteAuthProviderArgs = {
   id: Scalars['String'];
 };
+
 
 /** mutation root */
 export type Mutation_RootDeleteAuthProviderRequestArgs = {
   id: Scalars['uuid'];
 };
 
+
 /** mutation root */
 export type Mutation_RootDeleteAuthProviderRequestsArgs = {
   where: AuthProviderRequests_Bool_Exp;
 };
+
 
 /** mutation root */
 export type Mutation_RootDeleteAuthProvidersArgs = {
   where: AuthProviders_Bool_Exp;
 };
 
+
 /** mutation root */
 export type Mutation_RootDeleteAuthRefreshTokenArgs = {
   id: Scalars['uuid'];
 };
+
 
 /** mutation root */
 export type Mutation_RootDeleteAuthRefreshTokenTypeArgs = {
   value: Scalars['String'];
 };
 
+
 /** mutation root */
 export type Mutation_RootDeleteAuthRefreshTokenTypesArgs = {
   where: AuthRefreshTokenTypes_Bool_Exp;
 };
+
 
 /** mutation root */
 export type Mutation_RootDeleteAuthRefreshTokensArgs = {
   where: AuthRefreshTokens_Bool_Exp;
 };
 
+
 /** mutation root */
 export type Mutation_RootDeleteAuthRoleArgs = {
   role: Scalars['String'];
 };
+
 
 /** mutation root */
 export type Mutation_RootDeleteAuthRolesArgs = {
   where: AuthRoles_Bool_Exp;
 };
 
+
 /** mutation root */
 export type Mutation_RootDeleteAuthUserProviderArgs = {
   id: Scalars['uuid'];
 };
+
 
 /** mutation root */
 export type Mutation_RootDeleteAuthUserProvidersArgs = {
   where: AuthUserProviders_Bool_Exp;
 };
 
+
 /** mutation root */
 export type Mutation_RootDeleteAuthUserRoleArgs = {
   id: Scalars['uuid'];
 };
+
 
 /** mutation root */
 export type Mutation_RootDeleteAuthUserRolesArgs = {
   where: AuthUserRoles_Bool_Exp;
 };
 
+
 /** mutation root */
 export type Mutation_RootDeleteAuthUserSecurityKeyArgs = {
   id: Scalars['uuid'];
 };
+
 
 /** mutation root */
 export type Mutation_RootDeleteAuthUserSecurityKeysArgs = {
   where: AuthUserSecurityKeys_Bool_Exp;
 };
 
+
 /** mutation root */
 export type Mutation_RootDeleteBucketArgs = {
   id: Scalars['String'];
 };
+
 
 /** mutation root */
 export type Mutation_RootDeleteBucketsArgs = {
   where: Buckets_Bool_Exp;
 };
 
+
 /** mutation root */
 export type Mutation_RootDeleteFileArgs = {
   id: Scalars['uuid'];
 };
+
 
 /** mutation root */
 export type Mutation_RootDeleteFilesArgs = {
   where: Files_Bool_Exp;
 };
 
+
+/** mutation root */
+export type Mutation_RootDeleteGraphiteAgentArgs = {
+  id: Scalars['uuid'];
+};
+
+
+/** mutation root */
+export type Mutation_RootDeleteGraphiteAgentMessageArgs = {
+  id: Scalars['uuid'];
+};
+
+
+/** mutation root */
+export type Mutation_RootDeleteGraphiteAgentMessagesArgs = {
+  where: GraphiteAgentMessages_Bool_Exp;
+};
+
+
+/** mutation root */
+export type Mutation_RootDeleteGraphiteAgentProviderArgs = {
+  value: Scalars['String'];
+};
+
+
+/** mutation root */
+export type Mutation_RootDeleteGraphiteAgentProvidersArgs = {
+  where: GraphiteAgentProviders_Bool_Exp;
+};
+
+
+/** mutation root */
+export type Mutation_RootDeleteGraphiteAgentSessionArgs = {
+  id: Scalars['uuid'];
+};
+
+
+/** mutation root */
+export type Mutation_RootDeleteGraphiteAgentSessionsArgs = {
+  where: GraphiteAgentSessions_Bool_Exp;
+};
+
+
+/** mutation root */
+export type Mutation_RootDeleteGraphiteAgentsArgs = {
+  where: GraphiteAgents_Bool_Exp;
+};
+
+
 /** mutation root */
 export type Mutation_RootDeleteGraphiteAutoEmbeddingsConfigurationArgs = {
   id: Scalars['uuid'];
 };
+
 
 /** mutation root */
 export type Mutation_RootDeleteGraphiteAutoEmbeddingsConfigurationsArgs = {
   where: GraphiteAutoEmbeddingsConfiguration_Bool_Exp;
 };
 
+
 /** mutation root */
 export type Mutation_RootDeleteUserArgs = {
   id: Scalars['uuid'];
 };
+
 
 /** mutation root */
 export type Mutation_RootDeleteUsersArgs = {
   where: Users_Bool_Exp;
 };
 
+
 /** mutation root */
 export type Mutation_RootDeleteVirusArgs = {
   id: Scalars['uuid'];
 };
 
+
 /** mutation root */
 export type Mutation_RootDeleteVirusesArgs = {
   where: Virus_Bool_Exp;
 };
+
+
+/** mutation root */
+export type Mutation_RootDelete_CommunitiesArgs = {
+  where: Communities_Bool_Exp;
+};
+
+
+/** mutation root */
+export type Mutation_RootDelete_Communities_By_PkArgs = {
+  id: Scalars['uuid'];
+};
+
+
+/** mutation root */
+export type Mutation_RootDelete_Community_FilesArgs = {
+  where: Community_Files_Bool_Exp;
+};
+
+
+/** mutation root */
+export type Mutation_RootDelete_Community_Files_By_PkArgs = {
+  id: Scalars['uuid'];
+};
+
+
+/** mutation root */
+export type Mutation_RootDelete_Community_MembersArgs = {
+  where: Community_Members_Bool_Exp;
+};
+
+
+/** mutation root */
+export type Mutation_RootDelete_Community_Members_By_PkArgs = {
+  id: Scalars['uuid'];
+};
+
+
+/** mutation root */
+export type Mutation_RootDelete_NotificationsArgs = {
+  where: Notifications_Bool_Exp;
+};
+
+
+/** mutation root */
+export type Mutation_RootDelete_Notifications_By_PkArgs = {
+  id: Scalars['uuid'];
+};
+
+
+/** mutation root */
+export type Mutation_RootDelete_TodosArgs = {
+  where: Todos_Bool_Exp;
+};
+
+
+/** mutation root */
+export type Mutation_RootDelete_Todos_By_PkArgs = {
+  id: Scalars['uuid'];
+};
+
+
+/** mutation root */
+export type Mutation_RootInsertAuthOauth2AuthRequestArgs = {
+  object: AuthOauth2AuthRequests_Insert_Input;
+  on_conflict?: InputMaybe<AuthOauth2AuthRequests_On_Conflict>;
+};
+
+
+/** mutation root */
+export type Mutation_RootInsertAuthOauth2AuthRequestsArgs = {
+  objects: Array<AuthOauth2AuthRequests_Insert_Input>;
+  on_conflict?: InputMaybe<AuthOauth2AuthRequests_On_Conflict>;
+};
+
+
+/** mutation root */
+export type Mutation_RootInsertAuthOauth2AuthorizationCodeArgs = {
+  object: AuthOauth2AuthorizationCodes_Insert_Input;
+  on_conflict?: InputMaybe<AuthOauth2AuthorizationCodes_On_Conflict>;
+};
+
+
+/** mutation root */
+export type Mutation_RootInsertAuthOauth2AuthorizationCodesArgs = {
+  objects: Array<AuthOauth2AuthorizationCodes_Insert_Input>;
+  on_conflict?: InputMaybe<AuthOauth2AuthorizationCodes_On_Conflict>;
+};
+
+
+/** mutation root */
+export type Mutation_RootInsertAuthOauth2ClientArgs = {
+  object: AuthOauth2Clients_Insert_Input;
+  on_conflict?: InputMaybe<AuthOauth2Clients_On_Conflict>;
+};
+
+
+/** mutation root */
+export type Mutation_RootInsertAuthOauth2ClientsArgs = {
+  objects: Array<AuthOauth2Clients_Insert_Input>;
+  on_conflict?: InputMaybe<AuthOauth2Clients_On_Conflict>;
+};
+
+
+/** mutation root */
+export type Mutation_RootInsertAuthOauth2RefreshTokenArgs = {
+  object: AuthOauth2RefreshTokens_Insert_Input;
+  on_conflict?: InputMaybe<AuthOauth2RefreshTokens_On_Conflict>;
+};
+
+
+/** mutation root */
+export type Mutation_RootInsertAuthOauth2RefreshTokensArgs = {
+  objects: Array<AuthOauth2RefreshTokens_Insert_Input>;
+  on_conflict?: InputMaybe<AuthOauth2RefreshTokens_On_Conflict>;
+};
+
 
 /** mutation root */
 export type Mutation_RootInsertAuthProviderArgs = {
@@ -5236,11 +8678,13 @@ export type Mutation_RootInsertAuthProviderArgs = {
   on_conflict?: InputMaybe<AuthProviders_On_Conflict>;
 };
 
+
 /** mutation root */
 export type Mutation_RootInsertAuthProviderRequestArgs = {
   object: AuthProviderRequests_Insert_Input;
   on_conflict?: InputMaybe<AuthProviderRequests_On_Conflict>;
 };
+
 
 /** mutation root */
 export type Mutation_RootInsertAuthProviderRequestsArgs = {
@@ -5248,11 +8692,13 @@ export type Mutation_RootInsertAuthProviderRequestsArgs = {
   on_conflict?: InputMaybe<AuthProviderRequests_On_Conflict>;
 };
 
+
 /** mutation root */
 export type Mutation_RootInsertAuthProvidersArgs = {
   objects: Array<AuthProviders_Insert_Input>;
   on_conflict?: InputMaybe<AuthProviders_On_Conflict>;
 };
+
 
 /** mutation root */
 export type Mutation_RootInsertAuthRefreshTokenArgs = {
@@ -5260,11 +8706,13 @@ export type Mutation_RootInsertAuthRefreshTokenArgs = {
   on_conflict?: InputMaybe<AuthRefreshTokens_On_Conflict>;
 };
 
+
 /** mutation root */
 export type Mutation_RootInsertAuthRefreshTokenTypeArgs = {
   object: AuthRefreshTokenTypes_Insert_Input;
   on_conflict?: InputMaybe<AuthRefreshTokenTypes_On_Conflict>;
 };
+
 
 /** mutation root */
 export type Mutation_RootInsertAuthRefreshTokenTypesArgs = {
@@ -5272,11 +8720,13 @@ export type Mutation_RootInsertAuthRefreshTokenTypesArgs = {
   on_conflict?: InputMaybe<AuthRefreshTokenTypes_On_Conflict>;
 };
 
+
 /** mutation root */
 export type Mutation_RootInsertAuthRefreshTokensArgs = {
   objects: Array<AuthRefreshTokens_Insert_Input>;
   on_conflict?: InputMaybe<AuthRefreshTokens_On_Conflict>;
 };
+
 
 /** mutation root */
 export type Mutation_RootInsertAuthRoleArgs = {
@@ -5284,11 +8734,13 @@ export type Mutation_RootInsertAuthRoleArgs = {
   on_conflict?: InputMaybe<AuthRoles_On_Conflict>;
 };
 
+
 /** mutation root */
 export type Mutation_RootInsertAuthRolesArgs = {
   objects: Array<AuthRoles_Insert_Input>;
   on_conflict?: InputMaybe<AuthRoles_On_Conflict>;
 };
+
 
 /** mutation root */
 export type Mutation_RootInsertAuthUserProviderArgs = {
@@ -5296,11 +8748,13 @@ export type Mutation_RootInsertAuthUserProviderArgs = {
   on_conflict?: InputMaybe<AuthUserProviders_On_Conflict>;
 };
 
+
 /** mutation root */
 export type Mutation_RootInsertAuthUserProvidersArgs = {
   objects: Array<AuthUserProviders_Insert_Input>;
   on_conflict?: InputMaybe<AuthUserProviders_On_Conflict>;
 };
+
 
 /** mutation root */
 export type Mutation_RootInsertAuthUserRoleArgs = {
@@ -5308,11 +8762,13 @@ export type Mutation_RootInsertAuthUserRoleArgs = {
   on_conflict?: InputMaybe<AuthUserRoles_On_Conflict>;
 };
 
+
 /** mutation root */
 export type Mutation_RootInsertAuthUserRolesArgs = {
   objects: Array<AuthUserRoles_Insert_Input>;
   on_conflict?: InputMaybe<AuthUserRoles_On_Conflict>;
 };
+
 
 /** mutation root */
 export type Mutation_RootInsertAuthUserSecurityKeyArgs = {
@@ -5320,11 +8776,13 @@ export type Mutation_RootInsertAuthUserSecurityKeyArgs = {
   on_conflict?: InputMaybe<AuthUserSecurityKeys_On_Conflict>;
 };
 
+
 /** mutation root */
 export type Mutation_RootInsertAuthUserSecurityKeysArgs = {
   objects: Array<AuthUserSecurityKeys_Insert_Input>;
   on_conflict?: InputMaybe<AuthUserSecurityKeys_On_Conflict>;
 };
+
 
 /** mutation root */
 export type Mutation_RootInsertBucketArgs = {
@@ -5332,11 +8790,13 @@ export type Mutation_RootInsertBucketArgs = {
   on_conflict?: InputMaybe<Buckets_On_Conflict>;
 };
 
+
 /** mutation root */
 export type Mutation_RootInsertBucketsArgs = {
   objects: Array<Buckets_Insert_Input>;
   on_conflict?: InputMaybe<Buckets_On_Conflict>;
 };
+
 
 /** mutation root */
 export type Mutation_RootInsertFileArgs = {
@@ -5344,11 +8804,69 @@ export type Mutation_RootInsertFileArgs = {
   on_conflict?: InputMaybe<Files_On_Conflict>;
 };
 
+
 /** mutation root */
 export type Mutation_RootInsertFilesArgs = {
   objects: Array<Files_Insert_Input>;
   on_conflict?: InputMaybe<Files_On_Conflict>;
 };
+
+
+/** mutation root */
+export type Mutation_RootInsertGraphiteAgentArgs = {
+  object: GraphiteAgents_Insert_Input;
+  on_conflict?: InputMaybe<GraphiteAgents_On_Conflict>;
+};
+
+
+/** mutation root */
+export type Mutation_RootInsertGraphiteAgentMessageArgs = {
+  object: GraphiteAgentMessages_Insert_Input;
+  on_conflict?: InputMaybe<GraphiteAgentMessages_On_Conflict>;
+};
+
+
+/** mutation root */
+export type Mutation_RootInsertGraphiteAgentMessagesArgs = {
+  objects: Array<GraphiteAgentMessages_Insert_Input>;
+  on_conflict?: InputMaybe<GraphiteAgentMessages_On_Conflict>;
+};
+
+
+/** mutation root */
+export type Mutation_RootInsertGraphiteAgentProviderArgs = {
+  object: GraphiteAgentProviders_Insert_Input;
+  on_conflict?: InputMaybe<GraphiteAgentProviders_On_Conflict>;
+};
+
+
+/** mutation root */
+export type Mutation_RootInsertGraphiteAgentProvidersArgs = {
+  objects: Array<GraphiteAgentProviders_Insert_Input>;
+  on_conflict?: InputMaybe<GraphiteAgentProviders_On_Conflict>;
+};
+
+
+/** mutation root */
+export type Mutation_RootInsertGraphiteAgentSessionArgs = {
+  object: GraphiteAgentSessions_Insert_Input;
+  on_conflict?: InputMaybe<GraphiteAgentSessions_On_Conflict>;
+};
+
+
+/** mutation root */
+export type Mutation_RootInsertGraphiteAgentSessionsArgs = {
+  objects: Array<GraphiteAgentSessions_Insert_Input>;
+  on_conflict?: InputMaybe<GraphiteAgentSessions_On_Conflict>;
+};
+
+
+/** mutation root */
+export type Mutation_RootInsertGraphiteAgentsArgs = {
+  objects: Array<GraphiteAgents_Insert_Input>;
+  on_conflict?: InputMaybe<GraphiteAgents_On_Conflict>;
+};
+
 
 /** mutation root */
 export type Mutation_RootInsertGraphiteAutoEmbeddingsConfigurationArgs = {
@@ -5356,11 +8874,13 @@ export type Mutation_RootInsertGraphiteAutoEmbeddingsConfigurationArgs = {
   on_conflict?: InputMaybe<GraphiteAutoEmbeddingsConfiguration_On_Conflict>;
 };
 
+
 /** mutation root */
 export type Mutation_RootInsertGraphiteAutoEmbeddingsConfigurationsArgs = {
   objects: Array<GraphiteAutoEmbeddingsConfiguration_Insert_Input>;
   on_conflict?: InputMaybe<GraphiteAutoEmbeddingsConfiguration_On_Conflict>;
 };
+
 
 /** mutation root */
 export type Mutation_RootInsertUserArgs = {
@@ -5368,11 +8888,13 @@ export type Mutation_RootInsertUserArgs = {
   on_conflict?: InputMaybe<Users_On_Conflict>;
 };
 
+
 /** mutation root */
 export type Mutation_RootInsertUsersArgs = {
   objects: Array<Users_Insert_Input>;
   on_conflict?: InputMaybe<Users_On_Conflict>;
 };
+
 
 /** mutation root */
 export type Mutation_RootInsertVirusArgs = {
@@ -5380,17 +8902,156 @@ export type Mutation_RootInsertVirusArgs = {
   on_conflict?: InputMaybe<Virus_On_Conflict>;
 };
 
+
 /** mutation root */
 export type Mutation_RootInsertVirusesArgs = {
   objects: Array<Virus_Insert_Input>;
   on_conflict?: InputMaybe<Virus_On_Conflict>;
 };
 
+
+/** mutation root */
+export type Mutation_RootInsert_CommunitiesArgs = {
+  objects: Array<Communities_Insert_Input>;
+  on_conflict?: InputMaybe<Communities_On_Conflict>;
+};
+
+
+/** mutation root */
+export type Mutation_RootInsert_Communities_OneArgs = {
+  object: Communities_Insert_Input;
+  on_conflict?: InputMaybe<Communities_On_Conflict>;
+};
+
+
+/** mutation root */
+export type Mutation_RootInsert_Community_FilesArgs = {
+  objects: Array<Community_Files_Insert_Input>;
+  on_conflict?: InputMaybe<Community_Files_On_Conflict>;
+};
+
+
+/** mutation root */
+export type Mutation_RootInsert_Community_Files_OneArgs = {
+  object: Community_Files_Insert_Input;
+  on_conflict?: InputMaybe<Community_Files_On_Conflict>;
+};
+
+
+/** mutation root */
+export type Mutation_RootInsert_Community_MembersArgs = {
+  objects: Array<Community_Members_Insert_Input>;
+  on_conflict?: InputMaybe<Community_Members_On_Conflict>;
+};
+
+
+/** mutation root */
+export type Mutation_RootInsert_Community_Members_OneArgs = {
+  object: Community_Members_Insert_Input;
+  on_conflict?: InputMaybe<Community_Members_On_Conflict>;
+};
+
+
+/** mutation root */
+export type Mutation_RootInsert_NotificationsArgs = {
+  objects: Array<Notifications_Insert_Input>;
+  on_conflict?: InputMaybe<Notifications_On_Conflict>;
+};
+
+
+/** mutation root */
+export type Mutation_RootInsert_Notifications_OneArgs = {
+  object: Notifications_Insert_Input;
+  on_conflict?: InputMaybe<Notifications_On_Conflict>;
+};
+
+
+/** mutation root */
+export type Mutation_RootInsert_TodosArgs = {
+  objects: Array<Todos_Insert_Input>;
+  on_conflict?: InputMaybe<Todos_On_Conflict>;
+};
+
+
+/** mutation root */
+export type Mutation_RootInsert_Todos_OneArgs = {
+  object: Todos_Insert_Input;
+  on_conflict?: InputMaybe<Todos_On_Conflict>;
+};
+
+
+/** mutation root */
+export type Mutation_RootUpdateAuthOauth2AuthRequestArgs = {
+  _set?: InputMaybe<AuthOauth2AuthRequests_Set_Input>;
+  pk_columns: AuthOauth2AuthRequests_Pk_Columns_Input;
+};
+
+
+/** mutation root */
+export type Mutation_RootUpdateAuthOauth2AuthRequestsArgs = {
+  _set?: InputMaybe<AuthOauth2AuthRequests_Set_Input>;
+  where: AuthOauth2AuthRequests_Bool_Exp;
+};
+
+
+/** mutation root */
+export type Mutation_RootUpdateAuthOauth2AuthorizationCodeArgs = {
+  _set?: InputMaybe<AuthOauth2AuthorizationCodes_Set_Input>;
+  pk_columns: AuthOauth2AuthorizationCodes_Pk_Columns_Input;
+};
+
+
+/** mutation root */
+export type Mutation_RootUpdateAuthOauth2AuthorizationCodesArgs = {
+  _set?: InputMaybe<AuthOauth2AuthorizationCodes_Set_Input>;
+  where: AuthOauth2AuthorizationCodes_Bool_Exp;
+};
+
+
+/** mutation root */
+export type Mutation_RootUpdateAuthOauth2ClientArgs = {
+  _append?: InputMaybe<AuthOauth2Clients_Append_Input>;
+  _delete_at_path?: InputMaybe<AuthOauth2Clients_Delete_At_Path_Input>;
+  _delete_elem?: InputMaybe<AuthOauth2Clients_Delete_Elem_Input>;
+  _delete_key?: InputMaybe<AuthOauth2Clients_Delete_Key_Input>;
+  _prepend?: InputMaybe<AuthOauth2Clients_Prepend_Input>;
+  _set?: InputMaybe<AuthOauth2Clients_Set_Input>;
+  pk_columns: AuthOauth2Clients_Pk_Columns_Input;
+};
+
+
+/** mutation root */
+export type Mutation_RootUpdateAuthOauth2ClientsArgs = {
+  _append?: InputMaybe<AuthOauth2Clients_Append_Input>;
+  _delete_at_path?: InputMaybe<AuthOauth2Clients_Delete_At_Path_Input>;
+  _delete_elem?: InputMaybe<AuthOauth2Clients_Delete_Elem_Input>;
+  _delete_key?: InputMaybe<AuthOauth2Clients_Delete_Key_Input>;
+  _prepend?: InputMaybe<AuthOauth2Clients_Prepend_Input>;
+  _set?: InputMaybe<AuthOauth2Clients_Set_Input>;
+  where: AuthOauth2Clients_Bool_Exp;
+};
+
+
+/** mutation root */
+export type Mutation_RootUpdateAuthOauth2RefreshTokenArgs = {
+  _set?: InputMaybe<AuthOauth2RefreshTokens_Set_Input>;
+  pk_columns: AuthOauth2RefreshTokens_Pk_Columns_Input;
+};
+
+
+/** mutation root */
+export type Mutation_RootUpdateAuthOauth2RefreshTokensArgs = {
+  _set?: InputMaybe<AuthOauth2RefreshTokens_Set_Input>;
+  where: AuthOauth2RefreshTokens_Bool_Exp;
+};
+
+
 /** mutation root */
 export type Mutation_RootUpdateAuthProviderArgs = {
   _set?: InputMaybe<AuthProviders_Set_Input>;
   pk_columns: AuthProviders_Pk_Columns_Input;
 };
+
 
 /** mutation root */
 export type Mutation_RootUpdateAuthProviderRequestArgs = {
@@ -5403,6 +9064,7 @@ export type Mutation_RootUpdateAuthProviderRequestArgs = {
   pk_columns: AuthProviderRequests_Pk_Columns_Input;
 };
 
+
 /** mutation root */
 export type Mutation_RootUpdateAuthProviderRequestsArgs = {
   _append?: InputMaybe<AuthProviderRequests_Append_Input>;
@@ -5414,11 +9076,13 @@ export type Mutation_RootUpdateAuthProviderRequestsArgs = {
   where: AuthProviderRequests_Bool_Exp;
 };
 
+
 /** mutation root */
 export type Mutation_RootUpdateAuthProvidersArgs = {
   _set?: InputMaybe<AuthProviders_Set_Input>;
   where: AuthProviders_Bool_Exp;
 };
+
 
 /** mutation root */
 export type Mutation_RootUpdateAuthRefreshTokenArgs = {
@@ -5431,17 +9095,20 @@ export type Mutation_RootUpdateAuthRefreshTokenArgs = {
   pk_columns: AuthRefreshTokens_Pk_Columns_Input;
 };
 
+
 /** mutation root */
 export type Mutation_RootUpdateAuthRefreshTokenTypeArgs = {
   _set?: InputMaybe<AuthRefreshTokenTypes_Set_Input>;
   pk_columns: AuthRefreshTokenTypes_Pk_Columns_Input;
 };
 
+
 /** mutation root */
 export type Mutation_RootUpdateAuthRefreshTokenTypesArgs = {
   _set?: InputMaybe<AuthRefreshTokenTypes_Set_Input>;
   where: AuthRefreshTokenTypes_Bool_Exp;
 };
+
 
 /** mutation root */
 export type Mutation_RootUpdateAuthRefreshTokensArgs = {
@@ -5454,11 +9121,13 @@ export type Mutation_RootUpdateAuthRefreshTokensArgs = {
   where: AuthRefreshTokens_Bool_Exp;
 };
 
+
 /** mutation root */
 export type Mutation_RootUpdateAuthRoleArgs = {
   _set?: InputMaybe<AuthRoles_Set_Input>;
   pk_columns: AuthRoles_Pk_Columns_Input;
 };
+
 
 /** mutation root */
 export type Mutation_RootUpdateAuthRolesArgs = {
@@ -5466,11 +9135,13 @@ export type Mutation_RootUpdateAuthRolesArgs = {
   where: AuthRoles_Bool_Exp;
 };
 
+
 /** mutation root */
 export type Mutation_RootUpdateAuthUserProviderArgs = {
   _set?: InputMaybe<AuthUserProviders_Set_Input>;
   pk_columns: AuthUserProviders_Pk_Columns_Input;
 };
+
 
 /** mutation root */
 export type Mutation_RootUpdateAuthUserProvidersArgs = {
@@ -5478,17 +9149,20 @@ export type Mutation_RootUpdateAuthUserProvidersArgs = {
   where: AuthUserProviders_Bool_Exp;
 };
 
+
 /** mutation root */
 export type Mutation_RootUpdateAuthUserRoleArgs = {
   _set?: InputMaybe<AuthUserRoles_Set_Input>;
   pk_columns: AuthUserRoles_Pk_Columns_Input;
 };
 
+
 /** mutation root */
 export type Mutation_RootUpdateAuthUserRolesArgs = {
   _set?: InputMaybe<AuthUserRoles_Set_Input>;
   where: AuthUserRoles_Bool_Exp;
 };
+
 
 /** mutation root */
 export type Mutation_RootUpdateAuthUserSecurityKeyArgs = {
@@ -5497,12 +9171,14 @@ export type Mutation_RootUpdateAuthUserSecurityKeyArgs = {
   pk_columns: AuthUserSecurityKeys_Pk_Columns_Input;
 };
 
+
 /** mutation root */
 export type Mutation_RootUpdateAuthUserSecurityKeysArgs = {
   _inc?: InputMaybe<AuthUserSecurityKeys_Inc_Input>;
   _set?: InputMaybe<AuthUserSecurityKeys_Set_Input>;
   where: AuthUserSecurityKeys_Bool_Exp;
 };
+
 
 /** mutation root */
 export type Mutation_RootUpdateBucketArgs = {
@@ -5511,12 +9187,14 @@ export type Mutation_RootUpdateBucketArgs = {
   pk_columns: Buckets_Pk_Columns_Input;
 };
 
+
 /** mutation root */
 export type Mutation_RootUpdateBucketsArgs = {
   _inc?: InputMaybe<Buckets_Inc_Input>;
   _set?: InputMaybe<Buckets_Set_Input>;
   where: Buckets_Bool_Exp;
 };
+
 
 /** mutation root */
 export type Mutation_RootUpdateFileArgs = {
@@ -5530,6 +9208,7 @@ export type Mutation_RootUpdateFileArgs = {
   pk_columns: Files_Pk_Columns_Input;
 };
 
+
 /** mutation root */
 export type Mutation_RootUpdateFilesArgs = {
   _append?: InputMaybe<Files_Append_Input>;
@@ -5542,11 +9221,89 @@ export type Mutation_RootUpdateFilesArgs = {
   where: Files_Bool_Exp;
 };
 
+
+/** mutation root */
+export type Mutation_RootUpdateGraphiteAgentArgs = {
+  _append?: InputMaybe<GraphiteAgents_Append_Input>;
+  _delete_at_path?: InputMaybe<GraphiteAgents_Delete_At_Path_Input>;
+  _delete_elem?: InputMaybe<GraphiteAgents_Delete_Elem_Input>;
+  _delete_key?: InputMaybe<GraphiteAgents_Delete_Key_Input>;
+  _prepend?: InputMaybe<GraphiteAgents_Prepend_Input>;
+  _set?: InputMaybe<GraphiteAgents_Set_Input>;
+  pk_columns: GraphiteAgents_Pk_Columns_Input;
+};
+
+
+/** mutation root */
+export type Mutation_RootUpdateGraphiteAgentMessageArgs = {
+  _append?: InputMaybe<GraphiteAgentMessages_Append_Input>;
+  _delete_at_path?: InputMaybe<GraphiteAgentMessages_Delete_At_Path_Input>;
+  _delete_elem?: InputMaybe<GraphiteAgentMessages_Delete_Elem_Input>;
+  _delete_key?: InputMaybe<GraphiteAgentMessages_Delete_Key_Input>;
+  _prepend?: InputMaybe<GraphiteAgentMessages_Prepend_Input>;
+  _set?: InputMaybe<GraphiteAgentMessages_Set_Input>;
+  pk_columns: GraphiteAgentMessages_Pk_Columns_Input;
+};
+
+
+/** mutation root */
+export type Mutation_RootUpdateGraphiteAgentMessagesArgs = {
+  _append?: InputMaybe<GraphiteAgentMessages_Append_Input>;
+  _delete_at_path?: InputMaybe<GraphiteAgentMessages_Delete_At_Path_Input>;
+  _delete_elem?: InputMaybe<GraphiteAgentMessages_Delete_Elem_Input>;
+  _delete_key?: InputMaybe<GraphiteAgentMessages_Delete_Key_Input>;
+  _prepend?: InputMaybe<GraphiteAgentMessages_Prepend_Input>;
+  _set?: InputMaybe<GraphiteAgentMessages_Set_Input>;
+  where: GraphiteAgentMessages_Bool_Exp;
+};
+
+
+/** mutation root */
+export type Mutation_RootUpdateGraphiteAgentProviderArgs = {
+  _set?: InputMaybe<GraphiteAgentProviders_Set_Input>;
+  pk_columns: GraphiteAgentProviders_Pk_Columns_Input;
+};
+
+
+/** mutation root */
+export type Mutation_RootUpdateGraphiteAgentProvidersArgs = {
+  _set?: InputMaybe<GraphiteAgentProviders_Set_Input>;
+  where: GraphiteAgentProviders_Bool_Exp;
+};
+
+
+/** mutation root */
+export type Mutation_RootUpdateGraphiteAgentSessionArgs = {
+  _set?: InputMaybe<GraphiteAgentSessions_Set_Input>;
+  pk_columns: GraphiteAgentSessions_Pk_Columns_Input;
+};
+
+
+/** mutation root */
+export type Mutation_RootUpdateGraphiteAgentSessionsArgs = {
+  _set?: InputMaybe<GraphiteAgentSessions_Set_Input>;
+  where: GraphiteAgentSessions_Bool_Exp;
+};
+
+
+/** mutation root */
+export type Mutation_RootUpdateGraphiteAgentsArgs = {
+  _append?: InputMaybe<GraphiteAgents_Append_Input>;
+  _delete_at_path?: InputMaybe<GraphiteAgents_Delete_At_Path_Input>;
+  _delete_elem?: InputMaybe<GraphiteAgents_Delete_Elem_Input>;
+  _delete_key?: InputMaybe<GraphiteAgents_Delete_Key_Input>;
+  _prepend?: InputMaybe<GraphiteAgents_Prepend_Input>;
+  _set?: InputMaybe<GraphiteAgents_Set_Input>;
+  where: GraphiteAgents_Bool_Exp;
+};
+
+
 /** mutation root */
 export type Mutation_RootUpdateGraphiteAutoEmbeddingsConfigurationArgs = {
   _set?: InputMaybe<GraphiteAutoEmbeddingsConfiguration_Set_Input>;
   pk_columns: GraphiteAutoEmbeddingsConfiguration_Pk_Columns_Input;
 };
+
 
 /** mutation root */
 export type Mutation_RootUpdateGraphiteAutoEmbeddingsConfigurationsArgs = {
@@ -5554,10 +9311,36 @@ export type Mutation_RootUpdateGraphiteAutoEmbeddingsConfigurationsArgs = {
   where: GraphiteAutoEmbeddingsConfiguration_Bool_Exp;
 };
 
+
+/** mutation root */
+export type Mutation_RootUpdateManyGraphiteAgentMessagesArgs = {
+  updates: Array<GraphiteAgentMessages_Updates>;
+};
+
+
+/** mutation root */
+export type Mutation_RootUpdateManyGraphiteAgentProvidersArgs = {
+  updates: Array<GraphiteAgentProviders_Updates>;
+};
+
+
+/** mutation root */
+export type Mutation_RootUpdateManyGraphiteAgentSessionsArgs = {
+  updates: Array<GraphiteAgentSessions_Updates>;
+};
+
+
+/** mutation root */
+export type Mutation_RootUpdateManyGraphiteAgentsArgs = {
+  updates: Array<GraphiteAgents_Updates>;
+};
+
+
 /** mutation root */
 export type Mutation_RootUpdateManyGraphiteAutoEmbeddingsConfigurationsArgs = {
   updates: Array<GraphiteAutoEmbeddingsConfiguration_Updates>;
 };
+
 
 /** mutation root */
 export type Mutation_RootUpdateUserArgs = {
@@ -5570,6 +9353,7 @@ export type Mutation_RootUpdateUserArgs = {
   pk_columns: Users_Pk_Columns_Input;
 };
 
+
 /** mutation root */
 export type Mutation_RootUpdateUsersArgs = {
   _append?: InputMaybe<Users_Append_Input>;
@@ -5580,6 +9364,7 @@ export type Mutation_RootUpdateUsersArgs = {
   _set?: InputMaybe<Users_Set_Input>;
   where: Users_Bool_Exp;
 };
+
 
 /** mutation root */
 export type Mutation_RootUpdateVirusArgs = {
@@ -5592,6 +9377,7 @@ export type Mutation_RootUpdateVirusArgs = {
   pk_columns: Virus_Pk_Columns_Input;
 };
 
+
 /** mutation root */
 export type Mutation_RootUpdateVirusesArgs = {
   _append?: InputMaybe<Virus_Append_Input>;
@@ -5603,64 +9389,484 @@ export type Mutation_RootUpdateVirusesArgs = {
   where: Virus_Bool_Exp;
 };
 
+
+/** mutation root */
+export type Mutation_RootUpdate_AuthOauth2AuthRequests_ManyArgs = {
+  updates: Array<AuthOauth2AuthRequests_Updates>;
+};
+
+
+/** mutation root */
+export type Mutation_RootUpdate_AuthOauth2AuthorizationCodes_ManyArgs = {
+  updates: Array<AuthOauth2AuthorizationCodes_Updates>;
+};
+
+
+/** mutation root */
+export type Mutation_RootUpdate_AuthOauth2Clients_ManyArgs = {
+  updates: Array<AuthOauth2Clients_Updates>;
+};
+
+
+/** mutation root */
+export type Mutation_RootUpdate_AuthOauth2RefreshTokens_ManyArgs = {
+  updates: Array<AuthOauth2RefreshTokens_Updates>;
+};
+
+
 /** mutation root */
 export type Mutation_RootUpdate_AuthProviderRequests_ManyArgs = {
   updates: Array<AuthProviderRequests_Updates>;
 };
+
 
 /** mutation root */
 export type Mutation_RootUpdate_AuthProviders_ManyArgs = {
   updates: Array<AuthProviders_Updates>;
 };
 
+
 /** mutation root */
 export type Mutation_RootUpdate_AuthRefreshTokenTypes_ManyArgs = {
   updates: Array<AuthRefreshTokenTypes_Updates>;
 };
+
 
 /** mutation root */
 export type Mutation_RootUpdate_AuthRefreshTokens_ManyArgs = {
   updates: Array<AuthRefreshTokens_Updates>;
 };
 
+
 /** mutation root */
 export type Mutation_RootUpdate_AuthRoles_ManyArgs = {
   updates: Array<AuthRoles_Updates>;
 };
+
 
 /** mutation root */
 export type Mutation_RootUpdate_AuthUserProviders_ManyArgs = {
   updates: Array<AuthUserProviders_Updates>;
 };
 
+
 /** mutation root */
 export type Mutation_RootUpdate_AuthUserRoles_ManyArgs = {
   updates: Array<AuthUserRoles_Updates>;
 };
+
 
 /** mutation root */
 export type Mutation_RootUpdate_AuthUserSecurityKeys_ManyArgs = {
   updates: Array<AuthUserSecurityKeys_Updates>;
 };
 
+
 /** mutation root */
 export type Mutation_RootUpdate_Buckets_ManyArgs = {
   updates: Array<Buckets_Updates>;
 };
+
+
+/** mutation root */
+export type Mutation_RootUpdate_CommunitiesArgs = {
+  _set?: InputMaybe<Communities_Set_Input>;
+  where: Communities_Bool_Exp;
+};
+
+
+/** mutation root */
+export type Mutation_RootUpdate_Communities_By_PkArgs = {
+  _set?: InputMaybe<Communities_Set_Input>;
+  pk_columns: Communities_Pk_Columns_Input;
+};
+
+
+/** mutation root */
+export type Mutation_RootUpdate_Communities_ManyArgs = {
+  updates: Array<Communities_Updates>;
+};
+
+
+/** mutation root */
+export type Mutation_RootUpdate_Community_FilesArgs = {
+  _set?: InputMaybe<Community_Files_Set_Input>;
+  where: Community_Files_Bool_Exp;
+};
+
+
+/** mutation root */
+export type Mutation_RootUpdate_Community_Files_By_PkArgs = {
+  _set?: InputMaybe<Community_Files_Set_Input>;
+  pk_columns: Community_Files_Pk_Columns_Input;
+};
+
+
+/** mutation root */
+export type Mutation_RootUpdate_Community_Files_ManyArgs = {
+  updates: Array<Community_Files_Updates>;
+};
+
+
+/** mutation root */
+export type Mutation_RootUpdate_Community_MembersArgs = {
+  _set?: InputMaybe<Community_Members_Set_Input>;
+  where: Community_Members_Bool_Exp;
+};
+
+
+/** mutation root */
+export type Mutation_RootUpdate_Community_Members_By_PkArgs = {
+  _set?: InputMaybe<Community_Members_Set_Input>;
+  pk_columns: Community_Members_Pk_Columns_Input;
+};
+
+
+/** mutation root */
+export type Mutation_RootUpdate_Community_Members_ManyArgs = {
+  updates: Array<Community_Members_Updates>;
+};
+
 
 /** mutation root */
 export type Mutation_RootUpdate_Files_ManyArgs = {
   updates: Array<Files_Updates>;
 };
 
+
+/** mutation root */
+export type Mutation_RootUpdate_NotificationsArgs = {
+  _set?: InputMaybe<Notifications_Set_Input>;
+  where: Notifications_Bool_Exp;
+};
+
+
+/** mutation root */
+export type Mutation_RootUpdate_Notifications_By_PkArgs = {
+  _set?: InputMaybe<Notifications_Set_Input>;
+  pk_columns: Notifications_Pk_Columns_Input;
+};
+
+
+/** mutation root */
+export type Mutation_RootUpdate_Notifications_ManyArgs = {
+  updates: Array<Notifications_Updates>;
+};
+
+
+/** mutation root */
+export type Mutation_RootUpdate_TodosArgs = {
+  _set?: InputMaybe<Todos_Set_Input>;
+  where: Todos_Bool_Exp;
+};
+
+
+/** mutation root */
+export type Mutation_RootUpdate_Todos_By_PkArgs = {
+  _set?: InputMaybe<Todos_Set_Input>;
+  pk_columns: Todos_Pk_Columns_Input;
+};
+
+
+/** mutation root */
+export type Mutation_RootUpdate_Todos_ManyArgs = {
+  updates: Array<Todos_Updates>;
+};
+
+
 /** mutation root */
 export type Mutation_RootUpdate_Users_ManyArgs = {
   updates: Array<Users_Updates>;
 };
 
+
 /** mutation root */
 export type Mutation_RootUpdate_Virus_ManyArgs = {
   updates: Array<Virus_Updates>;
+};
+
+/** columns and relationships of "notifications" */
+export type Notifications = {
+  __typename?: 'notifications';
+  created_at: Scalars['timestamptz'];
+  id: Scalars['uuid'];
+  message: Scalars['String'];
+  read: Scalars['Boolean'];
+  title: Scalars['String'];
+  type: Scalars['String'];
+  updated_at: Scalars['timestamptz'];
+  /** An object relationship */
+  user: Users;
+  user_id: Scalars['uuid'];
+};
+
+/** aggregated selection of "notifications" */
+export type Notifications_Aggregate = {
+  __typename?: 'notifications_aggregate';
+  aggregate?: Maybe<Notifications_Aggregate_Fields>;
+  nodes: Array<Notifications>;
+};
+
+export type Notifications_Aggregate_Bool_Exp = {
+  bool_and?: InputMaybe<Notifications_Aggregate_Bool_Exp_Bool_And>;
+  bool_or?: InputMaybe<Notifications_Aggregate_Bool_Exp_Bool_Or>;
+  count?: InputMaybe<Notifications_Aggregate_Bool_Exp_Count>;
+};
+
+export type Notifications_Aggregate_Bool_Exp_Bool_And = {
+  arguments: Notifications_Select_Column_Notifications_Aggregate_Bool_Exp_Bool_And_Arguments_Columns;
+  distinct?: InputMaybe<Scalars['Boolean']>;
+  filter?: InputMaybe<Notifications_Bool_Exp>;
+  predicate: Boolean_Comparison_Exp;
+};
+
+export type Notifications_Aggregate_Bool_Exp_Bool_Or = {
+  arguments: Notifications_Select_Column_Notifications_Aggregate_Bool_Exp_Bool_Or_Arguments_Columns;
+  distinct?: InputMaybe<Scalars['Boolean']>;
+  filter?: InputMaybe<Notifications_Bool_Exp>;
+  predicate: Boolean_Comparison_Exp;
+};
+
+export type Notifications_Aggregate_Bool_Exp_Count = {
+  arguments?: InputMaybe<Array<Notifications_Select_Column>>;
+  distinct?: InputMaybe<Scalars['Boolean']>;
+  filter?: InputMaybe<Notifications_Bool_Exp>;
+  predicate: Int_Comparison_Exp;
+};
+
+/** aggregate fields of "notifications" */
+export type Notifications_Aggregate_Fields = {
+  __typename?: 'notifications_aggregate_fields';
+  count: Scalars['Int'];
+  max?: Maybe<Notifications_Max_Fields>;
+  min?: Maybe<Notifications_Min_Fields>;
+};
+
+
+/** aggregate fields of "notifications" */
+export type Notifications_Aggregate_FieldsCountArgs = {
+  columns?: InputMaybe<Array<Notifications_Select_Column>>;
+  distinct?: InputMaybe<Scalars['Boolean']>;
+};
+
+/** order by aggregate values of table "notifications" */
+export type Notifications_Aggregate_Order_By = {
+  count?: InputMaybe<Order_By>;
+  max?: InputMaybe<Notifications_Max_Order_By>;
+  min?: InputMaybe<Notifications_Min_Order_By>;
+};
+
+/** input type for inserting array relation for remote table "notifications" */
+export type Notifications_Arr_Rel_Insert_Input = {
+  data: Array<Notifications_Insert_Input>;
+  /** upsert condition */
+  on_conflict?: InputMaybe<Notifications_On_Conflict>;
+};
+
+/** Boolean expression to filter rows from the table "notifications". All fields are combined with a logical 'AND'. */
+export type Notifications_Bool_Exp = {
+  _and?: InputMaybe<Array<Notifications_Bool_Exp>>;
+  _not?: InputMaybe<Notifications_Bool_Exp>;
+  _or?: InputMaybe<Array<Notifications_Bool_Exp>>;
+  created_at?: InputMaybe<Timestamptz_Comparison_Exp>;
+  id?: InputMaybe<Uuid_Comparison_Exp>;
+  message?: InputMaybe<String_Comparison_Exp>;
+  read?: InputMaybe<Boolean_Comparison_Exp>;
+  title?: InputMaybe<String_Comparison_Exp>;
+  type?: InputMaybe<String_Comparison_Exp>;
+  updated_at?: InputMaybe<Timestamptz_Comparison_Exp>;
+  user?: InputMaybe<Users_Bool_Exp>;
+  user_id?: InputMaybe<Uuid_Comparison_Exp>;
+};
+
+/** unique or primary key constraints on table "notifications" */
+export enum Notifications_Constraint {
+  /** unique or primary key constraint on columns "id" */
+  NotificationsPkey = 'notifications_pkey'
+}
+
+/** input type for inserting data into table "notifications" */
+export type Notifications_Insert_Input = {
+  created_at?: InputMaybe<Scalars['timestamptz']>;
+  id?: InputMaybe<Scalars['uuid']>;
+  message?: InputMaybe<Scalars['String']>;
+  read?: InputMaybe<Scalars['Boolean']>;
+  title?: InputMaybe<Scalars['String']>;
+  type?: InputMaybe<Scalars['String']>;
+  updated_at?: InputMaybe<Scalars['timestamptz']>;
+  user?: InputMaybe<Users_Obj_Rel_Insert_Input>;
+  user_id?: InputMaybe<Scalars['uuid']>;
+};
+
+/** aggregate max on columns */
+export type Notifications_Max_Fields = {
+  __typename?: 'notifications_max_fields';
+  created_at?: Maybe<Scalars['timestamptz']>;
+  id?: Maybe<Scalars['uuid']>;
+  message?: Maybe<Scalars['String']>;
+  title?: Maybe<Scalars['String']>;
+  type?: Maybe<Scalars['String']>;
+  updated_at?: Maybe<Scalars['timestamptz']>;
+  user_id?: Maybe<Scalars['uuid']>;
+};
+
+/** order by max() on columns of table "notifications" */
+export type Notifications_Max_Order_By = {
+  created_at?: InputMaybe<Order_By>;
+  id?: InputMaybe<Order_By>;
+  message?: InputMaybe<Order_By>;
+  title?: InputMaybe<Order_By>;
+  type?: InputMaybe<Order_By>;
+  updated_at?: InputMaybe<Order_By>;
+  user_id?: InputMaybe<Order_By>;
+};
+
+/** aggregate min on columns */
+export type Notifications_Min_Fields = {
+  __typename?: 'notifications_min_fields';
+  created_at?: Maybe<Scalars['timestamptz']>;
+  id?: Maybe<Scalars['uuid']>;
+  message?: Maybe<Scalars['String']>;
+  title?: Maybe<Scalars['String']>;
+  type?: Maybe<Scalars['String']>;
+  updated_at?: Maybe<Scalars['timestamptz']>;
+  user_id?: Maybe<Scalars['uuid']>;
+};
+
+/** order by min() on columns of table "notifications" */
+export type Notifications_Min_Order_By = {
+  created_at?: InputMaybe<Order_By>;
+  id?: InputMaybe<Order_By>;
+  message?: InputMaybe<Order_By>;
+  title?: InputMaybe<Order_By>;
+  type?: InputMaybe<Order_By>;
+  updated_at?: InputMaybe<Order_By>;
+  user_id?: InputMaybe<Order_By>;
+};
+
+/** response of any mutation on the table "notifications" */
+export type Notifications_Mutation_Response = {
+  __typename?: 'notifications_mutation_response';
+  /** number of rows affected by the mutation */
+  affected_rows: Scalars['Int'];
+  /** data from the rows affected by the mutation */
+  returning: Array<Notifications>;
+};
+
+/** on_conflict condition type for table "notifications" */
+export type Notifications_On_Conflict = {
+  constraint: Notifications_Constraint;
+  update_columns?: Array<Notifications_Update_Column>;
+  where?: InputMaybe<Notifications_Bool_Exp>;
+};
+
+/** Ordering options when selecting data from "notifications". */
+export type Notifications_Order_By = {
+  created_at?: InputMaybe<Order_By>;
+  id?: InputMaybe<Order_By>;
+  message?: InputMaybe<Order_By>;
+  read?: InputMaybe<Order_By>;
+  title?: InputMaybe<Order_By>;
+  type?: InputMaybe<Order_By>;
+  updated_at?: InputMaybe<Order_By>;
+  user?: InputMaybe<Users_Order_By>;
+  user_id?: InputMaybe<Order_By>;
+};
+
+/** primary key columns input for table: notifications */
+export type Notifications_Pk_Columns_Input = {
+  id: Scalars['uuid'];
+};
+
+/** select columns of table "notifications" */
+export enum Notifications_Select_Column {
+  /** column name */
+  CreatedAt = 'created_at',
+  /** column name */
+  Id = 'id',
+  /** column name */
+  Message = 'message',
+  /** column name */
+  Read = 'read',
+  /** column name */
+  Title = 'title',
+  /** column name */
+  Type = 'type',
+  /** column name */
+  UpdatedAt = 'updated_at',
+  /** column name */
+  UserId = 'user_id'
+}
+
+/** select "notifications_aggregate_bool_exp_bool_and_arguments_columns" columns of table "notifications" */
+export enum Notifications_Select_Column_Notifications_Aggregate_Bool_Exp_Bool_And_Arguments_Columns {
+  /** column name */
+  Read = 'read'
+}
+
+/** select "notifications_aggregate_bool_exp_bool_or_arguments_columns" columns of table "notifications" */
+export enum Notifications_Select_Column_Notifications_Aggregate_Bool_Exp_Bool_Or_Arguments_Columns {
+  /** column name */
+  Read = 'read'
+}
+
+/** input type for updating data in table "notifications" */
+export type Notifications_Set_Input = {
+  created_at?: InputMaybe<Scalars['timestamptz']>;
+  id?: InputMaybe<Scalars['uuid']>;
+  message?: InputMaybe<Scalars['String']>;
+  read?: InputMaybe<Scalars['Boolean']>;
+  title?: InputMaybe<Scalars['String']>;
+  type?: InputMaybe<Scalars['String']>;
+  updated_at?: InputMaybe<Scalars['timestamptz']>;
+  user_id?: InputMaybe<Scalars['uuid']>;
+};
+
+/** Streaming cursor of the table "notifications" */
+export type Notifications_Stream_Cursor_Input = {
+  /** Stream column input with initial value */
+  initial_value: Notifications_Stream_Cursor_Value_Input;
+  /** cursor ordering */
+  ordering?: InputMaybe<Cursor_Ordering>;
+};
+
+/** Initial value of the column from where the streaming should start */
+export type Notifications_Stream_Cursor_Value_Input = {
+  created_at?: InputMaybe<Scalars['timestamptz']>;
+  id?: InputMaybe<Scalars['uuid']>;
+  message?: InputMaybe<Scalars['String']>;
+  read?: InputMaybe<Scalars['Boolean']>;
+  title?: InputMaybe<Scalars['String']>;
+  type?: InputMaybe<Scalars['String']>;
+  updated_at?: InputMaybe<Scalars['timestamptz']>;
+  user_id?: InputMaybe<Scalars['uuid']>;
+};
+
+/** update columns of table "notifications" */
+export enum Notifications_Update_Column {
+  /** column name */
+  CreatedAt = 'created_at',
+  /** column name */
+  Id = 'id',
+  /** column name */
+  Message = 'message',
+  /** column name */
+  Read = 'read',
+  /** column name */
+  Title = 'title',
+  /** column name */
+  Type = 'type',
+  /** column name */
+  UpdatedAt = 'updated_at',
+  /** column name */
+  UserId = 'user_id'
+}
+
+export type Notifications_Updates = {
+  /** sets the columns of the filtered rows to the given values */
+  _set?: InputMaybe<Notifications_Set_Input>;
+  /** filter the rows which have to be updated */
+  where: Notifications_Bool_Exp;
 };
 
 /** column ordering options */
@@ -5676,7 +9882,7 @@ export enum Order_By {
   /** in descending order, nulls first */
   DescNullsFirst = 'desc_nulls_first',
   /** in descending order, nulls last */
-  DescNullsLast = 'desc_nulls_last',
+  DescNullsLast = 'desc_nulls_last'
 }
 
 export type Query_Root = {
@@ -5717,6 +9923,30 @@ export type Query_Root = {
   _graphiteSessionAggregate: _GraphiteSessions_Aggregate;
   /** fetch data from the table: "graphite.sessions" */
   _graphiteSessions: Array<_GraphiteSessions>;
+  /** fetch data from the table: "auth.oauth2_auth_requests" using primary key columns */
+  authOauth2AuthRequest?: Maybe<AuthOauth2AuthRequests>;
+  /** fetch data from the table: "auth.oauth2_auth_requests" */
+  authOauth2AuthRequests: Array<AuthOauth2AuthRequests>;
+  /** fetch aggregated fields from the table: "auth.oauth2_auth_requests" */
+  authOauth2AuthRequestsAggregate: AuthOauth2AuthRequests_Aggregate;
+  /** fetch data from the table: "auth.oauth2_authorization_codes" using primary key columns */
+  authOauth2AuthorizationCode?: Maybe<AuthOauth2AuthorizationCodes>;
+  /** fetch data from the table: "auth.oauth2_authorization_codes" */
+  authOauth2AuthorizationCodes: Array<AuthOauth2AuthorizationCodes>;
+  /** fetch aggregated fields from the table: "auth.oauth2_authorization_codes" */
+  authOauth2AuthorizationCodesAggregate: AuthOauth2AuthorizationCodes_Aggregate;
+  /** fetch data from the table: "auth.oauth2_clients" using primary key columns */
+  authOauth2Client?: Maybe<AuthOauth2Clients>;
+  /** fetch data from the table: "auth.oauth2_clients" */
+  authOauth2Clients: Array<AuthOauth2Clients>;
+  /** fetch aggregated fields from the table: "auth.oauth2_clients" */
+  authOauth2ClientsAggregate: AuthOauth2Clients_Aggregate;
+  /** fetch data from the table: "auth.oauth2_refresh_tokens" using primary key columns */
+  authOauth2RefreshToken?: Maybe<AuthOauth2RefreshTokens>;
+  /** fetch data from the table: "auth.oauth2_refresh_tokens" */
+  authOauth2RefreshTokens: Array<AuthOauth2RefreshTokens>;
+  /** fetch aggregated fields from the table: "auth.oauth2_refresh_tokens" */
+  authOauth2RefreshTokensAggregate: AuthOauth2RefreshTokens_Aggregate;
   /** fetch data from the table: "auth.providers" using primary key columns */
   authProvider?: Maybe<AuthProviders>;
   /** fetch data from the table: "auth.provider_requests" using primary key columns */
@@ -5771,6 +10001,24 @@ export type Query_Root = {
   buckets: Array<Buckets>;
   /** fetch aggregated fields from the table: "storage.buckets" */
   bucketsAggregate: Buckets_Aggregate;
+  /** fetch data from the table: "communities" */
+  communities: Array<Communities>;
+  /** fetch aggregated fields from the table: "communities" */
+  communities_aggregate: Communities_Aggregate;
+  /** fetch data from the table: "communities" using primary key columns */
+  communities_by_pk?: Maybe<Communities>;
+  /** An array relationship */
+  community_files: Array<Community_Files>;
+  /** An aggregate relationship */
+  community_files_aggregate: Community_Files_Aggregate;
+  /** fetch data from the table: "community_files" using primary key columns */
+  community_files_by_pk?: Maybe<Community_Files>;
+  /** fetch data from the table: "community_members" */
+  community_members: Array<Community_Members>;
+  /** fetch aggregated fields from the table: "community_members" */
+  community_members_aggregate: Community_Members_Aggregate;
+  /** fetch data from the table: "community_members" using primary key columns */
+  community_members_by_pk?: Maybe<Community_Members>;
   /** fetch data from the table: "storage.files" using primary key columns */
   file?: Maybe<Files>;
   /** An array relationship */
@@ -5778,12 +10026,49 @@ export type Query_Root = {
   /** fetch aggregated fields from the table: "storage.files" */
   filesAggregate: Files_Aggregate;
   graphite?: Maybe<GraphiteQuery>;
+  /** fetch data from the table: "graphite.agents" using primary key columns */
+  graphiteAgent?: Maybe<GraphiteAgents>;
+  /** fetch aggregated fields from the table: "graphite.agents" */
+  graphiteAgentAggregate: GraphiteAgents_Aggregate;
+  /** fetch data from the table: "graphite.agent_messages" using primary key columns */
+  graphiteAgentMessage?: Maybe<GraphiteAgentMessages>;
+  /** fetch aggregated fields from the table: "graphite.agent_messages" */
+  graphiteAgentMessageAggregate: GraphiteAgentMessages_Aggregate;
+  /** fetch data from the table: "graphite.agent_messages" */
+  graphiteAgentMessages: Array<GraphiteAgentMessages>;
+  /** fetch data from the table: "graphite.agent_providers" using primary key columns */
+  graphiteAgentProvider?: Maybe<GraphiteAgentProviders>;
+  /** fetch aggregated fields from the table: "graphite.agent_providers" */
+  graphiteAgentProviderAggregate: GraphiteAgentProviders_Aggregate;
+  /** fetch data from the table: "graphite.agent_providers" */
+  graphiteAgentProviders: Array<GraphiteAgentProviders>;
+  /** fetch data from the table: "graphite.agent_sessions" using primary key columns */
+  graphiteAgentSession?: Maybe<GraphiteAgentSessions>;
+  /** fetch aggregated fields from the table: "graphite.agent_sessions" */
+  graphiteAgentSessionAggregate: GraphiteAgentSessions_Aggregate;
+  /** fetch data from the table: "graphite.agent_sessions" */
+  graphiteAgentSessions: Array<GraphiteAgentSessions>;
+  /** fetch data from the table: "graphite.agents" */
+  graphiteAgents: Array<GraphiteAgents>;
   /** fetch data from the table: "graphite.auto_embeddings_configuration" using primary key columns */
   graphiteAutoEmbeddingsConfiguration?: Maybe<GraphiteAutoEmbeddingsConfiguration>;
   /** fetch aggregated fields from the table: "graphite.auto_embeddings_configuration" */
   graphiteAutoEmbeddingsConfigurationAggregate: GraphiteAutoEmbeddingsConfiguration_Aggregate;
   /** fetch data from the table: "graphite.auto_embeddings_configuration" */
   graphiteAutoEmbeddingsConfigurations: Array<GraphiteAutoEmbeddingsConfiguration>;
+  hello: Scalars['String'];
+  /** An array relationship */
+  notifications: Array<Notifications>;
+  /** An aggregate relationship */
+  notifications_aggregate: Notifications_Aggregate;
+  /** fetch data from the table: "notifications" using primary key columns */
+  notifications_by_pk?: Maybe<Notifications>;
+  /** fetch data from the table: "todos" */
+  todos: Array<Todos>;
+  /** fetch aggregated fields from the table: "todos" */
+  todos_aggregate: Todos_Aggregate;
+  /** fetch data from the table: "todos" using primary key columns */
+  todos_by_pk?: Maybe<Todos>;
   /** fetch data from the table: "auth.users" using primary key columns */
   user?: Maybe<Users>;
   /** fetch data from the table: "auth.users" */
@@ -5798,9 +10083,11 @@ export type Query_Root = {
   virusesAggregate: Virus_Aggregate;
 };
 
+
 export type Query_Root_GraphiteAssistantArgs = {
   id: Scalars['uuid'];
 };
+
 
 export type Query_Root_GraphiteAssistantAggregateArgs = {
   distinct_on?: InputMaybe<Array<_GraphiteAssistants_Select_Column>>;
@@ -5810,10 +10097,12 @@ export type Query_Root_GraphiteAssistantAggregateArgs = {
   where?: InputMaybe<_GraphiteAssistants_Bool_Exp>;
 };
 
+
 export type Query_Root_GraphiteAssistantFileStoreArgs = {
   assistantID: Scalars['String'];
   fileStoreID: Scalars['uuid'];
 };
+
 
 export type Query_Root_GraphiteAssistantFileStoreAggregateArgs = {
   distinct_on?: InputMaybe<Array<_GraphiteAssistantFileStores_Select_Column>>;
@@ -5823,6 +10112,7 @@ export type Query_Root_GraphiteAssistantFileStoreAggregateArgs = {
   where?: InputMaybe<_GraphiteAssistantFileStores_Bool_Exp>;
 };
 
+
 export type Query_Root_GraphiteAssistantFileStoresArgs = {
   distinct_on?: InputMaybe<Array<_GraphiteAssistantFileStores_Select_Column>>;
   limit?: InputMaybe<Scalars['Int']>;
@@ -5830,6 +10120,7 @@ export type Query_Root_GraphiteAssistantFileStoresArgs = {
   order_by?: InputMaybe<Array<_GraphiteAssistantFileStores_Order_By>>;
   where?: InputMaybe<_GraphiteAssistantFileStores_Bool_Exp>;
 };
+
 
 export type Query_Root_GraphiteAssistantsArgs = {
   distinct_on?: InputMaybe<Array<_GraphiteAssistants_Select_Column>>;
@@ -5839,9 +10130,11 @@ export type Query_Root_GraphiteAssistantsArgs = {
   where?: InputMaybe<_GraphiteAssistants_Bool_Exp>;
 };
 
+
 export type Query_Root_GraphiteFileArgs = {
   id: Scalars['uuid'];
 };
+
 
 export type Query_Root_GraphiteFileAggregateArgs = {
   distinct_on?: InputMaybe<Array<_GraphiteFiles_Select_Column>>;
@@ -5851,9 +10144,11 @@ export type Query_Root_GraphiteFileAggregateArgs = {
   where?: InputMaybe<_GraphiteFiles_Bool_Exp>;
 };
 
+
 export type Query_Root_GraphiteFileStoreArgs = {
   id: Scalars['uuid'];
 };
+
 
 export type Query_Root_GraphiteFileStoreAggregateArgs = {
   distinct_on?: InputMaybe<Array<_GraphiteFileStores_Select_Column>>;
@@ -5863,10 +10158,12 @@ export type Query_Root_GraphiteFileStoreAggregateArgs = {
   where?: InputMaybe<_GraphiteFileStores_Bool_Exp>;
 };
 
+
 export type Query_Root_GraphiteFileStoreBucketArgs = {
   bucketID: Scalars['String'];
   fileStoreID: Scalars['uuid'];
 };
+
 
 export type Query_Root_GraphiteFileStoreBucketAggregateArgs = {
   distinct_on?: InputMaybe<Array<_GraphiteFileStoreBuckets_Select_Column>>;
@@ -5876,6 +10173,7 @@ export type Query_Root_GraphiteFileStoreBucketAggregateArgs = {
   where?: InputMaybe<_GraphiteFileStoreBuckets_Bool_Exp>;
 };
 
+
 export type Query_Root_GraphiteFileStoreBucketsArgs = {
   distinct_on?: InputMaybe<Array<_GraphiteFileStoreBuckets_Select_Column>>;
   limit?: InputMaybe<Scalars['Int']>;
@@ -5883,6 +10181,7 @@ export type Query_Root_GraphiteFileStoreBucketsArgs = {
   order_by?: InputMaybe<Array<_GraphiteFileStoreBuckets_Order_By>>;
   where?: InputMaybe<_GraphiteFileStoreBuckets_Bool_Exp>;
 };
+
 
 export type Query_Root_GraphiteFileStoresArgs = {
   distinct_on?: InputMaybe<Array<_GraphiteFileStores_Select_Column>>;
@@ -5892,6 +10191,7 @@ export type Query_Root_GraphiteFileStoresArgs = {
   where?: InputMaybe<_GraphiteFileStores_Bool_Exp>;
 };
 
+
 export type Query_Root_GraphiteFilesArgs = {
   distinct_on?: InputMaybe<Array<_GraphiteFiles_Select_Column>>;
   limit?: InputMaybe<Scalars['Int']>;
@@ -5900,9 +10200,11 @@ export type Query_Root_GraphiteFilesArgs = {
   where?: InputMaybe<_GraphiteFiles_Bool_Exp>;
 };
 
+
 export type Query_Root_GraphiteSessionArgs = {
   id: Scalars['uuid'];
 };
+
 
 export type Query_Root_GraphiteSessionAggregateArgs = {
   distinct_on?: InputMaybe<Array<_GraphiteSessions_Select_Column>>;
@@ -5912,6 +10214,7 @@ export type Query_Root_GraphiteSessionAggregateArgs = {
   where?: InputMaybe<_GraphiteSessions_Bool_Exp>;
 };
 
+
 export type Query_Root_GraphiteSessionsArgs = {
   distinct_on?: InputMaybe<Array<_GraphiteSessions_Select_Column>>;
   limit?: InputMaybe<Scalars['Int']>;
@@ -5920,13 +10223,108 @@ export type Query_Root_GraphiteSessionsArgs = {
   where?: InputMaybe<_GraphiteSessions_Bool_Exp>;
 };
 
+
+export type Query_RootAuthOauth2AuthRequestArgs = {
+  id: Scalars['uuid'];
+};
+
+
+export type Query_RootAuthOauth2AuthRequestsArgs = {
+  distinct_on?: InputMaybe<Array<AuthOauth2AuthRequests_Select_Column>>;
+  limit?: InputMaybe<Scalars['Int']>;
+  offset?: InputMaybe<Scalars['Int']>;
+  order_by?: InputMaybe<Array<AuthOauth2AuthRequests_Order_By>>;
+  where?: InputMaybe<AuthOauth2AuthRequests_Bool_Exp>;
+};
+
+
+export type Query_RootAuthOauth2AuthRequestsAggregateArgs = {
+  distinct_on?: InputMaybe<Array<AuthOauth2AuthRequests_Select_Column>>;
+  limit?: InputMaybe<Scalars['Int']>;
+  offset?: InputMaybe<Scalars['Int']>;
+  order_by?: InputMaybe<Array<AuthOauth2AuthRequests_Order_By>>;
+  where?: InputMaybe<AuthOauth2AuthRequests_Bool_Exp>;
+};
+
+
+export type Query_RootAuthOauth2AuthorizationCodeArgs = {
+  id: Scalars['uuid'];
+};
+
+
+export type Query_RootAuthOauth2AuthorizationCodesArgs = {
+  distinct_on?: InputMaybe<Array<AuthOauth2AuthorizationCodes_Select_Column>>;
+  limit?: InputMaybe<Scalars['Int']>;
+  offset?: InputMaybe<Scalars['Int']>;
+  order_by?: InputMaybe<Array<AuthOauth2AuthorizationCodes_Order_By>>;
+  where?: InputMaybe<AuthOauth2AuthorizationCodes_Bool_Exp>;
+};
+
+
+export type Query_RootAuthOauth2AuthorizationCodesAggregateArgs = {
+  distinct_on?: InputMaybe<Array<AuthOauth2AuthorizationCodes_Select_Column>>;
+  limit?: InputMaybe<Scalars['Int']>;
+  offset?: InputMaybe<Scalars['Int']>;
+  order_by?: InputMaybe<Array<AuthOauth2AuthorizationCodes_Order_By>>;
+  where?: InputMaybe<AuthOauth2AuthorizationCodes_Bool_Exp>;
+};
+
+
+export type Query_RootAuthOauth2ClientArgs = {
+  clientId: Scalars['String'];
+};
+
+
+export type Query_RootAuthOauth2ClientsArgs = {
+  distinct_on?: InputMaybe<Array<AuthOauth2Clients_Select_Column>>;
+  limit?: InputMaybe<Scalars['Int']>;
+  offset?: InputMaybe<Scalars['Int']>;
+  order_by?: InputMaybe<Array<AuthOauth2Clients_Order_By>>;
+  where?: InputMaybe<AuthOauth2Clients_Bool_Exp>;
+};
+
+
+export type Query_RootAuthOauth2ClientsAggregateArgs = {
+  distinct_on?: InputMaybe<Array<AuthOauth2Clients_Select_Column>>;
+  limit?: InputMaybe<Scalars['Int']>;
+  offset?: InputMaybe<Scalars['Int']>;
+  order_by?: InputMaybe<Array<AuthOauth2Clients_Order_By>>;
+  where?: InputMaybe<AuthOauth2Clients_Bool_Exp>;
+};
+
+
+export type Query_RootAuthOauth2RefreshTokenArgs = {
+  id: Scalars['uuid'];
+};
+
+
+export type Query_RootAuthOauth2RefreshTokensArgs = {
+  distinct_on?: InputMaybe<Array<AuthOauth2RefreshTokens_Select_Column>>;
+  limit?: InputMaybe<Scalars['Int']>;
+  offset?: InputMaybe<Scalars['Int']>;
+  order_by?: InputMaybe<Array<AuthOauth2RefreshTokens_Order_By>>;
+  where?: InputMaybe<AuthOauth2RefreshTokens_Bool_Exp>;
+};
+
+
+export type Query_RootAuthOauth2RefreshTokensAggregateArgs = {
+  distinct_on?: InputMaybe<Array<AuthOauth2RefreshTokens_Select_Column>>;
+  limit?: InputMaybe<Scalars['Int']>;
+  offset?: InputMaybe<Scalars['Int']>;
+  order_by?: InputMaybe<Array<AuthOauth2RefreshTokens_Order_By>>;
+  where?: InputMaybe<AuthOauth2RefreshTokens_Bool_Exp>;
+};
+
+
 export type Query_RootAuthProviderArgs = {
   id: Scalars['String'];
 };
 
+
 export type Query_RootAuthProviderRequestArgs = {
   id: Scalars['uuid'];
 };
+
 
 export type Query_RootAuthProviderRequestsArgs = {
   distinct_on?: InputMaybe<Array<AuthProviderRequests_Select_Column>>;
@@ -5936,6 +10334,7 @@ export type Query_RootAuthProviderRequestsArgs = {
   where?: InputMaybe<AuthProviderRequests_Bool_Exp>;
 };
 
+
 export type Query_RootAuthProviderRequestsAggregateArgs = {
   distinct_on?: InputMaybe<Array<AuthProviderRequests_Select_Column>>;
   limit?: InputMaybe<Scalars['Int']>;
@@ -5943,6 +10342,7 @@ export type Query_RootAuthProviderRequestsAggregateArgs = {
   order_by?: InputMaybe<Array<AuthProviderRequests_Order_By>>;
   where?: InputMaybe<AuthProviderRequests_Bool_Exp>;
 };
+
 
 export type Query_RootAuthProvidersArgs = {
   distinct_on?: InputMaybe<Array<AuthProviders_Select_Column>>;
@@ -5952,6 +10352,7 @@ export type Query_RootAuthProvidersArgs = {
   where?: InputMaybe<AuthProviders_Bool_Exp>;
 };
 
+
 export type Query_RootAuthProvidersAggregateArgs = {
   distinct_on?: InputMaybe<Array<AuthProviders_Select_Column>>;
   limit?: InputMaybe<Scalars['Int']>;
@@ -5960,13 +10361,16 @@ export type Query_RootAuthProvidersAggregateArgs = {
   where?: InputMaybe<AuthProviders_Bool_Exp>;
 };
 
+
 export type Query_RootAuthRefreshTokenArgs = {
   id: Scalars['uuid'];
 };
 
+
 export type Query_RootAuthRefreshTokenTypeArgs = {
   value: Scalars['String'];
 };
+
 
 export type Query_RootAuthRefreshTokenTypesArgs = {
   distinct_on?: InputMaybe<Array<AuthRefreshTokenTypes_Select_Column>>;
@@ -5976,6 +10380,7 @@ export type Query_RootAuthRefreshTokenTypesArgs = {
   where?: InputMaybe<AuthRefreshTokenTypes_Bool_Exp>;
 };
 
+
 export type Query_RootAuthRefreshTokenTypesAggregateArgs = {
   distinct_on?: InputMaybe<Array<AuthRefreshTokenTypes_Select_Column>>;
   limit?: InputMaybe<Scalars['Int']>;
@@ -5983,6 +10388,7 @@ export type Query_RootAuthRefreshTokenTypesAggregateArgs = {
   order_by?: InputMaybe<Array<AuthRefreshTokenTypes_Order_By>>;
   where?: InputMaybe<AuthRefreshTokenTypes_Bool_Exp>;
 };
+
 
 export type Query_RootAuthRefreshTokensArgs = {
   distinct_on?: InputMaybe<Array<AuthRefreshTokens_Select_Column>>;
@@ -5992,6 +10398,7 @@ export type Query_RootAuthRefreshTokensArgs = {
   where?: InputMaybe<AuthRefreshTokens_Bool_Exp>;
 };
 
+
 export type Query_RootAuthRefreshTokensAggregateArgs = {
   distinct_on?: InputMaybe<Array<AuthRefreshTokens_Select_Column>>;
   limit?: InputMaybe<Scalars['Int']>;
@@ -6000,9 +10407,11 @@ export type Query_RootAuthRefreshTokensAggregateArgs = {
   where?: InputMaybe<AuthRefreshTokens_Bool_Exp>;
 };
 
+
 export type Query_RootAuthRoleArgs = {
   role: Scalars['String'];
 };
+
 
 export type Query_RootAuthRolesArgs = {
   distinct_on?: InputMaybe<Array<AuthRoles_Select_Column>>;
@@ -6012,6 +10421,7 @@ export type Query_RootAuthRolesArgs = {
   where?: InputMaybe<AuthRoles_Bool_Exp>;
 };
 
+
 export type Query_RootAuthRolesAggregateArgs = {
   distinct_on?: InputMaybe<Array<AuthRoles_Select_Column>>;
   limit?: InputMaybe<Scalars['Int']>;
@@ -6020,9 +10430,11 @@ export type Query_RootAuthRolesAggregateArgs = {
   where?: InputMaybe<AuthRoles_Bool_Exp>;
 };
 
+
 export type Query_RootAuthUserProviderArgs = {
   id: Scalars['uuid'];
 };
+
 
 export type Query_RootAuthUserProvidersArgs = {
   distinct_on?: InputMaybe<Array<AuthUserProviders_Select_Column>>;
@@ -6032,6 +10444,7 @@ export type Query_RootAuthUserProvidersArgs = {
   where?: InputMaybe<AuthUserProviders_Bool_Exp>;
 };
 
+
 export type Query_RootAuthUserProvidersAggregateArgs = {
   distinct_on?: InputMaybe<Array<AuthUserProviders_Select_Column>>;
   limit?: InputMaybe<Scalars['Int']>;
@@ -6040,9 +10453,11 @@ export type Query_RootAuthUserProvidersAggregateArgs = {
   where?: InputMaybe<AuthUserProviders_Bool_Exp>;
 };
 
+
 export type Query_RootAuthUserRoleArgs = {
   id: Scalars['uuid'];
 };
+
 
 export type Query_RootAuthUserRolesArgs = {
   distinct_on?: InputMaybe<Array<AuthUserRoles_Select_Column>>;
@@ -6052,6 +10467,7 @@ export type Query_RootAuthUserRolesArgs = {
   where?: InputMaybe<AuthUserRoles_Bool_Exp>;
 };
 
+
 export type Query_RootAuthUserRolesAggregateArgs = {
   distinct_on?: InputMaybe<Array<AuthUserRoles_Select_Column>>;
   limit?: InputMaybe<Scalars['Int']>;
@@ -6060,9 +10476,11 @@ export type Query_RootAuthUserRolesAggregateArgs = {
   where?: InputMaybe<AuthUserRoles_Bool_Exp>;
 };
 
+
 export type Query_RootAuthUserSecurityKeyArgs = {
   id: Scalars['uuid'];
 };
+
 
 export type Query_RootAuthUserSecurityKeysArgs = {
   distinct_on?: InputMaybe<Array<AuthUserSecurityKeys_Select_Column>>;
@@ -6072,6 +10490,7 @@ export type Query_RootAuthUserSecurityKeysArgs = {
   where?: InputMaybe<AuthUserSecurityKeys_Bool_Exp>;
 };
 
+
 export type Query_RootAuthUserSecurityKeysAggregateArgs = {
   distinct_on?: InputMaybe<Array<AuthUserSecurityKeys_Select_Column>>;
   limit?: InputMaybe<Scalars['Int']>;
@@ -6080,9 +10499,11 @@ export type Query_RootAuthUserSecurityKeysAggregateArgs = {
   where?: InputMaybe<AuthUserSecurityKeys_Bool_Exp>;
 };
 
+
 export type Query_RootBucketArgs = {
   id: Scalars['String'];
 };
+
 
 export type Query_RootBucketsArgs = {
   distinct_on?: InputMaybe<Array<Buckets_Select_Column>>;
@@ -6092,6 +10513,7 @@ export type Query_RootBucketsArgs = {
   where?: InputMaybe<Buckets_Bool_Exp>;
 };
 
+
 export type Query_RootBucketsAggregateArgs = {
   distinct_on?: InputMaybe<Array<Buckets_Select_Column>>;
   limit?: InputMaybe<Scalars['Int']>;
@@ -6100,9 +10522,80 @@ export type Query_RootBucketsAggregateArgs = {
   where?: InputMaybe<Buckets_Bool_Exp>;
 };
 
+
+export type Query_RootCommunitiesArgs = {
+  distinct_on?: InputMaybe<Array<Communities_Select_Column>>;
+  limit?: InputMaybe<Scalars['Int']>;
+  offset?: InputMaybe<Scalars['Int']>;
+  order_by?: InputMaybe<Array<Communities_Order_By>>;
+  where?: InputMaybe<Communities_Bool_Exp>;
+};
+
+
+export type Query_RootCommunities_AggregateArgs = {
+  distinct_on?: InputMaybe<Array<Communities_Select_Column>>;
+  limit?: InputMaybe<Scalars['Int']>;
+  offset?: InputMaybe<Scalars['Int']>;
+  order_by?: InputMaybe<Array<Communities_Order_By>>;
+  where?: InputMaybe<Communities_Bool_Exp>;
+};
+
+
+export type Query_RootCommunities_By_PkArgs = {
+  id: Scalars['uuid'];
+};
+
+
+export type Query_RootCommunity_FilesArgs = {
+  distinct_on?: InputMaybe<Array<Community_Files_Select_Column>>;
+  limit?: InputMaybe<Scalars['Int']>;
+  offset?: InputMaybe<Scalars['Int']>;
+  order_by?: InputMaybe<Array<Community_Files_Order_By>>;
+  where?: InputMaybe<Community_Files_Bool_Exp>;
+};
+
+
+export type Query_RootCommunity_Files_AggregateArgs = {
+  distinct_on?: InputMaybe<Array<Community_Files_Select_Column>>;
+  limit?: InputMaybe<Scalars['Int']>;
+  offset?: InputMaybe<Scalars['Int']>;
+  order_by?: InputMaybe<Array<Community_Files_Order_By>>;
+  where?: InputMaybe<Community_Files_Bool_Exp>;
+};
+
+
+export type Query_RootCommunity_Files_By_PkArgs = {
+  id: Scalars['uuid'];
+};
+
+
+export type Query_RootCommunity_MembersArgs = {
+  distinct_on?: InputMaybe<Array<Community_Members_Select_Column>>;
+  limit?: InputMaybe<Scalars['Int']>;
+  offset?: InputMaybe<Scalars['Int']>;
+  order_by?: InputMaybe<Array<Community_Members_Order_By>>;
+  where?: InputMaybe<Community_Members_Bool_Exp>;
+};
+
+
+export type Query_RootCommunity_Members_AggregateArgs = {
+  distinct_on?: InputMaybe<Array<Community_Members_Select_Column>>;
+  limit?: InputMaybe<Scalars['Int']>;
+  offset?: InputMaybe<Scalars['Int']>;
+  order_by?: InputMaybe<Array<Community_Members_Order_By>>;
+  where?: InputMaybe<Community_Members_Bool_Exp>;
+};
+
+
+export type Query_RootCommunity_Members_By_PkArgs = {
+  id: Scalars['uuid'];
+};
+
+
 export type Query_RootFileArgs = {
   id: Scalars['uuid'];
 };
+
 
 export type Query_RootFilesArgs = {
   distinct_on?: InputMaybe<Array<Files_Select_Column>>;
@@ -6112,6 +10605,7 @@ export type Query_RootFilesArgs = {
   where?: InputMaybe<Files_Bool_Exp>;
 };
 
+
 export type Query_RootFilesAggregateArgs = {
   distinct_on?: InputMaybe<Array<Files_Select_Column>>;
   limit?: InputMaybe<Scalars['Int']>;
@@ -6120,33 +10614,172 @@ export type Query_RootFilesAggregateArgs = {
   where?: InputMaybe<Files_Bool_Exp>;
 };
 
+
+export type Query_RootGraphiteAgentArgs = {
+  id: Scalars['uuid'];
+};
+
+
+export type Query_RootGraphiteAgentAggregateArgs = {
+  distinct_on?: InputMaybe<Array<GraphiteAgents_Select_Column>>;
+  limit?: InputMaybe<Scalars['Int']>;
+  offset?: InputMaybe<Scalars['Int']>;
+  order_by?: InputMaybe<Array<GraphiteAgents_Order_By>>;
+  where?: InputMaybe<GraphiteAgents_Bool_Exp>;
+};
+
+
+export type Query_RootGraphiteAgentMessageArgs = {
+  id: Scalars['uuid'];
+};
+
+
+export type Query_RootGraphiteAgentMessageAggregateArgs = {
+  distinct_on?: InputMaybe<Array<GraphiteAgentMessages_Select_Column>>;
+  limit?: InputMaybe<Scalars['Int']>;
+  offset?: InputMaybe<Scalars['Int']>;
+  order_by?: InputMaybe<Array<GraphiteAgentMessages_Order_By>>;
+  where?: InputMaybe<GraphiteAgentMessages_Bool_Exp>;
+};
+
+
+export type Query_RootGraphiteAgentMessagesArgs = {
+  distinct_on?: InputMaybe<Array<GraphiteAgentMessages_Select_Column>>;
+  limit?: InputMaybe<Scalars['Int']>;
+  offset?: InputMaybe<Scalars['Int']>;
+  order_by?: InputMaybe<Array<GraphiteAgentMessages_Order_By>>;
+  where?: InputMaybe<GraphiteAgentMessages_Bool_Exp>;
+};
+
+
+export type Query_RootGraphiteAgentProviderArgs = {
+  value: Scalars['String'];
+};
+
+
+export type Query_RootGraphiteAgentProviderAggregateArgs = {
+  distinct_on?: InputMaybe<Array<GraphiteAgentProviders_Select_Column>>;
+  limit?: InputMaybe<Scalars['Int']>;
+  offset?: InputMaybe<Scalars['Int']>;
+  order_by?: InputMaybe<Array<GraphiteAgentProviders_Order_By>>;
+  where?: InputMaybe<GraphiteAgentProviders_Bool_Exp>;
+};
+
+
+export type Query_RootGraphiteAgentProvidersArgs = {
+  distinct_on?: InputMaybe<Array<GraphiteAgentProviders_Select_Column>>;
+  limit?: InputMaybe<Scalars['Int']>;
+  offset?: InputMaybe<Scalars['Int']>;
+  order_by?: InputMaybe<Array<GraphiteAgentProviders_Order_By>>;
+  where?: InputMaybe<GraphiteAgentProviders_Bool_Exp>;
+};
+
+
+export type Query_RootGraphiteAgentSessionArgs = {
+  id: Scalars['uuid'];
+};
+
+
+export type Query_RootGraphiteAgentSessionAggregateArgs = {
+  distinct_on?: InputMaybe<Array<GraphiteAgentSessions_Select_Column>>;
+  limit?: InputMaybe<Scalars['Int']>;
+  offset?: InputMaybe<Scalars['Int']>;
+  order_by?: InputMaybe<Array<GraphiteAgentSessions_Order_By>>;
+  where?: InputMaybe<GraphiteAgentSessions_Bool_Exp>;
+};
+
+
+export type Query_RootGraphiteAgentSessionsArgs = {
+  distinct_on?: InputMaybe<Array<GraphiteAgentSessions_Select_Column>>;
+  limit?: InputMaybe<Scalars['Int']>;
+  offset?: InputMaybe<Scalars['Int']>;
+  order_by?: InputMaybe<Array<GraphiteAgentSessions_Order_By>>;
+  where?: InputMaybe<GraphiteAgentSessions_Bool_Exp>;
+};
+
+
+export type Query_RootGraphiteAgentsArgs = {
+  distinct_on?: InputMaybe<Array<GraphiteAgents_Select_Column>>;
+  limit?: InputMaybe<Scalars['Int']>;
+  offset?: InputMaybe<Scalars['Int']>;
+  order_by?: InputMaybe<Array<GraphiteAgents_Order_By>>;
+  where?: InputMaybe<GraphiteAgents_Bool_Exp>;
+};
+
+
 export type Query_RootGraphiteAutoEmbeddingsConfigurationArgs = {
   id: Scalars['uuid'];
 };
 
+
 export type Query_RootGraphiteAutoEmbeddingsConfigurationAggregateArgs = {
-  distinct_on?: InputMaybe<
-    Array<GraphiteAutoEmbeddingsConfiguration_Select_Column>
-  >;
+  distinct_on?: InputMaybe<Array<GraphiteAutoEmbeddingsConfiguration_Select_Column>>;
   limit?: InputMaybe<Scalars['Int']>;
   offset?: InputMaybe<Scalars['Int']>;
   order_by?: InputMaybe<Array<GraphiteAutoEmbeddingsConfiguration_Order_By>>;
   where?: InputMaybe<GraphiteAutoEmbeddingsConfiguration_Bool_Exp>;
 };
 
+
 export type Query_RootGraphiteAutoEmbeddingsConfigurationsArgs = {
-  distinct_on?: InputMaybe<
-    Array<GraphiteAutoEmbeddingsConfiguration_Select_Column>
-  >;
+  distinct_on?: InputMaybe<Array<GraphiteAutoEmbeddingsConfiguration_Select_Column>>;
   limit?: InputMaybe<Scalars['Int']>;
   offset?: InputMaybe<Scalars['Int']>;
   order_by?: InputMaybe<Array<GraphiteAutoEmbeddingsConfiguration_Order_By>>;
   where?: InputMaybe<GraphiteAutoEmbeddingsConfiguration_Bool_Exp>;
 };
+
+
+export type Query_RootNotificationsArgs = {
+  distinct_on?: InputMaybe<Array<Notifications_Select_Column>>;
+  limit?: InputMaybe<Scalars['Int']>;
+  offset?: InputMaybe<Scalars['Int']>;
+  order_by?: InputMaybe<Array<Notifications_Order_By>>;
+  where?: InputMaybe<Notifications_Bool_Exp>;
+};
+
+
+export type Query_RootNotifications_AggregateArgs = {
+  distinct_on?: InputMaybe<Array<Notifications_Select_Column>>;
+  limit?: InputMaybe<Scalars['Int']>;
+  offset?: InputMaybe<Scalars['Int']>;
+  order_by?: InputMaybe<Array<Notifications_Order_By>>;
+  where?: InputMaybe<Notifications_Bool_Exp>;
+};
+
+
+export type Query_RootNotifications_By_PkArgs = {
+  id: Scalars['uuid'];
+};
+
+
+export type Query_RootTodosArgs = {
+  distinct_on?: InputMaybe<Array<Todos_Select_Column>>;
+  limit?: InputMaybe<Scalars['Int']>;
+  offset?: InputMaybe<Scalars['Int']>;
+  order_by?: InputMaybe<Array<Todos_Order_By>>;
+  where?: InputMaybe<Todos_Bool_Exp>;
+};
+
+
+export type Query_RootTodos_AggregateArgs = {
+  distinct_on?: InputMaybe<Array<Todos_Select_Column>>;
+  limit?: InputMaybe<Scalars['Int']>;
+  offset?: InputMaybe<Scalars['Int']>;
+  order_by?: InputMaybe<Array<Todos_Order_By>>;
+  where?: InputMaybe<Todos_Bool_Exp>;
+};
+
+
+export type Query_RootTodos_By_PkArgs = {
+  id: Scalars['uuid'];
+};
+
 
 export type Query_RootUserArgs = {
   id: Scalars['uuid'];
 };
+
 
 export type Query_RootUsersArgs = {
   distinct_on?: InputMaybe<Array<Users_Select_Column>>;
@@ -6156,6 +10789,7 @@ export type Query_RootUsersArgs = {
   where?: InputMaybe<Users_Bool_Exp>;
 };
 
+
 export type Query_RootUsersAggregateArgs = {
   distinct_on?: InputMaybe<Array<Users_Select_Column>>;
   limit?: InputMaybe<Scalars['Int']>;
@@ -6164,9 +10798,11 @@ export type Query_RootUsersAggregateArgs = {
   where?: InputMaybe<Users_Bool_Exp>;
 };
 
+
 export type Query_RootVirusArgs = {
   id: Scalars['uuid'];
 };
+
 
 export type Query_RootVirusesArgs = {
   distinct_on?: InputMaybe<Array<Virus_Select_Column>>;
@@ -6175,6 +10811,7 @@ export type Query_RootVirusesArgs = {
   order_by?: InputMaybe<Array<Virus_Order_By>>;
   where?: InputMaybe<Virus_Bool_Exp>;
 };
+
 
 export type Query_RootVirusesAggregateArgs = {
   distinct_on?: InputMaybe<Array<Virus_Select_Column>>;
@@ -6234,6 +10871,38 @@ export type Subscription_Root = {
   _graphiteSessionStream: Array<_GraphiteSessions>;
   /** fetch data from the table: "graphite.sessions" */
   _graphiteSessions: Array<_GraphiteSessions>;
+  /** fetch data from the table: "auth.oauth2_auth_requests" using primary key columns */
+  authOauth2AuthRequest?: Maybe<AuthOauth2AuthRequests>;
+  /** fetch data from the table: "auth.oauth2_auth_requests" */
+  authOauth2AuthRequests: Array<AuthOauth2AuthRequests>;
+  /** fetch aggregated fields from the table: "auth.oauth2_auth_requests" */
+  authOauth2AuthRequestsAggregate: AuthOauth2AuthRequests_Aggregate;
+  /** fetch data from the table in a streaming manner: "auth.oauth2_auth_requests" */
+  authOauth2AuthRequests_stream: Array<AuthOauth2AuthRequests>;
+  /** fetch data from the table: "auth.oauth2_authorization_codes" using primary key columns */
+  authOauth2AuthorizationCode?: Maybe<AuthOauth2AuthorizationCodes>;
+  /** fetch data from the table: "auth.oauth2_authorization_codes" */
+  authOauth2AuthorizationCodes: Array<AuthOauth2AuthorizationCodes>;
+  /** fetch aggregated fields from the table: "auth.oauth2_authorization_codes" */
+  authOauth2AuthorizationCodesAggregate: AuthOauth2AuthorizationCodes_Aggregate;
+  /** fetch data from the table in a streaming manner: "auth.oauth2_authorization_codes" */
+  authOauth2AuthorizationCodes_stream: Array<AuthOauth2AuthorizationCodes>;
+  /** fetch data from the table: "auth.oauth2_clients" using primary key columns */
+  authOauth2Client?: Maybe<AuthOauth2Clients>;
+  /** fetch data from the table: "auth.oauth2_clients" */
+  authOauth2Clients: Array<AuthOauth2Clients>;
+  /** fetch aggregated fields from the table: "auth.oauth2_clients" */
+  authOauth2ClientsAggregate: AuthOauth2Clients_Aggregate;
+  /** fetch data from the table in a streaming manner: "auth.oauth2_clients" */
+  authOauth2Clients_stream: Array<AuthOauth2Clients>;
+  /** fetch data from the table: "auth.oauth2_refresh_tokens" using primary key columns */
+  authOauth2RefreshToken?: Maybe<AuthOauth2RefreshTokens>;
+  /** fetch data from the table: "auth.oauth2_refresh_tokens" */
+  authOauth2RefreshTokens: Array<AuthOauth2RefreshTokens>;
+  /** fetch aggregated fields from the table: "auth.oauth2_refresh_tokens" */
+  authOauth2RefreshTokensAggregate: AuthOauth2RefreshTokens_Aggregate;
+  /** fetch data from the table in a streaming manner: "auth.oauth2_refresh_tokens" */
+  authOauth2RefreshTokens_stream: Array<AuthOauth2RefreshTokens>;
   /** fetch data from the table: "auth.providers" using primary key columns */
   authProvider?: Maybe<AuthProviders>;
   /** fetch data from the table: "auth.provider_requests" using primary key columns */
@@ -6306,6 +10975,30 @@ export type Subscription_Root = {
   bucketsAggregate: Buckets_Aggregate;
   /** fetch data from the table in a streaming manner: "storage.buckets" */
   buckets_stream: Array<Buckets>;
+  /** fetch data from the table: "communities" */
+  communities: Array<Communities>;
+  /** fetch aggregated fields from the table: "communities" */
+  communities_aggregate: Communities_Aggregate;
+  /** fetch data from the table: "communities" using primary key columns */
+  communities_by_pk?: Maybe<Communities>;
+  /** fetch data from the table in a streaming manner: "communities" */
+  communities_stream: Array<Communities>;
+  /** An array relationship */
+  community_files: Array<Community_Files>;
+  /** An aggregate relationship */
+  community_files_aggregate: Community_Files_Aggregate;
+  /** fetch data from the table: "community_files" using primary key columns */
+  community_files_by_pk?: Maybe<Community_Files>;
+  /** fetch data from the table in a streaming manner: "community_files" */
+  community_files_stream: Array<Community_Files>;
+  /** fetch data from the table: "community_members" */
+  community_members: Array<Community_Members>;
+  /** fetch aggregated fields from the table: "community_members" */
+  community_members_aggregate: Community_Members_Aggregate;
+  /** fetch data from the table: "community_members" using primary key columns */
+  community_members_by_pk?: Maybe<Community_Members>;
+  /** fetch data from the table in a streaming manner: "community_members" */
+  community_members_stream: Array<Community_Members>;
   /** fetch data from the table: "storage.files" using primary key columns */
   file?: Maybe<Files>;
   /** An array relationship */
@@ -6314,6 +11007,38 @@ export type Subscription_Root = {
   filesAggregate: Files_Aggregate;
   /** fetch data from the table in a streaming manner: "storage.files" */
   files_stream: Array<Files>;
+  /** fetch data from the table: "graphite.agents" using primary key columns */
+  graphiteAgent?: Maybe<GraphiteAgents>;
+  /** fetch aggregated fields from the table: "graphite.agents" */
+  graphiteAgentAggregate: GraphiteAgents_Aggregate;
+  /** fetch data from the table: "graphite.agent_messages" using primary key columns */
+  graphiteAgentMessage?: Maybe<GraphiteAgentMessages>;
+  /** fetch aggregated fields from the table: "graphite.agent_messages" */
+  graphiteAgentMessageAggregate: GraphiteAgentMessages_Aggregate;
+  /** fetch data from the table in a streaming manner: "graphite.agent_messages" */
+  graphiteAgentMessageStream: Array<GraphiteAgentMessages>;
+  /** fetch data from the table: "graphite.agent_messages" */
+  graphiteAgentMessages: Array<GraphiteAgentMessages>;
+  /** fetch data from the table: "graphite.agent_providers" using primary key columns */
+  graphiteAgentProvider?: Maybe<GraphiteAgentProviders>;
+  /** fetch aggregated fields from the table: "graphite.agent_providers" */
+  graphiteAgentProviderAggregate: GraphiteAgentProviders_Aggregate;
+  /** fetch data from the table in a streaming manner: "graphite.agent_providers" */
+  graphiteAgentProviderStream: Array<GraphiteAgentProviders>;
+  /** fetch data from the table: "graphite.agent_providers" */
+  graphiteAgentProviders: Array<GraphiteAgentProviders>;
+  /** fetch data from the table: "graphite.agent_sessions" using primary key columns */
+  graphiteAgentSession?: Maybe<GraphiteAgentSessions>;
+  /** fetch aggregated fields from the table: "graphite.agent_sessions" */
+  graphiteAgentSessionAggregate: GraphiteAgentSessions_Aggregate;
+  /** fetch data from the table in a streaming manner: "graphite.agent_sessions" */
+  graphiteAgentSessionStream: Array<GraphiteAgentSessions>;
+  /** fetch data from the table: "graphite.agent_sessions" */
+  graphiteAgentSessions: Array<GraphiteAgentSessions>;
+  /** fetch data from the table in a streaming manner: "graphite.agents" */
+  graphiteAgentStream: Array<GraphiteAgents>;
+  /** fetch data from the table: "graphite.agents" */
+  graphiteAgents: Array<GraphiteAgents>;
   /** fetch data from the table: "graphite.auto_embeddings_configuration" using primary key columns */
   graphiteAutoEmbeddingsConfiguration?: Maybe<GraphiteAutoEmbeddingsConfiguration>;
   /** fetch aggregated fields from the table: "graphite.auto_embeddings_configuration" */
@@ -6322,6 +11047,22 @@ export type Subscription_Root = {
   graphiteAutoEmbeddingsConfigurationStream: Array<GraphiteAutoEmbeddingsConfiguration>;
   /** fetch data from the table: "graphite.auto_embeddings_configuration" */
   graphiteAutoEmbeddingsConfigurations: Array<GraphiteAutoEmbeddingsConfiguration>;
+  /** An array relationship */
+  notifications: Array<Notifications>;
+  /** An aggregate relationship */
+  notifications_aggregate: Notifications_Aggregate;
+  /** fetch data from the table: "notifications" using primary key columns */
+  notifications_by_pk?: Maybe<Notifications>;
+  /** fetch data from the table in a streaming manner: "notifications" */
+  notifications_stream: Array<Notifications>;
+  /** fetch data from the table: "todos" */
+  todos: Array<Todos>;
+  /** fetch aggregated fields from the table: "todos" */
+  todos_aggregate: Todos_Aggregate;
+  /** fetch data from the table: "todos" using primary key columns */
+  todos_by_pk?: Maybe<Todos>;
+  /** fetch data from the table in a streaming manner: "todos" */
+  todos_stream: Array<Todos>;
   /** fetch data from the table: "auth.users" using primary key columns */
   user?: Maybe<Users>;
   /** fetch data from the table: "auth.users" */
@@ -6340,9 +11081,11 @@ export type Subscription_Root = {
   virusesAggregate: Virus_Aggregate;
 };
 
+
 export type Subscription_Root_GraphiteAssistantArgs = {
   id: Scalars['uuid'];
 };
+
 
 export type Subscription_Root_GraphiteAssistantAggregateArgs = {
   distinct_on?: InputMaybe<Array<_GraphiteAssistants_Select_Column>>;
@@ -6352,10 +11095,12 @@ export type Subscription_Root_GraphiteAssistantAggregateArgs = {
   where?: InputMaybe<_GraphiteAssistants_Bool_Exp>;
 };
 
+
 export type Subscription_Root_GraphiteAssistantFileStoreArgs = {
   assistantID: Scalars['String'];
   fileStoreID: Scalars['uuid'];
 };
+
 
 export type Subscription_Root_GraphiteAssistantFileStoreAggregateArgs = {
   distinct_on?: InputMaybe<Array<_GraphiteAssistantFileStores_Select_Column>>;
@@ -6365,11 +11110,13 @@ export type Subscription_Root_GraphiteAssistantFileStoreAggregateArgs = {
   where?: InputMaybe<_GraphiteAssistantFileStores_Bool_Exp>;
 };
 
+
 export type Subscription_Root_GraphiteAssistantFileStoreStreamArgs = {
   batch_size: Scalars['Int'];
   cursor: Array<InputMaybe<_GraphiteAssistantFileStores_Stream_Cursor_Input>>;
   where?: InputMaybe<_GraphiteAssistantFileStores_Bool_Exp>;
 };
+
 
 export type Subscription_Root_GraphiteAssistantFileStoresArgs = {
   distinct_on?: InputMaybe<Array<_GraphiteAssistantFileStores_Select_Column>>;
@@ -6379,11 +11126,13 @@ export type Subscription_Root_GraphiteAssistantFileStoresArgs = {
   where?: InputMaybe<_GraphiteAssistantFileStores_Bool_Exp>;
 };
 
+
 export type Subscription_Root_GraphiteAssistantStreamArgs = {
   batch_size: Scalars['Int'];
   cursor: Array<InputMaybe<_GraphiteAssistants_Stream_Cursor_Input>>;
   where?: InputMaybe<_GraphiteAssistants_Bool_Exp>;
 };
+
 
 export type Subscription_Root_GraphiteAssistantsArgs = {
   distinct_on?: InputMaybe<Array<_GraphiteAssistants_Select_Column>>;
@@ -6393,9 +11142,11 @@ export type Subscription_Root_GraphiteAssistantsArgs = {
   where?: InputMaybe<_GraphiteAssistants_Bool_Exp>;
 };
 
+
 export type Subscription_Root_GraphiteFileArgs = {
   id: Scalars['uuid'];
 };
+
 
 export type Subscription_Root_GraphiteFileAggregateArgs = {
   distinct_on?: InputMaybe<Array<_GraphiteFiles_Select_Column>>;
@@ -6405,9 +11156,11 @@ export type Subscription_Root_GraphiteFileAggregateArgs = {
   where?: InputMaybe<_GraphiteFiles_Bool_Exp>;
 };
 
+
 export type Subscription_Root_GraphiteFileStoreArgs = {
   id: Scalars['uuid'];
 };
+
 
 export type Subscription_Root_GraphiteFileStoreAggregateArgs = {
   distinct_on?: InputMaybe<Array<_GraphiteFileStores_Select_Column>>;
@@ -6417,10 +11170,12 @@ export type Subscription_Root_GraphiteFileStoreAggregateArgs = {
   where?: InputMaybe<_GraphiteFileStores_Bool_Exp>;
 };
 
+
 export type Subscription_Root_GraphiteFileStoreBucketArgs = {
   bucketID: Scalars['String'];
   fileStoreID: Scalars['uuid'];
 };
+
 
 export type Subscription_Root_GraphiteFileStoreBucketAggregateArgs = {
   distinct_on?: InputMaybe<Array<_GraphiteFileStoreBuckets_Select_Column>>;
@@ -6430,11 +11185,13 @@ export type Subscription_Root_GraphiteFileStoreBucketAggregateArgs = {
   where?: InputMaybe<_GraphiteFileStoreBuckets_Bool_Exp>;
 };
 
+
 export type Subscription_Root_GraphiteFileStoreBucketStreamArgs = {
   batch_size: Scalars['Int'];
   cursor: Array<InputMaybe<_GraphiteFileStoreBuckets_Stream_Cursor_Input>>;
   where?: InputMaybe<_GraphiteFileStoreBuckets_Bool_Exp>;
 };
+
 
 export type Subscription_Root_GraphiteFileStoreBucketsArgs = {
   distinct_on?: InputMaybe<Array<_GraphiteFileStoreBuckets_Select_Column>>;
@@ -6444,11 +11201,13 @@ export type Subscription_Root_GraphiteFileStoreBucketsArgs = {
   where?: InputMaybe<_GraphiteFileStoreBuckets_Bool_Exp>;
 };
 
+
 export type Subscription_Root_GraphiteFileStoreStreamArgs = {
   batch_size: Scalars['Int'];
   cursor: Array<InputMaybe<_GraphiteFileStores_Stream_Cursor_Input>>;
   where?: InputMaybe<_GraphiteFileStores_Bool_Exp>;
 };
+
 
 export type Subscription_Root_GraphiteFileStoresArgs = {
   distinct_on?: InputMaybe<Array<_GraphiteFileStores_Select_Column>>;
@@ -6458,11 +11217,13 @@ export type Subscription_Root_GraphiteFileStoresArgs = {
   where?: InputMaybe<_GraphiteFileStores_Bool_Exp>;
 };
 
+
 export type Subscription_Root_GraphiteFileStreamArgs = {
   batch_size: Scalars['Int'];
   cursor: Array<InputMaybe<_GraphiteFiles_Stream_Cursor_Input>>;
   where?: InputMaybe<_GraphiteFiles_Bool_Exp>;
 };
+
 
 export type Subscription_Root_GraphiteFilesArgs = {
   distinct_on?: InputMaybe<Array<_GraphiteFiles_Select_Column>>;
@@ -6472,9 +11233,11 @@ export type Subscription_Root_GraphiteFilesArgs = {
   where?: InputMaybe<_GraphiteFiles_Bool_Exp>;
 };
 
+
 export type Subscription_Root_GraphiteSessionArgs = {
   id: Scalars['uuid'];
 };
+
 
 export type Subscription_Root_GraphiteSessionAggregateArgs = {
   distinct_on?: InputMaybe<Array<_GraphiteSessions_Select_Column>>;
@@ -6484,11 +11247,13 @@ export type Subscription_Root_GraphiteSessionAggregateArgs = {
   where?: InputMaybe<_GraphiteSessions_Bool_Exp>;
 };
 
+
 export type Subscription_Root_GraphiteSessionStreamArgs = {
   batch_size: Scalars['Int'];
   cursor: Array<InputMaybe<_GraphiteSessions_Stream_Cursor_Input>>;
   where?: InputMaybe<_GraphiteSessions_Bool_Exp>;
 };
+
 
 export type Subscription_Root_GraphiteSessionsArgs = {
   distinct_on?: InputMaybe<Array<_GraphiteSessions_Select_Column>>;
@@ -6498,13 +11263,136 @@ export type Subscription_Root_GraphiteSessionsArgs = {
   where?: InputMaybe<_GraphiteSessions_Bool_Exp>;
 };
 
+
+export type Subscription_RootAuthOauth2AuthRequestArgs = {
+  id: Scalars['uuid'];
+};
+
+
+export type Subscription_RootAuthOauth2AuthRequestsArgs = {
+  distinct_on?: InputMaybe<Array<AuthOauth2AuthRequests_Select_Column>>;
+  limit?: InputMaybe<Scalars['Int']>;
+  offset?: InputMaybe<Scalars['Int']>;
+  order_by?: InputMaybe<Array<AuthOauth2AuthRequests_Order_By>>;
+  where?: InputMaybe<AuthOauth2AuthRequests_Bool_Exp>;
+};
+
+
+export type Subscription_RootAuthOauth2AuthRequestsAggregateArgs = {
+  distinct_on?: InputMaybe<Array<AuthOauth2AuthRequests_Select_Column>>;
+  limit?: InputMaybe<Scalars['Int']>;
+  offset?: InputMaybe<Scalars['Int']>;
+  order_by?: InputMaybe<Array<AuthOauth2AuthRequests_Order_By>>;
+  where?: InputMaybe<AuthOauth2AuthRequests_Bool_Exp>;
+};
+
+
+export type Subscription_RootAuthOauth2AuthRequests_StreamArgs = {
+  batch_size: Scalars['Int'];
+  cursor: Array<InputMaybe<AuthOauth2AuthRequests_Stream_Cursor_Input>>;
+  where?: InputMaybe<AuthOauth2AuthRequests_Bool_Exp>;
+};
+
+
+export type Subscription_RootAuthOauth2AuthorizationCodeArgs = {
+  id: Scalars['uuid'];
+};
+
+
+export type Subscription_RootAuthOauth2AuthorizationCodesArgs = {
+  distinct_on?: InputMaybe<Array<AuthOauth2AuthorizationCodes_Select_Column>>;
+  limit?: InputMaybe<Scalars['Int']>;
+  offset?: InputMaybe<Scalars['Int']>;
+  order_by?: InputMaybe<Array<AuthOauth2AuthorizationCodes_Order_By>>;
+  where?: InputMaybe<AuthOauth2AuthorizationCodes_Bool_Exp>;
+};
+
+
+export type Subscription_RootAuthOauth2AuthorizationCodesAggregateArgs = {
+  distinct_on?: InputMaybe<Array<AuthOauth2AuthorizationCodes_Select_Column>>;
+  limit?: InputMaybe<Scalars['Int']>;
+  offset?: InputMaybe<Scalars['Int']>;
+  order_by?: InputMaybe<Array<AuthOauth2AuthorizationCodes_Order_By>>;
+  where?: InputMaybe<AuthOauth2AuthorizationCodes_Bool_Exp>;
+};
+
+
+export type Subscription_RootAuthOauth2AuthorizationCodes_StreamArgs = {
+  batch_size: Scalars['Int'];
+  cursor: Array<InputMaybe<AuthOauth2AuthorizationCodes_Stream_Cursor_Input>>;
+  where?: InputMaybe<AuthOauth2AuthorizationCodes_Bool_Exp>;
+};
+
+
+export type Subscription_RootAuthOauth2ClientArgs = {
+  clientId: Scalars['String'];
+};
+
+
+export type Subscription_RootAuthOauth2ClientsArgs = {
+  distinct_on?: InputMaybe<Array<AuthOauth2Clients_Select_Column>>;
+  limit?: InputMaybe<Scalars['Int']>;
+  offset?: InputMaybe<Scalars['Int']>;
+  order_by?: InputMaybe<Array<AuthOauth2Clients_Order_By>>;
+  where?: InputMaybe<AuthOauth2Clients_Bool_Exp>;
+};
+
+
+export type Subscription_RootAuthOauth2ClientsAggregateArgs = {
+  distinct_on?: InputMaybe<Array<AuthOauth2Clients_Select_Column>>;
+  limit?: InputMaybe<Scalars['Int']>;
+  offset?: InputMaybe<Scalars['Int']>;
+  order_by?: InputMaybe<Array<AuthOauth2Clients_Order_By>>;
+  where?: InputMaybe<AuthOauth2Clients_Bool_Exp>;
+};
+
+
+export type Subscription_RootAuthOauth2Clients_StreamArgs = {
+  batch_size: Scalars['Int'];
+  cursor: Array<InputMaybe<AuthOauth2Clients_Stream_Cursor_Input>>;
+  where?: InputMaybe<AuthOauth2Clients_Bool_Exp>;
+};
+
+
+export type Subscription_RootAuthOauth2RefreshTokenArgs = {
+  id: Scalars['uuid'];
+};
+
+
+export type Subscription_RootAuthOauth2RefreshTokensArgs = {
+  distinct_on?: InputMaybe<Array<AuthOauth2RefreshTokens_Select_Column>>;
+  limit?: InputMaybe<Scalars['Int']>;
+  offset?: InputMaybe<Scalars['Int']>;
+  order_by?: InputMaybe<Array<AuthOauth2RefreshTokens_Order_By>>;
+  where?: InputMaybe<AuthOauth2RefreshTokens_Bool_Exp>;
+};
+
+
+export type Subscription_RootAuthOauth2RefreshTokensAggregateArgs = {
+  distinct_on?: InputMaybe<Array<AuthOauth2RefreshTokens_Select_Column>>;
+  limit?: InputMaybe<Scalars['Int']>;
+  offset?: InputMaybe<Scalars['Int']>;
+  order_by?: InputMaybe<Array<AuthOauth2RefreshTokens_Order_By>>;
+  where?: InputMaybe<AuthOauth2RefreshTokens_Bool_Exp>;
+};
+
+
+export type Subscription_RootAuthOauth2RefreshTokens_StreamArgs = {
+  batch_size: Scalars['Int'];
+  cursor: Array<InputMaybe<AuthOauth2RefreshTokens_Stream_Cursor_Input>>;
+  where?: InputMaybe<AuthOauth2RefreshTokens_Bool_Exp>;
+};
+
+
 export type Subscription_RootAuthProviderArgs = {
   id: Scalars['String'];
 };
 
+
 export type Subscription_RootAuthProviderRequestArgs = {
   id: Scalars['uuid'];
 };
+
 
 export type Subscription_RootAuthProviderRequestsArgs = {
   distinct_on?: InputMaybe<Array<AuthProviderRequests_Select_Column>>;
@@ -6514,6 +11402,7 @@ export type Subscription_RootAuthProviderRequestsArgs = {
   where?: InputMaybe<AuthProviderRequests_Bool_Exp>;
 };
 
+
 export type Subscription_RootAuthProviderRequestsAggregateArgs = {
   distinct_on?: InputMaybe<Array<AuthProviderRequests_Select_Column>>;
   limit?: InputMaybe<Scalars['Int']>;
@@ -6522,11 +11411,13 @@ export type Subscription_RootAuthProviderRequestsAggregateArgs = {
   where?: InputMaybe<AuthProviderRequests_Bool_Exp>;
 };
 
+
 export type Subscription_RootAuthProviderRequests_StreamArgs = {
   batch_size: Scalars['Int'];
   cursor: Array<InputMaybe<AuthProviderRequests_Stream_Cursor_Input>>;
   where?: InputMaybe<AuthProviderRequests_Bool_Exp>;
 };
+
 
 export type Subscription_RootAuthProvidersArgs = {
   distinct_on?: InputMaybe<Array<AuthProviders_Select_Column>>;
@@ -6536,6 +11427,7 @@ export type Subscription_RootAuthProvidersArgs = {
   where?: InputMaybe<AuthProviders_Bool_Exp>;
 };
 
+
 export type Subscription_RootAuthProvidersAggregateArgs = {
   distinct_on?: InputMaybe<Array<AuthProviders_Select_Column>>;
   limit?: InputMaybe<Scalars['Int']>;
@@ -6544,19 +11436,23 @@ export type Subscription_RootAuthProvidersAggregateArgs = {
   where?: InputMaybe<AuthProviders_Bool_Exp>;
 };
 
+
 export type Subscription_RootAuthProviders_StreamArgs = {
   batch_size: Scalars['Int'];
   cursor: Array<InputMaybe<AuthProviders_Stream_Cursor_Input>>;
   where?: InputMaybe<AuthProviders_Bool_Exp>;
 };
 
+
 export type Subscription_RootAuthRefreshTokenArgs = {
   id: Scalars['uuid'];
 };
 
+
 export type Subscription_RootAuthRefreshTokenTypeArgs = {
   value: Scalars['String'];
 };
+
 
 export type Subscription_RootAuthRefreshTokenTypesArgs = {
   distinct_on?: InputMaybe<Array<AuthRefreshTokenTypes_Select_Column>>;
@@ -6566,6 +11462,7 @@ export type Subscription_RootAuthRefreshTokenTypesArgs = {
   where?: InputMaybe<AuthRefreshTokenTypes_Bool_Exp>;
 };
 
+
 export type Subscription_RootAuthRefreshTokenTypesAggregateArgs = {
   distinct_on?: InputMaybe<Array<AuthRefreshTokenTypes_Select_Column>>;
   limit?: InputMaybe<Scalars['Int']>;
@@ -6574,11 +11471,13 @@ export type Subscription_RootAuthRefreshTokenTypesAggregateArgs = {
   where?: InputMaybe<AuthRefreshTokenTypes_Bool_Exp>;
 };
 
+
 export type Subscription_RootAuthRefreshTokenTypes_StreamArgs = {
   batch_size: Scalars['Int'];
   cursor: Array<InputMaybe<AuthRefreshTokenTypes_Stream_Cursor_Input>>;
   where?: InputMaybe<AuthRefreshTokenTypes_Bool_Exp>;
 };
+
 
 export type Subscription_RootAuthRefreshTokensArgs = {
   distinct_on?: InputMaybe<Array<AuthRefreshTokens_Select_Column>>;
@@ -6588,6 +11487,7 @@ export type Subscription_RootAuthRefreshTokensArgs = {
   where?: InputMaybe<AuthRefreshTokens_Bool_Exp>;
 };
 
+
 export type Subscription_RootAuthRefreshTokensAggregateArgs = {
   distinct_on?: InputMaybe<Array<AuthRefreshTokens_Select_Column>>;
   limit?: InputMaybe<Scalars['Int']>;
@@ -6596,15 +11496,18 @@ export type Subscription_RootAuthRefreshTokensAggregateArgs = {
   where?: InputMaybe<AuthRefreshTokens_Bool_Exp>;
 };
 
+
 export type Subscription_RootAuthRefreshTokens_StreamArgs = {
   batch_size: Scalars['Int'];
   cursor: Array<InputMaybe<AuthRefreshTokens_Stream_Cursor_Input>>;
   where?: InputMaybe<AuthRefreshTokens_Bool_Exp>;
 };
 
+
 export type Subscription_RootAuthRoleArgs = {
   role: Scalars['String'];
 };
+
 
 export type Subscription_RootAuthRolesArgs = {
   distinct_on?: InputMaybe<Array<AuthRoles_Select_Column>>;
@@ -6614,6 +11517,7 @@ export type Subscription_RootAuthRolesArgs = {
   where?: InputMaybe<AuthRoles_Bool_Exp>;
 };
 
+
 export type Subscription_RootAuthRolesAggregateArgs = {
   distinct_on?: InputMaybe<Array<AuthRoles_Select_Column>>;
   limit?: InputMaybe<Scalars['Int']>;
@@ -6622,15 +11526,18 @@ export type Subscription_RootAuthRolesAggregateArgs = {
   where?: InputMaybe<AuthRoles_Bool_Exp>;
 };
 
+
 export type Subscription_RootAuthRoles_StreamArgs = {
   batch_size: Scalars['Int'];
   cursor: Array<InputMaybe<AuthRoles_Stream_Cursor_Input>>;
   where?: InputMaybe<AuthRoles_Bool_Exp>;
 };
 
+
 export type Subscription_RootAuthUserProviderArgs = {
   id: Scalars['uuid'];
 };
+
 
 export type Subscription_RootAuthUserProvidersArgs = {
   distinct_on?: InputMaybe<Array<AuthUserProviders_Select_Column>>;
@@ -6640,6 +11547,7 @@ export type Subscription_RootAuthUserProvidersArgs = {
   where?: InputMaybe<AuthUserProviders_Bool_Exp>;
 };
 
+
 export type Subscription_RootAuthUserProvidersAggregateArgs = {
   distinct_on?: InputMaybe<Array<AuthUserProviders_Select_Column>>;
   limit?: InputMaybe<Scalars['Int']>;
@@ -6648,15 +11556,18 @@ export type Subscription_RootAuthUserProvidersAggregateArgs = {
   where?: InputMaybe<AuthUserProviders_Bool_Exp>;
 };
 
+
 export type Subscription_RootAuthUserProviders_StreamArgs = {
   batch_size: Scalars['Int'];
   cursor: Array<InputMaybe<AuthUserProviders_Stream_Cursor_Input>>;
   where?: InputMaybe<AuthUserProviders_Bool_Exp>;
 };
 
+
 export type Subscription_RootAuthUserRoleArgs = {
   id: Scalars['uuid'];
 };
+
 
 export type Subscription_RootAuthUserRolesArgs = {
   distinct_on?: InputMaybe<Array<AuthUserRoles_Select_Column>>;
@@ -6666,6 +11577,7 @@ export type Subscription_RootAuthUserRolesArgs = {
   where?: InputMaybe<AuthUserRoles_Bool_Exp>;
 };
 
+
 export type Subscription_RootAuthUserRolesAggregateArgs = {
   distinct_on?: InputMaybe<Array<AuthUserRoles_Select_Column>>;
   limit?: InputMaybe<Scalars['Int']>;
@@ -6674,15 +11586,18 @@ export type Subscription_RootAuthUserRolesAggregateArgs = {
   where?: InputMaybe<AuthUserRoles_Bool_Exp>;
 };
 
+
 export type Subscription_RootAuthUserRoles_StreamArgs = {
   batch_size: Scalars['Int'];
   cursor: Array<InputMaybe<AuthUserRoles_Stream_Cursor_Input>>;
   where?: InputMaybe<AuthUserRoles_Bool_Exp>;
 };
 
+
 export type Subscription_RootAuthUserSecurityKeyArgs = {
   id: Scalars['uuid'];
 };
+
 
 export type Subscription_RootAuthUserSecurityKeysArgs = {
   distinct_on?: InputMaybe<Array<AuthUserSecurityKeys_Select_Column>>;
@@ -6692,6 +11607,7 @@ export type Subscription_RootAuthUserSecurityKeysArgs = {
   where?: InputMaybe<AuthUserSecurityKeys_Bool_Exp>;
 };
 
+
 export type Subscription_RootAuthUserSecurityKeysAggregateArgs = {
   distinct_on?: InputMaybe<Array<AuthUserSecurityKeys_Select_Column>>;
   limit?: InputMaybe<Scalars['Int']>;
@@ -6700,15 +11616,18 @@ export type Subscription_RootAuthUserSecurityKeysAggregateArgs = {
   where?: InputMaybe<AuthUserSecurityKeys_Bool_Exp>;
 };
 
+
 export type Subscription_RootAuthUserSecurityKeys_StreamArgs = {
   batch_size: Scalars['Int'];
   cursor: Array<InputMaybe<AuthUserSecurityKeys_Stream_Cursor_Input>>;
   where?: InputMaybe<AuthUserSecurityKeys_Bool_Exp>;
 };
 
+
 export type Subscription_RootBucketArgs = {
   id: Scalars['String'];
 };
+
 
 export type Subscription_RootBucketsArgs = {
   distinct_on?: InputMaybe<Array<Buckets_Select_Column>>;
@@ -6718,6 +11637,7 @@ export type Subscription_RootBucketsArgs = {
   where?: InputMaybe<Buckets_Bool_Exp>;
 };
 
+
 export type Subscription_RootBucketsAggregateArgs = {
   distinct_on?: InputMaybe<Array<Buckets_Select_Column>>;
   limit?: InputMaybe<Scalars['Int']>;
@@ -6726,15 +11646,108 @@ export type Subscription_RootBucketsAggregateArgs = {
   where?: InputMaybe<Buckets_Bool_Exp>;
 };
 
+
 export type Subscription_RootBuckets_StreamArgs = {
   batch_size: Scalars['Int'];
   cursor: Array<InputMaybe<Buckets_Stream_Cursor_Input>>;
   where?: InputMaybe<Buckets_Bool_Exp>;
 };
 
+
+export type Subscription_RootCommunitiesArgs = {
+  distinct_on?: InputMaybe<Array<Communities_Select_Column>>;
+  limit?: InputMaybe<Scalars['Int']>;
+  offset?: InputMaybe<Scalars['Int']>;
+  order_by?: InputMaybe<Array<Communities_Order_By>>;
+  where?: InputMaybe<Communities_Bool_Exp>;
+};
+
+
+export type Subscription_RootCommunities_AggregateArgs = {
+  distinct_on?: InputMaybe<Array<Communities_Select_Column>>;
+  limit?: InputMaybe<Scalars['Int']>;
+  offset?: InputMaybe<Scalars['Int']>;
+  order_by?: InputMaybe<Array<Communities_Order_By>>;
+  where?: InputMaybe<Communities_Bool_Exp>;
+};
+
+
+export type Subscription_RootCommunities_By_PkArgs = {
+  id: Scalars['uuid'];
+};
+
+
+export type Subscription_RootCommunities_StreamArgs = {
+  batch_size: Scalars['Int'];
+  cursor: Array<InputMaybe<Communities_Stream_Cursor_Input>>;
+  where?: InputMaybe<Communities_Bool_Exp>;
+};
+
+
+export type Subscription_RootCommunity_FilesArgs = {
+  distinct_on?: InputMaybe<Array<Community_Files_Select_Column>>;
+  limit?: InputMaybe<Scalars['Int']>;
+  offset?: InputMaybe<Scalars['Int']>;
+  order_by?: InputMaybe<Array<Community_Files_Order_By>>;
+  where?: InputMaybe<Community_Files_Bool_Exp>;
+};
+
+
+export type Subscription_RootCommunity_Files_AggregateArgs = {
+  distinct_on?: InputMaybe<Array<Community_Files_Select_Column>>;
+  limit?: InputMaybe<Scalars['Int']>;
+  offset?: InputMaybe<Scalars['Int']>;
+  order_by?: InputMaybe<Array<Community_Files_Order_By>>;
+  where?: InputMaybe<Community_Files_Bool_Exp>;
+};
+
+
+export type Subscription_RootCommunity_Files_By_PkArgs = {
+  id: Scalars['uuid'];
+};
+
+
+export type Subscription_RootCommunity_Files_StreamArgs = {
+  batch_size: Scalars['Int'];
+  cursor: Array<InputMaybe<Community_Files_Stream_Cursor_Input>>;
+  where?: InputMaybe<Community_Files_Bool_Exp>;
+};
+
+
+export type Subscription_RootCommunity_MembersArgs = {
+  distinct_on?: InputMaybe<Array<Community_Members_Select_Column>>;
+  limit?: InputMaybe<Scalars['Int']>;
+  offset?: InputMaybe<Scalars['Int']>;
+  order_by?: InputMaybe<Array<Community_Members_Order_By>>;
+  where?: InputMaybe<Community_Members_Bool_Exp>;
+};
+
+
+export type Subscription_RootCommunity_Members_AggregateArgs = {
+  distinct_on?: InputMaybe<Array<Community_Members_Select_Column>>;
+  limit?: InputMaybe<Scalars['Int']>;
+  offset?: InputMaybe<Scalars['Int']>;
+  order_by?: InputMaybe<Array<Community_Members_Order_By>>;
+  where?: InputMaybe<Community_Members_Bool_Exp>;
+};
+
+
+export type Subscription_RootCommunity_Members_By_PkArgs = {
+  id: Scalars['uuid'];
+};
+
+
+export type Subscription_RootCommunity_Members_StreamArgs = {
+  batch_size: Scalars['Int'];
+  cursor: Array<InputMaybe<Community_Members_Stream_Cursor_Input>>;
+  where?: InputMaybe<Community_Members_Bool_Exp>;
+};
+
+
 export type Subscription_RootFileArgs = {
   id: Scalars['uuid'];
 };
+
 
 export type Subscription_RootFilesArgs = {
   distinct_on?: InputMaybe<Array<Files_Select_Column>>;
@@ -6744,6 +11757,7 @@ export type Subscription_RootFilesArgs = {
   where?: InputMaybe<Files_Bool_Exp>;
 };
 
+
 export type Subscription_RootFilesAggregateArgs = {
   distinct_on?: InputMaybe<Array<Files_Select_Column>>;
   limit?: InputMaybe<Scalars['Int']>;
@@ -6752,48 +11766,228 @@ export type Subscription_RootFilesAggregateArgs = {
   where?: InputMaybe<Files_Bool_Exp>;
 };
 
+
 export type Subscription_RootFiles_StreamArgs = {
   batch_size: Scalars['Int'];
   cursor: Array<InputMaybe<Files_Stream_Cursor_Input>>;
   where?: InputMaybe<Files_Bool_Exp>;
 };
 
+
+export type Subscription_RootGraphiteAgentArgs = {
+  id: Scalars['uuid'];
+};
+
+
+export type Subscription_RootGraphiteAgentAggregateArgs = {
+  distinct_on?: InputMaybe<Array<GraphiteAgents_Select_Column>>;
+  limit?: InputMaybe<Scalars['Int']>;
+  offset?: InputMaybe<Scalars['Int']>;
+  order_by?: InputMaybe<Array<GraphiteAgents_Order_By>>;
+  where?: InputMaybe<GraphiteAgents_Bool_Exp>;
+};
+
+
+export type Subscription_RootGraphiteAgentMessageArgs = {
+  id: Scalars['uuid'];
+};
+
+
+export type Subscription_RootGraphiteAgentMessageAggregateArgs = {
+  distinct_on?: InputMaybe<Array<GraphiteAgentMessages_Select_Column>>;
+  limit?: InputMaybe<Scalars['Int']>;
+  offset?: InputMaybe<Scalars['Int']>;
+  order_by?: InputMaybe<Array<GraphiteAgentMessages_Order_By>>;
+  where?: InputMaybe<GraphiteAgentMessages_Bool_Exp>;
+};
+
+
+export type Subscription_RootGraphiteAgentMessageStreamArgs = {
+  batch_size: Scalars['Int'];
+  cursor: Array<InputMaybe<GraphiteAgentMessages_Stream_Cursor_Input>>;
+  where?: InputMaybe<GraphiteAgentMessages_Bool_Exp>;
+};
+
+
+export type Subscription_RootGraphiteAgentMessagesArgs = {
+  distinct_on?: InputMaybe<Array<GraphiteAgentMessages_Select_Column>>;
+  limit?: InputMaybe<Scalars['Int']>;
+  offset?: InputMaybe<Scalars['Int']>;
+  order_by?: InputMaybe<Array<GraphiteAgentMessages_Order_By>>;
+  where?: InputMaybe<GraphiteAgentMessages_Bool_Exp>;
+};
+
+
+export type Subscription_RootGraphiteAgentProviderArgs = {
+  value: Scalars['String'];
+};
+
+
+export type Subscription_RootGraphiteAgentProviderAggregateArgs = {
+  distinct_on?: InputMaybe<Array<GraphiteAgentProviders_Select_Column>>;
+  limit?: InputMaybe<Scalars['Int']>;
+  offset?: InputMaybe<Scalars['Int']>;
+  order_by?: InputMaybe<Array<GraphiteAgentProviders_Order_By>>;
+  where?: InputMaybe<GraphiteAgentProviders_Bool_Exp>;
+};
+
+
+export type Subscription_RootGraphiteAgentProviderStreamArgs = {
+  batch_size: Scalars['Int'];
+  cursor: Array<InputMaybe<GraphiteAgentProviders_Stream_Cursor_Input>>;
+  where?: InputMaybe<GraphiteAgentProviders_Bool_Exp>;
+};
+
+
+export type Subscription_RootGraphiteAgentProvidersArgs = {
+  distinct_on?: InputMaybe<Array<GraphiteAgentProviders_Select_Column>>;
+  limit?: InputMaybe<Scalars['Int']>;
+  offset?: InputMaybe<Scalars['Int']>;
+  order_by?: InputMaybe<Array<GraphiteAgentProviders_Order_By>>;
+  where?: InputMaybe<GraphiteAgentProviders_Bool_Exp>;
+};
+
+
+export type Subscription_RootGraphiteAgentSessionArgs = {
+  id: Scalars['uuid'];
+};
+
+
+export type Subscription_RootGraphiteAgentSessionAggregateArgs = {
+  distinct_on?: InputMaybe<Array<GraphiteAgentSessions_Select_Column>>;
+  limit?: InputMaybe<Scalars['Int']>;
+  offset?: InputMaybe<Scalars['Int']>;
+  order_by?: InputMaybe<Array<GraphiteAgentSessions_Order_By>>;
+  where?: InputMaybe<GraphiteAgentSessions_Bool_Exp>;
+};
+
+
+export type Subscription_RootGraphiteAgentSessionStreamArgs = {
+  batch_size: Scalars['Int'];
+  cursor: Array<InputMaybe<GraphiteAgentSessions_Stream_Cursor_Input>>;
+  where?: InputMaybe<GraphiteAgentSessions_Bool_Exp>;
+};
+
+
+export type Subscription_RootGraphiteAgentSessionsArgs = {
+  distinct_on?: InputMaybe<Array<GraphiteAgentSessions_Select_Column>>;
+  limit?: InputMaybe<Scalars['Int']>;
+  offset?: InputMaybe<Scalars['Int']>;
+  order_by?: InputMaybe<Array<GraphiteAgentSessions_Order_By>>;
+  where?: InputMaybe<GraphiteAgentSessions_Bool_Exp>;
+};
+
+
+export type Subscription_RootGraphiteAgentStreamArgs = {
+  batch_size: Scalars['Int'];
+  cursor: Array<InputMaybe<GraphiteAgents_Stream_Cursor_Input>>;
+  where?: InputMaybe<GraphiteAgents_Bool_Exp>;
+};
+
+
+export type Subscription_RootGraphiteAgentsArgs = {
+  distinct_on?: InputMaybe<Array<GraphiteAgents_Select_Column>>;
+  limit?: InputMaybe<Scalars['Int']>;
+  offset?: InputMaybe<Scalars['Int']>;
+  order_by?: InputMaybe<Array<GraphiteAgents_Order_By>>;
+  where?: InputMaybe<GraphiteAgents_Bool_Exp>;
+};
+
+
 export type Subscription_RootGraphiteAutoEmbeddingsConfigurationArgs = {
   id: Scalars['uuid'];
 };
 
-export type Subscription_RootGraphiteAutoEmbeddingsConfigurationAggregateArgs =
-  {
-    distinct_on?: InputMaybe<
-      Array<GraphiteAutoEmbeddingsConfiguration_Select_Column>
-    >;
-    limit?: InputMaybe<Scalars['Int']>;
-    offset?: InputMaybe<Scalars['Int']>;
-    order_by?: InputMaybe<Array<GraphiteAutoEmbeddingsConfiguration_Order_By>>;
-    where?: InputMaybe<GraphiteAutoEmbeddingsConfiguration_Bool_Exp>;
-  };
 
-export type Subscription_RootGraphiteAutoEmbeddingsConfigurationStreamArgs = {
-  batch_size: Scalars['Int'];
-  cursor: Array<
-    InputMaybe<GraphiteAutoEmbeddingsConfiguration_Stream_Cursor_Input>
-  >;
-  where?: InputMaybe<GraphiteAutoEmbeddingsConfiguration_Bool_Exp>;
-};
-
-export type Subscription_RootGraphiteAutoEmbeddingsConfigurationsArgs = {
-  distinct_on?: InputMaybe<
-    Array<GraphiteAutoEmbeddingsConfiguration_Select_Column>
-  >;
+export type Subscription_RootGraphiteAutoEmbeddingsConfigurationAggregateArgs = {
+  distinct_on?: InputMaybe<Array<GraphiteAutoEmbeddingsConfiguration_Select_Column>>;
   limit?: InputMaybe<Scalars['Int']>;
   offset?: InputMaybe<Scalars['Int']>;
   order_by?: InputMaybe<Array<GraphiteAutoEmbeddingsConfiguration_Order_By>>;
   where?: InputMaybe<GraphiteAutoEmbeddingsConfiguration_Bool_Exp>;
 };
 
+
+export type Subscription_RootGraphiteAutoEmbeddingsConfigurationStreamArgs = {
+  batch_size: Scalars['Int'];
+  cursor: Array<InputMaybe<GraphiteAutoEmbeddingsConfiguration_Stream_Cursor_Input>>;
+  where?: InputMaybe<GraphiteAutoEmbeddingsConfiguration_Bool_Exp>;
+};
+
+
+export type Subscription_RootGraphiteAutoEmbeddingsConfigurationsArgs = {
+  distinct_on?: InputMaybe<Array<GraphiteAutoEmbeddingsConfiguration_Select_Column>>;
+  limit?: InputMaybe<Scalars['Int']>;
+  offset?: InputMaybe<Scalars['Int']>;
+  order_by?: InputMaybe<Array<GraphiteAutoEmbeddingsConfiguration_Order_By>>;
+  where?: InputMaybe<GraphiteAutoEmbeddingsConfiguration_Bool_Exp>;
+};
+
+
+export type Subscription_RootNotificationsArgs = {
+  distinct_on?: InputMaybe<Array<Notifications_Select_Column>>;
+  limit?: InputMaybe<Scalars['Int']>;
+  offset?: InputMaybe<Scalars['Int']>;
+  order_by?: InputMaybe<Array<Notifications_Order_By>>;
+  where?: InputMaybe<Notifications_Bool_Exp>;
+};
+
+
+export type Subscription_RootNotifications_AggregateArgs = {
+  distinct_on?: InputMaybe<Array<Notifications_Select_Column>>;
+  limit?: InputMaybe<Scalars['Int']>;
+  offset?: InputMaybe<Scalars['Int']>;
+  order_by?: InputMaybe<Array<Notifications_Order_By>>;
+  where?: InputMaybe<Notifications_Bool_Exp>;
+};
+
+
+export type Subscription_RootNotifications_By_PkArgs = {
+  id: Scalars['uuid'];
+};
+
+
+export type Subscription_RootNotifications_StreamArgs = {
+  batch_size: Scalars['Int'];
+  cursor: Array<InputMaybe<Notifications_Stream_Cursor_Input>>;
+  where?: InputMaybe<Notifications_Bool_Exp>;
+};
+
+
+export type Subscription_RootTodosArgs = {
+  distinct_on?: InputMaybe<Array<Todos_Select_Column>>;
+  limit?: InputMaybe<Scalars['Int']>;
+  offset?: InputMaybe<Scalars['Int']>;
+  order_by?: InputMaybe<Array<Todos_Order_By>>;
+  where?: InputMaybe<Todos_Bool_Exp>;
+};
+
+
+export type Subscription_RootTodos_AggregateArgs = {
+  distinct_on?: InputMaybe<Array<Todos_Select_Column>>;
+  limit?: InputMaybe<Scalars['Int']>;
+  offset?: InputMaybe<Scalars['Int']>;
+  order_by?: InputMaybe<Array<Todos_Order_By>>;
+  where?: InputMaybe<Todos_Bool_Exp>;
+};
+
+
+export type Subscription_RootTodos_By_PkArgs = {
+  id: Scalars['uuid'];
+};
+
+
+export type Subscription_RootTodos_StreamArgs = {
+  batch_size: Scalars['Int'];
+  cursor: Array<InputMaybe<Todos_Stream_Cursor_Input>>;
+  where?: InputMaybe<Todos_Bool_Exp>;
+};
+
+
 export type Subscription_RootUserArgs = {
   id: Scalars['uuid'];
 };
+
 
 export type Subscription_RootUsersArgs = {
   distinct_on?: InputMaybe<Array<Users_Select_Column>>;
@@ -6803,6 +11997,7 @@ export type Subscription_RootUsersArgs = {
   where?: InputMaybe<Users_Bool_Exp>;
 };
 
+
 export type Subscription_RootUsersAggregateArgs = {
   distinct_on?: InputMaybe<Array<Users_Select_Column>>;
   limit?: InputMaybe<Scalars['Int']>;
@@ -6811,21 +12006,25 @@ export type Subscription_RootUsersAggregateArgs = {
   where?: InputMaybe<Users_Bool_Exp>;
 };
 
+
 export type Subscription_RootUsers_StreamArgs = {
   batch_size: Scalars['Int'];
   cursor: Array<InputMaybe<Users_Stream_Cursor_Input>>;
   where?: InputMaybe<Users_Bool_Exp>;
 };
 
+
 export type Subscription_RootVirusArgs = {
   id: Scalars['uuid'];
 };
+
 
 export type Subscription_RootVirus_StreamArgs = {
   batch_size: Scalars['Int'];
   cursor: Array<InputMaybe<Virus_Stream_Cursor_Input>>;
   where?: InputMaybe<Virus_Bool_Exp>;
 };
+
 
 export type Subscription_RootVirusesArgs = {
   distinct_on?: InputMaybe<Array<Virus_Select_Column>>;
@@ -6834,6 +12033,7 @@ export type Subscription_RootVirusesArgs = {
   order_by?: InputMaybe<Array<Virus_Order_By>>;
   where?: InputMaybe<Virus_Bool_Exp>;
 };
+
 
 export type Subscription_RootVirusesAggregateArgs = {
   distinct_on?: InputMaybe<Array<Virus_Select_Column>>;
@@ -6856,11 +12056,217 @@ export type Timestamptz_Comparison_Exp = {
   _nin?: InputMaybe<Array<Scalars['timestamptz']>>;
 };
 
+/** columns and relationships of "todos" */
+export type Todos = {
+  __typename?: 'todos';
+  completed: Scalars['Boolean'];
+  created_at: Scalars['timestamptz'];
+  details?: Maybe<Scalars['String']>;
+  id: Scalars['uuid'];
+  stale: Scalars['Boolean'];
+  title: Scalars['String'];
+  updated_at: Scalars['timestamptz'];
+  user_id: Scalars['uuid'];
+};
+
+/** aggregated selection of "todos" */
+export type Todos_Aggregate = {
+  __typename?: 'todos_aggregate';
+  aggregate?: Maybe<Todos_Aggregate_Fields>;
+  nodes: Array<Todos>;
+};
+
+/** aggregate fields of "todos" */
+export type Todos_Aggregate_Fields = {
+  __typename?: 'todos_aggregate_fields';
+  count: Scalars['Int'];
+  max?: Maybe<Todos_Max_Fields>;
+  min?: Maybe<Todos_Min_Fields>;
+};
+
+
+/** aggregate fields of "todos" */
+export type Todos_Aggregate_FieldsCountArgs = {
+  columns?: InputMaybe<Array<Todos_Select_Column>>;
+  distinct?: InputMaybe<Scalars['Boolean']>;
+};
+
+/** Boolean expression to filter rows from the table "todos". All fields are combined with a logical 'AND'. */
+export type Todos_Bool_Exp = {
+  _and?: InputMaybe<Array<Todos_Bool_Exp>>;
+  _not?: InputMaybe<Todos_Bool_Exp>;
+  _or?: InputMaybe<Array<Todos_Bool_Exp>>;
+  completed?: InputMaybe<Boolean_Comparison_Exp>;
+  created_at?: InputMaybe<Timestamptz_Comparison_Exp>;
+  details?: InputMaybe<String_Comparison_Exp>;
+  id?: InputMaybe<Uuid_Comparison_Exp>;
+  stale?: InputMaybe<Boolean_Comparison_Exp>;
+  title?: InputMaybe<String_Comparison_Exp>;
+  updated_at?: InputMaybe<Timestamptz_Comparison_Exp>;
+  user_id?: InputMaybe<Uuid_Comparison_Exp>;
+};
+
+/** unique or primary key constraints on table "todos" */
+export enum Todos_Constraint {
+  /** unique or primary key constraint on columns "id" */
+  TodosPkey = 'todos_pkey'
+}
+
+/** input type for inserting data into table "todos" */
+export type Todos_Insert_Input = {
+  completed?: InputMaybe<Scalars['Boolean']>;
+  created_at?: InputMaybe<Scalars['timestamptz']>;
+  details?: InputMaybe<Scalars['String']>;
+  id?: InputMaybe<Scalars['uuid']>;
+  stale?: InputMaybe<Scalars['Boolean']>;
+  title?: InputMaybe<Scalars['String']>;
+  updated_at?: InputMaybe<Scalars['timestamptz']>;
+  user_id?: InputMaybe<Scalars['uuid']>;
+};
+
+/** aggregate max on columns */
+export type Todos_Max_Fields = {
+  __typename?: 'todos_max_fields';
+  created_at?: Maybe<Scalars['timestamptz']>;
+  details?: Maybe<Scalars['String']>;
+  id?: Maybe<Scalars['uuid']>;
+  title?: Maybe<Scalars['String']>;
+  updated_at?: Maybe<Scalars['timestamptz']>;
+  user_id?: Maybe<Scalars['uuid']>;
+};
+
+/** aggregate min on columns */
+export type Todos_Min_Fields = {
+  __typename?: 'todos_min_fields';
+  created_at?: Maybe<Scalars['timestamptz']>;
+  details?: Maybe<Scalars['String']>;
+  id?: Maybe<Scalars['uuid']>;
+  title?: Maybe<Scalars['String']>;
+  updated_at?: Maybe<Scalars['timestamptz']>;
+  user_id?: Maybe<Scalars['uuid']>;
+};
+
+/** response of any mutation on the table "todos" */
+export type Todos_Mutation_Response = {
+  __typename?: 'todos_mutation_response';
+  /** number of rows affected by the mutation */
+  affected_rows: Scalars['Int'];
+  /** data from the rows affected by the mutation */
+  returning: Array<Todos>;
+};
+
+/** on_conflict condition type for table "todos" */
+export type Todos_On_Conflict = {
+  constraint: Todos_Constraint;
+  update_columns?: Array<Todos_Update_Column>;
+  where?: InputMaybe<Todos_Bool_Exp>;
+};
+
+/** Ordering options when selecting data from "todos". */
+export type Todos_Order_By = {
+  completed?: InputMaybe<Order_By>;
+  created_at?: InputMaybe<Order_By>;
+  details?: InputMaybe<Order_By>;
+  id?: InputMaybe<Order_By>;
+  stale?: InputMaybe<Order_By>;
+  title?: InputMaybe<Order_By>;
+  updated_at?: InputMaybe<Order_By>;
+  user_id?: InputMaybe<Order_By>;
+};
+
+/** primary key columns input for table: todos */
+export type Todos_Pk_Columns_Input = {
+  id: Scalars['uuid'];
+};
+
+/** select columns of table "todos" */
+export enum Todos_Select_Column {
+  /** column name */
+  Completed = 'completed',
+  /** column name */
+  CreatedAt = 'created_at',
+  /** column name */
+  Details = 'details',
+  /** column name */
+  Id = 'id',
+  /** column name */
+  Stale = 'stale',
+  /** column name */
+  Title = 'title',
+  /** column name */
+  UpdatedAt = 'updated_at',
+  /** column name */
+  UserId = 'user_id'
+}
+
+/** input type for updating data in table "todos" */
+export type Todos_Set_Input = {
+  completed?: InputMaybe<Scalars['Boolean']>;
+  created_at?: InputMaybe<Scalars['timestamptz']>;
+  details?: InputMaybe<Scalars['String']>;
+  id?: InputMaybe<Scalars['uuid']>;
+  stale?: InputMaybe<Scalars['Boolean']>;
+  title?: InputMaybe<Scalars['String']>;
+  updated_at?: InputMaybe<Scalars['timestamptz']>;
+  user_id?: InputMaybe<Scalars['uuid']>;
+};
+
+/** Streaming cursor of the table "todos" */
+export type Todos_Stream_Cursor_Input = {
+  /** Stream column input with initial value */
+  initial_value: Todos_Stream_Cursor_Value_Input;
+  /** cursor ordering */
+  ordering?: InputMaybe<Cursor_Ordering>;
+};
+
+/** Initial value of the column from where the streaming should start */
+export type Todos_Stream_Cursor_Value_Input = {
+  completed?: InputMaybe<Scalars['Boolean']>;
+  created_at?: InputMaybe<Scalars['timestamptz']>;
+  details?: InputMaybe<Scalars['String']>;
+  id?: InputMaybe<Scalars['uuid']>;
+  stale?: InputMaybe<Scalars['Boolean']>;
+  title?: InputMaybe<Scalars['String']>;
+  updated_at?: InputMaybe<Scalars['timestamptz']>;
+  user_id?: InputMaybe<Scalars['uuid']>;
+};
+
+/** update columns of table "todos" */
+export enum Todos_Update_Column {
+  /** column name */
+  Completed = 'completed',
+  /** column name */
+  CreatedAt = 'created_at',
+  /** column name */
+  Details = 'details',
+  /** column name */
+  Id = 'id',
+  /** column name */
+  Stale = 'stale',
+  /** column name */
+  Title = 'title',
+  /** column name */
+  UpdatedAt = 'updated_at',
+  /** column name */
+  UserId = 'user_id'
+}
+
+export type Todos_Updates = {
+  /** sets the columns of the filtered rows to the given values */
+  _set?: InputMaybe<Todos_Set_Input>;
+  /** filter the rows which have to be updated */
+  where: Todos_Bool_Exp;
+};
+
 /** User account information. Don't modify its structure as Hasura Auth relies on it to function properly. */
 export type Users = {
   __typename?: 'users';
   activeMfaType?: Maybe<Scalars['String']>;
   avatarUrl: Scalars['String'];
+  /** An array relationship */
+  community_memberships: Array<Community_Members>;
+  /** An aggregate relationship */
+  community_memberships_aggregate: Community_Members_Aggregate;
   createdAt: Scalars['timestamptz'];
   currentChallenge?: Maybe<Scalars['String']>;
   defaultRole: Scalars['String'];
@@ -6876,6 +12282,22 @@ export type Users = {
   locale: Scalars['String'];
   metadata?: Maybe<Scalars['jsonb']>;
   newEmail?: Maybe<Scalars['citext']>;
+  /** An array relationship */
+  notifications: Array<Notifications>;
+  /** An aggregate relationship */
+  notifications_aggregate: Notifications_Aggregate;
+  /** An array relationship */
+  oauth2AuthRequests: Array<AuthOauth2AuthRequests>;
+  /** An aggregate relationship */
+  oauth2AuthRequests_aggregate: AuthOauth2AuthRequests_Aggregate;
+  /** An array relationship */
+  oauth2Clients: Array<AuthOauth2Clients>;
+  /** An aggregate relationship */
+  oauth2Clients_aggregate: AuthOauth2Clients_Aggregate;
+  /** An array relationship */
+  oauth2RefreshTokens: Array<AuthOauth2RefreshTokens>;
+  /** An aggregate relationship */
+  oauth2RefreshTokens_aggregate: AuthOauth2RefreshTokens_Aggregate;
   otpHash?: Maybe<Scalars['String']>;
   otpHashExpiresAt: Scalars['timestamptz'];
   otpMethodLastUsed?: Maybe<Scalars['String']>;
@@ -6904,10 +12326,112 @@ export type Users = {
   userProviders_aggregate: AuthUserProviders_Aggregate;
 };
 
+
+/** User account information. Don't modify its structure as Hasura Auth relies on it to function properly. */
+export type UsersCommunity_MembershipsArgs = {
+  distinct_on?: InputMaybe<Array<Community_Members_Select_Column>>;
+  limit?: InputMaybe<Scalars['Int']>;
+  offset?: InputMaybe<Scalars['Int']>;
+  order_by?: InputMaybe<Array<Community_Members_Order_By>>;
+  where?: InputMaybe<Community_Members_Bool_Exp>;
+};
+
+
+/** User account information. Don't modify its structure as Hasura Auth relies on it to function properly. */
+export type UsersCommunity_Memberships_AggregateArgs = {
+  distinct_on?: InputMaybe<Array<Community_Members_Select_Column>>;
+  limit?: InputMaybe<Scalars['Int']>;
+  offset?: InputMaybe<Scalars['Int']>;
+  order_by?: InputMaybe<Array<Community_Members_Order_By>>;
+  where?: InputMaybe<Community_Members_Bool_Exp>;
+};
+
+
 /** User account information. Don't modify its structure as Hasura Auth relies on it to function properly. */
 export type UsersMetadataArgs = {
   path?: InputMaybe<Scalars['String']>;
 };
+
+
+/** User account information. Don't modify its structure as Hasura Auth relies on it to function properly. */
+export type UsersNotificationsArgs = {
+  distinct_on?: InputMaybe<Array<Notifications_Select_Column>>;
+  limit?: InputMaybe<Scalars['Int']>;
+  offset?: InputMaybe<Scalars['Int']>;
+  order_by?: InputMaybe<Array<Notifications_Order_By>>;
+  where?: InputMaybe<Notifications_Bool_Exp>;
+};
+
+
+/** User account information. Don't modify its structure as Hasura Auth relies on it to function properly. */
+export type UsersNotifications_AggregateArgs = {
+  distinct_on?: InputMaybe<Array<Notifications_Select_Column>>;
+  limit?: InputMaybe<Scalars['Int']>;
+  offset?: InputMaybe<Scalars['Int']>;
+  order_by?: InputMaybe<Array<Notifications_Order_By>>;
+  where?: InputMaybe<Notifications_Bool_Exp>;
+};
+
+
+/** User account information. Don't modify its structure as Hasura Auth relies on it to function properly. */
+export type UsersOauth2AuthRequestsArgs = {
+  distinct_on?: InputMaybe<Array<AuthOauth2AuthRequests_Select_Column>>;
+  limit?: InputMaybe<Scalars['Int']>;
+  offset?: InputMaybe<Scalars['Int']>;
+  order_by?: InputMaybe<Array<AuthOauth2AuthRequests_Order_By>>;
+  where?: InputMaybe<AuthOauth2AuthRequests_Bool_Exp>;
+};
+
+
+/** User account information. Don't modify its structure as Hasura Auth relies on it to function properly. */
+export type UsersOauth2AuthRequests_AggregateArgs = {
+  distinct_on?: InputMaybe<Array<AuthOauth2AuthRequests_Select_Column>>;
+  limit?: InputMaybe<Scalars['Int']>;
+  offset?: InputMaybe<Scalars['Int']>;
+  order_by?: InputMaybe<Array<AuthOauth2AuthRequests_Order_By>>;
+  where?: InputMaybe<AuthOauth2AuthRequests_Bool_Exp>;
+};
+
+
+/** User account information. Don't modify its structure as Hasura Auth relies on it to function properly. */
+export type UsersOauth2ClientsArgs = {
+  distinct_on?: InputMaybe<Array<AuthOauth2Clients_Select_Column>>;
+  limit?: InputMaybe<Scalars['Int']>;
+  offset?: InputMaybe<Scalars['Int']>;
+  order_by?: InputMaybe<Array<AuthOauth2Clients_Order_By>>;
+  where?: InputMaybe<AuthOauth2Clients_Bool_Exp>;
+};
+
+
+/** User account information. Don't modify its structure as Hasura Auth relies on it to function properly. */
+export type UsersOauth2Clients_AggregateArgs = {
+  distinct_on?: InputMaybe<Array<AuthOauth2Clients_Select_Column>>;
+  limit?: InputMaybe<Scalars['Int']>;
+  offset?: InputMaybe<Scalars['Int']>;
+  order_by?: InputMaybe<Array<AuthOauth2Clients_Order_By>>;
+  where?: InputMaybe<AuthOauth2Clients_Bool_Exp>;
+};
+
+
+/** User account information. Don't modify its structure as Hasura Auth relies on it to function properly. */
+export type UsersOauth2RefreshTokensArgs = {
+  distinct_on?: InputMaybe<Array<AuthOauth2RefreshTokens_Select_Column>>;
+  limit?: InputMaybe<Scalars['Int']>;
+  offset?: InputMaybe<Scalars['Int']>;
+  order_by?: InputMaybe<Array<AuthOauth2RefreshTokens_Order_By>>;
+  where?: InputMaybe<AuthOauth2RefreshTokens_Bool_Exp>;
+};
+
+
+/** User account information. Don't modify its structure as Hasura Auth relies on it to function properly. */
+export type UsersOauth2RefreshTokens_AggregateArgs = {
+  distinct_on?: InputMaybe<Array<AuthOauth2RefreshTokens_Select_Column>>;
+  limit?: InputMaybe<Scalars['Int']>;
+  offset?: InputMaybe<Scalars['Int']>;
+  order_by?: InputMaybe<Array<AuthOauth2RefreshTokens_Order_By>>;
+  where?: InputMaybe<AuthOauth2RefreshTokens_Bool_Exp>;
+};
+
 
 /** User account information. Don't modify its structure as Hasura Auth relies on it to function properly. */
 export type UsersRefreshTokensArgs = {
@@ -6918,6 +12442,7 @@ export type UsersRefreshTokensArgs = {
   where?: InputMaybe<AuthRefreshTokens_Bool_Exp>;
 };
 
+
 /** User account information. Don't modify its structure as Hasura Auth relies on it to function properly. */
 export type UsersRefreshTokens_AggregateArgs = {
   distinct_on?: InputMaybe<Array<AuthRefreshTokens_Select_Column>>;
@@ -6926,6 +12451,7 @@ export type UsersRefreshTokens_AggregateArgs = {
   order_by?: InputMaybe<Array<AuthRefreshTokens_Order_By>>;
   where?: InputMaybe<AuthRefreshTokens_Bool_Exp>;
 };
+
 
 /** User account information. Don't modify its structure as Hasura Auth relies on it to function properly. */
 export type UsersRolesArgs = {
@@ -6936,6 +12462,7 @@ export type UsersRolesArgs = {
   where?: InputMaybe<AuthUserRoles_Bool_Exp>;
 };
 
+
 /** User account information. Don't modify its structure as Hasura Auth relies on it to function properly. */
 export type UsersRoles_AggregateArgs = {
   distinct_on?: InputMaybe<Array<AuthUserRoles_Select_Column>>;
@@ -6944,6 +12471,7 @@ export type UsersRoles_AggregateArgs = {
   order_by?: InputMaybe<Array<AuthUserRoles_Order_By>>;
   where?: InputMaybe<AuthUserRoles_Bool_Exp>;
 };
+
 
 /** User account information. Don't modify its structure as Hasura Auth relies on it to function properly. */
 export type UsersSecurityKeysArgs = {
@@ -6954,6 +12482,7 @@ export type UsersSecurityKeysArgs = {
   where?: InputMaybe<AuthUserSecurityKeys_Bool_Exp>;
 };
 
+
 /** User account information. Don't modify its structure as Hasura Auth relies on it to function properly. */
 export type UsersSecurityKeys_AggregateArgs = {
   distinct_on?: InputMaybe<Array<AuthUserSecurityKeys_Select_Column>>;
@@ -6963,6 +12492,7 @@ export type UsersSecurityKeys_AggregateArgs = {
   where?: InputMaybe<AuthUserSecurityKeys_Bool_Exp>;
 };
 
+
 /** User account information. Don't modify its structure as Hasura Auth relies on it to function properly. */
 export type UsersUserProvidersArgs = {
   distinct_on?: InputMaybe<Array<AuthUserProviders_Select_Column>>;
@@ -6971,6 +12501,7 @@ export type UsersUserProvidersArgs = {
   order_by?: InputMaybe<Array<AuthUserProviders_Order_By>>;
   where?: InputMaybe<AuthUserProviders_Bool_Exp>;
 };
+
 
 /** User account information. Don't modify its structure as Hasura Auth relies on it to function properly. */
 export type UsersUserProviders_AggregateArgs = {
@@ -7023,6 +12554,7 @@ export type Users_Aggregate_Fields = {
   min?: Maybe<Users_Min_Fields>;
 };
 
+
 /** aggregate fields of "auth.users" */
 export type Users_Aggregate_FieldsCountArgs = {
   columns?: InputMaybe<Array<Users_Select_Column>>;
@@ -7055,6 +12587,8 @@ export type Users_Bool_Exp = {
   _or?: InputMaybe<Array<Users_Bool_Exp>>;
   activeMfaType?: InputMaybe<String_Comparison_Exp>;
   avatarUrl?: InputMaybe<String_Comparison_Exp>;
+  community_memberships?: InputMaybe<Community_Members_Bool_Exp>;
+  community_memberships_aggregate?: InputMaybe<Community_Members_Aggregate_Bool_Exp>;
   createdAt?: InputMaybe<Timestamptz_Comparison_Exp>;
   currentChallenge?: InputMaybe<String_Comparison_Exp>;
   defaultRole?: InputMaybe<String_Comparison_Exp>;
@@ -7069,6 +12603,14 @@ export type Users_Bool_Exp = {
   locale?: InputMaybe<String_Comparison_Exp>;
   metadata?: InputMaybe<Jsonb_Comparison_Exp>;
   newEmail?: InputMaybe<Citext_Comparison_Exp>;
+  notifications?: InputMaybe<Notifications_Bool_Exp>;
+  notifications_aggregate?: InputMaybe<Notifications_Aggregate_Bool_Exp>;
+  oauth2AuthRequests?: InputMaybe<AuthOauth2AuthRequests_Bool_Exp>;
+  oauth2AuthRequests_aggregate?: InputMaybe<AuthOauth2AuthRequests_Aggregate_Bool_Exp>;
+  oauth2Clients?: InputMaybe<AuthOauth2Clients_Bool_Exp>;
+  oauth2Clients_aggregate?: InputMaybe<AuthOauth2Clients_Aggregate_Bool_Exp>;
+  oauth2RefreshTokens?: InputMaybe<AuthOauth2RefreshTokens_Bool_Exp>;
+  oauth2RefreshTokens_aggregate?: InputMaybe<AuthOauth2RefreshTokens_Aggregate_Bool_Exp>;
   otpHash?: InputMaybe<String_Comparison_Exp>;
   otpHashExpiresAt?: InputMaybe<Timestamptz_Comparison_Exp>;
   otpMethodLastUsed?: InputMaybe<String_Comparison_Exp>;
@@ -7096,7 +12638,7 @@ export enum Users_Constraint {
   /** unique or primary key constraint on columns "phone_number" */
   UsersPhoneNumberKey = 'users_phone_number_key',
   /** unique or primary key constraint on columns "id" */
-  UsersPkey = 'users_pkey',
+  UsersPkey = 'users_pkey'
 }
 
 /** delete the field or element with specified path (for JSON arrays, negative integers count from the end) */
@@ -7118,6 +12660,7 @@ export type Users_Delete_Key_Input = {
 export type Users_Insert_Input = {
   activeMfaType?: InputMaybe<Scalars['String']>;
   avatarUrl?: InputMaybe<Scalars['String']>;
+  community_memberships?: InputMaybe<Community_Members_Arr_Rel_Insert_Input>;
   createdAt?: InputMaybe<Scalars['timestamptz']>;
   currentChallenge?: InputMaybe<Scalars['String']>;
   defaultRole?: InputMaybe<Scalars['String']>;
@@ -7132,6 +12675,10 @@ export type Users_Insert_Input = {
   locale?: InputMaybe<Scalars['String']>;
   metadata?: InputMaybe<Scalars['jsonb']>;
   newEmail?: InputMaybe<Scalars['citext']>;
+  notifications?: InputMaybe<Notifications_Arr_Rel_Insert_Input>;
+  oauth2AuthRequests?: InputMaybe<AuthOauth2AuthRequests_Arr_Rel_Insert_Input>;
+  oauth2Clients?: InputMaybe<AuthOauth2Clients_Arr_Rel_Insert_Input>;
+  oauth2RefreshTokens?: InputMaybe<AuthOauth2RefreshTokens_Arr_Rel_Insert_Input>;
   otpHash?: InputMaybe<Scalars['String']>;
   otpHashExpiresAt?: InputMaybe<Scalars['timestamptz']>;
   otpMethodLastUsed?: InputMaybe<Scalars['String']>;
@@ -7273,6 +12820,7 @@ export type Users_On_Conflict = {
 export type Users_Order_By = {
   activeMfaType?: InputMaybe<Order_By>;
   avatarUrl?: InputMaybe<Order_By>;
+  community_memberships_aggregate?: InputMaybe<Community_Members_Aggregate_Order_By>;
   createdAt?: InputMaybe<Order_By>;
   currentChallenge?: InputMaybe<Order_By>;
   defaultRole?: InputMaybe<Order_By>;
@@ -7287,6 +12835,10 @@ export type Users_Order_By = {
   locale?: InputMaybe<Order_By>;
   metadata?: InputMaybe<Order_By>;
   newEmail?: InputMaybe<Order_By>;
+  notifications_aggregate?: InputMaybe<Notifications_Aggregate_Order_By>;
+  oauth2AuthRequests_aggregate?: InputMaybe<AuthOauth2AuthRequests_Aggregate_Order_By>;
+  oauth2Clients_aggregate?: InputMaybe<AuthOauth2Clients_Aggregate_Order_By>;
+  oauth2RefreshTokens_aggregate?: InputMaybe<AuthOauth2RefreshTokens_Aggregate_Order_By>;
   otpHash?: InputMaybe<Order_By>;
   otpHashExpiresAt?: InputMaybe<Order_By>;
   otpMethodLastUsed?: InputMaybe<Order_By>;
@@ -7364,7 +12916,7 @@ export enum Users_Select_Column {
   /** column name */
   TotpSecret = 'totpSecret',
   /** column name */
-  UpdatedAt = 'updatedAt',
+  UpdatedAt = 'updatedAt'
 }
 
 /** select "users_aggregate_bool_exp_bool_and_arguments_columns" columns of table "auth.users" */
@@ -7376,7 +12928,7 @@ export enum Users_Select_Column_Users_Aggregate_Bool_Exp_Bool_And_Arguments_Colu
   /** column name */
   IsAnonymous = 'isAnonymous',
   /** column name */
-  PhoneNumberVerified = 'phoneNumberVerified',
+  PhoneNumberVerified = 'phoneNumberVerified'
 }
 
 /** select "users_aggregate_bool_exp_bool_or_arguments_columns" columns of table "auth.users" */
@@ -7388,7 +12940,7 @@ export enum Users_Select_Column_Users_Aggregate_Bool_Exp_Bool_Or_Arguments_Colum
   /** column name */
   IsAnonymous = 'isAnonymous',
   /** column name */
-  PhoneNumberVerified = 'phoneNumberVerified',
+  PhoneNumberVerified = 'phoneNumberVerified'
 }
 
 /** input type for updating data in table "auth.users" */
@@ -7508,7 +13060,7 @@ export enum Users_Update_Column {
   /** column name */
   TotpSecret = 'totpSecret',
   /** column name */
-  UpdatedAt = 'updatedAt',
+  UpdatedAt = 'updatedAt'
 }
 
 export type Users_Updates = {
@@ -7555,6 +13107,7 @@ export type Virus = {
   virus: Scalars['String'];
 };
 
+
 /** columns and relationships of "storage.virus" */
 export type VirusUserSessionArgs = {
   path?: InputMaybe<Scalars['String']>;
@@ -7574,6 +13127,7 @@ export type Virus_Aggregate_Fields = {
   max?: Maybe<Virus_Max_Fields>;
   min?: Maybe<Virus_Min_Fields>;
 };
+
 
 /** aggregate fields of "storage.virus" */
 export type Virus_Aggregate_FieldsCountArgs = {
@@ -7604,7 +13158,7 @@ export type Virus_Bool_Exp = {
 /** unique or primary key constraints on table "storage.virus" */
 export enum Virus_Constraint {
   /** unique or primary key constraint on columns "id" */
-  VirusPkey = 'virus_pkey',
+  VirusPkey = 'virus_pkey'
 }
 
 /** delete the field or element with specified path (for JSON arrays, negative integers count from the end) */
@@ -7709,7 +13263,7 @@ export enum Virus_Select_Column {
   /** column name */
   UserSession = 'userSession',
   /** column name */
-  Virus = 'virus',
+  Virus = 'virus'
 }
 
 /** input type for updating data in table "storage.virus" */
@@ -7757,7 +13311,7 @@ export enum Virus_Update_Column {
   /** column name */
   UserSession = 'userSession',
   /** column name */
-  Virus = 'virus',
+  Virus = 'virus'
 }
 
 export type Virus_Updates = {
@@ -7777,138 +13331,88 @@ export type Virus_Updates = {
   where: Virus_Bool_Exp;
 };
 
+export type DeleteAgentMutationVariables = Exact<{
+  id: Scalars['uuid'];
+}>;
+
+
+export type DeleteAgentMutation = { __typename?: 'mutation_root', deleteGraphiteAgent?: { __typename?: 'graphiteAgents', id: any } | null };
+
+export type GetAgentSessionsQueryVariables = Exact<{
+  agentID: Scalars['uuid'];
+}>;
+
+
+export type GetAgentSessionsQuery = { __typename?: 'query_root', graphiteAgentSessions: Array<{ __typename?: 'graphiteAgentSessions', id: any, createdAt: any, updatedAt: any, userID?: any | null, agentMessages_aggregate: { __typename?: 'graphiteAgentMessages_aggregate', aggregate?: { __typename?: 'graphiteAgentMessages_aggregate_fields', count: number } | null } }> };
+
+export type GetAgentsQueryVariables = Exact<{ [key: string]: never; }>;
+
+
+export type GetAgentsQuery = { __typename?: 'query_root', graphiteAgents: Array<{ __typename?: 'graphiteAgents', id: any, name: string, description: string, instructions: string, model: string, provider: GraphiteAgentProviders_Enum, toolsConfig?: any | null, createdAt: any, updatedAt: any }> };
+
+export type InsertAgentMutationVariables = Exact<{
+  object: GraphiteAgents_Insert_Input;
+}>;
+
+
+export type InsertAgentMutation = { __typename?: 'mutation_root', insertGraphiteAgent?: { __typename?: 'graphiteAgents', id: any } | null };
+
+export type UpdateAgentMutationVariables = Exact<{
+  id: Scalars['uuid'];
+  set: GraphiteAgents_Set_Input;
+}>;
+
+
+export type UpdateAgentMutation = { __typename?: 'mutation_root', updateGraphiteAgent?: { __typename?: 'graphiteAgents', id: any } | null };
+
 export type DeleteAssistantMutationVariables = Exact<{
   id: Scalars['String'];
 }>;
 
-export type DeleteAssistantMutation = {
-  __typename?: 'mutation_root';
-  graphite?: {
-    __typename?: 'graphiteMutation';
-    deleteAssistant: boolean;
-  } | null;
-};
+
+export type DeleteAssistantMutation = { __typename?: 'mutation_root', graphite?: { __typename?: 'graphiteMutation', deleteAssistant: boolean } | null };
 
 export type GetAssistantsQueryVariables = Exact<{
   isFileStoresSupported: Scalars['Boolean'];
 }>;
 
-export type GetAssistantsQuery = {
-  __typename?: 'query_root';
-  graphite?: {
-    __typename?: 'graphiteQuery';
-    assistants: Array<{
-      __typename?: 'graphiteAssistant';
-      assistantID: string;
-      name: string;
-      description: string;
-      model: string;
-      instructions: string;
-      fileStores?: Array<any> | null;
-      graphql?: Array<{
-        __typename?: 'graphiteAssistantToolGraphQL';
-        name: string;
-        query: string;
-        description: string;
-        arguments: Array<{
-          __typename?: 'graphiteAssistantToolArgument';
-          name: string;
-          type: string;
-          description: string;
-          required: boolean;
-        }>;
-      }> | null;
-      webhooks?: Array<{
-        __typename?: 'graphiteAssistantToolWebhook';
-        name: string;
-        URL: string;
-        description: string;
-        arguments: Array<{
-          __typename?: 'graphiteAssistantToolArgument';
-          name: string;
-          type: string;
-          description: string;
-          required: boolean;
-        }>;
-      }> | null;
-    }>;
-  } | null;
-};
 
-export type GetGraphiteSessionsQueryVariables = Exact<{ [key: string]: never }>;
+export type GetAssistantsQuery = { __typename?: 'query_root', graphite?: { __typename?: 'graphiteQuery', assistants: Array<{ __typename?: 'graphiteAssistant', assistantID: string, name: string, description: string, model: string, instructions: string, fileStores?: Array<any> | null, graphql?: Array<{ __typename?: 'graphiteAssistantToolGraphQL', name: string, query: string, description: string, arguments: Array<{ __typename?: 'graphiteAssistantToolArgument', name: string, type: string, description: string, required: boolean }> }> | null, webhooks?: Array<{ __typename?: 'graphiteAssistantToolWebhook', name: string, URL: string, description: string, arguments: Array<{ __typename?: 'graphiteAssistantToolArgument', name: string, type: string, description: string, required: boolean }> }> | null }> } | null };
 
-export type GetGraphiteSessionsQuery = {
-  __typename?: 'query_root';
-  graphite?: {
-    __typename?: 'graphiteQuery';
-    sessions: Array<{ __typename?: 'graphiteSession'; sessionID: string }>;
-  } | null;
-};
+export type GetGraphiteSessionsQueryVariables = Exact<{ [key: string]: never; }>;
+
+
+export type GetGraphiteSessionsQuery = { __typename?: 'query_root', graphite?: { __typename?: 'graphiteQuery', sessions: Array<{ __typename?: 'graphiteSession', sessionID: string }> } | null };
 
 export type InsertAssistantMutationVariables = Exact<{
   data: GraphiteAssistantInput;
 }>;
 
-export type InsertAssistantMutation = {
-  __typename?: 'mutation_root';
-  graphite?: {
-    __typename?: 'graphiteMutation';
-    insertAssistant: { __typename?: 'graphiteAssistant'; assistantID: string };
-  } | null;
-};
+
+export type InsertAssistantMutation = { __typename?: 'mutation_root', graphite?: { __typename?: 'graphiteMutation', insertAssistant: { __typename?: 'graphiteAssistant', assistantID: string } } | null };
 
 export type UpdateAssistantMutationVariables = Exact<{
   id: Scalars['String'];
   data: GraphiteAssistantInput;
 }>;
 
-export type UpdateAssistantMutation = {
-  __typename?: 'mutation_root';
-  graphite?: {
-    __typename?: 'graphiteMutation';
-    updateAssistant: { __typename?: 'graphiteAssistant'; assistantID: string };
-  } | null;
-};
+
+export type UpdateAssistantMutation = { __typename?: 'mutation_root', graphite?: { __typename?: 'graphiteMutation', updateAssistant: { __typename?: 'graphiteAssistant', assistantID: string } } | null };
 
 export type DeleteGraphiteAutoEmbeddingsConfigurationMutationVariables = Exact<{
   id: Scalars['uuid'];
 }>;
 
-export type DeleteGraphiteAutoEmbeddingsConfigurationMutation = {
-  __typename?: 'mutation_root';
-  deleteGraphiteAutoEmbeddingsConfiguration?: {
-    __typename: 'graphiteAutoEmbeddingsConfiguration';
-  } | null;
-};
+
+export type DeleteGraphiteAutoEmbeddingsConfigurationMutation = { __typename?: 'mutation_root', deleteGraphiteAutoEmbeddingsConfiguration?: { __typename: 'graphiteAutoEmbeddingsConfiguration' } | null };
 
 export type GetGraphiteAutoEmbeddingsConfigurationsQueryVariables = Exact<{
   limit: Scalars['Int'];
   offset: Scalars['Int'];
 }>;
 
-export type GetGraphiteAutoEmbeddingsConfigurationsQuery = {
-  __typename?: 'query_root';
-  graphiteAutoEmbeddingsConfigurations: Array<{
-    __typename?: 'graphiteAutoEmbeddingsConfiguration';
-    id: any;
-    name: string;
-    model: string;
-    schemaName: string;
-    tableName: string;
-    columnName: string;
-    query?: string | null;
-    mutation?: string | null;
-    createdAt: any;
-    updatedAt: any;
-  }>;
-  graphiteAutoEmbeddingsConfigurationAggregate: {
-    __typename?: 'graphiteAutoEmbeddingsConfiguration_aggregate';
-    aggregate?: {
-      __typename?: 'graphiteAutoEmbeddingsConfiguration_aggregate_fields';
-      count: number;
-    } | null;
-  };
-};
+
+export type GetGraphiteAutoEmbeddingsConfigurationsQuery = { __typename?: 'query_root', graphiteAutoEmbeddingsConfigurations: Array<{ __typename?: 'graphiteAutoEmbeddingsConfiguration', id: any, name: string, model: string, schemaName: string, tableName: string, columnName: string, query?: string | null, mutation?: string | null, createdAt: any, updatedAt: any }>, graphiteAutoEmbeddingsConfigurationAggregate: { __typename?: 'graphiteAutoEmbeddingsConfiguration_aggregate', aggregate?: { __typename?: 'graphiteAutoEmbeddingsConfiguration_aggregate_fields', count: number } | null } };
 
 export type InsertGraphiteAutoEmbeddingsConfigurationMutationVariables = Exact<{
   name?: InputMaybe<Scalars['String']>;
@@ -7920,13 +13424,8 @@ export type InsertGraphiteAutoEmbeddingsConfigurationMutationVariables = Exact<{
   mutation?: InputMaybe<Scalars['String']>;
 }>;
 
-export type InsertGraphiteAutoEmbeddingsConfigurationMutation = {
-  __typename?: 'mutation_root';
-  insertGraphiteAutoEmbeddingsConfiguration?: {
-    __typename?: 'graphiteAutoEmbeddingsConfiguration';
-    id: any;
-  } | null;
-};
+
+export type InsertGraphiteAutoEmbeddingsConfigurationMutation = { __typename?: 'mutation_root', insertGraphiteAutoEmbeddingsConfiguration?: { __typename?: 'graphiteAutoEmbeddingsConfiguration', id: any } | null };
 
 export type UpdateGraphiteAutoEmbeddingsConfigurationMutationVariables = Exact<{
   id: Scalars['uuid'];
@@ -7939,76 +13438,245 @@ export type UpdateGraphiteAutoEmbeddingsConfigurationMutationVariables = Exact<{
   mutation?: InputMaybe<Scalars['String']>;
 }>;
 
-export type UpdateGraphiteAutoEmbeddingsConfigurationMutation = {
-  __typename?: 'mutation_root';
-  updateGraphiteAutoEmbeddingsConfiguration?: {
-    __typename?: 'graphiteAutoEmbeddingsConfiguration';
-    id: any;
-    name: string;
-    model: string;
-    schemaName: string;
-    tableName: string;
-    columnName: string;
-    query?: string | null;
-    mutation?: string | null;
-  } | null;
-};
+
+export type UpdateGraphiteAutoEmbeddingsConfigurationMutation = { __typename?: 'mutation_root', updateGraphiteAutoEmbeddingsConfiguration?: { __typename?: 'graphiteAutoEmbeddingsConfiguration', id: any, name: string, model: string, schemaName: string, tableName: string, columnName: string, query?: string | null, mutation?: string | null } | null };
+
+export type SendDevMessageMutationVariables = Exact<{
+  sessionId: Scalars['String'];
+  prevMessageID: Scalars['String'];
+  message: Scalars['String'];
+}>;
+
+
+export type SendDevMessageMutation = { __typename?: 'mutation_root', graphite?: { __typename?: 'graphiteMutation', sendDevMessage: { __typename?: 'graphiteMessageResponse', messages: Array<{ __typename?: 'graphiteMessage', id: string, role: string, message: string, createdAt: any }> } } | null };
+
+export type StartDevSessionMutationVariables = Exact<{ [key: string]: never; }>;
+
+
+export type StartDevSessionMutation = { __typename?: 'mutation_root', graphite?: { __typename?: 'graphiteMutation', startDevSession: { __typename?: 'graphiteSession', sessionID: string } } | null };
 
 export type DeleteFileStoreMutationVariables = Exact<{
   id: Scalars['uuid'];
 }>;
 
-export type DeleteFileStoreMutation = {
-  __typename?: 'mutation_root';
-  graphite?: {
-    __typename?: 'graphiteMutation';
-    deleteFileStore: boolean;
-  } | null;
-};
 
-export type GetGraphiteFileStoresQueryVariables = Exact<{
-  [key: string]: never;
-}>;
+export type DeleteFileStoreMutation = { __typename?: 'mutation_root', graphite?: { __typename?: 'graphiteMutation', deleteFileStore: boolean } | null };
 
-export type GetGraphiteFileStoresQuery = {
-  __typename?: 'query_root';
-  graphite?: {
-    __typename?: 'graphiteQuery';
-    fileStores: Array<{
-      __typename?: 'graphiteFileStore';
-      id: any;
-      name: string;
-      vectorStoreID: string;
-      buckets: Array<string>;
-    }>;
-  } | null;
-};
+export type GetGraphiteFileStoresQueryVariables = Exact<{ [key: string]: never; }>;
+
+
+export type GetGraphiteFileStoresQuery = { __typename?: 'query_root', graphite?: { __typename?: 'graphiteQuery', fileStores: Array<{ __typename?: 'graphiteFileStore', id: any, name: string, vectorStoreID: string, buckets: Array<string> }> } | null };
 
 export type InsertFileStoreMutationVariables = Exact<{
   object: GraphiteFileStoreInput;
 }>;
 
-export type InsertFileStoreMutation = {
-  __typename?: 'mutation_root';
-  graphite?: {
-    __typename?: 'graphiteMutation';
-    insertFileStore: { __typename?: 'graphiteFileStore'; id: any };
-  } | null;
-};
+
+export type InsertFileStoreMutation = { __typename?: 'mutation_root', graphite?: { __typename?: 'graphiteMutation', insertFileStore: { __typename?: 'graphiteFileStore', id: any } } | null };
 
 export type UpdateFileStoreMutationVariables = Exact<{
   id: Scalars['uuid'];
   object: GraphiteFileStoreInput;
 }>;
 
-export type UpdateFileStoreMutation = {
-  __typename?: 'mutation_root';
-  graphite?: {
-    __typename?: 'graphiteMutation';
-    updateFileStore: { __typename?: 'graphiteFileStore'; name: string };
-  } | null;
-};
 
+export type UpdateFileStoreMutation = { __typename?: 'mutation_root', graphite?: { __typename?: 'graphiteMutation', updateFileStore: { __typename?: 'graphiteFileStore', name: string } } | null };
+
+
+export const DeleteAgentDocument = gql`
+    mutation deleteAgent($id: uuid!) {
+  deleteGraphiteAgent(id: $id) {
+    id
+  }
+}
+    `;
+export type DeleteAgentMutationFn = Apollo.MutationFunction<DeleteAgentMutation, DeleteAgentMutationVariables>;
+
+/**
+ * __useDeleteAgentMutation__
+ *
+ * To run a mutation, you first call `useDeleteAgentMutation` within a React component and pass it any options that fit your needs.
+ * When your component renders, `useDeleteAgentMutation` returns a tuple that includes:
+ * - A mutate function that you can call at any time to execute the mutation
+ * - An object with fields that represent the current status of the mutation's execution
+ *
+ * @param baseOptions options that will be passed into the mutation, supported options are listed on: https://www.apollographql.com/docs/react/api/react-hooks/#options-2;
+ *
+ * @example
+ * const [deleteAgentMutation, { data, loading, error }] = useDeleteAgentMutation({
+ *   variables: {
+ *      id: // value for 'id'
+ *   },
+ * });
+ */
+export function useDeleteAgentMutation(baseOptions?: Apollo.MutationHookOptions<DeleteAgentMutation, DeleteAgentMutationVariables>) {
+        const options = {...defaultOptions, ...baseOptions}
+        return Apollo.useMutation<DeleteAgentMutation, DeleteAgentMutationVariables>(DeleteAgentDocument, options);
+      }
+export type DeleteAgentMutationHookResult = ReturnType<typeof useDeleteAgentMutation>;
+export type DeleteAgentMutationResult = Apollo.MutationResult<DeleteAgentMutation>;
+export type DeleteAgentMutationOptions = Apollo.BaseMutationOptions<DeleteAgentMutation, DeleteAgentMutationVariables>;
+export const GetAgentSessionsDocument = gql`
+    query getAgentSessions($agentID: uuid!) {
+  graphiteAgentSessions(
+    where: {agentID: {_eq: $agentID}}
+    order_by: {createdAt: desc}
+  ) {
+    id
+    createdAt
+    updatedAt
+    userID
+    agentMessages_aggregate {
+      aggregate {
+        count
+      }
+    }
+  }
+}
+    `;
+
+/**
+ * __useGetAgentSessionsQuery__
+ *
+ * To run a query within a React component, call `useGetAgentSessionsQuery` and pass it any options that fit your needs.
+ * When your component renders, `useGetAgentSessionsQuery` returns an object from Apollo Client that contains loading, error, and data properties
+ * you can use to render your UI.
+ *
+ * @param baseOptions options that will be passed into the query, supported options are listed on: https://www.apollographql.com/docs/react/api/react-hooks/#options;
+ *
+ * @example
+ * const { data, loading, error } = useGetAgentSessionsQuery({
+ *   variables: {
+ *      agentID: // value for 'agentID'
+ *   },
+ * });
+ */
+export function useGetAgentSessionsQuery(baseOptions: Apollo.QueryHookOptions<GetAgentSessionsQuery, GetAgentSessionsQueryVariables>) {
+        const options = {...defaultOptions, ...baseOptions}
+        return Apollo.useQuery<GetAgentSessionsQuery, GetAgentSessionsQueryVariables>(GetAgentSessionsDocument, options);
+      }
+export function useGetAgentSessionsLazyQuery(baseOptions?: Apollo.LazyQueryHookOptions<GetAgentSessionsQuery, GetAgentSessionsQueryVariables>) {
+          const options = {...defaultOptions, ...baseOptions}
+          return Apollo.useLazyQuery<GetAgentSessionsQuery, GetAgentSessionsQueryVariables>(GetAgentSessionsDocument, options);
+        }
+export type GetAgentSessionsQueryHookResult = ReturnType<typeof useGetAgentSessionsQuery>;
+export type GetAgentSessionsLazyQueryHookResult = ReturnType<typeof useGetAgentSessionsLazyQuery>;
+export type GetAgentSessionsQueryResult = Apollo.QueryResult<GetAgentSessionsQuery, GetAgentSessionsQueryVariables>;
+export function refetchGetAgentSessionsQuery(variables: GetAgentSessionsQueryVariables) {
+      return { query: GetAgentSessionsDocument, variables: variables }
+    }
+export const GetAgentsDocument = gql`
+    query getAgents {
+  graphiteAgents(order_by: {createdAt: desc}) {
+    id
+    name
+    description
+    instructions
+    model
+    provider
+    toolsConfig
+    createdAt
+    updatedAt
+  }
+}
+    `;
+
+/**
+ * __useGetAgentsQuery__
+ *
+ * To run a query within a React component, call `useGetAgentsQuery` and pass it any options that fit your needs.
+ * When your component renders, `useGetAgentsQuery` returns an object from Apollo Client that contains loading, error, and data properties
+ * you can use to render your UI.
+ *
+ * @param baseOptions options that will be passed into the query, supported options are listed on: https://www.apollographql.com/docs/react/api/react-hooks/#options;
+ *
+ * @example
+ * const { data, loading, error } = useGetAgentsQuery({
+ *   variables: {
+ *   },
+ * });
+ */
+export function useGetAgentsQuery(baseOptions?: Apollo.QueryHookOptions<GetAgentsQuery, GetAgentsQueryVariables>) {
+        const options = {...defaultOptions, ...baseOptions}
+        return Apollo.useQuery<GetAgentsQuery, GetAgentsQueryVariables>(GetAgentsDocument, options);
+      }
+export function useGetAgentsLazyQuery(baseOptions?: Apollo.LazyQueryHookOptions<GetAgentsQuery, GetAgentsQueryVariables>) {
+          const options = {...defaultOptions, ...baseOptions}
+          return Apollo.useLazyQuery<GetAgentsQuery, GetAgentsQueryVariables>(GetAgentsDocument, options);
+        }
+export type GetAgentsQueryHookResult = ReturnType<typeof useGetAgentsQuery>;
+export type GetAgentsLazyQueryHookResult = ReturnType<typeof useGetAgentsLazyQuery>;
+export type GetAgentsQueryResult = Apollo.QueryResult<GetAgentsQuery, GetAgentsQueryVariables>;
+export function refetchGetAgentsQuery(variables?: GetAgentsQueryVariables) {
+      return { query: GetAgentsDocument, variables: variables }
+    }
+export const InsertAgentDocument = gql`
+    mutation insertAgent($object: graphiteAgents_insert_input!) {
+  insertGraphiteAgent(object: $object) {
+    id
+  }
+}
+    `;
+export type InsertAgentMutationFn = Apollo.MutationFunction<InsertAgentMutation, InsertAgentMutationVariables>;
+
+/**
+ * __useInsertAgentMutation__
+ *
+ * To run a mutation, you first call `useInsertAgentMutation` within a React component and pass it any options that fit your needs.
+ * When your component renders, `useInsertAgentMutation` returns a tuple that includes:
+ * - A mutate function that you can call at any time to execute the mutation
+ * - An object with fields that represent the current status of the mutation's execution
+ *
+ * @param baseOptions options that will be passed into the mutation, supported options are listed on: https://www.apollographql.com/docs/react/api/react-hooks/#options-2;
+ *
+ * @example
+ * const [insertAgentMutation, { data, loading, error }] = useInsertAgentMutation({
+ *   variables: {
+ *      object: // value for 'object'
+ *   },
+ * });
+ */
+export function useInsertAgentMutation(baseOptions?: Apollo.MutationHookOptions<InsertAgentMutation, InsertAgentMutationVariables>) {
+        const options = {...defaultOptions, ...baseOptions}
+        return Apollo.useMutation<InsertAgentMutation, InsertAgentMutationVariables>(InsertAgentDocument, options);
+      }
+export type InsertAgentMutationHookResult = ReturnType<typeof useInsertAgentMutation>;
+export type InsertAgentMutationResult = Apollo.MutationResult<InsertAgentMutation>;
+export type InsertAgentMutationOptions = Apollo.BaseMutationOptions<InsertAgentMutation, InsertAgentMutationVariables>;
+export const UpdateAgentDocument = gql`
+    mutation updateAgent($id: uuid!, $set: graphiteAgents_set_input!) {
+  updateGraphiteAgent(pk_columns: {id: $id}, _set: $set) {
+    id
+  }
+}
+    `;
+export type UpdateAgentMutationFn = Apollo.MutationFunction<UpdateAgentMutation, UpdateAgentMutationVariables>;
+
+/**
+ * __useUpdateAgentMutation__
+ *
+ * To run a mutation, you first call `useUpdateAgentMutation` within a React component and pass it any options that fit your needs.
+ * When your component renders, `useUpdateAgentMutation` returns a tuple that includes:
+ * - A mutate function that you can call at any time to execute the mutation
+ * - An object with fields that represent the current status of the mutation's execution
+ *
+ * @param baseOptions options that will be passed into the mutation, supported options are listed on: https://www.apollographql.com/docs/react/api/react-hooks/#options-2;
+ *
+ * @example
+ * const [updateAgentMutation, { data, loading, error }] = useUpdateAgentMutation({
+ *   variables: {
+ *      id: // value for 'id'
+ *      set: // value for 'set'
+ *   },
+ * });
+ */
+export function useUpdateAgentMutation(baseOptions?: Apollo.MutationHookOptions<UpdateAgentMutation, UpdateAgentMutationVariables>) {
+        const options = {...defaultOptions, ...baseOptions}
+        return Apollo.useMutation<UpdateAgentMutation, UpdateAgentMutationVariables>(UpdateAgentDocument, options);
+      }
+export type UpdateAgentMutationHookResult = ReturnType<typeof useUpdateAgentMutation>;
+export type UpdateAgentMutationResult = Apollo.MutationResult<UpdateAgentMutation>;
+export type UpdateAgentMutationOptions = Apollo.BaseMutationOptions<UpdateAgentMutation, UpdateAgentMutationVariables>;
 export const DeleteAssistantDocument = gql`
     mutation deleteAssistant($id: String!) {
   graphite {
@@ -8016,10 +13684,7 @@ export const DeleteAssistantDocument = gql`
   }
 }
     `;
-export type DeleteAssistantMutationFn = Apollo.MutationFunction<
-  DeleteAssistantMutation,
-  DeleteAssistantMutationVariables
->;
+export type DeleteAssistantMutationFn = Apollo.MutationFunction<DeleteAssistantMutation, DeleteAssistantMutationVariables>;
 
 /**
  * __useDeleteAssistantMutation__
@@ -8038,27 +13703,13 @@ export type DeleteAssistantMutationFn = Apollo.MutationFunction<
  *   },
  * });
  */
-export function useDeleteAssistantMutation(
-  baseOptions?: Apollo.MutationHookOptions<
-    DeleteAssistantMutation,
-    DeleteAssistantMutationVariables
-  >,
-) {
-  const options = { ...defaultOptions, ...baseOptions };
-  return Apollo.useMutation<
-    DeleteAssistantMutation,
-    DeleteAssistantMutationVariables
-  >(DeleteAssistantDocument, options);
-}
-export type DeleteAssistantMutationHookResult = ReturnType<
-  typeof useDeleteAssistantMutation
->;
-export type DeleteAssistantMutationResult =
-  Apollo.MutationResult<DeleteAssistantMutation>;
-export type DeleteAssistantMutationOptions = Apollo.BaseMutationOptions<
-  DeleteAssistantMutation,
-  DeleteAssistantMutationVariables
->;
+export function useDeleteAssistantMutation(baseOptions?: Apollo.MutationHookOptions<DeleteAssistantMutation, DeleteAssistantMutationVariables>) {
+        const options = {...defaultOptions, ...baseOptions}
+        return Apollo.useMutation<DeleteAssistantMutation, DeleteAssistantMutationVariables>(DeleteAssistantDocument, options);
+      }
+export type DeleteAssistantMutationHookResult = ReturnType<typeof useDeleteAssistantMutation>;
+export type DeleteAssistantMutationResult = Apollo.MutationResult<DeleteAssistantMutation>;
+export type DeleteAssistantMutationOptions = Apollo.BaseMutationOptions<DeleteAssistantMutation, DeleteAssistantMutationVariables>;
 export const GetAssistantsDocument = gql`
     query getAssistants($isFileStoresSupported: Boolean!) {
   graphite {
@@ -8112,45 +13763,20 @@ export const GetAssistantsDocument = gql`
  *   },
  * });
  */
-export function useGetAssistantsQuery(
-  baseOptions: Apollo.QueryHookOptions<
-    GetAssistantsQuery,
-    GetAssistantsQueryVariables
-  >,
-) {
-  const options = { ...defaultOptions, ...baseOptions };
-  return Apollo.useQuery<GetAssistantsQuery, GetAssistantsQueryVariables>(
-    GetAssistantsDocument,
-    options,
-  );
-}
-export function useGetAssistantsLazyQuery(
-  baseOptions?: Apollo.LazyQueryHookOptions<
-    GetAssistantsQuery,
-    GetAssistantsQueryVariables
-  >,
-) {
-  const options = { ...defaultOptions, ...baseOptions };
-  return Apollo.useLazyQuery<GetAssistantsQuery, GetAssistantsQueryVariables>(
-    GetAssistantsDocument,
-    options,
-  );
-}
-export type GetAssistantsQueryHookResult = ReturnType<
-  typeof useGetAssistantsQuery
->;
-export type GetAssistantsLazyQueryHookResult = ReturnType<
-  typeof useGetAssistantsLazyQuery
->;
-export type GetAssistantsQueryResult = Apollo.QueryResult<
-  GetAssistantsQuery,
-  GetAssistantsQueryVariables
->;
-export function refetchGetAssistantsQuery(
-  variables: GetAssistantsQueryVariables,
-) {
-  return { query: GetAssistantsDocument, variables: variables };
-}
+export function useGetAssistantsQuery(baseOptions: Apollo.QueryHookOptions<GetAssistantsQuery, GetAssistantsQueryVariables>) {
+        const options = {...defaultOptions, ...baseOptions}
+        return Apollo.useQuery<GetAssistantsQuery, GetAssistantsQueryVariables>(GetAssistantsDocument, options);
+      }
+export function useGetAssistantsLazyQuery(baseOptions?: Apollo.LazyQueryHookOptions<GetAssistantsQuery, GetAssistantsQueryVariables>) {
+          const options = {...defaultOptions, ...baseOptions}
+          return Apollo.useLazyQuery<GetAssistantsQuery, GetAssistantsQueryVariables>(GetAssistantsDocument, options);
+        }
+export type GetAssistantsQueryHookResult = ReturnType<typeof useGetAssistantsQuery>;
+export type GetAssistantsLazyQueryHookResult = ReturnType<typeof useGetAssistantsLazyQuery>;
+export type GetAssistantsQueryResult = Apollo.QueryResult<GetAssistantsQuery, GetAssistantsQueryVariables>;
+export function refetchGetAssistantsQuery(variables: GetAssistantsQueryVariables) {
+      return { query: GetAssistantsDocument, variables: variables }
+    }
 export const GetGraphiteSessionsDocument = gql`
     query getGraphiteSessions {
   graphite {
@@ -8176,45 +13802,20 @@ export const GetGraphiteSessionsDocument = gql`
  *   },
  * });
  */
-export function useGetGraphiteSessionsQuery(
-  baseOptions?: Apollo.QueryHookOptions<
-    GetGraphiteSessionsQuery,
-    GetGraphiteSessionsQueryVariables
-  >,
-) {
-  const options = { ...defaultOptions, ...baseOptions };
-  return Apollo.useQuery<
-    GetGraphiteSessionsQuery,
-    GetGraphiteSessionsQueryVariables
-  >(GetGraphiteSessionsDocument, options);
-}
-export function useGetGraphiteSessionsLazyQuery(
-  baseOptions?: Apollo.LazyQueryHookOptions<
-    GetGraphiteSessionsQuery,
-    GetGraphiteSessionsQueryVariables
-  >,
-) {
-  const options = { ...defaultOptions, ...baseOptions };
-  return Apollo.useLazyQuery<
-    GetGraphiteSessionsQuery,
-    GetGraphiteSessionsQueryVariables
-  >(GetGraphiteSessionsDocument, options);
-}
-export type GetGraphiteSessionsQueryHookResult = ReturnType<
-  typeof useGetGraphiteSessionsQuery
->;
-export type GetGraphiteSessionsLazyQueryHookResult = ReturnType<
-  typeof useGetGraphiteSessionsLazyQuery
->;
-export type GetGraphiteSessionsQueryResult = Apollo.QueryResult<
-  GetGraphiteSessionsQuery,
-  GetGraphiteSessionsQueryVariables
->;
-export function refetchGetGraphiteSessionsQuery(
-  variables?: GetGraphiteSessionsQueryVariables,
-) {
-  return { query: GetGraphiteSessionsDocument, variables: variables };
-}
+export function useGetGraphiteSessionsQuery(baseOptions?: Apollo.QueryHookOptions<GetGraphiteSessionsQuery, GetGraphiteSessionsQueryVariables>) {
+        const options = {...defaultOptions, ...baseOptions}
+        return Apollo.useQuery<GetGraphiteSessionsQuery, GetGraphiteSessionsQueryVariables>(GetGraphiteSessionsDocument, options);
+      }
+export function useGetGraphiteSessionsLazyQuery(baseOptions?: Apollo.LazyQueryHookOptions<GetGraphiteSessionsQuery, GetGraphiteSessionsQueryVariables>) {
+          const options = {...defaultOptions, ...baseOptions}
+          return Apollo.useLazyQuery<GetGraphiteSessionsQuery, GetGraphiteSessionsQueryVariables>(GetGraphiteSessionsDocument, options);
+        }
+export type GetGraphiteSessionsQueryHookResult = ReturnType<typeof useGetGraphiteSessionsQuery>;
+export type GetGraphiteSessionsLazyQueryHookResult = ReturnType<typeof useGetGraphiteSessionsLazyQuery>;
+export type GetGraphiteSessionsQueryResult = Apollo.QueryResult<GetGraphiteSessionsQuery, GetGraphiteSessionsQueryVariables>;
+export function refetchGetGraphiteSessionsQuery(variables?: GetGraphiteSessionsQueryVariables) {
+      return { query: GetGraphiteSessionsDocument, variables: variables }
+    }
 export const InsertAssistantDocument = gql`
     mutation insertAssistant($data: graphiteAssistantInput!) {
   graphite {
@@ -8224,10 +13825,7 @@ export const InsertAssistantDocument = gql`
   }
 }
     `;
-export type InsertAssistantMutationFn = Apollo.MutationFunction<
-  InsertAssistantMutation,
-  InsertAssistantMutationVariables
->;
+export type InsertAssistantMutationFn = Apollo.MutationFunction<InsertAssistantMutation, InsertAssistantMutationVariables>;
 
 /**
  * __useInsertAssistantMutation__
@@ -8246,27 +13844,13 @@ export type InsertAssistantMutationFn = Apollo.MutationFunction<
  *   },
  * });
  */
-export function useInsertAssistantMutation(
-  baseOptions?: Apollo.MutationHookOptions<
-    InsertAssistantMutation,
-    InsertAssistantMutationVariables
-  >,
-) {
-  const options = { ...defaultOptions, ...baseOptions };
-  return Apollo.useMutation<
-    InsertAssistantMutation,
-    InsertAssistantMutationVariables
-  >(InsertAssistantDocument, options);
-}
-export type InsertAssistantMutationHookResult = ReturnType<
-  typeof useInsertAssistantMutation
->;
-export type InsertAssistantMutationResult =
-  Apollo.MutationResult<InsertAssistantMutation>;
-export type InsertAssistantMutationOptions = Apollo.BaseMutationOptions<
-  InsertAssistantMutation,
-  InsertAssistantMutationVariables
->;
+export function useInsertAssistantMutation(baseOptions?: Apollo.MutationHookOptions<InsertAssistantMutation, InsertAssistantMutationVariables>) {
+        const options = {...defaultOptions, ...baseOptions}
+        return Apollo.useMutation<InsertAssistantMutation, InsertAssistantMutationVariables>(InsertAssistantDocument, options);
+      }
+export type InsertAssistantMutationHookResult = ReturnType<typeof useInsertAssistantMutation>;
+export type InsertAssistantMutationResult = Apollo.MutationResult<InsertAssistantMutation>;
+export type InsertAssistantMutationOptions = Apollo.BaseMutationOptions<InsertAssistantMutation, InsertAssistantMutationVariables>;
 export const UpdateAssistantDocument = gql`
     mutation updateAssistant($id: String!, $data: graphiteAssistantInput!) {
   graphite {
@@ -8276,10 +13860,7 @@ export const UpdateAssistantDocument = gql`
   }
 }
     `;
-export type UpdateAssistantMutationFn = Apollo.MutationFunction<
-  UpdateAssistantMutation,
-  UpdateAssistantMutationVariables
->;
+export type UpdateAssistantMutationFn = Apollo.MutationFunction<UpdateAssistantMutation, UpdateAssistantMutationVariables>;
 
 /**
  * __useUpdateAssistantMutation__
@@ -8299,27 +13880,13 @@ export type UpdateAssistantMutationFn = Apollo.MutationFunction<
  *   },
  * });
  */
-export function useUpdateAssistantMutation(
-  baseOptions?: Apollo.MutationHookOptions<
-    UpdateAssistantMutation,
-    UpdateAssistantMutationVariables
-  >,
-) {
-  const options = { ...defaultOptions, ...baseOptions };
-  return Apollo.useMutation<
-    UpdateAssistantMutation,
-    UpdateAssistantMutationVariables
-  >(UpdateAssistantDocument, options);
-}
-export type UpdateAssistantMutationHookResult = ReturnType<
-  typeof useUpdateAssistantMutation
->;
-export type UpdateAssistantMutationResult =
-  Apollo.MutationResult<UpdateAssistantMutation>;
-export type UpdateAssistantMutationOptions = Apollo.BaseMutationOptions<
-  UpdateAssistantMutation,
-  UpdateAssistantMutationVariables
->;
+export function useUpdateAssistantMutation(baseOptions?: Apollo.MutationHookOptions<UpdateAssistantMutation, UpdateAssistantMutationVariables>) {
+        const options = {...defaultOptions, ...baseOptions}
+        return Apollo.useMutation<UpdateAssistantMutation, UpdateAssistantMutationVariables>(UpdateAssistantDocument, options);
+      }
+export type UpdateAssistantMutationHookResult = ReturnType<typeof useUpdateAssistantMutation>;
+export type UpdateAssistantMutationResult = Apollo.MutationResult<UpdateAssistantMutation>;
+export type UpdateAssistantMutationOptions = Apollo.BaseMutationOptions<UpdateAssistantMutation, UpdateAssistantMutationVariables>;
 export const DeleteGraphiteAutoEmbeddingsConfigurationDocument = gql`
     mutation deleteGraphiteAutoEmbeddingsConfiguration($id: uuid!) {
   deleteGraphiteAutoEmbeddingsConfiguration(id: $id) {
@@ -8327,11 +13894,7 @@ export const DeleteGraphiteAutoEmbeddingsConfigurationDocument = gql`
   }
 }
     `;
-export type DeleteGraphiteAutoEmbeddingsConfigurationMutationFn =
-  Apollo.MutationFunction<
-    DeleteGraphiteAutoEmbeddingsConfigurationMutation,
-    DeleteGraphiteAutoEmbeddingsConfigurationMutationVariables
-  >;
+export type DeleteGraphiteAutoEmbeddingsConfigurationMutationFn = Apollo.MutationFunction<DeleteGraphiteAutoEmbeddingsConfigurationMutation, DeleteGraphiteAutoEmbeddingsConfigurationMutationVariables>;
 
 /**
  * __useDeleteGraphiteAutoEmbeddingsConfigurationMutation__
@@ -8350,27 +13913,13 @@ export type DeleteGraphiteAutoEmbeddingsConfigurationMutationFn =
  *   },
  * });
  */
-export function useDeleteGraphiteAutoEmbeddingsConfigurationMutation(
-  baseOptions?: Apollo.MutationHookOptions<
-    DeleteGraphiteAutoEmbeddingsConfigurationMutation,
-    DeleteGraphiteAutoEmbeddingsConfigurationMutationVariables
-  >,
-) {
-  const options = { ...defaultOptions, ...baseOptions };
-  return Apollo.useMutation<
-    DeleteGraphiteAutoEmbeddingsConfigurationMutation,
-    DeleteGraphiteAutoEmbeddingsConfigurationMutationVariables
-  >(DeleteGraphiteAutoEmbeddingsConfigurationDocument, options);
-}
-export type DeleteGraphiteAutoEmbeddingsConfigurationMutationHookResult =
-  ReturnType<typeof useDeleteGraphiteAutoEmbeddingsConfigurationMutation>;
-export type DeleteGraphiteAutoEmbeddingsConfigurationMutationResult =
-  Apollo.MutationResult<DeleteGraphiteAutoEmbeddingsConfigurationMutation>;
-export type DeleteGraphiteAutoEmbeddingsConfigurationMutationOptions =
-  Apollo.BaseMutationOptions<
-    DeleteGraphiteAutoEmbeddingsConfigurationMutation,
-    DeleteGraphiteAutoEmbeddingsConfigurationMutationVariables
-  >;
+export function useDeleteGraphiteAutoEmbeddingsConfigurationMutation(baseOptions?: Apollo.MutationHookOptions<DeleteGraphiteAutoEmbeddingsConfigurationMutation, DeleteGraphiteAutoEmbeddingsConfigurationMutationVariables>) {
+        const options = {...defaultOptions, ...baseOptions}
+        return Apollo.useMutation<DeleteGraphiteAutoEmbeddingsConfigurationMutation, DeleteGraphiteAutoEmbeddingsConfigurationMutationVariables>(DeleteGraphiteAutoEmbeddingsConfigurationDocument, options);
+      }
+export type DeleteGraphiteAutoEmbeddingsConfigurationMutationHookResult = ReturnType<typeof useDeleteGraphiteAutoEmbeddingsConfigurationMutation>;
+export type DeleteGraphiteAutoEmbeddingsConfigurationMutationResult = Apollo.MutationResult<DeleteGraphiteAutoEmbeddingsConfigurationMutation>;
+export type DeleteGraphiteAutoEmbeddingsConfigurationMutationOptions = Apollo.BaseMutationOptions<DeleteGraphiteAutoEmbeddingsConfigurationMutation, DeleteGraphiteAutoEmbeddingsConfigurationMutationVariables>;
 export const GetGraphiteAutoEmbeddingsConfigurationsDocument = gql`
     query getGraphiteAutoEmbeddingsConfigurations($limit: Int!, $offset: Int!) {
   graphiteAutoEmbeddingsConfigurations(limit: $limit, offset: $offset) {
@@ -8410,48 +13959,20 @@ export const GetGraphiteAutoEmbeddingsConfigurationsDocument = gql`
  *   },
  * });
  */
-export function useGetGraphiteAutoEmbeddingsConfigurationsQuery(
-  baseOptions: Apollo.QueryHookOptions<
-    GetGraphiteAutoEmbeddingsConfigurationsQuery,
-    GetGraphiteAutoEmbeddingsConfigurationsQueryVariables
-  >,
-) {
-  const options = { ...defaultOptions, ...baseOptions };
-  return Apollo.useQuery<
-    GetGraphiteAutoEmbeddingsConfigurationsQuery,
-    GetGraphiteAutoEmbeddingsConfigurationsQueryVariables
-  >(GetGraphiteAutoEmbeddingsConfigurationsDocument, options);
-}
-export function useGetGraphiteAutoEmbeddingsConfigurationsLazyQuery(
-  baseOptions?: Apollo.LazyQueryHookOptions<
-    GetGraphiteAutoEmbeddingsConfigurationsQuery,
-    GetGraphiteAutoEmbeddingsConfigurationsQueryVariables
-  >,
-) {
-  const options = { ...defaultOptions, ...baseOptions };
-  return Apollo.useLazyQuery<
-    GetGraphiteAutoEmbeddingsConfigurationsQuery,
-    GetGraphiteAutoEmbeddingsConfigurationsQueryVariables
-  >(GetGraphiteAutoEmbeddingsConfigurationsDocument, options);
-}
-export type GetGraphiteAutoEmbeddingsConfigurationsQueryHookResult = ReturnType<
-  typeof useGetGraphiteAutoEmbeddingsConfigurationsQuery
->;
-export type GetGraphiteAutoEmbeddingsConfigurationsLazyQueryHookResult =
-  ReturnType<typeof useGetGraphiteAutoEmbeddingsConfigurationsLazyQuery>;
-export type GetGraphiteAutoEmbeddingsConfigurationsQueryResult =
-  Apollo.QueryResult<
-    GetGraphiteAutoEmbeddingsConfigurationsQuery,
-    GetGraphiteAutoEmbeddingsConfigurationsQueryVariables
-  >;
-export function refetchGetGraphiteAutoEmbeddingsConfigurationsQuery(
-  variables: GetGraphiteAutoEmbeddingsConfigurationsQueryVariables,
-) {
-  return {
-    query: GetGraphiteAutoEmbeddingsConfigurationsDocument,
-    variables: variables,
-  };
-}
+export function useGetGraphiteAutoEmbeddingsConfigurationsQuery(baseOptions: Apollo.QueryHookOptions<GetGraphiteAutoEmbeddingsConfigurationsQuery, GetGraphiteAutoEmbeddingsConfigurationsQueryVariables>) {
+        const options = {...defaultOptions, ...baseOptions}
+        return Apollo.useQuery<GetGraphiteAutoEmbeddingsConfigurationsQuery, GetGraphiteAutoEmbeddingsConfigurationsQueryVariables>(GetGraphiteAutoEmbeddingsConfigurationsDocument, options);
+      }
+export function useGetGraphiteAutoEmbeddingsConfigurationsLazyQuery(baseOptions?: Apollo.LazyQueryHookOptions<GetGraphiteAutoEmbeddingsConfigurationsQuery, GetGraphiteAutoEmbeddingsConfigurationsQueryVariables>) {
+          const options = {...defaultOptions, ...baseOptions}
+          return Apollo.useLazyQuery<GetGraphiteAutoEmbeddingsConfigurationsQuery, GetGraphiteAutoEmbeddingsConfigurationsQueryVariables>(GetGraphiteAutoEmbeddingsConfigurationsDocument, options);
+        }
+export type GetGraphiteAutoEmbeddingsConfigurationsQueryHookResult = ReturnType<typeof useGetGraphiteAutoEmbeddingsConfigurationsQuery>;
+export type GetGraphiteAutoEmbeddingsConfigurationsLazyQueryHookResult = ReturnType<typeof useGetGraphiteAutoEmbeddingsConfigurationsLazyQuery>;
+export type GetGraphiteAutoEmbeddingsConfigurationsQueryResult = Apollo.QueryResult<GetGraphiteAutoEmbeddingsConfigurationsQuery, GetGraphiteAutoEmbeddingsConfigurationsQueryVariables>;
+export function refetchGetGraphiteAutoEmbeddingsConfigurationsQuery(variables: GetGraphiteAutoEmbeddingsConfigurationsQueryVariables) {
+      return { query: GetGraphiteAutoEmbeddingsConfigurationsDocument, variables: variables }
+    }
 export const InsertGraphiteAutoEmbeddingsConfigurationDocument = gql`
     mutation insertGraphiteAutoEmbeddingsConfiguration($name: String, $model: String, $schemaName: String, $tableName: String, $columnName: String, $query: String, $mutation: String) {
   insertGraphiteAutoEmbeddingsConfiguration(
@@ -8461,11 +13982,7 @@ export const InsertGraphiteAutoEmbeddingsConfigurationDocument = gql`
   }
 }
     `;
-export type InsertGraphiteAutoEmbeddingsConfigurationMutationFn =
-  Apollo.MutationFunction<
-    InsertGraphiteAutoEmbeddingsConfigurationMutation,
-    InsertGraphiteAutoEmbeddingsConfigurationMutationVariables
-  >;
+export type InsertGraphiteAutoEmbeddingsConfigurationMutationFn = Apollo.MutationFunction<InsertGraphiteAutoEmbeddingsConfigurationMutation, InsertGraphiteAutoEmbeddingsConfigurationMutationVariables>;
 
 /**
  * __useInsertGraphiteAutoEmbeddingsConfigurationMutation__
@@ -8490,27 +14007,13 @@ export type InsertGraphiteAutoEmbeddingsConfigurationMutationFn =
  *   },
  * });
  */
-export function useInsertGraphiteAutoEmbeddingsConfigurationMutation(
-  baseOptions?: Apollo.MutationHookOptions<
-    InsertGraphiteAutoEmbeddingsConfigurationMutation,
-    InsertGraphiteAutoEmbeddingsConfigurationMutationVariables
-  >,
-) {
-  const options = { ...defaultOptions, ...baseOptions };
-  return Apollo.useMutation<
-    InsertGraphiteAutoEmbeddingsConfigurationMutation,
-    InsertGraphiteAutoEmbeddingsConfigurationMutationVariables
-  >(InsertGraphiteAutoEmbeddingsConfigurationDocument, options);
-}
-export type InsertGraphiteAutoEmbeddingsConfigurationMutationHookResult =
-  ReturnType<typeof useInsertGraphiteAutoEmbeddingsConfigurationMutation>;
-export type InsertGraphiteAutoEmbeddingsConfigurationMutationResult =
-  Apollo.MutationResult<InsertGraphiteAutoEmbeddingsConfigurationMutation>;
-export type InsertGraphiteAutoEmbeddingsConfigurationMutationOptions =
-  Apollo.BaseMutationOptions<
-    InsertGraphiteAutoEmbeddingsConfigurationMutation,
-    InsertGraphiteAutoEmbeddingsConfigurationMutationVariables
-  >;
+export function useInsertGraphiteAutoEmbeddingsConfigurationMutation(baseOptions?: Apollo.MutationHookOptions<InsertGraphiteAutoEmbeddingsConfigurationMutation, InsertGraphiteAutoEmbeddingsConfigurationMutationVariables>) {
+        const options = {...defaultOptions, ...baseOptions}
+        return Apollo.useMutation<InsertGraphiteAutoEmbeddingsConfigurationMutation, InsertGraphiteAutoEmbeddingsConfigurationMutationVariables>(InsertGraphiteAutoEmbeddingsConfigurationDocument, options);
+      }
+export type InsertGraphiteAutoEmbeddingsConfigurationMutationHookResult = ReturnType<typeof useInsertGraphiteAutoEmbeddingsConfigurationMutation>;
+export type InsertGraphiteAutoEmbeddingsConfigurationMutationResult = Apollo.MutationResult<InsertGraphiteAutoEmbeddingsConfigurationMutation>;
+export type InsertGraphiteAutoEmbeddingsConfigurationMutationOptions = Apollo.BaseMutationOptions<InsertGraphiteAutoEmbeddingsConfigurationMutation, InsertGraphiteAutoEmbeddingsConfigurationMutationVariables>;
 export const UpdateGraphiteAutoEmbeddingsConfigurationDocument = gql`
     mutation updateGraphiteAutoEmbeddingsConfiguration($id: uuid!, $name: String, $model: String, $schemaName: String, $tableName: String, $columnName: String, $query: String, $mutation: String) {
   updateGraphiteAutoEmbeddingsConfiguration(
@@ -8528,11 +14031,7 @@ export const UpdateGraphiteAutoEmbeddingsConfigurationDocument = gql`
   }
 }
     `;
-export type UpdateGraphiteAutoEmbeddingsConfigurationMutationFn =
-  Apollo.MutationFunction<
-    UpdateGraphiteAutoEmbeddingsConfigurationMutation,
-    UpdateGraphiteAutoEmbeddingsConfigurationMutationVariables
-  >;
+export type UpdateGraphiteAutoEmbeddingsConfigurationMutationFn = Apollo.MutationFunction<UpdateGraphiteAutoEmbeddingsConfigurationMutation, UpdateGraphiteAutoEmbeddingsConfigurationMutationVariables>;
 
 /**
  * __useUpdateGraphiteAutoEmbeddingsConfigurationMutation__
@@ -8558,27 +14057,93 @@ export type UpdateGraphiteAutoEmbeddingsConfigurationMutationFn =
  *   },
  * });
  */
-export function useUpdateGraphiteAutoEmbeddingsConfigurationMutation(
-  baseOptions?: Apollo.MutationHookOptions<
-    UpdateGraphiteAutoEmbeddingsConfigurationMutation,
-    UpdateGraphiteAutoEmbeddingsConfigurationMutationVariables
-  >,
-) {
-  const options = { ...defaultOptions, ...baseOptions };
-  return Apollo.useMutation<
-    UpdateGraphiteAutoEmbeddingsConfigurationMutation,
-    UpdateGraphiteAutoEmbeddingsConfigurationMutationVariables
-  >(UpdateGraphiteAutoEmbeddingsConfigurationDocument, options);
+export function useUpdateGraphiteAutoEmbeddingsConfigurationMutation(baseOptions?: Apollo.MutationHookOptions<UpdateGraphiteAutoEmbeddingsConfigurationMutation, UpdateGraphiteAutoEmbeddingsConfigurationMutationVariables>) {
+        const options = {...defaultOptions, ...baseOptions}
+        return Apollo.useMutation<UpdateGraphiteAutoEmbeddingsConfigurationMutation, UpdateGraphiteAutoEmbeddingsConfigurationMutationVariables>(UpdateGraphiteAutoEmbeddingsConfigurationDocument, options);
+      }
+export type UpdateGraphiteAutoEmbeddingsConfigurationMutationHookResult = ReturnType<typeof useUpdateGraphiteAutoEmbeddingsConfigurationMutation>;
+export type UpdateGraphiteAutoEmbeddingsConfigurationMutationResult = Apollo.MutationResult<UpdateGraphiteAutoEmbeddingsConfigurationMutation>;
+export type UpdateGraphiteAutoEmbeddingsConfigurationMutationOptions = Apollo.BaseMutationOptions<UpdateGraphiteAutoEmbeddingsConfigurationMutation, UpdateGraphiteAutoEmbeddingsConfigurationMutationVariables>;
+export const SendDevMessageDocument = gql`
+    mutation sendDevMessage($sessionId: String!, $prevMessageID: String!, $message: String!) {
+  graphite {
+    sendDevMessage(
+      sessionID: $sessionId
+      prevMessageID: $prevMessageID
+      message: $message
+    ) {
+      messages {
+        id
+        role
+        message
+        createdAt
+      }
+    }
+  }
 }
-export type UpdateGraphiteAutoEmbeddingsConfigurationMutationHookResult =
-  ReturnType<typeof useUpdateGraphiteAutoEmbeddingsConfigurationMutation>;
-export type UpdateGraphiteAutoEmbeddingsConfigurationMutationResult =
-  Apollo.MutationResult<UpdateGraphiteAutoEmbeddingsConfigurationMutation>;
-export type UpdateGraphiteAutoEmbeddingsConfigurationMutationOptions =
-  Apollo.BaseMutationOptions<
-    UpdateGraphiteAutoEmbeddingsConfigurationMutation,
-    UpdateGraphiteAutoEmbeddingsConfigurationMutationVariables
-  >;
+    `;
+export type SendDevMessageMutationFn = Apollo.MutationFunction<SendDevMessageMutation, SendDevMessageMutationVariables>;
+
+/**
+ * __useSendDevMessageMutation__
+ *
+ * To run a mutation, you first call `useSendDevMessageMutation` within a React component and pass it any options that fit your needs.
+ * When your component renders, `useSendDevMessageMutation` returns a tuple that includes:
+ * - A mutate function that you can call at any time to execute the mutation
+ * - An object with fields that represent the current status of the mutation's execution
+ *
+ * @param baseOptions options that will be passed into the mutation, supported options are listed on: https://www.apollographql.com/docs/react/api/react-hooks/#options-2;
+ *
+ * @example
+ * const [sendDevMessageMutation, { data, loading, error }] = useSendDevMessageMutation({
+ *   variables: {
+ *      sessionId: // value for 'sessionId'
+ *      prevMessageID: // value for 'prevMessageID'
+ *      message: // value for 'message'
+ *   },
+ * });
+ */
+export function useSendDevMessageMutation(baseOptions?: Apollo.MutationHookOptions<SendDevMessageMutation, SendDevMessageMutationVariables>) {
+        const options = {...defaultOptions, ...baseOptions}
+        return Apollo.useMutation<SendDevMessageMutation, SendDevMessageMutationVariables>(SendDevMessageDocument, options);
+      }
+export type SendDevMessageMutationHookResult = ReturnType<typeof useSendDevMessageMutation>;
+export type SendDevMessageMutationResult = Apollo.MutationResult<SendDevMessageMutation>;
+export type SendDevMessageMutationOptions = Apollo.BaseMutationOptions<SendDevMessageMutation, SendDevMessageMutationVariables>;
+export const StartDevSessionDocument = gql`
+    mutation startDevSession {
+  graphite {
+    startDevSession {
+      sessionID
+    }
+  }
+}
+    `;
+export type StartDevSessionMutationFn = Apollo.MutationFunction<StartDevSessionMutation, StartDevSessionMutationVariables>;
+
+/**
+ * __useStartDevSessionMutation__
+ *
+ * To run a mutation, you first call `useStartDevSessionMutation` within a React component and pass it any options that fit your needs.
+ * When your component renders, `useStartDevSessionMutation` returns a tuple that includes:
+ * - A mutate function that you can call at any time to execute the mutation
+ * - An object with fields that represent the current status of the mutation's execution
+ *
+ * @param baseOptions options that will be passed into the mutation, supported options are listed on: https://www.apollographql.com/docs/react/api/react-hooks/#options-2;
+ *
+ * @example
+ * const [startDevSessionMutation, { data, loading, error }] = useStartDevSessionMutation({
+ *   variables: {
+ *   },
+ * });
+ */
+export function useStartDevSessionMutation(baseOptions?: Apollo.MutationHookOptions<StartDevSessionMutation, StartDevSessionMutationVariables>) {
+        const options = {...defaultOptions, ...baseOptions}
+        return Apollo.useMutation<StartDevSessionMutation, StartDevSessionMutationVariables>(StartDevSessionDocument, options);
+      }
+export type StartDevSessionMutationHookResult = ReturnType<typeof useStartDevSessionMutation>;
+export type StartDevSessionMutationResult = Apollo.MutationResult<StartDevSessionMutation>;
+export type StartDevSessionMutationOptions = Apollo.BaseMutationOptions<StartDevSessionMutation, StartDevSessionMutationVariables>;
 export const DeleteFileStoreDocument = gql`
     mutation deleteFileStore($id: uuid!) {
   graphite {
@@ -8586,10 +14151,7 @@ export const DeleteFileStoreDocument = gql`
   }
 }
     `;
-export type DeleteFileStoreMutationFn = Apollo.MutationFunction<
-  DeleteFileStoreMutation,
-  DeleteFileStoreMutationVariables
->;
+export type DeleteFileStoreMutationFn = Apollo.MutationFunction<DeleteFileStoreMutation, DeleteFileStoreMutationVariables>;
 
 /**
  * __useDeleteFileStoreMutation__
@@ -8608,27 +14170,13 @@ export type DeleteFileStoreMutationFn = Apollo.MutationFunction<
  *   },
  * });
  */
-export function useDeleteFileStoreMutation(
-  baseOptions?: Apollo.MutationHookOptions<
-    DeleteFileStoreMutation,
-    DeleteFileStoreMutationVariables
-  >,
-) {
-  const options = { ...defaultOptions, ...baseOptions };
-  return Apollo.useMutation<
-    DeleteFileStoreMutation,
-    DeleteFileStoreMutationVariables
-  >(DeleteFileStoreDocument, options);
-}
-export type DeleteFileStoreMutationHookResult = ReturnType<
-  typeof useDeleteFileStoreMutation
->;
-export type DeleteFileStoreMutationResult =
-  Apollo.MutationResult<DeleteFileStoreMutation>;
-export type DeleteFileStoreMutationOptions = Apollo.BaseMutationOptions<
-  DeleteFileStoreMutation,
-  DeleteFileStoreMutationVariables
->;
+export function useDeleteFileStoreMutation(baseOptions?: Apollo.MutationHookOptions<DeleteFileStoreMutation, DeleteFileStoreMutationVariables>) {
+        const options = {...defaultOptions, ...baseOptions}
+        return Apollo.useMutation<DeleteFileStoreMutation, DeleteFileStoreMutationVariables>(DeleteFileStoreDocument, options);
+      }
+export type DeleteFileStoreMutationHookResult = ReturnType<typeof useDeleteFileStoreMutation>;
+export type DeleteFileStoreMutationResult = Apollo.MutationResult<DeleteFileStoreMutation>;
+export type DeleteFileStoreMutationOptions = Apollo.BaseMutationOptions<DeleteFileStoreMutation, DeleteFileStoreMutationVariables>;
 export const GetGraphiteFileStoresDocument = gql`
     query getGraphiteFileStores {
   graphite {
@@ -8657,45 +14205,20 @@ export const GetGraphiteFileStoresDocument = gql`
  *   },
  * });
  */
-export function useGetGraphiteFileStoresQuery(
-  baseOptions?: Apollo.QueryHookOptions<
-    GetGraphiteFileStoresQuery,
-    GetGraphiteFileStoresQueryVariables
-  >,
-) {
-  const options = { ...defaultOptions, ...baseOptions };
-  return Apollo.useQuery<
-    GetGraphiteFileStoresQuery,
-    GetGraphiteFileStoresQueryVariables
-  >(GetGraphiteFileStoresDocument, options);
-}
-export function useGetGraphiteFileStoresLazyQuery(
-  baseOptions?: Apollo.LazyQueryHookOptions<
-    GetGraphiteFileStoresQuery,
-    GetGraphiteFileStoresQueryVariables
-  >,
-) {
-  const options = { ...defaultOptions, ...baseOptions };
-  return Apollo.useLazyQuery<
-    GetGraphiteFileStoresQuery,
-    GetGraphiteFileStoresQueryVariables
-  >(GetGraphiteFileStoresDocument, options);
-}
-export type GetGraphiteFileStoresQueryHookResult = ReturnType<
-  typeof useGetGraphiteFileStoresQuery
->;
-export type GetGraphiteFileStoresLazyQueryHookResult = ReturnType<
-  typeof useGetGraphiteFileStoresLazyQuery
->;
-export type GetGraphiteFileStoresQueryResult = Apollo.QueryResult<
-  GetGraphiteFileStoresQuery,
-  GetGraphiteFileStoresQueryVariables
->;
-export function refetchGetGraphiteFileStoresQuery(
-  variables?: GetGraphiteFileStoresQueryVariables,
-) {
-  return { query: GetGraphiteFileStoresDocument, variables: variables };
-}
+export function useGetGraphiteFileStoresQuery(baseOptions?: Apollo.QueryHookOptions<GetGraphiteFileStoresQuery, GetGraphiteFileStoresQueryVariables>) {
+        const options = {...defaultOptions, ...baseOptions}
+        return Apollo.useQuery<GetGraphiteFileStoresQuery, GetGraphiteFileStoresQueryVariables>(GetGraphiteFileStoresDocument, options);
+      }
+export function useGetGraphiteFileStoresLazyQuery(baseOptions?: Apollo.LazyQueryHookOptions<GetGraphiteFileStoresQuery, GetGraphiteFileStoresQueryVariables>) {
+          const options = {...defaultOptions, ...baseOptions}
+          return Apollo.useLazyQuery<GetGraphiteFileStoresQuery, GetGraphiteFileStoresQueryVariables>(GetGraphiteFileStoresDocument, options);
+        }
+export type GetGraphiteFileStoresQueryHookResult = ReturnType<typeof useGetGraphiteFileStoresQuery>;
+export type GetGraphiteFileStoresLazyQueryHookResult = ReturnType<typeof useGetGraphiteFileStoresLazyQuery>;
+export type GetGraphiteFileStoresQueryResult = Apollo.QueryResult<GetGraphiteFileStoresQuery, GetGraphiteFileStoresQueryVariables>;
+export function refetchGetGraphiteFileStoresQuery(variables?: GetGraphiteFileStoresQueryVariables) {
+      return { query: GetGraphiteFileStoresDocument, variables: variables }
+    }
 export const InsertFileStoreDocument = gql`
     mutation insertFileStore($object: graphiteFileStoreInput!) {
   graphite {
@@ -8705,10 +14228,7 @@ export const InsertFileStoreDocument = gql`
   }
 }
     `;
-export type InsertFileStoreMutationFn = Apollo.MutationFunction<
-  InsertFileStoreMutation,
-  InsertFileStoreMutationVariables
->;
+export type InsertFileStoreMutationFn = Apollo.MutationFunction<InsertFileStoreMutation, InsertFileStoreMutationVariables>;
 
 /**
  * __useInsertFileStoreMutation__
@@ -8727,27 +14247,13 @@ export type InsertFileStoreMutationFn = Apollo.MutationFunction<
  *   },
  * });
  */
-export function useInsertFileStoreMutation(
-  baseOptions?: Apollo.MutationHookOptions<
-    InsertFileStoreMutation,
-    InsertFileStoreMutationVariables
-  >,
-) {
-  const options = { ...defaultOptions, ...baseOptions };
-  return Apollo.useMutation<
-    InsertFileStoreMutation,
-    InsertFileStoreMutationVariables
-  >(InsertFileStoreDocument, options);
-}
-export type InsertFileStoreMutationHookResult = ReturnType<
-  typeof useInsertFileStoreMutation
->;
-export type InsertFileStoreMutationResult =
-  Apollo.MutationResult<InsertFileStoreMutation>;
-export type InsertFileStoreMutationOptions = Apollo.BaseMutationOptions<
-  InsertFileStoreMutation,
-  InsertFileStoreMutationVariables
->;
+export function useInsertFileStoreMutation(baseOptions?: Apollo.MutationHookOptions<InsertFileStoreMutation, InsertFileStoreMutationVariables>) {
+        const options = {...defaultOptions, ...baseOptions}
+        return Apollo.useMutation<InsertFileStoreMutation, InsertFileStoreMutationVariables>(InsertFileStoreDocument, options);
+      }
+export type InsertFileStoreMutationHookResult = ReturnType<typeof useInsertFileStoreMutation>;
+export type InsertFileStoreMutationResult = Apollo.MutationResult<InsertFileStoreMutation>;
+export type InsertFileStoreMutationOptions = Apollo.BaseMutationOptions<InsertFileStoreMutation, InsertFileStoreMutationVariables>;
 export const UpdateFileStoreDocument = gql`
     mutation updateFileStore($id: uuid!, $object: graphiteFileStoreInput!) {
   graphite {
@@ -8757,10 +14263,7 @@ export const UpdateFileStoreDocument = gql`
   }
 }
     `;
-export type UpdateFileStoreMutationFn = Apollo.MutationFunction<
-  UpdateFileStoreMutation,
-  UpdateFileStoreMutationVariables
->;
+export type UpdateFileStoreMutationFn = Apollo.MutationFunction<UpdateFileStoreMutation, UpdateFileStoreMutationVariables>;
 
 /**
  * __useUpdateFileStoreMutation__
@@ -8780,24 +14283,10 @@ export type UpdateFileStoreMutationFn = Apollo.MutationFunction<
  *   },
  * });
  */
-export function useUpdateFileStoreMutation(
-  baseOptions?: Apollo.MutationHookOptions<
-    UpdateFileStoreMutation,
-    UpdateFileStoreMutationVariables
-  >,
-) {
-  const options = { ...defaultOptions, ...baseOptions };
-  return Apollo.useMutation<
-    UpdateFileStoreMutation,
-    UpdateFileStoreMutationVariables
-  >(UpdateFileStoreDocument, options);
-}
-export type UpdateFileStoreMutationHookResult = ReturnType<
-  typeof useUpdateFileStoreMutation
->;
-export type UpdateFileStoreMutationResult =
-  Apollo.MutationResult<UpdateFileStoreMutation>;
-export type UpdateFileStoreMutationOptions = Apollo.BaseMutationOptions<
-  UpdateFileStoreMutation,
-  UpdateFileStoreMutationVariables
->;
+export function useUpdateFileStoreMutation(baseOptions?: Apollo.MutationHookOptions<UpdateFileStoreMutation, UpdateFileStoreMutationVariables>) {
+        const options = {...defaultOptions, ...baseOptions}
+        return Apollo.useMutation<UpdateFileStoreMutation, UpdateFileStoreMutationVariables>(UpdateFileStoreDocument, options);
+      }
+export type UpdateFileStoreMutationHookResult = ReturnType<typeof useUpdateFileStoreMutation>;
+export type UpdateFileStoreMutationResult = Apollo.MutationResult<UpdateFileStoreMutation>;
+export type UpdateFileStoreMutationOptions = Apollo.BaseMutationOptions<UpdateFileStoreMutation, UpdateFileStoreMutationVariables>;

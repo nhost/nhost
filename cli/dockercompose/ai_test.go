@@ -18,8 +18,11 @@ func expectedAI() *Service {
 		EntryPoint: nil,
 		Command:    []string{"serve"},
 		Environment: map[string]string{
+			"ANTHROPIC_API_KEY":           "anthropic-api-key",
+			"BRAVE_API_KEY":               "brave-api-key",
 			"ENV1":                        "VALUE1",
 			"ENV2":                        "VALUE2",
+			"GOOGLE_AI_API_KEY":           "google-api-key",
 			"GRAPHITE_BASE_URL":           "http://ai:8090",
 			"GRAPHITE_WEBHOOK_SECRET":     "webhookSecret",
 			"HASURA_GRAPHQL_ADMIN_SECRET": "adminSecret",
@@ -30,6 +33,7 @@ func expectedAI() *Service {
 			"OPENAI_ORG":                  "my-org",
 			"POSTGRES_CONNECTION":         "postgres://postgres@postgres:5432/local?sslmode=disable",
 			"SYNCH_PERIOD":                "10m",
+			"TAVILY_API_KEY":              "tavily-api-key",
 		},
 		ExtraHosts: []string{
 			"host.docker.internal:host-gateway",
@@ -40,7 +44,15 @@ func expectedAI() *Service {
 			Interval:    "5s",
 			StartPeriod: "10s",
 		},
-		Labels:     nil,
+		Labels: Ingresses{
+			{
+				Name:    "ai",
+				TLS:     false,
+				Rule:    traefikHostMatch("ai"),
+				Port:    graphitePort,
+				Rewrite: nil,
+			},
+		}.Labels(),
 		Networks:   nil,
 		Ports:      nil,
 		Restart:    "always",
@@ -70,7 +82,7 @@ func TestAI(t *testing.T) {
 		t.Run(tc.name, func(t *testing.T) {
 			t.Parallel()
 
-			got := ai(tc.cfg())
+			got := ai(tc.cfg(), tc.useTlS)
 			if diff := cmp.Diff(tc.expected(), got); diff != "" {
 				t.Error(diff)
 			}

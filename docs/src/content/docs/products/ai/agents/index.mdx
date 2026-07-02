@@ -1,0 +1,126 @@
+---
+title: Agents
+description: Build multi-provider AI agents with tool use, real-time streaming, and session management
+keywords: ["AI agents", "Graphite", "Anthropic", "OpenAI", "Google Gemini", "MCP", "tool use", "streaming", "SSE", "web search"]
+---
+import { Card, CardGroup } from '@components';
+
+Agents are conversational AI interfaces that can interact with users, use tools, and stream responses in real time. Unlike [Assistants](/products/ai/assistants), which are built on top of the OpenAI Assistants API, Agents are a provider-agnostic solution that supports multiple LLM providers and offers real-time streaming via Server-Sent Events (SSE).
+
+## Key Features
+
+- **Multi-provider support** — Use Anthropic (Claude), OpenAI, or Google Gemini as the underlying LLM
+- **Real-time streaming** — Responses are streamed token-by-token via SSE
+- **Tool use** — Agents can use tools like web search, web fetch, and MCP (Model Context Protocol) servers, with optional per-tool human approval
+- **Session management** — Conversations are organized into sessions with full message history persistence
+- **Agentic loop** — Agents can autonomously chain multiple tool calls before responding (up to 25 iterations per message)
+
+## Providers
+
+Agents support three LLM providers. You only need to configure keys for the providers you intend to use.
+
+| Provider | Environment Variable | Example Models |
+|---|---|---|
+| Anthropic (Claude) | `ANTHROPIC_API_KEY` | `claude-sonnet-4-20250514`, `claude-haiku-4-20250414` |
+| OpenAI | `OPENAI_API_KEY` | `gpt-4o`, `gpt-4o-mini` |
+| Google Gemini | `GOOGLE_AI_API_KEY` | `gemini-2.0-flash`, `gemini-2.5-pro-preview-06-05` |
+
+You can pass any model identifier supported by the provider's API.
+
+### Web Search Providers
+
+If you want agents to use web search, configure the API key for your chosen search provider:
+
+| Provider | Environment Variable |
+|---|---|
+| Brave Search | `BRAVE_API_KEY` |
+| Tavily | `TAVILY_API_KEY` |
+
+## Configuration
+
+To use agents, configure the API key for your chosen provider(s) in your project's configuration:
+
+```toml
+[ai]
+version = '0.6.0'
+webhookSecret = '{{ secrets.GRAPHITE_WEBHOOK_SECRET }}'
+
+[ai.openai]
+apiKey = '{{ secrets.OPENAI_API_KEY }}'
+```
+
+Additional provider keys are configured via environment variables (`ANTHROPIC_API_KEY`, `GOOGLE_AI_API_KEY`). If an agent is configured with a provider whose API key is not set, requests will return an error.
+
+## Permissions
+
+Agent management (CRUD) and session/message operations are handled directly by the auto-generated GraphQL API. The GraphQL API's permission rules on the underlying tables control what each user can access. The following tables need permissions configured for the `user` role:
+
+#### `graphite.agents`
+
+| Operation | Columns | Notes |
+|---|---|---|
+| select | `id`, `name`, `description`, `instructions`, `provider`, `model`, `tools_config`, `created_at`, `updated_at` | Required for listing agents and retrieving agent details |
+| insert | `user_id`, `name`, `description`, `instructions`, `provider`, `model`, `tools_config` | Required for creating agents |
+| update | `name`, `description`, `instructions`, `provider`, `model`, `tools_config`, `updated_at` | Required for updating agents |
+| delete | — | Required for deleting agents |
+
+#### `graphite.agent_sessions`
+
+| Operation | Columns | Notes |
+|---|---|---|
+| select | `id`, `agent_id`, `user_id`, `created_at`, `updated_at` | Required for listing sessions and retrieving session details |
+| insert | `agent_id`, `user_id` | Required for starting a new session |
+| delete | — | Required for deleting a session |
+
+#### `graphite.agent_messages`
+
+| Operation | Columns | Notes |
+|---|---|---|
+| select | `id`, `session_id`, `role`, `content`, `tool_calls`, `tool_call_id`, `tool_name`, `created_at` | Required for retrieving session message history |
+
+:::note
+The SSE streaming endpoint (`POST /v1/agents/sessions/{sessionID}/messages`) and the tool approval endpoint (`POST /v1/agents/sessions/{sessionID}/approve-tools`) both authenticate every request. Users must pass an `Authorization: Bearer <token>` header; the service queries the GraphQL API with the user's credentials to verify session access based on the permission rules configured on `graphite.agent_sessions`. Admin access is also supported via the `X-Hasura-Admin-Secret` header, and role-impersonation headers (`X-Hasura-Admin-Secret` combined with `X-Hasura-Role: user` and `X-Hasura-User-Id`) are honored — the request is evaluated under the impersonated role's permission rules. Message persistence uses an internal service connection, so no GraphQL permissions on `agent_messages` insert are required.
+:::
+
+:::caution
+The streaming and approval endpoints delegate session authorization entirely to the select rule on `graphite.agent_sessions`. If you grant the `user` role select access without a row-level filter, any authenticated user that knows a session ID can send messages to it or approve tool calls on it — including sessions belonging to other users. The same applies to `agent_messages.select`: without a filter that joins through `agent_sessions.user_id`, users can read transcripts from sessions they do not own. See [Restricting Access](#restricting-access) below for the filters that scope this to the session owner.
+:::
+
+:::note
+Tool calls are dispatched using the authentication headers of the HTTP request that triggered them. For an agent's first turn that's the user who sent the message; for a tool that required approval, it is the user who submitted the approval request. In practice this means the built-in GraphQL tool runs under the permissions of that user — it cannot read or write data that user could not access directly.
+:::
+
+### Restricting Access
+
+The GraphQL API's permission rules govern what each role can see and do. Some patterns you will typically want:
+
+- **Users can only manage their own agents** — Add a filter on `agents` select/update/delete: `{ "user_id": { "_eq": "X-Hasura-User-Id" } }` and set `user_id` as a column preset on insert
+- **Users can only see their own sessions** — Add a filter on `agent_sessions` select: `{ "user_id": { "_eq": "X-Hasura-User-Id" } }`. Without this filter, any authenticated user can stream messages to or approve tools on any session whose ID they learn.
+- **Users can only delete their own sessions** — Add a filter on `agent_sessions` delete: `{ "user_id": { "_eq": "X-Hasura-User-Id" } }`
+- **Restrict which agents are visible** — Add a filter on `agents` select to limit agents by name, provider, or any other column
+- **Users can only see messages from their sessions** — Add a filter on `agent_messages` select joining through `agent_sessions.user_id`. Without this filter, users can read transcripts from sessions they do not own.
+
+## Agents vs Assistants
+
+| Feature | Agents | [Assistants](/products/ai/assistants) |
+|---|---|---|
+| LLM Providers | Anthropic, OpenAI, Google | OpenAI only |
+| Streaming | Real-time SSE | No (synchronous responses) |
+| Tools | Web search, web fetch, GraphQL, MCP (with optional approval) | GraphQL queries/mutations, webhooks, file stores |
+| API | REST (SSE) + GraphQL (management) | GraphQL only |
+| Data access | Via configured tools | Direct access to project data via GraphQL |
+| Session storage | Built-in (PostgreSQL) | OpenAI-managed threads |
+
+## Guides
+
+<CardGroup cols={3}>
+  <Card title="Managing Agents" icon="setting" href="/products/ai/agents/managing-agents">
+    Create, update, delete, and list agents via the GraphQL API.
+  </Card>
+  <Card title="Sessions & Streaming" icon="comment" href="/products/ai/agents/sessions-and-streaming">
+    Start sessions and send messages with real-time SSE streaming.
+  </Card>
+  <Card title="Tools" icon="puzzle" href="/products/ai/agents/tools">
+    Configure web search, web fetch, and other tools for your agents.
+  </Card>
+</CardGroup>

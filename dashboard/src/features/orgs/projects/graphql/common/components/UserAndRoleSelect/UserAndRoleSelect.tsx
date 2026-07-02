@@ -20,11 +20,23 @@ interface UserAndRoleSelectProps {
    * Function to be called when the role changes.
    */
   onRoleChange: (role: string) => void;
+  /**
+   * Pre-select this user id (e.g. when restoring a saved request context).
+   */
+  initialUserId?: string;
 }
+
+const pickPreferredRole = (roles: string[]): string | undefined => {
+  if (roles.includes('user')) {
+    return 'user';
+  }
+  return roles[0];
+};
 
 export default function UserAndRoleSelect({
   onUserChange,
   onRoleChange,
+  initialUserId,
 }: UserAndRoleSelectProps) {
   const [availableRoles, setAvailableRoles] = useState<string[]>([]);
   const [role, setRole] = useState<string>(() => availableRoles[0]);
@@ -33,7 +45,7 @@ export default function UserAndRoleSelect({
     onUserChange(userId);
     setAvailableRoles(availableUserRoles);
 
-    const newRole = availableUserRoles[0];
+    const newRole = pickPreferredRole(availableUserRoles);
 
     if (newRole) {
       setRole(newRole);
@@ -46,6 +58,7 @@ export default function UserAndRoleSelect({
       <UserSelect
         className="col-span-1 md:col-auto md:w-52"
         onUserChange={handleUserChange}
+        initialUserId={initialUserId}
       />
 
       <div className="col-span-1 flex flex-col gap-2 md:col-auto md:w-52">

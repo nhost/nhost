@@ -740,9 +740,22 @@ import (
 		compute: #ComputeResources
 	}
 
-	openai: {
+	openai?: {
 		organization?: string
 		apiKey:        string
+	}
+
+	anthropic?: {
+		apiKey: string
+	}
+
+	google?: {
+		apiKey: string
+	}
+
+	webSearch?: {
+		braveApiKey?:  string
+		tavilyApiKey?: string
 	}
 
 	autoEmbeddings: {

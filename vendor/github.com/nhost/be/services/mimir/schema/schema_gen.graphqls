@@ -124,7 +124,19 @@ type ConfigAI {
     """
 
     """
-    openai: ConfigAIOpenai!
+    openai: ConfigAIOpenai
+    """
+
+    """
+    anthropic: ConfigAIAnthropic
+    """
+
+    """
+    google: ConfigAIGoogle
+    """
+
+    """
+    webSearch: ConfigAIWebSearch
     """
 
     """
@@ -139,6 +151,9 @@ input ConfigAIUpdateInput {
     version: String
     resources: ConfigAIResourcesUpdateInput
     openai: ConfigAIOpenaiUpdateInput
+    anthropic: ConfigAIAnthropicUpdateInput
+    google: ConfigAIGoogleUpdateInput
+    webSearch: ConfigAIWebSearchUpdateInput
     autoEmbeddings: ConfigAIAutoEmbeddingsUpdateInput
     webhookSecret: String
 }
@@ -146,7 +161,10 @@ input ConfigAIUpdateInput {
 input ConfigAIInsertInput {
     version: String
     resources: ConfigAIResourcesInsertInput!
-    openai: ConfigAIOpenaiInsertInput!
+    openai: ConfigAIOpenaiInsertInput
+    anthropic: ConfigAIAnthropicInsertInput
+    google: ConfigAIGoogleInsertInput
+    webSearch: ConfigAIWebSearchInsertInput
     autoEmbeddings: ConfigAIAutoEmbeddingsInsertInput
     webhookSecret: String!
 }
@@ -158,8 +176,36 @@ input ConfigAIComparisonExp {
     version: ConfigStringComparisonExp
     resources: ConfigAIResourcesComparisonExp
     openai: ConfigAIOpenaiComparisonExp
+    anthropic: ConfigAIAnthropicComparisonExp
+    google: ConfigAIGoogleComparisonExp
+    webSearch: ConfigAIWebSearchComparisonExp
     autoEmbeddings: ConfigAIAutoEmbeddingsComparisonExp
     webhookSecret: ConfigStringComparisonExp
+}
+
+"""
+
+"""
+type ConfigAIAnthropic {
+    """
+
+    """
+    apiKey: String!
+}
+
+input ConfigAIAnthropicUpdateInput {
+    apiKey: String
+}
+
+input ConfigAIAnthropicInsertInput {
+    apiKey: String!
+}
+
+input ConfigAIAnthropicComparisonExp {
+    _and: [ConfigAIAnthropicComparisonExp!]
+    _not: ConfigAIAnthropicComparisonExp
+    _or: [ConfigAIAnthropicComparisonExp!]
+    apiKey: ConfigStringComparisonExp
 }
 
 """
@@ -185,6 +231,31 @@ input ConfigAIAutoEmbeddingsComparisonExp {
     _not: ConfigAIAutoEmbeddingsComparisonExp
     _or: [ConfigAIAutoEmbeddingsComparisonExp!]
     synchPeriodMinutes: ConfigUint32ComparisonExp
+}
+
+"""
+
+"""
+type ConfigAIGoogle {
+    """
+
+    """
+    apiKey: String!
+}
+
+input ConfigAIGoogleUpdateInput {
+    apiKey: String
+}
+
+input ConfigAIGoogleInsertInput {
+    apiKey: String!
+}
+
+input ConfigAIGoogleComparisonExp {
+    _and: [ConfigAIGoogleComparisonExp!]
+    _not: ConfigAIGoogleComparisonExp
+    _or: [ConfigAIGoogleComparisonExp!]
+    apiKey: ConfigStringComparisonExp
 }
 
 """
@@ -242,6 +313,38 @@ input ConfigAIResourcesComparisonExp {
     _not: ConfigAIResourcesComparisonExp
     _or: [ConfigAIResourcesComparisonExp!]
     compute: ConfigComputeResourcesComparisonExp
+}
+
+"""
+
+"""
+type ConfigAIWebSearch {
+    """
+
+    """
+    braveApiKey: String
+    """
+
+    """
+    tavilyApiKey: String
+}
+
+input ConfigAIWebSearchUpdateInput {
+    braveApiKey: String
+    tavilyApiKey: String
+}
+
+input ConfigAIWebSearchInsertInput {
+    braveApiKey: String
+    tavilyApiKey: String
+}
+
+input ConfigAIWebSearchComparisonExp {
+    _and: [ConfigAIWebSearchComparisonExp!]
+    _not: ConfigAIWebSearchComparisonExp
+    _or: [ConfigAIWebSearchComparisonExp!]
+    braveApiKey: ConfigStringComparisonExp
+    tavilyApiKey: ConfigStringComparisonExp
 }
 
 """

@@ -24,6 +24,7 @@ const (
 	consolePort      = 9695
 	postgresPort     = 5432
 	configserverPort = 8088
+	graphitePort     = 8090
 )
 
 const (
@@ -142,6 +143,7 @@ var extraHosts = []string{ //nolint:gochecknoglobals // immutable /etc/hosts ent
 // traefik and is routed using the existing ingress labels.
 func traefikAliases(subdomain string) []string {
 	return []string{
+		subdomain + ".ai.local.nhost.run",
 		subdomain + ".auth.local.nhost.run",
 		subdomain + ".db.local.nhost.run",
 		subdomain + ".functions.local.nhost.run",
@@ -150,6 +152,7 @@ func traefikAliases(subdomain string) []string {
 		subdomain + ".storage.local.nhost.run",
 		subdomain + ".dashboard.local.nhost.run",
 		subdomain + ".mailhog.local.nhost.run",
+		"local.ai.nhost.run",
 		"local.auth.nhost.run",
 		"local.db.nhost.run",
 		"local.functions.nhost.run",
@@ -169,12 +172,14 @@ func traefikAliases(subdomain string) []string {
 func hostGatewayHosts(subdomain string) []string {
 	return []string{
 		"host.docker.internal:host-gateway",
+		subdomain + ".ai.local.nhost.run:host-gateway",
 		subdomain + ".auth.local.nhost.run:host-gateway",
 		subdomain + ".db.local.nhost.run:host-gateway",
 		subdomain + ".functions.local.nhost.run:host-gateway",
 		subdomain + ".graphql.local.nhost.run:host-gateway",
 		subdomain + ".hasura.local.nhost.run:host-gateway",
 		subdomain + ".storage.local.nhost.run:host-gateway",
+		"local.ai.nhost.run:host-gateway",
 		"local.auth.nhost.run:host-gateway",
 		"local.db.nhost.run:host-gateway",
 		"local.functions.nhost.run:host-gateway",
@@ -766,7 +771,7 @@ func getServices( //nolint: funlen,cyclop
 		services["auth"] = auth
 
 		if cfg.Ai != nil {
-			services["ai"] = ai(cfg)
+			services["ai"] = ai(cfg, useTLS)
 		}
 	}
 

@@ -1,0 +1,5 @@
+mutation updateAgent($id: uuid!, $set: graphiteAgents_set_input!) {
+  updateGraphiteAgent(pk_columns: { id: $id }, _set: $set) {
+    id
+  }
+}

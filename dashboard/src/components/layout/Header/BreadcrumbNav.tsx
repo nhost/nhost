@@ -9,6 +9,7 @@ import {
 } from '@/components/ui/v3/breadcrumb';
 import OrgPagesComboBox from './OrgPagesComboBox';
 import OrgsComboBox from './OrgsComboBox';
+import ProjectAIPagesComboBox from './ProjectAIPagesComboBox';
 import ProjectAuthPagesComboBox from './ProjectAuthPagesComboBox';
 import ProjectDatabasePagesComboBox from './ProjectDatabasePagesComboBox';
 import ProjectEventsPagesComboBox from './ProjectEventsPagesComboBox';
@@ -32,6 +33,7 @@ export default function BreadcrumbNav() {
   const isEventsPage = pathSegments[5] === 'events';
   const isAuthPage = pathSegments[5] === 'auth';
   const isDatabasePage = pathSegments[5] === 'database';
+  const isAIPage = pathSegments[5] === 'ai';
 
   const showBreadcrumbs = !['/', '/orgs/verify'].includes(route);
 
@@ -145,6 +147,21 @@ export default function BreadcrumbNav() {
 
                 <BreadcrumbItem>
                   <ProjectDatabasePagesComboBox />
+                </BreadcrumbItem>
+              </>
+            )}
+
+            {isAIPage && (
+              <>
+                <BreadcrumbSeparator>
+                  <Slash
+                    strokeWidth={3.5}
+                    className="text-muted-foreground/50"
+                  />
+                </BreadcrumbSeparator>
+
+                <BreadcrumbItem>
+                  <ProjectAIPagesComboBox />
                 </BreadcrumbItem>
               </>
             )}

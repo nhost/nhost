@@ -56,7 +56,7 @@ export type { StoredSession } from './session';
  * @returns The base URL for the service
  */
 export const generateServiceUrl = (
-  serviceType: 'auth' | 'storage' | 'graphql' | 'functions',
+  serviceType: 'auth' | 'storage' | 'graphql' | 'functions' | 'ai',
   subdomain?: string,
   region?: string,
   customUrl?: string,

@@ -1,0 +1,16 @@
+query getAgentSessions($agentID: uuid!) {
+  graphiteAgentSessions(
+    where: { agentID: { _eq: $agentID } }
+    order_by: { createdAt: desc }
+  ) {
+    id
+    createdAt
+    updatedAt
+    userID
+    agentMessages_aggregate {
+      aggregate {
+        count
+      }
+    }
+  }
+}

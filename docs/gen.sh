@@ -46,8 +46,12 @@ add_frontmatter() {
         fi
 
         local basename=$(basename "$file" .md)
-        # Capitalize first letter for title
-        local title="$(echo "$basename" | sed 's/.*/\u&/')"
+        # Capitalize first letter for title, with overrides for acronyms
+        local title
+        case "$basename" in
+            ai) title="AI" ;;
+            *)  title="$(echo "$basename" | sed 's/.*/\u&/')" ;;
+        esac
 
         local temp_file=$(mktemp)
         {

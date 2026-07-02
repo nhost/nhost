@@ -7,6 +7,7 @@ export default defineConfig({
     lib: {
       entry: {
         'nhost-js': resolve(__dirname, 'src/index.ts'),
+        'nhost-js/ai': resolve(__dirname, 'src/ai/index.ts'),
         'nhost-js/auth': resolve(__dirname, 'src/auth/index.ts'),
         'nhost-js/fetch': resolve(__dirname, 'src/fetch/index.ts'),
         'nhost-js/functions': resolve(__dirname, 'src/functions/index.ts'),

@@ -23,6 +23,16 @@ func getConfig() *model.ConfigConfig { //nolint:maintidx
 				SynchPeriodMinutes: new(uint32(10)),
 			},
 			WebhookSecret: "webhookSecret",
+			Anthropic: &model.ConfigAIAnthropic{
+				ApiKey: "anthropic-api-key",
+			},
+			Google: &model.ConfigAIGoogle{
+				ApiKey: "google-api-key",
+			},
+			WebSearch: &model.ConfigAIWebSearch{
+				BraveApiKey:  new("brave-api-key"),
+				TavilyApiKey: new("tavily-api-key"),
+			},
 		},
 		Auth: &model.ConfigAuth{
 			Misc: &model.ConfigAuthMisc{

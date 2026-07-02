@@ -247,6 +247,29 @@ const projectDatabasePages = [
   },
 ];
 
+const projectAIPages = [
+  {
+    name: 'Auto-Embeddings',
+    slug: 'auto-embeddings',
+    route: 'ai/auto-embeddings',
+  },
+  {
+    name: 'Agents',
+    slug: 'agents',
+    route: 'ai/agents',
+  },
+  {
+    name: 'Assistants',
+    slug: 'assistants',
+    route: 'ai/assistants',
+  },
+  {
+    name: 'File Stores',
+    slug: 'file-stores',
+    route: 'ai/file-stores',
+  },
+];
+
 const createOrganization = (org: Org) => {
   const isNotPlatform = !getIsPlatform();
   const configServerVariableNotSet = getConfigServerUrl() === '';
@@ -334,7 +357,8 @@ const createOrganization = (org: Org) => {
           _page.name === 'GraphQL' ||
           _page.name === 'Events' ||
           _page.name === 'Auth' ||
-          _page.name === 'Database',
+          _page.name === 'Database' ||
+          (_page.name === 'AI' && !shouldDisableGraphite),
         children: (() => {
           if (_page.name === 'Settings' && !shouldDisableSettings) {
             return projectSettingsPages.map(
@@ -359,6 +383,11 @@ const createOrganization = (org: Org) => {
           if (_page.name === 'Database') {
             return projectDatabasePages.map(
               (p) => `${org.slug}-${_app.subdomain}-database-${p.slug}`,
+            );
+          }
+          if (_page.name === 'AI' && !shouldDisableGraphite) {
+            return projectAIPages.map(
+              (p) => `${org.slug}-${_app.subdomain}-ai-${p.slug}`,
             );
           }
           return undefined;
@@ -448,6 +477,21 @@ const createOrganization = (org: Org) => {
         data: {
           name: p.name,
           targetUrl: `/orgs/${org.slug}/projects/${_app.subdomain}/${p.route}`,
+        },
+        canRename: false,
+      };
+    });
+
+    projectAIPages.forEach((p) => {
+      result[`${org.slug}-${_app.subdomain}-ai-${p.slug}`] = {
+        index: `${org.slug}-${_app.subdomain}-ai-${p.slug}`,
+        canMove: false,
+        isFolder: false,
+        children: undefined,
+        data: {
+          name: p.name,
+          targetUrl: `/orgs/${org.slug}/projects/${_app.subdomain}/${p.route}`,
+          disabled: shouldDisableGraphite,
         },
         canRename: false,
       };
@@ -604,7 +648,7 @@ export default function NavTree() {
                 }
 
                 if (
-                  ['GraphQL', 'Events', 'Auth', 'Database'].includes(
+                  ['GraphQL', 'Events', 'Auth', 'Database', 'AI'].includes(
                     item.data.name,
                   ) &&
                   item.isFolder

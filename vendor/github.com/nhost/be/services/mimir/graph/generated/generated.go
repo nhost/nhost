@@ -50,15 +50,26 @@ type DirectiveRoot struct {
 
 type ComplexityRoot struct {
 	ConfigAI struct {
+		Anthropic      func(childComplexity int) int
 		AutoEmbeddings func(childComplexity int) int
+		Google         func(childComplexity int) int
 		Openai         func(childComplexity int) int
 		Resources      func(childComplexity int) int
 		Version        func(childComplexity int) int
+		WebSearch      func(childComplexity int) int
 		WebhookSecret  func(childComplexity int) int
+	}
+
+	ConfigAIAnthropic struct {
+		ApiKey func(childComplexity int) int
 	}
 
 	ConfigAIAutoEmbeddings struct {
 		SynchPeriodMinutes func(childComplexity int) int
+	}
+
+	ConfigAIGoogle struct {
+		ApiKey func(childComplexity int) int
 	}
 
 	ConfigAIOpenai struct {
@@ -68,6 +79,11 @@ type ComplexityRoot struct {
 
 	ConfigAIResources struct {
 		Compute func(childComplexity int) int
+	}
+
+	ConfigAIWebSearch struct {
+		BraveApiKey  func(childComplexity int) int
+		TavilyApiKey func(childComplexity int) int
 	}
 
 	ConfigAppConfig struct {
@@ -836,12 +852,24 @@ func (e *executableSchema) Complexity(ctx context.Context, typeName, field strin
 	_ = ec
 	switch typeName + "." + field {
 
+	case "ConfigAI.anthropic":
+		if e.complexity.ConfigAI.Anthropic == nil {
+			break
+		}
+
+		return e.complexity.ConfigAI.Anthropic(childComplexity), true
 	case "ConfigAI.autoEmbeddings":
 		if e.complexity.ConfigAI.AutoEmbeddings == nil {
 			break
 		}
 
 		return e.complexity.ConfigAI.AutoEmbeddings(childComplexity), true
+	case "ConfigAI.google":
+		if e.complexity.ConfigAI.Google == nil {
+			break
+		}
+
+		return e.complexity.ConfigAI.Google(childComplexity), true
 	case "ConfigAI.openai":
 		if e.complexity.ConfigAI.Openai == nil {
 			break
@@ -860,6 +888,12 @@ func (e *executableSchema) Complexity(ctx context.Context, typeName, field strin
 		}
 
 		return e.complexity.ConfigAI.Version(childComplexity), true
+	case "ConfigAI.webSearch":
+		if e.complexity.ConfigAI.WebSearch == nil {
+			break
+		}
+
+		return e.complexity.ConfigAI.WebSearch(childComplexity), true
 	case "ConfigAI.webhookSecret":
 		if e.complexity.ConfigAI.WebhookSecret == nil {
 			break
@@ -867,12 +901,26 @@ func (e *executableSchema) Complexity(ctx context.Context, typeName, field strin
 
 		return e.complexity.ConfigAI.WebhookSecret(childComplexity), true
 
+	case "ConfigAIAnthropic.apiKey":
+		if e.complexity.ConfigAIAnthropic.ApiKey == nil {
+			break
+		}
+
+		return e.complexity.ConfigAIAnthropic.ApiKey(childComplexity), true
+
 	case "ConfigAIAutoEmbeddings.synchPeriodMinutes":
 		if e.complexity.ConfigAIAutoEmbeddings.SynchPeriodMinutes == nil {
 			break
 		}
 
 		return e.complexity.ConfigAIAutoEmbeddings.SynchPeriodMinutes(childComplexity), true
+
+	case "ConfigAIGoogle.apiKey":
+		if e.complexity.ConfigAIGoogle.ApiKey == nil {
+			break
+		}
+
+		return e.complexity.ConfigAIGoogle.ApiKey(childComplexity), true
 
 	case "ConfigAIOpenai.apiKey":
 		if e.complexity.ConfigAIOpenai.ApiKey == nil {
@@ -893,6 +941,19 @@ func (e *executableSchema) Complexity(ctx context.Context, typeName, field strin
 		}
 
 		return e.complexity.ConfigAIResources.Compute(childComplexity), true
+
+	case "ConfigAIWebSearch.braveApiKey":
+		if e.complexity.ConfigAIWebSearch.BraveApiKey == nil {
+			break
+		}
+
+		return e.complexity.ConfigAIWebSearch.BraveApiKey(childComplexity), true
+	case "ConfigAIWebSearch.tavilyApiKey":
+		if e.complexity.ConfigAIWebSearch.TavilyApiKey == nil {
+			break
+		}
+
+		return e.complexity.ConfigAIWebSearch.TavilyApiKey(childComplexity), true
 
 	case "ConfigAppConfig.appID":
 		if e.complexity.ConfigAppConfig.AppID == nil {
@@ -3482,14 +3543,20 @@ func (e *executableSchema) Exec(ctx context.Context) graphql.ResponseHandler {
 	opCtx := graphql.GetOperationContext(ctx)
 	ec := executionContext{opCtx, e, 0, 0, make(chan graphql.DeferredResult)}
 	inputUnmarshalMap := graphql.BuildUnmarshalerMap(
+		ec.unmarshalInputConfigAIAnthropicComparisonExp,
+		ec.unmarshalInputConfigAIAnthropicInsertInput,
 		ec.unmarshalInputConfigAIAutoEmbeddingsComparisonExp,
 		ec.unmarshalInputConfigAIAutoEmbeddingsInsertInput,
 		ec.unmarshalInputConfigAIComparisonExp,
+		ec.unmarshalInputConfigAIGoogleComparisonExp,
+		ec.unmarshalInputConfigAIGoogleInsertInput,
 		ec.unmarshalInputConfigAIInsertInput,
 		ec.unmarshalInputConfigAIOpenaiComparisonExp,
 		ec.unmarshalInputConfigAIOpenaiInsertInput,
 		ec.unmarshalInputConfigAIResourcesComparisonExp,
 		ec.unmarshalInputConfigAIResourcesInsertInput,
+		ec.unmarshalInputConfigAIWebSearchComparisonExp,
+		ec.unmarshalInputConfigAIWebSearchInsertInput,
 		ec.unmarshalInputConfigAuthComparisonExp,
 		ec.unmarshalInputConfigAuthElevatedPrivilegesComparisonExp,
 		ec.unmarshalInputConfigAuthElevatedPrivilegesInsertInput,
@@ -4087,7 +4154,19 @@ type ConfigAI {
     """
 
     """
-    openai: ConfigAIOpenai!
+    openai: ConfigAIOpenai
+    """
+
+    """
+    anthropic: ConfigAIAnthropic
+    """
+
+    """
+    google: ConfigAIGoogle
+    """
+
+    """
+    webSearch: ConfigAIWebSearch
     """
 
     """
@@ -4102,6 +4181,9 @@ input ConfigAIUpdateInput {
     version: String
     resources: ConfigAIResourcesUpdateInput
     openai: ConfigAIOpenaiUpdateInput
+    anthropic: ConfigAIAnthropicUpdateInput
+    google: ConfigAIGoogleUpdateInput
+    webSearch: ConfigAIWebSearchUpdateInput
     autoEmbeddings: ConfigAIAutoEmbeddingsUpdateInput
     webhookSecret: String
 }
@@ -4109,7 +4191,10 @@ input ConfigAIUpdateInput {
 input ConfigAIInsertInput {
     version: String
     resources: ConfigAIResourcesInsertInput!
-    openai: ConfigAIOpenaiInsertInput!
+    openai: ConfigAIOpenaiInsertInput
+    anthropic: ConfigAIAnthropicInsertInput
+    google: ConfigAIGoogleInsertInput
+    webSearch: ConfigAIWebSearchInsertInput
     autoEmbeddings: ConfigAIAutoEmbeddingsInsertInput
     webhookSecret: String!
 }
@@ -4121,8 +4206,36 @@ input ConfigAIComparisonExp {
     version: ConfigStringComparisonExp
     resources: ConfigAIResourcesComparisonExp
     openai: ConfigAIOpenaiComparisonExp
+    anthropic: ConfigAIAnthropicComparisonExp
+    google: ConfigAIGoogleComparisonExp
+    webSearch: ConfigAIWebSearchComparisonExp
     autoEmbeddings: ConfigAIAutoEmbeddingsComparisonExp
     webhookSecret: ConfigStringComparisonExp
+}
+
+"""
+
+"""
+type ConfigAIAnthropic {
+    """
+
+    """
+    apiKey: String!
+}
+
+input ConfigAIAnthropicUpdateInput {
+    apiKey: String
+}
+
+input ConfigAIAnthropicInsertInput {
+    apiKey: String!
+}
+
+input ConfigAIAnthropicComparisonExp {
+    _and: [ConfigAIAnthropicComparisonExp!]
+    _not: ConfigAIAnthropicComparisonExp
+    _or: [ConfigAIAnthropicComparisonExp!]
+    apiKey: ConfigStringComparisonExp
 }
 
 """
@@ -4148,6 +4261,31 @@ input ConfigAIAutoEmbeddingsComparisonExp {
     _not: ConfigAIAutoEmbeddingsComparisonExp
     _or: [ConfigAIAutoEmbeddingsComparisonExp!]
     synchPeriodMinutes: ConfigUint32ComparisonExp
+}
+
+"""
+
+"""
+type ConfigAIGoogle {
+    """
+
+    """
+    apiKey: String!
+}
+
+input ConfigAIGoogleUpdateInput {
+    apiKey: String
+}
+
+input ConfigAIGoogleInsertInput {
+    apiKey: String!
+}
+
+input ConfigAIGoogleComparisonExp {
+    _and: [ConfigAIGoogleComparisonExp!]
+    _not: ConfigAIGoogleComparisonExp
+    _or: [ConfigAIGoogleComparisonExp!]
+    apiKey: ConfigStringComparisonExp
 }
 
 """
@@ -4205,6 +4343,38 @@ input ConfigAIResourcesComparisonExp {
     _not: ConfigAIResourcesComparisonExp
     _or: [ConfigAIResourcesComparisonExp!]
     compute: ConfigComputeResourcesComparisonExp
+}
+
+"""
+
+"""
+type ConfigAIWebSearch {
+    """
+
+    """
+    braveApiKey: String
+    """
+
+    """
+    tavilyApiKey: String
+}
+
+input ConfigAIWebSearchUpdateInput {
+    braveApiKey: String
+    tavilyApiKey: String
+}
+
+input ConfigAIWebSearchInsertInput {
+    braveApiKey: String
+    tavilyApiKey: String
+}
+
+input ConfigAIWebSearchComparisonExp {
+    _and: [ConfigAIWebSearchComparisonExp!]
+    _not: ConfigAIWebSearchComparisonExp
+    _or: [ConfigAIWebSearchComparisonExp!]
+    braveApiKey: ConfigStringComparisonExp
+    tavilyApiKey: ConfigStringComparisonExp
 }
 
 """
@@ -9987,9 +10157,9 @@ func (ec *executionContext) _ConfigAI_openai(ctx context.Context, field graphql.
 			return obj.Openai, nil
 		},
 		nil,
-		ec.marshalNConfigAIOpenai2ᚖgithubᚗcomᚋnhostᚋbeᚋservicesᚋmimirᚋmodelᚐConfigAIOpenai,
+		ec.marshalOConfigAIOpenai2ᚖgithubᚗcomᚋnhostᚋbeᚋservicesᚋmimirᚋmodelᚐConfigAIOpenai,
 		true,
-		true,
+		false,
 	)
 }
 
@@ -10007,6 +10177,107 @@ func (ec *executionContext) fieldContext_ConfigAI_openai(_ context.Context, fiel
 				return ec.fieldContext_ConfigAIOpenai_apiKey(ctx, field)
 			}
 			return nil, fmt.Errorf("no field named %q was found under type ConfigAIOpenai", field.Name)
+		},
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _ConfigAI_anthropic(ctx context.Context, field graphql.CollectedField, obj *model.ConfigAI) (ret graphql.Marshaler) {
+	return graphql.ResolveField(
+		ctx,
+		ec.OperationContext,
+		field,
+		ec.fieldContext_ConfigAI_anthropic,
+		func(ctx context.Context) (any, error) {
+			return obj.Anthropic, nil
+		},
+		nil,
+		ec.marshalOConfigAIAnthropic2ᚖgithubᚗcomᚋnhostᚋbeᚋservicesᚋmimirᚋmodelᚐConfigAIAnthropic,
+		true,
+		false,
+	)
+}
+
+func (ec *executionContext) fieldContext_ConfigAI_anthropic(_ context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "ConfigAI",
+		Field:      field,
+		IsMethod:   false,
+		IsResolver: false,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			switch field.Name {
+			case "apiKey":
+				return ec.fieldContext_ConfigAIAnthropic_apiKey(ctx, field)
+			}
+			return nil, fmt.Errorf("no field named %q was found under type ConfigAIAnthropic", field.Name)
+		},
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _ConfigAI_google(ctx context.Context, field graphql.CollectedField, obj *model.ConfigAI) (ret graphql.Marshaler) {
+	return graphql.ResolveField(
+		ctx,
+		ec.OperationContext,
+		field,
+		ec.fieldContext_ConfigAI_google,
+		func(ctx context.Context) (any, error) {
+			return obj.Google, nil
+		},
+		nil,
+		ec.marshalOConfigAIGoogle2ᚖgithubᚗcomᚋnhostᚋbeᚋservicesᚋmimirᚋmodelᚐConfigAIGoogle,
+		true,
+		false,
+	)
+}
+
+func (ec *executionContext) fieldContext_ConfigAI_google(_ context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "ConfigAI",
+		Field:      field,
+		IsMethod:   false,
+		IsResolver: false,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			switch field.Name {
+			case "apiKey":
+				return ec.fieldContext_ConfigAIGoogle_apiKey(ctx, field)
+			}
+			return nil, fmt.Errorf("no field named %q was found under type ConfigAIGoogle", field.Name)
+		},
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _ConfigAI_webSearch(ctx context.Context, field graphql.CollectedField, obj *model.ConfigAI) (ret graphql.Marshaler) {
+	return graphql.ResolveField(
+		ctx,
+		ec.OperationContext,
+		field,
+		ec.fieldContext_ConfigAI_webSearch,
+		func(ctx context.Context) (any, error) {
+			return obj.WebSearch, nil
+		},
+		nil,
+		ec.marshalOConfigAIWebSearch2ᚖgithubᚗcomᚋnhostᚋbeᚋservicesᚋmimirᚋmodelᚐConfigAIWebSearch,
+		true,
+		false,
+	)
+}
+
+func (ec *executionContext) fieldContext_ConfigAI_webSearch(_ context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "ConfigAI",
+		Field:      field,
+		IsMethod:   false,
+		IsResolver: false,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			switch field.Name {
+			case "braveApiKey":
+				return ec.fieldContext_ConfigAIWebSearch_braveApiKey(ctx, field)
+			case "tavilyApiKey":
+				return ec.fieldContext_ConfigAIWebSearch_tavilyApiKey(ctx, field)
+			}
+			return nil, fmt.Errorf("no field named %q was found under type ConfigAIWebSearch", field.Name)
 		},
 	}
 	return fc, nil
@@ -10074,6 +10345,35 @@ func (ec *executionContext) fieldContext_ConfigAI_webhookSecret(_ context.Contex
 	return fc, nil
 }
 
+func (ec *executionContext) _ConfigAIAnthropic_apiKey(ctx context.Context, field graphql.CollectedField, obj *model.ConfigAIAnthropic) (ret graphql.Marshaler) {
+	return graphql.ResolveField(
+		ctx,
+		ec.OperationContext,
+		field,
+		ec.fieldContext_ConfigAIAnthropic_apiKey,
+		func(ctx context.Context) (any, error) {
+			return obj.ApiKey, nil
+		},
+		nil,
+		ec.marshalNString2string,
+		true,
+		true,
+	)
+}
+
+func (ec *executionContext) fieldContext_ConfigAIAnthropic_apiKey(_ context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "ConfigAIAnthropic",
+		Field:      field,
+		IsMethod:   false,
+		IsResolver: false,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return nil, errors.New("field of type String does not have child fields")
+		},
+	}
+	return fc, nil
+}
+
 func (ec *executionContext) _ConfigAIAutoEmbeddings_synchPeriodMinutes(ctx context.Context, field graphql.CollectedField, obj *model.ConfigAIAutoEmbeddings) (ret graphql.Marshaler) {
 	return graphql.ResolveField(
 		ctx,
@@ -10098,6 +10398,35 @@ func (ec *executionContext) fieldContext_ConfigAIAutoEmbeddings_synchPeriodMinut
 		IsResolver: false,
 		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
 			return nil, errors.New("field of type ConfigUint32 does not have child fields")
+		},
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _ConfigAIGoogle_apiKey(ctx context.Context, field graphql.CollectedField, obj *model.ConfigAIGoogle) (ret graphql.Marshaler) {
+	return graphql.ResolveField(
+		ctx,
+		ec.OperationContext,
+		field,
+		ec.fieldContext_ConfigAIGoogle_apiKey,
+		func(ctx context.Context) (any, error) {
+			return obj.ApiKey, nil
+		},
+		nil,
+		ec.marshalNString2string,
+		true,
+		true,
+	)
+}
+
+func (ec *executionContext) fieldContext_ConfigAIGoogle_apiKey(_ context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "ConfigAIGoogle",
+		Field:      field,
+		IsMethod:   false,
+		IsResolver: false,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return nil, errors.New("field of type String does not have child fields")
 		},
 	}
 	return fc, nil
@@ -10191,6 +10520,64 @@ func (ec *executionContext) fieldContext_ConfigAIResources_compute(_ context.Con
 				return ec.fieldContext_ConfigComputeResources_memory(ctx, field)
 			}
 			return nil, fmt.Errorf("no field named %q was found under type ConfigComputeResources", field.Name)
+		},
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _ConfigAIWebSearch_braveApiKey(ctx context.Context, field graphql.CollectedField, obj *model.ConfigAIWebSearch) (ret graphql.Marshaler) {
+	return graphql.ResolveField(
+		ctx,
+		ec.OperationContext,
+		field,
+		ec.fieldContext_ConfigAIWebSearch_braveApiKey,
+		func(ctx context.Context) (any, error) {
+			return obj.BraveApiKey, nil
+		},
+		nil,
+		ec.marshalOString2ᚖstring,
+		true,
+		false,
+	)
+}
+
+func (ec *executionContext) fieldContext_ConfigAIWebSearch_braveApiKey(_ context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "ConfigAIWebSearch",
+		Field:      field,
+		IsMethod:   false,
+		IsResolver: false,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return nil, errors.New("field of type String does not have child fields")
+		},
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _ConfigAIWebSearch_tavilyApiKey(ctx context.Context, field graphql.CollectedField, obj *model.ConfigAIWebSearch) (ret graphql.Marshaler) {
+	return graphql.ResolveField(
+		ctx,
+		ec.OperationContext,
+		field,
+		ec.fieldContext_ConfigAIWebSearch_tavilyApiKey,
+		func(ctx context.Context) (any, error) {
+			return obj.TavilyApiKey, nil
+		},
+		nil,
+		ec.marshalOString2ᚖstring,
+		true,
+		false,
+	)
+}
+
+func (ec *executionContext) fieldContext_ConfigAIWebSearch_tavilyApiKey(_ context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "ConfigAIWebSearch",
+		Field:      field,
+		IsMethod:   false,
+		IsResolver: false,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return nil, errors.New("field of type String does not have child fields")
 		},
 	}
 	return fc, nil
@@ -14971,6 +15358,12 @@ func (ec *executionContext) fieldContext_ConfigConfig_ai(_ context.Context, fiel
 				return ec.fieldContext_ConfigAI_resources(ctx, field)
 			case "openai":
 				return ec.fieldContext_ConfigAI_openai(ctx, field)
+			case "anthropic":
+				return ec.fieldContext_ConfigAI_anthropic(ctx, field)
+			case "google":
+				return ec.fieldContext_ConfigAI_google(ctx, field)
+			case "webSearch":
+				return ec.fieldContext_ConfigAI_webSearch(ctx, field)
 			case "autoEmbeddings":
 				return ec.fieldContext_ConfigAI_autoEmbeddings(ctx, field)
 			case "webhookSecret":
@@ -24910,6 +25303,81 @@ func (ec *executionContext) fieldContext___Type_isOneOf(_ context.Context, field
 
 // region    **************************** input.gotpl *****************************
 
+func (ec *executionContext) unmarshalInputConfigAIAnthropicComparisonExp(ctx context.Context, obj any) (model.ConfigAIAnthropicComparisonExp, error) {
+	var it model.ConfigAIAnthropicComparisonExp
+	asMap := map[string]any{}
+	for k, v := range obj.(map[string]any) {
+		asMap[k] = v
+	}
+
+	fieldsInOrder := [...]string{"_and", "_not", "_or", "apiKey"}
+	for _, k := range fieldsInOrder {
+		v, ok := asMap[k]
+		if !ok {
+			continue
+		}
+		switch k {
+		case "_and":
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("_and"))
+			data, err := ec.unmarshalOConfigAIAnthropicComparisonExp2ᚕᚖgithubᚗcomᚋnhostᚋbeᚋservicesᚋmimirᚋmodelᚐConfigAIAnthropicComparisonExpᚄ(ctx, v)
+			if err != nil {
+				return it, err
+			}
+			it.And = data
+		case "_not":
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("_not"))
+			data, err := ec.unmarshalOConfigAIAnthropicComparisonExp2ᚖgithubᚗcomᚋnhostᚋbeᚋservicesᚋmimirᚋmodelᚐConfigAIAnthropicComparisonExp(ctx, v)
+			if err != nil {
+				return it, err
+			}
+			it.Not = data
+		case "_or":
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("_or"))
+			data, err := ec.unmarshalOConfigAIAnthropicComparisonExp2ᚕᚖgithubᚗcomᚋnhostᚋbeᚋservicesᚋmimirᚋmodelᚐConfigAIAnthropicComparisonExpᚄ(ctx, v)
+			if err != nil {
+				return it, err
+			}
+			it.Or = data
+		case "apiKey":
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("apiKey"))
+			data, err := ec.unmarshalOConfigStringComparisonExp2ᚖgithubᚗcomᚋnhostᚋbeᚋservicesᚋmimirᚋmodelᚐGenericComparisonExp(ctx, v)
+			if err != nil {
+				return it, err
+			}
+			it.ApiKey = data
+		}
+	}
+
+	return it, nil
+}
+
+func (ec *executionContext) unmarshalInputConfigAIAnthropicInsertInput(ctx context.Context, obj any) (model.ConfigAIAnthropicInsertInput, error) {
+	var it model.ConfigAIAnthropicInsertInput
+	asMap := map[string]any{}
+	for k, v := range obj.(map[string]any) {
+		asMap[k] = v
+	}
+
+	fieldsInOrder := [...]string{"apiKey"}
+	for _, k := range fieldsInOrder {
+		v, ok := asMap[k]
+		if !ok {
+			continue
+		}
+		switch k {
+		case "apiKey":
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("apiKey"))
+			data, err := ec.unmarshalNString2string(ctx, v)
+			if err != nil {
+				return it, err
+			}
+			it.ApiKey = data
+		}
+	}
+
+	return it, nil
+}
+
 func (ec *executionContext) unmarshalInputConfigAIAutoEmbeddingsComparisonExp(ctx context.Context, obj any) (model.ConfigAIAutoEmbeddingsComparisonExp, error) {
 	var it model.ConfigAIAutoEmbeddingsComparisonExp
 	asMap := map[string]any{}
@@ -24992,7 +25460,7 @@ func (ec *executionContext) unmarshalInputConfigAIComparisonExp(ctx context.Cont
 		asMap[k] = v
 	}
 
-	fieldsInOrder := [...]string{"_and", "_not", "_or", "version", "resources", "openai", "autoEmbeddings", "webhookSecret"}
+	fieldsInOrder := [...]string{"_and", "_not", "_or", "version", "resources", "openai", "anthropic", "google", "webSearch", "autoEmbeddings", "webhookSecret"}
 	for _, k := range fieldsInOrder {
 		v, ok := asMap[k]
 		if !ok {
@@ -25041,6 +25509,27 @@ func (ec *executionContext) unmarshalInputConfigAIComparisonExp(ctx context.Cont
 				return it, err
 			}
 			it.Openai = data
+		case "anthropic":
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("anthropic"))
+			data, err := ec.unmarshalOConfigAIAnthropicComparisonExp2ᚖgithubᚗcomᚋnhostᚋbeᚋservicesᚋmimirᚋmodelᚐConfigAIAnthropicComparisonExp(ctx, v)
+			if err != nil {
+				return it, err
+			}
+			it.Anthropic = data
+		case "google":
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("google"))
+			data, err := ec.unmarshalOConfigAIGoogleComparisonExp2ᚖgithubᚗcomᚋnhostᚋbeᚋservicesᚋmimirᚋmodelᚐConfigAIGoogleComparisonExp(ctx, v)
+			if err != nil {
+				return it, err
+			}
+			it.Google = data
+		case "webSearch":
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("webSearch"))
+			data, err := ec.unmarshalOConfigAIWebSearchComparisonExp2ᚖgithubᚗcomᚋnhostᚋbeᚋservicesᚋmimirᚋmodelᚐConfigAIWebSearchComparisonExp(ctx, v)
+			if err != nil {
+				return it, err
+			}
+			it.WebSearch = data
 		case "autoEmbeddings":
 			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("autoEmbeddings"))
 			data, err := ec.unmarshalOConfigAIAutoEmbeddingsComparisonExp2ᚖgithubᚗcomᚋnhostᚋbeᚋservicesᚋmimirᚋmodelᚐConfigAIAutoEmbeddingsComparisonExp(ctx, v)
@@ -25061,6 +25550,81 @@ func (ec *executionContext) unmarshalInputConfigAIComparisonExp(ctx context.Cont
 	return it, nil
 }
 
+func (ec *executionContext) unmarshalInputConfigAIGoogleComparisonExp(ctx context.Context, obj any) (model.ConfigAIGoogleComparisonExp, error) {
+	var it model.ConfigAIGoogleComparisonExp
+	asMap := map[string]any{}
+	for k, v := range obj.(map[string]any) {
+		asMap[k] = v
+	}
+
+	fieldsInOrder := [...]string{"_and", "_not", "_or", "apiKey"}
+	for _, k := range fieldsInOrder {
+		v, ok := asMap[k]
+		if !ok {
+			continue
+		}
+		switch k {
+		case "_and":
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("_and"))
+			data, err := ec.unmarshalOConfigAIGoogleComparisonExp2ᚕᚖgithubᚗcomᚋnhostᚋbeᚋservicesᚋmimirᚋmodelᚐConfigAIGoogleComparisonExpᚄ(ctx, v)
+			if err != nil {
+				return it, err
+			}
+			it.And = data
+		case "_not":
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("_not"))
+			data, err := ec.unmarshalOConfigAIGoogleComparisonExp2ᚖgithubᚗcomᚋnhostᚋbeᚋservicesᚋmimirᚋmodelᚐConfigAIGoogleComparisonExp(ctx, v)
+			if err != nil {
+				return it, err
+			}
+			it.Not = data
+		case "_or":
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("_or"))
+			data, err := ec.unmarshalOConfigAIGoogleComparisonExp2ᚕᚖgithubᚗcomᚋnhostᚋbeᚋservicesᚋmimirᚋmodelᚐConfigAIGoogleComparisonExpᚄ(ctx, v)
+			if err != nil {
+				return it, err
+			}
+			it.Or = data
+		case "apiKey":
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("apiKey"))
+			data, err := ec.unmarshalOConfigStringComparisonExp2ᚖgithubᚗcomᚋnhostᚋbeᚋservicesᚋmimirᚋmodelᚐGenericComparisonExp(ctx, v)
+			if err != nil {
+				return it, err
+			}
+			it.ApiKey = data
+		}
+	}
+
+	return it, nil
+}
+
+func (ec *executionContext) unmarshalInputConfigAIGoogleInsertInput(ctx context.Context, obj any) (model.ConfigAIGoogleInsertInput, error) {
+	var it model.ConfigAIGoogleInsertInput
+	asMap := map[string]any{}
+	for k, v := range obj.(map[string]any) {
+		asMap[k] = v
+	}
+
+	fieldsInOrder := [...]string{"apiKey"}
+	for _, k := range fieldsInOrder {
+		v, ok := asMap[k]
+		if !ok {
+			continue
+		}
+		switch k {
+		case "apiKey":
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("apiKey"))
+			data, err := ec.unmarshalNString2string(ctx, v)
+			if err != nil {
+				return it, err
+			}
+			it.ApiKey = data
+		}
+	}
+
+	return it, nil
+}
+
 func (ec *executionContext) unmarshalInputConfigAIInsertInput(ctx context.Context, obj any) (model.ConfigAIInsertInput, error) {
 	var it model.ConfigAIInsertInput
 	asMap := map[string]any{}
@@ -25068,7 +25632,7 @@ func (ec *executionContext) unmarshalInputConfigAIInsertInput(ctx context.Contex
 		asMap[k] = v
 	}
 
-	fieldsInOrder := [...]string{"version", "resources", "openai", "autoEmbeddings", "webhookSecret"}
+	fieldsInOrder := [...]string{"version", "resources", "openai", "anthropic", "google", "webSearch", "autoEmbeddings", "webhookSecret"}
 	for _, k := range fieldsInOrder {
 		v, ok := asMap[k]
 		if !ok {
@@ -25091,11 +25655,32 @@ func (ec *executionContext) unmarshalInputConfigAIInsertInput(ctx context.Contex
 			it.Resources = data
 		case "openai":
 			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("openai"))
-			data, err := ec.unmarshalNConfigAIOpenaiInsertInput2ᚖgithubᚗcomᚋnhostᚋbeᚋservicesᚋmimirᚋmodelᚐConfigAIOpenaiInsertInput(ctx, v)
+			data, err := ec.unmarshalOConfigAIOpenaiInsertInput2ᚖgithubᚗcomᚋnhostᚋbeᚋservicesᚋmimirᚋmodelᚐConfigAIOpenaiInsertInput(ctx, v)
 			if err != nil {
 				return it, err
 			}
 			it.Openai = data
+		case "anthropic":
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("anthropic"))
+			data, err := ec.unmarshalOConfigAIAnthropicInsertInput2ᚖgithubᚗcomᚋnhostᚋbeᚋservicesᚋmimirᚋmodelᚐConfigAIAnthropicInsertInput(ctx, v)
+			if err != nil {
+				return it, err
+			}
+			it.Anthropic = data
+		case "google":
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("google"))
+			data, err := ec.unmarshalOConfigAIGoogleInsertInput2ᚖgithubᚗcomᚋnhostᚋbeᚋservicesᚋmimirᚋmodelᚐConfigAIGoogleInsertInput(ctx, v)
+			if err != nil {
+				return it, err
+			}
+			it.Google = data
+		case "webSearch":
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("webSearch"))
+			data, err := ec.unmarshalOConfigAIWebSearchInsertInput2ᚖgithubᚗcomᚋnhostᚋbeᚋservicesᚋmimirᚋmodelᚐConfigAIWebSearchInsertInput(ctx, v)
+			if err != nil {
+				return it, err
+			}
+			it.WebSearch = data
 		case "autoEmbeddings":
 			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("autoEmbeddings"))
 			data, err := ec.unmarshalOConfigAIAutoEmbeddingsInsertInput2ᚖgithubᚗcomᚋnhostᚋbeᚋservicesᚋmimirᚋmodelᚐConfigAIAutoEmbeddingsInsertInput(ctx, v)
@@ -25274,6 +25859,95 @@ func (ec *executionContext) unmarshalInputConfigAIResourcesInsertInput(ctx conte
 				return it, err
 			}
 			it.Compute = data
+		}
+	}
+
+	return it, nil
+}
+
+func (ec *executionContext) unmarshalInputConfigAIWebSearchComparisonExp(ctx context.Context, obj any) (model.ConfigAIWebSearchComparisonExp, error) {
+	var it model.ConfigAIWebSearchComparisonExp
+	asMap := map[string]any{}
+	for k, v := range obj.(map[string]any) {
+		asMap[k] = v
+	}
+
+	fieldsInOrder := [...]string{"_and", "_not", "_or", "braveApiKey", "tavilyApiKey"}
+	for _, k := range fieldsInOrder {
+		v, ok := asMap[k]
+		if !ok {
+			continue
+		}
+		switch k {
+		case "_and":
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("_and"))
+			data, err := ec.unmarshalOConfigAIWebSearchComparisonExp2ᚕᚖgithubᚗcomᚋnhostᚋbeᚋservicesᚋmimirᚋmodelᚐConfigAIWebSearchComparisonExpᚄ(ctx, v)
+			if err != nil {
+				return it, err
+			}
+			it.And = data
+		case "_not":
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("_not"))
+			data, err := ec.unmarshalOConfigAIWebSearchComparisonExp2ᚖgithubᚗcomᚋnhostᚋbeᚋservicesᚋmimirᚋmodelᚐConfigAIWebSearchComparisonExp(ctx, v)
+			if err != nil {
+				return it, err
+			}
+			it.Not = data
+		case "_or":
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("_or"))
+			data, err := ec.unmarshalOConfigAIWebSearchComparisonExp2ᚕᚖgithubᚗcomᚋnhostᚋbeᚋservicesᚋmimirᚋmodelᚐConfigAIWebSearchComparisonExpᚄ(ctx, v)
+			if err != nil {
+				return it, err
+			}
+			it.Or = data
+		case "braveApiKey":
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("braveApiKey"))
+			data, err := ec.unmarshalOConfigStringComparisonExp2ᚖgithubᚗcomᚋnhostᚋbeᚋservicesᚋmimirᚋmodelᚐGenericComparisonExp(ctx, v)
+			if err != nil {
+				return it, err
+			}
+			it.BraveApiKey = data
+		case "tavilyApiKey":
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("tavilyApiKey"))
+			data, err := ec.unmarshalOConfigStringComparisonExp2ᚖgithubᚗcomᚋnhostᚋbeᚋservicesᚋmimirᚋmodelᚐGenericComparisonExp(ctx, v)
+			if err != nil {
+				return it, err
+			}
+			it.TavilyApiKey = data
+		}
+	}
+
+	return it, nil
+}
+
+func (ec *executionContext) unmarshalInputConfigAIWebSearchInsertInput(ctx context.Context, obj any) (model.ConfigAIWebSearchInsertInput, error) {
+	var it model.ConfigAIWebSearchInsertInput
+	asMap := map[string]any{}
+	for k, v := range obj.(map[string]any) {
+		asMap[k] = v
+	}
+
+	fieldsInOrder := [...]string{"braveApiKey", "tavilyApiKey"}
+	for _, k := range fieldsInOrder {
+		v, ok := asMap[k]
+		if !ok {
+			continue
+		}
+		switch k {
+		case "braveApiKey":
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("braveApiKey"))
+			data, err := ec.unmarshalOString2ᚖstring(ctx, v)
+			if err != nil {
+				return it, err
+			}
+			it.BraveApiKey = data
+		case "tavilyApiKey":
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("tavilyApiKey"))
+			data, err := ec.unmarshalOString2ᚖstring(ctx, v)
+			if err != nil {
+				return it, err
+			}
+			it.TavilyApiKey = data
 		}
 	}
 
@@ -37324,13 +37998,55 @@ func (ec *executionContext) _ConfigAI(ctx context.Context, sel ast.SelectionSet,
 			}
 		case "openai":
 			out.Values[i] = ec._ConfigAI_openai(ctx, field, obj)
-			if out.Values[i] == graphql.Null {
-				out.Invalids++
-			}
+		case "anthropic":
+			out.Values[i] = ec._ConfigAI_anthropic(ctx, field, obj)
+		case "google":
+			out.Values[i] = ec._ConfigAI_google(ctx, field, obj)
+		case "webSearch":
+			out.Values[i] = ec._ConfigAI_webSearch(ctx, field, obj)
 		case "autoEmbeddings":
 			out.Values[i] = ec._ConfigAI_autoEmbeddings(ctx, field, obj)
 		case "webhookSecret":
 			out.Values[i] = ec._ConfigAI_webhookSecret(ctx, field, obj)
+			if out.Values[i] == graphql.Null {
+				out.Invalids++
+			}
+		default:
+			panic("unknown field " + strconv.Quote(field.Name))
+		}
+	}
+	out.Dispatch(ctx)
+	if out.Invalids > 0 {
+		return graphql.Null
+	}
+
+	atomic.AddInt32(&ec.deferred, int32(len(deferred)))
+
+	for label, dfs := range deferred {
+		ec.processDeferredGroup(graphql.DeferredGroup{
+			Label:    label,
+			Path:     graphql.GetPath(ctx),
+			FieldSet: dfs,
+			Context:  ctx,
+		})
+	}
+
+	return out
+}
+
+var configAIAnthropicImplementors = []string{"ConfigAIAnthropic"}
+
+func (ec *executionContext) _ConfigAIAnthropic(ctx context.Context, sel ast.SelectionSet, obj *model.ConfigAIAnthropic) graphql.Marshaler {
+	fields := graphql.CollectFields(ec.OperationContext, sel, configAIAnthropicImplementors)
+
+	out := graphql.NewFieldSet(fields)
+	deferred := make(map[string]*graphql.FieldSet)
+	for i, field := range fields {
+		switch field.Name {
+		case "__typename":
+			out.Values[i] = graphql.MarshalString("ConfigAIAnthropic")
+		case "apiKey":
+			out.Values[i] = ec._ConfigAIAnthropic_apiKey(ctx, field, obj)
 			if out.Values[i] == graphql.Null {
 				out.Invalids++
 			}
@@ -37370,6 +38086,45 @@ func (ec *executionContext) _ConfigAIAutoEmbeddings(ctx context.Context, sel ast
 			out.Values[i] = graphql.MarshalString("ConfigAIAutoEmbeddings")
 		case "synchPeriodMinutes":
 			out.Values[i] = ec._ConfigAIAutoEmbeddings_synchPeriodMinutes(ctx, field, obj)
+		default:
+			panic("unknown field " + strconv.Quote(field.Name))
+		}
+	}
+	out.Dispatch(ctx)
+	if out.Invalids > 0 {
+		return graphql.Null
+	}
+
+	atomic.AddInt32(&ec.deferred, int32(len(deferred)))
+
+	for label, dfs := range deferred {
+		ec.processDeferredGroup(graphql.DeferredGroup{
+			Label:    label,
+			Path:     graphql.GetPath(ctx),
+			FieldSet: dfs,
+			Context:  ctx,
+		})
+	}
+
+	return out
+}
+
+var configAIGoogleImplementors = []string{"ConfigAIGoogle"}
+
+func (ec *executionContext) _ConfigAIGoogle(ctx context.Context, sel ast.SelectionSet, obj *model.ConfigAIGoogle) graphql.Marshaler {
+	fields := graphql.CollectFields(ec.OperationContext, sel, configAIGoogleImplementors)
+
+	out := graphql.NewFieldSet(fields)
+	deferred := make(map[string]*graphql.FieldSet)
+	for i, field := range fields {
+		switch field.Name {
+		case "__typename":
+			out.Values[i] = graphql.MarshalString("ConfigAIGoogle")
+		case "apiKey":
+			out.Values[i] = ec._ConfigAIGoogle_apiKey(ctx, field, obj)
+			if out.Values[i] == graphql.Null {
+				out.Invalids++
+			}
 		default:
 			panic("unknown field " + strconv.Quote(field.Name))
 		}
@@ -37450,6 +38205,44 @@ func (ec *executionContext) _ConfigAIResources(ctx context.Context, sel ast.Sele
 			if out.Values[i] == graphql.Null {
 				out.Invalids++
 			}
+		default:
+			panic("unknown field " + strconv.Quote(field.Name))
+		}
+	}
+	out.Dispatch(ctx)
+	if out.Invalids > 0 {
+		return graphql.Null
+	}
+
+	atomic.AddInt32(&ec.deferred, int32(len(deferred)))
+
+	for label, dfs := range deferred {
+		ec.processDeferredGroup(graphql.DeferredGroup{
+			Label:    label,
+			Path:     graphql.GetPath(ctx),
+			FieldSet: dfs,
+			Context:  ctx,
+		})
+	}
+
+	return out
+}
+
+var configAIWebSearchImplementors = []string{"ConfigAIWebSearch"}
+
+func (ec *executionContext) _ConfigAIWebSearch(ctx context.Context, sel ast.SelectionSet, obj *model.ConfigAIWebSearch) graphql.Marshaler {
+	fields := graphql.CollectFields(ec.OperationContext, sel, configAIWebSearchImplementors)
+
+	out := graphql.NewFieldSet(fields)
+	deferred := make(map[string]*graphql.FieldSet)
+	for i, field := range fields {
+		switch field.Name {
+		case "__typename":
+			out.Values[i] = graphql.MarshalString("ConfigAIWebSearch")
+		case "braveApiKey":
+			out.Values[i] = ec._ConfigAIWebSearch_braveApiKey(ctx, field, obj)
+		case "tavilyApiKey":
+			out.Values[i] = ec._ConfigAIWebSearch_tavilyApiKey(ctx, field, obj)
 		default:
 			panic("unknown field " + strconv.Quote(field.Name))
 		}
@@ -42843,6 +43636,11 @@ func (ec *executionContext) marshalNBoolean2bool(ctx context.Context, sel ast.Se
 	return res
 }
 
+func (ec *executionContext) unmarshalNConfigAIAnthropicComparisonExp2ᚖgithubᚗcomᚋnhostᚋbeᚋservicesᚋmimirᚋmodelᚐConfigAIAnthropicComparisonExp(ctx context.Context, v any) (*model.ConfigAIAnthropicComparisonExp, error) {
+	res, err := ec.unmarshalInputConfigAIAnthropicComparisonExp(ctx, v)
+	return &res, graphql.ErrorOnPath(ctx, err)
+}
+
 func (ec *executionContext) unmarshalNConfigAIAutoEmbeddingsComparisonExp2ᚖgithubᚗcomᚋnhostᚋbeᚋservicesᚋmimirᚋmodelᚐConfigAIAutoEmbeddingsComparisonExp(ctx context.Context, v any) (*model.ConfigAIAutoEmbeddingsComparisonExp, error) {
 	res, err := ec.unmarshalInputConfigAIAutoEmbeddingsComparisonExp(ctx, v)
 	return &res, graphql.ErrorOnPath(ctx, err)
@@ -42853,23 +43651,13 @@ func (ec *executionContext) unmarshalNConfigAIComparisonExp2ᚖgithubᚗcomᚋnh
 	return &res, graphql.ErrorOnPath(ctx, err)
 }
 
-func (ec *executionContext) marshalNConfigAIOpenai2ᚖgithubᚗcomᚋnhostᚋbeᚋservicesᚋmimirᚋmodelᚐConfigAIOpenai(ctx context.Context, sel ast.SelectionSet, v *model.ConfigAIOpenai) graphql.Marshaler {
-	if v == nil {
-		if !graphql.HasFieldError(ctx, graphql.GetFieldContext(ctx)) {
-			graphql.AddErrorf(ctx, "the requested element is null which the schema does not allow")
-		}
-		return graphql.Null
-	}
-	return ec._ConfigAIOpenai(ctx, sel, v)
+func (ec *executionContext) unmarshalNConfigAIGoogleComparisonExp2ᚖgithubᚗcomᚋnhostᚋbeᚋservicesᚋmimirᚋmodelᚐConfigAIGoogleComparisonExp(ctx context.Context, v any) (*model.ConfigAIGoogleComparisonExp, error) {
+	res, err := ec.unmarshalInputConfigAIGoogleComparisonExp(ctx, v)
+	return &res, graphql.ErrorOnPath(ctx, err)
 }
 
 func (ec *executionContext) unmarshalNConfigAIOpenaiComparisonExp2ᚖgithubᚗcomᚋnhostᚋbeᚋservicesᚋmimirᚋmodelᚐConfigAIOpenaiComparisonExp(ctx context.Context, v any) (*model.ConfigAIOpenaiComparisonExp, error) {
 	res, err := ec.unmarshalInputConfigAIOpenaiComparisonExp(ctx, v)
-	return &res, graphql.ErrorOnPath(ctx, err)
-}
-
-func (ec *executionContext) unmarshalNConfigAIOpenaiInsertInput2ᚖgithubᚗcomᚋnhostᚋbeᚋservicesᚋmimirᚋmodelᚐConfigAIOpenaiInsertInput(ctx context.Context, v any) (*model.ConfigAIOpenaiInsertInput, error) {
-	res, err := ec.unmarshalInputConfigAIOpenaiInsertInput(ctx, v)
 	return &res, graphql.ErrorOnPath(ctx, err)
 }
 
@@ -42890,6 +43678,11 @@ func (ec *executionContext) unmarshalNConfigAIResourcesComparisonExp2ᚖgithub�
 
 func (ec *executionContext) unmarshalNConfigAIResourcesInsertInput2ᚖgithubᚗcomᚋnhostᚋbeᚋservicesᚋmimirᚋmodelᚐConfigAIResourcesInsertInput(ctx context.Context, v any) (*model.ConfigAIResourcesInsertInput, error) {
 	res, err := ec.unmarshalInputConfigAIResourcesInsertInput(ctx, v)
+	return &res, graphql.ErrorOnPath(ctx, err)
+}
+
+func (ec *executionContext) unmarshalNConfigAIWebSearchComparisonExp2ᚖgithubᚗcomᚋnhostᚋbeᚋservicesᚋmimirᚋmodelᚐConfigAIWebSearchComparisonExp(ctx context.Context, v any) (*model.ConfigAIWebSearchComparisonExp, error) {
+	res, err := ec.unmarshalInputConfigAIWebSearchComparisonExp(ctx, v)
 	return &res, graphql.ErrorOnPath(ctx, err)
 }
 
@@ -44814,6 +45607,56 @@ func (ec *executionContext) marshalOConfigAI2ᚖgithubᚗcomᚋnhostᚋbeᚋserv
 	return ec._ConfigAI(ctx, sel, v)
 }
 
+func (ec *executionContext) marshalOConfigAIAnthropic2ᚖgithubᚗcomᚋnhostᚋbeᚋservicesᚋmimirᚋmodelᚐConfigAIAnthropic(ctx context.Context, sel ast.SelectionSet, v *model.ConfigAIAnthropic) graphql.Marshaler {
+	if v == nil {
+		return graphql.Null
+	}
+	return ec._ConfigAIAnthropic(ctx, sel, v)
+}
+
+func (ec *executionContext) unmarshalOConfigAIAnthropicComparisonExp2ᚕᚖgithubᚗcomᚋnhostᚋbeᚋservicesᚋmimirᚋmodelᚐConfigAIAnthropicComparisonExpᚄ(ctx context.Context, v any) ([]*model.ConfigAIAnthropicComparisonExp, error) {
+	if v == nil {
+		return nil, nil
+	}
+	var vSlice []any
+	vSlice = graphql.CoerceList(v)
+	var err error
+	res := make([]*model.ConfigAIAnthropicComparisonExp, len(vSlice))
+	for i := range vSlice {
+		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithIndex(i))
+		res[i], err = ec.unmarshalNConfigAIAnthropicComparisonExp2ᚖgithubᚗcomᚋnhostᚋbeᚋservicesᚋmimirᚋmodelᚐConfigAIAnthropicComparisonExp(ctx, vSlice[i])
+		if err != nil {
+			return nil, err
+		}
+	}
+	return res, nil
+}
+
+func (ec *executionContext) unmarshalOConfigAIAnthropicComparisonExp2ᚖgithubᚗcomᚋnhostᚋbeᚋservicesᚋmimirᚋmodelᚐConfigAIAnthropicComparisonExp(ctx context.Context, v any) (*model.ConfigAIAnthropicComparisonExp, error) {
+	if v == nil {
+		return nil, nil
+	}
+	res, err := ec.unmarshalInputConfigAIAnthropicComparisonExp(ctx, v)
+	return &res, graphql.ErrorOnPath(ctx, err)
+}
+
+func (ec *executionContext) unmarshalOConfigAIAnthropicInsertInput2ᚖgithubᚗcomᚋnhostᚋbeᚋservicesᚋmimirᚋmodelᚐConfigAIAnthropicInsertInput(ctx context.Context, v any) (*model.ConfigAIAnthropicInsertInput, error) {
+	if v == nil {
+		return nil, nil
+	}
+	res, err := ec.unmarshalInputConfigAIAnthropicInsertInput(ctx, v)
+	return &res, graphql.ErrorOnPath(ctx, err)
+}
+
+func (ec *executionContext) unmarshalOConfigAIAnthropicUpdateInput2ᚖgithubᚗcomᚋnhostᚋbeᚋservicesᚋmimirᚋmodelᚐConfigAIAnthropicUpdateInput(ctx context.Context, v any) (*model.ConfigAIAnthropicUpdateInput, error) {
+	if v == nil {
+		return nil, nil
+	}
+	var res = new(model.ConfigAIAnthropicUpdateInput)
+	err := res.UnmarshalGQL(v)
+	return res, graphql.ErrorOnPath(ctx, err)
+}
+
 func (ec *executionContext) marshalOConfigAIAutoEmbeddings2ᚖgithubᚗcomᚋnhostᚋbeᚋservicesᚋmimirᚋmodelᚐConfigAIAutoEmbeddings(ctx context.Context, sel ast.SelectionSet, v *model.ConfigAIAutoEmbeddings) graphql.Marshaler {
 	if v == nil {
 		return graphql.Null
@@ -44890,12 +45733,69 @@ func (ec *executionContext) unmarshalOConfigAIComparisonExp2ᚖgithubᚗcomᚋnh
 	return &res, graphql.ErrorOnPath(ctx, err)
 }
 
+func (ec *executionContext) marshalOConfigAIGoogle2ᚖgithubᚗcomᚋnhostᚋbeᚋservicesᚋmimirᚋmodelᚐConfigAIGoogle(ctx context.Context, sel ast.SelectionSet, v *model.ConfigAIGoogle) graphql.Marshaler {
+	if v == nil {
+		return graphql.Null
+	}
+	return ec._ConfigAIGoogle(ctx, sel, v)
+}
+
+func (ec *executionContext) unmarshalOConfigAIGoogleComparisonExp2ᚕᚖgithubᚗcomᚋnhostᚋbeᚋservicesᚋmimirᚋmodelᚐConfigAIGoogleComparisonExpᚄ(ctx context.Context, v any) ([]*model.ConfigAIGoogleComparisonExp, error) {
+	if v == nil {
+		return nil, nil
+	}
+	var vSlice []any
+	vSlice = graphql.CoerceList(v)
+	var err error
+	res := make([]*model.ConfigAIGoogleComparisonExp, len(vSlice))
+	for i := range vSlice {
+		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithIndex(i))
+		res[i], err = ec.unmarshalNConfigAIGoogleComparisonExp2ᚖgithubᚗcomᚋnhostᚋbeᚋservicesᚋmimirᚋmodelᚐConfigAIGoogleComparisonExp(ctx, vSlice[i])
+		if err != nil {
+			return nil, err
+		}
+	}
+	return res, nil
+}
+
+func (ec *executionContext) unmarshalOConfigAIGoogleComparisonExp2ᚖgithubᚗcomᚋnhostᚋbeᚋservicesᚋmimirᚋmodelᚐConfigAIGoogleComparisonExp(ctx context.Context, v any) (*model.ConfigAIGoogleComparisonExp, error) {
+	if v == nil {
+		return nil, nil
+	}
+	res, err := ec.unmarshalInputConfigAIGoogleComparisonExp(ctx, v)
+	return &res, graphql.ErrorOnPath(ctx, err)
+}
+
+func (ec *executionContext) unmarshalOConfigAIGoogleInsertInput2ᚖgithubᚗcomᚋnhostᚋbeᚋservicesᚋmimirᚋmodelᚐConfigAIGoogleInsertInput(ctx context.Context, v any) (*model.ConfigAIGoogleInsertInput, error) {
+	if v == nil {
+		return nil, nil
+	}
+	res, err := ec.unmarshalInputConfigAIGoogleInsertInput(ctx, v)
+	return &res, graphql.ErrorOnPath(ctx, err)
+}
+
+func (ec *executionContext) unmarshalOConfigAIGoogleUpdateInput2ᚖgithubᚗcomᚋnhostᚋbeᚋservicesᚋmimirᚋmodelᚐConfigAIGoogleUpdateInput(ctx context.Context, v any) (*model.ConfigAIGoogleUpdateInput, error) {
+	if v == nil {
+		return nil, nil
+	}
+	var res = new(model.ConfigAIGoogleUpdateInput)
+	err := res.UnmarshalGQL(v)
+	return res, graphql.ErrorOnPath(ctx, err)
+}
+
 func (ec *executionContext) unmarshalOConfigAIInsertInput2ᚖgithubᚗcomᚋnhostᚋbeᚋservicesᚋmimirᚋmodelᚐConfigAIInsertInput(ctx context.Context, v any) (*model.ConfigAIInsertInput, error) {
 	if v == nil {
 		return nil, nil
 	}
 	res, err := ec.unmarshalInputConfigAIInsertInput(ctx, v)
 	return &res, graphql.ErrorOnPath(ctx, err)
+}
+
+func (ec *executionContext) marshalOConfigAIOpenai2ᚖgithubᚗcomᚋnhostᚋbeᚋservicesᚋmimirᚋmodelᚐConfigAIOpenai(ctx context.Context, sel ast.SelectionSet, v *model.ConfigAIOpenai) graphql.Marshaler {
+	if v == nil {
+		return graphql.Null
+	}
+	return ec._ConfigAIOpenai(ctx, sel, v)
 }
 
 func (ec *executionContext) unmarshalOConfigAIOpenaiComparisonExp2ᚕᚖgithubᚗcomᚋnhostᚋbeᚋservicesᚋmimirᚋmodelᚐConfigAIOpenaiComparisonExpᚄ(ctx context.Context, v any) ([]*model.ConfigAIOpenaiComparisonExp, error) {
@@ -44921,6 +45821,14 @@ func (ec *executionContext) unmarshalOConfigAIOpenaiComparisonExp2ᚖgithubᚗco
 		return nil, nil
 	}
 	res, err := ec.unmarshalInputConfigAIOpenaiComparisonExp(ctx, v)
+	return &res, graphql.ErrorOnPath(ctx, err)
+}
+
+func (ec *executionContext) unmarshalOConfigAIOpenaiInsertInput2ᚖgithubᚗcomᚋnhostᚋbeᚋservicesᚋmimirᚋmodelᚐConfigAIOpenaiInsertInput(ctx context.Context, v any) (*model.ConfigAIOpenaiInsertInput, error) {
+	if v == nil {
+		return nil, nil
+	}
+	res, err := ec.unmarshalInputConfigAIOpenaiInsertInput(ctx, v)
 	return &res, graphql.ErrorOnPath(ctx, err)
 }
 
@@ -44973,6 +45881,56 @@ func (ec *executionContext) unmarshalOConfigAIUpdateInput2ᚖgithubᚗcomᚋnhos
 		return nil, nil
 	}
 	var res = new(model.ConfigAIUpdateInput)
+	err := res.UnmarshalGQL(v)
+	return res, graphql.ErrorOnPath(ctx, err)
+}
+
+func (ec *executionContext) marshalOConfigAIWebSearch2ᚖgithubᚗcomᚋnhostᚋbeᚋservicesᚋmimirᚋmodelᚐConfigAIWebSearch(ctx context.Context, sel ast.SelectionSet, v *model.ConfigAIWebSearch) graphql.Marshaler {
+	if v == nil {
+		return graphql.Null
+	}
+	return ec._ConfigAIWebSearch(ctx, sel, v)
+}
+
+func (ec *executionContext) unmarshalOConfigAIWebSearchComparisonExp2ᚕᚖgithubᚗcomᚋnhostᚋbeᚋservicesᚋmimirᚋmodelᚐConfigAIWebSearchComparisonExpᚄ(ctx context.Context, v any) ([]*model.ConfigAIWebSearchComparisonExp, error) {
+	if v == nil {
+		return nil, nil
+	}
+	var vSlice []any
+	vSlice = graphql.CoerceList(v)
+	var err error
+	res := make([]*model.ConfigAIWebSearchComparisonExp, len(vSlice))
+	for i := range vSlice {
+		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithIndex(i))
+		res[i], err = ec.unmarshalNConfigAIWebSearchComparisonExp2ᚖgithubᚗcomᚋnhostᚋbeᚋservicesᚋmimirᚋmodelᚐConfigAIWebSearchComparisonExp(ctx, vSlice[i])
+		if err != nil {
+			return nil, err
+		}
+	}
+	return res, nil
+}
+
+func (ec *executionContext) unmarshalOConfigAIWebSearchComparisonExp2ᚖgithubᚗcomᚋnhostᚋbeᚋservicesᚋmimirᚋmodelᚐConfigAIWebSearchComparisonExp(ctx context.Context, v any) (*model.ConfigAIWebSearchComparisonExp, error) {
+	if v == nil {
+		return nil, nil
+	}
+	res, err := ec.unmarshalInputConfigAIWebSearchComparisonExp(ctx, v)
+	return &res, graphql.ErrorOnPath(ctx, err)
+}
+
+func (ec *executionContext) unmarshalOConfigAIWebSearchInsertInput2ᚖgithubᚗcomᚋnhostᚋbeᚋservicesᚋmimirᚋmodelᚐConfigAIWebSearchInsertInput(ctx context.Context, v any) (*model.ConfigAIWebSearchInsertInput, error) {
+	if v == nil {
+		return nil, nil
+	}
+	res, err := ec.unmarshalInputConfigAIWebSearchInsertInput(ctx, v)
+	return &res, graphql.ErrorOnPath(ctx, err)
+}
+
+func (ec *executionContext) unmarshalOConfigAIWebSearchUpdateInput2ᚖgithubᚗcomᚋnhostᚋbeᚋservicesᚋmimirᚋmodelᚐConfigAIWebSearchUpdateInput(ctx context.Context, v any) (*model.ConfigAIWebSearchUpdateInput, error) {
+	if v == nil {
+		return nil, nil
+	}
+	var res = new(model.ConfigAIWebSearchUpdateInput)
 	err := res.UnmarshalGQL(v)
 	return res, graphql.ErrorOnPath(ctx, err)
 }

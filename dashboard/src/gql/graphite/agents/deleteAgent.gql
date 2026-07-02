@@ -1,0 +1,5 @@
+mutation deleteAgent($id: uuid!) {
+  deleteGraphiteAgent(id: $id) {
+    id
+  }
+}

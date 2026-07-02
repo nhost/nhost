@@ -42,6 +42,10 @@ const useNavTreeStateFromURL = (): TreeState => {
   const databaseSubPage =
     isDatabasePage && pathSegments.length > 6 ? pathSegments[6] || null : null;
 
+  const isAIPage = pathSegments[5] === 'ai';
+  const aiSubPage =
+    isAIPage && pathSegments.length > 6 ? pathSegments[6] || null : null;
+
   return useMemo(() => {
     if (!orgSlug) {
       // If no orgSlug, return an empty state
@@ -119,6 +123,15 @@ const useNavTreeStateFromURL = (): TreeState => {
       }
     }
 
+    if (isAIPage) {
+      expandedItems.push(`${orgSlug}-${appSubdomain}-ai`);
+      if (!aiSubPage) {
+        focusedItem = `${orgSlug}-${appSubdomain}-ai-auto-embeddings`;
+      } else {
+        focusedItem = `${orgSlug}-${appSubdomain}-ai-${aiSubPage}`;
+      }
+    }
+
     return { expandedItems, focusedItem };
   }, [
     orgSlug,
@@ -135,6 +148,8 @@ const useNavTreeStateFromURL = (): TreeState => {
     authSubPage,
     isDatabasePage,
     databaseSubPage,
+    isAIPage,
+    aiSubPage,
     newProject,
   ]);
 };
