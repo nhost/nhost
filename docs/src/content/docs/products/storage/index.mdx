@@ -1,6 +1,6 @@
 ---
 title: File Storage Overview
-description: Store and serve files on S3-compatible storage with GraphQL metadata, Hasura permissions, and CDN delivery.
+description: Store and serve files on S3-compatible storage with GraphQL metadata, permissions, and CDN delivery.
 keywords: ["storage", "file upload", "file download", "S3", "CDN", "images", "files", "media", "blob storage"]
 head:
   - tag: title
@@ -9,11 +9,11 @@ head:
 import { Card, CardGroup } from '@components';
 
 
-Nhost Storage is a file storage service seamlessly integrated with the [GraphQL API](/products/graphql) and its [Permission System](/products/graphql/permissions). Files are stored on an S3-compatible backend, metadata is managed through GraphQL, and access control is handled by the same Hasura permission system used for the rest of your data. Files are served through a [CDN](/products/storage/cdn) for optimal performance.
+Nhost Storage is a file storage service seamlessly integrated with the [GraphQL API](/products/graphql) and its [Permission System](/products/graphql/permissions). Files are stored on an S3-compatible backend, metadata is managed through GraphQL, and access control is handled by the same permission system used for the rest of your data. Files are served through a [CDN](/products/storage/cdn) for optimal performance.
 
 ## How Storage Works
 
-When you upload a file, the Storage service validates the user's JWT, checks permissions via Hasura, stores the file content in S3, and records metadata in the `storage.files` table. Downloads follow the same path in reverse -- permissions are checked before the file is served. See [Architecture](/products/storage/architecture) for the full request flow.
+When you upload a file, the Storage service validates the user's JWT, checks permissions via the GraphQL engine, stores the file content in S3, and records metadata in the `storage.files` table. Downloads follow the same path in reverse -- permissions are checked before the file is served. See [Architecture](/products/storage/architecture) for the full request flow.
 
 ```typescript
 // Upload a file
@@ -35,7 +35,7 @@ const url = URL.createObjectURL(body)
 
 ## Permissions
 
-[Permissions](/products/storage/permissions) follow a **Zero Trust** model -- no role has access by default. You grant access by configuring `insert`, `select`, and `delete` permissions on the `storage.files` table in Hasura. The same session variables (`X-Hasura-User-Id`, `X-Hasura-Role`, custom claims) available in your GraphQL permissions also work for storage.
+[Permissions](/products/storage/permissions) follow a **Zero Trust** model -- no role has access by default. You grant access by configuring `insert`, `select`, and `delete` permissions on the `storage.files` table. The same session variables (`X-Hasura-User-Id`, `X-Hasura-Role`, custom claims) available in your GraphQL permissions also work for storage.
 
 ## Image Transformation
 
@@ -61,7 +61,7 @@ const url = URL.createObjectURL(body)
     Organize files with configurable containers
   </Card>
   <Card title="Permissions" icon="lock" href="/products/storage/permissions">
-    Control access with Hasura's permission system
+    Control access with the GraphQL permission system
   </Card>
   <Card title="Image Transformation" icon="sparkles" href="/products/storage/image-transformation">
     Resize, convert, and optimize images on-the-fly

@@ -56,7 +56,7 @@ export default async (req: Request, res: Response) => {
 }
 ```
 
-This pattern is useful when you want to add server-side logic (validation, side effects, external API calls) while still respecting the user's Hasura permissions.
+This pattern is useful when you want to add server-side logic (validation, side effects, external API calls) while still respecting the user's permissions.
 
 ## Acting as Admin
 
@@ -98,7 +98,7 @@ export default async (req: Request, res: Response) => {
 ```
 
 :::caution
-Admin requests bypass all Hasura permissions. Make sure your function validates the caller's authorization before performing privileged operations.
+Admin requests bypass all permissions. Make sure your function validates the caller's authorization before performing privileged operations.
 :::
 
 ## Acting as a Specific User

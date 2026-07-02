@@ -1,0 +1,134 @@
+---
+title: Constellation
+description: Constellation is Nhost's own GraphQL engine, a faster and lighter Hasura-compatible replacement that powers your GraphQL API.
+keywords: ["Constellation", "GraphQL engine", "Hasura", "Hasura alternative", "Hasura compatible", "drop-in replacement", "nhost.toml", "experimental"]
+head:
+  - tag: title
+    content: "Constellation: Nhost's GraphQL Engine | Nhost Docs"
+sidebar:
+  label: Constellation
+  badge:
+    text: Alpha
+    variant: caution
+---
+import { Card, CardGroup } from '@components';
+import { Steps } from '@astrojs/starlight/components';
+
+**Constellation** turns your Postgres database into a fast, role-based GraphQL API at a fraction of the resources. It's a drop-in replacement for [Hasura](https://hasura.io/) Community Edition, so everything behaves the way you'd expect: the same metadata, the same schema, and the same queries, mutations, and subscriptions, including remote schemas and cross-source relationships. Because both engines expose the same API, the rest of these docs just call it the GraphQL API rather than naming a specific engine.
+
+:::caution[Alpha and opt-in]
+Constellation is in **alpha** and **opt-in** today. It runs alongside the existing engine rather than replacing it, so you can switch it on, send real traffic through it, and turn it back off whenever you like. It will become the default over time. See the [announcement](https://nhost.io/blog/introducing-constellation) for the full story.
+:::
+
+## Why Constellation
+
+The GraphQL engine shouldn't be the most expensive thing in your stack. Running the same production traffic, Constellation uses [~90% less memory](https://nhost.io/blog/introducing-constellation#early-production-results) than the engine it replaces, with comparable or slightly lower CPU and latency. And that's before the performance work still on the roadmap.
+
+## Enabling Constellation
+
+Add an `[experimental.constellation]` block to your project's `nhost.toml`, either locally or in your cloud project's configuration editor:
+
+```toml title="nhost.toml"
+[experimental.constellation]
+# Pick the latest tag from the CHANGELOG. We recommend always running the latest.
+# https://github.com/nhost/nhost/blob/main/services/constellation/CHANGELOG.md
+version = "0.7.0"
+
+[experimental.constellation.settings]
+# CORS allowed origins. If unset, origins are derived from
+# auth.redirections.clientUrl and auth.redirections.allowedUrls.
+# Entries may use "*" as a wildcard (e.g. "https://my-app-*-org.vercel.app").
+corsAllowedOrigins = []
+
+# Enable debug logging.
+debug = false
+
+# Return raw connector/database error detail to clients instead of the
+# sanitized generic message. Development only; never enable in production.
+devMode = false
+
+# Polling interval for GraphQL subscriptions.
+subscriptionPollInterval = "1s"
+```
+
+With this in place, your project runs both engines side by side, sharing the same database and metadata:
+
+| Endpoint | Served by |
+|---|---|
+| `https://<subdomain>.graphql.<region>.nhost.run` | **Constellation** |
+| `https://<subdomain>.hasura.<region>.nhost.run` | The existing engine (metadata authoring + anything Constellation doesn't serve yet) |
+
+Remove the `[experimental.constellation]` block to fall straight back to the existing engine.
+
+## What Constellation serves
+
+Everything on the **GraphQL request path** is supported and in production:
+
+- PostgreSQL and SQLite connectors
+- Queries, mutations, and subscriptions
+- JWT and admin-secret authentication
+- Role-based [permissions](/products/graphql/permissions) (row- and column-level, presets, session variables)
+- [Remote schemas](/products/graphql/remote-schemas) and cross-source remote relationships
+
+## What still runs on the existing engine
+
+While Constellation is opt-in, metadata authoring and everything **off** the request path continue to be served by the existing engine, so nothing breaks when you flip Constellation on. These are not yet implemented in Constellation:
+
+- Metadata authoring API (the existing engine remains the source of truth for metadata)
+- [Events](/products/events): event triggers and cron/scheduled triggers
+- Actions, REST endpoints, allowlists, query collections
+- Inherited roles, native queries, computed fields
+- MSSQL / BigQuery / Snowflake backends
+
+For the exhaustive, field-by-field map of what carries across and what is silently dropped, see the **[metadata support matrix](https://github.com/nhost/nhost/blob/main/services/constellation/docs/user/hasura-metadata-support.md)**.
+
+## Verifying compatibility
+
+Because both engines run against the same database and metadata, you can confirm Constellation generates the schema you expect by diffing the two endpoints per role with the Nhost CLI:
+
+<Steps>
+
+1. **Dump each role's schema from both endpoints**
+
+   ```bash
+   nhost schema dump --role user --subdomain <subdomain> \
+     -u "https://<subdomain>.hasura.<region>.nhost.run/v1/graphql" \
+     -o schema.existing.user.graphqls
+
+   nhost schema dump --role user --subdomain <subdomain> \
+     -u "https://<subdomain>.graphql.<region>.nhost.run/v1/graphql" \
+     -o schema.constellation.user.graphqls
+   ```
+
+2. **Diff them**
+
+   ```bash
+   nhost schema diff -a schema.existing.user.graphqls -b schema.constellation.user.graphqls
+   ```
+
+   An empty diff means Constellation generated a byte-equivalent schema for that role. Repeat for each role (`admin`, `user`, `public`, and so on).
+
+</Steps>
+
+:::tip
+If you've linked a project with `nhost link`, you can drop `-u`/`--admin-secret` and just pass `--role`.
+:::
+
+Any non-empty diff should map to a documented, intentional divergence. The full list lives in **[known differences](https://github.com/nhost/nhost/blob/main/services/constellation/KNOWN_DIFFERENCES.md)**. For example, Constellation rejects empty update mutations that the existing engine silently no-ops, and it discovers aggregate support from Postgres rather than hardcoding it. If you find a divergence that isn't documented there, please [open an issue](https://github.com/nhost/nhost/issues/new).
+
+## Learn more
+
+<CardGroup cols={2}>
+  <Card title="Read the announcement" href="https://nhost.io/blog/introducing-constellation">
+  Why we built Constellation, with production benchmarks, on the Nhost blog
+  </Card>
+  <Card title="What carries over from Hasura" href="https://github.com/nhost/nhost/blob/main/services/constellation/docs/user/hasura-metadata-support.md">
+  A field-by-field map of the metadata Constellation supports
+  </Card>
+  <Card title="Known differences" href="https://github.com/nhost/nhost/blob/main/services/constellation/KNOWN_DIFFERENCES.md">
+  The few intentional ways Constellation diverges from Hasura
+  </Card>
+  <Card title="Configure the engine" href="/products/graphql/configuration">
+  Set the Constellation version and runtime options in nhost.toml
+  </Card>
+</CardGroup>
