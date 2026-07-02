@@ -27,8 +27,9 @@ func convertAction(h hasura.ActionMetadata) ActionMetadata {
 	}
 }
 
-// convertHeaderValue splits the normalized hasura.EnvValue into the native
-// (value, valueFromEnv) pair: an env reference wins over a literal.
+// convertActionHeaders maps each hasura.ActionHeader into the native
+// ActionHeader, splitting the env value into (value, value_from_env) via
+// convertHeaderValue (an env reference wins over a literal).
 func convertActionHeaders(headers []hasura.ActionHeader) []ActionHeader {
 	result := make([]ActionHeader, len(headers))
 	for i, header := range headers {

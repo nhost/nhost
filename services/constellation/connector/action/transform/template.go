@@ -174,7 +174,11 @@ func stringifyTemplateValue(value any) string {
 			return strconv.FormatFloat(number, 'f', -1, 64)
 		}
 
-		encoded, err := json.Marshal(value)
+		// Deterministic(true) so composite values coerce to a stable string:
+		// json/v2 randomizes map-key order by default, which would make the
+		// rendered url/header/query-param/form-field nondeterministic. Matches
+		// getSessionVariableFunc above.
+		encoded, err := json.Marshal(value, json.Deterministic(true))
 		if err != nil {
 			return ""
 		}

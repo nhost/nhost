@@ -22,24 +22,32 @@ const (
 
 var (
 	errPostgresConfigMissingDatabaseURL = errors.New("postgres action log database URL is required")
+	errPostgresConfigMissingPool        = errors.New("postgres action log pool is required")
 	errPostgresMissingRequiredColumns   = errors.New("missing required columns")
 )
 
 // PostgresConfig configures a Hasura-compatible PostgreSQL action-log store.
+// The action-log table must already exist (provisioned via migrations); the
+// store never creates it.
 type PostgresConfig struct {
-	DatabaseURL       string
-	Schema            string
-	Table             string
-	CreateIfNotExists bool
+	DatabaseURL string
+	Schema      string
+	Table       string
 }
 
-// PostgresStore persists asynchronous action logs in PostgreSQL.
+// PostgresStore persists asynchronous action logs in PostgreSQL. ownsPool
+// records whether this store opened the pool (NewPostgres) or borrows an
+// externally-managed one (NewPostgresWithPool); only an owned pool is closed.
 type PostgresStore struct {
-	pool  *pgxpool.Pool
-	table string
+	pool     *pgxpool.Pool
+	table    string
+	ownsPool bool
 }
 
-// NewPostgres creates and validates a PostgreSQL-backed action log store.
+// NewPostgres opens a PostgreSQL-backed action log store and validates that the
+// action-log table already exists with the required columns. It never issues
+// DDL: the catalog schema/table is provisioned out of band (via migrations), so
+// the serving process does not create schema at startup or on metadata reload.
 func NewPostgres(ctx context.Context, cfg PostgresConfig) (*PostgresStore, error) {
 	cfg = cfg.withDefaults()
 	if cfg.DatabaseURL == "" {
@@ -51,15 +59,52 @@ func NewPostgres(ctx context.Context, cfg PostgresConfig) (*PostgresStore, error
 		return nil, fmt.Errorf("creating action log pool: %w", err)
 	}
 
-	store := &PostgresStore{
-		pool:  pool,
-		table: qualifiedTable(cfg.Schema, cfg.Table),
-	}
-
-	if err := store.ensureSchema(ctx, cfg); err != nil {
+	store, err := newValidatedStore(ctx, pool, cfg, true)
+	if err != nil {
 		pool.Close()
 
 		return nil, err
+	}
+
+	return store, nil
+}
+
+// NewPostgresWithPool opens a PostgreSQL-backed action log store on an
+// externally-owned pool (the shared catalog pool). It validates the action-log
+// table like NewPostgres but never opens or closes the pool: its lifecycle
+// belongs to the caller, so the store survives metadata reloads without
+// churning connections. It never issues DDL.
+func NewPostgresWithPool(
+	ctx context.Context,
+	pool *pgxpool.Pool,
+	cfg PostgresConfig,
+) (*PostgresStore, error) {
+	if pool == nil {
+		return nil, errPostgresConfigMissingPool
+	}
+
+	cfg = cfg.withDefaults()
+
+	return newValidatedStore(ctx, pool, cfg, false)
+}
+
+// newValidatedStore builds a store on pool and verifies the action-log table
+// exists with the required columns. ownsPool controls whether Close closes the
+// pool. On validation failure the caller is responsible for the pool it owns.
+func newValidatedStore(
+	ctx context.Context,
+	pool *pgxpool.Pool,
+	cfg PostgresConfig,
+	ownsPool bool,
+) (*PostgresStore, error) {
+	store := &PostgresStore{
+		pool:     pool,
+		table:    qualifiedTable(cfg.Schema, cfg.Table),
+		ownsPool: ownsPool,
+	}
+
+	if err := store.validateSchema(ctx, cfg.Schema, cfg.Table); err != nil {
+		return nil, fmt.Errorf("validating action log table: %w", err)
 	}
 
 	return store, nil
@@ -75,57 +120,6 @@ func (cfg PostgresConfig) withDefaults() PostgresConfig {
 	}
 
 	return cfg
-}
-
-func (s *PostgresStore) ensureSchema(ctx context.Context, cfg PostgresConfig) error {
-	if cfg.CreateIfNotExists {
-		if err := s.createSchema(ctx, cfg.Schema, cfg.Table); err != nil {
-			return fmt.Errorf("creating action log table: %w", err)
-		}
-	}
-
-	if err := s.validateSchema(ctx, cfg.Schema, cfg.Table); err != nil {
-		return fmt.Errorf("validating action log table: %w", err)
-	}
-
-	return nil
-}
-
-func (s *PostgresStore) createSchema(ctx context.Context, schema, table string) error {
-	_, err := s.pool.Exec(
-		ctx,
-		"CREATE SCHEMA IF NOT EXISTS "+quoteIdentifier(schema),
-	)
-	if err != nil {
-		return fmt.Errorf("creating schema: %w", err)
-	}
-
-	_, err = s.pool.Exec(ctx, "CREATE TABLE IF NOT EXISTS "+qualifiedTable(schema, table)+` (
-		id uuid PRIMARY KEY,
-		action_name text NOT NULL,
-		input_payload jsonb NOT NULL,
-		request_headers jsonb NOT NULL,
-		session_variables jsonb NOT NULL,
-		response_payload jsonb,
-		errors jsonb,
-		created_at timestamptz NOT NULL DEFAULT now(),
-		response_received_at timestamptz,
-		status text NOT NULL DEFAULT 'created'
-	)`)
-	if err != nil {
-		return fmt.Errorf("creating table: %w", err)
-	}
-
-	_, err = s.pool.Exec(
-		ctx,
-		"CREATE INDEX IF NOT EXISTS "+quoteIdentifier(table+"_status_created_at_idx")+
-			" ON "+qualifiedTable(schema, table)+" (status, created_at)",
-	)
-	if err != nil {
-		return fmt.Errorf("creating status index: %w", err)
-	}
-
-	return nil
 }
 
 func (s *PostgresStore) validateSchema(ctx context.Context, schema, table string) error {
@@ -375,27 +369,44 @@ func (s *PostgresStore) Get(
 	return entry, true, nil
 }
 
-// RequeueProcessing moves processing rows back to created.
+// RequeueProcessing moves processing rows back to created. The update is a
+// single set-based statement so it is atomic: a mid-batch failure leaves the
+// whole batch in 'processing' for a clean retry, rather than committing some
+// rows back to 'created' while stranding the rest (ClaimPending only reclaims
+// status='created', so a per-row loop that failed partway could leave the
+// not-yet-requeued rows stuck in 'processing' forever). The status guard keeps
+// it idempotent, matching the in-memory implementation.
 func (s *PostgresStore) RequeueProcessing(ctx context.Context, ids []uuid.UUID) error {
-	for _, id := range ids {
-		_, err := s.pool.Exec(
-			ctx,
-			"UPDATE "+s.table+" SET status = $2 WHERE id = $1 AND status = $3",
-			id.String(),
-			string(action.LogStatusCreated),
-			string(action.LogStatusProcessing),
-		)
-		if err != nil {
-			return fmt.Errorf("requeueing action log row %s: %w", id, err)
-		}
+	if len(ids) == 0 {
+		return nil
+	}
+
+	strIDs := make([]string, len(ids))
+	for i, id := range ids {
+		strIDs[i] = id.String()
+	}
+
+	_, err := s.pool.Exec(
+		ctx,
+		"UPDATE "+s.table+" SET status = $1 WHERE id = ANY($2::uuid[]) AND status = $3",
+		string(action.LogStatusCreated),
+		strIDs,
+		string(action.LogStatusProcessing),
+	)
+	if err != nil {
+		return fmt.Errorf("requeueing %d action log rows: %w", len(ids), err)
 	}
 
 	return nil
 }
 
-// Close closes the PostgreSQL pool.
+// Close closes the PostgreSQL pool when this store owns it. Stores built on an
+// externally-managed pool (NewPostgresWithPool) leave the pool open for its
+// owner and treat Close as a no-op.
 func (s *PostgresStore) Close() {
-	s.pool.Close()
+	if s.ownsPool {
+		s.pool.Close()
+	}
 }
 
 func scanActionLogEntry(row pgx.CollectableRow) (action.ActionLogEntry, error) {

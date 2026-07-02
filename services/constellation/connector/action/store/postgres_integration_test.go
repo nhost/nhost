@@ -17,6 +17,24 @@ import (
 
 const defaultTestAdminDBURL = "postgresql://postgres:postgres@localhost:5433/postgres"
 
+// actionLogTestDDL provisions the action-log schema/table the store expects.
+// NewPostgres no longer issues DDL (schema is managed via migrations), so the
+// integration tests create the table themselves via the test-db setup hook.
+const actionLogTestDDL = `CREATE SCHEMA IF NOT EXISTS constellation_action_log_test;
+CREATE TABLE constellation_action_log_test.hdb_action_log (
+	id uuid PRIMARY KEY,
+	action_name text NOT NULL,
+	input_payload jsonb NOT NULL,
+	request_headers jsonb NOT NULL,
+	session_variables jsonb NOT NULL,
+	response_payload jsonb,
+	errors jsonb,
+	created_at timestamptz NOT NULL DEFAULT now(),
+	response_received_at timestamptz,
+	status text NOT NULL DEFAULT 'created'
+);
+CREATE INDEX hdb_action_log_status_created_at_idx ON constellation_action_log_test.hdb_action_log (status, created_at);`
+
 func TestPostgresStoreLifecycle(t *testing.T) { //nolint:paralleltest
 	adminURL := os.Getenv("DATABASE_URL")
 	if adminURL == "" {
@@ -33,13 +51,12 @@ func TestPostgresStoreLifecycle(t *testing.T) { //nolint:paralleltest
 
 	probe.Close(ctx)
 
-	pool := testdb.NewPostgres(t, "")
+	pool := testdb.NewPostgres(t, actionLogTestDDL)
 
 	logStore, err := store.NewPostgres(t.Context(), store.PostgresConfig{
-		DatabaseURL:       pool.Config().ConnConfig.ConnString(),
-		Schema:            "constellation_action_log_test",
-		Table:             "hdb_action_log",
-		CreateIfNotExists: true,
+		DatabaseURL: pool.Config().ConnConfig.ConnString(),
+		Schema:      "constellation_action_log_test",
+		Table:       "hdb_action_log",
 	})
 	if err != nil {
 		t.Fatalf("NewPostgres: %v", err)
@@ -110,13 +127,12 @@ func newActionLogStore(t *testing.T) *store.PostgresStore {
 
 	requirePostgres(t)
 
-	pool := testdb.NewPostgres(t, "")
+	pool := testdb.NewPostgres(t, actionLogTestDDL)
 
 	logStore, err := store.NewPostgres(t.Context(), store.PostgresConfig{
-		DatabaseURL:       pool.Config().ConnConfig.ConnString(),
-		Schema:            "constellation_action_log_test",
-		Table:             "hdb_action_log",
-		CreateIfNotExists: true,
+		DatabaseURL: pool.Config().ConnConfig.ConnString(),
+		Schema:      "constellation_action_log_test",
+		Table:       "hdb_action_log",
 	})
 	if err != nil {
 		t.Fatalf("NewPostgres: %v", err)
@@ -265,10 +281,9 @@ CREATE TABLE bad_log.hdb_action_log (
 	pool := testdb.NewPostgres(t, ddl)
 
 	_, err := store.NewPostgres(t.Context(), store.PostgresConfig{
-		DatabaseURL:       pool.Config().ConnConfig.ConnString(),
-		Schema:            "bad_log",
-		Table:             "hdb_action_log",
-		CreateIfNotExists: false,
+		DatabaseURL: pool.Config().ConnConfig.ConnString(),
+		Schema:      "bad_log",
+		Table:       "hdb_action_log",
 	})
 	if err == nil {
 		t.Fatal("NewPostgres err = nil, want missing-required-columns error")
@@ -277,5 +292,40 @@ CREATE TABLE bad_log.hdb_action_log (
 	if !strings.Contains(err.Error(), "missing required columns") ||
 		!strings.Contains(err.Error(), "errors") {
 		t.Fatalf("err = %v, want missing required columns mentioning 'errors'", err)
+	}
+}
+
+// TestPostgresStoreWithPoolDoesNotOwnPool verifies the shared-catalog-pool
+// contract: a store built with NewPostgresWithPool operates on the injected
+// pool but never closes it, so the pool stays usable after the store is closed
+// (the serving process, not the connector, owns the catalog pool).
+func TestPostgresStoreWithPoolDoesNotOwnPool(t *testing.T) { //nolint:paralleltest
+	requirePostgres(t)
+
+	pool := testdb.NewPostgres(t, actionLogTestDDL)
+
+	logStore, err := store.NewPostgresWithPool(t.Context(), pool, store.PostgresConfig{
+		DatabaseURL: "",
+		Schema:      "constellation_action_log_test",
+		Table:       "hdb_action_log",
+	})
+	if err != nil {
+		t.Fatalf("NewPostgresWithPool: %v", err)
+	}
+
+	if _, err := logStore.Insert(t.Context(), action.ActionLogInsert{
+		ActionName:       "asyncEcho",
+		InputPayload:     map[string]any{"message": "hello"},
+		RequestHeaders:   nil,
+		SessionVariables: map[string]any{"x-hasura-role": "user"},
+	}); err != nil {
+		t.Fatalf("Insert: %v", err)
+	}
+
+	// Closing the store must be a no-op for the injected pool.
+	logStore.Close()
+
+	if err := pool.Ping(t.Context()); err != nil {
+		t.Fatalf("pool unusable after store Close (store closed a pool it does not own): %v", err)
 	}
 }

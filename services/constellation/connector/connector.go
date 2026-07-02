@@ -137,6 +137,7 @@ type buildConfig struct {
 	httpDoer            remoteschema.HTTPDoer
 	actionHTTPDoer      action.HTTPDoer
 	actionLogConfig     ActionLogConfig
+	catalogPool         *CatalogPool
 	inconsistencies     *metadata.Inconsistencies
 }
 
@@ -180,13 +181,18 @@ func WithActionHTTPDoer(doer action.HTTPDoer) Option {
 }
 
 // ActionLogConfig configures the Hasura-compatible asynchronous action log.
+//
+// CatalogDatabaseURL is the generic Hasura catalog database URL used for
+// catalog-backed runtime state (currently the async action log; event triggers,
+// cron, and scheduled events would share it). It defaults to the metadata /
+// catalog database. The action-log table itself is provisioned via migrations,
+// not by this process.
 type ActionLogConfig struct {
 	Store               action.ActionLogStore
-	DatabaseURL         string
+	CatalogDatabaseURL  string
 	MetadataDatabaseURL string
 	Schema              string
 	Table               string
-	CreateIfNotExists   bool
 	WorkerEnabled       bool
 	ExclusiveOwner      bool
 	PollInterval        time.Duration
@@ -199,6 +205,18 @@ type ActionLogConfig struct {
 func WithActionLogConfig(config ActionLogConfig) Option {
 	return func(c *buildConfig) {
 		c.actionLogConfig = config
+	}
+}
+
+// WithCatalogPool supplies the shared, process-owned catalog database pool used
+// for Hasura catalog-backed runtime state (currently the async action log).
+// When set, catalog-backed stores reuse this pool across metadata reloads
+// instead of opening (and, on the next reload, closing) their own; the
+// connector never closes a pool it does not own. When nil, the async action log
+// falls back to opening a private pool from the resolved catalog URL.
+func WithCatalogPool(pool *CatalogPool) Option {
+	return func(c *buildConfig) {
+		c.catalogPool = pool
 	}
 }
 
@@ -231,11 +249,10 @@ func BuildConnectorsFromMetadata(
 		actionHTTPDoer:      nil,
 		actionLogConfig: ActionLogConfig{
 			Store:               nil,
-			DatabaseURL:         "",
+			CatalogDatabaseURL:  "",
 			MetadataDatabaseURL: "",
 			Schema:              "",
 			Table:               "",
-			CreateIfNotExists:   false,
 			WorkerEnabled:       false,
 			ExclusiveOwner:      false,
 			PollInterval:        0,
@@ -243,6 +260,7 @@ func BuildConnectorsFromMetadata(
 			MaxConcurrency:      0,
 			ShutdownTimeout:     0,
 		},
+		catalogPool:     nil,
 		inconsistencies: nil,
 	}
 	for _, opt := range opts {
@@ -390,16 +408,60 @@ func (cfg *buildConfig) resolveActionAsyncConfig(
 		return cfg.actionAsyncRuntimeConfig(cfg.actionLogConfig.Store, false)
 	}
 
-	databaseURL, err := cfg.resolveActionLogDatabaseURL(meta)
+	// Preferred path: reuse the shared, process-owned catalog pool. Fall back to
+	// a private pool only for library callers / tests that supply no shared pool.
+	if cfg.catalogPool != nil {
+		return cfg.actionAsyncSharedPoolConfig(ctx, meta)
+	}
+
+	return cfg.actionAsyncPrivatePoolConfig(ctx, meta)
+}
+
+// actionAsyncSharedPoolConfig builds the async config on the shared,
+// process-owned catalog pool. The connector must not close that pool
+// (CloseStore=false): its lifecycle belongs to the serving process and it
+// survives metadata reloads.
+func (cfg *buildConfig) actionAsyncSharedPoolConfig(
+	ctx context.Context,
+	meta *metadata.Metadata,
+) action.AsyncConfig {
+	pool, err := cfg.catalogPool.Get(ctx, meta)
+	if err != nil {
+		return cfg.actionAsyncUnavailable(
+			fmt.Sprintf("resolving catalog database pool: %v", err),
+		)
+	}
+
+	store, err := actstore.NewPostgresWithPool(ctx, pool, actstore.PostgresConfig{
+		DatabaseURL: "",
+		Schema:      cfg.actionLogConfig.Schema,
+		Table:       cfg.actionLogConfig.Table,
+	})
+	if err != nil {
+		return cfg.actionAsyncUnavailable(
+			fmt.Sprintf("creating asynchronous action log store: %v", err),
+		)
+	}
+
+	return cfg.actionAsyncRuntimeConfig(store, false)
+}
+
+// actionAsyncPrivatePoolConfig is the fallback for library callers / tests with
+// no shared pool: it opens a private pool from the resolved catalog URL and
+// lets the connector own (and close) it.
+func (cfg *buildConfig) actionAsyncPrivatePoolConfig(
+	ctx context.Context,
+	meta *metadata.Metadata,
+) action.AsyncConfig {
+	databaseURL, err := cfg.resolveCatalogDatabaseURL(meta)
 	if err != nil {
 		return cfg.actionAsyncUnavailable(err.Error())
 	}
 
 	store, err := actstore.NewPostgres(ctx, actstore.PostgresConfig{
-		DatabaseURL:       databaseURL,
-		Schema:            cfg.actionLogConfig.Schema,
-		Table:             cfg.actionLogConfig.Table,
-		CreateIfNotExists: cfg.actionLogConfig.CreateIfNotExists,
+		DatabaseURL: databaseURL,
+		Schema:      cfg.actionLogConfig.Schema,
+		Table:       cfg.actionLogConfig.Table,
 	})
 	if err != nil {
 		return cfg.actionAsyncUnavailable(
@@ -439,13 +501,28 @@ func (cfg *buildConfig) actionAsyncRuntimeConfig(
 	}
 }
 
-func (cfg *buildConfig) resolveActionLogDatabaseURL(meta *metadata.Metadata) (string, error) {
-	if cfg.actionLogConfig.DatabaseURL != "" {
-		return cfg.actionLogConfig.DatabaseURL, nil
+func (cfg *buildConfig) resolveCatalogDatabaseURL(meta *metadata.Metadata) (string, error) {
+	return resolveCatalogDatabaseURL(
+		cfg.actionLogConfig.CatalogDatabaseURL,
+		cfg.actionLogConfig.MetadataDatabaseURL,
+		meta,
+	)
+}
+
+// resolveCatalogDatabaseURL picks the catalog database URL: an explicit
+// --catalog-database-url wins, then the Hasura metadata database URL, then the
+// first Postgres source in metadata. It is shared by the shared CatalogPool and
+// the private-pool fallback so both resolve identically.
+func resolveCatalogDatabaseURL(
+	explicitURL, metadataURL string,
+	meta *metadata.Metadata,
+) (string, error) {
+	if explicitURL != "" {
+		return explicitURL, nil
 	}
 
-	if cfg.actionLogConfig.MetadataDatabaseURL != "" {
-		return cfg.actionLogConfig.MetadataDatabaseURL, nil
+	if metadataURL != "" {
+		return metadataURL, nil
 	}
 
 	for i := range meta.Databases {

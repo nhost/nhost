@@ -163,13 +163,48 @@ func sanitizeConnectorError(
 func (c *Controller) classifyConnectorError(
 	ctx context.Context, logger *slog.Logger, err error,
 ) []map[string]any {
-	if structuredErrs, ok := classifyStructuredConnectorError(err); ok {
-		return structuredErrs
+	structuredErrs, ok := classifyStructuredConnectorError(err)
+	if !ok {
+		return []map[string]any{{
+			"message": sanitizeConnectorError(ctx, logger, c.devMode, err),
+		}}
 	}
 
-	return []map[string]any{{
-		"message": sanitizeConnectorError(ctx, logger, c.devMode, err),
-	}}
+	// A connector may join structured (already-shaped, client-safe) errors with
+	// raw execution failures: e.g. a multi-field action query where one field
+	// returns a Hasura-shaped 4xx and a sibling field fails hard (5xx, transport
+	// error, response-shaping failure). classifyStructuredConnectorError matches
+	// only the first structured value, so those raw failures would be dropped,
+	// leaving their null fields with no accompanying error. Append a single
+	// sanitized generic entry so every failure is represented, without leaking
+	// raw driver/webhook text (sanitizeConnectorError still logs it server-side).
+	if hasUnstructuredLeaf(err) {
+		structuredErrs = append(structuredErrs, map[string]any{
+			"message": sanitizeConnectorError(ctx, logger, c.devMode, err),
+		})
+	}
+
+	return structuredErrs
+}
+
+// hasUnstructuredLeaf reports whether the error tree contains a leaf that is not
+// a structured (already-shaped, client-safe) connector error. It walks the
+// errors.Join tree so a mix of structured and raw failures is detected. It is
+// only consulted once at least one structured error is present.
+func hasUnstructuredLeaf(err error) bool {
+	if joined, ok := err.(interface{ Unwrap() []error }); ok { //nolint:errorlint // deliberate structural walk of the Join tree
+		for _, e := range joined.Unwrap() {
+			if hasUnstructuredLeaf(e) {
+				return true
+			}
+		}
+
+		return false
+	}
+
+	_, structured := classifyStructuredConnectorError(err)
+
+	return !structured
 }
 
 // classifyStructuredConnectorError extracts trusted, already-shaped GraphQL

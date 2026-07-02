@@ -699,3 +699,44 @@ func TestClassifyConnectorError_ActionGraphQLError(t *testing.T) {
 		})
 	}
 }
+
+// TestClassifyConnectorError_StructuredAndHardErrors asserts that when a
+// connector joins a structured (Hasura-shaped) error with a raw hard failure
+// — the multi-field action query case where one field returns a 4xx and a
+// sibling field fails hard — both are represented: the structured entry passes
+// through verbatim and the hard failure is appended as a sanitized generic
+// entry (no raw text leak) instead of being silently dropped.
+func TestClassifyConnectorError_StructuredAndHardErrors(t *testing.T) {
+	t.Parallel()
+
+	structured := &actionGraphQLStubError{errs: []map[string]any{
+		{
+			"message": "handler rejected the request",
+			"path":    []any{"insertUser"},
+		},
+	}}
+	hard := errors.New("dial tcp 10.0.0.1:443: connect: connection refused")
+
+	c := &Controller{devMode: false}
+
+	got := c.classifyConnectorError(
+		context.Background(), slog.Default(), errors.Join(structured, hard),
+	)
+
+	if len(got) != 2 {
+		t.Fatalf("want 2 error entries (structured + sanitized hard), got %d: %+v", len(got), got)
+	}
+
+	if got[0]["message"] != "handler rejected the request" {
+		t.Errorf("first entry should be the structured error verbatim, got %+v", got[0])
+	}
+
+	msg, _ := got[1]["message"].(string)
+	if !strings.HasPrefix(msg, "internal server error") {
+		t.Errorf("second entry should be a generic sanitized message, got %q", msg)
+	}
+
+	if strings.Contains(msg, "connection refused") {
+		t.Errorf("sanitized entry leaked raw error text: %q", msg)
+	}
+}

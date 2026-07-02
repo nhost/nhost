@@ -3,6 +3,7 @@ package metadata
 import (
 	"context"
 	"log/slog"
+	"reflect"
 	"slices"
 	"strings"
 )
@@ -22,11 +23,19 @@ import (
 // Remote-schema role inheritance is out of scope; see
 // docs/user/hasura-metadata-support.md.
 //
-// The merge is the most-permissive union: selectable/insertable/updatable
-// columns are unioned; row filters and check expressions are OR-combined (a
-// parent with no restriction makes the union unrestricted); aggregation access
-// is granted if any parent allows it; column presets are merged with the first
-// parent (in role_set order) winning a key conflict.
+// Select permissions use the most-permissive union: selectable columns are
+// unioned, row filters are OR-combined (a parent with no restriction makes the
+// union unrestricted), and aggregation access is granted if any parent allows
+// it.
+//
+// Insert/update/delete (mutation) permissions follow Hasura's rule instead: an
+// inherited role receives a mutation permission only when it is identical across
+// every contributing parent. When parents disagree, the permission is NOT
+// synthesized — a most-permissive union would over-grant write access — and an
+// InconsistencyKindInheritedRole is recorded for that table, mirroring Hasura's
+// conflict-as-inconsistency behavior. A single contributing parent is inherited
+// verbatim. Function and action permissions are bare role grants with no config,
+// so they are inherited whenever any parent holds them.
 //
 // An existing explicit permission for the inherited role is left untouched
 // (explicit wins), which also makes ExpandInheritedRoles idempotent. Inherited
@@ -65,7 +74,7 @@ func ExpandInheritedRoles(
 				continue
 			}
 
-			expandOne(meta, ir)
+			expandOne(ctx, meta, ir, inc, logger)
 			known[ir.RoleName] = true
 			expanded[ir.RoleName] = true
 			progress = true
@@ -152,16 +161,22 @@ func collectKnownRoles(meta *Metadata) map[string]bool {
 	return known
 }
 
-func expandOne(meta *Metadata, ir InheritedRole) {
+func expandOne(
+	ctx context.Context,
+	meta *Metadata,
+	ir InheritedRole,
+	inc *Inconsistencies,
+	logger *slog.Logger,
+) {
 	for di := range meta.Databases {
 		db := &meta.Databases[di]
 
 		for ti := range db.Tables {
 			t := &db.Tables[ti]
 			expandTableSelect(t, ir)
-			expandTableInsert(t, ir)
-			expandTableUpdate(t, ir)
-			expandTableDelete(t, ir)
+			expandTableInsert(ctx, t, ir, inc, logger)
+			expandTableUpdate(ctx, t, ir, inc, logger)
+			expandTableDelete(ctx, t, ir, inc, logger)
 		}
 
 		for fi := range db.Functions {
@@ -214,15 +229,19 @@ func expandTableSelect(t *TableMetadata, ir InheritedRole) {
 	})
 }
 
-func expandTableInsert(t *TableMetadata, ir InheritedRole) {
+func expandTableInsert(
+	ctx context.Context,
+	t *TableMetadata,
+	ir InheritedRole,
+	inc *Inconsistencies,
+	logger *slog.Logger,
+) {
 	if hasRole(t.InsertPermissions, ir.RoleName, insertRole) {
 		return
 	}
 
 	var (
-		columns [][]string
-		checks  []map[string]any
-		sets    []map[string]any
+		configs []InsertPermissionConfig
 		found   bool
 	)
 
@@ -234,9 +253,7 @@ func expandTableInsert(t *TableMetadata, ir InheritedRole) {
 
 			found = true
 
-			columns = append(columns, t.InsertPermissions[i].Permission.Columns)
-			checks = append(checks, t.InsertPermissions[i].Permission.Check)
-			sets = append(sets, t.InsertPermissions[i].Permission.Set)
+			configs = append(configs, t.InsertPermissions[i].Permission)
 		}
 	}
 
@@ -244,26 +261,31 @@ func expandTableInsert(t *TableMetadata, ir InheritedRole) {
 		return
 	}
 
+	if !insertConfigsIdentical(configs) {
+		recordMutationConflict(ctx, inc, logger, t, ir.RoleName, "insert")
+
+		return
+	}
+
 	t.InsertPermissions = append(t.InsertPermissions, InsertPermission{
-		Role: ir.RoleName,
-		Permission: InsertPermissionConfig{
-			Columns: unionColumns(columns),
-			Check:   orFilters(checks),
-			Set:     mergePresets(sets),
-		},
+		Role:       ir.RoleName,
+		Permission: configs[0],
 	})
 }
 
-func expandTableUpdate(t *TableMetadata, ir InheritedRole) {
+func expandTableUpdate(
+	ctx context.Context,
+	t *TableMetadata,
+	ir InheritedRole,
+	inc *Inconsistencies,
+	logger *slog.Logger,
+) {
 	if hasRole(t.UpdatePermissions, ir.RoleName, updateRole) {
 		return
 	}
 
 	var (
-		columns [][]string
-		filters []map[string]any
-		checks  []map[string]any
-		sets    []map[string]any
+		configs []UpdatePermissionConfig
 		found   bool
 	)
 
@@ -275,10 +297,7 @@ func expandTableUpdate(t *TableMetadata, ir InheritedRole) {
 
 			found = true
 
-			columns = append(columns, t.UpdatePermissions[i].Permission.Columns)
-			filters = append(filters, t.UpdatePermissions[i].Permission.Filter)
-			checks = append(checks, t.UpdatePermissions[i].Permission.Check)
-			sets = append(sets, t.UpdatePermissions[i].Permission.Set)
+			configs = append(configs, t.UpdatePermissions[i].Permission)
 		}
 	}
 
@@ -286,24 +305,31 @@ func expandTableUpdate(t *TableMetadata, ir InheritedRole) {
 		return
 	}
 
+	if !updateConfigsIdentical(configs) {
+		recordMutationConflict(ctx, inc, logger, t, ir.RoleName, "update")
+
+		return
+	}
+
 	t.UpdatePermissions = append(t.UpdatePermissions, UpdatePermission{
-		Role: ir.RoleName,
-		Permission: UpdatePermissionConfig{
-			Columns: unionColumns(columns),
-			Filter:  orFilters(filters),
-			Check:   orFilters(checks),
-			Set:     mergePresets(sets),
-		},
+		Role:       ir.RoleName,
+		Permission: configs[0],
 	})
 }
 
-func expandTableDelete(t *TableMetadata, ir InheritedRole) {
+func expandTableDelete(
+	ctx context.Context,
+	t *TableMetadata,
+	ir InheritedRole,
+	inc *Inconsistencies,
+	logger *slog.Logger,
+) {
 	if hasRole(t.DeletePermissions, ir.RoleName, deleteRole) {
 		return
 	}
 
 	var (
-		filters []map[string]any
+		configs []DeletePermissionConfig
 		found   bool
 	)
 
@@ -315,7 +341,7 @@ func expandTableDelete(t *TableMetadata, ir InheritedRole) {
 
 			found = true
 
-			filters = append(filters, t.DeletePermissions[i].Permission.Filter)
+			configs = append(configs, t.DeletePermissions[i].Permission)
 		}
 	}
 
@@ -323,10 +349,96 @@ func expandTableDelete(t *TableMetadata, ir InheritedRole) {
 		return
 	}
 
+	if !deleteConfigsIdentical(configs) {
+		recordMutationConflict(ctx, inc, logger, t, ir.RoleName, "delete")
+
+		return
+	}
+
 	t.DeletePermissions = append(t.DeletePermissions, DeletePermission{
 		Role:       ir.RoleName,
-		Permission: DeletePermissionConfig{Filter: orFilters(filters)},
+		Permission: configs[0],
 	})
+}
+
+// insertConfigsIdentical / updateConfigsIdentical / deleteConfigsIdentical
+// report whether every contributing parent holds the same mutation permission.
+// Hasura inherits a mutation permission only when it is identical across the
+// role set; a single contributing parent is trivially identical.
+func insertConfigsIdentical(cfgs []InsertPermissionConfig) bool {
+	for i := 1; i < len(cfgs); i++ {
+		if !sameColumns(cfgs[0].Columns, cfgs[i].Columns) ||
+			!sameExpr(cfgs[0].Check, cfgs[i].Check) ||
+			!sameExpr(cfgs[0].Set, cfgs[i].Set) {
+			return false
+		}
+	}
+
+	return true
+}
+
+func updateConfigsIdentical(cfgs []UpdatePermissionConfig) bool {
+	for i := 1; i < len(cfgs); i++ {
+		if !sameColumns(cfgs[0].Columns, cfgs[i].Columns) ||
+			!sameExpr(cfgs[0].Filter, cfgs[i].Filter) ||
+			!sameExpr(cfgs[0].Check, cfgs[i].Check) ||
+			!sameExpr(cfgs[0].Set, cfgs[i].Set) {
+			return false
+		}
+	}
+
+	return true
+}
+
+func deleteConfigsIdentical(cfgs []DeletePermissionConfig) bool {
+	for i := 1; i < len(cfgs); i++ {
+		if !sameExpr(cfgs[0].Filter, cfgs[i].Filter) {
+			return false
+		}
+	}
+
+	return true
+}
+
+// sameColumns compares two column lists as sets (order-insensitive).
+func sameColumns(a, b []string) bool {
+	if len(a) != len(b) {
+		return false
+	}
+
+	as := slices.Clone(a)
+	bs := slices.Clone(b)
+	slices.Sort(as)
+	slices.Sort(bs)
+
+	return slices.Equal(as, bs)
+}
+
+// sameExpr compares two Hasura boolean/preset expressions. Empty (nil or {})
+// expressions are treated as equal, so a parent with no restriction and a
+// parent with an explicit empty object are not flagged as conflicting.
+func sameExpr(a, b map[string]any) bool {
+	if len(a) == 0 && len(b) == 0 {
+		return true
+	}
+
+	return reflect.DeepEqual(a, b)
+}
+
+func recordMutationConflict(
+	ctx context.Context,
+	inc *Inconsistencies,
+	logger *slog.Logger,
+	t *TableMetadata,
+	role, kind string,
+) {
+	table := t.Table.Schema + "." + t.Table.Name
+	inc.Record(
+		ctx, logger, InconsistencyKindInheritedRole, table, role,
+		"inherited role not expanded for "+kind+" on table "+table+
+			": parent "+kind+" permissions differ (a mutation permission is "+
+			"inherited only when identical across all parent roles)",
+	)
 }
 
 func expandFunction(f *FunctionMetadata, ir InheritedRole) {
@@ -424,25 +536,4 @@ func orFilters(filters []map[string]any) map[string]any {
 	default:
 		return map[string]any{"_or": clauses}
 	}
-}
-
-// mergePresets merges column-preset maps with the first contributor (in
-// role_set order) winning a key conflict. It returns nil when no parent sets a
-// preset, so the synthesized permission omits an empty "set".
-func mergePresets(sets []map[string]any) map[string]any {
-	out := make(map[string]any)
-
-	for _, s := range sets {
-		for k, v := range s {
-			if _, ok := out[k]; !ok {
-				out[k] = v
-			}
-		}
-	}
-
-	if len(out) == 0 {
-		return nil
-	}
-
-	return out
 }
