@@ -725,7 +725,6 @@ func getServices( //nolint: funlen,cyclop
 		httpPort,
 		useTLS,
 		nhostFolder,
-		dotNhostFolder,
 		ports.Console,
 		hostOS,
 	)

@@ -104,7 +104,6 @@ func console( //nolint:funlen
 	httpPort uint,
 	useTLS bool,
 	nhostFolder string,
-	dotNhostFolder string,
 	port uint,
 	hostOS string,
 ) (*Service, error) {
