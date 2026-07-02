@@ -53,7 +53,6 @@ func consoleCloud(
 	httpPort uint,
 	useTLS bool,
 	nhostFolder string,
-	dotNhostFolder string,
 	ports ExposePorts,
 	hostOS string,
 ) (*Service, error) {
@@ -133,7 +132,6 @@ func getServicesCloud( //nolint:funlen
 		httpPort,
 		useTLS,
 		nhostFolder,
-		dotNhostFolder,
 		ports,
 		hostOS,
 	)
