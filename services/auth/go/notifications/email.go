@@ -112,6 +112,7 @@ func (sm *Email) SendEmail(
 		"X-Redirect-To":    data.RedirectTo,
 		"X-Email-Template": string(templateName),
 		"X-Link":           data.Link,
+		"X-Entity-Ref-ID":  data.Ticket // An unique identifier so gmail will not thread the mails
 	}
 
 	if err := sm.Send(to, subject, body, headers); err != nil {
