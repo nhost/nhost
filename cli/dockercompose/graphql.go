@@ -2,7 +2,6 @@ package dockercompose
 
 import (
 	"fmt"
-	"os"
 
 	"github.com/nhost/be/services/mimir/model"
 	"github.com/nhost/be/services/mimir/schema/appconfig"
@@ -152,14 +151,11 @@ func console( //nolint:funlen
 	}
 
 	// hasura-cli writes its global config to $HOME/.hasura/config.json.
-	// The image's default HOME is `/`, which only root can write to;
-	// when this container runs as the host user (see hostUserSpec)
-	// the write fails. Mount a host-side, user-owned directory at a
-	// writable HOME so config persists across container restarts.
-	env["HOME"] = "/home/cli"
-	if err := os.MkdirAll(env["HOME"], 0o755); err != nil { //nolint:mnd
-		return nil, fmt.Errorf("create hasura-cli home: %w", err)
-	}
+	// The image's default HOME is /root, which only root can write to; when
+	// this container runs as the host user (see hostUserSpec) that write
+	// fails. Point HOME at /tmp, which is world-writable and already exists
+	// in the image, so hasura-cli can create its config dir as any uid.
+	env["HOME"] = "/tmp"
 
 	return &Service{
 		Image: fmt.Sprintf(

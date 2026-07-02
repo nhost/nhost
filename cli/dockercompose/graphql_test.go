@@ -163,7 +163,7 @@ func TestGraphql(t *testing.T) {
 	}
 }
 
-func expectedConsole(dotNhostFolder string) *Service {
+func expectedConsole() *Service {
 	return &Service{
 		Image:     "nhost/graphql-engine:v2.25.0.cli-migrations-v3",
 		DependsOn: map[string]DependsOn{"graphql": {Condition: "service_healthy"}},
@@ -185,7 +185,7 @@ func expectedConsole(dotNhostFolder string) *Service {
 			"ENV1":                                                     "VALUE1",
 			"ENV2":                                                     "VALUE2",
 			"GRAPHITE_WEBHOOK_SECRET":                                  "webhookSecret",
-			"HOME":                                                     "/home/cli",
+			"HOME":                                                     "/tmp",
 			"HASURA_GRAPHQL_ADMIN_INTERNAL_ERRORS":                     "true",
 			"HASURA_GRAPHQL_ADMIN_SECRET":                              "adminSecret",
 			"HASURA_GRAPHQL_CONSOLE_ASSETS_DIR":                        "/srv/console-assets",
@@ -254,12 +254,6 @@ func expectedConsole(dotNhostFolder string) *Service {
 		Restart:  "always",
 		Volumes: []Volume{
 			{Type: "bind", Source: "/path/to/nhost", Target: "/app", ReadOnly: new(false)},
-			{
-				Type:     "bind",
-				Source:   dotNhostFolder + "/hasura",
-				Target:   "/home/cli",
-				ReadOnly: new(false),
-			},
 		},
 		WorkingDir: new("/app"),
 	}
@@ -272,7 +266,7 @@ func TestConsole(t *testing.T) {
 		name     string
 		cfg      func() *model.ConfigConfig
 		useTlS   bool
-		expected func(dotNhostFolder string) *Service
+		expected func() *Service
 	}{
 		{
 			name: "success",
@@ -295,16 +289,14 @@ func TestConsole(t *testing.T) {
 		t.Run(tc.name, func(t *testing.T) {
 			t.Parallel()
 
-			dotNhost := t.TempDir()
-
 			got, err := console(
-				tc.cfg(), "dev", 1337, tc.useTlS, "/path/to/nhost", dotNhost, 0, nonLinuxHost,
+				tc.cfg(), "dev", 1337, tc.useTlS, "/path/to/nhost", 0, nonLinuxHost,
 			)
 			if err != nil {
 				t.Fatalf("got error: %v", err)
 			}
 
-			if diff := cmp.Diff(tc.expected(dotNhost), got); diff != "" {
+			if diff := cmp.Diff(tc.expected(), got); diff != "" {
 				t.Error(diff)
 			}
 		})
@@ -321,7 +313,7 @@ func TestConsoleRunsAsHostUserOnLinux(t *testing.T) {
 	cfg := getConfig()
 	cfg.Hasura.Version = new("v2.25.0")
 
-	linux, err := console(cfg, "dev", 1337, false, "/path/to/nhost", t.TempDir(), 0, osLinux)
+	linux, err := console(cfg, "dev", 1337, false, "/path/to/nhost", 0, osLinux)
 	if err != nil {
 		t.Fatalf("got error: %v", err)
 	}
@@ -331,7 +323,7 @@ func TestConsoleRunsAsHostUserOnLinux(t *testing.T) {
 		t.Errorf("linux console User = %v, want %q", linux.User, want)
 	}
 
-	other, err := console(cfg, "dev", 1337, false, "/path/to/nhost", t.TempDir(), 0, "windows")
+	other, err := console(cfg, "dev", 1337, false, "/path/to/nhost", 0, "windows")
 	if err != nil {
 		t.Fatalf("got error: %v", err)
 	}
