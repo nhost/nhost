@@ -210,6 +210,16 @@ authentication, storage, GraphQL, and serverless functions capabilities.
 
 ### Properties
 
+#### ai
+
+```ts
+ai: Client
+```
+
+AI client providing methods for creating and interacting with Nhost AI agents.
+Use this client to create agent sessions and stream typed events back from
+the agent's responses (including tool calls and approval requests).
+
 #### auth
 
 ```ts
@@ -354,6 +364,14 @@ Configuration options for creating an Nhost client
 
 ### Properties
 
+#### aiUrl?
+
+```ts
+optional aiUrl?: string;
+```
+
+Complete base URL for the AI service (overrides subdomain/region)
+
 #### authUrl?
 
 ```ts
@@ -431,6 +449,18 @@ Configuration options for creating an Nhost client
 - [`NhostClientOptions`](#nhostclientoptions)
 
 ### Properties
+
+#### aiUrl?
+
+```ts
+optional aiUrl?: string;
+```
+
+Complete base URL for the AI service (overrides subdomain/region)
+
+##### Inherited from
+
+[`NhostClientOptions`](#nhostclientoptions).[`aiUrl`](#aiurl)
 
 #### authUrl?
 
@@ -644,14 +674,15 @@ Configuration function that receives all clients and can configure them
 
 ### Parameters
 
-| Parameter                | Type                                                                                                                                                                                                                                         |
-| ------------------------ | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| `clients`                | \{ `auth`: [`Client`](./auth#client); `functions`: [`Client`](./functions#client); `graphql`: [`Client`](./graphql#client); `sessionStorage`: [`SessionStorage`](./session#sessionstorage); `storage`: [`Client`](./storage#client); \} |
-| `clients.auth`           | [`Client`](./auth#client)                                                                                                                                                                                                                   |
-| `clients.functions`      | [`Client`](./functions#client)                                                                                                                                                                                                              |
-| `clients.graphql`        | [`Client`](./graphql#client)                                                                                                                                                                                                                |
-| `clients.sessionStorage` | [`SessionStorage`](./session#sessionstorage)                                                                                                                                                                                                |
-| `clients.storage`        | [`Client`](./storage#client)                                                                                                                                                                                                                |
+| Parameter                | Type                                                                                                                                                                                                                                                                         |
+| ------------------------ | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `clients`                | \{ `ai`: [`Client`](./ai#client); `auth`: [`Client`](./auth#client); `functions`: [`Client`](./functions#client); `graphql`: [`Client`](./graphql#client); `sessionStorage`: [`SessionStorage`](./session#sessionstorage); `storage`: [`Client`](./storage#client); \} |
+| `clients.ai`             | [`Client`](./ai#client)                                                                                                                                                                                                                                                     |
+| `clients.auth`           | [`Client`](./auth#client)                                                                                                                                                                                                                                                   |
+| `clients.functions`      | [`Client`](./functions#client)                                                                                                                                                                                                                                              |
+| `clients.graphql`        | [`Client`](./graphql#client)                                                                                                                                                                                                                                                |
+| `clients.sessionStorage` | [`SessionStorage`](./session#sessionstorage)                                                                                                                                                                                                                                |
+| `clients.storage`        | [`Client`](./storage#client)                                                                                                                                                                                                                                                |
 
 ### Returns
 
@@ -954,7 +985,7 @@ const nhost = createServerClient({
 
 ```ts
 function generateServiceUrl(
-  serviceType: "auth" | "storage" | "graphql" | "functions",
+  serviceType: "auth" | "storage" | "graphql" | "functions" | "ai",
   subdomain?: string,
   region?: string,
   customUrl?: string,
@@ -965,12 +996,12 @@ Generates a base URL for a Nhost service based on configuration
 
 ### Parameters
 
-| Parameter     | Type                                                    | Description                                         |
-| ------------- | ------------------------------------------------------- | --------------------------------------------------- |
-| `serviceType` | `"auth"` \| `"storage"` \| `"graphql"` \| `"functions"` | Type of service (auth, storage, graphql, functions) |
-| `subdomain?`  | `string`                                                | Nhost project subdomain                             |
-| `region?`     | `string`                                                | Nhost region                                        |
-| `customUrl?`  | `string`                                                | Custom URL override if provided                     |
+| Parameter     | Type                                                              | Description                                         |
+| ------------- | ----------------------------------------------------------------- | --------------------------------------------------- |
+| `serviceType` | `"auth"` \| `"storage"` \| `"graphql"` \| `"functions"` \| `"ai"` | Type of service (auth, storage, graphql, functions) |
+| `subdomain?`  | `string`                                                          | Nhost project subdomain                             |
+| `region?`     | `string`                                                          | Nhost region                                        |
+| `customUrl?`  | `string`                                                          | Custom URL override if provided                     |
 
 ### Returns
 

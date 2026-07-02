@@ -1,0 +1,5 @@
+mutation insertAgent($object: graphiteAgents_insert_input!) {
+  insertGraphiteAgent(object: $object) {
+    id
+  }
+}

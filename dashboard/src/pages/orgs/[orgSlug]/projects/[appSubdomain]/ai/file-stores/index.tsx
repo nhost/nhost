@@ -11,7 +11,6 @@ import { Button } from '@/components/ui/v3/button';
 import { FileStoresIcon } from '@/components/ui/v3/icons/FileStoresIcon';
 import { Spinner } from '@/components/ui/v3/spinner';
 import { useRemoteApplicationGQLClient } from '@/features/orgs/hooks/useRemoteApplicationGQLClient';
-import { AISidebar } from '@/features/orgs/layout/AISidebar';
 import { OrgLayout } from '@/features/orgs/layout/OrgLayout';
 import { FileStoreForm } from '@/features/orgs/projects/ai/FileStoreForm';
 import { FileStoresList } from '@/features/orgs/projects/ai/FileStoresList';
@@ -183,7 +182,6 @@ FileStoresPage.getLayout = function getLayout(page: ReactElement) {
           'flex flex-row w-full h-full !bg-[#fafafa] dark:!bg-[#151a22]',
       }}
     >
-      <AISidebar />
       <div className="w-full overflow-auto">
         <RetryableErrorBoundary>{page}</RetryableErrorBoundary>
       </div>

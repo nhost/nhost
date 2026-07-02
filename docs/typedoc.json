@@ -2,6 +2,7 @@
   "$schema": "https://typedoc.org/schema.json",
   "entryPoints": [
     "../packages/nhost-js/src/index.ts",
+    "../packages/nhost-js/src/ai/index.ts",
     "../packages/nhost-js/src/auth/index.ts",
     "../packages/nhost-js/src/fetch/index.ts",
     "../packages/nhost-js/src/functions/index.ts",

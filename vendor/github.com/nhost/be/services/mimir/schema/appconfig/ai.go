@@ -13,22 +13,24 @@ func AIEnv( //nolint:funlen
 	storageURL string,
 	license string,
 ) []EnvVar {
-	env := []EnvVar{ //nolint:prealloc
+	ai := config.GetAi()
+
+	env := []EnvVar{
 		{
 			Name:       "OPENAI_API_KEY",
-			Value:      config.GetAi().GetOpenai().GetApiKey(),
+			Value:      ai.GetOpenai().GetApiKey(),
 			IsSecret:   false,
 			SecretName: "",
 		},
 		{
 			Name:       "OPENAI_ORG",
-			Value:      unptr(config.GetAi().GetOpenai().GetOrganization()),
+			Value:      unptr(ai.GetOpenai().GetOrganization()),
 			IsSecret:   false,
 			SecretName: "",
 		},
 		{
 			Name:       "GRAPHITE_WEBHOOK_SECRET",
-			Value:      config.GetAi().GetWebhookSecret(),
+			Value:      ai.GetWebhookSecret(),
 			IsSecret:   false,
 			SecretName: "",
 		},
@@ -41,7 +43,7 @@ func AIEnv( //nolint:funlen
 		{
 			Name: "SYNCH_PERIOD",
 			Value: fmt.Sprintf(
-				"%dm", unptr(config.GetAi().GetAutoEmbeddings().GetSynchPeriodMinutes()),
+				"%dm", unptr(ai.GetAutoEmbeddings().GetSynchPeriodMinutes()),
 			),
 			IsSecret:   false,
 			SecretName: "",
@@ -76,6 +78,44 @@ func AIEnv( //nolint:funlen
 			SecretName: "",
 			IsSecret:   false,
 		},
+	}
+
+	if anthropic := ai.GetAnthropic(); anthropic != nil {
+		env = append(env, EnvVar{
+			Name:       "ANTHROPIC_API_KEY",
+			Value:      anthropic.GetApiKey(),
+			IsSecret:   false,
+			SecretName: "",
+		})
+	}
+
+	if google := ai.GetGoogle(); google != nil {
+		env = append(env, EnvVar{
+			Name:       "GOOGLE_AI_API_KEY",
+			Value:      google.GetApiKey(),
+			IsSecret:   false,
+			SecretName: "",
+		})
+	}
+
+	if webSearch := ai.GetWebSearch(); webSearch != nil {
+		if key := unptr(webSearch.GetBraveApiKey()); key != "" {
+			env = append(env, EnvVar{
+				Name:       "BRAVE_API_KEY",
+				Value:      key,
+				IsSecret:   false,
+				SecretName: "",
+			})
+		}
+
+		if key := unptr(webSearch.GetTavilyApiKey()); key != "" {
+			env = append(env, EnvVar{
+				Name:       "TAVILY_API_KEY",
+				Value:      key,
+				IsSecret:   false,
+				SecretName: "",
+			})
+		}
 	}
 
 	for _, e := range config.GetGlobal().GetEnvironment() {

@@ -261,6 +261,7 @@ export const projectAIPages = definePages([
     slug: 'auto-embeddings',
     route: 'ai/auto-embeddings',
   },
+  { name: 'Agents', slug: 'agents', route: 'ai/agents' },
   { name: 'Assistants', slug: 'assistants', route: 'ai/assistants' },
   { name: 'File stores', slug: 'file-stores', route: 'ai/file-stores' },
 ]);

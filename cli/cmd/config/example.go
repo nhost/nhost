@@ -50,6 +50,16 @@ func commandExample(_ context.Context, cmd *cli.Command) error { //nolint:funlen
 				SynchPeriodMinutes: new(uint32(10)),
 			},
 			WebhookSecret: "this-is-a-webhook-secret",
+			Anthropic: &model.ConfigAIAnthropic{
+				ApiKey: "anthropic-api-key",
+			},
+			Google: &model.ConfigAIGoogle{
+				ApiKey: "google-api-key",
+			},
+			WebSearch: &model.ConfigAIWebSearch{
+				BraveApiKey:  new("brave-api-key"),
+				TavilyApiKey: new("tavily-api-key"),
+			},
 		},
 		Graphql: &model.ConfigGraphql{
 			Security: &model.ConfigGraphqlSecurity{

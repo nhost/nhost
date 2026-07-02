@@ -11,7 +11,6 @@ import { Text } from '@/components/ui/v2/Text';
 import { Button } from '@/components/ui/v3/button';
 import { Spinner } from '@/components/ui/v3/spinner';
 import { useRemoteApplicationGQLClient } from '@/features/orgs/hooks/useRemoteApplicationGQLClient';
-import { AISidebar } from '@/features/orgs/layout/AISidebar';
 import { OrgLayout } from '@/features/orgs/layout/OrgLayout';
 import { AssistantForm } from '@/features/orgs/projects/ai/AssistantForm';
 import { AssistantsList } from '@/features/orgs/projects/ai/AssistantsList';
@@ -195,7 +194,6 @@ AssistantsPage.getLayout = function getLayout(page: ReactElement) {
           'flex flex-row w-full h-full !bg-[#fafafa] dark:!bg-[#151a22]',
       }}
     >
-      <AISidebar />
       <div className="w-full overflow-auto">
         <RetryableErrorBoundary>{page}</RetryableErrorBoundary>
       </div>

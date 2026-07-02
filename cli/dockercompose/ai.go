@@ -7,6 +7,7 @@ import (
 
 func ai(
 	cfg *model.ConfigConfig,
+	useTLS bool,
 ) *Service {
 	envars := appconfig.AIEnv(
 		cfg,
@@ -39,12 +40,20 @@ func ai(
 			"serve",
 		},
 		Environment: env,
-		ExtraHosts:  extraHosts,
-		Labels:      nil,
-		Networks:    nil,
-		Ports:       nil,
-		Restart:     "always",
-		User:        nil,
+		ExtraHosts: extraHosts,
+		Labels: Ingresses{
+			{
+				Name:    "ai",
+				TLS:     useTLS,
+				Rule:    traefikHostMatch("ai"),
+				Port:    graphitePort,
+				Rewrite: nil,
+			},
+		}.Labels(),
+		Networks: nil,
+		Ports:    nil,
+		Restart:  "always",
+		User:     nil,
 		HealthCheck: &HealthCheck{
 			Test: []string{
 				"CMD", "graphite", "healthcheck",

@@ -99,6 +99,12 @@ type ConfigAI struct {
 
 	Openai *ConfigAIOpenai `json:"openai,omitempty" toml:"openai,omitempty"`
 
+	Anthropic *ConfigAIAnthropic `json:"anthropic,omitempty" toml:"anthropic,omitempty"`
+
+	Google *ConfigAIGoogle `json:"google,omitempty" toml:"google,omitempty"`
+
+	WebSearch *ConfigAIWebSearch `json:"webSearch,omitempty" toml:"webSearch,omitempty"`
+
 	AutoEmbeddings *ConfigAIAutoEmbeddings `json:"autoEmbeddings,omitempty" toml:"autoEmbeddings,omitempty"`
 
 	WebhookSecret string `json:"webhookSecret" toml:"webhookSecret"`
@@ -114,6 +120,15 @@ func (o *ConfigAI) MarshalJSON() ([]byte, error) {
 	}
 	if o.Openai != nil {
 		m["openai"] = o.Openai
+	}
+	if o.Anthropic != nil {
+		m["anthropic"] = o.Anthropic
+	}
+	if o.Google != nil {
+		m["google"] = o.Google
+	}
+	if o.WebSearch != nil {
+		m["webSearch"] = o.WebSearch
 	}
 	if o.AutoEmbeddings != nil {
 		m["autoEmbeddings"] = o.AutoEmbeddings
@@ -143,6 +158,27 @@ func (o *ConfigAI) GetOpenai() *ConfigAIOpenai {
 	return o.Openai
 }
 
+func (o *ConfigAI) GetAnthropic() *ConfigAIAnthropic {
+	if o == nil {
+		return nil
+	}
+	return o.Anthropic
+}
+
+func (o *ConfigAI) GetGoogle() *ConfigAIGoogle {
+	if o == nil {
+		return nil
+	}
+	return o.Google
+}
+
+func (o *ConfigAI) GetWebSearch() *ConfigAIWebSearch {
+	if o == nil {
+		return nil
+	}
+	return o.WebSearch
+}
+
 func (o *ConfigAI) GetAutoEmbeddings() *ConfigAIAutoEmbeddings {
 	if o == nil {
 		return nil
@@ -164,6 +200,12 @@ type ConfigAIUpdateInput struct {
 	IsSetResources      bool                               `json:"-"`
 	Openai              *ConfigAIOpenaiUpdateInput         `json:"openai,omitempty" toml:"openai,omitempty"`
 	IsSetOpenai         bool                               `json:"-"`
+	Anthropic           *ConfigAIAnthropicUpdateInput      `json:"anthropic,omitempty" toml:"anthropic,omitempty"`
+	IsSetAnthropic      bool                               `json:"-"`
+	Google              *ConfigAIGoogleUpdateInput         `json:"google,omitempty" toml:"google,omitempty"`
+	IsSetGoogle         bool                               `json:"-"`
+	WebSearch           *ConfigAIWebSearchUpdateInput      `json:"webSearch,omitempty" toml:"webSearch,omitempty"`
+	IsSetWebSearch      bool                               `json:"-"`
 	AutoEmbeddings      *ConfigAIAutoEmbeddingsUpdateInput `json:"autoEmbeddings,omitempty" toml:"autoEmbeddings,omitempty"`
 	IsSetAutoEmbeddings bool                               `json:"-"`
 	WebhookSecret       *string                            `json:"webhookSecret,omitempty" toml:"webhookSecret,omitempty"`
@@ -211,6 +253,36 @@ func (o *ConfigAIUpdateInput) UnmarshalGQL(v interface{}) error {
 			o.Openai = t
 		}
 		o.IsSetOpenai = true
+	}
+	if x, ok := m["anthropic"]; ok {
+		if x != nil {
+			t := &ConfigAIAnthropicUpdateInput{}
+			if err := t.UnmarshalGQL(x); err != nil {
+				return err
+			}
+			o.Anthropic = t
+		}
+		o.IsSetAnthropic = true
+	}
+	if x, ok := m["google"]; ok {
+		if x != nil {
+			t := &ConfigAIGoogleUpdateInput{}
+			if err := t.UnmarshalGQL(x); err != nil {
+				return err
+			}
+			o.Google = t
+		}
+		o.IsSetGoogle = true
+	}
+	if x, ok := m["webSearch"]; ok {
+		if x != nil {
+			t := &ConfigAIWebSearchUpdateInput{}
+			if err := t.UnmarshalGQL(x); err != nil {
+				return err
+			}
+			o.WebSearch = t
+		}
+		o.IsSetWebSearch = true
 	}
 	if x, ok := m["autoEmbeddings"]; ok {
 		if x != nil {
@@ -271,6 +343,27 @@ func (o *ConfigAIUpdateInput) GetOpenai() *ConfigAIOpenaiUpdateInput {
 	return o.Openai
 }
 
+func (o *ConfigAIUpdateInput) GetAnthropic() *ConfigAIAnthropicUpdateInput {
+	if o == nil {
+		return nil
+	}
+	return o.Anthropic
+}
+
+func (o *ConfigAIUpdateInput) GetGoogle() *ConfigAIGoogleUpdateInput {
+	if o == nil {
+		return nil
+	}
+	return o.Google
+}
+
+func (o *ConfigAIUpdateInput) GetWebSearch() *ConfigAIWebSearchUpdateInput {
+	if o == nil {
+		return nil
+	}
+	return o.WebSearch
+}
+
 func (o *ConfigAIUpdateInput) GetAutoEmbeddings() *ConfigAIAutoEmbeddingsUpdateInput {
 	if o == nil {
 		return nil
@@ -312,6 +405,36 @@ func (s *ConfigAI) Update(v *ConfigAIUpdateInput) {
 			s.Openai.Update(v.Openai)
 		}
 	}
+	if v.IsSetAnthropic || v.Anthropic != nil {
+		if v.Anthropic == nil {
+			s.Anthropic = nil
+		} else {
+			if s.Anthropic == nil {
+				s.Anthropic = &ConfigAIAnthropic{}
+			}
+			s.Anthropic.Update(v.Anthropic)
+		}
+	}
+	if v.IsSetGoogle || v.Google != nil {
+		if v.Google == nil {
+			s.Google = nil
+		} else {
+			if s.Google == nil {
+				s.Google = &ConfigAIGoogle{}
+			}
+			s.Google.Update(v.Google)
+		}
+	}
+	if v.IsSetWebSearch || v.WebSearch != nil {
+		if v.WebSearch == nil {
+			s.WebSearch = nil
+		} else {
+			if s.WebSearch == nil {
+				s.WebSearch = &ConfigAIWebSearch{}
+			}
+			s.WebSearch.Update(v.WebSearch)
+		}
+	}
 	if v.IsSetAutoEmbeddings || v.AutoEmbeddings != nil {
 		if v.AutoEmbeddings == nil {
 			s.AutoEmbeddings = nil
@@ -333,6 +456,9 @@ type ConfigAIInsertInput struct {
 	Version        *string                            `json:"version,omitempty" toml:"version,omitempty"`
 	Resources      *ConfigAIResourcesInsertInput      `json:"resources,omitempty" toml:"resources,omitempty"`
 	Openai         *ConfigAIOpenaiInsertInput         `json:"openai,omitempty" toml:"openai,omitempty"`
+	Anthropic      *ConfigAIAnthropicInsertInput      `json:"anthropic,omitempty" toml:"anthropic,omitempty"`
+	Google         *ConfigAIGoogleInsertInput         `json:"google,omitempty" toml:"google,omitempty"`
+	WebSearch      *ConfigAIWebSearchInsertInput      `json:"webSearch,omitempty" toml:"webSearch,omitempty"`
 	AutoEmbeddings *ConfigAIAutoEmbeddingsInsertInput `json:"autoEmbeddings,omitempty" toml:"autoEmbeddings,omitempty"`
 	WebhookSecret  string                             `json:"webhookSecret,omitempty" toml:"webhookSecret,omitempty"`
 }
@@ -356,6 +482,27 @@ func (o *ConfigAIInsertInput) GetOpenai() *ConfigAIOpenaiInsertInput {
 		return nil
 	}
 	return o.Openai
+}
+
+func (o *ConfigAIInsertInput) GetAnthropic() *ConfigAIAnthropicInsertInput {
+	if o == nil {
+		return nil
+	}
+	return o.Anthropic
+}
+
+func (o *ConfigAIInsertInput) GetGoogle() *ConfigAIGoogleInsertInput {
+	if o == nil {
+		return nil
+	}
+	return o.Google
+}
+
+func (o *ConfigAIInsertInput) GetWebSearch() *ConfigAIWebSearchInsertInput {
+	if o == nil {
+		return nil
+	}
+	return o.WebSearch
 }
 
 func (o *ConfigAIInsertInput) GetAutoEmbeddings() *ConfigAIAutoEmbeddingsInsertInput {
@@ -386,6 +533,24 @@ func (s *ConfigAI) Insert(v *ConfigAIInsertInput) {
 		}
 		s.Openai.Insert(v.Openai)
 	}
+	if v.Anthropic != nil {
+		if s.Anthropic == nil {
+			s.Anthropic = &ConfigAIAnthropic{}
+		}
+		s.Anthropic.Insert(v.Anthropic)
+	}
+	if v.Google != nil {
+		if s.Google == nil {
+			s.Google = &ConfigAIGoogle{}
+		}
+		s.Google.Insert(v.Google)
+	}
+	if v.WebSearch != nil {
+		if s.WebSearch == nil {
+			s.WebSearch = &ConfigAIWebSearch{}
+		}
+		s.WebSearch.Insert(v.WebSearch)
+	}
 	if v.AutoEmbeddings != nil {
 		if s.AutoEmbeddings == nil {
 			s.AutoEmbeddings = &ConfigAIAutoEmbeddings{}
@@ -404,6 +569,9 @@ func (s *ConfigAI) Clone() *ConfigAI {
 	v.Version = s.Version
 	v.Resources = s.Resources.Clone()
 	v.Openai = s.Openai.Clone()
+	v.Anthropic = s.Anthropic.Clone()
+	v.Google = s.Google.Clone()
+	v.WebSearch = s.WebSearch.Clone()
 	v.AutoEmbeddings = s.AutoEmbeddings.Clone()
 	v.WebhookSecret = s.WebhookSecret
 	return v
@@ -416,6 +584,9 @@ type ConfigAIComparisonExp struct {
 	Version        *ConfigStringComparisonExp           `json:"version,omitempty"`
 	Resources      *ConfigAIResourcesComparisonExp      `json:"resources,omitempty"`
 	Openai         *ConfigAIOpenaiComparisonExp         `json:"openai,omitempty"`
+	Anthropic      *ConfigAIAnthropicComparisonExp      `json:"anthropic,omitempty"`
+	Google         *ConfigAIGoogleComparisonExp         `json:"google,omitempty"`
+	WebSearch      *ConfigAIWebSearchComparisonExp      `json:"webSearch,omitempty"`
 	AutoEmbeddings *ConfigAIAutoEmbeddingsComparisonExp `json:"autoEmbeddings,omitempty"`
 	WebhookSecret  *ConfigStringComparisonExp           `json:"webhookSecret,omitempty"`
 }
@@ -429,6 +600,9 @@ func (exp *ConfigAIComparisonExp) Matches(o *ConfigAI) bool {
 		o = &ConfigAI{
 			Resources:      &ConfigAIResources{},
 			Openai:         &ConfigAIOpenai{},
+			Anthropic:      &ConfigAIAnthropic{},
+			Google:         &ConfigAIGoogle{},
+			WebSearch:      &ConfigAIWebSearch{},
 			AutoEmbeddings: &ConfigAIAutoEmbeddings{},
 		}
 	}
@@ -441,10 +615,151 @@ func (exp *ConfigAIComparisonExp) Matches(o *ConfigAI) bool {
 	if !exp.Openai.Matches(o.Openai) {
 		return false
 	}
+	if !exp.Anthropic.Matches(o.Anthropic) {
+		return false
+	}
+	if !exp.Google.Matches(o.Google) {
+		return false
+	}
+	if !exp.WebSearch.Matches(o.WebSearch) {
+		return false
+	}
 	if !exp.AutoEmbeddings.Matches(o.AutoEmbeddings) {
 		return false
 	}
 	if !exp.WebhookSecret.Matches(o.WebhookSecret) {
+		return false
+	}
+
+	if exp.And != nil && !all(exp.And, o) {
+		return false
+	}
+
+	if exp.Or != nil && !or(exp.Or, o) {
+		return false
+	}
+
+	if exp.Not != nil && exp.Not.Matches(o) {
+		return false
+	}
+
+	return true
+}
+
+type ConfigAIAnthropic struct {
+	ApiKey string `json:"apiKey" toml:"apiKey"`
+}
+
+func (o *ConfigAIAnthropic) MarshalJSON() ([]byte, error) {
+	m := make(map[string]any)
+	m["apiKey"] = o.ApiKey
+	return json.Marshal(m)
+}
+
+func (o *ConfigAIAnthropic) GetApiKey() string {
+	if o == nil {
+		o = &ConfigAIAnthropic{}
+	}
+	return o.ApiKey
+}
+
+type ConfigAIAnthropicUpdateInput struct {
+	ApiKey      *string `json:"apiKey,omitempty" toml:"apiKey,omitempty"`
+	IsSetApiKey bool    `json:"-"`
+}
+
+func (o *ConfigAIAnthropicUpdateInput) UnmarshalGQL(v interface{}) error {
+	m, ok := v.(map[string]any)
+	if !ok {
+		return fmt.Errorf("must be map[string]interface{}, got %T", v)
+	}
+	if v, ok := m["apiKey"]; ok {
+		if v == nil {
+			o.ApiKey = nil
+		} else {
+			// clearly a not very efficient shortcut
+			b, err := json.Marshal(v)
+			if err != nil {
+				return err
+			}
+			var x string
+			if err := json.Unmarshal(b, &x); err != nil {
+				return err
+			}
+			o.ApiKey = &x
+		}
+		o.IsSetApiKey = true
+	}
+
+	return nil
+}
+
+func (o *ConfigAIAnthropicUpdateInput) MarshalGQL(w io.Writer) {
+	enc := json.NewEncoder(w)
+	if err := enc.Encode(o); err != nil {
+		panic(err)
+	}
+}
+
+func (o *ConfigAIAnthropicUpdateInput) GetApiKey() *string {
+	if o == nil {
+		o = &ConfigAIAnthropicUpdateInput{}
+	}
+	return o.ApiKey
+}
+
+func (s *ConfigAIAnthropic) Update(v *ConfigAIAnthropicUpdateInput) {
+	if v == nil {
+		return
+	}
+	if v.IsSetApiKey || v.ApiKey != nil {
+		if v.ApiKey != nil {
+			s.ApiKey = *v.ApiKey
+		}
+	}
+}
+
+type ConfigAIAnthropicInsertInput struct {
+	ApiKey string `json:"apiKey,omitempty" toml:"apiKey,omitempty"`
+}
+
+func (o *ConfigAIAnthropicInsertInput) GetApiKey() string {
+	if o == nil {
+		o = &ConfigAIAnthropicInsertInput{}
+	}
+	return o.ApiKey
+}
+
+func (s *ConfigAIAnthropic) Insert(v *ConfigAIAnthropicInsertInput) {
+	s.ApiKey = v.ApiKey
+}
+
+func (s *ConfigAIAnthropic) Clone() *ConfigAIAnthropic {
+	if s == nil {
+		return nil
+	}
+
+	v := &ConfigAIAnthropic{}
+	v.ApiKey = s.ApiKey
+	return v
+}
+
+type ConfigAIAnthropicComparisonExp struct {
+	And    []*ConfigAIAnthropicComparisonExp `json:"_and,omitempty"`
+	Not    *ConfigAIAnthropicComparisonExp   `json:"_not,omitempty"`
+	Or     []*ConfigAIAnthropicComparisonExp `json:"_or,omitempty"`
+	ApiKey *ConfigStringComparisonExp        `json:"apiKey,omitempty"`
+}
+
+func (exp *ConfigAIAnthropicComparisonExp) Matches(o *ConfigAIAnthropic) bool {
+	if exp == nil {
+		return true
+	}
+
+	if o == nil {
+		o = &ConfigAIAnthropic{}
+	}
+	if !exp.ApiKey.Matches(o.ApiKey) {
 		return false
 	}
 
@@ -577,6 +892,138 @@ func (exp *ConfigAIAutoEmbeddingsComparisonExp) Matches(o *ConfigAIAutoEmbedding
 		o = &ConfigAIAutoEmbeddings{}
 	}
 	if o.SynchPeriodMinutes != nil && !exp.SynchPeriodMinutes.Matches(*o.SynchPeriodMinutes) {
+		return false
+	}
+
+	if exp.And != nil && !all(exp.And, o) {
+		return false
+	}
+
+	if exp.Or != nil && !or(exp.Or, o) {
+		return false
+	}
+
+	if exp.Not != nil && exp.Not.Matches(o) {
+		return false
+	}
+
+	return true
+}
+
+type ConfigAIGoogle struct {
+	ApiKey string `json:"apiKey" toml:"apiKey"`
+}
+
+func (o *ConfigAIGoogle) MarshalJSON() ([]byte, error) {
+	m := make(map[string]any)
+	m["apiKey"] = o.ApiKey
+	return json.Marshal(m)
+}
+
+func (o *ConfigAIGoogle) GetApiKey() string {
+	if o == nil {
+		o = &ConfigAIGoogle{}
+	}
+	return o.ApiKey
+}
+
+type ConfigAIGoogleUpdateInput struct {
+	ApiKey      *string `json:"apiKey,omitempty" toml:"apiKey,omitempty"`
+	IsSetApiKey bool    `json:"-"`
+}
+
+func (o *ConfigAIGoogleUpdateInput) UnmarshalGQL(v interface{}) error {
+	m, ok := v.(map[string]any)
+	if !ok {
+		return fmt.Errorf("must be map[string]interface{}, got %T", v)
+	}
+	if v, ok := m["apiKey"]; ok {
+		if v == nil {
+			o.ApiKey = nil
+		} else {
+			// clearly a not very efficient shortcut
+			b, err := json.Marshal(v)
+			if err != nil {
+				return err
+			}
+			var x string
+			if err := json.Unmarshal(b, &x); err != nil {
+				return err
+			}
+			o.ApiKey = &x
+		}
+		o.IsSetApiKey = true
+	}
+
+	return nil
+}
+
+func (o *ConfigAIGoogleUpdateInput) MarshalGQL(w io.Writer) {
+	enc := json.NewEncoder(w)
+	if err := enc.Encode(o); err != nil {
+		panic(err)
+	}
+}
+
+func (o *ConfigAIGoogleUpdateInput) GetApiKey() *string {
+	if o == nil {
+		o = &ConfigAIGoogleUpdateInput{}
+	}
+	return o.ApiKey
+}
+
+func (s *ConfigAIGoogle) Update(v *ConfigAIGoogleUpdateInput) {
+	if v == nil {
+		return
+	}
+	if v.IsSetApiKey || v.ApiKey != nil {
+		if v.ApiKey != nil {
+			s.ApiKey = *v.ApiKey
+		}
+	}
+}
+
+type ConfigAIGoogleInsertInput struct {
+	ApiKey string `json:"apiKey,omitempty" toml:"apiKey,omitempty"`
+}
+
+func (o *ConfigAIGoogleInsertInput) GetApiKey() string {
+	if o == nil {
+		o = &ConfigAIGoogleInsertInput{}
+	}
+	return o.ApiKey
+}
+
+func (s *ConfigAIGoogle) Insert(v *ConfigAIGoogleInsertInput) {
+	s.ApiKey = v.ApiKey
+}
+
+func (s *ConfigAIGoogle) Clone() *ConfigAIGoogle {
+	if s == nil {
+		return nil
+	}
+
+	v := &ConfigAIGoogle{}
+	v.ApiKey = s.ApiKey
+	return v
+}
+
+type ConfigAIGoogleComparisonExp struct {
+	And    []*ConfigAIGoogleComparisonExp `json:"_and,omitempty"`
+	Not    *ConfigAIGoogleComparisonExp   `json:"_not,omitempty"`
+	Or     []*ConfigAIGoogleComparisonExp `json:"_or,omitempty"`
+	ApiKey *ConfigStringComparisonExp     `json:"apiKey,omitempty"`
+}
+
+func (exp *ConfigAIGoogleComparisonExp) Matches(o *ConfigAIGoogle) bool {
+	if exp == nil {
+		return true
+	}
+
+	if o == nil {
+		o = &ConfigAIGoogle{}
+	}
+	if !exp.ApiKey.Matches(o.ApiKey) {
 		return false
 	}
 
@@ -903,6 +1350,193 @@ func (exp *ConfigAIResourcesComparisonExp) Matches(o *ConfigAIResources) bool {
 		}
 	}
 	if !exp.Compute.Matches(o.Compute) {
+		return false
+	}
+
+	if exp.And != nil && !all(exp.And, o) {
+		return false
+	}
+
+	if exp.Or != nil && !or(exp.Or, o) {
+		return false
+	}
+
+	if exp.Not != nil && exp.Not.Matches(o) {
+		return false
+	}
+
+	return true
+}
+
+type ConfigAIWebSearch struct {
+	BraveApiKey *string `json:"braveApiKey" toml:"braveApiKey"`
+
+	TavilyApiKey *string `json:"tavilyApiKey" toml:"tavilyApiKey"`
+}
+
+func (o *ConfigAIWebSearch) MarshalJSON() ([]byte, error) {
+	m := make(map[string]any)
+	if o.BraveApiKey != nil {
+		m["braveApiKey"] = o.BraveApiKey
+	}
+	if o.TavilyApiKey != nil {
+		m["tavilyApiKey"] = o.TavilyApiKey
+	}
+	return json.Marshal(m)
+}
+
+func (o *ConfigAIWebSearch) GetBraveApiKey() *string {
+	if o == nil {
+		o = &ConfigAIWebSearch{}
+	}
+	return o.BraveApiKey
+}
+
+func (o *ConfigAIWebSearch) GetTavilyApiKey() *string {
+	if o == nil {
+		o = &ConfigAIWebSearch{}
+	}
+	return o.TavilyApiKey
+}
+
+type ConfigAIWebSearchUpdateInput struct {
+	BraveApiKey       *string `json:"braveApiKey,omitempty" toml:"braveApiKey,omitempty"`
+	IsSetBraveApiKey  bool    `json:"-"`
+	TavilyApiKey      *string `json:"tavilyApiKey,omitempty" toml:"tavilyApiKey,omitempty"`
+	IsSetTavilyApiKey bool    `json:"-"`
+}
+
+func (o *ConfigAIWebSearchUpdateInput) UnmarshalGQL(v interface{}) error {
+	m, ok := v.(map[string]any)
+	if !ok {
+		return fmt.Errorf("must be map[string]interface{}, got %T", v)
+	}
+	if v, ok := m["braveApiKey"]; ok {
+		if v == nil {
+			o.BraveApiKey = nil
+		} else {
+			// clearly a not very efficient shortcut
+			b, err := json.Marshal(v)
+			if err != nil {
+				return err
+			}
+			var x string
+			if err := json.Unmarshal(b, &x); err != nil {
+				return err
+			}
+			o.BraveApiKey = &x
+		}
+		o.IsSetBraveApiKey = true
+	}
+	if v, ok := m["tavilyApiKey"]; ok {
+		if v == nil {
+			o.TavilyApiKey = nil
+		} else {
+			// clearly a not very efficient shortcut
+			b, err := json.Marshal(v)
+			if err != nil {
+				return err
+			}
+			var x string
+			if err := json.Unmarshal(b, &x); err != nil {
+				return err
+			}
+			o.TavilyApiKey = &x
+		}
+		o.IsSetTavilyApiKey = true
+	}
+
+	return nil
+}
+
+func (o *ConfigAIWebSearchUpdateInput) MarshalGQL(w io.Writer) {
+	enc := json.NewEncoder(w)
+	if err := enc.Encode(o); err != nil {
+		panic(err)
+	}
+}
+
+func (o *ConfigAIWebSearchUpdateInput) GetBraveApiKey() *string {
+	if o == nil {
+		o = &ConfigAIWebSearchUpdateInput{}
+	}
+	return o.BraveApiKey
+}
+
+func (o *ConfigAIWebSearchUpdateInput) GetTavilyApiKey() *string {
+	if o == nil {
+		o = &ConfigAIWebSearchUpdateInput{}
+	}
+	return o.TavilyApiKey
+}
+
+func (s *ConfigAIWebSearch) Update(v *ConfigAIWebSearchUpdateInput) {
+	if v == nil {
+		return
+	}
+	if v.IsSetBraveApiKey || v.BraveApiKey != nil {
+		s.BraveApiKey = v.BraveApiKey
+	}
+	if v.IsSetTavilyApiKey || v.TavilyApiKey != nil {
+		s.TavilyApiKey = v.TavilyApiKey
+	}
+}
+
+type ConfigAIWebSearchInsertInput struct {
+	BraveApiKey  *string `json:"braveApiKey,omitempty" toml:"braveApiKey,omitempty"`
+	TavilyApiKey *string `json:"tavilyApiKey,omitempty" toml:"tavilyApiKey,omitempty"`
+}
+
+func (o *ConfigAIWebSearchInsertInput) GetBraveApiKey() *string {
+	if o == nil {
+		o = &ConfigAIWebSearchInsertInput{}
+	}
+	return o.BraveApiKey
+}
+
+func (o *ConfigAIWebSearchInsertInput) GetTavilyApiKey() *string {
+	if o == nil {
+		o = &ConfigAIWebSearchInsertInput{}
+	}
+	return o.TavilyApiKey
+}
+
+func (s *ConfigAIWebSearch) Insert(v *ConfigAIWebSearchInsertInput) {
+	s.BraveApiKey = v.BraveApiKey
+	s.TavilyApiKey = v.TavilyApiKey
+}
+
+func (s *ConfigAIWebSearch) Clone() *ConfigAIWebSearch {
+	if s == nil {
+		return nil
+	}
+
+	v := &ConfigAIWebSearch{}
+	v.BraveApiKey = s.BraveApiKey
+	v.TavilyApiKey = s.TavilyApiKey
+	return v
+}
+
+type ConfigAIWebSearchComparisonExp struct {
+	And          []*ConfigAIWebSearchComparisonExp `json:"_and,omitempty"`
+	Not          *ConfigAIWebSearchComparisonExp   `json:"_not,omitempty"`
+	Or           []*ConfigAIWebSearchComparisonExp `json:"_or,omitempty"`
+	BraveApiKey  *ConfigStringComparisonExp        `json:"braveApiKey,omitempty"`
+	TavilyApiKey *ConfigStringComparisonExp        `json:"tavilyApiKey,omitempty"`
+}
+
+func (exp *ConfigAIWebSearchComparisonExp) Matches(o *ConfigAIWebSearch) bool {
+	if exp == nil {
+		return true
+	}
+
+	if o == nil {
+		o = &ConfigAIWebSearch{}
+	}
+	if o.BraveApiKey != nil && !exp.BraveApiKey.Matches(*o.BraveApiKey) {
+		return false
+	}
+	if o.TavilyApiKey != nil && !exp.TavilyApiKey.Matches(*o.TavilyApiKey) {
 		return false
 	}
 

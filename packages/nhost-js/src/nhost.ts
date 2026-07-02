@@ -1,5 +1,9 @@
 import { generateServiceUrl } from './';
 import {
+  type Client as AIClient,
+  createAPIClient as createAIClient,
+} from './ai';
+import {
   type Client as AuthClient,
   createAPIClient as createAuthClient,
 } from './auth';
@@ -40,6 +44,7 @@ export type ClientConfigurationFn = (clients: {
   storage: StorageClient;
   graphql: GraphQLClient;
   functions: FunctionsClient;
+  ai: AIClient;
   sessionStorage: SessionStorage;
 }) => void;
 
@@ -52,6 +57,7 @@ export const withClientSideSessionMiddleware: ClientConfigurationFn = ({
   storage,
   graphql,
   functions,
+  ai,
   sessionStorage,
 }) => {
   const mwChain: ChainFunction[] = [
@@ -65,6 +71,7 @@ export const withClientSideSessionMiddleware: ClientConfigurationFn = ({
     storage.pushChainFunction(mw);
     graphql.pushChainFunction(mw);
     functions.pushChainFunction(mw);
+    ai.pushChainFunction(mw);
   }
 };
 
@@ -78,6 +85,7 @@ export const withServerSideSessionMiddleware: ClientConfigurationFn = ({
   storage,
   graphql,
   functions,
+  ai,
   sessionStorage,
 }) => {
   const mwChain: ChainFunction[] = [
@@ -90,6 +98,7 @@ export const withServerSideSessionMiddleware: ClientConfigurationFn = ({
     storage.pushChainFunction(mw);
     graphql.pushChainFunction(mw);
     functions.pushChainFunction(mw);
+    ai.pushChainFunction(mw);
   }
 };
 
@@ -106,12 +115,13 @@ export const withServerSideSessionMiddleware: ClientConfigurationFn = ({
 export function withAdminSession(
   adminSession: AdminSessionOptions,
 ): ClientConfigurationFn {
-  return ({ storage, graphql, functions }) => {
+  return ({ storage, graphql, functions, ai }) => {
     const adminMiddleware = withAdminSessionMiddleware(adminSession);
 
     storage.pushChainFunction(adminMiddleware);
     graphql.pushChainFunction(adminMiddleware);
     functions.pushChainFunction(adminMiddleware);
+    ai.pushChainFunction(adminMiddleware);
   };
 }
 
@@ -125,12 +135,13 @@ export function withAdminSession(
 export function withChainFunctions(
   chainFunctions: ChainFunction[],
 ): ClientConfigurationFn {
-  return ({ auth, storage, graphql, functions }) => {
+  return ({ auth, storage, graphql, functions, ai }) => {
     for (const mw of chainFunctions) {
       auth.pushChainFunction(mw);
       storage.pushChainFunction(mw);
       graphql.pushChainFunction(mw);
       functions.pushChainFunction(mw);
+      ai.pushChainFunction(mw);
     }
   };
 }
@@ -166,6 +177,13 @@ export class NhostClient {
   functions: FunctionsClient;
 
   /**
+   * AI client providing methods for creating and interacting with Nhost AI agents.
+   * Use this client to create agent sessions and stream typed events back from
+   * the agent's responses (including tool calls and approval requests).
+   */
+  ai: AIClient;
+
+  /**
    * Storage implementation used for persisting session information.
    * This handles saving, retrieving, and managing authentication sessions across requests.
    */
@@ -179,6 +197,7 @@ export class NhostClient {
    * @param storage - Storage client instance
    * @param graphql - GraphQL client instance
    * @param functions - Functions client instance
+   * @param ai - AI client instance
    * @param sessionStorage - Storage implementation for session persistence
    */
   constructor(
@@ -186,12 +205,14 @@ export class NhostClient {
     storage: StorageClient,
     graphql: GraphQLClient,
     functions: FunctionsClient,
+    ai: AIClient,
     sessionStorage: SessionStorage,
   ) {
     this.auth = auth;
     this.storage = storage;
     this.graphql = graphql;
     this.functions = functions;
+    this.ai = ai;
     this.sessionStorage = sessionStorage;
   }
 
@@ -294,6 +315,11 @@ export interface NhostClientOptions {
   functionsUrl?: string;
 
   /**
+   * Complete base URL for the AI service (overrides subdomain/region)
+   */
+  aiUrl?: string;
+
+  /**
    * Storage backend to use for session persistence. If not provided, the SDK will
    * default to localStorage in the browser or memory in other environments.
    */
@@ -362,6 +388,7 @@ export function createNhostClient(
     storageUrl,
     graphqlUrl,
     functionsUrl,
+    aiUrl,
     storage = detectStorage(),
     configure = [],
   } = options;
@@ -388,12 +415,14 @@ export function createNhostClient(
     region,
     functionsUrl,
   );
+  const aiBaseUrl = generateServiceUrl('ai', subdomain, region, aiUrl);
 
   // Create all clients
   const auth = createAuthClient(authBaseUrl);
   const storageClient = createStorageClient(storageBaseUrl, []);
   const graphqlClient = createGraphQLClient(graphqlBaseUrl, []);
   const functionsClient = createFunctionsClient(functionsBaseUrl, []);
+  const aiClient = createAIClient(aiBaseUrl, graphqlClient, []);
 
   // Apply configuration functions
   for (const configFn of configure) {
@@ -402,6 +431,7 @@ export function createNhostClient(
       storage: storageClient,
       graphql: graphqlClient,
       functions: functionsClient,
+      ai: aiClient,
       sessionStorage,
     });
   }
@@ -412,6 +442,7 @@ export function createNhostClient(
     storageClient,
     graphqlClient,
     functionsClient,
+    aiClient,
     sessionStorage,
   );
 }

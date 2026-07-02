@@ -1,0 +1,13 @@
+query getAgents {
+  graphiteAgents(order_by: { createdAt: desc }) {
+    id
+    name
+    description
+    instructions
+    model
+    provider
+    toolsConfig
+    createdAt
+    updatedAt
+  }
+}

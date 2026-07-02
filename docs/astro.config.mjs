@@ -590,6 +590,16 @@ export default defineConfig({
                     { slug: 'products/ai/assistants' },
                   ],
                 },
+                {
+                  label: 'Agents',
+                  collapsed: false,
+                  items: [
+                    { slug: 'products/ai/agents' },
+                    { slug: 'products/ai/agents/managing-agents' },
+                    { slug: 'products/ai/agents/sessions-and-streaming' },
+                    { slug: 'products/ai/agents/tools' },
+                  ],
+                },
               ],
             },
             // Platform
@@ -732,6 +742,7 @@ export default defineConfig({
                           collapsed: true,
                           items: [
                             { slug: 'reference/javascript/nhost-js/main' },
+                            { slug: 'reference/javascript/nhost-js/ai', label: 'AI' },
                             { slug: 'reference/javascript/nhost-js/auth' },
                             { slug: 'reference/javascript/nhost-js/functions' },
                             { slug: 'reference/javascript/nhost-js/graphql' },

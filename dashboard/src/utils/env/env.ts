@@ -62,6 +62,16 @@ export function getFunctionsServiceUrl() {
 }
 
 /**
+ * Custom URL of the AI service.
+ */
+export function getAiServiceUrl() {
+  return (
+    process.env.NEXT_PUBLIC_NHOST_AI_URL ||
+    'https://local.ai.local.nhost.run/v1'
+  );
+}
+
+/**
  * Custom URL of the Hasura service.
  */
 export function getHasuraConsoleServiceUrl() {

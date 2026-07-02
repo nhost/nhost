@@ -1,5 +1,6 @@
 import type { ProjectFragment } from '@/utils/__generated__/graphql';
 import {
+  getAiServiceUrl,
   getAuthServiceUrl,
   getDatabaseServiceUrl,
   getFunctionsServiceUrl,
@@ -16,7 +17,8 @@ export type NhostService =
   | 'functions'
   | 'storage'
   | 'hasura'
-  | 'grafana';
+  | 'grafana'
+  | 'ai';
 
 /**
  * The default slugs that are used when running the dashboard against the
@@ -30,6 +32,7 @@ export const defaultRemoteBackendSlugs: Record<NhostService, string> = {
   storage: '/v1',
   hasura: '',
   grafana: '',
+  ai: '/v1',
 };
 
 /**
@@ -60,6 +63,7 @@ export default function generateAppServiceUrl(
       functions: getFunctionsServiceUrl(),
       hasura: getHasuraApiUrl(),
       grafana: '',
+      ai: getAiServiceUrl(),
     };
 
     if (!serviceUrls[service]) {
