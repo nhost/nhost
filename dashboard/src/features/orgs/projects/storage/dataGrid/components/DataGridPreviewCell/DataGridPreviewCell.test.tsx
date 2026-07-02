@@ -30,14 +30,9 @@ vi.mock('@/features/orgs/projects/hooks/useAppClient', () => ({
 describe('DataGridPreviewCell and FilePreviewDialog Fallbacks', () => {
   const adminSecret = 'my-admin-secret';
   const fileId = 'test-file-id';
-  const originalLocalStorage = global.localStorage;
 
   beforeAll(() => {
     global.localStorage = localStorageMock();
-  });
-
-  afterAll(() => {
-    global.localStorage = originalLocalStorage;
   });
 
   beforeEach(() => {
