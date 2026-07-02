@@ -169,7 +169,7 @@ func TestAsyncResponseOutputFieldIsNullable(t *testing.T) {
 					"AsyncOut!", // declared NON-NULL output type
 					[]string{"user"},
 					[]metadata.ActionArgument{actionArg("message", "String!", "")},
-					withActionKind(metadata.ActionKindAsynchronous),
+					withAsyncAction(),
 				),
 			},
 			customTypes(
@@ -279,7 +279,7 @@ func TestAsyncActionNameCollisionWithCustomTypeDropsAction(t *testing.T) {
 					"Dup!",
 					[]string{"user"},
 					[]metadata.ActionArgument{actionArg("x", "String!", "")},
-					withActionKind(metadata.ActionKindAsynchronous),
+					withAsyncAction(),
 				),
 				actionMeta("ok", metadata.ActionOperationQuery, "OkOut!", []string{"user"}, nil),
 			},
@@ -339,7 +339,7 @@ func TestAsyncActionNameCollisionWithReservedTypeDropsAction(t *testing.T) {
 							"ReservedOut!",
 							[]string{"user"},
 							[]metadata.ActionArgument{actionArg("x", "String!", "")},
-							withActionKind(metadata.ActionKindAsynchronous),
+							withAsyncAction(),
 						),
 						actionMeta(
 							"ok",
@@ -625,7 +625,7 @@ func TestSchemaConflictFiltering(
 						"OkOutput!",
 						nil,
 						nil,
-						withActionKind(metadata.ActionKindAsynchronous),
+						withAsyncAction(),
 					),
 					actionMeta(
 						"transformAction",
@@ -961,9 +961,9 @@ func actionMeta(
 	return action
 }
 
-func withActionKind(kind string) actionOption {
+func withAsyncAction() actionOption {
 	return func(action *metadata.ActionMetadata) {
-		action.Definition.Kind = kind
+		action.Definition.Kind = metadata.ActionKindAsynchronous
 	}
 }
 

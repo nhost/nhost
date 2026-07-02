@@ -5,6 +5,7 @@ import (
 	"errors"
 	"fmt"
 	"log/slog"
+	"slices"
 
 	"github.com/google/uuid"
 	"github.com/vektah/gqlparser/v2/gqlerror"
@@ -192,14 +193,8 @@ func (c *Controller) classifyConnectorError(
 // errors.Join tree so a mix of structured and raw failures is detected. It is
 // only consulted once at least one structured error is present.
 func hasUnstructuredLeaf(err error) bool {
-	if joined, ok := err.(interface{ Unwrap() []error }); ok { //nolint:errorlint // deliberate structural walk of the Join tree
-		for _, e := range joined.Unwrap() {
-			if hasUnstructuredLeaf(e) {
-				return true
-			}
-		}
-
-		return false
+	if joined, ok := err.(interface{ Unwrap() []error }); ok {
+		return slices.ContainsFunc(joined.Unwrap(), hasUnstructuredLeaf)
 	}
 
 	_, structured := classifyStructuredConnectorError(err)

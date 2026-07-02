@@ -407,8 +407,9 @@ func sameColumns(a, b []string) bool {
 	}
 
 	as := slices.Clone(a)
-	bs := slices.Clone(b)
 	slices.Sort(as)
+
+	bs := slices.Clone(b)
 	slices.Sort(bs)
 
 	return slices.Equal(as, bs)

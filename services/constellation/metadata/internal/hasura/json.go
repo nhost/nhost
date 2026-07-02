@@ -84,6 +84,7 @@ func FromJSON(data []byte) (*Metadata, error) {
 	// members (claimed out of Unknown by the struct tags above), so there is no
 	// need to re-parse the whole blob to recover them.
 	var diagnostics []LoadDiagnostic
+
 	unknown := v3.Unknown
 
 	actions, ok := unmarshalOptionalActionJSON(v3.Actions, &diagnostics)
