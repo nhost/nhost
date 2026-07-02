@@ -6,10 +6,15 @@ import { Box } from '@/components/ui/v2/Box';
 import { Button } from '@/components/ui/v2/Button';
 import { HelperText } from '@/components/ui/v2/HelperText';
 import { Input } from '@/components/ui/v2/Input';
-import { Option } from '@/components/ui/v2/Option';
-import { Select } from '@/components/ui/v2/Select';
 import { Text } from '@/components/ui/v2/Text';
 import { Tooltip } from '@/components/ui/v2/Tooltip';
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from '@/components/ui/v3/select';
 import type { BaseRemoteSchemaFormValues } from './BaseRemoteSchemaForm';
 
 export default function AdditionalHeadersEditor() {
@@ -139,30 +144,25 @@ export default function AdditionalHeadersEditor() {
 
               <Box className="col-span-4 flex flex-col gap-1 md:flex-row md:gap-0">
                 <Select
-                  className="md:w-40"
                   value={currentValueType}
-                  onChange={(_event, inputValue) =>
+                  onValueChange={(value) =>
                     onChangeHeaderValueType(
-                      inputValue as 'value' | 'value_from_env',
+                      value as 'value' | 'value_from_env',
                       index,
                       field.id,
                     )
                   }
-                  placeholder="Select value type"
-                  slotProps={{
-                    listbox: { className: 'min-w-0 w-full ' },
-                    root: { className: 'rounded-r-none' },
-                    popper: {
-                      disablePortal: false,
-                      className: 'z-[10000] w-[240px]',
-                    },
-                  }}
                 >
-                  {valueTypeOptions.map((valueType) => (
-                    <Option key={valueType.value} value={valueType.value}>
-                      {valueType.label}
-                    </Option>
-                  ))}
+                  <SelectTrigger className="rounded-r-none md:w-40">
+                    <SelectValue placeholder="Select value type" />
+                  </SelectTrigger>
+                  <SelectContent className="z-[10000] w-[240px] min-w-0">
+                    {valueTypeOptions.map((valueType) => (
+                      <SelectItem key={valueType.value} value={valueType.value}>
+                        {valueType.label}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
                 </Select>
                 <Input
                   {...register(
