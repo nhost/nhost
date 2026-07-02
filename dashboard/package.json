@@ -29,7 +29,7 @@
   "dependencies": {
     "@apollo/client": "^3.14.0",
     "@codemirror/lang-sql": "^6.6.4",
-    "@codemirror/language": "^6.12.3",
+    "@codemirror/language": "^6.12.4",
     "@codemirror/legacy-modes": "^6.4.0",
     "@date-fns/tz": "^1.2.0",
     "@emotion/cache": "^11.11.0",
