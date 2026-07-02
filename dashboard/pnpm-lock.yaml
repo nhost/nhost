@@ -83,7 +83,7 @@ importers:
         specifier: ^6.6.4
         version: 6.6.4(@codemirror/view@6.26.4)
       '@codemirror/language':
-        specifier: ^6.12.3
+        specifier: ^6.12.4
         version: 6.12.4
       '@codemirror/legacy-modes':
         specifier: ^6.4.0
