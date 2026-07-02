@@ -35,6 +35,8 @@ let
 
       (fs.fileFilter (f: f.hasExt "go") ../internal/lib/oapi)
 
+      (fs.fileFilter (f: f.hasExt "go") ../internal/lib/jsontmpl)
+
       ./cmd/configserver/logsapi/gqlgen.yml
       ./cmd/configserver/logsapi/schema.graphqls
 

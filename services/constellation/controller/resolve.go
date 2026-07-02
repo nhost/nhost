@@ -17,6 +17,7 @@ import (
 	"github.com/nhost/nhost/services/constellation/controller/planner"
 	"github.com/nhost/nhost/services/constellation/controller/planner/transform"
 	"github.com/nhost/nhost/services/constellation/controller/resolver"
+	"github.com/nhost/nhost/services/constellation/internal/requestcontext"
 	"github.com/vektah/gqlparser/v2"
 	"github.com/vektah/gqlparser/v2/ast"
 	"github.com/vektah/gqlparser/v2/gqlerror"
@@ -67,6 +68,14 @@ func (c *Controller) Resolve(
 	ctx context.Context, req GraphQLRequest,
 ) (*GraphQLResponse, error) {
 	logger := oapimw.LoggerFromContext(ctx)
+
+	// Make the original client GraphQL document available to downstream action
+	// webhooks, which forward it as the payload's request_query (matching
+	// Hasura). Setting it here rather than in HandlerPost covers every caller of
+	// Resolve (HTTP, future non-HTTP entry points) and keeps the context wiring
+	// from drifting per transport. The async dispatch path re-stamps the
+	// document onto its detached context separately.
+	ctx = requestcontext.GraphQLQueryToContext(ctx, req.Query)
 
 	state := c.state.Load()
 

@@ -1,0 +1,83 @@
+schema {
+  query: Query
+  mutation: Mutation
+}
+"""
+ISO-8601 timestamp.
+"""
+scalar DateTime
+"""
+Action lifecycle state.
+"""
+enum ActionStatus {
+  """
+  The action completed.
+  """
+  OK
+  """
+  Legacy state.
+  """
+  OLD @deprecated(reason: "Use OK instead.")
+}
+type Query {
+  """
+  Searches the public catalog.
+  """
+  searchCatalog(
+    """
+    Search constraints.
+    """
+    filter: SearchFilter!
+  ): [SearchResult!]!
+  """
+  Returns private user statistics.
+  """
+  userStats: UserStats!
+}
+type Mutation {
+  """
+  Admin-only maintenance action.
+  """
+  adminReindex: ActionStatus!
+}
+"""
+One search hit.
+"""
+type SearchResult {
+  """
+  Stable identifier.
+  """
+  id: ID!
+  """
+  Display title.
+  """
+  title: String!
+  """
+  Current status.
+  """
+  status: ActionStatus!
+  """
+  Creation time.
+  """
+  createdAt: DateTime!
+}
+type UserStats {
+  loginCount: Int!
+}
+"""
+Search filter input.
+"""
+input SearchFilter {
+  """
+  Free-text search term.
+  """
+  term: String!
+  """
+  Lower creation bound.
+  """
+  since: DateTime
+  """
+  Status filter.
+  """
+  status: ActionStatus
+}

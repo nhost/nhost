@@ -1,0 +1,136 @@
+actions:
+  - name: addNumbers
+    definition:
+      kind: synchronous
+      handler: '{{NHOST_FUNCTIONS_URL}}/actions'
+      forward_client_headers: true
+      headers:
+        - name: x-nhost-webhook-secret
+          value_from_env: NHOST_WEBHOOK_SECRET
+      timeout: 30
+    permissions:
+      - role: public
+      - role: user
+    comment: Adds two integers through a synchronous Hasura Action.
+  - name: echoHeaders
+    definition:
+      kind: synchronous
+      handler: '{{NHOST_FUNCTIONS_URL}}/actions'
+      forward_client_headers: true
+      headers:
+        - name: x-nhost-webhook-secret
+          value_from_env: NHOST_WEBHOOK_SECRET
+      timeout: 30
+    permissions:
+      - role: user
+    comment: Echoes selected action input, session variables, and headers.
+  - name: login
+    definition:
+      kind: synchronous
+      handler: '{{NHOST_FUNCTIONS_URL}}/actions'
+      forward_client_headers: false
+      headers:
+        - name: x-nhost-webhook-secret
+          value_from_env: NHOST_WEBHOOK_SECRET
+      timeout: 30
+    permissions:
+      - role: public
+    comment: Deterministic login action used for parity tests.
+  - name: asyncEcho
+    definition:
+      kind: asynchronous
+      handler: '{{NHOST_FUNCTIONS_URL}}/actions'
+      forward_client_headers: false
+      headers:
+        - name: x-nhost-webhook-secret
+          value_from_env: NHOST_WEBHOOK_SECRET
+      timeout: 30
+    permissions:
+      - role: user
+    comment: Exercises asynchronous action mutation/result parity.
+  - name: actionProfiles
+    definition:
+      kind: synchronous
+      handler: '{{NHOST_FUNCTIONS_URL}}/actions'
+      forward_client_headers: false
+      headers:
+        - name: x-nhost-webhook-secret
+          value_from_env: NHOST_WEBHOOK_SECRET
+      timeout: 30
+    comment: Returns deterministic profile records for action relationship parity tests.
+  - name: transformEcho
+    definition:
+      kind: synchronous
+      handler: '{{NHOST_FUNCTIONS_URL}}/actions'
+      forward_client_headers: false
+      headers:
+        - name: x-nhost-webhook-secret
+          value_from_env: NHOST_WEBHOOK_SECRET
+      timeout: 30
+      request_transform:
+        template_engine: Kriti
+        version: 2
+        method: PATCH
+        url: '{{$base_url}}'
+        query_params:
+          role: '{{getSessionVariable("x-hasura-role")}}'
+          optional: "{{$session_variables?['x-hasura-missing']}}"
+        content_type: application/x-www-form-urlencoded
+        request_headers:
+          remove_headers:
+            - content-type
+          add_headers:
+            content-type: application/x-www-form-urlencoded
+            x-action-name: transformEcho
+            x-session-role: '{{getSessionVariable("x-hasura-role")}}'
+        body:
+          action: x_www_form_urlencoded
+          form_template:
+            message: '{{$body.input.message}}'
+            role: '{{getSessionVariable("x-hasura-role")}}'
+            nested: '{{concat(["nested-", $body.input.message])}}'
+      response_transform:
+        template_engine: Kriti
+        version: 2
+        body:
+          action: transform
+          template: |
+            {{ if $response.status == 202 }}
+            {
+              "message": {{$body.data.text}},
+              "role": {{$body.data.role}},
+              "contentType": {{$body.data.contentType}}
+            }
+            {{ else }}
+            {
+              "message": "unexpected status",
+              "role": "unknown",
+              "contentType": null
+            }
+            {{ end }}
+    permissions:
+      - role: user
+    comment: Exercises request and response transforms for synchronous actions.
+custom_types:
+  enums: []
+  input_objects: []
+  objects:
+    - name: ActionProfile
+      relationships:
+        - name: user
+          type: object
+          source: default
+          remote_table:
+            schema: auth
+            name: users
+          field_mapping:
+            userId: id
+        - name: departments
+          type: array
+          source: default
+          remote_table:
+            schema: public
+            name: user_departments
+          field_mapping:
+            userId: user_id
+  scalars: []

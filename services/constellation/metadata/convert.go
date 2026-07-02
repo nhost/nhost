@@ -125,9 +125,47 @@ func fromHasura(h *hasura.Metadata) *Metadata {
 		remoteSchemas[i] = convertRemoteSchema(rs)
 	}
 
+	actions := make([]ActionMetadata, len(h.Actions))
+	for i, action := range h.Actions {
+		actions[i] = convertAction(action)
+	}
+
+	loadDiagnostics := make([]LoadDiagnostic, len(h.LoadDiagnostics))
+	for i, diagnostic := range h.LoadDiagnostics {
+		loadDiagnostics[i] = convertLoadDiagnostic(diagnostic)
+	}
+
 	return &Metadata{
-		Databases:     databases,
-		RemoteSchemas: remoteSchemas,
+		Databases:       databases,
+		RemoteSchemas:   remoteSchemas,
+		Actions:         actions,
+		CustomTypes:     convertCustomTypes(h.CustomTypes),
+		InheritedRoles:  convertInheritedRoles(h.InheritedRoles),
+		LoadDiagnostics: loadDiagnostics,
+	}
+}
+
+func convertInheritedRoles(h []hasura.InheritedRole) []InheritedRole {
+	if len(h) == 0 {
+		return nil
+	}
+
+	out := make([]InheritedRole, len(h))
+	for i, r := range h {
+		roleSet := make([]string, len(r.RoleSet))
+		copy(roleSet, r.RoleSet)
+		out[i] = InheritedRole{RoleName: r.RoleName, RoleSet: roleSet}
+	}
+
+	return out
+}
+
+func convertLoadDiagnostic(h hasura.LoadDiagnostic) LoadDiagnostic {
+	return LoadDiagnostic{
+		Kind:   h.Kind,
+		Source: h.Source,
+		Name:   h.Name,
+		Reason: h.Reason,
 	}
 }
 

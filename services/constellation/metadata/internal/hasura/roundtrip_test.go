@@ -132,8 +132,100 @@ func TestRoundTripJSON_PreservesUnknownFields(t *testing.T) {
 		t.Error("Metadata.Unknown is empty after round-trip; envelope unknowns lost")
 	}
 
-	if !strings.Contains(string(roundtripped.Unknown), "actions") {
-		t.Errorf("Metadata.Unknown does not contain `actions`: %s", string(roundtripped.Unknown))
+	if !strings.Contains(string(roundtripped.Unknown), "cron_triggers") {
+		t.Errorf(
+			"Metadata.Unknown does not contain `cron_triggers`: %s",
+			string(roundtripped.Unknown),
+		)
+	}
+
+	// `actions` and `custom_types` are now modeled fields: they are claimed out
+	// of Unknown and preserved via the typed Metadata.Actions / .CustomTypes,
+	// which is what lets metadata-API mutations to them round-trip.
+	if len(roundtripped.Actions) == 0 {
+		t.Error("actions not preserved as typed Metadata.Actions through round-trip")
+	}
+}
+
+// TestRoundTripJSON_PreservesUnknownOnlyCustomTypes verifies that a custom_types
+// object whose only content is an unmodeled key survives a FromJSON ∘ ToJSON
+// round-trip. CustomTypes.IsZero must account for its Unknown field, otherwise
+// the `omitzero` tag on v3MetadataOut.CustomTypes drops exactly the data Unknown
+// exists to preserve.
+func TestRoundTripJSON_PreservesUnknownOnlyCustomTypes(t *testing.T) {
+	t.Parallel()
+
+	blob := []byte(`{"version":3,"sources":[],"custom_types":{"future_feature":{"a":1}}}`)
+
+	parsed, err := hasura.FromJSON(blob)
+	if err != nil {
+		t.Fatalf("FromJSON: %v", err)
+	}
+
+	out, err := hasura.ToJSON(parsed)
+	if err != nil {
+		t.Fatalf("ToJSON: %v", err)
+	}
+
+	var raw map[string]jsontext.Value
+	if err := json.Unmarshal(out, &raw); err != nil {
+		t.Fatalf("re-unmarshal: %v", err)
+	}
+
+	ct, ok := raw["custom_types"]
+	if !ok {
+		t.Fatalf("custom_types dropped on round-trip: %s", out)
+	}
+
+	if !strings.Contains(string(ct), "future_feature") {
+		t.Errorf("custom_types lost the unmodeled key: %s", ct)
+	}
+}
+
+// TestRoundTripJSON_PreservesMalformedActions verifies that when the typed parse
+// of the `actions` section fails, FromJSON records a diagnostic AND preserves
+// the raw bytes (restored into Unknown) so ToJSON re-emits them verbatim rather
+// than silently dropping the whole section (the pre-typed-fields behavior).
+func TestRoundTripJSON_PreservesMalformedActions(t *testing.T) {
+	t.Parallel()
+
+	// timeout is a numeric field; a string value makes the typed parse fail.
+	blob := []byte(`{"version":3,"sources":[],` +
+		`"actions":[{"name":"a","definition":{"handler":"h","timeout":"oops"}}]}`)
+
+	parsed, err := hasura.FromJSON(blob)
+	if err != nil {
+		t.Fatalf("FromJSON: %v", err)
+	}
+
+	if len(parsed.LoadDiagnostics) == 0 {
+		t.Error("expected a load diagnostic for the malformed actions section")
+	}
+
+	if len(parsed.Actions) != 0 {
+		t.Errorf(
+			"malformed actions should not be parsed into typed Actions, got %+v",
+			parsed.Actions,
+		)
+	}
+
+	out, err := hasura.ToJSON(parsed)
+	if err != nil {
+		t.Fatalf("ToJSON: %v", err)
+	}
+
+	var raw map[string]jsontext.Value
+	if err := json.Unmarshal(out, &raw); err != nil {
+		t.Fatalf("re-unmarshal: %v", err)
+	}
+
+	actions, ok := raw["actions"]
+	if !ok {
+		t.Fatalf("malformed actions section dropped on round-trip: %s", out)
+	}
+
+	if !strings.Contains(string(actions), "oops") {
+		t.Errorf("actions section not preserved verbatim: %s", actions)
 	}
 }
 
