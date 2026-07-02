@@ -1,8 +1,40 @@
 package dockercompose //nolint:testpackage
 
 import (
+	"os"
+	"path/filepath"
+	"testing"
+
 	"github.com/nhost/be/services/mimir/model"
 )
+
+func TestPrepareFunctionsMountpoints(t *testing.T) {
+	t.Parallel()
+
+	root := t.TempDir()
+
+	if err := prepareFunctionsMountpoints(root); err != nil {
+		t.Fatalf("got error: %v", err)
+	}
+
+	for _, rel := range [][]string{
+		{"node_modules"},
+		{"functions"},
+		{"functions", "node_modules"},
+	} {
+		p := filepath.Join(append([]string{root}, rel...)...)
+		if info, err := os.Stat(p); err != nil {
+			t.Errorf("stat %s: %v", p, err)
+		} else if !info.IsDir() {
+			t.Errorf("%s: not a directory", p)
+		}
+	}
+
+	// Idempotent: a second call over the now-existing dirs must not error.
+	if err := prepareFunctionsMountpoints(root); err != nil {
+		t.Fatalf("second call: %v", err)
+	}
+}
 
 func getConfig() *model.ConfigConfig { //nolint:maintidx
 	return &model.ConfigConfig{
