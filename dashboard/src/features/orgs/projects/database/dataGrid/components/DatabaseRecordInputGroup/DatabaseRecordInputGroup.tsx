@@ -9,8 +9,14 @@ import { InlineCode } from '@/components/ui/v3/inline-code';
 import { SelectItem } from '@/components/ui/v3/select';
 import type { DataBrowserColumnMetadata } from '@/features/orgs/projects/database/dataGrid/types/dataBrowser/dataBrowser';
 import { getInputType } from '@/features/orgs/projects/database/dataGrid/utils/inputHelpers';
+import {
+  isDateType,
+  isTimestampType,
+  isTimeType,
+} from '@/features/orgs/projects/database/dataGrid/utils/temporalTypeHelpers';
 import { cn } from '@/lib/utils';
 import NullDefaultToggleField from './NullDefaultToggleField';
+import TemporalRecordField from './TemporalRecordField';
 
 export interface DatabaseRecordInputGroupProps {
   /**
@@ -179,6 +185,29 @@ export default function DatabaseRecordInputGroup({
                   </SelectItem>
                 )}
               </FormSelect>
+            );
+          }
+
+          const isTemporalPicker =
+            !isArray &&
+            (isTimestampType(baseType) ||
+              isDateType(baseType) ||
+              isTimeType(baseType));
+
+          if (isTemporalPicker) {
+            return (
+              <TemporalRecordField
+                key={columnId}
+                inline
+                name={columnId!}
+                control={control}
+                label={inputLabel}
+                baseType={baseType}
+                isNullable={!!isNullable}
+                hasDefault={hasDefault}
+                placeholder={getDefaultPlaceholder(defaultValue, isIdentity)}
+                helperText={comment}
+              />
             );
           }
 
