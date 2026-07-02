@@ -203,7 +203,10 @@ func TestRoundTripJSON_PreservesMalformedActions(t *testing.T) {
 	}
 
 	if len(parsed.Actions) != 0 {
-		t.Errorf("malformed actions should not be parsed into typed Actions, got %+v", parsed.Actions)
+		t.Errorf(
+			"malformed actions should not be parsed into typed Actions, got %+v",
+			parsed.Actions,
+		)
 	}
 
 	out, err := hasura.ToJSON(parsed)

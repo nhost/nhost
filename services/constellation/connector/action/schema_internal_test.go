@@ -341,7 +341,13 @@ func TestAsyncActionNameCollisionWithReservedTypeDropsAction(t *testing.T) {
 							[]metadata.ActionArgument{actionArg("x", "String!", "")},
 							withActionKind(metadata.ActionKindAsynchronous),
 						),
-						actionMeta("ok", metadata.ActionOperationQuery, "OkOut!", []string{"user"}, nil),
+						actionMeta(
+							"ok",
+							metadata.ActionOperationQuery,
+							"OkOut!",
+							[]string{"user"},
+							nil,
+						),
 					},
 					customTypes(withObjects(
 						objectType("ReservedOut", nil, objectField("y", "String!")),
