@@ -459,16 +459,28 @@ func TestExpandInheritedRoles_MutationConflictRecordsInconsistency(t *testing.T)
 
 	snap := inc.Snapshot()
 	if len(snap) != 3 {
-		t.Fatalf("want 3 inconsistencies (insert/update/delete conflict), got %d: %+v", len(snap), snap)
+		t.Fatalf(
+			"want 3 inconsistencies (insert/update/delete conflict), got %d: %+v",
+			len(snap),
+			snap,
+		)
 	}
 
 	for _, i := range snap {
 		if i.Kind != metadata.InconsistencyKindInheritedRole {
-			t.Errorf("inconsistency kind = %q, want %q", i.Kind, metadata.InconsistencyKindInheritedRole)
+			t.Errorf(
+				"inconsistency kind = %q, want %q",
+				i.Kind,
+				metadata.InconsistencyKindInheritedRole,
+			)
 		}
 
 		if i.Name != "manager" || i.Source != "public.orders" {
-			t.Errorf("inconsistency = {Source:%q Name:%q}, want {public.orders manager}", i.Source, i.Name)
+			t.Errorf(
+				"inconsistency = {Source:%q Name:%q}, want {public.orders manager}",
+				i.Source,
+				i.Name,
+			)
 		}
 	}
 }
@@ -492,7 +504,10 @@ func TestExpandInheritedRoles_MutationSingleParentInheritedVerbatim(t *testing.T
 			// Only employee has an insert permission; auditor holds a select
 			// permission so it still counts as a known parent role.
 			SelectPermissions: []metadata.SelectPermission{
-				{Role: "auditor", Permission: metadata.SelectPermissionConfig{Columns: []string{"id"}}},
+				{
+					Role:       "auditor",
+					Permission: metadata.SelectPermissionConfig{Columns: []string{"id"}},
+				},
 			},
 			InsertPermissions: []metadata.InsertPermission{
 				{Role: "employee", Permission: insertCfg},
