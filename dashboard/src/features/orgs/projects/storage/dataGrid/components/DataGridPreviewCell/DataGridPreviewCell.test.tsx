@@ -1,12 +1,6 @@
 import { vi } from 'vitest';
 import { mockMatchMediaValue } from '@/tests/mocks';
-import {
-  localStorageMock,
-  render,
-  screen,
-  TestUserEvent,
-  waitFor,
-} from '@/tests/testUtils';
+import { render, screen, TestUserEvent, waitFor } from '@/tests/testUtils';
 import DataGridPreviewCell from './DataGridPreviewCell';
 
 Object.defineProperty(window, 'matchMedia', {
@@ -30,10 +24,6 @@ vi.mock('@/features/orgs/projects/hooks/useAppClient', () => ({
 describe('DataGridPreviewCell and FilePreviewDialog Fallbacks', () => {
   const adminSecret = 'my-admin-secret';
   const fileId = 'test-file-id';
-
-  beforeAll(() => {
-    global.localStorage = localStorageMock();
-  });
 
   beforeEach(() => {
     vi.restoreAllMocks();
