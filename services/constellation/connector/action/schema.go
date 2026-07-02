@@ -1049,14 +1049,30 @@ func (b *schemaBuilder) collectActions(ctx context.Context) []actionDefinition {
 		}
 
 		// An asynchronous action emits an object type named after the action
-		// (asyncResponseTypeName == action name). If a custom object/input/
-		// scalar/enum type already claims that name, emitting both would put two
-		// definitions of the same type into one role schema, which
-		// BuildValidatedSchema rejects — dropping the ENTIRE action connector for
-		// affected roles. Drop only the offending async action instead, keeping
-		// the custom type, and record an inconsistency on the action.
+		// (asyncResponseTypeName == action name). Emitting a type whose name
+		// already exists in the role schema would put two definitions of the same
+		// type into one schema, which BuildValidatedSchema rejects — dropping the
+		// ENTIRE role (every connector) with no per-action diagnostic. Drop only
+		// the offending async action instead and record an inconsistency on it.
 		if parsedAction.async {
-			if def, exists := b.typeDefs[parsedAction.responseTypeName]; exists && !def.invalid {
+			name := parsedAction.responseTypeName
+
+			// Reserved root types and builtin scalars are excluded from typeDefs
+			// (collectCustomTypes marks them invalid), and the async-generated
+			// scalars are never custom types, so the typeDefs check below cannot
+			// catch them. Reject them explicitly.
+			if isRootTypeName(name) || isBuiltinScalar(name) ||
+				name == asyncScalarUUID || name == asyncScalarTimestamptz ||
+				name == asyncScalarJSONB {
+				b.recordAction(ctx, action.Name, fmt.Sprintf(
+					"asynchronous action %q conflicts with a reserved or generated type name",
+					action.Name,
+				))
+
+				continue
+			}
+
+			if def, exists := b.typeDefs[name]; exists && !def.invalid {
 				b.recordAction(ctx, action.Name, fmt.Sprintf(
 					"asynchronous action %q conflicts with a custom type of the same name",
 					action.Name,

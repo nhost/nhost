@@ -316,6 +316,68 @@ func TestAsyncActionNameCollisionWithCustomTypeDropsAction(t *testing.T) {
 	)
 }
 
+// TestAsyncActionNameCollisionWithReservedTypeDropsAction verifies that an
+// async action whose name collides with a reserved root type, a builtin scalar,
+// or an async-generated scalar is dropped with a recorded inconsistency and the
+// remaining per-role schemas still validate — instead of emitting a duplicate
+// type that fails BuildValidatedSchema and silently drops the whole role.
+func TestAsyncActionNameCollisionWithReservedTypeDropsAction(t *testing.T) {
+	t.Parallel()
+
+	for _, name := range []string{"Query", "Mutation", "String", "uuid", "timestamptz", "json"} {
+		t.Run(name, func(t *testing.T) {
+			t.Parallel()
+
+			collector := metadata.NewInconsistencies()
+			conn := newConnector(
+				t.Context(),
+				testMetadata(
+					[]metadata.ActionMetadata{
+						actionMeta(
+							name,
+							metadata.ActionOperationMutation,
+							"ReservedOut!",
+							[]string{"user"},
+							[]metadata.ActionArgument{actionArg("x", "String!", "")},
+							withActionKind(metadata.ActionKindAsynchronous),
+						),
+						actionMeta("ok", metadata.ActionOperationQuery, "OkOut!", []string{"user"}, nil),
+					},
+					customTypes(withObjects(
+						objectType("ReservedOut", nil, objectField("y", "String!")),
+						objectType("OkOut", nil, objectField("ok", "String!")),
+					)),
+				),
+				collector,
+				WithAsyncConfig(AsyncConfig{Store: noopActionLogStore{}}),
+			)
+
+			schemas, err := conn.GetSchema()
+			if err != nil {
+				t.Fatalf("GetSchema: %v", err)
+			}
+
+			for _, role := range []string{metadata.RoleAdmin, "user"} {
+				schema := schemas[role]
+				if schema == nil {
+					t.Fatalf("schema for role %q missing", role)
+				}
+
+				if _, _, err := schemamerge.BuildValidatedSchema(schema, role); err != nil {
+					t.Fatalf("BuildValidatedSchema for role %q: %v", role, err)
+				}
+			}
+
+			assertRootFields(t, schemas[metadata.RoleAdmin], []string{"ok"})
+
+			assertInconsistency(
+				t, collector.Snapshot(), metadata.InconsistencyKindAction,
+				name, "conflicts with a reserved or generated type name",
+			)
+		})
+	}
+}
+
 //nolint:maintidx // broad table covers fine-grained filtering matrix.
 func TestSchemaConflictFiltering(
 	t *testing.T,

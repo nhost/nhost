@@ -23,11 +23,13 @@ var ErrUnsupportedMetadataVersion = errors.New("unsupported metadata version")
 // their own `json:",unknown"` fields.
 //
 // `actions` and `custom_types` are claimed here as raw jsontext so they do NOT
-// fall into Unknown; FromJSON parses them tolerantly via
-// extractActionMetadataJSON into the typed Metadata.Actions / .CustomTypes
-// (the single source of truth), and ToJSON re-emits them from those typed
-// fields via v3MetadataOut. Keeping them out of Unknown avoids a duplicate
-// `actions` member when a mutated snapshot is re-marshalled.
+// fall into Unknown; FromJSON parses them tolerantly into the typed
+// Metadata.Actions / .CustomTypes (the single source of truth), and ToJSON
+// re-emits them from those typed fields via v3MetadataOut. Keeping them out of
+// Unknown avoids a duplicate `actions` member when a mutated snapshot is
+// re-marshalled. When a section fails its typed parse, FromJSON restores its
+// raw bytes into Unknown so the data still survives a FromJSON ∘ ToJSON
+// round-trip verbatim rather than being silently dropped.
 type v3Metadata struct {
 	Version        int                    `json:"version"`
 	Sources        []DatabaseMetadata     `json:"sources"`
@@ -78,7 +80,21 @@ func FromJSON(data []byte) (*Metadata, error) {
 		}
 	}
 
-	actions, customTypes, diagnostics := extractActionMetadataJSON(data)
+	// v3.Actions / v3.CustomTypes already hold the raw bytes of those two
+	// members (claimed out of Unknown by the struct tags above), so there is no
+	// need to re-parse the whole blob to recover them.
+	var diagnostics []LoadDiagnostic
+	unknown := v3.Unknown
+
+	actions, ok := unmarshalOptionalActionJSON(v3.Actions, &diagnostics)
+	if !ok {
+		unknown = restoreRawSection(unknown, "actions", v3.Actions)
+	}
+
+	customTypes, ok := unmarshalOptionalCustomTypesJSON(v3.CustomTypes, &diagnostics)
+	if !ok {
+		unknown = restoreRawSection(unknown, "custom_types", v3.CustomTypes)
+	}
 
 	return &Metadata{
 		Databases:       v3.Sources,
@@ -87,40 +103,41 @@ func FromJSON(data []byte) (*Metadata, error) {
 		CustomTypes:     customTypes,
 		InheritedRoles:  v3.InheritedRoles,
 		LoadDiagnostics: diagnostics,
-		Unknown:         v3.Unknown,
+		Unknown:         unknown,
 	}, nil
 }
 
-// extractActionMetadataJSON tolerantly parses the optional `actions` and
-// `custom_types` sections from a Hasura v3 metadata blob. A malformed section
-// degrades to a LoadDiagnostic and is dropped — mirroring the YAML loader — so
-// a bad action never fails the whole metadata load.
-func extractActionMetadataJSON(data []byte) ([]ActionMetadata, CustomTypes, []LoadDiagnostic) {
-	var raw struct {
-		Actions     jsontext.Value `json:"actions"`
-		CustomTypes jsontext.Value `json:"custom_types"`
+// restoreRawSection re-inserts a metadata section that failed its typed parse
+// back into the envelope Unknown bytes, so ToJSON re-emits it verbatim instead
+// of silently dropping it (matching the pre-typed-fields behavior where these
+// sections round-tripped through Unknown). Keys are re-sorted deterministically,
+// matching ToJSON's json.Deterministic output.
+func restoreRawSection(unknown jsontext.Value, key string, raw jsontext.Value) jsontext.Value {
+	fields := map[string]jsontext.Value{}
+	if len(unknown) > 0 {
+		if err := json.Unmarshal(unknown, &fields); err != nil {
+			// Unknown is engine-produced JSON, so this should not happen; if it
+			// does, keep the original Unknown rather than losing more data.
+			return unknown
+		}
 	}
 
-	if err := json.Unmarshal(data, &raw); err != nil {
-		// FromJSON already unmarshaled the envelope, so this is unreachable in
-		// practice; degrade safely rather than fail the load.
-		return nil, emptyCustomTypes(), nil
+	fields[key] = raw
+
+	merged, err := json.Marshal(fields, json.Deterministic(true))
+	if err != nil {
+		return unknown
 	}
 
-	var diagnostics []LoadDiagnostic
-
-	actions := unmarshalOptionalActionJSON(raw.Actions, &diagnostics)
-	customTypes := unmarshalOptionalCustomTypesJSON(raw.CustomTypes, &diagnostics)
-
-	return actions, customTypes, diagnostics
+	return merged
 }
 
 func unmarshalOptionalActionJSON(
 	data jsontext.Value,
 	diagnostics *[]LoadDiagnostic,
-) []ActionMetadata {
+) ([]ActionMetadata, bool) {
 	if len(data) == 0 {
-		return nil
+		return nil, true
 	}
 
 	var actions []ActionMetadata
@@ -132,18 +149,18 @@ func unmarshalOptionalActionJSON(
 			Reason: fmt.Sprintf("failed to unmarshal metadata JSON actions: %v", err),
 		})
 
-		return nil
+		return nil, false
 	}
 
-	return actions
+	return actions, true
 }
 
 func unmarshalOptionalCustomTypesJSON(
 	data jsontext.Value,
 	diagnostics *[]LoadDiagnostic,
-) CustomTypes {
+) (CustomTypes, bool) {
 	if len(data) == 0 {
-		return emptyCustomTypes()
+		return emptyCustomTypes(), true
 	}
 
 	var customTypes CustomTypes
@@ -155,10 +172,10 @@ func unmarshalOptionalCustomTypesJSON(
 			Reason: fmt.Sprintf("failed to unmarshal metadata JSON custom_types: %v", err),
 		})
 
-		return emptyCustomTypes()
+		return emptyCustomTypes(), false
 	}
 
-	return customTypes
+	return customTypes, true
 }
 
 // ToJSON serializes a *Metadata back into the Hasura v3 JSON envelope. It is

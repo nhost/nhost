@@ -285,6 +285,9 @@ func (w *asyncWorker) process( //nolint:funlen // Keeps async lifecycle/error pe
 	defer storeCancel()
 
 	if err != nil {
+		// Log the real cause server-side; the persisted (client-facing) message
+		// stays generic so internal errors are not leaked into the action log.
+		w.logWorkerError(storeCtx, "executing asynchronous action failed", err)
 		w.persistWorkerError(storeCtx, entry.ID, "executing asynchronous action failed")
 
 		return

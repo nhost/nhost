@@ -15,10 +15,13 @@ type CustomTypes struct {
 	Unknown      jsontext.Value          `json:",unknown"                yaml:"-"`
 }
 
-// IsZero reports whether no custom types are configured.
+// IsZero reports whether no custom types are configured. It also inspects
+// Unknown: a custom_types object whose only content is unmodeled keys is still
+// meaningful, and treating it as zero would let the `omitzero` tag in
+// v3MetadataOut drop exactly the data Unknown exists to preserve.
 func (c CustomTypes) IsZero() bool {
 	return len(c.InputObjects) == 0 && len(c.Objects) == 0 &&
-		len(c.Scalars) == 0 && len(c.Enums) == 0
+		len(c.Scalars) == 0 && len(c.Enums) == 0 && len(c.Unknown) == 0
 }
 
 func emptyCustomTypes() CustomTypes {
@@ -64,6 +67,12 @@ type CustomEnumType struct {
 }
 
 // CustomEnumValue describes one enum value, including optional deprecation metadata.
+// CustomEnumValue deliberately omits the `json:",unknown"` field carried by
+// every other custom-type wire struct: a Hasura enum value is a closed type
+// (value/name/description/is_deprecated/deprecation_reason only), and its
+// hand-written UnmarshalJSON/UnmarshalYAML decode into a fixed shape to accept
+// the `name` alias. Any future key would need capturing here explicitly rather
+// than via the tag, which is not honored alongside a custom unmarshaler.
 type CustomEnumValue struct {
 	Value             string `json:"value"                        yaml:"value"`
 	Description       string `json:"description,omitempty"        yaml:"description,omitempty"`

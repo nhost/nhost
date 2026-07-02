@@ -50,10 +50,9 @@ const (
 	flagHasuraUpstreamURL                = "hasura-upstream-url"
 	flagHasuraProxyRequestBodyLimitBytes = "hasura-proxy-request-body-limit-bytes"
 
-	flagActionLogDatabaseURL       = "action-log-database-url"
+	flagCatalogDatabaseURL         = "catalog-database-url"
 	flagActionLogSchema            = "action-log-schema"
 	flagActionLogTable             = "action-log-table"
-	flagActionLogCreateIfNotExists = "action-log-create-if-not-exists"
 	flagAsyncWorkerEnabled         = "async-action-worker-enabled"
 	flagAsyncWorkerExclusiveOwner  = "async-action-worker-exclusive-owner"
 	flagAsyncWorkerPollInterval    = "async-action-worker-poll-interval"
@@ -260,11 +259,12 @@ func actionFlags() []cli.Flag {
 
 	return []cli.Flag{
 		&cli.StringFlag{ //nolint:exhaustruct
-			Name: flagActionLogDatabaseURL,
-			Usage: "PostgreSQL URL for the async action-log store. Defaults to " +
-				"--" + flagMetadataDatabaseURL + ", then the first Postgres source.",
+			Name: flagCatalogDatabaseURL,
+			Usage: "PostgreSQL URL for Hasura catalog-backed runtime state " +
+				"(currently the async action log). Defaults to --" +
+				flagMetadataDatabaseURL + ", then the first Postgres source.",
 			Category: category,
-			Sources:  cli.EnvVars("CONSTELLATION_ACTION_LOG_DATABASE_URL"),
+			Sources:  cli.EnvVars("CONSTELLATION_CATALOG_DATABASE_URL"),
 		},
 		&cli.StringFlag{ //nolint:exhaustruct
 			Name:     flagActionLogSchema,
@@ -277,13 +277,6 @@ func actionFlags() []cli.Flag {
 			Usage:    "Table for the async action log (default hdb_action_log).",
 			Category: category,
 			Sources:  cli.EnvVars("CONSTELLATION_ACTION_LOG_TABLE"),
-		},
-		&cli.BoolFlag{ //nolint:exhaustruct
-			Name: flagActionLogCreateIfNotExists,
-			Usage: "Create the action-log schema/table if absent. Leave off when " +
-				"Hasura already manages hdb_catalog.hdb_action_log.",
-			Category: category,
-			Sources:  cli.EnvVars("CONSTELLATION_ACTION_LOG_CREATE_IF_NOT_EXISTS"),
 		},
 		&cli.BoolFlag{ //nolint:exhaustruct
 			Name: flagAsyncWorkerEnabled,
@@ -342,11 +335,10 @@ func serveFlags() []cli.Flag {
 func actionLogConfigFromFlags(cmd *cli.Command) connector.ActionLogConfig {
 	return connector.ActionLogConfig{
 		Store:               nil,
-		DatabaseURL:         cmd.String(flagActionLogDatabaseURL),
+		CatalogDatabaseURL:  cmd.String(flagCatalogDatabaseURL),
 		MetadataDatabaseURL: cmd.String(flagMetadataDatabaseURL),
 		Schema:              cmd.String(flagActionLogSchema),
 		Table:               cmd.String(flagActionLogTable),
-		CreateIfNotExists:   cmd.Bool(flagActionLogCreateIfNotExists),
 		WorkerEnabled:       cmd.Bool(flagAsyncWorkerEnabled),
 		ExclusiveOwner:      cmd.Bool(flagAsyncWorkerExclusiveOwner),
 		PollInterval:        cmd.Duration(flagAsyncWorkerPollInterval),
@@ -634,6 +626,16 @@ func serve(ctx context.Context, cmd *cli.Command) error {
 		hasuraProxy = proxy
 	}
 
+	// Single shared pool for all Hasura catalog-backed runtime state (currently
+	// the async action log). Opened lazily on first use and reused across
+	// metadata reloads; owned here so it outlives the per-reload connector
+	// rebuild and is released on shutdown.
+	catalogPool := connector.NewCatalogPool(
+		cmd.String(flagCatalogDatabaseURL),
+		cmd.String(flagMetadataDatabaseURL),
+	)
+	defer catalogPool.Close()
+
 	ctrl, err := controller.New(
 		ctx,
 		cmd.Duration(flagSubscriptionPollInterval),
@@ -645,6 +647,7 @@ func serve(ctx context.Context, cmd *cli.Command) error {
 		cmd.Root().Version,
 		hasuraProxy,
 		connector.WithActionLogConfig(actionLogConfigFromFlags(cmd)),
+		connector.WithCatalogPool(catalogPool),
 	)
 	if err != nil {
 		return fmt.Errorf("failed to create controller: %w", err)

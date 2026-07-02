@@ -1,6 +1,7 @@
 package metadata_test
 
 import (
+	"reflect"
 	"slices"
 	"testing"
 
@@ -330,10 +331,81 @@ func findDelete(t *metadata.TableMetadata, role string) *metadata.DeletePermissi
 	return nil
 }
 
-// TestExpandInheritedRoles_InsertUnionCheckAndSet covers insert synthesis:
-// the column union, the OR-combination of restricted Check expressions, and
-// the first-wins (role_set order) merge of the Set preset map.
-func TestExpandInheritedRoles_InsertUnionCheckAndSet(t *testing.T) {
+// TestExpandInheritedRoles_MutationIdenticalInherited verifies that when every
+// contributing parent holds the SAME mutation permission, the inherited role
+// receives it verbatim. Hasura inherits insert/update/delete permissions only
+// when they are identical across the role set.
+func TestExpandInheritedRoles_MutationIdenticalInherited(t *testing.T) {
+	t.Parallel()
+
+	insertCfg := metadata.InsertPermissionConfig{
+		Columns: []string{"id", "amount"},
+		Check:   map[string]any{"amount": map[string]any{"_gt": 0}},
+		Set:     map[string]any{"tenant": "X-Hasura-Tenant-Id"},
+	}
+	updateCfg := metadata.UpdatePermissionConfig{
+		Columns: []string{"amount"},
+		Filter:  map[string]any{"owner": map[string]any{"_eq": "X-Hasura-User-Id"}},
+		Check:   map[string]any{"amount": map[string]any{"_gt": 0}},
+		Set:     map[string]any{"updated_by": "X-Hasura-User-Id"},
+	}
+	deleteCfg := metadata.DeletePermissionConfig{
+		Filter: map[string]any{"owner": map[string]any{"_eq": "X-Hasura-User-Id"}},
+	}
+
+	meta := metaWith(
+		[]metadata.InheritedRole{{RoleName: "manager", RoleSet: []string{"employee", "auditor"}}},
+		metadata.TableMetadata{
+			Table: metadata.TableSource{Schema: "public", Name: "orders"},
+			InsertPermissions: []metadata.InsertPermission{
+				{Role: "employee", Permission: insertCfg},
+				{Role: "auditor", Permission: insertCfg},
+			},
+			UpdatePermissions: []metadata.UpdatePermission{
+				{Role: "employee", Permission: updateCfg},
+				{Role: "auditor", Permission: updateCfg},
+			},
+			DeletePermissions: []metadata.DeletePermission{
+				{Role: "employee", Permission: deleteCfg},
+				{Role: "auditor", Permission: deleteCfg},
+			},
+		},
+	)
+
+	inc := metadata.NewInconsistencies()
+	metadata.ExpandInheritedRoles(t.Context(), meta, inc, nil)
+
+	if n := len(inc.Snapshot()); n != 0 {
+		t.Fatalf("unexpected inconsistencies: %+v", inc.Snapshot())
+	}
+
+	tbl := &meta.Databases[0].Tables[0]
+
+	if ins := findInsert(tbl, "manager"); ins == nil {
+		t.Fatal("manager insert permission not synthesized")
+	} else if !reflect.DeepEqual(*ins, insertCfg) {
+		t.Errorf("insert = %+v, want %+v (inherited verbatim)", *ins, insertCfg)
+	}
+
+	if upd := findUpdate(tbl, "manager"); upd == nil {
+		t.Fatal("manager update permission not synthesized")
+	} else if !reflect.DeepEqual(*upd, updateCfg) {
+		t.Errorf("update = %+v, want %+v (inherited verbatim)", *upd, updateCfg)
+	}
+
+	if del := findDelete(tbl, "manager"); del == nil {
+		t.Fatal("manager delete permission not synthesized")
+	} else if !reflect.DeepEqual(*del, deleteCfg) {
+		t.Errorf("delete = %+v, want %+v (inherited verbatim)", *del, deleteCfg)
+	}
+}
+
+// TestExpandInheritedRoles_MutationConflictRecordsInconsistency verifies that
+// when contributing parents disagree on a mutation permission, the inherited
+// role does NOT receive a most-permissive union (which would over-grant write
+// access); the permission is skipped and an InconsistencyKindInheritedRole is
+// recorded for the table.
+func TestExpandInheritedRoles_MutationConflictRecordsInconsistency(t *testing.T) {
 	t.Parallel()
 
 	meta := metaWith(
@@ -344,13 +416,86 @@ func TestExpandInheritedRoles_InsertUnionCheckAndSet(t *testing.T) {
 				{Role: "employee", Permission: metadata.InsertPermissionConfig{
 					Columns: []string{"id", "amount"},
 					Check:   map[string]any{"amount": map[string]any{"_gt": 0}},
-					Set:     map[string]any{"tenant": "X-Hasura-Tenant-Id", "source": "employee"},
 				}},
 				{Role: "auditor", Permission: metadata.InsertPermissionConfig{
 					Columns: []string{"id", "region"},
 					Check:   map[string]any{"region": map[string]any{"_eq": "EU"}},
-					Set:     map[string]any{"tenant": "auditor-tenant"},
 				}},
+			},
+			UpdatePermissions: []metadata.UpdatePermission{
+				{Role: "employee", Permission: metadata.UpdatePermissionConfig{
+					Filter: map[string]any{"owner": map[string]any{"_eq": "X-Hasura-User-Id"}},
+				}},
+				{Role: "auditor", Permission: metadata.UpdatePermissionConfig{
+					Filter: map[string]any{"region": map[string]any{"_eq": "EU"}},
+				}},
+			},
+			DeletePermissions: []metadata.DeletePermission{
+				{Role: "employee", Permission: metadata.DeletePermissionConfig{
+					Filter: map[string]any{"owner": map[string]any{"_eq": "X-Hasura-User-Id"}},
+				}},
+				{Role: "auditor", Permission: metadata.DeletePermissionConfig{
+					Filter: map[string]any{"region": map[string]any{"_eq": "EU"}},
+				}},
+			},
+		},
+	)
+
+	inc := metadata.NewInconsistencies()
+	metadata.ExpandInheritedRoles(t.Context(), meta, inc, nil)
+
+	tbl := &meta.Databases[0].Tables[0]
+	if got := findInsert(tbl, "manager"); got != nil {
+		t.Errorf("insert should not be synthesized on conflict, got %+v", *got)
+	}
+
+	if got := findUpdate(tbl, "manager"); got != nil {
+		t.Errorf("update should not be synthesized on conflict, got %+v", *got)
+	}
+
+	if got := findDelete(tbl, "manager"); got != nil {
+		t.Errorf("delete should not be synthesized on conflict, got %+v", *got)
+	}
+
+	snap := inc.Snapshot()
+	if len(snap) != 3 {
+		t.Fatalf("want 3 inconsistencies (insert/update/delete conflict), got %d: %+v", len(snap), snap)
+	}
+
+	for _, i := range snap {
+		if i.Kind != metadata.InconsistencyKindInheritedRole {
+			t.Errorf("inconsistency kind = %q, want %q", i.Kind, metadata.InconsistencyKindInheritedRole)
+		}
+
+		if i.Name != "manager" || i.Source != "public.orders" {
+			t.Errorf("inconsistency = {Source:%q Name:%q}, want {public.orders manager}", i.Source, i.Name)
+		}
+	}
+}
+
+// TestExpandInheritedRoles_MutationSingleParentInheritedVerbatim verifies that
+// when only one parent holds a mutation permission, the inherited role receives
+// it verbatim (a single contributor is trivially identical) with no
+// inconsistency recorded.
+func TestExpandInheritedRoles_MutationSingleParentInheritedVerbatim(t *testing.T) {
+	t.Parallel()
+
+	insertCfg := metadata.InsertPermissionConfig{
+		Columns: []string{"id", "amount"},
+		Check:   map[string]any{"amount": map[string]any{"_gt": 0}},
+	}
+
+	meta := metaWith(
+		[]metadata.InheritedRole{{RoleName: "manager", RoleSet: []string{"employee", "auditor"}}},
+		metadata.TableMetadata{
+			Table: metadata.TableSource{Schema: "public", Name: "orders"},
+			// Only employee has an insert permission; auditor holds a select
+			// permission so it still counts as a known parent role.
+			SelectPermissions: []metadata.SelectPermission{
+				{Role: "auditor", Permission: metadata.SelectPermissionConfig{Columns: []string{"id"}}},
+			},
+			InsertPermissions: []metadata.InsertPermission{
+				{Role: "employee", Permission: insertCfg},
 			},
 		},
 	)
@@ -364,147 +509,34 @@ func TestExpandInheritedRoles_InsertUnionCheckAndSet(t *testing.T) {
 
 	got := findInsert(&meta.Databases[0].Tables[0], "manager")
 	if got == nil {
-		t.Fatal("manager insert permission not synthesized")
+		t.Fatal("manager insert permission not synthesized from single parent")
 	}
 
-	if want := []string{"amount", "id", "region"}; !slices.Equal(got.Columns, want) {
-		t.Errorf("columns = %v, want %v (sorted union)", got.Columns, want)
-	}
-
-	orClauses, ok := got.Check["_or"].([]any)
-	if !ok || len(orClauses) != 2 {
-		t.Fatalf("check should be {_or:[..2..]}, got %v", got.Check)
-	}
-
-	// first-wins in role_set order: employee precedes auditor, so employee's
-	// "tenant" value is kept and "source" survives untouched.
-	if got.Set["tenant"] != "X-Hasura-Tenant-Id" {
-		t.Errorf("set[tenant] = %v, want employee value (first wins)", got.Set["tenant"])
-	}
-
-	if got.Set["source"] != "employee" {
-		t.Errorf("set[source] = %v, want %q", got.Set["source"], "employee")
+	if !reflect.DeepEqual(*got, insertCfg) {
+		t.Errorf("insert = %+v, want %+v (single parent inherited verbatim)", *got, insertCfg)
 	}
 }
 
-// TestExpandInheritedRoles_UpdateUnionFiltersChecksSet covers update synthesis:
-// column union, OR-combination of both Filter and Check, and first-wins Set.
-func TestExpandInheritedRoles_UpdateUnionFiltersChecksSet(t *testing.T) {
-	t.Parallel()
-
-	meta := metaWith(
-		[]metadata.InheritedRole{{RoleName: "manager", RoleSet: []string{"employee", "auditor"}}},
-		metadata.TableMetadata{
-			Table: metadata.TableSource{Schema: "public", Name: "orders"},
-			UpdatePermissions: []metadata.UpdatePermission{
-				{Role: "employee", Permission: metadata.UpdatePermissionConfig{
-					Columns: []string{"amount"},
-					Filter:  map[string]any{"owner": map[string]any{"_eq": "X-Hasura-User-Id"}},
-					Check:   map[string]any{"amount": map[string]any{"_gt": 0}},
-					Set:     map[string]any{"updated_by": "X-Hasura-User-Id"},
-				}},
-				{Role: "auditor", Permission: metadata.UpdatePermissionConfig{
-					Columns: []string{"region"},
-					Filter:  map[string]any{"region": map[string]any{"_eq": "EU"}},
-					Check:   map[string]any{"region": map[string]any{"_eq": "EU"}},
-					Set:     map[string]any{"updated_by": "auditor"},
-				}},
-			},
-		},
-	)
-
-	metadata.ExpandInheritedRoles(t.Context(), meta, metadata.NewInconsistencies(), nil)
-
-	got := findUpdate(&meta.Databases[0].Tables[0], "manager")
-	if got == nil {
-		t.Fatal("manager update permission not synthesized")
-	}
-
-	if want := []string{"amount", "region"}; !slices.Equal(got.Columns, want) {
-		t.Errorf("columns = %v, want %v (sorted union)", got.Columns, want)
-	}
-
-	if orClauses, ok := got.Filter["_or"].([]any); !ok || len(orClauses) != 2 {
-		t.Fatalf("filter should be {_or:[..2..]}, got %v", got.Filter)
-	}
-
-	if orClauses, ok := got.Check["_or"].([]any); !ok || len(orClauses) != 2 {
-		t.Fatalf("check should be {_or:[..2..]}, got %v", got.Check)
-	}
-
-	if got.Set["updated_by"] != "X-Hasura-User-Id" {
-		t.Errorf("set[updated_by] = %v, want employee value (first wins)", got.Set["updated_by"])
-	}
-}
-
-// TestExpandInheritedRoles_DeleteOrFilter covers delete synthesis:
-// the OR-combination of the contributing parents' row filters.
-func TestExpandInheritedRoles_DeleteOrFilter(t *testing.T) {
-	t.Parallel()
-
-	meta := metaWith(
-		[]metadata.InheritedRole{{RoleName: "manager", RoleSet: []string{"employee", "auditor"}}},
-		metadata.TableMetadata{
-			Table: metadata.TableSource{Schema: "public", Name: "orders"},
-			DeletePermissions: []metadata.DeletePermission{
-				{Role: "employee", Permission: metadata.DeletePermissionConfig{
-					Filter: map[string]any{"owner": map[string]any{"_eq": "X-Hasura-User-Id"}},
-				}},
-				{Role: "auditor", Permission: metadata.DeletePermissionConfig{
-					Filter: map[string]any{"region": map[string]any{"_eq": "EU"}},
-				}},
-			},
-		},
-	)
-
-	metadata.ExpandInheritedRoles(t.Context(), meta, metadata.NewInconsistencies(), nil)
-
-	got := findDelete(&meta.Databases[0].Tables[0], "manager")
-	if got == nil {
-		t.Fatal("manager delete permission not synthesized")
-	}
-
-	if orClauses, ok := got.Filter["_or"].([]any); !ok || len(orClauses) != 2 {
-		t.Fatalf("filter should be {_or:[..2..]}, got %v", got.Filter)
-	}
-}
-
-// TestExpandInheritedRoles_WriteUnrestrictedParentWins asserts the
-// unrestricted-parent shortcut for the write permission kinds: a parent whose
-// insert Check / update Filter+Check / delete Filter is empty (no restriction)
-// makes the synthesized union unrestricted ({}), regardless of a sibling
-// parent's restriction.
-func TestExpandInheritedRoles_WriteUnrestrictedParentWins(t *testing.T) {
+// TestExpandInheritedRoles_SelectUnrestrictedParentWins asserts the
+// unrestricted-parent shortcut for select: a parent whose row filter is empty
+// (no restriction) makes the synthesized union unrestricted ({}), regardless of
+// a sibling parent's restriction. (Mutation kinds no longer union; see the
+// identical/conflict tests above.)
+func TestExpandInheritedRoles_SelectUnrestrictedParentWins(t *testing.T) {
 	t.Parallel()
 
 	meta := metaWith(
 		[]metadata.InheritedRole{{RoleName: "manager", RoleSet: []string{"employee", "superuser"}}},
 		metadata.TableMetadata{
 			Table: metadata.TableSource{Schema: "public", Name: "orders"},
-			InsertPermissions: []metadata.InsertPermission{
-				{Role: "employee", Permission: metadata.InsertPermissionConfig{
-					Check: map[string]any{"amount": map[string]any{"_gt": 0}},
+			SelectPermissions: []metadata.SelectPermission{
+				{Role: "employee", Permission: metadata.SelectPermissionConfig{
+					Columns: []string{"id"},
+					Filter:  map[string]any{"owner": map[string]any{"_eq": "X-Hasura-User-Id"}},
 				}},
-				{Role: "superuser", Permission: metadata.InsertPermissionConfig{
-					Check: map[string]any{}, // no restriction
-				}},
-			},
-			UpdatePermissions: []metadata.UpdatePermission{
-				{Role: "employee", Permission: metadata.UpdatePermissionConfig{
-					Filter: map[string]any{"owner": map[string]any{"_eq": "X-Hasura-User-Id"}},
-					Check:  map[string]any{"amount": map[string]any{"_gt": 0}},
-				}},
-				{Role: "superuser", Permission: metadata.UpdatePermissionConfig{
-					Filter: map[string]any{}, // no restriction
-					Check:  map[string]any{}, // no restriction
-				}},
-			},
-			DeletePermissions: []metadata.DeletePermission{
-				{Role: "employee", Permission: metadata.DeletePermissionConfig{
-					Filter: map[string]any{"owner": map[string]any{"_eq": "X-Hasura-User-Id"}},
-				}},
-				{Role: "superuser", Permission: metadata.DeletePermissionConfig{
-					Filter: map[string]any{}, // no restriction
+				{Role: "superuser", Permission: metadata.SelectPermissionConfig{
+					Columns: []string{"id"},
+					Filter:  map[string]any{}, // no restriction
 				}},
 			},
 		},
@@ -512,36 +544,12 @@ func TestExpandInheritedRoles_WriteUnrestrictedParentWins(t *testing.T) {
 
 	metadata.ExpandInheritedRoles(t.Context(), meta, metadata.NewInconsistencies(), nil)
 
-	tbl := &meta.Databases[0].Tables[0]
-
-	ins := findInsert(tbl, "manager")
-	if ins == nil {
-		t.Fatal("manager insert permission not synthesized")
+	sel := findSelect(&meta.Databases[0].Tables[0], "manager")
+	if sel == nil {
+		t.Fatal("manager select permission not synthesized")
 	}
 
-	if len(ins.Check) != 0 {
-		t.Errorf("insert check = %v, want {} (unrestricted parent wins)", ins.Check)
-	}
-
-	upd := findUpdate(tbl, "manager")
-	if upd == nil {
-		t.Fatal("manager update permission not synthesized")
-	}
-
-	if len(upd.Filter) != 0 {
-		t.Errorf("update filter = %v, want {} (unrestricted parent wins)", upd.Filter)
-	}
-
-	if len(upd.Check) != 0 {
-		t.Errorf("update check = %v, want {} (unrestricted parent wins)", upd.Check)
-	}
-
-	del := findDelete(tbl, "manager")
-	if del == nil {
-		t.Fatal("manager delete permission not synthesized")
-	}
-
-	if len(del.Filter) != 0 {
-		t.Errorf("delete filter = %v, want {} (unrestricted parent wins)", del.Filter)
+	if len(sel.Filter) != 0 {
+		t.Errorf("select filter = %v, want {} (unrestricted parent wins)", sel.Filter)
 	}
 }
