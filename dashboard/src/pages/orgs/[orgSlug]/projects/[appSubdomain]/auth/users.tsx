@@ -218,9 +218,9 @@ function UsersPageContent() {
         className="flex h-full max-w-9xl flex-col"
         rootClassName="h-full"
       >
-        <div className="flex shrink-0 grow-0 flex-col gap-3 sm:flex-row sm:items-center sm:place-content-between">
+        <div className="flex shrink-0 grow-0 flex-col gap-3 sm:flex-row sm:place-content-between sm:items-center">
           <Input
-            className="w-full sm:w-72 rounded-sm"
+            className="w-full rounded-sm sm:w-72"
             fullWidth
             placeholder="Search users"
             startAdornment={
@@ -265,9 +265,9 @@ function UsersPageContent() {
       : (dataRemoteAppUsersAndAuthRoles?.usersAggregate?.aggregate?.count ?? 0);
   return (
     <Container className="mx-auto max-w-9xl space-y-5 overflow-x-hidden">
-      <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:place-content-between">
+      <div className="flex flex-col gap-3 sm:flex-row sm:place-content-between sm:items-center">
         <Input
-          className="w-full sm:w-72 rounded-sm"
+          className="w-full rounded-sm sm:w-72"
           fullWidth
           placeholder="Search users"
           startAdornment={
@@ -285,7 +285,7 @@ function UsersPageContent() {
         </Button>
       </div>
       {usersCount === 0 ? (
-        <Box className="flex flex-col items-center justify-center space-y-5 rounded-lg border px-4 sm:px-48 py-12 shadow-sm">
+        <Box className="flex flex-col items-center justify-center space-y-5 rounded-lg border px-4 py-12 shadow-sm sm:px-48">
           <UserIcon strokeWidth={1} className="h-10 w-10 text-disabled" />
           <div className="flex flex-col space-y-1">
             <Text className="text-center font-medium" variant="h3">
