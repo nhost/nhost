@@ -21,6 +21,11 @@ import (
 	"github.com/nhost/nhost/services/constellation/connector/sql/graphql/queries/core"
 )
 
+// errStubHardConn is a static stand-in for a raw, unstructured driver/dial
+// failure. Declared at package scope so tests do not construct dynamic errors
+// inline (err113).
+var errStubHardConn = errors.New("dial tcp 10.0.0.1:443: connect: connection refused")
+
 func TestGroupFieldsByConnectorUsesOperationQualifiedKeys(t *testing.T) {
 	t.Parallel()
 
@@ -715,7 +720,7 @@ func TestClassifyConnectorError_StructuredAndHardErrors(t *testing.T) {
 			"path":    []any{"insertUser"},
 		},
 	}}
-	hard := errors.New("dial tcp 10.0.0.1:443: connect: connection refused")
+	hard := errStubHardConn
 
 	c := &Controller{devMode: false}
 
