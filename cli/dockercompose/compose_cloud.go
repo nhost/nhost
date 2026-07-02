@@ -63,7 +63,6 @@ func consoleCloud(
 		httpPort,
 		useTLS,
 		nhostFolder,
-		dotNhostFolder,
 		ports.Console,
 		hostOS,
 	)
