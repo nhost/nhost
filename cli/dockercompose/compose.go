@@ -2,7 +2,6 @@ package dockercompose
 
 import (
 	"encoding/json"
-	"errors"
 	"fmt"
 	"net/url"
 	"os"
@@ -499,10 +498,6 @@ func functions( //nolint:funlen
 		return nil, fmt.Errorf("failed to strip JWT secret for %s: %w", "functions", err)
 	}
 
-	if err := prepareFunctionsHostFiles(rootFolder); err != nil {
-		return nil, err
-	}
-
 	envVars := map[string]string{
 		"HASURA_GRAPHQL_ADMIN_SECRET": cfg.Hasura.AdminSecret,
 		"HASURA_GRAPHQL_DATABASE_URL": "postgres://nhost_auth_admin@local.db.nhost.run:5432/local",
@@ -581,53 +576,28 @@ func functions( //nolint:funlen
 	}, nil
 }
 
-// defaultFunctionsTSConfig matches services/functions/tsconfig.json,
-// which the nhost/functions image's start.sh copies into the user's
-// project on boot via `cp -n` (no-clobber). The container runs as
-// root, so that copy leaves a root-owned file in the host repo.
-// Pre-creating the file as the calling user makes the `cp -n` a
-// no-op.
-const defaultFunctionsTSConfig = `{
-  "compilerOptions": {
-    "allowJs": true,
-    "skipLibCheck": true,
-    "noEmit": true,
-    "esModuleInterop": true,
-    "resolveJsonModule": true,
-    "isolatedModules": true,
-    "strictNullChecks": false
-  }
-}
-`
-
-// prepareFunctionsHostFiles materialises directories and files that
-// the functions container would otherwise create on the bind-mounted
-// project root as root: nested named-volume mountpoints and the
-// default tsconfig.json. Running here in the CLI process means they
-// land owned by the calling user.
-func prepareFunctionsHostFiles(rootFolder string) error {
-	dirs := []string{
+// prepareFunctionsMountpoints pre-creates, as the calling user, the
+// directories the functions service mounts named volumes onto:
+// node_modules, functions/ and functions/node_modules. These live under
+// the bind-mounted project root, so if they are missing dockerd creates
+// them as root when attaching the volumes, leaving root-owned stubs in
+// the user's repo. The functions container can't be demoted to the host
+// user (its Nix image relies on root's DAC_OVERRIDE for a read-only
+// /tmp), so pre-creating the mountpoints here is what keeps them owned
+// by the caller.
+//
+// It deliberately does not touch functions/tsconfig.json: the container
+// owns that file (start.sh copies it via `cp -n`), and mirroring its
+// contents here would silently drift from the functions image.
+func prepareFunctionsMountpoints(rootFolder string) error {
+	for _, p := range []string{
 		filepath.Join(rootFolder, "node_modules"),
 		filepath.Join(rootFolder, "functions"),
 		filepath.Join(rootFolder, "functions", "node_modules"),
-	}
-	for _, p := range dirs {
+	} {
 		if err := os.MkdirAll(p, 0o755); err != nil { //nolint:mnd
 			return fmt.Errorf("create %s: %w", p, err)
 		}
-	}
-
-	tsconfig := filepath.Join(rootFolder, "functions", "tsconfig.json")
-	if _, err := os.Stat(tsconfig); errors.Is(err, os.ErrNotExist) {
-		if err := os.WriteFile(
-			tsconfig,
-			[]byte(defaultFunctionsTSConfig),
-			0o600, //nolint:mnd
-		); err != nil {
-			return fmt.Errorf("create %s: %w", tsconfig, err)
-		}
-	} else if err != nil {
-		return fmt.Errorf("stat %s: %w", tsconfig, err)
 	}
 
 	return nil
@@ -717,6 +687,7 @@ func getServices( //nolint: funlen,cyclop
 	configserviceImage string,
 	appID string,
 	startFunctions bool,
+	hostOS string,
 	runServices ...*RunService,
 ) (map[string]*Service, error) {
 	minioVolumeName := "minio_" + sanitizeBranch(branch)
@@ -756,6 +727,7 @@ func getServices( //nolint: funlen,cyclop
 		nhostFolder,
 		dotNhostFolder,
 		ports.Console,
+		hostOS,
 	)
 	if err != nil {
 		return nil, err
@@ -819,6 +791,7 @@ func getServices( //nolint: funlen,cyclop
 			httpPort,
 			nhostFolder,
 			"nhost/constellation:"+*cfg.GetExperimental().GetConstellation().GetVersion(),
+			hostOS,
 		)
 		if err != nil {
 			return nil, err
@@ -875,73 +848,40 @@ func mountCACertificates(
 	}
 }
 
-// servicesRunAsHostUser is the set of services that write into
-// host-bind-mounted directories the user owns (migrations, metadata,
-// generated config). Running them as the host user keeps those files
-// owned by the caller instead of root.
-//
-// The `functions` service is intentionally excluded: its image is
-// built with Nix and ships a read-only /tmp (mode 0555), so its
-// entrypoint relies on root's DAC_OVERRIDE to create
-// /tmp/corepack-shims. Stub directories that dockerd otherwise
-// creates as root inside the bind-mounted project root are handled
-// separately in functions() by pre-creating the mountpoints.
-//
-// The `configserver` service is also excluded: it bind-mounts the
-// host Docker socket to discover sibling containers and serve their
-// logs. That socket is owned by root:docker, and the caller normally
-// reaches it via the `docker` supplementary group. Forcing
-// `user: <uid>:<gid>` runs the container with only that primary gid
-// and drops the caller's supplementary groups, so it would lose
-// access to the socket. It therefore keeps its default (root) user.
 // osLinux is runtime.GOOS on Linux hosts.
 const osLinux = "linux"
 
-var servicesRunAsHostUser = []string{ //nolint:gochecknoglobals
-	"console",
-	"constellation",
-}
-
-// prepareNhostFolderSubdirs materialises the directories under the
-// project's nhost/ folder that the stack bind-mounts into containers
-// (metadata, migrations, seeds, emails). Without this, dockerd creates
-// any missing source dirs as root when attaching the bind, leaving
-// root-owned directories in the user's repo even after the relevant
-// containers are demoted to the host user.
-func prepareNhostFolderSubdirs(nhostFolder string) error {
-	for _, name := range []string{"metadata", "migrations", "seeds", "emails"} {
-		p := filepath.Join(nhostFolder, name)
-		if err := os.MkdirAll(p, 0o755); err != nil { //nolint:mnd
-			return fmt.Errorf("create %s: %w", p, err)
-		}
-	}
-
-	return nil
-}
-
-// applyHostUserID sets `user: <uid>:<gid>` on services that produce
-// host-visible files, so those files end up owned by the user who ran
-// `nhost up` rather than root.
+// hostUserSpec returns the `user: <uid>:<gid>` value that makes a
+// container write host-visible files (migrations, metadata, generated
+// config) as the caller instead of root, or nil when host-user mapping
+// must not be applied.
 //
-// Linux only: on Docker Desktop (macOS/Windows) the bind-mount layer
-// already maps ownership to the host user, and forcing `user:` can
-// break images that expect their default UID.
-func applyHostUserID(services map[string]*Service) {
-	if runtime.GOOS != osLinux {
-		return
+// It is applied only on Linux: on Docker Desktop (macOS/Windows) the
+// bind-mount layer already maps ownership to the host user, and forcing
+// `user:` can break images that expect their default UID. Passing
+// hostOS explicitly (rather than reading runtime.GOOS here) keeps the
+// callers testable with a stable value and free of side-effects.
+//
+// Only services that write into user-owned bind mounts should use this.
+// The `functions` service must not: its Nix-built image ships a
+// read-only /tmp (mode 0555) and relies on root's DAC_OVERRIDE to
+// create /tmp/corepack-shims. The `configserver` service must not
+// either: it bind-mounts the host Docker socket (owned by root:docker,
+// reached via the caller's `docker` supplementary group), and forcing a
+// primary gid drops those supplementary groups and loses socket access.
+func hostUserSpec(hostOS string) *string {
+	if hostOS != osLinux {
+		return nil
 	}
 
 	uid := os.Getuid()
 	if uid < 0 {
-		return
+		return nil
 	}
 
 	spec := fmt.Sprintf("%d:%d", uid, os.Getgid())
-	for _, name := range servicesRunAsHostUser {
-		if svc, ok := services[name]; ok {
-			svc.User = &spec
-		}
-	}
+
+	return &spec
 }
 
 func ComposeFileFromConfig( //nolint:funlen
@@ -981,6 +921,7 @@ func ComposeFileFromConfig( //nolint:funlen
 		configserverImage,
 		appID,
 		startFunctions,
+		runtime.GOOS,
 		runServices...,
 	)
 	if err != nil {
@@ -1008,11 +949,11 @@ func ComposeFileFromConfig( //nolint:funlen
 		mountCACertificates(caCertificatesPath, services)
 	}
 
-	if err := prepareNhostFolderSubdirs(nhostFolder); err != nil {
-		return nil, err
+	if startFunctions {
+		if err := prepareFunctionsMountpoints(rootFolder); err != nil {
+			return nil, err
+		}
 	}
-
-	applyHostUserID(services)
 
 	return &ComposeFile{
 		Services: services,

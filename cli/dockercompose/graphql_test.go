@@ -1,6 +1,8 @@
 package dockercompose //nolint:testpackage
 
 import (
+	"fmt"
+	"os"
 	"testing"
 
 	"github.com/google/go-cmp/cmp"
@@ -285,13 +287,19 @@ func TestConsole(t *testing.T) {
 		},
 	}
 
+	// A non-Linux host leaves User unset (see hostUserSpec), matching the
+	// expectedConsole golden which has no User.
+	const nonLinuxHost = "darwin"
+
 	for _, tc := range cases {
 		t.Run(tc.name, func(t *testing.T) {
 			t.Parallel()
 
 			dotNhost := t.TempDir()
 
-			got, err := console(tc.cfg(), "dev", 1337, tc.useTlS, "/path/to/nhost", dotNhost, 0)
+			got, err := console(
+				tc.cfg(), "dev", 1337, tc.useTlS, "/path/to/nhost", dotNhost, 0, nonLinuxHost,
+			)
 			if err != nil {
 				t.Fatalf("got error: %v", err)
 			}
@@ -300,5 +308,35 @@ func TestConsole(t *testing.T) {
 				t.Error(diff)
 			}
 		})
+	}
+}
+
+// TestConsoleRunsAsHostUserOnLinux pins the host-user mapping: on Linux
+// the console container is stamped with the caller's uid:gid so files it
+// writes into the bind-mounted nhost folder stay owned by the caller,
+// while on other hosts User is left unset.
+func TestConsoleRunsAsHostUserOnLinux(t *testing.T) {
+	t.Parallel()
+
+	cfg := getConfig()
+	cfg.Hasura.Version = new("v2.25.0")
+
+	linux, err := console(cfg, "dev", 1337, false, "/path/to/nhost", t.TempDir(), 0, osLinux)
+	if err != nil {
+		t.Fatalf("got error: %v", err)
+	}
+
+	want := fmt.Sprintf("%d:%d", os.Getuid(), os.Getgid())
+	if linux.User == nil || *linux.User != want {
+		t.Errorf("linux console User = %v, want %q", linux.User, want)
+	}
+
+	other, err := console(cfg, "dev", 1337, false, "/path/to/nhost", t.TempDir(), 0, "windows")
+	if err != nil {
+		t.Fatalf("got error: %v", err)
+	}
+
+	if other.User != nil {
+		t.Errorf("non-linux console User = %q, want nil", *other.User)
 	}
 }

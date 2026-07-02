@@ -107,6 +107,7 @@ func console( //nolint:funlen
 	nhostFolder string,
 	dotNhostFolder string,
 	port uint,
+	hostOS string,
 ) (*Service, error) {
 	homeDir := filepath.Join(dotNhostFolder, "hasura")
 	if err := os.MkdirAll(homeDir, 0o755); err != nil { //nolint:mnd
@@ -158,7 +159,7 @@ func console( //nolint:funlen
 	}
 	// hasura-cli writes its global config to $HOME/.hasura/config.json.
 	// The image's default HOME is `/`, which only root can write to;
-	// when this container runs as the host user (see applyHostUserID)
+	// when this container runs as the host user (see hostUserSpec)
 	// the write fails. Mount a host-side, user-owned directory at a
 	// writable HOME so config persists across container restarts.
 	env["HOME"] = "/home/cli"
@@ -216,7 +217,7 @@ func console( //nolint:funlen
 		Networks: nil,
 		Ports:    ports(port, consolePort),
 		Restart:  "always",
-		User:     nil,
+		User:     hostUserSpec(hostOS),
 		Volumes: []Volume{
 			{
 				Type:     "bind",
