@@ -275,33 +275,6 @@ export class TestUserEvent {
     });
   }
 }
-let store: any;
-
-export function setInitialStore(initialState: any) {
-  store = initialState;
-}
-
-export function localStorageMock(initialStore: any = {}) {
-  store = initialStore;
-  return {
-    getItem: vi.fn((key) => store[key] || null),
-    setItem: vi.fn((key, value) => {
-      store[key] = value.toString();
-    }),
-    removeItem: vi.fn((key) => {
-      delete store[key];
-    }),
-    clear: vi.fn(() => {
-      store = {};
-    }),
-    get length() {
-      return Object.keys(store).length;
-    },
-    key(index: number) {
-      return Object.keys(store)[index] ?? null;
-    },
-  };
-}
 
 // Asserts that the given string is rendered as the visible textContent of
 // some element. Useful for components like TruncatedText / TextWithTooltip
