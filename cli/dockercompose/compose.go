@@ -576,33 +576,6 @@ func functions( //nolint:funlen
 	}, nil
 }
 
-// prepareFunctionsMountpoints pre-creates, as the calling user, the
-// directories the functions service mounts named volumes onto:
-// node_modules, functions/ and functions/node_modules. These live under
-// the bind-mounted project root, so if they are missing dockerd creates
-// them as root when attaching the volumes, leaving root-owned stubs in
-// the user's repo. The functions container can't be demoted to the host
-// user (its Nix image relies on root's DAC_OVERRIDE for a read-only
-// /tmp), so pre-creating the mountpoints here is what keeps them owned
-// by the caller.
-//
-// It deliberately does not touch functions/tsconfig.json: the container
-// owns that file (start.sh copies it via `cp -n`), and mirroring its
-// contents here would silently drift from the functions image.
-func prepareFunctionsMountpoints(rootFolder string) error {
-	for _, p := range []string{
-		filepath.Join(rootFolder, "node_modules"),
-		filepath.Join(rootFolder, "functions"),
-		filepath.Join(rootFolder, "functions", "node_modules"),
-	} {
-		if err := os.MkdirAll(p, 0o755); err != nil { //nolint:mnd
-			return fmt.Errorf("create %s: %w", p, err)
-		}
-	}
-
-	return nil
-}
-
 func mailhog(volumeName string, useTLS bool) *Service {
 	return &Service{
 		Image:      "jcalonso/mailhog:v1.0.1",
@@ -946,12 +919,6 @@ func ComposeFileFromConfig( //nolint:funlen
 
 	if caCertificatesPath != "" {
 		mountCACertificates(caCertificatesPath, services)
-	}
-
-	if startFunctions {
-		if err := prepareFunctionsMountpoints(rootFolder); err != nil {
-			return nil, err
-		}
 	}
 
 	return &ComposeFile{
