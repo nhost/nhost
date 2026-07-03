@@ -5,11 +5,11 @@ import { twMerge } from 'tailwind-merge';
 import * as Yup from 'yup';
 import { ApplyLocalSettingsDialog } from '@/components/common/ApplyLocalSettingsDialog';
 import { useDialog } from '@/components/common/DialogProvider';
-import { ControlledSelect } from '@/components/form/ControlledSelect';
 import { Form } from '@/components/form/Form';
+import { FormSelect } from '@/components/form/FormSelect';
 import { SettingsContainer } from '@/components/layout/SettingsContainer';
 import { ActivityIndicator } from '@/components/ui/v2/ActivityIndicator';
-import { Option } from '@/components/ui/v2/Option';
+import { SelectItem } from '@/components/ui/v3/select';
 import { useIsPlatform } from '@/features/orgs/projects/common/hooks/useIsPlatform';
 import { useLocalMimirClient } from '@/features/orgs/projects/hooks/useLocalMimirClient';
 import { useProject } from '@/features/orgs/projects/hooks/useProject';
@@ -86,7 +86,7 @@ export default function GravatarSettings() {
     throw error;
   }
 
-  const { register, formState, watch } = form;
+  const { formState, watch } = form;
   const gravatarEnabled = watch('enabled') ?? false;
 
   const handleGravatarSettingsChange = async (values: GravatarFormValues) => {
@@ -129,9 +129,6 @@ export default function GravatarSettings() {
     );
   };
 
-  const { onChange: defaultOnChange, ...defaultProps } = register('default');
-  const { onChange: ratingOnChange, ...ratingProps } = register('rating');
-
   return (
     <FormProvider {...form}>
       <Form onSubmit={handleGravatarSettingsChange}>
@@ -152,35 +149,32 @@ export default function GravatarSettings() {
             !gravatarEnabled && 'hidden',
           )}
         >
-          <ControlledSelect
-            {...defaultProps}
-            id="default"
-            className="col-span-5 lg:col-span-2"
+          <FormSelect
+            control={form.control}
+            name="default"
+            containerClassName="col-span-5 lg:col-span-2"
             placeholder="Default Gravatar"
-            hideEmptyHelperText
-            variant="normal"
             label="Default"
           >
             {AUTH_GRAVATAR_DEFAULT.map(({ value, label }) => (
-              <Option key={value} value={value}>
+              <SelectItem key={value} value={value}>
                 {label}
-              </Option>
+              </SelectItem>
             ))}
-          </ControlledSelect>
-          <ControlledSelect
-            {...ratingProps}
-            id="rating"
-            className="col-span-5 lg:col-span-2"
+          </FormSelect>
+          <FormSelect
+            control={form.control}
+            name="rating"
+            containerClassName="col-span-5 lg:col-span-2"
             placeholder="Gravatar Rating"
-            hideEmptyHelperText
             label="Rating"
           >
             {AUTH_GRAVATAR_RATING.map(({ value, label }) => (
-              <Option key={value} value={value}>
+              <SelectItem key={value} value={value}>
                 {label}
-              </Option>
+              </SelectItem>
             ))}
-          </ControlledSelect>
+          </FormSelect>
         </SettingsContainer>
       </Form>
     </FormProvider>

@@ -45,15 +45,7 @@ function AccountMenuContent() {
       <Divider />
 
       <Box className="p-2">
-        <ThemeSwitcher
-          label="Theme"
-          variant="inline"
-          fullWidth
-          className="grid-cols-auto justify-between px-2"
-          slotProps={{
-            label: { className: '!text-sm+' },
-          }}
-        />
+        <ThemeSwitcher />
       </Box>
 
       <Divider />

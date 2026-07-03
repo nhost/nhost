@@ -1,7 +1,13 @@
 import { useFormContext } from 'react-hook-form';
+import { FormControl } from '@/components/ui/v2/FormControl';
 import { Input } from '@/components/ui/v2/Input';
-import { Option } from '@/components/ui/v2/Option';
-import { Select } from '@/components/ui/v2/Select';
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from '@/components/ui/v3/select';
 import type {
   ExternalSigningType,
   JWTSettingsFormValues,
@@ -44,27 +50,37 @@ export default function ExternalSigningField({
   if (externalSigningType === 'public-key') {
     return (
       <>
-        <Select
-          id="type"
+        <FormControl
           className="col-span-5 lg:col-span-1"
-          placeholder="RS256"
           hideEmptyHelperText
           variant="normal"
-          defaultValue={ASYMMETRIC_ALGORITHMS[0]}
           error={!!errors.type}
           helperText={errors?.type?.message}
           label="Hashing algorithm"
-          value={type}
-          onChange={(_event, value) =>
-            setValue('type', value as string, { shouldDirty: true })
-          }
+          labelProps={{ htmlFor: 'type' }}
         >
-          {ASYMMETRIC_ALGORITHMS.map((algorithm) => (
-            <Option key={algorithm} value={algorithm}>
-              {algorithm}
-            </Option>
-          ))}
-        </Select>
+          <Select
+            value={type ?? ''}
+            onValueChange={(value) =>
+              setValue('type', value, { shouldDirty: true })
+            }
+          >
+            <SelectTrigger
+              id="type"
+              aria-invalid={!!errors.type}
+              className="aria-[invalid=true]:border-red-500 aria-[invalid=true]:focus:border-red-500 aria-[invalid=true]:focus:ring-red-500"
+            >
+              <SelectValue placeholder={ASYMMETRIC_ALGORITHMS[0]} />
+            </SelectTrigger>
+            <SelectContent>
+              {ASYMMETRIC_ALGORITHMS.map((algorithm) => (
+                <SelectItem key={algorithm} value={algorithm}>
+                  {algorithm}
+                </SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
+        </FormControl>
         <div className="lg:col-span-4" />
 
         <Input
