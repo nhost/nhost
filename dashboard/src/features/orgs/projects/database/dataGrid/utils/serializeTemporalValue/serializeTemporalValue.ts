@@ -6,8 +6,8 @@ import {
 
 /**
  * Serializes a temporal record-form value into the string PostgreSQL expects
- * for the column's type. Non-temporal values — and the string-based `time` /
- * `timetz` / `interval` types — are returned unchanged.
+ * for the column's type. Non-temporal values — and the string-based time /
+ * interval types — are returned unchanged.
  *
  * Date/time inputs arrive here as a **local** `Date` (the picker / yup cast
  * them), so converting through UTC — as `toUTCString()` did — shifts the value
@@ -32,10 +32,7 @@ export default function serializeTemporalValue(
   }
 
   if (isTimestampType(baseType)) {
-    const hasTimeZone =
-      baseType === 'timestamp with time zone' || baseType === 'timestamptz';
-
-    return hasTimeZone
+    return baseType === 'timestamp with time zone'
       ? value.toISOString()
       : format(value, "yyyy-MM-dd'T'HH:mm:ss");
   }
