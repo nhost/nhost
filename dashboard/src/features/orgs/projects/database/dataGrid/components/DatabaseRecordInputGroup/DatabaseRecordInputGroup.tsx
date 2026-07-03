@@ -15,7 +15,6 @@ import {
   isTimeType,
 } from '@/features/orgs/projects/database/dataGrid/utils/temporalTypeHelpers';
 import { POSTGRES_DEFAULT_PLACEHOLDER } from '@/features/orgs/projects/database/dataGrid/utils/postgresDefaultPlaceholder';
-import { POSTGRESQL_FUNCTION_LABELS } from '@/features/orgs/projects/database/dataGrid/utils/postgresqlConstants';
 import { cn } from '@/lib/utils';
 import NullDefaultToggleField from './NullDefaultToggleField';
 import TemporalRecordField from './TemporalRecordField';

@@ -108,9 +108,9 @@ export default function CreateRecordForm({
           (specType === 'jsonb' || specType === 'json')
         ) {
           value = JSON.stringify(value, null, 2);
-        } else if (column.type === 'date') {
+        } else if (column.baseType === 'date') {
           value = formatFormDateValue(value, column.specificType);
-        } else if (column.type === 'boolean') {
+        } else if (column.baseType === 'boolean') {
           if (value === true || value === 'true') {
             value = 'true';
           } else if (value === false || value === 'false') {
@@ -131,7 +131,7 @@ export default function CreateRecordForm({
         !column.isArray &&
         column.defaultValue
       ) {
-        let val = column.defaultValue;
+        let val: string | null = column.defaultValue;
         if (
           val === 'true' ||
           (val as unknown) === true ||

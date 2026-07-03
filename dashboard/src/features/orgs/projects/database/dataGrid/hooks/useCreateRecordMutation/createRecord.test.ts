@@ -134,7 +134,7 @@ describe('createRecord', () => {
     await createRecord({
       ...defaultOptions,
       columnValues: {
-        metadata: { value: '{\n  "a": 1,\n  "b": 2\n}', specificType: 'jsonb' },
+        metadata: { value: '{\n  "a": 1,\n  "b": 2\n}' },
       },
     });
 

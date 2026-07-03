@@ -116,9 +116,9 @@ export default function EditRecordForm({
         (specType === 'jsonb' || specType === 'json')
       ) {
         value = JSON.stringify(value, null, 2);
-      } else if (column.type === 'date') {
+      } else if (column.baseType === 'date') {
         value = formatFormDateValue(value, column.specificType);
-      } else if (column.type === 'boolean') {
+      } else if (column.baseType === 'boolean') {
         if (value === true || value === 'true') {
           value = 'true';
         } else if (value === false || value === 'false') {
@@ -175,7 +175,7 @@ export default function EditRecordForm({
         }
 
         if (
-          column.type === 'date' &&
+          column.baseType === 'date' &&
           newValue !== null &&
           newValue !== undefined &&
           originalValue !== null &&
