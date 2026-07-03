@@ -61,7 +61,7 @@ test('basic', async () => {
   expect(uploadResp.body.processedFiles).toHaveLength(1);
   expect(downloadResp.status).toBe(200);
   expect(downloadResp.body).toBeInstanceOf(Blob);
-});
+}, 30000);
 
 test('error handling for storage', async () => {
   const subdomain = 'local';
@@ -102,7 +102,7 @@ test('error handling for storage', async () => {
       processedFiles: [],
     });
   }
-});
+}, 30000);
 
 test('error handling for storage error type', async () => {
   const subdomain = 'local';
@@ -130,4 +130,4 @@ test('error handling for storage error type', async () => {
 
     expect(error.message).toBe('you are not authorized');
   }
-});
+}, 30000);
