@@ -21,7 +21,7 @@ test('should be able to edit user roles from the details page', async ({
     .getByRole('button', { name: `View ${email}`, exact: true })
     .click();
 
-  await page.locator('#defaultRole').click();
+  await page.getByRole('combobox', { name: /default role/i }).click();
   await page.getByRole('option', { name: /anonymous/i }).click();
 
   await page.getByLabel('anonymous').click();
