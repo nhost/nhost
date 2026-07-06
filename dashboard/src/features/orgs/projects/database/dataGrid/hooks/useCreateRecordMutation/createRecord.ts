@@ -36,10 +36,7 @@ export default async function createRecord<TData extends object = {}>({
     .map((columnId) => {
       const { value, fallbackValue, isArray } = columnValues[columnId];
 
-      if (
-        (value === null || value === undefined || value === '') &&
-        fallbackValue
-      ) {
+      if (!value && fallbackValue) {
         return fallbackValue;
       }
 
@@ -53,19 +50,7 @@ export default async function createRecord<TData extends object = {}>({
         }
       }
 
-      let finalValue = value;
-      if (
-        typeof value === 'string' &&
-        (value.trim().startsWith('{') || value.trim().startsWith('['))
-      ) {
-        try {
-          finalValue = JSON.parse(value);
-        } catch {
-          // Keep as string if parsing fails
-        }
-      }
-
-      return format('%L', finalValue);
+      return format('%L', value);
     })
     .join(', ');
 
