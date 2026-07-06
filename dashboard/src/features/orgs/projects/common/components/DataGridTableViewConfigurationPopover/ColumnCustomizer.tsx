@@ -3,7 +3,10 @@ import type { Column } from '@tanstack/react-table';
 import { DragAndDropList } from '@/components/common/DragAndDropList';
 import { useTablePath } from '@/features/orgs/projects/database/common/hooks/useTablePath';
 import type { UnknownDataGridRow } from '@/features/orgs/projects/storage/dataGrid/components/DataGrid';
-import { SELECTION_COLUMN_ID } from '@/features/orgs/projects/storage/dataGrid/components/DataGrid';
+import {
+  SELECTION_COLUMN_ID,
+  ACTIONS_COLUMN_ID,
+} from '@/features/orgs/projects/storage/dataGrid/components/DataGrid';
 import { useDataGridConfig } from '@/features/orgs/projects/storage/dataGrid/components/DataGridConfigProvider';
 import { saveColumnOrder } from '@/features/orgs/projects/storage/dataGrid/utils/PersistentDataTableConfigurationStorage';
 import { isEmptyValue } from '@/lib/utils';
@@ -26,7 +29,7 @@ function ColumnCustomizer() {
   const tablePath = useTablePath();
   const { setColumnOrder, getAllLeafColumns } = useDataGridConfig();
   const columns = getAllLeafColumns().filter(
-    ({ id }) => id !== SELECTION_COLUMN_ID,
+    ({ id }) => id !== SELECTION_COLUMN_ID && id !== ACTIONS_COLUMN_ID,
   );
   function handleDragEnd(result: DropResult) {
     if (isEmptyValue(result.destination)) {
@@ -38,6 +41,7 @@ function ColumnCustomizer() {
       ...reorder(columns, result.source.index, result.destination!.index).map(
         ({ id }) => id,
       ),
+      ACTIONS_COLUMN_ID,
     ];
 
     setColumnOrder(reordered);

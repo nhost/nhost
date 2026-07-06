@@ -44,6 +44,7 @@ import {
   DataGrid,
   type DataGridProps,
   type UnknownDataGridRow,
+  ACTIONS_COLUMN_ID,
 } from '@/features/orgs/projects/storage/dataGrid/components/DataGrid';
 import { DataGridBooleanCell } from '@/features/orgs/projects/storage/dataGrid/components/DataGridBooleanCell';
 import { DataGridNumericCell } from '@/features/orgs/projects/storage/dataGrid/components/DataGridNumericCell';
@@ -341,19 +342,38 @@ export default function DataBrowserGrid(props: DataBrowserGridProps) {
 
   const handleCloneClick = useCallback(
     (initialValues: Record<string, unknown>) => {
+      const clonedValues = { ...initialValues };
+      memoizedMetadata.forEach((colMeta) => {
+        const originalCol = columns.find((c) => c.column_name === colMeta.id);
+        const hasNextValDefault = originalCol?.column_default
+          ?.toLowerCase()
+          .includes('nextval');
+
+        if (
+          colMeta.isPrimary ||
+          colMeta.isIdentity ||
+          colMeta.isGenerated ||
+          colMeta.isUnique ||
+          (colMeta.uniqueConstraints && colMeta.uniqueConstraints.length > 0) ||
+          hasNextValDefault
+        ) {
+          delete clonedValues[colMeta.id];
+        }
+      });
+
       openDrawer({
         title: 'Clone Row',
         component: (
           <CreateRecordForm
             columns={memoizedMetadata}
-            initialValues={initialValues}
+            initialValues={clonedValues}
             onSubmit={refetch}
             currentOffset={currentOffset}
           />
         ),
       });
     },
-    [openDrawer, memoizedMetadata, refetch, currentOffset],
+    [openDrawer, memoizedMetadata, columns, refetch, currentOffset],
   );
 
   const handleEditClick = useCallback(
@@ -443,7 +463,7 @@ export default function DataBrowserGrid(props: DataBrowserGridProps) {
     }
 
     const actionsColumn = {
-      id: 'actions',
+      id: ACTIONS_COLUMN_ID,
       size: 130,
       header: () => <span className="font-bold">Actions</span>,
       cell: ({ row }) => (
@@ -493,7 +513,7 @@ export default function DataBrowserGrid(props: DataBrowserGridProps) {
       enableResizing: false,
     };
 
-    return [actionsColumn, ...cols];
+    return [...cols, actionsColumn];
   }, [
     columns,
     currentTablePath,

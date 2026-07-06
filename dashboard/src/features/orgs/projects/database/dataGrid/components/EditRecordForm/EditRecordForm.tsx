@@ -33,63 +33,6 @@ export interface EditRecordFormProps
   currentOffset: number;
 }
 
-export function formatFormDateValue(value: unknown, specificType?: string | null) {
-  if (value === null || value === undefined) {
-    return value;
-  }
-  if (value === POSTGRES_DEFAULT_PLACEHOLDER) {
-    return value;
-  }
-
-  const specType = String(specificType || '').toLowerCase();
-  const isTimestamp =
-    specType.includes('timestamp') || specType.includes('timestamptz');
-  const isTime = specType.includes('time') && !isTimestamp;
-  const isDate = specType.includes('date') && specType !== 'interval';
-
-  if (isTimestamp) {
-    const date = new Date(value as string | number | Date);
-    if (Number.isNaN(date.getTime())) {
-      return value;
-    }
-    const year = date.getFullYear();
-    const month = String(date.getMonth() + 1).padStart(2, '0');
-    const day = String(date.getDate()).padStart(2, '0');
-    const hours = String(date.getHours()).padStart(2, '0');
-    const minutes = String(date.getMinutes()).padStart(2, '0');
-    return `${year}-${month}-${day}T${hours}:${minutes}`;
-  }
-
-  if (isDate) {
-    if (typeof value === 'string' && /^\d{4}-\d{2}-\d{2}/.test(value)) {
-      return value.substring(0, 10);
-    }
-    const date = new Date(value as string | number | Date);
-    if (Number.isNaN(date.getTime())) {
-      return value;
-    }
-    const year = date.getUTCFullYear();
-    const month = String(date.getUTCMonth() + 1).padStart(2, '0');
-    const day = String(date.getUTCDate()).padStart(2, '0');
-    return `${year}-${month}-${day}`;
-  }
-
-  if (isTime) {
-    if (typeof value === 'string' && /^\d{2}:\d{2}/.test(value)) {
-      return value.substring(0, 5);
-    }
-    const date = new Date(value as string | number | Date);
-    if (Number.isNaN(date.getTime())) {
-      return value;
-    }
-    const hours = String(date.getHours()).padStart(2, '0');
-    const minutes = String(date.getMinutes()).padStart(2, '0');
-    return `${hours}:${minutes}`;
-  }
-
-  return value;
-}
-
 export default function EditRecordForm({
   row,
   onSubmit,
@@ -108,16 +51,14 @@ export default function EditRecordForm({
   const form = useForm({
     defaultValues: props.columns.reduce((defaultValues, column) => {
       let value = row.original[column.id];
-      const specType = column.specificType?.toLowerCase() || '';
+      const isJson = column.baseType === 'json' || column.baseType === 'jsonb';
 
       if (
         value !== null &&
         typeof value === 'object' &&
-        (specType === 'jsonb' || specType === 'json')
+        isJson
       ) {
         value = JSON.stringify(value, null, 2);
-      } else if (column.baseType === 'date') {
-        value = formatFormDateValue(value, column.specificType);
       } else if (column.baseType === 'boolean') {
         if (value === true || value === 'true') {
           value = 'true';
@@ -163,8 +104,8 @@ export default function EditRecordForm({
 
         let newValue = insertOptions.value;
 
-        const specType = column.specificType?.toLowerCase() || '';
-        const isJson = specType === 'jsonb' || specType === 'json';
+        const isJson =
+          column.baseType === 'json' || column.baseType === 'jsonb';
 
         if (isJson && typeof newValue === 'string') {
           try {
@@ -172,27 +113,6 @@ export default function EditRecordForm({
           } catch {
             // Keep as string if parsing fails
           }
-        }
-
-        if (
-          column.baseType === 'date' &&
-          newValue !== null &&
-          newValue !== undefined &&
-          originalValue !== null &&
-          originalValue !== undefined
-        ) {
-          try {
-            const newTime = new Date(String(newValue)).getTime();
-            const originalTime = new Date(String(originalValue)).getTime();
-            if (newTime !== originalTime) {
-              columnsToUpdate[key] = { value: newValue };
-            }
-          } catch {
-            if (newValue !== originalValue) {
-              columnsToUpdate[key] = { value: newValue };
-            }
-          }
-          continue;
         }
 
         if (

@@ -138,12 +138,10 @@ export default function BaseRecordForm({
           };
         }
 
-        const finalValue = value;
-
         return {
           ...options,
           [columnId]: {
-            value: serializeTemporalValue(finalValue, gridColumn?.baseType),
+            value: serializeTemporalValue(value, gridColumn?.baseType),
             isArray: gridColumn?.isArray,
           },
         };

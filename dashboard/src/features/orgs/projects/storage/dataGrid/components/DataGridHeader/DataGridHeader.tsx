@@ -1,7 +1,10 @@
 import type { Header } from '@tanstack/react-table';
 import type { DetailedHTMLProps, HTMLProps } from 'react';
 import type { UnknownDataGridRow } from '@/features/orgs/projects/storage/dataGrid/components/DataGrid';
-import { SELECTION_COLUMN_ID } from '@/features/orgs/projects/storage/dataGrid/components/DataGrid';
+import {
+  SELECTION_COLUMN_ID,
+  ACTIONS_COLUMN_ID,
+} from '@/features/orgs/projects/storage/dataGrid/components/DataGrid';
 import { useDataGridConfig } from '@/features/orgs/projects/storage/dataGrid/components/DataGridConfigProvider';
 import { DataGridHeaderButton } from '@/features/orgs/projects/storage/dataGrid/components/DataGridHeaderButton';
 import { cn } from '@/lib/utils';
@@ -41,18 +44,18 @@ export default function DataGridHeader({
               'border-r-1 border-b-1',
               'bg-paper',
               { 'sticky left-0 max-w-2': column.id === SELECTION_COLUMN_ID },
-              { sticky: column.id === 'actions' },
+              { 'sticky right-0 border-l-1': column.id === ACTIONS_COLUMN_ID },
             )}
             style={{
               width,
               minWidth: width,
               maxWidth: column.id === SELECTION_COLUMN_ID ? 32 : maxSize,
               zIndex:
-                column.id === SELECTION_COLUMN_ID || column.id === 'actions'
+                column.id === SELECTION_COLUMN_ID || column.id === ACTIONS_COLUMN_ID
                   ? 10
                   : undefined,
-              left:
-                column.id === 'actions' ? (allowSelection ? 32 : 0) : undefined,
+              right:
+                column.id === ACTIONS_COLUMN_ID ? 0 : undefined,
             }}
             key={header.id}
           >
