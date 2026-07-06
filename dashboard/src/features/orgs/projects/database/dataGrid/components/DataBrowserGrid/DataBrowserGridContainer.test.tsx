@@ -5,14 +5,7 @@ import { getProjectQuery } from '@/tests/msw/mocks/graphql/getProjectQuery';
 import hasuraMetadataQuery from '@/tests/msw/mocks/rest/hasuraMetadataQuery';
 import tableQuery from '@/tests/msw/mocks/rest/tableQuery';
 import tokenQuery from '@/tests/msw/mocks/rest/tokenQuery';
-import {
-  localStorageMock,
-  queryClient,
-  render,
-  screen,
-  setInitialStore,
-  waitFor,
-} from '@/tests/testUtils';
+import { queryClient, render, screen, waitFor } from '@/tests/testUtils';
 import DataBrowserGridContainer from './DataBrowserGridContainer';
 
 const mocks = vi.hoisted(() => ({
@@ -62,7 +55,6 @@ function createRouterValue(tableSlug: string) {
 
 describe('DataBrowserGridContainer', () => {
   beforeAll(() => {
-    global.localStorage = localStorageMock();
     window.HTMLElement.prototype.scrollTo = vi.fn();
     server.listen();
   });
@@ -83,8 +75,9 @@ describe('DataBrowserGridContainer', () => {
     const authorsTablePath = 'default.public.authors';
     const townTablePath = 'default.public.town';
 
-    setInitialStore({
-      [COLUMN_CONFIGURATION_STORAGE_KEY]: JSON.stringify({
+    localStorage.setItem(
+      COLUMN_CONFIGURATION_STORAGE_KEY,
+      JSON.stringify({
         [authorsTablePath]: {
           columnVisibility: { name: true },
           columnOrder: [],
@@ -94,7 +87,7 @@ describe('DataBrowserGridContainer', () => {
           columnOrder: [],
         },
       }),
-    });
+    );
 
     mocks.useRouter.mockReturnValue(createRouterValue('authors'));
 

@@ -1,14 +1,15 @@
-import type {
-  FieldError,
-  FieldErrorsImpl,
-  Merge,
-  UseFormRegister,
+import {
+  type FieldError,
+  type FieldErrorsImpl,
+  type Merge,
+  type UseFormRegister,
+  useFormContext,
 } from 'react-hook-form';
-import { ControlledSelect } from '@/components/form/ControlledSelect';
+import { FormSelect } from '@/components/form/FormSelect';
 import { Box } from '@/components/ui/v2/Box';
 import { Input } from '@/components/ui/v2/Input';
-import { Option } from '@/components/ui/v2/Option';
 import { Text } from '@/components/ui/v2/Text';
+import { SelectItem } from '@/components/ui/v3/select';
 import { intervalUnitOptions } from '@/features/orgs/projects/rate-limiting/settings/components/validationSchemas';
 
 interface RateLimitFieldProps {
@@ -34,7 +35,8 @@ export default function RateLimitField({
   errors,
   title,
 }: RateLimitFieldProps) {
-  const { onChange, ...intervalUnitProps } = register(`${id}.intervalUnit`);
+  const { control } = useFormContext();
+
   return (
     <Box className="px-4">
       {title ? <Text className="py-4 font-semibold">{title}</Text> : null}
@@ -68,21 +70,19 @@ export default function RateLimitField({
             helperText={errors?.interval?.message}
             autoComplete="off"
           />
-          <ControlledSelect
-            {...intervalUnitProps}
+          <FormSelect
+            control={control}
+            name={`${id}.intervalUnit`}
             disabled={disabled}
-            variant="normal"
-            id={`${id}.intervalUnit`}
             className="w-27"
-            defaultValue="m"
-            hideEmptyHelperText
+            containerClassName="space-y-0"
           >
             {intervalUnitOptions.map(({ value, label }) => (
-              <Option key={`${id}.intervalUnit.${value}`} value={value}>
+              <SelectItem key={`${id}.intervalUnit.${value}`} value={value}>
                 {label}
-              </Option>
+              </SelectItem>
             ))}
-          </ControlledSelect>
+          </FormSelect>
         </div>
       </div>
     </Box>

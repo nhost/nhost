@@ -42,7 +42,7 @@ interface FormSelectProps<
   // select lives inside a higher-stacked container such as a MUI dialog.
   contentClassName?: string;
   inline?: boolean;
-  helperText?: string | null;
+  helperText?: ReactNode;
   helperTextClassName?: string;
   disabled?: boolean;
   autoFocus?: boolean;

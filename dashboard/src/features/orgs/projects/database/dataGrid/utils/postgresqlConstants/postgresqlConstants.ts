@@ -70,24 +70,19 @@ export const POSTGRESQL_UNSORTABLE_TYPES = [
 ];
 
 /**
- * Timestamp types in PostgreSQL, in both the `information_schema` /
- * `FORMAT_TYPE` long form and the short `udt_name` form.
+ * Canonical timestamp `baseType` values derived from PG_CATALOG.FORMAT_TYPE.
  */
 export const POSTGRESQL_TIMESTAMP_TYPES = [
   'timestamp with time zone',
   'timestamp without time zone',
-  'timestamptz',
-  'timestamp',
 ];
 
 /**
- * Time-of-day types in PostgreSQL (long and short spellings).
+ * Canonical time-of-day `baseType` values derived from PG_CATALOG.FORMAT_TYPE.
  */
 export const POSTGRESQL_TIME_TYPES = [
   'time with time zone',
   'time without time zone',
-  'timetz',
-  'time',
 ];
 
 /**
