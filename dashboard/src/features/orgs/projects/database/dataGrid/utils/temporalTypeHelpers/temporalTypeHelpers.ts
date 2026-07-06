@@ -7,19 +7,20 @@ import {
 
 // These predicates operate on the already-derived `baseType` (the element
 // family, with `[]` and `(…)` stripped — see `getBaseType`), not on a raw
-// `specificType`. They answer the *family* axis only; check `isArray`
-// separately for shape.
+// `specificType`. Data-browser `baseType` values are derived from
+// PG_CATALOG.FORMAT_TYPE output, so temporal aliases are canonical long SQL
+// spellings rather than short `udt_name` aliases. They answer the *family* axis
+// only; check `isArray` separately for shape.
 
 /**
- * Whether `baseType` is a PostgreSQL timestamp family (`timestamp` /
- * `timestamptz`).
+ * Whether `baseType` is a PostgreSQL timestamp family.
  */
 export function isTimestampType(baseType?: string | null): boolean {
   return POSTGRESQL_TIMESTAMP_TYPES.includes(baseType ?? '');
 }
 
 /**
- * Whether `baseType` is a PostgreSQL time-of-day family (`time` / `timetz`).
+ * Whether `baseType` is a PostgreSQL time-of-day family.
  */
 export function isTimeType(baseType?: string | null): boolean {
   return POSTGRESQL_TIME_TYPES.includes(baseType ?? '');

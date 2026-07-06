@@ -46,7 +46,9 @@ describe('interval columns', () => {
 
 describe('time columns', () => {
   it('accepts HH:MM and HH:MM:SS', async () => {
-    const schema = createDynamicValidationSchema([makeColumn('time')]);
+    const schema = createDynamicValidationSchema([
+      makeColumn('time without time zone'),
+    ]);
 
     await expect(schema.validate({ col: '14:30' })).resolves.toBeTruthy();
     await expect(schema.validate({ col: '14:30:00' })).resolves.toBeTruthy();
@@ -54,7 +56,7 @@ describe('time columns', () => {
 
   it('rejects values that are not time strings', async () => {
     const schema = createDynamicValidationSchema([
-      makeColumn('time', { isNullable: false }),
+      makeColumn('time without time zone', { isNullable: false }),
     ]);
 
     await expect(schema.validate({ col: '1 day' })).rejects.toThrow(
@@ -62,20 +64,32 @@ describe('time columns', () => {
     );
   });
 
-  it('applies to timetz too', async () => {
-    const schema = createDynamicValidationSchema([makeColumn('timetz')]);
+  it('accepts time zone offsets for time with time zone values', async () => {
+    const schema = createDynamicValidationSchema([
+      makeColumn('time with time zone'),
+    ]);
 
     await expect(schema.validate({ col: '14:30' })).resolves.toBeTruthy();
+    await expect(schema.validate({ col: '08:30:00+00' })).resolves.toBeTruthy();
+    await expect(
+      schema.validate({ col: '08:30:00+00:00' }),
+    ).resolves.toBeTruthy();
   });
 });
 
-describe('timestamp columns', () => {
-  it('accepts a date value', async () => {
-    const schema = createDynamicValidationSchema([makeColumn('timestamptz')]);
+describe('date and timestamp columns', () => {
+  it('preserves raw PostgreSQL date and timestamp strings', async () => {
+    const timestampSchema = createDynamicValidationSchema([
+      makeColumn('timestamp with time zone'),
+    ]);
+    const dateSchema = createDynamicValidationSchema([makeColumn('date')]);
 
     await expect(
-      schema.validate({ col: new Date('2024-01-15') }),
-    ).resolves.toBeTruthy();
+      timestampSchema.validate({ col: '2024-01-15 10:30:00.123456+02' }),
+    ).resolves.toMatchObject({ col: '2024-01-15 10:30:00.123456+02' });
+    await expect(
+      dateSchema.validate({ col: 'infinity' }),
+    ).resolves.toMatchObject({ col: 'infinity' });
   });
 });
 
@@ -108,7 +122,7 @@ describe('array columns', () => {
     'integer[]',
     'uuid[]',
     'boolean[]',
-    'timestamptz[]',
+    'timestamp with time zone[]',
     'text[]',
   ])('treats %s as free text, not its scalar element', async (specificType) => {
     const schema = createDynamicValidationSchema([makeColumn(specificType)]);
