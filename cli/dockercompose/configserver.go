@@ -109,6 +109,7 @@ func configserver( //nolint: funlen
 		Networks:   nil,
 		Ports:      []Port{},
 		Restart:    "always",
+		User:       nil,
 		Volumes:    volumes,
 		WorkingDir: nil,
 	}, nil
