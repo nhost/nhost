@@ -6,6 +6,7 @@ import (
 	"os"
 
 	"github.com/nhost/nhost/tools/codegen/processor"
+	"github.com/nhost/nhost/tools/codegen/processor/python"
 	"github.com/nhost/nhost/tools/codegen/processor/typescript"
 	"github.com/pb33f/libopenapi"
 	"github.com/urfave/cli/v3"
@@ -37,7 +38,7 @@ func Command() *cli.Command {
 			},
 			&cli.StringFlag{ //nolint:exhaustruct
 				Name:     flagPlugin,
-				Usage:    "Plugin to use. Supported: typescript",
+				Usage:    "Plugin to use. Supported: typescript, python",
 				Required: true,
 				Sources:  cli.EnvVars("PLUGIN"),
 			},
@@ -53,6 +54,8 @@ func action(_ context.Context, c *cli.Command) error {
 	switch c.String(flagPlugin) {
 	case "typescript":
 		p = &typescript.Typescript{}
+	case "python":
+		p = &python.Python{}
 	default:
 		return cli.Exit("unsupported plugin: %s"+c.String(flagPlugin), 1)
 	}

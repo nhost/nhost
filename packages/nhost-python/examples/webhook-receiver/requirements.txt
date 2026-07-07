@@ -1,0 +1,4 @@
+# Third-party runtime deps. The Nhost SDK itself is installed separately from
+# the local package root (see README / Dockerfile).
+fastapi>=0.115
+uvicorn[standard]>=0.30
