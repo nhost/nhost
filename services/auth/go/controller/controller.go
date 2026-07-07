@@ -40,6 +40,18 @@ func deptr[T any](x *T) T { //nolint:ireturn
 	return *x
 }
 
+// mapPtr returns a pointer to m, or nil when m is nil, so a nil metadata map
+// marshals to JSON null (matching the nullable schema) rather than an empty
+// object. Used for the api.User.Metadata field, which is now a nullable
+// pointer in the generated types.
+func mapPtr(m map[string]any) *map[string]any {
+	if m == nil {
+		return nil
+	}
+
+	return &m
+}
+
 type Emailer interface {
 	SendEmail(
 		ctx context.Context,

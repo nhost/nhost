@@ -88,7 +88,7 @@ func TestVerifySignInOTPEmail(t *testing.T) { //nolint:maintidx
 						Id:                  "db477732-48fa-4289-b694-2886a646b6eb",
 						IsAnonymous:         false,
 						Locale:              "en",
-						Metadata:            map[string]any{},
+						Metadata:            &map[string]any{},
 						PhoneNumber:         nil,
 						PhoneNumberVerified: false,
 						Roles:               []string{"user", "me"},
