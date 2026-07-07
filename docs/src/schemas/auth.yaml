@@ -3229,6 +3229,7 @@ components:
         metadata:
           type: object
           additionalProperties: true
+          nullable: true
           description: "Custom metadata associated with the user"
           example:
             firstName: "John"
