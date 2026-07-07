@@ -80,7 +80,7 @@ func TestGetUser(t *testing.T) {
 				Email:               func() *types.Email { e := types.Email("john@example.com"); return &e }(),
 				IsAnonymous:         false,
 				DefaultRole:         "user",
-				Metadata:            map[string]any{"firstName": "John", "lastName": "Doe"},
+				Metadata:            &map[string]any{"firstName": "John", "lastName": "Doe"},
 				EmailVerified:       true,
 				PhoneNumber:         func() *string { s := "+1234567890"; return &s }(),
 				PhoneNumberVerified: true,
