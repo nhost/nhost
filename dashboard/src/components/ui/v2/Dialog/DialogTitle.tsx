@@ -1,9 +1,9 @@
 import { styled } from '@mui/material';
 import type { DialogTitleProps as MaterialDialogTitleProps } from '@mui/material/DialogTitle';
 import MaterialDialogTitle from '@mui/material/DialogTitle';
+import { XIcon } from 'lucide-react';
 import type { MouseEventHandler } from 'react';
 import { Button } from '@/components/ui/v2/Button';
-import { XIcon } from '@/components/ui/v2/icons/XIcon';
 
 export interface DialogTitleProps extends MaterialDialogTitleProps {
   /**
@@ -41,7 +41,7 @@ function DialogTitle({ children, onClose, ...props }: DialogTitleProps) {
           onClick={onClose}
           sx={{ padding: (theme) => theme.spacing(0.5), minWidth: 'initial' }}
         >
-          <XIcon fontSize="small" />
+          <XIcon className="h-5 w-5" />
         </Button>
       ) : null}
     </StyledDialogTitle>
