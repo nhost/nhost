@@ -166,13 +166,13 @@ export default function SettingsContainer({
       <Box
         {...footer}
         className={twMerge(
-          'grid grid-flow-col items-center gap-x-2 border-t px-4 pt-3.5',
-          docsLink ? 'place-content-between' : 'justify-end',
+          'flex flex-col sm:flex-row sm:items-center gap-4 sm:gap-2 border-t px-4 pt-3.5',
+          docsLink ? 'justify-between' : 'justify-end',
           footer?.className,
         )}
       >
         {docsLink && (
-          <div className="grid w-full grid-flow-col justify-start gap-x-1 self-center align-middle">
+          <div className="flex w-full justify-start gap-x-1 sm:self-center align-middle">
             <Text>
               Learn more about{' '}
               <TextLink
@@ -191,6 +191,7 @@ export default function SettingsContainer({
           color={submitButton?.disabled ? 'secondary' : 'primary'}
           type="submit"
           {...submitButton}
+          className={twMerge('w-full sm:w-auto', submitButton?.className)}
         >
           {submitButtonText}
         </Button>
