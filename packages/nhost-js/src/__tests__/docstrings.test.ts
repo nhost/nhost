@@ -136,7 +136,7 @@ test('mainExample', async () => {
       },
     ],
   });
-}, 30000);
+});
 
 test('adminClient', async () => {
   const nhost = createNhostClient({
@@ -248,18 +248,18 @@ test('adminClient', async () => {
 
   expect(graphResp.status).toBe(200);
   expect(graphResp.body.errors).toBeUndefined();
-  expect(graphResp.body.data?.files).toEqual(
-    expect.arrayContaining([
-      expect.objectContaining({
+  expect(graphResp.body.data).toStrictEqual({
+    files: [
+      {
         name: 'file-1',
         size: 5,
         mimeType: 'text/plain',
-      }),
-      expect.objectContaining({
+      },
+      {
         name: 'file-2',
         size: 15,
         mimeType: 'text/plain',
-      }),
-    ]),
-  );
-}, 30000);
+      },
+    ],
+  });
+});
