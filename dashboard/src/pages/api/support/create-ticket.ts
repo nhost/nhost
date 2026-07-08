@@ -5,7 +5,7 @@ import { nhostRoutesClient } from '@/utils/nhost';
 
 export type CreateTicketRequest = {
   project: string;
-  services: Array<{ label: string; value: string }>;
+  services: string[];
   priority: string;
   subject: string;
   description: string;
@@ -184,7 +184,7 @@ export default async function handler(
               },
               {
                 id: 19922709880978, // field Affected Services
-                value: services.map((service) => service.value?.toLowerCase()),
+                value: services.map((service) => service.toLowerCase()),
               },
               {
                 id: 30691138027538, // field SLA

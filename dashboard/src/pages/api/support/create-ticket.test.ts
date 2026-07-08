@@ -75,7 +75,7 @@ describe('POST /api/support/create-ticket', () => {
       headers: { authorization: 'Bearer valid-token' },
       body: {
         project: 'test-subdomain',
-        services: [{ label: 'Authentication', value: 'Authentication' }],
+        services: ['Authentication'],
         priority: 'low',
         subject: 'Something is broken',
         description: 'Details about the problem',
