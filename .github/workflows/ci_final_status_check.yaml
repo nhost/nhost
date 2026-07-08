@@ -27,7 +27,7 @@ jobs:
           echo "Validating PR title: $PR_TITLE"
 
           VALID_TYPES="feat|fix|chore|release"
-          VALID_PKGS="auth|ci|cli|codegen|constellation|dashboard|deps|docs|examples|functions|ghactivity|govulncheck-wrapper|internal\/lib|landing|mcp|nhost-js|nixops|postgres|storage|observability|stripe-graphql-js"
+          VALID_PKGS="auth|ci|cli|codegen|constellation|dashboard|deps|docs|examples|functions|ghactivity|govulncheck-wrapper|internal\/lib|landing|mcp|nhost-js|nhost-rust|nixops|postgres|storage|observability|stripe-graphql-js"
 
           if [[ ! "$PR_TITLE" =~ ^(${VALID_TYPES})\((${VALID_PKGS})\)\!?:\ .+ ]]; then
             echo "PR title does not follow the required format!"
