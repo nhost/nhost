@@ -117,7 +117,7 @@ func CommandUp() *cli.Command { //nolint:funlen
 			&cli.StringFlag{ //nolint:exhaustruct
 				Name:    flagDashboardVersion,
 				Usage:   "Dashboard version to use",
-				Value:   "nhost/dashboard:2.66.0",
+				Value:   "nhost/dashboard:3.0.0",
 				Sources: cli.EnvVars("NHOST_DASHBOARD_VERSION"),
 			},
 			&cli.StringFlag{ //nolint:exhaustruct
@@ -149,7 +149,7 @@ func CommandUp() *cli.Command { //nolint:funlen
 			},
 			&cli.StringFlag{ //nolint:exhaustruct
 				Name:    flagCACertificates,
-				Usage:   "Mounts and everrides path to CA certificates in the containers",
+				Usage:   "Mounts and overrides path to CA certificates in the containers",
 				Sources: cli.EnvVars("NHOST_CA_CERTIFICATES"),
 			},
 		},

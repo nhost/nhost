@@ -79,6 +79,7 @@ export default function FilesDataGrid({
               isDisabled={!row.original.isUploaded}
               fallbackPreview={<FileIcon className="h-5 w-5" />}
               downloadExpiration={bucket.downloadExpiration}
+              presignedUrlsEnabled={bucket.presignedUrlsEnabled}
             />
           );
         },
@@ -175,7 +176,7 @@ export default function FilesDataGrid({
           }
         : definition,
     );
-  }, [bucket.downloadExpiration]);
+  }, [bucket.downloadExpiration, bucket.presignedUrlsEnabled]);
   const router = useRouter();
   const { project } = useProject();
   const appClient = useAppClient();

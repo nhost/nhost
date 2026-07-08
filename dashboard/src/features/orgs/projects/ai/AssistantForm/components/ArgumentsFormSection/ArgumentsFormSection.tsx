@@ -1,13 +1,13 @@
 import { InfoIcon, PlusIcon, Trash2 as TrashIcon } from 'lucide-react';
 import { type Path, useFieldArray, useFormContext } from 'react-hook-form';
-import { ControlledSelect } from '@/components/form/ControlledSelect';
 import { ControlledSwitch } from '@/components/form/ControlledSwitch';
+import { FormSelect } from '@/components/form/FormSelect';
 import { Box } from '@/components/ui/v2/Box';
 import { Button } from '@/components/ui/v2/Button';
 import { Input } from '@/components/ui/v2/Input';
-import { Option } from '@/components/ui/v2/Option';
 import { Text } from '@/components/ui/v2/Text';
 import { Tooltip } from '@/components/ui/v2/Tooltip';
+import { SelectItem } from '@/components/ui/v3/select';
 import type { AssistantFormValues } from '@/features/orgs/projects/ai/AssistantForm/AssistantForm';
 
 type AssistantFormPath = Path<AssistantFormValues>;
@@ -32,11 +32,6 @@ export default function ArgumentsFormSection({
     name: `${nestedField}.${nestIndex}.arguments`,
   });
 
-  function removeOnChangeHandler(name: AssistantFormPath) {
-    const { onChange: defaultOnChange, ...props } = register(name);
-    return props;
-  }
-
   return (
     <Box className="space-y-4">
       <div className="flex flex-row items-center justify-between">
@@ -54,112 +49,110 @@ export default function ArgumentsFormSection({
       </div>
 
       <div className="flex flex-col space-y-4">
-        {fields.map((field, index) => (
-          <Box
-            key={field.id}
-            className="flex flex-col space-y-20 rounded border-1 p-4"
-            sx={{ backgroundColor: 'grey.200' }}
-          >
-            <div className="flex w-full flex-col space-y-4">
-              <Input
-                // We're putting ts-ignore here so we could use the same components for both graphql and webhooks
-                // by passing the nestedField = 'graphql' or nestedField = 'webhooks'
-                {...register(
-                  `${nestedField}.${nestIndex}.arguments.${index}.name`,
-                )}
-                id={`${field.id}-name`}
-                placeholder="Name"
-                className="w-full"
-                hideEmptyHelperText
-                error={
-                  !!errors?.[nestedField]?.[nestIndex]?.arguments?.[index]?.name
-                }
-                helperText={
-                  errors?.[nestedField]?.[nestIndex]?.arguments?.[index]?.name
-                    ?.message
-                }
-                fullWidth
-                autoComplete="off"
-              />
+        {fields.map((field, index) => {
+          const argumentTypeName =
+            `${nestedField}.${nestIndex}.arguments.${index}.type` as AssistantFormPath;
 
-              <Input
-                {...register(
-                  `${nestedField}.${nestIndex}.arguments.${index}.description`,
-                )}
-                id={`${field.id}-description`}
-                placeholder="Description"
-                className="w-full"
-                hideEmptyHelperText
-                error={
-                  !!errors?.[nestedField]?.[nestIndex]?.arguments?.[index]
-                    ?.description
-                }
-                helperText={
-                  errors?.[nestedField]?.[nestIndex]?.arguments?.[index]
-                    ?.description?.message
-                }
-                fullWidth
-                autoComplete="off"
-                multiline
-                inputProps={{
-                  className: 'resize-y min-h-[22px]',
-                }}
-              />
-
-              <div className="flex flex-row space-x-2">
-                <Box className="w-full">
-                  <ControlledSelect
-                    fullWidth
-                    {...removeOnChangeHandler(
-                      `${nestedField}.${nestIndex}.arguments.${index}.type`,
-                    )}
-                    id={`${field.id}-type`}
-                    placeholder="Select argument type"
-                    slotProps={{
-                      listbox: { className: 'min-w-0 w-full' },
-                      popper: {
-                        disablePortal: false,
-                        className: 'z-[10000] w-[270px]',
-                      },
-                    }}
-                  >
-                    {[
-                      'string',
-                      'number',
-                      'integer',
-                      'object',
-                      'array',
-                      'boolean',
-                    ]?.map((argumentType) => (
-                      <Option key={argumentType} value={argumentType}>
-                        {argumentType}
-                      </Option>
-                    ))}
-                  </ControlledSelect>
-                </Box>
-                <ControlledSwitch
+          return (
+            <Box
+              key={field.id}
+              className="flex flex-col space-y-20 rounded border-1 p-4"
+              sx={{ backgroundColor: 'grey.200' }}
+            >
+              <div className="flex w-full flex-col space-y-4">
+                <Input
+                  // We're putting ts-ignore here so we could use the same components for both graphql and webhooks
+                  // by passing the nestedField = 'graphql' or nestedField = 'webhooks'
                   {...register(
-                    `${nestedField}.${nestIndex}.arguments.${index}.required`,
+                    `${nestedField}.${nestIndex}.arguments.${index}.name`,
                   )}
-                  disabled={false}
-                  label={
-                    <Text variant="subtitle1" component="span">
-                      Required
-                    </Text>
+                  id={`${field.id}-name`}
+                  placeholder="Name"
+                  className="w-full"
+                  hideEmptyHelperText
+                  error={
+                    !!errors?.[nestedField]?.[nestIndex]?.arguments?.[index]
+                      ?.name
                   }
+                  helperText={
+                    errors?.[nestedField]?.[nestIndex]?.arguments?.[index]?.name
+                      ?.message
+                  }
+                  fullWidth
+                  autoComplete="off"
                 />
+
+                <Input
+                  {...register(
+                    `${nestedField}.${nestIndex}.arguments.${index}.description`,
+                  )}
+                  id={`${field.id}-description`}
+                  placeholder="Description"
+                  className="w-full"
+                  hideEmptyHelperText
+                  error={
+                    !!errors?.[nestedField]?.[nestIndex]?.arguments?.[index]
+                      ?.description
+                  }
+                  helperText={
+                    errors?.[nestedField]?.[nestIndex]?.arguments?.[index]
+                      ?.description?.message
+                  }
+                  fullWidth
+                  autoComplete="off"
+                  multiline
+                  inputProps={{
+                    className: 'resize-y min-h-[22px]',
+                  }}
+                />
+
+                <div className="flex flex-row space-x-2">
+                  <Box className="w-full">
+                    <FormSelect
+                      control={form.control}
+                      name={argumentTypeName}
+                      placeholder="Select argument type"
+                      containerClassName="space-y-0"
+                      contentClassName="z-[10000] w-[270px] min-w-0"
+                    >
+                      {[
+                        'string',
+                        'number',
+                        'integer',
+                        'object',
+                        'array',
+                        'boolean',
+                      ]?.map((argumentType) => (
+                        <SelectItem key={argumentType} value={argumentType}>
+                          {argumentType}
+                        </SelectItem>
+                      ))}
+                    </FormSelect>
+                  </Box>
+                  <ControlledSwitch
+                    {...register(
+                      `${nestedField}.${nestIndex}.arguments.${index}.required`,
+                    )}
+                    disabled={false}
+                    label={
+                      <Text variant="subtitle1" component="span">
+                        Required
+                      </Text>
+                    }
+                  />
+                </div>
+                <Button
+                  variant="borderless"
+                  className="h-10 self-end"
+                  color="error"
+                  onClick={() => remove(index)}
+                >
+                  <TrashIcon className="h-4 w-4" />
+                </Button>
               </div>
-              <Button
-                variant="borderless"
-                className="h-10 self-end"
-                color="error"
-                onClick={() => remove(index)}
-              >
-                <TrashIcon className="h-4 w-4" />
-              </Button>
-            </div>
-          </Box>
-        ))}
+            </Box>
+          );
+        })}
       </div>
     </Box>
   );

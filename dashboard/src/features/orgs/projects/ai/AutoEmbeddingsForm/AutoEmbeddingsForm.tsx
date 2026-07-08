@@ -4,14 +4,14 @@ import { useEffect } from 'react';
 import { FormProvider, useForm } from 'react-hook-form';
 import * as Yup from 'yup';
 import { useDialog } from '@/components/common/DialogProvider';
-import { ControlledSelect } from '@/components/form/ControlledSelect';
 import { Form } from '@/components/form/Form';
+import { FormSelect } from '@/components/form/FormSelect';
 import { Box } from '@/components/ui/v2/Box';
 import { Button } from '@/components/ui/v2/Button';
 import { Input } from '@/components/ui/v2/Input';
-import { Option } from '@/components/ui/v2/Option';
 import { Text } from '@/components/ui/v2/Text';
 import { Tooltip } from '@/components/ui/v2/Tooltip';
+import { SelectItem } from '@/components/ui/v3/select';
 import { useRemoteApplicationGQLClient } from '@/features/orgs/hooks/useRemoteApplicationGQLClient';
 import { execPromiseWithErrorToast } from '@/features/orgs/utils/execPromiseWithErrorToast';
 import type { DialogFormProps } from '@/types/common';
@@ -171,11 +171,8 @@ export default function AutoEmbeddingsForm({
             autoFocus
           />
 
-          <ControlledSelect
-            slotProps={{
-              popper: { disablePortal: false, className: 'z-[10000]' },
-            }}
-            id="model"
+          <FormSelect
+            control={form.control}
             name="model"
             label={
               <Box className="flex flex-row items-center space-x-2">
@@ -188,16 +185,14 @@ export default function AutoEmbeddingsForm({
                 </Tooltip>
               </Box>
             }
-            fullWidth
-            error={!!errors?.model?.message}
-            helperText={errors?.model?.message}
+            contentClassName="z-[10000]"
           >
             {AUTO_EMBEDDINGS_MODELS.map((model) => (
-              <Option key={model} value={model}>
+              <SelectItem key={model} value={model}>
                 {model}
-              </Option>
+              </SelectItem>
             ))}
-          </ControlledSelect>
+          </FormSelect>
 
           <Input
             {...register('schemaName')}

@@ -1,3 +1,22 @@
+## [@nhost/nhost-js@4.7.3] - 2026-06-29
+
+### 🐛 Bug Fixes
+
+- *(deps)* Bump up shellquote due to CVE (#4499)
+- *(auth)* Hash email OTP, make it single-use, and shorten its TTL (#4421)
+- *(storage)* Bound transform dimensions and blur (#4445)
+
+
+### ⚙️ Miscellaneous Tasks
+
+- *(nixops)* Scope pinned toolchain overlays (#4506)
+
+
+### Chore
+
+- *(deps)* Update vulnerable dependencies (#4530)
+- *(deps)* Update vulnerable dependencies (#4541)
+
 ## [@nhost/nhost-js@4.7.2] - 2026-06-03
 
 ### 🐛 Bug Fixes
