@@ -1,6 +1,8 @@
 package dockercompose //nolint:testpackage
 
 import (
+	"fmt"
+	"os"
 	"testing"
 
 	"github.com/google/go-cmp/cmp"
@@ -131,6 +133,9 @@ func callGetServices(t *testing.T, withConstellation, useTLS bool) map[string]*S
 		"nhost/cli:dev",
 		"00000000-0000-0000-0000-000000000000",
 		false,
+		// Non-Linux host: leaves User unset so these label-focused
+		// assertions aren't perturbed by the caller's uid:gid.
+		"darwin",
 	)
 	if err != nil {
 		t.Fatalf("getServices failed: %v", err)
@@ -335,6 +340,8 @@ func TestConstellation(t *testing.T) {
 				1337,
 				"/path/to/nhost",
 				"nhost/constellation:0.1.0",
+				// Non-Linux host leaves User unset, matching the golden.
+				"darwin",
 			)
 			if err != nil {
 				t.Fatalf("got error: %v", err)
@@ -344,5 +351,36 @@ func TestConstellation(t *testing.T) {
 				t.Error(diff)
 			}
 		})
+	}
+}
+
+// TestConstellationRunsAsHostUserOnLinux mirrors the console host-user
+// mapping: constellation writes into the bind-mounted nhost/metadata
+// folder, so on Linux it is stamped with the caller's uid:gid and left
+// unset elsewhere.
+func TestConstellationRunsAsHostUserOnLinux(t *testing.T) {
+	t.Parallel()
+
+	linux, err := constellation(
+		getConfig(), "dev", false, 1337, "/path/to/nhost", "nhost/constellation:0.1.0", osLinux,
+	)
+	if err != nil {
+		t.Fatalf("got error: %v", err)
+	}
+
+	want := fmt.Sprintf("%d:%d", os.Getuid(), os.Getgid())
+	if linux.User == nil || *linux.User != want {
+		t.Errorf("linux constellation User = %v, want %q", linux.User, want)
+	}
+
+	other, err := constellation(
+		getConfig(), "dev", false, 1337, "/path/to/nhost", "nhost/constellation:0.1.0", "windows",
+	)
+	if err != nil {
+		t.Fatalf("got error: %v", err)
+	}
+
+	if other.User != nil {
+		t.Errorf("non-linux constellation User = %q, want nil", *other.User)
 	}
 }

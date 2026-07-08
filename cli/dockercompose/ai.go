@@ -44,6 +44,7 @@ func ai(
 		Networks:    nil,
 		Ports:       nil,
 		Restart:     "always",
+		User:        nil,
 		HealthCheck: &HealthCheck{
 			Test: []string{
 				"CMD", "graphite", "healthcheck",

@@ -91,6 +91,7 @@ func graphql( //nolint:funlen
 		Networks:   networkAliases("hasura-service"),
 		Ports:      ports(port, hasuraPort),
 		Restart:    "always",
+		User:       nil,
 		Volumes:    nil,
 		WorkingDir: nil,
 	}, nil
@@ -103,6 +104,7 @@ func console( //nolint:funlen
 	useTLS bool,
 	nhostFolder string,
 	port uint,
+	hostOS string,
 ) (*Service, error) {
 	if semver.Compare(*cfg.GetHasura().GetVersion(), minimumHasuraVerson) < 0 {
 		return nil, fmt.Errorf( //nolint:err113
@@ -147,6 +149,13 @@ func console( //nolint:funlen
 
 		env[v.Name] = v.Value
 	}
+
+	// hasura-cli writes its global config to $HOME/.hasura/config.json.
+	// The image's default HOME is /root, which only root can write to; when
+	// this container runs as the host user (see hostUserSpec) that write
+	// fails. Point HOME at /tmp, which is world-writable and already exists
+	// in the image, so hasura-cli can create its config dir as any uid.
+	env["HOME"] = "/tmp"
 
 	return &Service{
 		Image: fmt.Sprintf(
@@ -201,6 +210,7 @@ func console( //nolint:funlen
 		Networks: nil,
 		Ports:    ports(port, consolePort),
 		Restart:  "always",
+		User:     hostUserSpec(hostOS),
 		Volumes: []Volume{
 			{
 				Type:     "bind",
