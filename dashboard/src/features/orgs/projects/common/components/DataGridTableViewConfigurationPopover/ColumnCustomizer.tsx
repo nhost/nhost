@@ -4,8 +4,8 @@ import { DragAndDropList } from '@/components/common/DragAndDropList';
 import { useTablePath } from '@/features/orgs/projects/database/common/hooks/useTablePath';
 import type { UnknownDataGridRow } from '@/features/orgs/projects/storage/dataGrid/components/DataGrid';
 import {
-  SELECTION_COLUMN_ID,
   ACTIONS_COLUMN_ID,
+  SELECTION_COLUMN_ID,
 } from '@/features/orgs/projects/storage/dataGrid/components/DataGrid';
 import { useDataGridConfig } from '@/features/orgs/projects/storage/dataGrid/components/DataGridConfigProvider';
 import { saveColumnOrder } from '@/features/orgs/projects/storage/dataGrid/utils/PersistentDataTableConfigurationStorage';

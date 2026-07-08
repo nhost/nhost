@@ -69,16 +69,28 @@ function createUUIDValidationSchema(details: ColumnDetails) {
 function createBooleanValidationSchema(details: ColumnDetails) {
   const booleanSchema = yup.string().test((value, { createError }) => {
     const isTrueOrFalse = value === 'true' || value === 'false';
+    const isNull = value === null;
+    const isNullOption = value === 'null';
+    const isDefault = value === POSTGRES_DEFAULT_PLACEHOLDER;
+    const canUseDefault = details.hasDefaultValue || details.isIdentity;
 
-    if (details.isNullable && value !== null && !isTrueOrFalse) {
-      return createError({ message: 'This field is required.' });
+    if (isTrueOrFalse) {
+      return true;
     }
 
-    if (!details.isNullable && !isTrueOrFalse) {
-      return createError({ message: 'This field is required.' });
+    if (isDefault && canUseDefault) {
+      return true;
     }
 
-    return true;
+    if ((isNull || value === undefined) && canUseDefault) {
+      return true;
+    }
+
+    if ((isNull || isNullOption) && details.isNullable) {
+      return true;
+    }
+
+    return createError({ message: 'This field is required.' });
   });
 
   return createGenericValidationSchema(booleanSchema, details);

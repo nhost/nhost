@@ -142,6 +142,4 @@ describe('createRecord', () => {
     expect(sql).toContain('metadata');
     expect(sql).toContain('\'{"a":1,"b":2}\'::jsonb');
   });
-
 });
-

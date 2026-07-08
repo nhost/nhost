@@ -2,8 +2,8 @@ import type { Header } from '@tanstack/react-table';
 import type { DetailedHTMLProps, HTMLProps } from 'react';
 import type { UnknownDataGridRow } from '@/features/orgs/projects/storage/dataGrid/components/DataGrid';
 import {
-  SELECTION_COLUMN_ID,
   ACTIONS_COLUMN_ID,
+  SELECTION_COLUMN_ID,
 } from '@/features/orgs/projects/storage/dataGrid/components/DataGrid';
 import { useDataGridConfig } from '@/features/orgs/projects/storage/dataGrid/components/DataGridConfigProvider';
 import { DataGridHeaderButton } from '@/features/orgs/projects/storage/dataGrid/components/DataGridHeaderButton';
@@ -51,11 +51,11 @@ export default function DataGridHeader({
               minWidth: width,
               maxWidth: column.id === SELECTION_COLUMN_ID ? 32 : maxSize,
               zIndex:
-                column.id === SELECTION_COLUMN_ID || column.id === ACTIONS_COLUMN_ID
+                column.id === SELECTION_COLUMN_ID ||
+                column.id === ACTIONS_COLUMN_ID
                   ? 10
                   : undefined,
-              right:
-                column.id === ACTIONS_COLUMN_ID ? 0 : undefined,
+              right: column.id === ACTIONS_COLUMN_ID ? 0 : undefined,
             }}
             key={header.id}
           >

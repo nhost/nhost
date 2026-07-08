@@ -7,15 +7,13 @@ import { Button } from '@/components/ui/v3/button';
 import { useTablePath } from '@/features/orgs/projects/database/common/hooks/useTablePath';
 import type { BaseRecordFormProps } from '@/features/orgs/projects/database/dataGrid/components/BaseRecordForm';
 import { BaseRecordForm } from '@/features/orgs/projects/database/dataGrid/components/BaseRecordForm';
-import { useUpdateRecordWithToastMutation } from '@/features/orgs/projects/database/dataGrid/hooks/useUpdateRecordMutation';
+import { useUpdateRecordMutation } from '@/features/orgs/projects/database/dataGrid/hooks/useUpdateRecordMutation';
 import type {
   ColumnInsertOptions,
   ColumnUpdateOptions,
 } from '@/features/orgs/projects/database/dataGrid/types/dataBrowser';
-import {
-  POSTGRES_DEFAULT_PLACEHOLDER,
-  wrapResolverWithDefaultPlaceholder,
-} from '@/features/orgs/projects/database/dataGrid/utils/postgresDefaultPlaceholder';
+import { wrapResolverWithDefaultPlaceholder } from '@/features/orgs/projects/database/dataGrid/utils/postgresDefaultPlaceholder';
+import { getEditRecordFormDefaultValues } from '@/features/orgs/projects/database/dataGrid/utils/recordFormValues';
 import { createDynamicValidationSchema } from '@/features/orgs/projects/database/dataGrid/utils/validationSchemaHelpers';
 import type { UnknownDataGridRow } from '@/features/orgs/projects/storage/dataGrid/components/DataGrid';
 import { triggerToast } from '@/utils/toast';
@@ -39,40 +37,13 @@ export default function EditRecordForm({
   currentOffset,
   ...props
 }: EditRecordFormProps) {
-  const {
-    mutateAsync: updateRow,
-    error,
-    reset,
-  } = useUpdateRecordWithToastMutation();
+  const { mutateAsync: updateRow, error, reset } = useUpdateRecordMutation();
   const validationSchema = createDynamicValidationSchema(props.columns);
   const currentTablePath = useTablePath();
   const queryClient = useQueryClient();
 
   const form = useForm({
-    defaultValues: props.columns.reduce((defaultValues, column) => {
-      let value = row.original[column.id];
-      const isJson = column.baseType === 'json' || column.baseType === 'jsonb';
-
-      if (
-        value !== null &&
-        typeof value === 'object' &&
-        isJson
-      ) {
-        value = JSON.stringify(value, null, 2);
-      } else if (column.baseType === 'boolean') {
-        if (value === true || value === 'true') {
-          value = 'true';
-        } else if (value === false || value === 'false') {
-          value = 'false';
-        } else if (value === POSTGRES_DEFAULT_PLACEHOLDER) {
-          value = 'default';
-        } else if (value === null) {
-          value = column.isNullable ? 'null' : '';
-        }
-      }
-
-      return { ...defaultValues, [column.id]: value };
-    }, {}),
+    defaultValues: getEditRecordFormDefaultValues(props.columns, row.original),
     reValidateMode: 'onSubmit',
     resolver: wrapResolverWithDefaultPlaceholder(yupResolver(validationSchema)),
   });
@@ -144,9 +115,9 @@ export default function EditRecordForm({
             queryKey: [currentTablePath, currentOffset],
           });
         }
-      }
 
-      triggerToast('The row has been updated successfully.');
+        triggerToast('The row has been updated successfully.');
+      }
     } catch {
       // Error is handled by the mutation or toast wrapper.
     }
@@ -178,6 +149,7 @@ export default function EditRecordForm({
       <BaseRecordForm
         submitButtonText="Save"
         onSubmit={handleSubmit}
+        disableSubmitWhenPristine
         {...props}
       />
     </FormProvider>

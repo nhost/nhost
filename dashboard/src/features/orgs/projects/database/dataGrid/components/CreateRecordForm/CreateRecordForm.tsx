@@ -8,10 +8,8 @@ import type { BaseRecordFormProps } from '@/features/orgs/projects/database/data
 import { BaseRecordForm } from '@/features/orgs/projects/database/dataGrid/components/BaseRecordForm';
 import { useCreateRecordMutation } from '@/features/orgs/projects/database/dataGrid/hooks/useCreateRecordMutation';
 import type { ColumnInsertOptions } from '@/features/orgs/projects/database/dataGrid/types/dataBrowser';
-import {
-  POSTGRES_DEFAULT_PLACEHOLDER,
-  wrapResolverWithDefaultPlaceholder,
-} from '@/features/orgs/projects/database/dataGrid/utils/postgresDefaultPlaceholder';
+import { wrapResolverWithDefaultPlaceholder } from '@/features/orgs/projects/database/dataGrid/utils/postgresDefaultPlaceholder';
+import { getCreateRecordFormDefaultValues } from '@/features/orgs/projects/database/dataGrid/utils/recordFormValues';
 import { createDynamicValidationSchema } from '@/features/orgs/projects/database/dataGrid/utils/validationSchemaHelpers';
 import { triggerToast } from '@/utils/toast';
 
@@ -40,66 +38,10 @@ export default function CreateRecordForm({
   const queryClient = useQueryClient();
 
   const form = useForm({
-    defaultValues: props.columns.reduce((defaultValues, column) => {
-      if (initialValues?.[column.id] !== undefined) {
-        let value = initialValues[column.id];
-        const isJson = column.baseType === 'json' || column.baseType === 'jsonb';
-
-        if (
-          value !== null &&
-          typeof value === 'object' &&
-          isJson
-        ) {
-          value = JSON.stringify(value, null, 2);
-        } else if (column.baseType === 'boolean') {
-          if (value === true || value === 'true') {
-            value = 'true';
-          } else if (value === false || value === 'false') {
-            value = 'false';
-          } else if (value === POSTGRES_DEFAULT_PLACEHOLDER) {
-            value = 'default';
-          } else if (value === null) {
-            value = column.isNullable ? 'null' : '';
-          }
-        }
-        return { ...defaultValues, [column.id]: value };
-      }
-
-      const hasDefault = !!(column.defaultValue || column.isIdentity);
-
-      if (
-        column.baseType === 'boolean' &&
-        !column.isArray &&
-        column.defaultValue
-      ) {
-        let val: string | null = column.defaultValue;
-        if (
-          val === 'true' ||
-          (val as unknown) === true ||
-          (typeof val === 'string' && val.includes('true'))
-        ) {
-          val = 'true';
-        } else if (
-          val === 'false' ||
-          (val as unknown) === false ||
-          (typeof val === 'string' && val.includes('false'))
-        ) {
-          val = 'false';
-        } else {
-          val = null;
-        }
-        return { ...defaultValues, [column.id]: val };
-      }
-
-      if (column.isNullable && hasDefault) {
-        return {
-          ...defaultValues,
-          [column.id]: POSTGRES_DEFAULT_PLACEHOLDER,
-        };
-      }
-
-      return { ...defaultValues, [column.id]: null };
-    }, {}),
+    defaultValues: getCreateRecordFormDefaultValues(
+      props.columns,
+      initialValues,
+    ),
     reValidateMode: 'onSubmit',
     resolver: wrapResolverWithDefaultPlaceholder(yupResolver(validationSchema)),
   });

@@ -268,6 +268,4 @@ describe('updateRecord', () => {
     const sql = (capturedBody as CapturedRequest).args[0].args.sql;
     expect(sql).toContain('metadata = \'{"a":1,"b":2}\'::jsonb');
   });
-
 });
-

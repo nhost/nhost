@@ -41,10 +41,10 @@ import {
 } from '@/features/orgs/projects/database/dataGrid/utils/postgresqlConstants';
 import { isTemporalType } from '@/features/orgs/projects/database/dataGrid/utils/temporalTypeHelpers';
 import {
+  ACTIONS_COLUMN_ID,
   DataGrid,
   type DataGridProps,
   type UnknownDataGridRow,
-  ACTIONS_COLUMN_ID,
 } from '@/features/orgs/projects/storage/dataGrid/components/DataGrid';
 import { DataGridBooleanCell } from '@/features/orgs/projects/storage/dataGrid/components/DataGridBooleanCell';
 import { DataGridNumericCell } from '@/features/orgs/projects/storage/dataGrid/components/DataGridNumericCell';
