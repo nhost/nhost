@@ -1,0 +1,6 @@
+# getrandom 0.3 needs to be told to use its JS backend when targeting the
+# browser (wasm32-unknown-unknown). This is required in addition to enabling
+# getrandom's `wasm_js` feature (see Cargo.toml). Without it, PKCE's random
+# code-verifier generation fails to compile for wasm.
+[target.wasm32-unknown-unknown]
+rustflags = ['--cfg', 'getrandom_backend="wasm_js"']

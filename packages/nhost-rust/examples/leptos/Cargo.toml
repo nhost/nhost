@@ -1,0 +1,18 @@
+[package]
+name = "nhost-leptos-example"
+version = "0.0.0"
+edition = "2021"
+publish = false
+
+[dependencies]
+# Client-side (CSR) Leptos app, built to WebAssembly with Trunk.
+leptos = { version = "0.8", features = ["csr"] }
+# The Nhost SDK with browser support. default-features = false drops the native
+# rustls-tls backend (the browser handles TLS); `wasm` enables the !Send-relaxed
+# pipeline, the web-time clock, and the localStorage-backed session store.
+nhost = { path = "../..", default-features = false, features = ["wasm"] }
+# Nicer panic messages in the browser console.
+console_error_panic_hook = "0.1"
+# Decode the GraphQL `data` payload (generic JSON) into typed structs.
+serde = { version = "1", features = ["derive"] }
+serde_json = "1"
