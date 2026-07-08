@@ -3,7 +3,7 @@ import { useTheme } from '@mui/material';
 import { format } from 'date-fns';
 import kebabCase from 'just-kebab-case';
 import debounce from 'lodash.debounce';
-import { CopyIcon } from 'lucide-react';
+import { ChevronDownIcon, CopyIcon } from 'lucide-react';
 import Image from 'next/image';
 import { useCallback, useEffect, useMemo, useState } from 'react';
 import { FormProvider, useForm } from 'react-hook-form';
@@ -16,11 +16,16 @@ import { Avatar } from '@/components/ui/v2/Avatar';
 import { Box } from '@/components/ui/v2/Box';
 import { Button } from '@/components/ui/v2/Button';
 import { Chip } from '@/components/ui/v2/Chip';
-import { Dropdown } from '@/components/ui/v2/Dropdown';
 import { IconButton } from '@/components/ui/v2/IconButton';
 import { Input } from '@/components/ui/v2/Input';
 import { InputLabel } from '@/components/ui/v2/InputLabel';
 import { Text } from '@/components/ui/v2/Text';
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+} from '@/components/ui/v3/dropdown-menu';
 import { SelectItem } from '@/components/ui/v3/select';
 import { useRemoteApplicationGQLClient } from '@/features/orgs/hooks/useRemoteApplicationGQLClient';
 import { EditUserPasswordForm } from '@/features/orgs/projects/authentication/users/components/EditUserPasswordForm';
@@ -265,34 +270,37 @@ export default function EditUserForm({
               )}
             </div>
             <div>
-              <Dropdown.Root>
-                <Dropdown.Trigger autoFocus={false} asChild className="gap-2">
-                  <Button variant="outlined" color="secondary">
+              <DropdownMenu>
+                <DropdownMenuTrigger autoFocus={false} asChild>
+                  <Button
+                    variant="outlined"
+                    color="secondary"
+                    className="gap-2"
+                  >
                     Actions
+                    <ChevronDownIcon className="h-3 w-3" />
                   </Button>
-                </Dropdown.Trigger>
-                <Dropdown.Content menu className="h-full w-full">
-                  <Dropdown.Item
-                    className="font-medium"
-                    sx={{ color: 'error.main' }}
+                </DropdownMenuTrigger>
+                <DropdownMenuContent align="end" className="w-40 p-0">
+                  <DropdownMenuItem
+                    className="!text-destructive flex h-9 cursor-pointer items-center justify-start gap-2 rounded-none border border-b-1 p-2 font-medium text-sm+ leading-4 hover:bg-data-cell-bg"
                     onClick={() => {
                       handleUserDisabledStatus();
                       setIsUserBanned((s) => !s);
                     }}
                   >
                     {isUserBanned ? 'Unban User' : 'Ban User'}
-                  </Dropdown.Item>
-                  <Dropdown.Item
-                    className="font-medium"
-                    sx={{ color: 'error.main' }}
+                  </DropdownMenuItem>
+                  <DropdownMenuItem
+                    className="!text-destructive flex h-9 cursor-pointer items-center justify-start gap-2 rounded-none border border-b-1 p-2 font-medium text-sm+ leading-4 hover:bg-data-cell-bg"
                     onClick={() => {
                       onDeleteUser(user);
                     }}
                   >
                     Delete User
-                  </Dropdown.Item>
-                </Dropdown.Content>
-              </Dropdown.Root>
+                  </DropdownMenuItem>
+                </DropdownMenuContent>
+              </DropdownMenu>
             </div>
           </Box>
           <Box
