@@ -64,6 +64,14 @@ paths:
                     format: binary
               required:
                 - file[]
+            encoding:
+              # metadata[] parts are JSON objects. Declaring the per-part
+              # content type explicitly (OpenAPI's default for object-typed
+              # multipart parts, which some client generators ignore) so tools
+              # send them as application/json rather than text/plain. file[] is
+              # intentionally left unset so binary parts keep their own type.
+              metadata[]:
+                contentType: application/json
       responses:
         "201":
           description: "Files successfully uploaded"
