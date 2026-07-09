@@ -2,7 +2,10 @@ import type { VisibilityState } from '@tanstack/react-table';
 import { Button } from '@/components/ui/v3/button';
 import { ButtonGroup } from '@/components/ui/v3/button-group';
 import { useTablePath } from '@/features/orgs/projects/database/common/hooks/useTablePath';
-import { SELECTION_COLUMN_ID } from '@/features/orgs/projects/storage/dataGrid/components/DataGrid';
+import {
+  ACTIONS_COLUMN_ID,
+  SELECTION_COLUMN_ID,
+} from '@/features/orgs/projects/storage/dataGrid/components/DataGrid';
 import { useDataGridConfig } from '@/features/orgs/projects/storage/dataGrid/components/DataGridConfigProvider';
 import {
   saveColumnOrder,
@@ -16,7 +19,9 @@ function ShowHideAllColumnsButtons() {
     useDataGridConfig();
   const allColumns = getAllColumns();
 
-  const columns = allColumns.filter(({ id }) => id !== SELECTION_COLUMN_ID);
+  const columns = allColumns.filter(
+    ({ id }) => id !== SELECTION_COLUMN_ID && id !== ACTIONS_COLUMN_ID,
+  );
 
   function saveVisibility(visibility: VisibilityState) {
     setColumnVisibility(visibility);

@@ -109,14 +109,16 @@ function RestoreBackupDialogButton({
   }, [earliestBackupDate]);
 
   const handleDateTimeChange = useCallback(
-    (newDateTime: string) => {
-      setRestoreTargetTime(newDateTime);
-      if (isBefore(newDateTime, earliestBackupDate)) {
-        setRestoreTargetIsBeforeError(
-          'Selected date is before the earliest restore target time.',
-        );
-      } else {
-        setRestoreTargetIsBeforeError(undefined);
+    (newDateTime: string | null) => {
+      if (newDateTime !== null) {
+        setRestoreTargetTime(newDateTime);
+        if (isBefore(newDateTime, earliestBackupDate)) {
+          setRestoreTargetIsBeforeError(
+            'Selected date is before the earliest restore target time.',
+          );
+        } else {
+          setRestoreTargetIsBeforeError(undefined);
+        }
       }
     },
     [earliestBackupDate],

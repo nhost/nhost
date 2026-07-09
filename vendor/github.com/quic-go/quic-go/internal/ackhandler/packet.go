@@ -24,12 +24,15 @@ type packet struct {
 	IsPathMTUProbePacket bool // We don't report the loss of Path MTU probe packets to the congestion controller.
 
 	includedInBytesInFlight bool
-	declaredLost            bool
 	isPathProbePacket       bool
 }
 
-func (p *packet) outstanding() bool {
-	return !p.declaredLost && !p.IsPathMTUProbePacket && !p.isPathProbePacket
+func (p *packet) Outstanding() bool {
+	return !p.IsPathMTUProbePacket && !p.isPathProbePacket && p.IsAckEliciting()
+}
+
+func (p *packet) IsAckEliciting() bool {
+	return len(p.StreamFrames) > 0 || len(p.Frames) > 0
 }
 
 var packetPool = sync.Pool{New: func() any { return &packet{} }}
@@ -44,7 +47,6 @@ func getPacket() *packet {
 	p.SendTime = 0
 	p.IsPathMTUProbePacket = false
 	p.includedInBytesInFlight = false
-	p.declaredLost = false
 	p.isPathProbePacket = false
 	return p
 }

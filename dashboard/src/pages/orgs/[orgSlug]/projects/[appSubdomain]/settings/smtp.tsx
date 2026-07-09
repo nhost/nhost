@@ -2,8 +2,13 @@ import { type ReactElement, useEffect, useState } from 'react';
 import { UpgradeToProBanner } from '@/components/common/UpgradeToProBanner';
 import { Container } from '@/components/layout/Container';
 import { ActivityIndicator } from '@/components/ui/v2/ActivityIndicator';
-import { Option } from '@/components/ui/v2/Option';
-import { Select } from '@/components/ui/v2/Select';
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from '@/components/ui/v3/select';
 import { OrgLayout } from '@/features/orgs/layout/OrgLayout';
 import { SettingsLayout } from '@/features/orgs/layout/SettingsLayout';
 import DeleteSMTPSettings from '@/features/orgs/projects/authentication/settings/components/DeleteSMTPSettings/DeleteSMTPSettings';
@@ -68,20 +73,14 @@ export default function SMTPSettingsPage() {
       className="grid max-w-5xl grid-flow-row gap-4 bg-transparent"
       rootClassName="bg-transparent"
     >
-      <Select
-        slotProps={{
-          popper: { disablePortal: false, className: 'z-[10000]' },
-        }}
-        value={mode}
-        onChange={(_, value) => setMode(value as string)}
-        fullWidth
-      >
-        <Option key="smtp" value="smtp">
-          SMTP
-        </Option>
-        <Option key="postmark" value="postmark">
-          Postmark
-        </Option>
+      <Select value={mode} onValueChange={setMode}>
+        <SelectTrigger aria-label="SMTP provider">
+          <SelectValue />
+        </SelectTrigger>
+        <SelectContent className="z-[10000]">
+          <SelectItem value="smtp">SMTP</SelectItem>
+          <SelectItem value="postmark">Postmark</SelectItem>
+        </SelectContent>
       </Select>
 
       {mode === 'postmark' ? <PostmarkSettings /> : <SMTPSettings />}

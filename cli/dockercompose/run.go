@@ -63,6 +63,7 @@ func run(
 		Networks:    nil,
 		Ports:       ports,
 		Restart:     "always",
+		User:        nil,
 		Volumes:     volumes,
 		WorkingDir:  nil,
 	}
