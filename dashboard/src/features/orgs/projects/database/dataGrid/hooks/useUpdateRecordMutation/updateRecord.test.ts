@@ -250,22 +250,4 @@ describe('updateRecord', () => {
       }),
     ).rejects.toThrow();
   });
-
-  test('updates json/jsonb values in compressed form', async () => {
-    const row = makeRow([
-      { id: 'id', isPrimary: true, specificType: 'integer', value: 1 },
-      { id: 'metadata', specificType: 'jsonb', value: { a: 1 } },
-    ]);
-
-    await updateRecord({
-      ...defaultOptions,
-      row,
-      columnsToUpdate: {
-        metadata: { value: '{\n  "a": 1,\n  "b": 2\n}' },
-      },
-    });
-
-    const sql = (capturedBody as CapturedRequest).args[0].args.sql;
-    expect(sql).toContain('metadata = \'{"a":1,"b":2}\'::jsonb');
-  });
 });

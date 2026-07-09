@@ -22,7 +22,7 @@ export default function DataGridHeader({
   className,
   ...props
 }: DataGridHeaderProps) {
-  const { getFlatHeaders, allowSelection } = useDataGridConfig();
+  const { getFlatHeaders } = useDataGridConfig();
 
   return (
     <div
