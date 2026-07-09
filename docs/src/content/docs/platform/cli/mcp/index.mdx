@@ -14,9 +14,11 @@ sidebar:
 The Nhost cli ships with the CLI MCP server, which lets you interact with your Nhost projects through AI assistants using the Model Context Protocol. It provides secure, controlled access to your GraphQL data, project configuration, and documentation—with granular permissions that let you specify exactly which queries and mutations an LLM can execute. For development, it streamlines your workflow by enabling AI-assisted schema management, metadata changes, and migrations, while providing direct access to your GraphQL schema for intelligent query building.
 
 :::note[CLI vs. Project MCP server]
-This is the **CLI MCP server** — it runs on your machine (`nhost mcp start`), authenticates as **you** (admin secret or personal access token), and is meant to help **you build and manage your projects** — whether local or deployed.
+This is the **CLI MCP server** — it runs on your machine (`nhost mcp start`), authenticates as **you** (admin secret or PAT), and helps you build and manage your projects.
 
-If instead you want to expose your project to your **end users'** AI assistants in production — authenticating each user through Nhost Auth and enforcing their own permissions — use the [Project MCP server](/products/ai/mcp) instead.
+To instead expose your project to your **end users'** AI assistants in production, use the Project MCP server.
+
+Not sure which one you need? See the [Project MCP vs. CLI MCP comparison](/products/ai/mcp#project-mcp-vs-cli-mcp).
 :::
 
 ## Overview
@@ -108,4 +110,4 @@ manage_metadata = true
 
 This allows the LLM to create migrations, manage permissions, and handle schema changes through the `manage-graphql` tool.
 
-For more details, see the [configuration](./configuration) page.
+For more details, see the [configuration](/platform/cli/mcp/configuration) page.

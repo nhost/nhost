@@ -16,7 +16,7 @@ The configuration file is located at `.nhost/mcp-nhost.toml` in your project dir
 
 ## TOML
 
-```toml
+```toml title="mcp-nhost.toml"
 # Cloud configuration for managing Nhost Cloud projects and organizations
 # Remove this section to disable Nhost Cloud access
 [cloud]
@@ -78,11 +78,12 @@ auth_url = "your-custom-url"
 # For local: https://local.hasura.local.nhost.run
 hasura_url = "your-custom-url"
 ```
+
 ## Example Configurations
 
 ### Basic Configuration with Cloud Access
 
-```toml
+```toml title="mcp-nhost.toml"
 # Enable Nhost Cloud management with mutations
 [cloud]
 enable_mutations = true
@@ -99,7 +100,7 @@ allow_mutations = ["insertPost", "updatePost", "deletePost"]
 
 ### Local Development Configuration
 
-```toml
+```toml title="mcp-nhost.toml"
 # Configure local development environment
 [[projects]]
 subdomain = "local"
@@ -113,7 +114,7 @@ allow_mutations = ["*"]
 
 ### Multiple Projects with Different Access Levels
 
-```toml
+```toml title="mcp-nhost.toml"
 # Enable cloud management
 [cloud]
 enable_mutations = true
@@ -151,7 +152,7 @@ allow_mutations = []
 
 You can use environment variables in your configuration:
 
-```toml
+```toml title="mcp-nhost.toml"
 [cloud]
 enable_mutations = true
 
