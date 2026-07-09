@@ -15,14 +15,14 @@ import (
 )
 
 const (
-	flagYes          = "yes"
-	flagCloud        = "cloud"
-	flagLocal        = "local"
-	flagAdminSecret  = "admin-secret"
-	flagProjSub      = "project-subdomain"
-	flagProjRegion   = "project-region"
-	flagProjSecret   = "project-admin-secret"
-	flagProjPAT      = "project-pat"
+	flagYes         = "yes"
+	flagCloud       = "cloud"
+	flagLocal       = "local"
+	flagAdminSecret = "admin-secret"
+	flagProjSub     = "project-subdomain"
+	flagProjRegion  = "project-region"
+	flagProjSecret  = "project-admin-secret"
+	flagProjPAT     = "project-pat"
 )
 
 func Command() *cli.Command { //nolint:funlen

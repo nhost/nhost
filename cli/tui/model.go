@@ -79,12 +79,12 @@ type Model struct {
 	phases  []Phase
 	spinner spinner.Model
 
-	services   []dockercompose.ServiceStatus
-	logs       []LogEntry
-	logOffset  int
-	logFilter  string
-	logSearch  string
-	searching  bool
+	services    []dockercompose.ServiceStatus
+	logs        []LogEntry
+	logOffset   int
+	logFilter   string
+	logSearch   string
+	searching   bool
 	searchInput textinput.Model
 
 	config    AppConfig

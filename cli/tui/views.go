@@ -329,7 +329,8 @@ func (m Model) serviceURL(name string) string {
 	switch name {
 	case "postgres":
 		return fmt.Sprintf(
-			"localhost:%d", m.config.PostgresPort)
+			"localhost:%d", m.config.PostgresPort,
+		)
 	case "graphql":
 		return dockercompose.URL(sub, "graphql", port, tls)
 	case "auth":

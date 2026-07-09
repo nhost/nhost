@@ -17,12 +17,12 @@ type PickerItem struct {
 }
 
 type pickerModel struct {
-	title    string
-	items    []PickerItem
-	cursor   int
-	chosen   int
-	quitted  bool
-	spinner  spinner.Model
+	title   string
+	items   []PickerItem
+	cursor  int
+	chosen  int
+	quitted bool
+	spinner spinner.Model
 }
 
 func newPickerModel(title string, items []PickerItem) pickerModel {
@@ -90,9 +90,9 @@ func (m pickerModel) View() string {
 
 	b.WriteString("\n")
 	b.WriteString(helpStyle.Render(
-		"  "+helpKey.Render("\u2191\u2193")+" navigate "+
-			helpKey.Render("enter")+" select "+
-			helpKey.Render("q")+" cancel",
+		"  " + helpKey.Render("\u2191\u2193") + " navigate " +
+			helpKey.Render("enter") + " select " +
+			helpKey.Render("q") + " cancel",
 	))
 	b.WriteString("\n")
 

@@ -13,7 +13,9 @@ import (
 
 func Printlist(ce *CliEnv, orgs *graphql.GetOrganizationsAndWorkspacesApps) error {
 	if len(orgs.GetWorkspaces())+len(orgs.GetOrganizations()) == 0 {
-		return errors.New("no projects found. Make sure you are logged in and belong to an organization") //nolint:err113
+		return errors.New(
+			"no projects found. Make sure you are logged in and belong to an organization",
+		) //nolint:err113
 	}
 
 	num := Column{
@@ -120,7 +122,9 @@ OUTER2:
 	}
 
 	if app == nil {
-		return nil, errors.New("invalid selection. Please enter a valid project number from the list") //nolint:err113
+		return nil, errors.New(
+			"invalid selection. Please enter a valid project number from the list",
+		) //nolint:err113
 	}
 
 	return app, nil
@@ -145,7 +149,9 @@ func (ce *CliEnv) FetchApps(
 	}
 
 	if len(orgs.GetWorkspaces())+len(orgs.GetOrganizations()) == 0 {
-		return nil, nil, errors.New("no projects found. Make sure you are logged in and belong to an organization") //nolint:err113
+		return nil, nil, errors.New(
+			"no projects found. Make sure you are logged in and belong to an organization",
+		) //nolint:err113
 	}
 
 	return collectApps(orgs), orgs, nil

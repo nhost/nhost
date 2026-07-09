@@ -149,7 +149,9 @@ func startCallbackServer(
 	if !ok {
 		listener.Close()
 
-		return nil, errors.New("login failed: could not start local authentication server") //nolint:err113
+		return nil, errors.New(
+			"login failed: could not start local authentication server",
+		) //nolint:err113
 	}
 
 	resultCh := make(chan callbackResult, 1)
