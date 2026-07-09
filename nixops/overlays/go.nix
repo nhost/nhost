@@ -10,11 +10,11 @@ rec {
   # huge dependency cones instead of substituting them from cache.nixos.org.
   go = prev.go_1_26.overrideAttrs (
     finalAttrs: previousAttrs: rec {
-      version = "1.26.4";
+      version = "1.26.5";
 
       src = final.fetchurl {
         url = "https://go.dev/dl/go${version}.src.tar.gz";
-        sha256 = "sha256-T2aKMvv8ETLmqIH7lowvHa2mMUkqM5IRc1+7JVpCYC0=";
+        sha256 = "sha256-SVvkvIcXasVnOS5bQRar2YRm0z17SdQedkzMaXay3EI=";
       };
 
     }
