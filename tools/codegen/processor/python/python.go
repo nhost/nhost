@@ -52,10 +52,7 @@ func toSnakeCase(s string) string {
 		case r == '-' || r == ' ' || r == '.':
 			b.WriteRune('_')
 		case unicode.IsUpper(r):
-			prevLower := i > 0 && (unicode.IsLower(runes[i-1]) || unicode.IsDigit(runes[i-1]))
-			nextLower := i+1 < len(runes) && unicode.IsLower(runes[i+1])
-			if i > 0 && (prevLower || nextLower) && runes[i-1] != '-' &&
-				runes[i-1] != ' ' && runes[i-1] != '.' {
+			if underscoreBeforeUpper(runes, i) {
 				b.WriteByte('_')
 			}
 
@@ -77,6 +74,26 @@ func toSnakeCase(s string) string {
 	out = strings.Trim(out, "_")
 
 	return out
+}
+
+// underscoreBeforeUpper reports whether a snake_case underscore should be
+// inserted before the uppercase rune at index i, marking a camelCase or
+// PascalCase word boundary without doubling an underscore that a preceding
+// separator already emits.
+func underscoreBeforeUpper(runes []rune, i int) bool {
+	if i == 0 {
+		return false
+	}
+
+	prev := runes[i-1]
+	if prev == '-' || prev == ' ' || prev == '.' {
+		return false
+	}
+
+	prevBoundary := unicode.IsLower(prev) || unicode.IsDigit(prev)
+	nextLower := i+1 < len(runes) && unicode.IsLower(runes[i+1])
+
+	return prevBoundary || nextLower
 }
 
 func safeIdentifier(name string) string {
@@ -218,19 +235,20 @@ func (p *Python) MethodPath(name string) string {
 			break
 		}
 
-		close := strings.IndexByte(name[open:], '}')
-		if close < 0 {
+		end := strings.IndexByte(name[open:], '}')
+		if end < 0 {
 			b.WriteString(name)
 
 			break
 		}
 
-		close += open
+		end += open
 		b.WriteString(name[:open])
 		b.WriteByte('{')
-		b.WriteString(safeIdentifier(toSnakeCase(name[open+1 : close])))
+		b.WriteString(safeIdentifier(toSnakeCase(name[open+1 : end])))
 		b.WriteByte('}')
-		name = name[close+1:]
+
+		name = name[end+1:]
 	}
 
 	return b.String()
