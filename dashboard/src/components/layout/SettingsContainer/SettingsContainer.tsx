@@ -166,13 +166,13 @@ export default function SettingsContainer({
       <Box
         {...footer}
         className={twMerge(
-          'flex flex-col sm:flex-row sm:items-center gap-4 sm:gap-2 border-t px-4 pt-3.5',
+          'flex flex-col gap-4 border-t px-4 pt-3.5 sm:flex-row sm:items-center sm:gap-2',
           docsLink ? 'justify-between' : 'justify-end',
           footer?.className,
         )}
       >
         {docsLink && (
-          <div className="flex w-full justify-start gap-x-1 sm:self-center align-middle">
+          <div className="flex w-full justify-start gap-x-1 align-middle sm:self-center">
             <Text>
               Learn more about{' '}
               <TextLink

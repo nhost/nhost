@@ -23,7 +23,7 @@ export default function PasswordSettings() {
                 Update your account password.
               </p>
             </div>
-            <div className="flex w-full sm:w-[370px] flex-col gap-4">
+            <div className="flex w-full flex-col gap-4 sm:w-[370px]">
               <FormInput
                 control={form.control}
                 name="newPassword"
