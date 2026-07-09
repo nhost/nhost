@@ -101,33 +101,22 @@ func (m pickerModel) View() string {
 }
 
 func renderPickerItem(item PickerItem, active bool) string {
+	cursor := "  "
+	labelStyle := lipgloss.NewStyle()
+	descStyle := lipgloss.NewStyle().Foreground(colorGray)
+
 	if active {
-		return renderPickerItemActive(item)
+		cursor = lipgloss.NewStyle().Foreground(colorCyan).Render("\u25b8 ")
+		labelStyle = labelStyle.Foreground(colorCyan).Bold(true)
+		descStyle = descStyle.Foreground(colorCyan)
 	}
 
-	return renderPickerItemInactive(item)
-}
-
-func renderPickerItemActive(item PickerItem) string {
-	row := lipgloss.NewStyle().Bold(true)
-	cursor := lipgloss.NewStyle().Foreground(colorCyan).Render("\u25b8 ")
-	line := cursor + row.Render(item.Label)
-
+	line := "    " + cursor + labelStyle.Render(item.Label)
 	if item.Desc != "" {
-		line += "  " + row.Foreground(colorGray).Render(item.Desc)
+		line += "  " + descStyle.Render(item.Desc)
 	}
 
-	return "  " + line
-}
-
-func renderPickerItemInactive(item PickerItem) string {
-	line := "    " + item.Label
-
-	if item.Desc != "" {
-		line += "  " + lipgloss.NewStyle().Foreground(colorGray).Render(item.Desc)
-	}
-
-	return "  " + line
+	return line
 }
 
 var ErrPickerCancelled = errors.New("selection cancelled")

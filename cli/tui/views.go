@@ -2,7 +2,6 @@ package tui
 
 import (
 	"fmt"
-	"sort"
 	"strings"
 	"time"
 
@@ -147,24 +146,6 @@ func renderPhase(p Phase, spinView string) string {
 }
 
 //nolint:mnd
-var corePriority = map[string]int{ //nolint:gochecknoglobals
-	"postgres":  1,
-	"graphql":   2,
-	"auth":      3,
-	"storage":   4,
-	"functions": 5,
-	"ai":        6,
-	"dashboard": 7,
-}
-
-var infraServices = map[string]bool{ //nolint:gochecknoglobals
-	"console":      true,
-	"configserver": true,
-	"minio":        true,
-	"traefik":      true,
-	"mailhog":      true,
-}
-
 func (m Model) viewServices() string {
 	var b strings.Builder
 
@@ -218,21 +199,7 @@ func (m Model) splitServices() (
 	[]dockercompose.ServiceStatus,
 	[]dockercompose.ServiceStatus,
 ) {
-	var core, infra []dockercompose.ServiceStatus
-
-	for _, svc := range m.services {
-		if infraServices[svc.Service] {
-			infra = append(infra, svc)
-		} else {
-			core = append(core, svc)
-		}
-	}
-
-	sort.Slice(core, func(i, j int) bool {
-		return corePriority[core[i].Service] < corePriority[core[j].Service]
-	})
-
-	return core, infra
+	return dockercompose.GroupServices(m.services)
 }
 
 func (m Model) renderServiceCompact(

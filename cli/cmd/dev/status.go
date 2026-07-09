@@ -30,9 +30,10 @@ func CommandStatus() *cli.Command {
 }
 
 type statusOutput struct {
-	Status   string          `json:"status"`
-	Services []statusService `json:"services"`
-	SDK      statusSDK       `json:"sdk"`
+	Status         string          `json:"status"`
+	SDK            statusSDK       `json:"sdk"`
+	Services       []statusService `json:"services"`
+	Infrastructure []statusService `json:"infrastructure"`
 }
 
 type statusService struct {
@@ -94,9 +95,26 @@ func buildStatusOutput(
 		overall = "running"
 	}
 
-	svcList := make([]statusService, 0, len(services))
+	core, infra := dockercompose.GroupServices(services)
+
+	return statusOutput{
+		Status: overall,
+		SDK: statusSDK{
+			Subdomain: ce.LocalSubdomain(),
+			Region:    "local",
+		},
+		Services:       toStatusServices(ce, core),
+		Infrastructure: toStatusServices(ce, infra),
+	}
+}
+
+func toStatusServices(
+	ce *clienv.CliEnv,
+	services []dockercompose.ServiceStatus,
+) []statusService {
+	out := make([]statusService, 0, len(services))
 	for _, svc := range services {
-		svcList = append(svcList, statusService{
+		out = append(out, statusService{
 			Name:    svc.Service,
 			State:   svc.State,
 			Health:  svc.Health,
@@ -105,14 +123,7 @@ func buildStatusOutput(
 		})
 	}
 
-	return statusOutput{
-		Status:   overall,
-		Services: svcList,
-		SDK: statusSDK{
-			Subdomain: ce.LocalSubdomain(),
-			Region:    "local",
-		},
-	}
+	return out
 }
 
 func serviceURLPlain(ce *clienv.CliEnv, name string) string {
@@ -151,16 +162,27 @@ func printStatusStyled(
 		Foreground(clienv.ANSIColorGreen).Render("\u25cf")
 	dim := lipgloss.NewStyle().Foreground(clienv.ANSIColorGray)
 
-	ce.Println("  %s", dim.Render("Services"))
-
-	for _, svc := range services {
-		printStatusService(ce, svc, bullet, dim)
-	}
-
-	ce.Println("")
 	ce.Println("  %s", dim.Render("SDK"))
 	ce.Println("    Subdomain:  %s", ce.LocalSubdomain())
 	ce.Println("    Region:     local")
+	ce.Println("")
+
+	core, infra := dockercompose.GroupServices(services)
+
+	ce.Println("  %s", dim.Render("Services"))
+
+	for _, svc := range core {
+		printStatusService(ce, svc, bullet, dim)
+	}
+
+	if len(infra) > 0 {
+		ce.Println("")
+		ce.Println("  %s", dim.Render("Infrastructure"))
+
+		for _, svc := range infra {
+			printStatusService(ce, svc, bullet, dim)
+		}
+	}
 }
 
 func printStatusService(

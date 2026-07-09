@@ -92,8 +92,8 @@ func printOrgApps(
 		ce.Println(
 			"    %s %-16s %s",
 			bullet,
-			app.Subdomain,
-			dim.Render(fmt.Sprintf("%-14s %s", app.Name, app.Region.Name)),
+			app.Name,
+			dim.Render(fmt.Sprintf("%-14s %s", app.Subdomain, app.Region.Name)),
 		)
 	}
 
