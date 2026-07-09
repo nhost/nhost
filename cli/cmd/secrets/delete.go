@@ -43,7 +43,7 @@ func commandDelete(ctx context.Context, cmd *cli.Command) error {
 			fmt.Sprintf("Delete secret %s?", name),
 		)
 		if err != nil || !confirmed {
-			return nil
+			return nil //nolint:nilerr
 		}
 	}
 

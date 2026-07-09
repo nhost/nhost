@@ -104,7 +104,7 @@ func newModel(cfg AppConfig, cancel context.CancelFunc) Model {
 
 	ti := textinput.New()
 	ti.Placeholder = "search..."
-	ti.CharLimit = 100 //nolint:mnd
+	ti.CharLimit = 100
 
 	return Model{
 		state:       stateStartup,

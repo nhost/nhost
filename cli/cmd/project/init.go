@@ -27,6 +27,10 @@ const (
 	flagRemote = "remote"
 )
 
+var errAlreadyInitialized = errors.New(
+	"project already initialized. To reinitialize, remove the nhost/ folder first",
+)
+
 //go:embed templates/init/*
 var embeddedFS embed.FS
 
@@ -111,9 +115,7 @@ func commandInit(ctx context.Context, cmd *cli.Command) error {
 	ce := clienv.FromCLI(cmd)
 
 	if clienv.PathExists(ce.Path.NhostFolder()) {
-		return errors.New(
-			"project already initialized. To reinitialize, remove the nhost/ folder first",
-		)
+		return errAlreadyInitialized
 	}
 
 	if err := os.MkdirAll(ce.Path.NhostFolder(), 0o755); err != nil { //nolint:mnd
@@ -148,7 +150,7 @@ func initInit(ce *clienv.CliEnv) error {
 }
 
 func initInitTUI(ce *clienv.CliEnv) error {
-	return tui.RunSteps([]tui.Step{
+	return tui.RunSteps([]tui.Step{ //nolint:wrapcheck
 		{
 			Name: "Creating project structure",
 			Fn: func() error {
@@ -254,15 +256,18 @@ func initRemoteTUI(
 	ce.SetStdout(io.Discard)
 	defer ce.SetStdout(os.Stdout)
 
-	return tui.RunSteps([]tui.Step{
+	return tui.RunSteps([]tui.Step{ //nolint:wrapcheck
 		{
 			Name: "Pulling configuration from cloud",
 			Fn: func() error {
 				var err error
 
 				cfg, err = config.Pull(ctx, ce, proj, true)
+				if err != nil {
+					return fmt.Errorf("failed to pull config: %w", err)
+				}
 
-				return err
+				return nil
 			},
 		},
 		{

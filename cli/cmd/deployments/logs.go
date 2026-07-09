@@ -16,6 +16,10 @@ const (
 	flagTimeout = "timeout"
 )
 
+var errDeploymentIDRequired = errors.New(
+	"deployment ID is required. Usage: nhost deployments logs <ID>",
+)
+
 func CommandLogs() *cli.Command {
 	return &cli.Command{ //nolint:exhaustruct
 		Name:      "logs",
@@ -254,9 +258,7 @@ func handlePipelineRunLogs(
 func commandLogs(ctx context.Context, cmd *cli.Command) error {
 	deploymentID := cmd.Args().First()
 	if deploymentID == "" {
-		return errors.New(
-			"deployment ID is required. Usage: nhost deployments logs <ID>",
-		) //nolint:err113
+		return errDeploymentIDRequired
 	}
 
 	ce := clienv.FromCLI(cmd)

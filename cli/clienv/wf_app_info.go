@@ -46,7 +46,7 @@ func getRemoteAppInfo(
 	return nil, fmt.Errorf("failed to find app with subdomain: %s", subdomain) //nolint:err113
 }
 
-var ErrNoLinkedProject = errors.New( //nolint:gochecknoglobals
+var ErrNoLinkedProject = errors.New(
 	"no linked project. Run `nhost link` to link a project first",
 )
 

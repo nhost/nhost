@@ -19,6 +19,10 @@ import (
 	"golang.org/x/oauth2"
 )
 
+var errLocalAuthServer = errors.New(
+	"login failed: could not start local authentication server",
+)
+
 const loginTimeout = 5 * time.Minute
 
 func saveCredentials(
@@ -149,9 +153,7 @@ func startCallbackServer(
 	if !ok {
 		listener.Close()
 
-		return nil, errors.New(
-			"login failed: could not start local authentication server",
-		) //nolint:err113
+		return nil, errLocalAuthServer
 	}
 
 	resultCh := make(chan callbackResult, 1)

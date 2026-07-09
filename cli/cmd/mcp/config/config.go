@@ -25,7 +25,7 @@ const (
 	flagProjPAT     = "project-pat"
 )
 
-func Command() *cli.Command { //nolint:funlen
+func Command() *cli.Command {
 	return &cli.Command{ //nolint:exhaustruct
 		Name:  "config",
 		Usage: "Generate and save configuration file",

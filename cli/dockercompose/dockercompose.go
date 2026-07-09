@@ -375,9 +375,11 @@ func (r *logStreamReader) Read(p []byte) (int, error) {
 
 func (r *logStreamReader) Close() error {
 	_ = r.pty.Close()
+
 	if r.cmd.Process != nil {
 		_ = r.cmd.Process.Kill()
 	}
+
 	_ = r.cmd.Wait()
 
 	return nil
@@ -400,7 +402,7 @@ func (dc *DockerCompose) LogStream(
 		args = append(args, "--since", since)
 	}
 
-	cmd := exec.CommandContext(ctx, "docker", args...) //nolint:gosec
+	cmd := exec.CommandContext(ctx, "docker", args...)
 
 	f, err := pty.Start(cmd)
 	if err != nil {

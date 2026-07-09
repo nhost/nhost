@@ -50,7 +50,7 @@ func commandValidate(ctx context.Context, cmd *cli.Command) error {
 
 func commandValidateLocal(ce *clienv.CliEnv, isTTY bool) error {
 	if isTTY {
-		return tui.RunSteps([]tui.Step{
+		return tui.RunSteps([]tui.Step{ //nolint:wrapcheck
 			{
 				Name: "Validating configuration",
 				Fn: func() error {
@@ -100,7 +100,7 @@ func commandValidateRemote(
 		ce.SetStdout(io.Discard)
 		defer ce.SetStdout(os.Stdout)
 
-		return tui.RunSteps([]tui.Step{
+		return tui.RunSteps([]tui.Step{ //nolint:wrapcheck
 			{
 				Name: "Validating remote configuration",
 				Fn: func() error {

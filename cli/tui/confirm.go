@@ -1,6 +1,7 @@
 package tui
 
 import (
+	"errors"
 	"fmt"
 
 	tea "github.com/charmbracelet/bubbletea"
@@ -29,7 +30,7 @@ func (m confirmModel) Update(msg tea.Msg) (tea.Model, tea.Cmd) { //nolint:iretur
 		m.done = true
 
 		return m, tea.Quit
-	case "n", "N", "esc":
+	case "n", "N", keyEsc:
 		m.confirmed = false
 		m.done = true
 
@@ -57,7 +58,7 @@ func (m confirmModel) View() string {
 	return fmt.Sprintf("\n  %s %s\n  Continue? %s ", warnIcon, m.message, hint)
 }
 
-var ErrConfirmCancelled = fmt.Errorf("confirmation cancelled") //nolint:err113,gochecknoglobals
+var ErrConfirmCancelled = errors.New("confirmation cancelled")
 
 func RunConfirm(message string) (bool, error) {
 	m := confirmModel{

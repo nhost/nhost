@@ -4,8 +4,7 @@ import (
 	"context"
 	"fmt"
 
-	"github.com/nhost/nhost/cli/clienv"
-	"github.com/nhost/nhost/cli/cmd/cmdutil"
+	"github.com/nhost/nhost/cli/nhostclient/graphql"
 	"github.com/urfave/cli/v3"
 )
 
@@ -21,28 +20,14 @@ func CommandCreate() *cli.Command {
 }
 
 func commandCreate(ctx context.Context, cmd *cli.Command) error {
-	name, value, err := resolveNameValue(cmd)
-	if err != nil {
-		return err
-	}
+	return runSecretMutation(
+		ctx, cmd, "Secret created successfully!",
+		func(cl *graphql.Client, appID, name, value string) error {
+			if _, err := cl.CreateSecret(ctx, appID, name, value); err != nil {
+				return fmt.Errorf("failed to create secret: %w", err)
+			}
 
-	ce := clienv.FromCLI(cmd)
-
-	proj, err := cmdutil.GetAppInfoOrLink(ctx, ce, cmd.String(flagSubdomain))
-	if err != nil {
-		return fmt.Errorf("failed to get app info: %w", err)
-	}
-
-	cl, err := ce.GetNhostClient(ctx)
-	if err != nil {
-		return fmt.Errorf("failed to get nhost client: %w", err)
-	}
-
-	if _, err := cl.CreateSecret(ctx, proj.ID, name, value); err != nil {
-		return fmt.Errorf("failed to create secret: %w", err)
-	}
-
-	ce.Infoln("Secret created successfully!")
-
-	return nil
+			return nil
+		},
+	)
 }

@@ -174,7 +174,7 @@ func confirmDockerConfigure() (bool, error) {
 		)
 	}
 
-	return tui.RunConfirm(
+	return tui.RunConfirm( //nolint:wrapcheck
 		"Configure Docker for Nhost registry authentication?",
 	)
 }

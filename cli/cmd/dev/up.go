@@ -12,7 +12,6 @@ import (
 	"syscall"
 	"time"
 
-	"github.com/charmbracelet/lipgloss"
 	"github.com/nhost/be/services/mimir/model"
 	"github.com/nhost/nhost/cli/clienv"
 	"github.com/nhost/nhost/cli/cmd/config"
@@ -24,14 +23,6 @@ import (
 	"github.com/urfave/cli/v3"
 	"golang.org/x/term"
 )
-
-func deptr[T any](t *T) T { //nolint:ireturn
-	if t == nil {
-		return *new(T)
-	}
-
-	return *t
-}
 
 const (
 	flagHTTPPort           = "http-port"
@@ -566,74 +557,6 @@ func up( //nolint:funlen
 	return nil
 }
 
-func printInfo(
-	subdomain string,
-	httpPort, postgresPort uint,
-	useTLS bool,
-	runServices []*dockercompose.RunService,
-) {
-	dim := lipgloss.NewStyle().Foreground(clienv.ANSIColorDim)
-	bullet := lipgloss.NewStyle().Foreground(clienv.ANSIColorGreen).Render("●")
-	urlStyle := lipgloss.NewStyle().Underline(true)
-
-	printInfoURLs(subdomain, httpPort, postgresPort, useTLS, dim, bullet, urlStyle)
-	printInfoRunServices(runServices, bullet, urlStyle)
-	printInfoSDK(subdomain, dim)
-}
-
-func printInfoURLs(
-	subdomain string,
-	httpPort, postgresPort uint,
-	useTLS bool,
-	dim lipgloss.Style,
-	bullet string,
-	urlStyle lipgloss.Style,
-) {
-	fmt.Println("  " + dim.Render("URLs"))
-
-	urls := []struct{ name, url string }{
-		{"Postgres", fmt.Sprintf("postgres://postgres:postgres@localhost:%d/local", postgresPort)},
-		{"Hasura", dockercompose.URL(subdomain, "hasura", httpPort, useTLS)},
-		{"GraphQL", dockercompose.URL(subdomain, "graphql", httpPort, useTLS)},
-		{"Auth", dockercompose.URL(subdomain, "auth", httpPort, useTLS)},
-		{"Storage", dockercompose.URL(subdomain, "storage", httpPort, useTLS)},
-		{"Functions", dockercompose.URL(subdomain, "functions", httpPort, useTLS)},
-		{"Dashboard", dockercompose.URL(subdomain, "dashboard", httpPort, useTLS)},
-		{"Mailhog", dockercompose.URL(subdomain, "mailhog", httpPort, useTLS)},
-	}
-
-	for _, u := range urls {
-		fmt.Printf("    %s %-14s %s\n", bullet, u.name, urlStyle.Render(u.url))
-	}
-}
-
-func printInfoRunServices(
-	runServices []*dockercompose.RunService,
-	bullet string,
-	urlStyle lipgloss.Style,
-) {
-	for _, svc := range runServices {
-		for _, port := range svc.Config.GetPorts() {
-			if deptr(port.GetPublish()) {
-				svcURL := fmt.Sprintf("%s://localhost:%d", port.GetType(), port.GetPort())
-				fmt.Printf("    %s %-14s %s\n",
-					bullet, "run-"+svc.Config.Name, urlStyle.Render(svcURL))
-			}
-		}
-	}
-}
-
-func printInfoSDK(subdomain string, dim lipgloss.Style) {
-	fmt.Println()
-	fmt.Println("  " + dim.Render("SDK Configuration"))
-	fmt.Printf("    Subdomain:    %s\n", subdomain)
-	fmt.Printf("    Region:       local\n")
-	fmt.Println()
-	fmt.Println("  Run `nhost up` to reload the development environment")
-	fmt.Println("  Run `nhost down` to stop the development environment")
-	fmt.Println("  Run `nhost logs` to watch the logs")
-}
-
 func fetchVersions(
 	ctx context.Context,
 	ce *clienv.CliEnv,
@@ -708,7 +631,7 @@ func upErr(
 
 func confirmStopDev(ce *clienv.CliEnv) (bool, error) {
 	if term.IsTerminal(int(os.Stdout.Fd())) {
-		return tui.RunConfirm("Stop development environment?")
+		return tui.RunConfirm("Stop development environment?") //nolint:wrapcheck
 	}
 
 	ce.PromptMessage("Do you want to stop Nhost's development environment? [y/N] ")

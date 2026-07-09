@@ -75,7 +75,7 @@ func GetServiceVersions(
 	cfg *model.ConfigConfig,
 ) (map[string]ServiceVersion, error) {
 	if cfg == nil {
-		return nil, nil
+		return map[string]ServiceVersion{}, nil
 	}
 
 	var secrets model.Secrets

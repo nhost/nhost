@@ -62,7 +62,7 @@ func commandLinkBySubdomain(
 		return fmt.Errorf("failed to get app info: %w", err)
 	}
 
-	return ce.SaveLink(app)
+	return ce.SaveLink(app) //nolint:wrapcheck
 }
 
 func commandLinkInteractive(
@@ -100,5 +100,5 @@ func commandLinkInteractive(
 		return nil //nolint:nilerr
 	}
 
-	return ce.SaveLink(apps[idx].App)
+	return ce.SaveLink(apps[idx].App) //nolint:wrapcheck
 }

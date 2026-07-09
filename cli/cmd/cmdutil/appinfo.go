@@ -26,11 +26,11 @@ func GetAppInfoOrLink(
 	}
 
 	if !errors.Is(err, clienv.ErrNoLinkedProject) {
-		return nil, err
+		return nil, err //nolint:wrapcheck
 	}
 
 	if !term.IsTerminal(int(os.Stdout.Fd())) {
-		return nil, err
+		return nil, err //nolint:wrapcheck
 	}
 
 	return linkInteractive(ctx, ce)
@@ -61,7 +61,7 @@ func linkInteractive(
 	}
 
 	if err := ce.SaveLink(apps[idx].App); err != nil {
-		return nil, err
+		return nil, err //nolint:wrapcheck
 	}
 
 	return apps[idx].App, nil

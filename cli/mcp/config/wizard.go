@@ -13,20 +13,9 @@ func RunWizard() (*Config, error) {
 		return nil, ErrWizardRequiresTTY
 	}
 
-	cloud, err := wizardCloud()
-	if err != nil {
-		return nil, err
-	}
-
-	local, err := wizardLocal()
-	if err != nil {
-		return nil, err
-	}
-
-	projects, err := wizardProjects()
-	if err != nil {
-		return nil, err
-	}
+	cloud := wizardCloud()
+	local := wizardLocal()
+	projects := wizardProjects()
 
 	if local != nil {
 		projects = append([]Project{*local}, projects...)
@@ -38,31 +27,23 @@ func RunWizard() (*Config, error) {
 	}, nil
 }
 
-func wizardCloud() (*Cloud, error) {
+func wizardCloud() *Cloud {
 	confirmed, err := tui.RunConfirm(
 		"Enable Nhost Cloud access? (manage projects and organizations)",
 	)
-	if err != nil {
-		return nil, nil //nolint:nilerr
+	if err != nil || !confirmed {
+		return nil
 	}
 
-	if !confirmed {
-		return nil, nil
-	}
-
-	return &Cloud{EnableMutations: true}, nil
+	return &Cloud{EnableMutations: true}
 }
 
-func wizardLocal() (*Project, error) {
+func wizardLocal() *Project {
 	confirmed, err := tui.RunConfirm(
 		"Enable local development access?",
 	)
-	if err != nil {
-		return nil, nil //nolint:nilerr
-	}
-
-	if !confirmed {
-		return nil, nil
+	if err != nil || !confirmed {
+		return nil
 	}
 
 	secret, err := tui.RunPrompt(
@@ -84,17 +65,17 @@ func wizardLocal() (*Project, error) {
 		AuthURL:        "",
 		GraphqlURL:     "",
 		HasuraURL:      "",
-	}, nil
+	}
 }
 
-func wizardProjects() ([]Project, error) {
+func wizardProjects() []Project {
 	var projects []Project
 
 	confirmed, err := tui.RunConfirm(
 		"Configure access to a cloud project?",
 	)
 	if err != nil || !confirmed {
-		return projects, nil
+		return projects
 	}
 
 	for {
@@ -111,7 +92,7 @@ func wizardProjects() ([]Project, error) {
 		}
 	}
 
-	return projects, nil
+	return projects
 }
 
 func wizardOneProject() (*Project, error) {
@@ -122,7 +103,7 @@ func wizardOneProject() (*Project, error) {
 
 	region, err := tui.RunPrompt("Project region", "us-east-1")
 	if err != nil {
-		return nil, err
+		return nil, err //nolint:wrapcheck
 	}
 
 	desc, err := tui.RunPrompt("Description (for LLM context)", "")

@@ -73,5 +73,5 @@ func confirmUninstall() (bool, error) {
 		return false, errors.New("use --force to skip confirmation") //nolint:err113
 	}
 
-	return tui.RunConfirm("Uninstall Nhost CLI?")
+	return tui.RunConfirm("Uninstall Nhost CLI?") //nolint:wrapcheck
 }

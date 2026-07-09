@@ -121,7 +121,7 @@ func (m Model) viewPhases() string {
 func renderPhaseDetail(detail string) string {
 	var b strings.Builder
 
-	for _, line := range strings.Split(strings.TrimRight(detail, "\n"), "\n") {
+	for line := range strings.SplitSeq(strings.TrimRight(detail, "\n"), "\n") {
 		b.WriteString("      " + logDim.Render(line) + "\n")
 	}
 
@@ -397,11 +397,8 @@ func (m Model) maxLogOffset() int {
 // renderEntryLines wraps and prefixes a single entry's text into one or more
 // display lines for the given terminal width.
 func renderEntryLines(termWidth int, service, text string) []string {
-	prefixWidth := 4 + colName + 1 + 1 + 1 // "    " + svc + " " + sep + " "
-	wrapWidth := termWidth - prefixWidth
-	if wrapWidth < 20 { //nolint:mnd
-		wrapWidth = 20
-	}
+	prefixWidth := 4 + colName + 1 + 1 + 1      // "    " + svc + " " + sep + " "
+	wrapWidth := max(termWidth-prefixWidth, 20) //nolint:mnd
 
 	svc := logService.Render(service)
 	wrapped := wrapText(text, wrapWidth)

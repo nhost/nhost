@@ -39,7 +39,7 @@ func commandDefault(_ context.Context, cmd *cli.Command) error {
 }
 
 func commandDefaultTUI(ce *clienv.CliEnv) error {
-	return tui.RunSteps([]tui.Step{
+	return tui.RunSteps([]tui.Step{ //nolint:wrapcheck
 		{
 			Name: "Generating default configuration",
 			Fn: func() error {

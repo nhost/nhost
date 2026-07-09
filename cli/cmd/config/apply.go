@@ -72,7 +72,7 @@ func commandApplyTUI(
 	ce.SetStdout(io.Discard)
 	defer ce.SetStdout(os.Stdout)
 
-	return tui.RunSteps([]tui.Step{
+	return tui.RunSteps([]tui.Step{ //nolint:wrapcheck
 		{
 			Name: "Validating configuration",
 			Fn: func() error {

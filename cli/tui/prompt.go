@@ -48,7 +48,7 @@ func (m promptModel) Update(msg tea.Msg) (tea.Model, tea.Cmd) { //nolint:ireturn
 func (m promptModel) handlePromptKey( //nolint:ireturn
 	msg tea.KeyMsg,
 ) (tea.Model, tea.Cmd) {
-	switch msg.Type {
+	switch msg.Type { //nolint:exhaustive
 	case tea.KeyEnter:
 		m.submitted = true
 

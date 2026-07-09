@@ -1,6 +1,7 @@
 package tui
 
 import (
+	"errors"
 	"fmt"
 	"strings"
 
@@ -60,7 +61,7 @@ func (m pickerModel) handlePickerKey( //nolint:ireturn
 		if m.cursor > 0 {
 			m.cursor--
 		}
-	case "down", "j":
+	case keyDown, "j":
 		if m.cursor < len(m.items)-1 {
 			m.cursor++
 		}
@@ -68,7 +69,7 @@ func (m pickerModel) handlePickerKey( //nolint:ireturn
 		m.chosen = m.cursor
 
 		return m, tea.Quit
-	case "q", "esc", "ctrl+c":
+	case "q", keyEsc, "ctrl+c":
 		m.quitted = true
 
 		return m, tea.Quit
@@ -129,7 +130,7 @@ func renderPickerItemInactive(item PickerItem) string {
 	return "  " + line
 }
 
-var ErrPickerCancelled = fmt.Errorf("selection cancelled") //nolint:err113,gochecknoglobals
+var ErrPickerCancelled = errors.New("selection cancelled")
 
 func RunPicker(title string, items []PickerItem) (int, error) {
 	m := newPickerModel(title, items)

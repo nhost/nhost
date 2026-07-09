@@ -8,6 +8,11 @@ import (
 	tea "github.com/charmbracelet/bubbletea"
 )
 
+const (
+	keyDown = "down"
+	keyEsc  = "esc"
+)
+
 func (m Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) { //nolint:ireturn
 	switch msg := msg.(type) {
 	case tea.KeyMsg:
@@ -39,7 +44,7 @@ func (m Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) { //nolint:ireturn
 	}
 }
 
-func (m Model) handleDataMsg(msg tea.Msg) (tea.Model, tea.Cmd) { //nolint:ireturn,cyclop
+func (m Model) handleDataMsg(msg tea.Msg) (tea.Model, tea.Cmd) { //nolint:ireturn
 	switch msg := msg.(type) {
 	case phaseStartMsg:
 		m.phases = append(m.phases, Phase{
@@ -57,7 +62,7 @@ func (m Model) handleDataMsg(msg tea.Msg) (tea.Model, tea.Cmd) { //nolint:iretur
 		}
 	case phaseSkipMsg:
 		m.phases = append(m.phases, Phase{
-			Name: msg.name, Status: StatusSkipped, Err: nil,
+			Name: msg.name, Status: StatusSkipped, Err: nil, Detail: "",
 		})
 	case serviceStatusMsg:
 		m.services = msg.services
@@ -84,7 +89,7 @@ func (m Model) handleDataMsg(msg tea.Msg) (tea.Model, tea.Cmd) { //nolint:iretur
 	return m, nil
 }
 
-func (m Model) handleKey(msg tea.KeyMsg) (tea.Model, tea.Cmd) { //nolint:ireturn,cyclop
+func (m Model) handleKey(msg tea.KeyMsg) (tea.Model, tea.Cmd) { //nolint:ireturn,cyclop,funlen
 	switch {
 	case msg.Type == tea.KeyCtrlC || msg.String() == "q":
 		if m.state == stateStopping {
@@ -121,7 +126,7 @@ func (m Model) handleKey(msg tea.KeyMsg) (tea.Model, tea.Cmd) { //nolint:ireturn
 
 		return m, nil
 
-	case msg.String() == "down" || msg.String() == "j":
+	case msg.String() == keyDown || msg.String() == "j":
 		if m.logOffset > 0 {
 			m.logOffset--
 		}
@@ -154,7 +159,7 @@ func (m Model) handleKey(msg tea.KeyMsg) (tea.Model, tea.Cmd) { //nolint:ireturn
 
 		return m, nil
 
-	case msg.String() == "esc":
+	case msg.String() == keyEsc:
 		m.logFilter = ""
 		m.logSearch = ""
 		m.logOffset = 0
@@ -179,7 +184,7 @@ func (m Model) handleKey(msg tea.KeyMsg) (tea.Model, tea.Cmd) { //nolint:ireturn
 func (m Model) handleSearchKey( //nolint:ireturn
 	msg tea.KeyMsg,
 ) (tea.Model, tea.Cmd) {
-	switch msg.Type {
+	switch msg.Type { //nolint:exhaustive
 	case tea.KeyEnter:
 		m.logSearch = m.searchInput.Value()
 		m.searching = false

@@ -35,8 +35,8 @@ func newLogViewer(title, initialFilter string, cancel context.CancelFunc) LogVie
 
 	ti := textinput.New()
 	ti.Prompt = ""
-	ti.CharLimit = 64 //nolint:mnd
-	ti.Width = 40     //nolint:mnd
+	ti.CharLimit = 64
+	ti.Width = 40
 
 	return LogViewer{
 		logs:        make([]LogEntry, 0, maxLogLines),
@@ -112,7 +112,7 @@ func (m LogViewer) handleLogViewerKey(msg tea.KeyMsg) (tea.Model, tea.Cmd) { //n
 		}
 
 		return m, nil
-	case msg.String() == "down" || msg.String() == "j":
+	case msg.String() == keyDown || msg.String() == "j":
 		if m.logOffset > 0 {
 			m.logOffset--
 		}
@@ -139,7 +139,7 @@ func (m LogViewer) handleLogViewerKey(msg tea.KeyMsg) (tea.Model, tea.Cmd) { //n
 		m.logOffset = 0
 
 		return m, nil
-	case msg.String() == "esc":
+	case msg.String() == keyEsc:
 		m.logFilter = ""
 		m.logSearch = ""
 		m.logOffset = 0
@@ -159,7 +159,7 @@ func (m LogViewer) handleLogViewerKey(msg tea.KeyMsg) (tea.Model, tea.Cmd) { //n
 func (m LogViewer) handleLogViewerSearchKey( //nolint:ireturn
 	msg tea.KeyMsg,
 ) (tea.Model, tea.Cmd) {
-	switch msg.Type {
+	switch msg.Type { //nolint:exhaustive
 	case tea.KeyEnter:
 		m.logSearch = m.searchInput.Value()
 		m.searching = false
