@@ -1,0 +1,73 @@
+---
+title: Connecting Clients
+description: >-
+  Connect Claude, Cursor, and other MCP clients to your deployed Application
+  MCP server using its URL and the built-in OAuth2 flow.
+keywords: ["MCP clients", "Claude", "Cursor", "connector", "remote MCP", "OAuth2", "streamable HTTP"]
+head:
+  - tag: title
+    content: "Connect Claude, Cursor & Other MCP Clients | Nhost Docs"
+---
+import { Steps } from '@astrojs/starlight/components';
+
+The Project MCP server is a remote MCP server over HTTP. Any client that supports remote MCP servers with OAuth2 can connect using nothing but the service URL — the client handles the OAuth2 flow for you, so there are no tokens to copy or config files to hand-edit.
+
+This page uses `https://mcp.acme.com` as the example service URL. Replace it with the URL where you deployed Project MCP (your `MCP_REALM`).
+
+## Claude
+
+<Steps>
+
+1. Open **Settings** and go to **Connectors** (in some versions, **Customize → Connectors**).
+2. Click **+ Add custom connector**.
+3. Give it a name (for example "My App") and enter your service URL, `https://mcp.acme.com`.
+4. Click **Add**. You are redirected to your OAuth2 [consent page](/products/auth/oauth2-provider/authorization-flow) to authorize the client.
+5. Approve the request. Once connected, the assistant can call the MCP tools.
+
+</Steps>
+
+On the consent page you will see the requested scopes — typically `openid`, `offline_access`, and either `graphql` or `graphql:role:<role>` when a role is enforced.
+
+## Cursor
+
+Add the server to your MCP configuration (Cursor Settings → MCP), pointing at the service URL:
+
+```json
+{
+  "mcpServers": {
+    "my-app": {
+      "url": "https://mcp.acme.com"
+    }
+  }
+}
+```
+
+Cursor discovers the OAuth2 requirements from Project MCP and walks you through authorization.
+
+## Other clients
+
+Any MCP-compatible client that supports remote servers with OAuth2 works the same way:
+
+<Steps>
+
+1. Add a remote/HTTP MCP server and give it your service URL.
+2. Complete the OAuth2 authorization when the client prompts you.
+3. Confirm the tools (`get-schema`, `graphql-query`, `graphql-mutation`) appear.
+
+</Steps>
+
+:::note
+Clients that only support local (stdio) MCP servers, or that do not implement the OAuth2 discovery flow, cannot connect directly. Project MCP is a remote HTTP server and requires OAuth2.
+:::
+
+## Verify the connection
+
+Once connected, ask the assistant to describe your data model or run a simple read, for example:
+
+> What tables can you see? Use the MCP tools.
+
+The assistant should call `get-schema`, then answer using your schema. If it reports an authorization error, re-run the authorization flow; if a query is denied, check that the enforced role has permission for it (see [Roles & permissions](/products/ai/mcp/permissions)).
+
+## Not what you were looking for?
+
+To connect an AI assistant to Nhost for **local development and project management** — rather than exposing a deployed project to end users — use the [CLI MCP server](/platform/cli/mcp) instead.
