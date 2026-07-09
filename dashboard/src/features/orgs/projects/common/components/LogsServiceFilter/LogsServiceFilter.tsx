@@ -1,7 +1,7 @@
-import { forwardRef, memo, useMemo } from 'react';
-import type { UseFormRegisterReturn } from 'react-hook-form';
-import { ControlledSelect } from '@/components/form/ControlledSelect';
-import { Option } from '@/components/ui/v2/Option';
+import { memo, useMemo } from 'react';
+import type { Control, FieldPath, FieldValues } from 'react-hook-form';
+import { FormSelect } from '@/components/form/FormSelect';
+import { SelectItem } from '@/components/ui/v3/select';
 import { useIsPlatform } from '@/features/orgs/projects/common/hooks/useIsPlatform';
 import { useProject } from '@/features/orgs/projects/hooks/useProject';
 import {
@@ -12,63 +12,61 @@ import { isEmptyValue } from '@/lib/utils';
 import { useGetServiceLabelValuesQuery } from '@/utils/__generated__/graphql';
 import { localLogsClient } from '@/utils/localLogsClient';
 
-type LogsServiceFilterProps = UseFormRegisterReturn<
-  keyof {
-    service?: string;
-  }
->;
+// Shared across log headers that each have their own form shape, so it is
+// generic over the form values and only requires the `service` field's name.
+interface LogsServiceFilterProps<TFieldValues extends FieldValues> {
+  control: Control<TFieldValues>;
+  name: FieldPath<TFieldValues>;
+}
 
-const LogsServiceFilter = forwardRef<HTMLButtonElement, LogsServiceFilterProps>(
-  (props, ref) => {
-    const isPlatform = useIsPlatform();
-    const { project } = useProject();
-    const { data } = useGetServiceLabelValuesQuery({
-      variables: { appID: project?.id },
-      skip: !project?.id,
-      ...(!isPlatform ? { client: localLogsClient } : {}),
-    });
-    const serviceOptions = useMemo(() => {
-      if (isEmptyValue(data)) {
-        return [];
-      }
+function LogsServiceFilter<TFieldValues extends FieldValues>({
+  control,
+  name,
+}: LogsServiceFilterProps<TFieldValues>) {
+  const isPlatform = useIsPlatform();
+  const { project } = useProject();
+  const { data } = useGetServiceLabelValuesQuery({
+    variables: { appID: project?.id },
+    skip: !project?.id,
+    ...(!isPlatform ? { client: localLogsClient } : {}),
+  });
 
-      const options = [
-        {
-          label: CORE_LOG_SERVICE_TO_LABEL[CoreLogService.ALL],
-          value: CoreLogService.ALL,
-        },
-        ...data!.getServiceLabelValues.map((l) => ({
-          label: CORE_LOG_SERVICE_TO_LABEL[l] ?? l,
-          value: l,
-        })),
-      ];
+  const serviceOptions = useMemo(() => {
+    if (isEmptyValue(data)) {
+      return [];
+    }
 
-      return options.map(({ value, label }) => (
-        <Option key={value} value={value} className="font-medium text-sm+">
-          {label}
-        </Option>
-      ));
-    }, [data]);
-    const { onChange, ...selectProps } = props;
-    return (
-      <ControlledSelect
-        {...selectProps}
-        ref={ref}
-        className="w-full min-w-fit font-normal text-sm"
-        placeholder="All Services"
-        aria-label="Select service"
-        hideEmptyHelperText
-        data-testid="ServicePicker"
-        slotProps={{
-          root: {
-            className: 'min-h-[initial] h-10 leading-[initial]',
-          },
-        }}
-      >
-        {serviceOptions}
-      </ControlledSelect>
-    );
-  },
-);
+    const options = [
+      {
+        label: CORE_LOG_SERVICE_TO_LABEL[CoreLogService.ALL],
+        value: CoreLogService.ALL,
+      },
+      ...data!.getServiceLabelValues.map((l) => ({
+        label: CORE_LOG_SERVICE_TO_LABEL[l] ?? l,
+        value: l,
+      })),
+    ];
 
-export default memo(LogsServiceFilter);
+    return options.map(({ value, label }) => (
+      <SelectItem key={value} value={value} className="font-medium text-sm+">
+        {label}
+      </SelectItem>
+    ));
+  }, [data]);
+
+  return (
+    <FormSelect
+      control={control}
+      name={name}
+      containerClassName="space-y-0"
+      className="h-10 w-full font-normal text-sm"
+      placeholder="All Services"
+      data-testid="ServicePicker"
+    >
+      {serviceOptions}
+    </FormSelect>
+  );
+}
+
+// `memo` drops the generic call signature, so cast it back to keep callers type-safe.
+export default memo(LogsServiceFilter) as typeof LogsServiceFilter;

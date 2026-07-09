@@ -8,7 +8,6 @@ import (
 
 	oapimw "github.com/nhost/nhost/internal/lib/oapi/middleware"
 	"github.com/nhost/nhost/services/auth/go/api"
-	"github.com/nhost/nhost/services/auth/go/notifications"
 )
 
 func (ctrl *Controller) SignUpOTPEmail( //nolint:ireturn
@@ -56,20 +55,10 @@ func (ctrl *Controller) SignUpOTPEmail( //nolint:ireturn
 		return ctrl.sendError(ErrInternalServerError), nil
 	}
 
-	ticketExpiresAt := time.Now().Add(time.Hour)
+	otpExpiresAt := time.Now().Add(In10Minutes)
 
-	// Call signupWithTicket directly since we've already verified user doesn't exist.
-	// OTP email is not a magic-link flow so PKCE does not apply.
-	if apiErr := ctrl.signupWithTicket(
-		ctx,
-		string(request.Body.Email),
-		options,
-		otp,
-		ticketExpiresAt,
-		notifications.TemplateNameSigninOTP,
-		LinkTypeNone,
-		"",
-		logger,
+	if apiErr := ctrl.signupWithOTP(
+		ctx, string(request.Body.Email), options, otp, otpExpiresAt, logger,
 	); apiErr != nil {
 		return ctrl.respondWithError(apiErr), nil
 	}

@@ -6,13 +6,14 @@ import {
 import { PermissionsGridLayout } from '@/components/common/PermissionsGridLayout';
 import { Spinner } from '@/components/ui/v3/spinner';
 import { useRemoteApplicationGQLClient } from '@/features/orgs/hooks/useRemoteApplicationGQLClient';
+import { useExportMetadata } from '@/features/orgs/projects/common/hooks/useExportMetadata';
 import { useTableSchemaQuery } from '@/features/orgs/projects/database/common/hooks/useTableSchemaQuery';
-import { useMetadataQuery } from '@/features/orgs/projects/database/dataGrid/hooks/useMetadataQuery';
 import type {
   DatabaseAccessLevel,
   DatabaseAction,
   DatabaseObjectType,
   HasuraMetadataPermission,
+  HasuraMetadataTable,
 } from '@/features/orgs/projects/database/dataGrid/types/dataBrowser';
 import { getAllowedActions } from '@/features/orgs/projects/database/dataGrid/utils/getAllowedActions';
 import { isGeneratedColumn } from '@/features/orgs/projects/database/dataGrid/utils/isGeneratedColumn';
@@ -81,7 +82,19 @@ export default function EditPermissionsForm({
     data: metadata,
     status: metadataStatus,
     error: metadataError,
-  } = useMetadataQuery([`default.metadata`]);
+  } = useExportMetadata((data) => {
+    const source = data.metadata.sources?.find((s) => s.name === 'default');
+
+    const metadataForTable = source?.tables?.find(
+      ({ table: currentTable }) =>
+        currentTable.name === table && currentTable.schema === schema,
+    ) as HasuraMetadataTable | undefined;
+
+    return {
+      resourceVersion: data.resource_version,
+      metadataForTable,
+    };
+  });
 
   if (tableStatus === 'loading') {
     return (
@@ -124,10 +137,7 @@ export default function EditPermissionsForm({
     ...(rolesData?.authRoles?.map(({ role: authRole }) => authRole) || []),
   ];
 
-  const metadataForTable = metadata?.tables?.find(
-    ({ table: currentTable }) =>
-      currentTable.name === table && currentTable.schema === schema,
-  );
+  const metadataForTable = metadata?.metadataForTable;
 
   const availableColumns =
     tableData?.columns.map((column) => column.column_name) || [];

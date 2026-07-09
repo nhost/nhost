@@ -6,6 +6,8 @@ schema {
 scalar bigint
 scalar bytea
 scalar citext
+scalar geography
+scalar geometry
 scalar jsonb
 scalar numeric
 scalar timestamptz
@@ -627,6 +629,73 @@ enum notes_select_column {
   column name
   """
   title
+}
+"""
+unique or primary key constraints on table "postgis_locations"
+"""
+enum postgis_locations_constraint {
+  """
+  unique or primary key constraint on columns "id"
+  """
+  postgis_locations_pkey
+  """
+  unique or primary key constraint on columns "name"
+  """
+  postgis_locations_name_key
+}
+"""
+update columns of table "postgis_locations"
+"""
+enum postgis_locations_update_column {
+  """
+  column name
+  """
+  name
+  """
+  column name
+  """
+  geom
+  """
+  column name
+  """
+  geog
+  """
+  column name
+  """
+  area
+  """
+  column name
+  """
+  nullable_geom
+}
+"""
+select columns of table "postgis_locations"
+"""
+enum postgis_locations_select_column {
+  """
+  column name
+  """
+  id
+  """
+  column name
+  """
+  name
+  """
+  column name
+  """
+  geom
+  """
+  column name
+  """
+  geog
+  """
+  column name
+  """
+  area
+  """
+  column name
+  """
+  nullable_geom
 }
 """
 select columns of table "published_news"
@@ -1966,6 +2035,59 @@ type notes_mutation_response {
   returning: [notes!]!
 }
 """
+columns and relationships of "postgis_locations"
+"""
+type postgis_locations {
+  id: uuid!
+  name: String!
+  geom: geometry!
+  geog: geography!
+  area: geometry!
+  nullable_geom: geometry
+}
+"""
+aggregated selection of "postgis_locations"
+"""
+type postgis_locations_aggregate {
+  aggregate: postgis_locations_aggregate_fields
+  nodes: [postgis_locations!]!
+}
+"""
+aggregate max on columns
+"""
+type postgis_locations_max_fields {
+  id: uuid
+  name: String
+}
+"""
+aggregate min on columns
+"""
+type postgis_locations_min_fields {
+  id: uuid
+  name: String
+}
+"""
+aggregate fields of "postgis_locations"
+"""
+type postgis_locations_aggregate_fields {
+  count(columns: [postgis_locations_select_column!], distinct: Boolean): Int!
+  max: postgis_locations_max_fields
+  min: postgis_locations_min_fields
+}
+"""
+response of any mutation on the table "postgis_locations"
+"""
+type postgis_locations_mutation_response {
+  """
+  number of rows affected by the mutation
+  """
+  affected_rows: Int!
+  """
+  data from the rows affected by the mutation
+  """
+  returning: [postgis_locations!]!
+}
+"""
 columns and relationships of "published_news"
 """
 type publishedNews {
@@ -2854,6 +2976,68 @@ type query_root {
   fetch data from the table: "notes" using primary key columns
   """
   notes_by_pk(id: uuid!): notes
+  """
+  fetch data from the table: "postgis_locations"
+  """
+  postgis_locations(
+    """
+    distinct select on columns
+    """
+    distinct_on: [postgis_locations_select_column!]
+
+    """
+    limit the number of rows returned
+    """
+    limit: Int
+
+    """
+    skip the first n rows. Use only with order_by
+    """
+    offset: Int
+
+    """
+    sort the rows by one or more columns
+    """
+    order_by: [postgis_locations_order_by!]
+
+    """
+    filter the rows returned
+    """
+    where: postgis_locations_bool_exp
+  ): [postgis_locations!]!
+  """
+  fetch data from the table: "postgis_locations" using primary key columns
+  """
+  postgis_locations_by_pk(id: uuid!): postgis_locations
+  """
+  fetch aggregated fields from the table: "postgis_locations"
+  """
+  postgis_locations_aggregate(
+    """
+    distinct select on columns
+    """
+    distinct_on: [postgis_locations_select_column!]
+
+    """
+    limit the number of rows returned
+    """
+    limit: Int
+
+    """
+    skip the first n rows. Use only with order_by
+    """
+    offset: Int
+
+    """
+    sort the rows by one or more columns
+    """
+    order_by: [postgis_locations_order_by!]
+
+    """
+    filter the rows returned
+    """
+    where: postgis_locations_bool_exp
+  ): postgis_locations_aggregate!
   """
   fetch data from the table: "published_news"
   """
@@ -3924,6 +4108,79 @@ type mutation_root {
     """
     updates: [notes_updates!]!
   ): [notes_mutation_response]
+  """
+  delete single row from the table: "postgis_locations"
+  """
+  delete_postgis_locations_by_pk(id: uuid!): postgis_locations
+  """
+  delete data from the table: "postgis_locations"
+  """
+  delete_postgis_locations(
+    """
+    filter the rows which have to be deleted
+    """
+    where: postgis_locations_bool_exp!
+  ): postgis_locations_mutation_response
+  """
+  insert a single row into the table: "postgis_locations"
+  """
+  insert_postgis_locations_one(
+    """
+    the row to be inserted
+    """
+    object: postgis_locations_insert_input!
+
+    """
+    upsert condition
+    """
+    on_conflict: postgis_locations_on_conflict
+  ): postgis_locations
+  """
+  insert data into the table: "postgis_locations"
+  """
+  insert_postgis_locations(
+    """
+    the rows to be inserted
+    """
+    objects: [postgis_locations_insert_input!]!
+
+    """
+    upsert condition
+    """
+    on_conflict: postgis_locations_on_conflict
+  ): postgis_locations_mutation_response
+  """
+  update single row of the table: "postgis_locations"
+  """
+  update_postgis_locations_by_pk(
+    """
+    sets the columns of the filtered rows to the given values
+    """
+    _set: postgis_locations_set_input
+  pk_columns: postgis_locations_pk_columns_input!): postgis_locations
+  """
+  update data of the table: "postgis_locations"
+  """
+  update_postgis_locations(
+    """
+    sets the columns of the filtered rows to the given values
+    """
+    _set: postgis_locations_set_input
+
+    """
+    filter the rows which have to be updated
+    """
+    where: postgis_locations_bool_exp!
+  ): postgis_locations_mutation_response
+  """
+  update multiples rows of table: "postgis_locations"
+  """
+  update_postgis_locations_many(
+    """
+    updates to execute, in order
+    """
+    updates: [postgis_locations_updates!]!
+  ): [postgis_locations_mutation_response]
   """
   delete single row from the table: "user_departments"
   """
@@ -5206,6 +5463,87 @@ type subscription_root {
     """
     where: notes_bool_exp
   ): [notes!]!
+  """
+  fetch data from the table: "postgis_locations"
+  """
+  postgis_locations(
+    """
+    distinct select on columns
+    """
+    distinct_on: [postgis_locations_select_column!]
+
+    """
+    limit the number of rows returned
+    """
+    limit: Int
+
+    """
+    skip the first n rows. Use only with order_by
+    """
+    offset: Int
+
+    """
+    sort the rows by one or more columns
+    """
+    order_by: [postgis_locations_order_by!]
+
+    """
+    filter the rows returned
+    """
+    where: postgis_locations_bool_exp
+  ): [postgis_locations!]!
+  """
+  fetch data from the table: "postgis_locations" using primary key columns
+  """
+  postgis_locations_by_pk(id: uuid!): postgis_locations
+  """
+  fetch aggregated fields from the table: "postgis_locations"
+  """
+  postgis_locations_aggregate(
+    """
+    distinct select on columns
+    """
+    distinct_on: [postgis_locations_select_column!]
+
+    """
+    limit the number of rows returned
+    """
+    limit: Int
+
+    """
+    skip the first n rows. Use only with order_by
+    """
+    offset: Int
+
+    """
+    sort the rows by one or more columns
+    """
+    order_by: [postgis_locations_order_by!]
+
+    """
+    filter the rows returned
+    """
+    where: postgis_locations_bool_exp
+  ): postgis_locations_aggregate!
+  """
+  fetch data from the table in a streaming manner: "postgis_locations"
+  """
+  postgis_locations_stream(
+    """
+    maximum number of rows returned in a single batch
+    """
+    batch_size: Int!
+
+    """
+    cursor to stream the results returned by the query
+    """
+    cursor: [postgis_locations_stream_cursor_input]!
+
+    """
+    filter the rows returned
+    """
+    where: postgis_locations_bool_exp
+  ): [postgis_locations!]!
   """
   fetch data from the table: "published_news"
   """
@@ -7302,6 +7640,99 @@ input notes_obj_rel_insert_input {
   on_conflict: notes_on_conflict
 }
 """
+Boolean expression to filter rows from the table "postgis_locations". All fields are combined with a logical 'AND'.
+"""
+input postgis_locations_bool_exp {
+  _and: [postgis_locations_bool_exp!]
+  _not: postgis_locations_bool_exp
+  _or: [postgis_locations_bool_exp!]
+  id: uuid_comparison_exp
+  name: String_comparison_exp
+  geom: geometry_comparison_exp
+  geog: geography_comparison_exp
+  area: geometry_comparison_exp
+  nullable_geom: geometry_comparison_exp
+}
+"""
+Ordering options when selecting data from "postgis_locations".
+"""
+input postgis_locations_order_by {
+  id: order_by
+  name: order_by
+  geom: order_by
+  geog: order_by
+  area: order_by
+  nullable_geom: order_by
+}
+"""
+Initial value of the column from where the streaming should start
+"""
+input postgis_locations_stream_cursor_value_input {
+  id: uuid
+  name: String
+  geom: geometry
+  geog: geography
+  area: geometry
+  nullable_geom: geometry
+}
+"""
+Streaming cursor of the table "postgis_locations"
+"""
+input postgis_locations_stream_cursor_input {
+  """
+  Stream column input with initial value
+  """
+  initial_value: postgis_locations_stream_cursor_value_input!
+  """
+  cursor ordering
+  """
+  ordering: cursor_ordering
+}
+"""
+input type for inserting data into table "postgis_locations"
+"""
+input postgis_locations_insert_input {
+  name: String
+  geom: geometry
+  geog: geography
+  area: geometry
+  nullable_geom: geometry
+}
+"""
+on_conflict condition type for table "postgis_locations"
+"""
+input postgis_locations_on_conflict {
+  constraint: postgis_locations_constraint!
+  update_columns: [postgis_locations_update_column!]! = []
+  where: postgis_locations_bool_exp
+}
+"""
+primary key columns input for table: postgis_locations
+"""
+input postgis_locations_pk_columns_input {
+  id: uuid!
+}
+"""
+input type for updating data in table "postgis_locations"
+"""
+input postgis_locations_set_input {
+  name: String
+  geom: geometry
+  geog: geography
+  area: geometry
+  nullable_geom: geometry
+}
+input postgis_locations_updates {
+  """
+  sets the columns of the filtered rows to the given values
+  """
+  _set: postgis_locations_set_input
+  """
+  filter the rows which have to be updated
+  """
+  where: postgis_locations_bool_exp!
+}
+"""
 Boolean expression to filter rows from the table "published_news". All fields are combined with a logical 'AND'.
 """
 input publishedNews_bool_exp {
@@ -7830,6 +8261,90 @@ input citext_comparison_exp {
   """
   _similar: citext
 }
+input geography_cast_exp {
+  geometry: geometry_comparison_exp
+}
+"""
+Boolean expression to compare columns of type "geography". All fields are combined with logical 'AND'.
+"""
+input geography_comparison_exp {
+  _cast: geography_cast_exp
+  _eq: geography
+  _gt: geography
+  _gte: geography
+  _in: [geography!]
+  _is_null: Boolean
+  _lt: geography
+  _lte: geography
+  _neq: geography
+  _nin: [geography!]
+  """
+  is the column within a given distance from the given geography value
+  """
+  _st_d_within: st_d_within_geography_input
+  """
+  does the column spatially intersect the given geography value
+  """
+  _st_intersects: geography
+}
+input geometry_cast_exp {
+  geography: geography_comparison_exp
+}
+"""
+Boolean expression to compare columns of type "geometry". All fields are combined with logical 'AND'.
+"""
+input geometry_comparison_exp {
+  _cast: geometry_cast_exp
+  _eq: geometry
+  _gt: geometry
+  _gte: geometry
+  _in: [geometry!]
+  _is_null: Boolean
+  _lt: geometry
+  _lte: geometry
+  _neq: geometry
+  _nin: [geometry!]
+  """
+  is the column within a given 3D distance from the given geometry value
+  """
+  _st_3d_d_within: st_d_within_input
+  """
+  does the column spatially intersect the given geometry value in 3D
+  """
+  _st_3d_intersects: geometry
+  """
+  does the column contain the given geometry value
+  """
+  _st_contains: geometry
+  """
+  does the column cross the given geometry value
+  """
+  _st_crosses: geometry
+  """
+  is the column within a given distance from the given geometry value
+  """
+  _st_d_within: st_d_within_input
+  """
+  is the column equal to given geometry value (directionality is ignored)
+  """
+  _st_equals: geometry
+  """
+  does the column spatially intersect the given geometry value
+  """
+  _st_intersects: geometry
+  """
+  does the column 'spatially overlap' (intersect but not completely contain) the given geometry value
+  """
+  _st_overlaps: geometry
+  """
+  does the column have atleast one point in common with the given geometry value
+  """
+  _st_touches: geometry
+  """
+  is the column contained in the given geometry value
+  """
+  _st_within: geometry
+}
 """
 Boolean expression to compare columns of type "jsonb". All fields are combined with logical 'AND'.
 """
@@ -7906,6 +8421,15 @@ input uuid_comparison_exp {
   _lte: uuid
   _neq: uuid
   _nin: [uuid!]
+}
+input st_d_within_geography_input {
+  distance: Float!
+  from: geography!
+  use_spheroid: Boolean = true
+}
+input st_d_within_input {
+  distance: Float!
+  from: geometry!
 }
 input jsonb_cast_exp {
   String: String_comparison_exp

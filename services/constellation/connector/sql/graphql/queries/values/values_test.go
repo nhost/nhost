@@ -865,3 +865,87 @@ func TestResolveVariable(t *testing.T) {
 		})
 	}
 }
+
+func TestCoerceSQLValueSpatial(t *testing.T) {
+	t.Parallel()
+
+	tests := []struct {
+		name    string
+		sqlType string
+		value   any
+		want    any
+	}{
+		{
+			name:    "geojson object",
+			sqlType: "geometry",
+			value: map[string]any{
+				"type":        "Point",
+				"coordinates": []any{float64(1), float64(2)},
+			},
+			want: `{"coordinates":[1,2],"type":"Point"}`,
+		},
+		{
+			name:    "geojson string passes through",
+			sqlType: "geography",
+			value:   `{"type":"Point","coordinates":[1,2]}`,
+			want:    `{"type":"Point","coordinates":[1,2]}`,
+		},
+		{
+			name:    "geojson bytes coerced to string",
+			sqlType: "geometry",
+			value:   []byte(`{"type":"Point","coordinates":[1,2]}`),
+			want:    `{"type":"Point","coordinates":[1,2]}`,
+		},
+		{
+			name:    "null passes through",
+			sqlType: "geometry",
+			value:   nil,
+			want:    nil,
+		},
+		{
+			name:    "non spatial identity",
+			sqlType: "jsonb",
+			value: map[string]any{
+				"type": "Point",
+			},
+			want: map[string]any{
+				"type": "Point",
+			},
+		},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			t.Parallel()
+
+			got, err := values.CoerceSQLValue(tt.sqlType, tt.value)
+			if err != nil {
+				t.Fatalf("CoerceSQLValue error = %v", err)
+			}
+
+			if diff := cmp.Diff(tt.want, got); diff != "" {
+				t.Fatalf("CoerceSQLValue mismatch (-want +got):\n%s", diff)
+			}
+		})
+	}
+}
+
+func TestCoerceSQLValuesSpatial(t *testing.T) {
+	t.Parallel()
+
+	got, err := values.CoerceSQLValues("geometry", []any{
+		map[string]any{"type": "Point", "coordinates": []any{float64(1), float64(2)}},
+		map[string]any{"type": "Point", "coordinates": []any{float64(3), float64(4)}},
+	})
+	if err != nil {
+		t.Fatalf("CoerceSQLValues error = %v", err)
+	}
+
+	want := []any{
+		`{"coordinates":[1,2],"type":"Point"}`,
+		`{"coordinates":[3,4],"type":"Point"}`,
+	}
+	if diff := cmp.Diff(want, got); diff != "" {
+		t.Fatalf("CoerceSQLValues mismatch (-want +got):\n%s", diff)
+	}
+}

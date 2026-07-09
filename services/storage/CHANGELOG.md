@@ -1,3 +1,25 @@
+## [storage@0.15.0] - 2026-06-29
+
+### 🚀 Features
+
+- *(constellation)* Align SQLite LIKE and constraints (#4464)
+
+
+### 🐛 Bug Fixes
+
+- *(storage)* Authorize file replace before reading request body (#4446)
+- *(internal/lib)* Consolidate / improve middleware into shared internal/lib/oapi (#4513)
+- *(storage)* Add security response headers to file responses (#4503)
+- *(storage)* Bound transform dimensions and blur (#4445)
+
+
+### ⚙️ Miscellaneous Tasks
+
+- *(nixops)* Drop nix-filter input in favor of pkgs.lib.fileset (#4377)
+- *(nixops)* Fix repo after bumping nixpkgs (#4394)
+- *(nixops)* Scope pinned toolchain overlays (#4506)
+- *(nixops)* Bump oapi-codegen (#4523)
+
 ## [storage@0.14.0] - 2026-05-23
 
 ### 🚀 Features

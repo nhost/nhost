@@ -1,54 +1,35 @@
 import type { InputProps } from '@/components/ui/v2/Input';
-import type { ColumnType } from '@/features/orgs/projects/database/dataGrid/types/dataBrowser';
-
-function isTimestampType(specificType?: string | null) {
-  if (!specificType) {
-    return false;
-  }
-  return (
-    ['timestamp', 'timestamptz'].includes(specificType) ||
-    specificType.includes('timestamp')
-  );
-}
-
-function isTimeType(specificType?: string | null) {
-  if (!specificType) {
-    return false;
-  }
-  return (
-    ['time', 'timetz'].includes(specificType) ||
-    (specificType.includes('time') && !specificType.includes('timestamp'))
-  );
-}
+import { POSTGRESQL_NUMERIC_TYPES } from '@/features/orgs/projects/database/dataGrid/utils/postgresqlConstants';
+import {
+  isDateType,
+  isTimestampType,
+  isTimeType,
+} from '@/features/orgs/projects/database/dataGrid/utils/temporalTypeHelpers';
 
 /**
- * Get the input type based on the column type.
- *
- * @param column - Column
- * @returns Input type
+ * Picks the HTML input type for a scalar column from its canonical `baseType`:
+ * `datetime-local` for timestamps, `time` for time-of-day types, `date` for
+ * calendar dates, `number` for numeric types, and `text` for everything else
+ * (including `interval`, which has no native control). Array columns do reach
+ * this function, but the returned type is unused: the input group forces them
+ * to a multiline textarea, where the `type` prop has no effect.
  */
-export default function getInputType({
-  type,
-  specificType,
-}: {
-  type?: string;
-  specificType?: ColumnType | null;
-}): InputProps['type'] {
-  const specType = specificType as string;
-
-  if (type === 'date' && isTimestampType(specType)) {
+export default function getInputType(
+  baseType?: string | null,
+): InputProps['type'] {
+  if (isTimestampType(baseType)) {
     return 'datetime-local';
   }
 
-  if (type === 'date' && isTimeType(specType)) {
+  if (isTimeType(baseType)) {
     return 'time';
   }
 
-  if (type === 'date' && specType !== 'interval') {
+  if (isDateType(baseType)) {
     return 'date';
   }
 
-  if (type === 'number') {
+  if (POSTGRESQL_NUMERIC_TYPES.includes(baseType ?? '')) {
     return 'number';
   }
 

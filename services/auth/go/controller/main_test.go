@@ -132,6 +132,10 @@ func cmpDBParams(
 			[]string{".Ticket", "text()"},
 			cmp.Comparer(cmpTicket),
 		),
+		testhelpers.FilterPathLast(
+			[]string{".Otp"},
+			cmp.Comparer(cmpTicket),
+		),
 		cmp.Transformer("time", func(x pgtype.Timestamptz) time.Time {
 			return x.Time
 		}),

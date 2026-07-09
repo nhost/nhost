@@ -62,20 +62,24 @@ export default function MetricsTimeRangeFilter({
     setDraft({ kind: 'preset', preset });
   }
 
-  function handleFromChange(newIso: string) {
-    setDraft({
-      kind: 'absolute',
-      from: newIso,
-      to: resolved.to.toISOString(),
-    });
+  function handleFromChange(newIso: string | null) {
+    if (newIso !== null) {
+      setDraft({
+        kind: 'absolute',
+        from: newIso,
+        to: resolved.to.toISOString(),
+      });
+    }
   }
 
-  function handleToChange(newIso: string) {
-    setDraft({
-      kind: 'absolute',
-      from: resolved.from.toISOString(),
-      to: newIso,
-    });
+  function handleToChange(newIso: string | null) {
+    if (newIso !== null) {
+      setDraft({
+        kind: 'absolute',
+        from: resolved.from.toISOString(),
+        to: newIso,
+      });
+    }
   }
 
   function handleApply() {
@@ -143,6 +147,7 @@ export default function MetricsTimeRangeFilter({
               <DateTimePicker
                 key={resolved.from.toISOString()}
                 dateTime={resolved.from.toISOString()}
+                triggerTestId="metricsFromDateTimePickerTrigger"
                 onDateTimeChange={handleFromChange}
                 withTimezone
                 align="end"
@@ -153,6 +158,7 @@ export default function MetricsTimeRangeFilter({
               <DateTimePicker
                 key={resolved.to.toISOString()}
                 dateTime={resolved.to.toISOString()}
+                triggerTestId="metricsToDateTimePickerTrigger"
                 onDateTimeChange={handleToChange}
                 withTimezone
                 align="end"

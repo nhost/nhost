@@ -123,13 +123,17 @@ export default defineConfig({
                   label: 'Quickstart',
                   collapsed: false,
                   items: [
-                    { slug: 'getting-started/quickstart/cli' },
                     { slug: 'getting-started/quickstart/react' },
                     { slug: 'getting-started/quickstart/nextjs' },
                     { slug: 'getting-started/quickstart/vue' },
                     { slug: 'getting-started/quickstart/sveltekit' },
                     { slug: 'getting-started/quickstart/reactnative' },
                   ],
+                },
+                {
+                  label: 'Local Development',
+                  collapsed: false,
+                  items: [{ slug: 'getting-started/local-development/cli' }],
                 },
                 {
                   label: 'Tutorials',
@@ -301,6 +305,7 @@ export default defineConfig({
                         { slug: 'products/graphql/permissions/examples' },
                       ],
                     },
+                    { slug: 'products/graphql/computed-fields' },
                     { slug: 'products/graphql/remote-schemas' },
                     { slug: 'products/graphql/advanced-features' },
                   ],
@@ -314,6 +319,9 @@ export default defineConfig({
                     { slug: 'products/graphql/guides/react-urql' },
                     { slug: 'products/graphql/guides/codegen-nhost' },
                     { slug: 'products/graphql/guides/stripe' },
+                    {
+                      slug: 'products/graphql/guides/session-aware-computed-fields',
+                    },
                   ],
                 },
               ],
@@ -629,7 +637,6 @@ export default defineConfig({
                     { slug: 'platform/cli/local-development' },
                     { slug: 'platform/cli/cloud-development' },
                     { slug: 'platform/cli/subdomain' },
-                    { slug: 'platform/cli/migrate-config' },
                     { slug: 'platform/cli/multiple-projects' },
                     { slug: 'platform/cli/configuration-overlays' },
                     { slug: 'platform/cli/seeds' },
@@ -754,6 +761,11 @@ export default defineConfig({
                   items: [
                     { label: 'Commands', slug: 'reference/cli/commands' },
                   ],
+                },
+                {
+                  label: 'Templating',
+                  collapsed: false,
+                  items: [{ label: 'Kriti', slug: 'reference/kriti' }],
                 },
               ],
             },
