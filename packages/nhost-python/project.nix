@@ -65,7 +65,7 @@ in
   devShell = pkgs.mkShell {
     buildInputs = checkDeps ++ [
       pkgs.uv
-      pkgs.nhost-cli
+      pkgs.nhost.nhost-cli
     ];
   };
 
