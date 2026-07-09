@@ -43,6 +43,7 @@
         "useBlockStatements": "error"
       },
       "suspicious": {
+        "noShadow": "error",
         "noExtraNonNullAssertion": "off",
         "noImportCycles": "error",
         "noConsole": {
@@ -63,7 +64,6 @@
         "noUnusedFunctionParameters": "off"
       },
       "nursery": {
-        "noShadow": "error",
         "useSortedClasses": {
           "level": "error",
           "fix": "safe",
