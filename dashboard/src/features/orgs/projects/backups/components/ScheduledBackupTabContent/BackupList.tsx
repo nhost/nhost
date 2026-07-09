@@ -24,7 +24,7 @@ export default function BackupList() {
   });
 
   if (loadingProject || loadingBackups) {
-    return <Spinner delay={500}>Loading backups...</Spinner>;
+    return <Spinner>Loading backups...</Spinner>;
   }
 
   if (error) {
