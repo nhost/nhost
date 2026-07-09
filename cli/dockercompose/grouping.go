@@ -2,14 +2,14 @@ package dockercompose
 
 import "sort"
 
-var corePriority = map[string]int{ //nolint:gochecknoglobals
-	"postgres":  1,
-	"graphql":   2,
-	"auth":      3,
-	"storage":   4,
-	"functions": 5,
-	"ai":        6,
-	"dashboard": 7,
+var coreOrder = []string{ //nolint:gochecknoglobals
+	"postgres",
+	"graphql",
+	"auth",
+	"storage",
+	"functions",
+	"ai",
+	"dashboard",
 }
 
 var infraServices = map[string]bool{ //nolint:gochecknoglobals
@@ -29,11 +29,13 @@ func IsInfraService(name string) bool {
 // CorePriority returns the sort priority for a core service. Lower comes
 // first. Unknown services sort after known ones.
 func CorePriority(name string) int {
-	if p, ok := corePriority[name]; ok {
-		return p
+	for i, s := range coreOrder {
+		if s == name {
+			return i
+		}
 	}
 
-	return len(corePriority) + 1
+	return len(coreOrder)
 }
 
 // GroupServices splits services into core and infrastructure lists. Core

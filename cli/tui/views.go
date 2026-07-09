@@ -145,7 +145,6 @@ func renderPhase(p Phase, spinView string) string {
 	return "      " + phasePending.Render(p.Name)
 }
 
-//nolint:mnd
 func (m Model) viewServices() string {
 	var b strings.Builder
 
