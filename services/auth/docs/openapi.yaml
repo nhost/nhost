@@ -2628,6 +2628,7 @@ components:
 
     ProviderSpecificParams:
       type: object
+      additionalProperties: false
       properties:
         connection:
           type: string
@@ -2635,6 +2636,45 @@ components:
         organization:
           type: string
           description: (workos) Specifies the organization to use for authentication
+        prompt:
+          type: string
+          description: >
+            (google) OpenID Connect prompt. When omitted, Google uses its default
+            behavior. Use select_account to force the account chooser.
+            See https://developers.google.com/identity/protocols/oauth2/openid-connect#authenticationuriparameters
+          enum:
+            - none
+            - consent
+            - select_account
+        login_hint:
+          type: string
+          description: >
+            (google) Email or Google user ID (sub) hint. Prefills or selects that
+            account and can suppress the account chooser.
+        hd:
+          type: string
+          description: >
+            (google) Optimize account selection for a Google Cloud / Workspace
+            domain (e.g. example.com), or "*" for any Cloud organization account.
+        access_type:
+          type: string
+          description: >
+            (google) online (default) or offline to request a refresh token.
+          enum:
+            - online
+            - offline
+        include_granted_scopes:
+          type: string
+          description: >
+            (google) When "true", include previously granted scopes (incremental
+            authorization).
+          enum:
+            - "true"
+        hl:
+          type: string
+          description: >
+            (google) BCP 47 language tag for the sign-in / account chooser /
+            consent UI (e.g. en-GB).
 
     RefreshProviderTokenRequest:
       type: object

@@ -66,8 +66,49 @@ func (g *Google) GetProfile(
 
 func (g *Google) AuthCodeURL(
 	state string,
-	_ *api.ProviderSpecificParams,
+	providerSpecificParams *api.ProviderSpecificParams,
 	opts ...oauth2.AuthCodeOption,
 ) string {
+	if providerSpecificParams != nil {
+		if providerSpecificParams.Prompt != nil {
+			opts = append(
+				opts,
+				oauth2.SetAuthURLParam("prompt", string(*providerSpecificParams.Prompt)),
+			)
+		}
+
+		if providerSpecificParams.LoginHint != nil {
+			opts = append(
+				opts,
+				oauth2.SetAuthURLParam("login_hint", *providerSpecificParams.LoginHint),
+			)
+		}
+
+		if providerSpecificParams.Hd != nil {
+			opts = append(opts, oauth2.SetAuthURLParam("hd", *providerSpecificParams.Hd))
+		}
+
+		if providerSpecificParams.AccessType != nil {
+			opts = append(
+				opts,
+				oauth2.SetAuthURLParam("access_type", string(*providerSpecificParams.AccessType)),
+			)
+		}
+
+		if providerSpecificParams.IncludeGrantedScopes != nil {
+			opts = append(
+				opts,
+				oauth2.SetAuthURLParam(
+					"include_granted_scopes",
+					string(*providerSpecificParams.IncludeGrantedScopes),
+				),
+			)
+		}
+
+		if providerSpecificParams.Hl != nil {
+			opts = append(opts, oauth2.SetAuthURLParam("hl", *providerSpecificParams.Hl))
+		}
+	}
+
 	return g.Config.AuthCodeURL(state, opts...)
 }
