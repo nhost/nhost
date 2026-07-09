@@ -1,0 +1,33 @@
+---
+title: Claude
+description: >-
+  Add your deployed Project MCP server to Claude as a custom connector; Claude
+  handles the OAuth2 flow.
+keywords: ["MCP", "Claude", "custom connector", "remote MCP", "OAuth2"]
+head:
+  - tag: title
+    content: "Connect Claude to Project MCP | Nhost Docs"
+---
+import { Steps } from '@astrojs/starlight/components';
+
+Claude connects to Project MCP as a custom connector — add it once from settings and Claude handles the OAuth2 flow.
+
+<Steps>
+
+1. Open **Settings** and go to **Connectors** (in some versions, **Customize → Connectors**).
+2. Click **+ Add custom connector**.
+3. Give it a name (for example "My App") and enter your service URL, `https://mcp.acme.com`.
+4. Click **Add**. You are redirected to your OAuth2 [consent page](/products/auth/oauth2-provider/authorization-flow) to authorize the client.
+5. Approve the request. Once connected, the assistant can call the MCP tools.
+
+</Steps>
+
+On the consent page you will see the requested scopes — typically `openid`, `offline_access`, and either `graphql` or `graphql:role:<role>` when a role is enforced.
+
+## Verify the connection
+
+Once connected, ask the assistant to describe your data model or run a simple read, for example:
+
+> What tables can you see? Use the MCP tools.
+
+The assistant should call `get-schema`, then answer using your schema. If it reports an authorization error, re-run the authorization flow; if a query is denied, check that the enforced role has permission for it (see [Roles & permissions](/products/ai/mcp/permissions)).

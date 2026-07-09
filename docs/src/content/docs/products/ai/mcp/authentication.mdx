@@ -20,9 +20,13 @@ Before the flow works end to end, your Nhost Auth project needs:
 
 1. **The OAuth2 provider enabled**
 
+   (note to paul: add screenshot)
+
    Project MCP relies on Nhost Auth acting as an OAuth2 authorization server. Enable it and configure an RSA signing key. See [OAuth2 / OIDC Provider](/products/auth/oauth2-provider).
 
 2. **CIMD enabled**
+
+   (note to paul: add screenshot)
 
    MCP clients register themselves dynamically using a [Client ID Metadata Document (CIMD)](/products/auth/oauth2-provider/cimd-clients) rather than a pre-created client ID and secret. This must be enabled for the flow to work.
 
@@ -76,11 +80,9 @@ sequenceDiagram
 
 Project MCP serves two well-known documents that let clients bootstrap the flow without manual configuration.
 
-### `/.well-known/oauth-protected-resource`
-
 Describes Project MCP as a protected resource and points to the authorization server.
 
-```json
+```json title="/.well-known/oauth-protected-resource"
 {
   "resource": "https://mcp.acme.com",
   "authorization_servers": ["https://SUBDOMAIN.auth.REGION.nhost.run/v1"],
@@ -90,11 +92,9 @@ Describes Project MCP as a protected resource and points to the authorization se
 
 `resource` is derived from the request's scheme and host. When Project MCP runs behind a proxy or load balancer, the scheme is taken from the `X-Forwarded-Proto` header.
 
-### `/.well-known/oauth-authorization-server`
-
 Mirrors the metadata of your Nhost Auth OAuth2 server so clients can find the authorization and token endpoints.
 
-```json
+```json title="/.well-known/oauth-authorization-server"
 {
   "issuer": "https://SUBDOMAIN.auth.REGION.nhost.run/v1",
   "jwks_uri": "https://SUBDOMAIN.auth.REGION.nhost.run/v1/.well-known/jwks.json",

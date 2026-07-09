@@ -606,11 +606,19 @@ export default defineConfig({
                   collapsed: false,
                   items: [
                     { slug: 'products/ai/mcp' },
-                    { slug: 'products/ai/mcp/deployment' },
                     { slug: 'products/ai/mcp/authentication' },
+                    { slug: 'products/ai/mcp/deployment' },
                     { slug: 'products/ai/mcp/permissions' },
                     { slug: 'products/ai/mcp/configuration' },
-                    { slug: 'products/ai/mcp/clients' },
+                    {
+                      label: 'Connecting Clients',
+                      collapsed: false,
+                      items: [
+                        { slug: 'products/ai/mcp/clients/claude' },
+                        { slug: 'products/ai/mcp/clients/cursor' },
+                        { slug: 'products/ai/mcp/clients/other' },
+                      ],
+                    },
                   ],
                 },
               ],
@@ -791,6 +799,10 @@ export default defineConfig({
                 '/reference/storage',
                 '/reference/storage/**/*',
               ],
+              // The Connecting Clients hub is reached from cards/links, not a
+              // sidebar slug, so associate it with the AI topic explicitly to
+              // keep its sidebar in the AI topic rather than Products.
+              'products-ai': ['/products/ai/mcp/clients'],
             },
           },
         ),
