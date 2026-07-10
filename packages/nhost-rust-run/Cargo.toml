@@ -1,0 +1,20 @@
+[package]
+name = "nhost-run"
+version = "0.0.0-dev"
+edition = "2021"
+rust-version = "1.82"
+license = "MIT"
+description = "Nhost Run service helpers for Rust: the platform /healthz probe and HTTP server lifecycle."
+repository = "https://github.com/nhost/nhost"
+
+[dependencies]
+axum = "0.8"
+tokio = { version = "1", features = [
+    "rt-multi-thread",
+    "macros",
+    "net",
+    "signal",
+] }
+
+[dev-dependencies]
+tower = { version = "0.5", features = ["util"] }
