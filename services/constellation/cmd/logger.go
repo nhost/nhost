@@ -3,104 +3,20 @@ package cmd
 import (
 	"context"
 	"log/slog"
-	"os"
-	"strings"
-	"time"
 
-	"github.com/gin-gonic/gin"
-	"github.com/lmittmann/tint"
+	serveutil "github.com/nhost/nhost/internal/lib/serve"
 	"github.com/urfave/cli/v3"
 )
 
-const redactedSecret = "********"
-
+// getLogger builds the structured logger for the constellation server. It
+// delegates to the shared serve package so logger construction stays identical
+// across every Nhost service binary.
 func getLogger(debug bool, formatTEXT bool) *slog.Logger {
-	var (
-		logLevel  slog.Level
-		addSource bool
-	)
-
-	if debug {
-		logLevel = slog.LevelDebug
-		addSource = true
-
-		gin.SetMode(gin.DebugMode)
-	} else {
-		logLevel = slog.LevelInfo
-		addSource = false
-
-		gin.SetMode(gin.ReleaseMode)
-	}
-
-	var handler slog.Handler
-	if formatTEXT {
-		handler = tint.NewHandler(os.Stdout, &tint.Options{
-			AddSource:   addSource,
-			Level:       logLevel,
-			TimeFormat:  time.StampMilli,
-			NoColor:     false,
-			ReplaceAttr: nil,
-		})
-	} else {
-		handler = slog.NewJSONHandler(os.Stdout, &slog.HandlerOptions{
-			AddSource:   addSource,
-			Level:       logLevel,
-			ReplaceAttr: nil,
-		})
-	}
-
-	return slog.New(handler)
+	return serveutil.NewLogger(debug, formatTEXT)
 }
 
-func isSecret(name string) bool {
-	return strings.Contains(name, "pass") ||
-		strings.Contains(name, "token") ||
-		strings.Contains(name, "secret") ||
-		strings.Contains(name, "key") ||
-		strings.Contains(name, "license") ||
-		strings.Contains(name, "postgres") ||
-		strings.Contains(name, "client-id") ||
-		strings.Contains(name, "client-secret") ||
-		strings.Contains(name, "metadata-database-url")
-}
-
+// logFlags logs the resolved flag values at startup, redacting secrets. It
+// delegates to the shared serve package.
 func logFlags(ctx context.Context, logger *slog.Logger, cmd *cli.Command) {
-	processed := make(map[string]struct{})
-
-	flags := make([]any, 0, len(cmd.Root().Flags)+len(cmd.Flags))
-	for _, flag := range cmd.Root().Flags {
-		name := flag.Names()[0]
-		value := cmd.Value(name)
-
-		if isSecret(name) {
-			value = redactedSecret
-		}
-
-		flags = append(flags, slog.Any(name, value))
-
-		processed[name] = struct{}{}
-	}
-
-	for _, flag := range cmd.Flags {
-		name := flag.Names()[0]
-		if _, ok := processed[name]; ok {
-			continue
-		}
-
-		value := cmd.Value(name)
-
-		logValue := value
-		if isSecret(name) {
-			logValue = redactedSecret
-		}
-
-		flags = append(flags, slog.Any(name, logValue))
-	}
-
-	logger.LogAttrs(
-		ctx,
-		slog.LevelInfo,
-		"starting program",
-		slog.Group("flags", flags...),
-	)
+	serveutil.LogFlags(ctx, logger, cmd)
 }

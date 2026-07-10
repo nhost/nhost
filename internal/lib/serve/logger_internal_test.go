@@ -1,4 +1,4 @@
-package cmd
+package serve
 
 import (
 	"bytes"
@@ -55,7 +55,7 @@ func TestIsSecret(t *testing.T) {
 }
 
 // TestLogFlagsMasksSecrets runs a tiny cli.Command tree that ends up calling
-// logFlags, captures the slog output, and asserts that secret-named flag
+// LogFlags, captures the slog output, and asserts that secret-named flag
 // values are replaced with "********" while non-secret values pass through
 // verbatim.
 func TestLogFlagsMasksSecrets(t *testing.T) {
@@ -93,7 +93,7 @@ func TestLogFlagsMasksSecrets(t *testing.T) {
 					},
 				},
 				Action: func(ctx context.Context, cmd *cli.Command) error {
-					logFlags(ctx, logger, cmd)
+					LogFlags(ctx, logger, cmd)
 					return nil
 				},
 			},
@@ -105,7 +105,7 @@ func TestLogFlagsMasksSecrets(t *testing.T) {
 	}
 
 	if buf.Len() == 0 {
-		t.Fatalf("expected logFlags to emit a log line")
+		t.Fatalf("expected LogFlags to emit a log line")
 	}
 
 	var entry map[string]any

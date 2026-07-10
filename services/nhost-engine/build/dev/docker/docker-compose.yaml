@@ -1,0 +1,130 @@
+# Illustrative example: run auth + storage + graphql in ONE nhost-engine
+# process, behind ONE port, with Postgres, Hasura, and MinIO as backing
+# services.
+#
+# This file demonstrates the engine's unified NHOST_* configuration and is a
+# starting point, not a turnkey production stack — it has not been
+# integration-tested as part of the repo's checks, email/SMS and other
+# provider-specific settings are omitted, and secrets are dev placeholders.
+#
+# What it shows:
+#   * The genuinely shared settings are set ONCE as NHOST_* on the engine
+#     container: admin secret, JWT secret, CORS origins, and the migrations
+#     database URL. They fill every service that consumes them.
+#   * Settings that legitimately differ per service stay per-service, via each
+#     service's own env vars: auth's database (POSTGRES_CONNECTION), storage's
+#     S3_*/HASURA_ENDPOINT, constellation's CONSTELLATION_HASURA_UPSTREAM_URL.
+#   * Per-service precedence still holds: had any of these services set its own
+#     admin-secret/jwt env var, that value would win over the NHOST_* one.
+#
+# Build and load the engine image first:
+#   nix build .#nhost-engine-docker-image
+#   docker load < result
+#   # then tag it as nhost-engine:0.0.0-dev to match the image below
+#
+# Routes once up (engine bound to :4000):
+#   http://localhost:4000/auth/v1/...     http://localhost:4000/storage/v1/...
+#   http://localhost:4000/graphql/v1      http://localhost:4000/healthz
+
+x-admin-secret: &admin-secret nhost-admin-secret
+x-jwt-secret: &jwt-secret >-
+  {"type":"HS256","key":"5152fa850c02dc222631cca898ed1485821a70912a6e3649c49076912daa3b62182ba013315915d64f40cddfbb8b58eb5bd11ba225336a6af45bbae07ca873f3"}
+x-postgres-url: &postgres-url postgres://postgres:hejsan@postgres:5432/postgres?sslmode=disable
+
+services:
+  nhost-engine:
+    container_name: nhost-engine
+    image: nhost-engine:0.0.0-dev
+    depends_on:
+      - graphql-engine
+      - minio
+    restart: unless-stopped
+    ports:
+      - '4000:4000'
+    # Entrypoint is `nhost-engine`; these are its arguments. Per-service config
+    # is supplied via the env vars below, so the command only selects services.
+    command:
+      - --bind
+      - ':4000'
+      - --debug
+      - auth
+      - --
+      - storage
+      - --
+      - graphql
+    environment:
+      # ---- shared (NHOST_*): set once, fills every service that uses it ----
+      NHOST_ADMIN_SECRET: *admin-secret
+      NHOST_JWT_SECRET: *jwt-secret
+      NHOST_CORS_ALLOWED_ORIGINS: http://localhost:3000
+      NHOST_MIGRATIONS_DATABASE_URL: *postgres-url
+
+      # ---- auth: per-service (AUTH_* and its own POSTGRES_CONNECTION) ----
+      POSTGRES_CONNECTION: *postgres-url
+      AUTH_SERVER_URL: http://localhost:4000/auth
+      AUTH_CLIENT_URL: http://localhost:3000
+
+      # ---- storage: per-service (unprefixed env) ----
+      HASURA_METADATA: '1'
+      HASURA_ENDPOINT: http://graphql-engine:8080/v1
+      POSTGRES_MIGRATIONS: '1'
+      S3_ENDPOINT: http://minio:9000
+      S3_ACCESS_KEY: ${S3_ACCESS_KEY:-5a7bdb5f42c41e0622bf61d6e08d5537}
+      S3_SECRET_KEY: ${S3_SECRET_KEY:-9e1c40c65a615a5b52f52aeeaf549944ec53acb1dff4a0bf01fb58e969f915c8}
+      S3_BUCKET: default
+      S3_ROOT_FOLDER: f215cf48-7458-4596-9aa5-2159fc6a3caf
+
+      # ---- graphql (constellation): per-service (CONSTELLATION_*) ----
+      CONSTELLATION_HASURA_UPSTREAM_URL: http://graphql-engine:8080
+      CONSTELLATION_DEV_MODE: 'true'
+
+  postgres:
+    container_name: nhost-engine-postgres
+    image: postgres:13
+    restart: unless-stopped
+    ports:
+      - '5432:5432'
+    environment:
+      POSTGRES_PASSWORD: hejsan
+
+  graphql-engine:
+    container_name: nhost-engine-graphql
+    image: nhost/graphql-engine:v2.25.1-ce
+    depends_on:
+      - postgres
+    restart: unless-stopped
+    ports:
+      - '8080:8080'
+    environment:
+      HASURA_GRAPHQL_DATABASE_URL: postgres://postgres:hejsan@postgres:5432/postgres
+      HASURA_GRAPHQL_ENABLE_CONSOLE: 'true'
+      HASURA_GRAPHQL_ADMIN_SECRET: *admin-secret
+      HASURA_GRAPHQL_JWT_SECRET: *jwt-secret
+      HASURA_GRAPHQL_UNAUTHORIZED_ROLE: public
+      HASURA_GRAPHQL_DEV_MODE: 'true'
+
+  minio:
+    container_name: nhost-engine-minio
+    image: minio/minio:RELEASE.2024-01-16T16-07-38Z
+    restart: unless-stopped
+    environment:
+      MINIO_ROOT_USER: ${S3_ACCESS_KEY:-5a7bdb5f42c41e0622bf61d6e08d5537}
+      MINIO_ROOT_PASSWORD: ${S3_SECRET_KEY:-9e1c40c65a615a5b52f52aeeaf549944ec53acb1dff4a0bf01fb58e969f915c8}
+    command: server --address 0.0.0.0:9000 --console-address 0.0.0.0:32765 /data
+    ports:
+      - '9000:9000'
+      - '32765:32765'
+
+  # Create the storage bucket once MinIO is up.
+  createbuckets:
+    image: minio/mc:RELEASE.2024-01-16T16-06-34Z
+    depends_on:
+      - minio
+    entrypoint: >-
+      /bin/sh -c "
+      until mc alias set nhost http://minio:9000
+        ${S3_ACCESS_KEY:-5a7bdb5f42c41e0622bf61d6e08d5537}
+        ${S3_SECRET_KEY:-9e1c40c65a615a5b52f52aeeaf549944ec53acb1dff4a0bf01fb58e969f915c8};
+      do sleep 1; done;
+      mc mb --ignore-existing nhost/default;
+      "

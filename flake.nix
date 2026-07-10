@@ -211,6 +211,16 @@
             ;
         };
 
+        enginef = import ./services/nhost-engine/project.nix {
+          inherit
+            self
+            pkgs
+            nixops-lib
+            ;
+          # Reuse storage's libvips so the shared cgo image pipeline is byte-identical.
+          vips = storagef.vips;
+        };
+
       in
       {
         checks = {
@@ -233,6 +243,7 @@
           nixops = nixopsf.check;
           postgres = postgresf.check;
           storage = storagef.check;
+          nhost-engine = enginef.check;
           tutorials = tutorialsf.check;
         };
 
@@ -373,6 +384,7 @@
           nixops = nixopsf.devShell;
           postgres = postgresf.devShell;
           storage = storagef.devShell;
+          nhost-engine = enginef.devShell;
           tutorials = tutorialsf.devShell;
         };
 
@@ -426,6 +438,8 @@
           storage-docker-image = storagef.dockerImage;
           storage-vips = storagef.vips;
           clamav-docker-image = storagef.clamav-docker-image;
+          nhost-engine = enginef.package;
+          nhost-engine-docker-image = enginef.dockerImage;
           tutorials = tutorialsf.package;
         };
       }
