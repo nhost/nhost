@@ -12,6 +12,12 @@ on:
       - "nixops/**"
       - "build/**"
 
+      # common go (codegen is a Go tool; generated client idempotence depends on it)
+      - ".golangci.yaml"
+      - "go.mod"
+      - "go.sum"
+      - "vendor/**"
+
       # codegen
       - "tools/codegen/**"
 
@@ -38,6 +44,10 @@ jobs:
         flake.lock
         nixops/**
         build/**
+        .golangci.yaml
+        go.mod
+        go.sum
+        vendor/**
         tools/codegen/**
         packages/nhost-rust/**
         services/auth/docs/openapi.yaml

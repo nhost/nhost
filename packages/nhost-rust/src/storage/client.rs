@@ -13,6 +13,49 @@ use crate::fetch::{ChainFunction, Error, FetchFn, FetchResponse, Response};
 use serde::{Deserialize, Serialize};
 use std::sync::Arc;
 
+// Render a JSON value as a single query-string scalar: strings are emitted
+// verbatim (no surrounding quotes), null becomes empty, everything else uses its
+// compact JSON form.
+fn query_scalar(v: &serde_json::Value) -> String {
+    match v {
+        serde_json::Value::String(s) => s.clone(),
+        serde_json::Value::Null => String::new(),
+        other => other.to_string(),
+    }
+}
+
+// Append a query parameter honoring OpenAPI form style/explode semantics,
+// mirroring the TypeScript client:
+//   - arrays, explode=true  -> repeat the key per element
+//   - arrays, explode=false -> comma-joined single value
+//   - objects, explode=true -> each property becomes its own key
+//   - objects, explode=false -> compact JSON single value
+fn push_query(q: &mut Vec<(String, String)>, key: &str, value: &serde_json::Value, explode: bool) {
+    match value {
+        serde_json::Value::Null => {}
+        serde_json::Value::Array(items) => {
+            if explode {
+                for item in items {
+                    q.push((key.to_string(), query_scalar(item)));
+                }
+            } else {
+                let joined: Vec<String> = items.iter().map(query_scalar).collect();
+                q.push((key.to_string(), joined.join(",")));
+            }
+        }
+        serde_json::Value::Object(map) => {
+            if explode {
+                for (k, v) in map {
+                    q.push((k.clone(), query_scalar(v)));
+                }
+            } else {
+                q.push((key.to_string(), value.to_string()));
+            }
+        }
+        _ => q.push((key.to_string(), query_scalar(value))),
+    }
+}
+
 pub type Rfc2822Date = String;
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
@@ -204,10 +247,7 @@ impl GetFileParams {
             q.push(("b".to_string(), v.to_string()));
         }
         if let Some(v) = &self.f {
-            q.push((
-                "f".to_string(),
-                serde_json::to_string(v).unwrap_or_default(),
-            ));
+            q.push(("f".to_string(), v.to_string()));
         }
         q
     }
@@ -243,10 +283,7 @@ impl GetFileMetadataHeadersParams {
             q.push(("b".to_string(), v.to_string()));
         }
         if let Some(v) = &self.f {
-            q.push((
-                "f".to_string(),
-                serde_json::to_string(v).unwrap_or_default(),
-            ));
+            q.push(("f".to_string(), v.to_string()));
         }
         q
     }

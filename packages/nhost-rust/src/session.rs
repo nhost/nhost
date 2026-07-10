@@ -31,10 +31,18 @@ const UNAUTHORIZED: u16 = 401;
 pub const DEFAULT_MARGIN_SECONDS: i64 = 60;
 
 /// The decoded JWT access-token payload.
+///
+/// The persisted shape is interoperable with `@nhost/nhost-js`: `exp`/`iat` are
+/// stored in milliseconds and the Hasura claims are keyed under the JWT claim
+/// URL, so a session written by either SDK under the same storage key can be
+/// read by the other.
 #[derive(Debug, Clone, Default, Serialize, Deserialize)]
 pub struct DecodedToken {
+    /// Token expiration in **milliseconds** since the Unix epoch (the raw JWT
+    /// value in seconds multiplied by 1000, matching `@nhost/nhost-js`).
     #[serde(default, skip_serializing_if = "Option::is_none")]
     pub exp: Option<i64>,
+    /// Token issued-at time in **milliseconds** since the Unix epoch.
     #[serde(default, skip_serializing_if = "Option::is_none")]
     pub iat: Option<i64>,
     #[serde(default, skip_serializing_if = "Option::is_none")]
@@ -42,7 +50,12 @@ pub struct DecodedToken {
     #[serde(default, skip_serializing_if = "Option::is_none")]
     pub sub: Option<String>,
     /// Hasura claims, with PostgreSQL array literals converted to arrays.
-    #[serde(default, skip_serializing_if = "Option::is_none")]
+    /// Keyed under the JWT claim URL so it round-trips with `@nhost/nhost-js`.
+    #[serde(
+        rename = "https://hasura.io/jwt/claims",
+        default,
+        skip_serializing_if = "Option::is_none"
+    )]
     pub hasura_claims: Option<serde_json::Value>,
     /// Every claim as decoded (including unknown ones).
     #[serde(default, skip_serializing_if = "serde_json::Value::is_null")]
@@ -97,8 +110,15 @@ pub fn decode_user_session(access_token: &str) -> Result<DecodedToken, Error> {
     let payload: serde_json::Value = serde_json::from_slice(&raw).map_err(|_| invalid())?;
 
     let mut decoded = DecodedToken {
-        exp: payload.get("exp").and_then(serde_json::Value::as_i64),
-        iat: payload.get("iat").and_then(serde_json::Value::as_i64),
+        // Store in milliseconds to match @nhost/nhost-js's persisted decodedToken.
+        exp: payload
+            .get("exp")
+            .and_then(serde_json::Value::as_i64)
+            .map(|secs| secs * 1000),
+        iat: payload
+            .get("iat")
+            .and_then(serde_json::Value::as_i64)
+            .map(|secs| secs * 1000),
         iss: payload
             .get("iss")
             .and_then(|v| v.as_str().map(String::from)),
@@ -270,10 +290,13 @@ pub fn detect_storage() -> Box<dyn Backend> {
     Box::<MemoryStorage>::default()
 }
 
+// Callbacks are stored behind an Arc so `notify` can snapshot the current set
+// under the lock, release it, and invoke them without holding the mutex (which
+// would deadlock if a callback re-enters set/remove/subscribe/unsubscribe).
 #[cfg(not(feature = "wasm"))]
-type ChangeCallback = Box<dyn Fn(Option<&StoredSession>) + Send + Sync>;
+type ChangeCallback = Arc<dyn Fn(Option<&StoredSession>) + Send + Sync>;
 #[cfg(feature = "wasm")]
-type ChangeCallback = Box<dyn Fn(Option<&StoredSession>)>;
+type ChangeCallback = Arc<dyn Fn(Option<&StoredSession>)>;
 
 struct StorageInner {
     backend: Box<dyn Backend>,
@@ -325,7 +348,7 @@ impl SessionStorage {
     where
         F: Fn(Option<&StoredSession>) + Send + Sync + 'static,
     {
-        self.subscribe(Box::new(callback))
+        self.subscribe(Arc::new(callback))
     }
 
     /// Subscribes to session changes; the returned guard unsubscribes on drop.
@@ -334,7 +357,7 @@ impl SessionStorage {
     where
         F: Fn(Option<&StoredSession>) + 'static,
     {
-        self.subscribe(Box::new(callback))
+        self.subscribe(Arc::new(callback))
     }
 
     fn subscribe(&self, callback: ChangeCallback) -> Subscription {
@@ -353,9 +376,22 @@ impl SessionStorage {
     }
 
     fn notify(&self, session: Option<&StoredSession>) {
-        let subs = self.inner.subscribers.lock().unwrap();
-        for cb in subs.values() {
-            cb(session);
+        // Snapshot the callbacks and drop the lock before invoking them. Running
+        // callbacks outside the lock avoids a reentrancy deadlock when a
+        // callback touches the storage (set/remove/subscribe or drops its
+        // Subscription), and recovering from a poisoned lock plus isolating each
+        // callback keeps one panicking subscriber from bricking the rest.
+        let callbacks: Vec<ChangeCallback> = self
+            .inner
+            .subscribers
+            .lock()
+            .unwrap_or_else(std::sync::PoisonError::into_inner)
+            .values()
+            .cloned()
+            .collect();
+
+        for cb in callbacks {
+            let _ = std::panic::catch_unwind(std::panic::AssertUnwindSafe(|| cb(session)));
         }
     }
 }
@@ -374,10 +410,10 @@ impl Drop for Subscription {
     }
 }
 
-fn now_secs() -> i64 {
+fn now_ms() -> i64 {
     SystemTime::now()
         .duration_since(UNIX_EPOCH)
-        .map(|d| d.as_secs() as i64)
+        .map(|d| d.as_millis() as i64)
         .unwrap_or(0)
 }
 
@@ -395,8 +431,9 @@ fn needs_refresh(storage: &SessionStorage, margin: i64) -> (Option<StoredSession
         return (Some(session), true, false);
     }
 
-    let now = now_secs();
-    if exp - now > margin {
+    // exp is milliseconds; margin is seconds (matching @nhost/nhost-js).
+    let now = now_ms();
+    if exp - now > margin * 1000 {
         (Some(session), false, false)
     } else {
         (Some(session), true, exp < now)
