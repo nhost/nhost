@@ -31,7 +31,10 @@ let
       ./go.mod
       ./gen.sh
       ./README.md
-      (fs.fileFilter (f: f.hasExt "go") ./.)
+      # Exclude ./examples: it is a separate Go module (its own go.mod with a
+      # replace directive), so its sources must not fold into the SDK module
+      # under `go build ./...` inside the sandbox.
+      (fs.difference (fs.fileFilter (f: f.hasExt "go") ./.) ./examples)
       ../../services/auth/docs/openapi.yaml
       ../../services/storage/controller/openapi.yaml
     ];
@@ -109,7 +112,8 @@ in
             root = ./.;
             fileset = fs.unions [
               ./go.mod
-              (fs.fileFilter (f: f.hasExt "go") ./.)
+              # See the note above: the example is a separate module.
+              (fs.difference (fs.fileFilter (f: f.hasExt "go") ./.) ./examples)
             ];
           }
         } src
