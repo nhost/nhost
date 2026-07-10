@@ -9,6 +9,7 @@ import (
 	"fmt"
 	"net/http"
 	"net/url"
+	"strings"
 
 	"github.com/nhost/nhost/packages/nhost-go/fetch"
 )
@@ -363,7 +364,7 @@ type User struct {
 	ID                  string          `json:"id"`
 	IsAnonymous         bool            `json:"isAnonymous"`
 	Locale              string          `json:"locale"`
-	Metadata            *map[string]any `json:"metadata,omitempty"`
+	Metadata            *map[string]any `json:"metadata"`
 	PhoneNumber         *string         `json:"phoneNumber,omitempty"`
 	PhoneNumberVerified bool            `json:"phoneNumberVerified"`
 	Roles               []string        `json:"roles"`
@@ -592,7 +593,13 @@ type SignInProviderParams struct {
 func (p *SignInProviderParams) toQuery() url.Values {
 	q := url.Values{}
 	if p.AllowedRoles != nil {
-		q.Set("allowedRoles", fmt.Sprint(*p.AllowedRoles))
+		{
+			parts := make([]string, 0, len(*p.AllowedRoles))
+			for _, item := range *p.AllowedRoles {
+				parts = append(parts, fmt.Sprint(item))
+			}
+			q.Set("allowedRoles", strings.Join(parts, ","))
+		}
 	}
 	if p.DefaultRole != nil {
 		q.Set("defaultRole", fmt.Sprint(*p.DefaultRole))
@@ -604,7 +611,9 @@ func (p *SignInProviderParams) toQuery() url.Values {
 		q.Set("locale", fmt.Sprint(*p.Locale))
 	}
 	if p.Metadata != nil {
-		q.Set("metadata", fmt.Sprint(*p.Metadata))
+		for k, v := range *p.Metadata {
+			q.Add(k, fmt.Sprint(v))
+		}
 	}
 	if p.RedirectTo != nil {
 		q.Set("redirectTo", fmt.Sprint(*p.RedirectTo))
@@ -616,7 +625,15 @@ func (p *SignInProviderParams) toQuery() url.Values {
 		q.Set("state", fmt.Sprint(*p.State))
 	}
 	if p.ProviderSpecificParams != nil {
-		q.Set("providerSpecificParams", fmt.Sprint(*p.ProviderSpecificParams))
+		{
+			encoded, _ := json.Marshal(*p.ProviderSpecificParams)
+			var fields map[string]any
+			if json.Unmarshal(encoded, &fields) == nil {
+				for k, v := range fields {
+					q.Add(k, fmt.Sprint(v))
+				}
+			}
+		}
 	}
 	if p.CodeChallenge != nil {
 		q.Set("codeChallenge", fmt.Sprint(*p.CodeChallenge))
@@ -639,7 +656,13 @@ type SignUpProviderParams struct {
 func (p *SignUpProviderParams) toQuery() url.Values {
 	q := url.Values{}
 	if p.AllowedRoles != nil {
-		q.Set("allowedRoles", fmt.Sprint(*p.AllowedRoles))
+		{
+			parts := make([]string, 0, len(*p.AllowedRoles))
+			for _, item := range *p.AllowedRoles {
+				parts = append(parts, fmt.Sprint(item))
+			}
+			q.Set("allowedRoles", strings.Join(parts, ","))
+		}
 	}
 	if p.DefaultRole != nil {
 		q.Set("defaultRole", fmt.Sprint(*p.DefaultRole))
@@ -651,7 +674,9 @@ func (p *SignUpProviderParams) toQuery() url.Values {
 		q.Set("locale", fmt.Sprint(*p.Locale))
 	}
 	if p.Metadata != nil {
-		q.Set("metadata", fmt.Sprint(*p.Metadata))
+		for k, v := range *p.Metadata {
+			q.Add(k, fmt.Sprint(v))
+		}
 	}
 	if p.RedirectTo != nil {
 		q.Set("redirectTo", fmt.Sprint(*p.RedirectTo))
@@ -660,7 +685,15 @@ func (p *SignUpProviderParams) toQuery() url.Values {
 		q.Set("state", fmt.Sprint(*p.State))
 	}
 	if p.ProviderSpecificParams != nil {
-		q.Set("providerSpecificParams", fmt.Sprint(*p.ProviderSpecificParams))
+		{
+			encoded, _ := json.Marshal(*p.ProviderSpecificParams)
+			var fields map[string]any
+			if json.Unmarshal(encoded, &fields) == nil {
+				for k, v := range fields {
+					q.Add(k, fmt.Sprint(v))
+				}
+			}
+		}
 	}
 	if p.CodeChallenge != nil {
 		q.Set("codeChallenge", fmt.Sprint(*p.CodeChallenge))

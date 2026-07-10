@@ -125,8 +125,6 @@ type Client struct {
 	GraphQL        *graphql.Client
 	Functions      *functions.Client
 	SessionStorage *session.Storage
-
-	httpClient *http.Client
 }
 
 // GetUserSession returns the current session from storage, or (nil, false).
@@ -210,7 +208,6 @@ func CreateNhostClient(options Options) *Client {
 		GraphQL:        graphqlClient,
 		Functions:      functionsClient,
 		SessionStorage: sessionStorage,
-		httpClient:     httpClient,
 	}
 }
 

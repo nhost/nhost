@@ -104,6 +104,28 @@ func (c *Client) {{ .Name }}(
 {{- end }}
 		}
 	}
+{{- else if and (eq .Type.Kind "scalar") (eq .Type.Name "[]byte") }}
+{{- if .Optional }}
+	if body.{{ .Name }} != nil {
+		fw, err := mw.CreateFormFile("{{ .RawName }}", "{{ .RawName }}")
+		if err != nil {
+			return nil, err
+		}
+		if _, err := fw.Write(*body.{{ .Name }}); err != nil {
+			return nil, err
+		}
+	}
+{{- else }}
+	{
+		fw, err := mw.CreateFormFile("{{ .RawName }}", "{{ .RawName }}")
+		if err != nil {
+			return nil, err
+		}
+		if _, err := fw.Write(body.{{ .Name }}); err != nil {
+			return nil, err
+		}
+	}
+{{- end }}
 {{- else if eq .Type.Kind "scalar" }}
 {{- if .Optional }}
 	if body.{{ .Name }} != nil {
@@ -116,6 +138,24 @@ func (c *Client) {{ .Name }}(
 		return nil, err
 	}
 {{- end }}
+{{- else }}
+{{- if .Optional }}
+	if body.{{ .Name }} != nil {
+		jb, err := json.Marshal({{ $items }})
+		if err != nil {
+			return nil, err
+		}
+		ph := textproto.MIMEHeader{}
+		ph.Set("Content-Disposition", `form-data; name="{{ .RawName }}"`)
+		ph.Set("Content-Type", "{{ $m.MultipartContentType . }}")
+		pw, err := mw.CreatePart(ph)
+		if err != nil {
+			return nil, err
+		}
+		if _, err := pw.Write(jb); err != nil {
+			return nil, err
+		}
+	}
 {{- else }}
 	{
 		jb, err := json.Marshal({{ $items }})
@@ -133,6 +173,7 @@ func (c *Client) {{ .Name }}(
 			return nil, err
 		}
 	}
+{{- end }}
 {{- end }}
 {{- end }}
 	if err := mw.Close(); err != nil {

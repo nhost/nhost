@@ -12,6 +12,7 @@ import (
 	"net/http"
 	"net/textproto"
 	"net/url"
+	"strings"
 
 	"github.com/nhost/nhost/packages/nhost-go/fetch"
 )
@@ -37,11 +38,46 @@ type {{ .Name }}Params struct {
 func (p *{{ .Name }}Params) toQuery() url.Values {
 	q := url.Values{}
 {{- range .QueryParameters }}
-{{- if .Required }}
-	q.Set("{{ .RawName }}", fmt.Sprint(p.{{ .Name }}))
-{{- else }}
+{{- $access := printf "p.%s" .Name }}
+{{- if not .Required }}
 	if p.{{ .Name }} != nil {
-		q.Set("{{ .RawName }}", fmt.Sprint(*p.{{ .Name }}))
+{{- $access = printf "*p.%s" .Name }}
+{{- end }}
+{{- if and (eq .Type.Kind "array") .Explode }}
+	for _, item := range {{ $access }} {
+		q.Add("{{ .RawName }}", fmt.Sprint(item))
+	}
+{{- else if eq .Type.Kind "array" }}
+	{
+		parts := make([]string, 0, len({{ $access }}))
+		for _, item := range {{ $access }} {
+			parts = append(parts, fmt.Sprint(item))
+		}
+		q.Set("{{ .RawName }}", strings.Join(parts, ","))
+	}
+{{- else if and (eq .Type.Kind "map") .Explode }}
+	for k, v := range {{ $access }} {
+		q.Add(k, fmt.Sprint(v))
+	}
+{{- else if and (eq .Type.Kind "object") .Explode }}
+	{
+		encoded, _ := json.Marshal({{ $access }})
+		var fields map[string]any
+		if json.Unmarshal(encoded, &fields) == nil {
+			for k, v := range fields {
+				q.Add(k, fmt.Sprint(v))
+			}
+		}
+	}
+{{- else if or (eq .Type.Kind "map") (eq .Type.Kind "object") }}
+	{
+		encoded, _ := json.Marshal({{ $access }})
+		q.Set("{{ .RawName }}", string(encoded))
+	}
+{{- else }}
+	q.Set("{{ .RawName }}", fmt.Sprint({{ $access }}))
+{{- end }}
+{{- if not .Required }}
 	}
 {{- end }}
 {{- end }}

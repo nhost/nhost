@@ -127,8 +127,17 @@ func (c *Client) Request(
 	return Execute[map[string]any](ctx, c, query, variables, operationName, headers)
 }
 
-// Execute runs a GraphQL operation and decodes the data field into T. It
-// returns a *fetch.FetchError if the response contains GraphQL errors.
+// Execute runs a GraphQL operation and decodes the data field into T.
+//
+// It returns a *fetch.FetchError when either (a) the response body carries a
+// top-level GraphQL `errors` array, or (b) the transport returns a non-2xx/3xx
+// HTTP status (e.g. auth/gateway failures whose body has no `errors` key).
+// GraphQL-level errors take precedence over the HTTP status.
+//
+// Note: when a GraphQL `errors` array is present the typed data is dropped and
+// only the raw response survives in FetchError.Body. Callers needing partial
+// data (data + errors, as Hasura may return for remote-schema/action failures)
+// must read FetchError.Body.
 func Execute[T any](
 	ctx context.Context,
 	c *Client,
@@ -151,6 +160,17 @@ func Execute[T any](
 	}
 
 	if len(result.Errors) > 0 {
+		var parsed any
+
+		_ = json.Unmarshal(body, &parsed)
+
+		return nil, fetch.NewFetchError(parsed, resp.StatusCode, resp.Header)
+	}
+
+	// Gate on HTTP status, consistent with the functions/auth/storage clients:
+	// a non-2xx/3xx response without a GraphQL `errors` array is still a
+	// failure and must surface as a *fetch.FetchError, not a zero-value success.
+	if resp.StatusCode >= 300 { //nolint:mnd
 		var parsed any
 
 		_ = json.Unmarshal(body, &parsed)

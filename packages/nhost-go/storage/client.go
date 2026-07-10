@@ -397,7 +397,7 @@ func (c *Client) ReplaceFile(
 	u := fmt.Sprintf("%s/files/%s", c.BaseURL, id)
 	var formBuf bytes.Buffer
 	mw := multipart.NewWriter(&formBuf)
-	{
+	if body.Metadata != nil {
 		jb, err := json.Marshal(body.Metadata)
 		if err != nil {
 			return nil, err
@@ -414,7 +414,11 @@ func (c *Client) ReplaceFile(
 		}
 	}
 	if body.File != nil {
-		if err := mw.WriteField("file", fmt.Sprint(*body.File)); err != nil {
+		fw, err := mw.CreateFormFile("file", "file")
+		if err != nil {
+			return nil, err
+		}
+		if _, err := fw.Write(*body.File); err != nil {
 			return nil, err
 		}
 	}

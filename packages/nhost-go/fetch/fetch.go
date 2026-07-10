@@ -33,7 +33,8 @@ func CreateEnhancedFetch(client *http.Client, chainFunctions []ChainFunction) Fe
 	}
 
 	fetch := FetchFunc(func(req *http.Request) (*http.Response, error) {
-		return client.Do(req) //nolint:gosec // the SDK issues requests to caller-provided URLs by design
+		// The SDK issues requests to caller-provided URLs by design.
+		return client.Do(req)
 	})
 
 	for _, chainFunction := range slices.Backward(chainFunctions) {

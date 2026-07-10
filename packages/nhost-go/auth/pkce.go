@@ -8,9 +8,15 @@ import (
 
 // GenerateCodeVerifier generates a cryptographically random PKCE code verifier
 // (43 base64url characters, per RFC 7636).
+//
+// It panics if the system CSPRNG fails: a failed read would otherwise leave the
+// buffer zero-filled, yielding a fully predictable verifier and silently
+// defeating PKCE. A CSPRNG failure is unrecoverable, so panicking is correct.
 func GenerateCodeVerifier() string {
 	buf := make([]byte, 32) //nolint:mnd
-	_, _ = rand.Read(buf)
+	if _, err := rand.Read(buf); err != nil {
+		panic("nhost/auth: crypto/rand failed: " + err.Error())
+	}
 
 	return base64.RawURLEncoding.EncodeToString(buf)
 }

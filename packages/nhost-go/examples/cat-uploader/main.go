@@ -43,13 +43,12 @@ func env(key, fallback string) string {
 // overrides point at the internal service names (e.g. http://auth:4000/v1);
 // from a laptop they can be left unset and subdomain/region are used instead.
 type config struct {
-	subdomain    string
-	region       string
-	authURL      string
-	storageURL   string
-	email        string
-	password     string
-	publicBucket string
+	subdomain  string
+	region     string
+	authURL    string
+	storageURL string
+	email      string
+	password   string
 	// publicStorageURL is only used to build browser-facing download links in
 	// the response; it is not used to talk to storage.
 	publicStorageURL string

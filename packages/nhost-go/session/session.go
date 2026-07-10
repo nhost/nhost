@@ -26,6 +26,12 @@ var ErrInvalidToken = errors.New("invalid access token format")
 
 // DecodedToken is the decoded JWT access-token payload. Exp and Iat are epoch
 // seconds. Raw holds every claim (including unknown ones) as decoded.
+//
+// Security: the token signature is NOT verified when producing this struct
+// (see DecodeUserSession). These claims are used only to schedule client-side
+// refresh of the SDK's own token and must never be trusted for authorization
+// decisions on tokens from an untrusted source. Server-side code must verify
+// the JWT against the auth JWKS (.well-known/jwks.json) before trusting claims.
 type DecodedToken struct {
 	Exp          int64          `json:"exp,omitempty"`
 	Iat          int64          `json:"iat,omitempty"`
@@ -78,6 +84,12 @@ func parsePostgresArray(v string) []string {
 // DecodeUserSession decodes the payload of a JWT access token. Hasura claims
 // encoded as PostgreSQL array literals (e.g. "{user,me}") are converted into
 // string slices, mirroring the JS SDK.
+//
+// This decodes but does NOT verify the token: the signature is not checked and
+// no claim (including exp) is validated. It is intended only for reading the
+// SDK's own session token to drive refresh timing. Do not use the returned
+// claims to make authorization decisions on untrusted tokens; verify against
+// the auth JWKS first.
 func DecodeUserSession(accessToken string) (DecodedToken, error) {
 	var decoded DecodedToken
 
