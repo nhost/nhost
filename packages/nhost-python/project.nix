@@ -5,7 +5,9 @@
 }:
 let
   name = "nhost-python";
-  version = "0.0.0-dev";
+  # Matches the PEP 440 version hatchling reads from pyproject.toml so the
+  # derivation name reflects the actual wheel version.
+  version = "0.0.0.dev0";
   submodule = "packages/${name}";
 
   fs = pkgs.lib.fileset;

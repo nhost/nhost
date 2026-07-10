@@ -37,8 +37,16 @@ readable by the `public` role so you can query them straight away.
 | `NHOST_SUBDOMAIN`     | `local`               | Used when `NHOST_GRAPHQL_URL` is unset.        |
 | `NHOST_REGION`        | `local`               |                                                |
 | `NHOST_GRAPHQL_URL`   | *(unset)*             | Override, e.g. `http://graphql:8080/v1` in-cluster. |
-| `HASURA_ADMIN_SECRET` | `nhost-admin-secret`  | Server credential for GraphQL writes.          |
-| `WEBHOOK_SECRET`      | `dev-webhook-secret`  | Shared secret for signature verification.      |
+| `HASURA_ADMIN_SECRET` | *(required)*          | Server credential for GraphQL writes.          |
+| `WEBHOOK_SECRET`      | *(required)*          | Shared secret for signature verification.      |
+| `ALLOW_INSECURE_DEV_SECRETS` | *(unset)*      | Set to `1` to fall back to the well-known local-dev secrets below. |
+
+> **Security:** `HASURA_ADMIN_SECRET` and `WEBHOOK_SECRET` MUST be set to strong
+> secrets in any real deployment. If unset, the service fails to start rather
+> than falling back to a publicly known default (which would make signature
+> verification useless). For local development only, export
+> `ALLOW_INSECURE_DEV_SECRETS=1` to use the well-known defaults
+> `HASURA_ADMIN_SECRET=nhost-admin-secret` and `WEBHOOK_SECRET=dev-webhook-secret`.
 
 ## Run locally (against the CLI backend)
 
@@ -50,10 +58,11 @@ Start the local backend (from `packages/nhost-python`), which creates the
 ```
 
 Then run the service (installs FastAPI/uvicorn on the fly and uses the SDK from
-the project environment):
+the project environment). `ALLOW_INSECURE_DEV_SECRETS=1` opts into the
+well-known local-dev secrets so you don't have to set them explicitly:
 
 ```sh
-uv run --with fastapi --with 'uvicorn[standard]' \
+ALLOW_INSECURE_DEV_SECRETS=1 uv run --with fastapi --with 'uvicorn[standard]' \
   uvicorn app:app --app-dir examples/webhook-receiver --host 127.0.0.1 --port 8081
 ```
 

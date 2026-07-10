@@ -60,6 +60,35 @@ class FetchResponse(Generic[T]):
     headers: httpx.Headers
 
 
+@dataclass(frozen=True)
+class UploadFile:
+    """A binary payload for a multipart file part, carrying its filename.
+
+    Pass this instead of bare ``bytes`` to a generated upload method when the
+    server should record a specific filename. Multipart parts built from bare
+    ``bytes`` are sent with httpx's default ``"upload"`` filename, so every
+    such file is stored under the same name unless an explicit
+    ``metadata[].name`` is supplied.
+    """
+
+    filename: str
+    content: bytes
+    content_type: str = "application/octet-stream"
+
+
+def to_file_part(value: bytes | UploadFile) -> Any:
+    """Normalize a binary multipart value into an httpx ``files`` entry.
+
+    An :class:`UploadFile` becomes a ``(filename, content, content_type)``
+    tuple so its filename reaches the ``Content-Disposition`` header; bare
+    ``bytes`` are passed through unchanged (httpx assigns its default
+    ``"upload"`` filename).
+    """
+    if isinstance(value, UploadFile):
+        return (value.filename, value.content, value.content_type)
+    return value
+
+
 def to_jsonable(value: Any) -> Any:
     """Convert pydantic models (recursively) into JSON-serializable primitives.
 
@@ -185,10 +214,12 @@ __all__ = [
     "FetchError",
     "FetchFunction",
     "FetchResponse",
+    "UploadFile",
     "attach_access_token_middleware",
     "create_enhanced_fetch",
     "decode_json",
     "session_refresh_middleware",
+    "to_file_part",
     "to_json",
     "to_jsonable",
     "update_session_from_response_middleware",

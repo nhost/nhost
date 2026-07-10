@@ -12,8 +12,10 @@ from ..fetch import (
     ChainFunction,
     FetchError,
     FetchResponse,
+    UploadFile,
     create_enhanced_fetch,
     decode_json,
+    to_file_part,
     to_json,
     to_jsonable,
 )
@@ -110,7 +112,7 @@ class UploadFilesBody(BaseModel):
 
     bucket_id: str | None = Field(default=None, alias="bucket-id")
     metadata: list[UploadFileMetadata] | None = Field(default=None, alias="metadata[]")
-    file: list[bytes] = Field(alias="file[]")
+    file: list[bytes | UploadFile] = Field(alias="file[]")
 
 
 class UploadFilesResponse201(BaseModel):
@@ -123,7 +125,7 @@ class ReplaceFileBody(BaseModel):
     model_config = ConfigDict(populate_by_name=True)
 
     metadata: UpdateFileMetadata | None = None
-    file: bytes | None = None
+    file: bytes | UploadFile | None = None
 
 
 class DeleteBrokenMetadataResponse200(BaseModel):
@@ -211,7 +213,7 @@ class Client:
                 _files.append(("metadata[]", (None, to_json(_item), "application/json")))
         if body.file is not None:
             for _item in body.file:
-                _files.append(("file[]", _item))
+                _files.append(("file[]", to_file_part(_item)))
         request = self._http.build_request(
             "POST",
             url,
@@ -298,7 +300,7 @@ class Client:
         if body.metadata is not None:
             _files.append(("metadata", (None, to_json(body.metadata), "application/json")))
         if body.file is not None:
-            _data["file"] = body.file
+            _files.append(("file", to_file_part(body.file)))
         request = self._http.build_request(
             "PUT",
             url,

@@ -12,8 +12,10 @@ from ..fetch import (
     ChainFunction,
     FetchError,
     FetchResponse,
+    UploadFile,
     create_enhanced_fetch,
     decode_json,
+    to_file_part,
     to_json,
     to_jsonable,
 )

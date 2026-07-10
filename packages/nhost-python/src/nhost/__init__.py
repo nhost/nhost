@@ -25,6 +25,7 @@ from .fetch import (
     ChainFunction,
     FetchError,
     FetchResponse,
+    UploadFile,
 )
 from .nhost import (
     ConfigureContext,
@@ -64,6 +65,7 @@ __all__ = [
     "SessionStorage",
     "SessionStorageBackend",
     "StoredSession",
+    "UploadFile",
     "__version__",
     "create_client",
     "create_nhost_client",
