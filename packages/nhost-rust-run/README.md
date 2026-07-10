@@ -12,26 +12,30 @@ compiling for `wasm32` (a server does not). Built on [`axum`] + [`tokio`].
 
 Nhost Run probes `GET /healthz` on the port configured under `[healthCheck]`;
 the endpoint must return `200` within 5 seconds or the container is restarted.
-`nhost-run` builds that endpoint from a health closure and runs a server that
-shuts down gracefully on `SIGTERM`.
+`nhost-run` mounts that endpoint onto your app and runs a server that shuts down
+gracefully on `SIGTERM`.
 
 ## Usage
 
 ```rust
 use std::net::SocketAddr;
 use axum::{routing::get, Router};
+use nhost_run::RunService;
 
 #[tokio::main]
 async fn main() -> std::io::Result<()> {
     let app = Router::new().route("/", get(|| async { "hello from an Nhost Run service" }));
 
-    // Ok(()) -> 200; Err(msg) -> 503 and the platform restarts the container.
-    nhost_run::serve(SocketAddr::from(([0, 0, 0, 0], 8080)), app, || async {
-        Ok::<(), String>(())
-    })
-    .await
+    RunService::new(app)
+        // Ok(()) -> 200; Err(msg) -> 503 and the platform restarts the container.
+        .health(|| async { Ok::<(), String>(()) })
+        .serve(SocketAddr::from(([0, 0, 0, 0], 8080)))
+        .await
 }
 ```
+
+The health check is optional — omit `.health(...)` and `GET /healthz` always
+answers `200`, matching the Go, JavaScript and Python `nhost-*-run` packages.
 
 Match the port in your `nhost-run-service.toml`:
 
@@ -45,11 +49,13 @@ publish = true
 port = 8080
 ```
 
-If you already build your own router, use `nhost_run::healthz_router(health)` and
-`merge` it yourself instead of calling `serve`.
+If you drive the server yourself, call `.into_router()` to get your app with
+`GET /healthz` merged in, and run it however you like.
 
 ## API
 
-- `serve(addr, app, health).await` — serve `app` + `/healthz`, graceful shutdown on SIGTERM.
-- `healthz_router(health) -> axum::Router` — a router with just `GET /healthz`, to merge.
-- `health: Fn() -> Future<Output = Result<(), String>>` — `Ok(())` → 200, `Err(msg)` → 503.
+- `RunService::new(app)` — start a service from your `axum::Router`.
+- `.health(f)` — optional health check; `Ok(())` → 200, `Err(msg)` → 503. Omit for an always-200 probe.
+- `.serve(addr).await` — serve app + `/healthz`, graceful shutdown on SIGTERM.
+- `.into_router() -> axum::Router` — app with `/healthz` merged in, to run yourself.
+- `health: Fn() -> Future<Output = Result<(), String>>`.

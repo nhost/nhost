@@ -25,6 +25,7 @@ use axum::http::{HeaderMap, StatusCode};
 use axum::response::IntoResponse;
 use axum::routing::{get, post};
 use axum::{Json, Router};
+use nhost_run::RunService;
 use serde_json::{json, Value};
 
 #[derive(Clone, Default)]
@@ -48,8 +49,9 @@ async fn main() -> std::io::Result<()> {
     let addr = SocketAddr::from(([0, 0, 0, 0], port));
     println!("webhook-receiver listening on {addr}");
 
-    // serve mounts GET /healthz (backed by `health`) and drains on SIGTERM.
-    nhost_run::serve(addr, app, health).await
+    // RunService mounts GET /healthz (backed by `health`) and drains on
+    // SIGTERM. Drop `.health(health)` to always report healthy.
+    RunService::new(app).health(health).serve(addr).await
 }
 
 /// Backs `GET /healthz`: `Err` → 503 until `WEBHOOK_SECRET` is configured.
