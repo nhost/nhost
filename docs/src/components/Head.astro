@@ -381,7 +381,7 @@ if (description) ogUrl.searchParams.set('description', description);
 
             img.addEventListener('click', () => {
                 const overlayImg = overlay.querySelector('img');
-                overlayImg.src = img.src;
+                overlayImg.src = img.currentSrc || img.src;
                 overlayImg.alt = img.alt;
                 overlay.classList.add('active');
             });

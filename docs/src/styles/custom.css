@@ -199,6 +199,7 @@ html[data-theme="light"] .welcome-get-started {
 /* Left sidebar */
 .sidebar-pane {
   padding-right: 1.5rem !important;
+  border-inline-end: none !important;
 }
 
 /* Reset top-level list */
@@ -773,6 +774,7 @@ header.header {
   width: 100%;
   left: 0 !important;
   right: 0 !important;
+  border-bottom: none !important;
 }
 
 header.header > .header {
