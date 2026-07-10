@@ -1,0 +1,161 @@
+---
+---
+
+<button id="custom-theme-toggle" class="theme-toggle" aria-label="Toggle theme">
+  <div class="toggle-track">
+    <div class="cloud-icon">
+      <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+        <path d="M17.5 19H9a7 7 0 1 1 6.71-9h1.79a4.5 4.5 0 1 1 0 9Z" />
+      </svg>
+    </div>
+    <div class="star-icon">
+      <svg width="6" height="6" viewBox="0 0 24 24" fill="currentColor">
+        <polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2" />
+      </svg>
+    </div>
+    
+    <div class="toggle-thumb">
+      <svg class="sun-icon" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+        <circle cx="12" cy="12" r="5"></circle>
+        <line x1="12" y1="1" x2="12" y2="3"></line>
+        <line x1="12" y1="21" x2="12" y2="23"></line>
+        <line x1="4.22" y1="4.22" x2="5.64" y2="5.64"></line>
+        <line x1="18.36" y1="18.36" x2="19.78" y2="19.78"></line>
+        <line x1="1" y1="12" x2="3" y2="12"></line>
+        <line x1="21" y1="12" x2="23" y2="12"></line>
+        <line x1="4.22" y1="19.78" x2="5.64" y2="18.36"></line>
+        <line x1="18.36" y1="5.64" x2="19.78" y2="4.22"></line>
+      </svg>
+      <svg class="moon-icon" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+        <path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"></path>
+      </svg>
+    </div>
+  </div>
+</button>
+
+<style>
+.theme-toggle {
+  background: transparent;
+  border: none;
+  cursor: pointer;
+  padding: 0;
+  display: flex;
+  align-items: center;
+  outline: none;
+  margin-left: 0.5rem;
+}
+
+.toggle-track {
+  width: 60px;
+  height: 32px;
+  border-radius: 32px;
+  position: relative;
+  transition: background-color 0.3s, border-color 0.3s;
+  background-color: #000000;
+  border: 2px solid #333333;
+  box-sizing: border-box;
+}
+
+html[data-theme="light"] .toggle-track {
+  background-color: #222222;
+  border: 2px solid #222222;
+}
+
+.toggle-thumb {
+  position: absolute;
+  top: 50%;
+  left: 0;
+  width: 28px;
+  height: 28px;
+  border-radius: 50%;
+  background-color: #e6e6db;
+  box-shadow: 0 1px 3px rgba(0,0,0,0.3);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: transform 0.4s cubic-bezier(0.4, 0.0, 0.2, 1), background-color 0.4s;
+  transform: translateY(-50%) translateX(28px); /* Exactly flush with the right inner border */
+  box-sizing: border-box;
+}
+
+html[data-theme="light"] .toggle-thumb {
+  background: #ffffff;
+  box-shadow: 0 1px 3px rgba(0,0,0,0.3);
+  transform: translateY(-50%) translateX(0); /* Exactly flush with the left inner border */
+}
+
+/* Icons */
+.sun-icon, .moon-icon {
+  position: absolute;
+  transition: opacity 0.4s, transform 0.4s cubic-bezier(0.4, 0.0, 0.2, 1);
+  color: #111;
+  width: 18px; /* Slightly larger for the bigger thumb */
+  height: 18px;
+}
+
+/* Dark mode icons */
+.sun-icon { opacity: 0; transform: scale(0.5) rotate(-45deg); }
+.moon-icon { opacity: 1; transform: scale(1) rotate(0); }
+
+/* Light mode icons */
+html[data-theme="light"] .sun-icon { opacity: 1; transform: scale(1) rotate(0); }
+html[data-theme="light"] .moon-icon { opacity: 0; transform: scale(0.5) rotate(45deg); }
+
+/* Decorative track icons (cloud/star) */
+.cloud-icon, .star-icon {
+  position: absolute;
+  color: #888;
+  transition: opacity 0.4s, transform 0.4s;
+}
+
+.cloud-icon {
+  bottom: -2px;
+  left: 8px;
+  opacity: 1;
+}
+
+.star-icon {
+  bottom: 3px;
+  left: 26px;
+  opacity: 1;
+}
+
+html[data-theme="light"] .cloud-icon,
+html[data-theme="light"] .star-icon {
+  opacity: 0;
+  transform: translateX(5px);
+}
+</style>
+
+<script is:inline>
+  (function() {
+    const initThemeToggle = () => {
+      const toggle = document.getElementById('custom-theme-toggle');
+      if (!toggle) return;
+
+      const storeTheme = (theme) => {
+        if (typeof localStorage !== 'undefined') {
+          localStorage.setItem('starlight-theme', theme);
+        }
+      };
+
+      const setTheme = (theme) => {
+        document.documentElement.dataset.theme = theme;
+        storeTheme(theme);
+        
+        if (typeof StarlightThemeProvider !== 'undefined' && StarlightThemeProvider.updatePickers) {
+          StarlightThemeProvider.updatePickers(theme);
+        }
+      };
+
+      toggle.addEventListener('click', () => {
+        const currentTheme = document.documentElement.dataset.theme || 'dark';
+        const newTheme = currentTheme === 'light' ? 'dark' : 'light';
+        setTheme(newTheme);
+      });
+    };
+
+    initThemeToggle();
+    document.addEventListener('astro:page-load', initThemeToggle);
+  })();
+</script>
