@@ -2,6 +2,7 @@ package main
 
 import (
 	"context"
+	"errors"
 	"slices"
 	"testing"
 
@@ -30,7 +31,7 @@ func TestParseSharedFlagsResolvesBind(t *testing.T) {
 		t.Run(tc.name, func(t *testing.T) {
 			t.Parallel()
 
-			cfg, err := parseSharedFlags(context.Background(), tc.args)
+			cfg, _, err := parseSharedFlags(context.Background(), tc.args)
 			if err != nil {
 				t.Fatalf("parseSharedFlags: %v", err)
 			}
@@ -45,8 +46,83 @@ func TestParseSharedFlagsResolvesBind(t *testing.T) {
 func TestParseSharedFlagsRejectsUnknown(t *testing.T) {
 	t.Parallel()
 
-	if _, err := parseSharedFlags(context.Background(), []string{"--nope"}); err == nil {
+	if _, _, err := parseSharedFlags(context.Background(), []string{"--nope"}); err == nil {
 		t.Fatal("expected error for unknown shared flag, got nil")
+	}
+}
+
+func TestParseSharedFlagsRejectsStrayPositional(t *testing.T) {
+	t.Parallel()
+
+	// A mistyped first service ("nhost-engine storag -- auth") lands in the shared
+	// segment as a bare positional. It used to be silently dropped — only auth
+	// would run — so it must now surface as an error instead.
+	if _, _, err := parseSharedFlags(
+		context.Background(), []string{"storag"},
+	); !errors.Is(err, errUnexpectedSharedArg) {
+		t.Fatalf("err = %v; want errUnexpectedSharedArg", err)
+	}
+
+	// A genuine flag value that reads like a service name is consumed by the
+	// flag (arity-aware), not left as a stray positional, so it must not error.
+	if _, _, err := parseSharedFlags(
+		context.Background(), []string{"--admin-secret", "storage"},
+	); err != nil {
+		t.Fatalf("flag value wrongly rejected as stray positional: %v", err)
+	}
+}
+
+// TestParseSharedFlagsHelpVersionArity guards the regression where the raw
+// shared-token scan mistook a flag *value* equal to a help/version token for an
+// actual help/version request, short-circuiting startup with exit 0 and never
+// launching the selected service. Detection must be arity-aware: only a genuine
+// --help/--version flag counts; a value like "--admin-secret help" must parse as
+// the secret and leave the request as requestRun so the service still starts.
+func TestParseSharedFlagsHelpVersionArity(t *testing.T) {
+	t.Parallel()
+
+	tests := []struct {
+		name       string
+		args       []string
+		wantReq    sharedRequest
+		wantSecret string
+	}{
+		{name: "no flags runs", args: nil, wantReq: requestRun},
+		{name: "long help", args: []string{"--help"}, wantReq: requestHelp},
+		{name: "short help", args: []string{"-h"}, wantReq: requestHelp},
+		{name: "long version", args: []string{"--version"}, wantReq: requestVersion},
+		{name: "short version", args: []string{"-v"}, wantReq: requestVersion},
+		{
+			name:       "help as flag value does not request help",
+			args:       []string{"--admin-secret", "help"},
+			wantReq:    requestRun,
+			wantSecret: "help",
+		},
+		{
+			name:       "version token as flag value does not request version",
+			args:       []string{"--admin-secret", "-v"},
+			wantReq:    requestRun,
+			wantSecret: "-v",
+		},
+	}
+
+	for _, tc := range tests {
+		t.Run(tc.name, func(t *testing.T) {
+			t.Parallel()
+
+			cfg, req, err := parseSharedFlags(context.Background(), tc.args)
+			if err != nil {
+				t.Fatalf("parseSharedFlags: %v", err)
+			}
+
+			if req != tc.wantReq {
+				t.Fatalf("request = %d, want %d", req, tc.wantReq)
+			}
+
+			if cfg.adminSecret != tc.wantSecret {
+				t.Fatalf("adminSecret = %q, want %q", cfg.adminSecret, tc.wantSecret)
+			}
+		})
 	}
 }
 

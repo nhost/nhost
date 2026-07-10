@@ -73,7 +73,7 @@ func isSecret(name string) bool {
 		strings.Contains(name, "postgres") ||
 		strings.Contains(name, "client-id") ||
 		strings.Contains(name, "client-secret") ||
-		strings.Contains(name, "metadata-database-url")
+		strings.Contains(name, "database-url")
 }
 
 // LogFlags logs the resolved value of every flag on the root command and the

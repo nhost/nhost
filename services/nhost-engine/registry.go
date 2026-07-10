@@ -3,7 +3,6 @@ package main
 import (
 	"context"
 	"log/slog"
-	"slices"
 	"sort"
 	"strings"
 
@@ -82,17 +81,6 @@ func serviceNames() []string {
 	sort.Strings(names)
 
 	return names
-}
-
-// hasAny reports whether args contains any of the given tokens.
-func hasAny(args []string, tokens ...string) bool {
-	for _, a := range args {
-		if slices.Contains(tokens, a) {
-			return true
-		}
-	}
-
-	return false
 }
 
 // usageText is the top-level help for the engine, describing the multi-service
