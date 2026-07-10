@@ -13,6 +13,7 @@ from __future__ import annotations
 import hashlib
 import hmac
 import json
+import logging
 import os
 from collections.abc import AsyncIterator
 from contextlib import asynccontextmanager
@@ -37,13 +38,43 @@ mutation InsertWebhookEvent($object: webhook_events_insert_input!) {
 """
 
 
+logger = logging.getLogger("webhook-receiver")
+
+_ALLOW_INSECURE = os.getenv("ALLOW_INSECURE_DEV_SECRETS", "").lower() in ("1", "true", "yes")
+
+
 def _env(key: str, default: str | None = None) -> str | None:
     value = os.getenv(key)
     return value if value else default
 
 
-WEBHOOK_SECRET = _env("WEBHOOK_SECRET", "dev-webhook-secret") or ""
-ADMIN_SECRET = _env("HASURA_ADMIN_SECRET", "nhost-admin-secret") or ""
+def _required_secret(key: str, dev_default: str) -> str:
+    """Return a required secret, failing fast instead of falling back silently.
+
+    Falling back to a well-known, publicly documented default would make the
+    signature check (and admin auth) fail *open*: any attacker knows the value.
+    The local-dev default is therefore only used when the operator explicitly
+    opts in via ``ALLOW_INSECURE_DEV_SECRETS=1``; otherwise startup fails.
+    """
+    value = os.getenv(key)
+    if value:
+        return value
+    if _ALLOW_INSECURE:
+        logger.warning(
+            "%s is not set; using the well-known local-dev default. This provides "
+            "NO protection and must never be used in a real deployment.",
+            key,
+        )
+        return dev_default
+    raise RuntimeError(
+        f"{key} is not set. Set it to a strong secret, or export "
+        "ALLOW_INSECURE_DEV_SECRETS=1 to use the well-known local-dev default "
+        "(local development only)."
+    )
+
+
+WEBHOOK_SECRET = _required_secret("WEBHOOK_SECRET", "dev-webhook-secret")
+ADMIN_SECRET = _required_secret("HASURA_ADMIN_SECRET", "nhost-admin-secret")
 
 
 @asynccontextmanager
