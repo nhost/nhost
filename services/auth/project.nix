@@ -28,6 +28,7 @@ let
 
       ../../internal/lib/oapi
       ../../internal/lib/hasura/metadata
+      ../../internal/lib/serve
 
       ./go/api/server.cfg.yaml
       ./go/api/types.cfg.yaml
