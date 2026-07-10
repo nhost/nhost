@@ -12,6 +12,7 @@ import (
 	"github.com/gin-gonic/gin"
 	"github.com/nhost/nhost/internal/lib/oapi"
 	oapimw "github.com/nhost/nhost/internal/lib/oapi/middleware"
+	serveutil "github.com/nhost/nhost/internal/lib/serve"
 	"github.com/nhost/nhost/services/auth/go/api"
 	"github.com/nhost/nhost/services/auth/go/controller"
 	crypto "github.com/nhost/nhost/services/auth/go/cryto"
@@ -1388,13 +1389,13 @@ func getCORSOptions() oapimw.CORSOptions {
 	}
 }
 
-func getGoServer(
+func getHandler(
 	ctx context.Context,
 	cmd *cli.Command,
 	db *sql.Queries,
 	encrypter *crypto.Encrypter,
 	logger *slog.Logger,
-) (*http.Server, error) {
+) (http.Handler, error) {
 	ctrl, jwtGetter, err := getController(ctx, cmd, db, encrypter, logger)
 	if err != nil {
 		return nil, err
@@ -1452,13 +1453,7 @@ func getGoServer(
 		})
 	}
 
-	server := &http.Server{ //nolint:exhaustruct
-		Addr:              ":" + cmd.String(flagPort),
-		Handler:           router,
-		ReadHeaderTimeout: 5 * time.Second, //nolint:mnd
-	}
-
-	return server, nil
+	return router, nil
 }
 
 func validateOauth2ProviderConfig(cmd *cli.Command, jwtGetter *controller.JWTGetter) error {
@@ -1543,29 +1538,79 @@ func serve(ctx context.Context, cmd *cli.Command) error {
 	logger.InfoContext(ctx, cmd.Root().Name+" v"+cmd.Root().Version)
 	logFlags(ctx, logger, cmd)
 
-	servCtx, cancel := context.WithCancel(ctx)
-	defer cancel()
+	svc, err := NewService(ctx, cmd, logger)
+	if err != nil {
+		return err
+	}
 
+	defer svc.Shutdown()
+
+	return runServer(ctx, cmd, svc, logger)
+}
+
+// NewService builds auth's serving surface: the HTTP handler and the database
+// pool it owns. Auth has no long-lived background loop, so Background is nil
+// and Close releases the pool. It is consumed both by the standalone serve
+// command and by the nhost-engine unified binary, which mounts the handler
+// behind a shared listener.
+func NewService(
+	ctx context.Context,
+	cmd *cli.Command,
+	logger *slog.Logger,
+) (*serveutil.Service, error) {
 	pool, err := getDBPool(ctx, cmd)
 	if err != nil {
-		return fmt.Errorf("failed to create database pool: %w", err)
+		return nil, fmt.Errorf("failed to create database pool: %w", err)
 	}
-	defer pool.Close()
 
 	encrypter, err := crypto.NewEncrypterFromString(cmd.String(flagEncryptionKey))
 	if err != nil {
-		return fmt.Errorf("problem creating encrypter: %w", err)
+		pool.Close()
+
+		return nil, fmt.Errorf("problem creating encrypter: %w", err)
 	}
 
 	db := sql.New(pool)
-	if err := applyMigrations(servCtx, cmd, db, encrypter, logger); err != nil {
-		return fmt.Errorf("failed to apply migrations: %w", err)
+	if err := applyMigrations(ctx, cmd, db, encrypter, logger); err != nil {
+		pool.Close()
+
+		return nil, fmt.Errorf("failed to apply migrations: %w", err)
 	}
 
-	server, err := getGoServer(ctx, cmd, db, encrypter, logger)
+	handler, err := getHandler(ctx, cmd, db, encrypter, logger)
 	if err != nil {
-		return fmt.Errorf("failed to create server: %w", err)
+		pool.Close()
+
+		return nil, fmt.Errorf("failed to create server: %w", err)
 	}
+
+	return &serveutil.Service{
+		Handler:    handler,
+		Background: nil,
+		Close:      pool.Close,
+	}, nil
+}
+
+func runServer(
+	ctx context.Context,
+	cmd *cli.Command,
+	svc *serveutil.Service,
+	logger *slog.Logger,
+) error {
+	server := &http.Server{ //nolint:exhaustruct
+		Addr:              ":" + cmd.String(flagPort),
+		Handler:           svc.Handler,
+		ReadHeaderTimeout: 5 * time.Second, //nolint:mnd
+	}
+
+	servCtx, cancel := context.WithCancel(ctx)
+	defer cancel()
+
+	go func() {
+		defer cancel()
+
+		_ = svc.RunBackground(servCtx)
+	}()
 
 	go func() {
 		defer cancel()

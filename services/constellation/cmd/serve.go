@@ -17,6 +17,7 @@ import (
 	"github.com/gin-gonic/gin"
 	"github.com/nhost/nhost/internal/lib/oapi"
 	oapimw "github.com/nhost/nhost/internal/lib/oapi/middleware"
+	serveutil "github.com/nhost/nhost/internal/lib/serve"
 	"github.com/nhost/nhost/services/constellation/api"
 	"github.com/nhost/nhost/services/constellation/controller"
 	"github.com/nhost/nhost/services/constellation/controller/middleware"
@@ -481,48 +482,45 @@ func serve(ctx context.Context, cmd *cli.Command) error {
 	logger.InfoContext(ctx, cmd.Root().Name+" v"+cmd.Root().Version)
 	logFlags(ctx, logger, cmd)
 
-	var metadataSource metadata.Source
-	if metaDBURL := cmd.String(flagMetadataDatabaseURL); metaDBURL != "" {
-		databaseMetadataSource, err := source.NewDatabaseMetadataSource(
-			ctx,
-			metaDBURL,
-			time.Second,
-			logger,
-		)
-		if err != nil {
-			return fmt.Errorf("creating database metadata source: %w", err)
-		}
-
-		metadataSource = databaseMetadataSource
-	} else {
-		metadataSource = source.NewFileMetadataSource(cmd.String(flagMetadataPath))
+	svc, err := NewService(ctx, cmd, logger)
+	if err != nil {
+		return err
 	}
 
-	defer metadataSource.Close()
+	defer svc.Shutdown()
+
+	return runServer(ctx, cmd, svc, logger)
+}
+
+// NewService builds constellation's serving surface: the HTTP handler, the
+// background controller loop, and the cleanup of the resources it acquires
+// (metadata source, JWT authenticator). It is consumed both by the standalone
+// serve command and by the nhost-engine unified binary, which mounts the
+// handler behind a shared listener and runs the background loop under the
+// shared process lifecycle.
+func NewService(
+	ctx context.Context,
+	cmd *cli.Command,
+	logger *slog.Logger,
+) (*serveutil.Service, error) {
+	metadataSource, err := newMetadataSource(ctx, cmd, logger)
+	if err != nil {
+		return nil, err
+	}
 
 	jwtAuth, err := initJWTAuth(ctx, cmd, logger)
 	if err != nil {
-		return fmt.Errorf("initializing JWT auth: %w", err)
+		metadataSource.Close()
+
+		return nil, fmt.Errorf("initializing JWT auth: %w", err)
 	}
 
-	defer jwtAuth.Close()
+	hasuraProxy, err := newHasuraProxy(cmd, logger)
+	if err != nil {
+		jwtAuth.Close()
+		metadataSource.Close()
 
-	// Hasura upstream proxy. Used both as the NoRoute fallback (any path
-	// Constellation does not serve natively) and as the per-op fallback
-	// inside the /v1/metadata dispatcher (any metadata op not yet migrated).
-	// The default URL targets the Nhost Hasura sidecar so compatibility routes
-	// proxy in normal side-by-side deployments. A nil proxy means the resolved
-	// flag/env value was explicitly set empty — unimplemented routes return 404
-	// and unknown metadata ops return `not-supported`.
-	var hasuraProxy http.Handler
-
-	if upstream := cmd.String(flagHasuraUpstreamURL); upstream != "" {
-		proxy, err := hasuraproxy.New(upstream, logger)
-		if err != nil {
-			return fmt.Errorf("invalid %s: %w", flagHasuraUpstreamURL, err)
-		}
-
-		hasuraProxy = proxy
+		return nil, err
 	}
 
 	ctrl, err := controller.New(
@@ -537,26 +535,95 @@ func serve(ctx context.Context, cmd *cli.Command) error {
 		hasuraProxy,
 	)
 	if err != nil {
-		return fmt.Errorf("failed to create controller: %w", err)
+		// The controller did not take ownership, so release what we built.
+		jwtAuth.Close()
+		metadataSource.Close()
+
+		return nil, fmt.Errorf("failed to create controller: %w", err)
 	}
 
-	return runServer(ctx, cmd, ctrl, jwtAuth, hasuraProxy, logger)
+	router, err := getRouter(ctx, cmd, ctrl, jwtAuth, hasuraProxy, logger)
+	if err != nil {
+		jwtAuth.Close()
+		metadataSource.Close()
+
+		return nil, fmt.Errorf("building HTTP router: %w", err)
+	}
+
+	return &serveutil.Service{
+		Handler: router,
+		Background: func(ctx context.Context) error {
+			logger.InfoContext(ctx, "starting controller")
+			ctrl.Run(ctx, logger)
+			logger.WarnContext(ctx, "controller has stopped")
+
+			return nil
+		},
+		Close: func() {
+			jwtAuth.Close()
+			metadataSource.Close()
+		},
+	}, nil
+}
+
+// newMetadataSource builds the metadata source from the configured flags: a
+// PostgreSQL-backed source when a metadata database URL is set, otherwise the
+// file-backed source. The caller owns the returned source and must Close it.
+// The interface return is intentional; the concrete implementation varies.
+//
+//nolint:ireturn // interface return is intentional; see doc comment
+func newMetadataSource(
+	ctx context.Context,
+	cmd *cli.Command,
+	logger *slog.Logger,
+) (metadata.Source, error) {
+	metaDBURL := cmd.String(flagMetadataDatabaseURL)
+	if metaDBURL == "" {
+		return source.NewFileMetadataSource(cmd.String(flagMetadataPath)), nil
+	}
+
+	databaseMetadataSource, err := source.NewDatabaseMetadataSource(
+		ctx,
+		metaDBURL,
+		time.Second,
+		logger,
+	)
+	if err != nil {
+		return nil, fmt.Errorf("creating database metadata source: %w", err)
+	}
+
+	return databaseMetadataSource, nil
+}
+
+// newHasuraProxy builds the Hasura upstream proxy, or returns a nil handler
+// when the upstream URL is explicitly empty. The proxy is used both as the
+// NoRoute fallback (any path Constellation does not serve natively) and as the
+// per-op fallback inside the /v1/metadata dispatcher (any metadata op not yet
+// migrated). The default URL targets the Nhost Hasura sidecar so compatibility
+// routes proxy in normal side-by-side deployments; a nil proxy makes
+// unimplemented routes return 404 and unknown metadata ops return
+// `not-supported`.
+func newHasuraProxy(cmd *cli.Command, logger *slog.Logger) (http.Handler, error) {
+	upstream := cmd.String(flagHasuraUpstreamURL)
+	if upstream == "" {
+		return nil, nil //nolint:nilnil // nil handler is a valid "proxy disabled" result
+	}
+
+	proxy, err := hasuraproxy.New(upstream, logger)
+	if err != nil {
+		return nil, fmt.Errorf("invalid %s: %w", flagHasuraUpstreamURL, err)
+	}
+
+	return proxy, nil
 }
 
 func runServer(
 	ctx context.Context,
 	cmd *cli.Command,
-	ctrl *controller.Controller,
-	jwtAuth middleware.JWTAuthenticator,
-	hasuraProxy http.Handler,
+	svc *serveutil.Service,
 	logger *slog.Logger,
 ) error {
-	router, err := getRouter(ctx, cmd, ctrl, jwtAuth, hasuraProxy, logger)
-	if err != nil {
-		return fmt.Errorf("building HTTP router: %w", err)
-	}
-
-	server, err := newHTTPServer(cmd, router)
+	server, err := newHTTPServer(cmd, svc.Handler)
 	if err != nil {
 		return fmt.Errorf("configuring HTTP server: %w", err)
 	}
@@ -568,9 +635,7 @@ func runServer(
 	go func() {
 		defer cancel()
 
-		logger.InfoContext(ctx, "starting controller")
-		ctrl.Run(ctx, logger)
-		logger.WarnContext(ctx, "controller has stopped")
+		_ = svc.RunBackground(ctx)
 	}()
 
 	go func() {
