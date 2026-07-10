@@ -10,7 +10,7 @@ and :func:`create_nhost_client` for a bare client you configure yourself.
 from __future__ import annotations
 
 from collections.abc import Callable
-from dataclasses import dataclass, field
+from dataclasses import dataclass, field, replace
 from typing import Literal
 
 import httpx
@@ -136,6 +136,7 @@ class NhostClient:
         functions: functions_module.Client,
         session_storage: SessionStorage,
         http_client: httpx.AsyncClient,
+        owns_http: bool = True,
     ) -> None:
         self.auth = auth
         self.storage = storage
@@ -143,6 +144,7 @@ class NhostClient:
         self.functions = functions
         self.session_storage = session_storage
         self._http = http_client
+        self._owns_http = owns_http
 
     def get_user_session(self) -> StoredSession | None:
         """Return the current session from storage, or ``None``."""
@@ -159,8 +161,13 @@ class NhostClient:
         self.session_storage.remove()
 
     async def aclose(self) -> None:
-        """Close the shared HTTP client and its connection pool."""
-        await self._http.aclose()
+        """Close the shared HTTP client and its connection pool.
+
+        A caller-supplied ``http_client`` (via ``NhostClientOptions``) is left
+        open — the SDK only closes the client it created itself.
+        """
+        if self._owns_http:
+            await self._http.aclose()
 
     async def __aenter__(self) -> NhostClient:
         return self
@@ -217,7 +224,15 @@ def create_nhost_client(options: NhostClientOptions | None = None) -> NhostClien
     for configure in options.configure:
         configure(ctx)
 
-    return NhostClient(auth, storage, graphql, functions, session_storage, http)
+    return NhostClient(
+        auth,
+        storage,
+        graphql,
+        functions,
+        session_storage,
+        http,
+        owns_http=options.http_client is None,
+    )
 
 
 def create_client(options: NhostClientOptions | None = None) -> NhostClient:
@@ -246,8 +261,8 @@ def create_client(options: NhostClientOptions | None = None) -> NhostClient:
     'user'
     """
     options = options or NhostClientOptions()
-    options.configure = [with_client_side_session_middleware, *options.configure]
-    return create_nhost_client(options)
+    merged = replace(options, configure=[with_client_side_session_middleware, *options.configure])
+    return create_nhost_client(merged)
 
 
 def create_server_client(options: NhostClientOptions) -> NhostClient:
@@ -261,5 +276,5 @@ def create_server_client(options: NhostClientOptions) -> NhostClient:
             "create_server_client requires explicit options.storage "
             "(use a per-request/user backend to avoid leaking sessions)"
         )
-    options.configure = [with_server_side_session_middleware, *options.configure]
-    return create_nhost_client(options)
+    merged = replace(options, configure=[with_server_side_session_middleware, *options.configure])
+    return create_nhost_client(merged)

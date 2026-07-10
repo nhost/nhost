@@ -13,6 +13,7 @@ import (
 
 	"github.com/nhost/nhost/tools/codegen/format"
 	"github.com/nhost/nhost/tools/codegen/processor"
+	"github.com/pb33f/libopenapi/datamodel/high/base"
 )
 
 const extCustomType = "x-python-type"
@@ -96,6 +97,18 @@ func underscoreBeforeUpper(runes []rune, i int) bool {
 	return prevBoundary || nextLower
 }
 
+// isBinarySchema reports whether a schema is a binary string (string,
+// format: binary), which maps to Python bytes and a multipart file part.
+func isBinarySchema(schema *base.SchemaProxy) bool {
+	if schema == nil || schema.Schema() == nil {
+		return false
+	}
+
+	s := schema.Schema()
+
+	return len(s.Type) > 0 && s.Type[0] == "string" && s.Format == "binary"
+}
+
 func safeIdentifier(name string) string {
 	if _, ok := pythonKeywords[name]; ok {
 		return name + "_"
@@ -131,12 +144,34 @@ func (p *Python) GetFuncMap() map[string]any {
 	return map[string]any{
 		// pyReturnType turns the shared IR return type expression into a valid
 		// runtime Python type expression usable inside a pydantic TypeAdapter.
+		// Method.ReturnType() joins multiple 2xx media/void results with " | ",
+		// so the "void" sentinel is mapped token-wise to leave real type names
+		// that merely contain the substring "void" untouched.
 		"pyReturnType": func(t string) string {
-			if t == "" || t == "void" {
+			if t == "" {
 				return "None"
 			}
 
-			return strings.ReplaceAll(t, "void", "None")
+			parts := strings.Split(t, " | ")
+			for i, part := range parts {
+				if part == "" || part == "void" {
+					parts[i] = "None"
+				}
+			}
+
+			return strings.Join(parts, " | ")
+		},
+		// pyStr renders a Go string as a Python string literal, escaping like the
+		// pydantic alias rendering (%q) so wire names / content types interpolated
+		// into emitted code are always valid Python.
+		"pyStr": func(s string) string {
+			return fmt.Sprintf("%q", s)
+		},
+		// pyIsBinary reports whether a type is a binary-format scalar (string,
+		// format: binary -> bytes), which must be sent as a multipart file part
+		// rather than a plain form value.
+		"pyIsBinary": func(t processor.Type) bool {
+			return isBinarySchema(t.Schema())
 		},
 		// pascal converts a snake_case method name into a PascalCase class prefix
 		// (used for the per-method query Params model name).
@@ -179,7 +214,10 @@ func (p *Python) TypeScalarName(scalar *processor.TypeScalar) string {
 		return "bool"
 	case "string":
 		if schema.Format == "binary" {
-			return "bytes"
+			// Binary request-body parts accept either raw bytes (sent with
+			// httpx's default "upload" filename) or an UploadFile carrying an
+			// explicit filename/content-type for the multipart file part.
+			return "bytes | UploadFile"
 		}
 
 		return "str"
@@ -199,10 +237,19 @@ func (p *Python) TypeEnumName(name string) string {
 func (p *Python) TypeEnumValues(values []any) []string {
 	enumValues := make([]string, len(values))
 	for i, v := range values {
-		if s, ok := v.(string); ok {
-			enumValues[i] = fmt.Sprintf("%q", s)
-		} else {
-			enumValues[i] = fmt.Sprintf("%v", v)
+		switch val := v.(type) {
+		case string:
+			enumValues[i] = fmt.Sprintf("%q", val)
+		case bool:
+			if val {
+				enumValues[i] = "True"
+			} else {
+				enumValues[i] = "False"
+			}
+		case nil:
+			enumValues[i] = "None"
+		default:
+			enumValues[i] = fmt.Sprintf("%v", val)
 		}
 	}
 

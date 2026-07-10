@@ -16,18 +16,22 @@ import pytest
 
 from nhost import (
     FetchError,
+    FileStorage,
     MemoryStorage,
     NhostClientOptions,
+    UploadFile,
     create_client,
 )
 from nhost.auth import (
     Session,
     SignUpEmailPasswordRequest,
+    User,
     generate_code_challenge,
     generate_code_verifier,
     generate_pkce_pair,
 )
-from nhost.session import decode_user_session
+from nhost.session import StoredSession, decode_user_session
+from nhost.session.session import to_stored_session
 
 
 def make_jwt(exp_offset_seconds: int = 3600) -> str:
@@ -60,6 +64,19 @@ def session_payload_bytes(access_token: str) -> bytes:
                 "refreshTokenId": "refresh-id",
                 "user": None,
             }
+        }
+    ).encode()
+
+
+def raw_session_bytes(access_token: str) -> bytes:
+    """A bare auth ``Session`` JSON body, as returned by ``POST /token``."""
+    return json.dumps(
+        {
+            "accessToken": access_token,
+            "accessTokenExpiresIn": 3600,
+            "refreshToken": "new-refresh-token",
+            "refreshTokenId": "new-refresh-id",
+            "user": None,
         }
     ).encode()
 
@@ -266,6 +283,171 @@ async def test_no_refresh_when_token_is_fresh() -> None:
 
     # A fresh token must not trigger a /token refresh call.
     assert not any(path.endswith("/token") for path in calls)
+
+
+async def test_expired_token_triggers_refresh_and_updates_storage() -> None:
+    old_token = make_jwt(exp_offset_seconds=-10)
+    new_token = make_jwt(exp_offset_seconds=3600)
+    calls: list[str] = []
+
+    def handler(request: httpx.Request) -> httpx.Response:
+        calls.append(request.url.path)
+        if request.url.path.endswith("/token"):
+            return httpx.Response(200, content=raw_session_bytes(new_token))
+        return httpx.Response(200, json={"data": {"__typename": "query_root"}})
+
+    backend = MemoryStorage()
+    async with build_client(handler, backend) as nhost:
+        nhost.session_storage.set(
+            Session(
+                access_token=old_token,
+                access_token_expires_in=3600,
+                refresh_token="r",
+                refresh_token_id="rid",
+                user=None,
+            )
+        )
+        await nhost.graphql.request("query { __typename }")
+
+        # An expired token must trigger a /token refresh and update storage.
+        assert any(path.endswith("/token") for path in calls)
+        stored = nhost.get_user_session()
+        assert stored is not None
+        assert stored.access_token == new_token
+
+
+async def test_refresh_401_clears_session() -> None:
+    old_token = make_jwt(exp_offset_seconds=-10)
+
+    def handler(request: httpx.Request) -> httpx.Response:
+        if request.url.path.endswith("/token"):
+            return httpx.Response(401, json={"message": "invalid refresh token"})
+        return httpx.Response(200, json={"data": None})
+
+    backend = MemoryStorage()
+    async with build_client(handler, backend) as nhost:
+        nhost.session_storage.set(
+            Session(
+                access_token=old_token,
+                access_token_expires_in=3600,
+                refresh_token="r",
+                refresh_token_id="rid",
+                user=None,
+            )
+        )
+        await nhost.graphql.request("query { __typename }")
+
+        # A 401 from the refresh endpoint must clear the stored session.
+        assert nhost.get_user_session() is None
+
+
+def _user_with_metadata(metadata: dict | None) -> User:
+    return User(
+        avatar_url="",
+        created_at="2026-01-01T00:00:00Z",
+        default_role="user",
+        display_name="Ada",
+        email="ada@example.com",
+        email_verified=True,
+        id="user-123",
+        is_anonymous=False,
+        locale="en",
+        metadata=metadata,
+        phone_number_verified=False,
+        roles=["user"],
+    )
+
+
+def test_file_storage_roundtrips_session_with_null_metadata(tmp_path) -> None:
+    # User.metadata is required-but-nullable; exclude_none would drop it and make
+    # reload validation fail, silently deleting the session file.
+    path = tmp_path / "session.json"
+    storage = FileStorage(path)
+    session = to_stored_session(
+        Session(
+            access_token=make_jwt(),
+            access_token_expires_in=3600,
+            refresh_token="r",
+            refresh_token_id="rid",
+            user=_user_with_metadata(None),
+        )
+    )
+
+    storage.set(session)
+    reloaded = storage.get()
+
+    assert reloaded is not None
+    assert isinstance(reloaded, StoredSession)
+    assert reloaded.user is not None
+    assert reloaded.user.metadata is None
+    assert path.exists()
+
+
+def test_create_client_does_not_mutate_shared_options() -> None:
+    opts = NhostClientOptions(subdomain="demo", region="eu-central-1")
+    original_configure = opts.configure
+
+    create_client(opts)
+    create_client(opts)
+
+    # The factory must not mutate the caller's options in place, so reusing the
+    # same options object does not accumulate duplicate middleware.
+    assert opts.configure is original_configure
+    assert opts.configure == []
+
+
+async def test_replace_file_sends_file_as_multipart_file_part() -> None:
+    from nhost.storage import ReplaceFileBody
+
+    captured: dict = {}
+
+    def handler(request: httpx.Request) -> httpx.Response:
+        captured["content_type"] = request.headers.get("content-type", "")
+        captured["content"] = request.content
+        return httpx.Response(
+            200,
+            json={
+                "id": "file-1",
+                "name": "hello.txt",
+                "size": 3,
+                "bucketId": "default",
+                "etag": '"abc"',
+                "createdAt": "2026-01-01T00:00:00Z",
+                "updatedAt": "2026-01-01T00:00:00Z",
+                "isUploaded": True,
+                "mimeType": "text/plain",
+            },
+        )
+
+    async with build_client(handler) as nhost:
+        await nhost.storage.replace_file("file-1", ReplaceFileBody(file=b"abc"))
+
+    assert captured["content_type"].startswith("multipart/form-data")
+    body = captured["content"]
+    # The binary payload must be a file part (has filename=) so Go's ReadForm
+    # classifies it under form.File, not a plain form value.
+    assert b'name="file"; filename=' in body
+    assert b"abc" in body
+
+
+async def test_upload_file_carries_filename_via_uploadfile() -> None:
+    from nhost.storage import UploadFilesBody
+
+    captured: dict = {}
+
+    def handler(request: httpx.Request) -> httpx.Response:
+        captured["content"] = request.content
+        return httpx.Response(201, json={"processedFiles": []})
+
+    async with build_client(handler) as nhost:
+        await nhost.storage.upload_files(
+            UploadFilesBody(file=[UploadFile(filename="photo.png", content=b"img")])
+        )
+
+    body = captured["content"]
+    # An UploadFile threads its filename into the multipart Content-Disposition.
+    assert b'filename="photo.png"' in body
+    assert b"img" in body
 
 
 class TestPKCE:

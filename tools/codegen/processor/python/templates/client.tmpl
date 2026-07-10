@@ -60,18 +60,24 @@
 {{- range .RequestFormData.Properties }}
 {{- if eq .Type.Kind "scalar" }}
         if body.{{ .Name }} is not None:
-            _data["{{ .RawName }}"] = body.{{ .Name }}
+{{- if pyIsBinary .Type }}
+            _files.append(({{ pyStr .RawName }}, to_file_part(body.{{ .Name }})))
+{{- else }}
+            _data[{{ pyStr .RawName }}] = body.{{ .Name }}
+{{- end }}
 {{- else if eq .Type.Kind "array" }}
         if body.{{ .Name }} is not None:
             for _item in body.{{ .Name }}:
-{{- if eq .Type.Item.Kind "scalar" }}
-                _files.append(("{{ .RawName }}", _item))
+{{- if pyIsBinary .Type.Item }}
+                _files.append(({{ pyStr .RawName }}, to_file_part(_item)))
+{{- else if eq .Type.Item.Kind "scalar" }}
+                _files.append(({{ pyStr .RawName }}, _item))
 {{- else }}
-                _files.append(("{{ .RawName }}", (None, to_json(_item), "{{ $m.MultipartContentType . }}")))
+                _files.append(({{ pyStr .RawName }}, (None, to_json(_item), {{ pyStr ($m.MultipartContentType .) }})))
 {{- end }}
 {{- else }}
         if body.{{ .Name }} is not None:
-            _files.append(("{{ .RawName }}", (None, to_json(body.{{ .Name }}), "{{ $m.MultipartContentType . }}")))
+            _files.append(({{ pyStr .RawName }}, (None, to_json(body.{{ .Name }}), {{ pyStr ($m.MultipartContentType .) }})))
 {{- end }}
 {{- end }}
         request = self._http.build_request(

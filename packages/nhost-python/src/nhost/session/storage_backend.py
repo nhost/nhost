@@ -50,7 +50,16 @@ class MemoryStorage:
 
 
 class FileStorage:
-    """JSON-file backed session storage, useful for CLIs and local scripts."""
+    """JSON-file backed session storage, useful for CLIs and local scripts.
+
+    ``get``/``set`` perform synchronous, blocking filesystem I/O. Since these
+    backends are invoked from inside the async request path (token attachment
+    and refresh call ``get`` on every request), a shared ``FileStorage`` under
+    high concurrency will block the event loop for the duration of each disk
+    read/write. It is intended for CLIs and local scripts; prefer
+    :class:`MemoryStorage` or a per-request backend in high-concurrency async
+    servers.
+    """
 
     def __init__(self, path: str | Path) -> None:
         self._path = Path(path)
@@ -68,9 +77,10 @@ class FileStorage:
 
     def set(self, value: StoredSession) -> None:
         self._path.parent.mkdir(parents=True, exist_ok=True)
-        self._path.write_text(
-            value.model_dump_json(by_alias=True, exclude_none=True), encoding="utf-8"
-        )
+        # Persist all fields (no exclude_none): required-but-nullable fields such
+        # as User.metadata must round-trip, otherwise reload validation fails and
+        # get() would silently delete a valid session file.
+        self._path.write_text(value.model_dump_json(by_alias=True), encoding="utf-8")
 
     def remove(self) -> None:
         self._path.unlink(missing_ok=True)
