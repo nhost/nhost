@@ -53,12 +53,18 @@ func (m *MemoryStorage) Remove() {
 }
 
 // FileStorage is a JSON-file backed session backend, useful for CLIs and local
-// scripts.
+// scripts. A single instance is safe to share across goroutines: access is
+// serialized and writes are atomic (temp file + rename), so a concurrent Get
+// during a refresh's Set never observes a truncated or partial file.
 type FileStorage struct {
 	Path string
+	mu   sync.RWMutex
 }
 
 func (f *FileStorage) Get() (*StoredSession, bool) {
+	f.mu.RLock()
+	defer f.mu.RUnlock()
+
 	data, err := os.ReadFile(f.Path)
 	if err != nil {
 		return nil, false
@@ -66,8 +72,8 @@ func (f *FileStorage) Get() (*StoredSession, bool) {
 
 	var s StoredSession
 	if err := json.Unmarshal(data, &s); err != nil {
-		f.Remove()
-
+		// Do not delete the file on a parse error: a transient/corrupt read
+		// must not permanently discard a valid session and its refresh token.
 		return nil, false
 	}
 
@@ -80,11 +86,50 @@ func (f *FileStorage) Set(value StoredSession) {
 		return
 	}
 
-	_ = os.MkdirAll(filepath.Dir(f.Path), 0o750) //nolint:mnd
-	_ = os.WriteFile(f.Path, data, 0o600)        //nolint:mnd
+	f.mu.Lock()
+	defer f.mu.Unlock()
+
+	dir := filepath.Dir(f.Path)
+	_ = os.MkdirAll(dir, 0o750) //nolint:mnd
+
+	// Write to a temp file in the same directory then rename into place so
+	// readers never see a partially written file.
+	tmp, err := os.CreateTemp(dir, ".session-*.tmp")
+	if err != nil {
+		return
+	}
+
+	tmpName := tmp.Name()
+
+	if err := tmp.Chmod(0o600); err != nil { //nolint:mnd
+		_ = tmp.Close()
+		_ = os.Remove(tmpName)
+
+		return
+	}
+
+	if _, err := tmp.Write(data); err != nil {
+		_ = tmp.Close()
+		_ = os.Remove(tmpName)
+
+		return
+	}
+
+	if err := tmp.Close(); err != nil {
+		_ = os.Remove(tmpName)
+
+		return
+	}
+
+	if err := os.Rename(tmpName, f.Path); err != nil {
+		_ = os.Remove(tmpName)
+	}
 }
 
 func (f *FileStorage) Remove() {
+	f.mu.Lock()
+	defer f.mu.Unlock()
+
 	_ = os.Remove(f.Path)
 }
 

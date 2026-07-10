@@ -125,13 +125,18 @@ func goFieldType(typeName string, optional bool) string {
 	return typeName
 }
 
-func fieldLine(name, rawName, typeName string, optional bool) string {
+// fieldLine renders a struct field. pointer controls whether the mapped type is
+// wrapped in a pointer (so absence/null is representable); omitempty controls
+// the json tag. They are decoupled because a required-but-nullable field needs
+// a pointer (to round-trip null) yet must NOT carry omitempty, or a nil value
+// silently disappears instead of serializing as JSON null.
+func fieldLine(name, rawName, typeName string, pointer, omitempty bool) string {
 	tag := rawName
-	if optional {
+	if omitempty {
 		tag += ",omitempty"
 	}
 
-	return fmt.Sprintf("%s %s `json:%q`", name, goFieldType(typeName, optional), tag)
+	return fmt.Sprintf("%s %s `json:%q`", name, goFieldType(typeName, pointer), tag)
 }
 
 func (p *Golang) GetFuncMap() map[string]any {
@@ -155,10 +160,19 @@ func (p *Golang) GetFuncMap() map[string]any {
 			return p.Package
 		},
 		"goField": func(prop *processor.Property) string {
-			return fieldLine(prop.Name(), prop.RawName(), prop.Type.Name(), prop.Optional())
+			// Pointer when optional (absent OR nullable); omitempty only when the
+			// field is genuinely optional (not required), so required-nullable
+			// fields keep the pointer but always serialize (as null when nil).
+			return fieldLine(
+				prop.Name(), prop.RawName(), prop.Type.Name(),
+				prop.Optional(), !prop.Required(),
+			)
 		},
 		"goParamField": func(param *processor.Parameter) string {
-			return fieldLine(param.Name(), param.RawName(), param.Type.Name(), !param.Required())
+			return fieldLine(
+				param.Name(), param.RawName(), param.Type.Name(),
+				!param.Required(), !param.Required(),
+			)
 		},
 		"unexported": unexported,
 	}
