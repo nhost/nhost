@@ -130,11 +130,62 @@ func sharedFlags() []cli.Flag {
 	}
 }
 
+// sharedRequest is a top-level intent parsed from the shared flag segment. A
+// help or version request supersedes running any service; requestRun means the
+// shared flags were plain configuration and service selection should proceed.
+type sharedRequest int
+
+const (
+	requestRun sharedRequest = iota
+	requestHelp
+	requestVersion
+)
+
+// helpVersionFlags are the engine's --help/--version flags. They are parsed as
+// ordinary bool flags (see parseSharedFlags) so a shared flag *value* can never
+// be mistaken for a help or version request.
+func helpVersionFlags() []cli.Flag {
+	return []cli.Flag{
+		&cli.BoolFlag{ //nolint:exhaustruct
+			Name:    "help",
+			Aliases: []string{"h"},
+			Usage:   "show engine help and exit",
+		},
+		&cli.BoolFlag{ //nolint:exhaustruct
+			Name:    "version",
+			Aliases: []string{"v"},
+			Usage:   "show engine version and exit",
+		},
+	}
+}
+
+// errUnexpectedSharedArg is returned when the shared flag segment carries a
+// bare positional argument. This is almost always a mistyped first service
+// (e.g. "nhost-engine storag -- auth"): Split, which only knows service names
+// and not flag arities, leaves such a leading token in the shared segment, and
+// urfave/cli — which does know arities — collects it into cmd.Args() instead of
+// consuming it as a flag value. Rejecting it here turns a silent drop (only
+// "auth" would run) into a clear error.
+var errUnexpectedSharedArg = errors.New("unexpected argument in shared flags")
+
 // parseSharedFlags parses the shared flag region (everything before the first
-// service) into the engine-level configuration. Unknown flags are rejected here
-// rather than silently ignored.
-func parseSharedFlags(ctx context.Context, shared []string) (sharedConfig, error) {
-	var cfg sharedConfig
+// service) into the engine-level configuration and reports whether the caller
+// asked for engine help or version.
+//
+// Help and version are owned by the shared cli.Command as ordinary bool flags
+// rather than a raw token scan, so detection is arity-aware: a shared flag
+// *value* that happens to read like a help/version token (e.g.
+// "--admin-secret help") is treated as the value it is, not as a help request.
+// Unknown flags are rejected here rather than silently ignored, as is a stray
+// bare positional (see errUnexpectedSharedArg). Because urfave is arity-aware, a
+// genuine flag value is consumed and never counted as a stray positional.
+func parseSharedFlags(
+	ctx context.Context, shared []string,
+) (sharedConfig, sharedRequest, error) {
+	var (
+		cfg      sharedConfig
+		leftover []string
+	)
 
 	app := &cli.Command{ //nolint:exhaustruct
 		Name: "nhost-engine",
@@ -142,7 +193,11 @@ func parseSharedFlags(ctx context.Context, shared []string) (sharedConfig, error
 		// own usageText on failure so callers see one consistent message.
 		Writer:    io.Discard,
 		ErrWriter: io.Discard,
-		Flags:     sharedFlags(),
+		// Own --help/--version as plain bool flags so detection stays
+		// arity-aware and works even when main.Version was not set at build time.
+		HideHelp:    true,
+		HideVersion: true,
+		Flags:       append(sharedFlags(), helpVersionFlags()...),
 		Action: func(_ context.Context, cmd *cli.Command) error {
 			cfg = sharedConfig{
 				bind:             resolveBind(cmd),
@@ -158,15 +213,33 @@ func parseSharedFlags(ctx context.Context, shared []string) (sharedConfig, error
 				corsOrigins:      cmd.StringSlice("cors-allowed-origins"),
 			}
 
+			// Any bare positional left after arity-aware flag parsing is a stray
+			// token; capture it so the run path below can reject it.
+			leftover = cmd.Args().Slice()
+
 			return nil
 		},
 	}
 
 	if err := app.Run(ctx, append([]string{"nhost-engine"}, shared...)); err != nil {
-		return sharedConfig{}, fmt.Errorf("parsing shared flags: %w", err)
+		return sharedConfig{}, requestRun, fmt.Errorf("parsing shared flags: %w", err)
 	}
 
-	return cfg, nil
+	// cfg is left zero for --help (urfave skips the Action) and is unused by the
+	// caller for both help and version, so it is safe to return as-is here.
+	switch {
+	case app.Bool("help"):
+		return cfg, requestHelp, nil
+	case app.Bool("version"):
+		return cfg, requestVersion, nil
+	case len(leftover) > 0:
+		return sharedConfig{}, requestRun, fmt.Errorf(
+			"%w: %q; expected a service name, one of %v",
+			errUnexpectedSharedArg, leftover, serviceNames(),
+		)
+	default:
+		return cfg, requestRun, nil
+	}
 }
 
 // resolveBind picks the shared listener address: an explicit --bind wins, else

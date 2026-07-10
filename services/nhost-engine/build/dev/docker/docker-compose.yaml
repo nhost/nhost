@@ -17,10 +17,14 @@
 #   * Per-service precedence still holds: had any of these services set its own
 #     admin-secret/jwt env var, that value would win over the NHOST_* one.
 #
-# Build and load the engine image first:
+# Build and load the engine image first. The image builds as a nix2container
+# `dir:`-format directory (not a docker-archive tarball), so `docker load` does
+# not apply; load it with skopeo, which also tags it directly to match the
+# image: field below:
 #   nix build .#nhost-engine-docker-image
-#   docker load < result
-#   # then tag it as nhost-engine:0.0.0-dev to match the image below
+#   nix develop .#skopeo -c \
+#     skopeo copy --insecure-policy dir:./result docker-daemon:nhost-engine:0.0.0-dev
+#   # equivalently: cd services/nhost-engine && make build-docker-image
 #
 # Routes once up (engine bound to :4000):
 #   http://localhost:4000/auth/v1/...     http://localhost:4000/storage/v1/...

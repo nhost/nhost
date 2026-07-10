@@ -49,45 +49,52 @@ func run(ctx context.Context, args []string) error {
 		return fmt.Errorf("parsing service arguments: %w", err)
 	}
 
-	if len(invocations) == 0 {
-		return handleNoService(shared)
-	}
-
-	// Engine-level help/version can be requested alongside a service selection;
-	// honor it before trying to parse the shared flags or start anything.
-	if hasAny(shared, "-h", "--help", "help", "-v", "--version") {
-		return handleNoService(shared)
-	}
-
-	cfg, err := parseSharedFlags(ctx, shared)
+	// Parse the shared segment first: --help/--version are detected here from
+	// arity-aware bool flags, so a shared flag *value* (e.g. "--admin-secret
+	// help") can no longer short-circuit startup. An engine-level help/version
+	// request wins over any service selection.
+	cfg, req, err := parseSharedFlags(ctx, shared)
 	if err != nil {
 		fmt.Fprint(os.Stderr, usageText(Version))
 
 		return err
 	}
 
-	return runServices(ctx, cfg, invocations, Version)
-}
-
-// handleNoService renders help or version output when no service was selected,
-// or reports an error when the user passed something other than help/version.
-func handleNoService(shared []string) error {
-	switch {
-	case hasAny(shared, "-v", "--version"):
-		fmt.Fprintln(os.Stdout, "nhost-engine v"+Version)
-
-		return nil
-	case hasAny(shared, "-h", "--help", "help"), len(shared) == 0:
+	switch req {
+	case requestHelp:
 		fmt.Fprint(os.Stdout, usageText(Version))
 
 		return nil
-	default:
-		fmt.Fprint(os.Stderr, usageText(Version))
+	case requestVersion:
+		fmt.Fprintln(os.Stdout, "nhost-engine v"+Version)
 
-		return fmt.Errorf(
-			"%w; expected one of %v", errNoServiceSelected, serviceNames(),
-		)
+		return nil
+	case requestRun:
+		// Not a help/version request; proceed to service dispatch below.
 	}
+
+	if len(invocations) == 0 {
+		return handleNoService(shared)
+	}
+
+	return runServices(ctx, cfg, invocations, Version)
+}
+
+// handleNoService renders top-level help when the engine was invoked with no
+// arguments, or reports an error when arguments were given but named no service
+// to run. Help and version requests are resolved earlier in run.
+func handleNoService(shared []string) error {
+	if len(shared) == 0 {
+		fmt.Fprint(os.Stdout, usageText(Version))
+
+		return nil
+	}
+
+	fmt.Fprint(os.Stderr, usageText(Version))
+
+	return fmt.Errorf(
+		"%w; expected one of %v", errNoServiceSelected, serviceNames(),
+	)
 }
 
 // errNoServiceSelected is returned when the arguments contain no service to run
