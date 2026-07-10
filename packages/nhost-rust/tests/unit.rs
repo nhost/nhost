@@ -60,7 +60,8 @@ fn jwt_decode_postgres_array_claims() {
 
     let decoded = session::decode_user_session(&token).unwrap();
     assert_eq!(decoded.sub.as_deref(), Some("user-1"));
-    assert_eq!(decoded.exp, Some(9_999_999_999));
+    // exp is stored in milliseconds (raw seconds * 1000), matching @nhost/nhost-js.
+    assert_eq!(decoded.exp, Some(9_999_999_999_000));
 
     let claims = decoded.hasura_claims.unwrap();
     assert_eq!(
@@ -71,8 +72,65 @@ fn jwt_decode_postgres_array_claims() {
 }
 
 #[test]
+fn decoded_token_serializes_interop_shape() {
+    // The persisted `decodedToken` must match @nhost/nhost-js: exp/iat in
+    // milliseconds and Hasura claims keyed under the JWT claim URL.
+    let payload = serde_json::json!({
+        "exp": 9_999_999_999_i64,
+        "iat": 1_700_000_000_i64,
+        "sub": "user-1",
+        "https://hasura.io/jwt/claims": { "x-hasura-default-role": "user" },
+    });
+    let body = base64::engine::general_purpose::URL_SAFE_NO_PAD
+        .encode(serde_json::to_vec(&payload).unwrap());
+    let token = format!("aaa.{body}.sig");
+
+    let decoded = session::decode_user_session(&token).unwrap();
+    let json = serde_json::to_value(&decoded).unwrap();
+    assert_eq!(json["exp"], serde_json::json!(9_999_999_999_000_i64));
+    assert_eq!(json["iat"], serde_json::json!(1_700_000_000_000_i64));
+    assert_eq!(
+        json["https://hasura.io/jwt/claims"]["x-hasura-default-role"],
+        "user"
+    );
+    // The Rust-only field name must not leak into the persisted shape.
+    assert!(json.get("hasura_claims").is_none());
+}
+
+#[test]
 fn jwt_decode_invalid() {
     assert!(session::decode_user_session("not-a-jwt").is_err());
+}
+
+#[test]
+fn notify_callback_can_reenter_storage_without_deadlock() {
+    // A subscriber that touches the storage from within its callback (here,
+    // remove()) must not deadlock: notify invokes callbacks outside the
+    // subscribers lock. Under the old lock-across-callback code this hangs.
+    let payload = serde_json::json!({ "exp": 9_999_999_999_i64, "sub": "u" });
+    let body = base64::engine::general_purpose::URL_SAFE_NO_PAD
+        .encode(serde_json::to_vec(&payload).unwrap());
+    let token = format!("aaa.{body}.sig");
+
+    let storage = session::SessionStorage::new(Box::<session::MemoryStorage>::default());
+    let reentrant = storage.clone();
+    let _sub = storage.on_change(move |s| {
+        if s.is_some() {
+            reentrant.remove();
+        }
+    });
+
+    storage
+        .set(auth::Session {
+            access_token: token,
+            access_token_expires_in: 900,
+            refresh_token_id: "rid".to_string(),
+            refresh_token: "rt".to_string(),
+            user: None,
+        })
+        .unwrap();
+
+    assert!(storage.get().is_none());
 }
 
 #[test]

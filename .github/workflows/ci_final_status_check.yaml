@@ -41,7 +41,7 @@ jobs:
             echo ""
             echo "Valid PKGs:"
             echo "  - auth, ci, cli, codegen, constellation, dashboard, deps, docs, examples, functions,"
-            echo "  - ghactivity, govulncheck-wrapper, landing, mcp, nhost-js, nixops, postgres, storage, observability,"
+            echo "  - ghactivity, govulncheck-wrapper, landing, mcp, nhost-js, nhost-rust, nixops, postgres, storage, observability,"
             echo "  - internal/lib, stripe-graphql-js"
             echo ""
             echo "Examples:"
