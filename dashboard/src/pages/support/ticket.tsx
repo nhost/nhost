@@ -142,8 +142,6 @@ function TicketPage() {
             priority: priorityValue,
             subject,
             description,
-            userName: user?.displayName,
-            userEmail: user?.email,
           }),
         });
 

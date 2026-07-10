@@ -1,3 +1,4 @@
+import { FetchError } from '@nhost/nhost-js/fetch';
 import type { NextApiRequest, NextApiResponse } from 'next';
 import { Sla_Level_Enum } from '@/utils/__generated__/graphql';
 import { nhostRoutesClient } from '@/utils/nhost';
@@ -8,8 +9,6 @@ export type CreateTicketRequest = {
   priority: string;
   subject: string;
   description: string;
-  userName: string;
-  userEmail: string;
 };
 
 export type CreateTicketResponse = {
@@ -39,15 +38,8 @@ export default async function handler(
   }
 
   try {
-    const {
-      project,
-      services,
-      priority,
-      subject,
-      description,
-      userName,
-      userEmail,
-    } = req.body as CreateTicketRequest;
+    const { project, services, priority, subject, description } =
+      req.body as CreateTicketRequest;
 
     // Validate required environment variables
     if (
@@ -62,15 +54,7 @@ export default async function handler(
     }
 
     // Validate required fields
-    if (
-      !project ||
-      !services ||
-      !priority ||
-      !subject ||
-      !description ||
-      !userName ||
-      !userEmail
-    ) {
+    if (!project || !services || !priority || !subject || !description) {
       return res.status(400).json({
         success: false,
         error: 'Missing required fields',
@@ -78,6 +62,42 @@ export default async function handler(
     }
 
     const token = req.headers.authorization?.split(' ')[1];
+
+    if (!token) {
+      return res.status(401).json({
+        success: false,
+        error: 'Missing authorization token',
+      });
+    }
+
+    let requesterName: string;
+    let requesterEmail: string;
+
+    try {
+      const { body: user } = await nhostRoutesClient.auth.getUser({
+        headers: {
+          Authorization: `Bearer ${token}`,
+        },
+      });
+
+      if (user.isAnonymous || !user.email) {
+        return res.status(400).json({
+          success: false,
+          error: 'User account has no email address',
+        });
+      }
+
+      requesterEmail = user.email;
+      requesterName = user.displayName || user.email;
+    } catch (error) {
+      if (error instanceof FetchError) {
+        return res.status(401).json({
+          success: false,
+          error: 'Invalid or expired token',
+        });
+      }
+      throw error;
+    }
 
     let slaLevel: string | null = null;
 
@@ -153,8 +173,8 @@ export default async function handler(
             },
             priority,
             requester: {
-              name: userName,
-              email: userEmail,
+              name: requesterName,
+              email: requesterEmail,
             },
             custom_fields: [
               // these custom field IDs come from zendesk

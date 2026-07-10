@@ -24,6 +24,9 @@ exclude = [
   '^https://my-config-server\.com',
   '^https://acme\.com',
 
+  # Fake Zendesk URL used in API route tests
+  '^https://nhost-test\.zendesk\.com',
+
   # httpbin.org POST endpoints (return 405 for GET requests, but are valid)
   '^https://httpbin\.org/post',
 
