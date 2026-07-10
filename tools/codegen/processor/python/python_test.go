@@ -1,11 +1,16 @@
-package python
+package python_test
 
-import "testing"
+import (
+	"testing"
+
+	"github.com/nhost/nhost/tools/codegen/processor/python"
+)
 
 func TestPyReturnType(t *testing.T) {
 	t.Parallel()
 
-	p := &Python{}
+	p := &python.Python{}
+
 	fn, ok := p.GetFuncMap()["pyReturnType"].(func(string) string)
 	if !ok {
 		t.Fatal("pyReturnType not registered as func(string) string")
@@ -32,7 +37,7 @@ func TestPyReturnType(t *testing.T) {
 func TestTypeEnumValues(t *testing.T) {
 	t.Parallel()
 
-	p := &Python{}
+	p := &python.Python{}
 	got := p.TypeEnumValues([]any{"packed", true, false, nil, 1, 2.5})
 	want := []string{`"packed"`, "True", "False", "None", "1", "2.5"}
 

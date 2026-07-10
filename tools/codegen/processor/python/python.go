@@ -16,7 +16,12 @@ import (
 	"github.com/pb33f/libopenapi/datamodel/high/base"
 )
 
-const extCustomType = "x-python-type"
+const (
+	extCustomType = "x-python-type"
+	// pyNone is the Python literal for the absence of a value, used both as the
+	// runtime return type for void results and as the enum value for a JSON null.
+	pyNone = "None"
+)
 
 //go:embed templates/*.tmpl
 var templatesFS embed.FS
@@ -149,13 +154,13 @@ func (p *Python) GetFuncMap() map[string]any {
 		// that merely contain the substring "void" untouched.
 		"pyReturnType": func(t string) string {
 			if t == "" {
-				return "None"
+				return pyNone
 			}
 
 			parts := strings.Split(t, " | ")
 			for i, part := range parts {
 				if part == "" || part == "void" {
-					parts[i] = "None"
+					parts[i] = pyNone
 				}
 			}
 
@@ -247,7 +252,7 @@ func (p *Python) TypeEnumValues(values []any) []string {
 				enumValues[i] = "False"
 			}
 		case nil:
-			enumValues[i] = "None"
+			enumValues[i] = pyNone
 		default:
 			enumValues[i] = fmt.Sprintf("%v", val)
 		}
