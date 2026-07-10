@@ -1,9 +1,8 @@
 #!/usr/bin/env bash
 
 # Bring the local Nhost backend up/down for integration + docstring examples.
-# Mirrors packages/nhost-js/dev-env.sh. The backend project under ./build/backend
-# is still to be added (part of the pending flake/backend wiring); until then
-# this script points at where it should live and fails with a clear message.
+# Mirrors packages/nhost-js/dev-env.sh. The backend project lives under
+# ./build/backend (committed alongside this script).
 
 set -euo pipefail
 
@@ -12,9 +11,7 @@ FOLDER=./build/backend
 
 up() {
     if [ ! -d "$FOLDER" ]; then
-        echo "error: $FOLDER not found." >&2
-        echo "The local backend project has not been added yet (pending task)." >&2
-        echo "Copy the layout from packages/nhost-js/build/backend and retry." >&2
+        echo "error: $FOLDER not found (expected the committed backend project)." >&2
         exit 1
     fi
     cd "$FOLDER"

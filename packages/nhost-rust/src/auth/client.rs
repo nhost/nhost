@@ -13,6 +13,49 @@ use crate::fetch::{ChainFunction, Error, FetchFn, FetchResponse, Response};
 use serde::{Deserialize, Serialize};
 use std::sync::Arc;
 
+// Render a JSON value as a single query-string scalar: strings are emitted
+// verbatim (no surrounding quotes), null becomes empty, everything else uses its
+// compact JSON form.
+fn query_scalar(v: &serde_json::Value) -> String {
+    match v {
+        serde_json::Value::String(s) => s.clone(),
+        serde_json::Value::Null => String::new(),
+        other => other.to_string(),
+    }
+}
+
+// Append a query parameter honoring OpenAPI form style/explode semantics,
+// mirroring the TypeScript client:
+//   - arrays, explode=true  -> repeat the key per element
+//   - arrays, explode=false -> comma-joined single value
+//   - objects, explode=true -> each property becomes its own key
+//   - objects, explode=false -> compact JSON single value
+fn push_query(q: &mut Vec<(String, String)>, key: &str, value: &serde_json::Value, explode: bool) {
+    match value {
+        serde_json::Value::Null => {}
+        serde_json::Value::Array(items) => {
+            if explode {
+                for item in items {
+                    q.push((key.to_string(), query_scalar(item)));
+                }
+            } else {
+                let joined: Vec<String> = items.iter().map(query_scalar).collect();
+                q.push((key.to_string(), joined.join(",")));
+            }
+        }
+        serde_json::Value::Object(map) => {
+            if explode {
+                for (k, v) in map {
+                    q.push((k.clone(), query_scalar(v)));
+                }
+            } else {
+                q.push((key.to_string(), value.to_string()));
+            }
+        }
+        _ => q.push((key.to_string(), query_scalar(value))),
+    }
+}
+
 /// One of: "packed", "tpm", "android-key", "android-safetynet", "fido-u2f", "apple", "none".
 pub type AttestationFormat = String;
 
@@ -1043,10 +1086,12 @@ impl SignInProviderParams {
     fn to_query(&self) -> Vec<(String, String)> {
         let mut q: Vec<(String, String)> = Vec::new();
         if let Some(v) = &self.allowed_roles {
-            q.push((
-                "allowedRoles".to_string(),
-                serde_json::to_string(v).unwrap_or_default(),
-            ));
+            push_query(
+                &mut q,
+                "allowedRoles",
+                &serde_json::to_value(v).unwrap_or_default(),
+                false,
+            );
         }
         if let Some(v) = &self.default_role {
             q.push(("defaultRole".to_string(), v.to_string()));
@@ -1058,10 +1103,12 @@ impl SignInProviderParams {
             q.push(("locale".to_string(), v.to_string()));
         }
         if let Some(v) = &self.metadata {
-            q.push((
-                "metadata".to_string(),
-                serde_json::to_string(v).unwrap_or_default(),
-            ));
+            push_query(
+                &mut q,
+                "metadata",
+                &serde_json::to_value(v).unwrap_or_default(),
+                true,
+            );
         }
         if let Some(v) = &self.redirect_to {
             q.push(("redirectTo".to_string(), v.to_string()));
@@ -1073,10 +1120,12 @@ impl SignInProviderParams {
             q.push(("state".to_string(), v.to_string()));
         }
         if let Some(v) = &self.provider_specific_params {
-            q.push((
-                "providerSpecificParams".to_string(),
-                serde_json::to_string(v).unwrap_or_default(),
-            ));
+            push_query(
+                &mut q,
+                "providerSpecificParams",
+                &serde_json::to_value(v).unwrap_or_default(),
+                true,
+            );
         }
         if let Some(v) = &self.code_challenge {
             q.push(("codeChallenge".to_string(), v.to_string()));
@@ -1135,10 +1184,12 @@ impl SignUpProviderParams {
     fn to_query(&self) -> Vec<(String, String)> {
         let mut q: Vec<(String, String)> = Vec::new();
         if let Some(v) = &self.allowed_roles {
-            q.push((
-                "allowedRoles".to_string(),
-                serde_json::to_string(v).unwrap_or_default(),
-            ));
+            push_query(
+                &mut q,
+                "allowedRoles",
+                &serde_json::to_value(v).unwrap_or_default(),
+                false,
+            );
         }
         if let Some(v) = &self.default_role {
             q.push(("defaultRole".to_string(), v.to_string()));
@@ -1150,10 +1201,12 @@ impl SignUpProviderParams {
             q.push(("locale".to_string(), v.to_string()));
         }
         if let Some(v) = &self.metadata {
-            q.push((
-                "metadata".to_string(),
-                serde_json::to_string(v).unwrap_or_default(),
-            ));
+            push_query(
+                &mut q,
+                "metadata",
+                &serde_json::to_value(v).unwrap_or_default(),
+                true,
+            );
         }
         if let Some(v) = &self.redirect_to {
             q.push(("redirectTo".to_string(), v.to_string()));
@@ -1162,10 +1215,12 @@ impl SignUpProviderParams {
             q.push(("state".to_string(), v.to_string()));
         }
         if let Some(v) = &self.provider_specific_params {
-            q.push((
-                "providerSpecificParams".to_string(),
-                serde_json::to_string(v).unwrap_or_default(),
-            ));
+            push_query(
+                &mut q,
+                "providerSpecificParams",
+                &serde_json::to_value(v).unwrap_or_default(),
+                true,
+            );
         }
         if let Some(v) = &self.code_challenge {
             q.push(("codeChallenge".to_string(), v.to_string()));
@@ -1192,20 +1247,11 @@ pub struct VerifyTicketParams {
 impl VerifyTicketParams {
     fn to_query(&self) -> Vec<(String, String)> {
         let mut q: Vec<(String, String)> = Vec::new();
-        q.push((
-            "ticket".to_string(),
-            serde_json::to_string(&self.ticket).unwrap_or_default(),
-        ));
+        q.push(("ticket".to_string(), self.ticket.to_string()));
         if let Some(v) = &self.type_ {
-            q.push((
-                "type".to_string(),
-                serde_json::to_string(v).unwrap_or_default(),
-            ));
+            q.push(("type".to_string(), v.to_string()));
         }
-        q.push((
-            "redirectTo".to_string(),
-            serde_json::to_string(&self.redirect_to).unwrap_or_default(),
-        ));
+        q.push(("redirectTo".to_string(), self.redirect_to.to_string()));
         if let Some(v) = &self.code_challenge {
             q.push(("codeChallenge".to_string(), v.to_string()));
         }
@@ -1253,10 +1299,7 @@ impl Oauth2AuthorizeParams {
             q.push(("code_challenge".to_string(), v.to_string()));
         }
         if let Some(v) = &self.code_challenge_method {
-            q.push((
-                "code_challenge_method".to_string(),
-                serde_json::to_string(v).unwrap_or_default(),
-            ));
+            q.push(("code_challenge_method".to_string(), v.to_string()));
         }
         if let Some(v) = &self.resource {
             q.push(("resource".to_string(), v.to_string()));

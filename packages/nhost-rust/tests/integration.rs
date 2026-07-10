@@ -5,7 +5,17 @@ use nhost::{auth, create_client, storage, Options};
 use std::time::{SystemTime, UNIX_EPOCH};
 
 fn enabled() -> bool {
-    std::env::var("NHOST_LOCAL_BACKEND").is_ok()
+    let on = std::env::var("NHOST_LOCAL_BACKEND").is_ok();
+    if !on {
+        // Emit a visible, once-only notice so a skipped run is distinguishable
+        // from a real pass (the tests otherwise report `ok` having done nothing).
+        use std::sync::Once;
+        static WARN: Once = Once::new();
+        WARN.call_once(|| {
+            eprintln!("integration tests skipped: NHOST_LOCAL_BACKEND unset (run ./dev-env.sh up)");
+        });
+    }
+    on
 }
 
 fn local_client() -> nhost::NhostClient {

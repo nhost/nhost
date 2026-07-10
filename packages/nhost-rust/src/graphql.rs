@@ -86,7 +86,10 @@ impl Client {
     }
 
     /// Executes a GraphQL operation, decoding `data` as generic JSON. Returns
-    /// an [`Error::Api`] if the response contains GraphQL errors.
+    /// an [`Error::Api`] if the HTTP response is a non-2xx/3xx status (e.g. a
+    /// `401` from the gateway) or if the response envelope contains GraphQL
+    /// errors, keeping error handling consistent with the functions, auth, and
+    /// storage clients.
     pub async fn request(
         &self,
         query: &str,
@@ -97,6 +100,13 @@ impl Client {
         let response = self
             .execute(query, variables, operation_name, headers)
             .await?;
+
+        // Surface HTTP-level failures (e.g. a 401/5xx with a non-envelope body)
+        // as Error::Api before attempting to parse the GraphQL envelope, matching
+        // the other clients in this SDK.
+        if crate::fetch::is_error_status(response.status) {
+            return Err(Error::from_response(response));
+        }
 
         let result: GraphqlResponse<serde_json::Value> = if response.body.is_empty() {
             GraphqlResponse {
