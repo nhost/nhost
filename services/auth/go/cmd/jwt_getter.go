@@ -54,6 +54,7 @@ func getJWTGetter(cmd *cli.Command, db controller.DBClient) (*controller.JWTGett
 		time.Duration(cmd.Int(flagAccessTokensExpiresIn))*time.Second,
 		customClaimer,
 		cmd.String(flagRequireElevatedClaim),
+		cmd.Bool(flagMfaEnabled),
 		db,
 		cmd.String(flagServerURL),
 	)
