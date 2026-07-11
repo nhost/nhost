@@ -102,6 +102,7 @@ func TestSignInProviderCallback(t *testing.T) { //nolint:maintidx
 		time.Minute,
 		nil,
 		"",
+		false,
 		nil,
 		"hasura-auth",
 	)

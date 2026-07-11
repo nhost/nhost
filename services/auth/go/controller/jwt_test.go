@@ -244,6 +244,7 @@ func TestGetJWTFunc(t *testing.T) {
 				tc.expiresIn,
 				customClaimer,
 				"",
+				false,
 				nil,
 				"hasura-auth",
 			)
@@ -317,7 +318,9 @@ func TestMiddlewareFunc(t *testing.T) { //nolint:maintidx
 
 	userID := uuid.MustParse("f90782de-f0a3-41fe-b778-01e4f80c2413")
 
-	signingGetter, err := controller.NewJWTGetter(jwtSecret, time.Hour, nil, "", nil, "hasura-auth")
+	signingGetter, err := controller.NewJWTGetter(
+		jwtSecret, time.Hour, nil, "", false, nil, "hasura-auth",
+	)
 	if err != nil {
 		t.Fatalf("failed to create signing jwt getter: %v", err)
 	}
@@ -336,6 +339,7 @@ func TestMiddlewareFunc(t *testing.T) { //nolint:maintidx
 	cases := []struct {
 		name         string
 		elevatedMode string
+		mfaEnabled   bool
 		db           func(ctrl *gomock.Controller) *mock.MockDBClient
 		token        string
 		scheme       string
@@ -345,6 +349,7 @@ func TestMiddlewareFunc(t *testing.T) { //nolint:maintidx
 		{
 			name:         "BearerAuth: elevated disabled",
 			elevatedMode: "disabled",
+			mfaEnabled:   true,
 			db:           mock.NewMockDBClient,
 			token:        nonElevatedToken,
 			scheme:       "BearerAuth",
@@ -355,6 +360,7 @@ func TestMiddlewareFunc(t *testing.T) { //nolint:maintidx
 		{
 			name:         "BearerAuth: elevated recommended, no security keys, claim not present",
 			elevatedMode: "recommended",
+			mfaEnabled:   true,
 			db:           mock.NewMockDBClient,
 			token:        nonElevatedToken,
 			scheme:       "BearerAuth",
@@ -365,6 +371,7 @@ func TestMiddlewareFunc(t *testing.T) { //nolint:maintidx
 		{
 			name:         "BearerAuth: elevated required, no security keys, claim not present",
 			elevatedMode: "required",
+			mfaEnabled:   true,
 			db:           mock.NewMockDBClient,
 			token:        nonElevatedToken,
 			scheme:       "BearerAuth",
@@ -375,6 +382,7 @@ func TestMiddlewareFunc(t *testing.T) { //nolint:maintidx
 		{
 			name:         "BearerAuthElevated: elevated disabled",
 			elevatedMode: "disabled",
+			mfaEnabled:   true,
 			db:           mock.NewMockDBClient,
 			token:        nonElevatedToken,
 			scheme:       "BearerAuthElevated",
@@ -385,6 +393,7 @@ func TestMiddlewareFunc(t *testing.T) { //nolint:maintidx
 		{
 			name:         "BearerAuthElevated: elevated recommended, no security keys, claim not present",
 			elevatedMode: "recommended",
+			mfaEnabled:   true,
 			db: func(ctrl *gomock.Controller) *mock.MockDBClient {
 				mock := mock.NewMockDBClient(ctrl)
 				mock.EXPECT().CountSecurityKeysUser(gomock.Any(), userID).Return(int64(0), nil)
@@ -401,6 +410,7 @@ func TestMiddlewareFunc(t *testing.T) { //nolint:maintidx
 		{
 			name:         "BearerAuthElevated: elevated recommended, security keys, claim not present",
 			elevatedMode: "recommended",
+			mfaEnabled:   true,
 			db: func(ctrl *gomock.Controller) *mock.MockDBClient {
 				mock := mock.NewMockDBClient(ctrl)
 				mock.EXPECT().CountSecurityKeysUser(gomock.Any(), userID).Return(int64(1), nil)
@@ -420,6 +430,7 @@ func TestMiddlewareFunc(t *testing.T) { //nolint:maintidx
 		{
 			name:         "BearerAuthElevated: elevated required, no security keys, claim not present",
 			elevatedMode: "required",
+			mfaEnabled:   true,
 			db:           mock.NewMockDBClient,
 			token:        nonElevatedToken,
 			scheme:       "BearerAuthElevated",
@@ -434,21 +445,18 @@ func TestMiddlewareFunc(t *testing.T) { //nolint:maintidx
 		{
 			name:         "BearerAuthElevated: elevated recommended, security keys, claim present",
 			elevatedMode: "recommended",
-			db: func(ctrl *gomock.Controller) *mock.MockDBClient {
-				mock := mock.NewMockDBClient(ctrl)
-				mock.EXPECT().CountSecurityKeysUser(gomock.Any(), userID).Return(int64(1), nil)
-
-				return mock
-			},
-			token:      elevatedToken,
-			scheme:     "BearerAuthElevated",
-			requestURL: nil,
-			expectErr:  nil,
+			mfaEnabled:   true,
+			db:           mock.NewMockDBClient,
+			token:        elevatedToken,
+			scheme:       "BearerAuthElevated",
+			requestURL:   nil,
+			expectErr:    nil,
 		},
 
 		{
 			name:         "BearerAuthElevated: elevated required, security keys, claim present",
 			elevatedMode: "required",
+			mfaEnabled:   true,
 			db:           mock.NewMockDBClient,
 			token:        elevatedToken,
 			scheme:       "BearerAuthElevated",
@@ -459,6 +467,7 @@ func TestMiddlewareFunc(t *testing.T) { //nolint:maintidx
 		{
 			name:         "BearerAuthElevated: elevated required, no security keys, add first security key",
 			elevatedMode: "required",
+			mfaEnabled:   true,
 			db: func(ctrl *gomock.Controller) *mock.MockDBClient {
 				mock := mock.NewMockDBClient(ctrl)
 				mock.EXPECT().CountSecurityKeysUser(gomock.Any(), userID).Return(int64(0), nil)
@@ -475,6 +484,7 @@ func TestMiddlewareFunc(t *testing.T) { //nolint:maintidx
 		{
 			name:         "BearerAuthElevated: elevated required, no security keys, verify security key endpoint",
 			elevatedMode: "required",
+			mfaEnabled:   true,
 			db: func(ctrl *gomock.Controller) *mock.MockDBClient {
 				mock := mock.NewMockDBClient(ctrl)
 				mock.EXPECT().CountSecurityKeysUser(gomock.Any(), userID).Return(int64(0), nil)
@@ -491,6 +501,7 @@ func TestMiddlewareFunc(t *testing.T) { //nolint:maintidx
 		{
 			name:         "BearerAuthElevated: elevated recommended, no security keys, totp active, claim not present",
 			elevatedMode: "recommended",
+			mfaEnabled:   true,
 			db: func(ctrl *gomock.Controller) *mock.MockDBClient {
 				mock := mock.NewMockDBClient(ctrl)
 				mock.EXPECT().CountSecurityKeysUser(gomock.Any(), userID).Return(int64(0), nil)
@@ -513,24 +524,18 @@ func TestMiddlewareFunc(t *testing.T) { //nolint:maintidx
 		{
 			name:         "BearerAuthElevated: elevated recommended, no security keys, totp active, claim present",
 			elevatedMode: "recommended",
-			db: func(ctrl *gomock.Controller) *mock.MockDBClient {
-				mock := mock.NewMockDBClient(ctrl)
-				mock.EXPECT().CountSecurityKeysUser(gomock.Any(), userID).Return(int64(0), nil)
-				mock.EXPECT().GetUser(gomock.Any(), userID).Return(
-					sql.AuthUser{ActiveMfaType: sql.Text("totp")}, nil,
-				)
-
-				return mock
-			},
-			token:      elevatedToken,
-			scheme:     "BearerAuthElevated",
-			requestURL: nil,
-			expectErr:  nil,
+			mfaEnabled:   true,
+			db:           mock.NewMockDBClient,
+			token:        elevatedToken,
+			scheme:       "BearerAuthElevated",
+			requestURL:   nil,
+			expectErr:    nil,
 		},
 
 		{
 			name:         "BearerAuthElevated: elevated recommended, no security keys, get user fails",
 			elevatedMode: "recommended",
+			mfaEnabled:   true,
 			db: func(ctrl *gomock.Controller) *mock.MockDBClient {
 				mock := mock.NewMockDBClient(ctrl)
 				mock.EXPECT().CountSecurityKeysUser(gomock.Any(), userID).Return(int64(0), nil)
@@ -549,6 +554,25 @@ func TestMiddlewareFunc(t *testing.T) { //nolint:maintidx
 				Message: "error verifying elevated claim",
 			},
 		},
+
+		{
+			name:         "BearerAuthElevated: elevated recommended, no security keys, mfa disabled, claim not present",
+			elevatedMode: "recommended",
+			mfaEnabled:   false,
+			db: func(ctrl *gomock.Controller) *mock.MockDBClient {
+				// With MFA disabled the user row is never fetched: even a stale
+				// active_mfa_type='totp' must not require an elevation the user
+				// cannot perform (/elevate/totp is disabled).
+				mock := mock.NewMockDBClient(ctrl)
+				mock.EXPECT().CountSecurityKeysUser(gomock.Any(), userID).Return(int64(0), nil)
+
+				return mock
+			},
+			token:      nonElevatedToken,
+			scheme:     "BearerAuthElevated",
+			requestURL: nil,
+			expectErr:  nil,
+		},
 	}
 
 	for _, tc := range cases {
@@ -558,7 +582,13 @@ func TestMiddlewareFunc(t *testing.T) { //nolint:maintidx
 			ctrl := gomock.NewController(t)
 
 			jwtGetter, err := controller.NewJWTGetter(
-				jwtSecret, time.Hour, nil, tc.elevatedMode, tc.db(ctrl), "hasura-auth",
+				jwtSecret,
+				time.Hour,
+				nil,
+				tc.elevatedMode,
+				tc.mfaEnabled,
+				tc.db(ctrl),
+				"hasura-auth",
 			)
 			if err != nil {
 				t.Fatalf("GetJWTFunc() err = %v; want nil", err)

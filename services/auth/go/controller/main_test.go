@@ -264,6 +264,7 @@ func getController(
 		time.Second*time.Duration(config.AccessTokenExpiresIn),
 		cc,
 		"",
+		config.MfaEnabled,
 		nil,
 		config.ServerURL.String(),
 	)
