@@ -7,7 +7,7 @@ import {
 } from '@/features/orgs/projects/database/dataGrid/utils/temporalTypeHelpers';
 
 /**
- * Picks the HTML input type for a scalar column from its `baseType`:
+ * Picks the HTML input type for a scalar column from its canonical `baseType`:
  * `datetime-local` for timestamps, `time` for time-of-day types, `date` for
  * calendar dates, `number` for numeric types, and `text` for everything else
  * (including `interval`, which has no native control). Array columns do reach

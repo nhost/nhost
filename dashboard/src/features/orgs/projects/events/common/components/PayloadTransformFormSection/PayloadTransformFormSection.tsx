@@ -7,6 +7,7 @@ import { Alert, AlertDescription, AlertTitle } from '@/components/ui/v3/alert';
 import { Button } from '@/components/ui/v3/button';
 import { SelectItem } from '@/components/ui/v3/select';
 import { InfoTooltip } from '@/features/orgs/projects/common/components/InfoTooltip';
+import { SampleContextFormSection } from '@/features/orgs/projects/events/common/components/SampleContextFormSection';
 import TransformedRequestBody from './TransformedRequestBody';
 
 interface PayloadTransformFormSectionProps {
@@ -184,6 +185,7 @@ export default function PayloadTransformFormSection({
             </Alert>
           )}
         </div>
+        <SampleContextFormSection />
         <TransformedRequestBody />
       </div>
     </div>
