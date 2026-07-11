@@ -57,7 +57,7 @@ func action(_ context.Context, c *cli.Command) error {
 	case "rust":
 		p = &rust.Rust{}
 	default:
-		return cli.Exit(fmt.Sprintf("unsupported plugin: %s", c.String(flagPlugin)), 1)
+		return cli.Exit("unsupported plugin: "+c.String(flagPlugin), 1)
 	}
 
 	b, err := os.ReadFile(c.String(flagOpenAPIFile))
