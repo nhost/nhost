@@ -133,6 +133,7 @@ type JWTGetter struct {
 	customClaimer        CustomClaimer
 	accessTokenExpiresIn time.Duration
 	elevatedClaimMode    string
+	mfaEnabled           bool
 	db                   DBClient
 	jwks                 []api.JWK
 }
@@ -142,6 +143,7 @@ func NewJWTGetter(
 	accessTokenExpiresIn time.Duration,
 	customClaimer CustomClaimer,
 	elevatedClaimMode string,
+	mfaEnabled bool,
 	db DBClient,
 	defaultIssuer string,
 ) (*JWTGetter, error) {
@@ -162,6 +164,7 @@ func NewJWTGetter(
 		customClaimer:        customClaimer,
 		accessTokenExpiresIn: accessTokenExpiresIn,
 		elevatedClaimMode:    elevatedClaimMode,
+		mfaEnabled:           mfaEnabled,
 		db:                   db,
 		jwks:                 jwks,
 	}, nil
@@ -465,31 +468,31 @@ func (j *JWTGetter) verifyElevatedClaim(
 		return false, fmt.Errorf("error getting user id from subject: %w", err)
 	}
 
-	if j.isElevatedClaimOptional(requestPath) {
-		userID, err := uuid.Parse(u)
-		if err != nil {
-			return false, fmt.Errorf("error parsing user id: %w", err)
-		}
-
-		bypass, err := j.canBypassElevation(ctx, userID)
-		if err != nil {
-			return false, err
-		}
-
-		if bypass {
-			return true, nil
-		}
+	// An elevated claim matching the subject authorizes on its own; checking it
+	// first keeps the already-elevated hot path free of database queries.
+	if j.GetCustomClaim(token, "x-hasura-auth-elevated") == u {
+		return true, nil
 	}
 
-	elevatedClaim := j.GetCustomClaim(token, "x-hasura-auth-elevated")
+	if !j.isElevatedClaimOptional(requestPath) {
+		return false, nil
+	}
 
-	return elevatedClaim == u, nil
+	userID, err := uuid.Parse(u)
+	if err != nil {
+		return false, fmt.Errorf("error parsing user id: %w", err)
+	}
+
+	return j.canBypassElevation(ctx, userID)
 }
 
 // canBypassElevation reports whether elevation can be skipped for the user
 // because they have no second factor to elevate with. A user with no security
-// keys can still elevate via TOTP MFA when it is active, so the bypass only
-// applies when the user has neither security keys nor active TOTP MFA.
+// keys can still elevate via TOTP MFA when it is active and MFA is enabled
+// server-wide, so the bypass only applies when the user has neither security
+// keys nor a usable TOTP factor. When MFA is disabled, a stale
+// active_mfa_type must not force an elevation the user has no way to perform
+// (/elevate/totp is a disabled endpoint in that case).
 func (j *JWTGetter) canBypassElevation(
 	ctx context.Context,
 	userID uuid.UUID,
@@ -501,6 +504,10 @@ func (j *JWTGetter) canBypassElevation(
 
 	if n > 0 {
 		return false, nil
+	}
+
+	if !j.mfaEnabled {
+		return true, nil
 	}
 
 	// Only users with no security keys reach this point, so the extra GetUser
