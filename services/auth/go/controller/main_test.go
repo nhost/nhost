@@ -262,6 +262,7 @@ func getController(
 		cc,
 		"",
 		config.MfaEnabled,
+		config.OTPEmailEnabled,
 		nil,
 		config.ServerURL.String(),
 	)

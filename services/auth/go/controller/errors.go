@@ -212,6 +212,14 @@ func (response ErrorResponse) VisitElevateTotpResponse(w http.ResponseWriter) er
 	return response.visit(w)
 }
 
+func (response ErrorResponse) VisitElevateOTPEmailResponse(w http.ResponseWriter) error {
+	return response.visit(w)
+}
+
+func (response ErrorResponse) VisitVerifyElevateOTPEmailResponse(w http.ResponseWriter) error {
+	return response.visit(w)
+}
+
 func (response ErrorResponse) VisitAddSecurityKeyResponse(w http.ResponseWriter) error {
 	return response.visit(w)
 }

@@ -134,6 +134,7 @@ type JWTGetter struct {
 	accessTokenExpiresIn time.Duration
 	elevatedClaimMode    string
 	mfaEnabled           bool
+	otpEmailEnabled      bool
 	db                   DBClient
 	jwks                 []api.JWK
 }
@@ -144,6 +145,7 @@ func NewJWTGetter(
 	customClaimer CustomClaimer,
 	elevatedClaimMode string,
 	mfaEnabled bool,
+	otpEmailEnabled bool,
 	db DBClient,
 	defaultIssuer string,
 ) (*JWTGetter, error) {
@@ -165,6 +167,7 @@ func NewJWTGetter(
 		accessTokenExpiresIn: accessTokenExpiresIn,
 		elevatedClaimMode:    elevatedClaimMode,
 		mfaEnabled:           mfaEnabled,
+		otpEmailEnabled:      otpEmailEnabled,
 		db:                   db,
 		jwks:                 jwks,
 	}, nil
@@ -489,10 +492,11 @@ func (j *JWTGetter) verifyElevatedClaim(
 // canBypassElevation reports whether elevation can be skipped for the user
 // because they have no second factor to elevate with. A user with no security
 // keys can still elevate via TOTP MFA when it is active and MFA is enabled
-// server-wide, so the bypass only applies when the user has neither security
-// keys nor a usable TOTP factor. When MFA is disabled, a stale
-// active_mfa_type must not force an elevation the user has no way to perform
-// (/elevate/totp is a disabled endpoint in that case).
+// server-wide, or via email OTP when that is enabled and the user has an
+// email address, so the bypass only applies when none of those methods is
+// usable. When a method is disabled server-wide, a factor only usable through
+// it (a stale active_mfa_type, an email address) must not force an elevation
+// the user has no way to perform — its /elevate endpoint is disabled.
 func (j *JWTGetter) canBypassElevation(
 	ctx context.Context,
 	userID uuid.UUID,
@@ -506,7 +510,7 @@ func (j *JWTGetter) canBypassElevation(
 		return false, nil
 	}
 
-	if !j.mfaEnabled {
+	if !j.mfaEnabled && !j.otpEmailEnabled {
 		return true, nil
 	}
 
@@ -520,7 +524,15 @@ func (j *JWTGetter) canBypassElevation(
 		return false, fmt.Errorf("error getting user: %w", err)
 	}
 
-	return user.ActiveMfaType.String != string(api.Totp), nil
+	if j.otpEmailEnabled && user.Email.Valid && user.Email.String != "" {
+		return false, nil
+	}
+
+	if j.mfaEnabled && user.ActiveMfaType.String == string(api.Totp) {
+		return false, nil
+	}
+
+	return true, nil
 }
 
 func (j *JWTGetter) isElevatedClaimOptional(requestPath string) bool {
