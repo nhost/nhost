@@ -55,6 +55,7 @@ func getJWTGetter(cmd *cli.Command, db controller.DBClient) (*controller.JWTGett
 		customClaimer,
 		cmd.String(flagRequireElevatedClaim),
 		cmd.Bool(flagMfaEnabled),
+		cmd.Bool(flagOTPEmailEnabled),
 		db,
 		cmd.String(flagServerURL),
 	)

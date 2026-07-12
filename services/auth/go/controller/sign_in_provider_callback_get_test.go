@@ -103,6 +103,7 @@ func TestSignInProviderCallback(t *testing.T) { //nolint:maintidx
 		nil,
 		"",
 		false,
+		false,
 		nil,
 		"hasura-auth",
 	)
