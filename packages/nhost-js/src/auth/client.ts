@@ -648,9 +648,42 @@ export interface ProviderSession {
 }
 
 /**
+ * (google) OpenID Connect prompt. When omitted, Google uses its default behavior. Use select_account to force the account chooser. See https://developers.google.com/identity/protocols/oauth2/openid-connect#authenticationuriparameters
+
+ */
+export type ProviderSpecificParamsPrompt =
+  | 'none'
+  | 'consent'
+  | 'select_account';
+
+/**
+ * (google) online (default) or offline to request a refresh token.
+
+ */
+export type ProviderSpecificParamsAccess_type = 'online' | 'offline';
+
+/**
+ * (google) When "true", include previously granted scopes (incremental authorization).
+
+ */
+export type ProviderSpecificParamsInclude_granted_scopes = 'true';
+
+/**
  * 
  @property connection? (`string`) - (workos) Specifies the connection to use for authentication
- @property organization? (`string`) - (workos) Specifies the organization to use for authentication*/
+ @property organization? (`string`) - (workos) Specifies the organization to use for authentication
+ @property prompt? (`ProviderSpecificParamsPrompt`) - (google) OpenID Connect prompt. When omitted, Google uses its default behavior. Use select_account to force the account chooser. See https://developers.google.com/identity/protocols/oauth2/openid-connect#authenticationuriparameters
+
+ @property login_hint? (`string`) - (google) Email or Google user ID (sub) hint. Prefills or selects that account and can suppress the account chooser.
+
+ @property hd? (`string`) - (google) Optimize account selection for a Google Cloud / Workspace domain (e.g. example.com), or "*" for any Cloud organization account.
+
+ @property access_type? (`ProviderSpecificParamsAccess_type`) - (google) online (default) or offline to request a refresh token.
+
+ @property include_granted_scopes? (`ProviderSpecificParamsInclude_granted_scopes`) - (google) When "true", include previously granted scopes (incremental authorization).
+
+ @property hl? (`string`) - (google) BCP 47 language tag for the sign-in / account chooser / consent UI (e.g. en-GB).
+*/
 export interface ProviderSpecificParams {
   /**
    * (workos) Specifies the connection to use for authentication
@@ -660,6 +693,36 @@ export interface ProviderSpecificParams {
    * (workos) Specifies the organization to use for authentication
    */
   organization?: string;
+  /**
+   * (google) OpenID Connect prompt. When omitted, Google uses its default behavior. Use select_account to force the account chooser. See https://developers.google.com/identity/protocols/oauth2/openid-connect#authenticationuriparameters
+
+   */
+  prompt?: ProviderSpecificParamsPrompt;
+  /**
+   * (google) Email or Google user ID (sub) hint. Prefills or selects that account and can suppress the account chooser.
+
+   */
+  login_hint?: string;
+  /**
+   * (google) Optimize account selection for a Google Cloud / Workspace domain (e.g. example.com), or "*" for any Cloud organization account.
+
+   */
+  hd?: string;
+  /**
+   * (google) online (default) or offline to request a refresh token.
+
+   */
+  access_type?: ProviderSpecificParamsAccess_type;
+  /**
+   * (google) When "true", include previously granted scopes (incremental authorization).
+
+   */
+  include_granted_scopes?: ProviderSpecificParamsInclude_granted_scopes;
+  /**
+   * (google) BCP 47 language tag for the sign-in / account chooser / consent UI (e.g. en-GB).
+
+   */
+  hl?: string;
 }
 
 /**
