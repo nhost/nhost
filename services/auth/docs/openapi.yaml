@@ -140,6 +140,61 @@ paths:
                 $ref: "#/components/schemas/ErrorResponse"
           description: An error occurred while processing the request
 
+  /elevate/otp/email:
+    post:
+      summary: Request a one-time password by email to elevate an already signed in user
+      description: Send a one-time password to the signed in user's email address to start elevation
+      operationId: elevateOTPEmail
+      tags:
+        - security
+      security:
+        - BearerAuth: []
+      responses:
+        "200":
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/OKResponse"
+          description: >-
+            One-time password sent successfully
+        default:
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+          description: An error occurred while processing the request
+
+  /elevate/otp/email/verify:
+    post:
+      summary: Elevate access for an already signed in user using a one-time password sent by email
+      description: Verify a one-time password sent by email to elevate the permissions of an already signed in user
+      operationId: verifyElevateOTPEmail
+      tags:
+        - security
+      security:
+        - BearerAuth: []
+      requestBody:
+        description: One-time password for elevation verification
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/ElevateOTPEmailVerifyRequest"
+        required: true
+      responses:
+        "200":
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/SessionPayload"
+          description: >-
+            Elevated successfully
+        default:
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+          description: An error occurred while processing the request
+
   /healthz:
     get:
       summary: Health check (GET)
@@ -2825,6 +2880,16 @@ components:
         - idToken
 
     ElevateTotpRequest:
+      type: object
+      additionalProperties: false
+      properties:
+        otp:
+          type: string
+          description: One time password
+      required:
+        - otp
+
+    ElevateOTPEmailVerifyRequest:
       type: object
       additionalProperties: false
       properties:

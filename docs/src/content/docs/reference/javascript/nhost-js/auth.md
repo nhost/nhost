@@ -428,6 +428,29 @@ This method may return different T based on the response code:
 
 `Promise`&lt;[`FetchResponse`](./fetch#fetchresponse)&lt;`"OK"`&gt;&gt;
 
+#### elevateOTPEmail()
+
+```ts
+elevateOTPEmail(options?: RequestInit): Promise<FetchResponse<"OK">>;
+```
+
+Summary: Request a one-time password by email to elevate an already signed in user
+Send a one-time password to the signed in user's email address to start elevation
+
+This method may return different T based on the response code:
+
+- 200: OKResponse
+
+##### Parameters
+
+| Parameter  | Type          |
+| ---------- | ------------- |
+| `options?` | `RequestInit` |
+
+##### Returns
+
+`Promise`&lt;[`FetchResponse`](./fetch#fetchresponse)&lt;`"OK"`&gt;&gt;
+
 #### elevateTotp()
 
 ```ts
@@ -1537,6 +1560,30 @@ This method may return different T based on the response code:
 
 `Promise`&lt;[`FetchResponse`](./fetch#fetchresponse)&lt;`"OK"`&gt;&gt;
 
+#### verifyElevateOTPEmail()
+
+```ts
+verifyElevateOTPEmail(body: ElevateOTPEmailVerifyRequest, options?: RequestInit): Promise<FetchResponse<SessionPayload>>;
+```
+
+Summary: Elevate access for an already signed in user using a one-time password sent by email
+Verify a one-time password sent by email to elevate the permissions of an already signed in user
+
+This method may return different T based on the response code:
+
+- 200: SessionPayload
+
+##### Parameters
+
+| Parameter  | Type                                                            |
+| ---------- | --------------------------------------------------------------- |
+| `body`     | [`ElevateOTPEmailVerifyRequest`](#elevateotpemailverifyrequest) |
+| `options?` | `RequestInit`                                                   |
+
+##### Returns
+
+`Promise`&lt;[`FetchResponse`](./fetch#fetchresponse)&lt;[`SessionPayload`](#sessionpayload)&gt;&gt;
+
 #### verifyElevateWebauthn()
 
 ```ts
@@ -1928,6 +1975,20 @@ optional rk?: boolean;
 ```
 
 Indicates if the credential is a resident key
+
+---
+
+## ElevateOTPEmailVerifyRequest
+
+### Properties
+
+#### otp
+
+```ts
+otp: string;
+```
+
+(`string`) - One time password
 
 ---
 
