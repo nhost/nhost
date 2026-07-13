@@ -279,6 +279,45 @@ describe('parseEventTriggerFormInitialData', () => {
     expect(result).toEqual(expected);
   });
 
+  it('should keep method/url in request options transform when query_params is omitted', () => {
+    const eventTrigger: EventTriggerViewModel = {
+      dataSource: 'default',
+      table: {
+        name: 'triggertable',
+        schema: 'public',
+      },
+      name: 'triggerName',
+      definition: {
+        enable_manual: false,
+        insert: {
+          columns: '*',
+        },
+      },
+      retry_conf: {
+        interval_sec: 10,
+        num_retries: 1,
+        timeout_sec: 60,
+      },
+      webhook: 'https://httpbin.org/post',
+      request_transform: {
+        method: 'PATCH',
+        template_engine: 'Kriti',
+        url: '{{$base_url}}/template',
+        version: 2,
+      },
+    };
+    const result = parseEventTriggerFormInitialData(eventTrigger);
+
+    expect(result.requestOptionsTransform).toEqual({
+      urlTemplate: '/template',
+      method: 'PATCH',
+      queryParams: {
+        queryParamsType: 'Key Value',
+        queryParams: [],
+      },
+    });
+  });
+
   it('should return form with both request options transform and payload transform', () => {
     const eventTrigger: EventTriggerViewModel = {
       dataSource: 'default',
