@@ -145,7 +145,7 @@ enum GraphQLCacheKeyBuilder {
         )
     }
 
-    private static func canonicalEndpoint(_ endpoint: URL) -> String {
+    static func canonicalEndpoint(_ endpoint: URL) -> String {
         guard var components = URLComponents(url: endpoint.absoluteURL, resolvingAgainstBaseURL: true) else {
             return endpoint.absoluteString
         }
