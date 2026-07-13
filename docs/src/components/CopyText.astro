@@ -190,7 +190,9 @@ const { text } = Astro.props;
     controller = new AbortController();
     const { signal } = controller;
 
-    document.querySelectorAll<HTMLButtonElement>('.copy-text-btn').forEach((btn) => {
+    const buttons = document.querySelectorAll<HTMLButtonElement>('.copy-text-btn');
+
+    buttons.forEach((btn) => {
       const open = () => btn.classList.add('open');
       // Only close on hover/focus loss when we're not in the "Copied!" window;
       // during that window the timer below owns closing.
@@ -200,7 +202,16 @@ const { text } = Astro.props;
 
       btn.addEventListener('mouseenter', open, { signal });
       btn.addEventListener('mouseleave', close, { signal });
-      btn.addEventListener('focus', open, { signal });
+      // Open on keyboard focus only. Mouse-click focus and focus restored on
+      // tab return are not `:focus-visible`, so they no longer leave the
+      // tooltip stuck open.
+      btn.addEventListener(
+        'focus',
+        () => {
+          if (btn.matches(':focus-visible')) open();
+        },
+        { signal },
+      );
       btn.addEventListener('blur', close, { signal });
 
       btn.addEventListener(
@@ -231,6 +242,23 @@ const { text } = Astro.props;
         { signal },
       );
     });
+
+    // Safety net: leaving the tab/window clears every tooltip so none can
+    // reappear when focus or visibility is restored.
+    const closeAll = () => {
+      buttons.forEach((btn) => {
+        clearTimeout(timers.get(btn));
+        btn.classList.remove('open', 'copied');
+      });
+    };
+    window.addEventListener('blur', closeAll, { signal });
+    document.addEventListener(
+      'visibilitychange',
+      () => {
+        if (document.hidden) closeAll();
+      },
+      { signal },
+    );
   }
 
   initCopyText();
