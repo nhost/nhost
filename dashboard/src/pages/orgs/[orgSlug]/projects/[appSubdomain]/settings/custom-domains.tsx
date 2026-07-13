@@ -1,7 +1,6 @@
 import type { ReactElement } from 'react';
 import { UpgradeToProBanner } from '@/components/common/UpgradeToProBanner';
 import { Container } from '@/components/layout/Container';
-import { ActivityIndicator } from '@/components/ui/v2/ActivityIndicator';
 import { Box } from '@/components/ui/v2/Box';
 import { Text } from '@/components/ui/v2/Text';
 import { TextLink } from '@/components/ui/v3/text-link';
@@ -15,11 +14,7 @@ import { ServerlessFunctionsDomain } from '@/features/orgs/projects/custom-domai
 import { useCurrentOrg } from '@/features/orgs/projects/hooks/useCurrentOrg';
 
 export default function CustomDomains() {
-  const { org, loading: loadingOrg } = useCurrentOrg();
-
-  if (loadingOrg) {
-    return <ActivityIndicator delay={1000} label="Loading project..." />;
-  }
+  const { org } = useCurrentOrg();
 
   if (org?.plan?.isFree) {
     return (

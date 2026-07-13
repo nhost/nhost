@@ -18,12 +18,16 @@ import { InlineCode } from '@/components/presentational/InlineCode';
 import { ActivityIndicator } from '@/components/ui/v2/ActivityIndicator';
 import { Box } from '@/components/ui/v2/Box';
 import { Button } from '@/components/ui/v2/Button';
-import { Divider } from '@/components/ui/v2/Divider';
-import { Dropdown } from '@/components/ui/v2/Dropdown';
 import { IconButton } from '@/components/ui/v2/IconButton';
 import { List } from '@/components/ui/v2/List';
 import { ListItem } from '@/components/ui/v2/ListItem';
 import { Text } from '@/components/ui/v2/Text';
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+} from '@/components/ui/v3/dropdown-menu';
 import { useIsPlatform } from '@/features/orgs/projects/common/hooks/useIsPlatform';
 import { useProject } from '@/features/orgs/projects/hooks/useProject';
 import useGetRemoteSchemas from '@/features/orgs/projects/remote-schemas/hooks/useGetRemoteSchemas/useGetRemoteSchemas';
@@ -216,14 +220,14 @@ function RemoteSchemaBrowserSidebarContent({
                   className="group"
                   key={remoteSchema.name}
                   secondaryAction={
-                    <Dropdown.Root
-                      id="remote-schema-management-menu"
-                      onOpen={() =>
-                        setSidebarMenuRemoteSchema(remoteSchema.name)
+                    <DropdownMenu
+                      onOpenChange={(open) =>
+                        setSidebarMenuRemoteSchema(
+                          open ? remoteSchema.name : undefined,
+                        )
                       }
-                      onClose={() => setSidebarMenuRemoteSchema(undefined)}
                     >
-                      <Dropdown.Trigger asChild hideChevron>
+                      <DropdownMenuTrigger asChild>
                         <IconButton
                           variant="borderless"
                           color={isSelected ? 'primary' : 'secondary'}
@@ -234,11 +238,15 @@ function RemoteSchemaBrowserSidebarContent({
                         >
                           <DotsHorizontalIcon />
                         </IconButton>
-                      </Dropdown.Trigger>
-                      <Dropdown.Content menu PaperProps={{ className: 'w-52' }}>
-                        <Dropdown.Item
+                      </DropdownMenuTrigger>
+                      <DropdownMenuContent
+                        side="right"
+                        align="start"
+                        className="w-60 p-0"
+                      >
+                        <DropdownMenuItem
                           key="edit-table"
-                          className="grid grid-flow-col items-center gap-2 p-2 font-medium text-sm+"
+                          className="flex h-9 cursor-pointer items-center justify-start gap-2 rounded-none border border-b-1 p-2 font-medium text-sm+ leading-4 hover:bg-data-cell-bg"
                           onClick={() =>
                             openDrawer({
                               title: 'Edit Remote Schema',
@@ -261,43 +269,39 @@ function RemoteSchemaBrowserSidebarContent({
                         >
                           <PencilIcon className="h-4 w-4 text-muted-foreground" />
                           <span>Edit Remote Schema</span>
-                        </Dropdown.Item>
-                        <Divider component="li" />
-                        <Dropdown.Item
+                        </DropdownMenuItem>
+                        <DropdownMenuItem
                           key="edit-permissions"
-                          className="grid grid-flow-col items-center gap-2 p-2 font-medium text-sm+"
+                          className="flex h-9 cursor-pointer items-center justify-start gap-2 rounded-none border border-b-1 p-2 font-medium text-sm+ leading-4 hover:bg-data-cell-bg"
                           onClick={() =>
                             handleEditPermissionClick(remoteSchema.name)
                           }
                         >
                           <UsersIcon className="h-4 w-4 text-muted-foreground" />
                           <span>Edit Permissions</span>
-                        </Dropdown.Item>
-                        <Divider component="li" />
-                        <Dropdown.Item
+                        </DropdownMenuItem>
+                        <DropdownMenuItem
                           key="edit-relationships"
-                          className="grid grid-flow-col items-center gap-2 p-2 font-medium text-sm+"
+                          className="flex h-9 cursor-pointer items-center justify-start gap-2 rounded-none border border-b-1 p-2 font-medium text-sm+ leading-4 hover:bg-data-cell-bg"
                           onClick={() =>
                             handleEditRelationshipsClick(remoteSchema.name)
                           }
                         >
                           <LinkIcon className="h-4 w-4 text-muted-foreground" />
                           <span>Edit Relationships</span>
-                        </Dropdown.Item>
-                        <Divider component="li" />
-                        <Dropdown.Item
+                        </DropdownMenuItem>
+                        <DropdownMenuItem
                           key="delete-remote-schema"
-                          className="grid grid-flow-col items-center gap-2 p-2 font-medium text-sm+"
-                          sx={{ color: 'error.main' }}
+                          className="!text-destructive flex h-9 cursor-pointer items-center justify-start gap-2 rounded-none border border-b-1 p-2 font-medium text-sm+ leading-4 hover:bg-data-cell-bg"
                           onClick={() =>
                             handleDeleteRemoteSchemaClick(remoteSchema)
                           }
                         >
                           <TrashIcon className="h-4 w-4" />
                           <span>Delete Remote Schema</span>
-                        </Dropdown.Item>
-                      </Dropdown.Content>
-                    </Dropdown.Root>
+                        </DropdownMenuItem>
+                      </DropdownMenuContent>
+                    </DropdownMenu>
                   }
                 >
                   <ListItem.Button

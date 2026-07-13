@@ -4,11 +4,6 @@
    NHOST BRAND THEME
    ============================================== */
 
-/* Force dark theme only */
-:root {
-  color-scheme: dark;
-}
-
 /* Dark mode (default) */
 :root {
   /* Custom mobile nav toggle height */
@@ -77,6 +72,9 @@
 
   --sl-color-text: #333333;
   --sl-color-text-accent: #0066ff;
+
+  --sl-color-white: #111111;
+  --sl-color-black: #ffffff;
 }
 
 /* Apply different font for headings */
@@ -180,12 +178,12 @@ h6,
   margin: 2rem;
 }
 
-html[class~="dark"] .welcome-get-started {
+html[data-theme="dark"] .welcome-get-started {
   color: white;
 }
 
 /* light mode */
-html:not([class~="dark"]) .welcome-get-started {
+html[data-theme="light"] .welcome-get-started {
   color: #111827;
 }
 
@@ -201,6 +199,7 @@ html:not([class~="dark"]) .welcome-get-started {
 /* Left sidebar */
 .sidebar-pane {
   padding-right: 1.5rem !important;
+  border-inline-end: none !important;
 }
 
 /* Reset top-level list */
@@ -461,6 +460,10 @@ html:not([class~="dark"]) .welcome-get-started {
   /* Override desktop grid to stay centered */
   grid-template-columns: 1fr !important;
   justify-items: center;
+}
+
+[data-theme="light"] .hero {
+  background: linear-gradient(to bottom, #f0f4f8 0%, #ffffff 100%);
 }
 
 .hero .stack {
@@ -771,6 +774,7 @@ header.header {
   width: 100%;
   left: 0 !important;
   right: 0 !important;
+  border-bottom: none !important;
 }
 
 header.header > .header {
