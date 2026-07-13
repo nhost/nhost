@@ -133,4 +133,41 @@ in
     # Tests require a live backend and are exercised by `check`.
     doCheck = false;
   };
+
+  # Emits the rustdoc JSON the docs build transforms into the reference pages.
+  # The heavy compile (crate + deps) happens here, reusing the vendored crates
+  # and toolchain, so the docs check only needs Node to run the transformer.
+  rustDocJson =
+    pkgs.runCommand "nhost-rust-doc"
+      {
+        nativeBuildInputs = rustDeps ++ [
+          pkgs.stdenv.cc
+          pkgs.openssl
+          pkgs.pkg-config
+        ];
+      }
+      ''
+        export HOME=$(mktemp -d)
+        export CARGO_HOME="$HOME/cargo"
+        mkdir -p "$CARGO_HOME"
+        cat > "$CARGO_HOME/config.toml" <<EOF
+        [source.crates-io]
+        replace-with = "vendored-sources"
+        [source.vendored-sources]
+        directory = "${cargoVendorDir}"
+        EOF
+
+        cp -r ${src} src
+        chmod +w -R src
+        cd src/${submodule}
+
+        echo "➜ Generating rustdoc JSON"
+        # rustdoc's JSON output is behind `-Z unstable-options`;
+        # RUSTC_BOOTSTRAP=1 enables it on the stable toolchain.
+        RUSTC_BOOTSTRAP=1 cargo rustdoc --offline --lib -- \
+          -Z unstable-options --output-format json
+
+        mkdir -p $out
+        cp target/doc/nhost.json $out/nhost.json
+      '';
 }
