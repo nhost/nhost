@@ -11,21 +11,20 @@
 // Kept dependency-free (plain Node ESM) so it runs under the same Node the docs
 // build already uses for TypeDoc — no extra toolchain in the docs pipeline.
 
-import fs from "node:fs";
-import path from "node:path";
+import fs from 'node:fs';
+import path from 'node:path';
 
 const [, , jsonPath, outDir] = process.argv;
 if (!jsonPath || !outDir) {
-  console.error("usage: node rustdoc-to-md.mjs <nhost.json> <output-dir>");
+  console.error('usage: node rustdoc-to-md.mjs <nhost.json> <output-dir>');
   process.exit(1);
 }
 
-const doc = JSON.parse(fs.readFileSync(jsonPath, "utf8"));
+const doc = JSON.parse(fs.readFileSync(jsonPath, 'utf8'));
 const index = doc.index;
 const paths = doc.paths;
 
 const item = (id) => index[String(id)];
-const pathOf = (id) => paths[String(id)]?.path;
 
 // ---------------------------------------------------------------------------
 // Type rendering: the rustdoc `Type` union. Every variant observed in the crate
@@ -34,40 +33,43 @@ const pathOf = (id) => paths[String(id)]?.path;
 // ---------------------------------------------------------------------------
 
 function renderType(t) {
-  if (t == null) return "_";
-  if (typeof t === "string") return t;
+  if (t == null) return '_';
+  if (typeof t === 'string') return t;
 
-  if ("resolved_path" in t) {
+  if ('resolved_path' in t) {
     const p = t.resolved_path;
     return escapePathName(p.path) + renderGenericArgs(p.args);
   }
-  if ("generic" in t) return t.generic;
-  if ("primitive" in t) return t.primitive;
-  if ("borrowed_ref" in t) {
+  if ('generic' in t) return t.generic;
+  if ('primitive' in t) return t.primitive;
+  if ('borrowed_ref' in t) {
     const r = t.borrowed_ref;
-    const lt = r.lifetime ? `${r.lifetime} ` : "";
-    const mut = r.is_mutable ? "mut " : "";
+    const lt = r.lifetime ? `${r.lifetime} ` : '';
+    const mut = r.is_mutable ? 'mut ' : '';
     return `&${lt}${mut}${renderType(r.type)}`;
   }
-  if ("raw_pointer" in t) {
+  if ('raw_pointer' in t) {
     const r = t.raw_pointer;
-    return `*${r.is_mutable ? "mut" : "const"} ${renderType(r.type)}`;
+    return `*${r.is_mutable ? 'mut' : 'const'} ${renderType(r.type)}`;
   }
-  if ("slice" in t) return `[${renderType(t.slice)}]`;
-  if ("array" in t) return `[${renderType(t.array.type)}; ${t.array.len}]`;
-  if ("tuple" in t) return `(${t.tuple.map(renderType).join(", ")})`;
-  if ("dyn_trait" in t) {
+  if ('slice' in t) return `[${renderType(t.slice)}]`;
+  if ('array' in t) return `[${renderType(t.array.type)}; ${t.array.len}]`;
+  if ('tuple' in t) return `(${t.tuple.map(renderType).join(', ')})`;
+  if ('dyn_trait' in t) {
     const dt = t.dyn_trait;
     const traits = dt.traits
-      .map((tr) => escapePathName(tr.trait.path) + renderGenericArgs(tr.trait.args))
-      .join(" + ");
-    const lt = dt.lifetime ? ` + ${dt.lifetime}` : "";
+      .map(
+        (tr) =>
+          escapePathName(tr.trait.path) + renderGenericArgs(tr.trait.args),
+      )
+      .join(' + ');
+    const lt = dt.lifetime ? ` + ${dt.lifetime}` : '';
     return `dyn ${traits}${lt}`;
   }
-  if ("impl_trait" in t) {
-    return `impl ${t.impl_trait.map(renderBound).filter(Boolean).join(" + ")}`;
+  if ('impl_trait' in t) {
+    return `impl ${t.impl_trait.map(renderBound).filter(Boolean).join(' + ')}`;
   }
-  if ("qualified_path" in t) {
+  if ('qualified_path' in t) {
     const q = t.qualified_path;
     const self_ = renderType(q.self_type);
     if (q.trait) {
@@ -75,92 +77,103 @@ function renderType(t) {
     }
     return `${self_}::${q.name}`;
   }
-  if ("function_pointer" in t) {
+  if ('function_pointer' in t) {
     const fp = t.function_pointer;
-    const inputs = (fp.sig?.inputs ?? []).map(([, ty]) => renderType(ty)).join(", ");
-    const out = fp.sig?.output ? ` -> ${renderType(fp.sig.output)}` : "";
+    const inputs = (fp.sig?.inputs ?? [])
+      .map(([, ty]) => renderType(ty))
+      .join(', ');
+    const out = fp.sig?.output ? ` -> ${renderType(fp.sig.output)}` : '';
     return `fn(${inputs})${out}`;
   }
-  if ("infer" in t) return "_";
-  if ("pat" in t) return renderType(t.pat.type);
-  return "_";
+  if ('infer' in t) return '_';
+  if ('pat' in t) return renderType(t.pat.type);
+  return '_';
 }
 
 // Show the last path segment (e.g. `Option`, `SignInEmailPasswordRequest`)
 // rather than the fully-qualified `nhost::auth::...` — matches how the JS
 // reference and idiomatic Rust docs read.
 function escapePathName(p) {
-  if (!p) return "_";
-  const segs = String(p).split("::");
+  if (!p) return '_';
+  const segs = String(p).split('::');
   return segs[segs.length - 1];
 }
 
 function renderGenericArgs(args) {
-  if (!args) return "";
-  if ("angle_bracketed" in args) {
+  if (!args) return '';
+  if ('angle_bracketed' in args) {
     const ab = args.angle_bracketed;
     const parts = [];
     for (const a of ab.args ?? []) {
-      if ("type" in a) parts.push(renderType(a.type));
-      else if ("lifetime" in a) parts.push(a.lifetime);
-      else if ("const" in a) parts.push(a.const?.expr ?? "_");
+      if ('type' in a) parts.push(renderType(a.type));
+      else if ('lifetime' in a) parts.push(a.lifetime);
+      else if ('const' in a) parts.push(a.const?.expr ?? '_');
     }
     for (const c of ab.constraints ?? []) {
       const binding =
-        c.binding && "equality" in c.binding
+        c.binding && 'equality' in c.binding
           ? ` = ${renderType(c.binding.equality.type ?? c.binding.equality)}`
-          : "";
+          : '';
       parts.push(`${c.name}${binding}`);
     }
-    return parts.length ? `<${parts.join(", ")}>` : "";
+    return parts.length ? `<${parts.join(', ')}>` : '';
   }
-  if ("parenthesized" in args) {
+  if ('parenthesized' in args) {
     const p = args.parenthesized;
-    const inputs = (p.inputs ?? []).map(renderType).join(", ");
-    const out = p.output ? ` -> ${renderType(p.output)}` : "";
+    const inputs = (p.inputs ?? []).map(renderType).join(', ');
+    const out = p.output ? ` -> ${renderType(p.output)}` : '';
     return `(${inputs})${out}`;
   }
-  return "";
+  return '';
 }
 
 function renderBound(b) {
-  if ("trait_bound" in b) {
+  if ('trait_bound' in b) {
     const tb = b.trait_bound;
-    const modifier = tb.modifier === "maybe" ? "?" : "";
+    const modifier = tb.modifier === 'maybe' ? '?' : '';
     return `${modifier}${escapePathName(tb.trait.path)}${renderGenericArgs(tb.trait.args)}`;
   }
-  if ("outlives" in b) return b.outlives;
-  return "";
+  if ('outlives' in b) return b.outlives;
+  return '';
 }
 
 function renderGenerics(generics) {
-  if (!generics) return { params: "", where: "" };
+  if (!generics) return { params: '', where: '' };
   const params = [];
   for (const p of generics.params ?? []) {
-    if (p.kind && "lifetime" in p.kind) {
+    if (p.kind && 'lifetime' in p.kind) {
       params.push(p.name);
-    } else if (p.kind && "type" in p.kind) {
-      const bounds = (p.kind.type.bounds ?? []).map(renderBound).filter(Boolean);
-      const def = p.kind.type.default ? ` = ${renderType(p.kind.type.default)}` : "";
-      params.push(bounds.length ? `${p.name}: ${bounds.join(" + ")}${def}` : `${p.name}${def}`);
-    } else if (p.kind && "const" in p.kind) {
+    } else if (p.kind && 'type' in p.kind) {
+      const bounds = (p.kind.type.bounds ?? [])
+        .map(renderBound)
+        .filter(Boolean);
+      const def = p.kind.type.default
+        ? ` = ${renderType(p.kind.type.default)}`
+        : '';
+      params.push(
+        bounds.length
+          ? `${p.name}: ${bounds.join(' + ')}${def}`
+          : `${p.name}${def}`,
+      );
+    } else if (p.kind && 'const' in p.kind) {
       params.push(`const ${p.name}: ${renderType(p.kind.const.type)}`);
     }
   }
   const wheres = [];
   for (const w of generics.where_predicates ?? []) {
-    if ("bound_predicate" in w) {
+    if ('bound_predicate' in w) {
       const bp = w.bound_predicate;
       const bounds = (bp.bounds ?? []).map(renderBound).filter(Boolean);
-      if (bounds.length) wheres.push(`${renderType(bp.type)}: ${bounds.join(" + ")}`);
-    } else if ("lifetime_predicate" in w) {
+      if (bounds.length)
+        wheres.push(`${renderType(bp.type)}: ${bounds.join(' + ')}`);
+    } else if ('lifetime_predicate' in w) {
       const lp = w.lifetime_predicate;
-      wheres.push(`${lp.lifetime}: ${(lp.outlives ?? []).join(" + ")}`);
+      wheres.push(`${lp.lifetime}: ${(lp.outlives ?? []).join(' + ')}`);
     }
   }
   return {
-    params: params.length ? `<${params.join(", ")}>` : "",
-    where: wheres.length ? `\nwhere\n    ${wheres.join(",\n    ")}` : "",
+    params: params.length ? `<${params.join(', ')}>` : '',
+    where: wheres.length ? `\nwhere\n    ${wheres.join(',\n    ')}` : '',
   };
 }
 
@@ -172,46 +185,46 @@ function fnSignature(name, fn, { isMethod = false } = {}) {
   const g = renderGenerics(fn.generics);
   const header = fn.header ?? {};
   const kw =
-    (header.is_const ? "const " : "") +
-    (header.is_async ? "async " : "") +
-    (header.is_unsafe ? "unsafe " : "");
+    (header.is_const ? 'const ' : '') +
+    (header.is_async ? 'async ' : '') +
+    (header.is_unsafe ? 'unsafe ' : '');
   const inputs = (fn.sig?.inputs ?? []).map(([argName, ty]) => {
-    if (isMethod && argName === "self") return renderSelf(ty);
+    if (isMethod && argName === 'self') return renderSelf(ty);
     return `${argName}: ${renderType(ty)}`;
   });
-  const out = fn.sig?.output ? ` -> ${renderType(fn.sig.output)}` : "";
-  return `${kw}fn ${name}${g.params}(${inputs.join(", ")})${out}${g.where}`;
+  const out = fn.sig?.output ? ` -> ${renderType(fn.sig.output)}` : '';
+  return `${kw}fn ${name}${g.params}(${inputs.join(', ')})${out}${g.where}`;
 }
 
 function renderSelf(ty) {
   // `self`, `&self`, `&mut self`.
-  if (ty && "borrowed_ref" in ty) {
+  if (ty && 'borrowed_ref' in ty) {
     const r = ty.borrowed_ref;
-    const lt = r.lifetime ? `${r.lifetime} ` : "";
-    if (r.type && "generic" in r.type && r.type.generic === "Self") {
-      return `&${lt}${r.is_mutable ? "mut " : ""}self`;
+    const lt = r.lifetime ? `${r.lifetime} ` : '';
+    if (r.type && 'generic' in r.type && r.type.generic === 'Self') {
+      return `&${lt}${r.is_mutable ? 'mut ' : ''}self`;
     }
   }
-  if (ty && "generic" in ty && ty.generic === "Self") return "self";
+  if (ty && 'generic' in ty && ty.generic === 'Self') return 'self';
   return `self: ${renderType(ty)}`;
 }
 
 function codeBlock(sig) {
-  return "```rust\n" + sig + "\n```";
+  return `\`\`\`rust\n${sig}\n\`\`\``;
 }
 
 // Convert rustdoc intra-doc links (``[`Foo`]``, `[Foo]`) that have no link
 // target into plain inline code so the docs site doesn't emit broken links.
 function cleanDocs(docs) {
-  if (!docs) return "";
+  if (!docs) return '';
   return docs
-    .replace(/\[(`[^`\]]+`)\]\((?![^)]*:)[^)]*\)/g, "$1") // [`X`](X) -> `X`
-    .replace(/\[(`[^`\]]+`)\](?!\()/g, "$1") // [`X`] -> `X`
-    .replace(/\[([A-Za-z_][A-Za-z0-9_:]*)\](?!\(|\[|:)/g, "`$1`"); // [Foo] -> `Foo`
+    .replace(/\[(`[^`\]]+`)\]\((?![^)]*:)[^)]*\)/g, '$1') // [`X`](X) -> `X`
+    .replace(/\[(`[^`\]]+`)\](?!\()/g, '$1') // [`X`] -> `X`
+    .replace(/\[([A-Za-z_][A-Za-z0-9_:]*)\](?!\(|\[|:)/g, '`$1`'); // [Foo] -> `Foo`
 }
 
 function heading(depth, text) {
-  return `${"#".repeat(depth)} ${text}`;
+  return `${'#'.repeat(depth)} ${text}`;
 }
 
 // Inherent methods declared directly on a type (skip trait/synthetic/blanket
@@ -220,12 +233,12 @@ function inherentMethods(structOrEnum) {
   const out = [];
   for (const implId of structOrEnum.impls ?? []) {
     const it = item(implId);
-    if (!it || !it.inner.impl) continue;
+    if (!it?.inner.impl) continue;
     const imp = it.inner.impl;
     if (imp.trait || imp.is_synthetic || imp.blanket_impl) continue;
     for (const mid of imp.items ?? []) {
       const m = item(mid);
-      if (!m || !m.inner.function) continue;
+      if (!m?.inner.function) continue;
       out.push(renderMethod(m));
     }
   }
@@ -234,20 +247,28 @@ function inherentMethods(structOrEnum) {
 
 function renderMethod(m) {
   const parts = [heading(5, `\`${m.name}\``)];
-  parts.push(codeBlock(fnSignature(m.name, m.inner.function, { isMethod: true })));
+  parts.push(
+    codeBlock(fnSignature(m.name, m.inner.function, { isMethod: true })),
+  );
   const d = cleanDocs(m.docs);
   if (d) parts.push(d);
-  return parts.join("\n\n");
+  return parts.join('\n\n');
 }
 
 // Non-std trait implementations worth surfacing (custom SDK traits + a few
 // well-known user-facing ones), listed compactly by name.
-const NOTABLE_TRAITS = new Set(["Default", "Display", "Error", "Iterator", "FromStr"]);
+const NOTABLE_TRAITS = new Set([
+  'Default',
+  'Display',
+  'Error',
+  'Iterator',
+  'FromStr',
+]);
 function notableTraitImpls(structOrEnum) {
   const names = new Set();
   for (const implId of structOrEnum.impls ?? []) {
     const it = item(implId);
-    if (!it || !it.inner.impl) continue;
+    if (!it?.inner.impl) continue;
     const imp = it.inner.impl;
     if (!imp.trait || imp.is_synthetic || imp.blanket_impl) continue;
     const tid = imp.trait.id;
@@ -274,27 +295,33 @@ function renderStruct(name, it) {
     const rows = [];
     for (const fid of s.kind.plain.fields) {
       const f = item(fid);
-      if (!f || !f.inner.struct_field) continue;
-      const fdoc = cleanDocs(f.docs).replace(/\n+/g, " ").trim();
-      rows.push(`| \`${f.name}\` | \`${renderType(f.inner.struct_field)}\` | ${fdoc} |`);
+      if (!f?.inner.struct_field) continue;
+      const fdoc = cleanDocs(f.docs).replace(/\n+/g, ' ').trim();
+      rows.push(
+        `| \`${f.name}\` | \`${renderType(f.inner.struct_field)}\` | ${fdoc} |`,
+      );
     }
     if (rows.length) {
-      parts.push(heading(4, "Fields"));
-      parts.push(["| Field | Type | Description |", "| --- | --- | --- |", ...rows].join("\n"));
+      parts.push(heading(4, 'Fields'));
+      parts.push(
+        ['| Field | Type | Description |', '| --- | --- | --- |', ...rows].join(
+          '\n',
+        ),
+      );
     }
   }
 
   const methods = inherentMethods(s);
   if (methods.length) {
-    parts.push(heading(4, "Methods"));
-    parts.push(methods.join("\n\n"));
+    parts.push(heading(4, 'Methods'));
+    parts.push(methods.join('\n\n'));
   }
   const traits = notableTraitImpls(s);
   if (traits.length) {
-    parts.push(heading(4, "Trait implementations"));
-    parts.push(traits.map((t) => `- \`${t}\``).join("\n"));
+    parts.push(heading(4, 'Trait implementations'));
+    parts.push(traits.map((t) => `- \`${t}\``).join('\n'));
   }
-  return parts.join("\n\n");
+  return parts.join('\n\n');
 }
 
 function renderEnum(name, it) {
@@ -308,25 +335,27 @@ function renderEnum(name, it) {
   const rows = [];
   for (const vid of e.variants ?? []) {
     const v = item(vid);
-    if (!v || !v.inner.variant) continue;
-    const vdoc = cleanDocs(v.docs).replace(/\n+/g, " ").trim();
+    if (!v?.inner.variant) continue;
+    const vdoc = cleanDocs(v.docs).replace(/\n+/g, ' ').trim();
     rows.push(`| \`${v.name}\` | ${vdoc} |`);
   }
   if (rows.length) {
-    parts.push(heading(4, "Variants"));
-    parts.push(["| Variant | Description |", "| --- | --- |", ...rows].join("\n"));
+    parts.push(heading(4, 'Variants'));
+    parts.push(
+      ['| Variant | Description |', '| --- | --- |', ...rows].join('\n'),
+    );
   }
   const methods = inherentMethods(e);
   if (methods.length) {
-    parts.push(heading(4, "Methods"));
-    parts.push(methods.join("\n\n"));
+    parts.push(heading(4, 'Methods'));
+    parts.push(methods.join('\n\n'));
   }
   const traits = notableTraitImpls(e);
   if (traits.length) {
-    parts.push(heading(4, "Trait implementations"));
-    parts.push(traits.map((t) => `- \`${t}\``).join("\n"));
+    parts.push(heading(4, 'Trait implementations'));
+    parts.push(traits.map((t) => `- \`${t}\``).join('\n'));
   }
-  return parts.join("\n\n");
+  return parts.join('\n\n');
 }
 
 function renderTrait(name, it) {
@@ -339,14 +368,14 @@ function renderTrait(name, it) {
   const methods = [];
   for (const mid of tr.items ?? []) {
     const m = item(mid);
-    if (!m || !m.inner.function) continue;
+    if (!m?.inner.function) continue;
     methods.push(renderMethod(m));
   }
   if (methods.length) {
-    parts.push(heading(4, "Required / provided methods"));
-    parts.push(methods.join("\n\n"));
+    parts.push(heading(4, 'Required / provided methods'));
+    parts.push(methods.join('\n\n'));
   }
-  return parts.join("\n\n");
+  return parts.join('\n\n');
 }
 
 function renderFunction(name, it) {
@@ -354,7 +383,7 @@ function renderFunction(name, it) {
   parts.push(codeBlock(fnSignature(name, it.inner.function)));
   const d = cleanDocs(it.docs);
   if (d) parts.push(d);
-  return parts.join("\n\n");
+  return parts.join('\n\n');
 }
 
 function renderTypeAlias(name, it) {
@@ -364,18 +393,18 @@ function renderTypeAlias(name, it) {
   parts.push(codeBlock(`type ${name}${g.params} = ${renderType(ta.type)}`));
   const d = cleanDocs(it.docs);
   if (d) parts.push(d);
-  return parts.join("\n\n");
+  return parts.join('\n\n');
 }
 
 function renderConstant(name, it) {
   const c = it.inner.constant;
   const parts = [heading(3, `\`${name}\``)];
-  const ty = c.type ? `: ${renderType(c.type)}` : "";
-  const val = c.const?.expr ? ` = ${c.const.expr}` : "";
+  const ty = c.type ? `: ${renderType(c.type)}` : '';
+  const val = c.const?.expr ? ` = ${c.const.expr}` : '';
   parts.push(codeBlock(`const ${name}${ty}${val}`));
   const d = cleanDocs(it.docs);
   if (d) parts.push(d);
-  return parts.join("\n\n");
+  return parts.join('\n\n');
 }
 
 // ---------------------------------------------------------------------------
@@ -411,12 +440,12 @@ function collectEntries(moduleId, seen = new Set()) {
 }
 
 const KIND_ORDER = [
-  ["function", "Functions", renderFunction],
-  ["struct", "Structs", renderStruct],
-  ["enum", "Enums", renderEnum],
-  ["trait", "Traits", renderTrait],
-  ["type_alias", "Type Aliases", renderTypeAlias],
-  ["constant", "Constants", renderConstant],
+  ['function', 'Functions', renderFunction],
+  ['struct', 'Structs', renderStruct],
+  ['enum', 'Enums', renderEnum],
+  ['trait', 'Traits', renderTrait],
+  ['type_alias', 'Type Aliases', renderTypeAlias],
+  ['constant', 'Constants', renderConstant],
 ];
 
 function renderPage(title, moduleDocs, entries) {
@@ -439,14 +468,18 @@ function renderPage(title, moduleDocs, entries) {
     out.push(heading(2, label));
     for (const e of items) out.push(renderer(e.name, e.it));
   }
-  return out.join("\n\n") + "\n";
+  return `${out.join('\n\n')}\n`;
 }
 
 // Find a module item id by its `paths` entry (dotted path).
 function moduleIdByPath(dotted) {
-  const want = dotted.join("::");
+  const want = dotted.join('::');
   for (const [id, meta] of Object.entries(paths)) {
-    if (meta.kind === "module" && (meta.path ?? []).join("::") === want && item(id)) {
+    if (
+      meta.kind === 'module' &&
+      (meta.path ?? []).join('::') === want &&
+      item(id)
+    ) {
       return id;
     }
   }
@@ -454,23 +487,48 @@ function moduleIdByPath(dotted) {
 }
 
 const ROOT = String(doc.root);
-const rootModule = item(ROOT);
 
 const PAGES = [
-  { file: "main", title: "Main", moduleId: ROOT },
-  { file: "auth", title: "Auth", moduleId: moduleIdByPath(["nhost", "auth"]) },
-  { file: "storage", title: "Storage", moduleId: moduleIdByPath(["nhost", "storage"]) },
-  { file: "graphql", title: "Graphql", moduleId: moduleIdByPath(["nhost", "graphql"]) },
-  { file: "functions", title: "Functions", moduleId: moduleIdByPath(["nhost", "functions"]) },
-  { file: "session", title: "Session", moduleId: moduleIdByPath(["nhost", "session"]) },
-  { file: "fetch", title: "Fetch", moduleId: moduleIdByPath(["nhost", "fetch"]) },
-  { file: "middleware", title: "Middleware", moduleId: moduleIdByPath(["nhost", "middleware"]) },
+  { file: 'main', title: 'Main', moduleId: ROOT },
+  { file: 'auth', title: 'Auth', moduleId: moduleIdByPath(['nhost', 'auth']) },
+  {
+    file: 'storage',
+    title: 'Storage',
+    moduleId: moduleIdByPath(['nhost', 'storage']),
+  },
+  {
+    file: 'graphql',
+    title: 'Graphql',
+    moduleId: moduleIdByPath(['nhost', 'graphql']),
+  },
+  {
+    file: 'functions',
+    title: 'Functions',
+    moduleId: moduleIdByPath(['nhost', 'functions']),
+  },
+  {
+    file: 'session',
+    title: 'Session',
+    moduleId: moduleIdByPath(['nhost', 'session']),
+  },
+  {
+    file: 'fetch',
+    title: 'Fetch',
+    moduleId: moduleIdByPath(['nhost', 'fetch']),
+  },
+  {
+    file: 'middleware',
+    title: 'Middleware',
+    moduleId: moduleIdByPath(['nhost', 'middleware']),
+  },
 ];
 
 fs.mkdirSync(outDir, { recursive: true });
 for (const page of PAGES) {
   if (!page.moduleId) {
-    console.error(`warning: module for page '${page.file}' not found, skipping`);
+    console.error(
+      `warning: module for page '${page.file}' not found, skipping`,
+    );
     continue;
   }
   const modItem = item(page.moduleId);
