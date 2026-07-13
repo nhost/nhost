@@ -25,6 +25,14 @@ export default defineConfig({
   // makes the Vercel adapter emit 308 redirects from old `/path/` URLs so already
   // indexed pages and external backlinks keep working.
   trailingSlash: 'never',
+  // Short, memorable URL for the MCP onboarding file. The file itself lives at
+  // /install-mcp.md (in public/) so browsers render it inline and curl gets
+  // text/markdown; this redirect lets us share the extension-less form. curl -L
+  // follows the redirect, so `curl -fsSL https://docs.nhost.io/install-mcp | claude`
+  // still works.
+  redirects: {
+    '/install-mcp': '/install-mcp.md',
+  },
   // Astro 6.4 moved the GFM default onto the new `markdown.processor` (unified())
   // and left the legacy `markdown.gfm` flag undefined-by-default. But
   // @astrojs/mdx@5.0.6 still reads the legacy flag rather than the processor, so

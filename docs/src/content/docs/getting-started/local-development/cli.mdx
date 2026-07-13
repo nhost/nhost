@@ -169,16 +169,23 @@ Open the local dashboard by going to [https://local.dashboard.local.nhost.run](h
 
 The CLI ships an MCP server that lets an AI assistant read your GraphQL schema, run queries and mutations, and manage metadata and migrations against your local project. The fastest way to set it up is to hand the onboarding file to your assistant:
 
+<Tabs syncKey="assistant">
+<TabItem label="Claude Code">
 ```sh
-# Claude Code
-curl -fsSL https://docs.nhost.io/install-mcp.md | claude
-
-# Gemini CLI
-curl -fsSL https://docs.nhost.io/install-mcp.md | gemini
-
-# Any other assistant CLI
-curl -fsSL https://docs.nhost.io/install-mcp.md | <your-assistant-cli>
+curl -fsSL https://docs.nhost.io/install-mcp | claude
 ```
+</TabItem>
+<TabItem label="Gemini CLI">
+```sh
+curl -fsSL https://docs.nhost.io/install-mcp | gemini
+```
+</TabItem>
+<TabItem label="Other">
+```sh
+curl -fsSL https://docs.nhost.io/install-mcp | <your-assistant-cli>
+```
+</TabItem>
+</Tabs>
 
 See [MCP Development Setup](/platform/cli/mcp/development-setup) for the manual steps and client configuration.
 

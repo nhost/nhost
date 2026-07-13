@@ -24,18 +24,25 @@ This guide sets up the Nhost CLI's MCP server against your **local** project so 
 
 If you already have an AI assistant connected to your editor, it can perform the whole setup for you. Give it the onboarding file and let it run:
 
+<Tabs syncKey="assistant">
+<TabItem label="Claude Code">
 ```bash Terminal
-# Claude Code
-curl -fsSL https://docs.nhost.io/install-mcp.md | claude
-
-# Gemini CLI
-curl -fsSL https://docs.nhost.io/install-mcp.md | gemini
-
-# Any other assistant CLI
-curl -fsSL https://docs.nhost.io/install-mcp.md | <your-assistant-cli>
+curl -fsSL https://docs.nhost.io/install-mcp | claude
 ```
+</TabItem>
+<TabItem label="Gemini CLI">
+```bash Terminal
+curl -fsSL https://docs.nhost.io/install-mcp | gemini
+```
+</TabItem>
+<TabItem label="Other">
+```bash Terminal
+curl -fsSL https://docs.nhost.io/install-mcp | <your-assistant-cli>
+```
+</TabItem>
+</Tabs>
 
-You can also paste the contents of [`https://docs.nhost.io/install-mcp.md`](https://docs.nhost.io/install-mcp.md) into any coding assistant. It contains task-oriented instructions the assistant executes autonomously, then verifies the tools are available. Prefer the manual steps below? Continue reading.
+You can also paste the contents of [`https://docs.nhost.io/install-mcp`](https://docs.nhost.io/install-mcp) into any coding assistant. It contains task-oriented instructions the assistant executes autonomously, then verifies the tools are available. Prefer the manual steps below? Continue reading.
 
 ## 1. Create the configuration file
 
