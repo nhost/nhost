@@ -73,11 +73,18 @@ const { text } = Astro.props;
     opacity: 0.6;
     cursor: pointer;
     line-height: 0;
+    outline: none;
     transition: opacity 0.15s;
   }
 
   .copy-text-btn:hover {
     opacity: 1;
+  }
+
+  /* Neutral keyboard-focus ring only — no accent/blue outline on click. */
+  .copy-text-btn:focus-visible {
+    outline: 2px solid var(--sl-color-gray-3);
+    outline-offset: 1px;
   }
 
   .copy-text-tooltip {
