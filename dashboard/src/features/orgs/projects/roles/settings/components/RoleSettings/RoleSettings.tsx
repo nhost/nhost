@@ -12,11 +12,16 @@ import { Box } from '@/components/ui/v2/Box';
 import { Button } from '@/components/ui/v2/Button';
 import { Chip } from '@/components/ui/v2/Chip';
 import { Divider } from '@/components/ui/v2/Divider';
-import { Dropdown } from '@/components/ui/v2/Dropdown';
 import { IconButton } from '@/components/ui/v2/IconButton';
 import { List } from '@/components/ui/v2/List';
 import { ListItem } from '@/components/ui/v2/ListItem';
 import { Text } from '@/components/ui/v2/Text';
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+} from '@/components/ui/v3/dropdown-menu';
 import { useIsPlatform } from '@/features/orgs/projects/common/hooks/useIsPlatform';
 import { useLocalMimirClient } from '@/features/orgs/projects/hooks/useLocalMimirClient';
 import { useProject } from '@/features/orgs/projects/hooks/useProject';
@@ -210,54 +215,41 @@ export default function RoleSettings() {
                 <ListItem.Root
                   className="px-4"
                   secondaryAction={
-                    <Dropdown.Root>
-                      <Dropdown.Trigger
+                    <DropdownMenu>
+                      <DropdownMenuTrigger
                         asChild
-                        hideChevron
                         className="absolute top-1/2 right-4 -translate-y-1/2"
                       >
                         <IconButton variant="borderless" color="secondary">
                           <DotsVerticalIcon />
                         </IconButton>
-                      </Dropdown.Trigger>
+                      </DropdownMenuTrigger>
 
-                      <Dropdown.Content
-                        menu
-                        PaperProps={{ className: 'w-32' }}
-                        anchorOrigin={{
-                          vertical: 'bottom',
-                          horizontal: 'right',
-                        }}
-                        transformOrigin={{
-                          vertical: 'top',
-                          horizontal: 'right',
-                        }}
-                      >
-                        <Dropdown.Item onClick={() => handleSetAsDefault(role)}>
-                          <Text className="font-medium">Set as Default</Text>
-                        </Dropdown.Item>
+                      <DropdownMenuContent align="end" className="w-32 p-0">
+                        <DropdownMenuItem
+                          onClick={() => handleSetAsDefault(role)}
+                          className="flex h-9 cursor-pointer items-center justify-start gap-2 rounded-none border border-b-1 p-2 font-medium text-sm+ leading-4 hover:bg-data-cell-bg"
+                        >
+                          <span>Set as Default</span>
+                        </DropdownMenuItem>
 
-                        <Divider component="li" />
-
-                        <Dropdown.Item
+                        <DropdownMenuItem
                           disabled={role.isSystemRole}
                           onClick={() => handleOpenEditor(role)}
+                          className="flex h-9 cursor-pointer items-center justify-start gap-2 rounded-none border border-b-1 p-2 font-medium text-sm+ leading-4 hover:bg-data-cell-bg"
                         >
-                          <Text className="font-medium">Edit</Text>
-                        </Dropdown.Item>
+                          <span>Edit</span>
+                        </DropdownMenuItem>
 
-                        <Divider component="li" />
-
-                        <Dropdown.Item
+                        <DropdownMenuItem
                           disabled={role.isSystemRole}
                           onClick={() => handleConfirmDelete(role)}
+                          className="!text-destructive flex h-9 cursor-pointer items-center justify-start gap-2 rounded-none border border-b-1 p-2 font-medium text-sm+ leading-4 hover:bg-data-cell-bg"
                         >
-                          <Text className="font-medium" color="error">
-                            Delete
-                          </Text>
-                        </Dropdown.Item>
-                      </Dropdown.Content>
-                    </Dropdown.Root>
+                          <span>Delete</span>
+                        </DropdownMenuItem>
+                      </DropdownMenuContent>
+                    </DropdownMenu>
                   }
                 >
                   <ListItem.Text

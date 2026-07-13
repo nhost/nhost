@@ -13,7 +13,7 @@ export default function BackupsPage() {
   const { isPiTREnabled, loading: isPiTREnabledLoading } = useIsPiTREnabled();
 
   if (loading || isPiTREnabledLoading) {
-    return <Spinner delay={1000}>Loading project...</Spinner>;
+    return <Spinner>Loading project...</Spinner>;
   }
 
   const isPlanFree = org!.plan.isFree;

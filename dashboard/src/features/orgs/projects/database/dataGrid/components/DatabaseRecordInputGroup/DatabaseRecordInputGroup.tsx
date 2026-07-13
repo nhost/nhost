@@ -9,6 +9,7 @@ import { InlineCode } from '@/components/ui/v3/inline-code';
 import { SelectItem } from '@/components/ui/v3/select';
 import type { DataBrowserColumnMetadata } from '@/features/orgs/projects/database/dataGrid/types/dataBrowser/dataBrowser';
 import { getInputType } from '@/features/orgs/projects/database/dataGrid/utils/inputHelpers';
+import { POSTGRES_DEFAULT_PLACEHOLDER } from '@/features/orgs/projects/database/dataGrid/utils/postgresDefaultPlaceholder';
 import {
   isDateType,
   isTimestampType,
@@ -38,28 +39,23 @@ export interface DatabaseRecordInputGroupProps {
   className?: string;
 }
 
-function getBooleanValueTransformer(isNullable: boolean) {
-  return function transformBooleanValue(value: string | null) {
-    let convertedValue = value;
+function getInputValueTransformer(hasDefault: boolean) {
+  return {
+    in(value: string | null) {
+      if (value === null || value === POSTGRES_DEFAULT_PLACEHOLDER) {
+        return '';
+      }
 
-    if (convertedValue === null) {
-      convertedValue = isNullable ? 'null' : '';
-    } else if (convertedValue === 'null' || convertedValue === '') {
-      convertedValue = null;
-    }
+      return value;
+    },
+    out(event: ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) {
+      if (event.target.value !== '') {
+        return event.target.value;
+      }
 
-    return convertedValue;
+      return hasDefault ? POSTGRES_DEFAULT_PLACEHOLDER : null;
+    },
   };
-}
-
-function convertNullToEmptyString(value: string | null) {
-  return value === null ? '' : value;
-}
-
-function convertEmptyStringToNull(
-  event: ChangeEvent<HTMLInputElement | HTMLTextAreaElement>,
-) {
-  return event.target.value === '' ? null : event.target.value;
 }
 
 function getDefaultPlaceholder(
@@ -166,10 +162,6 @@ export default function DatabaseRecordInputGroup({
                 label={inputLabel}
                 placeholder="Select an option"
                 helperText={comment}
-                transform={{
-                  in: getBooleanValueTransformer(!!isNullable),
-                  out: getBooleanValueTransformer(!!isNullable),
-                }}
               >
                 <SelectItem value="true">
                   <ReadOnlyToggle checked />
@@ -182,6 +174,12 @@ export default function DatabaseRecordInputGroup({
                 {isNullable && (
                   <SelectItem value="null">
                     <ReadOnlyToggle checked={null} />
+                  </SelectItem>
+                )}
+
+                {hasDefault && (
+                  <SelectItem value={POSTGRES_DEFAULT_PLACEHOLDER}>
+                    <span className="text-muted-foreground">DEFAULT</span>
                   </SelectItem>
                 )}
               </FormSelect>
@@ -250,12 +248,9 @@ export default function DatabaseRecordInputGroup({
               label={inputLabel}
               placeholder={placeholder}
               helperText={comment}
-              transform={{
-                in: convertNullToEmptyString,
-                out: convertEmptyStringToNull,
-              }}
+              transform={getInputValueTransformer(hasDefault)}
               className={cn(
-                { 'resize-none': isMultiline },
+                { 'resize-y': isMultiline },
                 'focus-visible:ring-0',
               )}
               type={getInputType(baseType)}
