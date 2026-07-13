@@ -6,7 +6,7 @@ describe('useCommandPaletteShortcut', () => {
   it('calls onToggle for command/control K', () => {
     const onToggle = vi.fn();
 
-    renderHook(() => useCommandPaletteShortcut({ onToggle }));
+    renderHook(() => useCommandPaletteShortcut({ open: false, onToggle }));
 
     window.dispatchEvent(
       new KeyboardEvent('keydown', { key: 'k', metaKey: true }),
@@ -24,13 +24,30 @@ describe('useCommandPaletteShortcut', () => {
     document.body.append(input);
     input.focus();
 
-    renderHook(() => useCommandPaletteShortcut({ onToggle }));
+    renderHook(() => useCommandPaletteShortcut({ open: false, onToggle }));
 
     window.dispatchEvent(
       new KeyboardEvent('keydown', { key: 'k', metaKey: true }),
     );
 
     expect(onToggle).not.toHaveBeenCalled();
+
+    input.remove();
+  });
+
+  it('toggles from an editable element while the palette is open', () => {
+    const onToggle = vi.fn();
+    const input = document.createElement('input');
+    document.body.append(input);
+    input.focus();
+
+    renderHook(() => useCommandPaletteShortcut({ open: true, onToggle }));
+
+    window.dispatchEvent(
+      new KeyboardEvent('keydown', { key: 'k', metaKey: true }),
+    );
+
+    expect(onToggle).toHaveBeenCalledTimes(1);
 
     input.remove();
   });

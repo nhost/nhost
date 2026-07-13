@@ -2,34 +2,37 @@ import { Box, Building2 } from 'lucide-react';
 import { useRouter } from 'next/router';
 import {
   createContext,
-  type Dispatch,
   type ReactNode,
-  type SetStateAction,
   useCallback,
   useContext,
-  useEffect,
   useMemo,
   useReducer,
   useState,
 } from 'react';
 
+import {
+  isPageGated,
+  type NavGating,
+} from '@/components/layout/MainNav/nav-config';
 import { CommandPalette } from '@/features/command-palette/components/CommandPalette';
 import { useCommandPaletteShortcut } from '@/features/command-palette/hooks/useCommandPaletteShortcut';
 import { useRecent } from '@/features/command-palette/hooks/useRecent';
+import { flattenTree } from '@/features/command-palette/lib/flatten';
 import {
   commandPaletteReducer,
-  drill,
+  getScopeRoot,
+  getSearchCandidates,
   getVisibleItems,
   initialCommandPaletteState,
-  popScope,
-  reset,
-  setQuery,
+  isContainer,
+  toScoredNode,
 } from '@/features/command-palette/lib/machine';
-import { resolvePath } from '@/features/command-palette/lib/resolvePath';
 import {
-  commandPaletteNavTree,
-  platformGatedNodeIds,
-} from '@/features/command-palette/nav-tree';
+  getQueryString,
+  isExternalNode,
+  resolvePath,
+} from '@/features/command-palette/lib/resolvePath';
+import { commandPaletteNavTree } from '@/features/command-palette/nav-tree';
 import type {
   CommandNode,
   RecentEntry,
@@ -38,29 +41,18 @@ import type {
 import { useIsPlatform } from '@/features/orgs/projects/common/hooks/useIsPlatform';
 import { useOrgs } from '@/features/orgs/projects/hooks/useOrgs';
 import { useProject } from '@/features/orgs/projects/hooks/useProject';
-import {
-  getConfigServerUrl,
-  isPlatform as getStaticIsPlatform,
-} from '@/utils/env';
+import { useSettingsDisabled } from '@/hooks/useSettingsDisabled';
+import { isNotEmptyValue } from '@/lib/utils';
 
-interface CommandPaletteOpenContextType {
-  open: boolean;
-  setOpen: Dispatch<SetStateAction<boolean>>;
+interface CommandPaletteContextType {
   openCommandPalette: VoidFunction;
-  closeCommandPalette: VoidFunction;
 }
 
 const noOp = () => {};
 
-const defaultOpenContext: CommandPaletteOpenContextType = {
-  open: false,
-  setOpen: noOp,
+const CommandPaletteContext = createContext<CommandPaletteContextType>({
   openCommandPalette: noOp,
-  closeCommandPalette: noOp,
-};
-
-const CommandPaletteOpenContext =
-  createContext<CommandPaletteOpenContextType>(defaultOpenContext);
+});
 
 interface CommandPaletteProviderProps {
   children: ReactNode;
@@ -83,77 +75,39 @@ type RuntimeCommandNode = CommandNode & {
   commandPalette?: CommandNodeMetadata;
 };
 
-const toScoredNode = (node: CommandNode): ScoredNode => ({
-  node,
-  score: 0,
-  titleRanges: [],
-});
+const NO_NODES: CommandNode[] = [];
+const NO_ITEMS: ScoredNode[] = [];
 
-const getQueryString = (value: string | string[] | undefined) =>
-  Array.isArray(value) ? value[0] : value;
+interface PaletteGating extends NavGating {
+  projectActive: boolean;
+}
 
-const findNodeById = (
-  root: CommandNode,
-  nodeId: string,
-): CommandNode | undefined => {
-  if (root.id === nodeId) {
-    return root;
-  }
+const isNodeGated = (node: CommandNode, gating: PaletteGating) =>
+  isPageGated(node.gate, gating) ||
+  (node.scope === 'project' && !gating.projectActive);
 
-  for (const child of root.children ?? []) {
-    const match = findNodeById(child, nodeId);
-
-    if (match) {
-      return match;
-    }
-  }
-
-  return undefined;
-};
-
-const filterTreeForPlatform = (
+// Gates only children, so the root always survives filtering.
+const filterNavTree = (
   node: CommandNode,
-  platformEnabled: boolean,
-): CommandNode | undefined => {
-  const isPlatformGated =
-    node.requiresPlatform === true ||
-    platformGatedNodeIds.has(
-      node.id as Parameters<typeof platformGatedNodeIds.has>[0],
-    );
-  const configServerVariableNotSet = getConfigServerUrl() === '';
-  const shouldHideLocalSettings =
-    node.id === 'project-settings' &&
-    !platformEnabled &&
-    configServerVariableNotSet;
-  const isLocalAiSettings =
-    node.id === 'project-settings-ai' &&
-    !platformEnabled &&
-    configServerVariableNotSet;
-
-  if (
-    (!platformEnabled && isPlatformGated) ||
-    shouldHideLocalSettings ||
-    isLocalAiSettings
-  ) {
-    return undefined;
-  }
-
-  return {
-    ...node,
-    children: node.children
-      ?.map((child) => filterTreeForPlatform(child, platformEnabled))
-      .filter((child): child is CommandNode => Boolean(child)),
-  };
-};
+  gating: PaletteGating,
+): CommandNode => ({
+  ...node,
+  children: node.children
+    ?.filter((child) => !isNodeGated(child, gating))
+    .map((child) => filterNavTree(child, gating)),
+});
 
 const createRecentNode = (
   entry: RecentEntry,
   originalNode: CommandNode,
+  orgName?: string,
 ): RuntimeCommandNode => ({
   ...originalNode,
   id: `recent:${entry.nodeId}:${entry.orgSlug ?? ''}:${entry.appSubdomain ?? ''}`,
   title: entry.title,
-  hint: [entry.orgSlug, entry.appSubdomain].filter(Boolean).join(' / '),
+  hint: [orgName ?? entry.orgSlug, entry.appSubdomain]
+    .filter(Boolean)
+    .join(' / '),
   commandPalette: {
     source: 'recent',
     originalNode,
@@ -175,39 +129,49 @@ const projectExists = (
   );
 };
 
-const getRootPageItems = (tree: CommandNode): ScoredNode[] => {
-  const projectPages = findNodeById(tree, 'project-pages')?.children ?? [];
-  const orgPages = findNodeById(tree, 'org-pages')?.children ?? [];
-  const docs = findNodeById(tree, 'docs');
+const getRootPageItems = (tree: CommandNode): ScoredNode[] =>
+  (tree.children ?? [])
+    .flatMap((child) => (isContainer(child) ? (child.children ?? []) : [child]))
+    .map(toScoredNode);
 
-  return [...projectPages, ...orgPages, ...(docs ? [docs] : [])].map(
-    toScoredNode,
-  );
-};
-
-function useFilteredNavTree() {
-  const isPlatform = useIsPlatform();
-  const staticIsPlatform = getStaticIsPlatform();
-  const platformEnabled = isPlatform && staticIsPlatform;
-
-  return useMemo(
-    () =>
-      filterTreeForPlatform(commandPaletteNavTree, platformEnabled) ?? {
-        ...commandPaletteNavTree,
-        children: [],
-      },
-    [platformEnabled],
-  );
-}
-
-function useSwitchItems() {
-  const isPlatform = useIsPlatform();
-  const { orgs } = useOrgs();
-  const { project } = useProject();
+function useNavTrees(open: boolean, projectActive: boolean) {
+  const platformEnabled = useIsPlatform();
+  const settingsDisabled = useSettingsDisabled();
 
   return useMemo(() => {
-    if (!isPlatform) {
-      return [];
+    if (!open) {
+      return {
+        tree: commandPaletteNavTree,
+        displayTree: commandPaletteNavTree,
+      };
+    }
+
+    const gating: PaletteGating = {
+      isNotPlatform: !platformEnabled,
+      shouldDisableSettings: settingsDisabled,
+      projectActive: true,
+    };
+    // `tree` keeps project pages so recent entries from other projects still
+    // resolve; `displayTree` additionally hides them while no project is open.
+    const tree = filterNavTree(commandPaletteNavTree, gating);
+    const displayTree = projectActive
+      ? tree
+      : filterNavTree(commandPaletteNavTree, {
+          ...gating,
+          projectActive: false,
+        });
+
+    return { tree, displayTree };
+  }, [open, platformEnabled, settingsDisabled, projectActive]);
+}
+
+function useSwitchNodes(enabled: boolean): RuntimeCommandNode[] {
+  const isPlatform = useIsPlatform();
+  const { orgs } = useOrgs();
+
+  return useMemo(() => {
+    if (!enabled || !isPlatform) {
+      return NO_NODES;
     }
 
     return orgs.flatMap((org) => {
@@ -219,51 +183,50 @@ function useSwitchItems() {
         path: 'projects',
         scope: 'org',
         hint: org.slug,
+        keywords: [org.slug],
         commandPalette: {
           source: 'switch',
           orgSlug: org.slug,
         },
       };
 
-      const projectNodes = org.apps.map((app) => {
-        const node: RuntimeCommandNode = {
+      const projectNodes = org.apps.map(
+        (app): RuntimeCommandNode => ({
           id: `switch:project:${org.slug}:${app.subdomain}`,
           title: app.name,
           icon: <Box />,
           kind: 'project',
           path: '',
           scope: 'project',
-          hint: `${org.slug} / ${app.subdomain}`,
+          hint: `${org.name} / ${app.subdomain}`,
+          keywords: [org.name, org.slug, app.subdomain],
           commandPalette: {
             source: 'switch',
             orgSlug: org.slug,
             appSubdomain: app.subdomain,
           },
-        };
+        }),
+      );
 
-        return node;
-      });
-
-      return [orgNode, ...projectNodes].filter((node) => {
-        const metadata = node.commandPalette;
-
-        return (
-          metadata?.source !== 'switch' ||
-          metadata.appSubdomain !== project?.subdomain ||
-          metadata.orgSlug !== org.slug
-        );
-      });
+      return [orgNode, ...projectNodes];
     });
-  }, [isPlatform, orgs, project?.subdomain]);
+  }, [enabled, isPlatform, orgs]);
 }
 
-function useRecentItems(tree: CommandNode) {
-  const { recent } = useRecent();
+function useRecentItems(
+  tree: CommandNode,
+  recent: RecentEntry[],
+  enabled: boolean,
+) {
   const { orgs } = useOrgs();
   const { project } = useProject();
   const router = useRouter();
 
   return useMemo(() => {
+    if (!enabled) {
+      return NO_ITEMS;
+    }
+
     const currentOrgSlug = getQueryString(router.query.orgSlug);
     const availableProjects = new Set(
       orgs.flatMap((org) =>
@@ -275,17 +238,26 @@ function useRecentItems(tree: CommandNode) {
       availableProjects.add(`${currentOrgSlug ?? ''}:${project.subdomain}`);
     }
 
+    const nodesById = new Map(flattenTree(tree).map((node) => [node.id, node]));
+    const orgNamesBySlug = new Map(orgs.map((org) => [org.slug, org.name]));
+
     return recent
       .filter((entry) => projectExists(entry, availableProjects))
       .map((entry) => {
-        const originalNode = findNodeById(tree, entry.nodeId);
+        const originalNode = nodesById.get(entry.nodeId);
 
         return originalNode
-          ? toScoredNode(createRecentNode(entry, originalNode))
+          ? toScoredNode(
+              createRecentNode(
+                entry,
+                originalNode,
+                orgNamesBySlug.get(entry.orgSlug ?? ''),
+              ),
+            )
           : undefined;
       })
-      .filter((item): item is ScoredNode => Boolean(item));
-  }, [orgs, project?.subdomain, recent, router.query.orgSlug, tree]);
+      .filter(isNotEmptyValue);
+  }, [enabled, orgs, project?.subdomain, recent, router.query.orgSlug, tree]);
 }
 
 const getNavigationNode = (node: RuntimeCommandNode): CommandNode => {
@@ -296,126 +268,83 @@ const getNavigationNode = (node: RuntimeCommandNode): CommandNode => {
   return node;
 };
 
-const getNavigationScope = (
-  node: RuntimeCommandNode,
-  routerQuery: {
-    orgSlug?: string | string[];
-    appSubdomain?: string | string[];
-  },
-) => {
-  if (node.commandPalette?.source === 'recent') {
-    // Recent must navigate using the org/project captured when the entry was stored.
-    return {
-      orgSlug: node.commandPalette.orgSlug,
-      appSubdomain: node.commandPalette.appSubdomain,
-    };
-  }
-
-  if (node.commandPalette?.source === 'switch') {
-    return {
-      orgSlug: node.commandPalette.orgSlug,
-      appSubdomain: node.commandPalette.appSubdomain,
-    };
-  }
-
-  return {
-    orgSlug: routerQuery.orgSlug,
-    appSubdomain: routerQuery.appSubdomain,
-  };
-};
-
 export function CommandPaletteProvider({
   children,
 }: CommandPaletteProviderProps) {
   const router = useRouter();
-  const tree = useFilteredNavTree();
   const [open, setOpen] = useState(false);
   const [state, dispatch] = useReducer(
     commandPaletteReducer,
     initialCommandPaletteState,
   );
-  const { pushRecent } = useRecent();
-  const recentItems = useRecentItems(tree);
-  const switchItems = useSwitchItems().map(toScoredNode);
   const hasActiveProject = Boolean(getQueryString(router.query.appSubdomain));
-  const displayTree = useMemo(
-    () =>
-      hasActiveProject
-        ? tree
-        : {
-            ...tree,
-            children: tree.children?.filter(
-              (child) => child.scope !== 'project',
-            ),
-          },
-    [tree, hasActiveProject],
+  const { tree, displayTree } = useNavTrees(open, hasActiveProject);
+  const { recent, pushRecent } = useRecent();
+  const recentItems = useRecentItems(tree, recent, open);
+  const switchNodes = useSwitchNodes(open);
+  const switchItems = useMemo(
+    () => switchNodes.map(toScoredNode),
+    [switchNodes],
+  );
+
+  const scopeRoot = getScopeRoot(state, displayTree);
+  const searchCandidates = useMemo(
+    () => (open ? getSearchCandidates(scopeRoot) : NO_NODES),
+    [open, scopeRoot],
   );
   const items = useMemo(
-    () => getVisibleItems(state, displayTree),
-    [state, displayTree],
+    () =>
+      open
+        ? getVisibleItems(state, scopeRoot, searchCandidates, switchNodes)
+        : NO_ITEMS,
+    [open, state, scopeRoot, searchCandidates, switchNodes],
   );
-  const pageItems = useMemo(() => getRootPageItems(displayTree), [displayTree]);
+  const pageItems = useMemo(
+    () => (open ? getRootPageItems(displayTree) : NO_ITEMS),
+    [open, displayTree],
+  );
 
   const openCommandPalette = useCallback(() => setOpen(true), []);
-  const closeCommandPalette = useCallback(() => setOpen(false), []);
-
-  useCommandPaletteShortcut({
-    onToggle: () => setOpen((currentOpen) => !currentOpen),
-  });
-
-  useEffect(() => {
-    if (!open) {
-      return undefined;
-    }
-
-    const handleOpenShortcut = (event: KeyboardEvent) => {
-      if (
-        event.key === 'Escape' ||
-        ((event.metaKey || event.ctrlKey) && event.key.toLowerCase() === 'k')
-      ) {
-        event.preventDefault();
-        setOpen(false);
-        dispatch(reset());
-      }
-    };
-
-    window.addEventListener('keydown', handleOpenShortcut, true);
-
-    return () => {
-      window.removeEventListener('keydown', handleOpenShortcut, true);
-    };
-  }, [open]);
 
   const handleOpenChange = useCallback((nextOpen: boolean) => {
     setOpen(nextOpen);
 
     if (!nextOpen) {
-      dispatch(reset());
+      dispatch({ type: 'reset' });
     }
   }, []);
+
+  const toggleCommandPalette = useCallback(
+    () => handleOpenChange(!open),
+    [handleOpenChange, open],
+  );
+
+  useCommandPaletteShortcut({ open, onToggle: toggleCommandPalette });
 
   const handleNavigate = useCallback(
     (node: CommandNode) => {
       const runtimeNode = node as RuntimeCommandNode;
       const navigationNode = getNavigationNode(runtimeNode);
-      const targetScope = getNavigationScope(runtimeNode, router.query);
+      const currentOrgSlug = getQueryString(router.query.orgSlug);
+      const currentAppSubdomain = getQueryString(router.query.appSubdomain);
+      const targetScope = runtimeNode.commandPalette
+        ? {
+            orgSlug: runtimeNode.commandPalette.orgSlug,
+            appSubdomain: runtimeNode.commandPalette.appSubdomain,
+          }
+        : { orgSlug: currentOrgSlug, appSubdomain: currentAppSubdomain };
       const href = resolvePath(navigationNode, targetScope);
 
       if (!href) {
         return;
       }
 
-      if (
-        navigationNode.scope === 'external' ||
-        navigationNode.kind === 'doc'
-      ) {
+      if (isExternalNode(navigationNode)) {
         window.open(href, '_blank', 'noopener,noreferrer');
         handleOpenChange(false);
         return;
       }
 
-      const currentOrgSlug = getQueryString(router.query.orgSlug);
-      const currentAppSubdomain = getQueryString(router.query.appSubdomain);
       const switchesScope =
         targetScope.orgSlug !== currentOrgSlug ||
         targetScope.appSubdomain !== currentAppSubdomain;
@@ -425,9 +354,13 @@ export function CommandPaletteProvider({
         nodeId: navigationNode.id,
         title: navigationNode.title,
         path: navigationNode.path ?? href,
-        orgSlug: getQueryString(targetScope.orgSlug) ?? currentOrgSlug,
+        orgSlug: targetScope.orgSlug ?? currentOrgSlug,
+        // Org-scoped pages ignore the project, so recording the subdomain
+        // would split one destination across several recent entries.
         appSubdomain:
-          getQueryString(targetScope.appSubdomain) ?? currentAppSubdomain,
+          navigationNode.scope === 'project'
+            ? (targetScope.appSubdomain ?? currentAppSubdomain)
+            : undefined,
       });
       handleOpenChange(false);
     },
@@ -435,20 +368,20 @@ export function CommandPaletteProvider({
   );
 
   const contextValue = useMemo(
-    () => ({ open, setOpen, openCommandPalette, closeCommandPalette }),
-    [closeCommandPalette, open, openCommandPalette],
+    () => ({ openCommandPalette }),
+    [openCommandPalette],
   );
 
   return (
-    <CommandPaletteOpenContext.Provider value={contextValue}>
+    <CommandPaletteContext.Provider value={contextValue}>
       {children}
       <CommandPalette
         items={items}
-        onDrill={(node) => dispatch(drill(node))}
+        onDrill={(node) => dispatch({ type: 'drill', node })}
         onNavigate={handleNavigate}
         onOpenChange={handleOpenChange}
-        onPopScope={() => dispatch(popScope())}
-        onQueryChange={(query) => dispatch(setQuery(query))}
+        onPopScope={() => dispatch({ type: 'popScope' })}
+        onQueryChange={(query) => dispatch({ type: 'setQuery', query })}
         open={open}
         pageItems={pageItems}
         query={state.query}
@@ -456,9 +389,9 @@ export function CommandPaletteProvider({
         scopeStack={state.scopeStack}
         switchItems={switchItems}
       />
-    </CommandPaletteOpenContext.Provider>
+    </CommandPaletteContext.Provider>
   );
 }
 
-export const useCommandPaletteOpen = (): CommandPaletteOpenContextType =>
-  useContext(CommandPaletteOpenContext);
+export const useCommandPaletteOpen = (): CommandPaletteContextType =>
+  useContext(CommandPaletteContext);

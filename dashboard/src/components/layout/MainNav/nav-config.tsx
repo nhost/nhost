@@ -21,9 +21,26 @@ import {
 import type { ReactElement } from 'react';
 import type { TreeItem, TreeItemIndex } from 'react-complex-tree';
 import type { Org } from '@/features/orgs/projects/hooks/useOrgs';
-import { getConfigServerUrl, isPlatform as getIsPlatform } from '@/utils/env';
+import { isSettingsDisabled } from '@/hooks/useSettingsDisabled';
+import { isPlatform as getIsPlatform } from '@/utils/env';
 
-export const projectPages = [
+// 'platform' pages need the hosted platform; 'settings' pages also work
+// self-hosted when a config server is set.
+export type PageGate = 'platform' | 'settings';
+
+interface PageEntry<Slug extends string = string> {
+  name: string;
+  slug: Slug;
+  route: string;
+  icon?: ReactElement;
+  gate?: PageGate;
+}
+
+const definePages = <Slugs extends string>(
+  pages: ReadonlyArray<PageEntry<Slugs>>,
+): ReadonlyArray<PageEntry<Slugs>> => pages;
+
+export const projectPages = definePages([
   {
     name: 'Overview',
     icon: <HomeIcon className="h-4 w-4" />,
@@ -83,18 +100,21 @@ export const projectPages = [
     icon: <AIIcon className="h-4 w-4" />,
     route: 'ai/auto-embeddings',
     slug: 'ai',
+    gate: 'settings',
   },
   {
     name: 'Deployments',
     icon: <RocketIcon className="h-4 w-4" />,
     route: 'deployments',
     slug: 'deployments',
+    gate: 'platform',
   },
   {
     name: 'Backups',
     icon: <CloudIcon className="h-4 w-4" />,
     route: 'backups',
     slug: 'backups',
+    gate: 'platform',
   },
   {
     name: 'Logs',
@@ -107,15 +127,17 @@ export const projectPages = [
     icon: <GaugeIcon className="h-4 w-4" />,
     route: 'metrics',
     slug: 'metrics',
+    gate: 'platform',
   },
   {
     name: 'Settings',
     route: 'settings',
     slug: 'settings',
+    gate: 'settings',
   },
-];
+]);
 
-export const projectSettingsPages = [
+export const projectSettingsPages = definePages([
   { name: 'General', slug: 'general', route: '' },
   {
     name: 'Compute Resources',
@@ -171,9 +193,9 @@ export const projectSettingsPages = [
   { name: 'AI', slug: 'ai', route: 'ai' },
   { name: 'Observability', slug: 'metrics', route: 'metrics' },
   { name: 'Configuration Editor', slug: 'editor', route: 'editor' },
-];
+]);
 
-export const projectGraphQLPages = [
+export const projectGraphQLPages = definePages([
   {
     name: 'Playground',
     slug: 'playground',
@@ -189,9 +211,9 @@ export const projectGraphQLPages = [
     slug: 'metadata',
     route: 'graphql/metadata',
   },
-];
+]);
 
-export const projectEventsPages = [
+export const projectEventsPages = definePages([
   {
     name: 'Event Triggers',
     slug: 'event-triggers',
@@ -207,9 +229,9 @@ export const projectEventsPages = [
     slug: 'one-offs',
     route: 'events/one-offs',
   },
-];
+]);
 
-export const projectAuthPages = [
+export const projectAuthPages = definePages([
   {
     name: 'Users',
     slug: 'users',
@@ -220,9 +242,9 @@ export const projectAuthPages = [
     slug: 'oauth2-clients',
     route: 'auth/oauth2-clients',
   },
-];
+]);
 
-export const projectDatabasePages = [
+export const projectDatabasePages = definePages([
   {
     name: 'Table Editor & Browser',
     slug: 'browser',
@@ -233,13 +255,38 @@ export const projectDatabasePages = [
     slug: 'schema',
     route: 'database/schema/default',
   },
-];
+]);
+
+// Not rendered by MainNav (AI has no folder there), but cataloged here so the
+// command palette derives AI sub-pages from the same source as everything else.
+export const projectAIPages = definePages([
+  {
+    name: 'Auto-embeddings',
+    slug: 'auto-embeddings',
+    route: 'ai/auto-embeddings',
+  },
+  { name: 'Assistants', slug: 'assistants', route: 'ai/assistants' },
+  { name: 'File stores', slug: 'file-stores', route: 'ai/file-stores' },
+]);
+
+export const orgPages = definePages([
+  { name: 'Projects', slug: 'projects', route: 'projects' },
+  { name: 'Settings', slug: 'settings', route: 'settings', gate: 'platform' },
+  { name: 'Members', slug: 'members', route: 'members', gate: 'platform' },
+  { name: 'Billing', slug: 'billing', route: 'billing', gate: 'platform' },
+]);
 
 export type NavGating = {
   isNotPlatform: boolean;
   shouldDisableSettings: boolean;
-  shouldDisableGraphite: boolean;
 };
+
+export const isPageGated = (
+  gate: PageGate | undefined,
+  gating: NavGating,
+): boolean =>
+  (gate === 'platform' && gating.isNotPlatform) ||
+  (gate === 'settings' && gating.shouldDisableSettings);
 
 export type NavItem = {
   name: string;
@@ -255,79 +302,48 @@ export type NavItem = {
 
 type NavTreeItems = Record<TreeItemIndex, TreeItem<NavItem>>;
 
-export type ProjectPage = (typeof projectPages)[number];
+type ProjectPage = (typeof projectPages)[number];
 type SettingsPage = (typeof projectSettingsPages)[number];
-type ProjectSubPage =
-  | (typeof projectGraphQLPages)[number]
-  | (typeof projectEventsPages)[number]
-  | (typeof projectAuthPages)[number]
-  | (typeof projectDatabasePages)[number];
 
-export const getNavGating = (): NavGating => {
-  const isNotPlatform = !getIsPlatform();
-  const configServerVariableNotSet = getConfigServerUrl() === '';
-  const shouldDisableSettings = isNotPlatform && configServerVariableNotSet;
-  const shouldDisableGraphite = shouldDisableSettings;
+const getNavGating = (): NavGating => ({
+  isNotPlatform: !getIsPlatform(),
+  shouldDisableSettings: isSettingsDisabled(),
+});
 
-  return { isNotPlatform, shouldDisableSettings, shouldDisableGraphite };
-};
+const getOrgProjectsUrl = (org: Org) => `/orgs/${org.slug}/projects`;
 
-export const getOrgProjectsUrl = (org: Org) => `/orgs/${org.slug}/projects`;
+const getNewProjectUrl = (org: Org) => `${getOrgProjectsUrl(org)}/new`;
 
-export const getOrgSettingsUrl = (org: Org) => `/orgs/${org.slug}/settings`;
-
-export const getOrgMembersUrl = (org: Org) => `/orgs/${org.slug}/members`;
-
-export const getOrgBillingUrl = (org: Org) => `/orgs/${org.slug}/billing`;
-
-export const getNewProjectUrl = (org: Org) => `${getOrgProjectsUrl(org)}/new`;
-
-export const getProjectBaseUrl = (org: Org, app: Org['apps'][number]) =>
+const getProjectBaseUrl = (org: Org, app: Org['apps'][number]) =>
   `${getOrgProjectsUrl(org)}/${app.subdomain}`;
 
-export const getProjectPageUrl = (
+const getProjectPageUrl = (
   org: Org,
   app: Org['apps'][number],
-  page: ProjectPage,
+  page: { route: string },
 ) => `${getProjectBaseUrl(org, app)}/${page.route}`;
 
-export const getProjectSettingsPageUrl = (
+export const getSettingsPageRoute = (page: { route: string }) =>
+  page.route ? `settings/${page.route}` : 'settings';
+
+const getProjectSettingsPageUrl = (
   org: Org,
   app: Org['apps'][number],
   page: SettingsPage,
-) =>
-  page.slug === 'general'
-    ? `${getProjectBaseUrl(org, app)}/settings`
-    : `${getProjectBaseUrl(org, app)}/settings/${page.route}`;
+) => `${getProjectBaseUrl(org, app)}/${getSettingsPageRoute(page)}`;
 
-export const getProjectSubPageUrl = (
-  org: Org,
-  app: Org['apps'][number],
-  page: ProjectSubPage,
-) => `${getProjectBaseUrl(org, app)}/${page.route}`;
+const projectSubPagesBySlug: Partial<
+  Record<ProjectPage['slug'], ReadonlyArray<PageEntry>>
+> = {
+  database: projectDatabasePages,
+  graphql: projectGraphQLPages,
+  events: projectEventsPages,
+  auth: projectAuthPages,
+};
 
-export const projectFolderPageSlugs = new Set([
-  'database',
-  'graphql',
-  'events',
-  'auth',
-  'settings',
-]);
-
-export const isProjectPageFolder = (page: ProjectPage, gating: NavGating) =>
-  projectFolderPageSlugs.has(page.slug) &&
-  (page.slug !== 'settings' || !gating.shouldDisableSettings);
-
-export const isProjectPageHiddenFromPalette = (
-  page: ProjectPage,
-  gating: NavGating,
-) => page.slug === 'ai' && gating.isNotPlatform;
-
-export const isProjectPageDisabled = (page: ProjectPage, gating: NavGating) =>
-  (['deployments', 'backups', 'metrics'].includes(page.slug) &&
-    gating.isNotPlatform) ||
-  (page.name === 'Settings' && gating.shouldDisableSettings) ||
-  (page.name === 'AI' && gating.shouldDisableGraphite);
+const isProjectPageFolder = (page: ProjectPage, gating: NavGating) =>
+  Boolean(projectSubPagesBySlug[page.slug]) ||
+  (page.slug === 'settings' && !gating.shouldDisableSettings);
 
 const getProjectPageChildren = (
   org: Org,
@@ -335,35 +351,20 @@ const getProjectPageChildren = (
   page: ProjectPage,
   gating: NavGating,
 ) => {
-  if (page.name === 'Settings' && !gating.shouldDisableSettings) {
-    return projectSettingsPages.map(
-      (p) => `${org.slug}-${app.subdomain}-settings-${p.slug}`,
-    );
+  if (page.slug === 'settings') {
+    return gating.shouldDisableSettings
+      ? undefined
+      : projectSettingsPages.map(
+          (p) => `${org.slug}-${app.subdomain}-settings-${p.slug}`,
+        );
   }
-  if (page.name === 'GraphQL') {
-    return projectGraphQLPages.map(
-      (p) => `${org.slug}-${app.subdomain}-graphql-${p.slug}`,
-    );
-  }
-  if (page.name === 'Events') {
-    return projectEventsPages.map(
-      (p) => `${org.slug}-${app.subdomain}-events-${p.slug}`,
-    );
-  }
-  if (page.name === 'Auth') {
-    return projectAuthPages.map(
-      (p) => `${org.slug}-${app.subdomain}-auth-${p.slug}`,
-    );
-  }
-  if (page.name === 'Database') {
-    return projectDatabasePages.map(
-      (p) => `${org.slug}-${app.subdomain}-database-${p.slug}`,
-    );
-  }
-  return undefined;
+
+  return projectSubPagesBySlug[page.slug]?.map(
+    (p) => `${org.slug}-${app.subdomain}-${page.slug}-${p.slug}`,
+  );
 };
 
-export const createOrganization = (org: Org): NavTreeItems => {
+const createOrganization = (org: Org): NavTreeItems => {
   const gating = getNavGating();
   const result: NavTreeItems = {};
 
@@ -371,12 +372,7 @@ export const createOrganization = (org: Org): NavTreeItems => {
     index: org.slug,
     canMove: false,
     isFolder: true,
-    children: [
-      `${org.slug}-projects`,
-      `${org.slug}-settings`,
-      `${org.slug}-members`,
-      `${org.slug}-billing`,
-    ],
+    children: orgPages.map((page) => `${org.slug}-${page.slug}`),
     data: {
       name: org.name,
       slug: org.slug,
@@ -449,7 +445,7 @@ export const createOrganization = (org: Org): NavTreeItems => {
           icon: page.icon,
           isProjectPage: true,
           targetUrl: getProjectPageUrl(org, app, page),
-          disabled: isProjectPageDisabled(page, gating),
+          disabled: isPageGated(page.gate, gating),
         },
         canRename: false,
       };
@@ -470,101 +466,39 @@ export const createOrganization = (org: Org): NavTreeItems => {
       };
     });
 
-    projectGraphQLPages.forEach((page) => {
-      result[`${org.slug}-${app.subdomain}-graphql-${page.slug}`] = {
-        index: `${org.slug}-${app.subdomain}-graphql-${page.slug}`,
-        canMove: false,
-        isFolder: false,
-        children: undefined,
-        data: {
-          name: page.name,
-          targetUrl: getProjectSubPageUrl(org, app, page),
-        },
-        canRename: false,
-      };
-    });
-
-    projectEventsPages.forEach((page) => {
-      result[`${org.slug}-${app.subdomain}-events-${page.slug}`] = {
-        index: `${org.slug}-${app.subdomain}-events-${page.slug}`,
-        canMove: false,
-        isFolder: false,
-        children: undefined,
-        data: {
-          name: page.name,
-          targetUrl: getProjectSubPageUrl(org, app, page),
-        },
-        canRename: false,
-      };
-    });
-
-    projectAuthPages.forEach((page) => {
-      result[`${org.slug}-${app.subdomain}-auth-${page.slug}`] = {
-        index: `${org.slug}-${app.subdomain}-auth-${page.slug}`,
-        canMove: false,
-        isFolder: false,
-        children: undefined,
-        data: {
-          name: page.name,
-          targetUrl: getProjectSubPageUrl(org, app, page),
-        },
-        canRename: false,
-      };
-    });
-
-    projectDatabasePages.forEach((page) => {
-      result[`${org.slug}-${app.subdomain}-database-${page.slug}`] = {
-        index: `${org.slug}-${app.subdomain}-database-${page.slug}`,
-        canMove: false,
-        isFolder: false,
-        children: undefined,
-        data: {
-          name: page.name,
-          targetUrl: getProjectSubPageUrl(org, app, page),
-        },
-        canRename: false,
-      };
+    Object.entries(projectSubPagesBySlug).forEach(([slug, pages]) => {
+      pages?.forEach((page) => {
+        result[`${org.slug}-${app.subdomain}-${slug}-${page.slug}`] = {
+          index: `${org.slug}-${app.subdomain}-${slug}-${page.slug}`,
+          canMove: false,
+          isFolder: false,
+          children: undefined,
+          data: {
+            name: page.name,
+            targetUrl: getProjectPageUrl(org, app, page),
+          },
+          canRename: false,
+        };
+      });
     });
   });
 
-  result[`${org.slug}-settings`] = {
-    index: `${org.slug}-settings`,
-    canMove: false,
-    isFolder: false,
-    children: [],
-    data: {
-      name: 'Settings',
-      targetUrl: getOrgSettingsUrl(org),
-      disabled: gating.isNotPlatform,
-    },
-    canRename: false,
-  };
-
-  result[`${org.slug}-members`] = {
-    index: `${org.slug}-members`,
-    canMove: false,
-    isFolder: false,
-    children: [],
-    data: {
-      name: 'Members',
-      targetUrl: getOrgMembersUrl(org),
-      disabled: gating.isNotPlatform,
-    },
-    canRename: false,
-  };
-
-  result[`${org.slug}-billing`] = {
-    index: `${org.slug}-billing`,
-    canMove: false,
-    isFolder: false,
-    children: [],
-    data: {
-      name: 'Billing',
-      targetUrl: getOrgBillingUrl(org),
-      disabled: gating.isNotPlatform,
-    },
-    canRename: false,
-  };
+  orgPages
+    .filter((page) => page.slug !== 'projects')
+    .forEach((page) => {
+      result[`${org.slug}-${page.slug}`] = {
+        index: `${org.slug}-${page.slug}`,
+        canMove: false,
+        isFolder: false,
+        children: [],
+        data: {
+          name: page.name,
+          targetUrl: `/orgs/${org.slug}/${page.route}`,
+          disabled: isPageGated(page.gate, gating),
+        },
+        canRename: false,
+      };
+    });
 
   return result;
 };
@@ -593,12 +527,7 @@ export const buildNavTreeData = (
         index: 'root',
         canMove: false,
         isFolder: true,
-        children: [
-          `${org.slug}-projects`,
-          `${org.slug}-settings`,
-          `${org.slug}-members`,
-          `${org.slug}-billing`,
-        ],
+        children: orgPages.map((page) => `${org.slug}-${page.slug}`),
         data: { name: 'root' },
         canRename: false,
       },

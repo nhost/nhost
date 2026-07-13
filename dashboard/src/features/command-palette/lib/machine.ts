@@ -1,16 +1,13 @@
-import {
-  flattenScope,
-  flattenTree,
-} from '@/features/command-palette/lib/flatten';
+import { flattenTree } from '@/features/command-palette/lib/flatten';
 import { scoreNode } from '@/features/command-palette/lib/score';
 import type { CommandNode, ScoredNode } from '@/features/command-palette/types';
 
-export interface CommandPaletteState {
+interface CommandPaletteState {
   query: string;
   scopeStack: CommandNode[];
 }
 
-export type CommandPaletteAction =
+type CommandPaletteAction =
   | { type: 'setQuery'; query: string }
   | { type: 'drill'; node: CommandNode }
   | { type: 'popScope' }
@@ -21,23 +18,16 @@ export const initialCommandPaletteState: CommandPaletteState = {
   scopeStack: [],
 };
 
-export const setQuery = (query: string): CommandPaletteAction => ({
-  type: 'setQuery',
-  query,
-});
+export const isContainer = (node: CommandNode) =>
+  (node.children?.length ?? 0) > 0;
 
-export const drill = (node: CommandNode): CommandPaletteAction => ({
-  type: 'drill',
+export const toScoredNode = (node: CommandNode): ScoredNode => ({
   node,
+  score: 0,
+  titleRanges: [],
 });
 
-export const popScope = (): CommandPaletteAction => ({ type: 'popScope' });
-
-export const reset = (): CommandPaletteAction => ({ type: 'reset' });
-
-const isContainer = (node: CommandNode) => (node.children?.length ?? 0) > 0;
-
-const getCurrentScopeRoot = (
+export const getScopeRoot = (
   state: CommandPaletteState,
   tree: CommandNode,
 ): CommandNode => state.scopeStack.at(-1) ?? tree;
@@ -75,27 +65,31 @@ export const commandPaletteReducer = (
   return initialCommandPaletteState;
 };
 
-const toUnscoredVisibleItem = (node: CommandNode): ScoredNode => ({
-  node,
-  score: 0,
-  titleRanges: [],
-});
-
-const getSearchCandidates = (scopeRoot: CommandNode): CommandNode[] =>
-  flattenScope(scopeRoot).flatMap((node) => flattenTree(node));
+// Only nodes that resolve to a destination are search results; structural
+// groups like 'project-pages' have no path and would only add noise.
+export const getSearchCandidates = (scopeRoot: CommandNode): CommandNode[] =>
+  flattenTree(scopeRoot)
+    .slice(1)
+    .filter((node) => node.path !== undefined);
 
 export const getVisibleItems = (
   state: CommandPaletteState,
-  tree: CommandNode,
+  scopeRoot: CommandNode,
+  searchCandidates: CommandNode[],
+  rootSearchExtras: CommandNode[] = [],
 ): ScoredNode[] => {
-  const scopeRoot = getCurrentScopeRoot(state, tree);
   const query = state.query.trim();
 
   if (!query) {
-    return flattenScope(scopeRoot).map(toUnscoredVisibleItem);
+    return (scopeRoot.children ?? []).map(toScoredNode);
   }
 
-  return getSearchCandidates(scopeRoot)
+  const candidates =
+    state.scopeStack.length === 0
+      ? [...searchCandidates, ...rootSearchExtras]
+      : searchCandidates;
+
+  return candidates
     .map((node) => ({ node, ...scoreNode(query, node) }))
     .filter(({ score }) => score > 0)
     .sort((first, second) => {

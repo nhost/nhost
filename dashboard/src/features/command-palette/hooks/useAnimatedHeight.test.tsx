@@ -1,18 +1,13 @@
 import { afterEach, describe, expect, it, vi } from 'vitest';
+import { mockMatchMediaValue } from '@/tests/mocks';
 import { renderHook } from '@/tests/testUtils';
 
 import { useAnimatedHeight } from './useAnimatedHeight';
 
 const setReducedMotion = (matches: boolean) => {
   window.matchMedia = vi.fn().mockImplementation((query: string) => ({
+    ...mockMatchMediaValue(query),
     matches,
-    media: query,
-    onchange: null,
-    addListener: vi.fn(),
-    removeListener: vi.fn(),
-    addEventListener: vi.fn(),
-    removeEventListener: vi.fn(),
-    dispatchEvent: vi.fn(),
   }));
 };
 

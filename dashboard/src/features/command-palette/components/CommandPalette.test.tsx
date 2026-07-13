@@ -4,6 +4,7 @@ import { vi } from 'vitest';
 
 import { CommandPalette } from '@/features/command-palette/components/CommandPalette';
 import type { CommandNode, ScoredNode } from '@/features/command-palette/types';
+import { mockMatchMediaValue } from '@/tests/mocks';
 import { fireEvent, render, screen, waitFor, within } from '@/tests/testUtils';
 
 const toItem = (
@@ -35,7 +36,6 @@ const project = makeNode({
   title: 'Project A',
   kind: 'project',
 });
-const docs = makeNode({ id: 'docs', title: 'Docs', kind: 'doc' });
 const container = makeNode({
   id: 'data-group',
   title: 'Data',
@@ -48,7 +48,6 @@ interface RenderPaletteArgs {
   items?: ScoredNode[];
   scopeStack?: CommandNode[];
   recentItems?: ScoredNode[];
-  suggestedItems?: ScoredNode[];
   pageItems?: ScoredNode[];
   switchItems?: ScoredNode[];
   onDrill?: (node: CommandNode) => void;
@@ -61,7 +60,6 @@ const renderPalette = ({
   items = [toItem(database), toItem(logs)],
   scopeStack = [],
   recentItems,
-  suggestedItems,
   pageItems,
   switchItems,
   onDrill = vi.fn(),
@@ -84,7 +82,6 @@ const renderPalette = ({
       query={query}
       recentItems={recentItems}
       scopeStack={scopeStack}
-      suggestedItems={suggestedItems}
       switchItems={switchItems}
     />,
   );
@@ -94,16 +91,7 @@ const renderPalette = ({
 
 beforeEach(() => {
   toast.remove();
-  window.matchMedia = vi.fn().mockImplementation((query: string) => ({
-    matches: false,
-    media: query,
-    onchange: null,
-    addListener: vi.fn(),
-    removeListener: vi.fn(),
-    addEventListener: vi.fn(),
-    removeEventListener: vi.fn(),
-    dispatchEvent: vi.fn(),
-  }));
+  window.matchMedia = vi.fn().mockImplementation(mockMatchMediaValue);
   window.requestAnimationFrame = (callback) => {
     callback(0);
     return 0;
@@ -295,12 +283,10 @@ describe('CommandPalette', () => {
       pageItems: [toItem(database)],
       query: '',
       recentItems: [toItem(logs)],
-      suggestedItems: [toItem(docs)],
       switchItems: [toItem(project)],
     });
 
     expect(screen.getByText('Recent')).toBeInTheDocument();
-    expect(screen.getByText('Suggested')).toBeInTheDocument();
     expect(screen.getByText('Pages')).toBeInTheDocument();
     expect(screen.getByText('Switch')).toBeInTheDocument();
     expect(screen.getByText('Project A')).toBeInTheDocument();

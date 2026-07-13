@@ -135,16 +135,4 @@ describe('useRecent', () => {
       'node-1',
     ]);
   });
-
-  it('clears persisted recents', () => {
-    const { result } = renderHook(() => useRecent());
-
-    act(() => {
-      result.current.pushRecent(makeEntry({ nodeId: 'docs' }));
-      result.current.clearRecent();
-    });
-
-    expect(result.current.recent).toEqual([]);
-    expect(window.localStorage.getItem('command-palette-recent')).toBe('[]');
-  });
 });

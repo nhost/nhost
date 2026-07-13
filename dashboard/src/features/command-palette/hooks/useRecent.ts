@@ -9,10 +9,9 @@ type RecentDraft = Omit<RecentEntry, 'accessedAt'> & {
   accessedAt?: number;
 };
 
-export interface UseRecentResult {
+interface UseRecentResult {
   recent: RecentEntry[];
   pushRecent: (entry: RecentDraft) => void;
-  clearRecent: VoidFunction;
 }
 
 const getDedupeKey = ({
@@ -49,6 +48,8 @@ export const useRecent = (): UseRecentResult => {
         ...entry,
         accessedAt: entry.accessedAt ?? Date.now(),
       };
+      // Re-read storage instead of trusting `recent`: same-tick pushes would
+      // otherwise clobber each other through the stale closure state.
       const storedRecent = readStoredRecent(recent);
       const nextKey = getDedupeKey(nextEntry);
       const dedupedRecent = storedRecent.filter(
@@ -60,9 +61,5 @@ export const useRecent = (): UseRecentResult => {
     [recent, setRecent],
   );
 
-  const clearRecent = useCallback(() => {
-    setRecent([]);
-  }, [setRecent]);
-
-  return { recent, pushRecent, clearRecent };
+  return { recent, pushRecent };
 };

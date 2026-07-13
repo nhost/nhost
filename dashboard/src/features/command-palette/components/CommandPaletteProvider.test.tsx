@@ -2,6 +2,7 @@ import toast from 'react-hot-toast';
 import { vi } from 'vitest';
 
 import { CommandPaletteProvider } from '@/features/command-palette/components/CommandPaletteProvider';
+import { mockMatchMediaValue } from '@/tests/mocks';
 import {
   fireEvent,
   mockPointerEvent,
@@ -15,7 +16,10 @@ const push = vi.fn();
 const openWindow = vi.fn();
 
 const router = {
-  query: { orgSlug: 'org-a', appSubdomain: 'project-a' },
+  query: { orgSlug: 'org-a', appSubdomain: 'project-a' } as {
+    orgSlug?: string;
+    appSubdomain?: string;
+  },
   push,
   isReady: true,
 };
@@ -97,16 +101,7 @@ beforeEach(() => {
   window.open = openWindow;
   openWindow.mockReset();
   mockPointerEvent();
-  window.matchMedia = vi.fn().mockImplementation((query: string) => ({
-    matches: false,
-    media: query,
-    onchange: null,
-    addListener: vi.fn(),
-    removeListener: vi.fn(),
-    addEventListener: vi.fn(),
-    removeEventListener: vi.fn(),
-    dispatchEvent: vi.fn(),
-  }));
+  window.matchMedia = vi.fn().mockImplementation(mockMatchMediaValue);
   window.requestAnimationFrame = (callback) => {
     callback(0);
     return 0;
@@ -122,7 +117,7 @@ describe('CommandPaletteProvider', () => {
 
     expect(input).toBeInTheDocument();
 
-    fireEvent.keyDown(window, { key: 'Escape' });
+    fireEvent.keyDown(input, { key: 'Escape' });
 
     await waitFor(() => {
       expect(
@@ -225,7 +220,9 @@ describe('CommandPaletteProvider', () => {
     fireEvent.keyDown(input, { key: 'ArrowRight' });
 
     expect(
-      await screen.findByRole('button', { name: /leave settings scope/i }),
+      await screen.findByRole('button', {
+        name: /leave project settings scope/i,
+      }),
     ).toBeInTheDocument();
 
     fireEvent.change(input, { target: { value: 'environment variables' } });
@@ -245,14 +242,8 @@ describe('CommandPaletteProvider', () => {
 
   it('keeps the dialog accessible and avoids forced transitions under reduced motion', async () => {
     window.matchMedia = vi.fn().mockImplementation((query: string) => ({
+      ...mockMatchMediaValue(query),
       matches: query === '(prefers-reduced-motion: reduce)',
-      media: query,
-      onchange: null,
-      addListener: vi.fn(),
-      removeListener: vi.fn(),
-      addEventListener: vi.fn(),
-      removeEventListener: vi.fn(),
-      dispatchEvent: vi.fn(),
     }));
 
     renderProvider();
@@ -340,6 +331,70 @@ describe('CommandPaletteProvider', () => {
     ).not.toBeInTheDocument();
   });
 
+  it('finds projects and orgs by typed query from an org-level page', async () => {
+    router.query = { orgSlug: 'org-a' };
+    useProjectMock.mockReturnValue({
+      project: null,
+      loading: false,
+      error: null,
+      refetch: vi.fn(),
+      projectNotFound: false,
+    });
+
+    renderProvider();
+    const input = await openPalette();
+    fireEvent.change(input, { target: { value: 'Project C' } });
+
+    fireEvent.click(
+      await screen.findByTestId(
+        'command-palette-item-switch:project:org-b:project-c',
+      ),
+    );
+
+    await waitFor(() => {
+      expect(push).toHaveBeenCalledWith(
+        '/orgs/org-b/projects/project-c',
+        undefined,
+        { shallow: false },
+      );
+    });
+  });
+
+  it('shows organization names in hints while staying searchable by org slug', async () => {
+    window.localStorage.setItem(
+      'command-palette-recent',
+      JSON.stringify([
+        {
+          nodeId: 'project-overview',
+          title: 'Overview',
+          path: '',
+          accessedAt: 1,
+          orgSlug: 'org-b',
+          appSubdomain: 'project-c',
+        },
+      ]),
+    );
+
+    renderProvider();
+    const input = await openPalette();
+
+    const recentRow = await screen.findByTestId(
+      'command-palette-item-recent:project-overview:org-b:project-c',
+    );
+    expect(
+      within(recentRow).getByText('Org B / project-c'),
+    ).toBeInTheDocument();
+
+    fireEvent.change(input, { target: { value: 'org-b' } });
+
+    const switchRow = await screen.findByTestId(
+      'command-palette-item-switch:project:org-b:project-c',
+    );
+    expect(
+      within(switchRow).getByText('Org B / project-c'),
+    ).toBeInTheDocument();
+  });
+
   it('switches to another project with a full navigation', async () => {
     renderProvider();
     await openPalette();
@@ -355,6 +410,25 @@ describe('CommandPaletteProvider', () => {
         '/orgs/org-a/projects/project-b',
         undefined,
         { shallow: false },
+      );
+    });
+  });
+
+  it('keeps the current project selectable from its own pages', async () => {
+    renderProvider();
+    await openPalette();
+
+    fireEvent.click(
+      await screen.findByTestId(
+        'command-palette-item-switch:project:org-a:project-a',
+      ),
+    );
+
+    await waitFor(() => {
+      expect(push).toHaveBeenCalledWith(
+        '/orgs/org-a/projects/project-a',
+        undefined,
+        { shallow: true },
       );
     });
   });
@@ -394,11 +468,12 @@ describe('CommandPaletteProvider', () => {
     ).toBeInTheDocument();
     expect(screen.queryByText('Switch')).not.toBeInTheDocument();
     expect(screen.queryByText('Deployments')).not.toBeInTheDocument();
-    expect(screen.queryByText('Settings')).not.toBeInTheDocument();
+    expect(screen.queryByText('Project Settings')).not.toBeInTheDocument();
+    expect(screen.queryByText('AI')).not.toBeInTheDocument();
     expect(screen.getByText('Overview')).toBeInTheDocument();
   });
 
-  it('shows project settings off-platform when config server is set', async () => {
+  it('shows project settings and AI off-platform when config server is set', async () => {
     process.env.NEXT_PUBLIC_NHOST_PLATFORM = 'false';
     process.env.NEXT_PUBLIC_NHOST_CONFIGSERVER_URL = 'http://config.local';
     useIsPlatformMock.mockReturnValue(false);
@@ -431,6 +506,34 @@ describe('CommandPaletteProvider', () => {
     expect(
       await screen.findByLabelText('Search dashboard'),
     ).toBeInTheDocument();
-    expect(screen.getByText('Settings')).toBeInTheDocument();
+    expect(screen.getByText('Project Settings')).toBeInTheDocument();
+    expect(screen.getByText('AI')).toBeInTheDocument();
+  });
+
+  it('stores org-scoped recents without a project subdomain', async () => {
+    renderProvider();
+    const input = await openPalette();
+    fireEvent.change(input, { target: { value: 'organization settings' } });
+
+    fireEvent.click(
+      await screen.findByTestId('command-palette-item-org-settings'),
+    );
+
+    await waitFor(() => {
+      expect(push).toHaveBeenCalled();
+    });
+
+    const stored = JSON.parse(
+      window.localStorage.getItem('command-palette-recent') ?? '[]',
+    );
+
+    expect(stored).toEqual([
+      expect.objectContaining({
+        nodeId: 'org-settings',
+        title: 'Organization Settings',
+        orgSlug: 'org-a',
+      }),
+    ]);
+    expect(stored[0].appSubdomain).toBeUndefined();
   });
 });

@@ -2,7 +2,7 @@ import { useCallback, useEffect, useRef, useState } from 'react';
 
 const REDUCED_MOTION_QUERY = '(prefers-reduced-motion: reduce)';
 
-export interface UseAnimatedHeightResult<T extends HTMLElement> {
+interface UseAnimatedHeightResult<T extends HTMLElement> {
   contentRef: (node: T | null) => void;
   height: number | undefined;
   animate: boolean;
@@ -13,7 +13,6 @@ export const useAnimatedHeight = <
 >(): UseAnimatedHeightResult<T> => {
   const observerRef = useRef<ResizeObserver | undefined>(undefined);
   const [height, setHeight] = useState<number>();
-  const [hasMeasured, setHasMeasured] = useState(false);
   const [reducedMotion, setReducedMotion] = useState(false);
 
   const contentRef = useCallback((node: T | null) => {
@@ -26,7 +25,6 @@ export const useAnimatedHeight = <
     const measure = () => {
       const next = node.offsetHeight;
       setHeight(next > 0 ? next : undefined);
-      setHasMeasured(true);
     };
 
     measure();
@@ -61,6 +59,6 @@ export const useAnimatedHeight = <
   return {
     contentRef,
     height,
-    animate: hasMeasured && !reducedMotion && height !== undefined,
+    animate: !reducedMotion && height !== undefined,
   };
 };

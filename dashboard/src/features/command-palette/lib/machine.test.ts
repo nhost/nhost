@@ -1,11 +1,9 @@
 import {
   commandPaletteReducer,
-  drill,
+  getScopeRoot,
+  getSearchCandidates,
   getVisibleItems,
   initialCommandPaletteState,
-  popScope,
-  reset,
-  setQuery,
 } from '@/features/command-palette/lib/machine';
 import type { CommandNode } from '@/features/command-palette/types';
 
@@ -58,16 +56,30 @@ const projectPages = tree.children?.[0] as CommandNode;
 const database = projectPages.children?.[0] as CommandNode;
 const graphql = projectPages.children?.[1] as CommandNode;
 
+const runGetVisibleItems = (
+  state: Parameters<typeof getVisibleItems>[0],
+  rootSearchExtras: CommandNode[] = [],
+) => {
+  const scopeRoot = getScopeRoot(state, tree);
+
+  return getVisibleItems(
+    state,
+    scopeRoot,
+    getSearchCandidates(scopeRoot),
+    rootSearchExtras,
+  );
+};
+
 describe('command palette machine', () => {
   it('sets and clears query when drilling into a container', () => {
-    const queriedState = commandPaletteReducer(
-      initialCommandPaletteState,
-      setQuery('data'),
-    );
-    const drilledState = commandPaletteReducer(
-      queriedState,
-      drill(projectPages),
-    );
+    const queriedState = commandPaletteReducer(initialCommandPaletteState, {
+      type: 'setQuery',
+      query: 'data',
+    });
+    const drilledState = commandPaletteReducer(queriedState, {
+      type: 'drill',
+      node: projectPages,
+    });
 
     expect(queriedState.query).toBe('data');
     expect(drilledState).toEqual({ query: '', scopeStack: [projectPages] });
@@ -75,7 +87,10 @@ describe('command palette machine', () => {
 
   it('does not drill into leaves', () => {
     expect(
-      commandPaletteReducer(initialCommandPaletteState, drill(graphql)),
+      commandPaletteReducer(initialCommandPaletteState, {
+        type: 'drill',
+        node: graphql,
+      }),
     ).toBe(initialCommandPaletteState);
   });
 
@@ -85,47 +100,73 @@ describe('command palette machine', () => {
       scopeStack: [projectPages, database],
     };
 
-    expect(commandPaletteReducer(scopedState, popScope())).toEqual({
+    expect(commandPaletteReducer(scopedState, { type: 'popScope' })).toEqual({
       query: '',
       scopeStack: [projectPages],
     });
-    expect(commandPaletteReducer(initialCommandPaletteState, popScope())).toBe(
-      initialCommandPaletteState,
-    );
+    expect(
+      commandPaletteReducer(initialCommandPaletteState, { type: 'popScope' }),
+    ).toBe(initialCommandPaletteState);
   });
 
   it('resets to the initial state', () => {
     expect(
       commandPaletteReducer(
         { query: 'graph', scopeStack: [projectPages] },
-        reset(),
+        { type: 'reset' },
       ),
     ).toEqual(initialCommandPaletteState);
   });
 
   it('switches from hierarchical listing to flat scored search results', () => {
     expect(
-      getVisibleItems(initialCommandPaletteState, tree).map(
-        ({ node }) => node.id,
-      ),
+      runGetVisibleItems(initialCommandPaletteState).map(({ node }) => node.id),
     ).toEqual(['project-pages', 'docs']);
 
     expect(
-      getVisibleItems({ query: 'database rows', scopeStack: [] }, tree).map(
+      runGetVisibleItems({ query: 'database rows', scopeStack: [] }).map(
         ({ node }) => node.id,
       ),
     ).toEqual(['database-browser']);
   });
 
+  it('excludes structural groups without a destination from search', () => {
+    expect(
+      runGetVisibleItems({ query: 'project pages', scopeStack: [] }),
+    ).toEqual([]);
+  });
+
+  it('searches root extras at the root scope only', () => {
+    const switchNode: CommandNode = {
+      id: 'switch:project:acme:app',
+      title: 'My App',
+      kind: 'project',
+      path: '',
+      scope: 'project',
+    };
+
+    expect(
+      runGetVisibleItems({ query: 'my app', scopeStack: [] }, [switchNode]).map(
+        ({ node }) => node.id,
+      ),
+    ).toEqual(['switch:project:acme:app']);
+
+    expect(
+      runGetVisibleItems({ query: 'my app', scopeStack: [projectPages] }, [
+        switchNode,
+      ]),
+    ).toEqual([]);
+  });
+
   it('lists scoped direct children while empty and searches within the scope', () => {
     expect(
-      getVisibleItems({ query: '', scopeStack: [projectPages] }, tree).map(
+      runGetVisibleItems({ query: '', scopeStack: [projectPages] }).map(
         ({ node }) => node.id,
       ),
     ).toEqual(['database', 'graphql']);
 
     expect(
-      getVisibleItems({ query: 'rows', scopeStack: [projectPages] }, tree).map(
+      runGetVisibleItems({ query: 'rows', scopeStack: [projectPages] }).map(
         ({ node }) => node.id,
       ),
     ).toEqual(['database-browser']);

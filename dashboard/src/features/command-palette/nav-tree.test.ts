@@ -33,13 +33,8 @@ describe('commandPaletteNavTree', () => {
     );
 
     expect(containers.every((node) => node.kind === 'group')).toBe(true);
-    expect(
-      leaves.every(
-        (node) =>
-          Boolean(node.path) ||
-          (node.scope === 'project' && node.id === 'project-overview'),
-      ),
-    ).toBe(true);
+    // Same predicate the search machinery uses for "has a destination".
+    expect(leaves.every((node) => node.path !== undefined)).toBe(true);
   });
 
   it('includes the standalone Hasura console route node', () => {

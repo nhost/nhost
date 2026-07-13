@@ -1,13 +1,13 @@
 import type { CommandNode } from '@/features/command-palette/types';
 
-type QueryValue = string | string[] | undefined;
-
-export interface ResolvePathContext {
-  orgSlug?: QueryValue;
-  appSubdomain?: QueryValue;
+interface ResolvePathContext {
+  orgSlug?: string;
+  appSubdomain?: string;
 }
 
-const getQueryString = (value: QueryValue): string | undefined => {
+export const getQueryString = (
+  value: string | string[] | undefined,
+): string | undefined => {
   if (Array.isArray(value)) {
     return value[0];
   }
@@ -15,17 +15,12 @@ const getQueryString = (value: QueryValue): string | undefined => {
   return value;
 };
 
-const joinPath = (...segments: Array<string | undefined>) =>
-  segments
-    .filter((segment): segment is string => Boolean(segment))
-    .map((segment, index) => {
-      if (index === 0) {
-        return segment.replace(/\/+$/g, '');
-      }
+export const isExternalNode = (node: CommandNode) => node.scope === 'external';
 
-      return segment.replace(/^\/+|\/+$/g, '');
-    })
-    .join('/');
+// Only drops empty segments (e.g. Overview's path: ''); segments never carry
+// leading or trailing slashes.
+const joinPath = (...segments: Array<string | undefined>) =>
+  segments.filter(Boolean).join('/');
 
 export const resolvePath = (
   node: CommandNode,
@@ -35,41 +30,20 @@ export const resolvePath = (
     return undefined;
   }
 
-  if (node.scope === 'external' || node.kind === 'doc') {
+  if (isExternalNode(node)) {
     return node.path;
   }
 
-  const resolvedOrgSlug = getQueryString(orgSlug);
-  const resolvedAppSubdomain = getQueryString(appSubdomain);
-
   if (node.scope === 'org') {
-    return resolvedOrgSlug
-      ? joinPath('/orgs', resolvedOrgSlug, node.path)
-      : undefined;
+    return orgSlug ? joinPath('/orgs', orgSlug, node.path) : undefined;
   }
 
   if (node.scope === 'project') {
-    if (!resolvedOrgSlug || !resolvedAppSubdomain) {
+    if (!orgSlug || !appSubdomain) {
       return undefined;
     }
 
-    if (node.id === 'project-settings-general') {
-      return joinPath(
-        '/orgs',
-        resolvedOrgSlug,
-        'projects',
-        resolvedAppSubdomain,
-        'settings',
-      );
-    }
-
-    return joinPath(
-      '/orgs',
-      resolvedOrgSlug,
-      'projects',
-      resolvedAppSubdomain,
-      node.path,
-    );
+    return joinPath('/orgs', orgSlug, 'projects', appSubdomain, node.path);
   }
 
   return node.path;

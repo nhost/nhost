@@ -1,6 +1,7 @@
 import { vi } from 'vitest';
 
 import AuthenticatedLayout from '@/components/layout/AuthenticatedLayout/AuthenticatedLayout';
+import { mockMatchMediaValue } from '@/tests/mocks';
 import { render, screen } from '@/tests/testUtils';
 
 const push = vi.fn();
@@ -77,16 +78,7 @@ beforeEach(() => {
     refetch: vi.fn(),
     projectNotFound: false,
   });
-  window.matchMedia = vi.fn().mockImplementation((query: string) => ({
-    matches: false,
-    media: query,
-    onchange: null,
-    addListener: vi.fn(),
-    removeListener: vi.fn(),
-    addEventListener: vi.fn(),
-    removeEventListener: vi.fn(),
-    dispatchEvent: vi.fn(),
-  }));
+  window.matchMedia = vi.fn().mockImplementation(mockMatchMediaValue);
 });
 
 describe('AuthenticatedLayout command palette mount', () => {

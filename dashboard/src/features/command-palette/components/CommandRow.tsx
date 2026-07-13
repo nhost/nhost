@@ -1,8 +1,8 @@
 import { ChevronRight, CornerDownLeft } from 'lucide-react';
 
-import { CommandItem, CommandShortcut } from '@/components/ui/v3/command';
+import { CommandItem } from '@/components/ui/v3/command';
+import { isContainer } from '@/features/command-palette/lib/machine';
 import type { ScoredNode } from '@/features/command-palette/types';
-import { cn } from '@/lib/utils';
 
 export interface CommandRowProps {
   item: ScoredNode;
@@ -80,7 +80,6 @@ const HighlightedTitle = ({ title, ranges }: HighlightedTitleProps) => (
 
 export const CommandRow = ({ item, onSelect }: CommandRowProps) => {
   const { node, titleRanges } = item;
-  const isContainer = (node.children?.length ?? 0) > 0;
 
   return (
     <CommandItem
@@ -103,15 +102,14 @@ export const CommandRow = ({ item, onSelect }: CommandRowProps) => {
         )}
       </span>
       <span className="ml-auto flex shrink-0 items-center gap-2">
-        {node.shortcut && <CommandShortcut>{node.shortcut}</CommandShortcut>}
         <span className="rounded bg-muted px-1.5 py-0.5 font-medium text-[10px] text-muted-foreground uppercase tracking-wide">
           {kindLabels[node.kind]}
         </span>
-        {isContainer ? (
+        {isContainer(node) ? (
           <ChevronRight className="h-4 w-4 text-muted-foreground" />
         ) : (
           <CornerDownLeft
-            className={cn('h-4 w-4 text-muted-foreground')}
+            className="h-4 w-4 text-muted-foreground"
             aria-hidden="true"
           />
         )}

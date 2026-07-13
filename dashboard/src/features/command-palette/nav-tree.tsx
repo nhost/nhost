@@ -1,25 +1,23 @@
 import {
-  SiGraphql as GraphQLIcon,
-  SiHasura as HasuraIcon,
-  SiDocker as ServicesIcon,
-} from '@icons-pack/react-simple-icons';
-import {
-  Sparkles as AIIcon,
-  CloudIcon,
-  Code,
   CogIcon,
   CreditCardIcon,
-  DatabaseIcon,
   FileTextIcon,
-  GaugeIcon,
   HomeIcon,
   Building2 as OrgIcon,
-  RocketIcon,
-  HardDrive as StorageIcon,
-  UserIcon,
   UsersIcon,
-  Zap,
 } from 'lucide-react';
+import type { ReactElement } from 'react';
+import {
+  getSettingsPageRoute,
+  orgPages,
+  projectAIPages,
+  projectAuthPages,
+  projectDatabasePages,
+  projectEventsPages,
+  projectGraphQLPages,
+  projectPages,
+  projectSettingsPages,
+} from '@/components/layout/MainNav/nav-config';
 import type { CommandNode } from '@/features/command-palette/types';
 
 const iconClassName = 'h-4 w-4';
@@ -37,6 +35,190 @@ const withInheritedIcons = (
   };
 };
 
+// Palette-only metadata layered over the nav-config catalog, keyed by slug.
+interface PaletteMeta {
+  id?: string;
+  title?: string;
+  keywords?: string[];
+  icon?: ReactElement;
+  children?: CommandNode[];
+}
+
+const toSubPageNodes = <Slug extends string>(
+  pages: ReadonlyArray<{ name: string; slug: Slug; route: string }>,
+  idPrefix: string,
+  keywordsBySlug: Record<Slug, string[]>,
+): CommandNode[] =>
+  pages.map((page) => ({
+    id: `${idPrefix}-${page.slug}`,
+    title: page.name,
+    kind: 'page',
+    path: page.route,
+    scope: 'project',
+    keywords: keywordsBySlug[page.slug],
+  }));
+
+const databaseChildren = toSubPageNodes(
+  projectDatabasePages,
+  'project-database',
+  {
+    browser: ['database', 'tables', 'rows'],
+    schema: ['database', 'schema', 'columns'],
+  },
+);
+
+const graphqlChildren = toSubPageNodes(projectGraphQLPages, 'project-graphql', {
+  playground: ['graphql', 'api', 'console'],
+  'remote-schemas': ['graphql', 'remote', 'schemas'],
+  metadata: ['graphql', 'metadata'],
+});
+
+const eventsChildren = toSubPageNodes(projectEventsPages, 'project-events', {
+  'event-triggers': ['events', 'webhooks'],
+  'cron-triggers': ['events', 'scheduled'],
+  'one-offs': ['events', 'scheduled'],
+});
+
+const authChildren = toSubPageNodes(projectAuthPages, 'project-auth', {
+  users: ['auth', 'accounts'],
+  'oauth2-clients': ['auth', 'oauth', 'clients'],
+});
+
+const aiChildren = toSubPageNodes(projectAIPages, 'project-ai', {
+  'auto-embeddings': ['ai', 'embeddings'],
+  assistants: ['ai', 'agents'],
+  'file-stores': ['ai', 'files', 'vector'],
+});
+
+const settingsPageMeta: Record<
+  (typeof projectSettingsPages)[number]['slug'],
+  PaletteMeta
+> = {
+  general: { keywords: ['settings'] },
+  'compute-resources': { keywords: ['settings', 'cpu', 'memory'] },
+  database: { keywords: ['settings', 'postgres'] },
+  hasura: { keywords: ['settings', 'graphql engine', 'console'] },
+  authentication: { keywords: ['settings', 'auth'] },
+  jwt: { keywords: ['settings', 'tokens'] },
+  'sign-in-methods': { keywords: ['settings', 'login'] },
+  'oauth2-provider': { keywords: ['settings', 'oauth'] },
+  'roles-and-permissions': { keywords: ['settings', 'access control'] },
+  storage: { keywords: ['settings', 'files'] },
+  smtp: { keywords: ['settings', 'email'] },
+  deployments: { keywords: ['settings', 'releases'] },
+  'environment-variables': { keywords: ['settings', 'env'] },
+  secrets: { keywords: ['settings', 'environment'] },
+  'custom-domains': { keywords: ['settings', 'domains'] },
+  'rate-limiting': { keywords: ['settings', 'limits'] },
+  ai: { keywords: ['settings', 'embeddings'] },
+  metrics: {
+    id: 'project-settings-observability',
+    keywords: ['settings', 'metrics', 'monitoring'],
+  },
+  editor: {
+    id: 'project-settings-configuration-editor',
+    keywords: ['settings', 'config'],
+  },
+};
+
+const settingsChildren: CommandNode[] = projectSettingsPages.map((page) => {
+  const meta = settingsPageMeta[page.slug];
+
+  return {
+    id: meta.id ?? `project-settings-${page.slug}`,
+    title: meta.title ?? page.name,
+    kind: 'setting',
+    path: getSettingsPageRoute(page),
+    scope: 'project',
+    keywords: meta.keywords,
+  };
+});
+
+const projectPageMeta: Record<
+  (typeof projectPages)[number]['slug'],
+  PaletteMeta
+> = {
+  overview: { keywords: ['home', 'summary'] },
+  database: {
+    keywords: ['tables', 'schema', 'sql'],
+    children: databaseChildren,
+  },
+  graphql: {
+    keywords: ['api', 'playground', 'queries'],
+    children: graphqlChildren,
+  },
+  events: {
+    keywords: ['triggers', 'cron', 'scheduled'],
+    children: eventsChildren,
+  },
+  hasura: { keywords: ['console', 'graphql engine'] },
+  auth: { keywords: ['users', 'authentication'], children: authChildren },
+  storage: { keywords: ['files', 'buckets'] },
+  functions: { keywords: ['serverless', 'code'] },
+  run: { keywords: ['services', 'docker'] },
+  ai: {
+    keywords: ['auto embeddings', 'embeddings'],
+    children: aiChildren,
+  },
+  deployments: { keywords: ['releases'] },
+  backups: { keywords: ['restore', 'snapshots'] },
+  logs: { keywords: ['log entries'] },
+  metrics: { keywords: ['observability', 'monitoring'] },
+  settings: {
+    title: 'Project Settings',
+    keywords: ['configuration'],
+    icon: <CogIcon className={iconClassName} />,
+    children: settingsChildren,
+  },
+};
+
+const projectPageNodes: CommandNode[] = projectPages.map((page) => {
+  const meta = projectPageMeta[page.slug];
+
+  return {
+    id: `project-${page.slug}`,
+    title: meta.title ?? page.name,
+    icon: meta.icon ?? page.icon,
+    kind: meta.children ? 'group' : 'page',
+    path: page.route,
+    scope: 'project',
+    keywords: meta.keywords,
+    gate: page.gate,
+    children: meta.children,
+  };
+});
+
+const orgPageMeta: Record<(typeof orgPages)[number]['slug'], PaletteMeta> = {
+  projects: { icon: <HomeIcon className={iconClassName} /> },
+  settings: {
+    title: 'Organization Settings',
+    icon: <CogIcon className={iconClassName} />,
+  },
+  members: {
+    icon: <UsersIcon className={iconClassName} />,
+    keywords: ['team', 'users'],
+  },
+  billing: {
+    icon: <CreditCardIcon className={iconClassName} />,
+    keywords: ['plan', 'payment'],
+  },
+};
+
+const orgPageNodes: CommandNode[] = orgPages.map((page) => {
+  const meta = orgPageMeta[page.slug];
+
+  return {
+    id: `org-${page.slug}`,
+    title: meta.title ?? page.name,
+    icon: meta.icon,
+    kind: 'org',
+    path: page.route,
+    scope: 'org',
+    keywords: meta.keywords,
+    gate: page.gate,
+  };
+});
+
 const rawNavTree: CommandNode = {
   id: 'root',
   title: 'Command palette',
@@ -47,415 +229,7 @@ const rawNavTree: CommandNode = {
       title: 'Project pages',
       kind: 'group',
       scope: 'project',
-      children: [
-        {
-          id: 'project-overview',
-          title: 'Overview',
-          icon: <HomeIcon className={iconClassName} />,
-          kind: 'page',
-          path: '',
-          scope: 'project',
-          keywords: ['home', 'summary'],
-        },
-        {
-          id: 'project-database',
-          title: 'Database',
-          icon: <DatabaseIcon className={iconClassName} />,
-          kind: 'group',
-          path: 'database/browser/default',
-          scope: 'project',
-          keywords: ['tables', 'schema', 'sql'],
-          children: [
-            {
-              id: 'project-database-browser',
-              title: 'Table Editor & Browser',
-              kind: 'page',
-              path: 'database/browser/default',
-              scope: 'project',
-              keywords: ['database', 'tables', 'rows'],
-            },
-            {
-              id: 'project-database-schema',
-              title: 'Schema Navigator',
-              kind: 'page',
-              path: 'database/schema/default',
-              scope: 'project',
-              keywords: ['database', 'schema', 'columns'],
-            },
-          ],
-        },
-        {
-          id: 'project-graphql',
-          title: 'GraphQL',
-          icon: <GraphQLIcon className={iconClassName} />,
-          kind: 'group',
-          path: 'graphql',
-          scope: 'project',
-          keywords: ['api', 'playground', 'queries'],
-          children: [
-            {
-              id: 'project-graphql-playground',
-              title: 'Playground',
-              kind: 'page',
-              path: 'graphql',
-              scope: 'project',
-              keywords: ['graphql', 'api', 'console'],
-            },
-            {
-              id: 'project-graphql-remote-schemas',
-              title: 'Remote Schemas',
-              kind: 'page',
-              path: 'graphql/remote-schemas',
-              scope: 'project',
-              keywords: ['graphql', 'remote', 'schemas'],
-            },
-            {
-              id: 'project-graphql-metadata',
-              title: 'Metadata',
-              kind: 'page',
-              path: 'graphql/metadata',
-              scope: 'project',
-              keywords: ['graphql', 'metadata'],
-            },
-          ],
-        },
-        {
-          id: 'project-events',
-          title: 'Events',
-          icon: <Zap className={iconClassName} />,
-          kind: 'group',
-          path: 'events/event-triggers',
-          scope: 'project',
-          keywords: ['triggers', 'cron', 'scheduled'],
-          children: [
-            {
-              id: 'project-events-event-triggers',
-              title: 'Event Triggers',
-              kind: 'page',
-              path: 'events/event-triggers',
-              scope: 'project',
-              keywords: ['events', 'webhooks'],
-            },
-            {
-              id: 'project-events-cron-triggers',
-              title: 'Cron Triggers',
-              kind: 'page',
-              path: 'events/cron-triggers',
-              scope: 'project',
-              keywords: ['events', 'scheduled'],
-            },
-            {
-              id: 'project-events-one-offs',
-              title: 'One-Off Scheduled Events',
-              kind: 'page',
-              path: 'events/one-offs',
-              scope: 'project',
-              keywords: ['events', 'scheduled'],
-            },
-          ],
-        },
-        {
-          id: 'project-hasura',
-          title: 'Hasura',
-          icon: <HasuraIcon className={iconClassName} />,
-          kind: 'page',
-          path: 'hasura',
-          scope: 'project',
-          keywords: ['console', 'graphql engine'],
-        },
-        {
-          id: 'project-auth',
-          title: 'Auth',
-          icon: <UserIcon className={iconClassName} />,
-          kind: 'group',
-          path: 'auth/users',
-          scope: 'project',
-          keywords: ['users', 'authentication'],
-          children: [
-            {
-              id: 'project-auth-users',
-              title: 'Users',
-              kind: 'page',
-              path: 'auth/users',
-              scope: 'project',
-              keywords: ['auth', 'accounts'],
-            },
-            {
-              id: 'project-auth-oauth2-clients',
-              title: 'OAuth2 Clients',
-              kind: 'page',
-              path: 'auth/oauth2-clients',
-              scope: 'project',
-              keywords: ['auth', 'oauth', 'clients'],
-            },
-          ],
-        },
-        {
-          id: 'project-storage',
-          title: 'Storage',
-          icon: <StorageIcon className={iconClassName} />,
-          kind: 'page',
-          path: 'storage',
-          scope: 'project',
-          keywords: ['files', 'buckets'],
-        },
-        {
-          id: 'project-functions',
-          title: 'Functions',
-          icon: <Code className={iconClassName} />,
-          kind: 'page',
-          path: 'functions',
-          scope: 'project',
-          keywords: ['serverless', 'code'],
-        },
-        {
-          id: 'project-run',
-          title: 'Run',
-          icon: <ServicesIcon className={iconClassName} />,
-          kind: 'page',
-          path: 'run',
-          scope: 'project',
-          keywords: ['services', 'docker'],
-        },
-        {
-          id: 'project-ai',
-          title: 'AI',
-          icon: <AIIcon className={iconClassName} />,
-          kind: 'group',
-          path: 'ai/auto-embeddings',
-          scope: 'project',
-          keywords: ['auto embeddings', 'embeddings'],
-          requiresPlatform: true,
-          children: [
-            {
-              id: 'project-ai-auto-embeddings',
-              title: 'Auto-embeddings',
-              kind: 'page',
-              path: 'ai/auto-embeddings',
-              scope: 'project',
-              keywords: ['ai', 'embeddings'],
-            },
-            {
-              id: 'project-ai-assistants',
-              title: 'Assistants',
-              kind: 'page',
-              path: 'ai/assistants',
-              scope: 'project',
-              keywords: ['ai', 'agents'],
-            },
-            {
-              id: 'project-ai-file-stores',
-              title: 'File stores',
-              kind: 'page',
-              path: 'ai/file-stores',
-              scope: 'project',
-              keywords: ['ai', 'files', 'vector'],
-            },
-          ],
-        },
-        {
-          id: 'project-deployments',
-          title: 'Deployments',
-          icon: <RocketIcon className={iconClassName} />,
-          kind: 'page',
-          path: 'deployments',
-          scope: 'project',
-          keywords: ['releases'],
-          requiresPlatform: true,
-        },
-        {
-          id: 'project-backups',
-          title: 'Backups',
-          icon: <CloudIcon className={iconClassName} />,
-          kind: 'page',
-          path: 'backups',
-          scope: 'project',
-          keywords: ['restore', 'snapshots'],
-          requiresPlatform: true,
-        },
-        {
-          id: 'project-logs',
-          title: 'Logs',
-          icon: <FileTextIcon className={iconClassName} />,
-          kind: 'page',
-          path: 'logs',
-          scope: 'project',
-          keywords: ['log entries'],
-        },
-        {
-          id: 'project-metrics',
-          title: 'Metrics',
-          icon: <GaugeIcon className={iconClassName} />,
-          kind: 'page',
-          path: 'metrics',
-          scope: 'project',
-          keywords: ['observability', 'monitoring'],
-          requiresPlatform: true,
-        },
-        {
-          id: 'project-settings',
-          title: 'Settings',
-          icon: <CogIcon className={iconClassName} />,
-          kind: 'group',
-          path: 'settings',
-          scope: 'project',
-          keywords: ['configuration'],
-          children: [
-            {
-              id: 'project-settings-general',
-              title: 'General',
-              kind: 'setting',
-              path: 'settings',
-              scope: 'project',
-              keywords: ['settings'],
-            },
-            {
-              id: 'project-settings-compute-resources',
-              title: 'Compute Resources',
-              kind: 'setting',
-              path: 'settings/compute-resources',
-              scope: 'project',
-              keywords: ['settings', 'cpu', 'memory'],
-            },
-            {
-              id: 'project-settings-database',
-              title: 'Database',
-              kind: 'setting',
-              path: 'settings/database',
-              scope: 'project',
-              keywords: ['settings', 'postgres'],
-            },
-            {
-              id: 'project-settings-graphql-engine',
-              title: 'GraphQL Engine',
-              kind: 'setting',
-              path: 'settings/hasura',
-              scope: 'project',
-              keywords: ['settings', 'graphql engine', 'console'],
-            },
-            {
-              id: 'project-settings-authentication',
-              title: 'Authentication',
-              kind: 'setting',
-              path: 'settings/authentication',
-              scope: 'project',
-              keywords: ['settings', 'auth'],
-            },
-            {
-              id: 'project-settings-jwt',
-              title: 'JWT',
-              kind: 'setting',
-              path: 'settings/jwt',
-              scope: 'project',
-              keywords: ['settings', 'tokens'],
-            },
-            {
-              id: 'project-settings-sign-in-methods',
-              title: 'Sign-In methods',
-              kind: 'setting',
-              path: 'settings/sign-in-methods',
-              scope: 'project',
-              keywords: ['settings', 'login'],
-            },
-            {
-              id: 'project-settings-oauth2-provider',
-              title: 'OAuth2 Provider',
-              kind: 'setting',
-              path: 'settings/oauth2-provider',
-              scope: 'project',
-              keywords: ['settings', 'oauth'],
-            },
-            {
-              id: 'project-settings-roles-and-permissions',
-              title: 'Roles and Permissions',
-              kind: 'setting',
-              path: 'settings/roles-and-permissions',
-              scope: 'project',
-              keywords: ['settings', 'access control'],
-            },
-            {
-              id: 'project-settings-storage',
-              title: 'Storage',
-              kind: 'setting',
-              path: 'settings/storage',
-              scope: 'project',
-              keywords: ['settings', 'files'],
-            },
-            {
-              id: 'project-settings-smtp',
-              title: 'SMTP',
-              kind: 'setting',
-              path: 'settings/smtp',
-              scope: 'project',
-              keywords: ['settings', 'email'],
-            },
-            {
-              id: 'project-settings-deployments',
-              title: 'Deployments',
-              kind: 'setting',
-              path: 'settings/deployments',
-              scope: 'project',
-              keywords: ['settings', 'releases'],
-            },
-            {
-              id: 'project-settings-environment-variables',
-              title: 'Environment Variables',
-              kind: 'setting',
-              path: 'settings/environment-variables',
-              scope: 'project',
-              keywords: ['settings', 'env'],
-            },
-            {
-              id: 'project-settings-secrets',
-              title: 'Secrets',
-              kind: 'setting',
-              path: 'settings/secrets',
-              scope: 'project',
-              keywords: ['settings', 'environment'],
-            },
-            {
-              id: 'project-settings-custom-domains',
-              title: 'Custom Domains',
-              kind: 'setting',
-              path: 'settings/custom-domains',
-              scope: 'project',
-              keywords: ['settings', 'domains'],
-            },
-            {
-              id: 'project-settings-rate-limiting',
-              title: 'Rate Limiting',
-              kind: 'setting',
-              path: 'settings/rate-limiting',
-              scope: 'project',
-              keywords: ['settings', 'limits'],
-            },
-            {
-              id: 'project-settings-ai',
-              title: 'AI',
-              kind: 'setting',
-              path: 'settings/ai',
-              scope: 'project',
-              keywords: ['settings', 'embeddings'],
-            },
-            {
-              id: 'project-settings-observability',
-              title: 'Observability',
-              kind: 'setting',
-              path: 'settings/metrics',
-              scope: 'project',
-              keywords: ['settings', 'metrics', 'monitoring'],
-            },
-            {
-              id: 'project-settings-configuration-editor',
-              title: 'Configuration Editor',
-              kind: 'setting',
-              path: 'settings/editor',
-              scope: 'project',
-              keywords: ['settings', 'config'],
-            },
-          ],
-        },
-      ],
+      children: projectPageNodes,
     },
     {
       id: 'org-pages',
@@ -463,45 +237,7 @@ const rawNavTree: CommandNode = {
       icon: <OrgIcon className={iconClassName} />,
       kind: 'group',
       scope: 'org',
-      children: [
-        {
-          id: 'org-projects',
-          title: 'Projects',
-          icon: <HomeIcon className={iconClassName} />,
-          kind: 'org',
-          path: 'projects',
-          scope: 'org',
-        },
-        {
-          id: 'org-settings',
-          title: 'Settings',
-          icon: <CogIcon className={iconClassName} />,
-          kind: 'org',
-          path: 'settings',
-          scope: 'org',
-          requiresPlatform: true,
-        },
-        {
-          id: 'org-members',
-          title: 'Members',
-          icon: <UsersIcon className={iconClassName} />,
-          kind: 'org',
-          path: 'members',
-          scope: 'org',
-          keywords: ['team', 'users'],
-          requiresPlatform: true,
-        },
-        {
-          id: 'org-billing',
-          title: 'Billing',
-          icon: <CreditCardIcon className={iconClassName} />,
-          kind: 'org',
-          path: 'billing',
-          scope: 'org',
-          keywords: ['plan', 'payment'],
-          requiresPlatform: true,
-        },
-      ],
+      children: orgPageNodes,
     },
     {
       id: 'docs',
@@ -516,13 +252,3 @@ const rawNavTree: CommandNode = {
 };
 
 export const commandPaletteNavTree = withInheritedIcons(rawNavTree);
-
-export const platformGatedNodeIds = new Set([
-  'project-ai',
-  'project-deployments',
-  'project-backups',
-  'project-metrics',
-  'org-settings',
-  'org-members',
-  'org-billing',
-] as const);

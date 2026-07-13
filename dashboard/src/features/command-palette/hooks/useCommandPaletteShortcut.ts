@@ -1,41 +1,18 @@
-import { useEffect } from 'react';
+import { useCallback } from 'react';
+import { useGlobalKeyShortcut } from '@/hooks/useGlobalKeyShortcut';
 
 interface UseCommandPaletteShortcutArgs {
+  open: boolean;
   onToggle: VoidFunction;
 }
 
 export const useCommandPaletteShortcut = ({
+  open,
   onToggle,
 }: UseCommandPaletteShortcutArgs): void => {
-  useEffect(() => {
-    const handler = (event: KeyboardEvent) => {
-      if (!(event.metaKey || event.ctrlKey)) {
-        return;
-      }
+  // While open, the palette's own input has focus, so the editable guard must
+  // not swallow the closing Cmd/Ctrl+K.
+  const isEditableAllowed = useCallback(() => open, [open]);
 
-      if (event.key.toLowerCase() !== 'k') {
-        return;
-      }
-
-      const active = document.activeElement as HTMLElement | null;
-      const isEditable =
-        active instanceof HTMLInputElement ||
-        active instanceof HTMLTextAreaElement ||
-        active instanceof HTMLSelectElement ||
-        active?.isContentEditable === true;
-
-      if (isEditable) {
-        return;
-      }
-
-      event.preventDefault();
-      onToggle();
-    };
-
-    window.addEventListener('keydown', handler);
-
-    return () => {
-      window.removeEventListener('keydown', handler);
-    };
-  }, [onToggle]);
+  useGlobalKeyShortcut({ key: 'k', onTrigger: onToggle, isEditableAllowed });
 };

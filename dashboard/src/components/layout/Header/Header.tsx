@@ -14,6 +14,7 @@ import { LocalAccountMenu } from '@/components/layout/LocalAccountMenu';
 import { MobileNav } from '@/components/layout/MobileNav';
 import { Logo } from '@/components/presentational/Logo';
 import { Box } from '@/components/ui/v2/Box';
+import { Button } from '@/components/ui/v3/button';
 import { CommandShortcut } from '@/components/ui/v3/command';
 import { useCommandPaletteOpen } from '@/features/command-palette';
 import { AnnouncementsTray } from '@/features/orgs/components/members/components/AnnouncementsTray';
@@ -28,56 +29,53 @@ export type HeaderProps = PropsWithoutRef<
 export default function Header({ className, ...props }: HeaderProps) {
   const isPlatform = useIsPlatform();
   const { openCommandPalette } = useCommandPaletteOpen();
-  const [mounted, setMounted] = useState(false);
+  const [isMac, setIsMac] = useState(false);
 
   useEffect(() => {
-    setMounted(true);
+    setIsMac(/Mac|iPhone|iPod|iPad/i.test(navigator.userAgent));
   }, []);
 
-  const isMac =
-    mounted &&
-    typeof navigator !== 'undefined' &&
-    /Mac|iPhone|iPod|iPad/i.test(navigator.platform || navigator.userAgent);
   const shortcutLabel = isMac ? '⌘K' : 'Ctrl K';
 
   return (
     <Box
       component="header"
       className={twMerge(
-        'relative z-40 grid w-full transform-gpu grid-flow-col items-center justify-between gap-2 border-b px-4',
+        'relative z-40 flex w-full transform-gpu items-center gap-2 border-b px-4',
         className,
       )}
       sx={{ backgroundColor: 'background.paper' }}
       {...props}
     >
-      <div className="mr-2 h-6 w-6">
+      <div className="mr-2 h-6 w-6 shrink-0">
         <Logo className="mx-auto h-6 w-6 cursor-pointer" />
       </div>
 
       <BreadcrumbNav />
 
-      <button
-        type="button"
+      <Button
+        variant="outline"
+        size="icon"
         aria-label="Open command palette"
         aria-keyshortcuts="Meta+K Control+K"
-        className="ml-auto inline-flex h-9 w-9 items-center justify-center rounded-md border text-muted-foreground hover:bg-accent hover:text-foreground motion-safe:transition-colors sm:hidden"
+        className="ml-auto h-8 w-8 shrink-0 text-muted-foreground lg:hidden"
         onClick={openCommandPalette}
       >
         <Search className="h-4 w-4" />
-      </button>
+      </Button>
 
-      <div className="hidden grid-flow-col items-center gap-1 sm:grid">
-        <button
-          type="button"
+      <div className="ml-auto hidden shrink-0 grid-flow-col items-center gap-1 sm:grid">
+        <Button
+          variant="outline"
           aria-label="Open command palette"
           aria-keyshortcuts="Meta+K Control+K"
-          className="mr-1 inline-flex h-9 min-w-48 items-center gap-2 rounded-md border bg-background px-3 text-left text-sm hover:bg-accent motion-safe:transition-colors lg:min-w-56"
+          className="mr-1 hidden h-8 min-w-56 justify-start gap-2 px-3 font-normal text-muted-foreground lg:inline-flex"
           onClick={openCommandPalette}
         >
-          <Search className="h-4 w-4 shrink-0 text-muted-foreground" />
-          <span className="flex-1 text-muted-foreground">Search…</span>
+          <Search className="h-4 w-4 shrink-0" />
+          <span className="flex-1 text-left">Search…</span>
           <CommandShortcut>{shortcutLabel}</CommandShortcut>
-        </button>
+        </Button>
 
         <NotificationsTray />
 
@@ -108,7 +106,7 @@ export default function Header({ className, ...props }: HeaderProps) {
         {isPlatform ? <AccountMenu /> : <LocalAccountMenu />}
       </div>
 
-      <MobileNav className="sm:hidden" />
+      <MobileNav className="shrink-0 sm:hidden" />
     </Box>
   );
 }

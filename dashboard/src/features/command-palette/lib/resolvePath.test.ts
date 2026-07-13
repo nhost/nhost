@@ -1,4 +1,7 @@
-import { resolvePath } from '@/features/command-palette/lib/resolvePath';
+import {
+  getQueryString,
+  resolvePath,
+} from '@/features/command-palette/lib/resolvePath';
 import type { CommandNode } from '@/features/command-palette/types';
 
 const projectNode: CommandNode = {
@@ -42,7 +45,7 @@ describe('resolvePath', () => {
     expect(resolvePath(docNode, {})).toBe('https://docs.nhost.io');
   });
 
-  it('special-cases the general settings route', () => {
+  it('resolves the general settings route', () => {
     expect(
       resolvePath(
         {
@@ -57,15 +60,14 @@ describe('resolvePath', () => {
     ).toBe('/orgs/acme/projects/app/settings');
   });
 
-  it('coerces router query arrays and returns undefined for missing scope', () => {
-    expect(
-      resolvePath(projectNode, {
-        orgSlug: ['acme', 'ignored'],
-        appSubdomain: ['app', 'ignored'],
-      }),
-    ).toBe('/orgs/acme/projects/app/graphql');
-
+  it('returns undefined for missing scope', () => {
     expect(resolvePath(projectNode, { orgSlug: 'acme' })).toBeUndefined();
     expect(resolvePath(orgNode, {})).toBeUndefined();
+  });
+
+  it('coerces router query values to a single string', () => {
+    expect(getQueryString(['acme', 'ignored'])).toBe('acme');
+    expect(getQueryString('acme')).toBe('acme');
+    expect(getQueryString(undefined)).toBeUndefined();
   });
 });

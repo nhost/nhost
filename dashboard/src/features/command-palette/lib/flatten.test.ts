@@ -1,7 +1,4 @@
-import {
-  flattenScope,
-  flattenTree,
-} from '@/features/command-palette/lib/flatten';
+import { flattenTree } from '@/features/command-palette/lib/flatten';
 import type { CommandNode } from '@/features/command-palette/types';
 
 const tree: CommandNode = {
@@ -33,7 +30,7 @@ const tree: CommandNode = {
   ],
 };
 
-describe('flatten helpers', () => {
+describe('flattenTree', () => {
   it('flattens the full tree in pre-order', () => {
     expect(flattenTree(tree).map((node) => node.id)).toEqual([
       'root',
@@ -41,16 +38,5 @@ describe('flatten helpers', () => {
       'project-overview',
       'docs',
     ]);
-  });
-
-  it('returns the direct children for a drill scope', () => {
-    expect(flattenScope(tree).map((node) => node.id)).toEqual([
-      'project',
-      'docs',
-    ]);
-  });
-
-  it('returns an empty scope for leaves', () => {
-    expect(flattenScope(tree.children?.[1] as CommandNode)).toEqual([]);
   });
 });

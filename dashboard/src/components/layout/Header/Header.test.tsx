@@ -3,6 +3,7 @@ import { vi } from 'vitest';
 
 import Header from '@/components/layout/Header/Header';
 import { CommandPaletteProvider } from '@/features/command-palette';
+import { mockMatchMediaValue } from '@/tests/mocks';
 import { fireEvent, render, screen } from '@/tests/testUtils';
 
 const push = vi.fn();
@@ -98,16 +99,7 @@ beforeEach(() => {
     refetch: vi.fn(),
     projectNotFound: false,
   });
-  window.matchMedia = vi.fn().mockImplementation((query: string) => ({
-    matches: false,
-    media: query,
-    onchange: null,
-    addListener: vi.fn(),
-    removeListener: vi.fn(),
-    addEventListener: vi.fn(),
-    removeEventListener: vi.fn(),
-    dispatchEvent: vi.fn(),
-  }));
+  window.matchMedia = vi.fn().mockImplementation(mockMatchMediaValue);
   window.requestAnimationFrame = (callback) => {
     callback(0);
     return 0;
@@ -140,8 +132,7 @@ describe('Header command palette affordance', () => {
     expect(screen.getByText('Ctrl K')).toBeInTheDocument();
     expect(screen.getAllByLabelText('Open command palette')).toHaveLength(2);
     expect(screen.getAllByLabelText('Open command palette')[0]).toHaveClass(
-      'sm:hidden',
-      'motion-safe:transition-colors',
+      'lg:hidden',
     );
   });
 });

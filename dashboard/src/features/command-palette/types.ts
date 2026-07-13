@@ -1,4 +1,5 @@
 import type { ReactElement } from 'react';
+import type { PageGate } from '@/components/layout/MainNav/nav-config';
 
 export type NodeKind = 'page' | 'group' | 'setting' | 'org' | 'project' | 'doc';
 
@@ -10,16 +11,17 @@ export interface CommandNode {
   path?: string;
   scope?: 'org' | 'project' | 'external';
   keywords?: string[];
-  shortcut?: string;
   hint?: string;
   children?: CommandNode[];
-  requiresPlatform?: boolean;
+  gate?: PageGate;
 }
+
+export type TitleRange = [start: number, end: number];
 
 export interface ScoredNode {
   node: CommandNode;
   score: number;
-  titleRanges: Array<[start: number, end: number]>;
+  titleRanges: TitleRange[];
 }
 
 export interface RecentEntry {

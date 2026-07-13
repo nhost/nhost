@@ -19,10 +19,11 @@ import {
 import { CommandRow } from '@/features/command-palette/components/CommandRow';
 import { ScopeChip } from '@/features/command-palette/components/ScopeChip';
 import { useAnimatedHeight } from '@/features/command-palette/hooks/useAnimatedHeight';
+import { isContainer } from '@/features/command-palette/lib/machine';
 import type { CommandNode, ScoredNode } from '@/features/command-palette/types';
 import { cn } from '@/lib/utils';
 
-export interface CommandPaletteSection {
+interface CommandPaletteSection {
   id: string;
   title: string;
   items: ScoredNode[];
@@ -39,7 +40,6 @@ export interface CommandPaletteProps {
   onDrill: (node: CommandNode) => void;
   onNavigate: (node: CommandNode) => void;
   recentItems?: ScoredNode[];
-  suggestedItems?: ScoredNode[];
   pageItems?: ScoredNode[];
   switchItems?: ScoredNode[];
   className?: string;
@@ -54,15 +54,6 @@ const kindGroupTitles: Record<CommandNode['kind'], string> = {
   doc: 'Docs',
 };
 
-const curatedSections = [
-  ['recent', 'Recent', 'recentItems'],
-  ['suggested', 'Suggested', 'suggestedItems'],
-  ['pages', 'Pages', 'pageItems'],
-  ['switch', 'Switch', 'switchItems'],
-] as const;
-
-const isContainer = (node: CommandNode) => (node.children?.length ?? 0) > 0;
-
 const footerHintClassName =
   'inline-flex h-5 min-w-5 items-center justify-center rounded border bg-muted px-1 font-sans text-[11px] text-muted-foreground';
 
@@ -70,7 +61,13 @@ const getGroupedSections = (items: ScoredNode[]): CommandPaletteSection[] => {
   const groups = new Map<CommandNode['kind'], ScoredNode[]>();
 
   for (const item of items) {
-    groups.set(item.node.kind, [...(groups.get(item.node.kind) ?? []), item]);
+    const group = groups.get(item.node.kind);
+
+    if (group) {
+      group.push(item);
+    } else {
+      groups.set(item.node.kind, [item]);
+    }
   }
 
   return Array.from(groups, ([kind, groupedItems]) => ({
@@ -80,17 +77,11 @@ const getGroupedSections = (items: ScoredNode[]): CommandPaletteSection[] => {
   }));
 };
 
-const getVisibleNodeIds = (sections: CommandPaletteSection[]) =>
-  new Set(
-    sections.flatMap((section) => section.items.map((item) => item.node.id)),
-  );
-
 interface GetCommandPaletteSectionsArgs {
   queryIsEmpty: boolean;
   currentScope?: CommandNode;
   items: ScoredNode[];
   recentItems: ScoredNode[];
-  suggestedItems: ScoredNode[];
   pageItems: ScoredNode[];
   switchItems: ScoredNode[];
 }
@@ -100,15 +91,15 @@ const getCommandPaletteSections = ({
   currentScope,
   items,
   recentItems,
-  suggestedItems,
   pageItems,
   switchItems,
 }: GetCommandPaletteSectionsArgs): CommandPaletteSection[] => {
   if (queryIsEmpty && !currentScope) {
-    const props = { recentItems, suggestedItems, pageItems, switchItems };
-    const injectedSections = curatedSections
-      .map(([id, title, prop]) => ({ id, title, items: props[prop] }))
-      .filter((section) => section.items.length > 0);
+    const injectedSections = [
+      { id: 'recent', title: 'Recent', items: recentItems },
+      { id: 'pages', title: 'Pages', items: pageItems },
+      { id: 'switch', title: 'Switch', items: switchItems },
+    ].filter((section) => section.items.length > 0);
 
     return injectedSections.length > 0
       ? injectedSections
@@ -116,9 +107,9 @@ const getCommandPaletteSections = ({
   }
 
   if (queryIsEmpty && currentScope) {
-    return [{ id: 'scope', title: currentScope.title, items }].filter(
-      (section) => section.items.length > 0,
-    );
+    return items.length > 0
+      ? [{ id: 'scope', title: currentScope.title, items }]
+      : [];
   }
 
   return getGroupedSections(items);
@@ -168,7 +159,6 @@ export const CommandPalette = ({
   onDrill,
   onNavigate,
   recentItems = [],
-  suggestedItems = [],
   pageItems = [],
   switchItems = [],
   className,
@@ -186,19 +176,10 @@ export const CommandPalette = ({
       currentScope,
       items,
       recentItems,
-      suggestedItems,
       pageItems,
       switchItems,
     });
-  }, [
-    currentScope,
-    items,
-    pageItems,
-    queryIsEmpty,
-    recentItems,
-    suggestedItems,
-    switchItems,
-  ]);
+  }, [currentScope, items, pageItems, queryIsEmpty, recentItems, switchItems]);
 
   const selectedNode = useMemo(
     () => getSelectedNode(sections, selectedValue),
@@ -206,13 +187,10 @@ export const CommandPalette = ({
   );
 
   useEffect(() => {
-    const visibleNodeIds = getVisibleNodeIds(sections);
-    const firstNode = sections[0]?.items[0]?.node;
-
-    if (!selectedValue || !visibleNodeIds.has(selectedValue)) {
-      setSelectedValue(firstNode?.id ?? '');
+    if (!selectedNode) {
+      setSelectedValue(sections[0]?.items[0]?.node.id ?? '');
     }
-  }, [sections, selectedValue]);
+  }, [selectedNode, sections]);
 
   const handleDrill = (node: CommandNode) => {
     onDrill(node);
@@ -277,9 +255,9 @@ export const CommandPalette = ({
     event.preventDefault();
   };
 
-  const resultCount = useMemo(
-    () => sections.reduce((total, section) => total + section.items.length, 0),
-    [sections],
+  const resultCount = sections.reduce(
+    (total, section) => total + section.items.length,
+    0,
   );
   const hasItems = resultCount > 0;
 
