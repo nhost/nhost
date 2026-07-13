@@ -82,6 +82,29 @@ public struct DecodedToken: Codable, Sendable {
         claims[key]
     }
 
+    /// Claims that may affect authorization, excluding only the top-level JWT
+    /// lifetime fields. Nested `iat`/`exp` values remain protected inputs.
+    var stableAuthorizationClaims: [String: JSONValue] {
+        claims.filter { key, _ in key != "iat" && key != "exp" }
+    }
+
+    var defaultHasuraRole: String? {
+        hasuraClaims?["x-hasura-default-role"]?.stringValue
+    }
+
+    var stableClaimsFingerprint: String? {
+        let encoder = JSONEncoder()
+        encoder.outputFormatting = [.sortedKeys]
+        guard let claims = try? encoder.encode(stableAuthorizationClaims) else {
+            return nil
+        }
+        var input = Data("nhost.session.claims.v1".utf8)
+        var length = UInt64(claims.count).bigEndian
+        withUnsafeBytes(of: &length) { input.append(contentsOf: $0) }
+        input.append(claims)
+        return NhostSHA256.hexadecimalDigest(input)
+    }
+
     public static func decodeUserSession(_ accessToken: String) throws -> DecodedToken {
         let parts = accessToken.split(separator: ".", omittingEmptySubsequences: false)
         guard parts.count == 3, !parts[1].isEmpty else {

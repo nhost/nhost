@@ -10,7 +10,7 @@ func testAccessToken(
     subject: String = "user-1",
     hasuraClaims: [String: Any] = [
         "x-hasura-default-role": "user",
-        "x-hasura-allowed-roles": "{user,editor}",
+        "x-hasura-allowed-roles": "{user,editor}"
     ]
 ) throws -> String {
     let header = try base64URLEncodeJSONObject(["alg": "none", "typ": "JWT"])
@@ -19,7 +19,7 @@ func testAccessToken(
         "iat": iat,
         "iss": "nhost-tests",
         "sub": subject,
-        DecodedToken.hasuraClaimsKey: hasuraClaims,
+        DecodedToken.hasuraClaimsKey: hasuraClaims
     ])
 
     return "\(header).\(payload).signature"
@@ -71,6 +71,18 @@ private actor SessionChangeRecorder {
     }
 }
 
+private actor SessionTransitionRecorder {
+    private var values: [(String?, String?)] = []
+
+    func append(old: StoredSession?, new: StoredSession?) {
+        values.append((old?.decodedToken.subject, new?.decodedToken.subject))
+    }
+
+    func snapshot() -> [(String?, String?)] {
+        values
+    }
+}
+
 private actor CustomStorageBox {
     private var session: StoredSession?
 
@@ -93,7 +105,7 @@ final class DecodedTokenTests: XCTestCase {
             hasuraClaims: [
                 "x-hasura-default-role": "user",
                 "x-hasura-allowed-roles": "{user,editor}",
-                "x-hasura-groups": "{\"team-a\",\"team,b\"}",
+                "x-hasura-groups": "{\"team-a\",\"team,b\"}"
             ]
         )
 
@@ -148,6 +160,92 @@ final class SessionStoreTests: XCTestCase {
         _ = try await store.set(try testAuthSession(accessToken: testAccessToken(exp: testNowSeconds + 120)))
         let changesAfterCancel = await recorder.snapshot()
         XCTAssertEqual(changesAfterCancel, [first.accessToken, nil])
+    }
+
+    func testAuthorizationSnapshotsTrackGenerationsEpochsAndStableRefreshes() async throws {
+        let initial = try StoredSession(
+            try testAuthSession(
+                accessToken: testAccessToken(exp: testNowSeconds + 60, iat: testNowSeconds)
+            )
+        )
+        let backend = MemorySessionStorageBackend(session: initial)
+        let store = SessionStore(storage: backend)
+
+        let first = try await store.authorizationSnapshot()
+        XCTAssertEqual(first.mutationGeneration, 0)
+        XCTAssertEqual(first.authorizationEpoch, 0)
+        XCTAssertEqual(first.session?.decodedToken.subject, "user-1")
+
+        let refreshed = try StoredSession(
+            try testAuthSession(
+                exp: testNowSeconds + 3_600,
+                accessToken: testAccessToken(exp: testNowSeconds + 3_600, iat: testNowSeconds + 30)
+            )
+        )
+        _ = try await store.set(refreshed)
+        let afterRefresh = try await store.authorizationSnapshot()
+        XCTAssertEqual(afterRefresh.mutationGeneration, 1)
+        XCTAssertEqual(afterRefresh.authorizationEpoch, 0)
+        XCTAssertEqual(afterRefresh.stableFingerprint, first.stableFingerprint)
+
+        let otherUser = try StoredSession(
+            try testAuthSession(
+                accessToken: testAccessToken(subject: "user-2")
+            )
+        )
+        _ = try await store.set(otherUser)
+        let afterUserSwitch = try await store.authorizationSnapshot()
+        XCTAssertEqual(afterUserSwitch.mutationGeneration, 2)
+        XCTAssertEqual(afterUserSwitch.authorizationEpoch, 1)
+        XCTAssertNotEqual(afterUserSwitch.stableFingerprint, first.stableFingerprint)
+
+        _ = try await store.set(refreshed)
+        let afterABA = try await store.authorizationSnapshot()
+        XCTAssertEqual(afterABA.mutationGeneration, 3)
+        XCTAssertEqual(afterABA.authorizationEpoch, 2)
+        XCTAssertEqual(afterABA.stableFingerprint, first.stableFingerprint)
+    }
+
+    func testAuthorizationSnapshotRereadsCustomBackendChanges() async throws {
+        let initial = try StoredSession(try testAuthSession())
+        let replacement = try StoredSession(
+            try testAuthSession(accessToken: testAccessToken(subject: "external-user"))
+        )
+        let backend = MemorySessionStorageBackend(session: initial)
+        let store = SessionStore(storage: backend)
+
+        let first = try await store.authorizationSnapshot()
+        try await backend.set(replacement)
+        let second = try await store.authorizationSnapshot()
+
+        XCTAssertEqual(second.mutationGeneration, 0)
+        XCTAssertEqual(second.authorizationEpoch, first.authorizationEpoch + 1)
+        XCTAssertEqual(second.session?.decodedToken.subject, "external-user")
+    }
+
+    func testInternalTransitionObservationIncludesOldAndNewSessions() async throws {
+        let initial = try StoredSession(try testAuthSession())
+        let backend = MemorySessionStorageBackend(session: initial)
+        let store = SessionStore(storage: backend)
+        _ = try await store.authorizationSnapshot()
+        let recorder = SessionTransitionRecorder()
+        let subscription = await store.subscribeToTransitions { old, new in
+            await recorder.append(old: old, new: new)
+        }
+        let replacement = try StoredSession(
+            try testAuthSession(accessToken: testAccessToken(subject: "user-2"))
+        )
+
+        _ = try await store.set(replacement)
+        try await store.remove()
+        let transitions = await recorder.snapshot()
+
+        XCTAssertEqual(transitions.count, 2)
+        XCTAssertEqual(transitions[0].0, "user-1")
+        XCTAssertEqual(transitions[0].1, "user-2")
+        XCTAssertEqual(transitions[1].0, "user-2")
+        XCTAssertNil(transitions[1].1)
+        await subscription.cancel()
     }
 
     func testCustomStorageBackend() async throws {
@@ -211,7 +309,7 @@ final class SessionStoreTests: XCTestCase {
             kSecClass as String: kSecClassGenericPassword,
             kSecAttrService as String: options.service,
             kSecAttrAccount as String: options.account,
-            kSecValueData as String: Data("not a session".utf8),
+            kSecValueData as String: Data("not a session".utf8)
         ]
         XCTAssertEqual(SecItemAdd(corrupted as CFDictionary, nil), errSecSuccess)
 

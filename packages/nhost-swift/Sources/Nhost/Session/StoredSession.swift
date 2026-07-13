@@ -56,4 +56,44 @@ public struct StoredSession: Codable, Sendable {
             user: user
         )
     }
+
+    /// Stable authorization material used by session snapshots and GraphQL
+    /// cache scopes. Access/refresh token bytes and volatile JWT lifetime claims
+    /// are intentionally excluded.
+    var stableAuthorizationFingerprint: String {
+        var input = Data("nhost.session.authorization.v1".utf8)
+        Self.appendFrame(Data((user?.id ?? "").utf8), to: &input)
+        Self.appendFrame(Data((decodedToken.issuer ?? "").utf8), to: &input)
+        Self.appendFrame(Data((decodedToken.subject ?? "").utf8), to: &input)
+
+        let encoder = JSONEncoder()
+        encoder.outputFormatting = [.sortedKeys]
+        if let claims = try? encoder.encode(decodedToken.stableAuthorizationClaims) {
+            Self.appendFrame(claims, to: &input)
+        } else {
+            // JWT JSON cannot contain non-finite values. A manually-created
+            // DecodedToken that does falls back to the token digest, preserving
+            // isolation even though refresh-stable reuse is unavailable.
+            Self.appendFrame(Data(accessToken.utf8), to: &input)
+        }
+
+        return NhostSHA256.hexadecimalDigest(input)
+    }
+
+    var stableClaimsFingerprint: String {
+        decodedToken.stableClaimsFingerprint
+            ?? NhostSHA256.hexadecimalDigest(Data(accessToken.utf8))
+    }
+
+    var stableUserIdentity: String? {
+        let components = [user?.id, decodedToken.subject, decodedToken.issuer]
+            .compactMap { $0 }
+        return components.isEmpty ? nil : components.joined(separator: "\u{1f}")
+    }
+
+    private static func appendFrame(_ data: Data, to output: inout Data) {
+        var length = UInt64(data.count).bigEndian
+        withUnsafeBytes(of: &length) { output.append(contentsOf: $0) }
+        output.append(data)
+    }
 }

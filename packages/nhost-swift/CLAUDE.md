@@ -25,6 +25,14 @@ This package is a SwiftPM library package exposing the public module `Nhost`.
 - Hand-written runtime APIs should remain small, `Sendable` where practical, and usable from generated code without Foundation dependencies beyond the package baseline.
 - REST clients use `NhostJSON.restEncoder` and `NhostJSON.restDecoder`; do not reuse that date strategy for arbitrary GraphQL or Functions user response decoding unless the caller explicitly opts in.
 - Unit tests should use `StubTransport` or custom `HTTPTransport` implementations rather than performing network I/O; integration tests are the only networked tests and target the local backend by default.
+- Session authorization snapshots re-read custom backends and detect SDK-mediated
+  A→B→A transitions, but cannot observe a complete out-of-band A→B→A transition
+  between two SDK reads.
 - GraphQL file-cache recovery must enumerate hidden files: atomic temporary artifacts intentionally start with `.` and must be removed after interrupted writes.
-- README ```swift code blocks are executable documentation: each must appear verbatim (modulo indentation and `import`lines) in`Tests/NhostIntegrationTests/ReadmeExamplesTests.swift`, which runs them against the local backend; `testReadmeSwiftCodeBlocksAppearVerbatimInThisFile` enforces the link, so update both sides together.
-- In async XCTest methods, await actor/storage values into local variables before passing them to `XCTAssert*`/`XCTUnwrap`; XCTest autoclosures are synchronous and reject `await` directly inside assertions.
+- README ```swift code blocks are executable documentation: each must appear
+verbatim (modulo indentation and `import`lines) in`Tests/NhostIntegrationTests/ReadmeExamplesTests.swift`, which runs them against
+the local backend; `testReadmeSwiftCodeBlocksAppearVerbatimInThisFile` enforces
+  the link, so update both sides together.
+- In async XCTest methods, await actor/storage values into local variables before
+  passing them to `XCTAssert*`/`XCTUnwrap`; XCTest autoclosures are synchronous
+  and reject `await` directly inside assertions.
