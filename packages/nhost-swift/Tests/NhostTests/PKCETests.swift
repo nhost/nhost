@@ -43,14 +43,17 @@ final class PKCETests: XCTestCase {
 
         // Multi-block input (> 64 bytes) exercises the chunk loop.
         let longInput = Data(String(repeating: "a", count: 200).utf8)
-        XCTAssertEqual(PureSwiftSHA256.hash(longInput).count, 32)
+        XCTAssertEqual(
+            PureSwiftSHA256.hash(longInput).map { String(format: "%02x", $0) }.joined(),
+            "c2a908d98f5df987ade41b5fce213067efbcc21ef2240212a41e54b5e7c28ae5"
+        )
 
         #if canImport(CryptoKit)
         // On Apple platforms, cross-check the Linux fallback against CryptoKit.
         for sample in ["", "abc", "nhost", String(repeating: "x", count: 1000)] {
             XCTAssertEqual(
                 PureSwiftSHA256.hash(Data(sample.utf8)),
-                PKCE.sha256(Data(sample.utf8)),
+                NhostSHA256.hash(Data(sample.utf8)),
                 "fallback SHA-256 diverges from CryptoKit for \(sample.prefix(10))"
             )
         }
