@@ -2,7 +2,6 @@ import Link from 'next/link';
 import { useState } from 'react';
 import { twMerge } from 'tailwind-merge';
 import { NavLink } from '@/components/common/NavLink';
-import { ActivityIndicator } from '@/components/ui/v2/ActivityIndicator';
 import { Alert } from '@/components/ui/v2/Alert';
 import { Box } from '@/components/ui/v2/Box';
 import { Button } from '@/components/ui/v2/Button';
@@ -16,6 +15,7 @@ import { Text } from '@/components/ui/v2/Text';
 import { FullPermissionIcon } from '@/components/ui/v3/icons/FullPermissionIcon';
 import { NoPermissionIcon } from '@/components/ui/v3/icons/NoPermissionIcon';
 import { PartialPermissionIcon } from '@/components/ui/v3/icons/PartialPermissionIcon';
+import { Spinner } from '@/components/ui/v3/spinner';
 import { useRemoteApplicationGQLClient } from '@/features/orgs/hooks/useRemoteApplicationGQLClient';
 import { useIsPlatform } from '@/features/orgs/projects/common/hooks/useIsPlatform';
 import { useCurrentOrg } from '@/features/orgs/projects/hooks/useCurrentOrg';
@@ -102,7 +102,11 @@ export default function EditRemoteSchemaPermissionsForm({
   ) {
     return (
       <div className="p-6">
-        <ActivityIndicator label="Loading available roles..." />
+        <Spinner size="xs" wrapperClassName="flex-row gap-1.5">
+          <span className="text-muted-foreground text-xs">
+            Loading available roles...
+          </span>
+        </Spinner>
       </div>
     );
   }
