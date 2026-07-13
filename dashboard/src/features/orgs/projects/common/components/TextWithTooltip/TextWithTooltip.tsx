@@ -12,6 +12,7 @@ interface TextWithTooltipProps {
   containerClassName?: string;
   truncateMode?: 'end' | 'middle';
   tailLength?: number;
+  maxLines?: number;
   slotProps?: {
     container?: React.HTMLAttributes<HTMLDivElement>;
   };
@@ -23,6 +24,7 @@ export default function TextWithTooltip({
   className,
   truncateMode = 'end',
   tailLength = 4,
+  maxLines,
   slotProps,
 }: TextWithTooltipProps) {
   const [isTruncated, setIsTruncated] = useState<boolean>(false);
@@ -31,8 +33,13 @@ export default function TextWithTooltip({
   useEffect(() => {
     const checkTruncation = () => {
       if (textRef.current) {
-        const { scrollWidth, clientWidth } = textRef.current;
-        setIsTruncated(scrollWidth > clientWidth);
+        const { scrollWidth, clientWidth, scrollHeight, clientHeight } =
+          textRef.current;
+        setIsTruncated(
+          maxLines != null
+            ? scrollHeight > clientHeight
+            : scrollWidth > clientWidth,
+        );
       }
     };
 
@@ -49,7 +56,33 @@ export default function TextWithTooltip({
     return () => {
       resizeObserver.disconnect();
     };
-  }, []);
+  }, [maxLines]);
+
+  if (maxLines != null) {
+    return (
+      <div className={containerClassName} {...slotProps?.container}>
+        <Tooltip>
+          <TooltipTrigger disabled={!isTruncated} asChild>
+            <div
+              ref={textRef}
+              className={cn(!isTruncated && 'pointer-events-none', className)}
+              style={{
+                display: '-webkit-box',
+                WebkitBoxOrient: 'vertical',
+                WebkitLineClamp: maxLines,
+                overflow: 'hidden',
+              }}
+            >
+              {text}
+            </div>
+          </TooltipTrigger>
+          <TooltipContent className="max-w-xs break-words">
+            {text}
+          </TooltipContent>
+        </Tooltip>
+      </div>
+    );
+  }
 
   const isMiddle = truncateMode === 'middle' && text.length > tailLength;
 

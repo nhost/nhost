@@ -12,7 +12,7 @@ import {
   SelectSeparator,
 } from '@/components/ui/v3/select';
 import { useGetDataSources } from '@/features/orgs/projects/common/hooks/useGetDataSources';
-import { useGetMetadata } from '@/features/orgs/projects/common/hooks/useGetMetadata';
+import { useMetadataTables } from '@/features/orgs/projects/common/hooks/useMetadataTables';
 import { useGetRemoteSchemas } from '@/features/orgs/projects/remote-schemas/hooks/useGetRemoteSchemas';
 import { cn, isEmptyValue } from '@/lib/utils';
 import {
@@ -27,8 +27,6 @@ const getTableKey = (tableSource?: string, tableSchema?: string) =>
 export default function SourceAndReferenceSelector() {
   const form = useFormContext<BaseRelationshipFormValues>();
 
-  const { data: metadata } = useGetMetadata();
-
   const { data: remoteSchemas, status: remoteSchemasStatus } =
     useGetRemoteSchemas();
 
@@ -38,17 +36,7 @@ export default function SourceAndReferenceSelector() {
 
   const isTableRelationship = referenceKind === 'table';
 
-  const allTables = useMemo(
-    () =>
-      metadata?.sources?.flatMap((metadataSource) =>
-        (metadataSource.tables ?? []).map((table) => ({
-          source: metadataSource.name!,
-          schema: table.table.schema!,
-          table: table.table.name!,
-        })),
-      ) ?? [],
-    [metadata],
-  );
+  const allTables = useMetadataTables();
 
   const { data: dataSourceNames } = useGetDataSources();
   const sourceOptions =

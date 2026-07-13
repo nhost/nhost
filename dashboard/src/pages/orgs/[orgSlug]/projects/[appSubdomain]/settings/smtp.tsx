@@ -1,7 +1,6 @@
 import { type ReactElement, useEffect, useState } from 'react';
 import { UpgradeToProBanner } from '@/components/common/UpgradeToProBanner';
 import { Container } from '@/components/layout/Container';
-import { ActivityIndicator } from '@/components/ui/v2/ActivityIndicator';
 import {
   Select,
   SelectContent,
@@ -9,6 +8,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from '@/components/ui/v3/select';
+import { Spinner } from '@/components/ui/v3/spinner';
 import { OrgLayout } from '@/features/orgs/layout/OrgLayout';
 import { SettingsLayout } from '@/features/orgs/layout/SettingsLayout';
 import DeleteSMTPSettings from '@/features/orgs/projects/authentication/settings/components/DeleteSMTPSettings/DeleteSMTPSettings';
@@ -40,6 +40,14 @@ export default function SMTPSettingsPage() {
     setMode(host !== 'postmark' ? 'smtp' : 'postmark');
   }, [host]);
 
+  if (loading) {
+    return (
+      <Spinner size="medium" wrapperClassName="gap-2">
+        Loading SMTP settings...
+      </Spinner>
+    );
+  }
+
   if (isPlatform && org?.plan?.isFree) {
     return (
       <Container
@@ -51,16 +59,6 @@ export default function SMTPSettingsPage() {
           description=""
         />
       </Container>
-    );
-  }
-
-  if (loading) {
-    return (
-      <ActivityIndicator
-        delay={1000}
-        label="Loading SMTP settings..."
-        className="justify-center"
-      />
     );
   }
 

@@ -34,11 +34,7 @@ if (description) ogUrl.searchParams.set('description', description);
 <meta name="twitter:card" content="summary_large_image" />
 <meta name="twitter:image" content={ogUrl.href} />
 
-<!-- Force dark mode -->
-<script is:inline>
-  document.documentElement.dataset.theme = 'dark';
-  localStorage.setItem('starlight-theme', 'dark');
-</script>
+
 
 <!-- Font preloads -->
 <link rel="preconnect" href="https://fonts.googleapis.com" />
@@ -817,7 +813,7 @@ if (description) ogUrl.searchParams.set('description', description);
 
             img.addEventListener('click', () => {
                 const overlayImg = overlay.querySelector('img');
-                overlayImg.src = img.src;
+                overlayImg.src = img.currentSrc || img.src;
                 overlayImg.alt = img.alt;
                 overlay.classList.add('active');
             });

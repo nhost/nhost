@@ -45,7 +45,7 @@ const validationSchema = Yup.object({
   organization: Yup.string().label('Organization').required(),
   project: Yup.string().label('Project').required(),
   services: Yup.array()
-    .of(Yup.object({ label: Yup.string(), value: Yup.string() }))
+    .of(Yup.string().required())
     .label('Services')
     .required(),
   priority: Yup.string().label('Priority').required(),
@@ -142,8 +142,6 @@ function TicketPage() {
             priority: priorityValue,
             subject,
             description,
-            userName: user?.displayName,
-            userEmail: user?.email,
           }),
         });
 
@@ -223,15 +221,8 @@ function TicketPage() {
                       <FormItem className="flex flex-col gap-2">
                         <FormLabel className="font-bold">Services</FormLabel>
                         <MultiSelect
-                          values={(field.value || []).map(
-                            // biome-ignore lint/suspicious/noExplicitAny: Will be fixed later.
-                            (v: any) => v.value,
-                          )}
-                          onValuesChange={(nextValues) =>
-                            field.onChange(
-                              nextValues.map((v) => ({ label: v, value: v })),
-                            )
-                          }
+                          values={field.value ?? []}
+                          onValuesChange={field.onChange}
                         >
                           <FormControl>
                             <MultiSelectTrigger className="w-full rounded-sm hover:bg-accent-background dark:border-[#2f363d] dark:bg-[#171d26] dark:hover:bg-[#1b2534]">
