@@ -8,7 +8,7 @@ head:
   - tag: title
     content: "Authenticate AI Clients with OAuth2 | Nhost Docs"
 ---
-import { Steps } from '@astrojs/starlight/components';
+import { Steps, Tabs, TabItem } from '@astrojs/starlight/components';
 
 The Project MCP server integrates with Nhost Auth as an [OAuth2 authorization server](/products/auth/oauth2-provider), following the [MCP Authorization specification](https://modelcontextprotocol.io/specification/2025-03-26/basic/authorization). Any MCP client that supports OAuth2 can authenticate against your Nhost project automatically — you do not register clients by hand.
 
@@ -18,26 +18,41 @@ Before the flow works end to end, your Nhost Auth project needs:
 
 <Steps>
 
-1. **The OAuth2 provider enabled**
+1. **Enable OAuth2 Provider in Settings**
 
-   (note to paul: add screenshot)
+   Project MCP relies on Nhost Auth acting as an OAuth2 authorization server. Enable it and configure an RSA signing key.
 
-   Project MCP relies on Nhost Auth acting as an OAuth2 authorization server. Enable it and configure an RSA signing key. See [OAuth2 / OIDC Provider](/products/auth/oauth2-provider).
+   ![oAuth2 Provider](/images/products/ai/mcp/authentication/oauth2-provider.png)
 
-2. **CIMD enabled**
+   Learn more: [OAuth2 / OIDC Provider](/products/auth/oauth2-provider)
 
-   (note to paul: add screenshot)
+2. **A Consent Page**
+
+   After enabling OAuth2, you must add a Login URL for a consent page. If you need tips on building a consent page, check out our [consent page guide](/products/auth/oauth2-provider/authorization-flow#what-you-build-the-consent-page).
+
+   ![oAuth2 Provider Configs](/images/products/ai/mcp/authentication/oauth2-provider-configs.png)
+
+   Below Login URL, you can optionally change the default expiration values for Access and Refresh tokens.
+
+3. **CIMD enabled**
 
    MCP clients register themselves dynamically using a [Client ID Metadata Document (CIMD)](/products/auth/oauth2-provider/cimd-clients) rather than a pre-created client ID and secret. This must be enabled for the flow to work.
+
+   <Tabs>
+   <TabItem label="Dashboard">
+
+   ![CIMD](/images/products/ai/mcp/authentication/cimd.png)
+
+   </TabItem>
+   <TabItem label="nhost.toml">
 
    ```toml
    [auth.oauth2Provider.clientIdMetadataDocument]
    enabled = true
    ```
 
-3. **A consent page**
-
-   OAuth2 requires a page where the user approves the client's access request. You build this page as part of your application's auth flow. See [what you build: the consent page](/products/auth/oauth2-provider/authorization-flow).
+   </TabItem>
+   </Tabs>
 
 </Steps>
 
