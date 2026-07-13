@@ -23,11 +23,11 @@ _dev-env-build:
 
 .PHONY: test-local
 test-local:  ## Run the offline unit suite (no backend).
-	GOFLAGS=-mod=mod go test ./...
+	GOFLAGS=-mod=vendor go test ./...
 
 .PHONY: integration-local
 integration-local:  ## Run integration tests; requires NHOST_LOCAL_BACKEND=1 + a local backend.
-	GOFLAGS=-mod=mod NHOST_LOCAL_BACKEND=1 go test -tags integration -run TestIntegration ./...
+	GOFLAGS=-mod=vendor NHOST_LOCAL_BACKEND=1 go test -tags integration -run TestIntegration ./...
 
 .PHONY: generate
 generate:  ## Regenerate the auth/storage clients from the OpenAPI specs.

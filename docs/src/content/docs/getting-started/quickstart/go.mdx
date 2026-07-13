@@ -1,0 +1,156 @@
+---
+title: Get up and running with Nhost and Go
+description: "Build a Go backend with Nhost: install the idiomatic Go SDK, run GraphQL queries, and add authentication to your net/http service."
+keywords: ["Go", "Golang", "net/http", "quickstart", "Nhost SDK", "GraphQL", "backend integration"]
+head:
+  - tag: title
+    content: "Go Backend Quickstart Guide | Nhost Docs"
+sidebar:
+  label: Go (net/http)
+---
+import { Tabs, TabItem } from '@astrojs/starlight/components';
+
+The Nhost Go SDK (`github.com/nhost/nhost/packages/nhost-go`) is a small,
+idiomatic client for Nhost's Auth, Storage, GraphQL, and Functions services.
+This quickstart wires it into a `net/http` service that reads data over GraphQL
+and signs a user in — the server-side counterpart to the JavaScript quickstarts.
+
+### Create Project
+
+If you haven't, please create a project through the [Nhost Dashboard](https://app.nhost.io).
+
+### Setup Database
+
+Navigate to the **SQL Editor** of the database and run the following SQL to create a new table `movies` with some great movies.
+
+```sql SQL Editor
+CREATE TABLE movies (
+  id SERIAL PRIMARY KEY,
+  title VARCHAR(255) NOT NULL,
+  director VARCHAR(255),
+  release_year INTEGER,
+  genre VARCHAR(100),
+  rating FLOAT
+);
+
+INSERT INTO movies (title, director, release_year, genre, rating) VALUES
+  ('Inception', 'Christopher Nolan', 2010, 'Sci-Fi', 8.8),
+  ('The Godfather', 'Francis Ford Coppola', 1972, 'Crime', 9.2),
+  ('Forrest Gump', 'Robert Zemeckis', 1994, 'Drama', 8.8),
+  ('The Matrix', 'Lana Wachowski, Lilly Wachowski', 1999, 'Action', 8.7);
+```
+
+:::caution
+Make sure the option `Track this` is enabled.
+:::
+
+### Permissions
+
+Select the new table `movies` just created, and click on **Edit Permissions** to set the following permissions for the `public` role and `select` action, so the service can read it without a session.
+
+### Setup the Application
+
+Create a module and install the SDK.
+
+```bash Terminal
+mkdir my-go-app && cd my-go-app
+go mod init example.com/my-go-app
+
+go get github.com/nhost/nhost/packages/nhost-go
+```
+
+### Configure the Nhost client and fetch the list of movies
+
+Create the client once and share it across handlers.
+
+<Tabs>
+  <TabItem label="main.go">
+```go
+package main
+
+import (
+	"context"
+	"encoding/json"
+	"log"
+	"net/http"
+
+	nhost "github.com/nhost/nhost/packages/nhost-go"
+	"github.com/nhost/nhost/packages/nhost-go/auth"
+)
+
+// The `movies` table is exposed to the `public` role, so this works with or
+// without a session.
+const moviesQuery = `query {
+  movies(order_by: {rating: desc}) {
+    title
+    director
+    release_year
+    genre
+    rating
+  }
+}`
+
+func main() {
+	// Replace <subdomain> and <region> with your project's values. For a local
+	// backend, use Subdomain: "local", Region: "local".
+	client := nhost.CreateClient(nhost.Options{
+		Subdomain: "<subdomain>",
+		Region:    "<region>",
+	})
+
+	http.HandleFunc("GET /movies", func(w http.ResponseWriter, r *http.Request) {
+		resp, err := client.GraphQL.Request(r.Context(), moviesQuery, nil, "", nil)
+		if err != nil {
+			http.Error(w, err.Error(), http.StatusBadGateway)
+			return
+		}
+
+		w.Header().Set("Content-Type", "application/json")
+		_ = json.NewEncoder(w).Encode(resp.Body.Data["movies"])
+	})
+
+	http.HandleFunc("POST /signin", func(w http.ResponseWriter, r *http.Request) {
+		var body struct {
+			Email    string `json:"email"`
+			Password string `json:"password"`
+		}
+		if err := json.NewDecoder(r.Body).Decode(&body); err != nil {
+			http.Error(w, err.Error(), http.StatusBadRequest)
+			return
+		}
+
+		// On success the session is captured by middleware and attached to
+		// subsequent requests automatically.
+		if _, err := client.Auth.SignInEmailPassword(r.Context(), auth.SignInEmailPasswordRequest{
+			Email:    body.Email,
+			Password: body.Password,
+		}, nil); err != nil {
+			http.Error(w, err.Error(), http.StatusUnauthorized)
+			return
+		}
+
+		w.WriteHeader(http.StatusNoContent)
+	})
+
+	log.Println("listening on :8080")
+	log.Fatal(http.ListenAndServe(":8080", nil))
+}
+```
+  </TabItem>
+</Tabs>
+
+:::note
+`CreateClient` enables automatic session refresh and token attachment. In a
+multi-user server you typically want a per-request/user session store — use
+`CreateServerClient` with explicit storage rather than sharing one session
+across all callers.
+:::
+
+### The end
+
+Run your service with `go run .` and open `http://localhost:8080/movies` in your browser.
+
+## Related resources
+
+- [`nhost-go` SDK reference](/reference/go/nhost-go/main) — the full API for auth, storage, GraphQL, and functions.
+- [`cat-uploader` example](https://github.com/nhost/nhost/tree/main/packages/nhost-go/examples/cat-uploader) on GitHub — a complete Go service that uploads to Nhost Storage.

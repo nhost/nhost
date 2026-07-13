@@ -312,6 +312,21 @@ func (p *Parameter) Explode() bool {
 	return p.Style() == "form"
 }
 
+// JSONContent reports whether the parameter is defined via
+// `content: application/json` rather than a plain `schema`. Per the OpenAPI
+// spec such parameters are serialized as a single value in their media type
+// (a JSON-encoded string), ignoring style/explode — so the query serializer
+// must not explode them into individual key/value pairs.
+func (p *Parameter) JSONContent() bool {
+	if p.Parameter.Content == nil {
+		return false
+	}
+
+	_, ok := p.Parameter.Content.Get("application/json")
+
+	return ok
+}
+
 func GetMethod(
 	path string,
 	method string,

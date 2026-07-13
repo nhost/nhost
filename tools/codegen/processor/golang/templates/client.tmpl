@@ -34,6 +34,7 @@ func (c *Client) {{ .Name }}(
 ) (*fetch.FetchResponse[{{ $ret }}], error) {
 	u := fmt.Sprintf("%s{{ .Path }}", c.BaseURL{{ range .PathParameters }}, {{ unexported .Name }}{{ end }})
 {{- if .RequestJSON }}
+{{- if .BodyRequired }}
 	rawBody, err := json.Marshal(body)
 	if err != nil {
 		return nil, err
@@ -43,6 +44,28 @@ func (c *Client) {{ .Name }}(
 		return nil, err
 	}
 	req.Header.Set("Content-Type", "application/json")
+{{- else }}
+	// The body is optional: when nil, send no body at all rather than the JSON
+	// literal "null" (which json.Marshal(nil) would produce), and omit the
+	// Content-Type header so the server treats the payload as absent.
+	var req *http.Request
+	var err error
+	if body != nil {
+		rawBody, mErr := json.Marshal(body)
+		if mErr != nil {
+			return nil, mErr
+		}
+		req, err = http.NewRequestWithContext(ctx, "{{ .Method }}", u, bytes.NewReader(rawBody))
+	} else {
+		req, err = http.NewRequestWithContext(ctx, "{{ .Method }}", u, nil)
+	}
+	if err != nil {
+		return nil, err
+	}
+	if body != nil {
+		req.Header.Set("Content-Type", "application/json")
+	}
+{{- end }}
 {{- else if .RequestFormURLEncoded }}
 	form := url.Values{}
 {{- range .RequestFormURLEncoded.Properties }}

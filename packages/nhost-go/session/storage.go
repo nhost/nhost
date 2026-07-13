@@ -135,7 +135,7 @@ func (f *FileStorage) Remove() {
 
 // DetectStorage returns the default backend for the current environment.
 func DetectStorage() Backend { //nolint:ireturn
-	return &MemoryStorage{} //nolint:exhaustruct
+	return &MemoryStorage{mu: sync.RWMutex{}, session: nil}
 }
 
 // ChangeCallback is notified on every session change.
@@ -153,9 +153,12 @@ type Storage struct {
 
 // NewStorage wraps a backend.
 func NewStorage(backend Backend) *Storage {
-	return &Storage{ //nolint:exhaustruct
+	return &Storage{
 		backend:     backend,
+		mu:          sync.Mutex{},
+		refreshMu:   sync.Mutex{},
 		subscribers: map[int]ChangeCallback{},
+		nextID:      0,
 	}
 }
 

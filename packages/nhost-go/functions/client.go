@@ -28,14 +28,14 @@ func NewClient(baseURL string, chainFunctions []fetch.ChainFunction, httpClient 
 		httpClient = &http.Client{} //nolint:exhaustruct
 	}
 
-	c := &Client{ //nolint:exhaustruct
-		BaseURL:        baseURL,
-		chainFunctions: append([]fetch.ChainFunction{}, chainFunctions...),
-		httpClient:     httpClient,
-	}
-	c.fetch = fetch.CreateEnhancedFetch(c.httpClient, c.chainFunctions)
+	chain := append([]fetch.ChainFunction{}, chainFunctions...)
 
-	return c
+	return &Client{
+		BaseURL:        baseURL,
+		chainFunctions: chain,
+		httpClient:     httpClient,
+		fetch:          fetch.CreateEnhancedFetch(httpClient, chain),
+	}
 }
 
 // PushChainFunction appends a middleware chain function and rebuilds the pipeline.
@@ -80,7 +80,11 @@ func (c *Client) Fetch(
 		method = http.MethodGet
 	}
 
-	req, err := http.NewRequestWithContext(ctx, method, c.BaseURL+path, body)
+	// Join with exactly one slash so callers may pass the path with or without
+	// a leading "/" (e.g. "echo" or "/echo") without producing a malformed URL.
+	url := strings.TrimRight(c.BaseURL, "/") + "/" + strings.TrimLeft(path, "/")
+
+	req, err := http.NewRequestWithContext(ctx, method, url, body)
 	if err != nil {
 		return nil, err //nolint:wrapcheck
 	}
