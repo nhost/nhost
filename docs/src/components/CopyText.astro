@@ -8,7 +8,7 @@ const { text } = Astro.props;
 
 <span class="copy-text">
   <code>{text}</code>
-  <button class="copy-text-btn" type="button" data-copy={text} aria-label="Copy to clipboard">
+  <button class="copy-text-btn" type="button" data-copy={text} aria-label="Copy link">
     <svg
       width="14"
       height="14"
@@ -23,20 +23,26 @@ const { text } = Astro.props;
       <path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"></path>
     </svg>
   </button>
-  <span class="copy-text-tooltip" role="status" aria-live="polite">
-    Copied
-    <svg
-      width="12"
-      height="12"
-      viewBox="0 0 24 24"
-      fill="none"
-      stroke="currentColor"
-      stroke-width="3"
-      stroke-linecap="round"
-      stroke-linejoin="round"
-    >
-      <polyline points="20 6 9 17 4 12"></polyline>
-    </svg>
+  <span class="copy-text-tooltip" aria-hidden="true">
+    <span class="copy-text-tooltip-labels">
+      <span class="copy-text-tooltip-label copy-text-tooltip-label--copy">Copy link</span>
+      <span class="copy-text-tooltip-label copy-text-tooltip-label--copied">
+        Copied!
+        <svg
+          class="copy-text-tooltip-check"
+          width="12"
+          height="12"
+          viewBox="0 0 24 24"
+          fill="none"
+          stroke="currentColor"
+          stroke-width="3"
+          stroke-linecap="round"
+          stroke-linejoin="round"
+        >
+          <polyline points="4 12 9 17 20 6"></polyline>
+        </svg>
+      </span>
+    </span>
   </span>
 </span>
 
@@ -77,7 +83,8 @@ const { text } = Astro.props;
     transition: opacity 0.15s;
   }
 
-  .copy-text-btn:hover {
+  .copy-text-btn:hover,
+  .copy-text-btn:focus-visible {
     opacity: 1;
   }
 
@@ -93,7 +100,6 @@ const { text } = Astro.props;
     right: 0;
     display: inline-flex;
     align-items: center;
-    gap: 0.25rem;
     padding: 0.25rem 0.5rem;
     border: 1px solid var(--sl-color-hairline-light);
     border-radius: 0.375rem;
@@ -114,12 +120,64 @@ const { text } = Astro.props;
     z-index: 10;
   }
 
-  .copy-text-btn.copied ~ .copy-text-tooltip {
+  /* Visibility is driven by JS (the `open` class) so the label can stay
+     "Copied!" through the fade-out instead of flipping back mid-animation. */
+  .copy-text-btn.open ~ .copy-text-tooltip {
     opacity: 1;
     visibility: visible;
     transform: translateY(0);
     /* Appear instantly; the base rule animates it back out. */
     transition: none;
+  }
+
+  /* Stack both labels in one grid cell so the tooltip width stays constant
+     (sized to the wider label) and only opacity toggles between them. */
+  .copy-text-tooltip-labels {
+    display: grid;
+  }
+
+  .copy-text-tooltip-label {
+    grid-area: 1 / 1;
+    display: inline-flex;
+    align-items: center;
+    gap: 0.25rem;
+    white-space: nowrap;
+  }
+
+  .copy-text-tooltip-label--copied {
+    opacity: 0;
+  }
+
+  .copy-text-btn.copied ~ .copy-text-tooltip .copy-text-tooltip-label--copy {
+    opacity: 0;
+  }
+
+  .copy-text-btn.copied ~ .copy-text-tooltip .copy-text-tooltip-label--copied {
+    opacity: 1;
+  }
+
+  .copy-text-tooltip-check {
+    color: #3fb950;
+  }
+
+  :global([data-theme='light']) .copy-text-tooltip-check {
+    color: #1a7f37;
+  }
+
+  .copy-text-tooltip-check polyline {
+    stroke-dasharray: 24;
+    stroke-dashoffset: 24;
+  }
+
+  /* Draw the checkmark in when the "Copied!" label appears. */
+  .copy-text-btn.copied ~ .copy-text-tooltip .copy-text-tooltip-check polyline {
+    animation: copy-text-draw 0.3s ease 0.25s forwards;
+  }
+
+  @keyframes copy-text-draw {
+    to {
+      stroke-dashoffset: 0;
+    }
   }
 </style>
 
@@ -133,6 +191,18 @@ const { text } = Astro.props;
     const { signal } = controller;
 
     document.querySelectorAll<HTMLButtonElement>('.copy-text-btn').forEach((btn) => {
+      const open = () => btn.classList.add('open');
+      // Only close on hover/focus loss when we're not in the "Copied!" window;
+      // during that window the timer below owns closing.
+      const close = () => {
+        if (!btn.classList.contains('copied')) btn.classList.remove('open');
+      };
+
+      btn.addEventListener('mouseenter', open, { signal });
+      btn.addEventListener('mouseleave', close, { signal });
+      btn.addEventListener('focus', open, { signal });
+      btn.addEventListener('blur', close, { signal });
+
       btn.addEventListener(
         'click',
         () => {
@@ -141,10 +211,19 @@ const { text } = Astro.props;
             .writeText(text)
             .then(() => {
               clearTimeout(timers.get(btn));
-              btn.classList.add('copied');
+              btn.classList.add('copied', 'open');
               timers.set(
                 btn,
-                setTimeout(() => btn.classList.remove('copied'), 2000),
+                setTimeout(() => {
+                  if (btn.matches(':hover')) {
+                    // Still hovered: revert the label in place.
+                    btn.classList.remove('copied');
+                  } else {
+                    // Fade out first (keeping "Copied!"), then reset once hidden.
+                    btn.classList.remove('open');
+                    setTimeout(() => btn.classList.remove('copied'), 250);
+                  }
+                }, 2000),
               );
             })
             .catch(() => {});
