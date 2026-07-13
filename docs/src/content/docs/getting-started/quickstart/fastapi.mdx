@@ -1,0 +1,152 @@
+---
+title: Get up and running with Nhost and FastAPI
+description: "Build a Python + FastAPI backend with Nhost: install the async Python SDK, run GraphQL queries, and add authentication to your service."
+keywords: ["Python", "FastAPI", "async", "quickstart", "Nhost SDK", "GraphQL", "backend integration"]
+head:
+  - tag: title
+    content: "Python + FastAPI Quickstart Guide | Nhost Docs"
+sidebar:
+  label: FastAPI (Python)
+---
+import { Tabs, TabItem } from '@astrojs/starlight/components';
+
+The Nhost Python SDK (`nhost`) is an async-first client for Nhost's Auth,
+Storage, GraphQL, and Functions services. This quickstart wires it into a
+[FastAPI](https://fastapi.tiangolo.com) service that reads data over GraphQL and
+signs a user in — the server-side counterpart to the JavaScript quickstarts.
+
+### Create Project
+
+If you haven't, please create a project through the [Nhost Dashboard](https://app.nhost.io).
+
+### Setup Database
+
+Navigate to the **SQL Editor** of the database and run the following SQL to create a new table `movies` with some great movies.
+
+```sql SQL Editor
+CREATE TABLE movies (
+  id SERIAL PRIMARY KEY,
+  title VARCHAR(255) NOT NULL,
+  director VARCHAR(255),
+  release_year INTEGER,
+  genre VARCHAR(100),
+  rating FLOAT
+);
+
+INSERT INTO movies (title, director, release_year, genre, rating) VALUES
+  ('Inception', 'Christopher Nolan', 2010, 'Sci-Fi', 8.8),
+  ('The Godfather', 'Francis Ford Coppola', 1972, 'Crime', 9.2),
+  ('Forrest Gump', 'Robert Zemeckis', 1994, 'Drama', 8.8),
+  ('The Matrix', 'Lana Wachowski, Lilly Wachowski', 1999, 'Action', 8.7);
+```
+
+:::caution
+Make sure the option `Track this` is enabled.
+:::
+
+### Permissions
+
+Select the new table `movies` just created, and click on **Edit Permissions** to set the following permissions for the `public` role and `select` action, so the service can read it without a session.
+
+### Setup the Application
+
+Create a project and install the dependencies. The SDK targets Python 3.11+.
+
+```bash Terminal
+uv init my-fastapi-app
+cd my-fastapi-app
+
+uv add nhost fastapi "uvicorn[standard]"
+# or with pip:
+# pip install nhost fastapi "uvicorn[standard]"
+```
+
+### Configure the Nhost client and fetch the list of movies
+
+The `NhostClient` owns an `httpx.AsyncClient`, so create it once for the app's
+lifetime with a FastAPI [lifespan](https://fastapi.tiangolo.com/advanced/events/)
+and share it across requests.
+
+<Tabs>
+  <TabItem label="main.py">
+```python
+from contextlib import asynccontextmanager
+
+from fastapi import FastAPI, HTTPException, Request
+from nhost import create_client, NhostClientOptions
+from nhost.auth import SignInEmailPasswordRequest
+from pydantic import BaseModel
+
+# The `movies` table is exposed to the `public` role, so this works with or
+# without a session.
+MOVIES_QUERY = """
+query {
+  movies(order_by: {rating: desc}) {
+    title
+    director
+    release_year
+    genre
+    rating
+  }
+}
+"""
+
+
+@asynccontextmanager
+async def lifespan(app: FastAPI):
+    # Replace <subdomain> and <region> with your project's values. For a local
+    # backend, use subdomain="local", region="local".
+    async with create_client(
+        NhostClientOptions(subdomain="<subdomain>", region="<region>")
+    ) as nhost:
+        app.state.nhost = nhost
+        yield
+
+
+app = FastAPI(lifespan=lifespan)
+
+
+@app.get("/movies")
+async def movies(request: Request):
+    nhost = request.app.state.nhost
+    result = await nhost.graphql.request(MOVIES_QUERY)
+    return result.body.data["movies"]
+
+
+class SignIn(BaseModel):
+    email: str
+    password: str
+
+
+@app.post("/signin")
+async def signin(request: Request, body: SignIn):
+    nhost = request.app.state.nhost
+    try:
+        # On success the session is captured by middleware and attached to
+        # subsequent requests automatically.
+        resp = await nhost.auth.sign_in_email_password(
+            SignInEmailPasswordRequest(email=body.email, password=body.password)
+        )
+    except Exception as err:  # noqa: BLE001
+        raise HTTPException(status_code=401, detail=str(err)) from err
+    return {"session": resp.body.session is not None}
+```
+  </TabItem>
+</Tabs>
+
+:::note
+`create_client` enables automatic session refresh and token attachment. In a
+multi-user server you typically want a per-request/user session store — use
+`create_server_client` with explicit storage rather than sharing one session
+across all callers.
+:::
+
+### The end
+
+Run your service with `uv run uvicorn main:app --reload` and open
+`http://localhost:8000/movies` in your browser.
+
+## Related resources
+
+- [`nhost-python` SDK reference](/reference/python/nhost-python/main) — the full API for auth, storage, GraphQL, and functions.
+- [Python SDK on GitHub](https://github.com/nhost/nhost/tree/main/packages/nhost-python) — source, examples, and the offline/integration test suites.

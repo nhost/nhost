@@ -42,6 +42,9 @@ let
       ../build
       ./.
       (fs.fileFilter (f: f.hasExt "ts") ../packages/nhost-js/src)
+      # pydoc-to-md.py imports these to introspect the SDK and regenerate the
+      # Python reference pages; the sha1sum gate then enforces they're current.
+      (fs.fileFilter (f: f.hasExt "py") ../packages/nhost-python/src)
       ../services/auth/docs/openapi.yaml
       ../services/storage/controller/openapi.yaml
       ../packages/nhost-js/tsconfig.json
@@ -60,6 +63,9 @@ let
 
   checkDeps = with pkgs; [
     self.packages.${pkgs.stdenv.hostPlatform.system}.cli
+    # Interpreter + the SDK's runtime deps so pydoc-to-md.py can `import nhost`
+    # (from PYTHONPATH) without uv/network in the docs sandbox.
+    (python3.withPackages (ps: with ps; [ httpx pydantic ]))
     vale
   ];
 

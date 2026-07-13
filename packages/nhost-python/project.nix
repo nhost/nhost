@@ -106,9 +106,10 @@ in
           src/nhost/functions src/nhost/nhost.py
 
         echo "➜ Running the offline unit + doctest suite (no backend)"
-        pytest -q
-        # Streamed via tee so failures are visible in the build log; pipefail
-        # (set above) propagates pytest's exit status through the pipe.
+        # A single combined run covers both the unit tests in tests/ and the
+        # doctests in src/ (and tests/). Streamed via tee so failures are
+        # visible in the build log; pipefail (set above) propagates pytest's
+        # exit status through the pipe.
         pytest --doctest-modules --import-mode=importlib src tests -rs \
           | tee "$TMPDIR/offline.log"
         # Canary: pure doctests must have run, so not everything is skipped.

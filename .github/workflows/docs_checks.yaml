@@ -28,6 +28,9 @@ on:
       # nhost-js
       - packages/nhost-js/**
 
+      # nhost-python
+      - packages/nhost-python/**
+
       # apis
       - "services/auth/docs/openapi.yaml"
       - "services/storage/controller/openapi.yaml"
@@ -62,6 +65,7 @@ jobs:
         turbo.json
         docs/**
         packages/nhost-js/**
+        packages/nhost-python/**
         services/auth/docs/openapi.yaml
         services/storage/controller/openapi.yaml
         cli/**

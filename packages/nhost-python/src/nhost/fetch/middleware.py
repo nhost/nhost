@@ -13,6 +13,7 @@ from dataclasses import dataclass, field
 from typing import TYPE_CHECKING
 
 import httpx
+from pydantic import ValidationError
 
 from ..auth import Client as AuthClient
 from ..auth import Session
@@ -83,9 +84,15 @@ def _extract_session(body: object) -> Session | None:
     if "session" in body:
         raw = body["session"]
         return Session.model_validate(raw) if raw else None
-    if {"accessToken", "refreshToken", "user"} <= set(body):
+    # No explicit ``session`` wrapper: the body may itself be a raw session
+    # (e.g. a direct ``/token`` refresh response). We can't key off ``user``
+    # being present — the Go auth service serialises it with ``omitempty`` and
+    # omits the field entirely when the user has no profile — so let pydantic
+    # validate the required fields instead.
+    try:
         return Session.model_validate(body)
-    return None
+    except ValidationError:
+        return None
 
 
 def update_session_from_response_middleware(storage: SessionStorage) -> ChainFunction:
