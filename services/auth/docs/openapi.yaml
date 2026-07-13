@@ -2640,13 +2640,11 @@ components:
           type: string
           description: >
             (google) OpenID Connect prompt. When omitted, Google uses its default
-            behavior. Use select_account to force the account chooser.
+            behavior. A space-delimited list of "consent" and/or "select_account",
+            or "none" on its own. Use select_account to force the account chooser.
             See https://developers.google.com/identity/protocols/oauth2/openid-connect#authenticationuriparameters
-          enum:
-            - none
-            - consent
-            - select_account
-        login_hint:
+          pattern: "^(none|(consent|select_account)( (consent|select_account))*)$"
+        loginHint:
           type: string
           description: >
             (google) Email or Google user ID (sub) hint. Prefills or selects that
@@ -2656,14 +2654,14 @@ components:
           description: >
             (google) Optimize account selection for a Google Cloud / Workspace
             domain (e.g. example.com), or "*" for any Cloud organization account.
-        access_type:
+        accessType:
           type: string
           description: >
             (google) online (default) or offline to request a refresh token.
           enum:
             - online
             - offline
-        include_granted_scopes:
+        includeGrantedScopes:
           type: string
           description: >
             (google) When "true", include previously granted scopes (incremental

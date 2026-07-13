@@ -64,50 +64,32 @@ func (g *Google) GetProfile(
 	}, nil
 }
 
+func appendAuthURLParam[T ~string](
+	opts []oauth2.AuthCodeOption, key string, value *T,
+) []oauth2.AuthCodeOption {
+	if value == nil {
+		return opts
+	}
+
+	return append(opts, oauth2.SetAuthURLParam(key, string(*value)))
+}
+
 func (g *Google) AuthCodeURL(
 	state string,
 	providerSpecificParams *api.ProviderSpecificParams,
 	opts ...oauth2.AuthCodeOption,
 ) string {
 	if providerSpecificParams != nil {
-		if providerSpecificParams.Prompt != nil {
-			opts = append(
-				opts,
-				oauth2.SetAuthURLParam("prompt", string(*providerSpecificParams.Prompt)),
-			)
-		}
-
-		if providerSpecificParams.LoginHint != nil {
-			opts = append(
-				opts,
-				oauth2.SetAuthURLParam("login_hint", *providerSpecificParams.LoginHint),
-			)
-		}
-
-		if providerSpecificParams.Hd != nil {
-			opts = append(opts, oauth2.SetAuthURLParam("hd", *providerSpecificParams.Hd))
-		}
-
-		if providerSpecificParams.AccessType != nil {
-			opts = append(
-				opts,
-				oauth2.SetAuthURLParam("access_type", string(*providerSpecificParams.AccessType)),
-			)
-		}
-
-		if providerSpecificParams.IncludeGrantedScopes != nil {
-			opts = append(
-				opts,
-				oauth2.SetAuthURLParam(
-					"include_granted_scopes",
-					string(*providerSpecificParams.IncludeGrantedScopes),
-				),
-			)
-		}
-
-		if providerSpecificParams.Hl != nil {
-			opts = append(opts, oauth2.SetAuthURLParam("hl", *providerSpecificParams.Hl))
-		}
+		opts = appendAuthURLParam(opts, "prompt", providerSpecificParams.Prompt)
+		opts = appendAuthURLParam(opts, "login_hint", providerSpecificParams.LoginHint)
+		opts = appendAuthURLParam(opts, "hd", providerSpecificParams.Hd)
+		opts = appendAuthURLParam(opts, "access_type", providerSpecificParams.AccessType)
+		opts = appendAuthURLParam(
+			opts,
+			"include_granted_scopes",
+			providerSpecificParams.IncludeGrantedScopes,
+		)
+		opts = appendAuthURLParam(opts, "hl", providerSpecificParams.Hl)
 	}
 
 	return g.Config.AuthCodeURL(state, opts...)

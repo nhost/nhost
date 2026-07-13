@@ -342,6 +342,39 @@ func (e OKResponse) Valid() bool {
 	}
 }
 
+// Defines values for ProviderSpecificParamsAccessType.
+const (
+	Offline ProviderSpecificParamsAccessType = "offline"
+	Online  ProviderSpecificParamsAccessType = "online"
+)
+
+// Valid indicates whether the value is a known member of the ProviderSpecificParamsAccessType enum.
+func (e ProviderSpecificParamsAccessType) Valid() bool {
+	switch e {
+	case Offline:
+		return true
+	case Online:
+		return true
+	default:
+		return false
+	}
+}
+
+// Defines values for ProviderSpecificParamsIncludeGrantedScopes.
+const (
+	True ProviderSpecificParamsIncludeGrantedScopes = "true"
+)
+
+// Valid indicates whether the value is a known member of the ProviderSpecificParamsIncludeGrantedScopes enum.
+func (e ProviderSpecificParamsIncludeGrantedScopes) Valid() bool {
+	switch e {
+	case True:
+		return true
+	default:
+		return false
+	}
+}
+
 // Defines values for PublicKeyCredentialHints.
 const (
 	PublicKeyCredentialHintsClientDevice PublicKeyCredentialHints = "client-device"
@@ -1255,12 +1288,36 @@ type ProviderSession struct {
 
 // ProviderSpecificParams defines model for ProviderSpecificParams.
 type ProviderSpecificParams struct {
+	// AccessType (google) online (default) or offline to request a refresh token.
+	AccessType *ProviderSpecificParamsAccessType `json:"accessType,omitempty"`
+
 	// Connection (workos) Specifies the connection to use for authentication
 	Connection *string `json:"connection,omitempty"`
 
+	// Hd (google) Optimize account selection for a Google Cloud / Workspace domain (e.g. example.com), or "*" for any Cloud organization account.
+	Hd *string `json:"hd,omitempty"`
+
+	// Hl (google) BCP 47 language tag for the sign-in / account chooser / consent UI (e.g. en-GB).
+	Hl *string `json:"hl,omitempty"`
+
+	// IncludeGrantedScopes (google) When "true", include previously granted scopes (incremental authorization).
+	IncludeGrantedScopes *ProviderSpecificParamsIncludeGrantedScopes `json:"includeGrantedScopes,omitempty"`
+
+	// LoginHint (google) Email or Google user ID (sub) hint. Prefills or selects that account and can suppress the account chooser.
+	LoginHint *string `json:"loginHint,omitempty"`
+
 	// Organization (workos) Specifies the organization to use for authentication
 	Organization *string `json:"organization,omitempty"`
+
+	// Prompt (google) OpenID Connect prompt. When omitted, Google uses its default behavior. A space-delimited list of "consent" and/or "select_account", or "none" on its own. Use select_account to force the account chooser. See https://developers.google.com/identity/protocols/oauth2/openid-connect#authenticationuriparameters
+	Prompt *string `json:"prompt,omitempty"`
 }
+
+// ProviderSpecificParamsAccessType (google) online (default) or offline to request a refresh token.
+type ProviderSpecificParamsAccessType string
+
+// ProviderSpecificParamsIncludeGrantedScopes (google) When "true", include previously granted scopes (incremental authorization).
+type ProviderSpecificParamsIncludeGrantedScopes string
 
 // PublicKeyCredentialCreationOptions defines model for PublicKeyCredentialCreationOptions.
 type PublicKeyCredentialCreationOptions = protocol.PublicKeyCredentialCreationOptions

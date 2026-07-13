@@ -22,6 +22,7 @@ func TestGoogleAuthCodeURLProviderSpecificParams(t *testing.T) {
 		t.Parallel()
 
 		raw := google.AuthCodeURL("state", nil)
+
 		parsed, err := url.Parse(raw)
 		if err != nil {
 			t.Fatalf("parse authorize URL: %v", err)
@@ -39,7 +40,7 @@ func TestGoogleAuthCodeURLProviderSpecificParams(t *testing.T) {
 	t.Run("google-specific params are forwarded when set", func(t *testing.T) {
 		t.Parallel()
 
-		prompt := api.SelectAccount
+		prompt := "consent select_account"
 		accessType := api.Offline
 		includeGranted := api.True
 		loginHint := "user@example.com"
@@ -54,13 +55,14 @@ func TestGoogleAuthCodeURLProviderSpecificParams(t *testing.T) {
 			IncludeGrantedScopes: &includeGranted,
 			Hl:                   &hl,
 		})
+
 		parsed, err := url.Parse(raw)
 		if err != nil {
 			t.Fatalf("parse authorize URL: %v", err)
 		}
 
 		want := map[string]string{
-			"prompt":                 "select_account",
+			"prompt":                 "consent select_account",
 			"login_hint":             "user@example.com",
 			"hd":                     "example.com",
 			"access_type":            "offline",

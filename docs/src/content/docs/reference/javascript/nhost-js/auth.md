@@ -2848,6 +2848,14 @@ Example - `"1//0gK8..."`
 
 ### Properties
 
+#### accessType?
+
+```ts
+optional accessType?: ProviderSpecificParamsAccessType;
+```
+
+(google) online (default) or offline to request a refresh token.
+
 #### connection?
 
 ```ts
@@ -2856,6 +2864,38 @@ optional connection?: string;
 
 (workos) Specifies the connection to use for authentication
 
+#### hd?
+
+```ts
+optional hd?: string;
+```
+
+(google) Optimize account selection for a Google Cloud / Workspace domain (e.g. example.com), or "\*" for any Cloud organization account.
+
+#### hl?
+
+```ts
+optional hl?: string;
+```
+
+(google) BCP 47 language tag for the sign-in / account chooser / consent UI (e.g. en-GB).
+
+#### includeGrantedScopes?
+
+```ts
+optional includeGrantedScopes?: "true";
+```
+
+(google) When "true", include previously granted scopes (incremental authorization).
+
+#### loginHint?
+
+```ts
+optional loginHint?: string;
+```
+
+(google) Email or Google user ID (sub) hint. Prefills or selects that account and can suppress the account chooser.
+
 #### organization?
 
 ```ts
@@ -2863,6 +2903,16 @@ optional organization?: string;
 ```
 
 (workos) Specifies the organization to use for authentication
+
+#### prompt?
+
+```ts
+optional prompt?: string;
+```
+
+(google) OpenID Connect prompt. When omitted, Google uses its default behavior. A space-delimited list of "consent" and/or "select_account", or "none" on its own. Use select_account to force the account chooser. See https://developers.google.com/identity/protocols/oauth2/openid-connect#authenticationuriparameters
+
+- Pattern - ^(none|(consent|select_account)( (consent|select_account))\*)$
 
 ---
 
@@ -4746,6 +4796,26 @@ type OAuth2TokenRequestGrant_type = "authorization_code" | "refresh_token";
 ```ts
 type OKResponse = "OK";
 ```
+
+---
+
+## ProviderSpecificParamsAccessType
+
+```ts
+type ProviderSpecificParamsAccessType = "online" | "offline";
+```
+
+(google) online (default) or offline to request a refresh token.
+
+---
+
+## ProviderSpecificParamsIncludeGrantedScopes
+
+```ts
+type ProviderSpecificParamsIncludeGrantedScopes = "true";
+```
+
+(google) When "true", include previously granted scopes (incremental authorization).
 
 ---
 
