@@ -18,7 +18,7 @@ Before the flow works end to end, your Nhost Auth project needs:
 
 <Steps>
 
-1. **Enable OAuth2 Provider in Settings**
+1. **Enable OAuth2 Provider**
 
    Project MCP relies on Nhost Auth acting as an OAuth2 authorization server. Enable it and configure an RSA signing key.
 
@@ -34,7 +34,7 @@ Before the flow works end to end, your Nhost Auth project needs:
 
    Below Login URL, you can optionally change the default expiration values for Access and Refresh tokens.
 
-3. **CIMD enabled**
+3. **Enable CIMD**
 
    MCP clients register themselves dynamically using a [Client ID Metadata Document (CIMD)](/products/auth/oauth2-provider/cimd-clients) rather than a pre-created client ID and secret. This must be enabled for the flow to work.
 
@@ -47,8 +47,13 @@ Before the flow works end to end, your Nhost Auth project needs:
    <TabItem label="nhost.toml">
 
    ```toml
+   [auth.oauth2Provider]
+   # Enable the OAuth2/OIDC provider
+   enabled = true # default: false
+  
    [auth.oauth2Provider.clientIdMetadataDocument]
-   enabled = true
+   # Enable Client ID Metadata Document (CIMD) support
+   enabled = true # default: false
    ```
 
    </TabItem>
