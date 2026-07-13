@@ -360,7 +360,7 @@ describe('CommandPaletteProvider', () => {
     });
   });
 
-  it('shows organization names in hints while staying searchable by org slug', async () => {
+  it('shows organization and project names in hints while staying searchable by org slug', async () => {
     window.localStorage.setItem(
       'command-palette-recent',
       JSON.stringify([
@@ -382,7 +382,7 @@ describe('CommandPaletteProvider', () => {
       'command-palette-item-recent:project-overview:org-b:project-c',
     );
     expect(
-      within(recentRow).getByText('Org B / project-c'),
+      within(recentRow).getByText('Org B / Project C (project-c)'),
     ).toBeInTheDocument();
 
     fireEvent.change(input, { target: { value: 'org-b' } });
@@ -391,7 +391,7 @@ describe('CommandPaletteProvider', () => {
       'command-palette-item-switch:project:org-b:project-c',
     );
     expect(
-      within(switchRow).getByText('Org B / project-c'),
+      within(switchRow).getByText('Org B / Project C (project-c)'),
     ).toBeInTheDocument();
   });
 

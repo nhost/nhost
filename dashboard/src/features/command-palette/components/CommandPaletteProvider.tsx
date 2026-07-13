@@ -97,17 +97,37 @@ const filterNavTree = (
     .map((child) => filterNavTree(child, gating)),
 });
 
+const getProjectHint = (
+  orgName: string | undefined,
+  projectName: string | undefined,
+  appSubdomain: string | undefined,
+) => {
+  if (!appSubdomain) {
+    return orgName;
+  }
+
+  return [
+    orgName,
+    projectName ? `${projectName} (${appSubdomain})` : appSubdomain,
+  ]
+    .filter(Boolean)
+    .join(' / ');
+};
+
 const createRecentNode = (
   entry: RecentEntry,
   originalNode: CommandNode,
   orgName?: string,
+  projectName?: string,
 ): RuntimeCommandNode => ({
   ...originalNode,
   id: `recent:${entry.nodeId}:${entry.orgSlug ?? ''}:${entry.appSubdomain ?? ''}`,
   title: entry.title,
-  hint: [orgName ?? entry.orgSlug, entry.appSubdomain]
-    .filter(Boolean)
-    .join(' / '),
+  hint: getProjectHint(
+    orgName ?? entry.orgSlug,
+    projectName,
+    entry.appSubdomain,
+  ),
   commandPalette: {
     source: 'recent',
     originalNode,
@@ -198,8 +218,8 @@ function useSwitchNodes(enabled: boolean): RuntimeCommandNode[] {
           kind: 'project',
           path: '',
           scope: 'project',
-          hint: `${org.name} / ${app.subdomain}`,
-          keywords: [org.name, org.slug, app.subdomain],
+          hint: getProjectHint(org.name, app.name, app.subdomain),
+          keywords: [org.name, org.slug, app.name, app.subdomain],
           commandPalette: {
             source: 'switch',
             orgSlug: org.slug,
@@ -240,6 +260,11 @@ function useRecentItems(
 
     const nodesById = new Map(flattenTree(tree).map((node) => [node.id, node]));
     const orgNamesBySlug = new Map(orgs.map((org) => [org.slug, org.name]));
+    const projectNamesBySlugAndSubdomain = new Map(
+      orgs.flatMap((org) =>
+        org.apps.map((app) => [`${org.slug}:${app.subdomain}`, app.name]),
+      ),
+    );
 
     return recent
       .filter((entry) => projectExists(entry, availableProjects))
@@ -252,6 +277,9 @@ function useRecentItems(
                 entry,
                 originalNode,
                 orgNamesBySlug.get(entry.orgSlug ?? ''),
+                projectNamesBySlugAndSubdomain.get(
+                  `${entry.orgSlug ?? ''}:${entry.appSubdomain ?? ''}`,
+                ),
               ),
             )
           : undefined;
