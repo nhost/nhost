@@ -229,7 +229,7 @@ final class SessionStoreTests: XCTestCase {
         let store = SessionStore(storage: backend)
         _ = try await store.authorizationSnapshot()
         let recorder = SessionTransitionRecorder()
-        let subscription = await store.subscribeToTransitions { old, new in
+        let subscription = store.subscribeToTransitions { old, new in
             await recorder.append(old: old, new: new)
         }
         let replacement = try StoredSession(

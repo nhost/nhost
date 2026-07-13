@@ -177,7 +177,13 @@ public struct GraphQLClient: Sendable {
             executor: executor,
             scopeContext: cacheScopeContext,
             clock: cacheClock,
-            endpoint: url
+            endpoint: url,
+            sessionHygiene: GraphQLCacheSessionHygiene.configured(
+                configuration: cacheConfiguration,
+                store: store,
+                scopeContext: cacheScopeContext,
+                endpoint: url
+            )
         )
         cacheCoordinator = coordinator
         cache = GraphQLCacheHandle(

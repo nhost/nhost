@@ -1,5 +1,212 @@
 import Foundation
 
+typealias GraphQLCacheSessionTransitionSubscriber = @Sendable (
+    @escaping SessionTransitionObserver
+) -> SessionStoreSubscription
+
+struct GraphQLCacheClientScopeContext: Sendable {
+    let defaultHeaders: [String: String]
+    let configuredRole: String?
+    let adminSession: AdminSessionOptions?
+    let usesManagedSession: Bool
+    let hasCustomMiddleware: Bool
+    let sessionSnapshot: @Sendable () async throws -> SessionAuthorizationSnapshot?
+    let subscribeToSessionTransitions: GraphQLCacheSessionTransitionSubscriber?
+
+    init(
+        defaultHeaders: [String: String],
+        configuredRole: String?,
+        adminSession: AdminSessionOptions?,
+        usesManagedSession: Bool,
+        hasCustomMiddleware: Bool,
+        sessionSnapshot: @escaping @Sendable () async throws -> SessionAuthorizationSnapshot?,
+        subscribeToSessionTransitions: GraphQLCacheSessionTransitionSubscriber? = nil
+    ) {
+        self.defaultHeaders = defaultHeaders
+        self.configuredRole = configuredRole
+        self.adminSession = adminSession
+        self.usesManagedSession = usesManagedSession
+        self.hasCustomMiddleware = hasCustomMiddleware
+        self.sessionSnapshot = sessionSnapshot
+        self.subscribeToSessionTransitions = subscribeToSessionTransitions
+    }
+
+    static func standalone(hasCustomMiddleware: Bool) -> GraphQLCacheClientScopeContext {
+        GraphQLCacheClientScopeContext(
+            defaultHeaders: [:],
+            configuredRole: nil,
+            adminSession: nil,
+            usesManagedSession: false,
+            hasCustomMiddleware: hasCustomMiddleware,
+            sessionSnapshot: { nil }
+        )
+    }
+}
+
+/// Retains session transition observation and serializes best-effort deletion of
+/// cache entries belonging to prior managed authorization scopes.
+final class GraphQLCacheSessionHygiene: @unchecked Sendable {
+    private struct Context: Sendable {
+        let endpoint: URL
+        let defaultHeaders: [String: String]
+        let configuredRole: String?
+        let adminSession: AdminSessionOptions?
+        let diagnosticObserver: GraphQLCacheDiagnosticObserver?
+    }
+
+    private let lock = NSLock()
+    private let store: any GraphQLCacheStore
+    private let context: Context
+    private var subscription: SessionStoreSubscription?
+    private var pendingCleanup: Task<Void, Never>?
+
+    private init(store: any GraphQLCacheStore, context: Context) {
+        self.store = store
+        self.context = context
+    }
+
+    static func configured(
+        configuration: GraphQLCacheConfiguration,
+        store: any GraphQLCacheStore,
+        scopeContext: GraphQLCacheClientScopeContext,
+        endpoint: URL
+    ) -> GraphQLCacheSessionHygiene? {
+        guard configuration.purgePreviousScopeOnSignOut,
+              scopeContext.usesManagedSession,
+              let subscribe = scopeContext.subscribeToSessionTransitions
+        else {
+            return nil
+        }
+
+        let hygiene = GraphQLCacheSessionHygiene(
+            store: store,
+            context: Context(
+                endpoint: endpoint,
+                defaultHeaders: scopeContext.defaultHeaders,
+                configuredRole: scopeContext.configuredRole,
+                adminSession: scopeContext.adminSession,
+                diagnosticObserver: configuration.diagnosticObserver
+            )
+        )
+        let subscription = subscribe { [weak hygiene] old, new in
+            hygiene?.enqueue(old: old, new: new)
+        }
+        hygiene.retain(subscription)
+        return hygiene
+    }
+
+    deinit {
+        subscription?.cancelImmediately()
+    }
+
+    func retain(_ subscription: SessionStoreSubscription) {
+        lock.lock()
+        self.subscription = subscription
+        lock.unlock()
+    }
+
+    /// Called by `SessionStore` while notifying transitions. This method only
+    /// appends work to an ordered task chain and never waits for store I/O.
+    func enqueue(old: StoredSession?, new: StoredSession?) {
+        guard let old,
+              old.stableAuthorizationFingerprint != new?.stableAuthorizationFingerprint
+        else {
+            return
+        }
+
+        lock.lock()
+        let previous = pendingCleanup
+        let store = self.store
+        let context = self.context
+        let task = Task {
+            await previous?.value
+            await Self.purge(old: old, store: store, context: context)
+        }
+        pendingCleanup = task
+        lock.unlock()
+    }
+
+    /// Cache-enabled operations wait for already-enqueued deletion so a delayed
+    /// old-user purge cannot remove a newly written response for the new scope.
+    func waitForPendingCleanup() async {
+        let task = lock.withLock { pendingCleanup }
+        await task?.value
+    }
+
+    private static func purge(
+        old: StoredSession,
+        store: any GraphQLCacheStore,
+        context: Context
+    ) async {
+        let snapshot = SessionAuthorizationSnapshot(
+            session: old,
+            mutationGeneration: 0,
+            authorizationEpoch: 0,
+            stableFingerprint: old.stableAuthorizationFingerprint
+        )
+        let previousScope: GraphQLCacheDigest?
+        do {
+            previousScope = try await GraphQLCacheScopeInputs(
+                endpoint: context.endpoint,
+                request: GraphQLRequest(query: "query NhostCacheCleanup { __typename }"),
+                defaultHeaders: context.defaultHeaders,
+                configuredRole: context.configuredRole,
+                adminSession: context.adminSession,
+                sessionSnapshot: snapshot,
+                usesManagedSession: true
+            ).resolve()?.digest
+        } catch {
+            previousScope = nil
+            diagnose(context.diagnosticObserver)
+        }
+
+        if let previousScope {
+            await invalidate(
+                GraphQLCacheStoreFilter(authorizationScope: previousScope),
+                store: store,
+                diagnosticObserver: context.diagnosticObserver
+            )
+        }
+        if let userIdentity = old.stableUserIdentity {
+            // A request-specific resolver may augment the stored authorization digest,
+            // but cannot be re-run after that request during sign-out. The managed-user
+            // facet is therefore an intentional, broader hygiene fallback that removes
+            // every cached scope for the old user; key isolation never depends on purge.
+            await invalidate(
+                GraphQLCacheStoreFilter(
+                    userIdentity: GraphQLCacheKeyBuilder.facetDigest(
+                        domain: "user",
+                        value: userIdentity
+                    )
+                ),
+                store: store,
+                diagnosticObserver: context.diagnosticObserver
+            )
+        }
+    }
+
+    private static func invalidate(
+        _ filter: GraphQLCacheStoreFilter,
+        store: any GraphQLCacheStore,
+        diagnosticObserver: GraphQLCacheDiagnosticObserver?
+    ) async {
+        do {
+            _ = try await store.invalidate(filter)
+        } catch {
+            diagnose(diagnosticObserver)
+        }
+    }
+
+    private static func diagnose(_ observer: GraphQLCacheDiagnosticObserver?) {
+        observer?(
+            GraphQLCacheDiagnostic(
+                kind: .cleanupFailure,
+                message: "a previous GraphQL cache authorization scope could not be removed"
+            )
+        )
+    }
+}
+
 extension GraphQLCacheCoordinator {
     func readCachedResponse<ResponseData: Decodable & Sendable>(
         _ responseType: ResponseData.Type,

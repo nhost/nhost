@@ -1,25 +1,5 @@
 import Foundation
 
-struct GraphQLCacheClientScopeContext: Sendable {
-    let defaultHeaders: [String: String]
-    let configuredRole: String?
-    let adminSession: AdminSessionOptions?
-    let usesManagedSession: Bool
-    let hasCustomMiddleware: Bool
-    let sessionSnapshot: @Sendable () async throws -> SessionAuthorizationSnapshot?
-
-    static func standalone(hasCustomMiddleware: Bool) -> GraphQLCacheClientScopeContext {
-        GraphQLCacheClientScopeContext(
-            defaultHeaders: [:],
-            configuredRole: nil,
-            adminSession: nil,
-            usesManagedSession: false,
-            hasCustomMiddleware: hasCustomMiddleware,
-            sessionSnapshot: { nil }
-        )
-    }
-}
-
 struct GraphQLCacheCoordinator: Sendable {
     struct PreparedRequest: Sendable {
         let scope: GraphQLCachePreflightScope
@@ -37,6 +17,7 @@ struct GraphQLCacheCoordinator: Sendable {
     let scopeContext: GraphQLCacheClientScopeContext
     let clock: @Sendable () -> Date
     let endpoint: URL
+    let sessionHygiene: GraphQLCacheSessionHygiene?
 }
 
 extension GraphQLCacheCoordinator {
@@ -85,8 +66,130 @@ extension GraphQLCacheCoordinator {
             )
         }
     }
+}
 
-    private func cacheOnlyResponse<ResponseData: Decodable & Sendable>(
+extension GraphQLCacheCoordinator {
+    func currentAuthorizationScopeDigest() async throws -> GraphQLCacheDigest? {
+        try await waitForSessionCleanup()
+        try configuration.validate()
+        let request = GraphQLRequest(query: "query NhostCacheScope { __typename }")
+        let snapshot = try await scopeContext.sessionSnapshot()
+        let scope = try await GraphQLCacheScopeInputs(
+            endpoint: endpoint,
+            request: request,
+            defaultHeaders: scopeContext.defaultHeaders,
+            configuredRole: scopeContext.configuredRole,
+            adminSession: scopeContext.adminSession,
+            sessionSnapshot: snapshot,
+            usesManagedSession: scopeContext.usesManagedSession,
+            hasCustomMiddleware: scopeContext.hasCustomMiddleware
+        ).resolve(resolver: configuration.scopeResolver)
+        return scope?.digest
+    }
+
+    func prepare(
+        graphQLRequest: GraphQLRequest,
+        headers: [String: String],
+        options: GraphQLCacheRequestOptions
+    ) async throws -> PreparedRequest {
+        try await waitForSessionCleanup()
+        try configuration.validate()
+        let operation = try selectedQueryOperation(graphQLRequest)
+
+        let snapshot = try await sessionSnapshotForPreparation()
+
+        let scope: GraphQLCachePreflightScope
+        do {
+            guard let resolved = try await GraphQLCacheScopeInputs(
+                endpoint: endpoint,
+                request: graphQLRequest,
+                requestHeaders: headers,
+                defaultHeaders: scopeContext.defaultHeaders,
+                configuredRole: scopeContext.configuredRole,
+                adminSession: scopeContext.adminSession,
+                sessionSnapshot: snapshot,
+                usesManagedSession: scopeContext.usesManagedSession,
+                hasCustomMiddleware: scopeContext.hasCustomMiddleware
+            ).resolve(resolver: configuration.scopeResolver) else {
+                throw GraphQLCacheError.unavailableScope
+            }
+            scope = resolved
+        } catch is CancellationError {
+            throw CancellationError()
+        } catch let error as GraphQLCacheError {
+            throw error
+        } catch {
+            throw GraphQLCacheError.unavailableScope
+        }
+
+        do {
+            return PreparedRequest(
+                scope: scope,
+                identity: try GraphQLCacheKeyBuilder.makeIdentity(
+                    endpoint: endpoint,
+                    operation: operation,
+                    query: graphQLRequest.query,
+                    variables: graphQLRequest.variables,
+                    authorizationScope: scope.digest,
+                    userIdentity: scope.userIdentity,
+                    namespace: options.namespace,
+                    tags: options.tags
+                )
+            )
+        } catch {
+            throw GraphQLCacheError.keyGenerationFailed
+        }
+    }
+
+    private func sessionSnapshotForPreparation() async throws -> SessionAuthorizationSnapshot? {
+        do {
+            return try await scopeContext.sessionSnapshot()
+        } catch is CancellationError {
+            throw CancellationError()
+        } catch {
+            throw GraphQLCacheError.unavailableScope
+        }
+    }
+
+    private func waitForSessionCleanup() async throws {
+        await sessionHygiene?.waitForPendingCleanup()
+        try Task.checkCancellation()
+    }
+
+    private func selectedQueryOperation(
+        _ request: GraphQLRequest
+    ) throws -> GraphQLSelectedOperation {
+        guard let operation = GraphQLOperationClassifier.selectOperation(
+            query: request.query,
+            operationName: request.operationName
+        ), operation.kind == .query else {
+            throw GraphQLCacheError.ineligibleOperation
+        }
+        return operation
+    }
+
+    func recoverablePreparation(
+        graphQLRequest: GraphQLRequest,
+        headers: [String: String],
+        options: GraphQLCacheRequestOptions
+    ) async throws -> PreparedRequest? {
+        do {
+            return try await prepare(
+                graphQLRequest: graphQLRequest,
+                headers: headers,
+                options: options
+            )
+        } catch is CancellationError {
+            throw CancellationError()
+        } catch {
+            diagnosePreparation(error)
+            return nil
+        }
+    }
+}
+
+extension GraphQLCacheCoordinator {
+    func cacheOnlyResponse<ResponseData: Decodable & Sendable>(
         _ responseType: ResponseData.Type,
         graphQLRequest: GraphQLRequest,
         headers: [String: String],
@@ -107,7 +210,7 @@ extension GraphQLCacheCoordinator {
         )
     }
 
-    private func cacheFirstResponse<ResponseData: Decodable & Sendable>(
+    func cacheFirstResponse<ResponseData: Decodable & Sendable>(
         _ responseType: ResponseData.Type,
         graphQLRequest: GraphQLRequest,
         headers: [String: String],
@@ -152,7 +255,7 @@ extension GraphQLCacheCoordinator {
         }
     }
 
-    private func networkFirstResponse<ResponseData: Decodable & Sendable>(
+    func networkFirstResponse<ResponseData: Decodable & Sendable>(
         _ responseType: ResponseData.Type,
         graphQLRequest: GraphQLRequest,
         headers: [String: String],
@@ -232,106 +335,4 @@ extension GraphQLCacheCoordinator {
             fetch: legacyFetch
         )
     }
-
-    func currentAuthorizationScopeDigest() async throws -> GraphQLCacheDigest? {
-        try configuration.validate()
-        let request = GraphQLRequest(query: "query NhostCacheScope { __typename }")
-        let snapshot = try await scopeContext.sessionSnapshot()
-        let scope = try await GraphQLCacheScopeInputs(
-            endpoint: endpoint,
-            request: request,
-            defaultHeaders: scopeContext.defaultHeaders,
-            configuredRole: scopeContext.configuredRole,
-            adminSession: scopeContext.adminSession,
-            sessionSnapshot: snapshot,
-            usesManagedSession: scopeContext.usesManagedSession,
-            hasCustomMiddleware: scopeContext.hasCustomMiddleware
-        ).resolve(resolver: configuration.scopeResolver)
-        return scope?.digest
-    }
-
-    private func prepare(
-        graphQLRequest: GraphQLRequest,
-        headers: [String: String],
-        options: GraphQLCacheRequestOptions
-    ) async throws -> PreparedRequest {
-        try configuration.validate()
-        guard let operation = GraphQLOperationClassifier.selectOperation(
-            query: graphQLRequest.query,
-            operationName: graphQLRequest.operationName
-        ), operation.kind == .query else {
-            throw GraphQLCacheError.ineligibleOperation
-        }
-
-        let snapshot: SessionAuthorizationSnapshot?
-        do {
-            snapshot = try await scopeContext.sessionSnapshot()
-        } catch is CancellationError {
-            throw CancellationError()
-        } catch {
-            throw GraphQLCacheError.unavailableScope
-        }
-
-        let scope: GraphQLCachePreflightScope
-        do {
-            guard let resolved = try await GraphQLCacheScopeInputs(
-                endpoint: endpoint,
-                request: graphQLRequest,
-                requestHeaders: headers,
-                defaultHeaders: scopeContext.defaultHeaders,
-                configuredRole: scopeContext.configuredRole,
-                adminSession: scopeContext.adminSession,
-                sessionSnapshot: snapshot,
-                usesManagedSession: scopeContext.usesManagedSession,
-                hasCustomMiddleware: scopeContext.hasCustomMiddleware
-            ).resolve(resolver: configuration.scopeResolver) else {
-                throw GraphQLCacheError.unavailableScope
-            }
-            scope = resolved
-        } catch is CancellationError {
-            throw CancellationError()
-        } catch let error as GraphQLCacheError {
-            throw error
-        } catch {
-            throw GraphQLCacheError.unavailableScope
-        }
-
-        do {
-            return PreparedRequest(
-                scope: scope,
-                identity: try GraphQLCacheKeyBuilder.makeIdentity(
-                    endpoint: endpoint,
-                    operation: operation,
-                    query: graphQLRequest.query,
-                    variables: graphQLRequest.variables,
-                    authorizationScope: scope.digest,
-                    userIdentity: scope.userIdentity,
-                    namespace: options.namespace,
-                    tags: options.tags
-                )
-            )
-        } catch {
-            throw GraphQLCacheError.keyGenerationFailed
-        }
-    }
-
-    private func recoverablePreparation(
-        graphQLRequest: GraphQLRequest,
-        headers: [String: String],
-        options: GraphQLCacheRequestOptions
-    ) async throws -> PreparedRequest? {
-        do {
-            return try await prepare(
-                graphQLRequest: graphQLRequest,
-                headers: headers,
-                options: options
-            )
-        } catch is CancellationError {
-            throw CancellationError()
-        } catch {
-            diagnosePreparation(error)
-            return nil
-        }
-    }
-
 }

@@ -57,6 +57,51 @@ public struct CustomSessionStorageBackend: SessionStorageBackend {
 public typealias SessionChangeCallback = @Sendable (StoredSession?) async -> Void
 
 typealias SessionTransitionCallback = @Sendable (StoredSession?, StoredSession?) async -> Void
+typealias SessionTransitionObserver = @Sendable (StoredSession?, StoredSession?) -> Void
+
+private final class SessionTransitionSubscribers: @unchecked Sendable {
+    private let lock = NSLock()
+    private var callbacks: [UUID: SessionTransitionCallback] = [:]
+    private var observers: [UUID: SessionTransitionObserver] = [:]
+
+    func subscribe(_ callback: @escaping SessionTransitionCallback) -> SessionStoreSubscription {
+        let id = UUID()
+        lock.lock()
+        callbacks[id] = callback
+        lock.unlock()
+
+        return SessionStoreSubscription(cancelImmediately: { [weak self] in
+            self?.remove(id)
+        })
+    }
+
+    func observe(_ observer: @escaping SessionTransitionObserver) -> SessionStoreSubscription {
+        let id = UUID()
+        lock.lock()
+        observers[id] = observer
+        lock.unlock()
+
+        return SessionStoreSubscription(cancelImmediately: { [weak self] in
+            self?.removeObserver(id)
+        })
+    }
+
+    func snapshot() -> [SessionTransitionCallback] {
+        lock.withLock { Array(callbacks.values) }
+    }
+
+    func observerSnapshot() -> [SessionTransitionObserver] {
+        lock.withLock { Array(observers.values) }
+    }
+
+    private func remove(_ id: UUID) {
+        _ = lock.withLock { callbacks.removeValue(forKey: id) }
+    }
+
+    private func removeObserver(_ id: UUID) {
+        _ = lock.withLock { observers.removeValue(forKey: id) }
+    }
+}
 
 /// A backend-consistent authorization view. `mutationGeneration` advances for
 /// every successful SDK-mediated set/remove. `authorizationEpoch` advances only
@@ -71,13 +116,24 @@ struct SessionAuthorizationSnapshot: Sendable {
 
 public struct SessionStoreSubscription: Sendable {
     private let cancelHandler: @Sendable () async -> Void
+    private let immediateCancelHandler: (@Sendable () -> Void)?
 
     public init(cancel: @escaping @Sendable () async -> Void) {
         cancelHandler = cancel
+        immediateCancelHandler = nil
+    }
+
+    init(cancelImmediately: @escaping @Sendable () -> Void) {
+        cancelHandler = cancelImmediately
+        immediateCancelHandler = cancelImmediately
     }
 
     public func cancel() async {
         await cancelHandler()
+    }
+
+    func cancelImmediately() {
+        immediateCancelHandler?()
     }
 }
 
@@ -88,8 +144,8 @@ public actor SessionStore {
     )
 
     private let backend: any SessionStorageBackend
+    private nonisolated let transitionSubscribers = SessionTransitionSubscribers()
     private var subscribers: [UUID: SessionChangeCallback] = [:]
-    private var transitionSubscribers: [UUID: SessionTransitionCallback] = [:]
     private var mutationGeneration: UInt64 = 0
     private var authorizationEpoch: UInt64 = 0
     private var consistencyRevision: UInt64 = 0
@@ -200,14 +256,16 @@ public actor SessionStore {
         }
     }
 
-    func subscribeToTransitions(
+    nonisolated func subscribeToTransitions(
         _ callback: @escaping SessionTransitionCallback
     ) -> SessionStoreSubscription {
-        let id = UUID()
-        transitionSubscribers[id] = callback
-        return SessionStoreSubscription {
-            await self.unsubscribeTransition(id)
-        }
+        transitionSubscribers.subscribe(callback)
+    }
+
+    nonisolated func observeTransitions(
+        _ observer: @escaping SessionTransitionObserver
+    ) -> SessionStoreSubscription {
+        transitionSubscribers.observe(observer)
     }
 
     private func beginMutation() {
@@ -247,10 +305,6 @@ public actor SessionStore {
         subscribers.removeValue(forKey: id)
     }
 
-    private func unsubscribeTransition(_ id: UUID) {
-        transitionSubscribers.removeValue(forKey: id)
-    }
-
     private func notifySubscribers(_ session: StoredSession?) async {
         let callbacks = Array(subscribers.values)
         for callback in callbacks {
@@ -259,8 +313,10 @@ public actor SessionStore {
     }
 
     private func notifyTransitionSubscribers(old: StoredSession?, new: StoredSession?) async {
-        let callbacks = Array(transitionSubscribers.values)
-        for callback in callbacks {
+        for observer in transitionSubscribers.observerSnapshot() {
+            observer(old, new)
+        }
+        for callback in transitionSubscribers.snapshot() {
             await callback(old, new)
         }
     }

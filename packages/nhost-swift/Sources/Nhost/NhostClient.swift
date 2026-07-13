@@ -37,6 +37,7 @@ public struct NhostClientOptions: Sendable {
     public let role: String?
     public let adminSession: AdminSessionOptions?
     public let sessionRefreshMarginSeconds: Int
+    public let graphqlCache: GraphQLCacheConfiguration?
 
     public init(
         subdomain: String? = nil,
@@ -51,7 +52,8 @@ public struct NhostClientOptions: Sendable {
         defaultHeaders: [String: String] = [:],
         role: String? = nil,
         adminSession: AdminSessionOptions? = nil,
-        sessionRefreshMarginSeconds: Int = 60
+        sessionRefreshMarginSeconds: Int = 60,
+        graphqlCache: GraphQLCacheConfiguration? = nil
     ) {
         self.subdomain = subdomain
         self.region = region
@@ -66,6 +68,7 @@ public struct NhostClientOptions: Sendable {
         self.role = role
         self.adminSession = adminSession
         self.sessionRefreshMarginSeconds = sessionRefreshMarginSeconds
+        self.graphqlCache = graphqlCache
     }
 }
 
@@ -90,7 +93,8 @@ public struct NhostServerClientOptions: Sendable {
         defaultHeaders: [String: String] = [:],
         role: String? = nil,
         adminSession: AdminSessionOptions? = nil,
-        sessionRefreshMarginSeconds: Int = 60
+        sessionRefreshMarginSeconds: Int = 60,
+        graphqlCache: GraphQLCacheConfiguration? = nil
     ) {
         clientOptions = NhostClientOptions(
             subdomain: subdomain,
@@ -105,7 +109,8 @@ public struct NhostServerClientOptions: Sendable {
             defaultHeaders: defaultHeaders,
             role: role,
             adminSession: adminSession,
-            sessionRefreshMarginSeconds: sessionRefreshMarginSeconds
+            sessionRefreshMarginSeconds: sessionRefreshMarginSeconds,
+            graphqlCache: graphqlCache
         )
     }
 }
@@ -248,11 +253,55 @@ private func makeNhostClient(options: NhostClientOptions, sessionMode: SessionMi
     let authMiddleware = sessionMiddleware + commonMiddleware
     let privilegedServiceMiddleware = sessionMiddleware + configuredPrivilegedServiceMiddleware(options) + commonMiddleware
 
+    let usesManagedSession: Bool
+    switch sessionMode {
+    case .none:
+        usesManagedSession = false
+    case .client, .server:
+        usesManagedSession = true
+    }
+    let transitionSubscriber: GraphQLCacheSessionTransitionSubscriber?
+    if usesManagedSession {
+        transitionSubscriber = { callback in
+            sessionStore.observeTransitions(callback)
+        }
+    } else {
+        transitionSubscriber = nil
+    }
+    let graphQLScopeContext = GraphQLCacheClientScopeContext(
+        defaultHeaders: options.defaultHeaders,
+        configuredRole: options.role,
+        adminSession: options.adminSession,
+        usesManagedSession: usesManagedSession,
+        hasCustomMiddleware: !options.middleware.isEmpty,
+        sessionSnapshot: { try await sessionStore.authorizationSnapshot() },
+        subscribeToSessionTransitions: transitionSubscriber
+    )
+
     return NhostClient(
-        auth: AuthClient(baseURL: serviceURLs.auth, transport: options.transport, middleware: authMiddleware),
-        storage: StorageClient(baseURL: serviceURLs.storage, transport: options.transport, middleware: privilegedServiceMiddleware),
-        graphql: GraphQLClient(url: serviceURLs.graphql, transport: options.transport, middleware: privilegedServiceMiddleware),
-        functions: FunctionsClient(baseURL: serviceURLs.functions, transport: options.transport, middleware: privilegedServiceMiddleware),
+        auth: AuthClient(
+            baseURL: serviceURLs.auth,
+            transport: options.transport,
+            middleware: authMiddleware
+        ),
+        storage: StorageClient(
+            baseURL: serviceURLs.storage,
+            transport: options.transport,
+            middleware: privilegedServiceMiddleware
+        ),
+        graphql: GraphQLClient(
+            url: serviceURLs.graphql,
+            transport: options.transport,
+            middleware: privilegedServiceMiddleware,
+            cacheConfiguration: options.graphqlCache,
+            cacheScopeContext: graphQLScopeContext,
+            cacheClock: Date.init
+        ),
+        functions: FunctionsClient(
+            baseURL: serviceURLs.functions,
+            transport: options.transport,
+            middleware: privilegedServiceMiddleware
+        ),
         sessionStore: sessionStore,
         sessionRefresher: refresher,
         serviceURLs: serviceURLs
@@ -295,12 +344,12 @@ private func configuredSessionMiddleware(
         [
             sessionRefreshMiddleware(refresher: refresher, marginSeconds: marginSeconds),
             updateSessionFromResponseMiddleware(sessionStore: sessionStore),
-            attachAccessTokenMiddleware(sessionStore: sessionStore),
+            attachAccessTokenMiddleware(sessionStore: sessionStore)
         ]
     case .server:
         [
             updateSessionFromResponseMiddleware(sessionStore: sessionStore),
-            attachAccessTokenMiddleware(sessionStore: sessionStore),
+            attachAccessTokenMiddleware(sessionStore: sessionStore)
         ]
     }
 }
