@@ -645,6 +645,7 @@ export default defineConfig({
                       collapsed: true,
                       items: [
                         { slug: 'platform/cli/mcp' },
+                        { slug: 'platform/cli/mcp/development-setup' },
                         { slug: 'platform/cli/mcp/configuration' },
                         { slug: 'platform/cli/mcp/clients' },
                         { slug: 'platform/cli/mcp/troubleshooting' },
