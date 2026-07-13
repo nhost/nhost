@@ -35,8 +35,16 @@ func WithHeaders(headers http.Header) func(ctx context.Context, req *http.Reques
 }
 
 func IgnoreResponseHeaders() cmp.Option {
+	// Date/Surrogate-Key/Last-Modified/X-B3-* are volatile. The security headers
+	// are cross-cutting headers owned by the securityheaders middleware:
+	// X-Content-Type-Options is set on every response and Content-Security-Policy
+	// on active-content responses only. Both are asserted in that middleware's
+	// own tests, so they are ignored here.
 	return cmpopts.IgnoreMapEntries(func(key string, _ []string) bool {
-		return key == "Date" || key == "Surrogate-Key" || key == "Last-Modified" || key == "Vary" ||
+		return key == "Date" || key == "Surrogate-Key" || key == "Last-Modified" ||
+			key == "X-Content-Type-Options" ||
+			key == "Content-Security-Policy" ||
+			key == "Vary" ||
 			strings.HasPrefix(key, "X-B3-")
 	})
 }

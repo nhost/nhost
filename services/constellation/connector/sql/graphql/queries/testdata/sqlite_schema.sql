@@ -400,3 +400,14 @@ CREATE TABLE identity_check_logs (
     owner_id UUID NOT NULL,
     note TEXT
 );
+
+-- PostGIS fixture table tracked by integration metadata. SQLite accepts the
+-- GeoJSON text in SQLite fixtures; spatial runtime support remains capability-gated.
+CREATE TABLE postgis_locations (
+    id UUID PRIMARY KEY,
+    name TEXT NOT NULL UNIQUE,
+    geom TEXT NOT NULL,
+    geog TEXT NOT NULL,
+    area TEXT NOT NULL,
+    nullable_geom TEXT
+);

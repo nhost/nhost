@@ -10,6 +10,7 @@ import {
   type RolePermissionRow,
   RolePermissionsGrid,
 } from '@/features/orgs/projects/common/components/RolePermissionsGrid';
+import { useExportMetadata } from '@/features/orgs/projects/common/hooks/useExportMetadata';
 import { useGetMetadataResourceVersion } from '@/features/orgs/projects/common/hooks/useGetMetadataResourceVersion';
 import { useIsPlatform } from '@/features/orgs/projects/common/hooks/useIsPlatform';
 import { FunctionPermissionsDescription } from '@/features/orgs/projects/database/dataGrid/components/EditFunctionPermissionsForm/FunctionPermissionsDescription';
@@ -17,7 +18,7 @@ import { useFunctionCustomizationQuery } from '@/features/orgs/projects/database
 import { useFunctionPermissionQuery } from '@/features/orgs/projects/database/dataGrid/hooks/useFunctionPermissionQuery';
 import { useFunctionQuery } from '@/features/orgs/projects/database/dataGrid/hooks/useFunctionQuery';
 import { useManageFunctionPermissionMutation } from '@/features/orgs/projects/database/dataGrid/hooks/useManageFunctionPermissionMutation';
-import { useMetadataQuery } from '@/features/orgs/projects/database/dataGrid/hooks/useMetadataQuery';
+import type { HasuraMetadataTable } from '@/features/orgs/projects/database/dataGrid/types/dataBrowser';
 import { getFunctionPermissionState } from '@/features/orgs/projects/database/dataGrid/utils/getFunctionPermissionState';
 import { useCurrentOrg } from '@/features/orgs/projects/hooks/useCurrentOrg';
 import { useLocalMimirClient } from '@/features/orgs/projects/hooks/useLocalMimirClient';
@@ -108,7 +109,14 @@ export default function EditFunctionPermissionsForm({
     data: metadata,
     status: metadataStatus,
     error: metadataError,
-  } = useMetadataQuery([`${dataSource}.metadata`]);
+  } = useExportMetadata((data) => {
+    const source = data.metadata.sources?.find((s) => s.name === dataSource);
+
+    return {
+      resourceVersion: data.resource_version,
+      tables: (source?.tables ?? []) as unknown as HasuraMetadataTable[],
+    };
+  });
 
   const { org } = useCurrentOrg();
   const { closeDrawerWithDirtyGuard } = useDialog();

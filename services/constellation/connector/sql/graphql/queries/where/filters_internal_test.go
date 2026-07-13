@@ -4,6 +4,7 @@ import (
 	"strings"
 	"testing"
 
+	"github.com/google/go-cmp/cmp"
 	"go.uber.org/mock/gomock"
 
 	"github.com/nhost/nhost/services/constellation/connector/sql/graphql/queries/core"
@@ -617,5 +618,83 @@ func TestArrayContainmentFilters(t *testing.T) {
 				t.Errorf("expected %q in %q", tc.op, sql)
 			}
 		})
+	}
+}
+
+func TestSpatialFilters_WriteCondition(t *testing.T) {
+	t.Parallel()
+
+	ctrl := gomock.NewController(t)
+	d := dialectmock.NewMockDialect(ctrl)
+	d.EXPECT().SupportsSpatialTypes().Return(true)
+	d.EXPECT().Placeholder(1).Return("$1")
+	d.EXPECT().SpatialValueExpression("$1", "geometry").Return("ST_GeomFromGeoJSON($1)")
+
+	f := &equalsFilter{
+		column: newColumn("geom", "geometry"),
+		value: map[string]any{
+			"type":        "Point",
+			"coordinates": []any{float64(1), float64(2)},
+		},
+		dialect: d,
+	}
+
+	sql, params := runStatement(t, f, `"t"`)
+
+	const wantSQL = `"t"."geom" = ST_GeomFromGeoJSON($1)`
+	if sql != wantSQL {
+		t.Fatalf("sql = %q, want %q", sql, wantSQL)
+	}
+
+	wantParams := []any{`{"coordinates":[1,2],"type":"Point"}`}
+	if diff := cmp.Diff(wantParams, params); diff != "" {
+		t.Fatalf("params mismatch (-want +got):\n%s", diff)
+	}
+}
+
+func TestSpatialInFilter_WriteCondition(t *testing.T) {
+	t.Parallel()
+
+	ctrl := gomock.NewController(t)
+	d := dialectmock.NewMockDialect(ctrl)
+	d.EXPECT().SupportsSpatialTypes().Return(true)
+	d.EXPECT().WriteSpatialArrayIn(
+		gomock.Any(),
+		`"t"`,
+		"geom",
+		"geometry",
+		[]any{`{"coordinates":[1,2],"type":"Point"}`},
+		nil,
+		1,
+	).DoAndReturn(func(
+		b *strings.Builder,
+		_, _, _ string,
+		vals []any,
+		params []any,
+		paramIndex int,
+	) ([]any, int) {
+		b.WriteString(`"t"."geom" = ANY(ARRAY[ST_GeomFromGeoJSON($1)]::geometry[])`)
+		return append(params, vals...), paramIndex + len(vals)
+	})
+
+	f := &inFilter{
+		column: newColumn("geom", "geometry"),
+		values: []any{map[string]any{
+			"type":        "Point",
+			"coordinates": []any{float64(1), float64(2)},
+		}},
+		dialect: d,
+	}
+
+	sql, params := runStatement(t, f, `"t"`)
+
+	const wantSQL = `"t"."geom" = ANY(ARRAY[ST_GeomFromGeoJSON($1)]::geometry[])`
+	if sql != wantSQL {
+		t.Fatalf("sql = %q, want %q", sql, wantSQL)
+	}
+
+	wantParams := []any{`{"coordinates":[1,2],"type":"Point"}`}
+	if diff := cmp.Diff(wantParams, params); diff != "" {
+		t.Fatalf("params mismatch (-want +got):\n%s", diff)
 	}
 }

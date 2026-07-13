@@ -1,3 +1,21 @@
+## [constellation@0.7.0] - 2026-06-29
+
+### 🚀 Features
+
+- *(constellation)* Set up proxying to hasura at the application layer (#4456)
+
+
+### 🐛 Bug Fixes
+
+- *(internal/lib)* Consolidate / improve middleware into shared internal/lib/oapi (#4513)
+- *(constellation)* Prevent SQL alias truncation collisions (#4592)
+- *(constellation)* Added support for postgis (#4507)
+
+
+### ⚙️ Miscellaneous Tasks
+
+- *(nixops)* Scope pinned toolchain overlays (#4506)
+
 ## [constellation@0.6.0] - 2026-06-08
 
 ### 🚀 Features

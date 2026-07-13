@@ -9,8 +9,15 @@ import { InlineCode } from '@/components/ui/v3/inline-code';
 import { SelectItem } from '@/components/ui/v3/select';
 import type { DataBrowserColumnMetadata } from '@/features/orgs/projects/database/dataGrid/types/dataBrowser/dataBrowser';
 import { getInputType } from '@/features/orgs/projects/database/dataGrid/utils/inputHelpers';
+import { POSTGRES_DEFAULT_PLACEHOLDER } from '@/features/orgs/projects/database/dataGrid/utils/postgresDefaultPlaceholder';
+import {
+  isDateType,
+  isTimestampType,
+  isTimeType,
+} from '@/features/orgs/projects/database/dataGrid/utils/temporalTypeHelpers';
 import { cn } from '@/lib/utils';
 import NullDefaultToggleField from './NullDefaultToggleField';
+import TemporalRecordField from './TemporalRecordField';
 
 export interface DatabaseRecordInputGroupProps {
   /**
@@ -32,28 +39,23 @@ export interface DatabaseRecordInputGroupProps {
   className?: string;
 }
 
-function getBooleanValueTransformer(isNullable: boolean) {
-  return function transformBooleanValue(value: string | null) {
-    let convertedValue = value;
+function getInputValueTransformer(hasDefault: boolean) {
+  return {
+    in(value: string | null) {
+      if (value === null || value === POSTGRES_DEFAULT_PLACEHOLDER) {
+        return '';
+      }
 
-    if (convertedValue === null) {
-      convertedValue = isNullable ? 'null' : '';
-    } else if (convertedValue === 'null' || convertedValue === '') {
-      convertedValue = null;
-    }
+      return value;
+    },
+    out(event: ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) {
+      if (event.target.value !== '') {
+        return event.target.value;
+      }
 
-    return convertedValue;
+      return hasDefault ? POSTGRES_DEFAULT_PLACEHOLDER : null;
+    },
   };
-}
-
-function convertNullToEmptyString(value: string | null) {
-  return value === null ? '' : value;
-}
-
-function convertEmptyStringToNull(
-  event: ChangeEvent<HTMLInputElement | HTMLTextAreaElement>,
-) {
-  return event.target.value === '' ? null : event.target.value;
 }
 
 function getDefaultPlaceholder(
@@ -110,8 +112,10 @@ export default function DatabaseRecordInputGroup({
         {columns.map((column, index) => {
           const {
             id: columnId,
-            type,
             specificType,
+            baseType,
+            isArray,
+            displayType,
             defaultValue,
             isPrimary,
             isNullable,
@@ -122,11 +126,13 @@ export default function DatabaseRecordInputGroup({
           const hasDefault = !!(defaultValue || isIdentity);
 
           const isMultiline =
-            specificType === 'text' ||
-            specificType === 'bpchar' ||
-            specificType?.includes('character varying') ||
-            specificType === 'json' ||
-            specificType === 'jsonb';
+            isArray ||
+            baseType === 'text' ||
+            baseType === 'bpchar' ||
+            baseType === 'character' ||
+            baseType === 'character varying' ||
+            baseType === 'json' ||
+            baseType === 'jsonb';
 
           const inputLabel = (
             <span className="inline-grid grid-flow-col gap-1">
@@ -141,12 +147,12 @@ export default function DatabaseRecordInputGroup({
                 className="h-[1.125rem] overflow-hidden whitespace-nowrap leading-[1.125rem]"
                 title={specificType}
               >
-                {specificType}
+                {displayType}
               </InlineCode>
             </span>
           );
 
-          if (type === 'boolean') {
+          if (!isArray && baseType === 'boolean') {
             return (
               <FormSelect
                 key={columnId}
@@ -156,10 +162,6 @@ export default function DatabaseRecordInputGroup({
                 label={inputLabel}
                 placeholder="Select an option"
                 helperText={comment}
-                transform={{
-                  in: getBooleanValueTransformer(!!isNullable),
-                  out: getBooleanValueTransformer(!!isNullable),
-                }}
               >
                 <SelectItem value="true">
                   <ReadOnlyToggle checked />
@@ -174,7 +176,36 @@ export default function DatabaseRecordInputGroup({
                     <ReadOnlyToggle checked={null} />
                   </SelectItem>
                 )}
+
+                {hasDefault && (
+                  <SelectItem value={POSTGRES_DEFAULT_PLACEHOLDER}>
+                    <span className="text-muted-foreground">DEFAULT</span>
+                  </SelectItem>
+                )}
               </FormSelect>
+            );
+          }
+
+          const isTemporalPicker =
+            !isArray &&
+            (isTimestampType(baseType) ||
+              isDateType(baseType) ||
+              isTimeType(baseType));
+
+          if (isTemporalPicker) {
+            return (
+              <TemporalRecordField
+                key={columnId}
+                inline
+                name={columnId!}
+                control={control}
+                label={inputLabel}
+                baseType={baseType}
+                isNullable={!!isNullable}
+                hasDefault={hasDefault}
+                placeholder={getDefaultPlaceholder(defaultValue, isIdentity)}
+                helperText={comment}
+              />
             );
           }
 
@@ -191,14 +222,21 @@ export default function DatabaseRecordInputGroup({
                 helperText={comment}
                 multiline={isMultiline}
                 className={cn({ 'focus-visible:ring-0': isMultiline })}
-                type={getInputType({ type, specificType })}
+                type={getInputType(baseType)}
               />
             );
           }
 
+          let fallbackPlaceholder: string | undefined;
+          if (isArray) {
+            fallbackPlaceholder = 'e.g. [1, 2, 3]';
+          } else if (isNullable) {
+            fallbackPlaceholder = 'NULL';
+          }
+
           const placeholder =
             getDefaultPlaceholder(defaultValue, isIdentity) ??
-            (isNullable ? 'NULL' : undefined);
+            fallbackPlaceholder;
           const InputComponent = isMultiline ? FormTextarea : FormInput;
           return (
             <InputComponent
@@ -210,15 +248,12 @@ export default function DatabaseRecordInputGroup({
               label={inputLabel}
               placeholder={placeholder}
               helperText={comment}
-              transform={{
-                in: convertNullToEmptyString,
-                out: convertEmptyStringToNull,
-              }}
+              transform={getInputValueTransformer(hasDefault)}
               className={cn(
-                { 'resize-none': isMultiline },
+                { 'resize-y': isMultiline },
                 'focus-visible:ring-0',
               )}
-              type={getInputType({ type, specificType })}
+              type={getInputType(baseType)}
             />
           );
         })}

@@ -4692,6 +4692,7 @@ type ErrorResponseError =
   | "oauth-profile-fetch-failed"
   | "oauth-provider-error"
   | "invalid-otp"
+  | "otp-too-many-attempts"
   | "cannot-send-sms"
   | "provider-account-already-linked";
 ```

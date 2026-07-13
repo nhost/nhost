@@ -1985,6 +1985,107 @@
           "IsView": false,
           "IsInsertable": true,
           "IsUpdatable": true
+        },
+        "postgis_locations": {
+          "Schema": "public",
+          "Name": "postgis_locations",
+          "Comment": null,
+          "Columns": [
+            {
+              "Name": "id",
+              "Type": "uuid",
+              "IsNullable": false,
+              "IsGenerated": false,
+              "IsIdentity": false,
+              "IsArray": false,
+              "SupportsMinMax": true,
+              "SupportsInc": false,
+              "SupportsAgg": false,
+              "Default": "gen_random_uuid()",
+              "Comment": null
+            },
+            {
+              "Name": "name",
+              "Type": "text",
+              "IsNullable": false,
+              "IsGenerated": false,
+              "IsIdentity": false,
+              "IsArray": false,
+              "SupportsMinMax": true,
+              "SupportsInc": false,
+              "SupportsAgg": false,
+              "Default": null,
+              "Comment": null
+            },
+            {
+              "Name": "geom",
+              "Type": "geometry",
+              "IsNullable": false,
+              "IsGenerated": false,
+              "IsIdentity": false,
+              "IsArray": false,
+              "SupportsMinMax": true,
+              "SupportsInc": false,
+              "SupportsAgg": false,
+              "Default": null,
+              "Comment": null
+            },
+            {
+              "Name": "geog",
+              "Type": "geography",
+              "IsNullable": false,
+              "IsGenerated": false,
+              "IsIdentity": false,
+              "IsArray": false,
+              "SupportsMinMax": true,
+              "SupportsInc": false,
+              "SupportsAgg": false,
+              "Default": null,
+              "Comment": null
+            },
+            {
+              "Name": "area",
+              "Type": "geometry",
+              "IsNullable": false,
+              "IsGenerated": false,
+              "IsIdentity": false,
+              "IsArray": false,
+              "SupportsMinMax": true,
+              "SupportsInc": false,
+              "SupportsAgg": false,
+              "Default": null,
+              "Comment": null
+            },
+            {
+              "Name": "nullable_geom",
+              "Type": "geometry",
+              "IsNullable": true,
+              "IsGenerated": false,
+              "IsIdentity": false,
+              "IsArray": false,
+              "SupportsMinMax": true,
+              "SupportsInc": false,
+              "SupportsAgg": false,
+              "Default": null,
+              "Comment": null
+            }
+          ],
+          "PrimaryKeys": [
+            "id"
+          ],
+          "PrimaryKeyConstraintName": "postgis_locations_pkey",
+          "ForeignKeys": null,
+          "UniqueConstraints": [
+            {
+              "Name": "postgis_locations_name_key",
+              "Columns": [
+                "name"
+              ]
+            }
+          ],
+          "IsView": false,
+          "IsInsertable": true,
+          "IsUpdatable": true
         }
       }
     },

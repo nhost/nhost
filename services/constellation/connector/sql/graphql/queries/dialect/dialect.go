@@ -9,6 +9,21 @@ import (
 	"strings"
 )
 
+// SpatialPredicate identifies the fixed PostGIS boolean predicate a spatial
+// comparison operator maps to. Values are internal constants, never user input.
+type SpatialPredicate string
+
+const (
+	SpatialPredicateContains     SpatialPredicate = "contains"
+	SpatialPredicateCrosses      SpatialPredicate = "crosses"
+	SpatialPredicateEquals       SpatialPredicate = "equals"
+	SpatialPredicateIntersects   SpatialPredicate = "intersects"
+	SpatialPredicateOverlaps     SpatialPredicate = "overlaps"
+	SpatialPredicateTouches      SpatialPredicate = "touches"
+	SpatialPredicateWithin       SpatialPredicate = "within"
+	SpatialPredicate3DIntersects SpatialPredicate = "3d_intersects"
+)
+
 //go:generate mockgen -package mock -destination mock/dialect.go . Dialect
 
 // Dialect abstracts SQL syntax differences between database backends.
@@ -33,6 +48,68 @@ type Dialect interface { //nolint:interfacebloat
 	// WriteArrayNotIn writes "!= ALL($N::type[])" or "NOT IN (?, ?, ?)".
 	WriteArrayNotIn(
 		b *strings.Builder, source, sqlName, sqlType string,
+		values []any, params []any, paramIndex int,
+	) ([]any, int)
+
+	// SupportsSpatialTypes returns whether the backend can execute PostGIS
+	// geometry/geography input and output expressions.
+	SupportsSpatialTypes() bool
+
+	// SpatialOutputExpression converts a spatial column expression into the JSON
+	// object value Hasura returns to GraphQL clients. Non-spatial implementations
+	// return expr unchanged.
+	SpatialOutputExpression(expr, sqlType string) string
+
+	// SpatialValueExpression converts a placeholder into a spatial SQL value
+	// expression. Callers still append the GeoJSON string to params.
+	SpatialValueExpression(placeholder, sqlType string) string
+
+	// SpatialCastExpression casts one spatial expression to another spatial type.
+	SpatialCastExpression(expr, fromSQLType, toSQLType string) string
+
+	// WriteSpatialPredicate writes a fixed PostGIS-style spatial boolean
+	// predicate such as ST_Intersects(left, right).
+	WriteSpatialPredicate(
+		b *strings.Builder, predicate SpatialPredicate, leftExpr, rightExpr string,
+	)
+
+	// WriteSpatialDWithinPredicate writes ST_DWithin/ST_3DDWithin for geometry
+	// and geography. useSpheroidExpr is nil for geometry and non-nil for
+	// geography's fourth argument.
+	WriteSpatialDWithinPredicate(
+		b *strings.Builder,
+		threeDimensional bool,
+		leftExpr, rightExpr, distanceExpr, sqlType string,
+		useSpheroidExpr *string,
+	)
+
+	// WriteSpatialArrayIn writes a spatial _in predicate using one placeholder
+	// per GeoJSON value. Spatial values cannot share WriteArrayIn's one-slice
+	// array binding because each element must pass through ST_GeomFromGeoJSON or
+	// ST_GeogFromGeoJSON first.
+	WriteSpatialArrayIn(
+		b *strings.Builder, source, sqlName, sqlType string,
+		values []any, params []any, paramIndex int,
+	) ([]any, int)
+
+	// WriteSpatialArrayNotIn writes the spatial _nin counterpart to
+	// WriteSpatialArrayIn.
+	WriteSpatialArrayNotIn(
+		b *strings.Builder, source, sqlName, sqlType string,
+		values []any, params []any, paramIndex int,
+	) ([]any, int)
+
+	// WriteSpatialArrayInExpression writes the spatial _in predicate for an
+	// arbitrary left-hand SQL expression, used by spatial _cast filters.
+	WriteSpatialArrayInExpression(
+		b *strings.Builder, leftExpr, sqlType string,
+		values []any, params []any, paramIndex int,
+	) ([]any, int)
+
+	// WriteSpatialArrayNotInExpression writes the spatial _nin counterpart to
+	// WriteSpatialArrayInExpression.
+	WriteSpatialArrayNotInExpression(
+		b *strings.Builder, leftExpr, sqlType string,
 		values []any, params []any, paramIndex int,
 	) ([]any, int)
 

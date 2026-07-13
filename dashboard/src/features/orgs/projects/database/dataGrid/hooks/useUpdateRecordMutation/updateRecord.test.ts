@@ -1,6 +1,7 @@
 import { HttpResponse, http } from 'msw';
 import { setupServer } from 'msw/node';
 import type { DataBrowserGridRow } from '@/features/orgs/projects/database/dataGrid/types/dataBrowser';
+import { isArray } from '@/features/orgs/projects/database/dataGrid/utils/isArray';
 import updateRecord from './updateRecord';
 
 const defaultOptions = {
@@ -31,6 +32,7 @@ function makeRow(cells: RowCell[]): DataBrowserGridRow {
               id: c.id,
               isPrimary: c.isPrimary ?? false,
               specificType: c.specificType,
+              isArray: isArray(c.specificType),
             },
           },
         },
@@ -119,7 +121,11 @@ describe('updateRecord', () => {
   test("sets a column to DEFAULT when reset is 'default'", async () => {
     const row = makeRow([
       { id: 'id', isPrimary: true, specificType: 'integer', value: 1 },
-      { id: 'created_at', specificType: 'timestamptz', value: '2026-01-01' },
+      {
+        id: 'created_at',
+        specificType: 'timestamp with time zone',
+        value: '2026-01-01',
+      },
     ]);
 
     await updateRecord({

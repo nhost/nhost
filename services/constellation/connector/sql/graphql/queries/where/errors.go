@@ -6,6 +6,25 @@ var (
 	errRegexUnsupportedByDialect = errors.New(
 		"regex operators are not supported by the current dialect",
 	)
+	errSpatialUnsupportedByDialect = errors.New(
+		"spatial operators are not supported by the current dialect",
+	)
+	errSpatialOperatorOnNonSpatialColumn = errors.New(
+		"spatial operator requires a geometry or geography column",
+	)
+	errSpatialOperatorOnWrongType = errors.New(
+		"spatial operator is not supported for this spatial type",
+	)
+	errSpatialCastMustBeObject        = errors.New("_cast must be an object")
+	errSpatialCastTargetInvalid       = errors.New("invalid spatial cast target")
+	errSpatialDWithinMustBeObject     = errors.New("_st_d_within input must be an object")
+	errSpatialDWithinFromRequired     = errors.New("_st_d_within.from is required")
+	errSpatialDWithinDistanceRequired = errors.New(
+		"_st_d_within.distance is required",
+	)
+	errSpatialDWithinUseSpheroidMustBeBoolean = errors.New(
+		"_st_d_within.use_spheroid must be a boolean",
+	)
 
 	errExistsMustBeObject          = errors.New("_exists must be an object")
 	errExistsTableMustBeObject     = errors.New("_exists._table must be an object")

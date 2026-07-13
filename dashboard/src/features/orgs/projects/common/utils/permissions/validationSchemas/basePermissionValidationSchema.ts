@@ -106,7 +106,7 @@ const invalidNodeSchema = Yup.object()
     key: Yup.string(),
   })
   .test('not-invalid', '', function validateInvalidNode(value) {
-    if (!value || value.type !== 'invalid') {
+    if (value?.type !== 'invalid') {
       return true;
     }
     const { reason, key } = value as { reason: string; key: string };

@@ -31,7 +31,7 @@ func TestSignInPasswordlessEmail(t *testing.T) { //nolint:maintidx
 	userID := uuid.MustParse("DB477732-48FA-4289-B694-2886A646B6EB")
 
 	cases := []testRequest[api.SignInPasswordlessEmailRequestObject, api.SignInPasswordlessEmailResponseObject]{
-		{ //nolint:dupl
+		{
 			name:   "signup required",
 			config: getConfig,
 			db: func(ctrl *gomock.Controller) controller.DBClient { //nolint:dupl
@@ -515,7 +515,7 @@ func TestSignInPasswordlessEmail(t *testing.T) { //nolint:maintidx
 			getControllerOpts: []getControllerOptsFunc{},
 		},
 
-		{ //nolint:dupl
+		{
 			name: "signup required - options",
 			config: func() *controller.Config {
 				config := getConfig()
@@ -681,7 +681,7 @@ func TestSignInPasswordlessEmail(t *testing.T) { //nolint:maintidx
 			getControllerOpts: []getControllerOptsFunc{},
 		},
 
-		{ //nolint:dupl
+		{
 			name:   "signup not required",
 			config: getConfig,
 			db: func(ctrl *gomock.Controller) controller.DBClient { //nolint:dupl
@@ -774,7 +774,7 @@ func TestSignInPasswordlessEmail(t *testing.T) { //nolint:maintidx
 			},
 		},
 
-		{
+		{ //nolint:dupl
 			name:   "signup not required - user disabled",
 			config: getConfig,
 			db: func(ctrl *gomock.Controller) controller.DBClient {
