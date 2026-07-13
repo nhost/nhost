@@ -43,7 +43,12 @@ func (p *{{ .Name }}Params) toQuery() url.Values {
 	if p.{{ .Name }} != nil {
 {{- $access = printf "*p.%s" .Name }}
 {{- end }}
-{{- if and (eq .Type.Kind "array") .Explode }}
+{{- if .JSONContent }}
+	{
+		encoded, _ := json.Marshal({{ $access }})
+		q.Set("{{ .RawName }}", string(encoded))
+	}
+{{- else if and (eq .Type.Kind "array") .Explode }}
 	for _, item := range {{ $access }} {
 		q.Add("{{ .RawName }}", fmt.Sprint(item))
 	}

@@ -22,19 +22,22 @@ let
     pkgs.cacert
   ];
 
-  # Source rooted at the repo so gen.sh can resolve the shared OpenAPI specs
-  # via REPO_ROOT (../..), mirroring nhost-js / nhost-python.
+  # Source rooted at the repo. The SDK is part of the single root Go module
+  # (github.com/nhost/nhost), so the root go.mod/go.sum/vendor must be present;
+  # gen.sh resolves the shared OpenAPI specs via REPO_ROOT (../..). Mirrors the
+  # root-module layout used by services/* and internal/lib/*.
   src = fs.toSource {
     root = ../..;
     fileset = fs.unions [
+      ../../go.mod
+      ../../go.sum
+      ../../vendor
       ../../.golangci.yaml
-      ./go.mod
       ./gen.sh
       ./README.md
-      # Exclude ./examples: it is a separate Go module (its own go.mod with a
-      # replace directive), so its sources must not fold into the SDK module
-      # under `go build ./...` inside the sandbox.
-      (fs.difference (fs.fileFilter (f: f.hasExt "go") ./.) ./examples)
+      # The example is part of the root module too (no per-project go.mod), so
+      # its sources are included and built/linted alongside the SDK.
+      (fs.fileFilter (f: f.hasExt "go") ./.)
       ../../services/auth/docs/openapi.yaml
       ../../services/storage/controller/openapi.yaml
     ];
@@ -58,7 +61,9 @@ in
       ''
         set -eo pipefail
         export HOME=$(mktemp -d)
-        export GOFLAGS=-mod=mod
+        # The SDK builds as part of the root module against its committed
+        # vendor/ tree, so build in vendor mode (offline).
+        export GOFLAGS=-mod=vendor
         export GOCACHE="$HOME/gocache"
         export CGO_ENABLED=0
 
@@ -104,22 +109,23 @@ in
       }
       ''
         export HOME=$(mktemp -d)
-        export GOFLAGS=-mod=mod
+        export GOFLAGS=-mod=vendor
         export GOCACHE="$HOME/gocache"
         export CGO_ENABLED=0
         cp -r ${
           fs.toSource {
-            root = ./.;
+            root = ../..;
             fileset = fs.unions [
-              ./go.mod
-              # See the note above: the example is a separate module.
-              (fs.difference (fs.fileFilter (f: f.hasExt "go") ./.) ./examples)
+              ../../go.mod
+              ../../go.sum
+              ../../vendor
+              (fs.fileFilter (f: f.hasExt "go") ./.)
             ];
           }
         } src
         chmod +w -R src
         cd src
-        go build ./...
+        go build ./${submodule}/...
         mkdir $out
       '';
 }

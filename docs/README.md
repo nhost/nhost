@@ -68,6 +68,7 @@ after changing one of their sources, then commit the result:
 | --- | --- |
 | CLI command tree (`cli/`; see `internal/lib/clidocs`) | `reference/cli/commands.mdx` |
 | `packages/nhost-js` (TypeDoc) | `reference/javascript/nhost-js/**` |
+| `packages/nhost-go` (go/doc → `tools/godoc-md`) | `reference/go/nhost-go/**` |
 | OpenAPI schemas (auth, storage) | `src/schemas/*.yaml` |
 
 Run it in the docs Nix dev shell (`nix develop .#docs`, which provides the `cli` binary)

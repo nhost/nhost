@@ -611,8 +611,9 @@ func (p *SignInProviderParams) toQuery() url.Values {
 		q.Set("locale", fmt.Sprint(*p.Locale))
 	}
 	if p.Metadata != nil {
-		for k, v := range *p.Metadata {
-			q.Add(k, fmt.Sprint(v))
+		{
+			encoded, _ := json.Marshal(*p.Metadata)
+			q.Set("metadata", string(encoded))
 		}
 	}
 	if p.RedirectTo != nil {
@@ -674,8 +675,9 @@ func (p *SignUpProviderParams) toQuery() url.Values {
 		q.Set("locale", fmt.Sprint(*p.Locale))
 	}
 	if p.Metadata != nil {
-		for k, v := range *p.Metadata {
-			q.Add(k, fmt.Sprint(v))
+		{
+			encoded, _ := json.Marshal(*p.Metadata)
+			q.Set("metadata", string(encoded))
 		}
 	}
 	if p.RedirectTo != nil {
@@ -1093,15 +1095,26 @@ func (c *Client) SignInAnonymous(
 	headers http.Header,
 ) (*fetch.FetchResponse[SessionPayload], error) {
 	u := fmt.Sprintf("%s/signin/anonymous", c.BaseURL)
-	rawBody, err := json.Marshal(body)
+	// The body is optional: when nil, send no body at all rather than the JSON
+	// literal "null" (which json.Marshal(nil) would produce), and omit the
+	// Content-Type header so the server treats the payload as absent.
+	var req *http.Request
+	var err error
+	if body != nil {
+		rawBody, mErr := json.Marshal(body)
+		if mErr != nil {
+			return nil, mErr
+		}
+		req, err = http.NewRequestWithContext(ctx, "POST", u, bytes.NewReader(rawBody))
+	} else {
+		req, err = http.NewRequestWithContext(ctx, "POST", u, nil)
+	}
 	if err != nil {
 		return nil, err
 	}
-	req, err := http.NewRequestWithContext(ctx, "POST", u, bytes.NewReader(rawBody))
-	if err != nil {
-		return nil, err
+	if body != nil {
+		req.Header.Set("Content-Type", "application/json")
 	}
-	req.Header.Set("Content-Type", "application/json")
 	for k, vs := range headers {
 		for _, v := range vs {
 			req.Header.Add(k, v)
@@ -1529,15 +1542,26 @@ func (c *Client) SignInWebAuthn(
 	headers http.Header,
 ) (*fetch.FetchResponse[PublicKeyCredentialRequestOptions], error) {
 	u := fmt.Sprintf("%s/signin/webauthn", c.BaseURL)
-	rawBody, err := json.Marshal(body)
+	// The body is optional: when nil, send no body at all rather than the JSON
+	// literal "null" (which json.Marshal(nil) would produce), and omit the
+	// Content-Type header so the server treats the payload as absent.
+	var req *http.Request
+	var err error
+	if body != nil {
+		rawBody, mErr := json.Marshal(body)
+		if mErr != nil {
+			return nil, mErr
+		}
+		req, err = http.NewRequestWithContext(ctx, "POST", u, bytes.NewReader(rawBody))
+	} else {
+		req, err = http.NewRequestWithContext(ctx, "POST", u, nil)
+	}
 	if err != nil {
 		return nil, err
 	}
-	req, err := http.NewRequestWithContext(ctx, "POST", u, bytes.NewReader(rawBody))
-	if err != nil {
-		return nil, err
+	if body != nil {
+		req.Header.Set("Content-Type", "application/json")
 	}
-	req.Header.Set("Content-Type", "application/json")
 	for k, vs := range headers {
 		for _, v := range vs {
 			req.Header.Add(k, v)
@@ -2010,15 +2034,26 @@ func (c *Client) VerifyToken(
 	headers http.Header,
 ) (*fetch.FetchResponse[string], error) {
 	u := fmt.Sprintf("%s/token/verify", c.BaseURL)
-	rawBody, err := json.Marshal(body)
+	// The body is optional: when nil, send no body at all rather than the JSON
+	// literal "null" (which json.Marshal(nil) would produce), and omit the
+	// Content-Type header so the server treats the payload as absent.
+	var req *http.Request
+	var err error
+	if body != nil {
+		rawBody, mErr := json.Marshal(body)
+		if mErr != nil {
+			return nil, mErr
+		}
+		req, err = http.NewRequestWithContext(ctx, "POST", u, bytes.NewReader(rawBody))
+	} else {
+		req, err = http.NewRequestWithContext(ctx, "POST", u, nil)
+	}
 	if err != nil {
 		return nil, err
 	}
-	req, err := http.NewRequestWithContext(ctx, "POST", u, bytes.NewReader(rawBody))
-	if err != nil {
-		return nil, err
+	if body != nil {
+		req.Header.Set("Content-Type", "application/json")
 	}
-	req.Header.Set("Content-Type", "application/json")
 	for k, vs := range headers {
 		for _, v := range vs {
 			req.Header.Add(k, v)

@@ -79,11 +79,14 @@ func extractSession(data []byte) *auth.Session {
 		return nil
 	}
 
+	// The body may itself be a raw session (e.g. a direct /token refresh
+	// response). We can't key off "user": the auth service serialises it with
+	// omitempty and omits it entirely when the user has no profile, so require
+	// only the always-present token fields.
 	_, hasAT := raw["accessToken"]
 	_, hasRT := raw["refreshToken"]
-	_, hasUser := raw["user"]
 
-	if hasAT && hasRT && hasUser {
+	if hasAT && hasRT {
 		var s auth.Session
 		if json.Unmarshal(data, &s) == nil {
 			return &s

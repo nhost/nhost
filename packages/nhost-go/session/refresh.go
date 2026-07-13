@@ -87,8 +87,10 @@ func refreshOnce(
 }
 
 // RefreshSession refreshes the session if it is close to expiry. It retries
-// once on transient failure; clears the stored session and returns (nil, nil)
-// if the refresh token is rejected with 401.
+// once on transient failure. If the refresh token is rejected with 401 it
+// clears the stored session and returns (nil, nil); any other error (e.g. a 5xx
+// or a network failure) is returned so callers can distinguish a transient
+// problem from a logged-out state.
 func RefreshSession(
 	ctx context.Context,
 	authClient *auth.Client,
@@ -111,7 +113,9 @@ func RefreshSession(
 	if errors.As(err, &fetchErr) && fetchErr.Status == unauthorized {
 		slog.Error("session probably expired")
 		storage.Remove()
+
+		return nil, nil //nolint:nilnil
 	}
 
-	return nil, nil //nolint:nilnil
+	return nil, err //nolint:wrapcheck
 }
