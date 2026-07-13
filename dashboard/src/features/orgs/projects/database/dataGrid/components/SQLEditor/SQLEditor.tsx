@@ -10,7 +10,6 @@ import { useResizable } from 'react-resizable-layout';
 import { Pagination } from '@/components/common/Pagination';
 import { Alert } from '@/components/ui/v2/Alert';
 import { Box } from '@/components/ui/v2/Box';
-import { Button } from '@/components/ui/v2/Button';
 import { IconButton } from '@/components/ui/v2/IconButton';
 import { Input } from '@/components/ui/v2/Input';
 import { Switch } from '@/components/ui/v2/Switch';
@@ -21,6 +20,7 @@ import { TableHead } from '@/components/ui/v2/TableHead';
 import { TableRow } from '@/components/ui/v2/TableRow';
 import { Text } from '@/components/ui/v2/Text';
 import { Tooltip } from '@/components/ui/v2/Tooltip';
+import { Button } from '@/components/ui/v3/button';
 import {
   Select,
   SelectContent,
@@ -198,12 +198,8 @@ export default function SQLEditor({
 
           <Tooltip title="Run query (⌘/Ctrl + Enter)" placement="bottom">
             <span className="self-start">
-              <Button
-                disabled={isRunDisabled}
-                variant="contained"
-                startIcon={<PlayIcon className="h-4 w-4" />}
-                onClick={handleRunSQL}
-              >
+              <Button disabled={isRunDisabled} onClick={handleRunSQL}>
+                <PlayIcon className="mr-2 h-4 w-4" />
                 Run
               </Button>
             </span>

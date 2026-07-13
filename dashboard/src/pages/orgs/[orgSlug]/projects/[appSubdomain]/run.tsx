@@ -7,8 +7,8 @@ import { Pagination } from '@/components/common/Pagination';
 import { UpgradeToProBanner } from '@/components/common/UpgradeToProBanner';
 import { Container } from '@/components/layout/Container';
 import { Box } from '@/components/ui/v2/Box';
-import { Button } from '@/components/ui/v2/Button';
 import { Text } from '@/components/ui/v2/Text';
+import { Button } from '@/components/ui/v3/button';
 import { Spinner } from '@/components/ui/v3/spinner';
 import { OrgLayout } from '@/features/orgs/layout/OrgLayout';
 import { useIsPlatform } from '@/features/orgs/projects/common/hooks/useIsPlatform';
@@ -120,13 +120,8 @@ export default function RunPage() {
     return (
       <Container className="mx-auto max-w-9xl space-y-5 overflow-x-hidden">
         <div className="flex flex-row place-content-end">
-          <Button
-            variant="contained"
-            color="primary"
-            onClick={openCreateServiceDialog}
-            startIcon={<PlusIcon className="h-4 w-4" />}
-            disabled={!isPlatform}
-          >
+          <Button onClick={openCreateServiceDialog} disabled={!isPlatform}>
+            <PlusIcon className="mr-2 h-4 w-4" />
             Add service
           </Button>
         </div>
@@ -143,13 +138,8 @@ export default function RunPage() {
           </div>
           {isPlatform ? (
             <div className="flex flex-row place-content-between rounded-lg">
-              <Button
-                variant="contained"
-                color="primary"
-                className="w-full"
-                onClick={openCreateServiceDialog}
-                startIcon={<PlusIcon className="h-4 w-4" />}
-              >
+              <Button className="w-full" onClick={openCreateServiceDialog}>
+                <PlusIcon className="mr-2 h-4 w-4" />
                 Add service
               </Button>
             </div>
@@ -162,13 +152,8 @@ export default function RunPage() {
   return (
     <div className="flex flex-col">
       <Box className="flex flex-row place-content-end border-b-1 p-4">
-        <Button
-          variant="contained"
-          color="primary"
-          onClick={openCreateServiceDialog}
-          startIcon={<PlusIcon className="h-4 w-4" />}
-          disabled={!isPlatform}
-        >
+        <Button onClick={openCreateServiceDialog} disabled={!isPlatform}>
+          <PlusIcon className="mr-2 h-4 w-4" />
           Add service
         </Button>
       </Box>
