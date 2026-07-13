@@ -292,6 +292,101 @@ public struct GraphQLClient: Sendable {
         )
     }
 
+    public func staleWhileRevalidate<ResponseData: Decodable & Sendable>(
+        _ responseType: ResponseData.Type,
+        query: String,
+        variables: [String: JSONValue]? = nil,
+        operationName: String? = nil,
+        headers: [String: String] = [:],
+        decoder: @escaping @Sendable () -> JSONDecoder = { NhostJSON.neutralDecoder },
+        cacheOptions: GraphQLCacheRequestOptions = GraphQLCacheRequestOptions()
+    ) -> AsyncThrowingStream<GraphQLCacheResult<ResponseData>, Error> {
+        staleWhileRevalidate(
+            responseType,
+            request: GraphQLRequest(
+                query: query,
+                variables: variables,
+                operationName: operationName
+            ),
+            headers: headers,
+            decoder: decoder,
+            cacheOptions: cacheOptions
+        )
+    }
+
+    public func staleWhileRevalidate<ResponseData: Decodable & Sendable>(
+        _ responseType: ResponseData.Type,
+        request graphQLRequest: GraphQLRequest,
+        headers: [String: String] = [:],
+        decoder: @escaping @Sendable () -> JSONDecoder = { NhostJSON.neutralDecoder },
+        cacheOptions: GraphQLCacheRequestOptions = GraphQLCacheRequestOptions()
+    ) -> AsyncThrowingStream<GraphQLCacheResult<ResponseData>, Error> {
+        guard cacheOptions.policy != .networkOnly, let cacheCoordinator else {
+            return Self.freshOnlyStream(
+                responseType,
+                url: url,
+                graphQLRequest: graphQLRequest,
+                headers: headers,
+                decoder: decoder,
+                fetch: fetch
+            )
+        }
+        return cacheCoordinator.staleWhileRevalidate(
+            responseType,
+            graphQLRequest: graphQLRequest,
+            headers: headers,
+            decoder: decoder,
+            options: cacheOptions,
+            legacyFetch: fetch
+        )
+    }
+
+    private static func freshOnlyStream<ResponseData: Decodable & Sendable>(
+        _ responseType: ResponseData.Type,
+        url: URL,
+        graphQLRequest: GraphQLRequest,
+        headers: [String: String],
+        decoder: @escaping @Sendable () -> JSONDecoder,
+        fetch: @escaping FetchFunction
+    ) -> AsyncThrowingStream<GraphQLCacheResult<ResponseData>, Error> {
+        AsyncThrowingStream { continuation in
+            let producer = Task {
+                do {
+                    let response = try await legacyRequest(
+                        responseType,
+                        url: url,
+                        graphQLRequest: graphQLRequest,
+                        headers: headers,
+                        decoder: decoder,
+                        fetch: fetch
+                    )
+                    try Task.checkCancellation()
+                    let timestamp = Date()
+                    _ = continuation.yield(
+                        .fresh(
+                            response,
+                            metadata: GraphQLCacheMetadata(
+                                source: .fresh,
+                                createdAt: timestamp,
+                                lastSuccessfulWriteAt: timestamp,
+                                age: 0,
+                                isExpired: false,
+                                status: response.status,
+                                persistenceOutcome: .notAttempted
+                            )
+                        )
+                    )
+                    continuation.finish()
+                } catch {
+                    continuation.finish(throwing: error)
+                }
+            }
+            continuation.onTermination = { @Sendable _ in
+                producer.cancel()
+            }
+        }
+    }
+
     static func legacyRequest<ResponseData: Decodable & Sendable>(
         _ responseType: ResponseData.Type,
         url: URL,

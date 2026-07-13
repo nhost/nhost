@@ -69,6 +69,194 @@ extension GraphQLCacheCoordinator {
 }
 
 extension GraphQLCacheCoordinator {
+    func staleWhileRevalidate<ResponseData: Decodable & Sendable>(
+        _ responseType: ResponseData.Type,
+        graphQLRequest: GraphQLRequest,
+        headers: [String: String],
+        decoder: @escaping @Sendable () -> JSONDecoder,
+        options: GraphQLCacheRequestOptions,
+        legacyFetch: @escaping FetchFunction
+    ) -> AsyncThrowingStream<GraphQLCacheResult<ResponseData>, Error> {
+        AsyncThrowingStream { continuation in
+            let producer = Task {
+                do {
+                    try await produceStaleWhileRevalidate(
+                        responseType,
+                        graphQLRequest: graphQLRequest,
+                        headers: headers,
+                        decoder: decoder,
+                        options: options,
+                        legacyFetch: legacyFetch,
+                        continuation: continuation
+                    )
+                } catch {
+                    continuation.finish(throwing: error)
+                }
+            }
+            continuation.onTermination = { @Sendable _ in
+                producer.cancel()
+            }
+        }
+    }
+
+    private func produceStaleWhileRevalidate<ResponseData: Decodable & Sendable>(
+        _ responseType: ResponseData.Type,
+        graphQLRequest: GraphQLRequest,
+        headers: [String: String],
+        decoder: @Sendable () -> JSONDecoder,
+        options: GraphQLCacheRequestOptions,
+        legacyFetch: FetchFunction,
+        continuation: AsyncThrowingStream<GraphQLCacheResult<ResponseData>, Error>.Continuation
+    ) async throws {
+        let prepared: PreparedRequest
+        do {
+            prepared = try await prepare(
+                graphQLRequest: graphQLRequest,
+                headers: headers,
+                options: options
+            )
+        } catch is CancellationError {
+            throw CancellationError()
+        } catch let error as GraphQLCacheError where error == .ineligibleOperation {
+            try await yieldLegacyFresh(
+                responseType,
+                graphQLRequest: graphQLRequest,
+                headers: headers,
+                decoder: decoder,
+                legacyFetch: legacyFetch,
+                persistenceOutcome: .notAttempted,
+                continuation: continuation
+            )
+            return
+        } catch {
+            diagnosePreparation(error)
+            try await yieldLegacyFresh(
+                responseType,
+                graphQLRequest: graphQLRequest,
+                headers: headers,
+                decoder: decoder,
+                legacyFetch: legacyFetch,
+                persistenceOutcome: .failedAndReported,
+                continuation: continuation
+            )
+            return
+        }
+
+        var cached: GraphQLCachedResponse<ResponseData>?
+        do {
+            let candidate = try await cachedResponse(
+                responseType,
+                prepared: prepared,
+                decoder: decoder,
+                requirement: .freshOrStale,
+                touchFailureIsFatal: false
+            )
+            try await verifyCurrentScope(prepared.scope)
+            try Task.checkCancellation()
+            let yieldResult = continuation.yield(
+                .cached(candidate.response, metadata: cachedMetadata(candidate))
+            )
+            if case .terminated = yieldResult { return }
+            cached = candidate
+        } catch is CancellationError {
+            throw CancellationError()
+        } catch GraphQLCacheError.authorizationScopeChanged {
+            throw GraphQLCacheError.authorizationScopeChanged
+        } catch {
+            diagnoseReadRecovery(error)
+        }
+
+        try Task.checkCancellation()
+        let refreshed = try await refreshedResponse(
+            responseType,
+            graphQLRequest: graphQLRequest,
+            headers: headers,
+            decoder: decoder,
+            prepared: prepared
+        )
+        try await verifyCurrentScope(prepared.scope)
+        try Task.checkCancellation()
+        let createdAt = refreshed.persistenceOutcome == .stored
+            ? cached?.entry.createdAt ?? refreshed.timestamp
+            : refreshed.timestamp
+        let yieldResult = continuation.yield(
+            .fresh(
+                refreshed.response,
+                metadata: freshMetadata(
+                    response: refreshed.response,
+                    timestamp: refreshed.timestamp,
+                    createdAt: createdAt,
+                    persistenceOutcome: refreshed.persistenceOutcome
+                )
+            )
+        )
+        if case .terminated = yieldResult { return }
+        continuation.finish()
+    }
+
+    private func yieldLegacyFresh<ResponseData: Decodable & Sendable>(
+        _ responseType: ResponseData.Type,
+        graphQLRequest: GraphQLRequest,
+        headers: [String: String],
+        decoder: @Sendable () -> JSONDecoder,
+        legacyFetch: FetchFunction,
+        persistenceOutcome: GraphQLCachePersistenceOutcome,
+        continuation: AsyncThrowingStream<GraphQLCacheResult<ResponseData>, Error>.Continuation
+    ) async throws {
+        let response = try await legacyResponse(
+            responseType,
+            graphQLRequest: graphQLRequest,
+            headers: headers,
+            decoder: decoder,
+            legacyFetch: legacyFetch
+        )
+        try Task.checkCancellation()
+        let timestamp = clock()
+        _ = continuation.yield(
+            .fresh(
+                response,
+                metadata: freshMetadata(
+                    response: response,
+                    timestamp: timestamp,
+                    createdAt: timestamp,
+                    persistenceOutcome: persistenceOutcome
+                )
+            )
+        )
+        continuation.finish()
+    }
+
+    private func cachedMetadata<ResponseData>(
+        _ cached: GraphQLCachedResponse<ResponseData>
+    ) -> GraphQLCacheMetadata where ResponseData: Decodable & Sendable {
+        GraphQLCacheMetadata(
+            source: .cached,
+            createdAt: cached.entry.createdAt,
+            lastSuccessfulWriteAt: cached.entry.lastSuccessfulWriteAt,
+            age: cached.age,
+            isExpired: cached.isExpired,
+            status: cached.entry.status,
+            persistenceOutcome: .notAttempted
+        )
+    }
+
+    private func freshMetadata<ResponseData>(
+        response: NhostResponse<GraphQLResponse<ResponseData>>,
+        timestamp: Date,
+        createdAt: Date,
+        persistenceOutcome: GraphQLCachePersistenceOutcome
+    ) -> GraphQLCacheMetadata where ResponseData: Decodable & Sendable {
+        GraphQLCacheMetadata(
+            source: .fresh,
+            createdAt: createdAt,
+            lastSuccessfulWriteAt: timestamp,
+            age: 0,
+            isExpired: false,
+            status: response.status,
+            persistenceOutcome: persistenceOutcome
+        )
+    }
+
     func currentAuthorizationScopeDigest() async throws -> GraphQLCacheDigest? {
         try await waitForSessionCleanup()
         try configuration.validate()

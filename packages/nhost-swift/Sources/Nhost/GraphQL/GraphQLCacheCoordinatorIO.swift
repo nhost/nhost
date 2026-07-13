@@ -1,5 +1,18 @@
 import Foundation
 
+struct GraphQLCachedResponse<ResponseData: Decodable & Sendable>: Sendable {
+    let response: NhostResponse<GraphQLResponse<ResponseData>>
+    let entry: GraphQLCacheEntry
+    let age: TimeInterval
+    let isExpired: Bool
+}
+
+struct GraphQLNetworkResponse<ResponseData: Decodable & Sendable>: Sendable {
+    let response: NhostResponse<GraphQLResponse<ResponseData>>
+    let persistenceOutcome: GraphQLCachePersistenceOutcome
+    let timestamp: Date
+}
+
 typealias GraphQLCacheSessionTransitionSubscriber = @Sendable (
     @escaping SessionTransitionObserver
 ) -> SessionStoreSubscription
@@ -215,6 +228,22 @@ extension GraphQLCacheCoordinator {
         requirement: CacheReadRequirement,
         touchFailureIsFatal: Bool
     ) async throws -> NhostResponse<GraphQLResponse<ResponseData>> {
+        try await cachedResponse(
+            responseType,
+            prepared: prepared,
+            decoder: decoder,
+            requirement: requirement,
+            touchFailureIsFatal: touchFailureIsFatal
+        ).response
+    }
+
+    func cachedResponse<ResponseData: Decodable & Sendable>(
+        _ responseType: ResponseData.Type,
+        prepared: PreparedRequest,
+        decoder: @Sendable () -> JSONDecoder,
+        requirement: CacheReadRequirement,
+        touchFailureIsFatal: Bool
+    ) async throws -> GraphQLCachedResponse<ResponseData> {
         try Task.checkCancellation()
         let rawEntry: GraphQLCacheEntry
         do {
@@ -285,7 +314,12 @@ extension GraphQLCacheCoordinator {
         }
         try await verifyCurrentScope(prepared.scope)
         try Task.checkCancellation()
-        return response
+        return GraphQLCachedResponse(
+            response: response,
+            entry: rawEntry,
+            age: age,
+            isExpired: !configuration.isFresh(age: age)
+        )
     }
 
     func networkResponse<ResponseData: Decodable & Sendable>(
@@ -295,6 +329,22 @@ extension GraphQLCacheCoordinator {
         decoder: @Sendable () -> JSONDecoder,
         prepared: PreparedRequest
     ) async throws -> NhostResponse<GraphQLResponse<ResponseData>> {
+        try await refreshedResponse(
+            responseType,
+            graphQLRequest: graphQLRequest,
+            headers: headers,
+            decoder: decoder,
+            prepared: prepared
+        ).response
+    }
+
+    func refreshedResponse<ResponseData: Decodable & Sendable>(
+        _ responseType: ResponseData.Type,
+        graphQLRequest: GraphQLRequest,
+        headers: [String: String],
+        decoder: @Sendable () -> JSONDecoder,
+        prepared: PreparedRequest
+    ) async throws -> GraphQLNetworkResponse<ResponseData> {
         let encoded = try GraphQLClient.encodedRequest(
             url: endpoint,
             graphQLRequest: graphQLRequest,
@@ -316,16 +366,30 @@ extension GraphQLCacheCoordinator {
         ) {
         case .unverifiable:
             diagnose(.unverifiableRequest, "the final GraphQL request could not be associated with the cache")
-            return response
+            return GraphQLNetworkResponse(
+                response: response,
+                persistenceOutcome: .skipped,
+                timestamp: clock()
+            )
         case .verified:
             break
         }
 
         try Task.checkCancellation()
-        guard captured.response.isSuccess else { return response }
+        guard captured.response.isSuccess else {
+            return GraphQLNetworkResponse(
+                response: response,
+                persistenceOutcome: .skipped,
+                timestamp: clock()
+            )
+        }
         guard captured.response.body.count <= configuration.maximumEntryBytes else {
             diagnose(.oversizedEntry, "a GraphQL response exceeded the configured cache entry limit")
-            return response
+            return GraphQLNetworkResponse(
+                response: response,
+                persistenceOutcome: .skipped,
+                timestamp: clock()
+            )
         }
 
         let now = clock()
@@ -341,6 +405,7 @@ extension GraphQLCacheCoordinator {
             lastAccessedAt: now,
             facets: prepared.identity.facets
         )
+        var persistenceOutcome = GraphQLCachePersistenceOutcome.stored
         do {
             try await verifyCurrentScope(prepared.scope)
             try Task.checkCancellation()
@@ -352,8 +417,10 @@ extension GraphQLCacheCoordinator {
         } catch let GraphQLCacheError.oversizedEntry(actual, maximum) {
             diagnose(.oversizedEntry, "a GraphQL response exceeded the configured cache entry limit")
             _ = (actual, maximum)
+            persistenceOutcome = .skipped
         } catch {
             diagnose(.storeWriteFailure, "a GraphQL response could not be cached")
+            persistenceOutcome = .failedAndReported
         }
 
         do {
@@ -363,10 +430,14 @@ extension GraphQLCacheCoordinator {
             throw GraphQLCacheError.authorizationScopeChanged
         }
         try Task.checkCancellation()
-        return response
+        return GraphQLNetworkResponse(
+            response: response,
+            persistenceOutcome: persistenceOutcome,
+            timestamp: now
+        )
     }
 
-    private func verifyCurrentScope(_ scope: GraphQLCachePreflightScope) async throws {
+    func verifyCurrentScope(_ scope: GraphQLCachePreflightScope) async throws {
         let snapshot = try await currentSnapshotForVerification()
         try scope.verifyCurrentSessionSnapshot(snapshot)
     }

@@ -76,6 +76,25 @@ actor CacheReadGate {
     }
 }
 
+actor CacheSessionSnapshotGate {
+    private let targetCall: Int
+    private let gate: CacheReadGate
+    private var calls = 0
+
+    init(targetCall: Int, gate: CacheReadGate) {
+        self.targetCall = targetCall
+        self.gate = gate
+    }
+
+    func snapshot(from sessionStore: SessionStore) async throws -> SessionAuthorizationSnapshot {
+        calls += 1
+        if calls == targetCall {
+            await gate.pause()
+        }
+        return try await sessionStore.authorizationSnapshot()
+    }
+}
+
 actor CachePolicyStore: GraphQLCacheStore {
     struct Counts: Sendable {
         let reads: Int
@@ -96,6 +115,7 @@ actor CachePolicyStore: GraphQLCacheStore {
     private let backing = MemoryGraphQLCacheStore()
     private var failure: Failure = .none
     private var readGate: CacheReadGate?
+    private var writeGate: CacheReadGate?
     private var reads = 0
     private var writes = 0
     private var touches = 0
@@ -107,6 +127,10 @@ actor CachePolicyStore: GraphQLCacheStore {
 
     func setReadGate(_ value: CacheReadGate?) {
         readGate = value
+    }
+
+    func setWriteGate(_ value: CacheReadGate?) {
+        writeGate = value
     }
 
     func counts() -> Counts {
@@ -143,6 +167,8 @@ actor CachePolicyStore: GraphQLCacheStore {
     }
 
     func write(_ entry: GraphQLCacheEntry, for key: GraphQLCacheKey) async throws {
+        if let writeGate { await writeGate.pause() }
+        try Task.checkCancellation()
         writes += 1
         if failure == .write { throw StoreFailure.failed }
         try await backing.write(entry, for: key)
