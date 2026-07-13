@@ -49,7 +49,11 @@ impl Client {
             builder = builder.body(b);
         }
         if let Some(h) = headers {
-            builder = builder.headers(h);
+            // Merge caller headers individually rather than replacing the whole
+            // map, so request-builder defaults (e.g. a content type) survive.
+            for (k, v) in h.iter() {
+                builder = builder.header(k, v);
+            }
         }
 
         let request = builder.build()?;
@@ -80,7 +84,12 @@ impl Client {
             .json(body)
             .header("Accept", "application/json");
         if let Some(h) = headers {
-            builder = builder.headers(h);
+            // Merge caller headers individually rather than replacing the whole
+            // map, so the `Content-Type: application/json` set by `.json()` and
+            // the `Accept` header above survive when custom headers are passed.
+            for (k, v) in h.iter() {
+                builder = builder.header(k, v);
+            }
         }
 
         let request = builder.build()?;
