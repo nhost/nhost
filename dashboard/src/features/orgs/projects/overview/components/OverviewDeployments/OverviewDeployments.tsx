@@ -2,12 +2,12 @@ import { SiGithub as GitHubIcon } from '@icons-pack/react-simple-icons';
 import { ChevronRightIcon, RocketIcon } from 'lucide-react';
 import { Fragment } from 'react';
 import { NavLink } from '@/components/common/NavLink';
-import { ActivityIndicator } from '@/components/ui/v2/ActivityIndicator';
 import { Box } from '@/components/ui/v2/Box';
 import { Button } from '@/components/ui/v2/Button';
 import { Divider } from '@/components/ui/v2/Divider';
 import { List } from '@/components/ui/v2/List';
 import { Text } from '@/components/ui/v2/Text';
+import { Spinner } from '@/components/ui/v3/spinner';
 import { DeploymentListItem } from '@/features/orgs/projects/deployments/components/DeploymentListItem';
 import { useGitHubModal } from '@/features/orgs/projects/git/common/hooks/useGitHubModal';
 import { useCurrentOrg } from '@/features/orgs/projects/hooks/useCurrentOrg';
@@ -69,7 +69,11 @@ function OverviewDeploymentList() {
   if (loading || latestLiveLoading || pendingOrRunningLoading) {
     return (
       <Box className="h-[323px] rounded-lg border-1 p-2">
-        <ActivityIndicator label="Loading deployments..." />
+        <Spinner size="xs" wrapperClassName="flex-row gap-1.5">
+          <span className="text-muted-foreground text-xs">
+            Loading deployments...
+          </span>
+        </Spinner>
       </Box>
     );
   }
@@ -145,7 +149,13 @@ export default function OverviewDeployments() {
   const isGitHubConnected = !!project?.githubRepository;
 
   if (loading) {
-    return <ActivityIndicator label="Loading project info..." delay={1000} />;
+    return (
+      <Spinner size="xs" wrapperClassName="flex-row gap-1.5">
+        <span className="text-muted-foreground text-xs">
+          Loading project info...
+        </span>
+      </Spinner>
+    );
   }
 
   // GitHub repo connected. Show deployments
