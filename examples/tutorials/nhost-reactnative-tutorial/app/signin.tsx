@@ -1,5 +1,5 @@
-import { Link, router } from "expo-router";
-import { useEffect, useState } from "react";
+import { Link, router } from 'expo-router';
+import { useEffect, useState } from 'react';
 import {
   ActivityIndicator,
   KeyboardAvoidingView,
@@ -9,24 +9,24 @@ import {
   TextInput,
   TouchableOpacity,
   View,
-} from "react-native";
-import AppleSignInButton from "./components/AppleSignInButton";
-import { useAuth } from "./lib/nhost/AuthProvider";
-import { commonStyles } from "./styles/commonStyles";
-import { colors } from "./styles/theme";
+} from 'react-native';
+import AppleSignInButton from './components/AppleSignInButton';
+import { useAuth } from './lib/nhost/AuthProvider';
+import { commonStyles } from './styles/commonStyles';
+import { colors } from './styles/theme';
 
 export default function SignIn() {
   const { nhost, isAuthenticated } = useAuth();
 
-  const [email, setEmail] = useState("");
-  const [password, setPassword] = useState("");
+  const [email, setEmail] = useState('');
+  const [password, setPassword] = useState('');
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
   // Use useEffect for navigation after authentication is confirmed
   useEffect(() => {
     if (isAuthenticated) {
-      router.replace("/profile");
+      router.replace('/profile');
     }
   }, [isAuthenticated]);
 
@@ -43,12 +43,12 @@ export default function SignIn() {
 
       // If we have a session, sign in was successful
       if (response.body?.session) {
-        router.replace("/profile");
+        router.replace('/profile');
       } else {
-        setError("Failed to sign in. Please check your credentials.");
+        setError('Failed to sign in. Please check your credentials.');
       }
     } catch (err) {
-      const message = (err as Error).message || "Unknown error";
+      const message = (err as Error).message || 'Unknown error';
       setError(`An error occurred during sign in: ${message}`);
     } finally {
       setIsLoading(false);
@@ -57,7 +57,7 @@ export default function SignIn() {
 
   return (
     <KeyboardAvoidingView
-      behavior={Platform.OS === "ios" ? "padding" : "height"}
+      behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
       style={commonStyles.container}
     >
       <ScrollView
@@ -126,7 +126,7 @@ export default function SignIn() {
 
         <View style={commonStyles.linkContainer}>
           <Text style={commonStyles.linkText}>
-            Don't have an account?{" "}
+            Don't have an account?{' '}
             <Link href="/signup" style={commonStyles.link}>
               Sign Up
             </Link>
