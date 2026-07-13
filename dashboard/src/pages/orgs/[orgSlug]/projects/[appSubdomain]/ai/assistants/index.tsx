@@ -5,11 +5,11 @@ import { useDialog } from '@/components/common/DialogProvider';
 import { UpgradeToProBanner } from '@/components/common/UpgradeToProBanner';
 import { Container } from '@/components/layout/Container';
 import { RetryableErrorBoundary } from '@/components/presentational/RetryableErrorBoundary';
-import { ActivityIndicator } from '@/components/ui/v2/ActivityIndicator';
 import { Alert } from '@/components/ui/v2/Alert';
 import { Box } from '@/components/ui/v2/Box';
 import { Button } from '@/components/ui/v2/Button';
 import { Text } from '@/components/ui/v2/Text';
+import { Spinner } from '@/components/ui/v3/spinner';
 import { useRemoteApplicationGQLClient } from '@/features/orgs/hooks/useRemoteApplicationGQLClient';
 import { AISidebar } from '@/features/orgs/layout/AISidebar';
 import { OrgLayout } from '@/features/orgs/layout/OrgLayout';
@@ -86,11 +86,9 @@ export default function AssistantsPage() {
   if (loadingOrg || loadingProject || loadingGraphite || assistantsLoading) {
     return (
       <Box className="flex h-full w-full items-center justify-center">
-        <ActivityIndicator
-          delay={1000}
-          label="Loading Assistants..."
-          className="justify-center"
-        />
+        <Spinner size="medium" wrapperClassName="gap-2">
+          Loading Assistants...
+        </Spinner>
       </Box>
     );
   }
