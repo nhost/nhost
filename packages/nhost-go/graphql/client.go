@@ -51,14 +51,14 @@ func NewClient(url string, chainFunctions []fetch.ChainFunction, httpClient *htt
 		httpClient = &http.Client{} //nolint:exhaustruct
 	}
 
-	c := &Client{ //nolint:exhaustruct
-		URL:            url,
-		chainFunctions: append([]fetch.ChainFunction{}, chainFunctions...),
-		httpClient:     httpClient,
-	}
-	c.fetch = fetch.CreateEnhancedFetch(c.httpClient, c.chainFunctions)
+	chain := append([]fetch.ChainFunction{}, chainFunctions...)
 
-	return c
+	return &Client{
+		URL:            url,
+		chainFunctions: chain,
+		httpClient:     httpClient,
+		fetch:          fetch.CreateEnhancedFetch(httpClient, chain),
+	}
 }
 
 // PushChainFunction appends a middleware chain function and rebuilds the pipeline.
