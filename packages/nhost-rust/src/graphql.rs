@@ -78,7 +78,13 @@ impl Client {
 
         let mut builder = self.reqwest.post(&self.url).json(&payload);
         if let Some(h) = headers {
-            builder = builder.headers(h);
+            // Merge caller headers individually rather than replacing the whole
+            // map, so the `Content-Type: application/json` set by `.json()` (and
+            // any other request-builder defaults) survives when a caller passes
+            // custom headers such as `x-hasura-role`.
+            for (k, v) in h.iter() {
+                builder = builder.header(k, v);
+            }
         }
 
         let request = builder.build()?;

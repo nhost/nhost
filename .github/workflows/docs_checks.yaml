@@ -28,6 +28,9 @@ on:
       # nhost-js
       - packages/nhost-js/**
 
+      # nhost-rust
+      - packages/nhost-rust/**
+
       # apis
       - "services/auth/docs/openapi.yaml"
       - "services/storage/controller/openapi.yaml"
@@ -62,6 +65,7 @@ jobs:
         turbo.json
         docs/**
         packages/nhost-js/**
+        packages/nhost-rust/**
         services/auth/docs/openapi.yaml
         services/storage/controller/openapi.yaml
         cli/**

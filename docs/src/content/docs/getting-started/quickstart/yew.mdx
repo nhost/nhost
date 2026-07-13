@@ -1,0 +1,274 @@
+---
+title: Get up and running with Nhost and Yew
+description: "Build a Rust + Yew WebAssembly app with Nhost: install the Rust SDK, run GraphQL queries, and add authentication to your frontend."
+keywords: ["Rust", "Yew", "WebAssembly", "wasm", "quickstart", "Nhost SDK", "GraphQL", "frontend integration"]
+head:
+  - tag: title
+    content: "Rust + Yew Quickstart Guide | Nhost Docs"
+sidebar:
+  label: Yew (Rust)
+---
+import { Tabs, TabItem } from '@astrojs/starlight/components';
+
+The Nhost Rust SDK (`nhost`) runs both on native targets and in the browser via
+WebAssembly. This quickstart builds a client-side [Yew](https://yew.rs) app that
+reads data over GraphQL and signs a user in — the same flow as the JavaScript
+quickstarts, in Rust.
+
+### Create Project
+
+If you haven't, please create a project through the [Nhost Dashboard](https://app.nhost.io).
+
+### Setup Database
+
+Navigate to the **SQL Editor** of the database and run the following SQL to create a new table `movies` with some great movies.
+
+```sql SQL Editor
+CREATE TABLE movies (
+  id SERIAL PRIMARY KEY,
+  title VARCHAR(255) NOT NULL,
+  director VARCHAR(255),
+  release_year INTEGER,
+  genre VARCHAR(100),
+  rating FLOAT
+);
+
+INSERT INTO movies (title, director, release_year, genre, rating) VALUES
+  ('Inception', 'Christopher Nolan', 2010, 'Sci-Fi', 8.8),
+  ('The Godfather', 'Francis Ford Coppola', 1972, 'Crime', 9.2),
+  ('Forrest Gump', 'Robert Zemeckis', 1994, 'Drama', 8.8),
+  ('The Matrix', 'Lana Wachowski, Lilly Wachowski', 1999, 'Action', 8.7);
+```
+
+:::caution
+Make sure the option `Track this` is enabled.
+:::
+
+### Permissions
+
+Select the new table `movies` just created, and click on **Edit Permissions** to set the following permissions for the `public` role and `select` action, so the app can read it without a session.
+
+### Setup the Application
+
+Create a client-side Yew app and install [Trunk](https://trunkrs.dev), the
+WebAssembly bundler, plus the `wasm32-unknown-unknown` target:
+
+```bash Terminal
+cargo new --bin my-yew-app
+cd my-yew-app
+
+cargo install trunk
+rustup target add wasm32-unknown-unknown
+```
+
+### Install the Nhost package
+
+Add the SDK with its browser feature enabled, alongside Yew and the async glue.
+
+```bash Terminal
+cargo add yew --features csr
+cargo add web-sys --features HtmlInputElement
+cargo add wasm-bindgen-futures
+cargo add serde --features derive
+cargo add serde_json
+cargo add console_error_panic_hook
+
+# default-features = false drops the native rustls-tls backend (the browser
+# handles TLS); the `wasm` feature enables the browser-compatible pipeline and
+# the localStorage-backed session store.
+cargo add nhost --no-default-features --features wasm
+```
+
+Your `Cargo.toml` dependencies should look like this:
+
+```toml title="Cargo.toml"
+[dependencies]
+yew = { version = "0.21", features = ["csr"] }
+nhost = { version = "0.1", default-features = false, features = ["wasm"] }
+web-sys = { version = "0.3", features = ["HtmlInputElement"] }
+wasm-bindgen-futures = "0.4"
+serde = { version = "1", features = ["derive"] }
+serde_json = "1"
+console_error_panic_hook = "0.1"
+```
+
+### Configure the Nhost client and fetch the list of movies
+
+<Tabs>
+  <TabItem label="index.html">
+```html
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Nhost + Yew</title>
+  </head>
+  <body></body>
+</html>
+```
+  </TabItem>
+
+  <TabItem label="src/main.rs">
+```rust
+use std::rc::Rc;
+
+use nhost::auth::SignInEmailPasswordRequest;
+use nhost::{create_client, NhostClient, Options};
+use serde::Deserialize;
+use wasm_bindgen_futures::spawn_local;
+use web_sys::HtmlInputElement;
+use yew::prelude::*;
+
+// The `movies` table is exposed to the `public` role, so this works with or
+// without a session.
+const MOVIES_QUERY: &str = "query { \
+    movies(order_by: {rating: desc}) { title director release_year genre rating } \
+}";
+
+#[derive(Clone, PartialEq, Deserialize)]
+struct Movie {
+    title: String,
+    director: Option<String>,
+    release_year: Option<i64>,
+    genre: Option<String>,
+    rating: Option<f64>,
+}
+
+#[derive(Deserialize)]
+struct MoviesData {
+    movies: Vec<Movie>,
+}
+
+// Point at a cloud project by replacing <subdomain> and <region>. For a local
+// backend, use `subdomain: "local"` and `region: "local"`.
+fn make_client() -> NhostClient {
+    create_client(Options {
+        subdomain: Some("<subdomain>".to_string()),
+        region: Some("<region>".to_string()),
+        ..Default::default()
+    })
+}
+
+#[function_component(App)]
+fn app() -> Html {
+    // The browser client and its futures are `!Send`, so keep it in an `Rc`.
+    let client = use_memo((), |_| make_client());
+    let movies = use_state(Vec::<Movie>::new);
+    let email = use_state(String::new);
+    let password = use_state(String::new);
+    let status = use_state(String::new);
+
+    // Load the movies once, on mount.
+    {
+        let client = client.clone();
+        let movies = movies.clone();
+        use_effect_with((), move |_| {
+            spawn_local(async move {
+                if let Ok(resp) = client.graphql.request(MOVIES_QUERY, None, None, None).await {
+                    if let Some(data) = resp
+                        .body
+                        .data
+                        .and_then(|d| serde_json::from_value::<MoviesData>(d).ok())
+                    {
+                        movies.set(data.movies);
+                    }
+                }
+            });
+            || ()
+        });
+    }
+
+    let on_submit = {
+        let client = client.clone();
+        let email = email.clone();
+        let password = password.clone();
+        let status = status.clone();
+        Callback::from(move |e: SubmitEvent| {
+            e.prevent_default();
+            let client = client.clone();
+            let status = status.clone();
+            let req = SignInEmailPasswordRequest {
+                email: (*email).clone(),
+                password: (*password).clone(),
+            };
+            status.set("Signing in…".to_string());
+            spawn_local(async move {
+                match client.auth.sign_in_email_password(req, None).await {
+                    // The session is captured by middleware and persisted in
+                    // localStorage; subsequent requests attach and refresh it.
+                    Ok(_) => status.set("Signed in".to_string()),
+                    Err(err) => status.set(format!("Sign-in failed: {err}")),
+                }
+            });
+        })
+    };
+
+    let oninput = |setter: UseStateHandle<String>| {
+        Callback::from(move |e: InputEvent| {
+            let input: HtmlInputElement = e.target_unchecked_into();
+            setter.set(input.value());
+        })
+    };
+
+    html! {
+        <main>
+            <h1>{ "Movies" }</h1>
+            <table>
+                <thead>
+                    <tr>
+                        <th>{ "Title" }</th>
+                        <th>{ "Director" }</th>
+                        <th>{ "Year" }</th>
+                        <th>{ "Genre" }</th>
+                        <th>{ "Rating" }</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    { for movies.iter().map(|m| html! {
+                        <tr>
+                            <td>{ &m.title }</td>
+                            <td>{ m.director.clone().unwrap_or_default() }</td>
+                            <td>{ m.release_year.map(|y| y.to_string()).unwrap_or_default() }</td>
+                            <td>{ m.genre.clone().unwrap_or_default() }</td>
+                            <td>{ m.rating.map(|r| r.to_string()).unwrap_or_default() }</td>
+                        </tr>
+                    }) }
+                </tbody>
+            </table>
+
+            <h2>{ "Sign in" }</h2>
+            <form onsubmit={on_submit}>
+                <input type="email" placeholder="email"
+                    value={(*email).clone()} oninput={oninput(email.clone())} />
+                <input type="password" placeholder="password"
+                    value={(*password).clone()} oninput={oninput(password.clone())} />
+                <button type="submit">{ "Sign in" }</button>
+            </form>
+            <p>{ (*status).clone() }</p>
+        </main>
+    }
+}
+
+fn main() {
+    console_error_panic_hook::set_once();
+    yew::Renderer::<App>::new().render();
+}
+```
+  </TabItem>
+</Tabs>
+
+:::note
+The SDK needs the `getrandom` JS backend for PKCE on the web. The `nhost` crate
+already ships a `.cargo/config.toml` that sets the required flag for the
+`wasm32-unknown-unknown` target, so no extra configuration is needed.
+:::
+
+### The end
+
+Run your project with `trunk serve` and navigate to `http://localhost:8080` in your browser.
+
+## Related resources
+
+- [`nhost-rust` SDK reference](/reference/rust/nhost-rust/main) — the full API for auth, storage, GraphQL, and functions.
+- [Full Leptos example](https://github.com/nhost/nhost/tree/main/packages/nhost-rust/examples/leptos) on GitHub — a complete client-side WebAssembly app built on the same `wasm` feature.

@@ -471,13 +471,13 @@ impl Client {
         let url = format!("{base}/files/{id}", base = self.base_url.as_str(), id = id);
         let mut builder = self.reqwest.request(reqwest::Method::PUT, &url);
         let mut form = reqwest::multipart::Form::new();
-        form = form.part(
-            "metadata",
-            reqwest::multipart::Part::text(
-                serde_json::to_string(&body.metadata).unwrap_or_default(),
-            )
-            .mime_str("application/json")?,
-        );
+        if let Some(v) = &body.metadata {
+            form = form.part(
+                "metadata",
+                reqwest::multipart::Part::text(serde_json::to_string(v).unwrap_or_default())
+                    .mime_str("application/json")?,
+            );
+        }
         if let Some(v) = &body.file {
             form = form.part(
                 "file",
