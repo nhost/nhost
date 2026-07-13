@@ -1,3 +1,5 @@
+allowBuilds:
+  esbuild: set this to true or false
 # Regression fixture for ERR_PNPM_IGNORED_BUILDS.
 #
 # This project pins pnpm 11 and depends on esbuild -- a package with a
