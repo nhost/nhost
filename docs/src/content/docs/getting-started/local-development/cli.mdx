@@ -67,7 +67,7 @@ nix profile install github:nhost/nhost#cli
 </TabItem>
 </Tabs>
 
-You can also run the CLI without installing it:
+Or run the CLI without installation:
 
 <Tabs syncKey="pkg">
 <TabItem label="npm">
@@ -173,6 +173,11 @@ The CLI ships an MCP server that lets an AI assistant read your GraphQL schema, 
 <TabItem label="Claude Code">
 ```sh
 curl -fsSL https://docs.nhost.io/install-mcp | claude
+```
+</TabItem>
+<TabItem label="Codex CLI">
+```sh
+curl -fsSL https://docs.nhost.io/install-mcp | codex exec -
 ```
 </TabItem>
 <TabItem label="Gemini CLI">

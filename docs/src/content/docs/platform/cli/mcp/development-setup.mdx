@@ -11,6 +11,7 @@ sidebar:
   label: Development Setup
 ---
 import { Tabs, TabItem } from '@astrojs/starlight/components';
+import { CopyText } from '@components';
 
 This guide sets up the Nhost CLI's MCP server against your **local** project so an AI assistant can read your GraphQL schema, run queries and mutations, and manage Hasura metadata and migrations while you develop.
 
@@ -30,6 +31,11 @@ If you already have an AI assistant connected to your editor, it can perform the
 curl -fsSL https://docs.nhost.io/install-mcp | claude
 ```
 </TabItem>
+<TabItem label="Codex CLI">
+```bash Terminal
+curl -fsSL https://docs.nhost.io/install-mcp | codex exec -
+```
+</TabItem>
 <TabItem label="Gemini CLI">
 ```bash Terminal
 curl -fsSL https://docs.nhost.io/install-mcp | gemini
@@ -42,7 +48,7 @@ curl -fsSL https://docs.nhost.io/install-mcp | <your-assistant-cli>
 </TabItem>
 </Tabs>
 
-You can also paste the contents of [`https://docs.nhost.io/install-mcp`](https://docs.nhost.io/install-mcp) into any coding assistant. It contains task-oriented instructions the assistant executes autonomously, then verifies the tools are available. Prefer the manual steps below? Continue reading.
+You can also hand any coding assistant the link <CopyText text="https://docs.nhost.io/install-mcp" /> to run the setup autonomously. Prefer the manual steps below? Continue reading.
 
 ## 1. Create the configuration file
 

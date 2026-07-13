@@ -32,6 +32,8 @@ export default defineConfig({
   // still works.
   redirects: {
     '/install-mcp': '/install-mcp.md',
+    // Short, memorable entry point to the human-facing MCP overview.
+    '/mcp': '/platform/cli/mcp',
   },
   // Astro 6.4 moved the GFM default onto the new `markdown.processor` (unified())
   // and left the legacy `markdown.gfm` flag undefined-by-default. But
