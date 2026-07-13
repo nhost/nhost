@@ -74,7 +74,7 @@ export default function BreadcrumbNav() {
       ref={breadcrumbRef}
       className={cn(
         'mt-2 flex w-full min-w-0 flex-row flex-nowrap items-center overflow-x-auto lg:mt-0',
-        hasHorizontalScrollbar && 'pt-2',
+        hasHorizontalScrollbar && 'lg:pt-2',
       )}
     >
       <BreadcrumbList className="flex-nowrap">
