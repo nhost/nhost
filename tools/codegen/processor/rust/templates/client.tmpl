@@ -102,11 +102,21 @@
         form = form.text("{{ .RawName }}", body.{{ .Name }}.to_string());
 {{- end }}
 {{- else }}
+{{- if .Optional }}
+        if let Some(v) = &body.{{ .Name }} {
+            form = form.part(
+                "{{ .RawName }}",
+                reqwest::multipart::Part::text(serde_json::to_string(v).unwrap_or_default())
+                    .mime_str("{{ $m.MultipartContentType . }}")?,
+            );
+        }
+{{- else }}
         form = form.part(
             "{{ .RawName }}",
             reqwest::multipart::Part::text(serde_json::to_string(&body.{{ .Name }}).unwrap_or_default())
                 .mime_str("{{ $m.MultipartContentType . }}")?,
         );
+{{- end }}
 {{- end }}
 {{- end }}
         builder = builder.multipart(form);

@@ -242,6 +242,59 @@ async fn with_role_middleware_sets_header() {
     assert_eq!(resp.status, 200);
 }
 
+#[tokio::test]
+async fn graphql_custom_headers_preserve_content_type() {
+    // Regression: caller headers must be merged, not replace the whole map, so
+    // the `Content-Type: application/json` set by `.json()` survives alongside a
+    // custom header like `x-hasura-role`. The mock only matches when BOTH are
+    // present.
+    let server = MockServer::start().await;
+    Mock::given(method("POST"))
+        .and(header("content-type", "application/json"))
+        .and(header("x-hasura-role", "editor"))
+        .respond_with(ResponseTemplate::new(200).set_body_string(r#"{"data":{"ok":true}}"#))
+        .mount(&server)
+        .await;
+
+    let client = graphql::Client::new(server.uri(), vec![], reqwest::Client::new());
+    let mut headers = reqwest::header::HeaderMap::new();
+    headers.insert("x-hasura-role", "editor".parse().unwrap());
+
+    let resp = client
+        .request("query { ok }", None, None, Some(headers))
+        .await
+        .unwrap();
+    assert_eq!(resp.status, 200);
+}
+
+#[tokio::test]
+async fn functions_post_custom_headers_preserve_content_type() {
+    // Regression companion for `functions::Client::post`: custom headers must not
+    // wipe `Content-Type`/`Accept` set by the builder.
+    let server = MockServer::start().await;
+    Mock::given(method("POST"))
+        .and(path("/echo"))
+        .and(header("content-type", "application/json"))
+        .and(header("x-custom", "1"))
+        .respond_with(
+            ResponseTemplate::new(200)
+                .insert_header("content-type", "application/json")
+                .set_body_string(r#"{"ok":true}"#),
+        )
+        .mount(&server)
+        .await;
+
+    let client = nhost::functions::Client::new(server.uri(), vec![], reqwest::Client::new());
+    let mut headers = reqwest::header::HeaderMap::new();
+    headers.insert("x-custom", "1".parse().unwrap());
+
+    let resp = client
+        .post("/echo", &serde_json::json!({"message": "hi"}), Some(headers))
+        .await
+        .unwrap();
+    assert_eq!(resp.status, 200);
+}
+
 #[test]
 fn error_variant_is_small() {
     // Guards against clippy::result_large_err regressions.

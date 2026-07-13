@@ -68,10 +68,13 @@ after changing one of their sources, then commit the result:
 | --- | --- |
 | CLI command tree (`cli/`; see `internal/lib/clidocs`) | `reference/cli/commands.mdx` |
 | `packages/nhost-js` (TypeDoc) | `reference/javascript/nhost-js/**` |
+| `packages/nhost-rust` (rustdoc JSON → `rustdoc-to-md.mjs`) | `reference/rust/nhost-rust/**` |
 | OpenAPI schemas (auth, storage) | `src/schemas/*.yaml` |
 
 Run it in the docs Nix dev shell (`nix develop .#docs`, which provides the `cli` binary)
-on Linux — the TypeDoc/OpenAPI steps use GNU `sed`, which misbehaves on macOS.
+on Linux — the TypeDoc/OpenAPI steps use GNU `sed`, which misbehaves on macOS. The Rust
+reference step additionally needs a Rust toolchain on `PATH` (`cargo`/`rustdoc`); it uses
+`RUSTC_BOOTSTRAP=1` so rustdoc's JSON output works on both stable and nightly channels.
 
 ### Testing the CLI reference generator
 
