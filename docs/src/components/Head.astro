@@ -78,7 +78,7 @@ if (description) ogUrl.searchParams.set('description', description);
 
     // Shared zoom/pan controller. `controls` must contain .mm-zoom-in / .mm-zoom-out / .mm-reset.
     function createZoomController(viewport, diagram, controls, { wheel = false, onApply = null } = {}) {
-        let scale = 1, panX = 0, panY = 0, isPanning = false, startX = 0, startY = 0, mouseDown = false, downX = 0, downY = 0, lastClickTime = 0, lastClickX = 0, lastClickY = 0, hasZoomed = false;
+        let scale = 1, panX = 0, panY = 0, isPanning = false, startX = 0, startY = 0, downX = 0, downY = 0, lastClickTime = 0, lastClickX = 0, lastClickY = 0, hasZoomed = false;
 
         const zoomInBtn = controls.querySelector('.mm-zoom-in');
         const zoomOutBtn = controls.querySelector('.mm-zoom-out');
@@ -168,16 +168,12 @@ if (description) ogUrl.searchParams.set('description', description);
         if (resetBtn) resetBtn.addEventListener('click', reset);
 
         // Grab-to-pan with a small dead zone, so a click / double-click isn't swallowed as a pan.
-        viewport.addEventListener('mousedown', (e) => {
-            mouseDown = true;
-            downX = e.clientX;
-            downY = e.clientY;
-            startX = e.clientX - panX;
-            startY = e.clientY - panY;
-            viewport.style.cursor = 'grabbing';
-        });
-        document.addEventListener('mousemove', (e) => {
-            if (!mouseDown) return;
+        // The move/up handlers are bound to `document` only for the duration of a press (added on
+        // mousedown, removed on mouseup via an AbortController). A controller is created per diagram
+        // and renderMermaid re-runs on every astro:after-swap navigation, so keeping no idle
+        // document listeners is what stops them from accumulating unbounded over a session.
+        let pressAbort = null;
+        function onMove(e) {
             if (!isPanning) {
                 // Ignore tiny movements so the browser can still register the double-click.
                 if (Math.abs(e.clientX - downX) < 4 && Math.abs(e.clientY - downY) < 4) return;
@@ -187,10 +183,9 @@ if (description) ogUrl.searchParams.set('description', description);
             panX = e.clientX - startX;
             panY = e.clientY - startY;
             apply();
-        });
-        document.addEventListener('mouseup', (e) => {
-            if (!mouseDown) return;
-            mouseDown = false;
+        }
+        function onUp(e) {
+            if (pressAbort) { pressAbort.abort(); pressAbort = null; }
             viewport.style.cursor = 'grab';
             if (isPanning) { isPanning = false; apply(); return; }
             // Not a drag — treat as a click and detect the double-click ourselves. This is more
@@ -205,6 +200,16 @@ if (description) ogUrl.searchParams.set('description', description);
                 lastClickX = e.clientX;
                 lastClickY = e.clientY;
             }
+        }
+        viewport.addEventListener('mousedown', (e) => {
+            downX = e.clientX;
+            downY = e.clientY;
+            startX = e.clientX - panX;
+            startY = e.clientY - panY;
+            viewport.style.cursor = 'grabbing';
+            pressAbort = new AbortController();
+            document.addEventListener('mousemove', onMove, { signal: pressAbort.signal });
+            document.addEventListener('mouseup', onUp, { signal: pressAbort.signal });
         });
 
         if (wheel) {
@@ -237,8 +242,22 @@ if (description) ogUrl.searchParams.set('description', description);
 
     // Fullscreen modal for viewing a diagram with more real estate
     let mermaidModal = null;
+
+    // Escape closes the active modal. Registered once at module scope (the module script runs a
+    // single time and persists across astro:after-swap), so no keydown listener accumulates per
+    // navigation and it always targets whichever overlay is currently live.
+    document.addEventListener('keydown', (e) => {
+        if (e.key === 'Escape' && mermaidModal && mermaidModal.overlay.isConnected &&
+            mermaidModal.overlay.classList.contains('active')) {
+            mermaidModal.close();
+        }
+    });
+
     function getMermaidModal() {
-        if (mermaidModal) return mermaidModal;
+        // Reuse the cached modal only while it is still attached. Astro view transitions swap out
+        // <body>, which detaches the injected overlay; returning that dead node made Expand
+        // silently no-op after a client navigation. Rebuild against the new document.body instead.
+        if (mermaidModal && mermaidModal.overlay.isConnected) return mermaidModal;
 
         const overlay = document.createElement('div');
         overlay.className = 'mermaid-modal-overlay';
@@ -275,11 +294,8 @@ if (description) ogUrl.searchParams.set('description', description);
             // now inside it) have a non-overlay target and fall through.
             if (e.target === overlay) close();
         });
-        document.addEventListener('keydown', (e) => {
-            if (e.key === 'Escape' && overlay.classList.contains('active')) close();
-        });
 
-        mermaidModal = { overlay, diagram, viewport, ctrl };
+        mermaidModal = { overlay, diagram, viewport, ctrl, close };
         return mermaidModal;
     }
 
