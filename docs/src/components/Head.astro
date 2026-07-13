@@ -243,15 +243,17 @@ if (description) ogUrl.searchParams.set('description', description);
         const overlay = document.createElement('div');
         overlay.className = 'mermaid-modal-overlay';
         overlay.innerHTML = `
-            <div class="mermaid-modal-controls">
-                <button class="mermaid-modal-btn mermaid-modal-close" aria-label="Close">&times;</button>
-                <div class="mermaid-zoom-pill">
-                    <button class="mermaid-modal-btn mm-zoom-in" title="Zoom in">+</button>
-                    <button class="mermaid-modal-btn mm-zoom-out" title="Zoom out">−</button>
+            <div class="mermaid-modal-viewport">
+                <div class="mermaid-modal-controls">
+                    <button class="mermaid-modal-btn mermaid-modal-close" aria-label="Close">&times;</button>
+                    <div class="mermaid-zoom-pill">
+                        <button class="mermaid-modal-btn mm-zoom-in" title="Zoom in">+</button>
+                        <button class="mermaid-modal-btn mm-zoom-out" title="Zoom out">−</button>
+                    </div>
+                    <button class="mermaid-modal-btn mm-reset" title="Reset">↺</button>
                 </div>
-                <button class="mermaid-modal-btn mm-reset" title="Reset">↺</button>
+                <div class="mermaid-modal-diagram"></div>
             </div>
-            <div class="mermaid-modal-viewport"><div class="mermaid-modal-diagram"></div></div>
         `;
         document.body.appendChild(overlay);
 
@@ -259,6 +261,9 @@ if (description) ogUrl.searchParams.set('description', description);
         const diagram = overlay.querySelector('.mermaid-modal-diagram');
         const controls = overlay.querySelector('.mermaid-modal-controls');
         const ctrl = createZoomController(viewport, diagram, controls, { wheel: true });
+        // The controls now sit inside the card (over the viewport), so keep a button press from
+        // being picked up as the start of a pan/click by the viewport handlers.
+        controls.addEventListener('mousedown', (e) => e.stopPropagation());
 
         function close() {
             overlay.classList.remove('active');
@@ -266,13 +271,9 @@ if (description) ogUrl.searchParams.set('description', description);
         }
         overlay.querySelector('.mermaid-modal-close').addEventListener('click', close);
         overlay.addEventListener('click', (e) => {
-            if (e.target !== overlay) return;
-            // Guard the gap between the controls and the card (their left side); keep the outer
-            // sides tight so clicks in the open dimmed area still close.
-            const ct = controls.getBoundingClientRect();
-            if (e.clientX >= ct.left - 16 && e.clientX <= ct.right + 3 &&
-                e.clientY >= ct.top - 3 && e.clientY <= ct.bottom + 3) return;
-            close();
+            // Only the dimmed margin closes; clicks on the card (viewport, diagram, or the controls
+            // now inside it) have a non-overlay target and fall through.
+            if (e.target === overlay) close();
         });
         document.addEventListener('keydown', (e) => {
             if (e.key === 'Escape' && overlay.classList.contains('active')) close();
@@ -459,14 +460,6 @@ if (description) ogUrl.searchParams.set('description', description);
         z-index: 10;
         user-select: none;
         -webkit-user-select: none;
-        /* Recede while idle so they don't compete with the diagram; come up on hover/focus. */
-        opacity: 0.4;
-        transition: opacity 0.15s ease-in-out;
-    }
-
-    .mermaid-wrapper:hover .mermaid-controls,
-    .mermaid-controls:focus-within {
-        opacity: 1;
     }
 
     /* Inline controls use the same rounded style as the expanded modal, a bit smaller. */
@@ -635,12 +628,12 @@ if (description) ogUrl.searchParams.set('description', description);
         max-width: none !important;
     }
 
-    /* Grouped just outside the modal card's top-right, in the dimmed margin (card is inset
-       2rem top / 132px right; buttons are 2rem wide). */
+    /* Overlaid on the modal card's top-right, matching the inline preview's controls so the UI
+       stays consistent from preview to expanded view. Positioned against the card (viewport). */
     .mermaid-modal-controls {
         position: absolute;
-        top: 4rem;
-        right: calc(132px - 1.8rem - 0.5rem);
+        top: 0.75rem;
+        right: 0.75rem;
         display: flex;
         flex-direction: column;
         align-items: center;
