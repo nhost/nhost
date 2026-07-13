@@ -125,7 +125,20 @@ final class GraphQLClientTests: XCTestCase {
                     status: 200,
                     headers: ["content-type": "application/json", "x-request-id": "req-2"],
                     body: Data(
-                        #"{"data":{"todos":null},"errors":[{"message":"not allowed","locations":[{"line":2,"column":3}],"path":["todos",0],"extensions":{"code":"permission-error","path":"$.selectionSet.todos"}}]}"#.utf8
+                        #"""
+                        {
+                          "data": {"todos": null},
+                          "errors": [{
+                            "message": "not allowed",
+                            "locations": [{"line": 2, "column": 3}],
+                            "path": ["todos", 0],
+                            "extensions": {
+                              "code": "permission-error",
+                              "path": "$.selectionSet.todos"
+                            }
+                          }]
+                        }
+                        """#.utf8
                     )
                 )
             }
@@ -187,7 +200,15 @@ final class GraphQLClientTests: XCTestCase {
             query: "query { createdAt }",
             decoder: { NhostJSON.restDecoder }
         )
+        let trailingClosureDecoded = try await client.request(
+            DateData.self,
+            query: "query { createdAt }"
+        ) { NhostJSON.restDecoder }
         XCTAssertEqual(decoded.body.data?.createdAt, NhostJSON.parse("2026-06-09T12:00:00Z"))
+        XCTAssertEqual(
+            trailingClosureDecoded.body.data?.createdAt,
+            NhostJSON.parse("2026-06-09T12:00:00Z")
+        )
     }
 }
 

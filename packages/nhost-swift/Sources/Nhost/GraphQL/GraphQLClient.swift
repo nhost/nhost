@@ -95,8 +95,15 @@ extension GraphQLExecutionError: LocalizedError {
 }
 
 public struct GraphQLClient: Sendable {
+    struct EncodedRequest {
+        let request: NhostRequest
+        let body: Data
+    }
+
     public let url: URL
+    public let cache: GraphQLCacheHandle
     private let fetch: FetchFunction
+    private let cacheCoordinator: GraphQLCacheCoordinator?
 
     public var baseURL: URL {
         url
@@ -105,6 +112,8 @@ public struct GraphQLClient: Sendable {
     public init(url: URL, fetch: @escaping FetchFunction) {
         self.url = url
         self.fetch = fetch
+        cacheCoordinator = nil
+        cache = GraphQLCacheHandle()
     }
 
     public init(baseURL: URL, fetch: @escaping FetchFunction) {
@@ -114,22 +123,74 @@ public struct GraphQLClient: Sendable {
     public init(
         url: URL,
         transport: any HTTPTransport = URLSessionTransport(),
-        middleware: [ChainFunction] = []
+        middleware: [ChainFunction] = [],
+        cacheConfiguration: GraphQLCacheConfiguration? = nil
     ) {
         self.init(
             url: url,
-            fetch: NhostFetchPipeline(transport: transport, middleware: middleware).fetch
+            transport: transport,
+            middleware: middleware,
+            cacheConfiguration: cacheConfiguration,
+            cacheScopeContext: .standalone(hasCustomMiddleware: !middleware.isEmpty),
+            cacheClock: Date.init
         )
     }
 
     public init(
         baseURL: URL,
         transport: any HTTPTransport = URLSessionTransport(),
-        middleware: [ChainFunction] = []
+        middleware: [ChainFunction] = [],
+        cacheConfiguration: GraphQLCacheConfiguration? = nil
     ) {
-        self.init(url: baseURL, transport: transport, middleware: middleware)
+        self.init(
+            url: baseURL,
+            transport: transport,
+            middleware: middleware,
+            cacheConfiguration: cacheConfiguration
+        )
     }
 
+    init(
+        url: URL,
+        transport: any HTTPTransport,
+        middleware: [ChainFunction],
+        cacheConfiguration: GraphQLCacheConfiguration?,
+        cacheScopeContext: GraphQLCacheClientScopeContext,
+        cacheClock: @escaping @Sendable () -> Date
+    ) {
+        let pipeline = NhostFetchPipeline(transport: transport, middleware: middleware)
+        self.url = url
+        fetch = pipeline.fetch
+
+        guard let cacheConfiguration,
+              let executor = pipeline.contextualExecutor else {
+            cacheCoordinator = nil
+            cache = GraphQLCacheHandle()
+            return
+        }
+
+        let store = cacheConfiguration.store
+            ?? FileGraphQLCacheStore(configuration: cacheConfiguration)
+        let coordinator = GraphQLCacheCoordinator(
+            configuration: cacheConfiguration,
+            store: store,
+            executor: executor,
+            scopeContext: cacheScopeContext,
+            clock: cacheClock,
+            endpoint: url
+        )
+        cacheCoordinator = coordinator
+        cache = GraphQLCacheHandle(
+            store: store,
+            currentAuthorizationScope: {
+                try await coordinator.currentAuthorizationScopeDigest()
+            },
+            diagnosticObserver: cacheConfiguration.diagnosticObserver
+        )
+    }
+
+    /// Source-compatible legacy overload. In particular, this preserves calls
+    /// that supply the decoder as a trailing closure.
     public func request<ResponseData: Decodable & Sendable>(
         _ responseType: ResponseData.Type,
         query: String,
@@ -140,9 +201,46 @@ public struct GraphQLClient: Sendable {
     ) async throws -> NhostResponse<GraphQLResponse<ResponseData>> {
         try await request(
             responseType,
+            query: query,
+            variables: variables,
+            operationName: operationName,
+            headers: headers,
+            decoder: decoder,
+            cacheOptions: GraphQLCacheRequestOptions()
+        )
+    }
+
+    public func request<ResponseData: Decodable & Sendable>(
+        _ responseType: ResponseData.Type,
+        query: String,
+        variables: [String: JSONValue]? = nil,
+        operationName: String? = nil,
+        headers: [String: String] = [:],
+        decoder: @Sendable () -> JSONDecoder = { NhostJSON.neutralDecoder },
+        cacheOptions: GraphQLCacheRequestOptions = GraphQLCacheRequestOptions()
+    ) async throws -> NhostResponse<GraphQLResponse<ResponseData>> {
+        try await request(
+            responseType,
             request: GraphQLRequest(query: query, variables: variables, operationName: operationName),
             headers: headers,
-            decoder: decoder
+            decoder: decoder,
+            cacheOptions: cacheOptions
+        )
+    }
+
+    /// Source-compatible legacy overload, including decoder trailing closures.
+    public func request<ResponseData: Decodable & Sendable>(
+        _ responseType: ResponseData.Type,
+        request graphQLRequest: GraphQLRequest,
+        headers: [String: String] = [:],
+        decoder: @Sendable () -> JSONDecoder = { NhostJSON.neutralDecoder }
+    ) async throws -> NhostResponse<GraphQLResponse<ResponseData>> {
+        try await request(
+            responseType,
+            request: graphQLRequest,
+            headers: headers,
+            decoder: decoder,
+            cacheOptions: GraphQLCacheRequestOptions()
         )
     }
 
@@ -150,8 +248,66 @@ public struct GraphQLClient: Sendable {
         _ responseType: ResponseData.Type,
         request graphQLRequest: GraphQLRequest,
         headers: [String: String] = [:],
-        decoder: @Sendable () -> JSONDecoder = { NhostJSON.neutralDecoder }
+        decoder: @Sendable () -> JSONDecoder = { NhostJSON.neutralDecoder },
+        cacheOptions: GraphQLCacheRequestOptions = GraphQLCacheRequestOptions()
     ) async throws -> NhostResponse<GraphQLResponse<ResponseData>> {
+        if cacheOptions.policy == .networkOnly {
+            return try await Self.legacyRequest(
+                responseType,
+                url: url,
+                graphQLRequest: graphQLRequest,
+                headers: headers,
+                decoder: decoder,
+                fetch: fetch
+            )
+        }
+
+        guard let cacheCoordinator else {
+            if cacheOptions.policy == .cacheOnly {
+                throw GraphQLCacheError.notConfigured
+            }
+            return try await Self.legacyRequest(
+                responseType,
+                url: url,
+                graphQLRequest: graphQLRequest,
+                headers: headers,
+                decoder: decoder,
+                fetch: fetch
+            )
+        }
+
+        return try await cacheCoordinator.request(
+            responseType,
+            graphQLRequest: graphQLRequest,
+            headers: headers,
+            decoder: decoder,
+            cacheOptions: cacheOptions,
+            legacyFetch: fetch
+        )
+    }
+
+    static func legacyRequest<ResponseData: Decodable & Sendable>(
+        _ responseType: ResponseData.Type,
+        url: URL,
+        graphQLRequest: GraphQLRequest,
+        headers: [String: String],
+        decoder: @Sendable () -> JSONDecoder,
+        fetch: FetchFunction
+    ) async throws -> NhostResponse<GraphQLResponse<ResponseData>> {
+        let encoded = try encodedRequest(
+            url: url,
+            graphQLRequest: graphQLRequest,
+            headers: headers
+        )
+        let response = try await fetch(encoded.request)
+        return try decodeResponse(responseType, from: response, decoder: decoder)
+    }
+
+    static func encodedRequest(
+        url: URL,
+        graphQLRequest: GraphQLRequest,
+        headers: [String: String]
+    ) throws -> EncodedRequest {
         var requestHeaders = headers
         NhostHeaderLookup.setHeaderIfAbsent("accept", "application/json", on: &requestHeaders)
         NhostHeaderLookup.setHeaderIfAbsent("content-type", "application/json", on: &requestHeaders)
@@ -162,16 +318,26 @@ public struct GraphQLClient: Sendable {
         } catch {
             throw FetchError.encoding(String(describing: error))
         }
-
-        let response = try await fetch(
-            NhostRequest(method: "POST", url: url, headers: requestHeaders, body: requestBody)
+        return EncodedRequest(
+            request: NhostRequest(
+                method: "POST",
+                url: url,
+                headers: requestHeaders,
+                body: requestBody
+            ),
+            body: requestBody
         )
+    }
 
+    static func decodeResponse<ResponseData: Decodable & Sendable>(
+        _ responseType: ResponseData.Type,
+        from response: NhostRawResponse,
+        decoder: @Sendable () -> JSONDecoder
+    ) throws -> NhostResponse<GraphQLResponse<ResponseData>> {
         do {
-            if let errorEnvelope = Self.decodeErrorEnvelope(from: response.body),
+            if let errorEnvelope = decodeErrorEnvelope(from: response.body),
                let errors = errorEnvelope.errors,
-               !errors.isEmpty
-            {
+               !errors.isEmpty {
                 throw GraphQLExecutionError(
                     errors: errors,
                     status: response.status,
@@ -180,9 +346,7 @@ public struct GraphQLClient: Sendable {
                     rawBody: response.body
                 )
             }
-
             let body = try decoder().decode(GraphQLResponse<ResponseData>.self, from: response.body)
-
             return NhostResponse(body: body, status: response.status, headers: response.headers)
         } catch let error as GraphQLExecutionError {
             throw error

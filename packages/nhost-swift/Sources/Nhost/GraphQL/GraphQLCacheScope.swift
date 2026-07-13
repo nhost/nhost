@@ -14,7 +14,7 @@ struct GraphQLCacheScopeInputs: Sendable {
     let defaultHeaders: [String: String]
     let configuredRole: String?
     let adminSession: AdminSessionOptions?
-    let sessionSnapshot: SessionAuthorizationSnapshot
+    let sessionSnapshot: SessionAuthorizationSnapshot?
     let usesManagedSession: Bool
     let hasCustomMiddleware: Bool
 
@@ -25,7 +25,7 @@ struct GraphQLCacheScopeInputs: Sendable {
         defaultHeaders: [String: String] = [:],
         configuredRole: String? = nil,
         adminSession: AdminSessionOptions? = nil,
-        sessionSnapshot: SessionAuthorizationSnapshot,
+        sessionSnapshot: SessionAuthorizationSnapshot?,
         usesManagedSession: Bool,
         hasCustomMiddleware: Bool = false
     ) {
@@ -47,14 +47,20 @@ struct GraphQLCacheScopeInputs: Sendable {
         let customScope: GraphQLCacheCustomScope?
 
         if let resolver {
-            customScope = try await resolver(
-                GraphQLCacheScopeResolverContext(
-                    endpoint: endpoint,
-                    request: request,
-                    headers: requestHeaders,
-                    sdkScope: base.sdkScope
+            do {
+                customScope = try await resolver(
+                    GraphQLCacheScopeResolverContext(
+                        endpoint: endpoint,
+                        request: request,
+                        headers: requestHeaders,
+                        sdkScope: base.sdkScope
+                    )
                 )
-            )
+            } catch is CancellationError {
+                throw CancellationError()
+            } catch {
+                throw GraphQLCacheError.unavailableScope
+            }
             guard customScope != nil else { return nil }
         } else {
             guard !hasCustomMiddleware else { return nil }
@@ -71,9 +77,10 @@ struct GraphQLCacheScopeInputs: Sendable {
 
         let callerAuthorization = caller["authorization"]
         var managedSession: StoredSession?
-        if callerAuthorization == nil, usesManagedSession, let session = sessionSnapshot.session,
-           !session.accessToken.isEmpty
-        {
+        if callerAuthorization == nil,
+           usesManagedSession,
+           let session = sessionSnapshot?.session,
+           !session.accessToken.isEmpty {
             effective["authorization"] = "Bearer \(session.accessToken)"
             managedSession = session
         }
@@ -143,7 +150,7 @@ struct GraphQLCacheScopeInputs: Sendable {
             userIdentity: userIdentity
         )
         let protectedHeaders = sessionVariables.merging(varyHeaders) { _, new in new }
-        let epoch = managedSession == nil ? nil : sessionSnapshot.authorizationEpoch
+        let epoch = managedSession == nil ? nil : sessionSnapshot?.authorizationEpoch
         let sessionFingerprint = managedSession?.stableAuthorizationFingerprint
         let digest = GraphQLProtectedHeaders.scopeDigest(
             GraphQLScopeDigestInputs(
@@ -281,6 +288,10 @@ struct GraphQLCachePreflightScope: Sendable {
         else {
             throw GraphQLCacheError.authorizationScopeChanged
         }
+    }
+
+    func verifyCurrentSessionSnapshot(_ snapshot: SessionAuthorizationSnapshot?) throws {
+        try verifySessionSnapshot(snapshot)
     }
 
     private func verifySessionSnapshot(_ snapshot: SessionAuthorizationSnapshot?) throws {
