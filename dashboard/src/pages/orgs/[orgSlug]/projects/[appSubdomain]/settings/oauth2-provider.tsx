@@ -1,10 +1,10 @@
 import { useRouter } from 'next/router';
 import type { ReactElement } from 'react';
 import { Container } from '@/components/layout/Container';
-import { ActivityIndicator } from '@/components/ui/v2/ActivityIndicator';
 import { Box } from '@/components/ui/v2/Box';
 import { Button } from '@/components/ui/v2/Button';
 import { Text } from '@/components/ui/v2/Text';
+import { Spinner } from '@/components/ui/v3/spinner';
 import { OrgLayout } from '@/features/orgs/layout/OrgLayout';
 import { SettingsLayout } from '@/features/orgs/layout/SettingsLayout';
 import { MIN_AUTH_VERSION_OAUTH2 } from '@/features/orgs/projects/authentication/oauth2/constants';
@@ -20,14 +20,9 @@ export default function SettingsOAuth2ProviderPage() {
 
   if (isPlatform && loadingVersions) {
     return (
-      <Container
-        className="flex h-full max-w-5xl flex-col"
-        rootClassName="h-full"
-      >
-        <div className="flex flex-auto items-center justify-center overflow-hidden">
-          <ActivityIndicator label="Loading..." />
-        </div>
-      </Container>
+      <Spinner size="medium" wrapperClassName="gap-2">
+        Loading...
+      </Spinner>
     );
   }
 
