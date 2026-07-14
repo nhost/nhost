@@ -3,7 +3,6 @@ import { Anchor, InfoIcon } from 'lucide-react';
 import { useForm } from 'react-hook-form';
 import { z } from 'zod';
 import { FormCombobox } from '@/components/form/FormCombobox';
-import { ActivityIndicator } from '@/components/ui/v2/ActivityIndicator';
 import { Tooltip } from '@/components/ui/v2/Tooltip';
 import { Button } from '@/components/ui/v3/button';
 import {
@@ -115,11 +114,11 @@ export default function RemoteSchemaRelationshipForm({
 
   if (remoteSchemasQueryStatus === 'loading' || !remoteSchemas) {
     return (
-      <ActivityIndicator
-        delay={1000}
-        label="Loading remote schemas..."
-        className="justify-center"
-      />
+      <Spinner size="xs" wrapperClassName="flex-row gap-1.5 justify-center">
+        <span className="text-muted-foreground text-xs">
+          Loading remote schemas...
+        </span>
+      </Spinner>
     );
   }
 

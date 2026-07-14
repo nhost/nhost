@@ -1,8 +1,8 @@
 import { ArrowDown, Link2, Plug as PlugIcon, Split } from 'lucide-react';
 import { useRouter } from 'next/router';
-import { ActivityIndicator } from '@/components/ui/v2/ActivityIndicator';
 import { Alert } from '@/components/ui/v2/Alert';
 import { Button } from '@/components/ui/v3/button';
+import { Spinner } from '@/components/ui/v3/spinner';
 import {
   Table,
   TableBody,
@@ -73,7 +73,11 @@ export default function EditRelationshipsForm({
   if (isRelationshipsLoading || tableStatus === 'loading') {
     return (
       <div className="px-6">
-        <ActivityIndicator label="Loading relationships..." delay={1000} />
+        <Spinner size="xs" wrapperClassName="flex-row gap-1.5">
+          <span className="text-muted-foreground text-xs">
+            Loading relationships...
+          </span>
+        </Spinner>
       </div>
     );
   }
