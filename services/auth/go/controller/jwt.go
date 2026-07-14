@@ -139,13 +139,22 @@ type JWTGetter struct {
 	jwks                 []api.JWK
 }
 
+// ElevationConfig groups the server-wide inputs that decide when a signed-in
+// user must present an elevated claim. Its fields are named so the two booleans
+// cannot be transposed at a call site: swapping MFAEnabled and OTPEmailEnabled
+// would compile cleanly and silently invert the elevation policy in
+// canBypassElevation.
+type ElevationConfig struct {
+	Mode            string
+	MFAEnabled      bool
+	OTPEmailEnabled bool
+}
+
 func NewJWTGetter(
 	jwtSecretb []byte,
 	accessTokenExpiresIn time.Duration,
 	customClaimer CustomClaimer,
-	elevatedClaimMode string,
-	mfaEnabled bool,
-	otpEmailEnabled bool,
+	elevation ElevationConfig,
 	db DBClient,
 	defaultIssuer string,
 ) (*JWTGetter, error) {
@@ -165,9 +174,9 @@ func NewJWTGetter(
 		method:               method,
 		customClaimer:        customClaimer,
 		accessTokenExpiresIn: accessTokenExpiresIn,
-		elevatedClaimMode:    elevatedClaimMode,
-		mfaEnabled:           mfaEnabled,
-		otpEmailEnabled:      otpEmailEnabled,
+		elevatedClaimMode:    elevation.Mode,
+		mfaEnabled:           elevation.MFAEnabled,
+		otpEmailEnabled:      elevation.OTPEmailEnabled,
 		db:                   db,
 		jwks:                 jwks,
 	}, nil
