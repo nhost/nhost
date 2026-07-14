@@ -32,8 +32,9 @@ func Command() *cli.Command {
 		Flags: []cli.Flag{
 			&cli.BoolFlag{ //nolint:exhaustruct
 				Name:    flagYes,
+				Aliases: []string{"confirm"},
 				Usage:   "Skip confirmation prompt",
-				Sources: cli.EnvVars("NHOST_YES"),
+				Sources: cli.EnvVars("NHOST_YES", "CONFIRM"),
 			},
 			&cli.BoolFlag{ //nolint:exhaustruct
 				Name:  flagCloud,

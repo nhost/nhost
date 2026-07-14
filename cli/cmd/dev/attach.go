@@ -3,6 +3,7 @@ package dev
 import (
 	"context"
 	"errors"
+	"fmt"
 	"io"
 	"os"
 	"strings"
@@ -37,19 +38,34 @@ func commandAttach(ctx context.Context, cmd *cli.Command) error {
 		io.Discard, io.Discard, strings.NewReader(""),
 	)
 
+	localConfig, err := dc.LocalDevelopmentConfig()
+	if err != nil {
+		return fmt.Errorf("failed to read local development config: %w", err)
+	}
+
 	versions := fetchVersions(ctx, ce, cmd.Root().Version)
 	mcp := mcpStatus(ce)
 
-	cfg := tui.AppConfig{
+	cfg := attachAppConfig(ce, dc, localConfig, versions, mcp)
+
+	return tui.RunAttach(ctx, cfg) //nolint:wrapcheck
+}
+
+func attachAppConfig(
+	ce *clienv.CliEnv,
+	dc *dockercompose.DockerCompose,
+	localConfig dockercompose.LocalDevelopmentConfig,
+	versions map[string]tui.ServiceVersion,
+	mcp tui.MCPStatus,
+) tui.AppConfig {
+	return tui.AppConfig{
 		DC:           dc,
 		Subdomain:    ce.LocalSubdomain(),
-		HTTPPort:     defaultHTTPPort,
-		UseTLS:       true,
-		PostgresPort: defaultPostgresPort,
+		HTTPPort:     localConfig.HTTPPort,
+		UseTLS:       localConfig.UseTLS,
+		PostgresPort: localConfig.PostgresPort,
 		ProjectName:  ce.ProjectName(),
 		Versions:     versions,
 		MCP:          mcp,
 	}
-
-	return tui.RunAttach(ctx, cfg) //nolint:wrapcheck
 }

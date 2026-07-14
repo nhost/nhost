@@ -120,6 +120,10 @@ func renderStepLine(
 }
 
 func RunSteps(steps []Step) error {
+	if len(steps) == 0 {
+		return nil
+	}
+
 	m := newStepsModel(steps)
 
 	p := tea.NewProgram(m)

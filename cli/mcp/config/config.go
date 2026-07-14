@@ -27,6 +27,7 @@ var (
 		"interactive wizard requires a terminal. Use flags for non-interactive configuration",
 	)
 	ErrPickerCancelled = errors.New("cancelled")
+	ErrEmptyCredential = errors.New("credential cannot be empty")
 )
 
 type Config struct {

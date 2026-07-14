@@ -12,7 +12,14 @@ import (
 	"github.com/urfave/cli/v3"
 )
 
-const flagJSON = "json"
+const (
+	flagJSON = "json"
+
+	healthHealthy  = "healthy"
+	statusDegraded = "degraded"
+	statusRunning  = "running"
+	statusStopped  = "stopped"
+)
 
 func CommandStatus() *cli.Command {
 	return &cli.Command{ //nolint:exhaustruct
@@ -61,11 +68,16 @@ func commandStatus(ctx context.Context, cmd *cli.Command) error {
 		return fmt.Errorf("failed to get service status: %w", err)
 	}
 
-	if cmd.Bool(flagJSON) {
-		return printStatusJSON(ce, services)
+	localConfig, err := dc.LocalDevelopmentConfig()
+	if err != nil {
+		return fmt.Errorf("failed to read local development config: %w", err)
 	}
 
-	printStatusStyled(ce, services)
+	if cmd.Bool(flagJSON) {
+		return printStatusJSON(ce, services, localConfig)
+	}
+
+	printStatusStyled(ce, services, localConfig)
 
 	return nil
 }
@@ -73,8 +85,9 @@ func commandStatus(ctx context.Context, cmd *cli.Command) error {
 func printStatusJSON(
 	ce *clienv.CliEnv,
 	services []dockercompose.ServiceStatus,
+	localConfig dockercompose.LocalDevelopmentConfig,
 ) error {
-	out := buildStatusOutput(ce, services)
+	out := buildStatusOutput(ce, services, localConfig)
 
 	enc := json.NewEncoder(os.Stdout)
 	enc.SetIndent("", "  ")
@@ -89,11 +102,9 @@ func printStatusJSON(
 func buildStatusOutput(
 	ce *clienv.CliEnv,
 	services []dockercompose.ServiceStatus,
+	localConfig dockercompose.LocalDevelopmentConfig,
 ) statusOutput {
-	overall := "stopped"
-	if len(services) > 0 {
-		overall = "running"
-	}
+	overall := overallStatus(services)
 
 	core, infra := dockercompose.GroupServices(services)
 
@@ -103,14 +114,42 @@ func buildStatusOutput(
 			Subdomain: ce.LocalSubdomain(),
 			Region:    "local",
 		},
-		Services:       toStatusServices(ce, core),
-		Infrastructure: toStatusServices(ce, infra),
+		Services:       toStatusServices(ce, core, localConfig),
+		Infrastructure: toStatusServices(ce, infra, localConfig),
 	}
+}
+
+func overallStatus(services []dockercompose.ServiceStatus) string {
+	running := 0
+	stopped := 0
+
+	for _, svc := range services {
+		if isServiceRunning(svc) {
+			running++
+			continue
+		}
+
+		stopped++
+	}
+
+	switch {
+	case running == 0:
+		return statusStopped
+	case stopped == 0:
+		return statusRunning
+	default:
+		return statusDegraded
+	}
+}
+
+func isServiceRunning(svc dockercompose.ServiceStatus) bool {
+	return svc.State == statusRunning || svc.Health == healthHealthy
 }
 
 func toStatusServices(
 	ce *clienv.CliEnv,
 	services []dockercompose.ServiceStatus,
+	localConfig dockercompose.LocalDevelopmentConfig,
 ) []statusService {
 	out := make([]statusService, 0, len(services))
 	for _, svc := range services {
@@ -118,7 +157,7 @@ func toStatusServices(
 			Name:    svc.Service,
 			State:   svc.State,
 			Health:  svc.Health,
-			URL:     serviceURLPlain(ce, svc.Service),
+			URL:     serviceURLPlain(ce, svc.Service, localConfig),
 			Version: "",
 		})
 	}
@@ -126,32 +165,24 @@ func toStatusServices(
 	return out
 }
 
-func serviceURLPlain(ce *clienv.CliEnv, name string) string {
-	sub := ce.LocalSubdomain()
-
-	switch name {
-	case "postgres":
-		return fmt.Sprintf("localhost:%d", defaultPostgresPort)
-	case "graphql":
-		return dockercompose.URL(sub, "graphql", defaultHTTPPort, true)
-	case "auth":
-		return dockercompose.URL(sub, "auth", defaultHTTPPort, true)
-	case "storage":
-		return dockercompose.URL(sub, "storage", defaultHTTPPort, true)
-	case "functions":
-		return dockercompose.URL(sub, "functions", defaultHTTPPort, true)
-	case "dashboard":
-		return dockercompose.URL(sub, "dashboard", defaultHTTPPort, true)
-	case "mailhog":
-		return dockercompose.URL(sub, "mailhog", defaultHTTPPort, true)
-	default:
-		return ""
-	}
+func serviceURLPlain(
+	ce *clienv.CliEnv,
+	name string,
+	localConfig dockercompose.LocalDevelopmentConfig,
+) string {
+	return dockercompose.LocalServiceURL(
+		ce.LocalSubdomain(),
+		name,
+		localConfig.HTTPPort,
+		localConfig.PostgresPort,
+		localConfig.UseTLS,
+	)
 }
 
 func printStatusStyled(
 	ce *clienv.CliEnv,
 	services []dockercompose.ServiceStatus,
+	localConfig dockercompose.LocalDevelopmentConfig,
 ) {
 	if len(services) == 0 {
 		ce.Println("No services running")
@@ -172,7 +203,7 @@ func printStatusStyled(
 	ce.Println("  %s", dim.Render("Services"))
 
 	for _, svc := range core {
-		printStatusService(ce, svc, bullet, dim)
+		printStatusService(ce, svc, bullet, dim, localConfig)
 	}
 
 	if len(infra) > 0 {
@@ -180,7 +211,7 @@ func printStatusStyled(
 		ce.Println("  %s", dim.Render("Infrastructure"))
 
 		for _, svc := range infra {
-			printStatusService(ce, svc, bullet, dim)
+			printStatusService(ce, svc, bullet, dim, localConfig)
 		}
 	}
 }
@@ -190,13 +221,14 @@ func printStatusService(
 	svc dockercompose.ServiceStatus,
 	bullet string,
 	dim lipgloss.Style,
+	localConfig dockercompose.LocalDevelopmentConfig,
 ) {
 	status := svc.State
 	if svc.Health != "" {
 		status = svc.Health
 	}
 
-	url := serviceURLPlain(ce, svc.Service)
+	url := serviceURLPlain(ce, svc.Service, localConfig)
 	if url != "" {
 		ce.Println("    %s %-14s %-10s %s",
 			bullet, svc.Service, status, dim.Render(url))

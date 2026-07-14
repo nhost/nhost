@@ -93,10 +93,11 @@ type Model struct {
 	height    int
 
 	err    error
+	ctx    context.Context //nolint:containedctx // Bubble Tea commands need the app context after construction.
 	cancel context.CancelFunc
 }
 
-func newModel(cfg AppConfig, cancel context.CancelFunc) Model {
+func newModel(ctx context.Context, cfg AppConfig, cancel context.CancelFunc) Model {
 	s := spinner.New(
 		spinner.WithSpinner(spinner.Dot),
 		spinner.WithStyle(lipgloss.NewStyle().Foreground(colorCyan)),
@@ -122,6 +123,7 @@ func newModel(cfg AppConfig, cancel context.CancelFunc) Model {
 		width:       80, //nolint:mnd
 		height:      24, //nolint:mnd
 		err:         nil,
+		ctx:         ctx,
 		cancel:      cancel,
 	}
 }

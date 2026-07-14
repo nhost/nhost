@@ -2,9 +2,11 @@ package software
 
 import (
 	"context"
+	"encoding/json"
 	"fmt"
 	"os"
 	"runtime"
+	"sort"
 	"strings"
 
 	"github.com/charmbracelet/lipgloss"
@@ -18,13 +20,101 @@ import (
 	"golang.org/x/term"
 )
 
+const flagJSON = "json"
+
 func CommandVersion() *cli.Command {
 	return &cli.Command{ //nolint:exhaustruct
 		Name:    "version",
 		Aliases: []string{},
 		Usage:   "Show the current version of Nhost CLI you have installed",
 		Action:  commandVersion,
+		Flags: []cli.Flag{
+			&cli.BoolFlag{ //nolint:exhaustruct
+				Name:  flagJSON,
+				Usage: "Output as JSON",
+			},
+		},
 	}
+}
+
+type cliStatus struct {
+	Current     string
+	Recommended string
+	OK          bool
+}
+
+type versionOutput struct {
+	CLI      versionCLI       `json:"cli"`
+	Services []versionService `json:"services"`
+}
+
+type versionCLI struct {
+	Current     string `json:"current"`
+	Recommended string `json:"recommended"`
+	IsOK        bool   `json:"ok"`
+}
+
+type versionService struct {
+	Name        string `json:"service"`
+	Current     string `json:"current"`
+	Recommended string `json:"recommended"`
+	IsOK        bool   `json:"ok"`
+}
+
+func buildVersionJSON(status cliStatus, services map[string]ServiceVersion) versionOutput {
+	serviceStatuses := make([]ServiceVersion, 0, len(services))
+	for _, service := range services {
+		serviceStatuses = append(serviceStatuses, service)
+	}
+
+	sort.Slice(serviceStatuses, func(i, j int) bool {
+		return serviceStatuses[i].Service < serviceStatuses[j].Service
+	})
+
+	outServices := make([]versionService, 0, len(serviceStatuses))
+	for _, service := range serviceStatuses {
+		outServices = append(outServices, versionService{
+			Name:        service.Service,
+			Current:     service.Current,
+			Recommended: service.Recommended,
+			IsOK:        service.OK,
+		})
+	}
+
+	return versionOutput{
+		CLI: versionCLI{
+			Current:     status.Current,
+			Recommended: status.Recommended,
+			IsOK:        status.OK,
+		},
+		Services: outServices,
+	}
+}
+
+func printVersionJSON(
+	ctx context.Context,
+	ce *clienv.CliEnv,
+	cfg *model.ConfigConfig,
+	appVersion string,
+) error {
+	status, err := cliVersionStatus(ctx, appVersion)
+	if err != nil {
+		return fmt.Errorf("failed to get CLI version status: %w", err)
+	}
+
+	services, err := GetServiceVersions(ctx, ce, cfg)
+	if err != nil {
+		return fmt.Errorf("failed to get service versions: %w", err)
+	}
+
+	enc := json.NewEncoder(os.Stdout)
+	enc.SetIndent("", "  ")
+
+	if err := enc.Encode(buildVersionJSON(status, services)); err != nil {
+		return fmt.Errorf("failed to encode version: %w", err)
+	}
+
+	return nil
 }
 
 func styledCheck(name, version, extra string, ok bool) string {
@@ -41,6 +131,33 @@ func styledCheck(name, version, extra string, ok bool) string {
 		cross, name, version,
 		lipgloss.NewStyle().Foreground(clienv.ANSIColorYellow).Render(extra),
 	)
+}
+
+func cliVersionStatus(ctx context.Context, curVersion string) (cliStatus, error) {
+	mgr := software.NewManager()
+
+	releases, err := mgr.GetReleases(ctx, curVersion)
+	if err != nil {
+		return cliStatus{
+			Current:     "",
+			Recommended: "",
+			OK:          false,
+		}, fmt.Errorf("failed to get releases: %w", err)
+	}
+
+	if len(releases) == 0 || releases[0].TagName == curVersion {
+		return cliStatus{
+			Current:     curVersion,
+			Recommended: "",
+			OK:          true,
+		}, nil
+	}
+
+	return cliStatus{
+		Current:     curVersion,
+		Recommended: releases[0].TagName,
+		OK:          false,
+	}, nil
 }
 
 func checkCLIVersion(
@@ -206,6 +323,7 @@ func CheckVersions(
 
 func commandVersion(ctx context.Context, cmd *cli.Command) error {
 	ce := clienv.FromCLI(cmd)
+	jsonOutput := cmd.Bool(flagJSON)
 
 	var (
 		cfg *model.ConfigConfig
@@ -225,8 +343,12 @@ func commandVersion(ctx context.Context, cmd *cli.Command) error {
 		if err != nil {
 			return fmt.Errorf("failed to validate config: %w", err)
 		}
-	} else {
+	} else if !jsonOutput {
 		ce.Warnln("No Nhost project found")
+	}
+
+	if jsonOutput {
+		return printVersionJSON(ctx, ce, cfg, cmd.Root().Version)
 	}
 
 	return CheckVersions(ctx, ce, cfg, cmd.Root().Version)

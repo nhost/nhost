@@ -288,32 +288,13 @@ func serviceIndicator(
 }
 
 func (m Model) serviceURL(name string) string {
-	sub := m.config.Subdomain
-	port := m.config.HTTPPort
-	tls := m.config.UseTLS
-
-	switch name {
-	case "postgres":
-		return fmt.Sprintf(
-			"localhost:%d", m.config.PostgresPort,
-		)
-	case "graphql":
-		return dockercompose.URL(sub, "graphql", port, tls)
-	case "auth":
-		return dockercompose.URL(sub, "auth", port, tls)
-	case "storage":
-		return dockercompose.URL(sub, "storage", port, tls)
-	case "functions":
-		return dockercompose.URL(sub, "functions", port, tls)
-	case "dashboard":
-		return dockercompose.URL(sub, "dashboard", port, tls)
-	case "hasura":
-		return dockercompose.URL(sub, "hasura", port, tls)
-	case "mailhog":
-		return dockercompose.URL(sub, "mailhog", port, tls)
-	default:
-		return ""
-	}
+	return dockercompose.LocalServiceURL(
+		m.config.Subdomain,
+		name,
+		m.config.HTTPPort,
+		m.config.PostgresPort,
+		m.config.UseTLS,
+	)
 }
 
 func (m Model) viewLogs() string {

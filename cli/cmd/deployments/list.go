@@ -204,8 +204,9 @@ func printDeploymentsJSON(
 
 func commandList(ctx context.Context, cmd *cli.Command) error {
 	ce := clienv.FromCLI(cmd)
+	jsonOutput := cmd.Bool(flagJSON)
 
-	proj, err := cmdutil.GetAppInfoOrLink(ctx, ce, cmd.String(flagSubdomain))
+	proj, err := cmdutil.GetAppInfoOrLink(ctx, ce, cmd.String(flagSubdomain), !jsonOutput)
 	if err != nil {
 		return fmt.Errorf("failed to get app info: %w", err)
 	}
@@ -223,7 +224,7 @@ func commandList(ctx context.Context, cmd *cli.Command) error {
 		return fmt.Errorf("failed to get deployments: %w", err)
 	}
 
-	if cmd.Bool(flagJSON) {
+	if jsonOutput {
 		return printDeploymentsJSON(deployments.GetUnifiedDeployments())
 	}
 

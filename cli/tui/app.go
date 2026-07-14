@@ -54,7 +54,7 @@ func RunApp(
 	ctx, cancel := context.WithCancel(ctx)
 	defer cancel()
 
-	m := newModel(cfg, cancel)
+	m := newModel(ctx, cfg, cancel)
 	p := tea.NewProgram(m, tea.WithAltScreen())
 
 	reporter := NewReporter(p)
@@ -69,7 +69,7 @@ func RunAttach(ctx context.Context, cfg AppConfig) error {
 	ctx, cancel := context.WithCancel(ctx)
 	defer cancel()
 
-	m := newModel(cfg, cancel)
+	m := newModel(ctx, cfg, cancel)
 	m.state = stateDashboard
 
 	p := tea.NewProgram(m, tea.WithAltScreen())

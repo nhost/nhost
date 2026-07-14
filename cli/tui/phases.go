@@ -57,7 +57,15 @@ func (r *TextReporter) SkipPhase(name string) {
 	r.ce.Warnln("Skipped: %s", name)
 }
 
-func (r *TextReporter) Complete(_ string) {}
+func (r *TextReporter) Complete(info string) {
+	if info == "" {
+		return
+	}
+
+	if _, err := fmt.Fprint(r.ce.Stdout(), info); err != nil {
+		panic(err)
+	}
+}
 
 // PrintCheck prints a single line with a green checkmark.
 func PrintCheck(msg string) {

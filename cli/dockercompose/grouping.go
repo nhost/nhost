@@ -5,6 +5,7 @@ import "sort"
 var coreOrder = []string{ //nolint:gochecknoglobals
 	"postgres",
 	"graphql",
+	"constellation",
 	"auth",
 	"storage",
 	"functions",
@@ -51,7 +52,7 @@ func GroupServices(services []ServiceStatus) ([]ServiceStatus, []ServiceStatus) 
 		}
 	}
 
-	sort.Slice(core, func(i, j int) bool {
+	sort.SliceStable(core, func(i, j int) bool {
 		return CorePriority(core[i].Service) < CorePriority(core[j].Service)
 	})
 

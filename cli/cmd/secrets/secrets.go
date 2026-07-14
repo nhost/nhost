@@ -37,7 +37,7 @@ func runSecretMutation(
 
 	ce := clienv.FromCLI(cmd)
 
-	proj, err := cmdutil.GetAppInfoOrLink(ctx, ce, cmd.String(flagSubdomain))
+	proj, err := cmdutil.GetAppInfoOrLink(ctx, ce, cmd.String(flagSubdomain), true)
 	if err != nil {
 		return fmt.Errorf("failed to get app info: %w", err)
 	}

@@ -73,18 +73,35 @@ func commandPull(ctx context.Context, cmd *cli.Command) error {
 		}
 	}
 
-	proj, err := cmdutil.GetAppInfoOrLink(ctx, ce, cmd.String(flagSubdomain))
+	proj, err := cmdutil.GetAppInfoOrLink(ctx, ce, cmd.String(flagSubdomain), true)
 	if err != nil {
 		return fmt.Errorf("failed to get app info: %w", err)
 	}
 
 	if term.IsTerminal(int(os.Stdout.Fd())) {
-		return commandPullTUI(ctx, ce, proj, writeSecrets)
+		err = commandPullTUI(ctx, ce, proj, writeSecrets)
+	} else {
+		_, err = Pull(ctx, ce, proj, writeSecrets)
 	}
 
-	_, err = Pull(ctx, ce, proj, writeSecrets)
+	if err != nil {
+		return err
+	}
 
-	return err
+	printSecretSafetyWarnings(ce, writeSecrets)
+
+	return nil
+}
+
+func printSecretSafetyWarnings(ce *clienv.CliEnv, writeSecrets bool) {
+	ce.Warnln(
+		"- Review `nhost/nhost.toml` and make sure there are no secrets before committing it to git.",
+	)
+
+	if writeSecrets {
+		ce.Warnln("- Review `.secrets` and set your development secrets.")
+		ce.Warnln("- `.secrets` was added to `.gitignore`.")
+	}
 }
 
 func commandPullTUI(

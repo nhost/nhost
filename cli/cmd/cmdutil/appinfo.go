@@ -13,12 +13,35 @@ import (
 	"golang.org/x/term"
 )
 
-// GetAppInfoOrLink wraps GetAppInfo and triggers interactive project
-// linking when no project is linked and a TTY is available.
+// GetAppInfoOrLink wraps GetAppInfo and optionally triggers interactive
+// project linking when no project is linked and a TTY is available.
 func GetAppInfoOrLink(
 	ctx context.Context,
 	ce *clienv.CliEnv,
 	subdomain string,
+	interactive bool,
+) (*graphql.AppSummaryFragment, error) {
+	return getAppInfoOrLink(
+		ctx,
+		ce,
+		subdomain,
+		interactive,
+		stdoutIsTerminal,
+		linkInteractive,
+	)
+}
+
+func stdoutIsTerminal() bool {
+	return term.IsTerminal(int(os.Stdout.Fd()))
+}
+
+func getAppInfoOrLink(
+	ctx context.Context,
+	ce *clienv.CliEnv,
+	subdomain string,
+	interactive bool,
+	isTerminal func() bool,
+	link func(context.Context, *clienv.CliEnv) (*graphql.AppSummaryFragment, error),
 ) (*graphql.AppSummaryFragment, error) {
 	proj, err := ce.GetAppInfo(ctx, subdomain)
 	if err == nil {
@@ -29,11 +52,11 @@ func GetAppInfoOrLink(
 		return nil, err //nolint:wrapcheck
 	}
 
-	if !term.IsTerminal(int(os.Stdout.Fd())) {
+	if !interactive || !isTerminal() {
 		return nil, err //nolint:wrapcheck
 	}
 
-	return linkInteractive(ctx, ce)
+	return link(ctx, ce)
 }
 
 func linkInteractive(

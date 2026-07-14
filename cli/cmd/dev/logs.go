@@ -37,11 +37,17 @@ func commandLogs(ctx context.Context, cmd *cli.Command) error {
 	service := cmd.Args().First()
 
 	isTTY := term.IsTerminal(int(os.Stdout.Fd()))
-	if isTTY {
+
+	follow := cmd.Bool(flagFollow)
+	if shouldRunLogViewer(isTTY, follow) {
 		return commandLogsTUI(ctx, ce, service)
 	}
 
 	return commandLogsPlain(ctx, ce, cmd, service)
+}
+
+func shouldRunLogViewer(isTTY, follow bool) bool {
+	return isTTY && follow
 }
 
 func commandLogsTUI(ctx context.Context, ce *clienv.CliEnv, service string) error {

@@ -47,6 +47,14 @@ func (ce *CliEnv) Stdout() io.Writer {
 	return ce.stdout
 }
 
+// WithStdout returns a shallow copy of ce that writes stdout output to w.
+func (ce *CliEnv) WithStdout(w io.Writer) *CliEnv {
+	clone := *ce
+	clone.stdout = w
+
+	return &clone
+}
+
 func (ce *CliEnv) SetStdout(w io.Writer) {
 	ce.stdout = w
 }

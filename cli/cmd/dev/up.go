@@ -10,6 +10,7 @@ import (
 	"path/filepath"
 	"strings"
 	"syscall"
+	"text/tabwriter"
 	"time"
 
 	"github.com/nhost/be/services/mimir/model"
@@ -552,7 +553,178 @@ func up( //nolint:funlen
 
 	r.EndPhase()
 
-	r.Complete("")
+	info, err := developmentInfo(
+		ce.LocalSubdomain(), httpPort, postgresPort, useTLS, runServicesCfg,
+	)
+	if err != nil {
+		return fmt.Errorf("failed to render local development info: %w", err)
+	}
+
+	r.Complete(info)
+
+	return nil
+}
+
+func developmentInfo(
+	subdomain string,
+	httpPort, postgresPort uint,
+	useTLS bool,
+	runServices []*dockercompose.RunService,
+) (string, error) {
+	var b strings.Builder
+
+	w := tabwriter.NewWriter(&b, 0, 0, 4, ' ', 0) //nolint:mnd
+	if err := writeCoreServiceURLs(w, subdomain, httpPort, postgresPort, useTLS); err != nil {
+		return "", err
+	}
+
+	if err := writeRunServiceURLs(w, runServices); err != nil {
+		return "", err
+	}
+
+	if err := writeSDKInfo(w, subdomain); err != nil {
+		return "", err
+	}
+
+	if err := w.Flush(); err != nil {
+		return "", fmt.Errorf("flush local development info: %w", err)
+	}
+
+	return b.String(), nil
+}
+
+func writeInfo(w io.Writer, format string, args ...any) error {
+	if _, err := fmt.Fprintf(w, format, args...); err != nil {
+		return fmt.Errorf("write local development info: %w", err)
+	}
+
+	return nil
+}
+
+func writeCoreServiceURLs(
+	w io.Writer,
+	subdomain string,
+	httpPort, postgresPort uint,
+	useTLS bool,
+) error {
+	if err := writeInfo(w, "Nhost development environment started.\n"); err != nil {
+		return err
+	}
+
+	if err := writeInfo(w, "URLs:\n"); err != nil {
+		return err
+	}
+
+	if err := writeInfo(
+		w,
+		"- Postgres:\t\t%s\n",
+		dockercompose.LocalPostgresDSN(postgresPort),
+	); err != nil {
+		return err
+	}
+
+	services := []struct {
+		label   string
+		service string
+	}{
+		{label: "Hasura", service: "hasura"},
+		{label: "GraphQL", service: "graphql"},
+		{label: "Auth", service: "auth"},
+		{label: "Storage", service: "storage"},
+		{label: "Functions", service: "functions"},
+		{label: "Dashboard", service: "dashboard"},
+		{label: "Mailhog", service: "mailhog"},
+	}
+
+	for _, svc := range services {
+		if err := writeInfo(
+			w,
+			"- %s:\t\t%s\n",
+			svc.label,
+			dockercompose.LocalServiceURL(
+				subdomain,
+				svc.service,
+				httpPort,
+				postgresPort,
+				useTLS,
+			),
+		); err != nil {
+			return err
+		}
+	}
+
+	return nil
+}
+
+func writeRunServiceURLs(
+	w io.Writer,
+	runServices []*dockercompose.RunService,
+) error {
+	for _, svc := range runServices {
+		if svc == nil || svc.Config == nil {
+			continue
+		}
+
+		name := svc.Config.GetName()
+		for _, port := range svc.Config.GetPorts() {
+			publish := port.GetPublish()
+			if publish == nil || !*publish {
+				continue
+			}
+
+			if err := writeInfo(
+				w,
+				"- run-%s:\t\tFrom laptop:\t%s://localhost:%d\n",
+				name,
+				port.GetType(),
+				port.GetPort(),
+			); err != nil {
+				return err
+			}
+
+			if err := writeInfo(
+				w,
+				"\t\tFrom services:\t%s://run-%s:%d\n",
+				port.GetType(),
+				name,
+				port.GetPort(),
+			); err != nil {
+				return err
+			}
+		}
+	}
+
+	return nil
+}
+
+func writeSDKInfo(w io.Writer, subdomain string) error {
+	if err := writeInfo(w, "\n"); err != nil {
+		return err
+	}
+
+	if err := writeInfo(w, "SDK Configuration:\n"); err != nil {
+		return err
+	}
+
+	if err := writeInfo(w, " Subdomain:\t%s\n", subdomain); err != nil {
+		return err
+	}
+
+	if err := writeInfo(w, " Region:\tlocal\n"); err != nil {
+		return err
+	}
+
+	if err := writeInfo(w, "Run `nhost up` to reload the development environment\n"); err != nil {
+		return err
+	}
+
+	if err := writeInfo(w, "Run `nhost down` to stop the development environment\n"); err != nil {
+		return err
+	}
+
+	if err := writeInfo(w, "Run `nhost logs` to watch the logs\n"); err != nil {
+		return err
+	}
 
 	return nil
 }
@@ -733,7 +905,7 @@ func upWithTUI(
 		ce.Path.WorkingDir(), ce.Path.DockerCompose(), ce.ProjectName(),
 		io.Discard, io.Discard, strings.NewReader(""),
 	)
-	ce.SetStdout(io.Discard)
+	tuiCE := ce.WithStdout(io.Discard)
 
 	versions := fetchVersions(ctx, ce, appVersion)
 	mcp := mcpStatus(ce)
@@ -755,15 +927,12 @@ func upWithTUI(
 
 	err := tui.RunApp(ctx, appCfg, func(r tui.ProgressReporter) error {
 		return up(
-			ctx, ce, appVersion, dc, docker, r, httpPort, useTLS,
+			ctx, tuiCE, appVersion, dc, docker, r, httpPort, useTLS,
 			postgresPort, applySeeds, ports, dashboardVersion, functionsVersion,
 			configserverImage, caCertificatesPath, runServices,
 			runServiceVolumes,
 		)
 	})
-
-	ce.SetStdout(os.Stdout)
-
 	if err != nil {
 		return upErr(ce, dc, downOnError, err) //nolint:contextcheck
 	}

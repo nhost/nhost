@@ -233,7 +233,7 @@ func InitRemote(
 	ctx context.Context,
 	ce *clienv.CliEnv,
 ) error {
-	proj, err := cmdutil.GetAppInfoOrLink(ctx, ce, "")
+	proj, err := cmdutil.GetAppInfoOrLink(ctx, ce, "", true)
 	if err != nil {
 		return fmt.Errorf("failed to get app info: %w", err)
 	}

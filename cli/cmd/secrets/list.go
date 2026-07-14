@@ -31,8 +31,9 @@ func CommandList() *cli.Command {
 
 func commandList(ctx context.Context, cmd *cli.Command) error {
 	ce := clienv.FromCLI(cmd)
+	jsonOutput := cmd.Bool(flagJSON)
 
-	proj, err := cmdutil.GetAppInfoOrLink(ctx, ce, cmd.String(flagSubdomain))
+	proj, err := cmdutil.GetAppInfoOrLink(ctx, ce, cmd.String(flagSubdomain), !jsonOutput)
 	if err != nil {
 		return fmt.Errorf("failed to get app info: %w", err)
 	}
@@ -53,7 +54,7 @@ func commandList(ctx context.Context, cmd *cli.Command) error {
 	appSecrets := secrets.GetAppSecrets()
 	isTTY := term.IsTerminal(int(os.Stdout.Fd()))
 
-	if cmd.Bool(flagJSON) {
+	if jsonOutput {
 		return printSecretsJSON(appSecrets)
 	}
 

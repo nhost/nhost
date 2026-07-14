@@ -110,7 +110,11 @@ type projectJSON struct {
 func collectProjects(
 	orgs *graphql.GetOrganizationsAndWorkspacesApps,
 ) []projectJSON {
-	var projects []projectJSON
+	projects := make(
+		[]projectJSON,
+		0,
+		len(orgs.GetOrganizations())+len(orgs.GetWorkspaces()),
+	)
 
 	for _, org := range orgs.GetOrganizations() {
 		for _, app := range org.Apps {

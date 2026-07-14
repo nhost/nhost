@@ -1,6 +1,7 @@
 package tui
 
 import (
+	"errors"
 	"fmt"
 
 	"github.com/charmbracelet/bubbles/textinput"
@@ -84,8 +85,12 @@ func (m promptModel) Value() string {
 	return v
 }
 
+// ErrPromptCancelled is returned when the user cancels a prompt.
+var ErrPromptCancelled = errors.New("prompt cancelled")
+
 // RunPrompt shows a text input prompt and returns the entered value.
 // If the user presses enter without typing, defaultValue is returned.
+// If the user cancels the prompt, ErrPromptCancelled is returned.
 func RunPrompt(label, defaultValue string) (string, error) {
 	m := newPromptModel(label, defaultValue)
 	p := tea.NewProgram(m)
@@ -97,7 +102,7 @@ func RunPrompt(label, defaultValue string) (string, error) {
 
 	fm, ok := finalModel.(promptModel)
 	if !ok || fm.cancelled {
-		return "", ErrPickerCancelled
+		return "", ErrPromptCancelled
 	}
 
 	return fm.Value(), nil

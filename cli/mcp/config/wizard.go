@@ -8,8 +8,15 @@ import (
 	"golang.org/x/term"
 )
 
+//nolint:gochecknoglobals // Test seam for Bubble Tea prompts.
+var (
+	runPrompt  = tui.RunPrompt
+	runConfirm = tui.RunConfirm
+	runPicker  = tui.RunPicker
+)
+
 func RunWizard() (*Config, error) {
-	if !term.IsTerminal(int(os.Stdout.Fd())) {
+	if !term.IsTerminal(int(os.Stdin.Fd())) || !term.IsTerminal(int(os.Stdout.Fd())) {
 		return nil, ErrWizardRequiresTTY
 	}
 
@@ -28,7 +35,7 @@ func RunWizard() (*Config, error) {
 }
 
 func wizardCloud() *Cloud {
-	confirmed, err := tui.RunConfirm(
+	confirmed, err := runConfirm(
 		"Enable Nhost Cloud access? (manage projects and organizations)",
 	)
 	if err != nil || !confirmed {
@@ -39,14 +46,14 @@ func wizardCloud() *Cloud {
 }
 
 func wizardLocal() *Project {
-	confirmed, err := tui.RunConfirm(
+	confirmed, err := runConfirm(
 		"Enable local development access?",
 	)
 	if err != nil || !confirmed {
 		return nil
 	}
 
-	secret, err := tui.RunPrompt(
+	secret, err := runPrompt(
 		"Admin secret", clienv.DefaultLocalAdminSecret,
 	)
 	if err != nil {
@@ -71,7 +78,7 @@ func wizardLocal() *Project {
 func wizardProjects() []Project {
 	var projects []Project
 
-	confirmed, err := tui.RunConfirm(
+	confirmed, err := runConfirm(
 		"Configure access to a cloud project?",
 	)
 	if err != nil || !confirmed {
@@ -86,7 +93,7 @@ func wizardProjects() []Project {
 
 		projects = append(projects, *p)
 
-		more, err := tui.RunConfirm("Add another project?")
+		more, err := runConfirm("Add another project?")
 		if err != nil || !more {
 			break
 		}
@@ -96,29 +103,39 @@ func wizardProjects() []Project {
 }
 
 func wizardOneProject() (*Project, error) {
-	subdomain, err := tui.RunPrompt("Project subdomain", "")
-	if err != nil || subdomain == "" {
+	subdomain, err := runPrompt("Project subdomain", "")
+	if err != nil {
+		return nil, err
+	}
+
+	if subdomain == "" {
 		return nil, ErrPickerCancelled
 	}
 
-	region, err := tui.RunPrompt("Project region", "us-east-1")
+	region, err := runPrompt("Project region", "us-east-1")
 	if err != nil {
-		return nil, err //nolint:wrapcheck
+		return nil, err
 	}
 
-	desc, err := tui.RunPrompt("Description (for LLM context)", "")
+	desc, err := runPrompt("Description (for LLM context)", "")
 	if err != nil {
-		desc = ""
+		return nil, err
 	}
 
-	metadata, _ := tui.RunConfirm(
+	metadata, err := runConfirm(
 		"Allow managing metadata (tables, permissions)?",
 	)
+	if err != nil {
+		return nil, err
+	}
 
-	authIdx, err := tui.RunPicker("Authentication method", []tui.PickerItem{
+	authIdx, err := runPicker("Authentication method", []tui.PickerItem{
 		{Label: "Admin Secret", Desc: "", Value: nil, Selected: false},
 		{Label: "Personal Access Token", Desc: "", Value: nil, Selected: false},
 	})
+	if err != nil {
+		return nil, err
+	}
 
 	project := &Project{
 		Subdomain:      subdomain,
@@ -134,13 +151,43 @@ func wizardOneProject() (*Project, error) {
 		HasuraURL:      "",
 	}
 
-	if err != nil || authIdx == 0 {
-		secret, _ := tui.RunPrompt("Admin secret", "")
-		project.AdminSecret = &secret
-	} else {
-		pat, _ := tui.RunPrompt("Personal access token", "")
-		project.PAT = &pat
+	if authIdx == 0 {
+		if err := promptProjectAdminSecret(project); err != nil {
+			return nil, err
+		}
+	} else if err := promptProjectPAT(project); err != nil {
+		return nil, err
 	}
 
 	return project, nil
+}
+
+func promptProjectAdminSecret(project *Project) error {
+	secret, err := runPrompt("Admin secret", "")
+	if err != nil {
+		return err
+	}
+
+	if secret == "" {
+		return ErrEmptyCredential
+	}
+
+	project.AdminSecret = &secret
+
+	return nil
+}
+
+func promptProjectPAT(project *Project) error {
+	pat, err := runPrompt("Personal access token", "")
+	if err != nil {
+		return err
+	}
+
+	if pat == "" {
+		return ErrEmptyCredential
+	}
+
+	project.PAT = &pat
+
+	return nil
 }

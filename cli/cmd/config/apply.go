@@ -41,7 +41,7 @@ func CommandApply() *cli.Command {
 func commandApply(ctx context.Context, cmd *cli.Command) error {
 	ce := clienv.FromCLI(cmd)
 
-	proj, err := cmdutil.GetAppInfoOrLink(ctx, ce, cmd.String(flagSubdomain))
+	proj, err := cmdutil.GetAppInfoOrLink(ctx, ce, cmd.String(flagSubdomain), true)
 	if err != nil {
 		return cli.Exit(fmt.Sprintf("Failed to get app info: %v", err), 1)
 	}

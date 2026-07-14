@@ -1,7 +1,7 @@
 package tui
 
 import (
-	"context"
+	"slices"
 
 	"github.com/charmbracelet/bubbles/spinner"
 	"github.com/charmbracelet/bubbles/textinput"
@@ -79,6 +79,9 @@ func (m Model) handleDataMsg(msg tea.Msg) (tea.Model, tea.Cmd) { //nolint:iretur
 	case restartDoneMsg:
 		m.state = stateDashboard
 	case stoppedMsg:
+		m.err = msg.err
+		m.cancel()
+
 		return m, tea.Quit
 	case errMsg:
 		m.err = msg.err
@@ -115,7 +118,6 @@ func (m Model) handleKey(msg tea.KeyMsg) (tea.Model, tea.Cmd) { //nolint:ireturn
 		}
 
 		m.state = stateStopping
-		m.cancel()
 
 		return m, m.stopCmd()
 
@@ -235,8 +237,8 @@ func (m Model) serviceNames() []string {
 }
 
 func (m Model) lastRunning() int {
-	for i := len(m.phases) - 1; i >= 0; i-- {
-		if m.phases[i].Status == StatusRunning {
+	for i, v := range slices.Backward(m.phases) {
+		if v.Status == StatusRunning {
 			return i
 		}
 	}
@@ -245,11 +247,10 @@ func (m Model) lastRunning() int {
 }
 
 func (m Model) restartCmd() tea.Cmd {
+	ctx := m.ctx
 	dc := m.config.DC
 
 	return func() tea.Msg {
-		ctx := context.Background()
-
 		err := dc.Wrapper(ctx, "restart")
 
 		return restartDoneMsg{err: err}
@@ -257,7 +258,12 @@ func (m Model) restartCmd() tea.Cmd {
 }
 
 func (m Model) stopCmd() tea.Cmd {
+	ctx := m.ctx
+	dc := m.config.DC
+
 	return func() tea.Msg {
-		return stoppedMsg{err: nil}
+		err := dc.Stop(ctx, false)
+
+		return stoppedMsg{err: err}
 	}
 }

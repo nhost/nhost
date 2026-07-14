@@ -44,8 +44,9 @@ func CommandConfigure() *cli.Command {
 			},
 			&cli.BoolFlag{ //nolint:exhaustruct
 				Name:    flagYes,
+				Aliases: []string{"no-interactive"},
 				Usage:   "Skip confirmation",
-				Sources: cli.EnvVars("NHOST_YES"),
+				Sources: cli.EnvVars("NHOST_YES", "NO_INTERACTIVE"),
 				Value:   false,
 			},
 		},

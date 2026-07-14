@@ -91,7 +91,7 @@ func commandValidateRemote(
 	subdomain string,
 	isTTY bool,
 ) error {
-	proj, err := cmdutil.GetAppInfoOrLink(ctx, ce, subdomain)
+	proj, err := cmdutil.GetAppInfoOrLink(ctx, ce, subdomain, true)
 	if err != nil {
 		return fmt.Errorf("failed to get app info: %w", err)
 	}
