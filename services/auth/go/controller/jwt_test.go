@@ -37,7 +37,7 @@ var (
 	)
 )
 
-func TestGetJWTFunc(t *testing.T) {
+func TestGetJWTFunc(t *testing.T) { //nolint:maintidx
 	t.Parallel()
 
 	userID := uuid.MustParse("585e21fc-3664-4d03-8539-69945342a4f4")
@@ -243,9 +243,11 @@ func TestGetJWTFunc(t *testing.T) {
 				tc.key,
 				tc.expiresIn,
 				customClaimer,
-				"",
-				false,
-				false,
+				controller.ElevationConfig{
+					Mode:            "",
+					MFAEnabled:      false,
+					OTPEmailEnabled: false,
+				},
 				nil,
 				"hasura-auth",
 			)
@@ -320,7 +322,9 @@ func TestMiddlewareFunc(t *testing.T) { //nolint:maintidx
 	userID := uuid.MustParse("f90782de-f0a3-41fe-b778-01e4f80c2413")
 
 	signingGetter, err := controller.NewJWTGetter(
-		jwtSecret, time.Hour, nil, "", false, false, nil, "hasura-auth",
+		jwtSecret, time.Hour, nil,
+		controller.ElevationConfig{Mode: "", MFAEnabled: false, OTPEmailEnabled: false},
+		nil, "hasura-auth",
 	)
 	if err != nil {
 		t.Fatalf("failed to create signing jwt getter: %v", err)
@@ -657,9 +661,11 @@ func TestMiddlewareFunc(t *testing.T) { //nolint:maintidx
 				jwtSecret,
 				time.Hour,
 				nil,
-				tc.elevatedMode,
-				tc.mfaEnabled,
-				tc.otpEmailEnabled,
+				controller.ElevationConfig{
+					Mode:            tc.elevatedMode,
+					MFAEnabled:      tc.mfaEnabled,
+					OTPEmailEnabled: tc.otpEmailEnabled,
+				},
 				tc.db(ctrl),
 				"hasura-auth",
 			)
