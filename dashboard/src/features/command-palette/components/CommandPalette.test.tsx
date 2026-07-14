@@ -405,6 +405,60 @@ describe('CommandPalette', () => {
     expect(onPopTo).toHaveBeenCalledWith(0);
   });
 
+  it('shows the breadcrumb trail instead of the raw route', () => {
+    const metadata = makeNode({
+      id: 'graphql-metadata',
+      title: 'Metadata',
+      path: 'graphql/metadata',
+      breadcrumb: ['GraphQL'],
+    });
+    renderPalette({ items: [toItem(metadata), toItem(database)], query: 'a' });
+
+    const row = screen.getByTestId('command-palette-item-graphql-metadata');
+
+    expect(within(row).getByText('GraphQL › Metadata')).toBeInTheDocument();
+    expect(screen.queryByText('graphql/metadata')).not.toBeInTheDocument();
+    // Top-level rows have no trail and drop the raw route subtitle.
+    expect(
+      screen.queryByText('database/browser/default'),
+    ).not.toBeInTheDocument();
+  });
+
+  it('renders the project hint alongside the trail', () => {
+    const metadata = makeNode({
+      id: 'graphql-metadata',
+      title: 'Metadata',
+      path: 'graphql/metadata',
+      breadcrumb: ['GraphQL'],
+      hint: 'Org B / Project C (project-c)',
+    });
+    renderPalette({ items: [toItem(metadata)], query: 'meta' });
+
+    const row = screen.getByTestId('command-palette-item-graphql-metadata');
+
+    expect(
+      within(row).getByText('Org B / Project C (project-c)'),
+    ).toBeInTheDocument();
+    expect(within(row).getByText('GraphQL › Metadata')).toBeInTheDocument();
+  });
+
+  it('keeps the external URL as the docs row subtitle', () => {
+    const docs = makeNode({
+      id: 'docs',
+      title: 'Docs',
+      kind: 'doc',
+      path: 'https://docs.nhost.io',
+      scope: 'external',
+    });
+    renderPalette({ items: [toItem(docs)], query: 'docs' });
+
+    expect(
+      within(screen.getByTestId('command-palette-item-docs')).getByText(
+        'https://docs.nhost.io',
+      ),
+    ).toBeInTheDocument();
+  });
+
   it('highlights title match ranges only', () => {
     renderPalette({
       items: [toItem(database, [[0, 4]])],

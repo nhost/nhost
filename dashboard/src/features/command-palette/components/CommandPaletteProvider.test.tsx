@@ -223,13 +223,21 @@ describe('CommandPaletteProvider', () => {
 
     expect(
       await screen.findByRole('button', {
-        name: /leave project settings scope/i,
+        name: /leave settings \(project\) scope/i,
       }),
+    ).toBeInTheDocument();
+    // Drilling a feature group scopes the org and project too, like the
+    // breadcrumb nav.
+    expect(
+      screen.getByRole('button', { name: /leave org a scope/i }),
+    ).toBeInTheDocument();
+    expect(
+      screen.getByRole('button', { name: /leave project a scope/i }),
     ).toBeInTheDocument();
 
     fireEvent.change(input, { target: { value: 'environment variables' } });
     await screen.findByTestId(
-      'command-palette-item-project-settings-environment-variables',
+      'command-palette-item-switch:project:org-a:project-a:project-settings-environment-variables',
     );
     fireEvent.keyDown(input, { key: 'Enter' });
 
@@ -240,6 +248,158 @@ describe('CommandPaletteProvider', () => {
         { shallow: true },
       );
     });
+  });
+
+  it('shows breadcrumb trails on nested search results', async () => {
+    renderProvider();
+    const input = await openPalette();
+    fireEvent.change(input, { target: { value: 'environment variables' } });
+
+    const row = await screen.findByTestId(
+      'command-palette-item-project-settings-environment-variables',
+    );
+
+    expect(
+      within(row).getByText('Settings (Project) › Environment Variables'),
+    ).toBeInTheDocument();
+  });
+
+  it('combines the fallback project hint with the trail on nested pages', async () => {
+    router.query = { orgSlug: 'org-a' };
+    useProjectMock.mockReturnValue({
+      project: null,
+      loading: false,
+      error: null,
+      refetch: vi.fn(),
+      projectNotFound: false,
+    });
+
+    renderProvider();
+    const input = await openPalette();
+    fireEvent.change(input, { target: { value: 'metadata' } });
+
+    const row = await screen.findByTestId(
+      'command-palette-item-project-graphql-metadata',
+    );
+
+    expect(
+      within(row).getByText('Org A / Project A (project-a)'),
+    ).toBeInTheDocument();
+    expect(within(row).getByText('GraphQL › Metadata')).toBeInTheDocument();
+  });
+
+  it('shows the trail on recent entries for nested pages', async () => {
+    window.localStorage.setItem(
+      'command-palette-recent',
+      JSON.stringify([
+        {
+          nodeId: 'project-settings-database',
+          title: 'Database',
+          path: 'settings/database',
+          accessedAt: 1,
+          orgSlug: 'org-b',
+          appSubdomain: 'project-c',
+        },
+      ]),
+    );
+
+    renderProvider();
+    await openPalette();
+
+    const row = await screen.findByTestId(
+      'command-palette-item-recent:project-settings-database:org-b:project-c',
+    );
+
+    expect(
+      within(row).getByText('Org B / Project C (project-c)'),
+    ).toBeInTheDocument();
+    expect(
+      within(row).getByText('Settings (Project) › Database'),
+    ).toBeInTheDocument();
+  });
+
+  it('fills the scope with the org and project when drilling a feature group', async () => {
+    renderProvider();
+    const input = await openPalette();
+
+    fireEvent.change(input, { target: { value: 'graphql' } });
+    const row = await screen.findByTestId(
+      'command-palette-item-project-graphql',
+    );
+    await waitFor(() => {
+      expect(row).toHaveAttribute('aria-selected', 'true');
+    });
+    fireEvent.keyDown(input, { key: 'Tab' });
+
+    expect(
+      await screen.findByRole('button', { name: /leave graphql scope/i }),
+    ).toBeInTheDocument();
+    expect(
+      screen.getByRole('button', { name: /leave org a scope/i }),
+    ).toBeInTheDocument();
+    expect(
+      screen.getByRole('button', { name: /leave project a scope/i }),
+    ).toBeInTheDocument();
+
+    fireEvent.change(input, { target: { value: 'metadata' } });
+    await screen.findByTestId(
+      'command-palette-item-switch:project:org-a:project-a:project-graphql-metadata',
+    );
+    fireEvent.keyDown(input, { key: 'Enter' });
+
+    await waitFor(() => {
+      expect(push).toHaveBeenCalledWith(
+        '/orgs/org-a/projects/project-a/graphql/metadata',
+        undefined,
+        { shallow: true },
+      );
+    });
+  });
+
+  it('scopes feature group drills to the fallback project from an org-level page', async () => {
+    window.localStorage.setItem(
+      'command-palette-recent',
+      JSON.stringify([
+        {
+          nodeId: 'project-overview',
+          title: 'Overview',
+          path: '',
+          accessedAt: 1,
+          orgSlug: 'org-b',
+          appSubdomain: 'project-c',
+        },
+      ]),
+    );
+    router.query = { orgSlug: 'org-a' };
+    useProjectMock.mockReturnValue({
+      project: null,
+      loading: false,
+      error: null,
+      refetch: vi.fn(),
+      projectNotFound: false,
+    });
+
+    renderProvider();
+    const input = await openPalette();
+
+    fireEvent.change(input, { target: { value: 'graphql' } });
+    const row = await screen.findByTestId(
+      'command-palette-item-project-graphql',
+    );
+    await waitFor(() => {
+      expect(row).toHaveAttribute('aria-selected', 'true');
+    });
+    fireEvent.keyDown(input, { key: 'Tab' });
+
+    expect(
+      await screen.findByRole('button', { name: /leave graphql scope/i }),
+    ).toBeInTheDocument();
+    expect(
+      screen.getByRole('button', { name: /leave org b scope/i }),
+    ).toBeInTheDocument();
+    expect(
+      screen.getByRole('button', { name: /leave project c scope/i }),
+    ).toBeInTheDocument();
   });
 
   it('keeps the dialog accessible and avoids forced transitions under reduced motion', async () => {
@@ -472,7 +632,7 @@ describe('CommandPaletteProvider', () => {
       screen.queryByText('Organizations & Projects'),
     ).not.toBeInTheDocument();
     expect(screen.queryByText('Deployments')).not.toBeInTheDocument();
-    expect(screen.queryByText('Project Settings')).not.toBeInTheDocument();
+    expect(screen.queryByText('Settings (Project)')).not.toBeInTheDocument();
     expect(screen.queryByText('AI')).not.toBeInTheDocument();
     expect(screen.getByText('Overview')).toBeInTheDocument();
   });
@@ -511,7 +671,7 @@ describe('CommandPaletteProvider', () => {
     expect(
       await screen.findByLabelText('Search dashboard'),
     ).toBeInTheDocument();
-    expect(screen.getByText('Project Settings')).toBeInTheDocument();
+    expect(screen.getByText('Settings (Project)')).toBeInTheDocument();
     expect(screen.getByText('AI')).toBeInTheDocument();
   });
 
@@ -756,7 +916,7 @@ describe('CommandPaletteProvider', () => {
     expect(stored).toEqual([
       expect.objectContaining({
         nodeId: 'org-settings',
-        title: 'Organization Settings',
+        title: 'Settings (Organization)',
         orgSlug: 'org-a',
       }),
     ]);

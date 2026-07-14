@@ -19,6 +19,7 @@ const settingsChild: CommandNode = {
   kind: 'setting',
   path: 'settings/jwt',
   scope: 'project',
+  breadcrumb: ['Project Settings'],
 };
 
 const settingsGroup: CommandNode = {
@@ -105,6 +106,7 @@ describe('buildOrgProjectNodes', () => {
 
     expect(jwtClone.id).toBe('switch:project:acme:shop:project-settings-jwt');
     expect(jwtClone.path).toBe('settings/jwt');
+    expect(jwtClone.breadcrumb).toEqual(['Project Settings']);
     expect(jwtClone.commandPalette).toEqual({
       originalNode: settingsChild,
       orgSlug: 'acme',

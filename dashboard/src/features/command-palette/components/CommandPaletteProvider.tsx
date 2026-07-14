@@ -305,21 +305,59 @@ export function CommandPaletteProvider({
 
   useCommandPaletteShortcut({ open, onToggle: toggleCommandPalette });
 
-  // Drilling a project scopes its organization too, so the scope trail always
-  // reads org / project no matter where the drill started.
+  // Drilling scopes the missing ancestors too, so the trail always mirrors
+  // the breadcrumb nav: org for a project, org > project for a feature group.
+  // Feature groups swap in their project-clone counterpart so the scoped
+  // children navigate to the same project the chips show.
   const handleDrill = useCallback(
     (node: CommandNode) => {
       const metadata = (node as RuntimeCommandNode).commandPalette;
-      const ancestors =
-        node.kind === 'project' && metadata?.orgSlug
-          ? orgProjectNodes.filter(
-              (candidate) => candidate.id === `switch:org:${metadata.orgSlug}`,
-            )
-          : undefined;
 
-      dispatch({ type: 'drill', node, ancestors });
+      if (node.kind === 'project' && metadata?.orgSlug) {
+        const ancestors = orgProjectNodes.filter(
+          (candidate) => candidate.id === `switch:org:${metadata.orgSlug}`,
+        );
+
+        dispatch({ type: 'drill', node, ancestors });
+        return;
+      }
+
+      if (node.scope === 'project') {
+        const routeScope = {
+          orgSlug: getQueryString(router.query.orgSlug),
+          appSubdomain: getQueryString(router.query.appSubdomain),
+        };
+        const targetScope = metadata?.orgSlug
+          ? { orgSlug: metadata.orgSlug, appSubdomain: metadata.appSubdomain }
+          : getEffectiveScope(node, routeScope, fallbackProject);
+        const orgNode = orgProjectNodes.find(
+          (candidate) => candidate.id === `switch:org:${targetScope.orgSlug}`,
+        );
+        const projectNode = orgProjectNodes.find(
+          (candidate) =>
+            candidate.id ===
+            `switch:project:${targetScope.orgSlug}:${targetScope.appSubdomain}`,
+        );
+        const templateId = (metadata?.originalNode ?? node).id;
+        const scopedNode = projectNode?.children?.find(
+          (child) =>
+            (child as RuntimeCommandNode).commandPalette?.originalNode?.id ===
+            templateId,
+        );
+
+        if (orgNode && projectNode && scopedNode) {
+          dispatch({
+            type: 'drill',
+            node: scopedNode,
+            ancestors: [orgNode, projectNode],
+          });
+          return;
+        }
+      }
+
+      dispatch({ type: 'drill', node });
     },
-    [orgProjectNodes],
+    [fallbackProject, orgProjectNodes, router],
   );
 
   const handleNavigate = useCallback(

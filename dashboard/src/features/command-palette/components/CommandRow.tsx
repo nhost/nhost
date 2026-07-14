@@ -2,6 +2,7 @@ import { ChevronRight, CornerDownLeft } from 'lucide-react';
 
 import { CommandItem } from '@/components/ui/v3/command';
 import { isContainer } from '@/features/command-palette/lib/machine';
+import { isExternalNode } from '@/features/command-palette/lib/resolvePath';
 import type { ScoredNode } from '@/features/command-palette/types';
 
 export interface CommandRowProps {
@@ -82,12 +83,21 @@ const HighlightedTitle = ({ title, ranges }: HighlightedTitleProps) => (
   </span>
 );
 
+const getTrail = (node: ScoredNode['node']) => {
+  if (node.breadcrumb?.length) {
+    return [...node.breadcrumb, node.title].join(' › ');
+  }
+
+  return isExternalNode(node) ? node.path : undefined;
+};
+
 export const CommandRow = ({
   item,
   onSelect,
   selected = false,
 }: CommandRowProps) => {
   const { node, titleRanges } = item;
+  const trail = getTrail(node);
 
   return (
     <CommandItem
@@ -103,9 +113,11 @@ export const CommandRow = ({
         <span className="block truncate font-medium text-foreground">
           <HighlightedTitle ranges={titleRanges} title={node.title} />
         </span>
-        {(node.hint || node.path) && (
+        {(node.hint || trail) && (
           <span className="block truncate text-muted-foreground text-xs">
-            {node.hint ?? node.path}
+            {node.hint && <span>{node.hint}</span>}
+            {node.hint && trail && <span aria-hidden="true"> · </span>}
+            {trail && <span>{trail}</span>}
           </span>
         )}
       </span>

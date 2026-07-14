@@ -37,6 +37,24 @@ describe('commandPaletteNavTree', () => {
     expect(leaves.every((node) => node.path !== undefined)).toBe(true);
   });
 
+  it('stamps breadcrumb trails from navigable ancestors only', () => {
+    const byId = new Map(allNodes.map((node) => [node.id, node]));
+
+    expect(byId.get('project-graphql-metadata')?.breadcrumb).toEqual([
+      'GraphQL',
+    ]);
+    expect(byId.get('project-settings-database')?.breadcrumb).toEqual([
+      'Settings (Project)',
+    ]);
+    expect(byId.get('project-database-browser')?.breadcrumb).toEqual([
+      'Database',
+    ]);
+    // Structural groups have no path, so top-level pages carry no trail.
+    expect(byId.get('project-graphql')?.breadcrumb).toBeUndefined();
+    expect(byId.get('org-settings')?.breadcrumb).toBeUndefined();
+    expect(byId.get('docs')?.breadcrumb).toBeUndefined();
+  });
+
   it('includes the standalone Hasura console route node', () => {
     expect(allNodes.some((node) => node.id === 'project-hasura')).toBe(true);
     expect(allNodes.some((node) => node.path === 'hasura')).toBe(true);

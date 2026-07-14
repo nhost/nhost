@@ -35,6 +35,21 @@ const withInheritedIcons = (
   };
 };
 
+// Only nodes with a path are navigable breadcrumb levels; structural groups
+// like 'project-pages' don't contribute to the trail.
+const withBreadcrumbs = (
+  node: CommandNode,
+  trail: string[] = [],
+): CommandNode => {
+  const childTrail = node.path !== undefined ? [...trail, node.title] : trail;
+
+  return {
+    ...node,
+    breadcrumb: trail.length > 0 ? trail : undefined,
+    children: node.children?.map((child) => withBreadcrumbs(child, childTrail)),
+  };
+};
+
 // Palette-only metadata layered over the nav-config catalog, keyed by slug.
 interface PaletteMeta {
   id?: string;
@@ -165,7 +180,7 @@ const projectPageMeta: Record<
   logs: { keywords: ['log entries'] },
   metrics: { keywords: ['observability', 'monitoring'] },
   settings: {
-    title: 'Project Settings',
+    title: 'Settings (Project)',
     keywords: ['configuration'],
     icon: <CogIcon className={iconClassName} />,
     children: settingsChildren,
@@ -191,7 +206,7 @@ const projectPageNodes: CommandNode[] = projectPages.map((page) => {
 const orgPageMeta: Record<(typeof orgPages)[number]['slug'], PaletteMeta> = {
   projects: { icon: <HomeIcon className={iconClassName} /> },
   settings: {
-    title: 'Organization Settings',
+    title: 'Settings (Organization)',
     icon: <CogIcon className={iconClassName} />,
   },
   members: {
@@ -251,4 +266,6 @@ const rawNavTree: CommandNode = {
   ],
 };
 
-export const commandPaletteNavTree = withInheritedIcons(rawNavTree);
+export const commandPaletteNavTree = withBreadcrumbs(
+  withInheritedIcons(rawNavTree),
+);

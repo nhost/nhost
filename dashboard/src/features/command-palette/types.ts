@@ -12,6 +12,9 @@ export interface CommandNode {
   scope?: 'org' | 'project' | 'external';
   keywords?: string[];
   hint?: string;
+  // Titles of the navigable ancestors (outermost first), mirroring the
+  // header breadcrumb levels.
+  breadcrumb?: string[];
   children?: CommandNode[];
   gate?: PageGate;
   // Search flattening stops here; drilling still descends into children.
