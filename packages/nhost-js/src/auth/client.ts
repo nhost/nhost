@@ -2265,6 +2265,10 @@ export interface Oauth2AuthorizePostBody {
   
     @property providerSpecificParams? (ProviderSpecificParams) - Additional provider-specific parameters
   
+    @property upstreamParams? (Record<string, string>) - Extra parameters forwarded to the upstream OAuth2 provider's authorization URL. Reserved OAuth2/OIDC parameters are rejected.
+  
+    *    Extra parameters forwarded to the upstream OAuth2 provider's authorization URL (e.g. Google's prompt or login_hint). Reserved OAuth2/OIDC parameters are rejected.
+
     @property codeChallenge? (string) - PKCE code challenge (S256). When provided, the callback redirect will contain an authorization code instead of a refresh token.
   */
 export interface SignInProviderParams {
@@ -2314,6 +2318,13 @@ export interface SignInProviderParams {
    */
   providerSpecificParams?: ProviderSpecificParams;
   /**
+   * Extra parameters forwarded to the upstream OAuth2 provider's authorization URL. Reserved OAuth2/OIDC parameters are rejected.
+  
+    *    Extra parameters forwarded to the upstream OAuth2 provider's authorization URL (e.g. Google's prompt or login_hint). Reserved OAuth2/OIDC parameters are rejected.
+
+   */
+  upstreamParams?: Record<string, string>;
+  /**
    * PKCE code challenge (S256). When provided, the callback redirect will contain an authorization code instead of a refresh token.
   
    */
@@ -2337,6 +2348,10 @@ export interface SignInProviderParams {
   
     @property providerSpecificParams? (ProviderSpecificParams) - Additional provider-specific parameters
   
+    @property upstreamParams? (Record<string, string>) - Extra parameters forwarded to the upstream OAuth2 provider's authorization URL. Reserved OAuth2/OIDC parameters are rejected.
+  
+    *    Extra parameters forwarded to the upstream OAuth2 provider's authorization URL (e.g. Google's prompt or login_hint). Reserved OAuth2/OIDC parameters are rejected.
+
     @property codeChallenge? (string) - PKCE code challenge (S256). When provided, the callback redirect will contain an authorization code instead of a refresh token.
   */
 export interface SignUpProviderParams {
@@ -2380,6 +2395,13 @@ export interface SignUpProviderParams {
   
    */
   providerSpecificParams?: ProviderSpecificParams;
+  /**
+   * Extra parameters forwarded to the upstream OAuth2 provider's authorization URL. Reserved OAuth2/OIDC parameters are rejected.
+  
+    *    Extra parameters forwarded to the upstream OAuth2 provider's authorization URL (e.g. Google's prompt or login_hint). Reserved OAuth2/OIDC parameters are rejected.
+
+   */
+  upstreamParams?: Record<string, string>;
   /**
    * PKCE code challenge (S256). When provided, the callback redirect will contain an authorization code instead of a refresh token.
   
@@ -3847,6 +3869,20 @@ export const createAPIClient = (
             }
             return [`${key}=${encodeURIComponent(String(value))}`];
           }
+          if (key === 'upstreamParams') {
+            // deepObject with explode: true - upstreamParams[prop]=value
+            if (
+              typeof value === 'object' &&
+              value !== null &&
+              !Array.isArray(value)
+            ) {
+              return Object.entries(value).map(
+                ([k, v]) =>
+                  `upstreamParams[${encodeURIComponent(k)}]=${encodeURIComponent(String(v))}`,
+              );
+            }
+            return [];
+          }
           // Default handling (scalars or explode: false)
           const stringValue = Array.isArray(value)
             ? value.join(',')
@@ -4258,6 +4294,20 @@ export const createAPIClient = (
               );
             }
             return [`${key}=${encodeURIComponent(String(value))}`];
+          }
+          if (key === 'upstreamParams') {
+            // deepObject with explode: true - upstreamParams[prop]=value
+            if (
+              typeof value === 'object' &&
+              value !== null &&
+              !Array.isArray(value)
+            ) {
+              return Object.entries(value).map(
+                ([k, v]) =>
+                  `upstreamParams[${encodeURIComponent(k)}]=${encodeURIComponent(String(v))}`,
+              );
+            }
+            return [];
           }
           // Default handling (scalars or explode: false)
           const stringValue = Array.isArray(value)
