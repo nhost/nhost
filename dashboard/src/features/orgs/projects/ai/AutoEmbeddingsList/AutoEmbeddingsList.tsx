@@ -7,11 +7,15 @@ import {
 } from 'lucide-react';
 import { useDialog } from '@/components/common/DialogProvider';
 import { Box } from '@/components/ui/v2/Box';
-import { Divider } from '@/components/ui/v2/Divider';
-import { Dropdown } from '@/components/ui/v2/Dropdown';
 import { IconButton } from '@/components/ui/v2/IconButton';
 import { Text } from '@/components/ui/v2/Text';
 import { Tooltip } from '@/components/ui/v2/Tooltip';
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+} from '@/components/ui/v3/dropdown-menu';
 import { EmbeddingsIcon } from '@/components/ui/v3/icons/EmbeddingsIcon';
 import {
   AutoEmbeddingsForm,
@@ -119,12 +123,8 @@ export default function AutoEmbeddingsList({
             </div>
           </Box>
 
-          <Dropdown.Root>
-            <Dropdown.Trigger
-              asChild
-              hideChevron
-              onClick={(event) => event.stopPropagation()}
-            >
+          <DropdownMenu>
+            <DropdownMenuTrigger asChild>
               <IconButton
                 variant="borderless"
                 color="secondary"
@@ -133,39 +133,28 @@ export default function AutoEmbeddingsList({
               >
                 <DotsHorizontalIcon />
               </IconButton>
-            </Dropdown.Trigger>
-            <Dropdown.Content
-              menu
-              PaperProps={{ className: 'w-auto' }}
-              anchorOrigin={{ vertical: 'bottom', horizontal: 'right' }}
-              transformOrigin={{ vertical: 'top', horizontal: 'right' }}
-            >
-              <Dropdown.Item
+            </DropdownMenuTrigger>
+            <DropdownMenuContent align="end" className="w-auto p-0">
+              <DropdownMenuItem
                 onClick={() =>
                   viewAutoEmbeddingsConfiguration(autoEmbeddingsConfiguration)
                 }
-                className="z-50 grid grid-flow-col items-center gap-2 p-2 font-medium text-sm+"
+                className="flex h-9 cursor-pointer items-center justify-start gap-2 rounded-none border border-b-1 p-2 font-medium text-sm+ leading-4 hover:bg-data-cell-bg"
               >
                 <EyeIcon className="h-4 w-4" />
-                <Text className="font-medium">
-                  View {autoEmbeddingsConfiguration?.name}
-                </Text>
-              </Dropdown.Item>
-              <Divider component="li" />
-              <Dropdown.Item
-                className="grid grid-flow-col items-center gap-2 p-2 font-medium text-sm+"
-                sx={{ color: 'error.main' }}
+                <span>View {autoEmbeddingsConfiguration?.name}</span>
+              </DropdownMenuItem>
+              <DropdownMenuItem
+                className="!text-destructive flex h-9 cursor-pointer items-center justify-start gap-2 rounded-none border border-b-1 p-2 font-medium text-sm+ leading-4 hover:bg-data-cell-bg"
                 onClick={() =>
                   deleteAutoEmbeddingsConfiguration(autoEmbeddingsConfiguration)
                 }
               >
                 <TrashIcon className="h-4 w-4" />
-                <Text className="font-medium" color="error">
-                  Delete {autoEmbeddingsConfiguration?.name}
-                </Text>
-              </Dropdown.Item>
-            </Dropdown.Content>
-          </Dropdown.Root>
+                <span>Delete {autoEmbeddingsConfiguration?.name}</span>
+              </DropdownMenuItem>
+            </DropdownMenuContent>
+          </DropdownMenu>
         </Box>
       ))}
     </Box>
