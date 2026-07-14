@@ -174,6 +174,288 @@ If a GraphQL response contains `errors`, the client throws
 `GraphQLExecutionError` with status, headers, raw body, decoded errors, and any
 partial `data` value.
 
+### Persistent GraphQL response caching
+
+The GraphQL cache is an opt-in, persistent cache of complete raw query response
+bodies. It is not a normalized entity cache: overlapping queries are independent,
+and mutations and subscriptions are never cached or invalidated automatically.
+Enable it when constructing a client; existing calls remain `.networkOnly` by
+default even after configuration:
+
+```swift
+let cachedNhost = createClient(
+    NhostClientOptions(
+        subdomain: "my-project",
+        region: "eu-central-1",
+        graphqlCache: GraphQLCacheConfiguration()
+    )
+)
+```
+
+The default file store is created lazily. Merely configuring it, or making a
+`.networkOnly` request, does not initialize the cache, consult the clock, or emit
+cache diagnostics. You can customize `freshnessTTL`, `staleIfErrorInterval`,
+`maximumTotalBytes`, `maximumEntryBytes`, `maximumEntries`, `directoryURL`,
+`fileProtection`, `purgePreviousScopeOnSignOut`, `store`, `scopeResolver`, and a
+privacy-sanitized `diagnosticObserver`.
+
+Default values are:
+
+| Setting                                                      | Default                                |
+| ------------------------------------------------------------ | -------------------------------------- |
+| Freshness TTL                                                | 5 minutes                              |
+| Additional stale-if-error interval                           | 24 hours after the fresh period        |
+| Total size                                                   | 50 MiB                                 |
+| Per-entry size                                               | 5 MiB                                  |
+| Entry count                                                  | 1,000                                  |
+| Apple file protection                                        | `completeUntilFirstUserAuthentication` |
+| Purge previous managed scope on sign-out/session replacement | enabled                                |
+
+Freshness is measured from the last successful write, not last access. An entry
+is fresh at `age <= freshnessTTL`, and stale fallback is allowed at
+`freshnessTTL < age <= freshnessTTL + staleIfErrorInterval`. Clock rollback
+clamps age to zero and reports a sanitized diagnostic.
+
+#### Single-response policies
+
+Select behavior per request with `GraphQLCacheRequestOptions`; `namespace` and
+`tags` add invalidation/key dimensions but can never replace authorization,
+endpoint, operation, query, or variables isolation.
+
+| Policy          | Behavior                                                                                                               |
+| --------------- | ---------------------------------------------------------------------------------------------------------------------- |
+| `.networkOnly`  | Legacy network behavior and no cache work. This is always the default.                                                 |
+| `.cacheOnly`    | Returns a fresh, compatible entry without network I/O; every cache-side failure is thrown.                             |
+| `.cacheFirst`   | Returns a fresh compatible entry, otherwise makes one network request and caches an eligible success best-effort.      |
+| `.networkFirst` | Makes one network request first and falls back within the fresh-plus-stale window **only** for `FetchError.transport`. |
+
+```swift
+let cachedUsers = try await nhost.graphql.request(
+    UsersData.self,
+    query: """
+    query Users($limit: Int!) {
+      users(limit: $limit) { id displayName }
+    }
+    """,
+    variables: ["limit": .number(10)],
+    operationName: "Users",
+    cacheOptions: GraphQLCacheRequestOptions(
+        policy: .cacheFirst,
+        namespace: "people",
+        tags: ["profile"]
+    )
+)
+
+let offlineUsers = try await nhost.graphql.request(
+    UsersData.self,
+    query: """
+    query Users($limit: Int!) {
+      users(limit: $limit) { id displayName }
+    }
+    """,
+    variables: ["limit": .number(10)],
+    operationName: "Users",
+    cacheOptions: GraphQLCacheRequestOptions(
+        policy: .cacheOnly,
+        namespace: "people",
+        tags: ["profile"]
+    )
+)
+
+print(cachedUsers.body.data?.users ?? [])
+print(offlineUsers.body.data?.users ?? [])
+```
+
+`.cacheOnly` throws `GraphQLCacheError` for an unconfigured cache, a miss, an
+expired or decoder-incompatible entry, an ineligible operation, key/scope or
+configuration failure, store failure, or authorization scope change. A mutation,
+subscription, malformed document, or ambiguous multi-operation document is
+ineligible. Network-capable policies bypass caching for ineligible operations or
+an unavailable cache setup and retain legacy network behavior.
+
+`.networkFirst` never serves fallback for cancellation, HTTP responses (including
+401/403), invalid responses, encoding/decoding failures, or
+`GraphQLExecutionError`; only `FetchError.transport` is eligible. If cache
+fallback also fails, the original transport error remains primary. Cache reads
+re-decode the raw body with the decoder supplied to the current call. An
+incompatible entry is evicted; recoverable policies continue to the network.
+
+Only conservatively selected GraphQL queries can be written. A response is
+persisted only after a 2xx response, no GraphQL execution errors, and successful
+caller-model decoding. Exact query UTF-8 and canonical variables are keyed, so
+query whitespace changes and absent versus present-empty variables remain
+distinct. Non-2xx decodable envelopes and partial GraphQL error responses preserve
+the normal API behavior but are not cached.
+
+#### Stale while revalidate
+
+`staleWhileRevalidate` is a network-capable stream. With caching enabled it can
+emit one fresh-or-stale `.cached` value immediately, performs exactly one refresh,
+and then emits `.fresh`. With no eligible cached value it emits only `.fresh`.
+The refresh error is delivered unchanged after any cached emission. Passing
+`.networkOnly`, using an unconfigured/opaque-fetch client, or selecting an
+ineligible operation produces one uncached fresh network value; `.cacheOnly` does
+not suppress the refresh performed by this separate streaming API.
+
+Each emission includes `GraphQLCacheMetadata`: source, creation and last-write
+times, age, expiry state, stored HTTP status, and a sanitized persistence outcome
+(`stored`, `notAttempted`, `skipped`, or `failedAndReported`). Cancelling the
+consumer task cancels the producer, prevents later emissions, and prevents a
+cache commit when cancellation is observed before the atomic file replacement.
+A commit that already reached that atomic point cannot be undone retroactively.
+
+A SwiftUI `.task` automatically cancels its stream consumption when the view
+disappears:
+
+```swift
+struct CachedUsersView: View {
+    struct CachedUser: Decodable, Sendable {
+        let id: String
+        let displayName: String
+    }
+
+    struct CachedUsersData: Decodable, Sendable {
+        let users: [CachedUser]
+    }
+
+    let graphql: GraphQLClient
+    @State private var users: [CachedUser] = []
+    @State private var errorMessage: String?
+
+    var body: some View {
+        List(users, id: \.id) { user in
+            Text(user.displayName)
+        }
+        .overlay {
+            if let errorMessage { Text(errorMessage) }
+        }
+        .task {
+            do {
+                for try await result in graphql.staleWhileRevalidate(
+                    CachedUsersData.self,
+                    query: "query Users { users { id displayName } }",
+                    operationName: "Users",
+                    cacheOptions: GraphQLCacheRequestOptions(
+                        policy: .cacheFirst,
+                        namespace: "people"
+                    )
+                ) {
+                    switch result {
+                    case let .cached(response, _), let .fresh(response, _):
+                        users = response.body.data?.users ?? []
+                    }
+                }
+            } catch is CancellationError {
+                // View disappearance cancelled the refresh.
+            } catch {
+                errorMessage = error.localizedDescription
+            }
+        }
+    }
+}
+```
+
+#### Authorization isolation and middleware
+
+Every cache key protects the endpoint, selected operation/name, exact query,
+variables, and authorization context. Managed-session isolation includes the
+user, stable token claims (all claims except top-level `iat` and `exp`), effective
+role, and Hasura session variables. Explicit `Authorization`, admin secret,
+admin role/session variables, and other protected/vary headers are isolated too.
+Admin-context queries are cacheable when scope derivation succeeds, but admin
+credentials must never be shipped in an untrusted app.
+
+Effective role precedence is: per-call `x-hasura-role`, admin-session role,
+`defaultHeaders["x-hasura-role"]`, configured `role`, then the token default
+role. Header names are matched case-insensitively. If authorization state changes
+while a cache-enabled read, request, or stream is in flight, it fails closed with
+`GraphQLCacheError.authorizationScopeChanged`; the mismatched response is not
+returned, emitted, or persisted.
+
+Custom middleware makes cache association unavailable unless
+`GraphQLCacheConfiguration.scopeResolver` returns a
+`GraphQLCacheCustomScope`. The resolver is preflight-only: its identifier and
+exact protected/vary header expectations augment mandatory SDK dimensions, and
+the SDK verifies them against the final request. Returning `nil` bypasses caching;
+a resolver cannot replace SDK-derived isolation. Final request association also
+requires exactly one matching terminal POST. Synthetic responses, extra terminal
+calls, or URL/body/method rewrites keep the legacy network result but skip cache
+association and report a sanitized diagnostic.
+
+`GraphQLClient(url:fetch:)` and `GraphQLClient(baseURL:fetch:)` take opaque fetch
+closures whose final request cannot be verified, so they remain network-only and
+cannot be made cacheable by a resolver. Use the transport-and-middleware
+initializer or an Nhost client factory for caching. Offline reads do not execute
+session refresh or arbitrary middleware. Custom session backends are re-read,
+but the SDK cannot observe a complete out-of-band A→B→A session transition that
+occurs entirely between two SDK reads.
+
+By default, managed sign-out, password change, `clearSession`, or a semantic user
+or claims replacement queues best-effort deletion of the previous protected
+scope and all user-associated scopes. Stable token refreshes that only change
+`iat`/`exp` do not purge. Set `purgePreviousScopeOnSignOut: false` to disable this
+hygiene. Authorization isolation never depends on deletion succeeding.
+
+#### Invalidation and pruning
+
+Use `client.graphql.cache` for explicit management. Every non-`nil` field is
+combined with logical AND; an empty filter removes every entry in that store.
+`createdAtOrBefore` and `lastSuccessfulWriteAtOrBefore` are inclusive and do not
+use last access. `invalidate` returns the number removed, while `prune` applies
+configured count and byte limits immediately. Explicit management and
+`.cacheOnly` surface store failures rather than hiding them.
+
+`.current` targets the protected scope derived for a synthetic
+`query NhostCacheScope { __typename }` request with no per-call headers. It
+matches resolver-augmented entries only when the resolver's augmentation is
+stable for that synthetic current-scope context. For request-varying grouping,
+use a stable namespace or tag filter, or use `.user(id)` to target every
+managed-session role/claims scope associated with that user. The SDK hashes the
+supplied Nhost user ID internally; `.user(id)` does not match anonymous,
+explicit-authorization, or admin entries. Add an endpoint or another facet when
+you want a narrower deletion.
+
+```swift
+let removedEntries = try await nhost.graphql.cache.invalidate(
+    GraphQLCacheInvalidationFilter(
+        endpoint: nhost.serviceURLs.graphql,
+        scope: .user(userID),
+        operationName: "Users",
+        namespace: "people",
+        tag: "profile"
+    )
+)
+
+try await nhost.graphql.cache.prune()
+print("removed \(removedEntries) cached user queries")
+```
+
+#### Persistence and privacy
+
+The default store persists the raw GraphQL response body, original 2xx status,
+an optional validated `application/json` or
+`application/graphql-response+json` content type, timestamps used for freshness
+and LRU, sizes/counts, and opaque SHA-256 keys/facets. It does **not** persist raw
+access tokens, admin secrets, claims objects, user IDs, queries, variables,
+endpoints, operation names, namespaces, tags, or arbitrary response/request
+headers in metadata. A custom `GraphQLCacheStore` still receives raw response
+body bytes, so apply equivalent privacy controls in custom implementations.
+
+Cached GraphQL bodies can contain sensitive personal or application data. The
+cache directory is excluded from backups and defaults to Apple file protection,
+but cache-directory placement, backup exclusion, file protection, and hashed
+metadata are **not encryption**. Choose cacheable queries conservatively and do
+not treat this cache as a credential store. File protection is a portability
+no-op where the platform does not provide it.
+
+The cache is bounded and LRU-pruned; operating systems may evict cache-directory
+content, and uninstalling an app normally removes its sandboxed cache. Neither is
+a secure-erasure guarantee, especially when a custom directory or custom store
+is used. Same-process clients for one canonical directory share serialization
+and conflicting configurations fail closed. Cross-process locking/coordination
+is out of scope, as are encrypted bodies, normalized entities, mutation-driven
+invalidation, and request coalescing.
+
 ## Storage
 
 Storage upload and download methods are generated from the Storage OpenAPI spec.

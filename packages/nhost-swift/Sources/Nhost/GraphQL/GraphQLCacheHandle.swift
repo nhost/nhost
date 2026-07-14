@@ -1,7 +1,12 @@
 import Foundation
 
-/// Explicit management facade for a GraphQL response cache. A disabled handle
-/// fails with ``GraphQLCacheError/notConfigured`` and never initializes a store.
+/// Explicit management facade available as ``GraphQLClient/cache``. Invalidation
+/// filters compose with logical AND; use ``GraphQLCacheInvalidationScope/current``
+/// for the synthetic current-scope context or
+/// ``GraphQLCacheInvalidationScope/user(_:)`` for every managed-session
+/// role/claims scope associated with a Nhost user ID.
+/// A disabled handle fails with ``GraphQLCacheError/notConfigured`` and never
+/// initializes a store.
 public struct GraphQLCacheHandle: Sendable {
     typealias FilterMapper = @Sendable (
         GraphQLCacheInvalidationFilter
@@ -39,8 +44,10 @@ public struct GraphQLCacheHandle: Sendable {
         )
     }
 
-    /// Removes entries matching every non-nil filter field. An empty filter
-    /// removes all entries. Explicit failures are reported and thrown.
+    /// Removes entries matching every non-nil filter field and returns their
+    /// count. Endpoint, user identifier, operation name, namespace, and tag are
+    /// hashed internally before reaching the store. An empty filter removes all
+    /// entries. Explicit failures are reported and thrown.
     @discardableResult
     public func invalidate(
         _ filter: GraphQLCacheInvalidationFilter = GraphQLCacheInvalidationFilter()

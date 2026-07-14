@@ -85,10 +85,11 @@ public struct StoredSession: Codable, Sendable {
             ?? NhostSHA256.hexadecimalDigest(Data(accessToken.utf8))
     }
 
+    /// Caller-addressable managed-user facet used only for invalidation. The
+    /// full authorization scope fingerprint above still protects issuer,
+    /// subject, claims, and role isolation.
     var stableUserIdentity: String? {
-        let components = [user?.id, decodedToken.subject, decodedToken.issuer]
-            .compactMap { $0 }
-        return components.isEmpty ? nil : components.joined(separator: "\u{1f}")
+        user?.id ?? decodedToken.subject
     }
 
     private static func appendFrame(_ data: Data, to output: inout Data) {

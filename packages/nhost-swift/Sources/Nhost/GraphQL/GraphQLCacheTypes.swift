@@ -49,15 +49,24 @@ public enum GraphQLCacheFileProtection: String, Codable, Sendable, Equatable {
 
 /// Which authorization grouping an explicit invalidation targets.
 public enum GraphQLCacheInvalidationScope: Sendable, Equatable {
-    /// Invalidate only the caller's currently protected scope.
+    /// Invalidates the protected authorization scope derived for a synthetic
+    /// `query NhostCacheScope { __typename }` request with no per-call headers.
+    /// Resolver-augmented entries match only when the augmentation is stable for
+    /// that synthetic context. For request-varying grouping, use namespace/tag
+    /// filters or ``user(_:)`` for managed-session scopes.
     case current
-    /// Invalidate every role/claims scope for this caller-supplied user ID.
-    /// The SDK hashes the ID before passing it to a store.
+    /// Invalidates every managed-session role and claims scope associated with
+    /// this caller-supplied user identifier. The identifier should be the Nhost
+    /// user ID represented by the token subject; the SDK hashes it internally
+    /// before passing it to a store. Anonymous, explicit-authorization, and
+    /// admin entries have no managed-user facet and do not match this scope.
     case user(String)
 }
 
 /// Public, AND-composed invalidation filter. Nil fields do not constrain the
-/// match. Age filters use creation/write timestamps and never last access.
+/// match, so an entirely empty filter removes every entry visible to the cache
+/// store. Age filters are inclusive, use creation/write timestamps, and never
+/// use last access.
 public struct GraphQLCacheInvalidationFilter: Sendable, Equatable {
     public let endpoint: URL?
     public let scope: GraphQLCacheInvalidationScope?

@@ -1,6 +1,57 @@
 import Foundation
 import XCTest
 @testable import Nhost
+#if canImport(SwiftUI)
+import SwiftUI
+#endif
+
+#if canImport(SwiftUI)
+struct CachedUsersView: View {
+    struct CachedUser: Decodable, Sendable {
+        let id: String
+        let displayName: String
+    }
+
+    struct CachedUsersData: Decodable, Sendable {
+        let users: [CachedUser]
+    }
+
+    let graphql: GraphQLClient
+    @State private var users: [CachedUser] = []
+    @State private var errorMessage: String?
+
+    var body: some View {
+        List(users, id: \.id) { user in
+            Text(user.displayName)
+        }
+        .overlay {
+            if let errorMessage { Text(errorMessage) }
+        }
+        .task {
+            do {
+                for try await result in graphql.staleWhileRevalidate(
+                    CachedUsersData.self,
+                    query: "query Users { users { id displayName } }",
+                    operationName: "Users",
+                    cacheOptions: GraphQLCacheRequestOptions(
+                        policy: .cacheFirst,
+                        namespace: "people"
+                    )
+                ) {
+                    switch result {
+                    case let .cached(response, _), let .fresh(response, _):
+                        users = response.body.data?.users ?? []
+                    }
+                }
+            } catch is CancellationError {
+                // View disappearance cancelled the refresh.
+            } catch {
+                errorMessage = error.localizedDescription
+            }
+        }
+    }
+}
+#endif
 
 /// Executes the README's Swift code examples against the local backend, and
 /// mechanically guards that every ```swift block in README.md appears verbatim
@@ -27,17 +78,27 @@ final class ReadmeExamplesTests: XCTestCase {
             )
         )
 
+        let cachedNhost = createClient(
+            NhostClientOptions(
+                subdomain: "my-project",
+                region: "eu-central-1",
+                graphqlCache: GraphQLCacheConfiguration()
+            )
+        )
+
         XCTAssertEqual(
             nhost.serviceURLs.auth.absoluteString,
             "https://my-project.auth.eu-central-1.nhost.run/v1"
         )
         XCTAssertEqual(local.serviceURLs.auth.absoluteString, "http://localhost:1337/v1")
+        XCTAssertEqual(
+            cachedNhost.serviceURLs.graphql.absoluteString,
+            "https://my-project.graphql.eu-central-1.nhost.run/v1"
+        )
     }
 
-    func testReadmeEndToEndFlow() async throws {
+    func testReadmeAuthExample() async throws {
         let nhost = Self.readmeClient()
-
-        // ## Auth and sessions
         let email = "ada-\(UUID().uuidString.lowercased())@example.com"
         let password = UUID().uuidString
 
@@ -62,8 +123,10 @@ final class ReadmeExamplesTests: XCTestCase {
         XCTAssertNotNil(session)
         XCTAssertEqual(defaultRole, "user")
         XCTAssertFalse(userID.isEmpty)
+    }
 
-        // ## GraphQL
+    func testReadmeGraphQLAndPolicyExamples() async throws {
+        let (nhost, userID) = try await Self.signedInReadmeClient()
         struct UserRow: Decodable, Sendable {
             let id: String
             let displayName: String
@@ -85,9 +148,69 @@ final class ReadmeExamplesTests: XCTestCase {
         )
 
         print(users.body.data?.users ?? [])
-
         XCTAssertEqual(users.body.data?.users.first?.id, userID)
 
+        let cachedUsers = try await nhost.graphql.request(
+            UsersData.self,
+            query: """
+            query Users($limit: Int!) {
+              users(limit: $limit) { id displayName }
+            }
+            """,
+            variables: ["limit": .number(10)],
+            operationName: "Users",
+            cacheOptions: GraphQLCacheRequestOptions(
+                policy: .cacheFirst,
+                namespace: "people",
+                tags: ["profile"]
+            )
+        )
+
+        let offlineUsers = try await nhost.graphql.request(
+            UsersData.self,
+            query: """
+            query Users($limit: Int!) {
+              users(limit: $limit) { id displayName }
+            }
+            """,
+            variables: ["limit": .number(10)],
+            operationName: "Users",
+            cacheOptions: GraphQLCacheRequestOptions(
+                policy: .cacheOnly,
+                namespace: "people",
+                tags: ["profile"]
+            )
+        )
+
+        print(cachedUsers.body.data?.users ?? [])
+        print(offlineUsers.body.data?.users ?? [])
+
+        XCTAssertEqual(cachedUsers.body.data?.users.first?.id, userID)
+        XCTAssertEqual(offlineUsers.body.data?.users.first?.id, userID)
+    }
+
+    func testReadmeInvalidationExample() async throws {
+        let (nhost, userID) = try await Self.signedInReadmeClient()
+        try await Self.seedReadmeUsersCache(nhost)
+
+        let removedEntries = try await nhost.graphql.cache.invalidate(
+            GraphQLCacheInvalidationFilter(
+                endpoint: nhost.serviceURLs.graphql,
+                scope: .user(userID),
+                operationName: "Users",
+                namespace: "people",
+                tag: "profile"
+            )
+        )
+
+        try await nhost.graphql.cache.prune()
+        print("removed \(removedEntries) cached user queries")
+
+        XCTAssertEqual(removedEntries, 1)
+    }
+
+    func testReadmeMutationExample() async throws {
+        let (nhost, userID) = try await Self.signedInReadmeClient()
         struct UpdatedUser: Decodable, Sendable {
             let id: String
             let displayName: String
@@ -112,10 +235,11 @@ final class ReadmeExamplesTests: XCTestCase {
         )
 
         print(updated.body.data?.updateUser?.displayName ?? "")
-
         XCTAssertEqual(updated.body.data?.updateUser?.displayName, "Ada King")
+    }
 
-        // ## Storage
+    func testReadmeStorageExamples() async throws {
+        let (nhost, _) = try await Self.signedInReadmeClient()
         let fileData = Data("hello from Swift".utf8)
 
         let upload = try await nhost.storage.uploadFiles(
@@ -136,11 +260,9 @@ final class ReadmeExamplesTests: XCTestCase {
         print(String(decoding: download.body, as: UTF8.self))
 
         _ = try await nhost.storage.deleteFile(id: fileID)
-
         XCTAssertEqual(upload.status, 201)
         XCTAssertEqual(String(decoding: download.body, as: UTF8.self), "hello from Swift")
 
-        // ### Streaming uploads
         let movieURL = FileManager.default.temporaryDirectory
             .appendingPathComponent("readme-movie-\(UUID().uuidString).mov")
         try Data(repeating: 0x42, count: 1024 * 1024).write(to: movieURL)
@@ -154,10 +276,11 @@ final class ReadmeExamplesTests: XCTestCase {
         )
 
         _ = try await nhost.storage.deleteFile(id: streamedUpload.body.processedFiles[0].id)
-
         XCTAssertEqual(streamedUpload.status, 201)
+    }
 
-        // ## Functions
+    func testReadmeFunctionsExample() async throws {
+        let nhost = Self.readmeClient()
         struct HelloResponse: Decodable, Sendable {
             let message: String
         }
@@ -180,7 +303,6 @@ final class ReadmeExamplesTests: XCTestCase {
         )
 
         print(echo.body.json?["body"]?["message"]?.stringValue ?? "")
-
         XCTAssertEqual(hello.body.json?.message, "Hello, World!")
         XCTAssertEqual(echo.body.json?["body"]?["message"]?.stringValue, "Hi")
     }
@@ -242,7 +364,47 @@ final class ReadmeExamplesTests: XCTestCase {
             verified += 1
         }
 
-        XCTAssertGreaterThanOrEqual(verified, 9, "README lost executable example blocks")
+        XCTAssertEqual(verified, 13, "README executable Swift block count changed unexpectedly")
+    }
+
+    private struct ReadmeUserRow: Decodable, Sendable {
+        let id: String
+    }
+
+    private struct ReadmeUsersData: Decodable, Sendable {
+        let users: [ReadmeUserRow]
+    }
+
+    private enum ReadmeSetupError: Error {
+        case missingUser
+    }
+
+    private static func signedInReadmeClient() async throws -> (NhostClient, String) {
+        let nhost = readmeClient()
+        let signUp = try await nhost.auth.signUpEmailPassword(
+            body: AuthSignUpEmailPasswordRequest(
+                email: "readme-\(UUID().uuidString.lowercased())@example.com",
+                password: UUID().uuidString,
+                options: AuthSignUpOptions(displayName: "README Example")
+            )
+        )
+        guard let userID = signUp.body.session?.user?.id else {
+            throw ReadmeSetupError.missingUser
+        }
+        return (nhost, userID)
+    }
+
+    private static func seedReadmeUsersCache(_ nhost: NhostClient) async throws {
+        _ = try await nhost.graphql.request(
+            ReadmeUsersData.self,
+            query: "query Users { users(limit: 10) { id } }",
+            operationName: "Users",
+            cacheOptions: GraphQLCacheRequestOptions(
+                policy: .cacheFirst,
+                namespace: "people",
+                tags: ["profile"]
+            )
+        )
     }
 
     private static func readmeClient() -> NhostClient {
@@ -259,7 +421,8 @@ final class ReadmeExamplesTests: XCTestCase {
                 storageURL: url("NHOST_STORAGE_URL", "https://local.storage.local.nhost.run/v1"),
                 graphqlURL: url("NHOST_GRAPHQL_URL", "https://local.graphql.local.nhost.run/v1"),
                 functionsURL: url("NHOST_FUNCTIONS_URL", "https://local.functions.local.nhost.run/v1"),
-                sessionStorage: MemorySessionStorageBackend()
+                sessionStorage: MemorySessionStorageBackend(),
+                graphqlCache: GraphQLCacheConfiguration(store: MemoryGraphQLCacheStore())
             )
         )
     }
