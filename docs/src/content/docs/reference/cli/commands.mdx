@@ -425,7 +425,7 @@ Install credentials helper and configure docker so it can authenticate with Nhos
 | | |
 | --- | --- |
 | `--docker-config=""` | Path to docker config file. Default: `$HOME/.docker/config.json`. Env: `$DOCKER_CONFIG`. |
-| `--yes` | Skip confirmation. Env: `$NHOST_YES`. |
+| `--yes, --no-interactive` | Skip confirmation. Env: `$NHOST_YES`, `$NO_INTERACTIVE`. |
 
 </div>
 
@@ -456,7 +456,7 @@ Generate and save configuration file.
 | `--project-pat=""` | Cloud project personal access token. |
 | `--project-region=""` | Cloud project region. |
 | `--project-subdomain=""` | Cloud project subdomain to configure. |
-| `--yes` | Skip confirmation prompt. Env: `$NHOST_YES`. |
+| `--yes, --confirm` | Skip confirmation prompt. Env: `$NHOST_YES`, `$CONFIRM`. |
 
 </div>
 
@@ -938,6 +938,10 @@ Upgrade the CLI to the latest version.
 <div class="cli-body">
 
 Show the current version of Nhost CLI you have installed.
+
+| | |
+| --- | --- |
+| `--json` | Output as JSON. |
 
 </div>
 
