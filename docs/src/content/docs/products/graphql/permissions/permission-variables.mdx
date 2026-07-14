@@ -12,7 +12,7 @@ sidebar:
 Permission variables are values pulled from the user's access token at request time, used inside [permission rules](/products/graphql/permissions). Every project has a built-in `x-hasura-user-id`; you can also define your own.
 
 :::note[Why the `x-hasura-` prefix?]
-Session variables use the `x-hasura-` prefix (for example `x-hasura-user-id` and `x-hasura-role`). This is a naming convention kept for compatibility with existing tooling and metadata — keep it as-is.
+Session variables use the `x-hasura-` prefix (for example `x-hasura-user-id` and `x-hasura-role`), a [retained naming convention](/products/graphql/configuration#naming-conventions) kept for compatibility. Keep it as-is.
 :::
 
 ## What is `x-hasura-user-id`?

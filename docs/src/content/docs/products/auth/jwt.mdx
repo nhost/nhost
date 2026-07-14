@@ -194,7 +194,7 @@ When using external signing the Auth service will be automatically disabled.
 
 ### Claims Mapping and Namespace
 
-When verifying tokens — especially those issued by an external provider — you can remap their claims onto the session variables your permissions expect, and control where those claims are read from. The `claims_namespace` defaults to `https://hasura.io/jwt/claims` (a retained identifier kept for compatibility) and can be overridden with `claims_namespace` or `claims_namespace_path`. Use `claims_map` to project individual claims from a literal value or a JSON path within the token.
+When verifying tokens — especially those issued by an external provider — you can remap their claims onto the session variables your permissions expect, and control where those claims are read from. The `claims_namespace` defaults to `https://hasura.io/jwt/claims` (a [retained identifier](/products/graphql/configuration#naming-conventions) kept for compatibility) and can be overridden with `claims_namespace` or `claims_namespace_path`. Use `claims_map` to project individual claims from a literal value or a JSON path within the token.
 
 <Tabs>
   <TabItem label="nhost.toml">
