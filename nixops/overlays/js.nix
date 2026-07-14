@@ -1,7 +1,7 @@
 (
   final: prev:
   let
-    biome_version = "2.4.15";
+    biome_version = "2.5.3";
   in
   rec {
     # Node toolchain pinned ahead of nixpkgs, exposed only under `pkgs.nhost.*`
@@ -118,10 +118,13 @@
           owner = "biomejs";
           repo = "biome";
           rev = "@biomejs/biome@${biome_version}";
-          hash = "sha256-Q7yx5ZKIrZdnsG3OS9CZ3jyuv71V7l9crCwYRZDuFpU=";
+          hash = "sha256-ctN3CmzLXw350U6tFXwGHCySZul09C30VMPDkM38LdU=";
         };
 
-        cargoHash = "sha256-UzTE+Grg6RaTWAYIsaKgluVsSZXbDwIK5HY9rY2oIVo=";
+        cargoDeps = final.rustPlatform.fetchCargoVendor {
+          inherit (finalAttrs) pname version src;
+          hash = "sha256-znFmtMwdvLEBpq5TjRnm9IURFxIlexYQ16Sj6hlcCXA=";
+        };
       }
     );
 
