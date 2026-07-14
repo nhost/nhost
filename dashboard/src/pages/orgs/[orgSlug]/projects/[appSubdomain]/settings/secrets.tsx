@@ -1,22 +1,27 @@
 import { NetworkStatus } from '@apollo/client';
 import { EllipsisVertical as DotsVerticalIcon, PlusIcon } from 'lucide-react';
 import type { ReactElement } from 'react';
-import { Fragment } from 'react';
+import { Fragment, useState } from 'react';
 import { twMerge } from 'tailwind-merge';
 import { ApplyLocalSettingsDialog } from '@/components/common/ApplyLocalSettingsDialog';
 import { useDialog } from '@/components/common/DialogProvider';
 import { Container } from '@/components/layout/Container';
 import { SettingsContainer } from '@/components/layout/SettingsContainer';
 import { InlineCode } from '@/components/presentational/InlineCode';
-import { ActivityIndicator } from '@/components/ui/v2/ActivityIndicator';
 import { Box } from '@/components/ui/v2/Box';
 import { Button } from '@/components/ui/v2/Button';
 import { Divider } from '@/components/ui/v2/Divider';
-import { Dropdown } from '@/components/ui/v2/Dropdown';
 import { IconButton } from '@/components/ui/v2/IconButton';
 import { List } from '@/components/ui/v2/List';
 import { ListItem } from '@/components/ui/v2/ListItem';
 import { Text } from '@/components/ui/v2/Text';
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+} from '@/components/ui/v3/dropdown-menu';
+import { Spinner } from '@/components/ui/v3/spinner';
 import { OrgLayout } from '@/features/orgs/layout/OrgLayout';
 import { SettingsLayout } from '@/features/orgs/layout/SettingsLayout';
 import { useIsPlatform } from '@/features/orgs/projects/common/hooks/useIsPlatform';
@@ -36,6 +41,9 @@ export default function SecretsPage() {
   const isPlatform = useIsPlatform();
   const localMimirClient = useLocalMimirClient();
   const { openDialog, openAlertDialog } = useDialog();
+  const [openActionMenuSecret, setOpenActionMenuSecret] = useState<
+    string | undefined
+  >();
 
   const { data, error, refetch, networkStatus } = useGetSecretsQuery({
     variables: { appId: project?.id },
@@ -49,7 +57,11 @@ export default function SecretsPage() {
   });
 
   if (networkStatus === NetworkStatus.loading) {
-    return <ActivityIndicator delay={1000} label="Loading secrets..." />;
+    return (
+      <Spinner size="medium" wrapperClassName="gap-2">
+        Loading secrets...
+      </Spinner>
+    );
   }
 
   if (error) {
@@ -167,51 +179,45 @@ export default function SecretsPage() {
                   <ListItem.Root
                     className="grid grid-cols-2 gap-2 px-4"
                     secondaryAction={
-                      <Dropdown.Root>
-                        <Dropdown.Trigger
+                      <DropdownMenu
+                        open={openActionMenuSecret === secret.name}
+                        onOpenChange={(open) =>
+                          setOpenActionMenuSecret(
+                            open ? secret.name : undefined,
+                          )
+                        }
+                      >
+                        <DropdownMenuTrigger
                           asChild
-                          hideChevron
                           className="absolute top-1/2 right-4 -translate-y-1/2"
                         >
                           <IconButton variant="borderless" color="secondary">
                             <DotsVerticalIcon />
                           </IconButton>
-                        </Dropdown.Trigger>
+                        </DropdownMenuTrigger>
 
-                        <Dropdown.Content
-                          menu
-                          PaperProps={{ className: 'w-32' }}
-                          anchorOrigin={{
-                            vertical: 'bottom',
-                            horizontal: 'right',
-                          }}
-                          transformOrigin={{
-                            vertical: 'top',
-                            horizontal: 'right',
-                          }}
-                        >
-                          <Dropdown.Item
-                            onClick={() => handleOpenEditor(secret)}
+                        <DropdownMenuContent align="end" className="w-32 p-0">
+                          <DropdownMenuItem
+                            className="flex h-9 cursor-pointer items-center justify-start gap-2 rounded-none border border-b-1 p-2 font-medium text-sm+ leading-4 hover:bg-data-cell-bg"
+                            onClick={() => {
+                              setOpenActionMenuSecret(undefined);
+                              handleOpenEditor(secret);
+                            }}
                           >
-                            <Text className="font-medium">Edit</Text>
-                          </Dropdown.Item>
+                            <span>Edit</span>
+                          </DropdownMenuItem>
 
-                          <Divider component="li" />
-
-                          <Dropdown.Item
-                            onClick={() => handleConfirmDelete(secret)}
+                          <DropdownMenuItem
+                            onClick={() => {
+                              setOpenActionMenuSecret(undefined);
+                              handleConfirmDelete(secret);
+                            }}
+                            className="!text-destructive flex h-9 cursor-pointer items-center justify-start gap-2 rounded-none border border-b-1 p-2 font-medium text-sm+ leading-4 hover:bg-data-cell-bg"
                           >
-                            <Text
-                              className="font-medium"
-                              sx={{
-                                color: (theme) => theme.palette.error.main,
-                              }}
-                            >
-                              Delete
-                            </Text>
-                          </Dropdown.Item>
-                        </Dropdown.Content>
-                      </Dropdown.Root>
+                            <span>Delete</span>
+                          </DropdownMenuItem>
+                        </DropdownMenuContent>
+                      </DropdownMenu>
                     }
                   >
                     <ListItem.Text className="truncate">

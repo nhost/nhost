@@ -2,7 +2,6 @@ package dockercompose
 
 import (
 	"fmt"
-	"strings"
 
 	"github.com/nhost/be/services/mimir/model"
 	"github.com/nhost/be/services/mimir/schema/appconfig"
@@ -78,7 +77,7 @@ func graphql( //nolint:funlen
 		EntryPoint:  nil,
 		Command:     nil,
 		Environment: env,
-		ExtraHosts:  extraHosts(subdomain),
+		ExtraHosts:  extraHosts,
 		HealthCheck: &HealthCheck{
 			Test: []string{
 				"CMD-SHELL",
@@ -92,6 +91,7 @@ func graphql( //nolint:funlen
 		Networks:   networkAliases("hasura-service"),
 		Ports:      ports(port, hasuraPort),
 		Restart:    "always",
+		User:       nil,
 		Volumes:    nil,
 		WorkingDir: nil,
 	}, nil
@@ -104,6 +104,7 @@ func console( //nolint:funlen
 	useTLS bool,
 	nhostFolder string,
 	port uint,
+	hostOS string,
 ) (*Service, error) {
 	if semver.Compare(*cfg.GetHasura().GetVersion(), minimumHasuraVerson) < 0 {
 		return nil, fmt.Errorf( //nolint:err113
@@ -131,12 +132,14 @@ func console( //nolint:funlen
 		return nil, fmt.Errorf("failed to get hasura env vars: %w", err)
 	}
 
-	extraHosts := extraHosts(subdomain)
-	for i, host := range extraHosts {
-		if strings.HasPrefix(host, subdomain+".hasura.local.nhost.run") {
-			extraHosts[i] = subdomain + ".hasura.local.nhost.run:0.0.0.0"
-		}
-	}
+	// The console container hosts hasura-cli on port 9695 and serves
+	// itself under <subdomain>.hasura.local.nhost.run. Pin that hostname
+	// to 0.0.0.0 inside this container so the console's API discovery
+	// loops back to itself instead of round-tripping through traefik.
+	extraHosts := append(
+		extraHosts,
+		subdomain+".hasura.local.nhost.run:0.0.0.0",
+	)
 
 	env := make(map[string]string, len(envars))
 	for _, v := range envars {
@@ -146,6 +149,13 @@ func console( //nolint:funlen
 
 		env[v.Name] = v.Value
 	}
+
+	// hasura-cli writes its global config to $HOME/.hasura/config.json.
+	// The image's default HOME is /root, which only root can write to; when
+	// this container runs as the host user (see hostUserSpec) that write
+	// fails. Point HOME at /tmp, which is world-writable and already exists
+	// in the image, so hasura-cli can create its config dir as any uid.
+	env["HOME"] = "/tmp"
 
 	return &Service{
 		Image: fmt.Sprintf(
@@ -200,6 +210,7 @@ func console( //nolint:funlen
 		Networks: nil,
 		Ports:    ports(port, consolePort),
 		Restart:  "always",
+		User:     hostUserSpec(hostOS),
 		Volumes: []Volume{
 			{
 				Type:     "bind",

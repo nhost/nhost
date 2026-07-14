@@ -3,794 +3,919 @@ title: Nhost CLI Reference
 icon: terminal
 ---
 
-# NAME
+The `nhost` CLI is the primary tool for developing, deploying, and managing Nhost projects. It lets you run your backend locally, manage configuration and infrastructure as code, link and deploy projects to Nhost Cloud, and provide AI assistants with access to your project through the built-in MCP server.
 
-nhost - A new cli application
+New here? Head over to [Quickstart](/getting-started/local-development/cli) for CLI installation.
 
-# SYNOPSIS
-
-nhost
-
-```
-[--branch]=[value]
-[--dot-nhost-folder]=[value]
-[--help|-h]
-[--local-subdomain]=[value]
-[--nhost-folder]=[value]
-[--project-name]=[value]
-[--root-folder]=[value]
-[--version|-v]
-```
-
-# DESCRIPTION
-
-Nhost CLI tool
-
-**Usage**:
+## Usage
 
 ```
 nhost [GLOBAL OPTIONS] [command [COMMAND OPTIONS]] [ARGUMENTS...]
 ```
 
-# GLOBAL OPTIONS
+<div class="cli-reference">
 
-**--branch**="": Git branch name. If not set, it will be detected from the current git repository. This flag is used to dynamically create docker volumes for each branch. If you want to have a static volume name or if you are not using git, set this flag to a static value. (default: &lt;current-git-branch&gt;) [$BRANCH]
+---
 
-**--dot-nhost-folder**="": Path to .nhost folder
-	 (default: ".nhost") [$NHOST_DOT_NHOST_FOLDER]
+## Global Options
 
-**--help, -h**: show help
-
-**--local-subdomain**="": Local subdomain to reach the development environment (default: "local") [$NHOST_LOCAL_SUBDOMAIN]
-
-**--nhost-folder**="": Path to nhost folder
-	 (default: "nhost") [$NHOST_NHOST_FOLDER]
-
-**--project-name**="": Project name (default: &lt;project-directory-name&gt;) [$NHOST_PROJECT_NAME]
-
-**--root-folder**="": Root folder of project
-	 (default: ".") [$NHOST_ROOT_FOLDER]
-
-**--version, -v**: print the version
+| | |
+| --- | --- |
+| `--branch=""` | Git branch name. If not set, it will be detected from the current git repository. This flag is used to dynamically create docker volumes for each branch. If you want to have a static volume name or if you are not using git, set this flag to a static value. Default: `<current-git-branch>`. Env: `$BRANCH`. |
+| `--dot-nhost-folder=""` | Path to .nhost folder. Default: `".nhost"`. Env: `$NHOST_DOT_NHOST_FOLDER`. |
+| `--help, -h` | show help. |
+| `--local-subdomain=""` | Local subdomain to reach the development environment. Default: `"local"`. Env: `$NHOST_LOCAL_SUBDOMAIN`. |
+| `--nhost-folder=""` | Path to nhost folder. Default: `"nhost"`. Env: `$NHOST_NHOST_FOLDER`. |
+| `--project-name=""` | Project name. Default: `<project-directory-name>`. Env: `$NHOST_PROJECT_NAME`. |
+| `--root-folder=""` | Root folder of project. Default: `"."`. Env: `$NHOST_ROOT_FOLDER`. |
+| `--version, -v` | print the version. |
 
 
-# COMMANDS
+---
+
+## Commands
+
+---
+
+<div class="cli-command cli-l0">
 
 ## config
 
-Perform config operations
+</div>
 
-**--help, -h**: show help
+<div class="cli-command cli-l1">
 
-### default
+### `nhost config default`
 
-Create default configuration and secrets
+<div class="cli-body">
 
-**--help, -h**: show help
+Create default configuration and secrets.
 
-#### help, h
+</div>
 
-Shows a list of commands or help for one command
+</div>
 
-### example
+<div class="cli-command cli-l1">
 
-Shows an example config file
+### `nhost config example`
 
-**--help, -h**: show help
+<div class="cli-body">
 
-#### help, h
+Shows an example config file.
 
-Shows a list of commands or help for one command
+</div>
 
-### apply
+</div>
 
-Apply configuration to cloud project
+<div class="cli-command cli-l1">
 
-**--help, -h**: show help
+### `nhost config apply`
 
-**--subdomain**="": Subdomain of the Nhost project to apply configuration to. Defaults to linked project [$NHOST_SUBDOMAIN]
+<div class="cli-body">
 
-**--yes**: Skip confirmation [$NHOST_YES]
+Apply configuration to cloud project.
 
-#### help, h
+| | |
+| --- | --- |
+| `--subdomain=""` | Subdomain of the Nhost project to apply configuration to. Defaults to linked project. Env: `$NHOST_SUBDOMAIN`. |
+| `--yes` | Skip confirmation. Env: `$NHOST_YES`. |
 
-Shows a list of commands or help for one command
+</div>
 
-### pull
+</div>
 
-Get cloud configuration
+<div class="cli-command cli-l1">
 
-**--help, -h**: show help
+### `nhost config pull`
 
-**--subdomain**="": Pull this subdomain's configuration. Defaults to linked project [$NHOST_SUBDOMAIN]
+<div class="cli-body">
 
-**--yes**: Skip confirmation [$NHOST_YES]
+Get cloud configuration.
 
-#### help, h
+| | |
+| --- | --- |
+| `--subdomain=""` | Pull this subdomain's configuration. Defaults to linked project. Env: `$NHOST_SUBDOMAIN`. |
+| `--yes` | Skip confirmation. Env: `$NHOST_YES`. |
 
-Shows a list of commands or help for one command
+</div>
 
-### show
+</div>
 
-Shows configuration after resolving secrets
+<div class="cli-command cli-l1">
 
-**--help, -h**: show help
+### `nhost config show`
 
-**--subdomain**="": Show this subdomain's rendered configuration. Defaults to base configuration [$NHOST_SUBDOMAIN]
+<div class="cli-body">
 
-#### help, h
+Shows configuration after resolving secrets.
 
-Shows a list of commands or help for one command
+| | |
+| --- | --- |
+| `--subdomain=""` | Show this subdomain's rendered configuration. Defaults to base configuration. Env: `$NHOST_SUBDOMAIN`. |
 
-### validate
+</div>
 
-Validate configuration
+</div>
 
-**--help, -h**: show help
+<div class="cli-command cli-l1">
 
-**--subdomain**="": Validate this subdomain's configuration. Defaults to linked project [$NHOST_SUBDOMAIN]
+### `nhost config validate`
 
-#### help, h
+<div class="cli-body">
 
-Shows a list of commands or help for one command
+Validate configuration.
 
-### edit
+| | |
+| --- | --- |
+| `--subdomain=""` | Validate this subdomain's configuration. Defaults to linked project. Env: `$NHOST_SUBDOMAIN`. |
 
-Edit base configuration or an overlay
+</div>
 
-**--editor**="": Editor to use (default: "vim") [$EDITOR]
+</div>
 
-**--help, -h**: show help
+<div class="cli-command cli-l1">
 
-**--subdomain**="": If specified, edit this subdomain's overlay, otherwise edit base configuation [$NHOST_SUBDOMAIN]
+### `nhost config edit`
 
-#### help, h
+<div class="cli-body">
 
-Shows a list of commands or help for one command
+Edit base configuration or an overlay.
 
-### help, h
+| | |
+| --- | --- |
+| `--editor=""` | Editor to use. Default: `"vim"`. Env: `$EDITOR`. |
+| `--subdomain=""` | If specified, edit this subdomain's overlay, otherwise edit base configuration. Env: `$NHOST_SUBDOMAIN`. |
 
-Shows a list of commands or help for one command
+</div>
+
+</div>
+
+---
+
+<div class="cli-command cli-l0">
 
 ## deployments
 
-Manage deployments
+</div>
 
-**--help, -h**: show help
+<div class="cli-command cli-l1">
 
-### list
+### `nhost deployments list`
 
-List deployments in the cloud environment
+<div class="cli-body">
 
-**--help, -h**: show help
+List deployments in the cloud environment.
 
-**--subdomain**="": Project's subdomain to operate on, defaults to linked project [$NHOST_SUBDOMAIN]
+| | |
+| --- | --- |
+| `--subdomain=""` | Project's subdomain to operate on, defaults to linked project. Env: `$NHOST_SUBDOMAIN`. |
 
-#### help, h
+</div>
 
-Shows a list of commands or help for one command
+</div>
 
-### logs
+<div class="cli-command cli-l1">
 
-View deployments logs in the cloud environment
+### `nhost deployments logs`
 
-**--follow**: Specify if the logs should be streamed
+<div class="cli-body">
 
-**--help, -h**: show help
+View deployments logs in the cloud environment.
 
-**--subdomain**="": Project's subdomain to operate on, defaults to linked project [$NHOST_SUBDOMAIN]
+| | |
+| --- | --- |
+| `--follow` | Specify if the logs should be streamed. |
+| `--subdomain=""` | Project's subdomain to operate on, defaults to linked project. Env: `$NHOST_SUBDOMAIN`. |
+| `--timeout=""` | Specify the timeout for streaming logs. Default: `5m0s`. |
 
-**--timeout**="": Specify the timeout for streaming logs (default: 5m0s)
+</div>
 
-#### help, h
+</div>
 
-Shows a list of commands or help for one command
+<div class="cli-command cli-l1">
 
-### new
+<span class="cli-badge cli-badge-experimental">Experimental</span>
 
-[EXPERIMENTAL] Create a new deployment
+### `nhost deployments new`
 
-**--follow**: Specify if the logs should be streamed. If set, the command will wait for the deployment to finish and stream the logs. If the deployment fails the command will return an error.
+<div class="cli-body">
 
-**--help, -h**: show help
+Create a new deployment.
 
-**--message**="": Commit message
+| | |
+| --- | --- |
+| `--follow` | Specify if the logs should be streamed. If set, the command will wait for the deployment to finish and stream the logs. If the deployment fails the command will return an error. |
+| `--message=""` | Commit message. |
+| `--ref=""` | Git reference. Env: `$GITHUB_SHA`. |
+| `--subdomain=""` | Project's subdomain to operate on, defaults to linked project. Env: `$NHOST_SUBDOMAIN`. |
+| `--timeout=""` | Specify the timeout for streaming logs. Default: `5m0s`. |
+| `--user-avatar-url=""` | Commit user avatar URL. |
+| `--user=""` | Commit user name. Env: `$GITHUB_ACTOR`. |
 
-**--ref**="": Git reference [$GITHUB_SHA]
+</div>
 
-**--subdomain**="": Project's subdomain to operate on, defaults to linked project [$NHOST_SUBDOMAIN]
+</div>
 
-**--timeout**="": Specify the timeout for streaming logs (default: 5m0s)
+---
 
-**--user**="": Commit user name [$GITHUB_ACTOR]
-
-**--user-avatar-url**="": Commit user avatar URL
-
-#### help, h
-
-Shows a list of commands or help for one command
-
-### help, h
-
-Shows a list of commands or help for one command
+<div class="cli-command cli-l0">
 
 ## dev
 
-Operate local development environment
+</div>
 
-**--help, -h**: show help
+<div class="cli-command cli-l1">
 
-### compose
+### `nhost dev compose`
 
-docker compose wrapper, sets project name and compose file automatically
+<div class="cli-body">
 
-**--help, -h**: show help
+docker compose wrapper, sets project name and compose file automatically.
 
-#### help, h
+</div>
 
-Shows a list of commands or help for one command
+</div>
 
-### hasura
+<div class="cli-command cli-l1">
 
-hasura-cli wrapper
+### `nhost dev hasura`
 
-**--help, -h**: show help
+<div class="cli-body">
 
-#### help, h
+hasura-cli wrapper.
 
-Shows a list of commands or help for one command
+</div>
 
-### help, h
+</div>
 
-Shows a list of commands or help for one command
+---
+
+<div class="cli-command cli-l0">
 
 ## up
 
-Start local development environment
+</div>
 
-**--apply-seeds**: Apply seeds. If the .nhost folder does not exist, seeds will be applied regardless of this flag [$NHOST_APPLY_SEEDS]
+<div class="cli-command cli-l1">
 
-**--auth-port**="": If specified, expose auth on this port. Not recommended (default: 0)
+### `nhost up`
 
-**--ca-certificates**="": Mounts and everrides path to CA certificates in the containers [$NHOST_CA_CERTIFICATES]
+<div class="cli-body">
 
-**--dashboard-version**="": Dashboard version to use (default: "nhost/dashboard:3.0.0") [$NHOST_DASHBOARD_VERSION]
+Start local development environment.
 
-**--disable-tls**: Disable TLS [$NHOST_DISABLE_TLS]
+| | |
+| --- | --- |
+| `--apply-seeds` | Apply seeds. If the .nhost folder does not exist, seeds will be applied regardless of this flag. Env: `$NHOST_APPLY_SEEDS`. |
+| `--auth-port=""` | If specified, expose auth on this port. Not recommended. Default: `0`. |
+| `--ca-certificates=""` | Mounts and overrides path to CA certificates in the containers. Env: `$NHOST_CA_CERTIFICATES`. |
+| `--dashboard-version=""` | Dashboard version to use. Default: `"nhost/dashboard:3.0.0"`. Env: `$NHOST_DASHBOARD_VERSION`. |
+| `--disable-tls` | Disable TLS. Env: `$NHOST_DISABLE_TLS`. |
+| `--down-on-error` | Skip confirmation. Env: `$NHOST_YES`. |
+| `--functions-port=""` | If specified, expose functions on this port. Not recommended. Default: `0`. |
+| `--functions-version=""` | Functions version to use. Default: `"2.1.0"`. Env: `$NHOST_FUNCTIONS_VERSION`. |
+| `--hasura-console-port=""` | If specified, expose hasura console on this port. Not recommended. Default: `0`. |
+| `--hasura-port=""` | If specified, expose hasura on this port. Not recommended. Default: `0`. |
+| `--http-port=""` | HTTP port to listen on. Default: `443`. Env: `$NHOST_HTTP_PORT`. |
+| `--postgres-port=""` | Postgres port to listen on. Default: `5432`. Env: `$NHOST_POSTGRES_PORT`. |
+| `--run-service-volume=""` | Mount a local directory into a run service container. Format: `service-name=/local/path:/container/path`. Can be passed multiple times. Env: `$NHOST_RUN_SERVICE_VOLUME`. |
+| `--run-service=""` | Run service to add to the development environment. Can be passed multiple times. Comma-separated values are also accepted. Format: `/path/to/run-service.toml[:overlay_name]`. Env: `$NHOST_RUN_SERVICE`. |
+| `--storage-port=""` | If specified, expose storage on this port. Not recommended. Default: `0`. |
 
-**--down-on-error**: Skip confirmation [$NHOST_YES]
+</div>
 
-**--functions-port**="": If specified, expose functions on this port. Not recommended (default: 0)
+</div>
 
-**--functions-version**="": Functions version to use (default: "2.1.0") [$NHOST_FUNCTIONS_VERSION]
+<div class="cli-command cli-l1">
 
-**--hasura-console-port**="": If specified, expose hasura console on this port. Not recommended (default: 0)
+<span class="cli-badge cli-badge-beta">Beta</span>
 
-**--hasura-port**="": If specified, expose hasura on this port. Not recommended (default: 0)
+### `nhost up cloud`
 
-**--help, -h**: show help
+<div class="cli-body">
 
-**--http-port**="": HTTP port to listen on (default: 443) [$NHOST_HTTP_PORT]
+Start local development environment connected to an Nhost Cloud project.
 
-**--postgres-port**="": Postgres port to listen on (default: 5432) [$NHOST_POSTGRES_PORT]
+| | |
+| --- | --- |
+| `--apply-seeds` | Apply seeds. If the .nhost folder does not exist, seeds will be applied regardless of this flag. Env: `$NHOST_APPLY_SEEDS`. |
+| `--ca-certificates=""` | Mounts and overrides path to CA certificates in the containers. Env: `$NHOST_CA_CERTIFICATES`. |
+| `--dashboard-version=""` | Dashboard version to use. Default: `"nhost/dashboard:3.0.0"`. Env: `$NHOST_DASHBOARD_VERSION`. |
+| `--disable-tls` | Disable TLS. Env: `$NHOST_DISABLE_TLS`. |
+| `--down-on-error` | Skip confirmation. Env: `$NHOST_YES`. |
+| `--hasura-console-port=""` | If specified, expose hasura console on this port. Not recommended. Default: `0`. |
+| `--http-port=""` | HTTP port to listen on. Default: `443`. Env: `$NHOST_HTTP_PORT`. |
+| `--postgres-url=""` | Postgres URL. Env: `$NHOST_POSTGRES_URL`. |
+| `--subdomain=""` | Project's subdomain to operate on, defaults to linked project. Env: `$NHOST_SUBDOMAIN`. |
 
-**--run-service**="": Run service to add to the development environment. Can be passed multiple times. Comma-separated values are also accepted. Format: /path/to/run-service.toml[:overlay_name] [$NHOST_RUN_SERVICE]
+</div>
 
-**--run-service-volume**="": Mount a local directory into a run service container. Format: service-name=/local/path:/container/path. Can be passed multiple times [$NHOST_RUN_SERVICE_VOLUME]
+</div>
 
-**--storage-port**="": If specified, expose storage on this port. Not recommended (default: 0)
+---
 
-### cloud
-
-Start local development environment connected to an Nhost Cloud project (BETA)
-
-**--apply-seeds**: Apply seeds. If the .nhost folder does not exist, seeds will be applied regardless of this flag [$NHOST_APPLY_SEEDS]
-
-**--ca-certificates**="": Mounts and everrides path to CA certificates in the containers [$NHOST_CA_CERTIFICATES]
-
-**--dashboard-version**="": Dashboard version to use (default: "nhost/dashboard:3.0.0") [$NHOST_DASHBOARD_VERSION]
-
-**--disable-tls**: Disable TLS [$NHOST_DISABLE_TLS]
-
-**--down-on-error**: Skip confirmation [$NHOST_YES]
-
-**--hasura-console-port**="": If specified, expose hasura console on this port. Not recommended (default: 0)
-
-**--help, -h**: show help
-
-**--http-port**="": HTTP port to listen on (default: 443) [$NHOST_HTTP_PORT]
-
-**--postgres-url**="": Postgres URL [$NHOST_POSTGRES_URL]
-
-**--subdomain**="": Project's subdomain to operate on, defaults to linked project [$NHOST_SUBDOMAIN]
-
-#### help, h
-
-Shows a list of commands or help for one command
-
-### help, h
-
-Shows a list of commands or help for one command
+<div class="cli-command cli-l0">
 
 ## down
 
-Stop local development environment
+</div>
 
-**--help, -h**: show help
+<div class="cli-command cli-l1">
 
-**--volumes**: Remove volumes
+### `nhost down`
 
-### help, h
+<div class="cli-body">
 
-Shows a list of commands or help for one command
+Stop local development environment.
+
+| | |
+| --- | --- |
+| `--volumes` | Remove volumes. |
+
+</div>
+
+</div>
+
+---
+
+<div class="cli-command cli-l0">
 
 ## logs
 
-Show logs from local development environment
+</div>
 
-**--help, -h**: show help
+<div class="cli-command cli-l1">
 
-### help, h
+### `nhost logs`
 
-Shows a list of commands or help for one command
+<div class="cli-body">
+
+Show logs from local development environment.
+
+</div>
+
+</div>
+
+---
+
+<div class="cli-command cli-l0">
 
 ## docker-credentials
 
-Perform docker-credentials operations
+</div>
 
-**--help, -h**: show help
+<div class="cli-command cli-l1">
 
-### configure
+### `nhost docker-credentials configure`
 
-Install credentials helper and configure docker so it can authenticate with Nhost's registry
+<div class="cli-body">
 
-**--docker-config**="": Path to docker config file (default: $HOME/.docker/config.json) [$DOCKER_CONFIG]
+Install credentials helper and configure docker so it can authenticate with Nhost's registry.
 
-**--help, -h**: show help
+| | |
+| --- | --- |
+| `--docker-config=""` | Path to docker config file. Default: `$HOME/.docker/config.json`. Env: `$DOCKER_CONFIG`. |
+| `--no-interactive` | Do not prompt for confirmation. Env: `$NO_INTERACTIVE`. |
 
-**--no-interactive**: Do not prompt for confirmation [$NO_INTERACTIVE]
+</div>
 
-#### help, h
+</div>
 
-Shows a list of commands or help for one command
+---
 
-### help, h
-
-Shows a list of commands or help for one command
+<div class="cli-command cli-l0">
 
 ## mcp
 
-Model Context Protocol (MCP) related commands
+</div>
 
-**--config-file**="": Configuration file path. Defaults to $NHOST_DOT_NHOST_FOLDER/nhost-mcp.toml [$NHOST_MCP_CONFIG_FILE]
+<div class="cli-command cli-l1">
 
-**--help, -h**: show help
+### `nhost mcp config`
 
-### config
+<div class="cli-body">
 
-Generate and save configuration file
+Generate and save configuration file.
 
-**--confirm**: Skip confirmation prompt [$CONFIRM]
+| | |
+| --- | --- |
+| `--confirm` | Skip confirmation prompt. Env: `$CONFIRM`. |
 
-**--help, -h**: show help
+</div>
 
-#### dump
+</div>
 
-Dump the configuration to stdout for verification
+<div class="cli-command cli-l2">
 
-**--help, -h**: show help
+#### `nhost mcp config dump`
 
-##### help, h
+<div class="cli-body">
 
-Shows a list of commands or help for one command
+Dump the configuration to stdout for verification.
 
-#### help, h
+</div>
 
-Shows a list of commands or help for one command
+</div>
 
-### start
+<div class="cli-command cli-l1">
 
-Starts the MCP server
+### `nhost mcp start`
 
-**--help, -h**: show help
+<div class="cli-body">
 
-#### help, h
+Starts the MCP server.
 
-Shows a list of commands or help for one command
+</div>
 
-### gen
+</div>
 
-Generate GraphQL schema for Nhost Cloud
+<div class="cli-command cli-l1">
 
-**--help, -h**: show help
+### `nhost mcp gen`
 
-**--with-mutations**: Include mutations in the generated schema [$WITH_MUTATIONS]
+<div class="cli-body">
 
-#### help, h
+Generate GraphQL schema for Nhost Cloud.
 
-Shows a list of commands or help for one command
+| | |
+| --- | --- |
+| `--with-mutations` | Include mutations in the generated schema. Env: `$WITH_MUTATIONS`. |
 
-### help, h
+</div>
 
-Shows a list of commands or help for one command
+</div>
+
+---
+
+<div class="cli-command cli-l0">
 
 ## init
 
-Initialize a new Nhost project
+</div>
 
-**--help, -h**: show help
+<div class="cli-command cli-l1">
 
-**--remote**: Initialize pulling configuration, migrations and metadata from the linked project [$NHOST_REMOTE]
+### `nhost init`
 
-### help, h
+<div class="cli-body">
 
-Shows a list of commands or help for one command
+Initialize a new Nhost project.
+
+| | |
+| --- | --- |
+| `--remote` | Initialize pulling configuration, migrations and metadata from the linked project. Env: `$NHOST_REMOTE`. |
+
+</div>
+
+</div>
+
+---
+
+<div class="cli-command cli-l0">
 
 ## list
 
-List remote apps
+</div>
 
-**--help, -h**: show help
+<div class="cli-command cli-l1">
 
-### help, h
+### `nhost list`
 
-Shows a list of commands or help for one command
+<div class="cli-body">
+
+List remote apps.
+
+</div>
+
+</div>
+
+---
+
+<div class="cli-command cli-l0">
 
 ## link
 
-Link local app to a remote one
+</div>
 
-**--help, -h**: show help
+<div class="cli-command cli-l1">
 
-### help, h
+### `nhost link`
 
-Shows a list of commands or help for one command
+<div class="cli-body">
+
+Link local app to a remote one.
+
+</div>
+
+</div>
+
+---
+
+<div class="cli-command cli-l0">
 
 ## docs
 
-Access embedded documentation
+</div>
 
-**--help, -h**: show help
+<div class="cli-command cli-l1">
 
-### list, ls
+### `nhost docs list`
 
-List all documentation pages
+<div class="cli-body">
 
-**--grouped**: Show pages organized by section
+List all documentation pages. *Aliases: `ls`*
 
-**--help, -h**: show help
+| | |
+| --- | --- |
+| `--grouped` | Show pages organized by section. |
+| `--summary` | Show page descriptions. |
 
-**--summary**: Show page descriptions
+</div>
 
-#### help, h
+</div>
 
-Shows a list of commands or help for one command
+<div class="cli-command cli-l1">
 
-### search, s, find
+### `nhost docs search`
 
-Search documentation pages
+<div class="cli-body">
 
-**--help, -h**: show help
+Search documentation pages. *Aliases: `s`, `find`*
 
-**--limit, -n**="": Maximum number of results to return (default: 5)
+| | |
+| --- | --- |
+| `--limit, -n=""` | Maximum number of results to return. Default: `5`. |
 
-#### help, h
+</div>
 
-Shows a list of commands or help for one command
+</div>
 
-### show, view
+<div class="cli-command cli-l1">
 
-Display contents of a documentation page
+### `nhost docs show`
 
-**--help, -h**: show help
+<div class="cli-body">
 
-**--raw**: Show raw MDX content including frontmatter
+Display contents of a documentation page. *Aliases: `view`*
 
-#### help, h
+| | |
+| --- | --- |
+| `--raw` | Show raw MDX content including frontmatter. |
 
-Shows a list of commands or help for one command
+</div>
 
-### help, h
+</div>
 
-Shows a list of commands or help for one command
+---
+
+<div class="cli-command cli-l0">
 
 ## run
 
-Perform operations on Nhost Run
+</div>
 
-**--help, -h**: show help
+<div class="cli-command cli-l1">
 
-### config-show
+### `nhost run config-show`
 
-Shows Run service configuration after resolving secrets
+<div class="cli-body">
 
-**--config**="": Service configuration file (default: "nhost-run-service.toml") [$NHOST_RUN_SERVICE_CONFIG]
+Shows Run service configuration after resolving secrets.
 
-**--help, -h**: show help
+| | |
+| --- | --- |
+| `--config=""` | Service configuration file. Default: `"nhost-run-service.toml"`. Env: `$NHOST_RUN_SERVICE_CONFIG`. |
+| `--overlay-name=""` | If specified, apply this overlay. Env: `$NHOST_RUN_SERVICE_ID`, `$NHOST_SERVICE_OVERLAY_NAME`. |
 
-**--overlay-name**="": If specified, apply this overlay [$NHOST_RUN_SERVICE_ID, $NHOST_SERVICE_OVERLAY_NAME]
+</div>
 
-#### help, h
+</div>
 
-Shows a list of commands or help for one command
+<div class="cli-command cli-l1">
 
-### config-deploy
+### `nhost run config-deploy`
 
-Deploy service configuration
+<div class="cli-body">
 
-**--config**="": Service configuration file (default: "nhost-run-service.toml") [$NHOST_RUN_SERVICE_CONFIG]
+Deploy service configuration.
 
-**--help, -h**: show help
+| | |
+| --- | --- |
+| `--config=""` | Service configuration file. Default: `"nhost-run-service.toml"`. Env: `$NHOST_RUN_SERVICE_CONFIG`. |
+| `--service-id=""` | Service ID to update. Applies overlay of the same name. Env: `$NHOST_RUN_SERVICE_ID`. |
 
-**--service-id**="": Service ID to update. Applies overlay of the same name [$NHOST_RUN_SERVICE_ID]
+</div>
 
-#### help, h
+</div>
 
-Shows a list of commands or help for one command
+<div class="cli-command cli-l1">
 
-### config-edit
+### `nhost run config-edit`
 
-Edit service configuration
+<div class="cli-body">
 
-**--config**="": Service configuration file (default: "nhost-run-service.toml") [$NHOST_RUN_SERVICE_CONFIG]
+Edit service configuration.
 
-**--editor**="": Editor to use (default: "vim") [$EDITOR]
+| | |
+| --- | --- |
+| `--config=""` | Service configuration file. Default: `"nhost-run-service.toml"`. Env: `$NHOST_RUN_SERVICE_CONFIG`. |
+| `--editor=""` | Editor to use. Default: `"vim"`. Env: `$EDITOR`. |
+| `--overlay-name=""` | If specified, apply this overlay. Env: `$NHOST_RUN_SERVICE_ID`, `$NHOST_SERVICE_OVERLAY_NAME`. |
 
-**--help, -h**: show help
+</div>
 
-**--overlay-name**="": If specified, apply this overlay [$NHOST_RUN_SERVICE_ID, $NHOST_SERVICE_OVERLAY_NAME]
+</div>
 
-#### help, h
+<div class="cli-command cli-l1">
 
-Shows a list of commands or help for one command
+### `nhost run config-edit-image`
 
-### config-edit-image
+<div class="cli-body">
 
-Edits configuration file and sets the image
+Edits configuration file and sets the image.
 
-**--config**="": Service configuration file (default: "nhost-run-service.toml") [$NHOST_RUN_SERVICE_CONFIG]
+| | |
+| --- | --- |
+| `--config=""` | Service configuration file. Default: `"nhost-run-service.toml"`. Env: `$NHOST_RUN_SERVICE_CONFIG`. |
+| `--image=""` | Image to use. Env: `$NHOST_RUN_SERVICE_IMAGE`. |
 
-**--help, -h**: show help
+</div>
 
-**--image**="": Image to use [$NHOST_RUN_SERVICE_IMAGE]
+</div>
 
-#### help, h
+<div class="cli-command cli-l1">
 
-Shows a list of commands or help for one command
+### `nhost run config-pull`
 
-### config-pull
+<div class="cli-body">
 
-Download service configuration
+Download service configuration.
 
-**--config**="": Service configuration file (default: "nhost-run-service.toml") [$NHOST_RUN_SERVICE_CONFIG]
+| | |
+| --- | --- |
+| `--config=""` | Service configuration file. Default: `"nhost-run-service.toml"`. Env: `$NHOST_RUN_SERVICE_CONFIG`. |
+| `--service-id=""` | Service ID to update. Env: `$NHOST_RUN_SERVICE_ID`. |
 
-**--help, -h**: show help
+</div>
 
-**--service-id**="": Service ID to update [$NHOST_RUN_SERVICE_ID]
+</div>
 
-#### help, h
+<div class="cli-command cli-l1">
 
-Shows a list of commands or help for one command
+### `nhost run config-validate`
 
-### config-validate
+<div class="cli-body">
 
-Validates service configuration after resolving secrets
+Validates service configuration after resolving secrets.
 
-**--config**="": Service configuration file (default: "nhost-run-service.toml") [$NHOST_RUN_SERVICE_CONFIG]
+| | |
+| --- | --- |
+| `--config=""` | Service configuration file. Default: `"nhost-run-service.toml"`. Env: `$NHOST_RUN_SERVICE_CONFIG`. |
+| `--overlay-name=""` | If specified, apply this overlay. Env: `$NHOST_SERVICE_OVERLAY_NAME`. |
+| `--service-id=""` | If specified, apply this overlay and remote secrets for this service. Env: `$NHOST_RUN_SERVICE_ID`. |
 
-**--help, -h**: show help
+</div>
 
-**--overlay-name**="": If specified, apply this overlay [$NHOST_SERVICE_OVERLAY_NAME]
+</div>
 
-**--service-id**="": If specified, apply this overlay and remote secrets for this service [$NHOST_RUN_SERVICE_ID]
+<div class="cli-command cli-l1">
 
-#### help, h
+### `nhost run config-example`
 
-Shows a list of commands or help for one command
+<div class="cli-body">
 
-### config-example
+Shows an example config file.
 
-Shows an example config file
+</div>
 
-**--help, -h**: show help
+</div>
 
-#### help, h
+<div class="cli-command cli-l1">
 
-Shows a list of commands or help for one command
+### `nhost run env`
 
-### env
+<div class="cli-body">
 
-Outputs environment variables. Useful to generate .env files
+Outputs environment variables. Useful to generate .env files.
 
-**--config**="": Service configuration file (default: "nhost-run-service.toml") [$NHOST_RUN_SERVICE_CONFIG]
+| | |
+| --- | --- |
+| `--config=""` | Service configuration file. Default: `"nhost-run-service.toml"`. Env: `$NHOST_RUN_SERVICE_CONFIG`. |
+| `--overlay-name=""` | If specified, apply this overlay. Env: `$NHOST_RUN_SERVICE_ID`, `$NHOST_SERVICE_OVERLAY_NAME`. |
+| `--prepend-export` | Prepend 'export' to each line. Env: `$NHOST_RuN_SERVICE_ENV_PREPEND_EXPORT`. |
 
-**--help, -h**: show help
+</div>
 
-**--overlay-name**="": If specified, apply this overlay [$NHOST_RUN_SERVICE_ID, $NHOST_SERVICE_OVERLAY_NAME]
+</div>
 
-**--prepend-export**: Prepend 'export' to each line [$NHOST_RuN_SERVICE_ENV_PREPEND_EXPORT]
+---
 
-#### help, h
-
-Shows a list of commands or help for one command
-
-### help, h
-
-Shows a list of commands or help for one command
+<div class="cli-command cli-l0">
 
 ## schema
 
-Schema utilities
+</div>
 
-**--help, -h**: show help
+<div class="cli-command cli-l1">
 
-### diff
+### `nhost schema diff`
 
-Compare two GraphQL schema files
+<div class="cli-body">
 
-**--help, -h**: show help
+Compare two GraphQL schema files.
 
-**--no-clean**: Disable all normalization/cleaning of known-safe differences
+| | |
+| --- | --- |
+| `--no-clean` | Disable all `normalization/cleaning` of known-safe differences. |
+| `-a=""` | Path to the first schema file. |
+| `-b=""` | Path to the second schema file. |
 
-**-a**="": Path to the first schema file
+</div>
 
-**-b**="": Path to the second schema file
+</div>
 
-#### help, h
+<div class="cli-command cli-l1">
 
-Shows a list of commands or help for one command
+### `nhost schema dump`
 
-### dump
+<div class="cli-body">
 
-Dump a GraphQL schema as SDL
+Dump a GraphQL schema as SDL.
 
-**--admin-secret**="": Admin secret (defaults: local subdomain → nhost-admin-secret; cloud → fetched from Nhost API). NHOST_ADMIN_SECRET is consulted only when --url is not set and never forwarded to --url.
+| | |
+| --- | --- |
+| `--admin-secret=""` | Admin secret (defaults: local subdomain → nhost-admin-secret; cloud → fetched from Nhost API). `NHOST_ADMIN_SECRET` is consulted only when --url is not set and never forwarded to --url. |
+| `--header, -H=""` | Extra HTTP header to send, repeatable (e.g. "`X-Hasura-Foo`: bar"). |
+| `--metadata, -m=""` | Path to a Hasura metadata directory to generate the schema from. |
+| `--output, -o=""` | Output file (default: stdout). |
+| `--role, -r=""` | Role to generate the schema for. Metadata mode defaults to "user"; URL mode sends `X-Hasura-Role` only when this flag is explicitly set. Default: `"user"`. |
+| `--subdomain=""` | Project subdomain (defaults to the linked project; use 'local' for the local dev stack). Env: `$NHOST_SUBDOMAIN`. |
+| `--timeout=""` | HTTP timeout in seconds (URL mode only). Default: `30`. |
+| `--url, -u=""` | GraphQL endpoint URL to introspect. |
 
-**--header, -H**="": Extra HTTP header to send, repeatable (e.g. "X-Hasura-Foo: bar")
+</div>
 
-**--help, -h**: show help
+</div>
 
-**--metadata, -m**="": Path to a Hasura metadata directory to generate the schema from
+---
 
-**--output, -o**="": Output file (default: stdout)
-
-**--role, -r**="": Role to generate the schema for. Metadata mode defaults to "user"; URL mode sends X-Hasura-Role only when this flag is explicitly set. (default: "user")
-
-**--subdomain**="": Project subdomain (defaults to the linked project; use 'local' for the local dev stack) [$NHOST_SUBDOMAIN]
-
-**--timeout**="": HTTP timeout in seconds (URL mode only) (default: 30)
-
-**--url, -u**="": GraphQL endpoint URL to introspect
-
-#### help, h
-
-Shows a list of commands or help for one command
-
-### help, h
-
-Shows a list of commands or help for one command
+<div class="cli-command cli-l0">
 
 ## secrets
 
-Manage secrets
+</div>
 
-**--help, -h**: show help
+<div class="cli-command cli-l1">
 
-### create
+### `nhost secrets create`
 
-Create secret in the cloud environment
+<div class="cli-body">
 
-**--help, -h**: show help
+Create secret in the cloud environment.
 
-**--subdomain**="": Project's subdomain to operate on, defaults to linked project [$NHOST_SUBDOMAIN]
+| | |
+| --- | --- |
+| `--subdomain=""` | Project's subdomain to operate on, defaults to linked project. Env: `$NHOST_SUBDOMAIN`. |
 
-#### help, h
+</div>
 
-Shows a list of commands or help for one command
+</div>
 
-### delete
+<div class="cli-command cli-l1">
 
-Delete secret in the cloud environment
+### `nhost secrets delete`
 
-**--help, -h**: show help
+<div class="cli-body">
 
-**--subdomain**="": Project's subdomain to operate on, defaults to linked project [$NHOST_SUBDOMAIN]
+Delete secret in the cloud environment.
 
-#### help, h
+| | |
+| --- | --- |
+| `--subdomain=""` | Project's subdomain to operate on, defaults to linked project. Env: `$NHOST_SUBDOMAIN`. |
 
-Shows a list of commands or help for one command
+</div>
 
-### list
+</div>
 
-List secrets in the cloud environment
+<div class="cli-command cli-l1">
 
-**--help, -h**: show help
+### `nhost secrets list`
 
-**--subdomain**="": Project's subdomain to operate on, defaults to linked project [$NHOST_SUBDOMAIN]
+<div class="cli-body">
 
-#### help, h
+List secrets in the cloud environment.
 
-Shows a list of commands or help for one command
+| | |
+| --- | --- |
+| `--subdomain=""` | Project's subdomain to operate on, defaults to linked project. Env: `$NHOST_SUBDOMAIN`. |
 
-### update
+</div>
 
-Update secret in the cloud environment
+</div>
 
-**--help, -h**: show help
+<div class="cli-command cli-l1">
 
-**--subdomain**="": Project's subdomain to operate on, defaults to linked project [$NHOST_SUBDOMAIN]
+### `nhost secrets update`
 
-#### help, h
+<div class="cli-body">
 
-Shows a list of commands or help for one command
+Update secret in the cloud environment.
 
-### help, h
+| | |
+| --- | --- |
+| `--subdomain=""` | Project's subdomain to operate on, defaults to linked project. Env: `$NHOST_SUBDOMAIN`. |
 
-Shows a list of commands or help for one command
+</div>
+
+</div>
+
+---
+
+<div class="cli-command cli-l0">
 
 ## sw
 
-Perform software management operations
+</div>
 
-**--help, -h**: show help
+<div class="cli-command cli-l1">
 
-### uninstall
+### `nhost sw uninstall`
 
-Remove the installed CLI from system permanently
+<div class="cli-body">
 
-**--force**: Force uninstall without confirmation [$NHOST_FORCE_UNINSTALL]
+Remove the installed CLI from system permanently.
 
-**--help, -h**: show help
+| | |
+| --- | --- |
+| `--force` | Force uninstall without confirmation. Env: `$NHOST_FORCE_UNINSTALL`. |
 
-#### help, h
+</div>
 
-Shows a list of commands or help for one command
+</div>
 
-### upgrade
+<div class="cli-command cli-l1">
 
-Upgrade the CLI to the latest version
+### `nhost sw upgrade`
 
-**--help, -h**: show help
+<div class="cli-body">
 
-#### help, h
+Upgrade the CLI to the latest version.
 
-Shows a list of commands or help for one command
+</div>
 
-### version
+</div>
 
-Show the current version of Nhost CLI you have installed
+<div class="cli-command cli-l1">
 
-**--help, -h**: show help
+### `nhost sw version`
 
-#### help, h
+<div class="cli-body">
 
-Shows a list of commands or help for one command
+Show the current version of Nhost CLI you have installed.
 
-### help, h
+</div>
 
-Shows a list of commands or help for one command
+</div>
+
+---
+
+<div class="cli-command cli-l0">
 
 ## login
 
-Login to Nhost
+</div>
 
-**--help, -h**: show help
+<div class="cli-command cli-l1">
 
-### help, h
+### `nhost login`
 
-Shows a list of commands or help for one command
+<div class="cli-body">
+
+Login to Nhost.
+
+</div>
+
+</div>
+
+---
+
+<div class="cli-command cli-l0">
 
 ## gen-docs
 
-Generate markdown documentation for the CLI
+</div>
 
-**--help, -h**: show help
+<div class="cli-command cli-l1">
 
-### help, h
+### `nhost gen-docs`
 
-Shows a list of commands or help for one command
+<div class="cli-body">
 
-## help, h
+Generate markdown documentation for the CLI.
 
-Shows a list of commands or help for one command
+</div>
+
+</div>
+
+</div>
 

@@ -12,10 +12,15 @@ import { Button } from '@/components/ui/v2/Button';
 import { IconButton } from '@/components/ui/v2/IconButton';
 import { Input } from '@/components/ui/v2/Input';
 import { InputAdornment } from '@/components/ui/v2/InputAdornment';
-import { Option } from '@/components/ui/v2/Option';
-import { Select } from '@/components/ui/v2/Select';
 import { Text } from '@/components/ui/v2/Text';
 import { Tooltip } from '@/components/ui/v2/Tooltip';
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from '@/components/ui/v3/select';
 import type { ContactPointsFormValues } from '@/features/orgs/projects/metrics/settings/components/ContactPointsSettings/ContactPointsSettingsTypes';
 import { HttpMethod } from './WebhookFormSectionTypes';
 
@@ -91,29 +96,29 @@ export default function WebhookFormSection() {
                   autoComplete="off"
                 />
 
-                <Select
-                  fullWidth
-                  value={formValues.webhook?.at(index)?.httpMethod || ''}
-                  className="lg:col-span-2"
-                  label="HTTP Method"
-                  onChange={(_event, inputValue) =>
-                    onChangeHttpMethod(inputValue as string, index)
-                  }
-                  placeholder="Select HTTP Method"
-                  slotProps={{
-                    listbox: { className: 'min-w-0 w-full' },
-                    popper: {
-                      disablePortal: false,
-                      className: 'z-[10000] w-[270px]',
-                    },
-                  }}
-                >
-                  {Object.values(HttpMethod).map((httpMethod) => (
-                    <Option key={httpMethod} value={httpMethod}>
-                      {httpMethod}
-                    </Option>
-                  ))}
-                </Select>
+                <div className="grid gap-1 lg:col-span-2">
+                  <label
+                    htmlFor={`${field.id}-httpMethod`}
+                    className="font-medium text-sm+"
+                  >
+                    HTTP Method
+                  </label>
+                  <Select
+                    value={formValues.webhook?.at(index)?.httpMethod || ''}
+                    onValueChange={(value) => onChangeHttpMethod(value, index)}
+                  >
+                    <SelectTrigger id={`${field.id}-httpMethod`}>
+                      <SelectValue placeholder="Select HTTP Method" />
+                    </SelectTrigger>
+                    <SelectContent className="z-[10000] w-[270px] min-w-0">
+                      {Object.values(HttpMethod).map((httpMethod) => (
+                        <SelectItem key={httpMethod} value={httpMethod}>
+                          {httpMethod}
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                </div>
 
                 <Input
                   {...register(`webhook.${index}.username`)}

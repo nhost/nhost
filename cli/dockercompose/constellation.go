@@ -16,6 +16,7 @@ func constellation( //nolint:funlen
 	httpPort uint,
 	nhostFolder string,
 	image string,
+	hostOS string,
 ) (*Service, error) {
 	envars, err := appconfig.ConstellationEnv(
 		cfg,
@@ -47,7 +48,7 @@ func constellation( //nolint:funlen
 		EntryPoint:  nil,
 		Command:     []string{"serve"},
 		Environment: env,
-		ExtraHosts:  extraHosts(subdomain),
+		ExtraHosts:  extraHosts,
 		HealthCheck: &HealthCheck{
 			Test: []string{
 				"CMD",
@@ -72,6 +73,7 @@ func constellation( //nolint:funlen
 		Networks: networkAliases("constellation-service"),
 		Ports:    nil,
 		Restart:  "always",
+		User:     hostUserSpec(hostOS),
 		Volumes: []Volume{
 			{
 				Type:     "bind",
