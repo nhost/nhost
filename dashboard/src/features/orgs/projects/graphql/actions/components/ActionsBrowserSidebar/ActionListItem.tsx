@@ -15,8 +15,8 @@ import {
   TooltipContent,
   TooltipTrigger,
 } from '@/components/ui/v3/tooltip';
-import { EditActionForm } from '@/features/orgs/projects/graphql/actions/components/EditActionForm';
 import { TextWithTooltip } from '@/features/orgs/projects/common/components/TextWithTooltip';
+import { EditActionForm } from '@/features/orgs/projects/graphql/actions/components/EditActionForm';
 import { cn } from '@/lib/utils';
 import type { ActionItem } from '@/utils/hasura-api/generated/schemas';
 

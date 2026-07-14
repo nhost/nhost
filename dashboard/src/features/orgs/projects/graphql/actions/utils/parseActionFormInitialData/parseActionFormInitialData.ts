@@ -1,3 +1,4 @@
+import { parseRequestTransform } from '@/features/orgs/projects/events/common/utils/parseRequestTransform';
 import type { BaseActionFormInitialData } from '@/features/orgs/projects/graphql/actions/components/BaseActionForm/BaseActionFormTypes';
 import { composeActionDefinitionSdl } from '@/features/orgs/projects/graphql/actions/utils/composeActionDefinitionSdl';
 import { composeTypesSdl } from '@/features/orgs/projects/graphql/actions/utils/composeTypesSdl';
@@ -7,7 +8,6 @@ import {
   parseCustomTypes,
 } from '@/features/orgs/projects/graphql/actions/utils/customTypesUtils';
 import { getActionSampleInputPayload } from '@/features/orgs/projects/graphql/actions/utils/getActionSampleInputPayload';
-import { parseRequestTransform } from '@/features/orgs/projects/events/common/utils/parseRequestTransform';
 import type {
   ActionItem,
   CustomTypes,

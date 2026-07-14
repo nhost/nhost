@@ -1,24 +1,9 @@
 import { ArrowUpRight, Plus, Workflow } from 'lucide-react';
-import type { ReactNode } from 'react';
 import { useDialog } from '@/components/common/DialogProvider';
 import { Button } from '@/components/ui/v3/button';
 import { CreateActionForm } from '@/features/orgs/projects/graphql/actions/components/CreateActionForm';
 
-export interface NoActionsEmptyStateProps {
-  /**
-   * Title of the empty state.
-   */
-  title?: ReactNode;
-  /**
-   * Description of the empty state.
-   */
-  description?: ReactNode;
-}
-
-export default function NoActionsEmptyState({
-  title = 'Create your first action',
-  description = 'Actions let you extend your GraphQL API with custom business logic running behind an HTTP webhook handler.',
-}: NoActionsEmptyStateProps) {
+export default function NoActionsEmptyState() {
   const { openDrawer } = useDialog();
 
   return (
@@ -29,11 +14,12 @@ export default function NoActionsEmptyState({
         </div>
 
         <h3 className="text-balance font-semibold text-2xl tracking-tight">
-          {title}
+          Create your first action
         </h3>
 
         <p className="mt-3 text-muted-foreground leading-relaxed">
-          {description}
+          Actions let you extend your GraphQL API with custom business logic
+          running behind an HTTP webhook handler.
         </p>
 
         <div className="mt-8 flex flex-col items-center gap-4">

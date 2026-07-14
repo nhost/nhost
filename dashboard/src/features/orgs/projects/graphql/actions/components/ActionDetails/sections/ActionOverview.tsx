@@ -1,8 +1,10 @@
 import { Pencil, SlidersHorizontal, Webhook } from 'lucide-react';
-import { useMemo, useState } from 'react';
+import { useMemo } from 'react';
 import { useDialog } from '@/components/common/DialogProvider';
 import CopyToClipboardButton from '@/components/presentational/CopyToClipboardButton/CopyToClipboardButton';
 import { Button } from '@/components/ui/v3/button';
+import { TruncatedText } from '@/features/orgs/projects/common/components/TruncatedText';
+import { HeadersTable } from '@/features/orgs/projects/events/common/components/HeadersTable';
 import CollapsibleSection from '@/features/orgs/projects/graphql/actions/components/ActionDetails/sections/CollapsibleSection';
 import { EditActionForm } from '@/features/orgs/projects/graphql/actions/components/EditActionForm';
 import { GraphQLSdlEditor } from '@/features/orgs/projects/graphql/actions/components/GraphQLSdlEditor';
@@ -13,8 +15,6 @@ import {
   getActionTypes,
   parseCustomTypes,
 } from '@/features/orgs/projects/graphql/actions/utils/customTypesUtils';
-import { TruncatedText } from '@/features/orgs/projects/common/components/TruncatedText';
-import { HeadersTable } from '@/features/orgs/projects/events/common/components/HeadersTable';
 import { isNotEmptyValue } from '@/lib/utils';
 import type {
   ActionItem,
@@ -30,11 +30,6 @@ export default function ActionOverview({
   action,
   customTypes,
 }: ActionOverviewProps) {
-  const [isTransformOpen, setIsTransformOpen] = useState(false);
-  const [isResponseTransformOpen, setIsResponseTransformOpen] = useState(false);
-  const [isHeadersOpen, setIsHeadersOpen] = useState(false);
-  const [isDefinitionOpen, setIsDefinitionOpen] = useState(true);
-  const [isTypesOpen, setIsTypesOpen] = useState(true);
   const { openDrawer } = useDialog();
   const actionType = action.definition.type ?? 'mutation';
 
@@ -134,8 +129,7 @@ export default function ActionOverview({
 
       <CollapsibleSection
         title="Action Definition"
-        open={isDefinitionOpen}
-        onOpenChange={setIsDefinitionOpen}
+        defaultOpen
         action={editButton}
       >
         <div className="overflow-hidden border-t">
@@ -150,8 +144,7 @@ export default function ActionOverview({
       {typesSdl && (
         <CollapsibleSection
           title="Type Configuration"
-          open={isTypesOpen}
-          onOpenChange={setIsTypesOpen}
+          defaultOpen
           action={editButton}
         >
           <div className="overflow-hidden border-t">
@@ -165,11 +158,7 @@ export default function ActionOverview({
       )}
 
       {isNotEmptyValue(action.definition.headers) && (
-        <CollapsibleSection
-          title="Request Headers"
-          open={isHeadersOpen}
-          onOpenChange={setIsHeadersOpen}
-        >
+        <CollapsibleSection title="Request Headers">
           <div className="border-t p-4">
             <div className="overflow-x-auto">
               <HeadersTable headers={action.definition.headers} />
@@ -179,11 +168,7 @@ export default function ActionOverview({
       )}
 
       {requestTransform && (
-        <CollapsibleSection
-          title="Request Transform Configuration"
-          open={isTransformOpen}
-          onOpenChange={setIsTransformOpen}
-        >
+        <CollapsibleSection title="Request Transform Configuration">
           <div className="space-y-4 border-t p-4 pt-4">
             <div className="grid grid-cols-2 gap-4 text-sm">
               {requestTransform.method && (
@@ -240,11 +225,7 @@ export default function ActionOverview({
       )}
 
       {responseTransform && (
-        <CollapsibleSection
-          title="Response Transform Configuration"
-          open={isResponseTransformOpen}
-          onOpenChange={setIsResponseTransformOpen}
-        >
+        <CollapsibleSection title="Response Transform Configuration">
           <div className="space-y-4 border-t p-4 pt-4">
             <div className="text-sm">
               <span className="text-muted-foreground">Template Engine: </span>

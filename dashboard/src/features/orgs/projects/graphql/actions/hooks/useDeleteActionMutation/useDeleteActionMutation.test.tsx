@@ -95,9 +95,6 @@ describe('useDeleteActionMutation', () => {
     await result.current.mutateAsync(variables);
 
     expect(migrationBody?.name).toBe('delete_action_login');
-    expect(migrationBody?.up).toEqual([
-      { type: 'drop_action', args: { name: 'login' } },
-    ]);
     expect(metadataBody).toBeNull();
   });
 

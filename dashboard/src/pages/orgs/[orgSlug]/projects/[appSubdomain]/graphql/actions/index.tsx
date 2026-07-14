@@ -1,11 +1,11 @@
 import type { ReactElement } from 'react';
 import { LoadingScreen } from '@/components/presentational/LoadingScreen';
 import { OrgLayout } from '@/features/orgs/layout/OrgLayout';
+import { useIsPlatform } from '@/features/orgs/projects/common/hooks/useIsPlatform';
 import { ActionsBrowserSidebar } from '@/features/orgs/projects/graphql/actions/components/ActionsBrowserSidebar';
 import { ActionsEmptyState } from '@/features/orgs/projects/graphql/actions/components/ActionsEmptyState';
 import { NoActionsEmptyState } from '@/features/orgs/projects/graphql/actions/components/NoActionsEmptyState';
 import { useGetActions } from '@/features/orgs/projects/graphql/actions/hooks/useGetActions';
-import { useIsPlatform } from '@/features/orgs/projects/common/hooks/useIsPlatform';
 import { useProject } from '@/features/orgs/projects/hooks/useProject';
 
 export default function ActionsPage() {
@@ -38,7 +38,7 @@ export default function ActionsPage() {
   }
 
   return (
-    <NoActionsEmptyState
+    <ActionsEmptyState
       title="Actions"
       description="Select an action from the sidebar, or create a new one."
     />

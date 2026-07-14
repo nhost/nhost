@@ -1,5 +1,9 @@
 import { z } from 'zod';
 import {
+  requestOptionsTransformQueryParamsTypeOptions,
+  requestTransformMethods,
+} from '@/features/orgs/projects/events/common/constants';
+import {
   DEFAULT_ACTION_DEFINITION_SDL,
   DEFAULT_ACTION_TIMEOUT_SECONDS,
   DEFAULT_ACTION_TYPES_SDL,
@@ -7,21 +11,6 @@ import {
 import { getActionSampleInputPayload } from '@/features/orgs/projects/graphql/actions/utils/getActionSampleInputPayload';
 import { parseActionDefinitionSdl } from '@/features/orgs/projects/graphql/actions/utils/parseActionDefinitionSdl';
 import { parseTypesSdl } from '@/features/orgs/projects/graphql/actions/utils/parseTypesSdl';
-import {
-  requestOptionsTransformQueryParamsTypeOptions,
-  requestTransformMethods,
-} from '@/features/orgs/projects/events/common/constants';
-
-export const actionHeaderTypes = [
-  {
-    label: 'Value',
-    value: 'fromValue',
-  },
-  {
-    label: 'Env Var',
-    value: 'fromEnv',
-  },
-] as const;
 
 export const actionKindOptions = [
   {
@@ -62,11 +51,7 @@ export const validationSchema = z.object({
   headers: z.array(
     z.object({
       name: z.string().min(1, 'Name is required'),
-      type: z.enum(
-        actionHeaderTypes.map((header) => header.value) as [
-          (typeof actionHeaderTypes)[number]['value'],
-        ],
-      ),
+      type: z.enum(['fromValue', 'fromEnv']),
       value: z.string().min(1, 'Value is required'),
     }),
   ),

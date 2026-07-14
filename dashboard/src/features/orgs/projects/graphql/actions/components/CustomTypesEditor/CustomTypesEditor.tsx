@@ -1,6 +1,7 @@
 import { useEffect, useRef, useState } from 'react';
 import toast from 'react-hot-toast';
 import { Button, ButtonWithLoading } from '@/components/ui/v3/button';
+import { Skeleton } from '@/components/ui/v3/skeleton';
 import { GraphQLSdlEditor } from '@/features/orgs/projects/graphql/actions/components/GraphQLSdlEditor';
 import { useGetActions } from '@/features/orgs/projects/graphql/actions/hooks/useGetActions';
 import { useSetCustomTypesMutation } from '@/features/orgs/projects/graphql/actions/hooks/useSetCustomTypesMutation';
@@ -46,10 +47,10 @@ export default function CustomTypesEditor() {
   };
 
   const handleSave = async () => {
-    const { types, error } = parseTypesSdl(sdl);
+    const { types, error: parseError } = parseTypesSdl(sdl);
 
-    if (error) {
-      toast.error(error);
+    if (parseError) {
+      toast.error(parseError);
       return;
     }
 
@@ -86,7 +87,7 @@ export default function CustomTypesEditor() {
 
       <div className="min-h-0 flex-1 overflow-auto">
         {isLoading ? (
-          <div className="h-full w-full animate-pulse bg-muted" />
+          <Skeleton className="h-full w-full rounded-none" />
         ) : (
           <GraphQLSdlEditor
             value={sdl}

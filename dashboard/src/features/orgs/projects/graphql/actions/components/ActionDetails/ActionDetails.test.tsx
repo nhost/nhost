@@ -2,7 +2,7 @@ import { HttpResponse, http } from 'msw';
 import { setupServer } from 'msw/node';
 import { vi } from 'vitest';
 import { RetryableErrorBoundary } from '@/components/presentational/RetryableErrorBoundary';
-import { mockMatchMediaValue, mockRouter as baseRouter } from '@/tests/mocks';
+import { mockRouter as baseRouter, mockMatchMediaValue } from '@/tests/mocks';
 import {
   createExportActionsMetadataHandler,
   HASURA_API_URL,

@@ -25,13 +25,13 @@ import { Button, ButtonWithLoading } from '@/components/ui/v3/button';
 import { Form } from '@/components/ui/v3/form';
 import { SelectItem } from '@/components/ui/v3/select';
 import { Separator } from '@/components/ui/v3/separator';
-import { getOverlappingCustomTypenames } from '@/features/orgs/projects/graphql/actions/utils/getOverlappingCustomTypenames';
-import { getActionSampleInputPayload } from '@/features/orgs/projects/graphql/actions/utils/getActionSampleInputPayload';
-import { parseActionDefinitionSdl } from '@/features/orgs/projects/graphql/actions/utils/parseActionDefinitionSdl';
 import { InfoTooltip } from '@/features/orgs/projects/common/components/InfoTooltip';
 import { HeadersFormSection } from '@/features/orgs/projects/events/common/components/HeadersFormSection';
 import { PayloadTransformFormSection } from '@/features/orgs/projects/events/common/components/PayloadTransformFormSection';
 import { RequestOptionsFormSection } from '@/features/orgs/projects/events/common/components/RequestOptionsFormSection';
+import { getActionSampleInputPayload } from '@/features/orgs/projects/graphql/actions/utils/getActionSampleInputPayload';
+import { getOverlappingCustomTypenames } from '@/features/orgs/projects/graphql/actions/utils/getOverlappingCustomTypenames';
+import { parseActionDefinitionSdl } from '@/features/orgs/projects/graphql/actions/utils/parseActionDefinitionSdl';
 import { cn } from '@/lib/utils';
 import type { DialogFormProps } from '@/types/common';
 import type { CustomTypes } from '@/utils/hasura-api/generated/schemas';
@@ -54,6 +54,8 @@ const ACCORDION_SECTION_VALUES = [
 type AccordionSectionValue = (typeof ACCORDION_SECTION_VALUES)[number];
 
 const DIRTY_SOURCE_ID = 'base-action-form';
+
+const GRAPHQL_EXTENSIONS = [graphql()];
 
 interface TransformSectionToggleProps {
   title: string;
@@ -162,14 +164,11 @@ export default function BaseActionForm({
     [actionDefinitionSdl],
   );
 
-  const handleActionDefinitionChange = useCallback(
-    (sdl: string) => {
-      if (parseActionDefinitionSdl(sdl).definition?.type === 'query') {
-        setValue('kind', 'synchronous');
-      }
-    },
-    [setValue],
-  );
+  useEffect(() => {
+    if (isQueryAction) {
+      setValue('kind', 'synchronous');
+    }
+  }, [isQueryAction, setValue]);
 
   const overlappingTypenames = useMemo(
     () =>
@@ -258,8 +257,7 @@ export default function BaseActionForm({
                 control={form.control}
                 name="actionDefinitionSdl"
                 aria-label="Action Definition"
-                extensions={[graphql()]}
-                onChange={handleActionDefinitionChange}
+                extensions={GRAPHQL_EXTENSIONS}
                 label={
                   <>
                     Action Definition{' '}
@@ -274,7 +272,7 @@ export default function BaseActionForm({
                 control={form.control}
                 name="typesSdl"
                 aria-label="Type Configuration"
-                extensions={[graphql()]}
+                extensions={GRAPHQL_EXTENSIONS}
                 label={
                   <>
                     Type Configuration{' '}
