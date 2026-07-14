@@ -8,14 +8,14 @@ head:
 sidebar:
   label: Configuration
 ---
-import { Tabs, TabItem, LinkButton } from '@astrojs/starlight/components';
-import { Card } from '@components';
+import { Tabs, TabItem } from '@astrojs/starlight/components';
+import { Card, CardGroup } from '@components';
 
 You can customize and tweak the configuration of the GraphQL engine using your project's configuration file. The example below is ready to copy into your `nhost.toml`, and the **Schema** tab outlines the available settings. For the complete, field-by-field reference of every option, see the [configuration reference](/reference/configuration).
 
 ## Naming conventions
 
-Across Nhost you'll see identifiers that carry the Hasura name: the `[hasura]` configuration block and `HASURA_GRAPHQL_*` settings on this page, the `x-hasura-*` [session variables](/products/graphql/permissions/permission-variables) used in permissions, and the default `claims_namespace` of `https://hasura.io/jwt/claims` in [JWT configuration](/products/auth/jwt). 
+Across Nhost you'll see identifiers that carry the Hasura name: the `[hasura]` configuration block and `HASURA_GRAPHQL_*` settings on this page, the `x-hasura-*` [session variables](/products/graphql/permissions/permission-variables) used in permissions, and the default `claims_namespace` of `https://hasura.io/jwt/claims` in [JWT configuration](/products/auth/jwt).
 
 These are retained identifiers kept for compatibility with existing tooling and metadata, and they behave the same regardless of which GraphQL engine you run, including [Constellation](/products/graphql/constellation). Keep them as-is.
 
@@ -142,10 +142,12 @@ JWT signing is configured in the shared `[hasura].jwtSecrets` setting. For symme
 
 ## Learn more
 
-<Card title="Constellation" icon="rocket" href="/products/graphql/constellation">
-Nhost's own GraphQL engine — a faster, lighter, Hasura-compatible drop-in, currently in alpha. Read more and learn how to enable it.
-</Card>
+<CardGroup cols={2}>
+  <Card title="Constellation" icon="rocket" href="/products/graphql/constellation">
+  Nhost's own GraphQL engine — a faster, lighter, Hasura-compatible drop-in, currently in alpha. Read more and learn how to enable it.
+  </Card>
 
-For an exhaustive, field-by-field breakdown of every option in `nhost.toml`, see the generated configuration reference.
-
-<LinkButton href="/reference/configuration" variant="secondary" icon="right-arrow">Configuration reference</LinkButton>
+  <Card title="Configuration reference" icon="file-lines" href="/reference/configuration">
+  An exhaustive, field-by-field breakdown of every option in `nhost.toml`.
+  </Card>
+</CardGroup>
