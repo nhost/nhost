@@ -357,24 +357,25 @@ extension GraphQLCacheCoordinator {
             decoder: decoder
         )
 
-        let currentSnapshot = try await currentSnapshotForVerification()
-        switch try prepared.scope.verify(
-            transcript: captured.transcript,
-            expectedURL: endpoint,
-            expectedBody: encoded.body,
-            currentSessionSnapshot: currentSnapshot
-        ) {
-        case .unverifiable:
-            diagnose(.unverifiableRequest, "the final GraphQL request could not be associated with the cache")
+        do {
+            guard try await canAssociate(
+                captured,
+                expectedBody: encoded.body,
+                scope: prepared.scope
+            ) else {
+                return GraphQLNetworkResponse(
+                    response: response,
+                    persistenceOutcome: .skipped,
+                    timestamp: clock()
+                )
+            }
+        } catch GraphQLCacheError.unavailableScope {
             return GraphQLNetworkResponse(
                 response: response,
                 persistenceOutcome: .skipped,
                 timestamp: clock()
             )
-        case .verified:
-            break
         }
-
         try Task.checkCancellation()
         guard captured.response.isSuccess else {
             return GraphQLNetworkResponse(
@@ -414,6 +415,12 @@ extension GraphQLCacheCoordinator {
             throw CancellationError()
         } catch GraphQLCacheError.authorizationScopeChanged {
             throw GraphQLCacheError.authorizationScopeChanged
+        } catch GraphQLCacheError.unavailableScope {
+            return GraphQLNetworkResponse(
+                response: response,
+                persistenceOutcome: .skipped,
+                timestamp: now
+            )
         } catch let GraphQLCacheError.oversizedEntry(actual, maximum) {
             diagnose(.oversizedEntry, "a GraphQL response exceeded the configured cache entry limit")
             _ = (actual, maximum)
@@ -428,6 +435,15 @@ extension GraphQLCacheCoordinator {
         } catch GraphQLCacheError.authorizationScopeChanged {
             try? await store.removeEntry(for: prepared.identity.key)
             throw GraphQLCacheError.authorizationScopeChanged
+        } catch GraphQLCacheError.unavailableScope {
+            if persistenceOutcome == .stored {
+                do {
+                    try await store.removeEntry(for: prepared.identity.key)
+                } catch {
+                    diagnose(.storeWriteFailure, "an unverified GraphQL cache entry could not be removed")
+                }
+                persistenceOutcome = .skipped
+            }
         }
         try Task.checkCancellation()
         return GraphQLNetworkResponse(
@@ -437,9 +453,45 @@ extension GraphQLCacheCoordinator {
         )
     }
 
+    private func canAssociate(
+        _ captured: NhostCapturedFetchResult,
+        expectedBody: Data,
+        scope: GraphQLCachePreflightScope
+    ) async throws -> Bool {
+        do {
+            switch try scope.verifyTerminalRequest(
+                transcript: captured.transcript,
+                expectedURL: endpoint,
+                expectedBody: expectedBody
+            ) {
+            case .unverifiable:
+                diagnose(.unverifiableRequest, "the final GraphQL request could not be associated with the cache")
+                return false
+            case .verified:
+                break
+            }
+        } catch GraphQLCacheError.authorizationScopeChanged {
+            diagnose(
+                .protectedRequestStateChanged,
+                "the final protected GraphQL request state differed from its preflight scope"
+            )
+            throw GraphQLCacheError.authorizationScopeChanged
+        }
+        try await verifyCurrentScope(scope)
+        return true
+    }
+
     func verifyCurrentScope(_ scope: GraphQLCachePreflightScope) async throws {
         let snapshot = try await currentSnapshotForVerification()
-        try scope.verifyCurrentSessionSnapshot(snapshot)
+        do {
+            try scope.verifyCurrentSessionSnapshot(snapshot)
+        } catch GraphQLCacheError.authorizationScopeChanged {
+            diagnose(
+                .sessionAuthorizationChanged,
+                "the managed GraphQL authorization scope changed while work was in progress"
+            )
+            throw GraphQLCacheError.authorizationScopeChanged
+        }
     }
 
     private func currentSnapshotForVerification() async throws -> SessionAuthorizationSnapshot? {
@@ -448,7 +500,11 @@ extension GraphQLCacheCoordinator {
         } catch is CancellationError {
             throw CancellationError()
         } catch {
-            throw GraphQLCacheError.authorizationScopeChanged
+            diagnose(
+                .unavailableScope,
+                "the current GraphQL authorization scope could not be verified"
+            )
+            throw GraphQLCacheError.unavailableScope
         }
     }
 
@@ -478,6 +534,8 @@ extension GraphQLCacheCoordinator {
             break
         case .decoderIncompatible:
             diagnose(.decoderIncompatible, "a cached GraphQL response was incompatible")
+        case .unavailableScope:
+            break
         case .oversizedEntry:
             diagnose(.oversizedEntry, "a cached GraphQL response exceeded its configured limit")
         default:

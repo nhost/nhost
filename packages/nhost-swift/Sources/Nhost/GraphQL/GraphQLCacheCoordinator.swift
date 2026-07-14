@@ -151,7 +151,6 @@ extension GraphQLCacheCoordinator {
                 requirement: .freshOrStale,
                 touchFailureIsFatal: false
             )
-            try await verifyCurrentScope(prepared.scope)
             try Task.checkCancellation()
             let yieldResult = continuation.yield(
                 .cached(candidate.response, metadata: cachedMetadata(candidate))
@@ -174,7 +173,6 @@ extension GraphQLCacheCoordinator {
             decoder: decoder,
             prepared: prepared
         )
-        try await verifyCurrentScope(prepared.scope)
         try Task.checkCancellation()
         let createdAt = refreshed.persistenceOutcome == .stored
             ? cached?.entry.createdAt ?? refreshed.timestamp

@@ -95,6 +95,27 @@ actor CacheSessionSnapshotGate {
     }
 }
 
+actor CacheSessionSnapshotFailure {
+    private let failingCall: Int
+    private var calls = 0
+
+    init(failingCall: Int) {
+        self.failingCall = failingCall
+    }
+
+    func snapshot(from sessionStore: SessionStore) async throws -> SessionAuthorizationSnapshot {
+        calls += 1
+        if calls == failingCall {
+            throw SnapshotError.unavailable
+        }
+        return try await sessionStore.authorizationSnapshot()
+    }
+
+    private enum SnapshotError: Error {
+        case unavailable
+    }
+}
+
 actor CachePolicyStore: GraphQLCacheStore {
     struct Counts: Sendable {
         let reads: Int
@@ -222,19 +243,33 @@ extension GraphQLCachePolicyTests {
         store: CachePolicyStore,
         sessionStore: SessionStore
     ) -> GraphQLClient {
+        makeManagedClient(
+            queue: queue,
+            sessionStore: sessionStore,
+            configuration: GraphQLCacheConfiguration(store: store),
+            sessionSnapshot: { try await sessionStore.authorizationSnapshot() }
+        )
+    }
+
+    func makeManagedClient(
+        queue: CacheResponseQueue,
+        sessionStore: SessionStore,
+        configuration: GraphQLCacheConfiguration,
+        sessionSnapshot: @escaping @Sendable () async throws -> SessionAuthorizationSnapshot?
+    ) -> GraphQLClient {
         let instant = now
         return GraphQLClient(
             url: endpoint,
             transport: StubTransport { _ in try await queue.next() },
             middleware: [attachAccessTokenMiddleware(sessionStore: sessionStore)],
-            cacheConfiguration: GraphQLCacheConfiguration(store: store),
+            cacheConfiguration: configuration,
             cacheScopeContext: GraphQLCacheClientScopeContext(
                 defaultHeaders: [:],
                 configuredRole: nil,
                 adminSession: nil,
                 usesManagedSession: true,
                 hasCustomMiddleware: false,
-                sessionSnapshot: { try await sessionStore.authorizationSnapshot() }
+                sessionSnapshot: sessionSnapshot
             ),
             cacheClock: { instant }
         )

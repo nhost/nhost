@@ -100,6 +100,8 @@ public struct GraphQLCacheInvalidationFilter: Sendable, Equatable {
 /// and explicit management operations surface these errors. Decoder
 /// incompatibility remains primary if best-effort eviction also fails, and a
 /// network-first cache failure never replaces the original transport error.
+/// A confirmed protected-state mismatch is `authorizationScopeChanged`; an
+/// authorization snapshot that cannot be read is `unavailableScope`.
 public enum GraphQLCacheError: Error, Sendable, Equatable {
     case notConfigured
     case miss
@@ -268,6 +270,8 @@ public typealias GraphQLCacheScopeResolver = @Sendable (
     GraphQLCacheScopeResolverContext
 ) async throws -> GraphQLCacheCustomScope?
 
+/// Sanitized cache diagnostic categories. Confirmed session and final-request
+/// mismatches are distinguished from transient `unavailableScope` failures.
 public enum GraphQLCacheDiagnosticKind: Sendable, Equatable {
     case invalidConfiguration
     case unavailableScope
@@ -279,6 +283,8 @@ public enum GraphQLCacheDiagnosticKind: Sendable, Equatable {
     case storeInvalidationFailure
     case cleanupFailure
     case decoderIncompatible
+    case protectedRequestStateChanged
+    case sessionAuthorizationChanged
     case oversizedEntry
     case clockRollback
     case unverifiableRequest

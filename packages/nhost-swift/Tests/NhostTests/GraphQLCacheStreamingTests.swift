@@ -26,6 +26,137 @@ extension GraphQLCachePolicyTests {
         XCTAssertEqual(calls, 1)
     }
 
+    func testStaleWhileRevalidateSnapshotFailureEmitsUncachedFreshValue() async throws {
+        let sessionStore = SessionStore(
+            storage: MemorySessionStorageBackend(session: try managedSession(subject: "user-1"))
+        )
+        let snapshotFailure = CacheSessionSnapshotFailure(failingCall: 2)
+        let store = CachePolicyStore()
+        let diagnostics = CacheDiagnosticRecorder()
+        let queue = CacheResponseQueue([.response(success(ok: true))])
+        let client = makeManagedClient(
+            queue: queue,
+            sessionStore: sessionStore,
+            configuration: GraphQLCacheConfiguration(
+                store: store,
+                diagnosticObserver: diagnostics.record
+            ),
+            sessionSnapshot: {
+                try await snapshotFailure.snapshot(from: sessionStore)
+            }
+        )
+
+        let capture = await collect(
+            client.staleWhileRevalidate(
+                CacheBoolData.self,
+                query: query,
+                cacheOptions: GraphQLCacheRequestOptions(policy: .cacheFirst)
+            )
+        )
+        let counts = await store.counts()
+
+        XCTAssertNil(capture.error)
+        XCTAssertEqual(capture.values.count, 1)
+        assertFresh(capture.values[0], value: true, outcome: .skipped)
+        XCTAssertEqual(counts.writes, 0)
+        XCTAssertTrue(diagnostics.kinds().contains(.unavailableScope))
+        XCTAssertFalse(diagnostics.kinds().contains(.sessionAuthorizationChanged))
+        XCTAssertFalse(diagnostics.kinds().contains(.protectedRequestStateChanged))
+    }
+
+    func testStaleWhileRevalidatePostWriteSnapshotFailureRemovesEntry() async throws {
+        let sessionStore = SessionStore(
+            storage: MemorySessionStorageBackend(session: try managedSession(subject: "user-1"))
+        )
+        let snapshotFailure = CacheSessionSnapshotFailure(failingCall: 4)
+        let store = CachePolicyStore()
+        let diagnostics = CacheDiagnosticRecorder()
+        let queue = CacheResponseQueue([.response(success(ok: true))])
+        let client = makeManagedClient(
+            queue: queue,
+            sessionStore: sessionStore,
+            configuration: GraphQLCacheConfiguration(
+                store: store,
+                diagnosticObserver: diagnostics.record
+            ),
+            sessionSnapshot: {
+                try await snapshotFailure.snapshot(from: sessionStore)
+            }
+        )
+
+        let capture = await collect(
+            client.staleWhileRevalidate(
+                CacheBoolData.self,
+                query: query,
+                cacheOptions: GraphQLCacheRequestOptions(policy: .cacheFirst)
+            )
+        )
+        let counts = await store.counts()
+
+        XCTAssertNil(capture.error)
+        XCTAssertEqual(capture.values.count, 1)
+        assertFresh(capture.values[0], value: true, outcome: .skipped)
+        XCTAssertEqual(counts.writes, 1)
+        XCTAssertEqual(counts.removals, 1)
+        XCTAssertTrue(diagnostics.kinds().contains(.unavailableScope))
+    }
+
+    func testStaleWhileRevalidateSnapshotFailureAfterCachedEmissionStillEmitsFresh() async throws {
+        let sessionStore = SessionStore(
+            storage: MemorySessionStorageBackend(session: try managedSession(subject: "user-1"))
+        )
+        let store = CachePolicyStore()
+        let seedQueue = CacheResponseQueue([.response(success(ok: true))])
+        let seedClient = makeManagedClient(
+            queue: seedQueue,
+            store: store,
+            sessionStore: sessionStore
+        )
+        _ = try await seedClient.request(
+            CacheBoolData.self,
+            query: query,
+            cacheOptions: GraphQLCacheRequestOptions(policy: .cacheFirst)
+        )
+
+        let snapshotFailure = CacheSessionSnapshotFailure(failingCall: 4)
+        let diagnostics = CacheDiagnosticRecorder()
+        let refreshQueue = CacheResponseQueue([.response(success(ok: false))])
+        let client = makeManagedClient(
+            queue: refreshQueue,
+            sessionStore: sessionStore,
+            configuration: GraphQLCacheConfiguration(
+                store: store,
+                diagnosticObserver: diagnostics.record
+            ),
+            sessionSnapshot: {
+                try await snapshotFailure.snapshot(from: sessionStore)
+            }
+        )
+
+        let capture = await collect(
+            client.staleWhileRevalidate(
+                CacheBoolData.self,
+                query: query,
+                cacheOptions: GraphQLCacheRequestOptions(policy: .cacheFirst)
+            )
+        )
+        let counts = await store.counts()
+
+        XCTAssertNil(capture.error)
+        XCTAssertEqual(capture.values.count, 2)
+        switch capture.values[0] {
+        case let .cached(response, _):
+            XCTAssertEqual(response.body.data?.ok, true)
+        case .fresh:
+            XCTFail("cached response must be emitted first")
+        }
+        assertFresh(capture.values[1], value: false, outcome: .skipped)
+        XCTAssertEqual(counts.writes, 1, "only the seed response may be cached")
+        XCTAssertTrue(diagnostics.kinds().contains(.unavailableScope))
+        XCTAssertFalse(diagnostics.kinds().contains(.sessionAuthorizationChanged))
+        XCTAssertFalse(diagnostics.kinds().contains(.protectedRequestStateChanged))
+    }
+
     func testStaleWhileRevalidateEmitsCachedThenFreshWithMetadata() async throws {
         let store = CachePolicyStore()
         let seedQueue = CacheResponseQueue([.response(success(ok: true))])

@@ -242,6 +242,25 @@ struct GraphQLCachePreflightScope: Sendable {
         expectedBody: Data,
         currentSessionSnapshot: SessionAuthorizationSnapshot?
     ) throws -> GraphQLCacheFinalRequestVerification {
+        let verification = try verifyTerminalRequest(
+            transcript: transcript,
+            expectedURL: expectedURL,
+            expectedBody: expectedBody
+        )
+        switch verification {
+        case .verified:
+            try verifySessionSnapshot(currentSessionSnapshot)
+        case .unverifiable:
+            break
+        }
+        return verification
+    }
+
+    func verifyTerminalRequest(
+        transcript: NhostTerminalRequestTranscript,
+        expectedURL: URL,
+        expectedBody: Data
+    ) throws -> GraphQLCacheFinalRequestVerification {
         guard transcript.requests.count == 1, let request = transcript.requests.first,
               request.method.uppercased() == "POST",
               request.bodyFileURL == nil,
@@ -260,7 +279,6 @@ struct GraphQLCachePreflightScope: Sendable {
         }
 
         try verifyProtectedHeaders(finalHeaders)
-        try verifySessionSnapshot(currentSessionSnapshot)
         return .verified
     }
 

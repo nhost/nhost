@@ -370,7 +370,13 @@ Effective role precedence is: per-call `x-hasura-role`, admin-session role,
 role. Header names are matched case-insensitively. If authorization state changes
 while a cache-enabled read, request, or stream is in flight, it fails closed with
 `GraphQLCacheError.authorizationScopeChanged`; the mismatched response is not
-returned, emitted, or persisted.
+returned, emitted, or persisted. Diagnostics distinguish a final-header mismatch
+(`protectedRequestStateChanged`) from a session epoch/fingerprint mismatch
+(`sessionAuthorizationChanged`). If the current session snapshot temporarily
+cannot be read, the SDK does not report a confirmed scope change: cache-only
+throws `GraphQLCacheError.unavailableScope`, while network-capable APIs return the
+successful network response without persisting it and report an
+`unavailableScope` diagnostic.
 
 Custom middleware makes cache association unavailable unless
 `GraphQLCacheConfiguration.scopeResolver` returns a
