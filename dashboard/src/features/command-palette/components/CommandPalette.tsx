@@ -177,6 +177,7 @@ export const CommandPalette = ({
   className,
 }: CommandPaletteProps) => {
   const inputRef = useRef<HTMLInputElement>(null);
+  const listRef = useRef<HTMLDivElement>(null);
   const { contentRef, height, animate } = useAnimatedHeight<HTMLDivElement>();
   const [selectedValue, setSelectedValue] = useState<string>('');
   const currentScope = scopeStack.at(-1);
@@ -205,6 +206,12 @@ export const CommandPalette = ({
     () => getSelectedNode(sections, selectedValue),
     [sections, selectedValue],
   );
+
+  // biome-ignore lint/correctness/useExhaustiveDependencies: selection and scroll reset to the top result only when the query or scope changes
+  useEffect(() => {
+    setSelectedValue(sections[0]?.items[0]?.node.id ?? '');
+    listRef.current?.scrollTo({ top: 0 });
+  }, [trimmedQuery, currentScope]);
 
   useEffect(() => {
     if (!selectedNode) {
@@ -335,7 +342,7 @@ export const CommandPalette = ({
                   ))}
                 </div>
               )}
-              <CommandList className="mt-2 max-h-[420px]">
+              <CommandList className="mt-2 max-h-[420px]" ref={listRef}>
                 {!hasItems && (
                   <CommandEmpty className="flex min-h-[300px] items-center justify-center px-6 py-10">
                     <div className="flex flex-col items-center gap-2 text-center">

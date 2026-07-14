@@ -81,7 +81,8 @@ beforeEach(() => {
   push.mockReset();
   window.localStorage.clear();
   process.env.NEXT_PUBLIC_NHOST_PLATFORM = 'true';
-  process.env.NEXT_PUBLIC_NHOST_CONFIGSERVER_URL = 'https://local.graphql.local.nhost.run/v1';
+  process.env.NEXT_PUBLIC_NHOST_CONFIGSERVER_URL =
+    'https://local.graphql.local.nhost.run/v1';
   router.query = { orgSlug: 'org-a', appSubdomain: 'project-a' };
   useIsPlatformMock.mockReturnValue(true);
   useOrgsMock.mockReturnValue({
@@ -107,6 +108,7 @@ beforeEach(() => {
     return 0;
   };
   window.HTMLElement.prototype.scrollIntoView = vi.fn();
+  window.HTMLElement.prototype.scrollTo = vi.fn();
 });
 
 describe('CommandPaletteProvider', () => {
@@ -477,7 +479,8 @@ describe('CommandPaletteProvider', () => {
 
   it('shows project settings and AI off-platform when config server is set', async () => {
     process.env.NEXT_PUBLIC_NHOST_PLATFORM = 'false';
-    process.env.NEXT_PUBLIC_NHOST_CONFIGSERVER_URL = 'https://local.graphql.local.nhost.run/v1';
+    process.env.NEXT_PUBLIC_NHOST_CONFIGSERVER_URL =
+      'https://local.graphql.local.nhost.run/v1';
     useIsPlatformMock.mockReturnValue(false);
     useOrgsMock.mockReturnValue({
       orgs: [

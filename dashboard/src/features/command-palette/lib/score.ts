@@ -5,9 +5,13 @@ export const SCORE_BANDS = {
   SUBSTRING: 400,
   WORD_PREFIX: 300,
   ALL_TOKENS_PRESENT: 200,
-  SUBSEQUENCE: 100,
+  TYPO: 100,
   NONE: 0,
 } as const;
+
+// Tokens shorter than this get no typo tolerance; near-misses on very short
+// queries match almost everything.
+const MIN_TYPO_TOKEN_LENGTH = 4;
 
 interface ScoreResult {
   score: number;
@@ -103,24 +107,101 @@ const getAllTokenRanges = (value: string, tokens: string[]): TitleRange[] => {
   return mergeRanges(ranges);
 };
 
-const getSubsequenceRanges = (value: string, query: string): TitleRange[] => {
-  const ranges: TitleRange[] = [];
-  let queryIndex = 0;
+interface TitleWord {
+  text: string;
+  start: number;
+}
 
-  for (let valueIndex = 0; valueIndex < value.length; valueIndex += 1) {
-    if (value[valueIndex] !== query[queryIndex]) {
+const getWords = (value: string): TitleWord[] => {
+  const words: TitleWord[] = [];
+  let searchStart = 0;
+
+  for (const text of value.match(/\S+/g) ?? []) {
+    const start = value.indexOf(text, searchStart);
+    words.push({ text, start });
+    searchStart = start + text.length;
+  }
+
+  return words;
+};
+
+// One substitution, insertion, deletion, or adjacent transposition.
+const isWithinOneEdit = (first: string, second: string): boolean => {
+  if (first === second) {
+    return true;
+  }
+
+  const lengthDiff = first.length - second.length;
+
+  if (Math.abs(lengthDiff) > 1) {
+    return false;
+  }
+
+  if (lengthDiff !== 0) {
+    const longer = lengthDiff > 0 ? first : second;
+    const shorter = lengthDiff > 0 ? second : first;
+    let index = 0;
+
+    while (index < shorter.length && longer[index] === shorter[index]) {
+      index += 1;
+    }
+
+    return longer.slice(index + 1) === shorter.slice(index);
+  }
+
+  let mismatch = -1;
+
+  for (let index = 0; index < first.length; index += 1) {
+    if (first[index] === second[index]) {
       continue;
     }
 
-    ranges.push([valueIndex, valueIndex + 1]);
-    queryIndex += 1;
-
-    if (queryIndex === query.length) {
-      return mergeRanges(ranges);
+    if (mismatch >= 0) {
+      return (
+        mismatch === index - 1 &&
+        first[mismatch] === second[index] &&
+        first[index] === second[mismatch] &&
+        first.slice(index + 1) === second.slice(index + 1)
+      );
     }
+
+    mismatch = index;
   }
 
-  return [];
+  return true;
+};
+
+const getTypoTokenRange = (
+  value: string,
+  words: TitleWord[],
+  token: string,
+): TitleRange | undefined => {
+  if (token.length < MIN_TYPO_TOKEN_LENGTH) {
+    const index = value.indexOf(token);
+
+    return index < 0 ? undefined : [index, index + token.length];
+  }
+
+  const word = words.find(({ text }) => isWithinOneEdit(token, text));
+
+  return word ? [word.start, word.start + word.text.length] : undefined;
+};
+
+const getTypoRanges = (value: string, tokens: string[]): TitleRange[] => {
+  const words = getWords(value);
+  const ranges: TitleRange[] = [];
+
+  for (const token of tokens) {
+    const range = getTypoTokenRange(value, words, token);
+
+    if (!range) {
+      return [];
+    }
+
+    ranges.push(range);
+  }
+
+  return mergeRanges(ranges);
 };
 
 const mergeRanges = (ranges: TitleRange[]): TitleRange[] => {
@@ -173,8 +254,8 @@ const bandMatchers: BandMatcher[] = [
     getRanges: (value, _query, tokens) => getAllTokenRanges(value, tokens),
   },
   {
-    score: SCORE_BANDS.SUBSEQUENCE,
-    getRanges: (value, query) => getSubsequenceRanges(value, query),
+    score: SCORE_BANDS.TYPO,
+    getRanges: (value, _query, tokens) => getTypoRanges(value, tokens),
   },
 ];
 

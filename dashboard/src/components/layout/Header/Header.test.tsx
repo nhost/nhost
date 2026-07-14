@@ -90,7 +90,8 @@ beforeEach(() => {
   push.mockReset();
   window.localStorage.clear();
   process.env.NEXT_PUBLIC_NHOST_PLATFORM = 'true';
-  process.env.NEXT_PUBLIC_NHOST_CONFIGSERVER_URL = 'https://local.graphql.local.nhost.run/v1';
+  process.env.NEXT_PUBLIC_NHOST_CONFIGSERVER_URL =
+    'https://local.graphql.local.nhost.run/v1';
   router.query = { orgSlug: 'org-a', appSubdomain: 'project-a' };
   useIsPlatformMock.mockReturnValue(true);
   useTreeNavStateMock.mockReturnValue({ mainNavPinned: true });
@@ -114,6 +115,7 @@ beforeEach(() => {
     return 0;
   };
   window.HTMLElement.prototype.scrollIntoView = vi.fn();
+  window.HTMLElement.prototype.scrollTo = vi.fn();
 });
 
 const renderHeader = () =>

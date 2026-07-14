@@ -111,6 +111,7 @@ beforeEach(() => {
     return 0;
   };
   window.HTMLElement.prototype.scrollIntoView = vi.fn();
+  window.HTMLElement.prototype.scrollTo = vi.fn();
 });
 
 describe('CommandPalette', () => {
@@ -274,6 +275,45 @@ describe('CommandPalette', () => {
     fireEvent.keyDown(input, { key: 'Enter' });
 
     await waitFor(() => expect(onNavigate).toHaveBeenCalledWith(logs));
+  });
+
+  it('resets the selection to the top result and scrolls up when the query changes', async () => {
+    const paletteProps = {
+      items: [toItem(database), toItem(logs)],
+      onDrill: vi.fn(),
+      onNavigate: vi.fn(),
+      onOpenChange: vi.fn(),
+      onPopScope: vi.fn(),
+      onPopTo: vi.fn(),
+      onQueryChange: vi.fn(),
+      open: true,
+      scopeStack: [],
+    };
+    const { rerender } = render(
+      <CommandPalette {...paletteProps} query="data" />,
+    );
+    const input = screen.getByRole('combobox');
+    input.focus();
+
+    fireEvent.keyDown(input, { key: 'ArrowDown' });
+    await waitFor(() => {
+      expect(screen.getByTestId('command-palette-item-logs')).toHaveAttribute(
+        'aria-selected',
+        'true',
+      );
+    });
+
+    const scrollTo = vi.mocked(window.HTMLElement.prototype.scrollTo);
+    scrollTo.mockClear();
+
+    rerender(<CommandPalette {...paletteProps} query="log" />);
+
+    await waitFor(() => {
+      expect(
+        screen.getByTestId('command-palette-item-database'),
+      ).toHaveAttribute('aria-selected', 'true');
+    });
+    expect(scrollTo).toHaveBeenCalledWith({ top: 0 });
   });
 
   it('keeps same-titled nodes independently selectable by id', () => {
