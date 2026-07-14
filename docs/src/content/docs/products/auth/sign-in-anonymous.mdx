@@ -1,7 +1,7 @@
 ---
 title: Anonymous Sign-In
 description: Learn how to let users try your application without creating an account, and how to convert them to permanent users.
-keywords: ["anonymous", "guest", "temporary user", "deanonymize", "convert account", "passwordless"]
+keywords: ["anonymous", "guest", "temporary user", "deanonymize", "convert account", "passwordless", "SMS", "phone number"]
 head:
   - tag: title
     content: "Guest Login and Converting Anonymous Users | Nhost Docs"
@@ -19,7 +19,11 @@ await nhost.auth.signInAnonymous();
 
 ## Deanonymization
 
-Anonymous users can be converted to permanent accounts by linking an email address. The deanonymization flow follows the same PKCE pattern as sign-up, using `userDeanonymize`:
+Anonymous users can be converted to permanent accounts by linking an email address or a phone number.
+
+### With Email
+
+The email deanonymization flow follows the same PKCE pattern as sign-up, using `userDeanonymize`:
 
 ```js
 import { generatePKCEPair } from '@nhost/nhost-js/auth';
@@ -50,3 +54,22 @@ await nhost.auth.userDeanonymize({
 After the user verifies their email, the authorization code is [exchanged for a session](/products/auth/pkce#handling-the-verification-redirect).
 
 Both pathways require [PKCE](/products/auth/pkce) via the `codeChallenge` parameter when email verification is required.
+
+### With SMS
+
+Anonymous users can also be converted by linking a phone number. Instead of PKCE, the number is verified with an SMS OTP:
+
+```js
+// Request the conversion — this sends an OTP to the phone number
+await nhost.auth.deanonymizeUserSMS({
+  phoneNumber: '+11233213123'
+})
+
+// Verify the OTP to finish the conversion and receive a non-anonymous session
+await nhost.auth.verifySignInPasswordlessSms({
+  phoneNumber: '+11233213123',
+  otp: '123456'
+})
+```
+
+See [SMS OTP → Deanonymize with SMS](/products/auth/otp/sms#deanonymize-with-sms) for the full flow.
