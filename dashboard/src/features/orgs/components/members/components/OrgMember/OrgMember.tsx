@@ -155,32 +155,32 @@ export default function OrgMember({ member, isAdmin }: OrgMemberProps) {
 
   return (
     <>
-      <div className="flex w-full flex-row place-content-between">
-        <div className="flex flex-row items-center">
+      <div className="flex w-full flex-row items-center justify-between gap-2">
+        <div className="flex min-w-0 flex-row items-center gap-3">
           <Avatar
-            className="rounded-full"
+            className="shrink-0 rounded-full"
             alt={member.user.displayName}
             src={member.user.avatarUrl}
           >
             {member.user.displayName || 'local'}
           </Avatar>
 
-          <div className="ml-3 flex flex-col">
+          <div className="flex min-w-0 flex-col">
             <div className="flex flex-row items-center gap-2">
-              <span className="font-medium">{member.user.displayName}</span>
+              <span className="truncate font-medium">{member.user.displayName}</span>
               {isSelf && (
-                <Badge className="pointer-events-none h-5 bg-blue-100 px-[6px] font-bold text-[10px] text-primary-main dark:bg-primary">
+                <Badge className="pointer-events-none h-5 shrink-0 bg-blue-100 px-[6px] font-bold text-[10px] text-primary-main dark:bg-primary">
                   Me
                 </Badge>
               )}
             </div>
-            <span className="text-muted-foreground text-sm">
+            <span className="truncate text-sm text-muted-foreground">
               {member.user.email}
             </span>
           </div>
         </div>
 
-        <div className="flex flex-row items-center gap-4">
+        <div className="flex shrink-0 flex-row items-center gap-2 sm:gap-4">
           <span className="font-medium">{member.role}</span>
 
           <DropdownMenu open={dropDownOpen} onOpenChange={setDropDownOpen}>
