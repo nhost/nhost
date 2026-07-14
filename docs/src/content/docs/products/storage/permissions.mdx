@@ -1,6 +1,6 @@
 ---
 title: Permissions
-description: Control file access with the GraphQL permission system
+description: Control file access with Nhost permissions
 keywords: ["storage", "permissions", "access control", "authorization", "roles", "security"]
 head:
   - tag: title
@@ -180,7 +180,7 @@ Deleting file metadata directly through GraphQL does **not** delete the actual f
 
 ## Advanced
 
-Storage permissions are built on the GraphQL permission system for the `storage.files` table. The dashboard configures these automatically, but understanding the underlying mapping can help with debugging or advanced setups.
+Storage access is controlled through permissions on the `storage.files` table. The dashboard configures these automatically, but understanding the underlying mapping can help with debugging or advanced setups.
 
 ### How requests are authorized
 
@@ -210,4 +210,3 @@ Each dashboard action maps to a permission on the `storage.files` table:
 | **Download** | `select` | **All** columns must be granted |
 | **Replace** | `update` | `bucket_id`, `etag`, `is_uploaded`, `metadata`, `mime_type`, `name`, `size` |
 | **Delete** | `delete` | -- |
-
