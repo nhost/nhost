@@ -75,10 +75,10 @@ export default function HeadersFormSection() {
                 autoComplete="off"
               />
             </div>
-            <div className="flex h-10 items-center justify-center self-start pt-2">
+            <div className="flex h-10 items-center justify-center self-start">
               <span className="text-center text-foreground">:</span>
             </div>
-            <div className="col-span-4 flex items-center self-start">
+            <div className="col-span-4 flex items-start self-start">
               <div className="self-start">
                 <FormSelect
                   control={form.control}
@@ -109,7 +109,7 @@ export default function HeadersFormSection() {
                 />
               </div>
             </div>
-            <div className="flex justify-end self-start pt-3">
+            <div className="flex h-10 items-center justify-end self-start">
               <Button
                 type="button"
                 variant="ghost"

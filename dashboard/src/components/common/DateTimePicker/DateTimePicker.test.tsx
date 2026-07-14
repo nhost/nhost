@@ -1,4 +1,4 @@
-import { isBefore, startOfDay } from 'date-fns-v4';
+import { isBefore, startOfDay } from 'date-fns';
 import { useState } from 'react';
 import { TZDate } from 'react-day-picker';
 import { vi } from 'vitest';
@@ -22,7 +22,7 @@ const earliestBackupDate = '2025-03-13T02:00:05.000Z';
 function TestComponent(
   props: Omit<DateTimePickerProps, 'dateTime' | 'onDateTimeChange'>,
 ) {
-  const [dateTime, setDateTime] = useState(earliestBackupDate);
+  const [dateTime, setDateTime] = useState<string | null>(earliestBackupDate);
 
   function isCalendarDayDisabled(date: Date | TZDate) {
     if (isTZDate(date)) {
@@ -36,8 +36,8 @@ function TestComponent(
     }
 
     return isBefore(
-      startOfDay(new Date(date.getTime()).toISOString()),
-      startOfDay(earliestBackupDate),
+      startOfDay(new Date(date.getTime())),
+      startOfDay(new Date(earliestBackupDate)),
     );
   }
 
@@ -54,7 +54,84 @@ function TestComponent(
   );
 }
 
+function ControlledDateTimePicker({
+  initialDateTime = null,
+  ...props
+}: Omit<DateTimePickerProps, 'dateTime' | 'onDateTimeChange'> & {
+  initialDateTime?: string | null;
+}) {
+  const [dateTime, setDateTime] = useState<string | null>(initialDateTime);
+
+  return (
+    <>
+      <span data-testid="value">{dateTime ?? 'empty'}</span>
+      <button
+        type="button"
+        onClick={() => setDateTime('2025-06-20T12:00:00.000Z')}
+      >
+        external set june
+      </button>
+      <DateTimePicker
+        {...props}
+        dateTime={dateTime}
+        onDateTimeChange={setDateTime}
+      />
+    </>
+  );
+}
+
 describe('DateTimePicker', () => {
+  it('shows the empty label when there is no value', () => {
+    render(<ControlledDateTimePicker emptyLabel="Select a date" />);
+
+    expect(screen.getByTestId('dateTimePickerTrigger')).toHaveTextContent(
+      'Select a date',
+    );
+  });
+
+  it('emits null when the Clear button is clicked', async () => {
+    render(
+      <ControlledDateTimePicker
+        initialDateTime="2025-04-10T12:00:00.000Z"
+        clearable
+      />,
+    );
+    const user = new TestUserEvent();
+
+    await user.click(screen.getByTestId('dateTimePickerTrigger'));
+    await user.click(screen.getByRole('button', { name: 'Clear' }));
+
+    await waitFor(() =>
+      expect(screen.getByTestId('value')).toHaveTextContent('empty'),
+    );
+    expect(screen.getByTestId('dateTimePickerTrigger')).toHaveTextContent(
+      'Select a date',
+    );
+  });
+
+  it('renders a destructive trigger border when error is set', () => {
+    render(<ControlledDateTimePicker error />);
+
+    expect(screen.getByTestId('dateTimePickerTrigger')).toHaveClass(
+      'border-destructive',
+    );
+  });
+
+  it('reflects an external value change when reopened', async () => {
+    render(
+      <ControlledDateTimePicker initialDateTime="2025-04-10T12:00:00.000Z" />,
+    );
+    const user = new TestUserEvent();
+
+    await user.click(screen.getByTestId('dateTimePickerTrigger'));
+    expect(screen.getByText('April 2025')).toBeInTheDocument();
+
+    await user.click(screen.getByRole('button', { name: 'external set june' }));
+    await user.click(screen.getByTestId('dateTimePickerTrigger'));
+
+    expect(screen.getByText('June 2025')).toBeInTheDocument();
+  });
+
   test('when the date changes datetime is emitted in utc string format', async () => {
     render(<TestComponent />);
     const user = new TestUserEvent();

@@ -23,7 +23,7 @@ jobs:
     outputs:
       should_run: ${{ github.event_name != 'merge_group' && 'true' || steps.check-patterns.outputs.should_run }}
     steps:
-      - uses: actions/checkout@v6
+      - uses: actions/checkout@v7
         if: github.event_name == 'merge_group'
         with:
           fetch-depth: 1

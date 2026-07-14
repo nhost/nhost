@@ -7,12 +7,15 @@
 package values
 
 import (
+	stdjson "encoding/json"
 	"errors"
 	"fmt"
 	"slices"
 	"strconv"
 
 	"github.com/vektah/gqlparser/v2/ast"
+
+	"github.com/nhost/nhost/services/constellation/connector/sql/pgtypes"
 )
 
 // ErrVariableNotFound is returned when a GraphQL variable reference does not
@@ -199,6 +202,50 @@ func AnyToString(val any) string {
 	default:
 		return fmt.Sprintf("%v", val)
 	}
+}
+
+// CoerceSQLValue converts values that need type-specific SQL constructors into
+// the parameter representation those constructors expect. PostGIS spatial
+// constructors accept GeoJSON text, so object/list literals and variables are
+// marshalled to deterministic JSON strings while raw string values pass through.
+func CoerceSQLValue(sqlType string, val any) (any, error) {
+	if !pgtypes.IsSpatial(sqlType) || val == nil {
+		return val, nil
+	}
+
+	switch v := val.(type) {
+	case string:
+		return v, nil
+	case []byte:
+		return string(v), nil
+	default:
+		b, err := stdjson.Marshal(v)
+		if err != nil {
+			return nil, fmt.Errorf("marshalling spatial GeoJSON value: %w", err)
+		}
+
+		return string(b), nil
+	}
+}
+
+// CoerceSQLValues applies CoerceSQLValue to a slice, preserving byte-for-byte
+// identity for non-spatial SQL types.
+func CoerceSQLValues(sqlType string, vals []any) ([]any, error) {
+	if !pgtypes.IsSpatial(sqlType) {
+		return vals, nil
+	}
+
+	out := make([]any, len(vals))
+	for i, val := range vals {
+		coerced, err := CoerceSQLValue(sqlType, val)
+		if err != nil {
+			return nil, fmt.Errorf("coercing spatial value %d: %w", i, err)
+		}
+
+		out[i] = coerced
+	}
+
+	return out, nil
 }
 
 // ExtractStringArrayValues extracts an array of strings from an AST value.

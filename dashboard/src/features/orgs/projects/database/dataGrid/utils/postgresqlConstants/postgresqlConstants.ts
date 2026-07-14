@@ -15,17 +15,6 @@ export const POSTGRESQL_ERROR_CODES = {
 };
 
 /**
- * Human-readable labels for raw PostgreSQL expressions that would otherwise be
- * confusing in the default-value dropdown. Keys are the exact expressions
- * stored in form state and emitted as SQL; values are what gets shown to the
- * user.
- */
-export const POSTGRESQL_FUNCTION_LABELS: Record<string, string> = {
-  "''::text": 'EMPTY STRING',
-  "''::character varying": 'EMPTY STRING',
-};
-
-/**
  * Numeric data types in PostgreSQL.
  *
  * @docs https://www.postgresql.org/docs/current/datatype-numeric.html
@@ -81,18 +70,31 @@ export const POSTGRESQL_UNSORTABLE_TYPES = [
 ];
 
 /**
- * Date / Time types in PostgreSQL.
- *
- * @docs https://www.postgresql.org/docs/current/datatype-datetime.html
+ * Canonical timestamp `baseType` values derived from PG_CATALOG.FORMAT_TYPE.
  */
-export const POSTGRESQL_DATE_TIME_TYPES = [
-  'timestamp without time zone',
+export const POSTGRESQL_TIMESTAMP_TYPES = [
   'timestamp with time zone',
-  'date',
-  'time without time zone',
-  'time with time zone',
-  'interval',
+  'timestamp without time zone',
 ];
+
+/**
+ * Canonical time-of-day `baseType` values derived from PG_CATALOG.FORMAT_TYPE.
+ */
+export const POSTGRESQL_TIME_TYPES = [
+  'time with time zone',
+  'time without time zone',
+];
+
+/**
+ * Calendar date type in PostgreSQL.
+ */
+export const POSTGRESQL_DATE_TYPES = ['date'];
+
+/**
+ * Interval type in PostgreSQL. Interval columns may also carry a field
+ * qualifier (e.g. `interval day to second`), matched by `isIntervalType`.
+ */
+export const POSTGRESQL_INTERVAL_TYPES = ['interval'];
 
 /**
  * Types grouped by category in PostgreSQL.
@@ -231,8 +233,7 @@ export const dateFunctions = [
  * Relevant functions for PostgreSQL types.
  */
 export const postgresFunctions = {
-  text: ["''::text", 'version()', 'timeofday()'],
-  'character varying': ["''::character varying"],
+  text: ['version()', 'timeofday()'],
   json: ['json_build_object()', 'json_build_array()'],
   jsonb: ['jsonb_build_object()', 'jsonb_build_array()'],
   date: dateFunctions,

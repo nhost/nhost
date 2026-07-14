@@ -209,7 +209,6 @@ export default function EditTableForm({
     return (
       <div className="px-6">
         <Spinner
-          delay={1000}
           wrapperClassName="flex-row text-[12px] leading-[1.66] font-normal gap-1"
           className="h-4 w-4 justify-center"
         >
@@ -223,7 +222,6 @@ export default function EditTableForm({
     return (
       <div className="px-6">
         <Spinner
-          delay={1000}
           wrapperClassName="flex-row text-[12px] leading-[1.66] font-normal gap-1"
           className="h-4 w-4 justify-center"
         >

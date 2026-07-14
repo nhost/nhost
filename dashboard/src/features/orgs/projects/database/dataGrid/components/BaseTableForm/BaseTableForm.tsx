@@ -54,7 +54,7 @@ export interface BaseTableFormProps extends DialogFormProps {
   /**
    * Function to be called when the operation is cancelled.
    */
-  onCancel?: VoidFunction;
+  onCancel?: (event?: MouseEvent<HTMLButtonElement>) => void;
   /**
    * Submit button text.
    *
@@ -170,17 +170,11 @@ function FormFooter({
 }: Pick<BaseTableFormProps, 'onCancel' | 'submitButtonText'> & {
   onSubmitClick?: VoidFunction;
 }) {
-  const { closeDrawerWithDirtyGuard } = useDialog();
   const { isSubmitting } = useFormState();
-
-  const handleCancel = (event: MouseEvent<HTMLButtonElement>) => {
-    onCancel?.();
-    closeDrawerWithDirtyGuard(event);
-  };
 
   return (
     <div className="box grid flex-shrink-0 grid-flow-col justify-between gap-3 border-t-1 p-2">
-      <Button type="button" variant="ghost" onClick={handleCancel}>
+      <Button type="button" variant="ghost" onClick={onCancel}>
         Cancel
       </Button>
 
@@ -213,24 +207,19 @@ export default function BaseTableForm({
     'foreignKeys',
   ]);
   const { setDirtySource } = useDialog();
-  const form = useFormContext();
+  const { subscribe } = useFormContext();
 
   useEffect(() => {
-    const unsubscribe = form.subscribe({
-      formState: { dirtyFields: true },
-      callback: ({ dirtyFields }) => {
-        setDirtySource(
-          DIRTY_SOURCE_ID,
-          Object.keys(dirtyFields ?? {}).length > 0,
-          location,
-        );
+    const unsubscribe = subscribe({
+      formState: { isDirty: true },
+      callback: ({ isDirty }) => {
+        setDirtySource(DIRTY_SOURCE_ID, Boolean(isDirty), location);
       },
     });
     return () => {
       unsubscribe();
-      setDirtySource(DIRTY_SOURCE_ID, false, location);
     };
-  }, [form, setDirtySource, location]);
+  }, [subscribe, setDirtySource, location]);
 
   const showSchemaPicker =
     !!onSchemaChange && !!availableSchemas && availableSchemas.length > 0;

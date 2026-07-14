@@ -1,0 +1,38 @@
+[
+  [
+    {
+      "affected_rows": 1,
+      "returning": [
+        {
+          "nullable_geom": {
+            "crs": {
+              "type": "name",
+              "properties": {
+                "name": "urn:ogc:def:crs:EPSG::4326"
+              }
+            },
+            "type": "Point",
+            "coordinates": [
+              -73.982,
+              40.762
+            ]
+          },
+          "name": "inside-square",
+          "geom": {
+            "coordinates": [
+              -73.981,
+              40.761
+            ],
+            "crs": {
+              "type": "name",
+              "properties": {
+                "name": "urn:ogc:def:crs:EPSG::4326"
+              }
+            },
+            "type": "Point"
+          }
+        }
+      ]
+    }
+  ]
+]

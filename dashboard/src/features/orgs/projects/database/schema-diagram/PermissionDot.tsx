@@ -27,6 +27,7 @@ export interface PermissionDotProps {
   state: PermissionDotState;
   size?: number;
   className?: string;
+  label?: string;
 }
 
 export default function PermissionDot({
@@ -34,9 +35,10 @@ export default function PermissionDot({
   state,
   size = 10,
   className,
+  label,
 }: PermissionDotProps) {
   const { bg, border } = actionClasses[action];
-  const title = `${actionLabels[action]}: ${stateLabels[state]}`;
+  const title = label ?? `${actionLabels[action]}: ${stateLabels[state]}`;
 
   return (
     <span

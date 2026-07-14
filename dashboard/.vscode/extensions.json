@@ -1,7 +1,7 @@
 {
   "recommendations": [
     "bradlc.vscode-tailwindcss",
-    "esbenp.prettier-vscode",
+    "biomejs.biome",
     "apollographql.vscode-apollo"
   ]
 }

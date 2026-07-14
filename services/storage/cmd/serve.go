@@ -25,6 +25,7 @@ import (
 	"github.com/nhost/nhost/services/storage/middleware"
 	"github.com/nhost/nhost/services/storage/middleware/cdn/cdncachecontrol"
 	"github.com/nhost/nhost/services/storage/middleware/cdn/fastly"
+	"github.com/nhost/nhost/services/storage/middleware/securityheaders"
 	"github.com/nhost/nhost/services/storage/migrations"
 	"github.com/nhost/nhost/services/storage/storage"
 	"github.com/urfave/cli/v3"
@@ -57,13 +58,16 @@ const (
 	flagCDNCacheControl          = "cdn-cache-control"
 	flagPprofBind                = "pprof-bind"
 	flagImageTransformerWorkers  = "image-transformer-workers"
+	flagImageTransformerMaxDim   = "image-transformer-max-dimension"
+	flagImageTransformerMaxBlur  = "image-transformer-max-blur-sigma"
 )
 
 func getCORSOptions(cmd *cli.Command) oapimw.CORSOptions {
 	return oapimw.CORSOptions{
-		AllowOriginFunc: nil,
-		AllowedOrigins:  cmd.StringSlice(flagCorsAllowOrigins),
-		AllowedMethods:  []string{"GET", "PUT", "POST", "HEAD", "DELETE"},
+		AllowOriginFunc:  nil,
+		AllowedOrigins:   cmd.StringSlice(flagCorsAllowOrigins),
+		AllowedMethods:   []string{"GET", "PUT", "POST", "HEAD", "DELETE"},
+		AllowHeadersFunc: nil,
 		AllowedHeaders: []string{
 			"Authorization", "Origin", "if-match", "if-none-match", "if-modified-since", "if-unmodified-since",
 			"x-hasura-admin-secret", "x-nhost-bucket-id", "x-nhost-file-name", "x-nhost-file-id",
@@ -73,11 +77,23 @@ func getCORSOptions(cmd *cli.Command) oapimw.CORSOptions {
 			"Content-Length", "Content-Type", "Cache-Control", "CDN-Cache-Control", "ETag", "Last-Modified", "X-Error",
 		},
 		AllowCredentials: cmd.Bool(flagCorsAllowCredentials),
-		MaxAge:           "86400",
+		// Conditionally required: the shared CORS middleware is fail-closed and
+		// rejects allow-all origins combined with credentials, so without this
+		// flag NewRouter would error at startup for any deployment that runs the
+		// default ["*"] origins together with --cors-allow-credentials. Because
+		// both AllowedOrigins and AllowCredentials are config-driven here,
+		// deployments with explicit origins are unaffected; the flag only
+		// preserves boot for the legacy allow-all + credentials combination.
+		// Replace with explicit allowed origins in a follow-up migration.
+		UnsafeAllowAllOriginsWithCredentials: true,
+		MaxAge:                               "86400",
 	}
 }
 
 func configureMiddleware(cmd *cli.Command, router *gin.Engine, logger *slog.Logger) {
+	// Always set standard security headers on every response. Not behind a flag.
+	router.Use(securityheaders.New())
+
 	if cmd.Bool(flagCDNCacheControl) {
 		logger.InfoContext(context.Background(), "enabling cdn-cache-control middleware")
 		router.Use(cdncachecontrol.New())
@@ -116,8 +132,13 @@ func getServer(
 
 	handler := api.NewStrictHandler(ctrl, []api.StrictMiddlewareFunc{})
 
+	swagger, err := api.GetSpec()
+	if err != nil {
+		return nil, fmt.Errorf("loading OpenAPI schema: %w", err)
+	}
+
 	router, mw, err := oapi.NewRouter(
-		controller.OpenAPISchema,
+		swagger,
 		cmd.String(flagAPIRootPrefix),
 		middleware.AuthenticationFunc(cmd.String(flagHasuraAdminSecret)),
 		getCORSOptions(cmd),
@@ -139,7 +160,7 @@ func getServer(
 		api.GinServerOptions{
 			BaseURL:      cmd.String(flagAPIRootPrefix),
 			Middlewares:  []api.MiddlewareFunc{mw},
-			ErrorHandler: nil,
+			ErrorHandler: oapi.RecordError,
 		},
 	)
 
@@ -408,6 +429,21 @@ func CommandServe() *cli.Command { //nolint:funlen
 				Category: "server",
 				Sources:  cli.EnvVars("IMAGE_TRANSFORMER_WORKERS"),
 			},
+			&cli.IntFlag{ //nolint:exhaustruct
+				Name: flagImageTransformerMaxDim,
+				Usage: "maximum width or height, in pixels, an image may be " +
+					"resized to; bounds libvips memory use per request",
+				Value:    image.DefaultMaxImageDimension,
+				Category: "server",
+				Sources:  cli.EnvVars("IMAGE_TRANSFORMER_MAX_DIMENSION"),
+			},
+			&cli.FloatFlag{ //nolint:exhaustruct
+				Name:     flagImageTransformerMaxBlur,
+				Usage:    "maximum Gaussian blur sigma that may be applied to an image",
+				Value:    image.DefaultMaxBlurSigma,
+				Category: "server",
+				Sources:  cli.EnvVars("IMAGE_TRANSFORMER_MAX_BLUR_SIGMA"),
+			},
 		},
 		Action: serve,
 	}
@@ -456,7 +492,11 @@ func serve(ctx context.Context, cmd *cli.Command) error { //nolint:funlen
 		)
 	}
 
-	imageTransformer := image.NewTransformer(imageTransformerWorkers)
+	imageTransformer := image.NewTransformer(
+		imageTransformerWorkers,
+		cmd.Int(flagImageTransformerMaxDim),
+		cmd.Float(flagImageTransformerMaxBlur),
+	)
 	defer imageTransformer.Shutdown()
 
 	servCtx, cancel := context.WithCancel(ctx)

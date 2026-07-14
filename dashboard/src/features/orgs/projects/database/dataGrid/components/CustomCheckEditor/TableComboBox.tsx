@@ -1,21 +1,6 @@
-import { Check, ChevronsUpDown } from 'lucide-react';
-import { useState } from 'react';
-import { Button } from '@/components/ui/v3/button';
-import {
-  Command,
-  CommandEmpty,
-  CommandGroup,
-  CommandInput,
-  CommandItem,
-  CommandList,
-} from '@/components/ui/v3/command';
-import {
-  Popover,
-  PopoverContent,
-  PopoverTrigger,
-} from '@/components/ui/v3/popover';
-import { useMetadataQuery } from '@/features/orgs/projects/database/dataGrid/hooks/useMetadataQuery';
-import { cn } from '@/lib/utils';
+import { Combobox } from '@/components/ui/v3/combobox';
+import { useExportMetadata } from '@/features/orgs/projects/common/hooks/useExportMetadata';
+import type { HasuraMetadataTable } from '@/features/orgs/projects/database/dataGrid/types/dataBrowser';
 
 interface TableComboBoxProps {
   schema: string;
@@ -28,11 +13,12 @@ export default function TableComboBox({
   table,
   onChange,
 }: TableComboBoxProps) {
-  const [open, setOpen] = useState(false);
+  const { data: metadataTables } = useExportMetadata((data) => {
+    const source = data.metadata.sources?.find((s) => s.name === 'default');
+    return (source?.tables ?? []) as unknown as HasuraMetadataTable[];
+  });
 
-  const { data: metadata } = useMetadataQuery(['default.metadata']);
-
-  const tables = (metadata?.tables ?? []).map((t) => ({
+  const tables = (metadataTables ?? []).map((t) => ({
     schema: t.table.schema,
     table: t.table.name,
     label: `${t.table.schema}.${t.table.name}`,
@@ -41,52 +27,21 @@ export default function TableComboBox({
 
   const selectedLabel = schema && table ? `${schema}.${table}` : null;
 
-  const handleSelect = (value: string) => {
-    const found = tables.find((t) => t.value === value);
-    if (found) {
-      onChange({ schema: found.schema, table: found.table });
-    }
-    setOpen(false);
-  };
-
   return (
-    <Popover open={open} onOpenChange={setOpen}>
-      <PopoverTrigger asChild>
-        <Button
-          variant="outline"
-          role="combobox"
-          aria-expanded={open}
-          className="justify-between"
-        >
-          {selectedLabel ?? 'Select table...'}
-          <ChevronsUpDown className="h-5 w-5 opacity-50" />
-        </Button>
-      </PopoverTrigger>
-      <PopoverContent side="bottom" align="start" className="w-80 p-0">
-        <Command>
-          <CommandInput placeholder="Search table..." />
-          <CommandList>
-            <CommandEmpty>No table found.</CommandEmpty>
-            <CommandGroup>
-              {tables.map((t) => (
-                <CommandItem
-                  key={t.value}
-                  value={t.value}
-                  onSelect={handleSelect}
-                >
-                  <Check
-                    className={cn(
-                      'mr-2',
-                      t.value === selectedLabel ? 'opacity-100' : 'opacity-0',
-                    )}
-                  />
-                  {t.label}
-                </CommandItem>
-              ))}
-            </CommandGroup>
-          </CommandList>
-        </Command>
-      </PopoverContent>
-    </Popover>
+    <Combobox
+      className="w-72"
+      options={tables}
+      value={selectedLabel}
+      placeholder="Select table..."
+      searchPlaceholder="Search table..."
+      emptyText="No table found."
+      popoverContentClassName="w-80"
+      onChange={(value) => {
+        const found = tables.find((t) => t.value === value);
+        if (found) {
+          onChange({ schema: found.schema, table: found.table });
+        }
+      }}
+    />
   );
 }

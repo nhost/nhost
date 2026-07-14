@@ -3,6 +3,9 @@ title: Request and Payload Transformations
 description: Reshape the outgoing webhook request with method, URL, and body transforms
 keywords:
   ['transformations', 'request transform', 'payload transform', 'template variables', 'webhooks']
+head:
+  - tag: title
+    content: "Reshaping Webhook Requests and Payloads with Transforms | Nhost Docs"
 sidebar:
   label: Transformations
 ---
@@ -25,7 +28,7 @@ Override the default POST method (GET, PUT, PATCH, DELETE), customize the URL pa
 
 | Transform Type                      | Editor                | Description                                      |
 | ----------------------------------- | --------------------- | ------------------------------------------------ |
-| `application/json`                  | Template editor       | Kriti template with access to template variables |
+| `application/json`                  | Template editor       | [Kriti template](/reference/kriti) with access to template variables |
 | `application/x-www-form-urlencoded` | Key-value form editor | Form-encoded key-value pairs                     |
 | Disabled                            | None                  | No body sent with the request                    |
 

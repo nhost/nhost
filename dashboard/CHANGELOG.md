@@ -1,3 +1,75 @@
+## [@nhost/dashboard@3.0.0] - 2026-06-29
+
+### 🚀 Features
+
+- *(dashboard)* Show functions that return setof table in schema diagram (#4426)
+- *(dashboard)* Add object-type icon to schema diagram nodes (#4320)
+- *(dashboard)* Allow functions and expression as default (#4457)
+- *(dashboard)* Migrate use metadata to common export metadata hook (#4571)
+
+
+### 🐛 Bug Fixes
+
+- *(dashboard)* Don't elevate permissions when security-keys data is missing (#4498)
+- *(dashboard)* Add some margin to deployment logs they can still arrive after endedAt (#4534)
+- *(dashboard)* Correct computed field name validation message (#4558)
+- *(dashboard)* Suggest Nhost functions in event, cron & scheduled events webhook (#4559)
+- *(dashboard)* Enable e2e tests (#4542)
+- *(dashboard)* Keep lock icon inline in permission variables list (#4569)
+- *(dashboard)* Show confirmation modal when closing Table form if it's dirty (#4517)
+- *(dashboard)* Only show billing if user is admin (#4568)
+- *(dashboard)* Migrate logs page to v3 (#4580)
+- *(dashboard)* Prevent stale 1:2-ratio validation error when switching compute resource presets (#4565)
+- *(auth)* ⚠️ **BREAKING** ⚠️ Require elevated permissions to generate TOTP secret (#4493)
+- *(dashboard)* Unify column types on specificType and fix date/time handling (#4581)
+- *(dashboard)* Migrate backups page to v3 (#4591)
+
+
+### ⚙️ Miscellaneous Tasks
+
+- *(dashboard)* Add Actions metadata API types and schemas (#4579)
+- *(dashboard)* Remove date-fns v2 (#4590)
+
+
+### Chore
+
+- *(deps)* Update vulnerable dependencies (#4530)
+- *(deps)* Update vulnerable dependencies (#4541)
+- *(deps)* Update vulnerable dependencies (#4549)
+- *(deps)* Update vulnerable dependencies (#4553)
+- *(deps)* Update vulnerable dependencies (#4604)
+
+## [@nhost/dashboard@2.66.0] - 2026-06-11
+
+### 🚀 Features
+
+- *(dashboard)* Add computed fields in GraphQL settings (#4237)
+- *(dashboard)* Add metrics tab to serverless functions (#4183)
+
+
+### 🐛 Bug Fixes
+
+- *(dashboard)* Migrate checkbox to shadcn (#4440)
+- *(deps)* Bump up shellquote due to CVE (#4499)
+- *(dashboard)* Correct run services and auto-embeddings pagination offset (#4495)
+- *(dashboard)* Clean up leftover run services in run e2e test (#4496)
+- *(dashboard)* Increase the width of the service column (#4508)
+- *(dashboard)* Optimize DataBrowserSidebar tests (#4509)
+- *(dashboard)* Migrate custom autocomplete dropdowns to v3 Combobox primitive (#4492)
+- *(dashboard)* Move the check mark to the left in combobox (#4515)
+- *(dashboard)* Unify session argument wording across GraphQL settings (#4521)
+- *(dashboard)* Mixed light/dark theme after signing in and switching tabs (#4522)
+
+
+### ⚙️ Miscellaneous Tasks
+
+- *(ci)* Nixify dashboard/docs vercel builds and e2e tests (#4460)
+- *(dashboard)* Migrate legacy Autocomplete to v3 Combobox (#4441)
+- *(nixops)* Scope pinned toolchain overlays (#4506)
+- *(ci)* Remove prettier config and unused deps (#4485)
+- *(dashboard)* Re-enable Segment analytics and propagate anonId on signup (#4386)
+- *(dashboard)* Disable Segment analytics on dev and staging (#4520)
+
 ## [@nhost/dashboard@2.65.1] - 2026-06-05
 
 ### 🐛 Bug Fixes

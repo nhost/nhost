@@ -9,8 +9,8 @@ import (
 	"net/http"
 
 	"github.com/gin-gonic/gin"
+	oapimw "github.com/nhost/nhost/internal/lib/oapi/middleware"
 	"github.com/nhost/nhost/services/constellation/controller/websocket"
-	"github.com/nhost/nhost/services/constellation/internal/requestcontext"
 )
 
 const bytesPerMiB int64 = 1024 * 1024
@@ -127,7 +127,7 @@ func requestBodyExceedsLimit(err error) bool {
 // connection snapshots the current controller state for its lifetime so a
 // concurrent metadata reload cannot disturb in-flight subscriptions.
 func (c *Controller) HandlerGet(g *gin.Context) {
-	logger := requestcontext.LoggerFromContext(g.Request.Context())
+	logger := oapimw.LoggerFromContext(g.Request.Context())
 
 	if g.GetHeader("Upgrade") == "websocket" {
 		sendCh := make(chan *websocket.Message, defaultSendBufferSize)

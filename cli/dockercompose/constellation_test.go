@@ -1,6 +1,8 @@
 package dockercompose //nolint:testpackage
 
 import (
+	"fmt"
+	"os"
 	"testing"
 
 	"github.com/google/go-cmp/cmp"
@@ -61,18 +63,6 @@ func expectedConstellation(useTLS bool) *Service {
 		},
 		ExtraHosts: []string{
 			"host.docker.internal:host-gateway",
-			"dev.auth.local.nhost.run:host-gateway",
-			"dev.db.local.nhost.run:host-gateway",
-			"dev.functions.local.nhost.run:host-gateway",
-			"dev.graphql.local.nhost.run:host-gateway",
-			"dev.hasura.local.nhost.run:host-gateway",
-			"dev.storage.local.nhost.run:host-gateway",
-			"local.auth.nhost.run:host-gateway",
-			"local.db.nhost.run:host-gateway",
-			"local.functions.nhost.run:host-gateway",
-			"local.graphql.nhost.run:host-gateway",
-			"local.hasura.nhost.run:host-gateway",
-			"local.storage.nhost.run:host-gateway",
 		},
 		HealthCheck: &HealthCheck{
 			Test: []string{
@@ -138,11 +128,14 @@ func callGetServices(t *testing.T, withConstellation, useTLS bool) map[string]*S
 		tmp,
 		ExposePorts{},
 		"main",
-		"nhost/dashboard:2.65.1",
+		"nhost/dashboard:3.0.0",
 		"2.1.0",
 		"nhost/cli:dev",
 		"00000000-0000-0000-0000-000000000000",
 		false,
+		// Non-Linux host: leaves User unset so these label-focused
+		// assertions aren't perturbed by the caller's uid:gid.
+		"darwin",
 	)
 	if err != nil {
 		t.Fatalf("getServices failed: %v", err)
@@ -246,6 +239,73 @@ func assertConstellationOwnsGraphql(t *testing.T, useTLS bool) {
 	}
 }
 
+// TestDashboardHasuraAPIURLRoutesThroughConstellation locks in the dashboard
+// env-var switch: NEXT_PUBLIC_NHOST_HASURA_API_URL points at the `graphql`
+// subdomain (Constellation, which proxies the admin/metadata API to Hasura)
+// when Constellation is enabled, and at the `hasura` subdomain otherwise. The
+// console and migrations URLs must stay on the `hasura` subdomain in both
+// cases — that split is intentional (the console UI and migrate API are served
+// by the hasura-cli helper containers, not Constellation).
+func TestDashboardHasuraAPIURLRoutesThroughConstellation(t *testing.T) {
+	t.Parallel()
+
+	const (
+		hasuraAPIURL  = "http://dev.hasura.local.nhost.run:1337"
+		graphqlAPIURL = "http://dev.graphql.local.nhost.run:1337"
+		consoleURL    = "http://dev.hasura.local.nhost.run:1337/console"
+		migrateURL    = "http://dev.hasura.local.nhost.run:1337/apis/migrate"
+	)
+
+	cases := []struct {
+		name              string
+		withConstellation bool
+		wantHasuraAPIURL  string
+	}{
+		{
+			name:              "constellation disabled routes to hasura subdomain",
+			withConstellation: false,
+			wantHasuraAPIURL:  hasuraAPIURL,
+		},
+		{
+			name:              "constellation enabled routes to graphql subdomain",
+			withConstellation: true,
+			wantHasuraAPIURL:  graphqlAPIURL,
+		},
+	}
+
+	for _, tc := range cases {
+		t.Run(tc.name, func(t *testing.T) {
+			t.Parallel()
+
+			env := callGetServices(t, tc.withConstellation, false)["dashboard"].Environment
+
+			if got := env["NEXT_PUBLIC_NHOST_HASURA_API_URL"]; got != tc.wantHasuraAPIURL {
+				t.Errorf(
+					"NEXT_PUBLIC_NHOST_HASURA_API_URL = %q; want %q",
+					got, tc.wantHasuraAPIURL,
+				)
+			}
+
+			// The console and migrations API stay on the hasura subdomain
+			// regardless of whether Constellation owns the admin/metadata API.
+			if got := env["NEXT_PUBLIC_NHOST_HASURA_CONSOLE_URL"]; got != consoleURL {
+				t.Errorf(
+					"NEXT_PUBLIC_NHOST_HASURA_CONSOLE_URL = %q; want %q (must stay on hasura)",
+					got, consoleURL,
+				)
+			}
+
+			if got := env["NEXT_PUBLIC_NHOST_HASURA_MIGRATIONS_API_URL"]; got != migrateURL {
+				t.Errorf(
+					"NEXT_PUBLIC_NHOST_HASURA_MIGRATIONS_API_URL = %q; want %q (must stay on hasura)",
+					got,
+					migrateURL,
+				)
+			}
+		})
+	}
+}
+
 func TestConstellation(t *testing.T) {
 	t.Parallel()
 
@@ -280,6 +340,8 @@ func TestConstellation(t *testing.T) {
 				1337,
 				"/path/to/nhost",
 				"nhost/constellation:0.1.0",
+				// Non-Linux host leaves User unset, matching the golden.
+				"darwin",
 			)
 			if err != nil {
 				t.Fatalf("got error: %v", err)
@@ -289,5 +351,36 @@ func TestConstellation(t *testing.T) {
 				t.Error(diff)
 			}
 		})
+	}
+}
+
+// TestConstellationRunsAsHostUserOnLinux mirrors the console host-user
+// mapping: constellation writes into the bind-mounted nhost/metadata
+// folder, so on Linux it is stamped with the caller's uid:gid and left
+// unset elsewhere.
+func TestConstellationRunsAsHostUserOnLinux(t *testing.T) {
+	t.Parallel()
+
+	linux, err := constellation(
+		getConfig(), "dev", false, 1337, "/path/to/nhost", "nhost/constellation:0.1.0", osLinux,
+	)
+	if err != nil {
+		t.Fatalf("got error: %v", err)
+	}
+
+	want := fmt.Sprintf("%d:%d", os.Getuid(), os.Getgid())
+	if linux.User == nil || *linux.User != want {
+		t.Errorf("linux constellation User = %v, want %q", linux.User, want)
+	}
+
+	other, err := constellation(
+		getConfig(), "dev", false, 1337, "/path/to/nhost", "nhost/constellation:0.1.0", "windows",
+	)
+	if err != nil {
+		t.Fatalf("got error: %v", err)
+	}
+
+	if other.User != nil {
+		t.Errorf("non-linux constellation User = %q, want nil", *other.User)
 	}
 }

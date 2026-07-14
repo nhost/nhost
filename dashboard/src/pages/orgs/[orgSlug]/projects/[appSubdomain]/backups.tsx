@@ -2,8 +2,7 @@ import type { ReactElement } from 'react';
 import { UpgradeToProBanner } from '@/components/common/UpgradeToProBanner';
 import { Container } from '@/components/layout/Container';
 import { RetryableErrorBoundary } from '@/components/presentational/RetryableErrorBoundary';
-import { ActivityIndicator } from '@/components/ui/v2/ActivityIndicator';
-import { Text } from '@/components/ui/v2/Text';
+import { Spinner } from '@/components/ui/v3/spinner';
 import { useIsPiTREnabled } from '@/features/orgs/hooks/useIsPiTREnabled';
 import { OrgLayout } from '@/features/orgs/layout/OrgLayout';
 import { BackupsContent } from '@/features/orgs/projects/backups/components/BackupsContent';
@@ -14,7 +13,7 @@ export default function BackupsPage() {
   const { isPiTREnabled, loading: isPiTREnabledLoading } = useIsPiTREnabled();
 
   if (loading || isPiTREnabledLoading) {
-    return <ActivityIndicator label="Loading project..." delay={1000} />;
+    return <Spinner>Loading project...</Spinner>;
   }
 
   const isPlanFree = org!.plan.isFree;
@@ -36,9 +35,7 @@ export default function BackupsPage() {
   return (
     <Container className="grid max-w-5xl grid-flow-row gap-y-6 bg-transparent">
       <div className="grid grid-flow-col justify-between gap-2">
-        <Text className="font-medium text-2xl" variant="h1">
-          Backups
-        </Text>
+        <h1 className="font-medium text-2xl">Backups</h1>
       </div>
 
       <RetryableErrorBoundary>

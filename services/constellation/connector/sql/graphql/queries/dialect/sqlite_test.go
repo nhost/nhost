@@ -214,6 +214,7 @@ func TestSQLiteDialect_Capabilities(t *testing.T) {
 		"SupportsJSONB":              d.SupportsJSONB(),
 		"SupportsFunctions":          d.SupportsFunctions(),
 		"SupportsArrays":             d.SupportsArrays(),
+		"SupportsSpatialTypes":       d.SupportsSpatialTypes(),
 		"SupportsVarianceAggregates": d.SupportsVarianceAggregates(),
 		"SupportsUpsertUpdateAction": d.SupportsUpsertUpdateAction(),
 	}
@@ -222,6 +223,177 @@ func TestSQLiteDialect_Capabilities(t *testing.T) {
 		if got {
 			t.Errorf("%s = true, want false (SQLite supports none)", name)
 		}
+	}
+}
+
+func TestSQLiteDialect_SpatialExpressionsAreIdentity(t *testing.T) {
+	t.Parallel()
+
+	d := &dialect.SQLiteDialect{}
+
+	if got := d.SpatialOutputExpression(`"t"."geom"`, "geometry"); got != `"t"."geom"` {
+		t.Fatalf("SpatialOutputExpression = %q", got)
+	}
+
+	if got := d.SpatialValueExpression("?", "geometry"); got != "?" {
+		t.Fatalf("SpatialValueExpression = %q", got)
+	}
+
+	if got := d.SpatialCastExpression(`"t"."geom"`, "text", "geometry"); got != `"t"."geom"` {
+		t.Fatalf("SpatialCastExpression = %q", got)
+	}
+}
+
+func TestSQLiteDialect_SpatialPredicates_Panic(t *testing.T) {
+	t.Parallel()
+
+	d := &dialect.SQLiteDialect{}
+
+	if d.SupportsSpatialTypes() {
+		t.Fatal("SupportsSpatialTypes = true, want false for SQLite")
+	}
+
+	// SQLite has no spatial types. Reaching these methods means a caller skipped
+	// the SupportsSpatialTypes() gate; the dialect panics to make that
+	// programming error loud rather than producing silently broken SQL.
+	tests := []struct {
+		name string
+		call func()
+	}{
+		{
+			name: "WriteSpatialPredicate panics",
+			call: func() {
+				var b strings.Builder
+				d.WriteSpatialPredicate(
+					&b,
+					dialect.SpatialPredicateIntersects,
+					`"t"."geom"`,
+					"?",
+				)
+			},
+		},
+		{
+			name: "WriteSpatialDWithinPredicate panics",
+			call: func() {
+				var b strings.Builder
+				d.WriteSpatialDWithinPredicate(
+					&b,
+					false,
+					`"t"."geom"`,
+					"?",
+					"?",
+					"geometry",
+					nil,
+				)
+			},
+		},
+		{
+			name: "WriteSpatialArrayInExpression panics",
+			call: func() {
+				var b strings.Builder
+				d.WriteSpatialArrayInExpression(
+					&b,
+					`"t"."geom"`,
+					"geometry",
+					[]any{"a"},
+					nil,
+					1,
+				)
+			},
+		},
+		{
+			name: "WriteSpatialArrayNotInExpression panics",
+			call: func() {
+				var b strings.Builder
+				d.WriteSpatialArrayNotInExpression(
+					&b,
+					`"t"."geom"`,
+					"geometry",
+					[]any{"a"},
+					nil,
+					1,
+				)
+			},
+		},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			t.Parallel()
+
+			defer func() {
+				if r := recover(); r == nil {
+					t.Fatalf("%s: expected panic, got none", tt.name)
+				}
+			}()
+
+			tt.call()
+		})
+	}
+}
+
+func TestSQLiteDialect_SpatialArrayOpsDelegateToArrayOps(t *testing.T) {
+	t.Parallel()
+
+	d := &dialect.SQLiteDialect{}
+
+	tests := []struct {
+		name string
+		call func(*strings.Builder) ([]any, int)
+		want string
+	}{
+		{
+			name: "WriteSpatialArrayIn",
+			call: func(b *strings.Builder) ([]any, int) {
+				return d.WriteSpatialArrayIn(
+					b,
+					`"t"`,
+					"geom",
+					"geometry",
+					[]any{"a", "b"},
+					nil,
+					1,
+				)
+			},
+			want: `"t"."geom" IN (?, ?)`,
+		},
+		{
+			name: "WriteSpatialArrayNotIn",
+			call: func(b *strings.Builder) ([]any, int) {
+				return d.WriteSpatialArrayNotIn(
+					b,
+					`"t"`,
+					"geom",
+					"geometry",
+					[]any{"a", "b"},
+					nil,
+					1,
+				)
+			},
+			want: `"t"."geom" NOT IN (?, ?)`,
+		},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			t.Parallel()
+
+			var b strings.Builder
+
+			params, next := tt.call(&b)
+
+			if got := b.String(); got != tt.want {
+				t.Fatalf("SQL = %q, want %q", got, tt.want)
+			}
+
+			if next != 3 {
+				t.Fatalf("next paramIndex = %d, want 3", next)
+			}
+
+			if len(params) != 2 || params[0] != "a" || params[1] != "b" {
+				t.Fatalf("params = %#v, want []any{\"a\", \"b\"}", params)
+			}
+		})
 	}
 }
 

@@ -19,8 +19,6 @@ on:
 
       # common javascript
       - ".npmrc"
-      - ".prettierignore"
-      - ".prettierrc.js"
       - "audit-ci.jsonc"
       - "package.json"
       - "pnpm-workspace.yaml"
@@ -55,8 +53,6 @@ jobs:
         nixops/**
         build/**
         .npmrc
-        .prettierignore
-        .prettierrc.js
         audit-ci.jsonc
         package.json
         pnpm-workspace.yaml
@@ -70,7 +66,7 @@ jobs:
     if: needs.detect-changes.outputs.should_run == 'true'
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v6
+      - uses: actions/checkout@v7
       - uses: ./.github/actions/check-permissions
 
   deploy-vercel:

@@ -2,7 +2,7 @@ import { FormProvider, useForm } from 'react-hook-form';
 import { vi } from 'vitest';
 import type { DataBrowserColumnMetadata } from '@/features/orgs/projects/database/dataGrid/types/dataBrowser';
 import { POSTGRES_DEFAULT_PLACEHOLDER } from '@/features/orgs/projects/database/dataGrid/utils/postgresDefaultPlaceholder';
-import { render, screen, TestUserEvent } from '@/tests/testUtils';
+import { render, screen, TestUserEvent, waitFor } from '@/tests/testUtils';
 import BaseRecordForm, { type BaseRecordFormProps } from './BaseRecordForm';
 
 const mocks = vi.hoisted(() => ({
@@ -17,9 +17,10 @@ const mockColumns: DataBrowserColumnMetadata[] = [
     isNullable: false,
     isIdentity: false,
     defaultValue: undefined,
-    type: 'text',
     specificType: 'text',
-    dataType: 'text',
+    baseType: 'text',
+    isArray: false,
+    displayType: 'text',
   },
 ];
 
@@ -49,9 +50,10 @@ const mockColumnsWithGenerated: DataBrowserColumnMetadata[] = [
     isIdentity: false,
     isGenerated: false,
     defaultValue: undefined,
-    type: 'number',
     specificType: 'numeric',
-    dataType: 'numeric',
+    baseType: 'numeric',
+    isArray: false,
+    displayType: 'numeric',
   },
   {
     id: 'total',
@@ -61,9 +63,10 @@ const mockColumnsWithGenerated: DataBrowserColumnMetadata[] = [
     isGenerated: true,
     generationExpression: 'price * quantity',
     defaultValue: undefined,
-    type: 'number',
     specificType: 'numeric',
-    dataType: 'numeric',
+    baseType: 'numeric',
+    isArray: false,
+    displayType: 'numeric',
   },
 ];
 
@@ -104,6 +107,32 @@ describe('BaseRecordForm', () => {
 
     expect(screen.getByText(/1 generated column omitted/i)).toBeInTheDocument();
   });
+
+  it('keeps the submit button enabled by default when pristine', () => {
+    render(<TestRecordFormWrapper />);
+
+    expect(screen.getByRole('button', { name: /save/i })).toBeEnabled();
+  });
+
+  it('disables the submit button when pristine submit is disabled', () => {
+    render(<TestRecordFormWrapper disableSubmitWhenPristine />);
+
+    expect(screen.getByRole('button', { name: /save/i })).toBeDisabled();
+  });
+
+  it('enables the submit button after a pristine-disabled form changes', async () => {
+    const user = new TestUserEvent();
+    render(<TestRecordFormWrapper disableSubmitWhenPristine />);
+
+    const submitButton = screen.getByRole('button', { name: /save/i });
+    expect(submitButton).toBeDisabled();
+
+    await user.type(screen.getByRole('textbox'), 'new value');
+
+    await waitFor(() => {
+      expect(submitButton).toBeEnabled();
+    });
+  });
 });
 
 describe('BaseRecordForm handleSubmit', () => {
@@ -113,27 +142,30 @@ describe('BaseRecordForm handleSubmit', () => {
 
   const nullableColumnWithDefault: DataBrowserColumnMetadata = {
     id: 'col',
-    type: 'text',
     specificType: 'text',
-    dataType: 'text',
+    baseType: 'text',
+    isArray: false,
+    displayType: 'text',
     isNullable: true,
     defaultValue: 'some_default',
   };
 
   const requiredColumnWithDefault: DataBrowserColumnMetadata = {
     id: 'col',
-    type: 'text',
     specificType: 'text',
-    dataType: 'text',
+    baseType: 'text',
+    isArray: false,
+    displayType: 'text',
     isNullable: false,
     defaultValue: 'some_default',
   };
 
   const nullableColumnWithoutDefault: DataBrowserColumnMetadata = {
     id: 'col',
-    type: 'text',
     specificType: 'text',
-    dataType: 'text',
+    baseType: 'text',
+    isArray: false,
+    displayType: 'text',
     isNullable: true,
     defaultValue: undefined,
   };
@@ -185,7 +217,7 @@ describe('BaseRecordForm handleSubmit', () => {
     );
 
     expect(mocks.onSubmit).toHaveBeenCalledWith({
-      col: { value: null, fallbackValue: 'DEFAULT' },
+      col: { fallbackValue: 'DEFAULT' },
     });
   });
 
@@ -219,7 +251,7 @@ describe('BaseRecordForm handleSubmit', () => {
     );
 
     expect(mocks.onSubmit).toHaveBeenCalledWith({
-      col: { value: '', specificType: 'text' },
+      col: { value: '', isArray: false },
     });
   });
 });

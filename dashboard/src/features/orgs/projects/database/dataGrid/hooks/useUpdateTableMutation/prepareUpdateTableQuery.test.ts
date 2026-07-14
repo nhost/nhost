@@ -11,7 +11,7 @@ const originalColumns: DatabaseColumn[] = [
     id: 'id',
     name: 'id',
     type: 'uuid',
-    defaultValue: { value: 'gen_random_uuid()', custom: false },
+    defaultValue: 'gen_random_uuid()',
     isPrimary: true,
   },
   {
@@ -31,7 +31,7 @@ describe('prepareUpdateTableQuery', () => {
           id: 'id',
           name: 'id',
           type: 'uuid',
-          defaultValue: { value: 'gen_random_uuid()', custom: false },
+          defaultValue: 'gen_random_uuid()',
         },
         {
           id: 'author_id',
@@ -66,7 +66,7 @@ describe('prepareUpdateTableQuery', () => {
           id: 'id',
           name: 'id',
           type: 'uuid',
-          defaultValue: { value: 'gen_random_uuid()', custom: false },
+          defaultValue: 'gen_random_uuid()',
         },
         {
           name: 'author_id',
@@ -102,7 +102,7 @@ describe('prepareUpdateTableQuery', () => {
           id: 'id',
           name: 'id',
           type: 'uuid',
-          defaultValue: { value: 'gen_random_uuid()', custom: false },
+          defaultValue: 'gen_random_uuid()',
         },
       ],
       foreignKeyRelations: [],
@@ -132,7 +132,7 @@ describe('prepareUpdateTableQuery', () => {
           id: 'id',
           name: 'id',
           type: 'uuid',
-          defaultValue: { value: 'gen_random_uuid()', custom: false },
+          defaultValue: 'gen_random_uuid()',
         },
         {
           id: 'author_id',
@@ -173,7 +173,7 @@ describe('prepareUpdateTableQuery', () => {
           id: 'id',
           name: 'id',
           type: 'uuid',
-          defaultValue: { value: 'gen_random_uuid()', custom: false },
+          defaultValue: 'gen_random_uuid()',
         },
         {
           id: 'author_id',
@@ -217,7 +217,7 @@ describe('prepareUpdateTableQuery', () => {
           id: 'id',
           name: 'id',
           type: 'uuid',
-          defaultValue: { value: 'gen_random_uuid()', custom: false },
+          defaultValue: 'gen_random_uuid()',
         },
         {
           id: 'author_id',
@@ -262,7 +262,7 @@ describe('prepareUpdateTableQuery', () => {
           id: 'id',
           name: 'id',
           type: 'uuid',
-          defaultValue: { value: 'gen_random_uuid()', custom: false },
+          defaultValue: 'gen_random_uuid()',
         },
         {
           id: 'author_id',
@@ -486,7 +486,7 @@ describe('prepareUpdateTableQuery', () => {
           id: 'id',
           name: 'id',
           type: 'uuid',
-          defaultValue: { value: 'gen_random_uuid()', custom: false },
+          defaultValue: 'gen_random_uuid()',
         },
         {
           id: 'author_id',

@@ -15,11 +15,16 @@ import { ActivityIndicator } from '@/components/ui/v2/ActivityIndicator';
 import { Avatar } from '@/components/ui/v2/Avatar';
 import { Chip } from '@/components/ui/v2/Chip';
 import { Divider } from '@/components/ui/v2/Divider';
-import { Dropdown } from '@/components/ui/v2/Dropdown';
 import { IconButton } from '@/components/ui/v2/IconButton';
 import { List } from '@/components/ui/v2/List';
 import { ListItem } from '@/components/ui/v2/ListItem';
 import { Text } from '@/components/ui/v2/Text';
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+} from '@/components/ui/v3/dropdown-menu';
 import { useRemoteApplicationGQLClient } from '@/features/orgs/hooks/useRemoteApplicationGQLClient';
 import type { EditUserFormValues } from '@/features/orgs/projects/authentication/users/components/EditUserForm';
 import { getReadableProviderName } from '@/features/orgs/projects/authentication/users/utils/getReadableProviderName';
@@ -236,8 +241,8 @@ export default function UsersBody({
           <ListItem.Root
             className="h-[64px] w-full"
             secondaryAction={
-              <Dropdown.Root>
-                <Dropdown.Trigger asChild hideChevron>
+              <DropdownMenu>
+                <DropdownMenuTrigger asChild>
                   <IconButton
                     variant="borderless"
                     color="secondary"
@@ -245,38 +250,28 @@ export default function UsersBody({
                   >
                     <DotsHorizontalIcon />
                   </IconButton>
-                </Dropdown.Trigger>
+                </DropdownMenuTrigger>
 
-                <Dropdown.Content
-                  menu
-                  PaperProps={{ className: 'w-52' }}
-                  anchorOrigin={{ vertical: 'bottom', horizontal: 'right' }}
-                  transformOrigin={{ vertical: 'top', horizontal: 'right' }}
-                >
-                  <Dropdown.Item
+                <DropdownMenuContent align="end" className="w-52 p-0">
+                  <DropdownMenuItem
                     onClick={() => {
                       handleViewUser(user);
                     }}
-                    className="grid grid-flow-col items-center gap-2 p-2 font-medium text-sm+"
+                    className="flex h-9 cursor-pointer items-center justify-start gap-2 rounded-none border border-b-1 p-2 font-medium text-sm+ leading-4 hover:bg-data-cell-bg"
                   >
                     <UserIcon className="h-4 w-4" />
-                    <Text className="font-medium">View User</Text>
-                  </Dropdown.Item>
+                    <span>View User</span>
+                  </DropdownMenuItem>
 
-                  <Divider component="li" />
-
-                  <Dropdown.Item
-                    className="grid grid-flow-col items-center gap-2 p-2 font-medium text-sm+"
-                    sx={{ color: 'error.main' }}
+                  <DropdownMenuItem
+                    className="!text-destructive flex h-9 cursor-pointer items-center justify-start gap-2 rounded-none border border-b-1 p-2 font-medium text-sm+ leading-4 hover:bg-data-cell-bg"
                     onClick={() => handleDeleteUser(user)}
                   >
                     <TrashIcon className="h-4 w-4" />
-                    <Text className="font-medium" color="error">
-                      Delete User
-                    </Text>
-                  </Dropdown.Item>
-                </Dropdown.Content>
-              </Dropdown.Root>
+                    <span>Delete User</span>
+                  </DropdownMenuItem>
+                </DropdownMenuContent>
+              </DropdownMenu>
             }
           >
             <ListItem.Button

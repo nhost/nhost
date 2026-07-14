@@ -3,7 +3,7 @@
 import { PostgreSQL, sql } from '@codemirror/lang-sql';
 import { useTheme } from '@mui/material';
 import { githubDark, githubLight } from '@uiw/codemirror-theme-github';
-import CodeMirror from '@uiw/react-codemirror';
+import CodeMirror, { keymap, Prec } from '@uiw/react-codemirror';
 import { InfoIcon, PlayIcon, XIcon } from 'lucide-react';
 import { useCallback, useState } from 'react';
 import { useResizable } from 'react-resizable-layout';
@@ -14,8 +14,6 @@ import { Box } from '@/components/ui/v2/Box';
 import { Button } from '@/components/ui/v2/Button';
 import { IconButton } from '@/components/ui/v2/IconButton';
 import { Input } from '@/components/ui/v2/Input';
-import { Option } from '@/components/ui/v2/Option';
-import { Select } from '@/components/ui/v2/Select';
 import { Switch } from '@/components/ui/v2/Switch';
 import { Table } from '@/components/ui/v2/Table';
 import { TableBody } from '@/components/ui/v2/TableBody';
@@ -24,6 +22,13 @@ import { TableHead } from '@/components/ui/v2/TableHead';
 import { TableRow } from '@/components/ui/v2/TableRow';
 import { Text } from '@/components/ui/v2/Text';
 import { Tooltip } from '@/components/ui/v2/Tooltip';
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from '@/components/ui/v3/select';
 import { useIsPlatform } from '@/features/orgs/projects/common/hooks/useIsPlatform';
 import { useRunSQL } from '@/features/orgs/projects/database/dataGrid/hooks/useRunSQL';
 import {
@@ -85,6 +90,8 @@ export default function SQLEditor({
     !loading &&
     (Boolean(errorMessage) || commandOk || columns.length > 0);
 
+  const isRunDisabled = loading || !sqlCode.trim();
+
   const onChange = useCallback(
     (value: string) => {
       setSQLCode(value);
@@ -94,6 +101,14 @@ export default function SQLEditor({
     },
     [canDismissResults, reset],
   );
+
+  const handleRunSQL = useCallback(() => {
+    if (isRunDisabled) {
+      return;
+    }
+
+    runSQL();
+  }, [isRunDisabled, runSQL]);
 
   return (
     <Box className="flex flex-1 flex-col justify-center overflow-hidden">
@@ -181,15 +196,18 @@ export default function SQLEditor({
             )}
           </Box>
 
-          <Button
-            disabled={loading || !sqlCode.trim()}
-            variant="contained"
-            className="self-start"
-            startIcon={<PlayIcon className="h-4 w-4" />}
-            onClick={runSQL}
-          >
-            Run
-          </Button>
+          <Tooltip title="Run query (⌘/Ctrl + Enter)" placement="bottom">
+            <span className="self-start">
+              <Button
+                disabled={isRunDisabled}
+                variant="contained"
+                startIcon={<PlayIcon className="h-4 w-4" />}
+                onClick={handleRunSQL}
+              >
+                Run
+              </Button>
+            </span>
+          </Tooltip>
         </Box>
       </Box>
 
@@ -198,7 +216,20 @@ export default function SQLEditor({
         height="100%"
         className="min-h-[100px] flex-1 overflow-y-auto"
         theme={theme.palette.mode === 'light' ? githubLight : githubDark}
-        extensions={[sql({ dialect: PostgreSQL })]}
+        extensions={[
+          sql({ dialect: PostgreSQL }),
+          Prec.highest(
+            keymap.of([
+              {
+                key: 'Mod-Enter',
+                run: () => {
+                  handleRunSQL();
+                  return true;
+                },
+              },
+            ]),
+          ),
+        ]}
         onChange={onChange}
       />
 
@@ -308,18 +339,24 @@ export default function SQLEditor({
                         Rows per page
                       </Text>
                       <Select
-                        aria-label="Rows per page"
-                        value={limit}
-                        onChange={handleLimitChange}
-                        slotProps={{
-                          root: { className: 'h-5 min-w-[60px] text-xs' },
-                        }}
+                        value={String(limit)}
+                        onValueChange={(value) =>
+                          handleLimitChange(null, Number(value))
+                        }
                       >
-                        {PAGE_SIZE_OPTIONS.map((size) => (
-                          <Option key={size} value={size}>
-                            {size}
-                          </Option>
-                        ))}
+                        <SelectTrigger
+                          aria-label="Rows per page"
+                          className="h-7 min-w-[60px] px-2 text-xs"
+                        >
+                          <SelectValue />
+                        </SelectTrigger>
+                        <SelectContent>
+                          {PAGE_SIZE_OPTIONS.map((size) => (
+                            <SelectItem key={size} value={String(size)}>
+                              {size}
+                            </SelectItem>
+                          ))}
+                        </SelectContent>
                       </Select>
                     </Box>
 

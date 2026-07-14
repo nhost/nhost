@@ -1,26 +1,39 @@
 ---
 title: What is Nhost?
-description: Nhost is a backend development platform for building and scaling production-ready apps with PostgreSQL, GraphQL, auth, storage, and serverless functions.
+description: Nhost is a backend platform for building production apps with PostgreSQL, GraphQL, authentication, file storage, and serverless functions.
 keywords: ["Nhost", "introduction", "getting started", "backend", "BaaS", "backend as a service", "Firebase alternative"]
+head:
+  - tag: title
+    content: "Nhost Backend Development Platform Overview | Nhost Docs"
 sidebar:
   label: Introduction
 ---
 import { Card, CardGroup, ThemeImage } from '@components';
 
-
 Nhost is a backend development platform designed to help you build and scale production-ready applications fast, with powerful, fully managed infrastructure.
 
 It eliminates backend complexity by providing a performant and reliable software stack ready-to-go, while still offering the flexibility to customize and grow as your app grows.
 
-
-  <ThemeImage light="/images/nhost-overview-light.svg" dark="/images/nhost-overview-dark.svg" alt="Hero Light" />
-
+<ThemeImage
+  light="/images/nhost-overview-light.svg"
+  dark="/images/nhost-overview-dark.svg"
+  alt="Hero Light"
+  width={814}
+  height={486}
+/>
 
 ## Next steps
 
 Follow one of our quick start guides for learning how to quickly setup Nhost with your framework of choice, in just a few easy steps.
 
 <CardGroup cols={2}>
+  <Card
+    title="Nhost CLI"
+    icon="terminal"
+    href="/getting-started/local-development/cli"
+  >
+    Learn how to setup a local Nhost environment
+  </Card>
   <Card
     title="Next.js"
     icon="react"
@@ -50,7 +63,6 @@ Follow one of our quick start guides for learning how to quickly setup Nhost wit
     Learn how to connect Nhost with React Native
   </Card>
 </CardGroup>
-
 
 ## Follow a tutorial to build a Todo Manager
 
@@ -93,5 +105,3 @@ Follow one of your tutorials where we walk you through building a Todo Manager a
     Todo Manager with Nhost and React Native
   </Card>
 </CardGroup>
-
-

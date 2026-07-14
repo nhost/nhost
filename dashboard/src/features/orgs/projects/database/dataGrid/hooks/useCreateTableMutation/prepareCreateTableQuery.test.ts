@@ -184,7 +184,7 @@ describe('prepareCreateTableQuery', () => {
         {
           name: 'id',
           type: 'uuid',
-          defaultValue: { value: 'gen_random_uuid()', custom: false },
+          defaultValue: 'gen_random_uuid()',
         },
         {
           name: 'name',
@@ -195,7 +195,7 @@ describe('prepareCreateTableQuery', () => {
           name: 'is_active',
           type: 'bool',
           isNullable: true,
-          defaultValue: { value: 'true', custom: true },
+          defaultValue: "'true'",
         },
       ],
       primaryKey: ['id'],
@@ -213,7 +213,7 @@ describe('prepareCreateTableQuery', () => {
     );
   });
 
-  test('should escape a literal default whose value collides with a function name', () => {
+  it('should emit each default verbatim, distinguishing a quoted literal from a bare function', () => {
     const table: DatabaseTable = {
       name: 'test_table',
       columns: [
@@ -221,13 +221,13 @@ describe('prepareCreateTableQuery', () => {
           name: 'as_literal',
           type: 'text',
           isNullable: true,
-          defaultValue: { value: 'version()', custom: true },
+          defaultValue: "'version()'",
         },
         {
           name: 'as_function',
           type: 'text',
           isNullable: true,
-          defaultValue: { value: 'version()', custom: false },
+          defaultValue: 'version()',
         },
       ],
       primaryKey: [],
@@ -255,18 +255,12 @@ describe('prepareCreateTableQuery', () => {
         {
           name: 'name',
           type: 'text',
-          defaultValue: {
-            value: "''::text",
-            custom: false,
-          },
+          defaultValue: "''",
         },
         {
           name: 'nickname',
           type: 'character varying',
-          defaultValue: {
-            value: "''::character varying",
-            custom: false,
-          },
+          defaultValue: "''",
         },
       ],
       primaryKey: ['id'],
@@ -280,7 +274,7 @@ describe('prepareCreateTableQuery', () => {
 
     expect(transaction).toHaveLength(1);
     expect(transaction[0].args.sql).toBe(
-      "CREATE TABLE public.test_table (id uuid NOT NULL, name text DEFAULT ''::text NOT NULL, nickname character varying DEFAULT ''::character varying NOT NULL, PRIMARY KEY (id));",
+      "CREATE TABLE public.test_table (id uuid NOT NULL, name text DEFAULT '' NOT NULL, nickname character varying DEFAULT '' NOT NULL, PRIMARY KEY (id));",
     );
   });
   it('should prepare a query with an identity column', () => {
@@ -300,7 +294,7 @@ describe('prepareCreateTableQuery', () => {
           name: 'is_active',
           type: 'bool',
           isNullable: true,
-          defaultValue: { value: 'true', custom: true },
+          defaultValue: "'true'",
         },
       ],
       primaryKey: ['id'],

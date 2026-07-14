@@ -10,13 +10,13 @@ import (
 	"slices"
 	"sync"
 
+	oapimw "github.com/nhost/nhost/internal/lib/oapi/middleware"
 	"github.com/nhost/nhost/services/constellation/connector/schemamerge"
 	"github.com/nhost/nhost/services/constellation/controller/introspection"
 	"github.com/nhost/nhost/services/constellation/controller/middleware"
 	"github.com/nhost/nhost/services/constellation/controller/planner"
 	"github.com/nhost/nhost/services/constellation/controller/planner/transform"
 	"github.com/nhost/nhost/services/constellation/controller/resolver"
-	"github.com/nhost/nhost/services/constellation/internal/requestcontext"
 	"github.com/vektah/gqlparser/v2"
 	"github.com/vektah/gqlparser/v2/ast"
 	"github.com/vektah/gqlparser/v2/gqlerror"
@@ -66,7 +66,7 @@ type GraphQLResponse struct {
 func (c *Controller) Resolve(
 	ctx context.Context, req GraphQLRequest,
 ) (*GraphQLResponse, error) {
-	logger := requestcontext.LoggerFromContext(ctx)
+	logger := oapimw.LoggerFromContext(ctx)
 
 	state := c.state.Load()
 

@@ -1,25 +1,7 @@
 (
   final: prev:
   let
-    biome_version = "2.4.15";
-    biome_dist = {
-      aarch64-darwin = {
-        url = "https://github.com/biomejs/biome/releases/download/%40biomejs%2Fbiome%40${biome_version}/biome-darwin-arm64";
-        sha256 = "0ym19wd6yzpzpj6inydsfc5xzakl6w7g4lj1dihd1z5hnc0mdimj";
-      };
-      x86_64-darwin = {
-        url = "https://github.com/biomejs/biome/releases/download/%40biomejs%2Fbiome%40${biome_version}/biome-darwin-x64";
-        sha256 = "0zd0508kdx6bs4cly6jhny1k96g8wy07ybwmn8hghf2aqnfs7f7s";
-      };
-      aarch64-linux = {
-        url = "https://github.com/biomejs/biome/releases/download/%40biomejs%2Fbiome%40${biome_version}/biome-linux-arm64";
-        sha256 = "1bp2adhhszz38p6izszhbxk9w54vq9lm8m007yj91f9nva9dbf3y";
-      };
-      x86_64-linux = {
-        url = "https://github.com/biomejs/biome/releases/download/%40biomejs%2Fbiome%40${biome_version}/biome-linux-x64";
-        sha256 = "001m5xy2riy2yj3mjf5bq4ywydm0i8dbxlqvx8q35l5gkrry5bwd";
-      };
-    };
+    biome_version = "2.5.3";
   in
   rec {
     # Node toolchain pinned ahead of nixpkgs, exposed only under `pkgs.nhost.*`
@@ -128,28 +110,75 @@
             '';
         });
 
-    biome = final.stdenv.mkDerivation {
-      pname = "biome";
-      version = biome_version;
+    biome = final.biome.overrideAttrs (
+      finalAttrs: previousAttrs: {
+        version = biome_version;
 
-      src = final.fetchurl {
-        inherit
-          (biome_dist.${final.stdenvNoCC.hostPlatform.system}
-            or (throw "Unsupported system: ${final.stdenvNoCC.hostPlatform.system}")
-          )
-          url
-          sha256
-          ;
-      };
+        src = final.fetchFromGitHub {
+          owner = "biomejs";
+          repo = "biome";
+          rev = "@biomejs/biome@${biome_version}";
+          hash = "sha256-ctN3CmzLXw350U6tFXwGHCySZul09C30VMPDkM38LdU=";
+        };
 
-      dontUnpack = true;
+        cargoDeps = final.rustPlatform.fetchCargoVendor {
+          inherit (finalAttrs) pname version src;
+          hash = "sha256-znFmtMwdvLEBpq5TjRnm9IURFxIlexYQ16Sj6hlcCXA=";
+        };
+      }
+    );
 
-      installPhase = ''
-        mkdir -p $out/bin
-        cp $src $out/bin/biome
-        chmod +x $out/bin/biome
-      '';
-    };
+    # Pinned to match dashboard/package.json's @playwright/test; Chromium only.
+    playwright-driver =
+      let
+        chromiumRevision = "1223";
+        chromiumVersion = "148.0.7778.96";
+        cft = path: "https://cdn.playwright.dev/builds/cft/${chromiumVersion}/${path}";
+        components = prev.playwright-driver.components;
+        chromium = components.chromium.overrideAttrs (_: {
+          src = prev.fetchzip {
+            url = cft "linux64/chrome-linux64.zip";
+            stripRoot = true;
+            hash = "sha256-TnplS4C/PPcmyWrMCqWh7c1KrpevHJFKO0gfh46M3tk=";
+          };
+        });
+        chromium-headless-shell = components."chromium-headless-shell".overrideAttrs (_: {
+          src = prev.fetchzip {
+            url = cft "linux64/chrome-headless-shell-linux64.zip";
+            stripRoot = false;
+            hash = "sha256-Nr0/uczFTBTqvRPR0c/wflIqG5relgKfC9XsMOdE9iE=";
+          };
+        });
+        browsers = prev.linkFarm "playwright-browsers" [
+          {
+            name = "chromium-${chromiumRevision}";
+            path = chromium;
+          }
+          {
+            name = "chromium_headless_shell-${chromiumRevision}";
+            path = chromium-headless-shell;
+          }
+          {
+            name = "ffmpeg-1011";
+            path = components.ffmpeg;
+          }
+        ];
+      in
+      (prev.playwright-driver.overrideAttrs (old: rec {
+        version = "1.60.0";
+        src = prev.fetchFromGitHub {
+          owner = "Microsoft";
+          repo = "playwright";
+          rev = "v${version}";
+          hash = "sha256-jtQHyphdZsS8hf7uhe9zrx16Uf+kgLLha6dTCsCTT/8=";
+        };
+        npmDepsHash = "sha256-K1bCDURaq2+kaqGQcOL1tD6tQt/37pyDFWq2njUVNS4=";
+      })).overrideAttrs
+        (old: {
+          passthru = old.passthru // {
+            inherit browsers;
+          };
+        });
 
   }
 )

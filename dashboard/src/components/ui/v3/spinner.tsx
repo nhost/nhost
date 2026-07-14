@@ -1,6 +1,6 @@
 import { cva, type VariantProps } from 'class-variance-authority';
 import { Loader2 } from 'lucide-react';
-import { type ReactNode, useEffect, useState } from 'react';
+import type { ReactNode } from 'react';
 import { cn } from '@/lib/utils';
 
 const spinnerVariants = cva('flex-col items-center justify-center', {
@@ -35,7 +35,6 @@ interface SpinnerContentProps
   className?: string;
   children?: ReactNode;
   wrapperClassName?: string;
-  delay?: number;
 }
 
 export function Spinner({
@@ -44,29 +43,9 @@ export function Spinner({
   children,
   className,
   wrapperClassName,
-  delay = 0,
 }: SpinnerContentProps) {
-  const [isDelayed, setIsDelayed] = useState(delay > 0);
-
-  useEffect(() => {
-    if (delay <= 0) {
-      setIsDelayed(false);
-      return;
-    }
-
-    const timer = setTimeout(() => {
-      setIsDelayed(false);
-    }, delay);
-
-    return () => clearTimeout(timer);
-  }, [delay]);
-
-  const shouldShow = show && !isDelayed;
-
   return (
-    <span
-      className={cn(spinnerVariants({ show: shouldShow }), wrapperClassName)}
-    >
+    <span className={cn(spinnerVariants({ show }), wrapperClassName)}>
       <Loader2
         role="progressbar"
         className={cn(

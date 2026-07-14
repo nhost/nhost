@@ -200,9 +200,11 @@ describe('ImportBackupContent', () => {
     const updatedDateTimeButton = screen.getByRole('button', {
       name: /UTC/i,
     });
+
     expect(updatedDateTimeButton).toHaveTextContent(
-      '13 Mar 2025, 18:00:05 (UTC+02:00)',
+      '10 Mar 2025, 05:00:05 (UTC+02:00)',
     );
+
     await user.click(screen.getByRole('button', { name: 'Select' }));
 
     await waitFor(async () =>

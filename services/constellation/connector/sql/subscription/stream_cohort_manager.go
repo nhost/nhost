@@ -8,8 +8,8 @@ import (
 	"sync"
 	"time"
 
+	oapimw "github.com/nhost/nhost/internal/lib/oapi/middleware"
 	"github.com/nhost/nhost/services/constellation/connector/sql/graphql/queries/core"
-	"github.com/nhost/nhost/services/constellation/internal/requestcontext"
 	sub "github.com/nhost/nhost/services/constellation/subscription"
 )
 
@@ -125,7 +125,7 @@ func (m *streamCohortManager) addSubscription(
 
 // removeSubscription removes a subscription from its cohort.
 func (m *streamCohortManager) removeSubscription(ctx context.Context, subID string) {
-	logger := requestcontext.LoggerFromContext(ctx)
+	logger := oapimw.LoggerFromContext(ctx)
 
 	m.mu.Lock()
 	defer m.mu.Unlock()
@@ -899,7 +899,7 @@ func (m *streamCohortManager) attachOrCreateCohortForCursor(
 
 // shutdown gracefully shuts down all stream cohorts.
 func (m *streamCohortManager) shutdown(ctx context.Context) {
-	logger := requestcontext.LoggerFromContext(ctx)
+	logger := oapimw.LoggerFromContext(ctx)
 
 	m.mu.Lock()
 	defer m.mu.Unlock()

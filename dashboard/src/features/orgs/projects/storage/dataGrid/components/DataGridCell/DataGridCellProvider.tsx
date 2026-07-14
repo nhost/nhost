@@ -183,7 +183,7 @@ export default function DataGridCellProvider<TInput extends HTMLElement>({
 
         requestAnimationFrame(() => {
           if (prevCellAvailable) {
-            (cellRef.current?.previousElementSibling as HTMLElement).focus();
+            (cellRef.current!.previousElementSibling as HTMLElement).focus();
             dispatch({ type: 'DESELECT' });
           }
         });
@@ -197,7 +197,7 @@ export default function DataGridCellProvider<TInput extends HTMLElement>({
 
         requestAnimationFrame(() => {
           if (nextCellAvailable) {
-            (cellRef.current?.nextElementSibling as HTMLElement).focus();
+            (cellRef.current!.nextElementSibling as HTMLElement).focus();
             dispatch({ type: 'DESELECT' });
           }
         });

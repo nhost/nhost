@@ -1,12 +1,7 @@
 import { Plus } from 'lucide-react';
 import { useRouter } from 'next/router';
 import { useEffect, useMemo } from 'react';
-import {
-  useFieldArray,
-  useFormContext,
-  useFormState,
-  useWatch,
-} from 'react-hook-form';
+import { useFieldArray, useFormContext, useWatch } from 'react-hook-form';
 import * as Yup from 'yup';
 import { useDialog } from '@/components/common/DialogProvider';
 import { Form } from '@/components/form/Form';
@@ -84,6 +79,8 @@ export type BaseForeignKeySchemaValues = Yup.InferType<
   typeof baseForeignKeyValidationSchema
 >;
 
+const DIRTY_SOURCE_ID = 'base-foreign-keyform';
+
 export default function BaseForeignKeyForm({
   availableColumns,
   constraintColumnSets,
@@ -92,7 +89,7 @@ export default function BaseForeignKeyForm({
   submitButtonText = 'Save',
   location,
 }: BaseForeignKeyFormProps) {
-  const { onDirtyStateChange } = useDialog();
+  const { setDirtySource } = useDialog();
 
   const router = useRouter();
   const {
@@ -100,9 +97,8 @@ export default function BaseForeignKeyForm({
   } = router;
 
   const form = useFormContext<BaseForeignKeySchemaValues>();
-  const { control, setValue, getValues } = form;
-  const { dirtyFields, isSubmitting } =
-    useFormState<BaseForeignKeySchemaValues>();
+  const { control, setValue, getValues, subscribe, formState } = form;
+  const { isSubmitting } = formState;
 
   const { fields, append, remove } = useFieldArray({
     control,
@@ -132,10 +128,6 @@ export default function BaseForeignKeyForm({
     [referencedTableData],
   );
 
-  // react-hook-form's isDirty gets true even if an input field is focused, then
-  // immediately unfocused - we can't rely on that information
-  const isDirty = Object.keys(dirtyFields).length > 0;
-
   function resetReferencedColumns() {
     setValue(
       'columnMappings',
@@ -148,18 +140,15 @@ export default function BaseForeignKeyForm({
   }
 
   useEffect(() => {
-    const unsubscribe = form.subscribe({
-      formState: { dirtyFields: true },
-      callback: ({ dirtyFields: subscribedDirtyFields }) => {
-        onDirtyStateChange(
-          Object.keys(subscribedDirtyFields ?? {}).length > 0,
-          location,
-        );
+    const unsubscribe = subscribe({
+      formState: { isDirty: true },
+      callback: ({ isDirty: isDirtyNext }) => {
+        setDirtySource(DIRTY_SOURCE_ID, Boolean(isDirtyNext), location);
       },
     });
 
     return () => unsubscribe();
-  }, [form, onDirtyStateChange, location]);
+  }, [subscribe, setDirtySource, location]);
 
   const hasReferencedTable = !!referencedSchema && !!referencedTable;
   const referencedTableHasNoColumns =
@@ -330,12 +319,7 @@ export default function BaseForeignKeyForm({
           {submitButtonText}
         </ButtonWithLoading>
 
-        <Button
-          type="button"
-          variant="outline"
-          onClick={onCancel}
-          tabIndex={isDirty ? -1 : 0}
-        >
+        <Button type="button" variant="outline" onClick={onCancel}>
           Cancel
         </Button>
       </div>

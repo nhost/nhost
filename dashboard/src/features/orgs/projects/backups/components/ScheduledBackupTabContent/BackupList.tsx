@@ -1,11 +1,12 @@
-import { ActivityIndicator } from '@/components/ui/v2/ActivityIndicator';
-import { Table } from '@/components/ui/v2/Table';
-import { TableBody } from '@/components/ui/v2/TableBody';
-import { TableCell } from '@/components/ui/v2/TableCell';
-import { TableContainer } from '@/components/ui/v2/TableContainer';
-import { TableHead } from '@/components/ui/v2/TableHead';
-import { TableRow } from '@/components/ui/v2/TableRow';
-import { Text } from '@/components/ui/v2/Text';
+import { Spinner } from '@/components/ui/v3/spinner';
+import {
+  Table,
+  TableBody,
+  TableCell,
+  TableHead,
+  TableHeader,
+  TableRow,
+} from '@/components/ui/v3/table';
 import { useProject } from '@/features/orgs/projects/hooks/useProject';
 import { useGetApplicationBackupsQuery } from '@/utils/__generated__/graphql';
 import BackupListItem from './BackupListItem';
@@ -23,13 +24,7 @@ export default function BackupList() {
   });
 
   if (loadingProject || loadingBackups) {
-    return (
-      <ActivityIndicator
-        delay={500}
-        className="my-5"
-        label="Loading backups..."
-      />
-    );
+    return <Spinner>Loading backups...</Spinner>;
   }
 
   if (error) {
@@ -39,40 +34,38 @@ export default function BackupList() {
   const backups = data?.app?.backups;
 
   return (
-    <TableContainer sx={{ backgroundColor: 'background.paper' }}>
-      <Table>
-        <TableHead>
+    <Table containerClassName="rounded-md bg-background">
+      <TableHeader>
+        <TableRow>
+          <TableHead className="text-foreground">Date</TableHead>
+          <TableHead className="text-foreground">Size</TableHead>
+          <TableHead className="text-foreground">Backed up</TableHead>
+          <TableHead />
+        </TableRow>
+      </TableHeader>
+
+      <TableBody>
+        {backups?.length === 0 && (
           <TableRow>
-            <TableCell>Date</TableCell>
-            <TableCell>Size</TableCell>
-            <TableCell>Backed up</TableCell>
+            <TableCell>
+              <p className="text-muted-foreground text-xs">
+                No backups are available.
+              </p>
+            </TableCell>
+            <TableCell />
+            <TableCell />
             <TableCell />
           </TableRow>
-        </TableHead>
+        )}
 
-        <TableBody>
-          {backups?.length === 0 && (
-            <TableRow>
-              <TableCell>
-                <Text className="text-xs" color="secondary">
-                  No backups are available.
-                </Text>
-              </TableCell>
-              <TableCell />
-              <TableCell />
-              <TableCell />
-            </TableRow>
-          )}
-
-          {backups?.map((backup) => (
-            <BackupListItem
-              key={backup.id}
-              backup={backup}
-              projectId={project?.id}
-            />
-          ))}
-        </TableBody>
-      </Table>
-    </TableContainer>
+        {backups?.map((backup) => (
+          <BackupListItem
+            key={backup.id}
+            backup={backup}
+            projectId={project?.id}
+          />
+        ))}
+      </TableBody>
+    </Table>
   );
 }

@@ -1,7 +1,10 @@
 ---
 title: Configuration Overlays
-description: Learn how to use Configuration Overlays
+description: Use RFC 6902 overlays to apply per-environment tweaks to a single Nhost config across staging, production, and local development.
 keywords: ["configuration overlays", "environment configuration", "RFC6902", "config management", "staging", "production"]
+head:
+  - tag: title
+    content: "Customize Config per Environment with Overlays | Nhost Docs"
 ---
 
 ## Introduction
@@ -76,7 +79,6 @@ To verify that your final configuration is correct, you can use the command `nho
 Finally, you can validate your configuration overlay with the command `nhost config validate [--subdomain $SUBDOMAIN]`
 
 ![view configuration](/images/cli/6.png)
-
 
 ## Run services
 

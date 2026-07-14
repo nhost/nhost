@@ -14,7 +14,7 @@ This package provides a unified client for interacting with Nhost services:
 # Import
 
 ```ts
-import { createClient } from '@nhost/nhost-js'
+import { createClient } from "@nhost/nhost-js";
 ```
 
 # Usage
@@ -24,8 +24,8 @@ Create a client instance to interact with Nhost services:
 ```ts
 const nhost = createClient({
   subdomain,
-  region
-})
+  region,
+});
 
 // Sign in with email/password
 // This will create a session and persist it in the storage
@@ -34,17 +34,17 @@ const nhost = createClient({
 // automatically
 await nhost.auth.signUpEmailPassword({
   email,
-  password
-})
+  password,
+});
 
 // upload a couple of files
 const uplFilesResp = await nhost.storage.uploadFiles({
-  'file[]': [
-    new File(['test1'], 'file-1', { type: 'text/plain' }),
-    new File(['test2 is larger'], 'file-2', { type: 'text/plain' })
-  ]
-})
-console.log(JSON.stringify(uplFilesResp, null, 2))
+  "file[]": [
+    new File(["test1"], "file-1", { type: "text/plain" }),
+    new File(["test2 is larger"], "file-2", { type: "text/plain" }),
+  ],
+});
+console.log(JSON.stringify(uplFilesResp, null, 2));
 // {
 //   "data": {
 //     "processedFiles": [
@@ -94,10 +94,10 @@ const graphResp = await nhost.graphql.request({
          mimeType
        }
      }
-   `
-})
+   `,
+});
 
-console.log(JSON.stringify(graphResp, null, 2))
+console.log(JSON.stringify(graphResp, null, 2));
 // {
 //   "body": {
 //     "data": {
@@ -120,10 +120,10 @@ console.log(JSON.stringify(graphResp, null, 2))
 // }
 
 // make a request to a serverless function
-const funcResp = await nhost.functions.post('/helloworld', {
-  message: 'Hello, World!'
-})
-console.log(JSON.stringify(funcResp.body, null, 2))
+const funcResp = await nhost.functions.post("/helloworld", {
+  message: "Hello, World!",
+});
+console.log(JSON.stringify(funcResp.body, null, 2));
 // {
 //   "message": "Hello, World!"
 // }
@@ -143,23 +143,23 @@ const nhost = createNhostClient({
   region,
   configure: [
     withAdminSession({
-      adminSecret: 'nhost-admin-secret',
-      role: 'user',
+      adminSecret: "nhost-admin-secret",
+      role: "user",
       sessionVariables: {
-        'user-id': '54058C42-51F7-4B37-8B69-C89A841D2221'
-      }
-    })
-  ]
-})
+        "user-id": "54058C42-51F7-4B37-8B69-C89A841D2221",
+      },
+    }),
+  ],
+});
 
 // upload a couple of files
 const uplFilesResp = await nhost.storage.uploadFiles({
-  'file[]': [
-    new File(['test1'], 'file-1', { type: 'text/plain' }),
-    new File(['test2 is larger'], 'file-2', { type: 'text/plain' })
-  ]
-})
-console.log(JSON.stringify(uplFilesResp, null, 2))
+  "file[]": [
+    new File(["test1"], "file-1", { type: "text/plain" }),
+    new File(["test2 is larger"], "file-2", { type: "text/plain" }),
+  ],
+});
+console.log(JSON.stringify(uplFilesResp, null, 2));
 // {
 //   "data": {
 //     "processedFiles": [
@@ -213,7 +213,7 @@ authentication, storage, GraphQL, and serverless functions capabilities.
 #### auth
 
 ```ts
-auth: Client
+auth: Client;
 ```
 
 Authentication client providing methods for user sign-in, sign-up, and session management.
@@ -222,7 +222,7 @@ Use this client to handle all authentication-related operations.
 #### functions
 
 ```ts
-functions: Client
+functions: Client;
 ```
 
 Functions client providing methods for invoking serverless functions.
@@ -231,7 +231,7 @@ Use this client to call your custom serverless functions deployed to Nhost.
 #### graphql
 
 ```ts
-graphql: Client
+graphql: Client;
 ```
 
 GraphQL client providing methods for executing GraphQL operations against your Hasura backend.
@@ -240,7 +240,7 @@ Use this client to query and mutate data in your database through GraphQL.
 #### sessionStorage
 
 ```ts
-sessionStorage: SessionStorage
+sessionStorage: SessionStorage;
 ```
 
 Storage implementation used for persisting session information.
@@ -249,7 +249,7 @@ This handles saving, retrieving, and managing authentication sessions across req
 #### storage
 
 ```ts
-storage: Client
+storage: Client;
 ```
 
 Storage client providing methods for file operations (upload, download, delete).
@@ -279,7 +279,7 @@ from the storage automatically and calling this method is not necessary.
 
 ```ts
 // Log out the user
-nhost.clearSession()
+nhost.clearSession();
 ```
 
 #### getUserSession()
@@ -300,11 +300,11 @@ The current session or null if no session exists
 ##### Example
 
 ```ts
-const session = nhost.getUserSession()
+const session = nhost.getUserSession();
 if (session) {
-  console.log('User is authenticated:', session.user.id)
+  console.log("User is authenticated:", session.user.id);
 } else {
-  console.log('No active session')
+  console.log("No active session");
 }
 ```
 
@@ -336,10 +336,10 @@ The new session or null if there is currently no session or if refresh fails
 
 ```ts
 // Refresh token if it's about to expire in the next 5 minutes
-const refreshedSession = await nhost.refreshSession(300)
+const refreshedSession = await nhost.refreshSession(300);
 
 // Force refresh regardless of current token expiration
-const forcedRefresh = await nhost.refreshSession(0)
+const forcedRefresh = await nhost.refreshSession(0);
 ```
 
 ---
@@ -496,7 +496,7 @@ Nhost region (e.g., 'eu-central-1'). Used to construct the base URL for services
 #### storage
 
 ```ts
-storage: SessionStorageBackend
+storage: SessionStorageBackend;
 ```
 
 Storage backend to use for session persistence in server environments.
@@ -559,7 +559,7 @@ SessionStorageBackend
 #### accessToken
 
 ```ts
-accessToken: string
+accessToken: string;
 ```
 
 JWT token for authenticating API requests
@@ -572,7 +572,7 @@ Example - `"eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9..."`
 #### accessTokenExpiresIn
 
 ```ts
-accessTokenExpiresIn: number
+accessTokenExpiresIn: number;
 ```
 
 Expiration time of the access token in seconds
@@ -586,7 +586,7 @@ Format - int64
 #### decodedToken
 
 ```ts
-decodedToken: DecodedToken
+decodedToken: DecodedToken;
 ```
 
 Decoded JWT token payload with processed timestamps and Hasura claims
@@ -594,7 +594,7 @@ Decoded JWT token payload with processed timestamps and Hasura claims
 #### refreshToken
 
 ```ts
-refreshToken: string
+refreshToken: string;
 ```
 
 Token used to refresh the access token
@@ -608,7 +608,7 @@ Pattern - \b[0-9a-f]{8}\b-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-\b[0-9a-f]{12}\b
 #### refreshTokenId
 
 ```ts
-refreshTokenId: string
+refreshTokenId: string;
 ```
 
 Identifier for the refresh token
@@ -636,7 +636,7 @@ User profile and account information
 ## ClientConfigurationFn
 
 ```ts
-type ClientConfigurationFn = (clients: object) => void
+type ClientConfigurationFn = (clients: object) => void;
 ```
 
 Configuration function that receives all clients and can configure them
@@ -662,7 +662,7 @@ Configuration function that receives all clients and can configure them
 ## withClientSideSessionMiddleware
 
 ```ts
-const withClientSideSessionMiddleware: ClientConfigurationFn
+const withClientSideSessionMiddleware: ClientConfigurationFn;
 ```
 
 Built-in configuration for client-side applications.
@@ -673,7 +673,7 @@ Includes automatic session refresh, token attachment, and session updates.
 ## withServerSideSessionMiddleware
 
 ```ts
-const withServerSideSessionMiddleware: ClientConfigurationFn
+const withServerSideSessionMiddleware: ClientConfigurationFn;
 ```
 
 Built-in configuration for server-side applications.
@@ -685,7 +685,7 @@ to prevent race conditions in server contexts.
 ## createClient()
 
 ```ts
-function createClient(options?: NhostClientOptions): NhostClient
+function createClient(options?: NhostClientOptions): NhostClient;
 ```
 
 Creates and configures a new Nhost client instance optimized for client-side usage.
@@ -719,35 +719,35 @@ A configured Nhost client
 ```ts
 // Create client using Nhost cloud default URLs
 const nhost = createClient({
-  subdomain: 'abcdefgh',
-  region: 'eu-central-1'
-})
+  subdomain: "abcdefgh",
+  region: "eu-central-1",
+});
 
 // Create client with custom service URLs
 const customNhost = createClient({
-  authUrl: 'https://auth.example.com',
-  storageUrl: 'https://storage.example.com',
-  graphqlUrl: 'https://graphql.example.com',
-  functionsUrl: 'https://functions.example.com'
-})
+  authUrl: "https://auth.example.com",
+  storageUrl: "https://storage.example.com",
+  graphqlUrl: "https://graphql.example.com",
+  functionsUrl: "https://functions.example.com",
+});
 
 // Create client using cookies for storing the session
-import { CookieStorage } from '@nhost/nhost-js/session'
+import { CookieStorage } from "@nhost/nhost-js/session";
 
 const nhost = createClient({
-  subdomain: 'abcdefgh',
-  region: 'eu-central-1',
+  subdomain: "abcdefgh",
+  region: "eu-central-1",
   storage: new CookieStorage({
-    secure: import.meta.env.ENVIRONMENT === 'production'
-  })
-})
+    secure: import.meta.env.ENVIRONMENT === "production",
+  }),
+});
 
 // Create client with additional custom middleware
 const nhost = createClient({
-  subdomain: 'abcdefgh',
-  region: 'eu-central-1',
-  configure: [customLoggingMiddleware]
-})
+  subdomain: "abcdefgh",
+  region: "eu-central-1",
+  configure: [customLoggingMiddleware],
+});
 ```
 
 ---
@@ -755,7 +755,7 @@ const nhost = createClient({
 ## createNhostClient()
 
 ```ts
-function createNhostClient(options?: NhostClientOptions): NhostClient
+function createNhostClient(options?: NhostClientOptions): NhostClient;
 ```
 
 Creates and configures a new Nhost client instance with custom configuration.
@@ -781,17 +781,20 @@ A configured Nhost client
 ```ts
 // Create a basic client with no middleware
 const nhost = createNhostClient({
-  subdomain: 'abcdefgh',
-  region: 'eu-central-1',
-  configure: []
-})
+  subdomain: "abcdefgh",
+  region: "eu-central-1",
+  configure: [],
+});
 
 // Create a client with custom configuration
 const nhost = createNhostClient({
-  subdomain: 'abcdefgh',
-  region: 'eu-central-1',
-  configure: [withClientSideSessionMiddleware, withChainFunctions([customLoggingMiddleware])]
-})
+  subdomain: "abcdefgh",
+  region: "eu-central-1",
+  configure: [
+    withClientSideSessionMiddleware,
+    withChainFunctions([customLoggingMiddleware]),
+  ],
+});
 
 // Create an admin client
 const nhost = createNhostClient({
@@ -799,14 +802,14 @@ const nhost = createNhostClient({
   region,
   configure: [
     withAdminSession({
-      adminSecret: 'nhost-admin-secret',
-      role: 'user',
+      adminSecret: "nhost-admin-secret",
+      role: "user",
       sessionVariables: {
-        'user-id': '54058C42-51F7-4B37-8B69-C89A841D2221'
-      }
-    })
-  ]
-})
+        "user-id": "54058C42-51F7-4B37-8B69-C89A841D2221",
+      },
+    }),
+  ],
+});
 ```
 
 ---
@@ -814,7 +817,7 @@ const nhost = createNhostClient({
 ## createServerClient()
 
 ```ts
-function createServerClient(options: NhostServerClientOptions): NhostClient
+function createServerClient(options: NhostServerClientOptions): NhostClient;
 ```
 
 Creates and configures a new Nhost client instance optimized for server-side usage.
@@ -851,98 +854,98 @@ A configured Nhost client optimized for server-side usage
 
 ```ts
 // Example with cookie storage for Next.js API route or server component
-import { cookies } from 'next/headers'
+import { cookies } from "next/headers";
 
 const nhost = createServerClient({
-  region: process.env['NHOST_REGION'] || 'local',
-  subdomain: process.env['NHOST_SUBDOMAIN'] || 'local',
+  region: process.env["NHOST_REGION"] || "local",
+  subdomain: process.env["NHOST_SUBDOMAIN"] || "local",
   storage: {
     // storage compatible with Next.js server components
     get: (): StoredSession | null => {
-      const s = cookieStore.get(key)?.value || null
+      const s = cookieStore.get(key)?.value || null;
       if (!s) {
-        return null
+        return null;
       }
-      const session = JSON.parse(s) as StoredSession
-      return session
+      const session = JSON.parse(s) as StoredSession;
+      return session;
     },
     set: (value: StoredSession) => {
-      cookieStore.set(key, JSON.stringify(value))
+      cookieStore.set(key, JSON.stringify(value));
     },
     remove: () => {
-      cookieStore.delete(key)
-    }
-  }
-})
+      cookieStore.delete(key);
+    },
+  },
+});
 
 // Example with cookie storage for Next.js middleware
 const nhost = createServerClient({
-  region: process.env['NHOST_REGION'] || 'local',
-  subdomain: process.env['NHOST_SUBDOMAIN'] || 'local',
+  region: process.env["NHOST_REGION"] || "local",
+  subdomain: process.env["NHOST_SUBDOMAIN"] || "local",
   storage: {
     // storage compatible with Next.js middleware
     get: (): StoredSession | null => {
-      const raw = request.cookies.get(key)?.value || null
+      const raw = request.cookies.get(key)?.value || null;
       if (!raw) {
-        return null
+        return null;
       }
-      const session = JSON.parse(raw) as StoredSession
-      return session
+      const session = JSON.parse(raw) as StoredSession;
+      return session;
     },
     set: (value: StoredSession) => {
       response.cookies.set({
         name: key,
         value: JSON.stringify(value),
-        path: '/',
+        path: "/",
         httpOnly: false, //if set to true we can't access it in the client
-        secure: process.env.NODE_ENV === 'production',
-        sameSite: 'lax',
-        maxAge: 60 * 60 * 24 * 30 // 30 days in seconds
-      })
+        secure: process.env.NODE_ENV === "production",
+        sameSite: "lax",
+        maxAge: 60 * 60 * 24 * 30, // 30 days in seconds
+      });
     },
     remove: () => {
-      response.cookies.delete(key)
-    }
-  }
-})
+      response.cookies.delete(key);
+    },
+  },
+});
 
 // Example for express reading session from a cookie
 
-import express, { Request, Response } from 'express'
-import cookieParser from 'cookie-parser'
+import express, { Request, Response } from "express";
+import cookieParser from "cookie-parser";
 
-app.use(cookieParser())
+app.use(cookieParser());
 
 const nhostClientFromCookies = (req: Request) => {
   return createServerClient({
-    subdomain: 'local',
-    region: 'local',
+    subdomain: "local",
+    region: "local",
     storage: {
       get: (): StoredSession | null => {
-        const s = req.cookies.nhostSession || null
+        const s = req.cookies.nhostSession || null;
         if (!s) {
-          return null
+          return null;
         }
-        const session = JSON.parse(s) as StoredSession
-        return session
+        const session = JSON.parse(s) as StoredSession;
+        return session;
       },
       set: (_value: StoredSession) => {
-        throw new Error('It is easier to handle the session in the client')
+        throw new Error("It is easier to handle the session in the client");
       },
       remove: () => {
-        throw new Error('It is easier to handle the session in the client')
-      }
-    }
-  })
-}
+        throw new Error("It is easier to handle the session in the client");
+      },
+    },
+  });
+};
 
 // Example with additional custom middleware
 const nhost = createServerClient({
-  region: process.env['NHOST_REGION'] || 'local',
-  subdomain: process.env['NHOST_SUBDOMAIN'] || 'local',
+  region: process.env["NHOST_REGION"] || "local",
+  subdomain: process.env["NHOST_SUBDOMAIN"] || "local",
   storage: myStorage,
-  configure: [customLoggingMiddleware]
-})
+  configure: [customLoggingMiddleware],
+});
 ```
 
 ---
@@ -951,11 +954,11 @@ const nhost = createServerClient({
 
 ```ts
 function generateServiceUrl(
-  serviceType: 'auth' | 'storage' | 'graphql' | 'functions',
+  serviceType: "auth" | "storage" | "graphql" | "functions",
   subdomain?: string,
   region?: string,
-  customUrl?: string
-): string
+  customUrl?: string,
+): string;
 ```
 
 Generates a base URL for a Nhost service based on configuration
@@ -980,7 +983,9 @@ The base URL for the service
 ## withAdminSession()
 
 ```ts
-function withAdminSession(adminSession: AdminSessionOptions): ClientConfigurationFn
+function withAdminSession(
+  adminSession: AdminSessionOptions,
+): ClientConfigurationFn;
 ```
 
 Configuration for admin clients with elevated privileges.

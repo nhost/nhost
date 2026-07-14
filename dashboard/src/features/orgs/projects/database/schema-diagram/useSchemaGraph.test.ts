@@ -1,6 +1,7 @@
 import type { HasuraMetadataTable } from '@/features/orgs/projects/database/dataGrid/types/dataBrowser';
 import { renderHook } from '@/tests/testUtils';
-import { computeNodeHeight } from './layout';
+import type { ExportMetadataResponseMetadataSourcesItemFunctionsItem } from '@/utils/hasura-api/generated/schemas';
+import { computeNodeHeight, TABLE_NODE_WIDTH } from './layout';
 import type {
   SchemaDiagramColumn,
   SchemaDiagramForeignKey,
@@ -10,8 +11,13 @@ import useSchemaGraph, {
   columnHandleId,
   EDGE_MARKER_IDS,
   type FkEdgeData,
+  FUNCTION_SOURCE_HANDLE_ID,
+  type FunctionNode,
+  functionNodeIdFor,
+  type NamingMode,
   nodeIdFor,
-  type TableNode,
+  type SchemaDiagramNode,
+  TABLE_ROW_HANDLE_ID,
   type TableNodeData,
 } from './useSchemaGraph';
 
@@ -67,12 +73,17 @@ function buildFunctionReturnType(
     name: 'full_name',
     returnType: 'text',
     returnsSet: false,
+    isVolatile: false,
     ...overrides,
   };
 }
 
-function dataOf(node: TableNode): TableNodeData {
-  return node.data;
+function dataOf(node: SchemaDiagramNode): TableNodeData {
+  return node.data as TableNodeData;
+}
+
+function functionDataOf(node: SchemaDiagramNode): FunctionNode['data'] {
+  return node.data as FunctionNode['data'];
 }
 
 describe('useSchemaGraph', () => {
@@ -99,6 +110,7 @@ describe('useSchemaGraph', () => {
         foreignKeys: [],
         role: 'admin',
         functionReturnTypes: [],
+        functionsMetadata: [],
         visibleSchemas: new Set(['public']),
         hideTablesWithoutPermissions: false,
         namingMode: 'graphql',
@@ -125,6 +137,7 @@ describe('useSchemaGraph', () => {
         foreignKeys: [],
         role: 'admin',
         functionReturnTypes: [],
+        functionsMetadata: [],
         visibleSchemas: new Set(['public']),
         hideTablesWithoutPermissions: false,
         namingMode: 'graphql',
@@ -146,6 +159,7 @@ describe('useSchemaGraph', () => {
         foreignKeys: [],
         role: 'admin',
         functionReturnTypes: [],
+        functionsMetadata: [],
         visibleSchemas: new Set(),
         hideTablesWithoutPermissions: false,
         namingMode: 'graphql',
@@ -171,6 +185,7 @@ describe('useSchemaGraph', () => {
         foreignKeys: [],
         role: 'admin',
         functionReturnTypes: [],
+        functionsMetadata: [],
         visibleSchemas: new Set(['public']),
         hideTablesWithoutPermissions: false,
         namingMode: 'graphql',
@@ -204,6 +219,7 @@ describe('useSchemaGraph', () => {
         foreignKeys: [],
         role: 'user',
         functionReturnTypes: [],
+        functionsMetadata: [],
         visibleSchemas: new Set(['public']),
         hideTablesWithoutPermissions: true,
         namingMode: 'graphql',
@@ -226,6 +242,7 @@ describe('useSchemaGraph', () => {
         foreignKeys: [],
         role: 'user',
         functionReturnTypes: [],
+        functionsMetadata: [],
         visibleSchemas: new Set(['public']),
         hideTablesWithoutPermissions: false,
         namingMode: 'graphql',
@@ -264,6 +281,7 @@ describe('useSchemaGraph', () => {
         foreignKeys,
         role: 'admin',
         functionReturnTypes: [],
+        functionsMetadata: [],
         visibleSchemas: new Set(['public']),
         hideTablesWithoutPermissions: false,
         namingMode: 'graphql',
@@ -294,6 +312,7 @@ describe('useSchemaGraph', () => {
         foreignKeys: [fk],
         role: 'admin',
         functionReturnTypes: [],
+        functionsMetadata: [],
         visibleSchemas: new Set(['public']),
         hideTablesWithoutPermissions: false,
         namingMode: 'postgres',
@@ -365,6 +384,7 @@ describe('useSchemaGraph', () => {
         foreignKeys,
         role: 'admin',
         functionReturnTypes: [],
+        functionsMetadata: [],
         visibleSchemas: new Set(['public']),
         hideTablesWithoutPermissions: false,
         namingMode: 'postgres',
@@ -421,6 +441,7 @@ describe('useSchemaGraph', () => {
         foreignKeys: [buildForeignKey()],
         role: 'admin',
         functionReturnTypes: [],
+        functionsMetadata: [],
         visibleSchemas: new Set(['public']),
         hideTablesWithoutPermissions: false,
         namingMode: 'graphql',
@@ -450,6 +471,7 @@ describe('useSchemaGraph', () => {
         foreignKeys: [],
         role: 'admin',
         functionReturnTypes: [],
+        functionsMetadata: [],
         visibleSchemas: new Set(['public']),
         hideTablesWithoutPermissions: false,
         namingMode: 'graphql',
@@ -484,6 +506,7 @@ describe('useSchemaGraph', () => {
         foreignKeys: [],
         role: 'admin',
         functionReturnTypes: [],
+        functionsMetadata: [],
         visibleSchemas: new Set(['public']),
         hideTablesWithoutPermissions: false,
         namingMode: 'graphql',
@@ -526,6 +549,7 @@ describe('useSchemaGraph', () => {
           foreignKeys: [fk],
           role: 'admin',
           functionReturnTypes: [],
+          functionsMetadata: [],
           visibleSchemas: new Set(['public']),
           hideTablesWithoutPermissions: false,
           namingMode: 'postgres',
@@ -687,6 +711,7 @@ describe('useSchemaGraph', () => {
           foreignKeys: [fk],
           role: 'admin',
           functionReturnTypes: [],
+          functionsMetadata: [],
           visibleSchemas: new Set(['public']),
           hideTablesWithoutPermissions: false,
           namingMode: 'graphql',
@@ -717,6 +742,7 @@ describe('useSchemaGraph', () => {
           foreignKeys: [fk],
           role: 'admin',
           functionReturnTypes: [],
+          functionsMetadata: [],
           visibleSchemas: new Set(['public']),
           hideTablesWithoutPermissions: false,
           namingMode: 'graphql',
@@ -752,6 +778,7 @@ describe('useSchemaGraph', () => {
           foreignKeys: [fk],
           role: 'admin',
           functionReturnTypes: [],
+          functionsMetadata: [],
           visibleSchemas: new Set(['public']),
           hideTablesWithoutPermissions: false,
           namingMode: 'graphql',
@@ -771,6 +798,7 @@ describe('useSchemaGraph', () => {
           foreignKeys: [fk],
           role: 'admin',
           functionReturnTypes: [],
+          functionsMetadata: [],
           visibleSchemas: new Set(['public']),
           hideTablesWithoutPermissions: false,
           namingMode: 'postgres',
@@ -1032,6 +1060,7 @@ describe('useSchemaGraph', () => {
           foreignKeys,
           role: 'admin',
           functionReturnTypes: [],
+          functionsMetadata: [],
           visibleSchemas: new Set(['public']),
           hideTablesWithoutPermissions: false,
           namingMode: 'graphql',
@@ -1233,6 +1262,7 @@ describe('useSchemaGraph', () => {
               returnsSet: false,
             }),
           ],
+          functionsMetadata: [],
           visibleSchemas: new Set(['public']),
           hideTablesWithoutPermissions: false,
           namingMode: 'graphql',
@@ -1240,7 +1270,7 @@ describe('useSchemaGraph', () => {
       );
 
       const node = result.current.nodes.find((n) => n.id === 'public.users')!;
-      expect(node.data.computedFields).toEqual([
+      expect(dataOf(node).computedFields).toEqual([
         {
           name: 'full_name',
           returnType: 'text',
@@ -1279,6 +1309,7 @@ describe('useSchemaGraph', () => {
               returnsSet: true,
             }),
           ],
+          functionsMetadata: [],
           visibleSchemas: new Set(['public']),
           hideTablesWithoutPermissions: false,
           namingMode: 'graphql',
@@ -1286,7 +1317,9 @@ describe('useSchemaGraph', () => {
       );
 
       const node = result.current.nodes.find((n) => n.id === 'public.users')!;
-      expect(node.data.computedFields[0].returnType).toBe('setof public.posts');
+      expect(dataOf(node).computedFields[0].returnType).toBe(
+        'setof public.posts',
+      );
     });
 
     it('returns returnType: undefined when no matching functionReturnTypes entry exists', () => {
@@ -1311,6 +1344,7 @@ describe('useSchemaGraph', () => {
           foreignKeys: [],
           role: 'admin',
           functionReturnTypes: [],
+          functionsMetadata: [],
           visibleSchemas: new Set(['public']),
           hideTablesWithoutPermissions: false,
           namingMode: 'graphql',
@@ -1318,7 +1352,7 @@ describe('useSchemaGraph', () => {
       );
 
       const node = result.current.nodes.find((n) => n.id === 'public.users')!;
-      expect(node.data.computedFields[0].returnType).toBeUndefined();
+      expect(dataOf(node).computedFields[0].returnType).toBeUndefined();
     });
 
     it('sizes node height by columns + computedFields', () => {
@@ -1359,6 +1393,7 @@ describe('useSchemaGraph', () => {
           foreignKeys: [],
           role: 'admin',
           functionReturnTypes: [],
+          functionsMetadata: [],
           visibleSchemas: new Set(['public']),
           hideTablesWithoutPermissions: false,
           namingMode: 'graphql',
@@ -1394,6 +1429,7 @@ describe('useSchemaGraph', () => {
           foreignKeys: [],
           role: 'admin',
           functionReturnTypes: [],
+          functionsMetadata: [],
           visibleSchemas: new Set(['public']),
           hideTablesWithoutPermissions: false,
           namingMode: 'postgres',
@@ -1401,7 +1437,7 @@ describe('useSchemaGraph', () => {
       );
 
       const node = result.current.nodes.find((n) => n.id === 'public.users')!;
-      expect(node.data.computedFields).toEqual([]);
+      expect(dataOf(node).computedFields).toEqual([]);
       expect(node.initialHeight).toBe(computeNodeHeight(1));
     });
   });
@@ -1434,6 +1470,7 @@ describe('useSchemaGraph', () => {
           foreignKeys: [],
           role: 'admin',
           functionReturnTypes: [],
+          functionsMetadata: [],
           visibleSchemas: new Set(['public']),
           hideTablesWithoutPermissions: false,
           namingMode: 'graphql',
@@ -1441,8 +1478,8 @@ describe('useSchemaGraph', () => {
       );
 
       const node = result.current.nodes.find((n) => n.id === 'public.users')!;
-      expect(node.data.tableGraphqlName).toBe('User');
-      expect(node.data.columns[0].graphqlName).toBe('emailAddress');
+      expect(dataOf(node).tableGraphqlName).toBe('User');
+      expect(dataOf(node).columns[0].graphqlName).toBe('emailAddress');
     });
 
     it('falls back to deprecated custom_column_names', () => {
@@ -1471,6 +1508,7 @@ describe('useSchemaGraph', () => {
           foreignKeys: [],
           role: 'admin',
           functionReturnTypes: [],
+          functionsMetadata: [],
           visibleSchemas: new Set(['public']),
           hideTablesWithoutPermissions: false,
           namingMode: 'graphql',
@@ -1478,7 +1516,7 @@ describe('useSchemaGraph', () => {
       );
 
       const node = result.current.nodes.find((n) => n.id === 'public.users')!;
-      expect(node.data.columns[0].graphqlName).toBe('emailAddress');
+      expect(dataOf(node).columns[0].graphqlName).toBe('emailAddress');
     });
   });
 
@@ -1517,6 +1555,7 @@ describe('useSchemaGraph', () => {
           foreignKeys: [],
           role: 'admin',
           functionReturnTypes: [],
+          functionsMetadata: [],
           visibleSchemas: new Set(['public']),
           hideTablesWithoutPermissions: false,
           namingMode: 'graphql',
@@ -1524,7 +1563,7 @@ describe('useSchemaGraph', () => {
       );
 
       const byId = Object.fromEntries(
-        result.current.nodes.map((n) => [n.id, n.data.objectType]),
+        result.current.nodes.map((n) => [n.id, dataOf(n).objectType]),
       );
       expect(byId['public.users']).toBe('ORDINARY TABLE');
       expect(byId['public.active_users']).toBe('VIEW');
@@ -1542,6 +1581,7 @@ describe('useSchemaGraph', () => {
           foreignKeys: [],
           role: 'admin',
           functionReturnTypes: [],
+          functionsMetadata: [],
           visibleSchemas: new Set(['public']),
           hideTablesWithoutPermissions: false,
           namingMode: 'graphql',
@@ -1549,7 +1589,290 @@ describe('useSchemaGraph', () => {
       );
 
       const node = result.current.nodes.find((n) => n.id === 'public.orphan')!;
-      expect(node.data.objectType).toBe('ORDINARY TABLE');
+      expect(dataOf(node).objectType).toBe('ORDINARY TABLE');
+    });
+  });
+
+  describe('set-returning function nodes', () => {
+    const usersColumns: SchemaDiagramColumn[] = [
+      buildColumn({ schema: 'public', table: 'users', columnName: 'id' }),
+    ];
+
+    function buildFunctionMetadata(
+      schema: string,
+      name: string,
+      configuration?: ExportMetadataResponseMetadataSourcesItemFunctionsItem['configuration'],
+      permissions?: ExportMetadataResponseMetadataSourcesItemFunctionsItem['permissions'],
+    ): ExportMetadataResponseMetadataSourcesItemFunctionsItem {
+      return { function: { schema, name }, configuration, permissions };
+    }
+
+    function renderWithFunction(
+      overrides: {
+        fn?: Partial<SchemaDiagramFunctionReturnType>;
+        functionsMetadata?: ExportMetadataResponseMetadataSourcesItemFunctionsItem[];
+        metadataTables?: HasuraMetadataTable[];
+        visibleSchemas?: Set<string>;
+        namingMode?: NamingMode;
+        inferFunctionPermissions?: boolean;
+        role?: string;
+      } = {},
+    ) {
+      return renderHook(() =>
+        useSchemaGraph({
+          metadataTables: overrides.metadataTables ?? [],
+          tableLikeObjects: [],
+          columns: usersColumns,
+          foreignKeys: [],
+          functionReturnTypes: [
+            buildFunctionReturnType({
+              schema: 'public',
+              name: 'find_users',
+              returnType: 'public.users',
+              returnsSet: true,
+              returnSchema: 'public',
+              returnTable: 'users',
+              ...overrides.fn,
+            }),
+          ],
+          functionsMetadata: overrides.functionsMetadata ?? [],
+          inferFunctionPermissions: overrides.inferFunctionPermissions,
+          role: overrides.role ?? 'admin',
+          visibleSchemas: overrides.visibleSchemas ?? new Set(['public']),
+          hideTablesWithoutPermissions: false,
+          namingMode: overrides.namingMode ?? 'graphql',
+        }),
+      );
+    }
+
+    function findFunctionNode(nodes: SchemaDiagramNode[]): SchemaDiagramNode {
+      const node = nodes.find((n) => n.type === 'functionNode');
+      if (!node) {
+        throw new Error('expected a function node');
+      }
+      return node;
+    }
+
+    it('renders a function node and an edge to the table it returns SETOF', () => {
+      const { result } = renderWithFunction();
+
+      const fnNode = findFunctionNode(result.current.nodes);
+      expect(fnNode.id).toBe(functionNodeIdFor('public', 'find_users'));
+      expect(functionDataOf(fnNode).returnTablePostgres).toBe('users');
+
+      const fnEdge = result.current.edges.find((e) => e.data?.isFunctionEdge);
+      expect(fnEdge).toBeDefined();
+      expect(fnEdge?.source).toBe(functionNodeIdFor('public', 'find_users'));
+      expect(fnEdge?.target).toBe(nodeIdFor('public', 'users'));
+      expect(fnEdge?.sourceHandle).toBe(FUNCTION_SOURCE_HANDLE_ID);
+      expect(fnEdge?.targetHandle).toBe(TABLE_ROW_HANDLE_ID);
+      expect(fnEdge?.markerEnd).toBe(EDGE_MARKER_IDS.functionArrow);
+      expect(fnEdge?.style?.strokeDasharray).toBeUndefined();
+    });
+
+    it('does not add a node for functions that do not return a set', () => {
+      const { result } = renderWithFunction({ fn: { returnsSet: false } });
+
+      expect(result.current.nodes.some((n) => n.type === 'functionNode')).toBe(
+        false,
+      );
+      expect(result.current.edges.some((e) => e.data?.isFunctionEdge)).toBe(
+        false,
+      );
+    });
+
+    it('does not add a node when the return type is not a table (e.g. SETOF record)', () => {
+      const { result } = renderWithFunction({
+        fn: {
+          returnType: 'record',
+          returnSchema: undefined,
+          returnTable: undefined,
+        },
+      });
+
+      expect(result.current.nodes.some((n) => n.type === 'functionNode')).toBe(
+        false,
+      );
+    });
+
+    it('skips the function when its return table is not a visible node', () => {
+      const { result } = renderWithFunction({
+        fn: { returnSchema: 'private', returnTable: 'secrets' },
+      });
+
+      expect(result.current.nodes.some((n) => n.type === 'functionNode')).toBe(
+        false,
+      );
+      expect(result.current.edges.some((e) => e.data?.isFunctionEdge)).toBe(
+        false,
+      );
+    });
+
+    it('hides the function node when its own schema is not visible', () => {
+      const { result } = renderWithFunction({
+        fn: { schema: 'analytics' },
+        visibleSchemas: new Set(['public']),
+      });
+
+      expect(result.current.nodes.some((n) => n.type === 'functionNode')).toBe(
+        false,
+      );
+    });
+
+    it('marks the function node untracked when absent from functionsMetadata', () => {
+      const { result } = renderWithFunction({ functionsMetadata: [] });
+
+      expect(
+        functionDataOf(findFunctionNode(result.current.nodes)).isUntracked,
+      ).toBe(true);
+    });
+
+    it('marks the function node tracked when present in functionsMetadata', () => {
+      const { result } = renderWithFunction({
+        functionsMetadata: [buildFunctionMetadata('public', 'find_users')],
+      });
+
+      expect(
+        functionDataOf(findFunctionNode(result.current.nodes)).isUntracked,
+      ).toBe(false);
+    });
+
+    it('renders the function node in postgres mode as well', () => {
+      const { result } = renderWithFunction({ namingMode: 'postgres' });
+
+      expect(result.current.nodes.some((n) => n.type === 'functionNode')).toBe(
+        true,
+      );
+    });
+
+    it('resolves the GraphQL root-field name and the return table GraphQL name', () => {
+      const { result } = renderWithFunction({
+        functionsMetadata: [
+          buildFunctionMetadata('public', 'find_users', {
+            custom_root_fields: { function: 'findUsers' },
+          }),
+        ],
+        metadataTables: [
+          buildMetadataTable('public', 'users', {
+            configuration: { custom_name: 'User' },
+            // biome-ignore lint/suspicious/noExplicitAny: configuration uses a loosely-typed Record in the metadata type
+          } as any),
+        ],
+      });
+
+      const data = functionDataOf(findFunctionNode(result.current.nodes));
+      expect(data.graphqlName).toBe('findUsers');
+      expect(data.returnTableGraphql).toBe('User');
+    });
+
+    it('falls back to custom_name when no custom root field is set', () => {
+      const { result } = renderWithFunction({
+        functionsMetadata: [
+          buildFunctionMetadata('public', 'find_users', {
+            custom_name: 'usersSearch',
+          }),
+        ],
+      });
+
+      expect(
+        functionDataOf(findFunctionNode(result.current.nodes)).graphqlName,
+      ).toBe('usersSearch');
+    });
+
+    it('sizes the function node as a single row and matches the table node width', () => {
+      const { result } = renderWithFunction();
+
+      const fnNode = findFunctionNode(result.current.nodes);
+      expect(fnNode.initialHeight).toBe(computeNodeHeight(1));
+      expect(fnNode.initialWidth).toBe(TABLE_NODE_WIDTH);
+    });
+
+    describe('function permission inputs', () => {
+      it('passes inferFunctionPermissions through to the node data', () => {
+        const { result } = renderWithFunction({
+          inferFunctionPermissions: true,
+        });
+
+        expect(
+          functionDataOf(findFunctionNode(result.current.nodes))
+            .inferFunctionPermissions,
+        ).toBe(true);
+      });
+
+      it('marks isMutationFunction when exposed_as is "mutation"', () => {
+        const { result } = renderWithFunction({
+          functionsMetadata: [
+            buildFunctionMetadata('public', 'find_users', {
+              exposed_as: 'mutation',
+            }),
+          ],
+        });
+
+        expect(
+          functionDataOf(findFunctionNode(result.current.nodes))
+            .isMutationFunction,
+        ).toBe(true);
+      });
+
+      it('infers isMutationFunction from volatility when exposed_as is unset', () => {
+        const { result } = renderWithFunction({
+          fn: { isVolatile: true },
+          functionsMetadata: [buildFunctionMetadata('public', 'find_users')],
+        });
+
+        expect(
+          functionDataOf(findFunctionNode(result.current.nodes))
+            .isMutationFunction,
+        ).toBe(true);
+      });
+
+      it('does not treat a volatile function as a mutation when exposed_as is "query"', () => {
+        const { result } = renderWithFunction({
+          fn: { isVolatile: true },
+          functionsMetadata: [
+            buildFunctionMetadata('public', 'find_users', {
+              exposed_as: 'query',
+            }),
+          ],
+        });
+
+        expect(
+          functionDataOf(findFunctionNode(result.current.nodes))
+            .isMutationFunction,
+        ).toBe(false);
+      });
+
+      it('reflects whether the selected role has an explicit function permission', () => {
+        const { result } = renderWithFunction({
+          role: 'user',
+          functionsMetadata: [
+            buildFunctionMetadata('public', 'find_users', undefined, [
+              { role: 'user' },
+            ]),
+          ],
+        });
+
+        expect(
+          functionDataOf(findFunctionNode(result.current.nodes))
+            .hasFunctionPermission,
+        ).toBe(true);
+      });
+
+      it('reports no function permission when the role is absent from the list', () => {
+        const { result } = renderWithFunction({
+          role: 'manager',
+          functionsMetadata: [
+            buildFunctionMetadata('public', 'find_users', undefined, [
+              { role: 'user' },
+            ]),
+          ],
+        });
+
+        expect(
+          functionDataOf(findFunctionNode(result.current.nodes))
+            .hasFunctionPermission,
+        ).toBe(false);
+      });
     });
   });
 
@@ -1643,6 +1966,7 @@ describe('useSchemaGraph', () => {
             returnType: 'text',
           }),
         ],
+        functionsMetadata: [],
         visibleSchemas: new Set(['public']),
         hideTablesWithoutPermissions: false,
       };

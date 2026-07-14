@@ -29,6 +29,8 @@ export interface ComboboxOption {
    */
   render?: ReactNode;
   group?: string;
+  disabled?: boolean;
+  keywords?: string[];
 }
 
 export interface ComboboxProps {
@@ -184,19 +186,20 @@ const Combobox = forwardRef<HTMLButtonElement, ComboboxProps>(
                     <CommandItem
                       key={option.value}
                       value={option.value}
-                      keywords={[option.label]}
+                      keywords={option.keywords ?? [option.label]}
+                      disabled={option.disabled}
                       onSelect={() => {
                         onChange(option.value);
                         setOpen(false);
                       }}
                     >
-                      {option.render ?? option.label}
                       <Check
                         className={cn(
-                          'ml-auto size-4',
+                          'mr-2 size-4 shrink-0',
                           option.value === value ? 'opacity-100' : 'opacity-0',
                         )}
                       />
+                      {option.render ?? option.label}
                     </CommandItem>
                   ))}
                 </CommandGroup>
