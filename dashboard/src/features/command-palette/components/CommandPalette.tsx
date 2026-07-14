@@ -1,6 +1,6 @@
-import { Search } from 'lucide-react';
+import { ChevronRight, Search } from 'lucide-react';
 import type { KeyboardEvent } from 'react';
-import { useEffect, useMemo, useRef, useState } from 'react';
+import { Fragment, useEffect, useMemo, useRef, useState } from 'react';
 import { Logo } from '@/components/presentational/Logo';
 import {
   Command,
@@ -37,11 +37,12 @@ export interface CommandPaletteProps {
   items: ScoredNode[];
   scopeStack: CommandNode[];
   onPopScope: VoidFunction;
+  onPopTo: (index: number) => void;
   onDrill: (node: CommandNode) => void;
   onNavigate: (node: CommandNode) => void;
   recentItems?: ScoredNode[];
   pageItems?: ScoredNode[];
-  switchItems?: ScoredNode[];
+  orgProjectItems?: ScoredNode[];
   className?: string;
 }
 
@@ -83,7 +84,7 @@ interface GetCommandPaletteSectionsArgs {
   items: ScoredNode[];
   recentItems: ScoredNode[];
   pageItems: ScoredNode[];
-  switchItems: ScoredNode[];
+  orgProjectItems: ScoredNode[];
 }
 
 const getCommandPaletteSections = ({
@@ -92,13 +93,17 @@ const getCommandPaletteSections = ({
   items,
   recentItems,
   pageItems,
-  switchItems,
+  orgProjectItems,
 }: GetCommandPaletteSectionsArgs): CommandPaletteSection[] => {
   if (queryIsEmpty && !currentScope) {
     const injectedSections = [
       { id: 'recent', title: 'Recent', items: recentItems },
       { id: 'pages', title: 'Pages', items: pageItems },
-      { id: 'switch', title: 'Switch', items: switchItems },
+      {
+        id: 'orgs-projects',
+        title: 'Organizations & Projects',
+        items: orgProjectItems,
+      },
     ].filter((section) => section.items.length > 0);
 
     return injectedSections.length > 0
@@ -133,16 +138,23 @@ const getSelectedNode = (
 interface CommandPaletteItemsProps {
   sections: CommandPaletteSection[];
   onSelectNode: (node: CommandNode) => void;
+  selectedValue: string;
 }
 
 const CommandPaletteItems = ({
   sections,
   onSelectNode,
+  selectedValue,
 }: CommandPaletteItemsProps) =>
   sections.map((section, index) => (
     <CommandGroup heading={section.title} key={section.id}>
       {section.items.map((item) => (
-        <CommandRow item={item} key={item.node.id} onSelect={onSelectNode} />
+        <CommandRow
+          item={item}
+          key={item.node.id}
+          onSelect={onSelectNode}
+          selected={item.node.id === selectedValue}
+        />
       ))}
       {index < sections.length - 1 && <CommandSeparator />}
     </CommandGroup>
@@ -156,11 +168,12 @@ export const CommandPalette = ({
   items,
   scopeStack,
   onPopScope,
+  onPopTo,
   onDrill,
   onNavigate,
   recentItems = [],
   pageItems = [],
-  switchItems = [],
+  orgProjectItems = [],
   className,
 }: CommandPaletteProps) => {
   const inputRef = useRef<HTMLInputElement>(null);
@@ -177,9 +190,16 @@ export const CommandPalette = ({
       items,
       recentItems,
       pageItems,
-      switchItems,
+      orgProjectItems,
     });
-  }, [currentScope, items, pageItems, queryIsEmpty, recentItems, switchItems]);
+  }, [
+    currentScope,
+    items,
+    orgProjectItems,
+    pageItems,
+    queryIsEmpty,
+    recentItems,
+  ]);
 
   const selectedNode = useMemo(
     () => getSelectedNode(sections, selectedValue),
@@ -198,7 +218,7 @@ export const CommandPalette = ({
   };
 
   const selectNode = (node: CommandNode) => {
-    if (isContainer(node)) {
+    if (isContainer(node) && node.path === undefined) {
       handleDrill(node);
       return;
     }
@@ -297,9 +317,22 @@ export const CommandPalette = ({
           >
             <div ref={contentRef}>
               {currentScope && (
-                <div className="mt-2 flex items-center gap-2 border-b px-3 py-2">
+                <div className="mt-2 flex flex-wrap items-center gap-2 border-b px-3 py-2">
                   <span className="text-muted-foreground text-xs">Scope</span>
-                  <ScopeChip onRemove={onPopScope} scope={currentScope} />
+                  {scopeStack.map((scope, index) => (
+                    <Fragment key={scope.id}>
+                      {index > 0 && (
+                        <ChevronRight
+                          aria-hidden="true"
+                          className="h-3 w-3 shrink-0 text-muted-foreground"
+                        />
+                      )}
+                      <ScopeChip
+                        onRemove={() => onPopTo(index)}
+                        scope={scope}
+                      />
+                    </Fragment>
+                  ))}
                 </div>
               )}
               <CommandList className="mt-2 max-h-[420px]">
@@ -326,6 +359,7 @@ export const CommandPalette = ({
                 <CommandPaletteItems
                   onSelectNode={selectNode}
                   sections={sections}
+                  selectedValue={selectedValue}
                 />
               </CommandList>
             </div>
@@ -345,14 +379,12 @@ export const CommandPalette = ({
                 <kbd className={footerHintClassName}>↓</kbd>
                 <span>navigate</span>
               </span>
-              <span className="flex items-center gap-1">
-                <kbd className={footerHintClassName}>↵</kbd>
-                <span>select</span>
-              </span>
-              <span className="flex items-center gap-1">
-                <kbd className={footerHintClassName}>⌫</kbd>
-                <span>back</span>
-              </span>
+              {currentScope && (
+                <span className="flex items-center gap-1">
+                  <kbd className={footerHintClassName}>⌫</kbd>
+                  <span>back</span>
+                </span>
+              )}
               <span className="flex items-center gap-1">
                 <kbd className={footerHintClassName}>esc</kbd>
                 <span>close</span>

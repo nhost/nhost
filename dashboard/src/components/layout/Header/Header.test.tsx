@@ -8,7 +8,10 @@ import { fireEvent, render, screen } from '@/tests/testUtils';
 
 const push = vi.fn();
 const router = {
-  query: { orgSlug: 'org-a', appSubdomain: 'project-a' },
+  query: { orgSlug: 'org-a', appSubdomain: 'project-a' } as {
+    orgSlug?: string;
+    appSubdomain?: string;
+  },
   asPath: '/orgs/org-a/projects/project-a',
   route: '/orgs/[orgSlug]/projects/[appSubdomain]',
   push,
@@ -18,6 +21,7 @@ const router = {
 const useOrgsMock = vi.fn();
 const useProjectMock = vi.fn();
 const useIsPlatformMock = vi.fn();
+const useTreeNavStateMock = vi.fn();
 
 vi.mock('next/router', () => ({
   useRouter: () => router,
@@ -37,6 +41,10 @@ vi.mock('@/components/layout/MobileNav', () => ({
 
 vi.mock('@/components/layout/Header/BreadcrumbNav', () => ({
   default: () => <nav>Breadcrumbs</nav>,
+}));
+
+vi.mock('@/components/layout/MainNav/TreeNavStateContext', () => ({
+  useTreeNavState: () => useTreeNavStateMock(),
 }));
 
 vi.mock(
@@ -85,6 +93,7 @@ beforeEach(() => {
   process.env.NEXT_PUBLIC_NHOST_CONFIGSERVER_URL = 'http://config.local';
   router.query = { orgSlug: 'org-a', appSubdomain: 'project-a' };
   useIsPlatformMock.mockReturnValue(true);
+  useTreeNavStateMock.mockReturnValue({ mainNavPinned: true });
   useOrgsMock.mockReturnValue({
     orgs: [orgA],
     currentOrg: orgA,
@@ -107,32 +116,50 @@ beforeEach(() => {
   window.HTMLElement.prototype.scrollIntoView = vi.fn();
 });
 
+const renderHeader = () =>
+  render(
+    <CommandPaletteProvider>
+      <Header />
+    </CommandPaletteProvider>,
+  );
+
 describe('Header command palette affordance', () => {
   it('opens the command palette when clicked', async () => {
-    render(
-      <CommandPaletteProvider>
-        <Header />
-      </CommandPaletteProvider>,
-    );
+    renderHeader();
 
-    fireEvent.click(screen.getAllByLabelText('Open command palette')[0]);
+    fireEvent.click(screen.getByLabelText('Open command palette'));
 
     expect(await screen.findByRole('dialog')).toBeInTheDocument();
     expect(screen.getByLabelText('Search dashboard')).toBeInTheDocument();
   });
 
-  it('renders a discoverable field affordance with a responsive icon-only variant', () => {
-    render(
-      <CommandPaletteProvider>
-        <Header />
-      </CommandPaletteProvider>,
-    );
+  it('renders a single icon trigger hidden on desktop while the pinned rail is visible', () => {
+    renderHeader();
 
-    expect(screen.getByText('Search…')).toBeInTheDocument();
-    expect(screen.getByText('Ctrl K')).toBeInTheDocument();
-    expect(screen.getAllByLabelText('Open command palette')).toHaveLength(2);
-    expect(screen.getAllByLabelText('Open command palette')[0]).toHaveClass(
-      'lg:hidden',
+    const triggers = screen.getAllByLabelText('Open command palette');
+
+    expect(triggers).toHaveLength(1);
+    expect(triggers[0]).toHaveClass('md:hidden');
+    expect(screen.queryByText('Search…')).not.toBeInTheDocument();
+  });
+
+  it('keeps the icon trigger visible when the nav is unpinned', () => {
+    useTreeNavStateMock.mockReturnValue({ mainNavPinned: false });
+
+    renderHeader();
+
+    expect(screen.getByLabelText('Open command palette')).not.toHaveClass(
+      'md:hidden',
+    );
+  });
+
+  it('keeps the icon trigger visible on pages without an org', () => {
+    router.query = {};
+
+    renderHeader();
+
+    expect(screen.getByLabelText('Open command palette')).not.toHaveClass(
+      'md:hidden',
     );
   });
 });

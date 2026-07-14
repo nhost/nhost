@@ -1,11 +1,15 @@
 import {
   commandPaletteReducer,
+  createAffinityRanker,
   getScopeRoot,
   getSearchCandidates,
   getVisibleItems,
   initialCommandPaletteState,
 } from '@/features/command-palette/lib/machine';
-import type { CommandNode } from '@/features/command-palette/types';
+import type {
+  CommandNode,
+  RuntimeCommandNode,
+} from '@/features/command-palette/types';
 
 const tree: CommandNode = {
   id: 'root',
@@ -85,6 +89,29 @@ describe('command palette machine', () => {
     expect(drilledState).toEqual({ query: '', scopeStack: [projectPages] });
   });
 
+  it('drills through provided ancestors without duplicating existing scopes', () => {
+    const drilled = commandPaletteReducer(initialCommandPaletteState, {
+      type: 'drill',
+      node: database,
+      ancestors: [projectPages],
+    });
+
+    expect(drilled).toEqual({
+      query: '',
+      scopeStack: [projectPages, database],
+    });
+
+    const redrilled = commandPaletteReducer(
+      { query: 'data', scopeStack: [projectPages] },
+      { type: 'drill', node: database, ancestors: [projectPages] },
+    );
+
+    expect(redrilled).toEqual({
+      query: '',
+      scopeStack: [projectPages, database],
+    });
+  });
+
   it('does not drill into leaves', () => {
     expect(
       commandPaletteReducer(initialCommandPaletteState, {
@@ -107,6 +134,26 @@ describe('command palette machine', () => {
     expect(
       commandPaletteReducer(initialCommandPaletteState, { type: 'popScope' }),
     ).toBe(initialCommandPaletteState);
+  });
+
+  it('pops back to before the given scope index and ignores invalid indexes', () => {
+    const scopedState = {
+      query: 'data',
+      scopeStack: [projectPages, database],
+    };
+
+    expect(
+      commandPaletteReducer(scopedState, { type: 'popToScope', index: 1 }),
+    ).toEqual({ query: 'data', scopeStack: [projectPages] });
+    expect(
+      commandPaletteReducer(scopedState, { type: 'popToScope', index: 0 }),
+    ).toEqual({ query: 'data', scopeStack: [] });
+    expect(
+      commandPaletteReducer(scopedState, { type: 'popToScope', index: 2 }),
+    ).toBe(scopedState);
+    expect(
+      commandPaletteReducer(scopedState, { type: 'popToScope', index: -1 }),
+    ).toBe(scopedState);
   });
 
   it('resets to the initial state', () => {
@@ -156,6 +203,72 @@ describe('command palette machine', () => {
         switchNode,
       ]),
     ).toEqual([]);
+  });
+
+  it('stops search candidates at boundary nodes but searches inside a drilled boundary', () => {
+    const projectNode: CommandNode = {
+      id: 'switch:project:acme:app',
+      title: 'My App',
+      kind: 'project',
+      path: '',
+      scope: 'project',
+      searchBoundary: true,
+      children: [
+        {
+          id: 'clone-logs',
+          title: 'Logs',
+          kind: 'page',
+          path: 'logs',
+          scope: 'project',
+        },
+      ],
+    };
+    const orgNode: CommandNode = {
+      id: 'switch:org:acme',
+      title: 'Acme',
+      kind: 'org',
+      path: 'projects',
+      scope: 'org',
+      children: [projectNode],
+    };
+
+    expect(getSearchCandidates(orgNode).map((node) => node.id)).toEqual([
+      'switch:project:acme:app',
+    ]);
+    expect(getSearchCandidates(projectNode).map((node) => node.id)).toEqual([
+      'clone-logs',
+    ]);
+  });
+
+  it('breaks score ties by context affinity before title order', () => {
+    const makeProjectNode = (
+      title: string,
+      orgSlug: string,
+      appSubdomain: string,
+    ): RuntimeCommandNode => ({
+      id: `switch:project:${orgSlug}:${appSubdomain}`,
+      title,
+      kind: 'project',
+      path: '',
+      scope: 'project',
+      commandPalette: { orgSlug, appSubdomain },
+    });
+    const extras = [
+      makeProjectNode('App A', 'other', 'app-c'),
+      makeProjectNode('App B', 'acme', 'app-b'),
+      makeProjectNode('App C', 'acme', 'app-a'),
+    ];
+    const getAffinity = createAffinityRanker({
+      orgSlug: 'acme',
+      appSubdomain: 'app-a',
+    });
+    const state = { query: 'app', scopeStack: [] };
+
+    expect(
+      getVisibleItems(state, tree, [], extras, getAffinity).map(
+        ({ node }) => node.title,
+      ),
+    ).toEqual(['App C', 'App B', 'App A']);
   });
 
   it('lists scoped direct children while empty and searches within the scope', () => {

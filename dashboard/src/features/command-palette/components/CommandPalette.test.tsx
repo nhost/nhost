@@ -24,8 +24,12 @@ const makeNode = (
   ...overrides,
 });
 
-const database = makeNode({ id: 'database', title: 'Database' });
-const logs = makeNode({ id: 'logs', title: 'Logs' });
+const database = makeNode({
+  id: 'database',
+  title: 'Database',
+  path: 'database/browser/default',
+});
+const logs = makeNode({ id: 'logs', title: 'Logs', path: 'logs' });
 const settings = makeNode({
   id: 'settings',
   title: 'Settings',
@@ -49,10 +53,11 @@ interface RenderPaletteArgs {
   scopeStack?: CommandNode[];
   recentItems?: ScoredNode[];
   pageItems?: ScoredNode[];
-  switchItems?: ScoredNode[];
+  orgProjectItems?: ScoredNode[];
   onDrill?: (node: CommandNode) => void;
   onNavigate?: (node: CommandNode) => void;
   onPopScope?: VoidFunction;
+  onPopTo?: (index: number) => void;
 }
 
 const renderPalette = ({
@@ -61,10 +66,11 @@ const renderPalette = ({
   scopeStack = [],
   recentItems,
   pageItems,
-  switchItems,
+  orgProjectItems,
   onDrill = vi.fn(),
   onNavigate = vi.fn(),
   onPopScope = vi.fn(),
+  onPopTo = vi.fn(),
 }: RenderPaletteArgs = {}) => {
   const onQueryChange = vi.fn();
   const onOpenChange = vi.fn();
@@ -76,17 +82,25 @@ const renderPalette = ({
       onNavigate={onNavigate}
       onOpenChange={onOpenChange}
       onPopScope={onPopScope}
+      onPopTo={onPopTo}
       onQueryChange={onQueryChange}
       open
+      orgProjectItems={orgProjectItems}
       pageItems={pageItems}
       query={query}
       recentItems={recentItems}
       scopeStack={scopeStack}
-      switchItems={switchItems}
     />,
   );
 
-  return { onDrill, onNavigate, onOpenChange, onPopScope, onQueryChange };
+  return {
+    onDrill,
+    onNavigate,
+    onOpenChange,
+    onPopScope,
+    onPopTo,
+    onQueryChange,
+  };
 };
 
 beforeEach(() => {
@@ -130,6 +144,7 @@ describe('CommandPalette', () => {
           onNavigate={vi.fn()}
           onOpenChange={vi.fn()}
           onPopScope={() => setScopeStack([])}
+          onPopTo={(index) => setScopeStack((stack) => stack.slice(0, index))}
           onQueryChange={vi.fn()}
           open
           query=""
@@ -212,6 +227,7 @@ describe('CommandPalette', () => {
         onNavigate={vi.fn()}
         onOpenChange={vi.fn()}
         onPopScope={onPopScope}
+        onPopTo={vi.fn()}
         onQueryChange={vi.fn()}
         open
         query="data"
@@ -230,6 +246,7 @@ describe('CommandPalette', () => {
         onNavigate={vi.fn()}
         onOpenChange={vi.fn()}
         onPopScope={onPopScope}
+        onPopTo={vi.fn()}
         onQueryChange={vi.fn()}
         open
         query=""
@@ -283,13 +300,69 @@ describe('CommandPalette', () => {
       pageItems: [toItem(database)],
       query: '',
       recentItems: [toItem(logs)],
-      switchItems: [toItem(project)],
+      orgProjectItems: [toItem(project)],
     });
 
     expect(screen.getByText('Recent')).toBeInTheDocument();
     expect(screen.getByText('Pages')).toBeInTheDocument();
-    expect(screen.getByText('Switch')).toBeInTheDocument();
+    expect(screen.getByText('Organizations & Projects')).toBeInTheDocument();
     expect(screen.getByText('Project A')).toBeInTheDocument();
+  });
+
+  it('navigates on Enter for containers with a destination and drills with Tab', async () => {
+    const containerWithPath = makeNode({
+      id: 'database-group',
+      title: 'Database',
+      kind: 'group',
+      path: 'database/browser/default',
+      children: [database],
+    });
+    const onDrill = vi.fn();
+    const onNavigate = vi.fn();
+    renderPalette({
+      items: [toItem(containerWithPath)],
+      onDrill,
+      onNavigate,
+      query: 'data',
+    });
+    const input = screen.getByRole('combobox');
+    input.focus();
+
+    fireEvent.keyDown(input, { key: 'Enter' });
+
+    await waitFor(() =>
+      expect(onNavigate).toHaveBeenCalledWith(containerWithPath),
+    );
+    expect(onDrill).not.toHaveBeenCalled();
+
+    fireEvent.keyDown(input, { key: 'Tab' });
+
+    await waitFor(() =>
+      expect(onDrill).toHaveBeenCalledWith(containerWithPath),
+    );
+  });
+
+  it('renders the whole scope stack as chips and pops back to a clicked chip', () => {
+    const onPopTo = vi.fn();
+    renderPalette({
+      items: [toItem(database)],
+      onPopTo,
+      query: '',
+      scopeStack: [project, container],
+    });
+
+    expect(
+      screen.getByRole('button', { name: /leave project a scope/i }),
+    ).toBeInTheDocument();
+    expect(
+      screen.getByRole('button', { name: /leave data scope/i }),
+    ).toBeInTheDocument();
+
+    fireEvent.click(
+      screen.getByRole('button', { name: /leave project a scope/i }),
+    );
+
+    expect(onPopTo).toHaveBeenCalledWith(0);
   });
 
   it('highlights title match ranges only', () => {
@@ -312,15 +385,58 @@ describe('CommandPalette', () => {
     ).toBeInTheDocument();
   });
 
-  it('renders the footer with the result count and shortcut legend', () => {
+  it('renders the footer with the result count and contextual legend', () => {
     renderPalette({ items: [toItem(database), toItem(logs)], query: 'data' });
 
     expect(screen.getByText('Nhost')).toBeInTheDocument();
     expect(screen.getByText('2 results')).toBeInTheDocument();
     expect(screen.getByText('navigate')).toBeInTheDocument();
-    expect(screen.getByText('select')).toBeInTheDocument();
-    expect(screen.getByText('back')).toBeInTheDocument();
     expect(screen.getByText('close')).toBeInTheDocument();
+    expect(screen.queryByText('select')).not.toBeInTheDocument();
+    expect(screen.queryByText('drill')).not.toBeInTheDocument();
+    expect(screen.queryByText('back')).not.toBeInTheDocument();
+  });
+
+  it('shows the back hint only while scoped', () => {
+    renderPalette({
+      items: [toItem(database)],
+      query: '',
+      scopeStack: [container],
+    });
+
+    expect(screen.getByText('back')).toBeInTheDocument();
+  });
+
+  it('shows contextual key hints only on the focused row', async () => {
+    renderPalette({ items: [toItem(database), toItem(logs)], query: 'a' });
+
+    const databaseRow = screen.getByTestId('command-palette-item-database');
+    await waitFor(() => {
+      expect(databaseRow).toHaveAttribute('aria-selected', 'true');
+    });
+
+    expect(screen.getAllByText('to jump to')).toHaveLength(1);
+    expect(within(databaseRow).getByText('to jump to')).toBeInTheDocument();
+    expect(screen.queryByText('to search')).not.toBeInTheDocument();
+  });
+
+  it('shows both hints for a focused container with a destination', async () => {
+    const containerWithPath = makeNode({
+      id: 'database-group',
+      title: 'Database',
+      kind: 'group',
+      path: 'database/browser/default',
+      children: [database],
+    });
+    renderPalette({ items: [toItem(containerWithPath)], query: 'data' });
+
+    const row = screen.getByTestId('command-palette-item-database-group');
+    await waitFor(() => {
+      expect(row).toHaveAttribute('aria-selected', 'true');
+    });
+
+    expect(within(row).getByText('to jump to')).toBeInTheDocument();
+    expect(within(row).getByText('to search')).toBeInTheDocument();
   });
 
   it('singularizes the footer result count', () => {

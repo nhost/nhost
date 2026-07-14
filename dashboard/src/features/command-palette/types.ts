@@ -14,6 +14,25 @@ export interface CommandNode {
   hint?: string;
   children?: CommandNode[];
   gate?: PageGate;
+  // Search flattening stops here; drilling still descends into children.
+  searchBoundary?: boolean;
+}
+
+export interface CommandNodeMetadata {
+  // Generic tree node behind a runtime clone; drives navigation and recents.
+  originalNode?: CommandNode;
+  orgSlug?: string;
+  appSubdomain?: string;
+}
+
+export type RuntimeCommandNode = CommandNode & {
+  commandPalette?: CommandNodeMetadata;
+};
+
+export interface PaletteOrg {
+  slug: string;
+  name: string;
+  apps: Array<{ name: string; subdomain: string }>;
 }
 
 export type TitleRange = [start: number, end: number];

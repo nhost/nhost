@@ -3,6 +3,7 @@ import { useRouter } from 'next/router';
 import { useEffect, useRef } from 'react';
 import NavTree from '@/components/layout/MainNav/NavTree';
 import { Button } from '@/components/ui/v3/button';
+import { CommandPaletteTrigger } from '@/features/command-palette';
 import CreateOrgDialog from '@/features/orgs/components/CreateOrgFormDialog/CreateOrgFormDialog';
 import { useTreeNavState } from './TreeNavStateContext';
 
@@ -52,7 +53,8 @@ export default function PinnedMainNav() {
 
   return (
     <div className="flex h-full w-full flex-shrink-0 flex-col border-r p-0 sm:max-w-[310px]">
-      <div className="flex h-12 w-full justify-end border-b bg-background p-1">
+      <div className="flex h-12 w-full items-center gap-1 border-b bg-background p-1">
+        <CommandPaletteTrigger className="h-8 min-w-0 flex-1 px-[7px]" />
         <Button
           variant="ghost"
           onClick={() => setMainNavPinned(!mainNavPinned)}

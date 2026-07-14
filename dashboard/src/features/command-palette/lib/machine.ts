@@ -1,6 +1,10 @@
-import { flattenTree } from '@/features/command-palette/lib/flatten';
+import { flattenSearchableTree } from '@/features/command-palette/lib/flatten';
 import { scoreNode } from '@/features/command-palette/lib/score';
-import type { CommandNode, ScoredNode } from '@/features/command-palette/types';
+import type {
+  CommandNode,
+  RuntimeCommandNode,
+  ScoredNode,
+} from '@/features/command-palette/types';
 
 interface CommandPaletteState {
   query: string;
@@ -9,8 +13,9 @@ interface CommandPaletteState {
 
 type CommandPaletteAction =
   | { type: 'setQuery'; query: string }
-  | { type: 'drill'; node: CommandNode }
+  | { type: 'drill'; node: CommandNode; ancestors?: CommandNode[] }
   | { type: 'popScope' }
+  | { type: 'popToScope'; index: number }
   | { type: 'reset' };
 
 export const initialCommandPaletteState: CommandPaletteState = {
@@ -45,9 +50,13 @@ export const commandPaletteReducer = (
       return state;
     }
 
+    const missingAncestors = (action.ancestors ?? []).filter(
+      (ancestor) => !state.scopeStack.some((scope) => scope.id === ancestor.id),
+    );
+
     return {
       query: '',
-      scopeStack: [...state.scopeStack, action.node],
+      scopeStack: [...state.scopeStack, ...missingAncestors, action.node],
     };
   }
 
@@ -62,21 +71,61 @@ export const commandPaletteReducer = (
     };
   }
 
+  if (action.type === 'popToScope') {
+    if (action.index < 0 || action.index >= state.scopeStack.length) {
+      return state;
+    }
+
+    return {
+      query: state.query,
+      scopeStack: state.scopeStack.slice(0, action.index),
+    };
+  }
+
   return initialCommandPaletteState;
 };
 
 // Only nodes that resolve to a destination are search results; structural
 // groups like 'project-pages' have no path and would only add noise.
+// Starting from the children ignores the scope root's own search boundary,
+// so drilling into a boundary node still searches inside it.
 export const getSearchCandidates = (scopeRoot: CommandNode): CommandNode[] =>
-  flattenTree(scopeRoot)
-    .slice(1)
+  (scopeRoot.children ?? [])
+    .flatMap(flattenSearchableTree)
     .filter((node) => node.path !== undefined);
+
+interface AffinityContext {
+  orgSlug?: string;
+  appSubdomain?: string;
+}
+
+export const createAffinityRanker =
+  ({ orgSlug, appSubdomain }: AffinityContext) =>
+  (node: CommandNode): number => {
+    const metadata = (node as RuntimeCommandNode).commandPalette;
+
+    // Nodes without metadata resolve against the current context.
+    if (!metadata) {
+      return 0;
+    }
+
+    if (metadata.appSubdomain && metadata.appSubdomain === appSubdomain) {
+      return 0;
+    }
+
+    if (metadata.orgSlug && metadata.orgSlug === orgSlug) {
+      return 1;
+    }
+
+    return 2;
+  };
 
 export const getVisibleItems = (
   state: CommandPaletteState,
   scopeRoot: CommandNode,
   searchCandidates: CommandNode[],
   rootSearchExtras: CommandNode[] = [],
+  getAffinity: (node: CommandNode) => number = () => 0,
 ): ScoredNode[] => {
   const query = state.query.trim();
 
@@ -95,6 +144,12 @@ export const getVisibleItems = (
     .sort((first, second) => {
       if (first.score !== second.score) {
         return second.score - first.score;
+      }
+
+      const affinityOrder = getAffinity(first.node) - getAffinity(second.node);
+
+      if (affinityOrder !== 0) {
+        return affinityOrder;
       }
 
       const titleOrder = first.node.title.localeCompare(second.node.title);

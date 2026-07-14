@@ -466,7 +466,9 @@ describe('CommandPaletteProvider', () => {
     expect(
       await screen.findByLabelText('Search dashboard'),
     ).toBeInTheDocument();
-    expect(screen.queryByText('Switch')).not.toBeInTheDocument();
+    expect(
+      screen.queryByText('Organizations & Projects'),
+    ).not.toBeInTheDocument();
     expect(screen.queryByText('Deployments')).not.toBeInTheDocument();
     expect(screen.queryByText('Project Settings')).not.toBeInTheDocument();
     expect(screen.queryByText('AI')).not.toBeInTheDocument();
@@ -508,6 +510,227 @@ describe('CommandPaletteProvider', () => {
     ).toBeInTheDocument();
     expect(screen.getByText('Project Settings')).toBeInTheDocument();
     expect(screen.getByText('AI')).toBeInTheDocument();
+  });
+
+  it('drills org → project → page with Tab and navigates into the target project', async () => {
+    renderProvider();
+    const input = await openPalette();
+
+    fireEvent.change(input, { target: { value: 'Org B' } });
+    const orgRow = await screen.findByTestId(
+      'command-palette-item-switch:org:org-b',
+    );
+    await waitFor(() => {
+      expect(orgRow).toHaveAttribute('aria-selected', 'true');
+    });
+    fireEvent.keyDown(input, { key: 'Tab' });
+
+    expect(
+      await screen.findByRole('button', { name: /leave org b scope/i }),
+    ).toBeInTheDocument();
+
+    fireEvent.change(input, { target: { value: 'Project C' } });
+    const projectRow = await screen.findByTestId(
+      'command-palette-item-switch:project:org-b:project-c',
+    );
+    await waitFor(() => {
+      expect(projectRow).toHaveAttribute('aria-selected', 'true');
+    });
+    fireEvent.keyDown(input, { key: 'Tab' });
+
+    expect(
+      await screen.findByRole('button', { name: /leave project c scope/i }),
+    ).toBeInTheDocument();
+
+    fireEvent.change(input, { target: { value: 'database' } });
+    const databaseRow = await screen.findByTestId(
+      'command-palette-item-switch:project:org-b:project-c:project-database',
+    );
+    await waitFor(() => {
+      expect(databaseRow).toHaveAttribute('aria-selected', 'true');
+    });
+    fireEvent.keyDown(input, { key: 'Enter' });
+
+    await waitFor(() => {
+      expect(push).toHaveBeenCalledWith(
+        '/orgs/org-b/projects/project-c/database/browser/default',
+        undefined,
+        { shallow: false },
+      );
+    });
+
+    const stored = JSON.parse(
+      window.localStorage.getItem('command-palette-recent') ?? '[]',
+    );
+    expect(stored[0]).toMatchObject({
+      nodeId: 'project-database',
+      orgSlug: 'org-b',
+      appSubdomain: 'project-c',
+    });
+  });
+
+  it('scopes the organization automatically when drilling a project from the root', async () => {
+    renderProvider();
+    const input = await openPalette();
+
+    fireEvent.change(input, { target: { value: 'Project C' } });
+    const projectRow = await screen.findByTestId(
+      'command-palette-item-switch:project:org-b:project-c',
+    );
+    await waitFor(() => {
+      expect(projectRow).toHaveAttribute('aria-selected', 'true');
+    });
+    fireEvent.keyDown(input, { key: 'Tab' });
+
+    expect(
+      await screen.findByRole('button', { name: /leave project c scope/i }),
+    ).toBeInTheDocument();
+    expect(
+      screen.getByRole('button', { name: /leave org b scope/i }),
+    ).toBeInTheDocument();
+
+    fireEvent.keyDown(input, { key: 'Backspace' });
+
+    await waitFor(() => {
+      expect(
+        screen.queryByRole('button', { name: /leave project c scope/i }),
+      ).not.toBeInTheDocument();
+    });
+    expect(
+      screen.getByRole('button', { name: /leave org b scope/i }),
+    ).toBeInTheDocument();
+  });
+
+  it('removes a scope chip and everything after it', async () => {
+    renderProvider();
+    const input = await openPalette();
+
+    fireEvent.change(input, { target: { value: 'Org B' } });
+    const orgRow = await screen.findByTestId(
+      'command-palette-item-switch:org:org-b',
+    );
+    await waitFor(() => {
+      expect(orgRow).toHaveAttribute('aria-selected', 'true');
+    });
+    fireEvent.keyDown(input, { key: 'Tab' });
+    await screen.findByRole('button', { name: /leave org b scope/i });
+
+    fireEvent.change(input, { target: { value: 'Project C' } });
+    const projectRow = await screen.findByTestId(
+      'command-palette-item-switch:project:org-b:project-c',
+    );
+    await waitFor(() => {
+      expect(projectRow).toHaveAttribute('aria-selected', 'true');
+    });
+    fireEvent.keyDown(input, { key: 'Tab' });
+    await screen.findByRole('button', { name: /leave project c scope/i });
+
+    fireEvent.click(screen.getByRole('button', { name: /leave org b scope/i }));
+
+    await waitFor(() => {
+      expect(
+        screen.queryByRole('button', { name: /leave project c scope/i }),
+      ).not.toBeInTheDocument();
+    });
+    expect(
+      screen.queryByRole('button', { name: /leave org b scope/i }),
+    ).not.toBeInTheDocument();
+  });
+
+  it('resolves project pages to the last-visited project from an org-level page', async () => {
+    window.localStorage.setItem(
+      'command-palette-recent',
+      JSON.stringify([
+        {
+          nodeId: 'project-overview',
+          title: 'Overview',
+          path: '',
+          accessedAt: 1,
+          orgSlug: 'org-b',
+          appSubdomain: 'project-c',
+        },
+      ]),
+    );
+    router.query = { orgSlug: 'org-a' };
+    useProjectMock.mockReturnValue({
+      project: null,
+      loading: false,
+      error: null,
+      refetch: vi.fn(),
+      projectNotFound: false,
+    });
+
+    renderProvider();
+    const input = await openPalette();
+    fireEvent.change(input, { target: { value: 'logs' } });
+
+    const row = await screen.findByTestId('command-palette-item-project-logs');
+    expect(
+      within(row).getByText('Org B / Project C (project-c)'),
+    ).toBeInTheDocument();
+
+    fireEvent.click(row);
+
+    await waitFor(() => {
+      expect(push).toHaveBeenCalledWith(
+        '/orgs/org-b/projects/project-c/logs',
+        undefined,
+        { shallow: false },
+      );
+    });
+  });
+
+  it('resolves project pages to the current org first project without recents', async () => {
+    router.query = { orgSlug: 'org-b' };
+    useProjectMock.mockReturnValue({
+      project: null,
+      loading: false,
+      error: null,
+      refetch: vi.fn(),
+      projectNotFound: false,
+    });
+
+    renderProvider();
+    const input = await openPalette();
+    fireEvent.change(input, { target: { value: 'logs' } });
+
+    fireEvent.click(
+      await screen.findByTestId('command-palette-item-project-logs'),
+    );
+
+    await waitFor(() => {
+      expect(push).toHaveBeenCalledWith(
+        '/orgs/org-b/projects/project-c/logs',
+        undefined,
+        { shallow: false },
+      );
+    });
+  });
+
+  it('ranks matches by context affinity within a score band', async () => {
+    router.query = { orgSlug: 'org-b', appSubdomain: 'project-c' };
+    useProjectMock.mockReturnValue({
+      project: projectC,
+      loading: false,
+      error: null,
+      refetch: vi.fn(),
+      projectNotFound: false,
+    });
+
+    renderProvider();
+    const input = await openPalette();
+    fireEvent.change(input, { target: { value: 'project' } });
+
+    await screen.findByTestId(
+      'command-palette-item-switch:project:org-b:project-c',
+    );
+
+    const rows = screen.getAllByTestId(/command-palette-item-switch:project:/);
+    expect(rows.map((row) => row.getAttribute('data-testid'))).toEqual([
+      'command-palette-item-switch:project:org-b:project-c',
+      'command-palette-item-switch:project:org-a:project-a',
+      'command-palette-item-switch:project:org-a:project-b',
+    ]);
   });
 
   it('stores org-scoped recents without a project subdomain', async () => {
