@@ -75,6 +75,31 @@ final class GraphQLCachePersistenceTests: GraphQLCacheStoreTestCase {
         )
     }
 
+    func testRecoveryAtMaximumAcceptedEntryLimitDoesNotOverflow() async throws {
+        let directory = temporaryDirectory()
+        defer { try? FileManager.default.removeItem(at: directory) }
+        try FileManager.default.createDirectory(
+            at: directory,
+            withIntermediateDirectories: true
+        )
+        let key = digestKey("maximum-entry-limit")
+        let malformedEntryURL = entryURL(directory, key)
+        try Data("malformed".utf8).write(to: malformedEntryURL)
+        let maximumAcceptedEntryBytes = Int.max
+            - GraphQLCacheEntryValidation.maximumEnvelopeOverheadBytes
+        let store = FileGraphQLCacheStore(
+            configuration: fileConfiguration(
+                directory: directory,
+                maximumTotalBytes: Int.max,
+                maximumEntryBytes: maximumAcceptedEntryBytes
+            )
+        )
+
+        try await store.prune()
+
+        XCTAssertFalse(FileManager.default.fileExists(atPath: malformedEntryURL.path))
+    }
+
     func testRecoveryRejectsTruncationVersionLengthAndFilenameKeyMismatch() async throws {
         enum Mutation {
             case truncate
@@ -92,6 +117,8 @@ final class GraphQLCachePersistenceTests: GraphQLCacheStoreTestCase {
                 try await store.write(entry(key: key), for: key)
             }
             let url = entryURL(directory, key)
+            let renamedKey = digestKey("filename-other")
+            let renamedURL = entryURL(directory, renamedKey)
             switch mutation {
             case .truncate:
                 let data = try Data(contentsOf: url)
@@ -105,12 +132,19 @@ final class GraphQLCachePersistenceTests: GraphQLCacheStoreTestCase {
                 data[10] = 0x7f
                 try data.write(to: url)
             case .keyMismatch:
-                let other = digestKey("filename-other")
-                try FileManager.default.moveItem(at: url, to: entryURL(directory, other))
+                try FileManager.default.moveItem(at: url, to: renamedURL)
             }
             let reopened = FileGraphQLCacheStore(configuration: configuration)
             let value = try await reopened.entry(for: key)
             XCTAssertNil(value, "mutation \(mutation) should be rejected")
+            if case .keyMismatch = mutation {
+                let renamedValue = try await reopened.entry(for: renamedKey)
+                XCTAssertNil(
+                    renamedValue,
+                    "renamed envelope should not be accepted under its filename key"
+                )
+                XCTAssertFalse(FileManager.default.fileExists(atPath: renamedURL.path))
+            }
         }
     }
 
@@ -150,31 +184,6 @@ final class GraphQLCachePersistenceTests: GraphQLCacheStoreTestCase {
         XCTAssertNotNil(newFirst)
     }
 
-    func testCancelledWriteDoesNotCommitOrLeaveTemporaryArtifacts() async throws {
-        let directory = temporaryDirectory()
-        defer { try? FileManager.default.removeItem(at: directory) }
-        let store = FileGraphQLCacheStore(
-            configuration: fileConfiguration(directory: directory)
-        )
-        try await store.prune()
-        let key = digestKey("cancelled")
-        let value = entry(key: key)
-        let task = Task {
-            withUnsafeCurrentTask { $0?.cancel() }
-            try await store.write(value, for: key)
-        }
-        switch await task.result {
-        case .success:
-            XCTFail("expected cancellation")
-        case let .failure(error):
-            XCTAssertTrue(error is CancellationError)
-        }
-        let stored = try await store.entry(for: key)
-        XCTAssertNil(stored)
-        let files = try FileManager.default.contentsOfDirectory(atPath: directory.path)
-        XCTAssertFalse(files.contains { $0.hasSuffix(".tmp") })
-    }
-
     func testLimitsOversizeAndOverwriteAccounting() async throws {
         let directory = temporaryDirectory()
         defer { try? FileManager.default.removeItem(at: directory) }
@@ -206,5 +215,63 @@ final class GraphQLCachePersistenceTests: GraphQLCacheStoreTestCase {
         let secondValue = try await store.entry(for: second)
         XCTAssertNotNil(firstValue)
         XCTAssertNotNil(secondValue)
+    }
+}
+
+extension GraphQLCachePersistenceTests {
+    func testPreCancelledWriteDoesNotCommit() async throws {
+        let directory = temporaryDirectory()
+        defer { try? FileManager.default.removeItem(at: directory) }
+        let store = FileGraphQLCacheStore(
+            configuration: fileConfiguration(directory: directory)
+        )
+        try await store.prune()
+        let key = digestKey("pre-cancelled")
+        let value = entry(key: key)
+        let task = Task {
+            withUnsafeCurrentTask { $0?.cancel() }
+            try await store.write(value, for: key)
+        }
+        switch await task.result {
+        case .success:
+            XCTFail("expected cancellation")
+        case let .failure(error):
+            XCTAssertTrue(error is CancellationError)
+        }
+        let stored = try await store.entry(for: key)
+        XCTAssertNil(stored)
+    }
+
+    func testCancelledWriteAfterTemporaryFileSynchronizationRemovesArtifact() async throws {
+        let directory = temporaryDirectory()
+        defer { try? FileManager.default.removeItem(at: directory) }
+        let key = digestKey("cancelled-after-sync")
+        let destination = entryURL(directory, key)
+        let store = FileGraphQLCacheStore(
+            configuration: fileConfiguration(directory: directory),
+            didSynchronizeTemporaryFile: { temporary in
+                XCTAssertNotEqual(temporary, destination)
+                XCTAssertTrue(FileManager.default.fileExists(atPath: temporary.path))
+                withUnsafeCurrentTask { $0?.cancel() }
+            }
+        )
+        try await store.prune()
+        let value = entry(key: key)
+
+        let task = Task {
+            try await store.write(value, for: key)
+        }
+        switch await task.result {
+        case .success:
+            XCTFail("expected cancellation")
+        case let .failure(error):
+            XCTAssertTrue(error is CancellationError)
+        }
+
+        let stored = try await store.entry(for: key)
+        XCTAssertNil(stored)
+        XCTAssertFalse(FileManager.default.fileExists(atPath: destination.path))
+        let files = try FileManager.default.contentsOfDirectory(atPath: directory.path)
+        XCTAssertFalse(files.contains { $0.hasSuffix(".tmp") })
     }
 }

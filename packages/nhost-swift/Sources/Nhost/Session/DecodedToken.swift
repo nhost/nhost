@@ -194,12 +194,18 @@ public struct DecodedToken: Codable, Sendable {
         let inner = value.dropFirst().dropLast()
         var items: [String] = []
         var current = ""
+        var pendingUnquotedWhitespace = ""
         var isQuoted = false
         var isEscaping = false
 
         for character in inner {
             if isEscaping {
-                current.append(character)
+                appendPostgresArrayCharacter(
+                    character,
+                    preservingWhitespace: isQuoted,
+                    current: &current,
+                    pendingUnquotedWhitespace: &pendingUnquotedWhitespace
+                )
                 isEscaping = false
                 continue
             }
@@ -210,21 +216,51 @@ public struct DecodedToken: Codable, Sendable {
             }
 
             if character == "\"" {
+                if !isQuoted {
+                    if !current.isEmpty {
+                        current.append(pendingUnquotedWhitespace)
+                    }
+                    pendingUnquotedWhitespace = ""
+                }
                 isQuoted.toggle()
                 continue
             }
 
             if character == ",", !isQuoted {
-                items.append(current.trimmingCharacters(in: .whitespacesAndNewlines))
+                items.append(current)
                 current = ""
+                pendingUnquotedWhitespace = ""
                 continue
             }
 
-            current.append(character)
+            appendPostgresArrayCharacter(
+                character,
+                preservingWhitespace: isQuoted,
+                current: &current,
+                pendingUnquotedWhitespace: &pendingUnquotedWhitespace
+            )
         }
 
-        items.append(current.trimmingCharacters(in: .whitespacesAndNewlines))
+        items.append(current)
         return items
+    }
+
+    private static func appendPostgresArrayCharacter(
+        _ character: Character,
+        preservingWhitespace: Bool,
+        current: inout String,
+        pendingUnquotedWhitespace: inout String
+    ) {
+        guard preservingWhitespace || !character.isWhitespace else {
+            pendingUnquotedWhitespace.append(character)
+            return
+        }
+
+        if !current.isEmpty {
+            current.append(pendingUnquotedWhitespace)
+        }
+        pendingUnquotedWhitespace = ""
+        current.append(character)
     }
 }
 

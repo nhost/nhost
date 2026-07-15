@@ -127,6 +127,19 @@ final class DecodedTokenTests: XCTestCase {
         )
     }
 
+    func testPostgresArrayPreservesWhitespaceInsideQuotedElements() throws {
+        let token = try testAccessToken(
+            hasuraClaims: ["x-hasura-groups": "{\" a \",\"b\"}"]
+        )
+
+        let decoded = try DecodedToken.decodeUserSession(token)
+
+        XCTAssertEqual(
+            decoded.hasuraClaims?["x-hasura-groups"],
+            .array([.string(" a "), .string("b")])
+        )
+    }
+
     func testMalformedJWTThrows() {
         XCTAssertThrowsError(try DecodedToken.decodeUserSession("not-a-jwt")) { error in
             XCTAssertEqual(error as? NhostSessionError, .invalidAccessTokenFormat)

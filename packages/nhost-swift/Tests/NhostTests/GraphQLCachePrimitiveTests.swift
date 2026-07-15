@@ -192,6 +192,28 @@ final class GraphQLCachePrimitiveTests: XCTestCase {
         }
     }
 
+    func testConfigurationValidationReservesPersistentEnvelopeOverhead() throws {
+        let maximumAcceptedEntryBytes = Int.max
+            - GraphQLCacheEntryValidation.maximumEnvelopeOverheadBytes
+
+        XCTAssertNoThrow(
+            try GraphQLCacheConfiguration(
+                maximumTotalBytes: Int.max,
+                maximumEntryBytes: maximumAcceptedEntryBytes
+            ).validate()
+        )
+        XCTAssertThrowsError(
+            try GraphQLCacheConfiguration(
+                maximumTotalBytes: Int.max,
+                maximumEntryBytes: maximumAcceptedEntryBytes + 1
+            ).validate()
+        ) { error in
+            guard case .invalidConfiguration = error as? GraphQLCacheError else {
+                return XCTFail("expected invalidConfiguration, got \(error)")
+            }
+        }
+    }
+
     func testPublicContractsAreSendable() {
         let resolver: GraphQLCacheScopeResolver = { _ in nil }
         let observer: GraphQLCacheDiagnosticObserver = { _ in }

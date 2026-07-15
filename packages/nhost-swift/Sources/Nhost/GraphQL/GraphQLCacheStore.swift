@@ -81,6 +81,8 @@ public protocol GraphQLCacheStore: Sendable {
 
 enum GraphQLCacheEntryValidation {
     static let maximumMetadataBytes = 64 * 1_024
+    static let envelopeHeaderBytes = 8 + 2 + 4 + 8
+    static let maximumEnvelopeOverheadBytes = maximumMetadataBytes + envelopeHeaderBytes
     static let maximumContentTypeBytes = 1_024
     static let maximumTags = 128
 

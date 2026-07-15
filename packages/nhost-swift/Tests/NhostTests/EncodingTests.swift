@@ -26,6 +26,20 @@ final class EncodingTests: XCTestCase {
         )
     }
 
+    func testQueryAndHeaderEncodersHandleTwoToThe63rdPower() throws {
+        let value = 9_223_372_036_854_775_808.0
+        let url = try XCTUnwrap(URL(string: "https://example.com/v1/files"))
+        let encoded = NhostQueryEncoder.append(["value": .number(value)], to: url)
+        let components = try XCTUnwrap(URLComponents(url: encoded, resolvingAgainstBaseURL: false))
+        let headers = NhostHeaderEncoder.merge(values: ["x-value": .number(value)])
+
+        XCTAssertEqual(
+            components.queryItems,
+            [URLQueryItem(name: "value", value: String(value))]
+        )
+        XCTAssertEqual(headers["x-value"], String(value))
+    }
+
     func testHeaderEncoderSkipsNullAndJoinsArrays() {
         let headers = NhostHeaderEncoder.merge(
             base: ["accept": "application/json", "x-remove": "yes"],

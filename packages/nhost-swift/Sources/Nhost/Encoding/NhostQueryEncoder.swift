@@ -52,7 +52,7 @@ public enum NhostQueryEncoder {
             if value.isFinite,
                value.rounded(.towardZero) == value,
                value >= Double(Int.min),
-               value <= Double(Int.max) {
+               value < Double(Int.max) {
                 return String(Int(value))
             }
 

@@ -2535,7 +2535,7 @@ public struct AuthClient: Sendable {
             queryItems["defaultRole"] = try query.defaultRole.map { try NhostWireEncoder.jsonValue($0) }
             queryItems["displayName"] = try query.displayName.map { try NhostWireEncoder.jsonValue($0) }
             queryItems["locale"] = try query.locale.map { try NhostWireEncoder.jsonValue($0) }
-            queryItems["metadata"] = try query.metadata.map { try NhostWireEncoder.jsonValue($0) }
+            queryItems["metadata"] = try query.metadata.map { JSONValue.string(try NhostWireEncoder.jsonString($0)) }
             if let value = query.providerSpecificParams {
                 queryItems["connection"] = try value.connection.map { try NhostWireEncoder.jsonValue($0) }
                 queryItems["organization"] = try value.organization.map { try NhostWireEncoder.jsonValue($0) }
@@ -2836,7 +2836,7 @@ public struct AuthClient: Sendable {
             queryItems["defaultRole"] = try query.defaultRole.map { try NhostWireEncoder.jsonValue($0) }
             queryItems["displayName"] = try query.displayName.map { try NhostWireEncoder.jsonValue($0) }
             queryItems["locale"] = try query.locale.map { try NhostWireEncoder.jsonValue($0) }
-            queryItems["metadata"] = try query.metadata.map { try NhostWireEncoder.jsonValue($0) }
+            queryItems["metadata"] = try query.metadata.map { JSONValue.string(try NhostWireEncoder.jsonString($0)) }
             if let value = query.providerSpecificParams {
                 queryItems["connection"] = try value.connection.map { try NhostWireEncoder.jsonValue($0) }
                 queryItems["organization"] = try value.organization.map { try NhostWireEncoder.jsonValue($0) }

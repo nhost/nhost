@@ -378,6 +378,11 @@ public struct GraphQLCacheConfiguration: Sendable {
                 "maximumEntryBytes cannot exceed maximumTotalBytes"
             )
         }
+        guard maximumEntryBytes <= Int.max - GraphQLCacheEntryValidation.maximumEnvelopeOverheadBytes else {
+            throw GraphQLCacheError.invalidConfiguration(
+                "maximumEntryBytes leaves insufficient space for persistent cache envelope overhead"
+            )
+        }
         guard maximumEntries > 0 else {
             throw GraphQLCacheError.invalidConfiguration("maximumEntries must be greater than zero")
         }

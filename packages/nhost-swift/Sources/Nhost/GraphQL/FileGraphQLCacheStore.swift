@@ -10,10 +10,20 @@ import Glibc
 /// process-wide backend; incompatible storage limits fail closed.
 public actor FileGraphQLCacheStore: GraphQLCacheStore {
     private let configuration: GraphQLCacheConfiguration
+    private let didSynchronizeTemporaryFile: (@Sendable (URL) -> Void)?
     private var acquiredBackend: GraphQLFileCacheBackend?
 
     public init(configuration: GraphQLCacheConfiguration = GraphQLCacheConfiguration()) {
         self.configuration = configuration
+        didSynchronizeTemporaryFile = nil
+    }
+
+    init(
+        configuration: GraphQLCacheConfiguration,
+        didSynchronizeTemporaryFile: @escaping @Sendable (URL) -> Void
+    ) {
+        self.configuration = configuration
+        self.didSynchronizeTemporaryFile = didSynchronizeTemporaryFile
     }
 
     public func entry(for key: GraphQLCacheKey) async throws -> GraphQLCacheEntry? {
@@ -21,7 +31,11 @@ public actor FileGraphQLCacheStore: GraphQLCacheStore {
     }
 
     public func write(_ entry: GraphQLCacheEntry, for key: GraphQLCacheKey) async throws {
-        try await backend().write(entry, for: key)
+        try await backend().write(
+            entry,
+            for: key,
+            didSynchronizeTemporaryFile: didSynchronizeTemporaryFile
+        )
     }
 
     public func removeEntry(for key: GraphQLCacheKey) async throws {
@@ -147,7 +161,11 @@ private actor GraphQLFileCacheBackend {
         }
     }
 
-    func write(_ entry: GraphQLCacheEntry, for key: GraphQLCacheKey) throws {
+    func write(
+        _ entry: GraphQLCacheEntry,
+        for key: GraphQLCacheKey,
+        didSynchronizeTemporaryFile: (@Sendable (URL) -> Void)?
+    ) throws {
         try ensureInitialized()
         var value = try GraphQLCacheEntryValidation.validated(
             entry,
@@ -169,7 +187,12 @@ private actor GraphQLFileCacheBackend {
         }
 
         let envelope = try GraphQLCacheEnvelope.encode(value)
-        try atomicWrite(envelope, to: entryURL(for: key), honorCancellation: true)
+        try atomicWrite(
+            envelope,
+            to: entryURL(for: key),
+            honorCancellation: true,
+            didSynchronizeTemporaryFile: didSynchronizeTemporaryFile
+        )
         entries[key] = value
         try pruneEntries()
         try persistIndex()
@@ -254,6 +277,13 @@ private actor GraphQLFileCacheBackend {
 
     private func recoverEntries() throws {
         entries.removeAll(keepingCapacity: true)
+        let (maximumFileSize, maximumFileSizeOverflow) = settings.maximumEntryBytes
+            .addingReportingOverflow(GraphQLCacheEntryValidation.maximumEnvelopeOverheadBytes)
+        guard !maximumFileSizeOverflow else {
+            throw GraphQLCacheError.invalidConfiguration(
+                "maximumEntryBytes leaves insufficient space for persistent cache envelope overhead"
+            )
+        }
         let files = try fileManager.contentsOfDirectory(
             at: settings.directoryURL,
             includingPropertiesForKeys: [.fileSizeKey],
@@ -273,9 +303,6 @@ private actor GraphQLFileCacheBackend {
             let key = GraphQLCacheKey(rawValue: rawKey)
             do {
                 let values = try url.resourceValues(forKeys: [.fileSizeKey])
-                let maximumFileSize = settings.maximumEntryBytes
-                    + GraphQLCacheEntryValidation.maximumMetadataBytes
-                    + GraphQLCacheEnvelope.headerSize
                 guard let fileSize = values.fileSize, fileSize <= maximumFileSize else {
                     throw GraphQLCacheError.storeFailure("cache envelope length validation failed")
                 }
@@ -337,7 +364,12 @@ private actor GraphQLFileCacheBackend {
             .appendingPathExtension(Self.entryExtension)
     }
 
-    private func atomicWrite(_ data: Data, to destination: URL, honorCancellation: Bool) throws {
+    private func atomicWrite(
+        _ data: Data,
+        to destination: URL,
+        honorCancellation: Bool,
+        didSynchronizeTemporaryFile: (@Sendable (URL) -> Void)? = nil
+    ) throws {
         if honorCancellation { try Task.checkCancellation() }
         let temporary = settings.directoryURL.appendingPathComponent(
             ".\(destination.lastPathComponent).\(UUID().uuidString).tmp",
@@ -357,6 +389,7 @@ private actor GraphQLFileCacheBackend {
                 throw error
             }
             try applyFileProtection(to: temporary)
+            didSynchronizeTemporaryFile?(temporary)
             if honorCancellation { try Task.checkCancellation() }
             try atomicRename(temporary, destination)
         } catch is CancellationError {
@@ -436,7 +469,7 @@ private actor GraphQLFileCacheBackend {
 private enum GraphQLCacheEnvelope {
     static let magic = Data("NHOSTGQL".utf8)
     static let version: UInt16 = 1
-    static let headerSize = 8 + 2 + 4 + 8
+    static let headerSize = GraphQLCacheEntryValidation.envelopeHeaderBytes
 
     private struct Metadata: Codable {
         let key: String

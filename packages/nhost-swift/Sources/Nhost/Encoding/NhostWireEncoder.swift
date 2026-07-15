@@ -11,6 +11,21 @@ public enum NhostWireEncoder {
         NhostHeaderEncoder.headerValue(from: try jsonValue(value))
     }
 
+    public static func jsonString<T: Encodable>(_ value: T) throws -> String {
+        let data = try NhostJSON.restEncoder.encode(value)
+        guard let string = String(data: data, encoding: .utf8) else {
+            throw EncodingError.invalidValue(
+                value,
+                EncodingError.Context(
+                    codingPath: [],
+                    debugDescription: "JSON encoder produced non-UTF-8 data"
+                )
+            )
+        }
+
+        return string
+    }
+
     public static func commaSeparated<T: Encodable>(_ values: [T]) throws -> String {
         try values.map { try string($0) }.joined(separator: ",")
     }

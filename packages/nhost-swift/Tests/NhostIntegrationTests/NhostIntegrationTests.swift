@@ -52,6 +52,23 @@ private struct IntegrationEnvironment: Sendable {
         )
     }
 
+    func isolatedAuthAccount(for purpose: String) -> IntegrationEnvironment {
+        let identifier = UUID().uuidString.lowercased()
+
+        return IntegrationEnvironment(
+            authURL: authURL,
+            storageURL: storageURL,
+            graphqlURL: graphqlURL,
+            functionsURL: functionsURL,
+            email: "swift-\(purpose)-\(identifier)@example.com",
+            password: "password-\(identifier)",
+            storageBucketID: storageBucketID,
+            graphqlQuery: graphqlQuery,
+            functionsPath: functionsPath,
+            adminSecret: adminSecret
+        )
+    }
+
     private static func url(
         _ name: String,
         defaultValue: String,
@@ -280,10 +297,14 @@ final class AuthIntegrationTests: XCTestCase {
         XCTAssertEqual(storedSession?.accessToken, patSession.accessToken)
     }
 
-    func testChangePasswordClearsSessionAndAllowsReSignIn() async throws {
+    func testChangePasswordUsesIsolatedAccountAndPreservesConfiguredCredentials() async throws {
         let integration = try IntegrationEnvironment.load()
-        let client = integration.makeClient()
-        _ = try await signUp(client: client, integration: integration)
+        let configuredClient = integration.makeClient()
+        _ = try await signUp(client: configuredClient, integration: integration)
+
+        let passwordChangeAccount = integration.isolatedAuthAccount(for: "password-change")
+        let client = passwordChangeAccount.makeClient()
+        _ = try await signUp(client: client, integration: passwordChangeAccount)
 
         let newPassword = "changed-\(UUID().uuidString.lowercased())"
         let change = try await client.auth.changeUserPassword(
@@ -295,10 +316,13 @@ final class AuthIntegrationTests: XCTestCase {
         let cleared = try await client.getUserSession()
         XCTAssertNil(cleared)
 
-        let signIn = try await client.auth.signInEmailPassword(
-            body: AuthSignInEmailPasswordRequest(email: integration.email, password: newPassword)
+        let signInResponse = try await client.auth.signInEmailPassword(
+            body: AuthSignInEmailPasswordRequest(email: passwordChangeAccount.email, password: newPassword)
         )
-        XCTAssertNotNil(signIn.body.session)
+        XCTAssertNotNil(signInResponse.body.session)
+
+        let configuredSession = try await signIn(client: integration.makeClient(), integration: integration)
+        XCTAssertEqual(configuredSession.user?.email, integration.email)
     }
 
     func testUnauthenticatedGetUserFails() async throws {

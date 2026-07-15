@@ -36,5 +36,7 @@ the local backend; `testReadmeSwiftCodeBlocksAppearVerbatimInThisFile` enforces
 - In async XCTest methods, await actor/storage values into local variables before
   passing them to `XCTAssert*`/`XCTUnwrap`; XCTest autoclosures are synchronous
   and reject `await` directly inside assertions.
+- Swift 6 sending checks reject `Task` closures that capture an `XCTestCase`;
+  compute fixture values before creating the task and capture only sendable values.
 - Swift 6 rejects direct `NSLock.lock()`/`unlock()` calls from async functions;
   snapshot protected state with `withLock`, then perform any `await` outside it.
