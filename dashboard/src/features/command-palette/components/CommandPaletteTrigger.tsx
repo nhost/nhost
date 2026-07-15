@@ -1,5 +1,5 @@
 import { Search } from 'lucide-react';
-import { useEffect, useState } from 'react';
+import { useSyncExternalStore } from 'react';
 import { Button } from '@/components/ui/v3/button';
 import { CommandShortcut } from '@/components/ui/v3/command';
 import { useCommandPaletteOpen } from '@/features/command-palette/components/CommandPaletteProvider';
@@ -11,17 +11,21 @@ export interface CommandPaletteTriggerProps {
   onClick?: VoidFunction;
 }
 
+const subscribeToUserAgent = (_onStoreChange: VoidFunction) => () => {};
+const getIsMacSnapshot = () => /Mac|iPhone|iPod|iPad/i.test(navigator.userAgent);
+const getIsMacServerSnapshot = () => false;
+
 export const CommandPaletteTrigger = ({
   variant = 'box',
   className,
   onClick,
 }: CommandPaletteTriggerProps) => {
   const { openCommandPalette } = useCommandPaletteOpen();
-  const [isMac, setIsMac] = useState(false);
-
-  useEffect(() => {
-    setIsMac(/Mac|iPhone|iPod|iPad/i.test(navigator.userAgent));
-  }, []);
+  const isMac = useSyncExternalStore(
+    subscribeToUserAgent,
+    getIsMacSnapshot,
+    getIsMacServerSnapshot,
+  );
 
   const handleClick = () => {
     onClick?.();

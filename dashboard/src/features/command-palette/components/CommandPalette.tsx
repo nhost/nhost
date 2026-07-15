@@ -1,13 +1,6 @@
 import { Search } from 'lucide-react';
 import type { KeyboardEvent } from 'react';
-import {
-  Fragment,
-  useCallback,
-  useEffect,
-  useMemo,
-  useRef,
-  useState,
-} from 'react';
+import { Fragment, useCallback, useMemo, useRef, useState } from 'react';
 import { Logo } from '@/components/presentational/Logo';
 import {
   Command,
@@ -177,10 +170,11 @@ export const CommandPalette = ({
   const inputRef = useRef<HTMLInputElement>(null);
   const listRef = useRef<HTMLDivElement>(null);
   const { contentRef, height, animate } = useAnimatedHeight<HTMLDivElement>();
-  const [selectedValue, setSelectedValue] = useState<string>('');
   const currentScope = scopeStack.at(-1);
   const trimmedQuery = query.trim();
   const queryIsEmpty = trimmedQuery.length === 0;
+  const selectionKey = `${currentScope?.id ?? ''}\0${trimmedQuery}`;
+  const [selection, setSelection] = useState({ key: selectionKey, value: '' });
 
   const sections = useMemo<CommandPaletteSection[]>(() => {
     return getCommandPaletteSections({
@@ -200,34 +194,43 @@ export const CommandPalette = ({
     recentItems,
   ]);
 
-  const selectedNode = useMemo(
-    () => getSelectedNode(sections, selectedValue),
-    [sections, selectedValue],
+  const requestedSelectedValue =
+    selection.key === selectionKey ? selection.value : '';
+  const selectedNode =
+    getSelectedNode(sections, requestedSelectedValue) ??
+    sections[0]?.items[0]?.node;
+  const selectedValue = selectedNode?.id ?? '';
+
+  const handleSelectedValueChange = useCallback(
+    (value: string) => setSelection({ key: selectionKey, value }),
+    [selectionKey],
   );
 
-  // biome-ignore lint/correctness/useExhaustiveDependencies: selection and scroll reset to the top result only when the query or scope changes
-  useEffect(() => {
-    setSelectedValue(sections[0]?.items[0]?.node.id ?? '');
-    listRef.current?.scrollTo({ top: 0 });
-  }, [trimmedQuery, currentScope]);
+  const scrollListToTop = useCallback(() => {
+    listRef.current?.scrollTo?.({ top: 0 });
+  }, []);
 
-  useEffect(() => {
-    if (!selectedNode) {
-      setSelectedValue(sections[0]?.items[0]?.node.id ?? '');
-    }
-  }, [selectedNode, sections]);
+  const handleQueryChange = useCallback(
+    (value: string) => {
+      scrollListToTop();
+      onQueryChange(value);
+    },
+    [onQueryChange, scrollListToTop],
+  );
 
   const handleDrill = useCallback(
     (node: CommandNode) => {
+      scrollListToTop();
       onDrill(node);
       window.requestAnimationFrame(() => inputRef.current?.focus());
     },
-    [onDrill],
+    [onDrill, scrollListToTop],
   );
 
   // The clicked crumb leaves the DOM (or turns into plain text), so focus
   // would otherwise fall back to the body.
   const handlePopTo = (index: number) => {
+    scrollListToTop();
     onPopTo(index);
     window.requestAnimationFrame(() => inputRef.current?.focus());
   };
@@ -262,6 +265,7 @@ export const CommandPalette = ({
     if (event.key === 'Backspace') {
       if (queryIsEmpty && currentScope) {
         event.preventDefault();
+        scrollListToTop();
         onPopScope();
       }
 
@@ -343,14 +347,14 @@ export const CommandPalette = ({
         </DialogDescription>
         <Command
           className="rounded-lg [&_[cmdk-group-heading]]:px-3 [&_[cmdk-group-heading]]:font-medium [&_[cmdk-group-heading]]:text-muted-foreground [&_[cmdk-input-wrapper]_svg]:h-5 [&_[cmdk-input-wrapper]_svg]:w-5"
-          onValueChange={setSelectedValue}
+          onValueChange={handleSelectedValueChange}
           shouldFilter={false}
           value={selectedValue}
         >
           <CommandInput
             aria-label="Search dashboard"
             onKeyDownCapture={handleInputKeyDownCapture}
-            onValueChange={onQueryChange}
+            onValueChange={handleQueryChange}
             placeholder={
               currentScope ? 'Search...' : 'Search pages, settings, projects...'
             }

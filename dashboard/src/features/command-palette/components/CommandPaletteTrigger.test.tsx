@@ -63,6 +63,17 @@ describe('CommandPaletteTrigger', () => {
     expect(screen.getByLabelText('Open command palette')).toBeInTheDocument();
   });
 
+  it('renders the macOS shortcut for Apple user agents', () => {
+    const userAgent = vi
+      .spyOn(window.navigator, 'userAgent', 'get')
+      .mockReturnValue('Macintosh');
+
+    render(<CommandPaletteTrigger />);
+
+    expect(screen.getByText('⌘K')).toBeInTheDocument();
+    userAgent.mockRestore();
+  });
+
   it('renders the icon variant without a visible label', () => {
     render(<CommandPaletteTrigger variant="icon" />);
 

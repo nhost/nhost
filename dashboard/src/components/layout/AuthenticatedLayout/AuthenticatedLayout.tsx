@@ -127,7 +127,7 @@ function AuthenticatedLayoutContent({
 
   return (
     <BaseLayout className="flex h-full flex-col" {...props}>
-      <Header className="flex py-1" pinnedRailVisible={pinnedRailVisible} />
+      <Header className="flex py-1" pinnedRailHidden={!pinnedRailVisible} />
 
       <div
         className="relative flex h-full flex-row overflow-hidden"

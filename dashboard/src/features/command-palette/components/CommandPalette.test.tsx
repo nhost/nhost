@@ -280,30 +280,41 @@ describe('CommandPalette', () => {
     });
     const input = screen.getByRole('combobox');
     input.focus();
+    const scrollIntoView = vi.mocked(
+      window.HTMLElement.prototype.scrollIntoView,
+    );
+    scrollIntoView.mockClear();
 
     await user.keyboard('{ArrowDown}{Enter}');
 
     await waitFor(() => expect(onNavigate).toHaveBeenCalledWith(logs));
+    expect(scrollIntoView).toHaveBeenCalledWith({ block: 'nearest' });
   });
 
   it('resets the selection to the top result and scrolls up when the query changes', async () => {
-    const paletteProps = {
-      items: [toItem(database), toItem(logs)],
-      onDrill: vi.fn(),
-      onNavigate: vi.fn(),
-      onOpenChange: vi.fn(),
-      onPopScope: vi.fn(),
-      onPopTo: vi.fn(),
-      onQueryChange: vi.fn(),
-      open: true,
-      orgProjectItems: [],
-      pageItems: [],
-      recentItems: [],
-      scopeStack: [],
+    const Host = () => {
+      const [query, setQuery] = useState('data');
+
+      return (
+        <CommandPalette
+          items={[toItem(database), toItem(logs)]}
+          onDrill={vi.fn()}
+          onNavigate={vi.fn()}
+          onOpenChange={vi.fn()}
+          onPopScope={vi.fn()}
+          onPopTo={vi.fn()}
+          onQueryChange={setQuery}
+          open
+          orgProjectItems={[]}
+          pageItems={[]}
+          query={query}
+          recentItems={[]}
+          scopeStack={[]}
+        />
+      );
     };
-    const { rerender } = render(
-      <CommandPalette {...paletteProps} query="data" />,
-    );
+
+    render(<Host />);
     const input = screen.getByRole('combobox');
     input.focus();
 
@@ -318,7 +329,8 @@ describe('CommandPalette', () => {
     const scrollTo = vi.mocked(window.HTMLElement.prototype.scrollTo);
     scrollTo.mockClear();
 
-    rerender(<CommandPalette {...paletteProps} query="log" />);
+    await user.clear(input);
+    await user.type(input, 'log');
 
     await waitFor(() => {
       expect(screen.getByRole('option', { name: /Database/ })).toHaveAttribute(

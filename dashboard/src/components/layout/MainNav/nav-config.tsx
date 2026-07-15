@@ -24,8 +24,6 @@ import type { Org } from '@/features/orgs/projects/hooks/useOrgs';
 import { isSettingsDisabled } from '@/hooks/useSettingsDisabled';
 import { isPlatform as getIsPlatform } from '@/utils/env';
 
-// 'platform' pages need the hosted platform; 'settings' pages also work
-// self-hosted when a config server is set.
 export type PageGate = 'platform' | 'settings';
 
 interface PageEntry<Slug extends string = string> {
@@ -343,7 +341,6 @@ export const projectSubPagesBySlug = {
   ai: projectAIPages,
 } satisfies Partial<Record<ProjectPage['slug'], ReadonlyArray<PageEntry>>>;
 
-// Widened view so lookups can be keyed by any project-page slug.
 const subPagesBySlug: Partial<
   Record<ProjectPage['slug'], ReadonlyArray<PageEntry>>
 > = projectSubPagesBySlug;

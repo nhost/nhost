@@ -16,14 +16,14 @@ import BreadcrumbNav from './BreadcrumbNav';
 export type HeaderProps = PropsWithoutRef<
   DetailedHTMLProps<HTMLProps<HTMLDivElement>, HTMLDivElement>
 > & {
-  // True when the layout renders the pinned rail, which carries its own
+  // True when the pinned rail is hidden and the header needs its own
   // palette trigger.
-  pinnedRailVisible?: boolean;
+  pinnedRailHidden?: boolean;
 };
 
 export default function Header({
   className,
-  pinnedRailVisible = false,
+  pinnedRailHidden = true,
   ...props
 }: HeaderProps) {
   const isPlatform = useIsPlatform();
@@ -44,7 +44,7 @@ export default function Header({
 
       <BreadcrumbNav />
 
-      {!pinnedRailVisible && (
+      {pinnedRailHidden && (
         <CommandPaletteTrigger
           variant="icon"
           className="ml-auto h-8 w-8 shrink-0"

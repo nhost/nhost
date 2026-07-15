@@ -122,7 +122,7 @@ describe('Header command palette affordance', () => {
   });
 
   it('drops the trigger while the pinned rail carries its own', () => {
-    renderHeader({ pinnedRailVisible: true });
+    renderHeader({ pinnedRailHidden: false });
 
     expect(
       screen.queryByLabelText('Open command palette'),
